@@ -1,7 +1,14 @@
 CC=gcc
 NVCC = nvcc
 CFLAGS += -g -O3 -Wall
-LDFLAGS += -lpthread
+
+ifeq ($(MARCEL), 1)
+	CC=$(shell pm2-config --cc)
+	LDFLAGS += $(shell pm2-config --libs) 
+	CFLAGS += -DUSE_MARCEL $(shell pm2-config --cflags)
+else
+	LDFLAGS += -lpthread
+endif
 
 # to use CUDA
 CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
