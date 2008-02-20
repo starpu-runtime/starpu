@@ -11,6 +11,7 @@ CUDAINSTALLDIR=/usr/local/cuda/
 # for compile time tuning 
 
 DEFAULTSIZE=2048
+DEFAULTGRAIN=128
 
 ifdef SIZE 
 	CFLAGS += -DSIZE=$(SIZE)
@@ -28,6 +29,14 @@ ifdef CPUS
 	CFLAGS += -DUSE_CPUS #-DDEBUG
 	CFLAGS += -DNMAXCORES=$(CPUS)
 	NVCCFLAGS += -DUSE_CPUS
+endif
+
+ifdef GRAIN
+	CFLAGS += -DGRAIN=$(GRAIN)
+	NVCCFLAGS += -DGRAIN=$(GRAIN)
+else
+	CFLAGS += -DGRAIN=$(DEFAULTGRAIN)
+	NVCCFLAGS += -DGRAIN=$(DEFAULTGRAIN)
 endif
 
 NVCCFLAGS +=  -DUNIX -DO3
@@ -65,3 +74,4 @@ help:
 	@echo "  SIZE size of the problem ($(DEFAULTSIZE))"
 	@echo "  CUDA use of cuda or not (1)"
 	@echo "  CPUS number of CPUs in use (0)"
+	@echo "  GRAIN job grain size ($(DEFAULTGRAIN))"
