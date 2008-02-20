@@ -37,7 +37,6 @@ LDFLAGS += -L$(CUDASDKDIR)/lib
 LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
 
 all: mult
-	echo $(CPUS) $(CUDA)
 
 mult_cuda.o: mult_cuda.c mult_cuda.h mult.h  parameters.h
 	$(NVCC) $(NVCCFLAGS) mult_cuda.c -c -o mult_cuda.o
@@ -60,3 +59,9 @@ mult: comp.o mult.o mult_cuda.o jobs.o comp_cuda.cubin mult.h util.h parameters.
 clean:
 	rm -f *.o *.cu_o *.cubin *.cpp_o
 	rm -f mult
+
+help:
+	@echo "Possible options (default value) "
+	@echo "  SIZE size of the problem ($(DEFAULTSIZE))"
+	@echo "  CUDA use of cuda or not (1)"
+	@echo "  CPUS number of CPUs in use (0)"
