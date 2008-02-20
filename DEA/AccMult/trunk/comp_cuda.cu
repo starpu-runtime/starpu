@@ -25,8 +25,8 @@ extern "C"
 __global__ void 
 cuda_mult
 (
-	int * datamatA, unsigned widthA, unsigned xaA, unsigned xbA, unsigned yaA, unsigned ybA,
-	uint32_t *datamatB, unsigned widthB, unsigned xaB, unsigned xbB, unsigned yaB, unsigned ybB,
+	int * datamatA, unsigned widthA, unsigned xaA,
+	uint32_t *datamatB, unsigned widthB, unsigned yaB, unsigned ybB,
 	uint32_t *datamatC, unsigned widthC, unsigned xaC, unsigned xbC, unsigned yaC, unsigned ybC
 #ifdef DEBUG
 	,int *toto

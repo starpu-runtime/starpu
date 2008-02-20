@@ -199,21 +199,6 @@ void set_args(job_t j)
 		goto error;
 	offset += sizeof(unsigned);
 
-	status = cuParamSetv( dummyMatrixMul, offset, &matA->xb, sizeof(unsigned));
-	if ( CUDA_SUCCESS != status )
-		goto error;
-	offset += sizeof(unsigned);
-
-	status = cuParamSetv( dummyMatrixMul, offset, &matA->ya, sizeof(unsigned));
-	if ( CUDA_SUCCESS != status )
-		goto error;
-	offset += sizeof(unsigned);
-
-	status = cuParamSetv( dummyMatrixMul, offset, &matA->yb, sizeof(unsigned));
-	if ( CUDA_SUCCESS != status )
-		goto error;
-	offset += sizeof(unsigned);
-
 	/* datamatB */
 	status = cuParamSetv( dummyMatrixMul, offset, &matB->mat->cuda_data.matdata, sizeof(CUdeviceptr));
 	if ( CUDA_SUCCESS != status )
@@ -221,16 +206,6 @@ void set_args(job_t j)
 	offset += sizeof(CUdeviceptr);
 
 	status = cuParamSetv( dummyMatrixMul, offset, &matB->mat->width, sizeof(unsigned));
-	if ( CUDA_SUCCESS != status )
-		goto error;
-	offset += sizeof(unsigned);
-
-	status = cuParamSetv( dummyMatrixMul, offset, &matB->xa, sizeof(unsigned));
-	if ( CUDA_SUCCESS != status )
-		goto error;
-	offset += sizeof(unsigned);
-
-	status = cuParamSetv( dummyMatrixMul, offset, &matB->xb, sizeof(unsigned));
 	if ( CUDA_SUCCESS != status )
 		goto error;
 	offset += sizeof(unsigned);
