@@ -10,8 +10,13 @@
 #include "parameters.h"
 
 /* this is a randomly choosen value ... */
+#ifndef MAXCUDADEVS
 #define MAXCUDADEVS	4
+#endif
+
+#ifndef SHMEMSIZE
 #define SHMEMSIZE	3160
+#endif
 
 typedef struct cuda_worker_arg_t {
 	int deviceid;

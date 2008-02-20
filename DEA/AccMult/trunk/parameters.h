@@ -7,10 +7,16 @@
 
 
 // to speed up speedup measurements ;)
+#ifndef SEQFACTOR
 #define SEQFACTOR 1
+#endif
 
+#ifndef N
 #define N       2048
+#endif
 
+#ifndef GRAIN
 #define GRAIN   128
+#endif
 
 #endif // __PARAMETERS_H__

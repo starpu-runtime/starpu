@@ -39,12 +39,13 @@ void ref_mult(matrix *A, matrix *B, matrix *C, unsigned factor)
 
 void dummy_mult(submatrix *A, submatrix *B, submatrix *C)
 {
-	/* XXX there should be some sanity checking ... */
 	uint32_t sum;
 	unsigned x,y, z;
 
 	unsigned sizexa;
 	unsigned sizexb;
+
+	ASSERT(A->xb - A->xa == B->yb - B->ya);
 
 	uint32_t *matA = A->mat->data;
 	uint32_t *matB = B->mat->data;

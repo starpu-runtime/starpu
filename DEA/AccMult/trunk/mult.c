@@ -3,12 +3,16 @@
 #include "comp.h"
 #include "timing.h"
 
-#define NMAXCORES	0
+#define NMAXCORES	3
 //#define COMPARE_SEQ	1
 
 /* number of actual CPU cores */
+
+#ifdef USE_CPUS
 unsigned ncores;
 pthread_t corethreads[NMAXCORES];
+core_worker_arg coreargs[NMAXCORES]; 
+#endif
 
 #ifdef USE_CUDA
 pthread_t cudathreads[MAXCUDADEVS];
@@ -42,7 +46,7 @@ void execute_job_on_core(job_t j)
 
 void *core_worker(void *arg)
 {
-	int core = (uintptr_t)arg;
+	int core = ((core_worker_arg *)arg)->coreid;
 
 	job_t j;
 
@@ -85,7 +89,9 @@ void init_workers(matrix *A, matrix *B, matrix *C)
 	{
 		corecounters[core] = 0;
 
-		pthread_create(&corethreads[core], NULL, core_worker, (void *)core);
+		coreargs[core].coreid = core;
+
+		pthread_create(&corethreads[core], NULL, core_worker, &coreargs[core]);
 	}
 #endif
 

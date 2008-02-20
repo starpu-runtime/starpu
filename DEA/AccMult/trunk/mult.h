@@ -19,4 +19,9 @@
 #include "mult_cell.h"
 #endif
 
+typedef struct core_worker_arg_t {
+	int coreid;
+} core_worker_arg;
+
+
 #endif // __MULT_H__
