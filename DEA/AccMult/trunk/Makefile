@@ -3,40 +3,41 @@ NVCC = nvcc
 CFLAGS += -g -O3 -Wall
 LDFLAGS += -lpthread
 
-
 # to use CUDA
 CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
 CUDAINSTALLDIR=/usr/local/cuda/
-CFLAGS += -DUSE_CUDA 
-CFLAGS += -DUSE_CPUS #-DDEBUG
-CFLAGS += -I$(CUDAINSTALLDIR)/include 
 
-# for CUTILS
-CUTILDIR=$(PWD)/cutil/
-CUTILSRCDIR=$(CUTILDIR)/src/
 
-# CFLAGS += -I$(CUTILDIR)/inc/
+# for compile time tuning 
 
-CXXFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs
-CXXFLAGS +=  -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -fno-strict-aliasing 
-CXXFLAGS += -I. -I$(CUDAINSTALLDIR)/include -I$(CUDASDKDIR)/inc -I$(CUTILDIR)/inc -DUNIX -O3 -g
+DEFAULTSIZE=2048
 
-# emu ?
-# CFLAGS    += -D__DEVICE_EMULATION__
-# CFLAGS      += -D__DEVICE_EMULATION__
-# NVCCFLAGS   += --device-emulation   -deviceemu -DUSE_CUDA -D__DEVICE_EMULATION__ -DUNIX -DO3
+ifdef SIZE 
+	CFLAGS += -DSIZE=$(SIZE)
+else
+	CFLAGS += -DSIZE=$(DEFAULTSIZE)
+endif
 
-NVCCFLAGS +=  -DUSE_CUDA 
-#NVCCFLAGS += -DUSE_CPUS
+ifneq ($(CUDA), 0)
+	CFLAGS += -DUSE_CUDA 
+	NVCCFLAGS +=  -DUSE_CUDA 
+	CFLAGS += -I$(CUDAINSTALLDIR)/include 
+endif
+
+ifdef CPUS
+	CFLAGS += -DUSE_CPUS #-DDEBUG
+	CFLAGS += -DNMAXCORES=$(CPUS)
+	NVCCFLAGS += -DUSE_CPUS
+endif
+
 NVCCFLAGS +=  -DUNIX -DO3
 NVCCFLAGS += -I$(CUTILDIR)/inc/
 
 LDFLAGS += -L$(CUDASDKDIR)/lib
 LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
-LDFLAGS += -lGL -lGLU
-
 
 all: mult
+	echo $(CPUS) $(CUDA)
 
 mult_cuda.o: mult_cuda.c mult_cuda.h mult.h  parameters.h
 	$(NVCC) $(NVCCFLAGS) mult_cuda.c -c -o mult_cuda.o

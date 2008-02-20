@@ -11,8 +11,8 @@
 #define SEQFACTOR 1
 #endif
 
-#ifndef N
-#define N       2048
+#ifndef SIZE
+#define SIZE       2048
 #endif
 
 #ifndef GRAIN

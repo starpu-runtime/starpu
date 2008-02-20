@@ -23,5 +23,13 @@ typedef struct core_worker_arg_t {
 	int coreid;
 } core_worker_arg;
 
+#ifndef NMAXCORES
+#define NMAXCORES       3
+#endif
+
+#ifndef COMPARE_SEQ
+//#define COMPARE_SEQ   1
+#endif
+
 
 #endif // __MULT_H__

@@ -3,9 +3,6 @@
 #include "comp.h"
 #include "timing.h"
 
-#define NMAXCORES	3
-//#define COMPARE_SEQ	1
-
 /* number of actual CPU cores */
 
 #ifdef USE_CPUS
@@ -69,7 +66,9 @@ void init_machine()
 {
 	srand(2008);
 
+#ifdef USE_CPUS
 	ncores = MIN(sysconf(_SC_NPROCESSORS_ONLN), NMAXCORES);
+#endif
 
 #ifdef USE_CUDA
 	init_cuda();
@@ -244,12 +243,12 @@ int main(int argc, char **argv)
 	matrix matC;
 	matrix matD;
 
-	/* for simplicity, use N = power of 2 ! */
-	alloc_matrix(&matA, N, N);
-	alloc_matrix(&matB, N, N);
+	/* for simplicity, use SIZE = power of 2 ! */
+	alloc_matrix(&matA, SIZE, SIZE);
+	alloc_matrix(&matB, SIZE, SIZE);
 
-	alloc_matrix(&matC, N, N);
-	alloc_matrix(&matD, N, N);
+	alloc_matrix(&matC, SIZE, SIZE);
+	alloc_matrix(&matD, SIZE, SIZE);
 
 	matrix_fill_rand(&matA);
 	matrix_fill_rand(&matB);

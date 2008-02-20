@@ -119,9 +119,11 @@ void mult(matrix *A, matrix *B, matrix *C)
 	}
 
 	/* terminate all threads */
-	unsigned nworkers;
+	unsigned nworkers = 0;
 
-	nworkers = ncores;
+#ifdef USE_CPUS
+	nworkers += ncores;
+#endif
 #ifdef USE_CUDA
 	nworkers += ncudagpus;
 #endif
