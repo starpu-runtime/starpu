@@ -3,9 +3,9 @@ NVCC = nvcc
 
 CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
 CUDAINSTALLDIR=/usr/local/cuda/
-NVCCFLAGS +=  -DUNIX -DO3
+NVCCFLAGS +=  -DUNIX -DO0
 
-CFLAGS += -g -O3 -Wall
+CFLAGS += -g -O0 -Wall
 CFLAGS += -I$(CUDAINSTALLDIR)/include  
 
 
@@ -14,13 +14,13 @@ LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
 
 all: bandwith-test
 
-kernel_code.cubin: kernel_code.cu
+kernel_code.cubin: kernel_code.cu param.h
 	$(NVCC) -cubin kernel_code.cu -o kernel_code.cubin -m32 --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) 
 
-host_code.o: host_code.c 
-	$(NVCC) $(NVCCFLAGS)  $(LDFLAGS) host_code.c -c -o host_code.o
+host_code.o: host_code.c param.h 
+	$(CC) $(CFLAGS)  host_code.c -c -o host_code.o
 
-bandwith-test: host_code.o kernel_code.cubin
+bandwith-test: host_code.o kernel_code.cubin param.h
 	$(CC) $(LDFLAGS) host_code.o -o bandwith-test
 
 clean:

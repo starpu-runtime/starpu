@@ -1,8 +1,17 @@
-#define BLOCKDIMX       4
-#define BLOCKDIMY       4
-#define GRIDDIMX        16
-#define GRIDDIMY        16
+#ifndef __PARAM_H__
+#define __PARAM_H__
 
-#define SHMEMSIZE       1024
+#include <stdint.h>
 
-#define DATASIZE        2048
+#define BLOCKDIMX       1
+#define BLOCKDIMY       1
+#define GRIDDIMX        1
+#define GRIDDIMY        1
+
+
+#define DATASIZE        (1024*1024)
+#define BUFFERSIZE	256
+
+#define SHMEMSIZE       (1024+32)
+
+#endif // __PARAM_H__
