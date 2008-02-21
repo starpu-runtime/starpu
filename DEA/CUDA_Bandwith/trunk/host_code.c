@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <cuda.h>
 #include <cuda_runtime_api.h>
+#include "param.h"
 
 static CUdevice cuDevice;
 static CUcontext cuContext;
@@ -9,16 +10,7 @@ static CUmodule cuModule;
 CUresult status;
 extern char *execpath;
 
-#define BLOCKDIMX	4
-#define BLOCKDIMY	4
-#define GRIDDIMX	16
-#define GRIDDIMY	16
-
-#define SHMEMSIZE	1024
-
-#define DATASIZE	2048
-
-static CUfunction dummyMatrixMul = NULL;
+static CUfunction benchKernel = NULL;
 
 unsigned offset = 0;
 CUdeviceptr srcdevptr; 
@@ -57,7 +49,7 @@ int main(int argc, char **argv)
 		goto error;
 	}
 
-	status = cuModuleGetFunction( &dummyMatrixMul, cuModule, "bandwith_test");
+	status = cuModuleGetFunction( &benchKernel, cuModule, "bandwith_test");
 	if ( CUDA_SUCCESS != status )
 	{
 		errline = __LINE__;
@@ -80,30 +72,21 @@ int main(int argc, char **argv)
 	}
 
 	/* launch the kernel */
-	status = cuFuncSetBlockShape( dummyMatrixMul, BLOCKDIMX, BLOCKDIMY, 1);
+	status = cuFuncSetBlockShape( benchKernel, BLOCKDIMX, BLOCKDIMY, 1);
 	if ( CUDA_SUCCESS != status )
 	{
 		errline = __LINE__;
 		goto error;
 	}
 
- 	status = cuFuncSetSharedSize(dummyMatrixMul, SHMEMSIZE);
+ 	status = cuFuncSetSharedSize(benchKernel, SHMEMSIZE);
 	if ( CUDA_SUCCESS != status )
 	{
 		errline = __LINE__;
 		goto error;
 	}
 
-	status = cuParamSetv(dummyMatrixMul,offset,&srcdevptr,sizeof(CUdeviceptr));
-	if ( CUDA_SUCCESS != status )
-	{
-		errline = __LINE__;
-		goto error;
-	}
-
-	offset += sizeof(CUdeviceptr);
-
-	status = cuParamSetv(dummyMatrixMul,offset,&srcdevptr,sizeof(CUdeviceptr));
+	status = cuParamSetv(benchKernel,offset,&srcdevptr,sizeof(CUdeviceptr));
 	if ( CUDA_SUCCESS != status )
 	{
 		errline = __LINE__;
@@ -112,7 +95,16 @@ int main(int argc, char **argv)
 
 	offset += sizeof(CUdeviceptr);
 
-	status = cuParamSeti(dummyMatrixMul,offset,DATASIZE);
+	status = cuParamSetv(benchKernel,offset,&srcdevptr,sizeof(CUdeviceptr));
+	if ( CUDA_SUCCESS != status )
+	{
+		errline = __LINE__;
+		goto error;
+	}
+
+	offset += sizeof(CUdeviceptr);
+
+	status = cuParamSeti(benchKernel,offset,DATASIZE);
 	if ( CUDA_SUCCESS != status )
 	{
 		errline = __LINE__;
@@ -123,7 +115,7 @@ int main(int argc, char **argv)
 
 
 
-	status = cuLaunchGrid( dummyMatrixMul, GRIDDIMX, GRIDDIMY); 
+	status = cuLaunchGrid( benchKernel, GRIDDIMX, GRIDDIMY); 
 	if ( CUDA_SUCCESS != status )
 	{
 		errline = __LINE__;
