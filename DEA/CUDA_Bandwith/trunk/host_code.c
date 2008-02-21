@@ -29,6 +29,8 @@ tick_t start, stop;
 
 unsigned datasize = DATASIZE;
 
+int kernel = 0;
+
 void compare(int *a, int *b, unsigned size)
 {
 	unsigned i;
@@ -83,6 +85,7 @@ void init_context()
 		goto error;
 	}
 
+
 	status = cuModuleLoad(&cuModule, "./kernel_code.cubin");
 	if ( CUDA_SUCCESS != status )
 	{
@@ -90,7 +93,21 @@ void init_context()
 		goto error;
 	}
 
-	status = cuModuleGetFunction( &benchKernel, cuModule, "bandwith_test");
+	switch(kernel) {
+		case 0: 
+			status = cuModuleGetFunction( &benchKernel, cuModule, "bandwith_test_dumb");
+			break;
+		case 1:
+			status = cuModuleGetFunction( &benchKernel, cuModule, "bandwith_test");
+			break;
+		case 2:
+			status = cuModuleGetFunction( &benchKernel, cuModule, "bandwith_test_2");
+			break;
+		default:
+			status = cuModuleGetFunction( &benchKernel, cuModule, "bandwith_test_dumb");
+			break;
+	}
+
 	if ( CUDA_SUCCESS != status )
 	{
 		errline = __LINE__;
@@ -107,6 +124,11 @@ error:
 
 int main(int argc, char **argv)
 {
+
+	if (argc > 1) {
+		kernel = atoi(argv[1]);	
+	}
+
 	timing_init();
 
 	init_context();
@@ -159,12 +181,12 @@ int main(int argc, char **argv)
 		goto error;
 	}
 
- 	status = cuFuncSetSharedSize(benchKernel, SHMEMSIZE);
-	if ( CUDA_SUCCESS != status )
-	{
-		errline = __LINE__;
-		goto error;
-	}
+// 	status = cuFuncSetSharedSize(benchKernel, SHMEMSIZE);
+//	if ( CUDA_SUCCESS != status )
+//	{
+//		errline = __LINE__;
+//		goto error;
+//	}
 
 	/* stack the various parameters */
 	status = cuParamSetv(benchKernel,offset,&srcdevptr,sizeof(CUdeviceptr));
