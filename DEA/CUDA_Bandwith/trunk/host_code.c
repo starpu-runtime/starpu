@@ -35,7 +35,7 @@ tick_t start, stop;
  */
 unsigned datasize = DATASIZE;
 
-int kernel = 2;
+int kernel = -1;
 
 int griddimx = GRIDDIMX;
 int griddimy = GRIDDIMY;
@@ -114,8 +114,10 @@ void init_context()
 			status = cuModuleGetFunction( &benchKernel, cuModule, "bandwith_test");
 			break;
 		case 2:
-		default:
 			status = cuModuleGetFunction( &benchKernel, cuModule, "bandwith_test_2");
+		case 3:
+		default:
+			status = cuModuleGetFunction( &benchKernel, cuModule, "bandwith_test_3");
 			break;
 	}
 

@@ -16,7 +16,7 @@ do
 			for blockdimx in 1 2 4 8 16 32 
 			do
 				echo "grid ($griddimx,$griddimy) block ($blockdimx, $blockdimy)"
-				./bandwith-test 2 $griddimx $griddimy $blockdimx $blockdimy >> perf.log
+				./bandwith-test 3 $griddimx $griddimy $blockdimx $blockdimy >> perf.log
 			done
 		done
 	done

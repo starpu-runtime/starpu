@@ -97,3 +97,32 @@ void bandwith_test_2(int *src, int *dest, unsigned size)
 
 	return;
 }
+
+extern "C" __global__ 
+#ifdef DEBUG
+void bandwith_test_3(int *src, int *dest, unsigned size , int *p)
+#else
+void bandwith_test_3(int *src, int *dest, unsigned size)
+#endif
+{
+
+	unsigned blockid = blockIdx.x + blockIdx.y*gridDim.x;
+	unsigned threadid = threadIdx.x + threadIdx.y*blockDim.x;
+
+	unsigned blockchunk_size = UPDIV(size, (gridDim.x * gridDim.y));
+
+	unsigned blockchunk_start = MIN(blockchunk_size*blockid, size);
+	unsigned blockchunk_end = MIN(blockchunk_size*(blockid+1), size);
+
+	unsigned i;
+	for (i = blockchunk_start + threadid; i < blockchunk_end ; i+=blockDim.x*blockDim.y ) 
+	{
+		dest[i] = src[i];
+	}
+
+#ifdef DEBUG
+	*p = 42;
+#endif
+
+	return;
+}
