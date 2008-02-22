@@ -66,9 +66,11 @@ void compare(int *a, int *b, unsigned size)
 	if (diffcnt != 0) {
 		printf("Matrix are DIFFERENT (%d diff out of %d, first bad %d, last bad = %d)\n", diffcnt, size, firstbad, lastbad);
 	}
+#ifdef DEBUG
 	else {
 		printf("Matrix are IDENTICAL\n");
 	}
+#endif
 
 	return;
 }	
@@ -308,8 +310,12 @@ int main(int argc, char **argv)
 	/* in B /us = MB/s */
 	float bandwith = (float)((DATASIZE*2*sizeof(int))/(chrono));
 
+#ifdef DEBUG
 	printf("Computation time : %f ms\n", chrono/1000);
 	printf("Bandwith %f MB/s\n", bandwith);
+#else
+	printf("%d\t%d\t%d\t%d\t%f\t%f\n", griddimx, griddimy, blockdimx, blockdimy, chrono/1000, bandwith);
+#endif
 
 
 	return 0;
