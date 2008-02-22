@@ -3,13 +3,13 @@
 
 #include <stdint.h>
 
-#define BLOCKDIMX       16
+#define BLOCKDIMX       32
 #define BLOCKDIMY       16
-#define GRIDDIMX        4
-#define GRIDDIMY        4
+#define GRIDDIMX        1
+#define GRIDDIMY        1
 
 
-#define DATASIZE        (1024*1024)
+#define DATASIZE        (2*1024*1024)
 #define BUFFERSIZE	256
 
 #define SHMEMSIZE       (1024+32)

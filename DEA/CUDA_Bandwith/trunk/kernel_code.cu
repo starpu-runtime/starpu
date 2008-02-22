@@ -1,12 +1,17 @@
 #include <stdint.h>
 #include "param.h"
 
+#define UPDIV(a,b)	(((a) + (b) - 1) / (b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 
 __shared__ int buffer[BUFFERSIZE];
 
 extern "C" __global__ 
+#ifdef DEBUG
 void bandwith_test_dumb(int *src, int *dest, unsigned size , int *p)
+#else
+void bandwith_test_dumb(int *src, int *dest, unsigned size)
+#endif
 {
 	int i;
 	for (i = 0; i < size; i++)
@@ -14,13 +19,19 @@ void bandwith_test_dumb(int *src, int *dest, unsigned size , int *p)
 		dest[i] = src[i];
 	}
 
+#ifdef DEBUG
 	*p = 42;
+#endif
 
 	return;
 }
 
 extern "C" __global__ 
+#ifdef DEBUG
 void bandwith_test(int *src, int *dest, unsigned size , int *p)
+#else
+void bandwith_test(int *src, int *dest, unsigned size)
+#endif
 {
 	unsigned i,j, actual_buffersize;
 	for (i = 0; i < size ; i += BUFFERSIZE) 
@@ -42,15 +53,20 @@ void bandwith_test(int *src, int *dest, unsigned size , int *p)
 
 	}
 
+#ifdef DEBUG
 	*p = 42;
+#endif
 
 	return;
 }
 
-#define UPDIV(a,b)	(((a) + (b) - 1) / (b))
 
 extern "C" __global__ 
+#ifdef DEBUG
 void bandwith_test_2(int *src, int *dest, unsigned size , int *p)
+#else
+void bandwith_test_2(int *src, int *dest, unsigned size)
+#endif
 {
 
 	unsigned blockid = blockIdx.x + blockIdx.y*gridDim.x;
@@ -75,7 +91,9 @@ void bandwith_test_2(int *src, int *dest, unsigned size , int *p)
 		dest[i] = src[i];
 	}
 
+#ifdef DEBUG
 	*p = 42;
+#endif
 
 	return;
 }

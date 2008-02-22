@@ -3,9 +3,9 @@ NVCC = nvcc
 
 CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
 CUDAINSTALLDIR=/usr/local/cuda/
-NVCCFLAGS +=  -DUNIX -DO0
+NVCCFLAGS +=  -DUNIX -DO3
 
-CFLAGS += -g -O0 -Wall
+CFLAGS += -g -O3 -Wall
 CFLAGS += -I$(CUDAINSTALLDIR)/include  
 
 

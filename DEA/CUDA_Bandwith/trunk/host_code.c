@@ -20,16 +20,27 @@ CUdeviceptr dstdevptr;
 int *srchostptr;
 int *dsthostptr;
 
+#ifdef DEBUG
 int host_debug = -1; 
 CUdeviceptr dev_debug; 
+#endif
 
 unsigned errline = -1;
 
 tick_t start, stop;
 
+
+/*
+ * parameters that can be tuned 
+ */
 unsigned datasize = DATASIZE;
 
-int kernel = 0;
+int kernel = 2;
+
+int griddimx = GRIDDIMX;
+int griddimy = GRIDDIMY;
+int blockdimx = BLOCKDIMX;
+int blockdimy = BLOCKDIMY;
 
 void compare(int *a, int *b, unsigned size)
 {
@@ -101,10 +112,8 @@ void init_context()
 			status = cuModuleGetFunction( &benchKernel, cuModule, "bandwith_test");
 			break;
 		case 2:
-			status = cuModuleGetFunction( &benchKernel, cuModule, "bandwith_test_2");
-			break;
 		default:
-			status = cuModuleGetFunction( &benchKernel, cuModule, "bandwith_test_dumb");
+			status = cuModuleGetFunction( &benchKernel, cuModule, "bandwith_test_2");
 			break;
 	}
 
@@ -122,12 +131,32 @@ error:
 
 }
 
+void parse_args(int argc, char **argv)
+{
+	if (argc == 1) {
+		/* use default arguments */
+	}
+	else {
+		if (argc != 6) {
+			fprintf(stderr, "Usage: %s kernel-id[0-2] griddimx griddimy blockdimx blockdimy\n", argv[0]);
+			exit(-1);
+		}
+		else {
+			/* parse the arguments */
+			kernel = atoi(argv[1]);
+
+			griddimx = atoi(argv[2]);
+			griddimy = atoi(argv[3]);
+
+			blockdimx = atoi(argv[4]);
+			blockdimy = atoi(argv[5]);
+		}
+	}
+}
+
 int main(int argc, char **argv)
 {
-
-	if (argc > 1) {
-		kernel = atoi(argv[1]);	
-	}
+	parse_args(argc, argv);
 
 	timing_init();
 
@@ -148,12 +177,14 @@ int main(int argc, char **argv)
 		goto error;
 	}
 
+#ifdef DEBUG
 	status = cuMemAlloc(&dev_debug, sizeof(int));
 	if ( CUDA_SUCCESS != status )
 	{
 		errline = __LINE__;
 		goto error;
 	}
+#endif
 
 	srchostptr = (int *) malloc(DATASIZE*sizeof(int));
 	dsthostptr = (int *) malloc(DATASIZE*sizeof(int));
@@ -174,7 +205,7 @@ int main(int argc, char **argv)
 	}
 	
 	/* launch the kernel */
-	status = cuFuncSetBlockShape( benchKernel, BLOCKDIMX, BLOCKDIMY, 1);
+	status = cuFuncSetBlockShape( benchKernel, blockdimx, blockdimy, 1);
 	if ( CUDA_SUCCESS != status )
 	{
 		errline = __LINE__;
@@ -213,6 +244,7 @@ int main(int argc, char **argv)
 		goto error;
 	}
 
+#ifdef DEBUG
 	status = cuParamSetv(benchKernel,offset,&dev_debug,sizeof(int));
 	offset += sizeof(int);
 	if ( CUDA_SUCCESS != status )
@@ -220,6 +252,7 @@ int main(int argc, char **argv)
 		errline = __LINE__;
 		goto error;
 	}
+#endif
 
 	status = cuParamSetSize(benchKernel, offset);
 	if ( CUDA_SUCCESS != status )
@@ -231,7 +264,7 @@ int main(int argc, char **argv)
 
 	GET_TICK(start);
 
-	status = cuLaunchGrid( benchKernel, GRIDDIMX, GRIDDIMY); 
+	status = cuLaunchGrid( benchKernel, griddimx, griddimy); 
 	if ( CUDA_SUCCESS != status )
 	{
 		errline = __LINE__;
@@ -257,6 +290,7 @@ int main(int argc, char **argv)
 		goto error;
 	}
 
+#ifdef DEBUG
 	status = cuMemcpyDtoH(&host_debug, dev_debug, sizeof(uint32_t));
 	if ( CUDA_SUCCESS != status )
 	{
@@ -265,6 +299,7 @@ int main(int argc, char **argv)
 	}
 
 	printf("DEBUG = %d \n", host_debug);
+#endif
 
 	compare(srchostptr, dsthostptr, DATASIZE);
 
