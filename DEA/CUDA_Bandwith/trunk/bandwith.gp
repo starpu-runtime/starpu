@@ -2,7 +2,6 @@
 
 set term postscript eps enhanced color
 
-set logscale z
 set logscale x
 set logscale y
 set zrange [1:45000]
