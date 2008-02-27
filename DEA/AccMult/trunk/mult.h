@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
+#include <math.h>
+#include "threads.h"
 #include "util.h"
 #include "jobs.h"
 #include "parameters.h"
@@ -28,7 +30,7 @@ typedef struct core_worker_arg_t {
 #endif
 
 #ifndef COMPARE_SEQ
-//#define COMPARE_SEQ   1
+#define COMPARE_SEQ   1
 #endif
 
 

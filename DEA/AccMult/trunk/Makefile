@@ -1,6 +1,20 @@
 CC=gcc
 NVCC = nvcc
-CFLAGS += -g -O3 -Wall
+CFLAGS += -g -O3 -Wall -fPIC
+CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -Wmain  -fno-strict-aliasing
+
+CFLAGS+= -DUSE_CPU_BLAS
+CFLAGS+= -DUSE_CUBLAS
+
+ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
+BLASARCH=Linux_UNKNOWNSSE2
+
+CFLAGS+= -I$(ATLASDIR)/include/
+LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
+LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
+
+LDFLAGS+= -lm
+
 
 ifeq ($(MARCEL), 1)
 	CC=$(shell pm2-config --cc)
@@ -30,6 +44,7 @@ ifneq ($(CUDA), 0)
 	CFLAGS += -DUSE_CUDA 
 	NVCCFLAGS +=  -DUSE_CUDA 
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
+	NVCCFLAGS += -I$(CUDAINSTALLDIR)/include 
 endif
 
 ifdef CPUS
@@ -52,6 +67,8 @@ NVCCFLAGS += -I$(CUTILDIR)/inc/
 LDFLAGS += -L$(CUDASDKDIR)/lib
 LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
 
+LDFLAGS += -lcublas
+
 all: mult
 
 mult_cuda.o: mult_cuda.c mult_cuda.h mult.h  parameters.h
@@ -69,8 +86,8 @@ comp.o: comp.c comp.h mult.h  parameters.h
 jobs.o: jobs.c jobs.h mult.h parameters.h
 	$(CC) $(CFLAGS) jobs.c -c -o jobs.o
 
-mult: comp.o mult.o mult_cuda.o jobs.o comp_cuda.cubin mult.h util.h parameters.h
-	$(CC) $(CFLAGS) $(LDFLAGS) mult.o mult_cuda.o comp.o jobs.o -o mult
+mult: comp.o mult.o mult_cuda.o jobs.o mult.h util.h parameters.h
+	$(CC) $(CFLAGS) mult.o mult_cuda.o comp.o jobs.o -o mult $(LDFLAGS) 
 
 clean:
 	rm -f *.o *.cu_o *.cubin *.cpp_o

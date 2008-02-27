@@ -5,6 +5,7 @@
 
 void mult(matrix *, matrix *, matrix *);
 void dummy_mult(submatrix *, submatrix *, submatrix *);
-void ref_mult(matrix *, matrix *, matrix *, unsigned);
+void ref_mult(matrix *, matrix *, matrix *);
+void cblas_mult(submatrix *, submatrix *, submatrix *);
 
 #endif // __COMP_H__

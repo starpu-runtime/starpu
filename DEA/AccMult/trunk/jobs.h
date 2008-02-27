@@ -24,11 +24,12 @@ typedef void (*callback)(void *);
 typedef struct cuda_matrix_t {
 	CUdeviceptr matdata;
 	CUdeviceptr matheader;
+	float *dev_data;
 } cuda_matrix;
 #endif
 
 typedef struct matrix_t {
-	uint32_t *data;
+	float *data;
 	unsigned width;
 	unsigned heigth;
 	/* XXX put a flag to tell which copy are available */

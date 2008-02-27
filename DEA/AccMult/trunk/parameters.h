@@ -7,9 +7,6 @@
 
 
 // to speed up speedup measurements ;)
-#ifndef SEQFACTOR
-#define SEQFACTOR 1
-#endif
 
 #ifndef SIZE
 #define SIZE       2048

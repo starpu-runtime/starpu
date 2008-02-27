@@ -17,17 +17,17 @@
 #define MAXHEIGTH	(GRAIN/GRIDDIMY)
 #define MAXWIDTH	(GRAIN/GRIDDIMX)
 
-__shared__ uint32_t Achunk[CHUNCKDEPTH*MAXHEIGTH];
-__shared__ uint32_t Bchunk[MAXWIDTH*CHUNCKDEPTH];
-__shared__ uint32_t Cchunk[MAXWIDTH*MAXHEIGTH];
+__shared__ float Achunk[CHUNCKDEPTH*MAXHEIGTH];
+__shared__ float Bchunk[MAXWIDTH*CHUNCKDEPTH];
+__shared__ float Cchunk[MAXWIDTH*MAXHEIGTH];
 
 extern "C"
 __global__ void 
 cuda_mult
 (
-	int * datamatA, unsigned widthA, unsigned xaA,
-	uint32_t *datamatB, unsigned widthB, unsigned yaB, unsigned ybB,
-	uint32_t *datamatC, unsigned widthC, unsigned xaC, unsigned xbC, unsigned yaC, unsigned ybC
+	float * datamatA, unsigned widthA, unsigned xaA,
+	float * datamatB, unsigned widthB, unsigned yaB, unsigned ybB,
+	float * datamatC, unsigned widthC, unsigned xaC, unsigned xbC, unsigned yaC, unsigned ybC
 #ifdef DEBUG
 	,int *toto
 #endif

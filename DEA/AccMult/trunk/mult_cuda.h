@@ -28,5 +28,6 @@ typedef struct cuda_worker_arg_t {
 void init_cuda(void);
 void precondition_cuda(matrix *, matrix *, matrix *);
 void *cuda_worker(void *);
+void *cublas_worker(void *);
 
 #endif //  __MULT_CUDA_H__

@@ -1,4 +1,3 @@
-#include <pthread.h>
 #include "mult.h"
 #include "comp.h"
 #include "timing.h"
@@ -7,12 +6,20 @@
 
 #ifdef USE_CPUS
 unsigned ncores;
+#ifdef USE_MARCEL
+marcel_t corethreads[NMAXCORES];
+#else
 pthread_t corethreads[NMAXCORES];
+#endif
 core_worker_arg coreargs[NMAXCORES]; 
 #endif
 
 #ifdef USE_CUDA
+#ifdef USE_MARCEL
+marcel_t cudathreads[MAXCUDADEVS];
+#else
 pthread_t cudathreads[MAXCUDADEVS];
+#endif
 int cudacounters[MAXCUDADEVS];
 cuda_worker_arg cudaargs[MAXCUDADEVS];
 #endif
@@ -31,10 +38,20 @@ void execute_job_on_core(job_t j)
 {
 	switch (j->type) {
 		case MUL:
+			printf("mult core\n");
+#ifdef USE_CPU_BLAS
+			cblas_mult(&j->input.matA, &j->input.matB, &j->output.matC_sub);
+#else
 			dummy_mult(&j->input.matA, &j->input.matB, &j->output.matC_sub);
+#endif
 			break;
 		case ABORT:
+			printf("core abort\n");
+#ifdef USE_MARCEL
+			marcel_exit(NULL);
+#else
 			pthread_exit(NULL);
+#endif
 			break;
 		default:
 			break;
@@ -44,6 +61,8 @@ void execute_job_on_core(job_t j)
 void *core_worker(void *arg)
 {
 	int core = ((core_worker_arg *)arg)->coreid;
+
+	printf("core worker %d up \n", core);
 
 	job_t j;
 
@@ -62,7 +81,7 @@ void *core_worker(void *arg)
 	return NULL;
 }
 
-void init_machine()
+void init_machine(void)
 {
 	srand(2008);
 
@@ -83,14 +102,18 @@ void init_workers(matrix *A, matrix *B, matrix *C)
 
 	/* launch one thread per CPU */
 #ifdef USE_CPUS
-	int core;
+	unsigned core;
 	for (core = 0; core < ncores; core++)
 	{
 		corecounters[core] = 0;
 
 		coreargs[core].coreid = core;
 
+#ifdef USE_MARCEL
+		marcel_create(&corethreads[core], NULL, core_worker, &coreargs[core]);
+#else
 		pthread_create(&corethreads[core], NULL, core_worker, &coreargs[core]);
+#endif
 	}
 #endif
 
@@ -106,53 +129,79 @@ void init_workers(matrix *A, matrix *B, matrix *C)
 
 		cudacounters[cudadev] = 0;
 
+#ifdef USE_CUBLAS
+#ifdef USE_MARCEL
+		marcel_create(&cudathreads[cudadev], NULL, cublas_worker, (void*)&cudaargs[cudadev]);
+#else
+		pthread_create(&cudathreads[cudadev], NULL, cublas_worker, (void*)&cudaargs[cudadev]);
+#endif
+#else
+#ifdef USE_MARCEL
+		marcel_create(&cudathreads[cudadev], NULL, cuda_worker, (void*)&cudaargs[cudadev]);
+#else
 		pthread_create(&cudathreads[cudadev], NULL, cuda_worker, (void*)&cudaargs[cudadev]);
+#endif
+#endif
 	}
 #endif
+
 }
 
-void terminate_workers()
+void terminate_workers(void)
 {
+	printf("terminate workers \n");
 #ifdef USE_CPUS
-	int core;
+	unsigned core;
 	for (core = 0; core < ncores; core++)
 	{
+#ifdef USE_MARCEL
+		marcel_join(corethreads[core], NULL);
+#else
 		pthread_join(corethreads[core], NULL);
+#endif
 	}
 #endif
-
+	printf("core terminated ... \n");
 #ifdef USE_CUDA
 	/* initialize CUDA with the proper number of threads */
 	int cudadev;
 	for (cudadev = 0; cudadev < ncudagpus; cudadev++)
 	{
+#ifdef USE_MARCEL
+		marcel_join(cudathreads[cudadev], NULL);
+#else
 		pthread_join(cudathreads[cudadev], NULL);
+#endif
 	}
 #endif
+	printf("cuda terminated\n");
 
 }
 
 void matrix_fill_rand(matrix *m)
 {
-	int i,j;
+	unsigned i,j;
 	for (i=0; i < m->width; i++) {
 		for (j=0; j < m->heigth; j++) {
 			/* we don't want to deal with integer overflow ... */
-			m->data[i+j*m->width] = (uint32_t)(rand()%2);
+			m->data[i+j*m->width] = (float)(drand48());
+		//	m->data[i+j*m->width] = (float)(i+j*m->width);
+		//	m->data[i+j*m->width] = 1.0;
+		//m->data[i+j*m->width] = (float)(i==j?1.0:0.0);
 		}
 	}
 }
 
 void matrix_fill_zero(matrix *m)
 {
-	memset(m->data, 0, m->width*m->heigth*sizeof(uint32_t));
+	memset(m->data, 0, m->width*m->heigth*sizeof(float));
 }
 
 void alloc_matrix(matrix *m, unsigned width, unsigned heigth)
 {
 	m->width = width;
 	m->heigth = heigth;
-	m->data = malloc(width*heigth*sizeof(uint32_t));
+	m->data = malloc(width*heigth*sizeof(float));
 }
 
 void free_matrix(matrix *m)
@@ -160,9 +209,23 @@ void free_matrix(matrix *m)
 	free(m->data);
 }
 
+void display_matrix(matrix *m)
+{
+	unsigned x,y;
+
+	fprintf(stderr, "****************************\n");
+	for (y = 0; y < m->heigth; y++) {
+	for (x = 0; x < m->width; x++) {
+		fprintf(stderr, "%f\t", m->data[x+y*m->width]);
+	}
+	fprintf(stderr, "\n");
+	}
+	fprintf(stderr, "****************************\n");
+}
+
 void display_stats(void)
 {
-	int i;
+	unsigned i;
 	int total = 0;
 #ifdef USE_CPUS
 	for (i = 0; i < ncores ; i++)
@@ -199,7 +262,7 @@ void display_stats(void)
 	printf("Computation time : %f ms\n", chrono/1000);
 
 #ifdef COMPARE_SEQ
-	float refchrono	=  SEQFACTOR*((float)(TIMING_DELAY(refstart, refstop)));
+	float refchrono	=  ((float)(TIMING_DELAY(refstart, refstop)));
 	printf("Ref time : %f ms\n", refchrono/1000);
 	printf("Speedup\t=\t%f\n", refchrono/chrono); 
 #endif
@@ -207,7 +270,7 @@ void display_stats(void)
 
 }
 
-void compare_matrix(matrix *A, matrix *B, int seqfactor)
+void compare_matrix(matrix *A, matrix *B, float eps)
 {
 	int isdiff = 0;
 	int ndiff = 0;
@@ -216,12 +279,12 @@ void compare_matrix(matrix *A, matrix *B, int seqfactor)
 	int x,y;
 	for (x = 0; x < A->width; x++) 
 	{
-		for (y = 0; y < A->heigth/seqfactor ; y++) 
+		for (y = 0; y < A->heigth ; y++) 
 		{
-			if (A->data[x+y*A->width] != B->data[x+y*A->width]) {
+			if (fabs(A->data[x+y*A->width] - B->data[x+y*A->width]) > eps) {
 				isdiff = 1;
 				ndiff++;
-				printf("(%d,%d) expecting %d got %d\n", x, y,  B->data[x+y*A->width],  A->data[x+y*A->width]);
+				fprintf(stderr, "(%d,%d) expecting %f got %f\n", x, y,  B->data[x+y*A->width],  A->data[x+y*A->width]);
 			}
 			ntotal++;
 		}
@@ -230,13 +293,17 @@ void compare_matrix(matrix *A, matrix *B, int seqfactor)
 	if (isdiff) {
 		printf("Matrix are DIFFERENT (%d on %d differs ...)!\n", ndiff, ntotal);
 	} else {
-		printf("Matrix are IDENTICAL (warning : only checked %d lines out of %d)\n", A->heigth/seqfactor , A->heigth);
+		printf("Matrix are IDENTICAL\n");
 	}
 }
 
 int main(int argc, char **argv)
 {
 	execpath = argv[0];
+
+#ifdef USE_MARCEL
+	marcel_init(&argc, argv);
+#endif
 
 	matrix matA;
 	matrix matB;
@@ -270,14 +337,23 @@ int main(int argc, char **argv)
 	printf("running the sequential comparision ... \n");
 	GET_TICK(refstart);
 	/* only compare with 1/SEQFACTOR of the initial prob ... */
-	ref_mult(&matA, &matB, &matD, SEQFACTOR);	
+	ref_mult(&matA, &matB, &matD);	
 	GET_TICK(refstop);
 
 	/* only compare the 1/SEQFACTOR part ... */
-	compare_matrix(&matC, &matD, SEQFACTOR);
+	compare_matrix(&matC, &matD, SIZE*0.001);
 #endif
 
 	display_stats();
+
+//	printf("matrix A :\n");
+//	display_matrix(&matA);
+//	printf("matrix B :\n");
+//	display_matrix(&matB);
+//	printf("matrix C :\n");
+//	display_matrix(&matC);
+//	printf("matrix D :\n");
+//	display_matrix(&matD);
 
 	free_matrix(&matA);
 	free_matrix(&matB);

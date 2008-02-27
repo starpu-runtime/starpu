@@ -1,6 +1,7 @@
 #include "comp.h"
 #include "mult.h"
 #include "jobs.h"
+#include <cblas.h>
 
 extern void precondition_cuda(matrix *A, matrix *B, matrix *C);
 extern int ncudagpus;
@@ -9,7 +10,7 @@ extern void copy_job_on_device(job_t j);
 
 extern unsigned ncores;
 
-void ref_mult(matrix *A, matrix *B, matrix *C, unsigned factor)
+void ref_mult(matrix *A, matrix *B, matrix *C)
 {
 	submatrix sA;
 	submatrix sB;
@@ -19,7 +20,7 @@ void ref_mult(matrix *A, matrix *B, matrix *C, unsigned factor)
 	sA.xa = 0;
 	sA.ya = 0;
 	sA.xb = A->width;
-	sA.yb = A->heigth/factor;
+	sA.yb = A->heigth;
 
 	sB.mat = B;
 	sB.xa = 0;
@@ -31,15 +32,15 @@ void ref_mult(matrix *A, matrix *B, matrix *C, unsigned factor)
 	sC.xa = 0;
 	sC.ya = 0;
 	sC.xb = C->width;
-	sC.yb = C->heigth/factor;
+	sC.yb = C->heigth;
 
-	dummy_mult(&sA, &sB, &sC);
+	cblas_mult(&sA, &sB, &sC);
 
 }
 
 void dummy_mult(submatrix *A, submatrix *B, submatrix *C)
 {
-	uint32_t sum;
+	float sum;
 	unsigned x,y, z;
 
 	unsigned sizexa;
@@ -47,9 +48,9 @@ void dummy_mult(submatrix *A, submatrix *B, submatrix *C)
 
 	ASSERT(A->xb - A->xa == B->yb - B->ya);
 
-	uint32_t *matA = A->mat->data;
-	uint32_t *matB = B->mat->data;
-	uint32_t *matC = C->mat->data;
+	float *matA = A->mat->data;
+	float *matB = B->mat->data;
+	float *matC = C->mat->data;
 
 	sizexa = A->mat->width;
 	sizexb = B->mat->width;
@@ -68,6 +69,33 @@ void dummy_mult(submatrix *A, submatrix *B, submatrix *C)
 			matC[x+y*sizexb] = sum;
 		}
 	}
+}
+
+void cblas_mult(submatrix *A, submatrix *B, submatrix *C)
+{
+	/* 
+	 * void cblas_sgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA,
+                 const enum CBLAS_TRANSPOSE TransB, const int M, const int N,
+                 const int K, const float alpha, const float *A,
+                 const int lda, const float *B, const int ldb,
+                 const float beta, float *C, const int ldc);
+	 */
+	printf("SGEMM\n");
+
+	int M = C->yb - C->ya;
+	int N = C->xb - C->xa;
+	int K = A->xb - A->xa;
+
+	int lda = A->mat->width;
+	int ldb = B->mat->width;
+	int ldc = C->mat->width;
+
+	float * dataA =  &A->mat->data[A->xa+A->ya*A->mat->width];
+	float * dataB =  &B->mat->data[B->xa+B->ya*B->mat->width];
+	float * dataC =  &C->mat->data[C->xa+C->ya*C->mat->width];
+
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, M, N, K,
+		 1.0, dataA, lda, dataB, ldb, 0.0, dataC, ldc);
 }
 
 void *dummy_mult_wrap(job_t j)
