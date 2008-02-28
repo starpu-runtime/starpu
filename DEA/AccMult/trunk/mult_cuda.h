@@ -1,6 +1,9 @@
 #ifndef __MULT_CUDA_H__
 #define __MULT_CUDA_H__
 
+#define _GNU_SOURCE
+#include <sched.h>
+
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -21,6 +24,7 @@
 
 typedef struct cuda_worker_arg_t {
 	int deviceid;
+	int bindid;
 	volatile int ready_flag;
 	matrix *A;
 	matrix *B;

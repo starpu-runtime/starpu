@@ -1,7 +1,7 @@
 CC=gcc
 NVCC = nvcc
 CFLAGS += -g -O3 -Wall #-fPIC
-CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -Wmain  -fno-strict-aliasing
+#CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -Wmain  -fno-strict-aliasing
 
 # to use CUDA
 CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
@@ -31,6 +31,10 @@ ifeq ($(MARCEL), 1)
 	CFLAGS += -DUSE_MARCEL $(shell pm2-config --cflags)
 else
 	LDFLAGS += -lpthread
+endif
+
+ifdef DONTBIND
+	CFLAGS += -DDONTBIND
 endif
 
 ifeq ($(CHECK), 1)

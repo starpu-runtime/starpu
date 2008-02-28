@@ -114,7 +114,15 @@ void *core_worker(void *arg)
 {
         int core = ((core_worker_arg *)arg)->coreid;
 
-        printf("core worker %d is ready\n", core);
+#ifndef DONTBIND
+	/* fix the thread on the correct cpu */
+	cpu_set_t aff_mask; 
+	CPU_ZERO(&aff_mask);
+	CPU_SET(((core_worker_arg *)arg)->bindid, &aff_mask);
+	sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
+#endif
+
+        printf("core worker %d is ready on logical core %d\n", core, ((core_worker_arg *)arg)->bindid);
 
         /* tell the main thread that we are ready */
         ((core_worker_arg *)arg)->ready_flag = 1;

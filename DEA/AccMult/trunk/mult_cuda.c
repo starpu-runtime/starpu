@@ -363,6 +363,14 @@ void *cuda_worker(void *arg)
 
 	int devid = args->deviceid;
 
+#ifndef DONTBIND
+        /* fix the thread on the correct cpu */
+        cpu_set_t aff_mask;
+        CPU_ZERO(&aff_mask);
+        CPU_SET(args->bindid, &aff_mask);
+        sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
+#endif
+
 	init_context(devid);
 
 	precondition_cuda(args->A, args->B, args->C);

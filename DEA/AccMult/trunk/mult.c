@@ -27,6 +27,8 @@ extern int ncublasgpus;
 int corecounters[NMAXCORES];
 #endif
 
+static int current_bindid = 0;
+
 tick_t start, stop;
 tick_t refstart, refstop;
 
@@ -58,6 +60,8 @@ void init_workers(matrix *A __attribute__ ((unused)),
 	for (core = 0; core < ncores; core++)
 	{
 		corecounters[core] = 0;
+
+		coreargs[core].bindid = (current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
 		
 		coreargs[core].coreid = core;
 		coreargs[core].ready_flag = 0;
@@ -79,6 +83,8 @@ void init_workers(matrix *A __attribute__ ((unused)),
 		cudaargs[cudadev].B = B;
 		cudaargs[cudadev].C = C;
 
+		cudaargs[cudadev].bindid = (current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
+
 		cudacounters[cudadev] = 0;
 
 		thread_create(&cudathreads[cudadev], NULL, cuda_worker, (void*)&cudaargs[cudadev]);
@@ -99,6 +105,8 @@ void init_workers(matrix *A __attribute__ ((unused)),
 		cublasargs[cublasdev].A = A;
 		cublasargs[cublasdev].B = B;
 		cublasargs[cublasdev].C = C;
+
+		cublasargs[cublasdev].bindid = (current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
 
 		cublascounters[cublasdev] = 0;
 

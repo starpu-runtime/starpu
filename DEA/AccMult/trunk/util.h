@@ -12,4 +12,6 @@
 
 #define ASSERT(x)	assert(x)
 
+#define ATOMIC_ADD(ptr, value)  (__sync_fetch_and_add ((ptr), (value)))
+
 #endif // __UTIL_H__

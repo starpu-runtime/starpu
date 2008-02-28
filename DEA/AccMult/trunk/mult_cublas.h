@@ -1,9 +1,12 @@
 #ifndef __MULT_CUBLAS_H__
 #define __MULT_CUBLAS_H__
 
+#define _GNU_SOURCE
+#include <sched.h>
+
 #include <assert.h>
 #include <stdio.h>
-
+#include <math.h>
 
 #include "threads.h"
 #include "util.h"
@@ -22,6 +25,7 @@
 
 typedef struct cublas_worker_arg_t {
 	int deviceid;
+	int bindid;
 	volatile int ready_flag;
 	matrix *A;
 	matrix *B;

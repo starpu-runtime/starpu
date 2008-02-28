@@ -1,6 +1,9 @@
 #ifndef __MULT_CORE_H__
 #define __MULT_CORE_H__
 
+#define _GNU_SOURCE
+#include <sched.h>
+
 #include "comp.h"
 #include "mult.h"
 #include "jobs.h"
@@ -9,6 +12,7 @@
 typedef struct core_worker_arg_t {
         int coreid;
         volatile int ready_flag;
+	int bindid;
 } core_worker_arg;
 
 void *core_worker(void *);

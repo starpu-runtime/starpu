@@ -1,10 +1,5 @@
 #ifdef USE_CUBLAS
 
-#include <assert.h>
-#include <math.h>
-
-#include <cublas.h>
-#include "jobs.h"
 #include "mult_cublas.h"
 
 static cublasStatus status;
@@ -119,11 +114,19 @@ void *cublas_worker(void *arg)
 
 	int devid = args->deviceid;
 
+#ifndef DONTBIND
+        /* fix the thread on the correct cpu */
+        cpu_set_t aff_mask;
+        CPU_ZERO(&aff_mask);
+        CPU_SET(args->bindid, &aff_mask);
+        sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
+#endif
+
 	cublasInit();
 
 	precondition_cublas(args->A, args->B, args->C);
 
-	printf("cublas thread is ready to run !\n");
+	printf("cublas thread is ready to run on CPU %d !\n", args->bindid);
 	/* tell the main thread that this one is ready to work */
 	args->ready_flag = 1;
 
