@@ -373,6 +373,9 @@ void *cuda_worker(void *arg)
 
 	precondition_cuda(args->A, args->B, args->C);
 
+	/* tell the main thread that this one is ready */
+	args->ready_flag = 1;
+
 	job_t j;
 	
 	do {

@@ -11,6 +11,7 @@
 #include "util.h"
 #include "jobs.h"
 #include "parameters.h"
+#include "comp.h"
 
 #ifdef USE_CUDA
 #include "mult_cuda.h"
@@ -29,6 +30,7 @@
 
 typedef struct core_worker_arg_t {
 	int coreid;
+	volatile int ready_flag;
 } core_worker_arg;
 
 #ifndef NMAXCORES

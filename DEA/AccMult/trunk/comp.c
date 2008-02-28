@@ -81,8 +81,6 @@ void cblas_mult(submatrix *A, submatrix *B, submatrix *C)
                  const int lda, const float *B, const int ldb,
                  const float beta, float *C, const int ldc);
 	 */
-	printf("SGEMM\n");
-
 	int M = C->yb - C->ya;
 	int N = C->xb - C->xa;
 	int K = A->xb - A->xa;
@@ -96,7 +94,7 @@ void cblas_mult(submatrix *A, submatrix *B, submatrix *C)
 	float * dataC =  &C->mat->data[C->xa+C->ya*C->mat->width];
 
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, M, N, K,
-		 1.0, dataA, lda, dataB, ldb, 0.0, dataC, ldc);
+		 ALPHA, dataA, lda, dataB, ldb, BETA, dataC, ldc);
 }
 
 void *dummy_mult_wrap(job_t j)

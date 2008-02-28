@@ -12,6 +12,8 @@
 
 #define DEV_DATA(_mat)	((_mat)->mat->cublas_data.dev_data)
 
+static cublasStatus status;
+
 extern int cublascounters[MAXCUBLASDEVS];
 
 int ncublasgpus = 1;
@@ -31,9 +33,8 @@ static void precondition_cublas(matrix *A, matrix *B, matrix *C)
 
 	cublasSetMatrix(A->width,  A->heigth, sizeof(float), A->data, A->width, A->cublas_data.dev_data, A->width);
 	cublasSetMatrix(B->width,  B->heigth, sizeof(float), B->data, B->width, B->cublas_data.dev_data, B->width);
+	cublasSetMatrix(C->width,  C->heigth, sizeof(float), C->data, C->width, C->cublas_data.dev_data, C->width);
 }
-
-
 
 static void cublas_mult(job_t j)
 {
@@ -64,9 +65,33 @@ static void cublas_mult(job_t j)
 	int ncolA = matA->xb - matA->xa;
 
 	//printf("cubla_mult \n");
-	cublasSgemm('n', 'n', nrowC, ncolC, ncolA, 1.0, d_B, ldb, d_A, lda, 0.0, d_C, ldc);
-	if (cublasGetError()) {
-		printf("sgemm failed \n");
+	cublasSgemm('n', 'n', nrowC, ncolC, ncolA, ALPHA, d_B, ldb, d_A, lda, BETA, d_C, ldc);
+	status = cublasGetError();
+	if (status) {
+		printf("sgemm failed :");
+		switch (status) {
+			case CUBLAS_STATUS_NOT_INITIALIZED:
+				printf("CUBLAS_STATUS_NOT_INITIALIZED\n");
+				break;
+			case CUBLAS_STATUS_ALLOC_FAILED:
+				printf("CUBLAS_STATUS_ALLOC_FAILED\n");
+				break;
+			case CUBLAS_STATUS_INTERNAL_ERROR:
+				printf("CUBLAS_STATUS_INTERNAL_ERROR\n");
+				break;
+			case CUBLAS_STATUS_INVALID_VALUE:
+				printf("CUBLAS_STATUS_INVALID_VALUE\n");
+				break;
+			case CUBLAS_STATUS_EXECUTION_FAILED:
+				printf("CUBLAS_STATUS_EXECUTION_FAILED\n");
+				break;
+			case CUBLAS_STATUS_MAPPING_ERROR:
+				printf("CUBLAS_STATUS_MAPPING_ERROR\n");
+				break;
+			default:
+				printf("UNKNOWN REASON\n");
+				break;
+		}
 	}
 	
 	/* XXX fetch data from the device */	
@@ -102,6 +127,10 @@ void *cublas_worker(void *arg)
 	cublasInit();
 
 	precondition_cublas(args->A, args->B, args->C);
+
+	printf("cublas thread is ready to run !\n");
+	/* tell the main thread that this one is ready to work */
+	args->ready_flag = 1;
 
 	job_t j;
 	do {

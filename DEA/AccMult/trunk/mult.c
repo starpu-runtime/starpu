@@ -50,7 +50,6 @@ void execute_job_on_core(job_t j)
 {
 	switch (j->type) {
 		case MUL:
-			printf("mult core\n");
 #ifdef USE_CPU_BLAS
 			cblas_mult(&j->input.matA, &j->input.matB, &j->output.matC_sub);
 #else
@@ -76,6 +75,9 @@ void *core_worker(void *arg)
 	int core = ((core_worker_arg *)arg)->coreid;
 
 	printf("core worker %d up \n", core);
+
+	/* tell the main thread that we are ready */
+	((core_worker_arg *)arg)->ready_flag = 1;
 
 	job_t j;
 
@@ -120,14 +122,17 @@ void init_workers(matrix *A, matrix *B, matrix *C)
 	for (core = 0; core < ncores; core++)
 	{
 		corecounters[core] = 0;
-
+		
 		coreargs[core].coreid = core;
+		coreargs[core].ready_flag = 0;
 
 #ifdef USE_MARCEL
 		marcel_create(&corethreads[core], NULL, core_worker, &coreargs[core]);
 #else
 		pthread_create(&corethreads[core], NULL, core_worker, &coreargs[core]);
 #endif
+		/* wait until the thread is actually launched ... */
+		while (coreargs[core].ready_flag == 0) {}
 	}
 #endif
 
@@ -137,6 +142,7 @@ void init_workers(matrix *A, matrix *B, matrix *C)
 	for (cudadev = 0; cudadev < ncudagpus; cudadev++)
 	{
 		cudaargs[cudadev].deviceid = cudadev;
+		cudaargs[cudadev].ready_flag = 0;
 		cudaargs[cudadev].A = A;
 		cudaargs[cudadev].B = B;
 		cudaargs[cudadev].C = C;
@@ -148,6 +154,8 @@ void init_workers(matrix *A, matrix *B, matrix *C)
 #else
 		pthread_create(&cudathreads[cudadev], NULL, cuda_worker, (void*)&cudaargs[cudadev]);
 #endif
+		/* wait until the thread is actually launched ... */
+		while (cudaargs[cudadev].ready_flag == 0) {}
 	}
 #endif
 
@@ -158,6 +166,7 @@ void init_workers(matrix *A, matrix *B, matrix *C)
 	for (cublasdev = 0; cublasdev < ncublasgpus; cublasdev++)
 	{
 		cublasargs[cublasdev].deviceid = cublasdev;
+		cublasargs[cublasdev].ready_flag = 0;
 		cublasargs[cublasdev].A = A;
 		cublasargs[cublasdev].B = B;
 		cublasargs[cublasdev].C = C;
@@ -169,6 +178,10 @@ void init_workers(matrix *A, matrix *B, matrix *C)
 #else
 		pthread_create(&cublasthreads[cublasdev], NULL, cublas_worker, (void*)&cublasargs[cublasdev]);
 #endif
+		/* wait until the thread is actually launched ... */
+		printf("wait cublas thread to be ready ...  \n");
+		while (cublasargs[cublasdev].ready_flag == 0) {}
+		printf("cublas thread is ready and main thread knows it \n");
 	}
 #endif
 
@@ -265,7 +278,7 @@ void display_matrix(matrix *m)
 int count_tasks(void)
 {
 	int total = 0;
-	unsigned i;
+	unsigned i __attribute__ ((unused));
 
 #ifdef USE_CPUS
 	for (i = 0; i < ncores ; i++)
@@ -293,8 +306,10 @@ int count_tasks(void)
 
 void display_stats(void)
 {
-	unsigned i;
-	int total = count_tasks();
+	unsigned i __attribute__ ((unused));
+	int total __attribute__ ((unused));
+	
+	total = count_tasks();
 
 #ifdef USE_CPUS
 	printf("CORES :\n");
@@ -405,7 +420,7 @@ int main(int argc, char **argv)
 	ref_mult(&matA, &matB, &matD);	
 	GET_TICK(refstop);
 
-	compare_matrix(&matC, &matD, SIZE*0.001);
+	//compare_matrix(&matC, &matD, SIZE*0.001);
 #endif
 
 	display_stats();

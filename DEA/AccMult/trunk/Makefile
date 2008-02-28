@@ -40,7 +40,7 @@ else
 	CFLAGS += -DSIZE=$(DEFAULTSIZE)
 endif
 
-ifneq ($(CUDA), 0)
+ifeq ($(CUDA), 1)
 	CFLAGS += -DUSE_CUDA 
 	NVCCFLAGS +=  -DUSE_CUDA 
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
@@ -54,6 +54,10 @@ ifeq ($(CUBLAS), 1)
 	LDFLAGS += -lcublas
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	DEPENDENCIES += mult_cublas.o
+endif
+
+ifdef ATLAS
+	CFLAGS += -DUSE_CPU_BLAS
 endif
 
 
@@ -108,6 +112,7 @@ clean:
 help:
 	@echo "Possible options (default value) "
 	@echo "  SIZE size of the problem ($(DEFAULTSIZE))"
-	@echo "  CUDA use of cuda or not (1)"
+	@echo "  CUDA use of cuda or not (0)"
+	@echo "  CUBLAS use of cublas or not (0)"
 	@echo "  CPUS number of CPUs in use (0)"
 	@echo "  GRAIN job grain size ($(DEFAULTGRAIN))"
