@@ -12,7 +12,7 @@ void init_work_queue(void)
 
 void push_tasks(job_t *tasks, unsigned ntasks)
 {
-	int i;
+	unsigned i;
 	thread_mutex_lock(&workq_mutex);
 
 	for (i = 0; i < ntasks; i++)

@@ -45,7 +45,9 @@ void init_machine(void)
 	timing_init();
 }
 
-void init_workers(matrix *A, matrix *B, matrix *C)
+void init_workers(matrix *A __attribute__ ((unused)), 
+		  matrix *B __attribute__ ((unused)),
+		  matrix *C __attribute__ ((unused)))
 {
 	/* initialize the queue containing the jobs */
 	init_work_queue();
@@ -266,7 +268,7 @@ void compare_matrix(matrix *A, matrix *B, float eps)
 	int ndiff = 0;
 	int ntotal = 0;
 
-	int x,y;
+	unsigned x,y;
 	for (x = 0; x < A->width; x++) 
 	{
 		for (y = 0; y < A->heigth ; y++) 
@@ -287,7 +289,7 @@ void compare_matrix(matrix *A, matrix *B, float eps)
 	}
 }
 
-int main(int argc, char **argv)
+int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused)) )
 {
 #ifdef USE_MARCEL
 	marcel_init(&argc, argv);

@@ -1,7 +1,16 @@
 CC=gcc
 NVCC = nvcc
 CFLAGS += -g -O3 -Wall #-fPIC
-#CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -Wmain  -fno-strict-aliasing
+CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -Wmain  -fno-strict-aliasing
+
+# to use CUDA
+CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
+CUDAINSTALLDIR=/usr/local/cuda/
+
+# for compile time tuning 
+DEFAULTSIZE=2048
+DEFAULTGRAIN=128
+
 
 ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
 BLASARCH=Linux_UNKNOWNSSE2
@@ -27,16 +36,6 @@ endif
 ifeq ($(CHECK), 1)
 	CFLAGS += -DCHECK_OUTPUT
 endif
-
-# to use CUDA
-CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
-CUDAINSTALLDIR=/usr/local/cuda/
-
-
-# for compile time tuning 
-
-DEFAULTSIZE=2048
-DEFAULTGRAIN=128
 
 ifdef SIZE 
 	CFLAGS += -DSIZE=$(SIZE)

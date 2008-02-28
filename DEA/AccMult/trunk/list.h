@@ -134,7 +134,7 @@
       ENAME##_list_erase(l, e); return e; } \
   /** @internal */static inline ENAME##_itor_t ENAME##_list_begin(ENAME##_list_t l) \
     { return l->_head; } \
-  /** @internal */static inline ENAME##_itor_t ENAME##_list_end(ENAME##_list_t l) \
+  /** @internal */static inline ENAME##_itor_t ENAME##_list_end(ENAME##_list_t l __attribute__ ((unused))) \
     { return NULL; } \
   /** @internal */static inline ENAME##_itor_t ENAME##_list_next(ENAME##_itor_t i) \
     { return i->_next; } \

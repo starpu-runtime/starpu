@@ -62,7 +62,7 @@ void mult(matrix *A, matrix *B, matrix *C)
 	nworkers += ncublasgpus;
 #endif
 
-	int worker;
+	unsigned worker;
 	for (worker = 0; worker < nworkers ; worker++) {
 		job_t j = job_new();
 		j->output.matC_existing = C;
