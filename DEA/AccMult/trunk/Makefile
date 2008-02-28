@@ -13,7 +13,7 @@ LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
 LDFLAGS+= -lm
 
 
-DEPENDENCIES=comp.o mult.o jobs.o
+DEPENDENCIES=comp.o threads.o mult.o jobs.o
 EXTRADEP=
 
 ifeq ($(MARCEL), 1)

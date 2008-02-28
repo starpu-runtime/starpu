@@ -5,31 +5,19 @@
 
 #ifdef USE_CPUS
 unsigned ncores;
-#ifdef USE_MARCEL
-marcel_t corethreads[NMAXCORES];
-#else
-pthread_t corethreads[NMAXCORES];
-#endif
+thread_t corethreads[NMAXCORES];
 core_worker_arg coreargs[NMAXCORES]; 
 #endif
 
 #ifdef USE_CUDA
-#ifdef USE_MARCEL
-marcel_t cudathreads[MAXCUDADEVS];
-#else
-pthread_t cudathreads[MAXCUDADEVS];
-#endif
+thread_t cudathreads[MAXCUDADEVS];
 int cudacounters[MAXCUDADEVS];
 cuda_worker_arg cudaargs[MAXCUDADEVS];
 extern int ncudagpus;
 #endif
 
 #ifdef USE_CUBLAS
-#ifdef USE_MARCEL
-marcel_t cublasthreads[MAXCUBLASDEVS];
-#else
-pthread_t cublasthreads[MAXCUBLASDEVS];
-#endif
+thread_t cublasthreads[MAXCUBLASDEVS];
 int cublascounters[MAXCUBLASDEVS];
 cublas_worker_arg cublasargs[MAXCUBLASDEVS];
 extern int ncublasgpus;
@@ -58,11 +46,7 @@ void execute_job_on_core(job_t j)
 			break;
 		case ABORT:
 			printf("core abort\n");
-#ifdef USE_MARCEL
-			marcel_exit(NULL);
-#else
-			pthread_exit(NULL);
-#endif
+			thread_exit(NULL);
 			break;
 		default:
 			break;
@@ -126,11 +110,7 @@ void init_workers(matrix *A, matrix *B, matrix *C)
 		coreargs[core].coreid = core;
 		coreargs[core].ready_flag = 0;
 
-#ifdef USE_MARCEL
-		marcel_create(&corethreads[core], NULL, core_worker, &coreargs[core]);
-#else
-		pthread_create(&corethreads[core], NULL, core_worker, &coreargs[core]);
-#endif
+		thread_create(&corethreads[core], NULL, core_worker, &coreargs[core]);
 		/* wait until the thread is actually launched ... */
 		while (coreargs[core].ready_flag == 0) {}
 	}
@@ -149,11 +129,8 @@ void init_workers(matrix *A, matrix *B, matrix *C)
 
 		cudacounters[cudadev] = 0;
 
-#ifdef USE_MARCEL
-		marcel_create(&cudathreads[cudadev], NULL, cuda_worker, (void*)&cudaargs[cudadev]);
-#else
-		pthread_create(&cudathreads[cudadev], NULL, cuda_worker, (void*)&cudaargs[cudadev]);
-#endif
+		thread_create(&cudathreads[cudadev], NULL, cuda_worker, (void*)&cudaargs[cudadev]);
+
 		/* wait until the thread is actually launched ... */
 		while (cudaargs[cudadev].ready_flag == 0) {}
 	}
@@ -173,11 +150,8 @@ void init_workers(matrix *A, matrix *B, matrix *C)
 
 		cublascounters[cublasdev] = 0;
 
-#ifdef USE_MARCEL
-		marcel_create(&cublasthreads[cublasdev], NULL, cublas_worker, (void*)&cublasargs[cublasdev]);
-#else
-		pthread_create(&cublasthreads[cublasdev], NULL, cublas_worker, (void*)&cublasargs[cublasdev]);
-#endif
+		thread_create(&cublasthreads[cublasdev], NULL, cublas_worker, (void*)&cublasargs[cublasdev]);
+
 		/* wait until the thread is actually launched ... */
 		printf("wait cublas thread to be ready ...  \n");
 		while (cublasargs[cublasdev].ready_flag == 0) {}
@@ -194,11 +168,7 @@ void terminate_workers(void)
 	unsigned core;
 	for (core = 0; core < ncores; core++)
 	{
-#ifdef USE_MARCEL
-		marcel_join(corethreads[core], NULL);
-#else
-		pthread_join(corethreads[core], NULL);
-#endif
+		thread_join(corethreads[core], NULL);
 	}
 	printf("core terminated ... \n");
 #endif
@@ -209,11 +179,7 @@ void terminate_workers(void)
 	int cudadev;
 	for (cudadev = 0; cudadev < ncudagpus; cudadev++)
 	{
-#ifdef USE_MARCEL
-		marcel_join(cudathreads[cudadev], NULL);
-#else
-		pthread_join(cudathreads[cudadev], NULL);
-#endif
+		thread_join(cudathreads[cudadev], NULL);
 	}
 	printf("cuda terminated\n");
 #endif
@@ -222,11 +188,7 @@ void terminate_workers(void)
 	int cublasdev;
 	for (cublasdev = 0; cublasdev < ncublasgpus; cublasdev++)
 	{
-#ifdef USE_MARCEL
-		marcel_join(cublasthreads[cublasdev], NULL);
-#else
-		pthread_join(cublasthreads[cublasdev], NULL);
-#endif
+		thread_join(cublasthreads[cublasdev], NULL);
 	}
 	printf("cublas terminated\n");
 #endif
