@@ -2,7 +2,7 @@
 #include "jobs.h"
 
 static job_list_t jobq;
-thread_mutex_t workq_mutex;
+static thread_mutex_t workq_mutex;
 
 void init_work_queue(void)
 {

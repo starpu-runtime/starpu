@@ -1,12 +1,6 @@
 #ifdef USE_CUDA
 
-#include <assert.h>
-#include <math.h>
-
-#include "jobs.h"
 #include "mult_cuda.h"
-
-//#define DEBUG
 
 /* the number of CUDA devices */
 int ncudagpus;

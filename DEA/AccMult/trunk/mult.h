@@ -21,21 +21,14 @@
 #include "mult_cublas.h"
 #endif
 
-
-
 #ifdef USE_CELL
 #error not supported yet
 #include "mult_cell.h"
 #endif
 
-typedef struct core_worker_arg_t {
-	int coreid;
-	volatile int ready_flag;
-} core_worker_arg;
-
-#ifndef NMAXCORES
-#define NMAXCORES       3
-#endif
+//#ifdef USE_CPUS
+#include "mult_core.h"
+//#endif
 
 #ifndef COMPARE_SEQ
 #define COMPARE_SEQ   1

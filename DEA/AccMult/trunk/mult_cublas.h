@@ -14,6 +14,12 @@
 
 #define MAXCUBLASDEVS	4
 
+#define START_POS(_mat)         \
+		((_mat)->xa + (_mat)->ya*(_mat)->mat->width)
+
+#define DEV_DATA(_mat)  ((_mat)->mat->cublas_data.dev_data)
+
+
 typedef struct cublas_worker_arg_t {
 	int deviceid;
 	volatile int ready_flag;

@@ -1,110 +1,14 @@
 #include "comp.h"
 #include "mult.h"
 #include "jobs.h"
-#include <cblas.h>
 
-extern void precondition_cuda(matrix *A, matrix *B, matrix *C);
 extern int ncudagpus;
 extern int ncublasgpus;
-
-extern void copy_job_on_device(job_t j);
-
 extern unsigned ncores;
 
-void ref_mult(matrix *A, matrix *B, matrix *C)
-{
-	submatrix sA;
-	submatrix sB;
-	submatrix sC;
-	
-	sA.mat = A;
-	sA.xa = 0;
-	sA.ya = 0;
-	sA.xb = A->width;
-	sA.yb = A->heigth;
-
-	sB.mat = B;
-	sB.xa = 0;
-	sB.ya = 0;
-	sB.xb = B->width;
-	sB.yb = B->heigth;
-
-	sC.mat = C;
-	sC.xa = 0;
-	sC.ya = 0;
-	sC.xb = C->width;
-	sC.yb = C->heigth;
-
-	cblas_mult(&sA, &sB, &sC);
-
-}
-
-void dummy_mult(submatrix *A, submatrix *B, submatrix *C)
-{
-	float sum;
-	unsigned x,y, z;
-
-	unsigned sizexa;
-	unsigned sizexb;
-
-	ASSERT(A->xb - A->xa == B->yb - B->ya);
-
-	float *matA = A->mat->data;
-	float *matB = B->mat->data;
-	float *matC = C->mat->data;
-
-	sizexa = A->mat->width;
-	sizexb = B->mat->width;
-
-	for (y = A->ya; y < A->yb ; y++)
-	{
-		for (x = B->xa; x < B->xb; x++)
-		{
-			sum = 0;
-
-			for (z = A->xa; z < A->xb ; z++)
-			{
-				sum += matA[z+sizexa*y]*matB[x+sizexb*z];
-			}
-
-			matC[x+y*sizexb] = sum;
-		}
-	}
-}
-
-void cblas_mult(submatrix *A, submatrix *B, submatrix *C)
-{
-	/* 
-	 * void cblas_sgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA,
-                 const enum CBLAS_TRANSPOSE TransB, const int M, const int N,
-                 const int K, const float alpha, const float *A,
-                 const int lda, const float *B, const int ldb,
-                 const float beta, float *C, const int ldc);
-	 */
-	int M = C->yb - C->ya;
-	int N = C->xb - C->xa;
-	int K = A->xb - A->xa;
-
-	int lda = A->mat->width;
-	int ldb = B->mat->width;
-	int ldc = C->mat->width;
-
-	float * dataA =  &A->mat->data[A->xa+A->ya*A->mat->width];
-	float * dataB =  &B->mat->data[B->xa+B->ya*B->mat->width];
-	float * dataC =  &C->mat->data[C->xa+C->ya*C->mat->width];
-
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, M, N, K,
-		 ALPHA, dataA, lda, dataB, ldb, BETA, dataC, ldc);
-}
-
-void *dummy_mult_wrap(job_t j)
-{
-	return NULL;
-}
-
 /*
- *  * A x B = C
- *   */
+ *  A x B = C
+ */
 void mult(matrix *A, matrix *B, matrix *C)
 {
 	unsigned nx,ny;

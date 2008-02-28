@@ -7,11 +7,6 @@
 #include "jobs.h"
 #include "mult_cublas.h"
 
-#define START_POS(_mat)		\
-		((_mat)->xa + (_mat)->ya*(_mat)->mat->width)
-
-#define DEV_DATA(_mat)	((_mat)->mat->cublas_data.dev_data)
-
 static cublasStatus status;
 
 extern int cublascounters[MAXCUBLASDEVS];

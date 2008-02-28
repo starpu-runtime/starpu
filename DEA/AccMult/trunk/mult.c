@@ -31,56 +31,6 @@ tick_t start, stop;
 tick_t refstart, refstop;
 
 
-char *execpath;
-
-
-void execute_job_on_core(job_t j)
-{
-	switch (j->type) {
-		case MUL:
-#ifdef USE_CPU_BLAS
-			cblas_mult(&j->input.matA, &j->input.matB, &j->output.matC_sub);
-#else
-			dummy_mult(&j->input.matA, &j->input.matB, &j->output.matC_sub);
-#endif
-			break;
-		case ABORT:
-			printf("core abort\n");
-			thread_exit(NULL);
-			break;
-		default:
-			break;
-	}
-}
-
-#ifdef USE_CPUS
-void *core_worker(void *arg)
-{
-	int core = ((core_worker_arg *)arg)->coreid;
-
-	printf("core worker %d up \n", core);
-
-	/* tell the main thread that we are ready */
-	((core_worker_arg *)arg)->ready_flag = 1;
-
-	job_t j;
-
-	do {
-		j = pop_task();
-		if (j == NULL) continue;
-
-		execute_job_on_core(j);
-
-		if (j->cb)
-			j->cb(j->argcb);
-
-		corecounters[core]++;
-	} while(1);
-
-	return NULL;
-}
-#endif
-
 void init_machine(void)
 {
 	srand(2008);
@@ -153,9 +103,7 @@ void init_workers(matrix *A, matrix *B, matrix *C)
 		thread_create(&cublasthreads[cublasdev], NULL, cublas_worker, (void*)&cublasargs[cublasdev]);
 
 		/* wait until the thread is actually launched ... */
-		printf("wait cublas thread to be ready ...  \n");
 		while (cublasargs[cublasdev].ready_flag == 0) {}
-		printf("cublas thread is ready and main thread knows it \n");
 	}
 #endif
 
@@ -341,8 +289,6 @@ void compare_matrix(matrix *A, matrix *B, float eps)
 
 int main(int argc, char **argv)
 {
-	execpath = argv[0];
-
 #ifdef USE_MARCEL
 	marcel_init(&argc, argv);
 #endif
@@ -382,7 +328,9 @@ int main(int argc, char **argv)
 	ref_mult(&matA, &matB, &matD);	
 	GET_TICK(refstop);
 
-	//compare_matrix(&matC, &matD, SIZE*0.001);
+#ifdef CHECK_OUTPUT
+	compare_matrix(&matC, &matD, SIZE*0.001);
+#endif
 #endif
 
 	display_stats();

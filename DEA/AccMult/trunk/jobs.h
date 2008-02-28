@@ -13,7 +13,6 @@
 #include <cuda.h>
 #endif
 
-/* XXX find a better name ;) */
 typedef enum {GPU, CELL, CORE, ANY} cap;
 
 typedef enum {ADD, SUB, MUL, PART, ABORT} jobtype;
@@ -73,9 +72,6 @@ LIST_TYPE(job,
 #ifdef USE_CUDA
 	CUdeviceptr device_job ;
 	CUdeviceptr toto;
-#endif
-#ifdef USE_CUBAS
-	
 #endif
 );
 

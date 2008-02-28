@@ -13,7 +13,7 @@ LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
 LDFLAGS+= -lm
 
 
-DEPENDENCIES=comp.o threads.o mult.o jobs.o
+DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o
 EXTRADEP=
 
 ifeq ($(MARCEL), 1)
@@ -22,6 +22,10 @@ ifeq ($(MARCEL), 1)
 	CFLAGS += -DUSE_MARCEL $(shell pm2-config --cflags)
 else
 	LDFLAGS += -lpthread
+endif
+
+ifeq ($(CHECK), 1)
+	CFLAGS += -DCHECK_OUTPUT
 endif
 
 # to use CUDA
@@ -84,6 +88,9 @@ LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
 
 all: mult
 
+mult_core.o: mult_core.c comp.h mult.h  parameters.h
+	$(CC) $(CFLAGS) mult_core.c -c -o mult_core.o
+
 mult_cublas.o: mult_cublas.c mult_cublas.h mult.h  parameters.h
 	$(CC) $(CFLAGS) mult_cublas.c -c -o mult_cublas.o
 
@@ -115,4 +122,6 @@ help:
 	@echo "  CUDA use of cuda or not (0)"
 	@echo "  CUBLAS use of cublas or not (0)"
 	@echo "  CPUS number of CPUs in use (0)"
+	@echo "  CPUS run ATLAS functions (0)"
+	@echo "  CHECK makes sure the output is correct (0)"
 	@echo "  GRAIN job grain size ($(DEFAULTGRAIN))"

@@ -2,6 +2,7 @@
 #define __MULT_CUDA_H__
 
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <cuda.h>
 #include <cuda_runtime_api.h>

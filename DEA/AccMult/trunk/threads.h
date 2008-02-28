@@ -20,9 +20,13 @@ typedef pthread_mutex_t thread_mutex_t;
 #endif
 
 void thread_exit(void *);
+int thread_join(thread_t, void **);
 int thread_mutex_init(thread_mutex_t *,  const  thread_mutexattr_t *);
 int thread_mutex_lock(thread_mutex_t *);
 int thread_mutex_unlock(thread_mutex_t *);
+int thread_create(thread_t  *, thread_attr_t *, void *(*start_routine)(void *), void *);
+
+
 
 
 #endif // __THREADS_H__
