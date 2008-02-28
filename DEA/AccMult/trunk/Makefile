@@ -1,10 +1,7 @@
 CC=gcc
 NVCC = nvcc
-CFLAGS += -g -O3 -Wall -fPIC
-CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -Wmain  -fno-strict-aliasing
-
-CFLAGS+= -DUSE_CPU_BLAS
-CFLAGS+= -DUSE_CUBLAS
+CFLAGS += -g -O3 -Wall #-fPIC
+#CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -Wmain  -fno-strict-aliasing
 
 ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
 BLASARCH=Linux_UNKNOWNSSE2
@@ -15,6 +12,9 @@ LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
 
 LDFLAGS+= -lm
 
+
+DEPENDENCIES=comp.o mult.o jobs.o
+EXTRADEP=
 
 ifeq ($(MARCEL), 1)
 	CC=$(shell pm2-config --cc)
@@ -45,7 +45,17 @@ ifneq ($(CUDA), 0)
 	NVCCFLAGS +=  -DUSE_CUDA 
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	NVCCFLAGS += -I$(CUDAINSTALLDIR)/include 
+	DEPENDENCIES += mult_cuda.o
+	EXTRADEP += comp_cuda.cubin 
 endif
+
+ifeq ($(CUBLAS), 1)
+	CFLAGS += -DUSE_CUBLAS
+	LDFLAGS += -lcublas
+	CFLAGS += -I$(CUDAINSTALLDIR)/include 
+	DEPENDENCIES += mult_cublas.o
+endif
+
 
 ifdef CPUS
 	CFLAGS += -DUSE_CPUS #-DDEBUG
@@ -67,9 +77,11 @@ NVCCFLAGS += -I$(CUTILDIR)/inc/
 LDFLAGS += -L$(CUDASDKDIR)/lib
 LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
 
-LDFLAGS += -lcublas
 
 all: mult
+
+mult_cublas.o: mult_cublas.c mult_cublas.h mult.h  parameters.h
+	$(CC) $(CFLAGS) mult_cublas.c -c -o mult_cublas.o
 
 mult_cuda.o: mult_cuda.c mult_cuda.h mult.h  parameters.h
 	$(NVCC) $(NVCCFLAGS) mult_cuda.c -c -o mult_cuda.o
@@ -86,8 +98,8 @@ comp.o: comp.c comp.h mult.h  parameters.h
 jobs.o: jobs.c jobs.h mult.h parameters.h
 	$(CC) $(CFLAGS) jobs.c -c -o jobs.o
 
-mult: comp.o mult.o mult_cuda.o jobs.o mult.h util.h parameters.h
-	$(CC) $(CFLAGS) mult.o mult_cuda.o comp.o jobs.o -o mult $(LDFLAGS) 
+mult: $(DEPENDENCIES) $(EXTRADEP) mult.h util.h parameters.h
+	$(CC) $(CFLAGS)  $(DEPENDENCIES) -o mult $(LDFLAGS) 
 
 clean:
 	rm -f *.o *.cu_o *.cubin *.cpp_o

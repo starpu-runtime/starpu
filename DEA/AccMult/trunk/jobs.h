@@ -24,8 +24,13 @@ typedef void (*callback)(void *);
 typedef struct cuda_matrix_t {
 	CUdeviceptr matdata;
 	CUdeviceptr matheader;
-	float *dev_data;
 } cuda_matrix;
+#endif
+
+#ifdef USE_CUBLAS
+typedef struct cublas_matrix_t {
+	float *dev_data;
+} cublas_matrix;
 #endif
 
 typedef struct matrix_t {
@@ -35,6 +40,9 @@ typedef struct matrix_t {
 	/* XXX put a flag to tell which copy are available */
 #ifdef USE_CUDA
 	cuda_matrix cuda_data;
+#endif
+#ifdef USE_CUBLAS
+	cublas_matrix cublas_data;
 #endif
 } matrix;
 
@@ -65,6 +73,9 @@ LIST_TYPE(job,
 #ifdef USE_CUDA
 	CUdeviceptr device_job ;
 	CUdeviceptr toto;
+#endif
+#ifdef USE_CUBAS
+	
 #endif
 );
 

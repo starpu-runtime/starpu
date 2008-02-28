@@ -5,6 +5,7 @@
 
 extern void precondition_cuda(matrix *A, matrix *B, matrix *C);
 extern int ncudagpus;
+extern int ncublasgpus;
 
 extern void copy_job_on_device(job_t j);
 
@@ -155,6 +156,9 @@ void mult(matrix *A, matrix *B, matrix *C)
 #ifdef USE_CUDA
 	nworkers += ncudagpus;
 #endif
+#ifdef USE_CUBLAS
+	nworkers += ncublasgpus;
+#endif
 
 	int worker;
 	for (worker = 0; worker < nworkers ; worker++) {
@@ -162,6 +166,10 @@ void mult(matrix *A, matrix *B, matrix *C)
 		j->output.matC_existing = C;
 		j->type = ABORT;
 		push_task(j);
+	}
+
+	if (nworkers == 0) {
+		fprintf(stderr, "Warning there is no worker ... \n");
 	}
 
 	return;

@@ -16,6 +16,12 @@
 #include "mult_cuda.h"
 #endif
 
+#ifdef USE_CUBLAS
+#include "mult_cublas.h"
+#endif
+
+
+
 #ifdef USE_CELL
 #error not supported yet
 #include "mult_cell.h"

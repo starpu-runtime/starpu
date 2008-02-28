@@ -1,5 +1,4 @@
 #include "mult.h"
-#include "comp.h"
 #include "timing.h"
 
 /* number of actual CPU cores */
@@ -22,14 +21,27 @@ pthread_t cudathreads[MAXCUDADEVS];
 #endif
 int cudacounters[MAXCUDADEVS];
 cuda_worker_arg cudaargs[MAXCUDADEVS];
+extern int ncudagpus;
 #endif
 
+#ifdef USE_CUBLAS
+#ifdef USE_MARCEL
+marcel_t cublasthreads[MAXCUBLASDEVS];
+#else
+pthread_t cublasthreads[MAXCUBLASDEVS];
+#endif
+int cublascounters[MAXCUBLASDEVS];
+cublas_worker_arg cublasargs[MAXCUBLASDEVS];
+extern int ncublasgpus;
+#endif
+
+#ifdef USE_CPUS
 int corecounters[NMAXCORES];
+#endif
 
 tick_t start, stop;
 tick_t refstart, refstop;
 
-extern int ncudagpus;
 
 char *execpath;
 
@@ -58,6 +70,7 @@ void execute_job_on_core(job_t j)
 	}
 }
 
+#ifdef USE_CPUS
 void *core_worker(void *arg)
 {
 	int core = ((core_worker_arg *)arg)->coreid;
@@ -80,6 +93,7 @@ void *core_worker(void *arg)
 
 	return NULL;
 }
+#endif
 
 void init_machine(void)
 {
@@ -129,18 +143,31 @@ void init_workers(matrix *A, matrix *B, matrix *C)
 
 		cudacounters[cudadev] = 0;
 
-#ifdef USE_CUBLAS
-#ifdef USE_MARCEL
-		marcel_create(&cudathreads[cudadev], NULL, cublas_worker, (void*)&cudaargs[cudadev]);
-#else
-		pthread_create(&cudathreads[cudadev], NULL, cublas_worker, (void*)&cudaargs[cudadev]);
-#endif
-#else
 #ifdef USE_MARCEL
 		marcel_create(&cudathreads[cudadev], NULL, cuda_worker, (void*)&cudaargs[cudadev]);
 #else
 		pthread_create(&cudathreads[cudadev], NULL, cuda_worker, (void*)&cudaargs[cudadev]);
 #endif
+	}
+#endif
+
+
+#ifdef USE_CUBLAS
+	/* initialize CUBLAS with the proper number of threads */
+	int cublasdev;
+	for (cublasdev = 0; cublasdev < ncublasgpus; cublasdev++)
+	{
+		cublasargs[cublasdev].deviceid = cublasdev;
+		cublasargs[cublasdev].A = A;
+		cublasargs[cublasdev].B = B;
+		cublasargs[cublasdev].C = C;
+
+		cublascounters[cublasdev] = 0;
+
+#ifdef USE_MARCEL
+		marcel_create(&cublasthreads[cublasdev], NULL, cublas_worker, (void*)&cublasargs[cublasdev]);
+#else
+		pthread_create(&cublasthreads[cublasdev], NULL, cublas_worker, (void*)&cublasargs[cublasdev]);
 #endif
 	}
 #endif
@@ -160,10 +187,12 @@ void terminate_workers(void)
 		pthread_join(corethreads[core], NULL);
 #endif
 	}
-#endif
 	printf("core terminated ... \n");
+#endif
+
+
+
 #ifdef USE_CUDA
-	/* initialize CUDA with the proper number of threads */
 	int cudadev;
 	for (cudadev = 0; cudadev < ncudagpus; cudadev++)
 	{
@@ -173,8 +202,21 @@ void terminate_workers(void)
 		pthread_join(cudathreads[cudadev], NULL);
 #endif
 	}
-#endif
 	printf("cuda terminated\n");
+#endif
+
+#ifdef USE_CUBLAS
+	int cublasdev;
+	for (cublasdev = 0; cublasdev < ncublasgpus; cublasdev++)
+	{
+#ifdef USE_MARCEL
+		marcel_join(cublasthreads[cublasdev], NULL);
+#else
+		pthread_join(cublasthreads[cublasdev], NULL);
+#endif
+	}
+	printf("cublas terminated\n");
+#endif
 
 }
 
@@ -183,11 +225,8 @@ void matrix_fill_rand(matrix *m)
 	unsigned i,j;
 	for (i=0; i < m->width; i++) {
 		for (j=0; j < m->heigth; j++) {
-			/* we don't want to deal with integer overflow ... */
 			m->data[i+j*m->width] = (float)(drand48());
-		//	m->data[i+j*m->width] = (float)(i+j*m->width);
-		//	m->data[i+j*m->width] = 1.0;
-		//m->data[i+j*m->width] = (float)(i==j?1.0:0.0);
+			//m->data[i+j*m->width] = (float)(i==j?1.0:0.0);
 		}
 	}
 }
@@ -223,10 +262,11 @@ void display_matrix(matrix *m)
 	fprintf(stderr, "****************************\n");
 }
 
-void display_stats(void)
+int count_tasks(void)
 {
-	unsigned i;
 	int total = 0;
+	unsigned i;
+
 #ifdef USE_CPUS
 	for (i = 0; i < ncores ; i++)
 	{
@@ -241,12 +281,27 @@ void display_stats(void)
 	}
 #endif
 
+#ifdef USE_CUBLAS
+	for (i = 0; i < ncublasgpus ; i++)
+	{
+		total += cublascounters[i];
+	}
+#endif
+
+	return total;
+}
+
+void display_stats(void)
+{
+	unsigned i;
+	int total = count_tasks();
 
 #ifdef USE_CPUS
 	printf("CORES :\n");
 	for (i = 0; i < ncores ; i++)
 	{
-		printf("\tcore %d\t %d tasks\t%f %%\n", i, corecounters[i], (100.0*corecounters[i])/total);
+		printf("\tcore %d\t %d tasks\t%f %%\n", i, corecounters[i],
+							(100.0*corecounters[i])/total);
 	}
 #endif
 
@@ -254,7 +309,17 @@ void display_stats(void)
 	printf("CUDA :\n");
 	for (i = 0; i < ncudagpus ; i++)
 	{
-		printf("\tdev %d\t %d tasks\t%f %%\n", i, cudacounters[i], (100.0*cudacounters[i])/total);
+		printf("\tdev %d\t %d tasks\t%f %%\n", i, cudacounters[i],
+							(100.0*cudacounters[i])/total);
+	}
+#endif
+
+#ifdef USE_CUBLAS
+	printf("CUBLAS :\n");
+	for (i = 0; i < ncublasgpus ; i++)
+	{
+		printf("\tblas %d\t %d tasks\t%f %%\n", i, cublascounters[i],
+							(100.0*cublascounters[i])/total);
 	}
 #endif
 
@@ -340,7 +405,6 @@ int main(int argc, char **argv)
 	ref_mult(&matA, &matB, &matD);	
 	GET_TICK(refstop);
 
-	/* only compare the 1/SEQFACTOR part ... */
 	compare_matrix(&matC, &matD, SIZE*0.001);
 #endif
 
