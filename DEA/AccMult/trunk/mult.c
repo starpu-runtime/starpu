@@ -29,10 +29,6 @@ int corecounters[NMAXCORES];
 
 static int current_bindid = 0;
 
-tick_t start, stop;
-tick_t refstart, refstop;
-
-
 void init_machine(void)
 {
 	srand(2008);
@@ -216,7 +212,7 @@ int count_tasks(void)
 	return total;
 }
 
-void display_stats(void)
+void display_stats(job_descr *jd)
 {
 	unsigned i __attribute__ ((unused));
 	int total __attribute__ ((unused));
@@ -250,11 +246,11 @@ void display_stats(void)
 	}
 #endif
 
-	float chrono 	=  (float)(TIMING_DELAY(start, stop));
+	float chrono 	=  (float)(TIMING_DELAY(jd->job_submission, jd->job_finished));
 	printf("Computation time : %f ms\n", chrono/1000);
 
 #ifdef COMPARE_SEQ
-	float refchrono	=  ((float)(TIMING_DELAY(refstart, refstop)));
+	float refchrono	=  ((float)(TIMING_DELAY(jd->job_refstart, jd->job_refstop)));
 	printf("Ref time : %f ms\n", refchrono/1000);
 	printf("Speedup\t=\t%f\n", refchrono/chrono); 
 #endif
@@ -289,53 +285,29 @@ void compare_matrix(matrix *A, matrix *B, float eps)
 	}
 }
 
-int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused)) )
+void terminate_mult(void *arg)
 {
-#ifdef USE_MARCEL
-	marcel_init(&argc, argv);
-#endif
+	printf("FOOOOOO\n");
 
-	matrix matA;
-	matrix matB;
-	matrix matC;
-	matrix matD;
+	job_descr *jd = (job_descr *)arg;
 
-	/* for simplicity, use SIZE = power of 2 ! */
-	alloc_matrix(&matA, SIZE, SIZE);
-	alloc_matrix(&matB, SIZE, SIZE);
+	GET_TICK(jd->job_finished);
 
-	alloc_matrix(&matC, SIZE, SIZE);
-	alloc_matrix(&matD, SIZE, SIZE);
-
-	matrix_fill_rand(&matA);
-	matrix_fill_rand(&matB);
-
-	matrix_fill_zero(&matC);
-	matrix_fill_zero(&matD);
-
-	init_machine();
-	init_workers();
-
-	GET_TICK(start);
-	mult(&matA, &matB, &matC);
-
-	terminate_workers();
-	GET_TICK(stop);
-
+	kill_all_workers();
 
 #ifdef COMPARE_SEQ
 	printf("running the sequential comparision ... \n");
-	GET_TICK(refstart);
+	GET_TICK(jd->job_refstart);
 	/* only compare with 1/SEQFACTOR of the initial prob ... */
-	ref_mult(&matA, &matB, &matD);	
-	GET_TICK(refstop);
+	ref_mult(jd->matA, jd->matB, jd->matD);	
+	GET_TICK(jd->job_refstop);
 
 #ifdef CHECK_OUTPUT
-	compare_matrix(&matC, &matD, SIZE*0.001);
+	compare_matrix(jd->matC, jd->matD, SIZE*0.001);
 #endif
 #endif
 
-	display_stats();
+	display_stats(jd);
 
 //	printf("matrix A :\n");
 //	display_matrix(&matA);
@@ -346,9 +318,50 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 //	printf("matrix D :\n");
 //	display_matrix(&matD);
 
-	free_matrix(&matA);
-	free_matrix(&matB);
-	free_matrix(&matC);
+	free_matrix(jd->matA);
+	free_matrix(jd->matB);
+	free_matrix(jd->matC);
+}
 
+int mult_example()
+{
+	job_descr *jd = malloc(sizeof(job_descr));
+	matrix *ABCD = malloc(4*sizeof(matrix));
+
+	jd->matA = &ABCD[0];
+	jd->matB = &ABCD[1];
+	jd->matC = &ABCD[2];
+	jd->matD = &ABCD[3];
+
+	/* for simplicity, use SIZE = power of 2 ! */
+	alloc_matrix(jd->matA, SIZE, SIZE);
+	alloc_matrix(jd->matB, SIZE, SIZE);
+
+	alloc_matrix(jd->matC, SIZE, SIZE);
+	alloc_matrix(jd->matD, SIZE, SIZE);
+
+	matrix_fill_rand(jd->matA);
+	matrix_fill_rand(jd->matB);
+
+	matrix_fill_zero(jd->matC);
+	matrix_fill_zero(jd->matD);
+
+	GET_TICK(jd->job_submission);
+
+	mult(jd->matA, jd->matB, jd->matC, terminate_mult, jd);
+}
+
+int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused)) )
+{
+#ifdef USE_MARCEL
+	marcel_init(&argc, argv);
+#endif
+
+	init_machine();
+	init_workers();
+
+	mult_example();
+
+	terminate_workers();
 	return 0;
 }

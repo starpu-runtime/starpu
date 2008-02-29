@@ -353,10 +353,11 @@ void execute_job_on_cuda(job_t j)
 		case PRECOND:
 			printf("preconditionning ... \n");
 			printf("j->argcb = %p \n", j->argcb);
-			matrix *A = ((matrix **)j->argcb)[0];
-			matrix *B = ((matrix **)j->argcb)[1];
-			matrix *C = ((matrix **)j->argcb)[2];;
-			precondition_cuda(A, B, C);
+			//matrix *A = ((matrix **)j->argcb)[0];
+			//matrix *B = ((matrix **)j->argcb)[1];
+			//matrix *C = ((matrix **)j->argcb)[2];;
+			job_descr * jd = j->argcb;
+			precondition_cuda(jd->matA, jd->matB, jd->matC);
 			printf("preconditionned ok ... \n");
 			break;
 		case ABORT:

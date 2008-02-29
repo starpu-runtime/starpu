@@ -46,7 +46,7 @@ static unsigned long long residual = 0;
 #define TICK_DIFF(t1, t2) (TICK_RAW_DIFF(t1, t2) - residual)
 #define TIMING_DELAY(t1, t2) tick2usec(TICK_DIFF(t1, t2))
 
-void timing_init(void)
+static void timing_init(void)
 {
   static tick_t t1, t2;
   int i;
@@ -75,7 +75,7 @@ void timing_init(void)
 
 }
 
-double tick2usec(long long t)
+static double tick2usec(long long t)
 {
   return (double)(t)*scale;
 }

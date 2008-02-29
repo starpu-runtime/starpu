@@ -3,6 +3,6 @@
 
 #include "jobs.h"
 
-void mult(matrix *, matrix *, matrix *);
+void mult(matrix *, matrix *, matrix *, callback, void*);
 
 #endif // __COMP_H__

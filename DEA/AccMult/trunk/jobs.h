@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
+#include "timing.h"
 #include "list.h"
 #include "util.h"
 
@@ -15,7 +16,7 @@
 
 typedef enum {GPU, CUDA, CUBLAS, CELL, CORE, ANY} cap;
 
-typedef enum {ADD, SUB, MUL, PART, PRECOND, ABORT} jobtype;
+typedef enum {ADD, SUB, MUL, PART, PRECOND, CLEAN, ABORT} jobtype;
 
 typedef void (*callback)(void *);
 
@@ -83,6 +84,22 @@ LIST_TYPE(job,
 	CUdeviceptr toto;
 #endif
 );
+
+typedef struct job_descr_t {
+	matrix *matA;
+	matrix *matB;
+	matrix *matC;
+	matrix *matD;
+	int counter;
+	callback f;
+	void *argf;
+	tick_t job_submission;
+	tick_t job_preconditionned;
+	tick_t job_computed;
+	tick_t job_finished;
+	tick_t job_refstart;
+	tick_t job_refstop;
+} job_descr;
 
 void init_work_queue(void);
 void push_task(job_t task);

@@ -8,6 +8,16 @@ extern int cublascounters[MAXCUBLASDEVS];
 
 int ncublasgpus = 1;
 
+void clean_cublas_problem(void *cbarg)
+{
+	/* simply free the device memory */
+	job_descr *jd = (job_descr *)cbarg;
+
+	cublasFree(jd->matA->cublas_data.dev_data);
+	cublasFree(jd->matB->cublas_data.dev_data);
+	cublasFree(jd->matC->cublas_data.dev_data);
+}
+
 void precondition_cublas(matrix *A, matrix *B, matrix *C)
 {
 
@@ -100,10 +110,8 @@ static void execute_job_on_cublas(job_t j)
 			break;
 		case PRECOND:
 			printf("preconditionning ... \n");
-			matrix *A = ((matrix **)j->argcb)[0];
-			matrix *B = ((matrix **)j->argcb)[1];
-			matrix *C = ((matrix **)j->argcb)[2];
-			precondition_cublas(A, B, C);
+			job_descr *jd = j->argcb;
+			precondition_cublas(jd->matA, jd->matB, jd->matC);
 			printf("preconditionned ok ... \n");
 			break;
 		case ABORT:

@@ -16,7 +16,7 @@
 #define GRAIN   128
 #endif
 
-#define ALPHA	1.53
-#define BETA	1.73
+#define ALPHA	1.0f
+#define BETA	0.0f
 
 #endif // __PARAMETERS_H__
