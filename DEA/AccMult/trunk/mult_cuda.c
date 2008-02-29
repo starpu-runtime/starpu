@@ -52,7 +52,7 @@ void init_context(int devid)
 error:
 	printf("oops  in %s ... %s \n", __func__, cudaGetErrorString(status));
 	assert(0);
-	pthread_exit(NULL);
+	thread_exit(NULL);
 }
 
 void init_cuda(void)
@@ -76,7 +76,7 @@ void init_cuda(void)
 error:
 	printf("oops  in %s ... %s \n", __func__, cudaGetErrorString(status));
 	assert(0);
-	pthread_exit(NULL);
+	thread_exit(NULL);
 }
 
 
@@ -89,7 +89,7 @@ error:
 #define OUTBUFF 0x2
 #define	INBUFF	0x1
 
-void copy_matrix_on_device(matrix *M, unsigned devid, unsigned flags)
+int copy_matrix_on_device(matrix *M, unsigned devid, unsigned flags)
 {
 
 	/* first allocate the corresponding memory on device */
@@ -105,23 +105,35 @@ void copy_matrix_on_device(matrix *M, unsigned devid, unsigned flags)
 		if (status != CUDA_SUCCESS) 
 			goto error;
 	}
-	return;
+
+	return OK;
 
 error:
 	printf("oops  in %s ... %s \n", __func__, cudaGetErrorString(status));
-	assert(0);
-	pthread_exit(NULL);
+	return TRYAGAIN;
 }
 
-void precondition_cuda(matrix *A, matrix *B, matrix *C)
+int precondition_cuda(matrix *A, matrix *B, matrix *C)
 {
-	printf("A = %p B = %p C = %p\n ", A, B, C);
+	int res;
 
 	/* a copy of the various matrices is created on the device */
-	copy_matrix_on_device(A, 0, INBUFF);
-	copy_matrix_on_device(B, 0, INBUFF);
-	copy_matrix_on_device(C, 0, OUTBUFF);
+	res = copy_matrix_on_device(A, 0, INBUFF);
+		if (res) goto errorA;
+	res = copy_matrix_on_device(B, 0, INBUFF);
+		if (res) goto errorB;
+	res = copy_matrix_on_device(C, 0, OUTBUFF);
+		if (res) goto errorC;
+	/* TODO check output */
 
+	return OK;
+
+errorC:
+	cuMemFree(B->cuda_data.matdata);
+errorB:
+	cuMemFree(C->cuda_data.matdata);
+errorA:
+	return TRYAGAIN;
 }
 
 void copy_matrix(matrix *C)
@@ -136,7 +148,7 @@ void copy_matrix(matrix *C)
 error:
 	printf("oops  in %s ... %s \n", __func__, cudaGetErrorString(status));
 	assert(0);
-	pthread_exit(NULL);
+	thread_exit(NULL);
 }
 
 /*
@@ -169,7 +181,7 @@ void copy_submatrix(submatrix *C)
 error:
         printf("oops  in %s ... %s \n", __func__, cudaGetErrorString(status));
         assert(0);
-        pthread_exit(NULL);
+        thread_exit(NULL);
 
 }
 
@@ -300,7 +312,7 @@ void cuda_mult(job_t j)
 error:
 	printf("oops  in %s ... %s \n", __func__, cudaGetErrorString(status));
 	assert(0);
-	pthread_exit(NULL);
+	thread_exit(NULL);
 }
 
 void remove_job_from_device(job_t j)
@@ -340,33 +352,37 @@ void remove_job_from_device(job_t j)
 error:
 	printf("oops  in %s ... %s \n", __func__, cudaGetErrorString(status));
 	assert(0);
-	pthread_exit(NULL);
+	thread_exit(NULL);
 }
 
-void execute_job_on_cuda(job_t j)
+int execute_job_on_cuda(job_t j)
 {
+	int res;
+	job_descr * jd;
+
 	switch (j->type) {
 		case MUL:
 			cuda_mult(j);
 			remove_job_from_device(j);
 			break;
 		case PRECOND:
-			printf("preconditionning ... \n");
-			printf("j->argcb = %p \n", j->argcb);
-			//matrix *A = ((matrix **)j->argcb)[0];
-			//matrix *B = ((matrix **)j->argcb)[1];
-			//matrix *C = ((matrix **)j->argcb)[2];;
-			job_descr * jd = j->argcb;
-			precondition_cuda(jd->matA, jd->matB, jd->matC);
+			jd = j->argcb;
+			res = precondition_cuda(jd->matA, jd->matB, jd->matC);
+			if (res != OK) {
+				printf("precondition failed ... trying later\n");
+				return TRYAGAIN;
+			}
 			printf("preconditionned ok ... \n");
 			break;
 		case ABORT:
 			printf("CUDA abort\n");
-			pthread_exit(NULL);
+			thread_exit(NULL);
 			break;
 		default:
 			break;
 	}
+
+	return OK;
 }
 
 void *cuda_worker(void *arg)
@@ -391,6 +407,7 @@ void *cuda_worker(void *arg)
 	args->ready_flag = 1;
 
 	job_t j;
+	int res;
 	
 	do {
 		j = pop_task();
@@ -403,7 +420,19 @@ void *cuda_worker(void *arg)
 			continue;
 		}
 
-		execute_job_on_cuda(j);
+		res = execute_job_on_cuda(j);
+		if (res != OK) {
+			switch (res) {
+				case OK:
+				case FATAL:
+					assert(0);
+				case TRYAGAIN:
+					push_task(j);
+					continue;
+				default:
+					assert(0);
+			}
+		}
 
 		if (j->cb)
 			j->cb(j->argcb);

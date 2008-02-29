@@ -32,7 +32,11 @@ typedef struct cuda_worker_arg_t {
 } cuda_worker_arg;
 
 void init_cuda(void);
-void precondition_cuda(matrix *, matrix *, matrix *);
+int precondition_cuda(matrix *, matrix *, matrix *);
 void *cuda_worker(void *);
+
+#define OK              0
+#define TRYAGAIN        1
+#define FATAL           2
 
 #endif //  __MULT_CUDA_H__

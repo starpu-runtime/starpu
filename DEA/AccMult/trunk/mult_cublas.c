@@ -24,7 +24,6 @@ void clean_cublas_problem(void *cbarg)
 
 int precondition_cublas(matrix *A, matrix *B, matrix *C)
 {
-
 	unsigned sizeA, sizeB, sizeC;
 
 	sizeA = A->width*A->heigth;
@@ -43,9 +42,9 @@ int precondition_cublas(matrix *A, matrix *B, matrix *C)
 
 	SAFE_CUBLAS_CALL(cublasSetMatrix(A->width,  A->heigth, sizeof(float), A->data, A->width, A->cublas_data.dev_data, A->width));
 	SAFE_CUBLAS_CALL(cublasSetMatrix(B->width,  B->heigth, sizeof(float), B->data, B->width, B->cublas_data.dev_data, B->width));
-	 SAFE_CUBLAS_CALL(cublasSetMatrix(C->width,  C->heigth, sizeof(float), C->data, C->width, C->cublas_data.dev_data, C->width));
+	SAFE_CUBLAS_CALL(cublasSetMatrix(C->width,  C->heigth, sizeof(float), C->data, C->width, C->cublas_data.dev_data, C->width));
 
-	 return 0;
+	return 0;
 
 failedAllocC:
 	cublasFree(B->cublas_data.dev_data);
@@ -121,11 +120,6 @@ static void cublas_mult(job_t j)
 	}
 }
 
-
-#define OK		0
-#define TRYAGAIN	1
-#define FATAL		2
-
 static int execute_job_on_cublas(job_t j)
 {
 	int res;
@@ -178,8 +172,6 @@ void *cublas_worker(void *arg)
 
 	cublasInit();
 
-	//precondition_cublas(args->A, args->B, args->C);
-
 	printf("cublas thread is ready to run on CPU %d !\n", args->bindid);
 	/* tell the main thread that this one is ready to work */
 	args->ready_flag = 1;
@@ -198,7 +190,7 @@ void *cublas_worker(void *arg)
 		}
 
 		res = execute_job_on_cublas(j);
-		if (res) {
+		if (res != OK) {
 			switch (res) {
 				case OK:
 					assert(0);
