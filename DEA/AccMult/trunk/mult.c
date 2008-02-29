@@ -212,7 +212,7 @@ int count_tasks(void)
 	return total;
 }
 
-void display_stats(job_descr *jd)
+void display_general_stats()
 {
 	unsigned i __attribute__ ((unused));
 	int total __attribute__ ((unused));
@@ -245,16 +245,20 @@ void display_stats(job_descr *jd)
 							(100.0*cublascounters[i])/total);
 	}
 #endif
+}
 
-	float chrono 	=  (float)(TIMING_DELAY(jd->job_submission, jd->job_finished));
-	printf("Computation time : %f ms\n", chrono/1000);
+void display_stats(job_descr *jd)
+{
 
 #ifdef COMPARE_SEQ
 	float refchrono	=  ((float)(TIMING_DELAY(jd->job_refstart, jd->job_refstop)));
 	printf("Ref time : %f ms\n", refchrono/1000);
 	printf("Speedup\t=\t%f\n", refchrono/chrono); 
 #endif
-	
+
+	float chrono 	=  (float)(TIMING_DELAY(jd->job_submission, jd->job_finished));
+	printf("Computation time : %f ms\n", chrono/1000);
+
 
 }
 
@@ -285,13 +289,14 @@ void compare_matrix(matrix *A, matrix *B, float eps)
 	}
 }
 
+#ifndef NSAMPLE
 #define NSAMPLE	10
+#endif
+
 int counter = NSAMPLE;
 
 void terminate_mult(void *arg)
 {
-	printf("FOOOOOO\n");
-
 	job_descr *jd = (job_descr *)arg;
 
 	GET_TICK(jd->job_finished);
@@ -303,7 +308,9 @@ void terminate_mult(void *arg)
 		kill_all_workers();
 	}
 	
+#ifdef VERBOSE
 	printf("counter = %d \n", counter);
+#endif
 
 #ifdef COMPARE_SEQ
 	printf("running the sequential comparision ... \n");
@@ -375,5 +382,6 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 		mult_example();
 
 	terminate_workers();
+	display_general_stats();
 	return 0;
 }

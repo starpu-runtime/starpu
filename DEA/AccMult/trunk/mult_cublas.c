@@ -16,9 +16,13 @@ void clean_cublas_problem(void *cbarg)
 	cublasFree(jd->matA->cublas_data.dev_data);
 	cublasFree(jd->matB->cublas_data.dev_data);
 	cublasFree(jd->matC->cublas_data.dev_data);
+
+#ifdef VERBOSE
+	printf("CLEANED PROBLEM !\n");
+#endif
 }
 
-void precondition_cublas(matrix *A, matrix *B, matrix *C)
+int precondition_cublas(matrix *A, matrix *B, matrix *C)
 {
 
 	unsigned sizeA, sizeB, sizeC;
@@ -27,13 +31,29 @@ void precondition_cublas(matrix *A, matrix *B, matrix *C)
 	sizeB = B->width*B->heigth;
 	sizeC = C->width*C->heigth;
 
-	SAFE_CUBLAS_CALL(cublasAlloc(sizeA, sizeof(float), (void **)&A->cublas_data.dev_data));
-	SAFE_CUBLAS_CALL(cublasAlloc(sizeB, sizeof(float), (void **)&B->cublas_data.dev_data));
-	SAFE_CUBLAS_CALL(cublasAlloc(sizeC, sizeof(float), (void **)&C->cublas_data.dev_data));
+	status = cublasAlloc(sizeA, sizeof(float), (void **)&A->cublas_data.dev_data);
+		if (status == CUBLAS_STATUS_ALLOC_FAILED) 
+			goto failedAllocA;
+	status = cublasAlloc(sizeB, sizeof(float), (void **)&B->cublas_data.dev_data);
+		if (status == CUBLAS_STATUS_ALLOC_FAILED) 
+			goto failedAllocB;
+	status = cublasAlloc(sizeC, sizeof(float), (void **)&C->cublas_data.dev_data);
+		if (status == CUBLAS_STATUS_ALLOC_FAILED) 
+			goto failedAllocC;
 
-	cublasSetMatrix(A->width,  A->heigth, sizeof(float), A->data, A->width, A->cublas_data.dev_data, A->width);
-	cublasSetMatrix(B->width,  B->heigth, sizeof(float), B->data, B->width, B->cublas_data.dev_data, B->width);
-	cublasSetMatrix(C->width,  C->heigth, sizeof(float), C->data, C->width, C->cublas_data.dev_data, C->width);
+	SAFE_CUBLAS_CALL(cublasSetMatrix(A->width,  A->heigth, sizeof(float), A->data, A->width, A->cublas_data.dev_data, A->width));
+	SAFE_CUBLAS_CALL(cublasSetMatrix(B->width,  B->heigth, sizeof(float), B->data, B->width, B->cublas_data.dev_data, B->width));
+	 SAFE_CUBLAS_CALL(cublasSetMatrix(C->width,  C->heigth, sizeof(float), C->data, C->width, C->cublas_data.dev_data, C->width));
+
+	 return 0;
+
+failedAllocC:
+	cublasFree(B->cublas_data.dev_data);
+failedAllocB:
+	cublasFree(A->cublas_data.dev_data);
+failedAllocA:
+	printf("not enough memory here %s!\n", __func__);
+	return -1;
 }
 
 static void cublas_mult(job_t j)
@@ -101,18 +121,34 @@ static void cublas_mult(job_t j)
 	}
 }
 
-static void execute_job_on_cublas(job_t j)
+
+#define OK		0
+#define TRYAGAIN	1
+#define FATAL		2
+
+static int execute_job_on_cublas(job_t j)
 {
+	int res;
+	job_descr *jd;
+
 	switch (j->type) {
 		case MUL:
 			//printf("cublas mult\n");
 			cublas_mult(j);
 			break;
 		case PRECOND:
-			printf("preconditionning ... \n");
-			job_descr *jd = j->argcb;
-			precondition_cublas(jd->matA, jd->matB, jd->matC);
-			printf("preconditionned ok ... \n");
+			jd = j->argcb;
+			res = precondition_cublas(jd->matA, jd->matB, jd->matC);
+			if (res) {
+				printf("precondition failed ... trying later\n");
+				return TRYAGAIN;
+			}
+			break;
+		case CLEAN:
+#ifdef VERBOSE
+			printf("clean up job ... \n");
+#endif
+			clean_cublas_problem(j->argcb);
 			break;
 		case ABORT:
 			printf("CUBLAS abort\n");
@@ -122,6 +158,8 @@ static void execute_job_on_cublas(job_t j)
 		default:
 			break;
 	}
+
+	return OK;
 }
 
 void *cublas_worker(void *arg)
@@ -146,6 +184,7 @@ void *cublas_worker(void *arg)
 	/* tell the main thread that this one is ready to work */
 	args->ready_flag = 1;
 
+	int res;
 	job_t j;
 	do {
 		j = pop_task();
@@ -158,7 +197,20 @@ void *cublas_worker(void *arg)
 			continue;
 		}
 
-		execute_job_on_cublas(j);
+		res = execute_job_on_cublas(j);
+		if (res) {
+			switch (res) {
+				case OK:
+					assert(0);
+				case FATAL:
+					assert(0);
+				case TRYAGAIN:
+					push_task(j);
+					continue;
+				default:
+					assert(0);
+			}
+		}
 
 		if (j->cb)
 			j->cb(j->argcb);

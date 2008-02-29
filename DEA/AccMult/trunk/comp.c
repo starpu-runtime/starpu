@@ -65,8 +65,6 @@ void mult_callback(void *cbarg)
 	int cnt = ATOMIC_ADD(&jd->counter, -1);
 	
 	if (cnt == 0) { 
-		printf("callback %d !\n", cnt);
-		printf("DONE !!\n");
 		cleanup_problem(cbarg);
 	}
 
@@ -153,8 +151,6 @@ void step2(void *arg)
 
 void mult(matrix *A, matrix *B, matrix *C, callback f, void *argf)
 {
-	printf("MULT ! \n");
-
 	job_descr *jd = malloc(sizeof(job_descr));
 
 	jd->matA = A; 

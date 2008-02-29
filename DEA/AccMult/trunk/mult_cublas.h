@@ -24,8 +24,8 @@
 
 #define SAFE_CUBLAS_CALL(ops)		 				\
 	do {								\
-	(ops);								\
-	cublasStatus _status = cublasGetError();			\
+	cublasStatus _status;						\
+	_status = (ops);								\
 	if (_status) {							\
 	switch (_status) {						\
 		case CUBLAS_STATUS_NOT_INITIALIZED:			\
