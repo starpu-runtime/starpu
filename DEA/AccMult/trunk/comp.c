@@ -153,6 +153,8 @@ void step2(void *arg)
 
 void mult(matrix *A, matrix *B, matrix *C, callback f, void *argf)
 {
+	printf("MULT ! \n");
+
 	job_descr *jd = malloc(sizeof(job_descr));
 
 	jd->matA = A; 

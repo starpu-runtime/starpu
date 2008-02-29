@@ -22,6 +22,38 @@
 
 #define DEV_DATA(_mat)  ((_mat)->mat->cublas_data.dev_data)
 
+#define SAFE_CUBLAS_CALL(ops)		 				\
+	do {								\
+	(ops);								\
+	cublasStatus _status = cublasGetError();			\
+	if (_status) {							\
+	switch (_status) {						\
+		case CUBLAS_STATUS_NOT_INITIALIZED:			\
+			printf("CUBLAS_STATUS_NOT_INITIALIZED\n");	\
+			break;						\
+                case CUBLAS_STATUS_ALLOC_FAILED:			\
+                            printf("CUBLAS_STATUS_ALLOC_FAILED\n");	\
+                            break;					\
+                case CUBLAS_STATUS_INTERNAL_ERROR:			\
+                        printf("CUBLAS_STATUS_INTERNAL_ERROR\n");	\
+                        break;						\
+                case CUBLAS_STATUS_INVALID_VALUE:			\
+                        printf("CUBLAS_STATUS_INVALID_VALUE\n");	\
+                        break;						\
+                case CUBLAS_STATUS_EXECUTION_FAILED:			\
+                        printf("CUBLAS_STATUS_EXECUTION_FAILED\n");	\
+                        break;						\
+                case CUBLAS_STATUS_MAPPING_ERROR:			\
+                        printf("CUBLAS_STATUS_MAPPING_ERROR\n");	\
+                        break;						\
+                default:						\
+                        printf("UNKNOWN REASON\n");			\
+                        break;						\
+	}								\
+	}								\
+	} while (0);
+
+
 
 typedef struct cublas_worker_arg_t {
 	int deviceid;

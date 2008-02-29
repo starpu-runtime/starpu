@@ -31,7 +31,7 @@
 //#endif
 
 #ifndef COMPARE_SEQ
-#define COMPARE_SEQ   1
+//#define COMPARE_SEQ   1
 #endif
 
 

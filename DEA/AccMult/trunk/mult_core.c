@@ -32,7 +32,7 @@ void ref_mult(matrix *A, matrix *B, matrix *C)
 	cblas_mult(&sA, &sB, &sC);
 }
 
-static void dummy_mult(submatrix *A, submatrix *B, submatrix *C)
+static void __attribute__ ((unused)) dummy_mult(submatrix *A, submatrix *B, submatrix *C)
 {
 	float sum;
 	unsigned x,y, z;

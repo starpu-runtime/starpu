@@ -285,6 +285,9 @@ void compare_matrix(matrix *A, matrix *B, float eps)
 	}
 }
 
+#define NSAMPLE	10
+int counter = NSAMPLE;
+
 void terminate_mult(void *arg)
 {
 	printf("FOOOOOO\n");
@@ -293,7 +296,14 @@ void terminate_mult(void *arg)
 
 	GET_TICK(jd->job_finished);
 
-	kill_all_workers();
+//	if (ATOMIC_ADD(&counter, -1) == 1) {
+	if (--counter == 0)
+	{
+		printf("kill all workers ... \n");
+		kill_all_workers();
+	}
+	
+	printf("counter = %d \n", counter);
 
 #ifdef COMPARE_SEQ
 	printf("running the sequential comparision ... \n");
@@ -323,7 +333,7 @@ void terminate_mult(void *arg)
 	free_matrix(jd->matC);
 }
 
-int mult_example()
+void mult_example(void)
 {
 	job_descr *jd = malloc(sizeof(job_descr));
 	matrix *ABCD = malloc(4*sizeof(matrix));
@@ -360,7 +370,9 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 	init_machine();
 	init_workers();
 
-	mult_example();
+	int i;
+	for (i = 0; i < NSAMPLE; i++)
+		mult_example();
 
 	terminate_workers();
 	return 0;

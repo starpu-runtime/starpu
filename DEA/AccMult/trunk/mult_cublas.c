@@ -27,9 +27,9 @@ void precondition_cublas(matrix *A, matrix *B, matrix *C)
 	sizeB = B->width*B->heigth;
 	sizeC = C->width*C->heigth;
 
-	cublasAlloc(sizeA, sizeof(float), (void **)&A->cublas_data.dev_data);
-	cublasAlloc(sizeB, sizeof(float), (void **)&B->cublas_data.dev_data);
-	cublasAlloc(sizeC, sizeof(float), (void **)&C->cublas_data.dev_data);
+	SAFE_CUBLAS_CALL(cublasAlloc(sizeA, sizeof(float), (void **)&A->cublas_data.dev_data));
+	SAFE_CUBLAS_CALL(cublasAlloc(sizeB, sizeof(float), (void **)&B->cublas_data.dev_data));
+	SAFE_CUBLAS_CALL(cublasAlloc(sizeC, sizeof(float), (void **)&C->cublas_data.dev_data));
 
 	cublasSetMatrix(A->width,  A->heigth, sizeof(float), A->data, A->width, A->cublas_data.dev_data, A->width);
 	cublasSetMatrix(B->width,  B->heigth, sizeof(float), B->data, B->width, B->cublas_data.dev_data, B->width);
