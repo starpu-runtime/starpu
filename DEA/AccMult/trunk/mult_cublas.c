@@ -8,7 +8,7 @@ extern int cublascounters[MAXCUBLASDEVS];
 
 int ncublasgpus = 1;
 
-static void precondition_cublas(matrix *A, matrix *B, matrix *C)
+void precondition_cublas(matrix *A, matrix *B, matrix *C)
 {
 
 	unsigned sizeA, sizeB, sizeC;
@@ -98,6 +98,14 @@ static void execute_job_on_cublas(job_t j)
 			//printf("cublas mult\n");
 			cublas_mult(j);
 			break;
+		case PRECOND:
+			printf("preconditionning ... \n");
+			matrix *A = ((matrix **)j->argcb)[0];
+			matrix *B = ((matrix **)j->argcb)[1];
+			matrix *C = ((matrix **)j->argcb)[2];
+			precondition_cublas(A, B, C);
+			printf("preconditionned ok ... \n");
+			break;
 		case ABORT:
 			printf("CUBLAS abort\n");
 			cublasShutdown();
@@ -124,7 +132,7 @@ void *cublas_worker(void *arg)
 
 	cublasInit();
 
-	precondition_cublas(args->A, args->B, args->C);
+	//precondition_cublas(args->A, args->B, args->C);
 
 	printf("cublas thread is ready to run on CPU %d !\n", args->bindid);
 	/* tell the main thread that this one is ready to work */
@@ -134,6 +142,14 @@ void *cublas_worker(void *arg)
 	do {
 		j = pop_task();
 		if (j == NULL) continue;
+
+		/* can cublas do that task ? */
+		if (!CUBLAS_MAY_PERFORM(j))
+		{
+			push_task(j);
+			continue;
+		}
+
 		execute_job_on_cublas(j);
 
 		if (j->cb)

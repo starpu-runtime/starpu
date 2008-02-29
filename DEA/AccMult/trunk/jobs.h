@@ -13,11 +13,15 @@
 #include <cuda.h>
 #endif
 
-typedef enum {GPU, CELL, CORE, ANY} cap;
+typedef enum {GPU, CUDA, CUBLAS, CELL, CORE, ANY} cap;
 
-typedef enum {ADD, SUB, MUL, PART, ABORT} jobtype;
+typedef enum {ADD, SUB, MUL, PART, PRECOND, ABORT} jobtype;
 
 typedef void (*callback)(void *);
+
+#define CORE_MAY_PERFORM(j)	( (j)->where == ANY || (j)->where == CORE )
+#define CUDA_MAY_PERFORM(j)     ( (j)->where == ANY || (j)->where == GPU || (j)->where == CUDA )
+#define CUBLAS_MAY_PERFORM(j)     ( (j)->where == ANY || (j)->where == GPU || (j)->where == CUBLAS )
 
 #ifdef USE_CUDA
 typedef struct cuda_matrix_t {
@@ -64,6 +68,11 @@ LIST_TYPE(job,
 		submatrix matC_sub;
 		matrix *matC_existing; /* when we just need a reference .. */
 	} output;
+	struct {
+		matrix *mat1;
+		matrix *mat2;
+		matrix *mat3;
+	} args;
 	jobtype type;	/* what kind of job ? */
 	cap where;	/* where can it be performed ? */
 	callback cb;	/* do "cb(argcb)" when finished */

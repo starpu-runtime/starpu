@@ -133,6 +133,14 @@ void *core_worker(void *arg)
                 j = pop_task();
                 if (j == NULL) continue;
 
+		/* can a core perform that task ? */
+		if (!CORE_MAY_PERFORM(j)) 
+		{
+			/* put it and the end of the queue ... XXX */
+			push_task(j);
+			continue;
+		}
+
                 execute_job_on_core(j);
 
                 if (j->cb)

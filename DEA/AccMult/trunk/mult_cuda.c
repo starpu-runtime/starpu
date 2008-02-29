@@ -115,6 +115,8 @@ error:
 
 void precondition_cuda(matrix *A, matrix *B, matrix *C)
 {
+	printf("A = %p B = %p C = %p\n ", A, B, C);
+
 	/* a copy of the various matrices is created on the device */
 	copy_matrix_on_device(A, 0, INBUFF);
 	copy_matrix_on_device(B, 0, INBUFF);
@@ -348,6 +350,15 @@ void execute_job_on_cuda(job_t j)
 			cuda_mult(j);
 			remove_job_from_device(j);
 			break;
+		case PRECOND:
+			printf("preconditionning ... \n");
+			printf("j->argcb = %p \n", j->argcb);
+			matrix *A = ((matrix **)j->argcb)[0];
+			matrix *B = ((matrix **)j->argcb)[1];
+			matrix *C = ((matrix **)j->argcb)[2];;
+			precondition_cuda(A, B, C);
+			printf("preconditionned ok ... \n");
+			break;
 		case ABORT:
 			printf("CUDA abort\n");
 			pthread_exit(NULL);
@@ -373,7 +384,7 @@ void *cuda_worker(void *arg)
 
 	init_context(devid);
 
-	precondition_cuda(args->A, args->B, args->C);
+	//precondition_cuda(args->A, args->B, args->C);
 
 	/* tell the main thread that this one is ready */
 	args->ready_flag = 1;
@@ -383,6 +394,14 @@ void *cuda_worker(void *arg)
 	do {
 		j = pop_task();
 		if (j == NULL) continue;
+
+		/* can CUDA do that task ? */
+		if (!CUDA_MAY_PERFORM(j))
+		{
+			push_task(j);
+			continue;
+		}
+
 		execute_job_on_cuda(j);
 
 		if (j->cb)

@@ -47,9 +47,7 @@ void init_machine(void)
 	timing_init();
 }
 
-void init_workers(matrix *A __attribute__ ((unused)), 
-		  matrix *B __attribute__ ((unused)),
-		  matrix *C __attribute__ ((unused)))
+void init_workers(void) 
 {
 	/* initialize the queue containing the jobs */
 	init_work_queue();
@@ -79,9 +77,6 @@ void init_workers(matrix *A __attribute__ ((unused)),
 	{
 		cudaargs[cudadev].deviceid = cudadev;
 		cudaargs[cudadev].ready_flag = 0;
-		cudaargs[cudadev].A = A;
-		cudaargs[cudadev].B = B;
-		cudaargs[cudadev].C = C;
 
 		cudaargs[cudadev].bindid = (current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
 
@@ -102,9 +97,6 @@ void init_workers(matrix *A __attribute__ ((unused)),
 	{
 		cublasargs[cublasdev].deviceid = cublasdev;
 		cublasargs[cublasdev].ready_flag = 0;
-		cublasargs[cublasdev].A = A;
-		cublasargs[cublasdev].B = B;
-		cublasargs[cublasdev].C = C;
 
 		cublasargs[cublasdev].bindid = (current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
 
@@ -322,7 +314,7 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 	matrix_fill_zero(&matD);
 
 	init_machine();
-	init_workers(&matA, &matB, &matC);
+	init_workers();
 
 	GET_TICK(start);
 	mult(&matA, &matB, &matC);
