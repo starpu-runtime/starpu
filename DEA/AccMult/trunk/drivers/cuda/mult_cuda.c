@@ -1,5 +1,3 @@
-#ifdef USE_CUDA
-
 #include "mult_cuda.h"
 
 /* the number of CUDA devices */
@@ -448,5 +446,3 @@ error:
 	assert(0);
 
 }
-
-#endif // USE_CUDA

@@ -1,41 +1,4 @@
-#include "comp.h"
-#include "mult.h"
-#include "jobs.h"
-#include "timing.h"
-
-extern int ncudagpus;
-extern int ncublasgpus;
-extern unsigned ncores;
-
-void kill_all_workers(void)
-{
-	/* terminate all threads */
-	unsigned nworkers = 0;
-
-#ifdef USE_CPUS
-	nworkers += ncores;
-#endif
-#ifdef USE_CUDA
-	nworkers += ncudagpus;
-#endif
-#ifdef USE_CUBLAS
-	nworkers += ncublasgpus;
-#endif
-
-	unsigned worker;
-	for (worker = 0; worker < nworkers ; worker++) {
-		job_t j = job_new();
-	//	j->output.matC_existing = C;
-		j->type = ABORT;
-		j->where = ANY;
-		push_task(j);
-	}
-
-	if (nworkers == 0) {
-		fprintf(stderr, "Warning there is no worker ... \n");
-	}
-
-}
+#include "multiplication.h"
 
 void cleanup_problem(void *cbarg)
 {
@@ -187,3 +150,90 @@ void mult(matrix *A, matrix *B, matrix *C, callback f, void *argf)
 	step2(jd);
 #endif
 }
+
+#ifndef NSAMPLE
+#define NSAMPLE 10
+#endif
+
+int counter = NSAMPLE;
+
+void terminate_mult(job_descr *jd)
+{
+        GET_TICK(jd->job_finished);
+
+//      if (ATOMIC_ADD(&counter, -1) == 1) {
+        if (--counter == 0)
+        {
+                printf("kill all workers ... \n");
+                kill_all_workers();
+        }
+
+#ifdef VERBOSE
+        printf("counter = %d \n", counter);
+#endif
+
+#ifdef COMPARE_SEQ
+        printf("running the sequential comparision ... \n");
+        GET_TICK(jd->job_refstart);
+        /* only compare with 1/SEQFACTOR of the initial prob ... */
+        ref_mult(jd->matA, jd->matB, jd->matD);
+        GET_TICK(jd->job_refstop);
+
+#ifdef CHECK_OUTPUT
+        compare_matrix(jd->matC, jd->matD, SIZE*0.001);
+#endif
+#endif
+
+        display_stats(jd);
+
+        free_matrix(jd->matA);
+        free_matrix(jd->matB);
+        free_matrix(jd->matC);
+}
+
+void mult_example(void)
+{
+        job_descr *jd = malloc(sizeof(job_descr));
+        matrix *ABCD = malloc(4*sizeof(matrix));
+
+        jd->matA = &ABCD[0];
+        jd->matB = &ABCD[1];
+        jd->matC = &ABCD[2];
+        jd->matD = &ABCD[3];
+
+        /* for simplicity, use SIZE = power of 2 ! */
+        alloc_matrix(jd->matA, SIZE, SIZE);
+        alloc_matrix(jd->matB, SIZE, SIZE);
+
+        alloc_matrix(jd->matC, SIZE, SIZE);
+        alloc_matrix(jd->matD, SIZE, SIZE);
+
+        matrix_fill_rand(jd->matA);
+        matrix_fill_rand(jd->matB);
+
+        matrix_fill_zero(jd->matC);
+        matrix_fill_zero(jd->matD);
+
+        GET_TICK(jd->job_submission);
+
+        mult(jd->matA, jd->matB, jd->matC, terminate_mult, (void *)jd);
+}
+
+int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused)) )
+{
+#ifdef USE_MARCEL
+        marcel_init(&argc, argv);
+#endif
+
+        init_machine();
+        init_workers();
+
+        int i;
+        for (i = 0; i < NSAMPLE; i++)
+                mult_example();
+
+        terminate_workers();
+        display_general_stats();
+        return 0;
+}
+

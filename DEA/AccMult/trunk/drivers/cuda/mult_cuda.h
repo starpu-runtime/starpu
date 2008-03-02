@@ -9,9 +9,9 @@
 #include <stdio.h>
 #include <cuda.h>
 #include <cuda_runtime_api.h>
-#include "util.h"
-#include "jobs.h"
-#include "parameters.h"
+#include <common/util.h>
+#include <common/parameters.h>
+#include <core/jobs.h>
 
 /* this is a randomly choosen value ... */
 #ifndef MAXCUDADEVS

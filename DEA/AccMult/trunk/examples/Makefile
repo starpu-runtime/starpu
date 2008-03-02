@@ -19,13 +19,6 @@ else
 	CFLAGS += -DNSAMPLE=$(DEFAULTNSAMPLE)
 endif
 
-ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
-BLASARCH=Linux_UNKNOWNSSE2
-
-CFLAGS+= -I$(ATLASDIR)/include/
-LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
-LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
-
 LDFLAGS+= -lm
 
 
@@ -59,6 +52,7 @@ ifeq ($(CUDA), 1)
 	NVCCFLAGS +=  -DUSE_CUDA 
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	NVCCFLAGS += -I$(CUDAINSTALLDIR)/include 
+	OBJDEPS += ../drivers/cuda/mult_cuda.o
 	DEPENDENCIES += mult_cuda.o
 	EXTRADEP += comp_cuda.cubin 
 endif
@@ -68,6 +62,7 @@ ifeq ($(CUBLAS), 1)
 	LDFLAGS += -lcublas
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	DEPENDENCIES += mult_cublas.o
+	OBJDEPS += ../drivers/cublas/mult_cublas.o
 endif
 
 ifdef ATLAS
@@ -79,6 +74,7 @@ ifdef CPUS
 	CFLAGS += -DUSE_CPUS #-DDEBUG
 	CFLAGS += -DNMAXCORES=$(CPUS)
 	NVCCFLAGS += -DUSE_CPUS
+	OBJDEPS += ../drivers/core/mult_core.o
 endif
 
 ifdef GRAIN
@@ -95,26 +91,27 @@ NVCCFLAGS += -I$(CUTILDIR)/inc/
 LDFLAGS += -L$(CUDASDKDIR)/lib
 LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
 
+LDFLAGS += -L../core/ -L../common/
+CFLAGS += -I../
 
-all:
-	make -C common
-	make -C core
-	make -C drivers
-	make -C examples
+OBJDEPS += ../common/util.o ../common/threads.o ../core/jobs.o ../core/workers.o
+
+ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
+BLASARCH=Linux_UNKNOWNSSE2
+
+CFLAGS+= -I$(ATLASDIR)/include/
+LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
+LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
+
+
+
+all: multiplication
+
+multiplication.o:
+	$(CC) $(CFLAGS) multiplication.c -c -o multiplication.o
+
+multiplication: multiplication.o
+	$(CC) multiplication.o -o multiplication $(OBJDEPS) $(LDFLAGS) 
 
 clean:
-	make -C common clean
-	make -C core clean
-	make -C drivers clean
-	make -C examples clean
-
-
-help:
-	@echo "Possible options (default value) "
-	@echo "  SIZE size of the problem ($(DEFAULTSIZE))"
-	@echo "  CUDA use of cuda or not (0)"
-	@echo "  CUBLAS use of cublas or not (0)"
-	@echo "  CPUS number of CPUs in use (0)"
-	@echo "  CPUS run ATLAS functions (0)"
-	@echo "  CHECK makes sure the output is correct (0)"
-	@echo "  GRAIN job grain size ($(DEFAULTGRAIN))"
+	rm -f multiplication *.o

@@ -6,9 +6,9 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
-#include "timing.h"
-#include "list.h"
-#include "util.h"
+#include <common/timing.h>
+#include <common/list.h>
+#include <common/threads.h>
 
 #ifdef USE_CUDA
 #include <cuda.h>

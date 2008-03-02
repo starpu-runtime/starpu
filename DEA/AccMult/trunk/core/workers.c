@@ -1,5 +1,5 @@
-#include "mult.h"
-#include "timing.h"
+#include <common/timing.h>
+#include "workers.h"
 
 /* number of actual CPU cores */
 
@@ -141,47 +141,35 @@ void terminate_workers(void)
 
 }
 
-void matrix_fill_rand(matrix *m)
+void kill_all_workers(void)
 {
-	unsigned i,j;
-	for (i=0; i < m->width; i++) {
-		for (j=0; j < m->heigth; j++) {
-			m->data[i+j*m->width] = (float)(drand48());
-			//m->data[i+j*m->width] = (float)(i==j?1.0:0.0);
-		}
-	}
+        /* terminate all threads */
+        unsigned nworkers = 0;
+
+#ifdef USE_CPUS
+        nworkers += ncores;
+#endif
+#ifdef USE_CUDA
+        nworkers += ncudagpus;
+#endif
+#ifdef USE_CUBLAS
+        nworkers += ncublasgpus;
+#endif
+
+        unsigned worker;
+        for (worker = 0; worker < nworkers ; worker++) {
+                job_t j = job_new();
+                j->type = ABORT;
+                j->where = ANY;
+                push_task(j);
+        }
+
+        if (nworkers == 0) {
+                fprintf(stderr, "Warning there is no worker ... \n");
+        }
+
 }
 
-void matrix_fill_zero(matrix *m)
-{
-	memset(m->data, 0, m->width*m->heigth*sizeof(float));
-}
-
-void alloc_matrix(matrix *m, unsigned width, unsigned heigth)
-{
-	m->width = width;
-	m->heigth = heigth;
-	m->data = malloc(width*heigth*sizeof(float));
-}
-
-void free_matrix(matrix *m)
-{
-	free(m->data);
-}
-
-void display_matrix(matrix *m)
-{
-	unsigned x,y;
-
-	fprintf(stderr, "****************************\n");
-	for (y = 0; y < m->heigth; y++) {
-	for (x = 0; x < m->width; x++) {
-		fprintf(stderr, "%f\t", m->data[x+y*m->width]);
-	}
-	fprintf(stderr, "\n");
-	}
-	fprintf(stderr, "****************************\n");
-}
 
 int count_tasks(void)
 {
@@ -260,128 +248,4 @@ void display_stats(job_descr *jd)
 	printf("Computation time : %f ms\n", chrono/1000);
 
 
-}
-
-void compare_matrix(matrix *A, matrix *B, float eps)
-{
-	int isdiff = 0;
-	int ndiff = 0;
-	int ntotal = 0;
-
-	unsigned x,y;
-	for (x = 0; x < A->width; x++) 
-	{
-		for (y = 0; y < A->heigth ; y++) 
-		{
-			if (fabs(A->data[x+y*A->width] - B->data[x+y*A->width]) > eps) {
-				isdiff = 1;
-				ndiff++;
-				fprintf(stderr, "(%d,%d) expecting %f got %f\n", x, y,  B->data[x+y*A->width],  A->data[x+y*A->width]);
-			}
-			ntotal++;
-		}
-	}
-
-	if (isdiff) {
-		printf("Matrix are DIFFERENT (%d on %d differs ...)!\n", ndiff, ntotal);
-	} else {
-		printf("Matrix are IDENTICAL\n");
-	}
-}
-
-#ifndef NSAMPLE
-#define NSAMPLE	10
-#endif
-
-int counter = NSAMPLE;
-
-void terminate_mult(void *arg)
-{
-	job_descr *jd = (job_descr *)arg;
-
-	GET_TICK(jd->job_finished);
-
-//	if (ATOMIC_ADD(&counter, -1) == 1) {
-	if (--counter == 0)
-	{
-		printf("kill all workers ... \n");
-		kill_all_workers();
-	}
-	
-#ifdef VERBOSE
-	printf("counter = %d \n", counter);
-#endif
-
-#ifdef COMPARE_SEQ
-	printf("running the sequential comparision ... \n");
-	GET_TICK(jd->job_refstart);
-	/* only compare with 1/SEQFACTOR of the initial prob ... */
-	ref_mult(jd->matA, jd->matB, jd->matD);	
-	GET_TICK(jd->job_refstop);
-
-#ifdef CHECK_OUTPUT
-	compare_matrix(jd->matC, jd->matD, SIZE*0.001);
-#endif
-#endif
-
-	display_stats(jd);
-
-//	printf("matrix A :\n");
-//	display_matrix(&matA);
-//	printf("matrix B :\n");
-//	display_matrix(&matB);
-//	printf("matrix C :\n");
-//	display_matrix(&matC);
-//	printf("matrix D :\n");
-//	display_matrix(&matD);
-
-	free_matrix(jd->matA);
-	free_matrix(jd->matB);
-	free_matrix(jd->matC);
-}
-
-void mult_example(void)
-{
-	job_descr *jd = malloc(sizeof(job_descr));
-	matrix *ABCD = malloc(4*sizeof(matrix));
-
-	jd->matA = &ABCD[0];
-	jd->matB = &ABCD[1];
-	jd->matC = &ABCD[2];
-	jd->matD = &ABCD[3];
-
-	/* for simplicity, use SIZE = power of 2 ! */
-	alloc_matrix(jd->matA, SIZE, SIZE);
-	alloc_matrix(jd->matB, SIZE, SIZE);
-
-	alloc_matrix(jd->matC, SIZE, SIZE);
-	alloc_matrix(jd->matD, SIZE, SIZE);
-
-	matrix_fill_rand(jd->matA);
-	matrix_fill_rand(jd->matB);
-
-	matrix_fill_zero(jd->matC);
-	matrix_fill_zero(jd->matD);
-
-	GET_TICK(jd->job_submission);
-
-	mult(jd->matA, jd->matB, jd->matC, terminate_mult, jd);
-}
-
-int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused)) )
-{
-#ifdef USE_MARCEL
-	marcel_init(&argc, argv);
-#endif
-
-	init_machine();
-	init_workers();
-
-	int i;
-	for (i = 0; i < NSAMPLE; i++)
-		mult_example();
-
-	terminate_workers();
-	display_general_stats();
-	return 0;
 }

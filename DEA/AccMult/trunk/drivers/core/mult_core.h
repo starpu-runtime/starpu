@@ -1,12 +1,15 @@
 #ifndef __MULT_CORE_H__
 #define __MULT_CORE_H__
 
+/* to bind threads onto a given cpu */
 #define _GNU_SOURCE
 #include <sched.h>
 
-#include "comp.h"
-#include "mult.h"
-#include "jobs.h"
+//#include "comp.h"
+//#include "mult.h"
+#include <common/util.h>
+#include <common/parameters.h>
+#include <core/jobs.h>
 #include <cblas.h>
 
 typedef struct core_worker_arg_t {

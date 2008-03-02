@@ -28,10 +28,6 @@ LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
 
 LDFLAGS+= -lm
 
-
-DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o util.o
-EXTRADEP=
-
 ifeq ($(MARCEL), 1)
 	CC=$(shell pm2-config --cc)
 	LDFLAGS += $(shell pm2-config --libs) 
@@ -96,25 +92,16 @@ LDFLAGS += -L$(CUDASDKDIR)/lib
 LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
 
 
-all:
-	make -C common
-	make -C core
-	make -C drivers
-	make -C examples
+CFLAGS += -I../
+
+
+all: jobs.o workers.o
+
+jobs.o: jobs.c
+	$(CC) $(CFLAGS) jobs.c -c -o jobs.o
+
+workers.o: workers.c
+	$(CC) $(CFLAGS) workers.c -c -o workers.o
 
 clean:
-	make -C common clean
-	make -C core clean
-	make -C drivers clean
-	make -C examples clean
-
-
-help:
-	@echo "Possible options (default value) "
-	@echo "  SIZE size of the problem ($(DEFAULTSIZE))"
-	@echo "  CUDA use of cuda or not (0)"
-	@echo "  CUBLAS use of cublas or not (0)"
-	@echo "  CPUS number of CPUs in use (0)"
-	@echo "  CPUS run ATLAS functions (0)"
-	@echo "  CHECK makes sure the output is correct (0)"
-	@echo "  GRAIN job grain size ($(DEFAULTGRAIN))"
+	rm -f *.o

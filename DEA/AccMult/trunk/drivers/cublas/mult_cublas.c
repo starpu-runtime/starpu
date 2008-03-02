@@ -8,10 +8,10 @@ extern int cublascounters[MAXCUBLASDEVS];
 
 int ncublasgpus = 1;
 
-void clean_cublas_problem(void *cbarg)
+void clean_cublas_problem(job_descr *jd)
 {
 	/* simply free the device memory */
-	job_descr *jd = (job_descr *)cbarg;
+//	job_descr *jd = (job_descr *)cbarg;
 
 	cublasFree(jd->matA->cublas_data.dev_data);
 	cublasFree(jd->matB->cublas_data.dev_data);
@@ -44,7 +44,7 @@ int precondition_cublas(matrix *A, matrix *B, matrix *C)
 	SAFE_CUBLAS_CALL(cublasSetMatrix(B->width,  B->heigth, sizeof(float), B->data, B->width, B->cublas_data.dev_data, B->width));
 	SAFE_CUBLAS_CALL(cublasSetMatrix(C->width,  C->heigth, sizeof(float), C->data, C->width, C->cublas_data.dev_data, C->width));
 
-	return 0;
+	return OK;
 
 failedAllocC:
 	cublasFree(B->cublas_data.dev_data);

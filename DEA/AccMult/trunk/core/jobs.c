@@ -1,4 +1,3 @@
-#include "threads.h"
 #include "jobs.h"
 
 static job_list_t jobq;

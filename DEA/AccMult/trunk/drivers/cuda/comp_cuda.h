@@ -8,7 +8,7 @@
 #include <cuda.h>
 
 #define UPDIV(a,b)	(((a)+(b)-1)/((b)))
-//#define MIN(a,b)	((a)>(b)?(b):(a))
+#define MIN(a,b)	((a)>(b)?(b):(a))
 
 __device__ void cuda_dummy_mult(CUdeviceptr, CUdeviceptr, CUdeviceptr);
 

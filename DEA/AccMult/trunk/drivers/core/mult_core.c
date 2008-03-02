@@ -105,11 +105,11 @@ void execute_job_on_core(job_t j)
                         thread_exit(NULL);
                         break;
                 default:
+			printf("don't know what to do with that task on a core ! ... \n");
                         break;
         }
 }
 
-#ifdef USE_CPUS
 void *core_worker(void *arg)
 {
         int core = ((core_worker_arg *)arg)->coreid;
@@ -151,5 +151,3 @@ void *core_worker(void *arg)
 
         return NULL;
 }
-#endif
-

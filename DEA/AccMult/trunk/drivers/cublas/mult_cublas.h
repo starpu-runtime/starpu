@@ -8,10 +8,10 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "threads.h"
-#include "util.h"
-#include "jobs.h"
-#include "parameters.h"
+#include <common/threads.h>
+#include <common/util.h>
+#include <core/jobs.h>
+#include <common/parameters.h>
 // don't forget that one or you will regret it !
 #include <cublas.h>
 

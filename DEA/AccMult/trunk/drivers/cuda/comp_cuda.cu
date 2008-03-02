@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include "comp_cuda.h"
-#include "jobs.h"
-#include "parameters.h"
+#include <core/jobs.h>
+#include <common/parameters.h>
 
 //#define MATA(x,y)	(datamatA[(x)+(y)*widthA])
 //#define MATB(x,y)	(datamatB[(x)+(y)*widthB])
