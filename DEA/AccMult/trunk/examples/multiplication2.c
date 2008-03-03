@@ -1,4 +1,4 @@
-#include "multiplication.h"
+#include "multiplication2.h"
 
 #ifndef NSAMPLE
 #define NSAMPLE 10
@@ -6,21 +6,24 @@
 
 int counter = NSAMPLE;
 
-
 void cleanup_problem(void *cbarg)
 {
 	job_descr *jd = (job_descr *)cbarg;
 
 #ifdef USE_CUBLAS
+	/* do we need to clean up the device ? */
+	if (jd->matA->cublas_data.dev_data == -1) {
+		/* matrices were not loaded, thus we don't clean up */
+		jd->f(jd->argf);	
+		return;
+	}
+
 	job_t j = job_new();
-
 	j->where = CUBLAS;
-
 	j->type = CLEAN;
 
 	j->cb = jd->f;//kill_all_workers;
 	j->argcb = jd->argf;//cbarg;
-
 	push_task(j);
 #else
 	//kill_all_workers();
@@ -37,18 +40,14 @@ void mult_callback(void *cbarg)
 	if (cnt == 0) { 
 		cleanup_problem(cbarg);
 	}
-
 }
 
 /*
  *  A x B = C
  */
-
-void step2(void *arg)
+void partition_work(void *arg)
 {
-
 	/* now the matrices are preconditionned : create the actual jobs */
-
 	job_descr * jd = (job_descr *)arg;
 
 	matrix *A = jd->matA;
@@ -62,7 +61,6 @@ void step2(void *arg)
 
         nx = (B->width)/GRAIN;
         ny = (A->heigth)/GRAIN;
-
 
 	jd->counter = nx*ny - 1;
 
@@ -84,16 +82,14 @@ void step2(void *arg)
 			j->input.matB.ya = 0;
 			j->input.matB.yb = B->heigth;
 
-			j->output.matC_sub.mat  = C;
+			j->output.matC_sub.mat = C;
 			j->output.matC_sub.xa = x*GRAIN;
 			j->output.matC_sub.xb = MIN( (x+1)*GRAIN, B->width);
 			j->output.matC_sub.ya = y*GRAIN;
 			j->output.matC_sub.yb = MIN( (y+1)*GRAIN, A->heigth);
 
 			j->type = MUL;
-
 			j->where = ANY;
-
 			j->cb = mult_callback;
 			j->argcb = arg;
 
@@ -113,32 +109,16 @@ void mult(matrix *A, matrix *B, matrix *C, callback f, void *argf)
 	jd->f = f;
 	jd->argf = argf;
 
+#ifdef USE_CUBLAS
+	A->cublas_data.dev_data = -1;
+	B->cublas_data.dev_data = -1;
+	C->cublas_data.dev_data = -1;
+#endif
+
 	GET_TICK(jd->job_submission);
 
-#ifdef USE_CUBLAS
-	job_t j = job_new();
-
-	j->type = PRECOND;
-	j->where = CUBLAS;
-
-	j->cb = step2;
-	j->argcb = jd;
-
-	push_task(j);
-#elif USE_CUDA
-	job_t j = job_new();
-
-	j->type = PRECOND;
-	j->where = CUDA;
-
-	j->cb = step2;
-	j->argcb = jd;
-
-	push_task(j);
-#else
-	/* directly partition work */
-	step2(jd);
-#endif
+	/* partition work */
+	partition_work(jd);
 }
 
 void terminate_mult(job_descr *jd)
