@@ -64,9 +64,17 @@ static void cublas_mult(job_t j)
 	 *  Ct = Bt At (C = AB)
 	 */
 
+	unsigned res;
+
 	submatrix *matA = &j->input.matA;
 	submatrix *matB = &j->input.matB;
 	submatrix *matC = &j->output.matC_sub;
+
+	if (DEV_DATA(matA) == -1) {
+		/* the matrices are not yet on the device */
+		res = precondition_cublas(matA->mat, matB->mat, matC->mat);
+		ASSERT(res == OK);
+	}
 
 	float *d_A = &(DEV_DATA(matA))[START_POS(matA)];
 	int lda = matA->mat->width;
