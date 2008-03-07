@@ -93,7 +93,19 @@ void cblas_mult(submatrix *A, submatrix *B, submatrix *C)
 void execute_job_on_core(job_t j)
 {
         switch (j->type) {
+		case SGEMM:
+		case SAXPY:
+		case SGEMV:
+		case STRSM:
+		case STRSV:
+		case SGER:
+		case SSYR:
+		case SCOPY:
+			/* TODO */
+			assert(0);
+			break;
                 case MUL:
+			printf("core mult task %d\n", ((job_descr *)j->argcb)->debug);
 #ifdef USE_CPU_BLAS
                         cblas_mult(&j->input.matA, &j->input.matB, &j->output.matC_sub);
 #else

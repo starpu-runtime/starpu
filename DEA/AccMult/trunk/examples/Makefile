@@ -105,7 +105,7 @@ LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
 
 
 
-all: multiplication multiplication2
+all: multiplication multiplication2 factoLU
 
 multiplication2.o:
 	$(CC) $(CFLAGS) multiplication2.c -c -o multiplication2.o
@@ -120,5 +120,11 @@ multiplication.o:
 multiplication: multiplication.o
 	$(CC) multiplication.o -o multiplication $(OBJDEPS) $(LDFLAGS) 
 
+factoLU: factoLU.o
+	$(CC) factoLU.o -o factoLU $(OBJDEPS) $(LDFLAGS) 
+
+factoLU.o: factoLU.c
+	$(CC) $(CFLAGS) factoLU.c -c -o factoLU.o
+
 clean:
-	rm -f multiplication multiplication2 *.o
+	rm -f multiplication multiplication2 factoLU *.o

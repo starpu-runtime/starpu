@@ -16,7 +16,7 @@
 
 typedef enum {GPU, CUDA, CUBLAS, CELL, CORE, ANY} cap;
 
-typedef enum {ADD, SUB, MUL, PART, PRECOND, CLEAN, ABORT} jobtype;
+typedef enum {ADD, SUB, MUL, PART, PRECOND, CLEAN, ABORT, SGEMM, SAXPY, SGEMV, STRSM, STRSV, SGER, SSYR, SCOPY} jobtype;
 
 typedef void (*callback)(void *);
 
@@ -90,6 +90,7 @@ typedef struct job_descr_t {
 	matrix *matB;
 	matrix *matC;
 	matrix *matD;
+	int debug;
 	int counter;
 	callback f;
 	void *argf;

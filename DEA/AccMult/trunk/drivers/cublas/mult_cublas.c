@@ -132,14 +132,14 @@ static int execute_job_on_cublas(job_t j)
 {
 	int res;
 	job_descr *jd;
+	jd = j->argcb;
 
 	switch (j->type) {
 		case MUL:
-			//printf("cublas mult\n");
+			printf("cublas mult task %d\n", jd->debug);
 			cublas_mult(j);
 			break;
 		case PRECOND:
-			jd = j->argcb;
 			res = precondition_cublas(jd->matA, jd->matB, jd->matC);
 			if (res) {
 				printf("precondition failed ... trying later\n");

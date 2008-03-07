@@ -5,6 +5,8 @@
 #endif
 
 int counter = NSAMPLE;
+int workid = 0;
+matrix *ABCD;
 
 void cleanup_problem(void *cbarg)
 {
@@ -100,12 +102,12 @@ void partition_work(void *arg)
 
 void mult(matrix *A, matrix *B, matrix *C, callback f, void *argf)
 {
-	job_descr *jd = malloc(sizeof(job_descr));
+	job_descr *jd = argf;//malloc(sizeof(job_descr));
 
-	jd->matA = A; 
+/*	jd->matA = A; 
 	jd->matB = B; 
 	jd->matC = C; 
-
+*/
 	jd->f = f;
 	jd->argf = argf;
 
@@ -114,6 +116,9 @@ void mult(matrix *A, matrix *B, matrix *C, callback f, void *argf)
 	B->cublas_data.dev_data = -1;
 	C->cublas_data.dev_data = -1;
 #endif
+
+	jd->debug = workid++;
+	printf("DEBUG %d workid\n", jd->debug);
 
 	GET_TICK(jd->job_submission);
 
@@ -155,28 +160,29 @@ void terminate_mult(job_descr *jd)
         free_matrix(jd->matC);
 }
 
-void mult_example(void)
+
+void mult_example(int index)
 {
         job_descr *jd = malloc(sizeof(job_descr));
-        matrix *ABCD = malloc(4*sizeof(matrix));
 
-        jd->matA = &ABCD[0];
-        jd->matB = &ABCD[1];
-        jd->matC = &ABCD[2];
-        jd->matD = &ABCD[3];
+        jd->matA = &ABCD[0+index*4];
+        jd->matB = &ABCD[1+index*4];
+        jd->matC = &ABCD[2+index*4];
+        jd->matD = &ABCD[3+index*4];
 
         /* for simplicity, use SIZE = power of 2 ! */
-        alloc_matrix(jd->matA, SIZE, SIZE);
-        alloc_matrix(jd->matB, SIZE, SIZE);
+        //alloc_matrix(jd->matA, SIZE, SIZE);
+        //alloc_matrix(jd->matB, SIZE, SIZE);
 
-        alloc_matrix(jd->matC, SIZE, SIZE);
-        alloc_matrix(jd->matD, SIZE, SIZE);
+        //alloc_matrix(jd->matC, SIZE, SIZE);
+        //alloc_matrix(jd->matD, SIZE, SIZE);
 
-        matrix_fill_rand(jd->matA);
-        matrix_fill_rand(jd->matB);
 
-        matrix_fill_zero(jd->matC);
-        matrix_fill_zero(jd->matD);
+        //matrix_fill_rand(jd->matA);
+        //matrix_fill_rand(jd->matB);
+
+        //matrix_fill_zero(jd->matC);
+        //matrix_fill_zero(jd->matD);
 
         GET_TICK(jd->job_submission);
 
@@ -192,9 +198,29 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
         init_machine();
         init_workers();
 
+	/* not to have too many page faults at the init,
+	 * we allocate all matrices in advance XXX */
+	ABCD = malloc(4*NSAMPLE*sizeof(matrix));
         int i;
-        for (i = 0; i < NSAMPLE; i++)
-                mult_example();
+	for (i = 0; i < NSAMPLE; i++) {
+		alloc_matrix(&ABCD[4*i + 0], SIZE, SIZE);
+	        alloc_matrix(&ABCD[4*i + 1], SIZE, SIZE);
+
+	        alloc_matrix(&ABCD[4*i + 2], SIZE, SIZE);
+	        alloc_matrix(&ABCD[4*i + 3], SIZE, SIZE);
+
+
+	        matrix_fill_rand(&ABCD[4*i + 0]);
+	        matrix_fill_rand(&ABCD[4*i + 1]);
+
+       		matrix_fill_zero(&ABCD[4*i + 2]);
+		matrix_fill_zero(&ABCD[4*i + 3]);
+	}
+
+        for (i = 0; i < NSAMPLE; i++) {
+		printf("mult_example\n");
+                mult_example(i);
+	}
 
         terminate_workers();
         display_general_stats();

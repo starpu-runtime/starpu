@@ -11,6 +11,10 @@
 #define MIN(a,b)	((a)<(b)?(a):(b))
 #endif
 
+#ifndef MAX
+#define MAX(a,b)	((a)<(b)?(b):(a))
+#endif
+
 #define ASSERT(x)	assert(x)
 
 #define ATOMIC_ADD(ptr, value)  (__sync_fetch_and_add ((ptr), (value)))
@@ -20,6 +24,7 @@ void matrix_fill_zero(matrix *);
 void alloc_matrix(matrix *, unsigned, unsigned);
 void free_matrix(matrix *);
 void display_matrix(matrix *);
+void display_submatrix(submatrix *);
 void compare_matrix(matrix *, matrix *, float);
 
 #endif // __UTIL_H__
