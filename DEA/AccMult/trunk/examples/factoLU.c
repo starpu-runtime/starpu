@@ -1,3 +1,4 @@
+#include <semaphore.h>
 #include <core/jobs.h>
 #include <core/workers.h>
 #include <common/timing.h>
@@ -5,12 +6,11 @@
 #include <string.h>
 #include <math.h>
 
+#include "factoLU.h"
+
 #ifndef SIZE
 #define SIZE	32
 #endif
-
-float *L;
-float *U;
 
 /*
  * Solve AX = Y 
@@ -252,10 +252,433 @@ static void measure_error(matrix *A, matrix *X, matrix *Y)
 	free(V);
 }
 
+
+void callback_codelet_update_u22(void *argcb)
+{
+	printf("callback 22\n");
+	u22_args *args = argcb;	
+
+	/* XXX TODO : make it atomic !! */
+	args->subp->at_counter_lu22--;
+
+	if (args->subp->at_counter_lu22 == 0)
+	{
+		/* we now reduce the LU22 part (recursion appears there) */
+		submatrix *LU = args->subp->LU22;
+
+
+		unsigned width = LU->xb - LU->xa;
+		unsigned heigth = LU->yb - LU->ya;
+
+		unsigned actualgrain = MIN(args->subp->grain, width);
+
+		/* we will do a parallel LU reduction */
+		submatrix *LU11 = malloc(sizeof(submatrix));
+		submatrix *LU12 = malloc(sizeof(submatrix)); 
+		submatrix *LU21 = malloc(sizeof(submatrix));
+		submatrix *LU22 = malloc(sizeof(submatrix));
+	
+		/*
+		 *	11  12
+		 *	21  22
+		 */
+		LU11->mat = LU->mat;
+		LU12->mat = LU->mat;
+		LU21->mat = LU->mat;
+		LU22->mat = LU->mat;
+	
+		LU11->xa = LU->xa;
+		LU11->ya = LU->ya;
+		LU11->xb = LU11->xa + actualgrain;
+		LU11->yb = LU11->ya + actualgrain;
+	
+		LU12->xa = LU11->xb;
+		LU12->xb = LU->xb;
+		LU12->ya = LU->ya;
+		LU12->yb = LU12->ya + actualgrain;
+	
+		LU21->xa = LU->xa;
+		LU21->xb = LU21->xa + actualgrain;
+		LU21->ya = LU11->yb;
+		LU21->yb = LU->yb;
+	
+		LU22->xa = LU21->xb;
+		LU22->xb = LU->xb;
+		LU22->ya = LU12->yb;
+		LU22->yb = LU->yb;
+	
+		/* create a new codelet */
+		codelet *cl = malloc(sizeof(codelet));
+		subproblem *sp = malloc(sizeof(subproblem));
+		u11_args *u11arg = malloc(sizeof(u11_args));
+	
+		sp->LU = LU;
+		sp->LU11 = LU11;
+		sp->LU12 = LU12;
+		sp->LU21 = LU21;
+		sp->LU22 = LU22;
+		sp->sem = args->subp->sem;
+		sp->grain = actualgrain;
+		sp->rec_level = args->subp->rec_level + 1;
+	
+		u11arg->subp = sp;
+	
+		cl->cl_arg = u11arg;
+		cl->core_func = core_codelet_update_u11;
+	
+		/* inject a new task with this codelet into the system */ 
+		/* XXX */
+		job_t j = job_new();
+		j->type = CODELET;
+		j->where = CORE;
+		j->cb = callback_codelet_update_u11;
+		j->argcb = u11arg;
+		j->cl = cl;
+	
+		/* schedule the codelet */
+		push_task(j);
+	
+	
+	}
+}
+
+void core_codelet_update_u22(void *_args)
+{
+	u22_args *args = _args;
+
+	submatrix *LU11, *LU12, *LU21, *LU22;
+
+	unsigned startx, starty;
+	unsigned endx, endy;
+
+	startx = args->xa;
+	starty = args->ya;
+	endx = args->xb;
+	endy = args->yb;
+
+	LU11 = args->subp->LU11;
+	LU21 = args->subp->LU21;
+	LU12 = args->subp->LU12;
+	LU22 = args->subp->LU22;
+
+	ASSERT(startx < endx);
+	ASSERT(starty < endy);
+	
+	float *left = &LU21->mat->data[LU21->xa+ (starty)*LU21->mat->width];
+
+	float *right = &LU12->mat->data[startx + (LU12->ya)*LU12->mat->width];
+
+	float *center = &LU22->mat->data[startx+(starty)*LU22->mat->width];
+
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+		endy - starty, endx - startx, LU21->xb - LU21->xa,  
+		-1.0f, 	left, LU21->mat->width,
+			right, LU12->mat->width,
+		1.0f, center, LU22->mat->width);
+}
+
+void core_codelet_update_u12(void *_args)
+{
+	u1221_args *args = _args;
+
+	submatrix *LU11;
+	submatrix *LU12;
+	
+	LU11 = args->subp->LU11;
+	LU12 = args->subp->LU12;
+
+	float *LU11block =
+		&LU11->mat->data[LU11->xa + LU11->ya*LU11->mat->width];
+	
+	unsigned slice;
+	for (slice = args->xa ; slice < args->xb; slice++)
+	{
+		float *LU12block = &LU12->mat->data[slice + LU12->ya*LU12->mat->width];
+
+		/* solve L11 U12 = A12 (find U12) */
+		cblas_strsv(CblasRowMajor, CblasLower, CblasNoTrans, CblasNonUnit,
+			args->subp->grain, LU11block, LU11->mat->width, LU12block, LU12->mat->width); 
+	}
+}
+
+void callback_codelet_update_u12_21(void *argcb)
+{
+	printf("callback 12 ou 21\n");
+
+	u1221_args *args = argcb;	
+
+	/* XXX TODO : make it atomic !! */
+	args->subp->at_counter_lu12_21--;
+
+	if (args->subp->at_counter_lu12_21 == 0)
+	{
+		/* now launch the update of LU22 */
+		unsigned nslices;
+		unsigned grainsize;
+
+		grainsize = args->subp->grain;
+		nslices = (args->subp->LU22->xb -
+		   args->subp->LU22->xa + grainsize - 1 )/grainsize;
+
+		/* there will be nslices^2 tasks */
+		args->subp->at_counter_lu22 = nslices*nslices;
+
+		unsigned slicey, slicex;
+		for (slicey = 0; slicey < nslices; slicey++)
+		{
+			for (slicex = 0; slicex < nslices; slicex++)
+			{
+				/* update that square matrix */
+				u22_args *u22a;
+				u22a = malloc(sizeof(u22_args));
+	
+				/* create a codelet */
+				codelet *cl22 = malloc(sizeof(codelet));
+				cl22->cl_arg = u22a;
+				cl22->core_func = core_codelet_update_u22;
+	
+				u22a->subp = args->subp;
+
+				u22a->xa = args->subp->LU12->xa + slicex * grainsize;
+				u22a->xb = MIN(args->subp->LU12->xb,
+						u22a->xa + grainsize);
+				u22a->ya = args->subp->LU21->ya + slicey * grainsize;
+				u22a->yb = MIN(args->subp->LU21->yb,
+						u22a->ya + grainsize);
+	
+				job_t j22 = job_new();
+				j22->type = CODELET;
+				j22->where = CORE;
+				j22->cb = callback_codelet_update_u22;
+				j22->argcb = u22a;
+				j22->cl = cl22;
+				
+				/* schedule that codelet */
+				push_task(j22);
+			}
+		}
+	}
+}
+
+void core_codelet_update_u21(void *_args)
+{
+	u1221_args *args = _args;
+
+	submatrix *LU11;
+	submatrix *LU21;
+	
+	LU11 = args->subp->LU11;
+	LU21 = args->subp->LU21;
+
+	float *LU11block = &LU11->mat->data[LU11->xa + LU11->ya*LU11->mat->width];
+
+	unsigned slice;
+	for (slice = args->ya ; slice < args->yb; slice++)
+	{
+		float *LU21block = &LU21->mat->data[LU21->xa + (slice)*LU21->mat->width];
+
+		cblas_strsv(CblasRowMajor, CblasUpper, CblasTrans, CblasUnit,
+				args->subp->grain, LU11block, LU11->mat->width, LU21block, 1); 
+	}
+}
+
+void callback_codelet_update_u11(void *argcb)
+{
+	/* in case there remains work, go on */
+	u11_args *args = argcb;
+
+	printf("callback_codelet_update_u11\n");
+
+	if (args->subp->LU11->xb == args->subp->LU->xb) 
+	{
+		/* we are done : wake the application up  */
+		printf("POST %p !\n", args->subp->sem);
+		sem_post(args->subp->sem);
+		return;
+	}
+	else 
+	{
+		/* put new tasks */
+		/* we need to update both U12 and U21 */
+		unsigned grainsize = args->subp->grain;
+		unsigned nslices = (args->subp->LU12->xb -
+			args->subp->LU12->xa + grainsize - 1 )/grainsize; 
+
+		printf("nslices = %d of grainsize %d \n", nslices, grainsize);
+		assert(args->subp->LU12->xb - args->subp->LU12->xa 
+			== args->subp->LU21->yb - args->subp->LU21->ya );
+
+		/* there will be 2*nslices jobs */
+		args->subp->at_counter_lu12_21 = 2*nslices;
+
+		unsigned slice;
+		for (slice = 0; slice < nslices; slice++)
+		{
+			/* update slice from u12 */
+			u1221_args *u12a;
+			u12a = malloc(sizeof(u1221_args));
+
+			/* create a codelet */
+			codelet *cl12;
+			cl12 = malloc(sizeof(codelet));
+			cl12->cl_arg = u12a;
+			cl12->core_func = core_codelet_update_u12;
+
+			u12a->subp = args->subp;
+			u12a->xa = args->subp->LU12->xa + slice * grainsize;
+			u12a->xb = MIN(args->subp->LU12->xb,
+					u12a->xa + grainsize);
+
+			job_t j12 = job_new();
+			j12->type = CODELET;
+			j12->where = CORE;
+			j12->cb = callback_codelet_update_u12_21;
+			j12->argcb = u12a;
+			j12->cl = cl12;
+			
+			/* schedule that codelet */
+			push_task(j12);
+
+			/* update slice from u21 */
+			u1221_args *u21a;
+			u21a = malloc(sizeof(u1221_args));
+
+			/* create a codelet */
+			codelet *cl21 = malloc(sizeof(codelet));
+			cl21->cl_arg = u21a;
+			cl21->core_func = core_codelet_update_u21;
+
+			u21a->subp = args->subp;
+			u21a->ya = args->subp->LU21->ya + slice * grainsize;
+			u21a->yb = MIN(args->subp->LU21->yb,
+					u21a->ya + grainsize);
+
+			job_t j21 = job_new();
+			j21->type = CODELET;
+			j21->where = CORE;
+			j21->cb = callback_codelet_update_u12_21;
+			j21->argcb = u21a;
+			j21->cl = cl21;
+			
+			/* schedule that codelet */
+			push_task(j21);
+		}
+	}
+}
+
+void core_codelet_update_u11(void *_args)
+{
+	u11_args *args = _args;
+
+	submatrix *LU11 = args->subp->LU11;
+
+	seq_facto(LU11, LU11);
+}
+
+
+/*
+ * Note that we assume all modifications to be in-place here 
+ * This code is to be called by the application NOT the callbacks for instance 
+ * as it blocks
+ */
+void codelet_facto(submatrix *LU)
+{
+
+	unsigned width = LU->xb - LU->xa;
+	unsigned heigth = LU->yb - LU->ya;
+
+	unsigned actualgrain = MIN(GRAIN, width);
+
+	/* we need a square matrix */
+	ASSERT(width == heigth);
+
+	/* LU and A must have the same size */
+	ASSERT(width == LU->xb - LU->xa);
+	ASSERT(heigth == LU->yb - LU->ya);
+
+	/* we will do a parallel LU reduction */
+	submatrix LU11;
+	submatrix LU12; 
+	submatrix LU21;
+	submatrix LU22;
+
+	/*
+	 *	11  12
+	 *	21  22
+	 */
+	LU11.mat = LU->mat;
+	LU12.mat = LU->mat;
+	LU21.mat = LU->mat;
+	LU22.mat = LU->mat;
+
+	LU11.xa = LU->xa;
+	LU11.ya = LU->ya;
+	LU11.xb = LU11.xa + actualgrain;
+	LU11.yb = LU11.ya + actualgrain;
+
+	LU12.xa = LU11.xb;
+	LU12.xb = LU->xb;
+	LU12.ya = LU->ya;
+	LU12.yb = LU12.ya + actualgrain;
+
+	LU21.xa = LU->xa;
+	LU21.xb = LU21.xa + actualgrain;
+	LU21.ya = LU11.yb;
+	LU21.yb = LU->yb;
+
+	LU22.xa = LU21.xb;
+	LU22.xb = LU->xb;
+	LU22.ya = LU12.yb;
+	LU22.yb = LU->yb;
+
+	/* create a new codelet */
+	codelet cl;
+	subproblem sp;
+	u11_args u11arg;
+
+	sem_t sem;
+	sp.sem = &sem;
+
+	sp.LU = LU;
+	sp.LU11 = &LU11;
+	sp.LU12 = &LU12;
+	sp.LU21 = &LU21;
+	sp.LU22 = &LU22;
+	sem_init(sp.sem, 0, 0U);
+	sp.grain = actualgrain;
+	sp.rec_level = 0;
+
+	u11arg.subp = &sp;
+
+	cl.cl_arg = &u11arg;
+	cl.core_func = core_codelet_update_u11;
+
+	/* inject a new task with this codelet into the system */ 
+	/* XXX */
+	job_t j = job_new();
+	j->type = CODELET;
+	j->where = CORE;
+	j->cb = callback_codelet_update_u11;
+	j->argcb = &u11arg;
+	j->cl = &cl;
+
+	/* schedule the codelet */
+	push_task(j);
+
+	/* stall the application until the end of computations */
+	printf("waiting on %p\n", sp.sem);
+	sem_wait(sp.sem);
+	sem_destroy(sp.sem);
+	printf("FINISH !!!\n");
+}
+
+
+
 static void par_facto(submatrix *A, submatrix *LU)
 {
 
 	unsigned inplace = 0;
+	unsigned actualgrain = GRAIN;
 
 	if (A == LU) { 
 		inplace = 1;
@@ -288,16 +711,10 @@ static void par_facto(submatrix *A, submatrix *LU)
 		submatrix *LU21 = malloc(sizeof(submatrix));
 		submatrix *LU22 = malloc(sizeof(submatrix));
 
-//		printf("LU22 %p\n", LU22);
-		/* in case the matrix size is not a multiple of the GRAIN size, we first perform a little more work */
-		unsigned actualgrain = GRAIN;// + width%GRAIN;
-
 		/*
 		 *	11  12
 		 *	21  22
 		 */
-
-
 		A11->mat = A->mat;
 		A12->mat = A->mat;
 		A21->mat = A->mat;
@@ -457,12 +874,19 @@ static void par_facto(submatrix *A, submatrix *LU)
 //		printf("POUET\n");
 
 		par_facto(LU22, LU22);
+
+		free(LU11);	free(A11);
+		free(LU12);	free(A12);
+		free(LU21);	free(A21);
+		free(LU22);	free(A22);
 	}
 }
 
 static void compare_A_LU(matrix *A, matrix *A_err, matrix *LU)
 {
 	int i,j;
+	float *L;
+	float *U;
 
 	/* copy A into A_err */
 	memcpy(A_err->data, A->data, SIZE*SIZE*sizeof(float));
@@ -566,6 +990,10 @@ void factoLU(float *matA, float *matLU, unsigned size)
 	matrix *mA, *mLU;
 	submatrix *subA, *subLU;
 
+	init_machine();
+	init_workers();
+
+
 	/* we need some descriptor for the matrices */
 	mA = malloc(sizeof(matrix));
 	mLU = malloc(sizeof(matrix));
@@ -595,7 +1023,11 @@ void factoLU(float *matA, float *matLU, unsigned size)
 
 	/* first copy the initial matrix into matLU */
 	memcpy(matLU, matA, size*size*sizeof(float));
-	par_facto(subA, subLU);
+	//par_facto(subA, subLU);
+	codelet_facto(subLU);
+
+	free(mA);
+	free(mLU);
 }
 //
 //int main(int argc, char ** argv)

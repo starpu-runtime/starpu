@@ -795,7 +795,7 @@ int main(int argc, char **argv)
 	for (i = 0; i < NTHICK; i++)
 	{
 		B[i] = 200.0f;
-		B[DIM-i] = 200.0f;
+		B[DIM-1-i] = 200.0f;
 	}
 
 	for (i = 1; i < NTHETA-1; i++)

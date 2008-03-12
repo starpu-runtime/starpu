@@ -1,6 +1,7 @@
 #ifndef __JOBS_H__
 #define __JOBS_H__
 
+#include <semaphore.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
