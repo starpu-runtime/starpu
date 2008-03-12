@@ -112,6 +112,11 @@ void execute_job_on_core(job_t j)
                         dummy_mult(&j->input.matA, &j->input.matB, &j->output.matC_sub);
 #endif
                         break;
+		case CODELET:
+			assert(j->cl);
+			assert(j->cl->core_func);
+			j->cl->core_func(j->cl->cl_arg);
+			break;
                 case ABORT:
                         printf("core abort\n");
                         thread_exit(NULL);

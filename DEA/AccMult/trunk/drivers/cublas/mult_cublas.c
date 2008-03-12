@@ -152,6 +152,11 @@ static int execute_job_on_cublas(job_t j)
 #endif
 			clean_cublas_problem(j->argcb);
 			break;
+		case CODELET:
+			assert(j->cl);
+			assert(j->cl->cublas_func);
+			j->cl->cublas_func(j->cl->cl_arg);
+			break;
 		case ABORT:
 			printf("CUBLAS abort\n");
 			cublasShutdown();

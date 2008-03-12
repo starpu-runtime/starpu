@@ -16,9 +16,11 @@
 
 typedef enum {GPU, CUDA, CUBLAS, CELL, CORE, ANY} cap;
 
-typedef enum {ADD, SUB, MUL, PART, PRECOND, CLEAN, ABORT, SGEMM, SAXPY, SGEMV, STRSM, STRSV, SGER, SSYR, SCOPY} jobtype;
+typedef enum {ADD, SUB, MUL, PART, PRECOND, CLEAN, ABORT, SGEMM, SAXPY, SGEMV, STRSM, STRSV, SGER, SSYR, SCOPY, CODELET} jobtype;
 
 typedef void (*callback)(void *);
+/* codelet function */
+typedef void (*cl_func)(void *);
 
 #define CORE_MAY_PERFORM(j)	( (j)->where == ANY || (j)->where == CORE )
 #define CUDA_MAY_PERFORM(j)     ( (j)->where == ANY || (j)->where == GPU || (j)->where == CUDA )
@@ -58,6 +60,19 @@ typedef struct submatrix_t {
 	unsigned yb;
 } submatrix;
 
+
+/*
+ * A codelet describes the various function 
+ * that may be called from a worker ... XXX
+ */
+typedef struct codelet_t {
+	cl_func cuda_func;
+	cl_func cublas_func;
+	cl_func core_func;
+	void *cl_arg;
+} codelet;
+
+
 LIST_TYPE(job,
 	/* don't move that structure ! (cf opaque pointers ..) */
 	struct {
@@ -77,6 +92,7 @@ LIST_TYPE(job,
 	jobtype type;	/* what kind of job ? */
 	cap where;	/* where can it be performed ? */
 	callback cb;	/* do "cb(argcb)" when finished */
+	codelet *cl;
 	void *argcb;
 	int counter;	/* when this reaches 0 the callback can be executed */
 #ifdef USE_CUDA

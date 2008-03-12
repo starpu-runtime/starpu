@@ -372,6 +372,11 @@ int execute_job_on_cuda(job_t j)
 			}
 			printf("preconditionned ok ... \n");
 			break;
+		case CODELET:
+			assert(j->cl);
+			assert(j->cl->cuda_func);
+			j->cl->cuda_func(j->cl->cl_arg);
+			break;
 		case ABORT:
 			printf("CUDA abort\n");
 			thread_exit(NULL);
