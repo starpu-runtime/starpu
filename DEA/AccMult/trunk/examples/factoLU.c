@@ -19,7 +19,7 @@ float *U;
  *   A and Y are known.
  */
 
-void init(matrix *A, matrix *A_err, matrix *X, matrix *Y, matrix *LU)
+static void init(matrix *A, matrix *A_err, matrix *X, matrix *Y, matrix *LU)
 {
 	/* A */
 	alloc_matrix(A, SIZE, SIZE);
@@ -44,7 +44,7 @@ void init(matrix *A, matrix *A_err, matrix *X, matrix *Y, matrix *LU)
 
 #define A(i,j)	(LU->data[(i)+n*(j)])
 
-void copy_submatrix(submatrix *src, submatrix *dst)
+static void copy_submatrix(submatrix *src, submatrix *dst)
 {
 	int j;
 	float *srcdata;
@@ -67,7 +67,7 @@ void copy_submatrix(submatrix *src, submatrix *dst)
 	}
 }
 
-void seq_ref_facto(matrix *A, matrix *LU)
+static void seq_ref_facto(matrix *A, matrix *LU)
 {
 	unsigned k, i, j;
 	unsigned n;
@@ -103,7 +103,7 @@ void seq_ref_facto(matrix *A, matrix *LU)
 }
 
 #define B(i,j)	(LU->mat->data[(offi + (i))+(offj+ (j))*LU->mat->width])
-void dummy_seq_facto(submatrix *A, submatrix *LU)
+static void dummy_seq_facto(submatrix *A, submatrix *LU)
 {
 	unsigned k,i,j;
 	unsigned width, heigth;
@@ -144,7 +144,7 @@ void dummy_seq_facto(submatrix *A, submatrix *LU)
 
 }
 
-void seq_facto(submatrix *A, submatrix *LU)
+static void seq_facto(submatrix *A, submatrix *LU)
 {
 	unsigned k;
 	unsigned width, heigth;
@@ -191,7 +191,7 @@ void seq_facto(submatrix *A, submatrix *LU)
  * input LU, Y
  * output X
  */
-void solve_factorized_pb(matrix *LU, matrix *X, matrix *Y)
+static void solve_factorized_pb(matrix *LU, matrix *X, matrix *Y)
 {
 	/* solve LU X = Y */
 	unsigned n;
@@ -215,7 +215,7 @@ void solve_factorized_pb(matrix *LU, matrix *X, matrix *Y)
 			n, LU->data, n, X->data, 1);
 }
 
-void measure_error(matrix *A, matrix *X, matrix *Y)
+static void measure_error(matrix *A, matrix *X, matrix *Y)
 {
 	/* compute (AX - Y) */
 	unsigned n;
@@ -252,7 +252,7 @@ void measure_error(matrix *A, matrix *X, matrix *Y)
 	free(V);
 }
 
-void par_facto(submatrix *A, submatrix *LU)
+static void par_facto(submatrix *A, submatrix *LU)
 {
 
 	unsigned inplace = 0;
@@ -460,7 +460,7 @@ void par_facto(submatrix *A, submatrix *LU)
 	}
 }
 
-void compare_A_LU(matrix *A, matrix *A_err, matrix *LU)
+static void compare_A_LU(matrix *A, matrix *A_err, matrix *LU)
 {
 	int i,j;
 
@@ -561,62 +561,99 @@ void compare_A_LU(matrix *A, matrix *A_err, matrix *LU)
 
 }
 
-int main(int argc, char ** argv)
+void factoLU(float *matA, float *matLU, unsigned size)
 {
-	//unsigned i,j;
-
-	matrix A;
-	matrix A_err;
-	matrix X;
-	matrix Y;
-
-	matrix LU;
-
+	matrix *mA, *mLU;
 	submatrix *subA, *subLU;
+
+	/* we need some descriptor for the matrices */
+	mA = malloc(sizeof(matrix));
+	mLU = malloc(sizeof(matrix));
 
 	subA = malloc(sizeof(submatrix));
 	subLU = malloc(sizeof(submatrix));
 
+	mA->data = matA;
+	mA->width = size;
+	mA->heigth = size;
 
-	/* initialize all matrices */
-	init(&A, &A_err, &X, &Y, &LU);
+	mLU->data = matLU;
+	mLU->width = size;
+	mLU->heigth = size;
 
-	subA->mat = &A;
+	subA->mat = mA;
 	subA->xa = 0;
 	subA->ya = 0;
-	subA->xb = A.width;
-	subA->yb = A.heigth;
+	subA->xb = size;
+	subA->yb = size;
 
-	subLU->mat = &LU;
+	subLU->mat = mLU;
 	subLU->xa = 0;
 	subLU->ya = 0;
-	subLU->xb = LU.width;
-	subLU->yb = LU.heigth;
+	subLU->xb = size;
+	subLU->yb = size;
 
-	//display_matrix(subA->mat);
-
-	/* find L and U so that LU = A */
-//	seq_ref_facto(&A, &LU);
-	copy_submatrix(subA, subLU);
+	/* first copy the initial matrix into matLU */
+	memcpy(matLU, matA, size*size*sizeof(float));
 	par_facto(subA, subLU);
-
-	/* solve LUX = Y */
-	solve_factorized_pb(&LU, &X, &Y);
-
-	/* compare A and the LU factorisation obtained  */
-	compare_A_LU(&A, &A_err, &LU);
-
-	/* check the results */
-	measure_error(&A, &X, &Y);
-
-	free(subA);
-	free(subLU);
-
-//	free_matrix(&A);
-//	free_matrix(&A_err);
-//	free_matrix(&X);
-//	free_matrix(&Y);
-//	free_matrix(&LU);
-
-	return 0;
 }
+//
+//int main(int argc, char ** argv)
+//{
+//	//unsigned i,j;
+//
+//	matrix A;
+//	matrix A_err;
+//	matrix X;
+//	matrix Y;
+//
+//	matrix LU;
+//
+//	submatrix *subA, *subLU;
+//
+//	subA = malloc(sizeof(submatrix));
+//	subLU = malloc(sizeof(submatrix));
+//
+//
+//	/* initialize all matrices */
+//	init(&A, &A_err, &X, &Y, &LU);
+//
+//	subA->mat = &A;
+//	subA->xa = 0;
+//	subA->ya = 0;
+//	subA->xb = A.width;
+//	subA->yb = A.heigth;
+//
+//	subLU->mat = &LU;
+//	subLU->xa = 0;
+//	subLU->ya = 0;
+//	subLU->xb = LU.width;
+//	subLU->yb = LU.heigth;
+//
+//	//display_matrix(subA->mat);
+//
+//	/* find L and U so that LU = A */
+////	seq_ref_facto(&A, &LU);
+//	copy_submatrix(subA, subLU);
+//	par_facto(subA, subLU);
+//
+//	/* solve LUX = Y */
+//	solve_factorized_pb(&LU, &X, &Y);
+//
+//	/* compare A and the LU factorisation obtained  */
+//	compare_A_LU(&A, &A_err, &LU);
+//
+//	/* check the results */
+//	measure_error(&A, &X, &Y);
+//
+//	free(subA);
+//	free(subLU);
+//
+////	free_matrix(&A);
+////	free_matrix(&A_err);
+////	free_matrix(&X);
+////	free_matrix(&Y);
+////	free_matrix(&LU);
+//
+//	return 0;
+//}
