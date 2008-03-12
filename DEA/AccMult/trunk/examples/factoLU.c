@@ -9,6 +9,9 @@
 #define SIZE	32
 #endif
 
+float *L;
+float *U;
+
 /*
  * Solve AX = Y 
  *
@@ -49,7 +52,7 @@ void copy_submatrix(submatrix *src, submatrix *dst)
 
 	unsigned width = src->xb - src->xa; 
 	ASSERT( src->xb - src->xa ==  dst->xb - dst->xa);
-	printf("submatrix width = %d \n", width);
+//	printf("submatrix width = %d \n", width);
 
 	srcdata = src->mat->data;
 	dstdata = dst->mat->data;
@@ -100,8 +103,7 @@ void seq_ref_facto(matrix *A, matrix *LU)
 }
 
 #define B(i,j)	(LU->mat->data[(offi + (i))+(offj+ (j))*LU->mat->width])
-
-void seq_facto(submatrix *A, submatrix *LU)
+void dummy_seq_facto(submatrix *A, submatrix *LU)
 {
 	unsigned k,i,j;
 	unsigned width, heigth;
@@ -118,9 +120,9 @@ void seq_facto(submatrix *A, submatrix *LU)
 	if (LU->mat != A->mat) {
 		copy_submatrix(A, LU);
 	}
-	else {
-		printf("warning : in place \n");
-	}
+//	else {
+//		printf("warning : in place \n");
+//	}
 	
    for (k = 0; k < width; k++) {
 
@@ -138,6 +140,49 @@ void seq_facto(submatrix *A, submatrix *LU)
 		}
 	}
 
+   }
+
+}
+
+void seq_facto(submatrix *A, submatrix *LU)
+{
+	unsigned k;
+	unsigned width, heigth;
+
+	unsigned offi, offj;
+
+	offi = LU->xa;
+	offj = LU->ya;
+
+	width = A->xb - A->xa;
+	heigth = A->yb - A->ya;
+
+	/* possibly in-place */
+	if (LU->mat != A->mat) {
+		copy_submatrix(A, LU);
+	}
+//	else {
+//		printf("warning : in place \n");
+//	}
+	
+   unsigned i,j;
+
+   for (k = 0; k < width; k++) {
+//	cblas_sscal (heigth - (k+1), 1/(B(k,k)), &B(k,k+1), LU->mat->width);
+	for (i = k+1; i < width ; i++)
+	{
+		assert(B(k,k) != 0.0);
+		B(i,k) = B(i,k) / B(k,k);
+	}
+	for (j = k+1; j < width; j++)
+	{
+		for (i = k+1; i < width ; i++) 
+		{
+			B(i,j) -= B(i,k)*B(k,j);
+		}
+	}
+//        cblas_sger(CblasRowMajor, width - (k+1), heigth - (k+1), -1.0f, &B(k,k+1),
+//                   LU->mat->width, &B(k+1,k), LU->mat->width, &B(k+1,k+1), LU->mat->width);
    }
 
 }
@@ -166,7 +211,7 @@ void solve_factorized_pb(matrix *LU, matrix *X, matrix *Y)
 			n, LU->data, n, X->data, 1);
 
 	/* solve UX = X' */
-	cblas_strsv(CblasRowMajor, CblasUpper, CblasNoTrans, CblasUnit,
+	cblas_strsv(CblasRowMajor, CblasUpper, CblasTrans, CblasUnit,
 			n, LU->data, n, X->data, 1);
 }
 
@@ -201,7 +246,6 @@ void measure_error(matrix *A, matrix *X, matrix *Y)
 	{
 		max_err = MAX(max_err, fabs(V[i]));
 	}
-//	printf("\n");
 
 	printf("max err on Y was %f \n", max_err);
 
@@ -227,7 +271,6 @@ void par_facto(submatrix *A, submatrix *LU)
 	ASSERT(width == LU->xb - LU->xa);
 	ASSERT(heigth == LU->yb - LU->ya);
 
-	printf("width %d GRAIN %d\n", width, GRAIN);
 	if (width <= GRAIN) {
 		/* the problem is small so do it sequentially */
 		seq_facto(A, LU);
@@ -245,6 +288,16 @@ void par_facto(submatrix *A, submatrix *LU)
 		submatrix *LU21 = malloc(sizeof(submatrix));
 		submatrix *LU22 = malloc(sizeof(submatrix));
 
+//		printf("LU22 %p\n", LU22);
+		/* in case the matrix size is not a multiple of the GRAIN size, we first perform a little more work */
+		unsigned actualgrain = GRAIN;// + width%GRAIN;
+
+		/*
+		 *	11  12
+		 *	21  22
+		 */
+
+
 		A11->mat = A->mat;
 		A12->mat = A->mat;
 		A21->mat = A->mat;
@@ -257,16 +310,16 @@ void par_facto(submatrix *A, submatrix *LU)
 
 		A11->xa = A->xa;
 		A11->ya = A->ya;
-		A11->xb = A11->xa + GRAIN;
-		A11->yb = A11->ya + GRAIN;
+		A11->xb = A11->xa + actualgrain;
+		A11->yb = A11->ya + actualgrain;
 
 		A12->xa = A11->xb;
 		A12->xb = A->xb;
 		A12->ya = A->ya;
-		A12->yb = A12->ya + GRAIN;
+		A12->yb = A12->ya + actualgrain;
 
 		A21->xa = A->xa;
-		A21->xb = A21->xa + GRAIN;
+		A21->xb = A21->xa + actualgrain;
 		A21->ya = A11->yb;
 		A21->yb = A->yb;
 
@@ -277,16 +330,16 @@ void par_facto(submatrix *A, submatrix *LU)
 
 		LU11->xa = LU->xa;
 		LU11->ya = LU->ya;
-		LU11->xb = A11->xa + GRAIN;
-		LU11->yb = A11->ya + GRAIN;
+		LU11->xb = A11->xa + actualgrain;
+		LU11->yb = A11->ya + actualgrain;
 
 		LU12->xa = LU11->xb;
 		LU12->xb = LU->xb;
 		LU12->ya = LU->ya;
-		LU12->yb = LU12->ya + GRAIN;
+		LU12->yb = LU12->ya + actualgrain;
 
 		LU21->xa = LU->xa;
-		LU21->xb = LU21->xa + GRAIN;
+		LU21->xb = LU21->xa + actualgrain;
 		LU21->ya = LU11->yb;
 		LU21->yb = LU->yb;
 
@@ -301,77 +354,111 @@ void par_facto(submatrix *A, submatrix *LU)
 
 		//printf("AFTER FACTORING LU11\n");
 		//display_submatrix(LU);
+//
+//		float *LU22datastart = &LU22->mat->data[LU22->xa + LU22->ya*LU22->mat->width];
+//		float *LU21datastart = &LU21->mat->data[LU21->xa + LU21->ya*LU21->mat->width];
+//		float *LU12datastart = &LU12->mat->data[LU12->xa + LU12->ya*LU12->mat->width];
+//		float *LU11datastart = &LU11->mat->data[LU11->xa + LU11->ya*LU11->mat->width];
 
-		float *LU22datastart = &LU22->mat->data[LU22->xa + LU22->ya*LU22->mat->width];
-		float *LU21datastart = &LU21->mat->data[LU21->xa + LU21->ya*LU21->mat->width];
-		float *LU12datastart = &LU12->mat->data[LU12->xa + LU12->ya*LU12->mat->width];
-		float *LU11datastart = &LU11->mat->data[LU11->xa + LU11->ya*LU11->mat->width];
 
-
-		if(!inplace)
+		if(!inplace) {
 			copy_submatrix(A12, LU12);
-
-		if(!inplace)
 			copy_submatrix(A21, LU21);
+		}
 
+//		ASSERT((LU22->xb - LU22->xa)%GRAIN == 0);
 
 		unsigned nblocks;
 		nblocks = (LU22->xb - LU22->xa + GRAIN - 1)/GRAIN;
 
 		unsigned ib, jb;
-		for (ib = 0; ib < nblocks; ib++) {
-			unsigned startx, starty;
-			unsigned endx, endy;
+//		for (ib = 0; ib < nblocks; ib++) {
+//			int startx, starty;
+//			int endx, endy;
+//
+//			startx = ib*GRAIN + LU22->xa;
+//			starty = ib*GRAIN + LU22->ya;
+//			endx = MIN(LU22->xb, startx + GRAIN);
+//			endy = MIN(LU22->yb, starty + GRAIN);
+//
+//			ASSERT(startx < endx);
+//			ASSERT(starty < endy);
+//
+//			float *LU11block = &LU11->mat->data[LU11->xa + LU11->ya*LU11->mat->width];
+//			float *LU21block = &LU21->mat->data[LU21->xa + (LU21->ya+ib*GRAIN)*LU21->mat->width];
+//
+//			float *LU12block = &LU12->mat->data[LU12->xa + ib*GRAIN + LU12->ya*LU12->mat->width];
+//			float *LU22block = &LU22->mat->data[LU22->xa + ib*GRAIN + (LU22->ya+ib*GRAIN)*LU11->mat->width];
+//
+//			/* solve L11 U12 = A12 (find U12) */
+//			cblas_strsm(CblasRowMajor, CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit,
+//					 endx - startx, endy - starty, 
+//					 1.0f, LU11block, LU11->mat->width, 
+//					       LU12block, LU12->mat->width);
+//      
+//      		/* solve L21 U11 = A21 <=> U11t L21t = A21t (find L21) */
+//			cblas_strsm(CblasRowMajor, CblasRight, CblasUpper, CblasNoTrans, CblasUnit,
+//					 endx - startx, endy - starty, 
+//					 1.0f, LU11block, LU11->mat->width,
+//					       LU21block, LU21->mat->width);
+//		}
 
-			startx = ib*GRAIN + LU22->xa;
-			starty = ib*GRAIN + LU22->ya;
-			endx = MIN(LU22->xb, startx + GRAIN);
-			endy = MIN(LU22->yb, starty + GRAIN);
+		float *LU11block = &LU11->mat->data[LU11->xa + LU11->ya*LU11->mat->width];
+
+		unsigned slice;
+		for (slice = LU12->xa ; slice < LU12->xb; slice++)
+		{
+			float *LU12block = &LU12->mat->data[slice + LU12->ya*LU12->mat->width];
 
 			/* solve L11 U12 = A12 (find U12) */
-			cblas_strsm(CblasRowMajor, CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit,
-					 endx - startx, endy - starty, 1.0f, LU11datastart, 
-				 	LU11->mat->width, LU12datastart + ib *GRAIN, LU12->mat->width);
-	
-			/* solve L21 U11 = A21 <=> U11t L21t = A21t (find L21) */
-			cblas_strsm(CblasRowMajor, CblasRight, CblasUpper, CblasNoTrans, CblasUnit,
-					 endx - startx,endy - starty, 1.0f, LU11datastart, 
-					LU11->mat->width, LU21datastart+ib*GRAIN*LU21->mat->width, LU21->mat->width);
-		
+			cblas_strsv(CblasRowMajor, CblasLower, CblasNoTrans, CblasNonUnit,
+					GRAIN, LU11block, LU11->mat->width, LU12block, LU12->mat->width); 
 		}
 
-//		if(!inplace)
-//			copy_submatrix(A22, LU22);
-//
-//		cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
-//				LU22->xb - LU22->xa, LU22->yb - LU22->ya, LU21->xb - LU21->xa, -1.0f, 
-//				LU21datastart, LU21->mat->width, LU12datastart, LU12->mat->width,
-//				1.0f, LU22datastart, LU22->mat->width);
+		for (slice = LU21->ya ; slice < LU21->yb; slice++)
+		{
+			float *LU21block = &LU21->mat->data[LU21->xa + (slice)*LU21->mat->width];
+
+			cblas_strsv(CblasRowMajor, CblasUpper, CblasTrans, CblasUnit,
+					GRAIN, LU11block, LU11->mat->width, LU21block, 1); 
+		}
+
 
 		for (jb = 0; jb < nblocks; jb++){
 			for (ib = 0; ib < nblocks; ib++) {
 				unsigned startx, starty;
 				unsigned endx, endy;
 
-				startx = ib*GRAIN + LU22->xa;
-				starty = jb*GRAIN + LU22->ya;
-				endx = MIN(LU22->xb, startx + GRAIN);
-				endy = MIN(LU22->yb, starty + GRAIN);
+				startx = ib*GRAIN;
+				starty = jb*GRAIN;
 
+				endx = MIN(LU22->xb-LU22->xa, startx + GRAIN);
+				endy = MIN(LU22->yb-LU22->ya, starty + GRAIN);
+
+				ASSERT(startx < endx);
+				ASSERT(starty < endy);
+				
+				float *left = &LU21->mat->data[LU21->xa+ (LU21->ya+starty)*LU21->mat->width];
+
+				float *right = &LU12->mat->data[LU12->xa+startx 
+						+ (LU12->ya)*LU12->mat->width];
+
+				float *center = &LU22->mat->data[LU22->xa+startx+(LU22->ya+starty)*LU22->mat->width];
+
+//				printf("sgemm %d %d %d %d ib = %d jb %d %d\n", startx, starty, endx, endy, ib, jb, nblocks);
 				cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
-					endx - startx, endy - starty, GRAIN, -1.0f, 
-					LU21datastart+jb*GRAIN*SIZE, LU21->mat->width,
-					LU12datastart+ib*GRAIN, LU12->mat->width,
-					1.0f, LU22datastart+ jb*GRAIN*SIZE +  ib *GRAIN, LU22->mat->width);
+					endy - starty, endx - startx, LU21->xb - LU21->xa,  
+					-1.0f, 	left, LU21->mat->width,
+						right, LU12->mat->width,
+					1.0f, center, LU22->mat->width);
+//				printf("sgemm PASSED\n");
 			}
 		}
+//		printf("POUET\n");
 
 		par_facto(LU22, LU22);
 	}
 }
-
-	float *L;
-	float *U;
 
 void compare_A_LU(matrix *A, matrix *A_err, matrix *LU)
 {
@@ -430,12 +517,12 @@ void compare_A_LU(matrix *A, matrix *A_err, matrix *LU)
 //		printf("\n");
 //	}
 //	printf(" ************************************ \n");
-
+//
 
 	/* now A_err = L, compute L*U */
 	cblas_strmm(CblasRowMajor, CblasRight, CblasUpper, CblasNoTrans, CblasUnit, SIZE, SIZE, 1.0f, U, SIZE, L, SIZE);
 
-//	/* now L should contain L*U */
+	/* now L should contain L*U */
 //	printf(" ************************************ \n");
 //	printf("LU - A ! \n");
 //	printf(" ************************************ \n");
@@ -463,7 +550,7 @@ void compare_A_LU(matrix *A, matrix *A_err, matrix *LU)
 //	printf(" ************************************ \n");
 //	display_matrix(A);
 //	printf(" ************************************ \n");
-//
+
 	float max_err = 0.0f;
 	for (i = 0; i < SIZE*SIZE ; i++)
 	{
@@ -519,35 +606,17 @@ int main(int argc, char ** argv)
 	/* compare A and the LU factorisation obtained  */
 	compare_A_LU(&A, &A_err, &LU);
 
-//	printf("A\n");
-//	for (j = 0; j < N; j++)
-//	{
-//		for (i = 0; i < N; i++) 
-//		{
-//			printf("%f ", A.data[i+N*j]);
-//		}
-//		printf("\n");
-//	}
-//	printf("\nLU\n");
-//	for (j = 0; j < N; j++)
-//	{
-//		for (i = 0; i < N; i++) 
-//		{
-//			printf("%f ", LU.data[i+N*j]);
-//		}
-//		printf("\n");
-//	}
-//
-//
-//
-//	printf("X\tY\n");
-//	for (i = 0; i < N; i++)
-//	{
-//		printf("%f\t%f\n", X.data[i], Y.data[i]);
-//	}
-
 	/* check the results */
 	measure_error(&A, &X, &Y);
+
+	free(subA);
+	free(subLU);
+
+//	free_matrix(&A);
+//	free_matrix(&A_err);
+//	free_matrix(&X);
+//	free_matrix(&Y);
+//	free_matrix(&LU);
 
 	return 0;
 }
