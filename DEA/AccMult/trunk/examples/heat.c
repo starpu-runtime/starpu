@@ -11,8 +11,8 @@
 
 #include "heat.h"
 
-#define NTHETA	36
-#define NTHICK	12
+#define NTHETA	360
+#define NTHICK	32
 
 #define MIN(a,b)	((a)<(b)?(a):(b))
 #define MAX(a,b)	((a)<(b)?(b):(a))

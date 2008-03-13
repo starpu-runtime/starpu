@@ -17,7 +17,7 @@
 
 #define ASSERT(x)	assert(x)
 
-#define ATOMIC_ADD(ptr, value)  (__sync_fetch_and_add ((ptr), (value)))
+#define ATOMIC_ADD(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
 
 void matrix_fill_rand(matrix *);
 void matrix_fill_zero(matrix *);

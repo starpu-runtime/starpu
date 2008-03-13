@@ -255,13 +255,9 @@ static void measure_error(matrix *A, matrix *X, matrix *Y)
 
 void callback_codelet_update_u22(void *argcb)
 {
-	printf("callback 22\n");
 	u22_args *args = argcb;	
 
-	/* XXX TODO : make it atomic !! */
-	args->subp->at_counter_lu22--;
-
-	if (args->subp->at_counter_lu22 == 0)
+	if (ATOMIC_ADD(&args->subp->at_counter_lu22, (-1)) == 0)
 	{
 		/* we now reduce the LU22 part (recursion appears there) */
 		submatrix *LU = args->subp->LU22;
@@ -403,14 +399,9 @@ void core_codelet_update_u12(void *_args)
 
 void callback_codelet_update_u12_21(void *argcb)
 {
-	printf("callback 12 ou 21\n");
-
 	u1221_args *args = argcb;	
 
-	/* XXX TODO : make it atomic !! */
-	args->subp->at_counter_lu12_21--;
-
-	if (args->subp->at_counter_lu12_21 == 0)
+	if (ATOMIC_ADD(&args->subp->at_counter_lu12_21, -1) == 0)
 	{
 		/* now launch the update of LU22 */
 		unsigned nslices;
@@ -487,12 +478,9 @@ void callback_codelet_update_u11(void *argcb)
 	/* in case there remains work, go on */
 	u11_args *args = argcb;
 
-	printf("callback_codelet_update_u11\n");
-
 	if (args->subp->LU11->xb == args->subp->LU->xb) 
 	{
 		/* we are done : wake the application up  */
-		printf("POST %p !\n", args->subp->sem);
 		sem_post(args->subp->sem);
 		return;
 	}
@@ -504,7 +492,6 @@ void callback_codelet_update_u11(void *argcb)
 		unsigned nslices = (args->subp->LU12->xb -
 			args->subp->LU12->xa + grainsize - 1 )/grainsize; 
 
-		printf("nslices = %d of grainsize %d \n", nslices, grainsize);
 		assert(args->subp->LU12->xb - args->subp->LU12->xa 
 			== args->subp->LU21->yb - args->subp->LU21->ya );
 
