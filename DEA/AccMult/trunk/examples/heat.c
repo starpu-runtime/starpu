@@ -1,18 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <math.h>
-#include <cblas.h>
-
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
-
 #include "heat.h"
 
-#define NTHETA	360
-#define NTHICK	32
+#define NTHETA	180
+#define NTHICK	36
 
 #define MIN(a,b)	((a)<(b)?(a):(b))
 #define MAX(a,b)	((a)<(b)?(b):(a))
@@ -737,6 +726,11 @@ int main(int argc, char **argv)
 {
 	argc_ = argc;
 	argv_ = argv;
+
+#ifdef USE_MARCEL
+	marcel_init(&argc, argv);
+#endif
+
 
 	unsigned theta, thick;
 

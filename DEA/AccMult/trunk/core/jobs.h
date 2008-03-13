@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
+#include <semaphore.h>
 #include <common/timing.h>
 #include <common/list.h>
 #include <common/threads.h>
