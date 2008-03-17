@@ -8,9 +8,9 @@
 
 #include "factoLU.h"
 
-#ifndef SIZE
-#define SIZE	32
-#endif
+//#ifndef SIZE
+//#define SIZE	32
+//#endif
 
 /*
  * Solve AX = Y 
@@ -19,28 +19,28 @@
  *   A and Y are known.
  */
 
-static void init(matrix *A, matrix *A_err, matrix *X, matrix *Y, matrix *LU)
-{
-	/* A */
-	alloc_matrix(A, SIZE, SIZE);
-	matrix_fill_rand(A);
-
-	/* A_err */
-	alloc_matrix(A_err, SIZE, SIZE);
-	matrix_fill_zero(A_err);
-
-	/* X */
-	alloc_matrix(X, 1, SIZE);
-	matrix_fill_zero(X);
-
-	/* Y */
-	alloc_matrix(Y, 1, SIZE);
-	matrix_fill_rand(Y);
-
-	/* LU */
-	alloc_matrix(LU, SIZE, SIZE);
-	matrix_fill_zero(LU);
-}
+//static void __attribute__ ((unused)) init(matrix *A, matrix *A_err, matrix *X, matrix *Y, matrix *LU)
+//{
+//	/* A */
+//	alloc_matrix(A, SIZE, SIZE);
+//	matrix_fill_rand(A);
+//
+//	/* A_err */
+//	alloc_matrix(A_err, SIZE, SIZE);
+//	matrix_fill_zero(A_err);
+//
+//	/* X */
+//	alloc_matrix(X, 1, SIZE);
+//	matrix_fill_zero(X);
+//
+//	/* Y */
+//	alloc_matrix(Y, 1, SIZE);
+//	matrix_fill_rand(Y);
+//
+//	/* LU */
+//	alloc_matrix(LU, SIZE, SIZE);
+//	matrix_fill_zero(LU);
+//}
 
 #define A(i,j)	(LU->data[(i)+n*(j)])
 
@@ -67,43 +67,44 @@ static void copy_submatrix(submatrix *src, submatrix *dst)
 	}
 }
 
-static void seq_ref_facto(matrix *A, matrix *LU)
-{
-	unsigned k, i, j;
-	unsigned n;
+//static void __attribute__ ((unused)) seq_ref_facto(matrix *A, matrix *LU)
+//{
+//	unsigned k, i, j;
+//	unsigned n;
+//
+//	n = A->width;
+//
+//	/* sanity checks */
+//	ASSERT(A->width == LU->width);
+//	ASSERT(A->heigth == LU->heigth);
+//
+//	/* first copy */
+//	memcpy(LU->data, A->data, A->width*A->heigth*sizeof(float));
+//
+//
+//   for (k = 0; k < n; k++) {
+//	for (i = k+1; i < n ; i++)
+//	{
+//		assert(A(k,k) != 0.0);
+//		A(i,k) = A(i,k) / A(k,k);
+//	}
+//
+//	for (j = k+1; j < n; j++)
+//	{
+//		for (i = k+1; i < n ; i++) 
+//		{
+//			A(i,j) -= A(i,k)*A(k,j);
+//		}
+//	}
+//
+//   }
+//
+//	return;	
+//}
 
-	n = A->width;
-
-	/* sanity checks */
-	ASSERT(A->width == LU->width);
-	ASSERT(A->heigth == LU->heigth);
-
-	/* first copy */
-	memcpy(LU->data, A->data, A->width*A->heigth*sizeof(float));
-
-
-   for (k = 0; k < n; k++) {
-	for (i = k+1; i < n ; i++)
-	{
-		assert(A(k,k) != 0.0);
-		A(i,k) = A(i,k) / A(k,k);
-	}
-
-	for (j = k+1; j < n; j++)
-	{
-		for (i = k+1; i < n ; i++) 
-		{
-			A(i,j) -= A(i,k)*A(k,j);
-		}
-	}
-
-   }
-
-	return;	
-}
 
 #define B(i,j)	(LU->mat->data[(offi + (i))+(offj+ (j))*LU->mat->width])
-static void dummy_seq_facto(submatrix *A, submatrix *LU)
+static void __attribute__ ((unused)) dummy_seq_facto(submatrix *A, submatrix *LU)
 {
 	unsigned k,i,j;
 	unsigned width, heigth;
@@ -191,7 +192,7 @@ static void seq_facto(submatrix *A, submatrix *LU)
  * input LU, Y
  * output X
  */
-static void solve_factorized_pb(matrix *LU, matrix *X, matrix *Y)
+static void __attribute__ ((unused)) solve_factorized_pb(matrix *LU, matrix *X, matrix *Y)
 {
 	/* solve LU X = Y */
 	unsigned n;
@@ -215,7 +216,7 @@ static void solve_factorized_pb(matrix *LU, matrix *X, matrix *Y)
 			n, LU->data, n, X->data, 1);
 }
 
-static void measure_error(matrix *A, matrix *X, matrix *Y)
+static void __attribute__ ((unused)) measure_error(matrix *A, matrix *X, matrix *Y)
 {
 	/* compute (AX - Y) */
 	unsigned n;
@@ -338,10 +339,11 @@ void callback_codelet_update_u22(void *argcb)
 	}
 }
 
+#ifdef USE_CUBLAS
 void cublas_codelet_update_u22(void *_args)
 {
 	u22_args *args = _args;
-	submatrix *LU11, *LU12, *LU21, *LU22;
+	submatrix *LU12, *LU21, *LU22;
 
 	unsigned startx, starty;
 	unsigned endx, endy;
@@ -359,9 +361,13 @@ void cublas_codelet_update_u22(void *_args)
 	ASSERT(startx < endx);
 	ASSERT(starty < endy);
 	
-	float *subLU12;
-	float *subLU21;
-	float *subLU22;
+	float *subLU12 = NULL;
+	float *subLU21 = NULL;
+	float *subLU22 = NULL;
+
+	float *hsubLU12;
+	float *hsubLU21;
+	float *hsubLU22;
 
 	unsigned sizeLU12, sizeLU21, sizeLU22;
 
@@ -369,48 +375,86 @@ void cublas_codelet_update_u22(void *_args)
 	sizeLU21 = (LU21->xb - LU21->xa)*(endy - starty);
 	sizeLU22 = (endx - startx)*(endy - starty);
 
-	int nrow22, nrow21, nrow12, ncol12, ncol22, ncol21;
+	int nrow22, ncol12, ncol22, ncol21, nrow12, nrow21;
 
 	ncol12 = (endx - startx);
+	nrow12 = (LU12->yb - LU12->ya);
 	ncol22 = (endx - startx);
 	nrow22 = (endy - starty);
+	nrow21 = (endy - starty);
 
 	ncol21 = (LU21->xb - LU21->xa);
 
-	cublasAlloc(sizeLU12, sizeof(float), (void **)&subLU12);
-	cublasAlloc(sizeLU21, sizeof(float), (void **)&subLU21);
-	cublasAlloc(sizeLU22, sizeof(float), (void **)&subLU22);
+//	printf("SIZES : 12 %d 21 %d 22 %d \n", sizeLU12, sizeLU21, sizeLU22);
+
+	cublasStatus ret; 
+	ret = cublasAlloc(sizeLU12, sizeof(float), (void **)&subLU12);
+	if (ret) {
+		printf("got errno =%d \n", ret);
+	}
+	ASSERT(subLU12);
+	ret = cublasAlloc(sizeLU21, sizeof(float), (void **)&subLU21);
+	if (ret) {
+		printf("got errno =%d \n", ret);
+	}
+	ASSERT(subLU21);
+	ret = cublasAlloc(sizeLU22, sizeof(float), (void **)&subLU22);
+	if (ret) {
+		printf("got errno =%d \n", ret);
+	}
+	ASSERT(subLU22);
+
+	hsubLU12 = &LU12->mat->data[LU12->xa+startx + LU12->ya*LU12->mat->width];
+	hsubLU21 = &LU21->mat->data[LU21->xa + (LU21->ya+starty)*LU21->mat->width];
+	hsubLU22 = &LU22->mat->data[LU22->xa+startx + (LU22->ya+starty)*LU22->mat->width];
 
 	/* LU12 */
-	cublasSetMatrix((endx - startx), (LU12->yb - LU12->ya), sizeof(float), 
-			&LU12->mat->data[LU12->xa + LU12->ya*LU12->mat->width], 
-			LU12->mat->width, subLU12, (endx - startx));
+	ret = cublasSetMatrix((endx - startx), (LU12->yb - LU12->ya), sizeof(float), 
+			hsubLU12, LU12->mat->width, subLU12, (endx - startx));
+	ASSERT(!ret);
 	/* LU21 */
-	cublasSetMatrix((LU21->xb - LU21->xa), (endy-starty), sizeof(float), 
-			&LU21->mat->data[LU21->xa + LU21->ya*LU21->mat->width], 
-			LU21->mat->width, subLU21, (LU21->xb - LU21->xa));
+	ret = cublasSetMatrix((LU21->xb - LU21->xa), (endy-starty), sizeof(float), 
+			hsubLU21, LU21->mat->width, subLU21, (LU21->xb - LU21->xa));
+	ASSERT(!ret);
 
 	/* LU22 */
-	cublasSetMatrix((endx - startx), (endy - starty), sizeof(float), 
-			&LU22->mat->data[LU22->xa + LU22->ya*LU22->mat->width], 
-			LU22->mat->width, subLU22, (endx - startx));
+	ret = cublasSetMatrix((endx - startx), (endy - starty), sizeof(float), 
+			hsubLU22, LU22->mat->width, subLU22, (endx - startx));
+	ASSERT(!ret);
 
 
 	/* perform the actual product */
-	cublasSgemm('n', 'n', nrow22, ncol22, ncol12, -1.0f, subLU21, ncol21, subLU12, ncol12, 1.0f, subLU22, nrow22);
+//	printf("Dx %d Dy %d, m %d n %d k %d ncol12(#10) %d ncol22 %d nrow21 %d\n", (endx - startx), (endy - starty), ncol22, nrow22, nrow12, ncol12, ncol22, nrow21);
+//	printf("ncol12 = %d args->xa = %d args->xb = %d\n", ncol12, args->xa, args->xb);
+//	printf("m %d n %d k %d alpha %f A %p lda %d B %p ldb %d beta %f C %p ldc %d\n", ncol22, nrow22, nrow12, -1.0f, subLU12, ncol12, subLU21, ncol21, 1.0f, subLU22, ncol22);
+	cublasSgemm('n', 'n', ncol22, nrow22, nrow12, -1.0f, subLU21, ncol21, subLU12, ncol12, 1.0f, subLU22, ncol22);
 
 	/* get the computed matrix back into host memory */
 	/* LU22 */
-	cublasGetMatrix((endx - startx), (endy - starty), sizeof(float), 
-			subLU22, (endx - startx),
-			&LU22->mat->data[LU22->xa + LU22->ya*LU22->mat->width], 
-			LU22->mat->width);
+//	printf("GetMatrix DEV %p HOST %p (%d,%d)\n", subLU22, hsubLU22, (endx - startx), (endy - starty));
+//	ret = cublasGetMatrix((endy - starty), (endx - startx), sizeof(float), 
+//			subLU22, (endx - startx),
+//			hsubLU22, LU22->mat->width);
+//	ASSERT(!ret);
 
 	/* do some cleanup */
-	cublasFree(subLU12);
-	cublasFree(subLU21);
-	cublasFree(subLU22);
+	ret = cublasFree(subLU12);
+	if (ret) {
+		printf("SubLU12 %p could not be freed ... %d\n", subLU12, ret);
+	}
+	//ASSERT(!ret);
+	ret = cublasFree(subLU21);
+	if (ret) {
+		printf("SubLU21 %p could not be freed ... %d\n", subLU21, ret);
+	}
+//	ASSERT(!ret);
+	ret = cublasFree(subLU22);
+	if (ret) {
+		printf("SubLU22 %p could not be freed ... %d\n", subLU22, ret);
+	}
+	//ASSERT(!ret);
 }
+#endif// USE_CUBLAS
 
 void core_codelet_update_u22(void *_args)
 {
@@ -481,6 +525,78 @@ void core_codelet_update_u12(void *_args)
 	}
 }
 
+#ifdef USE_CUBLAS
+void cublas_codelet_update_u12(void *_args)
+{
+	u1221_args *args = _args;
+
+	submatrix *LU11;
+	submatrix *LU12;
+	
+	LU11 = args->subp->LU11;
+	LU12 = args->subp->LU12;
+
+	float *LU11block, *LU12block;
+	float *dev_LU11block, *dev_LU12block;
+
+	unsigned sizeLU11block;
+	unsigned sizeLU12block;
+
+	sizeLU11block = (LU11->xb - LU11->xa)*(LU11->yb - LU11->ya);
+	sizeLU12block = (args->xb - args->xa)*(LU12->yb - LU12->ya);
+
+	LU11block = &LU11->mat->data[LU11->xa + LU11->ya*LU11->mat->width];
+	LU12block = &LU12->mat->data[args->xa + LU12->ya*LU12->mat->width];
+
+	/* copy the matrices onto the device */
+	cublasAlloc(sizeLU11block, sizeof(float), (void **)&dev_LU11block);
+	cublasAlloc(sizeLU12block, sizeof(float), (void **)&dev_LU12block);
+
+	/* LU11 */
+	cublasSetMatrix((LU11->xb - LU11->xa), (LU11->yb - LU11->ya), sizeof(float), 
+			LU11block, LU11->mat->width, 
+			dev_LU11block, (LU11->xb - LU11->xa));
+
+	/* LU12 chunk */
+	cublasSetMatrix((args->xb - args->xa), (LU12->yb - LU12->ya), sizeof(float), 
+			LU12block, LU12->mat->width, 
+			dev_LU12block, (args->xb - args->xa));
+
+	printf("pif ! \n");
+
+	/* perform the actual computation */
+	if (args->xb - args->xa == args->subp->grain) {
+		/* solve L11 U12 = A12 (find U12) */
+		//cblas_strsm(CblasRowMajor, CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit,
+		//		 args->xb - args->xa, LU12->yb - LU12->ya, 
+		//		 1.0f, LU11block, LU11->mat->width, 
+		cublasStrsm('R', 'U', 'N', 'N', (LU12->yb - LU12->ya), (args->xb - args->xa), 1.0f,  
+				dev_LU11block, (LU11->xb - LU11->xa),
+				dev_LU12block, (args->xb - args->xa));
+	}
+	else {
+      		unsigned slice;
+      		for (slice = 0 ; slice < args->xb - args->xa; slice++)
+      		{
+      			float *dev_LU12slice = &dev_LU12block[slice];
+      			/* solve L11 U12 = A12 (find U12) */
+      			cublasStrsv('U', 'N', 'N', (LU11->xb - LU11->xa), 
+      				dev_LU11block, (LU11->xb - LU11->xa),
+      				dev_LU12slice, (args->xb - args->xa));
+      		}
+	}
+
+	/* retrieve results back into host memory */
+	cublasGetMatrix((args->xb - args->xa), (LU12->yb - LU12->ya), sizeof(float), 
+			dev_LU12block, (args->xb - args->xa),
+			LU12block, LU12->mat->width);
+
+	/* perform some cleanup */
+	cublasFree(dev_LU11block);
+	cublasFree(dev_LU12block);
+}
+#endif // USE_CUBLAS
+
 void callback_codelet_update_u12_21(void *argcb)
 {
 	u1221_args *args = argcb;	
@@ -511,7 +627,9 @@ void callback_codelet_update_u12_21(void *argcb)
 				codelet *cl22 = malloc(sizeof(codelet));
 				cl22->cl_arg = u22a;
 				cl22->core_func = core_codelet_update_u22;
+#ifdef USE_CUBLAS
 				cl22->cublas_func = cublas_codelet_update_u22;
+#endif
 	
 				u22a->subp = args->subp;
 
@@ -524,7 +642,8 @@ void callback_codelet_update_u12_21(void *argcb)
 	
 				job_t j22 = job_new();
 				j22->type = CODELET;
-				j22->where = ANY;
+//				j22->where = (u22a->xb - u22a->xa == grainsize && u22a->yb - u22a->ya == grainsize)?ANY:CORE;
+				j22->where = CORE;
 				j22->cb = callback_codelet_update_u22;
 				j22->argcb = u22a;
 				j22->cl = cl22;
@@ -606,6 +725,9 @@ void callback_codelet_update_u11(void *argcb)
 			cl12 = malloc(sizeof(codelet));
 			cl12->cl_arg = u12a;
 			cl12->core_func = core_codelet_update_u12;
+#ifdef USE_CUBLAS
+			cl12->cublas_func = cublas_codelet_update_u12;
+#endif
 
 			u12a->subp = args->subp;
 			u12a->xa = args->subp->LU12->xa + slice * grainsize;
@@ -614,7 +736,7 @@ void callback_codelet_update_u11(void *argcb)
 
 			job_t j12 = job_new();
 			j12->type = CODELET;
-			j12->where = CORE;
+			j12->where = GPU;
 			j12->cb = callback_codelet_update_u12_21;
 			j12->argcb = u12a;
 			j12->cl = cl12;
@@ -965,7 +1087,7 @@ static void par_facto(submatrix *A, submatrix *LU)
 	}
 }
 
-static void compare_A_LU(matrix *A, matrix *A_err, matrix *LU)
+static void __attribute__ ((unused)) compare_A_LU(matrix *A, matrix *A_err, matrix *LU)
 {
 	int i,j;
 	float *L;

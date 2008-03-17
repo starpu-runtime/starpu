@@ -1,7 +1,3 @@
-CC=gcc
-NVCC = nvcc
-CFLAGS += -g -O3 -Wall #-fPIC
-
 # to use CUDA
 CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
 CUDAINSTALLDIR=/usr/local/cuda/
@@ -45,7 +41,11 @@ endif
 
 ifeq ($(CUBLAS), 1)
 	CFLAGS += -DUSE_CUBLAS
+ifdef CUBLASEMU
+	LDFLAGS += -lcublasemu
+else	
 	LDFLAGS += -lcublas
+endif
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	DEPENDENCIES += mult_cublas.o
 endif

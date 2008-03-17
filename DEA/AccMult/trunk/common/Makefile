@@ -26,7 +26,11 @@ endif
 
 ifeq ($(CUBLAS), 1)
 	CFLAGS += -DUSE_CUBLAS
+ifdef CUBLASEMU
+	LDFLAGS += -lcublasemu
+else
 	LDFLAGS += -lcublas
+endif
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 endif
 

@@ -1,7 +1,7 @@
 #include "heat.h"
 
-#define NTHETA	180
-#define NTHICK	36
+#define NTHETA	SIZE
+#define NTHICK	22
 
 #define MIN(a,b)	((a)<(b)?(a):(b))
 #define MAX(a,b)	((a)<(b)?(b):(a))
@@ -477,7 +477,7 @@ static void postscript_gen()
 }
 #endif
 
-static void dummy_lu_facto(int subsize)
+static void __attribute__ ((unused)) dummy_lu_facto(int subsize)
 {
 	int k, i, j;
 

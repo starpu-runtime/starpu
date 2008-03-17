@@ -1,6 +1,6 @@
 CC=gcc
 NVCC = nvcc
-CFLAGS += -g -O3 -Wall #-fPIC
+CFLAGS += -g -O0 -Wall #-fPIC
 #CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -Wmain  -fno-strict-aliasing
 
 # to use CUDA
@@ -65,7 +65,11 @@ endif
 
 ifeq ($(CUBLAS), 1)
 	CFLAGS += -DUSE_CUBLAS
+ifdef CUBLASEMU
+	LDFLAGS += -lcublasemu
+else
 	LDFLAGS += -lcublas
+endif
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	DEPENDENCIES += mult_cublas.o
 endif
@@ -89,11 +93,11 @@ else
 	NVCCFLAGS += -DGRAIN=$(DEFAULTGRAIN)
 endif
 
-NVCCFLAGS +=  -DUNIX -DO3
-NVCCFLAGS += -I$(CUTILDIR)/inc/
-
-LDFLAGS += -L$(CUDASDKDIR)/lib
-LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
+#NVCCFLAGS +=  -DUNIX -DO3
+#NVCCFLAGS += -I$(CUTILDIR)/inc/
+#
+#LDFLAGS += -L$(CUDASDKDIR)/lib
+#LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
 
 
 all:

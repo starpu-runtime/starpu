@@ -1,8 +1,3 @@
-CC=gcc
-NVCC = nvcc
-CFLAGS += -g -O3 -Wall #-fPIC
-#CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -Wmain  -fno-strict-aliasing
-
 # to use CUDA
 CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
 CUDAINSTALLDIR=/usr/local/cuda/
@@ -59,7 +54,11 @@ endif
 
 ifeq ($(CUBLAS), 1)
 	CFLAGS += -DUSE_CUBLAS
+ifdef CUBLASEMU
+	LDFLAGS += -lcublasemu
+else
 	LDFLAGS += -lcublas
+endif
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	DEPENDENCIES += mult_cublas.o
 	OBJDEPS += ../drivers/cublas/mult_cublas.o
@@ -105,7 +104,7 @@ LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
 
 
 
-all: multiplication multiplication2 heat
+all: heat
 
 multiplication2.o:
 	$(CC) $(CFLAGS) multiplication2.c -c -o multiplication2.o
