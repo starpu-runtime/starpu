@@ -183,6 +183,8 @@ void *cublas_worker(void *arg)
         sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
 #endif
 
+	set_local_memory_node_key(&(((cublas_worker_arg *)arg)->memory_node));
+
 	cublasInit();
 
 	printf("cublas thread is ready to run on CPU %d !\n", args->bindid);

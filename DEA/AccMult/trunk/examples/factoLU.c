@@ -411,22 +411,31 @@ void cublas_codelet_update_u22(void *_args)
 	/* LU12 */
 	ret = cublasSetMatrix((endx - startx), (LU12->yb - LU12->ya), sizeof(float), 
 			hsubLU12, LU12->mat->width, subLU12, (endx - startx));
+	if (ret) {
+		printf("got errno =%d \n", ret);
+	}
 	ASSERT(!ret);
 	/* LU21 */
 	ret = cublasSetMatrix((LU21->xb - LU21->xa), (endy-starty), sizeof(float), 
 			hsubLU21, LU21->mat->width, subLU21, (LU21->xb - LU21->xa));
+	if (ret) {
+		printf("got errno =%d \n", ret);
+	}
 	ASSERT(!ret);
 
 	/* LU22 */
 	ret = cublasSetMatrix((endx - startx), (endy - starty), sizeof(float), 
 			hsubLU22, LU22->mat->width, subLU22, (endx - startx));
+	if (ret) {
+		printf("got errno =%d \n", ret);
+	}
 	ASSERT(!ret);
 
 
 	/* perform the actual product */
 //	printf("Dx %d Dy %d, m %d n %d k %d ncol12(#10) %d ncol22 %d nrow21 %d\n", (endx - startx), (endy - starty), ncol22, nrow22, nrow12, ncol12, ncol22, nrow21);
 //	printf("ncol12 = %d args->xa = %d args->xb = %d\n", ncol12, args->xa, args->xb);
-//	printf("m %d n %d k %d alpha %f A %p lda %d B %p ldb %d beta %f C %p ldc %d\n", ncol22, nrow22, nrow12, -1.0f, subLU12, ncol12, subLU21, ncol21, 1.0f, subLU22, ncol22);
+	printf("m %d n %d k %d alpha %f A %p lda %d B %p ldb %d beta %f C %p ldc %d\n", ncol22, nrow22, nrow12, -1.0f, subLU12, ncol12, subLU21, ncol21, 1.0f, subLU22, ncol22);
 	cublasSgemm('n', 'n', ncol22, nrow22, nrow12, -1.0f, subLU21, ncol21, subLU12, ncol12, 1.0f, subLU22, ncol22);
 
 	/* get the computed matrix back into host memory */
@@ -526,6 +535,85 @@ void core_codelet_update_u12(void *_args)
 }
 
 #ifdef USE_CUBLAS
+void cublas_codelet_update_u21(void *_args)
+{
+	u1221_args *args = _args;
+
+	submatrix *LU11;
+	submatrix *LU21;
+	
+	LU11 = args->subp->LU11;
+	LU21 = args->subp->LU21;
+
+	float *LU11block, *LU21block;
+	float *dev_LU11block, *dev_LU21block;
+
+	unsigned sizeLU11block;
+	unsigned sizeLU21block;
+
+	sizeLU11block = (LU11->xb - LU11->xa)*(LU11->yb - LU11->ya);
+	sizeLU21block = (LU21->xb - LU21->xa)*(args->yb - args->ya);
+
+	LU11block = &LU11->mat->data[LU11->xa + LU11->ya*LU11->mat->width];
+	LU21block = &LU21->mat->data[LU21->xa + (args->ya)*LU21->mat->width];
+
+	/* copy the matrices onto the device */
+	cublasAlloc(sizeLU11block, sizeof(float), (void **)&dev_LU11block);
+	cublasAlloc(sizeLU21block, sizeof(float), (void **)&dev_LU21block);
+
+	/* LU11 */
+	cublasSetMatrix((LU11->xb - LU11->xa), (LU11->yb - LU11->ya), sizeof(float), 
+			LU11block, LU11->mat->width, 
+			dev_LU11block, (LU11->xb - LU11->xa));
+
+	/* LU21 chunk */
+	cublasSetMatrix((LU21->xb - LU21->xa), (args->yb - args->ya), sizeof(float), 
+			LU21block, LU21->mat->width, 
+			dev_LU21block, (LU21->xb - LU21->xa));
+
+	printf("pif ! \n");
+
+	/* perform the actual computation */
+	if (args->yb - args->ya == args->subp->grain) {
+		/* solve L11 U12 = A12 (find U12) */
+		//cblas_strsm(CblasRowMajor, CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit,
+		//		 args->xb - args->xa, LU12->yb - LU12->ya, 
+		//		 1.0f, LU11block, LU11->mat->width, 
+		//		       LU12block, LU12->mat->width);
+		//float *LU21block = &LU21->mat->data[LU21->xa + (args->ya)*LU21->mat->width];
+		//cblas_strsm(CblasRowMajor, CblasRight, CblasUpper, CblasNoTrans, CblasUnit,
+		//	 args->subp->grain, args->yb - args->ya, 
+		//	 1.0f, LU11block, LU11->mat->width,
+		  //     LU21block, LU21->mat->width);
+
+		cublasStrsm('L', 'L', 'N', 'U', (args->yb - args->ya), LU21->xb - LU21->xa, 1.0f,  
+				dev_LU11block, (LU11->xb - LU11->xa),
+				dev_LU21block, (LU21->xb - LU21->xa));
+	}
+	else 
+	{
+		assert(0);
+//		unsigned slice;
+//		for (slice = args->ya ; slice < args->yb; slice++)
+//		{
+//			float *LU21block = &LU21->mat->data[LU21->xa + (slice)*LU21->mat->width];
+//
+//			cblas_strsv(CblasRowMajor, CblasUpper, CblasTrans, CblasUnit,
+//					args->subp->grain, LU11block, LU11->mat->width, LU21block, 1); 
+//		}
+	}
+
+	/* retrieve results back into host memory */
+	cublasGetMatrix((LU21->xb - LU21->xa), (args->yb - args->ya), sizeof(float), 
+			dev_LU21block, (LU21->xb - LU21->xa),
+			LU21block, LU21->mat->width);
+
+	/* perform some cleanup */
+	cublasFree(dev_LU11block);
+	cublasFree(dev_LU21block);
+}
+
+
 void cublas_codelet_update_u12(void *_args)
 {
 	u1221_args *args = _args;
@@ -643,7 +731,7 @@ void callback_codelet_update_u12_21(void *argcb)
 				job_t j22 = job_new();
 				j22->type = CODELET;
 //				j22->where = (u22a->xb - u22a->xa == grainsize && u22a->yb - u22a->ya == grainsize)?ANY:CORE;
-				j22->where = CORE;
+				j22->where = ANY;
 				j22->cb = callback_codelet_update_u22;
 				j22->argcb = u22a;
 				j22->cl = cl22;
@@ -736,7 +824,7 @@ void callback_codelet_update_u11(void *argcb)
 
 			job_t j12 = job_new();
 			j12->type = CODELET;
-			j12->where = GPU;
+			j12->where = ANY;
 			j12->cb = callback_codelet_update_u12_21;
 			j12->argcb = u12a;
 			j12->cl = cl12;
@@ -752,6 +840,9 @@ void callback_codelet_update_u11(void *argcb)
 			codelet *cl21 = malloc(sizeof(codelet));
 			cl21->cl_arg = u21a;
 			cl21->core_func = core_codelet_update_u21;
+#ifdef USE_CUBLAS
+			cl21->cublas_func = cublas_codelet_update_u21;
+#endif
 
 			u21a->subp = args->subp;
 			u21a->ya = args->subp->LU21->ya + slice * grainsize;
@@ -760,7 +851,7 @@ void callback_codelet_update_u11(void *argcb)
 
 			job_t j21 = job_new();
 			j21->type = CODELET;
-			j21->where = CORE;
+			j21->where = ANY;
 			j21->cb = callback_codelet_update_u12_21;
 			j21->argcb = u21a;
 			j21->cl = cl21;

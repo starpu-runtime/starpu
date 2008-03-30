@@ -93,6 +93,11 @@ LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
 
 CFLAGS += -I../
 
+CFLAGS += -I../common/
+
+LDFLAGS += -L../datawizard/
+CFLAGS += -I../datawizard/
+OBJDEPS += ../datawizard/copy-driver.o ../datawizard/coherency.o
 
 all: jobs.o workers.o
 

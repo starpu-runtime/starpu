@@ -61,6 +61,7 @@ typedef struct cublas_worker_arg_t {
 	int deviceid;
 	int bindid;
 	volatile int ready_flag;
+	unsigned memory_node;
 	matrix *A;
 	matrix *B;
 	matrix *C;

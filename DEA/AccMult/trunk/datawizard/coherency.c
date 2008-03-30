@@ -94,20 +94,11 @@ void copy_data_to_node(data_state *state, uint32_t requesting_node)
 		}
 	}
 
-	if (!state->per_node[requesting_node].allocated) {
-		/* there is no room available for the data yet */
-		state->per_node[requesting_node].ptr = 
-			(uintptr_t) malloc(state->length);
-		state->per_node[requesting_node].automatically_allocated = 1;
-	}
-
 	/* we should have found at least one copy ! */
 	ASSERT(src_node_mask != 0);
 
 	driver_copy_data(state, src_node_mask, requesting_node);
 	return;
-
-
 }
 
 /*
@@ -133,7 +124,7 @@ uintptr_t fetch_data(data_state *state, uint32_t requesting_node,
 {
 	take_lock(&state->lock);
 
-	printf("FETCH from %d R,W = %d,%d\n", requesting_node, read, write);
+//	printf("FETCH from %d R,W = %d,%d\n", requesting_node, read, write);
 
 	cache_state local_state;
 	local_state = state->per_node[requesting_node].state;
@@ -172,7 +163,6 @@ uintptr_t fetch_data(data_state *state, uint32_t requesting_node,
 	ASSERT(state->per_node[requesting_node].state == INVALID);
 
 	/* we first need to copy the data from either the owner or one of the sharer */
-	/* TODO */
 	copy_data_to_node(state, requesting_node);
 
 	if (write) {
@@ -201,10 +191,45 @@ uintptr_t fetch_data(data_state *state, uint32_t requesting_node,
 	return state->per_node[requesting_node].ptr;
 }
 
+void write_through_data(data_state *state, uint32_t requesting_node, uint32_t write_through_mask)
+{
+	/* first commit all changes onto the nodes specified by the mask */
+	uint32_t node;
+	for (node = 0; node < MAXNODES; node++)
+	{
+		if (write_through_mask & (1<<node)) {
+			/* we need to commit the buffer on that node */
+			if (node != requesting_node) 
+			{
+//				printf("write_through_data %d -> %d \n", requesting_node, node);
+				/* the requesting node already has the data by definition */
+				driver_copy_data_1_to_1(state, requesting_node, node);
+			}
+				
+			/* now the data is shared among the nodes on the write_through_mask */
+			state->per_node[node].state = SHARED;
+		}
+	}
+
+	/* the requesting node is now one sharer */
+	if (write_through_mask & ~(1<<requesting_node))
+	{
+		state->per_node[requesting_node].state = SHARED;
+	}
+}
+
 /* in case the data was accessed on a write mode, do not forget to 
  * make it accessible again once it is possible ! */
-void release_data(data_state *state)
+void release_data(data_state *state, uint32_t requesting_node, uint32_t write_through_mask)
 {
+	/* normally, the requesting node should have the data in an exclusive manner */
+	ASSERT(state->per_node[requesting_node].state == OWNER);
+	
+	/* are we doing write-through or just some normal write-back ? */
+	if (write_through_mask & ~(1<<requesting_node))
+		write_through_data(state, requesting_node, write_through_mask);
+
+	/* this is intended to make data accessible again */
 	release_lock(&state->lock);
 }
 

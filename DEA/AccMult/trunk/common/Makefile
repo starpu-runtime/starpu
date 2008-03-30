@@ -3,7 +3,7 @@ NVCC = nvcc
 CFLAGS += -g -O3 -Wall #-fPIC
 #CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -Wmain  -fno-strict-aliasing
 
-CFLAGS += -I../
+CFLAGS += -I../ -I../core/
 
 ifeq ($(MARCEL), 1)
 	CC=$(shell pm2-config --cc)

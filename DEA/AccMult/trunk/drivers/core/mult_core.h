@@ -16,6 +16,7 @@ typedef struct core_worker_arg_t {
         int coreid;
         volatile int ready_flag;
 	int bindid;
+	unsigned memory_node;
 } core_worker_arg;
 
 void *core_worker(void *);

@@ -7,7 +7,8 @@ typedef enum {
 	UNUSED,
 	SPU_LS,
 	RAM,
-	GPU_RAM
+	CUBLAS_RAM,
+	CUDA_RAM
 } node_kind;
 
 typedef struct {
@@ -17,7 +18,9 @@ typedef struct {
 
 void driver_copy_data(data_state *state, uint32_t src_node_mask, uint32_t dst_node);
 
-void init_drivers(void);
-void register_memory_node(node_kind kind);
+void init_memory_nodes(void);
+void set_local_memory_node_key(unsigned *node);
+unsigned get_local_memory_node(void);
+unsigned register_memory_node(node_kind kind);
 
 #endif // __COPY_DRIVER_H__

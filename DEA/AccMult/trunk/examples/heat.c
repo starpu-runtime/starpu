@@ -70,6 +70,7 @@ char **argv_;
 	 */
 
 
+#ifdef OPENGL_RENDER
 /*
  * Just some dummy OpenGL code to display our results 
  *
@@ -202,7 +203,6 @@ static void reshape (int w, int h)
 }
 
 
-
 static void opengl_render(void)
 {
 	unsigned i;
@@ -238,7 +238,7 @@ static void opengl_render(void)
 	glutReshapeFunc(reshape);
 	glutMainLoop();
 }
-
+#endif // OPENGL_RENDER
 /*
  *
  * The Finite element method code 
@@ -884,7 +884,9 @@ int main(int argc, char **argv)
 	subU = malloc(newsize*newsize*sizeof(float));
 	solve_system(newsize);
 
+#ifdef OPENGL_RENDER
 	opengl_render();
+#endif
 
 	return 0;
 }

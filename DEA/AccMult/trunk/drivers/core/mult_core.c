@@ -141,6 +141,8 @@ void *core_worker(void *arg)
 
         printf("core worker %d is ready on logical core %d\n", core, ((core_worker_arg *)arg)->bindid);
 
+	set_local_memory_node_key(&(((core_worker_arg *)arg)->memory_node));
+
         /* tell the main thread that we are ready */
         ((core_worker_arg *)arg)->ready_flag = 1;
 

@@ -37,6 +37,10 @@ void init_machine(void)
 #ifdef USE_CUDA
 	init_cuda();
 #endif
+
+	/* for the data wizard */
+	init_memory_nodes();
+
 	timing_init();
 }
 
@@ -47,6 +51,15 @@ void init_workers(void)
 
 	/* launch one thread per CPU */
 #ifdef USE_CPUS
+	unsigned memory_node;
+	if (ncores != 0)
+	{
+		/* right now, all processor are using the same memory nodes 
+		 * TODO : support NUMA ;)
+		 * */
+		memory_node = register_memory_node(RAM) - 1;
+	}
+
 	unsigned core;
 	for (core = 0; core < ncores; core++)
 	{
@@ -57,6 +70,8 @@ void init_workers(void)
 		
 		coreargs[core].coreid = core;
 		coreargs[core].ready_flag = 0;
+
+		coreargs[core].memory_node = memory_node;
 
 		thread_create(&corethreads[core], NULL, core_worker, &coreargs[core]);
 		/* wait until the thread is actually launched ... */
@@ -74,6 +89,9 @@ void init_workers(void)
 
 		cudaargs[cudadev].bindid = 
 			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
+
+		cudaargs[cudadev].memory_node = 
+			register_memory_node(CUDA_RAM) - 1;
 
 		cudacounters[cudadev] = 0;
 
@@ -95,6 +113,9 @@ void init_workers(void)
 
 		cublasargs[cublasdev].bindid = 
 			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
+
+		cublasargs[cublasdev].memory_node =
+			register_memory_node(CUBLAS_RAM) - 1;
 
 		cublascounters[cublasdev] = 0;
 

@@ -402,6 +402,8 @@ void *cuda_worker(void *arg)
         sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
 #endif
 
+	set_local_memory_node_key(&(((cuda_worker_arg *)arg)->memory_node));
+
 	init_context(devid);
 
 	//precondition_cuda(args->A, args->B, args->C);

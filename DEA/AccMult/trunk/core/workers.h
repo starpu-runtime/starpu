@@ -33,6 +33,9 @@
 //#define COMPARE_SEQ   1
 #endif
 
+#include <datawizard/coherency.h>
+#include <datawizard/copy-driver.h>
+
 void init_machine(void);
 void init_workers(void);
 void terminate_workers(void);
