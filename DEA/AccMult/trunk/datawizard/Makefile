@@ -2,11 +2,19 @@ CFLAGS+= -g -Wall
 
 CFLAGS+= -I../
 
-all: coherency.o copy-driver.o test
+ifeq ($(CUBLAS), 1)
+	CFLAGS+= -I$(CUDAINSTALLDIR)/include
+	CFLAGS+= -DUSE_CUBLAS
+endif
+
+
+all: coherency.o copy-driver.o 
 
 coherency.o: coherency.c coherency.h
+	$(CC) coherency.c $(CFLAGS) -c -o coherency.o
 
 copy-driver.o: copy-driver.c
+	$(CC) copy-driver.c $(CFLAGS) -c -o copy-driver.o
 
 test.o: test.c
 

@@ -57,7 +57,7 @@ void init_workers(void)
 		/* right now, all processor are using the same memory nodes 
 		 * TODO : support NUMA ;)
 		 * */
-		memory_node = register_memory_node(RAM) - 1;
+		memory_node = register_memory_node(RAM);
 	}
 
 	unsigned core;
@@ -91,7 +91,7 @@ void init_workers(void)
 			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
 
 		cudaargs[cudadev].memory_node = 
-			register_memory_node(CUDA_RAM) - 1;
+			register_memory_node(CUDA_RAM);
 
 		cudacounters[cudadev] = 0;
 
@@ -115,7 +115,7 @@ void init_workers(void)
 			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
 
 		cublasargs[cublasdev].memory_node =
-			register_memory_node(CUBLAS_RAM) - 1;
+			register_memory_node(CUBLAS_RAM);
 
 		cublascounters[cublasdev] = 0;
 

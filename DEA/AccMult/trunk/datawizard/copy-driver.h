@@ -3,6 +3,10 @@
 
 #include "coherency.h"
 
+#ifdef USE_CUBLAS
+#include <cublas.h>
+#endif
+
 typedef enum {
 	UNUSED,
 	SPU_LS,

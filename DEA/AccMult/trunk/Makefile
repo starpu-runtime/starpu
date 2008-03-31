@@ -1,11 +1,11 @@
-CC=gcc
-NVCC = nvcc
-CFLAGS += -g -O0 -Wall #-fPIC
+export CC=gcc
+export NVCC = nvcc
+export CFLAGS += -g -O0 -Wall #-fPIC
 #CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -Wmain  -fno-strict-aliasing
 
 # to use CUDA
-CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
-CUDAINSTALLDIR=/usr/local/cuda/
+export CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
+export CUDAINSTALLDIR=/usr/local/cuda/
 
 # for compile time tuning 
 DEFAULTSIZE=2048
@@ -19,8 +19,8 @@ else
 	CFLAGS += -DNSAMPLE=$(DEFAULTNSAMPLE)
 endif
 
-ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
-BLASARCH=Linux_UNKNOWNSSE2
+export ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
+export BLASARCH=Linux_UNKNOWNSSE2
 
 CFLAGS+= -I$(ATLASDIR)/include/
 LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
