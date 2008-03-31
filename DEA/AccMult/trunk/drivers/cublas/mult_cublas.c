@@ -2,12 +2,15 @@
 
 #include "mult_cublas.h"
 
+#if 0
 static cublasStatus status;
+#endif
 
 extern int cublascounters[MAXCUBLASDEVS];
 
 int ncublasgpus = 1;
 
+#if 0
 void clean_cublas_problem(job_descr *jd)
 {
 	/* simply free the device memory */
@@ -127,14 +130,18 @@ static void cublas_mult(job_t j)
 		printf("getmatrix failed \n");
 	}
 }
+#endif // 0
 
 static int execute_job_on_cublas(job_t j)
 {
+#if 0
 	int res;
+#endif
 	job_descr *jd;
 	jd = j->argcb;
 
-	switch (j->type) {
+	switch (j->type){
+#if 0
 		case MUL:
 			printf("cublas mult task %d\n", jd->debug);
 			cublas_mult(j);
@@ -152,6 +159,7 @@ static int execute_job_on_cublas(job_t j)
 #endif
 			clean_cublas_problem(j->argcb);
 			break;
+#endif // 0
 		case CODELET:
 			assert(j->cl);
 			assert(j->cl->cublas_func);
@@ -224,6 +232,7 @@ void *cublas_worker(void *arg)
 		
 		cublascounters[devid]++;		
 
+		job_delete(j);
 	} while(1);
 
 	return NULL;

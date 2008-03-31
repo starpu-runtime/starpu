@@ -15,6 +15,8 @@
 // don't forget that one or you will regret it !
 #include <cublas.h>
 
+#include <datawizard/copy-driver.h>
+
 #define MAXCUBLASDEVS	4
 
 #define START_POS(_mat)         \

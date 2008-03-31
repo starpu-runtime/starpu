@@ -12,6 +12,8 @@
 #include <core/jobs.h>
 #include <cblas.h>
 
+#include <datawizard/copy-driver.h>
+
 typedef struct core_worker_arg_t {
         int coreid;
         volatile int ready_flag;

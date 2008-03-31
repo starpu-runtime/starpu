@@ -53,12 +53,12 @@ static uintptr_t allocate_memory_on_node(data_state *state, uint32_t dst_node)
 	switch(descr.nodes[dst_node]) {
 		case RAM:
 			addr = (uintptr_t) malloc(state->length);
-			printf("RAM addr allocated : %p \n", addr);
+			//printf("RAM addr allocated : %p \n", addr);
 			break;
 #ifdef USE_CUBLAS
 		case CUBLAS_RAM:
 			cublasAlloc(state->length, 1, (void **)&addr); 
-			printf("CUBLAS addr allocated : %p \n", addr);
+			//printf("CUBLAS addr allocated : %p \n", addr);
 			break;
 #endif
 		default:
@@ -101,6 +101,7 @@ void driver_copy_data_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_
 					/* CUDA_RAM -> RAM */
 					ASSERT(0); // TODO 
 					break;
+#ifdef USE_CUBLAS
 				case CUBLAS_RAM:
 					/* CUBLAS_RAM -> RAM */
 					/* only the proper CUBLAS thread can initiate this ! */
@@ -109,10 +110,11 @@ void driver_copy_data_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_
 					//cublasGetMatrix(state->length, 1, 1, 
 					//	state->per_node[src_node].ptr, state->length,
 					//	state->per_node[dst_node].ptr, state->length);
-					cublasGetVector(state->length, 1, state->per_node[src_node].ptr, 1,
-									state->per_node[dst_node].ptr, 1); 
+					cublasGetVector(state->length, 1, (uint8_t *)state->per_node[src_node].ptr, 1,
+									  (uint8_t *)state->per_node[dst_node].ptr, 1); 
 					//printf("debug CUBLAS GET = CUBLAS %d -> RAM %d\n", *(int*)state->per_node[src_node].ptr, *(int*)state->per_node[dst_node].ptr);
 					break;
+#endif // USE_CUBLAS
 				case SPU_LS:
 					ASSERT(0); // TODO 
 					break;
@@ -140,6 +142,7 @@ void driver_copy_data_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_
 					break;
 			}
 			break;
+#ifdef USE_CUBLAS
 		case CUBLAS_RAM:
 			switch(descr.nodes[src_node]) {
 				case RAM:
@@ -170,6 +173,7 @@ void driver_copy_data_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_
 					break;
 			}
 			break;
+#endif // USE_CUBLAS
 		case SPU_LS:
 			ASSERT(0); // TODO 
 			switch(descr.nodes[src_node]) {

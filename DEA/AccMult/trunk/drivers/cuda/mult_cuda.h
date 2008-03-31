@@ -27,9 +27,11 @@ typedef struct cuda_worker_arg_t {
 	int bindid;
 	volatile int ready_flag;
 	unsigned memory_node;
+#if 0
 	matrix *A;
 	matrix *B;
 	matrix *C;
+#endif
 } cuda_worker_arg;
 
 void init_cuda(void);

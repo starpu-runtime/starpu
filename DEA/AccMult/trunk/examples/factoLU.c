@@ -265,7 +265,7 @@ void callback_codelet_update_u22(void *argcb)
 
 
 		unsigned width = LU->xb - LU->xa;
-		unsigned heigth = LU->yb - LU->ya;
+		//unsigned heigth = LU->yb - LU->ya;
 
 		unsigned actualgrain = MIN(args->subp->grain, width);
 

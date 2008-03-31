@@ -444,6 +444,8 @@ void *cuda_worker(void *arg)
 		
 		cudacounters[devid]++;		
 
+		job_delete(j);
+
 	} while(1);
 
 	return NULL;

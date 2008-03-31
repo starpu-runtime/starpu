@@ -166,6 +166,8 @@ void *core_worker(void *arg)
                         j->cb(j->argcb);
 
                 corecounters[core]++;
+
+		job_delete(j);
         } while(1);
 
         return NULL;
