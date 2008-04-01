@@ -113,18 +113,18 @@ endif
 
 
 all:
-	make -C common
-	make -C core
-	make -C drivers
-	make -C datawizard
-	make -C examples
+	@make -C common
+	@make -C core
+	@make -C drivers
+	@make -C datawizard
+	@make -C examples
 
 clean:
-	make -C common clean
-	make -C core clean
-	make -C drivers clean
-	make -C datawizard clean
-	make -C examples clean
+	@make -C common clean
+	@make -C core clean
+	@make -C drivers clean
+	@make -C datawizard clean
+	@make -C examples clean
 
 
 help:

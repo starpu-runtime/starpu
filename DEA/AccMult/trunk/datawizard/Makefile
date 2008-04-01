@@ -22,4 +22,4 @@ test: test.o coherency.o copy-driver.o
 	$(CC) test.o coherency.o copy-driver.o -lpthread -o test
 
 clean:
-	rm -f *.o test
+	@rm -f *.o test

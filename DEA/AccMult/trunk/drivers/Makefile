@@ -33,7 +33,7 @@ spu:
 	make -C spu
 
 clean:
-	make -C core clean
-	make -C cuda clean
-	make -C cublas clean
-	make -C spu clean
+	@make -C core clean
+	@make -C cuda clean
+	@make -C cublas clean
+	@make -C spu clean

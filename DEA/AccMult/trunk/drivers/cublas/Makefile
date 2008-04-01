@@ -62,4 +62,4 @@ mult_cublas.o: mult_cublas.c mult_cublas.h
 	$(CC) $(CFLAGS) mult_cublas.c -c -o mult_cublas.o
 
 clean:
-	rm -f *.o *.cu_o *.cubin
+	@rm -f *.o *.cu_o *.cubin

@@ -43,4 +43,5 @@ util.o: util.c util.h
 	$(CC) $(CFLAGS) util.c -c -o util.o
 
 clean:
-	rm -f *.o 
+	@rm -f *.o 
+

@@ -40,4 +40,4 @@ comp_cuda.cubin: comp_cuda.cu comp_cuda.h
 	$(NVCC) -cubin comp_cuda.cu -o comp_cuda.cubin -m32 --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) 
 
 clean:
-	rm -f *.o *.cu_o *.cubin
+	@rm -f *.o *.cu_o *.cubin

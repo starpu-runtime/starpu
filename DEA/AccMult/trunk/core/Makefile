@@ -107,4 +107,4 @@ workers.o: workers.c
 	$(CC) $(CFLAGS) workers.c -c -o workers.o
 
 clean:
-	rm -f *.o
+	@rm -f *.o

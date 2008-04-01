@@ -31,4 +31,4 @@ mult_core.o: mult_core.c  mult_core.h
 	$(CC) $(CFLAGS) mult_core.c -c -o mult_core.o
 
 clean:
-	rm -f *.o 
+	@rm -f *.o 

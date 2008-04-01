@@ -162,7 +162,6 @@ void init_workers(void)
 			(void*)&spuargs[spu]);
 
 		/* wait until the thread is actually launched ... */
-#warning todo 
 		while (spuargs[spu].ready_flag == 0) {}
 	}
 #endif

@@ -151,4 +151,4 @@ heat: factoLU.o heat.o
 	$(CC) -lglut -lGL -lGLU factoLU.o heat.o -o heat $(OBJDEPS) $(LDFLAGS)
 
 clean:
-	rm -f multiplication multiplication2 factoLU heat gpuirq incrementer *.o
+	@rm -f multiplication multiplication2 factoLU heat gpuirq incrementer *.o

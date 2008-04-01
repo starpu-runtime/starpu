@@ -6,4 +6,4 @@ mult_spu_ppu.o: mult_spu.h
 	$(CC) $(CFLAGS) mult_spu_ppu.c -c -o mult_spu_ppu.o
 
 clean:
-	rm -f *.o
+	@rm -f *.o

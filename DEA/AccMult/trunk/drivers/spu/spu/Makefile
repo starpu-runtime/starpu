@@ -12,4 +12,4 @@ spu_worker_program.o: mult_spu_spu.o
 	$(SPU_EMBED) spu_worker_program $< $@
 
 clean:
-	rm -f *.o
+	@rm -f *.o

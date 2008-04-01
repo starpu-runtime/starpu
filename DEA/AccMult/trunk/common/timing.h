@@ -40,7 +40,8 @@ static unsigned long long residual = 0;
 #  define GET_TICK(t) __asm__ volatile("rdtsc" : "=a" ((t).sub.low), "=d" ((t).sub.high))
 #else
 //#  error "Processeur non-supporté par timing.h"
-#warning "unsupported processor GET_TICK returns 0"
+/* XXX */
+//#warning "unsupported processor GET_TICK returns 0"
 #  define GET_TICK(t) do {} while(0);
 #endif
 
