@@ -67,6 +67,11 @@ endif
 	OBJDEPS += ../drivers/cublas/mult_cublas.o
 endif
 
+ifdef SPU
+	OBJDEPS += ../drivers/spu/ppu/mult_spu_ppu.o
+	OBJDEPS += ../drivers/spu/spu/spu_worker_program.o
+endif
+
 ifdef ATLAS
 	CFLAGS += -DUSE_CPU_BLAS
 endif
@@ -90,8 +95,8 @@ endif
 NVCCFLAGS +=  -DUNIX -DO3
 NVCCFLAGS += -I$(CUTILDIR)/inc/
 
-LDFLAGS += -L$(CUDASDKDIR)/lib
-LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
+#LDFLAGS += -L$(CUDASDKDIR)/lib
+#LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
 
 LDFLAGS += -L../core/ -L../common/
 CFLAGS += -I../
@@ -105,13 +110,7 @@ OBJDEPS += ../datawizard/copy-driver.o ../datawizard/coherency.o
 ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
 BLASARCH=Linux_UNKNOWNSSE2
 
-CFLAGS+= -I$(ATLASDIR)/include/
-LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
-LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
-
-
-
-all: heat incrementer
+all: incrementer
 
 incrementer.o: incrementer.c
 	$(CC) $(CFLAGS) incrementer.c -c -o incrementer.o

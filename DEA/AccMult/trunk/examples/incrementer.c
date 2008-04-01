@@ -11,7 +11,7 @@
 
 #include <datawizard/coherency.h>
 
-#define NITER	1000
+#define NITER	100000
 
 data_state my_float_state;
 data_state unity_state;

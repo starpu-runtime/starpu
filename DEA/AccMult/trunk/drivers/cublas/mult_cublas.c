@@ -8,7 +8,11 @@ static cublasStatus status;
 
 extern int cublascounters[MAXCUBLASDEVS];
 
-int ncublasgpus = 1;
+unsigned get_cublas_device_count(void)
+{
+	/* XXX */
+	return 1;
+}
 
 #if 0
 void clean_cublas_problem(job_descr *jd)

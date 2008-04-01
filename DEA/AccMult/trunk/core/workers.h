@@ -20,9 +20,8 @@
 #include <drivers/cublas/mult_cublas.h>
 #endif
 
-#ifdef USE_CELL
-#error not supported yet
-#include <drivers/cell/mult_cell.h>
+#ifdef USE_SPU
+#include <drivers/spu/ppu/mult_spu.h>
 #endif
 
 //#ifdef USE_CPUS

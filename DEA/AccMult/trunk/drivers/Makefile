@@ -1,4 +1,4 @@
-.PHONY: core cuda cublas
+.PHONY: core cuda cublas spu
 
 DRIVERS=
 
@@ -14,6 +14,10 @@ ifeq ($(CUBLAS), 1)
 	DRIVERS += cublas
 endif
 
+ifdef SPU
+	DRIVERS += spu
+endif
+
 all: $(DRIVERS)
 
 core:
@@ -25,7 +29,11 @@ cuda:
 cublas:
 	make -C cublas
 
+spu:
+	make -C spu
+
 clean:
 	make -C core clean
 	make -C cuda clean
 	make -C cublas clean
+	make -C spu clean

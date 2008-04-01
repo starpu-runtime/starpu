@@ -1,3 +1,5 @@
+export 
+
 export CC=gcc
 export NVCC = nvcc
 export CFLAGS += -g -O0 -Wall #-fPIC
@@ -22,9 +24,10 @@ endif
 export ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
 export BLASARCH=Linux_UNKNOWNSSE2
 
-CFLAGS+= -I$(ATLASDIR)/include/
-LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
-LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
+
+#CFLAGS+= -I$(ATLASDIR)/include/
+#LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
+#LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
 
 LDFLAGS+= -lm
 
@@ -84,6 +87,15 @@ ifdef CPUS
 	CFLAGS += -DNMAXCORES=$(CPUS)
 	NVCCFLAGS += -DUSE_CPUS
 endif
+
+ifdef SPU
+	CFLAGS += -DUSE_SPU #-DDEBUG
+	CFLAGS += -DMAXSPUS=$(SPU)
+	LDFLAGS += -lspe2
+endif
+
+
+
 
 ifdef GRAIN
 	CFLAGS += -DGRAIN=$(GRAIN)

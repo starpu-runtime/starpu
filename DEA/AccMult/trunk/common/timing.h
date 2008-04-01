@@ -39,7 +39,9 @@ static unsigned long long residual = 0;
 #if defined(__i386__) || defined(__pentium__) || defined(__pentiumpro__) || defined(__i586__) || defined(__i686__) || defined(__k6__) || defined(__k7__) || defined(__x86_64__)
 #  define GET_TICK(t) __asm__ volatile("rdtsc" : "=a" ((t).sub.low), "=d" ((t).sub.high))
 #else
-#  error "Processeur non-supporté par timing.h"
+//#  error "Processeur non-supporté par timing.h"
+#warning "unsupported processor GET_TICK returns 0"
+#  define GET_TICK(t) do {} while(0);
 #endif
 
 #define TICK_RAW_DIFF(t1, t2) ((t2).tick - (t1).tick)

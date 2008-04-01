@@ -69,7 +69,6 @@ ifdef ATLAS
 	CFLAGS += -DUSE_CPU_BLAS
 endif
 
-
 ifdef CPUS
 	CFLAGS += -DUSE_CPUS #-DDEBUG
 	CFLAGS += -DNMAXCORES=$(CPUS)

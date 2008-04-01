@@ -21,7 +21,14 @@ extern int ncudagpus;
 thread_t cublasthreads[MAXCUBLASDEVS];
 int cublascounters[MAXCUBLASDEVS];
 cublas_worker_arg cublasargs[MAXCUBLASDEVS];
-extern int ncublasgpus;
+unsigned ncublasgpus;
+#endif
+
+#ifdef USE_SPU
+thread_t sputhreads[MAXSPUS];
+int spucounters[MAXSPUS];
+unsigned nspus;
+spu_worker_arg spuargs[MAXSPUS];
 #endif
 
 static int current_bindid = 0;
@@ -36,6 +43,14 @@ void init_machine(void)
 
 #ifdef USE_CUDA
 	init_cuda();
+#endif
+
+#ifdef USE_CUBLAS
+	ncublasgpus = MIN(get_cublas_device_count(), MAXCUBLASDEVS);
+#endif
+
+#ifdef USE_SPU
+	nspus = MIN(get_spu_count(), MAXSPUS);
 #endif
 
 	/* for the data wizard */
@@ -105,7 +120,7 @@ void init_workers(void)
 
 #ifdef USE_CUBLAS
 	/* initialize CUBLAS with the proper number of threads */
-	int cublasdev;
+	unsigned cublasdev;
 	for (cublasdev = 0; cublasdev < ncublasgpus; cublasdev++)
 	{
 		cublasargs[cublasdev].deviceid = cublasdev;
@@ -124,6 +139,31 @@ void init_workers(void)
 
 		/* wait until the thread is actually launched ... */
 		while (cublasargs[cublasdev].ready_flag == 0) {}
+	}
+#endif
+
+#ifdef USE_SPU
+	/* initialize the various SPUs  */
+	unsigned spu;
+	for (spu = 0; spu < nspus; spu++)
+	{
+		spuargs[spu].deviceid = spu;
+		spuargs[spu].ready_flag = 0;
+
+		spuargs[spu].bindid = 
+			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
+
+		spuargs[spu].memory_node =
+			register_memory_node(SPU_LS);
+
+		spucounters[spu] = 0;
+
+		thread_create(&sputhreads[spu], NULL, spu_worker,
+			(void*)&spuargs[spu]);
+
+		/* wait until the thread is actually launched ... */
+#warning todo 
+		while (spuargs[spu].ready_flag == 0) {}
 	}
 #endif
 }
@@ -159,6 +199,17 @@ void terminate_workers(void)
 	}
 	printf("cublas terminated\n");
 #endif
+
+#ifdef USE_SPU
+	unsigned spu;
+	for (spu = 0; spu < nspus; spu++)
+	{
+		thread_join(sputhreads[spu], NULL);
+	}
+	printf("SPUs terminated\n");
+#endif
+
+
 }
 
 void kill_all_workers(void)
@@ -174,6 +225,9 @@ void kill_all_workers(void)
 #endif
 #ifdef USE_CUBLAS
         nworkers += ncublasgpus;
+#endif
+#ifdef USE_SPU
+        nworkers += nspus;
 #endif
 
         unsigned worker;
@@ -217,6 +271,13 @@ int count_tasks(void)
 	}
 #endif
 
+#ifdef USE_SPU
+	for (i = 0; i < nspus ; i++)
+	{
+		total += spucounters[i];
+	}
+#endif
+
 	return total;
 }
 
@@ -253,6 +314,16 @@ void display_general_stats()
 			(100.0*cublascounters[i])/total);
 	}
 #endif
+
+#ifdef USE_SPU
+	printf("SPUs :\n");
+	for (i = 0; i < nspus ; i++)
+	{
+		printf("\tspu %d\t %d tasks\t%f %%\n", i, spucounters[i],
+			(100.0*spucounters[i])/total);
+	}
+#endif
+
 }
 
 void display_stats(job_descr *jd)

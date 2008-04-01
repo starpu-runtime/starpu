@@ -10,7 +10,9 @@
 #include <common/util.h>
 #include <common/parameters.h>
 #include <core/jobs.h>
+#if 0
 #include <cblas.h>
+#endif
 
 #include <datawizard/copy-driver.h>
 

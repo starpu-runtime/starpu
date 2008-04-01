@@ -3,6 +3,7 @@
 extern int corecounters[NMAXCORES];
 extern unsigned ncores;
 
+#if 0
 void ref_mult(matrix *A, matrix *B, matrix *C)
 {
 	submatrix sA;
@@ -90,9 +91,12 @@ void cblas_mult(submatrix *A, submatrix *B, submatrix *C)
 		 ALPHA, dataA, lda, dataB, ldb, BETA, dataC, ldc);
 }
 
+#endif // 0
+
 void execute_job_on_core(job_t j)
 {
         switch (j->type) {
+#if 0
 		case SGEMM:
 		case SAXPY:
 		case SGEMV:
@@ -112,6 +116,7 @@ void execute_job_on_core(job_t j)
                         dummy_mult(&j->input.matA, &j->input.matB, &j->output.matC_sub);
 #endif
                         break;
+#endif // 0
 		case CODELET:
 			assert(j->cl);
 			assert(j->cl->core_func);
