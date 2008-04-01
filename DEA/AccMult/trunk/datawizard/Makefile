@@ -9,6 +9,7 @@ endif
 
 
 all: coherency.o copy-driver.o 
+	@make -C spu
 
 coherency.o: coherency.c coherency.h
 	$(CC) coherency.c $(CFLAGS) -c -o coherency.o
@@ -23,3 +24,4 @@ test: test.o coherency.o copy-driver.o
 
 clean:
 	@rm -f *.o test
+	@make -C spu clean

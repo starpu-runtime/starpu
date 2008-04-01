@@ -14,10 +14,6 @@
 #define TAKEN	1
 #define FREE	0
 
-//#define ASSERT(x) 	assert((x))
-
-#define ATOMIC_ADD(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
-
 typedef enum {
 //	MODIFIED,
 	OWNER,
@@ -61,9 +57,5 @@ uintptr_t fetch_data(data_state *state, uint32_t requesting_node,
 			uint8_t read, uint8_t write);
 
 void release_data(data_state *state, uint32_t requesting_node, uint32_t write_through_mask);
-
-extern void driver_copy_data(data_state *state, uint32_t src_node_mask, uint32_t dst_node);
-extern void driver_copy_data_1_to_1(data_state *state, uint32_t node, uint32_t requesting_node);
-
 
 #endif // __COHERENCY__H__

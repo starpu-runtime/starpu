@@ -29,7 +29,7 @@ export BLASARCH=Linux_UNKNOWNSSE2
 LDFLAGS+= -lm
 
 
-DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o util.o
+DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o matrix.o
 EXTRADEP=
 
 ifeq ($(MARCEL), 1)

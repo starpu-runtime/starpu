@@ -31,7 +31,7 @@ unsigned nspus;
 spu_worker_arg spuargs[MAXSPUS];
 #endif
 
-static int current_bindid = 0;
+int current_bindid = 0;
 
 void init_machine(void)
 {

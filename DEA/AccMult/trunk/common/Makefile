@@ -34,13 +34,13 @@ endif
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 endif
 
-all: util.o threads.o
+all: matrix.o threads.o
 
 threads.o: threads.c threads.h
 	$(CC) $(CFLAGS) threads.c -c -o threads.o
 
-util.o: util.c util.h
-	$(CC) $(CFLAGS) util.c -c -o util.o
+matrix.o: matrix.c util.h
+	$(CC) $(CFLAGS) matrix.c -c -o matrix.o
 
 clean:
 	@rm -f *.o 

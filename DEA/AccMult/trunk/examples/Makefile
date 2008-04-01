@@ -20,7 +20,7 @@ ifdef OPENGL_RENDER
 	CFLAGS+=-DOPENGL_RENDER
 endif
 
-DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o util.o
+DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o matrix.o
 EXTRADEP=
 
 ifeq ($(MARCEL), 1)
@@ -102,7 +102,7 @@ NVCCFLAGS += -I$(CUTILDIR)/inc/
 LDFLAGS += -L../core/ -L../common/
 CFLAGS += -I../
 
-OBJDEPS += ../common/util.o ../common/threads.o ../core/jobs.o ../core/workers.o
+OBJDEPS += ../common/matrix.o ../common/threads.o ../core/jobs.o ../core/workers.o
 
 LDFLAGS += -L../datawizard/
 CFLAGS += -I../datawizard/

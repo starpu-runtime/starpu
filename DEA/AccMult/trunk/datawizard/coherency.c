@@ -1,5 +1,8 @@
 #include "coherency.h"
 
+extern void driver_copy_data(data_state *state, uint32_t src_node_mask, uint32_t dst_node);
+extern void driver_copy_data_1_to_1(data_state *state, uint32_t node, uint32_t requesting_node);
+
 void take_lock(data_lock *lock)
 {
 	uint32_t prev;
