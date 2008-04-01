@@ -62,6 +62,10 @@ ifdef CUBLASEMU
 else
 	LDFLAGS += -lcublas
 endif
+
+	LDFLAGS += -L$(CUDASDKDIR)/lib
+	LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
+
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	DEPENDENCIES += mult_cublas.o
 	OBJDEPS += ../drivers/cublas/mult_cublas.o
@@ -94,9 +98,6 @@ endif
 
 NVCCFLAGS +=  -DUNIX -DO3
 NVCCFLAGS += -I$(CUTILDIR)/inc/
-
-#LDFLAGS += -L$(CUDASDKDIR)/lib
-#LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
 
 LDFLAGS += -L../core/ -L../common/
 CFLAGS += -I../

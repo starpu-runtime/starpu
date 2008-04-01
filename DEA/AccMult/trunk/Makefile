@@ -25,9 +25,6 @@ export ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
 export BLASARCH=Linux_UNKNOWNSSE2
 
 
-#CFLAGS+= -I$(ATLASDIR)/include/
-#LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
-#LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
 
 LDFLAGS+= -lm
 
@@ -79,6 +76,9 @@ endif
 
 ifdef ATLAS
 	CFLAGS += -DUSE_CPU_BLAS
+	CFLAGS+= -I$(ATLASDIR)/include/
+	LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
+	LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
 endif
 
 
