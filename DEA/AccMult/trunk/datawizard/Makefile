@@ -7,8 +7,13 @@ ifeq ($(CUBLAS), 1)
 	CFLAGS+= -DUSE_CUBLAS
 endif
 
+ifdef SPU
+	SPU_TARGET="spu"
+endif
 
-all: coherency.o copy-driver.o 
+all: coherency.o copy-driver.o $(SPU_TARGET) 
+
+spu:
 	@make -C spu
 
 coherency.o: coherency.c coherency.h coherency_common.c
