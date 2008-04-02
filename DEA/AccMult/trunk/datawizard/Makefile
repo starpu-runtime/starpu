@@ -8,7 +8,7 @@ ifeq ($(CUBLAS), 1)
 endif
 
 ifdef SPU
-	SPU_TARGET="spu"
+	SPU_TARGET=spu
 endif
 
 all: coherency.o copy-driver.o $(SPU_TARGET) 
