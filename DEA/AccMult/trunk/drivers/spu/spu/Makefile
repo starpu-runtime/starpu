@@ -8,7 +8,7 @@ SPU_INCLUDES =
 mult_spu_spu.o: mult_spu_spu.c
 	$(SPU_CC) $(SPU_LDFLAGS) -o $@ $^ $(SPU_LIBS)
 
-spu_worker_program.o: mult_spu_spu.o
+spu_worker_program.o: mult_spu_spu.o 
 	$(SPU_EMBED) spu_worker_program $< $@
 
 clean:

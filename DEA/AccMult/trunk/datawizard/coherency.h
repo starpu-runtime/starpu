@@ -44,10 +44,14 @@ typedef struct data_lock_t {
 } data_lock;
 
 typedef struct data_state_t {
-	uint32_t nnodes; /* the number of memory nodes that may use it */
-	local_data_state per_node[MAXNODES];
-	size_t length; /* XXX remove that when possible !! */
 	data_lock lock;
+#ifdef USE_SPU
+	uintptr_t ea_data_state;
+	struct data_state_t *ls_data_state;
+#endif
+	uint32_t nnodes; /* the number of memory nodes that may use it */
+	size_t length; /* XXX remove that when possible !! */
+	local_data_state per_node[MAXNODES];
 } data_state;
 
 void take_lock(data_lock *lock);

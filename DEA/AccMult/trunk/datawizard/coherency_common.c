@@ -67,10 +67,18 @@ void copy_data_to_node(data_state *state, uint32_t requesting_node)
  * case 4 : invalid + R/W : 
  * 	data copy + if (W) (invalid->owner + owner->invalid) else (invalid,owner->shared)
  */
+/* NB : for SPU this is a pointer to the local copy which is not entirely fetched at first ! */
+
 uintptr_t fetch_data(data_state *state, uint32_t requesting_node,
 			uint8_t read, uint8_t write)
 {
 	take_lock(&state->lock);
+
+#ifdef SPU_CODE
+	/* we may now fetch the entire state structure 
+ 	 * from main memory since it is locked */
+	fetch_dynamic_data_state(state);	
+#endif
 
 //	printf("FETCH from %d R,W = %d,%d\n", requesting_node, read, write);
 
@@ -103,6 +111,11 @@ uintptr_t fetch_data(data_state *state, uint32_t requesting_node,
 
 		}
 		
+#ifdef SPU_CODE
+		/* some states were modified */
+		push_dynamic_data_state(state);
+#endif
+
 		/* do not forget to use a release_data */
 		return state->per_node[requesting_node].ptr;
 	}
@@ -134,6 +147,14 @@ uintptr_t fetch_data(data_state *state, uint32_t requesting_node,
 				state->per_node[node].state = SHARED;
 		}
 		state->per_node[requesting_node].state = SHARED;
+	}
+
+#ifdef SPU_CODE
+		/* some states were modified */
+		push_dynamic_data_state(state);
+#endif
+
+	if (!write) {
 		release_lock(&state->lock);
 	}
 
@@ -175,8 +196,13 @@ void release_data(data_state *state, uint32_t requesting_node, uint32_t write_th
 	ASSERT(state->per_node[requesting_node].state == OWNER);
 	
 	/* are we doing write-through or just some normal write-back ? */
-	if (write_through_mask & ~(1<<requesting_node))
+	if (write_through_mask & ~(1<<requesting_node)) {
 		write_through_data(state, requesting_node, write_through_mask);
+#ifdef SPU_CODE
+		/* some states were (possibly) modified */
+		push_dynamic_data_state(state);
+#endif
+	}
 
 	/* this is intended to make data accessible again */
 	release_lock(&state->lock);

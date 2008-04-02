@@ -21,16 +21,16 @@ endif
 all: $(DRIVERS)
 
 core:
-	make -C core
+	@make -C core
 
 cuda:
-	make -C cuda
+	@make -C cuda
 
 cublas:
-	make -C cublas
+	@make -C cublas
 
 spu:
-	make -C spu
+	@make -C spu
 
 clean:
 	@make -C core clean

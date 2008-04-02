@@ -24,7 +24,8 @@ void monitor_new_data(data_state *state, uint32_t home_node,
 	/* initialize the new lock */
 	state->lock.taken = FREE;
 #ifdef USE_SPU
-	state->lock.ea_taken = &state->lock.taken;
+	state->ea_data_state = (uintptr_t)&state;
+	state->lock.ea_taken = (uintptr_t)&state->lock.taken;
 #endif
 
 	/* first take care to properly lock the data */

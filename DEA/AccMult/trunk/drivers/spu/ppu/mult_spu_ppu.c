@@ -82,7 +82,7 @@ void *spu_worker(void *arg)
 
 	/* the input argument */
 	spu_init_arguments worker_arg __attribute__ ((aligned(16)));
-	worker_arg.ea_ready_flag = (uintptr_t)&args->ready_flag;
+	worker_arg.ea_ready_flag = &args->ready_flag;
 
 	/* we start at main */
 	unsigned int entry = SPE_DEFAULT_ENTRY; 

@@ -1,3 +1,5 @@
+.PHONY: spu
+
 CFLAGS+= -g -Wall
 
 CFLAGS+= -I../
@@ -11,7 +13,7 @@ ifdef SPU
 	SPU_TARGET=spu
 endif
 
-all: coherency.o copy-driver.o $(SPU_TARGET) 
+all: coherency.o copy-driver.o $(SPU_TARGET)
 
 spu:
 	@make -C spu
