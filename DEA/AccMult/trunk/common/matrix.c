@@ -1,5 +1,5 @@
 #include <math.h>
-#include "util.h"
+#include "matrix.h"
 
 /* some function useful to manipulate matrices */
 void matrix_fill_rand(matrix *m)
