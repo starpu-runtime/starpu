@@ -37,7 +37,10 @@ typedef struct local_data_state_t {
  * account the fact that it may be accessed using DMA for instance)*/
 typedef struct data_lock_t {
 	/* we only have a trivial implementation yet ! */
-	volatile uint32_t taken;
+	volatile uint32_t taken __attribute__ ((aligned(16)));
+#ifdef USE_SPU
+	uintptr_t ea_taken;
+#endif
 } data_lock;
 
 typedef struct data_state_t {
