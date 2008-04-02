@@ -11,7 +11,7 @@ endif
 all: coherency.o copy-driver.o 
 	@make -C spu
 
-coherency.o: coherency.c coherency.h
+coherency.o: coherency.c coherency.h coherency_common.c
 	$(CC) coherency.c $(CFLAGS) -c -o coherency.o
 
 copy-driver.o: copy-driver.c

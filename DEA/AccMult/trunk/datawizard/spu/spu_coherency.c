@@ -81,3 +81,6 @@ void take_lock(data_lock *ls_lock)
 	/* restore the event mask that we saved */
 	spu_writech(SPU_WrEventMask, event_mask);
 }
+
+/* we do have the same code for PPU and SPU in the case of a Cell */
+#include "../coherency_common.c"
