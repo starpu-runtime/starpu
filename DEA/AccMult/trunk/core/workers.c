@@ -7,7 +7,7 @@
 unsigned ncores;
 thread_t corethreads[NMAXCORES];
 int corecounters[NMAXCORES];
-core_worker_arg coreargs[NMAXCORES]; 
+core_worker_arg coreargs[NMAXCORES];
 #endif
 
 #ifdef USE_CUDA
@@ -59,7 +59,7 @@ void init_machine(void)
 	timing_init();
 }
 
-void init_workers(void) 
+void init_workers(void)
 {
 	/* initialize the queue containing the jobs */
 	init_work_queue();
@@ -80,9 +80,9 @@ void init_workers(void)
 	{
 		corecounters[core] = 0;
 
-		coreargs[core].bindid = 
+		coreargs[core].bindid =
 			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
-		
+
 		coreargs[core].coreid = core;
 		coreargs[core].ready_flag = 0;
 
@@ -102,15 +102,15 @@ void init_workers(void)
 		cudaargs[cudadev].deviceid = cudadev;
 		cudaargs[cudadev].ready_flag = 0;
 
-		cudaargs[cudadev].bindid = 
+		cudaargs[cudadev].bindid =
 			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
 
-		cudaargs[cudadev].memory_node = 
+		cudaargs[cudadev].memory_node =
 			register_memory_node(CUDA_RAM);
 
 		cudacounters[cudadev] = 0;
 
-		thread_create(&cudathreads[cudadev], NULL, cuda_worker, 
+		thread_create(&cudathreads[cudadev], NULL, cuda_worker,
 				(void*)&cudaargs[cudadev]);
 
 		/* wait until the thread is actually launched ... */
@@ -126,7 +126,7 @@ void init_workers(void)
 		cublasargs[cublasdev].deviceid = cublasdev;
 		cublasargs[cublasdev].ready_flag = 0;
 
-		cublasargs[cublasdev].bindid = 
+		cublasargs[cublasdev].bindid =
 			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
 
 		cublasargs[cublasdev].memory_node =
@@ -150,7 +150,7 @@ void init_workers(void)
 		spuargs[spu].deviceid = spu;
 		spuargs[spu].ready_flag = 0;
 
-		spuargs[spu].bindid = 
+		spuargs[spu].bindid =
 			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
 
 		spuargs[spu].memory_node =
@@ -284,7 +284,7 @@ void display_general_stats()
 {
 	unsigned i __attribute__ ((unused));
 	int total __attribute__ ((unused));
-	
+
 	total = count_tasks();
 
 #ifdef USE_CPUS
@@ -330,7 +330,7 @@ void display_stats(job_descr *jd)
 #ifdef COMPARE_SEQ
 	float refchrono	= ((float)(TIMING_DELAY(jd->job_refstart, jd->job_refstop)));
 	printf("Ref time : %f ms\n", refchrono/1000);
-	printf("Speedup\t=\t%f\n", refchrono/chrono); 
+	printf("Speedup\t=\t%f\n", refchrono/chrono);
 #endif
 
 	float chrono = (float)(TIMING_DELAY(jd->job_submission, jd->job_finished));

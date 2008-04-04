@@ -7,7 +7,7 @@ void thread_exit(void *retval)
 	marcel_exit(retval);
 }
 
-int  thread_create(thread_t  *  thread, thread_attr_t * attr, void *(*start_routine)(void *), void * arg) 
+int  thread_create(thread_t  *  thread, thread_attr_t * attr, void *(*start_routine)(void *), void * arg)
 {
 	return marcel_create(thread, attr, start_routine, arg);
 }

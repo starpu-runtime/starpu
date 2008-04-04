@@ -1,9 +1,9 @@
 export 
 
-export CC=gcc
-export NVCC = nvcc
-export CFLAGS += -g -O0 -Wall #-fPIC
-#CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -Wmain  -fno-strict-aliasing
+CC=gcc
+NVCC = nvcc
+CFLAGS += -g -O0 -Wall #-fPIC
+CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs   -fno-strict-aliasing
 
 # to use CUDA
 export CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
@@ -104,13 +104,6 @@ else
 	CFLAGS += -DGRAIN=$(DEFAULTGRAIN)
 	NVCCFLAGS += -DGRAIN=$(DEFAULTGRAIN)
 endif
-
-#NVCCFLAGS +=  -DUNIX -DO3
-#NVCCFLAGS += -I$(CUTILDIR)/inc/
-#
-#LDFLAGS += -L$(CUDASDKDIR)/lib
-#LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
-
 
 all:
 	@make -C common

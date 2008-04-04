@@ -1,28 +1,9 @@
-# to use CUDA
-CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
-CUDAINSTALLDIR=/usr/local/cuda/
-
-# for compile time tuning 
-DEFAULTSIZE=2048
-DEFAULTGRAIN=128
-
-DEFAULTNSAMPLE=10
-
-ifdef NSAMPLE
-	CFLAGS += -DNSAMPLE=$(NSAMPLE)
-else
-	CFLAGS += -DNSAMPLE=$(DEFAULTNSAMPLE)
-endif
-
 ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
 BLASARCH=Linux_UNKNOWNSSE2
 
 CFLAGS+= -I$(ATLASDIR)/include/
 LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
 LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
-
-LDFLAGS+= -lm
-
 
 DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o matrix.o
 EXTRADEP=

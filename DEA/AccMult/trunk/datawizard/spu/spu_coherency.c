@@ -10,7 +10,7 @@ void release_lock(data_lock *ls_lock)
 
 	/* overwrite the value so that it should be FREE */
 	uint32_t free __attribute__ ((aligned(16)));
-	free= FREE; 
+	free= FREE;
 
 	mfc_put (&free, ea_lock, sizeof(uint32_t), COHERENCY_TAG, 0, 0);
 	mfc_write_tag_mask(1 << COHERENCY_TAG);
@@ -36,7 +36,7 @@ void take_lock(data_lock *ls_lock)
 
 	offset = ea_taken & 127;
 	lock_ls_ptr  = (volatile uint32_t *) (buf + offset);
-	
+
 	/* first we only pay attention to the lock lost events */
 	uint32_t events;
 	uint32_t event_mask;
@@ -47,7 +47,7 @@ void take_lock(data_lock *ls_lock)
 	if (spu_readchcnt(SPU_RdEventStat)) {
 		spu_writech(SPU_WrEventAck, spu_readch(SPU_RdEventStat));
 	}
-	
+
 	/* we monitor only lost events */
 	spu_writech(SPU_WrEventMask, MFC_LLR_LOST_EVENT);
 
@@ -58,8 +58,8 @@ void take_lock(data_lock *ls_lock)
 		(void)spu_readch(MFC_RdAtomicStat);
 
 		if (*lock_ls_ptr == FREE) {
-			/* the lock is already taken, wait for an event that 
- 			   acknowledge some activity on the cache line */
+			/* the lock is already taken, wait for an event that
+			   acknowledge some activity on the cache line */
 			events = spu_readch(SPU_RdEventStat);
 			spu_writech(SPU_WrEventAck, events);
 
@@ -69,14 +69,13 @@ void take_lock(data_lock *ls_lock)
 
 			/* we modify the LS buffer and try to commit it */
 			*lock_ls_ptr = TAKEN;
-			mfc_putllc(buf, ea_lock_aligned, 
+			mfc_putllc(buf, ea_lock_aligned,
 				ATOMIC_COHERENCY_TAG, 0);
 
 			/* did the SPU lost the reservation in between ? */
-			status = spu_readch(MFC_RdAtomicStat) 
-					& MFC_PUTLLC_STATUS;	
-		}
-		
+			status = spu_readch(MFC_RdAtomicStat)
+					& MFC_PUTLLC_STATUS;
+			}
 	} while (status);
 
 	/* restore the event mask that we saved */
