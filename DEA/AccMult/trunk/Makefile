@@ -1,6 +1,6 @@
 export 
 
-CC=gcc
+CC=gcc -m64
 NVCC = nvcc
 CFLAGS += -g -O0 -Wall #-fPIC
 CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs   -fno-strict-aliasing
@@ -94,7 +94,10 @@ ifdef SPU
 	LDFLAGS += -lspe2
 endif
 
-
+ifdef GORDON
+	CFLAGS += -DUSE_GORDON
+	LDFLAGS += -lspe2
+endif
 
 
 ifdef GRAIN

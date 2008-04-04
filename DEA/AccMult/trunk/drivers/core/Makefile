@@ -1,4 +1,3 @@
-CC=gcc
 CFLAGS += -g -O3 -Wall #-fPIC
 
 ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/

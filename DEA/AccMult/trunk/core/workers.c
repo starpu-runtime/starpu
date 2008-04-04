@@ -31,6 +31,13 @@ unsigned nspus;
 spu_worker_arg spuargs[MAXSPUS];
 #endif
 
+#ifdef USE_GORDON
+thread_t gordonthread;
+/* only the threads managed by gordon */
+unsigned ngordonspus;
+gordon_worker_arg gordonargs;
+#endif
+
 int current_bindid = 0;
 
 void init_machine(void)
@@ -164,6 +171,21 @@ void init_workers(void)
 		/* wait until the thread is actually launched ... */
 		while (spuargs[spu].ready_flag == 0) {}
 	}
+#endif
+
+#ifdef USE_GORDON
+	ngordonspus = 8;
+	gordonargs.ready_flag = 0;
+
+	gordonargs.bindid = (current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
+	gordonargs.nspus = ngordonspus;
+
+	/* do not forget to registrate memory nodes for each SPUs later on ! */
+
+	thread_create(&gordonthread, NULL, gordon_worker, (void*)&gordonargs);
+
+	/* wait until the thread is actually launched ... */
+	while (gordonargs.ready_flag == 0) {}
 #endif
 }
 

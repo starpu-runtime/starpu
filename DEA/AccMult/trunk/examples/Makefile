@@ -76,6 +76,14 @@ ifdef SPU
 	OBJDEPS += ../drivers/spu/spu/spu_worker_program.o
 endif
 
+ifdef GORDON
+	OBJDEPS += ../drivers/gordon/mult_gordon.o
+	OBJDEPS += ../drivers/gordon/externals/scalp/util/util.o
+	OBJDEPS += ../drivers/gordon/externals/scalp/cell/gordon/gordon.o 
+	OBJDEPS += ../drivers/gordon/externals/scalp/cell/gordon/pputil.o 
+	OBJDEPS += ../drivers/gordon/externals/scalp/cell/gordon/spuembed.o 
+endif
+
 ifdef ATLAS
 	CFLAGS += -DUSE_CPU_BLAS
 endif

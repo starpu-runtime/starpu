@@ -24,6 +24,10 @@
 #include <drivers/spu/ppu/mult_spu.h>
 #endif
 
+#ifdef USE_GORDON
+#include <drivers/gordon/mult_gordon.h>
+#endif
+
 //#ifdef USE_CPUS
 #include <drivers/core/mult_core.h>
 //#endif

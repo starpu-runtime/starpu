@@ -14,7 +14,9 @@
 #define MAX(a,b)	((a)<(b)?(b):(a))
 #endif
 
+#ifndef ASSERT
 #define ASSERT(x)	assert(x)
+#endif
 
 #define ATOMIC_ADD(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
 
