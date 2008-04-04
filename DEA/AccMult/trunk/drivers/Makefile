@@ -1,4 +1,4 @@
-.PHONY: core cuda cublas spu
+.PHONY: core cuda cublas spu gordon
 
 DRIVERS=
 
@@ -18,6 +18,10 @@ ifdef SPU
 	DRIVERS += spu
 endif
 
+ifdef GORDON
+	DRIVERS += gordon
+endif
+
 all: $(DRIVERS)
 
 core:
@@ -32,8 +36,12 @@ cublas:
 spu:
 	@make -C spu
 
+gordon:
+	@make -C gordon
+
 clean:
 	@make -C core clean
 	@make -C cuda clean
 	@make -C cublas clean
 	@make -C spu clean
+	@make -C gordon clean
