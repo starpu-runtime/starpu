@@ -1,4 +1,5 @@
 CFLAGS+= -Iexternals/scalp/
+CFLAGS+= -I../..
 
 #gordon.o pputil.o spuembed.o
 
