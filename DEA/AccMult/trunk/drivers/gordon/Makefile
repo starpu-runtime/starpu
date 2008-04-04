@@ -22,6 +22,6 @@ externals/scalp/util/util.o:
 mult_gordon.o: mult_gordon.c mult_gordon.h
 	$(CC) $(CFLAGS) mult_gordon.c -c -o mult_gordon.o
 
-clean:
+clean: externals/scalp/Make.env
 	@make -C externals/scalp clean
 	@rm -f *.o
