@@ -11,10 +11,11 @@
 
 #include <datawizard/coherency.h>
 
-#define NITER	100000
+#define NITER	1000
 
 data_state my_float_state;
 data_state unity_state;
+data_state my_foo_state;
 
 float my_lovely_float[3] = {0.0f, 0.0f, 0.0f};
 float unity[3] = {1.0f, 0.0f, 1.0f};
@@ -70,6 +71,10 @@ int main(int argc, char **argv)
 	init_workers();
 	printf("workers inited \n");
 
+	uint32_t fooooo;
+	monitor_new_data(&my_foo_state, 0 /* home node */,
+		(uintptr_t)&fooooo, sizeof(uint32_t));
+
 	monitor_new_data(&my_float_state, 0 /* home node */,
 		(uintptr_t)&my_lovely_float, sizeof(my_lovely_float));
 
@@ -84,7 +89,7 @@ int main(int argc, char **argv)
 	{
 		j = job_new();
 		j->type = CODELET;
-		j->where = ANY;
+		j->where = CORE;
 		j->cb = callback_func;
 		j->argcb = NULL;
 		j->cl = &cl;
@@ -97,6 +102,24 @@ int main(int argc, char **argv)
 
 		push_task(j);
 	}
+
+#ifdef USE_SPU
+//	data_lock lock;
+	uint32_t mess;
+	extern uint32_t speid_debug;
+	printf("speid = %x \n", speid_debug);
+	while (spe_out_mbox_read(speid_debug, &mess, 1) == 0) {};
+	printf("TOTO received %x\n", mess);
+
+//	lock.taken = TAKEN;
+//	lock.ea_taken = &lock;
+	mess = (uint32_t)&my_foo_state;
+
+	printf("send address %x \n", &my_foo_state);
+
+	/* send the monitored data */
+	spe_in_mbox_write(speid_debug, &mess, 1, SPE_MBOX_ALL_BLOCKING);
+#endif
 
 	sleep(100);
 

@@ -18,19 +18,19 @@ void *gordon_worker_progress(void *arg)
 
 	progress_thread_is_ready = 1;
 
-//	while (1) {
-//		/* the Gordon runtime needs to make sure that we poll it 
-//		 * so that we handle jobs that are done */
-//
-//		/* wait for one task termination */
-//		gordon_wait(1);
-//
-//		/* possibly wake the thread that injects work */
-//		// TODO
-//	}
+	while (1) {
+		/* the Gordon runtime needs to make sure that we poll it 
+		 * so that we handle jobs that are done */
+
+		/* wait for one task termination */
+		gordon_wait(1);
+
+		/* possibly wake the thread that injects work */
+		// TODO
+	}
 }
 
-void inject_task(job_t *j)
+void inject_task(job_t j)
 {
 				push_task(j);
 }
@@ -46,18 +46,22 @@ void *gordon_worker_inject(void *arg)
 		else {
 			/* gordon should accept a little more work */
 			j =  pop_task();
-			if (j == NULL) continue;
 
-			if (GORDON_MAY_PERFORM(j)) {
-				/* inject that task TODO */
-				inject_task(j);
-			}
-			else {
-				push_task(j);
+			if (j) {
+				if (GORDON_MAY_PERFORM(j)) {
+					/* inject that task TODO */
+					inject_task(j);
+				}
+				else {
+					push_task(j);
+				}
 			}
 			
 		}
 	}
+
+	ASSERT(0);
+	return NULL;
 }
 
 void *gordon_worker(void *arg)
