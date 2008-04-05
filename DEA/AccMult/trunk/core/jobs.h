@@ -16,7 +16,7 @@
 #include <cuda.h>
 #endif
 
-typedef enum {GPU, CUDA, CUBLAS, SPU, CORE, ANY} cap;
+typedef enum {GPU, CUDA, CUBLAS, SPU, CORE, GORDON, ANY} cap;
 
 typedef enum {ADD, SUB, MUL, PART, PRECOND, CLEAN, ABORT, SGEMM, SAXPY, SGEMV, STRSM, STRSV, SGER, SSYR, SCOPY, CODELET} jobtype;
 
@@ -28,6 +28,7 @@ typedef void (*cl_func)(void *);
 #define CUDA_MAY_PERFORM(j)     ( (j)->where == ANY || (j)->where == GPU || (j)->where == CUDA )
 #define CUBLAS_MAY_PERFORM(j)     ( (j)->where == ANY || (j)->where == GPU || (j)->where == CUBLAS )
 #define SPU_MAY_PERFORM(j)	( (j)->where == ANY || (j)->where == SPU )
+#define GORDON_MAY_PERFORM(j)	( (j)->where == ANY || (j)->where == GORDON )
 
 #ifdef USE_CUDA
 typedef struct cuda_matrix_t {

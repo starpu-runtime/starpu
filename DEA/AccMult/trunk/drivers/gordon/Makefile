@@ -14,8 +14,8 @@ externals/scalp/cell/gordon/pputil.o:
 externals/scalp/cell/gordon/spuembed.o:
 	@make -C externals/scalp/cell/gordon spuembed.o
 
-externals/scalp/Make.env:
-	@make -C externals/scalp example
+externals/scalp/Make.env: externals/scalp/Make.env.ps3
+	@make -C externals/scalp ps3
 
 externals/scalp/util/util.o:
 	@make -C externals/scalp util/util.o
