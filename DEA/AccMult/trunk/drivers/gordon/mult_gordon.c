@@ -32,7 +32,9 @@ void *gordon_worker_progress(void *arg)
 
 void inject_task(job_t j)
 {
-				push_task(j);
+	/* we can't handle task yet ;) */
+	//push_task(j);
+	j->cl->gordon_func(j->cl->cl_arg);
 }
 
 void *gordon_worker_inject(void *arg)

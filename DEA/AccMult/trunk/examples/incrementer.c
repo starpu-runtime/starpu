@@ -11,6 +11,10 @@
 
 #include <datawizard/coherency.h>
 
+#ifdef USE_GORDON
+#include "../drivers/gordon/externals/scalp/cell/gordon/gordon.h"
+#endif
+
 #define NITER	1000
 
 data_state my_float_state;
@@ -64,6 +68,58 @@ void cublas_codelet(void *_args)
 }
 #endif
 
+#ifdef USE_GORDON
+
+#define BUFFER_SIZE	32
+
+void gordon_callback_func(void *argcb)
+{
+	printf("gordon_callback_func\n");
+	/* this is not used yet ! XXX  */
+}
+
+void gordon_codelet(void *_args)
+{
+	printf("gordon codelet\n");
+	struct gordon_ppu_job_s *joblist = gordon_alloc_jobs(2, 0);
+	float *array = gordon_malloc(BUFFER_SIZE);
+	float *output = gordon_malloc(BUFFER_SIZE);
+	int i = 0, n;
+
+	int *nptr = gordon_malloc(sizeof(int));
+	n = *nptr = BUFFER_SIZE / sizeof(float);
+
+	for (i = 0; i < n; i++) {
+		array[i] = (float)i;
+	}
+	
+	joblist[0].index  = FUNC_A;
+	joblist[0].nalloc = 0;
+	
+	joblist[0].nin    = 0;
+	joblist[0].ninout = 0;
+	joblist[0].nout   = 0;
+	
+	joblist[1].index  = FUNC_B;
+	joblist[1].nalloc = 0;
+	joblist[1].nin    = 2;
+	joblist[1].ninout = 0;
+	joblist[1].nout   = 1;
+	
+	joblist[1].buffers[0] = (uint64_t)nptr;
+	joblist[1].ss[0].size = sizeof(int);
+	joblist[1].buffers[1] = (uint64_t)array;
+	joblist[1].ss[1].size = BUFFER_SIZE;
+	joblist[1].buffers[2] = (uint64_t)output;
+	joblist[1].ss[2].size = BUFFER_SIZE;
+
+	gordon_pushjob(&joblist[0], gordon_callback_func, output);
+
+	gordon_join();
+}
+
+#endif
+
 int main(int argc, char **argv)
 {
 	init_machine();
@@ -82,8 +138,23 @@ int main(int argc, char **argv)
 		(uintptr_t)&unity, sizeof(unity));
 
 	codelet cl;
+	codelet cl_gordon;
 	job_t j;
- 
+
+#ifdef USE_GORDON
+	j = job_new();
+	j->type = CODELET;
+	j->where = GORDON;
+	j->cb = gordon_callback_func;
+	j->argcb = NULL;
+	j->cl = &cl_gordon;
+
+	cl_gordon.gordon_func = gordon_codelet;
+	cl_gordon.cl_arg = NULL;
+
+	push_task(j);
+#endif
+
 	unsigned i;
 	for (i = 0; i < NITER; i++)
 	{
@@ -99,27 +170,8 @@ int main(int argc, char **argv)
 #ifdef USE_CUBLAS
 		cl.cublas_func = cublas_codelet;
 #endif
-
 		push_task(j);
 	}
-
-#ifdef USE_SPU
-//	data_lock lock;
-	uint32_t mess;
-	extern uint32_t speid_debug;
-	printf("speid = %x \n", speid_debug);
-	while (spe_out_mbox_read(speid_debug, &mess, 1) == 0) {};
-	printf("TOTO received %x\n", mess);
-
-//	lock.taken = TAKEN;
-//	lock.ea_taken = &lock;
-	mess = (uint32_t)&my_foo_state;
-
-	printf("send address %x \n", &my_foo_state);
-
-	/* send the monitored data */
-	spe_in_mbox_write(speid_debug, &mess, 1, SPE_MBOX_ALL_BLOCKING);
-#endif
 
 	sleep(100);
 

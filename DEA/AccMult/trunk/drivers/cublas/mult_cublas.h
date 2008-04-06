@@ -1,7 +1,9 @@
 #ifndef __MULT_CUBLAS_H__
 #define __MULT_CUBLAS_H__
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <sched.h>
 
 #include <assert.h>

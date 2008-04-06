@@ -82,6 +82,7 @@ ifdef GORDON
 	OBJDEPS += ../drivers/gordon/externals/scalp/cell/gordon/gordon.o 
 	OBJDEPS += ../drivers/gordon/externals/scalp/cell/gordon/pputil.o 
 	OBJDEPS += ../drivers/gordon/externals/scalp/cell/gordon/spuembed.o 
+	CFLAGS += -I../drivers/gordon/externals/scalp/
 endif
 
 ifdef ATLAS

@@ -73,6 +73,7 @@ typedef struct codelet_t {
 	cl_func cublas_func;
 	cl_func core_func;
 	cl_func spu_func;
+	cl_func gordon_func;
 	void *cl_arg;
 } codelet;
 
