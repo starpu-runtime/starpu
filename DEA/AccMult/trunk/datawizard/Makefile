@@ -13,10 +13,13 @@ ifdef SPU
 	SPU_TARGET=spu
 endif
 
-all: coherency.o copy-driver.o $(SPU_TARGET)
+all: coherency.o copy-driver.o hierarchy.o $(SPU_TARGET)
 
 spu:
 	@make -C spu
+
+hierarchy.o: hierarchy.c hierarchy.h coherency.h
+	$(CC) hierarchy.c $(CFLAGS) -c -o hierarchy.o
 
 coherency.o: coherency.c coherency.h coherency_common.c
 	$(CC) coherency.c $(CFLAGS) -c -o coherency.o

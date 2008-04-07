@@ -69,10 +69,11 @@ void copy_data_to_node(data_state *state, uint32_t requesting_node)
  */
 /* NB : for SPU this is a pointer to the local copy which is not entirely fetched at first ! */
 
-uintptr_t fetch_data(data_state *state, uint32_t requesting_node,
-			uint8_t read, uint8_t write)
+static uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
+			uint8_t read, uint8_t write, unsigned needtolock)
 {
-	take_lock(&state->lock);
+	if (needtolock)
+		take_lock(&state->lock);
 
 #ifdef SPU_CODE
 	/* we may now fetch the entire state structure 
@@ -92,7 +93,8 @@ uintptr_t fetch_data(data_state *state, uint32_t requesting_node,
 
 		if (!write) {
 			/* else, do not forget to call release_data !*/
-			release_lock(&state->lock);
+			if (needtolock)
+				release_lock(&state->lock);
 		}
 
 		return state->per_node[requesting_node].ptr;
@@ -154,12 +156,26 @@ uintptr_t fetch_data(data_state *state, uint32_t requesting_node,
 		push_dynamic_data_state(state);
 #endif
 
-	if (!write) {
+	if (!write && needtolock) {
 		release_lock(&state->lock);
 	}
 
 	return state->per_node[requesting_node].ptr;
 }
+
+uintptr_t fetch_data(data_state *state, uint32_t requesting_node,
+			uint8_t read, uint8_t write)
+{
+	return _fetch_data(state, requesting_node, read, write, 1);
+}
+
+uintptr_t fetch_data_without_lock(data_state *state, uint32_t requesting_node,
+			uint8_t read, uint8_t write)
+{
+	return _fetch_data(state, requesting_node, read, write, 0);
+}
+
+
 
 void write_through_data(data_state *state, uint32_t requesting_node, uint32_t write_through_mask)
 {

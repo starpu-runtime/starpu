@@ -118,12 +118,12 @@ OBJDEPS += ../common/matrix.o ../common/threads.o ../core/jobs.o ../core/workers
 
 LDFLAGS += -L../datawizard/
 CFLAGS += -I../datawizard/
-OBJDEPS += ../datawizard/copy-driver.o ../datawizard/coherency.o
+OBJDEPS += ../datawizard/copy-driver.o ../datawizard/coherency.o   ../datawizard/hierarchy.o
 
 ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
 BLASARCH=Linux_UNKNOWNSSE2
 
-all: incrementer heat
+all: incrementer
 
 incrementer.o: incrementer.c
 	$(CC) $(CFLAGS) incrementer.c -c -o incrementer.o

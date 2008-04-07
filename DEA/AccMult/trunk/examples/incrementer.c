@@ -10,6 +10,7 @@
 #include <signal.h>
 
 #include <datawizard/coherency.h>
+#include <datawizard/hierarchy.h>
 
 #ifdef USE_GORDON
 #include "../drivers/gordon/externals/scalp/cell/gordon/gordon.h"
@@ -20,6 +21,7 @@
 data_state my_float_state;
 data_state unity_state;
 data_state my_foo_state;
+data_state pouet_state;
 
 float my_lovely_float[3] = {0.0f, 0.0f, 0.0f};
 float unity[3] = {1.0f, 0.0f, 1.0f};
@@ -120,6 +122,8 @@ void gordon_codelet(void *_args)
 
 #endif
 
+uint32_t large_buf[1024];
+
 int main(int argc, char **argv)
 {
 	init_machine();
@@ -137,11 +141,21 @@ int main(int argc, char **argv)
 	monitor_new_data(&unity_state, 0 /* home node */,
 		(uintptr_t)&unity, sizeof(unity));
 
+	monitor_new_data(&pouet_state, 0 /* home node */,
+		(uintptr_t)large_buf, sizeof(large_buf));
+
+	filter f;
+		f.filter_func = block_filter_func;
+		f.filter_arg = 2;
+	partition_data(&pouet_state, &f);
+
+	unpartition_data(&pouet_state, 0);
 	codelet cl;
-	codelet cl_gordon;
 	job_t j;
 
 #ifdef USE_GORDON
+	codelet cl_gordon;
+
 	j = job_new();
 	j->type = CODELET;
 	j->where = GORDON;
