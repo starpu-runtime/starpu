@@ -87,6 +87,9 @@ endif
 
 ifdef ATLAS
 	CFLAGS += -DUSE_CPU_BLAS
+        CFLAGS+= -I$(ATLASDIR)/include/
+        LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
+        LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
 endif
 
 
@@ -120,7 +123,7 @@ OBJDEPS += ../datawizard/copy-driver.o ../datawizard/coherency.o
 ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
 BLASARCH=Linux_UNKNOWNSSE2
 
-all: incrementer
+all: incrementer heat
 
 incrementer.o: incrementer.c
 	$(CC) $(CFLAGS) incrementer.c -c -o incrementer.o
