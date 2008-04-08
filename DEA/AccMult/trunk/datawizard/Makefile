@@ -32,8 +32,8 @@ copy-driver.o: copy-driver.c
 
 test.o: test.c
 
-test: test.o coherency.o copy-driver.o
-	$(CC) test.o coherency.o copy-driver.o -lpthread -o test
+test: test.o coherency.o copy-driver.o hierarchy.o filters.o
+	$(CC) test.o coherency.o copy-driver.o  hierarchy.o filters.o -lpthread -o test
 
 clean:
 	@rm -f *.o test

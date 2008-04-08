@@ -144,10 +144,10 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	init_workers();
 
 	monitor_new_data(&my_float_root_state, 0 /* home node */,
-		(uintptr_t)&my_lovely_float, sizeof(my_lovely_float));
+		(uintptr_t)&my_lovely_float, sizeof(my_lovely_float), sizeof(my_lovely_float), 1);
 
 	monitor_new_data(&unity_state, 0 /* home node */,
-		(uintptr_t)&unity, sizeof(unity));
+		(uintptr_t)&unity, sizeof(unity), sizeof(unity), 1);
 
 	filter f;
 		f.filter_func = block_filter_func;

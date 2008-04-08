@@ -1,7 +1,7 @@
 #include "hierarchy.h"
 
-void monitor_new_data(data_state *state, uint32_t home_node, 
-			uintptr_t ptr, size_t length)
+void monitor_new_data(data_state *state, uint32_t home_node,
+                        uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny)
 {
 	ASSERT(state);
 
@@ -30,6 +30,7 @@ void monitor_new_data(data_state *state, uint32_t home_node,
 			/* this is the home node with the only valid copy */
 			state->per_node[node].state = OWNER;
 			state->per_node[node].ptr = ptr;
+			state->per_node[node].ld = ld;
 			state->per_node[node].allocated = 1;
 			state->per_node[node].automatically_allocated = 0;
 		}
@@ -41,7 +42,8 @@ void monitor_new_data(data_state *state, uint32_t home_node,
 		}
 	}
 
-	state->length = length;
+	state->nx = nx;
+	state->ny = ny;
 
 	/* now the data is available ! */
 	release_lock(&state->lock);
@@ -128,7 +130,7 @@ void unpartition_data(data_state *root_data, uint32_t gathering_node)
 			}
 	
 			if (local->allocated && local->automatically_allocated){
-				ASSERT(root_data != node);
+				//ASSERT(gathering_node != node);
 				/* XXX free the data copy ! */
 
 				isvalid = 0; 

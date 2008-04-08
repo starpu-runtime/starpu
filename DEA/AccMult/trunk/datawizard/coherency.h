@@ -25,8 +25,9 @@ typedef enum {
 typedef struct local_data_state_t {
 	/* describes the state of the local data in term of coherency */
 	cache_state	state; 
-	/* where is that data stored on the local node ? */
+	/* where and how is that data stored on the local node ? */
 	uintptr_t ptr;
+	uint32_t ld; /* leading dimension */
 	/* is the data locally allocated ? */
 	uint8_t allocated; 
 	/* was it automatically allocated ? */
@@ -53,7 +54,7 @@ typedef struct data_state_t {
 	struct data_state_t *ls_data_state;
 #endif
 	uint32_t nnodes; /* the number of memory nodes that may use it */
-	size_t length; /* XXX remove that when possible !! */
+	uint32_t nx, ny; /* describe the data dimension */
 	struct data_state_t *children;
 	int nchildren;
 	local_data_state per_node[MAXNODES];
@@ -61,8 +62,6 @@ typedef struct data_state_t {
 
 void take_lock(data_lock *lock);
 void release_lock(data_lock *lock);
-void monitor_new_data(data_state *state, uint32_t home_node, 
-			uintptr_t ptr, size_t length);
 void display_state(data_state *state);
 void copy_data_to_node(data_state *state, uint32_t requesting_node);
 uintptr_t fetch_data(data_state *state, uint32_t requesting_node,

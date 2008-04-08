@@ -46,19 +46,19 @@ unsigned get_local_memory_node(void)
 	return *memory_node;
 }
 
-static uintptr_t allocate_memory_on_node(data_state *state, uint32_t dst_node)
+static void allocate_memory_on_node(data_state *state, uint32_t dst_node)
 {
 	uintptr_t addr = 0;
 
 	switch(descr.nodes[dst_node]) {
 		case RAM:
-			addr = (uintptr_t) malloc(state->length);
+			addr = (uintptr_t) malloc(state->nx*state->ny);
 			//printf("RAM addr allocated : %p \n", addr);
 			break;
 #ifdef USE_CUBLAS
 		case CUBLAS_RAM:
-			cublasAlloc(state->length, 1, (void **)&addr); 
-			//printf("CUBLAS addr allocated : %p \n", addr);
+			cublasAlloc(state->nx*state->ny, 1, (void **)&addr); 
+			printf("CUBLAS addr allocated : %p \n", addr);
 			break;
 #endif
 		default:
@@ -68,8 +68,38 @@ static uintptr_t allocate_memory_on_node(data_state *state, uint32_t dst_node)
 	/* TODO handle capacity misses */
 	ASSERT(addr);
 
-	return addr;
+	state->per_node[dst_node].ptr = addr; 
+	state->per_node[dst_node].ld = state->nx; 
+	state->per_node[dst_node].allocated = 1;
+	state->per_node[dst_node].automatically_allocated = 1;
+}
 
+/* as not all platform easily have a BLAS lib installed ... */
+void dummy_copy_ram_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)
+{
+	unsigned y;
+	for (y = 0; y < state->ny; y++)
+	{
+		uint32_t src_offset = y*state->per_node[src_node].ld;
+		uint32_t dst_offset = y*state->per_node[dst_node].ld;
+		memcpy((void *)(state->per_node[dst_node].ptr + dst_offset),
+			(void *)(state->per_node[src_node].ptr + src_offset), state->nx);
+	}
+}
+
+void copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)
+{
+	cublasGetMatrix(state->nx, state->ny, 1, 
+		(uint8_t *)state->per_node[src_node].ptr, state->per_node[src_node].ld,
+		(uint8_t *)state->per_node[dst_node].ptr, state->per_node[dst_node].ld);
+
+}
+
+void copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst_node)
+{
+	cublasSetMatrix(state->nx, state->ny, 1, 
+		(uint8_t *)state->per_node[src_node].ptr, state->per_node[src_node].ld,
+		(uint8_t *)state->per_node[dst_node].ptr, state->per_node[dst_node].ld);
 }
 
 void driver_copy_data_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node)
@@ -80,10 +110,7 @@ void driver_copy_data_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_
 	/* TODO clean */
 	if (!state->per_node[dst_node].allocated) {
 		/* there is no room available for the data yet */
-		state->per_node[dst_node].ptr = 
-			allocate_memory_on_node(state, dst_node);
-		state->per_node[dst_node].allocated = 1;
-		state->per_node[dst_node].automatically_allocated = 1;
+		allocate_memory_on_node(state, dst_node);
 	}
 
 	/* XXX clean that !  */
@@ -92,9 +119,7 @@ void driver_copy_data_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_
 			switch(descr.nodes[src_node]) {
 				case RAM:
 					/* RAM -> RAM */
-					memcpy((void *)state->per_node[dst_node].ptr,
-						(void *)state->per_node[src_node].ptr,
-						state->length);
+					dummy_copy_ram_to_ram(state, src_node, dst_node);
 					break;
 				case CUDA_RAM:
 					/* CUDA_RAM -> RAM */
@@ -107,11 +132,7 @@ void driver_copy_data_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_
 			//		ASSERT(get_local_memory_node() == src_node);
 			//		XXX there should be a way to control the
 				//	printf("CUBLAS %p -> RAM %p \n", state->per_node[src_node].ptr, state->per_node[dst_node].ptr);
-					//cublasGetMatrix(state->length, 1, 1, 
-					//	state->per_node[src_node].ptr, state->length,
-					//	state->per_node[dst_node].ptr, state->length);
-					cublasGetVector(state->length, 1, (uint8_t *)state->per_node[src_node].ptr, 1,
-									  (uint8_t *)state->per_node[dst_node].ptr, 1); 
+					copy_cublas_to_ram(state, src_node, dst_node);
 					//printf("debug CUBLAS GET = CUBLAS %d -> RAM %d\n", *(int*)state->per_node[src_node].ptr, *(int*)state->per_node[dst_node].ptr);
 					break;
 #endif // USE_CUBLAS
@@ -149,13 +170,7 @@ void driver_copy_data_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_
 					/* RAM -> CUBLAS_RAM */
 					/* only the proper CUBLAS thread can initiate this ! */
 					ASSERT(get_local_memory_node() == dst_node);
-					//printf("RAM %p -> CUBLAS %p \n", state->per_node[src_node].ptr, state->per_node[dst_node].ptr);
-					//cublasSetMatrix(state->length, 1, 1, 
-					//	state->per_node[dst_node].ptr, state->length,
-					//	state->per_node[src_node].ptr, state->length);
-				//	printf("length = %d \n", state->length);
-					cublasSetVector(state->length, 1, (uint8_t *)state->per_node[src_node].ptr, 1,
-									  (uint8_t *)state->per_node[dst_node].ptr, 1);
+					copy_ram_to_cublas(state, src_node, dst_node);
 //					printf("debug CUBLAS SET = RAM %d -> CUBLAS %d\n", *(int*)state->per_node[src_node].ptr, *(int*)state->per_node[dst_node].ptr);
 					break;
 				case CUDA_RAM:

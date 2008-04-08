@@ -1,5 +1,6 @@
 #include "coherency.h"
 #include "copy-driver.h"
+#include "hierarchy.h"
 
 int main(int argc, char **argv)
 {
@@ -20,7 +21,7 @@ int main(int argc, char **argv)
 	data_state my_int_state;
 	
 	monitor_new_data(&my_int_state, 0 /* home node */,
-	     (uintptr_t)&my_lovely_integer, sizeof(my_lovely_integer));
+	     (uintptr_t)&my_lovely_integer, sizeof(my_lovely_integer), sizeof(my_lovely_integer), 1);
 
 	for (turn = 0; turn < 100000000; turn++)
 	{
