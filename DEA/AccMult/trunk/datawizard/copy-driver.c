@@ -87,6 +87,7 @@ void dummy_copy_ram_to_ram(data_state *state, uint32_t src_node, uint32_t dst_no
 	}
 }
 
+#ifdef USE_CUBLAS
 void copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)
 {
 	cublasGetMatrix(state->nx, state->ny, 1, 
@@ -101,6 +102,7 @@ void copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst_node)
 		(uint8_t *)state->per_node[src_node].ptr, state->per_node[src_node].ld,
 		(uint8_t *)state->per_node[dst_node].ptr, state->per_node[dst_node].ld);
 }
+#endif // USE_CUBLAS
 
 void driver_copy_data_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node)
 {
