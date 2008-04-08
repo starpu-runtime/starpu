@@ -105,7 +105,8 @@ void driver_copy_data_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_
 				case CUBLAS_RAM:
 					/* CUBLAS_RAM -> RAM */
 					/* only the proper CUBLAS thread can initiate this ! */
-					ASSERT(get_local_memory_node() == src_node);
+			//		ASSERT(get_local_memory_node() == src_node);
+			//		XXX there should be a way to control the
 				//	printf("CUBLAS %p -> RAM %p \n", state->per_node[src_node].ptr, state->per_node[dst_node].ptr);
 					//cublasGetMatrix(state->length, 1, 1, 
 					//	state->per_node[src_node].ptr, state->length,
