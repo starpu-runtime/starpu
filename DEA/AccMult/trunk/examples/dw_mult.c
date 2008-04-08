@@ -53,27 +53,26 @@ void callback_func(__attribute__ ((unused)) void *arg)
 }
 
 #define COMMON_CODE							\
-	multdescr *descr = arg;						\
+	uint32_t nxC, nyC, nxA;						\
+	uint32_t ldA, ldB, ldC;						\
 									\
 	float *subA;							\
 	float *subB;							\
 	float *subC;							\
 									\
-	unsigned node = get_local_memory_node();			\
+	multdescr *descr = arg;						\
 									\
-	subA = (float *)fetch_data(descr->subA, node, 1, 0);		\
-	subB = (float *)fetch_data(descr->subB, node, 1, 0);		\
-	subC = (float *)fetch_data(descr->subC, node, 1, 1);		\
+	subA = (float *)fetch_data(descr->subA, 1, 0);			\
+	subB = (float *)fetch_data(descr->subB, 1, 0);			\
+	subC = (float *)fetch_data(descr->subC, 1, 1);			\
 									\
-	uint32_t nxC, nyC, nxA;						\
-	nxC = get_local_nx(descr->subC) / sizeof(float);		\
+	nxC = get_local_nx(descr->subC);				\
 	nyC = get_local_ny(descr->subC);				\
-	nxA = get_local_nx(descr->subA) / sizeof(float);		\
+	nxA = get_local_nx(descr->subA);				\
 									\
-	uint32_t ldA, ldB, ldC;						\
-	ldA = get_local_ld(descr->subA) / sizeof(float);		\
-	ldB = get_local_ld(descr->subB) / sizeof(float);		\
-	ldC = get_local_ld(descr->subC) / sizeof(float);		
+	ldA = get_local_ld(descr->subA);				\
+	ldB = get_local_ld(descr->subB);				\
+	ldC = get_local_ld(descr->subC);		
 
 #ifdef USE_CUBLAS
 void cublas_mult(__attribute__ ((unused)) void *arg)
@@ -82,7 +81,7 @@ void cublas_mult(__attribute__ ((unused)) void *arg)
 
 	cublasSgemm('n', 'n', nxC, nyC, nxA, 1.0f, subB, ldB, subA, ldA, 0.0f, subC, ldC);
 
-	release_data(descr->subC, node, 1);
+	release_data(descr->subC, 1);
 }
 #endif
 
@@ -93,7 +92,7 @@ void core_mult(__attribute__ ((unused)) void *arg)
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, nxC, nyC, nxA,
 			 1.0f,  subA, ldA, subB, ldB, 0.0f, subC, ldC);
 
-	release_data(descr->subC, node, 0);
+	release_data(descr->subC, 0);
 }
 
 int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)
@@ -121,9 +120,9 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	init_machine();
 	init_workers();
 
-	monitor_new_data(&A_state, 0, (uintptr_t)A, z*sizeof(float), z*sizeof(float), y);
-	monitor_new_data(&B_state, 0, (uintptr_t)B, x*sizeof(float), x*sizeof(float), z);
-	monitor_new_data(&C_state, 0, (uintptr_t)C, x*sizeof(float), x*sizeof(float), y);
+	monitor_new_data(&A_state, 0, (uintptr_t)A, z, z, y, sizeof(float));
+	monitor_new_data(&B_state, 0, (uintptr_t)B, x, x, z, sizeof(float));
+	monitor_new_data(&C_state, 0, (uintptr_t)C, x, x, y, sizeof(float));
 
 	filter f;
 	f.filter_func = block_filter_func;

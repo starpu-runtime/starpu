@@ -57,6 +57,7 @@ typedef struct data_state_t {
 	uint32_t nx, ny; /* describe the data dimension */
 	struct data_state_t *children;
 	int nchildren;
+	size_t elemsize;
 	local_data_state per_node[MAXNODES];
 } data_state;
 
@@ -64,11 +65,10 @@ void take_lock(data_lock *lock);
 void release_lock(data_lock *lock);
 void display_state(data_state *state);
 void copy_data_to_node(data_state *state, uint32_t requesting_node);
-uintptr_t fetch_data(data_state *state, uint32_t requesting_node,
-			uint8_t read, uint8_t write);
+uintptr_t fetch_data(data_state *state, uint8_t read, uint8_t write);
 uintptr_t fetch_data_without_lock(data_state *state, uint32_t requesting_node,
 			uint8_t read, uint8_t write);
 
-void release_data(data_state *state, uint32_t requesting_node, uint32_t write_through_mask);
+void release_data(data_state *state, uint32_t write_through_mask);
 
 #endif // __COHERENCY__H__

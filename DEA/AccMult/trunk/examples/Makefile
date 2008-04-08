@@ -2,6 +2,8 @@
 CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
 CUDAINSTALLDIR=/usr/local/cuda/
 
+TARGET=incrementer 
+
 # for compile time tuning 
 DEFAULTSIZE=2048
 DEFAULTGRAIN=128
@@ -90,6 +92,7 @@ ifdef ATLAS
         CFLAGS+= -I$(ATLASDIR)/include/
         LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
         LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
+	TARGET += dw_mult
 endif
 
 
@@ -124,7 +127,7 @@ OBJDEPS += ../datawizard/hierarchy.o ../datawizard/filters.o
 ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
 BLASARCH=Linux_UNKNOWNSSE2
 
-all: incrementer dw_mult
+all: $(TARGET)
 
 incrementer.o: incrementer.c
 	$(CC) $(CFLAGS) incrementer.c -c -o incrementer.o

@@ -80,13 +80,12 @@ static void allocate_memory_on_node(data_state *state, uint32_t dst_node)
 
 	switch(descr.nodes[dst_node]) {
 		case RAM:
-			addr = (uintptr_t) malloc(state->nx*state->ny);
-			//printf("RAM addr allocated : %p \n", addr);
+			addr = (uintptr_t) malloc(state->nx*state->ny*state->elemsize);
 			break;
 #ifdef USE_CUBLAS
 		case CUBLAS_RAM:
-			cublasAlloc(state->nx*state->ny, 1, (void **)&addr); 
-			printf("CUBLAS addr allocated : %p \n", addr);
+			cublasAlloc(state->nx*state->ny, state->elemsize, (void **)&addr); 
+			printf("TOTO %d\n", (int) state->elemsize);
 			break;
 #endif
 		default:
@@ -108,17 +107,17 @@ void dummy_copy_ram_to_ram(data_state *state, uint32_t src_node, uint32_t dst_no
 	unsigned y;
 	for (y = 0; y < state->ny; y++)
 	{
-		uint32_t src_offset = y*state->per_node[src_node].ld;
-		uint32_t dst_offset = y*state->per_node[dst_node].ld;
+		uint32_t src_offset = y*state->per_node[src_node].ld*state->elemsize;
+		uint32_t dst_offset = y*state->per_node[dst_node].ld*state->elemsize;
 		memcpy((void *)(state->per_node[dst_node].ptr + dst_offset),
-			(void *)(state->per_node[src_node].ptr + src_offset), state->nx);
+			(void *)(state->per_node[src_node].ptr + src_offset), state->nx*state->elemsize);
 	}
 }
 
 #ifdef USE_CUBLAS
 void copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)
 {
-	cublasGetMatrix(state->nx, state->ny, 1, 
+	cublasGetMatrix(state->nx, state->ny, state->elemsize, 
 		(uint8_t *)state->per_node[src_node].ptr, state->per_node[src_node].ld,
 		(uint8_t *)state->per_node[dst_node].ptr, state->per_node[dst_node].ld);
 
@@ -126,7 +125,7 @@ void copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)
 
 void copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst_node)
 {
-	cublasSetMatrix(state->nx, state->ny, 1, 
+	cublasSetMatrix(state->nx, state->ny, state->elemsize, 
 		(uint8_t *)state->per_node[src_node].ptr, state->per_node[src_node].ld,
 		(uint8_t *)state->per_node[dst_node].ptr, state->per_node[dst_node].ld);
 }

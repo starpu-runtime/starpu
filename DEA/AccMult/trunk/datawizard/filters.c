@@ -22,7 +22,7 @@ unsigned block_filter_func(filter *f, data_state *root_data)
 	{
 		uint32_t chunk_size = (root_data->nx + nchunks - 1)/nchunks;
 
-		size_t offset = chunk*chunk_size;
+		size_t offset = chunk*chunk_size*root_data->elemsize;
 
 		root_data->children[chunk].nx = 
 			MIN(chunk_size, root_data->nx - offset);

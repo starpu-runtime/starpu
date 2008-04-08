@@ -9,7 +9,7 @@ typedef struct filter_t {
 } filter;
 
 void monitor_new_data(data_state *state, uint32_t home_node,
-             uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny);
+             uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny, size_t elemsize);
 
 void partition_data(data_state *initial_data, filter *f); 
 

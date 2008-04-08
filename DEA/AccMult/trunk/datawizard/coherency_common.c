@@ -3,6 +3,7 @@
 
 extern void driver_copy_data(data_state *state, uint32_t src_node_mask, uint32_t dst_node);
 extern void driver_copy_data_1_to_1(data_state *state, uint32_t node, uint32_t requesting_node);
+extern unsigned get_local_memory_node(void);
 
 void display_state(data_state *state)
 {
@@ -163,9 +164,9 @@ static uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
 	return state->per_node[requesting_node].ptr;
 }
 
-uintptr_t fetch_data(data_state *state, uint32_t requesting_node,
-			uint8_t read, uint8_t write)
+uintptr_t fetch_data(data_state *state, uint8_t read, uint8_t write)
 {
+	uint32_t requesting_node = get_local_memory_node(); 
 	return _fetch_data(state, requesting_node, read, write, 1);
 }
 
@@ -206,10 +207,11 @@ void write_through_data(data_state *state, uint32_t requesting_node, uint32_t wr
 
 /* in case the data was accessed on a write mode, do not forget to 
  * make it accessible again once it is possible ! */
-void release_data(data_state *state, uint32_t requesting_node, uint32_t write_through_mask)
+void release_data(data_state *state, uint32_t write_through_mask)
 {
 	/* normally, the requesting node should have the data in an exclusive manner */
-	ASSERT(state->per_node[requesting_node].state == OWNER);
+	uint32_t requesting_node = get_local_memory_node();
+	ASSERT(state->per_node[requesting_node].state != INVALID);
 	
 	/* are we doing write-through or just some normal write-back ? */
 	if (write_through_mask & ~(1<<requesting_node)) {

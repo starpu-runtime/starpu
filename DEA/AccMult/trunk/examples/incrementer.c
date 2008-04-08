@@ -54,35 +54,29 @@ void callback_func(__attribute__ ((unused)) void *argcb)
 
 void core_codelet(void *_args)
 {
-	unsigned node;
 	float *val;
 
 	data_state *data = (data_state *)_args;
 
-	node = get_local_memory_node();
-
-	val = (float *)fetch_data(data, node, 1, 1);
+	val = (float *)fetch_data(data, 1, 1);
 	val[0] += 1.0f; val[1] += 1.0f;
 
-	release_data(data, node, 0);
+	release_data(data, 0);
 }
 
 #ifdef USE_CUBLAS
 void cublas_codelet(void *_args)
 {
-	unsigned node;
 	float *val;
 
 	data_state *data = (data_state *)_args;
 
-	node = get_local_memory_node();
-
-	val = (float *)fetch_data(data, node, 1, 1);
-	dunity = (float *)fetch_data(&unity_state, node, 1, 0);
+	val = (float *)fetch_data(data, 1, 1);
+	dunity = (float *)fetch_data(&unity_state, 1, 0);
 	cublasSaxpy(3, 1.0f, dunity, 1, val, 1);
 
 	/* write-through is needed here ! */
-	release_data(data, node, 1<<0);
+	release_data(data, 1<<0);
 }
 #endif
 
@@ -144,10 +138,10 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	init_workers();
 
 	monitor_new_data(&my_float_root_state, 0 /* home node */,
-		(uintptr_t)&my_lovely_float, sizeof(my_lovely_float), sizeof(my_lovely_float), 1);
+		(uintptr_t)&my_lovely_float, 6, 6, 1, sizeof(float));
 
 	monitor_new_data(&unity_state, 0 /* home node */,
-		(uintptr_t)&unity, sizeof(unity), sizeof(unity), 1);
+		(uintptr_t)&unity, 3, 3, 1, sizeof(float));
 
 	filter f;
 		f.filter_func = block_filter_func;
