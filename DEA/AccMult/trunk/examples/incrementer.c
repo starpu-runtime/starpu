@@ -18,12 +18,13 @@
 
 #define NITER	1000
 
-data_state my_float_state;
+data_state *my_float_state;
+data_state my_float_root_state;
 data_state unity_state;
-data_state my_foo_state;
 data_state pouet_state;
 
-float my_lovely_float[3] = {0.0f, 0.0f, 0.0f};
+//float my_lovely_float[3] = {0.0f, 0.0f, 0.0f};
+float my_lovely_float[6] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 float unity[3] = {1.0f, 0.0f, 1.0f};
 float *dunity;
 
@@ -39,6 +40,8 @@ void callback_func(void *argcb)
 		printf("stopping ...\n");
 		exit(0);
 	}
+
+	unpartition_data(&my_float_root_state, 0);
 }
 
 void core_codelet(void *_args)
@@ -48,10 +51,10 @@ void core_codelet(void *_args)
 
 	node = get_local_memory_node();
 
-	val = (float *)fetch_data(&my_float_state, node, 1, 1);
+	val = (float *)fetch_data(my_float_state, node, 1, 1);
 	val[0] += 1.0f; val[1] += 1.0f;
 	
-	release_data(&my_float_state, node, 0);
+	release_data(my_float_state, node, 0);
 }
 
 #ifdef USE_CUBLAS
@@ -61,12 +64,12 @@ void cublas_codelet(void *_args)
 	float *val;
 	node = get_local_memory_node();
 
-	val = (float *)fetch_data(&my_float_state, node, 1, 1);
+	val = (float *)fetch_data(my_float_state, node, 1, 1);
 	dunity = (float *)fetch_data(&unity_state, node, 1, 0);
 	cublasSaxpy(3, 1.0f, dunity, 1, val, 1);
 
 	/* write-through is needed here ! */
-	release_data(&my_float_state, node, 1<<0);
+	release_data(my_float_state, node, 1<<0);
 }
 #endif
 
@@ -131,25 +134,20 @@ int main(int argc, char **argv)
 	init_workers();
 	printf("workers inited \n");
 
-	uint32_t fooooo;
-	monitor_new_data(&my_foo_state, 0 /* home node */,
-		(uintptr_t)&fooooo, sizeof(uint32_t));
-
-	monitor_new_data(&my_float_state, 0 /* home node */,
+	monitor_new_data(&my_float_root_state, 0 /* home node */,
 		(uintptr_t)&my_lovely_float, sizeof(my_lovely_float));
 
 	monitor_new_data(&unity_state, 0 /* home node */,
 		(uintptr_t)&unity, sizeof(unity));
 
-	monitor_new_data(&pouet_state, 0 /* home node */,
-		(uintptr_t)large_buf, sizeof(large_buf));
-
 	filter f;
 		f.filter_func = block_filter_func;
 		f.filter_arg = 2;
-	partition_data(&pouet_state, &f);
+	partition_data(&my_float_root_state, &f);
 
-	unpartition_data(&pouet_state, 0);
+	my_float_state = &my_float_root_state.children[0];
+
+
 	codelet cl;
 	job_t j;
 

@@ -27,11 +27,12 @@ int block_filter_func(filter *f, data_state *root_data)
 		root_data->children[chunk].length = 
 			MIN(chunk_size, root_data->length - offset);
 
+
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
 		{
 			local_data_state *local = &root_data->children[chunk].per_node[node];
-			if (local->allocated) {
+			if (root_data->per_node[node].allocated) {
 				local->ptr = root_data->per_node[node].ptr + offset;
 			}
 		}
