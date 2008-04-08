@@ -124,7 +124,7 @@ OBJDEPS += ../datawizard/hierarchy.o ../datawizard/filters.o
 ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
 BLASARCH=Linux_UNKNOWNSSE2
 
-all: incrementer
+all: incrementer dw_mult
 
 incrementer.o: incrementer.c
 	$(CC) $(CFLAGS) incrementer.c -c -o incrementer.o
@@ -148,6 +148,12 @@ multiplication2: multiplication2.o
 multiplication.o:
 	$(CC) $(CFLAGS) multiplication.c -c -o multiplication.o
 
+dw_mult.o: dw_mult.c
+	$(CC) $(CFLAGS) dw_mult.c -c -o dw_mult.o
+
+dw_mult: dw_mult.o
+	$(CC) dw_mult.o -o dw_mult $(OBJDEPS) $(LDFLAGS)
+
 multiplication: multiplication.o
 	$(CC) multiplication.o -o multiplication $(OBJDEPS) $(LDFLAGS) 
 
@@ -164,4 +170,4 @@ heat: factoLU.o heat.o
 	$(CC) -lglut -lGL -lGLU factoLU.o heat.o -o heat $(OBJDEPS) $(LDFLAGS)
 
 clean:
-	@rm -f multiplication multiplication2 factoLU heat gpuirq incrementer *.o
+	@rm -f multiplication multiplication2 factoLU heat gpuirq incrementer dw_mult *.o
