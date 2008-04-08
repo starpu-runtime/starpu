@@ -27,4 +27,9 @@ void set_local_memory_node_key(unsigned *node);
 unsigned get_local_memory_node(void);
 unsigned register_memory_node(node_kind kind);
 
+uintptr_t get_local_ptr(data_state *state);
+uint32_t get_local_ld(data_state *state);
+uint32_t get_local_nx(data_state *state);
+uint32_t get_local_ny(data_state *state);
+
 #endif // __COPY_DRIVER_H__

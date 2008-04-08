@@ -46,6 +46,34 @@ unsigned get_local_memory_node(void)
 	return *memory_node;
 }
 
+uint32_t get_local_ld(data_state *state)
+{
+	unsigned *memory_node;
+	memory_node = pthread_getspecific(memory_node_key);
+	ASSERT(memory_node);
+	ASSERT(state->per_node[*memory_node].allocated);
+	return state->per_node[*memory_node].ld;
+}
+
+uintptr_t get_local_ptr(data_state *state)
+{
+	unsigned *memory_node;
+	memory_node = pthread_getspecific(memory_node_key);
+	ASSERT(memory_node);
+	ASSERT(state->per_node[*memory_node].allocated);
+	return state->per_node[*memory_node].ptr;
+}
+
+uint32_t get_local_nx(data_state *state)
+{
+	return state->nx;
+}
+
+uint32_t get_local_ny(data_state *state)
+{
+	return state->ny;
+}
+
 static void allocate_memory_on_node(data_state *state, uint32_t dst_node)
 {
 	uintptr_t addr = 0;
