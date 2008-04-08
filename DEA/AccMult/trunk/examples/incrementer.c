@@ -11,6 +11,7 @@
 
 #include <datawizard/coherency.h>
 #include <datawizard/hierarchy.h>
+#include <datawizard/filters.h>
 
 #ifdef USE_GORDON
 #include "../drivers/gordon/externals/scalp/cell/gordon/gordon.h"

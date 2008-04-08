@@ -10,7 +10,8 @@ int main(int argc, char **argv)
 	register_memory_node(RAM);
 	register_memory_node(RAM);
 	register_memory_node(RAM);
-	register_memory_node(CUBLAS_RAM);
+	register_memory_node(RAM);
+//	register_memory_node(CUBLAS_RAM);
 
 	uint64_t my_lovely_integer = 0;
 

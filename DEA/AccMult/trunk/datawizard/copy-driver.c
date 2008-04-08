@@ -80,7 +80,6 @@ void driver_copy_data_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_
 	/* TODO clean */
 	if (!state->per_node[dst_node].allocated) {
 		/* there is no room available for the data yet */
-		printf("MALLOC on node %d \n", dst_node);
 		state->per_node[dst_node].ptr = 
 			allocate_memory_on_node(state, dst_node);
 		state->per_node[dst_node].allocated = 1;

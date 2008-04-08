@@ -118,7 +118,8 @@ OBJDEPS += ../common/matrix.o ../common/threads.o ../core/jobs.o ../core/workers
 
 LDFLAGS += -L../datawizard/
 CFLAGS += -I../datawizard/
-OBJDEPS += ../datawizard/copy-driver.o ../datawizard/coherency.o   ../datawizard/hierarchy.o
+OBJDEPS += ../datawizard/copy-driver.o ../datawizard/coherency.o 
+OBJDEPS += ../datawizard/hierarchy.o ../datawizard/filters.o
 
 ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
 BLASARCH=Linux_UNKNOWNSSE2
