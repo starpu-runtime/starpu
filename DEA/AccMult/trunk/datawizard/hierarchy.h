@@ -1,6 +1,7 @@
 #ifndef __HIERARCHY_H__
 #define __HIERARCHY_H__
 
+#include <stdarg.h>
 #include "datawizard/coherency.h"
 
 typedef struct filter_t {
@@ -15,5 +16,11 @@ void partition_data(data_state *initial_data, filter *f);
 void unpartition_data(data_state *root_data, uint32_t gathering_node);
 
 void map_filter(data_state *root_data, filter *f);
+
+/* unsigned list */
+data_state *get_sub_data(data_state *root_data, unsigned depth, ... );
+
+/* filter * list */
+void map_filters(data_state *root_data, unsigned nfilters, ...);
 
 #endif

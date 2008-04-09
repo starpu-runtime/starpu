@@ -189,11 +189,9 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	f2.filter_arg = nslicesy;
 		
 	partition_data(&B_state, &f);
-	partition_data(&C_state, &f);
-
-
 	partition_data(&A_state, &f2);
-	map_filter(&C_state, &f2);
+
+	map_filters(&C_state, 2, &f, &f2);
 
 	/* this array will contain the list of jobs to be performed */
 	multdescr jobarguments[nslicesx*nslicesy];
@@ -211,9 +209,9 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 			/* A B[task] = C[task] */
 			codelet *cl = malloc(sizeof(codelet));
 
-			jobarguments[task].subA = &A_state.children[tasky];
-			jobarguments[task].subB = &B_state.children[taskx];
-			jobarguments[task].subC = &C_state.children[taskx].children[tasky];
+			jobarguments[task].subA = get_sub_data(&A_state, 1, tasky);
+			jobarguments[task].subB = get_sub_data(&B_state, 1, taskx);
+			jobarguments[task].subC = get_sub_data(&C_state, 2, taskx, tasky);
 
 			cl->cl_arg = &jobarguments[task];
 			cl->core_func = core_mult;

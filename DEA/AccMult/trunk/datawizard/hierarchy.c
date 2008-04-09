@@ -74,6 +74,49 @@ void map_filter(data_state *root_data, filter *f)
 	}
 }
 
+void map_filters(data_state *root_data, unsigned nfilters, ...)
+{
+	unsigned i;
+	va_list pa;
+	va_start(pa, nfilters);
+	for (i = 0; i < nfilters; i++)
+	{
+		filter *next_filter;
+		next_filter = va_arg(pa, filter *);
+
+		ASSERT(next_filter);
+
+		map_filter(root_data, next_filter);
+	}
+	va_end(pa);
+}
+
+/*
+ * example get_sub_data(data_state *root_data, 3, 42, 0, 1);
+ */
+data_state *get_sub_data(data_state *root_data, unsigned depth, ... )
+{
+	ASSERT(root_data);
+	data_state *current_data = root_data;
+
+	/* the variable number of argument must correlate the depth in the tree */
+	unsigned i; 
+	va_list pa;
+	va_start(pa, depth);
+	for (i = 0; i < depth; i++)
+	{
+		unsigned next_child;
+		next_child = va_arg(pa, unsigned);
+
+		ASSERT((int)next_child < current_data->nchildren);
+
+		current_data = &current_data->children[next_child];
+	}
+	va_end(pa);
+
+	return current_data;
+}
+
 /*
  * For now, we assume that partitionned_data is already properly allocated;
  * at least by the filter function !
