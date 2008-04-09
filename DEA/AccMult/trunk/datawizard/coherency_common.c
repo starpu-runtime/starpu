@@ -1,8 +1,8 @@
 /* this file is intended to be used by both gcc and
  *  spu-gcc so that we don't copy code twice ... */
 
-extern void driver_copy_data(data_state *state, uint32_t src_node_mask, uint32_t dst_node);
-extern void driver_copy_data_1_to_1(data_state *state, uint32_t node, uint32_t requesting_node);
+extern void driver_copy_data(data_state *state, uint32_t src_node_mask, uint32_t dst_node, unsigned donotread);
+extern void driver_copy_data_1_to_1(data_state *state, uint32_t node, uint32_t requesting_node, unsigned donotread);
 extern unsigned get_local_memory_node(void);
 
 void display_state(data_state *state)
@@ -30,7 +30,7 @@ void display_state(data_state *state)
 }
 
 /* this function will actually copy a valid data into the requesting node */
-void copy_data_to_node(data_state *state, uint32_t requesting_node)
+static void copy_data_to_node(data_state *state, uint32_t requesting_node, unsigned donotread)
 {
 	/* first find a valid copy, either a OWNER or a SHARED */
 	uint32_t node;
@@ -46,7 +46,7 @@ void copy_data_to_node(data_state *state, uint32_t requesting_node)
 	/* we should have found at least one copy ! */
 	ASSERT(src_node_mask != 0);
 
-	driver_copy_data(state, src_node_mask, requesting_node);
+	driver_copy_data(state, src_node_mask, requesting_node, donotread);
 	return;
 }
 
@@ -127,8 +127,7 @@ static uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
 	ASSERT(state->per_node[requesting_node].state == INVALID);
 
 	/* we first need to copy the data from either the owner or one of the sharer */
-	/* XXX don't actually read data if you don't need ! */
-	copy_data_to_node(state, requesting_node);
+	copy_data_to_node(state, requesting_node, !read);
 
 	if (write) {
 		/* the requesting node now has the only valid copy */
@@ -190,7 +189,7 @@ void write_through_data(data_state *state, uint32_t requesting_node, uint32_t wr
 			{
 //				printf("write_through_data %d -> %d \n", requesting_node, node);
 				/* the requesting node already has the data by definition */
-				driver_copy_data_1_to_1(state, requesting_node, node);
+				driver_copy_data_1_to_1(state, requesting_node, node, 0);
 			}
 				
 			/* now the data is shared among the nodes on the write_through_mask */

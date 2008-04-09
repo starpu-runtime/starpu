@@ -73,4 +73,6 @@ typedef struct cublas_worker_arg_t {
 
 void *cublas_worker(void *);
 
+unsigned get_cublas_device_count(void);
+
 #endif //  __MULT_CUBLAS_H__

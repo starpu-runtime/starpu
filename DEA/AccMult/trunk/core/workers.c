@@ -213,7 +213,7 @@ void terminate_workers(void)
 #endif
 
 #ifdef USE_CUBLAS
-	int cublasdev;
+	unsigned cublasdev;
 	for (cublasdev = 0; cublasdev < ncublasgpus; cublasdev++)
 	{
 		thread_join(cublasthreads[cublasdev], NULL);

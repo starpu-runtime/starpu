@@ -78,6 +78,7 @@ static void allocate_memory_on_node(data_state *state, uint32_t dst_node)
 {
 	uintptr_t addr = 0;
 
+//	printf("locate node = %d addr = %p dst_node =%d x %d y %d xy %d\n", get_local_memory_node(), (void *)addr, dst_node, state->nx, state->ny, state->nx*state->ny);
 	switch(descr.nodes[dst_node]) {
 		case RAM:
 			addr = (uintptr_t) malloc(state->nx*state->ny*state->elemsize);
@@ -85,7 +86,6 @@ static void allocate_memory_on_node(data_state *state, uint32_t dst_node)
 #ifdef USE_CUBLAS
 		case CUBLAS_RAM:
 			cublasAlloc(state->nx*state->ny, state->elemsize, (void **)&addr); 
-			printf("TOTO %d\n", (int) state->elemsize);
 			break;
 #endif
 		default:
@@ -131,16 +131,18 @@ void copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst_node)
 }
 #endif // USE_CUBLAS
 
-void driver_copy_data_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node)
+void driver_copy_data_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node, unsigned donotread)
 {
 	//printf("copy data from node %d to node %d\n", src_node, dst_node);
 
 	/* first make sure the destination has an allocated buffer */
-	/* TODO clean */
 	if (!state->per_node[dst_node].allocated) {
 		/* there is no room available for the data yet */
 		allocate_memory_on_node(state, dst_node);
 	}
+
+	/* if there is no need to actually read the data, we do not perform any transfer */
+	if (donotread) return;
 
 	/* XXX clean that !  */
 	switch(descr.nodes[dst_node]) {
@@ -263,5 +265,5 @@ void driver_copy_data(data_state *state, uint32_t src_node_mask, uint32_t dst_no
 		}
 	}
 
-	driver_copy_data_1_to_1(state, src_node, dst_node);
+	driver_copy_data_1_to_1(state, src_node, dst_node, 0);
 }

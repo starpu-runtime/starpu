@@ -28,6 +28,9 @@ data_state A_state;
 data_state B_state;
 data_state C_state;
 
+
+unsigned x,y,z;
+
 /*
  * That program should compute C = A * B 
  * 
@@ -36,17 +39,64 @@ data_state C_state;
  *   C of size (x,y)
  */
 
-void callback_func(__attribute__ ((unused)) void *arg)
+void terminate(void)
+{
+
+	unpartition_data(&C_state, 0);
+
+#ifdef CHECK_OUTPUT
+	/* check results */
+	unsigned i,j,k;
+	float tmp;
+	unsigned bad, total;
+
+
+	bad = 0;
+	total = 0;
+
+	for (j = 0; j < y; j++) 
+	{
+		for (i = 0; i < x; i++)
+		{
+			tmp = 0.0f;
+			for (k = 0; k < z; k++)
+			{
+				tmp += A[k+j*z]*B[i+k*x];
+			}
+
+			if (fabs(tmp - C[i+j*x]) > 0.1f)
+			{
+				printf("(%d,%d) differs should be %f, but is %f!\n", i, j, tmp, C[i+j*x]);	
+				bad++;
+			}
+
+			total++;
+		}
+	}
+
+	if (bad != 0)
+	{
+		printf("Bahhh got %d wrong out of %d\n", bad, total);
+	}
+	else {
+		printf("Results are OK\n");
+	}
+#endif // CHECK_OUTPUT
+
+	exit(0);
+}
+
+void callback_func(void *arg)
 {
 	/* the argument is a pointer to a counter of the remaining jobs */
 	int *counter = arg;
-	*counter = *counter - 1;
-
-	if (*counter == 0) {
+	//if (ATOMIC_ADD(counter, -1))
+	*counter -= 1;
+	if(*counter == 0)
+	{
 		/* we are done */	
-		/* TODO unfilter */
 		printf("done ...\n");
-		exit(0);
+		terminate();
 	}
 
 	return;
@@ -64,7 +114,7 @@ void callback_func(__attribute__ ((unused)) void *arg)
 									\
 	subA = (float *)fetch_data(descr->subA, 1, 0);			\
 	subB = (float *)fetch_data(descr->subB, 1, 0);			\
-	subC = (float *)fetch_data(descr->subC, 1, 1);			\
+	subC = (float *)fetch_data(descr->subC, 0, 1);			\
 									\
 	nxC = get_local_nx(descr->subC);				\
 	nyC = get_local_ny(descr->subC);				\
@@ -75,7 +125,7 @@ void callback_func(__attribute__ ((unused)) void *arg)
 	ldC = get_local_ld(descr->subC);		
 
 #ifdef USE_CUBLAS
-void cublas_mult(__attribute__ ((unused)) void *arg)
+void cublas_mult(void *arg)
 {
 	COMMON_CODE
 
@@ -85,11 +135,13 @@ void cublas_mult(__attribute__ ((unused)) void *arg)
 }
 #endif
 
-void core_mult(__attribute__ ((unused)) void *arg)
+void core_mult(void *arg)
 {
 	COMMON_CODE
 
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, nxC, nyC, nxA,
+	printf("nxC %d nyX %d nxA %d \n", nxC, nyC, nxA);
+
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, nyC, nxC, nxA,
 			 1.0f,  subA, ldA, subB, ldB, 0.0f, subC, ldC);
 
 	release_data(descr->subC, 0);
@@ -97,24 +149,42 @@ void core_mult(__attribute__ ((unused)) void *arg)
 
 int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)
 {
-	unsigned x,y,z;
-	unsigned nslices;
+	unsigned i,j;
+	unsigned nslicesx, nslicesy;
 
 	int jobcounter;
 
-	x = 4096;
-	y = 4096;
-	z = 2048;
+	x = 1024;
+	y = 1024;
+	z = 1024;
 
-	nslices = 8;
-	jobcounter = 8;
+	nslicesx = 4;
+	nslicesy = 4;
+	jobcounter = nslicesx * nslicesy;
 
 	A = malloc(z*y*sizeof(float));
 	B = malloc(x*z*sizeof(float));
 	C = malloc(x*y*sizeof(float));
 
 	/* fill the A and B matrices */
-	/* TODO */
+	srand(2008);
+	for (i=0; i < z; i++) {
+		for (j=0; j < y; j++) {
+			A[i+j*z] = (float)(drand48());
+		}
+	}
+
+	for (i=0; i < x; i++) {
+		for (j=0; j < z; j++) {
+			B[i+j*x] = (float)(drand48());
+		}
+	}
+
+	for (i=0; i < x; i++) {
+		for (j=0; j < y; j++) {
+			C[i+j*x] = (float)(0);
+		}
+	}
 
 	/* start the runtime */
 	init_machine();
@@ -126,40 +196,56 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 
 	filter f;
 	f.filter_func = block_filter_func;
-	f.filter_arg = nslices;
+	f.filter_arg = nslicesx;
+		
+	filter f2;
+	f2.filter_func = vertical_block_filter_func;
+	f2.filter_arg = nslicesy;
 		
 	partition_data(&B_state, &f);
 	partition_data(&C_state, &f);
 
+
+	partition_data(&A_state, &f2);
+	map_filter(&C_state, &f2);
+
 	/* this array will contain the list of jobs to be performed */
-	multdescr jobarguments[nslices];
+	multdescr jobarguments[nslicesx*nslicesy];
 
 	/* partition the work into slices */
-	unsigned task;
-	for (task = 0; task < nslices; task++) 
+	unsigned taskx, tasky, task;
+	job_t jb;
+
+	task = 0;
+
+	for (taskx = 0; taskx < nslicesx; taskx++) 
 	{
-		/* A B[task] = C[task] */
-		job_t j;
-		codelet *cl = malloc(sizeof(codelet));
+		for (tasky = 0; tasky < nslicesy; tasky++)
+		{
+			/* A B[task] = C[task] */
+			codelet *cl = malloc(sizeof(codelet));
 
-		jobarguments[task].subA = &A_state;
-		jobarguments[task].subB = &B_state.children[task];
-		jobarguments[task].subC = &C_state.children[task];
+			jobarguments[task].subA = &A_state.children[tasky];
+			jobarguments[task].subB = &B_state.children[taskx];
+			jobarguments[task].subC = &C_state.children[taskx].children[tasky];
 
-		cl->cl_arg = &jobarguments[task];
-		cl->core_func = core_mult;
+			cl->cl_arg = &jobarguments[task];
+			cl->core_func = core_mult;
 #ifdef USE_CUBLAS
-		cl->cublas_func = cublas_mult;
+			cl->cublas_func = cublas_mult;
 #endif
 
-		j = job_new();
-		j->type = CODELET;
-		j->where = ANY;
-		j->cb = callback_func;
-		j->argcb = &jobcounter;
-		j->cl = cl;
-		
-		push_task(j);
+			jb = job_new();
+			jb->type = CODELET;
+			jb->where = ANY;
+			jb->cb = callback_func;
+			jb->argcb = &jobcounter;
+			jb->cl = cl;
+			
+			push_task(jb);
+
+			task++;
+		}
 	}
 
 	sleep(100);

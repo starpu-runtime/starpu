@@ -64,7 +64,6 @@ typedef struct data_state_t {
 void take_lock(data_lock *lock);
 void release_lock(data_lock *lock);
 void display_state(data_state *state);
-void copy_data_to_node(data_state *state, uint32_t requesting_node);
 uintptr_t fetch_data(data_state *state, uint8_t read, uint8_t write);
 uintptr_t fetch_data_without_lock(data_state *state, uint32_t requesting_node,
 			uint8_t read, uint8_t write);

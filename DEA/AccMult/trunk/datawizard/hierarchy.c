@@ -18,6 +18,9 @@ void monitor_new_data(data_state *state, uint32_t home_node,
 	/* we assume that all nodes may use that data */
 	state->nnodes = MAXNODES;
 
+	/* there is no hierarchy yet */
+	state->nchildren = 0;
+
 	/* make sure we do have a valid copy */
 	ASSERT(home_node < MAXNODES);
 
@@ -48,6 +51,27 @@ void monitor_new_data(data_state *state, uint32_t home_node,
 
 	/* now the data is available ! */
 	release_lock(&state->lock);
+}
+
+/*
+ * This function applies a filter on all the elements of a partition
+ */
+void map_filter(data_state *root_data, filter *f)
+{
+	/* we need to apply the filter on all leaf of the tree */
+	if (root_data->nchildren == 0) 
+	{
+		/* this is a leaf */
+		partition_data(root_data, f);
+	}
+	else {
+		/* try to apply the filter recursively */
+		int child;
+		for (child = 0; child < root_data->nchildren; child++)
+		{
+			map_filter(&root_data->children[child], f);
+		}
+	}
 }
 
 /*
@@ -155,6 +179,9 @@ void unpartition_data(data_state *root_data, uint32_t gathering_node)
 		root_data->per_node[node].state = 
 			still_valid[node]?newstate:INVALID;
 	}
+
+	/* there is no child anymore */
+	root_data->nchildren = 0;
 
 	/* now the parent may be used again so we release the lock */
 	release_lock(&root_data->lock);
