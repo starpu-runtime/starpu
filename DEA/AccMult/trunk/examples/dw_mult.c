@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <cblas.h>
+#include <common/timing.h>
 
 #include <datawizard/coherency.h>
 #include <datawizard/hierarchy.h>
@@ -28,6 +29,8 @@ data_state A_state;
 data_state B_state;
 data_state C_state;
 
+tick_t start;
+tick_t end;
 
 unsigned x,y,z;
 
@@ -41,45 +44,27 @@ unsigned x,y,z;
 
 void terminate(void)
 {
+	GET_TICK(end);
 
 	unpartition_data(&C_state, 0);
 
+	printf("Computation took %2.2f ms\n", TIMING_DELAY(start, end)/1000);
+
 #ifdef CHECK_OUTPUT
 	/* check results */
-	unsigned i,j,k;
-	float tmp;
-	unsigned bad, total;
-
-
-	bad = 0;
-	total = 0;
-
-	for (j = 0; j < y; j++) 
-	{
-		for (i = 0; i < x; i++)
-		{
-			tmp = 0.0f;
-			for (k = 0; k < z; k++)
-			{
-				tmp += A[k+j*z]*B[i+k*x];
-			}
-
-			if (fabs(tmp - C[i+j*x]) > 0.1f)
-			{
-				printf("(%d,%d) differs should be %f, but is %f!\n", i, j, tmp, C[i+j*x]);	
-				bad++;
-			}
-
-			total++;
-		}
-	}
-
-	if (bad != 0)
-	{
-		printf("Bahhh got %d wrong out of %d\n", bad, total);
+	/* compute C = C - AB */
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, y, x, z,
+			 -1.0f,  A, z, B, x, 1.0f, C, x);
+		
+	/* make sure C = 0 */
+	float err;
+	err = cblas_sasum(x*y, C, 1);	
+	
+	if (err < x*y*0.001) {
+		printf("Results are OK\n");
 	}
 	else {
-		printf("Results are OK\n");
+		printf("There were errors ... err = %f\n", err);
 	}
 #endif // CHECK_OUTPUT
 
@@ -90,9 +75,8 @@ void callback_func(void *arg)
 {
 	/* the argument is a pointer to a counter of the remaining jobs */
 	int *counter = arg;
-	//if (ATOMIC_ADD(counter, -1))
 	*counter -= 1;
-	if(*counter == 0)
+	if (*counter == 0)
 	{
 		/* we are done */	
 		printf("done ...\n");
@@ -139,8 +123,6 @@ void core_mult(void *arg)
 {
 	COMMON_CODE
 
-	printf("nxC %d nyX %d nxA %d \n", nxC, nyC, nxA);
-
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, nyC, nxC, nxA,
 			 1.0f,  subA, ldA, subB, ldB, 0.0f, subC, ldC);
 
@@ -154,9 +136,12 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 
 	int jobcounter;
 
-	x = 1024;
-	y = 1024;
-	z = 1024;
+
+	timing_init();
+
+	x = 4096;
+	y = 4096;
+	z = 4096;
 
 	nslicesx = 4;
 	nslicesy = 4;
@@ -190,6 +175,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	init_machine();
 	init_workers();
 
+	GET_TICK(start);
 	monitor_new_data(&A_state, 0, (uintptr_t)A, z, z, y, sizeof(float));
 	monitor_new_data(&B_state, 0, (uintptr_t)B, x, x, z, sizeof(float));
 	monitor_new_data(&C_state, 0, (uintptr_t)C, x, x, y, sizeof(float));
