@@ -163,9 +163,14 @@ static uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
 	return state->per_node[requesting_node].ptr;
 }
 
-uintptr_t fetch_data(data_state *state, uint8_t read, uint8_t write)
+uintptr_t fetch_data(data_state *state, access_mode mode)
 {
 	uint32_t requesting_node = get_local_memory_node(); 
+
+	uint8_t read, write;
+	read = (mode != W); /* then R or RW */
+	write = (mode != R); /* then W or RW */
+
 	return _fetch_data(state, requesting_node, read, write, 1);
 }
 

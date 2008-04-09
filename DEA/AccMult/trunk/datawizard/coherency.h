@@ -21,6 +21,12 @@ typedef enum {
 	INVALID
 } cache_state;
 
+typedef enum {
+	R,
+	W,
+	RW
+} access_mode;
+
 /* this should contain the information relative to a given node */
 typedef struct local_data_state_t {
 	/* describes the state of the local data in term of coherency */
@@ -64,7 +70,7 @@ typedef struct data_state_t {
 void take_lock(data_lock *lock);
 void release_lock(data_lock *lock);
 void display_state(data_state *state);
-uintptr_t fetch_data(data_state *state, uint8_t read, uint8_t write);
+uintptr_t fetch_data(data_state *state, access_mode mode);
 uintptr_t fetch_data_without_lock(data_state *state, uint32_t requesting_node,
 			uint8_t read, uint8_t write);
 

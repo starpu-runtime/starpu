@@ -96,9 +96,9 @@ void callback_func(void *arg)
 									\
 	multdescr *descr = arg;						\
 									\
-	subA = (float *)fetch_data(descr->subA, 1, 0);			\
-	subB = (float *)fetch_data(descr->subB, 1, 0);			\
-	subC = (float *)fetch_data(descr->subC, 0, 1);			\
+	subA = (float *)fetch_data(descr->subA, R);			\
+	subB = (float *)fetch_data(descr->subB, R);			\
+	subC = (float *)fetch_data(descr->subC, W);			\
 									\
 	nxC = get_local_nx(descr->subC);				\
 	nyC = get_local_ny(descr->subC);				\

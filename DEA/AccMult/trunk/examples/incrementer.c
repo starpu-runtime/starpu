@@ -58,7 +58,7 @@ void core_codelet(void *_args)
 
 	data_state *data = (data_state *)_args;
 
-	val = (float *)fetch_data(data, 1, 1);
+	val = (float *)fetch_data(data, RW);
 	val[0] += 1.0f; val[1] += 1.0f;
 
 	release_data(data, 0);
@@ -71,8 +71,8 @@ void cublas_codelet(void *_args)
 
 	data_state *data = (data_state *)_args;
 
-	val = (float *)fetch_data(data, 1, 1);
-	dunity = (float *)fetch_data(&unity_state, 1, 0);
+	val = (float *)fetch_data(data, RW);
+	dunity = (float *)fetch_data(&unity_state, R);
 	cublasSaxpy(3, 1.0f, dunity, 1, val, 1);
 
 	/* write-through is needed here ! */
