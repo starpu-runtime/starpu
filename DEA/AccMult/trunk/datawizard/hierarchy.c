@@ -97,6 +97,7 @@ void partition_data(data_state *initial_data, filter *f)
 		data_state *children = &initial_data->children[i];
 
 		children->elemsize = initial_data->elemsize;
+		children->nchildren = 0;
 
 		/* initialize the chunk lock */
 		children->lock.taken = FREE;

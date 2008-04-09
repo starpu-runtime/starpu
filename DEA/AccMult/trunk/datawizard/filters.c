@@ -59,7 +59,6 @@ unsigned vertical_block_filter_func(filter *f, data_state *root_data)
 	{
 		uint32_t chunk_size = (root_data->ny + nchunks - 1)/nchunks;
 
-		size_t offset = chunk*chunk_size*root_data->nx*root_data->elemsize;
 
 		root_data->children[chunk].nx = root_data->nx; 
 		root_data->children[chunk].ny =
@@ -70,6 +69,7 @@ unsigned vertical_block_filter_func(filter *f, data_state *root_data)
 		{
 			local_data_state *local = &root_data->children[chunk].per_node[node];
 			if (root_data->per_node[node].allocated) {
+				size_t offset = chunk*chunk_size*root_data->per_node[node].ld*root_data->elemsize;
 				local->ptr = root_data->per_node[node].ptr + offset;
 				local->ld = root_data->per_node[node].ld;
 			}
