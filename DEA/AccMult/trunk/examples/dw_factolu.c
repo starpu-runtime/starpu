@@ -8,6 +8,9 @@
 
 #include "dw_factolu.h"
 
+tick_t start;
+tick_t end;
+
 void dw_callback_codelet_update_u22(void *argcb)
 {
 	cl_args *args = argcb;	
@@ -416,6 +419,8 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 	cl.cl_arg = &args;
 	cl.core_func = dw_core_codelet_update_u11;
 
+	GET_TICK(start);
+
 	/* inject a new task with this codelet into the system */ 
 	job_t j = job_new();
 		j->type = CODELET;
@@ -430,7 +435,8 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 	/* stall the application until the end of computations */
 	sem_wait(&sem);
 	sem_destroy(&sem);
-	printf("FINISH !!!\n");
+	GET_TICK(end);
+	printf("Computation took %2.2f ms\n", TIMING_DELAY(start, end)/1000);
 }
 
 static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
@@ -480,6 +486,8 @@ void dw_factoLU(float *matA, unsigned size, unsigned nblocks)
 {
 	init_machine();
 	init_workers();
+
+	timing_init();
 
 	data_state dataA;
 
