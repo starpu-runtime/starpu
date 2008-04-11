@@ -60,7 +60,7 @@ void dw_cublas_codelet_update_u22(void *_args)
 	COMMON_CODE_U22
 
 	cublasSgemm('n', 'n', dx, dy, dz, -1.0f, left, ld21,
-			right, ld21, 1.0f, center, ld22);
+			right, ld12, 1.0f, center, ld22);
 
 	release_data(data22, 1<<0);
 }
@@ -441,11 +441,11 @@ void dw_factoLU(float *matA, unsigned size, unsigned nblocks)
 	dw_codelet_facto(&dataA, nblocks);
 }
 
-int main(int argc, char **argv)
+int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)
 {
 	float *A;
 
-	int size = 8192;
+	unsigned size = 8192;
 	int nblocks = 32;
 
 	A = malloc(size*size*sizeof(float));

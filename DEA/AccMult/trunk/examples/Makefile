@@ -2,7 +2,7 @@
 CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
 CUDAINSTALLDIR=/usr/local/cuda/
 
-TARGET=incrementer dw_factolu 
+TARGET=incrementer 
 
 # for compile time tuning 
 DEFAULTSIZE=2048
@@ -92,7 +92,7 @@ ifdef ATLAS
         CFLAGS+= -I$(ATLASDIR)/include/
         LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
         LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
-	TARGET += dw_mult
+	TARGET += dw_mult dw_factolu
 endif
 
 
@@ -179,4 +179,4 @@ heat: factoLU.o heat.o
 	$(CC) -lglut -lGL -lGLU factoLU.o heat.o -o heat $(OBJDEPS) $(LDFLAGS)
 
 clean:
-	@rm -f multiplication multiplication2 factoLU heat gpuirq incrementer dw_mult *.o
+	@rm -f multiplication multiplication2 factoLU heat gpuirq incrementer dw_mult dw_factolu *.o
