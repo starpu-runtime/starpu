@@ -12,7 +12,7 @@ void dw_callback_codelet_update_u22(void *argcb)
 {
 	cl_args *args = argcb;	
 
-	if (ATOMIC_ADD(&args->remaining, (-1)) == 0)
+	if (ATOMIC_ADD(args->remaining, (-1)) == 0)
 	{
 		/* we now reduce the LU22 part (recursion appears there) */
 		codelet *cl = malloc(sizeof(codelet));
@@ -85,8 +85,6 @@ void dw_callback_codelet_update_u22(void *argcb)
 //	nrow21 = (endy - starty);
 //
 //	ncol21 = (LU21->xb - LU21->xa);
-//
-////	printf("SIZES : 12 %d 21 %d 22 %d \n", sizeLU12, sizeLU21, sizeLU22);
 //
 //	cublasStatus ret; 
 //	ret = cublasAlloc(sizeLU12, sizeof(float), (void **)&subLU12);
@@ -396,9 +394,9 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 		*remaining = (nblocks - 1 - i)*(nblocks - 1 - i);
 
 		unsigned slicey, slicex;
-		for (slicey = i; slicey < nblocks; slicey++)
+		for (slicey = i+1; slicey < nblocks; slicey++)
 		{
-			for (slicex = i; slicex < nblocks; slicex++)
+			for (slicex = i+1; slicex < nblocks; slicex++)
 			{
 				/* update that square matrix */
 				cl_args *u22a = malloc(sizeof(cl_args));
@@ -453,8 +451,8 @@ void dw_core_codelet_update_u21(void *_args)
 	unsigned nx21 = get_local_nx(data21);
 	unsigned ny21 = get_local_ny(data21);
 
-	cblas_strsm(CblasRowMajor, CblasRight, CblasUpper, CblasNoTrans, CblasUnit,
-		 nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
+	cblas_strsm(CblasRowMajor, CblasRight, CblasUpper, CblasNoTrans, 
+		CblasUnit, nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 
 	release_data(data21, 0);
 }
@@ -543,12 +541,10 @@ void dw_core_codelet_update_u11(void *_args)
 	sub11 = (float *)fetch_data(subdata11, RW); 
 
 	unsigned nx = get_local_nx(subdata11);
-	unsigned ny = get_local_ny(subdata11);
 	unsigned ld = get_local_ld(subdata11);
 
-	ASSERT(nx = ny);
-
 	unsigned x, y, z;
+
 	for (z = 0; z < nx; z++)
 	{
 		for (x = z+1; x < nx ; x++)
@@ -583,6 +579,7 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 
 	args.sem = &sem;
 	args.i = 0;
+	args.nblocks = nblocks;
 	args.dataA = dataA;
 
 	cl.cl_arg = &args;
@@ -605,6 +602,81 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 	printf("FINISH !!!\n");
 }
 
+static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
+				unsigned size)
+{
+	unsigned i,j;
+	float *L;
+	float *U;
+
+	L = malloc(size*size*sizeof(float));
+	U = malloc(size*size*sizeof(float));
+
+	memset(L, 0, size*size*sizeof(float));
+	memset(U, 0, size*size*sizeof(float));
+
+	/* only keep the lower part */
+	for (j = 0; j < size; j++)
+	{
+		for (i = 0; i < j; i++)
+		{
+			L[i+j*size] = LU[i+j*size];
+		}
+
+		/* diag i = j */
+		L[j+j*size] = LU[j+j*size];
+		U[j+j*size] = 1.0f;
+
+		for (i = j+1; i < size; i++)
+		{
+			U[i+j*size] = LU[i+j*size];
+		}
+	}
+
+//	printf("** L **\n");
+//	for (j = 0; j < size; j++)
+//	{
+//		for (i=0; i < size; i++)
+//		{
+//			printf("%2.2f ", L[i+j*size]);
+//		}
+//		printf("\n");
+//	}
+//
+//	printf("** U **\n");
+//	for (j = 0; j < size; j++)
+//	{
+//		for (i=0; i < size; i++)
+//		{
+//			printf("%2.2f ", U[i+j*size]);
+//		}
+//		printf("\n");
+//	}
+//
+//	printf("** LU **\n");
+//	for (j = 0; j < size; j++)
+//	{
+//		for (i=0; i < size; i++)
+//		{
+//			printf("%2.2f ", L[i+j*size]);
+//		}
+//		printf("\n");
+//	}
+//
+//
+
+
+        /* now A_err = L, compute L*U */
+	cblas_strmm(CblasRowMajor, CblasRight, CblasUpper, CblasNoTrans, 
+			CblasUnit, size, size, 1.0f, U, size, L, size);
+
+	float max_err = 0.0f;
+	for (i = 0; i < size*size ; i++)
+	{
+		max_err = MAX(max_err, fabs(  L[i] - A[i]  ));
+	}
+	printf("max error between A and L*U = %f \n", max_err);
+}
 
 void dw_factoLU(float *matA, unsigned size, unsigned nblocks)
 {
@@ -628,4 +700,36 @@ void dw_factoLU(float *matA, unsigned size, unsigned nblocks)
 	map_filters(&dataA, 2, &f, &f2);
 
 	dw_codelet_facto(&dataA, nblocks);
+}
+
+int main(int argc, char **argv)
+{
+	float *A;
+
+	int size = 4096;
+	int nblocks = 8;
+
+	A = malloc(size*size*sizeof(float));
+
+	float *Asaved;
+	Asaved = malloc(size*size*sizeof(float));
+
+	srand(2008);
+	unsigned i,j;
+//	printf(" ** A ** \n");
+	for (j=0; j < size; j++) {
+		for (i=0; i < size; i++) {
+			A[i+j*size] = (float)(drand48()+(i==j?10000.0f:0.0f));
+			Asaved[i+j*size] = A[i+j*size];
+			//printf("%2.2f ", A[i+j*size]);
+		}
+//		printf("\n");
+	}
+
+	dw_factoLU(A, size, nblocks);
+
+	compare_A_LU(Asaved, A, size);
+
+
+	return 0;
 }

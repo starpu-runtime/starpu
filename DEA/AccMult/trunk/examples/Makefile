@@ -2,7 +2,7 @@
 CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
 CUDAINSTALLDIR=/usr/local/cuda/
 
-TARGET=incrementer dw_factolu.o 
+TARGET=incrementer dw_factolu 
 
 # for compile time tuning 
 DEFAULTSIZE=2048
@@ -153,6 +153,9 @@ multiplication.o:
 
 dw_factolu.o: dw_factolu.c dw_factolu.h
 	$(CC) $(CFLAGS) dw_factolu.c -c -o dw_factolu.o
+
+dw_factolu: dw_factolu.o
+	$(CC) dw_factolu.o -o dw_factolu $(OBJDEPS) $(LDFLAGS)
 
 dw_mult.o: dw_mult.c
 	$(CC) $(CFLAGS) dw_mult.c -c -o dw_mult.o
