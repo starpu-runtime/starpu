@@ -1,7 +1,7 @@
 #include "heat.h"
 
-#define NTHETA	SIZE
-#define NTHICK	22
+#define NTHETA	(16+2)
+#define NTHICK	(8+2)
 
 #define MIN(a,b)	((a)<(b)?(a):(b))
 #define MAX(a,b)	((a)<(b)?(b):(a))
@@ -12,7 +12,6 @@
 #define RMAX	(200.0f)
 
 #define Pi	(3.141592f)
-
 
 #define NODE_NUMBER(theta, thick)	((thick)+(theta)*NTHICK)
 #define NODE_TO_THICK(n)		((n) % NTHICK)
@@ -27,13 +26,6 @@ typedef struct point_t {
 	float y;
 } point;
 
-//typedef struct triangle_t {
-//	point *A;
-//	point *B;
-//	point *C;
-//} triangle;
-
-
 float minval, maxval;
 float *result;
 int *RefArray;
@@ -44,12 +36,8 @@ float *Ares;
 float *subAres;
 float *B;
 float *subB;
-float *Xres;
 float *subXres;
-float *Yres;
-float *subYres;
 float *LU;
-float *subLU;
 float *L;
 float *subL;
 float *U;
@@ -59,6 +47,8 @@ unsigned printmesh =0;
 
 int argc_;
 char **argv_;
+
+
 	/*
 	 *   B              C
 	 *	**********
@@ -477,62 +467,9 @@ static void postscript_gen()
 }
 #endif
 
-static void __attribute__ ((unused)) dummy_lu_facto(int subsize)
-{
-	int k, i, j;
-
-//	memcpy(LU, A, DIM*DIM*sizeof(float));
-
-	memcpy(subLU, subA, DIM*DIM*sizeof(float));
-
-
-	/* LU factorisation of the stifness matrix */
-	printf("LU Factorization\n");
-
-	for (k = 0; k < subsize; k++) {
-		for (i = k+1; LIKELY(i < subsize) ; i++)
-		{
-		        assert(subLU[k+k*subsize] != 0.0);
-			subLU[i+k*subsize] = subLU[i+k*subsize] / subLU[k+k*subsize];
-		}
-
-		for (j = k+1; j < subsize; j++)
-		{
-			for (i = k+1; LIKELY(i < subsize); i++)
-			{
-			        subLU[i+j*subsize] -= subLU[i+k*subsize]*subLU[k+j*subsize];
-			}
-		}
-
-	}
-
-//
-//	for (k = 0; k < DIM; k++) {
-//
-//		for (i = k+1; i < DIM ; i++)
-//		{
-//		        assert(LU[k+k*DIM] != 0.0);
-//			LU[i+k*DIM] = LU[i+k*DIM] / LU[k+k*DIM];
-//		}
-//
-//		for (j = k+1; j < DIM; j++)
-//		{
-//			for (i = k+1; i < DIM; i++)
-//			{
-//			        LU[i+j*DIM] -= LU[i+k*DIM]*LU[k+j*DIM];
-//			}
-//		}
-//
-//	}
-
-}
-
-static void solve_system(int subsize)
+static void solve_system(unsigned subsize)
 {
 	unsigned i,j;
-
-	//L = malloc(DIM*DIM*sizeof(float));
-	//U = malloc(DIM*DIM*sizeof(float));
 
 	for (j = 0; j < subsize*subsize; j++) {
 		subL[j] = 0.0f;
@@ -543,144 +480,36 @@ static void solve_system(int subsize)
         {
                 for (i = 0; i < j; i++)
                 {
-                        subL[i+j*subsize] = subLU[i+j*subsize];
+                        subL[i+j*subsize] = subA[i+j*subsize];
                 }
 
                 /* diag i = j */
-                subL[j+j*subsize] = subLU[j+j*subsize];
+                subL[j+j*subsize] = subA[j+j*subsize];
                 subU[j+j*subsize] = 1.0f;
 
                 for (i = j+1; i < subsize; i++)
                 {
-                        subU[i+j*subsize] = subLU[i+j*subsize];
+                        subU[i+j*subsize] = subA[i+j*subsize];
                 }
         }
 
 
-//	for (j = 0; j < DIM*DIM; j++) {
-//		L[j] = 0.0f;
-//		U[j] = 0.0f;
-//	}
-//
-//        for (j = 0; j < DIM; j++)
-//        {
-//                for (i = 0; i < j; i++)
-//                {
-//                        L[i+j*DIM] = LU[i+j*DIM];
-//                }
-//
-//                /* diag i = j */
-//                L[j+j*DIM] = LU[j+j*DIM];
-//                U[j+j*DIM] = 1.0f;
-//
-//                for (i = j+1; i < DIM; i++)
-//                {
-//                        U[i+j*DIM] = LU[i+j*DIM];
-//                }
-//        }
-
 	/* solve the actual problem LU X = B */
         /* solve LX' = Y with X' = UX */
         /* solve UX = X' */
-//	Xres = malloc(DIM*sizeof(float));
 	subXres = malloc(subsize*sizeof(float));
-//	memcpy(Xres, B, DIM*sizeof(float));
 	memcpy(subXres, subB, subsize*sizeof(float));
 
-//	Ares = malloc(DIM*DIM*sizeof(float));
 	subAres = malloc(subsize*subsize*sizeof(float));
-
-//	cblas_strsv(CblasRowMajor, CblasLower, CblasNoTrans, CblasNonUnit,
-//			DIM, L, DIM, Xres, 1);
 
 	printf("Solving the problem ...\n");
 	cblas_strsv(CblasRowMajor, CblasLower, CblasNoTrans, CblasNonUnit,
 			subsize, subL, subsize, subXres, 1);
 
 
- //       cblas_strsv(CblasRowMajor, CblasUpper, CblasNoTrans, CblasUnit,
- //                       DIM, U, DIM, Xres, 1);
         cblas_strsv(CblasRowMajor, CblasUpper, CblasNoTrans, CblasUnit,
                         subsize, subU, subsize, subXres, 1);
 
-//	Yres = malloc(DIM*sizeof(float));
-	subYres = malloc(subsize*sizeof(float));
-
-//	for (j = 0; j<DIM; j++)
-//	{
-//		for (i = 0; i<DIM; i++)
-//		{
-//			Ares[i+j*DIM] = 0.0f;
-//			for (k = 0; k < DIM; k++){
-//				Ares[i+j*DIM] += L[k+j*DIM]*U[i+k*DIM];
-//			}
-//		}
-//	}
-//
-//
-//	for (j = 0; j<DIM; j++)
-//	{
-//		Yres[i] = 0.0f;
-//		for (i = 0; i < DIM; i++){
-//			Yres[j] += Xres[i]*A[i+j*DIM];
-//		}
-//	}
-
-	//for (j = 0; j<subsize; j++)
-	//{
-	//	for (i = 0; i<subsize; i++)
-	//	{
-	//		float val = 0.0f;
-	//		for (k = 0; k < subsize; k++){
-	//			val += subL[k+j*subsize]*subU[i+k*subsize];
-	//		}
-	//		subAres[i+j*subsize] = val;
-	//	}
-	//}
-
-	//for (j = 0; j<subsize; j++)
-	//{
-	//	subYres[j] = 0.0f;
-	//	for (i = 0; i < subsize; i++){
-	//		subYres[j] += subXres[i]*subA[i+j*subsize];
-	//	}
-	//}
-
-
-
-//	printf("A Xres = Yres\n");
-//	for (j = 0; j < DIM; j++)
-//	{
-//		for (i=0; i < DIM; i++)
-//		{
-////			fprintf(stderr, "%.1f(%.1f)\t", A[i+j*DIM], Ares[i+j*DIM]);
-//			if (fabs(Ares[i+j*DIM]) < 0.0001f) {
-//				fprintf(stdout, ".\t");
-//			}
-//			else {
-//				fprintf(stdout, "%.2f\t", Ares[i+j*DIM]);
-//			}
-//		}
-//		fprintf(stdout, "\t|\t%f\t|\t%f\n", Xres[j], Yres[j]);
-//	}
-//
-//	printf("SUBA SUBXres = SUBYres\n");
-//	for (j = 0; j < subsize; j++)
-//	{
-//		fprintf(stdout, "%d ->\t", TRANSLATE(j));
-//		for (i=0; i < subsize; i++)
-//		{
-////			fprintf(stderr, "%.1f(%.1f)\t", A[i+j*subsize], Ares[i+j*subsize]);
-//			if (fabs(subAres[i+j*subsize]) < 0.0001f) {
-//				fprintf(stdout, ".\t");
-//			}
-//			else {
-//				fprintf(stdout, "%.2f\t", subAres[i+j*subsize]);
-//			}
-//		}
-//		fprintf(stdout, "\t|\t%f\t|\t%f(%2.f)\n", subXres[j], subYres[j], subB[j]);
-//	}
-//
 	result = malloc(DIM*sizeof(float));
 
 	/* now display back the ACTUAL result */
@@ -694,31 +523,6 @@ static void solve_system(int subsize)
 		/* those were the boundaries */
 		result[TRANSLATE(i)] = B[TRANSLATE(i)];
 	}
-//	/* first solve LX' = B */
-//	float v;
-//	float *Xp = malloc(DIM*sizeof(float));
-//
-//
-//	Xp[0] = B[0];
-//	for (i = 1; i < DIM; i++)
-//	{
-//		v = B[i];
-//		for (j = 0; j < i-1; j++) {
-//			v -= L[i+j*DIM]*Xp[j];
-//		}
-//		Xp[i] = v;
-//	}
-//
-//
-//	/* then solve UX = X' */
-//	for (i=DIM-1; i>=0; i--) {
-//		v = Xp[i];
-//		for (j=i+1; j<DIM; j++) {
-//			v = v - U[i+j*DIM]*Xres[j];
-//		}
-//		Xres[i] = v/U[i+DIM*i];
-//	}
-//
 
 }
 
@@ -734,7 +538,7 @@ int main(int argc, char **argv)
 
 	unsigned theta, thick;
 
-	int newsize;
+	unsigned newsize;
 
 	pmesh = malloc(DIM*sizeof(point));
 
@@ -876,10 +680,10 @@ int main(int argc, char **argv)
 	}
 
 
-	//dummy_lu_facto(newsize);
-	subLU = malloc(newsize*newsize*sizeof(float));
-	factoLU(subA, subLU, newsize);
-
+	//factoLU(subA, subLU, newsize);
+	printf("LU Factorization ...\n");
+	dw_factoLU(subA, newsize, 32);
+	
 	subL = malloc(newsize*newsize*sizeof(float));
 	subU = malloc(newsize*newsize*sizeof(float));
 	solve_system(newsize);
@@ -887,6 +691,16 @@ int main(int argc, char **argv)
 #ifdef OPENGL_RENDER
 	opengl_render();
 #endif
+
+	free(subA);
+	free(subB);
+	free(subL);
+	free(subU);
+	free(subXres);
+	free(subAres);
+	free(pmesh);
+	free(result);
+	free(RefArray);
 
 	return 0;
 }

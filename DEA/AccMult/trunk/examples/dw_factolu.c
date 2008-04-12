@@ -15,54 +15,61 @@ tick_t end;
  *   U22 
  */
 
-#define COMMON_CODE_U22							\
-	cl_args *args = _args;						\
-									\
-	unsigned k = args->k;						\
-	unsigned i = args->i;						\
-	unsigned j = args->j;						\
-									\
-	data_state *dataA = args->dataA;				\
-									\
-	data_state *data12 = get_sub_data(dataA, 2, i, k);		\
-	data_state *data21 = get_sub_data(dataA, 2, k, j);		\
-	data_state *data22 = get_sub_data(dataA, 2, i, j);		\
-									\
-	float *left 	= (float *)fetch_data(data21, R);		\
-	float *right 	= (float *)fetch_data(data12, R);		\
-	float *center 	= (float *)fetch_data(data22, RW);		\
-									\
-	unsigned dx = get_local_nx(data22);				\
-	unsigned dy = get_local_ny(data22);				\
-	unsigned dz = get_local_ny(data12);				\
-									\
-	unsigned ld12 = get_local_ld(data12);				\
-	unsigned ld21 = get_local_ld(data21);				\
+static inline void dw_common_core_codelet_update_u22(int s, void *_args)
+{
+	cl_args *args = _args;
+
+	unsigned k = args->k;
+	unsigned i = args->i;
+	unsigned j = args->j;
+
+	data_state *dataA = args->dataA;
+
+	data_state *data12 = get_sub_data(dataA, 2, i, k);
+	data_state *data21 = get_sub_data(dataA, 2, k, j);
+	data_state *data22 = get_sub_data(dataA, 2, i, j);
+
+	float *left 	= (float *)fetch_data(data21, R); 
+	float *right 	= (float *)fetch_data(data12, R); 
+	float *center 	= (float *)fetch_data(data22, RW);
+
+	unsigned dx = get_local_nx(data22);
+	unsigned dy = get_local_ny(data22);
+	unsigned dz = get_local_ny(data12);
+
+	unsigned ld12 = get_local_ld(data12);
+	unsigned ld21 = get_local_ld(data21);
 	unsigned ld22 = get_local_ld(data22);
 
+	switch (s) {
+		case 0:
+			cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
+				dy, dx, dz, -1.0f, left, ld21, right, ld12,
+					     1.0f, center, ld22);
+			release_data(data22, 0);
+			break;
+#ifdef USE_CUBLAS
+		case 1:
+			cublasSgemm('n', 'n', dx, dy, dz, -1.0f, left, ld21,
+					right, ld12, 1.0f, center, ld22);
+			release_data(data22, 1<<0);
+			break;
+#endif
+		default:
+			ASSERT(0);
+			break;
+	}
+}
 
 void dw_core_codelet_update_u22(void *_args)
 {
-	COMMON_CODE_U22
-
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
-		dy, dx, dz, -1.0f, left, ld21, right, ld12,
-			     1.0f, center, ld22);
-
-	release_data(data22, 0);
+	dw_common_core_codelet_update_u22(0, _args);
 }
-
-
 
 #ifdef USE_CUBLAS
 void dw_cublas_codelet_update_u22(void *_args)
 {
-	COMMON_CODE_U22
-
-	cublasSgemm('n', 'n', dx, dy, dz, -1.0f, left, ld21,
-			right, ld12, 1.0f, center, ld22);
-
-	release_data(data22, 1<<0);
+	dw_common_core_codelet_update_u22(1, _args);
 }
 #endif// USE_CUBLAS
 
@@ -70,51 +77,58 @@ void dw_cublas_codelet_update_u22(void *_args)
  * U12
  */
 
-#define COMMON_CODE_U12							\
-	float *sub11;							\
-	float *sub12;							\
-									\
-	cl_args *args = _args;						\
-									\
-	unsigned i = args->i;						\
-	unsigned k = args->k;						\
-									\
-	data_state *dataA = args->dataA;				\
-									\
-	data_state *data11 = get_sub_data(dataA, 2, i, i);		\
-	data_state *data12 = get_sub_data(dataA, 2, k, i);		\
-									\
-	sub11 = (float *)fetch_data(data11, R);				\
-	sub12 = (float *)fetch_data(data12, RW);			\
-									\
-	unsigned ld11 = get_local_ld(data11);				\
-	unsigned ld12 = get_local_ld(data12);				\
-									\
-	unsigned nx12 = get_local_nx(data12);				\
-	unsigned ny12 = get_local_ny(data12);				
+static inline void dw_common_codelet_update_u12(int s, void *_args) {
+	float *sub11;
+	float *sub12;
 
+	cl_args *args = _args;
+
+	unsigned i = args->i;
+	unsigned k = args->k;
+
+	data_state *dataA = args->dataA;
+
+	data_state *data11 = get_sub_data(dataA, 2, i, i);
+	data_state *data12 = get_sub_data(dataA, 2, k, i);
+
+	sub11 = (float *)fetch_data(data11, R);	
+	sub12 = (float *)fetch_data(data12, RW);
+
+	unsigned ld11 = get_local_ld(data11);
+	unsigned ld12 = get_local_ld(data12);
+
+	unsigned nx12 = get_local_nx(data12);
+	unsigned ny12 = get_local_ny(data12);
+
+	/* solve L11 U12 = A12 (find U12) */
+	switch (s) {
+		case 0:
+			cblas_strsm(CblasRowMajor, CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit,
+					 nx12, ny12, 1.0f, sub11, ld11, sub12, ld12);
+			release_data(data12, 0);
+			break;
+#ifdef USE_CUBLAS
+		case 1:
+			cublasStrsm('R', 'U', 'N', 'N', ny12, nx12,
+					1.0f, sub11, ld11, sub12, ld12);
+			release_data(data12, 1<<0);
+			break;
+#endif
+		default:
+			ASSERT(0);
+			break;
+	}
+}
 
 void dw_core_codelet_update_u12(void *_args)
 {
-	COMMON_CODE_U12
-
-	/* solve L11 U12 = A12 (find U12) */
-	cblas_strsm(CblasRowMajor, CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit,
-			 nx12, ny12, 1.0f, sub11, ld11, sub12, ld12);
-
-	release_data(data12, 0);
+	 dw_common_codelet_update_u12(0, _args);
 }
 
 #ifdef USE_CUBLAS
 void dw_cublas_codelet_update_u12(void *_args)
 {
-	COMMON_CODE_U12
-
-	/* solve L11 U12 = A12 (find U12) */
-	cublasStrsm('R', 'U', 'N', 'N', ny12, nx12,
-				1.0f, sub11, ld11, sub12, ld12);
-
-	release_data(data12, 1<<0);
+	 dw_common_codelet_update_u12(1, _args);
 }
 #endif // USE_CUBLAS
 
@@ -122,49 +136,56 @@ void dw_cublas_codelet_update_u12(void *_args)
  * U21
  */
 
-#define COMMON_CODE_U21							\
-	float *sub11;							\
-	float *sub21;							\
-									\
-	cl_args *args = _args;						\
-									\
-	unsigned i = args->i;						\
-	unsigned k = args->k;						\
-									\
-	data_state *dataA = args->dataA;				\
-									\
-	data_state *data11 = get_sub_data(dataA, 2, i, i);		\
-	data_state *data21 = get_sub_data(dataA, 2, i, k);		\
-									\
-	sub11 = (float *)fetch_data(data11, R);				\
-	sub21 = (float *)fetch_data(data21, RW);			\
-									\
-	unsigned ld11 = get_local_ld(data11);				\
-	unsigned ld21 = get_local_ld(data21);				\
-									\
-	unsigned nx21 = get_local_nx(data21);				\
+static inline void dw_common_codelet_update_u21(int s, void *_args) {
+	float *sub11;
+	float *sub21;
+
+	cl_args *args = _args;
+
+	unsigned i = args->i;
+	unsigned k = args->k;
+
+	data_state *dataA = args->dataA;
+
+	data_state *data11 = get_sub_data(dataA, 2, i, i);
+	data_state *data21 = get_sub_data(dataA, 2, i, k);
+	
+	sub11 = (float *)fetch_data(data11, R);
+	sub21 = (float *)fetch_data(data21, RW);
+
+	unsigned ld11 = get_local_ld(data11);
+	unsigned ld21 = get_local_ld(data21);
+
+	unsigned nx21 = get_local_nx(data21);
 	unsigned ny21 = get_local_ny(data21);
+
+	switch (s) {
+		case 0:
+			cblas_strsm(CblasRowMajor, CblasRight, CblasUpper, CblasNoTrans, 
+				CblasUnit, nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
+			release_data(data21, 0);
+			break;
+#ifdef USE_CUBLAS
+		case 1:
+			cublasStrsm('L', 'L', 'N', 'U', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
+			release_data(data21, 1<<0);
+			break;
+#endif
+		default:
+			ASSERT(0);
+			break;
+	}
+}
 
 void dw_core_codelet_update_u21(void *_args)
 {
-	COMMON_CODE_U21
-
-	cblas_strsm(CblasRowMajor, CblasRight, CblasUpper, CblasNoTrans, 
-		CblasUnit, nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
-
-	release_data(data21, 0);
+	 dw_common_codelet_update_u21(0, _args);
 }
-
-
 
 #ifdef USE_CUBLAS
 void dw_cublas_codelet_update_u21(void *_args)
 {
-	COMMON_CODE_U21
-
-	cublasStrsm('L', 'L', 'N', 'U', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
-
-	release_data(data21, 1<<0);
+	dw_common_codelet_update_u21(1, _args);
 }
 #endif 
 
@@ -219,6 +240,9 @@ void dw_callback_codelet_update_u22(void *argcb)
 
 	if (ATOMIC_ADD(args->remaining, (-1)) == 0)
 	{
+		/* all worker already used the counter */
+		free(args->remaining);
+
 		/* we now reduce the LU22 part (recursion appears there) */
 		codelet *cl = malloc(sizeof(codelet));
 		cl_args *u11arg = malloc(sizeof(cl_args));
@@ -240,7 +264,10 @@ void dw_callback_codelet_update_u22(void *argcb)
 
 		/* schedule the codelet */
 		push_task(j);
+
 	}
+
+	free(args);
 }
 
 void dw_callback_codelet_update_u12_21(void *argcb)
@@ -380,20 +407,20 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 {
 
 	/* create a new codelet */
-	codelet cl;
-	cl_args args;
+	codelet *cl = malloc(sizeof(codelet));
+	cl_args *args = malloc(sizeof(cl_args));
 
 	sem_t sem;
 
 	sem_init(&sem, 0, 0U);
 
-	args.sem = &sem;
-	args.i = 0;
-	args.nblocks = nblocks;
-	args.dataA = dataA;
+	args->sem = &sem;
+	args->i = 0;
+	args->nblocks = nblocks;
+	args->dataA = dataA;
 
-	cl.cl_arg = &args;
-	cl.core_func = dw_core_codelet_update_u11;
+	cl->cl_arg = args;
+	cl->core_func = dw_core_codelet_update_u11;
 
 	GET_TICK(start);
 
@@ -402,8 +429,8 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 		j->type = CODELET;
 		j->where = CORE;
 		j->cb = dw_callback_codelet_update_u11;
-		j->argcb = &args;
-		j->cl = &cl;
+		j->argcb = args;
+		j->cl = cl;
 
 	/* schedule the codelet */
 	push_task(j);
@@ -422,6 +449,14 @@ void dw_factoLU(float *matA, unsigned size, unsigned nblocks)
 
 	timing_init();
 
+#ifdef CHECK_RESULTS
+	printf("Checking results ...\n");
+	float *Asaved;
+	Asaved = malloc(size*size*sizeof(float));
+
+	memcpy(Asaved, matA, size*size*sizeof(float));
+#endif
+
 	data_state dataA;
 
 	/* monitor and partition the A matrix into blocks :
@@ -439,8 +474,14 @@ void dw_factoLU(float *matA, unsigned size, unsigned nblocks)
 	map_filters(&dataA, 2, &f, &f2);
 
 	dw_codelet_facto(&dataA, nblocks);
+
+#ifdef CHECK_RESULTS
+	compare_A_LU(Asaved, matA, size);
+#endif
+
 }
 
+#if 0
 int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)
 {
 	float *A;
@@ -450,10 +491,6 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 
 	A = malloc(size*size*sizeof(float));
 
-#ifdef CHECK_RESULTS
-	float *Asaved;
-	Asaved = malloc(size*size*sizeof(float));
-#endif
 
 	srand(2008);
 	unsigned i,j;
@@ -468,9 +505,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 
 	dw_factoLU(A, size, nblocks);
 
-#ifdef CHECK_RESULTS
-	compare_A_LU(Asaved, A, size);
-#endif
 
 	return 0;
 }
+#endif
