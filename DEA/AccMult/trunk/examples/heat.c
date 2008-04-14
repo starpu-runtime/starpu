@@ -1,7 +1,7 @@
 #include "heat.h"
 
-#define NTHETA	(16+2)
-#define NTHICK	(8+2)
+#define NTHETA	(128+2)
+#define NTHICK	(96+2)
 
 #define MIN(a,b)	((a)<(b)?(a):(b))
 #define MAX(a,b)	((a)<(b)?(b):(a))
@@ -16,10 +16,6 @@
 #define NODE_NUMBER(theta, thick)	((thick)+(theta)*NTHICK)
 #define NODE_TO_THICK(n)		((n) % NTHICK)
 #define NODE_TO_THETA(n)		((n) / NTHICK)
-
-#define UNLIKELY(expr)		(__builtin_expect(!!(expr),0))
-#define LIKELY(expr)		(__builtin_expect(!!(expr),1))
-
 
 typedef struct point_t {
 	float x;

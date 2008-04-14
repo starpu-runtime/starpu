@@ -1,6 +1,3 @@
-CFLAGS += -g -O3 -Wall #-fPIC
-#CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -Wmain  -fno-strict-aliasing
-
 CFLAGS += -I../ -I../core/
 
 ifeq ($(MARCEL), 1)
@@ -33,6 +30,9 @@ endif
 endif
 
 all: matrix.o threads.o
+
+rwlock.o: rwlock.c rwlock.h
+	$(CC) $(CFLAGS) rwlock.c -c -o rwlock.o
 
 threads.o: threads.c threads.h
 	$(CC) $(CFLAGS) threads.c -c -o threads.o

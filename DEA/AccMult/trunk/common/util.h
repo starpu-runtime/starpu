@@ -18,6 +18,9 @@
 #define ASSERT(x)	assert(x)
 #endif
 
+#define UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
+#define LIKELY(expr)            (__builtin_expect(!!(expr),1))
+
 #define ATOMIC_ADD(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
 
 #endif // __UTIL_H__
