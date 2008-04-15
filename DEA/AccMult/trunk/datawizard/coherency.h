@@ -8,6 +8,8 @@
 #include <assert.h>
 
 #include <common/util.h>
+#include <common/mutex.h>
+#include <common/rwlock.h>
 
 #define MAXNODES	6
 
@@ -43,18 +45,11 @@ typedef struct local_data_state_t {
 	uint8_t automatically_allocated;
 } local_data_state;
 
-/* this structure is used for locking purpose (this must take into
- * account the fact that it may be accessed using DMA for instance)*/
-typedef struct data_lock_t {
-	/* we only have a trivial implementation yet ! */
-	volatile uint32_t taken __attribute__ ((aligned(16)));
-#ifdef USE_SPU
-	uintptr_t ea_taken;
-#endif
-} data_lock;
-
 typedef struct data_state_t {
-	data_lock lock;
+	/* protect the data itself */
+	rw_lock	data_lock;
+	/* protect meta data */
+	mutex header_lock;
 #ifdef USE_SPU
 	uintptr_t ea_data_state;
 	struct data_state_t *ls_data_state;
@@ -67,13 +62,11 @@ typedef struct data_state_t {
 	local_data_state per_node[MAXNODES];
 } data_state;
 
-void take_lock(data_lock *lock);
-void release_lock(data_lock *lock);
 void display_state(data_state *state);
 uintptr_t fetch_data(data_state *state, access_mode mode);
-uintptr_t fetch_data_without_lock(data_state *state, uint32_t requesting_node,
-			uint8_t read, uint8_t write);
-
 void release_data(data_state *state, uint32_t write_through_mask);
+
+uintptr_t _fetch_data(data_state *state, uint32_t requesting_node, uint8_t read, uint8_t write);
+
 
 #endif // __COHERENCY__H__

@@ -2,7 +2,7 @@
 #define __HIERARCHY_H__
 
 #include <stdarg.h>
-#include "datawizard/coherency.h"
+#include "coherency.h"
 
 typedef struct filter_t {
 	unsigned (*filter_func)(struct filter_t *, data_state *); /* the actual partitionning function */

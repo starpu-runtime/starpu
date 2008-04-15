@@ -6,14 +6,11 @@ void monitor_new_data(data_state *state, uint32_t home_node,
 	ASSERT(state);
 
 	/* initialize the new lock */
-	state->lock.taken = FREE;
-#ifdef USE_SPU
-	state->ea_data_state = (uintptr_t)&state;
-	state->lock.ea_taken = (uintptr_t)&state->lock.taken;
-#endif
+	init_rw_lock(&state->data_lock);
+	init_mutex(&state->header_lock);
 
 	/* first take care to properly lock the data */
-	take_lock(&state->lock);
+	take_mutex(&state->header_lock);
 
 	/* we assume that all nodes may use that data */
 	state->nnodes = MAXNODES;
@@ -50,7 +47,7 @@ void monitor_new_data(data_state *state, uint32_t home_node,
 	state->elemsize = elemsize;
 
 	/* now the data is available ! */
-	release_lock(&state->lock);
+	release_mutex(&state->header_lock);
 }
 
 /*
@@ -126,8 +123,8 @@ void partition_data(data_state *initial_data, filter *f)
 	int nparts;
 	int i;
 
-	/* first take care to properly lock the data */
-	take_lock(&initial_data->lock);
+	/* first take care to properly lock the data header */
+	take_mutex(&initial_data->header_lock);
 
 	/* this should update the pointers and size of the chunk */
 	nparts = f->filter_func(f, initial_data);
@@ -143,7 +140,8 @@ void partition_data(data_state *initial_data, filter *f)
 		children->nchildren = 0;
 
 		/* initialize the chunk lock */
-		children->lock.taken = FREE;
+		init_rw_lock(&children->data_lock);
+		init_mutex(&children->header_lock);
 
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
@@ -155,6 +153,9 @@ void partition_data(data_state *initial_data, filter *f)
 			children->per_node[node].automatically_allocated = 0;
 		}
 	}
+
+	/* now let the header */
+	release_mutex(&initial_data->header_lock);
 }
 
 void unpartition_data(data_state *root_data, uint32_t gathering_node)
@@ -162,14 +163,12 @@ void unpartition_data(data_state *root_data, uint32_t gathering_node)
 	int child;
 	unsigned node;
 
-	/* note that at that point, the parent lock should be taken ! 
-	 * XXX check that */
+	take_mutex(&root_data->header_lock);
 
 	/* first take all the children lock (in order !) */
 	for (child = 0; child < root_data->nchildren; child++)
 	{
-		fetch_data_without_lock(&root_data->children[child],
-			gathering_node, 1/* read */, 0 /* write */);
+		_fetch_data(&root_data->children[child], gathering_node, 1, 0);
 	}
 
 	/* the gathering_node should now have a valid copy of all the children.
@@ -228,6 +227,5 @@ void unpartition_data(data_state *root_data, uint32_t gathering_node)
 	root_data->nchildren = 0;
 
 	/* now the parent may be used again so we release the lock */
-	release_lock(&root_data->lock);
+	release_mutex(&root_data->header_lock);
 }
-

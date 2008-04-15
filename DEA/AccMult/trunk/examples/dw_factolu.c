@@ -59,6 +59,10 @@ static inline void dw_common_core_codelet_update_u22(int s, void *_args)
 			ASSERT(0);
 			break;
 	}
+
+	/* data that were only read */
+	release_data(data12, 0);
+	release_data(data21, 0);
 }
 
 void dw_core_codelet_update_u22(void *_args)
@@ -118,6 +122,8 @@ static inline void dw_common_codelet_update_u12(int s, void *_args) {
 			ASSERT(0);
 			break;
 	}
+
+	release_data(data11, 0);
 }
 
 void dw_core_codelet_update_u12(void *_args)
@@ -175,6 +181,8 @@ static inline void dw_common_codelet_update_u21(int s, void *_args) {
 			ASSERT(0);
 			break;
 	}
+
+	release_data(data11, 0);
 }
 
 void dw_core_codelet_update_u21(void *_args)

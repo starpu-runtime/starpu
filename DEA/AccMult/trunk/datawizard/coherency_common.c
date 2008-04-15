@@ -70,11 +70,10 @@ static void copy_data_to_node(data_state *state, uint32_t requesting_node, unsig
  */
 /* NB : for SPU this is a pointer to the local copy which is not entirely fetched at first ! */
 
-static uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
-			uint8_t read, uint8_t write, unsigned needtolock)
+uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
+			uint8_t read, uint8_t write)
 {
-	if (needtolock)
-		take_lock(&state->lock);
+	take_mutex(&state->header_lock);
 
 #ifdef SPU_CODE
 	/* we may now fetch the entire state structure 
@@ -91,12 +90,7 @@ static uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
 	if ((local_state == OWNER) || (local_state == SHARED && !write))
 	{
 		/* the local node already got its data */
-
-		if (!write) {
-			/* else, do not forget to call release_data !*/
-			if (needtolock)
-				release_lock(&state->lock);
-		}
+		release_mutex(&state->header_lock);
 
 		return state->per_node[requesting_node].ptr;
 	}
@@ -119,7 +113,8 @@ static uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
 		push_dynamic_data_state(state);
 #endif
 
-		/* do not forget to use a release_data */
+		release_mutex(&state->header_lock);
+
 		return state->per_node[requesting_node].ptr;
 	}
 
@@ -137,8 +132,6 @@ static uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
 			state->per_node[node].state = INVALID;
 		}
 		state->per_node[requesting_node].state = OWNER;
-
-		/* do not forget to release the data later on ! */
 	}
 	else { /* read only */
 		/* there was at least another copy of the data */
@@ -156,9 +149,7 @@ static uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
 		push_dynamic_data_state(state);
 #endif
 
-	if (!write && needtolock) {
-		release_lock(&state->lock);
-	}
+	release_mutex(&state->header_lock);
 
 	return state->per_node[requesting_node].ptr;
 }
@@ -171,19 +162,24 @@ uintptr_t fetch_data(data_state *state, access_mode mode)
 	read = (mode != W); /* then R or RW */
 	write = (mode != R); /* then W or RW */
 
-	return _fetch_data(state, requesting_node, read, write, 1);
+	if (write) {
+		take_rw_lock_write(&state->data_lock);
+	} else {
+		take_rw_lock_read(&state->data_lock);
+	}
+
+	return _fetch_data(state, requesting_node, read, write);
 }
-
-uintptr_t fetch_data_without_lock(data_state *state, uint32_t requesting_node,
-			uint8_t read, uint8_t write)
-{
-	return _fetch_data(state, requesting_node, read, write, 0);
-}
-
-
 
 void write_through_data(data_state *state, uint32_t requesting_node, uint32_t write_through_mask)
 {
+	if ((write_through_mask & ~(1<<requesting_node)) == 0) {
+		/* nothing will be done ... */
+		return;
+	}
+
+	take_mutex(&state->header_lock);
+
 	/* first commit all changes onto the nodes specified by the mask */
 	uint32_t node;
 	for (node = 0; node < MAXNODES; node++)
@@ -207,6 +203,8 @@ void write_through_data(data_state *state, uint32_t requesting_node, uint32_t wr
 	{
 		state->per_node[requesting_node].state = SHARED;
 	}
+
+	release_mutex(&state->header_lock);
 }
 
 /* in case the data was accessed on a write mode, do not forget to 
@@ -227,6 +225,6 @@ void release_data(data_state *state, uint32_t write_through_mask)
 	}
 
 	/* this is intended to make data accessible again */
-	release_lock(&state->lock);
+	release_rw_lock(&state->data_lock);
 }
 

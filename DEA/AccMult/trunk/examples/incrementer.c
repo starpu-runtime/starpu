@@ -36,11 +36,6 @@ void callback_func(__attribute__ ((unused)) void *argcb)
 	int cntleft = (int)my_lovely_float[0];
 	int cntright = (int)my_lovely_float[3];
 
-//	if ((cntleft % 1000000 == 0 && cntleft != 0) || (cntright % 1000000 == 0 && cntright != 0)) {
-//		printf("LEFT -> %f, %f, %f \n", my_lovely_float[0], my_lovely_float[1], my_lovely_float[2]);
-//		printf("RIGHT -> %f, %f, %f \n", my_lovely_float[3], my_lovely_float[4], my_lovely_float[5]);
-//	}
-
 	if ((cntleft == NITER) && (cntright == NITER)) 
 	{
 		printf("LEFT -> %f, %f, %f \n", my_lovely_float[0], my_lovely_float[1], my_lovely_float[2]);
@@ -77,6 +72,7 @@ void cublas_codelet(void *_args)
 
 	/* write-through is needed here ! */
 	release_data(data, 1<<0);
+	release_data(&unity_state, 0);
 }
 #endif
 

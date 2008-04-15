@@ -31,7 +31,7 @@ void take_rw_lock_write(rw_lock *lock)
 	do {
 		_take_busy_lock(lock);
 		
-		if (lock->readercnt > 0 || lock->writer)
+		if (lock->readercnt > 0 || lock->writer)
 		{
 			/* fail to take the lock */
 			_release_busy_lock(lock);
@@ -39,7 +39,7 @@ void take_rw_lock_write(rw_lock *lock)
 		else {
 			ASSERT(lock->readercnt == 0);
 			ASSERT(lock->writer == 0);
-
+	
 			/* no one was either writing nor reading */
 			lock->writer = 1;
 			_release_busy_lock(lock);
@@ -61,8 +61,9 @@ void take_rw_lock_read(rw_lock *lock)
 
 			/* no one is writing */
 			/* XXX check wrap arounds ... */
-			lock->readcnt++;
+			lock->readercnt++;
 			_release_busy_lock(lock);
+
 			return;
 		}
 	} while (1);
@@ -74,14 +75,22 @@ void release_rw_lock(rw_lock *lock)
 	/* either writer or reader (exactly one !) */
 	if (lock->writer) 
 	{
-		ASSERT(lock->readcnt == 0);
+		ASSERT(lock->readercnt == 0);
 		lock->writer = 0;
 	}
 	else {
 		/* reading mode */
 		ASSERT(lock->writer == 0);
-		lock->readcnt--;
+		lock->readercnt--;
 	}
 	_release_busy_lock(lock);
 }
 
+/*
+ * Warning : to be consistent or even useful this information has to be taken
+ * only if the rw_lock is taken (in either read or write mode).
+ */
+inline uint8_t rw_lock_is_writer(rw_lock *lock)
+{
+	return lock->writer;
+}
