@@ -2,6 +2,7 @@
 #define __COPY_DRIVER_H__
 
 #include "coherency.h"
+#include "memalloc.h"
 
 #ifdef USE_CUBLAS
 #include <cublas.h>

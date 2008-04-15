@@ -1,7 +1,8 @@
 #include <pthread.h>
 #include "copy-driver.h"
+#include "memalloc.h"
 
-static mem_node_descr descr;
+mem_node_descr descr;
 static pthread_key_t memory_node_key;
 
 unsigned register_memory_node(node_kind kind)
@@ -28,6 +29,8 @@ void init_memory_nodes()
 	{
 		descr.nodes[i] = UNUSED; 
 	}
+
+	init_mem_chunk_lists();
 }
 
 void set_local_memory_node_key(unsigned *node)
@@ -72,33 +75,6 @@ uint32_t get_local_nx(data_state *state)
 uint32_t get_local_ny(data_state *state)
 {
 	return state->ny;
-}
-
-static void allocate_memory_on_node(data_state *state, uint32_t dst_node)
-{
-	uintptr_t addr = 0;
-
-//	printf("locate node = %d addr = %p dst_node =%d x %d y %d xy %d\n", get_local_memory_node(), (void *)addr, dst_node, state->nx, state->ny, state->nx*state->ny);
-	switch(descr.nodes[dst_node]) {
-		case RAM:
-			addr = (uintptr_t) malloc(state->nx*state->ny*state->elemsize);
-			break;
-#ifdef USE_CUBLAS
-		case CUBLAS_RAM:
-			cublasAlloc(state->nx*state->ny, state->elemsize, (void **)&addr); 
-			break;
-#endif
-		default:
-			ASSERT(0);
-	}
-	
-	/* TODO handle capacity misses */
-	ASSERT(addr);
-
-	state->per_node[dst_node].ptr = addr; 
-	state->per_node[dst_node].ld = state->nx; 
-	state->per_node[dst_node].allocated = 1;
-	state->per_node[dst_node].automatically_allocated = 1;
 }
 
 /* as not all platform easily have a BLAS lib installed ... */

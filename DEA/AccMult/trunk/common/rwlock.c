@@ -94,3 +94,10 @@ inline uint8_t rw_lock_is_writer(rw_lock *lock)
 {
 	return lock->writer;
 }
+
+/* the rw_lock is assumed to be taken */
+unsigned is_rw_lock_referenced(rw_lock *lock)
+{
+	/* number of readers or one writer */
+	return (lock->writer || lock->readercnt);
+}

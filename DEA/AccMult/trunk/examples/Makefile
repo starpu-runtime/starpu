@@ -126,6 +126,7 @@ LDFLAGS += -L../datawizard/
 CFLAGS += -I../datawizard/
 OBJDEPS += ../datawizard/copy-driver.o ../datawizard/coherency.o 
 OBJDEPS += ../datawizard/hierarchy.o ../datawizard/filters.o
+OBJDEPS += ../datawizard/memalloc.o
 
 ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
 BLASARCH=Linux_UNKNOWNSSE2

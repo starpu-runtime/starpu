@@ -55,6 +55,10 @@ void *cublas_worker(void *arg)
 
 	cublasInit();
 
+	/* just to test the impact of memory stress ... */
+	void *dummy;
+	cublasAlloc(600*1024*1024, 1, &dummy);
+
 	printf("cublas thread is ready to run on CPU %d !\n", args->bindid);
 	/* tell the main thread that this one is ready to work */
 	args->ready_flag = 1;

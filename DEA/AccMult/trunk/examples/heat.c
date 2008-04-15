@@ -1,7 +1,7 @@
 #include "heat.h"
 
 #define NTHETA	(128+2)
-#define NTHICK	(32+2)
+#define NTHICK	(96+2)
 
 #define MIN(a,b)	((a)<(b)?(a):(b))
 #define MAX(a,b)	((a)<(b)?(b):(a))
@@ -678,7 +678,11 @@ int main(int argc, char **argv)
 
 	//factoLU(subA, subLU, newsize);
 	printf("LU Factorization ...\n");
-	dw_factoLU(subA, newsize, 16);
+	dw_factoLU(subA, newsize, 32);
+
+	exit(-1);
+
+	return -1;
 	
 	subL = malloc(newsize*newsize*sizeof(float));
 	subU = malloc(newsize*newsize*sizeof(float));
