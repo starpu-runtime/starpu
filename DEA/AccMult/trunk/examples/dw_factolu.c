@@ -450,7 +450,7 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 	printf("Computation took %2.2f ms\n", TIMING_DELAY(start, end)/1000);
 }
 
-void dw_factoLU(float *matA, unsigned size, unsigned nblocks)
+void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
 	init_machine();
 	init_workers();
@@ -460,16 +460,16 @@ void dw_factoLU(float *matA, unsigned size, unsigned nblocks)
 #ifdef CHECK_RESULTS
 	printf("Checking results ...\n");
 	float *Asaved;
-	Asaved = malloc(size*size*sizeof(float));
+	Asaved = malloc(ld*ld*sizeof(float));
 
-	memcpy(Asaved, matA, size*size*sizeof(float));
+	memcpy(Asaved, matA, ld*ld*sizeof(float));
 #endif
 
 	data_state dataA;
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	monitor_new_data(&dataA, 0, (uintptr_t)matA, size, size, size, sizeof(float));
+	monitor_new_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	filter f;
 		f.filter_func = block_filter_func;
@@ -484,36 +484,7 @@ void dw_factoLU(float *matA, unsigned size, unsigned nblocks)
 	dw_codelet_facto(&dataA, nblocks);
 
 #ifdef CHECK_RESULTS
-	compare_A_LU(Asaved, matA, size);
+	compare_A_LU(Asaved, matA, size, ld);
 #endif
 
 }
-
-#if 0
-int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)
-{
-	float *A;
-
-	unsigned size = 8192;
-	int nblocks = 32;
-
-	A = malloc(size*size*sizeof(float));
-
-
-	srand(2008);
-	unsigned i,j;
-	for (j=0; j < size; j++) {
-		for (i=0; i < size; i++) {
-			A[i+j*size] = (float)(drand48()+(i==j?10000.0f:0.0f));
-#ifdef CHECK_RESULTS
-			Asaved[i+j*size] = A[i+j*size];
-#endif
-		}
-	}
-
-	dw_factoLU(A, size, nblocks);
-
-
-	return 0;
-}
-#endif

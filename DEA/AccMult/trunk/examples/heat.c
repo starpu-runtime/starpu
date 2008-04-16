@@ -1,7 +1,7 @@
 #include "heat.h"
 
-#define NTHETA	(128+2)
-#define NTHICK	(96+2)
+#define NTHETA	(196+2)
+#define NTHICK	(128+2)
 
 #define MIN(a,b)	((a)<(b)?(a):(b))
 #define MAX(a,b)	((a)<(b)?(b):(a))
@@ -28,16 +28,12 @@ int *RefArray;
 point *pmesh;
 float *A;
 float *subA;
-float *Ares;
-float *subAres;
 float *B;
 float *subB;
-float *subXres;
-float *LU;
-float *L;
 float *subL;
-float *U;
 float *subU;
+
+float *Bformer;
 
 unsigned printmesh =0;
 
@@ -463,63 +459,55 @@ static void postscript_gen()
 }
 #endif
 
-static void solve_system(unsigned subsize)
+static void solve_system(unsigned size, unsigned subsize)
 {
 	unsigned i,j;
-
-	for (j = 0; j < subsize*subsize; j++) {
-		subL[j] = 0.0f;
-		subU[j] = 0.0f;
-	}
-
-        for (j = 0; j < subsize; j++)
-        {
-                for (i = 0; i < j; i++)
-                {
-                        subL[i+j*subsize] = subA[i+j*subsize];
-                }
-
-                /* diag i = j */
-                subL[j+j*subsize] = subA[j+j*subsize];
-                subU[j+j*subsize] = 1.0f;
-
-                for (i = j+1; i < subsize; i++)
-                {
-                        subU[i+j*subsize] = subA[i+j*subsize];
-                }
-        }
-
 
 	/* solve the actual problem LU X = B */
         /* solve LX' = Y with X' = UX */
         /* solve UX = X' */
-	subXres = malloc(subsize*sizeof(float));
-	memcpy(subXres, subB, subsize*sizeof(float));
-
-	subAres = malloc(subsize*subsize*sizeof(float));
-
 	printf("Solving the problem ...\n");
+
+	/* L */
 	cblas_strsv(CblasRowMajor, CblasLower, CblasNoTrans, CblasNonUnit,
-			subsize, subL, subsize, subXres, 1);
+			subsize, A, size, B, 1);
 
-
+	/* U */
         cblas_strsv(CblasRowMajor, CblasUpper, CblasNoTrans, CblasUnit,
-                        subsize, subU, subsize, subXres, 1);
+                        subsize, A, size, B, 1);
 
-	result = malloc(DIM*sizeof(float));
+	ASSERT(DIM == size);
 
 	/* now display back the ACTUAL result */
 	for (i = 0; i < subsize; i++)
 	{
-		/* we computed those value ! */
-		result[TRANSLATE(i)] = subXres[i];
+		result[TRANSLATE(i)] = B[i];
 	}
-	for (i = subsize; i < DIM; i++)
+	for (i = subsize ; i < size; i++)
 	{
-		/* those were the boundaries */
-		result[TRANSLATE(i)] = B[TRANSLATE(i)];
+		result[TRANSLATE(i)] = Bformer[TRANSLATE(i)];
 	}
 
+}
+
+void reorganize_matrices(float *A, float *B, int *RefArray, unsigned size, unsigned newsize)
+{
+	/* only reorganize the newsize*newsize upper left square on A, and the
+	 * newsize first items on B */
+	unsigned i;
+	for (i = 0; i < size; i++)
+	{
+		if (RefArray[i] > i) {
+			/* swap i and RefArray[i] columns on A */
+			cblas_sswap (size, &A[i], size, &A[RefArray[i]], size);
+
+			/* swap i and RefArray[i] rows on A */
+			cblas_sswap (size, &A[i*size], 1, &A[RefArray[i]*size], 1);
+
+			/* swap i and RefArray[i] rows on B */
+			cblas_sswap (1, &B[i], 1, &B[RefArray[i]], 1);
+		}
+	}
 }
 
 int main(int argc, char **argv)
@@ -541,7 +529,6 @@ int main(int argc, char **argv)
 	/* the stiffness matrix : boundary conditions are known */
 	A = malloc(DIM*DIM*sizeof(float));
 	B = malloc(DIM*sizeof(float));
-	//LU = malloc(DIM*DIM*sizeof(float));
 
 	/* first build the mesh by determining all points positions */
 	for (theta = 0; theta < NTHETA; theta++)
@@ -651,42 +638,27 @@ int main(int argc, char **argv)
 
 	assert(index == DIM);
 
+	Bformer = malloc(DIM*sizeof(float));
+	memcpy(Bformer, B, DIM*sizeof(float));
+
 	printf("Problem size : %dx%d (%dx%d)\n", newsize, newsize, DIM, DIM);
 
-	subA = malloc(newsize*newsize*sizeof(float));
-	subB = malloc(newsize*sizeof(float));
-	
-
-	for (j = 0; j < newsize; j++) 
-	{
-		for (i = 0; i < newsize; i++)
-		{
-			subA[i+j*newsize] = A[TRANSLATE(i)+DIM*TRANSLATE(j)]; 
-		}
-	}
+	reorganize_matrices(A, B, RefArray, DIM, newsize);
 
 	for (j = 0; j < newsize; j++)
 	{
-		subB[j] = B[TRANSLATE(j)];
-
 		for (i = newsize; i < DIM; i++)
 		{
-			subB[j] -= B[TRANSLATE(i)]*A[TRANSLATE(i) +TRANSLATE(j)*DIM];
+			B[j] -= B[i]*A[i+j*DIM];
 		}
 	}
 
+	result = malloc(DIM*sizeof(float));
 
-	//factoLU(subA, subLU, newsize);
-	printf("LU Factorization ...\n");
-	dw_factoLU(subA, newsize, 32);
+	dw_factoLU(A, newsize, DIM, 64);
 
-	exit(-1);
+	solve_system(DIM, newsize);
 
-	return -1;
-	
-	subL = malloc(newsize*newsize*sizeof(float));
-	subU = malloc(newsize*newsize*sizeof(float));
-	solve_system(newsize);
 
 #ifdef OPENGL_RENDER
 	opengl_render();
@@ -694,10 +666,6 @@ int main(int argc, char **argv)
 
 	free(subA);
 	free(subB);
-	free(subL);
-	free(subU);
-	free(subXres);
-	free(subAres);
 	free(pmesh);
 	free(result);
 	free(RefArray);

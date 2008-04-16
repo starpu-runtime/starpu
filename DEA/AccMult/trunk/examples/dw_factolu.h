@@ -31,7 +31,7 @@ void dw_core_codelet_update_u22(void *);
 
 #ifdef CHECK_RESULTS
 static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
-				unsigned size)
+				unsigned size, unsigned ld)
 {
 	unsigned i,j;
 	float *L;
@@ -48,16 +48,16 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (i = 0; i < j; i++)
 		{
-			L[i+j*size] = LU[i+j*size];
+			L[i+j*size] = LU[i+j*ld];
 		}
 
 		/* diag i = j */
-		L[j+j*size] = LU[j+j*size];
+		L[j+j*size] = LU[j+j*ld];
 		U[j+j*size] = 1.0f;
 
 		for (i = j+1; i < size; i++)
 		{
-			U[i+j*size] = LU[i+j*size];
+			U[i+j*size] = LU[i+j*ld];
 		}
 	}
 
@@ -66,9 +66,12 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 			CblasUnit, size, size, 1.0f, U, size, L, size);
 
 	float max_err = 0.0f;
-	for (i = 0; i < size*size ; i++)
+	for (i = 0; i < size ; i++)
 	{
-		max_err = MAX(max_err, fabs(  L[i] - A[i]  ));
+		for (j = 0; j < size; j++) 
+		{
+			max_err = MAX(max_err, fabs(  L[i+j*size] - A[i+j*ld]  ));
+		}
 	}
 
 	printf("max error between A and L*U = %f \n", max_err);
