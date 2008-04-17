@@ -41,12 +41,14 @@ void monitor_new_data(data_state *state, uint32_t home_node,
 			state->per_node[node].ld = ld;
 			state->per_node[node].allocated = 1;
 			state->per_node[node].automatically_allocated = 0;
+			state->per_node[node].refcnt = 0;
 		}
 		else {
 			/* the value is not available here yet */
 			state->per_node[node].state = INVALID;
 			state->per_node[node].ptr = 0;
 			state->per_node[node].allocated = 0;
+			state->per_node[node].refcnt = 0;
 		}
 	}
 
@@ -159,6 +161,7 @@ void partition_data(data_state *initial_data, filter *f)
 			children->per_node[node].allocated = 
 				initial_data->per_node[node].allocated;
 			children->per_node[node].automatically_allocated = 0;
+			children->per_node[node].refcnt = initial_data->per_node[node].refcnt;
 		}
 	}
 

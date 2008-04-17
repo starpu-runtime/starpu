@@ -50,10 +50,9 @@ unsigned may_free_subtree(data_state *data, unsigned node)
 {
 	if (data->nchildren == 0)
 	{
-		/* this is a leaf */	
-		/* NO XXX TODO ! use an explicit refcnt per node  */
-#warning crap !
-		return !(is_rw_lock_referenced(&data->data_lock));
+		/* we only free if no one refers to the leaf */
+		uint32_t refcnt = get_data_refcnt(data, node);
+		return (refcnt == 0);
 	}
 	else {
 		/* lock all sub-subtrees children */
@@ -70,15 +69,21 @@ unsigned may_free_subtree(data_state *data, unsigned node)
 	}
 }
 
-void do_free_mem_chunk(mem_chunk_t mc, unsigned node)
+size_t do_free_mem_chunk(mem_chunk_t mc, unsigned node)
 {
+	size_t size;
+
 	/* remove the mem_chunk from the list */
 	mem_chunk_list_erase(mc_list[node], mc);
+
+	size = mc->size;
 
 	/* free the actual buffer */
 	liberate_memory_on_node(mc->data, node);
 
 	mem_chunk_delete(mc);
+
+	return size; 
 }
 
 void transfer_subtree_to_node(data_state *data, unsigned src_node, unsigned dst_node)
@@ -138,6 +143,8 @@ void transfer_subtree_to_node(data_state *data, unsigned src_node, unsigned dst_
 
 size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node)
 {
+	size_t liberated = 0;
+
 	data_state *data;
 
 	data = mc->data;
@@ -153,13 +160,13 @@ size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node)
 		transfer_subtree_to_node(data, node, 0);
 
 		/* now the actual buffer may be liberated */
-		do_free_mem_chunk(mc, node);
+		liberated = do_free_mem_chunk(mc, node);
 	}
 
 	/* unlock the leafs */
 	unlock_all_subtree(data);
 
-	return 0;
+	return liberated;
 }
 
 /* 
@@ -170,16 +177,20 @@ size_t reclaim_memory(uint32_t node)
 {
 	printf("reclaim memory...\n");
 
+	size_t liberated = 0;
+
 	/* try to free all allocated data .. XXX */
 	mem_chunk_t mc;
 	for (mc = mem_chunk_list_begin(mc_list[node]);
 	     mc != mem_chunk_list_end(mc_list[node]);
 	     mc = mem_chunk_list_next(mc))
 	{
-		try_to_free_mem_chunk(mc, node);
+		liberated += try_to_free_mem_chunk(mc, node);
 	}
 
-	return 0;
+	printf("got %d bytes back\n");
+
+	return liberated;
 }
 
 void register_mem_chunk(data_state *state, uint32_t dst_node, size_t size)
@@ -218,7 +229,6 @@ void allocate_memory_on_node(data_state *state, uint32_t dst_node)
 	unsigned attempts = 0;
 
 	do {
-	//	printf("locate node = %d addr = %p dst_node =%d x %d y %d xy %d\n", get_local_memory_node(), (void *)addr, dst_node, state->nx, state->ny, state->nx*state->ny);
 		switch(descr.nodes[dst_node]) {
 			case RAM:
 				addr = (uintptr_t) malloc(state->nx*state->ny*state->elemsize);

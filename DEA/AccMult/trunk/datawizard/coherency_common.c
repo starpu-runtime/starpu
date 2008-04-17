@@ -86,6 +86,7 @@ uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
 	cache_state local_state;
 	local_state = state->per_node[requesting_node].state;
 
+
 	/* we handle that case first to optimize the OWNER path */
 	if ((local_state == OWNER) || (local_state == SHARED && !write))
 	{
@@ -168,7 +169,16 @@ uintptr_t fetch_data(data_state *state, access_mode mode)
 		take_rw_lock_read(&state->data_lock);
 	}
 
+	take_mutex(&state->header_lock);
+	state->per_node[requesting_node].refcnt++;
+	release_mutex(&state->header_lock);
+
 	return _fetch_data(state, requesting_node, read, write);
+}
+
+uint32_t get_data_refcnt(data_state *state, uint32_t node)
+{
+	return state->per_node[node].refcnt;
 }
 
 void write_through_data(data_state *state, uint32_t requesting_node, uint32_t write_through_mask)
@@ -223,6 +233,10 @@ void release_data(data_state *state, uint32_t write_through_mask)
 		push_dynamic_data_state(state);
 #endif
 	}
+
+	take_mutex(&state->header_lock);
+	state->per_node[requesting_node].refcnt--;
+	release_mutex(&state->header_lock);
 
 	/* this is intended to make data accessible again */
 	release_rw_lock(&state->data_lock);

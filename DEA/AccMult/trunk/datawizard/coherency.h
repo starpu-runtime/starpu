@@ -43,6 +43,7 @@ typedef struct local_data_state_t {
 	 * for now this is just translated into !automatically_allocated
 	 * */
 	uint8_t automatically_allocated;
+	uint32_t refcnt;
 } local_data_state;
 
 typedef struct data_state_t {
