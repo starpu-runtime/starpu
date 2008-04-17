@@ -219,17 +219,20 @@ void dw_core_codelet_update_u11(void *_args)
 
 	for (z = 0; z < nx; z++)
 	{
+		float pivot;
+		pivot = sub11[z+z*ld];
+		ASSERT(pivot != 0.0f);
 		for (x = z+1; x < nx ; x++)
 		{
-			ASSERT(sub11[z+z*ld] != 0.0f);
-			sub11[x+z*ld] = sub11[x+z*ld] / sub11[z+z*ld];
+			sub11[x+z*ld] = sub11[x+z*ld] / pivot;
 		}
 
 		for (y = z+1; y < nx; y++)
 		{
+			float tmp = sub11[z+y*ld];
 			for (x = z+1; x < nx ; x++)
 			{
-				sub11[x+y*ld] -= sub11[x+z*ld]*sub11[z+y*ld];
+				sub11[x+y*ld] -= sub11[x+z*ld]*tmp;
 			}
 		}
 	}
@@ -469,7 +472,9 @@ void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
+	printf("monitor ... start ...\n");
 	monitor_new_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
+	printf("monitor ... ok ...\n");
 
 	filter f;
 		f.filter_func = block_filter_func;

@@ -211,9 +211,8 @@ void unpartition_data(data_state *root_data, uint32_t gathering_node)
 			}
 	
 			if (local->allocated && local->automatically_allocated){
-				//ASSERT(gathering_node != node);
-				/* XXX free the data copy ! */
-
+				/* free the data copy in a lazy fashion */
+				request_mem_chunk_removal(local, node);
 				isvalid = 0; 
 			}
 		}

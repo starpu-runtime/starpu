@@ -2,6 +2,7 @@
 
 extern mem_node_descr descr;
 static mem_chunk_list_t mc_list[MAXNODES];
+static mem_chunk_list_t mc_list_to_free[MAXNODES];
 
 void init_mem_chunk_lists(void)
 {
@@ -9,6 +10,7 @@ void init_mem_chunk_lists(void)
 	for (i = 0; i < MAXNODES; i++)
 	{
 		mc_list[i] = mem_chunk_list_new();
+		mc_list_to_free[i] = mem_chunk_list_new();
 	}
 }
 
@@ -179,8 +181,18 @@ size_t reclaim_memory(uint32_t node)
 
 	size_t liberated = 0;
 
-	/* try to free all allocated data .. XXX */
+	/* remove all buffers for which there was a removal request */
 	mem_chunk_t mc;
+	for (mc = mem_chunk_list_begin(mc_list_to_free[node]);
+	     mc != mem_chunk_list_end(mc_list_to_free[node]);
+	     mc = mem_chunk_list_next(mc))
+	{
+		liberate_memory_on_node(mc->data, node);
+
+		/* XXX there is still that mem_chunk_t structure leaking */
+	}
+
+	/* try to free all allocated data potentially in use .. XXX */
 	for (mc = mem_chunk_list_begin(mc_list[node]);
 	     mc != mem_chunk_list_end(mc_list[node]);
 	     mc = mem_chunk_list_next(mc))
@@ -202,6 +214,29 @@ void register_mem_chunk(data_state *state, uint32_t dst_node, size_t size)
 
 	/* XXX TODO protect that structure ! */
 	mem_chunk_list_push_front(mc_list[dst_node], mc);
+}
+
+void request_mem_chunk_removal(data_state *state, unsigned node)
+{
+	/* iterate over the list of memory chunks and remove the entry */
+	mem_chunk_t mc;
+	for (mc = mem_chunk_list_begin(mc_list[node]);
+	     mc != mem_chunk_list_end(mc_list[node]);
+	     mc = mem_chunk_list_next(mc))
+	{
+		if (mc->data == state) {
+			/* we found the data */
+			/* remove it from the main list */
+			mem_chunk_list_erase(mc_list[node], mc);
+
+			/* put it in the list of buffers to be removed */
+			mem_chunk_list_push_front(mc_list_to_free[node], mc);
+
+			return;
+		}
+	}
+
+	/* there was no corresponding buffer ... */
 }
 
 void liberate_memory_on_node(data_state *state, uint32_t node)

@@ -1,6 +1,6 @@
 #include "heat.h"
 
-#define NTHETA	(196+2)
+#define NTHETA	(128+2)
 #define NTHICK	(128+2)
 
 #define MIN(a,b)	((a)<(b)?(a):(b))
@@ -155,7 +155,7 @@ static void display(void)
    gluLookAt (0.0, 0.0, 15.0f, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
    float factor = 10.0/(RMIN+RMAX);
    glScalef (factor, factor, factor);      /* modeling transformation */
-   glRotatef(-0,0.0,0.0,0.0);
+//   glRotatef(-0,0.0,0.0,0.0);
    generate_graph();
    glFlush ();
 }
@@ -510,6 +510,19 @@ void reorganize_matrices(float *A, float *B, int *RefArray, unsigned size, unsig
 	}
 }
 
+unsigned shape = 0;
+
+void parse_args(int argc, char **argv)
+{
+	int i;
+	for (i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "-shape") == 0) {
+		        char *argptr;
+			shape = strtol(argv[++i], &argptr, 10);
+		}
+	}
+}
+
 int main(int argc, char **argv)
 {
 	argc_ = argc;
@@ -519,6 +532,7 @@ int main(int argc, char **argv)
 	marcel_init(&argc, argv);
 #endif
 
+	parse_args(argc, argv);
 
 	unsigned theta, thick;
 
@@ -543,11 +557,21 @@ int main(int argc, char **argv)
 
 			r = thick * (RMAX - RMIN)/(NTHICK - 1) + RMIN;
 
-			pmesh[NODE_NUMBER(theta,thick)].x = r*cosf(angle);
-			pmesh[NODE_NUMBER(theta,thick)].y = r*sinf(angle);
-
-//			pmesh[NODE_NUMBER(theta,thick)].x = -100 + RMIN+((RMAX-RMIN)*theta)/(NTHETA - 1);//-RMIN + (2*(RMAX - RMIN)*theta)/(NTHETA - 1);
-//			pmesh[NODE_NUMBER(theta,thick)].y = RMIN+((RMAX-RMIN)*thick)/(NTHICK - 1);//-RMIN + (2*(RMAX - RMIN)*theta)/(NTHETA - 1);
+			switch (shape) {
+				default:
+				case 0:
+					pmesh[NODE_NUMBER(theta,thick)].x = r*cosf(angle);
+					pmesh[NODE_NUMBER(theta,thick)].y = r*sinf(angle);
+					break;
+				case 1:
+					pmesh[NODE_NUMBER(theta,thick)].x = -100 + RMIN+((RMAX-RMIN)*theta)/(NTHETA - 1);
+					pmesh[NODE_NUMBER(theta,thick)].y = RMIN+((RMAX-RMIN)*thick)/(NTHICK - 1);
+					break;
+				case 2:
+					pmesh[NODE_NUMBER(theta,thick)].x = r*(2.0f*theta/(NTHETA - 1)- 1.0f);
+					pmesh[NODE_NUMBER(theta,thick)].y = r*(2.0f*thick/(NTHICK - 1)- 1.0f);
+					break;
+			}
 		}
 	}
 
@@ -582,7 +606,7 @@ int main(int argc, char **argv)
 	for (i = 1; i < NTHETA-1; i++)
 	{
 		B[i*NTHICK] = 200.0f;
-		B[(i+1)*NTHICK-1] = 000.0f;
+		B[(i+1)*NTHICK-1] = 100.0f;
 	}
 
 	/* now simplify that problem given the boundary conditions */ 
@@ -655,7 +679,7 @@ int main(int argc, char **argv)
 
 	result = malloc(DIM*sizeof(float));
 
-	dw_factoLU(A, newsize, DIM, 64);
+	dw_factoLU(A, newsize, DIM, 16);
 
 	solve_system(DIM, newsize);
 
