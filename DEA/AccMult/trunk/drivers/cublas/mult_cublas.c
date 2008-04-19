@@ -26,7 +26,7 @@ static int execute_job_on_cublas(job_t j)
 			j->cl->cublas_func(j->cl->cl_arg);
 			break;
 		case ABORT:
-			printf("CUBLAS abort\n");
+			fprintf(stderr, "CUBLAS abort\n");
 			cublasShutdown();
 			pthread_exit(NULL);
 			break;
@@ -59,7 +59,7 @@ void *cublas_worker(void *arg)
 //	void *dummy;
 //	cublasAlloc(600*1024*1024, 1, &dummy);
 
-	printf("cublas thread is ready to run on CPU %d !\n", args->bindid);
+	fprintf(stderr, "cublas thread is ready to run on CPU %d !\n", args->bindid);
 	/* tell the main thread that this one is ready to work */
 	args->ready_flag = 1;
 

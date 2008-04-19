@@ -1,21 +1,19 @@
 #include "heat.h"
 
-#define NTHETA	(128+2)
-#define NTHICK	(128+2)
+/* default values */
+unsigned ntheta = 32+2;
+unsigned nthick = 32+2;
 
-#define MIN(a,b)	((a)<(b)?(a):(b))
-#define MAX(a,b)	((a)<(b)?(b):(a))
-
-#define DIM	NTHETA*NTHICK
+#define DIM	ntheta*nthick
 
 #define RMIN	(150.0f)
 #define RMAX	(200.0f)
 
 #define Pi	(3.141592f)
 
-#define NODE_NUMBER(theta, thick)	((thick)+(theta)*NTHICK)
-#define NODE_TO_THICK(n)		((n) % NTHICK)
-#define NODE_TO_THETA(n)		((n) / NTHICK)
+#define NODE_NUMBER(theta, thick)	((thick)+(theta)*nthick)
+#define NODE_TO_THICK(n)		((n) % nthick)
+#define NODE_TO_THETA(n)		((n) / nthick)
 
 typedef struct point_t {
 	float x;
@@ -62,9 +60,9 @@ static void generate_graph()
 {
 	unsigned theta, thick;
 
-	for (theta = 0; theta < NTHETA-1; theta++)
+	for (theta = 0; theta < ntheta-1; theta++)
 	{
-		for (thick = 0; thick < NTHICK-1; thick++)
+		for (thick = 0; thick < nthick-1; thick++)
 		{
 			unsigned nodeA = NODE_NUMBER(theta, thick);
 			unsigned nodeB = NODE_NUMBER(theta, thick+1);
@@ -108,22 +106,22 @@ static void generate_graph()
 			}
 
 			if (printmesh) {
-   			glColor3f (0.0f, 0.0f, 0.0f);
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			glLineWidth(3.0f);
-			glBegin(GL_POLYGON);
-				glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 2.0f);
-				glVertex3f(pmesh[nodeD].x, pmesh[nodeD].y, 2.0f);
-				glVertex3f(pmesh[nodeC].x, pmesh[nodeC].y, 2.0f);
-				glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 2.0f);
-			glEnd();
-
-			glBegin(GL_POLYGON);
-				glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 1.0f);
-				glVertex3f(pmesh[nodeC].x, pmesh[nodeC].y, 1.0f);
-				glVertex3f(pmesh[nodeB].x, pmesh[nodeB].y, 1.0f);
-				glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 1.0f);
-			glEnd();
+	   			glColor3f (0.0f, 0.0f, 0.0f);
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				glLineWidth(3.0f);
+				glBegin(GL_POLYGON);
+					glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 2.0f);
+					glVertex3f(pmesh[nodeD].x, pmesh[nodeD].y, 2.0f);
+					glVertex3f(pmesh[nodeC].x, pmesh[nodeC].y, 2.0f);
+					glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 2.0f);
+				glEnd();
+	
+				glBegin(GL_POLYGON);
+					glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 1.0f);
+					glVertex3f(pmesh[nodeC].x, pmesh[nodeC].y, 1.0f);
+					glVertex3f(pmesh[nodeB].x, pmesh[nodeB].y, 1.0f);
+					glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 1.0f);
+				glEnd();
 			}
 
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -177,18 +175,18 @@ static void pressKey(unsigned char key, int x, int y)
 
 static void reshape (int w, int h)
 {
-   glViewport (0, 0, (GLsizei) w, (GLsizei) h);
-   glMatrixMode (GL_PROJECTION);
-   glLoadIdentity ();
-   glFrustum (-1.0, 1.0, -1.0, 1.0, 1.5, 20.0);
-   glMatrixMode (GL_MODELVIEW);
+	glViewport (0, 0, (GLsizei) w, (GLsizei) h);
+	glMatrixMode (GL_PROJECTION);
+	glLoadIdentity ();
+	glFrustum (-1.0, 1.0, -1.0, 1.0, 1.5, 20.0);
+	glMatrixMode (GL_MODELVIEW);
 }
 
 
 static void opengl_render(void)
 {
 	unsigned i;
-	printf("OpenGL rendering ... \n");
+	fprintf(stderr, "OpenGL rendering ... \n");
 
 	minval = 100000000.0f;
 	maxval = -10000000.0f;
@@ -235,8 +233,8 @@ static inline float diff_psi(unsigned theta_tr, unsigned thick_tr, unsigned side
 	float xa,ya,xb,yb,xc,yc;
 	float tmp;
 
-	assert(theta_tr + 2 <= NTHETA);
-	assert(thick_tr + 2 <= NTHICK);
+	assert(theta_tr + 2 <= ntheta);
+	assert(thick_tr + 2 <= nthick);
 
 	/* A */
 	xa = pmesh[NODE_NUMBER(theta_tr, thick_tr)].x;
@@ -318,8 +316,8 @@ static inline float surface_triangle(unsigned theta_tr, unsigned thick_tr, unsig
 
 	float xi, xj, xk, yi, yj, yk;
 
-	assert(theta_tr + 2 <= NTHETA);
-	assert(thick_tr + 2 <= NTHICK);
+	ASSERT(theta_tr + 2 <= ntheta);
+	ASSERT(thick_tr + 2 <= nthick);
 
 	xi = pmesh[NODE_NUMBER(theta_tr, thick_tr)].x;
 	yi = pmesh[NODE_NUMBER(theta_tr, thick_tr)].y;
@@ -352,10 +350,10 @@ static inline float integral_triangle(int theta_tr, int thick_tr, unsigned side_
 	float dxi, dxj, dyi, dyj;
 
 	if (theta_tr < 0) return 0.0f;
-	if (theta_tr > NTHETA-2) return 0.0f;
+	if (theta_tr > ntheta-2) return 0.0f;
 
 	if (thick_tr < 0) return 0.0f;
-	if (thick_tr > NTHICK-2) return 0.0f;
+	if (thick_tr > nthick-2) return 0.0f;
 
 	dxi = diff_x_psi(theta_tr, thick_tr, side_tr, theta_i, thick_i);
 	dyi = diff_y_psi(theta_tr, thick_tr, side_tr, theta_i, thick_i);
@@ -428,9 +426,9 @@ static void postscript_gen()
 	offx = RMAX+50;
 	offy = 100;
 
-	for (theta = 0; theta < NTHETA-1; theta++)
+	for (theta = 0; theta < ntheta-1; theta++)
 	{
-		for (thick = 0; thick < NTHICK-1; thick++)
+		for (thick = 0; thick < nthick-1; thick++)
 		{
 			fprintf(psfile, "newpath\n");
 			fprintf(psfile, "%d %d moveto\n", (int)pmesh[NODE_NUMBER(theta, thick)].x + offx,
@@ -466,7 +464,7 @@ static void solve_system(unsigned size, unsigned subsize)
 	/* solve the actual problem LU X = B */
         /* solve LX' = Y with X' = UX */
         /* solve UX = X' */
-	printf("Solving the problem ...\n");
+	fprintf(stderr, "Solving the problem ...\n");
 
 	/* L */
 	cblas_strsv(CblasRowMajor, CblasLower, CblasNoTrans, CblasNonUnit,
@@ -520,6 +518,17 @@ void parse_args(int argc, char **argv)
 		        char *argptr;
 			shape = strtol(argv[++i], &argptr, 10);
 		}
+
+		if (strcmp(argv[i], "-nthick") == 0) {
+		        char *argptr;
+			nthick = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-ntheta") == 0) {
+		        char *argptr;
+			ntheta = strtol(argv[++i], &argptr, 10);
+		}
+
 	}
 }
 
@@ -545,17 +554,17 @@ int main(int argc, char **argv)
 	B = malloc(DIM*sizeof(float));
 
 	/* first build the mesh by determining all points positions */
-	for (theta = 0; theta < NTHETA; theta++)
+	for (theta = 0; theta < ntheta; theta++)
 	{
 		float angle;
 
-		angle = (NTHETA - 1 - theta) * Pi/(NTHETA-1);
+		angle = (ntheta - 1 - theta) * Pi/(ntheta-1);
 
-		for (thick = 0; thick < NTHICK; thick++)
+		for (thick = 0; thick < nthick; thick++)
 		{
 			float r;
 
-			r = thick * (RMAX - RMIN)/(NTHICK - 1) + RMIN;
+			r = thick * (RMAX - RMIN)/(nthick - 1) + RMIN;
 
 			switch (shape) {
 				default:
@@ -564,12 +573,12 @@ int main(int argc, char **argv)
 					pmesh[NODE_NUMBER(theta,thick)].y = r*sinf(angle);
 					break;
 				case 1:
-					pmesh[NODE_NUMBER(theta,thick)].x = -100 + RMIN+((RMAX-RMIN)*theta)/(NTHETA - 1);
-					pmesh[NODE_NUMBER(theta,thick)].y = RMIN+((RMAX-RMIN)*thick)/(NTHICK - 1);
+					pmesh[NODE_NUMBER(theta,thick)].x = -100 + RMIN+((RMAX-RMIN)*theta)/(ntheta - 1);
+					pmesh[NODE_NUMBER(theta,thick)].y = RMIN+((RMAX-RMIN)*thick)/(nthick - 1);
 					break;
 				case 2:
-					pmesh[NODE_NUMBER(theta,thick)].x = r*(2.0f*theta/(NTHETA - 1)- 1.0f);
-					pmesh[NODE_NUMBER(theta,thick)].y = r*(2.0f*thick/(NTHICK - 1)- 1.0f);
+					pmesh[NODE_NUMBER(theta,thick)].x = r*(2.0f*theta/(ntheta - 1)- 1.0f);
+					pmesh[NODE_NUMBER(theta,thick)].y = r*(2.0f*thick/(nthick - 1)- 1.0f);
 					break;
 			}
 		}
@@ -582,7 +591,7 @@ int main(int argc, char **argv)
 	/* then build the stiffness matrix A */
 	unsigned i,j;
 
-	printf("Assembling matrix ... \n");
+	fprintf(stderr, "Assembling matrix ... \n");
 
 	for (j = 0 ; j < DIM ; j++)
 	{
@@ -597,16 +606,16 @@ int main(int argc, char **argv)
 		B[i] = 0.0f;
 	}
 
-	for (i = 0; i < NTHICK; i++)
+	for (i = 0; i < nthick; i++)
 	{
 		B[i] = 200.0f;
 		B[DIM-1-i] = 200.0f;
 	}
 
-	for (i = 1; i < NTHETA-1; i++)
+	for (i = 1; i < ntheta-1; i++)
 	{
-		B[i*NTHICK] = 200.0f;
-		B[(i+1)*NTHICK-1] = 100.0f;
+		B[i*nthick] = 200.0f;
+		B[(i+1)*nthick-1] = 100.0f;
 	}
 
 	/* now simplify that problem given the boundary conditions */ 
@@ -631,9 +640,9 @@ int main(int argc, char **argv)
 	}
 
 	/* first inner nodes */
-	for (theta = 1; theta < NTHETA - 1 ; theta++)
+	for (theta = 1; theta < ntheta - 1 ; theta++)
 	{
-		for (thick = 1; thick < NTHICK - 1; thick++) 
+		for (thick = 1; thick < nthick - 1; thick++) 
 		{
 			/* inner nodes are unknown */
 			RefArray[index++] = NODE_NUMBER(theta, thick);
@@ -642,22 +651,22 @@ int main(int argc, char **argv)
 
 	newsize = index;
 
-	for (theta=0; theta < NTHETA; theta++)
+	for (theta=0; theta < ntheta; theta++)
 	{
 		/* Lower boundary "South" */
 		RefArray[index++] = NODE_NUMBER(theta, 0);
 		
 		/* Upper boundary "North" */
-		RefArray[index++] = NODE_NUMBER(theta, NTHICK-1);
+		RefArray[index++] = NODE_NUMBER(theta, nthick-1);
 	}
 
-	for (thick = 1; thick < NTHICK -1; thick++)
+	for (thick = 1; thick < nthick -1; thick++)
 	{
 		/* "West "*/
 		RefArray[index++] = NODE_NUMBER(0, thick);
 
 		/* "East" */
-		RefArray[index++] = NODE_NUMBER(NTHETA-1, thick);
+		RefArray[index++] = NODE_NUMBER(ntheta-1, thick);
 	}
 
 	assert(index == DIM);
@@ -665,7 +674,7 @@ int main(int argc, char **argv)
 	Bformer = malloc(DIM*sizeof(float));
 	memcpy(Bformer, B, DIM*sizeof(float));
 
-	printf("Problem size : %dx%d (%dx%d)\n", newsize, newsize, DIM, DIM);
+	fprintf(stderr, "Problem size : %dx%d (%dx%d)\n", newsize, newsize, DIM, DIM);
 
 	reorganize_matrices(A, B, RefArray, DIM, newsize);
 
@@ -679,10 +688,9 @@ int main(int argc, char **argv)
 
 	result = malloc(DIM*sizeof(float));
 
-	dw_factoLU(A, newsize, DIM, 16);
+	dw_factoLU(A, newsize, DIM, 32);
 
 	solve_system(DIM, newsize);
-
 
 #ifdef OPENGL_RENDER
 	opengl_render();

@@ -90,7 +90,8 @@ size_t do_free_mem_chunk(mem_chunk_t mc, unsigned node)
 
 void transfer_subtree_to_node(data_state *data, unsigned src_node, unsigned dst_node)
 {
-	unsigned i,last;
+	unsigned i;
+	unsigned last = 0;
 	unsigned cnt;
 	cache_state new_state;
 
@@ -200,7 +201,7 @@ size_t reclaim_memory(uint32_t node)
 		liberated += try_to_free_mem_chunk(mc, node);
 	}
 
-	printf("got %d bytes back\n");
+	printf("got %d bytes back\n", liberated);
 
 	return liberated;
 }
@@ -243,11 +244,11 @@ void liberate_memory_on_node(data_state *state, uint32_t node)
 {
 	switch(descr.nodes[node]) {
 		case RAM:
-			free(state->per_node[node].ptr);
+			free((void*)state->per_node[node].ptr);
 			break;
 #ifdef USE_CUBLAS
 		case CUBLAS_RAM:
-			cublasFree(state->per_node[node].ptr);
+			cublasFree((void*)state->per_node[node].ptr);
 			break;
 #endif
 		default:

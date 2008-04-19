@@ -12,11 +12,12 @@ void execute_job_on_core(job_t j)
 			j->cl->core_func(j->cl->cl_arg);
 			break;
                 case ABORT:
-                        printf("core abort\n");
+                        fprintf(stderr, "core abort\n");
                         thread_exit(NULL);
                         break;
                 default:
-			printf("don't know what to do with that task on a core ! ... \n");
+			fprintf(stderr, "don't know what to do with that task on a core ! ... \n");
+			ASSERT(0);
                         break;
         }
 }
@@ -33,7 +34,7 @@ void *core_worker(void *arg)
 	sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
 #endif
 
-        printf("core worker %d is ready on logical core %d\n", core, ((core_worker_arg *)arg)->bindid);
+        fprintf(stderr, "core worker %d is ready on logical core %d\n", core, ((core_worker_arg *)arg)->bindid);
 
 	set_local_memory_node_key(&(((core_worker_arg *)arg)->memory_node));
 

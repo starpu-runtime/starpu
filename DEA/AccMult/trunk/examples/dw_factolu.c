@@ -450,7 +450,8 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 	sem_wait(&sem);
 	sem_destroy(&sem);
 	GET_TICK(end);
-	printf("Computation took %2.2f ms\n", TIMING_DELAY(start, end)/1000);
+	fprintf(stderr, "Computation took (in ms)\n");
+	printf("%2.2f\n", TIMING_DELAY(start, end)/1000);
 }
 
 void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks)
@@ -461,7 +462,7 @@ void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	timing_init();
 
 #ifdef CHECK_RESULTS
-	printf("Checking results ...\n");
+	fprintf(stderr, "Checking results ...\n");
 	float *Asaved;
 	Asaved = malloc(ld*ld*sizeof(float));
 
@@ -472,9 +473,7 @@ void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	printf("monitor ... start ...\n");
 	monitor_new_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
-	printf("monitor ... ok ...\n");
 
 	filter f;
 		f.filter_func = block_filter_func;

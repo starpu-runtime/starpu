@@ -237,17 +237,15 @@ void init_workers(void)
 
 void terminate_workers(void)
 {
-	printf("terminate workers \n");
+	fprintf(stderr, "terminate workers \n");
 #ifdef USE_CPUS
 	unsigned core;
 	for (core = 0; core < ncores; core++)
 	{
 		thread_join(corethreads[core], NULL);
 	}
-	printf("core terminated ... \n");
+	fprintf(stderr, "core terminated ... \n");
 #endif
-
-
 
 #ifdef USE_CUDA
 	int cudadev;
@@ -255,7 +253,7 @@ void terminate_workers(void)
 	{
 		thread_join(cudathreads[cudadev], NULL);
 	}
-	printf("cuda terminated\n");
+	fprintf(stderr, "cuda terminated\n");
 #endif
 
 #ifdef USE_CUBLAS
@@ -264,7 +262,7 @@ void terminate_workers(void)
 	{
 		thread_join(cublasthreads[cublasdev], NULL);
 	}
-	printf("cublas terminated\n");
+	fprintf(stderr, "cublas terminated\n");
 #endif
 
 #ifdef USE_SPU
@@ -273,7 +271,7 @@ void terminate_workers(void)
 	{
 		thread_join(sputhreads[spu], NULL);
 	}
-	printf("SPUs terminated\n");
+	fprintf(stderr, "SPUs terminated\n");
 #endif
 
 
