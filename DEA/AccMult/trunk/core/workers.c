@@ -40,12 +40,42 @@ gordon_worker_arg gordonargs;
 
 int current_bindid = 0;
 
+int get_env_number(const char *str)
+{
+	char *strval;
+
+	strval = getenv(str);
+	if (strval) {
+		/* the env variable was actually set */
+		unsigned val;
+		char *check;
+
+		val = (int)strtol(strval, &check, 10);
+		ASSERT(strcmp(check, "\0") == 0);
+
+		return val;
+	}
+	else {
+		/* there is no such env variable */
+		return -1;
+	}
+}
+
 void init_machine(void)
 {
+	int envval;
+
 	srand(2008);
 
 #ifdef USE_CPUS
-	ncores = MIN(sysconf(_SC_NPROCESSORS_ONLN), NMAXCORES);
+	envval = get_env_number("NCPUS");
+	if (envval < 0) {
+		ncores = MIN(sysconf(_SC_NPROCESSORS_ONLN), NMAXCORES);
+	} else {
+		/* use the specified value */
+		ncores = (unsigned)envval;
+		ASSERT(ncores <= NMAXCORES);
+	}
 #endif
 
 #ifdef USE_CUDA
@@ -53,11 +83,26 @@ void init_machine(void)
 #endif
 
 #ifdef USE_CUBLAS
-	ncublasgpus = MIN(get_cublas_device_count(), MAXCUBLASDEVS);
+	envval = get_env_number("NCUBLAS");
+	if (envval < 0) {
+		ncublasgpus = MIN(get_cublas_device_count(), MAXCUBLASDEVS);
+	} else {
+		/* use the specified value */
+		ncublasgpus = (unsigned)envval;
+		ASSERT(ncublasgpus <= MAXCUBLASDEVS);
+	}
 #endif
 
 #ifdef USE_SPU
-	nspus = MIN(get_spu_count(), MAXSPUS);
+	envval = get_env_number("NSPUS");
+	if (envval < 0) {
+		nspus = MIN(get_spu_count(), MAXSPUS);
+	} else {
+		/* use the specified value */
+		nspus = (unsigned)envval;
+		ASSERT(nspus <= MAXSPUS);
+	}
+
 #endif
 
 	/* for the data wizard */
@@ -72,16 +117,17 @@ void init_workers(void)
 	init_work_queue();
 
 	/* launch one thread per CPU */
-#ifdef USE_CPUS
 	unsigned memory_node;
-	if (ncores != 0)
-	{
+	/* note that even if the CPU core are not used, we always have a RAM node */
+//	if (ncores != 0)
+//	{
 		/* right now, all processor are using the same memory nodes 
 		 * TODO : support NUMA ;)
 		 * */
 		memory_node = register_memory_node(RAM);
-	}
+//	}
 
+#ifdef USE_CPUS
 	unsigned core;
 	for (core = 0; core < ncores; core++)
 	{
