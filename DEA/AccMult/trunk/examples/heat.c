@@ -3,6 +3,7 @@
 /* default values */
 unsigned ntheta = 32+2;
 unsigned nthick = 32+2;
+unsigned nblocks = 16;
 
 #define DIM	ntheta*nthick
 
@@ -529,6 +530,14 @@ void parse_args(int argc, char **argv)
 			ntheta = strtol(argv[++i], &argptr, 10);
 		}
 
+		if (strcmp(argv[i], "-nblocks") == 0) {
+		        char *argptr;
+			nblocks = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-h") == 0) {
+			/* TODO */
+		}
 	}
 }
 
@@ -688,7 +697,7 @@ int main(int argc, char **argv)
 
 	result = malloc(DIM*sizeof(float));
 
-	dw_factoLU(A, newsize, DIM, 32);
+	dw_factoLU(A, newsize, DIM, nblocks);
 
 	solve_system(DIM, newsize);
 

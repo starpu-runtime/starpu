@@ -53,10 +53,12 @@ int get_env_number(const char *str)
 		val = (int)strtol(strval, &check, 10);
 		ASSERT(strcmp(check, "\0") == 0);
 
+		//fprintf(stderr, "ENV %s WAS %d\n", str, val);
 		return val;
 	}
 	else {
 		/* there is no such env variable */
+		//fprintf("There was no %s ENV\n", str);
 		return -1;
 	}
 }
