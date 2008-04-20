@@ -396,11 +396,11 @@ void display_general_stats()
 void display_stats(job_descr *jd)
 {
 #ifdef COMPARE_SEQ
-	float refchrono	= ((float)(TIMING_DELAY(jd->job_refstart, jd->job_refstop)));
+	float refchrono	= ((float)(timing_delay(&jd->job_refstart, &jd->job_refstop)));
 	printf("Ref time : %f ms\n", refchrono/1000);
 	printf("Speedup\t=\t%f\n", refchrono/chrono);
 #endif
 
-	float chrono = (float)(TIMING_DELAY(jd->job_submission, jd->job_finished));
+	float chrono = (float)(timing_delay(&jd->job_submission, &jd->job_finished));
 	printf("Computation time : %f ms\n", chrono/1000);
 }

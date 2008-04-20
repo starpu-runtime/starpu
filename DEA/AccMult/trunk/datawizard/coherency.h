@@ -10,6 +10,7 @@
 #include <common/util.h>
 #include <common/mutex.h>
 #include <common/rwlock.h>
+#include <common/timing.h>
 
 #define MAXNODES	6
 

@@ -48,7 +48,7 @@ void terminate(void)
 
 	unpartition_data(&C_state, 0);
 
-	printf("Computation took %2.2f ms\n", TIMING_DELAY(start, end)/1000);
+	printf("Computation took %2.2f ms\n", timing_delay(&start, &end)/1000);
 
 #ifdef CHECK_OUTPUT
 	/* check results */
@@ -115,7 +115,9 @@ void cublas_mult(void *arg)
 
 	cublasSgemm('n', 'n', nxC, nyC, nxA, 1.0f, subB, ldB, subA, ldA, 0.0f, subC, ldC);
 
-	release_data(descr->subC, 1);
+	release_data(descr->subA, 0);
+	release_data(descr->subB, 0);
+	release_data(descr->subC, 0);
 }
 #endif
 
@@ -126,25 +128,63 @@ void core_mult(void *arg)
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, nyC, nxC, nxA,
 			 1.0f,  subA, ldA, subB, ldB, 0.0f, subC, ldC);
 
+	release_data(descr->subA, 0);
+	release_data(descr->subB, 0);
 	release_data(descr->subC, 0);
+}
+
+unsigned nslicesx = 4;
+unsigned nslicesy = 4;
+unsigned xdim = 4096;
+unsigned ydim = 4096;
+unsigned zdim = 4096;
+unsigned norandom = 0;
+
+void parse_args(int argc, char **argv)
+{
+	int i;
+	for (i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "-nblocks") == 0) {
+			char *argptr;
+			nslicesx = strtol(argv[++i], &argptr, 10);
+			nslicesy = nslicesx;
+		}
+
+		if (strcmp(argv[i], "-x") == 0) {
+			char *argptr;
+			xdim = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-y") == 0) {
+			char *argptr;
+			ydim = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-z") == 0) {
+			char *argptr;
+			zdim = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-no-random") == 0) {
+			norandom = 1;
+		}
+	}
 }
 
 int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)
 {
 	unsigned i,j;
-	unsigned nslicesx, nslicesy;
 
 	int jobcounter;
 
-
 	timing_init();
 
-	x = 4096;
-	y = 4096;
-	z = 4096;
+	parse_args(argc, argv);
 
-	nslicesx = 4;
-	nslicesy = 4;
+	x = xdim;
+	y = ydim;
+	z = zdim;
+
 	jobcounter = nslicesx * nslicesy;
 
 	A = malloc(z*y*sizeof(float));
@@ -152,19 +192,33 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	C = malloc(x*y*sizeof(float));
 
 	/* fill the A and B matrices */
-	srand(2008);
-	for (i=0; i < z; i++) {
-		for (j=0; j < y; j++) {
-			A[i+j*z] = (float)(drand48());
+	if (norandom) {
+		for (i=0; i < z; i++) {
+			for (j=0; j < y; j++) {
+				A[i+j*z] = (float)(i);
+			}
+		}
+	
+		for (i=0; i < x; i++) {
+			for (j=0; j < z; j++) {
+				B[i+j*x] = (float)(j);
+			}
+		}
+	} 
+	else {
+		srand(2008);
+		for (i=0; i < z; i++) {
+			for (j=0; j < y; j++) {
+				A[i+j*z] = (float)(drand48());
+			}
+		}
+	
+		for (i=0; i < x; i++) {
+			for (j=0; j < z; j++) {
+				B[i+j*x] = (float)(drand48());
+			}
 		}
 	}
-
-	for (i=0; i < x; i++) {
-		for (j=0; j < z; j++) {
-			B[i+j*x] = (float)(drand48());
-		}
-	}
-
 	for (i=0; i < x; i++) {
 		for (j=0; j < y; j++) {
 			C[i+j*x] = (float)(0);

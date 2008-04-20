@@ -5,7 +5,6 @@ NVCC = nvcc
 CFLAGS += -g -O3 -Wall #-fPIC
 CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs   -fno-strict-aliasing
 
-#LDFLAGS += -pg
 
 # to use CUDA
 export CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
@@ -26,7 +25,10 @@ endif
 export ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
 export BLASARCH=Linux_UNKNOWNSSE2
 
-
+ifdef PERF_DEBUG
+	CFLAGS += -DPERF_DEBUG
+	LDFLAGS += -pg
+endif
 
 LDFLAGS+= -lm
 

@@ -451,7 +451,7 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 	sem_destroy(&sem);
 	GET_TICK(end);
 	fprintf(stderr, "Computation took (in ms)\n");
-	printf("%2.2f\n", TIMING_DELAY(start, end)/1000);
+	printf("%2.2f\n", timing_delay(&start, &end)/1000);
 }
 
 void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks)

@@ -29,7 +29,7 @@ endif
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 endif
 
-all: matrix.o threads.o mutex.o rwlock.o
+all: matrix.o threads.o mutex.o rwlock.o timing.o
 
 mutex.o: mutex.c mutex.h
 	$(CC) $(CFLAGS) mutex.c -c -o mutex.o
@@ -42,6 +42,9 @@ threads.o: threads.c threads.h
 
 matrix.o: matrix.c util.h
 	$(CC) $(CFLAGS) matrix.c -c -o matrix.o
+
+timing.o: timing.c timing.h
+	$(CC) $(CFLAGS) timing.c -c -o timing.o
 
 clean:
 	@rm -f *.o 

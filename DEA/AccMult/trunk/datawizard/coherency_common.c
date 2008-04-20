@@ -217,6 +217,11 @@ void write_through_data(data_state *state, uint32_t requesting_node, uint32_t wr
 	release_mutex(&state->header_lock);
 }
 
+#ifdef PERF_DEBUG
+static unsigned release_data_ncalls = 0;
+#endif
+
+
 /* in case the data was accessed on a write mode, do not forget to 
  * make it accessible again once it is possible ! */
 void release_data(data_state *state, uint32_t write_through_mask)

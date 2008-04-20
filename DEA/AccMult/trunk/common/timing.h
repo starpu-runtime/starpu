@@ -33,9 +33,6 @@ typedef union u_tick
   sub;
 } tick_t;
 
-static double scale = 0.0;
-static unsigned long long residual = 0;
-
 #if defined(__i386__) || defined(__pentium__) || defined(__pentiumpro__) || defined(__i586__) || defined(__i686__) || defined(__k6__) || defined(__k7__) || defined(__x86_64__)
 #  define GET_TICK(t) __asm__ volatile("rdtsc" : "=a" ((t).sub.low), "=d" ((t).sub.high))
 #else
@@ -45,43 +42,9 @@ static unsigned long long residual = 0;
 #  define GET_TICK(t) do {} while(0);
 #endif
 
-#define TICK_RAW_DIFF(t1, t2) ((t2).tick - (t1).tick)
-#define TICK_DIFF(t1, t2) (TICK_RAW_DIFF(t1, t2) - residual)
-#define TIMING_DELAY(t1, t2) tick2usec(TICK_DIFF(t1, t2))
-
-static void __attribute__ ((unused)) timing_init(void)
-{
-  static tick_t t1, t2;
-  int i;
-      
-  residual = (unsigned long long)1 << 63;
-  
-  for(i = 0; i < 20; i++)
-    {
-      GET_TICK(t1);
-      GET_TICK(t2);
-      residual = min(residual, TICK_RAW_DIFF(t1, t2));
-    }
-  
-  {
-    struct timeval tv1,tv2;
-    
-    GET_TICK(t1);
-    gettimeofday(&tv1,0);
-    usleep(500000);
-    GET_TICK(t2);
-    gettimeofday(&tv2,0);
-    scale = ((tv2.tv_sec*1e6 + tv2.tv_usec) -
-	     (tv1.tv_sec*1e6 + tv1.tv_usec)) / 
-      (double)(TICK_DIFF(t1, t2));
-  }
-
-}
-
-static double __attribute__ ((unused)) tick2usec(long long t)
-{
-  return (double)(t)*scale;
-}
+void __attribute__ ((unused)) timing_init(void);
+double __attribute__ ((unused)) tick2usec(long long t);
+double __attribute__ ((unused)) timing_delay(tick_t *t1, tick_t *t2);
 
 #endif /* TIMING_H */
 
