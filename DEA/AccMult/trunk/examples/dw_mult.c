@@ -117,7 +117,7 @@ void cublas_mult(void *arg)
 
 	release_data(descr->subA, 0);
 	release_data(descr->subB, 0);
-	release_data(descr->subC, 0);
+	release_data(descr->subC, 1<<0);
 }
 #endif
 
@@ -148,6 +148,16 @@ void parse_args(int argc, char **argv)
 			char *argptr;
 			nslicesx = strtol(argv[++i], &argptr, 10);
 			nslicesy = nslicesx;
+		}
+
+		if (strcmp(argv[i], "-nblocksx") == 0) {
+			char *argptr;
+			nslicesx = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-nblocksy") == 0) {
+			char *argptr;
+			nslicesy = strtol(argv[++i], &argptr, 10);
 		}
 
 		if (strcmp(argv[i], "-x") == 0) {
