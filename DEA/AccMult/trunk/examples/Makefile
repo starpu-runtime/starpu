@@ -120,7 +120,12 @@ CFLAGS += -I../
 
 OBJDEPS += ../common/matrix.o ../common/threads.o ../common/timing.o 
 OBJDEPS += ../core/jobs.o ../core/workers.o
-OBJDEPS += ../common/mutex.o ../common/rwlock.o
+OBJDEPS += ../common/mutex.o ../common/rwlock.o 
+
+ifdef USE_FXT
+OBJDEPS += ../common/fxt.o
+LDFLAGS += -lfxt
+endif
 
 LDFLAGS += -L../datawizard/
 CFLAGS += -I../datawizard/

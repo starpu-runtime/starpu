@@ -19,6 +19,10 @@
 
 #include <datawizard/copy-driver.h>
 
+#ifdef USE_FXT
+#include <common/fxt.h>
+#endif
+
 #define MAXCUBLASDEVS	4
 
 #define START_POS(_mat)         \

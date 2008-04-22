@@ -29,7 +29,14 @@ endif
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 endif
 
-all: matrix.o threads.o mutex.o rwlock.o timing.o
+ifdef USE_FXT
+	OPTTARGET+= fxt.o
+endif
+
+all: matrix.o threads.o mutex.o rwlock.o timing.o $(OPTTARGET)
+
+fxt.o: fxt.h fxt.c
+	$(CC) $(CFLAGS) fxt.c -c -o fxt.o
 
 mutex.o: mutex.c mutex.h
 	$(CC) $(CFLAGS) mutex.c -c -o mutex.o

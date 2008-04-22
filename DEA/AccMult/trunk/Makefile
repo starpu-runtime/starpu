@@ -10,18 +10,6 @@ CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses 
 export CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
 export CUDAINSTALLDIR=/usr/local/cuda/
 
-# for compile time tuning 
-DEFAULTSIZE=2048
-DEFAULTGRAIN=128
-
-DEFAULTNSAMPLE=10
-
-ifdef NSAMPLE
-	CFLAGS += -DNSAMPLE=$(NSAMPLE)
-else
-	CFLAGS += -DNSAMPLE=$(DEFAULTNSAMPLE)
-endif
-
 export ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
 export BLASARCH=Linux_UNKNOWNSSE2
 
@@ -31,7 +19,6 @@ ifdef PERF_DEBUG
 endif
 
 LDFLAGS+= -lm
-
 
 DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o matrix.o
 EXTRADEP=
@@ -52,12 +39,6 @@ ifeq ($(CHECK), 1)
 	CFLAGS += -DCHECK_OUTPUT
 endif
 
-ifdef SIZE 
-	CFLAGS += -DSIZE=$(SIZE)
-else
-	CFLAGS += -DSIZE=$(DEFAULTSIZE)
-endif
-
 ifeq ($(CUDA), 1)
 	CFLAGS += -DUSE_CUDA 
 	NVCCFLAGS +=  -DUSE_CUDA 
@@ -74,6 +55,10 @@ ifdef CUBLASEMU
 else
 	LDFLAGS += -lcublas
 endif
+
+	LDFLAGS += -L$(CUDASDKDIR)/lib
+	LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
+
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	DEPENDENCIES += mult_cublas.o
 endif
@@ -103,13 +88,11 @@ ifdef GORDON
 	LDFLAGS += -lspe2
 endif
 
+FXTDIR=/home/gonnet/FxT/target
 
-ifdef GRAIN
-	CFLAGS += -DGRAIN=$(GRAIN)
-	NVCCFLAGS += -DGRAIN=$(GRAIN)
-else
-	CFLAGS += -DGRAIN=$(DEFAULTGRAIN)
-	NVCCFLAGS += -DGRAIN=$(DEFAULTGRAIN)
+ifdef USE_FXT
+	CFLAGS += -DUSE_FXT -I$(FXTDIR)/include/ -DCONFIG_FUT
+	LDFLAGS += -lfxt -L$(FXTDIR)/lib/
 endif
 
 all:
@@ -118,6 +101,7 @@ all:
 	@make -C drivers
 	@make -C datawizard
 	@make -C examples
+	@make -C tools
 
 clean:
 	@make -C common clean
@@ -125,14 +109,12 @@ clean:
 	@make -C drivers clean
 	@make -C datawizard clean
 	@make -C examples clean
-
+	@make -C tools clean
 
 help:
 	@echo "Possible options (default value) "
-	@echo "  SIZE size of the problem ($(DEFAULTSIZE))"
 	@echo "  CUDA use of cuda or not (0)"
 	@echo "  CUBLAS use of cublas or not (0)"
 	@echo "  CPUS number of CPUs in use (0)"
 	@echo "  CPUS run ATLAS functions (0)"
 	@echo "  CHECK makes sure the output is correct (0)"
-	@echo "  GRAIN job grain size ($(DEFAULTGRAIN))"

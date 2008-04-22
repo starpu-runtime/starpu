@@ -26,6 +26,10 @@ void *core_worker(void *arg)
 {
         int core = ((core_worker_arg *)arg)->coreid;
 
+#ifdef USE_FXT
+	fxt_register_thread(((core_worker_arg *)arg)->bindid);
+#endif
+
 #ifndef DONTBIND
 	/* fix the thread on the correct cpu */
 	cpu_set_t aff_mask; 

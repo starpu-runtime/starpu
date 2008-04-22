@@ -43,6 +43,10 @@ void *cublas_worker(void *arg)
 
 	int devid = args->deviceid;
 
+#ifdef USE_FXT
+	fxt_register_thread(args->bindid);
+#endif
+
 #ifndef DONTBIND
         /* fix the thread on the correct cpu */
         cpu_set_t aff_mask;

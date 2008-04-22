@@ -1,4 +1,7 @@
 #include <common/timing.h>
+#ifdef USE_FXT
+#include <common/fxt.h>
+#endif
 #include "workers.h"
 
 /* number of actual CPU cores */
@@ -68,6 +71,10 @@ void init_machine(void)
 	int envval;
 
 	srand(2008);
+
+#ifdef USE_FXT
+	start_fxt_profiling();
+#endif
 
 #ifdef USE_CPUS
 	envval = get_env_number("NCPUS");
