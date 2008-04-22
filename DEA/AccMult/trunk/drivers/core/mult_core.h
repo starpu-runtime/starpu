@@ -14,9 +14,7 @@
 #include <cblas.h>
 #endif
 
-#ifdef USE_FXT
 #include <common/fxt.h>
-#endif
 
 #include <datawizard/copy-driver.h>
 

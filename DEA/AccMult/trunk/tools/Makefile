@@ -1,4 +1,11 @@
-all: fxt-tool
+TOOLS=
+
+ifdef USE_FXT
+	TOOLS += fxt-tool 
+endif
+
+
+all: $(TOOLS)
 
 CFLAGS+= -I../
 

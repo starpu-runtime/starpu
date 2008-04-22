@@ -29,6 +29,7 @@ void *core_worker(void *arg)
 #ifdef USE_FXT
 	fxt_register_thread(((core_worker_arg *)arg)->bindid);
 #endif
+	TRACE_NEW_WORKER(FUT_CORE_KEY);
 
 #ifndef DONTBIND
 	/* fix the thread on the correct cpu */
@@ -59,7 +60,11 @@ void *core_worker(void *arg)
 			continue;
 		}
 
+		TRACE_START_CODELET_BODY(j);
+
                 execute_job_on_core(j);
+
+		TRACE_END_CODELET_BODY(j);
 
                 if (j->cb)
                         j->cb(j->argcb);

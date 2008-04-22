@@ -47,6 +47,8 @@ void *cublas_worker(void *arg)
 	fxt_register_thread(args->bindid);
 #endif
 
+	TRACE_NEW_WORKER(FUT_CUBLAS_KEY);
+
 #ifndef DONTBIND
         /* fix the thread on the correct cpu */
         cpu_set_t aff_mask;
@@ -80,7 +82,12 @@ void *cublas_worker(void *arg)
 			continue;
 		}
 
+		TRACE_START_CODELET_BODY(j);
+
 		res = execute_job_on_cublas(j);
+
+		TRACE_END_CODELET_BODY(j);
+
 		if (res != OK) {
 			switch (res) {
 				case OK:

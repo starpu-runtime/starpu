@@ -15,9 +15,7 @@
 #include <datawizard/hierarchy.h>
 #include <datawizard/filters.h>
 
-#ifdef USE_FXT
 #include <common/fxt.h>
-#endif
 
 typedef struct { 
 	data_state *subA;
@@ -110,9 +108,7 @@ void callback_func(void *arg)
 									\
 	ldA = get_local_ld(descr->subA);				\
 	ldB = get_local_ld(descr->subB);				\
-	ldC = get_local_ld(descr->subC);				\
-									\
-	FUT_DO_PROBE2(0x7337, 1, syscall(SYS_gettid));
+	ldC = get_local_ld(descr->subC);
 
 #ifdef USE_CUBLAS
 void cublas_mult(void *arg)

@@ -394,6 +394,8 @@ void *cuda_worker(void *arg)
 
 	int devid = args->deviceid;
 
+	TRACE_NEW_WORKER(FUT_CUDA_KEY);
+
 #ifndef DONTBIND
         /* fix the thread on the correct cpu */
         cpu_set_t aff_mask;
@@ -425,7 +427,12 @@ void *cuda_worker(void *arg)
 			continue;
 		}
 
+		TRACE_START_CODELET_BODY(j);
+
 		res = execute_job_on_cuda(j);
+
+		TRACE_END_CODELET_BODY(j);	
+
 		if (res != OK) {
 			switch (res) {
 				case OK:

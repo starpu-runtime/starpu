@@ -19,9 +19,7 @@
 
 #include <datawizard/copy-driver.h>
 
-#ifdef USE_FXT
 #include <common/fxt.h>
-#endif
 
 #define MAXCUBLASDEVS	4
 

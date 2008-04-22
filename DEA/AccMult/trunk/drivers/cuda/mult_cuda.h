@@ -13,6 +13,8 @@
 #include <common/parameters.h>
 #include <core/jobs.h>
 
+#include <common/fxt.h>
+
 /* this is a randomly choosen value ... */
 #ifndef MAXCUDADEVS
 #define MAXCUDADEVS	4
