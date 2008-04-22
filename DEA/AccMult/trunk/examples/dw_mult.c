@@ -193,8 +193,6 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 
 	int jobcounter;
 
-	timing_init();
-
 	parse_args(argc, argv);
 
 	x = xdim;

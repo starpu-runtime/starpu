@@ -51,6 +51,7 @@ int main(int argc, char **argv)
 		int nbparam = ev.nb_params;
 
 		switch (ev.code) {
+			
 			default:
 				printf("event.. %d at time %llx\n", ev.code, ev.time);
 				break;
