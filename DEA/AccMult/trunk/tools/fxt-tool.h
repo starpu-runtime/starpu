@@ -16,13 +16,14 @@
 #define MAXWORKERS      32
 #define FACTOR  100
 
-LIST_TYPE(event,
-        uint64_t time;
-);
-
 typedef enum {
 	WORKING,
 	IDLE
 } worker_mode;
+
+LIST_TYPE(event,
+        uint64_t time;
+	worker_mode mode;
+);
 
 #endif // __FXT_TOOL_H__

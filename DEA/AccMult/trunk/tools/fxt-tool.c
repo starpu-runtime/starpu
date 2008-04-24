@@ -81,6 +81,7 @@ void handle_start_codelet_body(void)
 
 	event_t e = event_new();
 	e->time =  ev.time;
+	e->mode = WORKING;
 	event_list_push_back(events[worker], e);
 
 	end_time = MAX(end_time, ev.time);
@@ -96,6 +97,7 @@ void handle_end_codelet_body(void)
 
 	event_t e = event_new();
 	e->time =  ev.time;
+	e->mode = IDLE;
 	event_list_push_back(events[worker], e);
 
 	end_time = MAX(end_time, ev.time);

@@ -35,7 +35,7 @@ void flash_engine_init(void)
 
 #define PEN_WIDTH	0
 
-void add_region(unsigned color, uint64_t start, uint64_t end, unsigned worker)
+void add_region(worker_mode color, uint64_t start, uint64_t end, unsigned worker)
 {
 	unsigned starty, endy, startx, endx;
 
@@ -54,12 +54,12 @@ void add_region(unsigned color, uint64_t start, uint64_t end, unsigned worker)
 
 	int region_color[3];
 		switch (color) {
-			case 1:
+			case WORKING:
 				region_color[0] = 0;
 				region_color[1] = 255;
 				region_color[2] = 0;
 				break;
-			case 0:
+			case IDLE:
 			default:
 				region_color[0] = 255;
 				region_color[1] = 0;
@@ -69,7 +69,8 @@ void add_region(unsigned color, uint64_t start, uint64_t end, unsigned worker)
 
 
 	SWFShape shape = newSWFShape();
-	SWFShape_setLine(shape, PEN_WIDTH, region_color[0], region_color[1], region_color[2], 255);
+//	SWFShape_setLine(shape, PEN_WIDTH, region_color[0], region_color[1], region_color[2], 255);
+	SWFShape_setLine(shape, PEN_WIDTH, 0, 0, 0, 255);
 
 	SWFFillStyle style= SWFShape_addSolidFillStyle(shape, region_color[0], region_color[1], region_color[2], 255);
 	SWFShape_setRightFillStyle(shape, style);
@@ -87,17 +88,18 @@ void add_region(unsigned color, uint64_t start, uint64_t end, unsigned worker)
 void display_worker(event_list_t *events, unsigned worker)
 {
 	uint64_t prev = start_time;
-
-	unsigned working_state = 0;
+	worker_mode prev_state = IDLE;
+	worker_mode working_state = 0;
 
 	event_itor_t i;
 	for (i = event_list_begin(events);
 		i != event_list_end(events);
 		i = event_list_next(i))
 	{
-		add_region(working_state, prev, i->time, worker);
+		add_region(prev_state, prev, i->time, worker);
+
 		prev = i->time;
-		working_state = !working_state;
+		prev_state = i->mode;
 	}
 }
 
@@ -143,6 +145,8 @@ void display_start_end_buttons()
 
 	SWFMovie_add(movie, text_start);
 	SWFMovie_add(movie, text_end);
+
+
 }
 
 void flash_engine_generate_output(event_list_t **events, unsigned nworkers, 
