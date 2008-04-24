@@ -1,21 +1,4 @@
-#include <search.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-
-#include <common/fxt.h>
-#include <common/list.h>
-
-#define MAXWORKERS	32
-#define FACTOR	100
-
-LIST_TYPE(event, 
-	uint64_t time;
-);
+#include "fxt-tool.h"
 
 event_list_t *events[MAXWORKERS];
 
@@ -24,7 +7,7 @@ struct fxt_ev_64 ev;
 
 unsigned first_event = 1;
 uint64_t start_time = 0;
-
+uint64_t end_time = 0;
 
 unsigned nworkers = 0;
 
@@ -48,7 +31,7 @@ void handle_new_worker(void)
 			break;
 	}
 
-	fprintf(stderr, "new %s worker (tid = %d)\n", str, ev.param[1]);
+//	fprintf(stderr, "new %s worker (tid = %d)\n", str, ev.param[1]);
 
 	
 	char *tidstr = malloc(16*sizeof(char));
@@ -90,7 +73,7 @@ int find_workder_id(unsigned long tid)
 void handle_start_codelet_body(void)
 {
 
-	fprintf(stderr, "start codelet %p on tid %d\n", (void *)ev.param[0], ev.param[1]);
+	//fprintf(stderr, "start codelet %p on tid %d\n", (void *)ev.param[0], ev.param[1]);
 
 	int worker;
 	worker = find_workder_id(ev.param[1]);
@@ -98,13 +81,14 @@ void handle_start_codelet_body(void)
 
 	event_t e = event_new();
 	e->time =  ev.time;
-	printf("timing : %lu\n", ev.time);
 	event_list_push_back(events[worker], e);
+
+	end_time = MAX(end_time, ev.time);
 }
 
 void handle_end_codelet_body(void)
 {
-	fprintf(stderr, "end codelet %p on tid %d\n", (void *)ev.param[0], ev.param[1]);
+	//fprintf(stderr, "end codelet %p on tid %d\n", (void *)ev.param[0], ev.param[1]);
 
 	int worker;
 	worker = find_workder_id(ev.param[1]);
@@ -113,9 +97,17 @@ void handle_end_codelet_body(void)
 	event_t e = event_new();
 	e->time =  ev.time;
 	event_list_push_back(events[worker], e);
+
+	end_time = MAX(end_time, ev.time);
 }
 
-void generate_output()
+void generate_flash_output()
+{
+	flash_engine_init();
+	flash_engine_generate_output(events, nworkers, start_time, end_time, "toto.swf");
+}
+
+void generate_gnuplot_output()
 {
 	FILE *output;
 	output = fopen("data", "w+");
@@ -214,7 +206,6 @@ int main(int argc, char **argv)
 		{
 			first_event = 0;
 			start_time = ev.time;
-			printf("start time = %lu\n", start_time);
 		}
 
 		switch (ev.code) {
@@ -233,7 +224,8 @@ int main(int argc, char **argv)
 		}
 	}
 
-	generate_output();
+	generate_gnuplot_output();
+	generate_flash_output();
 
 	return 0;
 }
