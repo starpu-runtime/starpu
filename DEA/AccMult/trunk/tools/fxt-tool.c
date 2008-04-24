@@ -1,13 +1,32 @@
+#include <search.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <common/fxt.h>
+#include <common/list.h>
+
+#define MAXWORKERS	32
+#define FACTOR	100
+
+LIST_TYPE(event, 
+	uint64_t time;
+);
+
+event_list_t *events[MAXWORKERS];
 
 fxt_t fut;
 struct fxt_ev_64 ev;
+
+unsigned first_event = 1;
+uint64_t start_time = 0;
+
+
+unsigned nworkers = 0;
 
 void handle_new_worker(void)
 {
@@ -29,17 +48,123 @@ void handle_new_worker(void)
 			break;
 	}
 
-	printf("new %s worker (tid = %d)\n", str, ev.param[1]);
+	fprintf(stderr, "new %s worker (tid = %d)\n", str, ev.param[1]);
+
+	
+	char *tidstr = malloc(16*sizeof(char));
+	sprintf(tidstr, "%ld", ev.param[1]);
+
+	/* create a new key in the htable */
+	unsigned workerid = nworkers++;
+	ENTRY item;
+		item.key = tidstr;
+		item.data = (int *)(workerid);
+
+	ENTRY *res;
+	res = hsearch(item, FIND);
+
+	/* only register a thread once */
+	ASSERT(res == NULL);
+
+	res = hsearch(item, ENTER);
+	ASSERT(res);
+
+	events[workerid] = event_list_new();
+}
+
+int find_workder_id(unsigned long tid)
+{
+	char tidstr[16];
+	sprintf(tidstr, "%ld", tid);
+
+	ENTRY item;
+		item.key = tidstr;
+		item.data = NULL;
+	ENTRY *res;
+	res = hsearch(item, FIND);
+	ASSERT(res);
+
+	return (int)(res->data);
 }
 
 void handle_start_codelet_body(void)
 {
-	printf("start codelet %p on tid %d\n", ev.param[0], ev.param[1]);
+
+	fprintf(stderr, "start codelet %p on tid %d\n", (void *)ev.param[0], ev.param[1]);
+
+	int worker;
+	worker = find_workder_id(ev.param[1]);
+//	printf("-> worker %d\n", worker);
+
+	event_t e = event_new();
+	e->time =  ev.time;
+	printf("timing : %lu\n", ev.time);
+	event_list_push_back(events[worker], e);
 }
 
 void handle_end_codelet_body(void)
 {
-	printf("end codelet %p on tid %d\n", ev.param[0], ev.param[1]);
+	fprintf(stderr, "end codelet %p on tid %d\n", (void *)ev.param[0], ev.param[1]);
+
+	int worker;
+	worker = find_workder_id(ev.param[1]);
+//	printf("<- worker %d\n", worker);
+
+	event_t e = event_new();
+	e->time =  ev.time;
+	event_list_push_back(events[worker], e);
+}
+
+void generate_output()
+{
+	FILE *output;
+	output = fopen("data", "w+");
+	ASSERT(output);
+	
+	unsigned linesize;
+	unsigned maxline = 0;
+
+	unsigned worker;
+	for (worker = 0; worker < nworkers; worker++)
+	{
+		linesize = 0;
+
+		event_itor_t i;
+		for (i = event_list_begin(events[worker]);
+		     i != event_list_end(events[worker]);
+		     i = event_list_next(i))
+		{
+			linesize++;
+		}
+		maxline = MAX(maxline, linesize);
+	}
+
+	unsigned i;
+	for (i = 0; i < maxline + 1; i++)
+	{
+		fprintf(output, "bla\t");
+	}
+	fprintf(output,"\n");
+
+
+	for (worker = 0; worker < nworkers; worker++)
+	{
+		unsigned long prev = start_time;
+
+		fprintf(output, "%lu\t", 0 / FACTOR);
+
+		event_itor_t i;
+		for (i = event_list_begin(events[worker]);
+		     i != event_list_end(events[worker]);
+		     i = event_list_next(i))
+		{
+			fprintf(output, "%lu\t", (i->time - prev)/FACTOR);
+			prev = i->time;
+		}
+		fprintf(output, "\n");
+	}
+
+	fclose(output);
 }
 
 /*
@@ -47,24 +172,24 @@ void handle_end_codelet_body(void)
  */
 int main(int argc, char **argv)
 {
-	char *filename;
+	char *filename, *filenameout;
 	int ret;
-	int fd;
+	int fd_in, fd_out;
 	
-	if (argc != 2) {
-	        printf("Usage : %s filename\n", argv[0]);
+	if (argc < 2) {
+	        fprintf(stderr, "Usage : %s input_filename [-o output_filename]\n", argv[0]);
 	        exit(-1);
 	}
 	
 	filename = argv[1];
-	
-	fd = open(filename, O_RDONLY);
-	if (fd < 0) {
+
+	fd_in = open(filename, O_RDONLY);
+	if (fd_in < 0) {
 	        perror("open failed :");
 	        exit(-1);
 	}
 	
-	fut = fxt_fdopen(fd);
+	fut = fxt_fdopen(fd_in);
 	if (!fut) {
 	        perror("fxt_fdopen :");
 	        exit(-1);
@@ -73,14 +198,24 @@ int main(int argc, char **argv)
 	fxt_blockev_t block;
 	block = fxt_blockev_enter(fut);
 
+	/* create a htable to identify each worker(tid) */
+	hcreate(MAXWORKERS);
+
 	while(1) {
 		ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
 		if (ret != FXT_EV_OK) {
-			printf("no more block ...\n");
+			fprintf(stderr, "no more block ...\n");
 			break;
 		}
 
 		int nbparam = ev.nb_params;
+
+		if (first_event)
+		{
+			first_event = 0;
+			start_time = ev.time;
+			printf("start time = %lu\n", start_time);
+		}
 
 		switch (ev.code) {
 			case FUT_NEW_WORKER_KEY:
@@ -93,10 +228,12 @@ int main(int argc, char **argv)
 				handle_end_codelet_body();
 				break;
 			default:
-				printf("event.. %x at time %llx\n", ev.code, ev.time);
+				fprintf(stderr, "unknown event.. %x at time %llx\n", ev.code, ev.time);
 				break;
 		}
 	}
+
+	generate_output();
 
 	return 0;
 }
