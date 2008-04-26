@@ -24,6 +24,11 @@ void dw_callback_codelet_update_u11(void *);
 void dw_callback_codelet_update_u12_21(void *);
 void dw_callback_codelet_update_u22(void *);
 
+void dw_callback_v2_codelet_update_u11(void *);
+void dw_callback_v2_codelet_update_u12(void *);
+void dw_callback_v2_codelet_update_u21(void *);
+void dw_callback_v2_codelet_update_u22(void *);
+
 void dw_core_codelet_update_u11(void *);
 void dw_core_codelet_update_u12(void *);
 void dw_core_codelet_update_u21(void *);

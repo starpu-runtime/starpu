@@ -15,6 +15,6 @@
 #include <common/timing.h>
 #include <common/util.h>
 
-extern void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks);
+extern void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned version);
 
 #endif // __HEAT_H__

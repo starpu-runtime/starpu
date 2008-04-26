@@ -11,6 +11,12 @@
 tick_t start;
 tick_t end;
 
+uint8_t *advance_11_12_21; /* size nblocks*nblocks */
+uint8_t *advance_22; /* array of nblocks *nblocks*nblocks */
+
+#define STARTED	0x01
+#define DONE	0x10
+
 /*
  *   U22 
  */
@@ -40,6 +46,8 @@ static inline void dw_common_core_codelet_update_u22(int s, void *_args)
 	unsigned ld12 = get_local_ld(data12);
 	unsigned ld21 = get_local_ld(data21);
 	unsigned ld22 = get_local_ld(data22);
+
+	printf("22 k %d i %d j %d \n", k, i, j);
 
 	switch (s) {
 		case 0:
@@ -104,6 +112,8 @@ static inline void dw_common_codelet_update_u12(int s, void *_args) {
 	unsigned nx12 = get_local_nx(data12);
 	unsigned ny12 = get_local_ny(data12);
 
+	printf("12 i %d k %d\n", i, k);
+
 	/* solve L11 U12 = A12 (find U12) */
 	switch (s) {
 		case 0:
@@ -165,6 +175,8 @@ static inline void dw_common_codelet_update_u21(int s, void *_args) {
 	unsigned nx21 = get_local_nx(data21);
 	unsigned ny21 = get_local_ny(data21);
 
+	printf("21 i %d k %d\n", i, k);
+
 	switch (s) {
 		case 0:
 			cblas_strsm(CblasRowMajor, CblasRight, CblasUpper, CblasNoTrans, 
@@ -215,6 +227,8 @@ void dw_core_codelet_update_u11(void *_args)
 	unsigned nx = get_local_nx(subdata11);
 	unsigned ld = get_local_ld(subdata11);
 
+	printf("11 %d \n", i);
+
 	unsigned x, y, z;
 
 	for (z = 0; z < nx; z++)
@@ -239,6 +253,365 @@ void dw_core_codelet_update_u11(void *_args)
 
 	release_data(subdata11, 0);
 }
+
+/*
+ *	Upgraded Callbacks : break the pipeline design !
+ */
+
+void dw_callback_v2_codelet_update_u22(void *argcb)
+{
+	cl_args *args = argcb;	
+
+	unsigned k = args->k;
+	unsigned i = args->i;
+	unsigned j = args->j;
+	unsigned nblocks = args->nblocks;
+
+	/* we did task 22k,i,j */
+	advance_22[k*nblocks*nblocks + i + j*nblocks] = DONE;
+	
+	if ( (i == j) && (i == k+1)) {
+		/* we now reduce the LU22 part (recursion appears there) */
+		codelet *cl = malloc(sizeof(codelet));
+		cl_args *u11arg = malloc(sizeof(cl_args));
+	
+		cl->cl_arg = u11arg;
+		cl->core_func = dw_core_codelet_update_u11;
+	
+		job_t j = job_new();
+			j->type = CODELET;
+			j->where = CORE;
+			j->cb = dw_callback_v2_codelet_update_u11;
+			j->argcb = u11arg;
+			j->cl = cl;
+	
+		u11arg->dataA = args->dataA;
+		u11arg->i = k + 1;
+		u11arg->nblocks = args->nblocks;
+		u11arg->sem = args->sem;
+
+		printf("pushed 11 k with k = %d\n", u11arg->i);
+
+		/* schedule the codelet */
+//		push_prio_task(j);
+		push_task(j);
+	}
+
+	/* 11k+1 + 22k,k+1,j => 21 k+1,j */
+	if ( j == k + 1) {
+		uint8_t dep;
+		/* 11 k+1*/
+		dep = advance_11_12_21[(k+1) + (k+1)*nblocks];
+		if (dep & DONE) {
+			/* try to push the job */
+			uint8_t u = ATOMIC_ADD(&advance_11_12_21[(k+1) + j*nblocks], STARTED);
+				if (u == STARTED) {
+					/* we are the only one that should launch that task */
+					cl_args *u21a = malloc(sizeof(cl_args));
+					codelet *cl21 = malloc(sizeof(codelet));
+		
+					cl21->cl_arg = u21a;
+					cl21->core_func = dw_core_codelet_update_u21;
+#ifdef USE_CUBLAS
+					cl21->cublas_func = dw_cublas_codelet_update_u21;
+#endif
+					job_t j21 = job_new();
+						j21->type = CODELET;
+						j21->where = ANY;
+						j21->cb = dw_callback_v2_codelet_update_u21;
+						j21->argcb = u21a;
+						j21->cl = cl21;
+					
+					u21a->i = k+1;
+					u21a->k = j;
+					u21a->nblocks = args->nblocks;
+					u21a->dataA = args->dataA;
+					u21a->sem = args->sem;
+		
+					printf("pushed 21 with i = %d and k = %d\n", u21a->i, u21a->k);
+
+					push_task(j21);
+				}
+		}
+		else {
+			printf("task 11 k = %d not ready yet\n", k+1);
+		}
+	}
+
+	/* 11k + 22k-1,i,k => 12 k,i */
+	if (i == k + 1) {
+		uint8_t dep;
+		/* 11 k+1*/
+		dep = advance_11_12_21[(k+1) + (k+1)*nblocks];
+		if (dep & DONE) {
+			/* try to push the job */
+			uint8_t u = ATOMIC_ADD(&advance_11_12_21[(k+1)*nblocks + i], STARTED);
+				 if (u == STARTED) {
+					/* we are the only one that should launch that task */
+					codelet *cl12 = malloc(sizeof(codelet));
+					cl_args *u12a = malloc(sizeof(cl_args));
+
+					cl12->cl_arg = u12a;
+					cl12->core_func = dw_core_codelet_update_u12;
+		
+					job_t j12 = job_new();
+						j12->type = CODELET;
+						j12->where = ANY;
+						j12->cb = dw_callback_v2_codelet_update_u12;
+						j12->argcb = u12a;
+						j12->cl = cl12;
+#ifdef USE_CUBLAS
+					cl12->cublas_func = dw_cublas_codelet_update_u12;
+#endif
+
+		
+					u12a->i = k+1;
+					u12a->k = i;
+					u12a->nblocks = args->nblocks;
+					u12a->dataA = args->dataA;
+					u12a->sem = args->sem;
+					
+					printf("pushed 12 with i = %d and k = %d\n", u12a->i, u12a->k);
+
+					push_task(j12);
+	
+				}
+		}
+		else {
+			printf("task 11 k = %d not ready yet\n", k+1);
+		}
+	}
+
+	free(args);
+}
+
+void dw_callback_v2_codelet_update_u12(void *argcb)
+{
+	cl_args *args = argcb;	
+
+	/* now launch the update of LU22 */
+	unsigned i = args->i;
+	unsigned k = args->k;
+	unsigned nblocks = args->nblocks;
+
+	/* we did task 21i,k */
+	advance_11_12_21[i*nblocks + k] = DONE;
+
+	unsigned slicey;
+	for (slicey = i+1; slicey < nblocks; slicey++)
+	{
+		/* can we launch 22 i,args->k,slicey ? */
+		/* deps : 21 args->k, slicey */
+		uint8_t dep;
+		dep = advance_11_12_21[i + slicey*nblocks];
+		if (dep & DONE)
+		{
+			/* perhaps we may schedule the 22 i,args->k,slicey task */
+			uint8_t u = ATOMIC_ADD(&advance_22[i*nblocks*nblocks + slicey*nblocks + k], STARTED);
+                        if (u == STARTED) {
+				/* update that square matrix */
+				cl_args *u22a = malloc(sizeof(cl_args));
+				codelet *cl22 = malloc(sizeof(codelet));
+
+				cl22->cl_arg = u22a;
+				cl22->core_func = dw_core_codelet_update_u22;
+#ifdef USE_CUBLAS
+				cl22->cublas_func = dw_cublas_codelet_update_u22;
+#endif
+
+				job_t j22 = job_new();
+				j22->type = CODELET;
+				j22->where = ANY;
+				j22->cb = dw_callback_v2_codelet_update_u22;
+				j22->argcb = u22a;
+				j22->cl = cl22;
+
+				u22a->k = i;
+				u22a->i = k;
+				u22a->j = slicey;
+				u22a->dataA = args->dataA;
+				u22a->nblocks = nblocks;
+				u22a->sem = args->sem;
+				
+				/* schedule that codelet */
+				push_task(j22);
+			}
+		}
+		else {
+//			printf("task 21 i %d slicey %d not ready yet \n", i, slicey);
+		}
+	}
+}
+
+void dw_callback_v2_codelet_update_u21(void *argcb)
+{
+	cl_args *args = argcb;	
+
+	/* now launch the update of LU22 */
+	unsigned i = args->i;
+	unsigned k = args->k;
+	unsigned nblocks = args->nblocks;
+
+	/* we did task 21i,k */
+	advance_11_12_21[i + k*nblocks] = DONE;
+
+
+	unsigned slicex;
+	for (slicex = i+1; slicex < nblocks; slicex++)
+	{
+		/* can we launch 22 i,slicex,k ? */
+		/* deps : 12 slicex k */
+		uint8_t dep;
+		dep = advance_11_12_21[i*nblocks + slicex];
+		if (dep & DONE)
+		{
+			/* perhaps we may schedule the 22 i,args->k,slicey task */
+			uint8_t u = ATOMIC_ADD(&advance_22[i*nblocks*nblocks + k*nblocks + slicex], STARTED);
+                        if (u == STARTED) {
+				/* update that square matrix */
+				cl_args *u22a = malloc(sizeof(cl_args));
+				codelet *cl22 = malloc(sizeof(codelet));
+
+				cl22->cl_arg = u22a;
+				cl22->core_func = dw_core_codelet_update_u22;
+#ifdef USE_CUBLAS
+				cl22->cublas_func = dw_cublas_codelet_update_u22;
+#endif
+
+				job_t j22 = job_new();
+				j22->type = CODELET;
+				j22->where = ANY;
+				j22->cb = dw_callback_v2_codelet_update_u22;
+				j22->argcb = u22a;
+				j22->cl = cl22;
+
+				u22a->k = i;
+				u22a->i = slicex;
+				u22a->j = k;
+				u22a->dataA = args->dataA;
+				u22a->nblocks = nblocks;
+				u22a->sem = args->sem;
+				
+				/* schedule that codelet */
+				push_task(j22);
+			}
+		}
+		else {
+			printf("12 slicex %d i %d not ready yet \n", slicex, i);
+		}
+	}
+}
+
+void dw_callback_v2_codelet_update_u11(void *argcb)
+{
+	/* in case there remains work, go on */
+	cl_args *args = argcb;
+
+	unsigned nblocks = args->nblocks;
+	unsigned i = args->i;
+
+	/* we did task 11k */
+	advance_11_12_21[i*(nblocks+1)] = DONE;
+
+	if (i == nblocks - 1) 
+	{
+		/* we are done : wake the application up  */
+		sem_post(args->sem);
+		return;
+	}
+	else 
+	{
+		/* put new tasks */
+		unsigned slice;
+		for (slice = i + 1; slice < nblocks; slice++)
+		{
+
+			/* can we launch 12i,slice ? */
+			uint8_t deps12;
+			if (i == 0) {
+				deps12 = DONE;
+			}
+			else {
+				deps12 = advance_22[(i-1)*nblocks*nblocks + slice + i*nblocks];		
+			}
+			if (deps12 & DONE) {
+				/* we may perhaps launch the task 12i,slice */
+				 uint8_t u = ATOMIC_ADD(&advance_11_12_21[i*nblocks + slice], STARTED);
+				 if (u == STARTED) {
+					/* we are the only one that should launch that task */
+					codelet *cl12 = malloc(sizeof(codelet));
+					cl_args *u12a = malloc(sizeof(cl_args));
+
+					cl12->cl_arg = u12a;
+					cl12->core_func = dw_core_codelet_update_u12;
+		
+					job_t j12 = job_new();
+						j12->type = CODELET;
+						j12->where = ANY;
+						j12->cb = dw_callback_v2_codelet_update_u12;
+						j12->argcb = u12a;
+						j12->cl = cl12;
+#ifdef USE_CUBLAS
+					cl12->cublas_func = dw_cublas_codelet_update_u12;
+#endif
+
+		
+					u12a->i = i;
+					u12a->k = slice;
+					u12a->nblocks = args->nblocks;
+					u12a->dataA = args->dataA;
+					u12a->sem = args->sem;
+					
+					printf("launch 12 with i = %d and k = %d \n", i, slice);
+
+					push_task(j12);
+	
+				}
+			}
+
+			/* can we launch 21i,slice ? */
+			if (i == 0) {
+				deps12 = DONE;
+			}
+			else {
+				deps12 = advance_22[(i-1)*nblocks*nblocks + slice*nblocks + i];		
+			}
+			if (deps12 & DONE) {
+				/* we may perhaps launch the task 12i,slice */
+				 uint8_t u = ATOMIC_ADD(&advance_11_12_21[i + slice*nblocks], STARTED);
+				 if (u == STARTED) {
+					/* we are the only one that should launch that task */
+					cl_args *u21a = malloc(sizeof(cl_args));
+					codelet *cl21 = malloc(sizeof(codelet));
+		
+					cl21->cl_arg = u21a;
+					cl21->core_func = dw_core_codelet_update_u21;
+#ifdef USE_CUBLAS
+					cl21->cublas_func = dw_cublas_codelet_update_u21;
+#endif
+					job_t j21 = job_new();
+						j21->type = CODELET;
+						j21->where = ANY;
+						j21->cb = dw_callback_v2_codelet_update_u21;
+						j21->argcb = u21a;
+						j21->cl = cl21;
+					
+		
+					u21a->i = i;
+					u21a->k = slice;
+					u21a->nblocks = args->nblocks;
+					u21a->dataA = args->dataA;
+					u21a->sem = args->sem;
+
+					printf("launch 21 with i = %d and k = %d \n", i, slice);
+		
+					push_task(j21);
+				}
+			}
+		}
+	}
+}
+
 
 
 /*
@@ -454,7 +827,55 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 	printf("%2.2f\n", timing_delay(&start, &end)/1000);
 }
 
-void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks)
+void dw_codelet_facto_v2(data_state *dataA, unsigned nblocks)
+{
+
+	advance_11_12_21 = calloc(nblocks*nblocks, sizeof(uint8_t));
+	ASSERT(advance_11_12_21);
+
+	advance_22 = calloc(nblocks*nblocks*nblocks, sizeof(uint8_t));
+	ASSERT(advance_22);
+
+	/* create a new codelet */
+	codelet *cl = malloc(sizeof(codelet));
+	cl_args *args = malloc(sizeof(cl_args));
+
+	sem_t sem;
+
+	sem_init(&sem, 0, 0U);
+
+	args->sem = &sem;
+	args->i = 0;
+	args->nblocks = nblocks;
+	args->dataA = dataA;
+
+	cl->cl_arg = args;
+	cl->core_func = dw_core_codelet_update_u11;
+
+	GET_TICK(start);
+
+	/* inject a new task with this codelet into the system */ 
+	job_t j = job_new();
+		j->type = CODELET;
+		j->where = CORE;
+		j->cb = dw_callback_v2_codelet_update_u11;
+		j->argcb = args;
+		j->cl = cl;
+
+	/* schedule the codelet */
+	push_task(j);
+
+	/* stall the application until the end of computations */
+	sem_wait(&sem);
+	sem_destroy(&sem);
+	GET_TICK(end);
+	fprintf(stderr, "Computation took (in ms)\n");
+	printf("%2.2f\n", timing_delay(&start, &end)/1000);
+}
+
+
+
+void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned version)
 {
 	init_machine();
 	init_workers();
@@ -485,7 +906,15 @@ void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	map_filters(&dataA, 2, &f, &f2);
 
-	dw_codelet_facto(&dataA, nblocks);
+	switch (version) {
+		case 1:
+			dw_codelet_facto(&dataA, nblocks);
+			break;
+		default:
+		case 2:
+			dw_codelet_facto_v2(&dataA, nblocks);
+			break;
+	}
 
 #ifdef CHECK_RESULTS
 	compare_A_LU(Asaved, matA, size, ld);

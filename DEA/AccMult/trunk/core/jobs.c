@@ -35,6 +35,18 @@ void push_task(job_t task)
 	thread_mutex_unlock(&workq_mutex);
 }
 
+void push_prio_task(job_t task)
+{
+	thread_mutex_lock(&workq_mutex);
+
+	job_list_push_back(jobq, task);
+	sem_post(&sem_jobq);
+
+	thread_mutex_unlock(&workq_mutex);
+}
+
+
+
 job_t pop_task(void)
 {
 	job_t j;

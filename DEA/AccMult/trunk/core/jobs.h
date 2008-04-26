@@ -125,6 +125,7 @@ typedef struct job_descr_t {
 
 void init_work_queue(void);
 void push_task(job_t task);
+void push_prio_task(job_t task);
 job_t pop_task(void);
 
 #endif // __JOBS_H__

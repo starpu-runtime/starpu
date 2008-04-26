@@ -40,6 +40,8 @@ int argc_;
 char **argv_;
 
 
+unsigned version = 1;
+
 	/*
 	 *   B              C
 	 *	**********
@@ -535,6 +537,10 @@ void parse_args(int argc, char **argv)
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
 
+		if (strcmp(argv[i], "-v2") == 0) {
+			version = 2;
+		}
+
 		if (strcmp(argv[i], "-h") == 0) {
 			/* TODO */
 		}
@@ -697,7 +703,7 @@ int main(int argc, char **argv)
 
 	result = malloc(DIM*sizeof(float));
 
-	dw_factoLU(A, newsize, DIM, nblocks);
+	dw_factoLU(A, newsize, DIM, nblocks, version);
 
 	solve_system(DIM, newsize);
 
