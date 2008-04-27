@@ -23,4 +23,6 @@
 
 #define ATOMIC_ADD(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
 
+#define ATOMIC_OR(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
+
 #endif // __UTIL_H__
