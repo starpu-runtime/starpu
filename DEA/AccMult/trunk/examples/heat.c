@@ -40,7 +40,7 @@ int argc_;
 char **argv_;
 
 
-unsigned version = 1;
+unsigned version = 2;
 
 	/*
 	 *   B              C
@@ -535,6 +535,10 @@ void parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-nblocks") == 0) {
 		        char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-v1") == 0) {
+			version = 1;
 		}
 
 		if (strcmp(argv[i], "-v2") == 0) {

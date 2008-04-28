@@ -149,7 +149,69 @@ void display_start_end_buttons()
 
 }
 
-void flash_engine_generate_output(event_list_t **events, unsigned nworkers, 
+void display_workq_evolution(workq_list_t *taskq, unsigned nworkers, unsigned maxq_size)
+{
+	unsigned endy, starty;
+
+	starty = BORDERY + (THICKNESS + GAP)*nworkers;
+	endy = starty + THICKNESS;
+
+	SWFShape shape = newSWFShape();
+	SWFShape_setLine(shape, PEN_WIDTH, 0, 0, 0, 255);
+
+//	SWFFillStyle style= SWFShape_addSolidFillStyle(shape, 0, 0, 0, 255);
+
+
+	SWFShape_movePenTo(shape, BORDERX, endy);
+	SWFShape_drawLine(shape, WIDTH - 2 *BORDERX, 0);
+	SWFShape_movePenTo(shape, BORDERX, starty);
+	SWFShape_drawLine(shape, 0, THICKNESS);
+	
+	SWFMovie_add(movie, (SWFBlock)shape);
+
+
+	shape = newSWFShape();
+	SWFShape_setLine(shape, 0, 0, 0, 0, 255);
+
+	SWFFillStyle style= SWFShape_addSolidFillStyle(shape, 0, 0, 0, 255);
+
+
+	SWFShape_movePenTo(shape, BORDERX, endy);
+
+	int prevx, prevy;
+	prevx = BORDERX;
+	prevy = endy;
+
+	workq_itor_t i;
+	for (i = workq_list_begin(taskq);
+		i != workq_list_end(taskq);
+		i = workq_list_next(i))
+	{
+		unsigned event_pos;
+		double event_ratio;
+
+		unsigned y;
+
+		event_ratio = ( i->time - start_time )/ (double)(end_time - start_time);
+		event_pos = (unsigned)(BORDERX + event_ratio*(WIDTH - 2*BORDERX));
+
+		double qratio;
+		qratio = ((double)(i->current_size))/((double)maxq_size);
+
+		y = (unsigned)((double)endy - qratio *((double)THICKNESS));
+
+		SWFShape_drawLine(shape, (int)event_pos - (int)prevx, (int)y - (int)prevy);
+		prevx = event_pos;
+		prevy = y;
+	}
+
+	SWFShape_drawLine(shape, (int)BORDERX - (int)prevx, (int)endy - (int)prevy);
+
+	SWFMovie_add(movie, (SWFBlock)shape);
+
+}
+
+void flash_engine_generate_output(event_list_t **events, workq_list_t *taskq, unsigned nworkers, unsigned maxq_size,
 				uint64_t _start_time, uint64_t _end_time, char *path)
 {
 	unsigned worker;
@@ -165,6 +227,8 @@ void flash_engine_generate_output(event_list_t **events, unsigned nworkers,
 	{
 		display_worker(events[worker], worker);
 	}
+
+	display_workq_evolution(taskq, nworkers, maxq_size);
 
 	printf("save output ... \n");
 

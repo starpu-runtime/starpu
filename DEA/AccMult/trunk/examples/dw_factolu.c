@@ -220,7 +220,7 @@ void dw_cublas_codelet_update_u21(void *_args)
  *	U11
  */
 
-void dw_core_codelet_update_u11(void *_args)
+static inline void dw_common_codelet_update_u11(int s, void *_args) 
 {
 	float *sub11;
 	cl_args *args = _args;
@@ -238,30 +238,97 @@ void dw_core_codelet_update_u11(void *_args)
 
 	unsigned x, y, z;
 
-	for (z = 0; z < nx; z++)
-	{
-		float pivot;
-		pivot = sub11[z+z*ld];
-		ASSERT(pivot != 0.0f);
-		for (x = z+1; x < nx ; x++)
-		{
-			sub11[x+z*ld] = sub11[x+z*ld] / pivot;
-		}
+//	for (z = 0; z < nx; z++)
+//	{
+//		float pivot;
+//		pivot = sub11[z+z*ld];
+//		ASSERT(pivot != 0.0f);
+//		for (x = z+1; x < nx ; x++)
+//		{
+//			sub11[x+z*ld] = sub11[x+z*ld] / pivot;
+//		}
+//
+//		for (y = z+1; y < nx; y++)
+//		{
+//			float tmp = sub11[z+y*ld];
+//			for (x = z+1; x < nx ; x++)
+//			{
+//				sub11[x+y*ld] -= sub11[x+z*ld]*tmp;
+//			}
+//		}
+//	}
 
-		for (y = z+1; y < nx; y++)
-		{
-			float tmp = sub11[z+y*ld];
-			for (x = z+1; x < nx ; x++)
+	switch (s) {
+		case 0:
+			for (z = 0; z < nx; z++)
 			{
-				sub11[x+y*ld] -= sub11[x+z*ld]*tmp;
+				float pivot;
+				pivot = sub11[z+z*ld];
+				ASSERT(pivot != 0.0f);
+		
+				cblas_sscal(nx - z - 1, 1.0f/pivot, &sub11[(z+1)+z*ld], 1);
+		
+				cblas_sger(CblasRowMajor, nx - z - 1, nx - z - 1, -1.0f,
+								&sub11[(z+1)+z*ld], 1,
+								&sub11[z+(z+1)*ld], ld,
+								&sub11[(z+1) + (z+1)*ld],ld);
+		
 			}
-		}
+			release_data(subdata11, 0);
+			break;
+#ifdef USE_CUBLAS
+		case 1:
+			for (z = 0; z < nx; z++)
+			{
+				float pivot;
+				cublasGetVector(1, sizeof(float), &sub11[z+z*ld], sizeof(float), &pivot, sizeof(float));
+
+				/* ok that's dirty ... */
+				//cblas_strsm(CblasRowMajor, CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit,
+				//                              nx -z - 1, 1, 1.0f,  &sub11[z+z*ld], 0, &sub11[z+z*ld], 1);
+
+				ASSERT(pivot != 0.0f);
+		
+				
+				cublasSscal(nx - z - 1, 1.0f/pivot, &sub11[(z+1)+z*ld], 1);
+		
+				
+				cublasSger(nx - z - 1, nx - z - 1, -1.0f,
+								&sub11[(z+1)+z*ld], 1,
+								&sub11[z+(z+1)*ld], ld,
+								&sub11[(z+1) + (z+1)*ld],ld);
+		
+			}
+
+			release_data(subdata11, 1<<0);
+			break;
+#endif
+		default:
+			ASSERT(0);
+			break;
 	}
+
+
+
 
 //	printf("finish 11 %d \n", i);
 
-	release_data(subdata11, 0);
+
 }
+
+
+void dw_core_codelet_update_u11(void *_args)
+{
+	dw_common_codelet_update_u11(0, _args);
+}
+
+#ifdef USE_CUBLAS
+void dw_cublas_codelet_update_u11(void *_args)
+{
+	dw_common_codelet_update_u11(1, _args);
+}
+#endif// USE_CUBLAS
+
 
 /*
  *	Upgraded Callbacks : break the pipeline design !
@@ -286,10 +353,13 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 	
 		cl->cl_arg = u11arg;
 		cl->core_func = dw_core_codelet_update_u11;
+#ifdef USE_CUBLAS
+		cl->cublas_func = dw_cublas_codelet_update_u11;
+#endif
 	
 		job_t j = job_new();
 			j->type = CODELET;
-			j->where = CORE;
+			j->where = ANY;
 			j->cb = dw_callback_v2_codelet_update_u11;
 			j->argcb = u11arg;
 			j->cl = cl;
@@ -652,7 +722,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					}
 				}
 				else {
-					printf("concurency detected don't launch 21, u was %x \n", u);
+				//	printf("concurency detected don't launch 21, u was %x \n", u);
 				}
 			}
 		}
@@ -680,10 +750,13 @@ void dw_callback_codelet_update_u22(void *argcb)
 	
 		cl->cl_arg = u11arg;
 		cl->core_func = dw_core_codelet_update_u11;
+#ifdef USE_CUBLAS
+		cl->cublas_func = dw_cublas_codelet_update_u11;
+#endif
 	
 		job_t j = job_new();
 			j->type = CODELET;
-			j->where = CORE;
+			j->where = ANY;
 			j->cb = dw_callback_codelet_update_u11;
 			j->argcb = u11arg;
 			j->cl = cl;
@@ -852,13 +925,16 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 
 	cl->cl_arg = args;
 	cl->core_func = dw_core_codelet_update_u11;
+#ifdef USE_CUBLAS
+	cl->cublas_func = dw_cublas_codelet_update_u11;
+#endif
 
 	GET_TICK(start);
 
 	/* inject a new task with this codelet into the system */ 
 	job_t j = job_new();
 		j->type = CODELET;
-		j->where = CORE;
+		j->where = ANY;
 		j->cb = dw_callback_codelet_update_u11;
 		j->argcb = args;
 		j->cl = cl;
@@ -901,13 +977,16 @@ void dw_codelet_facto_v2(data_state *dataA, unsigned nblocks)
 
 	cl->cl_arg = args;
 	cl->core_func = dw_core_codelet_update_u11;
+#ifdef USE_CUBLAS
+	cl->cublas_func = dw_cublas_codelet_update_u11;
+#endif
 
 	GET_TICK(start);
 
 	/* inject a new task with this codelet into the system */ 
 	job_t j = job_new();
 		j->type = CODELET;
-		j->where = CORE;
+		j->where = ANY;
 		j->cb = dw_callback_v2_codelet_update_u11;
 		j->argcb = args;
 		j->cl = cl;

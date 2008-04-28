@@ -1,6 +1,7 @@
 #include "fxt-tool.h"
 
 event_list_t *events[MAXWORKERS];
+workq_list_t *taskq;
 
 fxt_t fut;
 struct fxt_ev_64 ev;
@@ -103,10 +104,39 @@ void handle_end_codelet_body(void)
 	end_time = MAX(end_time, ev.time);
 }
 
+int maxq_size = 0;
+int curq_size = 0;
+
+void handle_job_push(void)
+{
+	curq_size++;
+
+	maxq_size = MAX(maxq_size, curq_size);
+
+	workq_t e = workq_new();
+	e->time =  ev.time;
+	e->diff =  +1;
+	e->current_size = curq_size;
+
+	workq_list_push_back(taskq, e);
+}
+
+void handle_job_pop(void)
+{
+	curq_size--;
+
+	workq_t e = workq_new();
+	e->time =  ev.time;
+	e->diff =  -1;
+	e->current_size = curq_size;
+
+	workq_list_push_back(taskq, e);
+}
+
 void generate_flash_output()
 {
 	flash_engine_init();
-	flash_engine_generate_output(events, nworkers, start_time, end_time, "toto.swf");
+	flash_engine_generate_output(events, taskq, nworkers, maxq_size, start_time, end_time, "toto.swf");
 }
 
 void generate_gnuplot_output()
@@ -195,6 +225,8 @@ int main(int argc, char **argv)
 	/* create a htable to identify each worker(tid) */
 	hcreate(MAXWORKERS);
 
+	taskq = workq_list_new();
+
 	while(1) {
 		ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
 		if (ret != FXT_EV_OK) {
@@ -219,6 +251,12 @@ int main(int argc, char **argv)
 				break;
 			case FUT_END_CODELET_BODY:
 				handle_end_codelet_body();
+				break;
+			case FUT_JOB_PUSH:
+				handle_job_push();
+				break;
+			case FUT_JOB_POP:
+				handle_job_pop();
 				break;
 			default:
 				fprintf(stderr, "unknown event.. %x at time %llx\n", ev.code, ev.time);

@@ -18,6 +18,7 @@ void push_tasks(job_t *tasks, unsigned ntasks)
 
 	for (i = 0; i < ntasks; i++)
 	{
+		TRACE_JOB_PUSH(tasks[i], 0);
 		job_list_push_front(jobq, tasks[i]);
 		sem_post(&sem_jobq);
 	}
@@ -29,6 +30,7 @@ void push_task(job_t task)
 {
 	thread_mutex_lock(&workq_mutex);
 
+	TRACE_JOB_PUSH(task, 0);
 	job_list_push_front(jobq, task);
 	sem_post(&sem_jobq);
 
@@ -39,6 +41,7 @@ void push_prio_task(job_t task)
 {
 	thread_mutex_lock(&workq_mutex);
 
+	TRACE_JOB_PUSH(task, 1);
 	job_list_push_back(jobq, task);
 	sem_post(&sem_jobq);
 
@@ -61,6 +64,7 @@ job_t pop_task(void)
 	}
 
 	j = job_list_pop_back(jobq);
+	TRACE_JOB_POP(j, 0);
 
 	thread_mutex_unlock(&workq_mutex);
 	return j;

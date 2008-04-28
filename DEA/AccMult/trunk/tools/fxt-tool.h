@@ -26,4 +26,10 @@ LIST_TYPE(event,
 	worker_mode mode;
 );
 
+LIST_TYPE(workq,
+	uint64_t time;
+	int diff;
+	int current_size;
+);
+
 #endif // __FXT_TOOL_H__

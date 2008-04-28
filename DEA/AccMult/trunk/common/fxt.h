@@ -21,6 +21,9 @@
 #define	FUT_START_CODELET_BODY	0x5103
 #define	FUT_END_CODELET_BODY	0x5104
 
+#define FUT_JOB_PUSH		0x5105
+#define FUT_JOB_POP		0x5106
+
 #ifdef USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -38,12 +41,20 @@ void fxt_register_thread(unsigned);
 #define TRACE_END_CODELET_BODY(job)	\
 	FUT_DO_PROBE2(FUT_END_CODELET_BODY, job, syscall(SYS_gettid));
 
+#define TRACE_JOB_PUSH(task, prio)	\
+	FUT_DO_PROBE3(FUT_JOB_PUSH, task, prio, syscall(SYS_gettid));
+
+#define TRACE_JOB_POP(task, prio)	\
+	FUT_DO_PROBE3(FUT_JOB_POP, task, prio, syscall(SYS_gettid));
+
+
 #else // !USE_FXT
 
 #define TRACE_NEW_WORKER(a)		do {} while(0);
 #define TRACE_START_CODELET_BODY(job)	do {} while(0);
 #define TRACE_END_CODELET_BODY(job)	do {} while(0);
-
+#define TRACE_JOB_PUSH(task, prio)	do {} while(0);
+#define TRACE_JOB_POP(task, prio)	do {} while(0);
 
 #endif // USE_FXT
 
