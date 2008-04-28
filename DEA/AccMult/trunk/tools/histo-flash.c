@@ -20,6 +20,8 @@ uint64_t start_time;
 uint64_t absolute_end_time;
 uint64_t end_time;
 
+SWFFont font;
+
 void flash_engine_init(void)
 {
 	Ming_init();
@@ -30,6 +32,17 @@ void flash_engine_init(void)
 
 	SWFMovie_setBackground(movie, 0xff, 0xff, 0xff);
 	SWFMovie_setDimension(movie, WIDTH, HEIGHT);
+
+	const char *fontpath = "Sans.fdb";
+	FILE *f = fopen(fontpath,"r");
+	ASSERT(f);
+
+	font = loadSWFFontFromFile(f);
+	if (font == NULL) {
+		perror("could not open font :");
+		exit(-1);
+	}
+
 
 }
 
@@ -85,11 +98,21 @@ void add_region(worker_mode color, uint64_t start, uint64_t end, unsigned worker
 	SWFMovie_add(movie, (SWFBlock)shape);
 }
 
-void display_worker(event_list_t *events, unsigned worker)
+void display_worker(event_list_t *events, unsigned worker, char *worker_name)
 {
 	uint64_t prev = start_time;
 	worker_mode prev_state = IDLE;
 	worker_mode working_state = 0;
+
+	SWFText namestr = newSWFText();
+	SWFText_setFont(namestr, font);
+	SWFText_setColor(namestr, 0, 0, 0, 0xff);
+	SWFText_setHeight(namestr, 10);
+	SWFText_moveTo(namestr, BORDERX/2 - strlen(worker_name), 
+			BORDERY + (THICKNESS + GAP)*worker + THICKNESS/2);
+	SWFText_addString(namestr, worker_name, NULL);
+
+	SWFMovie_add(movie, namestr);
 
 	event_itor_t i;
 	for (i = event_list_begin(events);
@@ -108,26 +131,15 @@ char str_end[20];
 
 void display_start_end_buttons()
 {
-	SWFFont font;
 	unsigned x_start, x_end, y;
 	unsigned size = 15;
 
 	sprintf(str_start, "start\n%lu", start_time-absolute_start_time);
 	sprintf(str_end, "end\n%lu", end_time -absolute_start_time);
 
-	const char *fontpath = "Sans.fdb";
-	FILE *f = fopen(fontpath,"r");
-	ASSERT(f);
-
 	x_start = BORDERX;
 	x_end = WIDTH - BORDERX;
 	y = BORDERY/2;
-
-	font = loadSWFFontFromFile(f);
-	if (font == NULL) {
-		perror("could not open font :");
-		exit(-1);
-	}
 
 	SWFText text_start = newSWFText();
 	SWFText_setFont(text_start, font);
@@ -145,7 +157,6 @@ void display_start_end_buttons()
 
 	SWFMovie_add(movie, text_start);
 	SWFMovie_add(movie, text_end);
-
 
 }
 
@@ -211,8 +222,9 @@ void display_workq_evolution(workq_list_t *taskq, unsigned nworkers, unsigned ma
 
 }
 
-void flash_engine_generate_output(event_list_t **events, workq_list_t *taskq, unsigned nworkers, unsigned maxq_size,
-				uint64_t _start_time, uint64_t _end_time, char *path)
+void flash_engine_generate_output(event_list_t **events, workq_list_t *taskq, char **worker_name,
+			unsigned nworkers, unsigned maxq_size, 
+			uint64_t _start_time, uint64_t _end_time, char *path)
 {
 	unsigned worker;
 
@@ -225,7 +237,7 @@ void flash_engine_generate_output(event_list_t **events, workq_list_t *taskq, un
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		display_worker(events[worker], worker);
+		display_worker(events[worker], worker, worker_name[worker]);
 	}
 
 	display_workq_evolution(taskq, nworkers, maxq_size);

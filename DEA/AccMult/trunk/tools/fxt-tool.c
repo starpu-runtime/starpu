@@ -2,6 +2,7 @@
 
 event_list_t *events[MAXWORKERS];
 workq_list_t *taskq;
+char *worker_name[MAXWORKERS];
 
 fxt_t fut;
 struct fxt_ev_64 ev;
@@ -15,7 +16,9 @@ unsigned nworkers = 0;
 void handle_new_worker(void)
 {
 
-	char *str = "unknown";
+	char *str = malloc(20*sizeof(char));
+	
+	strcpy(str, "unknown");
 
 	switch (ev.param[0]) {
 		case FUT_APPS_KEY:
@@ -46,6 +49,8 @@ void handle_new_worker(void)
 
 	ENTRY *res;
 	res = hsearch(item, FIND);
+
+	worker_name[workerid] = str;
 
 	/* only register a thread once */
 	ASSERT(res == NULL);
@@ -136,7 +141,7 @@ void handle_job_pop(void)
 void generate_flash_output()
 {
 	flash_engine_init();
-	flash_engine_generate_output(events, taskq, nworkers, maxq_size, start_time, end_time, "toto.swf");
+	flash_engine_generate_output(events, taskq, worker_name, nworkers, maxq_size, start_time, end_time, "toto.swf");
 }
 
 void generate_gnuplot_output()
