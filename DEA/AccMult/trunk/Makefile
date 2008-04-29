@@ -10,8 +10,12 @@ CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses 
 export CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
 export CUDAINSTALLDIR=/usr/local/cuda/
 
+ifndef ATLASDIR
 export ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
+endif
+ifndef BLASARCH
 export BLASARCH=Linux_UNKNOWNSSE2
+endif
 
 ifdef PERF_DEBUG
 	CFLAGS += -DPERF_DEBUG
