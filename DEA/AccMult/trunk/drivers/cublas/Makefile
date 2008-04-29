@@ -1,6 +1,3 @@
-ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
-BLASARCH=Linux_UNKNOWNSSE2
-
 CFLAGS+= -I$(ATLASDIR)/include/
 LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
 LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a

@@ -8,9 +8,11 @@
 #include <math.h>
 #include <cblas.h>
 
+#ifdef OPENGL_RENDER
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
+#endif
 
 #include <common/timing.h>
 #include <common/util.h>

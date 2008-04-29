@@ -20,6 +20,7 @@ LDFLAGS+= -lm
 
 ifdef OPENGL_RENDER
 	CFLAGS+=-DOPENGL_RENDER
+	LDFLAGS+=-lglut -lGL -lGLU 
 endif
 
 DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o matrix.o
@@ -133,9 +134,6 @@ OBJDEPS += ../datawizard/copy-driver.o ../datawizard/coherency.o
 OBJDEPS += ../datawizard/hierarchy.o ../datawizard/filters.o
 OBJDEPS += ../datawizard/memalloc.o
 
-ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
-BLASARCH=Linux_UNKNOWNSSE2
-
 all: $(TARGET)
 
 incrementer.o: incrementer.c
@@ -185,7 +183,7 @@ heat.o: heat.c
 	$(CC) $(CFLAGS) heat.c -c -o heat.o
 
 heat: dw_factolu.o heat.o
-	$(CC) -lglut -lGL -lGLU dw_factolu.o heat.o -o heat $(OBJDEPS) $(LDFLAGS)
+	$(CC) dw_factolu.o heat.o -o heat $(OBJDEPS) $(LDFLAGS)
 
 clean:
 	@rm -f multiplication multiplication2 factoLU heat gpuirq incrementer dw_mult dw_factolu *.o
