@@ -36,6 +36,21 @@ tick_t end;
 
 unsigned x,y,z;
 
+
+/* to compute MFlop/s */
+uint64_t flop_cublas = 0;
+uint64_t flop_atlas = 0;
+
+/* to compute MB/s (load/store) */
+uint64_t ls_cublas = 0;
+uint64_t ls_atlas = 0;
+
+#define BLAS3_FLOP(n1,n2,n3)	\
+	(2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
+
+#define BLAS3_LS(n1,n2,n3)    \
+	(2*(n1)*(n3) + (n1)*(n2) + (n2)*(n3))
+
 /*
  * That program should compute C = A * B 
  * 
@@ -50,7 +65,12 @@ void terminate(void)
 
 	unpartition_data(&C_state, 0);
 
-	printf("Computation took %2.2f ms\n", timing_delay(&start, &end)/1000);
+	double timing = timing_delay(&start, &end);
+	uint64_t total_flop = flop_cublas + flop_atlas;
+
+	fprintf(stderr, "Computation took %2.2f ms\n", timing/1000);
+	fprintf(stderr, "	GFlop : total (%2.2f) cublas (%2.2f) atlas (%2.2f)\n", (double)total_flop/1000000000.0f, (double)flop_cublas/1000000000.0f, (double)flop_atlas/1000000000.0f);
+	fprintf(stderr, "	GFlop/s : %2.2f\n", (double)total_flop / (double)timing/1000);
 
 #ifdef CHECK_OUTPUT
 	/* check results */
@@ -117,6 +137,9 @@ void cublas_mult(void *arg)
 
 	cublasSgemm('n', 'n', nxC, nyC, nxA, 1.0f, subB, ldB, subA, ldA, 0.0f, subC, ldC);
 
+	flop_cublas += BLAS3_FLOP(nxC, nyC, nxA);
+	ls_cublas += BLAS3_LS(nxC, nyC, nxA);
+
 	release_data(descr->subA, 0);
 	release_data(descr->subB, 0);
 	release_data(descr->subC, 1<<0);
@@ -129,6 +152,9 @@ void core_mult(void *arg)
 
 	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, nyC, nxC, nxA,
 			 1.0f,  subA, ldA, subB, ldB, 0.0f, subC, ldC);
+
+	flop_atlas += BLAS3_FLOP(nxC, nyC, nxA);
+	ls_atlas += BLAS3_LS(nxC, nyC, nxA);
 
 	release_data(descr->subA, 0);
 	release_data(descr->subB, 0);
