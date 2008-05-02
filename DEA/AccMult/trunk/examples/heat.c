@@ -353,10 +353,10 @@ static inline float integral_triangle(int theta_tr, int thick_tr, unsigned side_
 	float dxi, dxj, dyi, dyj;
 
 	if (theta_tr < 0) return 0.0f;
-	if (theta_tr > ntheta-2) return 0.0f;
+	if (theta_tr + 2  > (int)ntheta) return 0.0f;
 
 	if (thick_tr < 0) return 0.0f;
-	if (thick_tr > nthick-2) return 0.0f;
+	if (thick_tr + 2 > (int)nthick) return 0.0f;
 
 	dxi = diff_x_psi(theta_tr, thick_tr, side_tr, theta_i, thick_i);
 	dyi = diff_y_psi(theta_tr, thick_tr, side_tr, theta_i, thick_i);
@@ -462,7 +462,7 @@ static void postscript_gen()
 
 static void solve_system(unsigned size, unsigned subsize)
 {
-	unsigned i,j;
+	unsigned i;
 
 	/* solve the actual problem LU X = B */
         /* solve LX' = Y with X' = UX */
@@ -491,12 +491,12 @@ static void solve_system(unsigned size, unsigned subsize)
 
 }
 
-void reorganize_matrices(float *A, float *B, int *RefArray, unsigned size, unsigned newsize)
+void reorganize_matrices(float *A, float *B, int *RefArray, unsigned size)
 {
 	/* only reorganize the newsize*newsize upper left square on A, and the
 	 * newsize first items on B */
-	unsigned i;
-	for (i = 0; i < size; i++)
+	int i;
+	for (i = 0; i < (int)size; i++)
 	{
 		if (RefArray[i] > i) {
 			/* swap i and RefArray[i] columns on A */
@@ -695,7 +695,7 @@ int main(int argc, char **argv)
 
 	fprintf(stderr, "Problem size : %dx%d (%dx%d)\n", newsize, newsize, DIM, DIM);
 
-	reorganize_matrices(A, B, RefArray, DIM, newsize);
+	reorganize_matrices(A, B, RefArray, DIM);
 
 	for (j = 0; j < newsize; j++)
 	{

@@ -93,7 +93,6 @@ void transfer_subtree_to_node(data_state *data, unsigned src_node, unsigned dst_
 	unsigned i;
 	unsigned last = 0;
 	unsigned cnt;
-	cache_state new_state;
 
 	if (data->nchildren == 0)
 	{
