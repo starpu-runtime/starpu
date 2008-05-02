@@ -32,7 +32,6 @@ do
 
 			echo "size $size cpus $cpus cublas $cublas blocks $blocks" 
 			$ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $BLOCKS 2>/dev/null| tee $filename
-#			$ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $BLOCKS 
 		done
 	done
 
@@ -49,7 +48,6 @@ do
 
 			echo "size $size cpus $cpus cublas $cublas blocks $blocks" 
 			$ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $BLOCKS 2>/dev/null| tee $filename
-#			$ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $BLOCKS 
 		done
 	done
 done
