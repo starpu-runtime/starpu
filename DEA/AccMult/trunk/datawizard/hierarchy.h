@@ -3,6 +3,7 @@
 
 #include <stdarg.h>
 #include "coherency.h"
+#include "memalloc.h"
 
 typedef struct filter_t {
 	unsigned (*filter_func)(struct filter_t *, data_state *); /* the actual partitionning function */

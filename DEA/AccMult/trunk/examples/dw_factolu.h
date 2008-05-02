@@ -29,10 +29,10 @@ void dw_callback_v2_codelet_update_u12(void *);
 void dw_callback_v2_codelet_update_u21(void *);
 void dw_callback_v2_codelet_update_u22(void *);
 
-void dw_core_codelet_update_u11(void *);
-void dw_core_codelet_update_u12(void *);
-void dw_core_codelet_update_u21(void *);
-void dw_core_codelet_update_u22(void *);
+void dw_core_codelet_update_u11(buffer_descr *, void *);
+void dw_core_codelet_update_u12(buffer_descr *, void *);
+void dw_core_codelet_update_u21(buffer_descr *, void *);
+void dw_core_codelet_update_u22(buffer_descr *, void *);
 
 #ifdef CHECK_RESULTS
 static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,

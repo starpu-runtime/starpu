@@ -17,12 +17,6 @@
 
 #include <common/fxt.h>
 
-typedef struct { 
-	data_state *subA;
-	data_state *subB;
-	data_state *subC;
-} multdescr;
-
 float *A;
 float *B;
 float *C;
@@ -35,7 +29,6 @@ tick_t start;
 tick_t end;
 
 unsigned x,y,z;
-
 
 /* to compute MFlop/s */
 uint64_t flop_cublas = 0;
@@ -108,45 +101,50 @@ void callback_func(void *arg)
 	return;
 }
 
-#define COMMON_CODE							\
-	uint32_t nxC, nyC, nxA;						\
-	uint32_t ldA, ldB, ldC;						\
-									\
-	float *subA;							\
-	float *subB;							\
-	float *subC;							\
-									\
-	multdescr *descr = arg;						\
-									\
-	subA = (float *)fetch_data(descr->subA, R);			\
-	subB = (float *)fetch_data(descr->subB, R);			\
-	subC = (float *)fetch_data(descr->subC, W);			\
-									\
-	nxC = get_local_nx(descr->subC);				\
-	nyC = get_local_ny(descr->subC);				\
-	nxA = get_local_nx(descr->subA);				\
-									\
-	ldA = get_local_ld(descr->subA);				\
-	ldB = get_local_ld(descr->subB);				\
-	ldC = get_local_ld(descr->subC);
+
+#define COMMON_CODE			\
+	uint32_t nxC, nyC, nxA;		\
+	uint32_t ldA, ldB, ldC;		\
+					\
+	float *subA;			\
+	float *subB;			\
+	float *subC;			\
+					\
+	subA = (float *)descr[0].ptr;	\
+	subB = (float *)descr[1].ptr;	\
+	subC = (float *)descr[2].ptr;	\
+					\
+	nxC = descr[2].nx;		\
+	nyC = descr[2].ny;		\
+	nxA = descr[0].nx;		\
+					\
+	ldA = descr[0].ld;		\
+	ldB = descr[1].ld;		\
+	ldC = descr[2].ld;
 
 #ifdef USE_CUBLAS
-void cublas_mult(void *arg)
+void cublas_mult(buffer_descr *descr, void *arg)
 {
 	COMMON_CODE
 
+	tick_t sgemm_start;
+	tick_t sgemm_end;
+
+
+	GET_TICK(sgemm_start);
+
 	cublasSgemm('n', 'n', nxC, nyC, nxA, 1.0f, subB, ldB, subA, ldA, 0.0f, subC, ldC);
 
-	flop_cublas += BLAS3_FLOP(nxC, nyC, nxA);
-	ls_cublas += BLAS3_LS(nxC, nyC, nxA);
+	GET_TICK(sgemm_end);
 
-	release_data(descr->subA, 0);
-	release_data(descr->subB, 0);
-	release_data(descr->subC, 1<<0);
+	uint64_t flopcnt = BLAS3_FLOP(nxC, nyC, nxA);
+
+	flop_cublas += flopcnt;
+	ls_cublas += BLAS3_LS(nxC, nyC, nxA);
 }
 #endif
 
-void core_mult(void *arg)
+void core_mult(buffer_descr *descr, void *arg)
 {
 	COMMON_CODE
 
@@ -155,10 +153,6 @@ void core_mult(void *arg)
 
 	flop_atlas += BLAS3_FLOP(nxC, nyC, nxA);
 	ls_atlas += BLAS3_LS(nxC, nyC, nxA);
-
-	release_data(descr->subA, 0);
-	release_data(descr->subB, 0);
-	release_data(descr->subC, 0);
 }
 
 unsigned nslicesx = 4;
@@ -287,14 +281,9 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 
 	map_filters(&C_state, 2, &f, &f2);
 
-	/* this array will contain the list of jobs to be performed */
-	multdescr jobarguments[nslicesx*nslicesy];
-
 	/* partition the work into slices */
-	unsigned taskx, tasky, task;
+	unsigned taskx, tasky;
 	job_t jb;
-
-	task = 0;
 
 	for (taskx = 0; taskx < nslicesx; taskx++) 
 	{
@@ -303,11 +292,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 			/* A B[task] = C[task] */
 			codelet *cl = malloc(sizeof(codelet));
 
-			jobarguments[task].subA = get_sub_data(&A_state, 1, tasky);
-			jobarguments[task].subB = get_sub_data(&B_state, 1, taskx);
-			jobarguments[task].subC = get_sub_data(&C_state, 2, taskx, tasky);
-
-			cl->cl_arg = &jobarguments[task];
+			cl->cl_arg = NULL;
 			cl->core_func = core_mult;
 #ifdef USE_CUBLAS
 			cl->cublas_func = cublas_mult;
@@ -319,10 +304,17 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 			jb->cb = callback_func;
 			jb->argcb = &jobcounter;
 			jb->cl = cl;
+
+			jb->nbuffers = 3;
+
+			jb->buffers[0].state = get_sub_data(&A_state, 1, tasky);
+			jb->buffers[0].mode = R;
+			jb->buffers[1].state = get_sub_data(&B_state, 1, taskx);
+			jb->buffers[1].mode = R;
+			jb->buffers[2].state = get_sub_data(&C_state, 2, taskx, tasky);
+			jb->buffers[2].mode = W;
 			
 			push_task(jb);
-
-			task++;
 		}
 	}
 

@@ -7,9 +7,11 @@ void execute_job_on_core(job_t j)
 {
         switch (j->type) {
 		case CODELET:
-			assert(j->cl);
-			assert(j->cl->core_func);
-			j->cl->core_func(j->cl->cl_arg);
+			ASSERT(j->cl);
+			ASSERT(j->cl->core_func);
+			fetch_codelet_input(j->buffers, j->nbuffers);
+			j->cl->core_func(j->buffers, j->cl->cl_arg);
+			push_codelet_output(j->buffers, j->nbuffers, 0);
 			break;
                 case ABORT:
                         fprintf(stderr, "core abort\n");

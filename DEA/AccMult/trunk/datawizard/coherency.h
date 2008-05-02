@@ -64,11 +64,23 @@ typedef struct data_state_t {
 	local_data_state per_node[MAXNODES];
 } data_state;
 
+typedef struct buffer_descr_t {
+	/* the part used by the runtime */
+	data_state *state;
+	access_mode mode;
+	/* the part given to the kernel */
+	uint32_t ld;
+	uint32_t nx, ny;
+	uintptr_t ptr;
+} buffer_descr;
+
 void display_state(data_state *state);
 uintptr_t fetch_data(data_state *state, access_mode mode);
 void release_data(data_state *state, uint32_t write_through_mask);
 
 uintptr_t _fetch_data(data_state *state, uint32_t requesting_node, uint8_t read, uint8_t write);
+
+uint32_t get_data_refcnt(data_state *state, uint32_t node);
 
 
 #endif // __COHERENCY__H__

@@ -5,7 +5,7 @@
  */
 void delete_data(data_state *state)
 {
-
+	ASSERT(state);
 }
 
 void monitor_new_data(data_state *state, uint32_t home_node,
@@ -212,7 +212,7 @@ void unpartition_data(data_state *root_data, uint32_t gathering_node)
 	
 			if (local->allocated && local->automatically_allocated){
 				/* free the data copy in a lazy fashion */
-				request_mem_chunk_removal(local, node);
+				request_mem_chunk_removal(root_data, node);
 				isvalid = 0; 
 			}
 		}

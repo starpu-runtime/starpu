@@ -45,7 +45,7 @@ void handle_new_worker(void)
 	unsigned workerid = nworkers++;
 	ENTRY item;
 		item.key = tidstr;
-		item.data = (int *)(workerid);
+		item.data = (workerid);
 
 	ENTRY *res;
 	res = hsearch(item, FIND);

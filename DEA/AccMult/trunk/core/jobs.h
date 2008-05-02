@@ -13,6 +13,8 @@
 #include <common/threads.h>
 #include <common/fxt.h>
 
+#include <datawizard/coherency.h>
+
 #ifdef USE_CUDA
 #include <cuda.h>
 #endif
@@ -23,7 +25,7 @@ typedef enum {ADD, SUB, MUL, PART, PRECOND, CLEAN, ABORT, SGEMM, SAXPY, SGEMV, S
 
 typedef void (*callback)(void *);
 /* codelet function */
-typedef void (*cl_func)(void *);
+typedef void (*cl_func)(buffer_descr *, void *);
 
 #define CORE_MAY_PERFORM(j)	( (j)->where == ANY || (j)->where == CORE )
 #define CUDA_MAY_PERFORM(j)     ( (j)->where == ANY || (j)->where == GPU || (j)->where == CUDA )
@@ -78,40 +80,25 @@ typedef struct codelet_t {
 	void *cl_arg;
 } codelet;
 
+#define NMAXBUFS	8
 
 LIST_TYPE(job,
-//	/* don't move that structure ! (cf opaque pointers ..) */
-//	struct {
-//		submatrix matA; /* inputs */
-//		submatrix matB;
-//	} input;
-//	union {
-//		matrix matC;    /* output */
-//		submatrix matC_sub;
-//		matrix *matC_existing; /* when we just need a reference .. */
-//	} output;
-//	struct {
-//		matrix *mat1;
-//		matrix *mat2;
-//		matrix *mat3;
-//	} args;
 	jobtype type;	/* what kind of job ? */
 	cap where;	/* where can it be performed ? */
 	callback cb;	/* do "cb(argcb)" when finished */
 	codelet *cl;
 	void *argcb;
 	int counter;	/* when this reaches 0 the callback can be executed */
+	unsigned nbuffers;
+	buffer_descr buffers[NMAXBUFS];
 #ifdef USE_CUDA
 	CUdeviceptr device_job ;
 	CUdeviceptr toto;
 #endif
 );
 
+
 typedef struct job_descr_t {
-//	matrix *matA;
-//	matrix *matB;
-//	matrix *matC;
-//	matrix *matD;
 	int debug;
 	int counter;
 	callback f;

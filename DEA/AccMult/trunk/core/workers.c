@@ -1,8 +1,7 @@
 #include <common/timing.h>
-#ifdef USE_FXT
 #include <common/fxt.h>
-#endif
 #include "workers.h"
+#include "jobs.h"
 
 /* number of actual CPU cores */
 
@@ -398,6 +397,35 @@ void display_general_stats()
 	}
 #endif
 
+}
+
+void fetch_codelet_input(buffer_descr *descrs, unsigned nbuffers)
+{
+	/* TODO we should avoid repeatingly ask for the local thread index etc. */
+	unsigned index;
+	for (index = 0; index < nbuffers; index++)
+	{
+		buffer_descr *descr;
+		descr = &descrs[index];
+
+		descr->ptr = fetch_data(descr->state, descr->mode);
+
+		/* XXX this should be optimized ...*/
+		descr->nx = get_local_nx(descr->state);
+		descr->ny = get_local_ny(descr->state);
+		descr->ld = get_local_ld(descr->state);
+	}
+}
+
+void push_codelet_output(buffer_descr *descrs, unsigned nbuffers, uint32_t mask)
+{
+	/* TODO we should avoid repeatingly ask for the local thread index etc. */
+	unsigned index;
+	for (index = 0; index < nbuffers; index++)
+	{
+		if (descrs->mode != R)
+			release_data(&descrs[index], mask);
+	}
 }
 
 void display_stats(job_descr *jd)

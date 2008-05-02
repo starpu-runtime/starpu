@@ -23,7 +23,9 @@ static int execute_job_on_cublas(job_t j)
 		case CODELET:
 			assert(j->cl);
 			assert(j->cl->cublas_func);
-			j->cl->cublas_func(j->cl->cl_arg);
+			fetch_codelet_input(j->buffers, j->nbuffers);
+			j->cl->cublas_func(j->buffers, j->cl->cl_arg);
+			push_codelet_output(j->buffers, j->nbuffers, 1<<0);
 			break;
 		case ABORT:
 			fprintf(stderr, "CUBLAS abort\n");

@@ -222,7 +222,7 @@ void driver_copy_data_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_
 
 void driver_copy_data(data_state *state, uint32_t src_node_mask, uint32_t dst_node)
 {
-	unsigned src_node;
+	unsigned src_node = 0;
 	unsigned i;
 
 	/* first find the node that will be the actual source */

@@ -18,11 +18,20 @@ uint8_t *advance_22; /* array of nblocks *nblocks*nblocks */
 #define STARTED	0x01
 #define DONE	0x10
 
+
+/* to compute MFlop/s */
+uint64_t flop_cublas = 0;
+uint64_t flop_atlas = 0;
+
+#define BLAS3_FLOP(n1,n2,n3)    \
+        (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
+
+
 /*
  *   U22 
  */
 
-static inline void dw_common_core_codelet_update_u22(int s, void *_args)
+static inline void dw_common_core_codelet_update_u22(buffer_descr *descrs, int s, void *_args)
 {
 	cl_args *args = _args;
 
@@ -56,12 +65,18 @@ static inline void dw_common_core_codelet_update_u22(int s, void *_args)
 				dy, dx, dz, -1.0f, left, ld21, right, ld12,
 					     1.0f, center, ld22);
 			release_data(data22, 0);
+
+			flop_atlas += BLAS3_FLOP(dx, dy, dz);
+
 			break;
 #ifdef USE_CUBLAS
 		case 1:
 			cublasSgemm('n', 'n', dx, dy, dz, -1.0f, left, ld21,
 					right, ld12, 1.0f, center, ld22);
 			release_data(data22, 1<<0);
+
+			flop_cublas += BLAS3_FLOP(dx, dy, dz);
+
 			break;
 #endif
 		default:
@@ -76,15 +91,15 @@ static inline void dw_common_core_codelet_update_u22(int s, void *_args)
 //	printf("end 22 k %d i %d j %d \n", k, i, j);
 }
 
-void dw_core_codelet_update_u22(void *_args)
+void dw_core_codelet_update_u22(buffer_descr *descr, void *_args)
 {
-	dw_common_core_codelet_update_u22(0, _args);
+	dw_common_core_codelet_update_u22(descr, 0, _args);
 }
 
 #ifdef USE_CUBLAS
-void dw_cublas_codelet_update_u22(void *_args)
+void dw_cublas_codelet_update_u22(buffer_descr *descr, void *_args)
 {
-	dw_common_core_codelet_update_u22(1, _args);
+	dw_common_core_codelet_update_u22(descr, 1, _args);
 }
 #endif// USE_CUBLAS
 
@@ -92,7 +107,7 @@ void dw_cublas_codelet_update_u22(void *_args)
  * U12
  */
 
-static inline void dw_common_codelet_update_u12(int s, void *_args) {
+static inline void dw_common_codelet_update_u12(buffer_descr *descrs, int s, void *_args) {
 	float *sub11;
 	float *sub12;
 
@@ -141,15 +156,15 @@ static inline void dw_common_codelet_update_u12(int s, void *_args) {
 	release_data(data11, 0);
 }
 
-void dw_core_codelet_update_u12(void *_args)
+void dw_core_codelet_update_u12(buffer_descr *descr, void *_args)
 {
-	 dw_common_codelet_update_u12(0, _args);
+	 dw_common_codelet_update_u12(descr, 0, _args);
 }
 
 #ifdef USE_CUBLAS
-void dw_cublas_codelet_update_u12(void *_args)
+void dw_cublas_codelet_update_u12(buffer_descr *descr, void *_args)
 {
-	 dw_common_codelet_update_u12(1, _args);
+	 dw_common_codelet_update_u12(descr, 1, _args);
 }
 #endif // USE_CUBLAS
 
@@ -157,7 +172,7 @@ void dw_cublas_codelet_update_u12(void *_args)
  * U21
  */
 
-static inline void dw_common_codelet_update_u21(int s, void *_args) {
+static inline void dw_common_codelet_update_u21(buffer_descr *descrs, int s, void *_args) {
 	float *sub11;
 	float *sub21;
 
@@ -204,15 +219,15 @@ static inline void dw_common_codelet_update_u21(int s, void *_args) {
 	release_data(data11, 0);
 }
 
-void dw_core_codelet_update_u21(void *_args)
+void dw_core_codelet_update_u21(buffer_descr *descr, void *_args)
 {
-	 dw_common_codelet_update_u21(0, _args);
+	 dw_common_codelet_update_u21(descr, 0, _args);
 }
 
 #ifdef USE_CUBLAS
-void dw_cublas_codelet_update_u21(void *_args)
+void dw_cublas_codelet_update_u21(buffer_descr *descr, void *_args)
 {
-	dw_common_codelet_update_u21(1, _args);
+	dw_common_codelet_update_u21(descr, 1, _args);
 }
 #endif 
 
@@ -220,7 +235,7 @@ void dw_cublas_codelet_update_u21(void *_args)
  *	U11
  */
 
-static inline void dw_common_codelet_update_u11(int s, void *_args) 
+static inline void dw_common_codelet_update_u11(buffer_descr *descrs, int s, void *_args) 
 {
 	float *sub11;
 	cl_args *args = _args;
@@ -236,7 +251,8 @@ static inline void dw_common_codelet_update_u11(int s, void *_args)
 
 //	printf("start 11 %d \n", i);
 
-	unsigned x, y, z;
+	//unsigned x, y, z;
+	unsigned z;
 
 //	for (z = 0; z < nx; z++)
 //	{
@@ -317,15 +333,15 @@ static inline void dw_common_codelet_update_u11(int s, void *_args)
 }
 
 
-void dw_core_codelet_update_u11(void *_args)
+void dw_core_codelet_update_u11(buffer_descr *descr, void *_args)
 {
-	dw_common_codelet_update_u11(0, _args);
+	dw_common_codelet_update_u11(descr, 0, _args);
 }
 
 #ifdef USE_CUBLAS
-void dw_cublas_codelet_update_u11(void *_args)
+void dw_cublas_codelet_update_u11(buffer_descr *descr, void *_args)
 {
-	dw_common_codelet_update_u11(1, _args);
+	dw_common_codelet_update_u11(descr, 1, _args);
 }
 #endif// USE_CUBLAS
 
@@ -363,6 +379,8 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 			j->cb = dw_callback_v2_codelet_update_u11;
 			j->argcb = u11arg;
 			j->cl = cl;
+
+			j->nbuffers = 0;
 	
 		u11arg->dataA = args->dataA;
 		u11arg->i = k + 1;
@@ -401,6 +419,8 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 						j21->cb = dw_callback_v2_codelet_update_u21;
 						j21->argcb = u21a;
 						j21->cl = cl21;
+			
+						j21->nbuffers = 0;
 					
 					u21a->i = k+1;
 					u21a->k = j;
@@ -443,6 +463,8 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 						j12->cb = dw_callback_v2_codelet_update_u12;
 						j12->argcb = u12a;
 						j12->cl = cl12;
+
+						j12->nbuffers = 0;
 #ifdef USE_CUBLAS
 					cl12->cublas_func = dw_cublas_codelet_update_u12;
 #endif
@@ -511,6 +533,7 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				j22->cb = dw_callback_v2_codelet_update_u22;
 				j22->argcb = u22a;
 				j22->cl = cl22;
+				j22->nbuffers = 0;
 
 				u22a->k = i;
 				u22a->i = k;
@@ -578,6 +601,7 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				j22->cb = dw_callback_v2_codelet_update_u22;
 				j22->argcb = u22a;
 				j22->cl = cl22;
+				j22->nbuffers = 0;
 
 				u22a->k = i;
 				u22a->i = slicex;
@@ -651,6 +675,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 						j12->cb = dw_callback_v2_codelet_update_u12;
 						j12->argcb = u12a;
 						j12->cl = cl12;
+						j12->nbuffers = 0;
 #ifdef USE_CUBLAS
 					cl12->cublas_func = dw_cublas_codelet_update_u12;
 #endif
@@ -704,6 +729,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 						j21->cb = dw_callback_v2_codelet_update_u21;
 						j21->argcb = u21a;
 						j21->cl = cl21;
+						j21->nbuffers = 0;
 					
 		
 					u21a->i = i;
@@ -760,6 +786,7 @@ void dw_callback_codelet_update_u22(void *argcb)
 			j->cb = dw_callback_codelet_update_u11;
 			j->argcb = u11arg;
 			j->cl = cl;
+			j->nbuffers = 0;
 	
 		u11arg->dataA = args->dataA;
 		u11arg->i = args->k + 1;
@@ -809,6 +836,7 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 				j22->cb = dw_callback_codelet_update_u22;
 				j22->argcb = u22a;
 				j22->cl = cl22;
+				j22->nbuffers = 0;
 
 				u22a->k = i;
 				u22a->i = slicex;
@@ -874,6 +902,7 @@ void dw_callback_codelet_update_u11(void *argcb)
 				j12->cb = dw_callback_codelet_update_u12_21;
 				j12->argcb = u12a;
 				j12->cl = cl12;
+				j12->nbuffers = 0;
 
 			job_t j21 = job_new();
 				j21->type = CODELET;
@@ -881,6 +910,7 @@ void dw_callback_codelet_update_u11(void *argcb)
 				j21->cb = dw_callback_codelet_update_u12_21;
 				j21->argcb = u21a;
 				j21->cl = cl21;
+				j21->nbuffers = 0;
 			
 
 			u12a->i = args->i;
@@ -938,6 +968,7 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 		j->cb = dw_callback_codelet_update_u11;
 		j->argcb = args;
 		j->cl = cl;
+		j->nbuffers = 0;
 
 	/* schedule the codelet */
 	push_task(j);
@@ -946,8 +977,14 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 	sem_wait(&sem);
 	sem_destroy(&sem);
 	GET_TICK(end);
+
+	double timing = timing_delay(&start, &end);
 	fprintf(stderr, "Computation took (in ms)\n");
-	printf("%2.2f\n", timing_delay(&start, &end)/1000);
+	printf("%2.2f\n", timing/1000);
+
+	unsigned n = get_local_nx(dataA);
+	double flop = (2.0f*n*n*n)/3.0f;
+	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
 
 void dw_codelet_facto_v2(data_state *dataA, unsigned nblocks)
@@ -990,6 +1027,7 @@ void dw_codelet_facto_v2(data_state *dataA, unsigned nblocks)
 		j->cb = dw_callback_v2_codelet_update_u11;
 		j->argcb = args;
 		j->cl = cl;
+		j->nbuffers = 0;
 
 	/* schedule the codelet */
 	push_task(j);
@@ -998,10 +1036,15 @@ void dw_codelet_facto_v2(data_state *dataA, unsigned nblocks)
 	sem_wait(&sem);
 	sem_destroy(&sem);
 	GET_TICK(end);
-	fprintf(stderr, "Computation took (in ms)\n");
-	printf("%2.2f\n", timing_delay(&start, &end)/1000);
-}
 
+	double timing = timing_delay(&start, &end);
+	fprintf(stderr, "Computation took (in ms)\n");
+	printf("%2.2f\n", timing/1000);
+
+	unsigned n = get_local_nx(dataA);
+	double flop = (2.0f*n*n*n)/3.0f;
+	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+}
 
 
 void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned version)
