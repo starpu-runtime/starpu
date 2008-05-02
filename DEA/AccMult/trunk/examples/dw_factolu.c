@@ -145,7 +145,7 @@ void dw_cublas_codelet_update_u12(buffer_descr *descr, void *_args)
  * U21
  */
 
-static inline void dw_common_codelet_update_u21(buffer_descr *descrs, int s, void *_args) {
+static inline void dw_common_codelet_update_u21(buffer_descr *buffers, int s, void *_args) {
 	float *sub11;
 	float *sub21;
 
@@ -156,40 +156,29 @@ static inline void dw_common_codelet_update_u21(buffer_descr *descrs, int s, voi
 
 	data_state *dataA = args->dataA;
 
-	data_state *data11 = get_sub_data(dataA, 2, i, i);
-	data_state *data21 = get_sub_data(dataA, 2, i, k);
-	
-	sub11 = (float *)fetch_data(data11, R);
-	sub21 = (float *)fetch_data(data21, RW);
+	sub11 = (float *)buffers[0].ptr;
+	sub21 = (float *)buffers[1].ptr;
 
-	unsigned ld11 = get_local_ld(data11);
-	unsigned ld21 = get_local_ld(data21);
+	unsigned ld11 = buffers[0].ld;
+	unsigned ld21 = buffers[1].ld;
 
-	unsigned nx21 = get_local_nx(data21);
-	unsigned ny21 = get_local_ny(data21);
-
-//	printf("start 21 i %d k %d\n", i, k);
+	unsigned nx21 = buffers[1].nx;
+	unsigned ny21 = buffers[1].ny;
 
 	switch (s) {
 		case 0:
 			cblas_strsm(CblasRowMajor, CblasRight, CblasUpper, CblasNoTrans, 
 				CblasUnit, nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
-			release_data(data21, 0);
 			break;
 #ifdef USE_CUBLAS
 		case 1:
 			cublasStrsm('L', 'L', 'N', 'U', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
-			release_data(data21, 1<<0);
 			break;
 #endif
 		default:
 			ASSERT(0);
 			break;
 	}
-
-//	printf("finished 21 i %d k %d\n", i, k);
-
-	release_data(data11, 0);
 }
 
 void dw_core_codelet_update_u21(buffer_descr *descr, void *_args)
@@ -361,13 +350,17 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 						j21->argcb = u21a;
 						j21->cl = cl21;
 			
-						j21->nbuffers = 0;
-					
 					u21a->i = k+1;
 					u21a->k = j;
 					u21a->nblocks = args->nblocks;
 					u21a->dataA = args->dataA;
 					u21a->sem = args->sem;
+
+					j21->nbuffers = 2;
+					j21->buffers[0].state = get_sub_data(args->dataA, 2, u21a->i, u21a->i);
+					j21->buffers[0].mode = R;
+					j21->buffers[1].state = get_sub_data(args->dataA, 2, u21a->i, u21a->k);
+					j21->buffers[1].mode = RW;
 		
 					//printf("pushed 21 with i = %d and k = %d\n", u21a->i, u21a->k);
 
@@ -714,6 +707,13 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					u21a->dataA = args->dataA;
 					u21a->sem = args->sem;
 
+					j21->nbuffers = 2;
+					j21->buffers[0].state = get_sub_data(args->dataA, 2, u21a->i, u21a->i);
+					j21->buffers[0].mode = R;
+					j21->buffers[1].state = get_sub_data(args->dataA, 2, u21a->i, u21a->k);
+					j21->buffers[1].mode = RW;
+		
+
 					//printf("launch 21 with i = %d and k = %d \n", i, slice);
 		
 					if (slice == i +1) {
@@ -901,7 +901,6 @@ void dw_callback_codelet_update_u11(void *argcb)
 				j21->cb = dw_callback_codelet_update_u12_21;
 				j21->argcb = u21a;
 				j21->cl = cl21;
-				j21->nbuffers = 0;
 			
 
 			u12a->i = args->i;
@@ -923,6 +922,13 @@ void dw_callback_codelet_update_u11(void *argcb)
 			j12->buffers[0].mode = R;
 			j12->buffers[1].state = get_sub_data(args->dataA, 2, u12a->k, u12a->i); 
 			j12->buffers[1].mode = RW;
+
+			j21->nbuffers = 2;
+			j21->buffers[0].state = get_sub_data(args->dataA, 2, u21a->i, u21a->i);
+			j21->buffers[0].mode = R;
+			j21->buffers[1].state = get_sub_data(args->dataA, 2, u21a->i, u21a->k);
+			j21->buffers[1].mode = RW;
+		
 
 			push_task(j12);
 			push_task(j21);
