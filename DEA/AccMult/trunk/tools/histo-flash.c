@@ -1,17 +1,4 @@
-#include <stdlib.h>
-#include <ming.h>
-#include <math.h>
-
-#include "fxt-tool.h"
-
-#define WIDTH	800
-#define HEIGHT	600
-
-#define THICKNESS	50
-#define GAP		10
-
-#define BORDERX		100
-#define BORDERY		100
+#include "histo-flash.h"
 
 SWFMovie movie;
 
@@ -98,11 +85,10 @@ void add_region(worker_mode color, uint64_t start, uint64_t end, unsigned worker
 	SWFMovie_add(movie, (SWFBlock)shape);
 }
 
-void display_worker(event_list_t *events, unsigned worker, char *worker_name)
+void display_worker(event_list_t events, unsigned worker, char *worker_name)
 {
 	uint64_t prev = start_time;
 	worker_mode prev_state = IDLE;
-	worker_mode working_state = 0;
 
 	SWFText namestr = newSWFText();
 	SWFText_setFont(namestr, font);
@@ -112,7 +98,7 @@ void display_worker(event_list_t *events, unsigned worker, char *worker_name)
 			BORDERY + (THICKNESS + GAP)*worker + THICKNESS/2);
 	SWFText_addString(namestr, worker_name, NULL);
 
-	SWFMovie_add(movie, namestr);
+	SWFMovie_add(movie, (SWFBlock)namestr);
 
 	event_itor_t i;
 	for (i = event_list_begin(events);
@@ -129,7 +115,7 @@ void display_worker(event_list_t *events, unsigned worker, char *worker_name)
 char str_start[20];
 char str_end[20];
 
-void display_start_end_buttons()
+void display_start_end_buttons(void)
 {
 	unsigned x_start, x_end, y;
 	unsigned size = 15;
@@ -155,12 +141,12 @@ void display_start_end_buttons()
 	SWFText_moveTo(text_end, x_end, y);
 	SWFText_addString(text_end, str_end, NULL);
 
-	SWFMovie_add(movie, text_start);
-	SWFMovie_add(movie, text_end);
+	SWFMovie_add(movie, (SWFBlock)text_start);
+	SWFMovie_add(movie, (SWFBlock)text_end);
 
 }
 
-void display_workq_evolution(workq_list_t *taskq, unsigned nworkers, unsigned maxq_size)
+void display_workq_evolution(workq_list_t taskq, unsigned nworkers, unsigned maxq_size)
 {
 	unsigned endy, starty;
 
@@ -183,9 +169,6 @@ void display_workq_evolution(workq_list_t *taskq, unsigned nworkers, unsigned ma
 
 	shape = newSWFShape();
 	SWFShape_setLine(shape, 0, 0, 0, 0, 255);
-
-	SWFFillStyle style= SWFShape_addSolidFillStyle(shape, 0, 0, 0, 255);
-
 
 	SWFShape_movePenTo(shape, BORDERX, endy);
 
@@ -222,7 +205,7 @@ void display_workq_evolution(workq_list_t *taskq, unsigned nworkers, unsigned ma
 
 }
 
-void flash_engine_generate_output(event_list_t **events, workq_list_t *taskq, char **worker_name,
+void flash_engine_generate_output(event_list_t *events, workq_list_t taskq, char **worker_name,
 			unsigned nworkers, unsigned maxq_size, 
 			uint64_t _start_time, uint64_t _end_time, char *path)
 {

@@ -1,7 +1,7 @@
 #include "fxt-tool.h"
 
-event_list_t *events[MAXWORKERS];
-workq_list_t *taskq;
+event_list_t events[MAXWORKERS];
+workq_list_t taskq;
 char *worker_name[MAXWORKERS];
 
 fxt_t fut;
@@ -42,10 +42,10 @@ void handle_new_worker(void)
 	sprintf(tidstr, "%ld", ev.param[1]);
 
 	/* create a new key in the htable */
-	unsigned workerid = nworkers++;
+	uint64_t workerid = nworkers++;
 	ENTRY item;
 		item.key = tidstr;
-		item.data = (workerid);
+		item.data = (void *)workerid;
 
 	ENTRY *res;
 	res = hsearch(item, FIND);
@@ -73,7 +73,9 @@ int find_workder_id(unsigned long tid)
 	res = hsearch(item, FIND);
 	ASSERT(res);
 
-	return (int)(res->data);
+	int id = (uintptr_t)(res->data);
+
+	return id;
 }
 
 void handle_start_codelet_body(void)
@@ -138,13 +140,13 @@ void handle_job_pop(void)
 	workq_list_push_back(taskq, e);
 }
 
-void generate_flash_output()
+void generate_flash_output(void)
 {
 	flash_engine_init();
 	flash_engine_generate_output(events, taskq, worker_name, nworkers, maxq_size, start_time, end_time, "toto.swf");
 }
 
-void generate_gnuplot_output()
+void generate_gnuplot_output(void)
 {
 	FILE *output;
 	output = fopen("data", "w+");
@@ -180,7 +182,7 @@ void generate_gnuplot_output()
 	{
 		unsigned long prev = start_time;
 
-		fprintf(output, "%lu\t", 0 / FACTOR);
+		fprintf(output, "%d\t", 0);
 
 		event_itor_t i;
 		for (i = event_list_begin(events[worker]);
@@ -201,9 +203,11 @@ void generate_gnuplot_output()
  */
 int main(int argc, char **argv)
 {
-	char *filename, *filenameout;
+	char *filename, *filenameout = NULL;
 	int ret;
 	int fd_in, fd_out;
+
+	int use_stdout = 1;
 	
 	if (argc < 2) {
 	        fprintf(stderr, "Usage : %s input_filename [-o output_filename]\n", argv[0]);
@@ -211,11 +215,22 @@ int main(int argc, char **argv)
 	}
 	
 	filename = argv[1];
+	
+	if (argc > 2) {
+		filenameout = argv[2];
+		use_stdout = 0;
+	}
 
 	fd_in = open(filename, O_RDONLY);
 	if (fd_in < 0) {
 	        perror("open failed :");
 	        exit(-1);
+	}
+
+	fd_out = open(filenameout, O_RDWR);
+	if (fd_out < 0) {
+		perror("open failed :");
+		exit(-1);
 	}
 	
 	fut = fxt_fdopen(fd_in);
@@ -239,7 +254,7 @@ int main(int argc, char **argv)
 			break;
 		}
 
-		int nbparam = ev.nb_params;
+		__attribute__ ((unused)) int nbparam = ev.nb_params;
 
 		if (first_event)
 		{
@@ -264,7 +279,7 @@ int main(int argc, char **argv)
 				handle_job_pop();
 				break;
 			default:
-				fprintf(stderr, "unknown event.. %x at time %llx\n", ev.code, ev.time);
+				fprintf(stderr, "unknown event.. %x at time %llx\n", (unsigned)ev.code, (long long unsigned)ev.time);
 				break;
 		}
 	}
