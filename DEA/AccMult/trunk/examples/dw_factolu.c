@@ -91,7 +91,7 @@ void dw_cublas_codelet_update_u22(buffer_descr *descr, void *_args)
  * U12
  */
 
-static inline void dw_common_codelet_update_u12(buffer_descr *descrs, int s, void *_args) {
+static inline void dw_common_codelet_update_u12(buffer_descr *buffers, int s, void *_args) {
 	float *sub11;
 	float *sub12;
 
@@ -102,42 +102,31 @@ static inline void dw_common_codelet_update_u12(buffer_descr *descrs, int s, voi
 
 	data_state *dataA = args->dataA;
 
-	data_state *data11 = get_sub_data(dataA, 2, i, i);
-	data_state *data12 = get_sub_data(dataA, 2, k, i);
+	sub11 = (float *)buffers[0].ptr;	
+	sub12 = (float *)buffers[1].ptr;
 
-	sub11 = (float *)fetch_data(data11, R);	
-	sub12 = (float *)fetch_data(data12, RW);
+	unsigned ld11 = buffers[0].ld;
+	unsigned ld12 = buffers[1].ld;
 
-	unsigned ld11 = get_local_ld(data11);
-	unsigned ld12 = get_local_ld(data12);
-
-	unsigned nx12 = get_local_nx(data12);
-	unsigned ny12 = get_local_ny(data12);
-
-//	printf("start 12 i %d k %d\n", i, k);
+	unsigned nx12 = buffers[1].nx;
+	unsigned ny12 = buffers[1].ny;
 
 	/* solve L11 U12 = A12 (find U12) */
 	switch (s) {
 		case 0:
 			cblas_strsm(CblasRowMajor, CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit,
 					 nx12, ny12, 1.0f, sub11, ld11, sub12, ld12);
-			release_data(data12, 0);
 			break;
 #ifdef USE_CUBLAS
 		case 1:
 			cublasStrsm('R', 'U', 'N', 'N', ny12, nx12,
 					1.0f, sub11, ld11, sub12, ld12);
-			release_data(data12, 1<<0);
 			break;
 #endif
 		default:
 			ASSERT(0);
 			break;
 	}
-
-//	printf("finish 12 i %d k %d\n", i, k);
-
-	release_data(data11, 0);
 }
 
 void dw_core_codelet_update_u12(buffer_descr *descr, void *_args)
@@ -416,7 +405,6 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 						j12->argcb = u12a;
 						j12->cl = cl12;
 
-						j12->nbuffers = 0;
 #ifdef USE_CUBLAS
 					cl12->cublas_func = dw_cublas_codelet_update_u12;
 #endif
@@ -427,6 +415,13 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					u12a->nblocks = args->nblocks;
 					u12a->dataA = args->dataA;
 					u12a->sem = args->sem;
+
+
+					j12->nbuffers = 2;
+					j12->buffers[0].state = get_sub_data(args->dataA, 2, u12a->i, u12a->i); 
+					j12->buffers[0].mode = R;
+					j12->buffers[1].state = get_sub_data(args->dataA, 2, u12a->k, u12a->i); 
+					j12->buffers[1].mode = RW;
 					
 					//printf("pushed 12 with i = %d and k = %d\n", u12a->i, u12a->k);
 
@@ -650,7 +645,6 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 						j12->cb = dw_callback_v2_codelet_update_u12;
 						j12->argcb = u12a;
 						j12->cl = cl12;
-						j12->nbuffers = 0;
 #ifdef USE_CUBLAS
 					cl12->cublas_func = dw_cublas_codelet_update_u12;
 #endif
@@ -661,6 +655,13 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					u12a->nblocks = args->nblocks;
 					u12a->dataA = args->dataA;
 					u12a->sem = args->sem;
+
+					j12->nbuffers = 2;
+					j12->buffers[0].state = get_sub_data(args->dataA, 2, u12a->i, u12a->i); 
+					j12->buffers[0].mode = R;
+					j12->buffers[1].state = get_sub_data(args->dataA, 2, u12a->k, u12a->i); 
+					j12->buffers[1].mode = RW;
+
 					
 					//printf("launch 12 with i = %d and k = %d \n", i, slice);
 
@@ -893,7 +894,6 @@ void dw_callback_codelet_update_u11(void *argcb)
 				j12->cb = dw_callback_codelet_update_u12_21;
 				j12->argcb = u12a;
 				j12->cl = cl12;
-				j12->nbuffers = 0;
 
 			job_t j21 = job_new();
 				j21->type = CODELET;
@@ -917,6 +917,12 @@ void dw_callback_codelet_update_u11(void *argcb)
 			u21a->dataA = args->dataA;
 			u21a->remaining = remaining;
 			u21a->sem = args->sem;
+
+			j12->nbuffers = 2;
+			j12->buffers[0].state = get_sub_data(args->dataA, 2, u12a->i, u12a->i); 
+			j12->buffers[0].mode = R;
+			j12->buffers[1].state = get_sub_data(args->dataA, 2, u12a->k, u12a->i); 
+			j12->buffers[1].mode = RW;
 
 			push_task(j12);
 			push_task(j21);
