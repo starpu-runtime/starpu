@@ -229,7 +229,7 @@ void release_data(data_state *state, uint32_t write_through_mask)
 	/* normally, the requesting node should have the data in an exclusive manner */
 	uint32_t requesting_node = get_local_memory_node();
 	ASSERT(state->per_node[requesting_node].state != INVALID);
-	
+
 	/* are we doing write-through or just some normal write-back ? */
 	if (write_through_mask & ~(1<<requesting_node)) {
 		write_through_data(state, requesting_node, write_through_mask);
@@ -239,7 +239,9 @@ void release_data(data_state *state, uint32_t write_through_mask)
 #endif
 	}
 
+
 	take_mutex(&state->header_lock);
+	
 	state->per_node[requesting_node].refcnt--;
 	release_mutex(&state->header_lock);
 

@@ -10,6 +10,7 @@
 #include <common/util.h>
 #include <common/parameters.h>
 #include <core/jobs.h>
+#include <core/workers.h>
 #if 0
 #include <cblas.h>
 #endif

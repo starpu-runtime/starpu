@@ -235,7 +235,7 @@ void dw_cublas_codelet_update_u21(buffer_descr *descr, void *_args)
  *	U11
  */
 
-static inline void dw_common_codelet_update_u11(buffer_descr *descrs, int s, void *_args) 
+static inline void dw_common_codelet_update_u11(buffer_descr *descr, int s, void *_args) 
 {
 	float *sub11;
 	cl_args *args = _args;
@@ -243,15 +243,11 @@ static inline void dw_common_codelet_update_u11(buffer_descr *descrs, int s, voi
 	unsigned i = args->i;
 	data_state *dataA = args->dataA;
 
-	data_state *subdata11 = get_sub_data(dataA, 2, i, i);
-	sub11 = (float *)fetch_data(subdata11, RW); 
+	sub11 = (float *)descr[0].ptr; 
 
-	unsigned nx = get_local_nx(subdata11);
-	unsigned ld = get_local_ld(subdata11);
+	unsigned nx = descr[0].nx;
+	unsigned ld = descr[0].ld;
 
-//	printf("start 11 %d \n", i);
-
-	//unsigned x, y, z;
 	unsigned z;
 
 //	for (z = 0; z < nx; z++)
@@ -290,7 +286,6 @@ static inline void dw_common_codelet_update_u11(buffer_descr *descrs, int s, voi
 								&sub11[(z+1) + (z+1)*ld],ld);
 		
 			}
-			release_data(subdata11, 0);
 			break;
 #ifdef USE_CUBLAS
 		case 1:
@@ -315,20 +310,12 @@ static inline void dw_common_codelet_update_u11(buffer_descr *descrs, int s, voi
 								&sub11[(z+1) + (z+1)*ld],ld);
 		
 			}
-
-			release_data(subdata11, 1<<0);
 			break;
 #endif
 		default:
 			ASSERT(0);
 			break;
 	}
-
-
-
-
-//	printf("finish 11 %d \n", i);
-
 
 }
 
@@ -380,7 +367,10 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 			j->argcb = u11arg;
 			j->cl = cl;
 
-			j->nbuffers = 0;
+			j->nbuffers = 1;
+
+			j->buffers[0].state = get_sub_data(args->dataA, 2, k+1, k+1);
+			j->buffers[0].mode = RW;
 	
 		u11arg->dataA = args->dataA;
 		u11arg->i = k + 1;
@@ -786,7 +776,10 @@ void dw_callback_codelet_update_u22(void *argcb)
 			j->cb = dw_callback_codelet_update_u11;
 			j->argcb = u11arg;
 			j->cl = cl;
-			j->nbuffers = 0;
+
+			j->nbuffers = 1;
+			j->buffers[0].state = get_sub_data(args->dataA, 2, args->k + 1, args->k + 1);
+			j->buffers[0].mode = RW;
 	
 		u11arg->dataA = args->dataA;
 		u11arg->i = args->k + 1;
@@ -968,7 +961,10 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 		j->cb = dw_callback_codelet_update_u11;
 		j->argcb = args;
 		j->cl = cl;
-		j->nbuffers = 0;
+		j->nbuffers = 1;
+
+		j->buffers[0].state = get_sub_data(dataA, 2, 0, 0);
+		j->buffers[0].mode = RW;
 
 	/* schedule the codelet */
 	push_task(j);
@@ -1027,7 +1023,10 @@ void dw_codelet_facto_v2(data_state *dataA, unsigned nblocks)
 		j->cb = dw_callback_v2_codelet_update_u11;
 		j->argcb = args;
 		j->cl = cl;
-		j->nbuffers = 0;
+		j->nbuffers = 1;
+
+		j->buffers[0].state = get_sub_data(dataA, 2, 0, 0); 
+		j->buffers[0].mode = RW;
 
 	/* schedule the codelet */
 	push_task(j);

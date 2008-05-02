@@ -423,8 +423,7 @@ void push_codelet_output(buffer_descr *descrs, unsigned nbuffers, uint32_t mask)
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
-		if (descrs->mode != R)
-			release_data(&descrs[index], mask);
+		release_data(descrs[index].state, mask);
 	}
 }
 
