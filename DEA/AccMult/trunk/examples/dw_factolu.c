@@ -31,7 +31,7 @@ uint64_t flop_atlas = 0;
  *   U22 
  */
 
-static inline void dw_common_core_codelet_update_u22(buffer_descr *descrs, int s, void *_args)
+static inline void dw_common_core_codelet_update_u22(buffer_descr *buffers, int s, void *_args)
 {
 	cl_args *args = _args;
 
@@ -41,31 +41,23 @@ static inline void dw_common_core_codelet_update_u22(buffer_descr *descrs, int s
 
 	data_state *dataA = args->dataA;
 
-	data_state *data12 = get_sub_data(dataA, 2, i, k);
-	data_state *data21 = get_sub_data(dataA, 2, k, j);
-	data_state *data22 = get_sub_data(dataA, 2, i, j);
+	float *left 	= (float *)buffers[0].ptr;
+	float *right 	= (float *)buffers[1].ptr;
+	float *center 	= (float *)buffers[2].ptr;
 
-	float *left 	= (float *)fetch_data(data21, R); 
-	float *right 	= (float *)fetch_data(data12, R); 
-	float *center 	= (float *)fetch_data(data22, RW);
+	unsigned dx = buffers[2].nx;
+	unsigned dy = buffers[2].ny;
+	unsigned dz = buffers[0].ny;
 
-	unsigned dx = get_local_nx(data22);
-	unsigned dy = get_local_ny(data22);
-	unsigned dz = get_local_ny(data12);
-
-	unsigned ld12 = get_local_ld(data12);
-	unsigned ld21 = get_local_ld(data21);
-	unsigned ld22 = get_local_ld(data22);
-
-//	printf("start 22 k %d i %d j %d \n", k, i, j);
+	unsigned ld12 = buffers[0].ld;
+	unsigned ld21 = buffers[1].ld;
+	unsigned ld22 = buffers[2].ld;
 
 	switch (s) {
 		case 0:
 			cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
 				dy, dx, dz, -1.0f, left, ld21, right, ld12,
 					     1.0f, center, ld22);
-			release_data(data22, 0);
-
 			flop_atlas += BLAS3_FLOP(dx, dy, dz);
 
 			break;
@@ -73,8 +65,6 @@ static inline void dw_common_core_codelet_update_u22(buffer_descr *descrs, int s
 		case 1:
 			cublasSgemm('n', 'n', dx, dy, dz, -1.0f, left, ld21,
 					right, ld12, 1.0f, center, ld22);
-			release_data(data22, 1<<0);
-
 			flop_cublas += BLAS3_FLOP(dx, dy, dz);
 
 			break;
@@ -83,12 +73,6 @@ static inline void dw_common_core_codelet_update_u22(buffer_descr *descrs, int s
 			ASSERT(0);
 			break;
 	}
-
-	/* data that were only read */
-	release_data(data12, 0);
-	release_data(data21, 0);
-
-//	printf("end 22 k %d i %d j %d \n", k, i, j);
 }
 
 void dw_core_codelet_update_u22(buffer_descr *descr, void *_args)
@@ -250,26 +234,6 @@ static inline void dw_common_codelet_update_u11(buffer_descr *descr, int s, void
 
 	unsigned z;
 
-//	for (z = 0; z < nx; z++)
-//	{
-//		float pivot;
-//		pivot = sub11[z+z*ld];
-//		ASSERT(pivot != 0.0f);
-//		for (x = z+1; x < nx ; x++)
-//		{
-//			sub11[x+z*ld] = sub11[x+z*ld] / pivot;
-//		}
-//
-//		for (y = z+1; y < nx; y++)
-//		{
-//			float tmp = sub11[z+y*ld];
-//			for (x = z+1; x < nx ; x++)
-//			{
-//				sub11[x+y*ld] -= sub11[x+z*ld]*tmp;
-//			}
-//		}
-//	}
-
 	switch (s) {
 		case 0:
 			for (z = 0; z < nx; z++)
@@ -292,11 +256,9 @@ static inline void dw_common_codelet_update_u11(buffer_descr *descr, int s, void
 			for (z = 0; z < nx; z++)
 			{
 				float pivot;
+				/* ok that's dirty and ridiculous ... */
 				cublasGetVector(1, sizeof(float), &sub11[z+z*ld], sizeof(float), &pivot, sizeof(float));
 
-				/* ok that's dirty ... */
-				//cblas_strsm(CblasRowMajor, CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit,
-				//                              nx -z - 1, 1, 1.0f,  &sub11[z+z*ld], 0, &sub11[z+z*ld], 1);
 
 				ASSERT(pivot != 0.0f);
 		
@@ -523,7 +485,6 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				j22->cb = dw_callback_v2_codelet_update_u22;
 				j22->argcb = u22a;
 				j22->cl = cl22;
-				j22->nbuffers = 0;
 
 				u22a->k = i;
 				u22a->i = k;
@@ -531,6 +492,17 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				u22a->dataA = args->dataA;
 				u22a->nblocks = nblocks;
 				u22a->sem = args->sem;
+
+				j22->nbuffers = 3;
+
+				j22->buffers[0].state = get_sub_data(args->dataA, 2, u22a->i, u22a->k);
+				j22->buffers[0].mode = R;
+
+				j22->buffers[1].state = get_sub_data(args->dataA, 2, u22a->k, u22a->j);
+				j22->buffers[1].mode = R;
+
+				j22->buffers[2].state = get_sub_data(args->dataA, 2, u22a->i, u22a->j);
+				j22->buffers[2].mode = RW;
 				
 				/* schedule that codelet */
 				if (slicey == i+1) {
@@ -599,6 +571,19 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				u22a->dataA = args->dataA;
 				u22a->nblocks = nblocks;
 				u22a->sem = args->sem;
+
+				j22->nbuffers = 3;
+
+				j22->buffers[0].state = get_sub_data(args->dataA, 2, u22a->i, u22a->k);
+				j22->buffers[0].mode = R;
+
+				j22->buffers[1].state = get_sub_data(args->dataA, 2, u22a->k, u22a->j);
+				j22->buffers[1].mode = R;
+
+				j22->buffers[2].state = get_sub_data(args->dataA, 2, u22a->i, u22a->j);
+				j22->buffers[2].mode = RW;
+				
+
 				
 				/* schedule that codelet */
 				if (slicex == i+1) {
@@ -838,6 +823,19 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 				u22a->nblocks = nblocks;
 				u22a->remaining = remaining;
 				u22a->sem = args->sem;
+
+				j22->nbuffers = 3;
+
+				j22->buffers[0].state = get_sub_data(args->dataA, 2, u22a->i, u22a->k);
+				j22->buffers[0].mode = R;
+
+				j22->buffers[1].state = get_sub_data(args->dataA, 2, u22a->k, u22a->j);
+				j22->buffers[1].mode = R;
+
+				j22->buffers[2].state = get_sub_data(args->dataA, 2, u22a->i, u22a->j);
+				j22->buffers[2].mode = RW;
+				
+
 				
 				/* schedule that codelet */
 				push_task(j22);
