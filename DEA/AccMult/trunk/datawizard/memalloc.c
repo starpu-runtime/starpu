@@ -201,7 +201,7 @@ size_t reclaim_memory(uint32_t node)
 		liberated += try_to_free_mem_chunk(mc, node);
 	}
 
-	printf("got %d bytes back\n", liberated);
+	fprintf(stderr, "got %d MB back\n", (int)liberated/(1024*1024));
 
 	return liberated;
 }

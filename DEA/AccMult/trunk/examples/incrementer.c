@@ -29,7 +29,6 @@ data_state pouet_state;
 float my_lovely_float[6] = {0.0f, 0.0f, 0.0f,
 			    0.0f, 0.0f, 0.0f};
 float unity[3] = {1.0f, 0.0f, 1.0f};
-float *dunity;
 
 void callback_func(__attribute__ ((unused)) void *argcb)
 {
@@ -47,32 +46,20 @@ void callback_func(__attribute__ ((unused)) void *argcb)
 
 }
 
-void core_codelet(void *_args)
+void core_codelet(buffer_descr *buffers, __attribute__ ((unused)) void *_args)
 {
-	float *val;
+	float *val = (float *)buffers[0].ptr;
 
-	data_state *data = (data_state *)_args;
-
-	val = (float *)fetch_data(data, RW);
 	val[0] += 1.0f; val[1] += 1.0f;
-
-	release_data(data, 0);
 }
 
 #ifdef USE_CUBLAS
-void cublas_codelet(void *_args)
+void cublas_codelet(buffer_descr *buffers, __attribute__ ((unused)) void *_args)
 {
-	float *val;
+	float *val = (float *)buffers[0].ptr;
+	float *dunity = (float *)buffers[1].ptr;
 
-	data_state *data = (data_state *)_args;
-
-	val = (float *)fetch_data(data, RW);
-	dunity = (float *)fetch_data(&unity_state, R);
 	cublasSaxpy(3, 1.0f, dunity, 1, val, 1);
-
-	/* write-through is needed here ! */
-	release_data(data, 1<<0);
-	release_data(&unity_state, 0);
 }
 #endif
 
@@ -192,6 +179,12 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		j->argcb = NULL;
 		j->cl = &cl;
 
+		j->nbuffers = 2;
+		j->buffers[0].state = my_float_state; 
+		j->buffers[0].mode = RW;
+		j->buffers[1].state = &unity_state; 
+		j->buffers[1].mode = R;
+
 		push_task(j);
 
 
@@ -201,6 +194,12 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		j->cb = callback_func;
 		j->argcb = NULL;
 		j->cl = &cl2;
+
+		j->nbuffers = 2;
+		j->buffers[0].state = my_float_state2;
+		j->buffers[0].mode = RW;
+		j->buffers[1].state = &unity_state; 
+		j->buffers[1].mode = R;
 
 		push_task(j);
 	}

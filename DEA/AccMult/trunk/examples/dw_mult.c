@@ -123,7 +123,7 @@ void callback_func(void *arg)
 	ldC = descr[2].ld;
 
 #ifdef USE_CUBLAS
-void cublas_mult(buffer_descr *descr, void *arg)
+void cublas_mult(buffer_descr *descr, __attribute__((unused)) void *arg)
 {
 	COMMON_CODE
 
@@ -144,7 +144,7 @@ void cublas_mult(buffer_descr *descr, void *arg)
 }
 #endif
 
-void core_mult(buffer_descr *descr, void *arg)
+void core_mult(buffer_descr *descr, __attribute__((unused))  void *arg)
 {
 	COMMON_CODE
 

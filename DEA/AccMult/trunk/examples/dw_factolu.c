@@ -31,16 +31,8 @@ uint64_t flop_atlas = 0;
  *   U22 
  */
 
-static inline void dw_common_core_codelet_update_u22(buffer_descr *buffers, int s, void *_args)
+static inline void dw_common_core_codelet_update_u22(buffer_descr *buffers, int s, __attribute__((unused)) void *_args)
 {
-	cl_args *args = _args;
-
-	unsigned k = args->k;
-	unsigned i = args->i;
-	unsigned j = args->j;
-
-	data_state *dataA = args->dataA;
-
 	float *left 	= (float *)buffers[0].ptr;
 	float *right 	= (float *)buffers[1].ptr;
 	float *center 	= (float *)buffers[2].ptr;
@@ -91,16 +83,9 @@ void dw_cublas_codelet_update_u22(buffer_descr *descr, void *_args)
  * U12
  */
 
-static inline void dw_common_codelet_update_u12(buffer_descr *buffers, int s, void *_args) {
+static inline void dw_common_codelet_update_u12(buffer_descr *buffers, int s, __attribute__((unused)) void *_args) {
 	float *sub11;
 	float *sub12;
-
-	cl_args *args = _args;
-
-	unsigned i = args->i;
-	unsigned k = args->k;
-
-	data_state *dataA = args->dataA;
 
 	sub11 = (float *)buffers[0].ptr;	
 	sub12 = (float *)buffers[1].ptr;
@@ -145,16 +130,9 @@ void dw_cublas_codelet_update_u12(buffer_descr *descr, void *_args)
  * U21
  */
 
-static inline void dw_common_codelet_update_u21(buffer_descr *buffers, int s, void *_args) {
+static inline void dw_common_codelet_update_u21(buffer_descr *buffers, int s, __attribute__((unused)) void *_args) {
 	float *sub11;
 	float *sub21;
-
-	cl_args *args = _args;
-
-	unsigned i = args->i;
-	unsigned k = args->k;
-
-	data_state *dataA = args->dataA;
 
 	sub11 = (float *)buffers[0].ptr;
 	sub21 = (float *)buffers[1].ptr;
@@ -197,13 +175,9 @@ void dw_cublas_codelet_update_u21(buffer_descr *descr, void *_args)
  *	U11
  */
 
-static inline void dw_common_codelet_update_u11(buffer_descr *descr, int s, void *_args) 
+static inline void dw_common_codelet_update_u11(buffer_descr *descr, int s, __attribute__((unused)) void *_args) 
 {
 	float *sub11;
-	cl_args *args = _args;
-
-	unsigned i = args->i;
-	data_state *dataA = args->dataA;
 
 	sub11 = (float *)descr[0].ptr; 
 

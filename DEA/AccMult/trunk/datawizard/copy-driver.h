@@ -33,4 +33,6 @@ uint32_t get_local_ld(data_state *state);
 uint32_t get_local_nx(data_state *state);
 uint32_t get_local_ny(data_state *state);
 
+void driver_copy_data_1_to_1(data_state *state, uint32_t node, uint32_t requesting_node, unsigned donotread);
+
 #endif // __COPY_DRIVER_H__

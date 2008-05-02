@@ -13,6 +13,7 @@
 #include <common/threads.h>
 #include <common/util.h>
 #include <core/jobs.h>
+#include <core/workers.h>
 #include <common/parameters.h>
 // don't forget that one or you will regret it !
 #include <cublas.h>
