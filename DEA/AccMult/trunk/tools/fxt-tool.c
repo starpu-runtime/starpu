@@ -216,10 +216,6 @@ int main(int argc, char **argv)
 	
 	filename = argv[1];
 	
-	if (argc > 2) {
-		filenameout = argv[2];
-		use_stdout = 0;
-	}
 
 	fd_in = open(filename, O_RDONLY);
 	if (fd_in < 0) {
@@ -227,10 +223,14 @@ int main(int argc, char **argv)
 	        exit(-1);
 	}
 
-	fd_out = open(filenameout, O_RDWR);
-	if (fd_out < 0) {
-		perror("open failed :");
-		exit(-1);
+	if (argc > 2) {
+		filenameout = argv[2];
+		use_stdout = 0;
+		fd_out = open(filenameout, O_RDWR);
+		if (fd_out < 0) {
+			perror("open (out) failed :");
+			exit(-1);
+		}
 	}
 	
 	fut = fxt_fdopen(fd_in);
