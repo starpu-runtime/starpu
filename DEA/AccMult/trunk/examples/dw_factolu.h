@@ -2,6 +2,13 @@
 #define __DW_FACTO_LU_H__
 
 #include <semaphore.h>
+#include <core/jobs.h>
+#include <core/workers.h>
+#include <common/timing.h>
+#include <common/util.h>
+#include <string.h>
+#include <math.h>
+
 
 #include <cblas.h>
 
@@ -33,6 +40,56 @@ void dw_core_codelet_update_u11(buffer_descr *, void *);
 void dw_core_codelet_update_u12(buffer_descr *, void *);
 void dw_core_codelet_update_u21(buffer_descr *, void *);
 void dw_core_codelet_update_u22(buffer_descr *, void *);
+
+#ifdef USE_CUBLAS
+
+static float *ptrA;
+static float *ptrB;
+static unsigned __dim;
+
+sem_t sem_malloc;
+
+void malloc_pinned_codelet(buffer_descr *buffers, void *addr)
+{
+	cuMemAllocHost((void **)ptrA, __dim*__dim*sizeof(float));
+	cuMemAllocHost((void **)ptrB, __dim*sizeof(float));
+}
+
+void malloc_pinned_callback(void *arg)
+{
+	sem_post(&sem_malloc);
+}
+
+#endif
+
+static inline void malloc_pinned(float **A, float **B, unsigned _dim)
+{
+#ifdef USE_CUBLAS
+	codelet *cl = malloc(sizeof(codelet));
+	cl->cl_arg = NULL;
+	cl->cublas_func = malloc_pinned_codelet; 
+	
+	ptrA = A;
+	ptrB = B;
+	__dim = _dim;
+
+	job_t j = job_new();
+	j->type = CODELET;
+	j->where = GPU;
+	j->cb = malloc_pinned_callback; 
+	j->cl = cl;
+
+	sem_init(&sem_malloc, 0, 0U);
+
+	push_task(j);
+
+	sem_wait(&sem_malloc);
+	sem_destroy(&sem_malloc);
+#else
+	*A = malloc(_dim*_dim*sizeof(float));
+	*B = malloc(_dim*sizeof(float));
+#endif	
+}
 
 #ifdef CHECK_RESULTS
 static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,

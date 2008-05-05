@@ -1,11 +1,3 @@
-#include <semaphore.h>
-#include <core/jobs.h>
-#include <core/workers.h>
-#include <common/timing.h>
-#include <common/util.h>
-#include <string.h>
-#include <math.h>
-
 #include "dw_factolu.h"
 
 tick_t start;
@@ -25,7 +17,6 @@ uint64_t flop_atlas = 0;
 
 #define BLAS3_FLOP(n1,n2,n3)    \
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
-
 
 /*
  *   U22 
@@ -211,18 +202,14 @@ static inline void dw_common_codelet_update_u11(buffer_descr *descr, int s, __at
 				/* ok that's dirty and ridiculous ... */
 				cublasGetVector(1, sizeof(float), &sub11[z+z*ld], sizeof(float), &pivot, sizeof(float));
 
-
 				ASSERT(pivot != 0.0f);
-		
 				
 				cublasSscal(nx - z - 1, 1.0f/pivot, &sub11[(z+1)+z*ld], 1);
-		
 				
 				cublasSger(nx - z - 1, nx - z - 1, -1.0f,
 								&sub11[(z+1)+z*ld], 1,
 								&sub11[z+(z+1)*ld], ld,
 								&sub11[(z+1) + (z+1)*ld],ld);
-		
 			}
 			break;
 #endif
@@ -1029,13 +1016,25 @@ void dw_codelet_facto_v2(data_state *dataA, unsigned nblocks)
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
 
-
-void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned version)
+void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 {
 	init_machine();
 	init_workers();
 
 	timing_init();
+
+	if (pinned)
+	{
+		malloc_pinned(A, B, dim);
+	} 
+	else {
+		*A = malloc(dim*dim*sizeof(float));
+		*B = malloc(dim*sizeof(float));
+	}
+}
+
+void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned version)
+{
 
 #ifdef CHECK_RESULTS
 	fprintf(stderr, "Checking results ...\n");

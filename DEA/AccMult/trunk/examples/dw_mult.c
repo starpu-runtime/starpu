@@ -17,6 +17,12 @@
 
 #include <common/fxt.h>
 
+#ifdef USE_CUBLAS
+#include <cuda.h>
+#endif
+
+sem_t sem;
+
 float *A;
 float *B;
 float *C;
@@ -27,8 +33,6 @@ data_state C_state;
 
 tick_t start;
 tick_t end;
-
-unsigned x,y,z;
 
 /* to compute MFlop/s */
 uint64_t flop_cublas = 0;
@@ -61,7 +65,8 @@ void terminate(void)
 	double timing = timing_delay(&start, &end);
 	uint64_t total_flop = flop_cublas + flop_atlas;
 
-	fprintf(stderr, "Computation took %2.2f ms\n", timing/1000);
+	fprintf(stderr, "Computation took (ms):\n");
+	printf("%2.2f\n", timing/1000);
 	fprintf(stderr, "	GFlop : total (%2.2f) cublas (%2.2f) atlas (%2.2f)\n", (double)total_flop/1000000000.0f, (double)flop_cublas/1000000000.0f, (double)flop_atlas/1000000000.0f);
 	fprintf(stderr, "	GFlop/s : %2.2f\n", (double)total_flop / (double)timing/1000);
 
@@ -76,14 +81,14 @@ void terminate(void)
 	err = cblas_sasum(x*y, C, 1);	
 	
 	if (err < x*y*0.001) {
-		printf("Results are OK\n");
+		fprintf(stderr, "Results are OK\n");
 	}
 	else {
-		printf("There were errors ... err = %f\n", err);
+		fprintf(stderr, "There were errors ... err = %f\n", err);
 	}
 #endif // CHECK_OUTPUT
 
-	exit(0);
+	sem_post(&sem);
 }
 
 void callback_func(void *arg)
@@ -94,7 +99,7 @@ void callback_func(void *arg)
 	if (*counter == 0)
 	{
 		/* we are done */	
-		printf("done ...\n");
+		fprintf(stderr, "done ...\n");
 		terminate();
 	}
 
@@ -161,6 +166,7 @@ unsigned xdim = 4096;
 unsigned ydim = 4096;
 unsigned zdim = 4096;
 unsigned norandom = 0;
+unsigned pin = 0;
 
 void parse_args(int argc, char **argv)
 {
@@ -200,73 +206,77 @@ void parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-no-random") == 0) {
 			norandom = 1;
 		}
+
+		if (strcmp(argv[i], "-pin") == 0) {
+			pin = 1;
+		}
 	}
 }
 
-int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)
+/*
+ * This is a codelet itself 
+ */
+void init_problem_codelet (__attribute__((unused)) buffer_descr *descr, __attribute__((unused)) void *arg)
 {
 	unsigned i,j;
 
-	int jobcounter;
-
-	parse_args(argc, argv);
-
-	x = xdim;
-	y = ydim;
-	z = zdim;
-
-	jobcounter = nslicesx * nslicesy;
-
-	A = malloc(z*y*sizeof(float));
-	B = malloc(x*z*sizeof(float));
-	C = malloc(x*y*sizeof(float));
+	if (pin) {
+		cuMemAllocHost((void **)&A, zdim*ydim*sizeof(float));
+		cuMemAllocHost((void **)&B, xdim*zdim*sizeof(float));
+		cuMemAllocHost((void **)&C, xdim*ydim*sizeof(float));
+	} else {
+		A = malloc(zdim*ydim*sizeof(float));
+		B = malloc(xdim*zdim*sizeof(float));
+		C = malloc(xdim*ydim*sizeof(float));
+	}
 
 	/* fill the A and B matrices */
 	if (norandom) {
-		for (i=0; i < z; i++) {
-			for (j=0; j < y; j++) {
-				A[i+j*z] = (float)(i);
+		for (i=0; i < zdim; i++) {
+			for (j=0; j < ydim; j++) {
+				A[i+j*zdim] = (float)(i);
 			}
 		}
 	
-		for (i=0; i < x; i++) {
-			for (j=0; j < z; j++) {
-				B[i+j*x] = (float)(j);
+		for (i=0; i < xdim; i++) {
+			for (j=0; j < zdim; j++) {
+				B[i+j*xdim] = (float)(j);
 			}
 		}
 	} 
 	else {
 		srand(2008);
-		for (i=0; i < z; i++) {
-			for (j=0; j < y; j++) {
-				A[i+j*z] = (float)(drand48());
+		for (i=0; i < zdim; i++) {
+			for (j=0; j < ydim; j++) {
+				A[i+j*zdim] = (float)(drand48());
 			}
 		}
 	
-		for (i=0; i < x; i++) {
-			for (j=0; j < z; j++) {
-				B[i+j*x] = (float)(drand48());
+		for (i=0; i < xdim; i++) {
+			for (j=0; j < zdim; j++) {
+				B[i+j*xdim] = (float)(drand48());
 			}
 		}
 	}
-	for (i=0; i < x; i++) {
-		for (j=0; j < y; j++) {
-			C[i+j*x] = (float)(0);
+	for (i=0; i < xdim; i++) {
+		for (j=0; j < ydim; j++) {
+			C[i+j*xdim] = (float)(0);
 		}
 	}
+}
 
-	/* start the runtime */
-	init_machine();
-	init_workers();
+int jobcounter;
 
+void init_problem_callback(void *arg)
+{
 #ifdef USE_FXT
 	fxt_register_thread(0);
 #endif
 
 	GET_TICK(start);
-	monitor_new_data(&A_state, 0, (uintptr_t)A, z, z, y, sizeof(float));
-	monitor_new_data(&B_state, 0, (uintptr_t)B, x, x, z, sizeof(float));
-	monitor_new_data(&C_state, 0, (uintptr_t)C, x, x, y, sizeof(float));
+	monitor_new_data(&A_state, 0, (uintptr_t)A, zdim, zdim, ydim, sizeof(float));
+	monitor_new_data(&B_state, 0, (uintptr_t)B, xdim, xdim, zdim, sizeof(float));
+	monitor_new_data(&C_state, 0, (uintptr_t)C, xdim, xdim, ydim, sizeof(float));
 
 	filter f;
 	f.filter_func = block_filter_func;
@@ -284,6 +294,9 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	/* partition the work into slices */
 	unsigned taskx, tasky;
 	job_t jb;
+
+	jobcounter = nslicesx * nslicesy;
+
 
 	for (taskx = 0; taskx < nslicesx; taskx++) 
 	{
@@ -318,7 +331,47 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		}
 	}
 
-	sleep(100);
+
+}
+
+void init_problem(void)
+{
+	job_t jb;
+
+	codelet *cl = malloc(sizeof(codelet));
+
+			cl->cl_arg = NULL;
+			cl->core_func = init_problem_codelet;
+#ifdef USE_CUBLAS
+			cl->cublas_func = init_problem_codelet;
+#endif
+
+	jb = job_new();
+	jb->type = CODELET;
+	jb->where = GPU;
+	jb->cb = init_problem_callback;
+	jb->argcb = NULL;
+	jb->cl = cl;
+
+	jb->nbuffers = 0;
+
+	push_task(jb);
+}
+
+int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)
+{
+
+	parse_args(argc, argv);
+
+	/* start the runtime */
+	init_machine();
+	init_workers();
+
+	sem_init(&sem, 0, 0U);
+
+	init_problem();
+	sem_wait(&sem);
+	sem_destroy(&sem);
 
 	return 0;
 }

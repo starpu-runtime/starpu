@@ -512,6 +512,7 @@ void reorganize_matrices(float *A, float *B, int *RefArray, unsigned size)
 }
 
 unsigned shape = 0;
+unsigned pinned = 0;
 
 void parse_args(int argc, char **argv)
 {
@@ -545,11 +546,17 @@ void parse_args(int argc, char **argv)
 			version = 2;
 		}
 
+		if (strcmp(argv[i], "-pin") == 0) {
+			pinned = 1;
+		}
+
 		if (strcmp(argv[i], "-h") == 0) {
 			/* TODO */
 		}
 	}
 }
+
+extern initialize_system(float **A, float **B, unsigned dim, unsigned pinned);
 
 int main(int argc, char **argv)
 {
@@ -568,9 +575,11 @@ int main(int argc, char **argv)
 
 	pmesh = malloc(DIM*sizeof(point));
 
-	/* the stiffness matrix : boundary conditions are known */
-	A = malloc(DIM*DIM*sizeof(float));
-	B = malloc(DIM*sizeof(float));
+	initialize_system(&A, &B, DIM, pinned);
+//
+//	/* the stiffness matrix : boundary conditions are known */
+//	A = malloc(DIM*DIM*sizeof(float));
+//	B = malloc(DIM*sizeof(float));
 
 	/* first build the mesh by determining all points positions */
 	for (theta = 0; theta < ntheta; theta++)
