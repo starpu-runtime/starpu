@@ -54,6 +54,7 @@ endif
 
 ifeq ($(CUBLAS), 1)
 	CFLAGS += -DUSE_CUBLAS
+	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 ifdef CUBLASEMU
 	LDFLAGS += -lcublasemu
 else

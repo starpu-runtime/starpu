@@ -24,6 +24,11 @@
 #define FUT_JOB_PUSH		0x5105
 #define FUT_JOB_POP		0x5106
 
+#define FUT_START_FETCH_INPUT	0x5107
+#define FUT_END_FETCH_INPUT	0x5108
+#define FUT_START_PUSH_OUTPUT	0x5109
+#define FUT_END_PUSH_OUTPUT	0x5110
+
 #ifdef USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -47,6 +52,19 @@ void fxt_register_thread(unsigned);
 #define TRACE_JOB_POP(task, prio)	\
 	FUT_DO_PROBE3(FUT_JOB_POP, task, prio, syscall(SYS_gettid));
 
+#define TRACE_START_FETCH_INPUT(job)	\
+	FUT_DO_PROBE2(FUT_START_FETCH_INPUT, job, syscall(SYS_gettid));
+
+#define TRACE_END_FETCH_INPUT(job)	\
+	FUT_DO_PROBE2(FUT_END_FETCH_INPUT, job, syscall(SYS_gettid));
+
+#define TRACE_START_PUSH_OUTPUT(job)	\
+	FUT_DO_PROBE2(FUT_START_PUSH_OUTPUT, job, syscall(SYS_gettid));
+
+#define TRACE_END_PUSH_OUTPUT(job)	\
+	FUT_DO_PROBE2(FUT_END_PUSH_OUTPUT, job, syscall(SYS_gettid));
+
+
 
 #else // !USE_FXT
 
@@ -55,6 +73,10 @@ void fxt_register_thread(unsigned);
 #define TRACE_END_CODELET_BODY(job)	do {} while(0);
 #define TRACE_JOB_PUSH(task, prio)	do {} while(0);
 #define TRACE_JOB_POP(task, prio)	do {} while(0);
+#define TRACE_START_FETCH_INPUT(job)	do {} while(0);
+#define TRACE_END_FETCH_INPUT(job)	do {} while(0);
+#define TRACE_START_PUSH_OUTPUT(job)	do {} while(0);
+#define TRACE_END_PUSH_OUTPUT(job)	do {} while(0);
 
 #endif // USE_FXT
 

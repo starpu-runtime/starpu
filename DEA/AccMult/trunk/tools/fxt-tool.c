@@ -266,18 +266,33 @@ int main(int argc, char **argv)
 			case FUT_NEW_WORKER_KEY:
 				handle_new_worker();
 				break;
+
+			/* detect when the workers were idling or not */
 			case FUT_START_CODELET_BODY:
 				handle_start_codelet_body();
 				break;
 			case FUT_END_CODELET_BODY:
 				handle_end_codelet_body();
 				break;
+
+			/* monitor stack size */
 			case FUT_JOB_PUSH:
 				handle_job_push();
 				break;
 			case FUT_JOB_POP:
 				handle_job_pop();
 				break;
+
+			/* check the memory transfer overhead */
+			case FUT_START_FETCH_INPUT:
+				break;
+			case FUT_END_FETCH_INPUT:
+				break;
+			case FUT_START_PUSH_OUTPUT:
+				break;
+			case FUT_END_PUSH_OUTPUT:
+				break;
+
 			default:
 				fprintf(stderr, "unknown event.. %x at time %llx\n", (unsigned)ev.code, (long long unsigned)ev.time);
 				break;

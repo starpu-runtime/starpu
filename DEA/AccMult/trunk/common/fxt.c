@@ -32,7 +32,6 @@ void start_fxt_profiling(void)
 	}
 
 	threadid = syscall(SYS_gettid);
-	printf("thread id %d \n", threadid);
 
 	atexit(profile_stop);
 

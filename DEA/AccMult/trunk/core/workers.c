@@ -401,6 +401,8 @@ void display_general_stats()
 
 void fetch_codelet_input(buffer_descr *descrs, unsigned nbuffers)
 {
+	TRACE_START_FETCH_INPUT(NULL);
+
 	/* TODO we should avoid repeatingly ask for the local thread index etc. */
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
@@ -415,16 +417,22 @@ void fetch_codelet_input(buffer_descr *descrs, unsigned nbuffers)
 		descr->ny = get_local_ny(descr->state);
 		descr->ld = get_local_ld(descr->state);
 	}
+
+	TRACE_END_FETCH_INPUT(NULL);
 }
 
 void push_codelet_output(buffer_descr *descrs, unsigned nbuffers, uint32_t mask)
 {
+	TRACE_START_PUSH_OUTPUT(NULL);
+
 	/* TODO we should avoid repeatingly ask for the local thread index etc. */
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
 		release_data(descrs[index].state, mask);
 	}
+
+	TRACE_END_PUSH_OUTPUT(NULL);
 }
 
 void display_stats(job_descr *jd)

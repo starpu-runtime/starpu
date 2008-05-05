@@ -177,7 +177,7 @@ size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node)
  */
 size_t reclaim_memory(uint32_t node)
 {
-	printf("reclaim memory...\n");
+	fprintf(stderr, "reclaim memory...\n");
 
 	size_t liberated = 0;
 
