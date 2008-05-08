@@ -1,13 +1,13 @@
 #include "histo-flash.h"
 
-SWFMovie movie;
+static SWFMovie movie;
 
-uint64_t absolute_start_time;
-uint64_t start_time;
-uint64_t absolute_end_time;
-uint64_t end_time;
+static uint64_t absolute_start_time;
+static uint64_t start_time;
+static uint64_t absolute_end_time;
+static uint64_t end_time;
 
-SWFFont font;
+static SWFFont font;
 
 void flash_engine_init(void)
 {
@@ -35,7 +35,7 @@ void flash_engine_init(void)
 
 #define PEN_WIDTH	0
 
-void add_region(worker_mode color, uint64_t start, uint64_t end, unsigned worker)
+static void add_region(worker_mode color, uint64_t start, uint64_t end, unsigned worker)
 {
 	unsigned starty, endy, startx, endx;
 
@@ -85,7 +85,7 @@ void add_region(worker_mode color, uint64_t start, uint64_t end, unsigned worker
 	SWFMovie_add(movie, (SWFBlock)shape);
 }
 
-void display_worker(event_list_t events, unsigned worker, char *worker_name)
+static void display_worker(event_list_t events, unsigned worker, char *worker_name)
 {
 	uint64_t prev = start_time;
 	worker_mode prev_state = IDLE;
@@ -112,10 +112,10 @@ void display_worker(event_list_t events, unsigned worker, char *worker_name)
 	}
 }
 
-char str_start[20];
-char str_end[20];
+static char str_start[20];
+static char str_end[20];
 
-void display_start_end_buttons(void)
+static void display_start_end_buttons(void)
 {
 	unsigned x_start, x_end, y;
 	unsigned size = 15;
@@ -146,7 +146,7 @@ void display_start_end_buttons(void)
 
 }
 
-void display_workq_evolution(workq_list_t taskq, unsigned nworkers, unsigned maxq_size)
+static void display_workq_evolution(workq_list_t taskq, unsigned nworkers, unsigned maxq_size)
 {
 	unsigned endy, starty;
 

@@ -146,6 +146,11 @@ void generate_flash_output(void)
 	flash_engine_generate_output(events, taskq, worker_name, nworkers, maxq_size, start_time, end_time, "toto.swf");
 }
 
+void generate_svg_output(void)
+{
+	svg_engine_generate_output(events, taskq, worker_name, nworkers, maxq_size, start_time, end_time, "toto.svg");
+}
+
 void generate_gnuplot_output(void)
 {
 	FILE *output;
@@ -301,6 +306,7 @@ int main(int argc, char **argv)
 
 	generate_gnuplot_output();
 	generate_flash_output();
+	generate_svg_output();
 
 	return 0;
 }
