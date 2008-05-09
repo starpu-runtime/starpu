@@ -375,7 +375,9 @@ int execute_job_on_cuda(job_t j)
 		case CODELET:
 			assert(j->cl);
 			assert(j->cl->cuda_func);
+			TRACE_START_CODELET_BODY(j);
 			j->cl->cuda_func(j->cl->cl_arg);
+			TRACE_END_CODELET_BODY(j);	
 			break;
 		case ABORT:
 			printf("CUDA abort\n");
@@ -427,11 +429,9 @@ void *cuda_worker(void *arg)
 			continue;
 		}
 
-		TRACE_START_CODELET_BODY(j);
 
 		res = execute_job_on_cuda(j);
 
-		TRACE_END_CODELET_BODY(j);	
 
 		if (res != OK) {
 			switch (res) {

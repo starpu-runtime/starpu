@@ -24,7 +24,12 @@ static int execute_job_on_cublas(job_t j)
 			assert(j->cl);
 			assert(j->cl->cublas_func);
 			fetch_codelet_input(j->buffers, j->nbuffers);
+
+			TRACE_START_CODELET_BODY(j);
 			j->cl->cublas_func(j->buffers, j->cl->cl_arg);
+			cuCtxSynchronize();
+			TRACE_END_CODELET_BODY(j);
+
 			push_codelet_output(j->buffers, j->nbuffers, 1<<0);
 			break;
 		case ABORT:
@@ -84,11 +89,7 @@ void *cublas_worker(void *arg)
 			continue;
 		}
 
-		TRACE_START_CODELET_BODY(j);
-
 		res = execute_job_on_cublas(j);
-
-		TRACE_END_CODELET_BODY(j);
 
 		if (res != OK) {
 			switch (res) {
