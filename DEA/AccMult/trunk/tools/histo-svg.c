@@ -36,25 +36,7 @@ static void add_region(worker_mode color, uint64_t start, uint64_t end, unsigned
 			break;
 	}
 
-	fprintf(out_file, "<rect x=\"%fcm\" y=\"%fcm\" width=\"%fcm\" height=\"%fcm\" stroke-width=\"10\%\" stroke=\"black\" fill=\"%s\"/>\n", startx, starty, endx - startx, endy -starty, color_str);
-
-//
-//	SWFShape shape = newSWFShape();
-//	SWFShape_setLine(shape, PEN_SVG_WIDTH, 0, 0, 0, 255);
-//
-//	SWFFillStyle style= SWFShape_addSolidFillStyle(shape, region_color[0], region_color[1], region_color[2], 255);
-//	SWFShape_setRightFillStyle(shape, style);
-//
-//
-//	SWFShape_movePenTo(shape, startx, starty);
-//	SWFShape_drawLine(shape, endx-startx, 0);
-//	SWFShape_drawLine(shape, 0, endy-starty);
-//	SWFShape_drawLine(shape, (int)startx-(int)endx, 0);
-//	SWFShape_drawLine(shape, 0, -((int)endy-(int)starty));
-//	
-//	SWFMovie_add(movie, (SWFBlock)shape);
-
-	
+	fprintf(out_file, "<rect x=\"%fcm\" y=\"%fcm\" width=\"%fcm\" height=\"%fcm\" stroke-width=\"10\%%\" stroke=\"black\" fill=\"%s\"/>\n", startx, starty, endx - startx, endy -starty, color_str);
 
 }
 
@@ -67,11 +49,13 @@ static void display_worker(event_list_t events, unsigned worker, char *worker_na
 //	SWFText_setFont(namestr, font);
 //	SWFText_setColor(namestr, 0, 0, 0, 0xff);
 //	SWFText_setHeight(namestr, 10);
-//	SWFText_moveTo(namestr, BORDERX/2 - strlen(worker_name), 
+//	SWFText_moveTo(namestr, SVG_BORDERX/2 - strlen(worker_name), 
 //			SVG_BORDERY + (SVG_THICKNESS + SVG_GAP)*worker + SVG_THICKNESS/2);
 //	SWFText_addString(namestr, worker_name, NULL);
 //
 //	SWFMovie_add(movie, (SWFBlock)namestr);
+
+	fprintf(out_file, "<text x=\"%fcm\" y=\"%fcm\" font-size=\"%fcm\" fill=\"blue\" text-anchor=\"center\" > <tspan font-weight=\"bold\">%s</tspan></text>\n", 0.5f*SVG_BORDERX, SVG_BORDERY + (SVG_THICKNESS + SVG_GAP)*worker + 0.5f*SVG_THICKNESS, SVG_THICKNESS/4.0f, worker_name);
 
 	event_itor_t i;
 	for (i = event_list_begin(events);
@@ -121,29 +105,15 @@ static void display_worker(event_list_t events, unsigned worker, char *worker_na
 
 static void display_workq_evolution(workq_list_t taskq, unsigned nworkers, unsigned maxq_size)
 {
-	unsigned endy, starty;
+	float endy, starty;
 
 	starty = SVG_BORDERY + (SVG_THICKNESS + SVG_GAP)*nworkers;
 	endy = starty + SVG_THICKNESS;
 
-//	SWFShape shape = newSWFShape();
-//	SWFShape_setLine(shape, PEN_SVG_WIDTH, 0, 0, 0, 255);
-//
-//
-//	SWFShape_movePenTo(shape, SVG_BORDERX, endy);
-//	SWFShape_drawLine(shape, SVG_WIDTH - 2 *SVG_BORDERX, 0);
-//	SWFShape_movePenTo(shape, SVG_BORDERX, starty);
-//	SWFShape_drawLine(shape, 0, SVG_THICKNESS);
-//	
-//	SWFMovie_add(movie, (SWFBlock)shape);
-//
-//
-//	shape = newSWFShape();
-//	SWFShape_setLine(shape, 0, 0, 0, 0, 255);
-//
-//	SWFShape_movePenTo(shape, SVG_BORDERX, endy);
-//
-	int prevx, prevy;
+	fprintf(out_file, "<line x1=\"%fcm\" y1=\"%fcm\" x2=\"%fcm\" y2=\"%fcm\" stroke=\"black\"  stroke-width=\"100\%%\" />\n", SVG_BORDERX, endy, SVG_WIDTH - SVG_BORDERX, endy);
+	fprintf(out_file, "<line x1=\"%fcm\" y1=\"%fcm\" x2=\"%fcm\" y2=\"%fcm\" stroke=\"black\" stroke-width=\"100\%%\" />\n", SVG_BORDERX, starty, SVG_BORDERX, endy);
+
+	float prevx, prevy;
 	prevx = SVG_BORDERX;
 	prevy = endy;
 
@@ -152,20 +122,21 @@ static void display_workq_evolution(workq_list_t taskq, unsigned nworkers, unsig
 		i != workq_list_end(taskq);
 		i = workq_list_next(i))
 	{
-		unsigned event_pos;
+		float event_pos;
 		double event_ratio;
 
-		unsigned y;
+		float y;
 
 		event_ratio = ( i->time - start_time )/ (double)(end_time - start_time);
-		event_pos = (unsigned)(SVG_BORDERX + event_ratio*(SVG_WIDTH - 2*SVG_BORDERX));
+		event_pos = (SVG_BORDERX + event_ratio*(SVG_WIDTH - 2*SVG_BORDERX));
 
 		double qratio;
 		qratio = ((double)(i->current_size))/((double)maxq_size);
 
-		y = (unsigned)((double)endy - qratio *((double)SVG_THICKNESS));
+		y = ((double)endy - qratio *((double)SVG_THICKNESS));
 
-		//SWFShape_drawLine(shape, (int)event_pos - (int)prevx, (int)y - (int)prevy);
+		fprintf(out_file, "<line x1=\"%fcm\" y1=\"%fcm\" x2=\"%fcm\" y2=\"%fcm\" stroke=\"black\" stroke-width=\"30\%%\" />\n", prevx, prevy, event_pos, y);
+
 		prevx = event_pos;
 		prevy = y;
 	}
@@ -173,6 +144,8 @@ static void display_workq_evolution(workq_list_t taskq, unsigned nworkers, unsig
 //	SWFShape_drawLine(shape, (int)SVG_BORDERX - (int)prevx, (int)endy - (int)prevy);
 //
 //	SWFMovie_add(movie, (SWFBlock)shape);
+
+	fprintf(out_file, "<line x1=\"%fcm\" y1=\"%fcm\" x2=\"%fcm\" y2=\"%fcm\" stroke=\"black\" stroke-width=\"100\%%\" />\n", prevx, prevy, SVG_BORDERX, endy);
 
 }
 
