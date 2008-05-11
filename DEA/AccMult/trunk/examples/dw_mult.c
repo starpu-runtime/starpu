@@ -351,7 +351,11 @@ void init_problem(void)
 
 	jb = job_new();
 	jb->type = CODELET;
+#ifndef USE_CUBLAS
+	jb->where = ANY;
+#else
 	jb->where = GPU;
+#endif
 	jb->cb = init_problem_callback;
 	jb->argcb = NULL;
 	jb->cl = cl;
