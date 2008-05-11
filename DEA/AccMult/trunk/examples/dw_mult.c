@@ -220,11 +220,14 @@ void init_problem_codelet (__attribute__((unused)) buffer_descr *descr, __attrib
 {
 	unsigned i,j;
 
+#ifdef USE_CUBLAS
 	if (pin) {
 		cuMemAllocHost((void **)&A, zdim*ydim*sizeof(float));
 		cuMemAllocHost((void **)&B, xdim*zdim*sizeof(float));
 		cuMemAllocHost((void **)&C, xdim*ydim*sizeof(float));
-	} else {
+	} else
+#endif
+	{
 		A = malloc(zdim*ydim*sizeof(float));
 		B = malloc(xdim*zdim*sizeof(float));
 		C = malloc(xdim*ydim*sizeof(float));

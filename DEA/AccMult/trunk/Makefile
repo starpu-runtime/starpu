@@ -93,7 +93,9 @@ ifdef GORDON
 	LDFLAGS += -lspe2
 endif
 
+ifndef FXTDIR
 FXTDIR=/home/gonnet/FxT/target
+endif
 
 ifdef USE_FXT
 	CFLAGS += -DUSE_FXT -I$(FXTDIR)/include/ -DCONFIG_FUT
