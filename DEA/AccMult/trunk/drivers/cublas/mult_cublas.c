@@ -44,6 +44,24 @@ static int execute_job_on_cublas(job_t j)
 	return OK;
 }
 
+void stress_memory(void)
+{
+	char *strval;
+	strval = getenv("STRESS_MEM");
+	if (strval) {
+		/* just for performance measurement purposes ! */
+		unsigned size;
+		char *check;
+		void *dummy;
+
+		size = strtol(strval, &check, 10);
+		ASSERT(strcmp(check, "\0") == 0);
+
+		fprintf(stderr, "Warning : Stress CUBLAS memory, pre-allocate %d MB\n", size);
+		cublasAlloc(size*1024*1024, 1, &dummy);
+	}
+}
+
 void *cublas_worker(void *arg)
 {
 	struct cublas_worker_arg_t* args = (struct cublas_worker_arg_t*)arg;
@@ -69,8 +87,7 @@ void *cublas_worker(void *arg)
 	cublasInit();
 
 	/* just to test the impact of memory stress ... */
-//	void *dummy;
-//	cublasAlloc(600*1024*1024, 1, &dummy);
+	stress_memory();
 
 	fprintf(stderr, "cublas thread is ready to run on CPU %d !\n", args->bindid);
 	/* tell the main thread that this one is ready to work */
