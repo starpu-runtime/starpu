@@ -5,9 +5,8 @@
 #define NMAXDEPS	8
 
 #include <stdint.h>
-//#include <common/mutex.h>
+#include <common/mutex.h>
 
-/* 0 is not a valid tag */
 typedef uint64_t tag_t;
 
 typedef enum {
@@ -23,7 +22,7 @@ typedef struct {
 } cg_t;
 
 typedef struct {
-	//mutex_t lock; /* do we really need that ? */
+	mutex lock; /* do we really need that ? */
 	tag_t id; /* an identifier for the task */
 	tag_state state;
 	unsigned nsuccs; /* how many successors ? */
