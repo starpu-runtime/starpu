@@ -2,31 +2,61 @@
 #include <common/util.h>
 #include <stdlib.h>
 #include <core/tags.h>
+#include <core/htable.h>
 
-static cg_t *create_cg(unsigned ntags, tag_t id)
+static htbl_node_t *tag_htbl = NULL;
+
+static cg_t *create_cg(unsigned ntags, tag_s *tag)
 {
 	cg_t *cg;
 
+	/* TODO use calloc */
 	cg = malloc(sizeof(cg_t));
 	ASSERT(cg);
 	if (cg) {
 		cg->ntags = ntags;
-		cg->id = id;
+		cg->tag = tag;
 	}
 
 	return cg;
 }
 
-tag_s *get_tag_struct(tag_t id)
+static tag_s *tag_init(tag_t id)
 {
-	/* TODO */
-	return NULL;
+	tag_s *tag;
+	tag = malloc(sizeof(tag_s));
+	ASSERT(tag);
+
+	tag->id = id;
+	tag->state = UNUSED;
+	tag->nsuccs = 0;
+
+	init_mutex(&tag->lock);
+
+	return tag;
 }
 
-void tag_set_ready(tag_t id)
+static tag_s *get_tag_struct(tag_t id)
 {
-	tag_s *tag = get_tag_struct(id);
+	/* search if the tag is already declared or not */
+	tag_s *tag;
+	tag = htbl_search_tag(tag_htbl, id);
 
+	if (tag == NULL) {
+		/* the tag does not exist yet : create an entry */
+		tag = tag_init(id);
+
+		void *old;
+		old = htbl_insert_tag(&tag_htbl, id, tag);
+		/* there was no such tag before */
+		ASSERT(old == NULL);
+	}
+
+	return tag;
+}
+
+void tag_set_ready(tag_s *tag)
+{
 	/* mark this tag as ready to run */
 	tag->state = READY;
 	/* declare it to the scheduler ! TODO */
@@ -37,7 +67,7 @@ void notify_cg(cg_t *cg)
 	unsigned ntags = ATOMIC_ADD(&cg->ntags, -1);
 	if (ntags == 0) {
 		/* the group is now completed */
-		tag_set_ready(cg->id);
+		tag_set_ready(cg->tag);
 		free(cg);
 	}
 }
@@ -70,7 +100,8 @@ void tag_declare_deps(tag_t id, unsigned ndeps, ...)
 	unsigned i;
 
 	/* create the associated completion group */
-	cg_t *cg = create_cg(ndeps, id);
+	tag_s *tag_child = get_tag_struct(id);
+	cg_t *cg = create_cg(ndeps, tag_child);
 
 	va_list pa;
 	va_start(pa, ndeps);

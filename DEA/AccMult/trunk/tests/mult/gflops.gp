@@ -2,8 +2,8 @@
 
 set term postscript eps enhanced color
 set output "gflops.eps"
-set title "Facto LU : impact of granularity"
-set xlabel "problem size (unknowns)"
+set title "Matrix multiplication : impact of granularity"
+set xlabel "matrices size"
 set ylabel "GFlops"
 set logscale x
 set key right bottom

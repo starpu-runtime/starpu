@@ -120,7 +120,7 @@ LDFLAGS += -L../core/ -L../common/
 CFLAGS += -I../
 
 OBJDEPS += ../common/matrix.o ../common/threads.o ../common/timing.o 
-OBJDEPS += ../core/jobs.o ../core/workers.o
+OBJDEPS += ../core/jobs.o ../core/workers.o ../core/tags.o ../core/htable.o
 OBJDEPS += ../common/mutex.o ../common/rwlock.o 
 
 ifdef USE_FXT

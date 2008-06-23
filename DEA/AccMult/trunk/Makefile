@@ -102,6 +102,10 @@ ifdef USE_FXT
 	LDFLAGS += -lfxt -L$(FXTDIR)/lib/
 endif
 
+ifdef NO_PRIO
+	CFLAGS += -DNO_PRIO
+endif
+
 all:
 	@make -C common
 	@make -C core

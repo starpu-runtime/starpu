@@ -7,7 +7,7 @@ mkdir -p $TIMINGDIR
 filename=$TIMINGDIR/gflops.data
 
 tilelist="256 512 1024 2048"
-sizelist="256 512 1024 2048 4096 8192"
+sizelist="1024 2048 4096 8192 16384"
 
 trace_header()
 {
@@ -39,7 +39,6 @@ trace_size()
 		else
 			timing="x"
 		fi
-	#	timing=`$ROOTDIR/examples/heat -nthick $thick -ntheta $theta -nblocks $nblocks 2>/dev/null`
 
 		echo "size : $size tile $tile => $timing us"
 
