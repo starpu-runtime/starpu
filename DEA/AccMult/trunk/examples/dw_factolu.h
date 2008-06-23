@@ -49,13 +49,13 @@ static unsigned __dim;
 
 sem_t sem_malloc;
 
-void malloc_pinned_codelet(buffer_descr *buffers, void *addr)
+static void malloc_pinned_codelet(buffer_descr *buffers, void *addr)
 {
 	cuMemAllocHost((void **)ptrA, __dim*__dim*sizeof(float));
 	cuMemAllocHost((void **)ptrB, __dim*sizeof(float));
 }
 
-void malloc_pinned_callback(void *arg)
+static void malloc_pinned_callback(void *arg)
 {
 	sem_post(&sem_malloc);
 }
