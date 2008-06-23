@@ -1,0 +1,88 @@
+#include <semaphore.h>
+#include <core/jobs.h>
+#include <core/workers.h>
+#include <common/timing.h>
+#include <common/util.h>
+#include <string.h>
+#include <math.h>
+#include <sys/types.h>
+#include <pthread.h>
+#include <signal.h>
+#include <core/tags.h>
+
+void callback_core(void *argcb)
+{
+	printf("callback core\n");
+}
+
+void last_callback_core(void *argcb)
+{
+	printf("callback core\n");
+	exit(0);
+}
+
+void core_codelet(void *_args)
+{
+	printf("codelet core\n");
+}
+
+
+
+int main(int argc, char **argv)
+{
+	init_machine();
+	init_workers();
+
+	codelet cl;
+	codelet cl2;
+	codelet cl3;
+
+	job_t j = job_new();
+	j->type = CODELET;
+	j->where = ANY;
+	j->cb = callback_core;
+	j->argcb = NULL;
+	j->cl = &cl;
+
+	job_t j2 = job_new();
+	j2->type = CODELET;
+	j2->where = CORE;
+	j2->cb = callback_core;
+	j2->argcb = NULL;
+	j2->cl = &cl2;
+
+	job_t j3 = job_new();
+	j3->type = CODELET;
+	j3->where = CORE;
+	j3->cb = last_callback_core;
+	j3->argcb = NULL;
+	j3->cl = &cl3;
+
+
+
+	cl.cl_arg = NULL;
+	cl.core_func = core_codelet;
+
+	cl2.cl_arg = NULL;
+	cl2.core_func = core_codelet;
+
+
+	cl3.cl_arg = NULL;
+	cl3.core_func = core_codelet;
+
+	tag_declare(42, &j);
+	tag_declare(1664, &j2);
+	tag_declare(10000000, &j3);
+
+//	push_task(j2);
+	tag_declare_deps(1664, 1, 42);
+	tag_declare_deps(10000000, 1, 42);
+
+	push_task(j);
+
+	printf("sleep\n");
+
+	sleep(100);
+
+	return 0;
+}
