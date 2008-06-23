@@ -158,10 +158,13 @@ multiplication2: multiplication2.o
 multiplication.o:
 	$(CC) $(CFLAGS) multiplication.c -c -o multiplication.o
 
+dw_factolu_tag.o: dw_factolu_tag.c dw_factolu.h
+	$(CC) $(CFLAGS) dw_factolu_tag.c -c -o dw_factolu_tag.o
+
 dw_factolu.o: dw_factolu.c dw_factolu.h
 	$(CC) $(CFLAGS) dw_factolu.c -c -o dw_factolu.o
 
-dw_factolu: dw_factolu.o
+dw_factolu: dw_factolu.o dw_factolu_tag.o
 	$(CC) dw_factolu.o -o dw_factolu $(OBJDEPS) $(LDFLAGS)
 
 dw_mult.o: dw_mult.c

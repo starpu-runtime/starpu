@@ -74,9 +74,8 @@ int main(int argc, char **argv)
 	tag_declare(1664, &j2);
 	tag_declare(10000000, &j3);
 
-//	push_task(j2);
 	tag_declare_deps(1664, 1, 42);
-	tag_declare_deps(10000000, 1, 42);
+	tag_declare_deps(10000000, 2, 42, 1664);
 
 	push_task(j);
 

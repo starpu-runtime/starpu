@@ -548,6 +548,10 @@ void parse_args(int argc, char **argv)
 			version = 2;
 		}
 
+		if (strcmp(argv[i], "-v3") == 0) {
+			version = 3;
+		}
+
 		if (strcmp(argv[i], "-pin") == 0) {
 			pinned = 1;
 		}
@@ -718,7 +722,12 @@ int main(int argc, char **argv)
 
 	result = malloc(DIM*sizeof(float));
 
-	dw_factoLU(A, newsize, DIM, nblocks, version);
+	if (version < 3) {
+		dw_factoLU(A, newsize, DIM, nblocks, version);
+	}
+	else {
+		dw_factoLU_tag(A, newsize, DIM, nblocks);
+	}
 
 	solve_system(DIM, newsize);
 
