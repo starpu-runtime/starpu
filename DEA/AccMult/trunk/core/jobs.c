@@ -39,6 +39,7 @@ void push_task(job_t task)
 
 void push_prio_task(job_t task)
 {
+#ifndef NO_PRIO
 	thread_mutex_lock(&workq_mutex);
 
 	TRACE_JOB_PUSH(task, 1);
@@ -46,6 +47,9 @@ void push_prio_task(job_t task)
 	sem_post(&sem_jobq);
 
 	thread_mutex_unlock(&workq_mutex);
+#else
+	push_task(task);
+#endif
 }
 
 
