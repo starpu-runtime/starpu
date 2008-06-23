@@ -12,6 +12,7 @@
 #include <common/list.h>
 #include <common/threads.h>
 #include <common/fxt.h>
+#include <core/tags.h>
 
 #include <datawizard/coherency.h>
 
@@ -89,6 +90,7 @@ LIST_TYPE(job,
 	codelet *cl;
 	void *argcb;
 	int counter;	/* when this reaches 0 the callback can be executed */
+	struct tag_s *tag;
 	unsigned nbuffers;
 	buffer_descr buffers[NMAXBUFS];
 #ifdef USE_CUDA
@@ -96,7 +98,6 @@ LIST_TYPE(job,
 	CUdeviceptr toto;
 #endif
 );
-
 
 typedef struct job_descr_t {
 	int debug;

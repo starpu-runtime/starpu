@@ -81,9 +81,9 @@ void *htbl_insert_tag(htbl_node_t **htbl, tag_t tag, void *entry)
 	return old_entry;
 }
 
+#ifdef TEST_HTABLE
 #define NSAMPLE	20000
 
-#ifdef TEST_HTABLE
 tag_t tag_table[NSAMPLE];
 uint64_t entry_table[NSAMPLE];
 

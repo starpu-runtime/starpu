@@ -2,7 +2,7 @@
 CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
 CUDAINSTALLDIR=/usr/local/cuda/
 
-TARGET=incrementer heat 
+TARGET=incrementer heat tag_example 
 
 # for compile time tuning 
 DEFAULTSIZE=2048
@@ -167,6 +167,9 @@ dw_factolu: dw_factolu.o
 dw_mult.o: dw_mult.c
 	$(CC) $(CFLAGS) dw_mult.c -c -o dw_mult.o
 
+tag_example.o: tag_example.c
+	$(CC) $(CFLAGS) tag_example.c -c -o tag_example.o
+
 dw_mult: dw_mult.o
 	$(CC) dw_mult.o -o dw_mult $(OBJDEPS) $(LDFLAGS)
 
@@ -184,6 +187,11 @@ heat.o: heat.c
 
 heat: dw_factolu.o heat.o
 	$(CC) dw_factolu.o heat.o -o heat $(OBJDEPS) $(LDFLAGS)
+
+tag_example: tag_example.o
+	$(CC) tag_example.o -o tag_example $(OBJDEPS) $(LDFLAGS)
+
+
 
 clean:
 	@rm -f multiplication multiplication2 factoLU heat gpuirq incrementer dw_mult dw_factolu *.o

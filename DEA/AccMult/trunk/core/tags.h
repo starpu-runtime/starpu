@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <common/mutex.h>
+#include <core/jobs.h>
 
 /* randomly choosen ! */
 #define NMAXDEPS	8
@@ -11,10 +12,11 @@
 typedef uint64_t tag_t;
 
 typedef enum {
-	UNUSED,
+	UNASSIGNED,
 	DONE,
 	READY,
-	SCHEDULED
+	SCHEDULED,
+	BLOCKED
 } tag_state;
 
 typedef struct {
@@ -23,6 +25,7 @@ typedef struct {
 	tag_state state;
 	unsigned nsuccs; /* how many successors ? */
 	struct _cg_t *succ[NMAXDEPS];
+	struct job_t *job; /* which job is associated to the tag if any ? */
 } tag_s;
 
 typedef struct _cg_t {
@@ -30,6 +33,8 @@ typedef struct _cg_t {
 	tag_s *tag; /* which tags depends on that cg ?  */
 } cg_t;
 
-
+void notify_cg(cg_t *cg);
+//void tag_declare(tag_t id, job_t *job);
+void tag_declare_deps(tag_t id, unsigned ndeps, ...);
 
 #endif // __TAGS_H__

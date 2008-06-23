@@ -73,6 +73,9 @@ void *core_worker(void *arg)
 
                 corecounters[core]++;
 
+		/* in case there are dependencies, wake up the proper tasks */
+		notify_dependencies(&j);
+
 		job_delete(j);
         } while(1);
 
