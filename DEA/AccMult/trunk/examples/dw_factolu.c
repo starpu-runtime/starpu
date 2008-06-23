@@ -1,5 +1,21 @@
 #include "dw_factolu.h"
 
+
+void dw_callback_codelet_update_u11(void *);
+void dw_callback_codelet_update_u12_21(void *);
+void dw_callback_codelet_update_u22(void *);
+
+void dw_callback_v2_codelet_update_u11(void *);
+void dw_callback_v2_codelet_update_u12(void *);
+void dw_callback_v2_codelet_update_u21(void *);
+void dw_callback_v2_codelet_update_u22(void *);
+
+void dw_core_codelet_update_u11(buffer_descr *, void *);
+void dw_core_codelet_update_u12(buffer_descr *, void *);
+void dw_core_codelet_update_u21(buffer_descr *, void *);
+void dw_core_codelet_update_u22(buffer_descr *, void *);
+
+
 tick_t start;
 tick_t end;
 
@@ -12,8 +28,8 @@ uint8_t *advance_22; /* array of nblocks *nblocks*nblocks */
 
 
 /* to compute MFlop/s */
-uint64_t flop_cublas = 0;
-uint64_t flop_atlas = 0;
+static uint64_t flop_cublas = 0;
+static uint64_t flop_atlas = 0;
 
 #define BLAS3_FLOP(n1,n2,n3)    \
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
@@ -267,6 +283,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 			j->cb = dw_callback_v2_codelet_update_u11;
 			j->argcb = u11arg;
 			j->cl = cl;
+			j->use_tag = 0;
 
 			j->nbuffers = 1;
 
@@ -310,6 +327,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 						j21->cb = dw_callback_v2_codelet_update_u21;
 						j21->argcb = u21a;
 						j21->cl = cl21;
+						j21->use_tag = 0;
 			
 					u21a->i = k+1;
 					u21a->k = j;
@@ -358,6 +376,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 						j12->cb = dw_callback_v2_codelet_update_u12;
 						j12->argcb = u12a;
 						j12->cl = cl12;
+						j12->use_tag = 0;
 
 #ifdef USE_CUBLAS
 					cl12->cublas_func = dw_cublas_codelet_update_u12;
@@ -434,6 +453,7 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				j22->cb = dw_callback_v2_codelet_update_u22;
 				j22->argcb = u22a;
 				j22->cl = cl22;
+				j22->use_tag = 0;
 
 				u22a->k = i;
 				u22a->i = k;
@@ -513,6 +533,7 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				j22->argcb = u22a;
 				j22->cl = cl22;
 				j22->nbuffers = 0;
+				j22->use_tag = 0;
 
 				u22a->k = i;
 				u22a->i = slicex;
@@ -599,6 +620,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 						j12->cb = dw_callback_v2_codelet_update_u12;
 						j12->argcb = u12a;
 						j12->cl = cl12;
+						j12->use_tag = 0;
 #ifdef USE_CUBLAS
 					cl12->cublas_func = dw_cublas_codelet_update_u12;
 #endif
@@ -660,6 +682,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 						j21->argcb = u21a;
 						j21->cl = cl21;
 						j21->nbuffers = 0;
+						j21->use_tag = 0;
 					
 		
 					u21a->i = i;
@@ -723,6 +746,7 @@ void dw_callback_codelet_update_u22(void *argcb)
 			j->cb = dw_callback_codelet_update_u11;
 			j->argcb = u11arg;
 			j->cl = cl;
+			j->use_tag = 0;
 
 			j->nbuffers = 1;
 			j->buffers[0].state = get_sub_data(args->dataA, 2, args->k + 1, args->k + 1);
@@ -777,6 +801,7 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 				j22->argcb = u22a;
 				j22->cl = cl22;
 				j22->nbuffers = 0;
+				j22->use_tag = 0;
 
 				u22a->k = i;
 				u22a->i = slicex;
@@ -855,6 +880,7 @@ void dw_callback_codelet_update_u11(void *argcb)
 				j12->cb = dw_callback_codelet_update_u12_21;
 				j12->argcb = u12a;
 				j12->cl = cl12;
+				j12->use_tag = 0;
 
 			job_t j21 = job_new();
 				j21->type = CODELET;
@@ -862,6 +888,7 @@ void dw_callback_codelet_update_u11(void *argcb)
 				j21->cb = dw_callback_codelet_update_u12_21;
 				j21->argcb = u21a;
 				j21->cl = cl21;
+				j21->use_tag = 0;
 			
 
 			u12a->i = args->i;
@@ -933,6 +960,7 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 		j->argcb = args;
 		j->cl = cl;
 		j->nbuffers = 1;
+		j->use_tag = 0;
 
 		j->buffers[0].state = get_sub_data(dataA, 2, 0, 0);
 		j->buffers[0].mode = RW;
@@ -995,6 +1023,7 @@ void dw_codelet_facto_v2(data_state *dataA, unsigned nblocks)
 		j->argcb = args;
 		j->cl = cl;
 		j->nbuffers = 1;
+		j->use_tag = 0;
 
 		j->buffers[0].state = get_sub_data(dataA, 2, 0, 0); 
 		j->buffers[0].mode = RW;

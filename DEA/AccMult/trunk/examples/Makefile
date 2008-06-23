@@ -188,8 +188,8 @@ factoLU.o: factoLU.c
 heat.o: heat.c
 	$(CC) $(CFLAGS) heat.c -c -o heat.o
 
-heat: dw_factolu.o heat.o
-	$(CC) dw_factolu.o heat.o -o heat $(OBJDEPS) $(LDFLAGS)
+heat: dw_factolu.o dw_factolu_tag.o heat.o
+	$(CC) dw_factolu.o dw_factolu_tag.o heat.o -o heat $(OBJDEPS) $(LDFLAGS)
 
 tag_example: tag_example.o
 	$(CC) tag_example.o -o tag_example $(OBJDEPS) $(LDFLAGS)

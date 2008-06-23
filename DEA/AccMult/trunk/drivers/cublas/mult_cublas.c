@@ -127,6 +127,9 @@ void *cublas_worker(void *arg)
 		
 		cublascounters[devid]++;		
 
+		/* in case there are dependencies, wake up the proper tasks */
+		notify_dependencies(&j);
+
 		job_delete(j);
 	} while(1);
 

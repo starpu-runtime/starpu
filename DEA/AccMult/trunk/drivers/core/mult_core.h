@@ -29,10 +29,7 @@ typedef struct core_worker_arg_t {
 void *core_worker(void *);
 
 #ifndef NMAXCORES
-#define NMAXCORES       3
+#define NMAXCORES       4
 #endif
-
-void ref_mult(matrix *, matrix *, matrix *);
-void cblas_mult(submatrix *, submatrix *, submatrix *);
 
 #endif //  __MULT_CORE_H__

@@ -6,7 +6,7 @@
 #include <core/jobs.h>
 
 /* randomly choosen ! */
-#define NMAXDEPS	8
+#define NMAXDEPS	1024
 
 #define TAG_SIZE        64
 typedef uint64_t tag_t;

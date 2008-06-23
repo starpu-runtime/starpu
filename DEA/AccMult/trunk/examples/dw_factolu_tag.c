@@ -4,15 +4,15 @@
 tick_t start;
 tick_t end;
 
-#define TAG11(k)	 (11<<48)
-#define TAG12(k,i)	((12<<48) + ((k)<<32) + (i))
-#define TAG21(k,j)	((21<<48) + ((k)<<32) + (j))
-#define TAG22(k,i,j)	((22<<48) + ((k)<<32) + ((i)<<16) + (j))
+#define TAG11(k)	( (1ULL<<60) | (unsigned long long)(k))
+#define TAG12(k,i)	(((2ULL<<60) | (((unsigned long long)(k))<<32) | (unsigned long long)(i)))
+#define TAG21(k,j)	(((3ULL<<60) | (((unsigned long long)(k))<<32) | (unsigned long long)(j)))
+#define TAG22(k,i,j)	(((4ULL<<60) | ((unsigned long long)(k)<<32) | ((unsigned long long)(i)<<16) | (unsigned long long)(j)))
 
 
 /* to compute MFlop/s */
-uint64_t flop_cublas = 0;
-uint64_t flop_atlas = 0;
+static uint64_t flop_cublas = 0;
+static uint64_t flop_atlas = 0;
 
 #define BLAS3_FLOP(n1,n2,n3)    \
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
@@ -238,6 +238,9 @@ static void dw_cublas_codelet_update_u11(buffer_descr *descr, void *_args)
 
 static job_t create_job(tag_t id)
 {
+	codelet *cl = malloc(sizeof(codelet));
+	cl->cl_arg = NULL;
+
 	job_t j = job_new();
 		j->type = CODELET;
 		j->where = ANY;
@@ -258,15 +261,14 @@ static void terminal_callback(void *argcb)
 
 static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem_t *sem)
 {
-	codelet *cl = malloc(sizeof(codelet));
-	
-	cl->cl_arg = NULL;
-	cl->core_func = dw_core_codelet_update_u11;
-#ifdef USE_CUBLAS
-	cl->cublas_func = dw_cublas_codelet_update_u11;
-#endif
-	
+//	printf("task 11 k = %d TAG = %llx\n", k, (TAG11(k)));
+
 	job_t job = create_job(TAG11(k));
+
+	job->cl->core_func = dw_core_codelet_update_u11;
+#ifdef USE_CUBLAS
+	job->cl->cublas_func = dw_cublas_codelet_update_u11;
+#endif
 
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 1;
@@ -281,8 +283,8 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 
 	/* the very last task must be notified */
 	if (k == nblocks -1) {
-		j->cb = terminal_callback;
-		j->argcb = sem;
+		job->cb = terminal_callback;
+		job->argcb = sem;
 	}
 
 	return job;
@@ -290,15 +292,13 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 
 static void create_task_12(data_state *dataA, unsigned k, unsigned i)
 {
-	codelet *cl = malloc(sizeof(codelet));
-	
-	cl->cl_arg = NULL;
-	cl->core_func = dw_core_codelet_update_u12;
-#ifdef USE_CUBLAS
-	cl->cublas_func = dw_cublas_codelet_update_u12;
-#endif
-	
 	job_t job = create_job(TAG12(k, i));
+//	printf("task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i));
+
+	job->cl->core_func = dw_core_codelet_update_u12;
+#ifdef USE_CUBLAS
+	job->cl->cublas_func = dw_cublas_codelet_update_u12;
+#endif
 
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 2;
@@ -318,16 +318,14 @@ static void create_task_12(data_state *dataA, unsigned k, unsigned i)
 
 static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 {
-	codelet *cl = malloc(sizeof(codelet));
+	job_t job = create_job(TAG21(k, j));
+//	printf("task 21 k,j = %d,%d TAG = %llx\n", k,j, TAG21(k,j));
 	
-	cl->cl_arg = NULL;
-	cl->core_func = dw_core_codelet_update_u21;
+	job->cl->core_func = dw_core_codelet_update_u21;
 #ifdef USE_CUBLAS
-	cl->cublas_func = dw_cublas_codelet_update_u21;
+	job->cl->cublas_func = dw_cublas_codelet_update_u21;
 #endif
 	
-	job_t job = create_job(TAG21(k, j));
-
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 2;
 		job->buffers[0].state = get_sub_data(dataA, 2, k, k); 
@@ -346,20 +344,22 @@ static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 
 static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j)
 {
-	codelet *cl = malloc(sizeof(codelet));
-	
-	cl->cl_arg = NULL;
-	cl->core_func = dw_core_codelet_update_u22;
-#ifdef USE_CUBLAS
-	cl->cublas_func = dw_cublas_codelet_update_u22;
-#endif
-	
 	job_t job = create_job(TAG22(k, i, j));
+//	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j));
+
+	job->cl->core_func = dw_core_codelet_update_u22;
+#ifdef USE_CUBLAS
+	job->cl->cublas_func = dw_cublas_codelet_update_u22;
+#endif
 
 	/* which sub-data is manipulated ? */
-	job->nbuffers = 1;
-		job->buffers[0].state = get_sub_data(dataA, 2, i, j); 
-		job->buffers[0].mode = RW;
+	job->nbuffers = 3;
+		job->buffers[0].state = get_sub_data(dataA, 2, i, k); 
+		job->buffers[0].mode = R;
+		job->buffers[1].state = get_sub_data(dataA, 2, k, j); 
+		job->buffers[2].mode = R;
+		job->buffers[2].state = get_sub_data(dataA, 2, i, j); 
+		job->buffers[2].mode = RW;
 
 	/* enforce dependencies ... */
 	if (k > 0) {
@@ -394,10 +394,10 @@ static void dw_codelet_facto_v3(data_state *dataA, unsigned nblocks)
 
 	for (k = 0; k < nblocks; k++)
 	{
-		job_t j = create_task_11(dataA, k, nblocks, &sem);
+		job_t job = create_task_11(dataA, k, nblocks, &sem);
 		if (k == 0) {
 			/* for now, we manually launch the first task .. XXX */
-			entry_job = j;
+			entry_job = job;
 		}
 		
 		for (i = k+1; i<nblocks; i++)

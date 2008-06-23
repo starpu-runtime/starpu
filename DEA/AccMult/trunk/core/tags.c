@@ -62,7 +62,7 @@ static void tag_set_ready(tag_s *tag)
 	/* mark this tag as ready to run */
 	tag->state = READY;
 	/* declare it to the scheduler ! TODO */
-	printf("tag %llx (job %p) can run !\n", (long long unsigned)tag->id, (tag->job));
+	//printf("tag %llx (job %p) can run !\n", (long long unsigned)tag->id, (tag->job));
 	push_task(tag->job);
 }
 
@@ -70,12 +70,14 @@ void notify_dependencies(job_t *j)
 {
 	ASSERT(j);
 
-	/* in case there are dependencies, wake up the proper tasks */
-	unsigned succ;
-	tag_s *tag = (*j)->tag;
-	for (succ = 0; succ < tag->nsuccs; succ++)
-	{
-		notify_cg(tag->succ[succ]);
+	if ((*j)->use_tag) {
+		/* in case there are dependencies, wake up the proper tasks */
+		unsigned succ;
+		tag_s *tag = (*j)->tag;
+		for (succ = 0; succ < tag->nsuccs; succ++)
+		{
+			notify_cg(tag->succ[succ]);
+		}
 	}
 }
 
@@ -85,7 +87,7 @@ void notify_cg(cg_t *cg)
 	if (ntags == 0) {
 		/* the group is now completed */
 		tag_set_ready(cg->tag);
-		free(cg);
+		//free(cg);
 	}
 }
 
@@ -114,7 +116,8 @@ static void tag_add_succ(tag_t id, cg_t *cg)
 
 void tag_declare(tag_t id, job_t *job)
 {
-	printf("tag %llx is associated to job %p\n", id, *job);
+	//printf("tag %llx is associated to job %p\n", id, *job);
+	(*job)->use_tag = 1;
 	
 	tag_s *tag= get_tag_struct(id);
 	tag->job = *job;
@@ -143,7 +146,7 @@ void tag_declare_deps(tag_t id, unsigned ndeps, ...)
 
 		/* id depends on dep_id
 		 * so cg should be among dep_id's successors*/
-		printf("tag %llx depends on tag %llx\n", id, dep_id);
+//		printf("tag %llx depends on tag %llx\n", id, dep_id);
 		tag_add_succ(dep_id, cg);
 	}
 	va_end(pa);

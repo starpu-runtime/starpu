@@ -18,5 +18,6 @@
 #include <common/util.h>
 
 extern void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned version);
+extern void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks);
 
 #endif // __HEAT_H__
