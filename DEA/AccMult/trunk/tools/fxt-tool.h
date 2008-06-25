@@ -38,6 +38,9 @@ extern void flash_engine_generate_output(event_list_t *events, workq_list_t task
                       unsigned nworkers, unsigned maxq_size, 
                       uint64_t _start_time, uint64_t _end_time, char *path);
 
+extern void init_dag_dot(void);
+extern void terminate_dat_dot(void);
+extern void add_deps(uint64_t child, uint64_t father);
 
 
 #endif // __FXT_TOOL_H__

@@ -140,6 +140,17 @@ void handle_job_pop(void)
 	workq_list_push_back(taskq, e);
 }
 
+void handle_codelet_tag_deps(void)
+{
+	uint64_t child;
+	uint64_t father;
+
+	child = ev.param[0]; 
+	father = ev.param[1]; 
+
+	add_deps(child, father);
+}
+
 void generate_flash_output(void)
 {
 	flash_engine_init();
@@ -213,6 +224,8 @@ int main(int argc, char **argv)
 	int fd_in, fd_out;
 
 	int use_stdout = 1;
+
+	init_dag_dot();
 	
 	if (argc < 2) {
 	        fprintf(stderr, "Usage : %s input_filename [-o output_filename]\n", argv[0]);
@@ -298,6 +311,14 @@ int main(int argc, char **argv)
 			case FUT_END_PUSH_OUTPUT:
 				break;
 
+			case FUT_CODELET_TAG:
+				//handle_codelet_tag();
+				break;
+
+			case FUT_CODELET_TAG_DEPS:
+				handle_codelet_tag_deps();
+				break;
+
 			default:
 				fprintf(stderr, "unknown event.. %x at time %llx\n", (unsigned)ev.code, (long long unsigned)ev.time);
 				break;
@@ -305,8 +326,10 @@ int main(int argc, char **argv)
 	}
 
 	generate_gnuplot_output();
-	generate_flash_output();
+	//generate_flash_output();
 	generate_svg_output();
+
+	terminate_dat_dot();
 
 	return 0;
 }

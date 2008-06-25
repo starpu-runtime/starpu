@@ -29,6 +29,9 @@
 #define FUT_START_PUSH_OUTPUT	0x5109
 #define FUT_END_PUSH_OUTPUT	0x5110
 
+#define FUT_CODELET_TAG		0x5111
+#define FUT_CODELET_TAG_DEPS	0x5112
+
 #ifdef USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -64,7 +67,11 @@ void fxt_register_thread(unsigned);
 #define TRACE_END_PUSH_OUTPUT(job)	\
 	FUT_DO_PROBE2(FUT_END_PUSH_OUTPUT, job, syscall(SYS_gettid));
 
+#define TRACE_CODELET_TAG(tag, job)	\
+	FUT_DO_PROBE2(FUT_CODELET_TAG, tag, job)
 
+#define TRACE_CODELET_TAG_DEPS(tag_child, tag_father)	\
+	FUT_DO_PROBE2(FUT_CODELET_TAG_DEPS, tag_child, tag_father)
 
 #else // !USE_FXT
 
@@ -77,6 +84,8 @@ void fxt_register_thread(unsigned);
 #define TRACE_END_FETCH_INPUT(job)	do {} while(0);
 #define TRACE_START_PUSH_OUTPUT(job)	do {} while(0);
 #define TRACE_END_PUSH_OUTPUT(job)	do {} while(0);
+#define TRACE_CODELET_TAG(tag, job)	do {} while(0);
+#define TRACE_CODELET_TAG_DEPS(a, b)	do {} while(0);
 
 #endif // USE_FXT
 

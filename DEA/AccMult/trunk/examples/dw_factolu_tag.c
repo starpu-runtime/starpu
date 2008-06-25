@@ -370,8 +370,6 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
 	}
 }
 
-
-
 /*
  *	code to bootstrap the factorization 
  */
@@ -403,11 +401,7 @@ static void dw_codelet_facto_v3(data_state *dataA, unsigned nblocks)
 		for (i = k+1; i<nblocks; i++)
 		{
 			create_task_12(dataA, k, i);
-		}
-
-		for (j = k+1; j<nblocks; j++)
-		{
-			create_task_21(dataA, k, j);
+			create_task_21(dataA, k, i);
 		}
 
 		for (i = k+1; i<nblocks; i++)
@@ -417,7 +411,6 @@ static void dw_codelet_facto_v3(data_state *dataA, unsigned nblocks)
 				create_task_22(dataA, k, i, j);
 			}
 		}
-
 	}
 
 	/* schedule the codelet */

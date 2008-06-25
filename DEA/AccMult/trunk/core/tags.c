@@ -61,8 +61,7 @@ static void tag_set_ready(tag_s *tag)
 {
 	/* mark this tag as ready to run */
 	tag->state = READY;
-	/* declare it to the scheduler ! TODO */
-	//printf("tag %llx (job %p) can run !\n", (long long unsigned)tag->id, (tag->job));
+	/* declare it to the scheduler ! */
 	push_task(tag->job);
 }
 
@@ -117,6 +116,7 @@ static void tag_add_succ(tag_t id, cg_t *cg)
 void tag_declare(tag_t id, job_t *job)
 {
 	//printf("tag %llx is associated to job %p\n", id, *job);
+	TRACE_CODELET_TAG(id, *job);
 	(*job)->use_tag = 1;
 	
 	tag_s *tag= get_tag_struct(id);
@@ -147,6 +147,7 @@ void tag_declare_deps(tag_t id, unsigned ndeps, ...)
 		/* id depends on dep_id
 		 * so cg should be among dep_id's successors*/
 //		printf("tag %llx depends on tag %llx\n", id, dep_id);
+		TRACE_CODELET_TAG_DEPS(id, dep_id);
 		tag_add_succ(dep_id, cg);
 	}
 	va_end(pa);
