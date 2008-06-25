@@ -149,24 +149,6 @@ static void display_workq_evolution(workq_list_t taskq, unsigned nworkers, unsig
 
 }
 
-// 
-// <svg width="10cm" height="3cm" viewBox="0 0 1000 300"
-//      xmlns="http://www.w3.org/2000/svg" version="1.1">
-//   <desc>Example tspan01 - using tspan to change visual attributes</desc>
-//   <g font-family="Verdana" font-size="45" >
-//     <text x="200" y="150" fill="blue" >
-//       You are
-//         <tspan font-weight="bold" fill="red" >not</tspan>
-//       a banana.
-//     </text>
-//   </g>
-//   <!-- Show outline of canvas using 'rect' element -->
-//   <!--
-//   <rect x="1" y="1" width="998" height="298"
-//         fill="none" stroke="blue" stroke-width="2" /> -->
-// </svg>
-// 
-
 void svg_output_file_init(void)
 {
 	/* create a new file */

@@ -18,6 +18,8 @@
 #define MAXWORKERS      32
 #define FACTOR  100
 
+#define USE_GTK	1
+
 typedef enum {
 	WORKING,
 	IDLE
@@ -41,6 +43,13 @@ extern void flash_engine_generate_output(event_list_t *events, workq_list_t task
 extern void init_dag_dot(void);
 extern void terminate_dat_dot(void);
 extern void add_deps(uint64_t child, uint64_t father);
+
+#ifdef USE_GTK
+extern int gtk_viewer_apps( int   argc, char *argv[], event_list_t *events,
+			workq_list_t taskq, char **worker_name,
+			unsigned nworkers, unsigned maxq_size, 
+			uint64_t _start_time, uint64_t _end_time);
+#endif
 
 
 #endif // __FXT_TOOL_H__
