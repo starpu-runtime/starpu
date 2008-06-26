@@ -6,8 +6,7 @@
 #include "fxt-tool.h"
 #include <assert.h>
 
-#define GTK_WIDTH       2000
-#define GTK_HEIGHT      200
+#define GTK_WIDTH       800
 
 #define GTK_THICKNESS   30
 #define GTK_GAP         10
@@ -19,6 +18,7 @@
 /* Backing pixmap for drawing area */
 static GdkPixmap *pixmap = NULL;
 static GdkGC *gc = NULL;
+static GtkWidget *scrolled_window;
 
 static GdkColor blue;
 static GdkColor red;
@@ -41,6 +41,7 @@ static unsigned maxq_size;
 static uint64_t start_time;
 static uint64_t end_time;
 
+void trace_gantt(void);
 
 static void init_colors(GtkWidget *area)
 {
@@ -101,7 +102,7 @@ static gint configure_event( GtkWidget         *widget,
                       widget->allocation.width,
                       widget->allocation.height);
 
-   trace();
+   trace_gantt();
 
 
 	return TRUE;
@@ -110,14 +111,14 @@ static gint configure_event( GtkWidget         *widget,
 static gint expose_event( GtkWidget      *widget,
                           GdkEventExpose *event )
 {
-  gdk_draw_pixmap(widget->window,
-                  widget->style->fg_gc[GTK_WIDGET_STATE (widget)],
-                  pixmap,
-                  event->area.x, event->area.y,
-                  event->area.x, event->area.y,
-                  event->area.width, event->area.height);
-
-  return FALSE;
+	gdk_draw_pixmap(widget->window,
+	                widget->style->fg_gc[GTK_WIDGET_STATE (widget)],
+	                pixmap,
+	                event->area.x, event->area.y,
+	                event->area.x, event->area.y,
+	                event->area.width, event->area.height);
+	
+	return FALSE;
 }
 
 /* Draw a rectangle on the screen */
@@ -188,8 +189,8 @@ static void gtk_add_region(worker_mode color, uint64_t start, uint64_t end, unsi
 	ratio_start = (double)(start - start_time) / (double)(end_time - start_time);
 	ratio_end = (double)(end - start_time) / (double)(end_time - start_time);
 
-	startx = (unsigned long)((zoom)*(GTK_BORDERX + ratio_start*(GTK_WIDTH - 2*GTK_BORDERX)));
-	endx = (unsigned long)((zoom)*(GTK_BORDERX + ratio_end*(GTK_WIDTH - 2*GTK_BORDERX)));
+	startx = (unsigned long)(GTK_BORDERX + zoom*ratio_start*(GTK_WIDTH - 2*GTK_BORDERX));
+	endx = (unsigned long)(GTK_BORDERX + zoom*ratio_end*(GTK_WIDTH - 2*GTK_BORDERX));
 
    GdkRectangle update_rect;
 
@@ -239,7 +240,7 @@ static void gtk_display_worker(event_list_t worker_events, unsigned worker,
 	}
 }
 
-void trace()
+void trace_gantt()
 {
 //   GdkRectangle update_rect;
 //
@@ -268,52 +269,66 @@ void trace()
 
 void refresh()
 {
-	gtk_drawing_area_size (GTK_DRAWING_AREA (drawing_area), GTK_WIDTH*zoom, GTK_HEIGHT);
 
-//	gdk_window_clear_area(drawing_area->window,
-//	  0, 0, 
-//          drawing_area->allocation.width,
-//          drawing_area->allocation.height);
-//
-//	gdk_draw_rectangle (pixmap,
-//                      drawing_area->style->white_gc,
-//                      TRUE,
-//                      0, 0,
-//                      drawing_area->allocation.width,
-//                      drawing_area->allocation.height);
-//
-//        gdk_draw_pixmap(drawing_area->window,
-//                  drawing_area->style->fg_gc[GTK_WIDGET_STATE (drawing_area)],
-//                  pixmap,
-//                  drawing_area->allocation.x, drawing_area->allocation.x,
-//                  drawing_area->allocation.y, drawing_area->allocation.y,
-//                  drawing_area->allocation.width, drawing_area->allocation.height);
-//
+	gtk_drawing_area_size (GTK_DRAWING_AREA (drawing_area), 2*GTK_BORDERX + (GTK_WIDTH-2*GTK_BORDERX)*zoom, nworkers*GTK_THICKNESS + (nworkers-1)*GTK_GAP+2*GTK_BORDERY);
+
+	gdk_window_clear_area(drawing_area->window,
+	  0, 0, 
+          drawing_area->allocation.width,
+          drawing_area->allocation.height);
+
+	gdk_draw_rectangle (pixmap,
+                      drawing_area->style->white_gc,
+                      TRUE,
+                      0, 0,
+                      drawing_area->allocation.width,
+                      drawing_area->allocation.height);
+
+        gdk_draw_pixmap(drawing_area->window,
+                  drawing_area->style->fg_gc[GTK_WIDGET_STATE (drawing_area)],
+                  pixmap,
+                  drawing_area->allocation.x, drawing_area->allocation.x,
+                  drawing_area->allocation.y, drawing_area->allocation.y,
+                  drawing_area->allocation.width, drawing_area->allocation.height);
 
 
-	trace();	
+
+	trace_gantt();	
 
 }
 
 void zoom_in_func( GtkWidget *widget  __attribute__ ((unused)), gpointer   data  __attribute__ ((unused)))
 {
+	GtkAdjustment *hadjustment;
 
 	refresh();
 
-	printf("helllllo in\n");
-	      draw_brush (widget, 400, 100);
 
-	zoom++;
+	hadjustment = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW (scrolled_window));
+	float ratio = (hadjustment->value - GTK_BORDERX)/(GTK_BORDERX + zoom*(GTK_WIDTH - 2*GTK_BORDERX));
+
+	zoom*=2;
+
+	gtk_adjustment_set_value        (hadjustment, GTK_BORDERX + ratio*zoom*(GTK_WIDTH - 2*GTK_BORDERX));
+
+	printf("helllllo in zoom is now %d\n", zoom);
+	refresh();
 
 }
 
 void zoom_out_func( GtkWidget *widget __attribute__ ((unused)) , gpointer   data  __attribute__ ((unused)) )
 {
-	printf("helllllo out\n");
+	GtkAdjustment *hadjustment;
+
+	hadjustment = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW (scrolled_window));
+	float ratio = (hadjustment->value - GTK_BORDERX)/(GTK_BORDERX + zoom*(GTK_WIDTH - 2*GTK_BORDERX));
 
 	if (zoom > 1)
-		zoom--;
+		zoom/=2;
 
+	gtk_adjustment_set_value        (hadjustment, GTK_BORDERX + ratio*zoom*(GTK_WIDTH - 2*GTK_BORDERX));
+
+	printf("helllllo out zoom is now %d\n", zoom);
 	refresh();
 }
 
@@ -336,7 +351,6 @@ int gtk_viewer_apps( int   argc, char *argv[], event_list_t *_events,
 
 
     static GtkWidget *window;
-    GtkWidget *scrolled_window;
     GtkWidget *close_button, *zoom_in_button, *zoom_out_button;
     
     gtk_init (&argc, &argv);
@@ -348,7 +362,7 @@ int gtk_viewer_apps( int   argc, char *argv[], event_list_t *_events,
 			(GtkSignalFunc) destroy, NULL);
     gtk_window_set_title (GTK_WINDOW (window), "GtkScrolledWindow example");
     gtk_container_set_border_width (GTK_CONTAINER (window), 0);
-    gtk_widget_set_usize(window, 300, 300);
+    gtk_widget_set_usize(window, MIN(800, GTK_WIDTH),  MIN(600, nworkers*GTK_THICKNESS + (nworkers-1)*GTK_GAP+2*GTK_BORDERY+100));
 
     
     /* create a new scrolled window. */
@@ -370,7 +384,7 @@ int gtk_viewer_apps( int   argc, char *argv[], event_list_t *_events,
     
     /* the drawing box ... */
     drawing_area = gtk_drawing_area_new ();
-    gtk_drawing_area_size (GTK_DRAWING_AREA (drawing_area), 200*zoom, 200);
+    gtk_drawing_area_size (GTK_DRAWING_AREA (drawing_area), GTK_WIDTH , nworkers*GTK_THICKNESS + (nworkers-1)*GTK_GAP+2*GTK_BORDERY);
 
 
     gtk_scrolled_window_add_with_viewport (
