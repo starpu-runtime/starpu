@@ -19,6 +19,7 @@
 static GdkPixmap *pixmap = NULL;
 static GdkGC *gc = NULL;
 static GtkWidget *scrolled_window;
+static GtkWidget *window;
 
 static GdkColor blue;
 static GdkColor red;
@@ -270,39 +271,43 @@ void trace_gantt()
 void refresh()
 {
 
-	gtk_drawing_area_size (GTK_DRAWING_AREA (drawing_area), 2*GTK_BORDERX + (GTK_WIDTH-2*GTK_BORDERX)*zoom, nworkers*GTK_THICKNESS + (nworkers-1)*GTK_GAP+2*GTK_BORDERY);
+	unsigned drawing_area_height = 
+		nworkers*GTK_THICKNESS + (nworkers-1)*GTK_GAP+2*GTK_BORDERY;
+	unsigned drawing_area_width = 
+		2*GTK_BORDERX + (GTK_WIDTH-2*GTK_BORDERX)*zoom;
+		
 
-	gdk_window_clear_area(drawing_area->window,
-	  0, 0, 
-          drawing_area->allocation.width,
-          drawing_area->allocation.height);
+	gtk_drawing_area_size (GTK_DRAWING_AREA (drawing_area),
+		drawing_area_width , drawing_area_height);
+
+	gdk_window_clear_area(drawing_area->window, 0, 0,
+		drawing_area->allocation.width,
+		drawing_area->allocation.height);
 
 	gdk_draw_rectangle (pixmap,
-                      drawing_area->style->white_gc,
-                      TRUE,
-                      0, 0,
-                      drawing_area->allocation.width,
-                      drawing_area->allocation.height);
+		drawing_area->style->white_gc,
+		TRUE, 0, 0,
+		drawing_area->allocation.width,
+		drawing_area->allocation.height);
 
-        gdk_draw_pixmap(drawing_area->window,
-                  drawing_area->style->fg_gc[GTK_WIDGET_STATE (drawing_area)],
-                  pixmap,
-                  drawing_area->allocation.x, drawing_area->allocation.x,
-                  drawing_area->allocation.y, drawing_area->allocation.y,
-                  drawing_area->allocation.width, drawing_area->allocation.height);
-
-
+	gdk_draw_pixmap(drawing_area->window,
+		drawing_area->style->fg_gc[GTK_WIDGET_STATE (drawing_area)],
+		pixmap,
+		drawing_area->allocation.x, drawing_area->allocation.x,
+		drawing_area->allocation.y, drawing_area->allocation.y,
+		drawing_area->allocation.width,
+		drawing_area->allocation.height);
 
 	trace_gantt();	
 
 }
 
-void zoom_in_func( GtkWidget *widget  __attribute__ ((unused)), gpointer   data  __attribute__ ((unused)))
+void zoom_in_func( GtkWidget *widget  __attribute__ ((unused)),
+			gpointer   data  __attribute__ ((unused)))
 {
 	GtkAdjustment *hadjustment;
 
 	refresh();
-
 
 	hadjustment = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW (scrolled_window));
 	float ratio = (hadjustment->value - GTK_BORDERX)/(GTK_BORDERX + zoom*(GTK_WIDTH - 2*GTK_BORDERX));
@@ -311,9 +316,7 @@ void zoom_in_func( GtkWidget *widget  __attribute__ ((unused)), gpointer   data 
 
 	gtk_adjustment_set_value        (hadjustment, GTK_BORDERX + ratio*zoom*(GTK_WIDTH - 2*GTK_BORDERX));
 
-	printf("helllllo in zoom is now %d\n", zoom);
 	refresh();
-
 }
 
 void zoom_out_func( GtkWidget *widget __attribute__ ((unused)) , gpointer   data  __attribute__ ((unused)) )
@@ -328,7 +331,6 @@ void zoom_out_func( GtkWidget *widget __attribute__ ((unused)) , gpointer   data
 
 	gtk_adjustment_set_value        (hadjustment, GTK_BORDERX + ratio*zoom*(GTK_WIDTH - 2*GTK_BORDERX));
 
-	printf("helllllo out zoom is now %d\n", zoom);
 	refresh();
 }
 
@@ -339,115 +341,112 @@ int gtk_viewer_apps( int   argc, char *argv[], event_list_t *_events,
                         unsigned _nworkers, unsigned _maxq_size,
                         uint64_t _start_time, uint64_t _end_time)
 {
-
-    /* save the arguments */
-    events = _events;
-    taskq = _taskq;
-    worker_name = _worker_name;
-    nworkers = _nworkers;
-    maxq_size = _maxq_size;
-    start_time = _start_time;
-    end_time = _end_time;
-
-
-    static GtkWidget *window;
-    GtkWidget *close_button, *zoom_in_button, *zoom_out_button;
-    
-    gtk_init (&argc, &argv);
-    
-    /* Create a new dialog window for the scrolled window to be
-     * packed into.  */
-    window = gtk_dialog_new ();
-    gtk_signal_connect (GTK_OBJECT (window), "destroy",
-			(GtkSignalFunc) destroy, NULL);
-    gtk_window_set_title (GTK_WINDOW (window), "GtkScrolledWindow example");
-    gtk_container_set_border_width (GTK_CONTAINER (window), 0);
-    gtk_widget_set_usize(window, MIN(800, GTK_WIDTH),  MIN(600, nworkers*GTK_THICKNESS + (nworkers-1)*GTK_GAP+2*GTK_BORDERY+100));
-
-    
-    /* create a new scrolled window. */
-    scrolled_window = gtk_scrolled_window_new (NULL, NULL);
-    
-    gtk_container_set_border_width (GTK_CONTAINER (scrolled_window), 10);
-    
-    /* the policy is one of GTK_POLICY AUTOMATIC, or GTK_POLICY_ALWAYS.
-     * GTK_POLICY_AUTOMATIC will automatically decide whether you need
-     * scrollbars, whereas GTK_POLICY_ALWAYS will always leave the scrollbars
-     * there.  The first one is the horizontal scrollbar, the second, 
-     * the vertical. */
-    gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
-                                    GTK_POLICY_ALWAYS, GTK_POLICY_NEVER);
-    /* The dialog window is created with a vbox packed into it. */								
-    gtk_box_pack_start (GTK_BOX (GTK_DIALOG(window)->vbox), scrolled_window, 
-			TRUE, TRUE, 0);
-    gtk_widget_show (scrolled_window);
-    
-    /* the drawing box ... */
-    drawing_area = gtk_drawing_area_new ();
-    gtk_drawing_area_size (GTK_DRAWING_AREA (drawing_area), GTK_WIDTH , nworkers*GTK_THICKNESS + (nworkers-1)*GTK_GAP+2*GTK_BORDERY);
-
-
-    gtk_scrolled_window_add_with_viewport (
-                   GTK_SCROLLED_WINDOW (scrolled_window), drawing_area);
-    
-
-    init_colors(drawing_area);
-
-    gtk_widget_show (drawing_area);
-
-    /* Signals used to handle backing pixmap */
-    gtk_signal_connect (GTK_OBJECT (drawing_area), "expose_event",
-    	(GtkSignalFunc) expose_event, NULL);
-    gtk_signal_connect (GTK_OBJECT(drawing_area),"configure_event",
-    	(GtkSignalFunc) configure_event, NULL);
-
-    /* Event signals */
-    gtk_signal_connect (GTK_OBJECT (drawing_area), "motion_notify_event",
-    	(GtkSignalFunc) motion_notify_event, NULL);
-    gtk_signal_connect (GTK_OBJECT (drawing_area), "button_press_event",
-        (GtkSignalFunc) button_press_event, NULL);
-
-    gtk_widget_set_events (drawing_area, GDK_EXPOSURE_MASK
-    	| GDK_LEAVE_NOTIFY_MASK
-	| GDK_BUTTON_PRESS_MASK
-	| GDK_POINTER_MOTION_MASK
-	| GDK_POINTER_MOTION_HINT_MASK);
-
-    
-    /* Add a "close" button to the bottom of the dialog */
-    close_button = gtk_button_new_with_label ("close");
-    gtk_signal_connect_object (GTK_OBJECT (close_button), "clicked",
-			       (GtkSignalFunc) gtk_widget_destroy,
-			       GTK_OBJECT (window));
-    
-    /* this makes it so the button is the default. */
-    GTK_WIDGET_SET_FLAGS (close_button, GTK_CAN_DEFAULT);
-    gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->action_area), close_button, TRUE, TRUE, 0);
-    
-    /* This grabs this button to be the default button. Simply hitting
-     * the "Enter" key will cause this button to activate. */
-    gtk_widget_grab_default (close_button);
-    gtk_widget_show (close_button);
-    
-    zoom_in_button = gtk_button_new_with_label ("zoom in");
-    gtk_signal_connect_object (GTK_OBJECT (zoom_in_button), "clicked",
-			       (GtkSignalFunc) zoom_in_func,
-			       GTK_OBJECT (drawing_area));
- 
-    zoom_out_button = gtk_button_new_with_label ("zoom out");
-    gtk_signal_connect_object (GTK_OBJECT (zoom_out_button), "clicked",
-			       (GtkSignalFunc) zoom_out_func,
-			       GTK_OBJECT (drawing_area));
- 
-    gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->action_area), zoom_in_button, TRUE, TRUE, 0);
-    gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->action_area), zoom_out_button, TRUE, TRUE, 0);
-    gtk_widget_show (zoom_in_button);
-    gtk_widget_show (zoom_out_button);
-
-    gtk_widget_show (window);
-    
-    gtk_main();
-    
-    return(0);
+	
+	/* save the arguments */
+	events = _events;
+	taskq = _taskq;
+	worker_name = _worker_name;
+	nworkers = _nworkers;
+	maxq_size = _maxq_size;
+	start_time = _start_time;
+	end_time = _end_time;
+	
+	GtkWidget *close_button, *zoom_in_button, *zoom_out_button;
+	
+	gtk_init (&argc, &argv);
+	
+	/* Create a new dialog window for the scrolled window to be
+	 * packed into.  */
+	window = gtk_dialog_new ();
+	gtk_signal_connect (GTK_OBJECT (window), "destroy",
+	    		(GtkSignalFunc) destroy, NULL);
+	gtk_window_set_title (GTK_WINDOW (window), "GtkScrolledWindow example");
+	gtk_container_set_border_width (GTK_CONTAINER (window), 0);
+	gtk_widget_set_usize(window, MIN(800, GTK_WIDTH),  MIN(600, nworkers*GTK_THICKNESS + (nworkers-1)*GTK_GAP+2*GTK_BORDERY+100));
+	
+	/* create a new scrolled window. */
+	scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+	
+	gtk_container_set_border_width (GTK_CONTAINER (scrolled_window), 10);
+	
+	/* the policy is one of GTK_POLICY AUTOMATIC, or GTK_POLICY_ALWAYS.
+	 * GTK_POLICY_AUTOMATIC will automatically decide whether you need
+	 * scrollbars, whereas GTK_POLICY_ALWAYS will always leave the scrollbars
+	 * there.  The first one is the horizontal scrollbar, the second, 
+	 * the vertical. */
+	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
+	                                GTK_POLICY_ALWAYS, GTK_POLICY_NEVER);
+	/* The dialog window is created with a vbox packed into it. */								
+	gtk_box_pack_start (GTK_BOX (GTK_DIALOG(window)->vbox), scrolled_window, 
+	    		TRUE, TRUE, 0);
+	gtk_widget_show (scrolled_window);
+	
+	/* the drawing box ... */
+	drawing_area = gtk_drawing_area_new ();
+	gtk_drawing_area_size (GTK_DRAWING_AREA (drawing_area), GTK_WIDTH , nworkers*GTK_THICKNESS + (nworkers-1)*GTK_GAP+2*GTK_BORDERY);
+	
+	
+	gtk_scrolled_window_add_with_viewport (
+	               GTK_SCROLLED_WINDOW (scrolled_window), drawing_area);
+	
+	
+	init_colors(drawing_area);
+	
+	gtk_widget_show (drawing_area);
+	
+	/* Signals used to handle backing pixmap */
+	gtk_signal_connect (GTK_OBJECT (drawing_area), "expose_event",
+		(GtkSignalFunc) expose_event, NULL);
+	gtk_signal_connect (GTK_OBJECT(drawing_area),"configure_event",
+		(GtkSignalFunc) configure_event, NULL);
+	
+	/* Event signals */
+	gtk_signal_connect (GTK_OBJECT (drawing_area), "motion_notify_event",
+		(GtkSignalFunc) motion_notify_event, NULL);
+	gtk_signal_connect (GTK_OBJECT (drawing_area), "button_press_event",
+	    (GtkSignalFunc) button_press_event, NULL);
+	
+	gtk_widget_set_events (drawing_area, GDK_EXPOSURE_MASK
+		| GDK_LEAVE_NOTIFY_MASK
+	    | GDK_BUTTON_PRESS_MASK
+	    | GDK_POINTER_MOTION_MASK
+	    | GDK_POINTER_MOTION_HINT_MASK);
+	
+	
+	/* Add a "close" button to the bottom of the dialog */
+	close_button = gtk_button_new_with_label ("close");
+	gtk_signal_connect_object (GTK_OBJECT (close_button), "clicked",
+	    		       (GtkSignalFunc) gtk_widget_destroy,
+	    		       GTK_OBJECT (window));
+	
+	/* this makes it so the button is the default. */
+	GTK_WIDGET_SET_FLAGS (close_button, GTK_CAN_DEFAULT);
+	gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->action_area), close_button, TRUE, TRUE, 0);
+	
+	/* This grabs this button to be the default button. Simply hitting
+	 * the "Enter" key will cause this button to activate. */
+	gtk_widget_grab_default (close_button);
+	gtk_widget_show (close_button);
+	
+	zoom_in_button = gtk_button_new_with_label ("zoom in");
+	gtk_signal_connect_object (GTK_OBJECT (zoom_in_button), "clicked",
+	    		       (GtkSignalFunc) zoom_in_func,
+	    		       GTK_OBJECT (drawing_area));
+	
+	zoom_out_button = gtk_button_new_with_label ("zoom out");
+	gtk_signal_connect_object (GTK_OBJECT (zoom_out_button), "clicked",
+	    		       (GtkSignalFunc) zoom_out_func,
+	    		       GTK_OBJECT (drawing_area));
+	
+	gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->action_area), zoom_in_button, TRUE, TRUE, 0);
+	gtk_box_pack_start (GTK_BOX (GTK_DIALOG (window)->action_area), zoom_out_button, TRUE, TRUE, 0);
+	gtk_widget_show (zoom_in_button);
+	gtk_widget_show (zoom_out_button);
+	
+	gtk_widget_show (window);
+	
+	gtk_main();
+	
+	return(0);
 }
 /* example-end */

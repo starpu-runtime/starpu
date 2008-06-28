@@ -53,7 +53,6 @@ void *htbl_insert_tag(htbl_node_t **htbl, tag_t tag, void *entry)
 			/* TODO pad to change that 1 into 16 ? */
 			*current_htbl_ptr = calloc(sizeof(htbl_node_t), 1);
 			assert(*current_htbl_ptr);
-		//	printf("allocate new entry at bit %d (%p)\n", currentbit, current_htbl_ptr);
 		}
 
 		/* 0000000000001111 
@@ -68,9 +67,8 @@ void *htbl_insert_tag(htbl_node_t **htbl, tag_t tag, void *entry)
 		unsigned current_index = 
 			(tag & (offloaded_mask)) >> (last_currentbit);
 
-		//printf("index = %llx tag %llx mask = %llx\n", current_index, tag, offloaded_mask);
-
-		current_htbl_ptr = &((*current_htbl_ptr)->children[current_index]);
+		current_htbl_ptr = 
+			&((*current_htbl_ptr)->children[current_index]);
 	}
 
 	/* current_htbl either contains NULL or a previous entry 
@@ -80,58 +78,3 @@ void *htbl_insert_tag(htbl_node_t **htbl, tag_t tag, void *entry)
 
 	return old_entry;
 }
-
-#ifdef TEST_HTABLE
-#define NSAMPLE	20000
-
-tag_t tag_table[NSAMPLE];
-uint64_t entry_table[NSAMPLE];
-
-int main(int argc, char **argv)
-{
-	tag_t tag = 42 ;
-	tag_t tag1 = 42<<16 ;
-	tag_t tag2 = 42<<24 ;
-	printf("tag = %llx\n", tag);
-
-	htbl_node_t *htbl = NULL;
-
-	printf("htbl = %p\n", htbl);
-
-	unsigned i;
-
-	for (i = 0; i < NSAMPLE; i++)
-	{
-
-		tag_table[i] = (lrand48()<<10) +  lrand48();
-		entry_table[i] = (uint64_t)lrand48();
-		assert(entry_table[i]);
-
-		void *old;
-		old = htbl_insert_tag(&htbl, tag_table[i], (void *)entry_table[i]);
-		if (old != NULL) {
-			printf("i %d old %p\n", i, old);
-			i--;
-		}
-
-	}
-
-	for (i = 0; i < NSAMPLE; i++)
-	{
-		uint64_t entry;
-		entry = (uint64_t)htbl_search_tag(htbl, tag_table[i]);
-
-		//printf("tag %llx -> entry %llx\n", tag_table[i], entry);
-	
-		if (entry != entry_table[i])
-		{
-			printf("i %d entry = %p, entry_table[i] = %p\n", i, entry, entry_table[i]);
-			assert(0);
-		}
-	}
-
-
-	return 0;
-}
-
-#endif
