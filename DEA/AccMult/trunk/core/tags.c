@@ -104,7 +104,7 @@ static void tag_add_succ(tag_t id, cg_t *cg)
 	}
 	else {
 		/* where should that cg should be put in the array ? */
-		unsigned index = tag->nsuccs++;
+		unsigned index = ATOMIC_ADD(&tag->nsuccs, 1);
 		ASSERT(index < NMAXDEPS);
 
 		tag->succ[index] = cg;
@@ -115,7 +115,6 @@ static void tag_add_succ(tag_t id, cg_t *cg)
 
 void tag_declare(tag_t id, job_t *job)
 {
-	//printf("tag %llx is associated to job %p\n", id, *job);
 	TRACE_CODELET_TAG(id, *job);
 	(*job)->use_tag = 1;
 	
@@ -146,7 +145,6 @@ void tag_declare_deps(tag_t id, unsigned ndeps, ...)
 
 		/* id depends on dep_id
 		 * so cg should be among dep_id's successors*/
-//		printf("tag %llx depends on tag %llx\n", id, dep_id);
 		TRACE_CODELET_TAG_DEPS(id, dep_id);
 		tag_add_succ(dep_id, cg);
 	}
