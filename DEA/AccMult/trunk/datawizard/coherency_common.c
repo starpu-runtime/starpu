@@ -1,8 +1,10 @@
 /* this file is intended to be used by both gcc and
  *  spu-gcc so that we don't copy code twice ... */
 
-extern void driver_copy_data(data_state *state, uint32_t src_node_mask, uint32_t dst_node, unsigned donotread);
-extern void driver_copy_data_1_to_1(data_state *state, uint32_t node, uint32_t requesting_node, unsigned donotread);
+extern void driver_copy_data(data_state *state, uint32_t src_node_mask, 
+				uint32_t dst_node, unsigned donotread);
+extern void driver_copy_data_1_to_1(data_state *state, uint32_t node, 
+				uint32_t requesting_node, unsigned donotread);
 extern unsigned get_local_memory_node(void);
 
 void display_state(data_state *state)
@@ -30,7 +32,8 @@ void display_state(data_state *state)
 }
 
 /* this function will actually copy a valid data into the requesting node */
-static void copy_data_to_node(data_state *state, uint32_t requesting_node, unsigned donotread)
+static void copy_data_to_node(data_state *state, uint32_t requesting_node, 
+						 unsigned donotread)
 {
 	/* first find a valid copy, either a OWNER or a SHARED */
 	uint32_t node;
@@ -66,9 +69,11 @@ static void copy_data_to_node(data_state *state, uint32_t requesting_node, unsig
  * case 3 : invalid + write : 
  * 	no data copy + invalid->owner + (owner,shared)->invalid
  * case 4 : invalid + R/W : 
- * 	data copy + if (W) (invalid->owner + owner->invalid) else (invalid,owner->shared)
+ * 	data copy + if (W) (invalid->owner + owner->invalid) 
+ * 		    else (invalid,owner->shared)
  */
-/* NB : for SPU this is a pointer to the local copy which is not entirely fetched at first ! */
+/* NB : for SPU this is a pointer to the local copy which is not entirely 
+ * fetched at first ! */
 
 uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
 			uint8_t read, uint8_t write)
@@ -97,7 +102,8 @@ uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
 	}
 
 	if ((local_state == SHARED) && write) {
-		/* local node already has the data but it must invalidate other copies */
+		/* local node already has the data but it must invalidate 
+		 * other copies */
 		uint32_t node;
 		for (node = 0; node < MAXNODES; node++)
 		{
@@ -122,7 +128,7 @@ uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
 	/* the only remaining situation is that the local copy was invalid */
 	ASSERT(state->per_node[requesting_node].state == INVALID);
 
-	/* we first need to copy the data from either the owner or one of the sharer */
+	/* we need the data from either the owner or one of the sharer */
 	copy_data_to_node(state, requesting_node, !read);
 
 	if (write) {
@@ -181,7 +187,8 @@ uint32_t get_data_refcnt(data_state *state, uint32_t node)
 	return state->per_node[node].refcnt;
 }
 
-void write_through_data(data_state *state, uint32_t requesting_node, uint32_t write_through_mask)
+void write_through_data(data_state *state, uint32_t requesting_node, 
+					   uint32_t write_through_mask)
 {
 	if ((write_through_mask & ~(1<<requesting_node)) == 0) {
 		/* nothing will be done ... */
@@ -198,12 +205,14 @@ void write_through_data(data_state *state, uint32_t requesting_node, uint32_t wr
 			/* we need to commit the buffer on that node */
 			if (node != requesting_node) 
 			{
-//				printf("write_through_data %d -> %d \n", requesting_node, node);
-				/* the requesting node already has the data by definition */
-				driver_copy_data_1_to_1(state, requesting_node, node, 0);
+				/* the requesting node already has the data by
+				 * definition */
+				driver_copy_data_1_to_1(state, 
+						requesting_node, node, 0);
 			}
 				
-			/* now the data is shared among the nodes on the write_through_mask */
+			/* now the data is shared among the nodes on the
+			 * write_through_mask */
 			state->per_node[node].state = SHARED;
 		}
 	}
