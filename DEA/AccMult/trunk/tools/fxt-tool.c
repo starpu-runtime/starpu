@@ -111,6 +111,64 @@ void handle_end_codelet_body(void)
 	end_time = MAX(end_time, ev.time);
 }
 
+
+void handle_start_fetch_input(void)
+{
+	int worker;
+	worker = find_workder_id(ev.param[1]);
+
+	event_t e = event_new();
+	e->time =  ev.time;
+	e->mode = FETCHING;
+	event_list_push_back(events[worker], e);
+
+	end_time = MAX(end_time, ev.time);
+}
+
+void handle_end_fetch_input(void)
+{
+	int worker;
+	worker = find_workder_id(ev.param[1]);
+
+	event_t e = event_new();
+	e->time =  ev.time;
+	e->mode = IDLE;
+	event_list_push_back(events[worker], e);
+
+	end_time = MAX(end_time, ev.time);
+}
+
+
+
+
+void handle_start_push_output(void)
+{
+	int worker;
+	worker = find_workder_id(ev.param[1]);
+
+	event_t e = event_new();
+	e->time =  ev.time;
+	e->mode = PUSHING;
+	event_list_push_back(events[worker], e);
+
+	end_time = MAX(end_time, ev.time);
+}
+
+void handle_end_push_output(void)
+{
+	int worker;
+	worker = find_workder_id(ev.param[1]);
+
+	event_t e = event_new();
+	e->time =  ev.time;
+	e->mode = IDLE;
+	event_list_push_back(events[worker], e);
+
+	end_time = MAX(end_time, ev.time);
+}
+
+
+
 int maxq_size = 0;
 int curq_size = 0;
 
@@ -310,12 +368,16 @@ int main(int argc, char **argv)
 
 			/* check the memory transfer overhead */
 			case FUT_START_FETCH_INPUT:
+				handle_start_fetch_input();
 				break;
 			case FUT_END_FETCH_INPUT:
+				handle_end_fetch_input();
 				break;
 			case FUT_START_PUSH_OUTPUT:
+				handle_start_push_output();
 				break;
 			case FUT_END_PUSH_OUTPUT:
+				handle_end_push_output();
 				break;
 
 			case FUT_CODELET_TAG:

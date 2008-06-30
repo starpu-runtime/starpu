@@ -22,6 +22,8 @@
 
 typedef enum {
 	WORKING,
+	FETCHING,
+	PUSHING,
 	IDLE
 } worker_mode;
 

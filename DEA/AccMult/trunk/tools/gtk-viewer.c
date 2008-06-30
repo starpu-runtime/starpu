@@ -209,6 +209,12 @@ static void gtk_add_region(worker_mode color, uint64_t start, uint64_t end, unsi
 		case WORKING:
   			gdk_gc_set_foreground (gc, &green);
 			break;
+		case FETCHING:
+  			gdk_gc_set_foreground (gc, &blue);
+			break;
+		case PUSHING:
+  			gdk_gc_set_foreground (gc, &grey);
+			break;
 		case IDLE:
 		default:
   			gdk_gc_set_foreground (gc, &red);
