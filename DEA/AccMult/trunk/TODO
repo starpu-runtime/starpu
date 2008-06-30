@@ -1,0 +1,74 @@
+Open problems:
+	- how to merge cuda/cublas drivers ?
+		- driver could take something else than function pointers
+		- mix programmer's kernel and cublas functions
+	- dealing with MPI ?
+		- coarse grain size (MPI) + middle/fine grain locally
+	- how to implement a reduction or stencil kernels ?
+		- exemples : stencil, life game, SOR
+	- what about malleable tasks ?
+		- at some point, the task is scheduled onto several core
+		- put tasks in a "bag" and schedule them together
+			- think of the steady-state problems descriptions
+	- Asynchronous MSI
+		- biblio ?
+		- is it a real problem ?
+	- How to let the programmer model cost ?
+		- identical tasks
+		- well known BLAS (size based cost)
+		- fully irregular (eg. data mining)
+	- What about out-of-core computations ?
+		- really take a COMA approach ?
+	- How should the programmer express its scheduling requirements ?
+		- at compile time ?
+			- application specific tailored schedulers
+			- equivalent to some static scheduling if this is a 
+			  steady state problem..
+		- scheduling policy ?
+		- task graph = none, tree, DAG ?
+	- What about typed tasks ?
+		- priority
+		- static scheduler = type A + type B then type C etc...
+
+Application domains
+	- Dense linear algebra
+		- LU decomposition (ok ...)
+		- Cholesky, QR, ...
+	- Sparse Linear algebra
+		- PastiX
+		- SuperLU
+		- Sparse matrix-vector multiplication dummy example
+	- n-body problems
+		- particle-particle (O(n^2))
+		- Barnes-Hut -> handling trees ?
+		- Fast Multipole Method
+	- Signal Processing 
+		- Multimedia kernels
+			- cf Scalp apps ?
+			- stencils
+			- life game
+		- FFT
+			- some kernel filters ?
+		- data compression
+			- mpeg decoder (Scalp)
+		- data reconstruction from tomography ??
+	- Graph theory
+		- ASP
+		- TSP
+	- Data Mining
+		- replace Linda in DigDag ;)
+	- Logic, Formal algebra
+		- cf Evora ?
+	- ProHMPT ANR ...
+
+TODO:
+	- htable
+		- lock free
+		- *deallocation !*
+	- performance comparision:
+		- multithreaded MKL ?
+	- external libs
+		- linked with a dummy BLAS lib ?
+	- dynamically compiling apps makes sense ?
+		- apps only use codelets + the main does weird stuff
+		- drivers only call pop/push
