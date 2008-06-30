@@ -2,10 +2,6 @@
 
 #include "mult_cublas.h"
 
-#if 0
-static cublasStatus status;
-#endif
-
 extern int cublascounters[MAXCUBLASDEVS];
 
 unsigned get_cublas_device_count(void)
@@ -44,7 +40,7 @@ static int execute_job_on_cublas(job_t j)
 	return OK;
 }
 
-void stress_memory(void)
+static void stress_memory(void)
 {
 	char *strval;
 	strval = getenv("STRESS_MEM");

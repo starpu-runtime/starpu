@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include "comp_cuda.h"
-#include <core/jobs.h>
+//#include <core/jobs.h>
 #include <common/parameters.h>
 
 //#define MATA(x,y)	(datamatA[(x)+(y)*widthA])

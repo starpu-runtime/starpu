@@ -1,6 +1,7 @@
 #include <semaphore.h>
 #include <core/jobs.h>
 #include <core/workers.h>
+#include <core/tags.h>
 #include <common/timing.h>
 #include <common/util.h>
 #include <string.h>
@@ -321,7 +322,10 @@ void init_problem_callback(void *arg __attribute__((unused)))
 			jb->argcb = &jobcounter;
 			jb->cl = cl;
 
+			tag_t tag = ((((unsigned long long)(taskx))<<32) | (unsigned long long)(tasky));
 			jb->nbuffers = 3;
+
+			tag_declare(tag, &jb);
 
 			jb->buffers[0].state = get_sub_data(&A_state, 1, tasky);
 			jb->buffers[0].mode = R;

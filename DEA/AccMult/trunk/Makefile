@@ -50,6 +50,7 @@ ifeq ($(CUDA), 1)
 	NVCCFLAGS += -I$(CUDAINSTALLDIR)/include 
 	DEPENDENCIES += mult_cuda.o
 	EXTRADEP += comp_cuda.cubin 
+	LDFLAGS += -lcuda -L/usr/local/cuda/lib 
 endif
 
 ifeq ($(CUBLAS), 1)
