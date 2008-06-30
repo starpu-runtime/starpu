@@ -82,13 +82,13 @@ size_t do_free_mem_chunk(mem_chunk_t mc, unsigned node)
 
 	/* free the actual buffer */
 	liberate_memory_on_node(mc->data, node);
-
 	mem_chunk_delete(mc);
 
 	return size; 
 }
 
-void transfer_subtree_to_node(data_state *data, unsigned src_node, unsigned dst_node)
+void transfer_subtree_to_node(data_state *data, unsigned src_node, 
+						unsigned dst_node)
 {
 	unsigned i;
 	unsigned last = 0;
@@ -98,39 +98,39 @@ void transfer_subtree_to_node(data_state *data, unsigned src_node, unsigned dst_
 	{
 		/* this is a leaf */
 		switch(data->per_node[src_node].state) {
-			case OWNER:
-				/* the local node has the only copy */
-				/* the owner is now the destination_node */
-				data->per_node[src_node].state = INVALID;
-				data->per_node[dst_node].state = INVALID;
+		case OWNER:
+			/* the local node has the only copy */
+			/* the owner is now the destination_node */
+			data->per_node[src_node].state = INVALID;
+			data->per_node[dst_node].state = INVALID;
 
-				driver_copy_data_1_to_1(data, src_node, dst_node, 0);
+			driver_copy_data_1_to_1(data, src_node, dst_node, 0);
 
-				break;
-			case SHARED:
-				/* some other node may have the copy */
-				data->per_node[src_node].state = INVALID;
+			break;
+		case SHARED:
+			/* some other node may have the copy */
+			data->per_node[src_node].state = INVALID;
 
-				/* count the number of copies */
-				cnt = 0;
-				for (i = 0; i < MAXNODES; i++)
-				{
-					if (data->per_node[i].state == SHARED) {
-						cnt++; 
-						last = i;
-					}
+			/* count the number of copies */
+			cnt = 0;
+			for (i = 0; i < MAXNODES; i++)
+			{
+				if (data->per_node[i].state == SHARED) {
+					cnt++; 
+					last = i;
 				}
+			}
 
-				if (cnt == 1)
-					data->per_node[last].state = OWNER;
+			if (cnt == 1)
+				data->per_node[last].state = OWNER;
 
-				break;
-			case INVALID:
-				/* nothing to be done */
-				break;
-			default:
-				ASSERT(0);
-				break;
+			break;
+		case INVALID:
+			/* nothing to be done */
+			break;
+		default:
+			ASSERT(0);
+			break;
 		}
 	}
 	else {
@@ -138,7 +138,8 @@ void transfer_subtree_to_node(data_state *data, unsigned src_node, unsigned dst_
 		int child;
 		for (child = 0; child < data->nchildren; child++)
 		{
-			transfer_subtree_to_node(&data->children[child], src_node, dst_node);
+			transfer_subtree_to_node(&data->children[child],
+							src_node, dst_node);
 		}
 	}
 }
@@ -265,16 +266,18 @@ void allocate_memory_on_node(data_state *state, uint32_t dst_node)
 
 	do {
 		switch(descr.nodes[dst_node]) {
-			case RAM:
-				addr = (uintptr_t) malloc(state->nx*state->ny*state->elemsize);
-				break;
+		case RAM:
+			addr = (uintptr_t)malloc(state->nx*state->ny
+							*state->elemsize);
+			break;
 #ifdef USE_CUBLAS
-			case CUBLAS_RAM:
-				cublasAlloc(state->nx*state->ny, state->elemsize, (void **)&addr); 
-				break;
+		case CUBLAS_RAM:
+			cublasAlloc(state->nx*state->ny,
+					state->elemsize, (void **)&addr); 
+			break;
 #endif
-			default:
-				ASSERT(0);
+		default:
+			ASSERT(0);
 		}
 
 		if (!addr) {
@@ -283,10 +286,11 @@ void allocate_memory_on_node(data_state *state, uint32_t dst_node)
 		
 	} while(!addr && attempts++ < 2);
 
-	/* TODO handle capacity misses */
+	/* we could really not handle that capacity misses */
 	ASSERT(addr);
 
-	register_mem_chunk(state, dst_node, state->nx*state->ny*state->elemsize);
+	register_mem_chunk(state, dst_node, 
+				state->nx*state->ny*state->elemsize);
 
 	state->per_node[dst_node].ptr = addr; 
 	state->per_node[dst_node].ld = state->nx; 
