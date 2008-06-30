@@ -6,7 +6,7 @@
 #include <core/jobs.h>
 
 /* randomly choosen ! */
-#define NMAXDEPS	1024
+#define NMAXDEPS	256
 
 #define TAG_SIZE        64
 typedef uint64_t tag_t;
@@ -34,7 +34,7 @@ typedef struct _cg_t {
 } cg_t;
 
 void notify_cg(cg_t *cg);
-//void tag_declare(tag_t id, job_t *job);
+//void tag_declare(tag_t id, struct job_t *job);
 void tag_declare_deps(tag_t id, unsigned ndeps, ...);
 
 #endif // __TAGS_H__

@@ -87,7 +87,7 @@ static void init_colors(GtkWidget *area)
 
 /* Create a new backing pixmap of the appropriate size */
 static gint configure_event( GtkWidget         *widget,
-                             GdkEventConfigure *event )
+                             GdkEventConfigure *event __attribute__ ((unused)))
 {
   if (pixmap)
     gdk_pixmap_unref(pixmap);
@@ -142,8 +142,8 @@ static void draw_brush( GtkWidget *widget,
 }
 
 
-static gint button_press_event( GtkWidget      *widget,
-                                GdkEventButton *event )
+static gint button_press_event( GtkWidget      *widget __attribute__ ((unused)),
+                                GdkEventButton *event  __attribute__((unused)))
 {
 //  if (event->button == 1 && pixmap != NULL)
 //    draw_brush (widget, event->x, event->y);
@@ -173,8 +173,8 @@ static gint motion_notify_event( GtkWidget *widget,
 }
 
 
-void destroy( GtkWidget *widget,
-              gpointer   data )
+void destroy( GtkWidget *widget __attribute__ ((unused)),
+              gpointer   data __attribute__ ((unused)))
 {
     gtk_main_quit();
 }
@@ -230,7 +230,7 @@ static void gtk_add_region(worker_mode color, uint64_t start, uint64_t end, unsi
 }
 
 static void gtk_display_worker(event_list_t worker_events, unsigned worker,
-	char *worker_name)
+	char *worker_name __attribute__ ((unused)))
 {
 	uint64_t prev = start_time;
 	worker_mode prev_state = IDLE;
@@ -247,7 +247,7 @@ static void gtk_display_worker(event_list_t worker_events, unsigned worker,
 	}
 }
 
-void trace_gantt()
+void trace_gantt(void)
 {
 //   GdkRectangle update_rect;
 //
@@ -274,7 +274,7 @@ void trace_gantt()
   }
 }
 
-void refresh()
+void refresh(void)
 {
 
 	unsigned drawing_area_height = 

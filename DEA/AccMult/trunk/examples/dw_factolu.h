@@ -9,12 +9,15 @@
 #include <string.h>
 #include <math.h>
 
-
 #include <cblas.h>
 
 #include <datawizard/coherency.h>
 #include <datawizard/hierarchy.h>
 #include <datawizard/filters.h>
+
+#ifdef USE_CUBLAS
+#include <cuda.h>
+#endif
 
 typedef struct {
 	data_state *dataA;

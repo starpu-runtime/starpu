@@ -270,7 +270,7 @@ void init_problem_codelet (__attribute__((unused)) buffer_descr *descr, __attrib
 
 int jobcounter;
 
-void init_problem_callback(void *arg)
+void init_problem_callback(void *arg __attribute__((unused)))
 {
 #ifdef USE_FXT
 	fxt_register_thread(0);

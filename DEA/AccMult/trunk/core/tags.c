@@ -82,6 +82,7 @@ void notify_dependencies(job_t *j)
 
 void notify_cg(cg_t *cg)
 {
+	ASSERT(cg);
 	unsigned ntags = ATOMIC_ADD(&cg->ntags, -1);
 	if (ntags == 0) {
 		/* the group is now completed */
@@ -104,7 +105,7 @@ static void tag_add_succ(tag_t id, cg_t *cg)
 	}
 	else {
 		/* where should that cg should be put in the array ? */
-		unsigned index = ATOMIC_ADD(&tag->nsuccs, 1);
+		unsigned index = ATOMIC_ADD(&tag->nsuccs, 1) - 1;
 		ASSERT(index < NMAXDEPS);
 
 		tag->succ[index] = cg;

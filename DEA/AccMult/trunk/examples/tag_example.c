@@ -10,6 +10,8 @@
 #include <signal.h>
 #include <core/tags.h>
 
+void tag_declare(tag_t id, job_t *job);
+
 void callback_core(void *argcb)
 {
 	printf("callback core\n");
@@ -28,7 +30,7 @@ void core_codelet(void *_args)
 
 
 
-int main(int argc, char **argv)
+int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 {
 	init_machine();
 	init_workers();
@@ -65,7 +67,6 @@ int main(int argc, char **argv)
 
 	cl2.cl_arg = NULL;
 	cl2.core_func = core_codelet;
-
 
 	cl3.cl_arg = NULL;
 	cl3.core_func = core_codelet;

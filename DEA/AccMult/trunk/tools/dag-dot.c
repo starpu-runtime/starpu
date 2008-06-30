@@ -23,5 +23,6 @@ void terminate_dat_dot(void)
 
 void add_deps(uint64_t child, uint64_t father)
 {
-	fprintf(out_file, "\t \"%llx\"->\"%llx\"\n", father, child);
+	fprintf(out_file, "\t \"%llx\"->\"%llx\"\n", 
+		(unsigned long long)father, (unsigned long long)child);
 }
