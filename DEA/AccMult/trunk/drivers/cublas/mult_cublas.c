@@ -22,7 +22,8 @@ static int execute_job_on_cublas(job_t j)
 			fetch_codelet_input(j->buffers, j->nbuffers);
 
 			TRACE_START_CODELET_BODY(j);
-			j->cl->cublas_func(j->buffers, j->cl->cl_arg);
+			cl_func func = j->cl->cublas_func;
+			func(j->buffers, j->cl->cl_arg);
 			cuCtxSynchronize();
 			TRACE_END_CODELET_BODY(j);
 

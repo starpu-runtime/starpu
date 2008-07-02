@@ -12,7 +12,8 @@ void execute_job_on_core(job_t j)
 			fetch_codelet_input(j->buffers, j->nbuffers);
 
 			TRACE_START_CODELET_BODY(j);
-			j->cl->core_func(j->buffers, j->cl->cl_arg);
+			cl_func func = j->cl->core_func;
+			func(j->buffers, j->cl->cl_arg);
 			TRACE_END_CODELET_BODY(j);
 
 			push_codelet_output(j->buffers, j->nbuffers, 0);

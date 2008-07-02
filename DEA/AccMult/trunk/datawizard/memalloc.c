@@ -246,13 +246,14 @@ void liberate_memory_on_node(data_state *state, uint32_t node)
 		case RAM:
 			free((void*)state->per_node[node].ptr);
 			break;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case CUBLAS_RAM:
+		case CUDA_RAM:
 			cublasFree((void*)state->per_node[node].ptr);
 			break;
 #endif
 		default:
-			ASSERT(0);
+			assert(0);
 	}
 
 	state->per_node[node].allocated = 0;
@@ -270,7 +271,8 @@ void allocate_memory_on_node(data_state *state, uint32_t dst_node)
 			addr = (uintptr_t)malloc(state->nx*state->ny
 							*state->elemsize);
 			break;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
+		case CUDA_RAM:
 		case CUBLAS_RAM:
 			cublasAlloc(state->nx*state->ny,
 					state->elemsize, (void **)&addr); 

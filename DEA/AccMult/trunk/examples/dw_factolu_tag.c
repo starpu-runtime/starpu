@@ -43,7 +43,8 @@ static inline void dw_common_core_codelet_update_u22(buffer_descr *buffers, int 
 			flop_atlas += BLAS3_FLOP(dx, dy, dz);
 
 			break;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
+
 		case 1:
 			cublasSgemm('n', 'n', dx, dy, dz, -1.0f, left, ld21,
 					right, ld12, 1.0f, center, ld22);
@@ -62,7 +63,7 @@ static void dw_core_codelet_update_u22(buffer_descr *descr, void *_args)
 	dw_common_core_codelet_update_u22(descr, 0, _args);
 }
 
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 static void dw_cublas_codelet_update_u22(buffer_descr *descr, void *_args)
 {
 	dw_common_core_codelet_update_u22(descr, 1, _args);
@@ -92,7 +93,7 @@ static inline void dw_common_codelet_update_u12(buffer_descr *buffers, int s, __
 			cblas_strsm(CblasRowMajor, CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit,
 					 nx12, ny12, 1.0f, sub11, ld11, sub12, ld12);
 			break;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case 1:
 			cublasStrsm('R', 'U', 'N', 'N', ny12, nx12,
 					1.0f, sub11, ld11, sub12, ld12);
@@ -109,7 +110,7 @@ static void dw_core_codelet_update_u12(buffer_descr *descr, void *_args)
 	 dw_common_codelet_update_u12(descr, 0, _args);
 }
 
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 static void dw_cublas_codelet_update_u12(buffer_descr *descr, void *_args)
 {
 	 dw_common_codelet_update_u12(descr, 1, _args);
@@ -138,7 +139,7 @@ static inline void dw_common_codelet_update_u21(buffer_descr *buffers, int s, __
 			cblas_strsm(CblasRowMajor, CblasRight, CblasUpper, CblasNoTrans, 
 				CblasUnit, nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case 1:
 			cublasStrsm('L', 'L', 'N', 'U', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
@@ -154,7 +155,7 @@ static void dw_core_codelet_update_u21(buffer_descr *descr, void *_args)
 	 dw_common_codelet_update_u21(descr, 0, _args);
 }
 
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 static void dw_cublas_codelet_update_u21(buffer_descr *descr, void *_args)
 {
 	dw_common_codelet_update_u21(descr, 1, _args);
@@ -193,7 +194,7 @@ static inline void dw_common_codelet_update_u11(buffer_descr *descr, int s, __at
 		
 			}
 			break;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case 1:
 			for (z = 0; z < nx; z++)
 			{
@@ -225,7 +226,7 @@ static void dw_core_codelet_update_u11(buffer_descr *descr, void *_args)
 	dw_common_codelet_update_u11(descr, 0, _args);
 }
 
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 static void dw_cublas_codelet_update_u11(buffer_descr *descr, void *_args)
 {
 	dw_common_codelet_update_u11(descr, 1, _args);
@@ -266,7 +267,7 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 	job_t job = create_job(TAG11(k));
 
 	job->cl->core_func = dw_core_codelet_update_u11;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job->cl->cublas_func = dw_cublas_codelet_update_u11;
 #endif
 
@@ -296,7 +297,7 @@ static void create_task_12(data_state *dataA, unsigned k, unsigned i)
 //	printf("task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i));
 
 	job->cl->core_func = dw_core_codelet_update_u12;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job->cl->cublas_func = dw_cublas_codelet_update_u12;
 #endif
 
@@ -322,7 +323,7 @@ static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 //	printf("task 21 k,j = %d,%d TAG = %llx\n", k,j, TAG21(k,j));
 	
 	job->cl->core_func = dw_core_codelet_update_u21;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job->cl->cublas_func = dw_cublas_codelet_update_u21;
 #endif
 	
@@ -348,7 +349,7 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
 //	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j));
 
 	job->cl->core_func = dw_core_codelet_update_u22;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job->cl->cublas_func = dw_cublas_codelet_update_u22;
 #endif
 
@@ -378,11 +379,7 @@ static void dw_codelet_facto_v3(data_state *dataA, unsigned nblocks)
 {
 
 	/* create a new codelet */
-	codelet *cl = malloc(sizeof(codelet));
-	cl_args *args = malloc(sizeof(cl_args));
-
 	sem_t sem;
-
 	sem_init(&sem, 0, 0U);
 
 	job_t entry_job;

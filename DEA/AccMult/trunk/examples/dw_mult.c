@@ -18,7 +18,7 @@
 
 #include <common/fxt.h>
 
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 #include <cuda.h>
 #endif
 
@@ -128,7 +128,9 @@ void callback_func(void *arg)
 	ldB = descr[1].ld;		\
 	ldC = descr[2].ld;
 
-#ifdef USE_CUBLAS
+
+
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 void cublas_mult(buffer_descr *descr, __attribute__((unused)) void *arg)
 {
 	COMMON_CODE
@@ -221,7 +223,7 @@ void init_problem_codelet (__attribute__((unused)) buffer_descr *descr, __attrib
 {
 	unsigned i,j;
 
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 	if (pin) {
 		cuMemAllocHost((void **)&A, zdim*ydim*sizeof(float));
 		cuMemAllocHost((void **)&B, xdim*zdim*sizeof(float));
@@ -311,7 +313,7 @@ void init_problem_callback(void *arg __attribute__((unused)))
 
 			cl->cl_arg = NULL;
 			cl->core_func = core_mult;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 			cl->cublas_func = cublas_mult;
 #endif
 
@@ -349,16 +351,16 @@ void init_problem(void)
 
 			cl->cl_arg = NULL;
 			cl->core_func = init_problem_codelet;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 			cl->cublas_func = init_problem_codelet;
 #endif
 
 	jb = job_new();
 	jb->type = CODELET;
-#ifndef USE_CUBLAS
-	jb->where = ANY;
-#else
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 	jb->where = GPU;
+#else
+	jb->where = ANY;
 #endif
 	jb->cb = init_problem_callback;
 	jb->argcb = NULL;

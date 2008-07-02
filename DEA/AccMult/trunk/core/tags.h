@@ -35,6 +35,7 @@ typedef struct _cg_t {
 
 void notify_cg(cg_t *cg);
 //void tag_declare(tag_t id, struct job_t *job);
+//void notify_dependencies(struct job_t *j)
 void tag_declare_deps(tag_t id, unsigned ndeps, ...);
 
 #endif // __TAGS_H__

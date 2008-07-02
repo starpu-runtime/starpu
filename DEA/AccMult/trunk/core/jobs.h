@@ -34,50 +34,16 @@ typedef void (*cl_func)(buffer_descr *, void *);
 #define SPU_MAY_PERFORM(j)	( (j)->where == ANY || (j)->where == SPU )
 #define GORDON_MAY_PERFORM(j)	( (j)->where == ANY || (j)->where == GORDON )
 
-#ifdef USE_CUDA
-typedef struct cuda_matrix_t {
-	CUdeviceptr matdata;
-	CUdeviceptr matheader;
-} cuda_matrix;
-#endif
-
-#ifdef USE_CUBLAS
-typedef struct cublas_matrix_t {
-	float *dev_data;
-} cublas_matrix;
-#endif
-
-typedef struct matrix_t {
-	float *data;
-	unsigned width;
-	unsigned heigth;
-	/* XXX put a flag to tell which copy are available */
-#ifdef USE_CUDA
-	cuda_matrix cuda_data;
-#endif
-#ifdef USE_CUBLAS
-	cublas_matrix cublas_data;
-#endif
-} matrix;
-
-typedef struct submatrix_t {
-	matrix *mat;
-	unsigned xa;
-	unsigned xb;
-	unsigned ya;
-	unsigned yb;
-} submatrix;
-
 /*
  * A codelet describes the various function 
  * that may be called from a worker ... XXX
  */
 typedef struct codelet_t {
-	cl_func cuda_func;
-	cl_func cublas_func;
-	cl_func core_func;
-	cl_func spu_func;
-	cl_func gordon_func;
+	void *cuda_func;
+	void *cublas_func;
+	void *core_func;
+	void *spu_func;
+	void *gordon_func;
 	void *cl_arg;
 } codelet;
 
@@ -94,10 +60,6 @@ LIST_TYPE(job,
 	unsigned use_tag;
 	unsigned nbuffers;
 	buffer_descr buffers[NMAXBUFS];
-#ifdef USE_CUDA
-	CUdeviceptr device_job ;
-	CUdeviceptr toto;
-#endif
 );
 
 typedef struct job_descr_t {

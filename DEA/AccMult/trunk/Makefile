@@ -2,7 +2,7 @@ export
 
 CC=gcc -m64
 NVCC = nvcc
-CFLAGS += -g -O3 -Wall #-fPIC
+CFLAGS += -g -O0 -Wall #-fPIC
 CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs   -fno-strict-aliasing
 
 
@@ -24,7 +24,7 @@ endif
 
 LDFLAGS+= -lm
 
-DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o matrix.o
+DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o
 EXTRADEP=
 
 ifeq ($(MARCEL), 1)
@@ -51,6 +51,7 @@ ifeq ($(CUDA), 1)
 	DEPENDENCIES += mult_cuda.o
 	EXTRADEP += comp_cuda.cubin 
 	LDFLAGS += -lcuda -L/usr/local/cuda/lib 
+	LDFLAGS += -lcublas
 endif
 
 ifeq ($(CUBLAS), 1)

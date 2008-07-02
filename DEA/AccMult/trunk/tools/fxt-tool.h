@@ -53,5 +53,9 @@ extern int gtk_viewer_apps( int   argc, char *argv[], event_list_t *events,
 			uint64_t _start_time, uint64_t _end_time);
 #endif
 
+extern void svg_engine_generate_output(event_list_t *events, 
+	workq_list_t taskq, char **worker_name, unsigned nworkers,
+	unsigned maxq_size, uint64_t _start_time, uint64_t _end_time,
+	char *path);
 
 #endif // __FXT_TOOL_H__

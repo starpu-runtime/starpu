@@ -2,7 +2,7 @@ CFLAGS+= -I$(ATLASDIR)/include/
 LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
 LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
 
-DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o matrix.o
+DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o
 EXTRADEP=
 
 ifeq ($(MARCEL), 1)

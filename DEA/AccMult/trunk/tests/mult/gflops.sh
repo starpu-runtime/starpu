@@ -35,7 +35,7 @@ trace_size()
 		if [ $tile -lt $size -a $nblocks -lt 32 -a $(($size % $tile)) == 0 ];
 		then
 			echo "start tile $tile size $size nblocks $nblocks  "
-			timing=`$ROOTDIR/examples/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null`
+			timing=`$ROOTDIR/examples/dw_mult -pin -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null`
 		else
 			timing="x"
 		fi

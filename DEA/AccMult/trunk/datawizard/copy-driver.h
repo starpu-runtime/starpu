@@ -4,7 +4,7 @@
 #include "coherency.h"
 #include "memalloc.h"
 
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 #include <cublas.h>
 #endif
 

@@ -562,7 +562,7 @@ void parse_args(int argc, char **argv)
 	}
 }
 
-extern initialize_system(float **A, float **B, unsigned dim, unsigned pinned);
+extern void initialize_system(float **A, float **B, unsigned dim, unsigned pinned);
 
 int main(int argc, char **argv)
 {

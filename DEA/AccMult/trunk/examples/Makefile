@@ -23,7 +23,7 @@ ifdef OPENGL_RENDER
 	LDFLAGS+=-lglut -lGL -lGLU 
 endif
 
-DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o matrix.o
+DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o
 EXTRADEP=
 
 ifeq ($(MARCEL), 1)
@@ -119,7 +119,7 @@ NVCCFLAGS += -I$(CUTILDIR)/inc/
 LDFLAGS += -L../core/ -L../common/
 CFLAGS += -I../
 
-OBJDEPS += ../common/matrix.o ../common/threads.o ../common/timing.o 
+OBJDEPS += ../common/threads.o ../common/timing.o 
 OBJDEPS += ../core/jobs.o ../core/workers.o ../core/tags.o ../core/htable.o
 OBJDEPS += ../common/mutex.o ../common/rwlock.o 
 
@@ -179,12 +179,6 @@ dw_mult: dw_mult.o
 multiplication: multiplication.o
 	$(CC) multiplication.o -o multiplication $(OBJDEPS) $(LDFLAGS) 
 
-factoLU: factoLU.o
-	$(CC) factoLU.o -o factoLU $(OBJDEPS) $(LDFLAGS) 
-
-factoLU.o: factoLU.c
-	$(CC) $(CFLAGS) factoLU.c -c -o factoLU.o
-
 heat.o: heat.c
 	$(CC) $(CFLAGS) heat.c -c -o heat.o
 
@@ -197,4 +191,4 @@ tag_example: tag_example.o
 
 
 clean:
-	@rm -f multiplication multiplication2 factoLU heat gpuirq incrementer dw_mult dw_factolu *.o
+	@rm -f tag_example multiplication multiplication2 heat gpuirq incrementer dw_mult dw_factolu *.o

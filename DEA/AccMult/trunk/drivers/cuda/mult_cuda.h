@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <cuda.h>
 #include <cuda_runtime_api.h>
+#include <cublas.h>
 #include <common/util.h>
 #include <common/parameters.h>
 #include <core/jobs.h>

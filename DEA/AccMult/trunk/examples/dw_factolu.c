@@ -60,7 +60,7 @@ static inline void dw_common_core_codelet_update_u22(buffer_descr *buffers, int 
 			flop_atlas += BLAS3_FLOP(dx, dy, dz);
 
 			break;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case 1:
 			cublasSgemm('n', 'n', dx, dy, dz, -1.0f, left, ld21,
 					right, ld12, 1.0f, center, ld22);
@@ -79,7 +79,7 @@ void dw_core_codelet_update_u22(buffer_descr *descr, void *_args)
 	dw_common_core_codelet_update_u22(descr, 0, _args);
 }
 
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 void dw_cublas_codelet_update_u22(buffer_descr *descr, void *_args)
 {
 	dw_common_core_codelet_update_u22(descr, 1, _args);
@@ -109,7 +109,7 @@ static inline void dw_common_codelet_update_u12(buffer_descr *buffers, int s, __
 			cblas_strsm(CblasRowMajor, CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit,
 					 nx12, ny12, 1.0f, sub11, ld11, sub12, ld12);
 			break;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case 1:
 			cublasStrsm('R', 'U', 'N', 'N', ny12, nx12,
 					1.0f, sub11, ld11, sub12, ld12);
@@ -126,7 +126,7 @@ void dw_core_codelet_update_u12(buffer_descr *descr, void *_args)
 	 dw_common_codelet_update_u12(descr, 0, _args);
 }
 
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 void dw_cublas_codelet_update_u12(buffer_descr *descr, void *_args)
 {
 	 dw_common_codelet_update_u12(descr, 1, _args);
@@ -155,7 +155,7 @@ static inline void dw_common_codelet_update_u21(buffer_descr *buffers, int s, __
 			cblas_strsm(CblasRowMajor, CblasRight, CblasUpper, CblasNoTrans, 
 				CblasUnit, nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case 1:
 			cublasStrsm('L', 'L', 'N', 'U', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
@@ -171,7 +171,7 @@ void dw_core_codelet_update_u21(buffer_descr *descr, void *_args)
 	 dw_common_codelet_update_u21(descr, 0, _args);
 }
 
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 void dw_cublas_codelet_update_u21(buffer_descr *descr, void *_args)
 {
 	dw_common_codelet_update_u21(descr, 1, _args);
@@ -210,7 +210,7 @@ static inline void dw_common_codelet_update_u11(buffer_descr *descr, int s, __at
 		
 			}
 			break;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case 1:
 			for (z = 0; z < nx; z++)
 			{

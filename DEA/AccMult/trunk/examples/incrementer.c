@@ -53,7 +53,7 @@ void core_codelet(buffer_descr *buffers, __attribute__ ((unused)) void *_args)
 	val[0] += 1.0f; val[1] += 1.0f;
 }
 
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 void cublas_codelet(buffer_descr *buffers, __attribute__ ((unused)) void *_args)
 {
 	float *val = (float *)buffers[0].ptr;
@@ -158,13 +158,13 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 
 	cl.cl_arg = my_float_state;
 	cl.core_func = core_codelet;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 	cl.cublas_func = cublas_codelet;
 #endif
 
 	cl2.cl_arg = my_float_state2;
 	cl2.core_func = core_codelet;
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 	cl2.cublas_func = cublas_codelet;
 #endif
 

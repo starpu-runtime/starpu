@@ -34,23 +34,24 @@ void init_context(int devid)
 	if ( CUDA_SUCCESS != status )
 		goto error;
 
-	status = cuModuleLoad(&cuModule, module_path);
-	if ( CUDA_SUCCESS != status )
-		goto error;
-	
-	status = cuModuleGetFunction( &dummyMatrixMul, cuModule, "cuda_mult" );
-	if ( CUDA_SUCCESS != status )
-		goto error;
-
-	/* launch the kernel */
-	status = cuFuncSetBlockShape( dummyMatrixMul, BLOCKDIMX, BLOCKDIMY, 1);
-	if ( CUDA_SUCCESS != status )
-		goto error;
-	
- 	status = cuFuncSetSharedSize(dummyMatrixMul, SHMEMSIZE);
-	if ( CUDA_SUCCESS != status )
-		goto error;
-
+//	status = cuModuleLoad(&cuModule, module_path);
+//	if ( CUDA_SUCCESS != status )
+//		goto error;
+//	
+//	status = cuModuleGetFunction( &dummyMatrixMul, cuModule, "cuda_mult" );
+//	if ( CUDA_SUCCESS != status )
+//		goto error;
+//
+//	/* launch the kernel */
+//	status = cuFuncSetBlockShape( dummyMatrixMul, BLOCKDIMX, BLOCKDIMY, 1);
+//	if ( CUDA_SUCCESS != status )
+//		goto error;
+//	
+// 	status = cuFuncSetSharedSize(dummyMatrixMul, SHMEMSIZE);
+//	if ( CUDA_SUCCESS != status )
+//		goto error;
+//
+	cublasInit();
 
 	return;
 error:
@@ -360,21 +361,30 @@ error:
 // 	thread_exit(NULL);
 // }
 
-int execute_job_on_cuda(job_t j)
+int execute_job_on_cuda(job_t j, unsigned use_cublas)
 {
 	int res;
 	job_descr * jd;
 
 	switch (j->type) {
 		case CODELET:
-			assert(j->cl);
-			assert(j->cl->cuda_func);
+			ASSERT(j);
+			ASSERT(j->cl);
+			fetch_codelet_input(j->buffers, j->nbuffers);
+
 			TRACE_START_CODELET_BODY(j);
-			//j->cl->cuda_func(j->cl->cl_arg);
+			cl_func func = use_cublas?
+				j->cl->cublas_func:j->cl->cuda_func;
+			ASSERT(func);
+			func(j->buffers, j->cl->cl_arg);
+			cuCtxSynchronize();
 			TRACE_END_CODELET_BODY(j);	
+
+			push_codelet_output(j->buffers, j->nbuffers, 1<<0);
 			break;
 		case ABORT:
 			printf("CUDA abort\n");
+			cublasShutdown();
 			thread_exit(NULL);
 			break;
 		default:
@@ -403,6 +413,7 @@ void *cuda_worker(void *arg)
 	set_local_memory_node_key(&(((cuda_worker_arg *)arg)->memory_node));
 
 	init_context(devid);
+	fprintf(stderr, "cuda thread is ready to run on CPU %d !\n", args->bindid);
 
 	//precondition_cuda(args->A, args->B, args->C);
 
@@ -417,15 +428,15 @@ void *cuda_worker(void *arg)
 		if (j == NULL) continue;
 
 		/* can CUDA do that task ? */
-		if (!CUDA_MAY_PERFORM(j))
+		if (!CUDA_MAY_PERFORM(j) && !CUBLAS_MAY_PERFORM(j))
 		{
+			/* this is neither a cuda or a cublas task */
 			push_task(j);
 			continue;
 		}
 
-
-		res = execute_job_on_cuda(j);
-
+		unsigned use_cublas = CUBLAS_MAY_PERFORM(j) ? 1:0;
+		res = execute_job_on_cuda(j, use_cublas);
 
 		if (res != OK) {
 			switch (res) {

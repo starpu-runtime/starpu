@@ -112,6 +112,30 @@ void copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst_node)
 }
 #endif // USE_CUBLAS
 
+
+#ifdef USE_CUDA
+void copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)
+{
+	cublasGetMatrix(state->nx, state->ny, state->elemsize, 
+		(uint8_t *)state->per_node[src_node].ptr,
+		state->per_node[src_node].ld,
+		(uint8_t *)state->per_node[dst_node].ptr,
+		state->per_node[dst_node].ld);
+
+}
+
+void copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst_node)
+{
+	cublasSetMatrix(state->nx, state->ny, state->elemsize, 
+		(uint8_t *)state->per_node[src_node].ptr,
+		state->per_node[src_node].ld,
+		(uint8_t *)state->per_node[dst_node].ptr,
+		state->per_node[dst_node].ld);
+}
+#endif // USE_CUDA
+
+
+
 void allocate_per_node_buffer(data_state *state, uint32_t node)
 {
 	if (!state->per_node[node].allocated) {
@@ -131,10 +155,13 @@ void do_copy_data_1_to_1(data_state *state, uint32_t src_node,
 			/* RAM -> RAM */
 			dummy_copy_ram_to_ram(state, src_node, dst_node);
 			break;
+#ifdef USE_CUDA
 		case CUDA_RAM:
 			/* CUDA_RAM -> RAM */
-			ASSERT(0); // TODO 
+			copy_cublas_to_ram(state, src_node, dst_node);
+			//ASSERT(0); // TODO 
 			break;
+#endif
 #ifdef USE_CUBLAS
 		case CUBLAS_RAM:
 			/* CUBLAS_RAM -> RAM */
@@ -154,10 +181,14 @@ void do_copy_data_1_to_1(data_state *state, uint32_t src_node,
 			break;
 		}
 	break;
+#ifdef USE_CUDA
 	case CUDA_RAM:
-	ASSERT(0); // TODO 
 	switch(descr.nodes[src_node]) {
 		case RAM:
+			/* RAM -> CUBLAS_RAM */
+			/* only the proper CUBLAS thread can initiate this ! */
+			ASSERT(get_local_memory_node() == dst_node);
+			copy_ram_to_cublas(state, src_node, dst_node);
 			break;
 		case CUDA_RAM:
 			break;
@@ -171,6 +202,7 @@ void do_copy_data_1_to_1(data_state *state, uint32_t src_node,
 			break;
 	}
 	break;
+#endif
 #ifdef USE_CUBLAS
 	case CUBLAS_RAM:
 	switch(descr.nodes[src_node]) {
@@ -234,7 +266,7 @@ void driver_copy_data_1_to_1(data_state *state, uint32_t src_node,
 
 }
 
-static uint32_t choose_src_node(data_state *state, uint32_t src_node_mask)
+static uint32_t choose_src_node(uint32_t src_node_mask)
 {
 	unsigned src_node = 0;
 	unsigned i;
@@ -263,7 +295,7 @@ static uint32_t choose_src_node(data_state *state, uint32_t src_node_mask)
 void driver_copy_data(data_state *state, uint32_t src_node_mask,
 					 uint32_t dst_node)
 {
-	uint32_t src_node = choose_src_node(state, src_node_mask);
+	uint32_t src_node = choose_src_node(src_node_mask);
 
 	driver_copy_data_1_to_1(state, src_node, dst_node, 0);
 }

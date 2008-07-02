@@ -33,7 +33,7 @@ ifdef USE_FXT
 	OPTTARGET+= fxt.o
 endif
 
-all: matrix.o threads.o mutex.o rwlock.o timing.o $(OPTTARGET)
+all: threads.o mutex.o rwlock.o timing.o $(OPTTARGET)
 
 fxt.o: fxt.h fxt.c
 	$(CC) $(CFLAGS) fxt.c -c -o fxt.o
@@ -46,9 +46,6 @@ rwlock.o: rwlock.c rwlock.h
 
 threads.o: threads.c threads.h
 	$(CC) $(CFLAGS) threads.c -c -o threads.o
-
-matrix.o: matrix.c util.h
-	$(CC) $(CFLAGS) matrix.c -c -o matrix.o
 
 timing.o: timing.c timing.h
 	$(CC) $(CFLAGS) timing.c -c -o timing.o

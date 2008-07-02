@@ -10,20 +10,18 @@
 #include <signal.h>
 #include <core/tags.h>
 
-void tag_declare(tag_t id, job_t *job);
-
-void callback_core(void *argcb)
+void callback_core(void *argcb __attribute__ ((unused)))
 {
 	printf("callback core\n");
 }
 
-void last_callback_core(void *argcb)
+void last_callback_core(void *argcb __attribute__ ((unused)))
 {
 	printf("callback core\n");
 	exit(0);
 }
 
-void core_codelet(void *_args)
+void core_codelet(void *_args __attribute__ ((unused)))
 {
 	printf("codelet core\n");
 }
