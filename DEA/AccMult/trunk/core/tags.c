@@ -93,12 +93,14 @@ void tag_add_succ(tag_t id, cg_t *cg)
 
 void notify_dependencies(struct job_s *j)
 {
+	struct _tag_s *tag;
+	unsigned succ;
+
 	ASSERT(j);
 	
 	if (j->use_tag) {
 		/* in case there are dependencies, wake up the proper tasks */
-		unsigned succ;
-		tag_s *tag = get_job_tag(j);
+		tag = j->tag;
 		for (succ = 0; succ < tag->nsuccs; succ++)
 		{
 			notify_cg(tag->succ[succ]);

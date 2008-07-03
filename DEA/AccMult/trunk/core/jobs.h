@@ -57,7 +57,7 @@ LIST_TYPE(job,
 	codelet *cl;
 	void *argcb;
 	int counter;	/* when this reaches 0 the callback can be executed */
-	struct tag_s *tag;
+	struct _tag_s *tag;
 	unsigned use_tag;
 	unsigned nbuffers;
 	buffer_descr buffers[NMAXBUFS];
@@ -81,7 +81,5 @@ void push_task(job_t task);
 void push_prio_task(job_t task);
 job_t pop_task(void);
 void push_task(job_t task);
-
-struct tag_s *get_job_tag(struct job_s *j);
 
 #endif // __JOBS_H__

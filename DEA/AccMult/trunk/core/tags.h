@@ -21,7 +21,7 @@ typedef enum {
 
 struct job_s;
 
-typedef struct {
+typedef struct _tag_s {
 	mutex lock; /* do we really need that ? */
 	tag_t id; /* an identifier for the task */
 	tag_state state;
@@ -32,13 +32,13 @@ typedef struct {
 
 typedef struct _cg_t {
 	unsigned ntags; /* number of remaining tags */
-	tag_s *tag; /* which tags depends on that cg ?  */
+	struct _tag_s *tag; /* which tags depends on that cg ?  */
 } cg_t;
 
 void notify_cg(cg_t *cg);
 void tag_declare_deps(tag_t id, unsigned ndeps, ...);
 
-cg_t *create_cg(unsigned ntags, tag_s *tag);
+cg_t *create_cg(unsigned ntags, struct _tag_s *tag);
 tag_s *get_tag_struct(tag_t id);
 void tag_add_succ(tag_t id, cg_t *cg);
 
