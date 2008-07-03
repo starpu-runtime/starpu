@@ -2,8 +2,6 @@
 
 #include "mult_cublas.h"
 
-extern int cublascounters[MAXCUBLASDEVS];
-
 unsigned get_cublas_device_count(void)
 {
 	/* XXX */
@@ -12,9 +10,6 @@ unsigned get_cublas_device_count(void)
 
 static int execute_job_on_cublas(job_t j)
 {
-	job_descr *jd;
-	jd = j->argcb;
-
 	switch (j->type){
 		case CODELET:
 			assert(j->cl);
@@ -63,7 +58,7 @@ void *cublas_worker(void *arg)
 {
 	struct cublas_worker_arg_t* args = (struct cublas_worker_arg_t*)arg;
 
-	int devid = args->deviceid;
+	//int devid = args->deviceid;
 
 #ifdef USE_FXT
 	fxt_register_thread(args->bindid);
@@ -122,8 +117,6 @@ void *cublas_worker(void *arg)
 		if (j->cb)
 			j->cb(j->argcb);
 		
-		cublascounters[devid]++;		
-
 		/* in case there are dependencies, wake up the proper tasks */
 		notify_dependencies(j);
 

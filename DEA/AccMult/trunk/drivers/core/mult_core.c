@@ -1,6 +1,5 @@
 #include "mult_core.h"
 
-extern int corecounters[NMAXCORES];
 extern unsigned ncores;
 
 void execute_job_on_core(job_t j)
@@ -71,8 +70,6 @@ void *core_worker(void *arg)
 
                 if (j->cb)
                         j->cb(j->argcb);
-
-                corecounters[core]++;
 
 		/* in case there are dependencies, wake up the proper tasks */
 		notify_dependencies(j);

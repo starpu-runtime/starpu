@@ -16,7 +16,7 @@ unsigned nblocks = 16;
 #define NODE_TO_THICK(n)		((n) % nthick)
 #define NODE_TO_THETA(n)		((n) / nthick)
 
-#define USE_POSTSCRIPT	1
+//#define USE_POSTSCRIPT	1
 
 typedef struct point_t {
 	float x;

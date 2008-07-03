@@ -8,27 +8,23 @@
 #ifdef USE_CPUS
 unsigned ncores;
 thread_t corethreads[NMAXCORES];
-int corecounters[NMAXCORES];
 core_worker_arg coreargs[NMAXCORES];
 #endif
 
 #ifdef USE_CUDA
 thread_t cudathreads[MAXCUDADEVS];
-int cudacounters[MAXCUDADEVS];
 cuda_worker_arg cudaargs[MAXCUDADEVS];
 extern int ncudagpus;
 #endif
 
 #ifdef USE_CUBLAS
 thread_t cublasthreads[MAXCUBLASDEVS];
-int cublascounters[MAXCUBLASDEVS];
 cublas_worker_arg cublasargs[MAXCUBLASDEVS];
 unsigned ncublasgpus;
 #endif
 
 #ifdef USE_SPU
 thread_t sputhreads[MAXSPUS];
-int spucounters[MAXSPUS];
 unsigned nspus;
 spu_worker_arg spuargs[MAXSPUS];
 #endif
@@ -139,8 +135,6 @@ void init_workers(void)
 	unsigned core;
 	for (core = 0; core < ncores; core++)
 	{
-		corecounters[core] = 0;
-
 		coreargs[core].bindid =
 			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
 
@@ -169,8 +163,6 @@ void init_workers(void)
 		cudaargs[cudadev].memory_node =
 			register_memory_node(CUDA_RAM);
 
-		cudacounters[cudadev] = 0;
-
 		thread_create(&cudathreads[cudadev], NULL, cuda_worker,
 				(void*)&cudaargs[cudadev]);
 
@@ -193,8 +185,6 @@ void init_workers(void)
 		cublasargs[cublasdev].memory_node =
 			register_memory_node(CUBLAS_RAM);
 
-		cublascounters[cublasdev] = 0;
-
 		thread_create(&cublasthreads[cublasdev], NULL, cublas_worker,
 			(void*)&cublasargs[cublasdev]);
 
@@ -216,8 +206,6 @@ void init_workers(void)
 
 		spuargs[spu].memory_node =
 			register_memory_node(SPU_LS);
-
-		spucounters[spu] = 0;
 
 		thread_create(&sputhreads[spu], NULL, spu_worker,
 			(void*)&spuargs[spu]);
@@ -317,88 +305,6 @@ void kill_all_workers(void)
 
 }
 
-
-int count_tasks(void)
-{
-	int total = 0;
-	unsigned i __attribute__ ((unused));
-
-#ifdef USE_CPUS
-	for (i = 0; i < ncores ; i++)
-	{
-		total += corecounters[i];
-	}
-#endif
-
-#ifdef USE_CUDA
-	for (i = 0; i < ncudagpus ; i++)
-	{
-		total += cudacounters[i];
-	}
-#endif
-
-#ifdef USE_CUBLAS
-	for (i = 0; i < ncublasgpus ; i++)
-	{
-		total += cublascounters[i];
-	}
-#endif
-
-#ifdef USE_SPU
-	for (i = 0; i < nspus ; i++)
-	{
-		total += spucounters[i];
-	}
-#endif
-
-	return total;
-}
-
-void display_general_stats()
-{
-	unsigned i __attribute__ ((unused));
-	int total __attribute__ ((unused));
-
-	total = count_tasks();
-
-#ifdef USE_CPUS
-	printf("CORES :\n");
-	for (i = 0; i < ncores ; i++)
-	{
-		printf("\tcore %d\t %d tasks\t%f %%\n", i, corecounters[i],
-			(100.0*corecounters[i])/total);
-	}
-#endif
-
-#ifdef USE_CUDA
-	printf("CUDA :\n");
-	for (i = 0; i < ncudagpus ; i++)
-	{
-		printf("\tdev %d\t %d tasks\t%f %%\n", i, cudacounters[i],
-			(100.0*cudacounters[i])/total);
-	}
-#endif
-
-#ifdef USE_CUBLAS
-	printf("CUBLAS :\n");
-	for (i = 0; i < ncublasgpus ; i++)
-	{
-		printf("\tblas %d\t %d tasks\t%f %%\n", i, cublascounters[i],
-			(100.0*cublascounters[i])/total);
-	}
-#endif
-
-#ifdef USE_SPU
-	printf("SPUs :\n");
-	for (i = 0; i < nspus ; i++)
-	{
-		printf("\tspu %d\t %d tasks\t%f %%\n", i, spucounters[i],
-			(100.0*spucounters[i])/total);
-	}
-#endif
-
-}
-
 void fetch_codelet_input(buffer_descr *descrs, unsigned nbuffers)
 {
 	TRACE_START_FETCH_INPUT(NULL);
@@ -433,16 +339,4 @@ void push_codelet_output(buffer_descr *descrs, unsigned nbuffers, uint32_t mask)
 	}
 
 	TRACE_END_PUSH_OUTPUT(NULL);
-}
-
-void display_stats(job_descr *jd)
-{
-#ifdef COMPARE_SEQ
-	float refchrono	= ((float)(timing_delay(&jd->job_refstart, &jd->job_refstop)));
-	printf("Ref time : %f ms\n", refchrono/1000);
-	printf("Speedup\t=\t%f\n", refchrono/chrono);
-#endif
-
-	float chrono = (float)(timing_delay(&jd->job_submission, &jd->job_finished));
-	printf("Computation time : %f ms\n", chrono/1000);
 }

@@ -42,7 +42,6 @@
 void init_machine(void);
 void init_workers(void);
 void terminate_workers(void);
-void display_stats(job_descr *);
 void kill_all_workers(void);
 void display_general_stats(void);
 

@@ -22,7 +22,7 @@
 #endif
 
 typedef enum {GPU, CUDA, CUBLAS, SPU, CORE, GORDON, ANY} cap;
-typedef enum {ADD, SUB, MUL, PART, PRECOND, CLEAN, ABORT, SGEMM, SAXPY, SGEMV, STRSM, STRSV, SGER, SSYR, SCOPY, CODELET} jobtype;
+typedef enum {ABORT, CODELET} jobtype;
 
 typedef void (*callback)(void *);
 /* codelet function */
@@ -62,19 +62,6 @@ LIST_TYPE(job,
 	unsigned nbuffers;
 	buffer_descr buffers[NMAXBUFS];
 );
-
-typedef struct job_descr_t {
-	int debug;
-	int counter;
-	callback f;
-	void *argf;
-	tick_t job_submission;
-	tick_t job_preconditionned;
-	tick_t job_computed;
-	tick_t job_finished;
-	tick_t job_refstart;
-	tick_t job_refstop;
-} job_descr;
 
 void init_work_queue(void);
 void push_task(job_t task);

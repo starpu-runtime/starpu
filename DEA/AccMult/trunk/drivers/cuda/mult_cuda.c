@@ -20,8 +20,6 @@ CUresult status;
 
 static CUfunction dummyMatrixMul = NULL;
 
-extern int cudacounters[MAXCUDADEVS];
-
 extern char *execpath;
 
 void init_context(int devid)
@@ -364,7 +362,6 @@ error:
 int execute_job_on_cuda(job_t j, unsigned use_cublas)
 {
 	int res;
-	job_descr * jd;
 
 	switch (j->type) {
 		case CODELET:
@@ -454,8 +451,6 @@ void *cuda_worker(void *arg)
 		if (j->cb)
 			j->cb(j->argcb);
 		
-		cudacounters[devid]++;		
-
                 /* in case there are dependencies, wake up the proper tasks */
                 notify_dependencies(j);
 
