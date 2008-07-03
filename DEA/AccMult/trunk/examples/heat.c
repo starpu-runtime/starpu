@@ -420,7 +420,7 @@ done:
 }
 
 #ifdef USE_POSTSCRIPT
-static void postscript_gen()
+static void postscript_gen(void)
 {
 	FILE *psfile;
 	psfile = fopen("output.ps", "w+");

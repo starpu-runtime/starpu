@@ -13,15 +13,15 @@
 #include <common/threads.h>
 #include <common/fxt.h>
 #include <core/tags.h>
+#include <stdarg.h>
 
 #include <datawizard/coherency.h>
 
-#ifdef USE_CUDA
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 #include <cuda.h>
 #endif
 
 typedef enum {GPU, CUDA, CUBLAS, SPU, CORE, GORDON, ANY} cap;
-
 typedef enum {ADD, SUB, MUL, PART, PRECOND, CLEAN, ABORT, SGEMM, SAXPY, SGEMV, STRSM, STRSV, SGER, SSYR, SCOPY, CODELET} jobtype;
 
 typedef void (*callback)(void *);
@@ -48,6 +48,7 @@ typedef struct codelet_t {
 } codelet;
 
 #define NMAXBUFS	8
+
 
 LIST_TYPE(job,
 	jobtype type;	/* what kind of job ? */
@@ -79,5 +80,8 @@ void init_work_queue(void);
 void push_task(job_t task);
 void push_prio_task(job_t task);
 job_t pop_task(void);
+void push_task(job_t task);
+
+struct tag_s *get_job_tag(struct job_s *j);
 
 #endif // __JOBS_H__

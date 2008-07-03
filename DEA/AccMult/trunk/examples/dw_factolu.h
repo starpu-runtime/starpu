@@ -46,19 +46,20 @@ typedef struct {
 
 #ifdef USE_CUBLAS
 
-static float *ptrA;
-static float *ptrB;
+static float **ptrA;
+static float **ptrB;
 static unsigned __dim;
 
 sem_t sem_malloc;
 
-static void malloc_pinned_codelet(buffer_descr *buffers, void *addr)
+static void malloc_pinned_codelet(buffer_descr *buffers __attribute__((unused)),
+					void *addr  __attribute__((unused)))
 {
 	cuMemAllocHost((void **)ptrA, __dim*__dim*sizeof(float));
 	cuMemAllocHost((void **)ptrB, __dim*sizeof(float));
 }
 
-static void malloc_pinned_callback(void *arg)
+static void malloc_pinned_callback(void *arg  __attribute__((unused)))
 {
 	sem_post(&sem_malloc);
 }

@@ -19,13 +19,15 @@ typedef enum {
 	BLOCKED
 } tag_state;
 
+struct job_s;
+
 typedef struct {
 	mutex lock; /* do we really need that ? */
 	tag_t id; /* an identifier for the task */
 	tag_state state;
 	unsigned nsuccs; /* how many successors ? */
 	struct _cg_t *succ[NMAXDEPS];
-	struct job_t *job; /* which job is associated to the tag if any ? */
+	struct job_s *job; /* which job is associated to the tag if any ? */
 } tag_s;
 
 typedef struct _cg_t {
@@ -34,8 +36,16 @@ typedef struct _cg_t {
 } cg_t;
 
 void notify_cg(cg_t *cg);
-//void tag_declare(tag_t id, struct job_t *job);
-//void notify_dependencies(struct job_t *j)
 void tag_declare_deps(tag_t id, unsigned ndeps, ...);
+
+cg_t *create_cg(unsigned ntags, tag_s *tag);
+tag_s *get_tag_struct(tag_t id);
+void tag_add_succ(tag_t id, cg_t *cg);
+
+void notify_dependencies(struct job_s *j);
+void tag_declare(tag_t id, struct job_s *job);
+void tag_declare_deps(tag_t id, unsigned ndeps, ...);
+void tag_set_ready(tag_s *tag);
+
 
 #endif // __TAGS_H__

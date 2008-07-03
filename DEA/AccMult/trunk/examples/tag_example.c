@@ -69,9 +69,9 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	cl3.cl_arg = NULL;
 	cl3.core_func = core_codelet;
 
-	tag_declare(42, &j);
-	tag_declare(1664, &j2);
-	tag_declare(10000000, &j3);
+	tag_declare(42, j);
+	tag_declare(1664, j2);
+	tag_declare(10000000, j3);
 
 	tag_declare_deps(1664, 1, 42);
 	tag_declare_deps(10000000, 2, 42, 1664);

@@ -73,3 +73,8 @@ job_t pop_task(void)
 	thread_mutex_unlock(&workq_mutex);
 	return j;
 }
+
+inline struct tag_s *get_job_tag(struct job_s *j)
+{
+	return j->tag;
+}

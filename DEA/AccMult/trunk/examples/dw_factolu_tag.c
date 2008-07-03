@@ -249,7 +249,7 @@ static job_t create_job(tag_t id)
 		j->argcb = NULL;;
 		j->cl = cl;	
 
-	tag_declare(id, &j);
+	tag_declare(id, j);
 
 	return j;
 }

@@ -7,7 +7,7 @@
 
 static htbl_node_t *tag_htbl = NULL;
 
-static cg_t *create_cg(unsigned ntags, tag_s *tag)
+cg_t *create_cg(unsigned ntags, tag_s *tag)
 {
 	cg_t *cg;
 
@@ -38,7 +38,7 @@ static tag_s *tag_init(tag_t id)
 	return tag;
 }
 
-static tag_s *get_tag_struct(tag_t id)
+tag_s *get_tag_struct(tag_t id)
 {
 	/* search if the tag is already declared or not */
 	tag_s *tag;
@@ -57,29 +57,6 @@ static tag_s *get_tag_struct(tag_t id)
 	return tag;
 }
 
-static void tag_set_ready(tag_s *tag)
-{
-	/* mark this tag as ready to run */
-	tag->state = READY;
-	/* declare it to the scheduler ! */
-	push_task(tag->job);
-}
-
-void notify_dependencies(job_t *j)
-{
-	ASSERT(j);
-
-	if ((*j)->use_tag) {
-		/* in case there are dependencies, wake up the proper tasks */
-		unsigned succ;
-		tag_s *tag = (*j)->tag;
-		for (succ = 0; succ < tag->nsuccs; succ++)
-		{
-			notify_cg(tag->succ[succ]);
-		}
-	}
-}
-
 void notify_cg(cg_t *cg)
 {
 	ASSERT(cg);
@@ -91,7 +68,7 @@ void notify_cg(cg_t *cg)
 	}
 }
 
-static void tag_add_succ(tag_t id, cg_t *cg)
+void tag_add_succ(tag_t id, cg_t *cg)
 {
 	/* find out the associated structure */
 	tag_s *tag = get_tag_struct(id);
@@ -114,40 +91,64 @@ static void tag_add_succ(tag_t id, cg_t *cg)
 	release_mutex(&tag->lock);
 }
 
-void tag_declare(tag_t id, job_t *job)
+void notify_dependencies(struct job_s *j)
 {
-	TRACE_CODELET_TAG(id, *job);
-	(*job)->use_tag = 1;
+	ASSERT(j);
+	
+	if (j->use_tag) {
+		/* in case there are dependencies, wake up the proper tasks */
+		unsigned succ;
+		tag_s *tag = get_job_tag(j);
+		for (succ = 0; succ < tag->nsuccs; succ++)
+		{
+			notify_cg(tag->succ[succ]);
+		}
+	}
+}
+
+void tag_declare(tag_t id, struct job_s *job)
+{
+	TRACE_CODELET_TAG(id, job);
+	job->use_tag = 1;
 	
 	tag_s *tag= get_tag_struct(id);
-	tag->job = *job;
-
-	(*job)->tag = tag;
+	tag->job = job;
+	
+	job->tag = tag;
 }
 
 void tag_declare_deps(tag_t id, unsigned ndeps, ...)
 {
 	unsigned i;
-
+	
 	/* create the associated completion group */
 	tag_s *tag_child = get_tag_struct(id);
 	cg_t *cg = create_cg(ndeps, tag_child);
-
+	
 	tag_child->state = BLOCKED;
-
+	
 	ASSERT(ndeps != 0);
-
+	
 	va_list pa;
 	va_start(pa, ndeps);
 	for (i = 0; i < ndeps; i++)
 	{
 		tag_t dep_id;
 		dep_id = va_arg(pa, tag_t);
-
+		
 		/* id depends on dep_id
 		 * so cg should be among dep_id's successors*/
 		TRACE_CODELET_TAG_DEPS(id, dep_id);
 		tag_add_succ(dep_id, cg);
 	}
 	va_end(pa);
+}
+
+void tag_set_ready(tag_s *tag)
+{
+	/* mark this tag as ready to run */
+	tag->state = READY;
+	/* declare it to the scheduler ! */
+	struct job_s *j = tag->job;
+	push_task(j);
 }

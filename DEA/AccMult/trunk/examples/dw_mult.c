@@ -327,7 +327,7 @@ void init_problem_callback(void *arg __attribute__((unused)))
 			tag_t tag = ((((unsigned long long)(taskx))<<32) | (unsigned long long)(tasky));
 			jb->nbuffers = 3;
 
-			tag_declare(tag, &jb);
+			tag_declare(tag, jb);
 
 			jb->buffers[0].state = get_sub_data(&A_state, 1, tasky);
 			jb->buffers[0].mode = R;
