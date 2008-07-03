@@ -169,6 +169,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 #endif
 
 	unsigned i;
+	tag_t tag;
 	for (i = 0; i < NITER; i++)
 	{
 
@@ -185,6 +186,9 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		j->buffers[1].state = &unity_state; 
 		j->buffers[1].mode = R;
 
+		tag =	((1ULL)<<32 | (unsigned long long)(i));
+		tag_declare(tag, j);
+
 		push_task(j);
 
 
@@ -200,6 +204,9 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		j->buffers[0].mode = RW;
 		j->buffers[1].state = &unity_state; 
 		j->buffers[1].mode = R;
+
+		tag =	((2ULL)<<32 | (unsigned long long)(i));
+		tag_declare(tag, j);
 
 		push_task(j);
 	}
