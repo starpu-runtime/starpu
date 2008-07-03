@@ -24,7 +24,7 @@ endif
 
 LDFLAGS+= -lm
 
-DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o
+DEPENDENCIES=comp.o threads.o mult.o jobs.o driver_core.o
 EXTRADEP=
 
 ifeq ($(MARCEL), 1)
@@ -48,7 +48,7 @@ ifeq ($(CUDA), 1)
 	NVCCFLAGS +=  -DUSE_CUDA 
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	NVCCFLAGS += -I$(CUDAINSTALLDIR)/include 
-	DEPENDENCIES += mult_cuda.o
+	DEPENDENCIES += driver_cuda.o
 	EXTRADEP += comp_cuda.cubin 
 	LDFLAGS += -lcuda -L/usr/local/cuda/lib 
 	LDFLAGS += -lcublas
@@ -67,7 +67,7 @@ endif
 	LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
 
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
-	DEPENDENCIES += mult_cublas.o
+	DEPENDENCIES += driver_cublas.o
 endif
 
 ifdef ATLAS

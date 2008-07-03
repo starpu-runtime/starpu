@@ -1,5 +1,5 @@
-#ifndef __MULT_H__
-#define __MULT_H__
+#ifndef __WORKERS_H__
+#define __WORKERS_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,23 +13,23 @@
 //#include "comp.h"
 
 #ifdef USE_CUDA
-#include <drivers/cuda/mult_cuda.h>
+#include <drivers/cuda/driver_cuda.h>
 #endif
 
 #ifdef USE_CUBLAS
-#include <drivers/cublas/mult_cublas.h>
+#include <drivers/cublas/driver_cublas.h>
 #endif
 
 #ifdef USE_SPU
-#include <drivers/spu/ppu/mult_spu.h>
+#include <drivers/spu/ppu/driver_spu.h>
 #endif
 
 #ifdef USE_GORDON
-#include <drivers/gordon/mult_gordon.h>
+#include <drivers/gordon/driver_gordon.h>
 #endif
 
 //#ifdef USE_CPUS
-#include <drivers/core/mult_core.h>
+#include <drivers/core/driver_core.h>
 //#endif
 
 #ifndef COMPARE_SEQ
@@ -48,4 +48,4 @@ void display_general_stats(void);
 void push_codelet_output(buffer_descr *descrs, unsigned nbuffers, uint32_t mask);
 void fetch_codelet_input(buffer_descr *descrs, unsigned nbuffers);
 
-#endif // __MULT_H__
+#endif // __WORKERS_H__

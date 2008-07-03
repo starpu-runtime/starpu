@@ -23,7 +23,7 @@ ifdef OPENGL_RENDER
 	LDFLAGS+=-lglut -lGL -lGLU 
 endif
 
-DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o
+DEPENDENCIES=comp.o threads.o mult.o jobs.o driver_core.o
 EXTRADEP=
 
 ifeq ($(MARCEL), 1)
@@ -54,8 +54,8 @@ ifeq ($(CUDA), 1)
 	NVCCFLAGS +=  -DUSE_CUDA 
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	NVCCFLAGS += -I$(CUDAINSTALLDIR)/include 
-	OBJDEPS += ../drivers/cuda/mult_cuda.o
-	DEPENDENCIES += mult_cuda.o
+	OBJDEPS += ../drivers/cuda/driver_cuda.o
+	DEPENDENCIES += driver_cuda.o
 	EXTRADEP += comp_cuda.cubin 
 endif
 
@@ -71,12 +71,12 @@ endif
 	LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
 
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
-	DEPENDENCIES += mult_cublas.o
-	OBJDEPS += ../drivers/cublas/mult_cublas.o
+	DEPENDENCIES += driver_cublas.o
+	OBJDEPS += ../drivers/cublas/driver_cublas.o
 endif
 
 ifdef SPU
-	OBJDEPS += ../drivers/spu/ppu/mult_spu_ppu.o
+	OBJDEPS += ../drivers/spu/ppu/driver_spu_ppu.o
 	OBJDEPS += ../drivers/spu/spu/spu_worker_program.o
 endif
 
@@ -102,7 +102,7 @@ ifdef CPUS
 	CFLAGS += -DUSE_CPUS #-DDEBUG
 	CFLAGS += -DNMAXCORES=$(CPUS)
 	NVCCFLAGS += -DUSE_CPUS
-	OBJDEPS += ../drivers/core/mult_core.o
+	OBJDEPS += ../drivers/core/driver_core.o
 endif
 
 ifdef GRAIN

@@ -2,7 +2,7 @@ CFLAGS+= -I$(ATLASDIR)/include/
 LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
 LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
 
-DEPENDENCIES=comp.o threads.o mult.o jobs.o mult_core.o
+DEPENDENCIES=comp.o threads.o mult.o jobs.o driver_core.o
 EXTRADEP=
 
 ifeq ($(MARCEL), 1)
@@ -25,7 +25,7 @@ else
 	LDFLAGS += -lcublas
 endif
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
-	DEPENDENCIES += mult_cublas.o
+	DEPENDENCIES += driver_cublas.o
 endif
 
 NVCCFLAGS +=  -DUNIX -DO3
@@ -34,10 +34,10 @@ NVCCFLAGS += -I$(CUTILDIR)/inc/
 
 CFLAGS += -I../../
 
-all: mult_cublas.o
+all: driver_cublas.o
 
-mult_cublas.o: mult_cublas.c mult_cublas.h
-	$(CC) $(CFLAGS) mult_cublas.c -c -o mult_cublas.o
+driver_cublas.o: driver_cublas.c driver_cublas.h
+	$(CC) $(CFLAGS) driver_cublas.c -c -o driver_cublas.o
 
 clean:
 	@rm -f *.o *.cu_o *.cubin

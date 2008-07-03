@@ -47,7 +47,7 @@ ifeq ($(CUDA), 1)
 	NVCCFLAGS +=  -DUSE_CUDA 
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	NVCCFLAGS += -I$(CUDAINSTALLDIR)/include 
-	DEPENDENCIES += mult_cuda.o
+	DEPENDENCIES += driver_cuda.o
 	EXTRADEP += comp_cuda.cubin 
 endif
 
@@ -59,7 +59,7 @@ else
 	LDFLAGS += -lcublas
 endif
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
-	DEPENDENCIES += mult_cublas.o
+	DEPENDENCIES += driver_cublas.o
 endif
 
 ifdef ATLAS

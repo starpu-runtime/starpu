@@ -1,5 +1,5 @@
-#ifndef __MULT_CUDA_H__
-#define __MULT_CUDA_H__
+#ifndef __DRIVER_CUDA_H__
+#define __DRIVER_CUDA_H__
 
 #define _GNU_SOURCE
 #include <sched.h>
@@ -40,4 +40,4 @@ void *cuda_worker(void *);
 #define TRYAGAIN        1
 #define FATAL           2
 
-#endif //  __MULT_CUDA_H__
+#endif //  __DRIVER_CUDA_H__

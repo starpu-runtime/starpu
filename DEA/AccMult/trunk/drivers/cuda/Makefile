@@ -18,7 +18,7 @@ ifeq ($(CUDA), 1)
 	NVCCFLAGS +=  -DUSE_CUDA 
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	NVCCFLAGS += -I$(CUDAINSTALLDIR)/include 
-	DEPENDENCIES += mult_cuda.o
+	DEPENDENCIES += driver_cuda.o
 	EXTRADEP += comp_cuda.cubin 
 endif
 
@@ -31,10 +31,10 @@ LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
 CFLAGS += -I../../
 NVCCFLAGS += -I../../
 
-all: mult_cuda.o comp_cuda.cubin
+all: driver_cuda.o comp_cuda.cubin
 
-mult_cuda.o: mult_cuda.c mult_cuda.h
-	$(NVCC) $(NVCCFLAGS) mult_cuda.c -c -o mult_cuda.o
+driver_cuda.o: driver_cuda.c driver_cuda.h
+	$(NVCC) $(NVCCFLAGS) driver_cuda.c -c -o driver_cuda.o
 
 comp_cuda.cubin: comp_cuda.cu comp_cuda.h
 	$(NVCC) -cubin comp_cuda.cu -o comp_cuda.cubin -m32 --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) 

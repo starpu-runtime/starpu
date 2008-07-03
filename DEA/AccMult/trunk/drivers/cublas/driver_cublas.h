@@ -1,5 +1,5 @@
-#ifndef __MULT_CUBLAS_H__
-#define __MULT_CUBLAS_H__
+#ifndef __DRIVER_CUBLAS_H__
+#define __DRIVER_CUBLAS_H__
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -75,4 +75,4 @@ void *cublas_worker(void *);
 
 unsigned get_cublas_device_count(void);
 
-#endif //  __MULT_CUBLAS_H__
+#endif //  __DRIVER_CUBLAS_H__

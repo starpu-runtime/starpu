@@ -1,4 +1,4 @@
-#include "mult_cuda.h"
+#include "driver_cuda.h"
 
 #define CUDA_REPORT_ERROR(status) \
 	printf("oops  in %s ... %s \n", __func__, "")

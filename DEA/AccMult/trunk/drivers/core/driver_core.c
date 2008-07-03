@@ -1,4 +1,4 @@
-#include "mult_core.h"
+#include "driver_core.h"
 
 extern unsigned ncores;
 

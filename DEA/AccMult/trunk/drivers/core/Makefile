@@ -21,10 +21,10 @@ endif
 
 CFLAGS += -I../../
 
-all: mult_core.o
+all: driver_core.o
 
-mult_core.o: mult_core.c  mult_core.h
-	$(CC) $(CFLAGS) mult_core.c -c -o mult_core.o
+driver_core.o: driver_core.c  driver_core.h
+	$(CC) $(CFLAGS) driver_core.c -c -o driver_core.o
 
 clean:
 	@rm -f *.o 

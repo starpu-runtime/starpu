@@ -1,6 +1,6 @@
 #ifdef USE_CUBLAS
 
-#include "mult_cublas.h"
+#include "driver_cublas.h"
 
 unsigned get_cublas_device_count(void)
 {
