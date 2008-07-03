@@ -43,6 +43,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	j->cb = callback_core;
 	j->argcb = NULL;
 	j->cl = &cl;
+	j->nbuffers = 0;
 
 	job_t j2 = job_new();
 	j2->type = CODELET;
@@ -50,6 +51,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	j2->cb = callback_core;
 	j2->argcb = NULL;
 	j2->cl = &cl2;
+	j2->nbuffers = 0;
 
 	job_t j3 = job_new();
 	j3->type = CODELET;
@@ -57,6 +59,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	j3->cb = last_callback_core;
 	j3->argcb = NULL;
 	j3->cl = &cl3;
+	j3->nbuffers = 0;
 
 
 
