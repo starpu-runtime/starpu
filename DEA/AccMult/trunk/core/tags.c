@@ -7,7 +7,7 @@
 
 static htbl_node_t *tag_htbl = NULL;
 
-cg_t *create_cg(unsigned ntags, tag_s *tag)
+cg_t *create_cg(unsigned ntags, struct tag_s *tag)
 {
 	cg_t *cg;
 
@@ -21,10 +21,10 @@ cg_t *create_cg(unsigned ntags, tag_s *tag)
 	return cg;
 }
 
-static tag_s *tag_init(tag_t id)
+static struct tag_s *tag_init(tag_t id)
 {
-	tag_s *tag;
-	tag = malloc(sizeof(tag_s));
+	struct tag_s *tag;
+	tag = malloc(sizeof(struct tag_s));
 	ASSERT(tag);
 
 	tag->id = id;
@@ -38,10 +38,10 @@ static tag_s *tag_init(tag_t id)
 	return tag;
 }
 
-tag_s *get_tag_struct(tag_t id)
+struct tag_s *gettag_struct(tag_t id)
 {
 	/* search if the tag is already declared or not */
-	tag_s *tag;
+	struct tag_s *tag;
 	tag = htbl_search_tag(tag_htbl, id);
 
 	if (tag == NULL) {
@@ -71,7 +71,7 @@ void notify_cg(cg_t *cg)
 void tag_add_succ(tag_t id, cg_t *cg)
 {
 	/* find out the associated structure */
-	tag_s *tag = get_tag_struct(id);
+	struct tag_s *tag = gettag_struct(id);
 	ASSERT(tag);
 
 	take_mutex(&tag->lock);
@@ -93,7 +93,7 @@ void tag_add_succ(tag_t id, cg_t *cg)
 
 void notify_dependencies(struct job_s *j)
 {
-	struct _tag_s *tag;
+	struct tag_s *tag;
 	unsigned succ;
 
 	ASSERT(j);
@@ -113,7 +113,7 @@ void tag_declare(tag_t id, struct job_s *job)
 	TRACE_CODELET_TAG(id, job);
 	job->use_tag = 1;
 	
-	tag_s *tag= get_tag_struct(id);
+	struct tag_s *tag= gettag_struct(id);
 	tag->job = job;
 	
 	job->tag = tag;
@@ -124,7 +124,7 @@ void tag_declare_deps(tag_t id, unsigned ndeps, ...)
 	unsigned i;
 	
 	/* create the associated completion group */
-	tag_s *tag_child = get_tag_struct(id);
+	struct tag_s *tag_child = gettag_struct(id);
 	cg_t *cg = create_cg(ndeps, tag_child);
 	
 	tag_child->state = BLOCKED;
@@ -146,7 +146,7 @@ void tag_declare_deps(tag_t id, unsigned ndeps, ...)
 	va_end(pa);
 }
 
-void tag_set_ready(tag_s *tag)
+void tag_set_ready(struct tag_s *tag)
 {
 	/* mark this tag as ready to run */
 	tag->state = READY;

@@ -57,7 +57,7 @@ LIST_TYPE(job,
 	codelet *cl;
 	void *argcb;
 	int counter;	/* when this reaches 0 the callback can be executed */
-	struct _tag_s *tag;
+	struct tag_s *tag;
 	unsigned use_tag;
 	unsigned nbuffers;
 	buffer_descr buffers[NMAXBUFS];
