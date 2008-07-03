@@ -79,7 +79,7 @@ static inline void malloc_pinned(float **A, float **B, unsigned _dim)
 
 	job_t j = job_new();
 	j->type = CODELET;
-	j->where = GPU;
+	j->where = CUBLAS;
 	j->cb = malloc_pinned_callback; 
 	j->cl = cl;
 

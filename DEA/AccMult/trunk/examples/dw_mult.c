@@ -358,7 +358,7 @@ void init_problem(void)
 	jb = job_new();
 	jb->type = CODELET;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
-	jb->where = GPU;
+	jb->where = CUBLAS;
 #else
 	jb->where = ANY;
 #endif
