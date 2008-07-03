@@ -26,7 +26,6 @@ uint8_t *advance_22; /* array of nblocks *nblocks*nblocks */
 #define STARTED	0x01
 #define DONE	0x10
 
-
 /* to compute MFlop/s */
 static uint64_t flop_cublas = 0;
 static uint64_t flop_atlas = 0;
@@ -38,7 +37,8 @@ static uint64_t flop_atlas = 0;
  *   U22 
  */
 
-static inline void dw_common_core_codelet_update_u22(buffer_descr *buffers, int s, __attribute__((unused)) void *_args)
+static inline void dw_common_core_codelet_update_u22(buffer_descr *buffers, 
+			int s, __attribute__((unused)) void *_args)
 {
 	float *left 	= (float *)buffers[0].ptr;
 	float *right 	= (float *)buffers[1].ptr;
@@ -90,7 +90,8 @@ void dw_cublas_codelet_update_u22(buffer_descr *descr, void *_args)
  * U12
  */
 
-static inline void dw_common_codelet_update_u12(buffer_descr *buffers, int s, __attribute__((unused)) void *_args) {
+static inline void dw_common_codelet_update_u12(buffer_descr *buffers, int s, 
+					void *_args __attribute__((unused))) {
 	float *sub11;
 	float *sub12;
 
@@ -106,8 +107,9 @@ static inline void dw_common_codelet_update_u12(buffer_descr *buffers, int s, __
 	/* solve L11 U12 = A12 (find U12) */
 	switch (s) {
 		case 0:
-			cblas_strsm(CblasRowMajor, CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit,
-					 nx12, ny12, 1.0f, sub11, ld11, sub12, ld12);
+			cblas_strsm(CblasRowMajor, CblasLeft, CblasLower, 
+					CblasNoTrans, CblasNonUnit, nx12, ny12,
+					1.0f, sub11, ld11, sub12, ld12);
 			break;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case 1:
@@ -137,7 +139,8 @@ void dw_cublas_codelet_update_u12(buffer_descr *descr, void *_args)
  * U21
  */
 
-static inline void dw_common_codelet_update_u21(buffer_descr *buffers, int s, __attribute__((unused)) void *_args) {
+static inline void dw_common_codelet_update_u21(buffer_descr *buffers, int s, 
+					void *args __attribute__((unused))) {
 	float *sub11;
 	float *sub21;
 
@@ -152,12 +155,14 @@ static inline void dw_common_codelet_update_u21(buffer_descr *buffers, int s, __
 
 	switch (s) {
 		case 0:
-			cblas_strsm(CblasRowMajor, CblasRight, CblasUpper, CblasNoTrans, 
-				CblasUnit, nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
+			cblas_strsm(CblasRowMajor, CblasRight, CblasUpper,
+					CblasNoTrans, CblasUnit, nx21, ny21,
+					1.0f, sub11, ld11, sub21, ld21);
 			break;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case 1:
-			cublasStrsm('L', 'L', 'N', 'U', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
+			cublasStrsm('L', 'L', 'N', 'U', ny21, nx21, 1.0f,
+					sub11, ld11, sub21, ld21);
 			break;
 #endif
 		default:
@@ -182,7 +187,8 @@ void dw_cublas_codelet_update_u21(buffer_descr *descr, void *_args)
  *	U11
  */
 
-static inline void dw_common_codelet_update_u11(buffer_descr *descr, int s, __attribute__((unused)) void *_args) 
+static inline void dw_common_codelet_update_u11(buffer_descr *descr, int s, 
+					void *_args __attribute__((unused))) 
 {
 	float *sub11;
 
@@ -201,12 +207,14 @@ static inline void dw_common_codelet_update_u11(buffer_descr *descr, int s, __at
 				pivot = sub11[z+z*ld];
 				ASSERT(pivot != 0.0f);
 		
-				cblas_sscal(nx - z - 1, 1.0f/pivot, &sub11[(z+1)+z*ld], 1);
+				cblas_sscal(nx - z - 1, 1.0f/pivot, 
+							&sub11[(z+1)+z*ld], 1);
 		
-				cblas_sger(CblasRowMajor, nx - z - 1, nx - z - 1, -1.0f,
-								&sub11[(z+1)+z*ld], 1,
-								&sub11[z+(z+1)*ld], ld,
-								&sub11[(z+1) + (z+1)*ld],ld);
+				cblas_sger(CblasRowMajor, nx - z - 1, 
+						nx - z - 1, -1.0f,
+						&sub11[(z+1)+z*ld], 1,
+						&sub11[z+(z+1)*ld], ld,
+						&sub11[(z+1) + (z+1)*ld],ld);
 		
 			}
 			break;
@@ -216,16 +224,19 @@ static inline void dw_common_codelet_update_u11(buffer_descr *descr, int s, __at
 			{
 				float pivot;
 				/* ok that's dirty and ridiculous ... */
-				cublasGetVector(1, sizeof(float), &sub11[z+z*ld], sizeof(float), &pivot, sizeof(float));
+				cublasGetVector(1, sizeof(float), 
+					&sub11[z+z*ld], sizeof(float), 
+					&pivot, sizeof(float));
 
 				ASSERT(pivot != 0.0f);
 				
-				cublasSscal(nx - z - 1, 1.0f/pivot, &sub11[(z+1)+z*ld], 1);
+				cublasSscal(nx - z - 1, 1.0f/pivot, 
+						&sub11[(z+1)+z*ld], 1);
 				
 				cublasSger(nx - z - 1, nx - z - 1, -1.0f,
-								&sub11[(z+1)+z*ld], 1,
-								&sub11[z+(z+1)*ld], ld,
-								&sub11[(z+1) + (z+1)*ld],ld);
+						&sub11[(z+1)+z*ld], 1,
+						&sub11[z+(z+1)*ld], ld,
+						&sub11[(z+1) + (z+1)*ld],ld);
 			}
 			break;
 #endif
@@ -287,7 +298,8 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 
 			j->nbuffers = 1;
 
-			j->buffers[0].state = get_sub_data(args->dataA, 2, k+1, k+1);
+			j->buffers[0].state =
+				get_sub_data(args->dataA, 2, k+1, k+1);
 			j->buffers[0].mode = RW;
 	
 		u11arg->dataA = args->dataA;
@@ -298,9 +310,6 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 
 		/* schedule the codelet */
 		push_prio_task(j);
-	//	push_task(j);
-
-//		printf("pushed 11 k with k = %d\n", u11arg->i);
 	}
 
 	/* 11k+1 + 22k,k+1,j => 21 k+1,j */
@@ -312,22 +321,25 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 			/* try to push the job */
 			uint8_t u = ATOMIC_OR(&advance_12_21[(k+1) + j*nblocks], STARTED);
 				if ((u & STARTED) == 0) {
-					/* we are the only one that should launch that task */
+					/* we are the only one that should 
+					 * launch that task */
 					cl_args *u21a = malloc(sizeof(cl_args));
 					codelet *cl21 = malloc(sizeof(codelet));
 		
 					cl21->cl_arg = u21a;
-					cl21->core_func = dw_core_codelet_update_u21;
+					cl21->core_func = 
+						dw_core_codelet_update_u21;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
-					cl21->cublas_func = dw_cublas_codelet_update_u21;
+					cl21->cublas_func = 
+						dw_cublas_codelet_update_u21;
 #endif
 					job_t j21 = job_new();
-						j21->type = CODELET;
-						j21->where = ANY;
-						j21->cb = dw_callback_v2_codelet_update_u21;
-						j21->argcb = u21a;
-						j21->cl = cl21;
-						j21->use_tag = 0;
+					j21->type = CODELET;
+					j21->where = ANY;
+					j21->cb = dw_callback_v2_codelet_update_u21;
+					j21->argcb = u21a;
+					j21->cl = cl21;
+					j21->use_tag = 0;
 			
 					u21a->i = k+1;
 					u21a->k = j;
@@ -336,21 +348,15 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					u21a->sem = args->sem;
 
 					j21->nbuffers = 2;
-					j21->buffers[0].state = get_sub_data(args->dataA, 2, u21a->i, u21a->i);
+					j21->buffers[0].state = 
+						get_sub_data(args->dataA, 2, u21a->i, u21a->i);
 					j21->buffers[0].mode = R;
-					j21->buffers[1].state = get_sub_data(args->dataA, 2, u21a->i, u21a->k);
+					j21->buffers[1].state =
+						get_sub_data(args->dataA, 2, u21a->i, u21a->k);
 					j21->buffers[1].mode = RW;
 		
-					//printf("pushed 21 with i = %d and k = %d\n", u21a->i, u21a->k);
-
 					push_task(j21);
 				}
-				else {
-				//	printf("concurrency detected, did not launch 21 i %d k %d u was %x\n", k+1, j, u);
-				}
-		}
-		else {
-			 //printf("task 11 k = %d not ready yet\n", k+1);
 		}
 	}
 
@@ -396,17 +402,9 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					j12->buffers[1].state = get_sub_data(args->dataA, 2, u12a->k, u12a->i); 
 					j12->buffers[1].mode = RW;
 					
-					//printf("pushed 12 with i = %d and k = %d\n", u12a->i, u12a->k);
-
 					push_task(j12);
 	
 				}
-				else {
-				//	 printf("concurrency detected, did not launch 12 i %d k %d u was %x\n", k+1, i, u);
-				}
-		}
-		else {
-			//printf("task 11 k = %d not ready yet\n", k+1);
 		}
 	}
 
@@ -481,12 +479,6 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 					push_task(j22);
 				}
 			}
-			else {
-				//printf("Concurrency detected for 12\n");
-			}
-		}
-		else {
-			//printf("task 21 i %d slicey %d not ready yet \n", i, slicey);
 		}
 	}
 }
@@ -565,9 +557,6 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				}
 			}
 		}
-		else {
-			//printf("12 slicex %d i %d not ready yet \n", slicex, i);
-		}
 	}
 }
 
@@ -638,9 +627,6 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					j12->buffers[1].state = get_sub_data(args->dataA, 2, u12a->k, u12a->i); 
 					j12->buffers[1].mode = RW;
 
-					
-					//printf("launch 12 with i = %d and k = %d \n", i, slice);
-
 					if (slice == i +1) {
 						push_prio_task(j12);
 					}
@@ -649,10 +635,6 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					}
 	
 				}
-				else {
-				//	printf("concurrency detected, did not launch 12 i %d k %d u was %x\n", i, slice, u);
-				}
-
 			}
 
 			/* can we launch 21i,slice ? */
@@ -697,18 +679,12 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					j21->buffers[1].state = get_sub_data(args->dataA, 2, u21a->i, u21a->k);
 					j21->buffers[1].mode = RW;
 		
-
-					//printf("launch 21 with i = %d and k = %d \n", i, slice);
-		
 					if (slice == i +1) {
 						push_prio_task(j21);
 					}
 					else {
 						push_task(j21);
 					}
-				}
-				else {
-				//	printf("concurency detected don't launch 21, u was %x \n", u);
 				}
 			}
 		}
@@ -1062,7 +1038,9 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 	}
 }
 
-void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned version)
+void dw_factoLU(float *matA, unsigned size, 
+		unsigned ld, unsigned nblocks, 
+		unsigned version)
 {
 
 #ifdef CHECK_RESULTS
@@ -1077,7 +1055,8 @@ void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsig
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	monitor_new_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
+	monitor_new_data(&dataA, 0, (uintptr_t)matA, ld, 
+			size, size, sizeof(float));
 
 	filter f;
 		f.filter_func = block_filter_func;
@@ -1102,5 +1081,4 @@ void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsig
 #ifdef CHECK_RESULTS
 	compare_A_LU(Asaved, matA, size, ld);
 #endif
-
 }
