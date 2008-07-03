@@ -1,5 +1,5 @@
-#ifndef __MULT_SPU_H__
-#define __MULT_SPU_H__
+#ifndef __DRIVER_SPU_H__
+#define __DRIVER_SPU_H__
 
 #define _GNU_SOURCE
 #include <sched.h>
@@ -37,4 +37,4 @@ void *spu_worker(void *);
 
 unsigned get_spu_count(void);
 
-#endif //  __MULT_SPU_H__
+#endif //  __DRIVER_SPU_H__

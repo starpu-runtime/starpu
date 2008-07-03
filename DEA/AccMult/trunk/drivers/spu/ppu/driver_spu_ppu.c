@@ -1,7 +1,7 @@
 #ifdef USE_SPU
 
-#include "mult_spu.h"
-#include "../spu/mult_spu_common.h"
+#include "driver_spu.h"
+#include "../spu/driver_spu_common.h"
 
 /* this is the program that will run on the SPU */
 extern spe_program_handle_t spu_worker_program;

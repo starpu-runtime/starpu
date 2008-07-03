@@ -1,5 +1,5 @@
-#ifndef __MULT_SPU_COMMON_H__
-#define __MULT_SPU_COMMON_H__
+#ifndef __DRIVER_SPU_COMMON_H__
+#define __DRIVER_SPU_COMMON_H__
 
 #include <stdint.h>
 
@@ -9,5 +9,5 @@ typedef struct {
 	uint8_t pad[16-sizeof(uint32_t *)-sizeof(uint32_t)];
 } spu_init_arguments;
 
-#endif // __MULT_SPU_COMMON_H__
+#endif // __DRIVER_SPU_COMMON_H__
 

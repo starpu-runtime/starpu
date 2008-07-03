@@ -1,5 +1,5 @@
-#ifndef __MULT_GORDON_H__
-#define __MULT_GORDON_H__
+#ifndef __DRIVER_GORDON_H__
+#define __DRIVER_GORDON_H__
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -41,4 +41,4 @@ typedef struct gordon_worker_arg_t {
 
 void *gordon_worker(void *);
 
-#endif // __MULT_GORDON_H__
+#endif // __DRIVER_GORDON_H__

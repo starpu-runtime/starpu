@@ -1,4 +1,4 @@
-#include "mult_gordon.h"
+#include "driver_gordon.h"
 #include "gordon_interface.h"
 #include <common/threads.h>
 

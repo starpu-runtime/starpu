@@ -81,7 +81,7 @@ ifdef SPU
 endif
 
 ifdef GORDON
-	OBJDEPS += ../drivers/gordon/mult_gordon.o
+	OBJDEPS += ../drivers/gordon/driver_gordon.o
 	OBJDEPS += ../drivers/gordon/externals/scalp/util/util.o
 	OBJDEPS += ../drivers/gordon/externals/scalp/cell/gordon/gordon.o 
 	OBJDEPS += ../drivers/gordon/externals/scalp/cell/gordon/pputil.o 

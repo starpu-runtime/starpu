@@ -1,4 +1,4 @@
-#include "mult_spu_spu.h"
+#include "driver_spu_spu.h"
 
 unsigned spuindex;
 
