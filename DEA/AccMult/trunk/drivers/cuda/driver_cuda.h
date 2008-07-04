@@ -25,6 +25,36 @@
 #define SHMEMSIZE	3160
 #endif
 
+typedef struct cuda_module_s {
+	CUmodule module;
+	char *module_path;
+	unsigned is_loaded[MAXCUDADEVS];
+} cuda_module_t;
+
+typedef struct cuda_function_s {
+	struct cuda_module_s *module;
+	CUfunction function;
+	char *symbol;
+	unsigned is_loaded[MAXCUDADEVS];
+} cuda_function_t;
+
+
+
+
+typedef struct cuda_codelet_s {
+	/* which function to execute on the card ? */
+	struct cuda_module_s *module;
+	struct cuda_function_s *function;
+
+	/* grid and block shapes */
+	unsigned gridx;
+	unsigned gridy;
+	unsigned blockx;
+	unsigned blocky;
+
+	unsigned shmemsize;
+} cuda_codelet_t;
+
 typedef struct cuda_worker_arg_t {
 	int deviceid;
 	int bindid;

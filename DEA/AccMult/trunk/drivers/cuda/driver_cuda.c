@@ -18,9 +18,32 @@ static char* module_path = "./comp_cuda.cubin";
 
 CUresult status;
 
-static CUfunction dummyMatrixMul = NULL;
-
 extern char *execpath;
+
+void load_cuda_module(int devid, struct cuda_module_s *module)
+{
+	CUresult res;
+	if (!module->is_loaded[devid]) {
+		res = cuModuleLoad(&module->module, module->module_path);
+		ASSERT(res == CUDA_SUCCESS);
+	
+		module->is_loaded[devid] = 1;
+	}
+}
+
+void load_cuda_function(int devid, struct cuda_function_s *function)
+{
+	CUresult res;
+
+	/* load the module on the device if it is not already the case */
+	load_cuda_module(devid, function->module);
+
+	/* load the function on the device if it is not present yet */
+	res = cuModuleGetFunction( &function->function, 
+			function->module, function->symbol );
+	ASSERT(res == CUDA_SUCCESS);
+
+}
 
 void init_context(int devid)
 {
@@ -32,14 +55,6 @@ void init_context(int devid)
 	if ( CUDA_SUCCESS != status )
 		goto error;
 
-//	status = cuModuleLoad(&cuModule, module_path);
-//	if ( CUDA_SUCCESS != status )
-//		goto error;
-//	
-//	status = cuModuleGetFunction( &dummyMatrixMul, cuModule, "cuda_mult" );
-//	if ( CUDA_SUCCESS != status )
-//		goto error;
-//
 //	/* launch the kernel */
 //	status = cuFuncSetBlockShape( dummyMatrixMul, BLOCKDIMX, BLOCKDIMY, 1);
 //	if ( CUDA_SUCCESS != status )
@@ -370,11 +385,18 @@ int execute_job_on_cuda(job_t j, unsigned use_cublas)
 			fetch_codelet_input(j->buffers, j->nbuffers);
 
 			TRACE_START_CODELET_BODY(j);
-			cl_func func = use_cublas?
-				j->cl->cublas_func:j->cl->cuda_func;
-			ASSERT(func);
-			func(j->buffers, j->cl->cl_arg);
-			cuCtxSynchronize();
+			if (use_cublas) {
+				cl_func func = j->cl->cublas_func;
+				ASSERT(func);
+				func(j->buffers, j->cl->cl_arg);
+				cuCtxSynchronize();
+			} else {
+				/* load the module */
+				/* set up the function args */
+				/* set up the grids */
+				/* launch the function */
+				cuCtxSynchronize();
+			}
 			TRACE_END_CODELET_BODY(j);	
 
 			push_codelet_output(j->buffers, j->nbuffers, 1<<0);
