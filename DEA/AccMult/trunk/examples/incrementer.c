@@ -125,11 +125,9 @@ void gordon_test(void)
 {
 	codelet cl_gordon;
 
-	j = job_new();
-	j->type = CODELET;
+	j = job_create();
 	j->where = GORDON;
 	j->cb = gordon_callback_func;
-	j->argcb = NULL;
 	j->cl = &cl_gordon;
 
 	cl_gordon.gordon_func = gordon_codelet;
@@ -222,11 +220,9 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	for (i = 0; i < NITER; i++)
 	{
 
-		j = job_new();
-		j->type = CODELET;
-		j->where = ANY;
+		j = job_create();
+		j->where = CORE|CUBLAS;
 		j->cb = callback_func;
-		j->argcb = NULL;
 		j->cl = &cl;
 
 		j->nbuffers = 2;
@@ -241,11 +237,9 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		push_task(j);
 
 
-		j = job_new();
-		j->type = CODELET;
+		j = job_create();
 		j->where = CORE|CUDA;
 		j->cb = callback_func;
-		j->argcb = NULL;
 		j->cl = &cl2;
 
 		j->nbuffers = 2;

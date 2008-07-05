@@ -322,9 +322,8 @@ void init_problem_callback(void *arg __attribute__((unused)))
 			cl->cublas_func = cublas_mult;
 #endif
 
-			jb = job_new();
-			jb->type = CODELET;
-			jb->where = ANY;
+			jb = job_create();
+			jb->where = CORE | CUBLAS;
 			jb->cb = callback_func;
 			jb->argcb = &jobcounter;
 			jb->cl = cl;
@@ -357,13 +356,13 @@ void init_problem(void)
 
 	codelet *cl = malloc(sizeof(codelet));
 
-			cl->cl_arg = NULL;
-			cl->core_func = init_problem_codelet;
+	cl->cl_arg = NULL;
+	cl->core_func = init_problem_codelet;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
-			cl->cublas_func = init_problem_codelet;
+	cl->cublas_func = init_problem_codelet;
 #endif
 
-	jb = job_new();
+	jb = job_create();
 	jb->type = CODELET;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 	jb->where = CUBLAS;
@@ -371,10 +370,7 @@ void init_problem(void)
 	jb->where = ANY;
 #endif
 	jb->cb = init_problem_callback;
-	jb->argcb = NULL;
 	jb->cl = cl;
-
-	jb->nbuffers = 0;
 
 	push_task(jb);
 }

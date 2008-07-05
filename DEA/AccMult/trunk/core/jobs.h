@@ -75,4 +75,6 @@ void push_prio_task(job_t task);
 job_t pop_task(void);
 void push_task(job_t task);
 
+job_t job_create(void);
+
 #endif // __JOBS_H__

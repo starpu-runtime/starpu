@@ -77,8 +77,7 @@ static inline void malloc_pinned(float **A, float **B, unsigned _dim)
 	ptrB = B;
 	__dim = _dim;
 
-	job_t j = job_new();
-	j->type = CODELET;
+	job_t j = job_create();
 	j->where = CUBLAS;
 	j->cb = malloc_pinned_callback; 
 	j->cl = cl;

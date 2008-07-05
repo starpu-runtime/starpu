@@ -37,29 +37,21 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	codelet cl2;
 	codelet cl3;
 
-	job_t j = job_new();
-	j->type = CODELET;
+	job_t j = job_create();
 	j->where = ANY;
 	j->cb = callback_core;
-	j->argcb = NULL;
 	j->cl = &cl;
-	j->nbuffers = 0;
 
-	job_t j2 = job_new();
-	j2->type = CODELET;
+	job_t j2 = job_create();
 	j2->where = CORE;
 	j2->cb = callback_core;
-	j2->argcb = NULL;
 	j2->cl = &cl2;
-	j2->nbuffers = 0;
 
-	job_t j3 = job_new();
+	job_t j3 = job_create();
 	j3->type = CODELET;
 	j3->where = CORE;
 	j3->cb = last_callback_core;
-	j3->argcb = NULL;
 	j3->cl = &cl3;
-	j3->nbuffers = 0;
 
 
 

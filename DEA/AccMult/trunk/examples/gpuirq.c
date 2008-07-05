@@ -68,18 +68,14 @@ int main(int argc, char **argv)
 	codelet cl;
 	codelet cl2;
 
-	job_t j = job_new();
-	j->type = CODELET;
+	job_t j = job_create();
 	j->where = CUBLAS;
 	j->cb = callback_gpu;
-	j->argcb = NULL;
 	j->cl = &cl;
 
-	job_t j2 = job_new();
-	j2->type = CODELET;
+	job_t j2 = job_create();
 	j2->where = CORE;
 	j2->cb = callback_core;
-	j2->argcb = NULL;
 	j2->cl = &cl2;
 
 	cl.cl_arg = NULL;

@@ -243,7 +243,7 @@ static job_t create_job(tag_t id)
 	codelet *cl = malloc(sizeof(codelet));
 	cl->cl_arg = NULL;
 
-	job_t j = job_new();
+	job_t j = job_create();
 		j->type = CODELET;
 		j->where = ANY;
 		j->cb = NULL;

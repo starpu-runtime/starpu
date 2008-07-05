@@ -52,8 +52,6 @@ void push_prio_task(job_t task)
 #endif
 }
 
-
-
 job_t pop_task(void)
 {
 	job_t j;
@@ -72,4 +70,22 @@ job_t pop_task(void)
 
 	thread_mutex_unlock(&workq_mutex);
 	return j;
+}
+
+job_t job_create(void)
+{
+	job_t job;
+
+	job = job_new();
+	job->type = CODELET;
+
+	job->where = 0;
+	job->cb = NULL;
+	job->cl = NULL;
+	job->argcb = NULL;
+	job->counter = 0;
+	job->use_tag = 0;
+	job->nbuffers = 0;
+
+	return job;
 }
