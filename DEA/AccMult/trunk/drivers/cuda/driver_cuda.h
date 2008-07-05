@@ -38,13 +38,9 @@ typedef struct cuda_function_s {
 	unsigned is_loaded[MAXCUDADEVS];
 } cuda_function_t;
 
-
-
-
 typedef struct cuda_codelet_s {
 	/* which function to execute on the card ? */
-	struct cuda_module_s *module;
-	struct cuda_function_s *function;
+	struct cuda_function_s *func;
 
 	/* grid and block shapes */
 	unsigned gridx;
@@ -53,6 +49,9 @@ typedef struct cuda_codelet_s {
 	unsigned blocky;
 
 	unsigned shmemsize;
+
+	void *stack; /* arguments */
+	size_t stack_size;
 } cuda_codelet_t;
 
 typedef struct cuda_worker_arg_t {
@@ -69,5 +68,12 @@ void *cuda_worker(void *);
 #define OK              0
 #define TRYAGAIN        1
 #define FATAL           2
+
+void init_cuda_module(struct cuda_module_s *module, char *path);
+void load_cuda_module(int devid, struct cuda_module_s *module);
+void init_cuda_function(struct cuda_function_s *func,
+                        struct cuda_module_s *module,
+                        char *symbol);
+void load_cuda_function(int devid, struct cuda_function_s *function);
 
 #endif //  __DRIVER_CUDA_H__

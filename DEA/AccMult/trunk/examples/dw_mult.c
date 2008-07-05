@@ -141,7 +141,8 @@ void cublas_mult(buffer_descr *descr, __attribute__((unused)) void *arg)
 
 	GET_TICK(sgemm_start);
 
-	cublasSgemm('n', 'n', nxC, nyC, nxA, 1.0f, subB, ldB, subA, ldA, 0.0f, subC, ldC);
+	cublasSgemm('n', 'n', nxC, nyC, nxA, 1.0f, subB, ldB, subA, ldA, 
+					     0.0f, subC, ldC);
 
 	GET_TICK(sgemm_end);
 
@@ -219,7 +220,8 @@ void parse_args(int argc, char **argv)
 /*
  * This is a codelet itself 
  */
-void init_problem_codelet (__attribute__((unused)) buffer_descr *descr, __attribute__((unused)) void *arg)
+void init_problem_codelet (__attribute__((unused)) buffer_descr *descr,
+			   __attribute__((unused)) void *arg)
 {
 	unsigned i,j;
 
@@ -280,9 +282,12 @@ void init_problem_callback(void *arg __attribute__((unused)))
 #endif
 
 	GET_TICK(start);
-	monitor_new_data(&A_state, 0, (uintptr_t)A, zdim, zdim, ydim, sizeof(float));
-	monitor_new_data(&B_state, 0, (uintptr_t)B, xdim, xdim, zdim, sizeof(float));
-	monitor_new_data(&C_state, 0, (uintptr_t)C, xdim, xdim, ydim, sizeof(float));
+	monitor_new_data(&A_state, 0, (uintptr_t)A, 
+		zdim, zdim, ydim, sizeof(float));
+	monitor_new_data(&B_state, 0, (uintptr_t)B, 
+		xdim, xdim, zdim, sizeof(float));
+	monitor_new_data(&C_state, 0, (uintptr_t)C, 
+		xdim, xdim, ydim, sizeof(float));
 
 	filter f;
 	f.filter_func = block_filter_func;
@@ -324,7 +329,9 @@ void init_problem_callback(void *arg __attribute__((unused)))
 			jb->argcb = &jobcounter;
 			jb->cl = cl;
 
-			tag_t tag = ((((unsigned long long)(taskx))<<32) | (unsigned long long)(tasky));
+			tag_t tag = 
+				((((unsigned long long)(taskx))<<32) 
+				| (unsigned long long)(tasky));
 			jb->nbuffers = 3;
 
 			tag_declare(tag, jb);
@@ -333,7 +340,8 @@ void init_problem_callback(void *arg __attribute__((unused)))
 			jb->buffers[0].mode = R;
 			jb->buffers[1].state = get_sub_data(&B_state, 1, taskx);
 			jb->buffers[1].mode = R;
-			jb->buffers[2].state = get_sub_data(&C_state, 2, taskx, tasky);
+			jb->buffers[2].state = 
+				get_sub_data(&C_state, 2, taskx, tasky);
 			jb->buffers[2].mode = W;
 			
 			push_task(jb);
@@ -371,7 +379,8 @@ void init_problem(void)
 	push_task(jb);
 }
 
-int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)
+int main(__attribute__ ((unused)) int argc, 
+	 __attribute__ ((unused)) char **argv)
 {
 
 	parse_args(argc, argv);

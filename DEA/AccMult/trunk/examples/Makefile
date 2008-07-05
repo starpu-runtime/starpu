@@ -8,14 +8,6 @@ TARGET=incrementer heat tag_example
 DEFAULTSIZE=2048
 DEFAULTGRAIN=128
 
-DEFAULTNSAMPLE=10
-
-ifdef NSAMPLE
-	CFLAGS += -DNSAMPLE=$(NSAMPLE)
-else
-	CFLAGS += -DNSAMPLE=$(DEFAULTNSAMPLE)
-endif
-
 LDFLAGS+= -lm
 
 ifdef OPENGL_RENDER
@@ -56,7 +48,7 @@ ifeq ($(CUDA), 1)
 	NVCCFLAGS += -I$(CUDAINSTALLDIR)/include 
 	OBJDEPS += ../drivers/cuda/driver_cuda.o
 	DEPENDENCIES += driver_cuda.o
-	EXTRADEP += comp_cuda.cubin 
+	EXTRADEP += cuda/incrementer_cuda.cubin 
 endif
 
 ifeq ($(CUBLAS), 1)
@@ -139,7 +131,7 @@ all: $(TARGET)
 incrementer.o: incrementer.c
 	$(CC) $(CFLAGS) incrementer.c -c -o incrementer.o
 
-incrementer: incrementer.o
+incrementer: $(EXTRADEP) incrementer.o
 	$(CC) incrementer.o -o incrementer $(OBJDEPS) $(LDFLAGS)
 
 gpuirq.o: gpuirq.c
@@ -188,6 +180,8 @@ heat: dw_factolu.o dw_factolu_tag.o heat.o
 tag_example: tag_example.o
 	$(CC) tag_example.o -o tag_example $(OBJDEPS) $(LDFLAGS)
 
+cuda/incrementer_cuda.cubin: cuda/incrementer_cuda.cu cuda/incrementer_cuda.h
+	$(NVCC) -cubin cuda/incrementer_cuda.cu -o cuda/incrementer_cuda.cubin -m32 --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) 
 
 
 clean:

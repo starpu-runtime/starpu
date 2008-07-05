@@ -13,6 +13,10 @@
 #include <datawizard/hierarchy.h>
 #include <datawizard/filters.h>
 
+#ifdef USE_CUDA
+#include <drivers/cuda/driver_cuda.h>
+#endif
+
 #ifdef USE_GORDON
 #include "../drivers/gordon/externals/scalp/cell/gordon/gordon.h"
 #endif
@@ -30,6 +34,12 @@ float my_lovely_float[6] = {0.0f, 0.0f, 0.0f,
 			    0.0f, 0.0f, 0.0f};
 float unity[3] = {1.0f, 0.0f, 1.0f};
 
+
+void cuda_callback_func(__attribute__ ((unused)) void *argcb)
+{
+	printf("CUDA codelet done\n");
+}
+
 void callback_func(__attribute__ ((unused)) void *argcb)
 {
 	int cntleft = (int)my_lovely_float[0];
@@ -37,8 +47,10 @@ void callback_func(__attribute__ ((unused)) void *argcb)
 
 	if ((cntleft == NITER) && (cntright == NITER)) 
 	{
-		printf("LEFT -> %f, %f, %f \n", my_lovely_float[0], my_lovely_float[1], my_lovely_float[2]);
-		printf("RIGHT -> %f, %f, %f \n", my_lovely_float[3], my_lovely_float[4], my_lovely_float[5]);
+		printf("LEFT -> %f, %f, %f \n", my_lovely_float[0],
+				my_lovely_float[1], my_lovely_float[2]);
+		printf("RIGHT -> %f, %f, %f \n", my_lovely_float[3], 
+				my_lovely_float[4], my_lovely_float[5]);
 		printf("stopping ...\n");
 		unpartition_data(&my_float_root_state, 0);
 		exit(0);
@@ -112,11 +124,71 @@ void gordon_codelet(__attribute__ ((unused)) void *_args)
 
 	gordon_join();
 }
+#endif
 
+#ifdef USE_CUDA
+struct cuda_module_s cuda_module;
+struct cuda_function_s cuda_function;
+
+void initialize_cuda(void)
+{
+	char *module_path = 
+		"/home/gonnet/DEA/AccMult/examples/cuda/incrementer_cuda.cubin";
+	char *function_symbol = "cuda_incrementer";
+
+	init_cuda_module(&cuda_module, module_path);
+	init_cuda_function(&cuda_function, &cuda_module, function_symbol);
+
+}
+
+cuda_codelet_t arg_cuda;
+
+static int foo[2];
+
+void launch_cuda_codelet(void)
+{
+	job_t j;
+	tag_t tag;
+
+	codelet cl;
+
+	arg_cuda.func = &cuda_function;
+	arg_cuda.stack = &foo[0];
+	arg_cuda.stack_size = 2*sizeof(int); 
+
+	arg_cuda.gridx = 1;
+	arg_cuda.gridy = 1;
+
+	arg_cuda.blockx = 1;
+	arg_cuda.blocky = 1;
+
+	arg_cuda.shmemsize = 1024;
+
+	cl.cuda_func = &arg_cuda;
+	cl.cl_arg = NULL;
+
+	j = job_new();
+	j->type = CODELET;
+	j->where = CUDA;
+	j->cb = cuda_callback_func;
+	j->argcb = NULL;
+	j->cl = &cl;
+
+	j->nbuffers = 0;
+
+	tag =	((1664ULL)<<32);
+	tag_declare(tag, j);
+
+	push_task(j);
+
+}
 #endif
 
 int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)
 {
+	unsigned i;
+	tag_t tag;
+
 	init_machine();
 	init_workers();
 
@@ -131,6 +203,10 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		f.filter_arg = 2;
 
 	partition_data(&my_float_root_state, &f);
+
+#ifdef USE_CUDA
+	initialize_cuda();
+#endif
 
 	my_float_state = &my_float_root_state.children[0];
 	my_float_state2 = &my_float_root_state.children[1];
@@ -168,8 +244,10 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	cl2.cublas_func = cublas_codelet;
 #endif
 
-	unsigned i;
-	tag_t tag;
+#ifdef USE_CUDA
+	launch_cuda_codelet();
+#endif
+
 	for (i = 0; i < NITER; i++)
 	{
 

@@ -69,9 +69,9 @@ typedef struct buffer_descr_t {
 	data_state *state;
 	access_mode mode;
 	/* the part given to the kernel */
-	uint32_t ld;
-	uint32_t nx, ny;
 	uintptr_t ptr;
+	uint32_t nx, ny;
+	uint32_t ld;
 } buffer_descr;
 
 void display_state(data_state *state);
