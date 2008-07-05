@@ -1,13 +1,14 @@
 #include "dw_factolu.h"
 #include <core/tags.h>
 
-tick_t start;
-tick_t end;
-
 #define TAG11(k)	( (1ULL<<60) | (unsigned long long)(k))
-#define TAG12(k,i)	(((2ULL<<60) | (((unsigned long long)(k))<<32) | (unsigned long long)(i)))
-#define TAG21(k,j)	(((3ULL<<60) | (((unsigned long long)(k))<<32) | (unsigned long long)(j)))
-#define TAG22(k,i,j)	(((4ULL<<60) | ((unsigned long long)(k)<<32) | ((unsigned long long)(i)<<16) | (unsigned long long)(j)))
+#define TAG12(k,i)	(((2ULL<<60) | (((unsigned long long)(k))<<32)	\
+					| (unsigned long long)(i)))
+#define TAG21(k,j)	(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
+					| (unsigned long long)(j)))
+#define TAG22(k,i,j)	(((4ULL<<60) | ((unsigned long long)(k)<<32) 	\
+					| ((unsigned long long)(i)<<16)	\
+					| (unsigned long long)(j)))
 
 
 /* to compute MFlop/s */
@@ -377,12 +378,14 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
 
 static void dw_codelet_facto_v3(data_state *dataA, unsigned nblocks)
 {
+	tick_t start;
+	tick_t end;
 
 	/* create a new codelet */
 	sem_t sem;
 	sem_init(&sem, 0, 0U);
 
-	job_t entry_job;
+	job_t entry_job = NULL;
 
 	/* create all the DAG nodes */
 	unsigned i,j,k;
