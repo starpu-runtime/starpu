@@ -1,7 +1,4 @@
 Open problems:
-	- how to merge cuda/cublas drivers ?
-		- driver could take something else than function pointers
-		- mix programmer's kernel and cublas functions
 	- dealing with MPI ?
 		- coarse grain size (MPI) + middle/fine grain locally
 	- how to implement a reduction or stencil kernels ?
@@ -29,7 +26,7 @@ Open problems:
 	- What about typed tasks ?
 		- priority
 		- static scheduler = type A + type B then type C etc...
-
+	- Other data representation than BLAS 
 Application domains
 	- Dense linear algebra
 		- LU decomposition (ok ...)

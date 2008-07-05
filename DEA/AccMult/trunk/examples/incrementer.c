@@ -20,7 +20,7 @@
 #include "../drivers/gordon/externals/scalp/cell/gordon/gordon.h"
 #endif
 
-#define NITER	10000
+#define NITER	100000
 
 data_state *my_float_state;
 data_state *my_float_state2;

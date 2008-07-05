@@ -1,11 +1,5 @@
 #include "driver_cuda.h"
 
-#define CUDA_REPORT_ERROR(status) \
-	printf("oops  in %s ... %s \n", __func__, "")
-//#define CUDA_REPORT_ERROR(status) \
-//	printf("oops  in %s ... %s \n", __func__, cudaGetErrorString(status))
-
-
 /* the number of CUDA devices */
 int ncudagpus;
 
@@ -32,7 +26,9 @@ void load_cuda_module(int devid, struct cuda_module_s *module)
 	if (!module->is_loaded[devid])
 	{
 		res = cuModuleLoad(&module->module, module->module_path);
-		ASSERT(res == CUDA_SUCCESS);
+		if (res) {
+			CUDA_REPORT_ERROR(res);
+		}
 	
 		module->is_loaded[devid] = 1;
 	}
@@ -100,27 +96,25 @@ void load_cuda_function(int devid, struct cuda_function_s *function)
 	/* load the function on the device if it is not present yet */
 	res = cuModuleGetFunction( &function->function, 
 			function->module->module, function->symbol );
-	ASSERT(res == CUDA_SUCCESS);
+	if (res) {
+		CUDA_REPORT_ERROR(res);
+	}
 
 }
 
 void init_context(int devid)
 {
 	status = cuCtxCreate( &cuContext[devid], 0, 0);
-	if ( CUDA_SUCCESS != status )
-		goto error;
+	if (status) {
+		CUDA_REPORT_ERROR(status);
+	}
 
 	status = cuCtxAttach(&cuContext[devid], 0);
-	if ( CUDA_SUCCESS != status )
-		goto error;
+	if (status) {
+		CUDA_REPORT_ERROR(status);
+	}
 
 	cublasInit();
-
-	return;
-error:
-	CUDA_REPORT_ERROR(status);
-	assert(0);
-	thread_exit(NULL);
 }
 
 void init_cuda(void)
@@ -128,8 +122,9 @@ void init_cuda(void)
 	CUresult status;
 
 	status = cuInit(0);
-	if ( CUDA_SUCCESS != status )
-		goto error;
+	if (status) {
+		CUDA_REPORT_ERROR(status);
+	}
 
 	cuDeviceGetCount(&ncudagpus);
 	assert(ncudagpus <= MAXCUDADEVS);
@@ -140,12 +135,6 @@ void init_cuda(void)
 		// TODO change this to the driver API
 		// cudaGetDeviceProperties(&cudadevprops[dev], dev);
 	}
-
-	return;
-error:
-	CUDA_REPORT_ERROR(status);
-	assert(0);
-	thread_exit(NULL);
 }
 
 int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
