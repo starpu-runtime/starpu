@@ -180,7 +180,6 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 				set_function_args(args, j->buffers, j->nbuffers);
 
 				/* set up the grids */
-				printf("blabla CUDA codelet\n");
 				cuLaunchGrid(args->func->function, 
 						args->gridx, args->gridy);
 
