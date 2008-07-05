@@ -557,7 +557,7 @@ void parse_args(int argc, char **argv)
 		}
 
 		if (strcmp(argv[i], "-h") == 0) {
-			/* TODO */
+			printf("usage : %s [-v1|-v2|-v3] [-pin] [-nthick number] [-ntheta number] [-shape [0|1|2]]\n", argv[0]);
 		}
 	}
 }
