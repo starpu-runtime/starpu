@@ -52,11 +52,37 @@ void init_cuda_function(struct cuda_function_s *func,
 	func->module = module;
 }
 
+static int testfoo = 123456;
+
 void set_function_args(cuda_codelet_t *args, 
 			buffer_descr *descr, 
 			unsigned nbuffers)
 {
 	unsigned offset = 0;
+
+	unsigned buf;
+	for (buf = 0; buf < nbuffers; buf++)
+	{
+		cuParamSetv(args->func->function, offset, 
+			(CUdeviceptr *)&descr[buf].ptr, sizeof(CUdeviceptr));
+		offset += sizeof(CUdeviceptr);
+
+		cuParamSetv(args->func->function, offset, 
+			&descr[buf].nx, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+
+		cuParamSetv(args->func->function, offset, 
+			&descr[buf].ny, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+
+		cuParamSetv(args->func->function, offset, 
+			&descr[buf].ld, sizeof(uint32_t));
+		offset += sizeof(uint32_t);
+	}
+
+	cuParamSetv(args->func->function, offset, 
+		args->stack, args->stack_size);
+	offset += args->stack_size;
 
 	cuParamSetSize(args->func->function, offset);
 
@@ -88,15 +114,6 @@ void init_context(int devid)
 	if ( CUDA_SUCCESS != status )
 		goto error;
 
-//	/* launch the kernel */
-//	status = cuFuncSetBlockShape( dummyMatrixMul, BLOCKDIMX, BLOCKDIMY, 1);
-//	if ( CUDA_SUCCESS != status )
-//		goto error;
-//	
-// 	status = cuFuncSetSharedSize(dummyMatrixMul, SHMEMSIZE);
-//	if ( CUDA_SUCCESS != status )
-//		goto error;
-//
 	cublasInit();
 
 	return;
@@ -130,17 +147,6 @@ error:
 	assert(0);
 	thread_exit(NULL);
 }
-
-
-// 	status = cuParamSetv( dummyMatrixMul, offset, &matB->yb, sizeof(unsigned));
-// 	if ( CUDA_SUCCESS != status )
-// 		goto error;
-// 	offset += sizeof(unsigned);
-// 
-// 	status = cuParamSetSize(dummyMatrixMul, offset);
-// 	if ( CUDA_SUCCESS != status )
-// 		goto error;
-// 
 
 int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 {

@@ -15,6 +15,7 @@
 
 #ifdef USE_CUDA
 #include <drivers/cuda/driver_cuda.h>
+static int cuda_foo[10];
 #endif
 
 #ifdef USE_GORDON
@@ -37,7 +38,12 @@ float unity[3] = {1.0f, 0.0f, 1.0f};
 
 void cuda_callback_func(__attribute__ ((unused)) void *argcb)
 {
-	printf("CUDA codelet done\n");
+	printf("CUDA codelet done foo\n");
+	unsigned i;
+	for (i = 0; i < 10; i++)
+	{
+		printf("cuda : cuda_foo[%d] -> %d\n", i, cuda_foo[i]);
+	}
 }
 
 void callback_func(__attribute__ ((unused)) void *argcb)
@@ -130,6 +136,11 @@ void gordon_codelet(__attribute__ ((unused)) void *_args)
 struct cuda_module_s cuda_module;
 struct cuda_function_s cuda_function;
 
+static data_state cuda_foo_state;
+
+cuda_codelet_t arg_cuda;
+static int foo[2];
+
 void initialize_cuda(void)
 {
 	char *module_path = 
@@ -139,11 +150,10 @@ void initialize_cuda(void)
 	init_cuda_module(&cuda_module, module_path);
 	init_cuda_function(&cuda_function, &cuda_module, function_symbol);
 
+	monitor_new_data(&cuda_foo_state, 0 /* home node */,
+		(uintptr_t)&cuda_foo[0], 10, 10, 1, sizeof(int));
 }
 
-cuda_codelet_t arg_cuda;
-
-static int foo[2];
 
 void launch_cuda_codelet(void)
 {
@@ -164,6 +174,9 @@ void launch_cuda_codelet(void)
 
 	arg_cuda.shmemsize = 1024;
 
+	foo[0] = 32;
+	foo[1] = 52;
+
 	cl.cuda_func = &arg_cuda;
 	cl.cl_arg = NULL;
 
@@ -174,7 +187,9 @@ void launch_cuda_codelet(void)
 	j->argcb = NULL;
 	j->cl = &cl;
 
-	j->nbuffers = 0;
+	j->nbuffers = 1;
+	j->buffers[0].state = &cuda_foo_state; 
+	j->buffers[0].mode = RW;
 
 	tag =	((1664ULL)<<32);
 	tag_declare(tag, j);
