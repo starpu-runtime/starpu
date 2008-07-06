@@ -21,6 +21,8 @@
 #include <cuda.h>
 #endif
 
+#define MAXPRIO	10U
+
 #define ANY	(~0)
 #define CORE	((1ULL)<<1)
 #define CUBLAS	((1ULL)<<2)
@@ -66,6 +68,9 @@ LIST_TYPE(job,
 	struct tag_s *tag;
 	unsigned use_tag;
 	unsigned nbuffers;
+	int priority; /* MAXPRIO = most important 
+			: -MAXPRIO = least important
+			: 0 default priority */
 	buffer_descr buffers[NMAXBUFS];
 );
 

@@ -15,9 +15,6 @@
 static uint64_t flop_cublas = 0;
 static uint64_t flop_atlas = 0;
 
-#define BLAS3_FLOP(n1,n2,n3)    \
-        (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
-
 /*
  *   U22 
  */
@@ -244,10 +241,7 @@ static job_t create_job(tag_t id)
 	cl->cl_arg = NULL;
 
 	job_t j = job_create();
-		j->type = CODELET;
 		j->where = ANY;
-		j->cb = NULL;
-		j->argcb = NULL;;
 		j->cl = cl;	
 
 	tag_declare(id, j);
@@ -277,6 +271,8 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 		job->buffers[0].state = get_sub_data(dataA, 2, k, k);
 		job->buffers[0].mode = RW;
 
+	/* this is an important task */
+	job->priority = MAXPRIO;
 
 	/* enforce dependencies ... */
 	if (k > 0) {
@@ -309,6 +305,10 @@ static void create_task_12(data_state *dataA, unsigned k, unsigned i)
 		job->buffers[1].state = get_sub_data(dataA, 2, i, k); 
 		job->buffers[1].mode = RW;
 
+	if (i == k+1) {
+		job->priority = MAXPRIO;
+	}
+
 	/* enforce dependencies ... */
 	if (k > 0) {
 		tag_declare_deps(TAG12(k, i), 2, TAG11(k), TAG22(k-1, i, k));
@@ -321,7 +321,6 @@ static void create_task_12(data_state *dataA, unsigned k, unsigned i)
 static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 {
 	job_t job = create_job(TAG21(k, j));
-//	printf("task 21 k,j = %d,%d TAG = %llx\n", k,j, TAG21(k,j));
 	
 	job->cl->core_func = dw_core_codelet_update_u21;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
@@ -334,6 +333,10 @@ static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 		job->buffers[0].mode = R;
 		job->buffers[1].state = get_sub_data(dataA, 2, k, j); 
 		job->buffers[1].mode = RW;
+
+	if (j == k+1) {
+		job->priority = MAXPRIO;
+	}
 
 	/* enforce dependencies ... */
 	if (k > 0) {
@@ -362,6 +365,10 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
 		job->buffers[2].mode = R;
 		job->buffers[2].state = get_sub_data(dataA, 2, i, j); 
 		job->buffers[2].mode = RW;
+
+	if ( (i == k + 1) && (j == k +1) ) {
+		job->priority = MAXPRIO;
+	}
 
 	/* enforce dependencies ... */
 	if (k > 0) {

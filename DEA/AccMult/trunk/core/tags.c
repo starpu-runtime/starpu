@@ -152,5 +152,12 @@ void tag_set_ready(struct tag_s *tag)
 	tag->state = READY;
 	/* declare it to the scheduler ! */
 	struct job_s *j = tag->job;
-	push_task(j);
+	
+	/* that's a very simple implementation of priorities */
+	if (j->priority > 0) {
+		push_prio_task(j);
+	}
+	else {
+		push_task(j);
+	}
 }

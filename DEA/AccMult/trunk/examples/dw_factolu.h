@@ -19,6 +19,10 @@
 #include <cuda.h>
 #endif
 
+#define BLAS3_FLOP(n1,n2,n3)    \
+        (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
+
+
 typedef struct {
 	data_state *dataA;
 	unsigned i;

@@ -1,6 +1,5 @@
 #include "dw_factolu.h"
 
-
 void dw_callback_codelet_update_u11(void *);
 void dw_callback_codelet_update_u12_21(void *);
 void dw_callback_codelet_update_u22(void *);
@@ -16,12 +15,13 @@ void dw_core_codelet_update_u21(buffer_descr *, void *);
 void dw_core_codelet_update_u22(buffer_descr *, void *);
 
 
-tick_t start;
-tick_t end;
-
 uint8_t *advance_12_21; /* size nblocks*nblocks */
 uint8_t *advance_11; /* size nblocks*nblocks */
 uint8_t *advance_22; /* array of nblocks *nblocks*nblocks */
+
+tick_t start;
+tick_t end;
+
 
 #define STARTED	0x01
 #define DONE	0x10
@@ -29,9 +29,6 @@ uint8_t *advance_22; /* array of nblocks *nblocks*nblocks */
 /* to compute MFlop/s */
 static uint64_t flop_cublas = 0;
 static uint64_t flop_atlas = 0;
-
-#define BLAS3_FLOP(n1,n2,n3)    \
-        (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
 
 /*
  *   U22 
@@ -882,7 +879,6 @@ void dw_callback_codelet_update_u11(void *argcb)
 
 void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 {
-
 	/* create a new codelet */
 	codelet *cl = malloc(sizeof(codelet));
 	cl_args *args = malloc(sizeof(cl_args));
