@@ -32,6 +32,7 @@ Application domains
 		- LU decomposition (ok ...)
 		- Cholesky, QR, ...
 	- Sparse Linear algebra
+		- conjugate gradient with SpMV
 		- PastiX
 		- SuperLU
 		- Sparse matrix-vector multiplication dummy example
