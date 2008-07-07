@@ -12,10 +12,9 @@
 #include <common/rwlock.h>
 #include <common/timing.h>
 
-#define MAXNODES	6
+#include "data_parameters.h"
 
-#define TAKEN	1
-#define FREE	0
+#include "interfaces/data_interface.h"
 
 typedef enum {
 //	MODIFIED,
@@ -34,9 +33,9 @@ typedef enum {
 typedef struct local_data_state_t {
 	/* describes the state of the local data in term of coherency */
 	cache_state	state; 
-	/* where and how is that data stored on the local node ? */
-	uintptr_t ptr;
-	uint32_t ld; /* leading dimension */
+
+	uint32_t refcnt;
+
 	/* is the data locally allocated ? */
 	uint8_t allocated; 
 	/* was it automatically allocated ? */
@@ -44,7 +43,6 @@ typedef struct local_data_state_t {
 	 * for now this is just translated into !automatically_allocated
 	 * */
 	uint8_t automatically_allocated;
-	uint32_t refcnt;
 } local_data_state;
 
 typedef struct data_state_t {
@@ -52,26 +50,31 @@ typedef struct data_state_t {
 	rw_lock	data_lock;
 	/* protect meta data */
 	mutex header_lock;
-#ifdef USE_SPU
-	uintptr_t ea_data_state;
-	struct data_state_t *ls_data_state;
-#endif
+
 	uint32_t nnodes; /* the number of memory nodes that may use it */
-	uint32_t nx, ny; /* describe the data dimension */
 	struct data_state_t *children;
 	int nchildren;
-	size_t elemsize;
+
+	/* describe the state of the data in term of coherency */
 	local_data_state per_node[MAXNODES];
+
+	/* describe the actual data layout */
+	data_interface_t interface[MAXNODES];
+	unsigned interfaceid;
+
+	size_t (*allocation_method)(struct data_state_t *, uint32_t);
+	void (*deallocation_method)(struct data_state_t *, uint32_t);
+	void (*copy_1_to_1_method)(struct data_state_t *, uint32_t, uint32_t);
 } data_state;
 
 typedef struct buffer_descr_t {
 	/* the part used by the runtime */
 	data_state *state;
 	access_mode mode;
+
 	/* the part given to the kernel */
-	uintptr_t ptr;
-	uint32_t nx, ny;
-	uint32_t ld;
+	data_interface_t interface;
+	unsigned interfaceid;
 } buffer_descr;
 
 void display_state(data_state *state);

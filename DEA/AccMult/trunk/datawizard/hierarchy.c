@@ -8,8 +8,7 @@ void delete_data(data_state *state)
 	ASSERT(state);
 }
 
-void monitor_new_data(data_state *state, uint32_t home_node,
-                        uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny, size_t elemsize)
+void monitor_new_data(data_state *state, uint32_t home_node)
 {
 	ASSERT(state);
 
@@ -37,8 +36,6 @@ void monitor_new_data(data_state *state, uint32_t home_node,
 		if (node == home_node) {
 			/* this is the home node with the only valid copy */
 			state->per_node[node].state = OWNER;
-			state->per_node[node].ptr = ptr;
-			state->per_node[node].ld = ld;
 			state->per_node[node].allocated = 1;
 			state->per_node[node].automatically_allocated = 0;
 			state->per_node[node].refcnt = 0;
@@ -46,15 +43,10 @@ void monitor_new_data(data_state *state, uint32_t home_node,
 		else {
 			/* the value is not available here yet */
 			state->per_node[node].state = INVALID;
-			state->per_node[node].ptr = 0;
 			state->per_node[node].allocated = 0;
 			state->per_node[node].refcnt = 0;
 		}
 	}
-
-	state->nx = nx;
-	state->ny = ny;
-	state->elemsize = elemsize;
 
 	/* now the data is available ! */
 	release_mutex(&state->header_lock);

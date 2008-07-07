@@ -242,19 +242,7 @@ void request_mem_chunk_removal(data_state *state, unsigned node)
 
 void liberate_memory_on_node(data_state *state, uint32_t node)
 {
-	switch(descr.nodes[node]) {
-		case RAM:
-			free((void*)state->per_node[node].ptr);
-			break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
-		case CUBLAS_RAM:
-		case CUDA_RAM:
-			cublasFree((void*)state->per_node[node].ptr);
-			break;
-#endif
-		default:
-			assert(0);
-	}
+	state->deallocation_method(state, node, descr.nodes[node]);
 
 	state->per_node[node].allocated = 0;
 	state->per_node[node].automatically_allocated = 0;
@@ -262,40 +250,23 @@ void liberate_memory_on_node(data_state *state, uint32_t node)
 
 void allocate_memory_on_node(data_state *state, uint32_t dst_node)
 {
-	uintptr_t addr = 0;
 	unsigned attempts = 0;
+	size_t allocated_memory;
 
 	do {
-		switch(descr.nodes[dst_node]) {
-		case RAM:
-			addr = (uintptr_t)malloc(state->nx*state->ny
-							*state->elemsize);
-			break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
-		case CUDA_RAM:
-		case CUBLAS_RAM:
-			cublasAlloc(state->nx*state->ny,
-					state->elemsize, (void **)&addr); 
-			break;
-#endif
-		default:
-			ASSERT(0);
-		}
+		allocated_memory = state->allocation_method(state, dst_node, descr.nodes[dst_node]);
 
-		if (!addr) {
+		if (!allocated_memory) {
 			reclaim_memory(dst_node);
 		}
 		
-	} while(!addr && attempts++ < 2);
+	} while(!allocated_memory && attempts++ < 2);
 
-	/* we could really not handle that capacity misses */
-	ASSERT(addr);
+	/* perhaps we could really not handle that capacity misses */
+	ASSERT(allocated_memory);
 
-	register_mem_chunk(state, dst_node, 
-				state->nx*state->ny*state->elemsize);
+	register_mem_chunk(state, dst_node, allocated_size);
 
-	state->per_node[dst_node].ptr = addr; 
-	state->per_node[dst_node].ld = state->nx; 
 	state->per_node[dst_node].allocated = 1;
 	state->per_node[dst_node].automatically_allocated = 1;
 }

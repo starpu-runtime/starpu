@@ -1,9 +1,9 @@
-#ifndef __FILTERS_H__
-#define __FILTERS_H__
+#ifndef __BLAS_FILTERS_H__
+#define __BLAS_FILTERS_H__
 
-#include "datawizard/hierarchy.h"
+#include "../datawizard/hierarchy.h"
 
 unsigned block_filter_func(filter *f, data_state *root_data);
 unsigned vertical_block_filter_func(filter *f, data_state *root_data);
 
-#endif
+#endif // __BLAS_FILTERS_H__

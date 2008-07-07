@@ -1,4 +1,4 @@
-#include "filters.h"
+#include "blas_filters.h"
 
 /*
  * an example of a dummy partition function : blocks ...
