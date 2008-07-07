@@ -316,12 +316,12 @@ void fetch_codelet_input(buffer_descr *descrs, unsigned nbuffers)
 		buffer_descr *descr;
 		descr = &descrs[index];
 
-		descr->ptr = fetch_data(descr->state, descr->mode);
+		fetch_data(descr->state, descr->mode);
 
-		/* XXX this should be optimized ...*/
-		descr->nx = get_local_nx(descr->state);
-		descr->ny = get_local_ny(descr->state);
-		descr->ld = get_local_ld(descr->state);
+		descr->interfaceid = descr->state->interfaceid;
+
+		memcpy(&descr->interface, &descr->state->interface[get_local_memory_node()], 
+				sizeof(data_interface_t));
 	}
 
 	TRACE_END_FETCH_INPUT(NULL);

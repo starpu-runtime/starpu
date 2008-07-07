@@ -2,7 +2,8 @@
 CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
 CUDAINSTALLDIR=/usr/local/cuda/
 
-TARGET=incrementer heat tag_example 
+TARGET=tag_example 
+# TARGET+= incrementer heat 
 
 # for compile time tuning 
 DEFAULTSIZE=2048
@@ -86,7 +87,7 @@ ifdef ATLAS
         CFLAGS+= -I$(ATLASDIR)/include/
         LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
         LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
-	TARGET += dw_mult # dw_factolu
+	#TARGET += dw_mult # dw_factolu
 endif
 
 
@@ -123,7 +124,7 @@ endif
 LDFLAGS += -L../datawizard/
 CFLAGS += -I../datawizard/
 OBJDEPS += ../datawizard/copy-driver.o ../datawizard/coherency.o 
-OBJDEPS += ../datawizard/hierarchy.o ../datawizard/filters.o
+OBJDEPS += ../datawizard/hierarchy.o ../datawizard/interfaces/blas_filters.o
 OBJDEPS += ../datawizard/memalloc.o
 
 all: $(TARGET)

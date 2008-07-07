@@ -1,4 +1,4 @@
-.PHONY: spu
+.PHONY: interfaces spu
 
 CFLAGS+= -g -Wall
 
