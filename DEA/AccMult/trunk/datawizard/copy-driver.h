@@ -28,6 +28,8 @@ void set_local_memory_node_key(unsigned *node);
 unsigned get_local_memory_node(void);
 unsigned register_memory_node(node_kind kind);
 
+node_kind get_node_kind(uint32_t node);
+
 void driver_copy_data_1_to_1(data_state *state, uint32_t node, 
 				uint32_t requesting_node, unsigned donotread);
 

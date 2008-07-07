@@ -1,8 +1,8 @@
 #include <common/util.h>
 #include <datawizard/data_parameters.h>
 #include <datawizard/coherency.h>
-#include "blas_interface.h"
 #include <datawizard/copy-driver.h>
+#include <datawizard/hierarchy.h>
 
 size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node);
 void liberate_blas_buffer_on_node(data_state *state, uint32_t node);

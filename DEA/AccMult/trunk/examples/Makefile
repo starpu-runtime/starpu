@@ -87,7 +87,7 @@ ifdef ATLAS
         CFLAGS+= -I$(ATLASDIR)/include/
         LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
         LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
-	#TARGET += dw_mult # dw_factolu
+	TARGET += dw_mult # dw_factolu
 endif
 
 
@@ -125,7 +125,7 @@ LDFLAGS += -L../datawizard/
 CFLAGS += -I../datawizard/
 OBJDEPS += ../datawizard/copy-driver.o ../datawizard/coherency.o 
 OBJDEPS += ../datawizard/hierarchy.o ../datawizard/interfaces/blas_filters.o
-OBJDEPS += ../datawizard/memalloc.o
+OBJDEPS += ../datawizard/memalloc.o  ../datawizard/interfaces/blas_interface.o
 
 all: $(TARGET)
 

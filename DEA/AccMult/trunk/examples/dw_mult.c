@@ -14,7 +14,8 @@
 
 #include <datawizard/coherency.h>
 #include <datawizard/hierarchy.h>
-#include <datawizard/filters.h>
+#include <datawizard/interfaces/blas_interface.h>
+#include <datawizard/interfaces/blas_filters.h>
 
 #include <common/fxt.h>
 
@@ -116,17 +117,17 @@ void callback_func(void *arg)
 	float *subB;			\
 	float *subC;			\
 					\
-	subA = (float *)descr[0].ptr;	\
-	subB = (float *)descr[1].ptr;	\
-	subC = (float *)descr[2].ptr;	\
+	subA = (float *)descr[0].interface.blas.ptr;	\
+	subB = (float *)descr[1].interface.blas.ptr;	\
+	subC = (float *)descr[2].interface.blas.ptr;	\
 					\
-	nxC = descr[2].nx;		\
-	nyC = descr[2].ny;		\
-	nxA = descr[0].nx;		\
-					\
-	ldA = descr[0].ld;		\
-	ldB = descr[1].ld;		\
-	ldC = descr[2].ld;
+	nxC = descr[2].interface.blas.nx;		\
+	nyC = descr[2].interface.blas.ny;		\
+	nxA = descr[0].interface.blas.nx;		\
+						\
+	ldA = descr[0].interface.blas.ld;		\
+	ldB = descr[1].interface.blas.ld;		\
+	ldC = descr[2].interface.blas.ld;
 
 
 
@@ -282,11 +283,11 @@ void init_problem_callback(void *arg __attribute__((unused)))
 #endif
 
 	GET_TICK(start);
-	monitor_new_data(&A_state, 0, (uintptr_t)A, 
+	monitor_blas_data(&A_state, 0, (uintptr_t)A, 
 		zdim, zdim, ydim, sizeof(float));
-	monitor_new_data(&B_state, 0, (uintptr_t)B, 
+	monitor_blas_data(&B_state, 0, (uintptr_t)B, 
 		xdim, xdim, zdim, sizeof(float));
-	monitor_new_data(&C_state, 0, (uintptr_t)C, 
+	monitor_blas_data(&C_state, 0, (uintptr_t)C, 
 		xdim, xdim, ydim, sizeof(float));
 
 	filter f;
