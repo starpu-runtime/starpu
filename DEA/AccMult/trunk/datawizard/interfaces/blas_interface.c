@@ -1,6 +1,12 @@
 #include <common/util.h>
-#include "../data_parameters.h"
+#include <datawizard/data_parameters.h>
+#include <datawizard/coherency.h>
 #include "blas_interface.h"
+#include <datawizard/copy-driver.h>
+
+size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node);
+void liberate_blas_buffer_on_node(data_state *state, uint32_t node);
+
 
 /* declare a new data with the BLAS interface */
 void monitor_blas_data(data_state *state, uint32_t home_node,
@@ -13,17 +19,17 @@ void monitor_blas_data(data_state *state, uint32_t home_node,
 		blas_interface_t *local_interface = &state->interface[node].blas;
 
 		if (node == home_node) {
-			local_interface.ptr = ptr;
-			local_interface.ld  = ld;
+			local_interface->ptr = ptr;
+			local_interface->ld  = ld;
 		}
 		else {
-			local_interface.ptr = 0;
-			local_interface.ld  = 0;
+			local_interface->ptr = 0;
+			local_interface->ld  = 0;
 		}
 
-		local_interface.nx = nx;
-		local_interface.ny = ny;
-		local_interface.elemsize = elemsize;
+		local_interface->nx = nx;
+		local_interface->ny = ny;
+		local_interface->elemsize = elemsize;
 	}
 
 	state->interfaceid = BLAS_INTERFACE;
@@ -56,7 +62,7 @@ uint32_t get_blas_local_ld(data_state *state)
 	unsigned node;
 	node = get_local_memory_node();
 
-	ASSERT(state->per_node[*memory_node].allocated);
+	ASSERT(state->per_node[node].allocated);
 
 	return (state->interface[node].blas.ld);
 }
@@ -66,7 +72,7 @@ uintptr_t get_blas_local_ptr(data_state *state)
 	unsigned node;
 	node = get_local_memory_node();
 
-	ASSERT(state->per_node[*memory_node].allocated);
+	ASSERT(state->per_node[node].allocated);
 
 	return (state->interface[node].blas.ptr);
 }
@@ -79,9 +85,9 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 	uintptr_t addr;
 	size_t allocated_memory;
 
-	uint32_t nx = state->per_node[dst_node].blas.nx;
-	uint32_t ny = state->per_node[dst_node].blas.ny;
-	size_t ny = state->per_node[dst_node].blas.elemsize;
+	uint32_t nx = state->interface[dst_node].blas.nx;
+	uint32_t ny = state->interface[dst_node].blas.ny;
+	size_t elemsize = state->interface[dst_node].blas.elemsize;
 
 	node_kind kind = get_node_kind(dst_node);
 
@@ -104,8 +110,8 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 		allocated_memory = nx*ny*elemsize;
 
 		/* update the data properly in consequence */
-		state->per_node[dst_node].blas.addr = addr;
-		state->per_node[dst_node].blas.ld = nx;
+		state->interface[dst_node].blas.ptr = addr;
+		state->interface[dst_node].blas.ld = nx;
 	} else {
 		/* allocation failed */
 		allocated_memory = 0;
@@ -119,12 +125,12 @@ void liberate_blas_buffer_on_node(data_state *state, uint32_t node)
 	node_kind kind = get_node_kind(node);
 	switch(kind) {
 		case RAM:
-			free((void*)state->per_node[node].ptr);
+			free((void*)state->interface[node].blas.ptr);
 			break;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case CUBLAS_RAM:
 		case CUDA_RAM:
-			cublasFree((void*)state->per_node[node].ptr);
+			cublasFree((void*)state->interface[node].blas.ptr);
 			break;
 #endif
 		default:
@@ -156,15 +162,24 @@ static void copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t ds
 static void dummy_copy_ram_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)
 {
 	unsigned y;
-	for (y = 0; y < state->ny; y++)
+	uint32_t nx = state->interface[dst_node].blas.nx;
+	uint32_t ny = state->interface[dst_node].blas.ny;
+	size_t elemsize = state->interface[dst_node].blas.elemsize;
+
+	uint32_t ld_src = state->interface[src_node].blas.ld;
+	uint32_t ld_dst = state->interface[dst_node].blas.ld;
+
+	uintptr_t ptr_src = state->interface[src_node].blas.ptr;
+	uintptr_t ptr_dst = state->interface[dst_node].blas.ptr;
+
+
+	for (y = 0; y < ny; y++)
 	{
-		uint32_t src_offset =
-			y*state->per_node[src_node].ld*state->elemsize;
-		uint32_t dst_offset =
-			y*state->per_node[dst_node].ld*state->elemsize;
-		memcpy((void *)(state->per_node[dst_node].ptr + dst_offset),
-			(void *)(state->per_node[src_node].ptr + src_offset),
-			state->nx*state->elemsize);
+		uint32_t src_offset = y*ld_src*elemsize;
+		uint32_t dst_offset = y*ld_dst*elemsize;
+
+		memcpy((void *)(ptr_dst + dst_offset), 
+			(void *)(ptr_src + src_offset), nx*elemsize);
 	}
 }
 

@@ -1,4 +1,5 @@
 #include "blas_filters.h"
+#include "blas_interface.h"
 
 /*
  * an example of a dummy partition function : blocks ...
@@ -8,8 +9,13 @@ unsigned block_filter_func(filter *f, data_state *root_data)
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
 
+	blas_interface_t *blas_root = &root_data->interface[0].blas;
+	uint32_t nx = blas_root->nx;
+	uint32_t ny = blas_root->ny;
+	size_t elemsize = blas_root->elemsize;
+
 	/* we will have arg chunks */
-	nchunks = MIN(root_data->nx, arg);
+	nchunks = MIN(nx, arg);
 	
 	/* first allocate the children data_state */
 	root_data->children = malloc(nchunks*sizeof(data_state));
@@ -19,20 +25,24 @@ unsigned block_filter_func(filter *f, data_state *root_data)
 	unsigned chunk;
 	for (chunk = 0; chunk < nchunks; chunk++)
 	{
-		uint32_t chunk_size = (root_data->nx + nchunks - 1)/nchunks;
-		size_t offset = chunk*chunk_size*root_data->elemsize;
+		uint32_t chunk_size = (nx + nchunks - 1)/nchunks;
+		size_t offset = chunk*chunk_size*elemsize;
 
-		root_data->children[chunk].nx = 
-			MIN(chunk_size, root_data->nx - chunk*chunk_size);
-		root_data->children[chunk].ny = root_data->ny;
+		uint32_t child_nx = 
+			MIN(chunk_size, nx - chunk*chunk_size);
 
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
 		{
-			local_data_state *local = &root_data->children[chunk].per_node[node];
+			blas_interface_t *local = &root_data->children[chunk].interface[node].blas;
+
+			local->nx = child_nx;
+			local->ny = ny;
+			local->elemsize = elemsize;
+
 			if (root_data->per_node[node].allocated) {
-				local->ptr = root_data->per_node[node].ptr + offset;
-				local->ld = root_data->per_node[node].ld;
+				local->ptr = root_data->interface[node].blas.ptr + offset;
+				local->ld = root_data->interface[node].blas.ld;
 			}
 		}
 	}
@@ -45,8 +55,12 @@ unsigned vertical_block_filter_func(filter *f, data_state *root_data)
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
 
+	uint32_t nx = root_data->interface[0].blas.nx;
+	uint32_t ny = root_data->interface[0].blas.ny;
+	size_t elemsize = root_data->interface[0].blas.elemsize;
+
 	/* we will have arg chunks */
-	nchunks = MIN(root_data->ny, arg);
+	nchunks = MIN(ny, arg);
 	
 	/* first allocate the children data_state */
 	root_data->children = malloc(nchunks*sizeof(data_state));
@@ -56,21 +70,25 @@ unsigned vertical_block_filter_func(filter *f, data_state *root_data)
 	unsigned chunk;
 	for (chunk = 0; chunk < nchunks; chunk++)
 	{
-		uint32_t chunk_size = (root_data->ny + nchunks - 1)/nchunks;
+		uint32_t chunk_size = (ny + nchunks - 1)/nchunks;
 
-
-		root_data->children[chunk].nx = root_data->nx; 
-		root_data->children[chunk].ny =
-			MIN(chunk_size, root_data->ny - chunk*chunk_size);
+		uint32_t child_ny = 
+			MIN(chunk_size, ny - chunk*chunk_size);
 
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
 		{
-			local_data_state *local = &root_data->children[chunk].per_node[node];
+			blas_interface_t *local = &root_data->children[chunk].interface[node].blas;
+
+			local->nx = nx;
+			local->ny = child_ny;
+			local->elemsize = elemsize;
+
 			if (root_data->per_node[node].allocated) {
-				size_t offset = chunk*chunk_size*root_data->per_node[node].ld*root_data->elemsize;
-				local->ptr = root_data->per_node[node].ptr + offset;
-				local->ld = root_data->per_node[node].ld;
+				size_t offset = 
+					chunk*chunk_size*root_data->interface[node].blas.ld*elemsize;
+				local->ptr = root_data->interface[node].blas.ptr + offset;
+				local->ld = root_data->interface[node].blas.ld;
 			}
 		}
 	}
