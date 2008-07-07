@@ -1,7 +1,7 @@
 #ifndef __DATA_INTERFACE_H__
 #define __DATA_INTERFACE_H__
 
-#include "../data_parameters.h"
+#include <datawizard/data_parameters.h>
 #include "blas_interface.h"
 #include "crs_interface.h"
 

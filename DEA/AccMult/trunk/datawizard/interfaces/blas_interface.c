@@ -141,20 +141,29 @@ void liberate_blas_buffer_on_node(data_state *state, uint32_t node)
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 static void copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)
 {
-	cublasGetMatrix(state->nx, state->ny, state->elemsize,
-		(uint8_t *)state->per_node[src_node].ptr,
-		state->per_node[src_node].ld,
-		(uint8_t *)state->per_node[dst_node].ptr,
-		state->per_node[dst_node].ld);
+	blas_interface_t *src_blas;
+	blas_interface_t *dst_blas;
+
+	src_blas = &state->interface[src_node].blas;
+	dst_blas = &state->interface[dst_node].blas;
+
+	cublasGetMatrix(src_blas->nx, src_blas->ny, src_blas->elemsize,
+		(uint8_t *)src_blas->ptr, src_blas->ld,
+		(uint8_t *)dst_blas->ptr, dst_blas->ld);
 }
 
 static void copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst_node)
 {
-	cublasSetMatrix(state->nx, state->ny, state->elemsize,
-		(uint8_t *)state->per_node[src_node].ptr,
-		state->per_node[src_node].ld,
-		(uint8_t *)state->per_node[dst_node].ptr,
-		state->per_node[dst_node].ld);
+	blas_interface_t *src_blas;
+	blas_interface_t *dst_blas;
+
+	src_blas = &state->interface[src_node].blas;
+	dst_blas = &state->interface[dst_node].blas;
+
+
+	cublasSetMatrix(src_blas->nx, src_blas->ny, src_blas->elemsize,
+		(uint8_t *)src_blas->ptr, src_blas->ld,
+		(uint8_t *)dst_blas->ptr, dst_blas->ld);
 }
 #endif // USE_CUDA
 
