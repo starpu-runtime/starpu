@@ -242,7 +242,7 @@ void request_mem_chunk_removal(data_state *state, unsigned node)
 
 void liberate_memory_on_node(data_state *state, uint32_t node)
 {
-	state->deallocation_method(state, node, descr.nodes[node]);
+	state->deallocation_method(state, node);
 
 	state->per_node[node].allocated = 0;
 	state->per_node[node].automatically_allocated = 0;
@@ -254,7 +254,7 @@ void allocate_memory_on_node(data_state *state, uint32_t dst_node)
 	size_t allocated_memory;
 
 	do {
-		allocated_memory = state->allocation_method(state, dst_node, descr.nodes[dst_node]);
+		allocated_memory = state->allocation_method(state, dst_node);
 
 		if (!allocated_memory) {
 			reclaim_memory(dst_node);
@@ -265,7 +265,7 @@ void allocate_memory_on_node(data_state *state, uint32_t dst_node)
 	/* perhaps we could really not handle that capacity misses */
 	ASSERT(allocated_memory);
 
-	register_mem_chunk(state, dst_node, allocated_size);
+	register_mem_chunk(state, dst_node, allocated_memory);
 
 	state->per_node[dst_node].allocated = 1;
 	state->per_node[dst_node].automatically_allocated = 1;

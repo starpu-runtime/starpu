@@ -13,16 +13,16 @@ ifdef SPU
 	SPU_TARGET=spu
 endif
 
-all: coherency.o copy-driver.o hierarchy.o filters.o memalloc.o $(SPU_TARGET)
+all: interfaces coherency.o copy-driver.o hierarchy.o memalloc.o $(SPU_TARGET)
+
+interfaces:
+	@make -C interfaces
 
 spu:
 	@make -C spu
 
 memalloc.o: memalloc.c memalloc.h
 	$(CC) memalloc.c $(CFLAGS) -c -o memalloc.o
-
-filters.o: filters.c filters.h
-	$(CC) filters.c $(CFLAGS) -c -o filters.o
 
 hierarchy.o: hierarchy.c hierarchy.h coherency.h
 	$(CC) hierarchy.c $(CFLAGS) -c -o hierarchy.o

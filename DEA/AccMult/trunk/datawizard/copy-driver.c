@@ -68,11 +68,8 @@ void driver_copy_data_1_to_1(data_state *state, uint32_t src_node,
 	/* if there is no need to actually read the data, 
 	 * we do not perform any transfer */
 	if (!donotread) {
-		state->copy_1_to_1_method(state, src_node, dst_node, 
-			descr.nodes[src_node], descr.nodes[dst_node]);
-
+		state->copy_1_to_1_method(state, src_node, dst_node);
 	}
-
 }
 
 static uint32_t choose_src_node(uint32_t src_node_mask)

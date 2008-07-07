@@ -28,11 +28,7 @@ float *result;
 int *RefArray;
 point *pmesh;
 float *A;
-float *subA;
 float *B;
-float *subB;
-float *subL;
-float *subU;
 
 float *Bformer;
 
@@ -735,8 +731,6 @@ int main(int argc, char **argv)
 	opengl_render();
 #endif
 
-	free(subA);
-	free(subB);
 	free(pmesh);
 	free(result);
 	free(RefArray);

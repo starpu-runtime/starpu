@@ -72,21 +72,11 @@ static void copy_data_to_node(data_state *state, uint32_t requesting_node,
  * 	data copy + if (W) (invalid->owner + owner->invalid) 
  * 		    else (invalid,owner->shared)
  */
-/* NB : for SPU this is a pointer to the local copy which is not entirely 
- * fetched at first ! */
 
-uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
+void _fetch_data(data_state *state, uint32_t requesting_node,
 			uint8_t read, uint8_t write)
 {
 	take_mutex(&state->header_lock);
-
-#ifdef SPU_CODE
-	/* we may now fetch the entire state structure 
- 	 * from main memory since it is locked */
-	fetch_dynamic_data_state(state);	
-#endif
-
-//	printf("FETCH from %d R,W = %d,%d\n", requesting_node, read, write);
 
 	cache_state local_state;
 	local_state = state->per_node[requesting_node].state;
@@ -97,8 +87,7 @@ uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
 	{
 		/* the local node already got its data */
 		release_mutex(&state->header_lock);
-
-		return state->per_node[requesting_node].ptr;
+		return;
 	}
 
 	if ((local_state == SHARED) && write) {
@@ -115,14 +104,8 @@ uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
 
 		}
 		
-#ifdef SPU_CODE
-		/* some states were modified */
-		push_dynamic_data_state(state);
-#endif
-
 		release_mutex(&state->header_lock);
-
-		return state->per_node[requesting_node].ptr;
+		return;
 	}
 
 	/* the only remaining situation is that the local copy was invalid */
@@ -151,17 +134,10 @@ uintptr_t _fetch_data(data_state *state, uint32_t requesting_node,
 		state->per_node[requesting_node].state = SHARED;
 	}
 
-#ifdef SPU_CODE
-		/* some states were modified */
-		push_dynamic_data_state(state);
-#endif
-
 	release_mutex(&state->header_lock);
-
-	return state->per_node[requesting_node].ptr;
 }
 
-uintptr_t fetch_data(data_state *state, access_mode mode)
+void fetch_data(data_state *state, access_mode mode)
 {
 	uint32_t requesting_node = get_local_memory_node(); 
 
@@ -179,7 +155,7 @@ uintptr_t fetch_data(data_state *state, access_mode mode)
 	state->per_node[requesting_node].refcnt++;
 	release_mutex(&state->header_lock);
 
-	return _fetch_data(state, requesting_node, read, write);
+	_fetch_data(state, requesting_node, read, write);
 }
 
 uint32_t get_data_refcnt(data_state *state, uint32_t node)
@@ -237,10 +213,6 @@ void release_data(data_state *state, uint32_t write_through_mask)
 	/* are we doing write-through or just some normal write-back ? */
 	if (write_through_mask & ~(1<<requesting_node)) {
 		write_through_data(state, requesting_node, write_through_mask);
-#ifdef SPU_CODE
-		/* some states were (possibly) modified */
-		push_dynamic_data_state(state);
-#endif
 	}
 
 	take_mutex(&state->header_lock);

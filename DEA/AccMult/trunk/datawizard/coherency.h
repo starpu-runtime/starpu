@@ -78,10 +78,10 @@ typedef struct buffer_descr_t {
 } buffer_descr;
 
 void display_state(data_state *state);
-uintptr_t fetch_data(data_state *state, access_mode mode);
+void fetch_data(data_state *state, access_mode mode);
 void release_data(data_state *state, uint32_t write_through_mask);
 
-uintptr_t _fetch_data(data_state *state, uint32_t requesting_node, uint8_t read, uint8_t write);
+void _fetch_data(data_state *state, uint32_t requesting_node, uint8_t read, uint8_t write);
 
 uint32_t get_data_refcnt(data_state *state, uint32_t node);
 
