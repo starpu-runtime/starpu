@@ -39,7 +39,7 @@ void cuda_callback_func(__attribute__ ((unused)) void *argcb)
 
 void callback_func(__attribute__ ((unused)) void *argcb)
 {
-	int cntleft = (int)my_lovely_float[0];
+//	int cntleft = (int)my_lovely_float[0];
 	int cntright = (int)my_lovely_float[3];
 
 //	if ((cntleft == NITER) && (cntright == NITER)) 

@@ -19,19 +19,19 @@ static uint64_t flop_atlas = 0;
  *   U22 
  */
 
-static inline void dw_common_core_codelet_update_u22(buffer_descr *buffers, int s, __attribute__((unused)) void *_args)
+static inline void dw_common_core_codelet_update_u22(data_interface_t *buffers, int s, __attribute__((unused)) void *_args)
 {
-	float *left 	= (float *)buffers[0].ptr;
-	float *right 	= (float *)buffers[1].ptr;
-	float *center 	= (float *)buffers[2].ptr;
+	float *left 	= (float *)buffers[0].blas.ptr;
+	float *right 	= (float *)buffers[1].blas.ptr;
+	float *center 	= (float *)buffers[2].blas.ptr;
 
-	unsigned dx = buffers[2].nx;
-	unsigned dy = buffers[2].ny;
-	unsigned dz = buffers[0].ny;
+	unsigned dx = buffers[2].blas.nx;
+	unsigned dy = buffers[2].blas.ny;
+	unsigned dz = buffers[0].blas.ny;
 
-	unsigned ld12 = buffers[0].ld;
-	unsigned ld21 = buffers[1].ld;
-	unsigned ld22 = buffers[2].ld;
+	unsigned ld12 = buffers[0].blas.ld;
+	unsigned ld21 = buffers[1].blas.ld;
+	unsigned ld22 = buffers[2].blas.ld;
 
 	switch (s) {
 		case 0:
@@ -56,13 +56,13 @@ static inline void dw_common_core_codelet_update_u22(buffer_descr *buffers, int 
 	}
 }
 
-static void dw_core_codelet_update_u22(buffer_descr *descr, void *_args)
+static void dw_core_codelet_update_u22(data_interface_t *descr, void *_args)
 {
 	dw_common_core_codelet_update_u22(descr, 0, _args);
 }
 
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
-static void dw_cublas_codelet_update_u22(buffer_descr *descr, void *_args)
+static void dw_cublas_codelet_update_u22(data_interface_t *descr, void *_args)
 {
 	dw_common_core_codelet_update_u22(descr, 1, _args);
 }
@@ -72,18 +72,18 @@ static void dw_cublas_codelet_update_u22(buffer_descr *descr, void *_args)
  * U12
  */
 
-static inline void dw_common_codelet_update_u12(buffer_descr *buffers, int s, __attribute__((unused)) void *_args) {
+static inline void dw_common_codelet_update_u12(data_interface_t *buffers, int s, __attribute__((unused)) void *_args) {
 	float *sub11;
 	float *sub12;
 
-	sub11 = (float *)buffers[0].ptr;	
-	sub12 = (float *)buffers[1].ptr;
+	sub11 = (float *)buffers[0].blas.ptr;	
+	sub12 = (float *)buffers[1].blas.ptr;
 
-	unsigned ld11 = buffers[0].ld;
-	unsigned ld12 = buffers[1].ld;
+	unsigned ld11 = buffers[0].blas.ld;
+	unsigned ld12 = buffers[1].blas.ld;
 
-	unsigned nx12 = buffers[1].nx;
-	unsigned ny12 = buffers[1].ny;
+	unsigned nx12 = buffers[1].blas.nx;
+	unsigned ny12 = buffers[1].blas.ny;
 
 	/* solve L11 U12 = A12 (find U12) */
 	switch (s) {
@@ -103,13 +103,13 @@ static inline void dw_common_codelet_update_u12(buffer_descr *buffers, int s, __
 	}
 }
 
-static void dw_core_codelet_update_u12(buffer_descr *descr, void *_args)
+static void dw_core_codelet_update_u12(data_interface_t *descr, void *_args)
 {
 	 dw_common_codelet_update_u12(descr, 0, _args);
 }
 
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
-static void dw_cublas_codelet_update_u12(buffer_descr *descr, void *_args)
+static void dw_cublas_codelet_update_u12(data_interface_t *descr, void *_args)
 {
 	 dw_common_codelet_update_u12(descr, 1, _args);
 }
@@ -119,18 +119,18 @@ static void dw_cublas_codelet_update_u12(buffer_descr *descr, void *_args)
  * U21
  */
 
-static inline void dw_common_codelet_update_u21(buffer_descr *buffers, int s, __attribute__((unused)) void *_args) {
+static inline void dw_common_codelet_update_u21(data_interface_t *buffers, int s, __attribute__((unused)) void *_args) {
 	float *sub11;
 	float *sub21;
 
-	sub11 = (float *)buffers[0].ptr;
-	sub21 = (float *)buffers[1].ptr;
+	sub11 = (float *)buffers[0].blas.ptr;
+	sub21 = (float *)buffers[1].blas.ptr;
 
-	unsigned ld11 = buffers[0].ld;
-	unsigned ld21 = buffers[1].ld;
+	unsigned ld11 = buffers[0].blas.ld;
+	unsigned ld21 = buffers[1].blas.ld;
 
-	unsigned nx21 = buffers[1].nx;
-	unsigned ny21 = buffers[1].ny;
+	unsigned nx21 = buffers[1].blas.nx;
+	unsigned ny21 = buffers[1].blas.ny;
 
 	switch (s) {
 		case 0:
@@ -148,13 +148,13 @@ static inline void dw_common_codelet_update_u21(buffer_descr *buffers, int s, __
 	}
 }
 
-static void dw_core_codelet_update_u21(buffer_descr *descr, void *_args)
+static void dw_core_codelet_update_u21(data_interface_t *descr, void *_args)
 {
 	 dw_common_codelet_update_u21(descr, 0, _args);
 }
 
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
-static void dw_cublas_codelet_update_u21(buffer_descr *descr, void *_args)
+static void dw_cublas_codelet_update_u21(data_interface_t *descr, void *_args)
 {
 	dw_common_codelet_update_u21(descr, 1, _args);
 }
@@ -164,14 +164,14 @@ static void dw_cublas_codelet_update_u21(buffer_descr *descr, void *_args)
  *	U11
  */
 
-static inline void dw_common_codelet_update_u11(buffer_descr *descr, int s, __attribute__((unused)) void *_args) 
+static inline void dw_common_codelet_update_u11(data_interface_t *descr, int s, __attribute__((unused)) void *_args) 
 {
 	float *sub11;
 
-	sub11 = (float *)descr[0].ptr; 
+	sub11 = (float *)descr[0].blas.ptr; 
 
-	unsigned nx = descr[0].nx;
-	unsigned ld = descr[0].ld;
+	unsigned nx = descr[0].blas.nx;
+	unsigned ld = descr[0].blas.ld;
 
 	unsigned z;
 
@@ -219,13 +219,13 @@ static inline void dw_common_codelet_update_u11(buffer_descr *descr, int s, __at
 }
 
 
-static void dw_core_codelet_update_u11(buffer_descr *descr, void *_args)
+static void dw_core_codelet_update_u11(data_interface_t *descr, void *_args)
 {
 	dw_common_codelet_update_u11(descr, 0, _args);
 }
 
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
-static void dw_cublas_codelet_update_u11(buffer_descr *descr, void *_args)
+static void dw_cublas_codelet_update_u11(data_interface_t *descr, void *_args)
 {
 	dw_common_codelet_update_u11(descr, 1, _args);
 }
@@ -433,7 +433,7 @@ static void dw_codelet_facto_v3(data_state *dataA, unsigned nblocks)
 	fprintf(stderr, "Computation took (in ms)\n");
 	printf("%2.2f\n", timing/1000);
 
-	unsigned n = get_local_nx(dataA);
+	unsigned n = get_blas_local_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
@@ -470,7 +470,7 @@ void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	monitor_new_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
+	monitor_blas_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	filter f;
 		f.filter_func = block_filter_func;

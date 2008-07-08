@@ -13,7 +13,8 @@
 
 #include <datawizard/coherency.h>
 #include <datawizard/hierarchy.h>
-#include <datawizard/filters.h>
+#include <datawizard/interfaces/blas_filters.h>
+#include <datawizard/interfaces/blas_interface.h>
 
 #ifdef USE_CUBLAS
 #include <cuda.h>
@@ -34,20 +35,6 @@ typedef struct {
 } cl_args;
 
 
-// void dw_callback_codelet_update_u11(void *);
-// void dw_callback_codelet_update_u12_21(void *);
-// void dw_callback_codelet_update_u22(void *);
-// 
-// void dw_callback_v2_codelet_update_u11(void *);
-// void dw_callback_v2_codelet_update_u12(void *);
-// void dw_callback_v2_codelet_update_u21(void *);
-// void dw_callback_v2_codelet_update_u22(void *);
-// 
-// void dw_core_codelet_update_u11(buffer_descr *, void *);
-// void dw_core_codelet_update_u12(buffer_descr *, void *);
-// void dw_core_codelet_update_u21(buffer_descr *, void *);
-// void dw_core_codelet_update_u22(buffer_descr *, void *);
-
 #ifdef USE_CUBLAS
 
 static float **ptrA;
@@ -56,7 +43,7 @@ static unsigned __dim;
 
 sem_t sem_malloc;
 
-static void malloc_pinned_codelet(buffer_descr *buffers __attribute__((unused)),
+static void malloc_pinned_codelet(data_interface_t *buffers __attribute__((unused)),
 					void *addr  __attribute__((unused)))
 {
 	cuMemAllocHost((void **)ptrA, __dim*__dim*sizeof(float));

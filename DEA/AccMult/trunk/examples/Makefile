@@ -4,7 +4,7 @@ CUDAINSTALLDIR=/usr/local/cuda/
 
 TARGET=tag_example 
 TARGET+= incrementer
-#TARGET+= heat 
+TARGET+= heat 
 
 # for compile time tuning 
 DEFAULTSIZE=2048
