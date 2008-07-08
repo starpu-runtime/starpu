@@ -188,3 +188,4 @@ cuda/incrementer_cuda.cubin: cuda/incrementer_cuda.cu cuda/incrementer_cuda.h
 
 clean:
 	@rm -f tag_example multiplication multiplication2 heat gpuirq incrementer dw_mult dw_factolu *.o
+	@rm -f cuda/incrementer_cuda.cubin

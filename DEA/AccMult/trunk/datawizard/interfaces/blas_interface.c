@@ -67,18 +67,18 @@ size_t dump_blas_interface(data_interface_t *interface, void *_buffer)
 /* offer an access to the data parameters */
 uint32_t get_blas_local_nx(data_state *state)
 {
-	unsigned node;
-	node = get_local_memory_node();
+	//unsigned node;
+	//node = get_local_memory_node();
 
-	return (state->interface[node].blas.nx);
+	return (state->interface[0].blas.nx);
 }
 
 uint32_t get_blas_local_ny(data_state *state)
 {
-	unsigned node;
-	node = get_local_memory_node();
+	//unsigned node;
+	//node = get_local_memory_node();
 
-	return (state->interface[node].blas.ny);
+	return (state->interface[0].blas.ny);
 }
 
 uint32_t get_blas_local_ld(data_state *state)
