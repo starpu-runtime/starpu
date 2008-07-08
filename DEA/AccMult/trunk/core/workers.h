@@ -46,6 +46,6 @@ void kill_all_workers(void);
 void display_general_stats(void);
 
 void push_codelet_output(buffer_descr *descrs, unsigned nbuffers, uint32_t mask);
-void fetch_codelet_input(buffer_descr *descrs, unsigned nbuffers);
+void fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsigned nbuffers);
 
 #endif // __WORKERS_H__

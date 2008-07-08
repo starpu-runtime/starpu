@@ -305,7 +305,7 @@ void kill_all_workers(void)
 
 }
 
-void fetch_codelet_input(buffer_descr *descrs, unsigned nbuffers)
+void fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsigned nbuffers)
 {
 	TRACE_START_FETCH_INPUT(NULL);
 
@@ -314,13 +314,15 @@ void fetch_codelet_input(buffer_descr *descrs, unsigned nbuffers)
 	for (index = 0; index < nbuffers; index++)
 	{
 		buffer_descr *descr;
+		uint32_t local_memory_node = get_local_memory_node();
+
 		descr = &descrs[index];
 
 		fetch_data(descr->state, descr->mode);
 
 		descr->interfaceid = descr->state->interfaceid;
 
-		memcpy(&descr->interface, &descr->state->interface[get_local_memory_node()], 
+		memcpy(&interface[index], &descr->state->interface[local_memory_node], 
 				sizeof(data_interface_t));
 	}
 

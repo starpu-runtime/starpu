@@ -73,7 +73,7 @@ typedef struct buffer_descr_t {
 	access_mode mode;
 
 	/* the part given to the kernel */
-	data_interface_t interface;
+//	data_interface_t interface;
 	unsigned interfaceid;
 } buffer_descr;
 

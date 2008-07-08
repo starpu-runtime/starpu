@@ -15,6 +15,7 @@
 #include <core/tags.h>
 #include <stdarg.h>
 
+#include <datawizard/interfaces/data_interface.h>
 #include <datawizard/coherency.h>
 
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
@@ -33,7 +34,7 @@
 typedef enum {ABORT, CODELET} jobtype;
 
 /* codelet function */
-typedef void (*cl_func)(buffer_descr *, void *);
+typedef void (*cl_func)(data_interface_t *, void *);
 typedef void (*callback)(void *);
 
 #define CORE_MAY_PERFORM(j)	( (j)->where & CORE	)
@@ -72,6 +73,7 @@ LIST_TYPE(job,
 			: -MAXPRIO = least important
 			: 0 default priority */
 	buffer_descr buffers[NMAXBUFS];
+	data_interface_t interface[NMAXBUFS];
 );
 
 void init_work_queue(void);

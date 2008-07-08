@@ -14,11 +14,11 @@ static int execute_job_on_cublas(job_t j)
 		case CODELET:
 			assert(j->cl);
 			assert(j->cl->cublas_func);
-			fetch_codelet_input(j->buffers, j->nbuffers);
+			fetch_codelet_input(j->buffers, j->interface, j->nbuffers);
 
 			TRACE_START_CODELET_BODY(j);
 			cl_func func = j->cl->cublas_func;
-			func(j->buffers, j->cl->cl_arg);
+			func(j->interface, j->cl->cl_arg);
 			cuCtxSynchronize();
 			TRACE_END_CODELET_BODY(j);
 

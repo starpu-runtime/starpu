@@ -145,13 +145,13 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 		case CODELET:
 			ASSERT(j);
 			ASSERT(j->cl);
-			fetch_codelet_input(j->buffers, j->nbuffers);
+			fetch_codelet_input(j->buffers, j->interface, j->nbuffers);
 
 			TRACE_START_CODELET_BODY(j);
 			if (use_cublas) {
 				cl_func func = j->cl->cublas_func;
 				ASSERT(func);
-				func(j->buffers, j->cl->cl_arg);
+				func(j->interface, j->cl->cl_arg);
 				cuCtxSynchronize();
 			} else {
 				/* load the module and the function */

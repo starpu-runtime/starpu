@@ -117,22 +117,22 @@ void callback_func(void *arg)
 	float *subB;			\
 	float *subC;			\
 					\
-	subA = (float *)descr[0].interface.blas.ptr;	\
-	subB = (float *)descr[1].interface.blas.ptr;	\
-	subC = (float *)descr[2].interface.blas.ptr;	\
+	subA = (float *)descr[0].blas.ptr;	\
+	subB = (float *)descr[1].blas.ptr;	\
+	subC = (float *)descr[2].blas.ptr;	\
 					\
-	nxC = descr[2].interface.blas.nx;		\
-	nyC = descr[2].interface.blas.ny;		\
-	nxA = descr[0].interface.blas.nx;		\
+	nxC = descr[2].blas.nx;		\
+	nyC = descr[2].blas.ny;		\
+	nxA = descr[0].blas.nx;		\
 						\
-	ldA = descr[0].interface.blas.ld;		\
-	ldB = descr[1].interface.blas.ld;		\
-	ldC = descr[2].interface.blas.ld;
+	ldA = descr[0].blas.ld;		\
+	ldB = descr[1].blas.ld;		\
+	ldC = descr[2].blas.ld;
 
 
 
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
-void cublas_mult(buffer_descr *descr, __attribute__((unused)) void *arg)
+void cublas_mult(data_interface_t *descr, __attribute__((unused)) void *arg)
 {
 	COMMON_CODE
 
@@ -154,7 +154,7 @@ void cublas_mult(buffer_descr *descr, __attribute__((unused)) void *arg)
 }
 #endif
 
-void core_mult(buffer_descr *descr, __attribute__((unused))  void *arg)
+void core_mult(data_interface_t *descr, __attribute__((unused))  void *arg)
 {
 	COMMON_CODE
 

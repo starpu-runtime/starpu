@@ -55,7 +55,7 @@ void callback_func(__attribute__ ((unused)) void *argcb)
 
 }
 
-void core_codelet(buffer_descr *buffers, __attribute__ ((unused)) void *_args)
+void core_codelet(data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
 	float *val = (float *)buffers[0].ptr;
 
@@ -63,7 +63,7 @@ void core_codelet(buffer_descr *buffers, __attribute__ ((unused)) void *_args)
 }
 
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
-void cublas_codelet(buffer_descr *buffers, __attribute__ ((unused)) void *_args)
+void cublas_codelet(data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
 	float *val = (float *)buffers[0].ptr;
 	float *dunity = (float *)buffers[1].ptr;
