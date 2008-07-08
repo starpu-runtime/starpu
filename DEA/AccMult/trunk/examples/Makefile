@@ -3,7 +3,8 @@ CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
 CUDAINSTALLDIR=/usr/local/cuda/
 
 TARGET=tag_example 
-# TARGET+= incrementer heat 
+TARGET+= incrementer
+#TARGET+= heat 
 
 # for compile time tuning 
 DEFAULTSIZE=2048

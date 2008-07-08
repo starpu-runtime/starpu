@@ -10,7 +10,7 @@
 #include <signal.h>
 #include <datawizard/coherency.h>
 #include <datawizard/hierarchy.h>
-#include <datawizard/filters.h>
+#include <datawizard/interfaces/blas_filters.h>
 
 #ifdef USE_CUDA
 #include <drivers/cuda/driver_cuda.h>
@@ -57,7 +57,7 @@ void callback_func(__attribute__ ((unused)) void *argcb)
 
 void core_codelet(data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
-	float *val = (float *)buffers[0].ptr;
+	float *val = (float *)buffers[0].blas.ptr;
 
 	val[0] += 1.0f; val[1] += 1.0f;
 }
@@ -65,8 +65,8 @@ void core_codelet(data_interface_t *buffers, __attribute__ ((unused)) void *_arg
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 void cublas_codelet(data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
-	float *val = (float *)buffers[0].ptr;
-	float *dunity = (float *)buffers[1].ptr;
+	float *val = (float *)buffers[0].blas.ptr;
+	float *dunity = (float *)buffers[1].blas.ptr;
 
 	cublasSaxpy(3, 1.0f, dunity, 1, val, 1);
 }
@@ -170,10 +170,10 @@ void initialize_cuda(void)
 
 void init_data(void)
 {
-	monitor_new_data(&my_float_root_state, 0 /* home node */,
+	monitor_blas_data(&my_float_root_state, 0 /* home node */,
 		(uintptr_t)&my_lovely_float, 6, 6, 1, sizeof(float));
 
-	monitor_new_data(&unity_state, 0 /* home node */,
+	monitor_blas_data(&unity_state, 0 /* home node */,
 		(uintptr_t)&unity, 3, 3, 1, sizeof(float));
 
 	filter f;
