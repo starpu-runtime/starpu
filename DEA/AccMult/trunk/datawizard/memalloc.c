@@ -242,6 +242,7 @@ void request_mem_chunk_removal(data_state *state, unsigned node)
 
 void liberate_memory_on_node(data_state *state, uint32_t node)
 {
+	ASSERT(state->deallocation_method);
 	state->deallocation_method(state, node);
 
 	state->per_node[node].allocated = 0;
@@ -254,6 +255,7 @@ void allocate_memory_on_node(data_state *state, uint32_t dst_node)
 	size_t allocated_memory;
 
 	do {
+		ASSERT(state->allocation_method);
 		allocated_memory = state->allocation_method(state, dst_node);
 
 		if (!allocated_memory) {

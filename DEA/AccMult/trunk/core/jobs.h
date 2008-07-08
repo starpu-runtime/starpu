@@ -22,7 +22,7 @@
 #include <cuda.h>
 #endif
 
-#define MAXPRIO	10U
+#define MAXPRIO	10
 
 #define ANY	(~0)
 #define CORE	((1ULL)<<1)

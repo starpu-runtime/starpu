@@ -139,6 +139,9 @@ void partition_data(data_state *initial_data, filter *f)
 		data_state *children = &initial_data->children[i];
 
 		children->nchildren = 0;
+		children->allocation_method = initial_data->allocation_method;
+		children->deallocation_method = initial_data->deallocation_method;
+		children->copy_1_to_1_method = initial_data->copy_1_to_1_method;
 
 		/* initialize the chunk lock */
 		init_rw_lock(&children->data_lock);
