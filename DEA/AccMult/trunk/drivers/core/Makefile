@@ -1,5 +1,3 @@
-CFLAGS += -g -O3 -Wall #-fPIC
-
 CFLAGS+= -I$(ATLASDIR)/include/
 LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
 LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a

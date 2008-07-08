@@ -20,7 +20,7 @@
 #include "../drivers/gordon/externals/scalp/cell/gordon/gordon.h"
 #endif
 
-#define NITER	100000
+#define NITER	40000
 
 data_state *my_float_state;
 data_state *my_float_state2;
@@ -42,10 +42,11 @@ void callback_func(__attribute__ ((unused)) void *argcb)
 	int cntleft = (int)my_lovely_float[0];
 	int cntright = (int)my_lovely_float[3];
 
-	if ((cntleft == NITER) && (cntright == NITER)) 
+//	if ((cntleft == NITER) && (cntright == NITER)) 
+	if ((cntright == NITER)) 
 	{
-		printf("LEFT -> %f, %f, %f \n", my_lovely_float[0],
-				my_lovely_float[1], my_lovely_float[2]);
+	//	printf("LEFT -> %f, %f, %f \n", my_lovely_float[0],
+	//			my_lovely_float[1], my_lovely_float[2]);
 		printf("RIGHT -> %f, %f, %f \n", my_lovely_float[3], 
 				my_lovely_float[4], my_lovely_float[5]);
 		printf("stopping ...\n");
@@ -213,32 +214,35 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 
 	cl2.cl_arg = my_float_state2;
 	cl2.core_func = core_codelet;
-#ifdef USE_CUDA
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
+	cl2.cublas_func = cublas_codelet;
 	cl2.cuda_func = &cuda_codelet;
 #endif
 
 	for (i = 0; i < NITER; i++)
 	{
 
+		//j = job_create();
+		//j->where = CORE|CUBLAS;
+		//j->cb = callback_func;
+		//j->cl = &cl;
+
+		//j->nbuffers = 2;
+		//j->buffers[0].state = my_float_state; 
+		//j->buffers[0].mode = RW;
+		//j->buffers[1].state = &unity_state; 
+		//j->buffers[1].mode = R;
+
+		//tag =	((1ULL)<<32 | (unsigned long long)(i));
+		//tag_declare(tag, j);
+
+		//push_task(j);
+
+
 		j = job_create();
-		j->where = CORE|CUBLAS;
-		j->cb = callback_func;
-		j->cl = &cl;
-
-		j->nbuffers = 2;
-		j->buffers[0].state = my_float_state; 
-		j->buffers[0].mode = RW;
-		j->buffers[1].state = &unity_state; 
-		j->buffers[1].mode = R;
-
-		tag =	((1ULL)<<32 | (unsigned long long)(i));
-		tag_declare(tag, j);
-
-		push_task(j);
-
-
-		j = job_create();
-		j->where = CORE|CUDA;
+		j->where = 
+			(((i % 2) == 1)?CUDA:CUBLAS)|CORE; 
+		
 		j->cb = callback_func;
 		j->cl = &cl2;
 

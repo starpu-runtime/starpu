@@ -7,6 +7,8 @@ static CUdevice cuDevice;
 static CUcontext cuContext[MAXCUDADEVS];
 CUresult status;
 
+//CUdeviceptr debugptr;
+
 extern char *execpath;
 
 void init_cuda_module(struct cuda_module_s *module, char *path)
@@ -48,42 +50,62 @@ void init_cuda_function(struct cuda_function_s *func,
 	func->module = module;
 }
 
-static int testfoo = 123456;
-
 void set_function_args(cuda_codelet_t *args, 
-			buffer_descr *descr, 
+			buffer_descr *descr,
+			data_interface_t *interface, 
 			unsigned nbuffers)
 {
+	CUresult res;
+
 	unsigned offset = 0;
+
 
 	unsigned buf;
 	for (buf = 0; buf < nbuffers; buf++)
 	{
-		cuParamSetv(args->func->function, offset, 
-			(CUdeviceptr *)&descr[buf].ptr, sizeof(CUdeviceptr));
-		offset += sizeof(CUdeviceptr);
+		size_t size;
+		/* this buffer is filled with the stack to be given to the GPU 
+		 * the size of the buffer may be changed if needed */
+		uint32_t argbuffer[64];
 
-		cuParamSetv(args->func->function, offset, 
-			&descr[buf].nx, sizeof(uint32_t));
-		offset += sizeof(uint32_t);
+		data_state *state = descr[buf].state;
+	
+		/* dump the stack into the buffer */
+		size = state->dump_interface(&interface[buf], argbuffer); 
 
-		cuParamSetv(args->func->function, offset, 
-			&descr[buf].ny, sizeof(uint32_t));
-		offset += sizeof(uint32_t);
-
-		cuParamSetv(args->func->function, offset, 
-			&descr[buf].ld, sizeof(uint32_t));
-		offset += sizeof(uint32_t);
+		res = cuParamSetv(args->func->function, offset, (void *)argbuffer, size);
+		if (res != CUDA_SUCCESS) {
+			CUDA_REPORT_ERROR(res);
+		}
+		offset += size;
 	}
 
-	cuParamSetv(args->func->function, offset, 
-		args->stack, args->stack_size);
-	offset += args->stack_size;
+	if (args->stack_size) {
+		res = cuParamSetv(args->func->function, offset, 
+			args->stack, args->stack_size);
+		if (res != CUDA_SUCCESS) {
+			CUDA_REPORT_ERROR(res);
+		}
+		offset += args->stack_size;
+	}
 
-	cuParamSetSize(args->func->function, offset);
+//	res = cuParamSetv(args->func->function, offset, 
+//		&debugptr, sizeof(uint32_t));
+//	if (res != CUDA_SUCCESS) {
+//		CUDA_REPORT_ERROR(res);
+//	}
+//	offset += sizeof(int);
+
+	res = cuParamSetSize(args->func->function, offset);
+	if (res != CUDA_SUCCESS) {
+		CUDA_REPORT_ERROR(res);
+	}
 
 	unsigned shmsize = args->shmemsize;
-	cuFuncSetSharedSize(args->func->function, shmsize);
+	res = cuFuncSetSharedSize(args->func->function, shmsize);
+	if (res != CUDA_SUCCESS) {
+		CUDA_REPORT_ERROR(res);
+	}
 }
 
 void load_cuda_function(int devid, struct cuda_function_s *function)
@@ -164,9 +186,8 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 							args->blockx, 
 							args->blocky, 1);
 
-
 				/* set up the function args */
-				set_function_args(args, j->buffers, j->nbuffers);
+				set_function_args(args, j->buffers, j->interface, j->nbuffers);
 
 				/* set up the grids */
 				cuLaunchGrid(args->func->function, 
@@ -212,7 +233,10 @@ void *cuda_worker(void *arg)
 	init_context(devid);
 	fprintf(stderr, "cuda thread is ready to run on CPU %d !\n", args->bindid);
 
-	//precondition_cuda(args->A, args->B, args->C);
+//	uint32_t foo = 1664;
+//	cuMemAlloc(&debugptr, sizeof(uint32_t));
+//	cuMemcpyHtoD(debugptr, &foo, sizeof(uint32_t));
+	
 
 	/* tell the main thread that this one is ready */
 	args->ready_flag = 1;
@@ -221,6 +245,7 @@ void *cuda_worker(void *arg)
 	int res;
 	
 	do {
+		int debugfoo;
 		j = pop_task();
 		if (j == NULL) continue;
 
@@ -231,6 +256,9 @@ void *cuda_worker(void *arg)
 			push_task(j);
 			continue;
 		}
+
+//		cuMemcpyDtoH(&debugfoo, debugptr, sizeof(uint32_t));
+//		printf("BEFORE TASK, debug ptr = %p\n", debugfoo);
 
 		unsigned use_cublas = CUBLAS_MAY_PERFORM(j) ? 1:0;
 		res = execute_job_on_cuda(j, devid, use_cublas);
@@ -253,6 +281,11 @@ void *cuda_worker(void *arg)
 		
                 /* in case there are dependencies, wake up the proper tasks */
                 notify_dependencies(j);
+
+
+//		cuMemcpyDtoH(&debugfoo, debugptr, sizeof(uint32_t));
+//		printf("AFTER TASK, debug ptr = %p\n", debugfoo);
+
 
 		job_delete(j);
 

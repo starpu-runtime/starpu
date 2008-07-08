@@ -4,10 +4,12 @@
 #include <datawizard/copy-driver.h>
 #include <datawizard/hierarchy.h>
 
+#include <cuda.h>
+
 size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node);
 void liberate_blas_buffer_on_node(data_state *state, uint32_t node);
 void do_copy_blas_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node);
-
+size_t dump_blas_interface(data_interface_t *interface, void *buffer);
 
 /* declare a new data with the BLAS interface */
 void monitor_blas_data(data_state *state, uint32_t home_node,
@@ -38,10 +40,28 @@ void monitor_blas_data(data_state *state, uint32_t home_node,
 	state->allocation_method = &allocate_blas_buffer_on_node;
 	state->deallocation_method = &liberate_blas_buffer_on_node;
 	state->copy_1_to_1_method = &do_copy_blas_buffer_1_to_1;
+	state->dump_interface = &dump_blas_interface;
 
 	ASSERT(state->allocation_method);
 
 	monitor_new_data(state, home_node);
+}
+
+struct dumped_blas_interface_s {
+	uint32_t tab[4];
+};
+
+size_t dump_blas_interface(data_interface_t *interface, void *_buffer)
+{
+	/* yes, that's DIRTY ... */
+	uint32_t *buffer = _buffer;
+
+	buffer[0] = (*interface).blas.ptr;
+	buffer[1] = (*interface).blas.nx;
+	buffer[2] = (*interface).blas.ny;
+	buffer[3] = (*interface).blas.ld;
+
+	return (4*sizeof(uint32_t));
 }
 
 /* offer an access to the data parameters */

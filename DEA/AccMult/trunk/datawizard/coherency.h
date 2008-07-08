@@ -65,6 +65,7 @@ typedef struct data_state_t {
 	size_t (*allocation_method)(struct data_state_t *, uint32_t);
 	void (*deallocation_method)(struct data_state_t *, uint32_t);
 	void (*copy_1_to_1_method)(struct data_state_t *, uint32_t, uint32_t);
+	size_t (*dump_interface)(data_interface_t *, void *);
 } data_state;
 
 typedef struct buffer_descr_t {

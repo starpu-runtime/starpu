@@ -164,6 +164,7 @@ void load_cuda_function(int devid, struct cuda_function_s *function);
 				break;					\
 		}							\
 		printf("oops  in %s ... %s \n", __func__, errormsg);	\
+		assert(0);						\
 	} while (0)  
 
 #endif //  __DRIVER_CUDA_H__

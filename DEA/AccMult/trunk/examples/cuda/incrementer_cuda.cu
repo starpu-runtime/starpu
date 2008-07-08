@@ -1,8 +1,8 @@
 #include "incrementer_cuda.h"
 
 extern "C" __global__ 
-void cuda_incrementer(CUdeviceptr ptr, uint32_t nx, uint32_t ny, uint32_t ld, 
-		CUdeviceptr ptr2, uint32_t nx2, uint32_t ny2, uint32_t ld2)
+void cuda_incrementer(uint32_t ptr, uint32_t nx, uint32_t ny, uint32_t ld, 
+			uint32_t ptr2, uint32_t nx2, uint32_t ny2, uint32_t ld2)
 {
 	float *tab;
 	float *unity;
