@@ -4,7 +4,9 @@
 #include <datawizard/copy-driver.h>
 #include <datawizard/hierarchy.h>
 
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 #include <cuda.h>
+#endif
 
 size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node);
 void liberate_blas_buffer_on_node(data_state *state, uint32_t node);
