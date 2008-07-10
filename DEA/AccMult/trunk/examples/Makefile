@@ -5,6 +5,7 @@ CUDAINSTALLDIR=/usr/local/cuda/
 TARGET=tag_example 
 TARGET+= incrementer
 TARGET+= heat 
+TARGET+= dw_sparse_cg 
 
 # for compile time tuning 
 DEFAULTSIZE=2048
@@ -166,6 +167,9 @@ dw_mult.o: dw_mult.c
 
 tag_example.o: tag_example.c
 	$(CC) $(CFLAGS) tag_example.c -c -o tag_example.o
+
+dw_sparse_cg: dw_sparse_cg.o
+	$(CC) dw_sparse_cg.o -o dw_sparse_cg $(OBJDEPS) $(LDFLAGS)
 
 dw_mult: dw_mult.o
 	$(CC) dw_mult.o -o dw_mult $(OBJDEPS) $(LDFLAGS)
