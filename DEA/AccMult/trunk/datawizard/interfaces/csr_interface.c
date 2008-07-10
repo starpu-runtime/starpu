@@ -8,13 +8,13 @@
 #include <cuda.h>
 #endif
 
-size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node);
-void liberate_blas_buffer_on_node(data_state *state, uint32_t node);
-void do_copy_blas_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node);
-size_t dump_blas_interface(data_interface_t *interface, void *buffer);
+size_t allocate_csr_buffer_on_node(struct data_state_t *state, uint32_t dst_node);
+void liberate_csr_buffer_on_node(data_state *state, uint32_t node);
+size_t dump_csr_interface(data_interface_t *interface, void *_buffer);
+void do_copy_csr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, uint32_t dst_node);
 
 /* declare a new data with the BLAS interface */
-void monitor_csr_data(data_state *state, uint32_t home_node,
+void monitor_csr_data(struct data_state_t *state, uint32_t home_node,
 		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize)
 {
 	unsigned node;
@@ -28,7 +28,7 @@ void monitor_csr_data(data_state *state, uint32_t home_node,
 			local_interface->rowptr = rowptr;
 		}
 		else {
-			local_interface->nzval = NULL;
+			local_interface->nzval = 0;
 			local_interface->colind = NULL;
 			local_interface->rowptr = NULL;
 		}
@@ -50,7 +50,7 @@ void monitor_csr_data(data_state *state, uint32_t home_node,
 	monitor_new_data(state, home_node);
 }
 
-size_t dump_blas_interface(data_interface_t *interface, void *_buffer)
+size_t dump_csr_interface(data_interface_t *interface, void *_buffer)
 {
 	/* yes, that's DIRTY ... */
 	uint32_t *buffer = _buffer;
@@ -58,8 +58,8 @@ size_t dump_blas_interface(data_interface_t *interface, void *_buffer)
 	buffer[0] = (*interface).csr.nnz;
 	buffer[1] = (*interface).csr.nrow;
 	buffer[2] = (*interface).csr.nzval;
-	buffer[3] = (*interface).csr.coldind;
-	buffer[4] = (*interface).csr.rowptr;
+	buffer[3] = (uintptr_t)(*interface).csr.colind;
+	buffer[4] = (uintptr_t)(*interface).csr.rowptr;
 	buffer[5] = (*interface).csr.firstentry;
 	buffer[6] = (*interface).csr.elemsize;
 
@@ -67,27 +67,27 @@ size_t dump_blas_interface(data_interface_t *interface, void *_buffer)
 }
 
 /* offer an access to the data parameters */
-uint32_t get_csr_nnz(data_state *state)
+uint32_t get_csr_nnz(struct data_state_t *state)
 {
 	return (state->interface[0].csr.nnz);
 }
 
-uint32_t get_csr_nrow(data_state *state)
+uint32_t get_csr_nrow(struct data_state_t *state)
 {
 	return (state->interface[0].csr.nrow);
 }
 
-uint32_t get_csr_firstentry(data_state *state)
+uint32_t get_csr_firstentry(struct data_state_t *state)
 {
 	return (state->interface[0].csr.firstentry);
 }
 
-size_t get_csr_elemsize(data_state *state)
+size_t get_csr_elemsize(struct data_state_t *state)
 {
 	return (state->interface[0].csr.elemsize);
 }
 
-uintptr_t get_csr_local_nzval(data_state *state)
+uintptr_t get_csr_local_nzval(struct data_state_t *state)
 {
 	unsigned node;
 	node = get_local_memory_node();
@@ -97,7 +97,7 @@ uintptr_t get_csr_local_nzval(data_state *state)
 	return (state->interface[node].csr.nzval);
 }
 
-uint32_t *get_csr_local_colind(data_state *state)
+uint32_t *get_csr_local_colind(struct data_state_t *state)
 {
 	unsigned node;
 	node = get_local_memory_node();
@@ -107,7 +107,7 @@ uint32_t *get_csr_local_colind(data_state *state)
 	return (state->interface[node].csr.colind);
 }
 
-uint32_t *get_csr_local_rowptr(data_state *state)
+uint32_t *get_csr_local_rowptr(struct data_state_t *state)
 {
 	unsigned node;
 	node = get_local_memory_node();
@@ -120,59 +120,118 @@ uint32_t *get_csr_local_rowptr(data_state *state)
 /* memory allocation/deallocation primitives for the BLAS interface */
 
 /* returns the size of the allocated area */
-size_t allocate_csr_buffer_on_node(data_state *state, uint32_t dst_node)
+size_t allocate_csr_buffer_on_node(struct data_state_t *state, uint32_t dst_node)
 {
-	uintptr_t addr;
+	uintptr_t addr_nzval;
+	uint32_t *addr_colind, *addr_rowptr;
 	size_t allocated_memory;
 
 	/* we need the 3 arrays to be allocated */
 
 	uint32_t nnz = state->interface[dst_node].csr.nnz;
-	uint32_t nrow = state->interface[dst_node].blas.nrow;
+	uint32_t nrow = state->interface[dst_node].csr.nrow;
 	size_t elemsize = state->interface[dst_node].csr.elemsize;
 
 	node_kind kind = get_node_kind(dst_node);
 
 	switch(kind) {
 		case RAM:
-			addr = (uintptr_t)malloc(nx*ny*elemsize);
+			addr_nzval = (uintptr_t)malloc(nnz*elemsize);
+			if (!addr_nzval)
+				goto fail_nzval;
+
+			addr_colind = malloc(nnz*sizeof(uint32_t));
+			if (!addr_colind)
+				goto fail_colind;
+
+			addr_rowptr = malloc(nrow*sizeof(uint32_t));
+			if (!addr_rowptr)
+				goto fail_rowptr;
+
 			break;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case CUDA_RAM:
 		case CUBLAS_RAM:
-			cublasAlloc(nx*ny, elemsize, (void **)&addr);
+			cublasAlloc(nnz, elemsize, (void **)&addr_nzval);
+			if (!addr_nzval)
+				goto fail_nzval;
+
+			cublasAlloc(nnz, sizeof(uint32_t), (void **)&addr_colind);
+			if (!addr_colind)
+				goto fail_colind;
+
+			cublasAlloc(nrow, sizeof(uint32_t), (void **)&addr_rowptr);
+			if (!addr_rowptr)
+				goto fail_rowptr;
+
 			break;
 #endif
 		default:
 			assert(0);
 	}
 
-	if (addr) {
-		/* allocation succeeded */
-		allocated_memory = nx*ny*elemsize;
+	/* allocation succeeded */
+	allocated_memory = 
+		nnz*elemsize + nnz*sizeof(uint32_t) + nrow*sizeof(uint32_t);
 
-		/* update the data properly in consequence */
-		state->interface[dst_node].blas.ptr = addr;
-		state->interface[dst_node].blas.ld = nx;
-	} else {
-		/* allocation failed */
-		allocated_memory = 0;
-	}
+	/* update the data properly in consequence */
+	state->interface[dst_node].csr.nzval = addr_nzval;
+	state->interface[dst_node].csr.colind = addr_colind;
+	state->interface[dst_node].csr.rowptr = addr_rowptr;
 	
+	return allocated_memory;
+
+fail_rowptr:
+	switch(kind) {
+		case RAM:
+			free((void *)addr_colind);
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
+		case CUDA_RAM:
+		case CUBLAS_RAM:
+			cublasFree((void*)addr_colind);
+			break;
+#endif
+		default:
+			assert(0);
+	}
+
+fail_colind:
+	switch(kind) {
+		case RAM:
+			free((void *)addr_nzval);
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
+		case CUDA_RAM:
+		case CUBLAS_RAM:
+			cublasFree((void*)addr_nzval);
+			break;
+#endif
+		default:
+			assert(0);
+	}
+
+fail_nzval:
+
+	/* allocation failed */
+	allocated_memory = 0;
+
 	return allocated_memory;
 }
 
-void liberate_blas_buffer_on_node(data_state *state, uint32_t node)
+void liberate_csr_buffer_on_node(data_state *state, uint32_t node)
 {
 	node_kind kind = get_node_kind(node);
 	switch(kind) {
 		case RAM:
-			free((void*)state->interface[node].blas.ptr);
+			free((void*)state->interface[node].csr.nzval);
+			free((void*)state->interface[node].csr.colind);
+			free((void*)state->interface[node].csr.rowptr);
 			break;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case CUBLAS_RAM:
 		case CUDA_RAM:
-			cublasFree((void*)state->interface[node].blas.ptr);
+			cublasFree((void*)state->interface[node].csr.nzval);
+			cublasFree((void*)state->interface[node].csr.colind);
+			cublasFree((void*)state->interface[node].csr.rowptr);
 			break;
 #endif
 		default:
@@ -181,61 +240,75 @@ void liberate_blas_buffer_on_node(data_state *state, uint32_t node)
 }
 
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
-static void copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)
+static void copy_cublas_to_ram(struct data_state_t *state, uint32_t src_node, uint32_t dst_node)
 {
-	blas_interface_t *src_blas;
-	blas_interface_t *dst_blas;
+	csr_interface_t *src_csr;
+	csr_interface_t *dst_csr;
 
-	src_blas = &state->interface[src_node].blas;
-	dst_blas = &state->interface[dst_node].blas;
+	src_csr = &state->interface[src_node].csr;
+	dst_csr = &state->interface[dst_node].csr;
 
-	cublasGetMatrix(src_blas->nx, src_blas->ny, src_blas->elemsize,
-		(uint8_t *)src_blas->ptr, src_blas->ld,
-		(uint8_t *)dst_blas->ptr, dst_blas->ld);
+	uint32_t nnz = src_csr->nnz;
+	uint32_t nrow = src_csr->nrow;
+	size_t elemsize = src_csr->elemsize;
+
+	cublasGetVector(nnz, elemsize, (uint8_t *)src_csr->nzval, 1, 
+					(uint8_t *)dst_csr->nzval, 1);
+
+	cublasGetVector(nnz, sizeof(uint32_t), (uint8_t *)src_csr->colind, 1, 
+						(uint8_t *)dst_csr->colind, 1);
+
+	cublasGetVector(nrow, sizeof(uint32_t), (uint8_t *)src_csr->rowptr, 1, 
+						(uint8_t *)dst_csr->rowptr, 1);
+
 }
 
-static void copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst_node)
+static void copy_ram_to_cublas(struct data_state_t *state, uint32_t src_node, uint32_t dst_node)
 {
-	blas_interface_t *src_blas;
-	blas_interface_t *dst_blas;
+	csr_interface_t *src_csr;
+	csr_interface_t *dst_csr;
 
-	src_blas = &state->interface[src_node].blas;
-	dst_blas = &state->interface[dst_node].blas;
+	src_csr = &state->interface[src_node].csr;
+	dst_csr = &state->interface[dst_node].csr;
 
+	uint32_t nnz = src_csr->nnz;
+	uint32_t nrow = src_csr->nrow;
+	size_t elemsize = src_csr->elemsize;
 
-	cublasSetMatrix(src_blas->nx, src_blas->ny, src_blas->elemsize,
-		(uint8_t *)src_blas->ptr, src_blas->ld,
-		(uint8_t *)dst_blas->ptr, dst_blas->ld);
+	cublasSetVector(nnz, elemsize, (uint8_t *)src_csr->nzval, 1, 
+					(uint8_t *)dst_csr->nzval, 1);
+
+	cublasSetVector(nnz, sizeof(uint32_t), (uint8_t *)src_csr->colind, 1, 
+						(uint8_t *)dst_csr->colind, 1);
+
+	cublasSetVector(nrow, sizeof(uint32_t), (uint8_t *)src_csr->rowptr, 1, 
+						(uint8_t *)dst_csr->rowptr, 1);
 }
 #endif // USE_CUDA
 
 /* as not all platform easily have a BLAS lib installed ... */
-static void dummy_copy_ram_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)
+static void dummy_copy_ram_to_ram(struct data_state_t *state, uint32_t src_node, uint32_t dst_node)
 {
-	unsigned y;
-	uint32_t nx = state->interface[dst_node].blas.nx;
-	uint32_t ny = state->interface[dst_node].blas.ny;
-	size_t elemsize = state->interface[dst_node].blas.elemsize;
 
-	uint32_t ld_src = state->interface[src_node].blas.ld;
-	uint32_t ld_dst = state->interface[dst_node].blas.ld;
+	csr_interface_t *src_csr;
+	csr_interface_t *dst_csr;
 
-	uintptr_t ptr_src = state->interface[src_node].blas.ptr;
-	uintptr_t ptr_dst = state->interface[dst_node].blas.ptr;
+	src_csr = &state->interface[src_node].csr;
+	dst_csr = &state->interface[dst_node].csr;
 
+	uint32_t nnz = src_csr->nnz;
+	uint32_t nrow = src_csr->nrow;
+	size_t elemsize = src_csr->elemsize;
 
-	for (y = 0; y < ny; y++)
-	{
-		uint32_t src_offset = y*ld_src*elemsize;
-		uint32_t dst_offset = y*ld_dst*elemsize;
+	memcpy((void *)dst_csr->nzval, (void *)src_csr->nzval, nnz*elemsize);
 
-		memcpy((void *)(ptr_dst + dst_offset), 
-			(void *)(ptr_src + src_offset), nx*elemsize);
-	}
+	memcpy((void *)dst_csr->colind, (void *)src_csr->colind, nnz*sizeof(uint32_t));
+
+	memcpy((void *)dst_csr->rowptr, (void *)src_csr->rowptr, nrow*sizeof(uint32_t));
 }
 
 
-void do_copy_blas_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node)
+void do_copy_csr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, uint32_t dst_node)
 {
 	node_kind src_kind = get_node_kind(src_node);
 	node_kind dst_kind = get_node_kind(dst_node);

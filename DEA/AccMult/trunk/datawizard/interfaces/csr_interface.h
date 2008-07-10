@@ -21,4 +21,13 @@ typedef struct csr_interface_s {
 	size_t elemsize;
 } csr_interface_t;
 
+struct data_state_t;
+
+uint32_t get_csr_nnz(struct data_state_t *state);
+uint32_t get_csr_nrow(struct data_state_t *state);
+uint32_t get_csr_firstentry(struct data_state_t *state);
+uintptr_t get_csr_local_nzval(struct data_state_t *state);
+uint32_t *get_csr_local_colind(struct data_state_t *state);
+uint32_t *get_csr_local_rowptr(struct data_state_t *state);
+
 #endif // __CSR_INTERFACE_H__
