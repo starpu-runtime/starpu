@@ -2,11 +2,6 @@ CFLAGS+= -g -Wall
 
 CFLAGS+= -I../ -I../../
 
-ifeq ($(CUBLAS), 1)
-	CFLAGS+= -I$(CUDAINSTALLDIR)/include
-	CFLAGS+= -DUSE_CUBLAS
-endif
-
 all: csr_interface.o blas_filters.o blas_interface.o
 
 blas_filters.o: blas_filters.c blas_filters.h

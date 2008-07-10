@@ -2,7 +2,7 @@ export
 
 CC=gcc -m64
 NVCC = nvcc
-CFLAGS += -g -O0 -Wall #-fPIC
+CFLAGS += -g -O3 -Wall #-fPIC
 CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs   -fno-strict-aliasing
 
 
@@ -39,13 +39,9 @@ ifdef DONTBIND
 	CFLAGS += -DDONTBIND
 endif
 
-ifeq ($(CHECK), 1)
-	CFLAGS += -DCHECK_OUTPUT
-endif
-
 ifeq ($(CUDA), 1)
 	CFLAGS += -DUSE_CUDA 
-	NVCCFLAGS +=  -DUSE_CUDA 
+	NVCCFLAGS +=  -DUSE_CUDA -DO3 
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	NVCCFLAGS += -I$(CUDAINSTALLDIR)/include 
 	DEPENDENCIES += driver_cuda.o
@@ -71,7 +67,6 @@ endif
 endif
 
 ifdef ATLAS
-	CFLAGS += -DUSE_CPU_BLAS
 	CFLAGS+= -I$(ATLASDIR)/include/
 	LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
 	LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a

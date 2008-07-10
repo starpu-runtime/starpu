@@ -23,11 +23,49 @@
 #include <datawizard/interfaces/blas_filters.h>
 #include <datawizard/interfaces/csr_interface.h>
 
+tick_t start,end;
 
 /* First a Matrix-Vector product (SpMV) */
 
+unsigned blocks = 512;
+unsigned grids  = 8;
+
+#ifdef USE_CUDA
+/* CUDA spmv codelet */
+static struct cuda_module_s cuda_module;
+static struct cuda_function_s cuda_function;
+static cuda_codelet_t cuda_codelet;
+
+void initialize_cuda(void)
+{
+	char *module_path = 
+		"/home/gonnet/DEA/AccMult/examples/cuda/spmv_cuda.cubin";
+	char *function_symbol = "spmv_kernel_3";
+
+	init_cuda_module(&cuda_module, module_path);
+	init_cuda_function(&cuda_function, &cuda_module, function_symbol);
+
+	cuda_codelet.func = &cuda_function;
+	cuda_codelet.stack = NULL;
+	cuda_codelet.stack_size = 0; 
+
+	cuda_codelet.gridx = grids;
+	cuda_codelet.gridy = 1;
+
+	cuda_codelet.blockx = blocks;
+	cuda_codelet.blocky = 1;
+
+	cuda_codelet.shmemsize = 128;
+}
+
+
+
+
+#endif // USE_CUDA
+
+
 sem_t sem;
-uint32_t size = 1024;
+uint32_t size = 4194304;
 
 data_state sparse_matrix;
 data_state vector_in, vector_out;
@@ -39,6 +77,9 @@ uint32_t *sparse_matrix_rowptr;
 float *vector_in_ptr;
 float *vector_out_ptr;
 
+unsigned usecpu = 0;
+
+
 void parse_args(int argc, char **argv)
 {
 	int i;
@@ -46,6 +87,20 @@ void parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-size") == 0) {
 			char *argptr;
 			size = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-block") == 0) {
+			char *argptr;
+			blocks = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-grid") == 0) {
+			char *argptr;
+			grids = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-cpu") == 0) {
+			usecpu = 1;
 		}
 	}
 }
@@ -90,20 +145,6 @@ void core_spmv(data_interface_t *descr, __attribute__((unused))  void *arg)
 		vecout[row] = tmp;
 	}
 
-}
-
-void cublas_spmv(data_interface_t *descr, __attribute__((unused))  void *arg)
-{
-	printf("CUBLAS codelet\n");
-	
-	/* for testing purprose ... */
-	float *nzval;
-	uint32_t nnz;
-
-	nzval = (float *)descr[0].csr.nzval;
-	nnz = descr[0].csr.nnz;
-
-	cublasSscal(nnz, 0.5f, nzval, 1);
 }
 
 void create_data(void)
@@ -185,6 +226,9 @@ void create_data(void)
 void init_problem_callback(void *arg __attribute__((unused)))
 {
 	sem_post(&sem);
+
+	GET_TICK(end);
+
 }
 
 void call_spmv_codelet(void)
@@ -194,10 +238,16 @@ void call_spmv_codelet(void)
 
 	cl->cl_arg = NULL;
 	cl->core_func =  core_spmv;
-	cl->cublas_func = cublas_spmv;
+#ifdef USE_CUDA
+	cl->cuda_func = &cuda_codelet;
+#endif
 
 	job = job_create();
+#ifdef USE_CUDA
+	job->where = usecpu?CORE:CUDA;
+#else
 	job->where = CORE;
+#endif
 	job->cb = init_problem_callback;
 	job->argcb = NULL;
 	job->cl = cl;
@@ -209,6 +259,9 @@ void call_spmv_codelet(void)
 	job->buffers[1].mode = R;
 	job->buffers[2].state = &vector_out;
 	job->buffers[2].mode = W;
+
+
+	GET_TICK(start);
 
 	push_task(job);
 }
@@ -226,7 +279,7 @@ void print_results(void)
 {
 	unsigned row;
 
-	for (row = 0; row < size; row++)
+	for (row = 0; row < MIN(size, 16); row++)
 	{
 		printf("%2.2f\t%2.2f\n", vector_in_ptr[row], vector_out_ptr[row]);
 	}
@@ -237,18 +290,29 @@ int main(__attribute__ ((unused)) int argc,
 {
 	parse_args(argc, argv);
 
+	timing_init();
+
 	/* start the runtime */
 	init_machine();
 	init_workers();
 
 	sem_init(&sem, 0, 0U);
 
+#ifdef USE_CUDA
+	initialize_cuda();
+#endif
+
 	init_problem();
 
 	sem_wait(&sem);
 	sem_destroy(&sem);
 
-	//print_results();
+	print_results();
+
+	double timing = timing_delay(&start, &end);
+	fprintf(stderr, "Computation took (in ms)\n");
+	printf("%2.2f\n", timing/1000);
+
 
 	return 0;
 }

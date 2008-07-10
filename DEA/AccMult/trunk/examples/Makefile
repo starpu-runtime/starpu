@@ -1,17 +1,7 @@
-# to use CUDA
-CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
-CUDAINSTALLDIR=/usr/local/cuda/
-
 TARGET=tag_example 
 TARGET+= incrementer
 TARGET+= heat 
 TARGET+= dw_sparse_cg 
-
-# for compile time tuning 
-DEFAULTSIZE=2048
-DEFAULTGRAIN=128
-
-LDFLAGS+= -lm
 
 ifdef OPENGL_RENDER
 	CFLAGS+=-DOPENGL_RENDER
@@ -21,53 +11,16 @@ endif
 DEPENDENCIES=comp.o threads.o mult.o jobs.o driver_core.o
 EXTRADEP=
 
-ifeq ($(MARCEL), 1)
-	CC=$(shell pm2-config --cc)
-	LDFLAGS += $(shell pm2-config --libs) 
-	CFLAGS += -DUSE_MARCEL $(shell pm2-config --cflags)
-else
-	LDFLAGS += -lpthread
-endif
-
-ifdef DONTBIND
-	CFLAGS += -DDONTBIND
-endif
-
 ifeq ($(CHECK), 1)
 	CFLAGS += -DCHECK_OUTPUT
 	CFLAGS += -DCHECK_RESULTS
 endif
 
-ifdef SIZE 
-	CFLAGS += -DSIZE=$(SIZE)
-else
-	CFLAGS += -DSIZE=$(DEFAULTSIZE)
-endif
-
 ifeq ($(CUDA), 1)
-	CFLAGS += -DUSE_CUDA 
-	NVCCFLAGS +=  -DUSE_CUDA 
-	CFLAGS += -I$(CUDAINSTALLDIR)/include 
-	NVCCFLAGS += -I$(CUDAINSTALLDIR)/include 
 	OBJDEPS += ../drivers/cuda/driver_cuda.o
 	DEPENDENCIES += driver_cuda.o
 	EXTRADEP += cuda/incrementer_cuda.cubin 
-endif
-
-ifeq ($(CUBLAS), 1)
-	CFLAGS += -DUSE_CUBLAS
-ifdef CUBLASEMU
-	LDFLAGS += -lcublasemu
-else
-	LDFLAGS += -lcublas
-endif
-
-	LDFLAGS += -L$(CUDASDKDIR)/lib
-	LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
-
-	CFLAGS += -I$(CUDAINSTALLDIR)/include 
-	DEPENDENCIES += driver_cublas.o
-	OBJDEPS += ../drivers/cublas/driver_cublas.o
+	EXTRADEP += cuda/spmv_cuda.cubin 
 endif
 
 ifdef SPU
@@ -85,27 +38,12 @@ ifdef GORDON
 endif
 
 ifdef ATLAS
-	CFLAGS += -DUSE_CPU_BLAS
-        CFLAGS+= -I$(ATLASDIR)/include/
-        LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
-        LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
 	TARGET += dw_mult # dw_factolu
 endif
 
 
 ifdef CPUS
-	CFLAGS += -DUSE_CPUS #-DDEBUG
-	CFLAGS += -DNMAXCORES=$(CPUS)
-	NVCCFLAGS += -DUSE_CPUS
 	OBJDEPS += ../drivers/core/driver_core.o
-endif
-
-ifdef GRAIN
-	CFLAGS += -DGRAIN=$(GRAIN)
-	NVCCFLAGS += -DGRAIN=$(GRAIN)
-else
-	CFLAGS += -DGRAIN=$(DEFAULTGRAIN)
-	NVCCFLAGS += -DGRAIN=$(DEFAULTGRAIN)
 endif
 
 NVCCFLAGS +=  -DUNIX -DO3
@@ -170,7 +108,7 @@ dw_mult.o: dw_mult.c
 tag_example.o: tag_example.c
 	$(CC) $(CFLAGS) tag_example.c -c -o tag_example.o
 
-dw_sparse_cg: dw_sparse_cg.o
+dw_sparse_cg: $(EXTRADEP) dw_sparse_cg.o
 	$(CC) dw_sparse_cg.o -o dw_sparse_cg $(OBJDEPS) $(LDFLAGS)
 
 dw_mult: dw_mult.o
@@ -191,6 +129,8 @@ tag_example: tag_example.o
 cuda/incrementer_cuda.cubin: cuda/incrementer_cuda.cu cuda/incrementer_cuda.h
 	$(NVCC) -cubin cuda/incrementer_cuda.cu -o cuda/incrementer_cuda.cubin -m32 --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) 
 
+cuda/spmv_cuda.cubin: cuda/spmv.cu
+	$(NVCC) -cubin cuda/spmv.cu -o cuda/spmv_cuda.cubin -m32 --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) 
 
 clean:
 	@rm -f tag_example multiplication multiplication2 heat gpuirq dw_sparse_cg incrementer dw_mult dw_factolu *.o

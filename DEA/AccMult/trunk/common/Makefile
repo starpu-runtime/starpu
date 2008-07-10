@@ -1,34 +1,3 @@
-CFLAGS += -I../ -I../core/
-
-ifeq ($(MARCEL), 1)
-	CC=$(shell pm2-config --cc)
-	LDFLAGS += $(shell pm2-config --libs) 
-	CFLAGS += -DUSE_MARCEL $(shell pm2-config --cflags)
-else
-	LDFLAGS += -lpthread
-endif
-
-ifdef DONTBIND
-	CFLAGS += -DDONTBIND
-endif
-
-ifeq ($(CUDA), 1)
-	CFLAGS += -DUSE_CUDA 
-	NVCCFLAGS +=  -DUSE_CUDA 
-	CFLAGS += -I$(CUDAINSTALLDIR)/include 
-	NVCCFLAGS += -I$(CUDAINSTALLDIR)/include 
-endif
-
-ifeq ($(CUBLAS), 1)
-	CFLAGS += -DUSE_CUBLAS
-ifdef CUBLASEMU
-	LDFLAGS += -lcublasemu
-else
-	LDFLAGS += -lcublas
-endif
-	CFLAGS += -I$(CUDAINSTALLDIR)/include 
-endif
-
 ifdef USE_FXT
 	OPTTARGET+= fxt.o
 endif

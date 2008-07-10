@@ -1,8 +1,6 @@
 CFLAGS+= -Iexternals/scalp/
 CFLAGS+= -I../..
 
-#gordon.o pputil.o spuembed.o
-
 all: externals/scalp/Make.env externals/scalp/cell/gordon/gordon.o externals/scalp/cell/gordon/pputil.o externals/scalp/cell/gordon/spuembed.o externals/scalp/util/util.o driver_gordon.o
 
 externals/scalp/cell/gordon/gordon.o:
