@@ -54,14 +54,42 @@ void core_spmv(data_interface_t *descr, __attribute__((unused))  void *arg)
 {
 	printf("CORE codelet\n");
 
-	/* for testing purprose ... */
-	float *nzval;
+	float *nzval = (float *)descr[0].csr.nzval;
+	uint32_t *colind = descr[0].csr.colind;
+	uint32_t *rowptr = descr[0].csr.rowptr;
+
+	float *vecin = (float *)descr[1].blas.ptr;
+	float *vecout = (float *)descr[2].blas.ptr;
+
 	uint32_t nnz;
+	uint32_t nrow;
 
-	nzval = (float *)descr[0].csr.nzval;
 	nnz = descr[0].csr.nnz;
+	nrow = descr[0].csr.nrow;
 
-	cblas_sscal(nnz, 0.5f, nzval, 1);
+	ASSERT(nrow == descr[1].blas.nx);
+	ASSERT(nrow == descr[2].blas.nx);
+
+	unsigned row;
+	for (row = 0; row < nrow; row++)
+	{
+		float tmp = 0.0f;
+		unsigned index;
+
+		unsigned firstindex = rowptr[row];
+		unsigned lastindex = (row < nrow - 1)?rowptr[row+1]:nnz;
+
+		for (index = firstindex; index < lastindex; index++)
+		{
+			unsigned col;
+
+			col = colind[index];
+			tmp += nzval[index]*vecin[col];
+		}
+
+		vecout[row] = tmp;
+	}
+
 }
 
 void cublas_spmv(data_interface_t *descr, __attribute__((unused))  void *arg)
@@ -130,8 +158,6 @@ void create_data(void)
 	sparse_matrix_colind = colind;
 	sparse_matrix_rowptr = rowptr;
 
-	printf("BEFORE sparse_matrix_nzval[0] = %2.2f\n", sparse_matrix_nzval[0]);
-
 	/* initiate the 2 vectors */
 	float *invec, *outvec;
 	invec = malloc(size*sizeof(float));
@@ -153,13 +179,12 @@ void create_data(void)
 
 	vector_in_ptr = invec;
 	vector_out_ptr = outvec;
+
 }
 
 void init_problem_callback(void *arg __attribute__((unused)))
 {
 	sem_post(&sem);
-
-	printf("AFTER sparse_matrix_nzval[0] = %2.2f\n", sparse_matrix_nzval[0]);
 }
 
 void call_spmv_codelet(void)
@@ -172,7 +197,7 @@ void call_spmv_codelet(void)
 	cl->cublas_func = cublas_spmv;
 
 	job = job_create();
-	job->where = CUBLAS;
+	job->where = CORE;
 	job->cb = init_problem_callback;
 	job->argcb = NULL;
 	job->cl = cl;
@@ -197,6 +222,16 @@ void init_problem(void)
 	call_spmv_codelet();
 }
 
+void print_results(void)
+{
+	unsigned row;
+
+	for (row = 0; row < size; row++)
+	{
+		printf("%2.2f\t%2.2f\n", vector_in_ptr[row], vector_out_ptr[row]);
+	}
+}
+
 int main(__attribute__ ((unused)) int argc,
 	__attribute__ ((unused)) char **argv)
 {
@@ -212,6 +247,8 @@ int main(__attribute__ ((unused)) int argc,
 
 	sem_wait(&sem);
 	sem_destroy(&sem);
+
+	//print_results();
 
 	return 0;
 }
