@@ -128,6 +128,8 @@ CFLAGS += -I../datawizard/
 OBJDEPS += ../datawizard/copy-driver.o ../datawizard/coherency.o 
 OBJDEPS += ../datawizard/hierarchy.o ../datawizard/interfaces/blas_filters.o
 OBJDEPS += ../datawizard/memalloc.o  ../datawizard/interfaces/blas_interface.o
+OBJDEPS += ../datawizard/interfaces/csr_interface.o
+
 
 all: $(TARGET)
 
@@ -191,5 +193,5 @@ cuda/incrementer_cuda.cubin: cuda/incrementer_cuda.cu cuda/incrementer_cuda.h
 
 
 clean:
-	@rm -f tag_example multiplication multiplication2 heat gpuirq incrementer dw_mult dw_factolu *.o
+	@rm -f tag_example multiplication multiplication2 heat gpuirq dw_sparse_cg incrementer dw_mult dw_factolu *.o
 	@rm -f cuda/incrementer_cuda.cubin
