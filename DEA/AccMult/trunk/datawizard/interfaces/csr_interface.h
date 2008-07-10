@@ -1,20 +1,24 @@
 #ifndef __CSR_INTERFACE_H__
 #define __CSR_INTERFACE_H__
 
+#include <stdint.h>
+
 /* this interface is used for Sparse matrices */
 
 #define CSR_INTERFACE	0x118502
 
 typedef struct csr_interface_s {
-	int nnz; /* number of non-zero entries */
-	int nrow; /* number of rows */
-	float *nzval; /* non-zero values */
-	int *colind; /* position of non-zero entried on the row */
-	int *rowptr; /* index (in nzval) of the first entry of the row */
+	uint32_t nnz; /* number of non-zero entries */
+	uint32_t nrow; /* number of rows */
+	uintptr_t nzval; /* non-zero values */
+	uint32_t *colind; /* position of non-zero entried on the row */
+	uint32_t *rowptr; /* index (in nzval) of the first entry of the row */
 
         /* k for k-based indexing (0 or 1 usually) */
         /* also useful when partitionning the matrix ... */
-        int firstentry;
+        uint32_t firstentry;
+
+	size_t elemsize;
 } csr_interface_t;
 
 #endif // __CSR_INTERFACE_H__

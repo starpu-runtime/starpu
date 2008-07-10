@@ -27,12 +27,17 @@ Open problems:
 		- priority
 		- static scheduler = type A + type B then type C etc...
 	- Other data representation than BLAS 
+		- CRS : compressed row storage
+		- vector
 Application domains
 	- Dense linear algebra
 		- LU decomposition (ok ...)
 		- Cholesky, QR, ...
 	- Sparse Linear algebra
-		- conjugate gradient with SpMV
+		- conjugate gradient
+			- spectral radius (max |eigenvalue|) 
+					((indicates if B^k->0 for a large k))
+			- SpMV
 		- PastiX
 		- SuperLU
 		- Sparse matrix-vector multiplication dummy example
