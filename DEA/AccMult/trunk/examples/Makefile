@@ -2,6 +2,7 @@ TARGET=tag_example
 TARGET+= incrementer
 TARGET+= heat 
 TARGET+= dw_spmv
+TARGET+= dw_sparse_cg
 
 ifdef OPENGL_RENDER
 	CFLAGS+=-DOPENGL_RENDER
@@ -108,8 +109,22 @@ dw_mult.o: dw_mult.c
 tag_example.o: tag_example.c
 	$(CC) $(CFLAGS) tag_example.c -c -o tag_example.o
 
+dw_spmv.o: dw_spmv.c dw_spmv.h
+	$(CC) $(CFLAGS) dw_spmv.c -c -o dw_spmv.o
+
 dw_spmv: $(EXTRADEP) dw_spmv.o
 	$(CC) dw_spmv.o -o dw_spmv $(OBJDEPS) $(LDFLAGS)
+
+dw_sparse_cg_kernels.o: dw_sparse_cg_kernels.c dw_sparse_cg.h
+	$(CC) $(CFLAGS) dw_sparse_cg_kernels.c -c -o dw_sparse_cg_kernels.o
+
+dw_sparse_cg.o: dw_sparse_cg.c dw_sparse_cg.h
+	$(CC) $(CFLAGS) dw_sparse_cg.c -c -o dw_sparse_cg.o
+
+dw_sparse_cg: $(EXTRADEP) dw_sparse_cg.o dw_sparse_cg_kernels.o
+	$(CC) dw_sparse_cg.o dw_sparse_cg_kernels.o -o dw_sparse_cg $(OBJDEPS) $(LDFLAGS)
+
+
 
 dw_mult: dw_mult.o
 	$(CC) dw_mult.o -o dw_mult $(OBJDEPS) $(LDFLAGS)
@@ -134,4 +149,4 @@ cuda/spmv_cuda.cubin: cuda/spmv.cu
 
 clean:
 	@rm -f tag_example multiplication multiplication2 heat gpuirq dw_spmv incrementer dw_mult dw_factolu *.o
-	@rm -f cuda/incrementer_cuda.cubin cuda/spmv_cuda.cubin
+	@rm -f cuda/incrementer_cuda.cubin cuda/spmv_cuda.cubin dw_sparse_cg
