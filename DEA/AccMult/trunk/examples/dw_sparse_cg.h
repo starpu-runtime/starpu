@@ -25,7 +25,7 @@
 #define MAXITER	100
 
 /* code parameters */
-static uint32_t size = 4194304;
+static uint32_t size = 128;
 static unsigned usecpu = 0;
 static unsigned blocks = 512;
 static unsigned grids  = 8;
@@ -134,10 +134,6 @@ static void create_data(float **_nzvalA, float **_vecb, float **_vecx, uint32_t 
 
 	ASSERT(pos == nnz);
 	
-	//sparse_matrix_nzval = nzval;
-	//sparse_matrix_colind = colind;
-	//sparse_matrix_rowptr = rowptr;
-
 	/* initiate the 2 vectors */
 	float *invec, *outvec;
 	invec = malloc(size*sizeof(float));
@@ -153,12 +149,6 @@ static void create_data(float **_nzvalA, float **_vecb, float **_vecx, uint32_t 
 		invec[ind] = 2.0f;
 		outvec[ind] = 0.0f;
 	}
-
-//	monitor_blas_data(&vector_in, 0, (uintptr_t)invec, size, size, 1, sizeof(float));
-//	monitor_blas_data(&vector_out, 0, (uintptr_t)outvec, size, size, 1, sizeof(float));
-//
-//	vector_in_ptr = invec;
-//	vector_out_ptr = outvec;
 
 	*_vecb = invec;
 	*_vecx = outvec;

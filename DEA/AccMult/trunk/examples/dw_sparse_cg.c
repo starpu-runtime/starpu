@@ -71,9 +71,9 @@ void init_cg(struct cg_problem *problem)
 		job1->buffers[0].state = problem->ds_matrixA;
 		job1->buffers[0].mode = R;
 		job1->buffers[1].state = problem->ds_vecx;
-		job1->buffers[0].mode = R;
+		job1->buffers[1].mode = R;
 		job1->buffers[2].state = problem->ds_vecr;
-		job1->buffers[0].mode = W;
+		job1->buffers[1].mode = W;
 		job1->buffers[3].state = problem->ds_vecb;
 		job1->buffers[3].mode = R;
 
@@ -82,10 +82,10 @@ void init_cg(struct cg_problem *problem)
 	job2->where = CORE;
 	job2->cl->core_func = core_codelet_func_2;
 	job2->nbuffers = 2;
-		job1->buffers[0].state = problem->ds_vecd;
-		job1->buffers[0].mode = W;
-		job1->buffers[1].state = problem->ds_vecr;
-		job1->buffers[1].mode = R;
+		job2->buffers[0].state = problem->ds_vecd;
+		job2->buffers[0].mode = W;
+		job2->buffers[1].state = problem->ds_vecr;
+		job2->buffers[1].mode = R;
 	
 	tag_declare_deps(2UL, 1, 1UL);
 
@@ -93,9 +93,10 @@ void init_cg(struct cg_problem *problem)
 	job_t job3 = create_job(3UL);
 	job3->where = CUBLAS;
 	job3->cl->cublas_func = cublas_codelet_func_3;
+	job3->cl->cl_arg = problem;
 	job3->nbuffers = 1;
-		job1->buffers[0].state = problem->ds_vecr;
-		job1->buffers[0].mode = R;
+		job3->buffers[0].state = problem->ds_vecr;
+		job3->buffers[0].mode = R;
 
 	job3->cb = iteration_cg;
 	job3->argcb = problem;
@@ -227,6 +228,8 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 	struct data_state_t ds_vecx, ds_vecb;
 	struct data_state_t ds_vecr, ds_vecd, ds_vecq; 
 
+	printf("nnz = %d \n", nnz);
+
 	/* first the user-allocated data */
 	monitor_csr_data(&ds_matrixA, 0, nnz, nrow, 
 			(uintptr_t)nzvalA, colind, rowptr, 0, sizeof(float));
@@ -234,6 +237,8 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 			nrow, nrow, 1, sizeof(float));
 	monitor_blas_data(&ds_vecb, 0, (uintptr_t)vecb,
 			nrow, nrow, 1, sizeof(float));
+
+	printf("nnz stored = %d \n", ds_matrixA.interface[0].csc.nnz);
 
 	/* then allocate the algorithm intern data */
 	float *ptr_vecr, *ptr_vecd, *ptr_vecq;
