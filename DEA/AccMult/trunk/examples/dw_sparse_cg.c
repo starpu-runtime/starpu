@@ -73,7 +73,7 @@ void init_cg(struct cg_problem *problem)
 		job1->buffers[1].state = problem->ds_vecx;
 		job1->buffers[1].mode = R;
 		job1->buffers[2].state = problem->ds_vecr;
-		job1->buffers[1].mode = W;
+		job1->buffers[2].mode = W;
 		job1->buffers[3].state = problem->ds_vecb;
 		job1->buffers[3].mode = R;
 
@@ -135,6 +135,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	job_t job5 = create_job(maskiter | 5UL);
 	job5->where = CUBLAS;
 	job5->cl->cublas_func = cublas_codelet_func_5;
+	job5->cl->cl_arg = problem;
 	job5->nbuffers = 2;
 		job5->buffers[0].state = problem->ds_vecd;
 		job5->buffers[0].mode = R;
@@ -147,6 +148,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	job_t job6 = create_job(maskiter | 6UL);
 	job6->where = CUBLAS;
 	job6->cl->cublas_func = cublas_codelet_func_6;
+	job6->cl->cl_arg = problem;
 	job6->nbuffers = 2;
 		job6->buffers[0].state = problem->ds_vecx;
 		job6->buffers[0].mode = RW;
@@ -159,6 +161,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	job_t job7 = create_job(maskiter | 7UL);
 	job7->where = CUBLAS;
 	job7->cl->cublas_func = cublas_codelet_func_7;
+	job7->cl->cl_arg = problem;
 	job7->nbuffers = 2;
 		job7->buffers[0].state = problem->ds_vecr;
 		job7->buffers[0].mode = RW;
@@ -171,6 +174,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	job_t job8 = create_job(maskiter | 8UL);
 	job8->where = CUBLAS;
 	job8->cl->cublas_func = cublas_codelet_func_8;
+	job8->cl->cl_arg = problem;
 	job8->nbuffers = 1;
 		job8->buffers[0].state = problem->ds_vecr;
 		job8->buffers[0].mode = R;
@@ -181,6 +185,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	job_t job9 = create_job(maskiter | 9UL);
 	job9->where = CUBLAS;
 	job9->cl->cublas_func = cublas_codelet_func_9;
+	job9->cl->cl_arg = problem;
 	job9->nbuffers = 2;
 		job9->buffers[0].state = problem->ds_vecd;
 		job9->buffers[0].mode = RW;
@@ -200,6 +205,8 @@ void *iteration_cg(void *problem)
 {
 	struct cg_problem *pb = problem;
 
+	printf("i : %d\n\tdelta_new %2.5f\n", pb->i, pb->epsilon);
+
 	if ((pb->i++ < MAXITER) && 
 		(pb->delta_new > pb->epsilon) )
 	{
@@ -208,7 +215,7 @@ void *iteration_cg(void *problem)
 	}
 	else {
 		/* we may stop */
-		printf("We are done ... \n");
+		printf("We are done ... after %d iterations \n", pb->i - 1);
 		sem_post(pb->sem);
 	}
 
@@ -228,8 +235,6 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 	struct data_state_t ds_vecx, ds_vecb;
 	struct data_state_t ds_vecr, ds_vecd, ds_vecq; 
 
-	printf("nnz = %d \n", nnz);
-
 	/* first the user-allocated data */
 	monitor_csr_data(&ds_matrixA, 0, nnz, nrow, 
 			(uintptr_t)nzvalA, colind, rowptr, 0, sizeof(float));
@@ -237,8 +242,6 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 			nrow, nrow, 1, sizeof(float));
 	monitor_blas_data(&ds_vecb, 0, (uintptr_t)vecb,
 			nrow, nrow, 1, sizeof(float));
-
-	printf("nnz stored = %d \n", ds_matrixA.interface[0].csc.nnz);
 
 	/* then allocate the algorithm intern data */
 	float *ptr_vecr, *ptr_vecd, *ptr_vecq;
@@ -273,8 +276,7 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 	problem.ds_vecd    = &ds_vecd;
 	problem.ds_vecq    = &ds_vecq;
 
-	/* XXX set me */
-	problem.epsilon = 0.01f;
+	problem.epsilon = EPSILON;
 
 	/* we need a semaphore to synchronize with callbacks */
 	sem_t sem;

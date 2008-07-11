@@ -23,9 +23,10 @@
 #include <datawizard/interfaces/csr_interface.h>
 
 #define MAXITER	100
+#define EPSILON	0.000000001f
 
 /* code parameters */
-static uint32_t size = 128;
+static uint32_t size = 16384;
 static unsigned usecpu = 0;
 static unsigned blocks = 512;
 static unsigned grids  = 8;
