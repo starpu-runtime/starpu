@@ -1,7 +1,7 @@
 TARGET=tag_example 
 TARGET+= incrementer
 TARGET+= heat 
-TARGET+= dw_sparse_cg 
+TARGET+= dw_spmv
 
 ifdef OPENGL_RENDER
 	CFLAGS+=-DOPENGL_RENDER
@@ -108,8 +108,8 @@ dw_mult.o: dw_mult.c
 tag_example.o: tag_example.c
 	$(CC) $(CFLAGS) tag_example.c -c -o tag_example.o
 
-dw_sparse_cg: $(EXTRADEP) dw_sparse_cg.o
-	$(CC) dw_sparse_cg.o -o dw_sparse_cg $(OBJDEPS) $(LDFLAGS)
+dw_spmv: $(EXTRADEP) dw_spmv.o
+	$(CC) dw_spmv.o -o dw_spmv $(OBJDEPS) $(LDFLAGS)
 
 dw_mult: dw_mult.o
 	$(CC) dw_mult.o -o dw_mult $(OBJDEPS) $(LDFLAGS)
@@ -133,5 +133,5 @@ cuda/spmv_cuda.cubin: cuda/spmv.cu
 	$(NVCC) -cubin cuda/spmv.cu -o cuda/spmv_cuda.cubin -m32 --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) 
 
 clean:
-	@rm -f tag_example multiplication multiplication2 heat gpuirq dw_sparse_cg incrementer dw_mult dw_factolu *.o
-	@rm -f cuda/incrementer_cuda.cubin
+	@rm -f tag_example multiplication multiplication2 heat gpuirq dw_spmv incrementer dw_mult dw_factolu *.o
+	@rm -f cuda/incrementer_cuda.cubin cuda/spmv_cuda.cubin

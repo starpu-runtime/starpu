@@ -41,7 +41,7 @@ endif
 
 ifeq ($(CUDA), 1)
 	CFLAGS += -DUSE_CUDA 
-	NVCCFLAGS +=  -DUSE_CUDA -DO3 
+	NVCCFLAGS +=  -DUSE_CUDA -O3 
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	NVCCFLAGS += -I$(CUDAINSTALLDIR)/include 
 	DEPENDENCIES += driver_cuda.o

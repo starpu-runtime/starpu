@@ -58,9 +58,6 @@ void spmv_kernel_2(uint32_t nnz, uint32_t nrow, uint32_t _nzval, uint32_t _colin
 	uint32_t *colind = (uint32_t *)_colind;
 
 	/* only one dimension is used here */
-	unsigned nthreads = gridDim.x*blockDim.x;
-	unsigned threadid = threadIdx.x + blockIdx.x*blockDim.x;
-
 	unsigned block_rowstart = blockIdx.x*( (nrow + gridDim.x - 1)/gridDim.x );
 	unsigned block_rowend = MIN((blockIdx.x+1)*( (nrow + gridDim.x - 1)/gridDim.x ), nrow);
 
@@ -88,12 +85,6 @@ void spmv_kernel_2(uint32_t nnz, uint32_t nrow, uint32_t _nzval, uint32_t _colin
 }
 
 
-//#define BUFFERSIZE	8192
-//__shared__ float block_nzval_buffer[BUFFERSIZE];
-//__shared__ uint32_t block_colind_buffer[BUFFERSIZE];
-
-//__shared__ float block_vecout_buffer[BUFFERSIZE];
-
 extern "C" __global__ 
 void spmv_kernel_3(uint32_t nnz, uint32_t nrow, uint32_t _nzval, uint32_t _colind, uint32_t _rowptr, 
 			uint32_t firstentry, uint32_t elemsize, 
@@ -108,9 +99,6 @@ void spmv_kernel_3(uint32_t nnz, uint32_t nrow, uint32_t _nzval, uint32_t _colin
 	uint32_t *colind = (uint32_t *)_colind;
 
 	/* only one dimension is used here */
-	unsigned nthreads = gridDim.x*blockDim.x;
-	unsigned threadid = threadIdx.x + blockIdx.x*blockDim.x;
-
 	unsigned block_rowstart = blockIdx.x*( (nrow + gridDim.x - 1)/gridDim.x );
 	unsigned block_rowend = MIN((blockIdx.x+1)*( (nrow + gridDim.x - 1)/gridDim.x ), nrow);
 
