@@ -26,7 +26,7 @@
 #define EPSILON	0.000000001f
 
 /* code parameters */
-static uint32_t size = 16384;
+static uint32_t size = 33554432;
 static unsigned usecpu = 0;
 static unsigned blocks = 512;
 static unsigned grids  = 8;
@@ -78,8 +78,15 @@ static void parse_args(int argc, char **argv)
 }
 
 
-static void print_results(void)
+static void print_results(float *result, unsigned size)
 {
+	printf("**** RESULTS **** \n");
+	unsigned i;
+
+	for (i = 0; i < MIN(size, 16); i++)
+	{
+		printf("%d -> %f\n", i, result[i]);
+	}
 }
 
 static void create_data(float **_nzvalA, float **_vecb, float **_vecx, uint32_t *_nnz, uint32_t *_nrow, uint32_t **_colind, uint32_t **_rowptr)

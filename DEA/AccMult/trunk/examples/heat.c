@@ -1,235 +1,19 @@
 #include "heat.h"
 
-/* default values */
-unsigned ntheta = 32+2;
-unsigned nthick = 32+2;
-unsigned nblocks = 16;
-
-#define DIM	ntheta*nthick
-
-#define RMIN	(150.0f)
-#define RMAX	(200.0f)
-
-#define Pi	(3.141592f)
-
-#define NODE_NUMBER(theta, thick)	((thick)+(theta)*nthick)
-#define NODE_TO_THICK(n)		((n) % nthick)
-#define NODE_TO_THETA(n)		((n) / nthick)
-
-//#define USE_POSTSCRIPT	1
-
-typedef struct point_t {
-	float x;
-	float y;
-} point;
-
-float minval, maxval;
-float *result;
-int *RefArray;
-point *pmesh;
-float *A;
-float *B;
-
-float *Bformer;
-
-unsigned printmesh =0;
-
-int argc_;
-char **argv_;
-
-
-unsigned version = 2;
-
-	/*
-	 *   B              C
-	 *	**********
-	 *	*  0   * *
-	 *	*    *   *
-	 *	*  *   1 *
-	 *	**********
-	 *   A             D
-	 */
-
-
-#ifdef OPENGL_RENDER
 /*
- * Just some dummy OpenGL code to display our results 
- *
- */
-
-static void generate_graph()
-{
-	unsigned theta, thick;
-
-	for (theta = 0; theta < ntheta-1; theta++)
-	{
-		for (thick = 0; thick < nthick-1; thick++)
-		{
-			unsigned nodeA = NODE_NUMBER(theta, thick);
-			unsigned nodeB = NODE_NUMBER(theta, thick+1);
-			unsigned nodeC = NODE_NUMBER(theta+1, thick+1);
-			unsigned nodeD = NODE_NUMBER(theta+1, thick);
-
-			float colorA_R, colorB_R, colorC_R, colorD_R;
-			float colorA_G, colorB_G, colorC_G, colorD_G;
-			float colorA_B, colorB_B, colorC_B, colorD_B;
-
-			if (maxval == minval) {
-				colorA_R = 1.0f; colorA_G = 1.0f; colorA_B = 1.0f;
-				colorB_R = 1.0f; colorB_G = 1.0f; colorB_B = 1.0f;
-				colorC_R = 1.0f; colorC_G = 1.0f; colorC_B = 1.0f;
-				colorD_R = 1.0f; colorD_G = 1.0f; colorD_B = 1.0f;
-			}
-			else {
-				float amplitude = maxval - minval;
-
-				float coeffA, coeffB, coeffC, coeffD;
-
-				coeffA = (result[nodeA] - minval)/amplitude;
-				coeffB = (result[nodeB] - minval)/amplitude;
-				coeffC = (result[nodeC] - minval)/amplitude;
-				coeffD = (result[nodeD] - minval)/amplitude;
-
-				colorA_R = coeffA>0.5f?1.0f:(2.0*coeffA)*1.0f; 
-				colorB_R = coeffB>0.5f?1.0f:(2.0*coeffB)*1.0f; 
-				colorC_R = coeffC>0.5f?1.0f:(2.0*coeffC)*1.0f; 
-				colorD_R = coeffD>0.5f?1.0f:(2.0*coeffD)*1.0f; 
-
-				colorA_B = 0.0f; 
-				colorB_B = 0.0f; 
-				colorC_B = 0.0f; 
-				colorD_B = 0.0f; 
-
-				colorA_G = coeffA<0.5f?1.0f:2.0*(1 - coeffA)*1.0f;
-				colorB_G = coeffB<0.5f?1.0f:2.0*(1 - coeffB)*1.0f;
-				colorC_G = coeffC<0.5f?1.0f:2.0*(1 - coeffC)*1.0f;
-				colorD_G = coeffD<0.5f?1.0f:2.0*(1 - coeffD)*1.0f;
-			}
-
-			if (printmesh) {
-	   			glColor3f (0.0f, 0.0f, 0.0f);
-				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-				glLineWidth(3.0f);
-				glBegin(GL_POLYGON);
-					glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 2.0f);
-					glVertex3f(pmesh[nodeD].x, pmesh[nodeD].y, 2.0f);
-					glVertex3f(pmesh[nodeC].x, pmesh[nodeC].y, 2.0f);
-					glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 2.0f);
-				glEnd();
-	
-				glBegin(GL_POLYGON);
-					glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 1.0f);
-					glVertex3f(pmesh[nodeC].x, pmesh[nodeC].y, 1.0f);
-					glVertex3f(pmesh[nodeB].x, pmesh[nodeB].y, 1.0f);
-					glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 1.0f);
-				glEnd();
-			}
-
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			glBegin(GL_POLYGON);
-   				glColor3f (colorA_R, colorA_G, colorA_B);
-				glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 0.0f);
-   				glColor3f (colorD_R, colorD_G, colorD_B);
-				glVertex3f(pmesh[nodeD].x, pmesh[nodeD].y, 0.0f);
-   				glColor3f (colorC_R, colorC_G, colorC_B);
-				glVertex3f(pmesh[nodeC].x, pmesh[nodeC].y, 0.0f);
-			glEnd();
-
-			glBegin(GL_POLYGON);
-   				glColor3f (colorA_R, colorA_G, colorA_B);
-				glVertex3f(pmesh[nodeA].x, pmesh[nodeA].y, 0.0f);
-   				glColor3f (colorC_R, colorC_G, colorC_B);
-				glVertex3f(pmesh[nodeC].x, pmesh[nodeC].y, 0.0f);
-   				glColor3f (colorB_R, colorB_G, colorB_B);
-				glVertex3f(pmesh[nodeB].x, pmesh[nodeB].y, 0.0f);
-			glEnd();
-		}
-	}
-}
-
-static void display(void)
-{
-   glClear (GL_COLOR_BUFFER_BIT);
-   glLoadIdentity ();             /* clear the matrix */
-   gluLookAt (0.0, 0.0, 15.0f, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-   float factor = 10.0/(RMIN+RMAX);
-   glScalef (factor, factor, factor);      /* modeling transformation */
-//   glRotatef(-0,0.0,0.0,0.0);
-   generate_graph();
-   glFlush ();
-}
-
-
-static void pressKey(unsigned char key, int x, int y)
-{
-	switch (key) {
-		case 'q':
-			exit(0);
-		default:
-			printmesh = !printmesh;
-			display();
-			break;
-	}
-}
-
-
-
-static void reshape (int w, int h)
-{
-	glViewport (0, 0, (GLsizei) w, (GLsizei) h);
-	glMatrixMode (GL_PROJECTION);
-	glLoadIdentity ();
-	glFrustum (-1.0, 1.0, -1.0, 1.0, 1.5, 20.0);
-	glMatrixMode (GL_MODELVIEW);
-}
-
-
-static void opengl_render(void)
-{
-	unsigned i;
-	fprintf(stderr, "OpenGL rendering ... \n");
-
-	minval = 100000000.0f;
-	maxval = -10000000.0f;
-
-	for (i = 0; i < DIM; i++)
-	{
-
-		/* find min */
-		minval = MIN(result[i], minval);
-
-		/* find max */
-		maxval = MAX(result[i], maxval);
-	}
-
-
-
-	glutInit(&argc_, argv_);
-	glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB);
-	glutInitWindowSize (800, 800);
-	glutInitWindowPosition (100, 100);
-	glutCreateWindow ("Temperature");
-
-	/* init */
-	glClearColor (0.0, 0.0, 0.0, 0.0);
-	glShadeModel (GL_MODELVIEW);
-
-	glutKeyboardFunc(pressKey);
-	glutDisplayFunc(display);
-	glutReshapeFunc(reshape);
-	glutMainLoop();
-}
-#endif // OPENGL_RENDER
-/*
- *
  * The Finite element method code 
  *
+ *   B              C
+ *	**********
+ *	*  0   * *
+ *	*    *   *
+ *	*  *   1 *
+ *	**********
+ *   A             D
  */
 
-#define X	0
-#define Y	1
 static inline float diff_psi(unsigned theta_tr, unsigned thick_tr, unsigned side_tr,
-		 unsigned theta_psi, unsigned thick_psi, unsigned xy)
+		 unsigned theta_psi, unsigned thick_psi, unsigned xy, point *pmesh)
 {
 	float xa,ya,xb,yb,xc,yc;
 	float tmp;
@@ -299,18 +83,18 @@ static inline float diff_psi(unsigned theta_tr, unsigned thick_tr, unsigned side
 }
 
 static inline float diff_y_psi(unsigned theta_tr, unsigned thick_tr, unsigned side_tr,
-		 unsigned theta_psi, unsigned thick_psi)
+		 unsigned theta_psi, unsigned thick_psi, point *pmesh)
 {
-	return diff_psi(theta_tr, thick_tr, side_tr, theta_psi, thick_psi, Y);
+	return diff_psi(theta_tr, thick_tr, side_tr, theta_psi, thick_psi, Y, pmesh);
 }
 
 static inline float diff_x_psi(unsigned theta_tr, unsigned thick_tr, unsigned side_tr,
-		 unsigned theta_psi, unsigned thick_psi)
+		 unsigned theta_psi, unsigned thick_psi, point *pmesh)
 {
-	return diff_psi(theta_tr, thick_tr, side_tr, theta_psi, thick_psi, X);
+	return diff_psi(theta_tr, thick_tr, side_tr, theta_psi, thick_psi, X, pmesh);
 }
 
-static inline float surface_triangle(unsigned theta_tr, unsigned thick_tr, unsigned side_tr)
+static inline float surface_triangle(unsigned theta_tr, unsigned thick_tr, unsigned side_tr, point *pmesh)
 {
 	float surface;
 	float tmp;
@@ -343,7 +127,7 @@ static inline float surface_triangle(unsigned theta_tr, unsigned thick_tr, unsig
 }
 
 static inline float integral_triangle(int theta_tr, int thick_tr, unsigned side_tr,
-			unsigned theta_i, unsigned thick_i, unsigned theta_j, unsigned thick_j)
+			unsigned theta_i, unsigned thick_i, unsigned theta_j, unsigned thick_j, point *pmesh)
 {
 	float surface;
 	float value;
@@ -356,35 +140,34 @@ static inline float integral_triangle(int theta_tr, int thick_tr, unsigned side_
 	if (thick_tr < 0) return 0.0f;
 	if (thick_tr + 2 > (int)nthick) return 0.0f;
 
-	dxi = diff_x_psi(theta_tr, thick_tr, side_tr, theta_i, thick_i);
-	dyi = diff_y_psi(theta_tr, thick_tr, side_tr, theta_i, thick_i);
-	dxj = diff_x_psi(theta_tr, thick_tr, side_tr, theta_j, thick_j);
-	dyj = diff_y_psi(theta_tr, thick_tr, side_tr, theta_j, thick_j);
+	dxi = diff_x_psi(theta_tr, thick_tr, side_tr, theta_i, thick_i, pmesh);
+	dyi = diff_y_psi(theta_tr, thick_tr, side_tr, theta_i, thick_i, pmesh);
+	dxj = diff_x_psi(theta_tr, thick_tr, side_tr, theta_j, thick_j, pmesh);
+	dyj = diff_y_psi(theta_tr, thick_tr, side_tr, theta_j, thick_j, pmesh);
 
-	surface = surface_triangle(theta_tr, thick_tr, side_tr);
+	surface = surface_triangle(theta_tr, thick_tr, side_tr, pmesh);
 
 	value = (dxi*dxj + dyi*dyj)*surface;
 
 	return value;
 }
 
-static inline float integrale_sum(unsigned theta_i, unsigned thick_i, unsigned theta_j, unsigned thick_j)
+static inline float integrale_sum(unsigned theta_i, unsigned thick_i, unsigned theta_j, unsigned thick_j, point *pmesh)
 {
 	float integral = 0.0f;
 
-	integral += integral_triangle(theta_i - 1, thick_i - 1, 1, theta_i, thick_i, theta_j, thick_j);
-	integral += integral_triangle(theta_i - 1, thick_i - 1, 0, theta_i, thick_i, theta_j, thick_j);
-	integral += integral_triangle(theta_i - 1, thick_i, 1, theta_i, thick_i, theta_j, thick_j);
-	integral += integral_triangle(theta_i, thick_i, 0, theta_i, thick_i, theta_j, thick_j);
-	integral += integral_triangle(theta_i, thick_i, 1, theta_i, thick_i, theta_j, thick_j);
-	integral += integral_triangle(theta_i, thick_i - 1, 0, theta_i, thick_i, theta_j, thick_j);
+	integral += integral_triangle(theta_i - 1, thick_i - 1, 1, theta_i, thick_i, theta_j, thick_j, pmesh);
+	integral += integral_triangle(theta_i - 1, thick_i - 1, 0, theta_i, thick_i, theta_j, thick_j, pmesh);
+	integral += integral_triangle(theta_i - 1, thick_i, 1, theta_i, thick_i, theta_j, thick_j, pmesh);
+	integral += integral_triangle(theta_i, thick_i, 0, theta_i, thick_i, theta_j, thick_j, pmesh);
+	integral += integral_triangle(theta_i, thick_i, 1, theta_i, thick_i, theta_j, thick_j, pmesh);
+	integral += integral_triangle(theta_i, thick_i - 1, 0, theta_i, thick_i, theta_j, thick_j, pmesh);
 
 	return integral;
 }
 
-#define TRANSLATE(k)	(RefArray[(k)])
 
-static void compute_A_value(unsigned i, unsigned j)
+static void compute_A_value(unsigned i, unsigned j, point *pmesh, float *A)
 {
 	float value = 0.0f;
 
@@ -408,58 +191,19 @@ static void compute_A_value(unsigned i, unsigned j)
 			goto done;
 
 		/* this may not be a null entry */
-		value += integrale_sum(theta_i, thick_i, theta_j, thick_j);
+		value += integrale_sum(theta_i, thick_i, theta_j, thick_j, pmesh);
 	}
 
 done:
 	A[i+j*DIM] = value;
 }
 
-#ifdef USE_POSTSCRIPT
-static void postscript_gen(void)
+static void solve_system(unsigned size, unsigned subsize, float *result, int *RefArray, float *Bformer, float *A, float *B)
 {
-	FILE *psfile;
-	psfile = fopen("output.ps", "w+");
 
-	int offx, offy;
-	unsigned theta, thick;
+	/* that's indeed dirty ;) */
+	#define TRANSLATE(k)	(RefArray[(k)])
 
-	offx = RMAX+50;
-	offy = 100;
-
-	for (theta = 0; theta < ntheta-1; theta++)
-	{
-		for (thick = 0; thick < nthick-1; thick++)
-		{
-			fprintf(psfile, "newpath\n");
-			fprintf(psfile, "%d %d moveto\n", (int)pmesh[NODE_NUMBER(theta, thick)].x + offx,
-							  (int)pmesh[NODE_NUMBER(theta, thick)].y+ offy);
-			fprintf(psfile, "%d %d lineto\n", (int)pmesh[NODE_NUMBER(theta+1, thick)].x + offx,
-							  (int)pmesh[NODE_NUMBER(theta+1, thick)].y+ offy);
-			fprintf(psfile, "%d %d lineto\n", (int)pmesh[NODE_NUMBER(theta+1, thick+1)].x + offx,
-							  (int)pmesh[NODE_NUMBER(theta+1, thick+1)].y+ offy);
-			fprintf(psfile, "closepath\n");
-			fprintf(psfile, "stroke\n");
-
-			fprintf(psfile, "newpath\n");
-			fprintf(psfile, "%d %d moveto\n", (int)pmesh[NODE_NUMBER(theta, thick)].x + offx,
-							  (int)pmesh[NODE_NUMBER(theta, thick)].y+ offy);
-			fprintf(psfile, "%d %d lineto\n", (int)pmesh[NODE_NUMBER(theta, thick+1)].x + offx,
-							  (int)pmesh[NODE_NUMBER(theta, thick+1)].y+ offy);
-			fprintf(psfile, "%d %d lineto\n", (int)pmesh[NODE_NUMBER(theta+1, thick+1)].x + offx,
-							  (int)pmesh[NODE_NUMBER(theta+1, thick+1)].y+ offy);
-			fprintf(psfile, "closepath\n");
-
-			fprintf(psfile, "stroke\n");
-		}
-	}
-
-	fclose(psfile);
-}
-#endif
-
-static void solve_system(unsigned size, unsigned subsize)
-{
 	unsigned i;
 
 	/* solve the actual problem LU X = B */
@@ -482,6 +226,7 @@ static void solve_system(unsigned size, unsigned subsize)
 	{
 		result[TRANSLATE(i)] = B[i];
 	}
+
 	for (i = subsize ; i < size; i++)
 	{
 		result[TRANSLATE(i)] = Bformer[TRANSLATE(i)];
@@ -489,181 +234,14 @@ static void solve_system(unsigned size, unsigned subsize)
 
 }
 
-void reorganize_matrices(float *A, float *B, int *RefArray, unsigned size)
+unsigned reorganize_matrices(float *A, float *B, int *RefArray, unsigned size, float *Bformer)
 {
-	/* only reorganize the newsize*newsize upper left square on A, and the
-	 * newsize first items on B */
-	int i;
-	for (i = 0; i < (int)size; i++)
-	{
-		if (RefArray[i] > i) {
-			/* swap i and RefArray[i] columns on A */
-			cblas_sswap (size, &A[i], size, &A[RefArray[i]], size);
-
-			/* swap i and RefArray[i] rows on A */
-			cblas_sswap (size, &A[i*size], 1, &A[RefArray[i]*size], 1);
-
-			/* swap i and RefArray[i] rows on B */
-			cblas_sswap (1, &B[i], 1, &B[RefArray[i]], 1);
-		}
-	}
-}
-
-unsigned shape = 0;
-unsigned pinned = 0;
-
-void parse_args(int argc, char **argv)
-{
-	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-shape") == 0) {
-		        char *argptr;
-			shape = strtol(argv[++i], &argptr, 10);
-		}
-
-		if (strcmp(argv[i], "-nthick") == 0) {
-		        char *argptr;
-			nthick = strtol(argv[++i], &argptr, 10);
-		}
-
-		if (strcmp(argv[i], "-ntheta") == 0) {
-		        char *argptr;
-			ntheta = strtol(argv[++i], &argptr, 10);
-		}
-
-		if (strcmp(argv[i], "-nblocks") == 0) {
-		        char *argptr;
-			nblocks = strtol(argv[++i], &argptr, 10);
-		}
-
-		if (strcmp(argv[i], "-v1") == 0) {
-			version = 1;
-		}
-
-		if (strcmp(argv[i], "-v2") == 0) {
-			version = 2;
-		}
-
-		if (strcmp(argv[i], "-v3") == 0) {
-			version = 3;
-		}
-
-		if (strcmp(argv[i], "-pin") == 0) {
-			pinned = 1;
-		}
-
-		if (strcmp(argv[i], "-h") == 0) {
-			printf("usage : %s [-v1|-v2|-v3] [-pin] [-nthick number] [-ntheta number] [-shape [0|1|2]]\n", argv[0]);
-		}
-	}
-}
-
-extern void initialize_system(float **A, float **B, unsigned dim, unsigned pinned);
-
-int main(int argc, char **argv)
-{
-	argc_ = argc;
-	argv_ = argv;
-
-#ifdef USE_MARCEL
-	marcel_init(&argc, argv);
-#endif
-
-	parse_args(argc, argv);
-
-	unsigned theta, thick;
-
-	unsigned newsize;
-
-	pmesh = malloc(DIM*sizeof(point));
-
-	initialize_system(&A, &B, DIM, pinned);
-//
-//	/* the stiffness matrix : boundary conditions are known */
-//	A = malloc(DIM*DIM*sizeof(float));
-//	B = malloc(DIM*sizeof(float));
-
-	/* first build the mesh by determining all points positions */
-	for (theta = 0; theta < ntheta; theta++)
-	{
-		float angle;
-
-		angle = (ntheta - 1 - theta) * Pi/(ntheta-1);
-
-		for (thick = 0; thick < nthick; thick++)
-		{
-			float r;
-
-			r = thick * (RMAX - RMIN)/(nthick - 1) + RMIN;
-
-			switch (shape) {
-				default:
-				case 0:
-					pmesh[NODE_NUMBER(theta,thick)].x = r*cosf(angle);
-					pmesh[NODE_NUMBER(theta,thick)].y = r*sinf(angle);
-					break;
-				case 1:
-					pmesh[NODE_NUMBER(theta,thick)].x = -100 + RMIN+((RMAX-RMIN)*theta)/(ntheta - 1);
-					pmesh[NODE_NUMBER(theta,thick)].y = RMIN+((RMAX-RMIN)*thick)/(nthick - 1);
-					break;
-				case 2:
-					pmesh[NODE_NUMBER(theta,thick)].x = r*(2.0f*theta/(ntheta - 1)- 1.0f);
-					pmesh[NODE_NUMBER(theta,thick)].y = r*(2.0f*thick/(nthick - 1)- 1.0f);
-					break;
-			}
-		}
-	}
-
-#ifdef USE_POSTSCRIPT
-	postscript_gen();
-#endif
-
-	/* then build the stiffness matrix A */
-	unsigned i,j;
-
-	fprintf(stderr, "Assembling matrix ... \n");
-
-	for (j = 0 ; j < DIM ; j++)
-	{
-		for (i = 0; i < DIM ; i++)
-		{
-			compute_A_value(i, j);
-		}
-	}
-
-	for (i = 0; i < DIM; i++)
-	{
-		B[i] = 0.0f;
-	}
-
-	for (i = 0; i < nthick; i++)
-	{
-		B[i] = 200.0f;
-		B[DIM-1-i] = 200.0f;
-	}
-
-	for (i = 1; i < ntheta-1; i++)
-	{
-		B[i*nthick] = 200.0f;
-		B[(i+1)*nthick-1] = 100.0f;
-	}
-
-	/* now simplify that problem given the boundary conditions */ 
-	/*
-	 * The values at boundaries are well known : 
-	 *
-	 *	-----------
-	 *	|	  |
-	 *	|	  |
-	 *	|	  |
-	 *	-----------
-	 *
-	 */
-
 	/* first create a reference vector to track pivoting */
 	unsigned k;
+	unsigned theta, thick;
+	unsigned newsize;
 	unsigned index = 0;
-	RefArray = malloc(DIM*sizeof(int));
+
 	for (k = 0; k < DIM; k++)
 	{
 		RefArray[k] = k;
@@ -701,22 +279,146 @@ int main(int argc, char **argv)
 
 	assert(index == DIM);
 
-	Bformer = malloc(DIM*sizeof(float));
 	memcpy(Bformer, B, DIM*sizeof(float));
 
 	fprintf(stderr, "Problem size : %dx%d (%dx%d)\n", newsize, newsize, DIM, DIM);
 
-	reorganize_matrices(A, B, RefArray, DIM);
-
-	for (j = 0; j < newsize; j++)
+	/* only reorganize the newsize*newsize upper left square on A, and the
+	 * newsize first items on B */
+	int i, j;
+	for (i = 0; i < (int)size; i++)
 	{
-		for (i = newsize; i < DIM; i++)
+		if (RefArray[i] > i) {
+			/* swap i and RefArray[i] columns on A */
+			cblas_sswap (size, &A[i], size, &A[RefArray[i]], size);
+
+			/* swap i and RefArray[i] rows on A */
+			cblas_sswap (size, &A[i*size], 1, &A[RefArray[i]*size], 1);
+
+			/* swap i and RefArray[i] rows on B */
+			cblas_sswap (1, &B[i], 1, &B[RefArray[i]], 1);
+		}
+	}
+
+	for (j = 0; j < (int)newsize; j++)
+	{
+		for (i = (int)newsize; i < DIM; i++)
 		{
 			B[j] -= B[i]*A[i+j*DIM];
 		}
 	}
 
-	result = malloc(DIM*sizeof(float));
+	return newsize;
+}
+
+void build_mesh(point *mesh)
+{
+	unsigned theta, thick;
+
+
+	/* first build the mesh by determining all points positions */
+	for (theta = 0; theta < ntheta; theta++)
+	{
+		float angle;
+		angle = (ntheta - 1 - theta) * Pi/(ntheta-1);
+
+		for (thick = 0; thick < nthick; thick++)
+		{
+			float r;
+			r = thick * (RMAX - RMIN)/(nthick - 1) + RMIN;
+
+			switch (shape) {
+				default:
+				case 0:
+					mesh[NODE_NUMBER(theta,thick)].x = r*cosf(angle);
+					mesh[NODE_NUMBER(theta,thick)].y = r*sinf(angle);
+					break;
+				case 1:
+					mesh[NODE_NUMBER(theta,thick)].x =
+							-100 + RMIN+((RMAX-RMIN)*theta)/(ntheta - 1);
+					mesh[NODE_NUMBER(theta,thick)].y = 
+							RMIN+((RMAX-RMIN)*thick)/(nthick - 1);
+					break;
+				case 2:
+					mesh[NODE_NUMBER(theta,thick)].x = r*(2.0f*theta/(ntheta - 1)- 1.0f);
+					mesh[NODE_NUMBER(theta,thick)].y = r*(2.0f*thick/(nthick - 1)- 1.0f);
+					break;
+			}
+		}
+	}
+}
+
+void build_stiffness_matrix(point *pmesh, float *A, float *B)
+{
+	unsigned i,j;
+	fprintf(stderr, "Assembling matrix ... \n");
+
+	for (j = 0 ; j < DIM ; j++)
+	{
+		for (i = 0; i < DIM ; i++)
+		{
+			compute_A_value(i, j, pmesh, A);
+		}
+	}
+
+	for (i = 0; i < DIM; i++)
+	{
+		B[i] = 0.0f;
+	}
+
+	for (i = 0; i < nthick; i++)
+	{
+		B[i] = 200.0f;
+		B[DIM-1-i] = 200.0f;
+	}
+
+	for (i = 1; i < ntheta-1; i++)
+	{
+		B[i*nthick] = 200.0f;
+		B[(i+1)*nthick-1] = 100.0f;
+	}
+}
+
+int main(int argc, char **argv)
+{
+	float *A;
+	float *B;
+
+	unsigned newsize;
+	float *result;
+	int *RefArray;
+	point *pmesh;
+	float *Bformer;
+
+	argc_ = argc;
+	argv_ = argv;
+
+#ifdef USE_MARCEL
+	marcel_init(&argc, argv);
+#endif
+
+	parse_args(argc, argv);
+
+	pmesh = malloc(DIM*sizeof(point));
+	build_mesh(pmesh);
+
+#ifdef USE_POSTSCRIPT
+	postscript_gen();
+#endif
+
+	initialize_system(&A, &B, DIM, pinned);
+
+	/* then build the stiffness matrix A */
+	build_stiffness_matrix(pmesh, A, B);
+
+	/* now simplify that problem given the boundary conditions 
+	 * to do so, we remove the already known variables from the system
+	 * by pivoting the various know variable, RefArray keep track of that
+	 * pivoting */ 
+	RefArray = malloc(DIM*sizeof(int));
+	Bformer = malloc(DIM*sizeof(float));
+
+	newsize = reorganize_matrices(A, B, RefArray, DIM, Bformer);
 
 	if (version < 3) {
 		dw_factoLU(A, newsize, DIM, nblocks, version);
@@ -725,15 +427,12 @@ int main(int argc, char **argv)
 		dw_factoLU_tag(A, newsize, DIM, nblocks);
 	}
 
-	solve_system(DIM, newsize);
+	result = malloc(DIM*sizeof(float));
+	solve_system(DIM, newsize, result, RefArray, Bformer, A, B);
 
 #ifdef OPENGL_RENDER
 	opengl_render();
 #endif
-
-	free(pmesh);
-	free(result);
-	free(RefArray);
 
 	return 0;
 }

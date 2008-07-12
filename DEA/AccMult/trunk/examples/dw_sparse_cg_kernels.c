@@ -92,6 +92,7 @@ void core_codelet_func_2(data_interface_t *descr, __attribute__((unused)) void *
 	memcpy(dst, src, nx*elemsize);
 
 	printf("src : %f %f %f %f \n", src[0], src[1], src[2], src[3]);
+	printf("dst : %f %f %f %f \n", dst[0], dst[1], dst[2], dst[3]);
 }
 
 /*
@@ -104,15 +105,14 @@ void core_codelet_func_2(data_interface_t *descr, __attribute__((unused)) void *
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 void cublas_codelet_func_3(data_interface_t *descr, void *arg)
 {
-	float dot;
 	struct cg_problem *pb = arg;
+	float dot;
 	float *vec;
 	uint32_t size;
 	
 	/* get the vector */
 	vec = (float *)descr[0].blas.ptr;
 	size = descr[0].blas.nx;
-
 
 	dot = cublasSdot (size, vec, 1, vec, 1);
 
@@ -275,6 +275,8 @@ void cublas_codelet_func_8(data_interface_t *descr, void *arg)
 	pb->delta_old = pb->delta_new;
 	pb->delta_new = dot;
 	pb->beta = pb->delta_new/pb->delta_old;
+
+	printf("func 8 : delta old %f new %f\n", pb->delta_old, pb->delta_new);
 }
 #endif
 

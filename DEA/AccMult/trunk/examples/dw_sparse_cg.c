@@ -52,7 +52,9 @@ void init_problem(void)
 
 	create_data(&nzval, &vecb, &vecx, &nnz, &nrow, &colind, &rowptr);
 
+	GET_TICK(start);
 	conjugate_gradient(nzval, vecb, vecx, nnz, nrow, colind, rowptr);
+	GET_TICK(end);
 }
 
 /*
@@ -287,6 +289,8 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 
 	sem_wait(&sem);
 	sem_destroy(&sem);
+
+	print_results(vecx, nrow);
 }
 
 int main(__attribute__ ((unused)) int argc,
@@ -306,10 +310,6 @@ int main(__attribute__ ((unused)) int argc,
 #endif
 
 	init_problem();
-
-
-
-	print_results();
 
 	double timing = timing_delay(&start, &end);
 	fprintf(stderr, "Computation took (in ms)\n");
