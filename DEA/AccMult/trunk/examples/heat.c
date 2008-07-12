@@ -167,7 +167,7 @@ static inline float integrale_sum(unsigned theta_i, unsigned thick_i, unsigned t
 }
 
 
-static void compute_A_value(unsigned i, unsigned j, point *pmesh, float *A)
+static float compute_A_value(unsigned i, unsigned j, point *pmesh)
 {
 	float value = 0.0f;
 
@@ -195,14 +195,15 @@ static void compute_A_value(unsigned i, unsigned j, point *pmesh, float *A)
 	}
 
 done:
-	A[i+j*DIM] = value;
+	return value;
 }
+
+
+#define TRANSLATE(k)	(RefArray[(k)])
 
 static void solve_system(unsigned size, unsigned subsize, float *result, int *RefArray, float *Bformer, float *A, float *B)
 {
 
-	/* that's indeed dirty ;) */
-	#define TRANSLATE(k)	(RefArray[(k)])
 
 	unsigned i;
 
@@ -213,11 +214,11 @@ static void solve_system(unsigned size, unsigned subsize, float *result, int *Re
 
 	/* L */
 	cblas_strsv(CblasRowMajor, CblasLower, CblasNoTrans, CblasNonUnit,
-			subsize, A, size, B, 1);
+			subsize, A, subsize, B, 1);
 
 	/* U */
         cblas_strsv(CblasRowMajor, CblasUpper, CblasNoTrans, CblasUnit,
-                        subsize, A, size, B, 1);
+                        subsize, A, subsize, B, 1);
 
 	ASSERT(DIM == size);
 
@@ -234,13 +235,12 @@ static void solve_system(unsigned size, unsigned subsize, float *result, int *Re
 
 }
 
-unsigned reorganize_matrices(float *A, float *B, int *RefArray, unsigned size, float *Bformer)
+unsigned compute_pivot_array(int *RefArray, unsigned size)
 {
-	/* first create a reference vector to track pivoting */
 	unsigned k;
+	unsigned index = 0;
 	unsigned theta, thick;
 	unsigned newsize;
-	unsigned index = 0;
 
 	for (k = 0; k < DIM; k++)
 	{
@@ -279,42 +279,12 @@ unsigned reorganize_matrices(float *A, float *B, int *RefArray, unsigned size, f
 
 	assert(index == DIM);
 
-	memcpy(Bformer, B, DIM*sizeof(float));
-
-	fprintf(stderr, "Problem size : %dx%d (%dx%d)\n", newsize, newsize, DIM, DIM);
-
-	/* only reorganize the newsize*newsize upper left square on A, and the
-	 * newsize first items on B */
-	int i, j;
-	for (i = 0; i < (int)size; i++)
-	{
-		if (RefArray[i] > i) {
-			/* swap i and RefArray[i] columns on A */
-			cblas_sswap (size, &A[i], size, &A[RefArray[i]], size);
-
-			/* swap i and RefArray[i] rows on A */
-			cblas_sswap (size, &A[i*size], 1, &A[RefArray[i]*size], 1);
-
-			/* swap i and RefArray[i] rows on B */
-			cblas_sswap (1, &B[i], 1, &B[RefArray[i]], 1);
-		}
-	}
-
-	for (j = 0; j < (int)newsize; j++)
-	{
-		for (i = (int)newsize; i < DIM; i++)
-		{
-			B[j] -= B[i]*A[i+j*DIM];
-		}
-	}
-
 	return newsize;
 }
 
 void build_mesh(point *mesh)
 {
 	unsigned theta, thick;
-
 
 	/* first build the mesh by determining all points positions */
 	for (theta = 0; theta < ntheta; theta++)
@@ -348,35 +318,49 @@ void build_mesh(point *mesh)
 	}
 }
 
-void build_stiffness_matrix(point *pmesh, float *A, float *B)
+void build_stiffness_matrix(point *pmesh, float *A, float *B, float *Bformer, unsigned size, unsigned newsize, int *RefArray)
 {
 	unsigned i,j;
 	fprintf(stderr, "Assembling matrix ... \n");
 
-	for (j = 0 ; j < DIM ; j++)
-	{
-		for (i = 0; i < DIM ; i++)
-		{
-			compute_A_value(i, j, pmesh, A);
-		}
-	}
-
+	/* first give the value of known nodes (at boundaries) */
 	for (i = 0; i < DIM; i++)
 	{
-		B[i] = 0.0f;
+		Bformer[i] = 0.0f;
 	}
 
 	for (i = 0; i < nthick; i++)
 	{
-		B[i] = 200.0f;
-		B[DIM-1-i] = 200.0f;
+		Bformer[i] = 200.0f;
+		Bformer[DIM-1-i] = 200.0f;
 	}
 
 	for (i = 1; i < ntheta-1; i++)
 	{
-		B[i*nthick] = 200.0f;
-		B[(i+1)*nthick-1] = 100.0f;
+		Bformer[i*nthick] = 200.0f;
+		Bformer[(i+1)*nthick-1] = 100.0f;
 	}
+
+	/* now the actual stiffness (reordered) matrix*/
+	for (j = 0 ; j < newsize ; j++)
+	{
+		for (i = 0; i < newsize ; i++)
+		{
+			float val;
+			val = compute_A_value(TRANSLATE(i), TRANSLATE(j), pmesh);
+
+			A[i+j*newsize] = val;
+		}
+
+		B[j] = Bformer[TRANSLATE(j)];
+
+		for (i = newsize; i < size; i++)
+		{
+			B[j] -= compute_A_value(TRANSLATE(i), TRANSLATE(j), pmesh)*Bformer[TRANSLATE(i)];
+		}
+	}
+
+	fprintf(stderr, "Problem size : %dx%d (%dx%d)\n", newsize, newsize, DIM, DIM);
 }
 
 int main(int argc, char **argv)
@@ -400,31 +384,36 @@ int main(int argc, char **argv)
 	parse_args(argc, argv);
 
 	pmesh = malloc(DIM*sizeof(point));
+	RefArray = malloc(DIM*sizeof(int));
+	Bformer = malloc(DIM*sizeof(float));
+
 	build_mesh(pmesh);
 
 #ifdef USE_POSTSCRIPT
 	postscript_gen();
 #endif
 
-	initialize_system(&A, &B, DIM, pinned);
-
-	/* then build the stiffness matrix A */
-	build_stiffness_matrix(pmesh, A, B);
-
 	/* now simplify that problem given the boundary conditions 
 	 * to do so, we remove the already known variables from the system
 	 * by pivoting the various know variable, RefArray keep track of that
 	 * pivoting */ 
-	RefArray = malloc(DIM*sizeof(int));
-	Bformer = malloc(DIM*sizeof(float));
+	newsize = compute_pivot_array(RefArray, DIM);
 
-	newsize = reorganize_matrices(A, B, RefArray, DIM, Bformer);
+
+	/* unfortunately CUDA does not allow late memory registration, 
+	 * we need to do the malloc using CUDA itself ... */
+	initialize_system(&A, &B, newsize, pinned);
+
+
+	/* then build the stiffness matrix A */
+	//memcpy(Bformer, B, DIM*sizeof(float));
+	build_stiffness_matrix(pmesh, A, B, Bformer, DIM, newsize, RefArray);
 
 	if (version < 3) {
-		dw_factoLU(A, newsize, DIM, nblocks, version);
+		dw_factoLU(A, newsize, newsize, nblocks, version);
 	}
 	else {
-		dw_factoLU_tag(A, newsize, DIM, nblocks);
+		dw_factoLU_tag(A, newsize, newsize, nblocks);
 	}
 
 	result = malloc(DIM*sizeof(float));
