@@ -102,6 +102,25 @@ void core_codelet_func_2(data_interface_t *descr, __attribute__((unused)) void *
  *		args = &delta_new, &delta_0
  */
 
+void core_codelet_func_3(data_interface_t *descr, void *arg)
+{
+	struct cg_problem *pb = arg;
+	float dot;
+	float *vec;
+	uint32_t size;
+	
+	/* get the vector */
+	vec = (float *)descr[0].blas.ptr;
+	size = descr[0].blas.nx;
+
+	dot = cblas_sdot (size, vec, 1, vec, 1);
+
+	printf("func 3 : deltanew = %f\n", dot);
+
+	pb->delta_new = dot;
+	pb->delta_0 = dot;
+}
+
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 void cublas_codelet_func_3(data_interface_t *descr, void *arg)
 {
@@ -174,6 +193,25 @@ void core_codelet_func_4(data_interface_t *descr, __attribute__((unused)) void *
  *		args = &alpha, &delta_new
  */
 
+void core_codelet_func_5(data_interface_t *descr, void *arg)
+{
+	float dot;
+	struct cg_problem *pb = arg;
+	float *vecd, *vecq;
+	uint32_t size;
+	
+	/* get the vector */
+	vecd = (float *)descr[0].blas.ptr;
+	vecq = (float *)descr[1].blas.ptr;
+
+	ASSERT(descr[1].blas.nx == descr[0].blas.nx);
+	size = descr[0].blas.nx;
+
+	dot = cblas_sdot(size, vecd, 1, vecq, 1);
+
+	pb->alpha = pb->delta_new / dot;
+}
+
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 void cublas_codelet_func_5(data_interface_t *descr, void *arg)
 {
@@ -185,7 +223,6 @@ void cublas_codelet_func_5(data_interface_t *descr, void *arg)
 	/* get the vector */
 	vecd = (float *)descr[0].blas.ptr;
 	vecq = (float *)descr[1].blas.ptr;
-
 
 	ASSERT(descr[1].blas.nx == descr[0].blas.nx);
 	size = descr[0].blas.nx;
@@ -205,6 +242,21 @@ void cublas_codelet_func_5(data_interface_t *descr, void *arg)
  *		args = &alpha
  */
 
+void core_codelet_func_6(data_interface_t *descr, void *arg)
+{
+	struct cg_problem *pb = arg;
+	float *vecx, *vecd;
+	uint32_t size;
+	
+	/* get the vector */
+	vecx = (float *)descr[0].blas.ptr;
+	vecd = (float *)descr[1].blas.ptr;
+
+	size = descr[0].blas.nx;
+
+	cblas_saxpy(size, pb->alpha, vecd, 1, vecx, 1);
+}
+
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 void cublas_codelet_func_6(data_interface_t *descr, void *arg)
 {
@@ -222,14 +274,27 @@ void cublas_codelet_func_6(data_interface_t *descr, void *arg)
 }
 #endif
 
-
-
 /*
  *	compute r = r - alpha q
  *
  * 		descr[0] : r, descr[1] : q
  *		args = &alpha
  */
+
+void core_codelet_func_7(data_interface_t *descr, void *arg)
+{
+	struct cg_problem *pb = arg;
+	float *vecr, *vecq;
+	uint32_t size;
+	
+	/* get the vector */
+	vecr = (float *)descr[0].blas.ptr;
+	vecq = (float *)descr[1].blas.ptr;
+
+	size = descr[0].blas.nx;
+
+	cblas_saxpy(size, -pb->alpha, vecq, 1, vecr, 1);
+}
 
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 void cublas_codelet_func_7(data_interface_t *descr, void *arg)
@@ -257,6 +322,25 @@ void cublas_codelet_func_7(data_interface_t *descr, void *arg)
  *		args = &delta_old, &delta_new, &beta
  */
 
+void core_codelet_func_8(data_interface_t *descr, void *arg)
+{
+	float dot;
+	struct cg_problem *pb = arg;
+	float *vecr;
+	uint32_t size;
+	
+	/* get the vector */
+	vecr = (float *)descr[0].blas.ptr;
+	size = descr[0].blas.nx;
+
+	dot = cblas_sdot(size, vecr, 1, vecr, 1);
+
+	pb->delta_old = pb->delta_new;
+	pb->delta_new = dot;
+	pb->beta = pb->delta_new/pb->delta_old;
+
+	printf("func 8 : delta old %f new %f\n", pb->delta_old, pb->delta_new);
+}
 
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 void cublas_codelet_func_8(data_interface_t *descr, void *arg)
@@ -280,8 +364,6 @@ void cublas_codelet_func_8(data_interface_t *descr, void *arg)
 }
 #endif
 
-
-
 /*
  *	compute d = r + beta d
  *
@@ -290,6 +372,24 @@ void cublas_codelet_func_8(data_interface_t *descr, void *arg)
  *
  */
 
+void core_codelet_func_9(data_interface_t *descr, void *arg)
+{
+	struct cg_problem *pb = arg;
+	float *vecd, *vecr;
+	uint32_t size;
+	
+	/* get the vector */
+	vecd = (float *)descr[0].blas.ptr;
+	vecr = (float *)descr[1].blas.ptr;
+
+	size = descr[0].blas.nx;
+
+	/* d = beta d */
+	cblas_sscal(size, pb->beta, vecd, 1);
+
+	/* d = r + d */
+	cblas_saxpy (size, 1.0f, vecr, 1, vecd, 1);
+}
 
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 void cublas_codelet_func_9(data_interface_t *descr, void *arg)

@@ -1,5 +1,65 @@
 #include "heat.h"
 
+/* default values */
+static unsigned ntheta = 32+2;
+static unsigned nthick = 32+2;
+static unsigned nblocks = 16;
+static unsigned shape = 0;
+static unsigned pinned = 0;
+static unsigned version = 2;
+static unsigned printmesh =0;
+
+static int argc_;
+static char **argv_;
+
+static void parse_args(int argc, char **argv)
+{
+	int i;
+	for (i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "-shape") == 0) {
+		        char *argptr;
+			shape = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-nthick") == 0) {
+		        char *argptr;
+			nthick = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-ntheta") == 0) {
+		        char *argptr;
+			ntheta = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-nblocks") == 0) {
+		        char *argptr;
+			nblocks = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-v1") == 0) {
+			version = 1;
+		}
+
+		if (strcmp(argv[i], "-v2") == 0) {
+			version = 2;
+		}
+
+		if (strcmp(argv[i], "-v3") == 0) {
+			version = 3;
+		}
+
+		if (strcmp(argv[i], "-pin") == 0) {
+			pinned = 1;
+		}
+
+		if (strcmp(argv[i], "-h") == 0) {
+			printf("usage : %s [-v1|-v2|-v3] [-pin] [-nthick number] [-ntheta number] [-shape [0|1|2]]\n", argv[0]);
+		}
+	}
+}
+
+
+
 /*
  * The Finite element method code 
  *
@@ -420,7 +480,7 @@ int main(int argc, char **argv)
 	solve_system(DIM, newsize, result, RefArray, Bformer, A, B);
 
 #ifdef OPENGL_RENDER
-	opengl_render();
+	opengl_render(ntheta, nthick, result, printmesh, pmesh, argc, argv);
 #endif
 
 	return 0;

@@ -1,3 +1,5 @@
+#include <examples/heat.h>
+
 #ifdef OPENGL_RENDER
 /*
  * Just some dummy OpenGL code to display our results 
@@ -6,7 +8,13 @@
 
 static float minval, maxval;
 
-static void generate_graph()
+static unsigned ntheta;
+static unsigned nthick;
+static float *result;
+static unsigned printmesh =0;
+static point *pmesh;
+
+static void generate_graph(void)
 {
 	unsigned theta, thick;
 
@@ -109,7 +117,7 @@ static void display(void)
 }
 
 
-static void pressKey(unsigned char key, int x, int y)
+static void pressKey(unsigned char key, int x __attribute__ ((unused)), int y  __attribute__ ((unused)))
 {
 	switch (key) {
 		case 'q':
@@ -133,10 +141,16 @@ static void reshape (int w, int h)
 }
 
 
-static void opengl_render(void)
+void opengl_render(unsigned _ntheta, unsigned _nthick, float *_result, unsigned _printmesh, point *_pmesh, int argc_, char **argv_)
 {
 	unsigned i;
 	fprintf(stderr, "OpenGL rendering ... \n");
+
+	ntheta = _ntheta;
+	nthick = _nthick;
+	result = _result;
+	printmesh = _printmesh;
+	pmesh = _pmesh;
 
 	minval = 100000000.0f;
 	maxval = -10000000.0f;

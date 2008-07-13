@@ -94,7 +94,10 @@ void init_cg(struct cg_problem *problem)
 	/* delta_new = trans(r) r */
 	job_t job3 = create_job(3UL);
 	job3->where = CUBLAS;
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job3->cl->cublas_func = cublas_codelet_func_3;
+#endif
+	job3->cl->core_func = core_codelet_func_3;
 	job3->cl->cl_arg = problem;
 	job3->nbuffers = 1;
 		job3->buffers[0].state = problem->ds_vecr;
@@ -135,8 +138,11 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* alpha = delta_new / ( trans(d) q )*/
 	job_t job5 = create_job(maskiter | 5UL);
-	job5->where = CUBLAS;
+	job5->where = CUBLAS|CORE;
+#if defined (USE_CUBLAS) || defined (USE_CUDA) 
 	job5->cl->cublas_func = cublas_codelet_func_5;
+#endif
+	job5->cl->core_func = core_codelet_func_5;
 	job5->cl->cl_arg = problem;
 	job5->nbuffers = 2;
 		job5->buffers[0].state = problem->ds_vecd;
@@ -148,8 +154,11 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* x = x + alpha d */
 	job_t job6 = create_job(maskiter | 6UL);
-	job6->where = CUBLAS;
+	job6->where = CUBLAS|CORE;
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job6->cl->cublas_func = cublas_codelet_func_6;
+#endif
+	job6->cl->core_func = core_codelet_func_6;
 	job6->cl->cl_arg = problem;
 	job6->nbuffers = 2;
 		job6->buffers[0].state = problem->ds_vecx;
@@ -161,8 +170,11 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* r = r - alpha q */
 	job_t job7 = create_job(maskiter | 7UL);
-	job7->where = CUBLAS;
+	job7->where = CUBLAS|CORE;
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job7->cl->cublas_func = cublas_codelet_func_7;
+#endif
+	job7->cl->core_func = core_codelet_func_7;
 	job7->cl->cl_arg = problem;
 	job7->nbuffers = 2;
 		job7->buffers[0].state = problem->ds_vecr;
@@ -174,8 +186,11 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* update delta_* and compute beta */
 	job_t job8 = create_job(maskiter | 8UL);
-	job8->where = CUBLAS;
+	job8->where = CUBLAS|CORE;
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job8->cl->cublas_func = cublas_codelet_func_8;
+#endif
+	job8->cl->core_func = core_codelet_func_8;
 	job8->cl->cl_arg = problem;
 	job8->nbuffers = 1;
 		job8->buffers[0].state = problem->ds_vecr;
@@ -186,7 +201,10 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	/* d = r + beta d */
 	job_t job9 = create_job(maskiter | 9UL);
 	job9->where = CUBLAS;
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job9->cl->cublas_func = cublas_codelet_func_9;
+#endif
+	job9->cl->core_func = core_codelet_func_9;
 	job9->cl->cl_arg = problem;
 	job9->nbuffers = 2;
 		job9->buffers[0].state = problem->ds_vecd;

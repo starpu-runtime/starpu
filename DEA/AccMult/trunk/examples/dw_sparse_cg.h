@@ -177,14 +177,28 @@ static job_t create_job(tag_t id)
 }
 
 void core_codelet_func_1(data_interface_t *descr, void *arg);
+
 void core_codelet_func_2(data_interface_t *descr, void *arg);
+
 void cublas_codelet_func_3(data_interface_t *descr, void *arg);
+void core_codelet_func_3(data_interface_t *descr, void *arg);
+
 void core_codelet_func_4(data_interface_t *descr, void *arg);
+
+void core_codelet_func_5(data_interface_t *descr, void *arg);
 void cublas_codelet_func_5(data_interface_t *descr, void *arg);
+
 void cublas_codelet_func_6(data_interface_t *descr, void *arg);
+void core_codelet_func_6(data_interface_t *descr, void *arg);
+
 void cublas_codelet_func_7(data_interface_t *descr, void *arg);
+void core_codelet_func_7(data_interface_t *descr, void *arg);
+
 void cublas_codelet_func_8(data_interface_t *descr, void *arg);
+void core_codelet_func_8(data_interface_t *descr, void *arg);
+
 void cublas_codelet_func_9(data_interface_t *descr, void *arg);
+void core_codelet_func_9(data_interface_t *descr, void *arg);
 
 void *iteration_cg(void *problem);
 
