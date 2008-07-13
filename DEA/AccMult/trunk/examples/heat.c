@@ -7,7 +7,6 @@ static unsigned nblocks = 16;
 static unsigned shape = 0;
 static unsigned pinned = 0;
 static unsigned version = 2;
-static unsigned printmesh =0;
 
 static int argc_;
 static char **argv_;
@@ -480,7 +479,7 @@ int main(int argc, char **argv)
 	solve_system(DIM, newsize, result, RefArray, Bformer, A, B);
 
 #ifdef OPENGL_RENDER
-	opengl_render(ntheta, nthick, result, printmesh, pmesh, argc, argv);
+	opengl_render(ntheta, nthick, result, pmesh, argc, argv);
 #endif
 
 	return 0;

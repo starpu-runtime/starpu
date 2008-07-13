@@ -141,7 +141,7 @@ static void reshape (int w, int h)
 }
 
 
-void opengl_render(unsigned _ntheta, unsigned _nthick, float *_result, unsigned _printmesh, point *_pmesh, int argc_, char **argv_)
+void opengl_render(unsigned _ntheta, unsigned _nthick, float *_result, point *_pmesh, int argc_, char **argv_)
 {
 	unsigned i;
 	fprintf(stderr, "OpenGL rendering ... \n");
@@ -149,7 +149,7 @@ void opengl_render(unsigned _ntheta, unsigned _nthick, float *_result, unsigned 
 	ntheta = _ntheta;
 	nthick = _nthick;
 	result = _result;
-	printmesh = _printmesh;
+	printmesh = 0;
 	pmesh = _pmesh;
 
 	minval = 100000000.0f;
