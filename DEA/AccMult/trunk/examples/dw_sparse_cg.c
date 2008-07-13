@@ -95,7 +95,7 @@ void init_cg(struct cg_problem *problem)
 
 	/* delta_new = trans(r) r */
 	job_t job3 = create_job(3UL);
-	job3->where = CUBLAS;
+	job3->where = CUBLAS|CORE;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job3->cl->cublas_func = cublas_codelet_func_3;
 #endif
@@ -122,7 +122,6 @@ void init_cg(struct cg_problem *problem)
 
 void launch_new_cg_iteration(struct cg_problem *problem)
 {
-	printf("launch cg iter \n");
 	unsigned iter = problem->i;
 
 	unsigned long long maskiter = (iter*1024);
@@ -203,7 +202,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* d = r + beta d */
 	job_t job9 = create_job(maskiter | 9UL);
-	job9->where = CUBLAS;
+	job9->where = CUBLAS|CORE;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job9->cl->cublas_func = cublas_codelet_func_9;
 #endif
@@ -228,7 +227,6 @@ void iteration_cg(void *problem)
 {
 	struct cg_problem *pb = problem;
 
-	printf("i : %d\n\tdelta_new %2.5f\n", pb->i, pb->epsilon);
 
 	if ((pb->i++ < MAXITER) && 
 		(pb->delta_new > pb->epsilon) )
@@ -239,6 +237,7 @@ void iteration_cg(void *problem)
 	else {
 		/* we may stop */
 		printf("We are done ... after %d iterations \n", pb->i - 1);
+		printf("i : %d\n\tdelta_new %2.5f\n", pb->i, pb->epsilon);
 		sem_post(pb->sem);
 	}
 }

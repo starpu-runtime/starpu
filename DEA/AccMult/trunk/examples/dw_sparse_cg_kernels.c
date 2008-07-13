@@ -338,8 +338,7 @@ void core_codelet_func_8(data_interface_t *descr, void *arg)
 	pb->delta_old = pb->delta_new;
 	pb->delta_new = dot;
 	pb->beta = pb->delta_new/pb->delta_old;
-
-	printf("func 8 : delta old %f new %f\n", pb->delta_old, pb->delta_new);
+	//printf("func 8 : delta old %f new %f\n", pb->delta_old, pb->delta_new);
 }
 
 #if defined (USE_CUBLAS) || defined (USE_CUDA)

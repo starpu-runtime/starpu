@@ -22,8 +22,8 @@
 #include <datawizard/interfaces/blas_filters.h>
 #include <datawizard/interfaces/csr_interface.h>
 
-#define MAXITER	100
-#define EPSILON	0.000000001f
+#define MAXITER	10000
+#define EPSILON	0.0000001f
 
 /* code parameters */
 static uint32_t size = 33554432;

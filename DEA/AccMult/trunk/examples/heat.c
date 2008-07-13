@@ -516,12 +516,30 @@ int main(int argc, char **argv)
 
 		B = malloc(newsize*sizeof(float));
 
+		printf("build stiffness matrix B\n");
 		build_stiffness_matrix_B(pmesh, B, Bformer, DIM, newsize, RefArray);
 
+		printf("build stiffness matrix A\n");
 		nnz = build_sparse_stiffness_matrix_A(pmesh, &nzval, &colind, rowptr, newsize, RefArray);
 		printf("nnz : %d\n", nnz);
 
 		do_conjugate_gradient(nzval, B, result, nnz, newsize, colind, rowptr);
+
+		/* XXX */
+		memcpy(B, result, newsize*sizeof(float));
+
+		/* now display back the ACTUAL result */
+		int i;
+		for (i = 0; i < newsize; i++)
+		{
+			result[TRANSLATE(i)] = B[i];
+		}
+	
+		for (i = newsize ; i < DIM; i++)
+		{
+			result[TRANSLATE(i)] = Bformer[TRANSLATE(i)];
+		}
+	
 	}
 	else {
 
