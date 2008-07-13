@@ -24,6 +24,11 @@ ifeq ($(CUDA), 1)
 	EXTRADEP += cuda/spmv_cuda.cubin 
 endif
 
+ifeq ($(CUBLAS), 1)
+	OBJDEPS += ../drivers/cublas/driver_cublas.o
+	DEPENDENCIES += driver_cublas.o
+endif
+
 ifdef SPU
 	OBJDEPS += ../drivers/spu/ppu/driver_spu_ppu.o
 	OBJDEPS += ../drivers/spu/spu/spu_worker_program.o

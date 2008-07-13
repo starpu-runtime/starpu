@@ -216,6 +216,8 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	cl2.core_func = core_codelet;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 	cl2.cublas_func = cublas_codelet;
+#endif
+#ifdef USE_CUDA
 	cl2.cuda_func = &cuda_codelet;
 #endif
 
