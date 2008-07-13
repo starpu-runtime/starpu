@@ -40,4 +40,5 @@ test: test.o coherency.o copy-driver.o hierarchy.o filters.o
 
 clean:
 	@rm -f *.o test
+	@make -C interfaces clean
 	@make -C spu clean
