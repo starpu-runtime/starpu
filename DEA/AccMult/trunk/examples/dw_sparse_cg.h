@@ -200,7 +200,7 @@ void core_codelet_func_8(data_interface_t *descr, void *arg);
 void cublas_codelet_func_9(data_interface_t *descr, void *arg);
 void core_codelet_func_9(data_interface_t *descr, void *arg);
 
-void *iteration_cg(void *problem);
+void iteration_cg(void *problem);
 
 void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 			unsigned nrow, uint32_t *colind, uint32_t *rowptr);

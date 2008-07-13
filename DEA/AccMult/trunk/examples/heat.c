@@ -302,7 +302,7 @@ unsigned compute_pivot_array(int *RefArray, unsigned size)
 	unsigned theta, thick;
 	unsigned newsize;
 
-	for (k = 0; k < DIM; k++)
+	for (k = 0; k < size; k++)
 	{
 		RefArray[k] = k;
 	}
@@ -337,7 +337,7 @@ unsigned compute_pivot_array(int *RefArray, unsigned size)
 		RefArray[index++] = NODE_NUMBER(ntheta-1, thick);
 	}
 
-	assert(index == DIM);
+	assert(index == size);
 
 	return newsize;
 }

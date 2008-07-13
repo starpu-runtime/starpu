@@ -221,7 +221,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	push_task(job4);
 }
 
-void *iteration_cg(void *problem)
+void iteration_cg(void *problem)
 {
 	struct cg_problem *pb = problem;
 
@@ -238,8 +238,6 @@ void *iteration_cg(void *problem)
 		printf("We are done ... after %d iterations \n", pb->i - 1);
 		sem_post(pb->sem);
 	}
-
-	return NULL;
 }
 
 /*

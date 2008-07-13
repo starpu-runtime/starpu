@@ -27,7 +27,9 @@ tick_t end;
 #define DONE	0x10
 
 /* to compute MFlop/s */
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 static uint64_t flop_cublas = 0;
+#endif
 static uint64_t flop_atlas = 0;
 
 /*
