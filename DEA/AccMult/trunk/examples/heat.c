@@ -7,6 +7,7 @@ static unsigned nblocks = 16;
 static unsigned shape = 0;
 static unsigned pinned = 0;
 static unsigned version = 2;
+static unsigned use_cg = 0; /* use a LU decomposition of CG ? */
 
 static int argc_;
 static char **argv_;
@@ -15,6 +16,10 @@ static void parse_args(int argc, char **argv)
 {
 	int i;
 	for (i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "-cg") == 0) {
+			use_cg = 1;
+		}
+
 		if (strcmp(argv[i], "-shape") == 0) {
 		        char *argptr;
 			shape = strtol(argv[++i], &argptr, 10);
@@ -377,13 +382,12 @@ void build_mesh(point *mesh)
 	}
 }
 
-void build_stiffness_matrix(point *pmesh, float *A, float *B, float *Bformer, unsigned size, unsigned newsize, int *RefArray)
+static void build_stiffness_matrix_B(point *pmesh, float *B, float *Bformer, unsigned size, unsigned newsize, int *RefArray)
 {
 	unsigned i,j;
-	fprintf(stderr, "Assembling matrix ... \n");
 
 	/* first give the value of known nodes (at boundaries) */
-	for (i = 0; i < DIM; i++)
+	for (i = 0; i < size; i++)
 	{
 		Bformer[i] = 0.0f;
 	}
@@ -391,7 +395,7 @@ void build_stiffness_matrix(point *pmesh, float *A, float *B, float *Bformer, un
 	for (i = 0; i < nthick; i++)
 	{
 		Bformer[i] = 200.0f;
-		Bformer[DIM-1-i] = 200.0f;
+		Bformer[size-1-i] = 200.0f;
 	}
 
 	for (i = 1; i < ntheta-1; i++)
@@ -403,14 +407,6 @@ void build_stiffness_matrix(point *pmesh, float *A, float *B, float *Bformer, un
 	/* now the actual stiffness (reordered) matrix*/
 	for (j = 0 ; j < newsize ; j++)
 	{
-		for (i = 0; i < newsize ; i++)
-		{
-			float val;
-			val = compute_A_value(TRANSLATE(i), TRANSLATE(j), pmesh);
-
-			A[i+j*newsize] = val;
-		}
-
 		B[j] = Bformer[TRANSLATE(j)];
 
 		for (i = newsize; i < size; i++)
@@ -418,8 +414,57 @@ void build_stiffness_matrix(point *pmesh, float *A, float *B, float *Bformer, un
 			B[j] -= compute_A_value(TRANSLATE(i), TRANSLATE(j), pmesh)*Bformer[TRANSLATE(i)];
 		}
 	}
+}
 
-	fprintf(stderr, "Problem size : %dx%d (%dx%d)\n", newsize, newsize, DIM, DIM);
+static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uint32_t **colind, 
+						uint32_t *rowptr, unsigned newsize, int *RefArray)
+{
+	unsigned i,j;
+
+	unsigned pos = 0;
+
+	*nzval = NULL;
+	*colind = NULL;
+
+	/* now the actual stiffness (reordered) matrix*/
+	for (j = 0 ; j < newsize ; j++)
+	{
+		rowptr[j] = pos;
+
+		for (i = 0; i < newsize ; i++)
+		{
+			float val;
+			val = compute_A_value(TRANSLATE(i), TRANSLATE(j), pmesh);
+
+			if (val != 0.0f) {
+				*nzval = realloc(*nzval, (pos+1)*sizeof(float));
+				*colind = realloc(*colind, (pos+1)*sizeof(uint32_t));
+
+				(*nzval)[pos] = val;
+				(*colind)[pos] = i;
+				pos++;
+			}
+		}
+	}
+
+	return pos;
+}
+
+static void build_dense_stiffness_matrix_A(point *pmesh, float *A, unsigned newsize, int *RefArray)
+{
+	unsigned i,j;
+
+	/* now the actual stiffness (reordered) matrix*/
+	for (j = 0 ; j < newsize ; j++)
+	{
+		for (i = 0; i < newsize ; i++)
+		{
+			float val;
+			val = compute_A_value(TRANSLATE(i), TRANSLATE(j), pmesh);
+
+			A[i+j*newsize] = val;
+		}
+	}
 }
 
 int main(int argc, char **argv)
@@ -445,6 +490,7 @@ int main(int argc, char **argv)
 	pmesh = malloc(DIM*sizeof(point));
 	RefArray = malloc(DIM*sizeof(int));
 	Bformer = malloc(DIM*sizeof(float));
+	result = malloc(DIM*sizeof(float));
 
 	build_mesh(pmesh);
 
@@ -458,25 +504,48 @@ int main(int argc, char **argv)
 	 * pivoting */ 
 	newsize = compute_pivot_array(RefArray, DIM);
 
+	/* we can either use a direct method (LU decomposition here) or an 
+	 * iterative method (conjugate gradient here) */
+	if (use_cg) {
+		unsigned nnz;
+		float *nzval;
+		uint32_t *colind;
+		uint32_t *rowptr;
 
-	/* unfortunately CUDA does not allow late memory registration, 
-	 * we need to do the malloc using CUDA itself ... */
-	initialize_system(&A, &B, newsize, pinned);
+		rowptr = malloc(newsize*sizeof(uint32_t));
 
+		B = malloc(newsize*sizeof(float));
 
-	/* then build the stiffness matrix A */
-	//memcpy(Bformer, B, DIM*sizeof(float));
-	build_stiffness_matrix(pmesh, A, B, Bformer, DIM, newsize, RefArray);
+		build_stiffness_matrix_B(pmesh, B, Bformer, DIM, newsize, RefArray);
 
-	if (version < 3) {
-		dw_factoLU(A, newsize, newsize, nblocks, version);
+		nnz = build_sparse_stiffness_matrix_A(pmesh, &nzval, &colind, rowptr, newsize, RefArray);
+		printf("nnz : %d\n", nnz);
+
+		do_conjugate_gradient(nzval, B, result, nnz, newsize, colind, rowptr);
 	}
 	else {
-		dw_factoLU_tag(A, newsize, newsize, nblocks);
-	}
 
-	result = malloc(DIM*sizeof(float));
-	solve_system(DIM, newsize, result, RefArray, Bformer, A, B);
+		/* unfortunately CUDA does not allow late memory registration, 
+		 * we need to do the malloc using CUDA itself ... */
+		initialize_system(&A, &B, newsize, pinned);
+
+		/* then build the stiffness matrix A */
+		build_stiffness_matrix_B(pmesh, B, Bformer, DIM, newsize, RefArray);
+
+		build_dense_stiffness_matrix_A(pmesh, A, newsize, RefArray);
+
+		fprintf(stderr, "Problem size : %dx%d (%dx%d)\n", newsize, newsize, DIM, DIM);
+
+		if (version < 3) {
+			dw_factoLU(A, newsize, newsize, nblocks, version);
+		}
+		else {
+			dw_factoLU_tag(A, newsize, newsize, nblocks);
+		}
+
+		solve_system(DIM, newsize, result, RefArray, Bformer, A, B);
+
+	}
 
 #ifdef OPENGL_RENDER
 	opengl_render(ntheta, nthick, result, pmesh, argc, argv);

@@ -2,7 +2,7 @@ TARGET=tag_example
 TARGET+= incrementer
 TARGET+= heat 
 TARGET+= dw_spmv
-TARGET+= dw_sparse_cg
+#TARGET+= dw_sparse_cg
 
 ifdef OPENGL_RENDER
 	CFLAGS+=-DOPENGL_RENDER
@@ -126,8 +126,8 @@ dw_sparse_cg_kernels.o: dw_sparse_cg_kernels.c dw_sparse_cg.h
 dw_sparse_cg.o: dw_sparse_cg.c dw_sparse_cg.h
 	$(CC) $(CFLAGS) dw_sparse_cg.c -c -o dw_sparse_cg.o
 
-dw_sparse_cg: $(EXTRADEP) dw_sparse_cg.o dw_sparse_cg_kernels.o
-	$(CC) dw_sparse_cg.o dw_sparse_cg_kernels.o -o dw_sparse_cg $(OBJDEPS) $(LDFLAGS)
+#dw_sparse_cg: $(EXTRADEP) dw_sparse_cg.o dw_sparse_cg_kernels.o
+#	$(CC) dw_sparse_cg.o dw_sparse_cg_kernels.o -o dw_sparse_cg $(OBJDEPS) $(LDFLAGS)
 
 
 
@@ -143,8 +143,8 @@ heat_display.o: heat_display.c heat.h
 heat.o: heat.c
 	$(CC) $(CFLAGS) heat.c -c -o heat.o
 
-heat: dw_factolu.o dw_factolu_tag.o heat_display.o heat.o
-	$(CC) dw_factolu.o dw_factolu_tag.o heat_display.o heat.o -o heat $(OBJDEPS) $(LDFLAGS)
+heat: dw_sparse_cg.o dw_sparse_cg_kernels.o dw_factolu.o dw_factolu_tag.o heat_display.o heat.o
+	$(CC) dw_sparse_cg.o dw_sparse_cg_kernels.o dw_factolu.o dw_factolu_tag.o heat_display.o heat.o -o heat $(OBJDEPS) $(LDFLAGS)
 
 tag_example: tag_example.o
 	$(CC) tag_example.o -o tag_example $(OBJDEPS) $(LDFLAGS)

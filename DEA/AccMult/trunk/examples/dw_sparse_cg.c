@@ -63,6 +63,8 @@ void init_problem(void)
 
 void init_cg(struct cg_problem *problem) 
 {
+	printf("GOGO CG\n");
+	
 	problem->i = 0;
 
 	/* r = b  - A x */
@@ -120,6 +122,7 @@ void init_cg(struct cg_problem *problem)
 
 void launch_new_cg_iteration(struct cg_problem *problem)
 {
+	printf("launch cg iter \n");
 	unsigned iter = problem->i;
 
 	unsigned long long maskiter = (iter*1024);
@@ -276,6 +279,8 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 		ptr_vecq[i] = 0.0f;
 	}
 
+	printf("nrow = %d \n", nrow);
+
 	/* and declare them as well */
 	monitor_blas_data(&ds_vecr, 0, (uintptr_t)ptr_vecr, 
 			nrow, nrow, 1, sizeof(float));
@@ -309,6 +314,24 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 	print_results(vecx, nrow);
 }
 
+
+void do_conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
+			unsigned nrow, uint32_t *colind, uint32_t *rowptr)
+{
+	/* start the runtime */
+	init_machine();
+	init_workers();
+
+
+#ifdef USE_CUDA
+	initialize_cuda();
+#endif
+
+	printf("nnz = %d \n", nnz);
+	conjugate_gradient(nzvalA, vecb, vecx, nnz, nrow, colind, rowptr);
+}
+
+#if 0
 int main(__attribute__ ((unused)) int argc,
 	__attribute__ ((unused)) char **argv)
 {
@@ -334,3 +357,4 @@ int main(__attribute__ ((unused)) int argc,
 
 	return 0;
 }
+#endif
