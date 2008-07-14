@@ -425,6 +425,122 @@ static void build_stiffness_matrix_B(point *pmesh, float *B, float *Bformer, uns
 	}
 }
 
+static unsigned build_neighbour_vector(unsigned *neighbours, unsigned node, int *RefArray, int *RefArrayBack, unsigned newsize)
+{
+	/* where is that point in the former space ? */
+	int former = TRANSLATE(node);
+	int former_thick, former_theta;
+	former_thick= (int)NODE_TO_THICK(former);
+	former_theta = (int)NODE_TO_THETA(former);
+
+	/* do a list of all the possible neighbours */
+	unsigned nneighbours = 0;
+
+	int dtheta, dthick;
+	for (dthick = -1; dthick <= 1; dthick++)
+	{
+		if ((former_thick + dthick) >= 0 && (former_thick + dthick) <= (int)nthick )
+		{
+			for (dtheta = -1; dtheta <= 1; dtheta++)
+			{
+				if ((former_theta + dtheta) >= 0 && (former_theta + dtheta) <= (int)ntheta )
+				{
+					/* we got a possible neighbour */
+					unsigned node = 
+						NODE_NUMBER((former_theta + dtheta), (former_thick + dthick));
+
+			//		if (TRANSLATEBACK(node) < newsize) {
+
+					neighbours[nneighbours++] = TRANSLATEBACK(node);
+			//		}
+				}
+			}
+		}
+	}
+
+	unsigned i;
+	/* order that list */
+	for (i = 0; i < nneighbours; i++)
+	{
+		/* find the i^th smallest entry for position i */
+		unsigned index;
+		unsigned min , min_index;
+
+		min = neighbours[i];
+		min_index = i;
+
+		for (index = i+1; index < nneighbours; index++)
+		{
+			ASSERT(neighbours[i] != neighbours[index]);
+
+			if (neighbours[index] < min)
+			{
+				min = neighbours[index];
+				min_index = index;
+			}
+		}
+
+		/* swap values */
+		neighbours[min_index] = neighbours[i];
+		neighbours[i] = min;
+	}
+
+//	unsigned prout;
+//	printf("LIST %d : ", node);
+//	for (prout = 0; prout < nneighbours; prout++)
+//	{
+//		printf("%d (%d)\t", neighbours[prout], TRANSLATEBACK(neighbours[prout]));
+//	}
+//	printf("\n");
+//
+	return nneighbours;
+}
+
+static void build_sparse_stiffness_matrix_B(point *pmesh, float *B, float *Bformer, unsigned size, unsigned newsize, int *RefArray, int *RefArrayBack)
+{
+	unsigned i,j;
+
+	/* first give the value of known nodes (at boundaries) */
+	for (i = 0; i < size; i++)
+	{
+		Bformer[i] = 0.0f;
+	}
+
+	for (i = 0; i < nthick; i++)
+	{
+		Bformer[i] = 200.0f;
+		Bformer[size-1-i] = 200.0f;
+	}
+
+	for (i = 1; i < ntheta-1; i++)
+	{
+		Bformer[i*nthick] = 200.0f;
+		Bformer[(i+1)*nthick-1] = 100.0f;
+	}
+
+	/* now the actual stiffness (reordered) matrix*/
+	for (j = 0 ; j < newsize ; j++)
+	{
+
+		unsigned neighbour;
+		unsigned nneighbours;
+		unsigned neighbours[9];
+
+		nneighbours = build_neighbour_vector(&neighbours[0], j, RefArray, RefArrayBack, newsize);
+
+		B[j] = Bformer[TRANSLATE(j)];
+
+		for (neighbour = 0; neighbour < nneighbours; neighbour++)
+		{
+			unsigned i = neighbours[neighbour]; 
+			if (i >= newsize)
+			{
+				B[j] -= compute_A_value(TRANSLATE(i), TRANSLATE(j), pmesh)*Bformer[TRANSLATE(i)];
+			}
+		}
+	}
+}
+
 static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uint32_t **colind, 
 						uint32_t *rowptr, unsigned newsize, int *RefArray, int *RefArrayBack)
 {
@@ -440,114 +556,52 @@ static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uin
 	{
 		rowptr[j] = pos;
 
-		/* where is that point in the former space ? */
-		int former = TRANSLATE(j);
-		int former_thick, former_theta;
-		former_thick= (int)NODE_TO_THICK(former);
-		former_theta = (int)NODE_TO_THETA(former);
-
-		/* do a list of all the possible neighbours */
-		unsigned neighbours[9];
-		unsigned nneighbours = 0;
-
-		int dtheta, dthick;
-		for (dthick = -1; dthick <= 1; dthick++)
-		{
-			if ((former_thick + dthick) >= 0 && (former_thick + dthick) <= (int)nthick )
-			{
-				for (dtheta = -1; dtheta <= 1; dtheta++)
-				{
-					if ((former_theta + dtheta) >= 0 && (former_theta + dtheta) <= (int)ntheta )
-					{
-						/* we got a possible neighbour */
-						unsigned node = NODE_NUMBER((former_theta + dtheta), (former_thick + dthick));
-
-						/* this could be a little more efficient of course ... */
-						if (TRANSLATEBACK(node) < newsize) {
-						
-							neighbours[nneighbours++] = TRANSLATEBACK(node);
-
-//						printf("\tneighbour %d -> theta %d (%d) thick %d (%d)\n",  TRANSLATEBACK(node), 
-//								former_theta + dtheta, dtheta, former_thick + dthick, dthick);
-
-						}
-					}
-				}
-			}
-		}
-
-		/* order that list */
-		for (i = 0; i < nneighbours; i++)
-		{
-			/* find the i^th smallest entry for position i */
-			unsigned index;
-			unsigned min , min_index;
-
-			min = neighbours[i];
-			min_index = i;
-
-			for (index = i+1; index < nneighbours; index++)
-			{
-				ASSERT(neighbours[i] != neighbours[index]);
-
-				if (neighbours[index] < min)
-				{
-					min = neighbours[index];
-					min_index = index;
-				}
-			}
-
-			/* swap values */
-			neighbours[min_index] = neighbours[i];
-			neighbours[i] = min;
-			
-			//unsigned prout;
-			//printf("ordered ... %d \n", i);
-			//for (prout = 0; prout < nneighbours; prout++)
-			//{
-			//	printf("%d\t", neighbours[prout]);
-			//}
-			//printf("\n");
-		}
-
-
-//		unsigned neighbour;
-//		for (neighbour = 0; neighbour < newsize; neighbour++)
-//		{
-//			float val;
-//			val = compute_A_value(TRANSLATE(j), TRANSLATE(neighbour), pmesh);
-//
-//			if (val != 0.0f) {
-////				*nzval = realloc(*nzval, (pos+1)*sizeof(float));
-////				*colind = realloc(*colind, (pos+1)*sizeof(uint32_t));
-//
-////				(*nzval)[pos] = val;
-////				(*colind)[pos] = neighbour;
-//				printf("HINT : %d (%d)<-> %d (%d)\n", j, TRANSLATE(j), neighbour, TRANSLATE(neighbour));
-//
-//			//	pos++;
-//			}
-//		}
-
-
-
 		unsigned neighbour;
+		unsigned nneighbours;
+		unsigned neighbours[9];
+
+		nneighbours = build_neighbour_vector(&neighbours[0], j, RefArray, RefArrayBack, newsize);
+
+
+//              for (neighbour = 0; neighbour < newsize; neighbour++)
+//              {
+//                      float val;
+//                      val = compute_A_value(TRANSLATE(j), TRANSLATE(neighbour), pmesh);
+//
+//                      if (val != 0.0f) {
+////                            *nzval = realloc(*nzval, (pos+1)*sizeof(float));
+////                            *colind = realloc(*colind, (pos+1)*sizeof(uint32_t));
+//
+////                            (*nzval)[pos] = val;
+////                            (*colind)[pos] = neighbour;
+//                              printf("HINT : %d (%d)<-> %d (%d)\n", j, TRANSLATE(j), neighbour, TRANSLATE(neighbour));
+//
+//                      //      pos++;
+//                      }
+//              }
+//
+
+
 		for (neighbour = 0; neighbour < nneighbours; neighbour++)
 		{
 			float val;
 			unsigned nodeneighbour =  neighbours[neighbour];
 
-			val = compute_A_value(TRANSLATE(j), TRANSLATE(nodeneighbour), pmesh);
+			if (nodeneighbour < newsize) {
 
-			if (val != 0.0f) {
-				*nzval = realloc(*nzval, (pos+1)*sizeof(float));
-				*colind = realloc(*colind, (pos+1)*sizeof(uint32_t));
+				val = compute_A_value(TRANSLATE(j), TRANSLATE(nodeneighbour), pmesh);
+	
+				if (val != 0.0f) {
+					*nzval = realloc(*nzval, (pos+1)*sizeof(float));
+					*colind = realloc(*colind, (pos+1)*sizeof(uint32_t));
+	
+					(*nzval)[pos] = val;
+					(*colind)[pos] = nodeneighbour;
 
-				(*nzval)[pos] = val;
-				(*colind)[pos] = nodeneighbour;
-
-				//printf("%d (%d)<-> %d (%d)\n", j, TRANSLATE(j), nodeneighbour, TRANSLATE(nodeneighbour));
-				pos++;
+		//			printf("%d <-> %d\n", j, nodeneighbour);
+	
+					pos++;
+				}
 			}
 		}
 	}
@@ -623,7 +677,7 @@ int main(int argc, char **argv)
 		B = malloc(newsize*sizeof(float));
 
 		printf("build stiffness matrix B\n");
-		build_stiffness_matrix_B(pmesh, B, Bformer, DIM, newsize, RefArray);
+		build_sparse_stiffness_matrix_B(pmesh, B, Bformer, DIM, newsize, RefArray, RefArrayBack);
 
 		printf("build stiffness matrix A\n");
 		nnz = build_sparse_stiffness_matrix_A(pmesh, &nzval, &colind, rowptr, newsize, RefArray, RefArrayBack);
