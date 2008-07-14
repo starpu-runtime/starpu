@@ -2,6 +2,8 @@ ifdef USE_FXT
 	OPTTARGET+= fxt.o
 endif
 
+CFLAGS+= -I../
+
 all: threads.o mutex.o rwlock.o timing.o $(OPTTARGET)
 
 fxt.o: fxt.h fxt.c

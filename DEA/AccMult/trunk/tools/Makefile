@@ -4,12 +4,16 @@ ifdef USE_FXT
 	TOOLS += fxt-tool 
 endif
 
+ifdef FLASH_RENDER
+	DEPS +=  histo-flash.o
+	LDFLAGS+= -lming
+endif
 
 all: $(TOOLS)
 
 CFLAGS+= -I../
 
-LDFLAGS+= -lming
+
 LDFLAGS+=`pkg-config --libs gtk+-2.0`
 
 dag-dot.o: dag-dot.c
@@ -21,8 +25,8 @@ histo-svg.o: histo-svg.c
 histo-flash.o: histo-flash.c
 	$(CC) $(CFLAGS) histo-flash.c -c -o histo-flash.o
 
-fxt-tool: fxt-tool.o histo-flash.o histo-svg.o dag-dot.o gtk-viewer.o
-	$(CC) $(LDFLAGS) gtk-viewer.o dag-dot.o histo-flash.o histo-svg.o fxt-tool.o -o fxt-tool
+fxt-tool: $(DEPS) fxt-tool.o histo-svg.o dag-dot.o gtk-viewer.o
+	$(CC) $(LDFLAGS) $(DEPS) gtk-viewer.o dag-dot.o histo-svg.o fxt-tool.o -o fxt-tool
 
 fxt-tool.o: fxt-tool.c
 	$(CC) $(CFLAGS) fxt-tool.c -c -o fxt-tool.o

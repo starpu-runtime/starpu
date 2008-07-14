@@ -13,7 +13,9 @@
 #include <common/fxt.h>
 #include <common/list.h>
 
+#ifdef FLASH_RENDER
 #include "histo-flash.h"
+#endif
 
 #define MAXWORKERS      32
 #define FACTOR  100
@@ -38,9 +40,11 @@ LIST_TYPE(workq,
 	int current_size;
 );
 
+#ifdef FLASH_RENDER
 extern void flash_engine_generate_output(event_list_t *events, workq_list_t taskq, char **worker_name,
                       unsigned nworkers, unsigned maxq_size, 
                       uint64_t _start_time, uint64_t _end_time, char *path);
+#endif
 
 extern void init_dag_dot(void);
 extern void terminate_dat_dot(void);

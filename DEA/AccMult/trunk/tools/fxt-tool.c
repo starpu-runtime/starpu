@@ -209,11 +209,13 @@ void handle_codelet_tag_deps(void)
 	add_deps(child, father);
 }
 
+#ifdef FLASH_RENDER
 void generate_flash_output(void)
 {
 	flash_engine_init();
 	flash_engine_generate_output(events, taskq, worker_name, nworkers, maxq_size, start_time, end_time, "toto.swf");
 }
+#endif
 
 void generate_svg_output(void)
 {
