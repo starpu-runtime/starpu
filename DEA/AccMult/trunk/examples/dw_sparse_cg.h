@@ -22,7 +22,7 @@
 #include <datawizard/interfaces/blas_filters.h>
 #include <datawizard/interfaces/csr_interface.h>
 
-#define MAXITER	10000
+#define MAXITER	100000
 #define EPSILON	0.0000001f
 
 /* code parameters */
@@ -49,6 +49,7 @@ struct cg_problem {
 	float epsilon;
 
 	int i;
+	unsigned size;
 };
 
 /* some useful functions */

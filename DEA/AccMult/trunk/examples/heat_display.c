@@ -14,6 +14,10 @@ static float *result;
 static unsigned printmesh =0;
 static point *pmesh;
 
+
+float xmin, xmax, ymin, ymax;
+float xcenter, ycenter;
+
 static void generate_graph(void)
 {
 	unsigned theta, thick;
@@ -108,9 +112,11 @@ static void display(void)
 {
 	glClear (GL_COLOR_BUFFER_BIT);
 	glLoadIdentity ();             /* clear the matrix */
-	gluLookAt (0.0, 0.0, 15.0f, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-	float factor = 10.0/(RMIN+RMAX);
+	float amplitude = MAX(xmax - xmin, ymax - ymin);
+	float factor = 1.0/amplitude;
 	glScalef (factor, factor, factor);      /* modeling transformation */
+	gluLookAt (xcenter, ycenter, 30.0f, xcenter, ycenter, 0.0f, 0.0f, 1.0f, 0.0f);
+//	printf("factor %f\n", factor);
 	//   glRotatef(-0,0.0,0.0,0.0);
 	generate_graph();
 	glFlush ();
@@ -136,10 +142,57 @@ static void reshape (int w, int h)
 	glViewport (0, 0, (GLsizei) w, (GLsizei) h);
 	glMatrixMode (GL_PROJECTION);
 	glLoadIdentity ();
-	glFrustum (-1.0, 1.0, -1.0, 1.0, 1.5, 20.0);
+	glFrustum (xmin, xmax, ymin, ymax, 5.0f, 5.0f);
 	glMatrixMode (GL_MODELVIEW);
 }
 
+
+void find_limits(void)
+{
+	minval = 100000000.0f;
+	maxval = -10000000.0f;
+
+	unsigned i;
+	for (i = 0; i < DIM; i++)
+	{
+		/* find min */
+		minval = MIN(result[i], minval);
+
+		/* find max */
+		maxval = MAX(result[i], maxval);
+	}
+
+	xmin = 10000000.0f;
+	xmax = -10000000.0f;
+	ymin = 10000000.0f;
+	ymax = -10000000.0f;
+
+	unsigned theta, thick;
+	for (theta = 0; theta < ntheta; theta++)
+	{
+		for (thick = 0; thick < nthick; thick++)
+		{
+			point *p = &pmesh[NODE_NUMBER(theta, thick)];
+
+			if (p->x < xmin)
+				xmin = p->x;
+
+			if (p->x > xmax)
+				xmax = p->x;
+
+			if (p->y < ymin)
+				ymin = p->y;
+
+			if (p->y > ymax)
+				ymax = p->y;
+		}
+	}
+	
+	ycenter = (ymin + ymax)/2;
+	xcenter = (xmin + xmax)/2;
+
+	printf("center : %f < %f > %f |  %f < %f > %f \n", xmin, xcenter, xmax, ymin, ycenter, ymax);
+}
 
 void opengl_render(unsigned _ntheta, unsigned _nthick, float *_result, point *_pmesh, int argc_, char **argv_)
 {
@@ -152,17 +205,7 @@ void opengl_render(unsigned _ntheta, unsigned _nthick, float *_result, point *_p
 	printmesh = 0;
 	pmesh = _pmesh;
 
-	minval = 100000000.0f;
-	maxval = -10000000.0f;
-
-	for (i = 0; i < DIM; i++)
-	{
-		/* find min */
-		minval = MIN(result[i], minval);
-
-		/* find max */
-		maxval = MAX(result[i], maxval);
-	}
+	find_limits();
 
 	glutInit(&argc_, argv_);
 	glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB);

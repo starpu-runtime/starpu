@@ -232,7 +232,7 @@ void iteration_cg(void *problem)
 		(pb->delta_new > pb->epsilon) )
 	{
 		if (pb->i % 1000 == 0)
-			printf("i : %d\n\tdelta_new %2.5f\n", pb->i, pb->delta_new);
+			printf("i : %d\n\tdelta_new %2.5f (%f)\n", pb->i, pb->delta_new, sqrt(pb->delta_new / pb->size));
 
 		/* we did not reach the stop condition yet */
 		launch_new_cg_iteration(problem);
@@ -302,6 +302,7 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 	problem.ds_vecq    = &ds_vecq;
 
 	problem.epsilon = EPSILON;
+	problem.size = nrow;
 
 	/* we need a semaphore to synchronize with callbacks */
 	sem_t sem;
