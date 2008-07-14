@@ -231,13 +231,16 @@ void iteration_cg(void *problem)
 	if ((pb->i++ < MAXITER) && 
 		(pb->delta_new > pb->epsilon) )
 	{
+		if (pb->i % 1000 == 0)
+			printf("i : %d\n\tdelta_new %2.5f\n", pb->i, pb->delta_new);
+
 		/* we did not reach the stop condition yet */
 		launch_new_cg_iteration(problem);
 	}
 	else {
 		/* we may stop */
 		printf("We are done ... after %d iterations \n", pb->i - 1);
-		printf("i : %d\n\tdelta_new %2.5f\n", pb->i, pb->epsilon);
+		printf("i : %d\n\tdelta_new %2.5f\n", pb->i, pb->delta_new);
 		sem_post(pb->sem);
 	}
 }

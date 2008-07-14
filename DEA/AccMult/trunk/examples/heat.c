@@ -57,7 +57,7 @@ static void parse_args(int argc, char **argv)
 		}
 
 		if (strcmp(argv[i], "-h") == 0) {
-			printf("usage : %s [-v1|-v2|-v3] [-pin] [-nthick number] [-ntheta number] [-shape [0|1|2]]\n", argv[0]);
+			printf("usage : %s [-v1|-v2|-v3] [-pin] [-nthick number] [-ntheta number] [-shape [0|1|2]] [-cg]\n", argv[0]);
 		}
 	}
 }
@@ -264,6 +264,7 @@ done:
 
 
 #define TRANSLATE(k)	(RefArray[(k)])
+#define TRANSLATEBACK(k)	(RefArrayBack[(k)])
 
 static void solve_system(unsigned size, unsigned subsize, float *result, int *RefArray, float *Bformer, float *A, float *B)
 {
@@ -299,7 +300,7 @@ static void solve_system(unsigned size, unsigned subsize, float *result, int *Re
 
 }
 
-unsigned compute_pivot_array(int *RefArray, unsigned size)
+unsigned compute_pivot_array(int *RefArray, int *RefArrayBack, unsigned size)
 {
 	unsigned k;
 	unsigned index = 0;
@@ -309,6 +310,7 @@ unsigned compute_pivot_array(int *RefArray, unsigned size)
 	for (k = 0; k < size; k++)
 	{
 		RefArray[k] = k;
+		RefArrayBack[k] = k;
 	}
 
 	/* first inner nodes */
@@ -317,7 +319,10 @@ unsigned compute_pivot_array(int *RefArray, unsigned size)
 		for (thick = 1; thick < nthick - 1; thick++) 
 		{
 			/* inner nodes are unknown */
-			RefArray[index++] = NODE_NUMBER(theta, thick);
+			RefArrayBack[NODE_NUMBER(theta, thick)] = index;
+			RefArray[index] = NODE_NUMBER(theta, thick);
+
+			index++;
 		}
 	}
 
@@ -326,18 +331,22 @@ unsigned compute_pivot_array(int *RefArray, unsigned size)
 	for (theta=0; theta < ntheta; theta++)
 	{
 		/* Lower boundary "South" */
+		RefArrayBack[NODE_NUMBER(theta, 0)] = index;
 		RefArray[index++] = NODE_NUMBER(theta, 0);
 		
 		/* Upper boundary "North" */
+		RefArrayBack[NODE_NUMBER(theta, nthick-1)] = index;
 		RefArray[index++] = NODE_NUMBER(theta, nthick-1);
 	}
 
 	for (thick = 1; thick < nthick -1; thick++)
 	{
 		/* "West "*/
+		RefArrayBack[NODE_NUMBER(0, thick)] = index;
 		RefArray[index++] = NODE_NUMBER(0, thick);
 
 		/* "East" */
+		RefArrayBack[NODE_NUMBER(ntheta-1, thick)] = index;
 		RefArray[index++] = NODE_NUMBER(ntheta-1, thick);
 	}
 
@@ -417,7 +426,7 @@ static void build_stiffness_matrix_B(point *pmesh, float *B, float *Bformer, uns
 }
 
 static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uint32_t **colind, 
-						uint32_t *rowptr, unsigned newsize, int *RefArray)
+						uint32_t *rowptr, unsigned newsize, int *RefArray, int *RefArrayBack)
 {
 	unsigned i,j;
 
@@ -431,17 +440,113 @@ static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uin
 	{
 		rowptr[j] = pos;
 
-		for (i = 0; i < newsize ; i++)
+		/* where is that point in the former space ? */
+		int former = TRANSLATE(j);
+		int former_thick, former_theta;
+		former_thick= (int)NODE_TO_THICK(former);
+		former_theta = (int)NODE_TO_THETA(former);
+
+		/* do a list of all the possible neighbours */
+		unsigned neighbours[9];
+		unsigned nneighbours = 0;
+
+		int dtheta, dthick;
+		for (dthick = -1; dthick <= 1; dthick++)
+		{
+			if ((former_thick + dthick) >= 0 && (former_thick + dthick) <= (int)nthick )
+			{
+				for (dtheta = -1; dtheta <= 1; dtheta++)
+				{
+					if ((former_theta + dtheta) >= 0 && (former_theta + dtheta) <= (int)ntheta )
+					{
+						/* we got a possible neighbour */
+						unsigned node = NODE_NUMBER((former_theta + dtheta), (former_thick + dthick));
+
+						/* this could be a little more efficient of course ... */
+						if (TRANSLATEBACK(node) < newsize) {
+						
+							neighbours[nneighbours++] = TRANSLATEBACK(node);
+
+//						printf("\tneighbour %d -> theta %d (%d) thick %d (%d)\n",  TRANSLATEBACK(node), 
+//								former_theta + dtheta, dtheta, former_thick + dthick, dthick);
+
+						}
+					}
+				}
+			}
+		}
+
+		/* order that list */
+		for (i = 0; i < nneighbours; i++)
+		{
+			/* find the i^th smallest entry for position i */
+			unsigned index;
+			unsigned min , min_index;
+
+			min = neighbours[i];
+			min_index = i;
+
+			for (index = i+1; index < nneighbours; index++)
+			{
+				ASSERT(neighbours[i] != neighbours[index]);
+
+				if (neighbours[index] < min)
+				{
+					min = neighbours[index];
+					min_index = index;
+				}
+			}
+
+			/* swap values */
+			neighbours[min_index] = neighbours[i];
+			neighbours[i] = min;
+			
+			//unsigned prout;
+			//printf("ordered ... %d \n", i);
+			//for (prout = 0; prout < nneighbours; prout++)
+			//{
+			//	printf("%d\t", neighbours[prout]);
+			//}
+			//printf("\n");
+		}
+
+
+//		unsigned neighbour;
+//		for (neighbour = 0; neighbour < newsize; neighbour++)
+//		{
+//			float val;
+//			val = compute_A_value(TRANSLATE(j), TRANSLATE(neighbour), pmesh);
+//
+//			if (val != 0.0f) {
+////				*nzval = realloc(*nzval, (pos+1)*sizeof(float));
+////				*colind = realloc(*colind, (pos+1)*sizeof(uint32_t));
+//
+////				(*nzval)[pos] = val;
+////				(*colind)[pos] = neighbour;
+//				printf("HINT : %d (%d)<-> %d (%d)\n", j, TRANSLATE(j), neighbour, TRANSLATE(neighbour));
+//
+//			//	pos++;
+//			}
+//		}
+
+
+
+		unsigned neighbour;
+		for (neighbour = 0; neighbour < nneighbours; neighbour++)
 		{
 			float val;
-			val = compute_A_value(TRANSLATE(i), TRANSLATE(j), pmesh);
+			unsigned nodeneighbour =  neighbours[neighbour];
+
+			val = compute_A_value(TRANSLATE(j), TRANSLATE(nodeneighbour), pmesh);
 
 			if (val != 0.0f) {
 				*nzval = realloc(*nzval, (pos+1)*sizeof(float));
 				*colind = realloc(*colind, (pos+1)*sizeof(uint32_t));
 
 				(*nzval)[pos] = val;
-				(*colind)[pos] = i;
+				(*colind)[pos] = nodeneighbour;
+
+				//printf("%d (%d)<-> %d (%d)\n", j, TRANSLATE(j), nodeneighbour, TRANSLATE(nodeneighbour));
 				pos++;
 			}
 		}
@@ -474,7 +579,7 @@ int main(int argc, char **argv)
 
 	unsigned newsize;
 	float *result;
-	int *RefArray;
+	int *RefArray, *RefArrayBack;
 	point *pmesh;
 	float *Bformer;
 
@@ -489,6 +594,7 @@ int main(int argc, char **argv)
 
 	pmesh = malloc(DIM*sizeof(point));
 	RefArray = malloc(DIM*sizeof(int));
+	RefArrayBack = malloc(DIM*sizeof(int));
 	Bformer = malloc(DIM*sizeof(float));
 	result = malloc(DIM*sizeof(float));
 
@@ -502,7 +608,7 @@ int main(int argc, char **argv)
 	 * to do so, we remove the already known variables from the system
 	 * by pivoting the various know variable, RefArray keep track of that
 	 * pivoting */ 
-	newsize = compute_pivot_array(RefArray, DIM);
+	newsize = compute_pivot_array(RefArray, RefArrayBack, DIM);
 
 	/* we can either use a direct method (LU decomposition here) or an 
 	 * iterative method (conjugate gradient here) */
@@ -520,7 +626,7 @@ int main(int argc, char **argv)
 		build_stiffness_matrix_B(pmesh, B, Bformer, DIM, newsize, RefArray);
 
 		printf("build stiffness matrix A\n");
-		nnz = build_sparse_stiffness_matrix_A(pmesh, &nzval, &colind, rowptr, newsize, RefArray);
+		nnz = build_sparse_stiffness_matrix_A(pmesh, &nzval, &colind, rowptr, newsize, RefArray, RefArrayBack);
 		printf("nnz : %d\n", nnz);
 
 		do_conjugate_gradient(nzval, B, result, nnz, newsize, colind, rowptr);
@@ -529,7 +635,7 @@ int main(int argc, char **argv)
 		memcpy(B, result, newsize*sizeof(float));
 
 		/* now display back the ACTUAL result */
-		int i;
+		unsigned i;
 		for (i = 0; i < newsize; i++)
 		{
 			result[TRANSLATE(i)] = B[i];
