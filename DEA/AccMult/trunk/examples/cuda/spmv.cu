@@ -1,4 +1,3 @@
-//#include "spmv_cuda.h"
 #include <stdint.h>
 
 #define MIN(a,b)	((a)<(b)?(a):(b))
@@ -29,7 +28,7 @@ void spmv_kernel(uint32_t nnz, uint32_t nrow, uint32_t _nzval, uint32_t _colind,
 		unsigned index;
 
 		unsigned firstindex = rowptr[row];
-		unsigned lastindex = (row < nrow - 1)?rowptr[row+1]:nnz;
+		unsigned lastindex = rowptr[row+1]; 
 
 		for (index = firstindex; index < lastindex; index++)
 		{
@@ -66,7 +65,7 @@ void spmv_kernel_2(uint32_t nnz, uint32_t nrow, uint32_t _nzval, uint32_t _colin
 		unsigned index;
 
 		unsigned firstindex = rowptr[row];
-		unsigned lastindex = (row < nrow - 1)?rowptr[row+1]:nnz;
+		unsigned lastindex = rowptr[row+1];
 
 		for (index = firstindex; index < lastindex; index++)
 		{
@@ -106,7 +105,7 @@ void spmv_kernel_3(uint32_t nnz, uint32_t nrow, uint32_t _nzval, uint32_t _colin
 		unsigned index;
 
 		unsigned firstindex = rowptr[row];
-		unsigned lastindex = (row < nrow - 1)?rowptr[row+1]:nnz;
+		unsigned lastindex = rowptr[row+1];
 
 		for (index = firstindex; index < lastindex; index++)
 		{

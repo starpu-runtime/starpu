@@ -113,7 +113,7 @@ void core_spmv(data_interface_t *descr, __attribute__((unused))  void *arg)
 		unsigned index;
 
 		unsigned firstindex = rowptr[row];
-		unsigned lastindex = (row < nrow - 1)?rowptr[row+1]:nnz;
+		unsigned lastindex = rowptr[row+1];
 
 		for (index = firstindex; index < lastindex; index++)
 		{
@@ -142,7 +142,7 @@ void create_data(void)
 
 	nzval = malloc(nnz*sizeof(float));
 	colind = malloc(nnz*sizeof(uint32_t));
-	rowptr = malloc(size*sizeof(uint32_t));
+	rowptr = malloc((size+1)*sizeof(uint32_t));
 
 	assert(nzval);
 	assert(colind);
@@ -173,6 +173,8 @@ void create_data(void)
 	}
 
 	ASSERT(pos == nnz);
+
+	rowptr[size] = nnz;
 	
 	monitor_csr_data(&sparse_matrix, 0, nnz, size, (uintptr_t)nzval, colind, rowptr, 0, sizeof(float));
 

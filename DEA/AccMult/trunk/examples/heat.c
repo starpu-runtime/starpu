@@ -485,14 +485,6 @@ static unsigned build_neighbour_vector(unsigned *neighbours, unsigned node, int 
 		neighbours[i] = min;
 	}
 
-//	unsigned prout;
-//	printf("LIST %d : ", node);
-//	for (prout = 0; prout < nneighbours; prout++)
-//	{
-//		printf("%d (%d)\t", neighbours[prout], TRANSLATEBACK(neighbours[prout]));
-//	}
-//	printf("\n");
-//
 	return nneighbours;
 }
 
@@ -562,26 +554,6 @@ static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uin
 
 		nneighbours = build_neighbour_vector(&neighbours[0], j, RefArray, RefArrayBack, newsize);
 
-
-//              for (neighbour = 0; neighbour < newsize; neighbour++)
-//              {
-//                      float val;
-//                      val = compute_A_value(TRANSLATE(j), TRANSLATE(neighbour), pmesh);
-//
-//                      if (val != 0.0f) {
-////                            *nzval = realloc(*nzval, (pos+1)*sizeof(float));
-////                            *colind = realloc(*colind, (pos+1)*sizeof(uint32_t));
-//
-////                            (*nzval)[pos] = val;
-////                            (*colind)[pos] = neighbour;
-//                              printf("HINT : %d (%d)<-> %d (%d)\n", j, TRANSLATE(j), neighbour, TRANSLATE(neighbour));
-//
-//                      //      pos++;
-//                      }
-//              }
-//
-
-
 		for (neighbour = 0; neighbour < nneighbours; neighbour++)
 		{
 			float val;
@@ -605,6 +577,8 @@ static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uin
 			}
 		}
 	}
+
+	rowptr[newsize] = pos;
 
 	return pos;
 }
@@ -672,7 +646,7 @@ int main(int argc, char **argv)
 		uint32_t *colind;
 		uint32_t *rowptr;
 
-		rowptr = malloc(newsize*sizeof(uint32_t));
+		rowptr = malloc((newsize+1)*sizeof(uint32_t));
 
 		B = malloc(newsize*sizeof(float));
 

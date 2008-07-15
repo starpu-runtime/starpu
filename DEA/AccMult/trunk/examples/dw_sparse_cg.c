@@ -325,7 +325,6 @@ void do_conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz
 	initialize_cuda();
 #endif
 
-	printf("nnz = %d \n", nnz);
 	conjugate_gradient(nzvalA, vecb, vecx, nnz, nrow, colind, rowptr);
 }
 

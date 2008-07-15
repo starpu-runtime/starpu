@@ -57,7 +57,7 @@ void core_codelet_func_1(data_interface_t *descr, __attribute__((unused)) void *
 		unsigned index;
 
 		unsigned firstindex = rowptr[row];
-		unsigned lastindex = (row < nrow - 1)?rowptr[row+1]:nnz;
+		unsigned lastindex = rowptr[row+1];
 
 		for (index = firstindex; index < lastindex; index++)
 		{

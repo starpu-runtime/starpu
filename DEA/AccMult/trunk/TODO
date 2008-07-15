@@ -26,9 +26,6 @@ Open problems:
 	- What about typed tasks ?
 		- priority
 		- static scheduler = type A + type B then type C etc...
-	- Other data representation than BLAS 
-		- CRS : compressed row storage
-		- vector
 Application domains
 	- Dense linear algebra
 		- LU decomposition (ok ...)

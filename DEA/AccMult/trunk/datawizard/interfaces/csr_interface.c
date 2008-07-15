@@ -144,7 +144,7 @@ size_t allocate_csr_buffer_on_node(struct data_state_t *state, uint32_t dst_node
 			if (!addr_colind)
 				goto fail_colind;
 
-			addr_rowptr = malloc(nrow*sizeof(uint32_t));
+			addr_rowptr = malloc((nrow+1)*sizeof(uint32_t));
 			if (!addr_rowptr)
 				goto fail_rowptr;
 
@@ -160,7 +160,7 @@ size_t allocate_csr_buffer_on_node(struct data_state_t *state, uint32_t dst_node
 			if (!addr_colind)
 				goto fail_colind;
 
-			cublasAlloc(nrow, sizeof(uint32_t), (void **)&addr_rowptr);
+			cublasAlloc((nrow+1), sizeof(uint32_t), (void **)&addr_rowptr);
 			if (!addr_rowptr)
 				goto fail_rowptr;
 
@@ -172,7 +172,7 @@ size_t allocate_csr_buffer_on_node(struct data_state_t *state, uint32_t dst_node
 
 	/* allocation succeeded */
 	allocated_memory = 
-		nnz*elemsize + nnz*sizeof(uint32_t) + nrow*sizeof(uint32_t);
+		nnz*elemsize + nnz*sizeof(uint32_t) + (nrow+1)*sizeof(uint32_t);
 
 	/* update the data properly in consequence */
 	state->interface[dst_node].csr.nzval = addr_nzval;
@@ -258,7 +258,7 @@ static void copy_cublas_to_ram(struct data_state_t *state, uint32_t src_node, ui
 	cublasGetVector(nnz, sizeof(uint32_t), (uint8_t *)src_csr->colind, 1, 
 						(uint8_t *)dst_csr->colind, 1);
 
-	cublasGetVector(nrow, sizeof(uint32_t), (uint8_t *)src_csr->rowptr, 1, 
+	cublasGetVector((nrow+1), sizeof(uint32_t), (uint8_t *)src_csr->rowptr, 1, 
 						(uint8_t *)dst_csr->rowptr, 1);
 
 }
@@ -281,7 +281,7 @@ static void copy_ram_to_cublas(struct data_state_t *state, uint32_t src_node, ui
 	cublasSetVector(nnz, sizeof(uint32_t), (uint8_t *)src_csr->colind, 1, 
 						(uint8_t *)dst_csr->colind, 1);
 
-	cublasSetVector(nrow, sizeof(uint32_t), (uint8_t *)src_csr->rowptr, 1, 
+	cublasSetVector((nrow+1), sizeof(uint32_t), (uint8_t *)src_csr->rowptr, 1, 
 						(uint8_t *)dst_csr->rowptr, 1);
 }
 #endif // USE_CUDA
@@ -304,7 +304,7 @@ static void dummy_copy_ram_to_ram(struct data_state_t *state, uint32_t src_node,
 
 	memcpy((void *)dst_csr->colind, (void *)src_csr->colind, nnz*sizeof(uint32_t));
 
-	memcpy((void *)dst_csr->rowptr, (void *)src_csr->rowptr, nrow*sizeof(uint32_t));
+	memcpy((void *)dst_csr->rowptr, (void *)src_csr->rowptr, (nrow+1)*sizeof(uint32_t));
 }
 
 
