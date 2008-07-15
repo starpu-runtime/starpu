@@ -2,7 +2,10 @@ CFLAGS+= -g -Wall
 
 CFLAGS+= -I../ -I../../
 
-all: csr_interface.o blas_filters.o blas_interface.o
+all: csr_interface.o blas_filters.o blas_interface.o vector_interface.o
+
+vector_interface.o: vector_interface.c vector_interface.h
+	$(CC) vector_interface.c $(CFLAGS) -c -o vector_interface.o
 
 blas_filters.o: blas_filters.c blas_filters.h
 	$(CC) blas_filters.c $(CFLAGS) -c -o blas_filters.o
