@@ -18,6 +18,7 @@
 
 #include <datawizard/coherency.h>
 #include <datawizard/hierarchy.h>
+#include <datawizard/interfaces/vector_interface.h>
 #include <datawizard/interfaces/blas_interface.h>
 #include <datawizard/interfaces/blas_filters.h>
 #include <datawizard/interfaces/csr_interface.h>

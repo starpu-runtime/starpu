@@ -73,6 +73,8 @@ OBJDEPS += ../datawizard/copy-driver.o ../datawizard/coherency.o
 OBJDEPS += ../datawizard/hierarchy.o ../datawizard/interfaces/blas_filters.o
 OBJDEPS += ../datawizard/memalloc.o  ../datawizard/interfaces/blas_interface.o
 OBJDEPS += ../datawizard/interfaces/csr_interface.o
+OBJDEPS += ../datawizard/interfaces/vector_interface.o
+
 
 
 all: $(TARGET)

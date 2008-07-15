@@ -40,9 +40,9 @@ void core_codelet_func_1(data_interface_t *descr, __attribute__((unused)) void *
 	uint32_t *colind = descr[0].csr.colind;
 	uint32_t *rowptr = descr[0].csr.rowptr;
 
-	float *vecx = (float *)descr[1].blas.ptr;
-	float *vecr = (float *)descr[2].blas.ptr;
-	float *vecb = (float *)descr[3].blas.ptr;
+	float *vecx = (float *)descr[1].vector.ptr;
+	float *vecr = (float *)descr[2].vector.ptr;
+	float *vecb = (float *)descr[3].vector.ptr;
 
 	uint32_t nnz;
 	uint32_t nrow;
@@ -80,14 +80,14 @@ void core_codelet_func_1(data_interface_t *descr, __attribute__((unused)) void *
 void core_codelet_func_2(data_interface_t *descr, __attribute__((unused)) void *arg)
 {
 	/* simply copy r into d */
-	uint32_t nx = descr[0].blas.nx;
-	size_t elemsize = descr[0].blas.elemsize;
+	uint32_t nx = descr[0].vector.nx;
+	size_t elemsize = descr[0].vector.elemsize;
 
-	ASSERT(descr[0].blas.nx == descr[1].blas.nx);
-	ASSERT(descr[0].blas.elemsize == descr[1].blas.elemsize);
+	ASSERT(descr[0].vector.nx == descr[1].vector.nx);
+	ASSERT(descr[0].vector.elemsize == descr[1].vector.elemsize);
 
-	float *src = (float *)descr[1].blas.ptr;
-	float *dst = (float *)descr[0].blas.ptr;
+	float *src = (float *)descr[1].vector.ptr;
+	float *dst = (float *)descr[0].vector.ptr;
 
 	memcpy(dst, src, nx*elemsize);
 
@@ -110,8 +110,8 @@ void core_codelet_func_3(data_interface_t *descr, void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vec = (float *)descr[0].blas.ptr;
-	size = descr[0].blas.nx;
+	vec = (float *)descr[0].vector.ptr;
+	size = descr[0].vector.nx;
 
 	dot = cblas_sdot (size, vec, 1, vec, 1);
 
@@ -130,8 +130,8 @@ void cublas_codelet_func_3(data_interface_t *descr, void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vec = (float *)descr[0].blas.ptr;
-	size = descr[0].blas.nx;
+	vec = (float *)descr[0].vector.ptr;
+	size = descr[0].vector.nx;
 
 	dot = cublasSdot (size, vec, 1, vec, 1);
 
@@ -155,8 +155,8 @@ void core_codelet_func_4(data_interface_t *descr, __attribute__((unused)) void *
 	uint32_t *colind = descr[0].csr.colind;
 	uint32_t *rowptr = descr[0].csr.rowptr;
 
-	float *vecd = (float *)descr[1].blas.ptr;
-	float *vecq = (float *)descr[2].blas.ptr;
+	float *vecd = (float *)descr[1].vector.ptr;
+	float *vecq = (float *)descr[2].vector.ptr;
 
 	uint32_t nnz;
 	uint32_t nrow;
@@ -201,11 +201,11 @@ void core_codelet_func_5(data_interface_t *descr, void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecd = (float *)descr[0].blas.ptr;
-	vecq = (float *)descr[1].blas.ptr;
+	vecd = (float *)descr[0].vector.ptr;
+	vecq = (float *)descr[1].vector.ptr;
 
-	ASSERT(descr[1].blas.nx == descr[0].blas.nx);
-	size = descr[0].blas.nx;
+	ASSERT(descr[1].vector.nx == descr[0].vector.nx);
+	size = descr[0].vector.nx;
 
 	dot = cblas_sdot(size, vecd, 1, vecq, 1);
 
@@ -221,11 +221,11 @@ void cublas_codelet_func_5(data_interface_t *descr, void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecd = (float *)descr[0].blas.ptr;
-	vecq = (float *)descr[1].blas.ptr;
+	vecd = (float *)descr[0].vector.ptr;
+	vecq = (float *)descr[1].vector.ptr;
 
-	ASSERT(descr[1].blas.nx == descr[0].blas.nx);
-	size = descr[0].blas.nx;
+	ASSERT(descr[1].vector.nx == descr[0].vector.nx);
+	size = descr[0].vector.nx;
 
 	dot = cublasSdot (size, vecd, 1, vecq, 1);
 
@@ -249,10 +249,10 @@ void core_codelet_func_6(data_interface_t *descr, void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecx = (float *)descr[0].blas.ptr;
-	vecd = (float *)descr[1].blas.ptr;
+	vecx = (float *)descr[0].vector.ptr;
+	vecd = (float *)descr[1].vector.ptr;
 
-	size = descr[0].blas.nx;
+	size = descr[0].vector.nx;
 
 	cblas_saxpy(size, pb->alpha, vecd, 1, vecx, 1);
 }
@@ -265,10 +265,10 @@ void cublas_codelet_func_6(data_interface_t *descr, void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecx = (float *)descr[0].blas.ptr;
-	vecd = (float *)descr[1].blas.ptr;
+	vecx = (float *)descr[0].vector.ptr;
+	vecd = (float *)descr[1].vector.ptr;
 
-	size = descr[0].blas.nx;
+	size = descr[0].vector.nx;
 
 	cublasSaxpy (size, pb->alpha, vecd, 1, vecx, 1);
 }
@@ -288,10 +288,10 @@ void core_codelet_func_7(data_interface_t *descr, void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecr = (float *)descr[0].blas.ptr;
-	vecq = (float *)descr[1].blas.ptr;
+	vecr = (float *)descr[0].vector.ptr;
+	vecq = (float *)descr[1].vector.ptr;
 
-	size = descr[0].blas.nx;
+	size = descr[0].vector.nx;
 
 	cblas_saxpy(size, -pb->alpha, vecq, 1, vecr, 1);
 }
@@ -304,10 +304,10 @@ void cublas_codelet_func_7(data_interface_t *descr, void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecr = (float *)descr[0].blas.ptr;
-	vecq = (float *)descr[1].blas.ptr;
+	vecr = (float *)descr[0].vector.ptr;
+	vecq = (float *)descr[1].vector.ptr;
 
-	size = descr[0].blas.nx;
+	size = descr[0].vector.nx;
 
 	cublasSaxpy (size, -pb->alpha, vecq, 1, vecr, 1);
 }
@@ -330,15 +330,14 @@ void core_codelet_func_8(data_interface_t *descr, void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecr = (float *)descr[0].blas.ptr;
-	size = descr[0].blas.nx;
+	vecr = (float *)descr[0].vector.ptr;
+	size = descr[0].vector.nx;
 
 	dot = cblas_sdot(size, vecr, 1, vecr, 1);
 
 	pb->delta_old = pb->delta_new;
 	pb->delta_new = dot;
 	pb->beta = pb->delta_new/pb->delta_old;
-	//printf("func 8 : delta old %f new %f\n", pb->delta_old, pb->delta_new);
 }
 
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
@@ -350,16 +349,14 @@ void cublas_codelet_func_8(data_interface_t *descr, void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecr = (float *)descr[0].blas.ptr;
-	size = descr[0].blas.nx;
+	vecr = (float *)descr[0].vector.ptr;
+	size = descr[0].vector.nx;
 
 	dot = cublasSdot (size, vecr, 1, vecr, 1);
 
 	pb->delta_old = pb->delta_new;
 	pb->delta_new = dot;
 	pb->beta = pb->delta_new/pb->delta_old;
-
-	printf("func 8 : delta old %f new %f\n", pb->delta_old, pb->delta_new);
 }
 #endif
 
@@ -378,10 +375,10 @@ void core_codelet_func_9(data_interface_t *descr, void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecd = (float *)descr[0].blas.ptr;
-	vecr = (float *)descr[1].blas.ptr;
+	vecd = (float *)descr[0].vector.ptr;
+	vecr = (float *)descr[1].vector.ptr;
 
-	size = descr[0].blas.nx;
+	size = descr[0].vector.nx;
 
 	/* d = beta d */
 	cblas_sscal(size, pb->beta, vecd, 1);
@@ -398,10 +395,10 @@ void cublas_codelet_func_9(data_interface_t *descr, void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecd = (float *)descr[0].blas.ptr;
-	vecr = (float *)descr[1].blas.ptr;
+	vecd = (float *)descr[0].vector.ptr;
+	vecr = (float *)descr[1].vector.ptr;
 
-	size = descr[0].blas.nx;
+	size = descr[0].vector.nx;
 
 	/* d = beta d */
 	cublasSscal(size, pb->beta, vecd, 1);

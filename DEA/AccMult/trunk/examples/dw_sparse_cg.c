@@ -261,10 +261,8 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 	/* first the user-allocated data */
 	monitor_csr_data(&ds_matrixA, 0, nnz, nrow, 
 			(uintptr_t)nzvalA, colind, rowptr, 0, sizeof(float));
-	monitor_blas_data(&ds_vecx, 0, (uintptr_t)vecx,
-			nrow, nrow, 1, sizeof(float));
-	monitor_blas_data(&ds_vecb, 0, (uintptr_t)vecb,
-			nrow, nrow, 1, sizeof(float));
+	monitor_vector_data(&ds_vecx, 0, (uintptr_t)vecx, nrow, sizeof(float));
+	monitor_vector_data(&ds_vecb, 0, (uintptr_t)vecb, nrow, sizeof(float));
 
 	/* then allocate the algorithm intern data */
 	float *ptr_vecr, *ptr_vecd, *ptr_vecq;
@@ -284,12 +282,9 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 	printf("nrow = %d \n", nrow);
 
 	/* and declare them as well */
-	monitor_blas_data(&ds_vecr, 0, (uintptr_t)ptr_vecr, 
-			nrow, nrow, 1, sizeof(float));
-	monitor_blas_data(&ds_vecd, 0, (uintptr_t)ptr_vecd, 
-			nrow, nrow, 1, sizeof(float));
-	monitor_blas_data(&ds_vecq, 0, (uintptr_t)ptr_vecq, 
-			nrow, nrow, 1, sizeof(float));
+	monitor_vector_data(&ds_vecr, 0, (uintptr_t)ptr_vecr, nrow, sizeof(float));
+	monitor_vector_data(&ds_vecd, 0, (uintptr_t)ptr_vecd, nrow, sizeof(float));
+	monitor_vector_data(&ds_vecq, 0, (uintptr_t)ptr_vecq, nrow, sizeof(float));
 
 	/* we now have the complete problem */
 	struct cg_problem problem;
