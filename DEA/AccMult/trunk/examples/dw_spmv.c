@@ -39,7 +39,7 @@ void initialize_cuda(void)
 	cuda_spmv.blockx = blocks;
 	cuda_spmv.blocky = 1;
 
-	cuda_spmv.shmemsize = 128;
+	cuda_spmv.shmemsize = 60;
 }
 
 
@@ -219,11 +219,11 @@ void init_problem_callback(void *arg)
 {
 	unsigned *remaining = arg;
 
-	*remaining = *remaining - 1;
 
-	printf("callback %d remaining \n", *remaining);
+	unsigned val = ATOMIC_ADD(remaining, -1);
 
-	if ( *remaining == 0 )
+	printf("callback %d remaining \n", val);
+	if ( val == 0 )
 	{
 		printf("DONE ...\n");
 		GET_TICK(end);
@@ -241,7 +241,6 @@ void call_spmv_codelet_filters(void)
 
 	remainingjobs = nblocks;
 
-	job_t job;
 	codelet *cl = malloc(sizeof(codelet));
 
 	/* partition the data along a block distribution */
@@ -265,6 +264,7 @@ void call_spmv_codelet_filters(void)
 	unsigned part;
 	for (part = 0; part < nblocks; part++)
 	{
+		job_t job;
 		job = job_create();
 //#ifdef USE_CUDA
 //		job->where = usecpu?CORE:CUDA;
