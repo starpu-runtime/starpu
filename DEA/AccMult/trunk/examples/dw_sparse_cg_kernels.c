@@ -69,8 +69,6 @@ void core_codelet_func_1(data_interface_t *descr, __attribute__((unused)) void *
 
 		vecr[row] = vecb[row] - tmp;
 	}
-
-	printf("vecr : %f %f %f %f \n", vecr[0], vecr[1], vecr[2], vecr[3]);
 }
 
 /*
@@ -90,9 +88,6 @@ void core_codelet_func_2(data_interface_t *descr, __attribute__((unused)) void *
 	float *dst = (float *)descr[0].vector.ptr;
 
 	memcpy(dst, src, nx*elemsize);
-
-	printf("src : %f %f %f %f \n", src[0], src[1], src[2], src[3]);
-	printf("dst : %f %f %f %f \n", dst[0], dst[1], dst[2], dst[3]);
 }
 
 /*
@@ -115,8 +110,6 @@ void core_codelet_func_3(data_interface_t *descr, void *arg)
 
 	dot = cblas_sdot (size, vec, 1, vec, 1);
 
-	printf("func 3 : deltanew = %f\n", dot);
-
 	pb->delta_new = dot;
 	pb->delta_0 = dot;
 }
@@ -134,8 +127,6 @@ void cublas_codelet_func_3(data_interface_t *descr, void *arg)
 	size = descr[0].vector.nx;
 
 	dot = cublasSdot (size, vec, 1, vec, 1);
-
-	printf("func 3 : deltanew = %f\n", dot);
 
 	pb->delta_new = dot;
 	pb->delta_0 = dot;

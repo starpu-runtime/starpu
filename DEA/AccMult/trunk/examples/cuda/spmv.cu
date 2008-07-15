@@ -6,8 +6,7 @@
 extern "C" __global__ 
 void spmv_kernel(uint32_t nnz, uint32_t nrow, uint32_t _nzval, uint32_t _colind, uint32_t _rowptr, 
 			uint32_t firstentry, uint32_t elemsize, 
-			uint32_t ptr_in, uint32_t nx_in, uint32_t ny_in, uint32_t ld_in,
-			uint32_t ptr_out, uint32_t nx_out, uint32_t ny_out, uint32_t ld_out)
+			uint32_t ptr_in, uint32_t nx_in, uint32_t ptr_out, uint32_t nx_out)
 {
 	float *vecin = (float *)ptr_in;
 	float *vecout = (float *)ptr_out;
@@ -47,8 +46,7 @@ void spmv_kernel(uint32_t nnz, uint32_t nrow, uint32_t _nzval, uint32_t _colind,
 extern "C" __global__ 
 void spmv_kernel_2(uint32_t nnz, uint32_t nrow, uint32_t _nzval, uint32_t _colind, uint32_t _rowptr, 
 			uint32_t firstentry, uint32_t elemsize, 
-			uint32_t ptr_in, uint32_t nx_in, uint32_t ny_in, uint32_t ld_in,
-			uint32_t ptr_out, uint32_t nx_out, uint32_t ny_out, uint32_t ld_out)
+			uint32_t ptr_in, uint32_t nx_in, uint32_t ptr_out, uint32_t nx_out)
 {
 	float *vecin = (float *)ptr_in;
 	float *vecout = (float *)ptr_out;
@@ -88,8 +86,7 @@ void spmv_kernel_2(uint32_t nnz, uint32_t nrow, uint32_t _nzval, uint32_t _colin
 extern "C" __global__ 
 void spmv_kernel_3(uint32_t nnz, uint32_t nrow, uint32_t _nzval, uint32_t _colind, uint32_t _rowptr, 
 			uint32_t firstentry, uint32_t elemsize, 
-			uint32_t ptr_in, uint32_t nx_in, uint32_t ny_in, uint32_t ld_in,
-			uint32_t ptr_out, uint32_t nx_out, uint32_t ny_out, uint32_t ld_out)
+			uint32_t ptr_in, uint32_t nx_in, uint32_t ptr_out, uint32_t nx_out)
 {
 	float *vecin = (float *)ptr_in;
 	float *vecout = (float *)ptr_out;

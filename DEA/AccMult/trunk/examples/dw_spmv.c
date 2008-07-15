@@ -94,8 +94,8 @@ void core_spmv(data_interface_t *descr, __attribute__((unused))  void *arg)
 	uint32_t *colind = descr[0].csr.colind;
 	uint32_t *rowptr = descr[0].csr.rowptr;
 
-	float *vecin = (float *)descr[1].blas.ptr;
-	float *vecout = (float *)descr[2].blas.ptr;
+	float *vecin = (float *)descr[1].vector.ptr;
+	float *vecout = (float *)descr[2].vector.ptr;
 
 	uint32_t nnz;
 	uint32_t nrow;
@@ -103,8 +103,8 @@ void core_spmv(data_interface_t *descr, __attribute__((unused))  void *arg)
 	nnz = descr[0].csr.nnz;
 	nrow = descr[0].csr.nrow;
 
-	ASSERT(nrow == descr[1].blas.nx);
-	ASSERT(nrow == descr[2].blas.nx);
+	ASSERT(nrow == descr[1].vector.nx);
+	ASSERT(nrow == descr[2].vector.nx);
 
 	unsigned row;
 	for (row = 0; row < nrow; row++)
@@ -196,8 +196,8 @@ void create_data(void)
 		outvec[ind] = 0.0f;
 	}
 
-	monitor_blas_data(&vector_in, 0, (uintptr_t)invec, size, size, 1, sizeof(float));
-	monitor_blas_data(&vector_out, 0, (uintptr_t)outvec, size, size, 1, sizeof(float));
+	monitor_vector_data(&vector_in, 0, (uintptr_t)invec, size, sizeof(float));
+	monitor_vector_data(&vector_out, 0, (uintptr_t)outvec, size, sizeof(float));
 
 	vector_in_ptr = invec;
 	vector_out_ptr = outvec;
