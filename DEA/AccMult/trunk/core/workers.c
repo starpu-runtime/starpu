@@ -83,7 +83,19 @@ void init_machine(void)
 #endif
 
 #ifdef USE_CUDA
-	init_cuda();
+	envval = get_env_number("NCUDA");
+	if (envval < 0) {
+//		ncudagpus = MIN(get_cuda_device_count(), MAXCUDADEVS);
+		init_cuda();
+	} else {
+		/* use the specified value */
+		ncudagpus = (unsigned)envval;
+		ASSERT(ncudagpus <= MAXCUDADEVS);
+
+		if (ncudagpus > 0)
+			init_cuda();
+	}
+
 #endif
 
 #ifdef USE_CUBLAS

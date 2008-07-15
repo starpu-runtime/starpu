@@ -52,9 +52,6 @@ ifdef CPUS
 	OBJDEPS += ../drivers/core/driver_core.o
 endif
 
-NVCCFLAGS +=  -DUNIX -DO3
-NVCCFLAGS += -I$(CUTILDIR)/inc/
-
 LDFLAGS += -L../core/ -L../common/
 CFLAGS += -I../
 
@@ -70,7 +67,10 @@ endif
 LDFLAGS += -L../datawizard/
 CFLAGS += -I../datawizard/
 OBJDEPS += ../datawizard/copy-driver.o ../datawizard/coherency.o 
-OBJDEPS += ../datawizard/hierarchy.o ../datawizard/interfaces/blas_filters.o
+OBJDEPS += ../datawizard/hierarchy.o 
+OBJDEPS += ../datawizard/interfaces/blas_filters.o
+OBJDEPS += ../datawizard/interfaces/csr_filters.o
+OBJDEPS += ../datawizard/interfaces/vector_filters.o
 OBJDEPS += ../datawizard/memalloc.o  ../datawizard/interfaces/blas_interface.o
 OBJDEPS += ../datawizard/interfaces/csr_interface.o
 OBJDEPS += ../datawizard/interfaces/vector_interface.o

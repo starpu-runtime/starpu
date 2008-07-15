@@ -139,6 +139,13 @@ void init_context(int devid)
 	cublasInit();
 }
 
+unsigned get_cuda_device_count(void)
+{
+	unsigned cnt;
+	cuDeviceGetCount(&cnt);
+	return cnt;
+}
+
 void init_cuda(void)
 {
 	CUresult status;
@@ -259,6 +266,7 @@ void *cuda_worker(void *arg)
 
 //		cuMemcpyDtoH(&debugfoo, debugptr, sizeof(uint32_t));
 //		printf("BEFORE TASK, debug ptr = %p\n", debugfoo);
+
 
 		unsigned use_cublas = CUBLAS_MAY_PERFORM(j) ? 1:0;
 		res = execute_job_on_cuda(j, devid, use_cublas);

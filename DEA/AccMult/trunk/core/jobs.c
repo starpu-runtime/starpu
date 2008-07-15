@@ -83,7 +83,7 @@ job_t job_create(void)
 	job->cb = NULL;
 	job->cl = NULL;
 	job->argcb = NULL;
-	job->counter = 0;
+	//job->counter = 0;
 	job->use_tag = 0;
 	job->nbuffers = 0;
 	job->priority = 0;

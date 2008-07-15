@@ -6,6 +6,9 @@
 
 tick_t start,end;
 
+unsigned nblocks = 1;
+unsigned remainingjobs = -1;
+
 /* First a Matrix-Vector product (SpMV) */
 
 unsigned blocks = 512;
@@ -80,6 +83,12 @@ void parse_args(int argc, char **argv)
 			grids = strtol(argv[++i], &argptr, 10);
 		}
 
+		if (strcmp(argv[i], "-nblocks") == 0) {
+			char *argptr;
+			nblocks = strtol(argv[++i], &argptr, 10);
+		}
+
+
 		if (strcmp(argv[i], "-cpu") == 0) {
 			usecpu = 1;
 		}
@@ -88,8 +97,6 @@ void parse_args(int argc, char **argv)
 
 void core_spmv(data_interface_t *descr, __attribute__((unused))  void *arg)
 {
-	printf("CORE codelet\n");
-
 	float *nzval = (float *)descr[0].csr.nzval;
 	uint32_t *colind = descr[0].csr.colind;
 	uint32_t *rowptr = descr[0].csr.rowptr;
@@ -97,13 +104,15 @@ void core_spmv(data_interface_t *descr, __attribute__((unused))  void *arg)
 	float *vecin = (float *)descr[1].vector.ptr;
 	float *vecout = (float *)descr[2].vector.ptr;
 
+	uint32_t firstelem = descr[0].csr.firstentry;
+
 	uint32_t nnz;
 	uint32_t nrow;
 
 	nnz = descr[0].csr.nnz;
 	nrow = descr[0].csr.nrow;
 
-	ASSERT(nrow == descr[1].vector.nx);
+	//ASSERT(nrow == descr[1].vector.nx);
 	ASSERT(nrow == descr[2].vector.nx);
 
 	unsigned row;
@@ -112,8 +121,8 @@ void core_spmv(data_interface_t *descr, __attribute__((unused))  void *arg)
 		float tmp = 0.0f;
 		unsigned index;
 
-		unsigned firstindex = rowptr[row];
-		unsigned lastindex = rowptr[row+1];
+		unsigned firstindex = rowptr[row] - firstelem;
+		unsigned lastindex = rowptr[row+1] - firstelem;
 
 		for (index = firstindex; index < lastindex; index++)
 		{
@@ -206,16 +215,86 @@ void create_data(void)
 
 }
 
-void init_problem_callback(void *arg __attribute__((unused)))
+void init_problem_callback(void *arg)
 {
-	sem_post(&sem);
+	unsigned *remaining = arg;
 
-	GET_TICK(end);
+	*remaining = *remaining - 1;
 
+	printf("callback %d remaining \n", *remaining);
+
+	if ( *remaining == 0 )
+	{
+		printf("DONE ...\n");
+		GET_TICK(end);
+
+		unpartition_data(&sparse_matrix, 0);
+		unpartition_data(&vector_out, 0);
+
+		sem_post(&sem);
+	}
 }
+
+
+void call_spmv_codelet_filters(void)
+{
+
+	remainingjobs = nblocks;
+
+	job_t job;
+	codelet *cl = malloc(sizeof(codelet));
+
+	/* partition the data along a block distribution */
+	filter csr_f, vector_f;
+	csr_f.filter_func    = vertical_block_filter_func_csr;
+	csr_f.filter_arg     = nblocks;
+	vector_f.filter_func = block_filter_func_vector;
+	vector_f.filter_arg  = nblocks;
+
+	partition_data(&sparse_matrix, &csr_f);
+	partition_data(&vector_out, &vector_f);
+
+	cl->cl_arg = NULL;
+	cl->core_func =  core_spmv;
+#ifdef USE_CUDA
+	cl->cuda_func = &cuda_spmv;
+#endif
+
+
+	GET_TICK(start);
+	unsigned part;
+	for (part = 0; part < nblocks; part++)
+	{
+		job = job_create();
+//#ifdef USE_CUDA
+//		job->where = usecpu?CORE:CUDA;
+//#else
+//		job->where = CORE;
+//#endif
+		job->where = CORE|CUDA;
+		job->cb = init_problem_callback;
+		job->argcb = &remainingjobs;
+		job->cl = cl;
+	
+		job->nbuffers = 3;
+		job->buffers[0].state = get_sub_data(&sparse_matrix, 1, part);
+		job->buffers[0].mode  = R;
+		job->buffers[1].state = &vector_in;
+		job->buffers[1].mode = R;
+		job->buffers[2].state = get_sub_data(&vector_out, 1, part);
+		job->buffers[2].mode = W;
+	
+		push_task(job);
+	}
+}
+
+
 
 void call_spmv_codelet(void)
 {
+
+	remainingjobs = 1;
+
 	job_t job;
 	codelet *cl = malloc(sizeof(codelet));
 
@@ -232,7 +311,7 @@ void call_spmv_codelet(void)
 	job->where = CORE;
 #endif
 	job->cb = init_problem_callback;
-	job->argcb = NULL;
+	job->argcb = &remainingjobs;
 	job->cl = cl;
 
 	job->nbuffers = 3;
@@ -244,9 +323,9 @@ void call_spmv_codelet(void)
 	job->buffers[2].mode = W;
 
 
-	GET_TICK(start);
 
-	push_task(job);
+
+	GET_TICK(start);
 }
 
 void init_problem(void)
@@ -255,7 +334,8 @@ void init_problem(void)
 	create_data();
 
 	/* create a new codelet that will perform a SpMV on it */
-	call_spmv_codelet();
+//	call_spmv_codelet();
+	call_spmv_codelet_filters();
 }
 
 void print_results(void)
@@ -272,6 +352,7 @@ int main(__attribute__ ((unused)) int argc,
 	__attribute__ ((unused)) char **argv)
 {
 	parse_args(argc, argv);
+
 
 	timing_init();
 
@@ -295,7 +376,6 @@ int main(__attribute__ ((unused)) int argc,
 	double timing = timing_delay(&start, &end);
 	fprintf(stderr, "Computation took (in ms)\n");
 	printf("%2.2f\n", timing/1000);
-
 
 	return 0;
 }

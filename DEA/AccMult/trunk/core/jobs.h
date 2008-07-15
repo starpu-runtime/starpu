@@ -65,7 +65,7 @@ LIST_TYPE(job,
 	callback cb;	/* do "cb(argcb)" when finished */
 	codelet *cl;
 	void *argcb;
-	int counter;	/* when this reaches 0 the callback can be executed */
+//	int counter;	/* when this reaches 0 the callback can be executed */
 	struct tag_s *tag;
 	unsigned use_tag;
 	unsigned nbuffers;

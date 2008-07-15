@@ -19,7 +19,10 @@
 #include <datawizard/coherency.h>
 #include <datawizard/hierarchy.h>
 #include <datawizard/interfaces/blas_interface.h>
-#include <datawizard/interfaces/blas_filters.h>
 #include <datawizard/interfaces/csr_interface.h>
+#include <datawizard/interfaces/vector_interface.h>
+#include <datawizard/interfaces/blas_filters.h>
+#include <datawizard/interfaces/csr_filters.h>
+#include <datawizard/interfaces/vector_filters.h>
 
 #endif // __DW_SPARSE_CG_H__
