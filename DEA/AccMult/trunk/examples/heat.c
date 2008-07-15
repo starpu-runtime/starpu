@@ -570,8 +570,6 @@ static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uin
 					(*nzval)[pos] = val;
 					(*colind)[pos] = nodeneighbour;
 
-		//			printf("%d <-> %d\n", j, nodeneighbour);
-	
 					pos++;
 				}
 			}

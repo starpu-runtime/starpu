@@ -27,8 +27,8 @@ void spmv_kernel(uint32_t nnz, uint32_t nrow, uint32_t _nzval, uint32_t _colind,
 		float tmp = 0.0f;
 		unsigned index;
 
-		unsigned firstindex = rowptr[row];
-		unsigned lastindex = rowptr[row+1]; 
+		unsigned firstindex = rowptr[row] - firstentry;
+		unsigned lastindex = rowptr[row+1] - firstentry; 
 
 		for (index = firstindex; index < lastindex; index++)
 		{
@@ -64,8 +64,8 @@ void spmv_kernel_2(uint32_t nnz, uint32_t nrow, uint32_t _nzval, uint32_t _colin
 		float tmp = 0.0f;
 		unsigned index;
 
-		unsigned firstindex = rowptr[row];
-		unsigned lastindex = rowptr[row+1];
+		unsigned firstindex = rowptr[row] - firstentry;
+		unsigned lastindex = rowptr[row+1] - firstentry;
 
 		for (index = firstindex; index < lastindex; index++)
 		{
@@ -104,8 +104,8 @@ void spmv_kernel_3(uint32_t nnz, uint32_t nrow, uint32_t _nzval, uint32_t _colin
 		float tmp = 0.0f;
 		unsigned index;
 
-		unsigned firstindex = rowptr[row];
-		unsigned lastindex = rowptr[row+1];
+		unsigned firstindex = rowptr[row] - firstentry;
+		unsigned lastindex = rowptr[row+1] - firstentry;
 
 		for (index = firstindex; index < lastindex; index++)
 		{

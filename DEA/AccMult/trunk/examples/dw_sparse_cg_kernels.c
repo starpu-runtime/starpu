@@ -40,9 +40,12 @@ void core_codelet_func_1(data_interface_t *descr, __attribute__((unused)) void *
 	uint32_t *colind = descr[0].csr.colind;
 	uint32_t *rowptr = descr[0].csr.rowptr;
 
+	uint32_t firstentry = descr[0].csr.firstentry;
+
 	float *vecx = (float *)descr[1].vector.ptr;
 	float *vecr = (float *)descr[2].vector.ptr;
 	float *vecb = (float *)descr[3].vector.ptr;
+
 
 	uint32_t nnz;
 	uint32_t nrow;
@@ -56,8 +59,8 @@ void core_codelet_func_1(data_interface_t *descr, __attribute__((unused)) void *
 		float tmp = 0.0f;
 		unsigned index;
 
-		unsigned firstindex = rowptr[row];
-		unsigned lastindex = rowptr[row+1];
+		unsigned firstindex = rowptr[row] - firstentry;
+		unsigned lastindex = rowptr[row+1] - firstentry;
 
 		for (index = firstindex; index < lastindex; index++)
 		{
@@ -146,6 +149,8 @@ void core_codelet_func_4(data_interface_t *descr, __attribute__((unused)) void *
 	uint32_t *colind = descr[0].csr.colind;
 	uint32_t *rowptr = descr[0].csr.rowptr;
 
+	uint32_t firstentry = descr[0].csr.firstentry;
+
 	float *vecd = (float *)descr[1].vector.ptr;
 	float *vecq = (float *)descr[2].vector.ptr;
 
@@ -161,8 +166,8 @@ void core_codelet_func_4(data_interface_t *descr, __attribute__((unused)) void *
 		float tmp = 0.0f;
 		unsigned index;
 
-		unsigned firstindex = rowptr[row];
-		unsigned lastindex = (row < nrow - 1)?rowptr[row+1]:nnz;
+		unsigned firstindex = rowptr[row] - firstentry;
+		unsigned lastindex = rowptr[row+1] - firstentry;
 
 		for (index = firstindex; index < lastindex; index++)
 		{
