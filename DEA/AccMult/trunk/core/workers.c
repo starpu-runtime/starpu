@@ -38,29 +38,6 @@ gordon_worker_arg gordonargs;
 
 int current_bindid = 0;
 
-int get_env_number(const char *str)
-{
-	char *strval;
-
-	strval = getenv(str);
-	if (strval) {
-		/* the env variable was actually set */
-		unsigned val;
-		char *check;
-
-		val = (int)strtol(strval, &check, 10);
-		ASSERT(strcmp(check, "\0") == 0);
-
-		//fprintf(stderr, "ENV %s WAS %d\n", str, val);
-		return val;
-	}
-	else {
-		/* there is no such env variable */
-		//fprintf("There was no %s ENV\n", str);
-		return -1;
-	}
-}
-
 void init_machine(void)
 {
 	int envval;
@@ -134,14 +111,10 @@ void init_workers(void)
 
 	/* launch one thread per CPU */
 	unsigned memory_node;
+
 	/* note that even if the CPU core are not used, we always have a RAM node */
-//	if (ncores != 0)
-//	{
-		/* right now, all processor are using the same memory nodes 
-		 * TODO : support NUMA ;)
-		 * */
-		memory_node = register_memory_node(RAM);
-//	}
+	/* TODO : support NUMA  ;) */
+	memory_node = register_memory_node(RAM);
 
 #ifdef USE_CPUS
 	unsigned core;
@@ -345,7 +318,6 @@ void push_codelet_output(buffer_descr *descrs, unsigned nbuffers, uint32_t mask)
 {
 	TRACE_START_PUSH_OUTPUT(NULL);
 
-	/* TODO we should avoid repeatingly ask for the local thread index etc. */
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{

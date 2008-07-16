@@ -25,4 +25,27 @@
 
 #define ATOMIC_OR(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
 
+static int get_env_number(const char *str)
+{
+	char *strval;
+
+	strval = getenv(str);
+	if (strval) {
+		/* the env variable was actually set */
+		unsigned val;
+		char *check;
+
+		val = (int)strtol(strval, &check, 10);
+		ASSERT(strcmp(check, "\0") == 0);
+
+		//fprintf(stderr, "ENV %s WAS %d\n", str, val);
+		return val;
+	}
+	else {
+		/* there is no such env variable */
+		//fprintf("There was no %s ENV\n", str);
+		return -1;
+	}
+}
+
 #endif // __UTIL_H__
