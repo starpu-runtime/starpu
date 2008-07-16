@@ -1,0 +1,21 @@
+queue design :
+	- create_central_jobq		-> trivial single list
+	- create_per_accelerator_jobq	-> one core = one queue (cilk-like)
+	- create_hierarchical_jobq	-> marcel-like
+
+remarks:
+	- a queue may be a set of queue (eg. for priority queues)
+	- queues may have a limited size so that an extra central queue 
+	  could be needed in that case ...
+
+mecanisms :
+	- steal_job_from_queue
+	- push_job_onto_queue
+	- equilibrate_queues	-> balances 2 queues 
+	- reorder a queue
+
+policy role :
+	- implementing the push_job/fetch_job functions
+	- creating the actual queues 
+	- progression thread that regularly recompute a better schedule ?
+		- rather do that in the context of a task submission
