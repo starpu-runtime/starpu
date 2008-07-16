@@ -12,6 +12,10 @@ static unsigned use_cg = 0; /* use a LU decomposition of CG ? */
 static int argc_;
 static char **argv_;
 
+extern void do_conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
+              		unsigned nrow, uint32_t *colind, uint32_t *rowptr);
+
+
 static void parse_args(int argc, char **argv)
 {
 	int i;
@@ -425,7 +429,7 @@ static void build_stiffness_matrix_B(point *pmesh, float *B, float *Bformer, uns
 	}
 }
 
-static unsigned build_neighbour_vector(unsigned *neighbours, unsigned node, int *RefArray, int *RefArrayBack, unsigned newsize)
+static unsigned build_neighbour_vector(unsigned *neighbours, unsigned node, int *RefArray, int *RefArrayBack)
 {
 	/* where is that point in the former space ? */
 	int former = TRANSLATE(node);
@@ -518,7 +522,7 @@ static void build_sparse_stiffness_matrix_B(point *pmesh, float *B, float *Bform
 		unsigned nneighbours;
 		unsigned neighbours[9];
 
-		nneighbours = build_neighbour_vector(&neighbours[0], j, RefArray, RefArrayBack, newsize);
+		nneighbours = build_neighbour_vector(&neighbours[0], j, RefArray, RefArrayBack);
 
 		B[j] = Bformer[TRANSLATE(j)];
 
@@ -536,7 +540,7 @@ static void build_sparse_stiffness_matrix_B(point *pmesh, float *B, float *Bform
 static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uint32_t **colind, 
 						uint32_t *rowptr, unsigned newsize, int *RefArray, int *RefArrayBack)
 {
-	unsigned i,j;
+	unsigned j;
 
 	unsigned pos = 0;
 
@@ -552,7 +556,7 @@ static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uin
 		unsigned nneighbours;
 		unsigned neighbours[9];
 
-		nneighbours = build_neighbour_vector(&neighbours[0], j, RefArray, RefArrayBack, newsize);
+		nneighbours = build_neighbour_vector(&neighbours[0], j, RefArray, RefArrayBack);
 
 		for (neighbour = 0; neighbour < nneighbours; neighbour++)
 		{
