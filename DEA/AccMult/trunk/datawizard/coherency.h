@@ -11,6 +11,7 @@
 #include <common/mutex.h>
 #include <common/rwlock.h>
 #include <common/timing.h>
+#include <common/fxt.h>
 
 #include "data_parameters.h"
 
@@ -86,5 +87,7 @@ void _fetch_data(data_state *state, uint32_t requesting_node, uint8_t read, uint
 
 uint32_t get_data_refcnt(data_state *state, uint32_t node);
 
+void push_codelet_output(buffer_descr *descrs, unsigned nbuffers, uint32_t mask);
+void fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsigned nbuffers);
 
 #endif // __COHERENCY__H__

@@ -53,17 +53,21 @@ void *core_worker(void *arg)
         /* tell the main thread that we are ready */
         ((core_worker_arg *)arg)->ready_flag = 1;
 
+	struct jobq_s *jobq;
+
+	jobq = ((core_worker_arg *)arg)->jobq;
+
         job_t j;
 
         do {
-                j = pop_task();
+                j = jobq->pop_task();
                 if (j == NULL) continue;
 
 		/* can a core perform that task ? */
 		if (!CORE_MAY_PERFORM(j)) 
 		{
 			/* put it and the end of the queue ... XXX */
-			push_task(j);
+			jobq->push_task(j);
 			continue;
 		}
 

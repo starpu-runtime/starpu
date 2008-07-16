@@ -224,3 +224,39 @@ void release_data(data_state *state, uint32_t write_through_mask)
 	release_rw_lock(&state->data_lock);
 }
 
+void fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsigned nbuffers)
+{
+	TRACE_START_FETCH_INPUT(NULL);
+
+	/* TODO we should avoid repeatingly ask for the local thread index etc. */
+	unsigned index;
+	for (index = 0; index < nbuffers; index++)
+	{
+		buffer_descr *descr;
+		uint32_t local_memory_node = get_local_memory_node();
+
+		descr = &descrs[index];
+
+		fetch_data(descr->state, descr->mode);
+
+		descr->interfaceid = descr->state->interfaceid;
+
+		memcpy(&interface[index], &descr->state->interface[local_memory_node], 
+				sizeof(data_interface_t));
+	}
+
+	TRACE_END_FETCH_INPUT(NULL);
+}
+
+void push_codelet_output(buffer_descr *descrs, unsigned nbuffers, uint32_t mask)
+{
+	TRACE_START_PUSH_OUTPUT(NULL);
+
+	unsigned index;
+	for (index = 0; index < nbuffers; index++)
+	{
+		release_data(descrs[index].state, mask);
+	}
+
+	TRACE_END_PUSH_OUTPUT(NULL);
+}

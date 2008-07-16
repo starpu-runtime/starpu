@@ -8,7 +8,8 @@
 #include <common/util.h>
 #include <common/parameters.h>
 #include <core/jobs.h>
-#include <core/workers.h>
+//#include <core/workers.h>
+#include <core/mechanisms/queues.h>
 
 #include <common/fxt.h>
 
@@ -19,6 +20,7 @@ typedef struct core_worker_arg_t {
         volatile int ready_flag;
 	int bindid;
 	unsigned memory_node;
+	struct jobq_s *jobq;
 } core_worker_arg;
 
 void *core_worker(void *);

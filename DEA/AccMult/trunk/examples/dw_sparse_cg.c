@@ -318,7 +318,6 @@ void do_conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz
 {
 	/* start the runtime */
 	init_machine();
-	init_workers();
 
 
 #ifdef USE_CUDA
@@ -338,7 +337,6 @@ int main(__attribute__ ((unused)) int argc,
 
 	/* start the runtime */
 	init_machine();
-	init_workers();
 
 
 #ifdef USE_CUDA

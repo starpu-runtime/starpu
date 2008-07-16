@@ -358,7 +358,6 @@ int main(__attribute__ ((unused)) int argc,
 
 	/* start the runtime */
 	init_machine();
-	init_workers();
 
 	sem_init(&sem, 0, 0U);
 

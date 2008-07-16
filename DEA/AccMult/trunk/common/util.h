@@ -27,7 +27,7 @@
 
 #define ATOMIC_OR(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
 
-static int get_env_number(const char *str)
+static int __attribute__ ((unused)) get_env_number(const char *str)
 {
 	char *strval;
 

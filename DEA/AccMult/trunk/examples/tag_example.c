@@ -31,7 +31,6 @@ void core_codelet(void *_args __attribute__ ((unused)))
 int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 {
 	init_machine();
-	init_workers();
 
 	codelet cl;
 	codelet cl2;

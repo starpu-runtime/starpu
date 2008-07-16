@@ -444,7 +444,6 @@ static void dw_codelet_facto_v3(data_state *dataA, unsigned nblocks)
 static void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 {
 	init_machine();
-	init_workers();
 
 	timing_init();
 

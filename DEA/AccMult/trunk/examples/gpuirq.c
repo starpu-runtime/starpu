@@ -61,7 +61,6 @@ void gpu_codelet(void *_args)
 int main(int argc, char **argv)
 {
 	init_machine();
-	init_workers();
 
 	printf("ok\n");
 
