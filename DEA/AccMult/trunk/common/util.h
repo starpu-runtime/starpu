@@ -2,6 +2,8 @@
 #define __UTIL_H__
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 
 #define PRINTF(str, ...)	fprintf(stderr, str, ## __VA_ARGS__)
