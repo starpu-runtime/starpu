@@ -196,7 +196,6 @@ void find_limits(void)
 
 void opengl_render(unsigned _ntheta, unsigned _nthick, float *_result, point *_pmesh, int argc_, char **argv_)
 {
-	unsigned i;
 	fprintf(stderr, "OpenGL rendering ... \n");
 
 	ntheta = _ntheta;

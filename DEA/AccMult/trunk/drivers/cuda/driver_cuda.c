@@ -4,7 +4,7 @@
 /* the number of CUDA devices */
 int ncudagpus;
 
-static CUdevice cuDevice;
+//static CUdevice cuDevice;
 static CUcontext cuContext[MAXCUDADEVS];
 CUresult status;
 
