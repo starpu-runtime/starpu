@@ -154,10 +154,10 @@ tag_example: tag_example.o
 	$(CC) tag_example.o -o tag_example $(OBJDEPS) $(LDFLAGS)
 
 cuda/incrementer_cuda.cubin: cuda/incrementer_cuda.cu cuda/incrementer_cuda.h
-	$(NVCC) -cubin cuda/incrementer_cuda.cu -o cuda/incrementer_cuda.cubin -m32 --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) 
+	$(NVCC) -cubin cuda/incrementer_cuda.cu -o cuda/incrementer_cuda.cubin --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) 
 
 cuda/spmv_cuda.cubin: cuda/spmv.cu
-	$(NVCC) -cubin cuda/spmv.cu -o cuda/spmv_cuda.cubin -m32 --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) 
+	$(NVCC) -cubin cuda/spmv.cu -o cuda/spmv_cuda.cubin --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) 
 
 clean:
 	@rm -f tag_example multiplication multiplication2 heat gpuirq dw_spmv incrementer dw_mult dw_factolu *.o

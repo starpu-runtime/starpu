@@ -50,20 +50,23 @@ void monitor_blas_data(data_state *state, uint32_t home_node,
 }
 
 struct dumped_blas_interface_s {
-	uint32_t tab[4];
-};
+	uintptr_t ptr;
+	uint32_t nx;
+	uint32_t ny;
+	uint32_t ld;
+} __attribute__ ((packed));
 
 size_t dump_blas_interface(data_interface_t *interface, void *_buffer)
 {
 	/* yes, that's DIRTY ... */
-	uint32_t *buffer = _buffer;
+	struct dumped_blas_interface_s *buffer = _buffer;
 
-	buffer[0] = (*interface).blas.ptr;
-	buffer[1] = (*interface).blas.nx;
-	buffer[2] = (*interface).blas.ny;
-	buffer[3] = (*interface).blas.ld;
+	buffer->ptr = (*interface).blas.ptr;
+	buffer->nx = (*interface).blas.nx;
+	buffer->ny = (*interface).blas.ny;
+	buffer->ld = (*interface).blas.ld;
 
-	return (4*sizeof(uint32_t));
+	return (sizeof(struct dumped_blas_interface_s));
 }
 
 /* offer an access to the data parameters */

@@ -50,20 +50,30 @@ void monitor_csr_data(struct data_state_t *state, uint32_t home_node,
 	monitor_new_data(state, home_node);
 }
 
+struct dumped_csr_interface_s {
+	uint32_t nnz;
+	uint32_t nrow;
+	uintptr_t nzval;
+	uint32_t *colind;
+	uint32_t *rowptr;
+	uint32_t firstentry;
+	uint32_t elemsize;
+}  __attribute__ ((packed));
+
 size_t dump_csr_interface(data_interface_t *interface, void *_buffer)
 {
 	/* yes, that's DIRTY ... */
-	uint32_t *buffer = _buffer;
+	struct dumped_csr_interface_s *buffer = _buffer;
 
-	buffer[0] = (*interface).csr.nnz;
-	buffer[1] = (*interface).csr.nrow;
-	buffer[2] = (*interface).csr.nzval;
-	buffer[3] = (uintptr_t)(*interface).csr.colind;
-	buffer[4] = (uintptr_t)(*interface).csr.rowptr;
-	buffer[5] = (*interface).csr.firstentry;
-	buffer[6] = (*interface).csr.elemsize;
+	buffer->nnz = (*interface).csr.nnz;
+	buffer->nrow = (*interface).csr.nrow;
+	buffer->nzval = (*interface).csr.nzval;
+	buffer->colind = (*interface).csr.colind;
+	buffer->rowptr = (*interface).csr.rowptr;
+	buffer->firstentry = (*interface).csr.firstentry;
+	buffer->elemsize = (*interface).csr.elemsize;
 
-	return (7*sizeof(uint32_t));
+	return (sizeof(struct dumped_csr_interface_s));
 }
 
 /* offer an access to the data parameters */

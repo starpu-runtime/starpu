@@ -44,18 +44,19 @@ void monitor_vector_data(struct data_state_t *state, uint32_t home_node,
 }
 
 struct dumped_vector_interface_s {
-	uint32_t tab[2];
-};
+	uintptr_t ptr;
+	uint32_t nx;
+} __attribute__ ((packed));
 
 size_t dump_vector_interface(data_interface_t *interface, void *_buffer)
 {
 	/* yes, that's DIRTY ... */
-	uint32_t *buffer = _buffer;
+	struct dumped_vector_interface_s *buffer = _buffer;
 
-	buffer[0] = (*interface).vector.ptr;
-	buffer[1] = (*interface).vector.nx;
+	buffer->ptr = (*interface).vector.ptr;
+	buffer->nx = (*interface).vector.nx;
 
-	return (2*sizeof(uint32_t));
+	return (sizeof(struct dumped_vector_interface_s));
 }
 
 /* offer an access to the data parameters */
