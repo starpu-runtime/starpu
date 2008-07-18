@@ -60,6 +60,14 @@ void set_function_args(cuda_codelet_t *args,
 
 	unsigned offset = 0;
 
+//	res = cuParamSetv(args->func->function, offset, 
+//		&debugptr, sizeof(uint64_t *));
+//	if (res != CUDA_SUCCESS) {
+//		CUDA_REPORT_ERROR(res);
+//	}
+//	offset += sizeof(uint64_t *);
+//
+
 
 	unsigned buf;
 	for (buf = 0; buf < nbuffers; buf++)
@@ -67,7 +75,7 @@ void set_function_args(cuda_codelet_t *args,
 		size_t size;
 		/* this buffer is filled with the stack to be given to the GPU 
 		 * the size of the buffer may be changed if needed */
-		uint32_t argbuffer[64];
+		uint8_t argbuffer[128];
 
 		data_state *state = descr[buf].state;
 	
@@ -89,13 +97,6 @@ void set_function_args(cuda_codelet_t *args,
 		}
 		offset += args->stack_size;
 	}
-
-//	res = cuParamSetv(args->func->function, offset, 
-//		&debugptr, sizeof(uint32_t));
-//	if (res != CUDA_SUCCESS) {
-//		CUDA_REPORT_ERROR(res);
-//	}
-//	offset += sizeof(int);
 
 	res = cuParamSetSize(args->func->function, offset);
 	if (res != CUDA_SUCCESS) {
@@ -169,6 +170,8 @@ void init_cuda(void)
 
 int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 {
+	CUresult status;
+	
 	switch (j->type) {
 		case CODELET:
 			ASSERT(j);
@@ -188,19 +191,29 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 
 				load_cuda_function(devid, args->func);
 
-				cuFuncSetBlockShape(args->func->function,
+				status = cuFuncSetBlockShape(args->func->function,
 							args->blockx, 
 							args->blocky, 1);
+				if (status) {
+					CUDA_REPORT_ERROR(status);
+				}
 
 				/* set up the function args */
 				set_function_args(args, j->buffers, j->interface, j->nbuffers);
 
 				/* set up the grids */
-				cuLaunchGrid(args->func->function, 
+				status = cuLaunchGrid(args->func->function, 
 						args->gridx, args->gridy);
+				if (status) {
+					CUDA_REPORT_ERROR(status);
+				}
+
 
 				/* launch the function */
-				cuCtxSynchronize();
+				status = cuCtxSynchronize();
+				if (status) {
+					CUDA_REPORT_ERROR(status);
+				}
 			}
 			TRACE_END_CODELET_BODY(j);	
 
@@ -242,9 +255,9 @@ void *cuda_worker(void *arg)
 	init_context(devid);
 	fprintf(stderr, "cuda thread is ready to run on CPU %d !\n", args->bindid);
 
-//	uint32_t foo = 1664;
-//	cuMemAlloc(&debugptr, sizeof(uint32_t));
-//	cuMemcpyHtoD(debugptr, &foo, sizeof(uint32_t));
+//	uint64_t foo = 1664;
+//	cuMemAlloc(&debugptr, sizeof(uint64_t));
+//	cuMemcpyHtoD(debugptr, &foo, sizeof(uint64_t));
 	
 
 	/* tell the main thread that this one is ready */
@@ -254,7 +267,7 @@ void *cuda_worker(void *arg)
 	int res;
 	
 	do {
-		//int debugfoo;
+		int debugfoo;
 		j = pop_task();
 		if (j == NULL) continue;
 
@@ -266,7 +279,7 @@ void *cuda_worker(void *arg)
 			continue;
 		}
 
-//		cuMemcpyDtoH(&debugfoo, debugptr, sizeof(uint32_t));
+//		cuMemcpyDtoH(&debugfoo, debugptr, sizeof(uint64_t));
 //		printf("BEFORE TASK, debug ptr = %p\n", debugfoo);
 
 
@@ -292,7 +305,7 @@ void *cuda_worker(void *arg)
                 /* in case there are dependencies, wake up the proper tasks */
                 notify_dependencies(j);
 
-//		cuMemcpyDtoH(&debugfoo, debugptr, sizeof(uint32_t));
+//		cuMemcpyDtoH(&debugfoo, debugptr, sizeof(uint64_t));
 //		printf("AFTER TASK, debug ptr = %p\n", debugfoo);
 
 

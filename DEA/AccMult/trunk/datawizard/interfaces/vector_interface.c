@@ -46,6 +46,7 @@ void monitor_vector_data(struct data_state_t *state, uint32_t home_node,
 struct dumped_vector_interface_s {
 	uintptr_t ptr;
 	uint32_t nx;
+	uint32_t elemsize;
 } __attribute__ ((packed));
 
 size_t dump_vector_interface(data_interface_t *interface, void *_buffer)
@@ -55,6 +56,7 @@ size_t dump_vector_interface(data_interface_t *interface, void *_buffer)
 
 	buffer->ptr = (*interface).vector.ptr;
 	buffer->nx = (*interface).vector.nx;
+	buffer->elemsize = (*interface).vector.elemsize;
 
 	return (sizeof(struct dumped_vector_interface_s));
 }
