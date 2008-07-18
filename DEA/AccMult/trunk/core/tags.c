@@ -1,9 +1,10 @@
 #include <stdarg.h>
-#include <common/util.h>
 #include <stdlib.h>
+#include <common/util.h>
 #include <core/tags.h>
 #include <core/htable.h>
 #include <core/jobs.h>
+#include <core/policies/sched_policy.h>
 
 static htbl_node_t *tag_htbl = NULL;
 

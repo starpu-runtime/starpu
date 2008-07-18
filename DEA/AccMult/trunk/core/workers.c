@@ -58,11 +58,8 @@ static void init_machine_config(struct machine_config_s *config)
 #endif
 }
 
-static void init_workers(struct machine_config_s *config)
+static void init_workers_binding(struct machine_config_s *config)
 {
-	/* initialize the queue containing the jobs */
-	init_work_queue();
-
 	/* launch one thread per CPU */
 	unsigned memory_node;
 
@@ -81,10 +78,71 @@ static void init_workers(struct machine_config_s *config)
 		corearg->bindid =
 			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
 
+		corearg->memory_node = memory_node;
+	}
+#endif
+
+#ifdef USE_CUDA
+	/* initialize CUDA with the proper number of threads */
+	int cudadev;
+	for (cudadev = 0; cudadev < config->ncudagpus; cudadev++)
+	{
+		cuda_worker_arg *cudaarg = &config->cudaargs[cudadev];
+
+		cudaarg->bindid =
+			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
+
+		cudaarg->memory_node = register_memory_node(CUDA_RAM);
+	}
+#endif
+
+#ifdef USE_CUBLAS
+	/* initialize CUBLAS with the proper number of threads */
+	unsigned cublasdev;
+	for (cublasdev = 0; cublasdev < config->ncublasgpus; cublasdev++)
+	{
+		cublas_worker_arg *cublasarg = &config->cublasargs[cublasdev]; 
+		
+		cublasarg->bindid =
+			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
+
+		cublasarg->memory_node = register_memory_node(CUBLAS_RAM);
+	}
+#endif
+
+#ifdef USE_SPU
+	/* initialize the various SPUs  */
+	unsigned spu;
+	for (spu = 0; spu < config->nspus; spu++)
+	{
+		spu_worker_arg *spuarg = &config->spuargs[spu];
+
+		spuarg->bindid =
+			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
+
+		spuarg->memory_node = register_memory_node(SPU_LS);
+	}
+#endif
+
+#ifdef USE_GORDON
+	config->gordonargs.bindid = 
+		(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
+	/* XXX do not forget to registrate memory nodes for each SPUs later on ! */
+#endif
+}
+
+
+
+static void init_workers(struct machine_config_s *config)
+{
+#ifdef USE_CPUS
+	unsigned core;
+	for (core = 0; core < config->ncores; core++)
+	{
+		core_worker_arg *corearg = &config->coreargs[core];
+
 		corearg->coreid = core;
 		corearg->ready_flag = 0;
-
-		corearg->memory_node = memory_node;
 
 		thread_create(&config->corethreads[core], 
 					NULL, core_worker, corearg);
@@ -104,12 +162,7 @@ static void init_workers(struct machine_config_s *config)
 		cuda_worker_arg *cudaarg = &config->cudaargs[cudadev];
 
 		cudaarg->deviceid = cudadev;
-		cudaarg->.ready_flag = 0;
-
-		cudaarg->bindid =
-			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
-
-		cudaarg->memory_node = register_memory_node(CUDA_RAM);
+		cudaarg->ready_flag = 0;
 
 		thread_create(&config->cudathreads[cudadev], 
 				NULL, cuda_worker, (void*)cudaarg);
@@ -129,11 +182,6 @@ static void init_workers(struct machine_config_s *config)
 		cublasarg->deviceid = cublasdev;
 		cublasarg->ready_flag = 0;
 
-		cublasarg->bindid =
-			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
-
-		cublasarg->memory_node = register_memory_node(CUBLAS_RAM);
-
 		thread_create(&config->cublasthreads[cublasdev], 
 				NULL, cublas_worker, (void*)cublasarg);
 
@@ -152,11 +200,6 @@ static void init_workers(struct machine_config_s *config)
 		spuarg->deviceid = spu;
 		spuarg->ready_flag = 0;
 
-		spuarg->bindid =
-			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
-
-		spuarg->memory_node = register_memory_node(SPU_LS);
-
 		thread_create(&config->sputhreads[spu], 
 			NULL, spu_worker, (void*)spuarg);
 
@@ -169,11 +212,7 @@ static void init_workers(struct machine_config_s *config)
 	config->ngordonspus = 8;
 	config->gordonargs.ready_flag = 0;
 
-	config->gordonargs.bindid = 
-		(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
 	config->gordonargs.nspus = ngordonspus;
-
-	/* do not forget to registrate memory nodes for each SPUs later on ! */
 
 	thread_create(&gordonthread, NULL, 
 			gordon_worker, (void*)&config->gordonargs);
@@ -197,6 +236,14 @@ void init_machine(void)
 
 	/* for the data wizard */
 	init_memory_nodes();
+
+	init_workers_binding(&config);
+
+	/* initialize the scheduler */
+
+	/* initialize the queue containing the jobs */
+	//init_work_queue();
+	init_sched_policy(&config);
 
 	init_workers(&config);
 }

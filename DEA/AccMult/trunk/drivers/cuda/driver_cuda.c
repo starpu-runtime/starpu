@@ -1,4 +1,5 @@
 #include "driver_cuda.h"
+#include <core/policies/sched_policy.h>
 
 /* the number of CUDA devices */
 int ncudagpus;
@@ -141,9 +142,9 @@ void init_context(int devid)
 
 unsigned get_cuda_device_count(void)
 {
-	unsigned cnt;
+	int cnt;
 	cuDeviceGetCount(&cnt);
-	return cnt;
+	return (unsigned)cnt;
 }
 
 void init_cuda(void)
@@ -168,8 +169,6 @@ void init_cuda(void)
 
 int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 {
-	int res;
-
 	switch (j->type) {
 		case CODELET:
 			ASSERT(j);
@@ -251,11 +250,11 @@ void *cuda_worker(void *arg)
 	/* tell the main thread that this one is ready */
 	args->ready_flag = 1;
 
-	job_t j;
+	struct job_s * j;
 	int res;
 	
 	do {
-		int debugfoo;
+		//int debugfoo;
 		j = pop_task();
 		if (j == NULL) continue;
 
@@ -289,10 +288,9 @@ void *cuda_worker(void *arg)
 
 		if (j->cb)
 			j->cb(j->argcb);
-		
+
                 /* in case there are dependencies, wake up the proper tasks */
                 notify_dependencies(j);
-
 
 //		cuMemcpyDtoH(&debugfoo, debugptr, sizeof(uint32_t));
 //		printf("AFTER TASK, debug ptr = %p\n", debugfoo);
@@ -304,8 +302,8 @@ void *cuda_worker(void *arg)
 
 	return NULL;
 
-error:
-	CUDA_REPORT_ERROR(status);
-	assert(0);
+//error:
+//	CUDA_REPORT_ERROR(status);
+//	assert(0);
 
 }

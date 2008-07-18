@@ -4,9 +4,10 @@ CFLAGS += -I../common/
 
 LDFLAGS += -L../datawizard/
 CFLAGS += -I../datawizard/
-OBJDEPS += ../datawizard/copy-driver.o ../datawizard/coherency.o
 
 all: tags.o jobs.o workers.o htable.o
+	@make -C mechanisms
+	@make -C policies
 
 jobs.o: jobs.c
 	$(CC) $(CFLAGS) jobs.c -c -o jobs.o
@@ -20,7 +21,7 @@ tags.o: tags.c tags.h
 htable.o: htable.c htable.h
 	$(CC) $(CFLAGS) htable.c -c -o htable.o
 
-htable: htable.o
-
 clean:
+	@make -C policies clean
+	@make -C mechanisms clean
 	@rm -f *.o

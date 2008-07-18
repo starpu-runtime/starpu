@@ -13,21 +13,16 @@
 #include <common/threads.h>
 #include <common/util.h>
 #include <core/jobs.h>
-#include <core/workers.h>
 #include <common/parameters.h>
-// don't forget that one or you will regret it !
 #include <cublas.h>
 
 #include <datawizard/copy-driver.h>
 
 #include <common/fxt.h>
 
+#ifndef MAXCUBLASDEVS
 #define MAXCUBLASDEVS	4
-
-#define START_POS(_mat)         \
-		((_mat)->xa + (_mat)->ya*(_mat)->mat->width)
-
-#define DEV_DATA(_mat)  ((_mat)->mat->cublas_data.dev_data)
+#endif
 
 #define SAFE_CUBLAS_CALL(ops)		 				\
 	do {								\

@@ -64,7 +64,6 @@ LIST_TYPE(job,
 	callback cb;	/* do "cb(argcb)" when finished */
 	codelet *cl;
 	void *argcb;
-//	int counter;	/* when this reaches 0 the callback can be executed */
 	struct tag_s *tag;
 	unsigned use_tag;
 	unsigned nbuffers;
@@ -75,11 +74,11 @@ LIST_TYPE(job,
 	data_interface_t interface[NMAXBUFS];
 );
 
-void init_work_queue(void);
-void push_task(job_t task);
-void push_prio_task(job_t task);
-job_t pop_task(void);
-void push_task(job_t task);
+//void init_work_queue(void);
+//void push_task(job_t task);
+//void push_prio_task(job_t task);
+//job_t pop_task(void);
+//void push_task(job_t task);
 
 job_t job_create(void);
 

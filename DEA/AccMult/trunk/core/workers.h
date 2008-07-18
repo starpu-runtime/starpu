@@ -11,7 +11,8 @@
 #include <common/util.h>
 #include <common/timing.h>
 #include <common/fxt.h>
-#include "jobs.h"
+#include <core/jobs.h>
+#include <core/policies/sched_policy.h>
 
 #ifdef USE_CUDA
 #include <drivers/cuda/driver_cuda.h>
@@ -44,7 +45,7 @@ struct machine_config_s {
 	#ifdef USE_CUDA
 	thread_t cudathreads[MAXCUDADEVS];
 	cuda_worker_arg cudaargs[MAXCUDADEVS];
-	extern int ncudagpus;
+	int ncudagpus;
 	#endif
 	
 	#ifdef USE_CUBLAS

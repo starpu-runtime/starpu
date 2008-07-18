@@ -13,6 +13,7 @@
 #include <common/util.h>
 #include <common/parameters.h>
 #include <core/jobs.h>
+#include <datawizard/copy-driver.h>
 
 #include <common/fxt.h>
 
