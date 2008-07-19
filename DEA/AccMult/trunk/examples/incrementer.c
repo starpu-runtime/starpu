@@ -133,8 +133,6 @@ static struct cuda_function_s cuda_function;
 
 static cuda_codelet_t cuda_codelet;
 
-static int testfooo[2];
-
 void initialize_cuda(void)
 {
 	char *module_path = 

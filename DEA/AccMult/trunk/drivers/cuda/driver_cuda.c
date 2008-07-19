@@ -267,7 +267,7 @@ void *cuda_worker(void *arg)
 	int res;
 	
 	do {
-		int debugfoo;
+		//int debugfoo;
 		j = pop_task();
 		if (j == NULL) continue;
 
