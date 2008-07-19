@@ -63,8 +63,6 @@ void init_problem(void)
 
 void init_cg(struct cg_problem *problem) 
 {
-	printf("GOGO CG\n");
-	
 	problem->i = 0;
 
 	/* r = b  - A x */
@@ -228,11 +226,13 @@ void iteration_cg(void *problem)
 	struct cg_problem *pb = problem;
 
 
-	if ((pb->i++ < MAXITER) && 
+	if ((pb->i < MAXITER) && 
 		(pb->delta_new > pb->epsilon) )
 	{
 		if (pb->i % 1000 == 0)
 			printf("i : %d\n\tdelta_new %2.5f (%f)\n", pb->i, pb->delta_new, sqrt(pb->delta_new / pb->size));
+
+		pb->i++;
 
 		/* we did not reach the stop condition yet */
 		launch_new_cg_iteration(problem);
