@@ -8,10 +8,12 @@ struct machine_config_s;
 
 struct sched_policy_s {
 	/* create all the queues */
-	void (*init_sched)(struct machine_config_s *);
+	void (*init_sched)(struct machine_config_s *, struct sched_policy_s *);
 
 	/* anyone can request which queue it is associated to */
-	struct jobq_s *(*get_local_queue)(void);
+	struct jobq_s *(*get_local_queue)(struct sched_policy_s *);
+
+	pthread_key_t local_queue_key;
 };
 
 void init_sched_policy(struct machine_config_s *config);

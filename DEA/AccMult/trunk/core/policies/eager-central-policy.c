@@ -59,7 +59,8 @@ static void set_worker_queues(struct machine_config_s *config)
 #endif
 }
 
-void initialize_eager_center_policy(struct machine_config_s *config) 
+void initialize_eager_center_policy(struct machine_config_s *config, 
+			__attribute__ ((unused))	struct sched_policy_s *_policy) 
 {
 	jobq.queue = &central_jobq;
 
@@ -72,14 +73,14 @@ void initialize_eager_center_policy(struct machine_config_s *config)
 	jobq.pop_task = central_pop_task;
 }
 
-//void set_local_queue_eager(struct jobq_s *jobq __attribute__ ((unused)))
-//{
-//	/* this is not needed in that policy */
-//}
-
-struct jobq_s *get_local_queue_eager(void)
+struct jobq_s *get_local_queue_eager(struct sched_policy_s *policy __attribute__ ((unused)))
 {
 	/* this is trivial for that strategy :) */
+
+	//struct jobq_s *queue;
+	//queue = pthread_getspecific(policy->local_queue_key);
+	//printf("get local queue -> %p\n", queue);
+
 	return &jobq;
 }
 

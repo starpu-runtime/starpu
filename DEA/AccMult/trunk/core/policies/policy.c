@@ -11,18 +11,22 @@ void init_sched_policy(struct machine_config_s *config)
 	policy.init_sched = initialize_eager_center_policy;
 	policy.get_local_queue = get_local_queue_eager;
 
-	policy.init_sched(config);
+	pthread_key_create(&policy.local_queue_key, NULL);
+
+	policy.init_sched(config, &policy);
 }
 
-void set_local_queue(struct jobq_s *jobq __attribute__ ((unused)))
+void set_local_queue(struct jobq_s *jobq)
 {
-	printf("set local queue %p \n", jobq);
+	//printf("set local queue %p \n", jobq);
+	/* record the queue that was specified to the driver */
+	pthread_setspecific(policy.local_queue_key, jobq);
 }
 
 /* the generic interface that call the proper underlying implementation */
 void push_task(job_t task)
 {
-	struct jobq_s *queue = policy.get_local_queue();
+	struct jobq_s *queue = policy.get_local_queue(&policy);
 
 	ASSERT(queue->push_task);
 
@@ -31,7 +35,7 @@ void push_task(job_t task)
 
 void push_prio_task(job_t task)
 {
-	struct jobq_s *queue = policy.get_local_queue();
+	struct jobq_s *queue = policy.get_local_queue(&policy);
 
 	ASSERT(queue->push_prio_task);
 
@@ -40,7 +44,7 @@ void push_prio_task(job_t task)
 
 struct job_s * pop_task(void)
 {
-	struct jobq_s *queue = policy.get_local_queue();
+	struct jobq_s *queue = policy.get_local_queue(&policy);
 
 	ASSERT(queue->pop_task);
 
