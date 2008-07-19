@@ -1,6 +1,8 @@
 #ifdef USE_CUBLAS
 
 #include "driver_cublas.h"
+#include <core/policies/sched_policy.h>
+
 
 unsigned get_cublas_device_count(void)
 {
@@ -74,7 +76,9 @@ void *cublas_worker(void *arg)
         sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
 #endif
 
-	set_local_memory_node_key(&(((cublas_worker_arg *)arg)->memory_node));
+	set_local_memory_node_key(&args->memory_node);
+
+	set_local_queue(args->jobq);
 
 	cublasInit();
 

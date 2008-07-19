@@ -60,6 +60,7 @@ typedef struct cuda_worker_arg_t {
 	int bindid;
 	volatile int ready_flag;
 	unsigned memory_node;
+	struct jobq_s *jobq;
 } cuda_worker_arg;
 
 void init_cuda(void);

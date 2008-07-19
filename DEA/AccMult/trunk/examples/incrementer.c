@@ -183,14 +183,20 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	cl.cl_arg = &my_float_state;
 	cl.core_func = core_codelet;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
-	cl.cuda_func = &cuda_codelet;
 	cl.cublas_func = cublas_codelet;
+#endif
+#ifdef USE_CUDA
+	cl.cuda_func = &cuda_codelet;
 #endif
 
 	for (i = 0; i < NITER; i++)
 	{
 		j = job_create();
+#ifdef USE_CUDA
 		j->where = CUDA|CORE;
+#else
+		j->where = CUBLAS|CORE;
+#endif
 			//(((i % 2) == 1)?CUDA:CUBLAS)|CORE; 
 		
 		j->cb = callback_func;

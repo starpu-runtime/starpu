@@ -10,19 +10,17 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <common/threads.h>
+//#include <common/threads.h>
 #include <common/util.h>
 #include <core/jobs.h>
 #include <common/parameters.h>
 #include <cublas.h>
 
-#include <datawizard/copy-driver.h>
-
 #include <common/fxt.h>
 
-#ifndef MAXCUBLASDEVS
-#define MAXCUBLASDEVS	4
-#endif
+#include <datawizard/copy-driver.h>
+
+
 
 #define SAFE_CUBLAS_CALL(ops)		 				\
 	do {								\
@@ -64,10 +62,16 @@ typedef struct cublas_worker_arg_t {
 	int bindid;
 	volatile int ready_flag;
 	unsigned memory_node;
+	struct jobq_s *jobq;
 } cublas_worker_arg;
 
 void *cublas_worker(void *);
 
 unsigned get_cublas_device_count(void);
+
+#ifndef MAXCUBLASDEVS
+#define MAXCUBLASDEVS	4
+#endif
+
 
 #endif //  __DRIVER_CUBLAS_H__

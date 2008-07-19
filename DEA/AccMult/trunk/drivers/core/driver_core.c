@@ -32,10 +32,13 @@ void execute_job_on_core(job_t j)
 
 void *core_worker(void *arg)
 {
-        int core = ((core_worker_arg *)arg)->coreid;
+	core_worker_arg *core_arg = arg;
+
+        int core = core_arg->coreid;
+
 
 #ifdef USE_FXT
-	fxt_register_thread(((core_worker_arg *)arg)->bindid);
+	fxt_register_thread(core_arg->bindid);
 #endif
 	TRACE_NEW_WORKER(FUT_CORE_KEY);
 
@@ -43,16 +46,18 @@ void *core_worker(void *arg)
 	/* fix the thread on the correct cpu */
 	cpu_set_t aff_mask; 
 	CPU_ZERO(&aff_mask);
-	CPU_SET(((core_worker_arg *)arg)->bindid, &aff_mask);
+	CPU_SET(core_arg->bindid, &aff_mask);
 	sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
 #endif
 
-        fprintf(stderr, "core worker %d is ready on logical core %d\n", core, ((core_worker_arg *)arg)->bindid);
+        fprintf(stderr, "core worker %d is ready on logical core %d\n", core, core_arg->bindid);
 
-	set_local_memory_node_key(&(((core_worker_arg *)arg)->memory_node));
+	set_local_memory_node_key(&core_arg->memory_node);
+
+	set_local_queue(core_arg->jobq);
 
         /* tell the main thread that we are ready */
-        ((core_worker_arg *)arg)->ready_flag = 1;
+        core_arg->ready_flag = 1;
 
 //	struct jobq_s *jobq;
 

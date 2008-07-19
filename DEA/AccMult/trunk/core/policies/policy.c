@@ -10,9 +10,13 @@ void init_sched_policy(struct machine_config_s *config)
 	/* for now we hardcode the eager policy */
 	policy.init_sched = initialize_eager_center_policy;
 	policy.get_local_queue = get_local_queue_eager;
-	policy.set_local_queue = set_local_queue_eager;
 
 	policy.init_sched(config);
+}
+
+void set_local_queue(struct jobq_s *jobq __attribute__ ((unused)))
+{
+	printf("set local queue %p \n", jobq);
 }
 
 /* the generic interface that call the proper underlying implementation */
