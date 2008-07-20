@@ -21,6 +21,26 @@ struct jobq_s *create_deque(void)
 	return jobq;
 }
 
+void ws_push_prio_task(struct jobq_s *q, job_t task)
+{
+#ifndef NO_PRIO
+	ASSERT(q);
+	struct deque_jobq_s *deque_queue = q->queue;
+
+	thread_mutex_lock(&deque_queue->workq_mutex);
+
+	TRACE_JOB_PUSH(task, 0);
+	job_list_push_front(deque_queue->jobq, task);
+	deque_queue->njobs++;
+
+	thread_mutex_unlock(&deque_queue->workq_mutex);
+#else
+	ws_push_task(q, task);
+#endif
+}
+
+
+
 void ws_push_task(struct jobq_s *q, job_t task)
 {
 	ASSERT(q);

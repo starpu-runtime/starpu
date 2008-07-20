@@ -62,8 +62,7 @@ static struct jobq_s *init_ws_deque(void)
 	q = create_deque();
 
 	q->push_task = ws_push_task; 
-	/* there is no prio yet */
-	q->push_prio_task = ws_push_task; 
+	q->push_prio_task = ws_push_prio_task; 
 	q->pop_task = ws_pop_task; 
 
 	queue_array[nworkers++] = q;
