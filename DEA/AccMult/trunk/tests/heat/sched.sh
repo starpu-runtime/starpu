@@ -1,6 +1,7 @@
 #!/bin/bash
 
 maxiter=100
+MAXCPU=2
 
 DIR=$PWD
 ROOTDIR=$DIR/../..
@@ -11,7 +12,7 @@ cd $ROOTDIR
 filename=$TIMINGDIR/sched.greedy.data
 rm -f $filename
 make clean 1> /dev/null 2> /dev/null
-make ATLAS=1 CPUS=4 1> /dev/null 2> /dev/null
+make ATLAS=1 CPUS=$MAXCPU 1> /dev/null 2> /dev/null
 cd $DIR
 
 for iter in `seq 1 $maxiter`
@@ -27,7 +28,7 @@ cd $ROOTDIR
 filename=$TIMINGDIR/sched.greedy.noprio.data
 rm -f $filename
 make clean 1> /dev/null 2> /dev/null
-make ATLAS=1 CPUS=4 NO_PRIO=1 1> /dev/null 2> /dev/null
+make ATLAS=1 CPUS=$MAXCPU NO_PRIO=1 1> /dev/null 2> /dev/null
 cd $DIR
 
 for iter in `seq 1 $maxiter`
@@ -41,7 +42,7 @@ cd $ROOTDIR
 filename=$TIMINGDIR/sched.greedy.ws.data
 rm -f $filename
 make clean 1> /dev/null 2> /dev/null
-make ATLAS=1 CPUS=4 1> /dev/null 2> /dev/null
+make ATLAS=1 CPUS=$MAXCPU 1> /dev/null 2> /dev/null
 cd $DIR
 
 for iter in `seq 1 $maxiter`
@@ -57,7 +58,7 @@ cd $ROOTDIR
 filename=$TIMINGDIR/sched.greedy.noprio.ws.data
 rm -f $filename
 make clean 1> /dev/null 2> /dev/null
-make ATLAS=1 CPUS=4 NO_PRIO=1 1> /dev/null 2> /dev/null
+make ATLAS=1 CPUS=$MAXCPU NO_PRIO=1 1> /dev/null 2> /dev/null
 cd $DIR
 
 for iter in `seq 1 $maxiter`
