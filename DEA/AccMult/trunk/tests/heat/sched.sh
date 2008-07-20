@@ -1,6 +1,6 @@
 #!/bin/bash
 
-maxiter=10
+maxiter=100
 
 DIR=$PWD
 ROOTDIR=$DIR/../..
