@@ -13,19 +13,19 @@ void init_sched_policy(struct machine_config_s *config)
 	sched_env = getenv("SCHED");
 	if (sched_env) {
 		 if (strcmp(sched_env, "ws") == 0) {
-		 	printf("USE WS SCHEDULER !! \n");
+		 	fprintf(stderr, "USE WS SCHEDULER !! \n");
 			policy.init_sched = initialize_ws_policy;
 			policy.get_local_queue = get_local_queue_ws;
 		 }
 		 else {
-		 	printf("USE EAGER SCHEDULER !! \n");
+		 	fprintf(stderr, "USE EAGER SCHEDULER !! \n");
 			/* default scheduler is the eager one */
 			policy.init_sched = initialize_eager_center_policy;
 			policy.get_local_queue = get_local_queue_eager;
 		 }
 	}
 	else {
-		 	printf("USE EAGER SCHEDULER !! \n");
+		 	fprintf(stderr, "USE EAGER SCHEDULER !! \n");
 		/* default scheduler is the eager one */
 		policy.init_sched = initialize_eager_center_policy;
 		policy.get_local_queue = get_local_queue_eager;
