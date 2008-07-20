@@ -26,6 +26,9 @@ Open problems:
 	- What about typed tasks ?
 		- priority
 		- static scheduler = type A + type B then type C etc...
+	- Use textures for the read-only data types
+		- eg : CSR matrices !
+		- should help with the unaligned access patterns
 Application domains
 	- Dense linear algebra
 		- LU decomposition (ok ...)
@@ -59,6 +62,13 @@ Application domains
 		- replace Linda in DigDag ;)
 	- Logic, Formal algebra
 		- cf Evora ?
+	- Cilk papers algorithms
+		- fib :)
+		- strassen
+		- sort
+		- queens
+		- knapsack
+		- barnes-hut
 	- ProHMPT ANR ...
 
 TODO:

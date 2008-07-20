@@ -2,11 +2,10 @@
 
 /*
  *	This is just the trivial policy where every worker use the same
- *	job queue.
+ *	JOB QUEUE.
  */
 
 /* the former is the actual queue, the latter some container */
-static struct central_jobq_s central_jobq;
 static struct jobq_s jobq;
 
 
@@ -51,19 +50,11 @@ static void set_worker_queues(struct machine_config_s *config)
 		spuarg->jobq = &jobq;
 	}
 #endif
-
-#ifdef USE_GORDON
-	config->gordonargs.bindid = 
-		(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
-	/* XXX do not forget to registrate memory nodes for each SPUs later on ! */
-#endif
 }
 
 void initialize_eager_center_policy(struct machine_config_s *config, 
 			__attribute__ ((unused))	struct sched_policy_s *_policy) 
 {
-	jobq.queue = &central_jobq;
-
 	init_central_jobq(&jobq);
 
 	set_worker_queues(config);

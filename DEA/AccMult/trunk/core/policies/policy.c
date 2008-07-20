@@ -1,6 +1,7 @@
 #include <core/mechanisms/queues.h>
 #include <core/policies/sched_policy.h>
 #include <core/policies/eager-central-policy.h>
+#include <core/policies/work-stealing-policy.h>
 
 static struct sched_policy_s policy;
 
@@ -8,8 +9,28 @@ void init_sched_policy(struct machine_config_s *config)
 {
 	/* first get the proper policy XXX */
 	/* for now we hardcode the eager policy */
-	policy.init_sched = initialize_eager_center_policy;
-	policy.get_local_queue = get_local_queue_eager;
+	char *sched_env;
+	sched_env = getenv("SCHED");
+	if (sched_env) {
+		 if (strcmp(sched_env, "ws") == 0) {
+		 	printf("USE WS SCHEDULER !! \n");
+			policy.init_sched = initialize_ws_policy;
+			policy.get_local_queue = get_local_queue_ws;
+		 }
+		 else {
+		 	printf("USE EAGER SCHEDULER !! \n");
+			/* default scheduler is the eager one */
+			policy.init_sched = initialize_eager_center_policy;
+			policy.get_local_queue = get_local_queue_eager;
+		 }
+	}
+	else {
+		 	printf("USE EAGER SCHEDULER !! \n");
+		/* default scheduler is the eager one */
+		policy.init_sched = initialize_eager_center_policy;
+		policy.get_local_queue = get_local_queue_eager;
+	}
+
 
 	pthread_key_create(&policy.local_queue_key, NULL);
 

@@ -2,6 +2,9 @@
 #define __SCHED_POLICY_H__
 
 #include <core/mechanisms/queues.h>
+#include <core/mechanisms/work_stealing_queues.h>
+#include <core/mechanisms/central_queues.h>
+
 #include <core/workers.h>
 
 struct machine_config_s;
