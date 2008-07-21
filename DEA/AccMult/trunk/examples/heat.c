@@ -395,40 +395,6 @@ void build_mesh(point *mesh)
 	}
 }
 
-static void build_stiffness_matrix_B(point *pmesh, float *B, float *Bformer, unsigned size, unsigned newsize, int *RefArray)
-{
-	unsigned i,j;
-
-	/* first give the value of known nodes (at boundaries) */
-	for (i = 0; i < size; i++)
-	{
-		Bformer[i] = 0.0f;
-	}
-
-	for (i = 0; i < nthick; i++)
-	{
-		Bformer[i] = 200.0f;
-		Bformer[size-1-i] = 200.0f;
-	}
-
-	for (i = 1; i < ntheta-1; i++)
-	{
-		Bformer[i*nthick] = 200.0f;
-		Bformer[(i+1)*nthick-1] = 100.0f;
-	}
-
-	/* now the actual stiffness (reordered) matrix*/
-	for (j = 0 ; j < newsize ; j++)
-	{
-		B[j] = Bformer[TRANSLATE(j)];
-
-		for (i = newsize; i < size; i++)
-		{
-			B[j] -= compute_A_value(TRANSLATE(i), TRANSLATE(j), pmesh)*Bformer[TRANSLATE(i)];
-		}
-	}
-}
-
 static unsigned build_neighbour_vector(unsigned *neighbours, unsigned node, int *RefArray, int *RefArrayBack)
 {
 	/* where is that point in the former space ? */
@@ -453,10 +419,7 @@ static unsigned build_neighbour_vector(unsigned *neighbours, unsigned node, int 
 					unsigned node = 
 						NODE_NUMBER((former_theta + dtheta), (former_thick + dthick));
 
-			//		if (TRANSLATEBACK(node) < newsize) {
-
 					neighbours[nneighbours++] = TRANSLATEBACK(node);
-			//		}
 				}
 			}
 		}
@@ -585,19 +548,31 @@ static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uin
 	return pos;
 }
 
-static void build_dense_stiffness_matrix_A(point *pmesh, float *A, unsigned newsize, int *RefArray)
+static void build_dense_stiffness_matrix_A(point *pmesh, float *A, unsigned newsize, int *RefArray, int *RefArrayBack)
 {
-	unsigned i,j;
+	unsigned j;
+
+	/* touch all the memory */
+	memset(A, 0, newsize*newsize*sizeof(float));
 
 	/* now the actual stiffness (reordered) matrix*/
 	for (j = 0 ; j < newsize ; j++)
 	{
-		for (i = 0; i < newsize ; i++)
-		{
-			float val;
-			val = compute_A_value(TRANSLATE(i), TRANSLATE(j), pmesh);
+		unsigned neighbour;
+		unsigned nneighbours;
+		unsigned neighbours[9];
 
-			A[i+j*newsize] = val;
+		nneighbours = build_neighbour_vector(&neighbours[0], j, RefArray, RefArrayBack);
+
+		for (neighbour = 0; neighbour < nneighbours; neighbour++)
+		{
+			unsigned nodeneighbour =  neighbours[neighbour];
+
+			if (nodeneighbour < newsize) {
+				float val;
+				val = compute_A_value(TRANSLATE(j), TRANSLATE(nodeneighbour), pmesh);
+				A[nodeneighbour+j*newsize] = val;
+			}
 		}
 	}
 }
@@ -652,10 +627,8 @@ int main(int argc, char **argv)
 
 		B = malloc(newsize*sizeof(float));
 
-		printf("build stiffness matrix B\n");
 		build_sparse_stiffness_matrix_B(pmesh, B, Bformer, DIM, newsize, RefArray, RefArrayBack);
 
-		printf("build stiffness matrix A\n");
 		nnz = build_sparse_stiffness_matrix_A(pmesh, &nzval, &colind, rowptr, newsize, RefArray, RefArrayBack);
 		printf("nnz : %d\n", nnz);
 
@@ -684,9 +657,9 @@ int main(int argc, char **argv)
 		initialize_system(&A, &B, newsize, pinned);
 
 		/* then build the stiffness matrix A */
-		build_stiffness_matrix_B(pmesh, B, Bformer, DIM, newsize, RefArray);
+		build_sparse_stiffness_matrix_B(pmesh, B, Bformer, DIM, newsize, RefArray, RefArrayBack);
 
-		build_dense_stiffness_matrix_A(pmesh, A, newsize, RefArray);
+		build_dense_stiffness_matrix_A(pmesh, A, newsize, RefArray, RefArrayBack);
 
 		fprintf(stderr, "Problem size : %dx%d (%dx%d)\n", newsize, newsize, DIM, DIM);
 

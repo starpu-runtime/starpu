@@ -190,8 +190,6 @@ void find_limits(void)
 	
 	ycenter = (ymin + ymax)/2;
 	xcenter = (xmin + xmax)/2;
-
-	printf("center : %f < %f > %f |  %f < %f > %f \n", xmin, xcenter, xmax, ymin, ycenter, ymax);
 }
 
 void opengl_render(unsigned _ntheta, unsigned _nthick, float *_result, point *_pmesh, int argc_, char **argv_)
