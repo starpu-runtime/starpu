@@ -14,9 +14,12 @@ struct deque_jobq_s {
 	unsigned njobs;
 };
 
+void init_ws_queues_mechanisms(void);
 struct jobq_s *create_deque(void);
+
 void ws_push_task(struct jobq_s *q, job_t task);
 void ws_push_prio_task(struct jobq_s *q, job_t task);
 job_t ws_non_blocking_pop_task(struct jobq_s *q);
+job_t ws_non_blocking_pop_task_if_job_exists(struct jobq_s *q);
 
 #endif // __WORK_STEALING_QUEUES_H__

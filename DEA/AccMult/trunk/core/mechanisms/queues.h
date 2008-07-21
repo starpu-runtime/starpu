@@ -11,6 +11,9 @@ struct jobq_s {
 	void (*push_task)(struct jobq_s *, job_t);
 	void (*push_prio_task)(struct jobq_s *, job_t);
 	struct job_s* (*pop_task)(struct jobq_s *);
+
+	/* what are the driver that may pop job from that queue ? */
+	uint32_t who;
 };
 
 #endif // __QUEUES_H__

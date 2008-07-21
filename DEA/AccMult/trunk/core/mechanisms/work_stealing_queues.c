@@ -4,6 +4,18 @@
  * "Work stealing" queues
  */
 
+/* keep track of the total number of jobs to be scheduled to avoid infinite 
+ * polling when there are really few jobs in the overall queue */
+static unsigned total_number_of_jobs;
+static sem_t total_jobs_sem_t;
+
+void init_ws_queues_mechanisms(void)
+{
+	total_number_of_jobs = 0;
+
+	sem_init(&total_jobs_sem_t, 0, 0U);
+}
+
 struct jobq_s *create_deque(void)
 {
 	struct jobq_s *jobq;
@@ -27,6 +39,10 @@ void ws_push_prio_task(struct jobq_s *q, job_t task)
 	ASSERT(q);
 	struct deque_jobq_s *deque_queue = q->queue;
 
+	/* do that early to avoid sleepy for no reason */
+	(void)ATOMIC_ADD(&total_number_of_jobs, 1);
+	sem_post(&total_jobs_sem_t);
+
 	thread_mutex_lock(&deque_queue->workq_mutex);
 
 	TRACE_JOB_PUSH(task, 0);
@@ -46,6 +62,10 @@ void ws_push_task(struct jobq_s *q, job_t task)
 	ASSERT(q);
 	struct deque_jobq_s *deque_queue = q->queue;
 
+	/* do that early to avoid sleepy for no reason */
+	(void)ATOMIC_ADD(&total_number_of_jobs, 1);
+	sem_post(&total_jobs_sem_t);
+
 	thread_mutex_lock(&deque_queue->workq_mutex);
 
 	TRACE_JOB_PUSH(task, 0);
@@ -53,6 +73,7 @@ void ws_push_task(struct jobq_s *q, job_t task)
 	deque_queue->njobs++;
 
 	thread_mutex_unlock(&deque_queue->workq_mutex);
+
 }
 
 //job_t ws_pop_task(struct jobq_s *q)
@@ -93,12 +114,31 @@ job_t ws_non_blocking_pop_task(struct jobq_s *q)
 		return NULL;
 	}
 
+	j = job_list_pop_back(deque_queue->jobq);
+
 	/* there was some task */
 	deque_queue->njobs--;
 	
-	j = job_list_pop_back(deque_queue->jobq);
 	TRACE_JOB_POP(j, 0);
 
+	/* we are sure that we got it now, so at worst, some people thought 
+	 * there remained some work and will soon discover it is not true */
+	(void)ATOMIC_ADD(&total_number_of_jobs, -1);
+
 	thread_mutex_unlock(&deque_queue->workq_mutex);
+	return j;
+}
+
+job_t ws_non_blocking_pop_task_if_job_exists(struct jobq_s *q)
+{
+	job_t j;
+
+	j = ws_non_blocking_pop_task(q);
+
+	if (!j && (ATOMIC_ADD(&total_number_of_jobs, 0) == 0)) {
+		/* there is no job at all in the entire system : go to sleep ! */
+		sem_wait(&total_jobs_sem_t);
+	}
+
 	return j;
 }

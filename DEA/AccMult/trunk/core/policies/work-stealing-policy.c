@@ -8,6 +8,10 @@ unsigned nworkers;
 unsigned rr_worker;
 struct jobq_s *queue_array[16];
 
+/* keep track of the total number of jobs to be scheduled to avoid infinite 
+ * polling when there are really few jobs in the overall queue */
+//static unsigned total_jobs;
+
 /* who to steal work to ? */
 struct jobq_s *select_victimq(void)
 {
@@ -48,7 +52,7 @@ static job_t ws_pop_task(struct jobq_s *q)
 		struct jobq_s *victimq;
 		victimq = select_victimq();
 
-		j = ws_non_blocking_pop_task(victimq);
+		j = ws_non_blocking_pop_task_if_job_exists(victimq);
 
 	} while(!j);
 
@@ -63,7 +67,8 @@ static struct jobq_s *init_ws_deque(void)
 
 	q->push_task = ws_push_task; 
 	q->push_prio_task = ws_push_prio_task; 
-	q->pop_task = ws_pop_task; 
+	q->pop_task = ws_pop_task;
+	q->who = 0;
 
 	queue_array[nworkers++] = q;
 
@@ -78,6 +83,7 @@ static void set_worker_ws_queues(struct machine_config_s *config)
 	{
 		core_worker_arg *corearg = &config->coreargs[core];
 		corearg->jobq = init_ws_deque();
+		corearg->jobq->who = CORE;
 	}
 #endif
 
@@ -88,6 +94,7 @@ static void set_worker_ws_queues(struct machine_config_s *config)
 	{
 		cuda_worker_arg *cudaarg = &config->cudaargs[cudadev];
 		cudaarg->jobq = init_ws_deque();
+		cudaarg->jobq->who = CUBLAS|CUDA;
 	}
 #endif
 
@@ -98,6 +105,7 @@ static void set_worker_ws_queues(struct machine_config_s *config)
 	{
 		cublas_worker_arg *cublasarg = &config->cublasargs[cublasdev]; 
 		cublasarg->jobq = init_ws_deque();
+		cublasrg->jobq->who = CUBLAS;
 	}
 #endif
 
@@ -109,6 +117,7 @@ static void set_worker_ws_queues(struct machine_config_s *config)
 		spu_worker_arg *spuarg = &config->spuargs[spu];
 
 		spuarg->jobq = init_ws_deque();
+		spuarg->jobq->who = SPU;
 	}
 #endif
 }
@@ -120,6 +129,8 @@ void initialize_ws_policy(struct machine_config_s *config,
 	rr_worker = 0;
 
 	machineconfig = config;
+
+	init_ws_queues_mechanisms();
 
 	set_worker_ws_queues(config);
 }
