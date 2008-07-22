@@ -56,6 +56,8 @@ static job_t ws_pop_task(struct jobq_s *q)
 
 	} while(!j);
 
+	TRACE_WORK_STEALING(q, j);
+
 	return j;
 }
 

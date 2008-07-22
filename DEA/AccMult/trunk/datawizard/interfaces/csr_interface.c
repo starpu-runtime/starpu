@@ -270,6 +270,8 @@ static void copy_cublas_to_ram(struct data_state_t *state, uint32_t src_node, ui
 
 	cublasGetVector((nrow+1), sizeof(uint32_t), (uint8_t *)src_csr->rowptr, 1, 
 						(uint8_t *)dst_csr->rowptr, 1);
+	
+	TRACE_DATA_COPY(src_node, dst_node, nnz*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
 
 }
 
@@ -293,6 +295,8 @@ static void copy_ram_to_cublas(struct data_state_t *state, uint32_t src_node, ui
 
 	cublasSetVector((nrow+1), sizeof(uint32_t), (uint8_t *)src_csr->rowptr, 1, 
 						(uint8_t *)dst_csr->rowptr, 1);
+	
+	TRACE_DATA_COPY(src_node, dst_node, nnz*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
 }
 #endif // USE_CUDA
 
@@ -315,6 +319,8 @@ static void dummy_copy_ram_to_ram(struct data_state_t *state, uint32_t src_node,
 	memcpy((void *)dst_csr->colind, (void *)src_csr->colind, nnz*sizeof(uint32_t));
 
 	memcpy((void *)dst_csr->rowptr, (void *)src_csr->rowptr, (nrow+1)*sizeof(uint32_t));
+
+	TRACE_DATA_COPY(src_node, dst_node, nnz*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
 }
 
 

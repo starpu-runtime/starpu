@@ -1,13 +1,10 @@
-size=1024
+size=1024*4;
 
 x1 <- scan("timings/sched.greedy.data");
-x2 <- scan("timings/sched.greedy.noprio.data");
 x3 <- scan("timings/sched.greedy.ws.data");
 x4 <- scan("timings/sched.greedy.noprio.ws.data");
 
-
-gflops1 <- 2*size*size*size/(3000000*x1);
-gflops2 <- 2*size*size*size/(3000000*x2);
+gflops1 <- 2*size*size*size/(3000000*x3);
 gflops3 <- 2*size*size*size/(3000000*x3);
 gflops4 <- 2*size*size*size/(3000000*x4);
 

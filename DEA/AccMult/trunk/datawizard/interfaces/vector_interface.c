@@ -148,6 +148,8 @@ static void copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t ds
 	cublasGetVector(src_vector->nx, src_vector->elemsize,
 		(uint8_t *)src_vector->ptr, 1,
 		(uint8_t *)dst_vector->ptr, 1);
+
+	TRACE_DATA_COPY(src_node, dst_node, src_vector->nx*src_vector->elemsize);
 }
 
 static void copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst_node)
@@ -161,6 +163,8 @@ static void copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t ds
 	cublasSetVector(src_vector->nx, src_vector->elemsize,
 		(uint8_t *)src_vector->ptr, 1,
 		(uint8_t *)dst_vector->ptr, 1);
+
+	TRACE_DATA_COPY(src_node, dst_node, src_vector->nx*src_vector->elemsize);
 }
 #endif // USE_CUDA
 
@@ -174,6 +178,8 @@ static void dummy_copy_ram_to_ram(data_state *state, uint32_t src_node, uint32_t
 	uintptr_t ptr_dst = state->interface[dst_node].vector.ptr;
 
 	memcpy((void *)ptr_dst, (void *)ptr_src, nx*elemsize);
+
+	TRACE_DATA_COPY(src_node, dst_node, nx*elemsize);
 }
 
 void do_copy_vector_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node)

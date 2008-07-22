@@ -173,6 +173,8 @@ static void copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t ds
 	cublasGetMatrix(src_blas->nx, src_blas->ny, src_blas->elemsize,
 		(uint8_t *)src_blas->ptr, src_blas->ld,
 		(uint8_t *)dst_blas->ptr, dst_blas->ld);
+
+	TRACE_DATA_COPY(src_node, dst_node, src_blas->nx*src_blas->ny*src_blas->elemsize);
 }
 
 static void copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst_node)
@@ -187,6 +189,8 @@ static void copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t ds
 	cublasSetMatrix(src_blas->nx, src_blas->ny, src_blas->elemsize,
 		(uint8_t *)src_blas->ptr, src_blas->ld,
 		(uint8_t *)dst_blas->ptr, dst_blas->ld);
+
+	TRACE_DATA_COPY(src_node, dst_node, src_blas->nx*src_blas->ny*src_blas->elemsize);
 }
 #endif // USE_CUDA
 
@@ -213,6 +217,8 @@ static void dummy_copy_ram_to_ram(data_state *state, uint32_t src_node, uint32_t
 		memcpy((void *)(ptr_dst + dst_offset), 
 			(void *)(ptr_src + src_offset), nx*elemsize);
 	}
+
+	TRACE_DATA_COPY(src_node, dst_node, nx*ny*elemsize);
 }
 
 

@@ -1,7 +1,7 @@
 TOOLS=
 
 ifdef USE_FXT
-	TOOLS += fxt-tool 
+	TOOLS += fxt-tool fxt-stats 
 endif
 
 ifdef FLASH_RENDER
@@ -24,6 +24,12 @@ histo-svg.o: histo-svg.c
 
 histo-flash.o: histo-flash.c
 	$(CC) $(CFLAGS) histo-flash.c -c -o histo-flash.o
+
+fxt-stats: $(DEPS) fxt-stats.o
+	$(CC) $(LDFLAGS) $(DEPS) fxt-stats.o -o fxt-stats
+
+fxt-stats.o: fxt-stats.c
+	$(CC) $(CFLAGS) fxt-stats.c -c -o fxt-stats.o
 
 fxt-tool: $(DEPS) fxt-tool.o histo-svg.o dag-dot.o gtk-viewer.o
 	$(CC) $(LDFLAGS) $(DEPS) gtk-viewer.o dag-dot.o histo-svg.o fxt-tool.o -o fxt-tool

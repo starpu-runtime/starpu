@@ -32,6 +32,9 @@
 #define FUT_CODELET_TAG		0x5111
 #define FUT_CODELET_TAG_DEPS	0x5112
 
+#define FUT_DATA_COPY		0x5113
+#define FUT_WORK_STEALING	0x5114
+
 #ifdef USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -73,6 +76,12 @@ void fxt_register_thread(unsigned);
 #define TRACE_CODELET_TAG_DEPS(tag_child, tag_father)	\
 	FUT_DO_PROBE2(FUT_CODELET_TAG_DEPS, tag_child, tag_father)
 
+#define TRACE_DATA_COPY(src_node, dst_node, size)	\
+	FUT_DO_PROBE3(FUT_DATA_COPY, src_node, dst_node, size)
+
+#define TRACE_WORK_STEALING(empty_q, victim_q)		\
+	FUT_DO_PROBE2(FUT_WORK_STEALING, empty_q, victim_q)
+
 #else // !USE_FXT
 
 #define TRACE_NEW_WORKER(a)		do {} while(0);
@@ -86,6 +95,8 @@ void fxt_register_thread(unsigned);
 #define TRACE_END_PUSH_OUTPUT(job)	do {} while(0);
 #define TRACE_CODELET_TAG(tag, job)	do {} while(0);
 #define TRACE_CODELET_TAG_DEPS(a, b)	do {} while(0);
+#define TRACE_DATA_COPY(a, b, c)	do {} while(0);
+#define TRACE_WORK_STEALING(a, b)	do {} while(0);
 
 #endif // USE_FXT
 
