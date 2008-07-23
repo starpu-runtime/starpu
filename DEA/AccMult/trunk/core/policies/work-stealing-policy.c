@@ -8,13 +8,90 @@ unsigned nworkers;
 unsigned rr_worker;
 struct jobq_s *queue_array[16];
 
-/* keep track of the total number of jobs to be scheduled to avoid infinite 
- * polling when there are really few jobs in the overall queue */
-//static unsigned total_jobs;
+/* keep track of the work performed from the beginning of the algorithm to make
+ * better decisions about which queue to select when stealing or deferring work
+ */
+static unsigned performed_total = 0;
+static unsigned performed_local[16];
+
+static float overload_metric(unsigned id)
+{
+	float execution_ratio = 0.0f;
+	if (performed_total > 0) {
+		execution_ratio = get_queue_nprocessed_ws(queue_array[id])/performed_total;
+	}
+
+	unsigned performed_queue;
+	performed_queue = get_queue_nprocessed_ws(queue_array[id]);
+
+	float current_ratio = 0.0f;
+	if (performed_queue > 0) {
+		current_ratio = get_queue_njobs_ws(queue_array[id])/performed_queue;
+	}
+	
+	return (current_ratio - execution_ratio);
+}
+
+#ifdef USE_OVERLOAD
+/* who to steal work to ? */
+static struct jobq_s *select_victimq(void)
+{
+	struct jobq_s *q;
+
+	unsigned attempts = nworkers;
+
+	unsigned worker = rr_worker;
+	do {
+		if (overload_metric(worker) > 0.0f)
+		{
+			q = queue_array[worker];
+			return q;
+		}
+		else {
+			worker = (worker + 1)%nworkers;
+		}
+	} while(attempts-- > 0);
+
+	/* take one anyway ... */
+	q = queue_array[rr_worker];
+	rr_worker = (rr_worker + 1 )%nworkers;
+
+	return q;
+}
+
+static struct jobq_s *select_workerq(void)
+{
+	struct jobq_s *q;
+
+	unsigned attempts = nworkers;
+
+	unsigned worker = rr_worker;
+	do {
+		if (overload_metric(worker) < 0.0f)
+		{
+			q = queue_array[worker];
+			return q;
+		}
+		else {
+			worker = (worker + 1)%nworkers;
+		}
+	} while(attempts-- > 0);
+
+	/* take one anyway ... */
+	q = queue_array[rr_worker];
+	rr_worker = (rr_worker + 1 )%nworkers;
+
+	return q;
+}
+
+
+
+#else
 
 /* who to steal work to ? */
-struct jobq_s *select_victimq(void)
+static struct jobq_s *select_victimq(void)
 {
+
 	struct jobq_s *q;
 
 	q = queue_array[rr_worker];
@@ -23,11 +100,13 @@ struct jobq_s *select_victimq(void)
 
 	return q;
 }
+
 
 /* when anonymous threads submit tasks, 
  * we need to select a queue where to dispose them */
-struct jobq_s *select_workerq(void)
+static struct jobq_s *select_workerq(void)
 {
+
 	struct jobq_s *q;
 
 	q = queue_array[rr_worker];
@@ -36,6 +115,8 @@ struct jobq_s *select_workerq(void)
 
 	return q;
 }
+
+#endif
 
 static job_t ws_pop_task(struct jobq_s *q)
 {
@@ -44,6 +125,7 @@ static job_t ws_pop_task(struct jobq_s *q)
 	j = ws_non_blocking_pop_task(q);
 	if (j) {
 		/* there was a local task */
+		performed_total++;
 		return j;
 	}
 	
@@ -58,6 +140,7 @@ static job_t ws_pop_task(struct jobq_s *q)
 
 	TRACE_WORK_STEALING(q, j);
 
+	performed_total++;
 	return j;
 }
 

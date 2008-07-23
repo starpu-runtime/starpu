@@ -42,4 +42,4 @@ gtk-viewer.o: gtk-viewer.c
 
 clean:
 	rm -f *.o
-	rm -f fxt-tool
+	rm -f fxt-tool fxt-stats

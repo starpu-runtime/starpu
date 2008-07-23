@@ -27,10 +27,34 @@ struct jobq_s *create_deque(void)
 	thread_mutex_init(&deque->workq_mutex, NULL);
 	deque->jobq = job_list_new();
 	deque->njobs = 0;
+	deque->nprocessed = 0;
 
 	jobq->queue = deque;
 
 	return jobq;
+}
+
+unsigned get_total_njobs_ws(void)
+{
+	return total_number_of_jobs;
+}
+
+unsigned get_queue_njobs_ws(struct jobq_s *q)
+{
+	ASSERT(q);
+
+	struct deque_jobq_s *deque_queue = q->queue;
+
+	return deque_queue->njobs;
+}
+
+unsigned get_queue_nprocessed_ws(struct jobq_s *q)
+{
+	ASSERT(q);
+
+	struct deque_jobq_s *deque_queue = q->queue;
+
+	return deque_queue->nprocessed;
 }
 
 void ws_push_prio_task(struct jobq_s *q, job_t task)
@@ -47,7 +71,9 @@ void ws_push_prio_task(struct jobq_s *q, job_t task)
 
 	TRACE_JOB_PUSH(task, 0);
 	job_list_push_front(deque_queue->jobq, task);
+
 	deque_queue->njobs++;
+	deque_queue->nprocessed++;
 
 	thread_mutex_unlock(&deque_queue->workq_mutex);
 #else
@@ -71,6 +97,7 @@ void ws_push_task(struct jobq_s *q, job_t task)
 	TRACE_JOB_PUSH(task, 0);
 	job_list_push_front(deque_queue->jobq, task);
 	deque_queue->njobs++;
+	deque_queue->nprocessed++;
 
 	thread_mutex_unlock(&deque_queue->workq_mutex);
 

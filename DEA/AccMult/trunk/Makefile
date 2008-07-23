@@ -39,6 +39,10 @@ ifdef DONTBIND
 	CFLAGS += -DDONTBIND
 endif
 
+ifdef USE_OVERLOAD
+	CFLAGS += -DUSE_OVERLOAD
+endif
+
 ifeq ($(CUDA), 1)
 	CFLAGS += -DUSE_CUDA 
 	NVCCFLAGS +=  -DUSE_CUDA -O3 

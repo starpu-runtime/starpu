@@ -1,69 +1,63 @@
 #!/bin/bash
 
-maxiter=100
-MAXCPU=2
+maxiter=10
+MAXCPU=3
 
 DIR=$PWD
 ROOTDIR=$DIR/../..
-TIMINGDIR=$DIR/timings/
+TIMINGDIR=$DIR/timings-sched/
 mkdir -p $TIMINGDIR
 
-cd $ROOTDIR
-filename=$TIMINGDIR/sched.greedy.data
-rm -f $filename
-make clean 1> /dev/null 2> /dev/null
-make ATLAS=1 CPUS=$MAXCPU 1> /dev/null 2> /dev/null
-cd $DIR
-
-for iter in `seq 1 $maxiter`
+for blocks in `seq 2 2 16`
 do
-	echo "$iter / $maxiter"
-	 val=`$ROOTDIR/examples/heat 2> /dev/null`
-	 echo "$val" >> $filename
-done
+	ntheta=$(( $(($blocks*32)) + 2))
+	size=$(( $(($blocks*32)) * 32))
 
+	echo "size : $size"
 
-
-cd $ROOTDIR
-filename=$TIMINGDIR/sched.greedy.noprio.data
-rm -f $filename
-make clean 1> /dev/null 2> /dev/null
-make ATLAS=1 CPUS=$MAXCPU NO_PRIO=1 1> /dev/null 2> /dev/null
-cd $DIR
-
-for iter in `seq 1 $maxiter`
-do
-	echo "$iter / $maxiter"
-	 val=`$ROOTDIR/examples/heat 2> /dev/null`
-	 echo "$val" >> $filename
-done
-
-cd $ROOTDIR
-filename=$TIMINGDIR/sched.greedy.ws.data
-rm -f $filename
-make clean 1> /dev/null 2> /dev/null
-make ATLAS=1 CPUS=$MAXCPU 1> /dev/null 2> /dev/null
-cd $DIR
-
-for iter in `seq 1 $maxiter`
-do
-	echo "$iter / $maxiter"
-	 val=`SCHED=ws $ROOTDIR/examples/heat 2> /dev/null`
-	 echo "$val" >> $filename
-done
-
-
-
-cd $ROOTDIR
-filename=$TIMINGDIR/sched.greedy.noprio.ws.data
-rm -f $filename
-make clean 1> /dev/null 2> /dev/null
-make ATLAS=1 CPUS=$MAXCPU NO_PRIO=1 1> /dev/null 2> /dev/null
-cd $DIR
-
-for iter in `seq 1 $maxiter`
-do
-	echo "$iter / $maxiter"
-	 val=`SCHED=ws $ROOTDIR/examples/heat 2> /dev/null`
-	 echo "$val" >> $filename
+	OPTIONS="-pin -v3 -nblocks $blocks -ntheta $ntheta -nthick 34"
+	
+	cd $ROOTDIR
+	filename=$TIMINGDIR/sched.greedy.$size
+	rm -f $filename
+	make clean 1> /dev/null 2> /dev/null
+	make ATLAS=1 CPUS=$MAXCPU CUDA=1 1> /dev/null 2> /dev/null
+	cd $DIR
+	
+	for iter in `seq 1 $maxiter`
+	do
+		echo "$iter / $maxiter"
+		 val=`$ROOTDIR/examples/heat $OPTIONS 2> /dev/null`
+		 echo "$val" >> $filename
+	done
+	
+	cd $ROOTDIR
+	filename=$TIMINGDIR/sched.ws.$size
+	rm -f $filename
+	make clean 1> /dev/null 2> /dev/null
+	make ATLAS=1 CPUS=$MAXCPU CUDA=1 1> /dev/null 2> /dev/null
+	cd $DIR
+	
+	for iter in `seq 1 $maxiter`
+	do
+		echo "$iter / $maxiter"
+		 val=`SCHED=ws $ROOTDIR/examples/heat $OPTIONS 2> /dev/null`
+		 echo "$val" >> $filename
+	done
+	
+	
+	cd $ROOTDIR
+	filename=$TIMINGDIR/sched.ws.overload.$size
+	rm -f $filename
+	make clean 1> /dev/null 2> /dev/null
+	make ATLAS=1 CPUS=$MAXCPU CUDA=1 1> /dev/null 2> /dev/null
+	cd $DIR
+	
+	for iter in `seq 1 $maxiter`
+	do
+		echo "$iter / $maxiter"
+		 val=`SCHED=ws $ROOTDIR/examples/heat $OPTIONS USE_OVERLOAD=1 2> /dev/null`
+		 echo "$val" >> $filename
+	done
+	
 done

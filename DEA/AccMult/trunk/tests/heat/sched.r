@@ -1,11 +1,24 @@
-size=1024*4;
+size=1024*16;
 
-x1 <- scan("timings/sched.greedy.data");
-x3 <- scan("timings/sched.greedy.ws.data");
-x4 <- scan("timings/sched.greedy.noprio.ws.data");
+gflops <- function (x)
+{
+	2*size*size*size/(3000000*x);
+}
 
-gflops1 <- 2*size*size*size/(3000000*x3);
-gflops3 <- 2*size*size*size/(3000000*x3);
-gflops4 <- 2*size*size*size/(3000000*x4);
+x1.16384 <- 0;
 
-boxplot(gflops1, gflops3, gflops4);
+parse_size <- function (size)
+{
+	x1 <- scan(paste("timings-sched/sched.greedy.", size, sep=""));
+	x2 <- scan(paste("timings-sched/sched.ws.", size, sep=""));
+	x3 <- scan(paste("timings-sched/sched.ws.overload.", size, sep=""));
+
+}
+
+parse_size(16384);
+
+gflops1 <- gflops(x1.16384);
+gflops2 <- gflops(x2.16384);
+gflops3 <- gflops(x3.16384);
+
+boxplot(gflops1, gflops2, gflops3);
