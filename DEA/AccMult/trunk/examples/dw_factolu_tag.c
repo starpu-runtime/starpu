@@ -1,5 +1,5 @@
 #include "dw_factolu.h"
-#include <core/tags.h>
+#include <core/dependencies/tags.h>
 
 #define TAG11(k)	( (1ULL<<60) | (unsigned long long)(k))
 #define TAG12(k,i)	(((2ULL<<60) | (((unsigned long long)(k))<<32)	\

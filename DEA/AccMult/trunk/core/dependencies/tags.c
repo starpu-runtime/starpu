@@ -1,8 +1,8 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <common/util.h>
-#include <core/tags.h>
-#include <core/htable.h>
+#include <core/dependencies/tags.h>
+#include <core/dependencies/htable.h>
 #include <core/jobs.h>
 #include <core/policies/sched_policy.h>
 

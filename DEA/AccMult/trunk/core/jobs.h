@@ -7,12 +7,12 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdarg.h>
 #include <common/timing.h>
 #include <common/list.h>
 #include <common/threads.h>
 #include <common/fxt.h>
-#include <core/tags.h>
-#include <stdarg.h>
+#include <core/dependencies/tags.h>
 
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/coherency.h>
@@ -73,12 +73,6 @@ LIST_TYPE(job,
 	buffer_descr buffers[NMAXBUFS];
 	data_interface_t interface[NMAXBUFS];
 );
-
-//void init_work_queue(void);
-//void push_task(job_t task);
-//void push_prio_task(job_t task);
-//job_t pop_task(void);
-//void push_task(job_t task);
 
 job_t job_create(void);
 

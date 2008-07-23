@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include <signal.h>
-#include <core/tags.h>
+#include <core/dependencies/tags.h>
 
 void callback_core(void *argcb __attribute__ ((unused)))
 {

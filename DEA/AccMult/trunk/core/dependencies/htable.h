@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-#include <core/tags.h>
+#include <core/dependencies/tags.h>
 
 #define HTBL_NODE_SIZE	16
 

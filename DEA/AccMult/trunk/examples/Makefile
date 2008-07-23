@@ -56,7 +56,7 @@ LDFLAGS += -L../core/ -L../common/
 CFLAGS += -I../
 
 OBJDEPS += ../common/threads.o ../common/timing.o 
-OBJDEPS += ../core/jobs.o ../core/workers.o ../core/tags.o ../core/htable.o
+OBJDEPS += ../core/jobs.o ../core/workers.o ../core/dependencies/tags.o ../core/dependencies/htable.o
 OBJDEPS += ../core/mechanisms/queues.o
 OBJDEPS += ../core/mechanisms/work_stealing_queues.o
 OBJDEPS += ../core/mechanisms/central_queues.o

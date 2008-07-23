@@ -4,7 +4,7 @@
 #include <semaphore.h>
 #include <core/jobs.h>
 #include <core/workers.h>
-#include <core/tags.h>
+#include <core/dependencies/tags.h>
 #include <common/timing.h>
 #include <common/util.h>
 #include <string.h>
