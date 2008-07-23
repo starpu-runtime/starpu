@@ -155,7 +155,7 @@ void tag_set_ready(struct tag_s *tag)
 	struct job_s *j = tag->job;
 	
 	/* that's a very simple implementation of priorities */
-	if (j->priority > 0) {
+	if (j->priority > DEFAULT_PRIO) {
 		push_prio_task(j);
 	}
 	else {

@@ -275,7 +275,7 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 		job->buffers[0].mode = RW;
 
 	/* this is an important task */
-	job->priority = MAXPRIO;
+	job->priority = MAX_PRIO;
 
 	/* enforce dependencies ... */
 	if (k > 0) {
@@ -309,7 +309,7 @@ static void create_task_12(data_state *dataA, unsigned k, unsigned i)
 		job->buffers[1].mode = RW;
 
 	if (i == k+1) {
-		job->priority = MAXPRIO;
+		job->priority = MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
@@ -338,7 +338,7 @@ static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 		job->buffers[1].mode = RW;
 
 	if (j == k+1) {
-		job->priority = MAXPRIO;
+		job->priority = MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
@@ -370,7 +370,7 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
 		job->buffers[2].mode = RW;
 
 	if ( (i == k + 1) && (j == k +1) ) {
-		job->priority = MAXPRIO;
+		job->priority = MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */

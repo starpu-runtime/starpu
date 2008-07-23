@@ -13,7 +13,7 @@ job_t job_create(void)
 	job->argcb = NULL;
 	job->use_tag = 0;
 	job->nbuffers = 0;
-	job->priority = 0;
+	job->priority = DEFAULT_PRIO;
 
 	return job;
 }

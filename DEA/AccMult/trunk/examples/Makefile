@@ -60,8 +60,10 @@ OBJDEPS += ../core/jobs.o ../core/workers.o ../core/dependencies/tags.o ../core/
 OBJDEPS += ../core/mechanisms/queues.o
 OBJDEPS += ../core/mechanisms/work_stealing_queues.o
 OBJDEPS += ../core/mechanisms/central_queues.o
+OBJDEPS += ../core/mechanisms/central_queues_priorities.o
 OBJDEPS += ../core/policies/policy.o
 OBJDEPS += ../core/policies/eager-central-policy.o
+OBJDEPS += ../core/policies/eager-central-priority-policy.o
 OBJDEPS += ../core/policies/work-stealing-policy.o
 OBJDEPS += ../common/mutex.o ../common/rwlock.o 
 

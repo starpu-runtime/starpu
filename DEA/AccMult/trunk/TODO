@@ -11,9 +11,13 @@ Open problems:
 		- biblio ?
 		- is it a real problem ?
 	- How to let the programmer model cost ?
-		- identical tasks
+		- identical tasks : for debugging only ?
 		- well known BLAS (size based cost)
 		- fully irregular (eg. data mining)
+		- interface for cost modeling ?
+		- per worker queue without work-stealing ?
+			- see effects on the dw_mult pathological cases
+		- deduction for the granularity indications to the apps ?
 	- What about out-of-core computations ?
 		- really take a COMA approach ?
 	- How should the programmer express its scheduling requirements ?
@@ -29,6 +33,8 @@ Open problems:
 	- Use textures for the read-only data types
 		- eg : CSR matrices !
 		- should help with the unaligned access patterns
+	- Policies
+		- single list multi-level priorities
 Application domains
 	- Dense linear algebra
 		- LU decomposition (ok ...)

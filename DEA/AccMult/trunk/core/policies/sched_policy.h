@@ -4,6 +4,7 @@
 #include <core/mechanisms/queues.h>
 #include <core/mechanisms/work_stealing_queues.h>
 #include <core/mechanisms/central_queues.h>
+#include <core/mechanisms/central_queues_priorities.h>
 
 #include <core/workers.h>
 
