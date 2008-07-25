@@ -1,20 +1,14 @@
 CFLAGS += -I../
 
-CFLAGS += -I../common/
-
 LDFLAGS += -L../datawizard/
-CFLAGS += -I../datawizard/
+
+%.o: %.c %.h
+	$(CC) $(CFLAGS) $< -c -o $@
 
 all: jobs.o workers.o
 	@make -C dependencies
 	@make -C mechanisms
 	@make -C policies
-
-jobs.o: jobs.c
-	$(CC) $(CFLAGS) jobs.c -c -o jobs.o
-
-workers.o: workers.c
-	$(CC) $(CFLAGS) workers.c -c -o workers.o
 
 clean:
 	@make -C policies clean

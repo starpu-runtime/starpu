@@ -1,7 +1,5 @@
 .PHONY: interfaces spu
 
-CFLAGS+= -g -Wall
-
 CFLAGS+= -I../
 
 ifeq ($(CUBLAS), 1)
@@ -21,19 +19,8 @@ interfaces:
 spu:
 	@make -C spu
 
-
-
-memalloc.o: memalloc.c memalloc.h
-	$(CC) memalloc.c $(CFLAGS) -c -o memalloc.o
-
-hierarchy.o: hierarchy.c hierarchy.h coherency.h
-	$(CC) hierarchy.c $(CFLAGS) -c -o hierarchy.o
-
-coherency.o: coherency.c coherency.h coherency_common.c
-	$(CC) coherency.c $(CFLAGS) -c -o coherency.o
-
-copy-driver.o: copy-driver.c
-	$(CC) copy-driver.c $(CFLAGS) -c -o copy-driver.o
+%.o: %.c %.h
+	$(CC) $(CFLAGS) $< -c -o $@
 
 clean:
 	@rm -f *.o test

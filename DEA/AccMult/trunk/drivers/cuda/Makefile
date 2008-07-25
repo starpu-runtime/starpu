@@ -3,13 +3,11 @@ ifeq ($(CUDA), 1)
 endif
 
 CFLAGS += -I../../
-CFLAGS += -g 
-NVCCFLAGS += -I../../
 
 all: driver_cuda.o
 
-driver_cuda.o: driver_cuda.c driver_cuda.h
-	$(CC) $(CFLAGS) driver_cuda.c -c -o driver_cuda.o
+%.o: %.c %.h
+	$(CC) $(CFLAGS) $< -c -o $@
 
 clean:
-	@rm -f *.o *.cu_o *.cubin
+	@rm -f *.o
