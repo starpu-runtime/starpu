@@ -2,12 +2,13 @@ TARGET=tag_example
 TARGET+= incrementer
 #TARGET+= dw_sparse_cg
 
+OBJDEPS=../ribsched.a
+
 ifdef OPENGL_RENDER
 	CFLAGS+=-DOPENGL_RENDER
 	LDFLAGS+=-lglut -lGL -lGLU 
 endif
 
-DEPENDENCIES=comp.o threads.o mult.o jobs.o driver_core.o
 EXTRADEP=
 
 ifeq ($(CHECK), 1)
@@ -16,29 +17,8 @@ ifeq ($(CHECK), 1)
 endif
 
 ifeq ($(CUDA), 1)
-	OBJDEPS += ../drivers/cuda/driver_cuda.o
-	DEPENDENCIES += driver_cuda.o
 	EXTRADEP += cuda/incrementer_cuda.cubin 
 	EXTRADEP += cuda/spmv_cuda.cubin 
-endif
-
-ifeq ($(CUBLAS), 1)
-	OBJDEPS += ../drivers/cublas/driver_cublas.o
-	DEPENDENCIES += driver_cublas.o
-endif
-
-ifdef SPU
-	OBJDEPS += ../drivers/spu/ppu/driver_spu_ppu.o
-	OBJDEPS += ../drivers/spu/spu/spu_worker_program.o
-endif
-
-ifdef GORDON
-	OBJDEPS += ../drivers/gordon/driver_gordon.o
-	OBJDEPS += ../drivers/gordon/externals/scalp/util/util.o
-	OBJDEPS += ../drivers/gordon/externals/scalp/cell/gordon/gordon.o 
-	OBJDEPS += ../drivers/gordon/externals/scalp/cell/gordon/pputil.o 
-	OBJDEPS += ../drivers/gordon/externals/scalp/cell/gordon/spuembed.o 
-	CFLAGS += -I../drivers/gordon/externals/scalp/
 endif
 
 ifdef ATLAS
@@ -47,41 +27,11 @@ ifdef ATLAS
 	TARGET+= heat 
 endif
 
-
-ifdef CPUS
-	OBJDEPS += ../drivers/core/driver_core.o
-endif
-
-LDFLAGS += -L../core/ -L../common/
 CFLAGS += -I../
 
-OBJDEPS += ../common/threads.o ../common/timing.o 
-OBJDEPS += ../core/jobs.o ../core/workers.o ../core/dependencies/tags.o ../core/dependencies/htable.o
-OBJDEPS += ../core/mechanisms/queues.o
-OBJDEPS += ../core/mechanisms/work_stealing_queues.o
-OBJDEPS += ../core/mechanisms/central_queues.o
-OBJDEPS += ../core/mechanisms/central_queues_priorities.o
-OBJDEPS += ../core/policies/sched_policy.o
-OBJDEPS += ../core/policies/eager-central-policy.o
-OBJDEPS += ../core/policies/eager-central-priority-policy.o
-OBJDEPS += ../core/policies/work-stealing-policy.o
-OBJDEPS += ../common/mutex.o ../common/rwlock.o 
-
 ifdef USE_FXT
-OBJDEPS += ../common/fxt.o
-LDFLAGS += -lfxt
+	LDFLAGS += -lfxt
 endif
-
-LDFLAGS += -L../datawizard/
-CFLAGS += -I../datawizard/
-OBJDEPS += ../datawizard/copy-driver.o ../datawizard/coherency.o 
-OBJDEPS += ../datawizard/hierarchy.o 
-OBJDEPS += ../datawizard/interfaces/blas_filters.o
-OBJDEPS += ../datawizard/interfaces/csr_filters.o
-OBJDEPS += ../datawizard/interfaces/vector_filters.o
-OBJDEPS += ../datawizard/memalloc.o  ../datawizard/interfaces/blas_interface.o
-OBJDEPS += ../datawizard/interfaces/csr_interface.o
-OBJDEPS += ../datawizard/interfaces/vector_interface.o
 
 all: $(TARGET)
 
