@@ -1,9 +1,13 @@
 CFLAGS += -I../../
 
-all: driver_core.o
+OBJS := driver_core.o
 
-%.o: %.c %.h
-	$(CC) $(CFLAGS) $< -c -o $@
+all: $(OBJS)
+
+%.d: %.c
+	$(CC) $(CFLAGS) $< -MM -o $*.d
+
+-include $(OBJS:.o=.d)
 
 clean:
-	@rm -f *.o 
+	@rm -f *.o *.d 

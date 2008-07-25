@@ -4,10 +4,14 @@ endif
 
 CFLAGS+= -I../
 
-all: threads.o mutex.o rwlock.o timing.o $(OPTTARGET)
+OBJS := mutex.o threads.o rwlock.o timing.o $(OPTTARGET)
 
-%.o: %.c %.h
-	$(CC) $(CFLAGS) $< -c -o $@
+all: $(OBJS)
+
+%.d: %.c
+	$(CC) $(CFLAGS) $< -MM -o $*.d
+
+-include $(OBJS:.o=.d)
 
 clean:
-	@rm -f *.o 
+	@rm -f *.o *.d 

@@ -2,27 +2,30 @@ export
 
 CC=gcc -m64
 NVCC = nvcc -m64
-CFLAGS += -g -O3 -Wall #-fPIC
-CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function  -Wstrict-prototypes -Wnested-externs   -fno-strict-aliasing
+NVCCFLAGS += -O3
 
+CFLAGS += -g -O3 -Wall #-fPIC
+CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses
+CFLAGS += -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type 
+CFLAGS += -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -fno-strict-aliasing
+
+LDFLAGS+= -lm
 
 # to use CUDA
-export CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
-export CUDAINSTALLDIR=/usr/local/cuda/
+CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
+CUDAINSTALLDIR=/usr/local/cuda/
 
 ifndef ATLASDIR
-export ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
+ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
 endif
 ifndef BLASARCH
-export BLASARCH=Linux_UNKNOWNSSE2
+BLASARCH=Linux_UNKNOWNSSE2
 endif
 
 ifdef PERF_DEBUG
 	CFLAGS += -DPERF_DEBUG
 	LDFLAGS += -pg
 endif
-
-LDFLAGS+= -lm
 
 DEPENDENCIES=comp.o threads.o mult.o jobs.o driver_core.o
 EXTRADEP=
@@ -45,11 +48,9 @@ endif
 
 ifeq ($(CUDA), 1)
 	CFLAGS += -DUSE_CUDA 
-	NVCCFLAGS +=  -DUSE_CUDA -O3 
+	NVCCFLAGS +=  -DUSE_CUDA 
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	NVCCFLAGS += -I$(CUDAINSTALLDIR)/include 
-	DEPENDENCIES += driver_cuda.o
-	EXTRADEP += comp_cuda.cubin 
 	LDFLAGS += -lcuda -L/usr/local/cuda/lib 
 	LDFLAGS += -lcublas
 endif
@@ -78,13 +79,13 @@ endif
 
 
 ifdef CPUS
-	CFLAGS += -DUSE_CPUS #-DDEBUG
+	CFLAGS += -DUSE_CPUS
 	CFLAGS += -DNMAXCORES=$(CPUS)
 	NVCCFLAGS += -DUSE_CPUS
 endif
 
 ifdef SPU
-	CFLAGS += -DUSE_SPU #-DDEBUG
+	CFLAGS += -DUSE_SPU
 	CFLAGS += -DMAXSPUS=$(SPU)
 	LDFLAGS += -lspe2
 endif
@@ -95,7 +96,7 @@ ifdef GORDON
 endif
 
 ifndef FXTDIR
-FXTDIR=/home/gonnet/FxT/target
+	FXTDIR=/home/gonnet/FxT/target
 endif
 
 ifdef USE_FXT

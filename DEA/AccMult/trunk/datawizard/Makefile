@@ -11,7 +11,9 @@ ifdef SPU
 	SPU_TARGET=spu
 endif
 
-all: interfaces coherency.o copy-driver.o hierarchy.o memalloc.o $(SPU_TARGET)
+OBJS := coherency.o copy-driver.o hierarchy.o memalloc.o
+
+all: interfaces $(SPE_TARGET) $(OBJS)
 
 interfaces:
 	@make -C interfaces
@@ -19,10 +21,12 @@ interfaces:
 spu:
 	@make -C spu
 
-%.o: %.c %.h
-	$(CC) $(CFLAGS) $< -c -o $@
+%.d: %.c
+	$(CC) $(CFLAGS) $< -MM -o $*.d
+
+-include $(OBJS:.o=.d)
 
 clean:
-	@rm -f *.o test
+	@rm -f *.o *.d
 	@make -C interfaces clean
 	@make -C spu clean

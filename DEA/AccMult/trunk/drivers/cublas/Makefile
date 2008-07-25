@@ -1,16 +1,11 @@
-DEPENDENCIES=comp.o threads.o mult.o jobs.o driver_core.o
-EXTRADEP=
-
-ifeq ($(CUBLAS), 1)
-	DEPENDENCIES += driver_cublas.o
-endif
-
 CFLAGS += -I../../
 
-all: driver_cublas.o
+OBJS := driver_cublas.o
 
-driver_cublas.o: driver_cublas.c driver_cublas.h
-	$(CC) $(CFLAGS) driver_cublas.c -c -o driver_cublas.o
+%.d: %.c
+	$(CC) $(CFLAGS) $< -MM -o $*.d
+
+-include $(OBJS:.o=.d)
 
 clean:
-	@rm -f *.o *.cu_o *.cubin
+	@rm -f *.o *.d

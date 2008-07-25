@@ -1,9 +1,13 @@
 CFLAGS += -I../../
 
-all: eager-central-policy.o eager-central-priority-policy.o work-stealing-policy.o sched_policy.o 
+OBJS := eager-central-policy.o eager-central-priority-policy.o work-stealing-policy.o sched_policy.o
 
-%.o: %.c %.h
-	$(CC) $(CFLAGS) $< -c -o $@
+all: $(OBJS)
+
+%.d: %.c
+	$(CC) $(CFLAGS) $< -MM -o $*.d
+
+-include $(OBJS:.o=.d)
 
 clean:
-	@rm -f *.o
+	@rm -f *.o *.d

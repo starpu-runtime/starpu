@@ -1,11 +1,13 @@
-CFLAGS+= -g -Wall
-
 CFLAGS+= -I../../
 
-all: csr_interface.o blas_filters.o blas_interface.o vector_interface.o csr_filters.o vector_filters.o
+OBJS := csr_interface.o blas_filters.o blas_interface.o vector_interface.o csr_filters.o vector_filters.o
 
-%.o: %.c %.h
-	$(CC) $(CFLAGS) $< -c -o $@
+all: $(OBJS)
+
+%.d: %.c
+	$(CC) $(CFLAGS) $< -MM -o $*.d
+
+-include $(OBJS:.o=.d)
 
 clean:
-	@rm -f *.o
+	@rm -f *.o *.d

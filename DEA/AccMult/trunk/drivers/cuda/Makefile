@@ -1,13 +1,11 @@
-ifeq ($(CUDA), 1)
-	DEPENDENCIES += driver_cuda.o
-endif
-
 CFLAGS += -I../../
 
-all: driver_cuda.o
+OBJS := driver_cuda.o
 
-%.o: %.c %.h
-	$(CC) $(CFLAGS) $< -c -o $@
+%.d: %.c
+	$(CC) $(CFLAGS) $< -MM -o $*.d
+
+-include $(OBJS:.o=.d)
 
 clean:
-	@rm -f *.o
+	@rm -f *.o *.d
