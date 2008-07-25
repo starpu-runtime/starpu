@@ -1,7 +1,5 @@
 TARGET=tag_example 
 TARGET+= incrementer
-TARGET+= heat 
-TARGET+= dw_spmv
 #TARGET+= dw_sparse_cg
 
 ifdef OPENGL_RENDER
@@ -45,6 +43,8 @@ endif
 
 ifdef ATLAS
 	TARGET += dw_mult # dw_factolu
+	TARGET+= dw_spmv
+	TARGET+= heat 
 endif
 
 
@@ -82,8 +82,6 @@ OBJDEPS += ../datawizard/interfaces/vector_filters.o
 OBJDEPS += ../datawizard/memalloc.o  ../datawizard/interfaces/blas_interface.o
 OBJDEPS += ../datawizard/interfaces/csr_interface.o
 OBJDEPS += ../datawizard/interfaces/vector_interface.o
-
-
 
 all: $(TARGET)
 
