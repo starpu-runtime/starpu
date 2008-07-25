@@ -159,6 +159,7 @@ endif
 
 ifdef USE_FXT
 	LDFLAGS += -lfxt
+	OBJDEPS += common/fxt.o
 endif
 
 

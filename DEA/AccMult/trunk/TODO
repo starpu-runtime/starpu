@@ -85,6 +85,3 @@ TODO:
 		- multithreaded MKL ?
 	- external libs
 		- linked with a dummy BLAS lib ?
-	- dynamically compiling apps makes sense ?
-		- apps only use codelets + the main does weird stuff
-		- drivers only call pop/push
