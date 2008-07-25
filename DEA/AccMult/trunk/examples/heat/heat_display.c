@@ -1,4 +1,4 @@
-#include <examples/heat.h>
+#include "heat.h"
 
 #ifdef OPENGL_RENDER
 /*

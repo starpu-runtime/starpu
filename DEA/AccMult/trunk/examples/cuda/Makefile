@@ -3,6 +3,7 @@
 export CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
 export CUDAINSTALLDIR=/usr/local/cuda/
 
+NVCC=nvcc
 
 CXXFLAGS += -I$(CUDAINSTALLDIR)/include -Wall
 CXXFLAGS += -I$(CUDAINSTALLDIR)/include
@@ -22,7 +23,10 @@ LDXXFLAGS += -lGL -lGLU
 #NVCCFLAGS+= -deviceemu
 #CXXFLAGS+=  -D__DEVICE_EMULATION__
 
-all: test_spmv
+all: 
+
+%.cubin: %.cu
+	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) 
 
 test_spmv: cutil test_spmv.cu_o
 	$(CXX) $(CXXFLAGS) -fPIC  $(LDXXFLAGS) -o test_spmv test_spmv.cu_o cutil.cpp_o stopwatch.cpp_o stopwatch_linux.cpp_o multithreading.cpp_o  bank_checker.cpp_o cmd_arg_reader.cpp_o
@@ -40,5 +44,5 @@ cutil:
 	$(CXX) $(CXXFLAGS)   -o multithreading.cpp_o -c $(CUTILSRCDIR)/multithreading.cpp
 
 clean:
-	rm -f *.o *.cu_o *.cpp_o
-	rm -f test_spmv
+	@rm -f *.o *.cu_o *.cpp_o *.cubin
+	@rm -f test_spmv
