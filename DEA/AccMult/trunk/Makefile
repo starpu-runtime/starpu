@@ -158,8 +158,7 @@ ifdef CPUS
 endif
 
 ifdef USE_FXT
-OBJDEPS += common/fxt.o
-LDFLAGS += -lfxt
+	LDFLAGS += -lfxt
 endif
 
 
