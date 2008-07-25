@@ -9,7 +9,7 @@ mkdir -p $TIMINGDIR
 #sizelist="256 512 1024 2048 3072 4096 5120 6144 7168 8192 9216 10240 11264 12288 13312 14336 15360 16384 17408 18432 19456 20480 21504 22528 23552 24576 25600"
 
 tilelist="1024"
-sizelist="1024 2048 4096 8192 16384 20480 24576 25600"
+sizelist="1024 2048 3072 4096 5120 6144 7168 8192 9216 10240 11264 16384 20480 22528 24576 25600"
 # 16384 20480 24576 25600"
 
 heat_ret=0
@@ -22,11 +22,11 @@ measure_heat()
 	nblocks=$3
 	size=$4
 
-	if [ $size -le 2048 ] 
+	if [ $size -le 16384 ] 
 	then
 		nsample=10
 	else
-		nsample=4
+		nsample=2
 	fi
 
 	total=0
@@ -75,7 +75,6 @@ trace_size()
 		else
 			timing="x"
 		fi
-	#	timing=`$ROOTDIR/examples/heat -nthick $thick -ntheta $theta -nblocks $nblocks 2>/dev/null`
 
 		echo "size : $size tile $tile => $timing us"
 
@@ -111,4 +110,14 @@ do
 	trace_size $size;
 done
 
-paste $TIMINGDIR/gflops.greedy.data $TIMINGDIR/gflops.prio.data > $TIMINGDIR/gflops.merged.data
+filename=$TIMINGDIR/gflops.ws.data
+policy=ws
+trace_header 
+for size in $sizelist
+do
+	trace_size $size;
+done
+
+
+
+paste $TIMINGDIR/gflops.greedy.data $TIMINGDIR/gflops.prio.data $TIMINGDIR/gflops.ws.data > $TIMINGDIR/gflops.merged.data

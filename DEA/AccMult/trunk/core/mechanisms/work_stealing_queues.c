@@ -103,29 +103,6 @@ void ws_push_task(struct jobq_s *q, job_t task)
 
 }
 
-//job_t ws_pop_task(struct jobq_s *q)
-//{
-//	job_t j;
-//
-//	ASSERT(q);
-//	struct central_jobq_s *central_queue = q->queue;
-//
-//	sem_wait(&central_queue->sem_jobq);
-//
-//	thread_mutex_lock(&central_queue->workq_mutex);
-//
-//	if (job_list_empty(central_queue->jobq)) {
-//		thread_mutex_unlock(&central_queue->workq_mutex);
-//		return NULL;
-//	}
-//
-//	j = job_list_pop_back(central_queue->jobq);
-//	TRACE_JOB_POP(j, 0);
-//
-//	thread_mutex_unlock(&central_queue->workq_mutex);
-//	return j;
-//}
-
 job_t ws_non_blocking_pop_task(struct jobq_s *q)
 {
 	job_t j;

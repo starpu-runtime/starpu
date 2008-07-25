@@ -21,6 +21,8 @@
 #include <cuda.h>
 #endif
 
+#define NMAXBUFS	8
+
 #define MIN_PRIO        (-4)
 #define MAX_PRIO        5
 #define DEFAULT_PRIO	0
@@ -46,7 +48,7 @@ typedef void (*callback)(void *);
 
 /*
  * A codelet describes the various function 
- * that may be called from a worker ... XXX
+ * that may be called from a worker
  */
 typedef struct codelet_t {
 	void *cuda_func;
@@ -57,22 +59,24 @@ typedef struct codelet_t {
 	void *cl_arg;
 } codelet;
 
-#define NMAXBUFS	8
-
-
 LIST_TYPE(job,
 	jobtype type;	/* what kind of job ? */
 	uint32_t where;	/* where can it be performed ? */
 	callback cb;	/* do "cb(argcb)" when finished */
 	codelet *cl;
 	void *argcb;
+
 	struct tag_s *tag;
 	unsigned use_tag;
-	unsigned nbuffers;
+
 	int priority; /* MAX_PRIO = most important 
 			: MIN_PRIO = least important */
+
+	unsigned nbuffers;
 	buffer_descr buffers[NMAXBUFS];
 	data_interface_t interface[NMAXBUFS];
+
+	uint64_t (*cost_model)(data_interface_t *);
 );
 
 job_t job_create(void);

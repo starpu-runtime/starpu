@@ -36,7 +36,7 @@ void central_priority_push_task(struct jobq_s *q, job_t task)
 	
 	unsigned priolevel = task->priority - MIN_PRIO;
 
-	job_list_push_back(central_queue->jobq[priolevel], task);
+	job_list_push_front(central_queue->jobq[priolevel], task);
 	central_queue->njobs[priolevel]++;
 
 	sem_post(&central_queue->sem_jobq);

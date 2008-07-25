@@ -14,6 +14,7 @@ job_t job_create(void)
 	job->use_tag = 0;
 	job->nbuffers = 0;
 	job->priority = DEFAULT_PRIO;
+	job->cost_model = NULL;
 
 	return job;
 }

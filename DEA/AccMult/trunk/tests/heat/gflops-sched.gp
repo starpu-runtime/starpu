@@ -11,8 +11,9 @@ set logscale x
 #set pointsize	2
 set key right bottom
 set datafile missing 'x'
-plot "timings/gflops.merged.data" usi 1:(2*$1*$1*$1 / (3*$2* 1000000)) with linespoint lt 3 title "greedy"  ,\
-     "timings/gflops.merged.data" usi 1:(2*$1*$1*$1 / (3*$4* 1000000)) with linespoint title "prio" 
+plot "timings/gflops.merged.data" usi 1:(2*$1*$1*$1 / (3*$2* 1000000)) with linespoint title "greedy"  ,\
+     "timings/gflops.merged.data" usi 1:(2*$1*$1*$1 / (3*$4* 1000000)) with linespoint title "prio" 	    ,\
+     "timings/gflops.merged.data" usi 1:(2*$1*$1*$1 / (3*$6* 1000000)) with linespoint title "wd" 
 
 set output "gflops-sched-gain.eps"
 set title "LU Decomposition : scheduling strategies : gain"
@@ -24,4 +25,5 @@ set logscale x
 #set pointsize	2
 set key right bottom
 set datafile missing 'x'
-plot "timings/gflops.merged.data" usi 1:(100*(($2 / $4)-1)) with linespoint lt 3 title "gain"
+plot "timings/gflops.merged.data" usi 1:(100*(($2 / $4)-1)) with linespoint title "gain prio"	,\
+	"timings/gflops.merged.data" usi 1:(100*(($2 / $6)-1)) with linespoint title "gain ws"    
