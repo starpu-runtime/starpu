@@ -27,6 +27,6 @@ spu:
 -include $(OBJS:.o=.d)
 
 clean:
-	@rm -f *.o *.d
 	@make -C interfaces clean
 	@make -C spu clean
+	@rm -f *.o *.d

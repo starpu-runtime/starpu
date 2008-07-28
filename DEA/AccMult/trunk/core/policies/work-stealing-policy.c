@@ -1,7 +1,7 @@
 #include <core/policies/work-stealing-policy.h>
 
 /* save the general machine configuration */
-static struct machine_config_s *machineconfig;
+//static struct machine_config_s *machineconfig;
 
 /* XXX 16 is set randomly */
 unsigned nworkers;
@@ -12,21 +12,21 @@ struct jobq_s *queue_array[16];
  * better decisions about which queue to select when stealing or deferring work
  */
 static unsigned performed_total = 0;
-static unsigned performed_local[16];
+//static unsigned performed_local[16];
 
 static float overload_metric(unsigned id)
 {
 	float execution_ratio = 0.0f;
 	if (performed_total > 0) {
-		execution_ratio = get_queue_nprocessed_ws(queue_array[id])/performed_total;
+		execution_ratio = get_deque_nprocessed(queue_array[id])/performed_total;
 	}
 
 	unsigned performed_queue;
-	performed_queue = get_queue_nprocessed_ws(queue_array[id]);
+	performed_queue = get_deque_nprocessed(queue_array[id]);
 
 	float current_ratio = 0.0f;
 	if (performed_queue > 0) {
-		current_ratio = get_queue_njobs_ws(queue_array[id])/performed_queue;
+		current_ratio = get_deque_njobs(queue_array[id])/performed_queue;
 	}
 	
 	return (current_ratio - execution_ratio);
@@ -84,8 +84,6 @@ static struct jobq_s *select_workerq(void)
 	return q;
 }
 
-
-
 #else
 
 /* who to steal work to ? */
@@ -122,7 +120,7 @@ static job_t ws_pop_task(struct jobq_s *q)
 {
 	job_t j;
 
-	j = ws_non_blocking_pop_task(q);
+	j = deque_non_blocking_pop_task(q);
 	if (j) {
 		/* there was a local task */
 		performed_total++;
@@ -134,7 +132,7 @@ static job_t ws_pop_task(struct jobq_s *q)
 		struct jobq_s *victimq;
 		victimq = select_victimq();
 
-		j = ws_non_blocking_pop_task_if_job_exists(victimq);
+		j = deque_non_blocking_pop_task_if_job_exists(victimq);
 
 	} while(!j);
 
@@ -150,8 +148,8 @@ static struct jobq_s *init_ws_deque(void)
 
 	q = create_deque();
 
-	q->push_task = ws_push_task; 
-	q->push_prio_task = ws_push_prio_task; 
+	q->push_task = deque_push_task; 
+	q->push_prio_task = deque_push_prio_task; 
 	q->pop_task = ws_pop_task;
 	q->who = 0;
 
@@ -160,64 +158,15 @@ static struct jobq_s *init_ws_deque(void)
 	return q;
 }
 
-static void set_worker_ws_queues(struct machine_config_s *config)
-{
-#ifdef USE_CPUS
-	unsigned core;
-	for (core = 0; core < config->ncores; core++)
-	{
-		core_worker_arg *corearg = &config->coreargs[core];
-		corearg->jobq = init_ws_deque();
-		corearg->jobq->who = CORE;
-	}
-#endif
-
-#ifdef USE_CUDA
-	/* initialize CUDA with the proper number of threads */
-	int cudadev;
-	for (cudadev = 0; cudadev < config->ncudagpus; cudadev++)
-	{
-		cuda_worker_arg *cudaarg = &config->cudaargs[cudadev];
-		cudaarg->jobq = init_ws_deque();
-		cudaarg->jobq->who = CUBLAS|CUDA;
-	}
-#endif
-
-#ifdef USE_CUBLAS
-	/* initialize CUBLAS with the proper number of threads */
-	unsigned cublasdev;
-	for (cublasdev = 0; cublasdev < config->ncublasgpus; cublasdev++)
-	{
-		cublas_worker_arg *cublasarg = &config->cublasargs[cublasdev]; 
-		cublasarg->jobq = init_ws_deque();
-		cublasrg->jobq->who = CUBLAS;
-	}
-#endif
-
-#ifdef USE_SPU
-	/* initialize the various SPUs  */
-	unsigned spu;
-	for (spu = 0; spu < config->nspus; spu++)
-	{
-		spu_worker_arg *spuarg = &config->spuargs[spu];
-
-		spuarg->jobq = init_ws_deque();
-		spuarg->jobq->who = SPU;
-	}
-#endif
-}
-
 void initialize_ws_policy(struct machine_config_s *config, 
 			__attribute__ ((unused))	struct sched_policy_s *_policy) 
 {
 	nworkers = 0;
 	rr_worker = 0;
 
-	machineconfig = config;
+	//machineconfig = config;
 
-	init_ws_queues_mechanisms();
-
-	set_worker_ws_queues(config);
+	setup_queues(init_deque_queues_mechanisms, init_ws_deque, config);
 }
 
 struct jobq_s *get_local_queue_ws(struct sched_policy_s *policy __attribute__ ((unused)))

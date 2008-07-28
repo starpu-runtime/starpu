@@ -3,6 +3,7 @@
 
 #include <core/workers.h>
 #include <core/mechanisms/queues.h>
+#include <core/mechanisms/priority_queues.h>
 
 void initialize_eager_center_priority_policy(struct machine_config_s *config, struct sched_policy_s *policy);
 void set_local_queue_eager_priority(struct jobq_s *jobq);

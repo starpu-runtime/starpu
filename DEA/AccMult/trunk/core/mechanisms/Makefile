@@ -1,6 +1,6 @@
 CFLAGS += -I../../
 
-all: queues.o work_stealing_queues.o central_queues.o central_queues_priorities.o
+all: queues.o deque_queues.o priority_queues.o
 
 %.o: %.c %.h
 	$(CC) $(CFLAGS) $< -c -o $@

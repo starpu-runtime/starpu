@@ -2,9 +2,9 @@
 #define __SCHED_POLICY_H__
 
 #include <core/mechanisms/queues.h>
-#include <core/mechanisms/work_stealing_queues.h>
-#include <core/mechanisms/central_queues.h>
-#include <core/mechanisms/central_queues_priorities.h>
+//#include <core/mechanisms/work_stealing_queues.h>
+//#include <core/mechanisms/central_queues.h>
+//#include <core/mechanisms/central_queues_priorities.h>
 
 #include <core/workers.h>
 
@@ -20,8 +20,10 @@ struct sched_policy_s {
 	pthread_key_t local_queue_key;
 };
 
+struct sched_policy_s *get_sched_policy(void);
+
 void init_sched_policy(struct machine_config_s *config);
-void set_local_queue(struct jobq_s *jobq);
+//void set_local_queue(struct jobq_s *jobq);
 
 void push_task(job_t task);
 void push_prio_task(job_t task);

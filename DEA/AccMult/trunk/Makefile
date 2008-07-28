@@ -111,23 +111,28 @@ endif
 #	files that are needed by the application which use our runtime
 #
 
-OBJDEPS += common/threads.o common/timing.o 
-OBJDEPS += core/jobs.o core/workers.o core/dependencies/tags.o core/dependencies/htable.o
+OBJDEPS += common/threads.o
+OBJDEPS += common/timing.o 
+OBJDEPS += core/jobs.o core/workers.o
+OBJDEPS += core/dependencies/tags.o
+OBJDEPS += core/dependencies/htable.o
 OBJDEPS += core/mechanisms/queues.o
-OBJDEPS += core/mechanisms/work_stealing_queues.o
-OBJDEPS += core/mechanisms/central_queues.o
-OBJDEPS += core/mechanisms/central_queues_priorities.o
+OBJDEPS += core/mechanisms/priority_queues.o
+OBJDEPS += core/mechanisms/deque_queues.o
 OBJDEPS += core/policies/sched_policy.o
 OBJDEPS += core/policies/eager-central-policy.o
 OBJDEPS += core/policies/eager-central-priority-policy.o
 OBJDEPS += core/policies/work-stealing-policy.o
-OBJDEPS += common/mutex.o common/rwlock.o 
-OBJDEPS += datawizard/copy-driver.o datawizard/coherency.o 
+OBJDEPS += common/mutex.o
+OBJDEPS += common/rwlock.o 
+OBJDEPS += datawizard/copy-driver.o
+OBJDEPS += datawizard/coherency.o 
 OBJDEPS += datawizard/hierarchy.o 
 OBJDEPS += datawizard/interfaces/blas_filters.o
 OBJDEPS += datawizard/interfaces/csr_filters.o
 OBJDEPS += datawizard/interfaces/vector_filters.o
-OBJDEPS += datawizard/memalloc.o  datawizard/interfaces/blas_interface.o
+OBJDEPS += datawizard/memalloc.o
+OBJDEPS += datawizard/interfaces/blas_interface.o
 OBJDEPS += datawizard/interfaces/csr_interface.o
 OBJDEPS += datawizard/interfaces/vector_interface.o
 

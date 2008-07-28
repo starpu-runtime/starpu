@@ -6,6 +6,11 @@
 
 static struct sched_policy_s policy;
 
+struct sched_policy_s *get_sched_policy(void)
+{
+	return &policy;
+}
+
 void init_sched_policy(struct machine_config_s *config)
 {
 	/* first get the proper policy XXX */
@@ -41,13 +46,6 @@ void init_sched_policy(struct machine_config_s *config)
 	pthread_key_create(&policy.local_queue_key, NULL);
 
 	policy.init_sched(config, &policy);
-}
-
-void set_local_queue(struct jobq_s *jobq)
-{
-	//printf("set local queue %p \n", jobq);
-	/* record the queue that was specified to the driver */
-	pthread_setspecific(policy.local_queue_key, jobq);
 }
 
 /* the generic interface that call the proper underlying implementation */

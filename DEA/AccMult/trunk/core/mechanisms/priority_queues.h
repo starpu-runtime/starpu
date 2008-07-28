@@ -1,5 +1,5 @@
-#ifndef __CENTRAL_QUEUES_PRIORITIES_H__
-#define __CENTRAL_QUEUES_PRIORITIES_H__
+#ifndef __PRIORITY_QUEUES_H__
+#define __PRIORITY_QUEUES_H__
 
 #define MIN_PRIO	(-4)
 #define MAX_PRIO	5
@@ -8,7 +8,7 @@
 
 #include <core/mechanisms/queues.h>
 
-struct central_priority_jobq_s {
+struct priority_jobq_s {
 	/* the actual lists 
 	 *	jobq[p] is for priority [p - MIN_PRIO] */
 	job_list_t jobq[NPRIO_LEVELS];
@@ -21,8 +21,10 @@ struct central_priority_jobq_s {
 	sem_t sem_jobq;
 };
 
-void init_central_priority_jobq(struct jobq_s *queue);
-void central_priority_push_task(struct jobq_s *queue, job_t task);
-struct job_s *central_priority_pop_task(struct jobq_s *queue);
+struct jobq_s *create_priority_jobq(void);
 
-#endif // __CENTRAL_QUEUES_PRIORITIES_H__
+void priority_push_task(struct jobq_s *q, job_t task);
+
+job_t priority_pop_task(struct jobq_s *q);
+
+#endif // __PRIORITY_QUEUES_H__
