@@ -171,6 +171,7 @@ void init_cuda(void)
 int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 {
 	CUresult status;
+	tick_t codelet_start, codelet_end;
 	
 	switch (j->type) {
 		case CODELET:
@@ -182,8 +183,10 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 			if (use_cublas) {
 				cl_func func = j->cl->cublas_func;
 				ASSERT(func);
+				GET_TICK(codelet_start);
 				func(j->interface, j->cl->cl_arg);
 				cuCtxSynchronize();
+				GET_TICK(codelet_end);
 			} else {
 				/* load the module and the function */
 				cuda_codelet_t *args; 
@@ -202,6 +205,7 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 				set_function_args(args, j->buffers, j->interface, j->nbuffers);
 
 				/* set up the grids */
+				GET_TICK(codelet_start);
 				status = cuLaunchGrid(args->func->function, 
 						args->gridx, args->gridy);
 				if (status) {
@@ -214,8 +218,17 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 				if (status) {
 					CUDA_REPORT_ERROR(status);
 				}
+				GET_TICK(codelet_end);
+
 			}
 			TRACE_END_CODELET_BODY(j);	
+
+			if (j->cost_model) {
+				double alpha = 13.33;
+				double predicted = j->cost_model(j->interface) / alpha;
+				double measured = timing_delay(&codelet_start, &codelet_end);
+				printf("CUDA: model was %e got %e factor (%2.4f \%)\n", predicted, measured, 100*(predicted/measured - 1.0f));
+			}
 
 			push_codelet_output(j->buffers, j->nbuffers, 1<<0);
 			break;

@@ -76,7 +76,7 @@ LIST_TYPE(job,
 	buffer_descr buffers[NMAXBUFS];
 	data_interface_t interface[NMAXBUFS];
 
-	uint64_t (*cost_model)(data_interface_t *);
+	double (*cost_model)(data_interface_t *);
 );
 
 job_t job_create(void);

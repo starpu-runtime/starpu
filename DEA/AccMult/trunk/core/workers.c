@@ -242,7 +242,6 @@ void init_machine(void)
 	/* initialize the scheduler */
 
 	/* initialize the queue containing the jobs */
-	//init_work_queue();
 	init_sched_policy(&config);
 
 	init_workers(&config);

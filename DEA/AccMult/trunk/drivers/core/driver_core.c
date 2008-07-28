@@ -5,6 +5,8 @@ extern unsigned ncores;
 
 void execute_job_on_core(job_t j)
 {
+	tick_t codelet_start, codelet_end;
+
         switch (j->type) {
 		case CODELET:
 			ASSERT(j->cl);
@@ -13,11 +15,20 @@ void execute_job_on_core(job_t j)
 					j->nbuffers);
 
 			TRACE_START_CODELET_BODY(j);
+			GET_TICK(codelet_start);
 			cl_func func = j->cl->core_func;
 			func(j->interface, j->cl->cl_arg);
+			GET_TICK(codelet_end);
 			TRACE_END_CODELET_BODY(j);
 
 			push_codelet_output(j->buffers, j->nbuffers, 0);
+
+			if (j->cost_model) {
+				double predicted = j->cost_model(j->interface);
+				double measured = timing_delay(&codelet_start, &codelet_end);
+				printf("CORE: model was %e got %e factor (%2.4f \%)\n", predicted, measured, 100*(predicted/measured-1));
+			}
+
 			break;
                 case ABORT:
                         fprintf(stderr, "core abort\n");

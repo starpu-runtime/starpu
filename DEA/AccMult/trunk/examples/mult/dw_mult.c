@@ -17,6 +17,8 @@
 #include <datawizard/interfaces/blas_interface.h>
 #include <datawizard/interfaces/blas_filters.h>
 
+#include <task-models/blas_model.h>
+
 #include <common/fxt.h>
 
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
@@ -343,6 +345,8 @@ void init_problem_callback(void *arg __attribute__((unused)))
 			jb->buffers[2].state = 
 				get_sub_data(&C_state, 2, taskx, tasky);
 			jb->buffers[2].mode = W;
+
+			jb->cost_model = gemm_cost;
 			
 			push_task(jb);
 		}

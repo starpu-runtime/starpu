@@ -135,6 +135,7 @@ OBJDEPS += datawizard/memalloc.o
 OBJDEPS += datawizard/interfaces/blas_interface.o
 OBJDEPS += datawizard/interfaces/csr_interface.o
 OBJDEPS += datawizard/interfaces/vector_interface.o
+OBJDEPS += task-models/blas_model.o
 
 ifeq ($(CUDA), 1)
 	OBJDEPS += drivers/cuda/driver_cuda.o
@@ -174,7 +175,7 @@ all:
 	@make -C core
 	@make -C drivers
 	@make -C datawizard
-	#@make -C examples
+	@make -C task-models
 	@make -C tools
 
 ribsched.so: all
@@ -194,6 +195,7 @@ clean:
 	@make -C core clean
 	@make -C drivers clean
 	@make -C datawizard clean
+	@make -C task-models clean
 	@make -C examples clean
 	@make -C tools clean
 	@rm -f *.so *.a
