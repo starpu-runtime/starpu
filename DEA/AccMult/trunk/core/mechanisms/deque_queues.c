@@ -108,7 +108,6 @@ void deque_push_task(struct jobq_s *q, job_t task)
 	sem_post(&deque_queue->sem_jobq);
 
 	thread_mutex_unlock(&deque_queue->workq_mutex);
-
 }
 
 job_t deque_pop_task(struct jobq_s *q)
@@ -118,10 +117,10 @@ job_t deque_pop_task(struct jobq_s *q)
 	ASSERT(q);
 	struct deque_jobq_s *deque_queue = q->queue;
 
-	thread_mutex_lock(&deque_queue->workq_mutex);
-
 	/* block until some task is available in that queue */
 	sem_wait(&deque_queue->sem_jobq);
+
+	thread_mutex_lock(&deque_queue->workq_mutex);
 
 	j = job_list_pop_back(deque_queue->jobq);
 
