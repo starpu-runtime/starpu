@@ -50,3 +50,11 @@ double __attribute__ ((unused)) timing_delay(tick_t *t1, tick_t *t2)
 {
 	return TIMING_DELAY(*t1, *t2);
 }
+
+double __attribute__ ((unused)) timing_now(void)
+{
+	tick_t tick_now;
+	GET_TICK(tick_now);
+
+	return tick2usec(tick_now.tick);
+}

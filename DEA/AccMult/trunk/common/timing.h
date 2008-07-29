@@ -46,6 +46,8 @@ void __attribute__ ((unused)) timing_init(void);
 double __attribute__ ((unused)) tick2usec(long long t);
 double __attribute__ ((unused)) timing_delay(tick_t *t1, tick_t *t2);
 
+double __attribute__ ((unused)) timing_now(void);
+
 #endif /* TIMING_H */
 
 
