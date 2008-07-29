@@ -4,7 +4,7 @@ CC=gcc -m64
 NVCC = nvcc -m64
 NVCCFLAGS += -O3
 
-CFLAGS += -g -O3 -Wall -fPIC
+CFLAGS += -g -O0 -Wall -fPIC
 CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses
 CFLAGS += -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type 
 CFLAGS += -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -fno-strict-aliasing
@@ -123,6 +123,7 @@ OBJDEPS += core/policies/sched_policy.o
 OBJDEPS += core/policies/eager-central-policy.o
 OBJDEPS += core/policies/eager-central-priority-policy.o
 OBJDEPS += core/policies/work-stealing-policy.o
+OBJDEPS += core/policies/deque-modeling-policy.o
 OBJDEPS += common/mutex.o
 OBJDEPS += common/rwlock.o 
 OBJDEPS += datawizard/copy-driver.o

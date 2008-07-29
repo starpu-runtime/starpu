@@ -30,6 +30,11 @@ struct jobq_s *create_deque(void)
 	deque->jobq = job_list_new();
 	deque->njobs = 0;
 	deque->nprocessed = 0;
+
+	deque->exp_start = timing_now()/1000000;
+	deque->exp_len = 0.0;
+	deque->exp_end = deque->exp_start;
+
 	sem_init(&deque->sem_jobq, 0, 0);
 
 	jobq->queue = deque;

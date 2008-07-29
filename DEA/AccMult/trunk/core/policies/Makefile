@@ -1,6 +1,6 @@
 CFLAGS += -I../../
 
-OBJS := eager-central-policy.o eager-central-priority-policy.o work-stealing-policy.o sched_policy.o
+OBJS := eager-central-policy.o eager-central-priority-policy.o work-stealing-policy.o sched_policy.o deque-modeling-policy.o
 
 all: $(OBJS)
 

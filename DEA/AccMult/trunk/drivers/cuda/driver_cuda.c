@@ -225,9 +225,9 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 
 			if (j->cost_model) {
 				double alpha = 13.33;
-				double predicted = j->cost_model(j->interface) / alpha;
+				double predicted = j->cost_model(j->buffers) / alpha;
 				double measured = timing_delay(&codelet_start, &codelet_end);
-				printf("CUDA: model was %e got %e factor (%2.4f \%)\n", predicted, measured, 100*(predicted/measured - 1.0f));
+				//printf("CUDA: model was %e got %e factor (%2.4f \%%)\n", predicted, measured, 100*(predicted/measured - 1.0f));
 			}
 
 			push_codelet_output(j->buffers, j->nbuffers, 1<<0);

@@ -20,6 +20,7 @@ void setup_queues(void (*init_queue_design)(void),
 		core_worker_arg *corearg = &config->coreargs[core];
 		corearg->jobq = func_init_queue();
 		corearg->jobq->who |= CORE;
+		corearg->jobq->alpha = CORE_ALPHA;
 	}
 #endif
 
@@ -31,6 +32,7 @@ void setup_queues(void (*init_queue_design)(void),
 		cuda_worker_arg *cudaarg = &config->cudaargs[cudadev];
 		cudaarg->jobq = func_init_queue();
 		cudaarg->jobq->who |= CUBLAS|CUDA;
+		cudaarg->jobq->alpha = CUDA_ALPHA;
 	}
 #endif
 
@@ -42,6 +44,7 @@ void setup_queues(void (*init_queue_design)(void),
 		cublas_worker_arg *cublasarg = &config->cublasargs[cublasdev]; 
 		cublasarg->jobq = func_init_queue();
 		cublasrg->jobq->who |= CUBLAS;
+		cublasarg->jobq->alpha = CUBLAS_ALPHA;
 	}
 #endif
 

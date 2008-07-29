@@ -15,6 +15,9 @@ struct jobq_s {
 
 	/* what are the driver that may pop job from that queue ? */
 	uint32_t who;
+
+	/* this is only relevant if there is a single worker per queue */
+	float alpha;
 };
 
 struct machine_config_s;

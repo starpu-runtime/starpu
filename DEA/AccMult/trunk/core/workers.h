@@ -35,6 +35,10 @@
 #include <datawizard/coherency.h>
 #include <datawizard/copy-driver.h>
 
+#define CORE_ALPHA	1.0f
+#define CUDA_ALPHA	13.33f
+#define CUBLAS_ALPHA	13.33f
+
 struct machine_config_s {
 	#ifdef USE_CPUS
 	unsigned ncores;

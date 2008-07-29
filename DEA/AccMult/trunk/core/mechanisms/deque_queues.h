@@ -18,6 +18,11 @@ struct deque_jobq_s {
 
 	/* possibly wait on a semaphore when the queue is empty */
 	sem_t sem_jobq;
+
+	/* only meaningful if the queue is only used by a single worker */
+	double exp_start;
+	double exp_end;
+	double exp_len;
 };
 
 struct jobq_s *create_deque(void);
