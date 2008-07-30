@@ -23,7 +23,7 @@ do
 		echo "ncpus $cpus size $size"
 
 		filename=$TIMINGDIR/timing.$cpus.$size
-		$ROOTDIR/examples/dw_mult -x $size -y $size -z $size -nblocks 16 2>/dev/null| tee $filename
+		$ROOTDIR/examples/mult/dw_mult -x $size -y $size -z $size -nblocks 16 2>/dev/null| tee $filename
 
 		echo "$cpus	`cat $TIMINGDIR/timing.$cpus.$size`	`cat  $TIMINGDIR/timing.1.$size`" >> $TIMINGDIR/speedup.$size
 	done

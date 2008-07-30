@@ -4,7 +4,7 @@ CC=gcc -m64
 NVCC = nvcc -m64
 NVCCFLAGS += -O3
 
-CFLAGS += -g -O0 -Wall -fPIC
+CFLAGS += -g -O3 -Wall -fPIC
 CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses
 CFLAGS += -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type 
 CFLAGS += -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -fno-strict-aliasing

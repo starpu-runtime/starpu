@@ -12,8 +12,8 @@ all: heat
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-heat: dw_sparse_cg.o dw_sparse_cg_kernels.o dw_factolu.o dw_factolu_tag.o heat_display.o heat.o
-	$(CC) dw_sparse_cg.o dw_sparse_cg_kernels.o dw_factolu.o dw_factolu_tag.o heat_display.o heat.o -o heat $(LDFLAGS) $(RIBSCHED)
+heat: dw_sparse_cg.o dw_sparse_cg_kernels.o dw_factolu.o dw_factolu_tag.o heat_display.o heat.o lu_kernels_model.o
+	$(CC) dw_sparse_cg.o dw_sparse_cg_kernels.o dw_factolu.o dw_factolu_tag.o heat_display.o heat.o lu_kernels_model.o -o heat $(LDFLAGS) $(RIBSCHED)
 
 clean:
 	@rm -f *.o *.d

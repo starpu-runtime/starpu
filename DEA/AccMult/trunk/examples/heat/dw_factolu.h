@@ -16,6 +16,10 @@
 #include <datawizard/interfaces/blas_filters.h>
 #include <datawizard/interfaces/blas_interface.h>
 
+#include <core/dependencies/tags.h>
+
+#include "lu_kernels_model.h"
+
 #ifdef USE_CUBLAS
 #include <cuda.h>
 #endif

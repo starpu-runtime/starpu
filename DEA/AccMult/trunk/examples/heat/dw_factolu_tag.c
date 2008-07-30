@@ -1,5 +1,4 @@
 #include "dw_factolu.h"
-#include <core/dependencies/tags.h>
 
 #define TAG11(k)	( (1ULL<<60) | (unsigned long long)(k))
 #define TAG12(k,i)	(((2ULL<<60) | (((unsigned long long)(k))<<32)	\
@@ -269,6 +268,8 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 	job->cl->cublas_func = dw_cublas_codelet_update_u11;
 #endif
 
+	job->cost_model = task_11_cost;
+
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 1;
 		job->buffers[0].state = get_sub_data(dataA, 2, k, k);
@@ -301,6 +302,8 @@ static void create_task_12(data_state *dataA, unsigned k, unsigned i)
 	job->cl->cublas_func = dw_cublas_codelet_update_u12;
 #endif
 
+	job->cost_model = task_12_cost;
+
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 2;
 		job->buffers[0].state = get_sub_data(dataA, 2, k, k); 
@@ -329,6 +332,8 @@ static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job->cl->cublas_func = dw_cublas_codelet_update_u21;
 #endif
+
+	job->cost_model = task_21_cost;
 	
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 2;
@@ -359,6 +364,8 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job->cl->cublas_func = dw_cublas_codelet_update_u22;
 #endif
+
+	job->cost_model = task_22_cost;
 
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 3;

@@ -22,7 +22,7 @@ static job_t dm_pop_task(struct jobq_s *q)
 	return j;
 }
 
-static void dm_push_task(struct jobq_s *q, job_t task)
+static void _dm_push_task(struct jobq_s *q, job_t task, unsigned prio)
 {
 	/* find the queue */
 
@@ -30,9 +30,6 @@ static void dm_push_task(struct jobq_s *q, job_t task)
 
 	if (task->cost_model) {
 		model = task->cost_model(task->buffers);
-	}
-	else {
-		//printf("got no model ...\n");
 	}
 
 	struct deque_jobq_s *deque;
@@ -54,7 +51,6 @@ static void dm_push_task(struct jobq_s *q, job_t task)
 		if ((queue_array[worker]->who & task->where) == 0)
 		{
 			/* no one on that queue may execute this task */
-			//printf("can't do that task on worker %d\n", worker);
 			continue;
 		}
 
@@ -62,7 +58,6 @@ static void dm_push_task(struct jobq_s *q, job_t task)
 
 
 		exp_end = deque->exp_start + deque->exp_len + local_length;
-		//printf("worker %d -> (alpha %e) exp_start %e local_length %e, exp_end %e\n", worker, queue_array[worker]->alpha, deque->exp_start, local_length, exp_end);
 
 		if (best == -1 || exp_end < best_exp_end)
 		{
@@ -84,9 +79,21 @@ static void dm_push_task(struct jobq_s *q, job_t task)
 	deque->exp_end += (model/queue_array[best]->alpha + 0.0);
 	deque->exp_len += (model/queue_array[best]->alpha + 0.0);
 
-//	printf("best is %d (finish at %e len %e )\n", best, best_exp_end, deque->exp_len);
+	if (prio) {
+		deque_push_prio_task(queue_array[best], task);
+	} else {
+		deque_push_task(queue_array[best], task);
+	}
+}
 
-	deque_push_task(queue_array[best], task);
+static void dm_push_prio_task(struct jobq_s *q, job_t task)
+{
+	_dm_push_task(q, task, 1);
+}
+
+static void dm_push_task(struct jobq_s *q, job_t task)
+{
+	_dm_push_task(q, task, 0);
 }
 
 static struct jobq_s *init_dm_deque(void)
@@ -96,7 +103,7 @@ static struct jobq_s *init_dm_deque(void)
 	q = create_deque();
 
 	q->push_task = dm_push_task; 
-	q->push_prio_task = dm_push_task; 
+	q->push_prio_task = dm_push_prio_task; 
 	q->pop_task = dm_pop_task;
 	q->who = 0;
 
