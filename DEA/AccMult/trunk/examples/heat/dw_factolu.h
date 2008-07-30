@@ -8,25 +8,21 @@
 #include <common/util.h>
 #include <string.h>
 #include <math.h>
-
 #include <cblas.h>
+#ifdef USE_CUBLAS
+#include <cuda.h>
+#endif
+
 
 #include <datawizard/coherency.h>
 #include <datawizard/hierarchy.h>
 #include <datawizard/interfaces/blas_filters.h>
 #include <datawizard/interfaces/blas_interface.h>
-
 #include <core/dependencies/tags.h>
-
 #include "lu_kernels_model.h"
-
-#ifdef USE_CUBLAS
-#include <cuda.h>
-#endif
 
 #define BLAS3_FLOP(n1,n2,n3)    \
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
-
 
 typedef struct {
 	data_state *dataA;
@@ -37,7 +33,6 @@ typedef struct {
 	unsigned *remaining;
 	sem_t *sem;
 } cl_args;
-
 
 #ifdef USE_CUBLAS
 
@@ -137,5 +132,21 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	printf("max error between A and L*U = %f \n", max_err);
 }
 #endif // CHECK_RESULTS
+
+void dw_core_codelet_update_u11(data_interface_t *, void *);
+void dw_core_codelet_update_u12(data_interface_t *, void *);
+void dw_core_codelet_update_u21(data_interface_t *, void *);
+void dw_core_codelet_update_u22(data_interface_t *, void *);
+
+void dw_callback_codelet_update_u11(void *);
+void dw_callback_codelet_update_u12_21(void *);
+void dw_callback_codelet_update_u22(void *);
+
+void dw_callback_v2_codelet_update_u11(void *);
+void dw_callback_v2_codelet_update_u12(void *);
+void dw_callback_v2_codelet_update_u21(void *);
+void dw_callback_v2_codelet_update_u22(void *);
+
+
 
 #endif // __DW_FACTO_LU_H__
