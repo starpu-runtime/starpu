@@ -25,7 +25,6 @@ Open problems:
 			- application specific tailored schedulers
 			- equivalent to some static scheduling if this is a 
 			  steady state problem..
-		- scheduling policy ?
 		- task graph = none, tree, DAG ?
 	- What about typed tasks ?
 		- priority
@@ -33,20 +32,12 @@ Open problems:
 	- Use textures for the read-only data types
 		- eg : CSR matrices !
 		- should help with the unaligned access patterns
-	- Policies
-		- single list multi-level priorities
 Application domains
 	- Dense linear algebra
-		- LU decomposition (ok ...)
 		- Cholesky, QR, ...
 	- Sparse Linear algebra
-		- conjugate gradient
-			- spectral radius (max |eigenvalue|) 
-					((indicates if B^k->0 for a large k))
-			- SpMV
 		- PastiX
 		- SuperLU
-		- Sparse matrix-vector multiplication dummy example
 	- n-body problems
 		- particle-particle (O(n^2))
 		- Barnes-Hut -> handling trees ?
