@@ -24,8 +24,8 @@ trace_stress()
 		echo "Computing size $size with $stress MB of memory LESS"
 
 		
-		echo "$ROOTDIR/examples/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null"
-		timing=`$ROOTDIR/examples/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null`
+		echo "$ROOTDIR/examples/mult/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null"
+		timing=`$ROOTDIR/examples/mult/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null`
 	
 		echo "size : $size memstress $stress => $timing us"
 
@@ -39,7 +39,7 @@ trace_stress()
 cd $ROOTDIR
 
 make clean 1> /dev/null 2> /dev/null
-make ATLAS=1 CUBLAS=1 CPUS=0 1> /dev/null 2> /dev/null
+make examples ATLAS=1 CUDA=1 CPUS=0 1> /dev/null 2> /dev/null
 
 cd $DIR
 

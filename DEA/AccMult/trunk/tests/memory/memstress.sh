@@ -15,7 +15,7 @@ trace_stress()
 	memstress=$1
 
 	export NCPUS=0
-	export NCUBLAS=1
+	export NCUDA=1
 	export STRESS_MEM=$memstress
 
 	line="$memstress"
@@ -25,8 +25,8 @@ trace_stress()
 		nblocks=$(($size / 1024))
 		echo "Computing size $size with $memstress MB of memory LESS"
 		
-		echo "$ROOTDIR/examples/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null"
-		timing=`$ROOTDIR/examples/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null`
+		echo "$ROOTDIR/examples/mult/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null"
+		timing=`$ROOTDIR/examples/mult/dw_mult -x $size -y $size -z $size -nblocks $nblocks 2>/dev/null`
 	
 		echo "size : $size memstress $memstress => $timing us"
 
@@ -40,7 +40,7 @@ trace_stress()
 cd $ROOTDIR
 
 make clean 1> /dev/null 2> /dev/null
-make ATLAS=1 CUBLAS=1 CPUS=3 1> /dev/null 2> /dev/null
+make examples ATLAS=1 CUDA=1 CPUS=3 1> /dev/null #2> /dev/null
 
 cd $DIR
 

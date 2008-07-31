@@ -5,20 +5,14 @@ gflops <- function (x)
 	2*size*size*size/(3000000*x);
 }
 
-x1.16384 <- 0;
-
-parse_size <- function (size)
+parse <- function (size, sched)
 {
-	x1 <- scan(paste("timings-sched/sched.greedy.", size, sep=""));
-	x2 <- scan(paste("timings-sched/sched.ws.", size, sep=""));
-	x3 <- scan(paste("timings-sched/sched.ws.overload.", size, sep=""));
-
+	ret <- scan(paste("timings-sched/sched", sched, size, sep="."));
+	return(ret);
 }
 
-parse_size(16384);
+x1 <- mean(gflops(parse(16384, "greedy")));
+x2 <- mean(gflops(parse(16384, "greedy")));
+x3 <- mean(gflops(parse(16384, "greedy")));
 
-gflops1 <- gflops(x1.16384);
-gflops2 <- gflops(x2.16384);
-gflops3 <- gflops(x3.16384);
-
-boxplot(gflops1, gflops2, gflops3);
+plot(x1, x2, x3);
