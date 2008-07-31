@@ -4,6 +4,7 @@
 #include <core/policies/eager-central-priority-policy.h>
 #include <core/policies/work-stealing-policy.h>
 #include <core/policies/deque-modeling-policy.h>
+#include <core/policies/random-policy.h>
 
 
 static struct sched_policy_s policy;
@@ -34,6 +35,11 @@ void init_sched_policy(struct machine_config_s *config)
 		 	fprintf(stderr, "USE MODEL SCHEDULER !! \n");
 			policy.init_sched = initialize_dm_policy;
 			policy.get_local_queue = get_local_queue_dm;
+		 }
+		 else if (strcmp(sched_env, "random") == 0) {
+		 	fprintf(stderr, "USE RANDOM SCHEDULER !! \n");
+			policy.init_sched = initialize_random_policy;
+			policy.get_local_queue = get_local_queue_random;
 		 }
 		 else {
 		 	fprintf(stderr, "USE EAGER SCHEDULER !! \n");

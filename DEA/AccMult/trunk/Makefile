@@ -124,6 +124,7 @@ OBJDEPS += core/policies/eager-central-policy.o
 OBJDEPS += core/policies/eager-central-priority-policy.o
 OBJDEPS += core/policies/work-stealing-policy.o
 OBJDEPS += core/policies/deque-modeling-policy.o
+OBJDEPS += core/policies/random-policy.o
 OBJDEPS += common/mutex.o
 OBJDEPS += common/rwlock.o 
 OBJDEPS += datawizard/copy-driver.o
