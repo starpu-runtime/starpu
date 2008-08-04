@@ -9,7 +9,8 @@ mkdir -p $TIMINGDIR
 #sizelist="256 512 1024 2048 3072 4096 5120 6144 7168 8192 9216 10240 11264 12288 13312 14336 15360 16384 17408 18432 19456 20480 21504 22528 23552 24576 25600"
 
 tilelist="1024"
-sizelist="1024 2048 3072 4096 5120 6144 7168 8192 9216 10240 11264 16384 20480 22528 24576 25600"
+#sizelist="1024 2048 3072 4096 5120 6144 7168 8192 9216 10240 11264 16384 20480 22528 24576 25600"
+sizelist="18432 20480 22528 24576 25600"
 # 16384 20480 24576 25600"
 
 heat_ret=0
@@ -24,9 +25,9 @@ measure_heat()
 
 	if [ $size -le 16384 ] 
 	then
-		nsample=10
+		nsample=1
 	else
-		nsample=2
+		nsample=1
 	fi
 
 	total=0
@@ -34,7 +35,7 @@ measure_heat()
 	for i in `seq 1 $nsample`
 	do
 		echo "iter $i/$nsample"
-		val=`SCHED=$policy $ROOTDIR/examples/heat -nthick $thick -ntheta $theta -nblocks $nblocks -pin -v2 2>/dev/null`
+		val=`SCHED=$policy $ROOTDIR/examples/heat/heat -nthick $thick -ntheta $theta -nblocks $nblocks -pin -v2 2>/dev/null`
 		total=`echo "$val + $total" |bc -l`
 	done
 
@@ -69,7 +70,7 @@ trace_size()
 
 		if [ $tile -le $size -a $nblocks -le 32 -a $(($size % $tile)) == 0 ];
 		then
-			echo "SCHED=$policy $ROOTDIR/examples/heat -nthick $thick -ntheta $theta -nblocks $nblocks -pin -v2"
+			echo "SCHED=$policy $ROOTDIR/examples/heat/heat -nthick $thick -ntheta $theta -nblocks $nblocks -pin -v2"
 			measure_heat $thick $theta $nblocks $size;
 			timing=$heat_ret
 		else
@@ -88,7 +89,7 @@ trace_size()
 cd $ROOTDIR
 
 make clean 1> /dev/null 2> /dev/null
-make ATLAS=1 CUDA=1 CPUS=3 1> /dev/null 2> log
+make examples ATLAS=1 CUDA=1 CPUS=3 1> /dev/null 2> log
 
 cd $DIR
 
