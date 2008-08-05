@@ -6,7 +6,6 @@ ifdef OPENGL_RENDER
 	LDFLAGS+=-lglut -lGL -lGLU
 endif
 
-
 all: heat
 
 %.o: %.c

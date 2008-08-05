@@ -11,6 +11,13 @@ CFLAGS += -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -fno-strict
 
 LDFLAGS+= -lm
 
+
+ifdef PERTURB_AMPL
+	CFLAGS+="-DUSE_PERTURBATION"
+	CFLAGS+="-DAMPL=$(PERTURB_AMPL)"
+endif
+
+
 # to use CUDA
 CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
 CUDAINSTALLDIR=/usr/local/cuda/

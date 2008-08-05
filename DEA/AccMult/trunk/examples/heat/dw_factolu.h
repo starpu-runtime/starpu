@@ -138,6 +138,13 @@ void dw_core_codelet_update_u12(data_interface_t *, void *);
 void dw_core_codelet_update_u21(data_interface_t *, void *);
 void dw_core_codelet_update_u22(data_interface_t *, void *);
 
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
+void dw_cublas_codelet_update_u11(data_interface_t *descr, void *_args);
+void dw_cublas_codelet_update_u12(data_interface_t *descr, void *_args);
+void dw_cublas_codelet_update_u21(data_interface_t *descr, void *_args);
+void dw_cublas_codelet_update_u22(data_interface_t *descr, void *_args);
+#endif
+
 void dw_callback_codelet_update_u11(void *);
 void dw_callback_codelet_update_u12_21(void *);
 void dw_callback_codelet_update_u22(void *);
