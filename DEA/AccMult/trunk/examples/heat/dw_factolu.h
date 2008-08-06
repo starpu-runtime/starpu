@@ -9,7 +9,7 @@
 #include <string.h>
 #include <math.h>
 #include <cblas.h>
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 #include <cuda.h>
 #endif
 
@@ -34,7 +34,7 @@ typedef struct {
 	sem_t *sem;
 } cl_args;
 
-#ifdef USE_CUBLAS
+#if defined(USE_CUBLAS) || defined(USE_CUDA)
 
 static float **ptrA;
 static float **ptrB;
@@ -58,7 +58,7 @@ static void malloc_pinned_callback(void *arg  __attribute__((unused)))
 
 static inline void malloc_pinned(float **A, float **B, unsigned _dim)
 {
-#ifdef USE_CUBLAS
+#if defined(USE_CUBLAS) || defined(USE_CUDA)
 	codelet *cl = malloc(sizeof(codelet));
 	cl->cl_arg = NULL;
 	cl->cublas_func = malloc_pinned_codelet; 
