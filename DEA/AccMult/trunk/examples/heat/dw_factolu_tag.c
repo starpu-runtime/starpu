@@ -148,7 +148,7 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
 		job->buffers[0].state = get_sub_data(dataA, 2, i, k); 
 		job->buffers[0].mode = R;
 		job->buffers[1].state = get_sub_data(dataA, 2, k, j); 
-		job->buffers[2].mode = R;
+		job->buffers[1].mode = R;
 		job->buffers[2].state = get_sub_data(dataA, 2, i, j); 
 		job->buffers[2].mode = RW;
 
