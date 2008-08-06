@@ -66,7 +66,7 @@ handle_ampl_mean <- function(ampl)
 
 trace_ampl <- function(ampl, color)
 {
-#	points(handle_ampl(ampl)$size, handle_ampl(ampl)$gflops, col=color);
+	#points(handle_ampl(ampl)$size, handle_ampl(ampl)$gflops, col=color);
 	lines(handle_ampl_mean(ampl)$size, handle_ampl_mean(ampl)$gflops, col=color);
 }
 
@@ -81,9 +81,12 @@ display_ampl <- function()
 
 	trace_ampl("0.0", "orange");
 	trace_ampl("0.1", "green");
+	trace_ampl("0.2", "blue");
+	trace_ampl("0.3", "green");
 	trace_ampl("0.25", "red");
+	trace_ampl("0.4", "green");
 	trace_ampl("0.50", "blue");
-	trace_ampl("0.75", "green");
+	trace_ampl("0.75", "black");
 	trace_ampl("0.95", "red");
 	trace_ampl("1.0", "orange");
 

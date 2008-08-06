@@ -1,6 +1,7 @@
 #!/bin/bash
 
 ampllist="0.0 0.1 0.2 0.25 0.3 0.4 0.50 0.6 0.7 0.75 0.8 0.9 0.95 1.0 "
+#ampllist="0.50 0.6 0.7 0.75 0.8 0.9 0.95 1.0 "
 #ampllist="0.50 0.75 0.95 1.0 "
 
 maxiter=10
@@ -10,7 +11,7 @@ trace_perturbation()
 {
 	export SCHED="dm"
 
-	for blocks in `seq 2 2 16`
+	for blocks in `seq 2 2 24`
 	do
 
 		ntheta=$(( $(($blocks*32)) + 2))
