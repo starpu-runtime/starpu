@@ -13,14 +13,13 @@ int main(int argc, char **argv)
 	 * */
 	unsigned size = 24*1024;
 	unsigned nblocks = 24;
+	unsigned pinned = 1;
 
 	float *mat;
 
 	mat = malloc(size*size*sizeof(float));
+	initialize_system(&mat, size, pinned);
 
-	init_machine();
-	timing_init();
-	
 	unsigned i,j;
 	for (j = 0; j < size; j++)
 	{

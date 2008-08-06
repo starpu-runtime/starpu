@@ -34,10 +34,9 @@ typedef struct {
 	sem_t *sem;
 } cl_args;
 
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 
 static float **ptrA;
-static float **ptrB;
 static unsigned __dim;
 
 sem_t sem_malloc;
@@ -46,7 +45,6 @@ static void malloc_pinned_codelet(data_interface_t *buffers __attribute__((unuse
 					void *addr  __attribute__((unused)))
 {
 	cuMemAllocHost((void **)ptrA, __dim*__dim*sizeof(float));
-	cuMemAllocHost((void **)ptrB, __dim*sizeof(float));
 }
 
 static void malloc_pinned_callback(void *arg  __attribute__((unused)))
@@ -56,15 +54,14 @@ static void malloc_pinned_callback(void *arg  __attribute__((unused)))
 
 #endif
 
-static inline void malloc_pinned(float **A, float **B, unsigned _dim)
+static inline void malloc_pinned(float **A, unsigned _dim)
 {
-#ifdef USE_CUBLAS
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 	codelet *cl = malloc(sizeof(codelet));
 	cl->cl_arg = NULL;
 	cl->cublas_func = malloc_pinned_codelet; 
 	
 	ptrA = A;
-	ptrB = B;
 	__dim = _dim;
 
 	job_t j = job_create();
@@ -80,7 +77,6 @@ static inline void malloc_pinned(float **A, float **B, unsigned _dim)
 	sem_destroy(&sem_malloc);
 #else
 	*A = malloc(_dim*_dim*sizeof(float));
-	*B = malloc(_dim*sizeof(float));
 #endif	
 }
 

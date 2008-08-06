@@ -206,21 +206,20 @@ static void _dw_cholesky(data_state *dataA, unsigned nblocks)
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
 
-//static void initialize_system(float **A, unsigned dim, unsigned pinned)
-//{
-//	init_machine();
-//
-//	timing_init();
-//
-//	if (pinned)
-//	{
-//		malloc_pinned(A, B, dim);
-//	} 
-//	else {
-//		*A = malloc(dim*dim*sizeof(float));
-//		*B = malloc(dim*sizeof(float));
-//	}
-//}
+void initialize_system(float **A, unsigned dim, unsigned pinned)
+{
+	init_machine();
+
+	timing_init();
+
+	if (pinned)
+	{
+		malloc_pinned(A, dim);
+	} 
+	else {
+		*A = malloc(dim*dim*sizeof(float));
+	}
+}
 
 void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
