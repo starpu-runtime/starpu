@@ -90,5 +90,7 @@ void chol_cublas_codelet_update_u21(data_interface_t *descr, void *_args);
 void chol_cublas_codelet_update_u22(data_interface_t *descr, void *_args);
 #endif
 
+void initialize_system(float **A, unsigned dim, unsigned pinned);
+void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks);
 
 #endif // __DW_CHOLESKY_H__

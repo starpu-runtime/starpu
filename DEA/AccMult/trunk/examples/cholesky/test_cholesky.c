@@ -5,15 +5,45 @@
 
 #include <cblas.h>
 
+
+static unsigned size = 4*1024;
+static unsigned nblocks = 4;
+static unsigned pinned = 0;
+
+static void parse_args(int argc, char **argv)
+{
+	int i;
+	for (i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "-size") == 0) {
+		        char *argptr;
+			size = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-nblocks") == 0) {
+		        char *argptr;
+			nblocks = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-pin") == 0) {
+			pinned = 1;
+		}
+
+		if (strcmp(argv[i], "-h") == 0) {
+			printf("usage : %s [-pin] [-size size] [-nblocks nblocks]\n", argv[0]);
+		}
+	}
+}
+
+
+
 int main(int argc, char **argv)
 {
 	/* create a simple definite positive symetric matrix example
 	 *
 	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
 	 * */
-	unsigned size = 24*1024;
-	unsigned nblocks = 24;
-	unsigned pinned = 1;
+
+	parse_args(argc, argv);
 
 	float *mat;
 
