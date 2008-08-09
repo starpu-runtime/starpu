@@ -91,6 +91,14 @@ void add_core_codelet(data_interface_t *descr, __attribute__((unused))  void *ar
 void self_add_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
 void self_sub_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
 
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
+void mult_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+void sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+void add_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+void self_add_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+void self_sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+#endif
+
 void strassen(data_state *A, data_state *B, data_state *C, void (*callback)(void *), void *argcb, unsigned reclevel);
 
 #endif // __STRASSEN_H__

@@ -103,6 +103,18 @@ void add_core_codelet(data_interface_t *descr, __attribute__((unused))  void *ar
 	add_sub_common_codelet(descr, 0, arg, 1.0f);
 }
 
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
+void sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg)
+{
+	add_sub_common_codelet(descr, 1, arg, -1.0f);
+}
+
+void add_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg)
+{
+	add_sub_common_codelet(descr, 1, arg, 1.0f);
+}
+#endif
+
 
 static void self_add_sub_common_codelet(data_interface_t *buffers, int s, __attribute__((unused))  void *arg, float alpha)
 {
@@ -156,3 +168,15 @@ void self_sub_core_codelet(data_interface_t *descr, __attribute__((unused))  voi
 {
 	self_add_sub_common_codelet(descr, 0, arg, -1.0f);
 }
+
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
+void self_add_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg)
+{
+	self_add_sub_common_codelet(descr, 1, arg, 1.0f);
+}
+
+void self_sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg)
+{
+	self_add_sub_common_codelet(descr, 1, arg, -1.0f);
+}
+#endif
