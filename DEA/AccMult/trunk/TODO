@@ -32,6 +32,8 @@ Open problems:
 	- Use textures for the read-only data types
 		- eg : CSR matrices !
 		- should help with the unaligned access patterns
+	- Read-only optimization :
+		- may access inner node as well ?
 Application domains
 	- Dense linear algebra
 		- Cholesky, QR, ...
