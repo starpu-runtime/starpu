@@ -91,20 +91,20 @@ static void partition_matrices(strassen_iter_state_t *iter)
 	map_filters(B, 2, &f, &f2);
 	map_filters(C, 2, &f, &f2);
 
-	iter->A11 = get_sub_data(&A, 1, 1);
-	iter->A12 = get_sub_data(&A, 2, 1);
-	iter->A21 = get_sub_data(&A, 1, 2);
-	iter->A22 = get_sub_data(&A, 2, 2);
+	iter->A11 = get_sub_data(A, 1, 1);
+	iter->A12 = get_sub_data(A, 2, 1);
+	iter->A21 = get_sub_data(A, 1, 2);
+	iter->A22 = get_sub_data(A, 2, 2);
 
-	iter->B11 = get_sub_data(&B, 1, 1);
-	iter->B12 = get_sub_data(&B, 2, 1);
-	iter->B21 = get_sub_data(&B, 1, 2);
-	iter->B22 = get_sub_data(&B, 2, 2);
+	iter->B11 = get_sub_data(B, 1, 1);
+	iter->B12 = get_sub_data(B, 2, 1);
+	iter->B21 = get_sub_data(B, 1, 2);
+	iter->B22 = get_sub_data(B, 2, 2);
 
-	iter->C11 = get_sub_data(&C, 1, 1);
-	iter->C12 = get_sub_data(&C, 2, 1);
-	iter->C21 = get_sub_data(&C, 1, 2);
-	iter->C22 = get_sub_data(&C, 2, 2);
+	iter->C11 = get_sub_data(C, 1, 1);
+	iter->C12 = get_sub_data(C, 2, 1);
+	iter->C21 = get_sub_data(C, 1, 2);
+	iter->C22 = get_sub_data(C, 2, 2);
 
 	/* TODO check that all sub-matrices have the same size */
 }
@@ -128,8 +128,9 @@ static data_state *create_tmp_matrix(data_state *M)
 	return state;
 }
 
-void phase_1_callback_function(phase1_t *arg)
+static void phase_1_callback_function(void *_arg)
 {
+	phase1_t *arg = _arg;
 	strassen_iter_state_t *iter = arg->iter;
 
 	unsigned cnt = ATOMIC_ADD(&iter->Ei12[arg->i], +1);
@@ -148,13 +149,15 @@ static void _strassen_phase_1(data_state *A1, operation opA, data_state *A2,
 	phase_1_arg->iter = iter;
 	phase_1_arg->i = i;
 
-	compute_add_sub_op(A1, opA, A2, C, phase_1_callback, phase_1_arg);
+	compute_add_sub_op(A1, opA, A2, C, phase_1_callback_function, phase_1_arg);
 }
 
 /* Cij +=/-= Ek is done */
-void phase_3_callback_function(strassen_iter_state_t *arg)
+void phase_3_callback_function(void *_arg)
 {
 	unsigned cnt;
+
+	strassen_iter_state_t *arg = _arg;
 
 	cnt = ATOMIC_ADD(&arg->counter, -1);
 	if (cnt == 0)
@@ -169,8 +172,10 @@ void phase_3_callback_function(strassen_iter_state_t *arg)
 }
 
 /* Ei is computed */
-void phase_2_callback_function(phase2_t *arg)
+void phase_2_callback_function(void *_arg)
 {
+	phase2_t *arg = _arg;
+
 	strassen_iter_state_t *iter = arg->iter;
 	unsigned i = arg->i;
 
@@ -218,8 +223,6 @@ void phase_2_callback_function(phase2_t *arg)
 		default:
 			ASSERT(0);
 	}
-
-	compute_add_sub_op(data_state *A1, operation op, data_state *A2, data_state *C, void (*callback)(void *), void *argcallback)
 }
 
 
@@ -268,7 +271,7 @@ static void _strassen_phase_2(strassen_iter_state_t *iter, unsigned i)
 	strassen(A, B, C, phase_2_callback_function, phase_2_arg);
 }
 
-strassen_iter_state_t *init_strassen_iter_state(data_state *A, data_state *B, data_state *C, void (*strassen_iter_callback)(void *))
+strassen_iter_state_t *init_strassen_iter_state(data_state *A, data_state *B, data_state *C, void (*strassen_iter_callback)(void *), void *argcb)
 {
 	strassen_iter_state_t *iter_state = malloc(sizeof(strassen_iter_state_t));
 
@@ -292,6 +295,7 @@ strassen_iter_state_t *init_strassen_iter_state(data_state *A, data_state *B, da
 	}
 
 	iter_state->strassen_iter_callback = strassen_iter_callback;
+	iter_state->argcb = argcb;
 
 	iter_state->A = A;
 	iter_state->B = B;
@@ -305,7 +309,7 @@ strassen_iter_state_t *init_strassen_iter_state(data_state *A, data_state *B, da
 static void _do_strassen(data_state *A, data_state *B, data_state *C, void (*strassen_iter_callback)(void *), void *argcb)
 {
 	/* do one level of recursion in the strassen algorithm */
-	strassen_iter_state_t *iter = init_strassen_iter_state();
+	strassen_iter_state_t *iter = init_strassen_iter_state(A, B, C, strassen_iter_callback, argcb);
 
 	partition_matrices(iter);
 
@@ -341,9 +345,9 @@ void strassen(data_state *A, data_state *B, data_state *C, void (*callback)(void
 	{
 		/* don't use Strassen but a simple sequential multiplication
 		 * provided this is small enough */
-		compute_add_sub_op(A, MULT, B, C, strassen_iter_callback, argcb);
+		compute_add_sub_op(A, MULT, B, C, callback, argcb);
 	}
 	else {
-		_do_strassen(A, B, C, strassen_iter_callback, argcb);
+		_do_strassen(A, B, C, callback, argcb);
 	}
 }

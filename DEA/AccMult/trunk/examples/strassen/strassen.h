@@ -1,7 +1,32 @@
 #ifndef __STRASSEN_H__
 #define __STRASSEN_H__
 
+#include <semaphore.h>
+#include <core/jobs.h>
+#include <core/workers.h>
+#include <core/dependencies/tags.h>
+#include <common/timing.h>
 #include <common/util.h>
+#include <string.h>
+#include <math.h>
+#include <sys/types.h>
+#include <pthread.h>
+#include <signal.h>
+#include <cblas.h>
+#include <common/timing.h>
+
+#include <datawizard/coherency.h>
+#include <datawizard/hierarchy.h>
+#include <datawizard/interfaces/blas_interface.h>
+#include <datawizard/interfaces/blas_filters.h>
+
+#include <task-models/blas_model.h>
+
+#include <common/fxt.h>
+
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#include <cuda.h>
+#endif
 
 typedef enum {
 	ADD,
@@ -49,5 +74,13 @@ typedef struct {
 	/* phase 2 computes Ei with i in 0-6 */
 	unsigned i;
 } phase2_t;
+
+void mult_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+void sub_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+void add_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+void self_add_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+void self_sub_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+
+void strassen(data_state *A, data_state *B, data_state *C, void (*callback)(void *), void *argcb);
 
 #endif // __STRASSEN_H__
