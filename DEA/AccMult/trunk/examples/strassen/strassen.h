@@ -39,8 +39,8 @@ typedef enum {
 
 typedef struct {
 	/* monitor the progress of the algorithm */
-	unsigned Ei12[6]; // Ei12[k] is 0, 1 or 2 (2 = finished Ei1 and Ei2)
-	unsigned Ei[6];
+	unsigned Ei12[7]; // Ei12[k] is 0, 1 or 2 (2 = finished Ei1 and Ei2)
+	unsigned Ei[7];
 	unsigned Cij[4];
 
 	data_state *A, *B, *C;
