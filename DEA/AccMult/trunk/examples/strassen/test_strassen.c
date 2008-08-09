@@ -50,61 +50,47 @@ void terminate(void *arg __attribute__ ((unused)))
 	sem_post(&sem);
 }
 
-unsigned xdim = 2048;
-unsigned ydim = 2048;
-unsigned zdim = 2048;
+unsigned reclevel = 4;
+unsigned xdim = 512;
+unsigned ydim = 512;
+unsigned zdim = 512;
 unsigned norandom = 0;
-unsigned pin = 0;
 
 void parse_args(int argc, char **argv)
 {
 	int i;
 	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-x") == 0) {
+		if (strcmp(argv[i], "-size") == 0) {
 			char *argptr;
 			xdim = strtol(argv[++i], &argptr, 10);
+			ydim = xdim;
+			zdim = xdim; 
 		}
 
-		if (strcmp(argv[i], "-y") == 0) {
+		if (strcmp(argv[i], "-rec") == 0) {
 			char *argptr;
-			ydim = strtol(argv[++i], &argptr, 10);
+			reclevel = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-z") == 0) {
-			char *argptr;
-			zdim = strtol(argv[++i], &argptr, 10);
-		}
+
 
 		if (strcmp(argv[i], "-no-random") == 0) {
 			norandom = 1;
 		}
-
-		if (strcmp(argv[i], "-pin") == 0) {
-			pin = 1;
-		}
 	}
 }
 
-/*
- * This is a codelet itself 
- */
-void init_problem_codelet (__attribute__((unused)) buffer_descr *descr,
-			   __attribute__((unused)) void *arg)
+void init_problem(void)
 {
 	unsigned i,j;
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
-	if (pin) {
-		cuMemAllocHost((void **)&A, zdim*ydim*sizeof(float));
-		cuMemAllocHost((void **)&B, xdim*zdim*sizeof(float));
-		cuMemAllocHost((void **)&C, xdim*ydim*sizeof(float));
-	} else
+#ifdef USE_FXT
+	fxt_register_thread(0);
 #endif
-	{
-		A = malloc(zdim*ydim*sizeof(float));
-		B = malloc(xdim*zdim*sizeof(float));
-		C = malloc(xdim*ydim*sizeof(float));
-	}
+
+	A = malloc(zdim*ydim*sizeof(float));
+	B = malloc(xdim*zdim*sizeof(float));
+	C = malloc(xdim*ydim*sizeof(float));
 
 	/* fill the A and B matrices */
 	if (norandom) {
@@ -139,15 +125,7 @@ void init_problem_codelet (__attribute__((unused)) buffer_descr *descr,
 			C[i+j*xdim] = (float)(0);
 		}
 	}
-}
 
-int jobcounter;
-
-void init_problem_callback(void *arg __attribute__((unused)))
-{
-#ifdef USE_FXT
-	fxt_register_thread(0);
-#endif
 
 	GET_TICK(start);
 	monitor_blas_data(&A_state, 0, (uintptr_t)A, 
@@ -157,32 +135,7 @@ void init_problem_callback(void *arg __attribute__((unused)))
 	monitor_blas_data(&C_state, 0, (uintptr_t)C, 
 		xdim, xdim, ydim, sizeof(float));
 
-	strassen(&A_state, &B_state, &C_state, terminate, NULL);
-}
-
-void init_problem(void)
-{
-	job_t jb;
-
-	codelet *cl = malloc(sizeof(codelet));
-
-	cl->cl_arg = NULL;
-	cl->core_func = init_problem_codelet;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
-	cl->cublas_func = init_problem_codelet;
-#endif
-
-	jb = job_create();
-	jb->type = CODELET;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
-	jb->where = CUBLAS;
-#else
-	jb->where = ANY;
-#endif
-	jb->cb = init_problem_callback;
-	jb->cl = cl;
-
-	push_task(jb);
+	strassen(&A_state, &B_state, &C_state, terminate, NULL, reclevel);
 }
 
 int main(__attribute__ ((unused)) int argc, 

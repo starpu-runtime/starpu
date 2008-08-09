@@ -15,8 +15,6 @@ static void mult_common_codelet(data_interface_t *buffers, int s, __attribute__(
 	unsigned ld12 = buffers[2].blas.ld;
 	unsigned ld22 = buffers[0].blas.ld;
 
-	printf("MULT codelet\n");
-
 	switch (s) {
 		case 0:
 			cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, 
@@ -66,7 +64,6 @@ static void add_sub_common_codelet(data_interface_t *buffers, int s, __attribute
 	// TODO check dim ...
 
 	unsigned line;
-	printf("ADD SUB codelet alpha %f \n", alpha);
 
 	switch (s) {
 		case 0:
@@ -80,7 +77,14 @@ static void add_sub_common_codelet(data_interface_t *buffers, int s, __attribute
 			break;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case 1:
-			ASSERT(0);
+			for (line = 0; line < dy; line++)
+			{
+				/* copy line A into C */
+				cublasSaxpy(dx, 1.0f, &A[line*ldA], 1, &C[line*ldC], 1);
+				/* add line B to C = A */
+				cublasSaxpy(dx, alpha, &B[line*ldB], 1, &C[line*ldC], 1);
+			}
+
 			break;
 #endif
 		default:
@@ -115,7 +119,6 @@ static void self_add_sub_common_codelet(data_interface_t *buffers, int s, __attr
 
 	// TODO check dim ...
 	
-	printf("SELF ADD SUB codelet alpha %f \n", alpha);
 	unsigned line;
 
 	switch (s) {
@@ -128,7 +131,11 @@ static void self_add_sub_common_codelet(data_interface_t *buffers, int s, __attr
 			break;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case 1:
-			ASSERT(0);
+			for (line = 0; line < dy; line++)
+			{
+				/* add line A to C */
+				cublasSaxpy(dx, alpha, &A[line*ldA], 1, &C[line*ldC], 1);
+			}
 			break;
 #endif
 		default:
@@ -142,10 +149,10 @@ static void self_add_sub_common_codelet(data_interface_t *buffers, int s, __attr
 
 void self_add_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg)
 {
-	add_sub_common_codelet(descr, 0, arg, 1.0f);
+	self_add_sub_common_codelet(descr, 0, arg, 1.0f);
 }
 
 void self_sub_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg)
 {
-	add_sub_common_codelet(descr, 0, arg, -1.0f);
+	self_add_sub_common_codelet(descr, 0, arg, -1.0f);
 }
