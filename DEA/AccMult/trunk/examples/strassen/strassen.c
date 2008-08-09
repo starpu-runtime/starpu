@@ -19,7 +19,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 
 	job->nbuffers = 3;
 		job->buffers[0].state = C;
-		job->buffers[0].mode = RW;
+		job->buffers[0].mode = W;
 		job->buffers[1].state = A1;
 		job->buffers[1].mode = R;
 		job->buffers[2].state = A2;
@@ -49,6 +49,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			break;
 		case SELFADD:
 			job->nbuffers = 2;
+			job->buffers[0].mode = RW;
 			job->cl->core_func = self_add_core_codelet;
 			#if defined (USE_CUBLAS) || defined (USE_CUDA)
 			job->cl->cublas_func = self_add_cublas_codelet;
@@ -56,6 +57,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			break;
 		case SELFSUB:
 			job->nbuffers = 2;
+			job->buffers[0].mode = RW;
 			job->cl->core_func = self_sub_core_codelet;
 			#if defined (USE_CUBLAS) || defined (USE_CUDA)
 			job->cl->cublas_func = self_sub_cublas_codelet;
@@ -91,20 +93,20 @@ static void partition_matrices(strassen_iter_state_t *iter)
 	map_filters(B, 2, &f, &f2);
 	map_filters(C, 2, &f, &f2);
 
-	iter->A11 = get_sub_data(A, 1, 1);
-	iter->A12 = get_sub_data(A, 2, 1);
-	iter->A21 = get_sub_data(A, 1, 2);
-	iter->A22 = get_sub_data(A, 2, 2);
+	iter->A11 = get_sub_data(A, 2, 0, 0);
+	iter->A12 = get_sub_data(A, 2, 1, 0);
+	iter->A21 = get_sub_data(A, 2, 0, 1);
+	iter->A22 = get_sub_data(A, 2, 1, 1);
 
-	iter->B11 = get_sub_data(B, 1, 1);
-	iter->B12 = get_sub_data(B, 2, 1);
-	iter->B21 = get_sub_data(B, 1, 2);
-	iter->B22 = get_sub_data(B, 2, 2);
+	iter->B11 = get_sub_data(B, 2, 0, 0);
+	iter->B12 = get_sub_data(B, 2, 1, 0);
+	iter->B21 = get_sub_data(B, 2, 0, 1);
+	iter->B22 = get_sub_data(B, 2, 1, 1);
 
-	iter->C11 = get_sub_data(C, 1, 1);
-	iter->C12 = get_sub_data(C, 2, 1);
-	iter->C21 = get_sub_data(C, 1, 2);
-	iter->C22 = get_sub_data(C, 2, 2);
+	iter->C11 = get_sub_data(C, 2, 0, 0);
+	iter->C12 = get_sub_data(C, 2, 1, 0);
+	iter->C21 = get_sub_data(C, 2, 0, 1);
+	iter->C22 = get_sub_data(C, 2, 1, 1);
 
 	/* TODO check that all sub-matrices have the same size */
 }

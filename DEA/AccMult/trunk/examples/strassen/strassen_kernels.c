@@ -15,6 +15,8 @@ static void mult_common_codelet(data_interface_t *buffers, int s, __attribute__(
 	unsigned ld12 = buffers[2].blas.ld;
 	unsigned ld22 = buffers[0].blas.ld;
 
+	printf("MULT codelet\n");
+
 	switch (s) {
 		case 0:
 			cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, 
@@ -64,6 +66,7 @@ static void add_sub_common_codelet(data_interface_t *buffers, int s, __attribute
 	// TODO check dim ...
 
 	unsigned line;
+	printf("ADD SUB codelet alpha %f \n", alpha);
 
 	switch (s) {
 		case 0:
@@ -112,6 +115,7 @@ static void self_add_sub_common_codelet(data_interface_t *buffers, int s, __attr
 
 	// TODO check dim ...
 	
+	printf("SELF ADD SUB codelet alpha %f \n", alpha);
 	unsigned line;
 
 	switch (s) {

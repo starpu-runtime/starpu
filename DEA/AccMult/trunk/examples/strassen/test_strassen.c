@@ -50,9 +50,9 @@ void terminate(void *arg __attribute__ ((unused)))
 	sem_post(&sem);
 }
 
-unsigned xdim = 128;
-unsigned ydim = 128;
-unsigned zdim = 128;
+unsigned xdim = 2048;
+unsigned ydim = 2048;
+unsigned zdim = 2048;
 unsigned norandom = 0;
 unsigned pin = 0;
 
