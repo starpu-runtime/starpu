@@ -25,6 +25,14 @@ uint64_t flop_atlas = 0;
 uint64_t ls_cublas = 0;
 uint64_t ls_atlas = 0;
 
+/* 
+ * Strassen complexity : n = 2^k matrices, stops at 2^r : recursion = (k-r) levels
+ * 	M(k) = 7^(k-r) 8^r
+ * 	A(k) = 4^r (2^r + 5) 7^(k-r) - 6 x 4^k
+ *
+ * 	4n^2.807
+ */
+
 /*
  * That program should compute C = A * B 
  * 
@@ -39,11 +47,11 @@ void terminate(void *arg __attribute__ ((unused)))
 
 	double timing = timing_delay(&start, &end);
 	//uint64_t total_flop = flop_cublas + flop_atlas;
-	double total_flop = pow((double)dim, 2.807);
+	double total_flop = 4.0*pow((double)dim, 2.807);
 
 	fprintf(stderr, "Computation took (ms):\n");
 	printf("%2.2f\n", timing/1000);
-	//fprintf(stderr, "	GFlop : total (%2.2f) cublas (%2.2f) atlas (%2.2f)\n", (double)total_flop/1000000000.0f, (double)flop_cublas/1000000000.0f, (double)flop_atlas/1000000000.0f);
+	fprintf(stderr, "	GFlop : total (%2.2f)\n", (double)total_flop/1000000000.0f);
 	fprintf(stderr, "	GFlop/s : %2.2f\n", (double)total_flop / (double)timing/1000);
 
 	sem_post(&sem);
