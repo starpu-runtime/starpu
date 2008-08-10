@@ -11,6 +11,7 @@ typedef struct filter_t {
 } filter;
 
 void monitor_new_data(data_state *state, uint32_t home_node);
+void delete_data(data_state *state);
 
 void partition_data(data_state *initial_data, filter *f); 
 void unpartition_data(data_state *root_data, uint32_t gathering_node);

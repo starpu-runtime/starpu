@@ -5,7 +5,18 @@
  */
 void delete_data(data_state *state)
 {
+	unsigned node;
+
 	ASSERT(state);
+	for (node = 0; node < MAXNODES; node++)
+	{
+		local_data_state *local = &state->per_node[node];
+
+		if (local->allocated && local->automatically_allocated){
+			/* free the data copy in a lazy fashion */
+			request_mem_chunk_removal(state, node);
+		}
+	}
 }
 
 void monitor_new_data(data_state *state, uint32_t home_node)
@@ -127,6 +138,9 @@ void partition_data(data_state *initial_data, filter *f)
 
 	/* first take care to properly lock the data header */
 	take_mutex(&initial_data->header_lock);
+
+	/* there should not be mutiple filters applied on the same data */
+	ASSERT(initial_data->nchildren == 0);
 
 	/* this should update the pointers and size of the chunk */
 	nparts = f->filter_func(f, initial_data);

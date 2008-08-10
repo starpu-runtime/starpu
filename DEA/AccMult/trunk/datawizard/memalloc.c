@@ -152,6 +152,8 @@ size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node)
 
 	data = mc->data;
 
+	ASSERT(data);
+
 	/* try to lock all the leafs of the subtree */
 	lock_all_subtree(data);
 
@@ -210,6 +212,9 @@ void register_mem_chunk(data_state *state, uint32_t dst_node, size_t size)
 {
 	mem_chunk_t mc = mem_chunk_new();
 
+	ASSERT(state);
+	ASSERT(state->deallocation_method != 0x02);
+
 	mc->data = state;
 	mc->size = size; 
 
@@ -243,16 +248,25 @@ void request_mem_chunk_removal(data_state *state, unsigned node)
 void liberate_memory_on_node(data_state *state, uint32_t node)
 {
 	ASSERT(state->deallocation_method);
-	state->deallocation_method(state, node);
 
-	state->per_node[node].allocated = 0;
-	state->per_node[node].automatically_allocated = 0;
+	if (state->per_node[node].allocated && state->per_node[node].automatically_allocated)
+	{
+		state->deallocation_method(state, node);
+
+		state->per_node[node].allocated = 0;
+
+		/* XXX why do we need that ? */
+		state->per_node[node].automatically_allocated = 0;
+	}
 }
 
 void allocate_memory_on_node(data_state *state, uint32_t dst_node)
 {
 	unsigned attempts = 0;
 	size_t allocated_memory;
+
+	ASSERT(state);
+	//fprintf(stderr, "allocate_memory_on_node state %p dst_node %d\n", state,dst_node);
 
 	do {
 		ASSERT(state->allocation_method);

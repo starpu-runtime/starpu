@@ -1,7 +1,7 @@
 #include "strassen.h"
 
-unsigned reclevel = 4;
 unsigned dim = 512;
+unsigned reclevel = 4;
 unsigned norandom = 0;
 
 sem_t sem;

@@ -6,7 +6,7 @@ static job_t create_job(void)
 	cl->cl_arg = NULL;
 
 	job_t j = job_create();
-		j->where = ANY;
+		j->where = CORE|CUBLAS;
 		j->cl = cl;
 
 	return j;
@@ -33,8 +33,8 @@ static data_state *create_tmp_matrix(data_state *M)
 
 static void free_tmp_matrix(data_state *matrix)
 {
-	free(matrix);
-	// xXX TODO 
+	delete_data(matrix);
+//	free(matrix);
 }
 
 
@@ -202,7 +202,7 @@ void phase_3_callback_function(void *_arg)
 	if (cnt == 0)
 	{
 		/* the entire strassen iteration is done ! */
-		unpartition_matrices(iter);
+		//unpartition_matrices(iter);
 
 		// XXX free the Ei
 		ASSERT(iter->strassen_iter_callback);
@@ -354,7 +354,6 @@ static void _strassen_phase_2(strassen_iter_state_t *iter, unsigned i)
 }
 
 
-// XXX make it dynamic
 #define THRESHHOLD	128
 
 static void phase_1_callback_function(void *_arg)
@@ -469,12 +468,7 @@ static void _do_strassen(data_state *A, data_state *B, data_state *C, void (*str
 void strassen(data_state *A, data_state *B, data_state *C, void (*callback)(void *), void *argcb, unsigned reclevel)
 {
 	/* C = A * B */
-	unsigned nxA = get_blas_nx(A);
-	unsigned nyA = get_blas_ny(A);
-	unsigned nxB = get_blas_nx(B);
-	unsigned nyB = get_blas_ny(B);
-
-	if ( reclevel == 0 || ((MAX(nxA,nyA) <= THRESHHOLD) && (MAX(nxB,nyB) <= THRESHHOLD)))
+	if ( reclevel == 0 )
 	{
 		/* don't use Strassen but a simple sequential multiplication
 		 * provided this is small enough */
