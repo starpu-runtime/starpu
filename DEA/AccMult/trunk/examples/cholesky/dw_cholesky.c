@@ -1,4 +1,5 @@
 #include "dw_cholesky.h"
+#include "dw_cholesky_models.h"
 
 #define TAG11(k)	( (1ULL<<60) | (unsigned long long)(k))
 #define TAG21(k,j)	(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
@@ -45,11 +46,11 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 //	job->where = CORE;
 
 	job->cl->core_func = chol_core_codelet_update_u11;
+	job->core_cost_model = core_chol_task_11_cost;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job->cl->cublas_func = chol_cublas_codelet_update_u11;
+	job->cuda_cost_model = cuda_chol_task_11_cost;
 #endif
-
-//	job->cost_model = chol_task_11_cost;
 
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 1;
@@ -81,12 +82,12 @@ static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 //	job->where = CORE;
 
 	job->cl->core_func = chol_core_codelet_update_u21;
+	job->core_cost_model = core_chol_task_21_cost;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job->cl->cublas_func = chol_cublas_codelet_update_u21;
+	job->cuda_cost_model = cuda_chol_task_21_cost;
 #endif
 
-//	job->cost_model = task_21_cost;
-	
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 2;
 		job->buffers[0].state = get_sub_data(dataA, 2, k, k); 
@@ -115,11 +116,11 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
 //	job->where = CORE;
 
 	job->cl->core_func = chol_core_codelet_update_u22;
+	job->core_cost_model = core_chol_task_22_cost;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job->cl->cublas_func = chol_cublas_codelet_update_u22;
+	job->cuda_cost_model = cuda_chol_task_22_cost;
 #endif
-
-//	job->cost_model = task_22_cost;
 
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 3;
