@@ -21,9 +21,9 @@ static void handle_data_copy(void)
  */
 int main(int argc, char **argv)
 {
-	char *filename, *filenameout = NULL;
+	char *filename = NULL;
 	int ret;
-	int fd_in, fd_out;
+	int fd_in; 
 
 	if (argc < 2) {
 	        fprintf(stderr, "Usage : %s input_filename [-o output_filename]\n", argv[0]);

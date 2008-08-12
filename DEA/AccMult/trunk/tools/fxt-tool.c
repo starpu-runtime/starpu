@@ -71,7 +71,9 @@ int find_workder_id(unsigned long tid)
 		item.data = NULL;
 	ENTRY *res;
 	res = hsearch(item, FIND);
-	ASSERT(res);
+	//ASSERT(res);
+	if (!res)
+		return -1;
 
 	int id = (uintptr_t)(res->data);
 
@@ -85,6 +87,7 @@ void handle_start_codelet_body(void)
 
 	int worker;
 	worker = find_workder_id(ev.param[1]);
+	if (worker < 0) return;
 //	printf("-> worker %d\n", worker);
 
 	event_t e = event_new();
@@ -101,6 +104,7 @@ void handle_end_codelet_body(void)
 
 	int worker;
 	worker = find_workder_id(ev.param[1]);
+	if (worker < 0) return;
 //	printf("<- worker %d\n", worker);
 
 	event_t e = event_new();
@@ -116,6 +120,7 @@ void handle_start_fetch_input(void)
 {
 	int worker;
 	worker = find_workder_id(ev.param[1]);
+	if (worker < 0) return;
 
 	event_t e = event_new();
 	e->time =  ev.time;
@@ -129,6 +134,7 @@ void handle_end_fetch_input(void)
 {
 	int worker;
 	worker = find_workder_id(ev.param[1]);
+	if (worker < 0) return;
 
 	event_t e = event_new();
 	e->time =  ev.time;
@@ -145,6 +151,7 @@ void handle_start_push_output(void)
 {
 	int worker;
 	worker = find_workder_id(ev.param[1]);
+	if (worker < 0) return;
 
 	event_t e = event_new();
 	e->time =  ev.time;
@@ -158,6 +165,7 @@ void handle_end_push_output(void)
 {
 	int worker;
 	worker = find_workder_id(ev.param[1]);
+	if (worker < 0) return;
 
 	event_t e = event_new();
 	e->time =  ev.time;
@@ -388,6 +396,11 @@ int main(int argc, char **argv)
 
 			case FUT_CODELET_TAG_DEPS:
 				handle_codelet_tag_deps();
+				break;
+
+			case FUT_DATA_COPY:
+			case FUT_WORK_STEALING:
+				/* XXX */
 				break;
 
 			default:
