@@ -4,39 +4,58 @@
 unsigned nworkers;
 struct jobq_s *queue_array[16];
 
+double job_expected_length(struct jobq_s *q, struct job_s *j)
+{
+	double exp;
+
+	if ( (q->who & (CUBLAS|CUDA)) && j->cuda_cost_model) {
+		/* use CUDA model */
+		exp = j->cuda_cost_model(j->buffers) + 0.0;
+		return exp;
+	}
+
+	if ( (q->who & CORE) && j->core_cost_model) {
+		/* use CORE model */
+		exp = j->core_cost_model(j->buffers);
+		return exp;
+	}
+
+	if (j->cost_model) {
+		/* use the common model */
+		exp = (j->cost_model(j->buffers))/q->alpha;
+		return exp;
+	}
+
+	/* no model was found */
+	return 0.0;
+}
+
 static job_t dm_pop_task(struct jobq_s *q)
 {
 	struct job_s *j;
 
 	j = deque_pop_task(q);
 
-	if (j->cost_model) {
-		double model = j->cost_model(j->buffers);
-		struct deque_jobq_s *deque = q->queue;
+	struct deque_jobq_s *deque = q->queue;
+	double model = job_expected_length(q, j);
 
-		deque->exp_len -= model/q->alpha + 0.0;
-		deque->exp_start = timing_now()/1000000 + (model/q->alpha + 0.0);
-		deque->exp_end = deque->exp_start + deque->exp_len;
-	}
+	deque->exp_len -= model;
+	deque->exp_start = timing_now()/1000000 + model;
+	deque->exp_end = deque->exp_start + deque->exp_len;
 
 	return j;
 }
 
-static void _dm_push_task(struct jobq_s *q, job_t task, unsigned prio)
+static void _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task, unsigned prio)
 {
 	/* find the queue */
-
-	double model = 0.0;
-
-	if (task->cost_model) {
-		model = task->cost_model(task->buffers);
-	}
 
 	struct deque_jobq_s *deque;
 	unsigned worker;
 	int best = -1;
 
 	double best_exp_end = 0.0;
+	double model_best = 0.0;
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
@@ -54,7 +73,7 @@ static void _dm_push_task(struct jobq_s *q, job_t task, unsigned prio)
 			continue;
 		}
 
-		double local_length = (model/queue_array[worker]->alpha + 0.0);
+		double local_length = job_expected_length(queue_array[worker], task);
 
 
 		exp_end = deque->exp_start + deque->exp_len + local_length;
@@ -64,6 +83,7 @@ static void _dm_push_task(struct jobq_s *q, job_t task, unsigned prio)
 			/* a better solution was found */
 			best_exp_end = exp_end;
 			best = worker;
+			model_best = local_length;
 		}
 	}
 
@@ -76,8 +96,8 @@ static void _dm_push_task(struct jobq_s *q, job_t task, unsigned prio)
 	/* we should now have the best worker in variable "best" */
 	deque = queue_array[best]->queue;
 
-	deque->exp_end += (model/queue_array[best]->alpha + 0.0);
-	deque->exp_len += (model/queue_array[best]->alpha + 0.0);
+	deque->exp_end += model_best;
+	deque->exp_len += model_best;
 
 	if (prio) {
 		deque_push_prio_task(queue_array[best], task);

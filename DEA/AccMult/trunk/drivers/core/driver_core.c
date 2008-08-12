@@ -23,11 +23,21 @@ void execute_job_on_core(job_t j)
 
 			push_codelet_output(j->buffers, j->nbuffers, 0);
 
-	//		if (j->cost_model) {
-	//			double predicted = j->cost_model(j->buffers);
-	//			double measured = timing_delay(&codelet_start, &codelet_end);
-	//			printf("CORE: model was %e got %e factor (%2.4f \%%)\n", predicted, measured, 100*(measured/predicted-1));
-	//		}
+#ifdef MODEL_DEBUG
+			double measured = timing_delay(&codelet_start, &codelet_end);
+			if (j->core_cost_model)
+			{
+				double predicted = j->core_cost_model(j->buffers);
+				printf("CORE (core_cost): model was %e got %e factor (%2.4f \%%)\n", predicted, measured, 100*(measured/predicted-1));
+			}
+			else
+			{
+				if (j->cost_model) {
+					double predicted = j->cost_model(j->buffers);
+					printf("CORE: model was %e got %e factor (%2.4f \%%)\n", predicted, measured, 100*(measured/predicted-1));
+				}
+			}
+#endif
 
 			break;
                 case ABORT:

@@ -77,6 +77,8 @@ LIST_TYPE(job,
 	data_interface_t interface[NMAXBUFS];
 
 	double (*cost_model)(buffer_descr *);
+	double (*cuda_cost_model)(buffer_descr *);
+	double (*core_cost_model)(buffer_descr *);
 );
 
 job_t job_create(void);

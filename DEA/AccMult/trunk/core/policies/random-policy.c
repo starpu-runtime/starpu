@@ -13,7 +13,7 @@ static job_t random_pop_task(struct jobq_s *q)
 	return j;
 }
 
-static void _random_push_task(struct jobq_s *q, job_t task, unsigned prio)
+static void _random_push_task(struct jobq_s *q __attribute__ ((unused)), job_t task, unsigned prio)
 {
 	/* find the queue */
 	struct deque_jobq_s *deque;

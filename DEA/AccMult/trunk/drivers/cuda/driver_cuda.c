@@ -223,13 +223,23 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 			}
 			TRACE_END_CODELET_BODY(j);	
 
-//			if (j->cost_model) {
-//				double alpha = 13.33;
-//				double predicted = j->cost_model(j->buffers) / alpha;
-//				double measured = timing_delay(&codelet_start, &codelet_end);
-//				printf("CUDA: model was %e got %e factor (%2.4f \%%)\n", predicted, measured, 100*(measured/predicted - 1.0f));
-//			}
+#ifdef MODEL_DEBUG
+			double measured = timing_delay(&codelet_start, &codelet_end);
+			if (j->cuda_cost_model)
+			{
 
+				double predicted = j->cuda_cost_model(j->buffers);
+				printf("CUDA (cuda_cost): model was %e got %e factor (%2.4f \%%)\n", predicted, measured, 100*(measured/predicted - 1.0f));
+			}
+			else 
+			{
+				if (j->cost_model) {
+					double alpha = 13.33;
+					double predicted = j->cost_model(j->buffers) / alpha;
+					printf("CUDA: model was %e got %e factor (%2.4f \%%)\n", predicted, measured, 100*(measured/predicted - 1.0f));
+				}
+			}
+#endif
 			push_codelet_output(j->buffers, j->nbuffers, 1<<0);
 			break;
 		case ABORT:
