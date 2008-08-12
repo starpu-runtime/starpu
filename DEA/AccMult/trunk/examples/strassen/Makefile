@@ -12,8 +12,11 @@ strassen.o: strassen.h strassen.c
 test_strassen.o: test_strassen.c strassen.h
 	$(CC) $(CFLAGS) test_strassen.c -c -o test_strassen.o
 
-dw_strassen: strassen.o strassen_kernels.o test_strassen.o
-	$(CC) strassen.o strassen_kernels.o test_strassen.o -o dw_strassen $(LDFLAGS) $(RIBSCHED)
+strassen_models.o: strassen_models.c strassen_models.h
+	$(CC) $(CFLAGS) strassen_models.c -c -o strassen_models.o
+
+dw_strassen: strassen_models.o strassen.o strassen_kernels.o test_strassen.o
+	$(CC) strassen_models.o strassen.o strassen_kernels.o test_strassen.o -o dw_strassen $(LDFLAGS) $(RIBSCHED)
 
 clean:
 	@rm -f *.o *.d

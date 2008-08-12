@@ -1,4 +1,5 @@
 #include "strassen.h"
+#include "strassen_models.h"
 
 static job_t create_job(void)
 {
@@ -109,6 +110,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			ASSERT(A1);
 			ASSERT(A2);
 			ASSERT(C);
+			job->cost_model = add_sub_cost;
 			job->cl->core_func = add_core_codelet;
 			#if defined (USE_CUBLAS) || defined (USE_CUDA)
 			job->cl->cublas_func = add_cublas_codelet;
@@ -118,6 +120,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			ASSERT(A1);
 			ASSERT(A2);
 			ASSERT(C);
+			job->cost_model = add_sub_cost;
 			job->cl->core_func = sub_core_codelet;
 			#if defined (USE_CUBLAS) || defined (USE_CUDA)
 			job->cl->cublas_func = sub_cublas_codelet;
@@ -127,6 +130,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			ASSERT(A1);
 			ASSERT(A2);
 			ASSERT(C);
+			job->cost_model = mult_cost;
 			job->cl->core_func = mult_core_codelet;
 			#if defined (USE_CUBLAS) || defined (USE_CUDA)
 			job->cl->cublas_func = mult_cublas_codelet;
@@ -136,6 +140,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			job->nbuffers = 2;
 			job->buffers[0].mode = RW;
 			job->cl->core_func = self_add_core_codelet;
+			job->cost_model = self_add_sub_cost;
 			#if defined (USE_CUBLAS) || defined (USE_CUDA)
 			job->cl->cublas_func = self_add_cublas_codelet;
 			#endif
@@ -144,6 +149,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			job->nbuffers = 2;
 			job->buffers[0].mode = RW;
 			job->cl->core_func = self_sub_core_codelet;
+			job->cost_model = self_add_sub_cost;
 			#if defined (USE_CUBLAS) || defined (USE_CUDA)
 			job->cl->cublas_func = self_sub_cublas_codelet;
 			#endif

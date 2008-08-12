@@ -27,11 +27,25 @@ uint64_t ls_atlas = 0;
 
 /* 
  * Strassen complexity : n = 2^k matrices, stops at 2^r : recursion = (k-r) levels
- * 	M(k) = 7^(k-r) 8^r
- * 	A(k) = 4^r (2^r + 5) 7^(k-r) - 6 x 4^k
+ * 	m = n / 2^rec
+ * 	M(k) = 7^(k-r) 8^r = 7^rec (m^3)
+ * 	A(k) = 4^r (2^r + 5) 7^(k-r) - 6 x 4^k = (m^2)(m+5)*7^rec - 6n^2 
  *
  * 	4n^2.807
  */
+double strassen_complexity(unsigned n, unsigned rec)
+{
+	double mult, add;
+
+	double m = (1.0*n)/(pow(2.0, (double)rec));
+
+	add = ((m*m)*(m+5)*(pow(7.0, (double)rec)) - 6.0*n*n);
+	mult = (m*m*m)*(pow(7.0, (double)rec));
+	
+	//printf("%e adds %e mult\n", add, mult);
+
+	return (add+mult);
+}
 
 /*
  * That program should compute C = A * B 
@@ -47,7 +61,7 @@ void terminate(void *arg __attribute__ ((unused)))
 
 	double timing = timing_delay(&start, &end);
 	//uint64_t total_flop = flop_cublas + flop_atlas;
-	double total_flop = 4.0*pow((double)dim, 2.807);
+	double total_flop =  strassen_complexity(dim, reclevel);//4.0*pow((double)dim, 2.807);
 
 	fprintf(stderr, "Computation took (ms):\n");
 	printf("%2.2f\n", timing/1000);
@@ -125,8 +139,6 @@ void init_problem(void)
 		}
 	}
 
-
-	GET_TICK(start);
 	monitor_blas_data(&A_state, 0, (uintptr_t)A, 
 		dim, dim, dim, sizeof(float));
 	monitor_blas_data(&B_state, 0, (uintptr_t)B, 
@@ -134,6 +146,7 @@ void init_problem(void)
 	monitor_blas_data(&C_state, 0, (uintptr_t)C, 
 		dim, dim, dim, sizeof(float));
 
+	GET_TICK(start);
 	strassen(&A_state, &B_state, &C_state, terminate, NULL, reclevel);
 }
 
