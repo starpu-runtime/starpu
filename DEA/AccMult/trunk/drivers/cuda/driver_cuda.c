@@ -205,6 +205,9 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 				set_function_args(args, j->buffers, j->interface, j->nbuffers);
 
 				/* set up the grids */
+#ifdef MODEL_DEBUG
+				status = cuCtxSynchronize();
+#endif
 				GET_TICK(codelet_start);
 				status = cuLaunchGrid(args->func->function, 
 						args->gridx, args->gridy);

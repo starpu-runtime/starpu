@@ -85,8 +85,6 @@ void parse_args(int argc, char **argv)
 			reclevel = strtol(argv[++i], &argptr, 10);
 		}
 
-
-
 		if (strcmp(argv[i], "-no-random") == 0) {
 			norandom = 1;
 		}

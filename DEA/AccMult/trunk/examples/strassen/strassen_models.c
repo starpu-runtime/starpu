@@ -19,7 +19,26 @@
 #define PERTURBATE(a)	(a)
 #endif
 
+
+
+
+
 double self_add_sub_cost(buffer_descr *descr)
+{
+	uint32_t n;
+
+	n = descr[0].state->interface->blas.nx;
+
+	double cost = (n*n)/10.0f/4.0f/7.75f;
+
+#ifdef MODEL_DEBUG
+	printf("self add sub cost %e n = %d\n", cost, n);
+#endif
+
+	return PERTURBATE(cost);
+}
+
+double cuda_self_add_sub_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -27,7 +46,9 @@ double self_add_sub_cost(buffer_descr *descr)
 
 	double cost = (n*n)/10.0f/4.0f;
 
+#ifdef MODEL_DEBUG
 	printf("self add sub cost %e n = %d\n", cost, n);
+#endif
 
 	return PERTURBATE(cost);
 }
@@ -40,10 +61,28 @@ double add_sub_cost(buffer_descr *descr)
 
 	double cost = (1.45f*n*n)/10.0f/2.0f;
 
+#ifdef MODEL_DEBUG
 	printf("add sub cost %e n = %d\n", cost, n);
+#endif
 
 	return PERTURBATE(cost);
 }
+
+double cuda_add_sub_cost(buffer_descr *descr)
+{
+	uint32_t n;
+
+	n = descr[0].state->interface->blas.nx;
+
+	double cost = (1.45f*n*n)/10.0f/2.0f;
+
+#ifdef MODEL_DEBUG
+	printf("add sub cost %e n = %d\n", cost, n);
+#endif
+
+	return PERTURBATE(cost);
+}
+
 
 double mult_cost(buffer_descr *descr)
 {
@@ -51,9 +90,26 @@ double mult_cost(buffer_descr *descr)
 
 	n = descr[0].state->interface->blas.nx;
 
+	double cost = (((double)(n)*n*n)/1000.0f/4.11f/0.2588);
+
+#ifdef MODEL_DEBUG
+	printf("mult cost %e n = %d \n", cost, n);
+#endif
+
+	return PERTURBATE(cost);
+}
+
+double cuda_mult_cost(buffer_descr *descr)
+{
+	uint32_t n;
+
+	n = descr[0].state->interface->blas.nx;
+
 	double cost = (((double)(n)*n*n)/1000.0f/4.11f);
 
+#ifdef MODEL_DEBUG
 	printf("mult cost %e n = %d \n", cost, n);
+#endif
 
 	return PERTURBATE(cost);
 }

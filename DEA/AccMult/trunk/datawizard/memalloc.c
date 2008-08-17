@@ -213,7 +213,7 @@ void register_mem_chunk(data_state *state, uint32_t dst_node, size_t size)
 	mem_chunk_t mc = mem_chunk_new();
 
 	ASSERT(state);
-	ASSERT(state->deallocation_method != 0x02);
+	ASSERT(state->deallocation_method);
 
 	mc->data = state;
 	mc->size = size; 
