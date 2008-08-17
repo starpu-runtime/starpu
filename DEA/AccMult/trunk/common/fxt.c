@@ -1,8 +1,8 @@
 #include "fxt.h"
 
-#define PROF_BUFFER_SIZE  (16*1024*1024)
+#define PROF_BUFFER_SIZE  (8*1024*1024)
 
-static char PROF_FILE_USER[1024];
+static char PROF_FILE_USER[128];
 static int fxt_started = 0;
 fxt_t fut;
 

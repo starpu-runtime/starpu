@@ -9,7 +9,7 @@ static unsigned long long residual = 0;
 
 static int inited = 0;
 
-void __attribute__ ((unused)) timing_init(void)
+void timing_init(void)
 {
   static tick_t t1, t2;
   int i;
@@ -41,17 +41,17 @@ void __attribute__ ((unused)) timing_init(void)
   inited = 1;
 }
 
-double __attribute__ ((unused)) tick2usec(long long t)
+double tick2usec(long long t)
 {
   return (double)(t)*scale;
 }
 
-double __attribute__ ((unused)) timing_delay(tick_t *t1, tick_t *t2)
+double timing_delay(tick_t *t1, tick_t *t2)
 {
 	return TIMING_DELAY(*t1, *t2);
 }
 
-double __attribute__ ((unused)) timing_now(void)
+double timing_now(void)
 {
 	tick_t tick_now;
 	GET_TICK(tick_now);
