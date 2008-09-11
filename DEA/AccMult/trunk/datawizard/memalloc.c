@@ -102,7 +102,7 @@ void transfer_subtree_to_node(data_state *data, unsigned src_node,
 			/* the local node has the only copy */
 			/* the owner is now the destination_node */
 			data->per_node[src_node].state = INVALID;
-			data->per_node[dst_node].state = INVALID;
+			data->per_node[dst_node].state = OWNER;
 
 			driver_copy_data_1_to_1(data, src_node, dst_node, 0);
 
