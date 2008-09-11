@@ -12,11 +12,14 @@ unsigned get_cublas_device_count(void)
 
 static int execute_job_on_cublas(job_t j)
 {
+	uint32_t mask = (1<<0);
+
 	switch (j->type){
 		case CODELET:
 			assert(j->cl);
 			assert(j->cl->cublas_func);
-			fetch_codelet_input(j->buffers, j->interface, j->nbuffers);
+			if (fetch_codelet_input(j->buffers, j->interface, j->nbuffers, mask))
+				return TRYAGAIN;
 
 			TRACE_START_CODELET_BODY(j);
 			cl_func func = j->cl->cublas_func;
@@ -24,7 +27,7 @@ static int execute_job_on_cublas(job_t j)
 			cuCtxSynchronize();
 			TRACE_END_CODELET_BODY(j);
 
-			push_codelet_output(j->buffers, j->nbuffers, 1<<0);
+			push_codelet_output(j->buffers, j->nbuffers, mask);
 			break;
 		case ABORT:
 			fprintf(stderr, "CUBLAS abort\n");

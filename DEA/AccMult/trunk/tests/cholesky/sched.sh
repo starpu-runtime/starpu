@@ -1,6 +1,6 @@
 #!/bin/bash
 
-maxiter=1
+maxiter=5
 MAXCPU=3
 
 trace_sched()
@@ -15,7 +15,7 @@ trace_sched()
 		
 		cd $ROOTDIR
 		filename=$TIMINGDIR/sched.$SCHED.$size
-		rm -f $filename
+		#rm -f $filename
 		make clean 1> /dev/null 2> /dev/null
 		make examples -j ATLAS=1 CPUS=$MAXCPU CUDA=1 1> /dev/null 2> /dev/null
 		cd $DIR

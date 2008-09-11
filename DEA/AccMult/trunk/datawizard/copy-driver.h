@@ -21,7 +21,8 @@ typedef struct {
 	node_kind nodes[MAXNODES];
 } mem_node_descr;
 
-void driver_copy_data(data_state *state, uint32_t src_node_mask, uint32_t dst_node);
+__attribute__((warn_unused_result))
+int driver_copy_data(data_state *state, uint32_t src_node_mask, uint32_t dst_node);
 
 void init_memory_nodes(void);
 void set_local_memory_node_key(unsigned *node);
@@ -30,7 +31,8 @@ unsigned register_memory_node(node_kind kind);
 
 node_kind get_node_kind(uint32_t node);
 
-void driver_copy_data_1_to_1(data_state *state, uint32_t node, 
+__attribute__((warn_unused_result))
+int driver_copy_data_1_to_1(data_state *state, uint32_t node, 
 				uint32_t requesting_node, unsigned donotread);
 
 #endif // __COPY_DRIVER_H__

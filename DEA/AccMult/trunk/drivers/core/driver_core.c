@@ -3,16 +3,23 @@
 
 extern unsigned ncores;
 
-void execute_job_on_core(job_t j)
+int execute_job_on_core(job_t j)
 {
+	int ret;
 	tick_t codelet_start, codelet_end;
 
         switch (j->type) {
 		case CODELET:
 			ASSERT(j->cl);
 			ASSERT(j->cl->core_func);
-			fetch_codelet_input(j->buffers, j->interface,
-					j->nbuffers);
+			ret = fetch_codelet_input(j->buffers, j->interface,
+					j->nbuffers, 0);
+
+			if (ret != 0) {
+				/* there was not enough memory so the codelet cannot be executed right now ... */
+				/* push the codelet back and try another one ... */
+				return TRYAGAIN;
+			}
 
 			TRACE_START_CODELET_BODY(j);
 			GET_TICK(codelet_start);
@@ -49,6 +56,8 @@ void execute_job_on_core(job_t j)
 			ASSERT(0);
                         break;
         }
+
+	return OK;
 }
 
 void *core_worker(void *arg)
@@ -85,6 +94,7 @@ void *core_worker(void *arg)
 //	jobq = ((core_worker_arg *)arg)->jobq;
 
         job_t j;
+	int res;
 
         do {
                 j = pop_task();
@@ -98,7 +108,19 @@ void *core_worker(void *arg)
 			continue;
 		}
 
-                execute_job_on_core(j);
+                res = execute_job_on_core(j);
+		if (res != OK) {
+			switch (res) {
+				case OK:
+				case FATAL:
+					assert(0);
+				case TRYAGAIN:
+					push_task(j);
+					continue;
+				default: 
+					assert(0);
+			}
+		}
 
                 if (j->cb)
                         j->cb(j->argcb);

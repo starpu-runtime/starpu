@@ -75,6 +75,8 @@ TODO:
 		- lock free
 		- *deallocation !*
 	- performance comparision:
-		- multithreaded MKL ?
+		- multithreaded MKL ? (compare on NUMA machines for instance)
 	- external libs
 		- linked with a dummy BLAS lib ?
+	- synthetic benchmark
+		- cf. README

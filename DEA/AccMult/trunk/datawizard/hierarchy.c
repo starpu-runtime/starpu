@@ -190,7 +190,13 @@ void unpartition_data(data_state *root_data, uint32_t gathering_node)
 	/* first take all the children lock (in order !) */
 	for (child = 0; child < root_data->nchildren; child++)
 	{
-		_fetch_data(&root_data->children[child], gathering_node, 1, 0);
+		int ret;
+		ret = _fetch_data(&root_data->children[child], gathering_node, 1, 0);
+		/* for now we pretend that the RAM is almost unlimited and that gathering 
+		 * data should be possible from the node that does the unpartionning ... we
+		 * don't want to have the programming deal with memory shortage at that time,
+		 * really */
+		ASSERT(ret == 0); 
 	}
 
 	/* the gathering_node should now have a valid copy of all the children.

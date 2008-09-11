@@ -170,6 +170,9 @@ void init_cuda(void)
 
 int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 {
+	int ret;
+	uint32_t mask = (1<<0);
+
 	CUresult status;
 	tick_t codelet_start, codelet_end;
 	
@@ -177,7 +180,12 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 		case CODELET:
 			ASSERT(j);
 			ASSERT(j->cl);
-			fetch_codelet_input(j->buffers, j->interface, j->nbuffers);
+
+			ret = fetch_codelet_input(j->buffers, j->interface, j->nbuffers, mask);
+			if (ret != 0) {
+				/* there was not enough memory, so the input of the codelet cannot be fetched ... put the codelet back, and try it later */
+				return TRYAGAIN;
+			}
 
 			TRACE_START_CODELET_BODY(j);
 			if (use_cublas) {
@@ -243,7 +251,7 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 				}
 			}
 #endif
-			push_codelet_output(j->buffers, j->nbuffers, 1<<0);
+			push_codelet_output(j->buffers, j->nbuffers, mask);
 			break;
 		case ABORT:
 			printf("CUDA abort\n");

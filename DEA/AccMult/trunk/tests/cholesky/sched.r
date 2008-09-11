@@ -65,8 +65,8 @@ handle_sched_mean <- function(sched)
 
 trace_sched <- function(sched, color)
 {
-	points(handle_sched(sched)$size, handle_sched(sched)$gflops, col=color);
-#	lines(handle_sched_mean(sched)$size, handle_sched_mean(sched)$gflops, col=color, legend.text=TRUE);
+#	points(handle_sched(sched)$size, handle_sched(sched)$gflops, col=color);
+	#lines(handle_sched_mean(sched)$size, handle_sched_mean(sched)$gflops, col=color, legend.text=TRUE);
 	lines(handle_sched_mean(sched)$size, handle_sched_mean(sched)$gflops, col=color);
 }
 

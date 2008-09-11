@@ -80,14 +80,18 @@ typedef struct buffer_descr_t {
 } buffer_descr;
 
 void display_state(data_state *state);
-void fetch_data(data_state *state, access_mode mode);
+__attribute__((warn_unused_result))
+int fetch_data(data_state *state, access_mode mode);
 void release_data(data_state *state, uint32_t write_through_mask);
 
-void _fetch_data(data_state *state, uint32_t requesting_node, uint8_t read, uint8_t write);
+__attribute__((warn_unused_result))
+int _fetch_data(data_state *state, uint32_t requesting_node, uint8_t read, uint8_t write);
 
 uint32_t get_data_refcnt(data_state *state, uint32_t node);
 
 void push_codelet_output(buffer_descr *descrs, unsigned nbuffers, uint32_t mask);
-void fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsigned nbuffers);
+
+__attribute__((warn_unused_result))
+int fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsigned nbuffers, uint32_t mask);
 
 #endif // __COHERENCY__H__

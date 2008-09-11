@@ -51,19 +51,26 @@ inline node_kind get_node_kind(uint32_t node)
 	return descr.nodes[node];
 }
 
-void allocate_per_node_buffer(data_state *state, uint32_t node)
+static int allocate_per_node_buffer(data_state *state, uint32_t node)
 {
 	if (!state->per_node[node].allocated) {
 		/* there is no room available for the data yet */
-		allocate_memory_on_node(state, node);
+		if (allocate_memory_on_node(state, node))
+			goto nomem;
 	}
+
+	return 0;
+nomem:
+	/* there was not enough memory to allocate the buffer */
+	return -1;
 }
 
-void driver_copy_data_1_to_1(data_state *state, uint32_t src_node, 
+int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *state, uint32_t src_node, 
 				uint32_t dst_node, unsigned donotread)
 {
 	/* first make sure the destination has an allocated buffer */
-	allocate_per_node_buffer(state, dst_node);
+	if (allocate_per_node_buffer(state, dst_node))
+		goto nomem;
 
 	/* if there is no need to actually read the data, 
 	 * we do not perform any transfer */
@@ -71,6 +78,11 @@ void driver_copy_data_1_to_1(data_state *state, uint32_t src_node,
 		ASSERT(state->copy_1_to_1_method);
 		state->copy_1_to_1_method(state, src_node, dst_node);
 	}
+
+	return 0;
+
+nomem:
+	return -1;
 }
 
 static uint32_t choose_src_node(uint32_t src_node_mask)
@@ -99,10 +111,15 @@ static uint32_t choose_src_node(uint32_t src_node_mask)
 	return src_node;
 }
 
-void driver_copy_data(data_state *state, uint32_t src_node_mask,
+__attribute__((warn_unused_result))
+int driver_copy_data(data_state *state, uint32_t src_node_mask,
 					 uint32_t dst_node)
 {
+	int ret;
 	uint32_t src_node = choose_src_node(src_node_mask);
 
-	driver_copy_data_1_to_1(state, src_node, dst_node, 0);
+	/* possibly returns -1 if there was no memory left */
+	ret = driver_copy_data_1_to_1(state, src_node, dst_node, 0);
+
+	return ret;
 }

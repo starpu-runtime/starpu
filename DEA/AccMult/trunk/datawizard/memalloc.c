@@ -93,6 +93,7 @@ void transfer_subtree_to_node(data_state *data, unsigned src_node,
 	unsigned i;
 	unsigned last = 0;
 	unsigned cnt;
+	int ret;
 
 	if (data->nchildren == 0)
 	{
@@ -104,7 +105,8 @@ void transfer_subtree_to_node(data_state *data, unsigned src_node,
 			data->per_node[src_node].state = INVALID;
 			data->per_node[dst_node].state = OWNER;
 
-			driver_copy_data_1_to_1(data, src_node, dst_node, 0);
+			ret = driver_copy_data_1_to_1(data, src_node, dst_node, 0);
+			ASSERT(ret == 0);
 
 			break;
 		case SHARED:
@@ -260,7 +262,7 @@ void liberate_memory_on_node(data_state *state, uint32_t node)
 	}
 }
 
-void allocate_memory_on_node(data_state *state, uint32_t dst_node)
+int allocate_memory_on_node(data_state *state, uint32_t dst_node)
 {
 	unsigned attempts = 0;
 	size_t allocated_memory;
@@ -279,10 +281,16 @@ void allocate_memory_on_node(data_state *state, uint32_t dst_node)
 	} while(!allocated_memory && attempts++ < 2);
 
 	/* perhaps we could really not handle that capacity misses */
-	ASSERT(allocated_memory);
+	if (!allocated_memory)
+		goto nomem;
 
 	register_mem_chunk(state, dst_node, allocated_memory);
 
 	state->per_node[dst_node].allocated = 1;
 	state->per_node[dst_node].automatically_allocated = 1;
+
+	return 0;
+nomem:
+	ASSERT(!allocated_memory);
+	return -1;
 }

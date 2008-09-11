@@ -1,6 +1,6 @@
 #include "strassen.h"
 
-unsigned dim = 512;
+unsigned dim = 4096;
 unsigned reclevel = 4;
 unsigned norandom = 0;
 

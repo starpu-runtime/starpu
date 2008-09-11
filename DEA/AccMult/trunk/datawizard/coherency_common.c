@@ -1,9 +1,9 @@
 /* this file is intended to be used by both gcc and
  *  spu-gcc so that we don't copy code twice ... */
 
-extern void driver_copy_data(data_state *state, uint32_t src_node_mask, 
+extern int driver_copy_data(data_state *state, uint32_t src_node_mask, 
 				uint32_t dst_node, unsigned donotread);
-extern void driver_copy_data_1_to_1(data_state *state, uint32_t node, 
+extern int driver_copy_data_1_to_1(data_state *state, uint32_t node, 
 				uint32_t requesting_node, unsigned donotread);
 extern unsigned get_local_memory_node(void);
 
@@ -32,10 +32,11 @@ void display_state(data_state *state)
 }
 
 /* this function will actually copy a valid data into the requesting node */
-static void copy_data_to_node(data_state *state, uint32_t requesting_node, 
+static int __attribute__((warn_unused_result)) copy_data_to_node(data_state *state, uint32_t requesting_node, 
 						 unsigned donotread)
 {
 	/* first find a valid copy, either a OWNER or a SHARED */
+	int ret;
 	uint32_t node;
 	uint32_t src_node_mask = 0;
 	for (node = 0; node < MAXNODES; node++)
@@ -49,8 +50,9 @@ static void copy_data_to_node(data_state *state, uint32_t requesting_node,
 	/* we should have found at least one copy ! */
 	ASSERT(src_node_mask != 0);
 
-	driver_copy_data(state, src_node_mask, requesting_node, donotread);
-	return;
+	ret = driver_copy_data(state, src_node_mask, requesting_node, donotread);
+
+	return ret;
 }
 
 /*
@@ -73,7 +75,7 @@ static void copy_data_to_node(data_state *state, uint32_t requesting_node,
  * 		    else (invalid,owner->shared)
  */
 
-void _fetch_data(data_state *state, uint32_t requesting_node,
+int _fetch_data(data_state *state, uint32_t requesting_node,
 			uint8_t read, uint8_t write)
 {
 	take_mutex(&state->header_lock);
@@ -87,7 +89,7 @@ void _fetch_data(data_state *state, uint32_t requesting_node,
 	{
 		/* the local node already got its data */
 		release_mutex(&state->header_lock);
-		return;
+		return 0;
 	}
 
 	if ((local_state == SHARED) && write) {
@@ -105,14 +107,17 @@ void _fetch_data(data_state *state, uint32_t requesting_node,
 		}
 		
 		release_mutex(&state->header_lock);
-		return;
+		return 0;
 	}
 
 	/* the only remaining situation is that the local copy was invalid */
 	ASSERT(state->per_node[requesting_node].state == INVALID);
 
 	/* we need the data from either the owner or one of the sharer */
-	copy_data_to_node(state, requesting_node, !read);
+	int ret;
+	ret = copy_data_to_node(state, requesting_node, !read);
+	if (ret != 0)
+		goto enomem;
 
 	if (write) {
 		/* the requesting node now has the only valid copy */
@@ -135,10 +140,18 @@ void _fetch_data(data_state *state, uint32_t requesting_node,
 	}
 
 	release_mutex(&state->header_lock);
+
+	return 0;
+
+enomem:
+	/* there was not enough local memory to fetch the data */
+	release_mutex(&state->header_lock);
+	return -1;
 }
 
-void fetch_data(data_state *state, access_mode mode)
+int fetch_data(data_state *state, access_mode mode)
 {
+	int ret;
 	uint32_t requesting_node = get_local_memory_node(); 
 
 	uint8_t read, write;
@@ -155,7 +168,9 @@ void fetch_data(data_state *state, access_mode mode)
 	state->per_node[requesting_node].refcnt++;
 	release_mutex(&state->header_lock);
 
-	_fetch_data(state, requesting_node, read, write);
+	ret = _fetch_data(state, requesting_node, read, write);
+
+	return ret;
 }
 
 uint32_t get_data_refcnt(data_state *state, uint32_t node)
@@ -183,8 +198,13 @@ void write_through_data(data_state *state, uint32_t requesting_node,
 			{
 				/* the requesting node already has the data by
 				 * definition */
-				driver_copy_data_1_to_1(state, 
+				int ret;
+				ret = driver_copy_data_1_to_1(state, 
 						requesting_node, node, 0);
+
+				/* there must remain memory on the write-through mask to honor the request */
+				if (ret)
+					ASSERT(0);
 			}
 				
 			/* now the data is shared among the nodes on the
@@ -224,7 +244,7 @@ void release_data(data_state *state, uint32_t write_through_mask)
 	release_rw_lock(&state->data_lock);
 }
 
-void fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsigned nbuffers)
+int fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsigned nbuffers, uint32_t mask)
 {
 	TRACE_START_FETCH_INPUT(NULL);
 
@@ -232,12 +252,15 @@ void fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsi
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
+		int ret;
 		buffer_descr *descr;
 		uint32_t local_memory_node = get_local_memory_node();
 
 		descr = &descrs[index];
 
-		fetch_data(descr->state, descr->mode);
+		ret = fetch_data(descr->state, descr->mode);
+		if (ret != 0)
+			goto enomem;
 
 		descr->interfaceid = descr->state->interfaceid;
 
@@ -246,6 +269,13 @@ void fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsi
 	}
 
 	TRACE_END_FETCH_INPUT(NULL);
+
+	return 0;
+
+enomem:
+	/* try to unreference all the input that were successfully taken */
+	push_codelet_output(descrs, index, mask);
+	return -1;
 }
 
 void push_codelet_output(buffer_descr *descrs, unsigned nbuffers, uint32_t mask)

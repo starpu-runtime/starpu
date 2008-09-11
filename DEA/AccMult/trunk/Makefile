@@ -11,6 +11,9 @@ CFLAGS += -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -fno-strict
 
 LDFLAGS+= -lm
 
+CFLAGS += -pg
+LDFLAGS += -pg
+
 
 ifdef PERTURB_AMPL
 	CFLAGS+="-DUSE_PERTURBATION"
