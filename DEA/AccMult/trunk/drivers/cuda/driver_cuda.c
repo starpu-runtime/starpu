@@ -305,6 +305,7 @@ void *cuda_worker(void *arg)
 	do {
 		//int debugfoo;
 		j = pop_task();
+		//printf("cuda driver picked %p\n", j);
 		if (j == NULL) continue;
 
 		/* can CUDA do that task ? */
@@ -328,7 +329,9 @@ void *cuda_worker(void *arg)
 				case FATAL:
 					assert(0);
 				case TRYAGAIN:
+					printf("ouch, put the codelet %p back ... \n", j);
 					push_task(j);
+					ASSERT(0);
 					continue;
 				default:
 					assert(0);
@@ -346,6 +349,7 @@ void *cuda_worker(void *arg)
 
 
 		job_delete(j);
+		//printf("cuda terminated %p\n", j);
 
 	} while(1);
 

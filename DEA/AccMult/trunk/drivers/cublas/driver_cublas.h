@@ -53,10 +53,6 @@
 	}								\
 	} while (0);
 
-#define OK              0
-#define TRYAGAIN        1
-#define FATAL           2
-
 typedef struct cublas_worker_arg_t {
 	int deviceid;
 	int bindid;

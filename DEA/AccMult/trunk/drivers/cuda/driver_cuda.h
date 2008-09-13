@@ -67,10 +67,6 @@ void init_cuda(void);
 //int precondition_cuda(matrix *, matrix *, matrix *);
 void *cuda_worker(void *);
 
-#define OK              0
-#define TRYAGAIN        1
-#define FATAL           2
-
 void init_cuda_module(struct cuda_module_s *module, char *path);
 void load_cuda_module(int devid, struct cuda_module_s *module);
 void init_cuda_function(struct cuda_function_s *func,

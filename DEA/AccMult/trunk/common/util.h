@@ -27,6 +27,10 @@
 
 #define ATOMIC_OR(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
 
+#define OK              0
+#define TRYAGAIN        1
+#define FATAL           2
+
 static int __attribute__ ((unused)) get_env_number(const char *str)
 {
 	char *strval;
