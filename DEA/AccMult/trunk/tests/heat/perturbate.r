@@ -131,14 +131,14 @@ display_ampl <- function()
 	trace_ampl("1.0", "orange");
 
 
-	labels <- c("greedy", "0 %", "10 %", "25 %", "50 %", "100 %")
-	legend("topleft", inset=.05, title="Perturbation", labels, lwd=2, lty=c(2, 1, 1, 1, 1, 1), col=c("black", "orange", "green", "red", "blue", "orange"))
-
 
 	axis(1, at=sizelist)
 	axis(2, at=seq(0, 100, 10), tck=1)
 #	axis(4, at=seq(0, 100, 10))
 	box(bty="u")
+
+	labels <- c("greedy", "0 %", "10 %", "25 %", "50 %", "100 %")
+	legend("topleft", inset=.05, title="Perturbation", labels, lwd=2, lty=c(2, 1, 1, 1, 1, 1), col=c("black", "orange", "green", "red", "blue", "orange"), bty="y", bg="white")
 
 
 
