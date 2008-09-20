@@ -171,8 +171,10 @@ void partition_data(data_state *initial_data, filter *f)
 				initial_data->per_node[node].state;
 			children->per_node[node].allocated = 
 				initial_data->per_node[node].allocated;
-			children->per_node[node].automatically_allocated = 0;
-			children->per_node[node].refcnt = initial_data->per_node[node].refcnt;
+			//children->per_node[node].automatically_allocated = 0;
+			//children->per_node[node].refcnt = initial_data->per_node[node].refcnt;
+			children->per_node[node].automatically_allocated = initial_data->per_node[node].automatically_allocated;
+			children->per_node[node].refcnt = 0;
 		}
 	}
 
