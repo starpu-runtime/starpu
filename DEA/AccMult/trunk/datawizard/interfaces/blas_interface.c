@@ -106,8 +106,12 @@ uintptr_t get_blas_local_ptr(data_state *state)
 size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 {
 	uintptr_t addr;
+	unsigned fail = 0;
 	size_t allocated_memory;
 
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
+	cublasStatus status;
+#endif
 	uint32_t nx = state->interface[dst_node].blas.nx;
 	uint32_t ny = state->interface[dst_node].blas.ny;
 	size_t elemsize = state->interface[dst_node].blas.elemsize;
@@ -117,18 +121,30 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 	switch(kind) {
 		case RAM:
 			addr = (uintptr_t)malloc(nx*ny*elemsize);
+			if (!addr) 
+				fail = 1;
+
 			break;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case CUDA_RAM:
 		case CUBLAS_RAM:
-			cublasAlloc(nx*ny, elemsize, (void **)&addr);
+			status = cublasAlloc(nx*ny, elemsize, (void **)&addr);
+
+			if (!addr || status != CUBLAS_STATUS_SUCCESS)
+			{
+				ASSERT(status != CUBLAS_STATUS_INTERNAL_ERROR);
+				ASSERT(status == CUBLAS_STATUS_ALLOC_FAILED);
+				fail = 1;
+			}
+
+
 			break;
 #endif
 		default:
 			assert(0);
 	}
 
-	if (addr) {
+	if (!fail) {
 		/* allocation succeeded */
 		allocated_memory = nx*ny*elemsize;
 
@@ -145,6 +161,10 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 
 void liberate_blas_buffer_on_node(data_state *state, uint32_t node)
 {
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
+	cublasStatus status;
+#endif
+
 	node_kind kind = get_node_kind(node);
 	switch(kind) {
 		case RAM:
@@ -153,7 +173,11 @@ void liberate_blas_buffer_on_node(data_state *state, uint32_t node)
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case CUBLAS_RAM:
 		case CUDA_RAM:
-			cublasFree((void*)state->interface[node].blas.ptr);
+			status = cublasFree((void*)state->interface[node].blas.ptr);
+			
+			ASSERT(status != CUBLAS_STATUS_INTERNAL_ERROR);
+			ASSERT(status == CUBLAS_STATUS_SUCCESS);
+
 			break;
 #endif
 		default:
