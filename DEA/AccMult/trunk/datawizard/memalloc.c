@@ -41,7 +41,7 @@ void unlock_all_subtree(data_state *data)
 	else {
 		/* lock all sub-subtrees children */
 		int child;
-		for (child = 0; child < data->nchildren; child++)
+		for (child = data->nchildren - 1; child >= 0; child--)
 		{
 			unlock_all_subtree(&data->children[child]);
 		}
@@ -75,13 +75,11 @@ size_t do_free_mem_chunk(mem_chunk_t mc, unsigned node)
 {
 	size_t size;
 
+	/* free the actual buffer */
+	size = liberate_memory_on_node(mc, node);
+
 	/* remove the mem_chunk from the list */
 	mem_chunk_list_erase(mc_list[node], mc);
-
-	size = mc->size;
-
-	/* free the actual buffer */
-	liberate_memory_on_node(mc->data, node);
 	mem_chunk_delete(mc);
 
 	return size; 
@@ -169,6 +167,9 @@ size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node)
 		/* now the actual buffer may be liberated */
 		liberated = do_free_mem_chunk(mc, node);
 	}
+	else{
+		printf("could not lock subtree\n");
+	}
 
 	/* unlock the leafs */
 	unlock_all_subtree(data);
@@ -192,9 +193,11 @@ size_t reclaim_memory(uint32_t node)
 	     mc != mem_chunk_list_end(mc_list_to_free[node]);
 	     mc = mem_chunk_list_next(mc))
 	{
-		liberate_memory_on_node(mc->data, node);
+		liberated += liberate_memory_on_node(mc, node);
 
 		/* XXX there is still that mem_chunk_t structure leaking */
+		mem_chunk_list_erase(mc_list_to_free[node], mc);
+		mem_chunk_delete(mc);
 	}
 
 	/* try to free all allocated data potentially in use .. XXX */
@@ -247,8 +250,12 @@ void request_mem_chunk_removal(data_state *state, unsigned node)
 	/* there was no corresponding buffer ... */
 }
 
-void liberate_memory_on_node(data_state *state, uint32_t node)
+size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node)
 {
+	size_t liberated = 0;
+
+	data_state *state = mc->data;
+
 	ASSERT(state->deallocation_method);
 
 	if (state->per_node[node].allocated && state->per_node[node].automatically_allocated)
@@ -259,7 +266,11 @@ void liberate_memory_on_node(data_state *state, uint32_t node)
 
 		/* XXX why do we need that ? */
 		state->per_node[node].automatically_allocated = 0;
+
+		liberated = mc->size;
 	}
+
+	return liberated;
 }
 
 int allocate_memory_on_node(data_state *state, uint32_t dst_node)

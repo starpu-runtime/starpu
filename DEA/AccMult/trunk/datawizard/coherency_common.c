@@ -169,8 +169,19 @@ int fetch_data(data_state *state, access_mode mode)
 	release_mutex(&state->header_lock);
 
 	ret = _fetch_data(state, requesting_node, read, write);
+	if (ret != 0)
+		goto enomem;
 
-	return ret;
+	return 0;
+enomem:
+	/* we did not get the data so remove the lock anyway */
+	take_mutex(&state->header_lock);
+	state->per_node[requesting_node].refcnt--;
+	release_mutex(&state->header_lock);
+
+	release_rw_lock(&state->data_lock);
+
+	return -1;
 }
 
 uint32_t get_data_refcnt(data_state *state, uint32_t node)
@@ -248,13 +259,13 @@ int fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsig
 {
 	TRACE_START_FETCH_INPUT(NULL);
 
-	/* TODO we should avoid repeatingly ask for the local thread index etc. */
+	uint32_t local_memory_node = get_local_memory_node();
+
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
 		int ret;
 		buffer_descr *descr;
-		uint32_t local_memory_node = get_local_memory_node();
 
 		descr = &descrs[index];
 
@@ -274,6 +285,7 @@ int fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsig
 
 enomem:
 	/* try to unreference all the input that were successfully taken */
+	printf("something went wrong with buffer %d\n", index);
 	push_codelet_output(descrs, index, mask);
 	return -1;
 }
