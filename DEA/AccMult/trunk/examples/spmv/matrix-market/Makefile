@@ -1,5 +1,5 @@
 RIBSCHED= ../../../ribsched.a
-CFLAGS+= -I../..
+CFLAGS+= -I../.. -g
 
 all: example_read mm_to_bcsr
 

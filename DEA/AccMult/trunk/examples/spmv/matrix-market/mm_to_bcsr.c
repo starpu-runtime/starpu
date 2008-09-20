@@ -42,11 +42,13 @@ void print_all_blocks(tmp_block_t *block_list, unsigned r, unsigned c)
 
 		current_block = current_block->next;
 	};
+
 }
 
 tmp_block_t *search_block(tmp_block_t *block_list, unsigned i, unsigned j)
 {
 	tmp_block_t *current_block = block_list;
+	//printf("search %d %d\n", i, j);
 
 	while (current_block) {
 		if ((current_block->i == i) && (current_block->j == j)) 
@@ -73,11 +75,56 @@ tmp_block_t *create_block(unsigned c, unsigned r)
 	return block;
 }
 
-void insert_block(tmp_block_t *block, tmp_block_t **block_list)
+unsigned next_block_is_bigger(tmp_block_t *block, unsigned i, unsigned j)
 {
-	/* insert block at the beginning of the list */
-	block->next = *block_list;
-	*block_list = block;
+	tmp_block_t *next = block->next;
+
+	if (next)
+	{
+		/* we evaluate lexical order */
+		if (next->j < j)
+			return 0;
+
+		if (next->j > j)
+			return 1;
+
+		/* next->j == j */
+		return (next->i > i);
+	}
+
+	/* this is the last block, so it's bigger */
+	return 1;
+}
+
+void insert_block(tmp_block_t *block, tmp_block_t **block_list, unsigned i, unsigned j)
+{
+	///* insert block at the beginning of the list */
+	//block->next = *block_list;
+	//*block_list = block;
+
+	/* insert the block in lexicographical order */
+	/* first find an element that is bigger, then insert the block just before it */
+	tmp_block_t *current_block = *block_list;
+
+	if (!current_block) {
+		/* list was empty */
+		*block_list = block;
+		block->next = NULL;
+		return;
+	}
+
+	while (current_block) {
+		if (next_block_is_bigger(current_block, i, j)) {
+			/* insert block here */
+			block->next = current_block->next;
+			current_block->next = block;
+			return;
+		}
+
+		current_block = current_block->next;
+	};
+
+	/* should not be reached ! */
 }
 
 void insert_elem(tmp_block_t **block_list, unsigned abs_i, unsigned abs_j, float val, unsigned c, unsigned r)
@@ -100,10 +147,10 @@ void insert_elem(tmp_block_t **block_list, unsigned abs_i, unsigned abs_j, float
 		block->i = i;
 		block->j = j;
 		
-		printf("create block %d %d !\n", i, j);
+		//printf("create block %d %d !\n", i, j);
 
 		/* insert it in the block list */
-		insert_block(block, block_list);
+		insert_block(block, block_list, i, j);
 	}
 
 	/* now insert the value in the corresponding block */
@@ -114,6 +161,8 @@ void insert_elem(tmp_block_t **block_list, unsigned abs_i, unsigned abs_j, float
 	local_index = local_j * c + local_i;
 	
 	block->val[local_index] = val;
+
+	printf("prout %p\n", *block_list);
 }
 
 
