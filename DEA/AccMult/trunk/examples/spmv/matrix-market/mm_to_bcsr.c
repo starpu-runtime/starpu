@@ -6,7 +6,7 @@ static void print_block(tmp_block_t *block, unsigned r, unsigned c)
 {
 	printf(" **** block %d %d **** \n", block->i, block->j);
 
-	int i, j;
+	unsigned i, j;
 	for (j = 0; j < r; j++) {
 		for (i = 0; i < c; i++) {
 			printf("%2.2f\t", block->val[i + j*c]);
@@ -265,16 +265,30 @@ static bcsr_t * blocks_to_bcsr(tmp_block_t *block_list, unsigned c, unsigned r)
 	return bcsr;
 }
 
+bcsr_t *mm_to_bcsr(unsigned nz, unsigned *I, unsigned *J, float *val, unsigned c, unsigned r)
+{
+	bcsr_t *bcsr;
+   	tmp_block_t *block_list;
+
+	block_list = mm_to_blocks(nz, I, J, val, c, r);
+	bcsr = blocks_to_bcsr(block_list, c, r);
+
+	print_bcsr(bcsr);
+
+	return bcsr;
+}
+
 bcsr_t *mm_file_to_bcsr(char *filename, unsigned c, unsigned r)
 {
 	FILE *f;
 	MM_typecode matcode;
 	int ret_code;
-	int M, N, nz;   
-	unsigned i, *I, *J;
+	int M, N;
+	int nz;   
+	int i;
+	unsigned *I, *J;
 	float *val;
 
-   	tmp_block_t *block_list;
 	bcsr_t *bcsr;
 
 	if ((f = fopen(filename, "r")) == NULL) 
@@ -304,8 +318,8 @@ bcsr_t *mm_file_to_bcsr(char *filename, unsigned c, unsigned r)
 	
 	/* reseve memory for matrices */
 	
-	I = (int *) malloc(nz * sizeof(int));
-	J = (int *) malloc(nz * sizeof(int));
+	I = malloc(nz * sizeof(unsigned));
+	J = malloc(nz * sizeof(unsigned));
 	/* XXX float ! */
 	val = (float *) malloc(nz * sizeof(float));
 	
@@ -318,34 +332,11 @@ bcsr_t *mm_file_to_bcsr(char *filename, unsigned c, unsigned r)
 	
 	if (f !=stdin) fclose(f);
 	
-	block_list = mm_to_blocks(nz, I, J, val, c, r);
+	bcsr = mm_to_bcsr((unsigned)nz, I, J, val, c, r);
 
 	free(I);
 	free(J);
 	free(val);
 
-	bcsr = blocks_to_bcsr(block_list, c, r);
-
-	print_bcsr(bcsr);
-
 	return bcsr;
-}
-
-int main(int argc, char *argv[])
-{
-	unsigned c, r;
-
-	if (argc < 2)
-	{
-		fprintf(stderr, "Usage: %s [martix-market-filename] [c] [r]\n", argv[0]);
-		exit(1);
-	}
-
-	c = 64;
-	r = 64;
-
-	bcsr_t *bcsr;
-	bcsr = mm_file_to_bcsr(argv[1], c, r);
-
-	return 0;
 }

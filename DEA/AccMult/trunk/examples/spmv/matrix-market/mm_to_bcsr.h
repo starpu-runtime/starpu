@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "mmio.h"
@@ -23,9 +24,13 @@ typedef struct {
 	unsigned nrows_blocks;
 
 	float *val;
-	unsigned *colind;
-	unsigned *rowptr;
+	uint32_t *colind;
+	uint32_t *rowptr;
 } bcsr_t;
 
 
+/* directly read input from a file */
 bcsr_t *mm_file_to_bcsr(char *filename, unsigned c, unsigned r);
+
+/* read the matrix as a set of valuated coordinates */
+bcsr_t *mm_to_bcsr(unsigned nz, unsigned *I, unsigned *J, float *val, unsigned c, unsigned r);

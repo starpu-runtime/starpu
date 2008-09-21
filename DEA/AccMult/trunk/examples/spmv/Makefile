@@ -5,7 +5,7 @@ ifeq ($(CUDA), 1)
 	EXTRADEP += ../cuda/spmv_cuda.cubin
 endif
 
-all: $(EXTRADEP) dw_spmv example_read
+all: $(EXTRADEP) dw_spmv dw_block_spmv
 	make -C matrix-market
 
 ../cuda/spmv_cuda.cubin:
@@ -17,7 +17,12 @@ dw_spmv.o: dw_spmv.c dw_spmv.h
 dw_spmv: dw_spmv.o
 	$(CC) dw_spmv.o -o dw_spmv $(LDFLAGS) $(RIBSCHED)
 
+dw_block_spmv: dw_block_spmv.o
+	make -C matrix-market mm_to_bcsr.o
+	make -C matrix-market mmio.o
+	$(CC) dw_block_spmv.o matrix-market/mm_to_bcsr.o matrix-market/mmio.o -o dw_block_spmv $(LDFLAGS) $(RIBSCHED)
+
 clean:
 	@make -C matrix-market clean
 	@rm -f *.o *.d
-	@rm -f dw_spmv
+	@rm -f dw_spmv dw_block_spmv
