@@ -2,7 +2,7 @@
 
 /* Some debug functions */
 
-void print_block(tmp_block_t *block, unsigned r, unsigned c)
+static void print_block(tmp_block_t *block, unsigned r, unsigned c)
 {
 	printf(" **** block %d %d **** \n", block->i, block->j);
 
@@ -15,7 +15,7 @@ void print_block(tmp_block_t *block, unsigned r, unsigned c)
 	}
 }
 
-void print_all_blocks(tmp_block_t *block_list, unsigned r, unsigned c)
+static void print_all_blocks(tmp_block_t *block_list, unsigned r, unsigned c)
 {
 	tmp_block_t *current_block = block_list;
 
@@ -26,7 +26,7 @@ void print_all_blocks(tmp_block_t *block_list, unsigned r, unsigned c)
 	};
 }
 
-void print_bcsr(bcsr_t *bcsr)
+static void print_bcsr(bcsr_t *bcsr)
 {
 	fprintf(stderr, "** BSCR **\n");
 	fprintf(stderr, "non zero - blocks = %d\n", bcsr->nnz_blocks);
@@ -34,7 +34,7 @@ void print_bcsr(bcsr_t *bcsr)
 	fprintf(stderr, "block size : c %d r %d\n", bcsr->c, bcsr->r);
 }
 
-unsigned count_blocks(tmp_block_t *block_list)
+static unsigned count_blocks(tmp_block_t *block_list)
 {
 	unsigned count = 0;
 	tmp_block_t *current_block = block_list;
@@ -47,7 +47,7 @@ unsigned count_blocks(tmp_block_t *block_list)
 	return count;
 }
 
-unsigned count_row_blocks(tmp_block_t *block_list)
+static unsigned count_row_blocks(tmp_block_t *block_list)
 {
 	unsigned maxrow = 0;
 	tmp_block_t *current_block = block_list;
@@ -66,7 +66,7 @@ unsigned count_row_blocks(tmp_block_t *block_list)
 
 /* Find the block that corresponds to (i,j) if it exists in the list */
 
-tmp_block_t *search_block(tmp_block_t *block_list, unsigned i, unsigned j)
+static tmp_block_t *search_block(tmp_block_t *block_list, unsigned i, unsigned j)
 {
 	tmp_block_t *current_block = block_list;
 	//printf("search %d %d\n", i, j);
@@ -85,7 +85,7 @@ tmp_block_t *search_block(tmp_block_t *block_list, unsigned i, unsigned j)
 	return NULL;
 }
 
-tmp_block_t *create_block(unsigned c, unsigned r)
+static tmp_block_t *create_block(unsigned c, unsigned r)
 {
 	tmp_block_t *block;
 
@@ -96,7 +96,7 @@ tmp_block_t *create_block(unsigned c, unsigned r)
 }
 
 /* determine if next block is bigger in lexical order */
-unsigned next_block_is_bigger(tmp_block_t *block, unsigned i, unsigned j)
+static unsigned next_block_is_bigger(tmp_block_t *block, unsigned i, unsigned j)
 {
 	tmp_block_t *next = block->next;
 
@@ -118,7 +118,7 @@ unsigned next_block_is_bigger(tmp_block_t *block, unsigned i, unsigned j)
 }
 
 /* we insert a block in the list, directly at the appropriate place */
-void insert_block(tmp_block_t *block, tmp_block_t **block_list, unsigned i, unsigned j)
+static void insert_block(tmp_block_t *block, tmp_block_t **block_list, unsigned i, unsigned j)
 {
 	///* insert block at the beginning of the list */
 	//block->next = *block_list;
@@ -150,7 +150,7 @@ void insert_block(tmp_block_t *block, tmp_block_t **block_list, unsigned i, unsi
 }
 
 /* we add an element to the list of blocks, it is either added to an existing block or in a block specifically created if there was none */
-void insert_elem(tmp_block_t **block_list, unsigned abs_i, unsigned abs_j, float val, unsigned c, unsigned r)
+static void insert_elem(tmp_block_t **block_list, unsigned abs_i, unsigned abs_j, float val, unsigned c, unsigned r)
 {
 	/* we are looking for the block that contains (abs_i, abs_j) (abs = absolute) */
 	unsigned i,j;
@@ -187,7 +187,7 @@ void insert_elem(tmp_block_t **block_list, unsigned abs_i, unsigned abs_j, float
 }
 
 /* transform a list of values (with coordinates) into a list of blocks that are easily processed into BCSR */
-tmp_block_t * mm_to_blocks(int nz, unsigned *I, unsigned *J, float *val, unsigned c, unsigned r)
+static tmp_block_t * mm_to_blocks(int nz, unsigned *I, unsigned *J, float *val, unsigned c, unsigned r)
 {
 	int elem;
 
@@ -202,7 +202,7 @@ tmp_block_t * mm_to_blocks(int nz, unsigned *I, unsigned *J, float *val, unsigne
 	return block_list;
 }
 
-void fill_bcsr(tmp_block_t *block_list, unsigned c, unsigned r, bcsr_t *bcsr)
+static void fill_bcsr(tmp_block_t *block_list, unsigned c, unsigned r, bcsr_t *bcsr)
 {
 	unsigned block = 0;
 	unsigned current_offset = 0;
@@ -239,7 +239,7 @@ void fill_bcsr(tmp_block_t *block_list, unsigned c, unsigned r, bcsr_t *bcsr)
 	}
 }
 
-bcsr_t * blocks_to_bcsr(tmp_block_t *block_list, unsigned c, unsigned r)
+static bcsr_t * blocks_to_bcsr(tmp_block_t *block_list, unsigned c, unsigned r)
 {
 	unsigned nblocks;
 
@@ -349,4 +349,3 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
-
