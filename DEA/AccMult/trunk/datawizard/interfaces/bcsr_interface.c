@@ -11,8 +11,6 @@
 /*
  * BCSR : blocked CSR, we use blocks of size (r x c)
  */
-
-
 size_t allocate_bcsr_buffer_on_node(struct data_state_t *state, uint32_t dst_node);
 void liberate_bcsr_buffer_on_node(data_state *state, uint32_t node);
 size_t dump_bcsr_interface(data_interface_t *interface, void *_buffer);
@@ -38,11 +36,13 @@ void monitor_bcsr_data(struct data_state_t *state, uint32_t home_node,
 		}
 
 		local_interface->nnz = nnz;
+		printf("local nnz = %d \n", nnz);
 		local_interface->nrow = nrow;
 		local_interface->firstentry = firstentry;
 		local_interface->r = r;
 		local_interface->c = c;
 		local_interface->elemsize = elemsize;
+		printf("local elemsize = %d \n", elemsize);
 
 	}
 
@@ -129,22 +129,28 @@ uintptr_t get_bcsr_local_nzval(struct data_state_t *state)
 
 uint32_t *get_bcsr_local_colind(struct data_state_t *state)
 {
-	unsigned node;
-	node = get_local_memory_node();
+//	unsigned node;
+//	node = get_local_memory_node();
+//
+//	ASSERT(state->per_node[node].allocated);
+//
+//	return (state->interface[node].bcsr.colind);
 
-	ASSERT(state->per_node[node].allocated);
-
-	return (state->interface[node].bcsr.colind);
+	/* XXX */
+	return (state->interface[0].bcsr.colind);
 }
 
 uint32_t *get_bcsr_local_rowptr(struct data_state_t *state)
 {
-	unsigned node;
-	node = get_local_memory_node();
-
-	ASSERT(state->per_node[node].allocated);
-
-	return (state->interface[node].bcsr.rowptr);
+//	unsigned node;
+//	node = get_local_memory_node();
+//
+//	ASSERT(state->per_node[node].allocated);
+//
+//	return (state->interface[node].bcsr.rowptr);
+	
+	/* XXX */
+	return (state->interface[0].bcsr.rowptr);
 }
 
 /* memory allocation/deallocation primitives for the BLAS interface */
@@ -164,6 +170,8 @@ size_t allocate_bcsr_buffer_on_node(struct data_state_t *state, uint32_t dst_nod
 
 	uint32_t r = state->interface[dst_node].bcsr.r;
 	uint32_t c = state->interface[dst_node].bcsr.c;
+
+	printf("Allocate nnz*r*c %d * elemsize %d\n", nnz*r*c, elemsize);
 
 	node_kind kind = get_node_kind(dst_node);
 

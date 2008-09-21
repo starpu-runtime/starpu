@@ -13,6 +13,7 @@ typedef struct bcsr_interface_s {
 
 	uintptr_t nzval; /* non-zero values */
 	uint32_t *colind; /* position of non-zero entried on the row */
+//	uint32_t *rowind; /* position of non-zero entried on the col */
 	uint32_t *rowptr; /* index (in nzval) of the first entry of the row */
 
         /* k for k-based indexing (0 or 1 usually) */
@@ -38,5 +39,7 @@ uint32_t get_bcsr_firstentry(struct data_state_t *state);
 uintptr_t get_bcsr_local_nzval(struct data_state_t *state);
 uint32_t *get_bcsr_local_colind(struct data_state_t *state);
 uint32_t *get_bcsr_local_rowptr(struct data_state_t *state);
+uint32_t get_bcsr_r(struct data_state_t *state);
+uint32_t get_bcsr_c(struct data_state_t *state);
 
 #endif // __BCSR_INTERFACE_H__

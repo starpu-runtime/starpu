@@ -18,7 +18,7 @@ unsigned block_filter_func(filter *f, data_state *root_data)
 	nchunks = MIN(nx, arg);
 
 	/* first allocate the children data_state */
-	root_data->children = malloc(nchunks*sizeof(data_state));
+	root_data->children = calloc(nchunks, sizeof(data_state));
 	ASSERT(root_data->children);
 
 	/* actually create all the chunks */
@@ -63,7 +63,7 @@ unsigned vertical_block_filter_func(filter *f, data_state *root_data)
 	nchunks = MIN(ny, arg);
 	
 	/* first allocate the children data_state */
-	root_data->children = malloc(nchunks*sizeof(data_state));
+	root_data->children = calloc(nchunks, sizeof(data_state));
 	ASSERT(root_data->children);
 
 	/* actually create all the chunks */

@@ -13,6 +13,12 @@ typedef struct blas_interface_s {
 	size_t elemsize;
 } blas_interface_t;
 
+//size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node);
+//void liberate_blas_buffer_on_node(data_state *state, uint32_t node);
+//void do_copy_blas_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node);
+//size_t dump_blas_interface(data_interface_t *interface, void *buffer);
+
+
 struct data_state_t;
 void monitor_blas_data(struct data_state_t *state, uint32_t home_node,
                         uintptr_t ptr, uint32_t ld, uint32_t nx,
