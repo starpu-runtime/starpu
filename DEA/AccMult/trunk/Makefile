@@ -2,9 +2,9 @@ export
 
 CC=gcc -m64
 NVCC = nvcc -m64
-NVCCFLAGS += -O3
+NVCCFLAGS += -O0
 
-CFLAGS += -g -O3 -Wall -fPIC
+CFLAGS += -g -O0 -Wall -fPIC
 CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses
 CFLAGS += -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type 
 CFLAGS += -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -fno-strict-aliasing
@@ -145,10 +145,12 @@ OBJDEPS += datawizard/coherency.o
 OBJDEPS += datawizard/hierarchy.o 
 OBJDEPS += datawizard/interfaces/blas_filters.o
 OBJDEPS += datawizard/interfaces/csr_filters.o
+OBJDEPS += datawizard/interfaces/bcsr_filters.o
 OBJDEPS += datawizard/interfaces/vector_filters.o
 OBJDEPS += datawizard/memalloc.o
 OBJDEPS += datawizard/interfaces/blas_interface.o
 OBJDEPS += datawizard/interfaces/csr_interface.o
+OBJDEPS += datawizard/interfaces/bcsr_interface.o
 OBJDEPS += datawizard/interfaces/vector_interface.o
 OBJDEPS += task-models/blas_model.o
 
