@@ -1,31 +1,4 @@
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include "mmio.h"
-
-/* convert a matrix stored in a file with the matrix market format into the 
- * BCSR format */
-
-typedef struct tmp_block {
-	/* we have a linked list of blocks */
-	struct tmp_block *next;
-
-	/* column i, row j*/
-	unsigned i, j;
-	
-	float *val;
-
-} tmp_block_t;
-
-typedef struct {
-	unsigned r,c;
-	unsigned nnz_blocks;
-	unsigned nrows_blocks;
-
-	float *val;
-	unsigned *colind;
-	unsigned *rowptr;
-} bcsr_t;
+#include "mm_to_bcsr.h"
 
 /* Some debug functions */
 
@@ -292,91 +265,87 @@ bcsr_t * blocks_to_bcsr(tmp_block_t *block_list, unsigned c, unsigned r)
 	return bcsr;
 }
 
-int main(int argc, char *argv[])
+bcsr_t *mm_file_to_bcsr(char *filename, unsigned c, unsigned r)
 {
-    int ret_code;
-    MM_typecode matcode;
-    FILE *f;
-    int M, N, nz;   
-    unsigned i, *I, *J;
-    float *val;
+	FILE *f;
+	MM_typecode matcode;
+	int ret_code;
+	int M, N, nz;   
+	unsigned i, *I, *J;
+	float *val;
 
-    if (argc < 2)
+   	tmp_block_t *block_list;
+	bcsr_t *bcsr;
+
+	if ((f = fopen(filename, "r")) == NULL) 
+		exit(1);
+
+	if (mm_read_banner(f, &matcode) != 0)
+	{                                                       	
+		printf("Could not process Matrix Market banner.\n");
+		exit(1);                                            	
+	}
+
+	/*  This is how one can screen matrix types if their application */
+	/*  only supports a subset of the Matrix Market data types.      */
+	
+	if (mm_is_complex(matcode) && mm_is_matrix(matcode) &&  mm_is_sparse(matcode) )
 	{
-		fprintf(stderr, "Usage: %s [martix-market-filename]\n", argv[0]);
+		printf("Sorry, this application does not support ");
+		printf("Market Market type: [%s]\n", mm_typecode_to_str(matcode));
 		exit(1);
 	}
-    else    
-    { 
-        if ((f = fopen(argv[1], "r")) == NULL) 
-            exit(1);
-    }
-
-    if (mm_read_banner(f, &matcode) != 0)
-    {
-        printf("Could not process Matrix Market banner.\n");
-        exit(1);
-    }
-
-
-    /*  This is how one can screen matrix types if their application */
-    /*  only supports a subset of the Matrix Market data types.      */
-
-    if (mm_is_complex(matcode) && mm_is_matrix(matcode) && 
-            mm_is_sparse(matcode) )
-    {
-        printf("Sorry, this application does not support ");
-        printf("Market Market type: [%s]\n", mm_typecode_to_str(matcode));
-        exit(1);
-    }
-
-    /* find out size of sparse matrix .... */
-
-    if ((ret_code = mm_read_mtx_crd_size(f, &M, &N, &nz)) !=0)
-        exit(1);
-
-
-    /* reseve memory for matrices */
-
-    I = (int *) malloc(nz * sizeof(int));
-    J = (int *) malloc(nz * sizeof(int));
-    /* XXX float ! */
-    val = (float *) malloc(nz * sizeof(float));
-
-    for (i=0; i<nz; i++)
-    {
-        fscanf(f, "%d %d %f\n", &I[i], &J[i], &val[i]);
-        I[i]--;  /* adjust from 1-based to 0-based */
-        J[i]--;
-    }
-
-    if (f !=stdin) fclose(f);
-
-    /************************/
-    /* now write out matrix */
-    /************************/
-
-   // mm_write_banner(stdout, matcode);
-  //  mm_write_mtx_crd_size(stdout, M, N, nz);
-   // for (i=0; i<nz; i++)
-   //     fprintf(stdout, "%d %d %20.19g\n", I[i]+1, J[i]+1, val[i]);
-
-	unsigned r = 128;
-	unsigned c = 128;
 	
-   printf("nz = %d \n", nz);
+	/* find out size of sparse matrix .... */
+	
+	if ((ret_code = mm_read_mtx_crd_size(f, &M, &N, &nz)) !=0)
+		exit(1);
+	
+	
+	/* reseve memory for matrices */
+	
+	I = (int *) malloc(nz * sizeof(int));
+	J = (int *) malloc(nz * sizeof(int));
+	/* XXX float ! */
+	val = (float *) malloc(nz * sizeof(float));
+	
+	for (i=0; i<nz; i++)
+	{
+		fscanf(f, "%d %d %f\n", &I[i], &J[i], &val[i]);
+		I[i]--;  /* adjust from 1-based to 0-based */
+		J[i]--;
+	}
+	
+	if (f !=stdin) fclose(f);
+	
+	block_list = mm_to_blocks(nz, I, J, val, c, r);
 
-   tmp_block_t *block_list;
-   block_list = mm_to_blocks(nz, I, J, val, c, r);
+	free(I);
+	free(J);
+	free(val);
 
-   free(I);
-   free(J);
-   free(val);
+	bcsr = blocks_to_bcsr(block_list, c, r);
 
-   bcsr_t *bcsr;
-   bcsr = blocks_to_bcsr(block_list, c, r);
+	print_bcsr(bcsr);
 
-   print_bcsr(bcsr);
+	return bcsr;
+}
+
+int main(int argc, char *argv[])
+{
+	unsigned c, r;
+
+	if (argc < 2)
+	{
+		fprintf(stderr, "Usage: %s [martix-market-filename] [c] [r]\n", argv[0]);
+		exit(1);
+	}
+
+	c = 64;
+	r = 64;
+
+	bcsr_t *bcsr;
+	bcsr = mm_file_to_bcsr(argv[1], c, r);
 
 	return 0;
 }
