@@ -218,10 +218,10 @@ static void fill_bcsr(tmp_block_t *block_list, unsigned c, unsigned r, bcsr_t *b
 		 * XXX should it be in blocks ? */
 		bcsr->colind[block] = current_block->i;
 
-		if (bcsr->rowptr[current_block->j] == 0)
+		if ((bcsr->rowptr[current_block->j] == 0) && (current_block->j != 0))
 		{
 			/* this is the first element of the line */
-			bcsr->rowptr[current_block->j] = current_offset;
+			bcsr->rowptr[current_block->j] = block;
 		}
 
 		block++;
@@ -231,12 +231,16 @@ static void fill_bcsr(tmp_block_t *block_list, unsigned c, unsigned r, bcsr_t *b
 
 	/* for all lines where there were no block at all (XXX), fill the 0 in rowptr */
 	/* the first row must start at 0 ? */
+	bcsr->rowptr[0] = 0;
+
 	unsigned row;
 	for (row = 1; row < bcsr->nrows_blocks; row++)
 	{
 		if (bcsr->rowptr[row] == 0) 
 			bcsr->rowptr[row] = bcsr->rowptr[row-1];
 	}
+
+	bcsr->rowptr[bcsr->nrows_blocks] = bcsr->nnz_blocks;
 }
 
 static bcsr_t * blocks_to_bcsr(tmp_block_t *block_list, unsigned c, unsigned r)

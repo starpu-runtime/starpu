@@ -213,7 +213,7 @@ void phase_3_callback_function(void *_arg)
 	if (cnt == 0)
 	{
 		/* the entire strassen iteration is done ! */
-		//unpartition_matrices(iter);
+		unpartition_matrices(iter);
 
 		// XXX free the Ei
 		ASSERT(iter->strassen_iter_callback);

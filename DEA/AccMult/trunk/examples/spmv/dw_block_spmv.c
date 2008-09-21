@@ -4,15 +4,16 @@
 tick_t start,end;
 sem_t sem;
 
-unsigned c = 128;
-unsigned r = 128;
+unsigned c = 32;
+unsigned r = 32;
 
-unsigned nblocks = 1;
+
 unsigned remainingjobs = -1;
 
 data_state sparse_matrix;
 data_state vector_in, vector_out;
 
+uint32_t size;
 char *inputfile;
 bcsr_t *bcsr_matrix;
 
@@ -31,162 +32,151 @@ void create_data(void)
 	                (uintptr_t)bcsr_matrix->val, bcsr_matrix->colind, bcsr_matrix->rowptr, 
 			0, bcsr_matrix->r, bcsr_matrix->c, sizeof(float));
 
-	///* initiate the 2 vectors */
-	//float *invec, *outvec;
-	//invec = malloc(size*sizeof(float));
-	//assert(invec);
+	size = c*r*get_bcsr_nnz(&sparse_matrix);
+//	printf("size = %d \n ", size);
 
-	//outvec = malloc(size*sizeof(float));
-	//assert(outvec);
+	/* initiate the 2 vectors */
+	vector_in_ptr = malloc(size*sizeof(float));
+	assert(vector_in_ptr);
 
-	///* fill those */
-	//unsigned ind;
-	//for (ind = 0; ind < size; ind++)
-	//{
-	//	invec[ind] = 2.0f;
-	//	outvec[ind] = 0.0f;
-	//}
+	vector_out_ptr = malloc(size*sizeof(float));
+	assert(vector_out_ptr);
 
-	//monitor_vector_data(&vector_in, 0, (uintptr_t)invec, size, sizeof(float));
-	//monitor_vector_data(&vector_out, 0, (uintptr_t)outvec, size, sizeof(float));
+	/* fill those */
+	unsigned ind;
+	for (ind = 0; ind < size; ind++)
+	{
+		vector_in_ptr[ind] = 2.0f;
+		vector_out_ptr[ind] = 0.0f;
+	}
 
-	//vector_in_ptr = invec;
-	//vector_out_ptr = outvec;
-
+	monitor_vector_data(&vector_in, 0, (uintptr_t)vector_in_ptr, size, sizeof(float));
+	monitor_vector_data(&vector_out, 0, (uintptr_t)vector_out_ptr, size, sizeof(float));
 }
-//
-//void init_problem_callback(void *arg)
-//{
-//	unsigned *remaining = arg;
-//
-//
-//	unsigned val = ATOMIC_ADD(remaining, -1);
-//
-//	printf("callback %d remaining \n", val);
-//	if ( val == 0 )
-//	{
-//		printf("DONE ...\n");
-//		GET_TICK(end);
-//
-//		unpartition_data(&sparse_matrix, 0);
-//		unpartition_data(&vector_out, 0);
-//
-//		sem_post(&sem);
-//	}
-//}
-//
 
-void call_spmv_codelet_filters(void)
+void init_problem_callback(void *arg)
 {
+	unsigned *remaining = arg;
 
-	remainingjobs = nblocks;
+	unsigned val = ATOMIC_ADD(remaining, -1);
 
-	codelet *cl = malloc(sizeof(codelet));
+//	if (val < 10)
+//		printf("callback %d remaining \n", val);
+
+	if ( val == 0 )
+	{
+		printf("DONE ...\n");
+		GET_TICK(end);
+
+//		unpartition_data(&sparse_matrix, 0);
+		unpartition_data(&vector_out, 0);
+
+		sem_post(&sem);
+	}
+}
+
+
+void call_filters(void)
+{
 
 	filter bcsr_f;
 	filter vector_in_f, vector_out_f;
 
 	bcsr_f.filter_func    = canonical_block_filter_bcsr;
 
-//	vector_f.filter_func = block_filter_func_vector;
-//	vector_f.filter_arg  = nblocks;
+	vector_in_f.filter_func = block_filter_func_vector;
+	vector_in_f.filter_arg  = size/c;
+	
+	vector_out_f.filter_func = block_filter_func_vector;
+	vector_out_f.filter_arg  = size/r;
 
 	partition_data(&sparse_matrix, &bcsr_f);
-//	partition_data(&vector_out, &vector_f);
 
-//	cl->cl_arg = NULL;
-//	cl->core_func =  core_spmv;
-//#ifdef USE_CUDA
-//	cl->cuda_func = &cuda_spmv;
-//#endif
-//
-//
-//	GET_TICK(start);
-//	unsigned part;
-//	for (part = 0; part < nblocks; part++)
-//	{
-//		job_t job;
-//		job = job_create();
-////#ifdef USE_CUDA
-////		job->where = usecpu?CORE:CUDA;
-////#else
-////		job->where = CORE;
-////#endif
-//		job->where = CORE|CUDA;
-//		job->cb = init_problem_callback;
-//		job->argcb = &remainingjobs;
-//		job->cl = cl;
-//	
-//		job->nbuffers = 3;
-//		job->buffers[0].state = get_sub_data(&sparse_matrix, 1, part);
-//		job->buffers[0].mode  = R;
-//		job->buffers[1].state = &vector_in;
-//		job->buffers[1].mode = R;
-//		job->buffers[2].state = get_sub_data(&vector_out, 1, part);
-//		job->buffers[2].mode = W;
-//	
-//		push_task(job);
-//	}
+	partition_data(&vector_in, &vector_in_f);
+	partition_data(&vector_out, &vector_out_f);
 }
 
+void launch_spmv_codelets(void)
+{
+	codelet *cl = malloc(sizeof(codelet));
 
-//
-//void call_spmv_codelet(void)
-//{
-//
-//	remainingjobs = 1;
-//
-//	job_t job;
-//	codelet *cl = malloc(sizeof(codelet));
-//
-//	cl->cl_arg = NULL;
-//	cl->core_func =  core_spmv;
-//#ifdef USE_CUDA
-//	cl->cuda_func = &cuda_spmv;
-//#endif
-//
-//	job = job_create();
-//#ifdef USE_CUDA
-//	job->where = usecpu?CORE:CUDA;
-//#else
-//	job->where = CORE;
-//#endif
-//	job->cb = init_problem_callback;
-//	job->argcb = &remainingjobs;
-//	job->cl = cl;
-//
-//	job->nbuffers = 3;
-//	job->buffers[0].state = &sparse_matrix;
-//	job->buffers[0].mode  = R;
-//	job->buffers[1].state = &vector_in;
-//	job->buffers[1].mode = R;
-//	job->buffers[2].state = &vector_out;
-//	job->buffers[2].mode = W;
-//
-//
-//
-//
-//	GET_TICK(start);
-//}
-//
+	/* we call one codelet per block */
+	unsigned nblocks = get_bcsr_nnz(&sparse_matrix); 
+	unsigned nrows = get_bcsr_nrow(&sparse_matrix); 
+
+	remainingjobs = nblocks;
+	printf("there will be %d codelets\n", remainingjobs);
+
+	uint32_t *rowptr = get_bcsr_local_rowptr(&sparse_matrix);
+	uint32_t *colind = get_bcsr_local_colind(&sparse_matrix);
+
+	cl->cl_arg = NULL;
+	cl->core_func =  core_block_spmv;
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
+	cl->cublas_func = cublas_block_spmv;
+#endif
+
+	GET_TICK(start);
+
+	unsigned row;
+	unsigned part = 0;
+
+	for (row = 0; row < nrows; row++)
+	{
+		unsigned index;
+
+		if (rowptr[row] == rowptr[row+1])
+		{
+			continue;
+		}
+
+		for (index = rowptr[row]; index < rowptr[row+1]; index++, part++)
+		{
+			job_t job;
+			job = job_create();
+
+			job->where = CORE|CUBLAS;
+			job->cb = init_problem_callback;
+			job->argcb = &remainingjobs;
+			job->cl = cl;
+
+			unsigned i = colind[index];
+			unsigned j = row;
+	
+			job->nbuffers = 3;
+			job->buffers[0].state = get_sub_data(&sparse_matrix, 1, part);
+			job->buffers[0].mode  = R;
+			job->buffers[1].state = get_sub_data(&vector_in, 1, i);
+			job->buffers[1].mode = R;
+			job->buffers[2].state = get_sub_data(&vector_out, 1, j);
+			job->buffers[2].mode = W;
+
+//			printf("submit task %d (i=%d ,j=%d)\n", part, i, j);
+	
+			push_task(job);
+		}
+	}
+
+}
+
 void init_problem(void)
 {
 	/* create the sparse input matrix */
 	create_data();
 
 	/* create a new codelet that will perform a SpMV on it */
-	call_spmv_codelet_filters();
+	call_filters();
 }
 
-//void print_results(void)
-//{
-//	unsigned row;
-//
-//	for (row = 0; row < MIN(size, 16); row++)
-//	{
-//		printf("%2.2f\t%2.2f\n", vector_in_ptr[row], vector_out_ptr[row]);
-//	}
-//}
+void print_results(void)
+{
+	unsigned row;
+
+	for (row = 0; row < MIN(size, 16); row++)
+	{
+		printf("%2.2f\t%2.2f\n", vector_in_ptr[row], vector_out_ptr[row]);
+	}
+}
 
 int main(__attribute__ ((unused)) int argc,
 	__attribute__ ((unused)) char **argv)
@@ -208,17 +198,15 @@ int main(__attribute__ ((unused)) int argc,
 
 	sem_init(&sem, 0, 0U);
 
-//#ifdef USE_CUDA
-//	initialize_cuda();
-//#endif
-
 	init_problem();
 
-//	sem_wait(&sem);
-//	sem_destroy(&sem);
-//
-//	//print_results();
-//
+	launch_spmv_codelets();
+
+	sem_wait(&sem);
+	sem_destroy(&sem);
+
+	print_results();
+
 	double timing = timing_delay(&start, &end);
 	fprintf(stderr, "Computation took (in ms)\n");
 	printf("%2.2f\n", timing/1000);
