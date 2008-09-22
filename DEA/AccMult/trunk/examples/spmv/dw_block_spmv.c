@@ -4,8 +4,8 @@
 tick_t start,end;
 sem_t sem;
 
-unsigned c = 32;
-unsigned r = 32;
+unsigned c = 256;
+unsigned r = 256;
 
 
 unsigned remainingjobs = -1;
@@ -96,6 +96,9 @@ void call_filters(void)
 	partition_data(&vector_out, &vector_out_f);
 }
 
+#define NSPMV	1000
+unsigned totaljobs;
+
 void launch_spmv_codelets(void)
 {
 	codelet *cl = malloc(sizeof(codelet));
@@ -104,7 +107,9 @@ void launch_spmv_codelets(void)
 	unsigned nblocks = get_bcsr_nnz(&sparse_matrix); 
 	unsigned nrows = get_bcsr_nrow(&sparse_matrix); 
 
-	remainingjobs = nblocks;
+	remainingjobs = NSPMV*nblocks;
+	totaljobs = remainingjobs;
+
 	printf("there will be %d codelets\n", remainingjobs);
 
 	uint32_t *rowptr = get_bcsr_local_rowptr(&sparse_matrix);
@@ -117,6 +122,10 @@ void launch_spmv_codelets(void)
 #endif
 
 	GET_TICK(start);
+
+	unsigned loop;
+	for (loop = 0; loop < NSPMV; loop++)
+	{
 
 	unsigned row;
 	unsigned part = 0;
@@ -156,7 +165,7 @@ void launch_spmv_codelets(void)
 			push_task(job);
 		}
 	}
-
+	}
 }
 
 void init_problem(void)
@@ -207,9 +216,13 @@ int main(__attribute__ ((unused)) int argc,
 
 	print_results();
 
+	double totalflop = 2.0*c*r*totaljobs;
+
 	double timing = timing_delay(&start, &end);
 	fprintf(stderr, "Computation took (in ms)\n");
 	printf("%2.2f\n", timing/1000);
+	fprintf(stderr, "Flop %e\n", totalflop);
+	fprintf(stderr, "GFlops : %2.2f\n", totalflop/timing/1000);
 
 	return 0;
 }
