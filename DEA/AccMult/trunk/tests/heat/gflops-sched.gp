@@ -13,7 +13,7 @@ set key right bottom
 set datafile missing 'x'
 plot "timings/gflops.merged.data" usi 1:(2*$1*$1*$1 / (3*$2* 1000000)) with linespoint title "greedy"  ,\
      "timings/gflops.merged.data" usi 1:(2*$1*$1*$1 / (3*$4* 1000000)) with linespoint title "prio" 	    ,\
-     "timings/gflops.merged.data" usi 1:(2*$1*$1*$1 / (3*$6* 1000000)) with linespoint title "wd" 
+     "timings/gflops.merged.data" usi 1:(2*$1*$1*$1 / (3*$6* 1000000)) with linespoint title "ws" 
 
 set output "gflops-sched-gain.eps"
 set title "LU Decomposition : scheduling strategies : gain"

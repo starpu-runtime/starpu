@@ -9,8 +9,8 @@ mkdir -p $TIMINGDIR
 #sizelist="256 512 1024 2048 3072 4096 5120 6144 7168 8192 9216 10240 11264 12288 13312 14336 15360 16384 17408 18432 19456 20480 21504 22528 23552 24576 25600"
 
 tilelist="1024"
-#sizelist="1024 2048 3072 4096 5120 6144 7168 8192 9216 10240 11264 16384 20480 22528 24576 25600"
-sizelist="18432 20480 22528 24576 25600"
+sizelist="1024 2048 3072 4096 5120 6144 7168 8192 9216 10240 11264 16384 20480 22528 24576 25600"
+#sizelist="18432 20480 22528 24576 25600"
 # 16384 20480 24576 25600"
 
 heat_ret=0
@@ -120,5 +120,14 @@ do
 done
 
 
+filename=$TIMINGDIR/gflops.noprio.data
+policy=no-prio
+trace_header 
+for size in $sizelist
+do
+	trace_size $size;
+done
 
-paste $TIMINGDIR/gflops.greedy.data $TIMINGDIR/gflops.prio.data $TIMINGDIR/gflops.ws.data > $TIMINGDIR/gflops.merged.data
+
+
+paste $TIMINGDIR/gflops.greedy.data $TIMINGDIR/gflops.prio.data $TIMINGDIR/gflops.ws.data $TIMINGDIR/gflops.noprio.data > $TIMINGDIR/gflops.merged.data

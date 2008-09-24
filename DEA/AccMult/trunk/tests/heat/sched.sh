@@ -1,18 +1,18 @@
 #!/bin/bash
 
-maxiter=1
+maxiter=4
 MAXCPU=3
 
 trace_sched()
 {
-	for blocks in `seq 24 2 24`
+	for blocks in `seq 2 2 24`
 	do
 		ntheta=$(( $(($blocks*32)) + 2))
 		size=$(( $(($blocks*32)) * 32))
 	
 		echo "size : $size"
 	
-		OPTIONS="-pin -v2 -nblocks $blocks -ntheta $ntheta -nthick 34"
+		OPTIONS="-pin -nblocks $blocks -ntheta $ntheta -nthick 34"
 		
 		cd $ROOTDIR
 		filename=$TIMINGDIR/sched.$SCHED.$size
@@ -35,7 +35,7 @@ ROOTDIR=$DIR/../..
 TIMINGDIR=$DIR/timings-sched/
 mkdir -p $TIMINGDIR
 
-schedlist="greedy prio dm random"
+schedlist="no-prio greedy prio dm random"
 #schedlist="random"
 
 for sched in $schedlist

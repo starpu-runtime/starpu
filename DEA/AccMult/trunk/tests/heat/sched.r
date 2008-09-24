@@ -1,5 +1,5 @@
 sizelist <- seq(2048, 24576, 2048);
-schedlist <- c("greedy", "prio", "dm", "random");
+schedlist <- c("greedy", "prio", "dm", "random", "no-prio");
 
 print(schedlist);
 
@@ -67,7 +67,7 @@ trace_sched <- function(sched, color)
 display_sched <- function()
 {
 	xlist <- range(sizelist);
-	ylist <- range(c(0,80));
+	ylist <- range(c(0,90));
 
 	plot.new();
 	plot.window(xlist, ylist);
@@ -76,16 +76,20 @@ display_sched <- function()
 	trace_sched("prio", "blue");
 	trace_sched("dm", "green");
 	trace_sched("random", "orange");
+	trace_sched("no-prio", "black");
 
 	axis(1, at=sizelist)
 	axis(2, at=seq(0, 100, 10), tck=1)
 #	axis(4, at=seq(0, 100, 10))
 	box(bty="u")
 
-	mtext("size", side=1, line=2, cex=0.8)
-	mtext("GFlops", side=2, line=2, las=0, cex=0.8)
+        labels <- c("greedy", "priority", "model", "random", "black")
+	legend("topleft", inset=.05, title="Policy", labels, lwd=2, lty=c(1, 1, 1, 1, 1), col=c("red", "blue", "green", "orange", "black"), bty="y", bg="white")
 
-	title("Impact of the scheduling strategy on LU decomposition");
+	mtext("size", side=1, line=2, cex=1.6)
+	mtext("GFlops", side=2, line=2, las=0, cex=1.6)
+
+#	title("Impact of the scheduling strategy on LU decomposition");
 
 }
 

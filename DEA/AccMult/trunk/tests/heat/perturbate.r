@@ -103,10 +103,10 @@ handle_ref_mean <- function()
 }
 
 
-trace_ampl <- function(ampl, color)
+trace_ampl <- function(ampl, color, style)
 {
 	#points(handle_ampl(ampl)$size, handle_ampl(ampl)$gflops, col=color);
-	lines(handle_ampl_mean(ampl)$size, handle_ampl_mean(ampl)$gflops, col=color, lwd= 2, lty=1);
+	lines(handle_ampl_mean(ampl)$size, handle_ampl_mean(ampl)$gflops, type = "o", col=color, lwd= 1, lty=1, pch = style);
 }
 
 trace_ref <- function(color)
@@ -117,35 +117,35 @@ trace_ref <- function(color)
 display_ampl <- function()
 {
 	xlist <- range(sizelist);
-	ylist <- range(c(0,80));
+	ylist <- range(c(0,100));
 
 	plot.new();
 	plot.window(xlist, ylist);
 
 	trace_ref("black");
 
-	trace_ampl("0.0", "orange");
-	trace_ampl("0.1", "green");
-	trace_ampl("0.25", "red");
-	trace_ampl("0.50", "blue");
-	trace_ampl("1.0", "orange");
+	trace_ampl("1.0", "black", 4);
+	trace_ampl("0.50", "black", 5);
+	trace_ampl("0.25", "black", 2);
+	trace_ampl("0.1", "black", 1);
+	trace_ampl("0.0", "black", 0);
 
 
 
-	axis(1, at=sizelist)
-	axis(2, at=seq(0, 100, 10), tck=1)
+	axis(1, at=sizelist, font=1.6)
+	axis(2, at=seq(0, 100, 10), tck=1, font=1.6)
 #	axis(4, at=seq(0, 100, 10))
 	box(bty="u")
 
 	labels <- c("greedy", "0 %", "10 %", "25 %", "50 %", "100 %")
-	legend("topleft", inset=.05, title="Perturbation", labels, lwd=2, lty=c(2, 1, 1, 1, 1, 1), col=c("black", "orange", "green", "red", "blue", "orange"), bty="y", bg="white")
+	legend("topleft", inset=.05, title="Perturbation", labels, lwd=c(2, 1, 1, 1, 1, 1), pch=c(-1, 0, 1, 2, 5, 4), lty=c(2, 1, 1, 1, 1, 1), col=c("black", "black", "black", "black", "black", "black"), bty="y", bg="white")
 
 
 
-	mtext("size", side=1, line=2, cex=0.8)
-	mtext("GFlops", side=2, line=2, las=0, cex=0.8)
+	mtext("matrix size", side=1, line=2, cex=1.6)
+	mtext("GFlops", side=2, line=2, las=0, cex=1.6)
 
-	title("Impact of performance prediction innacuracies on LU decomposition");
+#	title("Impact of performance prediction innacuracies on LU decomposition");
 
 }
 

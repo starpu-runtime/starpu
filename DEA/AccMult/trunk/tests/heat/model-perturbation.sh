@@ -1,17 +1,17 @@
 #!/bin/bash
 
-ampllist="0.0 0.1 0.2 0.25 0.3 0.4 0.50 0.6 0.7 0.75 0.8 0.9 0.95 1.0 "
-#ampllist="0.50 0.6 0.7 0.75 0.8 0.9 0.95 1.0 "
-#ampllist="0.50 0.75 0.95 1.0 "
+#ampllist="0.0 0.1 0.2 0.25 0.3 0.4 0.50 0.6 0.7 0.75 0.8 0.9 0.95 1.0 "
+#ampllist="1.0 0.50 0.25 0.1 0.0"
+ampllist="1.0 0.5"
 
-maxiter=10
+maxiter=1
 MAXCPU=3
 
 trace_perturbation()
 {
 	export SCHED="dm"
 
-	for blocks in `seq 2 2 24`
+	for blocks in `seq 12 2 24`
 	do
 
 		ntheta=$(( $(($blocks*32)) + 2))
@@ -32,7 +32,7 @@ trace_perturbation()
 		then
 			nsamples=$maxiter
 		else
-			nsamples=2
+			nsamples=1
 		fi
 		
 		for iter in `seq 1 $nsamples`
