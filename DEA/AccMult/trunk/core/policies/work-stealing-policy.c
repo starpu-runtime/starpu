@@ -3,10 +3,10 @@
 /* save the general machine configuration */
 //static struct machine_config_s *machineconfig;
 
-/* XXX 16 is set randomly */
+/* XXX 32 is set randomly */
 unsigned nworkers;
 unsigned rr_worker;
-struct jobq_s *queue_array[16];
+struct jobq_s *queue_array[32];
 
 /* keep track of the work performed from the beginning of the algorithm to make
  * better decisions about which queue to select when stealing or deferring work

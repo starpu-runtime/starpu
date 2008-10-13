@@ -1,4 +1,4 @@
-#include <core/mechanisms/deque_queues.h>
+#include <core/mechanisms/fifo_queues.h>
 #include <errno.h>
 
 /* keep track of the total number of jobs to be scheduled to avoid infinite 
@@ -10,128 +10,128 @@ static unsigned total_number_of_jobs;
  * it realizes there is no work to be done */
 static sem_t total_jobs_sem_t;
 
-void init_deque_queues_mechanisms(void)
+void init_fifo_queues_mechanisms(void)
 {
 	total_number_of_jobs = 0;
 
 	sem_init(&total_jobs_sem_t, 0, 0U);
 }
 
-struct jobq_s *create_deque(void)
+struct jobq_s *create_fifo(void)
 {
 	struct jobq_s *jobq;
 	jobq = malloc(sizeof(struct jobq_s));
 
-	struct deque_jobq_s *deque;
-	deque = malloc(sizeof(struct deque_jobq_s));
+	struct fifo_jobq_s *fifo;
+	fifo = malloc(sizeof(struct fifo_jobq_s));
 
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
-	thread_mutex_init(&deque->workq_mutex, NULL);
-	deque->jobq = job_list_new();
-	deque->njobs = 0;
-	deque->nprocessed = 0;
+	thread_mutex_init(&fifo->workq_mutex, NULL);
+	fifo->jobq = job_list_new();
+	fifo->njobs = 0;
+	fifo->nprocessed = 0;
 
-	deque->exp_start = timing_now()/1000000;
-	deque->exp_len = 0.0;
-	deque->exp_end = deque->exp_start;
+	fifo->exp_start = timing_now()/1000000;
+	fifo->exp_len = 0.0;
+	fifo->exp_end = fifo->exp_start;
 
-	sem_init(&deque->sem_jobq, 0, 0);
+	sem_init(&fifo->sem_jobq, 0, 0);
 
-	jobq->queue = deque;
+	jobq->queue = fifo;
 
 	return jobq;
 }
 
-unsigned get_total_njobs_deques(void)
+unsigned get_total_njobs_fifos(void)
 {
 	return total_number_of_jobs;
 }
 
-unsigned get_deque_njobs(struct jobq_s *q)
+unsigned get_fifo_njobs(struct jobq_s *q)
 {
 	ASSERT(q);
 
-	struct deque_jobq_s *deque_queue = q->queue;
+	struct fifo_jobq_s *fifo_queue = q->queue;
 
-	return deque_queue->njobs;
+	return fifo_queue->njobs;
 }
 
-unsigned get_deque_nprocessed(struct jobq_s *q)
+unsigned get_fifo_nprocessed(struct jobq_s *q)
 {
 	ASSERT(q);
 
-	struct deque_jobq_s *deque_queue = q->queue;
+	struct fifo_jobq_s *fifo_queue = q->queue;
 
-	return deque_queue->nprocessed;
+	return fifo_queue->nprocessed;
 }
 
-void deque_push_prio_task(struct jobq_s *q, job_t task)
+void fifo_push_prio_task(struct jobq_s *q, job_t task)
 {
 #ifndef NO_PRIO
 	ASSERT(q);
-	struct deque_jobq_s *deque_queue = q->queue;
+	struct fifo_jobq_s *fifo_queue = q->queue;
 
 	/* do that early to avoid sleepy for no reason */
 	(void)ATOMIC_ADD(&total_number_of_jobs, 1);
 	sem_post(&total_jobs_sem_t);
 
-	thread_mutex_lock(&deque_queue->workq_mutex);
+	thread_mutex_lock(&fifo_queue->workq_mutex);
 
 	TRACE_JOB_PUSH(task, 0);
-	job_list_push_front(deque_queue->jobq, task);
+	job_list_push_back(fifo_queue->jobq, task);
 
-	deque_queue->njobs++;
-	deque_queue->nprocessed++;
+	fifo_queue->njobs++;
+	fifo_queue->nprocessed++;
 
 	/* semaphore for the local queue */
-	sem_post(&deque_queue->sem_jobq);
+	sem_post(&fifo_queue->sem_jobq);
 
-	thread_mutex_unlock(&deque_queue->workq_mutex);
+	thread_mutex_unlock(&fifo_queue->workq_mutex);
 #else
-	deque_push_task(q, task);
+	fifo_push_task(q, task);
 #endif
 }
 
-void deque_push_task(struct jobq_s *q, job_t task)
+void fifo_push_task(struct jobq_s *q, job_t task)
 {
 	ASSERT(q);
-	struct deque_jobq_s *deque_queue = q->queue;
+	struct fifo_jobq_s *fifo_queue = q->queue;
 
 	/* do that early to avoid sleepy for no reason */
 	(void)ATOMIC_ADD(&total_number_of_jobs, 1);
 	/* semaphore for the entire system */
 	sem_post(&total_jobs_sem_t);
 
-	thread_mutex_lock(&deque_queue->workq_mutex);
+	thread_mutex_lock(&fifo_queue->workq_mutex);
 
 	TRACE_JOB_PUSH(task, 0);
-	job_list_push_front(deque_queue->jobq, task);
-	deque_queue->njobs++;
-	deque_queue->nprocessed++;
+	job_list_push_front(fifo_queue->jobq, task);
+	fifo_queue->njobs++;
+	fifo_queue->nprocessed++;
 
 	/* semaphore for the local queue */
-	sem_post(&deque_queue->sem_jobq);
+	sem_post(&fifo_queue->sem_jobq);
 
-	thread_mutex_unlock(&deque_queue->workq_mutex);
+	thread_mutex_unlock(&fifo_queue->workq_mutex);
 }
 
-job_t deque_pop_task(struct jobq_s *q)
+job_t fifo_pop_task(struct jobq_s *q)
 {
 	job_t j;
 
 	ASSERT(q);
-	struct deque_jobq_s *deque_queue = q->queue;
+	struct fifo_jobq_s *fifo_queue = q->queue;
 
 	/* block until some task is available in that queue */
-	sem_wait(&deque_queue->sem_jobq);
+	sem_wait(&fifo_queue->sem_jobq);
 
-	thread_mutex_lock(&deque_queue->workq_mutex);
+	thread_mutex_lock(&fifo_queue->workq_mutex);
 
-	j = job_list_pop_front(deque_queue->jobq);
+	j = job_list_pop_back(fifo_queue->jobq);
 
 	/* there was some task */
 	ASSERT(j);
-	deque_queue->njobs--;
+	fifo_queue->njobs--;
 	
 	TRACE_JOB_POP(j, 0);
 
@@ -139,38 +139,39 @@ job_t deque_pop_task(struct jobq_s *q)
 	 * there remained some work and will soon discover it is not true */
 	(void)ATOMIC_ADD(&total_number_of_jobs, -1);
 
-	thread_mutex_unlock(&deque_queue->workq_mutex);
+	thread_mutex_unlock(&fifo_queue->workq_mutex);
 
 	return j;
 
 }
 
-job_t deque_non_blocking_pop_task(struct jobq_s *q)
+/* for work stealing, typically */
+job_t fifo_non_blocking_pop_task(struct jobq_s *q)
 {
 	job_t j;
 
 	ASSERT(q);
-	struct deque_jobq_s *deque_queue = q->queue;
+	struct fifo_jobq_s *fifo_queue = q->queue;
 
-	thread_mutex_lock(&deque_queue->workq_mutex);
+	thread_mutex_lock(&fifo_queue->workq_mutex);
 
 	int fail;
-	fail = sem_trywait(&deque_queue->sem_jobq);
+	fail = sem_trywait(&fifo_queue->sem_jobq);
 
 	if (fail == -1 && errno == EAGAIN) {
 		/* there is nothing in that queue */
-		ASSERT (job_list_empty(deque_queue->jobq));
-		ASSERT(deque_queue->njobs == 0);
+		ASSERT (job_list_empty(fifo_queue->jobq));
+		ASSERT(fifo_queue->njobs == 0);
 
-		thread_mutex_unlock(&deque_queue->workq_mutex);
+		thread_mutex_unlock(&fifo_queue->workq_mutex);
 
 		j = NULL;
 	}
 	else {
 		ASSERT(fail == 0);		
-		j = job_list_pop_back(deque_queue->jobq);
+		j = job_list_pop_back(fifo_queue->jobq);
 		/* there was some task */
-		deque_queue->njobs--;
+		fifo_queue->njobs--;
 	
 		TRACE_JOB_POP(j, 0);
 
@@ -178,17 +179,17 @@ job_t deque_non_blocking_pop_task(struct jobq_s *q)
 		 * there remained some work and will soon discover it is not true */
 		(void)ATOMIC_ADD(&total_number_of_jobs, -1);
 
-		thread_mutex_unlock(&deque_queue->workq_mutex);
+		thread_mutex_unlock(&fifo_queue->workq_mutex);
 	}
 
 	return j;
 }
 
-job_t deque_non_blocking_pop_task_if_job_exists(struct jobq_s *q)
+job_t fifo_non_blocking_pop_task_if_job_exists(struct jobq_s *q)
 {
 	job_t j;
 
-	j = deque_non_blocking_pop_task(q);
+	j = fifo_non_blocking_pop_task(q);
 
 	if (!j && (ATOMIC_ADD(&total_number_of_jobs, 0) == 0)) {
 		/* there is no job at all in the entire system : go to sleep ! */

@@ -3,7 +3,7 @@
 
 #include <core/workers.h>
 #include <core/mechanisms/queues.h>
-#include <core/mechanisms/deque_queues.h>
+#include <core/mechanisms/fifo_queues.h>
 
 void initialize_dm_policy(struct machine_config_s *config,
  __attribute__ ((unused)) struct sched_policy_s *_policy);

@@ -1,14 +1,14 @@
 #include <core/policies/random-policy.h>
 
-/* XXX 16 is set randomly */
+/* XXX 32 is set randomly */
 unsigned nworkers;
-struct jobq_s *queue_array[16];
+struct jobq_s *queue_array[32];
 
 static job_t random_pop_task(struct jobq_s *q)
 {
 	struct job_s *j;
 
-	j = deque_pop_task(q);
+	j = fifo_pop_task(q);
 
 	return j;
 }
@@ -16,7 +16,7 @@ static job_t random_pop_task(struct jobq_s *q)
 static void _random_push_task(struct jobq_s *q __attribute__ ((unused)), job_t task, unsigned prio)
 {
 	/* find the queue */
-	struct deque_jobq_s *deque;
+	struct fifo_jobq_s *fifo;
 	unsigned worker;
 
 	unsigned selected = 0;
@@ -29,6 +29,7 @@ static void _random_push_task(struct jobq_s *q __attribute__ ((unused)), job_t t
 	}
 
 	double rand = drand48()*alpha_sum;
+//	fprintf(stderr, "my rand is %e\n", rand);
 
 	double alpha = 0.0;
 	for (worker = 0; worker < nworkers; worker++)
@@ -43,12 +44,12 @@ static void _random_push_task(struct jobq_s *q __attribute__ ((unused)), job_t t
 	}
 
 	/* we should now have the best worker in variable "best" */
-	deque = queue_array[selected]->queue;
+	fifo = queue_array[selected]->queue;
 
 	if (prio) {
-		deque_push_prio_task(queue_array[selected], task);
+		fifo_push_prio_task(queue_array[selected], task);
 	} else {
-		deque_push_task(queue_array[selected], task);
+		fifo_push_task(queue_array[selected], task);
 	}
 }
 
@@ -62,11 +63,11 @@ static void random_push_task(struct jobq_s *q, job_t task)
 	_random_push_task(q, task, 0);
 }
 
-static struct jobq_s *init_random_deque(void)
+static struct jobq_s *init_random_fifo(void)
 {
 	struct jobq_s *q;
 
-	q = create_deque();
+	q = create_fifo();
 
 	q->push_task = random_push_task; 
 	q->push_prio_task = random_push_prio_task; 
@@ -83,7 +84,9 @@ void initialize_random_policy(struct machine_config_s *config,
 {
 	nworkers = 0;
 
-	setup_queues(init_deque_queues_mechanisms, init_random_deque, config);
+	srand48(time(NULL));
+
+	setup_queues(init_fifo_queues_mechanisms, init_random_fifo, config);
 }
 
 struct jobq_s *get_local_queue_random(struct sched_policy_s *policy __attribute__ ((unused)))

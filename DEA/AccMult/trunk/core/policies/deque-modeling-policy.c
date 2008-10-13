@@ -1,13 +1,16 @@
 #include <core/policies/deque-modeling-policy.h>
 
-/* XXX 16 is set randomly */
+/* XXX 32 is set randomly */
 unsigned nworkers;
-struct jobq_s *queue_array[16];
+struct jobq_s *queue_array[32];
+
+#define PER_ARCH_MODEL	1
 
 double job_expected_length(struct jobq_s *q, struct job_s *j)
 {
 	double exp;
 
+#ifdef PER_ARCH_MODEL
 	if ( (q->who & (CUBLAS|CUDA)) && j->cuda_cost_model) {
 		/* use CUDA model */
 		exp = j->cuda_cost_model(j->buffers) + 0.0;
@@ -19,6 +22,7 @@ double job_expected_length(struct jobq_s *q, struct job_s *j)
 		exp = j->core_cost_model(j->buffers);
 		return exp;
 	}
+#endif
 
 	if (j->cost_model) {
 		/* use the common model */
@@ -34,14 +38,14 @@ static job_t dm_pop_task(struct jobq_s *q)
 {
 	struct job_s *j;
 
-	j = deque_pop_task(q);
+	j = fifo_pop_task(q);
 
-	struct deque_jobq_s *deque = q->queue;
+	struct fifo_jobq_s *fifo = q->queue;
 	double model = job_expected_length(q, j);
 
-	deque->exp_len -= model;
-	deque->exp_start = timing_now()/1000000 + model;
-	deque->exp_end = deque->exp_start + deque->exp_len;
+	fifo->exp_len -= model;
+	fifo->exp_start = timing_now()/1000000 + model;
+	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	return j;
 }
@@ -50,7 +54,7 @@ static void _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task
 {
 	/* find the queue */
 
-	struct deque_jobq_s *deque;
+	struct fifo_jobq_s *fifo;
 	unsigned worker;
 	int best = -1;
 
@@ -61,11 +65,11 @@ static void _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task
 	{
 		double exp_end;
 		
-		deque = queue_array[worker]->queue;
+		fifo = queue_array[worker]->queue;
 
 		/* XXX */
-		deque->exp_start = MAX(deque->exp_start, timing_now()/1000000);
-		deque->exp_end = MAX(deque->exp_start, timing_now()/1000000);
+		fifo->exp_start = MAX(fifo->exp_start, timing_now()/1000000);
+		fifo->exp_end = MAX(fifo->exp_start, timing_now()/1000000);
 
 		if ((queue_array[worker]->who & task->where) == 0)
 		{
@@ -76,7 +80,7 @@ static void _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task
 		double local_length = job_expected_length(queue_array[worker], task);
 
 
-		exp_end = deque->exp_start + deque->exp_len + local_length;
+		exp_end = fifo->exp_start + fifo->exp_len + local_length;
 
 		if (best == -1 || exp_end < best_exp_end)
 		{
@@ -94,15 +98,15 @@ static void _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task
 	}
 
 	/* we should now have the best worker in variable "best" */
-	deque = queue_array[best]->queue;
+	fifo = queue_array[best]->queue;
 
-	deque->exp_end += model_best;
-	deque->exp_len += model_best;
+	fifo->exp_end += model_best;
+	fifo->exp_len += model_best;
 
 	if (prio) {
-		deque_push_prio_task(queue_array[best], task);
+		fifo_push_prio_task(queue_array[best], task);
 	} else {
-		deque_push_task(queue_array[best], task);
+		fifo_push_task(queue_array[best], task);
 	}
 }
 
@@ -116,11 +120,11 @@ static void dm_push_task(struct jobq_s *q, job_t task)
 	_dm_push_task(q, task, 0);
 }
 
-static struct jobq_s *init_dm_deque(void)
+static struct jobq_s *init_dm_fifo(void)
 {
 	struct jobq_s *q;
 
-	q = create_deque();
+	q = create_fifo();
 
 	q->push_task = dm_push_task; 
 	q->push_prio_task = dm_push_prio_task; 
@@ -137,7 +141,7 @@ void initialize_dm_policy(struct machine_config_s *config,
 {
 	nworkers = 0;
 
-	setup_queues(init_deque_queues_mechanisms, init_dm_deque, config);
+	setup_queues(init_fifo_queues_mechanisms, init_dm_fifo, config);
 }
 
 struct jobq_s *get_local_queue_dm(struct sched_policy_s *policy __attribute__ ((unused)))
