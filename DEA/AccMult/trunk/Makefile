@@ -2,9 +2,9 @@ export
 
 CC=gcc -m64
 NVCC = nvcc -m64
-NVCCFLAGS += -O0
+NVCCFLAGS += -O3
 
-CFLAGS += -g -O0 -Wall -fPIC
+CFLAGS += -g -O3 -Wall -fPIC
 CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses
 CFLAGS += -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type 
 CFLAGS += -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -fno-strict-aliasing
@@ -107,7 +107,7 @@ ifdef GORDON
 endif
 
 ifndef FXTDIR
-	FXTDIR=/home/gonnet/FxT/target
+	FXTDIR=/home/gonnet/These/Libs/FxT/target
 endif
 
 ifdef USE_FXT
@@ -132,7 +132,9 @@ OBJDEPS += core/dependencies/htable.o
 OBJDEPS += core/mechanisms/queues.o
 OBJDEPS += core/mechanisms/priority_queues.o
 OBJDEPS += core/mechanisms/deque_queues.o
+OBJDEPS += core/mechanisms/fifo_queues.o
 OBJDEPS += core/policies/sched_policy.o
+OBJDEPS += core/policies/no-prio-policy.o
 OBJDEPS += core/policies/eager-central-policy.o
 OBJDEPS += core/policies/eager-central-priority-policy.o
 OBJDEPS += core/policies/work-stealing-policy.o
