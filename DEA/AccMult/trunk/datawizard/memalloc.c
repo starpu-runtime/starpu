@@ -167,9 +167,6 @@ size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node)
 		/* now the actual buffer may be liberated */
 		liberated = do_free_mem_chunk(mc, node);
 	}
-	else{
-		printf("could not lock subtree\n");
-	}
 
 	/* unlock the leafs */
 	unlock_all_subtree(data);
