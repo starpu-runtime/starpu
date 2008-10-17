@@ -78,8 +78,6 @@ static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 {
 	job_t job = create_job(TAG21(k, j));
 	
-//	job->where = CORE;
-
 	job->cl->core_func = chol_core_codelet_update_u21;
 	job->model = &chol_model_21;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
@@ -162,6 +160,7 @@ static void _dw_cholesky(data_state *dataA, unsigned nblocks)
 	/* create all the DAG nodes */
 	unsigned i,j,k;
 
+
 	for (k = 0; k < nblocks; k++)
 	{
 		job_t job = create_task_11(dataA, k, nblocks, &sem);
@@ -173,11 +172,8 @@ static void _dw_cholesky(data_state *dataA, unsigned nblocks)
 		for (j = k+1; j<nblocks; j++)
 		{
 			create_task_21(dataA, k, j);
-		}
 
-		for (i = k+1; i<nblocks; i++)
-		{
-			for (j = k+1; j<nblocks; j++)
+			for (i = k+1; i<nblocks; i++)
 			{
 				if (i <= j)
 					create_task_22(dataA, k, i, j);

@@ -25,7 +25,7 @@ static double core_chol_task_11_cost(buffer_descr *descr)
 
 	n = descr[0].state->interface->blas.nx;
 
-	double cost = (((double)(n)*n*n)/1000.0f*0.894);
+	double cost = (((double)(n)*n*n)/1000.0f*0.894/0.79176);
 
 #ifdef MODEL_DEBUG
 	printf("core_chol_task_11_cost n %d cost %e\n", n, cost);
@@ -40,7 +40,7 @@ static double cuda_chol_task_11_cost(buffer_descr *descr)
 
 	n = descr[0].state->interface->blas.nx;
 
-	double cost = (((double)(n)*n*n)/50.0f/10.75/5.088633);
+	double cost = (((double)(n)*n*n)/50.0f/10.75/5.088633/0.9883);
 
 #ifdef MODEL_DEBUG
 	printf("cuda_chol_task_11_cost n %d cost %e\n", n, cost);
@@ -55,7 +55,7 @@ static double core_chol_task_21_cost(buffer_descr *descr)
 
 	n = descr[0].state->interface->blas.nx;
 
-	double cost = (((double)(n)*n*n)/7706.674/0.95);
+	double cost = (((double)(n)*n*n)/7706.674/0.95/0.9965);
 
 #ifdef MODEL_DEBUG
 	printf("core_chol_task_21_cost n %d cost %e\n", n, cost);
