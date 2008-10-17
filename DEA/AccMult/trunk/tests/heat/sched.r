@@ -1,5 +1,6 @@
 sizelist <- seq(2048, 24576, 2048);
-schedlist <- c("greedy", "prio", "dm", "random", "no-prio");
+#schedlist <- c("greedy", "prio", "dm", "random", "no-prio", "ws");
+schedlist <- c("greedy", "prio", "dm", "random");
 
 print(schedlist);
 
@@ -58,35 +59,38 @@ handle_sched_mean <- function(sched)
 	);
 }
 
-trace_sched <- function(sched, color)
+trace_sched <- function(sched, color, style)
 {
-#	points(handle_sched(sched)$size, handle_sched(sched)$gflops, col=color);
-	lines(handle_sched_mean(sched)$size, handle_sched_mean(sched)$gflops, col=color, legend.text=TRUE);
+	#points(handle_sched(sched)$size, handle_sched(sched)$gflops, col=color);
+	lines(handle_sched_mean(sched)$size, handle_sched_mean(sched)$gflops, col=color, legend.text=TRUE, type = "o", pch = style);
 }
 
 display_sched <- function()
 {
 	xlist <- range(sizelist);
-	ylist <- range(c(0,90));
+	ylist <- range(c(0,100));
 
 	plot.new();
 	plot.window(xlist, ylist);
 
-	trace_sched("greedy", "red");
-	trace_sched("prio", "blue");
-	trace_sched("dm", "green");
-	trace_sched("random", "orange");
-	trace_sched("no-prio", "black");
+	trace_sched("dm", "black", 0);
+	trace_sched("random", "black", 1);
+	trace_sched("greedy", "black", 2);
+	trace_sched("prio", "black", 4);
+	#trace_sched("no-prio", "black");
+	#trace_sched("ws", "purple");
 
 	axis(1, at=sizelist)
 	axis(2, at=seq(0, 100, 10), tck=1)
 #	axis(4, at=seq(0, 100, 10))
 	box(bty="u")
 
-        labels <- c("greedy", "priority", "model", "random", "black")
-	legend("topleft", inset=.05, title="Policy", labels, lwd=2, lty=c(1, 1, 1, 1, 1), col=c("red", "blue", "green", "orange", "black"), bty="y", bg="white")
+        #labels <- c("greedy", "priority", "model", "random", "black", "ws")
+#        labels <- c("greedy", "priority", "model", "random")
+	labels <- c("model", "weighted random", "greedy", "priority")
+	legend("topleft", inset=.05, title="Scheduling policy", labels, lwd=1, lty=c(1, 1, 1, 1, 1, 1), pch=c(0, 1, 2, 4),col="black", bty="y", bg="white")
 
-	mtext("size", side=1, line=2, cex=1.6)
+	mtext("matrix size", side=1, line=2, cex=1.6)
 	mtext("GFlops", side=2, line=2, las=0, cex=1.6)
 
 #	title("Impact of the scheduling strategy on LU decomposition");

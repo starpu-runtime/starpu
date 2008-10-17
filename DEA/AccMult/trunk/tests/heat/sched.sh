@@ -1,6 +1,6 @@
 #!/bin/bash
 
-maxiter=4
+maxiter=1
 MAXCPU=3
 
 trace_sched()
@@ -35,8 +35,9 @@ ROOTDIR=$DIR/../..
 TIMINGDIR=$DIR/timings-sched/
 mkdir -p $TIMINGDIR
 
-schedlist="no-prio greedy prio dm random"
-#schedlist="random"
+#schedlist="ws no-prio greedy prio dm random"
+#schedlist="random random random random"
+schedlist="greedy greedy greedy"
 
 for sched in $schedlist
 do

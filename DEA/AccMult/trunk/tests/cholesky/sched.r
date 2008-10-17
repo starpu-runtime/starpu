@@ -63,11 +63,11 @@ handle_sched_mean <- function(sched)
 	);
 }
 
-trace_sched <- function(sched, color)
+trace_sched <- function(sched, color, style)
 {
 #	points(handle_sched(sched)$size, handle_sched(sched)$gflops, col=color);
 	#lines(handle_sched_mean(sched)$size, handle_sched_mean(sched)$gflops, col=color, legend.text=TRUE);
-	lines(handle_sched_mean(sched)$size, handle_sched_mean(sched)$gflops, col=color);
+	lines(handle_sched_mean(sched)$size, handle_sched_mean(sched)$gflops, col=color, pch = style, type ="o");
 }
 
 display_sched <- function()
@@ -78,20 +78,29 @@ display_sched <- function()
 	plot.new();
 	plot.window(xlist, ylist);
 
-	trace_sched("greedy", "red");
-	trace_sched("prio", "blue");
-	trace_sched("dm", "green");
-	trace_sched("random", "orange");
+	trace_sched("dm", "black", 0);
+	trace_sched("prio", "black", 4);
+#	trace_sched("random", "black", 1);
+	trace_sched("no-prio", "black", 5);
+	trace_sched("greedy", "red", 2);
 
 	axis(1, at=sizelist)
 	axis(2, at=seq(0, 100, 10), tck=1)
 #	axis(4, at=seq(0, 100, 10))
 	box(bty="u")
 
-	mtext("size", side=1, line=2, cex=0.8)
-	mtext("GFlops", side=2, line=2, las=0, cex=0.8)
+ #      labels <- c("greedy", "priority", "model", "random", "no-prio")
+#        labels <- c("model", "priority", "weigthed random", "no priority")
+        labels <- c("model", "priority", "no priority")
+#	col <-  c("red", "blue", "green", "orange", "black")
+        legend("topleft", inset=.05, title="Scheduling policy", labels, lwd=1, lty=1, pch=c(0, 4, 5, 2), col="black", bty="y", bg="white")
 
-	title("Impact of the scheduling strategy on Cholesky decomposition");
+        mtext("matrix size", side=1, line=2, cex=1.6)
+        mtext("GFlops", side=2, line=2, las=0, cex=1.6)
+
+
+
+#	title("Impact of the scheduling strategy on Cholesky decomposition");
 
 }
 

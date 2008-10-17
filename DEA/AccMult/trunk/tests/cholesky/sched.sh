@@ -1,11 +1,11 @@
 #!/bin/bash
 
-maxiter=5
+maxiter=10
 MAXCPU=3
 
 trace_sched()
 {
-	for blocks in `seq 2 2 24`
+	for blocks in `seq 10 2 24`
 	do
 		size=$(($blocks*1024))
 	
@@ -35,7 +35,7 @@ ROOTDIR=$DIR/../..
 TIMINGDIR=$DIR/timings-sched/
 mkdir -p $TIMINGDIR
 
-schedlist="greedy prio dm random"
+schedlist="no-prio greedy greedy no-prio dm dm random greedy prio no-prio dm"
 #schedlist="random"
 
 for sched in $schedlist
