@@ -162,7 +162,8 @@ void cublas_mult(data_interface_t *descr, __attribute__((unused)) void *arg)
 					     0.0f, subC, ldC);
 	cublasStatus st;
 	st = cublasGetError();
-	ASSERT(st == CUBLAS_STATUS_SUCCESS);
+	if (st != CUBLAS_STATUS_SUCCESS)
+		CUBLAS_REPORT_ERROR(st);
 
 	GET_TICK(sgemm_end);
 

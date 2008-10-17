@@ -17,5 +17,5 @@ incrementer: incrementer.o
 	$(CC) incrementer.o -o incrementer $(LDFLAGS) $(RIBSCHED)
 
 clean:
-	@rm -f *.o *.d
+	@rm -f *.o *.d *.gcno *.gcda
 	@rm -f incrementer

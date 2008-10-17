@@ -10,5 +10,5 @@ dw_mult: dw_mult.o
 	$(CC) dw_mult.o -o dw_mult $(LDFLAGS) $(RIBSCHED)
 
 clean:
-	@rm -f *.o *.d
+	@rm -f *.o *.d *.gcno *.gcda
 	@rm -f dw_mult
