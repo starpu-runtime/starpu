@@ -6,13 +6,6 @@
 #include <datawizard/coherency.h>
 #include <datawizard/interfaces/data_interface.h>
 
-double self_add_sub_cost(buffer_descr *descr);
-double add_sub_cost(buffer_descr *descr);
-double mult_cost(buffer_descr *descr);
-
-double cuda_self_add_sub_cost(buffer_descr *descr);
-double cuda_add_sub_cost(buffer_descr *descr);
-double cuda_mult_cost(buffer_descr *descr);
-
+#include <core/perfmodel.h>
 
 #endif // __STRASSEN_MODELS_H__

@@ -32,17 +32,11 @@ int execute_job_on_core(job_t j)
 
 #ifdef MODEL_DEBUG
 			double measured = timing_delay(&codelet_start, &codelet_end);
-			if (j->core_cost_model)
+			
+			if (j->predicted != 0.0)
 			{
-				double predicted = j->core_cost_model(j->buffers);
-				printf("CORE (core_cost): model was %e got %e factor (%2.4f \%%)\n", predicted, measured, 100*(measured/predicted-1));
-			}
-			else
-			{
-				if (j->cost_model) {
-					double predicted = j->cost_model(j->buffers);
-					printf("CORE: model was %e got %e factor (%2.4f \%%)\n", predicted, measured, 100*(measured/predicted-1));
-				}
+				fprintf(stderr, "CORE : model was %e, got %e, factor (%2.2f \%%)\n", 
+					j->predicted, measured, 100*(measured/j->predicted - 1.0f));
 			}
 #endif
 

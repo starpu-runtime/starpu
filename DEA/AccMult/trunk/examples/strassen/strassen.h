@@ -101,4 +101,8 @@ void self_sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  v
 
 void strassen(data_state *A, data_state *B, data_state *C, void (*callback)(void *), void *argcb, unsigned reclevel);
 
+extern struct perfmodel_t strassen_model_mult;
+extern struct perfmodel_t strassen_model_add_sub;
+extern struct perfmodel_t strassen_model_self_add_sub;
+
 #endif // __STRASSEN_H__

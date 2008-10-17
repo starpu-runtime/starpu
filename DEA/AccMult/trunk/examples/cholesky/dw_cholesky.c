@@ -46,10 +46,9 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 //	job->where = CORE;
 
 	job->cl->core_func = chol_core_codelet_update_u11;
-	job->core_cost_model = core_chol_task_11_cost;
+	job->model = &chol_model_11;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job->cl->cublas_func = chol_cublas_codelet_update_u11;
-	job->cuda_cost_model = cuda_chol_task_11_cost;
 #endif
 
 	/* which sub-data is manipulated ? */
@@ -82,10 +81,9 @@ static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 //	job->where = CORE;
 
 	job->cl->core_func = chol_core_codelet_update_u21;
-	job->core_cost_model = core_chol_task_21_cost;
+	job->model = &chol_model_21;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job->cl->cublas_func = chol_cublas_codelet_update_u21;
-	job->cuda_cost_model = cuda_chol_task_21_cost;
 #endif
 
 	/* which sub-data is manipulated ? */
@@ -116,10 +114,9 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
 //	job->where = CORE;
 
 	job->cl->core_func = chol_core_codelet_update_u22;
-	job->core_cost_model = core_chol_task_22_cost;
+	job->model = &chol_model_22;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 	job->cl->cublas_func = chol_cublas_codelet_update_u22;
-	job->cuda_cost_model = cuda_chol_task_22_cost;
 #endif
 
 	/* which sub-data is manipulated ? */
@@ -241,4 +238,6 @@ void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	map_filters(&dataA, 2, &f, &f2);
 
 	_dw_cholesky(&dataA, nblocks);
+
+	display_msi_stats();
 }

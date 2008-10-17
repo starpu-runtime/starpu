@@ -19,7 +19,7 @@
 #define PERTURBATE(a)	(a)
 #endif
 
-double core_chol_task_11_cost(buffer_descr *descr)
+static double core_chol_task_11_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -34,7 +34,7 @@ double core_chol_task_11_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-double cuda_chol_task_11_cost(buffer_descr *descr)
+static double cuda_chol_task_11_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -49,7 +49,7 @@ double cuda_chol_task_11_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-double core_chol_task_21_cost(buffer_descr *descr)
+static double core_chol_task_21_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -64,7 +64,7 @@ double core_chol_task_21_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-double cuda_chol_task_21_cost(buffer_descr *descr)
+static double cuda_chol_task_21_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -79,7 +79,7 @@ double cuda_chol_task_21_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-double core_chol_task_22_cost(buffer_descr *descr)
+static double core_chol_task_22_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -94,7 +94,7 @@ double core_chol_task_22_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-double cuda_chol_task_22_cost(buffer_descr *descr)
+static double cuda_chol_task_22_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -108,3 +108,18 @@ double cuda_chol_task_22_cost(buffer_descr *descr)
 
 	return PERTURBATE(cost);
 }
+
+struct perfmodel_t chol_model_11 = {
+	.core_cost_model = core_chol_task_11_cost,
+	.cuda_cost_model = cuda_chol_task_11_cost
+};
+
+struct perfmodel_t chol_model_21 = {
+	.core_cost_model = core_chol_task_21_cost,
+	.cuda_cost_model = cuda_chol_task_21_cost
+};
+
+struct perfmodel_t chol_model_22 = {
+	.core_cost_model = core_chol_task_22_cost,
+	.cuda_cost_model = cuda_chol_task_22_cost
+};

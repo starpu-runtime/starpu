@@ -154,6 +154,9 @@ void dw_callback_v2_codelet_update_u12(void *);
 void dw_callback_v2_codelet_update_u21(void *);
 void dw_callback_v2_codelet_update_u22(void *);
 
-
+extern struct perfmodel_t model_11;
+extern struct perfmodel_t model_12;
+extern struct perfmodel_t model_21;
+extern struct perfmodel_t model_22;
 
 #endif // __DW_FACTO_LU_H__

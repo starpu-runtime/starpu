@@ -20,10 +20,7 @@
 #endif
 
 
-
-
-
-double self_add_sub_cost(buffer_descr *descr)
+static double self_add_sub_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -38,7 +35,7 @@ double self_add_sub_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-double cuda_self_add_sub_cost(buffer_descr *descr)
+static double cuda_self_add_sub_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -53,7 +50,7 @@ double cuda_self_add_sub_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-double add_sub_cost(buffer_descr *descr)
+static double add_sub_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -68,7 +65,7 @@ double add_sub_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-double cuda_add_sub_cost(buffer_descr *descr)
+static double cuda_add_sub_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -84,7 +81,7 @@ double cuda_add_sub_cost(buffer_descr *descr)
 }
 
 
-double mult_cost(buffer_descr *descr)
+static double mult_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -99,7 +96,7 @@ double mult_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-double cuda_mult_cost(buffer_descr *descr)
+static double cuda_mult_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -113,3 +110,18 @@ double cuda_mult_cost(buffer_descr *descr)
 
 	return PERTURBATE(cost);
 }
+
+struct perfmodel_t strassen_model_mult = {
+	.core_cost_model = mult_cost,
+	.cuda_cost_model = cuda_mult_cost
+};
+
+struct perfmodel_t strassen_model_add_sub = {
+	.core_cost_model = add_sub_cost,
+	.cuda_cost_model = cuda_add_sub_cost
+};
+
+struct perfmodel_t strassen_model_self_add_sub = {
+	.core_cost_model = self_add_sub_cost,
+	.cuda_cost_model = cuda_self_add_sub_cost
+};

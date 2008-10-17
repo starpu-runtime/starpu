@@ -44,7 +44,7 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 	job->cl->cublas_func = dw_cublas_codelet_update_u11;
 #endif
 
-	job->cost_model = task_11_cost;
+	job->model = &model_11;
 
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 1;
@@ -78,7 +78,7 @@ static void create_task_12(data_state *dataA, unsigned k, unsigned i)
 	job->cl->cublas_func = dw_cublas_codelet_update_u12;
 #endif
 
-	job->cost_model = task_12_cost;
+	job->model = &model_12;
 
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 2;
@@ -109,7 +109,7 @@ static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 	job->cl->cublas_func = dw_cublas_codelet_update_u21;
 #endif
 
-	job->cost_model = task_21_cost;
+	job->model = &model_21;
 	
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 2;
@@ -141,7 +141,7 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
 	job->cl->cublas_func = dw_cublas_codelet_update_u22;
 #endif
 
-	job->cost_model = task_22_cost;
+	job->model = &model_22;
 
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 3;

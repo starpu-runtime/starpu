@@ -1,3 +1,4 @@
+#include <core/perfmodel.h>
 #include <task-models/task_model.h>
 #include "lu_kernels_model.h"
 
@@ -19,6 +20,11 @@
 #define PERTURBATE(a)	(a)
 #endif
 
+/* 
+ *
+ *	Generic models
+ *
+ */
 
 double task_11_cost(buffer_descr *descr)
 {
@@ -73,6 +79,11 @@ double task_22_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
+/* 
+ *
+ *	Models for CUDA
+ *
+ */
 
 
 double task_11_cost_cuda(buffer_descr *descr)
@@ -128,20 +139,11 @@ double task_22_cost_cuda(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/* 
+ *
+ *	Models for CPUs
+ *
+ */
 
 double task_11_cost_core(buffer_descr *descr)
 {
@@ -196,5 +198,26 @@ double task_22_cost_core(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
+struct perfmodel_t model_11 = {
+	.cost_model = task_11_cost,
+	.cuda_cost_model = task_11_cost_cuda,
+	.core_cost_model = task_11_cost_core
+};
 
+struct perfmodel_t model_12 = {
+	.cost_model = task_12_cost,
+	.cuda_cost_model = task_12_cost_cuda,
+	.core_cost_model = task_12_cost_core
+};
 
+struct perfmodel_t model_21 = {
+	.cost_model = task_21_cost,
+	.cuda_cost_model = task_21_cost_cuda,
+	.core_cost_model = task_21_cost_core
+};
+
+struct perfmodel_t model_22 = {
+	.cost_model = task_22_cost,
+	.cuda_cost_model = task_22_cost_cuda,
+	.core_cost_model = task_22_cost_core
+};

@@ -51,7 +51,8 @@ static inline void dw_common_core_codelet_update_u22(data_interface_t *buffers, 
 			cublasSgemm('n', 'n', dx, dy, dz, -1.0f, left, ld21,
 					right, ld12, 1.0f, center, ld22);
 			status = cublasGetError();
-			ASSERT(status == 0);
+			if (status != CUBLAS_STATUS_SUCCESS)
+				CUBLAS_REPORT_ERROR(status);
 
 			break;
 #endif

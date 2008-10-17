@@ -93,4 +93,8 @@ void chol_cublas_codelet_update_u22(data_interface_t *descr, void *_args);
 void initialize_system(float **A, unsigned dim, unsigned pinned);
 void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks);
 
+extern struct perfmodel_t chol_model_11;
+extern struct perfmodel_t chol_model_21;
+extern struct perfmodel_t chol_model_22;
+
 #endif // __DW_CHOLESKY_H__

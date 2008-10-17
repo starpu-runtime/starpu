@@ -664,7 +664,6 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Problem size : %dx%d (%dx%d)\n", newsize, newsize, DIM, DIM);
 
 		if (version < 3) {
-			printf("A = %p\n", A);
 			dw_factoLU(A, newsize, newsize, nblocks, version);
 		}
 		else {
@@ -680,6 +679,8 @@ int main(int argc, char **argv)
 #ifdef OPENGL_RENDER
 	opengl_render(ntheta, nthick, result, pmesh, argc, argv);
 #endif
+
+	display_msi_stats();
 
 	return 0;
 }

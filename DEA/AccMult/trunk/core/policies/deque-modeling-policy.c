@@ -6,28 +6,36 @@ struct jobq_s *queue_array[32];
 
 #define PER_ARCH_MODEL	1
 
-double job_expected_length(struct jobq_s *q, struct job_s *j)
+static double job_expected_length(struct jobq_s *q, struct job_s *j)
 {
 	double exp;
 
+	struct perfmodel_t *model = j->model;
+
+	if (model) {
 #ifdef PER_ARCH_MODEL
-	if ( (q->who & (CUBLAS|CUDA)) && j->cuda_cost_model) {
+	if ( (q->who & (CUBLAS|CUDA)) && model->cuda_cost_model) {
 		/* use CUDA model */
-		exp = j->cuda_cost_model(j->buffers) + 0.0;
+#ifdef TRANSFER_OVERHEAD
+		exp = model->cuda_cost_model(j->buffers)*1.10;
+#else
+		exp = model->cuda_cost_model(j->buffers) + 0.0;
+#endif
 		return exp;
 	}
 
-	if ( (q->who & CORE) && j->core_cost_model) {
+	if ( (q->who & CORE) && model->core_cost_model) {
 		/* use CORE model */
-		exp = j->core_cost_model(j->buffers);
+		exp = model->core_cost_model(j->buffers);
 		return exp;
 	}
 #endif
 
-	if (j->cost_model) {
+	if (model->cost_model) {
 		/* use the common model */
-		exp = (j->cost_model(j->buffers))/q->alpha;
+		exp = (model->cost_model(j->buffers))/q->alpha;
 		return exp;
+	}
 	}
 
 	/* no model was found */
@@ -41,7 +49,8 @@ static job_t dm_pop_task(struct jobq_s *q)
 	j = fifo_pop_task(q);
 
 	struct fifo_jobq_s *fifo = q->queue;
-	double model = job_expected_length(q, j);
+//	double model = job_expected_length(q, j);
+	double model = j->predicted;
 
 	fifo->exp_len -= model;
 	fifo->exp_start = timing_now()/1000000 + model;
@@ -102,6 +111,8 @@ static void _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task
 
 	fifo->exp_end += model_best;
 	fifo->exp_len += model_best;
+
+	task->predicted = model_best;
 
 	if (prio) {
 		fifo_push_prio_task(queue_array[best], task);

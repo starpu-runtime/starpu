@@ -36,14 +36,11 @@ void monitor_bcsr_data(struct data_state_t *state, uint32_t home_node,
 		}
 
 		local_interface->nnz = nnz;
-		printf("local nnz = %d \n", nnz);
 		local_interface->nrow = nrow;
 		local_interface->firstentry = firstentry;
 		local_interface->r = r;
 		local_interface->c = c;
 		local_interface->elemsize = elemsize;
-		printf("local elemsize = %d \n", elemsize);
-
 	}
 
 	state->interfaceid = BLAS_INTERFACE;
@@ -170,8 +167,6 @@ size_t allocate_bcsr_buffer_on_node(struct data_state_t *state, uint32_t dst_nod
 
 	uint32_t r = state->interface[dst_node].bcsr.r;
 	uint32_t c = state->interface[dst_node].bcsr.c;
-
-	printf("Allocate nnz*r*c %d * elemsize %d\n", nnz*r*c, elemsize);
 
 	node_kind kind = get_node_kind(dst_node);
 

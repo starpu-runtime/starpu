@@ -175,11 +175,14 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 
 	CUresult status;
 	tick_t codelet_start, codelet_end;
+	tick_t codelet_start_comm, codelet_end_comm;
 	
 	switch (j->type) {
 		case CODELET:
 			ASSERT(j);
 			ASSERT(j->cl);
+
+			GET_TICK(codelet_start_comm);
 
 			ret = fetch_codelet_input(j->buffers, j->interface, j->nbuffers, mask);
 			if (ret != 0) {
@@ -233,25 +236,21 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 
 			}
 			TRACE_END_CODELET_BODY(j);	
+			push_codelet_output(j->buffers, j->nbuffers, mask);
+
+			GET_TICK(codelet_end_comm);
 
 #ifdef MODEL_DEBUG
 			double measured = timing_delay(&codelet_start, &codelet_end);
-			if (j->cuda_cost_model)
-			{
+			double measured_comm = timing_delay(&codelet_start_comm, &codelet_end_comm);
 
-				double predicted = j->cuda_cost_model(j->buffers);
-				printf("CUDA (cuda_cost): model was %e got %e factor (%2.4f \%%)\n", predicted, measured, 100*(measured/predicted - 1.0f));
-			}
-			else 
+			if (j->predicted != 0.0) 
 			{
-				if (j->cost_model) {
-					double alpha = 13.33;
-					double predicted = j->cost_model(j->buffers) / alpha;
-					printf("CUDA: model was %e got %e factor (%2.4f \%%)\n", predicted, measured, 100*(measured/predicted - 1.0f));
-				}
+				fprintf(stderr, "CUDA : model was %e, got %e (with comms, %e), factor (%2.2f \%%)\n", 
+					j->predicted, measured, measured_comm, 100*(measured/j->predicted - 1.0f));
 			}
 #endif
-			push_codelet_output(j->buffers, j->nbuffers, mask);
+
 			break;
 		case ABORT:
 			printf("CUDA abort\n");

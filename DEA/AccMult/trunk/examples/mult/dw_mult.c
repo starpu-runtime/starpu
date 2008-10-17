@@ -25,6 +25,8 @@
 #include <cuda.h>
 #endif
 
+extern struct perfmodel_t sgemm_model;
+
 sem_t sem;
 
 float *A;
@@ -346,7 +348,7 @@ void init_problem_callback(void *arg __attribute__((unused)))
 				get_sub_data(&C_state, 2, taskx, tasky);
 			jb->buffers[2].mode = W;
 
-			jb->cost_model = gemm_cost;
+			jb->model = &sgemm_model;
 			
 			push_task(jb);
 		}

@@ -10,7 +10,7 @@
  *	Number of flops of Gemm 
  */
 
-double gemm_cost(buffer_descr *descr)
+static double gemm_cost(buffer_descr *descr)
 {
 	/* C = A * B */
 	uint32_t nxC, nyC, nxA;
@@ -28,3 +28,7 @@ double gemm_cost(buffer_descr *descr)
 
 	return cost;
 }
+
+struct perfmodel_t sgemm_model = {
+	.cost_model = gemm_cost
+};

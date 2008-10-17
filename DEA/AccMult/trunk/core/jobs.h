@@ -12,10 +12,13 @@
 #include <common/list.h>
 #include <common/threads.h>
 #include <common/fxt.h>
+
 #include <core/dependencies/tags.h>
 
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/coherency.h>
+
+#include <core/perfmodel.h>
 
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 #include <cuda.h>
@@ -62,8 +65,10 @@ typedef struct codelet_t {
 LIST_TYPE(job,
 	jobtype type;	/* what kind of job ? */
 	uint32_t where;	/* where can it be performed ? */
-	callback cb;	/* do "cb(argcb)" when finished */
+
 	codelet *cl;
+
+	callback cb;	/* do "cb(argcb)" when finished */
 	void *argcb;
 
 	struct tag_s *tag;
@@ -76,9 +81,9 @@ LIST_TYPE(job,
 	buffer_descr buffers[NMAXBUFS];
 	data_interface_t interface[NMAXBUFS];
 
-	double (*cost_model)(buffer_descr *);
-	double (*cuda_cost_model)(buffer_descr *);
-	double (*core_cost_model)(buffer_descr *);
+	struct perfmodel_t *model;
+	double predicted;
+
 );
 
 job_t job_create(void);

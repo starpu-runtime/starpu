@@ -42,9 +42,10 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 			j->cb = dw_callback_v2_codelet_update_u11;
 			j->argcb = u11arg;
 			j->cl = cl;
-			j->cuda_cost_model = task_11_cost_cuda;
-			j->core_cost_model = task_11_cost_core;
-			j->cost_model = task_11_cost;
+			//j->cuda_cost_model = task_11_cost_cuda;
+			//j->core_cost_model = task_11_cost_core;
+			//j->cost_model = task_11_cost;
+			j->model = &model_11;
 
 			j->nbuffers = 1;
 			j->buffers[0].state =
@@ -86,9 +87,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					j21->cb = dw_callback_v2_codelet_update_u21;
 					j21->argcb = u21a;
 					j21->cl = cl21;
-					j21->cuda_cost_model = task_21_cost_cuda;
-					j21->core_cost_model = task_21_cost_core;
-					j21->cost_model = task_21_cost;
+					j21->model = &model_21;
 			
 					u21a->i = k+1;
 					u21a->k = j;
@@ -130,10 +129,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 						j12->cb = dw_callback_v2_codelet_update_u12;
 						j12->argcb = u12a;
 						j12->cl = cl12;
-
-						j12->cuda_cost_model = task_12_cost_cuda;
-						j12->core_cost_model = task_12_cost_core;
-						j12->cost_model = task_12_cost;
+						j12->model = &model_12;
 
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 					cl12->cublas_func = dw_cublas_codelet_update_u12;
@@ -201,9 +197,7 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				j22->cb = dw_callback_v2_codelet_update_u22;
 				j22->argcb = u22a;
 				j22->cl = cl22;
-				j22->cuda_cost_model = task_22_cost_cuda;
-				j22->core_cost_model = task_22_cost_core;
-				j22->cost_model = task_22_cost;
+				j22->model = &model_22;
 
 				u22a->k = i;
 				u22a->i = k;
@@ -275,9 +269,7 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				j22->cb = dw_callback_v2_codelet_update_u22;
 				j22->argcb = u22a;
 				j22->cl = cl22;
-				j22->cuda_cost_model = task_22_cost_cuda;
-				j22->core_cost_model = task_22_cost_core;
-				j22->cost_model = task_22_cost;
+				j22->model = &model_22;
 
 				u22a->k = i;
 				u22a->i = slicex;
@@ -359,9 +351,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 						j12->argcb = u12a;
 						j12->cl = cl12;
 
-						j12->cuda_cost_model = task_12_cost_cuda;
-						j12->core_cost_model = task_12_cost_core;
-						j12->cost_model = task_12_cost;
+						j12->model = &model_12;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 					cl12->cublas_func = dw_cublas_codelet_update_u12;
 #endif
@@ -415,9 +405,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 						j21->argcb = u21a;
 						j21->cl = cl21;
 
-						j21->cuda_cost_model = task_21_cost_cuda;
-						j21->core_cost_model = task_21_cost_core;
-						j21->cost_model = task_21_cost;
+						j21->model = &model_21;
 		
 					u21a->i = i;
 					u21a->k = slice;
@@ -496,9 +484,7 @@ void dw_callback_codelet_update_u11(void *argcb)
 				j12->cb = dw_callback_codelet_update_u12_21;
 				j12->argcb = u12a;
 				j12->cl = cl12;
-				j12->cuda_cost_model = task_12_cost_cuda;
-				j12->core_cost_model = task_12_cost_core;
-				j12->cost_model = task_12_cost;
+				j12->model = &model_12;
 
 
 			job_t j21 = job_create();
@@ -506,9 +492,7 @@ void dw_callback_codelet_update_u11(void *argcb)
 				j21->cb = dw_callback_codelet_update_u12_21;
 				j21->argcb = u21a;
 				j21->cl = cl21;
-				j21->cuda_cost_model = task_21_cost_cuda;
-				j21->core_cost_model = task_21_cost_core;
-				j21->cost_model = task_21_cost;
+				j21->model = &model_21;
 			
 
 			u12a->i = args->i;
@@ -572,9 +556,7 @@ void dw_callback_codelet_update_u22(void *argcb)
 			j->cb = dw_callback_codelet_update_u11;
 			j->argcb = u11arg;
 			j->cl = cl;
-			j->cuda_cost_model = task_11_cost_cuda;
-			j->core_cost_model = task_11_cost_core;
-			j->cost_model = task_11_cost;
+			j->model = &model_11;
 
 			j->nbuffers = 1;
 			j->buffers[0].state = get_sub_data(args->dataA, 2, args->k + 1, args->k + 1);
@@ -627,9 +609,7 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 				j22->cb = dw_callback_codelet_update_u22;
 				j22->argcb = u22a;
 				j22->cl = cl22;
-				j22->cuda_cost_model = task_22_cost_cuda;
-				j22->core_cost_model = task_22_cost_core;
-				j22->cost_model = task_22_cost;
+				j22->model = &model_22;
 
 				u22a->k = i;
 				u22a->i = slicex;
@@ -694,9 +674,7 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 		j->cb = dw_callback_codelet_update_u11;
 		j->argcb = args;
 		j->cl = cl;
-		j->cuda_cost_model = task_11_cost_cuda;
-		j->core_cost_model = task_11_cost_core;
-		j->cost_model = task_11_cost;
+		j->model = &model_11;
 
 		j->nbuffers = 1;
 		j->buffers[0].state = get_sub_data(dataA, 2, 0, 0);
@@ -758,9 +736,7 @@ void dw_codelet_facto_v2(data_state *dataA, unsigned nblocks)
 		j->cb = dw_callback_v2_codelet_update_u11;
 		j->argcb = args;
 		j->cl = cl;
-		j->cuda_cost_model = task_11_cost_cuda;
-		j->core_cost_model = task_11_cost_core;
-		j->cost_model = task_11_cost;
+		j->model = &model_11;
 		j->nbuffers = 1;
 
 		j->buffers[0].state = get_sub_data(dataA, 2, 0, 0); 

@@ -19,5 +19,5 @@ dw_strassen: strassen_models.o strassen.o strassen_kernels.o test_strassen.o
 	$(CC) strassen_models.o strassen.o strassen_kernels.o test_strassen.o -o dw_strassen $(LDFLAGS) $(RIBSCHED)
 
 clean:
-	@rm -f *.o *.d
+	@rm -f *.o *.d *.gcno *.gcda
 	@rm -f dw_strassen

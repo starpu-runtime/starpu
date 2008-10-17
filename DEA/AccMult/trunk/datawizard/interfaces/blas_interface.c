@@ -133,6 +133,8 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 			if (!addr || status != CUBLAS_STATUS_SUCCESS)
 			{
 				ASSERT(status != CUBLAS_STATUS_INTERNAL_ERROR);
+				ASSERT(status != CUBLAS_STATUS_NOT_INITIALIZED);
+				ASSERT(status != CUBLAS_STATUS_INVALID_VALUE);
 				ASSERT(status == CUBLAS_STATUS_ALLOC_FAILED);
 				fail = 1;
 			}
