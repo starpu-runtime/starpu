@@ -664,11 +664,14 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Problem size : %dx%d (%dx%d)\n", newsize, newsize, DIM, DIM);
 
 		if (version < 3) {
+			printf("A = %p\n", A);
 			dw_factoLU(A, newsize, newsize, nblocks, version);
 		}
 		else {
 			dw_factoLU_tag(A, newsize, newsize, nblocks);
 		}
+
+		display_stat_heat();
 
 		solve_system(DIM, newsize, result, RefArray, Bformer, A, B);
 

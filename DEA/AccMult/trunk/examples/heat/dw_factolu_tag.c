@@ -183,6 +183,7 @@ static void dw_codelet_facto_v3(data_state *dataA, unsigned nblocks)
 	/* create all the DAG nodes */
 	unsigned i,j,k;
 
+#ifndef WRONGWAY
 	for (k = 0; k < nblocks; k++)
 	{
 		job_t job = create_task_11(dataA, k, nblocks, &sem);
@@ -205,6 +206,30 @@ static void dw_codelet_facto_v3(data_state *dataA, unsigned nblocks)
 			}
 		}
 	}
+#else
+	for (k = 0; k < nblocks; k++)
+	{
+		job_t job = create_task_11(dataA, k, nblocks, &sem);
+		if (k == 0) {
+			/* for now, we manually launch the first task .. XXX */
+			entry_job = job;
+		}
+		
+		for (i = nblocks - 1; i >= k+1; i--)
+		{
+			create_task_12(dataA, k, i);
+			create_task_21(dataA, k, i);
+		}
+
+		for (i = nblocks - 1; i >= k+1; i--)
+		{
+			for (j = nblocks - 1; j >= k+1; j--)
+			{
+				create_task_22(dataA, k, i, j);
+			}
+		}
+	}
+#endif
 
 	/* schedule the codelet */
 	GET_TICK(start);

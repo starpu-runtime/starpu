@@ -11,4 +11,14 @@ double task_12_cost(buffer_descr *descr);
 double task_21_cost(buffer_descr *descr);
 double task_22_cost(buffer_descr *descr);
 
+double task_11_cost_core(buffer_descr *descr);
+double task_12_cost_core(buffer_descr *descr);
+double task_21_cost_core(buffer_descr *descr);
+double task_22_cost_core(buffer_descr *descr);
+
+double task_11_cost_cuda(buffer_descr *descr);
+double task_12_cost_cuda(buffer_descr *descr);
+double task_21_cost_cuda(buffer_descr *descr);
+double task_22_cost_cuda(buffer_descr *descr);
+
 #endif // __LU_KERNELS_MODEL_H__

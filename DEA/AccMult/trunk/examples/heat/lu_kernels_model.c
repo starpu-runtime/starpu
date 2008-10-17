@@ -26,7 +26,7 @@ double task_11_cost(buffer_descr *descr)
 
 	n = descr[0].state->interface->blas.nx;
 
-	double cost = ((n*n*n)/50.0f/10.75);
+	double cost = ((n*n*n)/537.5);
 
 	return PERTURBATE(cost);
 }
@@ -37,8 +37,10 @@ double task_12_cost(buffer_descr *descr)
 
 	n = descr[0].state->interface->blas.nx;
 
-	double cost = ((n*n*n)/50.0f/4.11f/8.49);
+//	double cost = ((n*n*n)/1744.695);
+	double cost = ((n*n*n)/3210.80);
 
+	//fprintf(stderr, "task 12 predicts %e\n", cost);
 	return PERTURBATE(cost);
 }
 
@@ -49,8 +51,10 @@ double task_21_cost(buffer_descr *descr)
 
 	n = descr[0].state->interface->blas.nx;
 
-	double cost = ((n*n*n)/50.0f/4.11f/8.49);
+//	double cost = ((n*n*n)/1744.695);
+	double cost = ((n*n*n)/3691.53);
 
+	//fprintf(stderr, "task 12 predicts %e\n", cost);
 	return PERTURBATE(cost);
 }
 
@@ -64,7 +68,133 @@ double task_22_cost(buffer_descr *descr)
 	ny = descr[2].state->interface->blas.ny; 
 	nz = descr[0].state->interface->blas.ny;
 
-	double cost = ((nx*ny*nz)/1000.0f/4.11f);
+	double cost = ((nx*ny*nz)/4110.0);
 
 	return PERTURBATE(cost);
 }
+
+
+
+double task_11_cost_cuda(buffer_descr *descr)
+{
+	uint32_t n;
+
+	n = descr[0].state->interface->blas.nx;
+
+	double cost = ((n*n*n)/1853.7806);
+
+//	printf("CUDA task 11 ; predict %e\n", cost);
+	return PERTURBATE(cost);
+}
+
+double task_12_cost_cuda(buffer_descr *descr)
+{
+	uint32_t n;
+
+	n = descr[0].state->interface->blas.nx;
+
+	double cost = ((n*n*n)/42838.5718);
+
+//	printf("CUDA task 12 ; predict %e\n", cost);
+	return PERTURBATE(cost);
+}
+
+
+double task_21_cost_cuda(buffer_descr *descr)
+{
+	uint32_t n;
+
+	n = descr[0].state->interface->blas.nx;
+
+	double cost = ((n*n*n)/49208.667);
+
+//	printf("CUDA task 21 ; predict %e\n", cost);
+	return PERTURBATE(cost);
+}
+
+
+
+double task_22_cost_cuda(buffer_descr *descr)
+{
+	uint32_t nx, ny, nz;
+
+	nx = descr[2].state->interface->blas.nx;
+	ny = descr[2].state->interface->blas.ny; 
+	nz = descr[0].state->interface->blas.ny;
+
+	double cost = ((nx*ny*nz)/57523.560);
+
+//	printf("CUDA task 22 ; predict %e\n", cost);
+	return PERTURBATE(cost);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+double task_11_cost_core(buffer_descr *descr)
+{
+	uint32_t n;
+
+	n = descr[0].state->interface->blas.nx;
+
+	double cost = ((n*n*n)/537.5);
+
+//	printf("CORE task 11 ; predict %e\n", cost);
+	return PERTURBATE(cost);
+}
+
+double task_12_cost_core(buffer_descr *descr)
+{
+	uint32_t n;
+
+	n = descr[0].state->interface->blas.nx;
+
+	double cost = ((n*n*n)/6668.224);
+
+//	printf("CORE task 12 ; predict %e\n", cost);
+	return PERTURBATE(cost);
+}
+
+
+double task_21_cost_core(buffer_descr *descr)
+{
+	uint32_t n;
+
+	n = descr[0].state->interface->blas.nx;
+
+	double cost = ((n*n*n)/6793.8423);
+
+//	printf("CORE task 21 ; predict %e\n", cost);
+	return PERTURBATE(cost);
+}
+
+
+
+double task_22_cost_core(buffer_descr *descr)
+{
+	uint32_t nx, ny, nz;
+
+	nx = descr[2].state->interface->blas.nx;
+	ny = descr[2].state->interface->blas.ny; 
+	nz = descr[0].state->interface->blas.ny;
+
+	double cost = ((nx*ny*nz)/4203.0175);
+
+//	printf("CORE task 22 ; predict %e\n", cost);
+	return PERTURBATE(cost);
+}
+
+
+
