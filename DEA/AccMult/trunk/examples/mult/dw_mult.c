@@ -40,6 +40,14 @@ data_state C_state;
 tick_t start;
 tick_t end;
 
+unsigned nslicesx = 4;
+unsigned nslicesy = 4;
+unsigned xdim = 4096;
+unsigned ydim = 4096;
+unsigned zdim = 4096;
+unsigned norandom = 0;
+unsigned pin = 0;
+
 /* to compute MFlop/s */
 uint64_t flop_cublas = 0;
 uint64_t flop_atlas = 0;
@@ -64,9 +72,13 @@ uint64_t ls_atlas = 0;
 
 void terminate(void)
 {
-	GET_TICK(end);
 
+	fprintf(stderr, "unpartition !!\n");
 	unpartition_data(&C_state, 0);
+
+	delete_data(&C_state);
+
+	GET_TICK(end);
 
 	double timing = timing_delay(&start, &end);
 	uint64_t total_flop = flop_cublas + flop_atlas;
@@ -79,14 +91,14 @@ void terminate(void)
 #ifdef CHECK_OUTPUT
 	/* check results */
 	/* compute C = C - AB */
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, y, x, z,
-			 -1.0f,  A, z, B, x, 1.0f, C, x);
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, ydim, xdim, zdim,
+			 -1.0f,  A, zdim, B, xdim, 1.0f, C, xdim);
 		
 	/* make sure C = 0 */
 	float err;
-	err = cblas_sasum(x*y, C, 1);	
+	err = cblas_sasum(xdim*ydim, C, 1);	
 	
-	if (err < x*y*0.001) {
+	if (err < xdim*ydim*0.001) {
 		fprintf(stderr, "Results are OK\n");
 	}
 	else {
@@ -148,6 +160,9 @@ void cublas_mult(data_interface_t *descr, __attribute__((unused)) void *arg)
 
 	cublasSgemm('n', 'n', nxC, nyC, nxA, 1.0f, subB, ldB, subA, ldA, 
 					     0.0f, subC, ldC);
+	cublasStatus st;
+	st = cublasGetError();
+	ASSERT(st == CUBLAS_STATUS_SUCCESS);
 
 	GET_TICK(sgemm_end);
 
@@ -168,14 +183,6 @@ void core_mult(data_interface_t *descr, __attribute__((unused))  void *arg)
 	flop_atlas += BLAS3_FLOP(nxC, nyC, nxA);
 	ls_atlas += BLAS3_LS(nxC, nyC, nxA);
 }
-
-unsigned nslicesx = 4;
-unsigned nslicesy = 4;
-unsigned xdim = 4096;
-unsigned ydim = 4096;
-unsigned zdim = 4096;
-unsigned norandom = 0;
-unsigned pin = 0;
 
 void parse_args(int argc, char **argv)
 {
@@ -258,7 +265,10 @@ void init_problem_codelet (__attribute__((unused)) buffer_descr *descr,
 		}
 	} 
 	else {
+#ifdef NORANDOM
 		srand(2008);
+		ASSERT(0);
+#endif
 		for (i=0; i < zdim; i++) {
 			for (j=0; j < ydim; j++) {
 				A[i+j*zdim] = (float)(drand48());
@@ -313,6 +323,7 @@ void init_problem_callback(void *arg __attribute__((unused)))
 
 	jobcounter = nslicesx * nslicesy;
 
+	srand(time(NULL));
 
 	for (taskx = 0; taskx < nslicesx; taskx++) 
 	{
@@ -353,8 +364,6 @@ void init_problem_callback(void *arg __attribute__((unused)))
 			push_task(jb);
 		}
 	}
-
-
 }
 
 void init_problem(void)
