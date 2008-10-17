@@ -96,12 +96,14 @@ void call_filters(void)
 	partition_data(&vector_out, &vector_out_f);
 }
 
-#define NSPMV	1000
+#define NSPMV	32
 unsigned totaljobs;
 
 void launch_spmv_codelets(void)
 {
 	codelet *cl = malloc(sizeof(codelet));
+	job_t *job_tab;
+	uint8_t *is_entry_tab;
 
 	/* we call one codelet per block */
 	unsigned nblocks = get_bcsr_nnz(&sparse_matrix); 
@@ -109,6 +111,14 @@ void launch_spmv_codelets(void)
 
 	remainingjobs = NSPMV*nblocks;
 	totaljobs = remainingjobs;
+
+	unsigned jobid = 0;
+
+	job_tab = malloc(totaljobs*sizeof(job_t));
+	ASSERT(job_tab);
+
+	is_entry_tab = calloc(totaljobs, sizeof(uint8_t));
+	ASSERT(is_entry_tab);
 
 	printf("there will be %d codelets\n", remainingjobs);
 
@@ -127,45 +137,75 @@ void launch_spmv_codelets(void)
 	for (loop = 0; loop < NSPMV; loop++)
 	{
 
-	unsigned row;
-	unsigned part = 0;
+		unsigned row;
+		unsigned part = 0;
 
-	for (row = 0; row < nrows; row++)
+		for (row = 0; row < nrows; row++)
+		{
+			unsigned index;
+
+			if (rowptr[row] == rowptr[row+1])
+			{
+				continue;
+			}
+
+
+			for (index = rowptr[row]; index < rowptr[row+1]; index++, part++)
+			{
+				job_tab[jobid] = job_create();
+
+				tag_declare(jobid, job_tab[jobid]);
+
+				job_tab[jobid]->where = CORE|CUBLAS;
+				job_tab[jobid]->cb = init_problem_callback;
+				job_tab[jobid]->argcb = &remainingjobs;
+				job_tab[jobid]->cl = cl;
+
+				unsigned i = colind[index];
+				unsigned j = row;
+		
+				job_tab[jobid]->nbuffers = 3;
+				job_tab[jobid]->buffers[0].state = get_sub_data(&sparse_matrix, 1, part);
+				job_tab[jobid]->buffers[0].mode  = R;
+				job_tab[jobid]->buffers[1].state = get_sub_data(&vector_in, 1, i);
+				job_tab[jobid]->buffers[1].mode = R;
+				job_tab[jobid]->buffers[2].state = get_sub_data(&vector_out, 1, j);
+				job_tab[jobid]->buffers[2].mode = RW;
+
+
+				/* all tasks in the same row are dependant so that we don't wait too much for data 
+				 * we need to wait on the previous task if we are not the first task of a row */
+				if (index != rowptr[row & ~0x3])
+				{
+					/* this is not the first task in the row */
+					tag_declare_deps(jobid, 1, jobid-1);
+
+					is_entry_tab[jobid] = 0;
+				}
+				else {
+					/* this is an entry job */
+					is_entry_tab[jobid] = 1;
+				}
+
+				jobid++;
+			}
+		}
+	}
+
+	printf("start submitting tasks !\n");
+
+	/* submit ALL tasks now */
+	unsigned nchains = 0;
+	unsigned task;
+	for (task = 0; task < totaljobs; task++)
 	{
-		unsigned index;
-
-		if (rowptr[row] == rowptr[row+1])
-		{
-			continue;
-		}
-
-		for (index = rowptr[row]; index < rowptr[row+1]; index++, part++)
-		{
-			job_t job;
-			job = job_create();
-
-			job->where = CORE|CUBLAS;
-			job->cb = init_problem_callback;
-			job->argcb = &remainingjobs;
-			job->cl = cl;
-
-			unsigned i = colind[index];
-			unsigned j = row;
-	
-			job->nbuffers = 3;
-			job->buffers[0].state = get_sub_data(&sparse_matrix, 1, part);
-			job->buffers[0].mode  = R;
-			job->buffers[1].state = get_sub_data(&vector_in, 1, i);
-			job->buffers[1].mode = R;
-			job->buffers[2].state = get_sub_data(&vector_out, 1, j);
-			job->buffers[2].mode = W;
-
-//			printf("submit task %d (i=%d ,j=%d)\n", part, i, j);
-	
-			push_task(job);
+		if (is_entry_tab[task]) {
+			push_task(job_tab[task]);
+			nchains++;
 		}
 	}
-	}
+
+	printf("end of task submission (there was %d chains for %d tasks : ratio %d tasks per chain) !\n", nchains, totaljobs, totaljobs/nchains);
 }
 
 void init_problem(void)
@@ -190,12 +230,18 @@ void print_results(void)
 int main(__attribute__ ((unused)) int argc,
 	__attribute__ ((unused)) char **argv)
 {
-//	parse_args(argc, argv);
-	
 	if (argc < 2)
 	{
-		fprintf(stderr, "usage : %s filename\n", argv[0]);
+		fprintf(stderr, "usage : %s filename [tile size]\n", argv[0]);
 		exit(-1);
+	}
+
+	if (argc == 3)
+	{
+		/* third argument is the tile size */
+		char *argptr;
+		r = strtol(argv[2], &argptr, 10);
+		c = r;
 	}
 
 	inputfile = argv[1];
