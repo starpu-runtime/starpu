@@ -17,6 +17,8 @@
 #include "histo-flash.h"
 #endif
 
+#include "histo-paje.h"
+
 #define MAXWORKERS      32
 #define FACTOR  100
 

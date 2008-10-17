@@ -13,6 +13,53 @@ uint64_t end_time = 0;
 
 unsigned nworkers = 0;
 
+
+/*
+ * Paje trace file tools
+ */
+
+static char *out_paje_path = "paje.trace";
+static FILE *out_paje_file;
+
+void paje_output_file_init(void)
+{
+	/* create a new file */
+	out_paje_file = fopen(out_paje_path, "w+");
+	
+	write_paje_header(out_paje_file);
+
+//	fprintf(out_paje_file, "					\n \
+//	1       PJ      0       \"Java Program\"			\n \
+//	1       T      PJ       \"prout\"				\n \ 
+//	3       S       T       \"Thread State\"			\n \
+//	6       E       S       Executing       \".0 .6 .4\"		\n \
+//	6       B       S       Blocked         \".9 .1 .0\"		\n \
+//	7       -0.0001 pj      PJ      0       testjava		\n \
+//	7       0.5     t1      T       pj      pr			\n \
+//	10      20.4    S       t1      B				\n \
+//	10      26.6    S       t1      E				\n \
+//	8       100.7   t1      T					\n \
+//	8       101.11882       pj      PJ\n");
+
+	fprintf(out_paje_file, "                                        \n \
+	1       P      0       \"Program\"                      	\n \
+	1       T      P       \"Worker\"                               \n \
+	3       S       T       \"Thread State\"                        \n \
+	6       E       S       Executing       \".0 .6 .4\"            \n \
+	6       B       S       Blocked         \".9 .1 .0\"\n");
+}
+
+void paje_output_file_terminate(void)
+{
+	/* close the file */
+	fclose(out_paje_file);
+}
+
+
+/*
+ * Generic tools
+ */
+
 void handle_new_worker(void)
 {
 
@@ -40,6 +87,8 @@ void handle_new_worker(void)
 	
 	char *tidstr = malloc(16*sizeof(char));
 	sprintf(tidstr, "%ld", ev.param[1]);
+
+	fprintf(out_paje_file, "7       %f	%s      T      p       %s \n", (float)((ev.time-start_time)/1000000.0), tidstr, tidstr);
 
 	/* create a new key in the htable */
 	uint64_t workerid = nworkers++;
@@ -89,6 +138,7 @@ void handle_start_codelet_body(void)
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
 //	printf("-> worker %d\n", worker);
+	fprintf(out_paje_file, "10       %f	S      %d      E\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 
 	event_t e = event_new();
 	e->time =  ev.time;
@@ -106,6 +156,7 @@ void handle_end_codelet_body(void)
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
 //	printf("<- worker %d\n", worker);
+	fprintf(out_paje_file, "10       %f	S      %d      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 
 	event_t e = event_new();
 	e->time =  ev.time;
@@ -338,6 +389,8 @@ int main(int argc, char **argv)
 	/* create a htable to identify each worker(tid) */
 	hcreate(MAXWORKERS);
 
+	paje_output_file_init();
+
 	taskq = workq_list_new();
 
 	while(1) {
@@ -353,6 +406,8 @@ int main(int argc, char **argv)
 		{
 			first_event = 0;
 			start_time = ev.time;
+
+			fprintf(out_paje_file, "7       %f p      P      0       program \n", (float)(start_time-start_time));
 		}
 
 		switch (ev.code) {
@@ -412,6 +467,7 @@ int main(int argc, char **argv)
 	generate_gnuplot_output();
 	//generate_flash_output();
 	generate_svg_output();
+	paje_output_file_terminate();
 
 	terminate_dat_dot();
 
