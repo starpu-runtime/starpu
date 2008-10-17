@@ -74,6 +74,41 @@ void init_cuda_function(struct cuda_function_s *func,
                         char *symbol);
 void load_cuda_function(int devid, struct cuda_function_s *function);
 
+#define CUBLAS_REPORT_ERROR(status) 					\
+	do {								\
+		char *errormsg;						\
+		switch (status) {					\
+			case CUBLAS_STATUS_SUCCESS:			\
+				errormsg = "success";			\
+				break;					\
+			case CUBLAS_STATUS_NOT_INITIALIZED:		\
+				errormsg = "not initialized";		\
+				break;					\
+			case CUBLAS_STATUS_ALLOC_FAILED:		\
+				errormsg = "alloc failed";		\
+				break;					\
+			case CUBLAS_STATUS_INVALID_VALUE:		\
+				errormsg = "invalid value";		\
+				break;					\
+			case CUBLAS_STATUS_ARCH_MISMATCH:		\
+				errormsg = "arch mismatch";		\
+				break;					\
+			case CUBLAS_STATUS_EXECUTION_FAILED:		\
+				errormsg = "execution failed";		\
+				break;					\
+			case CUBLAS_STATUS_INTERNAL_ERROR:		\
+				errormsg = "internal error";		\
+				break;					\
+			default:					\
+				errormsg = "unknown error";		\
+				break;					\
+		}							\
+		printf("oops  in %s ... %s \n", __func__, errormsg);	\
+		assert(0);						\
+	} while (0)  
+
+
+
 #define CUDA_REPORT_ERROR(status) 					\
 	do {								\
 		char *errormsg;						\
