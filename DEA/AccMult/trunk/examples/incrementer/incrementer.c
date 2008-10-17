@@ -20,7 +20,7 @@
 #include "../drivers/gordon/externals/scalp/cell/gordon/gordon.h"
 #endif
 
-#define NITER	400
+#define NITER	100000
 
 data_state my_float_state;
 data_state unity_state;
@@ -29,12 +29,19 @@ float my_lovely_float[5] = {0.0f, 0.0f, 0.0f, 1664.0f, 1664.0f};
 float unity[5] = {1.0f, 0.0f, 1.0f, 0.0f, 0.0f};
 
 
-void callback_func(__attribute__ ((unused)) void *argcb)
+void callback_func(void *argcb)
 {
-	int cnt = (int)my_lovely_float[0];
+	unsigned *cnt = argcb;
+	*cnt = *cnt + 1;
 
-	if ((cnt == NITER)) 
+//	printf("cnt %d vs. NITER %d\n", *cnt, NITER);
+
+	if ((*cnt == NITER)) 
 	{
+		/* stop monitoring data and grab it in RAM */
+		printf("delete data ...\n");
+		delete_data(&my_float_state);
+		
 		printf("RIGHT -> %f, %f, %f\n", my_lovely_float[0], 
 				my_lovely_float[1], my_lovely_float[2]);
 		printf("stopping ...\n");
@@ -167,6 +174,8 @@ void init_data(void)
 int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)
 {
 	unsigned i;
+	unsigned counter;
+
 	tag_t tag;
 
 	init_machine();
@@ -180,7 +189,9 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	codelet cl;
 	job_t j;
 
-	cl.cl_arg = &my_float_state;
+	counter = 0;
+
+	cl.cl_arg = &counter;
 	cl.core_func = core_codelet;
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 	cl.cublas_func = cublas_codelet;
@@ -201,6 +212,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		
 		j->cb = callback_func;
 		j->cl = &cl;
+		j->argcb = &counter;
 
 		j->nbuffers = 2;
 		j->buffers[0].state = &my_float_state;
