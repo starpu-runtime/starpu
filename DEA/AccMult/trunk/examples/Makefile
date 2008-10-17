@@ -62,4 +62,4 @@ clean:
 	@make -C cholesky clean
 	@make -C strassen clean
 	@make -C tag_example clean
-	@rm -f *.o *.d
+	@rm -f *.o *.d *.gcno *.gcda

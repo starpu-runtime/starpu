@@ -24,5 +24,5 @@ dw_block_spmv: dw_block_spmv.o dw_block_spmv_kernels.o
 
 clean:
 	@make -C matrix-market clean
-	@rm -f *.o *.d
+	@rm -f *.o *.d *.gcno *.gcda
 	@rm -f dw_spmv dw_block_spmv

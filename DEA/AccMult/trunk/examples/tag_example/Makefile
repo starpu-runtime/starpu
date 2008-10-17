@@ -10,5 +10,5 @@ tag_example: tag_example.o
 	$(CC) tag_example.o -o tag_example $(LDFLAGS) $(RIBSCHED)
 
 clean:
-	@rm -f *.o *.d
+	@rm -f *.o *.d *.gcno *.gcda
 	@rm -f tag_example
