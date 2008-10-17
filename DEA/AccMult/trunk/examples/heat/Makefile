@@ -15,5 +15,5 @@ heat: dw_sparse_cg.o dw_sparse_cg_kernels.o dw_factolu.o dw_factolu_tag.o heat_d
 	$(CC) dw_sparse_cg.o dw_sparse_cg_kernels.o dw_factolu.o dw_factolu_tag.o heat_display.o heat.o lu_kernels_model.o dw_factolu_kernels.o -o heat $(LDFLAGS) $(RIBSCHED)
 
 clean:
-	@rm -f *.o *.d
+	@rm -f *.o *.d *.gcno *.gcda
 	@rm -f heat

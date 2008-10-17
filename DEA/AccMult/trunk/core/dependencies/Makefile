@@ -6,4 +6,4 @@ CFLAGS += -I../../
 all: tags.o htable.o
 
 clean:
-	@rm -f *.o
+	@rm -f *.o *.gcno *.gcda

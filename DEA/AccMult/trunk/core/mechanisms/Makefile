@@ -6,4 +6,4 @@ all: queues.o deque_queues.o priority_queues.o fifo_queues.o
 	$(CC) $(CFLAGS) $< -c -o $@
 
 clean:
-	@rm -f *.o
+	@rm -f *.o *.gcno *.gcda

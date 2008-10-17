@@ -8,4 +8,4 @@ OBJS := driver_cuda.o
 -include $(OBJS:.o=.d)
 
 clean:
-	@rm -f *.o *.d
+	@rm -f *.o *.d *.gcno *.gcda

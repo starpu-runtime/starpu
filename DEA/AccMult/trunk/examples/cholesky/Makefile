@@ -19,5 +19,5 @@ test_cholesky: test_cholesky.o dw_cholesky.o dw_cholesky_kernels.o dw_cholesky_m
 	$(CC)  test_cholesky.o dw_cholesky.o dw_cholesky_kernels.o dw_cholesky_models.o -o dw_cholesky $(LDFLAGS) $(RIBSCHED)
 
 clean:
-	@rm -f *.o *.d gmon.out
+	@rm -f *.o *.d gmon.out *.gcno *.gcda
 	@rm -f dw_cholesky

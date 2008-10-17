@@ -13,4 +13,4 @@ clean:
 	@make -C policies clean
 	@make -C mechanisms clean
 	@make -C dependencies clean
-	@rm -f *.o *.d
+	@rm -f *.o *.d *.gcno *.gcda

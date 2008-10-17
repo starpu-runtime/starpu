@@ -14,4 +14,4 @@ all: $(OBJS)
 -include $(OBJS:.o=.d)
 
 clean:
-	@rm -f *.o *.d 
+	@rm -f *.o *.d *.gcno *.gcda 

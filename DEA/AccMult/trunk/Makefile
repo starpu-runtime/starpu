@@ -11,9 +11,15 @@ CFLAGS += -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -fno-strict
 
 LDFLAGS+= -lm
 
-CFLAGS += -pg
-LDFLAGS += -pg
+ifdef COVERAGE
+#	CFLAGS += -fprofile-arcs -ftest-coverage
+	CFLAGS += --coverage
+	LDFLAGS += --coverage
+endif
 
+ifdef TRANSFER_OVERHEAD
+	CFLAGS += -DTRANSFER_OVERHEAD
+endif
 
 ifdef PERTURB_AMPL
 	CFLAGS+="-DUSE_PERTURBATION"
@@ -38,6 +44,7 @@ endif
 ifdef PERF_DEBUG
 	CFLAGS += -DPERF_DEBUG
 	LDFLAGS += -pg
+	CFLAGS += -pg
 endif
 
 EXTRADEP=
