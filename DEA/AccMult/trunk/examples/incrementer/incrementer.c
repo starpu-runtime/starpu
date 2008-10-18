@@ -32,7 +32,7 @@ float unity[5] = {1.0f, 0.0f, 1.0f, 0.0f, 0.0f};
 void callback_func(void *argcb)
 {
 	unsigned *cnt = argcb;
-	*cnt = *cnt + 1;
+	ATOMIC_ADD(cnt, 1);
 
 //	printf("cnt %d vs. NITER %d\n", *cnt, NITER);
 
