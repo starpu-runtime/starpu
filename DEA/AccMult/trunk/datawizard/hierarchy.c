@@ -158,17 +158,8 @@ void partition_data(data_state *initial_data, filter *f)
 
 		/* it is possible that the children does not use the same interface as the parent,
 		 * in that case, the filter must set the proper methods */
-		if (!children->allocation_method)
-			children->allocation_method = initial_data->allocation_method;
-
-		if (!children->deallocation_method)
-			children->deallocation_method = initial_data->deallocation_method;
-
-		if (!children->copy_1_to_1_method)
-			children->copy_1_to_1_method = initial_data->copy_1_to_1_method;
-
-		if (!children->dump_interface)
-			children->dump_interface = initial_data->dump_interface;
+		if (!children->ops)
+			children->ops = initial_data->ops;
 
 		/* initialize the chunk lock */
 		init_rw_lock(&children->data_lock);
@@ -181,8 +172,6 @@ void partition_data(data_state *initial_data, filter *f)
 				initial_data->per_node[node].state;
 			children->per_node[node].allocated = 
 				initial_data->per_node[node].allocated;
-			//children->per_node[node].automatically_allocated = 0;
-			//children->per_node[node].refcnt = initial_data->per_node[node].refcnt;
 			children->per_node[node].automatically_allocated = initial_data->per_node[node].automatically_allocated;
 			children->per_node[node].refcnt = 0;
 		}

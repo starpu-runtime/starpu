@@ -80,7 +80,11 @@ void set_function_args(cuda_codelet_t *args,
 		data_state *state = descr[buf].state;
 	
 		/* dump the stack into the buffer */
-		size = state->dump_interface(&interface[buf], argbuffer); 
+		ASSERT(state);
+		ASSERT(state->ops);
+		ASSERT(state->ops->dump_data_interface);
+
+		size = state->ops->dump_data_interface(&interface[buf], argbuffer);
 
 		res = cuParamSetv(args->func->function, offset, (void *)argbuffer, size);
 		if (res != CUDA_SUCCESS) {

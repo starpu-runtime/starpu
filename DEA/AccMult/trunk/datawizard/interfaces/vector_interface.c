@@ -13,6 +13,15 @@ void liberate_vector_buffer_on_node(data_state *state, uint32_t node);
 void do_copy_vector_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node);
 size_t dump_vector_interface(data_interface_t *interface, void *buffer);
 
+struct data_interface_ops_t interface_vector_ops = {
+	.monitor_data = monitor_vector_data,
+	.allocate_data_on_node = allocate_vector_buffer_on_node,
+	.liberate_data_on_node = liberate_vector_buffer_on_node,
+	.copy_data_1_to_1 = do_copy_vector_buffer_1_to_1,
+	.dump_data_interface = dump_vector_interface,
+	.get_size = NULL
+};
+
 /* declare a new data with the BLAS interface */
 void monitor_vector_data(struct data_state_t *state, uint32_t home_node,
                         uintptr_t ptr, uint32_t nx, size_t elemsize)
@@ -34,11 +43,7 @@ void monitor_vector_data(struct data_state_t *state, uint32_t home_node,
 	}
 
 	state->interfaceid = BLAS_INTERFACE;
-
-	state->allocation_method = &allocate_vector_buffer_on_node;
-	state->deallocation_method = &liberate_vector_buffer_on_node;
-	state->copy_1_to_1_method = &do_copy_vector_buffer_1_to_1;
-	state->dump_interface = &dump_vector_interface;
+	state->ops = &interface_vector_ops;
 
 	monitor_new_data(state, home_node);
 }
@@ -243,3 +248,4 @@ void do_copy_vector_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t
 		break;
 	}
 }
+

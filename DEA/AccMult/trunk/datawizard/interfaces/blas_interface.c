@@ -13,6 +13,15 @@ void liberate_blas_buffer_on_node(data_state *state, uint32_t node);
 void do_copy_blas_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node);
 size_t dump_blas_interface(data_interface_t *interface, void *buffer);
 
+struct data_interface_ops_t interface_blas_ops = {
+	.monitor_data = monitor_blas_data,	
+	.allocate_data_on_node = allocate_blas_buffer_on_node,
+	.liberate_data_on_node = liberate_blas_buffer_on_node,
+	.copy_data_1_to_1 = do_copy_blas_buffer_1_to_1,
+	.dump_data_interface = dump_blas_interface,
+	.get_size = NULL
+};
+
 /* declare a new data with the BLAS interface */
 void monitor_blas_data(data_state *state, uint32_t home_node,
 			uintptr_t ptr, uint32_t ld, uint32_t nx,
@@ -38,13 +47,7 @@ void monitor_blas_data(data_state *state, uint32_t home_node,
 	}
 
 	state->interfaceid = BLAS_INTERFACE;
-
-	state->allocation_method = &allocate_blas_buffer_on_node;
-	state->deallocation_method = &liberate_blas_buffer_on_node;
-	state->copy_1_to_1_method = &do_copy_blas_buffer_1_to_1;
-	state->dump_interface = &dump_blas_interface;
-
-	ASSERT(state->allocation_method);
+	state->ops = &interface_blas_ops;
 
 	monitor_new_data(state, home_node);
 }
@@ -309,3 +312,4 @@ void do_copy_blas_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t d
 		break;
 	}
 }
+

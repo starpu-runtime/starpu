@@ -215,7 +215,8 @@ void register_mem_chunk(data_state *state, uint32_t dst_node, size_t size)
 	mem_chunk_t mc = mem_chunk_new();
 
 	ASSERT(state);
-	ASSERT(state->deallocation_method);
+	ASSERT(state->ops);
+	ASSERT(state->ops->liberate_data_on_node);
 
 	mc->data = state;
 	mc->size = size; 
@@ -253,11 +254,12 @@ size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node)
 
 	data_state *state = mc->data;
 
-	ASSERT(state->deallocation_method);
+	ASSERT(state->ops);
+	ASSERT(state->ops->liberate_data_on_node);
 
 	if (state->per_node[node].allocated && state->per_node[node].automatically_allocated)
 	{
-		state->deallocation_method(state, node);
+		state->ops->liberate_data_on_node(state, node);
 
 		state->per_node[node].allocated = 0;
 
@@ -279,8 +281,10 @@ int allocate_memory_on_node(data_state *state, uint32_t dst_node)
 	//fprintf(stderr, "allocate_memory_on_node state %p dst_node %d\n", state,dst_node);
 
 	do {
-		ASSERT(state->allocation_method);
-		allocated_memory = state->allocation_method(state, dst_node);
+		ASSERT(state->ops);
+		ASSERT(state->ops->allocate_data_on_node);
+
+		allocated_memory = state->ops->allocate_data_on_node(state, dst_node);
 
 		if (!allocated_memory) {
 			reclaim_memory(dst_node);

@@ -3,11 +3,7 @@
 #include "blas_filters.h"
 #include "blas_interface.h"
 
-extern size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node);
-extern void liberate_blas_buffer_on_node(data_state *state, uint32_t node);
-extern void do_copy_blas_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node);
-extern size_t dump_blas_interface(data_interface_t *interface, void *buffer);
-
+extern struct data_interface_ops_t interface_blas_ops;
 
 unsigned canonical_block_filter_bcsr(filter *f __attribute__((unused)), data_state *root_data)
 {
@@ -59,12 +55,7 @@ unsigned canonical_block_filter_bcsr(filter *f __attribute__((unused)), data_sta
 		struct data_state_t *state = &root_data->children[chunk];
 		state->interfaceid = BLAS_INTERFACE;
 
-		state->allocation_method = &allocate_blas_buffer_on_node;
-		state->deallocation_method = &liberate_blas_buffer_on_node;
-		state->copy_1_to_1_method = &do_copy_blas_buffer_1_to_1;
-		state->dump_interface = &dump_blas_interface;
-
-		ASSERT(state->allocation_method);
+		state->ops = &interface_blas_ops;
 	}
 
 	return nchunks;

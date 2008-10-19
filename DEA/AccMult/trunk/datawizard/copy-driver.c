@@ -75,8 +75,9 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 	/* if there is no need to actually read the data, 
 	 * we do not perform any transfer */
 	if (!donotread) {
-		ASSERT(state->copy_1_to_1_method);
-		state->copy_1_to_1_method(state, src_node, dst_node);
+		ASSERT(state->ops);
+		ASSERT(state->ops->copy_data_1_to_1);
+		state->ops->copy_data_1_to_1(state, src_node, dst_node);
 	}
 
 	return 0;
