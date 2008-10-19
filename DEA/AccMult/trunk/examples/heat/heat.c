@@ -680,7 +680,5 @@ int main(int argc, char **argv)
 	opengl_render(ntheta, nthick, result, pmesh, argc, argv);
 #endif
 
-	display_msi_stats();
-
 	return 0;
 }

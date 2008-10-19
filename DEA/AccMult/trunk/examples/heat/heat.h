@@ -42,6 +42,8 @@ extern void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks
 extern void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks);
 extern void initialize_system(float **A, float **B, unsigned dim, unsigned pinned);
 
+void display_stat_heat(void);
+
 #ifdef OPENGL_RENDER
 extern void opengl_render(unsigned _ntheta, unsigned _nthick, float *_result, point *_pmesh, int argc_, char **argv_);
 #endif

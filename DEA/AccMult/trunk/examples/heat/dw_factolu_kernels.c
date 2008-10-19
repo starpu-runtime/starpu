@@ -94,6 +94,10 @@ static inline void dw_common_codelet_update_u12(data_interface_t *buffers, int s
 
 	unsigned nx12 = buffers[1].blas.nx;
 	unsigned ny12 = buffers[1].blas.ny;
+	
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
+	cublasStatus status;
+#endif
 
 	/* solve L11 U12 = A12 (find U12) */
 	switch (s) {
@@ -105,6 +109,10 @@ static inline void dw_common_codelet_update_u12(data_interface_t *buffers, int s
 		case 1:
 			cublasStrsm('R', 'U', 'N', 'N', ny12, nx12,
 					1.0f, sub11, ld11, sub12, ld12);
+			status = cublasGetError();
+			if (status != CUBLAS_STATUS_SUCCESS)
+				CUBLAS_REPORT_ERROR(status);
+
 			break;
 #endif
 		default:
@@ -143,6 +151,10 @@ static inline void dw_common_codelet_update_u21(data_interface_t *buffers, int s
 
 	unsigned nx21 = buffers[1].blas.nx;
 	unsigned ny21 = buffers[1].blas.ny;
+	
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
+	cublasStatus status;
+#endif
 
 	switch (s) {
 		case 0:
@@ -152,6 +164,10 @@ static inline void dw_common_codelet_update_u21(data_interface_t *buffers, int s
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case 1:
 			cublasStrsm('L', 'L', 'N', 'U', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
+			status = cublasGetError();
+			if (status != CUBLAS_STATUS_SUCCESS)
+				CUBLAS_REPORT_ERROR(status);
+
 			break;
 #endif
 		default:
