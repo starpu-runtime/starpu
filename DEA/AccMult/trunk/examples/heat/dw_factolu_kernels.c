@@ -37,7 +37,9 @@ static inline void dw_common_core_codelet_update_u22(data_interface_t *buffers, 
 	unsigned ld21 = buffers[1].blas.ld;
 	unsigned ld22 = buffers[2].blas.ld;
 
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 	cublasStatus status;
+#endif
 
 	switch (s) {
 		case 0:
@@ -45,8 +47,8 @@ static inline void dw_common_core_codelet_update_u22(data_interface_t *buffers, 
 				dy, dx, dz, -1.0f, left, ld21, right, ld12,
 					     1.0f, center, ld22);
 			break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
 
+#if defined (USE_CUBLAS) || defined (USE_CUDA)
 		case 1:
 			cublasSgemm('n', 'n', dx, dy, dz, -1.0f, left, ld21,
 					right, ld12, 1.0f, center, ld22);
