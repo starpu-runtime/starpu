@@ -15,14 +15,14 @@ size_t allocate_bcsr_buffer_on_node(struct data_state_t *state, uint32_t dst_nod
 void liberate_bcsr_buffer_on_node(data_state *state, uint32_t node);
 size_t dump_bcsr_interface(data_interface_t *interface, void *_buffer);
 void do_copy_bcsr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, uint32_t dst_node);
+size_t bcsr_interface_get_size(struct data_state_t *state);
 
 struct data_interface_ops_t interface_bcsr_ops = {
-	.monitor_data = monitor_bcsr_data,
 	.allocate_data_on_node = allocate_bcsr_buffer_on_node,
 	.liberate_data_on_node = liberate_bcsr_buffer_on_node,
 	.copy_data_1_to_1 = do_copy_bcsr_buffer_1_to_1,
 	.dump_data_interface = dump_bcsr_interface,
-	.get_size = NULL
+	.get_size = bcsr_interface_get_size
 };
 
 void monitor_bcsr_data(struct data_state_t *state, uint32_t home_node,
@@ -154,6 +154,23 @@ uint32_t *get_bcsr_local_rowptr(struct data_state_t *state)
 	/* XXX */
 	return (state->interface[0].bcsr.rowptr);
 }
+
+
+size_t bcsr_interface_get_size(struct data_state_t *state)
+{
+	size_t size;
+
+	uint32_t nnz = get_bcsr_nnz(state);
+	uint32_t nrow = get_bcsr_nrow(state);
+	uint32_t r = get_bcsr_r(state);
+	uint32_t c = get_bcsr_c(state);
+	size_t elemsize = get_bcsr_elemsize(state);
+
+	size = nnz*r*c*elemsize + nnz*sizeof(uint32_t) + (nrow+1)*sizeof(uint32_t); 
+
+	return size;
+}
+
 
 /* memory allocation/deallocation primitives for the BLAS interface */
 

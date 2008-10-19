@@ -12,14 +12,14 @@ size_t allocate_csr_buffer_on_node(struct data_state_t *state, uint32_t dst_node
 void liberate_csr_buffer_on_node(data_state *state, uint32_t node);
 size_t dump_csr_interface(data_interface_t *interface, void *_buffer);
 void do_copy_csr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, uint32_t dst_node);
+size_t csr_interface_get_size(struct data_state_t *state);
 
 struct data_interface_ops_t interface_csr_ops = {
-	.monitor_data = monitor_csr_data,
 	.allocate_data_on_node = allocate_csr_buffer_on_node,
 	.liberate_data_on_node = liberate_csr_buffer_on_node,
 	.copy_data_1_to_1 = do_copy_csr_buffer_1_to_1,
 	.dump_data_interface = dump_csr_interface,
-	.get_size = NULL
+	.get_size = csr_interface_get_size
 };
 
 /* declare a new data with the BLAS interface */
@@ -130,6 +130,19 @@ uint32_t *get_csr_local_rowptr(struct data_state_t *state)
 	ASSERT(state->per_node[node].allocated);
 
 	return (state->interface[node].csr.rowptr);
+}
+
+size_t csr_interface_get_size(struct data_state_t *state)
+{
+	size_t size;
+
+	uint32_t nnz = get_csr_nnz(state);
+	uint32_t nrow = get_csr_nrow(state);
+	size_t elemsize = get_csr_elemsize(state);
+
+	size = nnz*elemsize + nnz*sizeof(uint32_t) + (nrow+1)*sizeof(uint32_t);
+
+	return size;
 }
 
 /* memory allocation/deallocation primitives for the BLAS interface */

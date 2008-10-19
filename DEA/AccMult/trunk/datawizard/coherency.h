@@ -87,6 +87,8 @@ typedef struct buffer_descr_t {
 	unsigned interfaceid;
 } buffer_descr;
 
+void display_msi_stats(void);
+
 void display_state(data_state *state);
 __attribute__((warn_unused_result))
 int fetch_data(data_state *state, access_mode mode);

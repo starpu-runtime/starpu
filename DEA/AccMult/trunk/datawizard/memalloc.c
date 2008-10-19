@@ -178,7 +178,7 @@ size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node)
  * Try to free some memory on the specified node
  * 	returns 0 if no memory was released, 1 else
  */
-size_t reclaim_memory(uint32_t node)
+static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unused)))
 {
 	fprintf(stderr, "reclaim memory...\n");
 
@@ -203,6 +203,10 @@ size_t reclaim_memory(uint32_t node)
 	     mc = mem_chunk_list_next(mc))
 	{
 		liberated += try_to_free_mem_chunk(mc, node);
+		#if 0
+		if (liberated > toreclaim)
+			break;
+		#endif
 	}
 
 	fprintf(stderr, "got %d MB back\n", (int)liberated/(1024*1024));
@@ -278,7 +282,6 @@ int allocate_memory_on_node(data_state *state, uint32_t dst_node)
 	size_t allocated_memory;
 
 	ASSERT(state);
-	//fprintf(stderr, "allocate_memory_on_node state %p dst_node %d\n", state,dst_node);
 
 	do {
 		ASSERT(state->ops);
@@ -287,7 +290,11 @@ int allocate_memory_on_node(data_state *state, uint32_t dst_node)
 		allocated_memory = state->ops->allocate_data_on_node(state, dst_node);
 
 		if (!allocated_memory) {
-			reclaim_memory(dst_node);
+			/* XXX perhaps we should find the proper granularity 
+			 * not to waste our cache all the time */
+			ASSERT(state->ops->get_size);
+			size_t data_size = state->ops->get_size(state);
+			reclaim_memory(dst_node, 2*data_size);
 		}
 		
 	} while(!allocated_memory && attempts++ < 2);

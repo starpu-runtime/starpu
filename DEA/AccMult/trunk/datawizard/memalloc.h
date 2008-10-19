@@ -11,7 +11,6 @@ LIST_TYPE(mem_chunk,
 );
 
 void init_mem_chunk_lists(void);
-size_t reclaim_memory(uint32_t node);
 void request_mem_chunk_removal(data_state *state, unsigned node);
 int allocate_memory_on_node(data_state *state, uint32_t dst_node);
 size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node);

@@ -12,14 +12,14 @@ size_t allocate_vector_buffer_on_node(data_state *state, uint32_t dst_node);
 void liberate_vector_buffer_on_node(data_state *state, uint32_t node);
 void do_copy_vector_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node);
 size_t dump_vector_interface(data_interface_t *interface, void *buffer);
+size_t vector_interface_get_size(struct data_state_t *state);
 
 struct data_interface_ops_t interface_vector_ops = {
-	.monitor_data = monitor_vector_data,
 	.allocate_data_on_node = allocate_vector_buffer_on_node,
 	.liberate_data_on_node = liberate_vector_buffer_on_node,
 	.copy_data_1_to_1 = do_copy_vector_buffer_1_to_1,
 	.dump_data_interface = dump_vector_interface,
-	.get_size = NULL
+	.get_size = vector_interface_get_size
 };
 
 /* declare a new data with the BLAS interface */
@@ -64,6 +64,18 @@ size_t dump_vector_interface(data_interface_t *interface, void *_buffer)
 	buffer->elemsize = (*interface).vector.elemsize;
 
 	return (sizeof(struct dumped_vector_interface_s));
+}
+
+size_t vector_interface_get_size(struct data_state_t *state)
+{
+	size_t size;
+	vector_interface_t *interface;
+
+	interface =  &state->interface[0].vector;
+
+	size = interface->nx*interface->elemsize;
+
+	return size;
 }
 
 /* offer an access to the data parameters */
@@ -173,7 +185,6 @@ static void copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t ds
 }
 #endif // USE_CUDA
 
-/* as not all platform easily have a BLAS lib installed ... */
 static void dummy_copy_ram_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)
 {
 	uint32_t nx = state->interface[dst_node].vector.nx;
