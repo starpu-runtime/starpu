@@ -4,10 +4,15 @@ CC=gcc -m64
 NVCC = nvcc -m64
 NVCCFLAGS += -O3
 
-CFLAGS += -g -O3 -Wall -fPIC
+CFLAGS += -g -O3 -Wall
 CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses
 CFLAGS += -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type 
 CFLAGS += -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -fno-strict-aliasing
+
+
+ifdef DYNAMIC
+CFLAGS+= -fPIC
+endif
 
 LDFLAGS+= -lm
 
@@ -195,6 +200,12 @@ ifdef USE_FXT
 endif
 
 
+LIBS=ribsched.a
+ifdef DYNAMIC
+	LIBS+= ribsched.so
+endif
+
+
 
 all:
 	@make -C common
@@ -210,9 +221,9 @@ ribsched.so: all
 ribsched.a: all
 	$(AR) rcs $@ $(OBJDEPS)
 
-libs: ribsched.so ribsched.a
+libs: $(LIBS)
 
-examples: ribsched.a ribsched.so
+examples: libs
 	@make -C examples
 
 
