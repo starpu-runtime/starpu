@@ -235,5 +235,5 @@ void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	_dw_cholesky(&dataA, nblocks);
 
-	terminate_machine();
+	//terminate_machine();
 }
