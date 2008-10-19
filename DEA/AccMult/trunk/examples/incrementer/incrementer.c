@@ -31,12 +31,11 @@ float unity[5] = {1.0f, 0.0f, 1.0f, 0.0f, 0.0f};
 
 void callback_func(void *argcb)
 {
-	unsigned *cnt = argcb;
-	ATOMIC_ADD(cnt, 1);
+	unsigned cnt = ATOMIC_ADD((unsigned *)argcb, 1);
 
 //	printf("cnt %d vs. NITER %d\n", *cnt, NITER);
 
-	if ((*cnt == NITER)) 
+	if ((cnt == NITER)) 
 	{
 		/* stop monitoring data and grab it in RAM */
 		printf("delete data ...\n");
@@ -45,6 +44,8 @@ void callback_func(void *argcb)
 		printf("RIGHT -> %f, %f, %f\n", my_lovely_float[0], 
 				my_lovely_float[1], my_lovely_float[2]);
 		printf("stopping ...\n");
+
+		terminate_machine();
 	
 		exit(0);
 	}
