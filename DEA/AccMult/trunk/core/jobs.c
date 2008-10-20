@@ -15,11 +15,10 @@ job_t job_create(void)
 	job->nbuffers = 0;
 	job->priority = DEFAULT_PRIO;
 
-	//job->cost_model = NULL;
-	//job->cuda_cost_model = NULL;
-	//job->core_cost_model = NULL;
 	job->model = NULL;
 	job->predicted = 0.0;
+
+	job->footprint = 0;
 
 	return job;
 }

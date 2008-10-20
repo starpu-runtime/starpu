@@ -11,7 +11,7 @@ ifdef SPU
 	SPU_TARGET=spu
 endif
 
-OBJS := coherency.o copy-driver.o hierarchy.o memalloc.o
+OBJS := coherency.o copy-driver.o hierarchy.o memalloc.o footprint.o
 
 all: interfaces $(SPE_TARGET) $(OBJS)
 

@@ -37,7 +37,7 @@
 #define SPU	((1ULL)<<4)
 #define GORDON	((1ULL)<<5)
 
-typedef enum {ABORT, CODELET} jobtype;
+typedef enum {CODELET} jobtype;
 
 /* codelet function */
 typedef void (*cl_func)(data_interface_t *, void *);
@@ -84,6 +84,7 @@ LIST_TYPE(job,
 	struct perfmodel_t *model;
 	double predicted;
 
+	uint32_t footprint;
 );
 
 job_t job_create(void);

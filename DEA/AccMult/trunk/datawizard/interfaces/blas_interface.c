@@ -4,6 +4,8 @@
 #include <datawizard/copy-driver.h>
 #include <datawizard/hierarchy.h>
 
+#include <common/hash.h>
+
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 #include <cuda.h>
 #endif
@@ -13,13 +15,15 @@ void liberate_blas_buffer_on_node(data_state *state, uint32_t node);
 void do_copy_blas_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node);
 size_t dump_blas_interface(data_interface_t *interface, void *buffer);
 size_t blas_interface_get_size(struct data_state_t *state);
+uint32_t footprint_blas_interface_crc32(data_state *state, uint32_t hstate);
 
 struct data_interface_ops_t interface_blas_ops = {
 	.allocate_data_on_node = allocate_blas_buffer_on_node,
 	.liberate_data_on_node = liberate_blas_buffer_on_node,
 	.copy_data_1_to_1 = do_copy_blas_buffer_1_to_1,
 	.dump_data_interface = dump_blas_interface,
-	.get_size = blas_interface_get_size
+	.get_size = blas_interface_get_size,
+	.footprint = footprint_blas_interface_crc32
 };
 
 /* declare a new data with the BLAS interface */
@@ -50,6 +54,22 @@ void monitor_blas_data(data_state *state, uint32_t home_node,
 	state->ops = &interface_blas_ops;
 
 	monitor_new_data(state, home_node);
+}
+
+static inline uint32_t footprint_blas_interface_generic(uint32_t (*hash_func)(uint32_t input, uint32_t hstate), data_state *state, uint32_t hstate)
+{
+	uint32_t hash;
+
+	hash = hstate;
+	hash = hash_func(get_blas_nx(state), hash);
+	hash = hash_func(get_blas_ny(state), hash);
+
+	return hash;
+}
+
+uint32_t footprint_blas_interface_crc32(data_state *state, uint32_t hstate)
+{
+	return footprint_blas_interface_generic(crc32_be, state, hstate);
 }
 
 struct dumped_blas_interface_s {

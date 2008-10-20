@@ -85,19 +85,19 @@ void release_rw_lock(rw_lock *lock)
 	}
 	_release_busy_lock(lock);
 }
-
-/*
- * Warning : to be consistent or even useful this information has to be taken
- * only if the rw_lock is taken (in either read or write mode).
- */
-inline uint8_t rw_lock_is_writer(rw_lock *lock)
-{
-	return lock->writer;
-}
-
-/* the rw_lock is assumed to be taken */
-unsigned is_rw_lock_referenced(rw_lock *lock)
-{
-	/* number of readers or one writer */
-	return (lock->writer || lock->readercnt);
-}
+//
+///*
+// * Warning : to be consistent or even useful this information has to be taken
+// * only if the rw_lock is taken (in either read or write mode).
+// */
+//inline uint8_t rw_lock_is_writer(rw_lock *lock)
+//{
+//	return lock->writer;
+//}
+//
+///* the rw_lock is assumed to be taken */
+//unsigned is_rw_lock_referenced(rw_lock *lock)
+//{
+//	/* number of readers or one writer */
+//	return (lock->writer || lock->readercnt);
+//}

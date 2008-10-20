@@ -26,6 +26,7 @@ struct data_interface_ops_t {
 	size_t (*dump_data_interface)(data_interface_t *interface, 
 					void *buffer);
 	size_t (*get_size)(struct data_state_t *state);
+	uint32_t (*footprint)(struct data_state_t *state, uint32_t hstate);
 };
 
 #endif // __DATA_INTERFACE_H__

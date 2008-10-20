@@ -137,6 +137,7 @@ endif
 #
 
 OBJDEPS += common/threads.o
+OBJDEPS += common/hash.o
 OBJDEPS += common/timing.o 
 OBJDEPS += core/jobs.o core/workers.o
 OBJDEPS += core/dependencies/tags.o
@@ -157,11 +158,12 @@ OBJDEPS += common/rwlock.o
 OBJDEPS += datawizard/copy-driver.o
 OBJDEPS += datawizard/coherency.o 
 OBJDEPS += datawizard/hierarchy.o 
+OBJDEPS += datawizard/memalloc.o
+OBJDEPS += datawizard/footprint.o
 OBJDEPS += datawizard/interfaces/blas_filters.o
 OBJDEPS += datawizard/interfaces/csr_filters.o
 OBJDEPS += datawizard/interfaces/bcsr_filters.o
 OBJDEPS += datawizard/interfaces/vector_filters.o
-OBJDEPS += datawizard/memalloc.o
 OBJDEPS += datawizard/interfaces/blas_interface.o
 OBJDEPS += datawizard/interfaces/csr_interface.o
 OBJDEPS += datawizard/interfaces/bcsr_interface.o

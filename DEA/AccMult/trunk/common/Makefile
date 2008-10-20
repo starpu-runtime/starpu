@@ -4,7 +4,7 @@ endif
 
 CFLAGS+= -I../
 
-OBJS := mutex.o threads.o rwlock.o timing.o $(OPTTARGET)
+OBJS := hash.o mutex.o threads.o rwlock.o timing.o $(OPTTARGET)
 
 all: $(OBJS)
 

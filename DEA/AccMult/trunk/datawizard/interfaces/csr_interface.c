@@ -4,6 +4,8 @@
 #include <datawizard/copy-driver.h>
 #include <datawizard/hierarchy.h>
 
+#include <common/hash.h>
+
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 #include <cuda.h>
 #endif
@@ -13,13 +15,15 @@ void liberate_csr_buffer_on_node(data_state *state, uint32_t node);
 size_t dump_csr_interface(data_interface_t *interface, void *_buffer);
 void do_copy_csr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, uint32_t dst_node);
 size_t csr_interface_get_size(struct data_state_t *state);
+uint32_t footprint_csr_interface_crc32(data_state *state, uint32_t hstate);
 
 struct data_interface_ops_t interface_csr_ops = {
 	.allocate_data_on_node = allocate_csr_buffer_on_node,
 	.liberate_data_on_node = liberate_csr_buffer_on_node,
 	.copy_data_1_to_1 = do_copy_csr_buffer_1_to_1,
 	.dump_data_interface = dump_csr_interface,
-	.get_size = csr_interface_get_size
+	.get_size = csr_interface_get_size,
+	.footprint = footprint_csr_interface_crc32
 };
 
 /* declare a new data with the BLAS interface */
@@ -54,6 +58,23 @@ void monitor_csr_data(struct data_state_t *state, uint32_t home_node,
 
 	monitor_new_data(state, home_node);
 }
+
+static inline uint32_t footprint_csr_interface_generic(uint32_t (*hash_func)(uint32_t input, uint32_t hstate), data_state *state, uint32_t hstate)
+{
+	uint32_t hash;
+
+	hash = hstate;
+	hash = hash_func(get_csr_nnz(state), hash);
+
+	return hash;
+}
+
+uint32_t footprint_csr_interface_crc32(data_state *state, uint32_t hstate)
+{
+	return footprint_csr_interface_generic(crc32_be, state, hstate);
+}
+
+
 
 struct dumped_csr_interface_s {
 	uint32_t nnz;

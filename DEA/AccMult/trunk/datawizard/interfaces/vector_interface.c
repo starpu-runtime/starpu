@@ -4,6 +4,8 @@
 #include <datawizard/copy-driver.h>
 #include <datawizard/hierarchy.h>
 
+#include <common/hash.h>
+
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 #include <cuda.h>
 #endif
@@ -13,13 +15,15 @@ void liberate_vector_buffer_on_node(data_state *state, uint32_t node);
 void do_copy_vector_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node);
 size_t dump_vector_interface(data_interface_t *interface, void *buffer);
 size_t vector_interface_get_size(struct data_state_t *state);
+uint32_t footprint_vector_interface_crc32(data_state *state, uint32_t hstate);
 
 struct data_interface_ops_t interface_vector_ops = {
 	.allocate_data_on_node = allocate_vector_buffer_on_node,
 	.liberate_data_on_node = liberate_vector_buffer_on_node,
 	.copy_data_1_to_1 = do_copy_vector_buffer_1_to_1,
 	.dump_data_interface = dump_vector_interface,
-	.get_size = vector_interface_get_size
+	.get_size = vector_interface_get_size,
+	.footprint = footprint_vector_interface_crc32
 };
 
 /* declare a new data with the BLAS interface */
@@ -46,6 +50,22 @@ void monitor_vector_data(struct data_state_t *state, uint32_t home_node,
 	state->ops = &interface_vector_ops;
 
 	monitor_new_data(state, home_node);
+}
+
+
+static inline uint32_t footprint_vector_interface_generic(uint32_t (*hash_func)(uint32_t input, uint32_t hstate), data_state *state, uint32_t hstate)
+{
+	uint32_t hash;
+
+	hash = hstate;
+	hash = hash_func(get_vector_nx(state), hash);
+
+	return hash;
+}
+
+uint32_t footprint_vector_interface_crc32(data_state *state, uint32_t hstate)
+{
+	return footprint_vector_interface_generic(crc32_be, state, hstate);
 }
 
 struct dumped_vector_interface_s {
