@@ -16,4 +16,5 @@ void compute_buffers_footprint(job_t j)
 	}
 
 	j->footprint = footprint;
+	j->footprint_is_computed = 1;
 }

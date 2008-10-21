@@ -29,11 +29,6 @@ static int execute_job_on_cublas(job_t j)
 
 			push_codelet_output(j->buffers, j->nbuffers, mask);
 			break;
-		case ABORT:
-			fprintf(stderr, "CUBLAS abort\n");
-			cublasShutdown();
-			pthread_exit(NULL);
-			break;
 		default:
 			break;
 	}
@@ -94,7 +89,8 @@ void *cublas_worker(void *arg)
 
 	int res;
 	job_t j;
-	do {
+	while ( machine_is_runnning() )
+	{
 		j = pop_task();
 		if (j == NULL) continue;
 
@@ -109,8 +105,6 @@ void *cublas_worker(void *arg)
 
 		if (res != OK) {
 			switch (res) {
-				case OK:
-					assert(0);
 				case FATAL:
 					assert(0);
 				case TRYAGAIN:
@@ -128,7 +122,11 @@ void *cublas_worker(void *arg)
 		notify_dependencies(j);
 
 		job_delete(j);
-	} while(1);
+	}
+
+	fprintf(stderr, "CUBLAS abort\n");
+	cublasShutdown();
+	pthread_exit(NULL);
 
 	return NULL;
 }

@@ -18,7 +18,7 @@ job_t job_create(void)
 	job->model = NULL;
 	job->predicted = 0.0;
 
-	job->footprint = 0;
+	job->footprint_is_computed = 0;
 
 	return job;
 }

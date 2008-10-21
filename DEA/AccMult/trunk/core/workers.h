@@ -39,6 +39,11 @@
 #define CUDA_ALPHA	13.33f
 #define CUBLAS_ALPHA	13.33f
 
+enum archtype {
+	CORE_WORKER,
+	CUDA_WORKER
+};
+
 struct machine_config_s {
 	#ifdef USE_CPUS
 	unsigned ncores;
@@ -70,11 +75,17 @@ struct machine_config_s {
 	unsigned ngordonspus;
 	gordon_worker_arg gordonargs;
 	#endif
+
+	/* this flag is set until the runtime is stopped */
+	unsigned running;
 };
 
 void init_machine(void);
 void terminate_workers(struct machine_config_s *config);
 void kill_all_workers(struct machine_config_s *config);
 void display_general_stats(void);
+void terminate_machine(void);
+
+unsigned machine_is_running(void);
 
 #endif // __WORKERS_H__

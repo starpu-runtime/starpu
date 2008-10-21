@@ -4,7 +4,7 @@ CFLAGS += -I../
 	$(CC) $(CFLAGS) $< -c -o $@
 	$(CC) $(CFLAGS) $< -MM > $*.d
 
-all: jobs.o workers.o
+all: jobs.o workers.o perfmodel.o
 	@make -C dependencies
 	@make -C mechanisms
 	@make -C policies

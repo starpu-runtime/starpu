@@ -1,7 +1,12 @@
 #include "driver_core.h"
 #include <core/policies/sched_policy.h>
 
+#include <datawizard/footprint.h>
+
 extern unsigned ncores;
+
+/* XXX */
+void update_perfmodel_history(job_t j, enum archtype arch, double measured);
 
 int execute_job_on_core(job_t j)
 {
@@ -12,6 +17,10 @@ int execute_job_on_core(job_t j)
 		case CODELET:
 			ASSERT(j->cl);
 			ASSERT(j->cl->core_func);
+
+			if (j->footprint == 0)
+				compute_buffers_footprint(j);
+
 			ret = fetch_codelet_input(j->buffers, j->interface,
 					j->nbuffers, 0);
 
@@ -32,19 +41,17 @@ int execute_job_on_core(job_t j)
 
 #ifdef MODEL_DEBUG
 			double measured = timing_delay(&codelet_start, &codelet_end);
+
+			update_perfmodel_history(j, CORE_WORKER, measured);
 			
-			if (j->predicted != 0.0)
-			{
-				fprintf(stderr, "CORE : model was %e, got %e, factor (%2.2f \%%)\n", 
-					j->predicted, measured, 100*(measured/j->predicted - 1.0f));
-			}
+		//	if (j->predicted != 0.0)
+		//	{
+		//		fprintf(stderr, "CORE : model was %e, got %e, factor (%2.2f \%%)\n", 
+		//			j->predicted, measured, 100*(measured/j->predicted - 1.0f));
+		//	}
 #endif
 
 			break;
-                case ABORT:
-                        fprintf(stderr, "core abort\n");
-                        thread_exit(NULL);
-                        break;
                 default:
 			fprintf(stderr, "don't know what to do with that task on a core ! ... \n");
 			ASSERT(0);
@@ -90,7 +97,8 @@ void *core_worker(void *arg)
         job_t j;
 	int res;
 
-        do {
+	while (machine_is_running())
+	{
                 j = pop_task();
                 if (j == NULL) continue;
 
@@ -123,7 +131,10 @@ void *core_worker(void *arg)
 		notify_dependencies(j);
 
 //		job_delete(j);
-        } while(1);
+        }
+
+	fprintf(stderr, "core abort\n");
+	thread_exit(NULL);
 
         return NULL;
 }

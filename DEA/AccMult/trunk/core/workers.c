@@ -135,6 +135,8 @@ static void init_workers_binding(struct machine_config_s *config)
 
 static void init_workers(struct machine_config_s *config)
 {
+	config->running = 1;
+
 #ifdef USE_CPUS
 	unsigned core;
 	for (core = 0; core < config->ncores; core++)
@@ -293,33 +295,25 @@ void terminate_workers(struct machine_config_s *config)
 
 }
 
+unsigned machine_is_running(void)
+{
+	return config.running;
+}
+
 void kill_all_workers(struct machine_config_s *config)
 {
-        /* terminate all threads */
-        unsigned nworkers = 0;
+	/* set the flag which will tell workers to stop */
+	config->running = 0;
+}
 
-#ifdef USE_CPUS
-        nworkers += config->ncores;
-#endif
-#ifdef USE_CUDA
-        nworkers += config->ncudagpus;
-#endif
-#ifdef USE_CUBLAS
-        nworkers += config->ncublasgpus;
-#endif
-#ifdef USE_SPU
-        nworkers += config->nspus;
-#endif
+void terminate_machine(void)
+{
+	display_msi_stats();
 
-        unsigned worker;
-        for (worker = 0; worker < nworkers ; worker++) {
-                job_t j = job_new();
-                j->type = ABORT;
-                j->where = ANY;
-                push_task(j);
-        }
+	/* tell all workers to shutdown */
+	kill_all_workers(&config);
 
-        if (nworkers == 0) {
-                fprintf(stderr, "Warning there is no worker ... \n");
-        }
+	/* wait for their termination */
+	// XXX for now, it's not working !
+//	terminate_workers(&config);
 }

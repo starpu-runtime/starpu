@@ -1,6 +1,8 @@
 #include "driver_cuda.h"
 #include <core/policies/sched_policy.h>
 
+#include <datawizard/footprint.h>
+
 /* the number of CUDA devices */
 int ncudagpus;
 
@@ -11,6 +13,9 @@ CUresult status;
 //CUdeviceptr debugptr;
 
 extern char *execpath;
+
+/* XXX */
+void update_perfmodel_history(job_t j, enum archtype arch, double measured);
 
 void init_cuda_module(struct cuda_module_s *module, char *path)
 {
@@ -186,6 +191,9 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 			ASSERT(j);
 			ASSERT(j->cl);
 
+			if (!j->footprint_is_computed)
+				compute_buffers_footprint(j);
+
 			GET_TICK(codelet_start_comm);
 
 			ret = fetch_codelet_input(j->buffers, j->interface, j->nbuffers, mask);
@@ -248,18 +256,15 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 			double measured = timing_delay(&codelet_start, &codelet_end);
 			double measured_comm = timing_delay(&codelet_start_comm, &codelet_end_comm);
 
-			if (j->predicted != 0.0) 
-			{
-				fprintf(stderr, "CUDA : model was %e, got %e (with comms, %e), factor (%2.2f \%%)\n", 
-					j->predicted, measured, measured_comm, 100*(measured/j->predicted - 1.0f));
-			}
+			update_perfmodel_history(j, CUDA_WORKER, measured);
+
+//			if (j->predicted != 0.0) 
+//			{
+//				fprintf(stderr, "CUDA : model was %e, got %e (with comms, %e), factor (%2.2f \%%)\n", 
+//					j->predicted, measured, measured_comm, 100*(measured/j->predicted - 1.0f));
+//			}
 #endif
 
-			break;
-		case ABORT:
-			printf("CUDA abort\n");
-			cublasShutdown();
-			thread_exit(NULL);
 			break;
 		default:
 			break;
@@ -305,7 +310,8 @@ void *cuda_worker(void *arg)
 	struct job_s * j;
 	int res;
 	
-	do {
+	while (machine_is_running())
+	{
 		//int debugfoo;
 		j = pop_task();
 		//printf("cuda driver picked %p\n", j);
@@ -332,7 +338,7 @@ void *cuda_worker(void *arg)
 				case FATAL:
 					assert(0);
 				case TRYAGAIN:
-					printf("ouch, put the codelet %p back ... \n", j);
+					fprintf(stderr, "ouch, put the codelet %p back ... \n", j);
 					push_task(j);
 					ASSERT(0);
 					continue;
@@ -350,11 +356,13 @@ void *cuda_worker(void *arg)
 //		cuMemcpyDtoH(&debugfoo, debugptr, sizeof(uint64_t));
 //		printf("AFTER TASK, debug ptr = %p\n", debugfoo);
 
-
 		job_delete(j);
 		//printf("cuda terminated %p\n", j);
+	} 
 
-	} while(1);
+	fprintf(stderr, "CUDA abort\n");
+	cublasShutdown();
+	thread_exit(NULL);
 
 	return NULL;
 

@@ -1,46 +1,9 @@
 #include <core/policies/deque-modeling-policy.h>
+#include <core/perfmodel.h>
 
 /* XXX 32 is set randomly */
 unsigned nworkers;
 struct jobq_s *queue_array[32];
-
-#define PER_ARCH_MODEL	1
-
-static double job_expected_length(struct jobq_s *q, struct job_s *j)
-{
-	double exp;
-
-	struct perfmodel_t *model = j->model;
-
-	if (model) {
-#ifdef PER_ARCH_MODEL
-	if ( (q->who & (CUBLAS|CUDA)) && model->cuda_cost_model) {
-		/* use CUDA model */
-#ifdef TRANSFER_OVERHEAD
-		exp = model->cuda_cost_model(j->buffers)*1.10;
-#else
-		exp = model->cuda_cost_model(j->buffers) + 0.0;
-#endif
-		return exp;
-	}
-
-	if ( (q->who & CORE) && model->core_cost_model) {
-		/* use CORE model */
-		exp = model->core_cost_model(j->buffers);
-		return exp;
-	}
-#endif
-
-	if (model->cost_model) {
-		/* use the common model */
-		exp = (model->cost_model(j->buffers))/q->alpha;
-		return exp;
-	}
-	}
-
-	/* no model was found */
-	return 0.0;
-}
 
 static job_t dm_pop_task(struct jobq_s *q)
 {
@@ -49,7 +12,6 @@ static job_t dm_pop_task(struct jobq_s *q)
 	j = fifo_pop_task(q);
 
 	struct fifo_jobq_s *fifo = q->queue;
-//	double model = job_expected_length(q, j);
 	double model = j->predicted;
 
 	fifo->exp_len -= model;
@@ -86,7 +48,7 @@ static void _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task
 			continue;
 		}
 
-		double local_length = job_expected_length(queue_array[worker], task);
+		double local_length = job_expected_length(queue_array[worker]->who, task);
 
 
 		exp_end = fifo->exp_start + fifo->exp_len + local_length;
@@ -100,11 +62,9 @@ static void _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task
 		}
 	}
 
-	if (best == -1)
-	{
-		/* no one could execute that task ! */
-		ASSERT(0);
-	}
+	
+	/* make sure someone coule execute that task ! */
+	ASSERT(best != -1);
 
 	/* we should now have the best worker in variable "best" */
 	fifo = queue_array[best]->queue;

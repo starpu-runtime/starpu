@@ -12,6 +12,8 @@
 //#include <core/mechanisms/queues.h>
 //#include <core/policies/sched_policy.h>
 
+#include <core/perfmodel.h>
+
 #include <common/fxt.h>
 
 #include <datawizard/copy-driver.h>
