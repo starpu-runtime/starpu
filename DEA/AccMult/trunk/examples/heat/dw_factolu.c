@@ -823,5 +823,5 @@ void dw_factoLU(float *matA, unsigned size,
 	compare_A_LU(Asaved, matA, size, ld);
 #endif
 
-	//terminate_machine();
+	terminate_machine();
 }

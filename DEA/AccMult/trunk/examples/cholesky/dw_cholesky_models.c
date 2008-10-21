@@ -111,15 +111,21 @@ static double cuda_chol_task_22_cost(buffer_descr *descr)
 
 struct perfmodel_t chol_model_11 = {
 	.core_cost_model = core_chol_task_11_cost,
-	.cuda_cost_model = cuda_chol_task_11_cost
+	.cuda_cost_model = cuda_chol_task_11_cost,
+	.type = HISTORY_BASED,
+	.symbol = "chol_model_11"
 };
 
 struct perfmodel_t chol_model_21 = {
 	.core_cost_model = core_chol_task_21_cost,
-	.cuda_cost_model = cuda_chol_task_21_cost
+	.cuda_cost_model = cuda_chol_task_21_cost,
+	.type = HISTORY_BASED,
+	.symbol = "chol_model_21"
 };
 
 struct perfmodel_t chol_model_22 = {
 	.core_cost_model = core_chol_task_22_cost,
-	.cuda_cost_model = cuda_chol_task_22_cost
+	.cuda_cost_model = cuda_chol_task_22_cost,
+	.type = HISTORY_BASED,
+	.symbol = "chol_model_22"
 };

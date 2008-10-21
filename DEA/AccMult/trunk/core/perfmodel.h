@@ -20,6 +20,11 @@ struct history_list_t {
 	struct history_entry_t *entry;
 };
 
+struct model_list_t {
+	struct model_list_t *next;
+	struct perfmodel_t *model;
+};
+
 struct perfmodel_t {
 	/* which model is used for that task ? */
 	enum {PER_ARCH, COMMON, HISTORY_BASED} type;
@@ -34,14 +39,23 @@ struct perfmodel_t {
 	/* history-based models */
 	struct htbl32_node_s *history_cuda;
 	struct htbl32_node_s *history_core;
+
 	struct history_list_t *list_cuda;
 	struct history_list_t *list_core;
 	
-	const char *model_symbol;
-	FILE *model_file;
+	const char *symbol;
 	unsigned is_loaded;
 	unsigned benchmarking;
 };
+
+//
+///* File format */
+//struct model_file_format {
+//	unsigned ncore_entries;
+//	unsigned ncuda_entries;
+//	/* contains core entries, then cuda ones */
+//	struct history_entry_t entries[];
+//}
 
 double job_expected_length(uint32_t who, struct job_s *j);
 //void update_perfmodel_history(struct job_s *j, archtype arch, double measured);

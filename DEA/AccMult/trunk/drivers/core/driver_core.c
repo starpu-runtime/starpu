@@ -13,13 +13,15 @@ int execute_job_on_core(job_t j)
 	int ret;
 	tick_t codelet_start, codelet_end;
 
+	unsigned calibrate_model = 0;
+
         switch (j->type) {
 		case CODELET:
 			ASSERT(j->cl);
 			ASSERT(j->cl->core_func);
 
-			if (j->footprint == 0)
-				compute_buffers_footprint(j);
+			if (j->model && j->model->benchmarking)
+				calibrate_model = 1;
 
 			ret = fetch_codelet_input(j->buffers, j->interface,
 					j->nbuffers, 0);
@@ -31,25 +33,29 @@ int execute_job_on_core(job_t j)
 			}
 
 			TRACE_START_CODELET_BODY(j);
-			GET_TICK(codelet_start);
+
+			if (calibrate_model)
+				GET_TICK(codelet_start);
+
 			cl_func func = j->cl->core_func;
 			func(j->interface, j->cl->cl_arg);
-			GET_TICK(codelet_end);
+			
+			if (calibrate_model)
+				GET_TICK(codelet_end);
+
 			TRACE_END_CODELET_BODY(j);
 
 			push_codelet_output(j->buffers, j->nbuffers, 0);
 
-#ifdef MODEL_DEBUG
-			double measured = timing_delay(&codelet_start, &codelet_end);
+//#ifdef MODEL_DEBUG
+			if (calibrate_model)
+			{
+				double measured = timing_delay(&codelet_start, &codelet_end);
 
-			update_perfmodel_history(j, CORE_WORKER, measured);
+				update_perfmodel_history(j, CORE_WORKER, measured);
+			}
 			
-		//	if (j->predicted != 0.0)
-		//	{
-		//		fprintf(stderr, "CORE : model was %e, got %e, factor (%2.2f \%%)\n", 
-		//			j->predicted, measured, 100*(measured/j->predicted - 1.0f));
-		//	}
-#endif
+//#endif
 
 			break;
                 default:

@@ -163,5 +163,7 @@ int main(__attribute__ ((unused)) int argc,
 	sem_wait(&sem);
 	sem_destroy(&sem);
 
+	terminate_machine();
+
 	return 0;
 }

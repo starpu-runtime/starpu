@@ -202,26 +202,30 @@ struct perfmodel_t model_11 = {
 	.cost_model = task_11_cost,
 	.cuda_cost_model = task_11_cost_cuda,
 	.core_cost_model = task_11_cost_core,
-	.type = HISTORY_BASED
+	.type = HISTORY_BASED,
+	.symbol = "lu_model_11"
 };
 
 struct perfmodel_t model_12 = {
 	.cost_model = task_12_cost,
 	.cuda_cost_model = task_12_cost_cuda,
 	.core_cost_model = task_12_cost_core,
-	.type = HISTORY_BASED
+	.type = HISTORY_BASED,
+	.symbol = "lu_model_12"
 };
 
 struct perfmodel_t model_21 = {
 	.cost_model = task_21_cost,
 	.cuda_cost_model = task_21_cost_cuda,
 	.core_cost_model = task_21_cost_core,
-	.type = HISTORY_BASED
+	.type = HISTORY_BASED,
+	.symbol = "lu_model_21"
 };
 
 struct perfmodel_t model_22 = {
 	.cost_model = task_22_cost,
 	.cuda_cost_model = task_22_cost_cuda,
 	.core_cost_model = task_22_cost_core,
-	.type = HISTORY_BASED
+	.type = HISTORY_BASED,
+	.symbol = "lu_model_22"
 };

@@ -1,9 +1,15 @@
+#include <unistd.h>
+
 #include <core/perfmodel.h>
 #include <core/jobs.h>
 #include <core/workers.h>
 #include <datawizard/footprint.h>
 
 //#define PER_ARCH_MODEL	1
+
+/*
+ * PER ARCH model
+ */
 
 static double per_arch_job_expected_length(struct perfmodel_t *model, uint32_t who, struct job_s *j)
 {
@@ -28,6 +34,10 @@ static double per_arch_job_expected_length(struct perfmodel_t *model, uint32_t w
 	return 0.0;
 }
 
+/*
+ * Common model
+ */
+
 static double common_job_expected_length(struct perfmodel_t *model, uint32_t who, struct job_s *j)
 {
 	double exp;
@@ -41,14 +51,214 @@ static double common_job_expected_length(struct perfmodel_t *model, uint32_t who
 	return 0.0;
 }
 
-void load_history_based_model(struct perfmodel_t *model)
+/*
+ * History based model
+ */
+
+
+static void insert_history_entry(struct history_entry_t *entry, struct history_list_t **list, struct htbl32_node_s **history_ptr)
+{
+	struct history_list_t *link;
+	struct history_entry_t *old;
+
+	link = malloc(sizeof(struct history_list_t));
+	link->next = *list;
+	link->entry = entry;
+	*list = link;
+
+	old = htbl_insert_32(history_ptr, entry->footprint, entry);
+	/* that may fail in case there is some concurrency issue */
+	ASSERT(old == NULL);
+}
+
+
+
+#define PERF_MODEL_DIR "/home/gonnet/These/AccMult/.sampling/"
+
+static void parse_model_file(FILE *f, struct perfmodel_t *model)
 {
 	/* TODO */
+	
+	/* header */
+	unsigned ncore_entries, ncuda_entries;
+	int res = fscanf(f, "%d\n%d\n", &ncore_entries, &ncuda_entries);
+	ASSERT(res == 2);
+
+	/* parse core entries */
+	unsigned i;
+	for (i = 0; i < ncore_entries; i++) {
+		struct history_entry_t *entry = malloc(sizeof(struct history_entry_t));
+		ASSERT(entry);
+		res = fscanf(f, "%x\t%lf\t%d\n", &entry->footprint, &entry->measured, &entry->nsample);
+		ASSERT(res == 3);
+		
+		/* insert the entry in the hashtable and the list structures  */
+		insert_history_entry(entry, &model->list_core, &model->history_core);
+	}
+
+	for (i = 0; i < ncuda_entries; i++) {
+		struct history_entry_t *entry = malloc(sizeof(struct history_entry_t));
+		ASSERT(entry);
+		res = fscanf(f, "%x\t%lf\t%d\n", &entry->footprint, &entry->measured, &entry->nsample);
+		ASSERT(res == 3);
+		
+		/* insert the entry in the hashtable and the list structures  */
+		insert_history_entry(entry, &model->list_cuda, &model->history_cuda);
+	}
+
+//	model->benchmarking = 0;
+}
+
+static void dump_model_file(FILE *f, struct perfmodel_t *model)
+{
+	/* count the number of elements in the lists */
+	struct history_list_t *ptr;
+
+	unsigned ncore_entries = 0;
+	ptr = model->list_core;
+	while(ptr) {
+		ncore_entries++;
+		ptr = ptr->next;
+	}
+
+	unsigned ncuda_entries = 0;
+	ptr = model->list_cuda;
+	while(ptr) {
+		ncuda_entries++;
+		ptr = ptr->next;
+	}
+
+	unsigned i = 0;
+
+	/* header */
+	fprintf(f, "%d\n", ncore_entries);
+	fprintf(f, "%d\n", ncuda_entries);
+
+	ptr = model->list_core;
+	while (ptr) {
+		//memcpy(&entries_array[i++], ptr->entry, sizeof(struct history_entry_t));
+		fprintf(f, "%x\t%lf\t%d\n", ptr->entry->footprint, ptr->entry->measured, ptr->entry->nsample);
+		ptr = ptr->next;
+	}
+
+	ptr = model->list_cuda;
+	while (ptr) {
+		//memcpy(&entries_array[i++], ptr->entry, sizeof(struct history_entry_t));
+		fprintf(f, "%x\t%lf\t%d\n", ptr->entry->footprint, ptr->entry->measured, ptr->entry->nsample);
+		ptr = ptr->next;
+	}
+}
+
+static void initialize_model(struct perfmodel_t *model)
+{
+	model->history_core = NULL;
+	model->history_cuda = NULL;
+
+	model->list_core = NULL;
+	model->list_cuda = NULL;
+
+//	model->benchmarking = 1;
+}
+
+static struct model_list_t *registered_models = NULL;
+
+void register_model(struct perfmodel_t *model)
+{
+	/* add the model to a linked list */
+	struct model_list_t *node = malloc(sizeof(struct model_list_t));
+
+	node->model = model;
+	node->next = registered_models;
+	registered_models = node;
+
+	return;
 }
 
 void save_history_based_model(struct perfmodel_t *model)
 {
-	/* TODO */
+	ASSERT(model);
+	ASSERT(model->symbol);
+
+	/* TODO add hostname + check */
+	char path[256];
+	strncpy(path, PERF_MODEL_DIR, 256);
+	strncat(path, model->symbol, 256);
+
+	fprintf(stderr, "Opening performance model file %s for model %s\n", path, model->symbol);
+
+	/* overwrite existing file, or create it */
+	FILE *f;
+	f = fopen(path, "w+");
+	ASSERT(f);
+
+	dump_model_file(f, model);
+
+	fclose(f);
+}
+
+void dump_registered_models(void)
+{
+	struct model_list_t *node;
+	node = registered_models;
+
+	fprintf(stderr, "DUMP MODELS !\n");
+
+	while (node) {
+		save_history_based_model(node->model);		
+		node = node->next;
+
+		/* XXX free node */
+	}
+}
+
+void load_history_based_model(struct perfmodel_t *model)
+{
+	ASSERT(model);
+	ASSERT(model->symbol);
+
+	/*
+	 * We need to keep track of all the model that were opened so that we can 
+	 * possibly update them at runtime termination ...
+	 */
+	register_model(model);
+
+	/* TODO add hostname + check */
+	char path[256];
+	strncpy(path, PERF_MODEL_DIR, 256);
+	strncat(path, model->symbol, 256);
+
+	fprintf(stderr, "Opening performance model file %s for model %s\n", path, model->symbol);
+
+	/* try to open an existing file and load it */
+	int res;
+	res = access(path, F_OK); 
+	if (res == 0) {
+		fprintf(stderr, "File exists !\n");
+
+		FILE *f;
+		f = fopen(path, "r");
+		ASSERT(f);
+
+		parse_model_file(f, model);
+
+		fclose(f);
+	}
+	else {
+		//fprintf(stderr, "File does not exists !\n");
+		initialize_model(model);
+	}
+
+
+	if (get_env_number("CALIBRATE") != -1)
+	{
+		fprintf(stderr, "CALIBRATE model %s\n", model->symbol);
+		model->benchmarking = 1;
+	}
+	else {
+		model->benchmarking = 0;
+	}
+
+	model->is_loaded = 1;
 }
 
 static double history_based_job_expected_length(struct perfmodel_t *model, uint32_t who, struct job_s *j)
@@ -56,12 +266,7 @@ static double history_based_job_expected_length(struct perfmodel_t *model, uint3
 	double exp;
 
 	if (!model->is_loaded)
-	{
-		/* load performance file */
 		load_history_based_model(model);
-
-		model->is_loaded = 1;
-	}
 
 	if (!j->footprint_is_computed)
 		compute_buffers_footprint(j);
@@ -92,7 +297,7 @@ static double history_based_job_expected_length(struct perfmodel_t *model, uint3
 
 	exp = entry?entry->measured:0.0;
 
-	fprintf(stderr, "history prediction : entry = %p (footprint %x), expected %e\n", entry, j->footprint, exp);
+//	fprintf(stderr, "history prediction : entry = %p (footprint %x), expected %e\n", entry, j->footprint, exp);
 
 	return exp;
 }
@@ -123,7 +328,6 @@ double job_expected_length(uint32_t who, struct job_s *j)
 	/* no model was found */
 	return 0.0;
 }
-
 
 
 void update_perfmodel_history(job_t j, enum archtype arch, double measured)
@@ -160,23 +364,13 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 		if (!entry)
 		{
 			/* this is the first entry with such a footprint */
-			struct history_entry_t *old;
-
 			entry = malloc(sizeof(struct history_entry_t));
 			ASSERT(entry);
 				entry->measured = measured;
 				entry->footprint = key;
 				entry->nsample = 1;
-			
-			struct history_list_t *link;
-				link = malloc(sizeof(struct history_list_t));
-				link->next = *list;
-				link->entry = entry;
-				*list = link;
 
-			old = htbl_insert_32(history_ptr, key, entry);
-			/* that may fail in case there is some concurrency issue */
-			ASSERT(old == NULL);
+			insert_history_entry(entry, list, history_ptr);
 
 		}
 		else {
@@ -189,8 +383,9 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 
 		ASSERT(entry);
 
+#ifdef MODEL_DEBUG
 		fprintf(stderr, "model was %e, got %e (mean %e, footprint %x) factor (%2.2f \%%)\n",
 				j->predicted, measured, entry->measured, key, 100*(measured/j->predicted - 1.0f));
-
+#endif
 	}
 }

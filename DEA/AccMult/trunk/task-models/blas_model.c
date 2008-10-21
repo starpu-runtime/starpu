@@ -1,5 +1,6 @@
 #include <task-models/task_model.h>
 #include <task-models/blas_model.h>
+#include <core/perfmodel.h>
 
 /*
  * As a convention, in that file, descr[0] is represented by A,
@@ -30,5 +31,7 @@ static double gemm_cost(buffer_descr *descr)
 }
 
 struct perfmodel_t sgemm_model = {
-	.cost_model = gemm_cost
+	.cost_model = gemm_cost,
+	.type = HISTORY_BASED,
+	.symbol = "sgemm"
 };

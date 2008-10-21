@@ -313,6 +313,9 @@ void terminate_machine(void)
 	/* tell all workers to shutdown */
 	kill_all_workers(&config);
 
+	if (get_env_number("CALIBRATE") != -1)
+		dump_registered_models();
+
 	/* wait for their termination */
 	// XXX for now, it's not working !
 //	terminate_workers(&config);

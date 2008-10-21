@@ -1,8 +1,6 @@
 #include "driver_cuda.h"
 #include <core/policies/sched_policy.h>
 
-#include <datawizard/footprint.h>
-
 /* the number of CUDA devices */
 int ncudagpus;
 
@@ -186,15 +184,18 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 	tick_t codelet_start, codelet_end;
 	tick_t codelet_start_comm, codelet_end_comm;
 	
+	unsigned calibrate_model = 0;
+
 	switch (j->type) {
 		case CODELET:
 			ASSERT(j);
 			ASSERT(j->cl);
 
-			if (!j->footprint_is_computed)
-				compute_buffers_footprint(j);
+			if (j->model && j->model->benchmarking) 
+				calibrate_model = 1;
 
-			GET_TICK(codelet_start_comm);
+			if (calibrate_model)
+				GET_TICK(codelet_start_comm);
 
 			ret = fetch_codelet_input(j->buffers, j->interface, j->nbuffers, mask);
 			if (ret != 0) {
@@ -228,10 +229,13 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 				set_function_args(args, j->buffers, j->interface, j->nbuffers);
 
 				/* set up the grids */
-#ifdef MODEL_DEBUG
-				status = cuCtxSynchronize();
-#endif
-				GET_TICK(codelet_start);
+//#ifdef MODEL_DEBUG
+				if (calibrate_model)
+				{
+					status = cuCtxSynchronize();
+					GET_TICK(codelet_start);
+				}
+//#endif
 				status = cuLaunchGrid(args->func->function, 
 						args->gridx, args->gridy);
 				if (status) {
@@ -250,20 +254,17 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 			TRACE_END_CODELET_BODY(j);	
 			push_codelet_output(j->buffers, j->nbuffers, mask);
 
-			GET_TICK(codelet_end_comm);
+//#ifdef MODEL_DEBUG
+			if (calibrate_model)
+			{
+				GET_TICK(codelet_end_comm);
+	
+				double measured = timing_delay(&codelet_start, &codelet_end);
+				double measured_comm = timing_delay(&codelet_start_comm, &codelet_end_comm);
 
-#ifdef MODEL_DEBUG
-			double measured = timing_delay(&codelet_start, &codelet_end);
-			double measured_comm = timing_delay(&codelet_start_comm, &codelet_end_comm);
-
-			update_perfmodel_history(j, CUDA_WORKER, measured);
-
-//			if (j->predicted != 0.0) 
-//			{
-//				fprintf(stderr, "CUDA : model was %e, got %e (with comms, %e), factor (%2.2f \%%)\n", 
-//					j->predicted, measured, measured_comm, 100*(measured/j->predicted - 1.0f));
-//			}
-#endif
+				update_perfmodel_history(j, CUDA_WORKER, measured);
+			}
+//#endif
 
 			break;
 		default:
