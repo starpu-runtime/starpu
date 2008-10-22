@@ -72,9 +72,6 @@ static void insert_history_entry(struct history_entry_t *entry, struct history_l
 }
 
 
-
-#define PERF_MODEL_DIR "/home/gonnet/These/AccMult/.sampling/"
-
 static void parse_model_file(FILE *f, struct perfmodel_t *model)
 {
 	/* TODO */

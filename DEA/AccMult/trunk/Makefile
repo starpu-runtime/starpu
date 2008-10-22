@@ -35,6 +35,12 @@ ifdef MODEL_DEBUG
 	CFLAGS+="-DMODEL_DEBUG "
 endif
 
+ifdef PERF_MODEL_DIR
+	CFLAGS+="-DPERF_MODEL_DIR=\"$(PERF_MODEL_DIR)/\""
+else
+	CFLAGS+="-DPERF_MODEL_DIR=\"/home/gonnet/These/AccMult/.sampling/\""
+endif
+
 # to use CUDA
 CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
 CUDAINSTALLDIR=/usr/local/cuda/
