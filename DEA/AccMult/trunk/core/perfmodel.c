@@ -1,5 +1,4 @@
 #include <unistd.h>
-
 #include <core/perfmodel.h>
 #include <core/jobs.h>
 #include <core/workers.h>
@@ -171,15 +170,27 @@ void register_model(struct perfmodel_t *model)
 	return;
 }
 
+static void get_model_path(struct perfmodel_t *model, char *path, size_t maxlen)
+{
+	strncpy(path, PERF_MODEL_DIR, maxlen);
+	strncat(path, model->symbol, maxlen);
+	
+	char hostname[32];
+	gethostname(hostname, 32);
+	strncat(path, ".", maxlen);
+	strncat(path, hostname, maxlen);
+}
+
 void save_history_based_model(struct perfmodel_t *model)
 {
 	ASSERT(model);
 	ASSERT(model->symbol);
 
-	/* TODO add hostname + check */
+	/* TODO checks */
+
+	/* filename = $PERF_MODEL_DIR/symbol.hostname */
 	char path[256];
-	strncpy(path, PERF_MODEL_DIR, 256);
-	strncat(path, model->symbol, 256);
+	get_model_path(model, path, 256);
 
 	fprintf(stderr, "Opening performance model file %s for model %s\n", path, model->symbol);
 
@@ -219,10 +230,8 @@ void load_history_based_model(struct perfmodel_t *model)
 	 */
 	register_model(model);
 
-	/* TODO add hostname + check */
 	char path[256];
-	strncpy(path, PERF_MODEL_DIR, 256);
-	strncat(path, model->symbol, 256);
+	get_model_path(model, path, 256);
 
 	fprintf(stderr, "Opening performance model file %s for model %s\n", path, model->symbol);
 
