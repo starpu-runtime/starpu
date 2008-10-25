@@ -1,5 +1,5 @@
 #include <task-models/task_model.h>
-#include <core/perfmodel.h>
+#include <core/perfmodel/perfmodel.h>
 #include "strassen_models.h"
 
 /*

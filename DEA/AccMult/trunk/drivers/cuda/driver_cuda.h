@@ -14,7 +14,7 @@
 #include <common/parameters.h>
 #include <core/jobs.h>
 #include <datawizard/copy-driver.h>
-#include <core/perfmodel.h>
+#include <core/perfmodel/perfmodel.h>
 
 #include <common/fxt.h>
 

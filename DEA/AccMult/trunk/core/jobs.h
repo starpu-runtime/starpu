@@ -18,7 +18,7 @@
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/coherency.h>
 
-#include <core/perfmodel.h>
+#include <core/perfmodel/perfmodel.h>
 
 #if defined (USE_CUBLAS) || defined (USE_CUDA)
 #include <cuda.h>

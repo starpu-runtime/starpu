@@ -1,5 +1,5 @@
 #include <core/policies/deque-modeling-policy.h>
-#include <core/perfmodel.h>
+#include <core/perfmodel/perfmodel.h>
 
 /* XXX 32 is set randomly */
 unsigned nworkers;

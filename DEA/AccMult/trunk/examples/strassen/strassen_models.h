@@ -6,6 +6,6 @@
 #include <datawizard/coherency.h>
 #include <datawizard/interfaces/data_interface.h>
 
-#include <core/perfmodel.h>
+#include <core/perfmodel/perfmodel.h>
 
 #endif // __STRASSEN_MODELS_H__

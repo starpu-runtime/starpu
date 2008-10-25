@@ -1,6 +1,6 @@
 #include <task-models/task_model.h>
 #include <task-models/blas_model.h>
-#include <core/perfmodel.h>
+#include <core/perfmodel/perfmodel.h>
 
 /*
  * As a convention, in that file, descr[0] is represented by A,

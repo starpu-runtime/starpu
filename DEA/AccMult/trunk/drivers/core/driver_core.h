@@ -12,7 +12,7 @@
 //#include <core/mechanisms/queues.h>
 //#include <core/policies/sched_policy.h>
 
-#include <core/perfmodel.h>
+#include <core/perfmodel/perfmodel.h>
 
 #include <common/fxt.h>
 

@@ -28,19 +28,6 @@ void paje_output_file_init(void)
 	
 	write_paje_header(out_paje_file);
 
-//	fprintf(out_paje_file, "					\n \
-//	1       PJ      0       \"Java Program\"			\n \
-//	1       T      PJ       \"prout\"				\n \ 
-//	3       S       T       \"Thread State\"			\n \
-//	6       E       S       Executing       \".0 .6 .4\"		\n \
-//	6       B       S       Blocked         \".9 .1 .0\"		\n \
-//	7       -0.0001 pj      PJ      0       testjava		\n \
-//	7       0.5     t1      T       pj      pr			\n \
-//	10      20.4    S       t1      B				\n \
-//	10      26.6    S       t1      E				\n \
-//	8       100.7   t1      T					\n \
-//	8       101.11882       pj      PJ\n");
-
 	fprintf(out_paje_file, "                                        \n \
 	1       P      0       \"Program\"                      	\n \
 	1       T      P       \"Worker\"                               \n \

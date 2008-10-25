@@ -37,6 +37,9 @@ struct history_list_t {
 struct model_list_t {
 	struct model_list_t *next;
 	struct perfmodel_t *model;
+
+	/* for debugging purpose */
+	unsigned debug_modelid;
 };
 
 struct perfmodel_t {
@@ -60,6 +63,9 @@ struct perfmodel_t {
 	const char *symbol;
 	unsigned is_loaded;
 	unsigned benchmarking;
+
+	/* for debugging purpose */
+	unsigned debug_modelid;
 };
 
 //
@@ -70,6 +76,9 @@ struct perfmodel_t {
 //	/* contains core entries, then cuda ones */
 //	struct history_entry_t entries[];
 //}
+
+double history_based_job_expected_length(struct perfmodel_t *model, uint32_t who, struct job_s *j);
+void dump_registered_models(void);
 
 double job_expected_length(uint32_t who, struct job_s *j);
 //void update_perfmodel_history(struct job_s *j, archtype arch, double measured);

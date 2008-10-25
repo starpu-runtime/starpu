@@ -1,4 +1,4 @@
-#include <core/perfmodel.h>
+#include <core/perfmodel/perfmodel.h>
 #include <task-models/task_model.h>
 #include "lu_kernels_model.h"
 

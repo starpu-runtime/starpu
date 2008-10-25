@@ -146,7 +146,8 @@ OBJDEPS += common/threads.o
 OBJDEPS += common/hash.o
 OBJDEPS += common/timing.o 
 OBJDEPS += common/htable32.o 
-OBJDEPS += core/perfmodel.o 
+OBJDEPS += core/perfmodel/perfmodel.o 
+OBJDEPS += core/perfmodel/perfmodel_history.o 
 OBJDEPS += core/jobs.o core/workers.o
 OBJDEPS += core/dependencies/tags.o
 OBJDEPS += core/dependencies/htable.o
@@ -236,6 +237,8 @@ libs: $(LIBS)
 examples: libs
 	@make -C examples
 
+tags:
+	find .|xargs ctags
 
 clean:
 	@make -C common clean
