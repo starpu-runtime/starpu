@@ -10,9 +10,23 @@ struct buffer_descr_t;
 struct job_s;
 
 struct history_entry_t {
-	double measured;
-	uint32_t footprint;
+	//double measured;
+	
+	/* mean_n = 1/n sum */
+	double mean;
+
+	/* n dev_n = sum2 - 1/n (sum)^2 */
+	double deviation;
+
+	/* sum of samples */
+	double sum;
+
+	/* sum of samples^2 */
+	double sum2;
+
 	unsigned nsample;
+
+	uint32_t footprint;
 };
 
 struct history_list_t {

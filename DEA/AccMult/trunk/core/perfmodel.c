@@ -70,6 +70,18 @@ static void insert_history_entry(struct history_entry_t *entry, struct history_l
 	ASSERT(old == NULL);
 }
 
+static void dump_history_entry(FILE *f, struct history_entry_t *entry)
+{
+	fprintf(f, "%x\t%lf\t%lf\t%lf\t%lf\t%d\n", entry->footprint, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
+}
+
+static void scan_history_entry(FILE *f, struct history_entry_t *entry)
+{
+	int res;
+
+	res = fscanf(f, "%x\t%lf\t%lf\t%lf\t%lf\t%d\n", &entry->footprint, &entry->mean, &entry->deviation, &entry->sum, &entry->sum2, &entry->nsample);
+	ASSERT(res == 6);
+}
 
 static void parse_model_file(FILE *f, struct perfmodel_t *model)
 {
@@ -85,8 +97,8 @@ static void parse_model_file(FILE *f, struct perfmodel_t *model)
 	for (i = 0; i < ncore_entries; i++) {
 		struct history_entry_t *entry = malloc(sizeof(struct history_entry_t));
 		ASSERT(entry);
-		res = fscanf(f, "%x\t%lf\t%d\n", &entry->footprint, &entry->measured, &entry->nsample);
-		ASSERT(res == 3);
+
+		scan_history_entry(f, entry);
 		
 		/* insert the entry in the hashtable and the list structures  */
 		insert_history_entry(entry, &model->list_core, &model->history_core);
@@ -95,15 +107,16 @@ static void parse_model_file(FILE *f, struct perfmodel_t *model)
 	for (i = 0; i < ncuda_entries; i++) {
 		struct history_entry_t *entry = malloc(sizeof(struct history_entry_t));
 		ASSERT(entry);
-		res = fscanf(f, "%x\t%lf\t%d\n", &entry->footprint, &entry->measured, &entry->nsample);
-		ASSERT(res == 3);
 		
+		scan_history_entry(f, entry);
+
 		/* insert the entry in the hashtable and the list structures  */
 		insert_history_entry(entry, &model->list_cuda, &model->history_cuda);
 	}
 
 //	model->benchmarking = 0;
 }
+
 
 static void dump_model_file(FILE *f, struct perfmodel_t *model)
 {
@@ -133,14 +146,14 @@ static void dump_model_file(FILE *f, struct perfmodel_t *model)
 	ptr = model->list_core;
 	while (ptr) {
 		//memcpy(&entries_array[i++], ptr->entry, sizeof(struct history_entry_t));
-		fprintf(f, "%x\t%lf\t%d\n", ptr->entry->footprint, ptr->entry->measured, ptr->entry->nsample);
+		dump_history_entry(f, ptr->entry);
 		ptr = ptr->next;
 	}
 
 	ptr = model->list_cuda;
 	while (ptr) {
 		//memcpy(&entries_array[i++], ptr->entry, sizeof(struct history_entry_t));
-		fprintf(f, "%x\t%lf\t%d\n", ptr->entry->footprint, ptr->entry->measured, ptr->entry->nsample);
+		dump_history_entry(f, ptr->entry);
 		ptr = ptr->next;
 	}
 }
@@ -301,7 +314,7 @@ static double history_based_job_expected_length(struct perfmodel_t *model, uint3
 
 	entry = htbl_search_32(history, key);
 
-	exp = entry?entry->measured:0.0;
+	exp = entry?entry->mean:0.0;
 
 //	fprintf(stderr, "history prediction : entry = %p (footprint %x), expected %e\n", entry, j->footprint, exp);
 
@@ -372,7 +385,11 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 			/* this is the first entry with such a footprint */
 			entry = malloc(sizeof(struct history_entry_t));
 			ASSERT(entry);
-				entry->measured = measured;
+				entry->mean = measured;
+				entry->deviation = 0.0;
+				entry->sum = measured;
+				entry->sum2 = measured*measured;
+
 				entry->footprint = key;
 				entry->nsample = 1;
 
@@ -381,10 +398,14 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 		}
 		else {
 			/* there is already some entry with the same footprint */
-			double oldmean = entry->measured;
-			entry->measured =
-				(oldmean * entry->nsample + measured)/(entry->nsample+1);
+			double oldmean = entry->mean;
+			entry->sum += measured;
+			entry->sum2 += measured*measured;
 			entry->nsample++;
+
+			unsigned n = entry->nsample;
+			entry->mean = entry->sum / n;
+			entry->deviation = sqrt((entry->sum2 - (entry->sum*entry->sum)/n)/n);
 		}
 
 		ASSERT(entry);
