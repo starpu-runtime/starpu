@@ -138,7 +138,7 @@ void handle_start_codelet_body(void)
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
 //	printf("-> worker %d\n", worker);
-	fprintf(out_paje_file, "10       %f	S      %d      E\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+	fprintf(out_paje_file, "10       %f	S      %ld      E\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 
 	event_t e = event_new();
 	e->time =  ev.time;
@@ -156,7 +156,7 @@ void handle_end_codelet_body(void)
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
 //	printf("<- worker %d\n", worker);
-	fprintf(out_paje_file, "10       %f	S      %d      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 
 	event_t e = event_new();
 	e->time =  ev.time;
