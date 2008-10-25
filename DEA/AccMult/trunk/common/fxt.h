@@ -35,8 +35,6 @@
 #define FUT_DATA_COPY		0x5113
 #define FUT_WORK_STEALING	0x5114
 
-#define FUT_MODEL_ACCURACY_REPORT	0x5115
-
 #ifdef USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -84,9 +82,6 @@ void fxt_register_thread(unsigned);
 #define TRACE_WORK_STEALING(empty_q, victim_q)		\
 	FUT_DO_PROBE2(FUT_WORK_STEALING, empty_q, victim_q)
 
-#define TRACE_MODEL_ACCURACY_REPORT(job, model, measured, measured_comm)	\
-	FUT_DO_PROBE3(FUT_MODEL_ACCURACY_REPORT, job, model, measured, measured_comm)
-
 #else // !USE_FXT
 
 #define TRACE_NEW_WORKER(a)		do {} while(0);
@@ -102,7 +97,6 @@ void fxt_register_thread(unsigned);
 #define TRACE_CODELET_TAG_DEPS(a, b)	do {} while(0);
 #define TRACE_DATA_COPY(a, b, c)	do {} while(0);
 #define TRACE_WORK_STEALING(a, b)	do {} while(0);
-#define TRACE_MODEL_ACCURACY_REPORT(a,b,c,d)	do {} while(0);
 
 #endif // USE_FXT
 

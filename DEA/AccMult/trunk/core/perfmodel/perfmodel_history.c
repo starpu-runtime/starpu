@@ -2,6 +2,7 @@
 #include <core/perfmodel/perfmodel.h>
 #include <core/jobs.h>
 #include <core/workers.h>
+#include <common/mutex.h>
 #include <datawizard/footprint.h>
 
 /*
@@ -67,7 +68,7 @@ static void parse_model_file(FILE *f, struct perfmodel_t *model)
 		/* insert the entry in the hashtable and the list structures  */
 		insert_history_entry(entry, &model->list_cuda, &model->history_cuda);
 	}
-
+	
 //	model->benchmarking = 0;
 }
 
@@ -90,8 +91,6 @@ static void dump_model_file(FILE *f, struct perfmodel_t *model)
 		ncuda_entries++;
 		ptr = ptr->next;
 	}
-
-	unsigned i = 0;
 
 	/* header */
 	fprintf(f, "%d\n", ncore_entries);
@@ -124,6 +123,20 @@ static void initialize_model(struct perfmodel_t *model)
 }
 
 static struct model_list_t *registered_models = NULL;
+//static unsigned debug_modelid = 0;
+
+static void get_model_debug_path(struct perfmodel_t *model, char *path, size_t maxlen)
+{
+	strncpy(path, PERF_MODEL_DIR, maxlen);
+	strncat(path, model->symbol, maxlen);
+	
+	char hostname[32];
+	gethostname(hostname, 32);
+	strncat(path, ".", maxlen);
+	strncat(path, hostname, maxlen);
+	strncat(path, ".debug", maxlen);
+}
+
 
 void register_model(struct perfmodel_t *model)
 {
@@ -131,8 +144,18 @@ void register_model(struct perfmodel_t *model)
 	struct model_list_t *node = malloc(sizeof(struct model_list_t));
 
 	node->model = model;
+	//model->debug_modelid = debug_modelid++;
+
+	/* put this model at the beginning of the list */
 	node->next = registered_models;
 	registered_models = node;
+
+#ifdef MODEL_DEBUG
+	char debugpath[256];
+	get_model_debug_path(model, debugpath, 256);
+	model->debug_file = fopen(debugpath, "a+");
+	ASSERT(model->debug_file);
+#endif
 
 	return;
 }
@@ -169,6 +192,10 @@ void save_history_based_model(struct perfmodel_t *model)
 	dump_model_file(f, model);
 
 	fclose(f);
+
+#ifdef DEBUG_MODEL
+	fclose(model->debug_file);
+#endif
 }
 
 void dump_registered_models(void)
@@ -191,47 +218,58 @@ void load_history_based_model(struct perfmodel_t *model)
 	ASSERT(model);
 	ASSERT(model->symbol);
 
-	/*
-	 * We need to keep track of all the model that were opened so that we can 
-	 * possibly update them at runtime termination ...
-	 */
-	register_model(model);
+	/* XXX we assume the lock is implicitely initialized (taken = 0) */
+	//init_mutex(&model->model_mutex);
+	take_mutex(&model->model_mutex);
 
-	char path[256];
-	get_model_path(model, path, 256);
-
-	fprintf(stderr, "Opening performance model file %s for model %s\n", path, model->symbol);
-
-	/* try to open an existing file and load it */
-	int res;
-	res = access(path, F_OK); 
-	if (res == 0) {
-		fprintf(stderr, "File exists !\n");
-
-		FILE *f;
-		f = fopen(path, "r");
-		ASSERT(f);
-
-		parse_model_file(f, model);
-
-		fclose(f);
-	}
-	else {
-		//fprintf(stderr, "File does not exists !\n");
-		initialize_model(model);
-	}
-
-
-	if (get_env_number("CALIBRATE") != -1)
+	/* perhaps some other thread got in before ... */
+	if (!model->is_loaded)
 	{
-		fprintf(stderr, "CALIBRATE model %s\n", model->symbol);
-		model->benchmarking = 1;
-	}
-	else {
-		model->benchmarking = 0;
+	
+		/*
+		 * We need to keep track of all the model that were opened so that we can 
+		 * possibly update them at runtime termination ...
+		 */
+		register_model(model);
+	
+		char path[256];
+		get_model_path(model, path, 256);
+	
+		fprintf(stderr, "Opening performance model file %s for model %s\n", path, model->symbol);
+	
+		/* try to open an existing file and load it */
+		int res;
+		res = access(path, F_OK); 
+		if (res == 0) {
+			fprintf(stderr, "File exists !\n");
+	
+			FILE *f;
+			f = fopen(path, "r");
+			ASSERT(f);
+	
+			parse_model_file(f, model);
+	
+			fclose(f);
+		}
+		else {
+			//fprintf(stderr, "File does not exists !\n");
+			initialize_model(model);
+		}
+	
+	
+		if (get_env_number("CALIBRATE") != -1)
+		{
+			fprintf(stderr, "CALIBRATE model %s\n", model->symbol);
+			model->benchmarking = 1;
+		}
+		else {
+			model->benchmarking = 0;
+		}
+	
+		model->is_loaded = 1;
 	}
 
-	model->is_loaded = 1;
+	release_mutex(&model->model_mutex);
 }
 
 double history_based_job_expected_length(struct perfmodel_t *model, uint32_t who, struct job_s *j)
@@ -266,7 +304,9 @@ double history_based_job_expected_length(struct perfmodel_t *model, uint32_t who
 		ASSERT(0);
 	}
 
+	take_mutex(&model->model_mutex);
 	entry = htbl_search_32(history, key);
+	release_mutex(&model->model_mutex);
 
 	exp = entry?entry->mean:0.0;
 
@@ -304,6 +344,8 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 				ASSERT(0);
 		}
 
+		take_mutex(&j->model->model_mutex);
+
 		entry = htbl_search_32(history, key);
 
 		if (!entry)
@@ -324,7 +366,6 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 		}
 		else {
 			/* there is already some entry with the same footprint */
-			double oldmean = entry->mean;
 			entry->sum += measured;
 			entry->sum2 += measured*measured;
 			entry->nsample++;
@@ -333,12 +374,13 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 			entry->mean = entry->sum / n;
 			entry->deviation = sqrt((entry->sum2 - (entry->sum*entry->sum)/n)/n);
 		}
+		
+		release_mutex(&j->model->model_mutex);
 
 		ASSERT(entry);
 
 #ifdef MODEL_DEBUG
-		fprintf(stderr, "model was %e, got %e (mean %e, footprint %x) factor (%2.2f \%%)\n",
-				j->predicted, measured, entry->measured, key, 100*(measured/j->predicted - 1.0f));
+		fprintf(j->model->debug_file, "%d\t%x\t%lf\t%lf\t%lf\n", arch, key, measured, entry->mean, entry->deviation);
 #endif
 	}
 }

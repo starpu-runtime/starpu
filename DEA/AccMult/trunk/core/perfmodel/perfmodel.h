@@ -4,6 +4,7 @@
 //#include <core/jobs.h>
 #include <common/htable32.h>
 //#include <core/workers.h>
+#include <common/mutex.h>
 #include <stdio.h>
 
 struct buffer_descr_t;
@@ -37,9 +38,6 @@ struct history_list_t {
 struct model_list_t {
 	struct model_list_t *next;
 	struct perfmodel_t *model;
-
-	/* for debugging purpose */
-	unsigned debug_modelid;
 };
 
 struct perfmodel_t {
@@ -64,8 +62,13 @@ struct perfmodel_t {
 	unsigned is_loaded;
 	unsigned benchmarking;
 
+	mutex model_mutex;
+
+#ifdef MODEL_DEBUG
 	/* for debugging purpose */
 	unsigned debug_modelid;
+	FILE *debug_file;
+#endif
 };
 
 //
