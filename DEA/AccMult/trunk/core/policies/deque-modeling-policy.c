@@ -50,6 +50,18 @@ static void _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task
 
 		double local_length = job_expected_length(queue_array[worker]->who, task);
 
+		if (local_length == -1.0) 
+		{
+			/* there is no prediction available for that task
+			 * with that arch we want to speed-up calibration time 
+			 * so we force this measurement */
+			/* XXX assert we are benchmarking ! */
+			best = worker;
+			model_best = 0.0;
+			exp_end = fifo->exp_start + fifo->exp_len;
+			break;
+		}
+
 
 		exp_end = fifo->exp_start + fifo->exp_len + local_length;
 

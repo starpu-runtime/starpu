@@ -28,7 +28,7 @@ static double per_arch_job_expected_length(struct perfmodel_t *model, uint32_t w
 		return exp;
 	}
 
-	return 0.0;
+	return -1.0;
 }
 
 /*
@@ -45,7 +45,7 @@ static double common_job_expected_length(struct perfmodel_t *model, uint32_t who
 		return exp;
 	}
 
-	return 0.0;
+	return -1.0;
 }
 
 double job_expected_length(uint32_t who, struct job_s *j)

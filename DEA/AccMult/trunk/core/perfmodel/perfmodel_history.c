@@ -308,7 +308,7 @@ double history_based_job_expected_length(struct perfmodel_t *model, uint32_t who
 	entry = htbl_search_32(history, key);
 	release_mutex(&model->model_mutex);
 
-	exp = entry?entry->mean:0.0;
+	exp = entry?entry->mean:-1.0;
 
 //	fprintf(stderr, "history prediction : entry = %p (footprint %x), expected %e\n", entry, j->footprint, exp);
 
