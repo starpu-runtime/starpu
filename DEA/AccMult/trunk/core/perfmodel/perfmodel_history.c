@@ -27,15 +27,15 @@ static void insert_history_entry(struct history_entry_t *entry, struct history_l
 
 static void dump_history_entry(FILE *f, struct history_entry_t *entry)
 {
-	fprintf(f, "%x\t%lf\t%lf\t%lf\t%lf\t%d\n", entry->footprint, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
+	fprintf(f, "%x\t%zu\t%lf\t%lf\t%lf\t%lf\t%d\n", entry->footprint, entry->size, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
 }
 
 static void scan_history_entry(FILE *f, struct history_entry_t *entry)
 {
 	int res;
 
-	res = fscanf(f, "%x\t%lf\t%lf\t%lf\t%lf\t%d\n", &entry->footprint, &entry->mean, &entry->deviation, &entry->sum, &entry->sum2, &entry->nsample);
-	ASSERT(res == 6);
+	res = fscanf(f, "%x\t%zu\t%lf\t%lf\t%lf\t%lf\t%d\n", &entry->footprint, &entry->size, &entry->mean, &entry->deviation, &entry->sum, &entry->sum2, &entry->nsample);
+	ASSERT(res == 7);
 }
 
 static void parse_model_file(FILE *f, struct perfmodel_t *model)
@@ -359,6 +359,7 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 				entry->sum2 = measured*measured;
 
 				entry->footprint = key;
+				entry->size = job_get_data_size(j);
 				entry->nsample = 1;
 
 			insert_history_entry(entry, list, history_ptr);
@@ -380,7 +381,7 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 		ASSERT(entry);
 
 #ifdef MODEL_DEBUG
-		fprintf(j->model->debug_file, "%d\t%x\t%lf\t%lf\t%lf\n", arch, key, measured, entry->mean, entry->deviation);
+		fprintf(j->model->debug_file, "%d\t%x\t%zu\t%lf\t%lf\t%lf\n", arch, key, entry->size, measured, entry->mean, entry->deviation);
 #endif
 	}
 }

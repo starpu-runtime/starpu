@@ -28,6 +28,7 @@ struct history_entry_t {
 	unsigned nsample;
 
 	uint32_t footprint;
+	size_t size; /* in bytes */
 };
 
 struct history_list_t {
