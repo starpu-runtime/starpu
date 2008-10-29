@@ -25,6 +25,16 @@ struct history_entry_t {
 	/* sum of samples^2 */
 	double sum2;
 
+//	/* sum of ln(measured) */
+//	double sumlny;
+//
+//	/* sum of ln(size) */
+//	double sumlnx;
+//	double sumlnx2;
+//
+//	/* sum of ln(size) ln(measured) */
+//	double sumlnxlny;
+//
 	unsigned nsample;
 
 	uint32_t footprint;
@@ -39,6 +49,24 @@ struct history_list_t {
 struct model_list_t {
 	struct model_list_t *next;
 	struct perfmodel_t *model;
+};
+
+struct regression_model_t {
+	/* sum of ln(measured) */
+	double sumlny;
+
+	/* sum of ln(size) */
+	double sumlnx;
+	double sumlnx2;
+
+	/* sum of ln(size) ln(measured) */
+	double sumlnxlny;
+
+	/* y = alpha size ^ beta */
+	double alpha;
+	double beta;
+
+	unsigned nsample;
 };
 
 struct perfmodel_t {
@@ -58,6 +86,9 @@ struct perfmodel_t {
 
 	struct history_list_t *list_cuda;
 	struct history_list_t *list_core;
+
+	struct regression_model_t regression_cuda;
+	struct regression_model_t regression_core;
 	
 	const char *symbol;
 	unsigned is_loaded;

@@ -3,12 +3,14 @@ max <- 30
 sizelist <- seq(64, max*1024, 64);
 #schedlist <- c("greedy", "prio", "dm", "random", "no-prio", "ws");
 #schedlist <- c("greedy", "prio", "dm", "random");
-grainlist <- c(64, 128, 256, 512, 768, 1024, 1280, 1536, 2048);
+#grainlist <- c(64, 128, 256, 512, 768, 1024, 1280, 1536, 2048);
+grainlist <- c(256, 512, 768, 1024)
 
 gflops <- function (x, size)
 {
 	2*size*size*size/(3000000*x);
 }
+
 
 parse <- function (size, grain)
 {
@@ -79,15 +81,118 @@ handle_grain_mean <- function(grain)
 	);
 }
 
+
+
+
+
+
+
+
+
+
+parse_nm <- function (size, grain)
+{
+	filename = paste("timing/granularity.nomodel", grain, size, sep=".");
+
+	if (file.exists(filename))
+	{
+
+		ret <- scan(filename);
+		return(ret);
+	}
+
+	return (NA);
+}
+
+handle_size_nm <- function (size, grain)
+{
+	parsed <- parse_nm(size, grain);
+	if (is.na(parsed))
+	{
+		return (NA);
+	}
+
+	gflops <- gflops(parsed, size);
+
+	return(gflops);
+}
+
+
+handle_grain_nm <- function(grain)
+{
+	gflopstab <- NULL;
+	sizetab <- NULL;
+
+	for (size in sizelist) {
+		list <- handle_size_nm(size, grain);
+
+		if (!is.na(list))
+		{
+			gflopstab <- c(gflopstab, list);
+			sizetab <- c(sizetab, array(size, c(length(list))));
+		}
+	}
+
+	return(
+		data.frame(gflops=gflopstab, size=sizetab, grain=array(grain, c(length(gflopstab)) ))
+	);
+}
+
+handle_grain_mean_nm <- function(grain)
+{
+	meantab <- NULL;
+	sizetab <- NULL;
+
+	for (size in sizelist) {
+		list <- mean(handle_size_nm(size, grain));
+
+		if (!is.na(list))
+		{
+			meantab <- c(meantab, list);
+			sizetab <- c(sizetab, array(size, c(length(list))));
+		}
+	}
+
+	return(
+		data.frame(gflops=meantab, size=sizetab, grain=array(grain, c(length(meantab)) ))
+#		meantab
+	);
+}
+
+handle_grain_mean <- function(grain)
+{
+	meantab <- NULL;
+	sizetab <- NULL;
+
+	for (size in sizelist) {
+		list <- mean(handle_size(size, grain));
+
+		if (!is.na(list))
+		{
+			meantab <- c(meantab, list);
+			sizetab <- c(sizetab, array(size, c(length(list))));
+		}
+	}
+
+	return(
+		data.frame(gflops=meantab, size=sizetab, grain=array(grain, c(length(meantab)) ))
+#		meantab
+	);
+}
+
 trace_grain <- function(grain, color, style)
 {
-	#points(handle_grain(grain)$size, handle_grain(grain)$gflops, col=color);
+#	points(handle_grain(grain)$size, handle_grain(grain)$gflops, col=color);
+
 	pouet <- handle_grain_mean(grain);
 	pouetgflops <- pouet$gflops;
 	pouetsize <- pouet$size;
-#	print(pouetgflops);
-#	print(pouetsize);
 	lines(pouetsize, pouetgflops, col=color, legend.text=TRUE, type = "o", pch = style, lwd=2);
+
+	pouet <- handle_grain_mean_nm(grain);
+	pouetgflops <- pouet$gflops;
+	pouetsize <- pouet$size;
+	lines(pouetsize, pouetgflops, col=color, legend.text=TRUE, type = "o", pch = style, lwd=1);
 }
 
 display_grain <- function()
@@ -96,7 +201,7 @@ display_grain <- function()
 	ylist <- range(c(0,100));
 
 	plot.new();
-	plot.window(xlist, ylist, log="x");
+	plot.window(xlist, ylist, log="");
 
 	i <- 0;
 

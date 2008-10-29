@@ -4,7 +4,7 @@ CFLAGS += -I../../
 	$(CC) $(CFLAGS) $< -c -o $@
 	$(CC) $(CFLAGS) $< -MM > $*.d
 
-all: perfmodel_history.o perfmodel.o
+all: perfmodel_history.o perfmodel.o regression.o
 
 clean:
 	@rm -f *.o *.d *.gcno *.gcda

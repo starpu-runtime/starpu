@@ -10,6 +10,14 @@ trace_model()
 	coremodel=`head -3 $inputfile|tail -1`
 	gpumodel=`head -4 $inputfile|tail -1`
 	
+	a_core=`cut -f 1 $inputfile| head -5|tail -1`
+	b_core=`cut -f 2 $inputfile| head -5|tail -1`
+	c_core=`cut -f 3 $inputfile| head -5|tail -1`
+	
+	a_gpu=`cut -f 1 $inputfile| head -6|tail -1`
+	b_gpu=`cut -f 2 $inputfile| head -6|tail -1`
+	c_gpu=`cut -f 3 $inputfile| head -6|tail -1`
+
 	alpha_core=`cut -f 5 $inputfile| head -3|tail -1` 
 	alpha_gpu=`cut -f 5 $inputfile| head -4|tail -1` 
 	
@@ -30,13 +38,16 @@ trace_model()
 	echo "set term postscript eps enhanced color" 	>> $gpfile
 	echo "set logscale x"				>> $gpfile 
 	echo "set logscale y"				>> $gpfile 
+	echo "set key left top"				>> $gpfile 
 	echo "set title \"$inputfile\""			>> $gpfile 
 	echo "set output \"$inputfile.eps\""		>> $gpfile
 	
 	echo  "plot	$alpha_gpu*x**$beta_gpu title \"GPU regression\" ,\\" >> $gpfile
-	echo  "	$alpha_core*x**$beta_core title \"CORE regression\" ,\\" >> $gpfile
 	echo  "	\"$inputfile.gpu\" with errorbar title \"GPU measured\" ,\\" >> $gpfile
-	echo  "	\"$inputfile.core\" with errorbar title \"CORE measured\"" >> $gpfile
+	echo  "	$c_gpu + exp(log($a_gpu) + $b_gpu * log(x) ) title \"GPU regression (non linear)\" ,\\" >> $gpfile
+	echo  "	\"$inputfile.core\" with errorbar title \"CORE measured\" ,\\" >> $gpfile
+	echo  "	$alpha_core*x**$beta_core title \"CORE regression\" ,\\" >> $gpfile
+	echo  "	$c_core + exp(log($a_core) + $b_core * log(x) ) title \"CORE regression (non linear)\"" >> $gpfile
 	
 	gnuplot $gpfile
 }

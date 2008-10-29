@@ -4,7 +4,7 @@ CC=gcc -m64
 NVCC = nvcc -m64
 NVCCFLAGS += -O3
 
-CFLAGS += -g -O3 -Wall
+CFLAGS += -g -O0 -Wall
 CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses
 CFLAGS += -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type 
 CFLAGS += -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -fno-strict-aliasing
@@ -147,6 +147,7 @@ OBJDEPS += common/hash.o
 OBJDEPS += common/timing.o 
 OBJDEPS += common/htable32.o 
 OBJDEPS += core/perfmodel/perfmodel.o 
+OBJDEPS += core/perfmodel/regression.o 
 OBJDEPS += core/perfmodel/perfmodel_history.o 
 OBJDEPS += core/jobs.o core/workers.o
 OBJDEPS += core/dependencies/tags.o

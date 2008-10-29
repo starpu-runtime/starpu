@@ -4,6 +4,7 @@
 #include <core/workers.h>
 #include <common/mutex.h>
 #include <datawizard/footprint.h>
+#include <core/perfmodel/regression.h>
 
 /*
  * History based model
@@ -25,16 +26,31 @@ static void insert_history_entry(struct history_entry_t *entry, struct history_l
 	ASSERT(old == NULL);
 }
 
+
+static void dump_reg_model(FILE *f, struct regression_model_t *reg_model)
+{
+	fprintf(f, "%le\t%le\t%le\t%le\t%le\t%le\t%d\n", reg_model->sumlnx, reg_model->sumlnx2, reg_model->sumlny, reg_model->sumlnxlny, reg_model->alpha, reg_model->beta, reg_model->nsample);
+}
+
+static void scan_reg_model(FILE *f, struct regression_model_t *reg_model)
+{
+	int res;
+
+	res = fscanf(f, "%le\t%le\t%le\t%le\t%le\t%le\t%d\n", &reg_model->sumlnx, &reg_model->sumlnx2, &reg_model->sumlny, &reg_model->sumlnxlny, &reg_model->alpha, &reg_model->beta, &reg_model->nsample);
+	ASSERT(res == 7);
+}
+
+
 static void dump_history_entry(FILE *f, struct history_entry_t *entry)
 {
-	fprintf(f, "%x\t%zu\t%lf\t%lf\t%lf\t%lf\t%d\n", entry->footprint, entry->size, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
+	fprintf(f, "%x\t%zu\t%le\t%le\t%le\t%le\t%d\n", entry->footprint, entry->size, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
 }
 
 static void scan_history_entry(FILE *f, struct history_entry_t *entry)
 {
 	int res;
 
-	res = fscanf(f, "%x\t%zu\t%lf\t%lf\t%lf\t%lf\t%d\n", &entry->footprint, &entry->size, &entry->mean, &entry->deviation, &entry->sum, &entry->sum2, &entry->nsample);
+	res = fscanf(f, "%x\t%zu\t%le\t%le\t%le\t%le\t%d\n", &entry->footprint, &entry->size, &entry->mean, &entry->deviation, &entry->sum, &entry->sum2, &entry->nsample);
 	ASSERT(res == 7);
 }
 
@@ -46,6 +62,17 @@ static void parse_model_file(FILE *f, struct perfmodel_t *model)
 	unsigned ncore_entries, ncuda_entries;
 	int res = fscanf(f, "%d\n%d\n", &ncore_entries, &ncuda_entries);
 	ASSERT(res == 2);
+
+	/* parse regression models */
+	scan_reg_model(f, &model->regression_core);
+	scan_reg_model(f, &model->regression_cuda);
+
+	/* for now, we just "consume" that */
+	double a, b, c;
+	res = fscanf(f, "%le\t%le\t%le\n", &a, &b, &c);
+	ASSERT(res == 3);
+	res = fscanf(f, "%le\t%le\t%le\n", &a, &b, &c);
+	ASSERT(res == 3);
 
 	/* parse core entries */
 	unsigned i;
@@ -96,6 +123,16 @@ static void dump_model_file(FILE *f, struct perfmodel_t *model)
 	fprintf(f, "%d\n", ncore_entries);
 	fprintf(f, "%d\n", ncuda_entries);
 
+	dump_reg_model(f, &model->regression_core);
+	dump_reg_model(f, &model->regression_cuda);
+
+	/* TODO clean up !*/
+	double a,b,c;
+	regression_non_linear_power(model->list_core, &a, &b, &c);
+	fprintf(f, "%le\t%le\t%le\n", a, b, c);
+	regression_non_linear_power(model->list_cuda, &a, &b, &c);
+	fprintf(f, "%le\t%le\t%le\n", a, b, c);
+
 	ptr = model->list_core;
 	while (ptr) {
 		//memcpy(&entries_array[i++], ptr->entry, sizeof(struct history_entry_t));
@@ -109,6 +146,7 @@ static void dump_model_file(FILE *f, struct perfmodel_t *model)
 		dump_history_entry(f, ptr->entry);
 		ptr = ptr->next;
 	}
+
 }
 
 static void initialize_model(struct perfmodel_t *model)
@@ -191,7 +229,10 @@ void save_history_based_model(struct perfmodel_t *model)
 
 	dump_model_file(f, model);
 
+
+
 	fclose(f);
+
 
 #ifdef DEBUG_MODEL
 	fclose(model->debug_file);
@@ -324,6 +365,7 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 
 		struct htbl32_node_s *history;
 		struct htbl32_node_s **history_ptr;
+		struct regression_model_t *reg_model;
 
 		struct history_list_t **list;
 
@@ -333,11 +375,13 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 			case CORE_WORKER:
 				history = j->model->history_core;
 				history_ptr = &j->model->history_core;
+				reg_model = &j->model->regression_core;
 				list = &j->model->list_core;
 				break;
 			case CUDA_WORKER:
 				history = j->model->history_cuda;
 				history_ptr = &j->model->history_cuda;
+				reg_model = &j->model->regression_cuda;
 				list = &j->model->list_cuda;
 				break;
 			default:
@@ -354,12 +398,14 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 			entry = malloc(sizeof(struct history_entry_t));
 			ASSERT(entry);
 				entry->mean = measured;
-				entry->deviation = 0.0;
 				entry->sum = measured;
+
+				entry->deviation = 0.0;
 				entry->sum2 = measured*measured;
 
-				entry->footprint = key;
 				entry->size = job_get_data_size(j);
+
+				entry->footprint = key;
 				entry->nsample = 1;
 
 			insert_history_entry(entry, list, history_ptr);
@@ -375,6 +421,25 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 			entry->mean = entry->sum / n;
 			entry->deviation = sqrt((entry->sum2 - (entry->sum*entry->sum)/n)/n);
 		}
+
+		/* update the regression model as well */
+		double logy, logx;
+		logx = logl(entry->size);
+		logy = logl(measured);
+
+		reg_model->sumlnx += logx;
+		reg_model->sumlnx2 += logx*logx;
+		reg_model->sumlny += logy;
+		reg_model->sumlnxlny += logx*logy;
+		reg_model->nsample++;
+
+		unsigned n = reg_model->nsample;
+		
+		double num = (n*reg_model->sumlnxlny - reg_model->sumlnx*reg_model->sumlny);
+		double denom = (n*reg_model->sumlnx2 - reg_model->sumlnx*reg_model->sumlnx);
+
+		reg_model->beta = num/denom;
+		reg_model->alpha = expl((reg_model->sumlny - reg_model->beta*reg_model->sumlnx)/n);
 		
 		release_mutex(&j->model->model_mutex);
 
