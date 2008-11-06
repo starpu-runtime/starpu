@@ -39,6 +39,7 @@ Application domains
 		- Cholesky, QR, ...
 	- Sparse Linear algebra
 		- PastiX
+			- Datawizard + BLAS wrapper
 		- SuperLU
 	- n-body problems
 		- particle-particle (O(n^2))
