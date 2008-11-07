@@ -1,8 +1,6 @@
 #include "driver_core.h"
 #include <core/policies/sched_policy.h>
 
-#include <datawizard/footprint.h>
-
 extern unsigned ncores;
 
 /* XXX */

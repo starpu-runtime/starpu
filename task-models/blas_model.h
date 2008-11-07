@@ -3,7 +3,6 @@
 
 #include <common/util.h>
 
-#include <datawizard/coherency.h>
-#include <datawizard/interfaces/data_interface.h>
+#include <datawizard/datawizard.h>
 
 #endif // __BLAS_MODEL_H__

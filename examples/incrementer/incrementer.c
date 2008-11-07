@@ -8,9 +8,7 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include <signal.h>
-#include <datawizard/coherency.h>
-#include <datawizard/hierarchy.h>
-#include <datawizard/interfaces/vector_filters.h>
+#include <datawizard/datawizard.h>
 
 #ifdef USE_CUDA
 #include <drivers/cuda/driver_cuda.h>

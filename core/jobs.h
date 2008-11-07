@@ -15,8 +15,7 @@
 
 #include <core/dependencies/tags.h>
 
-#include <datawizard/interfaces/data_interface.h>
-#include <datawizard/coherency.h>
+#include <datawizard/datawizard.h>
 
 #include <core/perfmodel/perfmodel.h>
 

@@ -3,7 +3,7 @@
 #include <core/jobs.h>
 #include <core/workers.h>
 #include <common/mutex.h>
-#include <datawizard/footprint.h>
+#include <datawizard/datawizard.h>
 #include <core/perfmodel/regression.h>
 
 /*

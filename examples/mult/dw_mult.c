@@ -12,10 +12,7 @@
 #include <cblas.h>
 #include <common/timing.h>
 
-#include <datawizard/coherency.h>
-#include <datawizard/hierarchy.h>
-#include <datawizard/interfaces/blas_interface.h>
-#include <datawizard/interfaces/blas_filters.h>
+#include <datawizard/datawizard.h>
 
 #include <task-models/blas_model.h>
 

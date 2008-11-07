@@ -16,7 +16,7 @@
 
 #include <common/fxt.h>
 
-#include <datawizard/copy-driver.h>
+#include <datawizard/datawizard.h>
 
 typedef struct core_worker_arg_t {
         int coreid;

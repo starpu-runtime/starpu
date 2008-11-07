@@ -16,16 +16,7 @@
 #include <cblas.h>
 #include <common/timing.h>
 
-#include <datawizard/coherency.h>
-#include <datawizard/hierarchy.h>
-#include <datawizard/interfaces/blas_interface.h>
-#include <datawizard/interfaces/csr_interface.h>
-#include <datawizard/interfaces/bcsr_interface.h>
-#include <datawizard/interfaces/vector_interface.h>
-#include <datawizard/interfaces/blas_filters.h>
-#include <datawizard/interfaces/csr_filters.h>
-#include <datawizard/interfaces/bcsr_filters.h>
-#include <datawizard/interfaces/vector_filters.h>
+#include <datawizard/datawizard.h>
 
 void core_block_spmv(data_interface_t *descr, void *_args);
 

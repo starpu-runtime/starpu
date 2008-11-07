@@ -2,7 +2,7 @@
 #include <core/perfmodel/perfmodel.h>
 #include <core/jobs.h>
 #include <core/workers.h>
-#include <datawizard/footprint.h>
+#include <datawizard/datawizard.h>
 
 /*
  * PER ARCH model

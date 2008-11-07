@@ -18,7 +18,7 @@
 
 #include <common/fxt.h>
 
-#include <datawizard/copy-driver.h>
+#include <datawizard/datawizard.h>
 
 
 

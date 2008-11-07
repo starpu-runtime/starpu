@@ -32,8 +32,7 @@
 
 #include <drivers/core/driver_core.h>
 
-#include <datawizard/coherency.h>
-#include <datawizard/copy-driver.h>
+#include <datawizard/datawizard.h>
 
 #define CORE_ALPHA	1.0f
 #define CUDA_ALPHA	13.33f

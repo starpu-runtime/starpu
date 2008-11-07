@@ -3,6 +3,8 @@
 
 #include <core/jobs.h>
 
-void compute_buffers_footprint(job_t j);
+struct job_s;
+
+void compute_buffers_footprint(struct job_s *j);
 
 #endif // __FOOTPRINT_H__
