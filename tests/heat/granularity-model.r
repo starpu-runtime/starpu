@@ -4,7 +4,8 @@ sizelist <- seq(64, max*1024, 64);
 #schedlist <- c("greedy", "prio", "dm", "random", "no-prio", "ws");
 #schedlist <- c("greedy", "prio", "dm", "random");
 #grainlist <- c(64, 128, 256, 512, 768, 1024, 1280, 1536, 2048);
-grainlist <- c(256, 512, 768, 1024)
+#grainlist <- c(256, 512, 768, 1024)
+grainlist <- c(256, 512, 1024)
 
 gflops <- function (x, size)
 {
@@ -218,14 +219,14 @@ display_grain <- function()
 #	axis(4, at=seq(0, 100, 10))
 	box(bty="u")
 
-	labels <- c("64", "128", "256", "512", "768", "1024", "1280", "1536", "2048");
+	labels <- c("256", "256 no model", "512", "512 no model", "1024", "1024 no model");
 
-	legend("topleft", inset=.05, title="Tile size", labels, lwd=2, lty=c(1, 1, 1, 1, 1, 1), pch=-1, col=colarray, bty="y", bg="white")
+	legend("bottomright", inset=.05, title="Tile size", labels, lwd=2, lty=c(1, 1, 1, 1, 1, 1), pch=-1, col=c("magenta", "magenta", "blue", "blue", "peru", "peru"), bty="y", bg="white")
 
 	mtext("matrix size", side=1, line=2, cex=1.6)
 	mtext("GFlops", side=2, line=2, las=0, cex=1.6)
 
-	title("Impact of granularity on LU decomposition");
+	title("Effect of granularity on the impact of scheduling");
 
 }
 
