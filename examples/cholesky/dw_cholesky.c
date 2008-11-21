@@ -47,7 +47,7 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 
 	job->cl->core_func = chol_core_codelet_update_u11;
 	job->model = &chol_model_11;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	job->cl->cublas_func = chol_cublas_codelet_update_u11;
 #endif
 
@@ -80,7 +80,7 @@ static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 	
 	job->cl->core_func = chol_core_codelet_update_u21;
 	job->model = &chol_model_21;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	job->cl->cublas_func = chol_cublas_codelet_update_u21;
 #endif
 
@@ -113,7 +113,7 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
 
 	job->cl->core_func = chol_core_codelet_update_u22;
 	job->model = &chol_model_22;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	job->cl->cublas_func = chol_cublas_codelet_update_u22;
 #endif
 

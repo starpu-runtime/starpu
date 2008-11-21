@@ -8,7 +8,7 @@ mkdir -p $TIMINGDIR
 cd $ROOTDIR
 
 make clean 1> /dev/null 2> /dev/null
-make ATLAS=1 CUBLAS=1 CPUS=4 1> /dev/null 2> /dev/null
+make ATLAS=1 CUDA=1 CPUS=4 1> /dev/null 2> /dev/null
 
 BLOCKS=8
 
@@ -28,7 +28,7 @@ do
 			filename=$TIMINGDIR/timing.$cpus.$cublas.$size.$blocks
 
 			export NCPUS=$cpus
-			export NCUBLAS=$cublas
+			export NCUDA=$cublas
 
 			echo "size $size cpus $cpus cublas $cublas blocks $blocks" 
 			$ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $BLOCKS 2>/dev/null| tee $filename
@@ -44,7 +44,7 @@ do
 			filename=$TIMINGDIR/timing.$cpus.$cublas.$size.$blocks
 
 			export NCPUS=$cpus
-			export NCUBLAS=$cublas
+			export NCUDA=$cublas
 
 			echo "size $size cpus $cpus cublas $cublas blocks $blocks" 
 			$ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $BLOCKS 2>/dev/null| tee $filename
@@ -70,14 +70,14 @@ do
 		size=$(($theta*32))
 
 		export NCPUS=4
-		export NCUBLAS=0
+		export NCUDA=0
 
 		echo "size $size cpus 4 cublas 0 blocks $blocks"
 		filename=$TIMINGDIR/timing.4.0.$size.$blocks
 		$ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $blocks 2>/dev/null| tee $filename
 
 		export NCPUS=3
-		export NCUBLAS=1
+		export NCUDA=1
 
 		echo "size $size cpus 3 cublas 1 blocks $blocks"
 		filename=$TIMINGDIR/timing.3.1.$size.$blocks

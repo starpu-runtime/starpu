@@ -6,7 +6,7 @@
 
 #include <common/hash.h>
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 #include <cuda.h>
 #endif
 
@@ -230,9 +230,8 @@ size_t allocate_bcsr_buffer_on_node(struct data_state_t *state, uint32_t dst_nod
 				goto fail_rowptr;
 
 			break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 		case CUDA_RAM:
-		case CUBLAS_RAM:
 			cublasAlloc(nnz*r*c, elemsize, (void **)&addr_nzval);
 			if (!addr_nzval)
 				goto fail_nzval;
@@ -266,9 +265,8 @@ fail_rowptr:
 	switch(kind) {
 		case RAM:
 			free((void *)addr_colind);
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 		case CUDA_RAM:
-		case CUBLAS_RAM:
 			cublasFree((void*)addr_colind);
 			break;
 #endif
@@ -280,9 +278,8 @@ fail_colind:
 	switch(kind) {
 		case RAM:
 			free((void *)addr_nzval);
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 		case CUDA_RAM:
-		case CUBLAS_RAM:
 			cublasFree((void*)addr_nzval);
 			break;
 #endif
@@ -307,8 +304,7 @@ void liberate_bcsr_buffer_on_node(data_state *state, uint32_t node)
 			free((void*)state->interface[node].bcsr.colind);
 			free((void*)state->interface[node].bcsr.rowptr);
 			break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
-		case CUBLAS_RAM:
+#ifdef USE_CUDA
 		case CUDA_RAM:
 			cublasFree((void*)state->interface[node].bcsr.nzval);
 			cublasFree((void*)state->interface[node].bcsr.colind);
@@ -320,7 +316,7 @@ void liberate_bcsr_buffer_on_node(data_state *state, uint32_t node)
 	}
 }
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 static void copy_cublas_to_ram(struct data_state_t *state, uint32_t src_node, uint32_t dst_node)
 {
 	bcsr_interface_t *src_bcsr;
@@ -416,8 +412,7 @@ void do_copy_bcsr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, u
 				/* RAM -> RAM */
 				 dummy_copy_ram_to_ram(state, src_node, dst_node);
 				 break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
-			case CUBLAS_RAM:
+#ifdef USE_CUDA
 			case CUDA_RAM:
 				/* CUBLAS_RAM -> RAM */
 				/* only the proper CUBLAS thread can initiate this ! */
@@ -434,9 +429,8 @@ void do_copy_bcsr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, u
 				break;
 		}
 		break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	case CUDA_RAM:
-	case CUBLAS_RAM:
 		switch (src_kind) {
 			case RAM:
 				/* RAM -> CUBLAS_RAM */
@@ -445,7 +439,6 @@ void do_copy_bcsr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, u
 				copy_ram_to_cublas(state, src_node, dst_node);
 				break;
 			case CUDA_RAM:
-			case CUBLAS_RAM:
 			case SPU_LS:
 				ASSERT(0); // TODO 
 				break;

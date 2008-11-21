@@ -20,7 +20,7 @@ static inline void common_block_spmv(data_interface_t *buffers, int s, __attribu
 		case 0:
 			cblas_sgemv(CblasRowMajor, CblasNoTrans, dx, dy, 1.0f, block, ld, in, 1, 1.0f, out, 1);
 			break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 		case 1:
 			cublasSgemv ('t', dx, dy, 1.0f, block, ld, in, 1, 1.0f, out, 1);
 			break;
@@ -38,11 +38,11 @@ void core_block_spmv(data_interface_t *descr, void *_args)
 	common_block_spmv(descr, 0, _args);
 }
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void cublas_block_spmv(data_interface_t *descr, void *_args)
 {
 //	printf("CUBLAS CODELET \n");
 
 	common_block_spmv(descr, 1, _args);
 }
-#endif// USE_CUBLAS
+#endif// USE_CUDA

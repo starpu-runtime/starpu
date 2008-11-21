@@ -36,18 +36,6 @@ void setup_queues(void (*init_queue_design)(void),
 	}
 #endif
 
-#ifdef USE_CUBLAS
-	/* initialize CUBLAS with the proper number of threads */
-	unsigned cublasdev;
-	for (cublasdev = 0; cublasdev < config->ncublasgpus; cublasdev++)
-	{
-		cublas_worker_arg *cublasarg = &config->cublasargs[cublasdev]; 
-		cublasarg->jobq = func_init_queue();
-		cublasrg->jobq->who |= CUBLAS;
-		cublasarg->jobq->alpha = CUBLAS_ALPHA;
-	}
-#endif
-
 #ifdef USE_SPU
 	/* initialize the various SPUs  */
 	unsigned spu;

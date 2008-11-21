@@ -57,7 +57,7 @@ void core_codelet(data_interface_t *buffers, __attribute__ ((unused)) void *_arg
 	val[0] += 1.0f; val[1] += 1.0f;
 }
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void cublas_codelet(data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
 	float *val = (float *)buffers[0].vector.ptr;
@@ -192,10 +192,8 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 
 	cl.cl_arg = &counter;
 	cl.core_func = core_codelet;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
-	cl.cublas_func = cublas_codelet;
-#endif
 #ifdef USE_CUDA
+	//cl.cublas_func = cublas_codelet;
 	cl.cuda_func = &cuda_codelet;
 #endif
 
@@ -204,8 +202,6 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		j = job_create();
 #ifdef USE_CUDA
 		j->where = CUDA|CORE;
-#else
-		j->where = CUBLAS|CORE;
 #endif
 			//(((i % 2) == 1)?CUDA:CUBLAS)|CORE; 
 		

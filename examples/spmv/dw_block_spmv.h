@@ -20,8 +20,8 @@
 
 void core_block_spmv(data_interface_t *descr, void *_args);
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void cublas_block_spmv(data_interface_t *descr, void *_args);
-#endif // USE_CUBLAS
+#endif // USE_CUDA
 
 #endif // __DW_BLOCK_SPMV_H__

@@ -4,7 +4,7 @@
 #include "coherency.h"
 #include "memalloc.h"
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 #include <cublas.h>
 #endif
 
@@ -12,7 +12,6 @@ typedef enum {
 	UNUSED,
 	SPU_LS,
 	RAM,
-	CUBLAS_RAM,
 	CUDA_RAM
 } node_kind;
 

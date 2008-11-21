@@ -94,7 +94,7 @@ void init_cg(struct cg_problem *problem)
 	/* delta_new = trans(r) r */
 	job_t job3 = create_job(3UL);
 	job3->where = CUBLAS|CORE;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	job3->cl->cublas_func = cublas_codelet_func_3;
 #endif
 	job3->cl->core_func = core_codelet_func_3;
@@ -139,7 +139,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	/* alpha = delta_new / ( trans(d) q )*/
 	job_t job5 = create_job(maskiter | 5UL);
 	job5->where = CUBLAS|CORE;
-#if defined (USE_CUBLAS) || defined (USE_CUDA) 
+#ifdef USE_CUDA
 	job5->cl->cublas_func = cublas_codelet_func_5;
 #endif
 	job5->cl->core_func = core_codelet_func_5;
@@ -155,7 +155,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	/* x = x + alpha d */
 	job_t job6 = create_job(maskiter | 6UL);
 	job6->where = CUBLAS|CORE;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	job6->cl->cublas_func = cublas_codelet_func_6;
 #endif
 	job6->cl->core_func = core_codelet_func_6;
@@ -171,7 +171,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	/* r = r - alpha q */
 	job_t job7 = create_job(maskiter | 7UL);
 	job7->where = CUBLAS|CORE;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	job7->cl->cublas_func = cublas_codelet_func_7;
 #endif
 	job7->cl->core_func = core_codelet_func_7;
@@ -187,7 +187,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	/* update delta_* and compute beta */
 	job_t job8 = create_job(maskiter | 8UL);
 	job8->where = CUBLAS|CORE;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	job8->cl->cublas_func = cublas_codelet_func_8;
 #endif
 	job8->cl->core_func = core_codelet_func_8;
@@ -201,7 +201,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	/* d = r + beta d */
 	job_t job9 = create_job(maskiter | 9UL);
 	job9->where = CUBLAS|CORE;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	job9->cl->cublas_func = cublas_codelet_func_9;
 #endif
 	job9->cl->core_func = core_codelet_func_9;

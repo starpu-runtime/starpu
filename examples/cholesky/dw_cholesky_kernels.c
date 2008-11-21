@@ -25,7 +25,7 @@ static inline void chol_common_core_codelet_update_u22(data_interface_t *buffers
 				dy, dx, dz, -1.0f, left, ld21, right, ld12,
 					     1.0f, center, ld22);
 			break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 		case 1:
 			cublasSgemm('t', 'n', dx, dy, dz, 
 					-1.0f, right, ld12, left, ld21, 
@@ -43,12 +43,12 @@ void chol_core_codelet_update_u22(data_interface_t *descr, void *_args)
 	chol_common_core_codelet_update_u22(descr, 0, _args);
 }
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void chol_cublas_codelet_update_u22(data_interface_t *descr, void *_args)
 {
 	chol_common_core_codelet_update_u22(descr, 1, _args);
 }
-#endif// USE_CUBLAS
+#endif// USE_CUDA
 
 /* 
  * U21
@@ -74,7 +74,7 @@ static inline void chol_common_codelet_update_u21(data_interface_t *buffers, int
 			cblas_strsm(CblasRowMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit,
 					nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 		case 1:
 			cublasStrsm('L', 'U', 'T', 'N', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
@@ -90,7 +90,7 @@ void chol_core_codelet_update_u21(data_interface_t *descr, void *_args)
 	 chol_common_codelet_update_u21(descr, 0, _args);
 }
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void chol_cublas_codelet_update_u21(data_interface_t *descr, void *_args)
 {
 	chol_common_codelet_update_u21(descr, 1, _args);
@@ -137,7 +137,7 @@ static inline void chol_common_codelet_update_u11(data_interface_t *descr, int s
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
 			break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 		case 1:
 			for (z = 0; z < nx; z++)
 			{
@@ -172,9 +172,9 @@ void chol_core_codelet_update_u11(data_interface_t *descr, void *_args)
 	chol_common_codelet_update_u11(descr, 0, _args);
 }
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void chol_cublas_codelet_update_u11(data_interface_t *descr, void *_args)
 {
 	chol_common_codelet_update_u11(descr, 1, _args);
 }
-#endif// USE_CUBLAS
+#endif// USE_CUDA

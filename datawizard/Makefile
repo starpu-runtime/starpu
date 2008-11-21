@@ -2,11 +2,6 @@
 
 CFLAGS+= -I../
 
-ifeq ($(CUBLAS), 1)
-	CFLAGS+= -I$(CUDAINSTALLDIR)/include
-	CFLAGS+= -DUSE_CUBLAS
-endif
-
 ifdef SPU
 	SPU_TARGET=spu
 endif

@@ -40,7 +40,7 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 	job_t job = create_job(TAG11(k));
 
 	job->cl->core_func = dw_core_codelet_update_u11;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	job->cl->cublas_func = dw_cublas_codelet_update_u11;
 #endif
 
@@ -74,7 +74,7 @@ static void create_task_12(data_state *dataA, unsigned k, unsigned i)
 //	printf("task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i));
 
 	job->cl->core_func = dw_core_codelet_update_u12;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	job->cl->cublas_func = dw_cublas_codelet_update_u12;
 #endif
 
@@ -105,7 +105,7 @@ static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 	job_t job = create_job(TAG21(k, j));
 	
 	job->cl->core_func = dw_core_codelet_update_u21;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	job->cl->cublas_func = dw_cublas_codelet_update_u21;
 #endif
 
@@ -137,7 +137,7 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
 //	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j));
 
 	job->cl->core_func = dw_core_codelet_update_u22;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	job->cl->cublas_func = dw_cublas_codelet_update_u22;
 #endif
 

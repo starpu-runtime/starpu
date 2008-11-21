@@ -19,7 +19,7 @@
 
 #include <core/perfmodel/perfmodel.h>
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 #include <cuda.h>
 #endif
 

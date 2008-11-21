@@ -33,7 +33,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 	
 		cl->cl_arg = u11arg;
 		cl->core_func = dw_core_codelet_update_u11;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 		cl->cublas_func = dw_cublas_codelet_update_u11;
 #endif
 	
@@ -78,7 +78,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					cl21->cl_arg = u21a;
 					cl21->core_func = 
 						dw_core_codelet_update_u21;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 					cl21->cublas_func = 
 						dw_cublas_codelet_update_u21;
 #endif
@@ -131,7 +131,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 						j12->cl = cl12;
 						j12->model = &model_12;
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 					cl12->cublas_func = dw_cublas_codelet_update_u12;
 #endif
 
@@ -188,7 +188,7 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 
 				cl22->cl_arg = u22a;
 				cl22->core_func = dw_core_codelet_update_u22;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 				cl22->cublas_func = dw_cublas_codelet_update_u22;
 #endif
 
@@ -260,7 +260,7 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 
 				cl22->cl_arg = u22a;
 				cl22->core_func = dw_core_codelet_update_u22;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 				cl22->cublas_func = dw_cublas_codelet_update_u22;
 #endif
 
@@ -352,7 +352,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 						j12->cl = cl12;
 
 						j12->model = &model_12;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 					cl12->cublas_func = dw_cublas_codelet_update_u12;
 #endif
 
@@ -396,7 +396,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 		
 					cl21->cl_arg = u21a;
 					cl21->core_func = dw_core_codelet_update_u21;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 					cl21->cublas_func = dw_cublas_codelet_update_u21;
 #endif
 					job_t j21 = job_create();
@@ -474,7 +474,7 @@ void dw_callback_codelet_update_u11(void *argcb)
 			cl21->cl_arg = u21a;
 			cl12->core_func = dw_core_codelet_update_u12;
 			cl21->core_func = dw_core_codelet_update_u21;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 			cl12->cublas_func = dw_cublas_codelet_update_u12;
 			cl21->cublas_func = dw_cublas_codelet_update_u21;
 #endif
@@ -547,7 +547,7 @@ void dw_callback_codelet_update_u22(void *argcb)
 	
 		cl->cl_arg = u11arg;
 		cl->core_func = dw_core_codelet_update_u11;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 		cl->cublas_func = dw_cublas_codelet_update_u11;
 #endif
 	
@@ -600,7 +600,7 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 
 				cl22->cl_arg = u22a;
 				cl22->core_func = dw_core_codelet_update_u22;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 				cl22->cublas_func = dw_cublas_codelet_update_u22;
 #endif
 
@@ -662,7 +662,7 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 
 	cl->cl_arg = args;
 	cl->core_func = dw_core_codelet_update_u11;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	cl->cublas_func = dw_cublas_codelet_update_u11;
 #endif
 
@@ -724,7 +724,7 @@ void dw_codelet_facto_v2(data_state *dataA, unsigned nblocks)
 
 	cl->cl_arg = args;
 	cl->core_func = dw_core_codelet_update_u11;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	cl->cublas_func = dw_cublas_codelet_update_u11;
 #endif
 

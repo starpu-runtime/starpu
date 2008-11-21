@@ -34,17 +34,6 @@ static void init_machine_config(struct machine_config_s *config)
 
 #endif
 
-#ifdef USE_CUBLAS
-	envval = get_env_number("NCUBLAS");
-	if (envval < 0) {
-		config->ncublasgpus = MIN(get_cublas_device_count(), MAXCUBLASDEVS);
-	} else {
-		/* use the specified value */
-		config->ncublasgpus = (unsigned)envval;
-		ASSERT(config->ncublasgpus <= MAXCUBLASDEVS);
-	}
-#endif
-
 #ifdef USE_SPU
 	envval = get_env_number("NSPUS");
 	if (envval < 0) {
@@ -93,20 +82,6 @@ static void init_workers_binding(struct machine_config_s *config)
 			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
 
 		cudaarg->memory_node = register_memory_node(CUDA_RAM);
-	}
-#endif
-
-#ifdef USE_CUBLAS
-	/* initialize CUBLAS with the proper number of threads */
-	unsigned cublasdev;
-	for (cublasdev = 0; cublasdev < config->ncublasgpus; cublasdev++)
-	{
-		cublas_worker_arg *cublasarg = &config->cublasargs[cublasdev]; 
-		
-		cublasarg->bindid =
-			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
-
-		cublasarg->memory_node = register_memory_node(CUBLAS_RAM);
 	}
 #endif
 
@@ -171,24 +146,6 @@ static void init_workers(struct machine_config_s *config)
 
 		/* wait until the thread is actually launched ... */
 		while (cudaarg->ready_flag == 0) {}
-	}
-#endif
-
-#ifdef USE_CUBLAS
-	/* initialize CUBLAS with the proper number of threads */
-	unsigned cublasdev;
-	for (cublasdev = 0; cublasdev < config->ncublasgpus; cublasdev++)
-	{
-		cublas_worker_arg *cublasarg = &config->cublasargs[cublasdev]; 
-		
-		cublasarg->deviceid = cublasdev;
-		cublasarg->ready_flag = 0;
-
-		thread_create(&config->cublasthreads[cublasdev], 
-				NULL, cublas_worker, (void*)cublasarg);
-
-		/* wait until the thread is actually launched ... */
-		while (cublasarg->ready_flag == 0) {}
 	}
 #endif
 
@@ -272,15 +229,6 @@ void terminate_workers(struct machine_config_s *config)
 		thread_join(config->cudathreads[cudadev], NULL);
 	}
 	fprintf(stderr, "cuda terminated\n");
-#endif
-
-#ifdef USE_CUBLAS
-	unsigned cublasdev;
-	for (cublasdev = 0; cublasdev < config->ncublasgpus; cublasdev++)
-	{
-		thread_join(config->cublasthreads[cublasdev], NULL);
-	}
-	fprintf(stderr, "cublas terminated\n");
 #endif
 
 #ifdef USE_SPU

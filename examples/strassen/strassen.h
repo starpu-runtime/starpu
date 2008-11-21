@@ -21,7 +21,7 @@
 
 #include <common/fxt.h>
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 #include <cuda.h>
 #endif
 
@@ -88,7 +88,7 @@ void add_core_codelet(data_interface_t *descr, __attribute__((unused))  void *ar
 void self_add_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
 void self_sub_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void mult_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
 void sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
 void add_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);

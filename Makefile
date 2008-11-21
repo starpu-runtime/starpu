@@ -85,21 +85,6 @@ ifeq ($(CUDA), 1)
 	LDFLAGS += -lcublas
 endif
 
-ifeq ($(CUBLAS), 1)
-	CFLAGS += -DUSE_CUBLAS
-	CFLAGS += -I$(CUDAINSTALLDIR)/include 
-ifdef CUBLASEMU
-	LDFLAGS += -lcublasemu
-else
-	LDFLAGS += -lcublas
-endif
-
-	LDFLAGS += -L$(CUDASDKDIR)/lib
-	LDFLAGS += -L$(CUDAINSTALLDIR)/lib -lcudart -lcuda
-
-	CFLAGS += -I$(CUDAINSTALLDIR)/include 
-endif
-
 ifdef ATLAS
 	CFLAGS+= -I$(ATLASDIR)/include/
 	LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
@@ -184,10 +169,6 @@ ifeq ($(CUDA), 1)
 	OBJDEPS += drivers/cuda/driver_cuda.o
 endif
 
-ifeq ($(CUBLAS), 1)
-	OBJDEPS += drivers/cublas/driver_cublas.o
-endif
-
 ifdef SPU
 	OBJDEPS += drivers/spu/ppu/driver_spu_ppu.o
 	OBJDEPS += drivers/spu/spu/spu_worker_program.o
@@ -254,7 +235,6 @@ clean:
 help:
 	@echo "Possible options (default value) "
 	@echo "  CUDA use of cuda or not (0)"
-	@echo "  CUBLAS use of cublas or not (0)"
 	@echo "  CPUS number of CPUs in use (0)"
 	@echo "  CPUS run ATLAS functions (0)"
 	@echo "  CHECK makes sure the output is correct (0)"

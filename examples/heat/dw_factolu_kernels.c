@@ -37,7 +37,7 @@ static inline void dw_common_core_codelet_update_u22(data_interface_t *buffers, 
 	unsigned ld21 = buffers[1].blas.ld;
 	unsigned ld22 = buffers[2].blas.ld;
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	cublasStatus status;
 #endif
 
@@ -48,7 +48,7 @@ static inline void dw_common_core_codelet_update_u22(data_interface_t *buffers, 
 					     1.0f, center, ld22);
 			break;
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 		case 1:
 			cublasSgemm('n', 'n', dx, dy, dz, -1.0f, left, ld21,
 					right, ld12, 1.0f, center, ld22);
@@ -70,13 +70,13 @@ void dw_core_codelet_update_u22(data_interface_t *descr, void *_args)
 	count_22_core++;
 }
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void dw_cublas_codelet_update_u22(data_interface_t *descr, void *_args)
 {
 	dw_common_core_codelet_update_u22(descr, 1, _args);
 	count_22_cublas++;
 }
-#endif// USE_CUBLAS
+#endif// USE_CUDA
 
 /*
  * U12
@@ -95,7 +95,7 @@ static inline void dw_common_codelet_update_u12(data_interface_t *buffers, int s
 	unsigned nx12 = buffers[1].blas.nx;
 	unsigned ny12 = buffers[1].blas.ny;
 	
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	cublasStatus status;
 #endif
 
@@ -105,7 +105,7 @@ static inline void dw_common_codelet_update_u12(data_interface_t *buffers, int s
 			cblas_strsm(CblasRowMajor, CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit,
 					 nx12, ny12, 1.0f, sub11, ld11, sub12, ld12);
 			break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 		case 1:
 			cublasStrsm('R', 'U', 'N', 'N', ny12, nx12,
 					1.0f, sub11, ld11, sub12, ld12);
@@ -127,13 +127,13 @@ void dw_core_codelet_update_u12(data_interface_t *descr, void *_args)
 	count_12_core++;
 }
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void dw_cublas_codelet_update_u12(data_interface_t *descr, void *_args)
 {
 	 dw_common_codelet_update_u12(descr, 1, _args);
 	count_12_cublas++;
 }
-#endif // USE_CUBLAS
+#endif // USE_CUDA
 
 /* 
  * U21
@@ -152,7 +152,7 @@ static inline void dw_common_codelet_update_u21(data_interface_t *buffers, int s
 	unsigned nx21 = buffers[1].blas.nx;
 	unsigned ny21 = buffers[1].blas.ny;
 	
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	cublasStatus status;
 #endif
 
@@ -161,7 +161,7 @@ static inline void dw_common_codelet_update_u21(data_interface_t *buffers, int s
 			cblas_strsm(CblasRowMajor, CblasRight, CblasUpper, CblasNoTrans, 
 				CblasUnit, nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 		case 1:
 			cublasStrsm('L', 'L', 'N', 'U', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
 			status = cublasGetError();
@@ -182,7 +182,7 @@ void dw_core_codelet_update_u21(data_interface_t *descr, void *_args)
 	count_21_core++;
 }
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void dw_cublas_codelet_update_u21(data_interface_t *descr, void *_args)
 {
 	dw_common_codelet_update_u21(descr, 1, _args);
@@ -222,7 +222,7 @@ static inline void dw_common_codelet_update_u11(data_interface_t *descr, int s, 
 		
 			}
 			break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 		case 1:
 			for (z = 0; z < nx; z++)
 			{
@@ -255,10 +255,10 @@ void dw_core_codelet_update_u11(data_interface_t *descr, void *_args)
 	count_11_core++;
 }
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void dw_cublas_codelet_update_u11(data_interface_t *descr, void *_args)
 {
 	dw_common_codelet_update_u11(descr, 1, _args);
 	count_11_cublas++;
 }
-#endif// USE_CUBLAS
+#endif// USE_CUDA

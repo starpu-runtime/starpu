@@ -18,10 +18,6 @@
 #include <drivers/cuda/driver_cuda.h>
 #endif
 
-#ifdef USE_CUBLAS
-#include <drivers/cublas/driver_cublas.h>
-#endif
-
 #ifdef USE_SPU
 #include <drivers/spu/ppu/driver_spu.h>
 #endif
@@ -36,7 +32,6 @@
 
 #define CORE_ALPHA	1.0f
 #define CUDA_ALPHA	13.33f
-#define CUBLAS_ALPHA	13.33f
 
 enum archtype {
 	CORE_WORKER,
@@ -54,12 +49,6 @@ struct machine_config_s {
 	thread_t cudathreads[MAXCUDADEVS];
 	cuda_worker_arg cudaargs[MAXCUDADEVS];
 	int ncudagpus;
-	#endif
-	
-	#ifdef USE_CUBLAS
-	thread_t cublasthreads[MAXCUBLASDEVS];
-	cublas_worker_arg cublasargs[MAXCUBLASDEVS];
-	unsigned ncublasgpus;
 	#endif
 	
 	#ifdef USE_SPU

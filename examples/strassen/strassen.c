@@ -112,7 +112,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			ASSERT(C);
 			job->model = &strassen_model_add_sub;
 			job->cl->core_func = add_core_codelet;
-			#if defined (USE_CUBLAS) || defined (USE_CUDA)
+			#ifdef USE_CUDA
 			job->cl->cublas_func = add_cublas_codelet;
 			#endif
 			break;
@@ -122,7 +122,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			ASSERT(C);
 			job->model = &strassen_model_add_sub;
 			job->cl->core_func = sub_core_codelet;
-			#if defined (USE_CUBLAS) || defined (USE_CUDA)
+			#ifdef USE_CUDA
 			job->cl->cublas_func = sub_cublas_codelet;
 			#endif
 			break;
@@ -132,7 +132,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			ASSERT(C);
 			job->model = &strassen_model_mult;
 			job->cl->core_func = mult_core_codelet;
-			#if defined (USE_CUBLAS) || defined (USE_CUDA)
+			#ifdef USE_CUDA
 			job->cl->cublas_func = mult_cublas_codelet;
 			#endif
 			break;
@@ -141,7 +141,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			job->buffers[0].mode = RW;
 			job->cl->core_func = self_add_core_codelet;
 			job->model = &strassen_model_self_add_sub;
-			#if defined (USE_CUBLAS) || defined (USE_CUDA)
+			#ifdef USE_CUDA
 			job->cl->cublas_func = self_add_cublas_codelet;
 			#endif
 			break;
@@ -150,7 +150,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			job->buffers[0].mode = RW;
 			job->cl->core_func = self_sub_core_codelet;
 			job->model = &strassen_model_self_add_sub;
-			#if defined (USE_CUBLAS) || defined (USE_CUDA)
+			#ifdef USE_CUDA
 			job->cl->cublas_func = self_sub_cublas_codelet;
 			#endif
 			break;

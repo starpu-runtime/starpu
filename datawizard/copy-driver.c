@@ -101,8 +101,7 @@ static uint32_t choose_src_node(uint32_t src_node_mask)
 
 			/* however GPU are expensive sources, really !
 			 * 	other should be ok */
-			if (descr.nodes[i] != CUBLAS_RAM 
-				&& descr.nodes[i] != CUDA_RAM)
+			if (descr.nodes[i] != CUDA_RAM)
 				break;
 
 			/* XXX do a better algorithm to distribute the memory copies */

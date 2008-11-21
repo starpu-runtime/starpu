@@ -127,7 +127,7 @@ void launch_spmv_codelets(void)
 
 	cl->cl_arg = NULL;
 	cl->core_func =  core_block_spmv;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	cl->cublas_func = cublas_block_spmv;
 #endif
 

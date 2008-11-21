@@ -3,9 +3,8 @@ max <- 30
 sizelist <- seq(64, max*1024, 64);
 #schedlist <- c("greedy", "prio", "dm", "random", "no-prio", "ws");
 #schedlist <- c("greedy", "prio", "dm", "random");
-#grainlist <- c(64, 128, 256, 512, 768, 1024, 1280, 1536, 2048);
-#grainlist <- c(256, 512, 768, 1024)
-grainlist <- c(256, 512, 1024)
+#grainlist <- c(256, 512, 1024)
+grainlist <- c(512, 1024)
 
 gflops <- function (x, size)
 {

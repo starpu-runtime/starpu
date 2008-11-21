@@ -117,7 +117,7 @@ void core_codelet_func_3(data_interface_t *descr, void *arg)
 	pb->delta_0 = dot;
 }
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void cublas_codelet_func_3(data_interface_t *descr, void *arg)
 {
 	struct cg_problem *pb = arg;
@@ -208,7 +208,7 @@ void core_codelet_func_5(data_interface_t *descr, void *arg)
 	pb->alpha = pb->delta_new / dot;
 }
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void cublas_codelet_func_5(data_interface_t *descr, void *arg)
 {
 	float dot;
@@ -253,7 +253,7 @@ void core_codelet_func_6(data_interface_t *descr, void *arg)
 	cblas_saxpy(size, pb->alpha, vecd, 1, vecx, 1);
 }
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void cublas_codelet_func_6(data_interface_t *descr, void *arg)
 {
 	struct cg_problem *pb = arg;
@@ -292,7 +292,7 @@ void core_codelet_func_7(data_interface_t *descr, void *arg)
 	cblas_saxpy(size, -pb->alpha, vecq, 1, vecr, 1);
 }
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void cublas_codelet_func_7(data_interface_t *descr, void *arg)
 {
 	struct cg_problem *pb = arg;
@@ -336,7 +336,7 @@ void core_codelet_func_8(data_interface_t *descr, void *arg)
 	pb->beta = pb->delta_new/pb->delta_old;
 }
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void cublas_codelet_func_8(data_interface_t *descr, void *arg)
 {
 	float dot;
@@ -383,7 +383,7 @@ void core_codelet_func_9(data_interface_t *descr, void *arg)
 	cblas_saxpy (size, 1.0f, vecr, 1, vecd, 1);
 }
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void cublas_codelet_func_9(data_interface_t *descr, void *arg)
 {
 	struct cg_problem *pb = arg;

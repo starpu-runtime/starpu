@@ -18,7 +18,7 @@
 
 #include <common/fxt.h>
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 #include <cuda.h>
 #endif
 
@@ -144,7 +144,7 @@ void callback_func(void *arg)
 
 
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 void cublas_mult(data_interface_t *descr, __attribute__((unused)) void *arg)
 {
 	COMMON_CODE
@@ -235,7 +235,7 @@ void init_problem_codelet (__attribute__((unused)) buffer_descr *descr,
 {
 	unsigned i,j;
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	if (pin) {
 		cuMemAllocHost((void **)&A, zdim*ydim*sizeof(float));
 		cuMemAllocHost((void **)&B, xdim*zdim*sizeof(float));
@@ -332,7 +332,7 @@ void init_problem_callback(void *arg __attribute__((unused)))
 
 			cl->cl_arg = NULL;
 			cl->core_func = core_mult;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 			cl->cublas_func = cublas_mult;
 #endif
 
@@ -372,13 +372,13 @@ void init_problem(void)
 
 	cl->cl_arg = NULL;
 	cl->core_func = init_problem_codelet;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	cl->cublas_func = init_problem_codelet;
 #endif
 
 	jb = job_create();
 	jb->type = CODELET;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	jb->where = CUBLAS;
 #else
 	jb->where = ANY;

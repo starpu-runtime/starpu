@@ -51,12 +51,18 @@ int main(int argc, char **argv)
 	unsigned njob = 0;
 	unsigned nws = 0;
 
+	double start_time = 10e30;
+	double end_time = -10e30;
+
 	while(1) {
 		ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
 		if (ret != FXT_EV_OK) {
 			fprintf(stderr, "no more block ...\n");
 			break;
 		}
+
+		end_time = MAX(end_time, ev.time);
+		start_time = MIN(start_time, ev.time);
 
 		__attribute__ ((unused)) int nbparam = ev.nb_params;
 
@@ -75,6 +81,7 @@ int main(int argc, char **argv)
 		}
 	}
 
+	printf("Start : start time %le end time %le length %le\n", start_time, end_time, end_time - start_time);
 
 	unsigned src, dst;
 	for (src = 0; src < 16; src++)

@@ -6,7 +6,7 @@
 
 #include <common/hash.h>
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 #include <cuda.h>
 #endif
 
@@ -144,7 +144,7 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 	unsigned fail = 0;
 	size_t allocated_memory;
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	cublasStatus status;
 #endif
 	uint32_t nx = state->interface[dst_node].blas.nx;
@@ -160,9 +160,8 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 				fail = 1;
 
 			break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 		case CUDA_RAM:
-		case CUBLAS_RAM:
 			status = cublasAlloc(nx*ny, elemsize, (void **)&addr);
 
 			if (!addr || status != CUBLAS_STATUS_SUCCESS)
@@ -198,7 +197,7 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 
 void liberate_blas_buffer_on_node(data_state *state, uint32_t node)
 {
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	cublasStatus status;
 #endif
 
@@ -207,8 +206,7 @@ void liberate_blas_buffer_on_node(data_state *state, uint32_t node)
 		case RAM:
 			free((void*)state->interface[node].blas.ptr);
 			break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
-		case CUBLAS_RAM:
+#ifdef USE_CUDA
 		case CUDA_RAM:
 			status = cublasFree((void*)state->interface[node].blas.ptr);
 			
@@ -222,7 +220,7 @@ void liberate_blas_buffer_on_node(data_state *state, uint32_t node)
 	}
 }
 
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 static void copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)
 {
 	blas_interface_t *src_blas;
@@ -295,8 +293,7 @@ void do_copy_blas_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t d
 				/* RAM -> RAM */
 				 dummy_copy_ram_to_ram(state, src_node, dst_node);
 				 break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
-			case CUBLAS_RAM:
+#ifdef USE_CUDA
 			case CUDA_RAM:
 				/* CUBLAS_RAM -> RAM */
 				/* only the proper CUBLAS thread can initiate this ! */
@@ -313,9 +310,8 @@ void do_copy_blas_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t d
 				break;
 		}
 		break;
-#if defined (USE_CUBLAS) || defined (USE_CUDA)
+#ifdef USE_CUDA
 	case CUDA_RAM:
-	case CUBLAS_RAM:
 		switch (src_kind) {
 			case RAM:
 				/* RAM -> CUBLAS_RAM */
@@ -324,7 +320,6 @@ void do_copy_blas_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t d
 				copy_ram_to_cublas(state, src_node, dst_node);
 				break;
 			case CUDA_RAM:
-			case CUBLAS_RAM:
 			case SPU_LS:
 				ASSERT(0); // TODO 
 				break;
