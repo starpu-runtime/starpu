@@ -4,7 +4,7 @@ TARGET=tag_example
 TARGET+= incrementer
 #TARGET+= dw_sparse_cg
 
-RIBSCHED= $(PWD)/../ribsched.a
+STARPU= $(PWD)/../starpu.a
 
 EXTRADEP=
 

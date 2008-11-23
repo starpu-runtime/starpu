@@ -56,8 +56,6 @@ static void scan_history_entry(FILE *f, struct history_entry_t *entry)
 
 static void parse_model_file(FILE *f, struct perfmodel_t *model)
 {
-	/* TODO */
-	
 	/* header */
 	unsigned ncore_entries, ncuda_entries;
 	int res = fscanf(f, "%d\n%d\n", &ncore_entries, &ncuda_entries);
@@ -229,10 +227,7 @@ void save_history_based_model(struct perfmodel_t *model)
 
 	dump_model_file(f, model);
 
-
-
 	fclose(f);
-
 
 #ifdef DEBUG_MODEL
 	fclose(model->debug_file);

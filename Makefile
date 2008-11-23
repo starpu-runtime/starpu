@@ -193,9 +193,9 @@ ifdef USE_FXT
 endif
 
 
-LIBS=ribsched.a
+LIBS=starpu.a
 ifdef DYNAMIC
-	LIBS+= ribsched.so
+	LIBS+= starpu.so
 endif
 
 
@@ -208,10 +208,10 @@ all:
 	@make -C task-models
 	@make -C tools
 
-ribsched.so: all
-	gcc --shared -o ribsched.so $(OBJDEPS)
+starpu.so: all
+	gcc --shared -o starpu.so $(OBJDEPS)
 
-ribsched.a: all
+starpu.a: all
 	$(AR) rcs $@ $(OBJDEPS)
 
 libs: $(LIBS)

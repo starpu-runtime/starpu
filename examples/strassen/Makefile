@@ -1,4 +1,4 @@
-RIBSCHED= ../../ribsched.a
+STARPU= ../../starpu.a
 CFLAGS+= -I../..
 
 all: dw_strassen
@@ -16,7 +16,7 @@ strassen_models.o: strassen_models.c strassen_models.h
 	$(CC) $(CFLAGS) strassen_models.c -c -o strassen_models.o
 
 dw_strassen: strassen_models.o strassen.o strassen_kernels.o test_strassen.o
-	$(CC) strassen_models.o strassen.o strassen_kernels.o test_strassen.o -o dw_strassen $(LDFLAGS) $(RIBSCHED)
+	$(CC) strassen_models.o strassen.o strassen_kernels.o test_strassen.o -o dw_strassen $(LDFLAGS) $(STARPU)
 
 clean:
 	@rm -f *.o *.d *.gcno *.gcda
