@@ -38,7 +38,7 @@ endif
 ifdef PERF_MODEL_DIR
 	CFLAGS+="-DPERF_MODEL_DIR=\"$(PERF_MODEL_DIR)/\""
 else
-	CFLAGS+="-DPERF_MODEL_DIR=\"/home/gonnet/These/AccMult/.sampling/\""
+	CFLAGS+="-DPERF_MODEL_DIR=\"$(PWD)/.sampling/\""
 endif
 
 # to use CUDA

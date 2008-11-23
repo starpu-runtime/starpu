@@ -1,4 +1,7 @@
 #include <unistd.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <errno.h>
 #include <core/perfmodel/perfmodel.h>
 #include <core/jobs.h>
 #include <core/workers.h>
@@ -249,6 +252,32 @@ void dump_registered_models(void)
 	}
 }
 
+static int directory_existence_was_tested = 0;
+
+static void create_sampling_directory_if_needed(void)
+{
+	struct stat sb;
+	int statret;
+	statret = stat(PERF_MODEL_DIR, &sb);
+
+	if (statret == -1)
+	{
+		int ret;
+
+ 		ASSERT (errno == ENOENT);
+
+		/* directory does not exist : create it */
+		fprintf(stderr, "directory does not exist : create it\n");
+		ret = mkdir(PERF_MODEL_DIR, S_IRWXU);
+		ASSERT(ret == 0);
+	}
+	else {
+		/* make sure this is a directory */
+		ASSERT(S_ISDIR(sb.st_mode));
+		fprintf(stderr, "directory %s exists !\n", PERF_MODEL_DIR);
+	}
+}
+
 void load_history_based_model(struct perfmodel_t *model)
 {
 	ASSERT(model);
@@ -261,7 +290,13 @@ void load_history_based_model(struct perfmodel_t *model)
 	/* perhaps some other thread got in before ... */
 	if (!model->is_loaded)
 	{
-	
+		/* make sure the performance model directory exists (or create it) */
+		if (!directory_existence_was_tested)
+		{
+			create_sampling_directory_if_needed();
+			directory_existence_was_tested = 1;
+		}
+
 		/*
 		 * We need to keep track of all the model that were opened so that we can 
 		 * possibly update them at runtime termination ...
