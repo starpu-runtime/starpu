@@ -22,10 +22,12 @@ static void init_machine_config(struct machine_config_s *config)
 #endif
 
 #ifdef USE_CUDA
+	/* we to initialize CUDA early to count the number of devices */
+	init_cuda();
+
 	envval = get_env_number("NCUDA");
 	if (envval < 0) {
-//		config->ncudagpus = MIN(get_cuda_device_count(), MAXCUDADEVS);
-		config->ncudagpus = MIN(1, MAXCUDADEVS); /* XXX */
+		config->ncudagpus = MIN(get_cuda_device_count(), MAXCUDADEVS);
 	} else {
 		/* use the specified value */
 		config->ncudagpus = (unsigned)envval;
@@ -134,8 +136,6 @@ static void init_workers(struct machine_config_s *config)
 	int cudadev;
 	for (cudadev = 0; cudadev < config->ncudagpus; cudadev++)
 	{
-		init_cuda(); /* XXX */
-
 		cuda_worker_arg *cudaarg = &config->cudaargs[cudadev];
 
 		cudaarg->deviceid = cudadev;
