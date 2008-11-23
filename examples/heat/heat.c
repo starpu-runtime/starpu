@@ -680,5 +680,11 @@ int main(int argc, char **argv)
 	opengl_render(ntheta, nthick, result, pmesh, argc, argv);
 #endif
 
+	free(pmesh);
+	free(RefArray);
+	free(RefArrayBack);
+	free(Bformer);
+	free(result);
+
 	return 0;
 }

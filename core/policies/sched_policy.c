@@ -17,8 +17,7 @@ struct sched_policy_s *get_sched_policy(void)
 
 void init_sched_policy(struct machine_config_s *config)
 {
-	/* first get the proper policy XXX */
-	/* for now we hardcode the eager policy */
+	/* eager policy is taken by default */
 	char *sched_env;
 	sched_env = getenv("SCHED");
 	if (sched_env) {
