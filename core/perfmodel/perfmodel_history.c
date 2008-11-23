@@ -256,25 +256,20 @@ static int directory_existence_was_tested = 0;
 
 static void create_sampling_directory_if_needed(void)
 {
-	struct stat sb;
-	int statret;
-	statret = stat(PERF_MODEL_DIR, &sb);
-
-	if (statret == -1)
+	/* Testing if a directory exists and creating it otherwise 
+	   may not be safe: it is possible that the permission are
+	   changed in between. Instead, we create it and check if
+	   it already existed before */
+	int ret;
+	ret = mkdir(PERF_MODEL_DIR, S_IRWXU);
+	if (ret == -1)
 	{
-		int ret;
+		ASSERT(errno == EEXIST);
 
- 		ASSERT (errno == ENOENT);
-
-		/* directory does not exist : create it */
-		fprintf(stderr, "directory does not exist : create it\n");
-		ret = mkdir(PERF_MODEL_DIR, S_IRWXU);
-		ASSERT(ret == 0);
-	}
-	else {
-		/* make sure this is a directory */
+		/* make sure that it is actually a directory */
+		struct stat sb;
+		stat(PERF_MODEL_DIR, &sb);
 		ASSERT(S_ISDIR(sb.st_mode));
-		fprintf(stderr, "directory %s exists !\n", PERF_MODEL_DIR);
 	}
 }
 
