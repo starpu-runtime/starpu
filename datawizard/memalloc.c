@@ -1,6 +1,7 @@
 #include "memalloc.h"
 
 extern mem_node_descr descr;
+static mutex mc_mutex[MAXNODES]; 
 static mem_chunk_list_t mc_list[MAXNODES];
 static mem_chunk_list_t mc_list_to_free[MAXNODES];
 
@@ -9,12 +10,13 @@ void init_mem_chunk_lists(void)
 	unsigned i;
 	for (i = 0; i < MAXNODES; i++)
 	{
+		init_mutex(&mc_mutex[i]);
 		mc_list[i] = mem_chunk_list_new();
 		mc_list_to_free[i] = mem_chunk_list_new();
 	}
 }
 
-void lock_all_subtree(data_state *data)
+static void lock_all_subtree(data_state *data)
 {
 	if (data->nchildren == 0)
 	{
@@ -31,7 +33,7 @@ void lock_all_subtree(data_state *data)
 	}
 }
 
-void unlock_all_subtree(data_state *data)
+static void unlock_all_subtree(data_state *data)
 {
 	if (data->nchildren == 0)
 	{
@@ -144,7 +146,7 @@ void transfer_subtree_to_node(data_state *data, unsigned src_node,
 	}
 }
 
-size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node)
+static size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node)
 {
 	size_t liberated = 0;
 
@@ -184,6 +186,8 @@ static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unu
 
 	size_t liberated = 0;
 
+	take_mutex(&mc_mutex[node]);
+
 	/* remove all buffers for which there was a removal request */
 	mem_chunk_t mc;
 	for (mc = mem_chunk_list_begin(mc_list_to_free[node]);
@@ -211,10 +215,12 @@ static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unu
 
 	fprintf(stderr, "got %d MB back\n", (int)liberated/(1024*1024));
 
+	release_mutex(&mc_mutex[node]);
+
 	return liberated;
 }
 
-void register_mem_chunk(data_state *state, uint32_t dst_node, size_t size)
+static void register_mem_chunk(data_state *state, uint32_t dst_node, size_t size)
 {
 	mem_chunk_t mc = mem_chunk_new();
 
@@ -225,12 +231,15 @@ void register_mem_chunk(data_state *state, uint32_t dst_node, size_t size)
 	mc->data = state;
 	mc->size = size; 
 
-	/* XXX TODO protect that structure ! */
+	take_mutex(&mc_mutex[dst_node]);
 	mem_chunk_list_push_front(mc_list[dst_node], mc);
+	release_mutex(&mc_mutex[dst_node]);
 }
 
 void request_mem_chunk_removal(data_state *state, unsigned node)
 {
+	take_mutex(&mc_mutex[node]);
+
 	/* iterate over the list of memory chunks and remove the entry */
 	mem_chunk_t mc;
 	for (mc = mem_chunk_list_begin(mc_list[node]);
@@ -250,6 +259,8 @@ void request_mem_chunk_removal(data_state *state, unsigned node)
 	}
 
 	/* there was no corresponding buffer ... */
+
+	release_mutex(&mc_mutex[node]);
 }
 
 size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node)
