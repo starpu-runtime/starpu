@@ -64,9 +64,6 @@ void handle_new_worker(void)
 		case FUT_CUDA_KEY:
 			str = "cuda";
 			break;
-		case FUT_CUBLAS_KEY:
-			str = "cublas";
-			break;
 	}
 
 //	fprintf(stderr, "new %s worker (tid = %d)\n", str, ev.param[1]);
