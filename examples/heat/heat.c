@@ -674,6 +674,7 @@ int main(int argc, char **argv)
 
 		solve_system(DIM, newsize, result, RefArray, Bformer, A, B);
 
+		terminate_machine();
 	}
 
 #ifdef OPENGL_RENDER

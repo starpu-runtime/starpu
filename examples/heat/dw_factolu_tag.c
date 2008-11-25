@@ -297,6 +297,4 @@ void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 #ifdef CHECK_RESULTS
 	compare_A_LU(Asaved, matA, size, ld);
 #endif
-	
-	terminate_machine();
 }

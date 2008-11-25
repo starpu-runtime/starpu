@@ -35,6 +35,7 @@ void set_local_memory_node_key(unsigned *node);
 unsigned get_local_memory_node(void);
 unsigned register_memory_node(node_kind kind);
 void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid);
+void wake_all_blocked_workers(void);
 
 node_kind get_node_kind(uint32_t node);
 

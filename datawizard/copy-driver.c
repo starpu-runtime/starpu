@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <core/policies/sched_policy.h>
 #include "copy-driver.h"
 #include "memalloc.h"
 
@@ -30,6 +31,36 @@ void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
 	descr.attached_queues[nodeid][nqueues-1] = q;
 
 	fprintf(stderr, "Add queue %p to memory node %d, now there are %d queues attached to that node\n", q, nodeid, nqueues);
+}
+
+void wake_all_blocked_workers(void)
+{
+	/* workers may be blocked on the policy's global condition */
+	struct sched_policy_s *sched = get_sched_policy();
+	pthread_cond_t *sched_cond = &sched->sched_activity_cond;
+	pthread_mutex_t *sched_mutex = &sched->sched_activity_mutex;
+
+	pthread_mutex_lock(sched_mutex);
+	pthread_cond_broadcast(sched_cond);
+	pthread_mutex_unlock(sched_mutex);
+
+	/* workers may be blocked on the various queues' conditions */
+	unsigned node;
+	for (node = 0; node < descr.nnodes; node++)
+	{
+		/* wake up all queues on that node */
+		unsigned q_id;
+		for (q_id = 0; q_id < descr.queues_count[node]; q_id++)
+		{
+			struct jobq_s *q;
+			q  = descr.attached_queues[node][q_id];
+
+			/* wake anybody waiting on that queue */
+			pthread_mutex_lock(&q->activity_mutex);
+			pthread_cond_broadcast(&q->activity_cond);
+			pthread_mutex_unlock(&q->activity_mutex);
+		}
+	}
 }
 
 void init_memory_nodes()

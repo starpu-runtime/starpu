@@ -213,13 +213,14 @@ void init_machine(void)
 void terminate_workers(struct machine_config_s *config)
 {
 	fprintf(stderr, "terminate workers \n");
+
 #ifdef USE_CPUS
 	unsigned core;
 	for (core = 0; core < config->ncores; core++)
 	{
 		thread_join(config->corethreads[core], NULL);
 	}
-	fprintf(stderr, "core terminated ... \n");
+	fprintf(stderr, "core terminated\n");
 #endif
 
 #ifdef USE_CUDA
@@ -252,6 +253,10 @@ void kill_all_workers(struct machine_config_s *config)
 {
 	/* set the flag which will tell workers to stop */
 	config->running = 0;
+
+	/* in case some workers are waiting on some event 
+	   wake them up ... */
+	wake_all_blocked_workers();
 }
 
 void terminate_machine(void)
@@ -265,6 +270,5 @@ void terminate_machine(void)
 		dump_registered_models();
 
 	/* wait for their termination */
-	// XXX for now, it's not working !
-//	terminate_workers(&config);
+	terminate_workers(&config);
 }
