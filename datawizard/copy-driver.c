@@ -13,7 +13,23 @@ unsigned register_memory_node(node_kind kind)
 
 	descr.nodes[nnodes-1] = kind;
 
+	/* for now, there is no queue related to that newly created node */
+	descr.queues_count[nnodes-1] = 0;
+
 	return (nnodes-1);
+}
+
+
+/* TODO move in a more appropriate file */
+/* attach a queue to a memory node */
+void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
+{
+	unsigned nqueues;
+	nqueues = ATOMIC_ADD(&descr.queues_count[nodeid], 1);
+
+	descr.attached_queues[nodeid][nqueues-1] = q;
+
+	fprintf(stderr, "Add queue %p to memory node %d, now there are %d queues attached to that node\n", q, nodeid, nqueues);
 }
 
 void init_memory_nodes()

@@ -8,6 +8,7 @@
 #include <cublas.h>
 #endif
 
+
 typedef enum {
 	UNUSED,
 	SPU_LS,
@@ -18,6 +19,12 @@ typedef enum {
 typedef struct {
 	unsigned nnodes;
 	node_kind nodes[MAXNODES];
+
+	/* the list of queues that are attached to a given node */
+	// XXX 32 is set randomly !
+	struct jobq_s *attached_queues[MAXNODES][32];
+	/* the number of queues attached to each node */
+	unsigned queues_count[MAXNODES];
 } mem_node_descr;
 
 __attribute__((warn_unused_result))
@@ -27,6 +34,7 @@ void init_memory_nodes(void);
 void set_local_memory_node_key(unsigned *node);
 unsigned get_local_memory_node(void);
 unsigned register_memory_node(node_kind kind);
+void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid);
 
 node_kind get_node_kind(uint32_t node);
 

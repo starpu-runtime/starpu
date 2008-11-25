@@ -21,6 +21,8 @@ void setup_queues(void (*init_queue_design)(void),
 		corearg->jobq = func_init_queue();
 		corearg->jobq->who |= CORE;
 		corearg->jobq->alpha = CORE_ALPHA;
+
+		memory_node_attach_queue(corearg->jobq, corearg->memory_node);
 	}
 #endif
 
@@ -33,6 +35,8 @@ void setup_queues(void (*init_queue_design)(void),
 		cudaarg->jobq = func_init_queue();
 		cudaarg->jobq->who |= CUBLAS|CUDA;
 		cudaarg->jobq->alpha = CUDA_ALPHA;
+
+		memory_node_attach_queue(cudaarg->jobq, cudaarg->memory_node);
 	}
 #endif
 
