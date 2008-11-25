@@ -13,6 +13,8 @@ typedef struct rw_lock_t {
 void init_rw_lock(rw_lock *lock);
 void take_rw_lock_write(rw_lock *lock);
 void take_rw_lock_read(rw_lock *lock);
+int take_rw_lock_write_try(rw_lock *lock);
+int take_rw_lock_read_try(rw_lock *lock);
 void release_rw_lock(rw_lock *lock);
 
 ///* make sure to have the lock before using that function */
