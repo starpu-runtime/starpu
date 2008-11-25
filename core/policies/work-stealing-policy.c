@@ -128,17 +128,17 @@ static job_t ws_pop_task(struct jobq_s *q)
 	}
 	
 	/* we need to steal someone's job */
-	do {
-		struct jobq_s *victimq;
-		victimq = select_victimq();
+	struct jobq_s *victimq;
+	victimq = select_victimq();
 
-		j = deque_non_blocking_pop_task_if_job_exists(victimq);
+	j = deque_non_blocking_pop_task_if_job_exists(victimq);
 
-	} while(!j);
+	if (j)
+	{
+		TRACE_WORK_STEALING(q, j);
+		performed_total++;
+	}
 
-	TRACE_WORK_STEALING(q, j);
-
-	performed_total++;
 	return j;
 }
 

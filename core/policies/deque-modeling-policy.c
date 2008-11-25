@@ -10,13 +10,14 @@ static job_t dm_pop_task(struct jobq_s *q)
 	struct job_s *j;
 
 	j = fifo_pop_task(q);
-
-	struct fifo_jobq_s *fifo = q->queue;
-	double model = j->predicted;
-
-	fifo->exp_len -= model;
-	fifo->exp_start = timing_now()/1000000 + model;
-	fifo->exp_end = fifo->exp_start + fifo->exp_len;
+	if (j) {
+		struct fifo_jobq_s *fifo = q->queue;
+		double model = j->predicted;
+	
+		fifo->exp_len -= model;
+		fifo->exp_start = timing_now()/1000000 + model;
+		fifo->exp_end = fifo->exp_start + fifo->exp_len;
+	}	
 
 	return j;
 }
