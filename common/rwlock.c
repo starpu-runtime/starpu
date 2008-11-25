@@ -26,6 +26,52 @@ void init_rw_lock(rw_lock *lock)
 	lock->busy = 0;
 }
 
+
+int take_rw_lock_write_try(rw_lock *lock)
+{
+	_take_busy_lock(lock);
+	
+	if (lock->readercnt > 0 || lock->writer)
+	{
+		/* fail to take the lock */
+		_release_busy_lock(lock);
+		return -1;
+	}
+	else {
+		ASSERT(lock->readercnt == 0);
+		ASSERT(lock->writer == 0);
+
+		/* no one was either writing nor reading */
+		lock->writer = 1;
+		_release_busy_lock(lock);
+		return 0;
+	}
+}
+
+int take_rw_lock_read_try(rw_lock *lock)
+{
+	_take_busy_lock(lock);
+
+	if (lock->writer)
+	{
+		/* there is a writer ... */
+		_release_busy_lock(lock);
+		return -1;
+	}
+	else {
+		ASSERT(lock->writer == 0);
+
+		/* no one is writing */
+		/* XXX check wrap arounds ... */
+		lock->readercnt++;
+		_release_busy_lock(lock);
+
+		return 0;
+	}
+}
+
+
+
 void take_rw_lock_write(rw_lock *lock)
 {
 	do {
@@ -51,6 +97,8 @@ void take_rw_lock_write(rw_lock *lock)
 void take_rw_lock_read(rw_lock *lock)
 {
 	do {
+		_take_busy_lock(lock);
+
 		if (lock->writer)
 		{
 			/* there is a writer ... */
