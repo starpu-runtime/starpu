@@ -17,6 +17,10 @@ struct sched_policy_s {
 	/* anyone can request which queue it is associated to */
 	struct jobq_s *(*get_local_queue)(struct sched_policy_s *);
 
+	/* some worker may block until some activity happens in the machine */
+	pthread_cond_t sched_activity_cond;
+	pthread_mutex_t sched_activity_mutex;
+
 	pthread_key_t local_queue_key;
 };
 

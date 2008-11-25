@@ -1,3 +1,4 @@
+#include <pthread.h>
 #include <core/mechanisms/stack_queues.h>
 #include <errno.h>
 
@@ -5,16 +6,18 @@
  * polling when there are really few jobs in the overall queue */
 static unsigned total_number_of_jobs;
 
-/* warning : this semaphore does not indicate the exact number of jobs, but it 
- * helps forcing some useless worker to sleep even if it may loop a little until
- * it realizes there is no work to be done */
-static sem_t total_jobs_sem_t;
+static pthread_cond_t *sched_cond;
+static pthread_mutex_t *sched_mutex;
 
 void init_stack_queues_mechanisms(void)
 {
 	total_number_of_jobs = 0;
 
-	sem_init(&total_jobs_sem_t, 0, 0U);
+	struct sched_policy_s *sched = get_sched_policy();
+
+	/* to access them more easily, we keep their address in local variables */
+	sched_cond = &sched->sched_activity_cond;
+	sched_mutex = &sched->sched_activity_mutex;
 }
 
 struct jobq_s *create_stack(void)
@@ -25,8 +28,10 @@ struct jobq_s *create_stack(void)
 	struct stack_jobq_s *stack;
 	stack = malloc(sizeof(struct stack_jobq_s));
 
+	pthread_mutex_init(&jobq->activity_mutex, NULL);
+	pthread_cond_init(&jobq->activity_cond, NULL);
+
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
-	thread_mutex_init(&stack->workq_mutex, NULL);
 	stack->jobq = job_list_new();
 	stack->njobs = 0;
 	stack->nprocessed = 0;
@@ -34,8 +39,6 @@ struct jobq_s *create_stack(void)
 	stack->exp_start = timing_now()/1000000;
 	stack->exp_len = 0.0;
 	stack->exp_end = stack->exp_start;
-
-	sem_init(&stack->sem_jobq, 0, 0);
 
 	jobq->queue = stack;
 
@@ -71,22 +74,22 @@ void stack_push_prio_task(struct jobq_s *q, job_t task)
 	ASSERT(q);
 	struct stack_jobq_s *stack_queue = q->queue;
 
-	/* do that early to avoid sleepy for no reason */
-	(void)ATOMIC_ADD(&total_number_of_jobs, 1);
-	sem_post(&total_jobs_sem_t);
+	/* if anyone is blocked on the entire machine, wake it up */
+	pthread_mutex_lock(sched_mutex);
+	total_number_of_jobs++;
+	pthread_cond_signal(sched_cond);
+	pthread_mutex_unlock(sched_mutex);
 
-	thread_mutex_lock(&stack_queue->workq_mutex);
+	/* wake people waiting locally */
+	pthread_mutex_lock(&q->activity_mutex);
 
 	TRACE_JOB_PUSH(task, 0);
 	job_list_push_back(stack_queue->jobq, task);
+	deque_queue->njobs++;
+	deque_queue->nprocessed++;
 
-	stack_queue->njobs++;
-	stack_queue->nprocessed++;
-
-	/* semaphore for the local queue */
-	sem_post(&stack_queue->sem_jobq);
-
-	thread_mutex_unlock(&stack_queue->workq_mutex);
+	pthread_cond_signal(&q->activity_cond);
+	pthread_mutex_unlock(&q->activity_mutex);
 #else
 	stack_push_task(q, task);
 #endif
@@ -97,49 +100,55 @@ void stack_push_task(struct jobq_s *q, job_t task)
 	ASSERT(q);
 	struct stack_jobq_s *stack_queue = q->queue;
 
-	/* do that early to avoid sleepy for no reason */
-	(void)ATOMIC_ADD(&total_number_of_jobs, 1);
-	/* semaphore for the entire system */
-	sem_post(&total_jobs_sem_t);
+	/* if anyone is blocked on the entire machine, wake it up */
+	pthread_mutex_lock(sched_mutex);
+	total_number_of_jobs++;
+	pthread_cond_signal(sched_cond);
+	pthread_mutex_unlock(sched_mutex);
 
-	thread_mutex_lock(&stack_queue->workq_mutex);
+	/* wake people waiting locally */
+	pthread_mutex_lock(&q->activity_mutex);
 
 	TRACE_JOB_PUSH(task, 0);
 	job_list_push_front(stack_queue->jobq, task);
-	stack_queue->njobs++;
-	stack_queue->nprocessed++;
+	deque_queue->njobs++;
+	deque_queue->nprocessed++;
 
-	/* semaphore for the local queue */
-	sem_post(&stack_queue->sem_jobq);
-
-	thread_mutex_unlock(&stack_queue->workq_mutex);
+	pthread_cond_signal(&q->activity_cond);
+	pthread_mutex_unlock(&q->activity_mutex);
 }
 
 job_t stack_pop_task(struct jobq_s *q)
 {
-	job_t j;
+	job_t j = NULL;
 
 	ASSERT(q);
 	struct stack_jobq_s *stack_queue = q->queue;
 
 	/* block until some task is available in that queue */
-	sem_wait(&stack_queue->sem_jobq);
+	pthread_mutex_lock(&q->activity_mutex);
 
-	thread_mutex_lock(&stack_queue->workq_mutex);
+	if (stack_queue->njobs == 0)
+		pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
 
-	j = job_list_pop_back(stack_queue->jobq);
-
-	/* there was some task */
-	ASSERT(j);
-	stack_queue->njobs--;
+	if (stack_queue->njobs > 0) 
+	{
+		/* there is a task */
+		j = job_list_pop_back(stack_queue->jobq);
 	
-	TRACE_JOB_POP(j, 0);
+		ASSERT(j);
+		stack_queue->njobs--;
+		
+		TRACE_JOB_POP(j, 0);
 
-	/* we are sure that we got it now, so at worst, some people thought 
-	 * there remained some work and will soon discover it is not true */
-	(void)ATOMIC_ADD(&total_number_of_jobs, -1);
-
-	thread_mutex_unlock(&stack_queue->workq_mutex);
+		/* we are sure that we got it now, so at worst, some people thought 
+		 * there remained some work and will soon discover it is not true */
+		pthread_mutex_lock(sched_mutex);
+		total_number_of_jobs--;
+		pthread_mutex_unlock(sched_mutex);
+	}
+	
+	pthread_mutex_unlock(&q->activity_mutex);
 
 	return j;
 
@@ -148,39 +157,32 @@ job_t stack_pop_task(struct jobq_s *q)
 /* for work stealing, typically */
 job_t stack_non_blocking_pop_task(struct jobq_s *q)
 {
-	job_t j;
+	job_t j = NULL;
 
 	ASSERT(q);
 	struct stack_jobq_s *stack_queue = q->queue;
 
-	thread_mutex_lock(&stack_queue->workq_mutex);
+	/* block until some task is available in that queue */
+	pthread_mutex_lock(&q->activity_mutex);
 
-	int fail;
-	fail = sem_trywait(&stack_queue->sem_jobq);
-
-	if (fail == -1 && errno == EAGAIN) {
-		/* there is nothing in that queue */
-		ASSERT (job_list_empty(stack_queue->jobq));
-		ASSERT(stack_queue->njobs == 0);
-
-		thread_mutex_unlock(&stack_queue->workq_mutex);
-
-		j = NULL;
-	}
-	else {
-		ASSERT(fail == 0);		
+	if (stack_queue->njobs > 0) 
+	{
+		/* there is a task */
 		j = job_list_pop_back(stack_queue->jobq);
-		/* there was some task */
-		stack_queue->njobs--;
 	
+		ASSERT(j);
+		stack_queue->njobs--;
+		
 		TRACE_JOB_POP(j, 0);
 
 		/* we are sure that we got it now, so at worst, some people thought 
 		 * there remained some work and will soon discover it is not true */
-		(void)ATOMIC_ADD(&total_number_of_jobs, -1);
-
-		thread_mutex_unlock(&stack_queue->workq_mutex);
+		pthread_mutex_lock(sched_mutex);
+		total_number_of_jobs--;
+		pthread_mutex_unlock(sched_mutex);
 	}
+	
+	pthread_mutex_unlock(&q->activity_mutex);
 
 	return j;
 }
@@ -191,14 +193,19 @@ job_t stack_non_blocking_pop_task_if_job_exists(struct jobq_s *q)
 
 	j = stack_non_blocking_pop_task(q);
 
-	if (!j && (ATOMIC_ADD(&total_number_of_jobs, 0) == 0)) {
+	if (!j) {
 		/* there is no job at all in the entire system : go to sleep ! */
 
 		/* that wait is not an absolute sign that there is some work 
 		 * if there is some, the thread should be awoken, but if there is none 
 		 * at the moment it is awoken, it may simply poll a limited number of 
 		 * times and just get back to sleep */
-		sem_wait(&total_jobs_sem_t);
+		pthread_mutex_lock(sched_mutex);
+
+		if (total_number_of_jobs == 0)
+			pthread_cond_wait(sched_cond, sched_mutex);
+
+		pthread_mutex_unlock(sched_mutex);
 	}
 
 	return j;

@@ -1,6 +1,8 @@
 #ifndef __QUEUES_H__
 #define __QUEUES_H__
 
+#include <pthread.h>
+
 #include <core/jobs.h>
 #include <core/policies/sched_policy.h>
 
@@ -18,6 +20,11 @@ struct jobq_s {
 
 	/* this is only relevant if there is a single worker per queue */
 	float alpha;
+
+	/* in case workers are blocked on the queue, signaling on that 
+	  condition must unblock them, even if there is no available task */
+	pthread_cond_t activity_cond;
+	pthread_mutex_t activity_mutex;
 };
 
 struct machine_config_s;

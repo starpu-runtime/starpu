@@ -1,3 +1,5 @@
+#include <pthread.h>
+
 #include <core/mechanisms/queues.h>
 #include <core/policies/sched_policy.h>
 #include <core/policies/no-prio-policy.h>
@@ -60,7 +62,8 @@ void init_sched_policy(struct machine_config_s *config)
 		policy.get_local_queue = get_local_queue_eager;
 	}
 
-
+	pthread_cond_init(&policy.sched_activity_cond, NULL);
+	pthread_mutex_init(&policy.sched_activity_mutex, NULL);
 	pthread_key_create(&policy.local_queue_key, NULL);
 
 	policy.init_sched(config, &policy);

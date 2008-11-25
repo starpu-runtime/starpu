@@ -1,3 +1,4 @@
+#include <pthread.h>
 #include <core/mechanisms/fifo_queues.h>
 #include <errno.h>
 
@@ -5,16 +6,18 @@
  * polling when there are really few jobs in the overall queue */
 static unsigned total_number_of_jobs;
 
-/* warning : this semaphore does not indicate the exact number of jobs, but it 
- * helps forcing some useless worker to sleep even if it may loop a little until
- * it realizes there is no work to be done */
-static sem_t total_jobs_sem_t;
+static pthread_cond_t *sched_cond;
+static pthread_mutex_t *sched_mutex;
 
 void init_fifo_queues_mechanisms(void)
 {
 	total_number_of_jobs = 0;
 
-	sem_init(&total_jobs_sem_t, 0, 0U);
+	struct sched_policy_s *sched = get_sched_policy();
+
+	/* to access them more easily, we keep their address in local variables */
+	sched_cond = &sched->sched_activity_cond;
+	sched_mutex = &sched->sched_activity_mutex;
 }
 
 struct jobq_s *create_fifo(void)
@@ -22,11 +25,13 @@ struct jobq_s *create_fifo(void)
 	struct jobq_s *jobq;
 	jobq = malloc(sizeof(struct jobq_s));
 
+	pthread_mutex_init(&jobq->activity_mutex, NULL);
+	pthread_cond_init(&jobq->activity_cond, NULL);
+
 	struct fifo_jobq_s *fifo;
 	fifo = malloc(sizeof(struct fifo_jobq_s));
 
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
-	thread_mutex_init(&fifo->workq_mutex, NULL);
 	fifo->jobq = job_list_new();
 	fifo->njobs = 0;
 	fifo->nprocessed = 0;
@@ -34,8 +39,6 @@ struct jobq_s *create_fifo(void)
 	fifo->exp_start = timing_now()/1000000;
 	fifo->exp_len = 0.0;
 	fifo->exp_end = fifo->exp_start;
-
-	sem_init(&fifo->sem_jobq, 0, 0);
 
 	jobq->queue = fifo;
 
@@ -71,22 +74,22 @@ void fifo_push_prio_task(struct jobq_s *q, job_t task)
 	ASSERT(q);
 	struct fifo_jobq_s *fifo_queue = q->queue;
 
-	/* do that early to avoid sleepy for no reason */
-	(void)ATOMIC_ADD(&total_number_of_jobs, 1);
-	sem_post(&total_jobs_sem_t);
-
-	thread_mutex_lock(&fifo_queue->workq_mutex);
+	/* if anyone is blocked on the entire machine, wake it up */
+	pthread_mutex_lock(sched_mutex);
+	total_number_of_jobs++;
+	pthread_cond_signal(sched_cond);
+	pthread_mutex_unlock(sched_mutex);
+	
+	/* wake people waiting locally */
+	pthread_mutex_lock(&q->activity_mutex);
 
 	TRACE_JOB_PUSH(task, 0);
 	job_list_push_back(fifo_queue->jobq, task);
-
 	fifo_queue->njobs++;
 	fifo_queue->nprocessed++;
 
-	/* semaphore for the local queue */
-	sem_post(&fifo_queue->sem_jobq);
-
-	thread_mutex_unlock(&fifo_queue->workq_mutex);
+	pthread_cond_signal(&q->activity_cond);
+	pthread_mutex_unlock(&q->activity_mutex);
 #else
 	fifo_push_task(q, task);
 #endif
@@ -97,90 +100,88 @@ void fifo_push_task(struct jobq_s *q, job_t task)
 	ASSERT(q);
 	struct fifo_jobq_s *fifo_queue = q->queue;
 
-	/* do that early to avoid sleepy for no reason */
-	(void)ATOMIC_ADD(&total_number_of_jobs, 1);
-	/* semaphore for the entire system */
-	sem_post(&total_jobs_sem_t);
-
-	thread_mutex_lock(&fifo_queue->workq_mutex);
+	/* if anyone is blocked on the entire machine, wake it up */
+	pthread_mutex_lock(sched_mutex);
+	total_number_of_jobs++;
+	pthread_cond_signal(sched_cond);
+	pthread_mutex_unlock(sched_mutex);
+	
+	/* wake people waiting locally */
+	pthread_mutex_lock(&q->activity_mutex);
 
 	TRACE_JOB_PUSH(task, 0);
 	job_list_push_front(fifo_queue->jobq, task);
 	fifo_queue->njobs++;
 	fifo_queue->nprocessed++;
 
-	/* semaphore for the local queue */
-	sem_post(&fifo_queue->sem_jobq);
-
-	thread_mutex_unlock(&fifo_queue->workq_mutex);
+	pthread_cond_signal(&q->activity_cond);
+	pthread_mutex_unlock(&q->activity_mutex);
 }
 
 job_t fifo_pop_task(struct jobq_s *q)
 {
-	job_t j;
+	job_t j = NULL;
 
 	ASSERT(q);
 	struct fifo_jobq_s *fifo_queue = q->queue;
 
-	/* block until some task is available in that queue */
-	sem_wait(&fifo_queue->sem_jobq);
+	/* block until some event happens */
+	pthread_mutex_lock(&q->activity_mutex);
 
-	thread_mutex_lock(&fifo_queue->workq_mutex);
+	if (fifo_queue->njobs == 0)
+		pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
 
-	j = job_list_pop_back(fifo_queue->jobq);
-
-	/* there was some task */
-	ASSERT(j);
-	fifo_queue->njobs--;
+	if (fifo_queue->njobs > 0) 
+	{
+		/* there is a task */
+		j = job_list_pop_back(fifo_queue->jobq);
 	
-	TRACE_JOB_POP(j, 0);
+		ASSERT(j);
+		fifo_queue->njobs--;
+		
+		TRACE_JOB_POP(j, 0);
 
-	/* we are sure that we got it now, so at worst, some people thought 
-	 * there remained some work and will soon discover it is not true */
-	(void)ATOMIC_ADD(&total_number_of_jobs, -1);
-
-	thread_mutex_unlock(&fifo_queue->workq_mutex);
+		/* we are sure that we got it now, so at worst, some people thought 
+		 * there remained some work and will soon discover it is not true */
+		pthread_mutex_lock(sched_mutex);
+		total_number_of_jobs--;
+		pthread_mutex_unlock(sched_mutex);
+	}
+	
+	pthread_mutex_unlock(&q->activity_mutex);
 
 	return j;
-
 }
 
 /* for work stealing, typically */
 job_t fifo_non_blocking_pop_task(struct jobq_s *q)
 {
-	job_t j;
+	job_t j = NULL;
 
 	ASSERT(q);
 	struct fifo_jobq_s *fifo_queue = q->queue;
 
-	thread_mutex_lock(&fifo_queue->workq_mutex);
+	/* block until some event happens */
+	pthread_mutex_lock(&q->activity_mutex);
 
-	int fail;
-	fail = sem_trywait(&fifo_queue->sem_jobq);
-
-	if (fail == -1 && errno == EAGAIN) {
-		/* there is nothing in that queue */
-		ASSERT (job_list_empty(fifo_queue->jobq));
-		ASSERT(fifo_queue->njobs == 0);
-
-		thread_mutex_unlock(&fifo_queue->workq_mutex);
-
-		j = NULL;
-	}
-	else {
-		ASSERT(fail == 0);		
+	if (fifo_queue->njobs > 0) 
+	{
+		/* there is a task */
 		j = job_list_pop_back(fifo_queue->jobq);
-		/* there was some task */
-		fifo_queue->njobs--;
 	
+		ASSERT(j);
+		fifo_queue->njobs--;
+		
 		TRACE_JOB_POP(j, 0);
 
 		/* we are sure that we got it now, so at worst, some people thought 
 		 * there remained some work and will soon discover it is not true */
-		(void)ATOMIC_ADD(&total_number_of_jobs, -1);
-
-		thread_mutex_unlock(&fifo_queue->workq_mutex);
+		pthread_mutex_lock(sched_mutex);
+		total_number_of_jobs--;
+		pthread_mutex_unlock(sched_mutex);
 	}
+	
+	pthread_mutex_unlock(&q->activity_mutex);
 
 	return j;
 }
@@ -191,14 +192,19 @@ job_t fifo_non_blocking_pop_task_if_job_exists(struct jobq_s *q)
 
 	j = fifo_non_blocking_pop_task(q);
 
-	if (!j && (ATOMIC_ADD(&total_number_of_jobs, 0) == 0)) {
+	if (!j) {
 		/* there is no job at all in the entire system : go to sleep ! */
 
 		/* that wait is not an absolute sign that there is some work 
 		 * if there is some, the thread should be awoken, but if there is none 
 		 * at the moment it is awoken, it may simply poll a limited number of 
 		 * times and just get back to sleep */
-		sem_wait(&total_jobs_sem_t);
+		pthread_mutex_lock(sched_mutex);
+
+		if (total_number_of_jobs == 0)
+			pthread_cond_wait(sched_cond, sched_mutex);
+
+		pthread_mutex_unlock(sched_mutex);
 	}
 
 	return j;
