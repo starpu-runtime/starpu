@@ -151,6 +151,7 @@ OBJDEPS += core/policies/work-stealing-policy.o
 OBJDEPS += core/policies/deque-modeling-policy.o
 OBJDEPS += core/policies/random-policy.o
 OBJDEPS += datawizard/copy-driver.o
+OBJDEPS += datawizard/data_request.o
 OBJDEPS += datawizard/coherency.o 
 OBJDEPS += datawizard/hierarchy.o 
 OBJDEPS += datawizard/memalloc.o

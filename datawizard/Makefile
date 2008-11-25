@@ -6,7 +6,7 @@ ifdef SPU
 	SPU_TARGET=spu
 endif
 
-OBJS := coherency.o copy-driver.o hierarchy.o memalloc.o footprint.o
+OBJS := coherency.o data_request.o copy-driver.o hierarchy.o memalloc.o footprint.o
 
 DWOBJDEPS += ../common/threads.o
 DWOBJDEPS += ../common/hash.o
@@ -15,6 +15,7 @@ DWOBJDEPS += ../common/htable32.o
 DWOBJDEPS += ../common/mutex.o 
 DWOBJDEPS += ../common/rwlock.o 
 DWOBJDEPS += copy-driver.o
+DWOBJDEPS += data_request.o
 DWOBJDEPS += coherency.o 
 DWOBJDEPS += hierarchy.o 
 DWOBJDEPS += memalloc.o
@@ -27,7 +28,6 @@ DWOBJDEPS += interfaces/blas_interface.o
 DWOBJDEPS += interfaces/csr_interface.o
 DWOBJDEPS += interfaces/bcsr_interface.o
 DWOBJDEPS += interfaces/vector_interface.o
-
 
 
 all: datawizard.a interfaces $(SPE_TARGET) $(OBJS)

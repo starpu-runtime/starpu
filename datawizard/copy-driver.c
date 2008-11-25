@@ -33,6 +33,22 @@ void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
 	fprintf(stderr, "Add queue %p to memory node %d, now there are %d queues attached to that node\n", q, nodeid, nqueues);
 }
 
+static void wake_all_blocked_workers_on_node(unsigned nodeid)
+{
+	/* wake up all queues on that node */
+	unsigned q_id;
+	for (q_id = 0; q_id < descr.queues_count[nodeid]; q_id++)
+	{
+		struct jobq_s *q;
+		q  = descr.attached_queues[nodeid][q_id];
+
+		/* wake anybody waiting on that queue */
+		pthread_mutex_lock(&q->activity_mutex);
+		pthread_cond_broadcast(&q->activity_cond);
+		pthread_mutex_unlock(&q->activity_mutex);
+	}
+}
+
 void wake_all_blocked_workers(void)
 {
 	/* workers may be blocked on the policy's global condition */
@@ -48,18 +64,7 @@ void wake_all_blocked_workers(void)
 	unsigned node;
 	for (node = 0; node < descr.nnodes; node++)
 	{
-		/* wake up all queues on that node */
-		unsigned q_id;
-		for (q_id = 0; q_id < descr.queues_count[node]; q_id++)
-		{
-			struct jobq_s *q;
-			q  = descr.attached_queues[node][q_id];
-
-			/* wake anybody waiting on that queue */
-			pthread_mutex_lock(&q->activity_mutex);
-			pthread_cond_broadcast(&q->activity_cond);
-			pthread_mutex_unlock(&q->activity_mutex);
-		}
+		wake_all_blocked_workers_on_node(node);
 	}
 }
 
