@@ -191,6 +191,10 @@ void unpartition_data(data_state *root_data, uint32_t gathering_node)
 	/* first take all the children lock (in order !) */
 	for (child = 0; child < root_data->nchildren; child++)
 	{
+		/* make sure the intermediate children is unpartitionned as well */
+		if (root_data->children[child].nchildren > 0)
+			unpartition_data(&root_data->children[child], gathering_node);
+
 		int ret;
 		ret = _fetch_data(&root_data->children[child], gathering_node, 1, 0);
 		/* for now we pretend that the RAM is almost unlimited and that gathering 
