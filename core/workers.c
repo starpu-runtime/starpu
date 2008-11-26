@@ -6,6 +6,10 @@ static struct machine_config_s config;
  * Runtime initialization methods
  */
 
+#ifdef USE_CUDA
+extern unsigned get_cuda_device_count(void);
+#endif
+
 static void init_machine_config(struct machine_config_s *config)
 {
 	int envval;

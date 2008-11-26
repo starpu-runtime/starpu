@@ -29,8 +29,6 @@ void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
 	nqueues = ATOMIC_ADD(&descr.queues_count[nodeid], 1);
 
 	descr.attached_queues[nodeid][nqueues-1] = q;
-
-	fprintf(stderr, "Add queue %p to memory node %d, now there are %d queues attached to that node\n", q, nodeid, nqueues);
 }
 
 void wake_all_blocked_workers_on_node(unsigned nodeid)
