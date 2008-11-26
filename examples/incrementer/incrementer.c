@@ -36,7 +36,7 @@ void callback_func(void *argcb)
 	if ((cnt == NITER)) 
 	{
 		/* stop monitoring data and grab it in RAM */
-		release_data(&my_float_state, 1<<0);
+		unpartition_data(&my_float_state, 0);
 
 		printf("delete data ...\n");
 		delete_data(&my_float_state);

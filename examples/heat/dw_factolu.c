@@ -749,9 +749,6 @@ void dw_codelet_facto_v2(data_state *dataA, unsigned nblocks)
 	sem_wait(&sem);
 	sem_destroy(&sem);
 
-	/* gather all the data */
-	unpartition_data(dataA, 0);
-
 	GET_TICK(end);
 
 	double timing = timing_delay(&start, &end);
@@ -818,6 +815,11 @@ void dw_factoLU(float *matA, unsigned size,
 			dw_codelet_facto_v2(&dataA, nblocks);
 			break;
 	}
+
+	/* gather all the data */
+	unpartition_data(&dataA, 0);
+
+	delete_data(&dataA);
 
 #ifdef CHECK_RESULTS
 	compare_A_LU(Asaved, matA, size, ld);

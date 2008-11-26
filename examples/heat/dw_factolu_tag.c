@@ -294,6 +294,9 @@ void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	dw_codelet_facto_v3(&dataA, nblocks);
 
+	/* gather all the data */
+	unpartition_data(&dataA, 0);
+
 #ifdef CHECK_RESULTS
 	compare_A_LU(Asaved, matA, size, ld);
 #endif
