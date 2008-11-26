@@ -14,7 +14,7 @@
 #include <common/fxt.h>
 
 #include "data_parameters.h"
-
+#include "data_request.h"
 #include "interfaces/data_interface.h"
 
 typedef enum {

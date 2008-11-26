@@ -179,6 +179,7 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 {
 	int ret;
 	uint32_t mask = (1<<0);
+//	uint32_t mask = 0;
 
 	CUresult status;
 	tick_t codelet_start, codelet_end;

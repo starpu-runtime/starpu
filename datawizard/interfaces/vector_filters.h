@@ -3,6 +3,8 @@
 
 #include <datawizard/hierarchy.h>
 
-unsigned block_filter_func_vector(filter *f, data_state *root_data);
+struct data_state_t;
+
+unsigned block_filter_func_vector(filter *f, struct data_state_t *root_data);
 
 #endif // __VECTOR_FILTERS_H__

@@ -3,6 +3,8 @@
 
 #include <datawizard/hierarchy.h>
 
-unsigned vertical_block_filter_func_csr(filter *f, data_state *root_data);
+struct data_state_t;
+
+unsigned vertical_block_filter_func_csr(filter *f, struct data_state_t *root_data);
 
 #endif // __CSR_FILTERS_H__

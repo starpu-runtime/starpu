@@ -375,7 +375,14 @@ void do_copy_csr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, ui
 			case CUDA_RAM:
 				/* CUBLAS_RAM -> RAM */
 				/* only the proper CUBLAS thread can initiate this ! */
-				copy_cublas_to_ram(state, src_node, dst_node);
+				if (get_local_memory_node() == src_node)
+				{
+					copy_cublas_to_ram(state, src_node, dst_node);
+				}
+				else
+				{
+					post_data_request(state, src_node, dst_node);
+				}
 				break;
 #endif
 			case SPU_LS:

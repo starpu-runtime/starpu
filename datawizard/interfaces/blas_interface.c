@@ -296,8 +296,18 @@ void do_copy_blas_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t d
 #ifdef USE_CUDA
 			case CUDA_RAM:
 				/* CUBLAS_RAM -> RAM */
-				/* only the proper CUBLAS thread can initiate this ! */
-				copy_cublas_to_ram(state, src_node, dst_node);
+				if (get_local_memory_node() == src_node)
+				{
+					/* only the proper CUBLAS thread can initiate this directly ! */
+					copy_cublas_to_ram(state, src_node, dst_node);
+				}
+				else
+				{
+					/* put a request to the corresponding GPU */
+		//			fprintf(stderr, "post_data_request state %p src %d dst %d\n", state, src_node, dst_node);
+					post_data_request(state, src_node, dst_node);
+		//			fprintf(stderr, "post %p OK\n", state);
+				}
 				break;
 #endif
 			case SPU_LS:

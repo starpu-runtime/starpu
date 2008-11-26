@@ -232,7 +232,16 @@ void do_copy_vector_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t
 			case CUDA_RAM:
 				/* CUBLAS_RAM -> RAM */
 				/* only the proper CUBLAS thread can initiate this ! */
-				copy_cublas_to_ram(state, src_node, dst_node);
+				if (get_local_memory_node() == src_node)
+				{
+					/* only the proper CUBLAS thread can initiate this directly ! */
+					copy_cublas_to_ram(state, src_node, dst_node);
+				}
+				else
+				{
+					/* put a request to the corresponding GPU */
+					post_data_request(state, src_node, dst_node);
+				}
 				break;
 #endif
 			case SPU_LS:

@@ -29,8 +29,14 @@ int post_data_request(data_state *state, uint32_t src_node, uint32_t dst_node)
 	data_request_list_push_front(data_requests[src_node], r);
 	release_mutex(&data_requests_mutex[src_node]);
 
+	/* wake the threads that could perform that operation */
+	wake_all_blocked_workers_on_node(src_node);
+
 	/* wait for the request to be performed */
 	sem_wait(&r->sem);
+	//while(sem_trywait(&r->sem) == -1)
+	//	wake_all_blocked_workers_on_node(src_node);
+
 	retvalue = r->retval;
 	
 	/* the request is useless now */
@@ -47,9 +53,12 @@ void handle_node_data_requests(uint32_t src_node)
 	data_request_list_t l = data_requests[src_node];
 	data_request_t r;
 
-	while ((r = data_request_list_pop_back(l)))
+	while (!data_request_list_empty(l))
 	{
+		r = data_request_list_pop_back(l);		
+
 		/* perform the transfer */
+		/* the header of the data must be locked by the worker that submitted the request */
 		r->retval = driver_copy_data_1_to_1(r->state, r->src_node, r->dst_node, 0);
 		
 		/* wake the requesting worker up */

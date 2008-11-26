@@ -3,6 +3,8 @@
 
 #include <datawizard/hierarchy.h>
 
-unsigned canonical_block_filter_bcsr(filter *f, data_state *root_data);
+struct data_state_t;
+
+unsigned canonical_block_filter_bcsr(filter *f, struct data_state_t *root_data);
 
 #endif // __BCSR_FILTERS_H__

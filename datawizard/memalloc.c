@@ -182,7 +182,7 @@ static size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node)
  */
 static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unused)))
 {
-	fprintf(stderr, "reclaim memory...\n");
+//	fprintf(stderr, "reclaim memory...\n");
 
 	size_t liberated = 0;
 
@@ -213,7 +213,7 @@ static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unu
 		#endif
 	}
 
-	fprintf(stderr, "got %d MB back\n", (int)liberated/(1024*1024));
+//	fprintf(stderr, "got %d MB back\n", (int)liberated/(1024*1024));
 
 	release_mutex(&mc_mutex[node]);
 

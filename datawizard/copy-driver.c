@@ -33,7 +33,7 @@ void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
 	fprintf(stderr, "Add queue %p to memory node %d, now there are %d queues attached to that node\n", q, nodeid, nqueues);
 }
 
-static void wake_all_blocked_workers_on_node(unsigned nodeid)
+void wake_all_blocked_workers_on_node(unsigned nodeid)
 {
 	/* wake up all queues on that node */
 	unsigned q_id;
@@ -83,6 +83,7 @@ void init_memory_nodes()
 	}
 
 	init_mem_chunk_lists();
+	init_data_request_lists();
 }
 
 void set_local_memory_node_key(unsigned *node)
@@ -165,13 +166,13 @@ static uint32_t choose_src_node(uint32_t src_node_mask)
 
 __attribute__((warn_unused_result))
 int driver_copy_data(data_state *state, uint32_t src_node_mask,
-					 uint32_t dst_node)
+			 uint32_t dst_node, unsigned donotread)
 {
 	int ret;
 	uint32_t src_node = choose_src_node(src_node_mask);
 
 	/* possibly returns -1 if there was no memory left */
-	ret = driver_copy_data_1_to_1(state, src_node, dst_node, 0);
+	ret = driver_copy_data_1_to_1(state, src_node, dst_node, donotread);
 
 	return ret;
 }
