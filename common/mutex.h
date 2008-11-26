@@ -13,6 +13,7 @@ typedef struct mutex_t {
 
 void init_mutex(mutex *m);
 void take_mutex(mutex *m);
+int take_mutex_try(mutex *m);
 void release_mutex(mutex *m);
 
 #endif
