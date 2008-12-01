@@ -195,14 +195,15 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 			if (j->model && j->model->benchmarking) 
 				calibrate_model = 1;
 
-			if (calibrate_model)
-				GET_TICK(codelet_start_comm);
-
 			ret = fetch_codelet_input(j->buffers, j->interface, j->nbuffers, mask);
 			if (ret != 0) {
 				/* there was not enough memory, so the input of the codelet cannot be fetched ... put the codelet back, and try it later */
 				return TRYAGAIN;
 			}
+
+			/* we do not take communication into account when modeling the performance */
+			if (calibrate_model)
+				GET_TICK(codelet_start_comm);
 
 			TRACE_START_CODELET_BODY(j);
 			if (use_cublas) {
@@ -253,7 +254,6 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 
 			}
 			TRACE_END_CODELET_BODY(j);	
-			push_codelet_output(j->buffers, j->nbuffers, mask);
 
 //#ifdef MODEL_DEBUG
 			if (calibrate_model)
@@ -266,6 +266,8 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 				update_perfmodel_history(j, CUDA_WORKER, measured);
 			}
 //#endif
+
+			push_codelet_output(j->buffers, j->nbuffers, mask);
 
 			break;
 		default:
@@ -318,7 +320,6 @@ void *cuda_worker(void *arg)
 
 		//int debugfoo;
 		j = pop_task();
-		//printf("cuda driver picked %p\n", j);
 		if (j == NULL) continue;
 
 		/* can CUDA do that task ? */
@@ -361,7 +362,6 @@ void *cuda_worker(void *arg)
 //		printf("AFTER TASK, debug ptr = %p\n", debugfoo);
 
 		job_delete(j);
-		//printf("cuda terminated %p\n", j);
 	} 
 
 	fprintf(stderr, "CUDA abort\n");
