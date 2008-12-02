@@ -545,6 +545,8 @@ static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uin
 
 	rowptr[newsize] = pos;
 
+
+
 	return pos;
 }
 
@@ -631,6 +633,32 @@ int main(int argc, char **argv)
 
 		nnz = build_sparse_stiffness_matrix_A(pmesh, &nzval, &colind, rowptr, newsize, RefArray, RefArrayBack);
 		printf("nnz : %d\n", nnz);
+
+		fprintf(stdout, "MUMPS FORMAT BEGIN\n");
+		FILE *fm = fopen("input_mumps", "w+");
+		fprintf(fm, "%d\t:N\n%d\t:NZ\n", newsize, nnz);
+
+		unsigned r;
+		for (r = 0; r < newsize; r++)
+		{
+			int first_ind = rowptr[r];
+			int last_ind = rowptr[r+1];
+
+			int ind;
+			for (ind = first_ind; ind < last_ind; ind++)
+			{
+				 fprintf(fm, "%d %d %f\n", colind[ind]+1, r+1, nzval[ind]);
+			}
+		} 
+
+		for (r = 0; r < newsize; r++)
+		{
+			fprintf(fm, "%f\n", B[r]);
+		}
+	
+		fclose(fm);
+		fprintf(stdout, "MUMPS FORMAT END\n");
+		
 
 		do_conjugate_gradient(nzval, B, result, nnz, newsize, colind, rowptr);
 
