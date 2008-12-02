@@ -127,11 +127,11 @@ nomem:
 int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *state, uint32_t src_node, 
 				uint32_t dst_node, unsigned donotread)
 {
-	int ret;
+	int ret_alloc, ret_copy;
 
 	/* first make sure the destination has an allocated buffer */
-	ret = allocate_per_node_buffer(state, dst_node);
-	if (!ret)
+	ret_alloc = allocate_per_node_buffer(state, dst_node);
+	if (!ret_alloc)
 		goto nomem;
 
 	/* if there is no need to actually read the data, 
@@ -139,7 +139,8 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 	if (!donotread) {
 		ASSERT(state->ops);
 		ASSERT(state->ops->copy_data_1_to_1);
-		state->ops->copy_data_1_to_1(state, src_node, dst_node);
+		ret_copy = state->ops->copy_data_1_to_1(state, src_node, dst_node);
+		return ret_copy;
 	}
 
 	return 0;

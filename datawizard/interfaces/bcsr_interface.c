@@ -16,7 +16,7 @@
 size_t allocate_bcsr_buffer_on_node(struct data_state_t *state, uint32_t dst_node);
 void liberate_bcsr_buffer_on_node(data_state *state, uint32_t node);
 size_t dump_bcsr_interface(data_interface_t *interface, void *_buffer);
-void do_copy_bcsr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, uint32_t dst_node);
+int do_copy_bcsr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, uint32_t dst_node);
 size_t bcsr_interface_get_size(struct data_state_t *state);
 uint32_t footprint_bcsr_interface_crc32(data_state *state, uint32_t hstate);
 
@@ -400,7 +400,7 @@ static void dummy_copy_ram_to_ram(struct data_state_t *state, uint32_t src_node,
 }
 
 
-void do_copy_bcsr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, uint32_t dst_node)
+int do_copy_bcsr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, uint32_t dst_node)
 {
 	node_kind src_kind = get_node_kind(src_node);
 	node_kind dst_kind = get_node_kind(dst_node);
@@ -464,4 +464,6 @@ void do_copy_bcsr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, u
 		assert(0);
 		break;
 	}
+
+	return 0;
 }
