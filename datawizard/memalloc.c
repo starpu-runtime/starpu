@@ -323,5 +323,5 @@ int allocate_memory_on_node(data_state *state, uint32_t dst_node)
 	return 0;
 nomem:
 	ASSERT(!allocated_memory);
-	return -1;
+	return -ENOMEM;
 }

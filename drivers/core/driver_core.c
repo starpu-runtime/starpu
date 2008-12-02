@@ -117,7 +117,6 @@ void *core_worker(void *arg)
                 res = execute_job_on_core(j);
 		if (res != OK) {
 			switch (res) {
-				case OK:
 				case FATAL:
 					assert(0);
 				case TRYAGAIN:

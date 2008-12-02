@@ -86,6 +86,32 @@ static int __attribute__((warn_unused_result)) copy_data_to_node(data_state *sta
 	return ret;
 }
 
+/* this may be called once the data is fetched with header and RW-lock hold */
+static void update_data_state(data_state *state, uint32_t requesting_node,
+				uint8_t write)
+{
+	if (write) {
+		/* the requesting node now has the only valid copy */
+		uint32_t node;
+		for (node = 0; node < MAXNODES; node++)
+		{
+			state->per_node[node].state = INVALID;
+		}
+		state->per_node[requesting_node].state = OWNER;
+	}
+	else { /* read only */
+		/* there was at least another copy of the data */
+		uint32_t node;
+		for (node = 0; node < MAXNODES; node++)
+		{
+			if (state->per_node[node].state != INVALID)
+				state->per_node[node].state = SHARED;
+		}
+		state->per_node[requesting_node].state = SHARED;
+	}
+}
+
+
 /*
  * This function is called when the data is needed on the local node, this
  * returns a pointer to the local copy 
@@ -153,27 +179,15 @@ int _fetch_data(data_state *state, uint32_t requesting_node,
 	int ret;
 	ret = copy_data_to_node(state, requesting_node, !read);
 	if (ret != 0)
-		goto enomem;
+	switch (ret) {
+		case -ENOMEM:
+			goto enomem;
+		
+		default:
+			ASSERT(0);
+	}
 
-	if (write) {
-		/* the requesting node now has the only valid copy */
-		uint32_t node;
-		for (node = 0; node < MAXNODES; node++)
-		{
-			state->per_node[node].state = INVALID;
-		}
-		state->per_node[requesting_node].state = OWNER;
-	}
-	else { /* read only */
-		/* there was at least another copy of the data */
-		uint32_t node;
-		for (node = 0; node < MAXNODES; node++)
-		{
-			if (state->per_node[node].state != INVALID)
-				state->per_node[node].state = SHARED;
-		}
-		state->per_node[requesting_node].state = SHARED;
-	}
+	update_data_state(state, requesting_node, write);
 
 	release_mutex(&state->header_lock);
 
@@ -182,7 +196,7 @@ int _fetch_data(data_state *state, uint32_t requesting_node,
 enomem:
 	/* there was not enough local memory to fetch the data */
 	release_mutex(&state->header_lock);
-	return -1;
+	return -ENOMEM;
 }
 
 int fetch_data(data_state *state, access_mode mode)

@@ -109,23 +109,29 @@ inline node_kind get_node_kind(uint32_t node)
 
 static int allocate_per_node_buffer(data_state *state, uint32_t node)
 {
+	int ret;
+
 	if (!state->per_node[node].allocated) {
 		/* there is no room available for the data yet */
-		if (allocate_memory_on_node(state, node))
+		ret = allocate_memory_on_node(state, node);
+		if (ret == -ENOMEM)
 			goto nomem;
 	}
 
 	return 0;
 nomem:
 	/* there was not enough memory to allocate the buffer */
-	return -1;
+	return -ENOMEM;
 }
 
 int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *state, uint32_t src_node, 
 				uint32_t dst_node, unsigned donotread)
 {
+	int ret;
+
 	/* first make sure the destination has an allocated buffer */
-	if (allocate_per_node_buffer(state, dst_node))
+	ret = allocate_per_node_buffer(state, dst_node);
+	if (!ret)
 		goto nomem;
 
 	/* if there is no need to actually read the data, 
@@ -139,7 +145,7 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 	return 0;
 
 nomem:
-	return -1;
+	return -ENOMEM;
 }
 
 static uint32_t choose_src_node(uint32_t src_node_mask)
