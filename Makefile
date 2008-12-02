@@ -1,3 +1,5 @@
+.PHONY: tags
+
 export 
 
 CC=gcc -m64
