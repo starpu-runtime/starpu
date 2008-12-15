@@ -255,6 +255,8 @@ void request_mem_chunk_removal(data_state *state, unsigned node)
 			/* put it in the list of buffers to be removed */
 			mem_chunk_list_push_front(mc_list_to_free[node], mc);
 
+			release_mutex(&mc_mutex[node]);
+
 			return;
 		}
 	}
