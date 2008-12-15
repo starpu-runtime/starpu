@@ -10,6 +10,7 @@ struct data_state_t;
 typedef struct filter_t {
 	unsigned (*filter_func)(struct filter_t *, struct data_state_t *); /* the actual partitionning function */
 	uint32_t filter_arg;
+	void *filter_arg_ptr;
 } filter;
 
 void monitor_new_data(struct data_state_t *state, uint32_t home_node);
