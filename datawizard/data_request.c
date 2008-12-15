@@ -56,6 +56,7 @@ void handle_node_data_requests(uint32_t src_node)
 	while (!data_request_list_empty(l))
 	{
 		r = data_request_list_pop_back(l);		
+		release_mutex(&data_requests_mutex[src_node]);
 
 		/* perform the transfer */
 		/* the header of the data must be locked by the worker that submitted the request */
@@ -63,6 +64,8 @@ void handle_node_data_requests(uint32_t src_node)
 		
 		/* wake the requesting worker up */
 		sem_post(&r->sem);
+
+		take_mutex(&data_requests_mutex[src_node]);
 	}
 
 	release_mutex(&data_requests_mutex[src_node]);
