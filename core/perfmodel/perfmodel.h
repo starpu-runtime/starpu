@@ -118,9 +118,11 @@ struct perfmodel_t {
 //}
 
 double history_based_job_expected_length(struct perfmodel_t *model, uint32_t who, struct job_s *j);
+void register_model(struct perfmodel_t *model);
 void dump_registered_models(void);
 
 double job_expected_length(uint32_t who, struct job_s *j);
+double regression_based_job_expected_length(struct perfmodel_t *model, uint32_t who, struct job_s *j);
 //void update_perfmodel_history(struct job_s *j, archtype arch, double measured);
 
 #endif // __PERFMODEL_H__

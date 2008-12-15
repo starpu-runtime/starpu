@@ -46,4 +46,6 @@ __attribute__((warn_unused_result))
 int driver_copy_data_1_to_1(struct data_state_t *state, uint32_t node, 
 				uint32_t requesting_node, unsigned donotread);
 
+int allocate_per_node_buffer(struct data_state_t *state, uint32_t node);
+
 #endif // __COPY_DRIVER_H__
