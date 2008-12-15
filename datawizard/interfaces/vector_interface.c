@@ -16,6 +16,7 @@ int do_copy_vector_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t 
 size_t dump_vector_interface(data_interface_t *interface, void *buffer);
 size_t vector_interface_get_size(struct data_state_t *state);
 uint32_t footprint_vector_interface_crc32(data_state *state, uint32_t hstate);
+void display_vector_interface(data_state *state, FILE *f);
 
 struct data_interface_ops_t interface_vector_ops = {
 	.allocate_data_on_node = allocate_vector_buffer_on_node,
@@ -23,7 +24,8 @@ struct data_interface_ops_t interface_vector_ops = {
 	.copy_data_1_to_1 = do_copy_vector_buffer_1_to_1,
 	.dump_data_interface = dump_vector_interface,
 	.get_size = vector_interface_get_size,
-	.footprint = footprint_vector_interface_crc32
+	.footprint = footprint_vector_interface_crc32,
+	.display = display_vector_interface
 };
 
 /* declare a new data with the BLAS interface */
@@ -73,6 +75,15 @@ struct dumped_vector_interface_s {
 	uint32_t nx;
 	uint32_t elemsize;
 } __attribute__ ((packed));
+
+void display_vector_interface(data_state *state, FILE *f)
+{
+	vector_interface_t *interface;
+	interface =  &state->interface[0].vector;
+
+	fprintf(f, "%d\t", interface->nx);
+}
+
 
 size_t dump_vector_interface(data_interface_t *interface, void *_buffer)
 {

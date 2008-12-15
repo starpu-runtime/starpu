@@ -16,6 +16,7 @@ int do_copy_blas_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t ds
 size_t dump_blas_interface(data_interface_t *interface, void *buffer);
 size_t blas_interface_get_size(struct data_state_t *state);
 uint32_t footprint_blas_interface_crc32(data_state *state, uint32_t hstate);
+void display_blas_interface(data_state *state, FILE *f);
 
 struct data_interface_ops_t interface_blas_ops = {
 	.allocate_data_on_node = allocate_blas_buffer_on_node,
@@ -23,7 +24,8 @@ struct data_interface_ops_t interface_blas_ops = {
 	.copy_data_1_to_1 = do_copy_blas_buffer_1_to_1,
 	.dump_data_interface = dump_blas_interface,
 	.get_size = blas_interface_get_size,
-	.footprint = footprint_blas_interface_crc32
+	.footprint = footprint_blas_interface_crc32,
+	.display = display_blas_interface
 };
 
 /* declare a new data with the BLAS interface */
@@ -78,6 +80,15 @@ struct dumped_blas_interface_s {
 	uint32_t ny;
 	uint32_t ld;
 } __attribute__ ((packed));
+
+void display_blas_interface(data_state *state, FILE *f)
+{
+	blas_interface_t *interface;
+
+	interface = &state->interface[0].blas;
+
+	fprintf(f, "%d\t%d\t", interface->nx, interface->ny);
+}
 
 size_t dump_blas_interface(data_interface_t *interface, void *_buffer)
 {
@@ -172,7 +183,6 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 				ASSERT(status == CUBLAS_STATUS_ALLOC_FAILED);
 				fail = 1;
 			}
-
 
 			break;
 #endif

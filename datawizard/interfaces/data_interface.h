@@ -1,6 +1,8 @@
 #ifndef __DATA_INTERFACE_H__
 #define __DATA_INTERFACE_H__
 
+#include <stdio.h>
+
 #include <datawizard/data_parameters.h>
 #include "blas_interface.h"
 #include "vector_interface.h"
@@ -27,6 +29,7 @@ struct data_interface_ops_t {
 					void *buffer);
 	size_t (*get_size)(struct data_state_t *state);
 	uint32_t (*footprint)(struct data_state_t *state, uint32_t hstate);
+	void (*display)(struct data_state_t *state, FILE *f);
 };
 
 #endif // __DATA_INTERFACE_H__
