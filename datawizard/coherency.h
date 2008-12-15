@@ -105,4 +105,8 @@ void push_codelet_output(buffer_descr *descrs, unsigned nbuffers, uint32_t mask)
 __attribute__((warn_unused_result))
 int fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsigned nbuffers, uint32_t mask);
 
+void notify_data_modification(data_state *state, uint32_t modifying_node);
+
+int request_data_allocation(data_state *state, uint32_t node);
+
 #endif // __COHERENCY__H__

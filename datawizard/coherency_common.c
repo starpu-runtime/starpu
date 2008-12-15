@@ -362,3 +362,39 @@ void push_codelet_output(buffer_descr *descrs, unsigned nbuffers, uint32_t mask)
 
 	TRACE_END_PUSH_OUTPUT(NULL);
 }
+
+int request_data_allocation(data_state *state, uint32_t node)
+{
+	take_mutex(&state->header_lock);
+
+	int ret;
+	ret = allocate_per_node_buffer(state, node);
+	ASSERT(ret == 0);
+
+	/* XXX quick and dirty hack */
+	state->per_node[node].automatically_allocated = 0;	
+
+	release_mutex(&state->header_lock);
+
+	return 0;
+}
+
+/* in case the application did modify the data ... invalidate all other copies  */
+void notify_data_modification(data_state *state, uint32_t modifying_node)
+{
+	/* this may block .. XXX */
+	take_rw_lock_write(&state->data_lock);
+
+	take_mutex(&state->header_lock);
+
+	unsigned node = 0;
+	for (node = 0; node < MAXNODES; node++)
+	{
+		state->per_node[node].state =
+			(node == modifying_node?OWNER:INVALID);
+	}
+
+	release_mutex(&state->header_lock);
+	release_rw_lock(&state->data_lock);
+}
+
