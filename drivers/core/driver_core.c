@@ -127,11 +127,7 @@ void *core_worker(void *arg)
 			}
 		}
 
-                if (j->cb)
-                        j->cb(j->argcb);
-
-		/* in case there are dependencies, wake up the proper tasks */
-		notify_dependencies(j);
+		handle_job_termination(j);
 
 		job_delete(j);
         }

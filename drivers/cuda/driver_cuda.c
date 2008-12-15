@@ -352,11 +352,7 @@ void *cuda_worker(void *arg)
 			}
 		}
 
-		if (j->cb)
-			j->cb(j->argcb);
-
-                /* in case there are dependencies, wake up the proper tasks */
-                notify_dependencies(j);
+		handle_job_termination(j);
 
 //		cuMemcpyDtoH(&debugfoo, debugptr, sizeof(uint64_t));
 //		printf("AFTER TASK, debug ptr = %p\n", debugfoo);

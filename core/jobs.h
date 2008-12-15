@@ -88,6 +88,7 @@ LIST_TYPE(job,
 );
 
 job_t job_create(void);
+void handle_job_termination(job_t j);
 size_t job_get_data_size(job_t j);
 
 #endif // __JOBS_H__
