@@ -107,7 +107,7 @@ inline node_kind get_node_kind(uint32_t node)
 	return descr.nodes[node];
 }
 
-static int allocate_per_node_buffer(data_state *state, uint32_t node)
+int allocate_per_node_buffer(data_state *state, uint32_t node)
 {
 	int ret;
 
