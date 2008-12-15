@@ -131,7 +131,7 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 
 	/* first make sure the destination has an allocated buffer */
 	ret_alloc = allocate_per_node_buffer(state, dst_node);
-	if (!ret_alloc)
+	if (ret_alloc)
 		goto nomem;
 
 	/* if there is no need to actually read the data, 
