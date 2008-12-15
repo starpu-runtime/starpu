@@ -164,7 +164,7 @@ static void initialize_model(struct perfmodel_t *model)
 static struct model_list_t *registered_models = NULL;
 //static unsigned debug_modelid = 0;
 
-static void get_model_debug_path(struct perfmodel_t *model, char *path, size_t maxlen)
+static void get_model_debug_path(struct perfmodel_t *model, const char *arch, char *path, size_t maxlen)
 {
 	strncpy(path, PERF_MODEL_DIR, maxlen);
 	strncat(path, model->symbol, maxlen);
@@ -173,6 +173,8 @@ static void get_model_debug_path(struct perfmodel_t *model, char *path, size_t m
 	gethostname(hostname, 32);
 	strncat(path, ".", maxlen);
 	strncat(path, hostname, maxlen);
+	strncat(path, ".", maxlen);
+	strncat(path, arch, maxlen);
 	strncat(path, ".debug", maxlen);
 }
 
@@ -191,9 +193,13 @@ void register_model(struct perfmodel_t *model)
 
 #ifdef MODEL_DEBUG
 	char debugpath[256];
-	get_model_debug_path(model, debugpath, 256);
-	model->debug_file = fopen(debugpath, "a+");
-	ASSERT(model->debug_file);
+	get_model_debug_path(model, "cuda", debugpath, 256);
+	model->cuda_debug_file = fopen(debugpath, "a+");
+	ASSERT(model->cuda_debug_file);
+
+	get_model_debug_path(model, "core", debugpath, 256);
+	model->core_debug_file = fopen(debugpath, "a+");
+	ASSERT(model->core_debug_file);
 #endif
 
 	return;
@@ -233,7 +239,8 @@ void save_history_based_model(struct perfmodel_t *model)
 	fclose(f);
 
 #ifdef DEBUG_MODEL
-	fclose(model->debug_file);
+	fclose(model->cuda_debug_file);
+	fclose(model->core_debug_file);
 #endif
 }
 
@@ -471,7 +478,20 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 		ASSERT(entry);
 
 #ifdef MODEL_DEBUG
-		fprintf(j->model->debug_file, "%d\t%x\t%zu\t%lf\t%lf\t%lf\n", arch, key, entry->size, measured, entry->mean, entry->deviation);
+		FILE * debug_file = (arch == CUDA_WORKER) ? j->model->cuda_debug_file:j->model->core_debug_file;
+
+		fprintf(debug_file, "%lf\t", measured);
+		unsigned i;
+		for (i = 0; i < j->nbuffers; i++)
+		{
+			data_state *state = j->buffers[i].state;
+
+			ASSERT(state->ops);
+			ASSERT(state->ops->display);
+			
+			state->ops->display(state, debug_file);
+		}
+		fprintf(debug_file, "\n");	
 #endif
 	}
 }

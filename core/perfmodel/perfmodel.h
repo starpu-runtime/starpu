@@ -99,7 +99,8 @@ struct perfmodel_t {
 #ifdef MODEL_DEBUG
 	/* for debugging purpose */
 	unsigned debug_modelid;
-	FILE *debug_file;
+	FILE *cuda_debug_file;
+	FILE *core_debug_file;
 #endif
 };
 
