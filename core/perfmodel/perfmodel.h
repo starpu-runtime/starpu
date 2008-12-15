@@ -75,7 +75,7 @@ struct regression_model_t {
 
 struct perfmodel_t {
 	/* which model is used for that task ? */
-	enum {PER_ARCH, COMMON, HISTORY_BASED} type;
+	enum {PER_ARCH, COMMON, HISTORY_BASED, REGRESSION_BASED} type;
 
 	/* single cost model */
 	double (*cost_model)(struct buffer_descr_t *);

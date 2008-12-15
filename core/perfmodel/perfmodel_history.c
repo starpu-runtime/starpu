@@ -57,7 +57,7 @@ static void scan_history_entry(FILE *f, struct history_entry_t *entry)
 	ASSERT(res == 7);
 }
 
-static void parse_model_file(FILE *f, struct perfmodel_t *model)
+static void parse_model_file(FILE *f, struct perfmodel_t *model, unsigned scan_history)
 {
 	/* header */
 	unsigned ncore_entries, ncuda_entries;
@@ -95,6 +95,11 @@ static void parse_model_file(FILE *f, struct perfmodel_t *model)
 	else {
 		model->regression_cuda.valid = 1;
 	}
+
+
+
+	if (!scan_history)
+		return;
 
 	/* parse core entries */
 	unsigned i;
@@ -301,7 +306,7 @@ static void create_sampling_directory_if_needed(void)
 	}
 }
 
-void load_history_based_model(struct perfmodel_t *model)
+void load_history_based_model(struct perfmodel_t *model, unsigned scan_history)
 {
 	ASSERT(model);
 	ASSERT(model->symbol);
@@ -341,7 +346,7 @@ void load_history_based_model(struct perfmodel_t *model)
 			f = fopen(path, "r");
 			ASSERT(f);
 	
-			parse_model_file(f, model);
+			parse_model_file(f, model, scan_history);
 	
 			fclose(f);
 		}
@@ -366,12 +371,38 @@ void load_history_based_model(struct perfmodel_t *model)
 	release_mutex(&model->model_mutex);
 }
 
+double regression_based_job_expected_length(struct perfmodel_t *model, uint32_t who, struct job_s *j)
+{
+	double exp = -1.0;
+	size_t size = job_get_data_size(j);
+	struct regression_model_t *regmodel;
+
+	if (!model->is_loaded)
+		load_history_based_model(model, 0);
+
+	if ( who & (CUBLAS|CUDA)) {
+		regmodel = &model->regression_cuda;
+	}
+	else if ( who & CORE) {
+		regmodel = &model->regression_core;
+	}
+	else {
+		/* XXX cleanup */
+		ASSERT(0);
+	}
+
+	if (regmodel->valid)
+		exp = regmodel->a*pow(size, regmodel->b) + regmodel->c;
+
+	return exp;
+}
+
 double history_based_job_expected_length(struct perfmodel_t *model, uint32_t who, struct job_s *j)
 {
 	double exp;
 
 	if (!model->is_loaded)
-		load_history_based_model(model);
+		load_history_based_model(model, 1);
 
 	if (!j->footprint_is_computed)
 		compute_buffers_footprint(j);
@@ -413,103 +444,104 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 {
 	if (j->model)
 	{
-		uint32_t key = j->footprint;
-		struct history_entry_t *entry;
-
-		struct htbl32_node_s *history;
-		struct htbl32_node_s **history_ptr;
-		struct regression_model_t *reg_model;
-
-		struct history_list_t **list;
-
-		ASSERT(j->model);
-
-		switch (arch) {
-			case CORE_WORKER:
-				history = j->model->history_core;
-				history_ptr = &j->model->history_core;
-				reg_model = &j->model->regression_core;
-				list = &j->model->list_core;
-				break;
-			case CUDA_WORKER:
-				history = j->model->history_cuda;
-				history_ptr = &j->model->history_cuda;
-				reg_model = &j->model->regression_cuda;
-				list = &j->model->list_cuda;
-				break;
-			default:
-				ASSERT(0);
-		}
-
-		take_mutex(&j->model->model_mutex);
-
-		entry = htbl_search_32(history, key);
-
-		if (!entry)
+		if (j->model->type == HISTORY_BASED || j->model->type == REGRESSION_BASED)
 		{
-			/* this is the first entry with such a footprint */
-			entry = malloc(sizeof(struct history_entry_t));
-			ASSERT(entry);
-				entry->mean = measured;
-				entry->sum = measured;
+			uint32_t key = j->footprint;
+			struct history_entry_t *entry;
 
-				entry->deviation = 0.0;
-				entry->sum2 = measured*measured;
+			struct htbl32_node_s *history;
+			struct htbl32_node_s **history_ptr;
+			struct regression_model_t *reg_model;
 
-				entry->size = job_get_data_size(j);
+			struct history_list_t **list;
 
-				entry->footprint = key;
-				entry->nsample = 1;
+			switch (arch) {
+				case CORE_WORKER:
+					history = j->model->history_core;
+					history_ptr = &j->model->history_core;
+					reg_model = &j->model->regression_core;
+					list = &j->model->list_core;
+					break;
+				case CUDA_WORKER:
+					history = j->model->history_cuda;
+					history_ptr = &j->model->history_cuda;
+					reg_model = &j->model->regression_cuda;
+					list = &j->model->list_cuda;
+					break;
+				default:
+					ASSERT(0);
+			}
 
-			insert_history_entry(entry, list, history_ptr);
+			take_mutex(&j->model->model_mutex);
+	
+				entry = htbl_search_32(history, key);
+	
+				if (!entry)
+				{
+					/* this is the first entry with such a footprint */
+					entry = malloc(sizeof(struct history_entry_t));
+					ASSERT(entry);
+						entry->mean = measured;
+						entry->sum = measured;
+	
+						entry->deviation = 0.0;
+						entry->sum2 = measured*measured;
+	
+						entry->size = job_get_data_size(j);
+	
+						entry->footprint = key;
+						entry->nsample = 1;
+	
+					insert_history_entry(entry, list, history_ptr);
+	
+				}
+				else {
+					/* there is already some entry with the same footprint */
+					entry->sum += measured;
+					entry->sum2 += measured*measured;
+					entry->nsample++;
+	
+					unsigned n = entry->nsample;
+					entry->mean = entry->sum / n;
+					entry->deviation = sqrt((entry->sum2 - (entry->sum*entry->sum)/n)/n);
+				}
+			
+				ASSERT(entry);
+			
+			/* update the regression model as well */
+			double logy, logx;
+			logx = logl(entry->size);
+			logy = logl(measured);
 
+			reg_model->sumlnx += logx;
+			reg_model->sumlnx2 += logx*logx;
+			reg_model->sumlny += logy;
+			reg_model->sumlnxlny += logx*logy;
+			reg_model->nsample++;
+
+			unsigned n = reg_model->nsample;
+			
+			double num = (n*reg_model->sumlnxlny - reg_model->sumlnx*reg_model->sumlny);
+			double denom = (n*reg_model->sumlnx2 - reg_model->sumlnx*reg_model->sumlnx);
+
+			reg_model->beta = num/denom;
+			reg_model->alpha = expl((reg_model->sumlny - reg_model->beta*reg_model->sumlnx)/n);
+			
+			release_mutex(&j->model->model_mutex);
 		}
-		else {
-			/* there is already some entry with the same footprint */
-			entry->sum += measured;
-			entry->sum2 += measured*measured;
-			entry->nsample++;
-
-			unsigned n = entry->nsample;
-			entry->mean = entry->sum / n;
-			entry->deviation = sqrt((entry->sum2 - (entry->sum*entry->sum)/n)/n);
-		}
-
-		/* update the regression model as well */
-		double logy, logx;
-		logx = logl(entry->size);
-		logy = logl(measured);
-
-		reg_model->sumlnx += logx;
-		reg_model->sumlnx2 += logx*logx;
-		reg_model->sumlny += logy;
-		reg_model->sumlnxlny += logx*logy;
-		reg_model->nsample++;
-
-		unsigned n = reg_model->nsample;
-		
-		double num = (n*reg_model->sumlnxlny - reg_model->sumlnx*reg_model->sumlny);
-		double denom = (n*reg_model->sumlnx2 - reg_model->sumlnx*reg_model->sumlnx);
-
-		reg_model->beta = num/denom;
-		reg_model->alpha = expl((reg_model->sumlny - reg_model->beta*reg_model->sumlnx)/n);
-		
-		release_mutex(&j->model->model_mutex);
-
-		ASSERT(entry);
 
 #ifdef MODEL_DEBUG
 		FILE * debug_file = (arch == CUDA_WORKER) ? j->model->cuda_debug_file:j->model->core_debug_file;
 
 		fprintf(debug_file, "%lf\t", measured);
 		unsigned i;
+			
 		for (i = 0; i < j->nbuffers; i++)
 		{
 			data_state *state = j->buffers[i].state;
 
 			ASSERT(state->ops);
 			ASSERT(state->ops->display);
-			
 			state->ops->display(state, debug_file);
 		}
 		fprintf(debug_file, "\n");	

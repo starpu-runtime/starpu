@@ -11,6 +11,22 @@
 static double per_arch_job_expected_length(struct perfmodel_t *model, uint32_t who, struct job_s *j)
 {
 	double exp;
+	
+	if (!model->is_loaded)
+	{
+		if (get_env_number("CALIBRATE") != -1)
+		{
+			fprintf(stderr, "CALIBRATE model %s\n", model->symbol);
+			model->benchmarking = 1;
+		}
+		else {
+			model->benchmarking = 0;
+		}
+		
+		register_model(model);
+		model->is_loaded = 1;
+	}
+
 
 	if ( (who & (CUBLAS|CUDA)) && model->cuda_cost_model) {
 		/* use CUDA model */
@@ -65,6 +81,10 @@ double job_expected_length(uint32_t who, struct job_s *j)
 
 			case HISTORY_BASED:
 				return history_based_job_expected_length(model, who, j);
+				break;
+
+			case REGRESSION_BASED:
+				return regression_based_job_expected_length(model, who, j);
 				break;
 			default:
 				ASSERT(0);
