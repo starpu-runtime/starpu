@@ -110,7 +110,7 @@ static unsigned find_list_size(struct history_list_t *list_history)
 	return cnt;
 }
 
-static unsigned find_list_min(double *y, unsigned n)
+static double find_list_min(double *y, unsigned n)
 {
 	double min = 1.0e30;
 
