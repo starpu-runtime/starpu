@@ -1,4 +1,4 @@
-.PHONY: incrementer tag_example cuda heat mult spmv cholesky strassen
+.PHONY: incrementer tag_example cuda heat mult spmv cholesky strassen pastix-wrappers 
 
 TARGET=tag_example 
 TARGET+= incrementer
@@ -19,6 +19,7 @@ ifdef ATLAS
 	TARGET+= heat 
 	TARGET+= cholesky
 	TARGET+= strassen
+	TARGET+= pastix-wrappers
 endif
 
 CFLAGS += -I../
@@ -28,6 +29,9 @@ ifdef USE_FXT
 endif
 
 all: $(TARGET)
+
+pastix-wrappers:
+	make -C pastix-wrappers
 
 strassen:
 	make -C strassen
@@ -54,6 +58,7 @@ cholesky:
 	make -C cholesky
 
 clean:
+	@make -C pastix-wrappers clean
 	@make -C cuda clean
 	@make -C heat clean
 	@make -C incrementer clean
