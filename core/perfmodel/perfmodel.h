@@ -66,6 +66,10 @@ struct regression_model_t {
 	double alpha;
 	double beta;
 
+	/* y = a size ^b + c */
+	double a, b, c;
+	unsigned valid;
+
 	unsigned nsample;
 };
 

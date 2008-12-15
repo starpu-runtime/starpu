@@ -68,12 +68,33 @@ static void parse_model_file(FILE *f, struct perfmodel_t *model)
 	scan_reg_model(f, &model->regression_core);
 	scan_reg_model(f, &model->regression_cuda);
 
-	/* for now, we just "consume" that */
-	double a, b, c;
-	res = fscanf(f, "%le\t%le\t%le\n", &a, &b, &c);
+	res = fscanf(f, "%le\t%le\t%le\n", 
+		&model->regression_core.a,
+		&model->regression_core.b,
+		&model->regression_core.c);
 	ASSERT(res == 3);
-	res = fscanf(f, "%le\t%le\t%le\n", &a, &b, &c);
+
+	if (isnan(model->regression_core.a)||isnan(model->regression_core.b)||isnan(model->regression_core.c))
+	{
+		model->regression_core.valid = 0;
+	}
+	else {
+		model->regression_core.valid = 1;
+	}
+
+	res = fscanf(f, "%le\t%le\t%le\n",
+		&model->regression_cuda.a,
+		&model->regression_cuda.b,
+		&model->regression_cuda.c);
 	ASSERT(res == 3);
+
+	if (isnan(model->regression_cuda.a)||isnan(model->regression_cuda.b)||isnan(model->regression_cuda.c))
+	{
+		model->regression_cuda.valid = 0;
+	}
+	else {
+		model->regression_cuda.valid = 1;
+	}
 
 	/* parse core entries */
 	unsigned i;
