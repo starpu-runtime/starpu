@@ -36,17 +36,10 @@ typedef struct {
 static float **ptrA;
 static unsigned __dim;
 
-sem_t sem_malloc;
-
 static void malloc_pinned_codelet(data_interface_t *buffers __attribute__((unused)),
 					void *addr  __attribute__((unused)))
 {
 	cuMemAllocHost((void **)ptrA, __dim*__dim*sizeof(float));
-}
-
-static void malloc_pinned_callback(void *arg  __attribute__((unused)))
-{
-	sem_post(&sem_malloc);
 }
 
 #endif
@@ -63,15 +56,10 @@ static inline void malloc_pinned(float **A, unsigned _dim)
 
 	job_t j = job_create();
 	j->where = CUBLAS;
-	j->cb = malloc_pinned_callback; 
+	j->cb = NULL; 
 	j->cl = cl;
 
-	sem_init(&sem_malloc, 0, 0U);
-
-	push_task(j);
-
-	sem_wait(&sem_malloc);
-	sem_destroy(&sem_malloc);
+	push_task_sync(j);
 #else
 	*A = malloc(_dim*_dim*sizeof(float));
 #endif	

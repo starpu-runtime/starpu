@@ -81,11 +81,19 @@ void push_task(job_t task)
 
 void push_prio_task(job_t task)
 {
-	struct jobq_s *queue = policy.get_local_queue(&policy);
+	task->priority = MAX_PRIO;
+	push_task(task);
+}
 
-	ASSERT(queue->push_prio_task);
+void push_task_sync(job_t task)
+{
+	task->synchronous = 1;
+	sem_init(&task->sync_sem, 0, 0);
 
-	queue->push_prio_task(queue, task);
+	push_task(task);
+
+	sem_wait(&task->sync_sem);
+	sem_destroy(&task->sync_sem);
 }
 
 struct job_s * pop_task(void)

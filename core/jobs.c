@@ -25,6 +25,7 @@ job_t job_create(void)
 	job->cb = NULL;
 	job->cl = NULL;
 	job->argcb = NULL;
+	job->synchronous = 0;
 	job->use_tag = 0;
 	job->nbuffers = 0;
 	job->priority = DEFAULT_PRIO;
@@ -44,4 +45,7 @@ void handle_job_termination(job_t j)
 
 	/* in case there are dependencies, wake up the proper tasks */
 	notify_dependencies(j);
+
+	if (j->synchronous)
+		sem_post(&j->sync_sem);
 }

@@ -70,6 +70,9 @@ LIST_TYPE(job,
 	callback cb;	/* do "cb(argcb)" when finished */
 	void *argcb;
 
+	unsigned synchronous; /* if set, a call to push is blocking */
+	sem_t sync_sem;
+
 	struct tag_s *tag;
 	unsigned use_tag;
 
