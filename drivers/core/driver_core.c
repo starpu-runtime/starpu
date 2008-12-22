@@ -1,11 +1,6 @@
 #include "driver_core.h"
 #include <core/policies/sched_policy.h>
 
-extern unsigned ncores;
-
-/* XXX */
-void update_perfmodel_history(job_t j, enum archtype arch, double measured);
-
 int execute_job_on_core(job_t j)
 {
 	int ret;
@@ -93,10 +88,6 @@ void *core_worker(void *arg)
 
         /* tell the main thread that we are ready */
         sem_post(&core_arg->ready_sem);
-
-//	struct jobq_s *jobq;
-
-//	jobq = ((core_worker_arg *)arg)->jobq;
 
         job_t j;
 	int res;

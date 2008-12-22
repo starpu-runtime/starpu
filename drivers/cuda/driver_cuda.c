@@ -2,7 +2,7 @@
 #include <core/policies/sched_policy.h>
 
 /* the number of CUDA devices */
-int ncudagpus;
+static int ncudagpus;
 
 //static CUdevice cuDevice;
 static CUcontext cuContext[MAXCUDADEVS];
@@ -11,9 +11,6 @@ CUresult status;
 //CUdeviceptr debugptr;
 
 extern char *execpath;
-
-/* XXX */
-void update_perfmodel_history(job_t j, enum archtype arch, double measured);
 
 void init_cuda_module(struct cuda_module_s *module, char *path)
 {
@@ -164,15 +161,8 @@ void init_cuda(void)
 		CUDA_REPORT_ERROR(status);
 	}
 
-	cuDeviceGetCount(&ncudagpus);
+	ncudagpus = get_cuda_device_count();
 	assert(ncudagpus <= MAXCUDADEVS);
-
-	int dev;
-	for (dev = 0; dev < ncudagpus; dev++)
-	{
-		// TODO change this to the driver API
-		// cudaGetDeviceProperties(&cudadevprops[dev], dev);
-	}
 }
 
 int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
