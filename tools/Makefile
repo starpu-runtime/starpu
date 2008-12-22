@@ -27,5 +27,5 @@ gtk-viewer.o: gtk-viewer.c
 	$(CC) $(CFLAGS) `pkg-config --cflags gtk+-2.0` gtk-viewer.c -c -o gtk-viewer.o
 
 clean:
-	rm -f *.o
+	rm -f *.o *.gcda *.gcno
 	rm -f fxt-tool fxt-stats
