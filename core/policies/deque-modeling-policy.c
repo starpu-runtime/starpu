@@ -1,9 +1,8 @@
 #include <core/policies/deque-modeling-policy.h>
 #include <core/perfmodel/perfmodel.h>
 
-/* XXX 32 is set randomly */
 unsigned nworkers;
-struct jobq_s *queue_array[32];
+struct jobq_s *queue_array[NMAXWORKERS];
 
 static job_t dm_pop_task(struct jobq_s *q)
 {
