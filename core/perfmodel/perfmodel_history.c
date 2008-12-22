@@ -442,9 +442,11 @@ double history_based_job_expected_length(struct perfmodel_t *model, uint32_t who
 
 void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 {
-	if (j->model)
+	struct perfmodel_t *model = j->model;
+
+	if (model)
 	{
-		if (j->model->type == HISTORY_BASED || j->model->type == REGRESSION_BASED)
+		if (model->type == HISTORY_BASED || model->type == REGRESSION_BASED)
 		{
 			uint32_t key = j->footprint;
 			struct history_entry_t *entry;
@@ -457,22 +459,22 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 
 			switch (arch) {
 				case CORE_WORKER:
-					history = j->model->history_core;
-					history_ptr = &j->model->history_core;
-					reg_model = &j->model->regression_core;
-					list = &j->model->list_core;
+					history = model->history_core;
+					history_ptr = &model->history_core;
+					reg_model = &model->regression_core;
+					list = &model->list_core;
 					break;
 				case CUDA_WORKER:
-					history = j->model->history_cuda;
-					history_ptr = &j->model->history_cuda;
-					reg_model = &j->model->regression_cuda;
-					list = &j->model->list_cuda;
+					history = model->history_cuda;
+					history_ptr = &model->history_cuda;
+					reg_model = &model->regression_cuda;
+					list = &model->list_cuda;
 					break;
 				default:
 					ASSERT(0);
 			}
 
-			take_mutex(&j->model->model_mutex);
+			take_mutex(&model->model_mutex);
 	
 				entry = htbl_search_32(history, key);
 	
@@ -527,11 +529,11 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 			reg_model->beta = num/denom;
 			reg_model->alpha = expl((reg_model->sumlny - reg_model->beta*reg_model->sumlnx)/n);
 			
-			release_mutex(&j->model->model_mutex);
+			release_mutex(&model->model_mutex);
 		}
 
 #ifdef MODEL_DEBUG
-		FILE * debug_file = (arch == CUDA_WORKER) ? j->model->cuda_debug_file:j->model->core_debug_file;
+		FILE * debug_file = (arch == CUDA_WORKER) ? model->cuda_debug_file:model->core_debug_file;
 
 		fprintf(debug_file, "%lf\t", measured);
 		unsigned i;
