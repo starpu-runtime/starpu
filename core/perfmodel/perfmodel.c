@@ -56,9 +56,23 @@ static double common_job_expected_length(struct perfmodel_t *model, uint32_t who
 	double exp;
 
 	if (model->cost_model) {
-		/* XXX fix ! */
-		exp = 0.0;
-		return exp;
+		float alpha = 1.0;
+		exp = model->cost_model(j->buffers);
+		switch (who) {
+			case CORE:
+				alpha = CORE_ALPHA;
+				break;
+			case CUDA:
+				alpha = CUDA_ALPHA;
+				break;
+			default:
+				/* perhaps there are various worker types on that queue */
+				break;
+		}
+
+		ASSERT(alpha != 0.0f);
+
+		return (exp/alpha);
 	}
 
 	return -1.0;
@@ -66,26 +80,22 @@ static double common_job_expected_length(struct perfmodel_t *model, uint32_t who
 
 double job_expected_length(uint32_t who, struct job_s *j)
 {
-	double exp;
 	struct perfmodel_t *model = j->model;
 
 	if (model) {
 		switch (model->type) {
 			case PER_ARCH:
 				return per_arch_job_expected_length(model, who, j);
-				break;
 
 			case COMMON:
 				return common_job_expected_length(model, who, j);
-				break;
 
 			case HISTORY_BASED:
 				return history_based_job_expected_length(model, who, j);
-				break;
 
 			case REGRESSION_BASED:
 				return regression_based_job_expected_length(model, who, j);
-				break;
+
 			default:
 				ASSERT(0);
 		};
