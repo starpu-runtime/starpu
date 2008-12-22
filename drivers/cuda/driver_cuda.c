@@ -279,9 +279,9 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 
 void *cuda_worker(void *arg)
 {
-	struct cuda_worker_arg_t* args = (struct cuda_worker_arg_t*)arg;
+	struct worker_s* args = arg;
 
-	int devid = args->deviceid;
+	int devid = args->id;
 
 #ifdef USE_FXT
 	fxt_register_thread(((struct cuda_worker_arg_t *)arg)->bindid);
@@ -296,7 +296,7 @@ void *cuda_worker(void *arg)
         sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
 #endif
 
-	set_local_memory_node_key(&(((cuda_worker_arg *)arg)->memory_node));
+	set_local_memory_node_key(&(args->memory_node));
 
 	set_local_queue(args->jobq);
 
@@ -309,7 +309,7 @@ void *cuda_worker(void *arg)
 	
 
 	/* tell the main thread that this one is ready */
-	args->ready_flag = 1;
+	sem_post(&args->ready_sem);
 
 	struct job_s * j;
 	int res;

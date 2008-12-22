@@ -33,39 +33,30 @@
 #define CORE_ALPHA	1.0f
 #define CUDA_ALPHA	13.33f
 
+#define NMAXWORKERS	16
+
 enum archtype {
 	CORE_WORKER,
 	CUDA_WORKER
 };
 
+struct worker_s {
+	enum archtype arch; /* what is the type of worker ? */
+	thread_t worker_thread; /* the thread which runs the worker */
+	int id; /* which core/gpu/etc is controlled by the workker ? */
+        sem_t ready_sem; /* indicate when the worker is ready */
+	int bindid; /* which core is the driver bound to ? */
+	unsigned memory_node; /* which memory node is associated that worker to ? */
+	struct jobq_s *jobq; /* in which queue will that worker get/put tasks ? */
+};
+
 struct machine_config_s {
-	#ifdef USE_CPUS
-	unsigned ncores;
-	thread_t corethreads[NMAXCORES];
-	core_worker_arg coreargs[NMAXCORES];
-	#endif
-	
-	#ifdef USE_CUDA
-	thread_t cudathreads[MAXCUDADEVS];
-	cuda_worker_arg cudaargs[MAXCUDADEVS];
-	int ncudagpus;
-	#endif
-	
-	#ifdef USE_SPU
-	thread_t sputhreads[MAXSPUS];
-	unsigned nspus;
-	spu_worker_arg spuargs[MAXSPUS];
-	#endif
-	
-	#ifdef USE_GORDON
-	thread_t gordonthread;
-	/* only the threads managed by gordon */
-	unsigned ngordonspus;
-	gordon_worker_arg gordonargs;
-	#endif
+	unsigned nworkers;
+
+	struct worker_s workers[NMAXWORKERS];
 
 	/* this flag is set until the runtime is stopped */
-	unsigned running;
+	volatile unsigned running;
 };
 
 void init_machine(void);

@@ -56,16 +56,7 @@ typedef struct cuda_codelet_s {
 	size_t stack_size;
 } cuda_codelet_t;
 
-typedef struct cuda_worker_arg_t {
-	int deviceid;
-	int bindid;
-	volatile int ready_flag;
-	unsigned memory_node;
-	struct jobq_s *jobq;
-} cuda_worker_arg;
-
 void init_cuda(void);
-//int precondition_cuda(matrix *, matrix *, matrix *);
 void *cuda_worker(void *);
 
 void init_cuda_module(struct cuda_module_s *module, char *path);

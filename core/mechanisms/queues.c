@@ -11,47 +11,31 @@ void setup_queues(void (*init_queue_design)(void),
 		  struct jobq_s *(*func_init_queue)(void), 
 		  struct machine_config_s *config) 
 {
+	unsigned worker;
+
 	init_queue_design();
 
-#ifdef USE_CPUS
-	unsigned core;
-	for (core = 0; core < config->ncores; core++)
+	for (worker = 0; worker < config->nworkers; worker++)
 	{
-		core_worker_arg *corearg = &config->coreargs[core];
-		corearg->jobq = func_init_queue();
-		corearg->jobq->who |= CORE;
-		corearg->jobq->alpha = CORE_ALPHA;
+		struct  worker_s *workerarg = &config->workers[worker];
+		
+		workerarg->jobq = func_init_queue();
 
-		memory_node_attach_queue(corearg->jobq, corearg->memory_node);
+		switch (workerarg->arch) {
+			case CORE_WORKER:
+				workerarg->jobq->who |= CORE;
+				workerarg->jobq->alpha = CORE_ALPHA;
+				break;
+			case CUDA_WORKER:
+				workerarg->jobq->who |= CUDA;
+				workerarg->jobq->alpha = CUDA_ALPHA;
+				break;
+			default:
+				ASSERT(0);
+		}
+		
+		memory_node_attach_queue(workerarg->jobq, workerarg->memory_node);
 	}
-#endif
-
-#ifdef USE_CUDA
-	/* initialize CUDA with the proper number of threads */
-	int cudadev;
-	for (cudadev = 0; cudadev < config->ncudagpus; cudadev++)
-	{
-		cuda_worker_arg *cudaarg = &config->cudaargs[cudadev];
-		cudaarg->jobq = func_init_queue();
-		cudaarg->jobq->who |= CUBLAS|CUDA;
-		cudaarg->jobq->alpha = CUDA_ALPHA;
-
-		memory_node_attach_queue(cudaarg->jobq, cudaarg->memory_node);
-	}
-#endif
-
-#ifdef USE_SPU
-	/* initialize the various SPUs  */
-	unsigned spu;
-	for (spu = 0; spu < config->nspus; spu++)
-	{
-		spu_worker_arg *spuarg = &config->spuargs[spu];
-
-		spuarg->jobq = func_init_queue();
-
-		spuarg->jobq->who |= SPU;
-	}
-#endif
 }
 
 /* this may return NULL for an "anonymous thread" */

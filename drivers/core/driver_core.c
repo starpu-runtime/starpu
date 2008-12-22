@@ -67,9 +67,9 @@ int execute_job_on_core(job_t j)
 
 void *core_worker(void *arg)
 {
-	core_worker_arg *core_arg = arg;
+	struct worker_s *core_arg = arg;
 
-        int core = core_arg->coreid;
+        int core = core_arg->id;
 
 
 #ifdef USE_FXT
@@ -92,7 +92,7 @@ void *core_worker(void *arg)
 	set_local_queue(core_arg->jobq);
 
         /* tell the main thread that we are ready */
-        core_arg->ready_flag = 1;
+        sem_post(&core_arg->ready_sem);
 
 //	struct jobq_s *jobq;
 
