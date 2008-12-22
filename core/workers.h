@@ -56,7 +56,7 @@ struct machine_config_s {
 	struct worker_s workers[NMAXWORKERS];
 
 	/* this flag is set until the runtime is stopped */
-	volatile unsigned running;
+	unsigned running;
 };
 
 void init_machine(void);
