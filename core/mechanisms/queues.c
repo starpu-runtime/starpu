@@ -32,7 +32,7 @@ void setup_queues(void (*init_queue_design)(void),
 				workerarg->jobq->alpha = CORE_ALPHA;
 				break;
 			case CUDA_WORKER:
-				workerarg->jobq->who |= CUDA;
+				workerarg->jobq->who |= CUDA|CUBLAS;
 				workerarg->jobq->alpha = CUDA_ALPHA;
 				break;
 			default:

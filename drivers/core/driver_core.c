@@ -1,7 +1,7 @@
 #include "driver_core.h"
 #include <core/policies/sched_policy.h>
 
-int execute_job_on_core(job_t j)
+int execute_job_on_core(job_t j, struct worker_s *core_args)
 {
 	int ret;
 	tick_t codelet_start, codelet_end;
@@ -45,7 +45,7 @@ int execute_job_on_core(job_t j)
 			{
 				double measured = timing_delay(&codelet_start, &codelet_end);
 
-				update_perfmodel_history(j, CORE_WORKER, measured);
+				update_perfmodel_history(j, core_args->arch, measured);
 			}
 			
 //#endif
@@ -105,7 +105,7 @@ void *core_worker(void *arg)
 			continue;
 		}
 
-                res = execute_job_on_core(j);
+                res = execute_job_on_core(j, core_arg);
 		if (res != OK) {
 			switch (res) {
 				case FATAL:

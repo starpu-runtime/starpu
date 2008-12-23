@@ -165,7 +165,7 @@ void init_cuda(void)
 	assert(ncudagpus <= MAXCUDADEVS);
 }
 
-int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
+int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 {
 	int ret;
 //	uint32_t mask = (1<<0);
@@ -175,6 +175,8 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 	tick_t codelet_start, codelet_end;
 	tick_t codelet_start_comm, codelet_end_comm;
 	
+	int devid = args->id;
+
 	unsigned calibrate_model = 0;
 
 	switch (j->type) {
@@ -253,7 +255,7 @@ int execute_job_on_cuda(job_t j, int devid, unsigned use_cublas)
 				double measured = timing_delay(&codelet_start, &codelet_end);
 				double measured_comm = timing_delay(&codelet_start_comm, &codelet_end_comm);
 
-				update_perfmodel_history(j, CUDA_WORKER, measured);
+				update_perfmodel_history(j, args->arch, measured);
 			}
 //#endif
 
@@ -325,7 +327,7 @@ void *cuda_worker(void *arg)
 
 
 		unsigned use_cublas = CUBLAS_MAY_PERFORM(j) ? 1:0;
-		res = execute_job_on_cuda(j, devid, use_cublas);
+		res = execute_job_on_cuda(j, args, use_cublas);
 
 		if (res != OK) {
 			switch (res) {

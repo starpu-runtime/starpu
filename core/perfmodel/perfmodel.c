@@ -84,7 +84,7 @@ double job_expected_length(uint32_t who, struct job_s *j, enum perf_archtype arc
 				return history_based_job_expected_length(model, arch, j);
 
 			case REGRESSION_BASED:
-				return regression_based_job_expected_length(model, who, j);
+				return regression_based_job_expected_length(model, arch, j);
 
 			default:
 				ASSERT(0);
