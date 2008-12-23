@@ -21,6 +21,11 @@ void setup_queues(void (*init_queue_design)(void),
 		
 		workerarg->jobq = func_init_queue();
 
+		/* warning : in case there are multiple workers on the same
+                   queue, we overwrite this value so that it is meaningless
+		 */
+		workerarg->jobq->arch = workerarg->perf_arch;
+
 		switch (workerarg->arch) {
 			case CORE_WORKER:
 				workerarg->jobq->who |= CORE;

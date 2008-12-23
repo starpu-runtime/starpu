@@ -113,22 +113,28 @@ static double cuda_mult_cost(buffer_descr *descr)
 }
 
 struct perfmodel_t strassen_model_mult = {
-	.core_cost_model = mult_cost,
-	.cuda_cost_model = cuda_mult_cost,
+	.per_arch = { 
+		[CORE_DEFAULT] = { .cost_model = mult_cost },
+		[CUDA_DEFAULT] = { .cost_model = cuda_mult_cost }
+	},
 	.type = HISTORY_BASED,
 	.symbol = "strassen_model_mult"
 };
 
 struct perfmodel_t strassen_model_add_sub = {
-	.core_cost_model = add_sub_cost,
-	.cuda_cost_model = cuda_add_sub_cost,
+	.per_arch = { 
+		[CORE_DEFAULT] = { .cost_model = add_sub_cost },
+		[CUDA_DEFAULT] = { .cost_model = cuda_add_sub_cost }
+	},
 	.type = HISTORY_BASED,
 	.symbol = "strassen_model_add_sub"
 };
 
 struct perfmodel_t strassen_model_self_add_sub = {
-	.core_cost_model = self_add_sub_cost,
-	.cuda_cost_model = cuda_self_add_sub_cost,
+	.per_arch = { 
+		[CORE_DEFAULT] = { .cost_model = self_add_sub_cost },
+		[CUDA_DEFAULT] = { .cost_model = cuda_self_add_sub_cost }
+	},
 	.type = HISTORY_BASED,
 	.symbol = "strassen_model_self_add_sub"
 };

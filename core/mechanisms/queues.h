@@ -6,6 +6,8 @@
 #include <core/jobs.h>
 #include <core/policies/sched_policy.h>
 
+enum perf_archtype;
+
 struct jobq_s {
 	/* a pointer to some queue structure */
 	void *queue; 
@@ -19,6 +21,7 @@ struct jobq_s {
 	uint32_t who;
 
 	/* this is only relevant if there is a single worker per queue */
+	enum perf_archtype arch;
 	float alpha;
 
 	/* in case workers are blocked on the queue, signaling on that 

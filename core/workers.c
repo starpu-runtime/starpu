@@ -1,4 +1,4 @@
-#include "workers.h"
+#include <core/workers.h>
 
 static struct machine_config_s config;
 
@@ -32,6 +32,7 @@ static void init_machine_config(struct machine_config_s *config)
 	for (core = 0; core < ncores; core++)
 	{
 		config->workers[config->nworkers + core].arch = CORE_WORKER;
+		config->workers[config->nworkers + core].perf_arch = CORE_DEFAULT;
 		config->workers[config->nworkers + core].id = core;
 	}
 
@@ -58,6 +59,7 @@ static void init_machine_config(struct machine_config_s *config)
 	for (cudagpu = 0; cudagpu < ncudagpus; cudagpu++)
 	{
 		config->workers[config->nworkers + cudagpu].arch = CUDA_WORKER;
+		config->workers[config->nworkers + cudagpu].perf_arch = CUDA_DEFAULT;
 		config->workers[config->nworkers + cudagpu].id = cudagpu;
 	}
 

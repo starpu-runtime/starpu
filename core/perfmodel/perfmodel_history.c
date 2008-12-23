@@ -57,134 +57,96 @@ static void scan_history_entry(FILE *f, struct history_entry_t *entry)
 	ASSERT(res == 7);
 }
 
-static void parse_model_file(FILE *f, struct perfmodel_t *model, unsigned scan_history)
+static void parse_per_arch_model_file(FILE *f, struct per_arch_perfmodel_t *per_arch_model, unsigned scan_history)
 {
-	/* header */
-	unsigned ncore_entries, ncuda_entries;
-	int res = fscanf(f, "%d\n%d\n", &ncore_entries, &ncuda_entries);
-	ASSERT(res == 2);
+	unsigned nentries;
 
-	/* parse regression models */
-	scan_reg_model(f, &model->regression_core);
-	scan_reg_model(f, &model->regression_cuda);
+	int res = fscanf(f, "%d\n", &nentries);
+	ASSERT(res == 1);
+
+	scan_reg_model(f, &per_arch_model->regression);
 
 	res = fscanf(f, "%le\t%le\t%le\n", 
-		&model->regression_core.a,
-		&model->regression_core.b,
-		&model->regression_core.c);
+		&per_arch_model->regression.a,
+		&per_arch_model->regression.b,
+		&per_arch_model->regression.c);
 	ASSERT(res == 3);
 
-	if (isnan(model->regression_core.a)||isnan(model->regression_core.b)||isnan(model->regression_core.c))
+	if (isnan(per_arch_model->regression.a)||isnan(per_arch_model->regression.b)||isnan(per_arch_model->regression.c))
 	{
-		model->regression_core.valid = 0;
+		per_arch_model->regression.valid = 0;
 	}
 	else {
-		model->regression_core.valid = 1;
+		per_arch_model->regression.valid = 1;
 	}
-
-	res = fscanf(f, "%le\t%le\t%le\n",
-		&model->regression_cuda.a,
-		&model->regression_cuda.b,
-		&model->regression_cuda.c);
-	ASSERT(res == 3);
-
-	if (isnan(model->regression_cuda.a)||isnan(model->regression_cuda.b)||isnan(model->regression_cuda.c))
-	{
-		model->regression_cuda.valid = 0;
-	}
-	else {
-		model->regression_cuda.valid = 1;
-	}
-
-
 
 	if (!scan_history)
 		return;
 
 	/* parse core entries */
 	unsigned i;
-	for (i = 0; i < ncore_entries; i++) {
+	for (i = 0; i < nentries; i++) {
 		struct history_entry_t *entry = malloc(sizeof(struct history_entry_t));
 		ASSERT(entry);
 
 		scan_history_entry(f, entry);
 		
 		/* insert the entry in the hashtable and the list structures  */
-		insert_history_entry(entry, &model->list_core, &model->history_core);
+		insert_history_entry(entry, &per_arch_model->list, &per_arch_model->history);
 	}
-
-	for (i = 0; i < ncuda_entries; i++) {
-		struct history_entry_t *entry = malloc(sizeof(struct history_entry_t));
-		ASSERT(entry);
-		
-		scan_history_entry(f, entry);
-
-		/* insert the entry in the hashtable and the list structures  */
-		insert_history_entry(entry, &model->list_cuda, &model->history_cuda);
-	}
-	
-//	model->benchmarking = 0;
 }
 
+static void parse_model_file(FILE *f, struct perfmodel_t *model, unsigned scan_history)
+{
+	parse_per_arch_model_file(f, &model->per_arch[CORE_DEFAULT], scan_history);
+	parse_per_arch_model_file(f, &model->per_arch[CUDA_DEFAULT], scan_history);
+}
 
-static void dump_model_file(FILE *f, struct perfmodel_t *model)
+static void dump_per_arch_model_file(FILE *f, struct per_arch_perfmodel_t *per_arch_model)
 {
 	/* count the number of elements in the lists */
 	struct history_list_t *ptr;
+	unsigned nentries = 0;
 
-	unsigned ncore_entries = 0;
-	ptr = model->list_core;
+	ptr = per_arch_model->list;
 	while(ptr) {
-		ncore_entries++;
-		ptr = ptr->next;
-	}
-
-	unsigned ncuda_entries = 0;
-	ptr = model->list_cuda;
-	while(ptr) {
-		ncuda_entries++;
+		nentries++;
 		ptr = ptr->next;
 	}
 
 	/* header */
-	fprintf(f, "%d\n", ncore_entries);
-	fprintf(f, "%d\n", ncuda_entries);
+	fprintf(f, "%d\n", nentries);
 
-	dump_reg_model(f, &model->regression_core);
-	dump_reg_model(f, &model->regression_cuda);
+	dump_reg_model(f, &per_arch_model->regression);
 
-	/* TODO clean up !*/
 	double a,b,c;
-	regression_non_linear_power(model->list_core, &a, &b, &c);
-	fprintf(f, "%le\t%le\t%le\n", a, b, c);
-	regression_non_linear_power(model->list_cuda, &a, &b, &c);
+	regression_non_linear_power(per_arch_model->list, &a, &b, &c);
 	fprintf(f, "%le\t%le\t%le\n", a, b, c);
 
-	ptr = model->list_core;
+	ptr = per_arch_model->list;
 	while (ptr) {
 		//memcpy(&entries_array[i++], ptr->entry, sizeof(struct history_entry_t));
 		dump_history_entry(f, ptr->entry);
 		ptr = ptr->next;
 	}
+}
 
-	ptr = model->list_cuda;
-	while (ptr) {
-		//memcpy(&entries_array[i++], ptr->entry, sizeof(struct history_entry_t));
-		dump_history_entry(f, ptr->entry);
-		ptr = ptr->next;
-	}
+static void dump_model_file(FILE *f, struct perfmodel_t *model)
+{
+	dump_per_arch_model_file(f, &model->per_arch[CORE_DEFAULT]);
+	dump_per_arch_model_file(f, &model->per_arch[CUDA_DEFAULT]);
+}
 
+static void initialize_per_arch_model(struct per_arch_perfmodel_t *per_arch_model)
+{
+	per_arch_model->history = NULL;
+	per_arch_model->list = NULL;
 }
 
 static void initialize_model(struct perfmodel_t *model)
 {
-	model->history_core = NULL;
-	model->history_cuda = NULL;
-
-	model->list_core = NULL;
-	model->list_cuda = NULL;
-
-//	model->benchmarking = 1;
+	initialize_per_arch_model(&model->per_arch[CORE_DEFAULT]);
+	initialize_per_arch_model(&model->per_arch[CUDA_DEFAULT]);
 }
 
 static struct model_list_t *registered_models = NULL;
@@ -371,7 +333,7 @@ void load_history_based_model(struct perfmodel_t *model, unsigned scan_history)
 	release_mutex(&model->model_mutex);
 }
 
-double regression_based_job_expected_length(struct perfmodel_t *model, uint32_t who, struct job_s *j)
+double regression_based_job_expected_length(struct perfmodel_t *model, enum perf_archtype arch, struct job_s *j)
 {
 	double exp = -1.0;
 	size_t size = job_get_data_size(j);
@@ -380,16 +342,7 @@ double regression_based_job_expected_length(struct perfmodel_t *model, uint32_t 
 	if (!model->is_loaded)
 		load_history_based_model(model, 0);
 
-	if ( who & (CUBLAS|CUDA)) {
-		regmodel = &model->regression_cuda;
-	}
-	else if ( who & CORE) {
-		regmodel = &model->regression_core;
-	}
-	else {
-		/* XXX cleanup */
-		ASSERT(0);
-	}
+	regmodel = &model->per_arch[arch].regression;
 
 	if (regmodel->valid)
 		exp = regmodel->a*pow(size, regmodel->b) + regmodel->c;
@@ -397,9 +350,12 @@ double regression_based_job_expected_length(struct perfmodel_t *model, uint32_t 
 	return exp;
 }
 
-double history_based_job_expected_length(struct perfmodel_t *model, uint32_t who, struct job_s *j)
+double history_based_job_expected_length(struct perfmodel_t *model, enum perf_archtype arch, struct job_s *j)
 {
 	double exp;
+	struct per_arch_perfmodel_t *per_arch_model;
+	struct history_entry_t *entry;
+	struct htbl32_node_s *history;
 
 	if (!model->is_loaded)
 		load_history_based_model(model, 1);
@@ -408,26 +364,12 @@ double history_based_job_expected_length(struct perfmodel_t *model, uint32_t who
 		compute_buffers_footprint(j);
 		
 	uint32_t key = j->footprint;
-	struct history_entry_t *entry;
 
-	struct htbl32_node_s *history;
-	struct htbl32_node_s **history_ptr;
-	struct history_list_t **list;
+	per_arch_model = &model->per_arch[arch];
 
-	if ( who & (CUBLAS|CUDA)) {
-		history = model->history_cuda;
-		history_ptr = &model->history_cuda;
-		list = &model->list_cuda;
-	}
-	else if ( who & CORE) {
-		history = model->history_core;
-		history_ptr = &model->history_core;
-		list = &model->list_core;
-	}
-	else {
-		/* XXX cleanup */
-		ASSERT(0);
-	}
+	history = per_arch_model->history;
+	if (!history)
+		return -1.0;
 
 	take_mutex(&model->model_mutex);
 	entry = htbl_search_32(history, key);
@@ -435,17 +377,17 @@ double history_based_job_expected_length(struct perfmodel_t *model, uint32_t who
 
 	exp = entry?entry->mean:-1.0;
 
-//	fprintf(stderr, "history prediction : entry = %p (footprint %x), expected %e\n", entry, j->footprint, exp);
-
 	return exp;
 }
 
-void update_perfmodel_history(job_t j, enum archtype arch, double measured)
+void update_perfmodel_history(job_t j, enum perf_archtype arch, double measured)
 {
 	struct perfmodel_t *model = j->model;
 
 	if (model)
 	{
+		struct per_arch_perfmodel_t *per_arch_model = &model->per_arch[arch];
+
 		if (model->type == HISTORY_BASED || model->type == REGRESSION_BASED)
 		{
 			uint32_t key = j->footprint;
@@ -457,22 +399,11 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 
 			struct history_list_t **list;
 
-			switch (arch) {
-				case CORE_WORKER:
-					history = model->history_core;
-					history_ptr = &model->history_core;
-					reg_model = &model->regression_core;
-					list = &model->list_core;
-					break;
-				case CUDA_WORKER:
-					history = model->history_cuda;
-					history_ptr = &model->history_cuda;
-					reg_model = &model->regression_cuda;
-					list = &model->list_cuda;
-					break;
-				default:
-					ASSERT(0);
-			}
+
+			history = per_arch_model->history;
+			history_ptr = &per_arch_model->history;
+			reg_model = &per_arch_model->regression;
+			list = &per_arch_model->list;
 
 			take_mutex(&model->model_mutex);
 	
@@ -533,7 +464,7 @@ void update_perfmodel_history(job_t j, enum archtype arch, double measured)
 		}
 
 #ifdef MODEL_DEBUG
-		FILE * debug_file = (arch == CUDA_WORKER) ? model->cuda_debug_file:model->core_debug_file;
+		FILE * debug_file = per_arch_model->debug_file;
 
 		fprintf(debug_file, "%lf\t", measured);
 		unsigned i;

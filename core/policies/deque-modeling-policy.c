@@ -48,7 +48,7 @@ static void _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task
 			continue;
 		}
 
-		double local_length = job_expected_length(queue_array[worker]->who, task);
+		double local_length = job_expected_length(queue_array[worker]->who, task, q->arch);
 
 		if (local_length == -1.0) 
 		{

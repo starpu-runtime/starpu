@@ -8,9 +8,10 @@
  * PER ARCH model
  */
 
-static double per_arch_job_expected_length(struct perfmodel_t *model, uint32_t who, struct job_s *j)
+static double per_arch_job_expected_length(struct perfmodel_t *model, enum perf_archtype arch, struct job_s *j)
 {
-	double exp;
+	double exp = -1.0;
+	double (*per_arch_cost_model)(struct buffer_descr_t *);
 	
 	if (!model->is_loaded)
 	{
@@ -27,24 +28,12 @@ static double per_arch_job_expected_length(struct perfmodel_t *model, uint32_t w
 		model->is_loaded = 1;
 	}
 
+	per_arch_cost_model = model->per_arch[arch].cost_model;
 
-	if ( (who & (CUBLAS|CUDA)) && model->cuda_cost_model) {
-		/* use CUDA model */
-		#ifdef TRANSFER_OVERHEAD
-		exp = model->cuda_cost_model(j->buffers)*1.15;
-		#else
-		exp = model->cuda_cost_model(j->buffers) + 0.0;
-		#endif
-		return exp;
-	}
+	if (per_arch_cost_model)
+		exp = per_arch_cost_model(j->buffers);
 
-	if ( (who & CORE) && model->core_cost_model) {
-		/* use CORE model */
-		exp = model->core_cost_model(j->buffers);
-		return exp;
-	}
-
-	return -1.0;
+	return exp;
 }
 
 /*
@@ -56,7 +45,7 @@ static double common_job_expected_length(struct perfmodel_t *model, uint32_t who
 	double exp;
 
 	if (model->cost_model) {
-		float alpha = 1.0;
+		float alpha;
 		exp = model->cost_model(j->buffers);
 		switch (who) {
 			case CORE:
@@ -67,6 +56,7 @@ static double common_job_expected_length(struct perfmodel_t *model, uint32_t who
 				break;
 			default:
 				/* perhaps there are various worker types on that queue */
+				alpha = 1.0; // this value is not significant ...
 				break;
 		}
 
@@ -78,20 +68,20 @@ static double common_job_expected_length(struct perfmodel_t *model, uint32_t who
 	return -1.0;
 }
 
-double job_expected_length(uint32_t who, struct job_s *j)
+double job_expected_length(uint32_t who, struct job_s *j, enum perf_archtype arch)
 {
 	struct perfmodel_t *model = j->model;
 
 	if (model) {
 		switch (model->type) {
 			case PER_ARCH:
-				return per_arch_job_expected_length(model, who, j);
+				return per_arch_job_expected_length(model, arch, j);
 
 			case COMMON:
 				return common_job_expected_length(model, who, j);
 
 			case HISTORY_BASED:
-				return history_based_job_expected_length(model, who, j);
+				return history_based_job_expected_length(model, arch, j);
 
 			case REGRESSION_BASED:
 				return regression_based_job_expected_length(model, who, j);

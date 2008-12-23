@@ -12,6 +12,7 @@
 #include <common/timing.h>
 #include <common/fxt.h>
 #include <core/jobs.h>
+#include <core/perfmodel/perfmodel.h>
 #include <core/policies/sched_policy.h>
 
 #ifdef USE_CUDA
@@ -42,12 +43,14 @@ enum archtype {
 
 struct worker_s {
 	enum archtype arch; /* what is the type of worker ? */
+	enum perf_archtype perf_arch; /* in case there are different models of the same arch */
 	thread_t worker_thread; /* the thread which runs the worker */
 	int id; /* which core/gpu/etc is controlled by the workker ? */
         sem_t ready_sem; /* indicate when the worker is ready */
 	int bindid; /* which core is the driver bound to ? */
 	unsigned memory_node; /* which memory node is associated that worker to ? */
 	struct jobq_s *jobq; /* in which queue will that worker get/put tasks ? */
+	
 };
 
 struct machine_config_s {

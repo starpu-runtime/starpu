@@ -289,8 +289,10 @@ void _cublas_cblk_strsm(data_interface_t *descr, void *arg __attribute__((unused
 }
 
 static struct perfmodel_t starpu_cblk_strsm = {
-	.cuda_cost_model = starpu_cblk_strsm_cuda_cost,
-	.core_cost_model = starpu_cblk_strsm_core_cost,
+	.per_arch = { 
+		[CORE_DEFAULT] = { .cost_model = starpu_cblk_strsm_core_cost },
+		[CUDA_DEFAULT] = { .cost_model = starpu_cblk_strsm_cuda_cost }
+	},
 //	.type = REGRESSION_BASED,
 	.type = PER_ARCH,
 	.symbol = "starpu_cblk_strsm"
@@ -386,8 +388,10 @@ void _cublas_compute_contrib_compact(data_interface_t *descr, void *arg)
 
 
 static struct perfmodel_t starpu_compute_contrib_compact = {
-	.cuda_cost_model = starpu_compute_contrib_compact_cuda_cost,
-	.core_cost_model = starpu_compute_contrib_compact_core_cost,
+	.per_arch = { 
+		[CORE_DEFAULT] = { .cost_model = starpu_compute_contrib_compact_core_cost },
+		[CUDA_DEFAULT] = { .cost_model = starpu_compute_contrib_compact_cuda_cost }
+	},
 //	.type = REGRESSION_BASED,
 	.type = PER_ARCH,
 	.symbol = "starpu_compute_contrib_compact"
