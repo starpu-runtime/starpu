@@ -276,7 +276,7 @@ void *cuda_worker(void *arg)
 	int devid = args->id;
 
 #ifdef USE_FXT
-	fxt_register_thread(((struct cuda_worker_arg_t *)arg)->bindid);
+	fxt_register_thread(args->bindid);
 #endif
 	TRACE_NEW_WORKER(FUT_CUDA_KEY);
 
