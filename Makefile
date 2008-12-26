@@ -48,10 +48,7 @@ CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
 CUDAINSTALLDIR=/usr/local/cuda/
 
 ifndef ATLASDIR
-ATLASDIR=/home/gonnet/DEA/BLAS/ATLAS/ATLAS/
-endif
-ifndef BLASARCH
-BLASARCH=Linux_UNKNOWNSSE2
+ATLASDIR=/home/gonnet/These/Libs/ATLAS/
 endif
 
 ifdef PERF_DEBUG
@@ -89,8 +86,8 @@ endif
 
 ifdef ATLAS
 	CFLAGS+= -I$(ATLASDIR)/include/
-	LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libcblas.a
-	LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
+	LDFLAGS+= $(ATLASDIR)/lib/libcblas.a
+	LDFLAGS+= $(ATLASDIR)/lib/libatlas.a
 endif
 
 
