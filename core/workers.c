@@ -177,7 +177,8 @@ void terminate_workers(struct machine_config_s *config)
 		void *retval;
 		wake_all_blocked_workers();
 		thread_join(config->workers[worker].worker_thread, &retval);
-		fprintf(stderr, "worker %d returned %p!\n", worker, retval);
+		if (retval)
+			fprintf(stderr, "worker %d returned %p!\n", worker, retval);
 	}
 }
 

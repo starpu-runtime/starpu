@@ -352,7 +352,6 @@ void *cuda_worker(void *arg)
 		job_delete(j);
 	} 
 
-	fprintf(stderr, "CUDA abort\n");
 	cublasShutdown();
 	thread_exit(NULL);
 

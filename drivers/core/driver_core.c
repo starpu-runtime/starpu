@@ -123,7 +123,6 @@ void *core_worker(void *arg)
 		job_delete(j);
         }
 
-	fprintf(stderr, "core abort\n");
 	thread_exit(NULL);
 
         return NULL;

@@ -201,8 +201,6 @@ int regression_non_linear_power(struct history_list_t *ptr, double *a, double *b
 	*b = compute_b(*c, n, x, y); 
 	*a = expl(compute_a(*c, *b, n, x, y));
 
-	fprintf(stderr, "REGRESSION : \n \t a = %e, b = %e, c = %e (r = 1 - %le after %d iterations)\n", *a, *b, *c, err, iter);
-
 	free(x);
 	free(y);
 
