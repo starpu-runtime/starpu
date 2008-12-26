@@ -24,7 +24,6 @@ static job_t dm_pop_task(struct jobq_s *q)
 static void _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task, unsigned prio)
 {
 	/* find the queue */
-
 	struct fifo_jobq_s *fifo;
 	unsigned worker;
 	int best = -1;
@@ -48,7 +47,7 @@ static void _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task
 			continue;
 		}
 
-		double local_length = job_expected_length(queue_array[worker]->who, task, q->arch);
+		double local_length = job_expected_length(queue_array[worker]->who, task, queue_array[worker]->arch);
 
 		if (local_length == -1.0) 
 		{
