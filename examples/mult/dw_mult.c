@@ -65,6 +65,19 @@ uint64_t ls_atlas = 0;
  *   A of size (z,y)
  *   B of size (x,z)
  *   C of size (x,y)
+
+              |---------------|
+            z |       B       |
+              |---------------|
+       z              x
+     |----|   |---------------|
+     |    |   |               |
+     |    |   |               |
+     | A  | y |       C       |
+     |    |   |               |
+     |    |   |               |
+     |----|   |---------------|
+
  */
 
 void terminate(void)
@@ -88,8 +101,8 @@ void terminate(void)
 #ifdef CHECK_OUTPUT
 	/* check results */
 	/* compute C = C - AB */
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, ydim, xdim, zdim,
-			 -1.0f,  A, zdim, B, xdim, 1.0f, C, xdim);
+	cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, ydim, xdim, zdim,
+			 -1.0f,  A, ydim, B, zdim, 1.0f, C, ydim);
 		
 	/* make sure C = 0 */
 	float err;
@@ -123,7 +136,7 @@ void callback_func(void *arg)
 
 
 #define COMMON_CODE			\
-	uint32_t nxC, nyC, nxA;		\
+	uint32_t nxC, nyC, nyA;		\
 	uint32_t ldA, ldB, ldC;		\
 					\
 	float *subA;			\
@@ -136,8 +149,8 @@ void callback_func(void *arg)
 					\
 	nxC = descr[2].blas.nx;		\
 	nyC = descr[2].blas.ny;		\
-	nxA = descr[0].blas.nx;		\
-						\
+	nyA = descr[0].blas.ny;		\
+					\
 	ldA = descr[0].blas.ld;		\
 	ldB = descr[1].blas.ld;		\
 	ldC = descr[2].blas.ld;
@@ -155,7 +168,7 @@ void cublas_mult(data_interface_t *descr, __attribute__((unused)) void *arg)
 
 	GET_TICK(sgemm_start);
 
-	cublasSgemm('n', 'n', nxC, nyC, nxA, 1.0f, subB, ldB, subA, ldA, 
+	cublasSgemm('n', 'n', nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 
 					     0.0f, subC, ldC);
 	cublasStatus st;
 	st = cublasGetError();
@@ -164,10 +177,10 @@ void cublas_mult(data_interface_t *descr, __attribute__((unused)) void *arg)
 
 	GET_TICK(sgemm_end);
 
-	uint64_t flopcnt = BLAS3_FLOP(nxC, nyC, nxA);
+	uint64_t flopcnt = BLAS3_FLOP(nyC, nxC, nyA);
 
 	flop_cublas += flopcnt;
-	ls_cublas += BLAS3_LS(nxC, nyC, nxA);
+	ls_cublas += BLAS3_LS(nyC, nxC, nyA);
 }
 #endif
 
@@ -175,11 +188,11 @@ void core_mult(data_interface_t *descr, __attribute__((unused))  void *arg)
 {
 	COMMON_CODE
 
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, nyC, nxC, nxA,
+	cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, nxC, nyC, nyA,
 			 1.0f,  subA, ldA, subB, ldB, 0.0f, subC, ldC);
 
-	flop_atlas += BLAS3_FLOP(nxC, nyC, nxA);
-	ls_atlas += BLAS3_LS(nxC, nyC, nxA);
+	flop_atlas += BLAS3_FLOP(nxC, nyC, nyA);
+	ls_atlas += BLAS3_LS(nxC, nyC, nyA);
 }
 
 void parse_args(int argc, char **argv)
@@ -250,15 +263,15 @@ void init_problem_codelet (__attribute__((unused)) buffer_descr *descr,
 
 	/* fill the A and B matrices */
 	if (norandom) {
-		for (i=0; i < zdim; i++) {
-			for (j=0; j < ydim; j++) {
-				A[i+j*zdim] = (float)(i);
+		for (j=0; j < ydim; j++) {
+			for (i=0; i < zdim; i++) {
+				A[j+i*ydim] = (float)(i);
 			}
 		}
 	
-		for (i=0; i < xdim; i++) {
-			for (j=0; j < zdim; j++) {
-				B[i+j*xdim] = (float)(j);
+		for (j=0; j < zdim; j++) {
+			for (i=0; i < xdim; i++) {
+				B[j+i*zdim] = (float)(j);
 			}
 		}
 	} 
@@ -267,21 +280,22 @@ void init_problem_codelet (__attribute__((unused)) buffer_descr *descr,
 		srand(2008);
 		ASSERT(0);
 #endif
-		for (i=0; i < zdim; i++) {
-			for (j=0; j < ydim; j++) {
-				A[i+j*zdim] = (float)(drand48());
+		for (j=0; j < ydim; j++) {
+			for (i=0; i < zdim; i++) {
+				A[j+i*ydim] = (float)(drand48());
 			}
 		}
 	
-		for (i=0; i < xdim; i++) {
-			for (j=0; j < zdim; j++) {
-				B[i+j*xdim] = (float)(drand48());
+		for (j=0; j < zdim; j++) {
+			for (i=0; i < xdim; i++) {
+				B[j+i*zdim] = (float)(drand48());
 			}
 		}
 	}
-	for (i=0; i < xdim; i++) {
-		for (j=0; j < ydim; j++) {
-			C[i+j*xdim] = (float)(0);
+
+	for (j=0; j < ydim; j++) {
+		for (i=0; i < xdim; i++) {
+			C[j+i*ydim] = (float)(0);
 		}
 	}
 }
@@ -296,18 +310,18 @@ void init_problem_callback(void *arg __attribute__((unused)))
 
 	GET_TICK(start);
 	monitor_blas_data(&A_state, 0, (uintptr_t)A, 
-		zdim, zdim, ydim, sizeof(float));
+		ydim, ydim, zdim, sizeof(float));
 	monitor_blas_data(&B_state, 0, (uintptr_t)B, 
-		xdim, xdim, zdim, sizeof(float));
+		zdim, zdim, xdim, sizeof(float));
 	monitor_blas_data(&C_state, 0, (uintptr_t)C, 
-		xdim, xdim, ydim, sizeof(float));
+		ydim, ydim, xdim, sizeof(float));
 
 	filter f;
-	f.filter_func = block_filter_func;
+	f.filter_func = vertical_block_filter_func;
 	f.filter_arg = nslicesx;
 		
 	filter f2;
-	f2.filter_func = vertical_block_filter_func;
+	f2.filter_func = block_filter_func;
 	f2.filter_arg = nslicesy;
 		
 	partition_data(&B_state, &f);
