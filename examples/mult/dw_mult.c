@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include <signal.h>
-#include <cblas.h>
+#include <common/blas.h>
 #include <common/timing.h>
 
 #include <datawizard/datawizard.h>
@@ -58,54 +58,6 @@ uint64_t ls_atlas = 0;
 
 #define BLAS3_LS(n1,n2,n3)    \
 	((2*(n1)*(n3) + (n1)*(n2) + (n2)*(n3))*sizeof(float))
-
-
-#ifdef ATLAS
-
-#define SGEMM(M, N, K, alpha, A, lda, B, ldb, beta, C, ldc) 	\
-	cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, 	\
-			(M), (N), (K), 				\
-			(alpha),  (A), (lda), 			\
-				(B), (ldb), 			\
-			(beta), (C), (ldc))				
-		
-#define SASUM(N, X, incX)					\
-	cblas_sasum((N), (X), (incX)
-
-#else
-#ifdef GOTO
-
-#define SGEMM(M, N, K, alpha, A, lda, B, ldb, beta, C, ldc)	\
-	do {							\
-		const int M__ = (M);				\
-		const int N__ = (N);				\
-		const int K__ = (K);				\
-		const float alpha__ = (alpha);			\
-		const float beta__ = (beta);			\
-		const int lda__ = (lda);			\
-		const int ldb__ = (ldb);			\
-		const int ldc__ = (ldc);			\
-								\
-		sgemm_("N", "N", &M__, &N__, &K__,		\
-			&alpha__, (A), &lda__, 	(B), &ldb__,	\
-			&beta__,  (C), &ldc__);			\
-	} while (0);
-
-
-static inline float SASUM(int N, float *X, int incX)
-{
-	int N__ = (N);
-	int incX__ = (incX);
-
-	return sasum_(&N__, X, &incX__);
-}
-
-#else
-#error "no BLAS lib available..."
-#endif
-#endif
-
-
 
 /*
  * That program should compute C = A * B 

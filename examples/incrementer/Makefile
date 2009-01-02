@@ -14,7 +14,7 @@ incrementer.o: incrementer.c
 	$(CC) $(CFLAGS) incrementer.c -c -o incrementer.o
 
 incrementer: incrementer.o
-	$(CC) incrementer.o -o incrementer $(LDFLAGS) $(STARPU)
+	$(CC) incrementer.o -o incrementer $(LDFLAGS) $(STARPU) $(EXTRALDFLAGS)
 
 clean:
 	@rm -f *.o *.d *.gcno *.gcda

@@ -91,14 +91,14 @@ endif
 ifdef ATLAS
 	CFLAGS += -I$(ATLASDIR)/include/
 	CFLAGS += -DATLAS
-	LDFLAGS+= $(ATLASDIR)/lib/libcblas.a
-	LDFLAGS+= $(ATLASDIR)/lib/libatlas.a
+	EXTRALDFLAGS+= $(ATLASDIR)/lib/libcblas.a
+	EXTRALDFLAGS+= $(ATLASDIR)/lib/libatlas.a
 endif
 
 ifdef GOTO
 	CFLAGS += -I$(GOTODIR)
 	CFLAGS += -DGOTO
-	LDFLAGS += $(GOTODIR)/libgoto.a
+	EXTRALDFLAGS += $(GOTODIR)/libgoto.a
 endif
 
 ifdef CPUS
@@ -136,6 +136,7 @@ endif
 #	files that are needed by the application which use our runtime
 #
 
+OBJDEPS += common/blas.o
 OBJDEPS += common/threads.o
 OBJDEPS += common/hash.o
 OBJDEPS += common/timing.o 
