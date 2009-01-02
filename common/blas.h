@@ -3,7 +3,7 @@
 
 #include <cblas.h>
 
-void SGEMM(int M, int N, int K, float alpha, float *A, int lda, 
+void SGEMM(char *transa, char *transb, int M, int N, int K, float alpha, float *A, int lda, 
 		float *B, int ldb, float beta, float *C, int ldc);
 float SASUM(int N, float *X, int incX);
 

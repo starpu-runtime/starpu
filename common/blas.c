@@ -1,4 +1,6 @@
 #include <common/blas.h>
+#include <ctype.h>
+#include <stdio.h>
 
 /*
     This files contains BLAS wrappers for the different BLAS implementations
@@ -8,11 +10,14 @@
 
 #ifdef ATLAS
 
-inline void SGEMM(int M, int N, int K, 
+inline void SGEMM(char *transa, char *transb, int M, int N, int K, 
 			float alpha, float *A, int lda, float *B, int ldb, 
 			float beta, float *C, int ldc)
 {
-	cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
+	enum CBLAS_TRANSPOSE ta = (toupper(transa[0]) == 'N')?CblasNoTrans:CblasTrans;
+	enum CBLAS_TRANSPOSE tb = (toupper(transb[0]) == 'N')?CblasNoTrans:CblasTrans;
+
+	cblas_sgemm(CblasColMajor, ta, tb,
 			M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);				
 }
 
@@ -24,11 +29,11 @@ inline float SASUM(int N, float *X, int incX)
 #else
 #ifdef GOTO
 
-inline void SGEMM(int M, int N, int K, 
+inline void SGEMM(char *transa, char *transb, int M, int N, int K, 
 			float alpha, float *A, int lda, float *B, int ldb, 
 			float beta, float *C, int ldc)
 {
-	sgemm_("N", "N", &M, &N, &K, &alpha,
+	sgemm_(transa, transb, &M, &N, &K, &alpha,
 			 A, &lda, B, &ldb,
 			 &beta, C, &ldc);	
 }

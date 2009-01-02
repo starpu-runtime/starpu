@@ -105,7 +105,7 @@ void terminate(void)
 	/* check results */
 	/* compute C = C - AB */
 
-	SGEMM(ydim, xdim, zdim, -1.0f, A, ydim, B, 1.0f, zdim, C, ydim);
+	SGEMM("N", "N", ydim, xdim, zdim, -1.0f, A, ydim, B, zdim, 1.0f, C, ydim);
 		
 	/* make sure C = 0 */
 	float err;
@@ -191,7 +191,7 @@ void core_mult(data_interface_t *descr, __attribute__((unused))  void *arg)
 {
 	COMMON_CODE
 
-	SGEMM(nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 0.0f, subC, ldC);
+	SGEMM("N", "N", nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 0.0f, subC, ldC);
 
 	flop_atlas += BLAS3_FLOP(nxC, nyC, nyA);
 	ls_atlas += BLAS3_LS(nxC, nyC, nyA);
