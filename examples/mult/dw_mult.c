@@ -57,7 +57,55 @@ uint64_t ls_atlas = 0;
 	(2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
 
 #define BLAS3_LS(n1,n2,n3)    \
-	(2*(n1)*(n3) + (n1)*(n2) + (n2)*(n3))
+	((2*(n1)*(n3) + (n1)*(n2) + (n2)*(n3))*sizeof(float))
+
+
+#ifdef ATLAS
+
+#define SGEMM(M, N, K, alpha, A, lda, B, ldb, beta, C, ldc) 	\
+	cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, 	\
+			(M), (N), (K), 				\
+			(alpha),  (A), (lda), 			\
+				(B), (ldb), 			\
+			(beta), (C), (ldc))				
+		
+#define SASUM(N, X, incX)					\
+	cblas_sasum((N), (X), (incX)
+
+#else
+#ifdef GOTO
+
+#define SGEMM(M, N, K, alpha, A, lda, B, ldb, beta, C, ldc)	\
+	do {							\
+		const int M__ = (M);				\
+		const int N__ = (N);				\
+		const int K__ = (K);				\
+		const float alpha__ = (alpha);			\
+		const float beta__ = (beta);			\
+		const int lda__ = (lda);			\
+		const int ldb__ = (ldb);			\
+		const int ldc__ = (ldc);			\
+								\
+		sgemm_("N", "N", &M__, &N__, &K__,		\
+			&alpha__, (A), &lda__, 	(B), &ldb__,	\
+			&beta__,  (C), &ldc__);			\
+	} while (0);
+
+
+static inline float SASUM(int N, float *X, int incX)
+{
+	int N__ = (N);
+	int incX__ = (incX);
+
+	return sasum_(&N__, X, &incX__);
+}
+
+#else
+#error "no BLAS lib available..."
+#endif
+#endif
+
+
 
 /*
  * That program should compute C = A * B 
@@ -92,21 +140,24 @@ void terminate(void)
 
 	double timing = timing_delay(&start, &end);
 	uint64_t total_flop = flop_cublas + flop_atlas;
+	uint64_t total_ls = ls_cublas + ls_atlas;
 
 	fprintf(stderr, "Computation took (ms):\n");
 	printf("%2.2f\n", timing/1000);
 	fprintf(stderr, "	GFlop : total (%2.2f) cublas (%2.2f) atlas (%2.2f)\n", (double)total_flop/1000000000.0f, (double)flop_cublas/1000000000.0f, (double)flop_atlas/1000000000.0f);
 	fprintf(stderr, "	GFlop/s : %2.2f\n", (double)total_flop / (double)timing/1000);
+	fprintf(stderr, "	GB : total (%2.2f) cublas (%2.2f) atlas (%2.2f)\n", (double)total_ls/1000000000.0f, (double)ls_cublas/1000000000.0f, (double)ls_atlas/1000000000.0f);
+	fprintf(stderr, "	GB/s : %2.2f\n", (double)total_ls / (double)timing/1000);
 
 #ifdef CHECK_OUTPUT
 	/* check results */
 	/* compute C = C - AB */
-	cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, ydim, xdim, zdim,
-			 -1.0f,  A, ydim, B, zdim, 1.0f, C, ydim);
+
+	SGEMM(ydim, xdim, zdim, -1.0f, A, ydim, B, 1.0f, zdim, C, ydim);
 		
 	/* make sure C = 0 */
 	float err;
-	err = cblas_sasum(xdim*ydim, C, 1);	
+	err = SASUM(xdim*ydim, C, 1);	
 	
 	if (err < xdim*ydim*0.001) {
 		fprintf(stderr, "Results are OK\n");
@@ -188,8 +239,7 @@ void core_mult(data_interface_t *descr, __attribute__((unused))  void *arg)
 {
 	COMMON_CODE
 
-	cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, nxC, nyC, nyA,
-			 1.0f,  subA, ldA, subB, ldB, 0.0f, subC, ldC);
+	SGEMM(nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 0.0f, subC, ldC);
 
 	flop_atlas += BLAS3_FLOP(nxC, nyC, nyA);
 	ls_atlas += BLAS3_LS(nxC, nyC, nyA);

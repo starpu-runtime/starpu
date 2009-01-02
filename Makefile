@@ -51,6 +51,10 @@ ifndef ATLASDIR
 ATLASDIR=/home/gonnet/These/Libs/ATLAS/
 endif
 
+ifndef GOTODIR
+GOTODIR=/home/gonnet/These/Libs/GotoBLAS/GotoBLAS/
+endif
+
 ifdef PERF_DEBUG
 	CFLAGS += -DPERF_DEBUG
 	LDFLAGS += -pg
@@ -85,11 +89,17 @@ ifeq ($(CUDA), 1)
 endif
 
 ifdef ATLAS
-	CFLAGS+= -I$(ATLASDIR)/include/
+	CFLAGS += -I$(ATLASDIR)/include/
+	CFLAGS += -DATLAS
 	LDFLAGS+= $(ATLASDIR)/lib/libcblas.a
 	LDFLAGS+= $(ATLASDIR)/lib/libatlas.a
 endif
 
+ifdef GOTO
+	CFLAGS += -I$(GOTODIR)
+	CFLAGS += -DGOTO
+	LDFLAGS += $(GOTODIR)/libgoto.a
+endif
 
 ifdef CPUS
 	CFLAGS += -DUSE_CPUS

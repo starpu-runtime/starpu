@@ -13,6 +13,10 @@ ifeq ($(CHECK), 1)
 	CFLAGS += -DCHECK_RESULTS
 endif
 
+ifdef GOTO
+	TARGET += mult
+endif
+
 ifdef ATLAS
 	TARGET += mult
 	TARGET+= spmv
