@@ -1,4 +1,5 @@
 #include "dw_cholesky.h"
+#include <common/blas.h>
 
 /*
  *   U22 
@@ -11,9 +12,9 @@ static inline void chol_common_core_codelet_update_u22(data_interface_t *buffers
 	float *right 	= (float *)buffers[1].blas.ptr;
 	float *center 	= (float *)buffers[2].blas.ptr;
 
-	unsigned dx = buffers[2].blas.nx;
-	unsigned dy = buffers[2].blas.ny;
-	unsigned dz = buffers[0].blas.nx;
+	unsigned dx = buffers[2].blas.ny;
+	unsigned dy = buffers[2].blas.nx;
+	unsigned dz = buffers[0].blas.ny;
 
 	unsigned ld21 = buffers[0].blas.ld;
 	unsigned ld12 = buffers[1].blas.ld;
@@ -21,14 +22,13 @@ static inline void chol_common_core_codelet_update_u22(data_interface_t *buffers
 
 	switch (s) {
 		case 0:
-			cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, 
-				dy, dx, dz, -1.0f, left, ld21, right, ld12,
-					     1.0f, center, ld22);
+			SGEMM("N", "T", dy, dx, dz, -1.0f, left, ld21, 
+				right, ld12, 1.0f, center, ld22);
 			break;
 #ifdef USE_CUDA
 		case 1:
-			cublasSgemm('t', 'n', dx, dy, dz, 
-					-1.0f, right, ld12, left, ld21, 
+			cublasSgemm('n', 't', dy, dx, dz, 
+					-1.0f, left, ld21, right, ld12, 
 					 1.0f, center, ld22);
 			break;
 #endif
@@ -66,17 +66,16 @@ static inline void chol_common_codelet_update_u21(data_interface_t *buffers, int
 	unsigned ld11 = buffers[0].blas.ld;
 	unsigned ld21 = buffers[1].blas.ld;
 
-	unsigned nx21 = buffers[1].blas.nx;
-	unsigned ny21 = buffers[1].blas.ny;
+	unsigned nx21 = buffers[1].blas.ny;
+	unsigned ny21 = buffers[1].blas.nx;
 
 	switch (s) {
 		case 0:
-			cblas_strsm(CblasRowMajor, CblasRight, CblasLower, CblasTrans, CblasNonUnit,
-					nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
+			STRSM("R", "L", "T", "N", nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
 #ifdef USE_CUDA
 		case 1:
-			cublasStrsm('L', 'U', 'T', 'N', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
+			cublasStrsm('R', 'L', 'T', 'N', nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
 #endif
 		default:
@@ -108,7 +107,7 @@ static inline void chol_common_codelet_update_u11(data_interface_t *descr, int s
 
 	sub11 = (float *)descr[0].blas.ptr; 
 
-	unsigned nx = descr[0].blas.nx;
+	unsigned nx = descr[0].blas.ny;
 	unsigned ld = descr[0].blas.ld;
 
 	unsigned z;
@@ -130,10 +129,10 @@ static inline void chol_common_codelet_update_u11(data_interface_t *descr, int s
 
 				ASSERT(lambda11 != 0.0f);
 		
-				cblas_sscal(nx - z - 1, 1.0f/lambda11, &sub11[(z)+(z+1)*ld], ld);
+				SSCAL(nx - z - 1, 1.0f/lambda11, &sub11[(z+1)+z*ld], 1);
 		
-				cblas_ssyr(CblasRowMajor, CblasLower, nx - z - 1, -1.0f, 
-							&sub11[(z)+(z+1)*ld], ld,
+				SSYR("L", nx - z - 1, -1.0f, 
+							&sub11[(z+1)+z*ld], 1,
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
 			break;
@@ -151,10 +150,10 @@ static inline void chol_common_codelet_update_u11(data_interface_t *descr, int s
 
 				ASSERT(lambda11 != 0.0f);
 				
-				cublasSscal(nx - z - 1, 1.0f/lambda11, &sub11[(z)+(z+1)*ld], ld);
+				cublasSscal(nx - z - 1, 1.0f/lambda11, &sub11[(z+1)+z*ld], 1);
 
 				cublasSsyr('U', nx - z - 1, -1.0f,
-							&sub11[(z)+(z+1)*ld], ld,
+							&sub11[(z+1)+z*ld], 1,
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
 			break;

@@ -15,6 +15,7 @@ endif
 
 ifdef GOTO
 	TARGET += mult
+	TARGET+= cholesky
 endif
 
 ifdef ATLAS

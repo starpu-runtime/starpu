@@ -195,7 +195,7 @@ static void _dw_cholesky(data_state *dataA, unsigned nblocks)
 	printf("%2.2f\n", timing/1000);
 
 	unsigned n = get_blas_nx(dataA);
-	/* XXX this is for the LU decomposition ... */
+
 	double flop = (1.0f*n*n*n)/3.0f;
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
@@ -224,11 +224,11 @@ void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	monitor_blas_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	filter f;
-		f.filter_func = block_filter_func;
+		f.filter_func = vertical_block_filter_func;
 		f.filter_arg = nblocks;
 
 	filter f2;
-		f2.filter_func = vertical_block_filter_func;
+		f2.filter_func = block_filter_func;
 		f2.filter_arg = nblocks;
 
 	map_filters(&dataA, 2, &f, &f2);
