@@ -19,7 +19,9 @@ ifdef ATLAS
 	TARGET+= heat 
 	TARGET+= cholesky
 	TARGET+= strassen
+ifdef CUDA
 	TARGET+= pastix-wrappers
+endif
 endif
 
 CFLAGS += -I../
