@@ -2,9 +2,17 @@ ifdef USE_FXT
 	OPTTARGET+= fxt.o
 endif
 
+ifdef GOTO
+	OPTTARGET+= blas.o
+endif
+
+ifdef ATLAS
+	OPTTARGET+= blas.o
+endif
+
 CFLAGS+= -I../
 
-OBJS := blas.o hash.o htable32.o mutex.o threads.o rwlock.o timing.o $(OPTTARGET)
+OBJS := hash.o htable32.o mutex.o threads.o rwlock.o timing.o $(OPTTARGET)
 
 all: $(OBJS)
 

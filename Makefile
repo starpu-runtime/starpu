@@ -136,7 +136,6 @@ endif
 #	files that are needed by the application which use our runtime
 #
 
-OBJDEPS += common/blas.o
 OBJDEPS += common/threads.o
 OBJDEPS += common/hash.o
 OBJDEPS += common/timing.o 
@@ -203,6 +202,13 @@ ifdef USE_FXT
 	OBJDEPS += common/fxt.o
 endif
 
+ifdef GOTO
+	OBJDEPS += common/blas.o
+endif
+
+ifdef ATLAS
+	OBJDEPS += common/blas.o
+endif
 
 LIBS=starpu.a
 ifdef DYNAMIC

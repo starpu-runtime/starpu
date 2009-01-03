@@ -63,8 +63,7 @@ void SSYRK (const char *uplo, const char *trans, const int n,
 	cblas_ssyrk(CblasColMajor, uplo_, trans_, n, k, alpha, A, lda, beta, C, ldc); 
 }
 
-#else
-#ifdef GOTO
+#elif GOTO
 
 inline void SGEMM(char *transa, char *transb, int M, int N, int K, 
 			float alpha, float *A, int lda, float *B, int ldb, 
@@ -111,7 +110,3 @@ void SSYRK (const char *uplo, const char *trans, const int n,
 #else
 #error "no BLAS lib available..."
 #endif
-#endif
-
-
-
