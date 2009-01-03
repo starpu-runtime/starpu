@@ -69,5 +69,6 @@ void display_general_stats(void);
 void terminate_machine(void);
 
 unsigned machine_is_running(void);
+inline uint32_t worker_exists(uint32_t task_mask);
 
 #endif // __WORKERS_H__

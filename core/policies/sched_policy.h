@@ -29,10 +29,9 @@ struct sched_policy_s *get_sched_policy(void);
 void init_sched_policy(struct machine_config_s *config);
 //void set_local_queue(struct jobq_s *jobq);
 
-void push_task(job_t task);
-void push_task_sync(job_t task);
-void push_prio_task(job_t task);
+int push_task(job_t task);
+int push_task_sync(job_t task);
+int push_prio_task(job_t task);
 struct job_s *pop_task(void);
-void push_task(job_t task);
 
 #endif // __SCHED_POLICY_H__

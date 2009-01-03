@@ -2,6 +2,16 @@
 
 static struct machine_config_s config;
 
+
+/* in case a task is submitted, we may check whether there exists a worker
+   that may execute the task or not */
+static uint32_t worker_mask = 0;
+
+inline uint32_t worker_exists(uint32_t task_mask)
+{
+	return (task_mask & worker_mask);
+} 
+
 /*
  * Runtime initialization methods
  */
@@ -34,6 +44,7 @@ static void init_machine_config(struct machine_config_s *config)
 		config->workers[config->nworkers + core].arch = CORE_WORKER;
 		config->workers[config->nworkers + core].perf_arch = CORE_DEFAULT;
 		config->workers[config->nworkers + core].id = core;
+		worker_mask |= CORE;
 	}
 
 	config->nworkers += ncores;
@@ -61,6 +72,7 @@ static void init_machine_config(struct machine_config_s *config)
 		config->workers[config->nworkers + cudagpu].arch = CUDA_WORKER;
 		config->workers[config->nworkers + cudagpu].perf_arch = CUDA_DEFAULT;
 		config->workers[config->nworkers + cudagpu].id = cudagpu;
+		worker_mask |= (CUDA|CUBLAS);
 	}
 
 	config->nworkers += ncudagpus;

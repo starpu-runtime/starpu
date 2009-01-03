@@ -70,30 +70,43 @@ void init_sched_policy(struct machine_config_s *config)
 }
 
 /* the generic interface that call the proper underlying implementation */
-void push_task(job_t task)
+int push_task(job_t task)
 {
 	struct jobq_s *queue = policy.get_local_queue(&policy);
 
 	ASSERT(queue->push_task);
 
-	queue->push_task(queue, task);
+	if (!worker_exists(task->where))
+		return -ENODEV; 
+
+	return queue->push_task(queue, task);
 }
 
-void push_prio_task(job_t task)
+int push_prio_task(job_t task)
 {
 	task->priority = MAX_PRIO;
-	push_task(task);
+	
+	return push_task(task);
 }
 
-void push_task_sync(job_t task)
+int push_task_sync(job_t task)
 {
+	int ret;
+
 	task->synchronous = 1;
 	sem_init(&task->sync_sem, 0, 0);
 
-	push_task(task);
+	ret = push_task(task);
+	if (ret == -ENODEV)
+	{	
+		sem_destroy(&task->sync_sem);
+		return ret;
+	}
 
 	sem_wait(&task->sync_sem);
 	sem_destroy(&task->sync_sem);
+
+	return 0;
 }
 
 struct job_s * pop_task(void)
