@@ -6,6 +6,7 @@
 #include <core/workers.h>
 #include <common/timing.h>
 #include <common/util.h>
+#include <common/malloc.h>
 #include <string.h>
 #include <math.h>
 #include <cblas.h>
