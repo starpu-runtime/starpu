@@ -31,45 +31,6 @@ typedef struct {
 	sem_t *sem;
 } cl_args;
 
-#ifdef USE_CUDA
-
-static float **ptrA;
-static float **ptrB;
-static unsigned __dim;
-
-static void malloc_pinned_codelet(data_interface_t *buffers __attribute__((unused)),
-					void *addr  __attribute__((unused)))
-{
-	cuMemAllocHost((void **)ptrA, __dim*__dim*sizeof(float));
-	cuMemAllocHost((void **)ptrB, __dim*sizeof(float));
-}
-
-#endif
-
-static inline void malloc_pinned(float **A, float **B, unsigned _dim)
-{
-#ifdef USE_CUDA
-	codelet *cl = malloc(sizeof(codelet));
-	cl->cl_arg = NULL;
-	cl->cublas_func = malloc_pinned_codelet; 
-	
-	ptrA = A;
-	ptrB = B;
-	__dim = _dim;
-
-	job_t j = job_create();
-	j->where = CUBLAS;
-	j->cb = NULL; 
-	j->cl = cl;
-
-	push_task_sync(j);
-
-#else
-	*A = malloc(_dim*_dim*sizeof(float));
-	*B = malloc(_dim*sizeof(float));
-#endif	
-}
-
 #ifdef CHECK_RESULTS
 static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 				unsigned size, unsigned ld)

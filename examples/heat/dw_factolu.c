@@ -1,4 +1,5 @@
 #include "dw_factolu.h"
+#include <common/malloc.h>
 
 uint8_t *advance_12_21; /* size nblocks*nblocks */
 uint8_t *advance_11; /* size nblocks*nblocks */
@@ -768,7 +769,8 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 
 	if (pinned)
 	{
-		malloc_pinned(A, B, dim);
+		malloc_pinned_if_possible(A, dim*dim*sizeof(float));
+		malloc_pinned_if_possible(B, dim*sizeof(float));
 	} 
 	else {
 		*A = malloc(dim*dim*sizeof(float));

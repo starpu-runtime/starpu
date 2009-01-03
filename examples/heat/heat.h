@@ -16,6 +16,7 @@
 
 #include <common/timing.h>
 #include <common/util.h>
+#include <common/malloc.h>
 #include <core/workers.h>
 
 #define X	0
