@@ -3,6 +3,7 @@
 
 #include <errno.h>
 #include <core/jobs.h>
+#include <core/policies/sched_policy.h>
 #ifdef USE_CUDA
 #include <cuda.h>
 #endif
