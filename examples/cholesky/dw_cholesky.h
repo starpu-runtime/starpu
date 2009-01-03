@@ -17,6 +17,7 @@
 
 #include <datawizard/datawizard.h>
 #include <core/dependencies/tags.h>
+#include <common/malloc.h>
 //#include "lu_kernels_model.h"
 
 #define BLAS3_FLOP(n1,n2,n3)    \
@@ -31,40 +32,6 @@ typedef struct {
 	unsigned *remaining;
 	sem_t *sem;
 } cl_args;
-
-#ifdef USE_CUDA
-
-static float **ptrA;
-static unsigned __dim;
-
-static void malloc_pinned_codelet(data_interface_t *buffers __attribute__((unused)),
-					void *addr  __attribute__((unused)))
-{
-	cuMemAllocHost((void **)ptrA, __dim*__dim*sizeof(float));
-}
-
-#endif
-
-static inline void malloc_pinned(float **A, unsigned _dim)
-{
-#ifdef USE_CUDA
-	codelet *cl = malloc(sizeof(codelet));
-	cl->cl_arg = NULL;
-	cl->cublas_func = malloc_pinned_codelet; 
-	
-	ptrA = A;
-	__dim = _dim;
-
-	job_t j = job_create();
-	j->where = CUBLAS;
-	j->cb = NULL; 
-	j->cl = cl;
-
-	push_task_sync(j);
-#else
-	*A = malloc(_dim*_dim*sizeof(float));
-#endif	
-}
 
 void chol_core_codelet_update_u11(data_interface_t *, void *);
 void chol_core_codelet_update_u21(data_interface_t *, void *);
