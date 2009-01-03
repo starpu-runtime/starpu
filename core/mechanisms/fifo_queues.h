@@ -21,9 +21,8 @@ struct fifo_jobq_s {
 
 struct jobq_s *create_fifo(void);
 
-void fifo_push_task(struct jobq_s *q, job_t task);
-
-void fifo_push_prio_task(struct jobq_s *q, job_t task);
+int fifo_push_task(struct jobq_s *q, job_t task);
+int fifo_push_prio_task(struct jobq_s *q, job_t task);
 
 job_t fifo_pop_task(struct jobq_s *q);
 job_t fifo_non_blocking_pop_task(struct jobq_s *q);

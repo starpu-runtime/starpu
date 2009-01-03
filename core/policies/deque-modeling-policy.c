@@ -21,7 +21,7 @@ static job_t dm_pop_task(struct jobq_s *q)
 	return j;
 }
 
-static void _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task, unsigned prio)
+static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task, unsigned prio)
 {
 	/* find the queue */
 	struct fifo_jobq_s *fifo;
@@ -86,20 +86,20 @@ static void _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task
 	task->predicted = model_best;
 
 	if (prio) {
-		fifo_push_prio_task(queue_array[best], task);
+		return fifo_push_prio_task(queue_array[best], task);
 	} else {
-		fifo_push_task(queue_array[best], task);
+		return fifo_push_task(queue_array[best], task);
 	}
 }
 
-static void dm_push_prio_task(struct jobq_s *q, job_t task)
+static int dm_push_prio_task(struct jobq_s *q, job_t task)
 {
-	_dm_push_task(q, task, 1);
+	return _dm_push_task(q, task, 1);
 }
 
-static void dm_push_task(struct jobq_s *q, job_t task)
+static int dm_push_task(struct jobq_s *q, job_t task)
 {
-	_dm_push_task(q, task, 0);
+	return _dm_push_task(q, task, 0);
 }
 
 static struct jobq_s *init_dm_fifo(void)

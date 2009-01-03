@@ -23,7 +23,7 @@ struct priority_jobq_s {
 
 struct jobq_s *create_priority_jobq(void);
 
-void priority_push_task(struct jobq_s *q, job_t task);
+int priority_push_task(struct jobq_s *q, job_t task);
 
 job_t priority_pop_task(struct jobq_s *q);
 

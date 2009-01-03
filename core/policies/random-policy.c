@@ -13,7 +13,7 @@ static job_t random_pop_task(struct jobq_s *q)
 	return j;
 }
 
-static void _random_push_task(struct jobq_s *q __attribute__ ((unused)), job_t task, unsigned prio)
+static int _random_push_task(struct jobq_s *q __attribute__ ((unused)), job_t task, unsigned prio)
 {
 	/* find the queue */
 	struct fifo_jobq_s *fifo;
@@ -47,20 +47,20 @@ static void _random_push_task(struct jobq_s *q __attribute__ ((unused)), job_t t
 	fifo = queue_array[selected]->queue;
 
 	if (prio) {
-		fifo_push_prio_task(queue_array[selected], task);
+		return fifo_push_prio_task(queue_array[selected], task);
 	} else {
-		fifo_push_task(queue_array[selected], task);
+		return fifo_push_task(queue_array[selected], task);
 	}
 }
 
-static void random_push_prio_task(struct jobq_s *q, job_t task)
+static int random_push_prio_task(struct jobq_s *q, job_t task)
 {
-	_random_push_task(q, task, 1);
+	return _random_push_task(q, task, 1);
 }
 
-static void random_push_task(struct jobq_s *q, job_t task)
+static int random_push_task(struct jobq_s *q, job_t task)
 {
-	_random_push_task(q, task, 0);
+	return _random_push_task(q, task, 0);
 }
 
 static struct jobq_s *init_random_fifo(void)

@@ -21,9 +21,8 @@ struct deque_jobq_s {
 
 struct jobq_s *create_deque(void);
 
-void deque_push_task(struct jobq_s *q, job_t task);
-
-void deque_push_prio_task(struct jobq_s *q, job_t task);
+int deque_push_task(struct jobq_s *q, job_t task);
+int deque_push_prio_task(struct jobq_s *q, job_t task);
 
 job_t deque_pop_task(struct jobq_s *q);
 job_t deque_non_blocking_pop_task(struct jobq_s *q);

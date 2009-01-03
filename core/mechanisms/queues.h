@@ -13,8 +13,8 @@ struct jobq_s {
 	void *queue; 
 
 	/* some methods to manipulate the previous queue */
-	void (*push_task)(struct jobq_s *, job_t);
-	void (*push_prio_task)(struct jobq_s *, job_t);
+	int (*push_task)(struct jobq_s *, job_t);
+	int (*push_prio_task)(struct jobq_s *, job_t);
 	struct job_s* (*pop_task)(struct jobq_s *);
 
 	/* what are the driver that may pop job from that queue ? */

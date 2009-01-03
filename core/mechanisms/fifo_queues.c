@@ -68,7 +68,7 @@ unsigned get_fifo_nprocessed(struct jobq_s *q)
 	return fifo_queue->nprocessed;
 }
 
-void fifo_push_prio_task(struct jobq_s *q, job_t task)
+int fifo_push_prio_task(struct jobq_s *q, job_t task)
 {
 #ifndef NO_PRIO
 	ASSERT(q);
@@ -90,12 +90,14 @@ void fifo_push_prio_task(struct jobq_s *q, job_t task)
 
 	pthread_cond_signal(&q->activity_cond);
 	pthread_mutex_unlock(&q->activity_mutex);
+
+	return 0;
 #else
-	fifo_push_task(q, task);
+	return fifo_push_task(q, task);
 #endif
 }
 
-void fifo_push_task(struct jobq_s *q, job_t task)
+int fifo_push_task(struct jobq_s *q, job_t task)
 {
 	ASSERT(q);
 	struct fifo_jobq_s *fifo_queue = q->queue;
@@ -116,6 +118,8 @@ void fifo_push_task(struct jobq_s *q, job_t task)
 
 	pthread_cond_signal(&q->activity_cond);
 	pthread_mutex_unlock(&q->activity_mutex);
+
+	return 0;
 }
 
 job_t fifo_pop_task(struct jobq_s *q)

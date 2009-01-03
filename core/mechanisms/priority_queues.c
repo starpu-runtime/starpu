@@ -29,7 +29,7 @@ struct jobq_s *create_priority_jobq(void)
 	return q;
 }
 
-void priority_push_task(struct jobq_s *q, job_t task)
+int priority_push_task(struct jobq_s *q, job_t task)
 {
 	ASSERT(q);
 	struct priority_jobq_s *queue = q->queue;
@@ -46,6 +46,8 @@ void priority_push_task(struct jobq_s *q, job_t task)
 	sem_post(&queue->sem_jobq);
 
 	thread_mutex_unlock(&queue->workq_mutex);
+
+	return 0;
 }
 
 job_t priority_pop_task(struct jobq_s *q)

@@ -68,12 +68,12 @@ unsigned get_deque_nprocessed(struct jobq_s *q)
 	return deque_queue->nprocessed;
 }
 
-void deque_push_prio_task(struct jobq_s *q, job_t task)
+int deque_push_prio_task(struct jobq_s *q, job_t task)
 {
-	deque_push_task(q, task);
+	return deque_push_task(q, task);
 }
 
-void deque_push_task(struct jobq_s *q, job_t task)
+int deque_push_task(struct jobq_s *q, job_t task)
 {
 	ASSERT(q);
 	struct deque_jobq_s *deque_queue = q->queue;
@@ -95,6 +95,7 @@ void deque_push_task(struct jobq_s *q, job_t task)
 	pthread_cond_signal(&q->activity_cond);
 	pthread_mutex_unlock(&q->activity_mutex);
 
+	return 0;
 }
 
 job_t deque_pop_task(struct jobq_s *q)
