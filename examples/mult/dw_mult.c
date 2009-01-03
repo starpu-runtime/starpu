@@ -4,6 +4,7 @@
 #include <core/dependencies/tags.h>
 #include <common/timing.h>
 #include <common/util.h>
+#include <common/malloc.h>
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
@@ -242,19 +243,15 @@ void parse_args(int argc, char **argv)
 	}
 }
 
-/*
- * This is a codelet itself 
- */
-void init_problem_codelet (__attribute__((unused)) buffer_descr *descr,
-			   __attribute__((unused)) void *arg)
+static void init_problem_data(void)
 {
 	unsigned i,j;
 
 #ifdef USE_CUDA
 	if (pin) {
-		cuMemAllocHost((void **)&A, zdim*ydim*sizeof(float));
-		cuMemAllocHost((void **)&B, xdim*zdim*sizeof(float));
-		cuMemAllocHost((void **)&C, xdim*ydim*sizeof(float));
+		malloc_pinned_if_possible(&A, zdim*ydim*sizeof(float));
+		malloc_pinned_if_possible(&B, xdim*zdim*sizeof(float));
+		malloc_pinned_if_possible(&C, xdim*ydim*sizeof(float));
 	} else
 #endif
 	{
@@ -302,14 +299,8 @@ void init_problem_codelet (__attribute__((unused)) buffer_descr *descr,
 	}
 }
 
-int jobcounter;
-
-void init_problem_callback(void *arg __attribute__((unused)))
+static void partition_mult_data(void)
 {
-#ifdef USE_FXT
-	fxt_register_thread(0);
-#endif
-
 	GET_TICK(start);
 	monitor_blas_data(&A_state, 0, (uintptr_t)A, 
 		ydim, ydim, zdim, sizeof(float));
@@ -330,7 +321,15 @@ void init_problem_callback(void *arg __attribute__((unused)))
 	partition_data(&A_state, &f2);
 
 	map_filters(&C_state, 2, &f, &f2);
+}
 
+static int jobcounter;
+
+static void launch_codelets(void)
+{
+#ifdef USE_FXT
+	fxt_register_thread(0);
+#endif
 	/* partition the work into slices */
 	unsigned taskx, tasky;
 	job_t jb;
@@ -380,31 +379,6 @@ void init_problem_callback(void *arg __attribute__((unused)))
 	}
 }
 
-void init_problem(void)
-{
-	job_t jb;
-
-	codelet *cl = malloc(sizeof(codelet));
-
-	cl->cl_arg = NULL;
-	cl->core_func = init_problem_codelet;
-#ifdef USE_CUDA
-	cl->cublas_func = init_problem_codelet;
-#endif
-
-	jb = job_create();
-	jb->type = CODELET;
-#ifdef USE_CUDA
-	jb->where = CUBLAS;
-#else
-	jb->where = ANY;
-#endif
-	jb->cb = init_problem_callback;
-	jb->cl = cl;
-
-	push_task(jb);
-}
-
 int main(__attribute__ ((unused)) int argc, 
 	 __attribute__ ((unused)) char **argv)
 {
@@ -416,7 +390,12 @@ int main(__attribute__ ((unused)) int argc,
 
 	sem_init(&sem, 0, 0U);
 
-	init_problem();
+	init_problem_data();
+
+	partition_mult_data();
+
+	launch_codelets();
+
 	sem_wait(&sem);
 	sem_destroy(&sem);
 
