@@ -1,12 +1,15 @@
 #include "dw_factolu.h"
 #include <common/malloc.h>
+#include <sys/time.h>
 
 uint8_t *advance_12_21; /* size nblocks*nblocks */
 uint8_t *advance_11; /* size nblocks*nblocks */
 uint8_t *advance_22; /* array of nblocks *nblocks*nblocks */
 
-tick_t start;
-tick_t end;
+struct timeval start;
+struct timeval end;
+
+
 
 #define STARTED	0x01
 #define DONE	0x10
@@ -667,7 +670,7 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 	cl->cublas_func = dw_cublas_codelet_update_u11;
 #endif
 
-	GET_TICK(start);
+	gettimeofday(&start, NULL);
 
 	/* inject a new task with this codelet into the system */ 
 	job_t j = job_create();
@@ -687,9 +690,10 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 	/* stall the application until the end of computations */
 	sem_wait(&sem);
 	sem_destroy(&sem);
-	GET_TICK(end);
 
-	double timing = timing_delay(&start, &end);
+	gettimeofday(&end, NULL);
+
+	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	fprintf(stderr, "Computation took (in ms)\n");
 	printf("%2.2f\n", timing/1000);
 
@@ -729,7 +733,7 @@ void dw_codelet_facto_v2(data_state *dataA, unsigned nblocks)
 	cl->cublas_func = dw_cublas_codelet_update_u11;
 #endif
 
-	GET_TICK(start);
+	gettimeofday(&start, NULL);
 
 	/* inject a new task with this codelet into the system */ 
 	job_t j = job_create();
@@ -750,9 +754,9 @@ void dw_codelet_facto_v2(data_state *dataA, unsigned nblocks)
 	sem_wait(&sem);
 	sem_destroy(&sem);
 
-	GET_TICK(end);
+	gettimeofday(&end, NULL);
 
-	double timing = timing_delay(&start, &end);
+	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	fprintf(stderr, "Computation took (in ms)\n");
 	printf("%2.2f\n", timing/1000);
 
