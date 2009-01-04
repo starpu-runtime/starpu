@@ -51,7 +51,7 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (i = 0; i < j; i++)
 		{
-			L[i+j*size] = LU[i+j*ld];
+			L[j+i*size] = LU[j+i*ld];
 		}
 
 		/* diag i = j */
@@ -60,12 +60,65 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 
 		for (i = j+1; i < size; i++)
 		{
-			U[i+j*size] = LU[i+j*ld];
+			U[j+i*size] = LU[j+i*ld];
 		}
 	}
 
+//	/* display L */
+//	printf("(LU): \n");
+//	for (j = 0; j < size; j++)
+//	{
+//		for (i = 0; i < size; i++)
+//		{
+////			if (i <= j) {
+//				printf("%2.2f\t", LU[j +i*size]);
+////			}
+////			else {
+////				printf(".\t");
+////			}
+//		}
+//		printf("\n");
+//	}
+//
+//
+//
+//	/* display L */
+//	printf("L: \n");
+//	for (j = 0; j < size; j++)
+//	{
+//		for (i = 0; i < size; i++)
+//		{
+////			if (i <= j) {
+//				printf("%2.2f\t", L[j +i*size]);
+////			}
+////			else {
+////				printf(".\t");
+////			}
+//		}
+//		printf("\n");
+//	}
+//
+//	/* display U */
+//	printf("U: \n");
+//	for (j = 0; j < size; j++)
+//	{
+//		for (i = 0; i < size; i++)
+//		{
+////			if (i <= j) {
+//				printf("%2.2f\t", U[j +i*size]);
+////			}
+////			else {
+////				printf(".\t");
+////			}
+//		}
+//		printf("\n");
+//	}
+//
+//
+
+
         /* now A_err = L, compute L*U */
-	cblas_strmm(CblasRowMajor, CblasRight, CblasUpper, CblasNoTrans, 
+	cblas_strmm(CblasColMajor, CblasRight, CblasUpper, CblasNoTrans, 
 			CblasUnit, size, size, 1.0f, U, size, L, size);
 
 	float max_err = 0.0f;
@@ -73,9 +126,44 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (j = 0; j < size; j++) 
 		{
-			max_err = MAX(max_err, fabs(  L[i+j*size] - A[i+j*ld]  ));
+			max_err = MAX(max_err, fabs(  L[j+i*size] - A[j+i*ld]  ));
 		}
 	}
+//
+//	/* display A */
+//	printf("A: \n");
+//	for (j = 0; j < size; j++)
+//	{
+//		for (i = 0; i < size; i++)
+//		{
+////			if (i <= j) {
+//				printf("%2.2f\t", A[j +i*size]);
+////			}
+////			else {
+////				printf(".\t");
+////			}
+//		}
+//		printf("\n");
+//	}
+//
+//
+//	/* display LU */
+//	printf("LU: \n");
+//	for (j = 0; j < size; j++)
+//	{
+//		for (i = 0; i < size; i++)
+//		{
+////			if (i <= j) {
+//				printf("%2.2f\t", L[j +i*size]);
+////			}
+////			else {
+////				printf(".\t");
+////			}
+//		}
+//		printf("\n");
+//	}
+//
+//
 
 	printf("max error between A and L*U = %f \n", max_err);
 }

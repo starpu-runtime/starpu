@@ -284,11 +284,11 @@ void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	monitor_blas_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	filter f;
-		f.filter_func = block_filter_func;
+		f.filter_func = vertical_block_filter_func;
 		f.filter_arg = nblocks;
 
 	filter f2;
-		f2.filter_func = vertical_block_filter_func;
+		f2.filter_func = block_filter_func;
 		f2.filter_arg = nblocks;
 
 	map_filters(&dataA, 2, &f, &f2);

@@ -282,12 +282,10 @@ static void solve_system(unsigned size, unsigned subsize, float *result, int *Re
 	fprintf(stderr, "Solving the problem ...\n");
 
 	/* L */
-	cblas_strsv(CblasRowMajor, CblasLower, CblasNoTrans, CblasNonUnit,
-			subsize, A, subsize, B, 1);
+	STRSV("L", "N", "N", subsize, A, subsize, B, 1);
 
 	/* U */
-        cblas_strsv(CblasRowMajor, CblasUpper, CblasNoTrans, CblasUnit,
-                        subsize, A, subsize, B, 1);
+        STRSV("U", "N", "U", subsize, A, subsize, B, 1);
 
 	ASSERT(DIM == size);
 
@@ -573,7 +571,7 @@ static void build_dense_stiffness_matrix_A(point *pmesh, float *A, unsigned news
 			if (nodeneighbour < newsize) {
 				float val;
 				val = compute_A_value(TRANSLATE(j), TRANSLATE(nodeneighbour), pmesh);
-				A[nodeneighbour+j*newsize] = val;
+				A[j+ newsize*nodeneighbour] = val;
 			}
 		}
 	}
@@ -660,7 +658,9 @@ int main(int argc, char **argv)
 		fprintf(stdout, "MUMPS FORMAT END\n");
 		
 
+#ifdef ATLAS
 		do_conjugate_gradient(nzval, B, result, nnz, newsize, colind, rowptr);
+#endif
 
 		/* XXX */
 		memcpy(B, result, newsize*sizeof(float));

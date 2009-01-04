@@ -1,3 +1,5 @@
+#ifdef ATLAS
+
 #include "dw_sparse_cg.h"
 
 /*
@@ -405,3 +407,4 @@ void cublas_codelet_func_9(data_interface_t *descr, void *arg)
 #endif
 
 
+#endif

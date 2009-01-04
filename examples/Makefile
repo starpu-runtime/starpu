@@ -16,6 +16,7 @@ endif
 ifdef GOTO
 	TARGET += mult
 	TARGET+= cholesky
+	TARGET+= heat 
 endif
 
 ifdef ATLAS

@@ -1,3 +1,8 @@
+#include <stdio.h>
+#include <stdint.h>
+#include <common/util.h>
+
+#ifdef ATLAS
 /*
  * Conjugate gradients for Sparse matrices
  */
@@ -351,5 +356,12 @@ int main(__attribute__ ((unused)) int argc,
 
 
 	return 0;
+}
+#endif
+#else // ATLAS
+void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
+			unsigned nrow, uint32_t *colind, uint32_t *rowptr)
+{
+	ASSERT(0);
 }
 #endif

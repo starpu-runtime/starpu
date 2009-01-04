@@ -799,11 +799,11 @@ void dw_factoLU(float *matA, unsigned size,
 			size, size, sizeof(float));
 
 	filter f;
-		f.filter_func = block_filter_func;
+		f.filter_func = vertical_block_filter_func;
 		f.filter_arg = nblocks;
 
 	filter f2;
-		f2.filter_func = vertical_block_filter_func;
+		f2.filter_func = block_filter_func;
 		f2.filter_arg = nblocks;
 
 	map_filters(&dataA, 2, &f, &f2);

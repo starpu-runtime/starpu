@@ -1,4 +1,5 @@
 #include "dw_factolu.h"
+#include <common/blas.h>
 
 unsigned count_11_core = 0;
 unsigned count_12_core = 0;
@@ -43,8 +44,8 @@ static inline void dw_common_core_codelet_update_u22(data_interface_t *buffers, 
 
 	switch (s) {
 		case 0:
-			cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
-				dy, dx, dz, -1.0f, left, ld21, right, ld12,
+			SGEMM("N", "N",	dy, dx, dz, 
+				-1.0f, left, ld21, right, ld12,
 					     1.0f, center, ld22);
 			break;
 
@@ -102,12 +103,12 @@ static inline void dw_common_codelet_update_u12(data_interface_t *buffers, int s
 	/* solve L11 U12 = A12 (find U12) */
 	switch (s) {
 		case 0:
-			cblas_strsm(CblasRowMajor, CblasLeft, CblasLower, CblasNoTrans, CblasNonUnit,
+			STRSM("L", "L", "N", "N",
 					 nx12, ny12, 1.0f, sub11, ld11, sub12, ld12);
 			break;
 #ifdef USE_CUDA
 		case 1:
-			cublasStrsm('R', 'U', 'N', 'N', ny12, nx12,
+			cublasStrsm('L', 'L', 'N', 'N', ny12, nx12,
 					1.0f, sub11, ld11, sub12, ld12);
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
@@ -158,12 +159,11 @@ static inline void dw_common_codelet_update_u21(data_interface_t *buffers, int s
 
 	switch (s) {
 		case 0:
-			cblas_strsm(CblasRowMajor, CblasRight, CblasUpper, CblasNoTrans, 
-				CblasUnit, nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
+			STRSM("R", "U", "N", "U", nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
 #ifdef USE_CUDA
 		case 1:
-			cublasStrsm('L', 'L', 'N', 'U', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
+			cublasStrsm('R', 'U', 'N', 'U', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
 				CUBLAS_REPORT_ERROR(status);
@@ -194,6 +194,21 @@ void dw_cublas_codelet_update_u21(data_interface_t *descr, void *_args)
  *	U11
  */
 
+static inline void debug_print(float *tab, unsigned ld, unsigned n)
+{
+	unsigned j,i;
+	for (j = 0; j < n; j++)
+	{
+		for (i = 0; i < n; i++)
+		{
+			fprintf(stderr, "%2.2f\t", tab[j+i*ld]);
+		}
+		fprintf(stderr, "\n");
+	}
+	
+	fprintf(stderr, "\n");
+}
+
 static inline void dw_common_codelet_update_u11(data_interface_t *descr, int s, __attribute__((unused)) void *_args) 
 {
 	float *sub11;
@@ -213,13 +228,12 @@ static inline void dw_common_codelet_update_u11(data_interface_t *descr, int s, 
 				pivot = sub11[z+z*ld];
 				ASSERT(pivot != 0.0f);
 		
-				cblas_sscal(nx - z - 1, 1.0f/pivot, &sub11[(z+1)+z*ld], 1);
+				SSCAL(nx - z - 1, (1.0f/pivot), &sub11[z+(z+1)*ld], ld);
 		
-				cblas_sger(CblasRowMajor, nx - z - 1, nx - z - 1, -1.0f,
-								&sub11[(z+1)+z*ld], 1,
-								&sub11[z+(z+1)*ld], ld,
-								&sub11[(z+1) + (z+1)*ld],ld);
-		
+				SGER(nx - z - 1, nx - z - 1, -1.0f,
+						&sub11[z+(z+1)*ld], ld,
+						&sub11[(z+1)+z*ld], 1,
+						&sub11[(z+1) + (z+1)*ld],ld);
 			}
 			break;
 #ifdef USE_CUDA
@@ -232,11 +246,11 @@ static inline void dw_common_codelet_update_u11(data_interface_t *descr, int s, 
 
 				ASSERT(pivot != 0.0f);
 				
-				cublasSscal(nx - z - 1, 1.0f/pivot, &sub11[(z+1)+z*ld], 1);
+				cublasSscal(nx - z - 1, 1.0f/pivot, &sub11[z+(z+1)*ld], ld);
 				
 				cublasSger(nx - z - 1, nx - z - 1, -1.0f,
-								&sub11[(z+1)+z*ld], 1,
 								&sub11[z+(z+1)*ld], ld,
+								&sub11[(z+1)+z*ld], 1,
 								&sub11[(z+1) + (z+1)*ld],ld);
 			}
 			break;
