@@ -17,7 +17,9 @@ void SSYRK (const char *uplo, const char *trans, const int n,
                    const int k, const float alpha, const float *A,
                    const int lda, const float beta, float *C,
                    const int ldc);
-
+void SGER (const int m, const int n, const float alpha,
+                  const float *x, const int incx, const float *y,
+                  const int incy, float *A, const int lda);
 #ifdef GOTO
 
 extern void sgemm_ (const char *transa, const char *transb, const int *m,
@@ -38,6 +40,9 @@ extern void strsm_ (const char *side, const char *uplo, const char *transa,
 extern double sasum_ (const int *n, const float *x, const int *incx);
 extern void sscal_ (const int *n, const float *alpha, float *x,
                    const int *incx);
+extern void sger_(const int *m, const int *n, const float *alpha,
+                  const float *x, const int *incx, const float *y,
+                  const int *incy, float *A, const int *lda);
 #endif
 
 #endif // __BLAS_H__

@@ -63,6 +63,13 @@ void SSYRK (const char *uplo, const char *trans, const int n,
 	cblas_ssyrk(CblasColMajor, uplo_, trans_, n, k, alpha, A, lda, beta, C, ldc); 
 }
 
+void SGER (const int m, const int n, const float alpha,
+                  const float *x, const int incx, const float *y,
+                  const int incy, float *A, const int lda)
+{
+	cblas_sger(CblasRowMajor, m, n, alpha, x, incx, y, incy, A, lda);
+}
+
 #elif GOTO
 
 inline void SGEMM(char *transa, char *transb, int M, int N, int K, 
@@ -105,6 +112,14 @@ void SSYRK (const char *uplo, const char *trans, const int n,
 {
 	ssyrk_(uplo, trans, &n, &k, &alpha, A, &lda, &beta, C, &ldc); 
 }
+
+void SGER (const int m, const int n, const float alpha,
+                  const float *x, const int incx, const float *y,
+                  const int incy, float *A, const int lda)
+{
+	sger_(&m, &n, &alpha, x, &incx, y, &incy, A, &lda);
+}
+
 
 
 #else
