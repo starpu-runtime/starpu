@@ -33,5 +33,9 @@ static double gemm_cost(buffer_descr *descr)
 struct perfmodel_t sgemm_model = {
 	.cost_model = gemm_cost,
 	.type = HISTORY_BASED,
-	.symbol = "sgemm"
+#ifdef ATLAS
+	.symbol = "sgemm_atlas"
+#elif defined(GOTO)
+	.symbol = "sgemm_goto"
+#endif
 };
