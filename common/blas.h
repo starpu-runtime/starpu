@@ -20,6 +20,10 @@ void SSYRK (const char *uplo, const char *trans, const int n,
 void SGER (const int m, const int n, const float alpha,
                   const float *x, const int incx, const float *y,
                   const int incy, float *A, const int lda);
+void STRSV (const char *uplo, const char *trans, const char *diag, 
+                   const int n, const float *A, const int lda, float *x, 
+                   const int incx);
+
 #ifdef GOTO
 
 extern void sgemm_ (const char *transa, const char *transb, const int *m,
@@ -43,6 +47,10 @@ extern void sscal_ (const int *n, const float *alpha, float *x,
 extern void sger_(const int *m, const int *n, const float *alpha,
                   const float *x, const int *incx, const float *y,
                   const int *incy, float *A, const int *lda);
+extern void strsv_ (const char *uplo, const char *trans, const char *diag, 
+                   const int *n, const float *A, const int *lda, float *x, 
+                   const int *incx);
+
 #endif
 
 #endif // __BLAS_H__

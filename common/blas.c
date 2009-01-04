@@ -70,7 +70,18 @@ void SGER (const int m, const int n, const float alpha,
 	cblas_sger(CblasRowMajor, m, n, alpha, x, incx, y, incy, A, lda);
 }
 
-#elif GOTO
+void STRSV (const char *uplo, const char *trans, const char *diag, 
+                   const int n, const float *A, const int lda, float *x, 
+                   const int incx)
+{
+	enum CBLAS_UPLO uplo_ = (toupper(uplo[0]) == 'U')?CblasUpper:CblasLower;
+	enum CBLAS_TRANSPOSE trans_ = (toupper(trans[0]) == 'N')?CblasNoTrans:CblasTrans;
+	enum CBLAS_DIAG diag_ = (toupper(diag[0]) == 'N')?CblasNonUnit:CblasUnit;
+
+	cblas_strsv(CblasColMajor, uplo_, trans_, diag_, n, A, lda, x, incx);
+}
+
+#elif defined(GOTO)
 
 inline void SGEMM(char *transa, char *transb, int M, int N, int K, 
 			float alpha, float *A, int lda, float *B, int ldb, 
@@ -121,6 +132,12 @@ void SGER (const int m, const int n, const float alpha,
 }
 
 
+void STRSV (const char *uplo, const char *trans, const char *diag, 
+                   const int n, const float *A, const int lda, float *x, 
+                   const int incx)
+{
+	strsv_(uplo, trans, diag, &n, A, &lda, x, &incx);
+}
 
 #else
 #error "no BLAS lib available..."
