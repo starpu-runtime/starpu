@@ -29,32 +29,32 @@ static void malloc_pinned_codelet(struct data_interface_s *buffers __attribute__
 
 static inline void malloc_pinned_if_possible(float **A, size_t dim)
 {
-#ifdef USE_CUDA
-	int push_res;
-
-	struct malloc_pinned_codelet_struct s = {
-		.ptr = A,
-		.dim = dim
-	};	
-
-	codelet *cl = malloc(sizeof(codelet));
-	cl->cublas_func = malloc_pinned_codelet; 
-	cl->cl_arg = &s;
-
-	job_t j = job_create();
-	j->where = CUBLAS;
-	j->cb = NULL; 
-	j->cl = cl;
-
-	push_res = push_task_sync(j);
-	if (push_res == -ENODEV)
+	if (may_submit_cuda_task())
 	{
+#ifdef USE_CUDA
+		int push_res;
+	
+		struct malloc_pinned_codelet_struct s = {
+			.ptr = A,
+			.dim = dim
+		};	
+	
+		codelet *cl = malloc(sizeof(codelet));
+		cl->cublas_func = malloc_pinned_codelet; 
+		cl->cl_arg = &s;
+	
+		job_t j = job_create();
+		j->where = CUBLAS;
+		j->cb = NULL; 
+		j->cl = cl;
+	
+		push_res = push_task_sync(j);
+		ASSERT(push_res != -ENODEV);
+#endif
+	}
+	else {
 		*A = malloc(dim);
 	}
-
-#else
-	*A = malloc(dim);
-#endif	
 }
 
 
