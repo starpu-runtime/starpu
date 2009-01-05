@@ -175,8 +175,8 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
 
 static void dw_codelet_facto_v3(data_state *dataA, unsigned nblocks)
 {
-	tick_t start;
-	tick_t end;
+	struct timeval start;
+	struct timeval end;
 
 	/* create a new codelet */
 	sem_t sem;
@@ -236,15 +236,15 @@ static void dw_codelet_facto_v3(data_state *dataA, unsigned nblocks)
 #endif
 
 	/* schedule the codelet */
-	GET_TICK(start);
+	gettimeofday(&start, NULL);
 	push_task(entry_job);
 
 	/* stall the application until the end of computations */
 	sem_wait(&sem);
 	sem_destroy(&sem);
-	GET_TICK(end);
+	gettimeofday(&end, NULL);
 
-	double timing = timing_delay(&start, &end);
+	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	fprintf(stderr, "Computation took (in ms)\n");
 	printf("%2.2f\n", timing/1000);
 
