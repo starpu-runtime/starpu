@@ -8,6 +8,7 @@
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
+#include <sys/time.h>
 #include <pthread.h>
 #include <signal.h>
 #include <common/blas.h>
@@ -35,8 +36,8 @@ data_state A_state;
 data_state B_state;
 data_state C_state;
 
-tick_t start;
-tick_t end;
+struct timeval start;
+struct timeval end;
 
 unsigned nslicesx = 4;
 unsigned nslicesy = 4;
@@ -89,9 +90,10 @@ void terminate(void)
 
 	delete_data(&C_state);
 
-	GET_TICK(end);
+	gettimeofday(&end, NULL);
 
-	double timing = timing_delay(&start, &end);
+	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+
 	uint64_t total_flop = flop_cublas + flop_atlas;
 	uint64_t total_ls = ls_cublas + ls_atlas;
 
@@ -301,7 +303,7 @@ static void init_problem_data(void)
 
 static void partition_mult_data(void)
 {
-	GET_TICK(start);
+	gettimeofday(&start, NULL);
 	monitor_blas_data(&A_state, 0, (uintptr_t)A, 
 		ydim, ydim, zdim, sizeof(float));
 	monitor_blas_data(&B_state, 0, (uintptr_t)B, 
