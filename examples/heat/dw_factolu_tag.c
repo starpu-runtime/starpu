@@ -44,6 +44,10 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 	job->cl->cublas_func = dw_cublas_codelet_update_u11;
 #endif
 
+	/* XXX this should not be needed with a good scheduling policy, and may be suboptimal ! */
+	if (may_submit_core_task())
+		job->where = CORE;
+
 	job->model = &model_11;
 
 	/* which sub-data is manipulated ? */
