@@ -12,6 +12,17 @@ inline uint32_t worker_exists(uint32_t task_mask)
 	return (task_mask & worker_mask);
 } 
 
+inline uint32_t may_submit_cuda_task(void)
+{
+	return ((CUDA|CUBLAS) & worker_mask);
+}
+
+inline uint32_t may_submit_core_task(void)
+{
+	return (CORE & worker_mask);
+}
+
+
 /*
  * Runtime initialization methods
  */
