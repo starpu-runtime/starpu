@@ -32,6 +32,7 @@ void STRMV(const char *uplo, const char *transA, const char *diag,
                  const int incX);
 void SAXPY(const int n, const float alpha, float *X, const int incX, float *Y, const int incy);
 int ISAMAX (const int n, float *X, const int incX);
+float SDOT(const int n, const float *x, const int incx, float *y, const int incy);
 
 #ifdef GOTO
 
@@ -69,7 +70,8 @@ extern void strmv_(const char *uplo, const char *transA, const char *diag,
 extern void saxpy_(const int *n, const float *alpha, float *X, const int *incX,
 		float *Y, const int *incy);
 extern  int isamax_ (const int *n, float *X, const int *incX);
-
+extern float sdot_(const int *n, const float *x, const int *incx, float *y,
+                   const int *incy);
 #endif
 
 #endif // __BLAS_H__

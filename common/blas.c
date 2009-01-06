@@ -117,6 +117,12 @@ int ISAMAX (const int n, float *X, const int incX)
     return retVal;
 }
 
+float SDOT(const int n, const float *x, const int incx, float *y, const int incy)
+{
+	return cblas_sdot(n, x, incx, y, incy);
+}
+
+
 #elif defined(GOTO)
 
 inline void SGEMM(char *transa, char *transb, int M, int N, int K, 
@@ -200,6 +206,11 @@ int ISAMAX (const int n, float *X, const int incX)
     int retVal;
     retVal = isamax_ (&n, X, &incX);
     return retVal;
+}
+
+float SDOT(const int n, const float *x, const int incx, float *y, const int incy)
+{
+	return sdot_(&n, x, &incx, y, &incy);
 }
 
 #else
