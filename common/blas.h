@@ -32,7 +32,7 @@ void STRMV(const char *uplo, const char *transA, const char *diag,
                  const int incX);
 void SAXPY(const int n, const float alpha, float *X, const int incX, float *Y, const int incy);
 int ISAMAX (const int n, float *X, const int incX);
-float SDOT(const int n, const float *x, const int incx, float *y, const int incy);
+float SDOT(const int n, const float *x, const int incx, const float *y, const int incy);
 
 #ifdef GOTO
 
@@ -69,9 +69,9 @@ extern void strmv_(const char *uplo, const char *transA, const char *diag,
                  const int *incX);
 extern void saxpy_(const int *n, const float *alpha, float *X, const int *incX,
 		float *Y, const int *incy);
-extern  int isamax_ (const int *n, float *X, const int *incX);
-extern float sdot_(const int *n, const float *x, const int *incx, float *y,
-                   const int *incy);
+extern int isamax_(const int *n, float *X, const int *incX);
+/* for some reason, FLOATRET is not a float but a double in GOTOBLAS */
+extern double sdot_(const int *n, const float *x, const int *incx, const float *y, const int *incy);
 #endif
 
 #endif // __BLAS_H__

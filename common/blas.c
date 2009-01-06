@@ -117,7 +117,7 @@ int ISAMAX (const int n, float *X, const int incX)
     return retVal;
 }
 
-float SDOT(const int n, const float *x, const int incx, float *y, const int incy)
+float SDOT(const int n, const float *x, const int incx, const float *y, const int incy)
 {
 	return cblas_sdot(n, x, incx, y, incy);
 }
@@ -208,9 +208,14 @@ int ISAMAX (const int n, float *X, const int incX)
     return retVal;
 }
 
-float SDOT(const int n, const float *x, const int incx, float *y, const int incy)
+float SDOT(const int n, const float *x, const int incx, const float *y, const int incy)
 {
-	return sdot_(&n, x, &incx, y, &incy);
+	float retVal = 0;
+
+	/* GOTOBLAS will return a FLOATRET which is a double, not a float */
+	retVal = (float)sdot_(&n, x, &incx, y, &incy);
+
+	return retVal;
 }
 
 #else
