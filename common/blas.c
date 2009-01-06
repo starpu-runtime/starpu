@@ -105,7 +105,7 @@ void STRMV(const char *uplo, const char *transA, const char *diag,
 	cblas_strmv(CblasColMajor, uplo_, transA_, diag_, n, A, lda, X, incX);
 }
 
-void SAXPY(const int n, const float alpha, float *X, const int incX, float *Y, const int incy)
+void SAXPY(const int n, const float alpha, float *X, const int incX, float *Y, const int incY)
 {
 	cblas_saxpy(n, alpha, X, incX, Y, incY);
 }
@@ -113,7 +113,7 @@ void SAXPY(const int n, const float alpha, float *X, const int incX, float *Y, c
 int ISAMAX (const int n, float *X, const int incX)
 {
     int retVal;
-    retVal = cblas_isamax(n, x, incx);
+    retVal = cblas_isamax(n, X, incX);
     return retVal;
 }
 
@@ -190,7 +190,7 @@ void STRMV(const char *uplo, const char *transA, const char *diag,
 	strmv_(uplo, transA, diag, &n, A, &lda, X, &incX);
 }
 
-void SAXPY(const int n, const float alpha, float *X, const int incX, float *Y, const int incy)
+void SAXPY(const int n, const float alpha, float *X, const int incX, float *Y, const int incY)
 {
 	saxpy_(&n, &alpha, X, &incX, Y, &incY);
 }
@@ -198,7 +198,7 @@ void SAXPY(const int n, const float alpha, float *X, const int incX, float *Y, c
 int ISAMAX (const int n, float *X, const int incX)
 {
     int retVal;
-    retVal = isamax_ (&n, x, &incx);
+    retVal = isamax_ (&n, X, &incX);
     return retVal;
 }
 
