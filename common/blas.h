@@ -23,6 +23,13 @@ void SGER (const int m, const int n, const float alpha,
 void STRSV (const char *uplo, const char *trans, const char *diag, 
                    const int n, const float *A, const int lda, float *x, 
                    const int incx);
+void STRMM(const char *side, const char *uplo, const char *transA,
+                 const char *diag, const int m, const int n,
+                 const float alpha, const float *A, const int lda,
+                 float *B, const int ldb);
+void STRMV(const char *uplo, const char *transA, const char *diag,
+                 const int n, const float *A, const int lda, float *X,
+                 const int incX);
 
 #ifdef GOTO
 
@@ -50,7 +57,13 @@ extern void sger_(const int *m, const int *n, const float *alpha,
 extern void strsv_ (const char *uplo, const char *trans, const char *diag, 
                    const int *n, const float *A, const int *lda, float *x, 
                    const int *incx);
-
+extern void strmm_(const char *side, const char *uplo, const char *transA,
+                 const char *diag, const int *m, const int *n,
+                 const float *alpha, const float *A, const int *lda,
+                 float *B, const int *ldb);
+extern void strmv_(const char *uplo, const char *transA, const char *diag,
+                 const int n, const float *A, const int lda, float *X,
+                 const int incX);
 #endif
 
 #endif // __BLAS_H__

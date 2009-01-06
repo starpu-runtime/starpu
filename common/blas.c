@@ -81,6 +81,31 @@ void STRSV (const char *uplo, const char *trans, const char *diag,
 	cblas_strsv(CblasColMajor, uplo_, trans_, diag_, n, A, lda, x, incx);
 }
 
+void STRMM(const char *side, const char *uplo, const char *transA,
+                 const char *diag, const int m, const int n,
+                 const float alpha, const float *A, const int lda,
+                 float *B, const int ldb)
+{
+	enum CBLAS_SIDE side_ = (toupper(side[0]) == 'L')?CblasLeft:CblasRight;
+	enum CBLAS_UPLO uplo_ = (toupper(uplo[0]) == 'U')?CblasUpper:CblasLower;
+	enum CBLAS_TRANSPOSE transA_ = (toupper(transA[0]) == 'N')?CblasNoTrans:CblasTrans;
+	enum CBLAS_DIAG diag_ = (toupper(diag[0]) == 'N')?CblasNonUnit:CblasUnit;
+
+	cblas_strmm(CblasColMajor, side_, uplo_, transA_, diag_, m, n, alpha, A, lda, B, ldb);
+}
+
+void STRMV(const char *uplo, const char *transA, const char *diag,
+                 const int n, const float *A, const int lda, float *X,
+                 const int incX)
+{
+	enum CBLAS_UPLO uplo_ = (toupper(uplo[0]) == 'U')?CblasUpper:CblasLower;
+	enum CBLAS_TRANSPOSE transA_ = (toupper(transA[0]) == 'N')?CblasNoTrans:CblasTrans;
+	enum CBLAS_DIAG diag_ = (toupper(diag[0]) == 'N')?CblasNonUnit:CblasUnit;
+
+	cblas_strmv(CblasColMajor, uplo_, transA_, diag_, n, A, lda, X, incX);
+}
+
+
 #elif defined(GOTO)
 
 inline void SGEMM(char *transa, char *transb, int M, int N, int K, 
@@ -137,6 +162,21 @@ void STRSV (const char *uplo, const char *trans, const char *diag,
                    const int incx)
 {
 	strsv_(uplo, trans, diag, &n, A, &lda, x, &incx);
+}
+
+void STRMM(const char *side, const char *uplo, const char *transA,
+                 const char *diag, const int m, const int n,
+                 const float alpha, const float *A, const int lda,
+                 float *B, const int ldb)
+{
+	strmm_(side, uplo, transA, diag, &m, &n, &alpha, A, &lda, B, &ldb);
+}
+
+void STRMV(const char *uplo, const char *transA, const char *diag,
+                 const int n, const float *A, const int lda, float *X,
+                 const int incX)
+{
+	strmv_(uplo, transA, diag, &n, A, &lda, X, &incX);
 }
 
 #else
