@@ -281,6 +281,13 @@ static void solve_system(unsigned size, unsigned subsize, float *result, int *Re
         /* solve UX = X' */
 	fprintf(stderr, "Solving the problem ...\n");
 
+#ifdef CHECK_RESULTS
+	float *savedB = malloc(subsize*sizeof(float));
+	memcpy(savedB, B, subsize*sizeof(float));
+
+	float *LUB = malloc(subsize*sizeof(float));
+#endif
+
 	/* L */
 	STRSV("L", "N", "N", subsize, A, subsize, B, 1);
 
@@ -288,6 +295,30 @@ static void solve_system(unsigned size, unsigned subsize, float *result, int *Re
         STRSV("U", "N", "U", subsize, A, subsize, B, 1);
 
 	ASSERT(DIM == size);
+
+#ifdef CHECK_RESULTS
+	/* compute the error on (LUB - savedB) which should be 0 */
+
+	/* LUB = B */
+	memcpy(LUB, B, subsize*sizeof(float));
+
+
+	/* LUB = U * LUB */
+	STRMV("U", "N", "U", subsize, A, subsize, LUB, 1);
+	
+	/* LUB = L * LUB */
+	STRMV("L", "N", "N", subsize, A, subsize, LUB, 1);
+
+	/* LUB -= B */
+	SAXPY(subsize, -1.0f, savedB, 1, LUB, 1);
+
+	/* check if LUB is close to the 0 vector */
+	int maxind = ISAMAX(subsize, LUB, 1);
+	fprintf(stderr, "max (LUX - B) = %f\n",LUB[maxind - 1]);
+
+	free(LUB);
+	free(savedB);
+#endif
 
 	/* now display back the ACTUAL result */
 	for (i = 0; i < subsize; i++)
