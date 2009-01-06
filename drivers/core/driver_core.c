@@ -124,6 +124,7 @@ void *core_worker(void *arg)
         }
 
 	thread_exit(NULL);
+	TRACE_WORKER_TERMINATED(FUT_CORE_KEY);
 
         return NULL;
 }

@@ -34,6 +34,8 @@
 #define FUT_DATA_COPY		0x5113
 #define FUT_WORK_STEALING	0x5114
 
+#define	FUT_WORKER_TERMINATED	0x5115
+
 #ifdef USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -81,6 +83,9 @@ void fxt_register_thread(unsigned);
 #define TRACE_WORK_STEALING(empty_q, victim_q)		\
 	FUT_DO_PROBE2(FUT_WORK_STEALING, empty_q, victim_q)
 
+#define TRACE_WORKER_TERMINATED(workerkind)	\
+	FUT_DO_PROBE2(FUT_WORKER_TERMINATED, workerkind, syscall(SYS_gettid));
+
 #else // !USE_FXT
 
 #define TRACE_NEW_WORKER(a)		do {} while(0);
@@ -96,6 +101,7 @@ void fxt_register_thread(unsigned);
 #define TRACE_CODELET_TAG_DEPS(a, b)	do {} while(0);
 #define TRACE_DATA_COPY(a, b, c)	do {} while(0);
 #define TRACE_WORK_STEALING(a, b)	do {} while(0);
+#define TRACE_WORKER_TERMINATED(a)	do {} while(0);
 
 #endif // USE_FXT
 

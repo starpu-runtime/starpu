@@ -38,6 +38,7 @@ void paje_output_file_init(void)
 
 void paje_output_file_terminate(void)
 {
+
 	/* close the file */
 	fclose(out_paje_file);
 }
@@ -93,6 +94,15 @@ void handle_new_worker(void)
 
 	events[workerid] = event_list_new();
 }
+
+void handle_worker_terminated(void)
+{
+	char *tidstr = malloc(16*sizeof(char));
+	sprintf(tidstr, "%ld", ev.param[1]);
+
+	fprintf(out_paje_file, "8       %f	%s\n", (float)((ev.time-start_time)/1000000.0), tidstr);
+}
+
 
 int find_workder_id(unsigned long tid)
 {
@@ -440,6 +450,10 @@ int main(int argc, char **argv)
 			case FUT_DATA_COPY:
 			case FUT_WORK_STEALING:
 				/* XXX */
+				break;
+
+			case FUT_WORKER_TERMINATED:
+				handle_worker_terminated();
 				break;
 
 			default:
