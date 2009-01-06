@@ -64,8 +64,8 @@ extern void strmm_(const char *side, const char *uplo, const char *transA,
                  const float *alpha, const float *A, const int *lda,
                  float *B, const int *ldb);
 extern void strmv_(const char *uplo, const char *transA, const char *diag,
-                 const int n, const float *A, const int lda, float *X,
-                 const int incX);
+                 const int *n, const float *A, const int *lda, float *X,
+                 const int *incX);
 extern void saxpy_(const int *n, const float *alpha, float *X, const int *incX,
 		float *Y, const int *incy);
 extern  int isamax_ (const int *n, float *X, const int *incX);
