@@ -7,6 +7,7 @@
 #include <common/timing.h>
 #include <common/util.h>
 #include <common/malloc.h>
+#include <common/blas.h>
 #include <string.h>
 #include <math.h>
 #include <cblas.h>
@@ -64,62 +65,62 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 		}
 	}
 
-//	/* display L */
-//	printf("(LU): \n");
-//	for (j = 0; j < size; j++)
-//	{
-//		for (i = 0; i < size; i++)
-//		{
-////			if (i <= j) {
-//				printf("%2.2f\t", LU[j +i*size]);
-////			}
-////			else {
-////				printf(".\t");
-////			}
-//		}
-//		printf("\n");
-//	}
-//
-//
-//
-//	/* display L */
-//	printf("L: \n");
-//	for (j = 0; j < size; j++)
-//	{
-//		for (i = 0; i < size; i++)
-//		{
-////			if (i <= j) {
-//				printf("%2.2f\t", L[j +i*size]);
-////			}
-////			else {
-////				printf(".\t");
-////			}
-//		}
-//		printf("\n");
-//	}
-//
-//	/* display U */
-//	printf("U: \n");
-//	for (j = 0; j < size; j++)
-//	{
-//		for (i = 0; i < size; i++)
-//		{
-////			if (i <= j) {
-//				printf("%2.2f\t", U[j +i*size]);
-////			}
-////			else {
-////				printf(".\t");
-////			}
-//		}
-//		printf("\n");
-//	}
-//
-//
+#if 0
+	/* display L */
+	printf("(LU): \n");
+	for (j = 0; j < size; j++)
+	{
+		for (i = 0; i < size; i++)
+		{
+//			if (i <= j) {
+				printf("%2.2f\t", LU[j +i*size]);
+//			}
+//			else {
+//				printf(".\t");
+//			}
+		}
+		printf("\n");
+	}
+
+
+
+	/* display L */
+	printf("L: \n");
+	for (j = 0; j < size; j++)
+	{
+		for (i = 0; i < size; i++)
+		{
+//			if (i <= j) {
+				printf("%2.2f\t", L[j +i*size]);
+//			}
+//			else {
+//				printf(".\t");
+//			}
+		}
+		printf("\n");
+	}
+
+	/* display U */
+	printf("U: \n");
+	for (j = 0; j < size; j++)
+	{
+		for (i = 0; i < size; i++)
+		{
+//			if (i <= j) {
+				printf("%2.2f\t", U[j +i*size]);
+//			}
+//			else {
+//				printf(".\t");
+//			}
+		}
+		printf("\n");
+	}
+
+#endif
 
 
         /* now A_err = L, compute L*U */
-	cblas_strmm(CblasColMajor, CblasRight, CblasUpper, CblasNoTrans, 
-			CblasUnit, size, size, 1.0f, U, size, L, size);
+	STRMM("R", "U", "N", "U", size, size, 1.0f, U, size, L, size);
 
 	float max_err = 0.0f;
 	for (i = 0; i < size ; i++)
@@ -129,41 +130,41 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 			max_err = MAX(max_err, fabs(  L[j+i*size] - A[j+i*ld]  ));
 		}
 	}
-//
-//	/* display A */
-//	printf("A: \n");
-//	for (j = 0; j < size; j++)
-//	{
-//		for (i = 0; i < size; i++)
-//		{
-////			if (i <= j) {
-//				printf("%2.2f\t", A[j +i*size]);
-////			}
-////			else {
-////				printf(".\t");
-////			}
-//		}
-//		printf("\n");
-//	}
-//
-//
-//	/* display LU */
-//	printf("LU: \n");
-//	for (j = 0; j < size; j++)
-//	{
-//		for (i = 0; i < size; i++)
-//		{
-////			if (i <= j) {
-//				printf("%2.2f\t", L[j +i*size]);
-////			}
-////			else {
-////				printf(".\t");
-////			}
-//		}
-//		printf("\n");
-//	}
-//
-//
+
+#if 0
+	/* display A */
+	printf("A: \n");
+	for (j = 0; j < size; j++)
+	{
+		for (i = 0; i < size; i++)
+		{
+	//		if (i <= j) {
+	      			printf("%2.2f\t", A[j +i*size]);
+	//		}
+	//		else {
+	//			printf(".\t");
+	//		}
+		}
+		printf("\n");
+	}
+
+
+	/* display LU */
+	printf("LU: \n");
+	for (j = 0; j < size; j++)
+	{
+		for (i = 0; i < size; i++)
+		{
+	//		if (i <= j) {
+	      			printf("%2.2f\t", L[j +i*size]);
+	//		}
+	//		else {
+	//			printf(".\t");
+	//		}
+		}
+		printf("\n");
+	}
+#endif
 
 	printf("max error between A and L*U = %f \n", max_err);
 }
