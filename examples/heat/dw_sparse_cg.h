@@ -7,6 +7,7 @@
 #include <core/dependencies/tags.h>
 #include <common/timing.h>
 #include <common/util.h>
+#include <common/blas.h>
 #include <string.h>
 #include <stdint.h>
 #include <math.h>

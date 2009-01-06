@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <common/util.h>
 
-#ifdef ATLAS
 /*
  * Conjugate gradients for Sparse matrices
  */
@@ -230,12 +229,13 @@ void iteration_cg(void *problem)
 {
 	struct cg_problem *pb = problem;
 
+	printf("i : %d (MAX %d)\n\tdelta_new %f (%f)\n", pb->i, MAXITER, pb->delta_new, sqrt(pb->delta_new / pb->size));
 
 	if ((pb->i < MAXITER) && 
 		(pb->delta_new > pb->epsilon) )
 	{
 		if (pb->i % 1000 == 0)
-			printf("i : %d\n\tdelta_new %2.5f (%f)\n", pb->i, pb->delta_new, sqrt(pb->delta_new / pb->size));
+			printf("i : %d\n\tdelta_new %f (%f)\n", pb->i, pb->delta_new, sqrt(pb->delta_new / pb->size));
 
 		pb->i++;
 
@@ -303,6 +303,8 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 
 	problem.epsilon = EPSILON;
 	problem.size = nrow;
+	problem.delta_old = 1.0;
+	problem.delta_new = 1.0; /* just to make sure we do at least one iteration */
 
 	/* we need a semaphore to synchronize with callbacks */
 	sem_t sem;
@@ -356,12 +358,5 @@ int main(__attribute__ ((unused)) int argc,
 
 
 	return 0;
-}
-#endif
-#else // ATLAS
-void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
-			unsigned nrow, uint32_t *colind, uint32_t *rowptr)
-{
-	ASSERT(0);
 }
 #endif

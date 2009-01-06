@@ -1,5 +1,3 @@
-#ifdef ATLAS
-
 #include "dw_sparse_cg.h"
 
 /*
@@ -107,13 +105,15 @@ void core_codelet_func_3(data_interface_t *descr, void *arg)
 	struct cg_problem *pb = arg;
 	float dot;
 	float *vec;
-	uint32_t size;
+	int size;
 	
 	/* get the vector */
 	vec = (float *)descr[0].vector.ptr;
-	size = descr[0].vector.nx;
+	size = (int)descr[0].vector.nx;
 
-	dot = cblas_sdot (size, vec, 1, vec, 1);
+	dot = SDOT(size, vec, 1, vec, 1);
+
+	fprintf(stderr, "func 3 : DOT = %f\n", dot);
 
 	pb->delta_new = dot;
 	pb->delta_0 = dot;
@@ -205,7 +205,7 @@ void core_codelet_func_5(data_interface_t *descr, void *arg)
 	ASSERT(descr[1].vector.nx == descr[0].vector.nx);
 	size = descr[0].vector.nx;
 
-	dot = cblas_sdot(size, vecd, 1, vecq, 1);
+	dot = SDOT(size, vecd, 1, vecq, 1);
 
 	pb->alpha = pb->delta_new / dot;
 }
@@ -252,7 +252,7 @@ void core_codelet_func_6(data_interface_t *descr, void *arg)
 
 	size = descr[0].vector.nx;
 
-	cblas_saxpy(size, pb->alpha, vecd, 1, vecx, 1);
+	SAXPY(size, pb->alpha, vecd, 1, vecx, 1);
 }
 
 #ifdef USE_CUDA
@@ -291,7 +291,7 @@ void core_codelet_func_7(data_interface_t *descr, void *arg)
 
 	size = descr[0].vector.nx;
 
-	cblas_saxpy(size, -pb->alpha, vecq, 1, vecr, 1);
+	SAXPY(size, -pb->alpha, vecq, 1, vecr, 1);
 }
 
 #ifdef USE_CUDA
@@ -331,7 +331,7 @@ void core_codelet_func_8(data_interface_t *descr, void *arg)
 	vecr = (float *)descr[0].vector.ptr;
 	size = descr[0].vector.nx;
 
-	dot = cblas_sdot(size, vecr, 1, vecr, 1);
+	dot = SDOT(size, vecr, 1, vecr, 1);
 
 	pb->delta_old = pb->delta_new;
 	pb->delta_new = dot;
@@ -379,10 +379,10 @@ void core_codelet_func_9(data_interface_t *descr, void *arg)
 	size = descr[0].vector.nx;
 
 	/* d = beta d */
-	cblas_sscal(size, pb->beta, vecd, 1);
+	SSCAL(size, pb->beta, vecd, 1);
 
 	/* d = r + d */
-	cblas_saxpy (size, 1.0f, vecr, 1, vecd, 1);
+	SAXPY (size, 1.0f, vecr, 1, vecd, 1);
 }
 
 #ifdef USE_CUDA
@@ -404,7 +404,4 @@ void cublas_codelet_func_9(data_interface_t *descr, void *arg)
 	/* d = r + d */
 	cublasSaxpy (size, 1.0f, vecr, 1, vecd, 1);
 }
-#endif
-
-
 #endif

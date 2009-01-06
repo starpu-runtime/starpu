@@ -689,9 +689,7 @@ int main(int argc, char **argv)
 		fprintf(stdout, "MUMPS FORMAT END\n");
 		
 
-#ifdef ATLAS
 		do_conjugate_gradient(nzval, B, result, nnz, newsize, colind, rowptr);
-#endif
 
 		/* XXX */
 		memcpy(B, result, newsize*sizeof(float));
