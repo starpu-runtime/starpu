@@ -1,6 +1,8 @@
 STARPU= ../../starpu.a
 CFLAGS+= -I../..
 
+OBJS := dw_sparse_cg.o dw_sparse_cg_kernels.o dw_factolu.o dw_factolu_tag.o heat_display.o heat.o lu_kernels_model.o dw_factolu_kernels.o
+
 ifdef OPENGL_RENDER
 	CFLAGS+=-DOPENGL_RENDER
 	LDFLAGS+=-lglut -lGL -lGLU
@@ -8,11 +10,16 @@ endif
 
 all: heat
 
+%.d: %.c
+	$(CC) $(CFLAGS) $< -MM -o $*.d
+
+-include $(OBJS:.o=.d)
+
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-heat: dw_sparse_cg.o dw_sparse_cg_kernels.o dw_factolu.o dw_factolu_tag.o heat_display.o heat.o lu_kernels_model.o dw_factolu_kernels.o
-	$(CC) dw_sparse_cg.o dw_sparse_cg_kernels.o dw_factolu.o dw_factolu_tag.o heat_display.o heat.o lu_kernels_model.o dw_factolu_kernels.o -o heat $(LDFLAGS) $(STARPU) $(EXTRALDFLAGS)
+heat: $(OBJS) 
+	$(CC) $(OBJS) -o heat $(LDFLAGS) $(STARPU) $(EXTRALDFLAGS)
 
 clean:
 	@rm -f *.o *.d *.gcno *.gcda
