@@ -14,14 +14,11 @@ struct priority_jobq_s {
 	job_list_t jobq[NPRIO_LEVELS];
 	unsigned njobs[NPRIO_LEVELS];
 
-	/* the mutex to protect the list */
-	thread_mutex_t workq_mutex;
-
-	/* possibly wait on a semaphore when the queue is empty */
-	sem_t sem_jobq;
+	unsigned total_njobs;
 };
 
 struct jobq_s *create_priority_jobq(void);
+void init_priority_queues_mechanisms(void);
 
 int priority_push_task(struct jobq_s *q, job_t task);
 

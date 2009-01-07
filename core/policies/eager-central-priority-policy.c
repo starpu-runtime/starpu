@@ -8,6 +8,8 @@ static void init_priority_queue_design(void)
 	/* only a single queue (even though there are several internaly) */
 	jobq = create_priority_jobq();
 
+	init_priority_queues_mechanisms();
+
 	/* we always use priorities in that policy */
 	jobq->push_task = priority_push_task;
 	jobq->push_prio_task = priority_push_task;

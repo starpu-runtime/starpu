@@ -4,6 +4,21 @@
  * Centralized queue with priorities 
  */
 
+
+/* keep track of the total number of jobs to be scheduled to avoid infinite 
+ * polling when there are really few jobs in the overall queue */
+static pthread_cond_t *sched_cond;
+static pthread_mutex_t *sched_mutex;
+
+void init_priority_queues_mechanisms(void)
+{
+	struct sched_policy_s *sched = get_sched_policy();
+
+	/* to access them more easily, we keep their address in local variables */
+	sched_cond = &sched->sched_activity_cond;
+	sched_mutex = &sched->sched_activity_mutex;
+}
+
 struct jobq_s *create_priority_jobq(void)
 {
 	struct jobq_s *q;
@@ -13,8 +28,12 @@ struct jobq_s *create_priority_jobq(void)
 	struct priority_jobq_s *central_queue;
 	
 	central_queue = malloc(sizeof(struct priority_jobq_s));
-
 	q->queue = central_queue;
+
+	pthread_mutex_init(&q->activity_mutex, NULL);
+	pthread_cond_init(&q->activity_cond, NULL);
+
+	central_queue->total_njobs = 0;
 
 	unsigned prio;
 	for (prio = 0; prio < NPRIO_LEVELS; prio++)
@@ -22,9 +41,6 @@ struct jobq_s *create_priority_jobq(void)
 		central_queue->jobq[prio] = job_list_new();
 		central_queue->njobs[prio] = 0;
 	}
-
-	thread_mutex_init(&central_queue->workq_mutex, NULL);
-	sem_init(&central_queue->sem_jobq, 0, 0);
 
 	return q;
 }
@@ -34,7 +50,13 @@ int priority_push_task(struct jobq_s *q, job_t task)
 	ASSERT(q);
 	struct priority_jobq_s *queue = q->queue;
 
-	thread_mutex_lock(&queue->workq_mutex);
+	/* if anyone is blocked on the entire machine, wake it up */
+	pthread_mutex_lock(sched_mutex);
+	pthread_cond_signal(sched_cond);
+	pthread_mutex_unlock(sched_mutex);
+
+	/* wake people waiting locally */
+	pthread_mutex_lock(&q->activity_mutex);
 
 	TRACE_JOB_PUSH(task, 1);
 	
@@ -42,10 +64,10 @@ int priority_push_task(struct jobq_s *q, job_t task)
 
 	job_list_push_front(queue->jobq[priolevel], task);
 	queue->njobs[priolevel]++;
+	queue->total_njobs++;
 
-	sem_post(&queue->sem_jobq);
-
-	thread_mutex_unlock(&queue->workq_mutex);
+	pthread_cond_signal(&q->activity_cond);
+	pthread_mutex_unlock(&q->activity_mutex);
 
 	return 0;
 }
@@ -57,22 +79,27 @@ job_t priority_pop_task(struct jobq_s *q)
 	ASSERT(q);
 	struct priority_jobq_s *queue = q->queue;
 
-	/* block until a job is found */
-	sem_wait(&queue->sem_jobq);
+	/* block until some event happens */
+	pthread_mutex_lock(&q->activity_mutex);
 
-	thread_mutex_lock(&queue->workq_mutex);
+	if (queue->total_njobs == 0)
+		 pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
 
-	unsigned priolevel = NPRIO_LEVELS - 1;
-	do {
-		if (queue->njobs[priolevel] > 0) {
-			/* there is some task that we can grab */
-			j = job_list_pop_back(queue->jobq[priolevel]);
-			queue->njobs[priolevel]--;
-			TRACE_JOB_POP(j, 0);
-		}
-	} while (!j && priolevel-- > 0);
+	if (queue->total_njobs > 0)
+	{
+		unsigned priolevel = NPRIO_LEVELS - 1;
+		do {
+			if (queue->njobs[priolevel] > 0) {
+				/* there is some task that we can grab */
+				j = job_list_pop_back(queue->jobq[priolevel]);
+				queue->njobs[priolevel]--;
+				queue->total_njobs--;
+				TRACE_JOB_POP(j, 0);
+			}
+		} while (!j && priolevel-- > 0);
+	}
 
-	thread_mutex_unlock(&queue->workq_mutex);
+	pthread_mutex_unlock(&q->activity_mutex);
 
 	return j;
 }
