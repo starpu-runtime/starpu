@@ -10,7 +10,6 @@
 #include <common/blas.h>
 #include <string.h>
 #include <math.h>
-#include <cblas.h>
 #ifdef USE_CUDA
 #include <cuda.h>
 #endif

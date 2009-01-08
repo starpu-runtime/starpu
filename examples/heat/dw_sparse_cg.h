@@ -14,7 +14,6 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include <signal.h>
-#include <cblas.h>
 #include <common/timing.h>
 
 #include <datawizard/datawizard.h>

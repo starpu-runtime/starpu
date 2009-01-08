@@ -6,7 +6,6 @@
 #include <string.h>
 #include <assert.h>
 #include <math.h>
-#include <cblas.h>
 
 #ifdef OPENGL_RENDER
 #include <GL/gl.h>

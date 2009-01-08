@@ -3,9 +3,6 @@
 
 #include "dw_cholesky.h"
 
-#include <cblas.h>
-
-
 static unsigned size = 4*1024;
 static unsigned nblocks = 4;
 static unsigned pinned = 0;

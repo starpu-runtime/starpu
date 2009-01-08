@@ -1,7 +1,9 @@
 #ifndef __BLAS_H__
 #define __BLAS_H__
 
+#ifdef ATLAS
 #include <cblas.h>
+#endif
 
 void SGEMM(char *transa, char *transb, int M, int N, int K, float alpha, float *A, int lda, 
 		float *B, int ldb, float beta, float *C, int ldc);
