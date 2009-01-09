@@ -11,6 +11,9 @@ CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses
 CFLAGS += -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type 
 CFLAGS += -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -fno-strict-aliasing
 
+# This will be useful for program which use CUDA (and .cubin files) which need some path
+# to the CUDA code at runtime.
+CFLAGS+="-DSTARPUDIR=\"$(PWD)\""
 
 ifdef DYNAMIC
 CFLAGS+= -fPIC

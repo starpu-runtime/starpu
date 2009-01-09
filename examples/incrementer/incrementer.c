@@ -147,16 +147,15 @@ static cuda_codelet_t cuda_codelet;
 
 void initialize_cuda(void)
 {
-	char *module_path = 
-		"/home/gonnet/DEA/AccMult/examples/cuda/incrementer_cuda.cubin";
+	char module_path[1024];
+	sprintf(module_path, 
+		"%s/examples/cuda/incrementer_cuda.cubin", STARPUDIR);
 	char *function_symbol = "cuda_incrementer";
 
 	init_cuda_module(&cuda_module, module_path);
 	init_cuda_function(&cuda_function, &cuda_module, function_symbol);
 
 	cuda_codelet.func = &cuda_function;
-	cuda_codelet.stack = NULL;
-	cuda_codelet.stack_size = 0; 
 
 	cuda_codelet.gridx = 1;
 	cuda_codelet.gridy = 1;
@@ -197,7 +196,9 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 
 	counter = 0;
 
-	cl.cl_arg = &counter;
+	cl.cl_arg = NULL;
+	cl.cl_arg_size = 0;
+
 	cl.core_func = core_codelet;
 #ifdef USE_CUDA
 	//cl.cublas_func = cublas_codelet;
