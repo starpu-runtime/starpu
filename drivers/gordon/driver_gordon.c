@@ -1,20 +1,14 @@
 #include "driver_gordon.h"
 #include "gordon_interface.h"
 #include <common/threads.h>
+#include <core/policies/sched_policy.h>
 
 thread_t progress_thread;
 unsigned progress_thread_is_ready;
 
-void gordon_callback(void *arg)
-{
-	/* XXX todo handle res (TRYAGAIN/OK) */
-
-	
-}
-
 void *gordon_worker_progress(void *arg)
 {
-	printf("gordon_worker_progress\n");
+	fprintf(stderr, "gordon_worker_progress\n");
 
 	progress_thread_is_ready = 1;
 
@@ -28,20 +22,39 @@ void *gordon_worker_progress(void *arg)
 		/* possibly wake the thread that injects work */
 		// TODO
 	}
+
+	return NULL;
+}
+
+void callback_hello(void *arg)
+{
+	fprintf(stderr, "callback_hello .. \n");
 }
 
 void inject_task(job_t j)
 {
+
+	/* we do some fake task here */
+	struct gordon_ppu_job_s *joblist = gordon_alloc_jobs(1, 0);
+
+	joblist[0].index = SPU_FUNC_HELLO;
+	joblist[0].nalloc = 0;
+	joblist[0].nin = 0;
+	joblist[0].ninout = 0;
+	joblist[0].nout = 0;
+	
+	gordon_pushjob(&joblist[0], callback_hello, NULL);
+
 	/* we can't handle task yet ;) */
-	//push_task(j);
-	j->cl->gordon_func(j->cl->cl_arg);
+	fprintf(stderr, "pushed task ...\n");
+	push_task(j);
 }
 
-void *gordon_worker_inject(void *arg)
+void *gordon_worker_inject(struct worker_set_s *arg)
 {
 	job_t j;
 
-	while(1) {
+	while(machine_is_running()) {
 		if (gordon_busy_enough()) {
 			/* gordon already has enough work, wait a little TODO */
 		}
@@ -62,16 +75,15 @@ void *gordon_worker_inject(void *arg)
 		}
 	}
 
-	ASSERT(0);
 	return NULL;
 }
 
 void *gordon_worker(void *arg)
 {
-	struct gordon_worker_arg_t* args = (struct gordon_worker_arg_t*)arg;
+	struct worker_set_s *gordon_set_arg = arg;
 
 	/* TODO set_local_memory_node per SPU */
-	gordon_init(args->nspus);	
+	gordon_init(gordon_set_arg->nworkers);	
 
 	/*
  	 * To take advantage of PPE being hyperthreaded, we should have 2 threads
@@ -81,16 +93,19 @@ void *gordon_worker(void *arg)
 
 	/* launch the progression thread */
 	progress_thread_is_ready = 0;
-	thread_create(&progress_thread, NULL, gordon_worker_progress, args);
+	thread_create(&progress_thread, NULL, gordon_worker_progress, gordon_set_arg);
 
 	/* wait for the progression thread to be ready */
 	while(!progress_thread_is_ready) {}
 
+	fprintf(stderr, "progress thread is running ... \n");
+	
 	/* tell the core that gordon is ready */
-	args->ready_flag = 1;
+	sem_post(&gordon_set_arg->ready_sem);
 
-	printf("gogogogo\n");
-	gordon_worker_inject(args);
+	gordon_worker_inject(gordon_set_arg);
+
+	gordon_deinit();
 
 	return NULL;
 }
