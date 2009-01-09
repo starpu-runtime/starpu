@@ -5,7 +5,7 @@
 #include "util.h"
 
 typedef struct rw_lock_t {
-	uint8_t busy;
+	uint32_t busy;
 	uint8_t writer;
 	uint16_t readercnt;
 } rw_lock;
