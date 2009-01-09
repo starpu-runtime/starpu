@@ -6,7 +6,7 @@
 
 static void _take_busy_lock(rw_lock *lock)
 {
-	uint8_t prev;
+	uint32_t prev;
 	do {
 		prev = __sync_lock_test_and_set(&lock->busy, 1);
 	} while (prev);
