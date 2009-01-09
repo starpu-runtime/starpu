@@ -17,6 +17,7 @@ CFLAGS+= -fPIC
 endif
 
 LDFLAGS+= -lm
+LDFLAGS += -lpthread
 
 ifdef COVERAGE
 #	CFLAGS += -fprofile-arcs -ftest-coverage
@@ -66,14 +67,6 @@ ifdef PERF_DEBUG
 endif
 
 EXTRADEP=
-
-ifeq ($(MARCEL), 1)
-	CC=$(shell pm2-config --cc)
-	LDFLAGS += $(shell pm2-config --libs) 
-	CFLAGS += -DUSE_MARCEL $(shell pm2-config --cflags)
-else
-	LDFLAGS += -lpthread
-endif
 
 ifdef DONTBIND
 	CFLAGS += -DDONTBIND
@@ -140,7 +133,6 @@ endif
 #	files that are needed by the application which use our runtime
 #
 
-OBJDEPS += common/threads.o
 OBJDEPS += common/hash.o
 OBJDEPS += common/timing.o 
 OBJDEPS += common/htable32.o 

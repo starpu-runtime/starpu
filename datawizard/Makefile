@@ -2,13 +2,12 @@
 
 CFLAGS+= -I../
 
-ifdef SPU
-	SPU_TARGET=spu
-endif
+#ifdef SPU
+#	SPU_TARGET=spu
+#endif
 
 OBJS := coherency.o data_request.o copy-driver.o hierarchy.o memalloc.o footprint.o
 
-DWOBJDEPS += ../common/threads.o
 DWOBJDEPS += ../common/hash.o
 DWOBJDEPS += ../common/timing.o 
 DWOBJDEPS += ../common/htable32.o 
@@ -45,7 +44,7 @@ interfaces:
 	@make -C interfaces
 
 spu:
-	@make -C spu
+#	@make -C spu
 
 %.d: %.c
 	$(CC) $(CFLAGS) $< -MM -o $*.d
@@ -54,6 +53,6 @@ spu:
 
 clean:
 	@make -C interfaces clean
-	@make -C spu clean
+#	@make -C spu clean
 	@rm -f *.o *.d *.gcno *.gcda
 	@rm -f *.a *.so

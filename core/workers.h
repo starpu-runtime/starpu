@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <common/parameters.h>
-#include <common/threads.h>
+#include <pthread.h>
 #include <common/util.h>
 #include <common/timing.h>
 #include <common/fxt.h>
@@ -46,7 +46,7 @@ enum archtype {
 struct worker_s {
 	enum archtype arch; /* what is the type of worker ? */
 	enum perf_archtype perf_arch; /* in case there are different models of the same arch */
-	thread_t worker_thread; /* the thread which runs the worker */
+	pthread_t worker_thread; /* the thread which runs the worker */
 	int id; /* which core/gpu/etc is controlled by the workker ? */
         sem_t ready_sem; /* indicate when the worker is ready */
 	int bindid; /* which core is the driver bound to ? */
@@ -58,7 +58,7 @@ struct worker_s {
 /* in case a single CPU worker may control multiple 
  * accelerators (eg. Gordon for n SPUs) */
 struct worker_set_s {
-	thread_t worker_thread; /* the thread which runs the worker */
+	pthread_t worker_thread; /* the thread which runs the worker */
 	unsigned nworkers;
 	unsigned joined; /* only one thread may call pthread_join*/
 	void *retval;

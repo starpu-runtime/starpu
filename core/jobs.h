@@ -8,9 +8,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdarg.h>
+#include <pthread.h>
 #include <common/timing.h>
 #include <common/list.h>
-#include <common/threads.h>
 #include <common/fxt.h>
 
 #include <core/dependencies/tags.h>
@@ -53,12 +53,17 @@ typedef void (*callback)(void *);
  * that may be called from a worker
  */
 typedef struct codelet_t {
+	/* the different implementations of the codelet */
 	void *cuda_func;
 	void *cublas_func;
 	void *core_func;
 	void *spu_func;
 	void *gordon_func;
+
+	/* the arguments are given as a buffer */
 	void *cl_arg;
+	/* in case the argument buffer has to be uploaded explicitely */
+	size_t cl_arg_size;
 } codelet;
 
 LIST_TYPE(job,

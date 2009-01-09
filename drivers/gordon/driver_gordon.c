@@ -1,9 +1,9 @@
+#include <pthread.h>
 #include "driver_gordon.h"
 #include "gordon_interface.h"
-#include <common/threads.h>
 #include <core/policies/sched_policy.h>
 
-thread_t progress_thread;
+pthread_t progress_thread;
 unsigned progress_thread_is_ready;
 
 void *gordon_worker_progress(void *arg)
@@ -93,7 +93,7 @@ void *gordon_worker(void *arg)
 
 	/* launch the progression thread */
 	progress_thread_is_ready = 0;
-	thread_create(&progress_thread, NULL, gordon_worker_progress, gordon_set_arg);
+	pthread_create(&progress_thread, NULL, gordon_worker_progress, gordon_set_arg);
 
 	/* wait for the progression thread to be ready */
 	while(!progress_thread_is_ready) {}

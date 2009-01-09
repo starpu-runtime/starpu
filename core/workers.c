@@ -170,14 +170,14 @@ static void init_workers(struct machine_config_s *config)
 		switch (workerarg->arch) {
 			case CORE_WORKER:
 				workerarg->set = NULL;
-				thread_create(&workerarg->worker_thread, 
+				pthread_create(&workerarg->worker_thread, 
 						NULL, core_worker, workerarg);
 				sem_wait(&workerarg->ready_sem);
 				break;
 #ifdef USE_CUDA
 			case CUDA_WORKER:
 				workerarg->set = NULL;
-				thread_create(&workerarg->worker_thread, 
+				pthread_create(&workerarg->worker_thread, 
 						NULL, cuda_worker, workerarg);
 				sem_wait(&workerarg->ready_sem);
 				break;
@@ -191,7 +191,7 @@ static void init_workers(struct machine_config_s *config)
 					gordon_worker_set.nworkers = ngordon_spus; 
 					gordon_worker_set.workers = &config->workers[worker];
 
-					thread_create(&gordon_worker_set.worker_thread, NULL, 
+					pthread_create(&gordon_worker_set.worker_thread, NULL, 
 							gordon_worker, &gordon_worker_set);
 					sem_wait(&gordon_worker_set.ready_sem);
 

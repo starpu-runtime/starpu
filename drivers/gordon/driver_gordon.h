@@ -9,8 +9,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <math.h>
+#include <pthread.h>
 
-#include <common/threads.h>
 #include <common/util.h>
 #include <core/jobs.h>
 #include <common/parameters.h>
