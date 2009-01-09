@@ -14,11 +14,13 @@
 #include <drivers/cuda/driver_cuda.h>
 #endif
 
+#if 0
 #ifdef USE_GORDON
-#include "../drivers/gordon/externals/scalp/cell/gordon/gordon.h"
+#include <cell/gordon/gordon.h>
+#endif
 #endif
 
-#define NITER	100000
+#define NITER	100
 
 data_state my_float_state;
 data_state unity_state;
@@ -30,8 +32,6 @@ float unity[5] = {1.0f, 0.0f, 1.0f, 0.0f, 0.0f};
 void callback_func(void *argcb)
 {
 	unsigned cnt = ATOMIC_ADD((unsigned *)argcb, 1);
-
-//	printf("cnt %d vs. NITER %d\n", *cnt, NITER);
 
 	if ((cnt == NITER)) 
 	{
@@ -69,6 +69,7 @@ void cublas_codelet(data_interface_t *buffers, __attribute__ ((unused)) void *_a
 }
 #endif
 
+#if 0
 #ifdef USE_GORDON
 #define BUFFER_SIZE	32
 
@@ -93,14 +94,14 @@ void gordon_codelet(__attribute__ ((unused)) void *_args)
 		array[i] = (float)i;
 	}
 	
-	joblist[0].index  = FUNC_A;
+	joblist[0].index  = SPU_FUNC_HELLO;
 	joblist[0].nalloc = 0;
 	
 	joblist[0].nin    = 0;
 	joblist[0].ninout = 0;
 	joblist[0].nout   = 0;
 	
-	joblist[1].index  = FUNC_B;
+	joblist[1].index  = SPU_FUNC_HELLO;
 	joblist[1].nalloc = 0;
 	joblist[1].nin    = 2;
 	joblist[1].ninout = 0;
@@ -122,6 +123,8 @@ void gordon_test(void)
 {
 	codelet cl_gordon;
 
+	job_t j;
+
 	j = job_create();
 	j->where = GORDON;
 	j->cb = gordon_callback_func;
@@ -133,6 +136,7 @@ void gordon_test(void)
 	push_task(j);
 }
 
+#endif
 #endif
 
 #ifdef USE_CUDA
@@ -180,6 +184,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	tag_t tag;
 
 	init_machine();
+	fprintf(stderr, "StarPU initialized ...\n");
 
 	init_data();
 
@@ -199,11 +204,25 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	cl.cuda_func = &cuda_codelet;
 #endif
 
+
+#ifdef USE_GORDON
+	j = job_create();
+	j->where = GORDON;
+	j->nbuffers = 0;
+
+	j->cl = &cl;
+	j->cb = NULL;
+
+	push_task(j);
+#endif
+
+
 	for (i = 0; i < NITER; i++)
 	{
 		j = job_create();
+		j->where = CORE;
 #ifdef USE_CUDA
-		j->where = CUDA|CORE;
+		j->where |= CUDA;
 #endif
 			//(((i % 2) == 1)?CUDA:CUBLAS)|CORE; 
 		
