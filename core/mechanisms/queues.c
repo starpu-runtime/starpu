@@ -35,6 +35,10 @@ void setup_queues(void (*init_queue_design)(void),
 				workerarg->jobq->who |= CUDA|CUBLAS;
 				workerarg->jobq->alpha = CUDA_ALPHA;
 				break;
+			case GORDON_WORKER:
+				workerarg->jobq->who |= GORDON;
+				workerarg->jobq->alpha = GORDON_ALPHA;
+				break;
 			default:
 				ASSERT(0);
 		}
