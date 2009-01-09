@@ -10,6 +10,17 @@
 #include "csc_interface.h"
 #include "bcsr_interface.h"
 
+#ifdef USE_GORDON
+
+/* to get the gordon_strideSize_t data structure from gordon */
+#include <cell/gordon/gordon.h>
+
+struct gordon_data_interface_s {
+	uint64_t ptr;
+	gordon_strideSize_t ss;
+};
+#endif
+
 typedef union {
 	blas_interface_t blas;	/* dense BLAS representation */
 	vector_interface_t vector; /* continuous vector */
@@ -30,6 +41,10 @@ struct data_interface_ops_t {
 	size_t (*get_size)(struct data_state_t *state);
 	uint32_t (*footprint)(struct data_state_t *state, uint32_t hstate);
 	void (*display)(struct data_state_t *state, FILE *f);
+#ifdef USE_GORDON
+	int (*convert_to_gordon)(data_interface_t *interface, 
+			struct gordon_data_interface_s *gordon_interface);
+#endif
 };
 
 #endif // __DATA_INTERFACE_H__

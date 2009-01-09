@@ -17,6 +17,10 @@ size_t dump_vector_interface(data_interface_t *interface, void *buffer);
 size_t vector_interface_get_size(struct data_state_t *state);
 uint32_t footprint_vector_interface_crc32(data_state *state, uint32_t hstate);
 void display_vector_interface(data_state *state, FILE *f);
+#ifdef USE_GORDON
+int convert_vector_to_gordon(data_interface_t *interface,
+                struct gordon_data_interface_s *gordon_interface);
+#endif
 
 struct data_interface_ops_t interface_vector_ops = {
 	.allocate_data_on_node = allocate_vector_buffer_on_node,
@@ -25,8 +29,24 @@ struct data_interface_ops_t interface_vector_ops = {
 	.dump_data_interface = dump_vector_interface,
 	.get_size = vector_interface_get_size,
 	.footprint = footprint_vector_interface_crc32,
+#ifdef USE_GORDON
+	.convert_to_gordon = convert_vector_to_gordon,
+#endif
 	.display = display_vector_interface
 };
+
+#ifdef USE_GORDON
+int convert_vector_to_gordon(data_interface_t *interface, 
+		struct gordon_data_interface_s *gordon_interface)
+{
+	ASSERT(gordon_interface);
+
+	gordon_interface->ptr = (*interface).vector.ptr;
+	gordon_interface->ss.size = (*interface).vector.nx * (*interface).vector.elemsize;
+
+	return 0;
+}
+#endif
 
 /* declare a new data with the BLAS interface */
 void monitor_vector_data(struct data_state_t *state, uint32_t home_node,
