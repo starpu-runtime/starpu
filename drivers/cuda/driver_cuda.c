@@ -353,7 +353,7 @@ void *cuda_worker(void *arg)
 	} 
 
 	cublasShutdown();
-	thread_exit(NULL);
+	pthread_exit(NULL);
 
 	TRACE_WORKER_TERMINATED(FUT_CUDA_KEY);
 
