@@ -252,8 +252,8 @@ void terminate_workers(struct machine_config_s *config)
 
 		if (config->workers[worker].set){ 
 			if (!config->workers[worker].set->joined) {
-				pthread_join(gordon_worker_set.worker_thread, &retval);
-				gordon_worker_set.joined = 1;
+				pthread_join(config->workers[worker].set->worker_thread, &retval);
+				config->workers[worker].set->joined = 1;
 				if (retval)
 					fprintf(stderr, "(set) worker %d returned %p!\n", worker, retval);
 			}
