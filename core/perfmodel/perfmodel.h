@@ -24,7 +24,8 @@ enum perf_archtype;
 
 enum perf_archtype {
 	CORE_DEFAULT = 0,
-	CUDA_DEFAULT = 1
+	CUDA_DEFAULT = 1,
+	GORDON_DEFAULT = 2
 };
 
 struct history_entry_t {

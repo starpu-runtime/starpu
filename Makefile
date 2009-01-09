@@ -55,6 +55,10 @@ ifndef GOTODIR
 GOTODIR=/home/gonnet/These/Libs/GotoBLAS/GotoBLAS/
 endif
 
+ifndef SCALPDIR
+SCALPDIR=/home/gonnet/Scalp/scalp/trunk/
+endif
+
 ifdef PERF_DEBUG
 	CFLAGS += -DPERF_DEBUG
 	LDFLAGS += -pg
@@ -186,11 +190,10 @@ endif
 
 ifdef GORDON
 	OBJDEPS += drivers/gordon/driver_gordon.o
-	OBJDEPS += drivers/gordon/externals/scalp/util/util.o
-	OBJDEPS += drivers/gordon/externals/scalp/cell/gordon/gordon.o 
-	OBJDEPS += drivers/gordon/externals/scalp/cell/gordon/pputil.o 
-	OBJDEPS += drivers/gordon/externals/scalp/cell/gordon/spuembed.o 
-	CFLAGS += -I./drivers/gordon/externals/scalp/
+	EXTRALDFLAGS+= $(SCALPDIR)/cell/gordon/libgordon.a
+	EXTRALDFLAGS+= $(SCALPDIR)/util/libsp@ceutil.a
+	EXTRALDFLAGS+= $(SCALPDIR)/util/libsp@ceutil.spu.a
+	CFLAGS += -I$(SCALPDIR)
 endif
 
 ifdef CPUS

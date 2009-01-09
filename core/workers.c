@@ -2,7 +2,6 @@
 
 static struct machine_config_s config;
 
-
 /* in case a task is submitted, we may check whether there exists a worker
    that may execute the task or not */
 static uint32_t worker_mask = 0;
@@ -22,6 +21,9 @@ inline uint32_t may_submit_core_task(void)
 	return (CORE & worker_mask);
 }
 
+static unsigned ncores;
+static unsigned ncudagpus;
+static unsigned ngordon_spus;
 
 /*
  * Runtime initialization methods
@@ -38,7 +40,6 @@ static void init_machine_config(struct machine_config_s *config)
 	config->nworkers = 0;
 	
 #ifdef USE_CPUS
-	unsigned ncores;
 	envval = get_env_number("NCPUS");
 	if (envval < 0) {
 		ncores = MIN(sysconf(_SC_NPROCESSORS_ONLN), NMAXCORES);
@@ -59,12 +60,10 @@ static void init_machine_config(struct machine_config_s *config)
 	}
 
 	config->nworkers += ncores;
-
 #endif
 
 #ifdef USE_CUDA
 	/* we need to initialize CUDA early to count the number of devices */
-	unsigned ncudagpus;
 	init_cuda();
 
 	envval = get_env_number("NCUDA");
@@ -88,6 +87,30 @@ static void init_machine_config(struct machine_config_s *config)
 
 	config->nworkers += ncudagpus;
 #endif
+	
+#ifdef USE_GORDON
+	envval = get_env_number("NGORDON");
+	if (envval < 0) {
+		ngordon_spus = spe_cpu_info_get(SPE_COUNT_USABLE_SPES, -1);
+	} else {
+		/* use the specified value */
+		ngordon_spus = (unsigned)envval;
+		ASSERT(ngordon_spus <= NMAXGORDONSPUS);
+	}
+	ASSERT(ngordon_spus + config->nworkers <= NMAXWORKERS);
+
+	unsigned spu;
+	for (spu = 0; spu < ngordon_spus; spu++)
+	{
+		config->workers[config->nworkers + spu].arch = GORDON_WORKER;
+		config->workers[config->nworkers + spu].perf_arch = GORDON_DEFAULT;
+		config->workers[config->nworkers + spu].id = spu;
+		worker_mask |= GORDON;
+	}
+
+	config->nworkers += ngordon_spus;
+#endif
+
 }
 
 static void init_workers_binding(struct machine_config_s *config)
@@ -114,6 +137,7 @@ static void init_workers_binding(struct machine_config_s *config)
 		/* select the memory node that contains worker's memory */
 		switch (workerarg->arch) {
 			case CORE_WORKER:
+			case GORDON_WORKER:
 				memory_node = ram_memory_node;
 				break;
 			case CUDA_WORKER:
@@ -127,7 +151,10 @@ static void init_workers_binding(struct machine_config_s *config)
 	}
 }
 
-
+#ifdef USE_GORDON
+unsigned gordon_inited = 0;	
+struct worker_set_s gordon_worker_set;
+#endif
 
 static void init_workers(struct machine_config_s *config)
 {
@@ -140,24 +167,45 @@ static void init_workers(struct machine_config_s *config)
 
 		sem_init(&workerarg->ready_sem, 0, 0);
 	
-		void *(*worker_func)(void *);	
 		switch (workerarg->arch) {
 			case CORE_WORKER:
-				worker_func = core_worker;
+				workerarg->set = NULL;
+				thread_create(&workerarg->worker_thread, 
+						NULL, core_worker, workerarg);
+				sem_wait(&workerarg->ready_sem);
 				break;
 #ifdef USE_CUDA
 			case CUDA_WORKER:
-				worker_func = cuda_worker;
+				workerarg->set = NULL;
+				thread_create(&workerarg->worker_thread, 
+						NULL, cuda_worker, workerarg);
+				sem_wait(&workerarg->ready_sem);
+				break;
+#endif
+#ifdef USE_GORDON
+			case GORDON_WORKER:
+				/* we will only launch gordon once, but it will handle 
+				 * the different SPU workers */
+				if (!gordon_inited)
+				{
+					gordon_worker_set.nworkers = ngordon_spus; 
+					gordon_worker_set.workers = &config->workers[worker];
+
+					thread_create(&gordon_worker_set.worker_thread, NULL, 
+							gordon_worker, &gordon_worker_set);
+					sem_wait(&gordon_worker_set.ready_sem);
+
+					gordon_inited = 1;
+				}
+				
+				workerarg->set = &gordon_worker_set;
+				gordon_worker_set.joined = 0;
+
 				break;
 #endif
 			default:
 				ASSERT(0);
 		}
-
-		thread_create(&workerarg->worker_thread, 
-					NULL, worker_func, workerarg);
-
-		sem_wait(&workerarg->ready_sem);
 	}
 }
 
@@ -199,9 +247,22 @@ void terminate_workers(struct machine_config_s *config)
 	{
 		void *retval;
 		wake_all_blocked_workers();
-		thread_join(config->workers[worker].worker_thread, &retval);
-		if (retval)
-			fprintf(stderr, "worker %d returned %p!\n", worker, retval);
+		
+		fprintf(stderr, "wait for worker %d\n", worker);
+
+		if (config->workers[worker].set){ 
+			if (!config->workers[worker].set->joined) {
+				pthread_join(gordon_worker_set.worker_thread, &retval);
+				gordon_worker_set.joined = 1;
+				if (retval)
+					fprintf(stderr, "(set) worker %d returned %p!\n", worker, retval);
+			}
+		}
+		else {
+			pthread_join(config->workers[worker].worker_thread, &retval);
+			if (retval)
+				fprintf(stderr, "worker %d returned %p!\n", worker, retval);
+		}
 	}
 }
 

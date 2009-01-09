@@ -33,12 +33,14 @@
 
 #define CORE_ALPHA	1.0f
 #define CUDA_ALPHA	13.33f
+#define GORDON_ALPHA	6.0f /* XXX this is a random value ... */
 
 #define NMAXWORKERS	16
 
 enum archtype {
 	CORE_WORKER,
-	CUDA_WORKER
+	CUDA_WORKER,
+	GORDON_WORKER
 };
 
 struct worker_s {
@@ -50,7 +52,18 @@ struct worker_s {
 	int bindid; /* which core is the driver bound to ? */
 	unsigned memory_node; /* which memory node is associated that worker to ? */
 	struct jobq_s *jobq; /* in which queue will that worker get/put tasks ? */
-	
+	struct worker_set_s *set; /* in case this worker belongs to a set */
+};
+
+/* in case a single CPU worker may control multiple 
+ * accelerators (eg. Gordon for n SPUs) */
+struct worker_set_s {
+	thread_t worker_thread; /* the thread which runs the worker */
+	unsigned nworkers;
+	unsigned joined; /* only one thread may call pthread_join*/
+	void *retval;
+	struct worker_s *workers;
+        sem_t ready_sem; /* indicate when the worker is ready */
 };
 
 struct machine_config_s {
