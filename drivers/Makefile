@@ -1,4 +1,4 @@
-.PHONY: core cuda spu gordon
+.PHONY: core cuda gordon
 
 DRIVERS=
 
@@ -8,10 +8,6 @@ endif
 
 ifeq ($(CUDA), 1)
 	DRIVERS+= cuda
-endif
-
-ifdef SPU
-	DRIVERS += spu
 endif
 
 ifdef GORDON
@@ -26,14 +22,10 @@ core:
 cuda:
 	@make -C cuda
 
-spu:
-	@make -C spu
-
 gordon:
 	@make -C gordon
 
 clean:
 	@make -C core clean
 	@make -C cuda clean
-	@make -C spu clean
 	@make -C gordon clean

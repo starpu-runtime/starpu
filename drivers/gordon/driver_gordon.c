@@ -146,17 +146,19 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 	while(machine_is_running()) {
 		if (gordon_busy_enough()) {
 			/* gordon already has enough work, wait a little TODO */
+			//gordon_wait(1);
 		}
 		else {
+			/* do some progression */
+		//	gordon_wait(0);
+
 			/* gordon should accept a little more work */
 			j =  pop_task();
-
+			fprintf(stderr, "pop task %p\n", j);
 			if (j) {
 				if (GORDON_MAY_PERFORM(j)) {
 					/* inject that task TODO */
 					inject_task(j);
-
-					/* XXX that's of course not what we want ... */
 					gordon_wait(1);
 				}
 				else {
@@ -183,13 +185,13 @@ void *gordon_worker(void *arg)
  	 * gordon is progressing (and performs the callbacks).
 	 */
 
-	/* launch the progression thread */
+//	/* launch the progression thread */
 //	progress_thread_is_ready = 0;
 //	pthread_create(&progress_thread, NULL, gordon_worker_progress, gordon_set_arg);
 //
 //	/* wait for the progression thread to be ready */
 //	while(!progress_thread_is_ready) {}
-
+//
 	//fprintf(stderr, "progress thread is running ... \n");
 	
 	/* tell the core that gordon is ready */

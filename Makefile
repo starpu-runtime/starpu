@@ -107,12 +107,6 @@ ifdef CPUS
 	NVCCFLAGS += -DUSE_CPUS
 endif
 
-ifdef SPU
-	CFLAGS += -DUSE_SPU
-	CFLAGS += -DMAXSPUS=$(SPU)
-	LDFLAGS += -lspe2
-endif
-
 ifdef GORDON
 	CFLAGS += -DUSE_GORDON
 	LDFLAGS += -lspe2
@@ -176,11 +170,6 @@ OBJDEPS += task-models/blas_model.o
 
 ifeq ($(CUDA), 1)
 	OBJDEPS += drivers/cuda/driver_cuda.o
-endif
-
-ifdef SPU
-	OBJDEPS += drivers/spu/ppu/driver_spu_ppu.o
-	OBJDEPS += drivers/spu/spu/spu_worker_program.o
 endif
 
 ifdef GORDON

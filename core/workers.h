@@ -19,10 +19,6 @@
 #include <drivers/cuda/driver_cuda.h>
 #endif
 
-#ifdef USE_SPU
-#include <drivers/spu/ppu/driver_spu.h>
-#endif
-
 #ifdef USE_GORDON
 #include <drivers/gordon/driver_gordon.h>
 #endif
