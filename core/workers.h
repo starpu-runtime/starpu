@@ -49,7 +49,7 @@ struct worker_s {
 	unsigned memory_node; /* which memory node is associated that worker to ? */
 	struct jobq_s *jobq; /* in which queue will that worker get/put tasks ? */
 	struct worker_set_s *set; /* in case this worker belongs to a set */
-	struct jobq_s *terminated_jobs; /* list of pending jobs which were executed */
+	struct job_list_s *terminated_jobs; /* list of pending jobs which were executed */
 };
 
 /* in case a single CPU worker may control multiple 
