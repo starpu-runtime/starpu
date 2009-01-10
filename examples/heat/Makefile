@@ -18,7 +18,7 @@ all: heat
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-heat: $(OBJS) 
+heat: $(STARPU) $(OBJS) 
 	$(CC) $(OBJS) -o heat $(LDFLAGS) $(STARPU) $(EXTRALDFLAGS)
 
 clean:

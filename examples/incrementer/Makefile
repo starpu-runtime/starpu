@@ -13,7 +13,7 @@ all: $(EXTRADEP) incrementer
 incrementer.o: incrementer.c
 	$(CC) $(CFLAGS) incrementer.c -c -o incrementer.o
 
-incrementer: incrementer.o
+incrementer: $(STARPU) incrementer.o
 	$(CC) incrementer.o -o incrementer $(LDFLAGS) $(STARPU) $(EXTRALDFLAGS)
 
 clean:

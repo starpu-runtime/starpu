@@ -1,4 +1,4 @@
-.PHONY: tags
+.PHONY: tags drivers examples common core tools tests task-models datawizard
 
 export 
 
