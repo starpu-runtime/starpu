@@ -58,7 +58,7 @@ typedef struct codelet_t {
 	void *cublas_func;
 	void *core_func;
 	void *spu_func;
-	void *gordon_func;
+	uint8_t gordon_func;
 
 	/* the arguments are given as a buffer */
 	void *cl_arg;
