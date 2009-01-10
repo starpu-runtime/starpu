@@ -308,7 +308,7 @@ void *cuda_worker(void *arg)
 	
 	while (machine_is_running())
 	{
-		handle_node_data_requests(args->memory_node);
+		datawizard_progress(args->memory_node);
 
 		//int debugfoo;
 		j = pop_task();

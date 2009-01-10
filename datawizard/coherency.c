@@ -135,7 +135,7 @@ int _fetch_data(data_state *state, uint32_t requesting_node,
 			uint8_t read, uint8_t write)
 {
 	while (take_mutex_try(&state->header_lock)) {
-		handle_node_data_requests(requesting_node);
+		datawizard_progress(requesting_node);
 	}
 
 	cache_state local_state;
@@ -210,15 +210,15 @@ int fetch_data(data_state *state, access_mode mode)
 	if (write) {
 //		take_rw_lock_write(&state->data_lock);
 		while (take_rw_lock_write_try(&state->data_lock))
-			handle_node_data_requests(requesting_node);
+			datawizard_progress(requesting_node);
 	} else {
 //		take_rw_lock_read(&state->data_lock);
 		while (take_rw_lock_read_try(&state->data_lock))
-			handle_node_data_requests(requesting_node);
+			datawizard_progress(requesting_node);
 	}
 
 	while (take_mutex_try(&state->header_lock))
-		handle_node_data_requests(requesting_node);
+		datawizard_progress(requesting_node);
 
 	state->per_node[requesting_node].refcnt++;
 	release_mutex(&state->header_lock);
@@ -231,7 +231,7 @@ int fetch_data(data_state *state, access_mode mode)
 enomem:
 	/* we did not get the data so remove the lock anyway */
 	while (take_mutex_try(&state->header_lock))
-		handle_node_data_requests(requesting_node);
+		datawizard_progress(requesting_node);
 
 	state->per_node[requesting_node].refcnt--;
 	release_mutex(&state->header_lock);
@@ -255,7 +255,7 @@ void write_through_data(data_state *state, uint32_t requesting_node,
 	}
 
 	while (take_mutex_try(&state->header_lock))
-		handle_node_data_requests(requesting_node);
+		datawizard_progress(requesting_node);
 
 	/* first commit all changes onto the nodes specified by the mask */
 	uint32_t node;
@@ -305,7 +305,7 @@ void release_data(data_state *state, uint32_t write_through_mask)
 	}
 
 	while (take_mutex_try(&state->header_lock))
-		handle_node_data_requests(requesting_node);
+		datawizard_progress(requesting_node);
 
 	state->per_node[requesting_node].refcnt--;
 	release_mutex(&state->header_lock);

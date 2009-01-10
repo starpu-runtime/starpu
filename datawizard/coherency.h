@@ -14,9 +14,10 @@
 #include <common/timing.h>
 #include <common/fxt.h>
 
-#include "data_parameters.h"
-#include "data_request.h"
-#include "interfaces/data_interface.h"
+#include <datawizard/data_parameters.h>
+#include <datawizard/data_request.h>
+#include <datawizard/interfaces/data_interface.h>
+#include <datawizard/progress.h>
 
 typedef enum {
 //	MODIFIED,

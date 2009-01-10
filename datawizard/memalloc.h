@@ -2,8 +2,9 @@
 #define __MEMALLOC_H__
 
 #include <common/list.h>
-#include "coherency.h"
-#include "copy-driver.h"
+#include <datawizard/coherency.h>
+#include <datawizard/copy-driver.h>
+#include <datawizard/progress.h>
 
 struct data_state_t;
 

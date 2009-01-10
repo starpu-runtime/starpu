@@ -7,6 +7,7 @@
 #include <datawizard/memalloc.h>
 #include <datawizard/footprint.h>
 
+#include <datawizard/progress.h>
 #include <datawizard/data_request.h>
 
 #include <datawizard/interfaces/data_interface.h>

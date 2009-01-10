@@ -22,7 +22,7 @@ static void lock_all_subtree(data_state *data)
 	{
 		/* this is a leaf */	
 		while (take_mutex_try(&data->header_lock))
-			handle_node_data_requests(get_local_memory_node());
+			datawizard_progress(get_local_memory_node());
 	}
 	else {
 		/* lock all sub-subtrees children */
