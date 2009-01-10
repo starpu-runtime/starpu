@@ -166,6 +166,13 @@ static void init_workers(struct machine_config_s *config)
 		struct worker_s *workerarg = &config->workers[worker];
 
 		sem_init(&workerarg->ready_sem, 0, 0);
+
+		/* if some codelet's termination cannot be handled directly :
+		 * for instance in the Gordon driver, Gordon tasks' callbacks
+		 * may be executed by another thread than that of the Gordon
+		 * driver so that we cannot call the push_codelet_output method
+		 * directly */
+		workerarg->terminated_jobs = job_list_new();
 	
 		switch (workerarg->arch) {
 			case CORE_WORKER:
