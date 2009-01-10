@@ -19,7 +19,7 @@ unsigned block_filter_func(filter *f, data_state *root_data)
 
 	/* first allocate the children data_state */
 	root_data->children = calloc(nchunks, sizeof(data_state));
-	ASSERT(root_data->children);
+	STARPU_ASSERT(root_data->children);
 
 	/* actually create all the chunks */
 	unsigned chunk;
@@ -64,7 +64,7 @@ unsigned vertical_block_filter_func(filter *f, data_state *root_data)
 	
 	/* first allocate the children data_state */
 	root_data->children = calloc(nchunks, sizeof(data_state));
-	ASSERT(root_data->children);
+	STARPU_ASSERT(root_data->children);
 
 	/* actually create all the chunks */
 	unsigned chunk;

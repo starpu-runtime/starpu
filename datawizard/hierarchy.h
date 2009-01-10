@@ -2,8 +2,8 @@
 #define __HIERARCHY_H__
 
 #include <stdarg.h>
-#include "coherency.h"
-#include "memalloc.h"
+#include <datawizard/coherency.h>
+#include <datawizard/memalloc.h>
 
 struct data_state_t;
 

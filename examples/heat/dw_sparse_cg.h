@@ -137,7 +137,7 @@ static void create_data(float **_nzvalA, float **_vecb, float **_vecx, uint32_t 
 	*_colind = colind;
 	*_rowptr = rowptr;
 
-	ASSERT(pos == nnz);
+	STARPU_ASSERT(pos == nnz);
 	
 	/* initiate the 2 vectors */
 	float *invec, *outvec;

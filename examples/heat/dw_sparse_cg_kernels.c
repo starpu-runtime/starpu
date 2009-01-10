@@ -84,8 +84,8 @@ void core_codelet_func_2(data_interface_t *descr, __attribute__((unused)) void *
 	uint32_t nx = descr[0].vector.nx;
 	size_t elemsize = descr[0].vector.elemsize;
 
-	ASSERT(descr[0].vector.nx == descr[1].vector.nx);
-	ASSERT(descr[0].vector.elemsize == descr[1].vector.elemsize);
+	STARPU_ASSERT(descr[0].vector.nx == descr[1].vector.nx);
+	STARPU_ASSERT(descr[0].vector.elemsize == descr[1].vector.elemsize);
 
 	float *src = (float *)descr[1].vector.ptr;
 	float *dst = (float *)descr[0].vector.ptr;
@@ -202,7 +202,7 @@ void core_codelet_func_5(data_interface_t *descr, void *arg)
 	vecd = (float *)descr[0].vector.ptr;
 	vecq = (float *)descr[1].vector.ptr;
 
-	ASSERT(descr[1].vector.nx == descr[0].vector.nx);
+	STARPU_ASSERT(descr[1].vector.nx == descr[0].vector.nx);
 	size = descr[0].vector.nx;
 
 	dot = SDOT(size, vecd, 1, vecq, 1);
@@ -222,7 +222,7 @@ void cublas_codelet_func_5(data_interface_t *descr, void *arg)
 	vecd = (float *)descr[0].vector.ptr;
 	vecq = (float *)descr[1].vector.ptr;
 
-	ASSERT(descr[1].vector.nx == descr[0].vector.nx);
+	STARPU_ASSERT(descr[1].vector.nx == descr[0].vector.nx);
 	size = descr[0].vector.nx;
 
 	dot = cublasSdot (size, vecd, 1, vecq, 1);

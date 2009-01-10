@@ -22,10 +22,10 @@ static data_state *create_tmp_matrix(data_state *M)
 	uint32_t nx = get_blas_nx(M);
 	uint32_t ny = get_blas_nx(M);
 
-	ASSERT(state);
+	STARPU_ASSERT(state);
 
 	data = malloc(nx*ny*sizeof(float));
-	ASSERT(data);
+	STARPU_ASSERT(data);
 
 	monitor_blas_data(state, 0, (uintptr_t)data, nx, nx, ny, sizeof(float));
 	
@@ -107,9 +107,9 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 
 	switch (op) {
 		case ADD:
-			ASSERT(A1);
-			ASSERT(A2);
-			ASSERT(C);
+			STARPU_ASSERT(A1);
+			STARPU_ASSERT(A2);
+			STARPU_ASSERT(C);
 			job->model = &strassen_model_add_sub;
 			job->cl->core_func = add_core_codelet;
 			#ifdef USE_CUDA
@@ -117,9 +117,9 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			#endif
 			break;
 		case SUB:
-			ASSERT(A1);
-			ASSERT(A2);
-			ASSERT(C);
+			STARPU_ASSERT(A1);
+			STARPU_ASSERT(A2);
+			STARPU_ASSERT(C);
 			job->model = &strassen_model_add_sub;
 			job->cl->core_func = sub_core_codelet;
 			#ifdef USE_CUDA
@@ -127,9 +127,9 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			#endif
 			break;
 		case MULT:
-			ASSERT(A1);
-			ASSERT(A2);
-			ASSERT(C);
+			STARPU_ASSERT(A1);
+			STARPU_ASSERT(A2);
+			STARPU_ASSERT(C);
 			job->model = &strassen_model_mult;
 			job->cl->core_func = mult_core_codelet;
 			#ifdef USE_CUDA
@@ -155,7 +155,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			#endif
 			break;
 		default:
-			ASSERT(0);
+			STARPU_ASSERT(0);
 	}
 
 	push_task(job);
@@ -200,7 +200,7 @@ void phase_3_callback_function(void *_arg)
 				free_tmp_matrix(iter->E7);
 				break;
 			default:
-				ASSERT(0);
+				STARPU_ASSERT(0);
 		}
 	}
 
@@ -211,7 +211,7 @@ void phase_3_callback_function(void *_arg)
 		unpartition_matrices(iter);
 
 		// XXX free the Ei
-		ASSERT(iter->strassen_iter_callback);
+		STARPU_ASSERT(iter->strassen_iter_callback);
 		iter->strassen_iter_callback(iter->argcb);
 
 		free(iter);
@@ -292,7 +292,7 @@ void phase_2_callback_function(void *_arg)
 			compute_add_sub_op(iter->E7, SELFSUB, NULL, iter->C22, phase_3_callback_function, arg2);
 			break;
 		default:
-			ASSERT(0);
+			STARPU_ASSERT(0);
 	}
 }
 
@@ -347,12 +347,12 @@ static void _strassen_phase_2(strassen_iter_state_t *iter, unsigned i)
 			C = iter->E7;
 			break;
 		default:
-			ASSERT(0);
+			STARPU_ASSERT(0);
 	}
 
-	ASSERT(A);
-	ASSERT(B);
-	ASSERT(C);
+	STARPU_ASSERT(A);
+	STARPU_ASSERT(B);
+	STARPU_ASSERT(C);
 
 	// DEBUG XXX
 	//compute_add_sub_op(A, MULT, B, C, phase_2_callback_function, phase_2_arg);

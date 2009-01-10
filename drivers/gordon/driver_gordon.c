@@ -89,7 +89,7 @@ static void starpu_to_gordon_buffers(job_t j, struct gordon_ppu_job_s *gordon_jo
 		gordon_job->ninout = ninout;
 		gordon_job->nout = nout;
 
-		ASSERT(state->ops->convert_to_gordon);
+		STARPU_ASSERT(state->ops->convert_to_gordon);
 		state->ops->convert_to_gordon(&state->interface[memory_node],
 				&gordon_job->buffers[gordon_buffer],
 				&gordon_job->ss[gordon_buffer]);

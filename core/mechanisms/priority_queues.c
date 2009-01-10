@@ -47,7 +47,7 @@ struct jobq_s *create_priority_jobq(void)
 
 int priority_push_task(struct jobq_s *q, job_t task)
 {
-	ASSERT(q);
+	STARPU_ASSERT(q);
 	struct priority_jobq_s *queue = q->queue;
 
 	/* if anyone is blocked on the entire machine, wake it up */
@@ -76,7 +76,7 @@ job_t priority_pop_task(struct jobq_s *q)
 {
 	job_t j = NULL;
 
-	ASSERT(q);
+	STARPU_ASSERT(q);
 	struct priority_jobq_s *queue = q->queue;
 
 	/* block until some event happens */

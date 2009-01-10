@@ -60,7 +60,7 @@ static double common_job_expected_length(struct perfmodel_t *model, uint32_t who
 				break;
 		}
 
-		ASSERT(alpha != 0.0f);
+		STARPU_ASSERT(alpha != 0.0f);
 
 		return (exp/alpha);
 	}
@@ -87,7 +87,7 @@ double job_expected_length(uint32_t who, struct job_s *j, enum perf_archtype arc
 				return regression_based_job_expected_length(model, arch, j);
 
 			default:
-				ASSERT(0);
+				STARPU_ASSERT(0);
 		};
 	}
 

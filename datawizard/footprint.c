@@ -9,8 +9,8 @@ void compute_buffers_footprint(job_t j)
 	{
 		data_state *state = j->buffers[buffer].state;
 
-		ASSERT(state->ops);
-		ASSERT(state->ops->footprint);
+		STARPU_ASSERT(state->ops);
+		STARPU_ASSERT(state->ops->footprint);
 
 		footprint = state->ops->footprint(state, footprint);
 	}

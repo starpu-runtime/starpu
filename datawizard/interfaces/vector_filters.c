@@ -15,7 +15,7 @@ unsigned block_filter_func_vector(filter *f, data_state *root_data)
 
 	/* first allocate the children data_state */
 	root_data->children = calloc(nchunks, sizeof(data_state));
-	ASSERT(root_data->children);
+	STARPU_ASSERT(root_data->children);
 
 	/* actually create all the chunks */
 	unsigned chunk;
@@ -55,9 +55,9 @@ unsigned divide_in_2_filter_func_vector(filter *f, data_state *root_data)
 
 	/* first allocate the children data_state */
 	root_data->children = calloc(2, sizeof(data_state));
-	ASSERT(root_data->children);
+	STARPU_ASSERT(root_data->children);
 
-	ASSERT(length_first < nx);
+	STARPU_ASSERT(length_first < nx);
 
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
@@ -98,7 +98,7 @@ unsigned list_filter_func_vector(filter *f, data_state *root_data)
 
 	/* first allocate the children data_state */
 	root_data->children = calloc(nchunks, sizeof(data_state));
-	ASSERT(root_data->children);
+	STARPU_ASSERT(root_data->children);
 
 	unsigned current_pos = 0;
 
@@ -124,7 +124,7 @@ unsigned list_filter_func_vector(filter *f, data_state *root_data)
 		current_pos += chunk_size;
 	}
 
-	ASSERT(current_pos == nx);
+	STARPU_ASSERT(current_pos == nx);
 
 	return nchunks;
 }

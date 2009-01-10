@@ -13,7 +13,7 @@ cg_t *create_cg(unsigned ntags, struct tag_s *tag)
 	cg_t *cg;
 
 	cg = malloc(sizeof(cg_t));
-	ASSERT(cg);
+	STARPU_ASSERT(cg);
 	if (cg) {
 		cg->ntags = ntags;
 		cg->tag = tag;
@@ -26,7 +26,7 @@ static struct tag_s *tag_init(tag_t id)
 {
 	struct tag_s *tag;
 	tag = malloc(sizeof(struct tag_s));
-	ASSERT(tag);
+	STARPU_ASSERT(tag);
 
 	tag->id = id;
 	tag->state = UNASSIGNED;
@@ -52,7 +52,7 @@ struct tag_s *gettag_struct(tag_t id)
 		void *old;
 		old = htbl_insert_tag(&tag_htbl, id, tag);
 		/* there was no such tag before */
-		ASSERT(old == NULL);
+		STARPU_ASSERT(old == NULL);
 	}
 
 	return tag;
@@ -60,7 +60,7 @@ struct tag_s *gettag_struct(tag_t id)
 
 void notify_cg(cg_t *cg)
 {
-	ASSERT(cg);
+	STARPU_ASSERT(cg);
 	unsigned ntags = ATOMIC_ADD(&cg->ntags, -1);
 	if (ntags == 0) {
 		/* the group is now completed */
@@ -73,7 +73,7 @@ void tag_add_succ(tag_t id, cg_t *cg)
 {
 	/* find out the associated structure */
 	struct tag_s *tag = gettag_struct(id);
-	ASSERT(tag);
+	STARPU_ASSERT(tag);
 
 	take_mutex(&tag->lock);
 
@@ -84,7 +84,7 @@ void tag_add_succ(tag_t id, cg_t *cg)
 	else {
 		/* where should that cg should be put in the array ? */
 		unsigned index = ATOMIC_ADD(&tag->nsuccs, 1) - 1;
-		ASSERT(index < NMAXDEPS);
+		STARPU_ASSERT(index < NMAXDEPS);
 
 		tag->succ[index] = cg;
 	}
@@ -97,7 +97,7 @@ void notify_dependencies(struct job_s *j)
 	struct tag_s *tag;
 	unsigned succ;
 
-	ASSERT(j);
+	STARPU_ASSERT(j);
 	
 	if (j->use_tag) {
 		/* in case there are dependencies, wake up the proper tasks */
@@ -130,7 +130,7 @@ void tag_declare_deps(tag_t id, unsigned ndeps, ...)
 	
 	tag_child->state = BLOCKED;
 	
-	ASSERT(ndeps != 0);
+	STARPU_ASSERT(ndeps != 0);
 	
 	va_list pa;
 	va_start(pa, ndeps);

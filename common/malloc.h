@@ -49,7 +49,7 @@ static inline void malloc_pinned_if_possible(float **A, size_t dim)
 		j->cl = cl;
 	
 		push_res = push_task_sync(j);
-		ASSERT(push_res != -ENODEV);
+		STARPU_ASSERT(push_res != -ENODEV);
 #endif
 	}
 	else {

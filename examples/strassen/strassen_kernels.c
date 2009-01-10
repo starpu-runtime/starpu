@@ -29,7 +29,7 @@ static void mult_common_codelet(data_interface_t *buffers, int s, __attribute__(
 			break;
 #endif
 		default:
-			ASSERT(0);
+			STARPU_ASSERT(0);
 			break;
 	}
 }
@@ -88,7 +88,7 @@ static void add_sub_common_codelet(data_interface_t *buffers, int s, __attribute
 			break;
 #endif
 		default:
-			ASSERT(0);
+			STARPU_ASSERT(0);
 			break;
 	}
 }
@@ -151,7 +151,7 @@ static void self_add_sub_common_codelet(data_interface_t *buffers, int s, __attr
 			break;
 #endif
 		default:
-			ASSERT(0);
+			STARPU_ASSERT(0);
 			break;
 	}
 }

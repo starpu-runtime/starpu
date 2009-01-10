@@ -60,7 +60,7 @@ static inline void dw_common_core_codelet_update_u22(data_interface_t *buffers, 
 			break;
 #endif
 		default:
-			ASSERT(0);
+			STARPU_ASSERT(0);
 			break;
 	}
 }
@@ -117,7 +117,7 @@ static inline void dw_common_codelet_update_u12(data_interface_t *buffers, int s
 			break;
 #endif
 		default:
-			ASSERT(0);
+			STARPU_ASSERT(0);
 			break;
 	}
 }
@@ -171,7 +171,7 @@ static inline void dw_common_codelet_update_u21(data_interface_t *buffers, int s
 			break;
 #endif
 		default:
-			ASSERT(0);
+			STARPU_ASSERT(0);
 			break;
 	}
 }
@@ -226,7 +226,7 @@ static inline void dw_common_codelet_update_u11(data_interface_t *descr, int s, 
 			{
 				float pivot;
 				pivot = sub11[z+z*ld];
-				ASSERT(pivot != 0.0f);
+				STARPU_ASSERT(pivot != 0.0f);
 		
 				SSCAL(nx - z - 1, (1.0f/pivot), &sub11[z+(z+1)*ld], ld);
 		
@@ -244,7 +244,7 @@ static inline void dw_common_codelet_update_u11(data_interface_t *descr, int s, 
 				/* ok that's dirty and ridiculous ... */
 				cublasGetVector(1, sizeof(float), &sub11[z+z*ld], sizeof(float), &pivot, sizeof(float));
 
-				ASSERT(pivot != 0.0f);
+				STARPU_ASSERT(pivot != 0.0f);
 				
 				cublasSscal(nx - z - 1, 1.0f/pivot, &sub11[z+(z+1)*ld], ld);
 				
@@ -256,7 +256,7 @@ static inline void dw_common_codelet_update_u11(data_interface_t *descr, int s, 
 			break;
 #endif
 		default:
-			ASSERT(0);
+			STARPU_ASSERT(0);
 			break;
 	}
 

@@ -78,7 +78,7 @@ static int __attribute__((warn_unused_result)) copy_data_to_node(data_state *sta
 	}
 
 	/* we should have found at least one copy ! */
-	ASSERT(src_node_mask != 0);
+	STARPU_ASSERT(src_node_mask != 0);
 
 	ret = driver_copy_data(state, src_node_mask, requesting_node, donotread);
 
@@ -123,7 +123,7 @@ static void update_data_state(data_state *state, uint32_t requesting_node,
  * case 1 : shared + (read)write : 
  * 	no data copy but shared->Invalid/Owner
  * case 2 : invalid + read : 
- * 	data copy + invalid->shared + owner->shared (ASSERT(there is a valid))
+ * 	data copy + invalid->shared + owner->shared (STARPU_ASSERT(there is a valid))
  * case 3 : invalid + write : 
  * 	no data copy + invalid->owner + (owner,shared)->invalid
  * case 4 : invalid + R/W : 
@@ -170,7 +170,7 @@ int _fetch_data(data_state *state, uint32_t requesting_node,
 	}
 
 	/* the only remaining situation is that the local copy was invalid */
-	ASSERT(state->per_node[requesting_node].state == INVALID);
+	STARPU_ASSERT(state->per_node[requesting_node].state == INVALID);
 
 	MSI_CACHE_MISS(requesting_node);
 
@@ -183,7 +183,7 @@ int _fetch_data(data_state *state, uint32_t requesting_node,
 			goto enomem;
 		
 		default:
-			ASSERT(0);
+			STARPU_ASSERT(0);
 	}
 
 	update_data_state(state, requesting_node, write);
@@ -273,7 +273,7 @@ void write_through_data(data_state *state, uint32_t requesting_node,
 
 				/* there must remain memory on the write-through mask to honor the request */
 				if (ret)
-					ASSERT(0);
+					STARPU_ASSERT(0);
 			}
 				
 			/* now the data is shared among the nodes on the
@@ -297,7 +297,7 @@ void release_data(data_state *state, uint32_t write_through_mask)
 {
 	/* normally, the requesting node should have the data in an exclusive manner */
 	uint32_t requesting_node = get_local_memory_node();
-	ASSERT(state->per_node[requesting_node].state != INVALID);
+	STARPU_ASSERT(state->per_node[requesting_node].state != INVALID);
 
 	/* are we doing write-through or just some normal write-back ? */
 	if (write_through_mask & ~(1<<requesting_node)) {
@@ -368,7 +368,7 @@ int request_data_allocation(data_state *state, uint32_t node)
 
 	int ret;
 	ret = allocate_per_node_buffer(state, node);
-	ASSERT(ret == 0);
+	STARPU_ASSERT(ret == 0);
 
 	/* XXX quick and dirty hack */
 	state->per_node[node].automatically_allocated = 0;	

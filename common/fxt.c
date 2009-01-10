@@ -37,7 +37,7 @@ void start_fxt_profiling(void)
 
 	if(fut_setup(PROF_BUFFER_SIZE, FUT_KEYMASKALL, threadid) < 0) {
 		perror("fut_setup");
-		ASSERT(0);
+		STARPU_ASSERT(0);
 	}
 
 	//fxt_register_thread(-1);

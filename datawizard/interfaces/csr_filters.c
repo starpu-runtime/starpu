@@ -15,13 +15,13 @@ unsigned vertical_block_filter_func_csr(filter *f, data_state *root_data)
 	
 	/* first allocate the children data_state */
 	root_data->children = calloc(nchunks, sizeof(data_state));
-	ASSERT(root_data->children);
+	STARPU_ASSERT(root_data->children);
 
 	/* actually create all the chunks */
 	uint32_t chunk_size = (nrow + nchunks - 1)/nchunks;
 
 	/* XXX */
-	ASSERT(root_data->per_node[0].allocated);
+	STARPU_ASSERT(root_data->per_node[0].allocated);
 	uint32_t *rowptr = root_data->interface[0].csr.rowptr;
 
 	unsigned chunk;

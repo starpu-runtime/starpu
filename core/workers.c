@@ -46,9 +46,9 @@ static void init_machine_config(struct machine_config_s *config)
 	} else {
 		/* use the specified value */
 		ncores = (unsigned)envval;
-		ASSERT(ncores <= NMAXCORES);
+		STARPU_ASSERT(ncores <= NMAXCORES);
 	}
-	ASSERT(ncores + config->nworkers <= NMAXWORKERS);
+	STARPU_ASSERT(ncores + config->nworkers <= NMAXWORKERS);
 
 	unsigned core;
 	for (core = 0; core < ncores; core++)
@@ -72,9 +72,9 @@ static void init_machine_config(struct machine_config_s *config)
 	} else {
 		/* use the specified value */
 		ncudagpus = (unsigned)envval;
-		ASSERT(ncudagpus <= MAXCUDADEVS);
+		STARPU_ASSERT(ncudagpus <= MAXCUDADEVS);
 	}
-	ASSERT(ncudagpus + config->nworkers <= NMAXWORKERS);
+	STARPU_ASSERT(ncudagpus + config->nworkers <= NMAXWORKERS);
 
 	unsigned cudagpu;
 	for (cudagpu = 0; cudagpu < ncudagpus; cudagpu++)
@@ -95,9 +95,9 @@ static void init_machine_config(struct machine_config_s *config)
 	} else {
 		/* use the specified value */
 		ngordon_spus = (unsigned)envval;
-		ASSERT(ngordon_spus <= NMAXGORDONSPUS);
+		STARPU_ASSERT(ngordon_spus <= NMAXGORDONSPUS);
 	}
-	ASSERT(ngordon_spus + config->nworkers <= NMAXWORKERS);
+	STARPU_ASSERT(ngordon_spus + config->nworkers <= NMAXWORKERS);
 
 	unsigned spu;
 	for (spu = 0; spu < ngordon_spus; spu++)
@@ -144,7 +144,7 @@ static void init_workers_binding(struct machine_config_s *config)
 				memory_node = register_memory_node(CUDA_RAM);
 				break;
 			default:
-				ASSERT(0);
+				STARPU_ASSERT(0);
 		}
 
 		workerarg->memory_node = memory_node;
@@ -204,7 +204,7 @@ static void init_workers(struct machine_config_s *config)
 				break;
 #endif
 			default:
-				ASSERT(0);
+				STARPU_ASSERT(0);
 		}
 	}
 }

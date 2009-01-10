@@ -52,7 +52,7 @@ unsigned get_total_njobs_stacks(void)
 
 unsigned get_stack_njobs(struct jobq_s *q)
 {
-	ASSERT(q);
+	STARPU_ASSERT(q);
 
 	struct stack_jobq_s *stack_queue = q->queue;
 
@@ -61,7 +61,7 @@ unsigned get_stack_njobs(struct jobq_s *q)
 
 unsigned get_stack_nprocessed(struct jobq_s *q)
 {
-	ASSERT(q);
+	STARPU_ASSERT(q);
 
 	struct stack_jobq_s *stack_queue = q->queue;
 
@@ -71,7 +71,7 @@ unsigned get_stack_nprocessed(struct jobq_s *q)
 void stack_push_prio_task(struct jobq_s *q, job_t task)
 {
 #ifndef NO_PRIO
-	ASSERT(q);
+	STARPU_ASSERT(q);
 	struct stack_jobq_s *stack_queue = q->queue;
 
 	/* if anyone is blocked on the entire machine, wake it up */
@@ -97,7 +97,7 @@ void stack_push_prio_task(struct jobq_s *q, job_t task)
 
 void stack_push_task(struct jobq_s *q, job_t task)
 {
-	ASSERT(q);
+	STARPU_ASSERT(q);
 	struct stack_jobq_s *stack_queue = q->queue;
 
 	/* if anyone is blocked on the entire machine, wake it up */
@@ -122,7 +122,7 @@ job_t stack_pop_task(struct jobq_s *q)
 {
 	job_t j = NULL;
 
-	ASSERT(q);
+	STARPU_ASSERT(q);
 	struct stack_jobq_s *stack_queue = q->queue;
 
 	/* block until some task is available in that queue */
@@ -136,7 +136,7 @@ job_t stack_pop_task(struct jobq_s *q)
 		/* there is a task */
 		j = job_list_pop_back(stack_queue->jobq);
 	
-		ASSERT(j);
+		STARPU_ASSERT(j);
 		stack_queue->njobs--;
 		
 		TRACE_JOB_POP(j, 0);
@@ -159,7 +159,7 @@ job_t stack_non_blocking_pop_task(struct jobq_s *q)
 {
 	job_t j = NULL;
 
-	ASSERT(q);
+	STARPU_ASSERT(q);
 	struct stack_jobq_s *stack_queue = q->queue;
 
 	/* block until some task is available in that queue */
@@ -170,7 +170,7 @@ job_t stack_non_blocking_pop_task(struct jobq_s *q)
 		/* there is a task */
 		j = job_list_pop_back(stack_queue->jobq);
 	
-		ASSERT(j);
+		STARPU_ASSERT(j);
 		stack_queue->njobs--;
 		
 		TRACE_JOB_POP(j, 0);

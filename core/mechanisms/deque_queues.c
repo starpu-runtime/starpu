@@ -52,7 +52,7 @@ unsigned get_total_njobs_deques(void)
 
 unsigned get_deque_njobs(struct jobq_s *q)
 {
-	ASSERT(q);
+	STARPU_ASSERT(q);
 
 	struct deque_jobq_s *deque_queue = q->queue;
 
@@ -61,7 +61,7 @@ unsigned get_deque_njobs(struct jobq_s *q)
 
 unsigned get_deque_nprocessed(struct jobq_s *q)
 {
-	ASSERT(q);
+	STARPU_ASSERT(q);
 
 	struct deque_jobq_s *deque_queue = q->queue;
 
@@ -75,7 +75,7 @@ int deque_push_prio_task(struct jobq_s *q, job_t task)
 
 int deque_push_task(struct jobq_s *q, job_t task)
 {
-	ASSERT(q);
+	STARPU_ASSERT(q);
 	struct deque_jobq_s *deque_queue = q->queue;
 
 	/* if anyone is blocked on the entire machine, wake it up */
@@ -102,7 +102,7 @@ job_t deque_pop_task(struct jobq_s *q)
 {
 	job_t j = NULL;
 
-	ASSERT(q);
+	STARPU_ASSERT(q);
 	struct deque_jobq_s *deque_queue = q->queue;
 
 	/* block until some task is available in that queue */
@@ -116,7 +116,7 @@ job_t deque_pop_task(struct jobq_s *q)
 		/* there is a task */
 		j = job_list_pop_front(deque_queue->jobq);
 	
-		ASSERT(j);
+		STARPU_ASSERT(j);
 		deque_queue->njobs--;
 		
 		TRACE_JOB_POP(j, 0);
@@ -137,7 +137,7 @@ job_t deque_non_blocking_pop_task(struct jobq_s *q)
 {
 	job_t j = NULL;
 
-	ASSERT(q);
+	STARPU_ASSERT(q);
 	struct deque_jobq_s *deque_queue = q->queue;
 
 	/* block until some task is available in that queue */
@@ -148,7 +148,7 @@ job_t deque_non_blocking_pop_task(struct jobq_s *q)
 		/* there is a task */
 		j = job_list_pop_front(deque_queue->jobq);
 	
-		ASSERT(j);
+		STARPU_ASSERT(j);
 		deque_queue->njobs--;
 		
 		TRACE_JOB_POP(j, 0);

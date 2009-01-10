@@ -37,7 +37,7 @@ struct data_interface_ops_t interface_vector_ops = {
 #ifdef USE_GORDON
 int convert_vector_to_gordon(data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
-	ASSERT(gordon_interface);
+	STARPU_ASSERT(gordon_interface);
 
 	*ptr = (*interface).vector.ptr;
 	(*ss).size = (*interface).vector.nx * (*interface).vector.elemsize;
@@ -138,7 +138,7 @@ uintptr_t get_vector_local_ptr(data_state *state)
 	unsigned node;
 	node = get_local_memory_node();
 
-	ASSERT(state->per_node[node].allocated);
+	STARPU_ASSERT(state->per_node[node].allocated);
 
 	return (state->interface[node].vector.ptr);
 }
@@ -148,7 +148,7 @@ uintptr_t get_vector_local_ptr(data_state *state)
 /* returns the size of the allocated area */
 size_t allocate_vector_buffer_on_node(data_state *state, uint32_t dst_node)
 {
-	uintptr_t addr;
+	uintptr_t addr = 0;
 	size_t allocated_memory;
 
 	uint32_t nx = state->interface[dst_node].vector.nx;
@@ -274,7 +274,7 @@ int do_copy_vector_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t 
 				break;
 #endif
 			case SPU_LS:
-				ASSERT(0); // TODO
+				STARPU_ASSERT(0); // TODO
 				break;
 			case UNUSED:
 				printf("error node %d UNUSED\n", src_node);
@@ -289,22 +289,22 @@ int do_copy_vector_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t 
 			case RAM:
 				/* RAM -> CUBLAS_RAM */
 				/* only the proper CUBLAS thread can initiate this ! */
-				ASSERT(get_local_memory_node() == dst_node);
+				STARPU_ASSERT(get_local_memory_node() == dst_node);
 				copy_ram_to_cublas(state, src_node, dst_node);
 				break;
 			case CUDA_RAM:
 			case SPU_LS:
-				ASSERT(0); // TODO 
+				STARPU_ASSERT(0); // TODO 
 				break;
 			case UNUSED:
 			default:
-				ASSERT(0);
+				STARPU_ASSERT(0);
 				break;
 		}
 		break;
 #endif
 	case SPU_LS:
-		ASSERT(0); // TODO
+		STARPU_ASSERT(0); // TODO
 		break;
 	case UNUSED:
 	default:

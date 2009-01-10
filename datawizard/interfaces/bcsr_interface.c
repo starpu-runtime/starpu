@@ -147,7 +147,7 @@ uintptr_t get_bcsr_local_nzval(struct data_state_t *state)
 	unsigned node;
 	node = get_local_memory_node();
 
-	ASSERT(state->per_node[node].allocated);
+	STARPU_ASSERT(state->per_node[node].allocated);
 
 	return (state->interface[node].bcsr.nzval);
 }
@@ -157,7 +157,7 @@ uint32_t *get_bcsr_local_colind(struct data_state_t *state)
 //	unsigned node;
 //	node = get_local_memory_node();
 //
-//	ASSERT(state->per_node[node].allocated);
+//	STARPU_ASSERT(state->per_node[node].allocated);
 //
 //	return (state->interface[node].bcsr.colind);
 
@@ -170,7 +170,7 @@ uint32_t *get_bcsr_local_rowptr(struct data_state_t *state)
 //	unsigned node;
 //	node = get_local_memory_node();
 //
-//	ASSERT(state->per_node[node].allocated);
+//	STARPU_ASSERT(state->per_node[node].allocated);
 //
 //	return (state->interface[node].bcsr.rowptr);
 	
@@ -427,7 +427,7 @@ int do_copy_bcsr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, ui
 				break;
 #endif
 			case SPU_LS:
-				ASSERT(0); // TODO
+				STARPU_ASSERT(0); // TODO
 				break;
 			case UNUSED:
 				printf("error node %d UNUSED\n", src_node);
@@ -442,22 +442,22 @@ int do_copy_bcsr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, ui
 			case RAM:
 				/* RAM -> CUBLAS_RAM */
 				/* only the proper CUBLAS thread can initiate this ! */
-				ASSERT(get_local_memory_node() == dst_node);
+				STARPU_ASSERT(get_local_memory_node() == dst_node);
 				copy_ram_to_cublas(state, src_node, dst_node);
 				break;
 			case CUDA_RAM:
 			case SPU_LS:
-				ASSERT(0); // TODO 
+				STARPU_ASSERT(0); // TODO 
 				break;
 			case UNUSED:
 			default:
-				ASSERT(0);
+				STARPU_ASSERT(0);
 				break;
 		}
 		break;
 #endif
 	case SPU_LS:
-		ASSERT(0); // TODO
+		STARPU_ASSERT(0); // TODO
 		break;
 	case UNUSED:
 	default:

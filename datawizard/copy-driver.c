@@ -137,8 +137,8 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 	/* if there is no need to actually read the data, 
 	 * we do not perform any transfer */
 	if (!donotread) {
-		ASSERT(state->ops);
-		ASSERT(state->ops->copy_data_1_to_1);
+		STARPU_ASSERT(state->ops);
+		STARPU_ASSERT(state->ops->copy_data_1_to_1);
 		ret_copy = state->ops->copy_data_1_to_1(state, src_node, dst_node);
 		return ret_copy;
 	}

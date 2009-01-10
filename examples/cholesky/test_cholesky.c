@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 
 	fprintf(stderr, "compute explicit LLt ...\n");
 	float *test_mat = malloc(size*size*sizeof(float));
-	ASSERT(test_mat);
+	STARPU_ASSERT(test_mat);
 
 	SSYRK("L", "N", size, size, 1.0f, 
 				mat, size, 0.0f, test_mat, size);

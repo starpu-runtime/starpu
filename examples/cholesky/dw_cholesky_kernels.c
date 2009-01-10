@@ -33,7 +33,7 @@ static inline void chol_common_core_codelet_update_u22(data_interface_t *buffers
 			break;
 #endif
 		default:
-			ASSERT(0);
+			STARPU_ASSERT(0);
 			break;
 	}
 }
@@ -79,7 +79,7 @@ static inline void chol_common_codelet_update_u21(data_interface_t *buffers, int
 			break;
 #endif
 		default:
-			ASSERT(0);
+			STARPU_ASSERT(0);
 			break;
 	}
 }
@@ -127,7 +127,7 @@ static inline void chol_common_codelet_update_u11(data_interface_t *descr, int s
 				lambda11 = sqrt(sub11[z+z*ld]);
 				sub11[z+z*ld] = lambda11;
 
-				ASSERT(lambda11 != 0.0f);
+				STARPU_ASSERT(lambda11 != 0.0f);
 		
 				SSCAL(nx - z - 1, 1.0f/lambda11, &sub11[(z+1)+z*ld], 1);
 		
@@ -148,7 +148,7 @@ static inline void chol_common_codelet_update_u11(data_interface_t *descr, int s
 
 				cublasSetVector(1, sizeof(float), &lambda11, sizeof(float), &sub11[z+z*ld], sizeof(float));
 
-				ASSERT(lambda11 != 0.0f);
+				STARPU_ASSERT(lambda11 != 0.0f);
 				
 				cublasSscal(nx - z - 1, 1.0f/lambda11, &sub11[(z+1)+z*ld], 1);
 
@@ -159,7 +159,7 @@ static inline void chol_common_codelet_update_u11(data_interface_t *descr, int s
 			break;
 #endif
 		default:
-			ASSERT(0);
+			STARPU_ASSERT(0);
 			break;
 	}
 

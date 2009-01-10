@@ -26,7 +26,7 @@ static void insert_history_entry(struct history_entry_t *entry, struct history_l
 
 	old = htbl_insert_32(history_ptr, entry->footprint, entry);
 	/* that may fail in case there is some concurrency issue */
-	ASSERT(old == NULL);
+	STARPU_ASSERT(old == NULL);
 }
 
 
@@ -40,7 +40,7 @@ static void scan_reg_model(FILE *f, struct regression_model_t *reg_model)
 	int res;
 
 	res = fscanf(f, "%le\t%le\t%le\t%le\t%le\t%le\t%d\n", &reg_model->sumlnx, &reg_model->sumlnx2, &reg_model->sumlny, &reg_model->sumlnxlny, &reg_model->alpha, &reg_model->beta, &reg_model->nsample);
-	ASSERT(res == 7);
+	STARPU_ASSERT(res == 7);
 }
 
 
@@ -54,7 +54,7 @@ static void scan_history_entry(FILE *f, struct history_entry_t *entry)
 	int res;
 
 	res = fscanf(f, "%x\t%zu\t%le\t%le\t%le\t%le\t%d\n", &entry->footprint, &entry->size, &entry->mean, &entry->deviation, &entry->sum, &entry->sum2, &entry->nsample);
-	ASSERT(res == 7);
+	STARPU_ASSERT(res == 7);
 }
 
 static void parse_per_arch_model_file(FILE *f, struct per_arch_perfmodel_t *per_arch_model, unsigned scan_history)
@@ -62,7 +62,7 @@ static void parse_per_arch_model_file(FILE *f, struct per_arch_perfmodel_t *per_
 	unsigned nentries;
 
 	int res = fscanf(f, "%d\n", &nentries);
-	ASSERT(res == 1);
+	STARPU_ASSERT(res == 1);
 
 	scan_reg_model(f, &per_arch_model->regression);
 
@@ -70,7 +70,7 @@ static void parse_per_arch_model_file(FILE *f, struct per_arch_perfmodel_t *per_
 		&per_arch_model->regression.a,
 		&per_arch_model->regression.b,
 		&per_arch_model->regression.c);
-	ASSERT(res == 3);
+	STARPU_ASSERT(res == 3);
 
 	if (isnan(per_arch_model->regression.a)||isnan(per_arch_model->regression.b)||isnan(per_arch_model->regression.c))
 	{
@@ -87,7 +87,7 @@ static void parse_per_arch_model_file(FILE *f, struct per_arch_perfmodel_t *per_
 	unsigned i;
 	for (i = 0; i < nentries; i++) {
 		struct history_entry_t *entry = malloc(sizeof(struct history_entry_t));
-		ASSERT(entry);
+		STARPU_ASSERT(entry);
 
 		scan_history_entry(f, entry);
 		
@@ -183,11 +183,11 @@ void register_model(struct perfmodel_t *model)
 	char debugpath[256];
 	get_model_debug_path(model, "cuda", debugpath, 256);
 	model->cuda_debug_file = fopen(debugpath, "a+");
-	ASSERT(model->cuda_debug_file);
+	STARPU_ASSERT(model->cuda_debug_file);
 
 	get_model_debug_path(model, "core", debugpath, 256);
 	model->core_debug_file = fopen(debugpath, "a+");
-	ASSERT(model->core_debug_file);
+	STARPU_ASSERT(model->core_debug_file);
 #endif
 
 	return;
@@ -206,8 +206,8 @@ static void get_model_path(struct perfmodel_t *model, char *path, size_t maxlen)
 
 void save_history_based_model(struct perfmodel_t *model)
 {
-	ASSERT(model);
-	ASSERT(model->symbol);
+	STARPU_ASSERT(model);
+	STARPU_ASSERT(model->symbol);
 
 	/* TODO checks */
 
@@ -220,7 +220,7 @@ void save_history_based_model(struct perfmodel_t *model)
 	/* overwrite existing file, or create it */
 	FILE *f;
 	f = fopen(path, "w+");
-	ASSERT(f);
+	STARPU_ASSERT(f);
 
 	dump_model_file(f, model);
 
@@ -259,19 +259,19 @@ static void create_sampling_directory_if_needed(void)
 	ret = mkdir(PERF_MODEL_DIR, S_IRWXU);
 	if (ret == -1)
 	{
-		ASSERT(errno == EEXIST);
+		STARPU_ASSERT(errno == EEXIST);
 
 		/* make sure that it is actually a directory */
 		struct stat sb;
 		stat(PERF_MODEL_DIR, &sb);
-		ASSERT(S_ISDIR(sb.st_mode));
+		STARPU_ASSERT(S_ISDIR(sb.st_mode));
 	}
 }
 
 void load_history_based_model(struct perfmodel_t *model, unsigned scan_history)
 {
-	ASSERT(model);
-	ASSERT(model->symbol);
+	STARPU_ASSERT(model);
+	STARPU_ASSERT(model->symbol);
 
 	/* XXX we assume the lock is implicitely initialized (taken = 0) */
 	//init_mutex(&model->model_mutex);
@@ -306,7 +306,7 @@ void load_history_based_model(struct perfmodel_t *model, unsigned scan_history)
 	
 			FILE *f;
 			f = fopen(path, "r");
-			ASSERT(f);
+			STARPU_ASSERT(f);
 	
 			parse_model_file(f, model, scan_history);
 	
@@ -413,7 +413,7 @@ void update_perfmodel_history(job_t j, enum perf_archtype arch, double measured)
 				{
 					/* this is the first entry with such a footprint */
 					entry = malloc(sizeof(struct history_entry_t));
-					ASSERT(entry);
+					STARPU_ASSERT(entry);
 						entry->mean = measured;
 						entry->sum = measured;
 	
@@ -439,7 +439,7 @@ void update_perfmodel_history(job_t j, enum perf_archtype arch, double measured)
 					entry->deviation = sqrt((entry->sum2 - (entry->sum*entry->sum)/n)/n);
 				}
 			
-				ASSERT(entry);
+				STARPU_ASSERT(entry);
 			
 			/* update the regression model as well */
 			double logy, logx;
@@ -473,8 +473,8 @@ void update_perfmodel_history(job_t j, enum perf_archtype arch, double measured)
 		{
 			data_state *state = j->buffers[i].state;
 
-			ASSERT(state->ops);
-			ASSERT(state->ops->display);
+			STARPU_ASSERT(state->ops);
+			STARPU_ASSERT(state->ops->display);
 			state->ops->display(state, debug_file);
 		}
 		fprintf(debug_file, "\n");	

@@ -706,13 +706,13 @@ void dw_codelet_facto_v2(data_state *dataA, unsigned nblocks)
 {
 
 	advance_11 = calloc(nblocks, sizeof(uint8_t));
-	ASSERT(advance_11);
+	STARPU_ASSERT(advance_11);
 
 	advance_12_21 = calloc(nblocks*nblocks, sizeof(uint8_t));
-	ASSERT(advance_12_21);
+	STARPU_ASSERT(advance_12_21);
 
 	advance_22 = calloc(nblocks*nblocks*nblocks, sizeof(uint8_t));
-	ASSERT(advance_22);
+	STARPU_ASSERT(advance_22);
 
 	/* create a new codelet */
 	codelet *cl = malloc(sizeof(codelet));

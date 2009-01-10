@@ -23,12 +23,12 @@ unsigned canonical_block_filter_bcsr(filter *f __attribute__((unused)), data_sta
 	
 	/* first allocate the children data_state */
 	root_data->children = calloc(nchunks, sizeof(data_state));
-	ASSERT(root_data->children);
+	STARPU_ASSERT(root_data->children);
 
 	/* actually create all the chunks */
 
 	/* XXX */
-	ASSERT(root_data->per_node[0].allocated);
+	STARPU_ASSERT(root_data->per_node[0].allocated);
 
 	/* each chunk becomes a small dense matrix */
 	unsigned chunk;

@@ -80,9 +80,9 @@ void set_function_args(cuda_codelet_t *args,
 		data_state *state = descr[buf].state;
 	
 		/* dump the stack into the buffer */
-		ASSERT(state);
-		ASSERT(state->ops);
-		ASSERT(state->ops->dump_data_interface);
+		STARPU_ASSERT(state);
+		STARPU_ASSERT(state->ops);
+		STARPU_ASSERT(state->ops->dump_data_interface);
 
 		size = state->ops->dump_data_interface(&interface[buf], argbuffer);
 
@@ -181,8 +181,8 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 
 	switch (j->type) {
 		case CODELET:
-			ASSERT(j);
-			ASSERT(j->cl);
+			STARPU_ASSERT(j);
+			STARPU_ASSERT(j->cl);
 
 			if (j->model && j->model->benchmarking) 
 				calibrate_model = 1;
@@ -200,7 +200,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 			TRACE_START_CODELET_BODY(j);
 			if (use_cublas) {
 				cl_func func = j->cl->cublas_func;
-				ASSERT(func);
+				STARPU_ASSERT(func);
 				GET_TICK(codelet_start);
 				func(j->interface, j->cl->cl_arg);
 				cuCtxSynchronize();
@@ -337,7 +337,7 @@ void *cuda_worker(void *arg)
 				case TRYAGAIN:
 					fprintf(stderr, "ouch, put the codelet %p back ... \n", j);
 					push_task(j);
-					ASSERT(0);
+					STARPU_ASSERT(0);
 					continue;
 				default:
 					assert(0);

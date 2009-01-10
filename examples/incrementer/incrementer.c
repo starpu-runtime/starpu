@@ -14,12 +14,6 @@
 #include <drivers/cuda/driver_cuda.h>
 #endif
 
-#if 0
-#ifdef USE_GORDON
-#include <cell/gordon/gordon.h>
-#endif
-#endif
-
 #define NITER	1000
 
 data_state my_float_state;

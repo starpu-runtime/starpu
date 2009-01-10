@@ -115,10 +115,10 @@ void launch_spmv_codelets(void)
 	unsigned jobid = 0;
 
 	job_tab = malloc(totaljobs*sizeof(job_t));
-	ASSERT(job_tab);
+	STARPU_ASSERT(job_tab);
 
 	is_entry_tab = calloc(totaljobs, sizeof(uint8_t));
-	ASSERT(is_entry_tab);
+	STARPU_ASSERT(is_entry_tab);
 
 	printf("there will be %d codelets\n", remainingjobs);
 

@@ -169,8 +169,8 @@ static inline float surface_triangle(unsigned theta_tr, unsigned thick_tr, unsig
 
 	float xi, xj, xk, yi, yj, yk;
 
-	ASSERT(theta_tr + 2 <= ntheta);
-	ASSERT(thick_tr + 2 <= nthick);
+	STARPU_ASSERT(theta_tr + 2 <= ntheta);
+	STARPU_ASSERT(thick_tr + 2 <= nthick);
 
 	xi = pmesh[NODE_NUMBER(theta_tr, thick_tr)].x;
 	yi = pmesh[NODE_NUMBER(theta_tr, thick_tr)].y;
@@ -294,7 +294,7 @@ static void solve_system(unsigned size, unsigned subsize, float *result, int *Re
 	/* U */
         STRSV("U", "N", "U", subsize, A, subsize, B, 1);
 
-	ASSERT(DIM == size);
+	STARPU_ASSERT(DIM == size);
 
 #ifdef CHECK_RESULTS
 	/* compute the error on (LUB - savedB) which should be 0 */
@@ -467,7 +467,7 @@ static unsigned build_neighbour_vector(unsigned *neighbours, unsigned node, int 
 
 		for (index = i+1; index < nneighbours; index++)
 		{
-			ASSERT(neighbours[i] != neighbours[index]);
+			STARPU_ASSERT(neighbours[i] != neighbours[index]);
 
 			if (neighbours[index] < min)
 			{

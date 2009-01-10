@@ -10,8 +10,8 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 
         switch (j->type) {
 		case CODELET:
-			ASSERT(j->cl);
-			ASSERT(j->cl->core_func);
+			STARPU_ASSERT(j->cl);
+			STARPU_ASSERT(j->cl->core_func);
 
 			if (j->model && j->model->benchmarking)
 				calibrate_model = 1;
@@ -53,7 +53,7 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 			break;
                 default:
 			fprintf(stderr, "don't know what to do with that task on a core ! ... \n");
-			ASSERT(0);
+			STARPU_ASSERT(0);
                         break;
         }
 

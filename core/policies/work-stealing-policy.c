@@ -178,7 +178,7 @@ struct jobq_s *get_local_queue_ws(struct sched_policy_s *policy __attribute__ ((
 		queue = select_workerq();
 	}
 
-	ASSERT(queue);
+	STARPU_ASSERT(queue);
 
 	return queue;
 }

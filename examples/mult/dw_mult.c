@@ -279,7 +279,7 @@ static void init_problem_data(void)
 	else {
 #ifdef NORANDOM
 		srand(2008);
-		ASSERT(0);
+		STARPU_ASSERT(0);
 #endif
 		for (j=0; j < ydim; j++) {
 			for (i=0; i < zdim; i++) {

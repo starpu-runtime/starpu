@@ -19,7 +19,7 @@ static void _release_busy_lock(rw_lock *lock)
 
 void init_rw_lock(rw_lock *lock)
 {
-	ASSERT(lock);
+	STARPU_ASSERT(lock);
 
 	lock->writer = 0;
 	lock->readercnt = 0;
@@ -38,8 +38,8 @@ int take_rw_lock_write_try(rw_lock *lock)
 		return -1;
 	}
 	else {
-		ASSERT(lock->readercnt == 0);
-		ASSERT(lock->writer == 0);
+		STARPU_ASSERT(lock->readercnt == 0);
+		STARPU_ASSERT(lock->writer == 0);
 
 		/* no one was either writing nor reading */
 		lock->writer = 1;
@@ -59,7 +59,7 @@ int take_rw_lock_read_try(rw_lock *lock)
 		return -1;
 	}
 	else {
-		ASSERT(lock->writer == 0);
+		STARPU_ASSERT(lock->writer == 0);
 
 		/* no one is writing */
 		/* XXX check wrap arounds ... */
@@ -83,8 +83,8 @@ void take_rw_lock_write(rw_lock *lock)
 			_release_busy_lock(lock);
 		}
 		else {
-			ASSERT(lock->readercnt == 0);
-			ASSERT(lock->writer == 0);
+			STARPU_ASSERT(lock->readercnt == 0);
+			STARPU_ASSERT(lock->writer == 0);
 	
 			/* no one was either writing nor reading */
 			lock->writer = 1;
@@ -105,7 +105,7 @@ void take_rw_lock_read(rw_lock *lock)
 			_release_busy_lock(lock);
 		}
 		else {
-			ASSERT(lock->writer == 0);
+			STARPU_ASSERT(lock->writer == 0);
 
 			/* no one is writing */
 			/* XXX check wrap arounds ... */
@@ -123,12 +123,12 @@ void release_rw_lock(rw_lock *lock)
 	/* either writer or reader (exactly one !) */
 	if (lock->writer) 
 	{
-		ASSERT(lock->readercnt == 0);
+		STARPU_ASSERT(lock->readercnt == 0);
 		lock->writer = 0;
 	}
 	else {
 		/* reading mode */
-		ASSERT(lock->writer == 0);
+		STARPU_ASSERT(lock->writer == 0);
 		lock->readercnt--;
 	}
 	_release_busy_lock(lock);

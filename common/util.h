@@ -20,8 +20,14 @@
 #define ASSERT(x)	assert(x)
 #endif
 
+#define STARPU_ASSERT(x)	assert(x)
+
+#ifndef UNLIKELY
 #define UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
+#endif
+#ifndef LIKELY
 #define LIKELY(expr)            (__builtin_expect(!!(expr),1))
+#endif
 
 #define ATOMIC_ADD(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
 

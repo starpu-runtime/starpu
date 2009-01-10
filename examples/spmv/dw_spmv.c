@@ -112,8 +112,8 @@ void core_spmv(data_interface_t *descr, __attribute__((unused))  void *arg)
 	nnz = descr[0].csr.nnz;
 	nrow = descr[0].csr.nrow;
 
-	//ASSERT(nrow == descr[1].vector.nx);
-	ASSERT(nrow == descr[2].vector.nx);
+	//STARPU_ASSERT(nrow == descr[1].vector.nx);
+	STARPU_ASSERT(nrow == descr[2].vector.nx);
 
 	unsigned row;
 	for (row = 0; row < nrow; row++)
@@ -181,7 +181,7 @@ void create_data(void)
 		}
 	}
 
-	ASSERT(pos == nnz);
+	STARPU_ASSERT(pos == nnz);
 
 	rowptr[size] = nnz;
 	

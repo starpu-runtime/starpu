@@ -87,15 +87,15 @@ unsigned divide_vector_in_blas_filter(filter *f, data_state *root_data)
 		unsigned n1 = args->n1;
 		unsigned n2 = args->n2;
 		unsigned stride = args->stride;
-		ASSERT(n1 + n2 < nx);
+		STARPU_ASSERT(n1 + n2 < nx);
 		unsigned n3 = nx - n1 - n2;
 		
 
 	/* first allocate the children data_state */
 	root_data->children = calloc((n1==0)?2:3, sizeof(data_state));
-	ASSERT(root_data->children);
+	STARPU_ASSERT(root_data->children);
 
-	ASSERT((n2 % args->stride) == 0);
+	STARPU_ASSERT((n2 % args->stride) == 0);
 
 	unsigned child = 0;
 	unsigned node;
@@ -285,7 +285,7 @@ void _cublas_cblk_strsm(data_interface_t *descr, void *arg __attribute__((unused
 		extra_cblkdata, ld);
 	cublasStatus st = cublasGetError();
 	if (st) fprintf(stderr, "ERROR %d\n", st);
-	ASSERT(st == CUBLAS_STATUS_SUCCESS);
+	STARPU_ASSERT(st == CUBLAS_STATUS_SUCCESS);
 }
 
 static struct perfmodel_t starpu_cblk_strsm = {
@@ -383,7 +383,7 @@ void _cublas_compute_contrib_compact(data_interface_t *descr, void *arg)
 
 	cublasStatus st = cublasGetError();
 	if (st) fprintf(stderr, "ERROR %d\n", st);
-	ASSERT(st == CUBLAS_STATUS_SUCCESS);
+	STARPU_ASSERT(st == CUBLAS_STATUS_SUCCESS);
 }
 
 
@@ -414,7 +414,7 @@ int update_work_blocks(unsigned col, int dimi, int dimj, int dima, int stride)
 	struct divide_vector_in_blas_filter_args args1, args2;
 
 	f1.filter_func = divide_vector_in_blas_filter;
-		args1.n1 = stride - dima - dimi; //ASSERT(args1.n1 != 0);
+		args1.n1 = stride - dima - dimi; //STARPU_ASSERT(args1.n1 != 0);
 		args1.n2 = (stride - dima)*dima;
 		args1.stride = (stride - dima);
 
@@ -523,19 +523,19 @@ void _cublas_sgemm(data_interface_t *descr, void *arg)
 
 //	fprintf(stderr, "CUBLAS SGEMM nxA %d nyA %d nxB %d nyB %d nxC %d nyC %d lda %d ldb %d ldc %d\n", nxA, nyA, nxB, nyB, nxC, nyC, ldA, ldB, ldC);
 
-//	ASSERT(nxA == nxC);
-//	ASSERT(nyA == nxB);
-//	ASSERT(nyB == nyC);
+//	STARPU_ASSERT(nxA == nxC);
+//	STARPU_ASSERT(nyA == nxB);
+//	STARPU_ASSERT(nyB == nyC);
 //
-//	ASSERT(nxA <= ldA);
-//	ASSERT(nxB <= ldB);
-//	ASSERT(nxC <= ldC);
+//	STARPU_ASSERT(nxA <= ldA);
+//	STARPU_ASSERT(nxB <= ldB);
+//	STARPU_ASSERT(nxC <= ldC);
 
 	cublasSgemm (args->transa, args->transb, args->m, args->n, args->k, args->alpha, A, (int)ldA,
 			B, (int)ldB, args->beta, C, (int)ldC);
 	cublasStatus st = cublasGetError();
 	if (st) fprintf(stderr, "ERROR %d\n", st);
-	ASSERT(st == CUBLAS_STATUS_SUCCESS);
+	STARPU_ASSERT(st == CUBLAS_STATUS_SUCCESS);
 }
 
 static void _cublas_sgemm_callback(void *sem)

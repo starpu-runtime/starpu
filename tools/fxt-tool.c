@@ -87,10 +87,10 @@ void handle_new_worker(void)
 	worker_name[workerid] = str;
 
 	/* only register a thread once */
-	ASSERT(res == NULL);
+	STARPU_ASSERT(res == NULL);
 
 	res = hsearch(item, ENTER);
-	ASSERT(res);
+	STARPU_ASSERT(res);
 
 	events[workerid] = event_list_new();
 }
@@ -114,7 +114,7 @@ int find_workder_id(unsigned long tid)
 		item.data = NULL;
 	ENTRY *res;
 	res = hsearch(item, FIND);
-	//ASSERT(res);
+	//STARPU_ASSERT(res);
 	if (!res)
 		return -1;
 
@@ -279,7 +279,7 @@ void generate_gnuplot_output(void)
 {
 	FILE *output;
 	output = fopen("data", "w+");
-	ASSERT(output);
+	STARPU_ASSERT(output);
 	
 	unsigned linesize;
 	unsigned maxline = 0;

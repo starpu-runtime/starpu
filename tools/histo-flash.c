@@ -22,7 +22,7 @@ void flash_engine_init(void)
 
 	const char *fontpath = "Sans.fdb";
 	FILE *f = fopen(fontpath,"r");
-	ASSERT(f);
+	STARPU_ASSERT(f);
 
 	font = loadSWFFontFromFile(f);
 	if (font == NULL) {

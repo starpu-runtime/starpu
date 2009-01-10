@@ -7,7 +7,7 @@ void delete_data(data_state *state)
 {
 	unsigned node;
 
-	ASSERT(state);
+	STARPU_ASSERT(state);
 	for (node = 0; node < MAXNODES; node++)
 	{
 		local_data_state *local = &state->per_node[node];
@@ -21,7 +21,7 @@ void delete_data(data_state *state)
 
 void monitor_new_data(data_state *state, uint32_t home_node)
 {
-	ASSERT(state);
+	STARPU_ASSERT(state);
 
 	/* initialize the new lock */
 	init_rw_lock(&state->data_lock);
@@ -37,7 +37,7 @@ void monitor_new_data(data_state *state, uint32_t home_node)
 	state->nchildren = 0;
 
 	/* make sure we do have a valid copy */
-	ASSERT(home_node < MAXNODES);
+	STARPU_ASSERT(home_node < MAXNODES);
 
 	/* that new data is invalid from all nodes perpective except for the
 	 * home node */
@@ -94,7 +94,7 @@ void map_filters(data_state *root_data, unsigned nfilters, ...)
 		filter *next_filter;
 		next_filter = va_arg(pa, filter *);
 
-		ASSERT(next_filter);
+		STARPU_ASSERT(next_filter);
 
 		map_filter(root_data, next_filter);
 	}
@@ -106,7 +106,7 @@ void map_filters(data_state *root_data, unsigned nfilters, ...)
  */
 data_state *get_sub_data(data_state *root_data, unsigned depth, ... )
 {
-	ASSERT(root_data);
+	STARPU_ASSERT(root_data);
 	data_state *current_data = root_data;
 
 	/* the variable number of argument must correlate the depth in the tree */
@@ -118,7 +118,7 @@ data_state *get_sub_data(data_state *root_data, unsigned depth, ... )
 		unsigned next_child;
 		next_child = va_arg(pa, unsigned);
 
-		ASSERT((int)next_child < current_data->nchildren);
+		STARPU_ASSERT((int)next_child < current_data->nchildren);
 
 		current_data = &current_data->children[next_child];
 	}
@@ -140,11 +140,11 @@ void partition_data(data_state *initial_data, filter *f)
 	take_mutex(&initial_data->header_lock);
 
 	/* there should not be mutiple filters applied on the same data */
-	ASSERT(initial_data->nchildren == 0);
+	STARPU_ASSERT(initial_data->nchildren == 0);
 
 	/* this should update the pointers and size of the chunk */
 	nparts = f->filter_func(f, initial_data);
-	ASSERT(nparts > 0);
+	STARPU_ASSERT(nparts > 0);
 
 	initial_data->nchildren = nparts;
 
@@ -152,7 +152,7 @@ void partition_data(data_state *initial_data, filter *f)
 	{
 		data_state *children = &initial_data->children[i];
 
-		ASSERT(children);
+		STARPU_ASSERT(children);
 
 		children->nchildren = 0;
 
@@ -201,7 +201,7 @@ void unpartition_data(data_state *root_data, uint32_t gathering_node)
 		 * data should be possible from the node that does the unpartionning ... we
 		 * don't want to have the programming deal with memory shortage at that time,
 		 * really */
-		ASSERT(ret == 0); 
+		STARPU_ASSERT(ret == 0); 
 	}
 
 	/* the gathering_node should now have a valid copy of all the children.
@@ -245,7 +245,7 @@ void unpartition_data(data_state *root_data, uint32_t gathering_node)
 	}
 
 	/* either shared or owned */
-	ASSERT(nvalids > 0);
+	STARPU_ASSERT(nvalids > 0);
 
 	cache_state newstate = (nvalids == 1)?OWNER:SHARED;
 

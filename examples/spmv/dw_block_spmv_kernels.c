@@ -26,7 +26,7 @@ static inline void common_block_spmv(data_interface_t *buffers, int s, __attribu
 			break;
 #endif
 		default:
-			ASSERT(0);
+			STARPU_ASSERT(0);
 			break;
 	}
 }

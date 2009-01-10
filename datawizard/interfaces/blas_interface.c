@@ -131,7 +131,7 @@ uint32_t get_blas_local_ld(data_state *state)
 	unsigned node;
 	node = get_local_memory_node();
 
-	ASSERT(state->per_node[node].allocated);
+	STARPU_ASSERT(state->per_node[node].allocated);
 
 	return (state->interface[node].blas.ld);
 }
@@ -141,7 +141,7 @@ uintptr_t get_blas_local_ptr(data_state *state)
 	unsigned node;
 	node = get_local_memory_node();
 
-	ASSERT(state->per_node[node].allocated);
+	STARPU_ASSERT(state->per_node[node].allocated);
 
 	return (state->interface[node].blas.ptr);
 }
@@ -151,7 +151,7 @@ uintptr_t get_blas_local_ptr(data_state *state)
 /* returns the size of the allocated area */
 size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 {
-	uintptr_t addr;
+	uintptr_t addr = 0;
 	unsigned fail = 0;
 	size_t allocated_memory;
 
@@ -177,10 +177,10 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 
 			if (!addr || status != CUBLAS_STATUS_SUCCESS)
 			{
-				ASSERT(status != CUBLAS_STATUS_INTERNAL_ERROR);
-				ASSERT(status != CUBLAS_STATUS_NOT_INITIALIZED);
-				ASSERT(status != CUBLAS_STATUS_INVALID_VALUE);
-				ASSERT(status == CUBLAS_STATUS_ALLOC_FAILED);
+				STARPU_ASSERT(status != CUBLAS_STATUS_INTERNAL_ERROR);
+				STARPU_ASSERT(status != CUBLAS_STATUS_NOT_INITIALIZED);
+				STARPU_ASSERT(status != CUBLAS_STATUS_INVALID_VALUE);
+				STARPU_ASSERT(status == CUBLAS_STATUS_ALLOC_FAILED);
 				fail = 1;
 			}
 
@@ -220,8 +220,8 @@ void liberate_blas_buffer_on_node(data_state *state, uint32_t node)
 		case CUDA_RAM:
 			status = cublasFree((void*)state->interface[node].blas.ptr);
 			
-			ASSERT(status != CUBLAS_STATUS_INTERNAL_ERROR);
-			ASSERT(status == CUBLAS_STATUS_SUCCESS);
+			STARPU_ASSERT(status != CUBLAS_STATUS_INTERNAL_ERROR);
+			STARPU_ASSERT(status == CUBLAS_STATUS_SUCCESS);
 
 			break;
 #endif
@@ -321,7 +321,7 @@ int do_copy_blas_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t ds
 				break;
 #endif
 			case SPU_LS:
-				ASSERT(0); // TODO
+				STARPU_ASSERT(0); // TODO
 				break;
 			case UNUSED:
 				printf("error node %d UNUSED\n", src_node);
@@ -336,22 +336,22 @@ int do_copy_blas_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t ds
 			case RAM:
 				/* RAM -> CUBLAS_RAM */
 				/* only the proper CUBLAS thread can initiate this ! */
-				ASSERT(get_local_memory_node() == dst_node);
+				STARPU_ASSERT(get_local_memory_node() == dst_node);
 				copy_ram_to_cublas(state, src_node, dst_node);
 				break;
 			case CUDA_RAM:
 			case SPU_LS:
-				ASSERT(0); // TODO 
+				STARPU_ASSERT(0); // TODO 
 				break;
 			case UNUSED:
 			default:
-				ASSERT(0);
+				STARPU_ASSERT(0);
 				break;
 		}
 		break;
 #endif
 	case SPU_LS:
-		ASSERT(0); // TODO
+		STARPU_ASSERT(0); // TODO
 		break;
 	case UNUSED:
 	default:

@@ -74,7 +74,7 @@ int push_task(job_t task)
 {
 	struct jobq_s *queue = policy.get_local_queue(&policy);
 
-	ASSERT(queue->push_task);
+	STARPU_ASSERT(queue->push_task);
 
 	if (!worker_exists(task->where))
 		return -ENODEV; 
@@ -113,7 +113,7 @@ struct job_s * pop_task(void)
 {
 	struct jobq_s *queue = policy.get_local_queue(&policy);
 
-	ASSERT(queue->pop_task);
+	STARPU_ASSERT(queue->pop_task);
 
 	struct job_s *j = queue->pop_task(queue);
 

@@ -75,7 +75,7 @@ static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task,
 
 	
 	/* make sure someone coule execute that task ! */
-	ASSERT(best != -1);
+	STARPU_ASSERT(best != -1);
 
 	/* we should now have the best worker in variable "best" */
 	fifo = queue_array[best]->queue;

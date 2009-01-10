@@ -52,7 +52,7 @@ unsigned get_total_njobs_fifos(void)
 
 unsigned get_fifo_njobs(struct jobq_s *q)
 {
-	ASSERT(q);
+	STARPU_ASSERT(q);
 
 	struct fifo_jobq_s *fifo_queue = q->queue;
 
@@ -61,7 +61,7 @@ unsigned get_fifo_njobs(struct jobq_s *q)
 
 unsigned get_fifo_nprocessed(struct jobq_s *q)
 {
-	ASSERT(q);
+	STARPU_ASSERT(q);
 
 	struct fifo_jobq_s *fifo_queue = q->queue;
 
@@ -71,7 +71,7 @@ unsigned get_fifo_nprocessed(struct jobq_s *q)
 int fifo_push_prio_task(struct jobq_s *q, job_t task)
 {
 #ifndef NO_PRIO
-	ASSERT(q);
+	STARPU_ASSERT(q);
 	struct fifo_jobq_s *fifo_queue = q->queue;
 
 	/* if anyone is blocked on the entire machine, wake it up */
@@ -99,7 +99,7 @@ int fifo_push_prio_task(struct jobq_s *q, job_t task)
 
 int fifo_push_task(struct jobq_s *q, job_t task)
 {
-	ASSERT(q);
+	STARPU_ASSERT(q);
 	struct fifo_jobq_s *fifo_queue = q->queue;
 
 	/* if anyone is blocked on the entire machine, wake it up */
@@ -126,7 +126,7 @@ job_t fifo_pop_task(struct jobq_s *q)
 {
 	job_t j = NULL;
 
-	ASSERT(q);
+	STARPU_ASSERT(q);
 	struct fifo_jobq_s *fifo_queue = q->queue;
 
 	/* block until some event happens */
@@ -140,7 +140,7 @@ job_t fifo_pop_task(struct jobq_s *q)
 		/* there is a task */
 		j = job_list_pop_back(fifo_queue->jobq);
 	
-		ASSERT(j);
+		STARPU_ASSERT(j);
 		fifo_queue->njobs--;
 		
 		TRACE_JOB_POP(j, 0);
@@ -162,7 +162,7 @@ job_t fifo_non_blocking_pop_task(struct jobq_s *q)
 {
 	job_t j = NULL;
 
-	ASSERT(q);
+	STARPU_ASSERT(q);
 	struct fifo_jobq_s *fifo_queue = q->queue;
 
 	/* block until some event happens */
@@ -173,7 +173,7 @@ job_t fifo_non_blocking_pop_task(struct jobq_s *q)
 		/* there is a task */
 		j = job_list_pop_back(fifo_queue->jobq);
 	
-		ASSERT(j);
+		STARPU_ASSERT(j);
 		fifo_queue->njobs--;
 		
 		TRACE_JOB_POP(j, 0);
