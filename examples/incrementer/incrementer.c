@@ -20,14 +20,15 @@
 #endif
 #endif
 
-#define NITER	100
+#define NITER	1000
 
 data_state my_float_state;
 data_state unity_state;
 
-float my_lovely_float[5] = {0.0f, 0.0f, 0.0f, 1664.0f, 1664.0f};
-float unity[5] = {1.0f, 0.0f, 1.0f, 0.0f, 0.0f};
+unsigned size __attribute__ ((aligned (16))) = 4*sizeof(float);
 
+float my_lovely_float[4] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f, 1664.0f}; 
+float unity[4] __attribute__ ((aligned (16))) = { 1.0f, 0.0f, 1.0f, 0.0f };
 
 void callback_func(void *argcb)
 {
@@ -41,7 +42,7 @@ void callback_func(void *argcb)
 		printf("delete data ...\n");
 		delete_data(&my_float_state);
 		
-		printf("RIGHT -> %f, %f, %f\n", my_lovely_float[0], 
+		printf("array -> %f, %f, %f\n", my_lovely_float[0], 
 				my_lovely_float[1], my_lovely_float[2]);
 		printf("stopping ...\n");
 
@@ -67,76 +68,6 @@ void cublas_codelet(data_interface_t *buffers, __attribute__ ((unused)) void *_a
 
 	cublasSaxpy(3, 1.0f, dunity, 1, val, 1);
 }
-#endif
-
-#if 0
-#ifdef USE_GORDON
-#define BUFFER_SIZE	32
-
-void gordon_callback_func(void *argcb)
-{
-	printf("gordon_callback_func\n");
-	/* this is not used yet ! XXX  */
-}
-
-void gordon_codelet(__attribute__ ((unused)) void *_args)
-{
-	printf("gordon codelet\n");
-	struct gordon_ppu_job_s *joblist = gordon_alloc_jobs(2, 0);
-	float *array = gordon_malloc(BUFFER_SIZE);
-	float *output = gordon_malloc(BUFFER_SIZE);
-	int i = 0, n;
-
-	int *nptr = gordon_malloc(sizeof(int));
-	n = *nptr = BUFFER_SIZE / sizeof(float);
-
-	for (i = 0; i < n; i++) {
-		array[i] = (float)i;
-	}
-	
-	joblist[0].index  = SPU_FUNC_HELLO;
-	joblist[0].nalloc = 0;
-	
-	joblist[0].nin    = 0;
-	joblist[0].ninout = 0;
-	joblist[0].nout   = 0;
-	
-	joblist[1].index  = SPU_FUNC_HELLO;
-	joblist[1].nalloc = 0;
-	joblist[1].nin    = 2;
-	joblist[1].ninout = 0;
-	joblist[1].nout   = 1;
-	
-	joblist[1].buffers[0] = (uint64_t)nptr;
-	joblist[1].ss[0].size = sizeof(int);
-	joblist[1].buffers[1] = (uint64_t)array;
-	joblist[1].ss[1].size = BUFFER_SIZE;
-	joblist[1].buffers[2] = (uint64_t)output;
-	joblist[1].ss[2].size = BUFFER_SIZE;
-
-	gordon_pushjob(&joblist[0], gordon_callback_func, output);
-
-	gordon_join();
-}
-
-void gordon_test(void)
-{
-	codelet cl_gordon;
-
-	job_t j;
-
-	j = job_create();
-	j->where = GORDON;
-	j->cb = gordon_callback_func;
-	j->cl = &cl_gordon;
-
-	cl_gordon.gordon_func = gordon_codelet;
-	cl_gordon.cl_arg = NULL;
-
-	push_task(j);
-}
-
-#endif
 #endif
 
 #ifdef USE_CUDA
@@ -165,14 +96,13 @@ void initialize_cuda(void)
 
 	cuda_codelet.shmemsize = 1024;
 }
-
 #endif
 
 void init_data(void)
 {
-	monitor_vector_data(&my_float_state, 0 /* home node */, (uintptr_t)&my_lovely_float, 5, sizeof(float));
+	monitor_vector_data(&my_float_state, 0 /* home node */, (uintptr_t)&my_lovely_float, 4, sizeof(float));
 
-	monitor_vector_data(&unity_state, 0 /* home node */, (uintptr_t)&unity, 5, sizeof(float));
+	monitor_vector_data(&unity_state, 0 /* home node */, (uintptr_t)&unity, 4, sizeof(float));
 }
 
 int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)
@@ -196,8 +126,8 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 
 	counter = 0;
 
-	cl.cl_arg = NULL;
-	cl.cl_arg_size = 0;
+	cl.cl_arg = &size;
+	cl.cl_arg_size = sizeof(unsigned);
 
 	cl.core_func = core_codelet;
 #ifdef USE_CUDA
@@ -207,14 +137,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 
 
 #ifdef USE_GORDON
-	j = job_create();
-	j->where = GORDON;
-	j->nbuffers = 0;
-
-	j->cl = &cl;
-	j->cb = NULL;
-
-	push_task(j);
+	cl.gordon_func = SPU_FUNC_ADD;
 #endif
 
 
@@ -224,6 +147,9 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		j->where = CORE;
 #ifdef USE_CUDA
 		j->where |= CUDA;
+#endif
+#ifdef USE_GORDON
+		j->where |= GORDON;
 #endif
 			//(((i % 2) == 1)?CUDA:CUBLAS)|CORE; 
 		
