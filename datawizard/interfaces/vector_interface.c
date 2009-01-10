@@ -18,8 +18,7 @@ size_t vector_interface_get_size(struct data_state_t *state);
 uint32_t footprint_vector_interface_crc32(data_state *state, uint32_t hstate);
 void display_vector_interface(data_state *state, FILE *f);
 #ifdef USE_GORDON
-int convert_vector_to_gordon(data_interface_t *interface,
-                struct gordon_data_interface_s *gordon_interface);
+int convert_vector_to_gordon(data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 
 struct data_interface_ops_t interface_vector_ops = {
@@ -36,13 +35,12 @@ struct data_interface_ops_t interface_vector_ops = {
 };
 
 #ifdef USE_GORDON
-int convert_vector_to_gordon(data_interface_t *interface, 
-		struct gordon_data_interface_s *gordon_interface)
+int convert_vector_to_gordon(data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
 	ASSERT(gordon_interface);
 
-	gordon_interface->ptr = (*interface).vector.ptr;
-	gordon_interface->ss.size = (*interface).vector.nx * (*interface).vector.elemsize;
+	*ptr = (*interface).vector.ptr;
+	(*ss).size = (*interface).vector.nx * (*interface).vector.elemsize;
 
 	return 0;
 }

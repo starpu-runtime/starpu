@@ -11,14 +11,8 @@
 #include "bcsr_interface.h"
 
 #ifdef USE_GORDON
-
 /* to get the gordon_strideSize_t data structure from gordon */
 #include <cell/gordon/gordon.h>
-
-struct gordon_data_interface_s {
-	uint64_t ptr;
-	gordon_strideSize_t ss;
-};
 #endif
 
 typedef union {
@@ -42,8 +36,7 @@ struct data_interface_ops_t {
 	uint32_t (*footprint)(struct data_state_t *state, uint32_t hstate);
 	void (*display)(struct data_state_t *state, FILE *f);
 #ifdef USE_GORDON
-	int (*convert_to_gordon)(data_interface_t *interface, 
-			struct gordon_data_interface_s *gordon_interface);
+	int (*convert_to_gordon)(data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 };
 
