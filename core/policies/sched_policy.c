@@ -89,6 +89,8 @@ int push_prio_task(job_t task)
 	return push_task(task);
 }
 
+/* note that this call is blocking, and will not make StarPU progress,
+ * so it must only be called from the programmer thread, not by StarPU */
 int push_task_sync(job_t task)
 {
 	int ret;
