@@ -19,6 +19,8 @@
 data_state my_float_state;
 data_state unity_state;
 
+sem_t sem;
+
 unsigned size __attribute__ ((aligned (16))) = 4*sizeof(float);
 
 float my_lovely_float[4] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f, 1664.0f}; 
@@ -41,10 +43,9 @@ void callback_func(void *argcb)
 		printf("stopping ...\n");
 
 		terminate_machine();
-	
-		exit(0);
-	}
 
+		sem_post(&sem);
+	}
 }
 
 void core_codelet(data_interface_t *buffers, __attribute__ ((unused)) void *_args)
@@ -109,6 +110,8 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	init_machine();
 	fprintf(stderr, "StarPU initialized ...\n");
 
+	sem_init(&sem, 0, 0);
+
 	init_data();
 
 #ifdef USE_CUDA
@@ -163,7 +166,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		push_task(j);
 	}
 
-	sleep(100);
+	sem_wait(&sem);
 
 	return 0;
 }
