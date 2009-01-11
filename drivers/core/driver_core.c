@@ -123,8 +123,7 @@ void *core_worker(void *arg)
 		job_delete(j);
         }
 
-	pthread_exit(NULL);
 	TRACE_WORKER_TERMINATED(FUT_CORE_KEY);
 
-        return NULL;
+	pthread_exit(NULL);
 }
