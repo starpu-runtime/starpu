@@ -105,6 +105,7 @@ static void init_machine_config(struct machine_config_s *config)
 		config->workers[config->nworkers + spu].arch = GORDON_WORKER;
 		config->workers[config->nworkers + spu].perf_arch = GORDON_DEFAULT;
 		config->workers[config->nworkers + spu].id = spu;
+		config->workers[config->nworkers + spu].worker_is_running = 0;
 		worker_mask |= GORDON;
 	}
 
@@ -207,6 +208,7 @@ static void init_workers(struct machine_config_s *config)
 				
 				workerarg->set = &gordon_worker_set;
 				gordon_worker_set.joined = 0;
+				workerarg->worker_is_running = 1;
 
 				break;
 #endif

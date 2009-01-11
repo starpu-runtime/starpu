@@ -50,6 +50,7 @@ struct worker_s {
 	struct jobq_s *jobq; /* in which queue will that worker get/put tasks ? */
 	struct worker_set_s *set; /* in case this worker belongs to a set */
 	struct job_list_s *terminated_jobs; /* list of pending jobs which were executed */
+	unsigned worker_is_running;
 };
 
 /* in case a single CPU worker may control multiple 
