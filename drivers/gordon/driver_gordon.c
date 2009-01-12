@@ -6,6 +6,7 @@
 
 pthread_t progress_thread;
 sem_t progress_sem;
+static struct mutex_t terminated_list_mutexes[32]; 
 
 struct gordon_task_wrapper_s {
 	/* who has executed that ? */
@@ -171,7 +172,9 @@ static void handle_terminated_jobs(struct worker_set_s *arg)
 	unsigned spu;
 	for (spu = 0; spu < arg->nworkers; spu++)
 	{
+		take_mutex(&terminated_list_mutexes[spu]);
 		handle_terminated_job_per_worker(&arg->workers[spu]);
+		release_mutex(&terminated_list_mutexes[spu]);
 	}
 }
 
@@ -254,6 +257,12 @@ void *gordon_worker(void *arg)
 
 	/* TODO set_local_memory_node per SPU */
 	gordon_init(gordon_set_arg->nworkers);	
+
+	unsigned spu;
+	for (spu = 0; spu < gordon_set_arg->nworkers; spu++)
+	{
+		init_mutex(&terminated_list_mutexes[spu]);
+	}
 
 	/* XXX quick and dirty ... */
 	pthread_setspecific(local_workers_key, arg);
