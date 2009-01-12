@@ -35,6 +35,8 @@
  *   FOO_t      FOO_list_back(FOO_list_t);
  *     * retourne l'élement en tête de liste
  *   FOO_t      FOO_list_front(FOO_list_t);
+ *     * vérifie si la liste chainée est cohérente
+ *   int	FOO_list_check(FOO_list_t);
  * *********************************************************
  * Exemples d'utilisation :
  *  - au départ, on a :
@@ -139,6 +141,9 @@
   /** @internal */static inline ENAME##_itor_t ENAME##_list_next(ENAME##_itor_t i) \
     { return i->_next; } \
   /** @internal */static inline int ENAME##_list_size(ENAME##_list_t l) \
-    { ENAME##_itor_t i=l->_head; int k=0; while(i!=NULL){k++;i=i->_next;} return k; }
+    { ENAME##_itor_t i=l->_head; int k=0; while(i!=NULL){k++;i=i->_next;} return k; } \
+  /** @internal */static inline int ENAME##_list_check(ENAME##_list_t l) \
+    { ENAME##_itor_t i=l->_head; while(i) \
+    { if ((i->_next == NULL) && i != l->_tail) return 0; i=i->_next;} return 1; }
 
 
