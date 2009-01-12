@@ -183,6 +183,7 @@ static void gordon_callback_func(void *arg)
 //	fprintf(stderr, "gordon callback : push job j %p\n", task_wrapper->j);
 	job_list_push_back(worker->terminated_jobs, task_wrapper->j);
 	wake_all_blocked_workers();
+	free(task_wrapper);
 }
 
 int inject_task(job_t j, struct worker_s *worker)
