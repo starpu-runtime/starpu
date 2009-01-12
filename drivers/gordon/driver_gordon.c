@@ -246,12 +246,17 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 	return NULL;
 }
 
+extern pthread_key_t local_workers_key;
+
 void *gordon_worker(void *arg)
 {
 	struct worker_set_s *gordon_set_arg = arg;
 
 	/* TODO set_local_memory_node per SPU */
 	gordon_init(gordon_set_arg->nworkers);	
+
+	/* XXX quick and dirty ... */
+	pthread_setspecific(local_workers_key, arg);
 
 	/*
  	 * To take advantage of PPE being hyperthreaded, we should have 2 threads

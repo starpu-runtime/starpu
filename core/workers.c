@@ -1,5 +1,8 @@
 #include <core/workers.h>
 
+/* XXX quick and dirty implementation for now ... */
+pthread_key_t local_workers_key;
+
 static struct machine_config_s config;
 
 /* in case a task is submitted, we may check whether there exists a worker
@@ -160,6 +163,8 @@ struct worker_set_s gordon_worker_set;
 static void init_workers(struct machine_config_s *config)
 {
 	config->running = 1;
+
+	pthread_key_create(&local_workers_key, NULL);
 
 	unsigned worker;
 	for (worker = 0; worker < config->nworkers; worker++)
