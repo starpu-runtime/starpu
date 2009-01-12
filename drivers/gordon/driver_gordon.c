@@ -14,6 +14,9 @@ struct gordon_task_wrapper_s {
 	/* for now, we only have a single job at a time */
 	job_t j;	/* StarPU */
 	struct gordon_ppu_job_s *gordon_job; /* gordon*/
+
+	/* debug */
+	unsigned terminated;
 };
 
 
@@ -123,6 +126,7 @@ static struct gordon_task_wrapper_s *starpu_to_gordon_job(job_t j)
 
 	task_wrapper->gordon_job = gordon_job;
 	task_wrapper->j = j;
+	task_wrapper->terminated = 0;
 
 	gordon_job->index = j->cl->gordon_func;
 
@@ -179,6 +183,8 @@ static void gordon_callback_func(void *arg)
  	 * execution of the StarPU codelet and the job termination later */
 	struct worker_s *worker = task_wrapper->worker;
 	STARPU_ASSERT(worker);
+
+	task_wrapper->terminated = 1;
 
 //	fprintf(stderr, "gordon callback : push job j %p\n", task_wrapper->j);
 	job_list_push_back(worker->terminated_jobs, task_wrapper->j);

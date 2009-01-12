@@ -35,11 +35,15 @@ job_t job_create(void)
 
 	job->footprint_is_computed = 0;
 
+	job->terminated = 0;
+
 	return job;
 }
 
 void handle_job_termination(job_t j)
 {
+	j->terminated = 1;
+
 	if (j->cb)
 		j->cb(j->argcb);
 

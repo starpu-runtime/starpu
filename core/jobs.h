@@ -93,6 +93,8 @@ LIST_TYPE(job,
 
 	unsigned footprint_is_computed;
 	uint32_t footprint;
+
+	unsigned terminated;
 );
 
 job_t job_create(void);
