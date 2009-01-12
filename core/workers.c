@@ -249,28 +249,39 @@ void init_machine(void)
 
 void terminate_workers(struct machine_config_s *config)
 {
-	fprintf(stderr, "terminate workers \n");
+	int status;
+	unsigned workerid;
 
-	unsigned worker;
-	for (worker = 0; worker < config->nworkers; worker++)
+	for (workerid = 0; workerid < config->nworkers; workerid++)
 	{
-		void *retval;
 		wake_all_blocked_workers();
 		
-		fprintf(stderr, "wait for worker %d\n", worker);
+		fprintf(stderr, "wait for worker %d\n", workerid);
 
-		if (config->workers[worker].set){ 
-			if (!config->workers[worker].set->joined) {
-				pthread_join(config->workers[worker].set->worker_thread, &retval);
-				config->workers[worker].set->joined = 1;
-				if (retval)
-					fprintf(stderr, "(set) worker %d returned %p!\n", worker, retval);
+		struct worker_set_s *set = config->workers[workerid].set;
+
+		/* in case StarPU termination code is called from a callback,
+ 		 * we have to check if pthread_self() is the worker itself */
+		if (set){ 
+			if (!set->joined) {
+				if (pthread_self() != set->worker_thread)
+				{
+					status = pthread_join(set->worker_thread, NULL);
+					if (status)
+						fprintf(stderr, "pthread_join -> %d\n", status);
+				}
+
+				set->joined = 1;
 			}
 		}
 		else {
-			pthread_join(config->workers[worker].worker_thread, &retval);
-			if (retval)
-				fprintf(stderr, "worker %d returned %p!\n", worker, retval);
+			struct worker_s *worker = &config->workers[workerid];
+			if (pthread_self() != worker->worker_thread)
+			{
+				status = pthread_join(worker->worker_thread, NULL);
+				if (status)
+					fprintf(stderr, "pthread_join -> %d\n", status);
+			}
 		}
 	}
 }
