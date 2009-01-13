@@ -24,6 +24,17 @@
 #include <cuda.h>
 #endif
 
+static int jobcounter;
+
+struct block_conf {
+	uint32_t m;
+	uint32_t n;
+	uint32_t k;
+	uint32_t pad;
+};
+
+struct block_conf conf __attribute__ ((aligned (128)));
+
 extern struct perfmodel_t sgemm_model;
 
 sem_t sem;
@@ -94,7 +105,7 @@ void terminate(void)
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	uint64_t total_flop = flop_cublas + flop_atlas;
+	uint64_t total_flop = BLAS3_FLOP(ydim, xdim, zdim);
 	uint64_t total_ls = ls_cublas + ls_atlas;
 
 	fprintf(stderr, "Computation took (ms):\n");
@@ -311,6 +322,10 @@ static void partition_mult_data(void)
 	monitor_blas_data(&C_state, 0, (uintptr_t)C, 
 		ydim, ydim, xdim, sizeof(float));
 
+	conf.k = zdim;
+	conf.m = ydim/nslicesy;
+	conf.n = xdim/nslicesx;
+
 	filter f;
 	f.filter_func = vertical_block_filter_func;
 	f.filter_arg = nslicesx;
@@ -324,8 +339,6 @@ static void partition_mult_data(void)
 
 	map_filters(&C_state, 2, &f, &f2);
 }
-
-static int jobcounter;
 
 static void launch_codelets(void)
 {
@@ -346,15 +359,21 @@ static void launch_codelets(void)
 		{
 			/* A B[task] = C[task] */
 			codelet *cl = malloc(sizeof(codelet));
+			jb = job_create();
 
-			cl->cl_arg = NULL;
+			jb->where = CORE;
+
+			cl->cl_arg = &conf;
+			cl->cl_arg_size = sizeof(struct block_conf);
 			cl->core_func = core_mult;
 #ifdef USE_CUDA
+			jb->where |= CUBLAS;
 			cl->cublas_func = cublas_mult;
 #endif
-
-			jb = job_create();
-			jb->where = CORE | CUBLAS;
+#ifdef USE_GORDON
+			jb->where |= GORDON;
+			cl->gordon_func = SPU_FUNC_SGEMM;
+#endif
 			jb->cb = callback_func;
 			jb->argcb = &jobcounter;
 			jb->cl = cl;
@@ -372,11 +391,12 @@ static void launch_codelets(void)
 			jb->buffers[1].mode = R;
 			jb->buffers[2].state = 
 				get_sub_data(&C_state, 2, taskx, tasky);
-			jb->buffers[2].mode = W;
+			jb->buffers[2].mode = RW;
 
 			jb->model = &sgemm_model;
 			
 			push_task(jb);
+
 		}
 	}
 }
