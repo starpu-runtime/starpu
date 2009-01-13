@@ -1,76 +1,7 @@
-#include <semaphore.h>
-#include <core/jobs.h>
-#include <core/workers.h>
-#include <core/dependencies/tags.h>
-#include <common/timing.h>
-#include <common/util.h>
-#include <common/malloc.h>
-#include <string.h>
-#include <math.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <pthread.h>
-#include <signal.h>
-#include <common/blas.h>
-#include <common/timing.h>
+#include <examples/mult/dw_mult.h>
 
-#include <datawizard/datawizard.h>
-
-#include <task-models/blas_model.h>
-
-#include <common/fxt.h>
-
-#ifdef USE_CUDA
-#include <cuda.h>
-#endif
-
-static int jobcounter;
-
-struct block_conf {
-	uint32_t m;
-	uint32_t n;
-	uint32_t k;
-	uint32_t pad;
-};
-
-struct block_conf conf __attribute__ ((aligned (128)));
-
-extern struct perfmodel_t sgemm_model;
-
-sem_t sem;
-
-float *A;
-float *B;
-float *C;
-
-data_state A_state;
-data_state B_state;
-data_state C_state;
-
-struct timeval start;
-struct timeval end;
-
-unsigned nslicesx = 4;
-unsigned nslicesy = 4;
-unsigned xdim = 4096;
-unsigned ydim = 4096;
-unsigned zdim = 4096;
-unsigned norandom = 0;
-unsigned pin = 0;
-
-/* to compute MFlop/s */
-uint64_t flop_cublas = 0;
-uint64_t flop_atlas = 0;
-
-/* to compute MB/s (load/store) */
-uint64_t ls_cublas = 0;
-uint64_t ls_atlas = 0;
-
-#define BLAS3_FLOP(n1,n2,n3)	\
-	(2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
-
-#define BLAS3_LS(n1,n2,n3)    \
-	((2*(n1)*(n3) + (n1)*(n2) + (n2)*(n3))*sizeof(float))
+float *A, *B, *C;
+data_state A_state, B_state, C_state;
 
 /*
  * That program should compute C = A * B 
@@ -211,51 +142,6 @@ void core_mult(data_interface_t *descr, __attribute__((unused))  void *arg)
 	ls_atlas += BLAS3_LS(nxC, nyC, nyA);
 }
 
-void parse_args(int argc, char **argv)
-{
-	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-nblocks") == 0) {
-			char *argptr;
-			nslicesx = strtol(argv[++i], &argptr, 10);
-			nslicesy = nslicesx;
-		}
-
-		if (strcmp(argv[i], "-nblocksx") == 0) {
-			char *argptr;
-			nslicesx = strtol(argv[++i], &argptr, 10);
-		}
-
-		if (strcmp(argv[i], "-nblocksy") == 0) {
-			char *argptr;
-			nslicesy = strtol(argv[++i], &argptr, 10);
-		}
-
-		if (strcmp(argv[i], "-x") == 0) {
-			char *argptr;
-			xdim = strtol(argv[++i], &argptr, 10);
-		}
-
-		if (strcmp(argv[i], "-y") == 0) {
-			char *argptr;
-			ydim = strtol(argv[++i], &argptr, 10);
-		}
-
-		if (strcmp(argv[i], "-z") == 0) {
-			char *argptr;
-			zdim = strtol(argv[++i], &argptr, 10);
-		}
-
-		if (strcmp(argv[i], "-no-random") == 0) {
-			norandom = 1;
-		}
-
-		if (strcmp(argv[i], "-pin") == 0) {
-			pin = 1;
-		}
-	}
-}
-
 static void init_problem_data(void)
 {
 	unsigned i,j;
@@ -315,6 +201,7 @@ static void init_problem_data(void)
 static void partition_mult_data(void)
 {
 	gettimeofday(&start, NULL);
+
 	monitor_blas_data(&A_state, 0, (uintptr_t)A, 
 		ydim, ydim, zdim, sizeof(float));
 	monitor_blas_data(&B_state, 0, (uintptr_t)B, 
