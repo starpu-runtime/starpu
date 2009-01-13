@@ -257,9 +257,9 @@ static void init_problem_data(void)
 	} else
 #endif
 	{
-		A = malloc(zdim*ydim*sizeof(float));
-		B = malloc(xdim*zdim*sizeof(float));
-		C = malloc(xdim*ydim*sizeof(float));
+		posix_memalign(&A, 4096, zdim*ydim*sizeof(float));
+		posix_memalign(&B, 4096, xdim*zdim*sizeof(float));
+		posix_memalign(&C, 4096, xdim*ydim*sizeof(float));
 	}
 
 	/* fill the A and B matrices */
