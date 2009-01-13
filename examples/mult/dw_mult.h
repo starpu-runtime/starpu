@@ -27,6 +27,10 @@
 #include <cuda.h>
 #endif
 
+#define MAXSLICESX	16
+#define MAXSLICESY	16
+#define MAXSLICESZ	16
+
 #define BLAS3_FLOP(n1,n2,n3)	\
 	(2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
 
@@ -45,6 +49,7 @@ struct block_conf {
 
 unsigned nslicesx = 4;
 unsigned nslicesy = 4;
+unsigned nslicesz = 4;
 unsigned xdim = 256;
 unsigned ydim = 256;
 unsigned zdim = 64;
@@ -67,6 +72,9 @@ sem_t sem;
 static int jobcounter;
 static struct block_conf conf __attribute__ ((aligned (128)));
 
+#define BLOCKSIZEX	(xdim / nslicesx)
+#define BLOCKSIZEY	(xdim / nslicesx)
+#define BLOCKSIZEZ	(xdim / nslicesx)
 
 static void parse_args(int argc, char **argv)
 {
@@ -76,6 +84,7 @@ static void parse_args(int argc, char **argv)
 			char *argptr;
 			nslicesx = strtol(argv[++i], &argptr, 10);
 			nslicesy = nslicesx;
+			nslicesz = nslicesx;
 		}
 
 		if (strcmp(argv[i], "-nblocksx") == 0) {
@@ -86,6 +95,11 @@ static void parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-nblocksy") == 0) {
 			char *argptr;
 			nslicesy = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-nblocksz") == 0) {
+			char *argptr;
+			nslicesz = strtol(argv[++i], &argptr, 10);
 		}
 
 		if (strcmp(argv[i], "-x") == 0) {
