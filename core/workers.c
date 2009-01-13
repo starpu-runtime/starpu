@@ -25,8 +25,12 @@ inline uint32_t may_submit_core_task(void)
 }
 
 static unsigned ncores;
+#ifdef USE_CUDA
 static unsigned ncudagpus;
+#endif
+#ifdef USE_GORDON
 static unsigned ngordon_spus;
+#endif
 
 /*
  * Runtime initialization methods
@@ -131,7 +135,7 @@ static void init_workers_binding(struct machine_config_s *config)
 	unsigned worker;
 	for (worker = 0; worker < config->nworkers; worker++)
 	{
-		unsigned memory_node;
+		unsigned memory_node = -1;
 		struct worker_s *workerarg = &config->workers[worker];
 		
 		/* "dedicate" a cpu core to that worker */
