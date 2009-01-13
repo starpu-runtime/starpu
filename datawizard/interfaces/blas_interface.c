@@ -17,6 +17,9 @@ size_t dump_blas_interface(data_interface_t *interface, void *buffer);
 size_t blas_interface_get_size(struct data_state_t *state);
 uint32_t footprint_blas_interface_crc32(data_state *state, uint32_t hstate);
 void display_blas_interface(data_state *state, FILE *f);
+#ifdef USE_GORDON
+int convert_blas_to_gordon(data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
+#endif
 
 struct data_interface_ops_t interface_blas_ops = {
 	.allocate_data_on_node = allocate_blas_buffer_on_node,
@@ -25,8 +28,31 @@ struct data_interface_ops_t interface_blas_ops = {
 	.dump_data_interface = dump_blas_interface,
 	.get_size = blas_interface_get_size,
 	.footprint = footprint_blas_interface_crc32,
+#ifdef USE_GORDON
+	.convert_to_gordon = convert_blas_to_gordon,
+#endif
 	.display = display_blas_interface
 };
+
+#ifdef USE_GORDON
+int convert_blas_to_gordon(data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
+{
+	STARPU_ASSERT(gordon_interface);
+
+	size_t elemsize = (*interface).blas.elemsize;
+	uint32_t nx = (*interface).blas.nx;
+	uint32_t ny = (*interface).blas.ny;
+	uint32_t ld = (*interface).blas.ld;
+
+	*ptr = (*interface).blas.ptr;
+
+	/* The gordon_stride_init function may use a contiguous buffer
+ 	 * in case nx = ld (in that case, (*ss).size = elemsize*nx*ny */
+	*ss = gordon_stride_init(ny, nx*elemsize, ld*elemsize);
+
+	return 0;
+}
+#endif
 
 /* declare a new data with the BLAS interface */
 void monitor_blas_data(data_state *state, uint32_t home_node,
