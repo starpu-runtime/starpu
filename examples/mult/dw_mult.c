@@ -268,9 +268,9 @@ static void init_problem_data(void)
 	} else
 #endif
 	{
-		posix_memalign(&A, 4096, zdim*ydim*sizeof(float));
-		posix_memalign(&B, 4096, xdim*zdim*sizeof(float));
-		posix_memalign(&C, 4096, xdim*ydim*sizeof(float));
+		posix_memalign((void **)&A, 4096, zdim*ydim*sizeof(float));
+		posix_memalign((void **)&B, 4096, xdim*zdim*sizeof(float));
+		posix_memalign((void **)&C, 4096, xdim*ydim*sizeof(float));
 	}
 
 	/* fill the A and B matrices */
