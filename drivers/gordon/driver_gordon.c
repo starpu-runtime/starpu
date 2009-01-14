@@ -31,18 +31,14 @@ void *gordon_worker_progress(void *arg)
 		/* the Gordon runtime needs to make sure that we poll it 
 		 * so that we handle jobs that are done */
 
-		gordon_poll();
-		wake_all_blocked_workers();
+		/* wait for one task termination */
+		int ret = gordon_wait(0);
+		if (ret)
+		{
+			wake_all_blocked_workers();
+		}
 
-//		/* wait for one task termination */
-//		int ret = gordon_wait(1);
-//		if (ret)
-//		{
-////			fprintf(stderr, "1 task completed ret = %d !\n", ret);
-//			wake_all_blocked_workers();
-//		}
-//
-//		/* possibly wake the thread that injects work */
+		/* possibly wake the thread that injects work */
 		// TODO
 	}
 
