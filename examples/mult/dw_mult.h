@@ -75,8 +75,8 @@ static int jobcounter;
 static struct block_conf conf __attribute__ ((aligned (128)));
 
 #define BLOCKSIZEX	(xdim / nslicesx)
-#define BLOCKSIZEY	(xdim / nslicesx)
-#define BLOCKSIZEZ	(xdim / nslicesx)
+#define BLOCKSIZEY	(ydim / nslicesy)
+#define BLOCKSIZEZ	(zdim / nslicesz)
 
 static void parse_args(int argc, char **argv)
 {

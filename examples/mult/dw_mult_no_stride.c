@@ -64,8 +64,8 @@ static void callback_func(void *arg)
 {
 	/* the argument is a pointer to a counter of the remaining jobs */
 	int *counter = arg;
-	*counter -= 1;
-	if (*counter == 0)
+	int newvalue = ATOMIC_ADD(counter, -1);
+	if (newvalue == 0)
 	{
 		/* we are done */	
 		fprintf(stderr, "done ...\n");
@@ -127,8 +127,8 @@ static void core_mult(data_interface_t *descr, __attribute__((unused))  void *ar
 {
 	COMMON_CODE
 
-	fprintf(stderr, "Call SGEMM : nxC %d nyC %d nyA %d subA %p ldA %d subB %p ldB %d subC %p ldC %d\n",
-				nxC, nyC, nyA, subA, ldA, subB, ldB, subC, ldC);
+//	fprintf(stderr, "Call SGEMM : nxC %d nyC %d nyA %d subA %p ldA %d subB %p ldB %d subC %p ldC %d\n",
+//				nxC, nyC, nyA, subA, ldA, subB, ldB, subC, ldC);
 	SGEMM("N", "N", nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 1.0f, subC, ldC);
 
 	flop_atlas += BLAS3_FLOP(nxC, nyC, nyA);
@@ -165,7 +165,7 @@ static void init_problem_data(void)
 	{
 		for (x = 0; x < nslicesx; x++)
 		{
-			posix_memalign((void **)&C[y][x], 256, BLOCKSIZEY*BLOCKSIZEZ*sizeof(float));
+			posix_memalign((void **)&C[y][x], 256, BLOCKSIZEX*BLOCKSIZEY*sizeof(float));
 			assert(C[y][x]);
 		}
 	}
@@ -179,7 +179,7 @@ static void init_problem_data(void)
 				for (j = 0; j < BLOCKSIZEY; j++)
 					for (i = 0; i < BLOCKSIZEZ; i++)
 					{
-						A[blocky][blockz][j*BLOCKSIZEY + i] = (float)(1 + blockz + blocky*nslicesz);
+						A[blocky][blockz][i*BLOCKSIZEY + j] = (float)(1 + blockz + blocky*nslicesz);
 					}
 
 		for (blockz = 0; blockz < nslicesz; blockz++)
@@ -187,7 +187,7 @@ static void init_problem_data(void)
 				for (j = 0; j < BLOCKSIZEZ; j++)
 					for (i = 0; i < BLOCKSIZEX; i++)
 					{
-						B[blockz][blockx][j*BLOCKSIZEZ + i] = (float)(1 + blockx + blockz*nslicesx);
+						B[blockz][blockx][i*BLOCKSIZEZ + j] = (float)(1 + blockx + blockz*nslicesx);
 					}
 	} 
 	else {
@@ -196,7 +196,7 @@ static void init_problem_data(void)
 				for (j = 0; j < BLOCKSIZEY; j++)
 					for (i = 0; i < BLOCKSIZEZ; i++)
 					{
-						A[blocky][blockz][j*BLOCKSIZEY + i] = (float)(drand48());
+						A[blocky][blockz][i*BLOCKSIZEY + j] = (float)(drand48());
 					}
 
 		for (blockz = 0; blockz < nslicesz; blockz++)
@@ -204,7 +204,7 @@ static void init_problem_data(void)
 				for (j = 0; j < BLOCKSIZEZ; j++)
 					for (i = 0; i < BLOCKSIZEX; i++)
 					{
-						B[blockz][blockx][j*BLOCKSIZEZ + i] = (float)(drand48());
+						B[blockz][blockx][i*BLOCKSIZEZ + j] = (float)(drand48());
 					}
 
 	}
@@ -214,7 +214,7 @@ static void init_problem_data(void)
 			for (j = 0; j < BLOCKSIZEY; j++)
 				for (i = 0; i < BLOCKSIZEX; i++)
 				{
-					C[blocky][blockx][j*BLOCKSIZEY + i] = (float)(blockx + blocky*nslicesx + 1);
+					C[blocky][blockx][i*BLOCKSIZEY + j] = (float)(blockx + blocky*nslicesx + 1);
 				}
 
 
@@ -245,6 +245,8 @@ static void init_problem_data(void)
 				BLOCKSIZEY, BLOCKSIZEY, BLOCKSIZEX, sizeof(float));
 		}
 	}
+
+
 
 	conf.k = BLOCKSIZEZ;
 	conf.m = BLOCKSIZEY;
@@ -304,17 +306,8 @@ static void launch_codelets(void)
 		jb->cl = cl;
 
 		tag_t tag = TAG(taskz, tasky, taskx, iter);
+		//fprintf(stderr, "DECLARE TAG(taskz %d, tasky %d, taskx %d, iter %d) %lx\n", taskz, tasky, taskx, iter, tag);
 		jb->nbuffers = 3;
-
-		tag_declare(tag, jb);
-		if (taskz < nslicesz)
-		{
-			tag_declare_deps(TAG(taskz, tasky, taskx, iter), 1, TAG(taskz+1, tasky, taskx, iter));
-		}
-		else {
-			if (iter < niter)
-				tag_declare_deps(TAG(taskz, tasky, taskx, iter), 1, TAG(0, tasky, taskx, iter+1));
-		}
 
 		jb->buffers[0].state = &A_state[tasky][taskz];
 		jb->buffers[0].mode = R;
@@ -324,8 +317,18 @@ static void launch_codelets(void)
 		jb->buffers[2].mode = RW;
 
 		jb->model = &sgemm_model;
-		
-		push_task(jb);
+
+		tag_declare(tag, jb);
+
+		if (taskz < nslicesz - 1)
+		{
+			tag_declare_deps(TAG(taskz, tasky, taskx, iter), 1, TAG(taskz+1, tasky, taskx, iter));
+		}
+		else if (iter < niter - 1) {
+				tag_declare_deps(TAG(taskz, tasky, taskx, iter), 1, TAG(0, tasky, taskx, iter+1));
+		} else {
+			push_task(jb);
+		}
 	}
 }
 
