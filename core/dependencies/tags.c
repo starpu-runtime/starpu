@@ -39,6 +39,15 @@ static struct tag_s *tag_init(tag_t id)
 	return tag;
 }
 
+void tag_remove(tag_t id)
+{
+	struct tag_s *tag;
+
+	tag = htbl_remove_tag(tag_htbl, id);
+
+	free(tag);
+}
+
 struct tag_s *gettag_struct(tag_t id)
 {
 	/* search if the tag is already declared or not */

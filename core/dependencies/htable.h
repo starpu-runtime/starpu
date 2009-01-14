@@ -20,6 +20,7 @@ typedef struct _htbl_node_t {
 
 void *htbl_search_tag(htbl_node_t *htbl, tag_t tag);
 void *htbl_insert_tag(htbl_node_t **htbl, tag_t tag, void *entry);
+void *htbl_remove_tag(htbl_node_t *htbl, tag_t tag);
 
 
 #endif

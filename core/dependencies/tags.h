@@ -44,6 +44,7 @@ void tag_add_succ(tag_t id, cg_t *cg);
 
 void notify_dependencies(struct job_s *j);
 void tag_declare(tag_t id, struct job_s *job);
+void tag_remove(tag_t id);
 void tag_declare_deps(tag_t id, unsigned ndeps, ...);
 void tag_set_ready(struct tag_s *tag);
 
