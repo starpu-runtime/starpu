@@ -6,7 +6,7 @@
 
 pthread_t progress_thread;
 sem_t progress_sem;
-static struct mutex_t terminated_list_mutexes[32]; 
+struct mutex_t terminated_list_mutexes[32]; 
 
 struct gordon_task_wrapper_s {
 	/* who has executed that ? */
@@ -190,7 +190,11 @@ static void gordon_callback_func(void *arg)
 	task_wrapper->terminated = 1;
 
 //	fprintf(stderr, "gordon callback : push job j %p\n", task_wrapper->j);
+
+	/* XXX 0 was hardcoded */
+	take_mutex(&terminated_list_mutexes[0]);
 	job_list_push_back(worker->terminated_jobs, task_wrapper->j);
+	release_mutex(&terminated_list_mutexes[0]);
 	wake_all_blocked_workers();
 	free(task_wrapper);
 }
@@ -258,14 +262,15 @@ void *gordon_worker(void *arg)
 	/* TODO set_local_memory_node per SPU */
 	gordon_init(gordon_set_arg->nworkers);	
 
+	/* XXX quick and dirty ... */
+	pthread_setspecific(local_workers_key, arg);
+
 	unsigned spu;
 	for (spu = 0; spu < gordon_set_arg->nworkers; spu++)
 	{
 		init_mutex(&terminated_list_mutexes[spu]);
 	}
 
-	/* XXX quick and dirty ... */
-	pthread_setspecific(local_workers_key, arg);
 
 	/*
  	 * To take advantage of PPE being hyperthreaded, we should have 2 threads
