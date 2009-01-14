@@ -14,7 +14,7 @@
 #include <drivers/cuda/driver_cuda.h>
 #endif
 
-#define NITER	1000
+#define NITER	10000
 
 data_state my_float_state;
 data_state unity_state;
@@ -25,22 +25,22 @@ unsigned size __attribute__ ((aligned (16))) = 4*sizeof(float);
 
 float my_lovely_float[4] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f, 1664.0f}; 
 float unity[4] __attribute__ ((aligned (16))) = { 1.0f, 0.0f, 1.0f, 0.0f };
+unsigned i;
 
 void callback_func(void *argcb)
 {
 	unsigned cnt = ATOMIC_ADD((unsigned *)argcb, 1);
 
-	if ((cnt == NITER)) 
+	if (cnt == NITER) 
 	{
 		/* stop monitoring data and grab it in RAM */
 		unpartition_data(&my_float_state, 0);
 
-		printf("delete data ...\n");
 		delete_data(&my_float_state);
 		
 		printf("array -> %f, %f, %f\n", my_lovely_float[0], 
 				my_lovely_float[1], my_lovely_float[2]);
-		printf("stopping ...\n");
+		printf("stopping ... cnt was %d i %d ctrl %d \n", cnt, i, ctrl_cnt);
 
 		terminate_machine();
 
@@ -102,10 +102,9 @@ void init_data(void)
 
 int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)
 {
-	unsigned i;
 	unsigned counter;
 
-	tag_t tag;
+	//tag_t tag;
 
 	init_machine();
 	fprintf(stderr, "StarPU initialized ...\n");
@@ -137,7 +136,6 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	cl.gordon_func = SPU_FUNC_ADD;
 #endif
 
-
 	for (i = 0; i < NITER; i++)
 	{
 		j = job_create();
@@ -160,8 +158,8 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		j->buffers[1].state = &unity_state; 
 		j->buffers[1].mode = R;
 
-		tag =	((2ULL)<<32 | (unsigned long long)(i));
-		tag_declare(tag, j);
+		//tag =	((2ULL)<<32 | (unsigned long long)(i));
+		//tag_declare(tag, j);
 
 		push_task(j);
 	}
