@@ -33,5 +33,8 @@ int push_task(job_t task);
 int push_task_sync(job_t task);
 int push_prio_task(job_t task);
 struct job_s *pop_task(void);
+struct job_list_s *pop_every_task(void);
+
+void wait_on_sched_event(void);
 
 #endif // __SCHED_POLICY_H__

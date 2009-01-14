@@ -157,6 +157,43 @@ job_t fifo_pop_task(struct jobq_s *q)
 	return j;
 }
 
+struct job_list_s * fifo_pop_every_task(struct jobq_s *q)
+{
+	struct job_list_s *list;
+	unsigned size;
+	
+	STARPU_ASSERT(q);
+	struct fifo_jobq_s *fifo_queue = q->queue;
+
+	pthread_mutex_lock(&q->activity_mutex);
+
+	size = fifo_queue->njobs;
+
+	if (size == 0) {
+		list = NULL;
+	}
+	else {
+		/* directly use the existing list of jobs */
+		list = fifo_queue->jobq;
+
+	//	fprintf(stderr, "DEBUG, fifo_pop_every_task promised %d got %d\n",  size, job_list_size(list));
+		
+		/* the FIFO is now a new empty list */
+		fifo_queue->jobq = job_list_new();
+		fifo_queue->njobs = 0;
+
+		/* we are sure that we got it now, so at worst, some people thought
+		 * there remained some work and will soon discover it is not true */
+		pthread_mutex_lock(sched_mutex);
+		total_number_of_jobs -= size;
+		pthread_mutex_unlock(sched_mutex);
+	}
+
+	pthread_mutex_unlock(&q->activity_mutex);
+
+	return list;
+}
+
 /* for work stealing, typically */
 job_t fifo_non_blocking_pop_task(struct jobq_s *q)
 {

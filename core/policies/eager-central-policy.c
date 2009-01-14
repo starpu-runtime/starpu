@@ -18,6 +18,8 @@ static void init_central_queue_design(void)
 	jobq->push_task = fifo_push_task;
 	jobq->push_prio_task = fifo_push_prio_task;
 	jobq->pop_task = fifo_pop_task;
+
+	jobq->pop_every_task = fifo_pop_every_task;
 }
 
 static struct jobq_s *func_init_central_queue(void)

@@ -121,3 +121,23 @@ struct job_s * pop_task(void)
 
 	return j;
 }
+
+struct job_list_s *pop_every_task(void)
+{
+	struct jobq_s *queue = policy.get_local_queue(&policy);
+
+	STARPU_ASSERT(queue->pop_task_every_task);
+
+	struct job_list_s *list = queue->pop_every_task(queue);
+
+	return list;
+}
+
+void wait_on_sched_event(void)
+{
+	struct jobq_s *q = policy.get_local_queue(&policy);
+
+	pthread_mutex_lock(&q->activity_mutex);
+	pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
+	pthread_mutex_unlock(&q->activity_mutex);
+}

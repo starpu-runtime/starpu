@@ -17,6 +17,14 @@ struct jobq_s {
 	int (*push_prio_task)(struct jobq_s *, job_t);
 	struct job_s* (*pop_task)(struct jobq_s *);
 
+	/* returns the number of tasks that were retrieved 
+ 	 * the function is reponsible for allocating the output but the driver
+ 	 * has to free it 
+ 	 *
+ 	 * NB : this function is non blocking
+ 	 * */
+	struct job_list_s *(*pop_every_task)(struct jobq_s *);
+
 	/* what are the driver that may pop job from that queue ? */
 	uint32_t who;
 
