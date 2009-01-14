@@ -139,6 +139,16 @@ static void init_problem_data(void)
 {
 	unsigned i,j;
 
+	/* debug ... */
+	memset(A, 0, MAXSLICESY*MAXSLICESZ*sizeof(float *));
+	memset(B, 0, MAXSLICESZ*MAXSLICESZ*sizeof(float *));
+	memset(C, 0, MAXSLICESY*MAXSLICESX*sizeof(float *));
+	memset(&A_state, 0, MAXSLICESY*MAXSLICESZ*sizeof(data_state));
+	memset(&B_state, 0, MAXSLICESZ*MAXSLICESZ*sizeof(data_state));
+	memset(&C_state, 0, MAXSLICESY*MAXSLICESX*sizeof(data_state));
+
+
+
 	/* Allocate grids of buffer */
 	/* TODO pin ... */
 	unsigned z, y, x;

@@ -27,9 +27,9 @@
 #include <cuda.h>
 #endif
 
-#define MAXSLICESX	16
-#define MAXSLICESY	16
-#define MAXSLICESZ	16
+#define MAXSLICESX	32
+#define MAXSLICESY	32
+#define MAXSLICESZ	32
 
 #define BLAS3_FLOP(n1,n2,n3)	\
 	(2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
@@ -133,6 +133,10 @@ static void parse_args(int argc, char **argv)
 			pin = 1;
 		}
 	}
+
+	assert(nslicesx <= MAXSLICESX); 
+	assert(nslicesy <= MAXSLICESY); 
+	assert(nslicesz <= MAXSLICESZ); 
 }
 
 
