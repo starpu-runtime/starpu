@@ -12,9 +12,10 @@ struct gordon_task_wrapper_s {
 	/* who has executed that ? */
 	struct worker_s *worker;
 
-	/* for now, we only have a single job at a time */
-	job_t j;	/* StarPU */
+	struct job_list_s *list;	/* StarPU */
 	struct gordon_ppu_job_s *gordon_job; /* gordon*/
+
+	struct job_s *j; /* if there is a single task */
 
 	/* debug */
 	unsigned terminated;
@@ -174,6 +175,33 @@ static void handle_terminated_jobs(struct worker_set_s *arg)
 	}
 }
 
+static void gordon_callback_list_func(void *arg)
+{
+	struct gordon_task_wrapper_s *task_wrapper = arg; 
+
+	/* we don't know who will execute that codelet : so we actually defer the
+ 	 * execution of the StarPU codelet and the job termination later */
+	struct worker_s *worker = task_wrapper->worker;
+	STARPU_ASSERT(worker);
+
+	task_wrapper->terminated = 1;
+
+//	fprintf(stderr, "gordon callback : push job j %p\n", task_wrapper->j);
+
+	/* XXX 0 was hardcoded */
+	take_mutex(&terminated_list_mutexes[0]);
+	while (!job_list_empty(task_wrapper->list))
+	{
+		job_t j = job_list_pop_back(task_wrapper->list);
+		job_list_push_back(worker->terminated_jobs, j);
+	}
+	release_mutex(&terminated_list_mutexes[0]);
+
+	wake_all_blocked_workers();
+	free(task_wrapper);
+}
+
+
 static void gordon_callback_func(void *arg)
 {
 	struct gordon_task_wrapper_s *task_wrapper = arg; 
@@ -214,9 +242,62 @@ int inject_task(job_t j, struct worker_s *worker)
 	return 0;
 }
 
+int inject_task_list(struct job_list_s *list, struct worker_s *worker)
+{
+	/* first put back all tasks that can not be performed by Gordon */
+	unsigned nvalids = 0;
+	unsigned ninvalids = 0;
+	job_t j;
+
+	// TODO !
+//	
+//	for (j = job_list_begin(list); j != job_list_end(list); j = job_list_next(j) )
+//	{
+//		if (!GORDON_MAY_PERFORM(j)) {
+//			// XXX TODO
+//			ninvalids++;
+//			assert(0);
+//		}
+//		else {
+//			nvalids++;
+//		}
+//	}
+
+	nvalids = job_list_size(list);
+//	fprintf(stderr, "nvalids %d \n", nvalids);
+
+	struct gordon_task_wrapper_s *task_wrapper = malloc(sizeof(struct gordon_task_wrapper_s));
+	gordon_job_t *gordon_jobs = gordon_alloc_jobs(nvalids, 0);
+
+	task_wrapper->gordon_job = gordon_jobs;
+	task_wrapper->list = list;
+	task_wrapper->j = NULL;
+	task_wrapper->terminated = 0;
+	task_wrapper->worker = worker;
+	
+	unsigned index;
+	for (j = job_list_begin(list), index = 0; j != job_list_end(list); j = job_list_next(j), index++)
+	{
+		int ret;
+
+		ret = fetch_codelet_input(j->buffers, j->interface, j->nbuffers, 0);
+		STARPU_ASSERT(!ret);
+
+		gordon_jobs[index].index = j->cl->gordon_func;
+
+		/* we should not hardcore the memory node ... XXX */
+		unsigned memory_node = 0;
+		starpu_to_gordon_buffers(j, &gordon_jobs[index], memory_node);
+		
+	}
+
+	gordon_pushjob(task_wrapper->gordon_job, gordon_callback_list_func, task_wrapper);
+
+	return 0;
+}
+
 void *gordon_worker_inject(struct worker_set_s *arg)
 {
-	job_t j;
 
 	while(machine_is_running()) {
 		/* make gordon driver progress */
@@ -224,12 +305,95 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 
 		if (gordon_busy_enough()) {
 			/* gordon already has enough work, wait a little TODO */
+			wait_on_sched_event();
 		}
 		else {
-			/* do some progression */
-		//	gordon_wait(0);
+#ifndef NOCHAIN
+			int ret = 0;
+			struct job_list_s *list = pop_every_task();
+			/* XXX 0 is hardcoded */
+			if (list)
+			{
 
+#if 0
+				struct job_list_s *lists[16];
+				unsigned size = job_list_size(list);
+
+				unsigned nchunks = (size<2*arg->nworkers)?size:(2*arg->nworkers);
+
+				/* last element may be a little smaller (by 1) */
+				unsigned nchunksize = (size + nchunks - 1)/nchunks;
+				//fprintf(stderr, "size %d nchunks %d \n", size, nchunks);
+
+				unsigned chunk;
+				for (chunk = 0; chunk < nchunks; chunk++)
+				{
+					lists[chunk] = job_list_new();
+				}
+
+				unsigned currentchunk = 0;
+				while(!job_list_empty(list))
+				{
+					job_t j;
+					j = job_list_pop_front(list);
+					job_list_push_front(lists[currentchunk], j);
+					currentchunk = (currentchunk + 1)%nchunks; 
+				}
+
+				job_list_delete(list);
+
+				for (chunk = 0; chunk < nchunks; chunk++)
+				{
+					ret = inject_task_list(lists[chunk], &arg->workers[0]);
+				}
+
+#endif
+				/* partition lists */
+				unsigned size = job_list_size(list);
+				unsigned nchunks = (size<2*arg->nworkers)?size:(2*arg->nworkers);
+
+				/* last element may be a little smaller (by 1) */
+				unsigned chunksize = (size)/nchunks;
+
+				unsigned chunk;
+				for (chunk = 0; chunk < nchunks; chunk++)
+				{
+					struct job_list_s *chunk_list;
+					if (chunk != (nchunks -1))
+					{
+						/* split the list in 2 parts : list = chunk_list | tail */
+						chunk_list = job_list_new();
+
+						/* find the end */
+						chunk_list->_head = list->_head;
+
+						job_itor_t it_j = job_list_begin(list);
+						unsigned ind;
+						for (ind = 0; ind < chunksize; ind++)
+						{
+							it_j = job_list_next(it_j);
+						}
+
+						/* it_j should be the first element of the new list (tail) */
+						chunk_list->_tail = it_j->_prev;
+						chunk_list->_tail->_next = NULL;
+						list->_head = it_j;
+						it_j->_prev = NULL;
+					}
+					else {
+						/* this is the last chunk */
+						chunk_list = list;
+					}
+
+					ret = inject_task_list(chunk_list, &arg->workers[0]);
+				}
+			}
+			else {
+				wait_on_sched_event();
+			}
+#else
 			/* gordon should accept a little more work */
+			job_t j;
 			j =  pop_task();
 	//		fprintf(stderr, "pop task %p\n", j);
 			if (j) {
@@ -242,6 +406,7 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 					push_task(j);
 				}
 			}
+#endif
 			
 		}
 	}
