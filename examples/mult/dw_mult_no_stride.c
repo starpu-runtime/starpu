@@ -1,7 +1,5 @@
 #include <examples/mult/dw_mult.h>
 
-#define NITER	100
-
 float *A[MAXSLICESY][MAXSLICESZ];
 float *B[MAXSLICESZ][MAXSLICESX];
 float *C[MAXSLICESY][MAXSLICESX];
@@ -51,7 +49,7 @@ static void terminate(void)
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	uint64_t total_flop = BLAS3_FLOP(ydim, xdim, zdim)*NITER;
+	uint64_t total_flop = BLAS3_FLOP(ydim, xdim, zdim)*niter;
 	uint64_t total_ls = ls_cublas + ls_atlas;
 
 	fprintf(stderr, "Computation took (ms):\n");
@@ -267,7 +265,7 @@ static void launch_codelets(void)
 	unsigned taskx, tasky, taskz;
 	job_t jb;
 
-	jobcounter = nslicesx * nslicesy * nslicesz * NITER;
+	jobcounter = nslicesx * nslicesy * nslicesz * niter;
 
 	srand(time(NULL));
 
@@ -284,7 +282,7 @@ static void launch_codelets(void)
 #endif
 	unsigned iter;
 
-	for (iter = 0; iter < NITER; iter++)
+	for (iter = 0; iter < niter; iter++)
 	for (taskz = 0; taskz < nslicesz; taskz++) 
 	for (taskx = 0; taskx < nslicesx; taskx++) 
 	for (tasky = 0; tasky < nslicesy; tasky++)
@@ -314,7 +312,7 @@ static void launch_codelets(void)
 			tag_declare_deps(TAG(taskz, tasky, taskx, iter), 1, TAG(taskz+1, tasky, taskx, iter));
 		}
 		else {
-			if (iter < NITER)
+			if (iter < niter)
 				tag_declare_deps(TAG(taskz, tasky, taskx, iter), 1, TAG(0, tasky, taskx, iter+1));
 		}
 

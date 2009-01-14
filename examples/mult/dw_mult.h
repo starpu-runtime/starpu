@@ -46,7 +46,9 @@ struct block_conf {
 	uint32_t pad;
 };
 
+#define NITER	100
 
+unsigned niter = NITER;
 unsigned nslicesx = 4;
 unsigned nslicesy = 4;
 unsigned nslicesz = 4;
@@ -116,6 +118,12 @@ static void parse_args(int argc, char **argv)
 			char *argptr;
 			zdim = strtol(argv[++i], &argptr, 10);
 		}
+
+		if (strcmp(argv[i], "-iter") == 0) {
+			char *argptr;
+			niter = strtol(argv[++i], &argptr, 10);
+		}
+
 
 		if (strcmp(argv[i], "-no-random") == 0) {
 			norandom = 1;
