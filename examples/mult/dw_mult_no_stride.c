@@ -44,7 +44,6 @@ data_state C_state[MAXSLICESY][MAXSLICESX];
 
 static void terminate(void)
 {
-
 	gettimeofday(&end, NULL);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
@@ -135,6 +134,8 @@ static void core_mult(data_interface_t *descr, __attribute__((unused))  void *ar
 	ls_atlas += BLAS3_LS(nxC, nyC, nyA);
 }
 
+#define MEM_ALIGNMENT	16
+
 static void init_problem_data(void)
 {
 	unsigned i,j;
@@ -157,7 +158,7 @@ static void init_problem_data(void)
 	{
 		for (z = 0; z < nslicesz; z++)
 		{
-			posix_memalign((void **)&A[y][z], 256, BLOCKSIZEZ*BLOCKSIZEY*sizeof(float));
+			posix_memalign((void **)&A[y][z], MEM_ALIGNMENT, BLOCKSIZEZ*BLOCKSIZEY*sizeof(float));
 			assert(A[y][z]);
 		}
 	}
@@ -166,7 +167,7 @@ static void init_problem_data(void)
 	{
 		for (x = 0; x < nslicesx; x++)
 		{
-			posix_memalign((void **)&B[z][x], 256, BLOCKSIZEX*BLOCKSIZEZ*sizeof(float));
+			posix_memalign((void **)&B[z][x], MEM_ALIGNMENT, BLOCKSIZEX*BLOCKSIZEZ*sizeof(float));
 			assert(B[z][x]);
 		}
 	}
@@ -175,7 +176,7 @@ static void init_problem_data(void)
 	{
 		for (x = 0; x < nslicesx; x++)
 		{
-			posix_memalign((void **)&C[y][x], 256, BLOCKSIZEX*BLOCKSIZEY*sizeof(float));
+			posix_memalign((void **)&C[y][x], MEM_ALIGNMENT, BLOCKSIZEX*BLOCKSIZEY*sizeof(float));
 			assert(C[y][x]);
 		}
 	}
@@ -264,7 +265,48 @@ static void init_problem_data(void)
 
 	gettimeofday(&start, NULL);
 
-	//exit(-1);
+	fprintf(stderr, "Memory consumption : A -> %ld KB\n", (MAXSLICESY*MAXSLICESZ*sizeof(float *))/(1024));
+	fprintf(stderr, "Memory consumption : B -> %ld KB\n", (MAXSLICESZ*MAXSLICESX*sizeof(float *))/(1024));
+	fprintf(stderr, "Memory consumption : C -> %ld KB\n", (MAXSLICESY*MAXSLICESX*sizeof(float *))/(1024));
+	fprintf(stderr, "Memory consumption : A_state -> %ld KB\n", (MAXSLICESY*MAXSLICESZ*sizeof(data_state)/(1024)));
+	fprintf(stderr, "Memory consumption : B_state -> %ld KB\n", (MAXSLICESZ*MAXSLICESX*sizeof(data_state)/(1024)));
+	fprintf(stderr, "Memory consumption : C_state -> %ld KB\n", (MAXSLICESY*MAXSLICESX*sizeof(data_state)/(1024)));
+	fprintf(stderr, "Memory consumption : data A -> %ld MB\n", (ydim*zdim*sizeof(float)/(1024*1024)));
+	fprintf(stderr, "Memory consumption : data B -> %ld MB\n", (zdim*xdim*sizeof(float)/(1024*1024)));
+	fprintf(stderr, "Memory consumption : data C -> %ld MB\n", (ydim*xdim*sizeof(float)/(1024*1024)));
+
+	fprintf(stderr, "Total memory : %ld MB\n", (MAXSLICESY*MAXSLICESZ*sizeof(float *) + MAXSLICESZ*MAXSLICESX*sizeof(float *) + MAXSLICESY*MAXSLICESX*sizeof(float *) + MAXSLICESY*MAXSLICESZ*sizeof(data_state) + MAXSLICESZ*MAXSLICESX*sizeof(data_state) + MAXSLICESY*MAXSLICESX*sizeof(data_state) + ydim*zdim*sizeof(float) +  zdim*xdim*sizeof(float) +  ydim*xdim*sizeof(float))/(1024*1024) );
+
+}
+
+static void cleanup_problem(void)
+{
+	unsigned z, y, x;
+
+	for (y = 0; y < nslicesy; y++)
+	{
+		for (z = 0; z < nslicesz; z++)
+		{
+			free(A[y][z]);
+		}
+	}
+
+	for (z = 0; z < nslicesz; z++)
+	{
+		for (x = 0; x < nslicesx; x++)
+		{
+			free(B[z][x]);
+		}
+	}
+
+	for (y = 0; y < nslicesy; y++)
+	{
+		for (x = 0; x < nslicesx; x++)
+		{
+			free(C[y][x]);
+		}
+	}
+	
 }
 
 
@@ -277,7 +319,8 @@ static void launch_codelets(void)
 	unsigned taskx, tasky, taskz;
 	job_t jb;
 
-	jobcounter = nslicesx * nslicesy * nslicesz * niter;
+	/* only a callback per (nslicesz * niter) task given deps */
+	jobcounter = nslicesx * nslicesy;
 
 	srand(time(NULL));
 
@@ -311,8 +354,7 @@ static void launch_codelets(void)
 #ifdef USE_GORDON
 		jb->where |= GORDON;
 #endif
-		jb->cb = callback_func;
-		jb->argcb = &jobcounter;
+
 		jb->cl = cl;
 
 		tag_t tag = TAG(taskz, tasky, taskx, iter);
@@ -330,12 +372,18 @@ static void launch_codelets(void)
 
 		tag_declare(tag, jb);
 
+		if ((taskz == 0) && (iter == 0))
+		{	
+			jb->cb = callback_func;
+			jb->argcb = &jobcounter;
+		}
+
 		if (taskz < nslicesz - 1)
 		{
 			tag_declare_deps(TAG(taskz, tasky, taskx, iter), 1, TAG(taskz+1, tasky, taskx, iter));
 		}
 		else if (iter < niter - 1) {
-				tag_declare_deps(TAG(taskz, tasky, taskx, iter), 1, TAG(0, tasky, taskx, iter+1));
+			tag_declare_deps(TAG(taskz, tasky, taskx, iter), 1, TAG(0, tasky, taskx, iter+1));
 		} else {
 			push_task(jb);
 		}
@@ -359,6 +407,8 @@ int main(__attribute__ ((unused)) int argc,
 
 	sem_wait(&sem);
 	sem_destroy(&sem);
+
+	cleanup_problem();
 
 	exit(-1);
 	terminate_machine();
