@@ -47,11 +47,13 @@ void handle_job_termination(job_t j)
 
 	j->terminated = 1;
 
-	if (j->cb)
-		j->cb(j->argcb);
-
 	/* in case there are dependencies, wake up the proper tasks */
 	notify_dependencies(j);
+
+	/* the callback is executed after the dependencies so that we may remove the tag 
+ 	 * of the task itself */
+	if (j->cb)
+		j->cb(j->argcb);
 
 	if (j->synchronous)
 		sem_post(&j->sync_sem);
