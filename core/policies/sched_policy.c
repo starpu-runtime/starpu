@@ -126,7 +126,7 @@ struct job_list_s *pop_every_task(void)
 {
 	struct jobq_s *queue = policy.get_local_queue(&policy);
 
-	STARPU_ASSERT(queue->pop_task_every_task);
+	STARPU_ASSERT(queue->pop_every_task);
 
 	struct job_list_s *list = queue->pop_every_task(queue);
 
