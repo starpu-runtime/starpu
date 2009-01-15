@@ -7,6 +7,9 @@
 #include <core/policies/sched_policy.h>
 
 static htbl_node_t *tag_htbl = NULL;
+static mutex tag_mutex = {
+	.taken = 0
+};
 
 cg_t *create_cg(unsigned ntags, struct tag_s *tag)
 {
@@ -43,13 +46,17 @@ void tag_remove(tag_t id)
 {
 	struct tag_s *tag;
 
+	take_mutex(&tag_mutex);
 	tag = htbl_remove_tag(tag_htbl, id);
+	release_mutex(&tag_mutex);
 
 	free(tag);
 }
 
 struct tag_s *gettag_struct(tag_t id)
 {
+	take_mutex(&tag_mutex);
+
 	/* search if the tag is already declared or not */
 	struct tag_s *tag;
 	tag = htbl_search_tag(tag_htbl, id);
@@ -64,6 +71,8 @@ struct tag_s *gettag_struct(tag_t id)
 		STARPU_ASSERT(old == NULL);
 	}
 
+	release_mutex(&tag_mutex);
+
 	return tag;
 }
 
@@ -74,7 +83,7 @@ void notify_cg(cg_t *cg)
 	if (ntags == 0) {
 		/* the group is now completed */
 		tag_set_ready(cg->tag);
-		//free(cg);
+		free(cg);
 	}
 }
 
