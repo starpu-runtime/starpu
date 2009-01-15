@@ -19,7 +19,12 @@ data_state C_state[MAXSLICESY][MAXSLICESX];
 	(C[(i)/BLOCKSIZEY][(j)/BLOCKSIZEX][(i)%BLOCKSIZEY + ((j)%BLOCKSIZEX)*BLOCKSIZEY])
 
 #define TAG(x,y,z,iter)	\
-		((x) + (y)*nslicesx + (z)*nslicesx*nslicesy + (iter)*nslicesx*nslicesy*nslicesz)
+		((z) + (iter)*nslicesz + (x)*(nslicesz*niter) + (y)*(nslicesx*nslicesz*niter))
+
+	//	((x) + (y)*nslicesx + (z)*nslicesx*nslicesy + (iter)*nslicesx*nslicesy*nslicesz)
+//		(((tag_t)((x) + (y)*nslicesx))<<32 | ((tag_t)((z) +  (iter)*nslicesz)))
+
+static void submit_new_iter(unsigned x, unsigned y, unsigned iter);
 
 /*
  * That program should compute C = A * B 
@@ -42,6 +47,8 @@ data_state C_state[MAXSLICESY][MAXSLICESX];
 
  */
 
+static codelet *cl;
+
 static void terminate(void)
 {
 	gettimeofday(&end, NULL);
@@ -49,7 +56,6 @@ static void terminate(void)
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
 	uint64_t total_flop = BLAS3_FLOP(ydim, xdim, zdim)*niter;
-	uint64_t total_ls = ls_cublas + ls_atlas;
 
 	fprintf(stderr, "Computation took (ms):\n");
 	printf("%2.2f\n", timing/1000);
@@ -59,20 +65,6 @@ static void terminate(void)
 	sem_post(&sem);
 }
 
-static void callback_func(void *arg)
-{
-	/* the argument is a pointer to a counter of the remaining jobs */
-	int *counter = arg;
-	int newvalue = ATOMIC_ADD(counter, -1);
-	if (newvalue == 0)
-	{
-		/* we are done */	
-		fprintf(stderr, "done ...\n");
-		terminate();
-	}
-
-	return;
-}
 
 #define COMMON_CODE			\
 	uint32_t nxC, nyC, nyA;		\
@@ -128,7 +120,7 @@ static void core_mult(data_interface_t *descr, __attribute__((unused))  void *ar
 
 //	fprintf(stderr, "Call SGEMM : nxC %d nyC %d nyA %d subA %p ldA %d subB %p ldB %d subC %p ldC %d\n",
 //				nxC, nyC, nyA, subA, ldA, subB, ldB, subC, ldC);
-	SGEMM("N", "N", nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 1.0f, subC, ldC);
+//	SGEMM("N", "N", nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 1.0f, subC, ldC);
 
 	flop_atlas += BLAS3_FLOP(nxC, nyC, nyA);
 	ls_atlas += BLAS3_LS(nxC, nyC, nyA);
@@ -147,8 +139,6 @@ static void init_problem_data(void)
 	memset(&A_state, 0, MAXSLICESY*MAXSLICESZ*sizeof(data_state));
 	memset(&B_state, 0, MAXSLICESZ*MAXSLICESZ*sizeof(data_state));
 	memset(&C_state, 0, MAXSLICESY*MAXSLICESX*sizeof(data_state));
-
-
 
 	/* Allocate grids of buffer */
 	/* TODO pin ... */
@@ -257,26 +247,13 @@ static void init_problem_data(void)
 		}
 	}
 
-
-
 	conf.k = BLOCKSIZEZ;
 	conf.m = BLOCKSIZEY;
 	conf.n = BLOCKSIZEX;
 
 	gettimeofday(&start, NULL);
 
-	fprintf(stderr, "Memory consumption : A -> %ld KB\n", (MAXSLICESY*MAXSLICESZ*sizeof(float *))/(1024));
-	fprintf(stderr, "Memory consumption : B -> %ld KB\n", (MAXSLICESZ*MAXSLICESX*sizeof(float *))/(1024));
-	fprintf(stderr, "Memory consumption : C -> %ld KB\n", (MAXSLICESY*MAXSLICESX*sizeof(float *))/(1024));
-	fprintf(stderr, "Memory consumption : A_state -> %ld KB\n", (MAXSLICESY*MAXSLICESZ*sizeof(data_state)/(1024)));
-	fprintf(stderr, "Memory consumption : B_state -> %ld KB\n", (MAXSLICESZ*MAXSLICESX*sizeof(data_state)/(1024)));
-	fprintf(stderr, "Memory consumption : C_state -> %ld KB\n", (MAXSLICESY*MAXSLICESX*sizeof(data_state)/(1024)));
-	fprintf(stderr, "Memory consumption : data A -> %ld MB\n", (ydim*zdim*sizeof(float)/(1024*1024)));
-	fprintf(stderr, "Memory consumption : data B -> %ld MB\n", (zdim*xdim*sizeof(float)/(1024*1024)));
-	fprintf(stderr, "Memory consumption : data C -> %ld MB\n", (ydim*xdim*sizeof(float)/(1024*1024)));
-
-	fprintf(stderr, "Total memory : %ld MB\n", (MAXSLICESY*MAXSLICESZ*sizeof(float *) + MAXSLICESZ*MAXSLICESX*sizeof(float *) + MAXSLICESY*MAXSLICESX*sizeof(float *) + MAXSLICESY*MAXSLICESZ*sizeof(data_state) + MAXSLICESZ*MAXSLICESX*sizeof(data_state) + MAXSLICESY*MAXSLICESX*sizeof(data_state) + ydim*zdim*sizeof(float) +  zdim*xdim*sizeof(float) +  ydim*xdim*sizeof(float))/(1024*1024) );
-
+	display_memory_consumption();
 }
 
 static void cleanup_problem(void)
@@ -287,7 +264,7 @@ static void cleanup_problem(void)
 	{
 		for (z = 0; z < nslicesz; z++)
 		{
-			free(A[y][z]);
+	//		free(A[y][z]);
 		}
 	}
 
@@ -295,7 +272,7 @@ static void cleanup_problem(void)
 	{
 		for (x = 0; x < nslicesx; x++)
 		{
-			free(B[z][x]);
+	//		free(B[z][x]);
 		}
 	}
 
@@ -303,12 +280,138 @@ static void cleanup_problem(void)
 	{
 		for (x = 0; x < nslicesx; x++)
 		{
-			free(C[y][x]);
+	//		free(C[y][x]);
+			tag_remove(TAG(nslicesz - 1, y, x, niter - 1));
 		}
 	}
+
+	
 	
 }
 
+int xycounter;
+
+struct cb2_s {
+	unsigned blockx;
+	unsigned blocky;
+	unsigned iter;
+	int *xycounter;
+};
+
+
+static job_t construct_job(unsigned x, unsigned y, unsigned z, unsigned iter)
+{
+	job_t jb;
+	jb = job_create();
+
+	jb->where = CORE;
+#ifdef USE_CUDA
+	jb->where |= CUBLAS;
+#endif
+#ifdef USE_GORDON
+	jb->where |= GORDON;
+#endif
+
+	jb->cl = cl;
+
+	tag_declare(TAG(z, y, x, iter), jb);
+//	fprintf(stderr, "TAG (z %d , y %d , x %d , iter %d) -> %lx\n", z, y, x, iter, TAG(z, y, x, iter));
+
+	jb->nbuffers = 3;
+
+	jb->buffers[0].state = &A_state[y][z];
+	jb->buffers[0].mode = R;
+	jb->buffers[1].state = &B_state[z][x];
+	jb->buffers[1].mode = R;
+	jb->buffers[2].state = &C_state[y][x];
+	jb->buffers[2].mode = RW;
+
+
+	return jb;
+}
+
+
+static void callback_func(void *arg)
+{
+	/* the argument is a pointer to a counter of the remaining jobs */
+	int *counter = arg;
+	int newvalue = ATOMIC_ADD(counter, -1);
+	if (newvalue == 0)
+	{
+		/* we are done */	
+		fprintf(stderr, "done ...\n");
+		terminate();
+	}
+
+	return;
+}
+
+
+static void callback_func_2(void *arg)
+{
+	/* the argument is a pointer to a counter of the remaining jobs */
+	struct cb2_s *cb2 = arg;
+	unsigned x,y,z,iter;
+
+	iter = cb2->iter;
+	x = cb2->blockx;
+	y = cb2->blocky;
+
+	free(cb2);
+
+//	fprintf(stderr, "func 2 for x %d y %d iter %d\n", x, y, iter);
+
+	/* TAG(nslicesz - 1, y, x, iter) remains ... */
+	for (z = 0; z < nslicesz - 1; z++)
+	{
+		tag_remove(TAG(z, y, x, iter));
+	}
+
+	if (iter > 0)
+	{
+		tag_remove(TAG(nslicesz - 1, y, x, iter-1));
+	}
+	
+	if (iter == niter - 1) {
+		callback_func(&xycounter);
+	}
+	else {
+		submit_new_iter(x, y, iter+1);
+	}
+}
+
+
+
+static void submit_new_iter(unsigned x, unsigned y, unsigned iter)
+{
+	job_t jz0;
+
+	unsigned z;
+	for (z = 0; z < nslicesz; z++) 
+	{
+		job_t jb = construct_job(x, y, z, iter);
+		
+		if (z == 0) {
+			jz0 = jb;
+		}
+		else {
+			tag_declare_deps(TAG(z, y, x, iter), 1, TAG(z-1, y, x, iter));
+		}
+
+		if (z == nslicesz - 1) {
+			struct cb2_s *cb2 = malloc(sizeof(struct cb2_s));
+				cb2->blockx = x;
+				cb2->blocky = y;
+				cb2->iter = iter;
+				cb2->xycounter = &xycounter;
+			jb->cb = callback_func_2;
+			jb->argcb = cb2;
+		}
+	}
+
+//	fprintf(stderr, "push_task for x %d y %d iter %d\n", x, y, iter);
+	push_task(jz0);
+}
 
 static void launch_codelets(void)
 {
@@ -316,15 +419,23 @@ static void launch_codelets(void)
 	fxt_register_thread(0);
 #endif
 	/* partition the work into slices */
-	unsigned taskx, tasky, taskz;
-	job_t jb;
+	unsigned taskx, tasky;
 
 	/* only a callback per (nslicesz * niter) task given deps */
-	jobcounter = nslicesx * nslicesy;
+	xycounter = nslicesx * nslicesy;
 
 	srand(time(NULL));
 
-	codelet *cl = malloc(sizeof(codelet));
+	for (taskx = 0; taskx < nslicesx; taskx++) 
+	for (tasky = 0; tasky < nslicesy; tasky++)
+	{
+		submit_new_iter(taskx, tasky, 0);
+	}
+}
+
+static void init_codelet(void)
+{
+	cl = malloc(sizeof(codelet));
 
 	cl->cl_arg = &conf;
 	cl->cl_arg_size = sizeof(struct block_conf);
@@ -335,60 +446,8 @@ static void launch_codelets(void)
 #ifdef USE_GORDON
 	cl->gordon_func = SPU_FUNC_SGEMM;
 #endif
-	unsigned iter;
-
-	for (iter = 0; iter < niter; iter++)
-	for (taskz = 0; taskz < nslicesz; taskz++) 
-	for (taskx = 0; taskx < nslicesx; taskx++) 
-	for (tasky = 0; tasky < nslicesy; tasky++)
-	{
-//		fprintf(stderr, "TASK X %d Y %d Z %d\n", taskx, tasky, taskz);
-
-		/* A B[task] = C[task] */
-		jb = job_create();
-
-		jb->where = CORE;
-#ifdef USE_CUDA
-		jb->where |= CUBLAS;
-#endif
-#ifdef USE_GORDON
-		jb->where |= GORDON;
-#endif
-
-		jb->cl = cl;
-
-		tag_t tag = TAG(taskz, tasky, taskx, iter);
-		//fprintf(stderr, "DECLARE TAG(taskz %d, tasky %d, taskx %d, iter %d) %lx\n", taskz, tasky, taskx, iter, tag);
-		jb->nbuffers = 3;
-
-		jb->buffers[0].state = &A_state[tasky][taskz];
-		jb->buffers[0].mode = R;
-		jb->buffers[1].state = &B_state[taskz][taskx];
-		jb->buffers[1].mode = R;
-		jb->buffers[2].state = &C_state[tasky][taskx];
-		jb->buffers[2].mode = RW;
-
-		jb->model = &sgemm_model;
-
-		tag_declare(tag, jb);
-
-		if ((taskz == 0) && (iter == 0))
-		{	
-			jb->cb = callback_func;
-			jb->argcb = &jobcounter;
-		}
-
-		if (taskz < nslicesz - 1)
-		{
-			tag_declare_deps(TAG(taskz, tasky, taskx, iter), 1, TAG(taskz+1, tasky, taskx, iter));
-		}
-		else if (iter < niter - 1) {
-			tag_declare_deps(TAG(taskz, tasky, taskx, iter), 1, TAG(0, tasky, taskx, iter+1));
-		} else {
-			push_task(jb);
-		}
-	}
 }
+
 
 int main(__attribute__ ((unused)) int argc, 
 	 __attribute__ ((unused)) char **argv)
@@ -402,6 +461,8 @@ int main(__attribute__ ((unused)) int argc,
 	sem_init(&sem, 0, 0U);
 
 	init_problem_data();
+
+	init_codelet();
 
 	launch_codelets();
 

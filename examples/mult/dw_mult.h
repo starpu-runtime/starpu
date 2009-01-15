@@ -71,7 +71,7 @@ struct timeval start;
 struct timeval end;
 sem_t sem;
 
-static int jobcounter;
+static int jobcounter __attribute__ ((unused));
 static struct block_conf conf __attribute__ ((aligned (128)));
 
 #define BLOCKSIZEX	(xdim / nslicesx)
@@ -139,7 +139,20 @@ static void parse_args(int argc, char **argv)
 	assert(nslicesz <= MAXSLICESZ); 
 }
 
+static void display_memory_consumption(void)
+{
+//	fprintf(stderr, "Memory consumption : A -> %ld KB\n", (MAXSLICESY*MAXSLICESZ*sizeof(float *))/(1024));
+//	fprintf(stderr, "Memory consumption : B -> %ld KB\n", (MAXSLICESZ*MAXSLICESX*sizeof(float *))/(1024));
+//	fprintf(stderr, "Memory consumption : C -> %ld KB\n", (MAXSLICESY*MAXSLICESX*sizeof(float *))/(1024));
+//	fprintf(stderr, "Memory consumption : A_state -> %ld KB\n", (MAXSLICESY*MAXSLICESZ*sizeof(data_state)/(1024)));
+//	fprintf(stderr, "Memory consumption : B_state -> %ld KB\n", (MAXSLICESZ*MAXSLICESX*sizeof(data_state)/(1024)));
+//	fprintf(stderr, "Memory consumption : C_state -> %ld KB\n", (MAXSLICESY*MAXSLICESX*sizeof(data_state)/(1024)));
+//	fprintf(stderr, "Memory consumption : data A -> %ld MB\n", (ydim*zdim*sizeof(float)/(1024*1024)));
+//	fprintf(stderr, "Memory consumption : data B -> %ld MB\n", (zdim*xdim*sizeof(float)/(1024*1024)));
+//	fprintf(stderr, "Memory consumption : data C -> %ld MB\n", (ydim*xdim*sizeof(float)/(1024*1024)));
 
+	fprintf(stderr, "Total memory : %ld MB\n", (MAXSLICESY*MAXSLICESZ*sizeof(float *) + MAXSLICESZ*MAXSLICESX*sizeof(float *) + MAXSLICESY*MAXSLICESX*sizeof(float *) + MAXSLICESY*MAXSLICESZ*sizeof(data_state) + MAXSLICESZ*MAXSLICESX*sizeof(data_state) + MAXSLICESY*MAXSLICESX*sizeof(data_state) + ydim*zdim*sizeof(float) +  zdim*xdim*sizeof(float) +  ydim*xdim*sizeof(float))/(1024*1024) );
+}
 
 
 #endif // __MULT_H__
