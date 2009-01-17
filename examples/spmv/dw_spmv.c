@@ -22,8 +22,9 @@ static cuda_codelet_t cuda_spmv;
 
 void initialize_cuda(void)
 {
-	char *module_path = 
-		"/home/gonnet/DEA/AccMult/examples/cuda/spmv_cuda.cubin";
+	char module_path[1024];
+	sprintf(module_path,
+		"%s/examples/cuda/spmv_cuda.cubin", STARPUDIR);
 	char *function_symbol = "spmv_kernel_3";
 
 	init_cuda_module(&cuda_module, module_path);
