@@ -325,16 +325,19 @@ int fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsig
 	{
 		int ret;
 		buffer_descr *descr;
+		data_state *state;
 
 		descr = &descrs[index];
 
-		ret = fetch_data(descr->state, descr->mode);
-		if (ret != 0)
+		state = descr->state;
+
+		ret = fetch_data(state, descr->mode);
+		if (UNLIKELY(ret))
 			goto enomem;
 
-		descr->interfaceid = descr->state->interfaceid;
+		descr->interfaceid = state->interfaceid;
 
-		memcpy(&interface[index], &descr->state->interface[local_memory_node], 
+		memcpy(&interface[index], &state->interface[local_memory_node], 
 				sizeof(data_interface_t));
 	}
 
