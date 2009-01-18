@@ -339,46 +339,12 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 			/* XXX 0 is hardcoded */
 			if (list)
 			{
-
-#if 0
-				struct job_list_s *lists[16];
-				unsigned size = job_list_size(list);
-
-				unsigned nchunks = (size<2*arg->nworkers)?size:(2*arg->nworkers);
-
-				/* last element may be a little smaller (by 1) */
-				unsigned nchunksize = (size + nchunks - 1)/nchunks;
-				//fprintf(stderr, "size %d nchunks %d \n", size, nchunks);
-
-				unsigned chunk;
-				for (chunk = 0; chunk < nchunks; chunk++)
-				{
-					lists[chunk] = job_list_new();
-				}
-
-				unsigned currentchunk = 0;
-				while(!job_list_empty(list))
-				{
-					job_t j;
-					j = job_list_pop_front(list);
-					job_list_push_front(lists[currentchunk], j);
-					currentchunk = (currentchunk + 1)%nchunks; 
-				}
-
-				job_list_delete(list);
-
-				for (chunk = 0; chunk < nchunks; chunk++)
-				{
-					ret = inject_task_list(lists[chunk], &arg->workers[0]);
-				}
-
-#endif
 				/* partition lists */
 				unsigned size = job_list_size(list);
 				unsigned nchunks = (size<2*arg->nworkers)?size:(2*arg->nworkers);
 
 				/* last element may be a little smaller (by 1) */
-				unsigned chunksize = (size)/nchunks;
+				unsigned chunksize = size/nchunks;
 
 				unsigned chunk;
 				for (chunk = 0; chunk < nchunks; chunk++)
