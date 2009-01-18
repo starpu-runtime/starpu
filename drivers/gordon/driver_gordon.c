@@ -156,7 +156,7 @@ void handle_terminated_job(job_t j)
 void handle_terminated_job_per_worker(struct worker_s *worker)
 {
 
-	if (!worker->worker_is_running)
+	if (UNLIKELY(!worker->worker_is_running))
 		return;
 
 //	fprintf(stderr, " handle_terminated_job_per_worker worker %p worker->terminated_jobs %p \n", worker, worker->terminated_jobs);
@@ -182,17 +182,27 @@ static void handle_terminated_jobs(struct worker_set_s *arg)
 		take_mutex(&terminated_list_mutexes[spu]);
 		handle_terminated_job_per_worker(&arg->workers[spu]);
 		release_mutex(&terminated_list_mutexes[spu]);
+		//if (!take_mutex_try(&terminated_list_mutexes[spu]))
+		//{
+		//	handle_terminated_job_per_worker(&arg->workers[spu]);
+		//	release_mutex(&terminated_list_mutexes[spu]);
+		//}
 	}
 }
 
 static void gordon_callback_list_func(void *arg)
 {
 	struct gordon_task_wrapper_s *task_wrapper = arg; 
+	struct job_list_s *wrapper_list; 
+	struct job_list_s *terminated_list; 
 
 	/* we don't know who will execute that codelet : so we actually defer the
  	 * execution of the StarPU codelet and the job termination later */
 	struct worker_s *worker = task_wrapper->worker;
 	STARPU_ASSERT(worker);
+
+	wrapper_list = task_wrapper->list;
+	terminated_list = worker->terminated_jobs;
 
 	task_wrapper->terminated = 1;
 
@@ -200,14 +210,19 @@ static void gordon_callback_list_func(void *arg)
 
 	/* XXX 0 was hardcoded */
 	take_mutex(&terminated_list_mutexes[0]);
-	while (!job_list_empty(task_wrapper->list))
+	while (!job_list_empty(wrapper_list))
 	{
-		job_t j = job_list_pop_back(task_wrapper->list);
-		job_list_push_back(worker->terminated_jobs, j);
+		job_t j = job_list_pop_back(wrapper_list);
+		job_list_push_back(terminated_list, j);
 	}
+
+	/* the job list was allocated by the gordon driver itself */
+	job_list_delete(wrapper_list);
+
 	release_mutex(&terminated_list_mutexes[0]);
 
 	wake_all_blocked_workers();
+	free(task_wrapper->gordon_job);
 	free(task_wrapper);
 }
 
