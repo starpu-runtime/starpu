@@ -209,7 +209,7 @@ static void init_problem_data(void)
 			for (j = 0; j < BLOCKSIZEY; j++)
 				for (i = 0; i < BLOCKSIZEX; i++)
 				{
-					C[blocky][blockx][i*BLOCKSIZEY + j] = (float)(blockx + blocky*nslicesx + 1);
+					C[blocky][blockx][i*BLOCKSIZEY + j] = (float)0;
 				}
 
 
@@ -251,6 +251,41 @@ static void init_problem_data(void)
 static void cleanup_problem(void)
 {
 	unsigned z, y, x;
+
+#ifdef CHECK_OUTPUT
+	float maxerr = 0.0;
+	float err;
+	fprintf(stderr, "Checking results ....");
+
+	for (y = 0; y < nslicesy; y++)
+	{
+		for (x = 0; x < nslicesx; x++)
+		{
+			for (z = 0; z < nslicesz; z++)
+			{
+				SGEMM("N", "N", BLOCKSIZEY, BLOCKSIZEX, BLOCKSIZEZ, -(float)(niter), A[y][z], BLOCKSIZEY, B[z][x], BLOCKSIZEZ, 1.0f, C[y][x], BLOCKSIZEY);
+
+			}
+
+			/* make sure C - niter AB = 0 */
+			err = SASUM(BLOCKSIZEX*BLOCKSIZEY, C[y][x], 1);
+
+			if (err > BLOCKSIZEX*BLOCKSIZEY*niter*0.001) 
+				fprintf(stderr, "\nerr = %f ( x = %d y = %d ) ... ", err/niter, x, y );
+
+			maxerr = MAX(err, maxerr);
+		}
+	}
+
+	if (maxerr > BLOCKSIZEX*BLOCKSIZEY*niter*0.001)
+	{
+		fprintf(stderr, " maxerr = %f\n", maxerr/niter);
+	}
+	else {
+		fprintf(stderr, " OK\n");
+	}
+	fflush(stderr);
+#endif
 
 	for (y = 0; y < nslicesy; y++)
 	{
