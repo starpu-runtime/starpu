@@ -21,9 +21,6 @@ data_state C_state[MAXSLICESY][MAXSLICESX];
 #define TAG(x,y,z,iter)	\
 		((z) + (iter)*nslicesz + (x)*(nslicesz*niter) + (y)*(nslicesx*nslicesz*niter))
 
-	//	((x) + (y)*nslicesx + (z)*nslicesx*nslicesy + (iter)*nslicesx*nslicesy*nslicesz)
-//		(((tag_t)((x) + (y)*nslicesx))<<32 | ((tag_t)((z) +  (iter)*nslicesz)))
-
 static void submit_new_iter(unsigned x, unsigned y, unsigned iter);
 
 /*
@@ -120,7 +117,7 @@ static void core_mult(data_interface_t *descr, __attribute__((unused))  void *ar
 
 //	fprintf(stderr, "Call SGEMM : nxC %d nyC %d nyA %d subA %p ldA %d subB %p ldB %d subC %p ldC %d\n",
 //				nxC, nyC, nyA, subA, ldA, subB, ldB, subC, ldC);
-//	SGEMM("N", "N", nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 1.0f, subC, ldC);
+	SGEMM("N", "N", nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 1.0f, subC, ldC);
 
 	flop_atlas += BLAS3_FLOP(nxC, nyC, nyA);
 	ls_atlas += BLAS3_LS(nxC, nyC, nyA);
@@ -250,8 +247,6 @@ static void init_problem_data(void)
 	conf.k = BLOCKSIZEZ;
 	conf.m = BLOCKSIZEY;
 	conf.n = BLOCKSIZEX;
-
-	gettimeofday(&start, NULL);
 
 	display_memory_consumption();
 }
@@ -425,6 +420,8 @@ static void launch_codelets(void)
 	xycounter = nslicesx * nslicesy;
 
 	srand(time(NULL));
+
+	gettimeofday(&start, NULL);
 
 	for (taskx = 0; taskx < nslicesx; taskx++) 
 	for (tasky = 0; tasky < nslicesy; tasky++)
