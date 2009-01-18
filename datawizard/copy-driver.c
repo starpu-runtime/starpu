@@ -35,7 +35,8 @@ void wake_all_blocked_workers_on_node(unsigned nodeid)
 {
 	/* wake up all queues on that node */
 	unsigned q_id;
-	for (q_id = 0; q_id < descr.queues_count[nodeid]; q_id++)
+	unsigned nqueues = descr.queues_count[nodeid];
+	for (q_id = 0; q_id < nqueues; q_id++)
 	{
 		struct jobq_s *q;
 		q  = descr.attached_queues[nodeid][q_id];
@@ -96,7 +97,7 @@ unsigned get_local_memory_node(void)
 	
 	/* in case this is called by the programmer, we assume the RAM node 
 	   is the appropriate memory node ... so we return 0 XXX */
-	if (!memory_node)
+	if (UNLIKELY(!memory_node))
 		return 0;
 
 	return *memory_node;
@@ -114,7 +115,7 @@ int allocate_per_node_buffer(data_state *state, uint32_t node)
 	if (!state->per_node[node].allocated) {
 		/* there is no room available for the data yet */
 		ret = allocate_memory_on_node(state, node);
-		if (ret == -ENOMEM)
+		if (UNLIKELY(ret == -ENOMEM))
 			goto nomem;
 	}
 
