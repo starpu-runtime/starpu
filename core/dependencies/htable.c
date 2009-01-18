@@ -107,7 +107,7 @@ void *htbl_remove_tag(htbl_node_t *htbl, tag_t tag)
 	{
 		path[level] = current_htbl_ptr;
 
-		if (!current_htbl_ptr) {
+		if (UNLIKELY(!current_htbl_ptr)) {
 			tag_is_present = 0;
 			break;
 		}
@@ -129,7 +129,7 @@ void *htbl_remove_tag(htbl_node_t *htbl, tag_t tag)
 	}
 
 	maxlevel = level;
-	if (!current_htbl_ptr)
+	if (UNLIKELY(!current_htbl_ptr))
 		tag_is_present = 0;
 
 	void *old_entry = current_htbl_ptr;
