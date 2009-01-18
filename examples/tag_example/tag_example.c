@@ -18,7 +18,6 @@ void callback_core(void *argcb __attribute__ ((unused)))
 void last_callback_core(void *argcb __attribute__ ((unused)))
 {
 	printf("callback core\n");
-	exit(0);
 }
 
 void core_codelet(void *_args __attribute__ ((unused)))
@@ -70,11 +69,11 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	tag_declare_deps(1664, 1, 42);
 	tag_declare_deps(10000000, 2, 42, 1664);
 
-	push_task(j);
+	push_task_sync(j);
 
-	printf("sleep\n");
-
-	sleep(100);
+	tag_remove(10000000);
+	tag_remove(1664);
+	tag_remove(42);
 
 	return 0;
 }
