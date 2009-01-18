@@ -1,6 +1,10 @@
 #include "dw_cholesky.h"
 #include "dw_cholesky_models.h"
 
+/* A [ y ] [ x ] */
+float *A[NMAXBLOCKS][NMAXBLOCKS];
+data_state A_state[NMAXBLOCKS][NMAXBLOCKS];
+
 /*
  *	Some useful functions
  */
@@ -25,12 +29,11 @@ static void terminal_callback(void *argcb)
 	sem_post(sem);
 }
 
-
 /*
  *	Create the codelets
  */
 
-static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem_t *sem)
+static job_t create_task_11(unsigned k, unsigned nblocks, sem_t *sem)
 {
 //	printf("task 11 k = %d TAG = %llx\n", k, (TAG11(k)));
 
@@ -43,10 +46,13 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 #ifdef USE_CUDA
 	job->cl->cublas_func = chol_cublas_codelet_update_u11;
 #endif
+#ifdef USE_GORDON
+	job->cl->gordon_func = SPU_FUNC_POTRF;
+#endif
 
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 1;
-		job->buffers[0].state = get_sub_data(dataA, 2, k, k);
+		job->buffers[0].state = &A_state[k][k];
 		job->buffers[0].mode = RW;
 
 	/* this is an important task */
@@ -67,7 +73,7 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 }
 
 
-static void create_task_21(data_state *dataA, unsigned k, unsigned j)
+static void create_task_21(unsigned k, unsigned j)
 {
 	job_t job = create_job(TAG21(k, j));
 	
@@ -76,12 +82,15 @@ static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 #ifdef USE_CUDA
 	job->cl->cublas_func = chol_cublas_codelet_update_u21;
 #endif
+#ifdef USE_GORDON
+	job->cl->gordon_func = SPU_FUNC_STRSM;
+#endif
 
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 2;
-		job->buffers[0].state = get_sub_data(dataA, 2, k, k); 
+		job->buffers[0].state = &A_state[k][k]; 
 		job->buffers[0].mode = R;
-		job->buffers[1].state = get_sub_data(dataA, 2, k, j); 
+		job->buffers[1].state = &A_state[j][k]; 
 		job->buffers[1].mode = RW;
 
 	if (j == k+1) {
@@ -97,7 +106,7 @@ static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 	}
 }
 
-static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j)
+static void create_task_22(unsigned k, unsigned i, unsigned j)
 {
 	job_t job = create_job(TAG22(k, i, j));
 //	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j));
@@ -109,14 +118,17 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
 #ifdef USE_CUDA
 	job->cl->cublas_func = chol_cublas_codelet_update_u22;
 #endif
+#ifdef USE_GORDON
+	job->cl->gordon_func = SPU_FUNC_SGEMM;
+#endif
 
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 3;
-		job->buffers[0].state = get_sub_data(dataA, 2, k, i); 
+		job->buffers[0].state = &A_state[i][k]; 
 		job->buffers[0].mode = R;
-		job->buffers[1].state = get_sub_data(dataA, 2, k, j); 
+		job->buffers[1].state = &A_state[j][k]; 
 		job->buffers[1].mode = R;
-		job->buffers[2].state = get_sub_data(dataA, 2, i, j); 
+		job->buffers[2].state = &A_state[j][i]; 
 		job->buffers[2].mode = RW;
 
 	if ( (i == k + 1) && (j == k +1) ) {
@@ -139,7 +151,7 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
  *	and construct the DAG
  */
 
-static void _dw_cholesky(data_state *dataA, unsigned nblocks)
+static void dw_cholesky_no_stride(void)
 {
 	struct timeval start;
 	struct timeval end;
@@ -153,10 +165,9 @@ static void _dw_cholesky(data_state *dataA, unsigned nblocks)
 	/* create all the DAG nodes */
 	unsigned i,j,k;
 
-
 	for (k = 0; k < nblocks; k++)
 	{
-		job_t job = create_task_11(dataA, k, nblocks, &sem);
+		job_t job = create_task_11(k, nblocks, &sem);
 		if (k == 0) {
 			/* for now, we manually launch the first task .. XXX */
 			entry_job = job;
@@ -164,12 +175,12 @@ static void _dw_cholesky(data_state *dataA, unsigned nblocks)
 		
 		for (j = k+1; j<nblocks; j++)
 		{
-			create_task_21(dataA, k, j);
+			create_task_21(k, j);
 
 			for (i = k+1; i<nblocks; i++)
 			{
 				if (i <= j)
-					create_task_22(dataA, k, i, j);
+					create_task_22(k, i, j);
 			}
 		}
 	}
@@ -187,48 +198,76 @@ static void _dw_cholesky(data_state *dataA, unsigned nblocks)
 	fprintf(stderr, "Computation took (in ms)\n");
 	printf("%2.2f\n", timing/1000);
 
-	unsigned n = get_blas_nx(dataA);
-
-	double flop = (1.0f*n*n*n)/3.0f;
+	double flop = (1.0f*size*size*size)/3.0f;
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
 
-void initialize_system(float **A, unsigned dim, unsigned pinned)
+int main(int argc, char **argv)
 {
-	init_machine();
+	unsigned x, y;
+	unsigned i, j;
 
+	parse_args(argc, argv);
+	assert(nblocks <= NMAXBLOCKS);
+
+	fprintf(stderr, "BLOCK SIZE = %d\n", size / nblocks);
+
+	init_machine();
 	timing_init();
 
-	if (pinned)
+	for (y = 0; y < nblocks; y++)
+	for (x = 0; x < nblocks; x++)
 	{
-		malloc_pinned_if_possible(A, dim*dim*sizeof(float));
-	} 
-	else {
-		*A = malloc(dim*dim*sizeof(float));
+		if (x <= y) {
+			A[y][x] = malloc(BLOCKSIZE*BLOCKSIZE*sizeof(float));
+			assert(A[y][x]);
+		}
 	}
-}
 
-void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
-{
-	data_state dataA;
 
-	/* monitor and partition the A matrix into blocks :
-	 * one block is now determined by 2 unsigned (i,j) */
-	monitor_blas_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
+	for (y = 0; y < nblocks; y++)
+	for (x = 0; x < nblocks; x++)
+	{
+		if (x <= y) {
+			posix_memalign((void **)&A[y][x], 128, BLOCKSIZE*BLOCKSIZE*sizeof(float));
+			assert(A[y][x]);
+		}
+	}
 
-	filter f;
-		f.filter_func = vertical_block_filter_func;
-		f.filter_arg = nblocks;
+	/* create a simple definite positive symetric matrix example
+	 *
+	 *	Hilbert matrix : h(i,j) = 1/(i+j+1) ( + n In to make is stable ) 
+	 * */
+	for (y = 0; y < nblocks; y++)
+	for (x = 0; x < nblocks; x++)
+	if (x <= y) {
+		for (i = 0; i < BLOCKSIZE; i++)
+		for (j = 0; j < BLOCKSIZE; j++)
+		{
+			A[y][x][i*BLOCKSIZE + j] =
+				(float)(1.0f/((float) (1.0+(x*BLOCKSIZE+i)+(y*BLOCKSIZE+j))));
 
-	filter f2;
-		f2.filter_func = block_filter_func;
-		f2.filter_arg = nblocks;
+			/* make it a little more numerically stable ... ;) */
+			if ((x == y) && (i == j))
+				A[y][x][i*BLOCKSIZE + j] += (float)(2*size);
+		}
+	}
 
-	map_filters(&dataA, 2, &f, &f2);
 
-	_dw_cholesky(&dataA, nblocks);
 
-	unpartition_data(&dataA, 0);
+	for (y = 0; y < nblocks; y++)
+	for (x = 0; x < nblocks; x++)
+	{
+		if (x <= y) {
+			monitor_blas_data(&A_state[y][x], 0, (uintptr_t)A[y][x], 
+				BLOCKSIZE, BLOCKSIZE, BLOCKSIZE, sizeof(float));
+		}
+	}
+
+	dw_cholesky_no_stride();
 
 	terminate_machine();
+	return 0;
 }
+
+
