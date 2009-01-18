@@ -113,6 +113,7 @@ void tag_add_succ(tag_t id, cg_t *cg)
 void notify_dependencies(struct job_s *j)
 {
 	struct tag_s *tag;
+	unsigned nsuccs;
 	unsigned succ;
 
 	STARPU_ASSERT(j);
@@ -120,7 +121,8 @@ void notify_dependencies(struct job_s *j)
 	if (j->use_tag) {
 		/* in case there are dependencies, wake up the proper tasks */
 		tag = j->tag;
-		for (succ = 0; succ < tag->nsuccs; succ++)
+		nsuccs = tag->nsuccs;
+		for (succ = 0; succ < nsuccs; succ++)
 		{
 			notify_cg(tag->succ[succ]);
 		}
