@@ -6,14 +6,14 @@ void init_mutex(mutex *m)
 	m->taken = 0;
 }
 
-int take_mutex_try(mutex *m)
+inline int take_mutex_try(mutex *m)
 {
 	uint32_t prev;
 	prev = __sync_lock_test_and_set(&m->taken, 1);
 	return (prev == 0)?0:-1;
 }
 
-void take_mutex(mutex *m)
+inline void take_mutex(mutex *m)
 {
 	uint32_t prev;
 	do {
@@ -21,7 +21,7 @@ void take_mutex(mutex *m)
 	} while (prev);
 }
 
-void release_mutex(mutex *m)
+inline void release_mutex(mutex *m)
 {
 	m->taken = 0;
 }
