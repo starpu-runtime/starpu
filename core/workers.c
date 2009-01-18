@@ -128,6 +128,9 @@ static void init_workers_binding(struct machine_config_s *config)
 
 	int current_bindid = 0;
 
+	/* a single core is dedicated for the accelerators */
+	int accelerator_bindid = -1;
+
 	/* note that even if the CPU core are not used, we always have a RAM node */
 	/* TODO : support NUMA  ;) */
 	ram_memory_node = register_memory_node(RAM);
@@ -136,23 +139,34 @@ static void init_workers_binding(struct machine_config_s *config)
 	for (worker = 0; worker < config->nworkers; worker++)
 	{
 		unsigned memory_node = -1;
+		unsigned is_an_accelerator = 0;
 		struct worker_s *workerarg = &config->workers[worker];
 		
-		/* "dedicate" a cpu core to that worker */
-		workerarg->bindid =
-			(current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
-
 		/* select the memory node that contains worker's memory */
 		switch (workerarg->arch) {
 			case CORE_WORKER:
+			/* "dedicate" a cpu core to that worker */
+				is_an_accelerator = 0;
+				break;
 			case GORDON_WORKER:
+				is_an_accelerator = 1;
 				memory_node = ram_memory_node;
 				break;
 			case CUDA_WORKER:
+				is_an_accelerator = 1;
 				memory_node = register_memory_node(CUDA_RAM);
 				break;
 			default:
 				STARPU_ASSERT(0);
+		}
+
+		if (is_an_accelerator) {
+			if (accelerator_bindid == -1)
+				accelerator_bindid = (current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
+			workerarg->bindid = accelerator_bindid;
+		}
+		else {
+			workerarg->bindid = (current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
 		}
 
 		workerarg->memory_node = memory_node;

@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+#include <sched.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include "driver_gordon.h"
@@ -21,10 +23,20 @@ struct gordon_task_wrapper_s {
 	unsigned terminated;
 };
 
-
 void *gordon_worker_progress(void *arg)
 {
 	fprintf(stderr, "gordon_worker_progress\n");
+
+#ifndef DONTBIND
+	/* fix the thread on the correct cpu */
+	struct worker_set_s *gordon_set_arg = arg;
+	unsigned prog_thread_bind_id = 
+		(gordon_set_arg->workers[0].bindid + 1)%(sysconf(_SC_NPROCESSORS_ONLN));
+	cpu_set_t aff_mask; 
+	CPU_ZERO(&aff_mask);
+	CPU_SET(prog_thread_bind_id, &aff_mask);
+	sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
+#endif
 
 	sem_post(&progress_sem);
 
@@ -36,11 +48,9 @@ void *gordon_worker_progress(void *arg)
 		int ret = gordon_wait(0);
 		if (ret)
 		{
+			/* possibly wake the thread that injects work */
 			wake_all_blocked_workers();
 		}
-
-		/* possibly wake the thread that injects work */
-		// TODO
 	}
 
 	return NULL;
@@ -419,6 +429,15 @@ extern pthread_key_t local_workers_key;
 void *gordon_worker(void *arg)
 {
 	struct worker_set_s *gordon_set_arg = arg;
+
+#ifndef DONTBIND
+	/* fix the thread on the correct cpu */
+	cpu_set_t aff_mask; 
+	CPU_ZERO(&aff_mask);
+	CPU_SET(gordon_set_arg->workers[0].bindid, &aff_mask);
+	sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
+#endif
+
 
 	/* TODO set_local_memory_node per SPU */
 	gordon_init(gordon_set_arg->nworkers);	
