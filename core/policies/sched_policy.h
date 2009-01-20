@@ -33,7 +33,9 @@ int push_task(job_t task);
 int push_task_sync(job_t task);
 int push_prio_task(job_t task);
 struct job_s *pop_task(void);
+struct job_s * pop_task_from_queue(struct jobq_s *queue);
 struct job_list_s *pop_every_task(void);
+struct job_list_s * pop_every_task_from_queue(struct jobq_s *queue);
 
 void wait_on_sched_event(void);
 

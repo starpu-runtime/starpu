@@ -111,10 +111,9 @@ int push_task_sync(job_t task)
 	return 0;
 }
 
-struct job_s * pop_task(void)
-{
-	struct jobq_s *queue = policy.get_local_queue(&policy);
 
+struct job_s * pop_task_from_queue(struct jobq_s *queue)
+{
 	STARPU_ASSERT(queue->pop_task);
 
 	struct job_s *j = queue->pop_task(queue);
@@ -122,15 +121,27 @@ struct job_s * pop_task(void)
 	return j;
 }
 
-struct job_list_s *pop_every_task(void)
+struct job_s * pop_task(void)
 {
 	struct jobq_s *queue = policy.get_local_queue(&policy);
 
+	return pop_task_from_queue(queue);
+}
+
+struct job_list_s * pop_every_task_from_queue(struct jobq_s *queue)
+{
 	STARPU_ASSERT(queue->pop_every_task);
 
 	struct job_list_s *list = queue->pop_every_task(queue);
 
 	return list;
+}
+
+struct job_list_s *pop_every_task(void)
+{
+	struct jobq_s *queue = policy.get_local_queue(&policy);
+
+	return pop_every_task_from_queue(queue);
 }
 
 void wait_on_sched_event(void)
