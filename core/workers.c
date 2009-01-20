@@ -147,6 +147,7 @@ static void init_workers_binding(struct machine_config_s *config)
 			case CORE_WORKER:
 			/* "dedicate" a cpu core to that worker */
 				is_an_accelerator = 0;
+				memory_node = ram_memory_node;
 				break;
 			case GORDON_WORKER:
 				is_an_accelerator = 1;
