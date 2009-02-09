@@ -41,6 +41,10 @@ ifdef MODEL_DEBUG
 	CFLAGS+="-DMODEL_DEBUG "
 endif
 
+ifdef DATA_STATS
+	CFLAGS+="-DDATA_STATS "
+endif
+
 ifdef PERF_MODEL_DIR
 	CFLAGS+="-DPERF_MODEL_DIR=\"$(PERF_MODEL_DIR)/\""
 else

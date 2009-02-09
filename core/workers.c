@@ -332,6 +332,10 @@ void terminate_machine(void)
 	/* tell all workers to shutdown */
 	kill_all_workers(&config);
 
+#ifdef DATA_STATS
+	display_comm_ammounts();
+#endif
+
 	if (get_env_number("CALIBRATE") != -1)
 		dump_registered_models();
 

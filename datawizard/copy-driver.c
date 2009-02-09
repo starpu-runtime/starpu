@@ -6,6 +6,22 @@
 mem_node_descr descr;
 static pthread_key_t memory_node_key;
 
+
+#ifdef DATA_STATS
+static size_t comm_ammount[8][8];
+
+void display_comm_ammounts(void)
+{
+	unsigned src, dst;
+	for (dst = 0; dst < 8; dst++)
+	for (src = 0; src < 8; src++)
+	{
+		if (comm_ammount[src][dst])
+			fprintf(stderr, "Total comm from %d to %d \t%dMB\n", src, dst, ((unsigned)comm_ammount[src][dst])/(1024*1024));
+	}
+}
+#endif
+
 unsigned register_memory_node(node_kind kind)
 {
 	unsigned nnodes;
@@ -140,6 +156,12 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 	if (!donotread) {
 		STARPU_ASSERT(state->ops);
 		STARPU_ASSERT(state->ops->copy_data_1_to_1);
+
+#ifdef DATA_STATS
+		size_t size = state->ops->get_size(state);
+		comm_ammount[src_node][dst_node] += size; 
+#endif
+
 		ret_copy = state->ops->copy_data_1_to_1(state, src_node, dst_node);
 		return ret_copy;
 	}
