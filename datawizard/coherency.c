@@ -1,10 +1,5 @@
 #include <datawizard/coherency.h>
-
-extern int driver_copy_data(data_state *state, uint32_t src_node_mask, 
-				uint32_t dst_node, unsigned donotread);
-extern int driver_copy_data_1_to_1(data_state *state, uint32_t node, 
-				uint32_t requesting_node, unsigned donotread);
-extern unsigned get_local_memory_node(void);
+#include <datawizard/copy-driver.h>
 
 void display_state(data_state *state)
 {
