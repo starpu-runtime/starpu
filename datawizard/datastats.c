@@ -1,6 +1,8 @@
 #include <datawizard/datastats.h>
 #include <stdio.h>
 
+/* measure the cache hit ratio for each node */
+
 #ifdef DATA_STATS
 static unsigned hit_cnt[16];
 static unsigned miss_cnt[16];
@@ -20,8 +22,6 @@ inline void msi_cache_miss(unsigned node __attribute__ ((unused)))
 #endif
 }
 
-
-
 void display_msi_stats(void)
 {
 #ifdef DATA_STATS
@@ -39,4 +39,31 @@ void display_msi_stats(void)
 #endif
 }
 
+/* measure the amount of data transfers between each pair of nodes */
+#ifdef DATA_STATS
 
+static size_t comm_ammount[8][8];
+
+void display_comm_ammounts(void)
+{
+	unsigned src, dst;
+	for (dst = 0; dst < 8; dst++)
+	for (src = 0; src < 8; src++)
+	{
+		if (comm_ammount[src][dst])
+			fprintf(stderr, "Total comm from %d to %d \t%dMB\n", src, dst, ((unsigned)comm_ammount[src][dst])/(1024*1024));
+	}
+}
+
+inline void update_comm_ammount(uint32_t src_node, uint32_t dst_node, size_t size)
+{
+	comm_ammount[src_node][dst_node] += size;
+}
+
+#else
+
+void display_comm_ammounts(void)
+{
+}
+
+#endif
