@@ -119,20 +119,21 @@ void init_problem(void)
 	} 
 	else {
 		srand(2008);
-		for (i=0; i < dim; i++) {
-			for (j=0; j < dim; j++) {
+		for (j=0; j < dim; j++) {
+			for (i=0; i < dim; i++) {
 				A[i+j*dim] = (float)(drand48());
 			}
 		}
 	
-		for (i=0; i < dim; i++) {
-			for (j=0; j < dim; j++) {
+		for (j=0; j < dim; j++) {
+			for (i=0; i < dim; i++) {
 				B[i+j*dim] = (float)(drand48());
 			}
 		}
 	}
-	for (i=0; i < dim; i++) {
-		for (j=0; j < dim; j++) {
+
+	for (j=0; j < dim; j++) {
+		for (i=0; i < dim; i++) {
 			C[i+j*dim] = (float)(0);
 		}
 	}
