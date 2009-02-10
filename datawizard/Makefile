@@ -2,7 +2,7 @@
 
 CFLAGS+= -I../
 
-OBJS := coherency.o data_request.o progress.o copy-driver.o hierarchy.o memalloc.o footprint.o
+OBJS := coherency.o data_request.o progress.o copy-driver.o hierarchy.o memalloc.o footprint.o datastats.o
 
 DWOBJDEPS += ../common/hash.o
 DWOBJDEPS += ../common/timing.o 

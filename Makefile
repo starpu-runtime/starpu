@@ -163,6 +163,7 @@ OBJDEPS += datawizard/coherency.o
 OBJDEPS += datawizard/hierarchy.o 
 OBJDEPS += datawizard/memalloc.o
 OBJDEPS += datawizard/footprint.o
+OBJDEPS += datawizard/datastats.o
 OBJDEPS += datawizard/interfaces/blas_filters.o
 OBJDEPS += datawizard/interfaces/csr_filters.o
 OBJDEPS += datawizard/interfaces/bcsr_filters.o

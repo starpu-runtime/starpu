@@ -1,36 +1,5 @@
 #include <datawizard/coherency.h>
 
-/* TODO clean that */
-#define MSI_STATS	1
-
-#ifdef MSI_STATS
-static unsigned hit_cnt[16];
-static unsigned miss_cnt[16];
-#define MSI_CACHE_HIT(node)	do {hit_cnt[(node)]++;} while(0);	
-#define MSI_CACHE_MISS(node)	do {miss_cnt[(node)]++;} while(0);
-#else
-#define MSI_CACHE_HIT(node)	do {} while(0);	
-#define MSI_CACHE_MISS(node)	do {} while(0);
-#endif
-
-void display_msi_stats(void)
-{
-#ifdef MSI_STATS
-	fprintf(stderr, "MSI cache stats :\n");
-	unsigned node;
-	for (node = 0; node < 4; node++) 
-	{
-		if (hit_cnt[node]+miss_cnt[node]) 
-		{
-			fprintf(stderr, "memory node %d\n", node);
-			fprintf(stderr, "\thit : %u (%2.2f \%%)\n", hit_cnt[node], (100.0f*hit_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
-			fprintf(stderr, "\tmiss : %u (%2.2f \%%)\n", miss_cnt[node], (100.0f*miss_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
-		}
-	}
-#endif
-}
-
-
 extern int driver_copy_data(data_state *state, uint32_t src_node_mask, 
 				uint32_t dst_node, unsigned donotread);
 extern int driver_copy_data_1_to_1(data_state *state, uint32_t node, 
@@ -146,7 +115,7 @@ int _fetch_data(data_state *state, uint32_t requesting_node,
 	{
 		/* the local node already got its data */
 		release_mutex(&state->header_lock);
-		MSI_CACHE_HIT(requesting_node);
+		msi_cache_hit(requesting_node);
 		return 0;
 	}
 
@@ -165,14 +134,14 @@ int _fetch_data(data_state *state, uint32_t requesting_node,
 		}
 		
 		release_mutex(&state->header_lock);
-		MSI_CACHE_HIT(requesting_node);
+		msi_cache_hit(requesting_node);
 		return 0;
 	}
 
 	/* the only remaining situation is that the local copy was invalid */
 	STARPU_ASSERT(state->per_node[requesting_node].state == INVALID);
 
-	MSI_CACHE_MISS(requesting_node);
+	msi_cache_miss(requesting_node);
 
 	/* we need the data from either the owner or one of the sharer */
 	int ret;
