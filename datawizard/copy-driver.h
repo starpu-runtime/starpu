@@ -48,8 +48,4 @@ int driver_copy_data_1_to_1(struct data_state_t *state, uint32_t node,
 
 int allocate_per_node_buffer(struct data_state_t *state, uint32_t node);
 
-#ifdef DATA_STATS
-void display_comm_ammounts(void);
-#endif
-
 #endif // __COPY_DRIVER_H__
