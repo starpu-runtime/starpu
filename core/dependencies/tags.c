@@ -35,6 +35,12 @@ static struct tag_s *tag_init(tag_t id)
 	tag->state = UNASSIGNED;
 	tag->nsuccs = 0;
 
+#ifdef DYNAMIC_DEPS_SIZE
+	/* this is a small initial default value ... may be changed */
+	tag->succ_list_size = 4;
+	tag->succ = realloc(NULL, tag->succ_list_size*sizeof(struct _cg_t *));
+#endif
+
 	init_mutex(&tag->lock);
 
 	tag->job = NULL;
@@ -48,6 +54,11 @@ void tag_remove(tag_t id)
 
 	take_mutex(&tag_mutex);
 	tag = htbl_remove_tag(tag_htbl, id);
+	
+#ifdef DYNAMIC_DEPS_SIZE
+	free(tag->succ);
+#endif
+
 	release_mutex(&tag_mutex);
 
 	free(tag);
@@ -102,7 +113,20 @@ void tag_add_succ(tag_t id, cg_t *cg)
 	else {
 		/* where should that cg should be put in the array ? */
 		unsigned index = ATOMIC_ADD(&tag->nsuccs, 1) - 1;
+
+#ifdef DYNAMIC_DEPS_SIZE
+		if (index >= tag->succ_list_size)
+		{
+			/* the successor list is too small */
+			tag->succ_list_size *= 2;
+
+			/* NB: this is thread safe as the tag->lock is taken */
+			tag->succ = realloc(tag->succ, 
+				tag->succ_list_size*sizeof(struct _cg_t *));
+		}
+#else
 		STARPU_ASSERT(index < NMAXDEPS);
+#endif
 
 		tag->succ[index] = cg;
 	}

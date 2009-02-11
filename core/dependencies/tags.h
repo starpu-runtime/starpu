@@ -5,8 +5,15 @@
 #include <common/mutex.h>
 #include <core/jobs.h>
 
+/* we do not necessarily want to allocate room for 256 dependencies, but we
+   want to handle the few situation where there are a lot of dependencies as
+   well */
+#define DYNAMIC_DEPS_SIZE	1
+
 /* randomly choosen ! */
+#ifndef DYNAMIC_DEPS_SIZE
 #define NMAXDEPS	256
+#endif
 
 #define TAG_SIZE        64
 typedef uint64_t tag_t;
@@ -26,7 +33,12 @@ struct tag_s {
 	tag_t id; /* an identifier for the task */
 	tag_state state;
 	unsigned nsuccs; /* how many successors ? */
+#ifdef DYNAMIC_DEPS_SIZE
+	unsigned succ_list_size;
+	struct _cg_t **succ;
+#else
 	struct _cg_t *succ[NMAXDEPS];
+#endif
 	struct job_s *job; /* which job is associated to the tag if any ? */
 };
 
