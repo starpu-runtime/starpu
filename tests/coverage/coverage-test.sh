@@ -27,7 +27,7 @@ generatehtml()
 
 cd $ROOTDIR
 make clean 1> /dev/null 2> /dev/null
-make examples -j ATLAS=1 CPUS=$MAXCPU CUDA=1 COVERAGE=1 1> /dev/null 2> /dev/null
+make examples -j GOTO=1 CPUS=$MAXCPU CUDA=1 COVERAGE=1 1> /dev/null 2> /dev/null
 cd $DIR
 
 init;
@@ -51,6 +51,22 @@ save_cov "spmv.gpu";
 echo "chol"
 timing=`$ROOTDIR/examples/cholesky/dw_cholesky 2> /dev/null`
 save_cov "chol";
+
+echo "heat.dm.4k.calibrate.v2"
+timing=`CALIBRATE=1 SCHED="dm" $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 66 -nblocks 4 -v2 -pin 2> /dev/null`
+save_cov "heat.dm.4k.calibrate.v2";
+
+
+echo "heat.dm.8k.calibrate.v2"
+timing=`CALIBRATE=1 SCHED="dm" $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 -pin 2> /dev/null`
+save_cov "heat.dm.8k.calibrate.v2";
+
+
+echo "heat.dm.16k.calibrate.v2"
+timing=`CALIBRATE=1 SCHED="dm" $ROOTDIR/examples/heat/heat -ntheta 130 -nthick 130 -nblocks 16 -v2 -pin 2> /dev/null`
+save_cov "heat.dm.16k.calibrate.v2";
+
+
 
 echo "heat.dm.8k.no.pin.v2"
 timing=`SCHED="dm" $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 2> /dev/null`
