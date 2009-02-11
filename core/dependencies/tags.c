@@ -56,7 +56,8 @@ void tag_remove(tag_t id)
 	tag = htbl_remove_tag(tag_htbl, id);
 	
 #ifdef DYNAMIC_DEPS_SIZE
-	free(tag->succ);
+	if (tag)
+		free(tag->succ);
 #endif
 
 	release_mutex(&tag_mutex);
