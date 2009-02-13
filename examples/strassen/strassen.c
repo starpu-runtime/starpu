@@ -35,7 +35,7 @@ static data_state *create_tmp_matrix(data_state *M)
 static void free_tmp_matrix(data_state *matrix)
 {
 	delete_data(matrix);
-//	free(matrix);
+	free(matrix);
 }
 
 
