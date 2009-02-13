@@ -86,6 +86,10 @@ void *core_worker(void *arg)
 
 	set_local_queue(core_arg->jobq);
 
+	/* this is only useful (and meaningful) is there is a single
+	   memory node "related" to that queue */
+	core_arg->jobq->memory_node = core_arg->memory_node;
+
         /* tell the main thread that we are ready */
         sem_post(&core_arg->ready_sem);
 

@@ -29,6 +29,7 @@ struct jobq_s {
 	uint32_t who;
 
 	/* this is only relevant if there is a single worker per queue */
+	uint32_t memory_node;
 	enum perf_archtype arch;
 	float alpha;
 

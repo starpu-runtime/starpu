@@ -292,6 +292,10 @@ void *cuda_worker(void *arg)
 
 	set_local_queue(args->jobq);
 
+	/* this is only useful (and meaningful) is there is a single
+	   memory node "related" to that queue */
+	args->jobq->memory_node = args->memory_node;
+
 	init_context(devid);
 	fprintf(stderr, "cuda thread is ready to run on CPU %d !\n", args->bindid);
 
