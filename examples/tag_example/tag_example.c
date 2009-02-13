@@ -88,7 +88,6 @@ static void create_task_grid(unsigned iter)
 		jb->cl = &cl;
 
 		tag_declare(TAG(i,j, iter), jb);
-//		fprintf(stderr, "job %p TAG %lx\n", jb, TAG(i,j));
 
 		/* express deps : (i,j) depends on (i-1, j-1) & (i-1, j+1) */		
 		if (i == 0) {
@@ -130,7 +129,7 @@ void callback_core(void *argcb __attribute__ ((unused)))
 		{
 			/* cleanup old grids ... */
 			if (iter > 2)
-				tag_cleanup_grid(Ni, Nj, iter-2);
+				tag_cleanup_grid(ni, nj, iter-2);
 
 			/* create a new iteration */
 			create_task_grid(iter);
