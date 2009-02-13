@@ -53,6 +53,9 @@ static int __attribute__((warn_unused_result)) copy_data_to_node(data_state *sta
 static void update_data_state(data_state *state, uint32_t requesting_node,
 				uint8_t write)
 {
+	/* the data is present now */
+	state->per_node[requesting_node].requested = 0;
+
 	if (write) {
 		/* the requesting node now has the only valid copy */
 		uint32_t node;
@@ -364,3 +367,31 @@ void notify_data_modification(data_state *state, uint32_t modifying_node)
 	release_rw_lock(&state->data_lock);
 }
 
+/* NB : this value can only be an indication of the status of a data
+	at some point, but there is no strong garantee ! */
+unsigned is_data_present_or_requested(data_state *state, uint32_t node)
+{
+	unsigned ret = 0;
+
+// XXX : this is just a hint, so we don't take the lock ...
+//	take_mutex(&state->header_lock);
+
+	if (state->per_node[node].state != INVALID 
+		|| state->per_node[node].requested)
+		ret = 1;
+
+//	release_mutex(&state->header_lock);
+
+	return ret;
+}
+
+inline void set_data_requested_flag_if_needed(data_state *state, uint32_t node)
+{
+// XXX : this is just a hint, so we don't take the lock ...
+//	take_mutex(&state->header_lock);
+
+	if (state->per_node[node].state == INVALID) 
+		state->per_node[node].requested = 1;
+
+//	release_mutex(&state->header_lock);
+}

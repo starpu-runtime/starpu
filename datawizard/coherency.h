@@ -47,6 +47,15 @@ typedef struct local_data_state_t {
 	 * for now this is just translated into !automatically_allocated
 	 * */
 	uint8_t automatically_allocated;
+
+	/* To help the scheduling policies to make some decision, we
+	   may keep a track of the tasks that are likely to request 
+	   this data on the current node.
+	   It is the responsability of the scheduling _policy_ to set that
+	   flag when it assigns a task to a queue, policies which do not
+	   use this hint can simply ignore it.
+	 */
+	uint8_t requested;
 } local_data_state;
 
 typedef struct data_state_t {
@@ -110,5 +119,9 @@ int fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsig
 void notify_data_modification(data_state *state, uint32_t modifying_node);
 
 int request_data_allocation(data_state *state, uint32_t node);
+
+unsigned is_data_present_or_requested(data_state *state, uint32_t node);
+
+inline void set_data_requested_flag_if_needed(data_state *state, uint32_t node);
 
 #endif // __COHERENCY__H__
