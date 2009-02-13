@@ -171,6 +171,8 @@ job_t deque_non_blocking_pop_task_if_job_exists(struct jobq_s *q)
 
 	j = deque_non_blocking_pop_task(q);
 
+/* XXX */
+#if 0
 	if (!j) {
 		/* there is no job at all in the entire system : go to sleep ! */
 
@@ -185,6 +187,7 @@ job_t deque_non_blocking_pop_task_if_job_exists(struct jobq_s *q)
 
 		pthread_mutex_unlock(sched_mutex);
 	}
+#endif
 
 	return j;
 }
