@@ -62,8 +62,9 @@ inline void update_comm_ammount(uint32_t src_node, uint32_t dst_node, size_t siz
 
 #else
 
-void display_comm_ammounts(void)
+inline void display_comm_ammounts(void)
 {
 }
 
 #endif
+
