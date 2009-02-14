@@ -50,7 +50,7 @@ static double data_penalty(struct jobq_s *q, struct job_s *j)
 		if (!is_data_present_or_requested(state, memory_node))
 		{
 			/* TODO */
-			penalty += 100000.0;
+			penalty += 1000.0;
 		}
 	}
 
@@ -76,6 +76,7 @@ static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t tas
 
 	double best_exp_end = 10e240;
 	double model_best = 0.0;
+	double penality_best = 0.0;
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
@@ -152,10 +153,12 @@ static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t tas
 		 * so we force this measurement */
 		best = worker;
 		model_best = 0.0;
+		penality_best = 0.0;
 	}
 	else 
 	{
 		model_best = local_task_length[best];
+		penality_best = local_data_penalty[best];
 	}
 
 	/* we should now have the best worker in variable "best" */
@@ -165,6 +168,7 @@ static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t tas
 	fifo->exp_len += model_best;
 
 	task->predicted = model_best;
+	task->penality = penality_best;
 
 	update_data_requests(queue_array[best], task);
 

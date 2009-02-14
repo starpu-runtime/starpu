@@ -90,6 +90,7 @@ LIST_TYPE(job,
 
 	struct perfmodel_t *model;
 	double predicted;
+	double penality;
 
 	unsigned footprint_is_computed;
 	uint32_t footprint;
