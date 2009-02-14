@@ -13,7 +13,7 @@ void *htbl_search_tag(htbl_node_t *htbl, tag_t tag)
 	{
 	
 	//	printf("search : current bit = %d \n", currentbit);
-		if (current_htbl == NULL)
+		if (UNLIKELY(current_htbl == NULL))
 			return NULL;
 
 		/* 0000000000001111 
