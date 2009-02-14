@@ -74,7 +74,6 @@ static void create_task_grid(unsigned iter)
 
 	/* create non-entry tasks */
 	for (j = 0; j < nj; j++)
-//	for (i = ni -1; i > 0; i--)
 	for (i = 1; i < ni; i++)
 	{
 		//coords[i][j].i = i;
@@ -90,13 +89,7 @@ static void create_task_grid(unsigned iter)
 		tag_declare(TAG(i,j, iter), jb);
 
 		/* express deps : (i,j) depends on (i-1, j-1) & (i-1, j+1) */		
-		if (i == 0) {
-			/* this is an entry task */
-			push_task(jb);
-		}
-		else {
-			express_deps(i, j, iter);
-		}
+		express_deps(i, j, iter);
 	}
 
 	/* create entry tasks */
