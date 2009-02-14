@@ -27,7 +27,7 @@ generatehtml()
 
 cd $ROOTDIR
 make clean 1> /dev/null 2> /dev/null
-make examples -j GOTO=1 CPUS=$MAXCPU CUDA=1 COVERAGE=1 1> /dev/null 2> /dev/null
+make examples -j ATLAS=1 CPUS=$MAXCPU CUDA=1 COVERAGE=1 1> /dev/null 2> /dev/null
 cd $DIR
 
 init;
@@ -37,7 +37,7 @@ timing=`$ROOTDIR/examples/incrementer/incrementer 2> /dev/null`
 save_cov "incrementer";
 
 echo "tag_example"
-timing=`$ROOTDIR/examples/tag_example/tag_example 2> /dev/null`
+timing=`$ROOTDIR/examples/tag_example/tag_example -iter 64 -i 128 -j 24 2> /dev/null`
 save_cov "tag_example";
 
 echo "spmv"
@@ -47,6 +47,22 @@ save_cov "spmv";
 echo "spmv.gpu"
 timing=`NCPUS=0 $ROOTDIR/examples/spmv/dw_spmv 2> /dev/null`
 save_cov "spmv.gpu";
+
+
+echo "strassen.ws"
+timing=`SCHED="ws" $ROOTDIR/examples/strassen/dw_strassen -rec 3 -size 2048 -pin 2> /dev/null`
+save_cov "strassen.ws";
+
+
+echo "strassen.dm"
+timing=`SCHED="dm" $ROOTDIR/examples/strassen/dw_strassen -rec 3 -size 2048 -pin 2> /dev/null`
+save_cov "strassen.dm";
+
+
+echo "strassen.dmda"
+timing=`SCHED="dmda" $ROOTDIR/examples/strassen/dw_strassen -rec 3 -size 2048 -pin 2> /dev/null`
+save_cov "strassen.dmda";
+
 
 echo "chol"
 timing=`$ROOTDIR/examples/cholesky/dw_cholesky 2> /dev/null`
