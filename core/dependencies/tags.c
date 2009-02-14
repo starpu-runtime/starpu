@@ -146,6 +146,9 @@ void notify_dependencies(struct job_s *j)
 	if (j->use_tag) {
 		/* in case there are dependencies, wake up the proper tasks */
 		tag = j->tag;
+
+		tag->state = DONE;
+
 		nsuccs = tag->nsuccs;
 		for (succ = 0; succ < nsuccs; succ++)
 		{
