@@ -5,6 +5,7 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 {
 	int ret;
 	tick_t codelet_start, codelet_end;
+	tick_t codelet_start_comm, codelet_end_comm;
 
 	unsigned calibrate_model = 0;
 
@@ -16,8 +17,14 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 			if (j->model && j->model->benchmarking)
 				calibrate_model = 1;
 
+			if (calibrate_model)
+				GET_TICK(codelet_start_comm);
+
 			ret = fetch_codelet_input(j->buffers, j->interface,
 					j->nbuffers, 0);
+
+			if (calibrate_model)
+				GET_TICK(codelet_end_comm);
 
 			if (ret != 0) {
 				/* there was not enough memory so the codelet cannot be executed right now ... */
@@ -44,6 +51,11 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 			if (calibrate_model)
 			{
 				double measured = timing_delay(&codelet_start, &codelet_end);
+				double measured_comm = timing_delay(&codelet_start_comm, &codelet_end_comm);
+
+//				fprintf(stderr, "%d\t%d\n", (int)j->penality, (int)measured_comm);
+				core_args->jobq->total_computation_time += measured;
+				core_args->jobq->total_communication_time += measured_comm;
 
 				update_perfmodel_history(j, core_args->arch, measured);
 			}
@@ -90,6 +102,9 @@ void *core_worker(void *arg)
 	   memory node "related" to that queue */
 	core_arg->jobq->memory_node = core_arg->memory_node;
 
+	core_arg->jobq->total_computation_time = 0.0;
+	core_arg->jobq->total_communication_time = 0.0;
+	
         /* tell the main thread that we are ready */
         sem_post(&core_arg->ready_sem);
 
@@ -126,6 +141,9 @@ void *core_worker(void *arg)
 
 		job_delete(j);
         }
+
+	 fprintf(stderr, "CORE #%d computation %le comm %le (%lf \%%)\n", core_arg->id, core_arg->jobq->total_computation_time, core_arg->jobq->total_communication_time,  core_arg->jobq->total_communication_time*100.0/core_arg->jobq->total_computation_time);
+
 
 	TRACE_WORKER_TERMINATED(FUT_CORE_KEY);
 
