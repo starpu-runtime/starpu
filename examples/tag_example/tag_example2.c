@@ -10,7 +10,7 @@
 #include <signal.h>
 #include <core/dependencies/tags.h>
 
-#define TAG(i, iter)	((uint64_t)  ((iter)*(16777216) | (i)) )
+#define TAG(i, iter)	((uint64_t)  (((uint64_t)iter)<<32 | (i)) )
 
 sem_t sem;
 codelet cl;
@@ -92,8 +92,6 @@ static void create_task_grid(unsigned iter)
 
 void callback_core(void *argcb __attribute__ ((unused)))
 {
-	fprintf(stderr, "callback\n");
-
 	unsigned newcnt = ATOMIC_ADD(&callback_cnt, -1);	
 
 	if (newcnt == 0)
@@ -117,7 +115,6 @@ void callback_core(void *argcb __attribute__ ((unused)))
 
 void core_codelet(void *_args __attribute__ ((unused)))
 {
-	fprintf(stderr, "core_codelet\n");
 }
 
 int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))

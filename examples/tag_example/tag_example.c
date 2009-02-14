@@ -10,7 +10,7 @@
 #include <signal.h>
 #include <core/dependencies/tags.h>
 
-#define TAG(i, j, iter)	((uint64_t) ( ((iter)*262144) |  ((j)*8192) | (i)) )
+#define TAG(i, j, iter)	((uint64_t) ( ((uint64_t)(iter)<<48) |  ((uint64_t)(j)<<24) | (i)) )
 
 sem_t sem;
 codelet cl;
