@@ -289,53 +289,12 @@ void call_spmv_codelet_filters(void)
 	}
 }
 
-
-
-void call_spmv_codelet(void)
-{
-
-	remainingjobs = 1;
-
-	job_t job;
-	codelet *cl = malloc(sizeof(codelet));
-
-	cl->cl_arg = NULL;
-	cl->core_func =  core_spmv;
-#ifdef USE_CUDA
-	cl->cuda_func = &cuda_spmv;
-#endif
-
-	job = job_create();
-#ifdef USE_CUDA
-	job->where = usecpu?CORE:CUDA;
-#else
-	job->where = CORE;
-#endif
-	job->cb = init_problem_callback;
-	job->argcb = &remainingjobs;
-	job->cl = cl;
-
-	job->nbuffers = 3;
-	job->buffers[0].state = &sparse_matrix;
-	job->buffers[0].mode  = R;
-	job->buffers[1].state = &vector_in;
-	job->buffers[1].mode = R;
-	job->buffers[2].state = &vector_out;
-	job->buffers[2].mode = W;
-
-
-
-
-	GET_TICK(start);
-}
-
 void init_problem(void)
 {
 	/* create the sparse input matrix */
 	create_data();
 
 	/* create a new codelet that will perform a SpMV on it */
-//	call_spmv_codelet();
 	call_spmv_codelet_filters();
 }
 
