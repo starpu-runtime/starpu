@@ -40,6 +40,10 @@ echo "tag_example"
 timing=`$ROOTDIR/examples/tag_example/tag_example -iter 64 -i 128 -j 24 2> /dev/null`
 save_cov "tag_example";
 
+echo "tag_example2"
+timing=`$ROOTDIR/examples/tag_example/tag_example2 -iter 64 -i 128 2> /dev/null`
+save_cov "tag_example2";
+
 echo "spmv"
 timing=`$ROOTDIR/examples/spmv/dw_spmv 2> /dev/null`
 save_cov "spmv";
@@ -47,6 +51,18 @@ save_cov "spmv";
 echo "spmv.gpu"
 timing=`NCPUS=0 $ROOTDIR/examples/spmv/dw_spmv 2> /dev/null`
 save_cov "spmv.gpu";
+
+echo "spmv.cpu"
+timing=`NCUDA=0 $ROOTDIR/examples/spmv/dw_spmv 2> /dev/null`
+save_cov "spmv.cpu";
+
+echo "spmv.dm"
+timing=`SCHED="dm" $ROOTDIR/examples/spmv/dw_spmv 2> /dev/null`
+save_cov "spmv.dm";
+
+echo "spmv.dmda"
+timing=`SCHED="dmda" $ROOTDIR/examples/spmv/dw_spmv 2> /dev/null`
+save_cov "spmv.dmda";
 
 
 echo "strassen.ws"
@@ -116,12 +132,25 @@ echo "heat.greedy.8k.v2"
 timing=`SCHED="greedy" $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> /dev/null`
 save_cov "heat.greedy.8k.v2";
 
-echo "heat.dm.8k.cg"
+echo "heat.8k.cg"
 timing=`$ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 -cg 2> /dev/null`
+save_cov "heat.8k.cg";
+
+
+echo "heat.dm.8k.cg"
+timing=`SCHED="dm" $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 -cg 2> /dev/null`
 save_cov "heat.dm.8k.cg";
 
 echo "heat.dm.8k.v3"
 timing=`SCHED="dm" $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v3 2> /dev/null`
 save_cov "heat.dm.8k.v3";
+
+echo "mult.dm"
+timing=`CALIBRATE=1 SCHED="dm" $ROOTDIR/examples/mult/dw_mult -nblocks 8 -x 8192 -y 8192 -z 8192 -pin 2> /dev/null`
+save_cov "mult.dm";
+
+echo "mult.dmda"
+timing=`CALIBRATE=1 SCHED="dmda" $ROOTDIR/examples/mult/dw_mult -nblocks 8 -x 8192 -y 8192 -z 8192 -pin 2> /dev/null`
+save_cov "mult.dmda";
 
 generatehtml;
