@@ -94,3 +94,28 @@ double job_expected_length(uint32_t who, struct job_s *j, enum perf_archtype arc
 	/* no model was found */
 	return 0.0;
 }
+
+
+/* Data transfer performance modeling */
+double data_expected_penalty(struct jobq_s *q, struct job_s *j)
+{
+	uint32_t memory_node = q->memory_node;
+	unsigned nbuffers = j->nbuffers;
+	unsigned buffer;
+
+	double penalty = 0.0;
+
+	for (buffer = 0; buffer < nbuffers; buffer++)
+	{
+		data_state *state = j->buffers[buffer].state;
+
+		if (!is_data_present_or_requested(state, memory_node))
+		{
+			/* TODO */
+			penalty += 1000.0;
+		}
+	}
+
+	return penalty;
+}
+

@@ -35,28 +35,6 @@ static void update_data_requests(struct jobq_s *q, struct job_s *j)
 	}
 }
 
-static double data_penalty(struct jobq_s *q, struct job_s *j)
-{
-	uint32_t memory_node = q->memory_node;
-	unsigned nbuffers = j->nbuffers;
-	unsigned buffer;
-
-	double penalty = 0.0;
-
-	for (buffer = 0; buffer < nbuffers; buffer++)
-	{
-		data_state *state = j->buffers[buffer].state;
-
-		if (!is_data_present_or_requested(state, memory_node))
-		{
-			/* TODO */
-			penalty += 1000.0;
-		}
-	}
-
-	return penalty;
-}
-
 static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task, unsigned prio)
 {
 	/* find the queue */
@@ -96,7 +74,7 @@ static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t tas
 							task, queue_array[worker]->arch);
 
 		//local_data_penalty[worker] = 0;
-		local_data_penalty[worker] = data_penalty(queue_array[worker], task);
+		local_data_penalty[worker] = data_expected_penalty(queue_array[worker], task);
 
 		if (local_task_length[worker] == -1.0)
 		{

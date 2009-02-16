@@ -8,6 +8,7 @@
 #include <stdio.h>
 
 struct buffer_descr_t;
+struct jobq_s;
 struct job_s;
 enum archtype;
 enum perf_archtype;
@@ -136,5 +137,7 @@ double job_expected_length(uint32_t who, struct job_s *j, enum perf_archtype arc
 double regression_based_job_expected_length(struct perfmodel_t *model,
 		uint32_t who, struct job_s *j);
 void update_perfmodel_history(struct job_s *j, enum perf_archtype arch, double measured);
+
+double data_expected_penalty(struct jobq_s *q, struct job_s *j);
 
 #endif // __PERFMODEL_H__
