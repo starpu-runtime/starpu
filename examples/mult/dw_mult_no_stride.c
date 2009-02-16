@@ -379,7 +379,7 @@ static void callback_func_2(void *arg)
 
 static void submit_new_iter(unsigned x, unsigned y, unsigned iter)
 {
-	job_t jz0;
+	job_t jz0 = NULL;
 
 	unsigned z;
 	for (z = 0; z < nslicesz; z++) 
