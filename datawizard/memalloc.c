@@ -147,7 +147,7 @@ void transfer_subtree_to_node(data_state *data, unsigned src_node,
 	}
 }
 
-static size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node)
+static size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node, unsigned attempts)
 {
 	size_t liberated = 0;
 
@@ -156,6 +156,13 @@ static size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node)
 	data = mc->data;
 
 	STARPU_ASSERT(data);
+
+	if (attempts == 0)
+	{
+		/* this is the first attempt to free memory
+		   so we avoid to drop requested memory */
+		/* TODO */
+	}
 
 	/* try to lock all the leafs of the subtree */
 	lock_all_subtree(data);
@@ -181,7 +188,7 @@ static size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node)
  * Try to free some memory on the specified node
  * 	returns 0 if no memory was released, 1 else
  */
-static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unused)))
+static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unused)), unsigned attempts)
 {
 //	fprintf(stderr, "reclaim memory...\n");
 
@@ -207,7 +214,7 @@ static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unu
 	     mc != mem_chunk_list_end(mc_list[node]);
 	     mc = mem_chunk_list_next(mc))
 	{
-		liberated += try_to_free_mem_chunk(mc, node);
+		liberated += try_to_free_mem_chunk(mc, node, attempts);
 		#if 0
 		if (liberated > toreclaim)
 			break;
@@ -308,7 +315,7 @@ int allocate_memory_on_node(data_state *state, uint32_t dst_node)
 			 * not to waste our cache all the time */
 			STARPU_ASSERT(state->ops->get_size);
 			size_t data_size = state->ops->get_size(state);
-			reclaim_memory(dst_node, 2*data_size);
+			reclaim_memory(dst_node, 2*data_size, attempts);
 		}
 		
 	} while(!allocated_memory && attempts++ < 2);
