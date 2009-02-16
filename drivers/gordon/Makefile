@@ -11,4 +11,4 @@ all: driver_gordon.o
 -include $(OBJS:.o=.d)
 
 clean:   
-	@rm -f *.o
+	@rm -f *.o *.d
