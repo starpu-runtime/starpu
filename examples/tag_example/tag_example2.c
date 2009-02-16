@@ -59,13 +59,11 @@ static void tag_cleanup_grid(unsigned ni, unsigned iter)
 
 static void create_task_grid(unsigned iter)
 {
-	int i;
+	unsigned i;
 
 	fprintf(stderr, "start iter %d ni %d...\n", iter, ni);
 
 	callback_cnt = (ni);
-
-//	for (i = ni-1; i >= 0; i--)
 
 	for (i = 0; i < ni; i++)
 	{
