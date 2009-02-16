@@ -661,6 +661,8 @@ int main(int argc, char **argv)
 		build_sparse_stiffness_matrix_B(pmesh, B, Bformer, DIM, newsize, RefArray, RefArrayBack);
 
 		nnz = build_sparse_stiffness_matrix_A(pmesh, &nzval, &colind, rowptr, newsize, RefArray, RefArrayBack);
+
+#if 0
 		printf("nnz : %d\n", nnz);
 
 		fprintf(stdout, "MUMPS FORMAT BEGIN\n");
@@ -687,7 +689,7 @@ int main(int argc, char **argv)
 	
 		fclose(fm);
 		fprintf(stdout, "MUMPS FORMAT END\n");
-		
+#endif		
 
 		do_conjugate_gradient(nzval, B, result, nnz, newsize, colind, rowptr);
 
