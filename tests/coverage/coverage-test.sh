@@ -79,6 +79,22 @@ echo "strassen.dmda"
 timing=`SCHED="dmda" $ROOTDIR/examples/strassen/dw_strassen -rec 3 -size 2048 -pin 2> /dev/null`
 save_cov "strassen.dmda";
 
+echo "chol.dm"
+timing=`CALIBRATE=1 SCHED="dm" $ROOTDIR/examples/cholesky/dw_cholesky -pin 2> /dev/null`
+save_cov "chol.dm";
+
+
+echo "chol.dmda"
+timing=`CALIBRATE=1 SCHED="dmda" $ROOTDIR/examples/cholesky/dw_cholesky -pin 2> /dev/null`
+save_cov "chol.dmda";
+
+echo "chol.cpu"
+timing=`CALIBRATE=1 NCUDA=0 SCHED="dm" $ROOTDIR/examples/cholesky/dw_cholesky -pin 2> /dev/null`
+save_cov "chol.cpu";
+
+echo "chol.gpu"
+timing=`CALIBRATE=1 NCPUS=0 SCHED="dm" $ROOTDIR/examples/cholesky/dw_cholesky -pin 2> /dev/null`
+save_cov "chol.gpu";
 
 echo "chol"
 timing=`$ROOTDIR/examples/cholesky/dw_cholesky 2> /dev/null`
@@ -145,6 +161,10 @@ echo "heat.dm.8k.v3"
 timing=`SCHED="dm" $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v3 2> /dev/null`
 save_cov "heat.dm.8k.v3";
 
+echo "mult.dm.common"
+timing=`SCHED="dm" $ROOTDIR/examples/mult/dw_mult -nblocks 4 -x 4096 -y 4096 -z 1024 -pin -common-model 2> /dev/null`
+save_cov "mult.dm.common";
+
 echo "mult.dm"
 timing=`CALIBRATE=1 SCHED="dm" $ROOTDIR/examples/mult/dw_mult -nblocks 8 -x 8192 -y 8192 -z 8192 -pin 2> /dev/null`
 save_cov "mult.dm";
@@ -152,5 +172,7 @@ save_cov "mult.dm";
 echo "mult.dmda"
 timing=`CALIBRATE=1 SCHED="dmda" $ROOTDIR/examples/mult/dw_mult -nblocks 8 -x 8192 -y 8192 -z 8192 -pin 2> /dev/null`
 save_cov "mult.dmda";
+
+
 
 generatehtml;
