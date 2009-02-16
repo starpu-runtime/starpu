@@ -149,14 +149,18 @@ static void init_workers_binding(struct machine_config_s *config)
 				is_an_accelerator = 0;
 				memory_node = ram_memory_node;
 				break;
+#ifdef USE_GORDON
 			case GORDON_WORKER:
 				is_an_accelerator = 1;
 				memory_node = ram_memory_node;
 				break;
+#endif
+#ifdef USE_CUDA
 			case CUDA_WORKER:
 				is_an_accelerator = 1;
 				memory_node = register_memory_node(CUDA_RAM);
 				break;
+#endif
 			default:
 				STARPU_ASSERT(0);
 		}
