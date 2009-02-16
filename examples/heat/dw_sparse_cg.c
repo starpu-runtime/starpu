@@ -115,7 +115,7 @@ void init_cg(struct cg_problem *problem)
 	tag_declare_deps(3UL, 1, 2UL);
 
 	/* launch the computation now */
-	push_task(job1);
+	submit_job(job1);
 }
 
 /*
@@ -223,7 +223,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	job9->argcb = problem;
 	
 	/* launch the computation now */
-	push_task(job4);
+	submit_job(job4);
 }
 
 void iteration_cg(void *problem)

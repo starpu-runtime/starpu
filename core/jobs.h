@@ -102,4 +102,8 @@ job_t job_create(void);
 void handle_job_termination(job_t j);
 size_t job_get_data_size(job_t j);
 
+int submit_job(job_t j);
+int submit_prio_job(job_t j);
+int submit_job_sync(job_t j);
+
 #endif // __JOBS_H__

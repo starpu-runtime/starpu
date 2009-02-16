@@ -145,6 +145,7 @@ OBJDEPS += core/perfmodel/perfmodel_history.o
 OBJDEPS += core/jobs.o core/workers.o
 OBJDEPS += core/dependencies/tags.o
 OBJDEPS += core/dependencies/htable.o
+OBJDEPS += core/dependencies/data-concurrency.o
 OBJDEPS += core/mechanisms/queues.o
 OBJDEPS += core/mechanisms/priority_queues.o
 OBJDEPS += core/mechanisms/deque_queues.o

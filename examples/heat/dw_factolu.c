@@ -62,7 +62,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 		u11arg->sem = args->sem;
 
 		/* schedule the codelet */
-		push_prio_task(j);
+		submit_prio_job(j);
 	}
 
 	/* 11k+1 + 22k,k+1,j => 21 k+1,j */
@@ -107,7 +107,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 						get_sub_data(args->dataA, 2, u21a->i, u21a->k);
 					j21->buffers[1].mode = RW;
 		
-					push_task(j21);
+					submit_job(j21);
 				}
 		}
 	}
@@ -153,7 +153,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					j12->buffers[1].state = get_sub_data(args->dataA, 2, u12a->k, u12a->i); 
 					j12->buffers[1].mode = RW;
 					
-					push_task(j12);
+					submit_job(j12);
 	
 				}
 		}
@@ -223,10 +223,10 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				
 				/* schedule that codelet */
 				if (slicey == i+1) {
-					push_prio_task(j22);
+					submit_prio_job(j22);
 				}
 				else {
-					push_task(j22);
+					submit_job(j22);
 				}
 			}
 		}
@@ -296,10 +296,10 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				/* schedule that codelet */
 				if (slicex == i+1) {
 					/* try to optimize the path to 11k+1 */
-					push_prio_task(j22);
+					submit_prio_job(j22);
 				}
 				else {
-					push_task(j22);
+					submit_job(j22);
 				}
 			}
 		}
@@ -374,10 +374,10 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					j12->buffers[1].mode = RW;
 
 					if (slice == i +1) {
-						push_prio_task(j12);
+						submit_prio_job(j12);
 					}
 					else {
-						push_task(j12);
+						submit_job(j12);
 					}
 	
 				}
@@ -424,10 +424,10 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					j21->buffers[1].mode = RW;
 		
 					if (slice == i +1) {
-						push_prio_task(j21);
+						submit_prio_job(j21);
 					}
 					else {
-						push_task(j21);
+						submit_job(j21);
 					}
 				}
 			}
@@ -529,8 +529,8 @@ void dw_callback_codelet_update_u11(void *argcb)
 				get_sub_data(args->dataA, 2, u21a->i, u21a->k);
 			j21->buffers[1].mode = RW;
 		
-			push_task(j12);
-			push_task(j21);
+			submit_job(j12);
+			submit_job(j21);
 		}
 	}
 }
@@ -572,7 +572,7 @@ void dw_callback_codelet_update_u22(void *argcb)
 		u11arg->sem = args->sem;
 
 		/* schedule the codelet */
-		push_task(j);
+		submit_job(j);
 
 	}
 
@@ -637,7 +637,7 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 
 				
 				/* schedule that codelet */
-				push_task(j22);
+				submit_job(j22);
 			}
 		}
 	}
@@ -685,7 +685,7 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 		j->buffers[0].mode = RW;
 
 	/* schedule the codelet */
-	push_task(j);
+	submit_job(j);
 
 	/* stall the application until the end of computations */
 	sem_wait(&sem);
@@ -748,7 +748,7 @@ void dw_codelet_facto_v2(data_state *dataA, unsigned nblocks)
 		j->buffers[0].mode = RW;
 
 	/* schedule the codelet */
-	push_task(j);
+	submit_job(j);
 
 	/* stall the application until the end of computations */
 	sem_wait(&sem);

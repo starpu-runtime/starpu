@@ -161,7 +161,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		//tag =	((2ULL)<<32 | (unsigned long long)(i));
 		//tag_declare(tag, j);
 
-		push_task(j);
+		submit_job(j);
 	}
 
 	sem_wait(&sem);

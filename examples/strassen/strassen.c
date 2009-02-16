@@ -158,7 +158,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			STARPU_ASSERT(0);
 	}
 
-	push_task(job);
+	submit_job(job);
 	// XXX this could made out of various codelets, for now, a single one
 }
 

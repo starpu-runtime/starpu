@@ -200,7 +200,7 @@ void launch_spmv_codelets(void)
 	for (task = 0; task < totaljobs; task++)
 	{
 		if (is_entry_tab[task]) {
-			push_task(job_tab[task]);
+			submit_job(job_tab[task]);
 			nchains++;
 		}
 	}

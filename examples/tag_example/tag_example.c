@@ -104,7 +104,7 @@ static void create_task_grid(unsigned iter)
 		tag_declare(TAG(0,j, iter), jb);
 
 		/* this is an entry task */
-		push_task(jb);
+		submit_job(jb);
 	}
 
 }

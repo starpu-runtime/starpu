@@ -78,7 +78,7 @@ static void create_task_grid(unsigned iter)
 
 		if (i == 0)
 		{
-			push_task(jb);
+			submit_job(jb);
 		}
 		else
 		{

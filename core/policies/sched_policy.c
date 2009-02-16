@@ -82,41 +82,8 @@ int push_task(job_t task)
 
 	STARPU_ASSERT(queue->push_task);
 
-	if (!worker_exists(task->where))
-		return -ENODEV; 
-
 	return queue->push_task(queue, task);
 }
-
-int push_prio_task(job_t task)
-{
-	task->priority = MAX_PRIO;
-	
-	return push_task(task);
-}
-
-/* note that this call is blocking, and will not make StarPU progress,
- * so it must only be called from the programmer thread, not by StarPU */
-int push_task_sync(job_t task)
-{
-	int ret;
-
-	task->synchronous = 1;
-	sem_init(&task->sync_sem, 0, 0);
-
-	ret = push_task(task);
-	if (ret == -ENODEV)
-	{	
-		sem_destroy(&task->sync_sem);
-		return ret;
-	}
-
-	sem_wait(&task->sync_sem);
-	sem_destroy(&task->sync_sem);
-
-	return 0;
-}
-
 
 struct job_s * pop_task_from_queue(struct jobq_s *queue)
 {

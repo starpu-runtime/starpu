@@ -355,7 +355,7 @@ static void construct_job(unsigned x, unsigned y, unsigned z, unsigned iter, str
 	posp->z = z;
 	posp->iter = iter;
 
-	push_task(jb);
+	submit_job(jb);
 }
 
 

@@ -60,5 +60,6 @@ void tag_remove(tag_t id);
 void tag_declare_deps(tag_t id, unsigned ndeps, ...);
 void tag_set_ready(struct tag_s *tag);
 
+unsigned submit_job_enforce_task_deps(struct job_s *j);
 
 #endif // __TAGS_H__

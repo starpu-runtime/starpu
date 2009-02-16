@@ -285,7 +285,7 @@ void call_spmv_codelet_filters(void)
 		job->buffers[2].state = get_sub_data(&vector_out, 1, part);
 		job->buffers[2].mode = W;
 	
-		push_task(job);
+		submit_job(job);
 	}
 }
 

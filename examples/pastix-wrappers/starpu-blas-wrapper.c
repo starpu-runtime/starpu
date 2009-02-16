@@ -234,7 +234,7 @@ void STARPU_DECLARE_WORK_BLOCKS(float *maxbloktab1, float *maxbloktab2, unsigned
 	sem_init(&sem, 0, 0U);
 	
 	/* submit the codelet */
-	push_task(j);
+	submit_job(j);
 
 	/* wait for its completion */
 	sem_wait(&sem);
@@ -328,7 +328,7 @@ void STARPU_CBLK_STRSM(unsigned col)
 	sem_init(&sem, 0, 0U);
 	
 	/* submit the codelet */
-	push_task(j);
+	submit_job(j);
 
 	/* wait for its completion */
 	sem_wait(&sem);
@@ -474,7 +474,7 @@ void STARPU_COMPUTE_CONTRIB_COMPACT(unsigned col, int dimi, int dimj, int dima, 
 	sem_init(&sem, 0, 0U);
 	
 	/* submit the codelet */
-	push_task(j);
+	submit_job(j);
 
 	/* wait for its completion */
 	sem_wait(&sem);
@@ -612,7 +612,7 @@ void STARPU_SGEMM (const char *transa, const char *transb, const int m,
 	sem_init(&sem, 0, 0U);
 	
 	/* submit the codelet */
-	push_task(j);
+	submit_job(j);
 
 	/* wait for its completion */
 	sem_wait(&sem);

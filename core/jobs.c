@@ -1,4 +1,6 @@
-#include "jobs.h"
+#include <core/jobs.h>
+#include <core/workers.h>
+#include <core/dependencies/data-concurrency.h>
 
 size_t job_get_data_size(job_t j)
 {
@@ -57,4 +59,58 @@ void handle_job_termination(job_t j)
 
 	if (j->synchronous)
 		sem_post(&j->sync_sem);
+}
+
+/* application should submit new tasks to StarPU through this function */
+int submit_job(job_t j)
+{
+	STARPU_ASSERT(j);
+
+	if (!worker_exists(j->where))
+		return -ENODEV;
+
+	/* enfore task dependencies */
+	if (j->use_tag)
+	{
+		if (submit_job_enforce_task_deps(j))
+			return 0;
+	}
+
+#ifdef NO_DATA_RW_LOCK
+	/* enforce data dependencies */
+	if (submit_job_enforce_data_deps(j))
+		return 0;
+#endif
+
+	return push_task(j);
+}
+
+int submit_prio_job(job_t j)
+{
+	j->priority = MAX_PRIO;
+	
+	return submit_job(j);
+}
+
+/* note that this call is blocking, and will not make StarPU progress,
+ * so it must only be called from the programmer thread, not by StarPU.
+ * NB: This also means that it cannot be submitted within a callback ! */
+int submit_job_sync(job_t j)
+{
+	int ret;
+
+	j->synchronous = 1;
+	sem_init(&j->sync_sem, 0, 0);
+
+	ret = submit_job(j);
+	if (ret == -ENODEV)
+	{
+		sem_destroy(&j->sync_sem);
+		return ret;
+	}
+
+	sem_wait(&j->sync_sem);
+	sem_destroy(&j->sync_sem);
+
+	return 0;
 }

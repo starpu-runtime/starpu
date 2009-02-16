@@ -404,8 +404,8 @@ static void submit_new_iter(unsigned x, unsigned y, unsigned iter)
 		}
 	}
 
-//	fprintf(stderr, "push_task for x %d y %d iter %d\n", x, y, iter);
-	push_task(jz0);
+//	fprintf(stderr, "submit_job for x %d y %d iter %d\n", x, y, iter);
+	submit_job(jz0);
 }
 
 static void launch_codelets(void)

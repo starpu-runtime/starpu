@@ -201,12 +201,20 @@ void tag_set_ready(struct tag_s *tag)
 	tag->state = READY;
 	/* declare it to the scheduler ! */
 	struct job_s *j = tag->job;
-	
-	/* that's a very simple implementation of priorities */
-	if (j->priority > DEFAULT_PRIO) {
-		push_prio_task(j);
-	}
-	else {
-		push_task(j);
-	}
+
+#ifdef NO_DATA_RW_LOCK
+	/* enforce data dependencies */
+	if (submit_job_enforce_data_deps(j))
+		return;
+#endif
+
+	submit_job(j);
+}
+
+/* This function is called when a new task is submitted to StarPU 
+ * it returns 1 if the task deps are not fulfilled, 0 otherwise */
+unsigned submit_job_enforce_task_deps(job_t j)
+{
+	struct tag_s *tag = j->tag;
+	return (tag->state == BLOCKED);
 }

@@ -176,7 +176,7 @@ static void _dw_cholesky(data_state *dataA, unsigned nblocks)
 
 	/* schedule the codelet */
 	gettimeofday(&start, NULL);
-	push_task(entry_job);
+	submit_job(entry_job);
 
 	/* stall the application until the end of computations */
 	sem_wait(&sem);

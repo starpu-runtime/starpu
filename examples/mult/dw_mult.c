@@ -289,7 +289,7 @@ static void launch_codelets(void)
 				jb->model = &sgemm_model;
 			}
 			
-			push_task(jb);
+			submit_job(jb);
 
 		}
 	}

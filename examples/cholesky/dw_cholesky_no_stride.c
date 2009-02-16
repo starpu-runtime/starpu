@@ -187,7 +187,7 @@ static void dw_cholesky_no_stride(void)
 
 	/* schedule the codelet */
 	gettimeofday(&start, NULL);
-	push_task(entry_job);
+	submit_job(entry_job);
 
 	/* stall the application until the end of computations */
 	sem_wait(&sem);
