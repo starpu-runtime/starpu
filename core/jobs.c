@@ -42,7 +42,7 @@ job_t job_create(void)
 
 void handle_job_termination(job_t j)
 {
-	if (j->terminated)
+	if (UNLIKELY(j->terminated))
 		fprintf(stderr, "OOPS ... job %p was already terminated !!\n", j);
 
 	j->terminated = 1;
