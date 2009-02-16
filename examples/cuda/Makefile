@@ -44,5 +44,5 @@ cutil:
 	$(CXX) $(CXXFLAGS)   -o multithreading.cpp_o -c $(CUTILSRCDIR)/multithreading.cpp
 
 clean:
-	@rm -f *.o *.cu_o *.cpp_o *.cubin
+	@rm -f *.o *.cu_o *.cpp_o *.cubin *.linkinfo
 	@rm -f test_spmv
