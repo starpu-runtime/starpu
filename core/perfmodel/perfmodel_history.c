@@ -182,12 +182,12 @@ void register_model(struct perfmodel_t *model)
 #ifdef MODEL_DEBUG
 	char debugpath[256];
 	get_model_debug_path(model, "cuda", debugpath, 256);
-	model->cuda_debug_file = fopen(debugpath, "a+");
-	STARPU_ASSERT(model->cuda_debug_file);
+	model->per_arch[CUDA_DEFAULT].debug_file = fopen(debugpath, "a+");
+	STARPU_ASSERT(model->per_arch[CUDA_DEFAULT].debug_file);
 
 	get_model_debug_path(model, "core", debugpath, 256);
-	model->core_debug_file = fopen(debugpath, "a+");
-	STARPU_ASSERT(model->core_debug_file);
+	model->per_arch[CORE_DEFAULT].debug_file = fopen(debugpath, "a+");
+	STARPU_ASSERT(model->per_arch[CORE_DEFAULT].debug_file);
 #endif
 
 	return;
@@ -466,6 +466,8 @@ void update_perfmodel_history(job_t j, enum perf_archtype arch, double measured)
 #ifdef MODEL_DEBUG
 		FILE * debug_file = per_arch_model->debug_file;
 
+		take_mutex(&model->model_mutex);
+
 		fprintf(debug_file, "%lf\t", measured);
 		unsigned i;
 			
@@ -478,6 +480,9 @@ void update_perfmodel_history(job_t j, enum perf_archtype arch, double measured)
 			state->ops->display(state, debug_file);
 		}
 		fprintf(debug_file, "\n");	
+
+
+		release_mutex(&model->model_mutex);
 #endif
 	}
 }
