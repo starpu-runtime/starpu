@@ -38,6 +38,7 @@
 	((2*(n1)*(n3) + (n1)*(n2) + (n2)*(n3))*sizeof(float))
 
 extern struct perfmodel_t sgemm_model;
+extern struct perfmodel_t sgemm_model_common;
 
 struct block_conf {
 	uint32_t m;
@@ -57,6 +58,7 @@ unsigned ydim = 256;
 unsigned zdim = 64;
 unsigned norandom = 0;
 unsigned pin = 0;
+unsigned use_common_model = 0;
 
 /* to compute MFlop/s */
 uint64_t flop_cublas = 0;
@@ -131,6 +133,10 @@ static void parse_args(int argc, char **argv)
 
 		if (strcmp(argv[i], "-pin") == 0) {
 			pin = 1;
+		}
+
+		if (strcmp(argv[i], "-common-model") == 0) {
+			use_common_model = 1;
 		}
 	}
 

@@ -280,7 +280,14 @@ static void launch_codelets(void)
 				get_sub_data(&C_state, 2, taskx, tasky);
 			jb->buffers[2].mode = RW;
 
-			jb->model = &sgemm_model;
+			if (use_common_model)
+			{
+				jb->model = &sgemm_model_common;
+			}
+			else
+			{
+				jb->model = &sgemm_model;
+			}
 			
 			push_task(jb);
 

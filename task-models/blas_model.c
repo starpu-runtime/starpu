@@ -39,3 +39,9 @@ struct perfmodel_t sgemm_model = {
 	.symbol = "sgemm_goto"
 #endif
 };
+
+
+struct perfmodel_t sgemm_model_common = {
+	.cost_model = gemm_cost,
+	.type = COMMON,
+};
