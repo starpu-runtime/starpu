@@ -36,6 +36,9 @@
 
 #define	FUT_WORKER_TERMINATED	0x5115
 
+#define FUT_USER_DEFINED_START	0x5116
+#define FUT_USER_DEFINED_END	0x5117
+
 #ifdef USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -86,6 +89,12 @@ void fxt_register_thread(unsigned);
 #define TRACE_WORKER_TERMINATED(workerkind)	\
 	FUT_DO_PROBE2(FUT_WORKER_TERMINATED, workerkind, syscall(SYS_gettid));
 
+#define TRACE_USER_DEFINED_START	\
+	FUT_DO_PROBE1(FUT_USER_DEFINED_START, syscall(SYS_gettid));
+
+#define TRACE_USER_DEFINED_END	\
+	FUT_DO_PROBE1(FUT_USER_DEFINED_END, syscall(SYS_gettid));
+
 #else // !USE_FXT
 
 #define TRACE_NEW_WORKER(a)		do {} while(0);
@@ -102,6 +111,8 @@ void fxt_register_thread(unsigned);
 #define TRACE_DATA_COPY(a, b, c)	do {} while(0);
 #define TRACE_WORK_STEALING(a, b)	do {} while(0);
 #define TRACE_WORKER_TERMINATED(a)	do {} while(0);
+#define TRACE_USER_DEFINED_START	do {} while(0);
+#define TRACE_USER_DEFINED_END		do {} while(0);
 
 #endif // USE_FXT
 
