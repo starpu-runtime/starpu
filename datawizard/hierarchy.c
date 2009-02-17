@@ -24,7 +24,12 @@ void monitor_new_data(data_state *state, uint32_t home_node)
 	STARPU_ASSERT(state);
 
 	/* initialize the new lock */
+#ifndef NO_DATA_RW_LOCK
 	init_rw_lock(&state->data_lock);
+#else
+	state->req_list = data_requester_list_new();
+	state->refcnt = 0;
+#endif
 	init_mutex(&state->header_lock);
 
 	/* first take care to properly lock the data */
@@ -162,7 +167,12 @@ void partition_data(data_state *initial_data, filter *f)
 			children->ops = initial_data->ops;
 
 		/* initialize the chunk lock */
+#ifndef NO_DATA_RW_LOCK
 		init_rw_lock(&children->data_lock);
+#else
+		children->req_list = data_requester_list_new();
+		children->refcnt = 0;
+#endif
 		init_mutex(&children->header_lock);
 
 		unsigned node;
@@ -187,6 +197,10 @@ void unpartition_data(data_state *root_data, uint32_t gathering_node)
 	unsigned node;
 
 	take_mutex(&root_data->header_lock);
+
+#ifdef NO_DATA_RW_LOCK
+#warning unpartition_data is not supported with NO_DATA_RW_LOCK yet ...
+#endif
 
 	/* first take all the children lock (in order !) */
 	for (child = 0; child < root_data->nchildren; child++)

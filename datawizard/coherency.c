@@ -1,5 +1,6 @@
 #include <datawizard/coherency.h>
 #include <datawizard/copy-driver.h>
+#include <core/dependencies/data-concurrency.h>
 
 void display_state(data_state *state)
 {
@@ -174,6 +175,7 @@ int fetch_data(data_state *state, access_mode mode)
 	read = (mode != W); /* then R or RW */
 	write = (mode != R); /* then W or RW */
 
+#ifndef NO_DATA_RW_LOCK
 	if (write) {
 //		take_rw_lock_write(&state->data_lock);
 		while (take_rw_lock_write_try(&state->data_lock))
@@ -183,6 +185,7 @@ int fetch_data(data_state *state, access_mode mode)
 		while (take_rw_lock_read_try(&state->data_lock))
 			datawizard_progress(requesting_node);
 	}
+#endif
 
 	while (take_mutex_try(&state->header_lock))
 		datawizard_progress(requesting_node);
@@ -203,7 +206,9 @@ enomem:
 	state->per_node[requesting_node].refcnt--;
 	release_mutex(&state->header_lock);
 
+#ifndef NO_DATA_RW_LOCK
 	release_rw_lock(&state->data_lock);
+#endif
 
 	return -1;
 }
@@ -260,7 +265,7 @@ void write_through_data(data_state *state, uint32_t requesting_node,
 
 /* in case the data was accessed on a write mode, do not forget to 
  * make it accessible again once it is possible ! */
-void release_data(data_state *state, uint32_t write_through_mask)
+static void release_data(data_state *state, uint32_t write_through_mask)
 {
 	/* normally, the requesting node should have the data in an exclusive manner */
 	uint32_t requesting_node = get_local_memory_node();
@@ -277,8 +282,12 @@ void release_data(data_state *state, uint32_t write_through_mask)
 	state->per_node[requesting_node].refcnt--;
 	release_mutex(&state->header_lock);
 
+#ifndef NO_DATA_RW_LOCK
 	/* this is intended to make data accessible again */
 	release_rw_lock(&state->data_lock);
+#else
+	notify_data_dependencies(state);
+#endif
 }
 
 int fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsigned nbuffers, uint32_t mask)
@@ -352,7 +361,11 @@ int request_data_allocation(data_state *state, uint32_t node)
 void notify_data_modification(data_state *state, uint32_t modifying_node)
 {
 	/* this may block .. XXX */
+#ifndef NO_DATA_RW_LOCK
 	take_rw_lock_write(&state->data_lock);
+#else
+#warning notify_data_modification is not supported with NO_DATA_RW_LOCK yet
+#endif
 
 	take_mutex(&state->header_lock);
 
@@ -364,7 +377,9 @@ void notify_data_modification(data_state *state, uint32_t modifying_node)
 	}
 
 	release_mutex(&state->header_lock);
+#ifndef NO_DATA_RW_LOCK
 	release_rw_lock(&state->data_lock);
+#endif
 }
 
 /* NB : this value can only be an indication of the status of a data

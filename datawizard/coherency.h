@@ -13,6 +13,7 @@
 #include <common/rwlock.h>
 #include <common/timing.h>
 #include <common/fxt.h>
+#include <common/list.h>
 
 #include <datawizard/data_parameters.h>
 #include <datawizard/data_request.h>
@@ -58,9 +59,40 @@ typedef struct local_data_state_t {
 	uint8_t requested;
 } local_data_state;
 
+#ifdef NO_DATA_RW_LOCK
+/* Everyone that wants to access some piece of data will post a request.
+ * Not only StarPU internals, but also the application may put such requests */
+
+LIST_TYPE(data_requester,
+	/* what kind of access is requested ? */
+	access_mode mode;
+
+	unsigned is_requested_by_codelet;
+
+	/* in case this is a codelet that will do the access */
+	struct job_s *j;
+	unsigned buffer_index;
+
+	/* if this is more complicated ... (eg. application request) 
+	 * NB: this callback is not called with the lock taken !
+	 */
+	void (*ready_data_callback)(void *argcb);
+	void *argcb;
+);
+
+#endif
+
 typedef struct data_state_t {
+#ifdef NO_DATA_RW_LOCK
+	data_requester_list_t req_list;
+	/* the number of requests currently in the scheduling engine
+	 * (not in the req_list anymore) */
+	unsigned refcnt;
+	access_mode current_mode;
+#else
 	/* protect the data itself */
 	rw_lock	data_lock;
+#endif
 	/* protect meta data */
 	mutex header_lock;
 
@@ -104,7 +136,7 @@ void display_msi_stats(void);
 void display_state(data_state *state);
 __attribute__((warn_unused_result))
 int fetch_data(data_state *state, access_mode mode);
-void release_data(data_state *state, uint32_t write_through_mask);
+//void release_data(data_state *state, uint32_t write_through_mask);
 
 __attribute__((warn_unused_result))
 int _fetch_data(data_state *state, uint32_t requesting_node, uint8_t read, uint8_t write);

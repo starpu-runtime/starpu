@@ -75,6 +75,10 @@ endif
 
 EXTRADEP=
 
+ifdef NO_DATA_RW_LOCK
+	CFLAGS+=-DNO_DATA_RW_LOCK
+endif
+
 ifdef DONTBIND
 	CFLAGS += -DDONTBIND
 endif

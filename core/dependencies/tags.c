@@ -5,6 +5,7 @@
 #include <core/dependencies/htable.h>
 #include <core/jobs.h>
 #include <core/policies/sched_policy.h>
+#include <core/dependencies/data-concurrency.h>
 
 static htbl_node_t *tag_htbl = NULL;
 static mutex tag_mutex = {
