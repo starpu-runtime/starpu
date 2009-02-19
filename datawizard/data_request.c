@@ -37,8 +37,12 @@ int post_data_request(data_state *state, uint32_t src_node, uint32_t dst_node)
 	//while(sem_trywait(&r->sem) == -1)
 	//	wake_all_blocked_workers_on_node(src_node);
 
+
 	while(sem_trywait(&r->sem) == -1)
+	{
+		wake_all_blocked_workers_on_node(src_node);
 		datawizard_progress(dst_node);
+	}
 
 	retvalue = r->retval;
 	
