@@ -14,7 +14,7 @@
 #include <drivers/cuda/driver_cuda.h>
 #endif
 
-#define NITER	10000
+#define NITER	50000
 
 data_state my_float_state;
 data_state unity_state;
@@ -33,17 +33,6 @@ void callback_func(void *argcb)
 
 	if (cnt == NITER) 
 	{
-		/* stop monitoring data and grab it in RAM */
-		unpartition_data(&my_float_state, 0);
-
-		delete_data(&my_float_state);
-		
-		printf("array -> %f, %f, %f\n", my_lovely_float[0], 
-				my_lovely_float[1], my_lovely_float[2]);
-		printf("stopping ... cnt was %d i %d\n", cnt, i);
-
-		terminate_machine();
-
 		sem_post(&sem);
 	}
 }
@@ -165,6 +154,19 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	}
 
 	sem_wait(&sem);
+
+//	/* stop monitoring data and grab it in RAM */
+//	unpartition_data(&my_float_state, 0);
+//
+//	delete_data(&my_float_state);
+
+	sync_data_with_mem(&my_float_state);
+	
+	printf("array -> %f, %f, %f\n", my_lovely_float[0], 
+			my_lovely_float[1], my_lovely_float[2]);
+//	printf("stopping ... cnt was %d i %d\n", cnt, i);
+	
+	terminate_machine();
 
 	return 0;
 }
