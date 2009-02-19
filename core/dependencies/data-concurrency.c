@@ -37,13 +37,60 @@ static unsigned may_unlock_data_req_list_head(data_state *data)
 	/* data->current_mode == R, so we can process more readers */
 	data_requester_t r = data_requester_list_front(data->req_list);
 	
-	/* XXX TODO */
-	STARPU_ASSERT(r->is_requested_by_codelet);
-
 	return (r->mode == R);
 }
 
-static unsigned attempt_to_submit_data_request(job_t j, unsigned buffer_index)
+
+unsigned attempt_to_submit_data_request_from_apps(data_state *data, access_mode mode,
+						void (*callback)(void *), void *argcb)
+{
+	unsigned ret;
+
+	take_mutex(&data->header_lock);
+
+	if (data->refcnt == 0)
+	{
+		/* there is nobody currently about to manipulate the data */
+		data->refcnt++;
+		data->current_mode = mode;
+
+		/* success */
+		ret = 0;
+	}
+	else
+	{
+		/* there is already someone that may access the data */
+		if ( (mode == R) && (data->current_mode == R))
+		{
+			data->refcnt++;
+
+			/* success : there is a new reader */
+			ret = 0;
+		}
+		else
+		{
+			/* there cannot be multiple writers or a new writer
+			 * while the data is in read mode */
+			
+			/* enqueue the request */
+			data_requester_t r = data_requester_new();
+				r->mode = mode;
+				r->is_requested_by_codelet = 0;
+				r->ready_data_callback = callback;
+				r->argcb = argcb;
+
+			data_requester_list_push_back(data->req_list, r);
+
+			/* failed */
+			ret = 1;
+		}
+	}
+
+	release_mutex(&data->header_lock);
+	return ret;
+}
+
+static unsigned attempt_to_submit_data_request_from_job(job_t j, unsigned buffer_index)
 {
 	unsigned ret;
 
@@ -98,15 +145,12 @@ static unsigned _submit_job_enforce_data_deps(job_t j, unsigned start_buffer_ind
 {
 	unsigned buf;
 
-	
 	/* TODO compute an ordered list of the data */
 
 	for (buf = start_buffer_index; buf < j->nbuffers; buf++)
 	{
-		if (attempt_to_submit_data_request(j, buf))
-		{
+		if (attempt_to_submit_data_request_from_job(j, buf))
 			return 1;
-		}
 	}
 
 	return 0;
@@ -137,14 +181,29 @@ void notify_data_dependencies(data_state *data)
 		data_requester_t r = data_requester_list_pop_front(data->req_list);
 
 		data->refcnt++;
+	
+		release_mutex(&data->header_lock);
 
-		if (!unlock_one_requester(r))
-			push_task(r->j);
-		
+		if (r->is_requested_by_codelet)
+		{
+			if (!unlock_one_requester(r))
+				push_task(r->j);
+		}
+		else
+		{
+			STARPU_ASSERT(r->ready_data_callback);
+
+			/* execute the callback associated with the data requester */
+			r->ready_data_callback(r->argcb);
+		}
+
 		data_requester_delete(r);
+		
+		take_mutex(&data->header_lock);
 	}
-
+	
 	release_mutex(&data->header_lock);
+
 }
 
 #endif
