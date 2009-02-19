@@ -91,6 +91,7 @@ struct tag_s *gettag_struct(tag_t id)
 
 void notify_cg(cg_t *cg)
 {
+
 	STARPU_ASSERT(cg);
 	unsigned ntags = ATOMIC_ADD(&cg->ntags, -1);
 	if (ntags == 0) {
@@ -209,7 +210,7 @@ void tag_set_ready(struct tag_s *tag)
 		return;
 #endif
 
-	submit_job(j);
+	push_task(j);
 }
 
 /* This function is called when a new task is submitted to StarPU 
