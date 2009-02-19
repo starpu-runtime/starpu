@@ -1,4 +1,5 @@
 #include <datawizard/datastats.h>
+#include <common/util.h>
 #include <stdio.h>
 
 /* measure the cache hit ratio for each node */
@@ -47,6 +48,8 @@ static size_t comm_ammount[8][8];
 void display_comm_ammounts(void)
 {
 	unsigned src, dst;
+
+	if (get_env_number("CALIBRATE") != -1)
 	for (dst = 0; dst < 8; dst++)
 	for (src = 0; src < 8; src++)
 	{

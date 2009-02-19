@@ -142,8 +142,11 @@ void *core_worker(void *arg)
 		job_delete(j);
         }
 
-	 fprintf(stderr, "CORE #%d computation %le comm %le (%lf \%%)\n", core_arg->id, core_arg->jobq->total_computation_time, core_arg->jobq->total_communication_time,  core_arg->jobq->total_communication_time*100.0/core_arg->jobq->total_computation_time);
+#ifdef DATA_STATS
+	if (get_env_number("CALIBRATE") != -1)
+		fprintf(stderr, "CORE #%d computation %le comm %le (%lf \%%)\n", core_arg->id, core_arg->jobq->total_computation_time, core_arg->jobq->total_communication_time,  core_arg->jobq->total_communication_time*100.0/core_arg->jobq->total_computation_time);
 
+#endif
 
 	TRACE_WORKER_TERMINATED(FUT_CORE_KEY);
 

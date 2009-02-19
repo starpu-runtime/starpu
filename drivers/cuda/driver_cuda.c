@@ -373,8 +373,10 @@ void *cuda_worker(void *arg)
 		job_delete(j);
 	} 
 
-	fprintf(stderr, "CUDA #%d computation %le comm %le (%lf \%%)\n", args->id, args->jobq->total_computation_time, args->jobq->total_communication_time, args->jobq->total_communication_time*100.0/args->jobq->total_computation_time);
-
+#ifdef DATA_STATS
+	if (get_env_number("CALIBRATE") != -1)
+		fprintf(stderr, "CUDA #%d computation %le comm %le (%lf \%%)\n", args->id, args->jobq->total_computation_time, args->jobq->total_communication_time, args->jobq->total_communication_time*100.0/args->jobq->total_computation_time);
+#endif
 	cublasShutdown();
 	pthread_exit(NULL);
 
