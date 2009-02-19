@@ -45,29 +45,6 @@ struct jobq_s *create_fifo(void)
 	return jobq;
 }
 
-unsigned get_total_njobs_fifos(void)
-{
-	return total_number_of_jobs;
-}
-
-unsigned get_fifo_njobs(struct jobq_s *q)
-{
-	STARPU_ASSERT(q);
-
-	struct fifo_jobq_s *fifo_queue = q->queue;
-
-	return fifo_queue->njobs;
-}
-
-unsigned get_fifo_nprocessed(struct jobq_s *q)
-{
-	STARPU_ASSERT(q);
-
-	struct fifo_jobq_s *fifo_queue = q->queue;
-
-	return fifo_queue->nprocessed;
-}
-
 int fifo_push_prio_task(struct jobq_s *q, job_t task)
 {
 #ifndef NO_PRIO

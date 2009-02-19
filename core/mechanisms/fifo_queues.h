@@ -31,9 +31,4 @@ job_t fifo_non_blocking_pop_task_if_job_exists(struct jobq_s *q);
 
 void init_fifo_queues_mechanisms(void);
 
-
-unsigned get_fifo_njobs(struct jobq_s *q);
-unsigned get_fifo_nprocessed(struct jobq_s *q);
-
-
 #endif // __FIFO_QUEUES_H__
