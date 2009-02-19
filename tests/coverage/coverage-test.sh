@@ -25,12 +25,8 @@ generatehtml()
 	cd $DIR
 }
 
-cd $ROOTDIR
-make clean 1> /dev/null 2> /dev/null
-make examples -j ATLAS=1 CPUS=$MAXCPU CUDA=1 COVERAGE=1 1> /dev/null 2> /dev/null
-cd $DIR
-
-init;
+apps()
+{
 
 echo "incrementer"
 timing=`$ROOTDIR/examples/incrementer/incrementer 2> /dev/null`
@@ -174,5 +170,23 @@ timing=`CALIBRATE=1 SCHED="dmda" $ROOTDIR/examples/mult/dw_mult -nblocks 8 -x 81
 save_cov "mult.dmda";
 
 
+}
+
+cd $ROOTDIR
+make clean 1> /dev/null 2> /dev/null
+make examples -j ATLAS=1 CPUS=$MAXCPU CUDA=1 COVERAGE=1 1> /dev/null 2> log
+cd $DIR
+
+init;
+
+apps;
+
+cd $ROOTDIR
+make clean 1> /dev/null 2> /dev/null
+make examples -j ATLAS=1 CPUS=$MAXCPU CUDA=1 COVERAGE=1 NO_DATA_RW_LOCK=1 1> /dev/null 2> log
+cd $DIR
+
+
+apps;
 
 generatehtml;
