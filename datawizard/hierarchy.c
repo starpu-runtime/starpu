@@ -17,6 +17,10 @@ void delete_data(data_state *state)
 			request_mem_chunk_removal(state, node);
 		}
 	}
+
+#ifdef NO_DATA_RW_LOCK
+	data_requester_list_delete(state->req_list);
+#endif
 }
 
 void monitor_new_data(data_state *state, uint32_t home_node)
