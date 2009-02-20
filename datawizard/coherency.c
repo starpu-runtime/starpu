@@ -382,7 +382,8 @@ void sync_data_with_mem(data_state *state)
 		STARPU_ASSERT(!ret);
 	}
 #else
-	fetch_data(state, R);
+	ret = fetch_data(state, R);
+	STARPU_ASSERT(!ret);
 #endif
 }
 
