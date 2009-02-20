@@ -204,7 +204,6 @@ static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unu
 	{
 		liberated += liberate_memory_on_node(mc, node);
 
-		/* XXX there is still that mem_chunk_t structure leaking */
 		mem_chunk_list_erase(mc_list_to_free[node], mc);
 		mem_chunk_delete(mc);
 	}

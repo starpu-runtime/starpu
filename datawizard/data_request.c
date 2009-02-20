@@ -65,6 +65,8 @@ void handle_node_data_requests(uint32_t src_node)
 		r = data_request_list_pop_back(l);		
 		release_mutex(&data_requests_mutex[src_node]);
 
+		/* TODO : accounting to see how much time was spent working for other people ... */
+
 		/* perform the transfer */
 		/* the header of the data must be locked by the worker that submitted the request */
 		r->retval = driver_copy_data_1_to_1(r->state, r->src_node, r->dst_node, 0);
