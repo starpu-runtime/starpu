@@ -99,6 +99,9 @@ static int dm_push_prio_task(struct jobq_s *q, job_t task)
 
 static int dm_push_task(struct jobq_s *q, job_t task)
 {
+	if (task->priority == MAX_PRIO)
+		return _dm_push_task(q, task, 1);
+
 	return _dm_push_task(q, task, 0);
 }
 
