@@ -1,4 +1,5 @@
 #include "strassen.h"
+#include <sys/time.h>
 
 unsigned dim = 4096;
 unsigned reclevel = 4;
@@ -14,8 +15,9 @@ data_state A_state;
 data_state B_state;
 data_state C_state;
 
-tick_t start;
-tick_t end;
+struct timeval start;
+struct timeval end;
+
 
 /* to compute MFlop/s */
 uint64_t flop_cublas = 0;
@@ -57,9 +59,9 @@ double strassen_complexity(unsigned n, unsigned rec)
 
 void terminate(void *arg __attribute__ ((unused)))
 {
-	GET_TICK(end);
+	gettimeofday(&end, NULL);
 
-	double timing = timing_delay(&start, &end);
+	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	//uint64_t total_flop = flop_cublas + flop_atlas;
 	double total_flop =  strassen_complexity(dim, reclevel);//4.0*pow((double)dim, 2.807);
 
@@ -145,7 +147,7 @@ void init_problem(void)
 	monitor_blas_data(&C_state, 0, (uintptr_t)C, 
 		dim, dim, dim, sizeof(float));
 
-	GET_TICK(start);
+	gettimeofday(&start, NULL);
 	strassen(&A_state, &B_state, &C_state, terminate, NULL, reclevel);
 }
 
