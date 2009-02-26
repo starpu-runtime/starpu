@@ -13,13 +13,19 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <common/util.h>
 
-#ifndef min
-#define min(a,b) \
-	({__typeof__ ((a)) _a = (a); \
-	  __typeof__ ((b)) _b = (b); \
-	  _a < _b ? _a : _b; })
-#endif
+#ifdef UNRELIABLETICKS
+
+/* we use the usual gettimeofday method */
+typedef struct tick_s
+{
+	struct timeval tv;
+} tick_t;
+
+#define GET_TICK(t) gettimeofday(&((t).tv), NULL)
+
+#else // !UNRELIABLETICKS
 
 typedef union u_tick
 {
@@ -42,11 +48,13 @@ typedef union u_tick
 #  define GET_TICK(t) do {} while(0);
 #endif
 
-void __attribute__ ((unused)) timing_init(void);
-double __attribute__ ((unused)) tick2usec(long long t);
-double __attribute__ ((unused)) timing_delay(tick_t *t1, tick_t *t2);
+#endif // UNRELIABLETICKS
 
-double __attribute__ ((unused)) timing_now(void);
+void __attribute__ ((unused)) timing_init(void);
+inline double __attribute__ ((unused)) tick2usec(long long t);
+inline double __attribute__ ((unused)) timing_delay(tick_t *t1, tick_t *t2);
+
+inline double __attribute__ ((unused)) timing_now(void);
 
 #endif /* TIMING_H */
 

@@ -79,6 +79,11 @@ ifdef NO_DATA_RW_LOCK
 	CFLAGS+=-DNO_DATA_RW_LOCK
 endif
 
+# TODO that should be automatized, somehow
+ifdef UNRELIABLETICKS
+	CFLAGS += -DUNRELIABLETICKS
+endif
+
 ifdef DONTBIND
 	CFLAGS += -DDONTBIND
 endif
