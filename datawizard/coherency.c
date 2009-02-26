@@ -323,7 +323,7 @@ int fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsig
 
 enomem:
 	/* try to unreference all the input that were successfully taken */
-	printf("something went wrong with buffer %d\n", index);
+	fprintf(stderr, "something went wrong with buffer %d\n", index);
 	push_codelet_output(descrs, index, mask);
 	return -1;
 }
