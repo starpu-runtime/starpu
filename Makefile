@@ -6,7 +6,7 @@ CC=gcc -m64
 NVCC = nvcc -m64
 NVCCFLAGS += -O3
 
-CFLAGS += -g -O3 -Wall
+CFLAGS += -g -O3
 CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses
 CFLAGS += -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type 
 CFLAGS += -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -fno-strict-aliasing
@@ -252,10 +252,3 @@ clean:
 	@make -C examples clean
 	@make -C tools clean
 	@rm -f *.so *.a
-
-help:
-	@echo "Possible options (default value) "
-	@echo "  CUDA use of cuda or not (0)"
-	@echo "  CPUS number of CPUs in use (0)"
-	@echo "  CPUS run ATLAS functions (0)"
-	@echo "  CHECK makes sure the output is correct (0)"
