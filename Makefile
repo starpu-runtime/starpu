@@ -172,6 +172,7 @@ OBJDEPS += datawizard/copy-driver.o
 OBJDEPS += datawizard/data_request.o
 OBJDEPS += datawizard/coherency.o 
 OBJDEPS += datawizard/hierarchy.o 
+OBJDEPS += datawizard/write_back.o 
 OBJDEPS += datawizard/memalloc.o
 OBJDEPS += datawizard/footprint.o
 OBJDEPS += datawizard/datastats.o

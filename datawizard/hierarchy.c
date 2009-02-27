@@ -3,6 +3,7 @@
 /* 
  * Stop monitoring a data
  */
+/* TODO : move in a more appropriate file */
 void delete_data(data_state *state)
 {
 	unsigned node;

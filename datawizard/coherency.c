@@ -1,5 +1,6 @@
 #include <datawizard/coherency.h>
 #include <datawizard/copy-driver.h>
+#include <datawizard/write_back.h>
 #include <core/dependencies/data-concurrency.h>
 
 void display_state(data_state *state)
@@ -216,51 +217,6 @@ enomem:
 uint32_t get_data_refcnt(data_state *state, uint32_t node)
 {
 	return state->per_node[node].refcnt;
-}
-
-void write_through_data(data_state *state, uint32_t requesting_node, 
-					   uint32_t write_through_mask)
-{
-	if ((write_through_mask & ~(1<<requesting_node)) == 0) {
-		/* nothing will be done ... */
-		return;
-	}
-
-	while (take_mutex_try(&state->header_lock))
-		datawizard_progress(requesting_node);
-
-	/* first commit all changes onto the nodes specified by the mask */
-	uint32_t node;
-	for (node = 0; node < MAXNODES; node++)
-	{
-		if (write_through_mask & (1<<node)) {
-			/* we need to commit the buffer on that node */
-			if (node != requesting_node) 
-			{
-				/* the requesting node already has the data by
-				 * definition */
-				int ret;
-				ret = driver_copy_data_1_to_1(state, 
-						requesting_node, node, 0);
-
-				/* there must remain memory on the write-through mask to honor the request */
-				if (ret)
-					STARPU_ASSERT(0);
-			}
-				
-			/* now the data is shared among the nodes on the
-			 * write_through_mask */
-			state->per_node[node].state = SHARED;
-		}
-	}
-
-	/* the requesting node is now one sharer */
-	if (write_through_mask & ~(1<<requesting_node))
-	{
-		state->per_node[requesting_node].state = SHARED;
-	}
-
-	release_mutex(&state->header_lock);
 }
 
 /* in case the data was accessed on a write mode, do not forget to 
