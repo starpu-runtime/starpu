@@ -23,7 +23,7 @@ void delete_data(data_state *state)
 #endif
 }
 
-void monitor_new_data(data_state *state, uint32_t home_node)
+void monitor_new_data(data_state *state, uint32_t home_node, uint32_t wb_mask)
 {
 	STARPU_ASSERT(state);
 
@@ -47,6 +47,8 @@ void monitor_new_data(data_state *state, uint32_t home_node)
 
 	/* make sure we do have a valid copy */
 	STARPU_ASSERT(home_node < MAXNODES);
+
+	state->wb_mask = wb_mask;
 
 	/* that new data is invalid from all nodes perpective except for the
 	 * home node */
@@ -169,6 +171,8 @@ void partition_data(data_state *initial_data, filter *f)
 		 * in that case, the filter must set the proper methods */
 		if (!children->ops)
 			children->ops = initial_data->ops;
+
+		children->wb_mask = initial_data->wb_mask;
 
 		/* initialize the chunk lock */
 #ifndef NO_DATA_RW_LOCK

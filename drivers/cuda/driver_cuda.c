@@ -196,7 +196,9 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 
 			ret = fetch_codelet_input(j->buffers, j->interface, j->nbuffers, mask);
 			if (ret != 0) {
-				/* there was not enough memory, so the input of the codelet cannot be fetched ... put the codelet back, and try it later */
+				/* there was not enough memory, so the input of
+				 * the codelet cannot be fetched ... put the 
+				 * codelet back, and try it later */
 				return TRYAGAIN;
 			}
 

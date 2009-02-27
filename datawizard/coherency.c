@@ -265,15 +265,19 @@ void write_through_data(data_state *state, uint32_t requesting_node,
 
 /* in case the data was accessed on a write mode, do not forget to 
  * make it accessible again once it is possible ! */
-static void release_data(data_state *state, uint32_t write_through_mask)
+static void release_data(data_state *state, uint32_t default_wb_mask)
 {
+	uint32_t wb_mask;
+
 	/* normally, the requesting node should have the data in an exclusive manner */
 	uint32_t requesting_node = get_local_memory_node();
 	STARPU_ASSERT(state->per_node[requesting_node].state != INVALID);
 
+	wb_mask = default_wb_mask | state->wb_mask;
+
 	/* are we doing write-through or just some normal write-back ? */
-	if (write_through_mask & ~(1<<requesting_node)) {
-		write_through_data(state, requesting_node, write_through_mask);
+	if (wb_mask & ~(1<<requesting_node)) {
+		write_through_data(state, requesting_node, wb_mask);
 	}
 
 	while (take_mutex_try(&state->header_lock))

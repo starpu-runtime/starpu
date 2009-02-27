@@ -81,7 +81,7 @@ void monitor_blas_data(data_state *state, uint32_t home_node,
 	state->interfaceid = BLAS_INTERFACE;
 	state->ops = &interface_blas_ops;
 
-	monitor_new_data(state, home_node);
+	monitor_new_data(state, home_node, 0);
 }
 
 static inline uint32_t footprint_blas_interface_generic(uint32_t (*hash_func)(uint32_t input, uint32_t hstate), data_state *state, uint32_t hstate)

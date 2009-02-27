@@ -56,7 +56,7 @@ void monitor_csr_data(struct data_state_t *state, uint32_t home_node,
 	state->interfaceid = BLAS_INTERFACE;
 	state->ops = &interface_csr_ops;
 
-	monitor_new_data(state, home_node);
+	monitor_new_data(state, home_node, 0);
 }
 
 static inline uint32_t footprint_csr_interface_generic(uint32_t (*hash_func)(uint32_t input, uint32_t hstate), data_state *state, uint32_t hstate)

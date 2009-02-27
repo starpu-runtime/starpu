@@ -59,7 +59,7 @@ void monitor_bcsr_data(struct data_state_t *state, uint32_t home_node,
 	state->interfaceid = BCSR_INTERFACE;
 	state->ops = &interface_bcsr_ops;
 
-	monitor_new_data(state, home_node);
+	monitor_new_data(state, home_node, 0);
 }
 
 static inline uint32_t footprint_bcsr_interface_generic(uint32_t (*hash_func)(uint32_t input, uint32_t hstate), data_state *state, uint32_t hstate)

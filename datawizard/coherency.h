@@ -112,6 +112,9 @@ typedef struct data_state_t {
 	/* where is the data home ? -1 if none yet */
 	int data_home;
 
+	/* what is the default write-back mask for that data ? */
+	uint32_t wb_mask;
+
 	/* allows special optimization */
 	uint8_t is_readonly;
 } data_state;

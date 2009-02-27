@@ -13,7 +13,7 @@ typedef struct filter_t {
 	void *filter_arg_ptr;
 } filter;
 
-void monitor_new_data(struct data_state_t *state, uint32_t home_node);
+void monitor_new_data(struct data_state_t *state, uint32_t home_node, uint32_t wb_mask);
 void delete_data(struct data_state_t *state);
 
 void partition_data(struct data_state_t *initial_data, filter *f); 
