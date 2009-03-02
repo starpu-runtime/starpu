@@ -37,12 +37,26 @@ int post_data_request(data_state *state, uint32_t src_node, uint32_t dst_node)
 	//while(sem_trywait(&r->sem) == -1)
 	//	wake_all_blocked_workers_on_node(src_node);
 
+#ifdef NO_DATA_RW_LOCK
+	/* XXX: since there is no concurrency on this data (we don't use the
+	 * rw-lock) we can assume that the data on the source node should not
+	 * be invalidated.
+	 * TODO: handle the situation of a possible invalidation caused by
+	 * memory eviction mechanism. This could be done by the means of a
+	 * specific state (or flag) in the MSI protocol. */
+	release_mutex(&state->header_lock);
+#endif
 
 	while(sem_trywait(&r->sem) == -1)
 	{
 		wake_all_blocked_workers_on_node(src_node);
 		datawizard_progress(dst_node);
 	}
+
+#ifdef NO_DATA_RW_LOCK
+	take_mutex(&state->header_lock);
+#endif
+
 
 	retvalue = r->retval;
 	
