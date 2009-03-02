@@ -188,7 +188,7 @@ OBJDEPS += src/datawizard/interfaces/vector_interface.o
 OBJDEPS += src/task-models/blas_model.o
 
 ifeq ($(CUDA), 1)
-	OBJDEPS += drivers/cuda/driver_cuda.o
+	OBJDEPS += src/drivers/cuda/driver_cuda.o
 endif
 
 ifdef GORDON
