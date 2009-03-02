@@ -13,7 +13,7 @@ CFLAGS += -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -fno-strict
 
 # This will be useful for program which use CUDA (and .cubin files) which need some path
 # to the CUDA code at runtime.
-CFLAGS+="-DSTARPUDIR=\"$(PWD)\""
+CFLAGS+="-DSTARPUDIR=\"$(PWD)\src\""
 
 ifdef DYNAMIC
 CFLAGS+= -fPIC
@@ -143,55 +143,56 @@ endif
 #	files that are needed by the application which use our runtime
 #
 
-OBJDEPS += common/hash.o
-OBJDEPS += common/timing.o 
-OBJDEPS += common/htable32.o 
-OBJDEPS += common/mutex.o
-OBJDEPS += common/rwlock.o 
-OBJDEPS += core/perfmodel/perfmodel.o 
-OBJDEPS += core/perfmodel/regression.o 
-OBJDEPS += core/perfmodel/perfmodel_history.o 
-OBJDEPS += core/jobs.o core/workers.o
-OBJDEPS += core/dependencies/tags.o
-OBJDEPS += core/dependencies/htable.o
-OBJDEPS += core/dependencies/data-concurrency.o
-OBJDEPS += core/mechanisms/queues.o
-OBJDEPS += core/mechanisms/priority_queues.o
-OBJDEPS += core/mechanisms/deque_queues.o
-OBJDEPS += core/mechanisms/fifo_queues.o
-OBJDEPS += core/policies/sched_policy.o
-OBJDEPS += core/policies/no-prio-policy.o
-OBJDEPS += core/policies/eager-central-policy.o
-OBJDEPS += core/policies/eager-central-priority-policy.o
-OBJDEPS += core/policies/work-stealing-policy.o
-OBJDEPS += core/policies/deque-modeling-policy.o
-OBJDEPS += core/policies/deque-modeling-policy-data-aware.o
-OBJDEPS += core/policies/random-policy.o
-OBJDEPS += datawizard/progress.o
-OBJDEPS += datawizard/copy-driver.o
-OBJDEPS += datawizard/data_request.o
-OBJDEPS += datawizard/coherency.o 
-OBJDEPS += datawizard/hierarchy.o 
-OBJDEPS += datawizard/write_back.o 
-OBJDEPS += datawizard/memalloc.o
-OBJDEPS += datawizard/footprint.o
-OBJDEPS += datawizard/datastats.o
-OBJDEPS += datawizard/interfaces/blas_filters.o
-OBJDEPS += datawizard/interfaces/csr_filters.o
-OBJDEPS += datawizard/interfaces/bcsr_filters.o
-OBJDEPS += datawizard/interfaces/vector_filters.o
-OBJDEPS += datawizard/interfaces/blas_interface.o
-OBJDEPS += datawizard/interfaces/csr_interface.o
-OBJDEPS += datawizard/interfaces/bcsr_interface.o
-OBJDEPS += datawizard/interfaces/vector_interface.o
-OBJDEPS += task-models/blas_model.o
+OBJDEPS += src/common/hash.o
+OBJDEPS += src/common/timing.o 
+OBJDEPS += src/common/htable32.o 
+OBJDEPS += src/common/mutex.o
+OBJDEPS += src/common/rwlock.o 
+OBJDEPS += src/core/perfmodel/perfmodel.o 
+OBJDEPS += src/core/perfmodel/regression.o 
+OBJDEPS += src/core/perfmodel/perfmodel_history.o 
+OBJDEPS += src/core/jobs.o
+OBJDEPS += src/core/workers.o
+OBJDEPS += src/core/dependencies/tags.o
+OBJDEPS += src/core/dependencies/htable.o
+OBJDEPS += src/core/dependencies/data-concurrency.o
+OBJDEPS += src/core/mechanisms/queues.o
+OBJDEPS += src/core/mechanisms/priority_queues.o
+OBJDEPS += src/core/mechanisms/deque_queues.o
+OBJDEPS += src/core/mechanisms/fifo_queues.o
+OBJDEPS += src/core/policies/sched_policy.o
+OBJDEPS += src/core/policies/no-prio-policy.o
+OBJDEPS += src/core/policies/eager-central-policy.o
+OBJDEPS += src/core/policies/eager-central-priority-policy.o
+OBJDEPS += src/core/policies/work-stealing-policy.o
+OBJDEPS += src/core/policies/deque-modeling-policy.o
+OBJDEPS += src/core/policies/deque-modeling-policy-data-aware.o
+OBJDEPS += src/core/policies/random-policy.o
+OBJDEPS += src/datawizard/progress.o
+OBJDEPS += src/datawizard/copy-driver.o
+OBJDEPS += src/datawizard/data_request.o
+OBJDEPS += src/datawizard/coherency.o 
+OBJDEPS += src/datawizard/hierarchy.o 
+OBJDEPS += src/datawizard/write_back.o 
+OBJDEPS += src/datawizard/memalloc.o
+OBJDEPS += src/datawizard/footprint.o
+OBJDEPS += src/datawizard/datastats.o
+OBJDEPS += src/datawizard/interfaces/blas_filters.o
+OBJDEPS += src/datawizard/interfaces/csr_filters.o
+OBJDEPS += src/datawizard/interfaces/bcsr_filters.o
+OBJDEPS += src/datawizard/interfaces/vector_filters.o
+OBJDEPS += src/datawizard/interfaces/blas_interface.o
+OBJDEPS += src/datawizard/interfaces/csr_interface.o
+OBJDEPS += src/datawizard/interfaces/bcsr_interface.o
+OBJDEPS += src/datawizard/interfaces/vector_interface.o
+OBJDEPS += src/task-models/blas_model.o
 
 ifeq ($(CUDA), 1)
 	OBJDEPS += drivers/cuda/driver_cuda.o
 endif
 
 ifdef GORDON
-	OBJDEPS += drivers/gordon/driver_gordon.o
+	OBJDEPS += src/drivers/gordon/driver_gordon.o
 	EXTRALDFLAGS+= $(SCALPDIR)/cell/gordon/libgordon.a
 	EXTRALDFLAGS+= $(SCALPDIR)/util/libsp@ceutil.a
 	EXTRALDFLAGS+= $(SCALPDIR)/util/libsp@ceutil.spu.a
@@ -199,20 +200,20 @@ ifdef GORDON
 endif
 
 ifdef CPUS
-	OBJDEPS += drivers/core/driver_core.o
+	OBJDEPS += src/drivers/core/driver_core.o
 endif
 
 ifdef USE_FXT
 	LDFLAGS += -lfxt
-	OBJDEPS += common/fxt.o
+	OBJDEPS += src/common/fxt.o
 endif
 
 ifdef GOTO
-	OBJDEPS += common/blas.o
+	OBJDEPS += src/common/blas.o
 endif
 
 ifdef ATLAS
-	OBJDEPS += common/blas.o
+	OBJDEPS += src/common/blas.o
 endif
 
 LIBS=starpu.a
@@ -223,11 +224,11 @@ endif
 
 
 all:
-	@make -C common
-	@make -C core
-	@make -C drivers
-	@make -C datawizard
-	@make -C task-models
+	@make -C src/common
+	@make -C src/core
+	@make -C src/drivers
+	@make -C src/datawizard
+	@make -C src/task-models
 	@make -C tools
 
 starpu.so: all
@@ -245,11 +246,11 @@ tags:
 	find .|xargs ctags
 
 clean:
-	@make -C common clean
-	@make -C core clean
-	@make -C drivers clean
-	@make -C datawizard clean
-	@make -C task-models clean
+	@make -C src/common clean
+	@make -C src/core clean
+	@make -C src/drivers clean
+	@make -C src/datawizard clean
+	@make -C src/task-models clean
 	@make -C examples clean
 	@make -C tools clean
 	@rm -f *.so *.a

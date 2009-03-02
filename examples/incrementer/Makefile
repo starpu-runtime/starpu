@@ -1,5 +1,5 @@
 STARPU= ../../starpu.a
-CFLAGS+= -I../..
+CFLAGS+= -I../../src/
  
 ifeq ($(CUDA), 1)
         EXTRADEP += ../cuda/incrementer_cuda.cubin

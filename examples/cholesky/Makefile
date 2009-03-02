@@ -1,5 +1,5 @@
 STARPU= ../../starpu.a
-CFLAGS+= -I../..
+CFLAGS+= -I../../src/
 
 all: test_cholesky dw_cholesky_no_stride
 

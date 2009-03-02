@@ -1,5 +1,6 @@
 STARPU= ../../starpu.a
 CFLAGS+= -I../..
+CFLAGS+= -I../../src/
 
 all: dw_strassen
 

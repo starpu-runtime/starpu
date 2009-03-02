@@ -1,5 +1,6 @@
 STARPU= ../../starpu.a
-CFLAGS+= -I../..
+CFLAGS+= -I../../src/
+CFLAGS+= -I../../
 
 all: dw_mult dw_mult_no_stride dw_mult_no_stride_no_tag
 
