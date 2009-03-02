@@ -13,7 +13,7 @@ CFLAGS += -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -fno-strict
 
 # This will be useful for program which use CUDA (and .cubin files) which need some path
 # to the CUDA code at runtime.
-CFLAGS+="-DSTARPUDIR=\"$(PWD)\src\""
+CFLAGS+="-DSTARPUDIR=\"$(PWD)/\""
 
 ifdef DYNAMIC
 CFLAGS+= -fPIC

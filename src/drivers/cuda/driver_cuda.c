@@ -30,6 +30,8 @@ void load_cuda_module(int devid, struct cuda_module_s *module)
 	{
 		res = cuModuleLoad(&module->module, module->module_path);
 		if (res) {
+			fprintf(stderr, "cuModuleLoad failed to open %s\n",
+					module->module_path);
 			CUDA_REPORT_ERROR(res);
 		}
 	
