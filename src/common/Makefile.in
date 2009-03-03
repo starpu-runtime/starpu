@@ -1,4 +1,4 @@
-ifdef USE_FXT
+ifeq (@USE_FXT@,yes)
 	OPTTARGET+= fxt.o
 endif
 

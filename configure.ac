@@ -27,7 +27,6 @@ AC_MSG_RESULT($enable_opengl_render)
 AC_SUBST(OPENGL_RENDER, $enable_opengl_render)
 
 
-
 AC_MSG_CHECKING(whether priorities should be enabled)
 AC_ARG_ENABLE(priority, [AS_HELP_STRING([--disable-priority],
 			[do not use priorities])],
@@ -39,11 +38,50 @@ AC_SUBST(USE_PRIO, $enable_priority)
 
 # shall we use FxT to generate trace of the execution ?
 AC_MSG_CHECKING(whether fxt traces should be generated)
-AC_ARG_ENABLE(fxt, [AS_HELP_STRING([--enable-fxt],
-			[generate fxt traces])],
-			use_fxt=$enableval, use_fxt=no)
-AC_MSG_RESULT($use_fxt)
+AC_ARG_WITH(fxt, [AS_HELP_STRING([--with-fxt[=<dir>]], [generate fxt traces])],
+		[
+			if test x$withval != xno; then
+				use_fxt=yes
+				if test x$withval = xyes; then
+					AC_MSG_RESULT(yes)
+					use_fxt_from_system=yes
+				else
+					# use specified path
+					# TODO check if the dir is actually containing FxT
+					use_fxt_from_system=no
+					AC_MSG_RESULT(yes using $withval)
+					AC_SUBST(FXTDIR, $withval)
+				fi
+			else
+				use_fxt=no
+				AC_MSG_RESULT(no)
+			fi
+		],
+		[	
+			use_fxt=no
+			AC_MSG_RESULT(no)
+		])
 AC_SUBST(USE_FXT, $use_fxt)
+
+if test x$use_fxt_from_system = xyes; then
+	AC_SUBST(USE_FXTDIR_FROM_USER,no)
+
+# FIXME !
+#	AC_CHECK_HEADER([fxt/fxt.h],,AC_MSG_ERROR([cannot find headers for fxt]))
+#	AC_CHECK_HEADER([fxt/fut.h],,AC_MSG_ERROR([cannot find headers for fxt]))
+
+	AC_CHECK_LIB(fxt, fut_setup,,AC_MSG_ERROR([cannot find fxt lib]))
+else
+	AC_SUBST(USE_FXTDIR_FROM_USER,yes)
+fi
+
+AC_MSG_CHECKING(whether performance debugging should be enabled)
+AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],
+			[enable performance debugging])],
+			enable_perf_debug=$enableval, enable_perf_debug=no)
+AC_MSG_RESULT($enable_perf_debug)
+AC_SUBST(PERF_DEBUG, $enable_perf_debug)
+
 
 # TODO : make it case insensitive ...
 AC_MSG_CHECKING(which BLAS lib should be used)
@@ -79,3 +117,4 @@ AC_OUTPUT(src/common/Makefile)
 AC_OUTPUT(src/core/Makefile)
 AC_OUTPUT(src/core/mechanisms/Makefile)
 AC_OUTPUT(src/core/dependencies/Makefile)
+AC_OUTPUT(examples/heat/Makefile)

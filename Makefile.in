@@ -62,7 +62,7 @@ ifndef SCALPDIR
 SCALPDIR=/home/gonnet/Scalp/scalp/trunk/
 endif
 
-ifdef PERF_DEBUG
+ifeq (@PERF_DEBUG@,yes)
 	CFLAGS += -DPERF_DEBUG
 	LDFLAGS += -pg
 	CFLAGS += -pg
@@ -128,9 +128,13 @@ ifndef FXTDIR
 endif
 
 ifeq (@USE_FXT@,yes)
-	CFLAGS += -DUSE_FXT -I$(FXTDIR)/include/ -DCONFIG_FUT
-	LDFLAGS += -lfxt -L$(FXTDIR)/lib/
+	CFLAGS += -DUSE_FXT -DCONFIG_FUT
+	LDFLAGS += -lfxt 
 	OBJDEPS += src/common/fxt.o
+ifeq (@USE_FXTDIR_FROM_USER@,yes)
+	CFLAGS += -I@FXTDIR@/include/
+	LDFLAGS += -L@FXTDIR@/lib/
+endif
 endif
 
 ifeq (@USE_PRIO@,no)
