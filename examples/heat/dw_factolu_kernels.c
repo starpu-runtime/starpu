@@ -14,10 +14,10 @@ unsigned count_22_cublas = 0;
 void display_stat_heat(void)
 {
 	fprintf(stderr, "STATS : \n");
-	fprintf(stderr, "11 : core %d (%2.2f) cublas %d (%2.2f) \n", count_11_core, (100.0*count_11_core)/(count_11_core+count_11_cublas), count_11_cublas, (100.0*count_11_cublas)/(count_11_core+count_11_cublas));
-	fprintf(stderr, "12 : core %d (%2.2f) cublas %d (%2.2f) \n", count_12_core, (100.0*count_12_core)/(count_12_core+count_12_cublas), count_12_cublas, (100.0*count_12_cublas)/(count_12_core+count_12_cublas));
-	fprintf(stderr, "21 : core %d (%2.2f) cublas %d (%2.2f) \n", count_21_core, (100.0*count_21_core)/(count_21_core+count_21_cublas), count_21_cublas, (100.0*count_21_cublas)/(count_21_core+count_21_cublas));
-	fprintf(stderr, "22 : core %d (%2.2f) cublas %d (%2.2f) \n", count_22_core, (100.0*count_22_core)/(count_22_core+count_22_cublas), count_22_cublas, (100.0*count_22_cublas)/(count_22_core+count_22_cublas));
+	fprintf(stderr, "11 : core %d (%2.2f) cublas %d (%2.2f)\n", count_11_core, (100.0*count_11_core)/(count_11_core+count_11_cublas), count_11_cublas, (100.0*count_11_cublas)/(count_11_core+count_11_cublas));
+	fprintf(stderr, "12 : core %d (%2.2f) cublas %d (%2.2f)\n", count_12_core, (100.0*count_12_core)/(count_12_core+count_12_cublas), count_12_cublas, (100.0*count_12_cublas)/(count_12_core+count_12_cublas));
+	fprintf(stderr, "21 : core %d (%2.2f) cublas %d (%2.2f)\n", count_21_core, (100.0*count_21_core)/(count_21_core+count_21_cublas), count_21_cublas, (100.0*count_21_cublas)/(count_21_core+count_21_cublas));
+	fprintf(stderr, "22 : core %d (%2.2f) cublas %d (%2.2f)\n", count_22_core, (100.0*count_22_core)/(count_22_core+count_22_cublas), count_22_cublas, (100.0*count_22_cublas)/(count_22_core+count_22_cublas));
 }
 
 /*
@@ -68,14 +68,14 @@ static inline void dw_common_core_codelet_update_u22(data_interface_t *buffers, 
 void dw_core_codelet_update_u22(data_interface_t *descr, void *_args)
 {
 	dw_common_core_codelet_update_u22(descr, 0, _args);
-	count_22_core++;
+	(void)ATOMIC_ADD(&count_22_core, 1);
 }
 
 #ifdef USE_CUDA
 void dw_cublas_codelet_update_u22(data_interface_t *descr, void *_args)
 {
 	dw_common_core_codelet_update_u22(descr, 1, _args);
-	count_22_cublas++;
+	(void)ATOMIC_ADD(&count_22_cublas, 1);
 }
 #endif// USE_CUDA
 
@@ -125,14 +125,14 @@ static inline void dw_common_codelet_update_u12(data_interface_t *buffers, int s
 void dw_core_codelet_update_u12(data_interface_t *descr, void *_args)
 {
 	dw_common_codelet_update_u12(descr, 0, _args);
-	count_12_core++;
+	(void)ATOMIC_ADD(&count_12_core, 1);
 }
 
 #ifdef USE_CUDA
 void dw_cublas_codelet_update_u12(data_interface_t *descr, void *_args)
 {
 	 dw_common_codelet_update_u12(descr, 1, _args);
-	count_12_cublas++;
+	(void)ATOMIC_ADD(&count_12_cublas, 1);
 }
 #endif // USE_CUDA
 
@@ -179,14 +179,14 @@ static inline void dw_common_codelet_update_u21(data_interface_t *buffers, int s
 void dw_core_codelet_update_u21(data_interface_t *descr, void *_args)
 {
 	 dw_common_codelet_update_u21(descr, 0, _args);
-	count_21_core++;
+	(void)ATOMIC_ADD(&count_21_core, 1);
 }
 
 #ifdef USE_CUDA
 void dw_cublas_codelet_update_u21(data_interface_t *descr, void *_args)
 {
 	dw_common_codelet_update_u21(descr, 1, _args);
-	count_21_cublas++;
+	(void)ATOMIC_ADD(&count_21_cublas, 1);
 }
 #endif 
 
@@ -266,13 +266,13 @@ static inline void dw_common_codelet_update_u11(data_interface_t *descr, int s, 
 void dw_core_codelet_update_u11(data_interface_t *descr, void *_args)
 {
 	dw_common_codelet_update_u11(descr, 0, _args);
-	count_11_core++;
+	(void)ATOMIC_ADD(&count_11_core, 1);
 }
 
 #ifdef USE_CUDA
 void dw_cublas_codelet_update_u11(data_interface_t *descr, void *_args)
 {
 	dw_common_codelet_update_u11(descr, 1, _args);
-	count_11_cublas++;
+	(void)ATOMIC_ADD(&count_11_cublas, 1);
 }
 #endif// USE_CUDA
