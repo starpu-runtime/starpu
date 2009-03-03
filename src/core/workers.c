@@ -45,31 +45,9 @@ extern unsigned get_cuda_device_count(void);
 static void init_machine_config(struct machine_config_s *config)
 {
 	int envval __attribute__((unused));
+	unsigned use_accelerator = 0;
 
 	config->nworkers = 0;
-	
-#ifdef USE_CPUS
-	envval = get_env_number("NCPUS");
-	if (envval < 0) {
-		ncores = MIN(sysconf(_SC_NPROCESSORS_ONLN), NMAXCORES);
-	} else {
-		/* use the specified value */
-		ncores = (unsigned)envval;
-		STARPU_ASSERT(ncores <= NMAXCORES);
-	}
-	STARPU_ASSERT(ncores + config->nworkers <= NMAXWORKERS);
-
-	unsigned core;
-	for (core = 0; core < ncores; core++)
-	{
-		config->workers[config->nworkers + core].arch = CORE_WORKER;
-		config->workers[config->nworkers + core].perf_arch = CORE_DEFAULT;
-		config->workers[config->nworkers + core].id = core;
-		worker_mask |= CORE;
-	}
-
-	config->nworkers += ncores;
-#endif
 
 #ifdef USE_CUDA
 	/* we need to initialize CUDA early to count the number of devices */
@@ -84,6 +62,9 @@ static void init_machine_config(struct machine_config_s *config)
 		STARPU_ASSERT(ncudagpus <= MAXCUDADEVS);
 	}
 	STARPU_ASSERT(ncudagpus + config->nworkers <= NMAXWORKERS);
+
+	if (ncudagpus > 0)
+		use_accelerator = 1;
 
 	unsigned cudagpu;
 	for (cudagpu = 0; cudagpu < ncudagpus; cudagpu++)
@@ -108,6 +89,9 @@ static void init_machine_config(struct machine_config_s *config)
 	}
 	STARPU_ASSERT(ngordon_spus + config->nworkers <= NMAXWORKERS);
 
+	if (ngordon_spus > 0)
+		use_accelerator = 1;
+
 	unsigned spu;
 	for (spu = 0; spu < ngordon_spus; spu++)
 	{
@@ -120,6 +104,34 @@ static void init_machine_config(struct machine_config_s *config)
 
 	config->nworkers += ngordon_spus;
 #endif
+
+/* we put the CPU section after the accelerator : in case there was an
+ * accelerator found, we devote one core */
+#ifdef USE_CPUS
+	envval = get_env_number("NCPUS");
+	if (envval < 0) {
+		long avail_cores = sysconf(_SC_NPROCESSORS_ONLN) 
+						- (use_accelerator?1:0);
+		ncores = MIN(avail_cores, NMAXCORES);
+	} else {
+		/* use the specified value */
+		ncores = (unsigned)envval;
+		STARPU_ASSERT(ncores <= NMAXCORES);
+	}
+	STARPU_ASSERT(ncores + config->nworkers <= NMAXWORKERS);
+
+	unsigned core;
+	for (core = 0; core < ncores; core++)
+	{
+		config->workers[config->nworkers + core].arch = CORE_WORKER;
+		config->workers[config->nworkers + core].perf_arch = CORE_DEFAULT;
+		config->workers[config->nworkers + core].id = core;
+		worker_mask |= CORE;
+	}
+
+	config->nworkers += ncores;
+#endif
+
 
 	if (config->nworkers == 0)
 	{
