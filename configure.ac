@@ -193,13 +193,15 @@ AC_ARG_ENABLE(blas-lib,
 AC_SUBST(BLAS_LIB,$blas_lib)
 
 
-AC_OUTPUT(examples/Makefile)
-AC_OUTPUT(Makefile)
-AC_OUTPUT(src/common/Makefile)
-AC_OUTPUT(src/core/Makefile)
-AC_OUTPUT(src/core/mechanisms/Makefile)
-AC_OUTPUT(src/core/dependencies/Makefile)
-AC_OUTPUT(src/drivers/Makefile)
-AC_OUTPUT(examples/heat/Makefile)
-AC_OUTPUT(examples/incrementer/Makefile)
-AC_OUTPUT(examples/spmv/Makefile)
+AC_OUTPUT([
+	Makefile
+	examples/Makefile
+	src/common/Makefile
+	src/core/Makefile
+	src/core/mechanisms/Makefile
+	src/core/dependencies/Makefile
+	src/drivers/Makefile
+	examples/heat/Makefile
+	examples/incrementer/Makefile
+	examples/spmv/Makefile
+])
