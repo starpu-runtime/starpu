@@ -5,6 +5,27 @@ AC_MSG_NOTICE([Configuring StarPU])
 AC_PROG_CC
 AC_PROG_F77
 
+AC_MSG_CHECKING(whether CPUs should be used)
+AC_ARG_ENABLE(cpu, [AS_HELP_STRING([--disable-cpu],
+			[do not use the CPU(s)])],
+			enable_cpu=$enableval, enable_cpu=yes)
+AC_MSG_RESULT($enable_cpu)
+AC_SUBST(USE_CPU, $enable_cpu)
+
+if test x$enable_cpu = xyes; then
+	# This value is set quite randomly, but StarPU should not take more
+	# core than there are in the system
+	AC_SUBST(NMAXCORES, 16)
+fi
+
+
+AC_MSG_CHECKING(whether CUDA devices should be used)
+AC_ARG_ENABLE(cuda, [AS_HELP_STRING([--enable-cuda],
+			[use CUDA device(s)])],
+			enable_cuda=$enableval, enable_cuda=no)
+AC_MSG_RESULT($enable_cuda)
+AC_SUBST(USE_CUDA, $enable_cuda)
+
 AC_MSG_CHECKING(whether a dynamic library should be generated)
 AC_ARG_ENABLE(dynamic, [AS_HELP_STRING([--enable-dynamic],
 			[generate a dynamic library])],
@@ -21,7 +42,7 @@ AC_SUBST(COVERAGE, $enable_coverage)
 
 AC_MSG_CHECKING(whether OpenGL rendering is enabled)
 AC_ARG_ENABLE(opengl-render, [AS_HELP_STRING([--enable-opengl-render],
-			[enable OpenGL rending of examples' results])],
+			[enable OpenGL rendering of some examples])],
 			enable_opengl_render=$enableval, enable_opengl_render=no)
 AC_MSG_RESULT($enable_opengl_render)
 AC_SUBST(OPENGL_RENDER, $enable_opengl_render)
@@ -81,7 +102,6 @@ AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],
 AC_MSG_RESULT($enable_perf_debug)
 AC_SUBST(PERF_DEBUG, $enable_perf_debug)
 
-
 # TODO : make it case insensitive ...
 AC_MSG_CHECKING(which BLAS lib should be used)
 blas_lib=none
@@ -116,4 +136,6 @@ AC_OUTPUT(src/common/Makefile)
 AC_OUTPUT(src/core/Makefile)
 AC_OUTPUT(src/core/mechanisms/Makefile)
 AC_OUTPUT(src/core/dependencies/Makefile)
+AC_OUTPUT(src/drivers/Makefile)
 AC_OUTPUT(examples/heat/Makefile)
+AC_OUTPUT(examples/incrementer/Makefile)

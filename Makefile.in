@@ -91,13 +91,14 @@ ifdef USE_OVERLOAD
 	CFLAGS += -DUSE_OVERLOAD
 endif
 
-ifeq ($(CUDA), 1)
+ifeq (@USE_CUDA@,yes)
 	CFLAGS += -DUSE_CUDA 
 	NVCCFLAGS +=  -DUSE_CUDA 
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	NVCCFLAGS += -I$(CUDAINSTALLDIR)/include 
 	LDFLAGS += -lcuda -L/usr/local/cuda/lib 
 	LDFLAGS += -lcublas
+	OBJDEPS += src/drivers/cuda/driver_cuda.o
 endif
 
 ifeq (@BLAS_LIB@,atlas)
@@ -115,9 +116,9 @@ ifeq (@BLAS_LIB@,goto)
 	OBJDEPS += src/common/blas.o
 endif
 
-ifdef CPUS
+ifeq (@USE_CPU@,yes)
 	CFLAGS += -DUSE_CPUS
-	CFLAGS += -DNMAXCORES=$(CPUS)
+	CFLAGS += -DNMAXCORES=@NMAXCORES@
 	NVCCFLAGS += -DUSE_CPUS
 	OBJDEPS += src/drivers/core/driver_core.o
 endif
@@ -125,10 +126,6 @@ endif
 ifdef GORDON
 	CFLAGS += -DUSE_GORDON
 	LDFLAGS += -lspe2
-endif
-
-ifndef FXTDIR
-	FXTDIR=/home/gonnet/These/Libs/FxT/target
 endif
 
 ifeq (@USE_FXT@,yes)
@@ -193,10 +190,6 @@ OBJDEPS += src/datawizard/interfaces/csr_interface.o
 OBJDEPS += src/datawizard/interfaces/bcsr_interface.o
 OBJDEPS += src/datawizard/interfaces/vector_interface.o
 OBJDEPS += src/task-models/blas_model.o
-
-ifeq ($(CUDA), 1)
-	OBJDEPS += src/drivers/cuda/driver_cuda.o
-endif
 
 ifdef GORDON
 	OBJDEPS += src/drivers/gordon/driver_gordon.o

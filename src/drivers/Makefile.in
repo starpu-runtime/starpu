@@ -2,11 +2,11 @@
 
 DRIVERS=
 
-ifdef CPUS
+ifeq (@USE_CPU@,yes)
 	DRIVERS+= core
 endif
 
-ifeq ($(CUDA), 1)
+ifeq (@USE_CUDA@,yes)
 	DRIVERS+= cuda
 endif
 

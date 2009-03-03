@@ -13,26 +13,26 @@ ifeq ($(CHECK), 1)
 	CFLAGS += -DCHECK_RESULTS
 endif
 
-ifdef GOTO
+ifeq (@BLAS_LIB@,goto)
 	TARGET += mult
 	TARGET+= cholesky
 	TARGET+= heat 
 endif
 
-ifdef ATLAS
+ifeq (@BLAS_LIB@,atlas)
 	TARGET += mult
 	TARGET+= spmv
 	TARGET+= heat 
 	TARGET+= cholesky
 	TARGET+= strassen
-ifdef CUDA
+ifeq (@USE_CUDA@,yes)
 	TARGET+= pastix-wrappers
 endif
 endif
 
 CFLAGS += -I../
 
-ifdef USE_FXT
+ifeq (@USE_FXT@,yes)
 	LDFLAGS += -lfxt
 endif
 
