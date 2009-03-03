@@ -123,9 +123,14 @@ ifeq (@USE_CPU@,yes)
 	OBJDEPS += src/drivers/core/driver_core.o
 endif
 
-ifdef GORDON
+ifeq (@USE_GORDON@,yes)
+	CFLAGS += -I$(SCALPDIR)
 	CFLAGS += -DUSE_GORDON
 	LDFLAGS += -lspe2
+	OBJDEPS += src/drivers/gordon/driver_gordon.o
+	EXTRALDFLAGS+= $(SCALPDIR)/cell/gordon/libgordon.a
+	EXTRALDFLAGS+= $(SCALPDIR)/util/libsp@ceutil.a
+	EXTRALDFLAGS+= $(SCALPDIR)/util/libsp@ceutil.spu.a
 endif
 
 ifeq (@USE_FXT@,yes)
@@ -190,14 +195,6 @@ OBJDEPS += src/datawizard/interfaces/csr_interface.o
 OBJDEPS += src/datawizard/interfaces/bcsr_interface.o
 OBJDEPS += src/datawizard/interfaces/vector_interface.o
 OBJDEPS += src/task-models/blas_model.o
-
-ifdef GORDON
-	OBJDEPS += src/drivers/gordon/driver_gordon.o
-	EXTRALDFLAGS+= $(SCALPDIR)/cell/gordon/libgordon.a
-	EXTRALDFLAGS+= $(SCALPDIR)/util/libsp@ceutil.a
-	EXTRALDFLAGS+= $(SCALPDIR)/util/libsp@ceutil.spu.a
-	CFLAGS += -I$(SCALPDIR)
-endif
 
 LIBS=starpu.a
 ifeq (@DYNAMIC@,yes)

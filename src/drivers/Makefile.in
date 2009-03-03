@@ -10,7 +10,7 @@ ifeq (@USE_CUDA@,yes)
 	DRIVERS+= cuda
 endif
 
-ifdef GORDON
+ifeq (@USE_GORDON@,yes)
 	DRIVERS += gordon
 endif
 

@@ -26,6 +26,18 @@ AC_ARG_ENABLE(cuda, [AS_HELP_STRING([--enable-cuda],
 AC_MSG_RESULT($enable_cuda)
 AC_SUBST(USE_CUDA, $enable_cuda)
 
+AC_MSG_CHECKING(whether GORDON should be used)
+AC_ARG_ENABLE(gordon, [AS_HELP_STRING([--enable-gordon],
+			[use Cell's SPUs])],
+			enable_gordon=$enableval, enable_gordon=no)
+AC_MSG_RESULT($enable_gordon)
+AC_SUBST(USE_GORDON, $enable_gordon)
+
+if test x$enable_gordon = xyes; then
+	AC_CHECK_LIB(spe2, spe_context_create,,AC_MSG_ERROR([cannot find libspe2]))
+fi
+
+
 AC_MSG_CHECKING(whether a dynamic library should be generated)
 AC_ARG_ENABLE(dynamic, [AS_HELP_STRING([--enable-dynamic],
 			[generate a dynamic library])],
