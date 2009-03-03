@@ -3,7 +3,7 @@ CFLAGS+= -I../../src/
 
 OBJS := dw_sparse_cg.o dw_sparse_cg_kernels.o dw_factolu.o dw_factolu_tag.o heat_display.o heat.o lu_kernels_model.o dw_factolu_kernels.o
 
-ifdef OPENGL_RENDER
+ifeq (@OPENGL_RENDER@,yes)
 	CFLAGS+=-DOPENGL_RENDER
 	LDFLAGS+=-lglut -lGL -lGLU
 endif

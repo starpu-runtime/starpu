@@ -2,11 +2,7 @@ ifdef USE_FXT
 	OPTTARGET+= fxt.o
 endif
 
-ifdef GOTO
-	OPTTARGET+= blas.o
-endif
-
-ifdef ATLAS
+ifneq (@BLAS_LIB@,none)
 	OPTTARGET+= blas.o
 endif
 

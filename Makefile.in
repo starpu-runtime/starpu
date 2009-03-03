@@ -15,15 +15,10 @@ CFLAGS += -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -fno-strict
 # to the CUDA code at runtime.
 CFLAGS+="-DSTARPUDIR=\"$(PWD)/\""
 
-ifdef DYNAMIC
-CFLAGS+= -fPIC
-endif
-
 LDFLAGS+= -lm
 LDFLAGS += -lpthread
 
-ifdef COVERAGE
-#	CFLAGS += -fprofile-arcs -ftest-coverage
+ifeq (@COVERAGE@,yes)
 	CFLAGS += --coverage
 	LDFLAGS += --coverage
 endif
@@ -101,23 +96,26 @@ ifeq ($(CUDA), 1)
 	LDFLAGS += -lcublas
 endif
 
-ifdef ATLAS
+ifeq (@BLAS_LIB@,atlas)
 	CFLAGS += -I$(ATLASDIR)/include/
 	CFLAGS += -DATLAS
 	EXTRALDFLAGS+= $(ATLASDIR)/lib/libcblas.a
 	EXTRALDFLAGS+= $(ATLASDIR)/lib/libatlas.a
+	OBJDEPS += src/common/blas.o
 endif
 
-ifdef GOTO
+ifeq (@BLAS_LIB@,goto)
 	CFLAGS += -I$(GOTODIR)
 	CFLAGS += -DGOTO
 	EXTRALDFLAGS += $(GOTODIR)/libgoto.a
+	OBJDEPS += src/common/blas.o
 endif
 
 ifdef CPUS
 	CFLAGS += -DUSE_CPUS
 	CFLAGS += -DNMAXCORES=$(CPUS)
 	NVCCFLAGS += -DUSE_CPUS
+	OBJDEPS += src/drivers/core/driver_core.o
 endif
 
 ifdef GORDON
@@ -129,12 +127,13 @@ ifndef FXTDIR
 	FXTDIR=/home/gonnet/These/Libs/FxT/target
 endif
 
-ifdef USE_FXT
+ifeq (@USE_FXT@,yes)
 	CFLAGS += -DUSE_FXT -I$(FXTDIR)/include/ -DCONFIG_FUT
 	LDFLAGS += -lfxt -L$(FXTDIR)/lib/
+	OBJDEPS += src/common/fxt.o
 endif
 
-ifdef NO_PRIO
+ifeq (@USE_PRIO@,no)
 	CFLAGS += -DNO_PRIO
 endif
 
@@ -199,29 +198,11 @@ ifdef GORDON
 	CFLAGS += -I$(SCALPDIR)
 endif
 
-ifdef CPUS
-	OBJDEPS += src/drivers/core/driver_core.o
-endif
-
-ifdef USE_FXT
-	LDFLAGS += -lfxt
-	OBJDEPS += src/common/fxt.o
-endif
-
-ifdef GOTO
-	OBJDEPS += src/common/blas.o
-endif
-
-ifdef ATLAS
-	OBJDEPS += src/common/blas.o
-endif
-
 LIBS=starpu.a
-ifdef DYNAMIC
+ifeq (@DYNAMIC@,yes)
+	CFLAGS+= -fPIC
 	LIBS+= starpu.so
 endif
-
-
 
 all:
 	@make -C src/common
