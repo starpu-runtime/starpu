@@ -119,6 +119,11 @@ static void init_machine_config(struct machine_config_s *config)
 	config->nworkers += ngordon_spus;
 #endif
 
+	if (config->nworkers == 0)
+	{
+		fprintf(stderr, "No worker found, aborting ...\n");
+		exit(-1);
+	}
 }
 
 static void init_workers_binding(struct machine_config_s *config)
@@ -204,12 +209,14 @@ static void init_workers(struct machine_config_s *config)
 		workerarg->terminated_jobs = job_list_new();
 	
 		switch (workerarg->arch) {
+#ifdef USE_CPUS
 			case CORE_WORKER:
 				workerarg->set = NULL;
 				pthread_create(&workerarg->worker_thread, 
 						NULL, core_worker, workerarg);
 				sem_wait(&workerarg->ready_sem);
 				break;
+#endif
 #ifdef USE_CUDA
 			case CUDA_WORKER:
 				workerarg->set = NULL;
