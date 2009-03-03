@@ -50,10 +50,6 @@ else
 	CFLAGS+="-DPERF_MODEL_DIR=\"$(PWD)/.sampling/\""
 endif
 
-# to use CUDA
-CUDASDKDIR=/home/gonnet/NVIDIA_CUDA_SDK/
-CUDAINSTALLDIR=/usr/local/cuda/
-
 ifndef ATLASDIR
 ATLASDIR=/home/gonnet/These/Libs/ATLAS/
 endif
@@ -94,9 +90,6 @@ endif
 ifeq (@USE_CUDA@,yes)
 	CFLAGS += -DUSE_CUDA 
 	NVCCFLAGS +=  -DUSE_CUDA 
-	CFLAGS += -I$(CUDAINSTALLDIR)/include 
-	NVCCFLAGS += -I$(CUDAINSTALLDIR)/include 
-	LDFLAGS += -lcuda -L$(CUDAINSTALLDIR)/lib 
 	LDFLAGS += -lcublas
 	OBJDEPS += src/drivers/cuda/driver_cuda.o
 endif

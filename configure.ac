@@ -53,6 +53,7 @@ if test x$disable_cuda = xno; then
 
 	enable_cuda=yes
 	AC_CHECK_HEADER([cuda.h],,[enable_cuda=no])
+	AC_SEARCH_LIBS([cuInit],[cuda],,[enable_cuda=no])
 	AC_SEARCH_LIBS([cublasInit],[cublas],,[enable_cuda=no])
 else
 	AC_MSG_RESULT(yes)
