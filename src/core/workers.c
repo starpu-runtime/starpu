@@ -24,7 +24,9 @@ inline uint32_t may_submit_core_task(void)
 	return (CORE & worker_mask);
 }
 
+#ifdef USE_CPUS
 static unsigned ncores;
+#endif
 #ifdef USE_CUDA
 static unsigned ncudagpus;
 #endif
@@ -42,7 +44,7 @@ extern unsigned get_cuda_device_count(void);
 
 static void init_machine_config(struct machine_config_s *config)
 {
-	int envval;
+	int envval __attribute__((unused));
 
 	config->nworkers = 0;
 	
