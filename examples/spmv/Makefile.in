@@ -2,7 +2,7 @@ STARPU= ../../starpu.a
 CFLAGS+= -I../..
 CFLAGS+= -I../../src/
 
-ifeq ($(CUDA), 1)
+ifeq (@USE_CUDA@,yes)
 	EXTRADEP += ../cuda/spmv_cuda.cubin
 endif
 
