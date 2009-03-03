@@ -1,4 +1,4 @@
-AC_INIT([StarPU],0.1)
+AC_INIT([StarPU],0.1, [http://runtime.bordeaux.inria.fr/StarPU/], starpu)
 
 AC_MSG_NOTICE([Configuring StarPU])
 
