@@ -34,8 +34,6 @@ AC_ARG_ENABLE(priority, [AS_HELP_STRING([--disable-priority],
 AC_MSG_RESULT($enable_priority)
 AC_SUBST(USE_PRIO, $enable_priority)
 
-
-
 # shall we use FxT to generate trace of the execution ?
 AC_MSG_CHECKING(whether fxt traces should be generated)
 AC_ARG_WITH(fxt, [AS_HELP_STRING([--with-fxt[=<dir>]], [generate fxt traces])],
@@ -49,8 +47,9 @@ AC_ARG_WITH(fxt, [AS_HELP_STRING([--with-fxt[=<dir>]], [generate fxt traces])],
 					# use specified path
 					# TODO check if the dir is actually containing FxT
 					use_fxt_from_system=no
-					AC_MSG_RESULT(yes using $withval)
-					AC_SUBST(FXTDIR, $withval)
+					fxtdir=$withval
+					AC_MSG_RESULT(yes using $fxtdir)
+					AC_SUBST(FXTDIR, $fxtdir)
 				fi
 			else
 				use_fxt=no
@@ -63,16 +62,16 @@ AC_ARG_WITH(fxt, [AS_HELP_STRING([--with-fxt[=<dir>]], [generate fxt traces])],
 		])
 AC_SUBST(USE_FXT, $use_fxt)
 
-if test x$use_fxt_from_system = xyes; then
-	AC_SUBST(USE_FXTDIR_FROM_USER,no)
+if test x$use_fxt = xyes; then
 
-# FIXME !
-#	AC_CHECK_HEADER([fxt/fxt.h],,AC_MSG_ERROR([cannot find headers for fxt]))
-#	AC_CHECK_HEADER([fxt/fut.h],,AC_MSG_ERROR([cannot find headers for fxt]))
-
+AC_SUBST(USE_FXTDIR_FROM_USER,$use_fxt_from_system)
+if test x$use_fxt_from_system = xno; then
+	CPPFLAGS+=" -I$fxtdir/include/"
+	LDFLAGS+=" -L$fxtdir/lib/"
+fi
 	AC_CHECK_LIB(fxt, fut_setup,,AC_MSG_ERROR([cannot find fxt lib]))
-else
-	AC_SUBST(USE_FXTDIR_FROM_USER,yes)
+	AC_CHECK_HEADER([fxt/fxt.h],,AC_MSG_ERROR([cannot find headers for fxt]))
+	AC_CHECK_HEADER([fxt/fut.h],,AC_MSG_ERROR([cannot find headers for fxt]))
 fi
 
 AC_MSG_CHECKING(whether performance debugging should be enabled)

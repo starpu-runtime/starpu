@@ -6,6 +6,10 @@ CC=gcc -m64
 NVCC = nvcc -m64
 NVCCFLAGS += -O3
 
+CFLAGS += @CPPFLAGS@
+CFLAGS += @CFLAGS@
+LDFLAGS += @LDFLAGS@
+
 CFLAGS += -g -O3
 CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses
 CFLAGS += -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type 
