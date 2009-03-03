@@ -18,10 +18,52 @@ if test x$enable_cpu = xyes; then
 	AC_SUBST(NMAXCORES, 16)
 fi
 
-AC_MSG_CHECKING(whether CUDA devices should be used)
-AC_ARG_ENABLE(cuda, [AS_HELP_STRING([--enable-cuda],
-			[use CUDA device(s)])],
-			enable_cuda=$enableval, enable_cuda=no)
+
+disable_cuda=no
+explicitely_enable_cuda=no
+AC_MSG_CHECKING(whether CUDA is disabled)
+AC_ARG_ENABLE(cuda, [AS_HELP_STRING([--disable-cuda],
+			[do not use CUDA device(s)])],
+		[
+			if test x$enable_cuda = xno; then
+				disable_cuda=yes
+			fi
+			if test x$enable_cuda = xyes; then
+				explicitely_enable_cuda=yes
+			fi
+		])
+
+if test x$disable_cuda = xno; then
+	AC_MSG_RESULT(no)
+	#AC_MSG_CHECKING(whether CUDA is available)
+	AC_ARG_WITH(cuda-dir, 
+		[AS_HELP_STRING([--with-cuda-dir=<path>],
+		[specify CUDA installation directory (default is /usr/local/cuda/)])],
+		[
+			cuda_dir=$withval
+			explicitely_enable_cuda=yes
+		], cuda_dir=/usr/local/cuda/)
+	
+	if test -d "$cuda_dir/include/"; then
+		CPPFLAGS+=" -I$cuda_dir/include/"
+	fi
+	if test -d "$cuda_dir/lib/"; then
+		LDFLAGS+=" -L$cuda_dir/lib/"
+	fi
+
+	enable_cuda=yes
+	AC_CHECK_HEADER([cuda.h],,[enable_cuda=no])
+	AC_SEARCH_LIBS([cublasInit],[cublas],,[enable_cuda=no])
+else
+	AC_MSG_RESULT(yes)
+	enable_cuda=no
+fi
+
+if test x$explicitely_enable_cuda = xyes -a x$enable_cuda = xno; then
+	AC_MSG_ERROR([cannot find CUDA])
+fi
+
+AC_MSG_CHECKING(whether CUDA is activated)
 AC_MSG_RESULT($enable_cuda)
 AC_SUBST(USE_CUDA, $enable_cuda)
 
@@ -159,3 +201,4 @@ AC_OUTPUT(src/core/dependencies/Makefile)
 AC_OUTPUT(src/drivers/Makefile)
 AC_OUTPUT(examples/heat/Makefile)
 AC_OUTPUT(examples/incrementer/Makefile)
+AC_OUTPUT(examples/spmv/Makefile)

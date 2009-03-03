@@ -96,7 +96,7 @@ ifeq (@USE_CUDA@,yes)
 	NVCCFLAGS +=  -DUSE_CUDA 
 	CFLAGS += -I$(CUDAINSTALLDIR)/include 
 	NVCCFLAGS += -I$(CUDAINSTALLDIR)/include 
-	LDFLAGS += -lcuda -L/usr/local/cuda/lib 
+	LDFLAGS += -lcuda -L$(CUDAINSTALLDIR)/lib 
 	LDFLAGS += -lcublas
 	OBJDEPS += src/drivers/cuda/driver_cuda.o
 endif
