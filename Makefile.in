@@ -8,7 +8,7 @@ NVCCFLAGS += -O3
 
 CFLAGS += @CPPFLAGS@
 CFLAGS += @CFLAGS@
-LDFLAGS += @LDFLAGS@
+LDFLAGS += @LDFLAGS@ @LIBS@
 
 CFLAGS += -g -O3
 CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses
@@ -113,6 +113,11 @@ ifeq (@BLAS_LIB@,goto)
 	CFLAGS += -I$(GOTODIR)
 	CFLAGS += -DGOTO
 	EXTRALDFLAGS += $(GOTODIR)/libgoto.a
+	OBJDEPS += src/common/blas.o
+endif
+
+ifeq (@BLAS_LIB@,system)
+	CFLAGS += -DSYSTEM_BLAS
 	OBJDEPS += src/common/blas.o
 endif
 

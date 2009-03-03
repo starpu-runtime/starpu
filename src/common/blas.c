@@ -123,7 +123,7 @@ float SDOT(const int n, const float *x, const int incx, const float *y, const in
 }
 
 
-#elif defined(GOTO)
+#elif defined(GOTO) || defined(SYSTEM_BLAS)
 
 inline void SGEMM(char *transa, char *transb, int M, int N, int K, 
 			float alpha, float *A, int lda, float *B, int ldb, 

@@ -18,7 +18,6 @@ if test x$enable_cpu = xyes; then
 	AC_SUBST(NMAXCORES, 16)
 fi
 
-
 AC_MSG_CHECKING(whether CUDA devices should be used)
 AC_ARG_ENABLE(cuda, [AS_HELP_STRING([--enable-cuda],
 			[use CUDA device(s)])],
@@ -137,8 +136,17 @@ AC_ARG_ENABLE(blas-lib,
         echo "Unknown BLAS library"
         exit -1
      fi
+     AC_MSG_RESULT($blas_lib)
+ ],[
+     AC_MSG_RESULT(none specified)
+     
+     #perhaps it is possible to use some BLAS lib from the system
+     use_system_blas=no
+     AC_SEARCH_LIBS([sgemm_],[blas],use_system_blas=yes,,)
+     if test x$use_system_blas = xyes; then
+	blas_lib=system
+     fi
  ])
-AC_MSG_RESULT($blas_lib)
 AC_SUBST(BLAS_LIB,$blas_lib)
 
 

@@ -36,7 +36,7 @@ void SAXPY(const int n, const float alpha, float *X, const int incX, float *Y, c
 int ISAMAX (const int n, float *X, const int incX);
 float SDOT(const int n, const float *x, const int incx, const float *y, const int incy);
 
-#ifdef GOTO
+#if defined(GOTO) || defined(SYSTEM_BLAS)
 
 extern void sgemm_ (const char *transa, const char *transb, const int *m,
                    const int *n, const int *k, const float *alpha, 
