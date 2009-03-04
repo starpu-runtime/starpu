@@ -99,6 +99,13 @@ AC_ARG_ENABLE(opengl-render, [AS_HELP_STRING([--enable-opengl-render],
 			[enable OpenGL rendering of some examples])],
 			enable_opengl_render=$enableval, enable_opengl_render=no)
 AC_MSG_RESULT($enable_opengl_render)
+
+if test x$enable_opengl_render = xyes; then
+	AC_CHECK_LIB(glut, glutInit,,AC_MSG_ERROR([cannot find glut]))
+	AC_CHECK_LIB(GL, glXCreateContext,,AC_MSG_ERROR([cannot find GL]))
+	AC_CHECK_LIB(GLU, gluLookAt,,AC_MSG_ERROR([cannot find GLU]))
+fi
+
 AC_SUBST(OPENGL_RENDER, $enable_opengl_render)
 
 
