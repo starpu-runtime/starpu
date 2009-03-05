@@ -3,6 +3,7 @@ AC_INIT([StarPU],0.1, [http://runtime.bordeaux.inria.fr/StarPU/], starpu)
 AC_MSG_NOTICE([Configuring StarPU])
 
 AC_PROG_CC
+AC_PROG_CPP
 AC_PROG_F77
 
 AC_MSG_CHECKING(whether CPUs should be used)
@@ -45,10 +46,10 @@ if test x$disable_cuda = xno; then
 		], cuda_dir=/usr/local/cuda/)
 	
 	if test -d "$cuda_dir/include/"; then
-		CPPFLAGS+=" -I$cuda_dir/include/"
+		CPPFLAGS="${CPPFLAGS} -I$cuda_dir/include/ "
 	fi
 	if test -d "$cuda_dir/lib/"; then
-		LDFLAGS+=" -L$cuda_dir/lib/"
+		LDFLAGS="${LDFLAGS} -L$cuda_dir/lib/ "
 	fi
 
 	enable_cuda=yes
@@ -119,37 +120,37 @@ AC_SUBST(USE_PRIO, $enable_priority)
 # shall we use FxT to generate trace of the execution ?
 AC_MSG_CHECKING(whether fxt traces should be generated)
 AC_ARG_WITH(fxt, [AS_HELP_STRING([--with-fxt[=<dir>]], [generate fxt traces])],
-		[
-			if test x$withval != xno; then
-				use_fxt=yes
-				if test x$withval = xyes; then
-					AC_MSG_RESULT(yes)
-					use_fxt_from_system=yes
-				else
-					# use specified path
-					# TODO check if the dir is actually containing FxT
-					use_fxt_from_system=no
-					fxtdir=$withval
-					AC_MSG_RESULT(yes using $fxtdir)
-					AC_SUBST(FXTDIR, $fxtdir)
-				fi
+	[
+		if test x$withval != xno; then
+			use_fxt=yes
+			if test x$withval = xyes; then
+				AC_MSG_RESULT(yes)
+				use_fxt_from_system=yes
 			else
-				use_fxt=no
-				AC_MSG_RESULT(no)
+				# use specified path
+				# TODO check if the dir is actually containing FxT
+				use_fxt_from_system=no
+				fxtdir=$withval
+				AC_MSG_RESULT(yes using $fxtdir)
+				AC_SUBST(FXTDIR, $fxtdir)
 			fi
-		],
-		[	
+		else
 			use_fxt=no
 			AC_MSG_RESULT(no)
-		])
+		fi
+	],
+	[	
+		use_fxt=no
+		AC_MSG_RESULT(no)
+	])
 AC_SUBST(USE_FXT, $use_fxt)
 
 if test x$use_fxt = xyes; then
 
 AC_SUBST(USE_FXTDIR_FROM_USER,$use_fxt_from_system)
 if test x$use_fxt_from_system = xno; then
-	CPPFLAGS+=" -I$fxtdir/include/"
-	LDFLAGS+=" -L$fxtdir/lib/"
+	CPPFLAGS="${CPPFLAGS} -I$fxtdir/include/ "
+	LDFLAGS="${LDFLAGS} -L$fxtdir/lib/ "
 fi
 	AC_CHECK_LIB(fxt, fut_setup,,AC_MSG_ERROR([cannot find fxt lib]))
 	AC_CHECK_HEADER([fxt/fxt.h],,AC_MSG_ERROR([cannot find headers for fxt]))
@@ -163,9 +164,7 @@ AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],
 AC_MSG_RESULT($enable_perf_debug)
 AC_SUBST(PERF_DEBUG, $enable_perf_debug)
 
-# TODO : make it case insensitive ...
-AC_MSG_CHECKING(which BLAS lib should be used)
-blas_lib=none
+blas_lib=maybe
 AC_ARG_ENABLE(blas-lib,
  [  --enable-blas-lib[=blaslibname]:
                       none [default]: no BLAS lib is used
@@ -186,19 +185,63 @@ AC_ARG_ENABLE(blas-lib,
         echo "Unknown BLAS library"
         exit -1
      fi
-     AC_MSG_RESULT($blas_lib)
- ],[
-     AC_MSG_RESULT(none specified)
+ ])
+
+if test x$blas_lib = xmaybe -o x$blas_lib = xgoto; then
+AC_ARG_WITH(goto-dir, [AS_HELP_STRING([--with-goto-dir=<dir>], [specify GOTO lib location])],
+	[
+		blas_lib=goto
+		gotodir=$withval
+		AC_SUBST(GOTODIR, $gotodir)
+
+		CPPFLAGS="${CPPFLAGS} -I$gotodir/ "
+		LDFLAGS="${LDFLAGS} -L$gotodir/ "
+	]
+	)
+
+if test x$blas_lib = xgoto; then
+# test whether ATLAS is actually available
+AC_CHECK_LIB(goto, sgemm_,,AC_MSG_ERROR([cannot find goto lib]))
+fi
+
+fi
      
+if test x$blas_lib = xmaybe -o x$blas_lib = xatlas; then
+AC_ARG_WITH(atlas-dir, [AS_HELP_STRING([--with-atlas-dir=<dir>], [specify ATLAS lib location])],
+	[
+		AC_MSG_CHECKING(ATLAS location)
+		blas_lib=atlas
+		atlasdir=$withval
+		AC_MSG_RESULT($atlasdir)
+		AC_SUBST(ATLASDIR, $atlasdir)
+
+		CPPFLAGS="${CPPFLAGS} -I$atlasdir/include/ "
+		LDFLAGS="${LDFLAGS} -L$atlasdir/lib/ "
+	]
+	)
+
+if test x$blas_lib = xatlas; then
+# test whether ATLAS is actually available
+AC_CHECK_HEADER([cblas.h],,AC_MSG_ERROR([cannot find atlas headers]))
+AC_CHECK_LIB(cblas, cblas_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),[-latlas])
+fi
+
+fi
+ 
+if test x$blas_lib = xmaybe; then
      #perhaps it is possible to use some BLAS lib from the system
      use_system_blas=no
      AC_SEARCH_LIBS([sgemm_],[blas],use_system_blas=yes,,)
      if test x$use_system_blas = xyes; then
 	blas_lib=system
+     else
+	blas_lib=none
      fi
- ])
-AC_SUBST(BLAS_LIB,$blas_lib)
+fi
 
+AC_MSG_CHECKING(which BLAS lib should be used)
+AC_MSG_RESULT($blas_lib)
+AC_SUBST(BLAS_LIB,$blas_lib)
 
 AC_OUTPUT([
 	Makefile
@@ -211,4 +254,5 @@ AC_OUTPUT([
 	examples/heat/Makefile
 	examples/incrementer/Makefile
 	examples/spmv/Makefile
+	tools/Makefile
 ])

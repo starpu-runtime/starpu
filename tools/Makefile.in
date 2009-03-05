@@ -1,6 +1,6 @@
 TOOLS=
 
-ifdef USE_FXT
+ifeq (@USE_FXT@,yes)
 	TOOLS += fxt-tool fxt-stats 
 	LDFLAGS+=`pkg-config --libs gtk+-2.0`
 endif
@@ -10,7 +10,7 @@ ifdef FLASH_RENDER
 	LDFLAGS+= -lming
 endif
 
-CFLAGS+= -I../
+CFLAGS+= -I../ -I../src/
 
 all: $(TOOLS)
 
