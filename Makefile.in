@@ -8,7 +8,8 @@ NVCCFLAGS += -O3
 
 CFLAGS += @CPPFLAGS@
 CFLAGS += @CFLAGS@
-LDFLAGS += @LDFLAGS@ @LIBS@
+LDFLAGS += @LDFLAGS@
+EXTRALDFLAGS += @LIBS@
 
 CFLAGS += -g -O3
 CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses
@@ -50,14 +51,6 @@ else
 	CFLAGS+="-DPERF_MODEL_DIR=\"$(PWD)/.sampling/\""
 endif
 
-ifndef ATLASDIR
-ATLASDIR=/home/gonnet/These/Libs/ATLAS/
-endif
-
-ifndef GOTODIR
-GOTODIR=/home/gonnet/These/Libs/GotoBLAS/GotoBLAS/
-endif
-
 ifndef SCALPDIR
 SCALPDIR=/home/gonnet/Scalp/scalp/trunk/
 endif
@@ -95,17 +88,12 @@ ifeq (@USE_CUDA@,yes)
 endif
 
 ifeq (@BLAS_LIB@,atlas)
-	CFLAGS += -I$(ATLASDIR)/include/
 	CFLAGS += -DATLAS
-	EXTRALDFLAGS+= $(ATLASDIR)/lib/libcblas.a
-	EXTRALDFLAGS+= $(ATLASDIR)/lib/libatlas.a
 	OBJDEPS += src/common/blas.o
 endif
 
 ifeq (@BLAS_LIB@,goto)
-	CFLAGS += -I$(GOTODIR)
 	CFLAGS += -DGOTO
-	EXTRALDFLAGS += $(GOTODIR)/libgoto.a
 	OBJDEPS += src/common/blas.o
 endif
 
