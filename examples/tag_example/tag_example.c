@@ -19,7 +19,7 @@ codelet cl;
 #define Nj	32
 #define Nk	2
 
-static unsigned ni, nj, nk;
+static unsigned ni = Ni, nj = Nj, nk = Nk;
 static unsigned callback_cnt;
 static unsigned iter = 0;
 

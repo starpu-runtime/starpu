@@ -18,7 +18,7 @@ codelet cl;
 #define Ni	64
 #define Nk	2
 
-static unsigned ni, nk;
+static unsigned ni = Ni, nk = Nk;
 static unsigned callback_cnt;
 static unsigned iter = 0;
 
