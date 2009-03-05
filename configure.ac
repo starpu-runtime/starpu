@@ -223,6 +223,7 @@ AC_ARG_WITH(atlas-dir, [AS_HELP_STRING([--with-atlas-dir=<dir>], [specify ATLAS 
 if test x$blas_lib = xatlas; then
 # test whether ATLAS is actually available
 AC_CHECK_HEADER([cblas.h],,AC_MSG_ERROR([cannot find atlas headers]))
+AC_CHECK_LIB(atlas, ATL_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),)
 AC_CHECK_LIB(cblas, cblas_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),[-latlas])
 fi
 
