@@ -173,8 +173,10 @@ save_cov "mult.dmda";
 }
 
 cd $ROOTDIR
+./configure --enable-coverage
+
 make clean 1> /dev/null 2> /dev/null
-make examples -j ATLAS=1 CPUS=$MAXCPU CUDA=1 COVERAGE=1 1> /dev/null 2> log
+make examples -j 1> /dev/null 2> log
 cd $DIR
 
 init;
@@ -183,7 +185,7 @@ apps;
 
 cd $ROOTDIR
 make clean 1> /dev/null 2> /dev/null
-make examples -j ATLAS=1 CPUS=$MAXCPU CUDA=1 COVERAGE=1 NO_DATA_RW_LOCK=1 1> /dev/null 2> log
+make examples -j NO_DATA_RW_LOCK=1 1> /dev/null 2> log
 cd $DIR
 
 
