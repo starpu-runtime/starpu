@@ -8,14 +8,14 @@ MAXCPU=3
 init()
 {
 	mkdir -p $COVDIR
-	lcov --directory $COVDIR --zerocounters
+	lcov --directory $COVDIR --zerocounters > /dev/null
 }
 
 save_cov()
 {
 	testname=$1
-	lcov --directory $ROOTDIR --capture --output $COVDIR/$testname.info 
-	lcov -a $COVDIR/$testname.info -o $COVDIR/all.info
+	lcov --directory $ROOTDIR --capture --output $COVDIR/$testname.info > /dev/null 
+	lcov -a $COVDIR/$testname.info -o $COVDIR/all.info > /dev/null
 }
 
 generatehtml()
@@ -173,7 +173,7 @@ save_cov "mult.dmda";
 }
 
 cd $ROOTDIR
-./configure --enable-coverage
+./configure --enable-coverage > /dev/null
 
 make clean 1> /dev/null 2> /dev/null
 make examples -j 1> /dev/null 2> log
