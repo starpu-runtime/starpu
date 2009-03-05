@@ -4,10 +4,12 @@ OBJS := no-prio-policy.o eager-central-policy.o eager-central-priority-policy.o 
 
 all: $(OBJS)
 
+ifeq ($(filter ${MAKECMDGOALS},clean distclean),)
 %.d: %.c
 	$(CC) $(CFLAGS) $< -MM -o $*.d
 
 -include $(OBJS:.o=.d)
+endif
 
 clean:
 	@rm -f *.o *.d *.gcno *.gcda

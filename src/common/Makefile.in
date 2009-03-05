@@ -12,10 +12,12 @@ OBJS := hash.o htable32.o mutex.o rwlock.o timing.o $(OPTTARGET)
 
 all: $(OBJS)
 
+ifeq ($(filter ${MAKECMDGOALS},clean distclean),)
 %.d: %.c
 	$(CC) $(CFLAGS) $< -MM -o $*.d
 
 -include $(OBJS:.o=.d)
+endif
 
 clean:
 	@rm -f *.o *.d *.gcno *.gcda 

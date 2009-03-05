@@ -41,10 +41,12 @@ common:
 interfaces:
 	@make -C interfaces
 
+ifeq ($(filter ${MAKECMDGOALS},clean distclean),)
 %.d: %.c
 	$(CC) $(CFLAGS) $< -MM -o $*.d
 
 -include $(OBJS:.o=.d)
+endif
 
 clean:
 	@make -C interfaces clean
