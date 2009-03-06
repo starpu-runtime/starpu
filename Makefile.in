@@ -182,10 +182,10 @@ OBJDEPS += src/datawizard/interfaces/bcsr_interface.o
 OBJDEPS += src/datawizard/interfaces/vector_interface.o
 OBJDEPS += src/task-models/blas_model.o
 
-LIBS=starpu.a
+LIBS=libstarpu.a
 ifeq (@DYNAMIC@,yes)
 	CFLAGS+= -fPIC
-	LIBS+= starpu.so
+	LIBS+= sbtarpu.so
 endif
 
 all:
@@ -196,10 +196,10 @@ all:
 	@make -C src/task-models
 	@make -C tools
 
-starpu.so: all
-	gcc --shared -o starpu.so $(OBJDEPS)
+libstarpu.so: all
+	gcc --shared -o libstarpu.so $(OBJDEPS)
 
-starpu.a: all
+libstarpu.a: all
 	$(AR) rcs $@ $(OBJDEPS)
 
 libs: $(LIBS)

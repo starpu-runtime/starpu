@@ -1,4 +1,4 @@
-STARPU= ../../starpu.a
+STARPU= ../../libstarpu.a
 CFLAGS+= -I../..
 CFLAGS+= -I../../src/
 

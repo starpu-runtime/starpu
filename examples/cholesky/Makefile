@@ -1,4 +1,4 @@
-STARPU= ../../starpu.a
+STARPU= ../../libstarpu.a
 CFLAGS+= -I../../src/
 
 all: test_cholesky dw_cholesky_no_stride
