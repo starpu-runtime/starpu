@@ -128,17 +128,17 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	for (i = 0; i < NITER; i++)
 	{
 		j = job_create();
-		j->where = CORE;
+		j->cl = &cl;
+		cl.where = CORE;
 #ifdef USE_CUDA
-		j->where |= CUDA;
+		cl.where |= CUDA;
 #endif
 #ifdef USE_GORDON
-		j->where |= GORDON;
+		cl.where |= GORDON;
 #endif
 			//(((i % 2) == 1)?CUDA:CUBLAS)|CORE; 
 		
 		j->cb = callback_func;
-		j->cl = &cl;
 		j->argcb = &counter;
 
 		j->nbuffers = 2;

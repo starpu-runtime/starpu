@@ -81,7 +81,7 @@ static void create_task_grid(unsigned iter)
 
 		/* create a new task */
 		job_t jb = job_create();
-		jb->where = CORE;
+		cl.where = CORE;
 		jb->cb = callback_core;
 		//jb->argcb = &coords[i][j];
 		jb->cl = &cl;
@@ -97,7 +97,7 @@ static void create_task_grid(unsigned iter)
 	{
 		/* create a new task */
 		job_t jb = job_create();
-		jb->where = CORE;
+		cl.where = CORE;
 		jb->cb = callback_core;
 		jb->cl = &cl;
 

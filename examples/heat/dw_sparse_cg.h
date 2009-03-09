@@ -162,10 +162,10 @@ static void create_data(float **_nzvalA, float **_vecb, float **_vecx, uint32_t 
 static job_t create_job(tag_t id)
 {
 	codelet *cl = malloc(sizeof(codelet));
-	cl->cl_arg = NULL;
+		cl->cl_arg = NULL;
+		cl->where = ANY;
 
 	job_t j = job_create();
-		j->where = ANY;
 		j->cl = cl;
 
 	tag_declare(id, j);

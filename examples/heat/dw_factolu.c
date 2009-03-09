@@ -36,13 +36,13 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 		cl_args *u11arg = malloc(sizeof(cl_args));
 	
 		cl->cl_arg = u11arg;
+		cl->where = ANY;
 		cl->core_func = dw_core_codelet_update_u11;
 #ifdef USE_CUDA
 		cl->cublas_func = dw_cublas_codelet_update_u11;
 #endif
 	
 		job_t j = job_create();
-			j->where = ANY;
 			j->cb = dw_callback_v2_codelet_update_u11;
 			j->argcb = u11arg;
 			j->cl = cl;
@@ -80,6 +80,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					codelet *cl21 = malloc(sizeof(codelet));
 		
 					cl21->cl_arg = u21a;
+					cl21->where = ANY;
 					cl21->core_func = 
 						dw_core_codelet_update_u21;
 #ifdef USE_CUDA
@@ -87,7 +88,6 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 						dw_cublas_codelet_update_u21;
 #endif
 					job_t j21 = job_create();
-					j21->where = ANY;
 					j21->cb = dw_callback_v2_codelet_update_u21;
 					j21->argcb = u21a;
 					j21->cl = cl21;
@@ -126,10 +126,10 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					cl_args *u12a = malloc(sizeof(cl_args));
 
 					cl12->cl_arg = u12a;
+					cl12->where = ANY;
 					cl12->core_func = dw_core_codelet_update_u12;
 		
 					job_t j12 = job_create();
-						j12->where = ANY;
 						j12->cb = dw_callback_v2_codelet_update_u12;
 						j12->argcb = u12a;
 						j12->cl = cl12;
@@ -191,13 +191,13 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				codelet *cl22 = malloc(sizeof(codelet));
 
 				cl22->cl_arg = u22a;
+				cl22->where = ANY;
 				cl22->core_func = dw_core_codelet_update_u22;
 #ifdef USE_CUDA
 				cl22->cublas_func = dw_cublas_codelet_update_u22;
 #endif
 
 				job_t j22 = job_create();
-				j22->where = ANY;
 				j22->cb = dw_callback_v2_codelet_update_u22;
 				j22->argcb = u22a;
 				j22->cl = cl22;
@@ -263,13 +263,13 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				codelet *cl22 = malloc(sizeof(codelet));
 
 				cl22->cl_arg = u22a;
+				cl22->where = ANY;
 				cl22->core_func = dw_core_codelet_update_u22;
 #ifdef USE_CUDA
 				cl22->cublas_func = dw_cublas_codelet_update_u22;
 #endif
 
 				job_t j22 = job_create();
-				j22->where = ANY;
 				j22->cb = dw_callback_v2_codelet_update_u22;
 				j22->argcb = u22a;
 				j22->cl = cl22;
@@ -347,10 +347,10 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					cl_args *u12a = malloc(sizeof(cl_args));
 
 					cl12->cl_arg = u12a;
+					cl12->where = ANY;
 					cl12->core_func = dw_core_codelet_update_u12;
 		
 					job_t j12 = job_create();
-						j12->where = ANY;
 						j12->cb = dw_callback_v2_codelet_update_u12;
 						j12->argcb = u12a;
 						j12->cl = cl12;
@@ -399,12 +399,12 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					codelet *cl21 = malloc(sizeof(codelet));
 		
 					cl21->cl_arg = u21a;
+					cl21->where = ANY;
 					cl21->core_func = dw_core_codelet_update_u21;
 #ifdef USE_CUDA
 					cl21->cublas_func = dw_cublas_codelet_update_u21;
 #endif
 					job_t j21 = job_create();
-						j21->where = ANY;
 						j21->cb = dw_callback_v2_codelet_update_u21;
 						j21->argcb = u21a;
 						j21->cl = cl21;
@@ -476,6 +476,8 @@ void dw_callback_codelet_update_u11(void *argcb)
 
 			cl12->cl_arg = u12a;
 			cl21->cl_arg = u21a;
+			cl12->where = ANY;
+			cl21->where = ANY;
 			cl12->core_func = dw_core_codelet_update_u12;
 			cl21->core_func = dw_core_codelet_update_u21;
 #ifdef USE_CUDA
@@ -484,7 +486,6 @@ void dw_callback_codelet_update_u11(void *argcb)
 #endif
 
 			job_t j12 = job_create();
-				j12->where = ANY;
 				j12->cb = dw_callback_codelet_update_u12_21;
 				j12->argcb = u12a;
 				j12->cl = cl12;
@@ -492,7 +493,6 @@ void dw_callback_codelet_update_u11(void *argcb)
 
 
 			job_t j21 = job_create();
-				j21->where = ANY;
 				j21->cb = dw_callback_codelet_update_u12_21;
 				j21->argcb = u21a;
 				j21->cl = cl21;
@@ -550,13 +550,13 @@ void dw_callback_codelet_update_u22(void *argcb)
 		cl_args *u11arg = malloc(sizeof(cl_args));
 	
 		cl->cl_arg = u11arg;
+		cl->where = ANY;
 		cl->core_func = dw_core_codelet_update_u11;
 #ifdef USE_CUDA
 		cl->cublas_func = dw_cublas_codelet_update_u11;
 #endif
 	
 		job_t j = job_create();
-			j->where = ANY;
 			j->cb = dw_callback_codelet_update_u11;
 			j->argcb = u11arg;
 			j->cl = cl;
@@ -603,13 +603,13 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 				codelet *cl22 = malloc(sizeof(codelet));
 
 				cl22->cl_arg = u22a;
+				cl22->where = ANY;
 				cl22->core_func = dw_core_codelet_update_u22;
 #ifdef USE_CUDA
 				cl22->cublas_func = dw_cublas_codelet_update_u22;
 #endif
 
 				job_t j22 = job_create();
-				j22->where = ANY;
 				j22->cb = dw_callback_codelet_update_u22;
 				j22->argcb = u22a;
 				j22->cl = cl22;
@@ -665,6 +665,7 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 	args->dataA = dataA;
 
 	cl->cl_arg = args;
+	cl->where = ANY;
 	cl->core_func = dw_core_codelet_update_u11;
 #ifdef USE_CUDA
 	cl->cublas_func = dw_cublas_codelet_update_u11;
@@ -674,7 +675,6 @@ void dw_codelet_facto(data_state *dataA, unsigned nblocks)
 
 	/* inject a new task with this codelet into the system */ 
 	job_t j = job_create();
-		j->where = ANY;
 		j->cb = dw_callback_codelet_update_u11;
 		j->argcb = args;
 		j->cl = cl;
@@ -728,6 +728,7 @@ void dw_codelet_facto_v2(data_state *dataA, unsigned nblocks)
 	args->dataA = dataA;
 
 	cl->cl_arg = args;
+	cl->where = ANY;
 	cl->core_func = dw_core_codelet_update_u11;
 #ifdef USE_CUDA
 	cl->cublas_func = dw_cublas_codelet_update_u11;
@@ -737,7 +738,6 @@ void dw_codelet_facto_v2(data_state *dataA, unsigned nblocks)
 
 	/* inject a new task with this codelet into the system */ 
 	job_t j = job_create();
-		j->where = ANY;
 		j->cb = dw_callback_v2_codelet_update_u11;
 		j->argcb = args;
 		j->cl = cl;

@@ -40,17 +40,20 @@
 typedef void (*cl_func)(data_interface_t *, void *);
 typedef void (*callback)(void *);
 
-#define CORE_MAY_PERFORM(j)	( (j)->where & CORE	)
-#define CUDA_MAY_PERFORM(j)     ( (j)->where & CUDA	)
-#define CUBLAS_MAY_PERFORM(j)   ( (j)->where & CUBLAS	)
-#define SPU_MAY_PERFORM(j)	( (j)->where & SPU	)
-#define GORDON_MAY_PERFORM(j)	( (j)->where & GORDON	)
+#define CORE_MAY_PERFORM(j)	((j)->cl->where & CORE)
+#define CUDA_MAY_PERFORM(j)     ((j)->cl->where & CUDA)
+#define CUBLAS_MAY_PERFORM(j)   ((j)->cl->where & CUBLAS)
+#define SPU_MAY_PERFORM(j)	((j)->cl->where & SPU)
+#define GORDON_MAY_PERFORM(j)	((j)->cl->where & GORDON)
 
 /*
  * A codelet describes the various function 
  * that may be called from a worker
  */
 typedef struct codelet_t {
+	/* where can it be performed ? */
+	uint32_t where;
+
 	/* the different implementations of the codelet */
 	void *cuda_func;
 	void *cublas_func;
@@ -67,8 +70,6 @@ typedef struct codelet_t {
 } codelet;
 
 LIST_TYPE(job,
-	uint32_t where;	/* where can it be performed ? */
-
 	codelet *cl;
 
 	callback cb;	/* do "cb(argcb)" when finished */

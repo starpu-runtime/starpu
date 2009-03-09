@@ -72,7 +72,7 @@ void init_cg(struct cg_problem *problem)
 
 	/* r = b  - A x */
 	job_t job1 = create_job(1UL);
-	job1->where = CORE;
+	job1->cl->where = CORE;
 	job1->cl->core_func = core_codelet_func_1;
 	job1->nbuffers = 4;
 		job1->buffers[0].state = problem->ds_matrixA;
@@ -86,7 +86,7 @@ void init_cg(struct cg_problem *problem)
 
 	/* d = r */
 	job_t job2 = create_job(2UL);
-	job2->where = CORE;
+	job2->cl->where = CORE;
 	job2->cl->core_func = core_codelet_func_2;
 	job2->nbuffers = 2;
 		job2->buffers[0].state = problem->ds_vecd;
@@ -98,7 +98,7 @@ void init_cg(struct cg_problem *problem)
 
 	/* delta_new = trans(r) r */
 	job_t job3 = create_job(3UL);
-	job3->where = CUBLAS|CORE;
+	job3->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
 	job3->cl->cublas_func = cublas_codelet_func_3;
 #endif
@@ -131,7 +131,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* q = A d */
 	job_t job4 = create_job(maskiter | 4UL);
-	job4->where = CORE;
+	job4->cl->where = CORE;
 	job4->cl->core_func = core_codelet_func_4;
 	job4->nbuffers = 3;
 		job4->buffers[0].state = problem->ds_matrixA;
@@ -143,7 +143,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* alpha = delta_new / ( trans(d) q )*/
 	job_t job5 = create_job(maskiter | 5UL);
-	job5->where = CUBLAS|CORE;
+	job5->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
 	job5->cl->cublas_func = cublas_codelet_func_5;
 #endif
@@ -159,7 +159,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* x = x + alpha d */
 	job_t job6 = create_job(maskiter | 6UL);
-	job6->where = CUBLAS|CORE;
+	job6->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
 	job6->cl->cublas_func = cublas_codelet_func_6;
 #endif
@@ -175,7 +175,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* r = r - alpha q */
 	job_t job7 = create_job(maskiter | 7UL);
-	job7->where = CUBLAS|CORE;
+	job7->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
 	job7->cl->cublas_func = cublas_codelet_func_7;
 #endif
@@ -191,7 +191,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* update delta_* and compute beta */
 	job_t job8 = create_job(maskiter | 8UL);
-	job8->where = CUBLAS|CORE;
+	job8->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
 	job8->cl->cublas_func = cublas_codelet_func_8;
 #endif
@@ -205,7 +205,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* d = r + beta d */
 	job_t job9 = create_job(maskiter | 9UL);
-	job9->where = CUBLAS|CORE;
+	job9->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
 	job9->cl->cublas_func = cublas_codelet_func_9;
 #endif

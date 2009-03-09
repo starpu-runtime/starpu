@@ -248,13 +248,13 @@ static void launch_codelets(void)
 			codelet *cl = malloc(sizeof(codelet));
 			jb = job_create();
 
-			jb->where = CORE;
+			cl->where = CORE;
 
 			cl->cl_arg = &conf;
 			cl->cl_arg_size = sizeof(struct block_conf);
 			cl->core_func = core_mult;
 #ifdef USE_CUDA
-			jb->where |= CUBLAS;
+			cl->where |= CUBLAS;
 			cl->cublas_func = cublas_mult;
 #endif
 #ifdef USE_GORDON

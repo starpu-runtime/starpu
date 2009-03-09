@@ -16,10 +16,10 @@
 static job_t create_job(tag_t id)
 {
 	codelet *cl = malloc(sizeof(codelet));
-	cl->cl_arg = NULL;
+		cl->cl_arg = NULL;
+		cl->where = ANY;
 
 	job_t j = job_create();
-		j->where = ANY;
 		j->cl = cl;	
 
 	tag_declare(id, j);
@@ -46,7 +46,7 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 
 	/* XXX this should not be needed with a good scheduling policy, and may be suboptimal ! */
 	if (may_submit_core_task())
-		job->where = CORE;
+		job->cl->where = CORE;
 
 	job->cl->model = &model_11;
 

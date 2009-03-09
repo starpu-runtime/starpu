@@ -126,6 +126,7 @@ void launch_spmv_codelets(void)
 	uint32_t *colind = get_bcsr_local_colind(&sparse_matrix);
 
 	cl->cl_arg = NULL;
+	cl->where = CORE|CUBLAS;
 	cl->core_func =  core_block_spmv;
 #ifdef USE_CUDA
 	cl->cublas_func = cublas_block_spmv;
@@ -156,7 +157,6 @@ void launch_spmv_codelets(void)
 
 				tag_declare(jobid, job_tab[jobid]);
 
-				job_tab[jobid]->where = CORE|CUBLAS;
 				job_tab[jobid]->cb = init_problem_callback;
 				job_tab[jobid]->argcb = &remainingjobs;
 				job_tab[jobid]->cl = cl;

@@ -42,9 +42,9 @@ static inline void malloc_pinned_if_possible(float **A, size_t dim)
 		codelet *cl = malloc(sizeof(codelet));
 		cl->cublas_func = malloc_pinned_codelet; 
 		cl->cl_arg = &s;
+		cl->where = CUBLAS;
 	
 		job_t j = job_create();
-		j->where = CUBLAS;
 		j->cb = NULL; 
 		j->cl = cl;
 	

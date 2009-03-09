@@ -41,7 +41,7 @@ static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task,
 		fifo->exp_start = MAX(fifo->exp_start, timing_now()/1000000);
 		fifo->exp_end = MAX(fifo->exp_start, timing_now()/1000000);
 
-		if ((queue_array[worker]->who & task->where) == 0)
+		if ((queue_array[worker]->who & task->cl->where) == 0)
 		{
 			/* no one on that queue may execute this task */
 			continue;

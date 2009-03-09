@@ -255,11 +255,11 @@ void call_spmv_codelet_filters(void)
 	partition_data(&vector_out, &vector_f);
 
 	cl->cl_arg = NULL;
+	cl->where = CORE|CUDA;
 	cl->core_func =  core_spmv;
 #ifdef USE_CUDA
 	cl->cuda_func = &cuda_spmv;
 #endif
-
 
 	GET_TICK(start);
 	unsigned part;
@@ -272,7 +272,6 @@ void call_spmv_codelet_filters(void)
 //#else
 //		job->where = CORE;
 //#endif
-		job->where = CORE|CUDA;
 		job->cb = init_problem_callback;
 		job->argcb = &remainingjobs;
 		job->cl = cl;

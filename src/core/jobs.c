@@ -22,7 +22,6 @@ job_t job_create(void)
 
 	job = job_new();
 
-	job->where = 0;
 	job->cb = NULL;
 	job->cl = NULL;
 	job->argcb = NULL;
@@ -64,7 +63,7 @@ int submit_job(job_t j)
 {
 	STARPU_ASSERT(j);
 
-	if (!worker_exists(j->where))
+	if (!worker_exists(j->cl->where))
 		return -ENODEV;
 
 	/* enfore task dependencies */

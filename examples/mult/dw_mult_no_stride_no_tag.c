@@ -330,14 +330,6 @@ static void construct_job(unsigned x, unsigned y, unsigned z, unsigned iter, str
 	job_t jb;
 	jb = job_create();
 
-	jb->where = CORE;
-#ifdef USE_CUDA
-	jb->where |= CUBLAS;
-#endif
-#ifdef USE_GORDON
-	jb->where |= GORDON;
-#endif
-
 	jb->cl = cl;
 
 	jb->nbuffers = 3;
@@ -440,6 +432,16 @@ static void init_codelet(void)
 #ifdef USE_GORDON
 	cl->gordon_func = SPU_FUNC_SGEMM;
 #endif
+
+	cl->where = CORE;
+#ifdef USE_CUDA
+	cl->where |= CUBLAS;
+#endif
+#ifdef USE_GORDON
+	cl->where |= GORDON;
+#endif
+
+
 }
 
 
