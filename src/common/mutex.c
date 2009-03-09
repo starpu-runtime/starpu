@@ -1,4 +1,4 @@
-#include "mutex.h"
+#include <starpu-mutex.h>
 
 void init_mutex(mutex *m)
 {

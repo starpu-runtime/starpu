@@ -9,7 +9,7 @@
 #include <errno.h>
 
 #include <common/util.h>
-#include <common/mutex.h>
+#include <starpu-mutex.h>
 #include <common/rwlock.h>
 #include <common/timing.h>
 #include <common/fxt.h>

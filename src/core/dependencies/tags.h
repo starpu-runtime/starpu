@@ -2,7 +2,7 @@
 #define __TAGS_H__
 
 #include <stdint.h>
-#include <common/mutex.h>
+#include <starpu-mutex.h>
 #include <core/jobs.h>
 
 /* we do not necessarily want to allocate room for 256 dependencies, but we

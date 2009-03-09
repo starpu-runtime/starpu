@@ -11,6 +11,8 @@ CFLAGS += @CFLAGS@
 LDFLAGS += @LDFLAGS@
 EXTRALDFLAGS += @LIBS@
 
+CFLAGS += -I${PWD}/include/
+
 CFLAGS += -g -O3
 CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses
 CFLAGS += -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type 

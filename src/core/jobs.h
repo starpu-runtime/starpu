@@ -1,6 +1,7 @@
 #ifndef __JOBS_H__
 #define __JOBS_H__
 
+#include <starpu.h>
 #include <semaphore.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,29 +46,6 @@ typedef void (*callback)(void *);
 #define CUBLAS_MAY_PERFORM(j)   ((j)->cl->where & CUBLAS)
 #define SPU_MAY_PERFORM(j)	((j)->cl->where & SPU)
 #define GORDON_MAY_PERFORM(j)	((j)->cl->where & GORDON)
-
-/*
- * A codelet describes the various function 
- * that may be called from a worker
- */
-typedef struct codelet_t {
-	/* where can it be performed ? */
-	uint32_t where;
-
-	/* the different implementations of the codelet */
-	void *cuda_func;
-	void *cublas_func;
-	void *core_func;
-	void *spu_func;
-	uint8_t gordon_func;
-
-	/* the arguments are given as a buffer */
-	void *cl_arg;
-	/* in case the argument buffer has to be uploaded explicitely */
-	size_t cl_arg_size;
-	
-	struct perfmodel_t *model;
-} codelet;
 
 LIST_TYPE(job,
 	codelet *cl;
