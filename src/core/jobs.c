@@ -21,7 +21,6 @@ job_t job_create(void)
 	job_t job;
 
 	job = job_new();
-	job->type = CODELET;
 
 	job->where = 0;
 	job->cb = NULL;

@@ -9,65 +9,55 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 
 	unsigned calibrate_model = 0;
 
-        switch (j->type) {
-		case CODELET:
-			STARPU_ASSERT(j->cl);
-			STARPU_ASSERT(j->cl->core_func);
+	STARPU_ASSERT(j->cl);
+	STARPU_ASSERT(j->cl->core_func);
 
-			if (j->model && j->model->benchmarking)
-				calibrate_model = 1;
+	if (j->model && j->model->benchmarking)
+		calibrate_model = 1;
 
-			if (calibrate_model)
-				GET_TICK(codelet_start_comm);
+	if (calibrate_model)
+		GET_TICK(codelet_start_comm);
 
-			ret = fetch_codelet_input(j->buffers, j->interface,
-					j->nbuffers, 0);
+	ret = fetch_codelet_input(j->buffers, j->interface,
+			j->nbuffers, 0);
 
-			if (calibrate_model)
-				GET_TICK(codelet_end_comm);
+	if (calibrate_model)
+		GET_TICK(codelet_end_comm);
 
-			if (ret != 0) {
-				/* there was not enough memory so the codelet cannot be executed right now ... */
-				/* push the codelet back and try another one ... */
-				return TRYAGAIN;
-			}
+	if (ret != 0) {
+		/* there was not enough memory so the codelet cannot be executed right now ... */
+		/* push the codelet back and try another one ... */
+		return TRYAGAIN;
+	}
 
-			TRACE_START_CODELET_BODY(j);
+	TRACE_START_CODELET_BODY(j);
 
-			if (calibrate_model)
-				GET_TICK(codelet_start);
+	if (calibrate_model)
+		GET_TICK(codelet_start);
 
-			cl_func func = j->cl->core_func;
-			func(j->interface, j->cl->cl_arg);
-			
-			if (calibrate_model)
-				GET_TICK(codelet_end);
+	cl_func func = j->cl->core_func;
+	func(j->interface, j->cl->cl_arg);
+	
+	if (calibrate_model)
+		GET_TICK(codelet_end);
 
-			TRACE_END_CODELET_BODY(j);
+	TRACE_END_CODELET_BODY(j);
 
-			push_codelet_output(j->buffers, j->nbuffers, 0);
+	push_codelet_output(j->buffers, j->nbuffers, 0);
 
 //#ifdef MODEL_DEBUG
-			if (calibrate_model)
-			{
-				double measured = timing_delay(&codelet_start, &codelet_end);
-				double measured_comm = timing_delay(&codelet_start_comm, &codelet_end_comm);
+	if (calibrate_model)
+	{
+		double measured = timing_delay(&codelet_start, &codelet_end);
+		double measured_comm = timing_delay(&codelet_start_comm, &codelet_end_comm);
 
-//				fprintf(stderr, "%d\t%d\n", (int)j->penality, (int)measured_comm);
-				core_args->jobq->total_computation_time += measured;
-				core_args->jobq->total_communication_time += measured_comm;
+//		fprintf(stderr, "%d\t%d\n", (int)j->penality, (int)measured_comm);
+		core_args->jobq->total_computation_time += measured;
+		core_args->jobq->total_communication_time += measured_comm;
 
-				update_perfmodel_history(j, core_args->arch, measured);
-			}
-			
+		update_perfmodel_history(j, core_args->arch, measured);
+	}
 //#endif
-
-			break;
-                default:
-			fprintf(stderr, "don't know what to do with that task on a core ! ... \n");
-			STARPU_ASSERT(0);
-                        break;
-        }
 
 	return OK;
 }

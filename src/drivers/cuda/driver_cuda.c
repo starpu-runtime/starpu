@@ -181,108 +181,100 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 
 	unsigned calibrate_model = 0;
 
-	switch (j->type) {
-		case CODELET:
-			STARPU_ASSERT(j);
-			STARPU_ASSERT(j->cl);
+	STARPU_ASSERT(j);
+	STARPU_ASSERT(j->cl);
 
-			if (j->model && j->model->benchmarking) 
-				calibrate_model = 1;
+	if (j->model && j->model->benchmarking) 
+		calibrate_model = 1;
 
-			/* we do not take communication into account when modeling the performance */
-			if (calibrate_model)
-			{
-				cuCtxSynchronize();
-				GET_TICK(codelet_start_comm);
-			}
+	/* we do not take communication into account when modeling the performance */
+	if (calibrate_model)
+	{
+		cuCtxSynchronize();
+		GET_TICK(codelet_start_comm);
+	}
 
-			ret = fetch_codelet_input(j->buffers, j->interface, j->nbuffers, mask);
-			if (ret != 0) {
-				/* there was not enough memory, so the input of
-				 * the codelet cannot be fetched ... put the 
-				 * codelet back, and try it later */
-				return TRYAGAIN;
-			}
+	ret = fetch_codelet_input(j->buffers, j->interface, j->nbuffers, mask);
+	if (ret != 0) {
+		/* there was not enough memory, so the input of
+		 * the codelet cannot be fetched ... put the 
+		 * codelet back, and try it later */
+		return TRYAGAIN;
+	}
 
-			if (calibrate_model)
-			{
-				cuCtxSynchronize();
-				GET_TICK(codelet_end_comm);
-			}
+	if (calibrate_model)
+	{
+		cuCtxSynchronize();
+		GET_TICK(codelet_end_comm);
+	}
 
 
 
-			TRACE_START_CODELET_BODY(j);
-			if (use_cublas) {
-				cl_func func = j->cl->cublas_func;
-				STARPU_ASSERT(func);
-				GET_TICK(codelet_start);
-				func(j->interface, j->cl->cl_arg);
-				cuCtxSynchronize();
-				GET_TICK(codelet_end);
-			} else {
-				/* load the module and the function */
-				cuda_codelet_t *args; 
-				args = j->cl->cuda_func;
+	TRACE_START_CODELET_BODY(j);
+	if (use_cublas) {
+		cl_func func = j->cl->cublas_func;
+		STARPU_ASSERT(func);
+		GET_TICK(codelet_start);
+		func(j->interface, j->cl->cl_arg);
+		cuCtxSynchronize();
+		GET_TICK(codelet_end);
+	} else {
+		/* load the module and the function */
+		cuda_codelet_t *args; 
+		args = j->cl->cuda_func;
 
-				load_cuda_function(devid, args->func);
+		load_cuda_function(devid, args->func);
 
-				status = cuFuncSetBlockShape(args->func->function,
-							args->blockx, 
-							args->blocky, 1);
-				if (status) {
-					CUDA_REPORT_ERROR(status);
-				}
+		status = cuFuncSetBlockShape(args->func->function,
+					args->blockx, 
+					args->blocky, 1);
+		if (status) {
+			CUDA_REPORT_ERROR(status);
+		}
 
-				/* set up the function args */
-				set_function_args(args, j->buffers, j->interface, j->nbuffers);
+		/* set up the function args */
+		set_function_args(args, j->buffers, j->interface, j->nbuffers);
 
-				/* set up the grids */
+		/* set up the grids */
 //#ifdef MODEL_DEBUG
-				if (calibrate_model)
-				{
-					status = cuCtxSynchronize();
-					GET_TICK(codelet_start);
-				}
+		if (calibrate_model)
+		{
+			status = cuCtxSynchronize();
+			GET_TICK(codelet_start);
+		}
 //#endif
-				status = cuLaunchGrid(args->func->function, 
-						args->gridx, args->gridy);
-				if (status) {
-					CUDA_REPORT_ERROR(status);
-				}
+		status = cuLaunchGrid(args->func->function, 
+				args->gridx, args->gridy);
+		if (status) {
+			CUDA_REPORT_ERROR(status);
+		}
 
 
-				/* launch the function */
-				status = cuCtxSynchronize();
-				if (status) {
-					CUDA_REPORT_ERROR(status);
-				}
-				GET_TICK(codelet_end);
+		/* launch the function */
+		status = cuCtxSynchronize();
+		if (status) {
+			CUDA_REPORT_ERROR(status);
+		}
+		GET_TICK(codelet_end);
 
-			}
-			TRACE_END_CODELET_BODY(j);	
+	}
+	TRACE_END_CODELET_BODY(j);	
 
 //#ifdef MODEL_DEBUG
 	
-			if (calibrate_model)
-			{
-				double measured = timing_delay(&codelet_start, &codelet_end);
-				double measured_comm = timing_delay(&codelet_start_comm, &codelet_end_comm);
+	if (calibrate_model)
+	{
+		double measured = timing_delay(&codelet_start, &codelet_end);
+		double measured_comm = timing_delay(&codelet_start_comm, &codelet_end_comm);
 
-	//			fprintf(stderr, "%d\t%d\n", (int)j->penality, (int)measured_comm);
-				args->jobq->total_computation_time += measured;
-				args->jobq->total_communication_time += measured_comm;
+		args->jobq->total_computation_time += measured;
+		args->jobq->total_communication_time += measured_comm;
 
-				update_perfmodel_history(j, args->arch, measured);
-			}
+		update_perfmodel_history(j, args->arch, measured);
+	}
 //#endif
 
-			push_codelet_output(j->buffers, j->nbuffers, mask);
-
-			break;
-		default:
-			break;
-	}
+	push_codelet_output(j->buffers, j->nbuffers, mask);
 
 	return OK;
 }

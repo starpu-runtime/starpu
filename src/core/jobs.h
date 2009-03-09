@@ -36,8 +36,6 @@
 #define SPU	((1ULL)<<4)
 #define GORDON	((1ULL)<<5)
 
-typedef enum {CODELET} jobtype;
-
 /* codelet function */
 typedef void (*cl_func)(data_interface_t *, void *);
 typedef void (*callback)(void *);
@@ -67,7 +65,6 @@ typedef struct codelet_t {
 } codelet;
 
 LIST_TYPE(job,
-	jobtype type;	/* what kind of job ? */
 	uint32_t where;	/* where can it be performed ? */
 
 	codelet *cl;
