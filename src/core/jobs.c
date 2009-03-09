@@ -31,7 +31,6 @@ job_t job_create(void)
 	job->nbuffers = 0;
 	job->priority = DEFAULT_PRIO;
 
-	job->model = NULL;
 	job->predicted = 0.0;
 
 	job->footprint_is_computed = 0;

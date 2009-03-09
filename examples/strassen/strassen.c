@@ -110,7 +110,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			STARPU_ASSERT(A1);
 			STARPU_ASSERT(A2);
 			STARPU_ASSERT(C);
-			job->model = &strassen_model_add_sub;
+			job->cl->model = &strassen_model_add_sub;
 			job->cl->core_func = add_core_codelet;
 			#ifdef USE_CUDA
 			job->cl->cublas_func = add_cublas_codelet;
@@ -120,7 +120,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			STARPU_ASSERT(A1);
 			STARPU_ASSERT(A2);
 			STARPU_ASSERT(C);
-			job->model = &strassen_model_add_sub;
+			job->cl->model = &strassen_model_add_sub;
 			job->cl->core_func = sub_core_codelet;
 			#ifdef USE_CUDA
 			job->cl->cublas_func = sub_cublas_codelet;
@@ -130,7 +130,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			STARPU_ASSERT(A1);
 			STARPU_ASSERT(A2);
 			STARPU_ASSERT(C);
-			job->model = &strassen_model_mult;
+			job->cl->model = &strassen_model_mult;
 			job->cl->core_func = mult_core_codelet;
 			#ifdef USE_CUDA
 			job->cl->cublas_func = mult_cublas_codelet;
@@ -140,7 +140,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			job->nbuffers = 2;
 			job->buffers[0].mode = RW;
 			job->cl->core_func = self_add_core_codelet;
-			job->model = &strassen_model_self_add_sub;
+			job->cl->model = &strassen_model_self_add_sub;
 			#ifdef USE_CUDA
 			job->cl->cublas_func = self_add_cublas_codelet;
 			#endif
@@ -149,7 +149,7 @@ static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, dat
 			job->nbuffers = 2;
 			job->buffers[0].mode = RW;
 			job->cl->core_func = self_sub_core_codelet;
-			job->model = &strassen_model_self_add_sub;
+			job->cl->model = &strassen_model_self_add_sub;
 			#ifdef USE_CUDA
 			job->cl->cublas_func = self_sub_cublas_codelet;
 			#endif

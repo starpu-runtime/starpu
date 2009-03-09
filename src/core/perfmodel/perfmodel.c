@@ -70,7 +70,7 @@ static double common_job_expected_length(struct perfmodel_t *model, uint32_t who
 
 double job_expected_length(uint32_t who, struct job_s *j, enum perf_archtype arch)
 {
-	struct perfmodel_t *model = j->model;
+	struct perfmodel_t *model = j->cl->model;
 
 	if (model) {
 		switch (model->type) {

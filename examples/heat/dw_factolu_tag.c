@@ -48,7 +48,7 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 	if (may_submit_core_task())
 		job->where = CORE;
 
-	job->model = &model_11;
+	job->cl->model = &model_11;
 
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 1;
@@ -82,7 +82,7 @@ static void create_task_12(data_state *dataA, unsigned k, unsigned i)
 	job->cl->cublas_func = dw_cublas_codelet_update_u12;
 #endif
 
-	job->model = &model_12;
+	job->cl->model = &model_12;
 
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 2;
@@ -113,7 +113,7 @@ static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 	job->cl->cublas_func = dw_cublas_codelet_update_u21;
 #endif
 
-	job->model = &model_21;
+	job->cl->model = &model_21;
 	
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 2;
@@ -145,7 +145,7 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
 	job->cl->cublas_func = dw_cublas_codelet_update_u22;
 #endif
 
-	job->model = &model_22;
+	job->cl->model = &model_22;
 
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 3;

@@ -282,11 +282,11 @@ static void launch_codelets(void)
 
 			if (use_common_model)
 			{
-				jb->model = &sgemm_model_common;
+				jb->cl->model = &sgemm_model_common;
 			}
 			else
 			{
-				jb->model = &sgemm_model;
+				jb->cl->model = &sgemm_model;
 			}
 			
 			submit_job(jb);

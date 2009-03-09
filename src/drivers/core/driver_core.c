@@ -12,7 +12,7 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 	STARPU_ASSERT(j->cl);
 	STARPU_ASSERT(j->cl->core_func);
 
-	if (j->model && j->model->benchmarking)
+	if (j->cl->model && j->cl->model->benchmarking)
 		calibrate_model = 1;
 
 	if (calibrate_model)

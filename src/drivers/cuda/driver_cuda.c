@@ -184,7 +184,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 	STARPU_ASSERT(j);
 	STARPU_ASSERT(j->cl);
 
-	if (j->model && j->model->benchmarking) 
+	if (j->cl->model && j->cl->model->benchmarking) 
 		calibrate_model = 1;
 
 	/* we do not take communication into account when modeling the performance */

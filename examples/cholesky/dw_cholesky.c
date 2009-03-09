@@ -39,7 +39,7 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 //	job->where = CORE;
 
 	job->cl->core_func = chol_core_codelet_update_u11;
-	job->model = &chol_model_11;
+	job->cl->model = &chol_model_11;
 #ifdef USE_CUDA
 	job->cl->cublas_func = chol_cublas_codelet_update_u11;
 #endif
@@ -72,7 +72,7 @@ static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 	job_t job = create_job(TAG21(k, j));
 	
 	job->cl->core_func = chol_core_codelet_update_u21;
-	job->model = &chol_model_21;
+	job->cl->model = &chol_model_21;
 #ifdef USE_CUDA
 	job->cl->cublas_func = chol_cublas_codelet_update_u21;
 #endif
@@ -105,7 +105,7 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
 //	job->where = CORE;
 
 	job->cl->core_func = chol_core_codelet_update_u22;
-	job->model = &chol_model_22;
+	job->cl->model = &chol_model_22;
 #ifdef USE_CUDA
 	job->cl->cublas_func = chol_cublas_codelet_update_u22;
 #endif

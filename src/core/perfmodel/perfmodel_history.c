@@ -382,7 +382,7 @@ double history_based_job_expected_length(struct perfmodel_t *model, enum perf_ar
 
 void update_perfmodel_history(job_t j, enum perf_archtype arch, double measured)
 {
-	struct perfmodel_t *model = j->model;
+	struct perfmodel_t *model = j->cl->model;
 
 	if (model)
 	{

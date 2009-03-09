@@ -229,7 +229,7 @@ void STARPU_DECLARE_WORK_BLOCKS(float *maxbloktab1, float *maxbloktab2, unsigned
 	j->cl = &cl;
 
 	j->nbuffers = 0;
-	j->model = NULL;
+	j->cl->model = NULL;
 
 	sem_init(&sem, 0, 0U);
 	
@@ -323,7 +323,7 @@ void STARPU_CBLK_STRSM(unsigned col)
 	j->buffers[0].state = &cblktab[col];
 	j->buffers[0].mode = RW;
 	
-	j->model = &starpu_cblk_strsm;
+	j->cl->model = &starpu_cblk_strsm;
 
 	sem_init(&sem, 0, 0U);
 	
@@ -457,7 +457,7 @@ void STARPU_COMPUTE_CONTRIB_COMPACT(unsigned col, int dimi, int dimj, int dima, 
 	j->cb = _cublas_cblk_strsm_callback;
 	j->argcb = &sem;
 	j->cl = &cl;
-	j->model = &starpu_compute_contrib_compact;
+	j->cl->model = &starpu_compute_contrib_compact;
 
 	int ret;
 	ret = update_work_blocks(col, dimi, dimj, dima, stride);
@@ -607,7 +607,7 @@ void STARPU_SGEMM (const char *transa, const char *transb, const int m,
 	j->buffers[2].state = &C_state;
 	j->buffers[2].mode = RW;
 	
-	j->model = NULL;
+	j->cl->model = NULL;
 
 	sem_init(&sem, 0, 0U);
 	

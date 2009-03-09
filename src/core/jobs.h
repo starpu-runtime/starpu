@@ -62,6 +62,8 @@ typedef struct codelet_t {
 	void *cl_arg;
 	/* in case the argument buffer has to be uploaded explicitely */
 	size_t cl_arg_size;
+	
+	struct perfmodel_t *model;
 } codelet;
 
 LIST_TYPE(job,
@@ -85,7 +87,6 @@ LIST_TYPE(job,
 	buffer_descr buffers[NMAXBUFS];
 	data_interface_t interface[NMAXBUFS];
 
-	struct perfmodel_t *model;
 	double predicted;
 	double penality;
 
