@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+struct data_state_t;
+
 /*
  * A codelet describes the various function 
  * that may be called from a worker
@@ -26,5 +28,21 @@ typedef struct codelet_t {
 	
 	struct perfmodel_t *model;
 } codelet;
+
+typedef enum {
+	R,
+	W,
+	RW
+} access_mode;
+
+typedef struct buffer_descr_t {
+	/* the part used by the runtime */
+	struct data_state_t *state;
+	access_mode mode;
+
+	/* the part given to the kernel */
+//	data_interface_t interface;
+	unsigned interfaceid;
+} buffer_descr;
 
 #endif // __STARPU_H__

@@ -8,6 +8,8 @@
 #include <assert.h>
 #include <errno.h>
 
+#include <starpu.h>
+
 #include <common/util.h>
 #include <starpu-mutex.h>
 #include <common/rwlock.h>
@@ -27,12 +29,6 @@ typedef enum {
 	SHARED,
 	INVALID
 } cache_state;
-
-typedef enum {
-	R,
-	W,
-	RW
-} access_mode;
 
 /* this should contain the information relative to a given node */
 typedef struct local_data_state_t {
@@ -118,16 +114,6 @@ typedef struct data_state_t {
 	/* allows special optimization */
 	uint8_t is_readonly;
 } data_state;
-
-typedef struct buffer_descr_t {
-	/* the part used by the runtime */
-	data_state *state;
-	access_mode mode;
-
-	/* the part given to the kernel */
-//	data_interface_t interface;
-	unsigned interfaceid;
-} buffer_descr;
 
 void display_msi_stats(void);
 
