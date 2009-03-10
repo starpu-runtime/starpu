@@ -123,11 +123,6 @@ typedef struct buffer_descr_t {
 	/* the part used by the runtime */
 	data_state *state;
 	access_mode mode;
-	enum {
-		INVALID_BUFFER,
-		PENDING_BUFFER,
-		READY_BUFFER
-	} status;
 
 	/* the part given to the kernel */
 //	data_interface_t interface;
