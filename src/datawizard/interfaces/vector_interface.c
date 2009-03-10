@@ -66,7 +66,6 @@ void monitor_vector_data(struct data_state_t *state, uint32_t home_node,
 		local_interface->elemsize = elemsize;
 	}
 
-	state->interfaceid = BLAS_INTERFACE;
 	state->ops = &interface_vector_ops;
 
 	monitor_new_data(state, home_node, 0);

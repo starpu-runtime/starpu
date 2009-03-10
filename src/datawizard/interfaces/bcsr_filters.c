@@ -53,8 +53,6 @@ unsigned canonical_block_filter_bcsr(filter *f __attribute__((unused)), data_sta
 		}
 
 		struct data_state_t *state = &root_data->children[chunk];
-		state->interfaceid = BLAS_INTERFACE;
-
 		state->ops = &interface_blas_ops;
 	}
 

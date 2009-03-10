@@ -101,7 +101,6 @@ typedef struct data_state_t {
 
 	/* describe the actual data layout */
 	data_interface_t interface[MAXNODES];
-	unsigned interfaceid;
 
 	struct data_interface_ops_t *ops;
 

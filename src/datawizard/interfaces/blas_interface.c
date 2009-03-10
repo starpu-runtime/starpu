@@ -78,7 +78,6 @@ void monitor_blas_data(data_state *state, uint32_t home_node,
 		local_interface->elemsize = elemsize;
 	}
 
-	state->interfaceid = BLAS_INTERFACE;
 	state->ops = &interface_blas_ops;
 
 	monitor_new_data(state, home_node, 0);

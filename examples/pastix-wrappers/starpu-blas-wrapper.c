@@ -132,7 +132,6 @@ unsigned divide_vector_in_blas_filter(filter *f, data_state *root_data)
 		}
 
 		struct data_state_t *state = &root_data->children[child];
-		state->interfaceid = BLAS_INTERFACE;
 		state->ops = &interface_blas_ops;
 	}
 

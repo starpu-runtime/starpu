@@ -53,7 +53,6 @@ void monitor_csr_data(struct data_state_t *state, uint32_t home_node,
 
 	}
 
-	state->interfaceid = BLAS_INTERFACE;
 	state->ops = &interface_csr_ops;
 
 	monitor_new_data(state, home_node, 0);
