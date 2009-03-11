@@ -32,6 +32,8 @@ void paje_output_file_init(void)
 	1       P      0       \"Program\"                      	\n \
 	1       T      P       \"Worker\"                               \n \
 	3       S       T       \"Thread State\"                        \n \
+	6       Fi       S      FetchingInput       \"1.0 .1 1.0\"            \n \
+	6       Po       S      PushingOutput       \"0.1 1.0 1.0\"            \n \
 	6       E       S       Executing       \".0 .6 .4\"            \n \
 	6       B       S       Blocked         \".9 .1 .0\"\n");
 }
@@ -167,6 +169,8 @@ void handle_start_fetch_input(void)
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
 
+	fprintf(out_paje_file, "10       %f	S      %ld      Fi\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+
 	event_t e = event_new();
 	e->time =  ev.time;
 	e->mode = FETCHING;
@@ -180,6 +184,8 @@ void handle_end_fetch_input(void)
 	int worker;
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
+
+	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 
 	event_t e = event_new();
 	e->time =  ev.time;
@@ -198,6 +204,8 @@ void handle_start_push_output(void)
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
 
+	fprintf(out_paje_file, "10       %f	S      %ld      Po\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+
 	event_t e = event_new();
 	e->time =  ev.time;
 	e->mode = PUSHING;
@@ -211,6 +219,8 @@ void handle_end_push_output(void)
 	int worker;
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
+	
+	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 
 	event_t e = event_new();
 	e->time =  ev.time;
@@ -221,6 +231,10 @@ void handle_end_push_output(void)
 }
 
 
+void handle_data_copy(void)
+{
+	
+}
 
 int maxq_size = 0;
 int curq_size = 0;
@@ -448,6 +462,9 @@ int main(int argc, char **argv)
 				break;
 
 			case FUT_DATA_COPY:
+				handle_data_copy();
+				break;
+
 			case FUT_WORK_STEALING:
 				/* XXX */
 				break;
