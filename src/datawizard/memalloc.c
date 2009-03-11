@@ -197,22 +197,30 @@ static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unu
 	take_mutex(&mc_mutex[node]);
 
 	/* remove all buffers for which there was a removal request */
-	mem_chunk_t mc;
+	mem_chunk_t mc, next_mc;
 	for (mc = mem_chunk_list_begin(mc_list_to_free[node]);
 	     mc != mem_chunk_list_end(mc_list_to_free[node]);
-	     mc = mem_chunk_list_next(mc))
+	     mc = next_mc)
 	{
 		liberated += liberate_memory_on_node(mc, node);
 
+		next_mc = mem_chunk_list_next(mc);
+
 		mem_chunk_list_erase(mc_list_to_free[node], mc);
+
 		mem_chunk_delete(mc);
 	}
 
 	/* try to free all allocated data potentially in use .. XXX */
 	for (mc = mem_chunk_list_begin(mc_list[node]);
 	     mc != mem_chunk_list_end(mc_list[node]);
-	     mc = mem_chunk_list_next(mc))
+	     mc = next_mc)
 	{
+		/* there is a risk that the memory chunk is liberated 
+		   before next iteration starts: so we compute the next
+		   element of the list now */
+		next_mc = mem_chunk_list_next(mc);
+
 		liberated += try_to_free_mem_chunk(mc, node, attempts);
 		#if 0
 		if (liberated > toreclaim)
