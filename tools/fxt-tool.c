@@ -30,12 +30,14 @@ void paje_output_file_init(void)
 
 	fprintf(out_paje_file, "                                        \n \
 	1       P      0       \"Program\"                      	\n \
-	1       T      P       \"Worker\"                               \n \
+	1       Mn      P       \"Memory Node\"                         \n \
+	1       T      Mn       \"Worker\"                               \n \
 	3       S       T       \"Thread State\"                        \n \
 	6       Fi       S      FetchingInput       \"1.0 .1 1.0\"            \n \
 	6       Po       S      PushingOutput       \"0.1 1.0 1.0\"            \n \
 	6       E       S       Executing       \".0 .6 .4\"            \n \
-	6       B       S       Blocked         \".9 .1 .0\"\n");
+	6       B       S       Blocked         \".9 .1 .0\"		\n \
+	5       L       P	Mn	Mn      L\n");
 }
 
 void paje_output_file_terminate(void)
@@ -50,9 +52,22 @@ void paje_output_file_terminate(void)
  * Generic tools
  */
 
+
+void handle_new_mem_node(void)
+{
+	char *memnodestr = malloc(16*sizeof(char));
+	sprintf(memnodestr, "%ld", ev.param[0]);
+	
+	fprintf(out_paje_file, "7       %f	%s      Mn      p	MEMNODE%s\n", (float)((ev.time-start_time)/1000000.0), memnodestr, memnodestr);
+}
+
 void handle_new_worker(void)
 {
-
+	/* 
+	   arg0 : type of worker (cuda, core ..)
+	   arg1 : memory node
+	   arg2 : thread id 
+	*/
 	char *str = malloc(20*sizeof(char));
 	
 	strcpy(str, "unknown");
@@ -70,12 +85,13 @@ void handle_new_worker(void)
 	}
 
 //	fprintf(stderr, "new %s worker (tid = %d)\n", str, ev.param[1]);
-
+	char *memnodestr = malloc(16*sizeof(char));
+	sprintf(memnodestr, "%ld", ev.param[1]);
 	
 	char *tidstr = malloc(16*sizeof(char));
-	sprintf(tidstr, "%ld", ev.param[1]);
+	sprintf(tidstr, "%ld", ev.param[2]);
 
-	fprintf(out_paje_file, "7       %f	%s      T      p       %s \n", (float)((ev.time-start_time)/1000000.0), tidstr, tidstr);
+	fprintf(out_paje_file, "7       %f	%s      T      MEMNODE%s       %s \n", (float)((ev.time-start_time)/1000000.0), tidstr, memnodestr, tidstr);
 
 	/* create a new key in the htable */
 	uint64_t workerid = nworkers++;
@@ -230,10 +246,20 @@ void handle_end_push_output(void)
 	end_time = MAX(end_time, ev.time);
 }
 
+static uint64_t comcnt = 0;
 
 void handle_data_copy(void)
 {
-	
+	unsigned src = ev.param[0];
+	unsigned dst = ev.param[1];
+	unsigned size = ev.param[2];
+
+        char str[16];
+        sprintf(str, "com_%ld", comcnt++);
+
+	fprintf(out_paje_file, "18       %f	L      p	%d	MEMNODE%d	%s\n", (float)((ev.time-start_time)/1000000.0), size, src, str);
+	fprintf(out_paje_file, "19       %f	L      p	%d	MEMNODE%d	%s\n", (float)((ev.time-start_time)/1000000.0+0.0001), size, dst, str);
+
 }
 
 int maxq_size = 0;
@@ -421,6 +447,10 @@ int main(int argc, char **argv)
 		switch (ev.code) {
 			case FUT_NEW_WORKER_KEY:
 				handle_new_worker();
+				break;
+
+			case FUT_NEW_MEM_NODE:
+				handle_new_mem_node();
 				break;
 
 			/* detect when the workers were idling or not */

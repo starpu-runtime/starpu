@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <core/policies/sched_policy.h>
 #include <datawizard/datastats.h>
+#include <common/fxt.h>
 #include "copy-driver.h"
 #include "memalloc.h"
 
@@ -14,6 +15,7 @@ unsigned register_memory_node(node_kind kind)
 	nnodes = ATOMIC_ADD(&descr.nnodes, 1);
 
 	descr.nodes[nnodes-1] = kind;
+	TRACE_NEW_MEM_NODE(nnodes-1);
 
 	/* for now, there is no queue related to that newly created node */
 	descr.queues_count[nnodes-1] = 0;

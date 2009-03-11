@@ -39,6 +39,8 @@
 #define FUT_USER_DEFINED_START	0x5116
 #define FUT_USER_DEFINED_END	0x5117
 
+#define	FUT_NEW_MEM_NODE	0x5118
+
 #ifdef USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -47,8 +49,11 @@ void start_fxt_profiling(void);
 void fxt_register_thread(unsigned);
 
 /* workerkind = FUT_CORE_KEY for instance */
-#define TRACE_NEW_WORKER(workerkind)	\
-	FUT_DO_PROBE2(FUT_NEW_WORKER_KEY, workerkind, syscall(SYS_gettid));
+#define TRACE_NEW_MEM_NODE(nodeid)	\
+	FUT_DO_PROBE2(FUT_NEW_MEM_NODE, nodeid, syscall(SYS_gettid));
+
+#define TRACE_NEW_WORKER(workerkind,memnode)	\
+	FUT_DO_PROBE3(FUT_NEW_WORKER_KEY, workerkind, memnode, syscall(SYS_gettid));
 
 #define TRACE_START_CODELET_BODY(job)	\
 	FUT_DO_PROBE2(FUT_START_CODELET_BODY, job, syscall(SYS_gettid));
@@ -92,12 +97,13 @@ void fxt_register_thread(unsigned);
 #define TRACE_USER_DEFINED_START	\
 	FUT_DO_PROBE1(FUT_USER_DEFINED_START, syscall(SYS_gettid));
 
-#define TRACE_USER_DEFINED_END	\
+#define TRACE_USER_DEFINED_END		\
 	FUT_DO_PROBE1(FUT_USER_DEFINED_END, syscall(SYS_gettid));
 
 #else // !USE_FXT
 
-#define TRACE_NEW_WORKER(a)		do {} while(0);
+#define TRACE_NEW_MEM_NODE(nodeid)	do {} while(0);
+#define TRACE_NEW_WORKER(a,b)		do {} while(0);
 #define TRACE_START_CODELET_BODY(job)	do {} while(0);
 #define TRACE_END_CODELET_BODY(job)	do {} while(0);
 #define TRACE_JOB_PUSH(task, prio)	do {} while(0);

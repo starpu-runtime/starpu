@@ -72,7 +72,7 @@ void *core_worker(void *arg)
 #ifdef USE_FXT
 	fxt_register_thread(core_arg->bindid);
 #endif
-	TRACE_NEW_WORKER(FUT_CORE_KEY);
+	TRACE_NEW_WORKER(FUT_CORE_KEY, core_arg->memory_node);
 
 #ifndef DONTBIND
 	/* fix the thread on the correct cpu */

@@ -284,11 +284,12 @@ void *cuda_worker(void *arg)
 	struct worker_s* args = arg;
 
 	int devid = args->id;
+	unsigned memory_node = args->memory_node;
 
 #ifdef USE_FXT
 	fxt_register_thread(args->bindid);
 #endif
-	TRACE_NEW_WORKER(FUT_CUDA_KEY);
+	TRACE_NEW_WORKER(FUT_CUDA_KEY, memory_node);
 
 #ifndef DONTBIND
         /* fix the thread on the correct cpu */
@@ -304,7 +305,7 @@ void *cuda_worker(void *arg)
 
 	/* this is only useful (and meaningful) is there is a single
 	   memory node "related" to that queue */
-	args->jobq->memory_node = args->memory_node;
+	args->jobq->memory_node = memory_node;
 
 	args->jobq->total_computation_time = 0.0;
 	args->jobq->total_communication_time = 0.0;
