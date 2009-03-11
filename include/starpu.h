@@ -21,7 +21,7 @@ typedef struct codelet_t {
 	void *spu_func;
 	uint8_t gordon_func;
 
-	/* the arguments are given as a buffer */
+	/* arguments not managed by the DSM are given as a buffer */
 	void *cl_arg;
 	/* in case the argument buffer has to be uploaded explicitely */
 	size_t cl_arg_size;
