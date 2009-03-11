@@ -258,7 +258,7 @@ static void launch_codelets(void)
 			cl->cublas_func = cublas_mult;
 #endif
 #ifdef USE_GORDON
-			jb->where |= GORDON;
+			cl->where |= GORDON;
 			cl->gordon_func = SPU_FUNC_SGEMM;
 #endif
 			jb->cb = callback_func;
