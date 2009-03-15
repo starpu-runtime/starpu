@@ -170,6 +170,29 @@ void tag_declare(tag_t id, struct job_s *job)
 	job->tag = tag;
 }
 
+void tag_declare_deps_array(tag_t id, unsigned ndeps, tag_t *array)
+{
+	unsigned i;
+	
+	/* create the associated completion group */
+	struct tag_s *tag_child = gettag_struct(id);
+	cg_t *cg = create_cg(ndeps, tag_child);
+	
+	tag_child->state = BLOCKED;
+	
+	STARPU_ASSERT(ndeps != 0);
+	
+	for (i = 0; i < ndeps; i++)
+	{
+		tag_t dep_id = array[i];
+		
+		/* id depends on dep_id
+		 * so cg should be among dep_id's successors*/
+		TRACE_CODELET_TAG_DEPS(id, dep_id);
+		tag_add_succ(dep_id, cg);
+	}
+}
+
 void tag_declare_deps(tag_t id, unsigned ndeps, ...)
 {
 	unsigned i;
