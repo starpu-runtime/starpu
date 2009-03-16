@@ -1,4 +1,4 @@
-.PHONY: incrementer tag_example cuda heat mult spmv cholesky strassen pastix-wrappers 
+.PHONY: incrementer tag_example cuda heat mult spmv cholesky strassen pastix-wrappers  strassen2
 
 TARGET=tag_example 
 TARGET+= incrementer
@@ -31,6 +31,7 @@ ifeq (@BLAS_LIB@,atlas)
 	TARGET+= heat 
 	TARGET+= cholesky
 	TARGET+= strassen
+	TARGET+= strassen2
 ifeq (@USE_CUDA@,yes)
 	TARGET+= pastix-wrappers
 endif
@@ -49,6 +50,9 @@ pastix-wrappers:
 
 strassen:
 	make -C strassen
+
+strassen2:
+	make -C strassen2
 
 incrementer:
 	make -C incrementer
@@ -79,6 +83,7 @@ clean:
 	@make -C mult clean
 	@make -C spmv clean
 	@make -C cholesky clean
+	@make -C strassen2 clean
 	@make -C strassen clean
 	@make -C tag_example clean
 	@rm -f *.o *.d *.gcno *.gcda

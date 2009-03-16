@@ -1,0 +1,656 @@
+#include <stdio.h>
+#include <stdint.h>
+#include <math.h>
+#include <sys/types.h>
+#include <pthread.h>
+#include <signal.h>
+
+#include <core/jobs.h>
+#include <core/workers.h>
+#include <core/dependencies/tags.h>
+#include <datawizard/datawizard.h>
+#include <common/malloc.h>
+
+
+#define MAXDEPS	4
+
+uint64_t current_tag = 1024;
+
+/*
+
+Strassen:
+        M1 = (A11 + A22)(B11 + B22)
+        M2 = (A21 + A22)B11
+        M3 = A11(B12 - B22)
+        M4 = A22(B21 - B11)
+        M5 = (A11 + A12)B22
+        M6 = (A21 - A11)(B11 + B12)
+        M7 = (A12 - A22)(B21 + B22)
+
+        C11 = M1 + M4 - M5 + M7
+        C12 = M3 + M5
+        C21 = M2 + M4
+        C22 = M1 - M2 + M3 + M6
+
+	7 recursive calls to the Strassen algorithm (in each Mi computation)
+	10+7 temporary buffers (to compute the terms of Mi = Mia x Mib, and to store Mi)
+
+	complexity:
+		M(n) multiplication complexity
+		A(n) add/sub complexity
+
+		M(n) = (10 + 8) A(n/2) + 7 M(n/2)
+
+	NB: we consider fortran ordering (hence we compute M3t = (B12t - B22t)A11t for instance)
+
+ */
+
+static unsigned size = 2048;
+static unsigned reclevel = 3;
+static unsigned norandom = 0;
+static unsigned pin = 0;
+
+extern void mult_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void sub_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void add_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void self_add_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void self_sub_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+
+#ifdef USE_CUDA
+extern void mult_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void add_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void self_add_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void self_sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+#endif
+
+struct perfmodel_t strassen_model_mult = {
+        .type = HISTORY_BASED,
+        .symbol = "strassen_model_mult"
+};
+
+struct perfmodel_t strassen_model_add = {
+        .type = HISTORY_BASED,
+        .symbol = "strassen_model_add"
+};
+
+struct perfmodel_t strassen_model_sub = {
+        .type = HISTORY_BASED,
+        .symbol = "strassen_model_sub"
+};
+
+
+struct perfmodel_t strassen_model_self_add = {
+        .type = HISTORY_BASED,
+        .symbol = "strassen_model_self_add"
+};
+
+struct perfmodel_t strassen_model_self_sub = {
+        .type = HISTORY_BASED,
+        .symbol = "strassen_model_self_sub"
+};
+
+
+
+struct data_deps_t {
+	unsigned ndeps;
+	tag_t deps[MAXDEPS];
+};
+
+struct strassen_iter {
+	unsigned reclevel;
+	struct strassen_iter *children[7];
+
+	data_state *A, *B, *C;
+
+	/* temporary buffers */
+	/* Mi = Mia * Mib*/
+	data_state *Mia_data[7];
+	data_state *Mib_data[7];
+	data_state *Mi_data[7];
+
+	/* input deps */
+	struct data_deps_t A_deps;
+	struct data_deps_t B_deps;
+
+	/* output deps */
+	struct data_deps_t C_deps;
+};
+
+
+static filter f = 
+{
+	.filter_func = block_filter_func,
+	.filter_arg = 2
+};
+
+static filter f2 =
+{
+	.filter_func = vertical_block_filter_func,
+	.filter_arg = 2
+};
+
+data_state *allocate_tmp_matrix(unsigned size, unsigned reclevel)
+{
+	data_state *data = malloc(sizeof(data_state));
+	float *buffer;
+
+#ifdef USE_CUDA
+        if (pin) {
+                malloc_pinned_if_possible(&buffer, size*size*sizeof(float));
+        } else
+#endif
+        {
+		posix_memalign((void **)&buffer, 4096, size*size*sizeof(float));
+        }
+
+	assert(buffer);
+
+	memset(buffer, 0, size*size*sizeof(float));
+
+
+	monitor_blas_data(data, 0, (uintptr_t)buffer, size, size, size, sizeof(float));
+
+	/* we construct a filter tree of depth reclevel */
+	unsigned rec;
+	for (rec = 0; rec < reclevel; rec++)
+		map_filters(data, 2, &f, &f2);
+
+	return data;
+}
+
+static job_t create_job(void)
+{
+        codelet *cl = malloc(sizeof(codelet));
+                cl->cl_arg = NULL;
+                cl->where = CORE|CUBLAS;
+		cl->model = NULL;
+
+        job_t j = job_create();
+                j->cl = cl;
+
+        return j;
+}
+
+
+enum operation {
+	ADD,
+	SUB,
+	MULT
+};
+
+/* C = A op B */
+uint64_t compute_add_sub_op(data_state *C, enum operation op, data_state *A, data_state *B)
+{
+	job_t job = create_job();
+	uint64_t j_tag = current_tag++;
+
+	job->nbuffers = 3;
+		job->buffers[0].state = C;
+		job->buffers[0].mode = W;
+		job->buffers[1].state = A;
+		job->buffers[1].mode = R;
+		job->buffers[2].state = B;
+		job->buffers[2].mode = R;
+
+	job->cb = NULL;
+
+	switch (op) {
+		case ADD:
+			job->cl->model = &strassen_model_add;
+			job->cl->core_func = add_core_codelet;
+			#ifdef USE_CUDA
+			job->cl->cublas_func = add_cublas_codelet;
+			#endif
+			break;
+		case SUB:
+			job->cl->model = &strassen_model_sub;
+			job->cl->core_func = sub_core_codelet;
+			#ifdef USE_CUDA
+			job->cl->cublas_func = sub_cublas_codelet;
+			#endif
+			break;
+		case MULT:
+			job->cl->model = &strassen_model_mult;
+			job->cl->core_func = mult_core_codelet;
+			#ifdef USE_CUDA
+			job->cl->cublas_func = mult_cublas_codelet;
+			#endif
+			break;
+		default:
+			assert(0);
+	};
+
+	tag_declare(j_tag, job);
+
+	return j_tag;
+}
+
+/* C = C op A */
+uint64_t compute_self_add_sub_op(data_state *C, enum operation op, data_state *A)
+{
+	job_t job = create_job();
+	uint64_t j_tag = current_tag++;
+
+	job->nbuffers = 2;
+		job->buffers[0].state = C;
+		job->buffers[0].mode = RW;
+		job->buffers[1].state = A;
+		job->buffers[1].mode = R;
+
+	job->cb = NULL;
+
+	switch (op) {
+		case ADD:
+			job->cl->model = &strassen_model_self_add;
+			job->cl->core_func = self_add_core_codelet;
+			#ifdef USE_CUDA
+			job->cl->cublas_func = self_add_cublas_codelet;
+			#endif
+			break;
+		case SUB:
+			job->cl->model = &strassen_model_self_sub;
+			job->cl->core_func = self_sub_core_codelet;
+			#ifdef USE_CUDA
+			job->cl->cublas_func = self_sub_cublas_codelet;
+			#endif
+			break;
+		default:
+			assert(0);
+	};
+
+	tag_declare(j_tag, job);
+
+	return j_tag;
+}
+
+
+void strassen_mult(struct strassen_iter *iter)
+{
+	if (iter->reclevel == 0)
+	{
+		uint64_t tag_mult = compute_add_sub_op(iter->C, MULT, iter->A, iter->B);
+
+		uint64_t deps_array[10];
+		unsigned indexA, indexB;
+		for (indexA = 0; indexA < iter->A_deps.ndeps; indexA++)
+		{
+			deps_array[indexA] = iter->A_deps.deps[indexA];
+		}
+
+		for (indexB = 0; indexB < iter->B_deps.ndeps; indexB++)
+		{
+			deps_array[indexB+indexA] = iter->B_deps.deps[indexB];
+		}
+
+		tag_declare_deps_array(tag_mult, indexA+indexB, deps_array);
+
+		iter->C_deps.ndeps = 1;
+		iter->C_deps.deps[0] = tag_mult;
+
+		return;
+	}
+
+        data_state *A11 = get_sub_data(iter->A, 2, 0, 0);
+        data_state *A12 = get_sub_data(iter->A, 2, 1, 0);
+        data_state *A21 = get_sub_data(iter->A, 2, 0, 1);
+        data_state *A22 = get_sub_data(iter->A, 2, 1, 1);
+
+        data_state *B11 = get_sub_data(iter->B, 2, 0, 0);
+        data_state *B12 = get_sub_data(iter->B, 2, 1, 0);
+        data_state *B21 = get_sub_data(iter->B, 2, 0, 1);
+        data_state *B22 = get_sub_data(iter->B, 2, 1, 1);
+
+        data_state *C11 = get_sub_data(iter->C, 2, 0, 0);
+        data_state *C12 = get_sub_data(iter->C, 2, 1, 0);
+        data_state *C21 = get_sub_data(iter->C, 2, 0, 1);
+        data_state *C22 = get_sub_data(iter->C, 2, 1, 1);
+
+	unsigned size = get_blas_nx(A11);
+
+	/* M1a = (A11 + A22) */
+	iter->Mia_data[0] = allocate_tmp_matrix(size, iter->reclevel);
+	uint64_t tag_1a = compute_add_sub_op(iter->Mia_data[0], ADD, A11, A22);
+	tag_declare_deps_array(tag_1a, iter->A_deps.ndeps, iter->A_deps.deps);
+
+	/* M1b = (B11 + B22) */
+	iter->Mib_data[0] = allocate_tmp_matrix(size, iter->reclevel);
+	uint64_t tag_1b = compute_add_sub_op(iter->Mib_data[0], ADD, B11, B22);
+	tag_declare_deps_array(tag_1b, iter->B_deps.ndeps, iter->B_deps.deps);
+
+	/* M2a = (A21 + A22) */
+	iter->Mia_data[1] = allocate_tmp_matrix(size, iter->reclevel);
+	uint64_t tag_2a = compute_add_sub_op(iter->Mia_data[1], ADD, A21, A22);
+	tag_declare_deps_array(tag_2a, iter->A_deps.ndeps, iter->A_deps.deps);
+
+	/* M3b = (B12 - B22) */
+	iter->Mib_data[2] = allocate_tmp_matrix(size, iter->reclevel);
+	uint64_t tag_3b = compute_add_sub_op(iter->Mib_data[2], SUB, B12, B22);
+	tag_declare_deps_array(tag_3b, iter->B_deps.ndeps, iter->B_deps.deps);
+	
+	/* M4b = (B21 - B11) */
+	iter->Mib_data[3] = allocate_tmp_matrix(size, iter->reclevel);
+	uint64_t tag_4b = compute_add_sub_op(iter->Mib_data[3], SUB, B21, B11);
+	tag_declare_deps_array(tag_4b, iter->B_deps.ndeps, iter->B_deps.deps);
+	
+	/* M5a = (A11 + A12) */
+	iter->Mia_data[4] = allocate_tmp_matrix(size, iter->reclevel);
+	uint64_t tag_5a = compute_add_sub_op(iter->Mia_data[4], ADD, A11, A12);
+	tag_declare_deps_array(tag_5a, iter->A_deps.ndeps, iter->A_deps.deps);
+
+	/* M6a = (A21 - A11) */
+	iter->Mia_data[5] = allocate_tmp_matrix(size, iter->reclevel);
+	uint64_t tag_6a = compute_add_sub_op(iter->Mia_data[5], SUB, A21, A11);
+	tag_declare_deps_array(tag_6a, iter->A_deps.ndeps, iter->A_deps.deps);
+
+	/* M6b = (B11 + B12) */
+	iter->Mib_data[5] = allocate_tmp_matrix(size, iter->reclevel);
+	uint64_t tag_6b = compute_add_sub_op(iter->Mib_data[5], SUB, B11, B12);
+	tag_declare_deps_array(tag_6b, iter->B_deps.ndeps, iter->B_deps.deps);
+
+	/* M7a = (A12 - A22) */
+	iter->Mia_data[6] = allocate_tmp_matrix(size, iter->reclevel);
+	uint64_t tag_7a = compute_add_sub_op(iter->Mia_data[6], SUB, A12, A22);
+	tag_declare_deps_array(tag_7a, iter->A_deps.ndeps, iter->A_deps.deps);
+
+	/* M7b = (B21 + B22) */
+	iter->Mib_data[6] = allocate_tmp_matrix(size, iter->reclevel);
+	uint64_t tag_7b = compute_add_sub_op(iter->Mib_data[6], ADD, B21, B22);
+	tag_declare_deps_array(tag_7b, iter->B_deps.ndeps, iter->B_deps.deps);
+
+	iter->Mi_data[0] = allocate_tmp_matrix(size, iter->reclevel);
+	iter->Mi_data[1] = allocate_tmp_matrix(size, iter->reclevel);
+	iter->Mi_data[2] = allocate_tmp_matrix(size, iter->reclevel);
+	iter->Mi_data[3] = allocate_tmp_matrix(size, iter->reclevel);
+	iter->Mi_data[4] = allocate_tmp_matrix(size, iter->reclevel);
+	iter->Mi_data[5] = allocate_tmp_matrix(size, iter->reclevel);
+	iter->Mi_data[6] = allocate_tmp_matrix(size, iter->reclevel);
+
+	/* M1 = M1a * M1b */
+	iter->children[0] = malloc(sizeof(struct strassen_iter));
+	iter->children[0]->reclevel = iter->reclevel - 1;
+	iter->children[0]->A_deps.ndeps = 1;
+	iter->children[0]->A_deps.deps[0] = tag_1a;
+	iter->children[0]->B_deps.ndeps = 1;
+	iter->children[0]->B_deps.deps[0] = tag_1b;
+	iter->children[0]->A = iter->Mia_data[0]; 
+	iter->children[0]->B = iter->Mib_data[0]; 
+	iter->children[0]->C = iter->Mi_data[0];
+	strassen_mult(iter->children[0]);
+
+	/* M2 = M2a * B11 */
+	iter->children[1] = malloc(sizeof(struct strassen_iter));
+	iter->children[1]->reclevel = iter->reclevel - 1;
+	iter->children[1]->A_deps.ndeps = 1;
+	iter->children[1]->A_deps.deps[0] = tag_2a;
+	iter->children[1]->B_deps.ndeps = iter->B_deps.ndeps;
+	memcpy(iter->children[1]->B_deps.deps, iter->B_deps.deps, iter->B_deps.ndeps*sizeof(uint64_t));
+	iter->children[1]->A = iter->Mia_data[1]; 
+	iter->children[1]->B = B11; 
+	iter->children[1]->C = iter->Mi_data[1];
+	strassen_mult(iter->children[1]);
+
+	/* M3 = A11 * M3b */
+	iter->children[2] = malloc(sizeof(struct strassen_iter));
+	iter->children[2]->reclevel = iter->reclevel - 1;
+	iter->children[2]->A_deps.ndeps = iter->B_deps.ndeps;
+	memcpy(iter->children[2]->A_deps.deps, iter->A_deps.deps, iter->A_deps.ndeps*sizeof(uint64_t));
+	iter->children[2]->B_deps.ndeps = 1;
+	iter->children[2]->B_deps.deps[0] = tag_3b;
+	iter->children[2]->A = A11; 
+	iter->children[2]->B = iter->Mib_data[2]; 
+	iter->children[2]->C = iter->Mi_data[2];
+	strassen_mult(iter->children[2]);
+
+	/* M4 = A22 * M4b */
+	iter->children[3] = malloc(sizeof(struct strassen_iter));
+	iter->children[3]->reclevel = iter->reclevel - 1;
+	iter->children[3]->A_deps.ndeps = iter->B_deps.ndeps;
+	memcpy(iter->children[3]->A_deps.deps, iter->A_deps.deps, iter->A_deps.ndeps*sizeof(uint64_t));
+	iter->children[3]->B_deps.ndeps = 1;
+	iter->children[3]->B_deps.deps[0] = tag_4b;
+	iter->children[3]->A = A22; 
+	iter->children[3]->B = iter->Mib_data[3]; 
+	iter->children[3]->C = iter->Mi_data[3];
+	strassen_mult(iter->children[3]);
+
+	/* M5 = M5a * B22 */
+	iter->children[4] = malloc(sizeof(struct strassen_iter));
+	iter->children[4]->reclevel = iter->reclevel - 1;
+	iter->children[4]->A_deps.ndeps = 1;
+	iter->children[4]->A_deps.deps[0] = tag_5a;
+	iter->children[4]->B_deps.ndeps = iter->B_deps.ndeps;
+	memcpy(iter->children[4]->B_deps.deps, iter->B_deps.deps, iter->B_deps.ndeps*sizeof(uint64_t));
+	iter->children[4]->A = iter->Mia_data[4]; 
+	iter->children[4]->B = B22; 
+	iter->children[4]->C = iter->Mi_data[4];
+	strassen_mult(iter->children[4]);
+
+	/* M6 = M6a * M6b */
+	iter->children[5] = malloc(sizeof(struct strassen_iter));
+	iter->children[5]->reclevel = iter->reclevel - 1;
+	iter->children[5]->A_deps.ndeps = 1;
+	iter->children[5]->A_deps.deps[0] = tag_6a;
+	iter->children[5]->B_deps.ndeps = 1;
+	iter->children[5]->B_deps.deps[0] = tag_6b;
+	iter->children[5]->A = iter->Mia_data[5]; 
+	iter->children[5]->B = iter->Mib_data[5]; 
+	iter->children[5]->C = iter->Mi_data[5];
+	strassen_mult(iter->children[5]);
+
+	/* M7 = M7a * M7b */
+	iter->children[6] = malloc(sizeof(struct strassen_iter));
+	iter->children[6]->reclevel = iter->reclevel - 1;
+	iter->children[6]->A_deps.ndeps = 1;
+	iter->children[6]->A_deps.deps[0] = tag_7a;
+	iter->children[6]->B_deps.ndeps = 1;
+	iter->children[6]->B_deps.deps[0] = tag_7b;
+	iter->children[6]->A = iter->Mia_data[6]; 
+	iter->children[6]->B = iter->Mib_data[6]; 
+	iter->children[6]->C = iter->Mi_data[6];
+	strassen_mult(iter->children[6]);
+
+	uint64_t *tag_m1 = iter->children[0]->C_deps.deps;
+	uint64_t *tag_m2 = iter->children[1]->C_deps.deps;
+	uint64_t *tag_m3 = iter->children[2]->C_deps.deps;
+	uint64_t *tag_m4 = iter->children[3]->C_deps.deps;
+	uint64_t *tag_m5 = iter->children[4]->C_deps.deps;
+	uint64_t *tag_m6 = iter->children[5]->C_deps.deps;
+	uint64_t *tag_m7 = iter->children[6]->C_deps.deps;
+
+	/* C11 = M1 + M4 - M5 + M7 */
+	uint64_t tag_c11_a = compute_self_add_sub_op(C11, ADD, iter->Mi_data[0]);
+	uint64_t tag_c11_b = compute_self_add_sub_op(C11, ADD, iter->Mi_data[3]);
+	uint64_t tag_c11_c = compute_self_add_sub_op(C11, SUB, iter->Mi_data[4]);
+	uint64_t tag_c11_d = compute_self_add_sub_op(C11, ADD, iter->Mi_data[6]);
+
+	/* C12 = M3 + M5 */
+	uint64_t tag_c12_a = compute_self_add_sub_op(C12, ADD, iter->Mi_data[2]);
+	uint64_t tag_c12_b = compute_self_add_sub_op(C12, ADD, iter->Mi_data[4]);
+
+	/* C21 = M2 + M4 */
+	uint64_t tag_c21_a = compute_self_add_sub_op(C21, ADD, iter->Mi_data[1]);
+	uint64_t tag_c21_b = compute_self_add_sub_op(C21, ADD, iter->Mi_data[3]);
+
+	/* C22 = M1 - M2 + M3 + M6 */
+	uint64_t tag_c22_a = compute_self_add_sub_op(C22, ADD, iter->Mi_data[0]);
+	uint64_t tag_c22_b = compute_self_add_sub_op(C22, SUB, iter->Mi_data[1]);
+	uint64_t tag_c22_c = compute_self_add_sub_op(C22, ADD, iter->Mi_data[3]);
+	uint64_t tag_c22_d = compute_self_add_sub_op(C22, ADD, iter->Mi_data[5]);
+
+	if (iter->reclevel == 1)
+	{
+		tag_declare_deps(tag_c11_a, 1, tag_m1[0]);
+		tag_declare_deps(tag_c11_b, 2, tag_m4[0], tag_c11_a);
+		tag_declare_deps(tag_c11_c, 2, tag_m5[0], tag_c11_b);
+		tag_declare_deps(tag_c11_d, 2, tag_m7[0], tag_c11_c);
+	
+		tag_declare_deps(tag_c12_a, 1, tag_m3[0]);
+		tag_declare_deps(tag_c12_b, 2, tag_m5[0], tag_c12_a);
+		
+		tag_declare_deps(tag_c21_a, 1, tag_m2[0]);
+		tag_declare_deps(tag_c21_b, 2, tag_m4[0], tag_c21_a);
+	
+		tag_declare_deps(tag_c22_a, 1, tag_m1[0]);
+		tag_declare_deps(tag_c22_b, 2, tag_m2[0], tag_c22_a);
+		tag_declare_deps(tag_c22_c, 2, tag_m3[0], tag_c22_b);
+		tag_declare_deps(tag_c22_d, 2, tag_m6[0], tag_c22_c);
+	}
+	else
+	{
+		tag_declare_deps(tag_c11_a, 4, tag_m1[0], tag_m1[1], tag_m1[2], tag_m1[3]);
+		tag_declare_deps(tag_c11_b, 5, tag_m4[0], tag_m4[1], tag_m4[2], tag_m4[3], tag_c11_a);
+		tag_declare_deps(tag_c11_c, 5, tag_m5[0], tag_m5[1], tag_m5[2], tag_m5[3], tag_c11_b);
+		tag_declare_deps(tag_c11_d, 5, tag_m7[0], tag_m7[1], tag_m7[2], tag_m7[3], tag_c11_c);
+
+		tag_declare_deps(tag_c12_a, 4, tag_m3[0], tag_m3[1], tag_m3[2], tag_m3[3]);
+		tag_declare_deps(tag_c12_b, 5, tag_m5[0], tag_m5[1], tag_m5[2], tag_m5[3], tag_c12_a);
+
+		tag_declare_deps(tag_c21_a, 4, tag_m2[0], tag_m2[1], tag_m2[2], tag_m2[3]);
+		tag_declare_deps(tag_c21_b, 5, tag_m4[0], tag_m4[1], tag_m4[2], tag_m4[3], tag_c21_a);
+
+		tag_declare_deps(tag_c22_a, 4, tag_m1[0], tag_m1[1], tag_m1[2], tag_m1[3]);
+		tag_declare_deps(tag_c22_b, 5, tag_m2[0], tag_m2[1], tag_m2[2], tag_m2[3], tag_c22_a);
+		tag_declare_deps(tag_c22_c, 5, tag_m3[0], tag_m3[1], tag_m3[2], tag_m3[3], tag_c22_b);
+		tag_declare_deps(tag_c22_d, 5, tag_m6[0], tag_m6[1], tag_m6[2], tag_m6[3], tag_c22_c);
+	}
+
+	iter->C_deps.ndeps = 4;
+	iter->C_deps.deps[0] = tag_c11_d;
+	iter->C_deps.deps[1] = tag_c12_b;
+	iter->C_deps.deps[2] = tag_c21_b;
+	iter->C_deps.deps[3] = tag_c22_d;
+}
+
+static void dummy_codelet_func(__attribute__((unused))data_interface_t *descr,
+				__attribute__((unused))  void *arg)
+{
+}
+
+static job_t dummy_codelet(uint64_t tag)
+{
+	job_t job = create_job();
+
+	job->nbuffers = 0;
+
+	job->cb = NULL;
+
+	job->cl->core_func = dummy_codelet_func;
+	#ifdef USE_CUDA
+	job->cl->cublas_func = dummy_codelet_func;
+	#endif
+
+	tag_declare(tag, job);
+
+	return job;
+}
+
+void parse_args(int argc, char **argv)
+{
+        int i;
+        for (i = 1; i < argc; i++) {
+                if (strcmp(argv[i], "-size") == 0) {
+                        char *argptr;
+                        size = strtol(argv[++i], &argptr, 10);
+                }
+
+                if (strcmp(argv[i], "-rec") == 0) {
+                        char *argptr;
+                        reclevel = strtol(argv[++i], &argptr, 10);
+                }
+
+                if (strcmp(argv[i], "-no-random") == 0) {
+                        norandom = 1;
+                }
+
+                if (strcmp(argv[i], "-pin") == 0) {
+                        pin = 1;
+                }
+
+        }
+}
+
+int main(int argc, char **argv)
+{
+	data_state data_A, data_B, data_C;
+	float *A, *B, *C;
+
+	struct timeval start;
+	struct timeval end;
+
+	parse_args(argc, argv);
+
+	init_machine();
+
+#ifdef USE_CUDA
+        if (pin) {
+                malloc_pinned_if_possible(&A, size*size*sizeof(float));
+                malloc_pinned_if_possible(&B, size*size*sizeof(float));
+                malloc_pinned_if_possible(&C, size*size*sizeof(float));
+        } else
+#endif
+        {
+                posix_memalign((void **)&A, 4096, size*size*sizeof(float));
+                posix_memalign((void **)&B, 4096, size*size*sizeof(float));
+                posix_memalign((void **)&C, 4096, size*size*sizeof(float));
+        }
+
+	assert(A);
+	assert(B);
+	assert(C);
+
+	memset(A, 0, size*size*sizeof(float));
+	memset(B, 0, size*size*sizeof(float));
+	memset(C, 0, size*size*sizeof(float));
+
+	monitor_blas_data(&data_A, 0, (uintptr_t)A, size, size, size, sizeof(float));
+	monitor_blas_data(&data_B, 0, (uintptr_t)B, size, size, size, sizeof(float));
+	monitor_blas_data(&data_C, 0, (uintptr_t)C, size, size, size, sizeof(float));
+
+	unsigned rec;
+	for (rec = 0; rec < reclevel; rec++)
+	{
+		map_filters(&data_A, 2, &f, &f2);
+		map_filters(&data_B, 2, &f, &f2);
+		map_filters(&data_C, 2, &f, &f2);
+	}
+
+	struct strassen_iter iter;
+		iter.reclevel = reclevel;
+		iter.A = &data_A;
+		iter.B = &data_B;
+		iter.C = &data_C;
+		iter.A_deps.ndeps = 1;
+		iter.A_deps.deps[0] = 42;
+		iter.B_deps.ndeps = 1;
+		iter.B_deps.deps[0] = 42;
+
+	strassen_mult(&iter);
+
+	fprintf(stderr, "start ...\n");
+
+	job_t j = dummy_codelet(42);
+
+	gettimeofday(&start, NULL);
+	submit_job(j);
+
+	job_t j_end = dummy_codelet(10);
+
+	tag_declare_deps_array(10, iter.C_deps.ndeps, iter.C_deps.deps);
+	
+	submit_job_sync(j_end);
+
+	gettimeofday(&end, NULL);
+
+	terminate_machine();
+
+	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double total_flop = (2.0*size*size*size);
+
+	fprintf(stderr, "Computation took (ms):\n");
+	printf("%2.2f\n", timing/1000);
+	fprintf(stderr, "       GFlop : total (%2.2f)\n", (double)total_flop/1000000000.0f);
+	fprintf(stderr, "       GFlop/s : %2.2f\n", (double)total_flop / (double)timing/1000);
+
+	return 0;
+}
