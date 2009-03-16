@@ -36,6 +36,7 @@ void paje_output_file_init(void)
 	6       Fi       S      FetchingInput       \"1.0 .1 1.0\"            \n \
 	6       Po       S      PushingOutput       \"0.1 1.0 1.0\"            \n \
 	6       E       S       Executing       \".0 .6 .4\"            \n \
+	6       C       S       Callback       \".0 .3 .8\"            \n \
 	6       B       S       Blocked         \".9 .1 .0\"		\n \
 	5       L       P	Mn	Mn      L\n");
 }
@@ -176,6 +177,31 @@ void handle_end_codelet_body(void)
 	event_list_push_back(events[worker], e);
 
 	end_time = MAX(end_time, ev.time);
+}
+
+
+
+void handle_start_callback(void)
+{
+
+	//fprintf(stderr, "start codelet %p on tid %d\n", (void *)ev.param[0], ev.param[1]);
+
+	int worker;
+	worker = find_workder_id(ev.param[1]);
+	if (worker < 0) return;
+//	printf("-> worker %d\n", worker);
+	fprintf(out_paje_file, "10       %f	S      %ld      C\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+}
+
+void handle_end_callback(void)
+{
+	//fprintf(stderr, "end codelet %p on tid %d\n", (void *)ev.param[0], ev.param[1]);
+
+	int worker;
+	worker = find_workder_id(ev.param[1]);
+	if (worker < 0) return;
+//	printf("<- worker %d\n", worker);
+	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 }
 
 
@@ -460,6 +486,14 @@ int main(int argc, char **argv)
 			case FUT_END_CODELET_BODY:
 				handle_end_codelet_body();
 				break;
+
+			case FUT_START_CALLBACK:
+				handle_start_callback();
+				break;
+			case FUT_END_CALLBACK:
+				handle_end_callback();
+				break;
+
 
 			/* monitor stack size */
 			case FUT_JOB_PUSH:

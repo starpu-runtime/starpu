@@ -52,7 +52,11 @@ void handle_job_termination(job_t j)
 	/* the callback is executed after the dependencies so that we may remove the tag 
  	 * of the task itself */
 	if (j->cb)
+	{
+		TRACE_START_CALLBACK(j);
 		j->cb(j->argcb);
+		TRACE_END_CALLBACK(j);
+	}
 
 	if (j->synchronous)
 		sem_post(&j->sync_sem);
