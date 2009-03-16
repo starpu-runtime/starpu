@@ -31,6 +31,25 @@
 #include <core/dependencies/tags.h>
 #include <datawizard/datawizard.h>
 
+static double cublas_flop = 0.0;
+static double cpus_flop = 0.0;
+
+void display_perf(double timing, unsigned size)
+{
+	double total_flop_n3 = (2.0*size*size*size);
+	double total_flop = cublas_flop + cpus_flop;
+
+	fprintf(stderr, "Computation took (ms):\n");
+	printf("%2.2f\n", timing/1000);
+	fprintf(stderr, "       GFlop : O(n3) -> %2.2f\n",
+			(double)total_flop_n3/1000000000.0f);
+	fprintf(stderr, "       GFlop : real %2.2f\n",
+			(double)total_flop/1000000000.0f);
+	fprintf(stderr, "	CPU : %2.2f (%2.2f%%)\n", (double)cpus_flop/1000000000.0, (100.0*cpus_flop)/(cpus_flop + cublas_flop));
+	fprintf(stderr, "	GPU : %2.2f (%2.2f%%)\n", (double)cublas_flop/1000000000.0, (100.0*cublas_flop)/(cpus_flop + cublas_flop));
+	fprintf(stderr, "       GFlop/s : %2.2f\n", (double)total_flop / (double)timing/1000);
+}
+
 static void mult_common_codelet(data_interface_t *buffers, int s, __attribute__((unused))  void *arg)
 {
 	float *center 	= (float *)buffers[0].blas.ptr;
@@ -45,14 +64,18 @@ static void mult_common_codelet(data_interface_t *buffers, int s, __attribute__(
 	unsigned ld12 = buffers[2].blas.ld;
 	unsigned ld22 = buffers[0].blas.ld;
 
+	double flop = 2.0*dx*dy*dz;
+
 	switch (s) {
 		case 0:
+			cpus_flop += flop;
 			cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, 
 				dy, dx, dz, -1.0f, left, ld21, right, ld12,
 					     1.0f, center, ld22);
 			break;
 #ifdef USE_CUDA
 		case 1:
+			cublas_flop += flop;
 			cublasSgemm('t', 'n', dx, dy, dz, 
 					-1.0f, right, ld12, left, ld21, 
 					 1.0f, center, ld22);
@@ -91,12 +114,15 @@ static void add_sub_common_codelet(data_interface_t *buffers, int s, __attribute
 	unsigned ldB = buffers[2].blas.ld;
 	unsigned ldC = buffers[0].blas.ld;
 
+	double flop = 2.0*dx*dy;
+
 	// TODO check dim ...
 
 	unsigned line;
 
 	switch (s) {
 		case 0:
+			cpus_flop += flop;
 			for (line = 0; line < dy; line++)
 			{
 				/* copy line A into C */
@@ -107,6 +133,7 @@ static void add_sub_common_codelet(data_interface_t *buffers, int s, __attribute
 			break;
 #ifdef USE_CUDA
 		case 1:
+			cublas_flop += flop;
 			for (line = 0; line < dy; line++)
 			{
 				/* copy line A into C */
@@ -159,12 +186,15 @@ static void self_add_sub_common_codelet(data_interface_t *buffers, int s, __attr
 	unsigned ldA = buffers[1].blas.ld;
 	unsigned ldC = buffers[0].blas.ld;
 
+	double flop = 1.0*dx*dy;
+
 	// TODO check dim ...
 	
 	unsigned line;
 
 	switch (s) {
 		case 0:
+			cpus_flop += flop;
 			for (line = 0; line < dy; line++)
 			{
 				/* add line A to C */
@@ -173,6 +203,7 @@ static void self_add_sub_common_codelet(data_interface_t *buffers, int s, __attr
 			break;
 #ifdef USE_CUDA
 		case 1:
+			cublas_flop += flop;
 			for (line = 0; line < dy; line++)
 			{
 				/* add line A to C */

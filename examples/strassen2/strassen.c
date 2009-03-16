@@ -16,6 +16,8 @@
 
 uint64_t current_tag = 1024;
 
+uint64_t used_mem = 0;
+
 /*
 
 Strassen:
@@ -63,6 +65,8 @@ extern void add_cublas_codelet(data_interface_t *descr, __attribute__((unused)) 
 extern void self_add_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
 extern void self_sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
 #endif
+
+extern void display_perf(double timing, unsigned size);
 
 struct perfmodel_t strassen_model_mult = {
         .type = HISTORY_BASED,
@@ -145,6 +149,8 @@ data_state *allocate_tmp_matrix(unsigned size, unsigned reclevel)
         }
 
 	assert(buffer);
+
+	used_mem += size*size*sizeof(float);
 
 	memset(buffer, 0, size*size*sizeof(float));
 
@@ -599,6 +605,8 @@ int main(int argc, char **argv)
 	assert(B);
 	assert(C);
 
+	used_mem += 3*size*size*sizeof(float);
+
 	memset(A, 0, size*size*sizeof(float));
 	memset(B, 0, size*size*sizeof(float));
 	memset(C, 0, size*size*sizeof(float));
@@ -627,7 +635,7 @@ int main(int argc, char **argv)
 
 	strassen_mult(&iter);
 
-	fprintf(stderr, "start ...\n");
+	fprintf(stderr, "Using %d MB of memory\n", used_mem/(1024*1024));
 
 	job_t j = dummy_codelet(42);
 
@@ -645,12 +653,8 @@ int main(int argc, char **argv)
 	terminate_machine();
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-	double total_flop = (2.0*size*size*size);
 
-	fprintf(stderr, "Computation took (ms):\n");
-	printf("%2.2f\n", timing/1000);
-	fprintf(stderr, "       GFlop : total (%2.2f)\n", (double)total_flop/1000000000.0f);
-	fprintf(stderr, "       GFlop/s : %2.2f\n", (double)total_flop / (double)timing/1000);
+	display_perf(timing, size);
 
 	return 0;
 }
