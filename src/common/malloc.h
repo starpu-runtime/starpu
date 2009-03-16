@@ -43,6 +43,7 @@ static inline void malloc_pinned_if_possible(float **A, size_t dim)
 		cl->cublas_func = malloc_pinned_codelet; 
 		cl->cl_arg = &s;
 		cl->where = CUBLAS;
+		cl->model = NULL;
 	
 		job_t j = job_create();
 		j->cb = NULL; 
