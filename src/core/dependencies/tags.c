@@ -150,6 +150,7 @@ void notify_dependencies(struct job_s *j)
 		tag = j->tag;
 
 		tag->state = DONE;
+		TRACE_TASK_DONE(tag->id);
 
 		nsuccs = tag->nsuccs;
 		for (succ = 0; succ < nsuccs; succ++)

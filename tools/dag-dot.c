@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "fxt-tool.h"
+
 static char *out_path = "dag.dot";
 static FILE *out_file;
 
@@ -25,4 +27,11 @@ void add_deps(uint64_t child, uint64_t father)
 {
 	fprintf(out_file, "\t \"%llx\"->\"%llx\"\n", 
 		(unsigned long long)father, (unsigned long long)child);
+}
+
+void dot_set_tag_done(uint64_t tag, char *color)
+{
+
+	fprintf(out_file, "\t \"%llx\" \[ style=filled, color=\"%s\"\]\n", 
+		(unsigned long long)tag, color);
 }

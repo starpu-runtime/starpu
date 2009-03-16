@@ -4,6 +4,12 @@ event_list_t events[MAXWORKERS];
 workq_list_t taskq;
 char *worker_name[MAXWORKERS];
 
+
+static char *cuda_worker_colors[MAXWORKERS] = {"/greens9/7", "/greens9/6", "/greens9/5", "/greens9/4"};
+static char *cpus_worker_colors[MAXWORKERS] = {"/ylorrd9/7", "/ylorrd9/6", "/ylorrd9/5", "/ylorrd9/4"};
+static char *other_worker_colors[MAXWORKERS] = {"/greys9/9", "/greys9/8", "/greys9/7", "/greys9/6"};
+static char *worker_colors[MAXWORKERS];
+
 fxt_t fut;
 struct fxt_ev_64 ev;
 
@@ -62,6 +68,10 @@ void handle_new_mem_node(void)
 	fprintf(out_paje_file, "7       %f	%s      Mn      p	MEMNODE%s\n", (float)((ev.time-start_time)/1000000.0), memnodestr, memnodestr);
 }
 
+static unsigned cuda_index = 0;
+static unsigned cpus_index = 0;
+static unsigned other_index = 0;
+
 void handle_new_worker(void)
 {
 	/* 
@@ -70,18 +80,22 @@ void handle_new_worker(void)
 	   arg2 : thread id 
 	*/
 	char *str = malloc(20*sizeof(char));
+	char *color = NULL;
 	
 	strcpy(str, "unknown");
 
 	switch (ev.param[0]) {
 		case FUT_APPS_KEY:
 			str = "apps";
+			color = other_worker_colors[other_index++];
 			break;
 		case FUT_CORE_KEY:
 			str = "core";
+			color = cpus_worker_colors[cpus_index++];
 			break;
 		case FUT_CUDA_KEY:
 			str = "cuda";
+			color = cuda_worker_colors[cuda_index++];
 			break;
 	}
 
@@ -99,6 +113,8 @@ void handle_new_worker(void)
 	ENTRY item;
 		item.key = tidstr;
 		item.data = (void *)workerid;
+
+	worker_colors[workerid] = color;
 
 	ENTRY *res;
 	res = hsearch(item, FIND);
@@ -328,6 +344,17 @@ void handle_codelet_tag_deps(void)
 	add_deps(child, father);
 }
 
+void handle_task_done(void)
+{
+	uint64_t tag_id;
+	tag_id = ev.param[0];
+
+        int worker;
+        worker = find_workder_id(ev.param[1]);
+
+	dot_set_tag_done(tag_id, worker_colors[worker]);
+}
+
 #ifdef FLASH_RENDER
 void generate_flash_output(void)
 {
@@ -523,6 +550,10 @@ int main(int argc, char **argv)
 
 			case FUT_CODELET_TAG_DEPS:
 				handle_codelet_tag_deps();
+				break;
+
+			case FUT_TASK_DONE:
+				handle_task_done();
 				break;
 
 			case FUT_DATA_COPY:

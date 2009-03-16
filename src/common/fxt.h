@@ -44,6 +44,8 @@
 #define	FUT_START_CALLBACK	0x5119
 #define	FUT_END_CALLBACK	0x5120
 
+#define	FUT_TASK_DONE		0x5121
+
 #ifdef USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -94,6 +96,9 @@ void fxt_register_thread(unsigned);
 #define TRACE_CODELET_TAG_DEPS(tag_child, tag_father)	\
 	FUT_DO_PROBE2(FUT_CODELET_TAG_DEPS, tag_child, tag_father)
 
+#define TRACE_TASK_DONE(tag)	\
+	FUT_DO_PROBE2(FUT_TASK_DONE, tag, syscall(SYS_gettid))
+
 #define TRACE_DATA_COPY(src_node, dst_node, size)	\
 	FUT_DO_PROBE3(FUT_DATA_COPY, src_node, dst_node, size)
 
@@ -125,6 +130,7 @@ void fxt_register_thread(unsigned);
 #define TRACE_END_PUSH_OUTPUT(job)	do {} while(0);
 #define TRACE_CODELET_TAG(tag, job)	do {} while(0);
 #define TRACE_CODELET_TAG_DEPS(a, b)	do {} while(0);
+#define TRACE_TASK_DONE(tag)		do {} while(0);
 #define TRACE_DATA_COPY(a, b, c)	do {} while(0);
 #define TRACE_WORK_STEALING(a, b)	do {} while(0);
 #define TRACE_WORKER_TERMINATED(a)	do {} while(0);

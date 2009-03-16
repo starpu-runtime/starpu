@@ -51,6 +51,7 @@ extern void flash_engine_generate_output(event_list_t *events, workq_list_t task
 extern void init_dag_dot(void);
 extern void terminate_dat_dot(void);
 extern void add_deps(uint64_t child, uint64_t father);
+extern void dot_set_tag_done(uint64_t tag, char *color);
 
 #ifdef USE_GTK
 extern int gtk_viewer_apps( int   argc, char *argv[], event_list_t *events,
