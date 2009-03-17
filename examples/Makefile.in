@@ -17,12 +17,14 @@ ifeq (@BLAS_LIB@,goto)
 	TARGET += mult
 	TARGET+= cholesky
 	TARGET+= heat 
+	TARGET+= strassen2
 endif
 
 ifeq (@BLAS_LIB@,system)
 	TARGET += mult
 	TARGET+= cholesky
 	TARGET+= heat 
+	TARGET+= strassen2
 endif
 
 ifeq (@BLAS_LIB@,atlas)

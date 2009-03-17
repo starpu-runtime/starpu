@@ -12,12 +12,12 @@
 #include <core/dependencies/tags.h>
 #include <common/timing.h>
 #include <common/util.h>
+#include <common/blas.h>
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
 #include <pthread.h>
 #include <signal.h>
-#include <cblas.h>
 #include <common/timing.h>
 
 #include <datawizard/datawizard.h>
@@ -56,29 +56,23 @@ static void mult_common_codelet(data_interface_t *buffers, int s, __attribute__(
 	float *left 	= (float *)buffers[1].blas.ptr;
 	float *right 	= (float *)buffers[2].blas.ptr;
 
-	unsigned dx = buffers[0].blas.nx;
-	unsigned dy = buffers[0].blas.ny;
-	unsigned dz = buffers[1].blas.nx;
+	unsigned n = buffers[0].blas.nx;
 
 	unsigned ld21 = buffers[1].blas.ld;
 	unsigned ld12 = buffers[2].blas.ld;
 	unsigned ld22 = buffers[0].blas.ld;
 
-	double flop = 2.0*dx*dy*dz;
+	double flop = 2.0*n*n*n;
 
 	switch (s) {
 		case 0:
 			cpus_flop += flop;
-			cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, 
-				dy, dx, dz, -1.0f, left, ld21, right, ld12,
-					     1.0f, center, ld22);
+			SGEMM("N", "N", n, n, n, 1.0f, right, ld21, left, ld12, 0.0f, center, ld22);
 			break;
 #ifdef USE_CUDA
 		case 1:
 			cublas_flop += flop;
-			cublasSgemm('t', 'n', dx, dy, dz, 
-					-1.0f, right, ld12, left, ld21, 
-					 1.0f, center, ld22);
+			cublasSgemm('n', 'n', n, n, n, 1.0f, right, ld12, left, ld21, 0.0f, center, ld22);
 			break;
 #endif
 		default:
@@ -107,14 +101,13 @@ static void add_sub_common_codelet(data_interface_t *buffers, int s, __attribute
 	float *A 	= (float *)buffers[1].blas.ptr;
 	float *B 	= (float *)buffers[2].blas.ptr;
 
-	unsigned dx = buffers[0].blas.nx;
-	unsigned dy = buffers[0].blas.ny;
+	unsigned n = buffers[0].blas.nx;
 
 	unsigned ldA = buffers[1].blas.ld;
 	unsigned ldB = buffers[2].blas.ld;
 	unsigned ldC = buffers[0].blas.ld;
 
-	double flop = 2.0*dx*dy;
+	double flop = 2.0*n*n;
 
 	// TODO check dim ...
 
@@ -123,23 +116,23 @@ static void add_sub_common_codelet(data_interface_t *buffers, int s, __attribute
 	switch (s) {
 		case 0:
 			cpus_flop += flop;
-			for (line = 0; line < dy; line++)
+			for (line = 0; line < n; line++)
 			{
 				/* copy line A into C */
-				cblas_saxpy(dx, 1.0f, &A[line*ldA], 1, &C[line*ldC], 1);
+				SAXPY(n, 1.0f, &A[line*ldA], 1, &C[line*ldC], 1);
 				/* add line B to C = A */
-				cblas_saxpy(dx, alpha, &B[line*ldB], 1, &C[line*ldC], 1);
+				SAXPY(n, alpha, &B[line*ldB], 1, &C[line*ldC], 1);
 			}
 			break;
 #ifdef USE_CUDA
 		case 1:
 			cublas_flop += flop;
-			for (line = 0; line < dy; line++)
+			for (line = 0; line < n; line++)
 			{
 				/* copy line A into C */
-				cublasSaxpy(dx, 1.0f, &A[line*ldA], 1, &C[line*ldC], 1);
+				cublasSaxpy(n, 1.0f, &A[line*ldA], 1, &C[line*ldC], 1);
 				/* add line B to C = A */
-				cublasSaxpy(dx, alpha, &B[line*ldB], 1, &C[line*ldC], 1);
+				cublasSaxpy(n, alpha, &B[line*ldB], 1, &C[line*ldC], 1);
 			}
 
 			break;
@@ -180,13 +173,12 @@ static void self_add_sub_common_codelet(data_interface_t *buffers, int s, __attr
 	float *C 	= (float *)buffers[0].blas.ptr;
 	float *A 	= (float *)buffers[1].blas.ptr;
 
-	unsigned dx = buffers[0].blas.nx;
-	unsigned dy = buffers[0].blas.ny;
+	unsigned n = buffers[0].blas.nx;
 
 	unsigned ldA = buffers[1].blas.ld;
 	unsigned ldC = buffers[0].blas.ld;
 
-	double flop = 1.0*dx*dy;
+	double flop = 1.0*n*n;
 
 	// TODO check dim ...
 	
@@ -195,19 +187,19 @@ static void self_add_sub_common_codelet(data_interface_t *buffers, int s, __attr
 	switch (s) {
 		case 0:
 			cpus_flop += flop;
-			for (line = 0; line < dy; line++)
+			for (line = 0; line < n; line++)
 			{
 				/* add line A to C */
-				cblas_saxpy(dx, alpha, &A[line*ldA], 1, &C[line*ldC], 1);
+				SAXPY(n, alpha, &A[line*ldA], 1, &C[line*ldC], 1);
 			}
 			break;
 #ifdef USE_CUDA
 		case 1:
 			cublas_flop += flop;
-			for (line = 0; line < dy; line++)
+			for (line = 0; line < n; line++)
 			{
 				/* add line A to C */
-				cublasSaxpy(dx, alpha, &A[line*ldA], 1, &C[line*ldC], 1);
+				cublasSaxpy(n, alpha, &A[line*ldA], 1, &C[line*ldC], 1);
 			}
 			break;
 #endif
