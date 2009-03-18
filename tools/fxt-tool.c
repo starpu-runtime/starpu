@@ -47,6 +47,7 @@ void paje_output_file_init(void)
 	6       B       S       Blocked         \".9 .1 .0\"		\n \
 	6       A       MS      Allocating         \".4 .1 .0\"		\n \
 	6       R       MS      Reclaiming         \".0 .1 .4\"		\n \
+	6       Co       MS     DriverCopy         \".3 .5 .1\"		\n \
 	6       No       MS     Nothing         \".0 .0 .0\"		\n \
 	5       L       P	Mn	Mn      L\n");
 }
@@ -303,6 +304,22 @@ void handle_data_copy(void)
 	fprintf(out_paje_file, "18       %f	L      p	%d	MEMNODE%d	%s\n", (float)((ev.time-start_time)/1000000.0), size, src, str);
 	fprintf(out_paje_file, "19       %f	L      p	%d	MEMNODE%d	%s\n", (float)((ev.time-start_time)/1000000.0+0.0001), size, dst, str);
 
+}
+
+void handle_start_driver_copy(void)
+{
+	unsigned dst = ev.param[1];
+	unsigned size = ev.param[2];
+
+	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      Co\n", (float)((ev.time-start_time)/1000000.0), dst);
+}
+
+void handle_end_driver_copy(void)
+{
+	unsigned dst = ev.param[1];
+	unsigned size = ev.param[2];
+
+	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      No\n", (float)((ev.time-start_time)/1000000.0), dst);
 }
 
 void handle_start_alloc(void)
@@ -587,6 +604,14 @@ int main(int argc, char **argv)
 
 			case FUT_DATA_COPY:
 				handle_data_copy();
+				break;
+
+			case FUT_START_DRIVER_COPY:
+				handle_start_driver_copy();
+				break;
+
+			case FUT_END_DRIVER_COPY:
+				handle_end_driver_copy();
 				break;
 
 			case FUT_WORK_STEALING:

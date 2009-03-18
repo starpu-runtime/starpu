@@ -148,8 +148,12 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 		size_t size = state->ops->get_size(state);
 		update_comm_ammount(src_node, dst_node, size);
 #endif
-
+		
+		/* for now we set the size to 0 in the FxT trace XXX */
+		TRACE_START_DRIVER_COPY(src_node, dst_node, 0);
 		ret_copy = state->ops->copy_data_1_to_1(state, src_node, dst_node);
+		TRACE_END_DRIVER_COPY(src_node, dst_node, 0);
+
 		return ret_copy;
 	}
 
