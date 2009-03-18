@@ -65,7 +65,7 @@ endif
 
 EXTRADEP=
 
-ifdef NO_DATA_RW_LOCK
+ifeq (@USE_DATA_RW_LOCK@,no)
 	CFLAGS+=-DNO_DATA_RW_LOCK
 endif
 

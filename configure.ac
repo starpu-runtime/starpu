@@ -118,6 +118,16 @@ AC_ARG_ENABLE(priority, [AS_HELP_STRING([--disable-priority],
 AC_MSG_RESULT($enable_priority)
 AC_SUBST(USE_PRIO, $enable_priority)
 
+
+AC_MSG_CHECKING(whether data RW-lock should be used)
+AC_ARG_ENABLE(data-rw-lock, [AS_HELP_STRING([--disable-data-rw-lock],
+			[do not use data RW-locks])],
+			enable_data_rw_lock=$enableval, enable_data_rw_lock=yes)
+AC_MSG_RESULT($enable_data_rw_lock)
+AC_SUBST(USE_DATA_RW_LOCK, $enable_data_rw_lock)
+
+
+
 # shall we use FxT to generate trace of the execution ?
 AC_MSG_CHECKING(whether fxt traces should be generated)
 AC_ARG_WITH(fxt, [AS_HELP_STRING([--with-fxt[=<dir>]], [generate fxt traces])],
