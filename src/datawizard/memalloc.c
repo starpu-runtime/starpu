@@ -315,14 +315,19 @@ int allocate_memory_on_node(data_state *state, uint32_t dst_node)
 		STARPU_ASSERT(state->ops);
 		STARPU_ASSERT(state->ops->allocate_data_on_node);
 
+		TRACE_START_ALLOC(dst_node);
 		allocated_memory = state->ops->allocate_data_on_node(state, dst_node);
+		TRACE_END_ALLOC(dst_node);
 
 		if (!allocated_memory) {
 			/* XXX perhaps we should find the proper granularity 
 			 * not to waste our cache all the time */
 			STARPU_ASSERT(state->ops->get_size);
 			size_t data_size = state->ops->get_size(state);
+
+			TRACE_START_MEMRECLAIM(dst_node);
 			reclaim_memory(dst_node, 2*data_size, attempts);
+			TRACE_END_MEMRECLAIM(dst_node);
 		}
 		
 	} while(!allocated_memory && attempts++ < 2);

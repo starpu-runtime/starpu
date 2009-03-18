@@ -6,7 +6,7 @@ char *worker_name[MAXWORKERS];
 
 
 static char *cuda_worker_colors[MAXWORKERS] = {"/greens9/7", "/greens9/6", "/greens9/5", "/greens9/4"};
-static char *cpus_worker_colors[MAXWORKERS] = {"/ylorrd9/7", "/ylorrd9/6", "/ylorrd9/5", "/ylorrd9/4"};
+static char *cpus_worker_colors[MAXWORKERS] = {"/ylorrd9/9", "/ylorrd9/6", "/ylorrd9/3", "/ylorrd9/1"};
 static char *other_worker_colors[MAXWORKERS] = {"/greys9/9", "/greys9/8", "/greys9/7", "/greys9/6"};
 static char *worker_colors[MAXWORKERS];
 
@@ -39,11 +39,15 @@ void paje_output_file_init(void)
 	1       Mn      P       \"Memory Node\"                         \n \
 	1       T      Mn       \"Worker\"                               \n \
 	3       S       T       \"Thread State\"                        \n \
+	3       MS       Mn       \"Memory Node State\"                        \n \
 	6       Fi       S      FetchingInput       \"1.0 .1 1.0\"            \n \
 	6       Po       S      PushingOutput       \"0.1 1.0 1.0\"            \n \
 	6       E       S       Executing       \".0 .6 .4\"            \n \
 	6       C       S       Callback       \".0 .3 .8\"            \n \
 	6       B       S       Blocked         \".9 .1 .0\"		\n \
+	6       A       MS      Allocating         \".4 .1 .0\"		\n \
+	6       R       MS      Reclaiming         \".0 .1 .4\"		\n \
+	6       No       MS     Nothing         \".0 .0 .0\"		\n \
 	5       L       P	Mn	Mn      L\n");
 }
 
@@ -253,9 +257,6 @@ void handle_end_fetch_input(void)
 	end_time = MAX(end_time, ev.time);
 }
 
-
-
-
 void handle_start_push_output(void)
 {
 	int worker;
@@ -302,6 +303,34 @@ void handle_data_copy(void)
 	fprintf(out_paje_file, "18       %f	L      p	%d	MEMNODE%d	%s\n", (float)((ev.time-start_time)/1000000.0), size, src, str);
 	fprintf(out_paje_file, "19       %f	L      p	%d	MEMNODE%d	%s\n", (float)((ev.time-start_time)/1000000.0+0.0001), size, dst, str);
 
+}
+
+void handle_start_alloc(void)
+{
+	unsigned memnode = ev.param[0];
+
+	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      A\n", (float)((ev.time-start_time)/1000000.0), memnode);
+}
+
+void handle_end_alloc(void)
+{
+	unsigned memnode = ev.param[0];
+
+	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      No\n", (float)((ev.time-start_time)/1000000.0), memnode);
+}
+
+void handle_start_memreclaim(void)
+{
+	unsigned memnode = ev.param[0];
+
+	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      R\n", (float)((ev.time-start_time)/1000000.0), memnode);
+}
+
+void handle_end_memreclaim(void)
+{
+	unsigned memnode = ev.param[0];
+
+	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      No\n", (float)((ev.time-start_time)/1000000.0), memnode);
 }
 
 int maxq_size = 0;
@@ -566,6 +595,22 @@ int main(int argc, char **argv)
 
 			case FUT_WORKER_TERMINATED:
 				handle_worker_terminated();
+				break;
+
+			case FUT_START_ALLOC:
+				handle_start_alloc();
+				break;
+
+			case FUT_END_ALLOC:
+				handle_end_alloc();
+				break;
+
+			case FUT_START_MEMRECLAIM:
+				handle_start_memreclaim();
+				break;
+
+			case FUT_END_MEMRECLAIM:
+				handle_end_memreclaim();
 				break;
 
 			default:

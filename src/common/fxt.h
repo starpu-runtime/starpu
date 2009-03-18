@@ -46,6 +46,14 @@
 
 #define	FUT_TASK_DONE		0x5121
 
+#define	FUT_START_ALLOC		0x5122
+#define	FUT_END_ALLOC		0x5123
+
+#define	FUT_START_MEMRECLAIM	0x5124
+#define	FUT_END_MEMRECLAIM	0x5125
+
+
+
 #ifdef USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -114,6 +122,19 @@ void fxt_register_thread(unsigned);
 #define TRACE_USER_DEFINED_END		\
 	FUT_DO_PROBE1(FUT_USER_DEFINED_END, syscall(SYS_gettid));
 
+#define TRACE_START_ALLOC(memnode)		\
+	FUT_DO_PROBE2(FUT_START_ALLOC, memnode, syscall(SYS_gettid));
+	
+#define TRACE_END_ALLOC(memnode)		\
+	FUT_DO_PROBE2(FUT_END_ALLOC, memnode, syscall(SYS_gettid));
+	
+#define TRACE_START_MEMRECLAIM(memnode)		\
+	FUT_DO_PROBE2(FUT_START_MEMRECLAIM, memnode, syscall(SYS_gettid));
+	
+#define TRACE_END_MEMRECLAIM(memnode)		\
+	FUT_DO_PROBE2(FUT_END_MEMRECLAIM, memnode, syscall(SYS_gettid));
+	
+
 #else // !USE_FXT
 
 #define TRACE_NEW_MEM_NODE(nodeid)	do {} while(0);
@@ -136,6 +157,10 @@ void fxt_register_thread(unsigned);
 #define TRACE_WORKER_TERMINATED(a)	do {} while(0);
 #define TRACE_USER_DEFINED_START	do {} while(0);
 #define TRACE_USER_DEFINED_END		do {} while(0);
+#define TRACE_START_ALLOC(memnode)	do {} while(0);
+#define TRACE_END_ALLOC(memnode)	do {} while(0);
+#define TRACE_START_MEMRECLAIM(memnode)	do {} while(0);
+#define TRACE_END_MEMRECLAIM(memnode)	do {} while(0);
 
 #endif // USE_FXT
 
