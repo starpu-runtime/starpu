@@ -3,7 +3,7 @@
 
 /* this interface is used for Sparse matrices */
 
-#define CSC_INTERFACE	0x118503
+#define CSC_INTERFACE	0x118505
 
 typedef struct csc_interface_s {
 	int nnz; /* number of non-zero entries */
