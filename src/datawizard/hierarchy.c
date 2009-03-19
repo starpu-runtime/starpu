@@ -295,7 +295,7 @@ void advise_if_data_is_important(data_state *state, unsigned is_important)
 	take_mutex(&state->header_lock);
 
 	/* first take all the children lock (in order !) */
-	unsigned child;
+	int child;
 	for (child = 0; child < state->nchildren; child++)
 	{
 		/* make sure the intermediate children is advised as well */
