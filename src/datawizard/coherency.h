@@ -112,6 +112,10 @@ typedef struct data_state_t {
 
 	/* allows special optimization */
 	uint8_t is_readonly;
+
+	/* in some case, the application may explicitly tell StarPU that a
+ 	 * piece of data is not likely to be used soon again */
+	unsigned is_not_important;
 } data_state;
 
 void display_msi_stats(void);

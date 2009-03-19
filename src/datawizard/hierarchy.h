@@ -27,4 +27,6 @@ struct data_state_t *get_sub_data(struct data_state_t *root_data, unsigned depth
 /* filter * list */
 void map_filters(struct data_state_t *root_data, unsigned nfilters, ...);
 
+void advise_if_data_is_important(data_state *state, unsigned is_important);
+
 #endif

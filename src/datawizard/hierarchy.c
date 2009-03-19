@@ -46,6 +46,8 @@ void monitor_new_data(data_state *state, uint32_t home_node, uint32_t wb_mask)
 	/* there is no hierarchy yet */
 	state->nchildren = 0;
 
+	state->is_not_important = 0;
+
 	/* make sure we do have a valid copy */
 	STARPU_ASSERT(home_node < MAXNODES);
 
@@ -168,6 +170,8 @@ void partition_data(data_state *initial_data, filter *f)
 
 		children->nchildren = 0;
 
+		children->is_not_important = initial_data->is_not_important;
+
 		/* it is possible that the children does not use the same interface as the parent,
 		 * in that case, the filter must set the proper methods */
 		if (!children->ops)
@@ -283,4 +287,25 @@ void unpartition_data(data_state *root_data, uint32_t gathering_node)
 
 	/* now the parent may be used again so we release the lock */
 	release_mutex(&root_data->header_lock);
+}
+
+void advise_if_data_is_important(data_state *state, unsigned is_important)
+{
+
+	take_mutex(&state->header_lock);
+
+	/* first take all the children lock (in order !) */
+	unsigned child;
+	for (child = 0; child < state->nchildren; child++)
+	{
+		/* make sure the intermediate children is advised as well */
+		if (state->children[child].nchildren > 0)
+			advise_if_data_is_important(&state->children[child], is_important);
+	}
+
+	state->is_not_important = !is_important;
+
+	/* now the parent may be used again so we release the lock */
+	release_mutex(&state->header_lock);
+
 }
