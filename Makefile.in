@@ -43,7 +43,7 @@ ifdef MODEL_DEBUG
 	CFLAGS+="-DMODEL_DEBUG "
 endif
 
-ifdef DATA_STATS
+ifeq (@DATA_STATS@,yes)
 	CFLAGS+="-DDATA_STATS "
 endif
 

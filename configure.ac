@@ -175,6 +175,14 @@ AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],
 AC_MSG_RESULT($enable_perf_debug)
 AC_SUBST(PERF_DEBUG, $enable_perf_debug)
 
+AC_MSG_CHECKING(whether statistics about data usage should be generated)
+AC_ARG_ENABLE(data-stats, [AS_HELP_STRING([--enable-data-stats],
+			[enable data statistics])],
+			enable_data_stats=$enableval, enable_data_stats=no)
+AC_MSG_RESULT($enable_data_stats)
+AC_SUBST(DATA_STATS, $enable_data_stats)
+
+
 blas_lib=maybe
 AC_ARG_ENABLE(blas-lib,
  [  --enable-blas-lib[=blaslibname]:
