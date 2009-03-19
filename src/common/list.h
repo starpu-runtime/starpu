@@ -144,6 +144,8 @@
     { ENAME##_itor_t i=l->_head; int k=0; while(i!=NULL){k++;i=i->_next;} return k; } \
   /** @internal */static inline int ENAME##_list_check(ENAME##_list_t l) \
     { ENAME##_itor_t i=l->_head; while(i) \
-    { if ((i->_next == NULL) && i != l->_tail) return 0; i=i->_next;} return 1; }
+    { if ((i->_next == NULL) && i != l->_tail) return 0; \
+      if (i->_next == i) return 0; \
+      i=i->_next;} return 1; }
 
 
