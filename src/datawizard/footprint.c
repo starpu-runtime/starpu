@@ -18,3 +18,10 @@ void compute_buffers_footprint(job_t j)
 	j->footprint = footprint;
 	j->footprint_is_computed = 1;
 }
+
+inline uint32_t compute_data_footprint(data_state *state)
+{
+	uint32_t interfaceid = state->ops->interfaceid;
+
+	return state->ops->footprint(state, interfaceid);
+}
