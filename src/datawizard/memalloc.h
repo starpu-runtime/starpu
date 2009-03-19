@@ -11,6 +11,7 @@ struct data_state_t;
 LIST_TYPE(mem_chunk,
 	struct data_state_t *data;
 	size_t size;
+	uint32_t footprint;
 );
 
 void init_mem_chunk_lists(void);

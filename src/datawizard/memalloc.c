@@ -1,9 +1,12 @@
 #include "memalloc.h"
+#include <datawizard/footprint.h>
 
 extern mem_node_descr descr;
 static mutex mc_mutex[MAXNODES]; 
 static mem_chunk_list_t mc_list[MAXNODES];
 static mem_chunk_list_t mc_list_to_free[MAXNODES];
+
+
 
 void init_mem_chunk_lists(void)
 {
@@ -245,6 +248,7 @@ static void register_mem_chunk(data_state *state, uint32_t dst_node, size_t size
 
 	mc->data = state;
 	mc->size = size; 
+	mc->footprint = compute_data_footprint(state);
 
 	take_mutex(&mc_mutex[dst_node]);
 	mem_chunk_list_push_front(mc_list[dst_node], mc);
