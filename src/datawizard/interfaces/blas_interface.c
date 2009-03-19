@@ -31,6 +31,7 @@ struct data_interface_ops_t interface_blas_ops = {
 #ifdef USE_GORDON
 	.convert_to_gordon = convert_blas_to_gordon,
 #endif
+	.interfaceid = BLAS_INTERFACE, 
 	.display = display_blas_interface
 };
 

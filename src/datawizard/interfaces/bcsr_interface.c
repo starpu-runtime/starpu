@@ -26,6 +26,7 @@ struct data_interface_ops_t interface_bcsr_ops = {
 	.copy_data_1_to_1 = do_copy_bcsr_buffer_1_to_1,
 	.dump_data_interface = dump_bcsr_interface,
 	.get_size = bcsr_interface_get_size,
+	.interfaceid = BCSR_INTERFACE,
 	.footprint = footprint_bcsr_interface_crc32
 };
 

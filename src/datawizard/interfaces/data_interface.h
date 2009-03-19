@@ -38,6 +38,8 @@ struct data_interface_ops_t {
 #ifdef USE_GORDON
 	int (*convert_to_gordon)(data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
+	/* an identifier that is unique to each interface */
+	uint32_t interfaceid;
 };
 
 #endif // __DATA_INTERFACE_H__

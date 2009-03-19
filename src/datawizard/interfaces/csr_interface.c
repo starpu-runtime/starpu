@@ -23,6 +23,7 @@ struct data_interface_ops_t interface_csr_ops = {
 	.copy_data_1_to_1 = do_copy_csr_buffer_1_to_1,
 	.dump_data_interface = dump_csr_interface,
 	.get_size = csr_interface_get_size,
+	.interfaceid = CSR_INTERFACE,
 	.footprint = footprint_csr_interface_crc32
 };
 
