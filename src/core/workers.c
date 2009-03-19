@@ -353,6 +353,7 @@ void kill_all_workers(struct machine_config_s *config)
 void terminate_machine(void)
 {
 	display_msi_stats();
+	display_alloc_cache_stats();
 
 	/* tell all workers to shutdown */
 	kill_all_workers(&config);

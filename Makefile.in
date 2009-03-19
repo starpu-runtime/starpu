@@ -47,6 +47,10 @@ ifeq (@DATA_STATS@,yes)
 	CFLAGS+="-DDATA_STATS "
 endif
 
+ifeq (@USE_ALLOCATION_CACHE@,yes)
+	CFLAGS+="-DUSE_ALLOCATION_CACHE "
+endif
+
 ifdef PERF_MODEL_DIR
 	CFLAGS+="-DPERF_MODEL_DIR=\"$(PERF_MODEL_DIR)/\""
 else

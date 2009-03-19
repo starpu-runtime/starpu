@@ -187,6 +187,130 @@ static size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node, unsigned atte
 	return liberated;
 }
 
+#ifdef USE_ALLOCATION_CACHE
+/* we assume that mc_mutex[node] is taken */
+static void reuse_mem_chunk(unsigned node, data_state *new_data, mem_chunk_t mc)
+{
+	data_state *old_data;
+	old_data = mc->data;
+
+	/* we found an appropriate mem chunk: so we get it out
+	 * of the "to free" list, and reassign it to the new
+	 * piece of data */
+
+//	fprintf(stderr, "reuse memchunk !\n");
+
+	mem_chunk_list_erase(mc_list_to_free[node], mc);
+
+	old_data->per_node[node].allocated = 0;
+	old_data->per_node[node].automatically_allocated = 0;
+
+	new_data->per_node[node].allocated = 1;
+	new_data->per_node[node].automatically_allocated = 1;
+
+	memcpy(&new_data->interface[node], &old_data->interface[node], sizeof(data_interface_t));
+
+	mc->data = new_data;
+	/* mc->size and mc->footprint should be unchanged ! */
+	
+	/* reinsert the mem chunk in the list of active memory chunks */
+	mem_chunk_list_push_front(mc_list[node], mc);
+}
+
+
+
+static unsigned try_to_reuse_mem_chunk(mem_chunk_t mc, unsigned node, data_state *new_data)
+{
+	unsigned success = 0;
+
+	data_state *data;
+
+	data = mc->data;
+
+	STARPU_ASSERT(data);
+
+	/* try to lock all the leafs of the subtree */
+	lock_all_subtree(data);
+
+	/* check if they are all "free" */
+	if (may_free_subtree(data, node))
+	{
+		success = 1;
+
+		/* in case there was nobody using that buffer, throw it 
+		 * away after writing it back to main memory */
+		transfer_subtree_to_node(data, node, 0);
+
+		/* now replace the previous data */
+		reuse_mem_chunk(node, new_data, mc);
+	}
+
+	/* unlock the leafs */
+	unlock_all_subtree(data);
+
+	return success;
+}
+
+/* this function looks for a memory chunk that matches a given footprint in the
+ * list of mem chunk that need to be liberated */
+static unsigned try_to_find_reusable_mem_chunk(unsigned node, data_state *data, uint32_t footprint)
+{
+	take_mutex(&mc_mutex[node]);
+
+	/* go through all buffers for which there was a removal request */
+	mem_chunk_t mc, next_mc;
+	for (mc = mem_chunk_list_begin(mc_list_to_free[node]);
+	     mc != mem_chunk_list_end(mc_list_to_free[node]);
+	     mc = next_mc)
+	{
+		next_mc = mem_chunk_list_next(mc);
+		if (mc->footprint == footprint)
+		{
+
+			data_state *old_data;
+			old_data = mc->data;
+
+			if (old_data->per_node[node].allocated &&
+					old_data->per_node[node].automatically_allocated)
+			{
+				reuse_mem_chunk(node, data, mc);
+
+				release_mutex(&mc_mutex[node]);
+				return 1;
+			}
+		}
+	}
+
+	/* now look for some non essential data in the active list */
+	for (mc = mem_chunk_list_begin(mc_list[node]);
+	     mc != mem_chunk_list_end(mc_list[node]);
+	     mc = next_mc)
+	{
+		/* there is a risk that the memory chunk is liberated 
+		   before next iteration starts: so we compute the next
+		   element of the list now */
+		next_mc = mem_chunk_list_next(mc);
+
+	//	if (mc->data->is_not_important)
+		//fprintf(stderr, "try_to_find_reusable_mem_chunk -> candidate\n");
+
+		if (mc->data->is_not_important && (mc->footprint == footprint))
+		{
+//			fprintf(stderr, "found a candidate ...\n");
+			if (try_to_reuse_mem_chunk(mc, node, data))
+			{
+				release_mutex(&mc_mutex[node]);
+				return 1;
+			}
+		}
+	}
+
+	release_mutex(&mc_mutex[node]);
+
+	return 0;
+}
+#endif
+
 /* 
  * Try to free some memory on the specified node
  * 	returns 0 if no memory was released, 1 else
@@ -314,6 +438,21 @@ int allocate_memory_on_node(data_state *state, uint32_t dst_node)
 	size_t allocated_memory;
 
 	STARPU_ASSERT(state);
+
+	data_allocation_inc_stats(dst_node);
+
+	/* perhaps we can directly reuse a buffer in the free-list */
+	uint32_t footprint = compute_data_footprint(state);
+
+#ifdef USE_ALLOCATION_CACHE
+	TRACE_START_ALLOC_REUSE(dst_node);
+	if (try_to_find_reusable_mem_chunk(dst_node, state, footprint))
+	{
+		allocation_cache_hit(dst_node);
+		return 0;
+	}
+	TRACE_END_ALLOC_REUSE(dst_node);
+#endif
 
 	do {
 		STARPU_ASSERT(state->ops);

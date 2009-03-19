@@ -40,6 +40,45 @@ void display_msi_stats(void)
 #endif
 }
 
+/* measure the efficiency of our allocation cache */
+
+#ifdef DATA_STATS
+static unsigned alloc_cnt[16];
+static unsigned alloc_cache_hit_cnt[16];
+#endif
+
+inline void allocation_cache_hit(unsigned node __attribute__ ((unused)))
+{
+#ifdef DATA_STATS
+	alloc_cache_hit_cnt[node]++;
+#endif
+}
+
+inline void data_allocation_inc_stats(unsigned node __attribute__ ((unused)))
+{
+#ifdef DATA_STATS
+	alloc_cnt[node]++;
+#endif
+}
+
+void display_alloc_cache_stats(void)
+{
+#ifdef DATA_STATS
+	fprintf(stderr, "Allocation cache stats:\n");
+	unsigned node;
+	for (node = 0; node < 4; node++) 
+	{
+		if (alloc_cnt[node]) 
+		{
+			fprintf(stderr, "memory node %d\n", node);
+			fprintf(stderr, "\ttotal alloc : %u\n", alloc_cnt[node]);
+			fprintf(stderr, "\tcached alloc: %u (%2.2f \%%)\n", 
+				alloc_cache_hit_cnt[node], (100.0f*alloc_cache_hit_cnt[node])/(alloc_cnt[node]));
+		}
+	}
+#endif
+}
+
 /* measure the amount of data transfers between each pair of nodes */
 #ifdef DATA_STATS
 

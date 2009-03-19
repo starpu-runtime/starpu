@@ -182,6 +182,14 @@ AC_ARG_ENABLE(data-stats, [AS_HELP_STRING([--enable-data-stats],
 AC_MSG_RESULT($enable_data_stats)
 AC_SUBST(DATA_STATS, $enable_data_stats)
 
+AC_MSG_CHECKING(whether allocation cache should be used)
+AC_ARG_ENABLE(allocation-cache, [AS_HELP_STRING([--enable-allocation-cache],
+			[enable data allocation cache])],
+			enable_allocation_cache=$enableval, enable_allocation_cache=no)
+AC_MSG_RESULT($enable_allocation_cache)
+AC_SUBST(USE_ALLOCATION_CACHE, $enable_allocation_cache)
+
+
 
 blas_lib=maybe
 AC_ARG_ENABLE(blas-lib,

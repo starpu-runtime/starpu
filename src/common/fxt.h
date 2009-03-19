@@ -49,6 +49,9 @@
 #define	FUT_START_ALLOC		0x5122
 #define	FUT_END_ALLOC		0x5123
 
+#define	FUT_START_ALLOC_REUSE	0x5128
+#define	FUT_END_ALLOC_REUSE	0x5129
+
 #define	FUT_START_MEMRECLAIM	0x5124
 #define	FUT_END_MEMRECLAIM	0x5125
 
@@ -135,6 +138,12 @@ void fxt_register_thread(unsigned);
 	
 #define TRACE_END_ALLOC(memnode)		\
 	FUT_DO_PROBE2(FUT_END_ALLOC, memnode, syscall(SYS_gettid));
+
+#define TRACE_START_ALLOC_REUSE(memnode)		\
+	FUT_DO_PROBE2(FUT_START_ALLOC_REUSE, memnode, syscall(SYS_gettid));
+	
+#define TRACE_END_ALLOC_REUSE(memnode)		\
+	FUT_DO_PROBE2(FUT_END_ALLOC_REUSE, memnode, syscall(SYS_gettid));
 	
 #define TRACE_START_MEMRECLAIM(memnode)		\
 	FUT_DO_PROBE2(FUT_START_MEMRECLAIM, memnode, syscall(SYS_gettid));

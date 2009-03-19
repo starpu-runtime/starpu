@@ -46,6 +46,7 @@ void paje_output_file_init(void)
 	6       C       S       Callback       \".0 .3 .8\"            \n \
 	6       B       S       Blocked         \".9 .1 .0\"		\n \
 	6       A       MS      Allocating         \".4 .1 .0\"		\n \
+	6       Ar       MS      AllocatingReuse       \".1 .1 .8\"		\n \
 	6       R       MS      Reclaiming         \".0 .1 .4\"		\n \
 	6       Co       MS     DriverCopy         \".3 .5 .1\"		\n \
 	6       No       MS     Nothing         \".0 .0 .0\"		\n \
@@ -335,6 +336,22 @@ void handle_end_alloc(void)
 
 	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      No\n", (float)((ev.time-start_time)/1000000.0), memnode);
 }
+
+
+void handle_start_alloc_reuse(void)
+{
+	unsigned memnode = ev.param[0];
+
+	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      Ar\n", (float)((ev.time-start_time)/1000000.0), memnode);
+}
+
+void handle_end_alloc_reuse(void)
+{
+	unsigned memnode = ev.param[0];
+
+	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      No\n", (float)((ev.time-start_time)/1000000.0), memnode);
+}
+
 
 void handle_start_memreclaim(void)
 {
@@ -629,6 +646,15 @@ int main(int argc, char **argv)
 			case FUT_END_ALLOC:
 				handle_end_alloc();
 				break;
+
+			case FUT_START_ALLOC_REUSE:
+				handle_start_alloc_reuse();
+				break;
+
+			case FUT_END_ALLOC_REUSE:
+				handle_end_alloc_reuse();
+				break;
+
 
 			case FUT_START_MEMRECLAIM:
 				handle_start_memreclaim();
