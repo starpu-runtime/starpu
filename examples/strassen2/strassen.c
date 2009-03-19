@@ -66,6 +66,10 @@ extern void self_add_cublas_codelet(data_interface_t *descr, __attribute__((unus
 extern void self_sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
 #endif
 
+extern void null_codelet(__attribute__((unused)) data_interface_t *descr,
+                  __attribute__((unused))  void *arg);
+
+
 extern void display_perf(double timing, unsigned size);
 
 struct perfmodel_t strassen_model_mult = {
@@ -270,6 +274,47 @@ uint64_t compute_self_add_sub_op(data_state *C, enum operation op, data_state *A
 	return j_tag;
 }
 
+struct cleanup_arg {
+	unsigned ndeps;
+	uint64_t tags[8];
+	unsigned ndata;
+	data_state *data[32];
+};
+
+void cleanup_callback(void *_arg)
+{
+	//fprintf(stderr, "cleanup callback\n");
+
+	struct cleanup_arg *arg = _arg;
+
+	unsigned i;
+	for (i = 0; i < arg->ndata; i++)
+		advise_if_data_is_important(arg->data[i], 0);
+
+	free(arg);
+}
+
+/* this creates a codelet that will tell StarPU that all specified data are not
+  essential once the tasks corresponding to the task will be performed */
+void create_cleanup_codelet(struct cleanup_arg *cleanup_arg)
+{
+	job_t job = create_job();
+	uint64_t j_tag = current_tag++;
+
+	job->nbuffers = 0;
+
+	job->cl->model = NULL;
+	job->cl->core_func = null_codelet;
+	#ifdef USE_CUDA
+	job->cl->cublas_func = null_codelet;
+	#endif
+
+	job->cb = cleanup_callback;
+	job->argcb = cleanup_arg;
+
+	tag_declare(j_tag, job);
+	tag_declare_deps_array(j_tag, cleanup_arg->ndeps, cleanup_arg->tags);
+}
 
 void strassen_mult(struct strassen_iter *iter)
 {
@@ -526,6 +571,37 @@ void strassen_mult(struct strassen_iter *iter)
 	iter->C_deps.deps[1] = tag_c12_b;
 	iter->C_deps.deps[2] = tag_c21_b;
 	iter->C_deps.deps[3] = tag_c22_d;
+
+	struct cleanup_arg *clean_struct = malloc(sizeof(struct cleanup_arg));
+
+	clean_struct->ndeps = 4;
+		clean_struct->tags[0] = tag_c11_d;
+		clean_struct->tags[1] = tag_c12_b;
+		clean_struct->tags[2] = tag_c21_b;
+		clean_struct->tags[3] = tag_c22_d;
+	clean_struct->ndata = 17;
+		clean_struct->data[0] = iter->Mia_data[0];
+		clean_struct->data[1] = iter->Mib_data[0];
+		clean_struct->data[2] = iter->Mia_data[1];
+		clean_struct->data[3] = iter->Mib_data[2];
+		clean_struct->data[4] = iter->Mib_data[3];
+		clean_struct->data[5] = iter->Mia_data[4];
+		clean_struct->data[6] = iter->Mia_data[5];
+		clean_struct->data[7] = iter->Mib_data[5];
+		clean_struct->data[8] = iter->Mia_data[6];
+		clean_struct->data[9] = iter->Mib_data[6];
+		clean_struct->data[10] = iter->Mi_data[0];
+		clean_struct->data[11] = iter->Mi_data[1];
+		clean_struct->data[12] = iter->Mi_data[2];
+		clean_struct->data[13] = iter->Mi_data[3];
+		clean_struct->data[14] = iter->Mi_data[4];
+		clean_struct->data[15] = iter->Mi_data[5];
+		clean_struct->data[16] = iter->Mi_data[6];
+		
+	
+	
+	create_cleanup_codelet(clean_struct);
+
 }
 
 static void dummy_codelet_func(__attribute__((unused))data_interface_t *descr,

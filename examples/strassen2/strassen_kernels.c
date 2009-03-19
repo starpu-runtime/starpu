@@ -233,3 +233,9 @@ void self_sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  v
 	self_add_sub_common_codelet(descr, 1, arg, -1.0f);
 }
 #endif
+
+/* this codelet does nothing  */
+void null_codelet(__attribute__((unused)) data_interface_t *descr,
+		  __attribute__((unused))  void *arg)
+{
+}
