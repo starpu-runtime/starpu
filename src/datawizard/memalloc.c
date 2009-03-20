@@ -6,8 +6,6 @@ static mutex mc_mutex[MAXNODES];
 static mem_chunk_list_t mc_list[MAXNODES];
 static mem_chunk_list_t mc_list_to_free[MAXNODES];
 
-
-
 void init_mem_chunk_lists(void)
 {
 	unsigned i;
@@ -150,6 +148,7 @@ void transfer_subtree_to_node(data_state *data, unsigned src_node,
 	}
 }
 
+
 static size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node, unsigned attempts)
 {
 	size_t liberated = 0;
@@ -203,14 +202,21 @@ static void reuse_mem_chunk(unsigned node, data_state *new_data, mem_chunk_t mc,
 		mem_chunk_list_erase(mc_list_to_free[node], mc);
 	}
 
-	old_data->per_node[node].allocated = 0;
-	old_data->per_node[node].automatically_allocated = 0;
+	if (!mc->data_was_deleted)
+	{
+		old_data->per_node[node].allocated = 0;
+		old_data->per_node[node].automatically_allocated = 0;
+	}
 
 	new_data->per_node[node].allocated = 1;
 	new_data->per_node[node].automatically_allocated = 1;
 
+	memcpy(&new_data->interface[node], &mc->interface, sizeof(data_interface_t));
+
 	mc->data = new_data;
-	/* mc->size and mc->footprint should be unchanged ! */
+	mc->data_was_deleted = 0;
+	/* mc->ops, mc->size, mc->footprint and mc->interface should be
+ 	 * unchanged ! */
 	
 	/* reinsert the mem chunk in the list of active memory chunks */
 	if (!is_already_in_mc_list)
@@ -266,6 +272,7 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, data_state *data, 
 	     mc = next_mc)
 	{
 		next_mc = mem_chunk_list_next(mc);
+
 		if (mc->footprint == footprint)
 		{
 
@@ -362,17 +369,22 @@ static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unu
 	return liberated;
 }
 
-static void register_mem_chunk(data_state *state, uint32_t dst_node, size_t size)
+static void register_mem_chunk(data_state *state, uint32_t dst_node, size_t size, unsigned automatically_allocated)
 {
 	mem_chunk_t mc = mem_chunk_new();
 
 	STARPU_ASSERT(state);
 	STARPU_ASSERT(state->ops);
-	STARPU_ASSERT(state->ops->liberate_data_on_node);
 
 	mc->data = state;
 	mc->size = size; 
 	mc->footprint = compute_data_footprint(state);
+	mc->ops = state->ops;
+	mc->data_was_deleted = 0;
+	mc->automatically_allocated = automatically_allocated;
+
+	/* the interface was already filled by ops->allocate_data_on_node */
+	memcpy(&mc->interface, &state->interface[dst_node], sizeof(data_interface_t));
 
 	take_mutex(&mc_mutex[dst_node]);
 	mem_chunk_list_push_front(mc_list[dst_node], mc);
@@ -384,13 +396,17 @@ void request_mem_chunk_removal(data_state *state, unsigned node)
 	take_mutex(&mc_mutex[node]);
 
 	/* iterate over the list of memory chunks and remove the entry */
-	mem_chunk_t mc;
+	mem_chunk_t mc, next_mc;
 	for (mc = mem_chunk_list_begin(mc_list[node]);
 	     mc != mem_chunk_list_end(mc_list[node]);
-	     mc = mem_chunk_list_next(mc))
+	     mc = next_mc)
 	{
+		next_mc = mem_chunk_list_next(mc);
+
 		if (mc->data == state) {
 			/* we found the data */
+			mc->data_was_deleted = 1;
+
 			/* remove it from the main list */
 			mem_chunk_list_erase(mc_list[node], mc);
 
@@ -412,19 +428,22 @@ size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node)
 {
 	size_t liberated = 0;
 
-	data_state *state = mc->data;
+	STARPU_ASSERT(mc->ops);
+	STARPU_ASSERT(mc->ops->liberate_data_on_node);
 
-	STARPU_ASSERT(state->ops);
-	STARPU_ASSERT(state->ops->liberate_data_on_node);
-
-	if (state->per_node[node].allocated && state->per_node[node].automatically_allocated)
+	if (mc->automatically_allocated)
 	{
-		state->ops->liberate_data_on_node(state, node);
+		mc->ops->liberate_data_on_node(&mc->interface, node);
 
-		state->per_node[node].allocated = 0;
+		if (!mc->data_was_deleted)
+		{
+			data_state *state = mc->data;
 
-		/* XXX why do we need that ? */
-		state->per_node[node].automatically_allocated = 0;
+			state->per_node[node].allocated = 0;
+
+			/* XXX why do we need that ? */
+			state->per_node[node].automatically_allocated = 0;
+		}
 
 		liberated = mc->size;
 	}
@@ -490,7 +509,7 @@ int allocate_memory_on_node(data_state *state, uint32_t dst_node)
 	if (!allocated_memory)
 		goto nomem;
 
-	register_mem_chunk(state, dst_node, allocated_memory);
+	register_mem_chunk(state, dst_node, allocated_memory, 1);
 
 	state->per_node[dst_node].allocated = 1;
 	state->per_node[dst_node].automatically_allocated = 1;

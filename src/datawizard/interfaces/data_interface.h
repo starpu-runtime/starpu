@@ -26,7 +26,7 @@ typedef union {
 struct data_interface_ops_t {
 	size_t (*allocate_data_on_node)(struct data_state_t *state,
 					uint32_t node);
-	void (*liberate_data_on_node)(struct data_state_t *state,
+	void (*liberate_data_on_node)(data_interface_t *interface,
 					uint32_t node);
 	int (*copy_data_1_to_1)(struct data_state_t *state, 
 					uint32_t src, uint32_t dst);

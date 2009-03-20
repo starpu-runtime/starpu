@@ -11,7 +11,7 @@
 #endif
 
 size_t allocate_csr_buffer_on_node(struct data_state_t *state, uint32_t dst_node);
-void liberate_csr_buffer_on_node(data_state *state, uint32_t node);
+void liberate_csr_buffer_on_node(data_interface_t *interface, uint32_t node);
 size_t dump_csr_interface(data_interface_t *interface, void *_buffer);
 int do_copy_csr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, uint32_t dst_node);
 size_t csr_interface_get_size(struct data_state_t *state);
@@ -263,20 +263,20 @@ fail_nzval:
 	return allocated_memory;
 }
 
-void liberate_csr_buffer_on_node(data_state *state, uint32_t node)
+void liberate_csr_buffer_on_node(data_interface_t *interface, uint32_t node)
 {
 	node_kind kind = get_node_kind(node);
 	switch(kind) {
 		case RAM:
-			free((void*)state->interface[node].csr.nzval);
-			free((void*)state->interface[node].csr.colind);
-			free((void*)state->interface[node].csr.rowptr);
+			free((void*)interface->csr.nzval);
+			free((void*)interface->csr.colind);
+			free((void*)interface->csr.rowptr);
 			break;
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			cublasFree((void*)state->interface[node].csr.nzval);
-			cublasFree((void*)state->interface[node].csr.colind);
-			cublasFree((void*)state->interface[node].csr.rowptr);
+			cublasFree((void*)interface->csr.nzval);
+			cublasFree((void*)interface->csr.colind);
+			cublasFree((void*)interface->csr.rowptr);
 			break;
 #endif
 		default:

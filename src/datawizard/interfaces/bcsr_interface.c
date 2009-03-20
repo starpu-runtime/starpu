@@ -14,7 +14,7 @@
  * BCSR : blocked CSR, we use blocks of size (r x c)
  */
 size_t allocate_bcsr_buffer_on_node(struct data_state_t *state, uint32_t dst_node);
-void liberate_bcsr_buffer_on_node(data_state *state, uint32_t node);
+void liberate_bcsr_buffer_on_node(data_interface_t *interface, uint32_t node);
 size_t dump_bcsr_interface(data_interface_t *interface, void *_buffer);
 int do_copy_bcsr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, uint32_t dst_node);
 size_t bcsr_interface_get_size(struct data_state_t *state);
@@ -295,20 +295,20 @@ fail_nzval:
 	return allocated_memory;
 }
 
-void liberate_bcsr_buffer_on_node(data_state *state, uint32_t node)
+void liberate_bcsr_buffer_on_node(data_interface_t *interface, uint32_t node)
 {
 	node_kind kind = get_node_kind(node);
 	switch(kind) {
 		case RAM:
-			free((void*)state->interface[node].bcsr.nzval);
-			free((void*)state->interface[node].bcsr.colind);
-			free((void*)state->interface[node].bcsr.rowptr);
+			free((void*)interface->bcsr.nzval);
+			free((void*)interface->bcsr.colind);
+			free((void*)interface->bcsr.rowptr);
 			break;
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			cublasFree((void*)state->interface[node].bcsr.nzval);
-			cublasFree((void*)state->interface[node].bcsr.colind);
-			cublasFree((void*)state->interface[node].bcsr.rowptr);
+			cublasFree((void*)interface->bcsr.nzval);
+			cublasFree((void*)interface->bcsr.colind);
+			cublasFree((void*)interface->bcsr.rowptr);
 			break;
 #endif
 		default:
