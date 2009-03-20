@@ -432,6 +432,17 @@ size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node)
 	return liberated;
 }
 
+/*
+ * In order to allocate a piece of data, we try to reuse existing buffers if
+ * its possible.
+ *	1 - we try to reuse a memchunk that is explicitely unused.
+ *	2 - we go through the list of memory chunks and find one that is not
+ *	referenced and that has the same footprint to reuse it.
+ *	3 - we call the usual driver's alloc method
+ *	4 - we go through the list of memory chunks and release those that are
+ *	not referenced (or part of those).
+ *
+ */
 int allocate_memory_on_node(data_state *state, uint32_t dst_node)
 {
 	unsigned attempts = 0;
