@@ -209,6 +209,8 @@ struct perfmodel_t model_11 = {
 	.symbol = "lu_model_11_atlas"
 #elif defined(GOTO)
 	.symbol = "lu_model_11_goto"
+#else
+	.symbol = "lu_model_11"
 #endif
 };
 
@@ -223,6 +225,8 @@ struct perfmodel_t model_12 = {
 	.symbol = "lu_model_12_atlas"
 #elif defined(GOTO)
 	.symbol = "lu_model_12_goto"
+#else
+	.symbol = "lu_model_12"
 #endif
 };
 
@@ -237,6 +241,8 @@ struct perfmodel_t model_21 = {
 	.symbol = "lu_model_21_atlas"
 #elif defined(GOTO)
 	.symbol = "lu_model_21_goto"
+#else
+	.symbol = "lu_model_21"
 #endif
 };
 
@@ -251,5 +257,7 @@ struct perfmodel_t model_22 = {
 	.symbol = "lu_model_22_atlas"
 #elif defined(GOTO)
 	.symbol = "lu_model_22_goto"
+#else
+	.symbol = "lu_model_22"
 #endif
 };
