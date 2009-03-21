@@ -37,6 +37,8 @@ struct perfmodel_t sgemm_model = {
 	.symbol = "sgemm_atlas"
 #elif defined(GOTO)
 	.symbol = "sgemm_goto"
+#else
+	.symbol = "sgemm"
 #endif
 };
 
