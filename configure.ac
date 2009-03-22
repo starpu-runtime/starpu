@@ -1,11 +1,20 @@
 AC_INIT([StarPU],0.1, [http://runtime.bordeaux.inria.fr/StarPU/], starpu)
-AC_CONFIG_SRCDIR(src/core/jobs.h)
 
 AC_MSG_NOTICE([Configuring StarPU])
 
+AC_CONFIG_SRCDIR(src/core/jobs.h)
+
 AC_PROG_CC
 AC_PROG_CPP
+AC_PROG_SED
+AC_PROG_LN_S
 AC_PROG_F77
+
+###############################################################################
+#                                                                             #
+#                                 CPUs settings                               #
+#                                                                             #
+###############################################################################
 
 AC_MSG_CHECKING(whether CPUs should be used)
 AC_ARG_ENABLE(cpu, [AS_HELP_STRING([--disable-cpu],
@@ -20,30 +29,24 @@ if test x$enable_cpu = xyes; then
 	AC_SUBST(NMAXCORES, 16)
 fi
 
+###############################################################################
+#                                                                             #
+#                                 CUDA settings                               #
+#                                                                             #
+###############################################################################
 
-disable_cuda=no
-explicitely_enable_cuda=no
-AC_MSG_CHECKING(whether CUDA is disabled)
 AC_ARG_ENABLE(cuda, [AS_HELP_STRING([--disable-cuda],
-			[do not use CUDA device(s)])],
-		[
-			if test x$enable_cuda = xno; then
-				disable_cuda=yes
-			fi
-			if test x$enable_cuda = xyes; then
-				explicitely_enable_cuda=yes
-			fi
-		])
+		[do not use CUDA device(s)])],, [enable_cuda=maybe])
 
-if test x$disable_cuda = xno; then
-	AC_MSG_RESULT(no)
+if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	#AC_MSG_CHECKING(whether CUDA is available)
 	AC_ARG_WITH(cuda-dir, 
 		[AS_HELP_STRING([--with-cuda-dir=<path>],
 		[specify CUDA installation directory (default is /usr/local/cuda/)])],
 		[
 			cuda_dir=$withval
-			explicitely_enable_cuda=yes
+			# in case this was not explicit yet
+			enable_cuda=yes
 		], cuda_dir=/usr/local/cuda/)
 	
 	if test -d "$cuda_dir/include/"; then
@@ -53,22 +56,32 @@ if test x$disable_cuda = xno; then
 		LDFLAGS="${LDFLAGS} -L$cuda_dir/lib/ "
 	fi
 
-	enable_cuda=yes
-	AC_CHECK_HEADER([cuda.h],,[enable_cuda=no])
-	AC_SEARCH_LIBS([cuInit],[cuda],,[enable_cuda=no])
-	AC_SEARCH_LIBS([cublasInit],[cublas],,[enable_cuda=no])
-else
-	AC_MSG_RESULT(yes)
-	enable_cuda=no
+	# do we have a valid CUDA setup ?
+	have_valid_cuda=yes
+	AC_CHECK_HEADER([cuda.h],,[have_valid_cuda=no])
+	AC_SEARCH_LIBS([cuInit],[cuda],,[have_valid_cuda=no])
+
+	# we also check that CUBLAS is available
+	AC_SEARCH_LIBS([cublasInit],[cublas],,[have_valid_cuda=no])
+
+	# in case CUDA was explicitely required, but is not available, this is an error
+	if test x$enable_cuda = xyes -a x$have_valid_cuda = no; then
+		AC_MSG_ERROR([cannot find CUDA])
+	fi
+
+	# now we enable CUDA if and only if a proper setup is available
+	enable_cuda=$have_valid_cuda
 fi
 
-if test x$explicitely_enable_cuda = xyes -a x$enable_cuda = xno; then
-	AC_MSG_ERROR([cannot find CUDA])
-fi
-
-AC_MSG_CHECKING(whether CUDA is activated)
+AC_MSG_CHECKING(whether CUDA should be used)
 AC_MSG_RESULT($enable_cuda)
 AC_SUBST(USE_CUDA, $enable_cuda)
+
+###############################################################################
+#                                                                             #
+#                                 Cell settings                               #
+#                                                                             #
+###############################################################################
 
 AC_MSG_CHECKING(whether GORDON should be used)
 AC_ARG_ENABLE(gordon, [AS_HELP_STRING([--enable-gordon],
@@ -81,13 +94,11 @@ if test x$enable_gordon = xyes; then
 	AC_CHECK_LIB(spe2, spe_context_create,,AC_MSG_ERROR([cannot find libspe2]))
 fi
 
-
-AC_MSG_CHECKING(whether a dynamic library should be generated)
-AC_ARG_ENABLE(dynamic, [AS_HELP_STRING([--enable-dynamic],
-			[generate a dynamic library])],
-			enable_dynamic=$enableval, enable_dynamic=no)
-AC_MSG_RESULT($enable_dynamic)
-AC_SUBST(DYNAMIC, $enable_dynamic)
+###############################################################################
+#                                                                             #
+#                   Debug and Performance analysis tools                      #
+#                                                                             #
+###############################################################################
 
 AC_MSG_CHECKING(whether coverage testing should be enabled)
 AC_ARG_ENABLE(coverage, [AS_HELP_STRING([--enable-coverage],
@@ -95,38 +106,6 @@ AC_ARG_ENABLE(coverage, [AS_HELP_STRING([--enable-coverage],
 			enable_coverage=$enableval, enable_coverage=no)
 AC_MSG_RESULT($enable_coverage)
 AC_SUBST(COVERAGE, $enable_coverage)
-
-AC_MSG_CHECKING(whether OpenGL rendering is enabled)
-AC_ARG_ENABLE(opengl-render, [AS_HELP_STRING([--enable-opengl-render],
-			[enable OpenGL rendering of some examples])],
-			enable_opengl_render=$enableval, enable_opengl_render=no)
-AC_MSG_RESULT($enable_opengl_render)
-
-if test x$enable_opengl_render = xyes; then
-	AC_CHECK_LIB(glut, glutInit,,AC_MSG_ERROR([cannot find glut]))
-	AC_CHECK_LIB(GL, glXCreateContext,,AC_MSG_ERROR([cannot find GL]))
-	AC_CHECK_LIB(GLU, gluLookAt,,AC_MSG_ERROR([cannot find GLU]))
-fi
-
-AC_SUBST(OPENGL_RENDER, $enable_opengl_render)
-
-
-AC_MSG_CHECKING(whether priorities should be enabled)
-AC_ARG_ENABLE(priority, [AS_HELP_STRING([--disable-priority],
-			[do not use priorities])],
-			enable_priority=$enableval, enable_priority=yes)
-AC_MSG_RESULT($enable_priority)
-AC_SUBST(USE_PRIO, $enable_priority)
-
-
-AC_MSG_CHECKING(whether data RW-lock should be used)
-AC_ARG_ENABLE(data-rw-lock, [AS_HELP_STRING([--disable-data-rw-lock],
-			[do not use data RW-locks])],
-			enable_data_rw_lock=$enableval, enable_data_rw_lock=yes)
-AC_MSG_RESULT($enable_data_rw_lock)
-AC_SUBST(USE_DATA_RW_LOCK, $enable_data_rw_lock)
-
-
 
 # shall we use FxT to generate trace of the execution ?
 AC_MSG_CHECKING(whether fxt traces should be generated)
@@ -182,6 +161,33 @@ AC_ARG_ENABLE(data-stats, [AS_HELP_STRING([--enable-data-stats],
 AC_MSG_RESULT($enable_data_stats)
 AC_SUBST(DATA_STATS, $enable_data_stats)
 
+###############################################################################
+#                                                                             #
+#                  Miscellaneous options for StarPU                           #
+#                                                                             #
+###############################################################################
+
+AC_MSG_CHECKING(whether a dynamic library should be generated)
+AC_ARG_ENABLE(dynamic, [AS_HELP_STRING([--enable-dynamic],
+			[generate a dynamic library])],
+			enable_dynamic=$enableval, enable_dynamic=no)
+AC_MSG_RESULT($enable_dynamic)
+AC_SUBST(DYNAMIC, $enable_dynamic)
+
+AC_MSG_CHECKING(whether priorities should be enabled)
+AC_ARG_ENABLE(priority, [AS_HELP_STRING([--disable-priority],
+			[do not use priorities])],
+			enable_priority=$enableval, enable_priority=yes)
+AC_MSG_RESULT($enable_priority)
+AC_SUBST(USE_PRIO, $enable_priority)
+
+AC_MSG_CHECKING(whether data RW-lock should be used)
+AC_ARG_ENABLE(data-rw-lock, [AS_HELP_STRING([--disable-data-rw-lock],
+			[do not use data RW-locks])],
+			enable_data_rw_lock=$enableval, enable_data_rw_lock=yes)
+AC_MSG_RESULT($enable_data_rw_lock)
+AC_SUBST(USE_DATA_RW_LOCK, $enable_data_rw_lock)
+
 AC_MSG_CHECKING(whether allocation cache should be used)
 AC_ARG_ENABLE(allocation-cache, [AS_HELP_STRING([--enable-allocation-cache],
 			[enable data allocation cache])],
@@ -189,7 +195,29 @@ AC_ARG_ENABLE(allocation-cache, [AS_HELP_STRING([--enable-allocation-cache],
 AC_MSG_RESULT($enable_allocation_cache)
 AC_SUBST(USE_ALLOCATION_CACHE, $enable_allocation_cache)
 
+###############################################################################
+#                                                                             #
+#                                  Examples                                   #
+#                                                                             #
+###############################################################################
 
+AC_ARG_ENABLE(opengl-render, [AS_HELP_STRING([--enable-opengl-render],
+			[enable OpenGL rendering of some examples])],
+			enable_opengl_render=$enableval, enable_opengl_render=no)
+
+if test x$enable_opengl_render = xyes; then
+	AC_CHECK_LIB(glut, glutInit,,AC_MSG_ERROR([cannot find glut]))
+	AC_CHECK_LIB(GL, glXCreateContext,,AC_MSG_ERROR([cannot find GL]))
+	AC_CHECK_LIB(GLU, gluLookAt,,AC_MSG_ERROR([cannot find GLU]))
+fi
+
+AC_MSG_CHECKING(whether OpenGL rendering is enabled)
+AC_SUBST(OPENGL_RENDER, $enable_opengl_render)
+AC_MSG_RESULT($enable_opengl_render)
+
+# In case there are BLAS kernels that are used by the example applications
+# we may specify which library to use. Note that this is not used for StarPU
+# itself.
 
 blas_lib=maybe
 AC_ARG_ENABLE(blas-lib,
