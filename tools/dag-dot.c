@@ -32,6 +32,6 @@ void add_deps(uint64_t child, uint64_t father)
 void dot_set_tag_done(uint64_t tag, char *color)
 {
 
-	fprintf(out_file, "\t \"%llx\" \[ style=filled, label=\"\", color=\"%s\"\]\n", 
+	fprintf(out_file, "\t \"%llx\" \[ style=filled, label=\"\", color=\"%s\"]\n", 
 		(unsigned long long)tag, color);
 }
