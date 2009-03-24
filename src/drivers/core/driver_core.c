@@ -15,13 +15,13 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 	if (j->cl->model && j->cl->model->benchmarking)
 		calibrate_model = 1;
 
-	if (calibrate_model)
+	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_start_comm);
 
 	ret = fetch_codelet_input(j->buffers, j->interface,
 			j->nbuffers, 0);
 
-	if (calibrate_model)
+	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_end_comm);
 
 	if (ret != 0) {
@@ -32,13 +32,13 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 
 	TRACE_START_CODELET_BODY(j);
 
-	if (calibrate_model)
+	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_start);
 
 	cl_func func = j->cl->core_func;
 	func(j->interface, j->cl->cl_arg);
 	
-	if (calibrate_model)
+	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_end);
 
 	TRACE_END_CODELET_BODY(j);
@@ -46,7 +46,7 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 	push_codelet_output(j->buffers, j->nbuffers, 0);
 
 //#ifdef MODEL_DEBUG
-	if (calibrate_model)
+	if (calibrate_model || BENCHMARK_COMM)
 	{
 		double measured = timing_delay(&codelet_start, &codelet_end);
 		double measured_comm = timing_delay(&codelet_start_comm, &codelet_end_comm);
@@ -55,7 +55,8 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 		core_args->jobq->total_computation_time += measured;
 		core_args->jobq->total_communication_time += measured_comm;
 
-		update_perfmodel_history(j, core_args->arch, measured);
+		if (calibrate_model)
+			update_perfmodel_history(j, core_args->arch, measured);
 	}
 //#endif
 
@@ -135,9 +136,7 @@ void *core_worker(void *arg)
         }
 
 #ifdef DATA_STATS
-	if (get_env_number("CALIBRATE") != -1)
-		fprintf(stderr, "CORE #%d computation %le comm %le (%lf \%%)\n", core_arg->id, core_arg->jobq->total_computation_time, core_arg->jobq->total_communication_time,  core_arg->jobq->total_communication_time*100.0/core_arg->jobq->total_computation_time);
-
+	fprintf(stderr, "CORE #%d computation %le comm %le (%lf \%%)\n", core_arg->id, core_arg->jobq->total_computation_time, core_arg->jobq->total_communication_time,  core_arg->jobq->total_communication_time*100.0/core_arg->jobq->total_computation_time);
 #endif
 
 	TRACE_WORKER_TERMINATED(FUT_CORE_KEY);

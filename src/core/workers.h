@@ -33,6 +33,12 @@
 
 #define NMAXWORKERS	16
 
+#ifdef DATA_STATS
+#define BENCHMARK_COMM	1
+#else
+#define BENCHMARK_COMM	0
+#endif
+
 enum archtype {
 	CORE_WORKER,
 	CUDA_WORKER,

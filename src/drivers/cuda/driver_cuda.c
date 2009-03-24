@@ -188,7 +188,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 		calibrate_model = 1;
 
 	/* we do not take communication into account when modeling the performance */
-	if (calibrate_model)
+	if (calibrate_model || BENCHMARK_COMM)
 	{
 		cuCtxSynchronize();
 		GET_TICK(codelet_start_comm);
@@ -202,7 +202,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 		return TRYAGAIN;
 	}
 
-	if (calibrate_model)
+	if (calibrate_model || BENCHMARK_COMM)
 	{
 		cuCtxSynchronize();
 		GET_TICK(codelet_end_comm);
@@ -237,7 +237,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 
 		/* set up the grids */
 //#ifdef MODEL_DEBUG
-		if (calibrate_model)
+		if (calibrate_model || BENCHMARK_COMM)
 		{
 			status = cuCtxSynchronize();
 			GET_TICK(codelet_start);
@@ -262,7 +262,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 
 //#ifdef MODEL_DEBUG
 	
-	if (calibrate_model)
+	if (calibrate_model || BENCHMARK_COMM)
 	{
 		double measured = timing_delay(&codelet_start, &codelet_end);
 		double measured_comm = timing_delay(&codelet_start_comm, &codelet_end_comm);
@@ -270,7 +270,8 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 		args->jobq->total_computation_time += measured;
 		args->jobq->total_communication_time += measured_comm;
 
-		update_perfmodel_history(j, args->arch, measured);
+		if (calibrate_model)
+			update_perfmodel_history(j, args->arch, measured);
 	}
 //#endif
 
@@ -373,8 +374,7 @@ void *cuda_worker(void *arg)
 	} 
 
 #ifdef DATA_STATS
-	if (get_env_number("CALIBRATE") != -1)
-		fprintf(stderr, "CUDA #%d computation %le comm %le (%lf \%%)\n", args->id, args->jobq->total_computation_time, args->jobq->total_communication_time, args->jobq->total_communication_time*100.0/args->jobq->total_computation_time);
+	fprintf(stderr, "CUDA #%d computation %le comm %le (%lf \%%)\n", args->id, args->jobq->total_computation_time, args->jobq->total_communication_time, args->jobq->total_communication_time*100.0/args->jobq->total_computation_time);
 #endif
 	cublasShutdown();
 	pthread_exit(NULL);
