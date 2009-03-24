@@ -178,6 +178,8 @@ void fxt_register_thread(unsigned);
 #define TRACE_USER_DEFINED_END		do {} while(0);
 #define TRACE_START_ALLOC(memnode)	do {} while(0);
 #define TRACE_END_ALLOC(memnode)	do {} while(0);
+#define TRACE_START_ALLOC_REUSE(a)	do {} while(0);
+#define TRACE_END_ALLOC_REUSE(a)	do {} while(0);
 #define TRACE_START_MEMRECLAIM(memnode)	do {} while(0);
 #define TRACE_END_MEMRECLAIM(memnode)	do {} while(0);
 
