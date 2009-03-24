@@ -22,8 +22,6 @@
 #define MAXWORKERS      32
 #define FACTOR  100
 
-#define USE_GTK	1
-
 typedef enum {
 	WORKING,
 	FETCHING,
