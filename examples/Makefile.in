@@ -41,10 +41,6 @@ endif
 
 CFLAGS += -I../
 
-ifeq (@USE_FXT@,yes)
-	LDFLAGS += -lfxt
-endif
-
 all: $(TARGET)
 
 pastix-wrappers:

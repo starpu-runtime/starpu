@@ -194,7 +194,10 @@ AC_ARG_ENABLE(priority, [AS_HELP_STRING([--disable-priority],
 			[do not use priorities])],
 			enable_priority=$enableval, enable_priority=yes)
 AC_MSG_RESULT($enable_priority)
-AC_SUBST(USE_PRIO, $enable_priority)
+if test x$enable_priority = xno; then
+	CPPFLAGS="${CPPFLAGS} -DNO_PRIO "
+fi
+
 
 AC_MSG_CHECKING(whether data RW-lock should be used)
 AC_ARG_ENABLE(data-rw-lock, [AS_HELP_STRING([--disable-data-rw-lock],
@@ -230,6 +233,8 @@ if test x$enable_opengl_render = xyes; then
 	AC_CHECK_LIB(glut, glutInit,,AC_MSG_ERROR([cannot find glut]))
 	AC_CHECK_LIB(GL, glXCreateContext,,AC_MSG_ERROR([cannot find GL]))
 	AC_CHECK_LIB(GLU, gluLookAt,,AC_MSG_ERROR([cannot find GLU]))
+	
+	CPPFLAGS="${CPPFLAGS} -DOPENGL_RENDER"
 fi
 
 AC_MSG_CHECKING(whether OpenGL rendering is enabled)

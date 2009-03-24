@@ -122,10 +122,6 @@ ifeq (@USE_FXTDIR_FROM_USER@,yes)
 endif
 endif
 
-ifeq (@USE_PRIO@,no)
-	CFLAGS += -DNO_PRIO
-endif
-
 #
 #	To create the static and dynamic libraries, we need a list of all the object
 #	files that are needed by the application which use our runtime
