@@ -205,24 +205,17 @@ void handle_end_codelet_body(void)
 
 void handle_start_callback(void)
 {
-
-	//fprintf(stderr, "start codelet %p on tid %d\n", (void *)ev.param[0], ev.param[1]);
-
 	int worker;
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
-//	printf("-> worker %d\n", worker);
 	fprintf(out_paje_file, "10       %f	S      %ld      C\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 }
 
 void handle_end_callback(void)
 {
-	//fprintf(stderr, "end codelet %p on tid %d\n", (void *)ev.param[0], ev.param[1]);
-
 	int worker;
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
-//	printf("<- worker %d\n", worker);
 	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 }
 
@@ -291,36 +284,30 @@ void handle_end_push_output(void)
 	end_time = MAX(end_time, ev.time);
 }
 
-static uint64_t comcnt = 0;
-
 void handle_data_copy(void)
 {
-	unsigned src = ev.param[0];
-	unsigned dst = ev.param[1];
-	unsigned size = ev.param[2];
-
-        char str[16];
-        sprintf(str, "com_%ld", comcnt++);
-
-	fprintf(out_paje_file, "18       %f	L      p	%d	MEMNODE%d	%s\n", (float)((ev.time-start_time)/1000000.0), size, src, str);
-	fprintf(out_paje_file, "19       %f	L      p	%d	MEMNODE%d	%s\n", (float)((ev.time-start_time)/1000000.0+0.0001), size, dst, str);
-
 }
 
 void handle_start_driver_copy(void)
 {
+	unsigned src = ev.param[0];
 	unsigned dst = ev.param[1];
 	unsigned size = ev.param[2];
+	unsigned comid = ev.param[3];
 
 	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      Co\n", (float)((ev.time-start_time)/1000000.0), dst);
+	fprintf(out_paje_file, "18       %f	L      p	%d	MEMNODE%d	com_%d\n", (float)((ev.time-start_time)/1000000.0), size, src, comid);
+
 }
 
 void handle_end_driver_copy(void)
 {
 	unsigned dst = ev.param[1];
 	unsigned size = ev.param[2];
+	unsigned comid = ev.param[3];
 
 	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      No\n", (float)((ev.time-start_time)/1000000.0), dst);
+	fprintf(out_paje_file, "19       %f	L      p	%d	MEMNODE%d	com_%d\n", (float)((ev.time-start_time)/1000000.0), size, dst, comid);
 }
 
 void handle_start_alloc(void)

@@ -115,11 +115,11 @@ void fxt_register_thread(unsigned);
 #define TRACE_DATA_COPY(src_node, dst_node, size)	\
 	FUT_DO_PROBE3(FUT_DATA_COPY, src_node, dst_node, size)
 
-#define TRACE_START_DRIVER_COPY(src_node, dst_node, size)	\
-	FUT_DO_PROBE3(FUT_START_DRIVER_COPY, src_node, dst_node, size)
+#define TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id)	\
+	FUT_DO_PROBE4(FUT_START_DRIVER_COPY, src_node, dst_node, size, com_id)
 
-#define TRACE_END_DRIVER_COPY(src_node, dst_node, size)	\
-	FUT_DO_PROBE3(FUT_END_DRIVER_COPY, src_node, dst_node, size)
+#define TRACE_END_DRIVER_COPY(src_node, dst_node, size, com_id)	\
+	FUT_DO_PROBE4(FUT_END_DRIVER_COPY, src_node, dst_node, size, com_id)
 
 #define TRACE_WORK_STEALING(empty_q, victim_q)		\
 	FUT_DO_PROBE2(FUT_WORK_STEALING, empty_q, victim_q)
@@ -170,8 +170,8 @@ void fxt_register_thread(unsigned);
 #define TRACE_CODELET_TAG_DEPS(a, b)	do {} while(0);
 #define TRACE_TASK_DONE(tag)		do {} while(0);
 #define TRACE_DATA_COPY(a, b, c)	do {} while(0);
-#define TRACE_START_DRIVER_COPY(a,b,c)	do {} while(0);
-#define TRACE_END_DRIVER_COPY(a,b,c)	do {} while(0);
+#define TRACE_START_DRIVER_COPY(a,b,c,d)	do {} while(0);
+#define TRACE_END_DRIVER_COPY(a,b,c,d)	do {} while(0);
 #define TRACE_WORK_STEALING(a, b)	do {} while(0);
 #define TRACE_WORKER_TERMINATED(a)	do {} while(0);
 #define TRACE_USER_DEFINED_START	do {} while(0);

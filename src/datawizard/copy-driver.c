@@ -128,10 +128,18 @@ nomem:
 	return -ENOMEM;
 }
 
+#ifdef USE_FXT
+/* we need to identify each communication so that we can match the beginning
+ * and the end of a communication in the trace, so we use a unique identifier
+ * per communication */
+static unsigned communication_cnt = 0;
+#endif
+
 int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *state, uint32_t src_node, 
 				uint32_t dst_node, unsigned donotread)
 {
 	int ret_alloc, ret_copy;
+	unsigned com_id = 0;
 
 	/* first make sure the destination has an allocated buffer */
 	ret_alloc = allocate_per_node_buffer(state, dst_node);
@@ -149,10 +157,14 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 		update_comm_ammount(src_node, dst_node, size);
 #endif
 		
+#ifdef USE_FXT
+		com_id = ATOMIC_ADD(&communication_cnt, 1);
+#endif
+
 		/* for now we set the size to 0 in the FxT trace XXX */
-		TRACE_START_DRIVER_COPY(src_node, dst_node, 0);
+		TRACE_START_DRIVER_COPY(src_node, dst_node, 0, com_id);
 		ret_copy = state->ops->copy_data_1_to_1(state, src_node, dst_node);
-		TRACE_END_DRIVER_COPY(src_node, dst_node, 0);
+		TRACE_END_DRIVER_COPY(src_node, dst_node, 0, com_id);
 
 		return ret_copy;
 	}
