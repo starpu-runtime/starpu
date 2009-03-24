@@ -25,44 +25,60 @@ void init_sched_policy(struct machine_config_s *config)
 	sched_env = getenv("SCHED");
 	if (sched_env) {
 		 if (strcmp(sched_env, "ws") == 0) {
+#ifdef VERBOSE
 		 	fprintf(stderr, "USE WS SCHEDULER !! \n");
+#endif
 			policy.init_sched = initialize_ws_policy;
 			policy.get_local_queue = get_local_queue_ws;
 		 }
 		 else if (strcmp(sched_env, "prio") == 0) {
+#ifdef VERBOSE
 		 	fprintf(stderr, "USE PRIO EAGER SCHEDULER !! \n");
+#endif
 			policy.init_sched = initialize_eager_center_priority_policy;
 			policy.get_local_queue = get_local_queue_eager_priority;
 		 }
 		 else if (strcmp(sched_env, "no-prio") == 0) {
+#ifdef VERBOSE
 		 	fprintf(stderr, "USE _NO_ PRIO EAGER SCHEDULER !! \n");
+#endif
 			policy.init_sched = initialize_no_prio_policy;
 			policy.get_local_queue = get_local_queue_no_prio;
 		 }
 		 else if (strcmp(sched_env, "dm") == 0) {
+#ifdef VERBOSE
 		 	fprintf(stderr, "USE MODEL SCHEDULER !! \n");
+#endif
 			policy.init_sched = initialize_dm_policy;
 			policy.get_local_queue = get_local_queue_dm;
 		 }
 		 else if (strcmp(sched_env, "dmda") == 0) {
+#ifdef VERBOSE
 		 	fprintf(stderr, "USE DATA AWARE MODEL SCHEDULER !! \n");
+#endif
 			policy.init_sched = initialize_dmda_policy;
 			policy.get_local_queue = get_local_queue_dmda;
 		 }
 		 else if (strcmp(sched_env, "random") == 0) {
+#ifdef VERBOSE
 		 	fprintf(stderr, "USE RANDOM SCHEDULER !! \n");
+#endif
 			policy.init_sched = initialize_random_policy;
 			policy.get_local_queue = get_local_queue_random;
 		 }
 		 else {
+#ifdef VERBOSE
 		 	fprintf(stderr, "USE EAGER SCHEDULER !! \n");
+#endif
 			/* default scheduler is the eager one */
 			policy.init_sched = initialize_eager_center_policy;
 			policy.get_local_queue = get_local_queue_eager;
 		 }
 	}
 	else {
-		 	fprintf(stderr, "USE EAGER SCHEDULER !! \n");
+#ifdef VERBOSE
+	 	fprintf(stderr, "USE EAGER SCHEDULER !! \n");
+#endif
 		/* default scheduler is the eager one */
 		policy.init_sched = initialize_eager_center_policy;
 		policy.get_local_queue = get_local_queue_eager;

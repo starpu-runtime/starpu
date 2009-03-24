@@ -82,7 +82,9 @@ void *core_worker(void *arg)
 	sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
 #endif
 
+#ifdef VERBOSE
         fprintf(stderr, "core worker %d is ready on logical core %d\n", core, core_arg->bindid);
+#endif
 
 	set_local_memory_node_key(&core_arg->memory_node);
 

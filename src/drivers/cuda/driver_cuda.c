@@ -311,7 +311,9 @@ void *cuda_worker(void *arg)
 	args->jobq->total_communication_time = 0.0;
 
 	init_context(devid);
+#ifdef VERBOSE
 	fprintf(stderr, "cuda thread is ready to run on CPU %d !\n", args->bindid);
+#endif
 
 //	uint64_t foo = 1664;
 //	cuMemAlloc(&debugptr, sizeof(uint64_t));

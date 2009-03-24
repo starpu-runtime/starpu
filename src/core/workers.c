@@ -305,7 +305,9 @@ void terminate_workers(struct machine_config_s *config)
 	{
 		wake_all_blocked_workers();
 		
+#ifdef VERBOSE
 		fprintf(stderr, "wait for worker %d\n", workerid);
+#endif
 
 		struct worker_set_s *set = config->workers[workerid].set;
 
@@ -316,8 +318,10 @@ void terminate_workers(struct machine_config_s *config)
 				if (pthread_self() != set->worker_thread)
 				{
 					status = pthread_join(set->worker_thread, NULL);
+#ifdef VERBOSE
 					if (status)
 						fprintf(stderr, "pthread_join -> %d\n", status);
+#endif
 				}
 
 				set->joined = 1;
@@ -328,8 +332,10 @@ void terminate_workers(struct machine_config_s *config)
 			if (pthread_self() != worker->worker_thread)
 			{
 				status = pthread_join(worker->worker_thread, NULL);
+#ifdef VERBOSE
 				if (status)
 					fprintf(stderr, "pthread_join -> %d\n", status);
+#endif
 			}
 		}
 	}

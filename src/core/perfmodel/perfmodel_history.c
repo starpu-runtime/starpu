@@ -215,7 +215,9 @@ void save_history_based_model(struct perfmodel_t *model)
 	char path[256];
 	get_model_path(model, path, 256);
 
+#ifdef VERBOSE
 	fprintf(stderr, "Opening performance model file %s for model %s\n", path, model->symbol);
+#endif
 
 	/* overwrite existing file, or create it */
 	FILE *f;
@@ -237,7 +239,9 @@ void dump_registered_models(void)
 	struct model_list_t *node;
 	node = registered_models;
 
+#ifdef VERBOSE
 	fprintf(stderr, "DUMP MODELS !\n");
+#endif
 
 	while (node) {
 		save_history_based_model(node->model);		
@@ -296,13 +300,15 @@ void load_history_based_model(struct perfmodel_t *model, unsigned scan_history)
 		char path[256];
 		get_model_path(model, path, 256);
 	
+#ifdef VERBOSE
 		fprintf(stderr, "Opening performance model file %s for model %s\n", path, model->symbol);
+#endif
 	
 		/* try to open an existing file and load it */
 		int res;
 		res = access(path, F_OK); 
 		if (res == 0) {
-			fprintf(stderr, "File exists !\n");
+		//	fprintf(stderr, "File exists !\n");
 	
 			FILE *f;
 			f = fopen(path, "r");
