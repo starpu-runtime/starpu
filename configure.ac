@@ -100,12 +100,26 @@ fi
 #                                                                             #
 ###############################################################################
 
+AC_MSG_CHECKING(whether debug messages should be displayed)
+AC_ARG_ENABLE(verbose, [AS_HELP_STRING([--enable-verbose],
+			[display verbose debug messages])],
+			enable_verbose=$enableval, enable_verbose=no)
+AC_MSG_RESULT($enable_verbose)
+if test x$enable_verbose = xyes; then
+	CPPFLAGS="${CPPFLAGS} -DVERBOSE "
+fi
+
 AC_MSG_CHECKING(whether coverage testing should be enabled)
 AC_ARG_ENABLE(coverage, [AS_HELP_STRING([--enable-coverage],
 			[enable coverage checking])],
 			enable_coverage=$enableval, enable_coverage=no)
 AC_MSG_RESULT($enable_coverage)
 AC_SUBST(COVERAGE, $enable_coverage)
+if test x$enable_coverage = xyes; then
+	CPPFLAGS="${CPPFLAGS} --coverage"
+	LDFLAGS="${LDFLAGS} --coverage"
+fi
+
 
 # shall we use FxT to generate trace of the execution ?
 AC_MSG_CHECKING(whether fxt traces should be generated)
@@ -154,12 +168,13 @@ AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],
 AC_MSG_RESULT($enable_perf_debug)
 AC_SUBST(PERF_DEBUG, $enable_perf_debug)
 
-AC_MSG_CHECKING(whether statistics about data usage should be generated)
-AC_ARG_ENABLE(data-stats, [AS_HELP_STRING([--enable-data-stats],
-			[enable data statistics])],
-			enable_data_stats=$enableval, enable_data_stats=no)
-AC_MSG_RESULT($enable_data_stats)
-AC_SUBST(DATA_STATS, $enable_data_stats)
+AC_MSG_CHECKING(whether statistics should be generated)
+AC_ARG_ENABLE(stats, [AS_HELP_STRING([--enable-stats],
+			[enable statistics])],
+			enable_stats=$enableval, enable_stats=no)
+AC_MSG_RESULT($enable_stats)
+AC_SUBST(STATS, $enable_stats)
+AC_SUBST(DATA_STATS, $enable_stats)
 
 ###############################################################################
 #                                                                             #
@@ -186,14 +201,20 @@ AC_ARG_ENABLE(data-rw-lock, [AS_HELP_STRING([--disable-data-rw-lock],
 			[do not use data RW-locks])],
 			enable_data_rw_lock=$enableval, enable_data_rw_lock=yes)
 AC_MSG_RESULT($enable_data_rw_lock)
-AC_SUBST(USE_DATA_RW_LOCK, $enable_data_rw_lock)
+if test x$enable_data_rw_lock = xno; then
+	CPPFLAGS="${CPPFLAGS} -DNO_DATA_RW_LOCK "
+fi
+
 
 AC_MSG_CHECKING(whether allocation cache should be used)
 AC_ARG_ENABLE(allocation-cache, [AS_HELP_STRING([--enable-allocation-cache],
 			[enable data allocation cache])],
 			enable_allocation_cache=$enableval, enable_allocation_cache=no)
 AC_MSG_RESULT($enable_allocation_cache)
-AC_SUBST(USE_ALLOCATION_CACHE, $enable_allocation_cache)
+if test x$enable_allocation_cache = xyes; then
+	CPPFLAGS="${CPPFLAGS} -DUSE_ALLOCATION_CACHE "
+fi
+
 
 ###############################################################################
 #                                                                             #

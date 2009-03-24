@@ -25,11 +25,6 @@ CFLAGS+="-DSTARPUDIR=\"$(PWD)/\""
 LDFLAGS+= -lm
 LDFLAGS += -lpthread
 
-ifeq (@COVERAGE@,yes)
-	CFLAGS += --coverage
-	LDFLAGS += --coverage
-endif
-
 ifdef TRANSFER_OVERHEAD
 	CFLAGS += -DTRANSFER_OVERHEAD
 endif
@@ -45,10 +40,6 @@ endif
 
 ifeq (@DATA_STATS@,yes)
 	CFLAGS+="-DDATA_STATS "
-endif
-
-ifeq (@USE_ALLOCATION_CACHE@,yes)
-	CFLAGS+="-DUSE_ALLOCATION_CACHE "
 endif
 
 ifdef PERF_MODEL_DIR
@@ -68,10 +59,6 @@ ifeq (@PERF_DEBUG@,yes)
 endif
 
 EXTRADEP=
-
-ifeq (@USE_DATA_RW_LOCK@,no)
-	CFLAGS+=-DNO_DATA_RW_LOCK
-endif
 
 # TODO that should be automatized, somehow
 ifdef UNRELIABLETICKS
