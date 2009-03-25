@@ -28,9 +28,15 @@ struct data_interface_ops_t interface_csr_ops = {
 };
 
 /* declare a new data with the BLAS interface */
-void monitor_csr_data(struct data_state_t *state, uint32_t home_node,
+void monitor_csr_data(struct data_state_t **handle, uint32_t home_node,
 		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize)
 {
+	struct data_state_t *state = calloc(1, sizeof(struct data_state_t));
+	ASSERT(state);
+
+	ASSERT(handle);
+	*handle = state;
+
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
 	{

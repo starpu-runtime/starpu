@@ -30,9 +30,15 @@ struct data_interface_ops_t interface_bcsr_ops = {
 	.footprint = footprint_bcsr_interface_crc32
 };
 
-void monitor_bcsr_data(struct data_state_t *state, uint32_t home_node,
+void monitor_bcsr_data(struct data_state_t **handle, uint32_t home_node,
 		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry,  uint32_t r, uint32_t c, size_t elemsize)
 {
+	struct data_state_t *state = calloc(1, sizeof(struct data_state_t));
+	ASSERT(state);
+
+	ASSERT(handle);
+	*handle = state;
+
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
 	{

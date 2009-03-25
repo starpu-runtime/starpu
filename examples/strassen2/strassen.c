@@ -109,13 +109,13 @@ struct strassen_iter {
 	unsigned reclevel;
 	struct strassen_iter *children[7];
 
-	data_state *A, *B, *C;
+	data_handle A, B, C;
 
 	/* temporary buffers */
 	/* Mi = Mia * Mib*/
-	data_state *Mia_data[7];
-	data_state *Mib_data[7];
-	data_state *Mi_data[7];
+	data_handle Mia_data[7];
+	data_handle Mib_data[7];
+	data_handle Mi_data[7];
 
 	/* input deps */
 	struct data_deps_t A_deps;
@@ -138,9 +138,9 @@ static filter f2 =
 	.filter_arg = 2
 };
 
-data_state *allocate_tmp_matrix(unsigned size, unsigned reclevel)
+data_handle allocate_tmp_matrix(unsigned size, unsigned reclevel)
 {
-	data_state *data = malloc(sizeof(data_state));
+	data_handle *data = malloc(sizeof(data_handle));
 	float *buffer;
 
 #ifdef USE_CUDA
@@ -164,9 +164,9 @@ data_state *allocate_tmp_matrix(unsigned size, unsigned reclevel)
 	/* we construct a filter tree of depth reclevel */
 	unsigned rec;
 	for (rec = 0; rec < reclevel; rec++)
-		map_filters(data, 2, &f, &f2);
+		map_filters(*data, 2, &f, &f2);
 
-	return data;
+	return *data;
 }
 
 static job_t create_job(void)
@@ -190,7 +190,7 @@ enum operation {
 };
 
 /* C = A op B */
-uint64_t compute_add_sub_op(data_state *C, enum operation op, data_state *A, data_state *B)
+uint64_t compute_add_sub_op(data_handle C, enum operation op, data_handle A, data_handle B)
 {
 	job_t job = create_job();
 	uint64_t j_tag = current_tag++;
@@ -237,7 +237,7 @@ uint64_t compute_add_sub_op(data_state *C, enum operation op, data_state *A, dat
 }
 
 /* C = C op A */
-uint64_t compute_self_add_sub_op(data_state *C, enum operation op, data_state *A)
+uint64_t compute_self_add_sub_op(data_handle C, enum operation op, data_handle A)
 {
 	job_t job = create_job();
 	uint64_t j_tag = current_tag++;
@@ -278,7 +278,7 @@ struct cleanup_arg {
 	unsigned ndeps;
 	uint64_t tags[8];
 	unsigned ndata;
-	data_state *data[32];
+	data_handle data[32];
 };
 
 void cleanup_callback(void *_arg)
@@ -342,20 +342,20 @@ void strassen_mult(struct strassen_iter *iter)
 		return;
 	}
 
-        data_state *A11 = get_sub_data(iter->A, 2, 0, 0);
-        data_state *A12 = get_sub_data(iter->A, 2, 1, 0);
-        data_state *A21 = get_sub_data(iter->A, 2, 0, 1);
-        data_state *A22 = get_sub_data(iter->A, 2, 1, 1);
+        data_handle A11 = get_sub_data(iter->A, 2, 0, 0);
+        data_handle A12 = get_sub_data(iter->A, 2, 1, 0);
+        data_handle A21 = get_sub_data(iter->A, 2, 0, 1);
+        data_handle A22 = get_sub_data(iter->A, 2, 1, 1);
 
-        data_state *B11 = get_sub_data(iter->B, 2, 0, 0);
-        data_state *B12 = get_sub_data(iter->B, 2, 1, 0);
-        data_state *B21 = get_sub_data(iter->B, 2, 0, 1);
-        data_state *B22 = get_sub_data(iter->B, 2, 1, 1);
+        data_handle B11 = get_sub_data(iter->B, 2, 0, 0);
+        data_handle B12 = get_sub_data(iter->B, 2, 1, 0);
+        data_handle B21 = get_sub_data(iter->B, 2, 0, 1);
+        data_handle B22 = get_sub_data(iter->B, 2, 1, 1);
 
-        data_state *C11 = get_sub_data(iter->C, 2, 0, 0);
-        data_state *C12 = get_sub_data(iter->C, 2, 1, 0);
-        data_state *C21 = get_sub_data(iter->C, 2, 0, 1);
-        data_state *C22 = get_sub_data(iter->C, 2, 1, 1);
+        data_handle C11 = get_sub_data(iter->C, 2, 0, 0);
+        data_handle C12 = get_sub_data(iter->C, 2, 1, 0);
+        data_handle C21 = get_sub_data(iter->C, 2, 0, 1);
+        data_handle C22 = get_sub_data(iter->C, 2, 1, 1);
 
 	unsigned size = get_blas_nx(A11);
 
@@ -654,7 +654,7 @@ void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-	data_state data_A, data_B, data_C;
+	data_handle data_A, data_B, data_C;
 	float *A, *B, *C;
 
 	struct timeval start;
@@ -694,16 +694,16 @@ int main(int argc, char **argv)
 	unsigned rec;
 	for (rec = 0; rec < reclevel; rec++)
 	{
-		map_filters(&data_A, 2, &f, &f2);
-		map_filters(&data_B, 2, &f, &f2);
-		map_filters(&data_C, 2, &f, &f2);
+		map_filters(data_A, 2, &f, &f2);
+		map_filters(data_B, 2, &f, &f2);
+		map_filters(data_C, 2, &f, &f2);
 	}
 
 	struct strassen_iter iter;
 		iter.reclevel = reclevel;
-		iter.A = &data_A;
-		iter.B = &data_B;
-		iter.C = &data_C;
+		iter.A = data_A;
+		iter.B = data_B;
+		iter.C = data_C;
 		iter.A_deps.ndeps = 1;
 		iter.A_deps.deps[0] = 42;
 		iter.B_deps.ndeps = 1;
@@ -711,7 +711,7 @@ int main(int argc, char **argv)
 
 	strassen_mult(&iter);
 
-	fprintf(stderr, "Using %d MB of memory\n", used_mem/(1024*1024));
+	fprintf(stderr, "Using %ld MB of memory\n", used_mem/(1024*1024));
 
 	job_t j = dummy_codelet(42);
 

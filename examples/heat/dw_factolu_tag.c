@@ -33,7 +33,7 @@ static void terminal_callback(void *argcb)
 	sem_post(sem);
 }
 
-static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem_t *sem)
+static job_t create_task_11(data_handle dataA, unsigned k, unsigned nblocks, sem_t *sem)
 {
 //	printf("task 11 k = %d TAG = %llx\n", k, (TAG11(k)));
 
@@ -72,7 +72,7 @@ static job_t create_task_11(data_state *dataA, unsigned k, unsigned nblocks, sem
 	return job;
 }
 
-static void create_task_12(data_state *dataA, unsigned k, unsigned i)
+static void create_task_12(data_handle dataA, unsigned k, unsigned i)
 {
 	job_t job = create_job(TAG12(k, i));
 //	printf("task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i));
@@ -104,7 +104,7 @@ static void create_task_12(data_state *dataA, unsigned k, unsigned i)
 	}
 }
 
-static void create_task_21(data_state *dataA, unsigned k, unsigned j)
+static void create_task_21(data_handle dataA, unsigned k, unsigned j)
 {
 	job_t job = create_job(TAG21(k, j));
 	
@@ -135,7 +135,7 @@ static void create_task_21(data_state *dataA, unsigned k, unsigned j)
 	}
 }
 
-static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j)
+static void create_task_22(data_handle dataA, unsigned k, unsigned i, unsigned j)
 {
 	job_t job = create_job(TAG22(k, i, j));
 //	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j));
@@ -173,7 +173,7 @@ static void create_task_22(data_state *dataA, unsigned k, unsigned i, unsigned j
  *	code to bootstrap the factorization 
  */
 
-static void dw_codelet_facto_v3(data_state *dataA, unsigned nblocks)
+static void dw_codelet_facto_v3(data_handle dataA, unsigned nblocks)
 {
 	struct timeval start;
 	struct timeval end;
@@ -281,7 +281,7 @@ void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	memcpy(Asaved, matA, ld*ld*sizeof(float));
 #endif
 
-	data_state dataA;
+	data_handle dataA;
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
@@ -295,12 +295,12 @@ void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 		f2.filter_func = block_filter_func;
 		f2.filter_arg = nblocks;
 
-	map_filters(&dataA, 2, &f, &f2);
+	map_filters(dataA, 2, &f, &f2);
 
-	dw_codelet_facto_v3(&dataA, nblocks);
+	dw_codelet_facto_v3(dataA, nblocks);
 
 	/* gather all the data */
-	unpartition_data(&dataA, 0);
+	unpartition_data(dataA, 0);
 
 #ifdef CHECK_RESULTS
 	compare_A_LU(Asaved, matA, size, ld);

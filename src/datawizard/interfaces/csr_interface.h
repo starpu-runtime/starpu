@@ -23,7 +23,7 @@ typedef struct csr_interface_s {
 
 struct data_state_t;
 
-void monitor_csr_data(struct data_state_t *state, uint32_t home_node, uint32_t nnz, uint32_t nrow,
+void monitor_csr_data(struct data_state_t **handle, uint32_t home_node, uint32_t nnz, uint32_t nrow,
 		uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize);
 
 

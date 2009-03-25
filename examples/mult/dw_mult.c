@@ -1,7 +1,7 @@
 #include <examples/mult/dw_mult.h>
 
 float *A, *B, *C;
-data_state A_state, B_state, C_state;
+data_handle A_state, B_state, C_state;
 
 /*
  * That program should compute C = A * B 
@@ -28,9 +28,9 @@ void terminate(void)
 {
 
 	fprintf(stderr, "unpartition !!\n");
-	unpartition_data(&C_state, 0);
+	unpartition_data(C_state, 0);
 
-	delete_data(&C_state);
+	delete_data(C_state);
 
 	gettimeofday(&end, NULL);
 
@@ -221,10 +221,10 @@ static void partition_mult_data(void)
 	f2.filter_func = block_filter_func;
 	f2.filter_arg = nslicesy;
 		
-	partition_data(&B_state, &f);
-	partition_data(&A_state, &f2);
+	partition_data(B_state, &f);
+	partition_data(A_state, &f2);
 
-	map_filters(&C_state, 2, &f, &f2);
+	map_filters(C_state, 2, &f, &f2);
 }
 
 static void launch_codelets(void)
@@ -272,12 +272,12 @@ static void launch_codelets(void)
 
 			tag_declare(tag, jb);
 
-			jb->buffers[0].state = get_sub_data(&A_state, 1, tasky);
+			jb->buffers[0].state = get_sub_data(A_state, 1, tasky);
 			jb->buffers[0].mode = R;
-			jb->buffers[1].state = get_sub_data(&B_state, 1, taskx);
+			jb->buffers[1].state = get_sub_data(B_state, 1, taskx);
 			jb->buffers[1].mode = R;
 			jb->buffers[2].state = 
-				get_sub_data(&C_state, 2, taskx, tasky);
+				get_sub_data(C_state, 2, taskx, tasky);
 			jb->buffers[2].mode = RW;
 
 			if (use_common_model)

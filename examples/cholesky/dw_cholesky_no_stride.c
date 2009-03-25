@@ -3,7 +3,7 @@
 
 /* A [ y ] [ x ] */
 float *A[NMAXBLOCKS][NMAXBLOCKS];
-data_state A_state[NMAXBLOCKS][NMAXBLOCKS];
+data_handle A_state[NMAXBLOCKS][NMAXBLOCKS];
 
 /*
  *	Some useful functions
@@ -52,7 +52,7 @@ static job_t create_task_11(unsigned k, unsigned nblocks, sem_t *sem)
 
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 1;
-		job->buffers[0].state = &A_state[k][k];
+		job->buffers[0].state = A_state[k][k];
 		job->buffers[0].mode = RW;
 
 	/* this is an important task */
@@ -88,9 +88,9 @@ static void create_task_21(unsigned k, unsigned j)
 
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 2;
-		job->buffers[0].state = &A_state[k][k]; 
+		job->buffers[0].state = A_state[k][k]; 
 		job->buffers[0].mode = R;
-		job->buffers[1].state = &A_state[j][k]; 
+		job->buffers[1].state = A_state[j][k]; 
 		job->buffers[1].mode = RW;
 
 	if (j == k+1) {
@@ -124,11 +124,11 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
 
 	/* which sub-data is manipulated ? */
 	job->nbuffers = 3;
-		job->buffers[0].state = &A_state[i][k]; 
+		job->buffers[0].state = A_state[i][k]; 
 		job->buffers[0].mode = R;
-		job->buffers[1].state = &A_state[j][k]; 
+		job->buffers[1].state = A_state[j][k]; 
 		job->buffers[1].mode = R;
-		job->buffers[2].state = &A_state[j][i]; 
+		job->buffers[2].state = A_state[j][i]; 
 		job->buffers[2].mode = RW;
 
 	if ( (i == k + 1) && (j == k +1) ) {

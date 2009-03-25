@@ -4,9 +4,9 @@ float *A[MAXSLICESY][MAXSLICESZ];
 float *B[MAXSLICESZ][MAXSLICESX];
 float *C[MAXSLICESY][MAXSLICESX];
 
-data_state A_state[MAXSLICESY][MAXSLICESZ];
-data_state B_state[MAXSLICESZ][MAXSLICESX];
-data_state C_state[MAXSLICESY][MAXSLICESX];
+data_handle A_state[MAXSLICESY][MAXSLICESZ];
+data_handle B_state[MAXSLICESZ][MAXSLICESX];
+data_handle C_state[MAXSLICESY][MAXSLICESX];
 
 /* fortran ordering ... */
 #define FULLA(i,j)	\
@@ -133,9 +133,9 @@ static void init_problem_data(void)
 	memset(A, 0, MAXSLICESY*MAXSLICESZ*sizeof(float *));
 	memset(B, 0, MAXSLICESZ*MAXSLICESZ*sizeof(float *));
 	memset(C, 0, MAXSLICESY*MAXSLICESX*sizeof(float *));
-	memset(&A_state, 0, MAXSLICESY*MAXSLICESZ*sizeof(data_state));
-	memset(&B_state, 0, MAXSLICESZ*MAXSLICESZ*sizeof(data_state));
-	memset(&C_state, 0, MAXSLICESY*MAXSLICESX*sizeof(data_state));
+	memset(&A_state, 0, MAXSLICESY*MAXSLICESZ*sizeof(data_handle));
+	memset(&B_state, 0, MAXSLICESZ*MAXSLICESZ*sizeof(data_handle));
+	memset(&C_state, 0, MAXSLICESY*MAXSLICESX*sizeof(data_handle));
 
 	/* Allocate grids of buffer */
 	/* TODO pin ... */
@@ -306,11 +306,11 @@ static job_t construct_job(unsigned x, unsigned y, unsigned z, unsigned iter)
 
 	jb->nbuffers = 3;
 
-	jb->buffers[0].state = &A_state[y][z];
+	jb->buffers[0].state = A_state[y][z];
 	jb->buffers[0].mode = R;
-	jb->buffers[1].state = &B_state[z][x];
+	jb->buffers[1].state = B_state[z][x];
 	jb->buffers[1].mode = R;
-	jb->buffers[2].state = &C_state[y][x];
+	jb->buffers[2].state = C_state[y][x];
 	jb->buffers[2].mode = RW;
 
 

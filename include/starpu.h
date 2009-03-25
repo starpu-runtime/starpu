@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+typedef struct data_state_t * data_handle;
+
 struct data_state_t;
 
 /*
@@ -36,7 +38,6 @@ typedef enum {
 } access_mode;
 
 typedef struct buffer_descr_t {
-	/* the part used by the runtime */
 	struct data_state_t *state;
 	access_mode mode;
 } buffer_descr;

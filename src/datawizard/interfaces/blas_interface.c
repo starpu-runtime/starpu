@@ -56,10 +56,16 @@ int convert_blas_to_gordon(data_interface_t *interface, uint64_t *ptr, gordon_st
 #endif
 
 /* declare a new data with the BLAS interface */
-void monitor_blas_data(data_state *state, uint32_t home_node,
+void monitor_blas_data(struct data_state_t **handle, uint32_t home_node,
 			uintptr_t ptr, uint32_t ld, uint32_t nx,
 			uint32_t ny, size_t elemsize)
 {
+	struct data_state_t *state = calloc(1, sizeof(struct data_state_t));
+	ASSERT(state);
+
+	ASSERT(handle);
+	*handle = state;
+
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
 	{

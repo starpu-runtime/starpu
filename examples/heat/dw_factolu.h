@@ -23,7 +23,7 @@
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
 
 typedef struct {
-	data_state *dataA;
+	data_handle dataA;
 	unsigned i;
 	unsigned j;
 	unsigned k;

@@ -52,8 +52,8 @@ void initialize_cuda(void)
 sem_t sem;
 uint32_t size = 4194304;
 
-data_state sparse_matrix;
-data_state vector_in, vector_out;
+data_handle sparse_matrix;
+data_handle vector_in, vector_out;
 
 float *sparse_matrix_nzval;
 uint32_t *sparse_matrix_colind;
@@ -229,8 +229,8 @@ void init_problem_callback(void *arg)
 		printf("DONE ...\n");
 		GET_TICK(end);
 
-		unpartition_data(&sparse_matrix, 0);
-		unpartition_data(&vector_out, 0);
+		unpartition_data(sparse_matrix, 0);
+		unpartition_data(vector_out, 0);
 
 		sem_post(&sem);
 	}
@@ -251,8 +251,8 @@ void call_spmv_codelet_filters(void)
 	vector_f.filter_func = block_filter_func_vector;
 	vector_f.filter_arg  = nblocks;
 
-	partition_data(&sparse_matrix, &csr_f);
-	partition_data(&vector_out, &vector_f);
+	partition_data(sparse_matrix, &csr_f);
+	partition_data(vector_out, &vector_f);
 
 	cl->cl_arg = NULL;
 	cl->where = CORE|CUDA;
@@ -277,11 +277,11 @@ void call_spmv_codelet_filters(void)
 		job->cl = cl;
 	
 		job->nbuffers = 3;
-		job->buffers[0].state = get_sub_data(&sparse_matrix, 1, part);
+		job->buffers[0].state = get_sub_data(sparse_matrix, 1, part);
 		job->buffers[0].mode  = R;
-		job->buffers[1].state = &vector_in;
+		job->buffers[1].state = vector_in;
 		job->buffers[1].mode = R;
-		job->buffers[2].state = get_sub_data(&vector_out, 1, part);
+		job->buffers[2].state = get_sub_data(vector_out, 1, part);
 		job->buffers[2].mode = W;
 	
 		submit_job(job);

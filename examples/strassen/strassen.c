@@ -13,10 +13,10 @@ static job_t create_job(void)
 	return j;
 }
 
-static data_state *create_tmp_matrix(data_state *M)
+static data_handle create_tmp_matrix(data_handle M)
 {
 	float *data;
-	data_state *state = malloc(sizeof(data_state));
+	data_handle state = malloc(sizeof(data_handle));
 
 	/* create a matrix with the same dimensions as M */
 	uint32_t nx = get_blas_nx(M);
@@ -27,12 +27,12 @@ static data_state *create_tmp_matrix(data_state *M)
 	data = malloc(nx*ny*sizeof(float));
 	STARPU_ASSERT(data);
 
-	monitor_blas_data(state, 0, (uintptr_t)data, nx, nx, ny, sizeof(float));
+	monitor_blas_data(&state, 0, (uintptr_t)data, nx, nx, ny, sizeof(float));
 	
 	return state;
 }
 
-static void free_tmp_matrix(data_state *matrix)
+static void free_tmp_matrix(data_handle matrix)
 {
 	delete_data(matrix);
 	free(matrix);
@@ -42,9 +42,9 @@ static void free_tmp_matrix(data_state *matrix)
 static void partition_matrices(strassen_iter_state_t *iter)
 {
 
-	data_state *A = iter->A;
-	data_state *B = iter->B;
-	data_state *C = iter->C;
+	data_handle A = iter->A;
+	data_handle B = iter->B;
+	data_handle C = iter->C;
 
 	filter f;
 	f.filter_func = block_filter_func;
@@ -86,7 +86,7 @@ static void unpartition_matrices(strassen_iter_state_t *iter)
 
 
 
-static void compute_add_sub_op(data_state *A1, operation op, data_state *A2, data_state *C, void (*callback)(void *), void *argcallback)
+static void compute_add_sub_op(data_handle A1, operation op, data_handle A2, data_handle C, void (*callback)(void *), void *argcallback)
 {
 
 	/* performs C = (A op B) */
@@ -306,9 +306,9 @@ static void _strassen_phase_2(strassen_iter_state_t *iter, unsigned i)
 	phase_2_arg->i = i;
 
 	/* XXX */
-	data_state *A;
-	data_state *B;
-	data_state *C;
+	data_handle A;
+	data_handle B;
+	data_handle C;
 
 	switch (i) {
 		case 0:
@@ -380,8 +380,8 @@ static void phase_1_callback_function(void *_arg)
 }
 
 /* computes Ei1 or Ei2 with i in 0-6 */
-static void _strassen_phase_1(data_state *A1, operation opA, data_state *A2,
-			      data_state *C, strassen_iter_state_t *iter, unsigned i)
+static void _strassen_phase_1(data_handle A1, operation opA, data_handle A2,
+			      data_handle C, strassen_iter_state_t *iter, unsigned i)
 {
 	phase1_t *phase_1_arg = malloc(sizeof(phase1_t));
 	phase_1_arg->iter = iter;
@@ -390,7 +390,7 @@ static void _strassen_phase_1(data_state *A1, operation opA, data_state *A2,
 	compute_add_sub_op(A1, opA, A2, C, phase_1_callback_function, phase_1_arg);
 }
 
-strassen_iter_state_t *init_strassen_iter_state(data_state *A, data_state *B, data_state *C, void (*strassen_iter_callback)(void *), void *argcb)
+strassen_iter_state_t *init_strassen_iter_state(data_handle A, data_handle B, data_handle C, void (*strassen_iter_callback)(void *), void *argcb)
 {
 	strassen_iter_state_t *iter_state = malloc(sizeof(strassen_iter_state_t));
 
@@ -433,7 +433,7 @@ strassen_iter_state_t *init_strassen_iter_state(data_state *A, data_state *B, da
 	return iter_state;
 }
 
-static void _do_strassen(data_state *A, data_state *B, data_state *C, void (*strassen_iter_callback)(void *), void *argcb, unsigned reclevel)
+static void _do_strassen(data_handle A, data_handle B, data_handle C, void (*strassen_iter_callback)(void *), void *argcb, unsigned reclevel)
 {
 	/* do one level of recursion in the strassen algorithm */
 	strassen_iter_state_t *iter = init_strassen_iter_state(A, B, C, strassen_iter_callback, argcb);
@@ -471,7 +471,7 @@ static void _do_strassen(data_state *A, data_state *B, data_state *C, void (*str
 }
 
 
-void strassen(data_state *A, data_state *B, data_state *C, void (*callback)(void *), void *argcb, unsigned reclevel)
+void strassen(data_handle A, data_handle B, data_handle C, void (*callback)(void *), void *argcb, unsigned reclevel)
 {
 	/* C = A * B */
 	if ( reclevel == 0 )

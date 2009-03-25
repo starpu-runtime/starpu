@@ -10,8 +10,8 @@ unsigned r = 256;
 
 unsigned remainingjobs = -1;
 
-data_state sparse_matrix;
-data_state vector_in, vector_out;
+data_handle sparse_matrix;
+data_handle vector_in, vector_out;
 
 uint32_t size;
 char *inputfile;
@@ -32,7 +32,7 @@ void create_data(void)
 	                (uintptr_t)bcsr_matrix->val, bcsr_matrix->colind, bcsr_matrix->rowptr, 
 			0, bcsr_matrix->r, bcsr_matrix->c, sizeof(float));
 
-	size = c*r*get_bcsr_nnz(&sparse_matrix);
+	size = c*r*get_bcsr_nnz(sparse_matrix);
 //	printf("size = %d \n ", size);
 
 	/* initiate the 2 vectors */
@@ -68,8 +68,8 @@ void init_problem_callback(void *arg)
 		printf("DONE ...\n");
 		GET_TICK(end);
 
-//		unpartition_data(&sparse_matrix, 0);
-		unpartition_data(&vector_out, 0);
+//		unpartition_data(sparse_matrix, 0);
+		unpartition_data(vector_out, 0);
 
 		sem_post(&sem);
 	}
@@ -90,10 +90,10 @@ void call_filters(void)
 	vector_out_f.filter_func = block_filter_func_vector;
 	vector_out_f.filter_arg  = size/r;
 
-	partition_data(&sparse_matrix, &bcsr_f);
+	partition_data(sparse_matrix, &bcsr_f);
 
-	partition_data(&vector_in, &vector_in_f);
-	partition_data(&vector_out, &vector_out_f);
+	partition_data(vector_in, &vector_in_f);
+	partition_data(vector_out, &vector_out_f);
 }
 
 #define NSPMV	32
@@ -106,8 +106,8 @@ void launch_spmv_codelets(void)
 	uint8_t *is_entry_tab;
 
 	/* we call one codelet per block */
-	unsigned nblocks = get_bcsr_nnz(&sparse_matrix); 
-	unsigned nrows = get_bcsr_nrow(&sparse_matrix); 
+	unsigned nblocks = get_bcsr_nnz(sparse_matrix); 
+	unsigned nrows = get_bcsr_nrow(sparse_matrix); 
 
 	remainingjobs = NSPMV*nblocks;
 	totaljobs = remainingjobs;
@@ -122,8 +122,8 @@ void launch_spmv_codelets(void)
 
 	printf("there will be %d codelets\n", remainingjobs);
 
-	uint32_t *rowptr = get_bcsr_local_rowptr(&sparse_matrix);
-	uint32_t *colind = get_bcsr_local_colind(&sparse_matrix);
+	uint32_t *rowptr = get_bcsr_local_rowptr(sparse_matrix);
+	uint32_t *colind = get_bcsr_local_colind(sparse_matrix);
 
 	cl->cl_arg = NULL;
 	cl->where = CORE|CUBLAS;
@@ -165,11 +165,11 @@ void launch_spmv_codelets(void)
 				unsigned j = row;
 		
 				job_tab[jobid]->nbuffers = 3;
-				job_tab[jobid]->buffers[0].state = get_sub_data(&sparse_matrix, 1, part);
+				job_tab[jobid]->buffers[0].state = get_sub_data(sparse_matrix, 1, part);
 				job_tab[jobid]->buffers[0].mode  = R;
-				job_tab[jobid]->buffers[1].state = get_sub_data(&vector_in, 1, i);
+				job_tab[jobid]->buffers[1].state = get_sub_data(vector_in, 1, i);
 				job_tab[jobid]->buffers[1].mode = R;
-				job_tab[jobid]->buffers[2].state = get_sub_data(&vector_out, 1, j);
+				job_tab[jobid]->buffers[2].state = get_sub_data(vector_out, 1, j);
 				job_tab[jobid]->buffers[2].mode = RW;
 
 

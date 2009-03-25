@@ -11,9 +11,9 @@ float *A;
 float *B;
 float *C;
 
-data_state A_state;
-data_state B_state;
-data_state C_state;
+data_handle A_state;
+data_handle B_state;
+data_handle C_state;
 
 struct timeval start;
 struct timeval end;
@@ -148,7 +148,7 @@ void init_problem(void)
 		dim, dim, dim, sizeof(float));
 
 	gettimeofday(&start, NULL);
-	strassen(&A_state, &B_state, &C_state, terminate, NULL, reclevel);
+	strassen(A_state, B_state, C_state, terminate, NULL, reclevel);
 }
 
 int main(__attribute__ ((unused)) int argc, 

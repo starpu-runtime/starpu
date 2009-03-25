@@ -77,7 +77,7 @@ struct divide_vector_in_blas_filter_args {
 	uint32_t stride; /* stride of the first portion (need to be a multiple of n */
 };
 
-unsigned divide_vector_in_blas_filter(filter *f, data_state *root_data)
+unsigned divide_vector_in_blas_filter(filter *f, data_handle root_data)
 {
 	vector_interface_t *vector_root = &root_data->interface[0].vector;
 		uint32_t nx = vector_root->nx;
@@ -91,8 +91,8 @@ unsigned divide_vector_in_blas_filter(filter *f, data_state *root_data)
 		unsigned n3 = nx - n1 - n2;
 		
 
-	/* first allocate the children data_state */
-	root_data->children = calloc((n1==0)?2:3, sizeof(data_state));
+	/* first allocate the children data_handle */
+	root_data->children = calloc((n1==0)?2:3, sizeof(data_handle));
 	STARPU_ASSERT(root_data->children);
 
 	STARPU_ASSERT((n2 % args->stride) == 0);

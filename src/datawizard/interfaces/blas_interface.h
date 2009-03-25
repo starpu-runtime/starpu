@@ -14,7 +14,7 @@ typedef struct blas_interface_s {
 } blas_interface_t;
 
 struct data_state_t;
-void monitor_blas_data(struct data_state_t *state, uint32_t home_node,
+void monitor_blas_data(struct data_state_t **handle, uint32_t home_node,
                         uintptr_t ptr, uint32_t ld, uint32_t nx,
                         uint32_t ny, size_t elemsize);
 

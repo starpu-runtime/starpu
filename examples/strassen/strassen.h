@@ -41,15 +41,15 @@ typedef struct {
 	unsigned Ei_remaining_use[7];
 	unsigned Cij[4];
 
-	data_state *A, *B, *C;
-	data_state *A11, *A12, *A21, *A22;
-	data_state *B11, *B12, *B21, *B22;
-	data_state *C11, *C12, *C21, *C22;
+	data_handle A, B, C;
+	data_handle A11, A12, A21, A22;
+	data_handle B11, B12, B21, B22;
+	data_handle C11, C12, C21, C22;
 
-	data_state *E1, *E2, *E3, *E4, *E5, *E6, *E7;
-	data_state *E11, *E12, *E21, *E22, *E31, *E32, *E41, *E52, *E62, *E71;
+	data_handle E1, E2, E3, E4, E5, E6, E7;
+	data_handle E11, E12, E21, E22, E31, E32, E41, E52, E62, E71;
 
-	data_state *E42, *E51, *E61, *E72;
+	data_handle E42, E51, E61, E72;
 
 	unsigned reclevel;
 	
@@ -96,7 +96,7 @@ void self_add_cublas_codelet(data_interface_t *descr, __attribute__((unused))  v
 void self_sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
 #endif
 
-void strassen(data_state *A, data_state *B, data_state *C, void (*callback)(void *), void *argcb, unsigned reclevel);
+void strassen(data_handle A, data_handle B, data_handle C, void (*callback)(void *), void *argcb, unsigned reclevel);
 
 extern struct perfmodel_t strassen_model_mult;
 extern struct perfmodel_t strassen_model_add_sub;

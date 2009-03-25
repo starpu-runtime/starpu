@@ -10,14 +10,10 @@
 #include <signal.h>
 #include <datawizard/datawizard.h>
 
-#ifdef USE_CUDA
-#include <drivers/cuda/driver_cuda.h>
-#endif
-
 #define NITER	50000
 
-data_state my_float_state;
-data_state unity_state;
+data_handle my_float_state;
+data_handle unity_state;
 
 sem_t sem;
 
@@ -142,9 +138,9 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		j->argcb = &counter;
 
 		j->nbuffers = 2;
-		j->buffers[0].state = &my_float_state;
+		j->buffers[0].state = my_float_state;
 		j->buffers[0].mode = RW;
-		j->buffers[1].state = &unity_state; 
+		j->buffers[1].state = unity_state; 
 		j->buffers[1].mode = R;
 
 		//tag =	((2ULL)<<32 | (unsigned long long)(i));
@@ -160,7 +156,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 //
 //	delete_data(&my_float_state);
 
-	sync_data_with_mem(&my_float_state);
+	sync_data_with_mem(my_float_state);
 	
 	printf("array -> %f, %f, %f\n", my_lovely_float[0], 
 			my_lovely_float[1], my_lovely_float[2]);

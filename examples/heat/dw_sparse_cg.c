@@ -260,9 +260,9 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 {
 	/* first declare all the data structures to the runtime */
 
-	struct data_state_t ds_matrixA;
-	struct data_state_t ds_vecx, ds_vecb;
-	struct data_state_t ds_vecr, ds_vecd, ds_vecq; 
+	data_handle ds_matrixA;
+	data_handle ds_vecx, ds_vecb;
+	data_handle ds_vecr, ds_vecd, ds_vecq; 
 
 	/* first the user-allocated data */
 	monitor_csr_data(&ds_matrixA, 0, nnz, nrow, 
@@ -295,12 +295,12 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 	/* we now have the complete problem */
 	struct cg_problem problem;
 
-	problem.ds_matrixA = &ds_matrixA;
-	problem.ds_vecx    = &ds_vecx;
-	problem.ds_vecb    = &ds_vecb;
-	problem.ds_vecr    = &ds_vecr;
-	problem.ds_vecd    = &ds_vecd;
-	problem.ds_vecq    = &ds_vecq;
+	problem.ds_matrixA = ds_matrixA;
+	problem.ds_vecx    = ds_vecx;
+	problem.ds_vecb    = ds_vecb;
+	problem.ds_vecr    = ds_vecr;
+	problem.ds_vecd    = ds_vecd;
+	problem.ds_vecq    = ds_vecq;
 
 	problem.epsilon = EPSILON;
 	problem.size = nrow;
