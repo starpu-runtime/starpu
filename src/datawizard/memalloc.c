@@ -471,10 +471,10 @@ int allocate_memory_on_node(data_state *state, uint32_t dst_node)
 
 	data_allocation_inc_stats(dst_node);
 
+#ifdef USE_ALLOCATION_CACHE
 	/* perhaps we can directly reuse a buffer in the free-list */
 	uint32_t footprint = compute_data_footprint(state);
 
-#ifdef USE_ALLOCATION_CACHE
 	TRACE_START_ALLOC_REUSE(dst_node);
 	if (try_to_find_reusable_mem_chunk(dst_node, state, footprint))
 	{
