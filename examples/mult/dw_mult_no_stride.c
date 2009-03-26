@@ -44,8 +44,6 @@ static void submit_new_iter(unsigned x, unsigned y, unsigned iter);
 
  */
 
-static codelet *cl;
-
 static void terminate(void)
 {
 	gettimeofday(&end, NULL);
@@ -293,31 +291,38 @@ struct cb2_s {
 	int *xycounter;
 };
 
+static codelet cl = {
+	.core_func = core_mult,
+#ifdef USE_CUDA
+	.cublas_func = cublas_mult,
+#endif
+#ifdef USE_GORDON
+	.gordon_func = SPU_FUNC_SGEMM,
+#endif
+	.where = CORE|CUBLAS|GORDON,
+	.nbuffers = 3
+};
 
-static job_t construct_job(unsigned x, unsigned y, unsigned z, unsigned iter)
+static struct starpu_task *construct_task(unsigned x, unsigned y, unsigned z, unsigned iter)
 {
-	job_t jb;
-	jb = job_create();
+	struct starpu_task *task = starpu_task_create();
 
-	jb->cl = cl;
+	task->cl = &cl;
 
-	jb->cl_arg = &conf;
-	jb->cl_arg_size = sizeof(struct block_conf);
+	task->cl_arg = &conf;
+	task->cl_arg_size = sizeof(struct block_conf);
 
-	tag_declare(TAG(z, y, x, iter), jb);
-//	fprintf(stderr, "TAG (z %d , y %d , x %d , iter %d) -> %lx\n", z, y, x, iter, TAG(z, y, x, iter));
+	task->use_tag = 1;
+	task->tag_id = TAG(z, y, x, iter);
 
-	jb->nbuffers = 3;
+	task->buffers[0].state = A_state[y][z];
+	task->buffers[0].mode = R;
+	task->buffers[1].state = B_state[z][x];
+	task->buffers[1].mode = R;
+	task->buffers[2].state = C_state[y][x];
+	task->buffers[2].mode = RW;
 
-	jb->buffers[0].state = A_state[y][z];
-	jb->buffers[0].mode = R;
-	jb->buffers[1].state = B_state[z][x];
-	jb->buffers[1].mode = R;
-	jb->buffers[2].state = C_state[y][x];
-	jb->buffers[2].mode = RW;
-
-
-	return jb;
+	return task;
 }
 
 
@@ -374,17 +379,13 @@ static void callback_func_2(void *arg)
 
 static void submit_new_iter(unsigned x, unsigned y, unsigned iter)
 {
-	job_t jz0 = NULL;
-
 	unsigned z;
 	for (z = 0; z < nslicesz; z++) 
 	{
-		job_t jb = construct_job(x, y, z, iter);
+		struct starpu_task *task;
+		task = construct_task(x, y, z, iter);
 		
-		if (z == 0) {
-			jz0 = jb;
-		}
-		else {
+		if (z != 0) {
 			tag_declare_deps(TAG(z, y, x, iter), 1, TAG(z-1, y, x, iter));
 		}
 
@@ -394,13 +395,12 @@ static void submit_new_iter(unsigned x, unsigned y, unsigned iter)
 				cb2->blocky = y;
 				cb2->iter = iter;
 				cb2->xycounter = &xycounter;
-			jb->cb = callback_func_2;
-			jb->argcb = cb2;
+			task->callback_func = callback_func_2;
+			task->callback_arg = cb2;
 		}
-	}
 
-//	fprintf(stderr, "submit_job for x %d y %d iter %d\n", x, y, iter);
-	submit_job(jz0);
+		submit_task(task);
+	}
 }
 
 static void launch_codelets(void)
@@ -425,29 +425,6 @@ static void launch_codelets(void)
 	}
 }
 
-static void init_codelet(void)
-{
-	cl = malloc(sizeof(codelet));
-
-	cl->core_func = core_mult;
-#ifdef USE_CUDA
-	cl->cublas_func = cublas_mult;
-#endif
-#ifdef USE_GORDON
-	cl->gordon_func = SPU_FUNC_SGEMM;
-#endif
-	cl->where = CORE;
-#ifdef USE_CUDA
-	cl->where |= CUBLAS;
-#endif
-#ifdef USE_GORDON
-	cl->where |= GORDON;
-#endif
-
-
-}
-
-
 int main(__attribute__ ((unused)) int argc, 
 	 __attribute__ ((unused)) char **argv)
 {
@@ -460,8 +437,6 @@ int main(__attribute__ ((unused)) int argc,
 	sem_init(&sem, 0, 0U);
 
 	init_problem_data();
-
-	init_codelet();
 
 	launch_codelets();
 

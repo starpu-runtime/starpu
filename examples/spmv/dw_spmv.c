@@ -7,7 +7,7 @@
 tick_t start,end;
 
 unsigned nblocks = 1;
-unsigned remainingjobs = -1;
+unsigned remainingtasks = -1;
 
 /* First a Matrix-Vector product (SpMV) */
 
@@ -240,7 +240,7 @@ void init_problem_callback(void *arg)
 void call_spmv_codelet_filters(void)
 {
 
-	remainingjobs = nblocks;
+	remainingtasks = nblocks;
 
 	codelet *cl = malloc(sizeof(codelet));
 
@@ -259,32 +259,27 @@ void call_spmv_codelet_filters(void)
 #ifdef USE_CUDA
 	cl->cuda_func = &cuda_spmv;
 #endif
+	cl->nbuffers = 3;
 
 	GET_TICK(start);
 	unsigned part;
 	for (part = 0; part < nblocks; part++)
 	{
-		job_t job;
-		job = job_create();
-//#ifdef USE_CUDA
-//		job->where = usecpu?CORE:CUDA;
-//#else
-//		job->where = CORE;
-//#endif
-		job->cb = init_problem_callback;
-		job->argcb = &remainingjobs;
-		job->cl = cl;
-		job->cl_arg = NULL;
+		struct starpu_task *task = starpu_task_create();
+
+		task->callback_func = init_problem_callback;
+		task->callback_arg = &remainingtasks;
+		task->cl = cl;
+		task->cl_arg = NULL;
 	
-		job->nbuffers = 3;
-		job->buffers[0].state = get_sub_data(sparse_matrix, 1, part);
-		job->buffers[0].mode  = R;
-		job->buffers[1].state = vector_in;
-		job->buffers[1].mode = R;
-		job->buffers[2].state = get_sub_data(vector_out, 1, part);
-		job->buffers[2].mode = W;
+		task->buffers[0].state = get_sub_data(sparse_matrix, 1, part);
+		task->buffers[0].mode  = R;
+		task->buffers[1].state = vector_in;
+		task->buffers[1].mode = R;
+		task->buffers[2].state = get_sub_data(vector_out, 1, part);
+		task->buffers[2].mode = W;
 	
-		submit_job(job);
+		submit_task(task);
 	}
 }
 

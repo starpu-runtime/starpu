@@ -2,9 +2,6 @@
 #define __MULT_H__
 
 #include <semaphore.h>
-#include <core/jobs.h>
-#include <core/workers.h>
-#include <core/dependencies/tags.h>
 #include <common/timing.h>
 #include <common/util.h>
 #include <common/malloc.h>
@@ -16,8 +13,6 @@
 #include <signal.h>
 #include <common/blas.h>
 #include <common/timing.h>
-
-#include <datawizard/datawizard.h>
 
 #include <task-models/blas_model.h>
 
@@ -73,7 +68,7 @@ struct timeval start;
 struct timeval end;
 sem_t sem;
 
-static int jobcounter __attribute__ ((unused));
+static int taskcounter __attribute__ ((unused));
 static struct block_conf conf __attribute__ ((aligned (128)));
 
 #define BLOCKSIZEX	(xdim / nslicesx)

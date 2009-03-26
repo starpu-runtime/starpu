@@ -1,6 +1,10 @@
 #ifndef __STARPU_DATA_H__
 #define __STARPU_DATA_H__
 
+#include <starpu-data-filters.h>
+
+#define NMAXBUFS        8
+
 struct data_state_t;
 typedef struct data_state_t * data_handle;
 
@@ -124,5 +128,6 @@ typedef union {
 	bcsr_interface_t bcsr;	/* blocked compressed sparse row */
 } data_interface_t;
 
+void unpartition_data(struct data_state_t *root_data, uint32_t gathering_node);
 
 #endif // __STARPU_DATA_H__

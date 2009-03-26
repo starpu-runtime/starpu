@@ -173,6 +173,9 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 //	uint32_t mask = (1<<0);
 	uint32_t mask = 0;
 
+	STARPU_ASSERT(j);
+	struct starpu_task *task = j->task;
+
 	CUresult status;
 	tick_t codelet_start, codelet_end;
 	tick_t codelet_start_comm, codelet_end_comm;
@@ -181,10 +184,11 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 
 	unsigned calibrate_model = 0;
 
-	STARPU_ASSERT(j);
-	STARPU_ASSERT(j->cl);
+	STARPU_ASSERT(task);
+	struct codelet_t *cl = task->cl;
+	STARPU_ASSERT(cl);
 
-	if (j->cl->model && j->cl->model->benchmarking) 
+	if (cl->model && cl->model->benchmarking) 
 		calibrate_model = 1;
 
 	/* we do not take communication into account when modeling the performance */
@@ -194,7 +198,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 		GET_TICK(codelet_start_comm);
 	}
 
-	ret = fetch_codelet_input(j->buffers, j->interface, j->nbuffers, mask);
+	ret = fetch_codelet_input(task->buffers, task->interface, cl->nbuffers, mask);
 	if (ret != 0) {
 		/* there was not enough memory, so the input of
 		 * the codelet cannot be fetched ... put the 
@@ -212,16 +216,16 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 
 	TRACE_START_CODELET_BODY(j);
 	if (use_cublas) {
-		cl_func func = j->cl->cublas_func;
+		cl_func func = cl->cublas_func;
 		STARPU_ASSERT(func);
 		GET_TICK(codelet_start);
-		func(j->interface, j->cl_arg);
+		func(task->interface, task->cl_arg);
 		cuCtxSynchronize();
 		GET_TICK(codelet_end);
 	} else {
 		/* load the module and the function */
 		cuda_codelet_t *args; 
-		args = j->cl->cuda_func;
+		args = cl->cuda_func;
 
 		load_cuda_function(devid, args->func);
 
@@ -233,7 +237,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 		}
 
 		/* set up the function args */
-		set_function_args(args, j->buffers, j->interface, j->nbuffers);
+		set_function_args(args, task->buffers, task->interface, cl->nbuffers);
 
 		/* set up the grids */
 //#ifdef MODEL_DEBUG
@@ -275,7 +279,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 	}
 //#endif
 
-	push_codelet_output(j->buffers, j->nbuffers, mask);
+	push_codelet_output(task->buffers, cl->nbuffers, mask);
 
 	return OK;
 }

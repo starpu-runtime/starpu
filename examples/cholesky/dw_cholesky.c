@@ -5,18 +5,14 @@
  *	Some useful functions
  */
 
-static job_t create_job(tag_t id)
+static struct starpu_task *create_task(tag_t id)
 {
-	codelet *cl = malloc(sizeof(codelet));
-		cl->where = ANY;
+	struct starpu_task *task = starpu_task_create();
+		task->cl_arg = NULL;
+		task->use_tag = 1;
+		task->tag_id = id;
 
-	job_t j = job_create();
-		j->cl = cl;	
-		j->cl_arg = NULL;
-
-	tag_declare(id, j);
-
-	return j;
+	return task;
 }
 
 static void terminal_callback(void *argcb)
@@ -30,27 +26,31 @@ static void terminal_callback(void *argcb)
  *	Create the codelets
  */
 
-static job_t create_task_11(data_handle dataA, unsigned k, unsigned nblocks, sem_t *sem)
+static codelet cl11 =
+{
+	.where = ANY,
+	.core_func = chol_core_codelet_update_u11,
+#ifdef USE_CUDA
+	.cublas_func = chol_cublas_codelet_update_u11,
+#endif
+	.nbuffers = 1,
+	.model = &chol_model_11
+};
+
+static struct starpu_task * create_task_11(data_handle dataA, unsigned k, unsigned nblocks, sem_t *sem)
 {
 //	printf("task 11 k = %d TAG = %llx\n", k, (TAG11(k)));
 
-	job_t job = create_job(TAG11(k));
-
-//	job->where = CORE;
-
-	job->cl->core_func = chol_core_codelet_update_u11;
-	job->cl->model = &chol_model_11;
-#ifdef USE_CUDA
-	job->cl->cublas_func = chol_cublas_codelet_update_u11;
-#endif
+	struct starpu_task *task = create_task(TAG11(k));
+	
+	task->cl = &cl11;
 
 	/* which sub-data is manipulated ? */
-	job->nbuffers = 1;
-		job->buffers[0].state = get_sub_data(dataA, 2, k, k);
-		job->buffers[0].mode = RW;
+	task->buffers[0].state = get_sub_data(dataA, 2, k, k);
+	task->buffers[0].mode = RW;
 
 	/* this is an important task */
-	job->priority = MAX_PRIO;
+	task->priority = MAX_PRIO;
 
 	/* enforce dependencies ... */
 	if (k > 0) {
@@ -59,33 +59,38 @@ static job_t create_task_11(data_handle dataA, unsigned k, unsigned nblocks, sem
 
 	/* the very last task must be notified */
 	if (k == nblocks - 1) {
-		job->cb = terminal_callback;
-		job->argcb = sem;
+		task->callback_func = terminal_callback;
+		task->callback_arg = sem;
 	}
 
-	return job;
+	return task;
 }
 
+static codelet cl21 =
+{
+	.where = ANY,
+	.core_func = chol_core_codelet_update_u21,
+#ifdef USE_CUDA
+	.cublas_func = chol_cublas_codelet_update_u21,
+#endif
+	.nbuffers = 2,
+	.model = &chol_model_21
+};
 
 static void create_task_21(data_handle dataA, unsigned k, unsigned j)
 {
-	job_t job = create_job(TAG21(k, j));
-	
-	job->cl->core_func = chol_core_codelet_update_u21;
-	job->cl->model = &chol_model_21;
-#ifdef USE_CUDA
-	job->cl->cublas_func = chol_cublas_codelet_update_u21;
-#endif
+	struct starpu_task *task = create_task(TAG21(k, j));
+
+	task->cl = &cl21;	
 
 	/* which sub-data is manipulated ? */
-	job->nbuffers = 2;
-		job->buffers[0].state = get_sub_data(dataA, 2, k, k); 
-		job->buffers[0].mode = R;
-		job->buffers[1].state = get_sub_data(dataA, 2, k, j); 
-		job->buffers[1].mode = RW;
+	task->buffers[0].state = get_sub_data(dataA, 2, k, k); 
+	task->buffers[0].mode = R;
+	task->buffers[1].state = get_sub_data(dataA, 2, k, j); 
+	task->buffers[1].mode = RW;
 
 	if (j == k+1) {
-		job->priority = MAX_PRIO;
+		task->priority = MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
@@ -95,32 +100,39 @@ static void create_task_21(data_handle dataA, unsigned k, unsigned j)
 	else {
 		tag_declare_deps(TAG21(k, j), 1, TAG11(k));
 	}
+
+	submit_task(task);
 }
+
+static codelet cl22 =
+{
+	.where = ANY,
+	.core_func = chol_core_codelet_update_u22,
+#ifdef USE_CUDA
+	.cublas_func = chol_cublas_codelet_update_u22,
+#endif
+	.nbuffers = 3,
+	.model = &chol_model_22
+};
 
 static void create_task_22(data_handle dataA, unsigned k, unsigned i, unsigned j)
 {
-	job_t job = create_job(TAG22(k, i, j));
 //	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j));
 
-//	job->where = CORE;
+	struct starpu_task *task = create_task(TAG22(k, i, j));
 
-	job->cl->core_func = chol_core_codelet_update_u22;
-	job->cl->model = &chol_model_22;
-#ifdef USE_CUDA
-	job->cl->cublas_func = chol_cublas_codelet_update_u22;
-#endif
+	task->cl = &cl22;
 
 	/* which sub-data is manipulated ? */
-	job->nbuffers = 3;
-		job->buffers[0].state = get_sub_data(dataA, 2, k, i); 
-		job->buffers[0].mode = R;
-		job->buffers[1].state = get_sub_data(dataA, 2, k, j); 
-		job->buffers[1].mode = R;
-		job->buffers[2].state = get_sub_data(dataA, 2, i, j); 
-		job->buffers[2].mode = RW;
+	task->buffers[0].state = get_sub_data(dataA, 2, k, i); 
+	task->buffers[0].mode = R;
+	task->buffers[1].state = get_sub_data(dataA, 2, k, j); 
+	task->buffers[1].mode = R;
+	task->buffers[2].state = get_sub_data(dataA, 2, i, j); 
+	task->buffers[2].mode = RW;
 
 	if ( (i == k + 1) && (j == k +1) ) {
-		job->priority = MAX_PRIO;
+		task->priority = MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
@@ -130,6 +142,8 @@ static void create_task_22(data_handle dataA, unsigned k, unsigned i, unsigned j
 	else {
 		tag_declare_deps(TAG22(k, i, j), 2, TAG21(k, i), TAG21(k, j));
 	}
+
+	submit_task(task);
 }
 
 
@@ -148,7 +162,7 @@ static void _dw_cholesky(data_handle dataA, unsigned nblocks)
 	sem_t sem;
 	sem_init(&sem, 0, 0U);
 
-	job_t entry_job = NULL;
+	struct starpu_task *entry_task = NULL;
 
 	/* create all the DAG nodes */
 	unsigned i,j,k;
@@ -156,10 +170,13 @@ static void _dw_cholesky(data_handle dataA, unsigned nblocks)
 
 	for (k = 0; k < nblocks; k++)
 	{
-		job_t job = create_task_11(dataA, k, nblocks, &sem);
+		struct starpu_task *task = create_task_11(dataA, k, nblocks, &sem);
+		/* we defer the launch of the first task */
 		if (k == 0) {
-			/* for now, we manually launch the first task .. XXX */
-			entry_job = job;
+			entry_task = task;
+		}
+		else {
+			submit_task(task);
 		}
 		
 		for (j = k+1; j<nblocks; j++)
@@ -176,7 +193,7 @@ static void _dw_cholesky(data_handle dataA, unsigned nblocks)
 
 	/* schedule the codelet */
 	gettimeofday(&start, NULL);
-	submit_job(entry_job);
+	submit_task(entry_task);
 
 	/* stall the application until the end of computations */
 	sem_wait(&sem);

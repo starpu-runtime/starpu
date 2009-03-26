@@ -2,8 +2,6 @@
 #define __DW_FACTO_LU_H__
 
 #include <semaphore.h>
-#include <core/jobs.h>
-#include <core/workers.h>
 #include <common/timing.h>
 #include <common/util.h>
 #include <common/malloc.h>
@@ -14,9 +12,8 @@
 #include <cuda.h>
 #endif
 
+#include <starpu.h>
 
-#include <datawizard/datawizard.h>
-#include <core/dependencies/tags.h>
 #include "lu_kernels_model.h"
 
 #define BLAS3_FLOP(n1,n2,n3)    \

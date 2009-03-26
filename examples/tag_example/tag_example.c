@@ -1,6 +1,4 @@
 #include <semaphore.h>
-#include <core/jobs.h>
-#include <core/workers.h>
 #include <common/timing.h>
 #include <common/util.h>
 #include <string.h>
@@ -8,7 +6,8 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include <signal.h>
-#include <core/dependencies/tags.h>
+
+#include <starpu.h>
 
 #define TAG(i, j, iter)	((uint64_t) ( ((uint64_t)(iter)<<48) |  ((uint64_t)(j)<<24) | (i)) )
 
@@ -76,36 +75,36 @@ static void create_task_grid(unsigned iter)
 	for (j = 0; j < nj; j++)
 	for (i = 1; i < ni; i++)
 	{
-		//coords[i][j].i = i;
-		//coords[i][j].j = j;
-
 		/* create a new task */
-		job_t jb = job_create();
-		cl.where = CORE;
-		jb->cb = callback_core;
+		struct starpu_task *task = starpu_task_create();
+		task->callback_func = callback_core;
 		//jb->argcb = &coords[i][j];
-		jb->cl = &cl;
-		jb->cl_arg = NULL;
+		task->cl = &cl;
+		task->cl_arg = NULL;
 
-		tag_declare(TAG(i,j, iter), jb);
+		task->use_tag = 1;
+		task->tag_id = TAG(i, j, iter);
 
 		/* express deps : (i,j) depends on (i-1, j-1) & (i-1, j+1) */		
 		express_deps(i, j, iter);
+		
+		submit_task(task);
 	}
 
 	/* create entry tasks */
 	for (j = 0; j < nj; j++)
 	{
 		/* create a new task */
-		job_t jb = job_create();
-		cl.where = CORE;
-		jb->cb = callback_core;
-		jb->cl = &cl;
+		struct starpu_task *task = starpu_task_create();
+		task->callback_func = callback_core;
+		task->cl = &cl;
+		task->cl_arg = NULL;
 
-		tag_declare(TAG(0,j, iter), jb);
-
+		task->use_tag = 1;
 		/* this is an entry task */
-		submit_job(jb);
+		task->tag_id = TAG(0, j, iter);
+
+		submit_task(task);
 	}
 
 }
@@ -175,8 +174,10 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	parse_args(argc, argv);
 
+	cl.where = CORE;
 	cl.core_func = core_codelet;
 	cl.cublas_func = core_codelet;
+	cl.nbuffers = 0;
 
 	sem_init(&sem, 0, 0);
 

@@ -71,51 +71,53 @@ void init_cg(struct cg_problem *problem)
 	problem->i = 0;
 
 	/* r = b  - A x */
-	job_t job1 = create_job(1UL);
-	job1->cl->where = CORE;
-	job1->cl->core_func = core_codelet_func_1;
-	job1->nbuffers = 4;
-		job1->buffers[0].state = problem->ds_matrixA;
-		job1->buffers[0].mode = R;
-		job1->buffers[1].state = problem->ds_vecx;
-		job1->buffers[1].mode = R;
-		job1->buffers[2].state = problem->ds_vecr;
-		job1->buffers[2].mode = W;
-		job1->buffers[3].state = problem->ds_vecb;
-		job1->buffers[3].mode = R;
+	struct starpu_task *task1 = create_task(1UL);
+	task1->cl->where = CORE;
+	task1->cl->core_func = core_codelet_func_1;
+	task1->cl->nbuffers = 4;
+		task1->buffers[0].state = problem->ds_matrixA;
+		task1->buffers[0].mode = R;
+		task1->buffers[1].state = problem->ds_vecx;
+		task1->buffers[1].mode = R;
+		task1->buffers[2].state = problem->ds_vecr;
+		task1->buffers[2].mode = W;
+		task1->buffers[3].state = problem->ds_vecb;
+		task1->buffers[3].mode = R;
 
 	/* d = r */
-	job_t job2 = create_job(2UL);
-	job2->cl->where = CORE;
-	job2->cl->core_func = core_codelet_func_2;
-	job2->nbuffers = 2;
-		job2->buffers[0].state = problem->ds_vecd;
-		job2->buffers[0].mode = W;
-		job2->buffers[1].state = problem->ds_vecr;
-		job2->buffers[1].mode = R;
+	struct starpu_task *task2 = create_task(2UL);
+	task2->cl->where = CORE;
+	task2->cl->core_func = core_codelet_func_2;
+	task2->cl->nbuffers = 2;
+		task2->buffers[0].state = problem->ds_vecd;
+		task2->buffers[0].mode = W;
+		task2->buffers[1].state = problem->ds_vecr;
+		task2->buffers[1].mode = R;
 	
 	tag_declare_deps(2UL, 1, 1UL);
 
 	/* delta_new = trans(r) r */
-	job_t job3 = create_job(3UL);
-	job3->cl->where = CUBLAS|CORE;
+	struct starpu_task *task3 = create_task(3UL);
+	task3->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
-	job3->cl->cublas_func = cublas_codelet_func_3;
+	task3->cl->cublas_func = cublas_codelet_func_3;
 #endif
-	job3->cl->core_func = core_codelet_func_3;
-	job3->cl_arg = problem;
-	job3->nbuffers = 1;
-		job3->buffers[0].state = problem->ds_vecr;
-		job3->buffers[0].mode = R;
+	task3->cl->core_func = core_codelet_func_3;
+	task3->cl_arg = problem;
+	task3->cl->nbuffers = 1;
+		task3->buffers[0].state = problem->ds_vecr;
+		task3->buffers[0].mode = R;
 
-	job3->cb = iteration_cg;
-	job3->argcb = problem;
+	task3->callback_func = iteration_cg;
+	task3->callback_arg = problem;
 	
 	/* XXX 3 should only depend on 1 ... */
 	tag_declare_deps(3UL, 1, 2UL);
 
 	/* launch the computation now */
-	submit_job(job1);
+	submit_task(task1);
+	submit_task(task2);
+	submit_task(task3);
 }
 
 /*
@@ -130,100 +132,105 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	unsigned long long maskiter = (iter*1024);
 
 	/* q = A d */
-	job_t job4 = create_job(maskiter | 4UL);
-	job4->cl->where = CORE;
-	job4->cl->core_func = core_codelet_func_4;
-	job4->nbuffers = 3;
-		job4->buffers[0].state = problem->ds_matrixA;
-		job4->buffers[0].mode = R;
-		job4->buffers[1].state = problem->ds_vecd;
-		job4->buffers[1].mode = R;
-		job4->buffers[2].state = problem->ds_vecq;
-		job4->buffers[2].mode = W;
+	struct starpu_task *task4 = create_task(maskiter | 4UL);
+	task4->cl->where = CORE;
+	task4->cl->core_func = core_codelet_func_4;
+	task4->cl->nbuffers = 3;
+		task4->buffers[0].state = problem->ds_matrixA;
+		task4->buffers[0].mode = R;
+		task4->buffers[1].state = problem->ds_vecd;
+		task4->buffers[1].mode = R;
+		task4->buffers[2].state = problem->ds_vecq;
+		task4->buffers[2].mode = W;
 
 	/* alpha = delta_new / ( trans(d) q )*/
-	job_t job5 = create_job(maskiter | 5UL);
-	job5->cl->where = CUBLAS|CORE;
+	struct starpu_task *task5 = create_task(maskiter | 5UL);
+	task5->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
-	job5->cl->cublas_func = cublas_codelet_func_5;
+	task5->cl->cublas_func = cublas_codelet_func_5;
 #endif
-	job5->cl->core_func = core_codelet_func_5;
-	job5->cl_arg = problem;
-	job5->nbuffers = 2;
-		job5->buffers[0].state = problem->ds_vecd;
-		job5->buffers[0].mode = R;
-		job5->buffers[1].state = problem->ds_vecq;
-		job5->buffers[1].mode = R;
+	task5->cl->core_func = core_codelet_func_5;
+	task5->cl_arg = problem;
+	task5->cl->nbuffers = 2;
+		task5->buffers[0].state = problem->ds_vecd;
+		task5->buffers[0].mode = R;
+		task5->buffers[1].state = problem->ds_vecq;
+		task5->buffers[1].mode = R;
 
 	tag_declare_deps(maskiter | 5UL, 1, maskiter | 4UL);
 
 	/* x = x + alpha d */
-	job_t job6 = create_job(maskiter | 6UL);
-	job6->cl->where = CUBLAS|CORE;
+	struct starpu_task *task6 = create_task(maskiter | 6UL);
+	task6->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
-	job6->cl->cublas_func = cublas_codelet_func_6;
+	task6->cl->cublas_func = cublas_codelet_func_6;
 #endif
-	job6->cl->core_func = core_codelet_func_6;
-	job6->cl_arg = problem;
-	job6->nbuffers = 2;
-		job6->buffers[0].state = problem->ds_vecx;
-		job6->buffers[0].mode = RW;
-		job6->buffers[1].state = problem->ds_vecd;
-		job6->buffers[1].mode = R;
+	task6->cl->core_func = core_codelet_func_6;
+	task6->cl_arg = problem;
+	task6->cl->nbuffers = 2;
+		task6->buffers[0].state = problem->ds_vecx;
+		task6->buffers[0].mode = RW;
+		task6->buffers[1].state = problem->ds_vecd;
+		task6->buffers[1].mode = R;
 
 	tag_declare_deps(maskiter | 6UL, 1, maskiter | 5UL);
 
 	/* r = r - alpha q */
-	job_t job7 = create_job(maskiter | 7UL);
-	job7->cl->where = CUBLAS|CORE;
+	struct starpu_task *task7 = create_task(maskiter | 7UL);
+	task7->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
-	job7->cl->cublas_func = cublas_codelet_func_7;
+	task7->cl->cublas_func = cublas_codelet_func_7;
 #endif
-	job7->cl->core_func = core_codelet_func_7;
-	job7->cl_arg = problem;
-	job7->nbuffers = 2;
-		job7->buffers[0].state = problem->ds_vecr;
-		job7->buffers[0].mode = RW;
-		job7->buffers[1].state = problem->ds_vecq;
-		job7->buffers[1].mode = R;
+	task7->cl->core_func = core_codelet_func_7;
+	task7->cl_arg = problem;
+	task7->cl->nbuffers = 2;
+		task7->buffers[0].state = problem->ds_vecr;
+		task7->buffers[0].mode = RW;
+		task7->buffers[1].state = problem->ds_vecq;
+		task7->buffers[1].mode = R;
 
 	tag_declare_deps(maskiter | 7UL, 1, maskiter | 6UL);
 
 	/* update delta_* and compute beta */
-	job_t job8 = create_job(maskiter | 8UL);
-	job8->cl->where = CUBLAS|CORE;
+	struct starpu_task *task8 = create_task(maskiter | 8UL);
+	task8->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
-	job8->cl->cublas_func = cublas_codelet_func_8;
+	task8->cl->cublas_func = cublas_codelet_func_8;
 #endif
-	job8->cl->core_func = core_codelet_func_8;
-	job8->cl_arg = problem;
-	job8->nbuffers = 1;
-		job8->buffers[0].state = problem->ds_vecr;
-		job8->buffers[0].mode = R;
+	task8->cl->core_func = core_codelet_func_8;
+	task8->cl_arg = problem;
+	task8->cl->nbuffers = 1;
+		task8->buffers[0].state = problem->ds_vecr;
+		task8->buffers[0].mode = R;
 
 	tag_declare_deps(maskiter | 8UL, 1, maskiter | 7UL);
 
 	/* d = r + beta d */
-	job_t job9 = create_job(maskiter | 9UL);
-	job9->cl->where = CUBLAS|CORE;
+	struct starpu_task *task9 = create_task(maskiter | 9UL);
+	task9->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
-	job9->cl->cublas_func = cublas_codelet_func_9;
+	task9->cl->cublas_func = cublas_codelet_func_9;
 #endif
-	job9->cl->core_func = core_codelet_func_9;
-	job9->cl_arg = problem;
-	job9->nbuffers = 2;
-		job9->buffers[0].state = problem->ds_vecd;
-		job9->buffers[0].mode = RW;
-		job9->buffers[1].state = problem->ds_vecr;
-		job9->buffers[1].mode = R;
+	task9->cl->core_func = core_codelet_func_9;
+	task9->cl_arg = problem;
+	task9->cl->nbuffers = 2;
+		task9->buffers[0].state = problem->ds_vecd;
+		task9->buffers[0].mode = RW;
+		task9->buffers[1].state = problem->ds_vecr;
+		task9->buffers[1].mode = R;
 
 	tag_declare_deps(maskiter | 9UL, 1, maskiter | 8UL);
 
-	job9->cb = iteration_cg;
-	job9->argcb = problem;
+	task9->callback_func = iteration_cg;
+	task9->callback_arg = problem;
 	
 	/* launch the computation now */
-	submit_job(job4);
+	submit_task(task4);
+	submit_task(task5);
+	submit_task(task6);
+	submit_task(task7);
+	submit_task(task8);
+	submit_task(task9);
 }
 
 void iteration_cg(void *problem)

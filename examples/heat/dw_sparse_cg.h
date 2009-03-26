@@ -2,9 +2,6 @@
 #define __DW_SPARSE_CG_H__
 
 #include <semaphore.h>
-#include <core/jobs.h>
-#include <core/workers.h>
-#include <core/dependencies/tags.h>
 #include <common/timing.h>
 #include <common/util.h>
 #include <common/blas.h>
@@ -16,7 +13,11 @@
 #include <signal.h>
 #include <common/timing.h>
 
-#include <datawizard/datawizard.h>
+#ifdef USE_CUDA
+#include <cublas.h>
+#endif
+
+#include <starpu.h>
 
 #define MAXITER	100000
 #define EPSILON	0.0000001f
@@ -159,19 +160,19 @@ static void create_data(float **_nzvalA, float **_vecb, float **_vecx, uint32_t 
 	*_vecx = outvec;
 }
 
-static job_t create_job(tag_t id)
+static struct starpu_task *create_task(tag_t id)
 {
 	codelet *cl = malloc(sizeof(codelet));
 		cl->where = ANY;
 		cl->model = NULL;
 
-	job_t j = job_create();
-		j->cl = cl;
-		j->cl_arg = NULL;
+	struct starpu_task *task = starpu_task_create();
+		task->cl = cl;
+		task->cl_arg = NULL;
+		task->use_tag = 1;
+		task->tag_id = id;
 
-	tag_declare(id, j);
-
-	return j;
+	return task;
 }
 
 void core_codelet_func_1(data_interface_t *descr, void *arg);

@@ -1,6 +1,4 @@
 #include <semaphore.h>
-#include <core/jobs.h>
-#include <core/workers.h>
 #include <common/timing.h>
 #include <common/util.h>
 #include <string.h>
@@ -87,9 +85,7 @@ void init_data(void)
 
 int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)
 {
-	unsigned counter;
-
-	//tag_t tag;
+	unsigned counter = 0;
 
 	init_machine();
 	fprintf(stderr, "StarPU initialized ...\n");
@@ -102,51 +98,40 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	initialize_cuda();
 #endif
 
-	codelet cl;
-	job_t j;
-
-	counter = 0;
-
-	cl.core_func = core_codelet;
+	/* TODO make this codelet statically declared ... */
+	codelet cl =
+	{
+		.core_func = core_codelet,
+		.where = CORE|CUDA|GORDON,
 #ifdef USE_CUDA
-	//cl.cublas_func = cublas_codelet;
-	cl.cuda_func = &cuda_codelet;
+		.cuda_func = &cuda_codelet,
 #endif
-
-
 #ifdef USE_GORDON
-	cl.gordon_func = SPU_FUNC_ADD;
+		.gordon_func = SPU_FUNC_ADD,
 #endif
+		.nbuffers = 2
+	};
 
 	for (i = 0; i < NITER; i++)
 	{
-		j = job_create();
-		j->cl = &cl;
-		cl.where = CORE;
-#ifdef USE_CUDA
-		cl.where |= CUDA;
-#endif
-#ifdef USE_GORDON
-		cl.where |= GORDON;
-#endif
-			//(((i % 2) == 1)?CUDA:CUBLAS)|CORE; 
+		struct starpu_task *task = starpu_task_create();
+		task->cl = &cl;
 		
-		j->cb = callback_func;
-		j->argcb = &counter;
+		task->callback_func = callback_func;
+		task->callback_arg = &counter;
 
-		j->cl_arg = &size;
-		j->cl_arg_size = sizeof(unsigned);
+		task->cl_arg = &size;
+		task->cl_arg_size = sizeof(unsigned);
 
-		j->nbuffers = 2;
-		j->buffers[0].state = my_float_state;
-		j->buffers[0].mode = RW;
-		j->buffers[1].state = unity_state; 
-		j->buffers[1].mode = R;
+		task->buffers[0].state = my_float_state;
+		task->buffers[0].mode = RW;
+		task->buffers[1].state = unity_state; 
+		task->buffers[1].mode = R;
 
-		//tag =	((2ULL)<<32 | (unsigned long long)(i));
-		//tag_declare(tag, j);
+		task->use_tag = 0;
+		task->synchronous = 0;
 
-		submit_job(j);
+		submit_task(task);
 	}
 
 	sem_wait(&sem);

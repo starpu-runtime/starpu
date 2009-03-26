@@ -21,7 +21,7 @@ static job_t dm_pop_task(struct jobq_s *q)
 	return j;
 }
 
-static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task, unsigned prio)
+static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)), job_t j, unsigned prio)
 {
 	/* find the queue */
 	struct fifo_jobq_s *fifo;
@@ -41,13 +41,13 @@ static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task,
 		fifo->exp_start = MAX(fifo->exp_start, timing_now()/1000000);
 		fifo->exp_end = MAX(fifo->exp_start, timing_now()/1000000);
 
-		if ((queue_array[worker]->who & task->cl->where) == 0)
+		if ((queue_array[worker]->who & j->task->cl->where) == 0)
 		{
 			/* no one on that queue may execute this task */
 			continue;
 		}
 
-		double local_length = job_expected_length(queue_array[worker]->who, task, queue_array[worker]->arch);
+		double local_length = job_expected_length(queue_array[worker]->who, j, queue_array[worker]->arch);
 
 		if (local_length == -1.0) 
 		{
@@ -83,26 +83,26 @@ static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t task,
 	fifo->exp_end += model_best;
 	fifo->exp_len += model_best;
 
-	task->predicted = model_best;
+	j->predicted = model_best;
 
 	if (prio) {
-		return fifo_push_prio_task(queue_array[best], task);
+		return fifo_push_prio_task(queue_array[best], j);
 	} else {
-		return fifo_push_task(queue_array[best], task);
+		return fifo_push_task(queue_array[best], j);
 	}
 }
 
-static int dm_push_prio_task(struct jobq_s *q, job_t task)
+static int dm_push_prio_task(struct jobq_s *q, job_t j)
 {
-	return _dm_push_task(q, task, 1);
+	return _dm_push_task(q, j, 1);
 }
 
-static int dm_push_task(struct jobq_s *q, job_t task)
+static int dm_push_task(struct jobq_s *q, job_t j)
 {
-	if (task->priority == MAX_PRIO)
-		return _dm_push_task(q, task, 1);
+	if (j->task->priority == MAX_PRIO)
+		return _dm_push_task(q, j, 1);
 
-	return _dm_push_task(q, task, 0);
+	return _dm_push_task(q, j, 0);
 }
 
 static struct jobq_s *init_dm_fifo(void)

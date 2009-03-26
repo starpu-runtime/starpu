@@ -1,18 +1,6 @@
 #include "strassen.h"
 #include "strassen_models.h"
 
-static job_t create_job(void)
-{
-	codelet *cl = malloc(sizeof(codelet));
-		cl->where = CORE|CUBLAS;
-
-	job_t j = job_create();
-		j->cl = cl;
-		j->cl_arg = NULL;
-
-	return j;
-}
-
 static data_handle create_tmp_matrix(data_handle M)
 {
 	float *data;
@@ -84,82 +72,107 @@ static void unpartition_matrices(strassen_iter_state_t *iter)
 	unpartition_data(iter->C, 0);
 }
 
+static codelet cl_add = {
+	.where = ANY,
+	.model = &strassen_model_add_sub,
+	.core_func = add_core_codelet,
+#ifdef USE_CUDA
+	.cublas_func = add_cublas_codelet,
+#endif
+	.nbuffers = 3
+};
 
+static codelet cl_sub = {
+	.where = ANY,
+	.model = &strassen_model_add_sub,
+	.core_func = sub_core_codelet,
+#ifdef USE_CUDA
+	.cublas_func = sub_cublas_codelet,
+#endif
+	.nbuffers = 3
+};
 
-static void compute_add_sub_op(data_handle A1, operation op, data_handle A2, data_handle C, void (*callback)(void *), void *argcallback)
+static codelet cl_mult = {
+	.where = ANY,
+	.model = &strassen_model_mult,
+	.core_func = mult_core_codelet,
+#ifdef USE_CUDA
+	.cublas_func = mult_cublas_codelet,
+#endif
+	.nbuffers = 3
+};
+
+static codelet cl_self_add = {
+	.where = ANY,
+	.model = &strassen_model_self_add_sub,
+	.core_func = self_add_core_codelet,
+#ifdef USE_CUDA
+	.cublas_func = self_add_cublas_codelet,
+#endif
+	.nbuffers = 2
+};
+
+static codelet cl_self_sub = {
+	.where = ANY,
+	.model = &strassen_model_self_add_sub,
+	.core_func = self_sub_core_codelet,
+#ifdef USE_CUDA
+	.cublas_func = self_sub_cublas_codelet,
+#endif
+	.nbuffers = 2
+};
+
+static void compute_add_sub_op(data_handle A1, operation op,
+				data_handle A2, data_handle C, 
+				void (*callback)(void *), void *argcallback)
 {
-
 	/* performs C = (A op B) */
-	job_t job = create_job();
+	struct starpu_task *task = starpu_task_create();
+		task->cl_arg = NULL;
+		task->use_tag = 0;
 
-	//printf("A %p B %p C %p, callback %p arg %p op %d job %p\n", A1, A2, C, callback, argcallback, op, job);
-
-	job->nbuffers = 3;
-		job->buffers[0].state = C;
-		job->buffers[0].mode = W;
-		job->buffers[1].state = A1;
-		job->buffers[1].mode = R;
-		job->buffers[2].state = A2;
-		job->buffers[2].mode = R;
+	task->buffers[0].state = C;
+	task->buffers[0].mode = W;
+	task->buffers[1].state = A1;
+	task->buffers[1].mode = R;
+	task->buffers[2].state = A2;
+	task->buffers[2].mode = R;
 	
-	job->cb = callback;
-	job->argcb = argcallback;
+	task->callback_func = callback;
+	task->callback_arg = argcallback;
 
 	switch (op) {
 		case ADD:
 			STARPU_ASSERT(A1);
 			STARPU_ASSERT(A2);
 			STARPU_ASSERT(C);
-			job->cl->model = &strassen_model_add_sub;
-			job->cl->core_func = add_core_codelet;
-			#ifdef USE_CUDA
-			job->cl->cublas_func = add_cublas_codelet;
-			#endif
+			task->cl = &cl_add;
 			break;
 		case SUB:
 			STARPU_ASSERT(A1);
 			STARPU_ASSERT(A2);
 			STARPU_ASSERT(C);
-			job->cl->model = &strassen_model_add_sub;
-			job->cl->core_func = sub_core_codelet;
-			#ifdef USE_CUDA
-			job->cl->cublas_func = sub_cublas_codelet;
-			#endif
+			task->cl = &cl_sub;
 			break;
 		case MULT:
 			STARPU_ASSERT(A1);
 			STARPU_ASSERT(A2);
 			STARPU_ASSERT(C);
-			job->cl->model = &strassen_model_mult;
-			job->cl->core_func = mult_core_codelet;
-			#ifdef USE_CUDA
-			job->cl->cublas_func = mult_cublas_codelet;
-			#endif
+			task->cl = &cl_mult;
 			break;
 		case SELFADD:
-			job->nbuffers = 2;
-			job->buffers[0].mode = RW;
-			job->cl->core_func = self_add_core_codelet;
-			job->cl->model = &strassen_model_self_add_sub;
-			#ifdef USE_CUDA
-			job->cl->cublas_func = self_add_cublas_codelet;
-			#endif
+			task->buffers[0].mode = RW;
+			task->cl = &cl_self_add;
 			break;
 		case SELFSUB:
-			job->nbuffers = 2;
-			job->buffers[0].mode = RW;
-			job->cl->core_func = self_sub_core_codelet;
-			job->cl->model = &strassen_model_self_add_sub;
-			#ifdef USE_CUDA
-			job->cl->cublas_func = self_sub_cublas_codelet;
-			#endif
+			task->buffers[0].mode = RW;
+			task->cl = &cl_self_sub;
 			break;
 		default:
 			STARPU_ASSERT(0);
 	}
 
-	submit_job(job);
-	// XXX this could made out of various codelets, for now, a single one
+	submit_task(task);
 }
 
 /* Cij +=/-= Ek is done */

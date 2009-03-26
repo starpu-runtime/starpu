@@ -7,8 +7,7 @@ sem_t sem;
 unsigned c = 256;
 unsigned r = 256;
 
-
-unsigned remainingjobs = -1;
+unsigned remainingtasks = -1;
 
 data_handle sparse_matrix;
 data_handle vector_in, vector_out;
@@ -19,8 +18,6 @@ bcsr_t *bcsr_matrix;
 
 float *vector_in_ptr;
 float *vector_out_ptr;
-
-unsigned usecpu = 0;
 
 void create_data(void)
 {
@@ -97,46 +94,47 @@ void call_filters(void)
 }
 
 #define NSPMV	32
-unsigned totaljobs;
+unsigned totaltasks;
+
+codelet cl = {
+	.where = CORE|CUBLAS,
+	.core_func =  core_block_spmv,
+#ifdef USE_CUDA
+	.cublas_func = cublas_block_spmv,
+#endif
+	.nbuffers = 3
+};
 
 void launch_spmv_codelets(void)
 {
-	codelet *cl = malloc(sizeof(codelet));
-	job_t *job_tab;
+	struct starpu_task *task_tab;
 	uint8_t *is_entry_tab;
 
 	/* we call one codelet per block */
 	unsigned nblocks = get_bcsr_nnz(sparse_matrix); 
 	unsigned nrows = get_bcsr_nrow(sparse_matrix); 
 
-	remainingjobs = NSPMV*nblocks;
-	totaljobs = remainingjobs;
+	remainingtasks = NSPMV*nblocks;
+	totaltasks = remainingtasks;
 
-	unsigned jobid = 0;
+	unsigned taskid = 0;
 
-	job_tab = malloc(totaljobs*sizeof(job_t));
-	STARPU_ASSERT(job_tab);
+	task_tab = malloc(totaltasks*sizeof(struct starpu_task));
+	STARPU_ASSERT(task_tab);
 
-	is_entry_tab = calloc(totaljobs, sizeof(uint8_t));
+	is_entry_tab = calloc(totaltasks, sizeof(uint8_t));
 	STARPU_ASSERT(is_entry_tab);
 
-	printf("there will be %d codelets\n", remainingjobs);
+	printf("there will be %d codelets\n", remainingtasks);
 
 	uint32_t *rowptr = get_bcsr_local_rowptr(sparse_matrix);
 	uint32_t *colind = get_bcsr_local_colind(sparse_matrix);
-
-	cl->where = CORE|CUBLAS;
-	cl->core_func =  core_block_spmv;
-#ifdef USE_CUDA
-	cl->cublas_func = cublas_block_spmv;
-#endif
 
 	GET_TICK(start);
 
 	unsigned loop;
 	for (loop = 0; loop < NSPMV; loop++)
 	{
-
 		unsigned row;
 		unsigned part = 0;
 
@@ -152,42 +150,41 @@ void launch_spmv_codelets(void)
 
 			for (index = rowptr[row]; index < rowptr[row+1]; index++, part++)
 			{
-				job_tab[jobid] = job_create();
+				struct starpu_task *task = &task_tab[taskid];
 
-				tag_declare(jobid, job_tab[jobid]);
+				task->use_tag = 1;
+				task->tag_id = taskid;
 
-				job_tab[jobid]->cb = init_problem_callback;
-				job_tab[jobid]->argcb = &remainingjobs;
-				job_tab[jobid]->cl = cl;
-				job_tab[jobid]->cl_arg = NULL;
+				task->callback_func = init_problem_callback;
+				task->callback_arg = &remainingtasks;
+				task->cl = &cl;
+				task->cl_arg = NULL;
 
 				unsigned i = colind[index];
 				unsigned j = row;
 		
-				job_tab[jobid]->nbuffers = 3;
-				job_tab[jobid]->buffers[0].state = get_sub_data(sparse_matrix, 1, part);
-				job_tab[jobid]->buffers[0].mode  = R;
-				job_tab[jobid]->buffers[1].state = get_sub_data(vector_in, 1, i);
-				job_tab[jobid]->buffers[1].mode = R;
-				job_tab[jobid]->buffers[2].state = get_sub_data(vector_out, 1, j);
-				job_tab[jobid]->buffers[2].mode = RW;
-
+				task->buffers[0].state = get_sub_data(sparse_matrix, 1, part);
+				task->buffers[0].mode  = R;
+				task->buffers[1].state = get_sub_data(vector_in, 1, i);
+				task->buffers[1].mode = R;
+				task->buffers[2].state = get_sub_data(vector_out, 1, j);
+				task->buffers[2].mode = RW;
 
 				/* all tasks in the same row are dependant so that we don't wait too much for data 
 				 * we need to wait on the previous task if we are not the first task of a row */
 				if (index != rowptr[row & ~0x3])
 				{
 					/* this is not the first task in the row */
-					tag_declare_deps(jobid, 1, jobid-1);
+					tag_declare_deps(taskid, 1, taskid-1);
 
-					is_entry_tab[jobid] = 0;
+					is_entry_tab[taskid] = 0;
 				}
 				else {
-					/* this is an entry job */
-					is_entry_tab[jobid] = 1;
+					/* this is an entry task */
+					is_entry_tab[taskid] = 1;
 				}
 
-				jobid++;
+				taskid++;
 			}
 		}
 	}
@@ -197,15 +194,16 @@ void launch_spmv_codelets(void)
 	/* submit ALL tasks now */
 	unsigned nchains = 0;
 	unsigned task;
-	for (task = 0; task < totaljobs; task++)
+	for (task = 0; task < totaltasks; task++)
 	{
 		if (is_entry_tab[task]) {
-			submit_job(job_tab[task]);
 			nchains++;
 		}
+
+		submit_task(&task_tab[task]);
 	}
 
-	printf("end of task submission (there was %d chains for %d tasks : ratio %d tasks per chain) !\n", nchains, totaljobs, totaljobs/nchains);
+	printf("end of task submission (there was %d chains for %d tasks : ratio %d tasks per chain) !\n", nchains, totaltasks, totaltasks/nchains);
 }
 
 void init_problem(void)
@@ -262,7 +260,7 @@ int main(__attribute__ ((unused)) int argc,
 
 	print_results();
 
-	double totalflop = 2.0*c*r*totaljobs;
+	double totalflop = 2.0*c*r*totaltasks;
 
 	double timing = timing_delay(&start, &end);
 	fprintf(stderr, "Computation took (in ms)\n");

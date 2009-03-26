@@ -40,17 +40,23 @@ static inline void malloc_pinned_if_possible(float **A, size_t dim)
 		};	
 	
 		codelet *cl = malloc(sizeof(codelet));
-		cl->cublas_func = malloc_pinned_codelet; 
-		cl->where = CUBLAS;
-		cl->model = NULL;
+			cl->cublas_func = malloc_pinned_codelet; 
+			cl->where = CUBLAS;
+			cl->model = NULL;
+			cl->nbuffers = 0;
 	
-		job_t j = job_create();
-		j->cb = NULL; 
-		j->cl = cl;
-		j->cl_arg = &s;
+		struct starpu_task *task = starpu_task_create();
+			task->callback_func = NULL; 
+			task->cl = cl;
+			task->cl_arg = &s;
+
+		task->synchronous = 1;
 	
-		push_res = submit_job_sync(j);
+		push_res = submit_task(task);
 		STARPU_ASSERT(push_res != -ENODEV);
+
+		free(cl);
+		free(task);
 #endif
 	}
 	else {

@@ -8,18 +8,19 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 	tick_t codelet_start_comm, codelet_end_comm;
 
 	unsigned calibrate_model = 0;
+	struct starpu_task *task = j->task;
 
-	STARPU_ASSERT(j->cl);
-	STARPU_ASSERT(j->cl->core_func);
+	STARPU_ASSERT(task->cl);
+	STARPU_ASSERT(task->cl->core_func);
 
-	if (j->cl->model && j->cl->model->benchmarking)
+	if (task->cl->model && task->cl->model->benchmarking)
 		calibrate_model = 1;
 
 	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_start_comm);
 
-	ret = fetch_codelet_input(j->buffers, j->interface,
-			j->nbuffers, 0);
+	ret = fetch_codelet_input(task->buffers, task->interface,
+			task->cl->nbuffers, 0);
 
 	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_end_comm);
@@ -35,15 +36,15 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_start);
 
-	cl_func func = j->cl->core_func;
-	func(j->interface, j->cl_arg);
+	cl_func func = task->cl->core_func;
+	func(task->interface, task->cl_arg);
 	
 	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_end);
 
 	TRACE_END_CODELET_BODY(j);
 
-	push_codelet_output(j->buffers, j->nbuffers, 0);
+	push_codelet_output(task->buffers, task->cl->nbuffers, 0);
 
 //#ifdef MODEL_DEBUG
 	if (calibrate_model || BENCHMARK_COMM)

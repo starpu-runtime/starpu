@@ -9,9 +9,10 @@ static unsigned _submit_job_enforce_data_deps(job_t j, unsigned start_buffer_ind
 static unsigned unlock_one_requester(data_requester_t r)
 {
 	job_t j = r->j;
+	unsigned nbuffers = j->task->cl->nbuffers;
 	unsigned buffer_index = r->buffer_index;
 
-	if (buffer_index + 1 < j->nbuffers)
+	if (buffer_index + 1 < nbuffers)
 	{
 		/* not all buffers are protected yet */
 		return _submit_job_enforce_data_deps(j, buffer_index + 1);
@@ -94,8 +95,8 @@ static unsigned attempt_to_submit_data_request_from_job(job_t j, unsigned buffer
 {
 	unsigned ret;
 
-	data_state *data = j->buffers[buffer_index].state;
-	access_mode mode = j->buffers[buffer_index].mode;
+	data_state *data = j->task->buffers[buffer_index].state;
+	access_mode mode = j->task->buffers[buffer_index].mode;
 
 	take_mutex(&data->header_lock);
 
@@ -147,7 +148,8 @@ static unsigned _submit_job_enforce_data_deps(job_t j, unsigned start_buffer_ind
 
 	/* TODO compute an ordered list of the data */
 
-	for (buf = start_buffer_index; buf < j->nbuffers; buf++)
+	unsigned nbuffers = j->task->cl->nbuffers;
+	for (buf = start_buffer_index; buf < nbuffers; buf++)
 	{
 		if (attempt_to_submit_data_request_from_job(j, buf))
 			return 1;
@@ -162,7 +164,7 @@ static unsigned _submit_job_enforce_data_deps(job_t j, unsigned start_buffer_ind
    reading and another writing) */
 unsigned submit_job_enforce_data_deps(job_t j)
 {
-	if (j->nbuffers == 0)
+	if (j->task->cl->nbuffers == 0)
 		return 0;
 
 	return _submit_job_enforce_data_deps(j, 0);

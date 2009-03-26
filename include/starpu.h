@@ -7,4 +7,7 @@
 #include <starpu-data.h>
 #include <starpu-task.h>
 
+void init_machine(void);
+void terminate_machine(void);
+
 #endif // __STARPU_H__

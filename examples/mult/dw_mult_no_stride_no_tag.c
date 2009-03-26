@@ -37,8 +37,6 @@ static void callback_func_3(void *arg);
 
  */
 
-static codelet *cl;
-
 static void terminate(void)
 {
 	gettimeofday(&end, NULL);
@@ -325,32 +323,43 @@ struct cb2_s {
 };
 
 
-static void construct_job(unsigned x, unsigned y, unsigned z, unsigned iter, struct pos *posp)
+static codelet cl = {
+	.where = CORE|CUBLAS|GORDON,
+	.core_func = core_mult,
+#ifdef USE_CUDA
+	.cublas_func = cublas_mult,
+#endif
+#ifdef USE_GORDON
+	.gordon_func = SPU_FUNC_SGEMM,
+#endif
+	.nbuffers = 3
+};
+
+
+static void construct_task(unsigned x, unsigned y, unsigned z, unsigned iter, struct pos *posp)
 {
-	job_t jb;
-	jb = job_create();
+	struct starpu_task *task;
+	task = starpu_task_create();
 
-	jb->cl = cl;
+	task->cl = &cl;
 
-	jb->nbuffers = 3;
+	task->buffers[0].state = A_state[y][z];
+	task->buffers[0].mode = R;
+	task->buffers[1].state = B_state[z][x];
+	task->buffers[1].mode = R;
+	task->buffers[2].state = C_state[y][x];
+	task->buffers[2].mode = RW;
 
-	jb->buffers[0].state = A_state[y][z];
-	jb->buffers[0].mode = R;
-	jb->buffers[1].state = B_state[z][x];
-	jb->buffers[1].mode = R;
-	jb->buffers[2].state = C_state[y][x];
-	jb->buffers[2].mode = RW;
+	task->callback_func = callback_func_3;
+	task->callback_arg = posp;
 
-	jb->cb = callback_func_3;
-	jb->argcb = posp;
-
-	jb->cl_arg = &conf;
-	jb->cl_arg_size = sizeof(struct block_conf);
+	task->cl_arg = &conf;
+	task->cl_arg_size = sizeof(struct block_conf);
 
 	posp->z = z;
 	posp->iter = iter;
 
-	submit_job(jb);
+	submit_task(task);
 }
 
 
@@ -382,13 +391,13 @@ static void callback_func_3(void *arg)
 
 	if (z < nslicesz - 1)
 	{
-		construct_job(x, y, z+1, iter, posp);
+		construct_task(x, y, z+1, iter, posp);
 	}
 	else
 	{
 		if (iter < niter - 1)
 		{
-			construct_job(x, y, 0, iter+1, posp);
+			construct_task(x, y, 0, iter+1, posp);
 		}
 		else
 		{
@@ -418,33 +427,9 @@ static void launch_codelets(void)
 	for (taskx = 0; taskx < nslicesx; taskx++) 
 	for (tasky = 0; tasky < nslicesy; tasky++)
 	{
-		construct_job(taskx, tasky, 0, 0, &currentpos[tasky][taskx]);
+		construct_task(taskx, tasky, 0, 0, &currentpos[tasky][taskx]);
 	}
 }
-
-static void init_codelet(void)
-{
-	cl = malloc(sizeof(codelet));
-
-	cl->core_func = core_mult;
-#ifdef USE_CUDA
-	cl->cublas_func = cublas_mult;
-#endif
-#ifdef USE_GORDON
-	cl->gordon_func = SPU_FUNC_SGEMM;
-#endif
-
-	cl->where = CORE;
-#ifdef USE_CUDA
-	cl->where |= CUBLAS;
-#endif
-#ifdef USE_GORDON
-	cl->where |= GORDON;
-#endif
-
-
-}
-
 
 int main(__attribute__ ((unused)) int argc, 
 	 __attribute__ ((unused)) char **argv)
@@ -458,8 +443,6 @@ int main(__attribute__ ((unused)) int argc,
 	sem_init(&sem, 0, 0U);
 
 	init_problem_data();
-
-	init_codelet();
 
 	launch_codelets();
 

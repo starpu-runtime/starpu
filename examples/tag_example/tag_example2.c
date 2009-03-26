@@ -1,6 +1,4 @@
 #include <semaphore.h>
-#include <core/jobs.h>
-#include <core/workers.h>
 #include <common/timing.h>
 #include <common/util.h>
 #include <string.h>
@@ -8,7 +6,8 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include <signal.h>
-#include <core/dependencies/tags.h>
+
+#include <starpu.h>
 
 #define TAG(i, iter)	((uint64_t)  (((uint64_t)iter)<<32 | (i)) )
 
@@ -68,23 +67,19 @@ static void create_task_grid(unsigned iter)
 	for (i = 0; i < ni; i++)
 	{
 		/* create a new task */
-		job_t jb = job_create();
-		cl.where = CORE;
-		jb->cb = callback_core;
+		struct starpu_task *task = starpu_task_create();
+		task->callback_func = callback_core;
 		//jb->argcb = &coords[i][j];
-		jb->cl = &cl;
-		jb->cl_arg = NULL;
+		task->cl = &cl;
+		task->cl_arg = NULL;
 
-		tag_declare(TAG(i, iter), jb);
+		task->use_tag = 1;
+		task->tag_id = TAG(i, iter);
 
-		if (i == 0)
-		{
-			submit_job(jb);
-		}
-		else
-		{
+		if (i != 0)
 			tag_declare_deps(TAG(i,iter), 1, TAG(i-1,iter));
-		}
+
+		submit_task(task);
 	}
 }
 
@@ -124,6 +119,8 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	cl.core_func = core_codelet;
 	cl.cublas_func = core_codelet;
+	cl.where = CORE;
+	cl.nbuffers = 0;
 
 	sem_init(&sem, 0, 0);
 

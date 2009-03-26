@@ -5,9 +5,11 @@ void compute_buffers_footprint(job_t j)
 	uint32_t footprint = 0;
 	unsigned buffer;
 
-	for (buffer = 0; buffer < j->nbuffers; buffer++)
+	struct starpu_task *task = j->task;
+
+	for (buffer = 0; buffer < task->cl->nbuffers; buffer++)
 	{
-		data_state *state = j->buffers[buffer].state;
+		data_state *state = task->buffers[buffer].state;
 
 		STARPU_ASSERT(state->ops);
 		STARPU_ASSERT(state->ops->footprint);

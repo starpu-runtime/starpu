@@ -45,7 +45,7 @@ struct jobq_s *create_priority_jobq(void)
 	return q;
 }
 
-int priority_push_task(struct jobq_s *q, job_t task)
+int priority_push_task(struct jobq_s *q, job_t j)
 {
 	STARPU_ASSERT(q);
 	struct priority_jobq_s *queue = q->queue;
@@ -60,9 +60,9 @@ int priority_push_task(struct jobq_s *q, job_t task)
 
 	TRACE_JOB_PUSH(task, 1);
 	
-	unsigned priolevel = task->priority - MIN_PRIO;
+	unsigned priolevel = j->task->priority - MIN_PRIO;
 
-	job_list_push_front(queue->jobq[priolevel], task);
+	job_list_push_front(queue->jobq[priolevel], j);
 	queue->njobs[priolevel]++;
 	queue->total_njobs++;
 

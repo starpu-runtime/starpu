@@ -31,7 +31,7 @@ static double per_arch_job_expected_length(struct perfmodel_t *model, enum perf_
 	per_arch_cost_model = model->per_arch[arch].cost_model;
 
 	if (per_arch_cost_model)
-		exp = per_arch_cost_model(j->buffers);
+		exp = per_arch_cost_model(j->task->buffers);
 
 	return exp;
 }
@@ -46,7 +46,7 @@ static double common_job_expected_length(struct perfmodel_t *model, uint32_t who
 
 	if (model->cost_model) {
 		float alpha;
-		exp = model->cost_model(j->buffers);
+		exp = model->cost_model(j->task->buffers);
 		switch (who) {
 			case CORE:
 				alpha = CORE_ALPHA;
@@ -70,7 +70,7 @@ static double common_job_expected_length(struct perfmodel_t *model, uint32_t who
 
 double job_expected_length(uint32_t who, struct job_s *j, enum perf_archtype arch)
 {
-	struct perfmodel_t *model = j->cl->model;
+	struct perfmodel_t *model = j->task->cl->model;
 
 	if (model) {
 		switch (model->type) {
@@ -100,14 +100,14 @@ double job_expected_length(uint32_t who, struct job_s *j, enum perf_archtype arc
 double data_expected_penalty(struct jobq_s *q, struct job_s *j)
 {
 	uint32_t memory_node = q->memory_node;
-	unsigned nbuffers = j->nbuffers;
+	unsigned nbuffers = j->task->cl->nbuffers;
 	unsigned buffer;
 
 	double penalty = 0.0;
 
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		data_state *state = j->buffers[buffer].state;
+		data_state *state = j->task->buffers[buffer].state;
 
 		if (!is_data_present_or_requested(state, memory_node))
 		{

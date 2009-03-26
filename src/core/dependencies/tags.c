@@ -145,7 +145,7 @@ void notify_dependencies(struct job_s *j)
 
 	STARPU_ASSERT(j);
 	
-	if (j->use_tag) {
+	if (j->task->use_tag) {
 		/* in case there are dependencies, wake up the proper tasks */
 		tag = j->tag;
 
@@ -163,7 +163,7 @@ void notify_dependencies(struct job_s *j)
 void tag_declare(tag_t id, struct job_s *job)
 {
 	TRACE_CODELET_TAG(id, job);
-	job->use_tag = 1;
+	job->task->use_tag = 1;
 	
 	struct tag_s *tag= gettag_struct(id);
 	tag->job = job;
@@ -174,7 +174,7 @@ void tag_declare(tag_t id, struct job_s *job)
 void tag_declare_deps_array(tag_t id, unsigned ndeps, tag_t *array)
 {
 	unsigned i;
-	
+
 	/* create the associated completion group */
 	struct tag_s *tag_child = gettag_struct(id);
 	cg_t *cg = create_cg(ndeps, tag_child);
@@ -227,6 +227,10 @@ void tag_set_ready(struct tag_s *tag)
 	tag->state = READY;
 	/* declare it to the scheduler ! */
 	struct job_s *j = tag->job;
+
+	/* perhaps the corresponding task was not declared yet */
+	if (!j)
+		return;
 
 #ifdef NO_DATA_RW_LOCK
 	/* enforce data dependencies */

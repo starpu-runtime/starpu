@@ -69,7 +69,7 @@ void terminate(void)
 
 void callback_func(void *arg)
 {
-	/* the argument is a pointer to a counter of the remaining jobs */
+	/* the argument is a pointer to a counter of the remaining tasks */
 	int *counter = arg;
 	*counter -= 1;
 	if (*counter == 0)
@@ -234,64 +234,62 @@ static void launch_codelets(void)
 #endif
 	/* partition the work into slices */
 	unsigned taskx, tasky;
-	job_t jb;
 
-	jobcounter = nslicesx * nslicesy;
+	taskcounter = nslicesx * nslicesy;
 
 	srand(time(NULL));
+
+	codelet cl = {
+		.where = CORE|CUBLAS|GORDON,
+		.core_func = core_mult,
+#ifdef USE_CUDA
+		.cublas_func = cublas_mult,
+#endif
+#ifdef USE_GORDON
+		.gordon_func = SPU_FUNC_SGEMM,
+#endif
+		.nbuffers = 3
+	};
 
 	for (taskx = 0; taskx < nslicesx; taskx++) 
 	{
 		for (tasky = 0; tasky < nslicesy; tasky++)
 		{
 			/* A B[task] = C[task] */
-			codelet *cl = malloc(sizeof(codelet));
-			jb = job_create();
+			struct starpu_task *task = starpu_task_create();
 
-			cl->where = CORE;
+			task->cl = &cl;
+			task->cl_arg = &conf;
+			task->cl_arg_size = sizeof(struct block_conf);
 
-			cl->core_func = core_mult;
-#ifdef USE_CUDA
-			cl->where |= CUBLAS;
-			cl->cublas_func = cublas_mult;
-#endif
-#ifdef USE_GORDON
-			cl->where |= GORDON;
-			cl->gordon_func = SPU_FUNC_SGEMM;
-#endif
-			jb->cb = callback_func;
-			jb->argcb = &jobcounter;
-
-			jb->cl_arg = &conf;
-			jb->cl_arg_size = sizeof(struct block_conf);
-
-			jb->cl = cl;
+			task->callback_func = callback_func;
+			task->callback_arg = &taskcounter;
 
 			tag_t tag = 
 				((((unsigned long long)(taskx))<<32) 
 				| (unsigned long long)(tasky));
-			jb->nbuffers = 3;
 
-			tag_declare(tag, jb);
+			task->use_tag = 1;
+			task->tag_id = tag;
 
-			jb->buffers[0].state = get_sub_data(A_state, 1, tasky);
-			jb->buffers[0].mode = R;
-			jb->buffers[1].state = get_sub_data(B_state, 1, taskx);
-			jb->buffers[1].mode = R;
-			jb->buffers[2].state = 
+			task->buffers[0].state = get_sub_data(A_state, 1, tasky);
+			task->buffers[0].mode = R;
+			task->buffers[1].state = get_sub_data(B_state, 1, taskx);
+			task->buffers[1].mode = R;
+			task->buffers[2].state = 
 				get_sub_data(C_state, 2, taskx, tasky);
-			jb->buffers[2].mode = RW;
+			task->buffers[2].mode = RW;
 
 			if (use_common_model)
 			{
-				jb->cl->model = &sgemm_model_common;
+				task->cl->model = &sgemm_model_common;
 			}
 			else
 			{
-				jb->cl->model = &sgemm_model;
+				task->cl->model = &sgemm_model;
 			}
 			
-			submit_job(jb);
+			submit_task(task);
 
 		}
 	}

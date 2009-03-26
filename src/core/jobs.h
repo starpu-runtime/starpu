@@ -24,52 +24,23 @@
 #include <cuda.h>
 #endif
 
-#define NMAXBUFS	8
-
-#define MIN_PRIO        (-4)
-#define MAX_PRIO        5
-#define DEFAULT_PRIO	0
-
-#define ANY	(~0)
-#define CORE	((1ULL)<<1)
-#define CUBLAS	((1ULL)<<2)
-#define CUDA	((1ULL)<<3)
-#define SPU	((1ULL)<<4)
-#define GORDON	((1ULL)<<5)
-
 /* codelet function */
 typedef void (*cl_func)(data_interface_t *, void *);
 typedef void (*callback)(void *);
 
-#define CORE_MAY_PERFORM(j)	((j)->cl->where & CORE)
-#define CUDA_MAY_PERFORM(j)     ((j)->cl->where & CUDA)
-#define CUBLAS_MAY_PERFORM(j)   ((j)->cl->where & CUBLAS)
-#define SPU_MAY_PERFORM(j)	((j)->cl->where & SPU)
-#define GORDON_MAY_PERFORM(j)	((j)->cl->where & GORDON)
+#define CORE_MAY_PERFORM(j)	((j)->task->cl->where & CORE)
+#define CUDA_MAY_PERFORM(j)     ((j)->task->cl->where & CUDA)
+#define CUBLAS_MAY_PERFORM(j)   ((j)->task->cl->where & CUBLAS)
+#define SPU_MAY_PERFORM(j)	((j)->task->cl->where & SPU)
+#define GORDON_MAY_PERFORM(j)	((j)->task->cl->where & GORDON)
 
+/* a job is the internal representation of a task */
 LIST_TYPE(job,
-	codelet *cl;
+	struct starpu_task *task;
 
-	callback cb;	/* do "cb(argcb)" when finished */
-	void *argcb;
-
-	/* arguments not managed by the DSM are given as a buffer */
-	void *cl_arg;
-	/* in case the argument buffer has to be uploaded explicitely */
-	size_t cl_arg_size;
-
-	unsigned synchronous; /* if set, a call to push is blocking */
 	sem_t sync_sem;
 
 	struct tag_s *tag;
-	unsigned use_tag;
-
-	int priority; /* MAX_PRIO = most important 
-			: MIN_PRIO = least important */
-
-	unsigned nbuffers;
-	buffer_descr buffers[NMAXBUFS];
-	data_interface_t interface[NMAXBUFS];
 
 	double predicted;
 	double penality;
@@ -80,12 +51,13 @@ LIST_TYPE(job,
 	unsigned terminated;
 );
 
-job_t job_create(void);
+//#warning this must not be exported anymore ... 
+//job_t job_create(struct starpu_task *task);
 void handle_job_termination(job_t j);
 size_t job_get_data_size(job_t j);
 
-int submit_job(job_t j);
-int submit_prio_job(job_t j);
-int submit_job_sync(job_t j);
+//int submit_job(job_t j);
+//int submit_prio_job(job_t j);
+//int submit_job_sync(job_t j);
 
 #endif // __JOBS_H__
