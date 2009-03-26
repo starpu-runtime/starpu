@@ -218,7 +218,6 @@ void STARPU_DECLARE_WORK_BLOCKS(float *maxbloktab1, float *maxbloktab2, unsigned
 	sem_t sem;
 
 	/* initialize codelet */
-	cl.cl_arg = NULL;
 	cl.where = CUBLAS;
 	cl.cublas_func = allocate_maxbloktab_on_cublas;
 	
@@ -226,6 +225,7 @@ void STARPU_DECLARE_WORK_BLOCKS(float *maxbloktab1, float *maxbloktab2, unsigned
 	j->cb = _cublas_cblk_strsm_callback;
 	j->argcb = &sem;
 	j->cl = &cl;
+	j->cl_arg = NULL;
 
 	j->nbuffers = 0;
 	j->cl->model = NULL;
@@ -306,7 +306,6 @@ void STARPU_CBLK_STRSM(unsigned col)
 	sem_t sem;
 
 	/* initialize codelet */
-	cl.cl_arg = NULL;
 	cl.where = CORE|CUBLAS;
 	cl.core_func = _core_cblk_strsm;
 	cl.cublas_func = _cublas_cblk_strsm;
@@ -316,6 +315,7 @@ void STARPU_CBLK_STRSM(unsigned col)
 	j->cb = _cublas_cblk_strsm_callback;
 	j->argcb = &sem;
 	j->cl = &cl;
+	j->cl_arg = NULL;
 
 	j->nbuffers = 1;
 	/* we could be a little more precise actually */
@@ -446,7 +446,6 @@ void STARPU_COMPUTE_CONTRIB_COMPACT(unsigned col, int dimi, int dimj, int dima, 
 	sem_t sem;
 
 	/* initialize codelet */
-	cl.cl_arg = &args;
 	cl.where = CUBLAS|CORE;
 	cl.core_func = _core_compute_contrib_compact;
 	cl.cublas_func = _cublas_compute_contrib_compact;
@@ -456,6 +455,7 @@ void STARPU_COMPUTE_CONTRIB_COMPACT(unsigned col, int dimi, int dimj, int dima, 
 	j->cb = _cublas_cblk_strsm_callback;
 	j->argcb = &sem;
 	j->cl = &cl;
+	j->cl_arg = &args;
 	j->cl->model = &starpu_compute_contrib_compact;
 
 	int ret;
@@ -588,7 +588,6 @@ void STARPU_SGEMM (const char *transa, const char *transb, const int m,
 	monitor_blas_data(&C_state, 0, (uintptr_t)C, ldc, m, n, sizeof(float));
 
 	/* initialize codelet */
-	cl.cl_arg = &args;
 	cl.where = CUBLAS;
 	//cl.core_func = _core_strsm;
 	cl.cublas_func = _cublas_sgemm;
@@ -597,6 +596,7 @@ void STARPU_SGEMM (const char *transa, const char *transb, const int m,
 	j->cb = _cublas_sgemm_callback;
 	j->argcb = &sem;
 	j->cl = &cl;
+	j->cl_arg = &args;
 
 	j->nbuffers = 3;
 	j->buffers[0].state = &A_state;

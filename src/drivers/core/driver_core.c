@@ -36,7 +36,7 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 		GET_TICK(codelet_start);
 
 	cl_func func = j->cl->core_func;
-	func(j->interface, j->cl->cl_arg);
+	func(j->interface, j->cl_arg);
 	
 	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_end);

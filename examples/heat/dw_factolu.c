@@ -35,7 +35,6 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 		codelet *cl = malloc(sizeof(codelet));
 		cl_args *u11arg = malloc(sizeof(cl_args));
 	
-		cl->cl_arg = u11arg;
 		cl->where = ANY;
 		cl->core_func = dw_core_codelet_update_u11;
 #ifdef USE_CUDA
@@ -46,6 +45,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 			j->cb = dw_callback_v2_codelet_update_u11;
 			j->argcb = u11arg;
 			j->cl = cl;
+			j->cl_arg = u11arg;
 			//j->cuda_cost_model = task_11_cost_cuda;
 			//j->core_cost_model = task_11_cost_core;
 			//j->cost_model = task_11_cost;
@@ -79,7 +79,6 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					cl_args *u21a = malloc(sizeof(cl_args));
 					codelet *cl21 = malloc(sizeof(codelet));
 		
-					cl21->cl_arg = u21a;
 					cl21->where = ANY;
 					cl21->core_func = 
 						dw_core_codelet_update_u21;
@@ -91,6 +90,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					j21->cb = dw_callback_v2_codelet_update_u21;
 					j21->argcb = u21a;
 					j21->cl = cl21;
+					j21->cl_arg = u21a;
 					j21->cl->model = &model_21;
 			
 					u21a->i = k+1;
@@ -125,7 +125,6 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					codelet *cl12 = malloc(sizeof(codelet));
 					cl_args *u12a = malloc(sizeof(cl_args));
 
-					cl12->cl_arg = u12a;
 					cl12->where = ANY;
 					cl12->core_func = dw_core_codelet_update_u12;
 		
@@ -133,6 +132,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 						j12->cb = dw_callback_v2_codelet_update_u12;
 						j12->argcb = u12a;
 						j12->cl = cl12;
+						j12->cl_arg = u12a;
 						j12->cl->model = &model_12;
 
 #ifdef USE_CUDA
@@ -190,7 +190,6 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				cl_args *u22a = malloc(sizeof(cl_args));
 				codelet *cl22 = malloc(sizeof(codelet));
 
-				cl22->cl_arg = u22a;
 				cl22->where = ANY;
 				cl22->core_func = dw_core_codelet_update_u22;
 #ifdef USE_CUDA
@@ -201,6 +200,7 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				j22->cb = dw_callback_v2_codelet_update_u22;
 				j22->argcb = u22a;
 				j22->cl = cl22;
+				j22->cl_arg = u22a;
 				j22->cl->model = &model_22;
 
 				u22a->k = i;
@@ -262,7 +262,6 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				cl_args *u22a = malloc(sizeof(cl_args));
 				codelet *cl22 = malloc(sizeof(codelet));
 
-				cl22->cl_arg = u22a;
 				cl22->where = ANY;
 				cl22->core_func = dw_core_codelet_update_u22;
 #ifdef USE_CUDA
@@ -273,6 +272,7 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				j22->cb = dw_callback_v2_codelet_update_u22;
 				j22->argcb = u22a;
 				j22->cl = cl22;
+				j22->cl_arg = u22a;
 				j22->cl->model = &model_22;
 
 				u22a->k = i;
@@ -346,12 +346,12 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					codelet *cl12 = malloc(sizeof(codelet));
 					cl_args *u12a = malloc(sizeof(cl_args));
 
-					cl12->cl_arg = u12a;
 					cl12->where = ANY;
 					cl12->core_func = dw_core_codelet_update_u12;
 		
 					job_t j12 = job_create();
 						j12->cb = dw_callback_v2_codelet_update_u12;
+						j12->cl_arg = u12a;
 						j12->argcb = u12a;
 						j12->cl = cl12;
 
@@ -398,7 +398,6 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					cl_args *u21a = malloc(sizeof(cl_args));
 					codelet *cl21 = malloc(sizeof(codelet));
 		
-					cl21->cl_arg = u21a;
 					cl21->where = ANY;
 					cl21->core_func = dw_core_codelet_update_u21;
 #ifdef USE_CUDA
@@ -408,6 +407,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 						j21->cb = dw_callback_v2_codelet_update_u21;
 						j21->argcb = u21a;
 						j21->cl = cl21;
+						j21->cl_arg = u21a;
 
 						j21->cl->model = &model_21;
 		
@@ -474,8 +474,6 @@ void dw_callback_codelet_update_u11(void *argcb)
 			cl_args *u21a = malloc(sizeof(cl_args));
 			codelet *cl21 = malloc(sizeof(codelet));
 
-			cl12->cl_arg = u12a;
-			cl21->cl_arg = u21a;
 			cl12->where = ANY;
 			cl21->where = ANY;
 			cl12->core_func = dw_core_codelet_update_u12;
@@ -489,6 +487,7 @@ void dw_callback_codelet_update_u11(void *argcb)
 				j12->cb = dw_callback_codelet_update_u12_21;
 				j12->argcb = u12a;
 				j12->cl = cl12;
+				j12->cl_arg = u12a;
 				j12->cl->model = &model_12;
 
 
@@ -496,6 +495,7 @@ void dw_callback_codelet_update_u11(void *argcb)
 				j21->cb = dw_callback_codelet_update_u12_21;
 				j21->argcb = u21a;
 				j21->cl = cl21;
+				j21->cl_arg = u21a;
 				j21->cl->model = &model_21;
 			
 
@@ -549,7 +549,6 @@ void dw_callback_codelet_update_u22(void *argcb)
 		codelet *cl = malloc(sizeof(codelet));
 		cl_args *u11arg = malloc(sizeof(cl_args));
 	
-		cl->cl_arg = u11arg;
 		cl->where = ANY;
 		cl->core_func = dw_core_codelet_update_u11;
 #ifdef USE_CUDA
@@ -560,6 +559,7 @@ void dw_callback_codelet_update_u22(void *argcb)
 			j->cb = dw_callback_codelet_update_u11;
 			j->argcb = u11arg;
 			j->cl = cl;
+			j->cl_arg = u11arg;
 			j->cl->model = &model_11;
 
 			j->nbuffers = 1;
@@ -602,7 +602,6 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 				cl_args *u22a = malloc(sizeof(cl_args));
 				codelet *cl22 = malloc(sizeof(codelet));
 
-				cl22->cl_arg = u22a;
 				cl22->where = ANY;
 				cl22->core_func = dw_core_codelet_update_u22;
 #ifdef USE_CUDA
@@ -613,6 +612,7 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 				j22->cb = dw_callback_codelet_update_u22;
 				j22->argcb = u22a;
 				j22->cl = cl22;
+				j22->cl_arg = u22a;
 				j22->cl->model = &model_22;
 
 				u22a->k = i;
@@ -664,7 +664,6 @@ void dw_codelet_facto(data_handle dataA, unsigned nblocks)
 	args->nblocks = nblocks;
 	args->dataA = dataA;
 
-	cl->cl_arg = args;
 	cl->where = ANY;
 	cl->core_func = dw_core_codelet_update_u11;
 #ifdef USE_CUDA
@@ -678,6 +677,7 @@ void dw_codelet_facto(data_handle dataA, unsigned nblocks)
 		j->cb = dw_callback_codelet_update_u11;
 		j->argcb = args;
 		j->cl = cl;
+		j->cl_arg = args;
 		j->cl->model = &model_11;
 
 		j->nbuffers = 1;
@@ -727,7 +727,6 @@ void dw_codelet_facto_v2(data_handle dataA, unsigned nblocks)
 	args->nblocks = nblocks;
 	args->dataA = dataA;
 
-	cl->cl_arg = args;
 	cl->where = ANY;
 	cl->core_func = dw_core_codelet_update_u11;
 #ifdef USE_CUDA
@@ -741,6 +740,7 @@ void dw_codelet_facto_v2(data_handle dataA, unsigned nblocks)
 		j->cb = dw_callback_v2_codelet_update_u11;
 		j->argcb = args;
 		j->cl = cl;
+		j->cl_arg = args;
 		j->cl->model = &model_11;
 		j->nbuffers = 1;
 

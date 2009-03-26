@@ -344,6 +344,9 @@ static void construct_job(unsigned x, unsigned y, unsigned z, unsigned iter, str
 	jb->cb = callback_func_3;
 	jb->argcb = posp;
 
+	jb->cl_arg = &conf;
+	jb->cl_arg_size = sizeof(struct block_conf);
+
 	posp->z = z;
 	posp->iter = iter;
 
@@ -423,8 +426,6 @@ static void init_codelet(void)
 {
 	cl = malloc(sizeof(codelet));
 
-	cl->cl_arg = &conf;
-	cl->cl_arg_size = sizeof(struct block_conf);
 	cl->core_func = core_mult;
 #ifdef USE_CUDA
 	cl->cublas_func = cublas_mult;

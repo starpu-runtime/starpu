@@ -4,11 +4,11 @@
 static job_t create_job(void)
 {
 	codelet *cl = malloc(sizeof(codelet));
-		cl->cl_arg = NULL;
 		cl->where = CORE|CUBLAS;
 
 	job_t j = job_create();
 		j->cl = cl;
+		j->cl_arg = NULL;
 
 	return j;
 }

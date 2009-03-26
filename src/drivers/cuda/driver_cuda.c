@@ -215,7 +215,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 		cl_func func = j->cl->cublas_func;
 		STARPU_ASSERT(func);
 		GET_TICK(codelet_start);
-		func(j->interface, j->cl->cl_arg);
+		func(j->interface, j->cl_arg);
 		cuCtxSynchronize();
 		GET_TICK(codelet_end);
 	} else {

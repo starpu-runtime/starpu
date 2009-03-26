@@ -301,6 +301,9 @@ static job_t construct_job(unsigned x, unsigned y, unsigned z, unsigned iter)
 
 	jb->cl = cl;
 
+	jb->cl_arg = &conf;
+	jb->cl_arg_size = sizeof(struct block_conf);
+
 	tag_declare(TAG(z, y, x, iter), jb);
 //	fprintf(stderr, "TAG (z %d , y %d , x %d , iter %d) -> %lx\n", z, y, x, iter, TAG(z, y, x, iter));
 
@@ -426,8 +429,6 @@ static void init_codelet(void)
 {
 	cl = malloc(sizeof(codelet));
 
-	cl->cl_arg = &conf;
-	cl->cl_arg_size = sizeof(struct block_conf);
 	cl->core_func = core_mult;
 #ifdef USE_CUDA
 	cl->cublas_func = cublas_mult;

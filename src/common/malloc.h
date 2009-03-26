@@ -41,13 +41,13 @@ static inline void malloc_pinned_if_possible(float **A, size_t dim)
 	
 		codelet *cl = malloc(sizeof(codelet));
 		cl->cublas_func = malloc_pinned_codelet; 
-		cl->cl_arg = &s;
 		cl->where = CUBLAS;
 		cl->model = NULL;
 	
 		job_t j = job_create();
 		j->cb = NULL; 
 		j->cl = cl;
+		j->cl_arg = &s;
 	
 		push_res = submit_job_sync(j);
 		STARPU_ASSERT(push_res != -ENODEV);

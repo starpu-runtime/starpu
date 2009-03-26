@@ -250,8 +250,6 @@ static void launch_codelets(void)
 
 			cl->where = CORE;
 
-			cl->cl_arg = &conf;
-			cl->cl_arg_size = sizeof(struct block_conf);
 			cl->core_func = core_mult;
 #ifdef USE_CUDA
 			cl->where |= CUBLAS;
@@ -263,6 +261,10 @@ static void launch_codelets(void)
 #endif
 			jb->cb = callback_func;
 			jb->argcb = &jobcounter;
+
+			jb->cl_arg = &conf;
+			jb->cl_arg_size = sizeof(struct block_conf);
+
 			jb->cl = cl;
 
 			tag_t tag = 

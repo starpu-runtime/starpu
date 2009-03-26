@@ -73,6 +73,7 @@ static void create_task_grid(unsigned iter)
 		jb->cb = callback_core;
 		//jb->argcb = &coords[i][j];
 		jb->cl = &cl;
+		jb->cl_arg = NULL;
 
 		tag_declare(TAG(i, iter), jb);
 
@@ -121,7 +122,6 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	parse_args(argc, argv);
 
-	cl.cl_arg = NULL;
 	cl.core_func = core_codelet;
 	cl.cublas_func = core_codelet;
 

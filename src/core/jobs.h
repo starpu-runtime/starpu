@@ -53,6 +53,11 @@ LIST_TYPE(job,
 	callback cb;	/* do "cb(argcb)" when finished */
 	void *argcb;
 
+	/* arguments not managed by the DSM are given as a buffer */
+	void *cl_arg;
+	/* in case the argument buffer has to be uploaded explicitely */
+	size_t cl_arg_size;
+
 	unsigned synchronous; /* if set, a call to push is blocking */
 	sem_t sync_sem;
 

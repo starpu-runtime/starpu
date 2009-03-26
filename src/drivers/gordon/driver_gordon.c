@@ -64,9 +64,9 @@ static void starpu_to_gordon_buffers(job_t j, struct gordon_ppu_job_s *gordon_jo
 
 	/* if it is non null, the argument buffer is considered
  	 * as the first read-only buffer */
-	if (j->cl->cl_arg) {
-		gordon_job->buffers[in] = (uint64_t)j->cl->cl_arg;
-		gordon_job->ss[in].size = (uint32_t)j->cl->cl_arg_size;
+	if (j->cl_arg) {
+		gordon_job->buffers[in] = (uint64_t)j->cl_arg;
+		gordon_job->ss[in].size = (uint32_t)j->cl_arg_size;
 		
 		nin++; in++;
 	}

@@ -254,7 +254,6 @@ void call_spmv_codelet_filters(void)
 	partition_data(sparse_matrix, &csr_f);
 	partition_data(vector_out, &vector_f);
 
-	cl->cl_arg = NULL;
 	cl->where = CORE|CUDA;
 	cl->core_func =  core_spmv;
 #ifdef USE_CUDA
@@ -275,6 +274,7 @@ void call_spmv_codelet_filters(void)
 		job->cb = init_problem_callback;
 		job->argcb = &remainingjobs;
 		job->cl = cl;
+		job->cl_arg = NULL;
 	
 		job->nbuffers = 3;
 		job->buffers[0].state = get_sub_data(sparse_matrix, 1, part);

@@ -107,9 +107,6 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 
 	counter = 0;
 
-	cl.cl_arg = &size;
-	cl.cl_arg_size = sizeof(unsigned);
-
 	cl.core_func = core_codelet;
 #ifdef USE_CUDA
 	//cl.cublas_func = cublas_codelet;
@@ -136,6 +133,9 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		
 		j->cb = callback_func;
 		j->argcb = &counter;
+
+		j->cl_arg = &size;
+		j->cl_arg_size = sizeof(unsigned);
 
 		j->nbuffers = 2;
 		j->buffers[0].state = my_float_state;

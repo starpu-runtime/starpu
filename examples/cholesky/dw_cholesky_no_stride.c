@@ -12,11 +12,11 @@ data_handle A_state[NMAXBLOCKS][NMAXBLOCKS];
 static job_t create_job(tag_t id)
 {
 	codelet *cl = malloc(sizeof(codelet));
-		cl->cl_arg = NULL;
 		cl->where = ANY;
 
 	job_t j = job_create();
 		j->cl = cl;	
+		j->cl_arg = NULL;
 
 	tag_declare(id, j);
 
