@@ -77,6 +77,7 @@ struct starpu_task {
 	void *starpu_private;
 };
 
+#ifdef USE_CUDA
 /* CUDA specific codelets */
 typedef struct cuda_module_s {
 	CUmodule module;
@@ -113,6 +114,7 @@ void init_cuda_function(struct cuda_function_s *func,
                         struct cuda_module_s *module,
                         char *symbol);
 void load_cuda_function(int devid, struct cuda_function_s *function);
+#endif // USE_CUDA
 
 /* handle task dependencies: it is possible to associate a task with a unique
  * "tag" and to express dependencies among tasks by the means of those tags */
