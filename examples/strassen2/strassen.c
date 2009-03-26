@@ -5,11 +5,8 @@
 #include <pthread.h>
 #include <signal.h>
 
-#include <core/jobs.h>
-#include <core/workers.h>
-#include <core/dependencies/tags.h>
-#include <datawizard/datawizard.h>
 #include <common/malloc.h>
+#include <starpu.h>
 
 
 #define MAXDEPS	4

@@ -2,9 +2,6 @@
 #define __STRASSEN_H__
 
 #include <semaphore.h>
-#include <core/jobs.h>
-#include <core/workers.h>
-#include <core/dependencies/tags.h>
 #include <common/timing.h>
 #include <common/util.h>
 #include <string.h>
@@ -13,13 +10,6 @@
 #include <pthread.h>
 #include <signal.h>
 #include <cblas.h>
-#include <common/timing.h>
-
-#include <datawizard/datawizard.h>
-
-#include <task-models/blas_model.h>
-
-#include <common/fxt.h>
 
 #ifdef USE_CUDA
 #include <cuda.h>

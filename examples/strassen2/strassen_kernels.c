@@ -5,11 +5,7 @@
 #include <pthread.h>
 #include <signal.h>
 
-
 #include <semaphore.h>
-#include <core/jobs.h>
-#include <core/workers.h>
-#include <core/dependencies/tags.h>
 #include <common/timing.h>
 #include <common/util.h>
 #include <common/blas.h>
@@ -20,16 +16,7 @@
 #include <signal.h>
 #include <common/timing.h>
 
-#include <datawizard/datawizard.h>
-
-#include <task-models/blas_model.h>
-
-#include <common/fxt.h>
-
-#include <core/jobs.h>
-#include <core/workers.h>
-#include <core/dependencies/tags.h>
-#include <datawizard/datawizard.h>
+#include <starpu.h>
 
 static double cublas_flop = 0.0;
 static double cpus_flop = 0.0;

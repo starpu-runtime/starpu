@@ -328,7 +328,7 @@ static struct starpu_task *construct_task(unsigned x, unsigned y, unsigned z, un
 
 static void callback_func(void *arg)
 {
-	/* the argument is a pointer to a counter of the remaining jobs */
+	/* the argument is a pointer to a counter of the remaining tasks */
 	int *counter = arg;
 	int newvalue = ATOMIC_ADD(counter, -1);
 	if (newvalue == 0)
@@ -344,7 +344,7 @@ static void callback_func(void *arg)
 
 static void callback_func_2(void *arg)
 {
-	/* the argument is a pointer to a counter of the remaining jobs */
+	/* the argument is a pointer to a counter of the remaining tasks */
 	struct cb2_s *cb2 = arg;
 	unsigned x,y,z,iter;
 
