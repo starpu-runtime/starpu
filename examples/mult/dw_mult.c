@@ -70,9 +70,10 @@ void terminate(void)
 void callback_func(void *arg)
 {
 	/* the argument is a pointer to a counter of the remaining tasks */
-	int *counter = arg;
-	*counter -= 1;
-	if (*counter == 0)
+	int *counterptr = arg;
+
+	int counter = ATOMIC_ADD(counterptr, -1);
+	if (counter == 0)
 	{
 		/* we are done */	
 		fprintf(stderr, "done ...\n");
