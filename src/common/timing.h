@@ -13,7 +13,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdint.h>
-#include <common/util.h>
+#include <starpu.h>
 
 #ifdef UNRELIABLETICKS
 

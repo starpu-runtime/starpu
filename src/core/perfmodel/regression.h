@@ -4,8 +4,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <common/util.h>
 #include <core/perfmodel/perfmodel.h>
+#include <starpu.h>
 
 int regression_non_linear_power(struct history_list_t *ptr, double *a, double *b, double *c);
 

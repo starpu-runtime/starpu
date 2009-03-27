@@ -3,7 +3,6 @@
 
 #include <semaphore.h>
 #include <common/timing.h>
-#include <common/util.h>
 #include <string.h>
 #include <stdint.h>
 #include <math.h>

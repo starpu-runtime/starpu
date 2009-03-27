@@ -1,11 +1,11 @@
 #include <stdarg.h>
 #include <stdlib.h>
-#include <common/util.h>
 #include <core/dependencies/tags.h>
 #include <core/dependencies/htable.h>
 #include <core/jobs.h>
 #include <core/policies/sched_policy.h>
 #include <core/dependencies/data-concurrency.h>
+#include <starpu.h>
 
 static htbl_node_t *tag_htbl = NULL;
 static mutex tag_mutex = {
@@ -93,7 +93,7 @@ void notify_cg(cg_t *cg)
 {
 
 	STARPU_ASSERT(cg);
-	unsigned ntags = ATOMIC_ADD(&cg->ntags, -1);
+	unsigned ntags = STARPU_ATOMIC_ADD(&cg->ntags, -1);
 	if (ntags == 0) {
 		/* the group is now completed */
 		tag_set_ready(cg->tag);
@@ -115,7 +115,7 @@ void tag_add_succ(tag_t id, cg_t *cg)
 	}
 	else {
 		/* where should that cg should be put in the array ? */
-		unsigned index = ATOMIC_ADD(&tag->nsuccs, 1) - 1;
+		unsigned index = STARPU_ATOMIC_ADD(&tag->nsuccs, 1) - 1;
 
 #ifdef DYNAMIC_DEPS_SIZE
 		if (index >= tag->succ_list_size)

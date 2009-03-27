@@ -268,7 +268,7 @@ int fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsig
 		state = descr->state;
 
 		ret = fetch_data(state, descr->mode);
-		if (UNLIKELY(ret))
+		if (STARPU_UNLIKELY(ret))
 			goto enomem;
 
 		memcpy(&interface[index], &state->interface[local_memory_node], 

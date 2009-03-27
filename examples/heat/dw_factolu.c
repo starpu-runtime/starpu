@@ -105,7 +105,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 		dep = advance_11[(k+1)];
 		if (dep & DONE) {
 			/* try to push the task */
-			uint8_t u = ATOMIC_OR(&advance_12_21[(k+1) + j*nblocks], STARTED);
+			uint8_t u = STARPU_ATOMIC_OR(&advance_12_21[(k+1) + j*nblocks], STARTED);
 				if ((u & STARTED) == 0) {
 					/* we are the only one that should 
 					 * launch that task */
@@ -142,7 +142,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 		dep = advance_11[(k+1)];
 		if (dep & DONE) {
 			/* try to push the task */
-			uint8_t u = ATOMIC_OR(&advance_12_21[(k+1)*nblocks + i], STARTED);
+			uint8_t u = STARPU_ATOMIC_OR(&advance_12_21[(k+1)*nblocks + i], STARTED);
 				 if ((u & STARTED) == 0) {
 					/* we are the only one that should launch that task */
 					cl_args *u12a = malloc(sizeof(cl_args));
@@ -194,7 +194,7 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 		if (dep & DONE)
 		{
 			/* perhaps we may schedule the 22 i,args->k,slicey task */
-			uint8_t u = ATOMIC_OR(&advance_22[i*nblocks*nblocks + slicey*nblocks + k], STARTED);
+			uint8_t u = STARPU_ATOMIC_OR(&advance_22[i*nblocks*nblocks + slicey*nblocks + k], STARTED);
                         if ((u & STARTED) == 0) {
 				/* update that square matrix */
 				cl_args *u22a = malloc(sizeof(cl_args));
@@ -254,7 +254,7 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 		if (dep & DONE)
 		{
 			/* perhaps we may schedule the 22 i,args->k,slicey task */
-			uint8_t u = ATOMIC_OR(&advance_22[i*nblocks*nblocks + k*nblocks + slicex], STARTED);
+			uint8_t u = STARPU_ATOMIC_OR(&advance_22[i*nblocks*nblocks + k*nblocks + slicex], STARTED);
                         if ((u & STARTED) == 0) {
 				/* update that square matrix */
 				cl_args *u22a = malloc(sizeof(cl_args));
@@ -325,7 +325,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 			}
 			if (deps12 & DONE) {
 				/* we may perhaps launch the task 12i,slice */
-				 uint8_t u = ATOMIC_OR(&advance_12_21[i*nblocks + slice], STARTED);
+				 uint8_t u = STARPU_ATOMIC_OR(&advance_12_21[i*nblocks + slice], STARTED);
 				 if ((u & STARTED) == 0) {
 					/* we are the only one that should launch that task */
 					cl_args *u12a = malloc(sizeof(cl_args));
@@ -363,7 +363,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 			}
 			if (deps12 & DONE) {
 				/* we may perhaps launch the task 12i,slice */
-				 uint8_t u = ATOMIC_OR(&advance_12_21[i + slice*nblocks], STARTED);
+				 uint8_t u = STARPU_ATOMIC_OR(&advance_12_21[i + slice*nblocks], STARTED);
 				 if ((u & STARTED) == 0) {
 					/* we are the only one that should launch that task */
 					cl_args *u21a = malloc(sizeof(cl_args));
@@ -483,7 +483,7 @@ void dw_callback_codelet_update_u22(void *argcb)
 {
 	cl_args *args = argcb;	
 
-	if (ATOMIC_ADD(args->remaining, (-1)) == 0)
+	if (STARPU_ATOMIC_ADD(args->remaining, (-1)) == 0)
 	{
 		/* all worker already used the counter */
 		free(args->remaining);
@@ -516,7 +516,7 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 {
 	cl_args *args = argcb;	
 
-	if (ATOMIC_ADD(args->remaining, -1) == 0)
+	if (STARPU_ATOMIC_ADD(args->remaining, -1) == 0)
 	{
 		/* now launch the update of LU22 */
 		unsigned i = args->i;

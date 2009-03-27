@@ -3,7 +3,6 @@
 
 #include <semaphore.h>
 #include <common/timing.h>
-#include <common/util.h>
 #include <common/malloc.h>
 #include <common/blas.h>
 #include <string.h>
@@ -125,7 +124,7 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (j = 0; j < size; j++) 
 		{
-			max_err = MAX(max_err, fabs(  L[j+i*size] - A[j+i*ld]  ));
+			max_err = STARPU_MAX(max_err, fabs(  L[j+i*size] - A[j+i*ld]  ));
 		}
 	}
 

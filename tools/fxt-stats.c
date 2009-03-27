@@ -61,8 +61,8 @@ int main(int argc, char **argv)
 			break;
 		}
 
-		end_time = MAX(end_time, ev.time);
-		start_time = MIN(start_time, ev.time);
+		end_time = STARPU_MAX(end_time, ev.time);
+		start_time = STARPU_MIN(start_time, ev.time);
 
 		__attribute__ ((unused)) int nbparam = ev.nb_params;
 

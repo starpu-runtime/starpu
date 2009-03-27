@@ -68,14 +68,14 @@ static inline void dw_common_core_codelet_update_u22(data_interface_t *buffers, 
 void dw_core_codelet_update_u22(data_interface_t *descr, void *_args)
 {
 	dw_common_core_codelet_update_u22(descr, 0, _args);
-	(void)ATOMIC_ADD(&count_22_core, 1);
+	(void)STARPU_ATOMIC_ADD(&count_22_core, 1);
 }
 
 #ifdef USE_CUDA
 void dw_cublas_codelet_update_u22(data_interface_t *descr, void *_args)
 {
 	dw_common_core_codelet_update_u22(descr, 1, _args);
-	(void)ATOMIC_ADD(&count_22_cublas, 1);
+	(void)STARPU_ATOMIC_ADD(&count_22_cublas, 1);
 }
 #endif// USE_CUDA
 
@@ -125,14 +125,14 @@ static inline void dw_common_codelet_update_u12(data_interface_t *buffers, int s
 void dw_core_codelet_update_u12(data_interface_t *descr, void *_args)
 {
 	dw_common_codelet_update_u12(descr, 0, _args);
-	(void)ATOMIC_ADD(&count_12_core, 1);
+	(void)STARPU_ATOMIC_ADD(&count_12_core, 1);
 }
 
 #ifdef USE_CUDA
 void dw_cublas_codelet_update_u12(data_interface_t *descr, void *_args)
 {
 	 dw_common_codelet_update_u12(descr, 1, _args);
-	(void)ATOMIC_ADD(&count_12_cublas, 1);
+	(void)STARPU_ATOMIC_ADD(&count_12_cublas, 1);
 }
 #endif // USE_CUDA
 
@@ -179,14 +179,14 @@ static inline void dw_common_codelet_update_u21(data_interface_t *buffers, int s
 void dw_core_codelet_update_u21(data_interface_t *descr, void *_args)
 {
 	 dw_common_codelet_update_u21(descr, 0, _args);
-	(void)ATOMIC_ADD(&count_21_core, 1);
+	(void)STARPU_ATOMIC_ADD(&count_21_core, 1);
 }
 
 #ifdef USE_CUDA
 void dw_cublas_codelet_update_u21(data_interface_t *descr, void *_args)
 {
 	dw_common_codelet_update_u21(descr, 1, _args);
-	(void)ATOMIC_ADD(&count_21_cublas, 1);
+	(void)STARPU_ATOMIC_ADD(&count_21_cublas, 1);
 }
 #endif 
 
@@ -266,13 +266,13 @@ static inline void dw_common_codelet_update_u11(data_interface_t *descr, int s, 
 void dw_core_codelet_update_u11(data_interface_t *descr, void *_args)
 {
 	dw_common_codelet_update_u11(descr, 0, _args);
-	(void)ATOMIC_ADD(&count_11_core, 1);
+	(void)STARPU_ATOMIC_ADD(&count_11_core, 1);
 }
 
 #ifdef USE_CUDA
 void dw_cublas_codelet_update_u11(data_interface_t *descr, void *_args)
 {
 	dw_common_codelet_update_u11(descr, 1, _args);
-	(void)ATOMIC_ADD(&count_11_cublas, 1);
+	(void)STARPU_ATOMIC_ADD(&count_11_cublas, 1);
 }
 #endif// USE_CUDA

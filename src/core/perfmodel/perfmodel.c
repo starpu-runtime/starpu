@@ -15,7 +15,7 @@ static double per_arch_job_expected_length(struct perfmodel_t *model, enum perf_
 	
 	if (!model->is_loaded)
 	{
-		if (get_env_number("CALIBRATE") != -1)
+		if (starpu_get_env_number("CALIBRATE") != -1)
 		{
 			fprintf(stderr, "CALIBRATE model %s\n", model->symbol);
 			model->benchmarking = 1;

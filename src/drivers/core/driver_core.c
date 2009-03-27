@@ -28,7 +28,7 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 	if (ret != 0) {
 		/* there was not enough memory so the codelet cannot be executed right now ... */
 		/* push the codelet back and try another one ... */
-		return TRYAGAIN;
+		return STARPU_TRYAGAIN;
 	}
 
 	TRACE_START_CODELET_BODY(j);
@@ -61,7 +61,7 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 	}
 //#endif
 
-	return OK;
+	return STARPU_SUCCESS;
 }
 
 void *core_worker(void *arg)
@@ -119,11 +119,11 @@ void *core_worker(void *arg)
 		}
 
                 res = execute_job_on_core(j, core_arg);
-		if (res != OK) {
+		if (res != STARPU_SUCCESS) {
 			switch (res) {
-				case FATAL:
+				case STARPU_FATAL:
 					assert(0);
-				case TRYAGAIN:
+				case STARPU_TRYAGAIN:
 					push_task(j);
 					continue;
 				default: 

@@ -3,7 +3,6 @@
 #include <core/workers.h>
 #include <core/dependencies/tags.h>
 #include <common/timing.h>
-#include <common/util.h>
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
@@ -16,6 +15,8 @@
 #include <datawizard/datawizard.h>
 #include <task-models/blas_model.h>
 #include <common/fxt.h>
+
+#include <starpu.h>
 
 #ifdef USE_CUDA
 #include <cuda.h>
@@ -695,10 +696,10 @@ void CUBLAS_SGEMM (const char *transa, const char *transb, const int m,
     ka = (toupper(transa[0]) == 'N') ? k : m;
     cublasAlloc (lda * ka, sizeof(devPtrA[0]), (void**)&devPtrA);
     if (toupper(transa[0]) == 'N') {
-        cublasSetMatrix (MIN(m,lda), k, sizeof(A[0]), A, lda, devPtrA, 
+        cublasSetMatrix (STARPU_MIN(m,lda), k, sizeof(A[0]), A, lda, devPtrA, 
                          lda);
     } else {
-        cublasSetMatrix (MIN(k,lda), m, sizeof(A[0]), A, lda, devPtrA, 
+        cublasSetMatrix (STARPU_MIN(k,lda), m, sizeof(A[0]), A, lda, devPtrA, 
                          lda);
     }
 
@@ -712,10 +713,10 @@ void CUBLAS_SGEMM (const char *transa, const char *transb, const int m,
     kb = (toupper(transb[0]) == 'N') ? n : k;
     cublasAlloc (ldb * kb, sizeof(devPtrB[0]), (void**)&devPtrB);
     if (toupper(transb[0]) == 'N') {
-        cublasSetMatrix (MIN(k,ldb), n, sizeof(B[0]), B, ldb, devPtrB, 
+        cublasSetMatrix (STARPU_MIN(k,ldb), n, sizeof(B[0]), B, ldb, devPtrB, 
                          ldb);
     } else {
-        cublasSetMatrix (MIN(n,ldb), k, sizeof(B[0]), B, ldb, devPtrB,
+        cublasSetMatrix (STARPU_MIN(n,ldb), k, sizeof(B[0]), B, ldb, devPtrB,
                          ldb);
     }
     
@@ -726,12 +727,12 @@ void CUBLAS_SGEMM (const char *transa, const char *transb, const int m,
      *           On exit, the array  C  is overwritten by the  m by n  matrix
      */
     cublasAlloc ((ldc) * (n), sizeof(devPtrC[0]), (void**)&devPtrC);
-    cublasSetMatrix (MIN(m,ldc), n, sizeof(C[0]), C, ldc, devPtrC, ldc);
+    cublasSetMatrix (STARPU_MIN(m,ldc), n, sizeof(C[0]), C, ldc, devPtrC, ldc);
 
     cublasSgemm (transa[0], transb[0], m, n, k, alpha, devPtrA, lda, 
                  devPtrB, ldb, beta, devPtrC, ldc);
 
-    cublasGetMatrix (MIN(m,ldc), n, sizeof(C[0]), devPtrC, ldc, C, ldc);
+    cublasGetMatrix (STARPU_MIN(m,ldc), n, sizeof(C[0]), devPtrC, ldc, C, ldc);
     cublasFree (devPtrA);
     cublasFree (devPtrB);
     cublasFree (devPtrC);

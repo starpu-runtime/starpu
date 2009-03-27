@@ -14,7 +14,7 @@ EXTRALDFLAGS += @LIBS@
 CFLAGS += -I${PWD}/include/
 
 #CFLAGS += -g -O3
-CFLAGS += -W -Wall -Wextra -Wcast-align
+CFLAGS += -W -Wall -Wextra
 
 LDFLAGS+= -lm
 

@@ -13,7 +13,7 @@ void *htbl_search_tag(htbl_node_t *htbl, tag_t tag)
 	{
 	
 	//	printf("search : current bit = %d \n", currentbit);
-		if (UNLIKELY(current_htbl == NULL))
+		if (STARPU_UNLIKELY(current_htbl == NULL))
 			return NULL;
 
 		/* 0000000000001111 
@@ -107,7 +107,7 @@ void *htbl_remove_tag(htbl_node_t *htbl, tag_t tag)
 	{
 		path[level] = current_htbl_ptr;
 
-		if (UNLIKELY(!current_htbl_ptr)) {
+		if (STARPU_UNLIKELY(!current_htbl_ptr)) {
 			tag_is_present = 0;
 			break;
 		}
@@ -129,7 +129,7 @@ void *htbl_remove_tag(htbl_node_t *htbl, tag_t tag)
 	}
 
 	maxlevel = level;
-	if (UNLIKELY(!current_htbl_ptr))
+	if (STARPU_UNLIKELY(!current_htbl_ptr))
 		tag_is_present = 0;
 
 	void *old_entry = current_htbl_ptr;

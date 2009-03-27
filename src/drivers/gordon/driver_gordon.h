@@ -11,10 +11,10 @@
 #include <math.h>
 #include <pthread.h>
 
-#include <common/util.h>
 #include <core/jobs.h>
 #include <common/config.h>
 
+#include <starpu.h>
 
 #include <stdint.h>
 #include <stdlib.h>

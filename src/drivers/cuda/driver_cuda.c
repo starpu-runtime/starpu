@@ -203,7 +203,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 		/* there was not enough memory, so the input of
 		 * the codelet cannot be fetched ... put the 
 		 * codelet back, and try it later */
-		return TRYAGAIN;
+		return STARPU_TRYAGAIN;
 	}
 
 	if (calibrate_model || BENCHMARK_COMM)
@@ -281,7 +281,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 
 	push_codelet_output(task->buffers, cl->nbuffers, mask);
 
-	return OK;
+	return STARPU_SUCCESS;
 }
 
 void *cuda_worker(void *arg)
@@ -354,12 +354,12 @@ void *cuda_worker(void *arg)
 		unsigned use_cublas = CUBLAS_MAY_PERFORM(j) ? 1:0;
 		res = execute_job_on_cuda(j, args, use_cublas);
 
-		if (res != OK) {
+		if (res != STARPU_SUCCESS) {
 			switch (res) {
-				case OK:
-				case FATAL:
+				case STARPU_SUCCESS:
+				case STARPU_FATAL:
 					assert(0);
-				case TRYAGAIN:
+				case STARPU_TRYAGAIN:
 					fprintf(stderr, "ouch, put the codelet %p back ... \n", j);
 					push_task(j);
 					STARPU_ASSERT(0);

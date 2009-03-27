@@ -8,12 +8,13 @@
 #include <string.h>
 #include <common/config.h>
 #include <pthread.h>
-#include <common/util.h>
 #include <common/timing.h>
 #include <common/fxt.h>
 #include <core/jobs.h>
 #include <core/perfmodel/perfmodel.h>
 #include <core/policies/sched_policy.h>
+
+#include <starpu.h>
 
 #ifdef USE_CUDA
 #include <drivers/cuda/driver_cuda.h>

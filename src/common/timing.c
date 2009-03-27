@@ -25,7 +25,7 @@ void timing_init(void)
     {
       GET_TICK(t1);
       GET_TICK(t2);
-      residual = MIN(residual, TICK_RAW_DIFF(t1, t2));
+      residual = STARPU_MIN(residual, TICK_RAW_DIFF(t1, t2));
     }
   
   {
@@ -88,7 +88,7 @@ void timing_init(void)
     {
       GET_TICK(t1);
       GET_TICK(t2);
-      residual = MIN(residual, TICK_RAW_DIFF(t1, t2));
+      residual = STARPU_MIN(residual, TICK_RAW_DIFF(t1, t2));
     }
   
   {

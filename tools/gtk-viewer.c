@@ -368,7 +368,7 @@ int gtk_viewer_apps( int   argc, char *argv[], event_list_t *_events,
 	    		(GtkSignalFunc) destroy, NULL);
 	gtk_window_set_title (GTK_WINDOW (window), "GtkScrolledWindow example");
 	gtk_container_set_border_width (GTK_CONTAINER (window), 0);
-	gtk_widget_set_usize(window, MIN(800, GTK_WIDTH),  MIN(600, nworkers*GTK_THICKNESS + (nworkers-1)*GTK_GAP+2*GTK_BORDERY+100));
+	gtk_widget_set_usize(window, STARPU_MIN(800, GTK_WIDTH),  STARPU_MIN(600, nworkers*GTK_THICKNESS + (nworkers-1)*GTK_GAP+2*GTK_BORDERY+100));
 	
 	/* create a new scrolled window. */
 	scrolled_window = gtk_scrolled_window_new (NULL, NULL);

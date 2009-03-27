@@ -53,9 +53,9 @@ static void init_machine_config(struct machine_config_s *config)
 	/* we need to initialize CUDA early to count the number of devices */
 	init_cuda();
 
-	envval = get_env_number("NCUDA");
+	envval = starpu_get_env_number("NCUDA");
 	if (envval < 0) {
-		ncudagpus = MIN(get_cuda_device_count(), MAXCUDADEVS);
+		ncudagpus = STARPU_MIN(get_cuda_device_count(), MAXCUDADEVS);
 	} else {
 		/* use the specified value */
 		ncudagpus = (unsigned)envval;
@@ -79,7 +79,7 @@ static void init_machine_config(struct machine_config_s *config)
 #endif
 	
 #ifdef USE_GORDON
-	envval = get_env_number("NGORDON");
+	envval = starpu_get_env_number("NGORDON");
 	if (envval < 0) {
 		ngordon_spus = spe_cpu_info_get(SPE_COUNT_USABLE_SPES, -1);
 	} else {
@@ -108,11 +108,11 @@ static void init_machine_config(struct machine_config_s *config)
 /* we put the CPU section after the accelerator : in case there was an
  * accelerator found, we devote one core */
 #ifdef USE_CPUS
-	envval = get_env_number("NCPUS");
+	envval = starpu_get_env_number("NCPUS");
 	if (envval < 0) {
 		long avail_cores = sysconf(_SC_NPROCESSORS_ONLN) 
 						- (use_accelerator?1:0);
-		ncores = MIN(avail_cores, NMAXCORES);
+		ncores = STARPU_MIN(avail_cores, NMAXCORES);
 	} else {
 		/* use the specified value */
 		ncores = (unsigned)envval;
@@ -368,7 +368,7 @@ void starpu_shutdown(void)
 	display_comm_ammounts();
 #endif
 
-	if (get_env_number("CALIBRATE") != -1)
+	if (starpu_get_env_number("CALIBRATE") != -1)
 		dump_registered_models();
 
 	/* wait for their termination */

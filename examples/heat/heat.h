@@ -14,9 +14,9 @@
 #endif
 
 #include <starpu_config.h>
+#include <starpu.h>
 
 #include <common/timing.h>
-#include <common/util.h>
 #include <common/malloc.h>
 #include <common/blas.h>
 #include <core/workers.h>

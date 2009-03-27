@@ -11,7 +11,7 @@ unsigned block_filter_func_vector(filter *f, data_state *root_data)
 	size_t elemsize = vector_root->elemsize;
 
 	/* we will have arg chunks */
-	nchunks = MIN(nx, arg);
+	nchunks = STARPU_MIN(nx, arg);
 
 	/* first allocate the children data_state */
 	root_data->children = calloc(nchunks, sizeof(data_state));
@@ -25,7 +25,7 @@ unsigned block_filter_func_vector(filter *f, data_state *root_data)
 		size_t offset = chunk*chunk_size*elemsize;
 
 		uint32_t child_nx = 
-			MIN(chunk_size, nx - chunk*chunk_size);
+			STARPU_MIN(chunk_size, nx - chunk*chunk_size);
 
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)

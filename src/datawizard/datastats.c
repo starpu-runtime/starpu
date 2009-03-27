@@ -1,7 +1,7 @@
+#include <stdio.h>
 #include <datawizard/datastats.h>
 #include <common/config.h>
-#include <common/util.h>
-#include <stdio.h>
+#include <starpu.h>
 
 /* measure the cache hit ratio for each node */
 

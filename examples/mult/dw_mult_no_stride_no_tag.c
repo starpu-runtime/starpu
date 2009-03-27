@@ -271,7 +271,7 @@ static void cleanup_problem(void)
 			if (err > BLOCKSIZEX*BLOCKSIZEY*niter*0.001) 
 				fprintf(stderr, "\nerr = %f ( x = %d y = %d ) ... ", err/niter, x, y );
 
-			maxerr = MAX(err, maxerr);
+			maxerr = STARPU_MAX(err, maxerr);
 		}
 	}
 
@@ -367,7 +367,7 @@ static void callback_func(void *arg)
 {
 	/* the argument is a pointer to a counter of the remaining tasks */
 	int *counter = arg;
-	int newvalue = ATOMIC_ADD(counter, -1);
+	int newvalue = STARPU_ATOMIC_ADD(counter, -1);
 	if (newvalue == 0)
 	{
 		/* we are done */	

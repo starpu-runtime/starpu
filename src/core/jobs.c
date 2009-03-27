@@ -47,7 +47,7 @@ struct starpu_task *starpu_task_create(void)
 	struct starpu_task *task;
 
 	task = calloc(1, sizeof(struct starpu_task));
-	ASSERT(task);
+	STARPU_ASSERT(task);
 
 	task->priority = DEFAULT_PRIO;
 
@@ -58,7 +58,7 @@ void handle_job_termination(job_t j)
 {
 	struct starpu_task *task = j->task;
 
-	if (UNLIKELY(j->terminated))
+	if (STARPU_UNLIKELY(j->terminated))
 		fprintf(stderr, "OOPS ... job %p was already terminated !!\n", j);
 
 	j->terminated = 1;

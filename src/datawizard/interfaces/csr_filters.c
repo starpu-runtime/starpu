@@ -11,7 +11,7 @@ unsigned vertical_block_filter_func_csr(filter *f, data_state *root_data)
 	uint32_t firstentry = root_data->interface[0].csr.firstentry;
 
 	/* we will have arg chunks */
-	nchunks = MIN(nrow, arg);
+	nchunks = STARPU_MIN(nrow, arg);
 	
 	/* first allocate the children data_state */
 	root_data->children = calloc(nchunks, sizeof(data_state));
@@ -31,7 +31,7 @@ unsigned vertical_block_filter_func_csr(filter *f, data_state *root_data)
 		uint32_t local_firstentry = rowptr[first_index];
 
 		uint32_t child_nrow = 
-			MIN(chunk_size, nrow - chunk*chunk_size);
+			STARPU_MIN(chunk_size, nrow - chunk*chunk_size);
 
 		uint32_t local_nnz = rowptr[first_index + child_nrow] - rowptr[first_index]; 
 

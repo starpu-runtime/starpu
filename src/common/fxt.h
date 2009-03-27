@@ -9,7 +9,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdlib.h>
-#include <common/util.h>
+#include <starpu.h>
 
 /* some key to identify the worker kind */
 #define FUT_APPS_KEY	0x100

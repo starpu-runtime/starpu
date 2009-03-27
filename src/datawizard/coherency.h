@@ -10,7 +10,6 @@
 
 #include <starpu.h>
 
-#include <common/util.h>
 #include <starpu-mutex.h>
 #include <common/rwlock.h>
 #include <common/timing.h>

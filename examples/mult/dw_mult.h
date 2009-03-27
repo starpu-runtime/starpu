@@ -3,7 +3,6 @@
 
 #include <semaphore.h>
 #include <common/timing.h>
-#include <common/util.h>
 #include <common/malloc.h>
 #include <string.h>
 #include <math.h>
@@ -12,11 +11,11 @@
 #include <pthread.h>
 #include <signal.h>
 #include <common/blas.h>
-#include <common/timing.h>
 
 #include <task-models/blas_model.h>
 
-#include <common/fxt.h>
+#include <starpu_config.h>
+#include <starpu.h>
 
 #ifdef USE_CUDA
 #include <cuda.h>

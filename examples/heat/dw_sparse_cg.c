@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <stdint.h>
-#include <common/util.h>
-
 /*
  * Conjugate gradients for Sparse matrices
  */

@@ -180,7 +180,7 @@ void handle_start_codelet_body(void)
 	e->mode = WORKING;
 	event_list_push_back(events[worker], e);
 
-	end_time = MAX(end_time, ev.time);
+	end_time = STARPU_MAX(end_time, ev.time);
 }
 
 void handle_end_codelet_body(void)
@@ -198,7 +198,7 @@ void handle_end_codelet_body(void)
 	e->mode = IDLE;
 	event_list_push_back(events[worker], e);
 
-	end_time = MAX(end_time, ev.time);
+	end_time = STARPU_MAX(end_time, ev.time);
 }
 
 
@@ -233,7 +233,7 @@ void handle_start_fetch_input(void)
 	e->mode = FETCHING;
 	event_list_push_back(events[worker], e);
 
-	end_time = MAX(end_time, ev.time);
+	end_time = STARPU_MAX(end_time, ev.time);
 }
 
 void handle_end_fetch_input(void)
@@ -249,7 +249,7 @@ void handle_end_fetch_input(void)
 	e->mode = IDLE;
 	event_list_push_back(events[worker], e);
 
-	end_time = MAX(end_time, ev.time);
+	end_time = STARPU_MAX(end_time, ev.time);
 }
 
 void handle_start_push_output(void)
@@ -265,7 +265,7 @@ void handle_start_push_output(void)
 	e->mode = PUSHING;
 	event_list_push_back(events[worker], e);
 
-	end_time = MAX(end_time, ev.time);
+	end_time = STARPU_MAX(end_time, ev.time);
 }
 
 void handle_end_push_output(void)
@@ -281,7 +281,7 @@ void handle_end_push_output(void)
 	e->mode = IDLE;
 	event_list_push_back(events[worker], e);
 
-	end_time = MAX(end_time, ev.time);
+	end_time = STARPU_MAX(end_time, ev.time);
 }
 
 void handle_data_copy(void)
@@ -361,7 +361,7 @@ void handle_job_push(void)
 {
 	curq_size++;
 
-	maxq_size = MAX(maxq_size, curq_size);
+	maxq_size = STARPU_MAX(maxq_size, curq_size);
 
 	workq_t e = workq_new();
 	e->time =  ev.time;
@@ -439,7 +439,7 @@ void generate_gnuplot_output(void)
 		{
 			linesize++;
 		}
-		maxline = MAX(maxline, linesize);
+		maxline = STARPU_MAX(maxline, linesize);
 	}
 
 	unsigned i;

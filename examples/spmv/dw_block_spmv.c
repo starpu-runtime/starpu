@@ -55,7 +55,7 @@ void init_problem_callback(void *arg)
 {
 	unsigned *remaining = arg;
 
-	unsigned val = ATOMIC_ADD(remaining, -1);
+	unsigned val = STARPU_ATOMIC_ADD(remaining, -1);
 
 //	if (val < 10)
 //		printf("callback %d remaining \n", val);
@@ -219,7 +219,7 @@ void print_results(void)
 {
 	unsigned row;
 
-	for (row = 0; row < MIN(size, 16); row++)
+	for (row = 0; row < STARPU_MIN(size, 16); row++)
 	{
 		printf("%2.2f\t%2.2f\n", vector_in_ptr[row], vector_out_ptr[row]);
 	}

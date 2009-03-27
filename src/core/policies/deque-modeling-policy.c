@@ -38,8 +38,8 @@ static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)), job_t j, uns
 		fifo = queue_array[worker]->queue;
 
 		/* XXX */
-		fifo->exp_start = MAX(fifo->exp_start, timing_now()/1000000);
-		fifo->exp_end = MAX(fifo->exp_start, timing_now()/1000000);
+		fifo->exp_start = STARPU_MAX(fifo->exp_start, timing_now()/1000000);
+		fifo->exp_end = STARPU_MAX(fifo->exp_start, timing_now()/1000000);
 
 		if ((queue_array[worker]->who & j->task->cl->where) == 0)
 		{

@@ -186,7 +186,7 @@ void phase_3_callback_function(void *_arg)
 
 	free(arg);
 
-	use_cnt = ATOMIC_ADD(&iter->Ei_remaining_use[i], -1);
+	use_cnt = STARPU_ATOMIC_ADD(&iter->Ei_remaining_use[i], -1);
 	if (use_cnt == 0) 
 	{
 		/* no one needs Ei anymore : free it */
@@ -217,7 +217,7 @@ void phase_3_callback_function(void *_arg)
 		}
 	}
 
-	cnt = ATOMIC_ADD(&iter->counter, -1);
+	cnt = STARPU_ATOMIC_ADD(&iter->counter, -1);
 	if (cnt == 0)
 	{
 		/* the entire strassen iteration is done ! */
@@ -384,7 +384,7 @@ static void phase_1_callback_function(void *_arg)
 
 	free(arg);
 
-	unsigned cnt = ATOMIC_ADD(&iter->Ei12[i], +1);
+	unsigned cnt = STARPU_ATOMIC_ADD(&iter->Ei12[i], +1);
 
 	if (cnt == 2) {
 		/* Ei1 and Ei2 are ready, compute Ei */

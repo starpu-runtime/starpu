@@ -5,13 +5,14 @@
 #define _GNU_SOURCE
 #include <sched.h>
 
-#include <common/util.h>
 #include <common/config.h>
 #include <core/jobs.h>
 
 #include <core/perfmodel/perfmodel.h>
 #include <common/fxt.h>
 #include <datawizard/datawizard.h>
+
+#include <starpu.h>
 
 void *core_worker(void *);
 

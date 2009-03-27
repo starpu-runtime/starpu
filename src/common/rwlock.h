@@ -2,7 +2,7 @@
 #define __RWLOCKS_H__
 
 #include <stdint.h>
-#include "util.h"
+#include <starpu.h>
 
 typedef struct rw_lock_t {
 	uint32_t busy;

@@ -112,7 +112,7 @@ static void display(void)
 {
 	glClear (GL_COLOR_BUFFER_BIT);
 	glLoadIdentity ();             /* clear the matrix */
-	float amplitude = MAX(xmax - xmin, ymax - ymin);
+	float amplitude = STARPU_MAX(xmax - xmin, ymax - ymin);
 	float factor = 1.0/amplitude;
 	glScalef (factor, factor, factor);      /* modeling transformation */
 	gluLookAt (xcenter, ycenter, 30.0f, xcenter, ycenter, 0.0f, 0.0f, 1.0f, 0.0f);
@@ -156,10 +156,10 @@ void find_limits(void)
 	for (i = 0; i < DIM; i++)
 	{
 		/* find min */
-		minval = MIN(result[i], minval);
+		minval = STARPU_MIN(result[i], minval);
 
 		/* find max */
-		maxval = MAX(result[i], maxval);
+		maxval = STARPU_MAX(result[i], maxval);
 	}
 
 	xmin = 10000000.0f;

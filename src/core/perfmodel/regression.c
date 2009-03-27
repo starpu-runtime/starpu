@@ -117,7 +117,7 @@ static double find_list_min(double *y, unsigned n)
 	unsigned i;
 	for (i = 0; i < n; i++)
 	{
-		min = MIN(min, y[i]);
+		min = STARPU_MIN(min, y[i]);
 	}
 
 	return min;
@@ -187,13 +187,13 @@ int regression_non_linear_power(struct history_list_t *ptr, double *a, double *b
 			cmin = (cmin + cmax)/2;
 		}
 
-		if (fabsl(err - MIN(err1, err2)) < EPS)
+		if (fabsl(err - STARPU_MIN(err1, err2)) < EPS)
 		{
-			err = MIN(err1, err2);
+			err = STARPU_MIN(err1, err2);
 			break;
 		}
 
-		err = MIN(err1, err2);
+		err = STARPU_MIN(err1, err2);
 	}
 
 	*c = (cmin + cmax)/2;

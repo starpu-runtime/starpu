@@ -156,7 +156,7 @@ void handle_terminated_job(job_t j)
 void handle_terminated_job_per_worker(struct worker_s *worker)
 {
 
-	if (UNLIKELY(!worker->worker_is_running))
+	if (STARPU_UNLIKELY(!worker->worker_is_running))
 		return;
 
 //	fprintf(stderr, " handle_terminated_job_per_worker worker %p worker->terminated_jobs %p \n", worker, worker->terminated_jobs);
@@ -255,7 +255,7 @@ int inject_task(job_t j, struct worker_s *worker)
 	if (ret != 0) {
 		/* there was not enough memory so the codelet cannot be executed right now ... */
 		/* push the codelet back and try another one ... */
-		return TRYAGAIN;
+		return STARPU_TRYAGAIN;
 	}
 
 	struct gordon_task_wrapper_s *task_wrapper = starpu_to_gordon_job(j);

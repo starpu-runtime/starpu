@@ -1,6 +1,4 @@
 #include <semaphore.h>
-#include <common/timing.h>
-#include <common/util.h>
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
@@ -32,7 +30,7 @@ unsigned i;
 
 void callback_func(void *argcb)
 {
-	unsigned cnt = ATOMIC_ADD((unsigned *)argcb, 1);
+	unsigned cnt = STARPU_ATOMIC_ADD((unsigned *)argcb, 1);
 
 	if (cnt == NITER) 
 	{

@@ -1,9 +1,10 @@
 #ifndef __DW_SPARSE_CG_H__
 #define __DW_SPARSE_CG_H__
 
+#include <stdio.h>
+#include <stdint.h>
 #include <semaphore.h>
 #include <common/timing.h>
-#include <common/util.h>
 #include <common/blas.h>
 #include <string.h>
 #include <stdint.h>
@@ -83,7 +84,7 @@ static void print_results(float *result, unsigned size)
 	printf("**** RESULTS **** \n");
 	unsigned i;
 
-	for (i = 0; i < MIN(size, 16); i++)
+	for (i = 0; i < STARPU_MIN(size, 16); i++)
 	{
 		printf("%d -> %f\n", i, result[i]);
 	}

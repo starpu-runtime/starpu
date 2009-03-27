@@ -1,6 +1,5 @@
 #include <semaphore.h>
 #include <common/timing.h>
-#include <common/util.h>
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
@@ -86,7 +85,7 @@ static void create_task_grid(unsigned iter)
 
 void callback_core(void *argcb __attribute__ ((unused)))
 {
-	unsigned newcnt = ATOMIC_ADD(&callback_cnt, -1);	
+	unsigned newcnt = STARPU_ATOMIC_ADD(&callback_cnt, -1);	
 
 	if (newcnt == 0)
 	{

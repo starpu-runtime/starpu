@@ -325,7 +325,7 @@ void load_history_based_model(struct perfmodel_t *model, unsigned scan_history)
 		}
 	
 	
-		if (get_env_number("CALIBRATE") != -1)
+		if (starpu_get_env_number("CALIBRATE") != -1)
 		{
 			fprintf(stderr, "CALIBRATE model %s\n", model->symbol);
 			model->benchmarking = 1;

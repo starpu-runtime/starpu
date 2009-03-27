@@ -12,7 +12,7 @@ unsigned register_memory_node(node_kind kind)
 {
 	unsigned nnodes;
 	/* ATOMIC_ADD returns the new value ... */
-	nnodes = ATOMIC_ADD(&descr.nnodes, 1);
+	nnodes = STARPU_ATOMIC_ADD(&descr.nnodes, 1);
 
 	descr.nodes[nnodes-1] = kind;
 	TRACE_NEW_MEM_NODE(nnodes-1);
@@ -29,7 +29,7 @@ unsigned register_memory_node(node_kind kind)
 void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
 {
 	unsigned nqueues;
-	nqueues = ATOMIC_ADD(&descr.queues_count[nodeid], 1);
+	nqueues = STARPU_ATOMIC_ADD(&descr.queues_count[nodeid], 1);
 
 	descr.attached_queues[nodeid][nqueues-1] = q;
 }
@@ -100,7 +100,7 @@ unsigned get_local_memory_node(void)
 	
 	/* in case this is called by the programmer, we assume the RAM node 
 	   is the appropriate memory node ... so we return 0 XXX */
-	if (UNLIKELY(!memory_node))
+	if (STARPU_UNLIKELY(!memory_node))
 		return 0;
 
 	return *memory_node;
@@ -118,7 +118,7 @@ int allocate_per_node_buffer(data_state *state, uint32_t node)
 	if (!state->per_node[node].allocated) {
 		/* there is no room available for the data yet */
 		ret = allocate_memory_on_node(state, node);
-		if (UNLIKELY(ret == -ENOMEM))
+		if (STARPU_UNLIKELY(ret == -ENOMEM))
 			goto nomem;
 	}
 
@@ -158,7 +158,7 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 #endif
 		
 #ifdef USE_FXT
-		com_id = ATOMIC_ADD(&communication_cnt, 1);
+		com_id = STARPU_ATOMIC_ADD(&communication_cnt, 1);
 #endif
 
 		/* for now we set the size to 0 in the FxT trace XXX */
