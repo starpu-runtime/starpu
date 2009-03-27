@@ -6,7 +6,13 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include <signal.h>
-#include <datawizard/datawizard.h>
+
+#ifdef USE_CUDA
+#include <cuda.h>
+#include <cublas.h>
+#endif
+
+#include <starpu.h>
 
 #define NITER	50000
 

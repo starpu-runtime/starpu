@@ -16,6 +16,10 @@
 #include <signal.h>
 #include <common/timing.h>
 
+#ifdef USE_CUDA
+#include <cublas.h>
+#endif
+
 #include <starpu.h>
 
 static double cublas_flop = 0.0;

@@ -1,6 +1,6 @@
-#include <task-models/task_model.h>
-#include <core/perfmodel/perfmodel.h>
 #include "strassen_models.h"
+
+#include <starpu.h>
 
 /*
  * As a convention, in that file, descr[0] is represented by A,
@@ -25,7 +25,7 @@ static double self_add_sub_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = (n*n)/10.0f/4.0f/7.75f;
 
@@ -40,7 +40,7 @@ static double cuda_self_add_sub_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = (n*n)/10.0f/4.0f;
 
@@ -55,7 +55,7 @@ static double add_sub_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = (1.45f*n*n)/10.0f/2.0f;
 
@@ -70,7 +70,7 @@ static double cuda_add_sub_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = (1.45f*n*n)/10.0f/2.0f;
 
@@ -86,7 +86,7 @@ static double mult_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = (((double)(n)*n*n)/1000.0f/4.11f/0.2588);
 
@@ -101,7 +101,7 @@ static double cuda_mult_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = (((double)(n)*n*n)/1000.0f/4.11f);
 

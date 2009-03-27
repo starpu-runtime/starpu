@@ -2,8 +2,6 @@
 #define __DW_CHOLESKY_H__
 
 #include <semaphore.h>
-#include <core/jobs.h>
-#include <core/workers.h>
 #include <common/timing.h>
 #include <common/util.h>
 #include <common/blas.h>
@@ -13,11 +11,9 @@
 #include <cuda.h>
 #endif
 
-
-#include <datawizard/datawizard.h>
-#include <core/dependencies/tags.h>
 #include <common/malloc.h>
-//#include "lu_kernels_model.h"
+
+#include <starpu.h>
 
 #define NMAXBLOCKS	32
 

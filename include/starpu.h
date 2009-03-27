@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include <starpu-data.h>
+#include <starpu-perfmodel.h>
 #include <starpu-task.h>
 
 void init_machine(void);

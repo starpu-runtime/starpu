@@ -23,7 +23,7 @@ static double core_chol_task_11_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = (((double)(n)*n*n)/1000.0f*0.894/0.79176);
 
@@ -38,7 +38,7 @@ static double cuda_chol_task_11_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = (((double)(n)*n*n)/50.0f/10.75/5.088633/0.9883);
 
@@ -53,7 +53,7 @@ static double core_chol_task_21_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = (((double)(n)*n*n)/7706.674/0.95/0.9965);
 
@@ -68,7 +68,7 @@ static double cuda_chol_task_21_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = (((double)(n)*n*n)/50.0f/10.75/87.29520);
 
@@ -83,7 +83,7 @@ static double core_chol_task_22_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = (((double)(n)*n*n)/50.0f/10.75/8.0760);
 
@@ -98,7 +98,7 @@ static double cuda_chol_task_22_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = (((double)(n)*n*n)/50.0f/10.75/76.30666);
 

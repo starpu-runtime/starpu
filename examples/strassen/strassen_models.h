@@ -3,8 +3,6 @@
 
 #include <common/util.h>
 
-#include <datawizard/datawizard.h>
-
-#include <core/perfmodel/perfmodel.h>
+#include <starpu.h>
 
 #endif // __STRASSEN_MODELS_H__

@@ -30,7 +30,7 @@ double task_11_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = ((n*n*n)/537.5);
 
@@ -41,7 +41,7 @@ double task_12_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 //	double cost = ((n*n*n)/1744.695);
 	double cost = ((n*n*n)/3210.80);
@@ -55,7 +55,7 @@ double task_21_cost(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 //	double cost = ((n*n*n)/1744.695);
 	double cost = ((n*n*n)/3691.53);
@@ -70,9 +70,9 @@ double task_22_cost(buffer_descr *descr)
 {
 	uint32_t nx, ny, nz;
 
-	nx = descr[2].state->interface->blas.nx;
-	ny = descr[2].state->interface->blas.ny; 
-	nz = descr[0].state->interface->blas.ny;
+	nx = get_blas_nx(descr[2].state);
+	ny = get_blas_ny(descr[2].state);
+	nz = get_blas_ny(descr[0].state);
 
 	double cost = ((nx*ny*nz)/4110.0);
 
@@ -90,7 +90,7 @@ double task_11_cost_cuda(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = ((n*n*n)/1853.7806);
 
@@ -102,7 +102,7 @@ double task_12_cost_cuda(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = ((n*n*n)/42838.5718);
 
@@ -115,7 +115,7 @@ double task_21_cost_cuda(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = ((n*n*n)/49208.667);
 
@@ -129,9 +129,9 @@ double task_22_cost_cuda(buffer_descr *descr)
 {
 	uint32_t nx, ny, nz;
 
-	nx = descr[2].state->interface->blas.nx;
-	ny = descr[2].state->interface->blas.ny; 
-	nz = descr[0].state->interface->blas.ny;
+	nx = get_blas_nx(descr[2].state);
+	ny = get_blas_ny(descr[2].state);
+	nz = get_blas_ny(descr[0].state);
 
 	double cost = ((nx*ny*nz)/57523.560);
 
@@ -149,7 +149,7 @@ double task_11_cost_core(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = ((n*n*n)/537.5);
 
@@ -161,7 +161,7 @@ double task_12_cost_core(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = ((n*n*n)/6668.224);
 
@@ -174,7 +174,7 @@ double task_21_cost_core(buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = descr[0].state->interface->blas.nx;
+	n = get_blas_nx(descr[0].state);
 
 	double cost = ((n*n*n)/6793.8423);
 
@@ -188,9 +188,9 @@ double task_22_cost_core(buffer_descr *descr)
 {
 	uint32_t nx, ny, nz;
 
-	nx = descr[2].state->interface->blas.nx;
-	ny = descr[2].state->interface->blas.ny; 
-	nz = descr[0].state->interface->blas.ny;
+	nx = get_blas_nx(descr[2].state);
+	ny = get_blas_ny(descr[2].state);
+	nz = get_blas_ny(descr[0].state);
 
 	double cost = ((nx*ny*nz)/4203.0175);
 

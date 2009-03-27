@@ -143,6 +143,4 @@ unsigned is_data_present_or_requested(data_state *state, uint32_t node);
 
 inline void set_data_requested_flag_if_needed(data_state *state, uint32_t node);
 
-void sync_data_with_mem(data_state *state);
-
 #endif // __COHERENCY__H__

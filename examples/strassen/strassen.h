@@ -13,7 +13,10 @@
 
 #ifdef USE_CUDA
 #include <cuda.h>
+#include <cublas.h>
 #endif
+
+#include <starpu.h>
 
 typedef enum {
 	ADD,

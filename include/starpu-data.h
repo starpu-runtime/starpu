@@ -129,5 +129,10 @@ typedef union {
 } data_interface_t;
 
 void unpartition_data(struct data_state_t *root_data, uint32_t gathering_node);
+void delete_data(struct data_state_t *state);
+
+void advise_if_data_is_important(struct data_state_t *state, unsigned is_important);
+
+void sync_data_with_mem(struct data_state_t *state);
 
 #endif // __STARPU_DATA_H__
