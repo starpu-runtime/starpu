@@ -1,4 +1,5 @@
 #include <datawizard/datastats.h>
+#include <common/config.h>
 #include <common/util.h>
 #include <stdio.h>
 
