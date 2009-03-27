@@ -13,10 +13,8 @@ EXTRALDFLAGS += @LIBS@
 
 CFLAGS += -I${PWD}/include/
 
-CFLAGS += -g -O3
-CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses
-CFLAGS += -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type 
-CFLAGS += -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -fno-strict-aliasing
+#CFLAGS += -g -O3
+CFLAGS += -W -Wall -Wextra -Wcast-align
 
 LDFLAGS+= -lm
 
@@ -60,7 +58,6 @@ endif
 
 ifeq (@USE_CUDA@,yes)
 	NVCCFLAGS +=  -DUSE_CUDA 
-	LDFLAGS += -lcublas
 	OBJDEPS += src/drivers/cuda/driver_cuda.o
 endif
 
