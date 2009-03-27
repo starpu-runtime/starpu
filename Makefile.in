@@ -6,6 +6,9 @@ CC=gcc -m64
 NVCC = nvcc -m64
 NVCCFLAGS += -O3
 
+MKDIR_P =       @MKDIR_P@
+INSTALL =       @INSTALL@
+
 CFLAGS += @CPPFLAGS@
 CFLAGS += @CFLAGS@
 LDFLAGS += @LDFLAGS@
@@ -161,6 +164,27 @@ libs: $(LIBS)
 
 examples: libs
 	@make -C examples
+
+INCLUDEDIR=@prefix@@includedir@
+LIBDIR=@prefix@@libdir@
+
+HEADERS  = include/starpu.h include/starpu_config.h include/starpu-data-filters.h
+HEADERS += include/starpu-data-interfaces.h include/starpu-mutex.h include/starpu-task.h
+HEADERS += include/starpu-data.h include/starpu-perfmodel.h include/starpu-util.h
+
+install-headers: $(HEADERS)
+	if test ! -d $(INCLUDEDIR); then \
+		$(MKDIR_P) $(INCLUDEDIR); \
+	fi
+	$(INSTALL) -m 0644 $(HEADERS) $(INCLUDEDIR)
+
+install-lib: libs
+	if test ! -d $(LIBDIR); then \
+		$(MKDIR_P) $(LIBDIR); \
+	fi
+	$(INSTALL) -m 0644 $(LIBS) $(LIBDIR)
+
+install: install-headers install-lib
 
 tags:
 	find .|xargs ctags

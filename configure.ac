@@ -9,6 +9,10 @@ AC_PROG_SED
 AC_PROG_LN_S
 AC_PROG_F77
 
+AC_PROG_INSTALL
+AC_PROG_MKDIR_P
+AC_PROG_LN_S
+
 AC_HEADER_STDC
 
 # This will be useful for program which use CUDA (and .cubin files) which need
