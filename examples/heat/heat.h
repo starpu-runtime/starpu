@@ -13,6 +13,8 @@
 #include <GL/glut.h>
 #endif
 
+#include <starpu_config.h>
+
 #include <common/timing.h>
 #include <common/util.h>
 #include <common/malloc.h>

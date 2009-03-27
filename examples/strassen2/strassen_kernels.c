@@ -16,6 +16,7 @@
 #include <signal.h>
 #include <common/timing.h>
 
+#include <starpu_config.h>
 #ifdef USE_CUDA
 #include <cublas.h>
 #endif

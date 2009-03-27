@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
-#include <common/parameters.h>
+#include <common/config.h>
 #include <pthread.h>
 #include <common/util.h>
 #include <common/timing.h>

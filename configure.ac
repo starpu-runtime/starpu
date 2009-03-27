@@ -1,5 +1,4 @@
 AC_INIT([StarPU],0.1, [http://runtime.bordeaux.inria.fr/StarPU/], starpu)
-
 AC_MSG_NOTICE([Configuring StarPU])
 
 AC_CONFIG_SRCDIR(src/core/jobs.h)
@@ -9,6 +8,14 @@ AC_PROG_CPP
 AC_PROG_SED
 AC_PROG_LN_S
 AC_PROG_F77
+
+AC_HEADER_STDC
+
+# This will be useful for program which use CUDA (and .cubin files) which need
+# some path to the CUDA code at runtime.
+AC_DEFINE_UNQUOTED(STARPUDIR, "$PWD", [location of StarPU sources])
+
+AC_SEARCH_LIBS([pthread_create],[pthread],,AC_MSG_ERROR([pthread library unavailable]))
 
 ###############################################################################
 #                                                                             #
@@ -24,9 +31,11 @@ AC_MSG_RESULT($enable_cpu)
 AC_SUBST(USE_CPU, $enable_cpu)
 
 if test x$enable_cpu = xyes; then
+	AC_DEFINE(USE_CPU, [1], [CPU driver is activated])
+
 	# This value is set quite randomly, but StarPU should not take more
 	# core than there are in the system
-	AC_SUBST(NMAXCORES, 16)
+	AC_DEFINE(NMAXCORES, [16], [Maximum number of CPUs supported])
 fi
 
 ###############################################################################
@@ -76,6 +85,9 @@ fi
 AC_MSG_CHECKING(whether CUDA should be used)
 AC_MSG_RESULT($enable_cuda)
 AC_SUBST(USE_CUDA, $enable_cuda)
+if test x$enable_cuda = xyes; then
+	AC_DEFINE(USE_CUDA, [1], [CUDA support is activated])
+fi
 
 ###############################################################################
 #                                                                             #
@@ -92,6 +104,7 @@ AC_SUBST(USE_GORDON, $enable_gordon)
 
 if test x$enable_gordon = xyes; then
 	AC_CHECK_LIB(spe2, spe_context_create,,AC_MSG_ERROR([cannot find libspe2]))
+	AC_DEFINE(USE_GORDON, [1], [Cell support is enabled])
 fi
 
 ###############################################################################
@@ -106,8 +119,9 @@ AC_ARG_ENABLE(verbose, [AS_HELP_STRING([--enable-verbose],
 			enable_verbose=$enableval, enable_verbose=no)
 AC_MSG_RESULT($enable_verbose)
 if test x$enable_verbose = xyes; then
-	CPPFLAGS="${CPPFLAGS} -DVERBOSE "
+	AC_DEFINE(VERBOSE, [1], [display verbose debug messages])
 fi
+
 
 AC_MSG_CHECKING(whether coverage testing should be enabled)
 AC_ARG_ENABLE(coverage, [AS_HELP_STRING([--enable-coverage],
@@ -150,12 +164,15 @@ AC_ARG_WITH(fxt, [AS_HELP_STRING([--with-fxt[=<dir>]], [generate fxt traces])],
 AC_SUBST(USE_FXT, $use_fxt)
 
 if test x$use_fxt = xyes; then
+	AC_DEFINE(USE_FXT, [1], [enable FxT traces])
+	AC_DEFINE(CONFIG_FUT, [1], [enable FUT traces])
 
-AC_SUBST(USE_FXTDIR_FROM_USER,$use_fxt_from_system)
-if test x$use_fxt_from_system = xno; then
-	CPPFLAGS="${CPPFLAGS} -I$fxtdir/include/ "
-	LDFLAGS="${LDFLAGS} -L$fxtdir/lib/ "
-fi
+	AC_SUBST(USE_FXTDIR_FROM_USER,$use_fxt_from_system)
+	if test x$use_fxt_from_system = xno; then
+		CPPFLAGS="${CPPFLAGS} -I$fxtdir/include/ "
+		LDFLAGS="${LDFLAGS} -L$fxtdir/lib/ "
+	fi
+
 	AC_CHECK_LIB(fxt, fut_setup,,AC_MSG_ERROR([cannot find fxt lib]))
 	AC_CHECK_HEADER([fxt/fxt.h],,AC_MSG_ERROR([cannot find headers for fxt]))
 	AC_CHECK_HEADER([fxt/fut.h],,AC_MSG_ERROR([cannot find headers for fxt]))
@@ -169,7 +186,7 @@ fi
 	if test x$enable_gtk = xyes; then
 		AC_SUBST(GTK_CFLAGS)
 		AC_SUBST(GTK_LIBS)
-		CPPFLAGS="${CPPFLAGS} -DUSE_GTK "
+		AC_DEFINE(USE_GTK, [1], [enable GTK])
 	fi
 fi
 
@@ -188,6 +205,9 @@ AC_MSG_RESULT($enable_stats)
 AC_SUBST(STATS, $enable_stats)
 AC_SUBST(DATA_STATS, $enable_stats)
 
+if test x$enable_stats = xyes; then
+        AC_DEFINE(DATA_STATS, [1], [enable statistics])
+fi
 
 
 ###############################################################################
@@ -209,9 +229,8 @@ AC_ARG_ENABLE(priority, [AS_HELP_STRING([--disable-priority],
 			enable_priority=$enableval, enable_priority=yes)
 AC_MSG_RESULT($enable_priority)
 if test x$enable_priority = xno; then
-	CPPFLAGS="${CPPFLAGS} -DNO_PRIO "
+	AC_DEFINE(NO_PRIO, [1], [Disable priorities])
 fi
-
 
 AC_MSG_CHECKING(whether data RW-lock should be used)
 AC_ARG_ENABLE(data-rw-lock, [AS_HELP_STRING([--disable-data-rw-lock],
@@ -219,7 +238,7 @@ AC_ARG_ENABLE(data-rw-lock, [AS_HELP_STRING([--disable-data-rw-lock],
 			enable_data_rw_lock=$enableval, enable_data_rw_lock=yes)
 AC_MSG_RESULT($enable_data_rw_lock)
 if test x$enable_data_rw_lock = xno; then
-	CPPFLAGS="${CPPFLAGS} -DNO_DATA_RW_LOCK "
+	AC_DEFINE(NO_DATA_RW_LOCK, [1], [data RW-lock are disabled])
 fi
 
 
@@ -229,9 +248,21 @@ AC_ARG_ENABLE(allocation-cache, [AS_HELP_STRING([--enable-allocation-cache],
 			enable_allocation_cache=$enableval, enable_allocation_cache=no)
 AC_MSG_RESULT($enable_allocation_cache)
 if test x$enable_allocation_cache = xyes; then
-	CPPFLAGS="${CPPFLAGS} -DUSE_ALLOCATION_CACHE "
+	AC_DEFINE(USE_ALLOCATION_CACHE, [1], [enable data allocation cache])
 fi
 
+# by default, we put the performance models in $PWD/.sampling/
+perf_model_dir=($PWD/.sampling/)
+AC_ARG_WITH(perf-model-dir, [AS_HELP_STRING([--with-perf-model-dir=<dir>], [specify where performance models shoulds be stored])],
+	[
+		if x$withval != x$no; then
+			perf_model_dir=$withval
+		fi
+	]
+	)
+AC_MSG_CHECKING(performance models location)
+AC_MSG_RESULT($perf_model_dir)
+AC_DEFINE_UNQUOTED(PERF_MODEL_DIR, "$perf_model_dir", [performance models location])
 
 ###############################################################################
 #                                                                             #
@@ -248,7 +279,7 @@ if test x$enable_opengl_render = xyes; then
 	AC_CHECK_LIB(GL, glXCreateContext,,AC_MSG_ERROR([cannot find GL]))
 	AC_CHECK_LIB(GLU, gluLookAt,,AC_MSG_ERROR([cannot find GLU]))
 	
-	CPPFLAGS="${CPPFLAGS} -DOPENGL_RENDER"
+	AC_DEFINE(OPENGL_RENDER, [1], [enable OpenGL rendering of some examples])
 fi
 
 AC_MSG_CHECKING(whether OpenGL rendering is enabled)
@@ -297,6 +328,7 @@ AC_ARG_WITH(goto-dir, [AS_HELP_STRING([--with-goto-dir=<dir>], [specify GOTO lib
 if test x$blas_lib = xgoto; then
 # test whether ATLAS is actually available
 AC_CHECK_LIB(goto, sgemm_,,AC_MSG_ERROR([cannot find goto lib]))
+AC_DEFINE(GOTO, [1], [use GOTO library])
 fi
 
 fi
@@ -320,6 +352,7 @@ if test x$blas_lib = xatlas; then
 AC_CHECK_HEADER([cblas.h],,AC_MSG_ERROR([cannot find atlas headers]))
 AC_CHECK_LIB(atlas, ATL_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),)
 AC_CHECK_LIB(cblas, cblas_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),[-latlas])
+AC_DEFINE(ATLAS, [1], [use ATLAS library])
 fi
 
 fi
@@ -329,6 +362,7 @@ if test x$blas_lib = xmaybe; then
      use_system_blas=no
      AC_SEARCH_LIBS([sgemm_],[blas],use_system_blas=yes,,)
      if test x$use_system_blas = xyes; then
+        AC_DEFINE(SYSTEM_BLAS, [1], [use refblas library])
 	blas_lib=system
      else
 	blas_lib=none
@@ -338,6 +372,8 @@ fi
 AC_MSG_CHECKING(which BLAS lib should be used)
 AC_MSG_RESULT($blas_lib)
 AC_SUBST(BLAS_LIB,$blas_lib)
+
+AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h)
 
 AC_OUTPUT([
 	Makefile

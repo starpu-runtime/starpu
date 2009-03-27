@@ -18,12 +18,7 @@ CFLAGS += -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses
 CFLAGS += -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type 
 CFLAGS += -Wno-unused-function  -Wstrict-prototypes -Wnested-externs -fno-strict-aliasing
 
-# This will be useful for program which use CUDA (and .cubin files) which need some path
-# to the CUDA code at runtime.
-CFLAGS+="-DSTARPUDIR=\"$(PWD)/\""
-
 LDFLAGS+= -lm
-LDFLAGS += -lpthread
 
 ifdef TRANSFER_OVERHEAD
 	CFLAGS += -DTRANSFER_OVERHEAD
@@ -36,16 +31,6 @@ endif
 
 ifdef MODEL_DEBUG
 	CFLAGS+="-DMODEL_DEBUG "
-endif
-
-ifeq (@DATA_STATS@,yes)
-	CFLAGS+="-DDATA_STATS "
-endif
-
-ifdef PERF_MODEL_DIR
-	CFLAGS+="-DPERF_MODEL_DIR=\"$(PERF_MODEL_DIR)/\""
-else
-	CFLAGS+="-DPERF_MODEL_DIR=\"$(PWD)/.sampling/\""
 endif
 
 ifndef SCALPDIR
@@ -74,37 +59,22 @@ ifdef USE_OVERLOAD
 endif
 
 ifeq (@USE_CUDA@,yes)
-	CFLAGS += -DUSE_CUDA 
 	NVCCFLAGS +=  -DUSE_CUDA 
 	LDFLAGS += -lcublas
 	OBJDEPS += src/drivers/cuda/driver_cuda.o
 endif
 
-ifeq (@BLAS_LIB@,atlas)
-	CFLAGS += -DATLAS
-	OBJDEPS += src/common/blas.o
-endif
-
-ifeq (@BLAS_LIB@,goto)
-	CFLAGS += -DGOTO
-	OBJDEPS += src/common/blas.o
-endif
-
-ifeq (@BLAS_LIB@,system)
-	CFLAGS += -DSYSTEM_BLAS
+ifneq (@BLAS_LIB@,none)
 	OBJDEPS += src/common/blas.o
 endif
 
 ifeq (@USE_CPU@,yes)
-	CFLAGS += -DUSE_CPUS
-	CFLAGS += -DNMAXCORES=@NMAXCORES@
 	NVCCFLAGS += -DUSE_CPUS
 	OBJDEPS += src/drivers/core/driver_core.o
 endif
 
 ifeq (@USE_GORDON@,yes)
 	CFLAGS += -I$(SCALPDIR)
-	CFLAGS += -DUSE_GORDON
 	LDFLAGS += -lspe2
 	OBJDEPS += src/drivers/gordon/driver_gordon.o
 	EXTRALDFLAGS+= $(SCALPDIR)/cell/gordon/libgordon.a
@@ -113,7 +83,6 @@ ifeq (@USE_GORDON@,yes)
 endif
 
 ifeq (@USE_FXT@,yes)
-	CFLAGS += -DUSE_FXT -DCONFIG_FUT
 	LDFLAGS += -lfxt 
 	OBJDEPS += src/common/fxt.o
 ifeq (@USE_FXTDIR_FROM_USER@,yes)

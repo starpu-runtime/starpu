@@ -8,6 +8,8 @@
 #include <common/blas.h>
 #include <string.h>
 #include <math.h>
+/* for USE_CUDA */
+#include <starpu_config.h>
 #ifdef USE_CUDA
 #include <cuda.h>
 #endif

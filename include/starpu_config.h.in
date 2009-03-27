@@ -1,0 +1,10 @@
+#ifndef __STARPU_CONFIG_PUBLIC_H__
+#define __STARPU_CONFIG_PUBLIC_H__
+
+#undef USE_CPU
+#undef USE_CUDA
+#undef USE_GORDON
+
+#undef STARPUDIR
+
+#endif

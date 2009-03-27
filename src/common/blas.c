@@ -1,3 +1,4 @@
+#include <common/config.h>
 #include <common/blas.h>
 #include <ctype.h>
 #include <stdio.h>

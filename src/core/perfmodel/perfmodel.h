@@ -1,6 +1,7 @@
 #ifndef __PERFMODEL_H__
 #define __PERFMODEL_H__
 
+#include <common/config.h>
 #include <starpu-perfmodel.h>
 //#include <core/jobs.h>
 #include <common/htable32.h>

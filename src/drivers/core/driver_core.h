@@ -6,7 +6,7 @@
 #include <sched.h>
 
 #include <common/util.h>
-#include <common/parameters.h>
+#include <common/config.h>
 #include <core/jobs.h>
 
 #include <core/perfmodel/perfmodel.h>

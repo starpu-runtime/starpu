@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <cblas.h>
 
+#include <starpu_config.h>
 #ifdef USE_CUDA
 #include <cuda.h>
 #include <cublas.h>

@@ -13,11 +13,13 @@
 #include <signal.h>
 #include <common/timing.h>
 
+#include <starpu_config.h>
+#include <starpu.h>
+
 #ifdef USE_CUDA
 #include <cublas.h>
 #endif
 
-#include <starpu.h>
 
 #define MAXITER	100000
 #define EPSILON	0.0000001f

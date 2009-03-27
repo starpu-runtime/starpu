@@ -8,6 +8,7 @@
 #include <starpu-mutex.h>
 #include <datawizard/datawizard.h>
 #include <core/perfmodel/regression.h>
+#include <common/config.h>
 
 /*
  * History based model

@@ -13,7 +13,7 @@
 
 #include <common/util.h>
 #include <core/jobs.h>
-#include <common/parameters.h>
+#include <common/config.h>
 
 
 #include <stdint.h>

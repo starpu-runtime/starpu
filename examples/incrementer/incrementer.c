@@ -7,6 +7,9 @@
 #include <pthread.h>
 #include <signal.h>
 
+/* for USE_CUDA */
+#include <starpu_config.h>
+
 #ifdef USE_CUDA
 #include <cuda.h>
 #include <cublas.h>

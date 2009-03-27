@@ -1,6 +1,8 @@
 #ifndef __STARPU_TASK_H__
 #define __STARPU_TASK_H__
 
+#include <starpu_config.h>
+
 /* this is a randomly choosen value ... */
 #ifndef MAXCUDADEVS
 #define MAXCUDADEVS     4
