@@ -249,23 +249,6 @@ static void dw_codelet_facto_v3(data_handle dataA, unsigned nblocks)
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
 
-static void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
-{
-	starpu_init();
-
-	timing_init();
-
-	if (pinned)
-	{
-		malloc_pinned_if_possible(A, dim*dim*sizeof(float));
-		malloc_pinned_if_possible(B, dim*sizeof(float));
-	} 
-	else {
-		*A = malloc(dim*dim*sizeof(float));
-		*B = malloc(dim*sizeof(float));
-	}
-}
-
 void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
 

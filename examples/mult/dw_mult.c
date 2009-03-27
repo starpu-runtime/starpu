@@ -197,6 +197,8 @@ static void init_problem_data(void)
 			C[j+i*ydim] = (float)(0);
 		}
 	}
+
+	display_memory_consumption();
 }
 
 static void partition_mult_data(void)

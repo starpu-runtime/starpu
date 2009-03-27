@@ -315,6 +315,7 @@ int request_data_allocation(data_state *state, uint32_t node)
 	return 0;
 }
 
+#ifdef NO_DATA_RW_LOCK
 /* put the current value of the data into RAM */
 static void _sync_data_with_mem_continuation(void *_state)
 {
@@ -325,6 +326,7 @@ static void _sync_data_with_mem_continuation(void *_state)
 	
 	STARPU_ASSERT(!ret);
 }
+#endif
 
 void sync_data_with_mem(data_state *state)
 {

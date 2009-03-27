@@ -142,7 +142,16 @@ static void parse_args(int argc, char **argv)
 
 static void display_memory_consumption(void)
 {
-	fprintf(stderr, "Total memory : %ld MB\n", (MAXSLICESY*MAXSLICESZ*sizeof(float *) + MAXSLICESZ*MAXSLICESX*sizeof(float *) + MAXSLICESY*MAXSLICESX*sizeof(float *) + MAXSLICESY*MAXSLICESZ*sizeof(data_handle) + MAXSLICESZ*MAXSLICESX*sizeof(data_handle) + MAXSLICESY*MAXSLICESX*sizeof(data_handle) + ydim*zdim*sizeof(float) +  zdim*xdim*sizeof(float) +  ydim*xdim*sizeof(float))/(1024*1024) );
+	fprintf(stderr, "Total memory : %ld MB\n",
+		(MAXSLICESY*MAXSLICESZ*sizeof(float *) 
+		+ MAXSLICESZ*MAXSLICESX*sizeof(float *)
+		+ MAXSLICESY*MAXSLICESX*sizeof(float *)
+		+ MAXSLICESY*MAXSLICESZ*sizeof(data_handle)
+		+ MAXSLICESZ*MAXSLICESX*sizeof(data_handle)
+		+ MAXSLICESY*MAXSLICESX*sizeof(data_handle)
+		+ ydim*zdim*sizeof(float)
+		+ zdim*xdim*sizeof(float)
+		+ ydim*xdim*sizeof(float))/(1024*1024) );
 }
 
 
