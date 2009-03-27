@@ -267,7 +267,7 @@ static void init_workers(struct machine_config_s *config)
 	}
 }
 
-void init_machine(void)
+void starpu_init(void)
 {
 	srand(2008);
 
@@ -356,7 +356,7 @@ void kill_all_workers(struct machine_config_s *config)
 	wake_all_blocked_workers();
 }
 
-void terminate_machine(void)
+void starpu_shutdown(void)
 {
 	display_msi_stats();
 	display_alloc_cache_stats();

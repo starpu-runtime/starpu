@@ -332,7 +332,7 @@ void do_conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz
 			unsigned nrow, uint32_t *colind, uint32_t *rowptr)
 {
 	/* start the runtime */
-	init_machine();
+	starpu_init();
 
 
 #ifdef USE_CUDA
@@ -351,7 +351,7 @@ int main(__attribute__ ((unused)) int argc,
 	timing_init();
 
 	/* start the runtime */
-	init_machine();
+	starpu_init();
 
 
 #ifdef USE_CUDA

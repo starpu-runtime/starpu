@@ -247,7 +247,7 @@ int main(__attribute__ ((unused)) int argc,
 	timing_init();
 
 	/* start the runtime */
-	init_machine();
+	starpu_init();
 
 	sem_init(&sem, 0, 0U);
 

@@ -733,7 +733,7 @@ int main(int argc, char **argv)
 
 		solve_system(DIM, newsize, result, RefArray, Bformer, A, B);
 
-		terminate_machine();
+		starpu_shutdown();
 	}
 
 #ifdef OPENGL_RENDER

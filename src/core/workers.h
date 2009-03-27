@@ -79,11 +79,9 @@ struct machine_config_s {
 	unsigned running;
 };
 
-void init_machine(void);
 void terminate_workers(struct machine_config_s *config);
 void kill_all_workers(struct machine_config_s *config);
 void display_general_stats(void);
-void terminate_machine(void);
 
 unsigned machine_is_running(void);
 

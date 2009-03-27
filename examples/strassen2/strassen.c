@@ -742,7 +742,7 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	init_machine();
+	starpu_init();
 
 #ifdef USE_CUDA
         if (pin) {
@@ -807,7 +807,7 @@ int main(int argc, char **argv)
 
 	gettimeofday(&end, NULL);
 
-	terminate_machine();
+	starpu_shutdown();
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 

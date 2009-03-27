@@ -11,7 +11,6 @@
 #include <pthread.h>
 #include <signal.h>
 #include <cblas.h>
-#include <common/timing.h>
 
 #include <starpu.h>
 

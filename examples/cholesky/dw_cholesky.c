@@ -212,7 +212,7 @@ static void _dw_cholesky(data_handle dataA, unsigned nblocks)
 
 void initialize_system(float **A, unsigned dim, unsigned pinned)
 {
-	init_machine();
+	starpu_init();
 
 	timing_init();
 
@@ -247,5 +247,5 @@ void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	unpartition_data(dataA, 0);
 
-	terminate_machine();
+	starpu_shutdown();
 }

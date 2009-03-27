@@ -38,13 +38,13 @@ void STARPU_INIT(void)
 {
 	if (!inited) {
 		inited = 1;
-		init_machine();	
+		starpu_init();	
 	}
 }
 
 void STARPU_TERMINATE(void)
 {
-	terminate_machine();
+	starpu_shutdown();
 
 	fprintf(stderr, "sgemm : core %d cublas %d\n", core_sgemm, cublas_sgemm);
 	fprintf(stderr, "strsm : core %d cublas %d\n", core_strsm, cublas_strsm);

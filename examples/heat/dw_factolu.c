@@ -668,7 +668,7 @@ void dw_codelet_facto_v2(data_handle dataA, unsigned nblocks)
 
 void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 {
-	init_machine();
+	starpu_init();
 
 	timing_init();
 

@@ -229,7 +229,7 @@ int main(int argc, char **argv)
 
 	fprintf(stderr, "BLOCK SIZE = %d\n", size / nblocks);
 
-	init_machine();
+	starpu_init();
 	timing_init();
 
 	for (y = 0; y < nblocks; y++)
@@ -283,7 +283,7 @@ int main(int argc, char **argv)
 
 	dw_cholesky_no_stride();
 
-	terminate_machine();
+	starpu_shutdown();
 	return 0;
 }
 

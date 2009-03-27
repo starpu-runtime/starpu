@@ -93,7 +93,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 {
 	unsigned counter = 0;
 
-	init_machine();
+	starpu_init();
 	fprintf(stderr, "StarPU initialized ...\n");
 
 	sem_init(&sem, 0, 0);
@@ -153,7 +153,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 			my_lovely_float[1], my_lovely_float[2]);
 //	printf("stopping ... cnt was %d i %d\n", cnt, i);
 	
-	terminate_machine();
+	starpu_shutdown();
 
 	return 0;
 }

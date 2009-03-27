@@ -158,7 +158,7 @@ int main(__attribute__ ((unused)) int argc,
 	parse_args(argc, argv);
 
 	/* start the runtime */
-	init_machine();
+	starpu_init();
 
 	sem_init(&sem, 0, 0U);
 
@@ -166,7 +166,7 @@ int main(__attribute__ ((unused)) int argc,
 	sem_wait(&sem);
 	sem_destroy(&sem);
 
-	terminate_machine();
+	starpu_shutdown();
 
 	return 0;
 }

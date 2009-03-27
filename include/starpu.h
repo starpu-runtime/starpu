@@ -8,7 +8,7 @@
 #include <starpu-perfmodel.h>
 #include <starpu-task.h>
 
-void init_machine(void);
-void terminate_machine(void);
+void starpu_init(void);
+void starpu_shutdown(void);
 
 #endif // __STARPU_H__
