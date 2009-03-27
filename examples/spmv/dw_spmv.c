@@ -242,7 +242,7 @@ void call_spmv_codelet_filters(void)
 
 	remainingtasks = nblocks;
 
-	codelet *cl = malloc(sizeof(codelet));
+	starpu_codelet *cl = malloc(sizeof(starpu_codelet));
 
 	/* partition the data along a block distribution */
 	filter csr_f, vector_f;

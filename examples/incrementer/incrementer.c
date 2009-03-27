@@ -104,8 +104,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	initialize_cuda();
 #endif
 
-	/* TODO make this codelet statically declared ... */
-	codelet cl =
+	starpu_codelet cl =
 	{
 		.core_func = core_codelet,
 		.where = CORE|CUDA|GORDON,

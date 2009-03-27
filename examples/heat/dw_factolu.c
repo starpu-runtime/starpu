@@ -9,7 +9,7 @@ uint8_t *advance_22; /* array of nblocks *nblocks*nblocks */
 struct timeval start;
 struct timeval end;
 
-static codelet cl11 =
+static starpu_codelet cl11 =
 {
 	.where = ANY,
 	.core_func = dw_core_codelet_update_u11,
@@ -20,7 +20,7 @@ static codelet cl11 =
 	.model = &model_11
 };
 
-static codelet cl12 =
+static starpu_codelet cl12 =
 {
 	.where = ANY,
 	.core_func = dw_core_codelet_update_u12,
@@ -31,7 +31,7 @@ static codelet cl12 =
 	.model = &model_12
 }; 
 
-static codelet cl21 =
+static starpu_codelet cl21 =
 {
 	.where = ANY,
 	.core_func = dw_core_codelet_update_u21,
@@ -42,7 +42,7 @@ static codelet cl21 =
 	.model = &model_21
 }; 
 
-static codelet cl22 =
+static starpu_codelet cl22 =
 {
 	.where = ANY,
 	.core_func = dw_core_codelet_update_u22,

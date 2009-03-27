@@ -240,7 +240,7 @@ static void launch_codelets(void)
 
 	srand(time(NULL));
 
-	codelet cl = {
+	starpu_codelet cl = {
 		.where = CORE|CUBLAS|GORDON,
 		.core_func = core_mult,
 #ifdef USE_CUDA

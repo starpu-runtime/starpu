@@ -185,7 +185,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 	unsigned calibrate_model = 0;
 
 	STARPU_ASSERT(task);
-	struct codelet_t *cl = task->cl;
+	struct starpu_codelet_t *cl = task->cl;
 	STARPU_ASSERT(cl);
 
 	if (cl->model && cl->model->benchmarking) 

@@ -12,7 +12,7 @@
 #define TAG(i, iter)	((uint64_t)  (((uint64_t)iter)<<32 | (i)) )
 
 sem_t sem;
-codelet cl;
+starpu_codelet cl;
 
 #define Ni	64
 #define Nk	2

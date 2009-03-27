@@ -96,7 +96,7 @@ void call_filters(void)
 #define NSPMV	32
 unsigned totaltasks;
 
-codelet cl = {
+starpu_codelet cl = {
 	.where = CORE|CUBLAS,
 	.core_func =  core_block_spmv,
 #ifdef USE_CUDA

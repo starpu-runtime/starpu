@@ -172,7 +172,7 @@ enum operation {
 	MULT
 };
 
-static codelet cl_add = {
+static starpu_codelet cl_add = {
 	.where = ANY,
 	.model = &strassen_model_add,
 	.core_func = add_core_codelet,
@@ -182,7 +182,7 @@ static codelet cl_add = {
 	.nbuffers = 3
 };
 
-static codelet cl_sub = {
+static starpu_codelet cl_sub = {
 	.where = ANY,
 	.model = &strassen_model_sub,
 	.core_func = sub_core_codelet,
@@ -192,7 +192,7 @@ static codelet cl_sub = {
 	.nbuffers = 3
 };
 
-static codelet cl_mult = {
+static starpu_codelet cl_mult = {
 	.where = ANY,
 	.model = &strassen_model_mult,
 	.core_func = mult_core_codelet,
@@ -238,7 +238,7 @@ struct starpu_task *compute_add_sub_op(data_handle C, enum operation op, data_ha
 	return task;
 }
 
-static codelet cl_self_add = {
+static starpu_codelet cl_self_add = {
 	.where = ANY,
 	.model = &strassen_model_self_add,
 	.core_func = self_add_core_codelet,
@@ -248,7 +248,7 @@ static codelet cl_self_add = {
 	.nbuffers = 2
 };
 
-static codelet cl_self_sub = {
+static starpu_codelet cl_self_sub = {
 	.where = ANY,
 	.model = &strassen_model_self_sub,
 	.core_func = self_sub_core_codelet,
@@ -308,7 +308,7 @@ void cleanup_callback(void *_arg)
 	free(arg);
 }
 
-static codelet cleanup_codelet = {
+static starpu_codelet cleanup_codelet = {
 	.where = ANY,
 	.model = NULL,
 	.core_func = null_codelet,
@@ -684,7 +684,7 @@ static void dummy_codelet_func(__attribute__((unused))data_interface_t *descr,
 {
 }
 
-static codelet dummy_codelet = {
+static starpu_codelet dummy_codelet = {
 	.where = ANY,
 	.model = NULL,
 	.core_func = dummy_codelet_func,

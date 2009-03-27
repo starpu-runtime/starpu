@@ -291,7 +291,7 @@ struct cb2_s {
 	int *xycounter;
 };
 
-static codelet cl = {
+static starpu_codelet cl = {
 	.core_func = core_mult,
 #ifdef USE_CUDA
 	.cublas_func = cublas_mult,

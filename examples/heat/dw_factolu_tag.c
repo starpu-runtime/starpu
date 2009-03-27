@@ -30,7 +30,7 @@ static void terminal_callback(void *argcb)
 	sem_post(sem);
 }
 
-static codelet cl11 = {
+static starpu_codelet cl11 = {
 	.where = ANY,
 	.core_func = dw_core_codelet_update_u11,
 #ifdef USE_CUDA
@@ -69,7 +69,7 @@ static struct starpu_task *create_task_11(data_handle dataA, unsigned k, unsigne
 	return task;
 }
 
-static codelet cl12 = {
+static starpu_codelet cl12 = {
 	.where = ANY,
 	.core_func = dw_core_codelet_update_u12,
 #ifdef USE_CUDA
@@ -108,7 +108,7 @@ static void create_task_12(data_handle dataA, unsigned k, unsigned i)
 	submit_task(task);
 }
 
-static codelet cl21 = {
+static starpu_codelet cl21 = {
 	.where = ANY,
 	.core_func = dw_core_codelet_update_u21,
 #ifdef USE_CUDA
@@ -145,7 +145,7 @@ static void create_task_21(data_handle dataA, unsigned k, unsigned j)
 	submit_task(task);
 }
 
-static codelet cl22 = {
+static starpu_codelet cl22 = {
 	.where = ANY,
 	.core_func = dw_core_codelet_update_u22,
 #ifdef USE_CUDA

@@ -26,7 +26,7 @@ static void terminal_callback(void *argcb)
  *	Create the codelets
  */
 
-static codelet cl11 =
+static starpu_codelet cl11 =
 {
 	.where = ANY,
 	.core_func = chol_core_codelet_update_u11,
@@ -66,7 +66,7 @@ static struct starpu_task * create_task_11(data_handle dataA, unsigned k, unsign
 	return task;
 }
 
-static codelet cl21 =
+static starpu_codelet cl21 =
 {
 	.where = ANY,
 	.core_func = chol_core_codelet_update_u21,
@@ -104,7 +104,7 @@ static void create_task_21(data_handle dataA, unsigned k, unsigned j)
 	submit_task(task);
 }
 
-static codelet cl22 =
+static starpu_codelet cl22 =
 {
 	.where = ANY,
 	.core_func = chol_core_codelet_update_u22,

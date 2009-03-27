@@ -162,7 +162,7 @@ static void create_data(float **_nzvalA, float **_vecb, float **_vecx, uint32_t 
 
 static struct starpu_task *create_task(tag_t id)
 {
-	codelet *cl = malloc(sizeof(codelet));
+	starpu_codelet *cl = malloc(sizeof(starpu_codelet));
 		cl->where = ANY;
 		cl->model = NULL;
 

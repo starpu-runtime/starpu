@@ -72,7 +72,7 @@ static void unpartition_matrices(strassen_iter_state_t *iter)
 	unpartition_data(iter->C, 0);
 }
 
-static codelet cl_add = {
+static starpu_codelet cl_add = {
 	.where = ANY,
 	.model = &strassen_model_add_sub,
 	.core_func = add_core_codelet,
@@ -82,7 +82,7 @@ static codelet cl_add = {
 	.nbuffers = 3
 };
 
-static codelet cl_sub = {
+static starpu_codelet cl_sub = {
 	.where = ANY,
 	.model = &strassen_model_add_sub,
 	.core_func = sub_core_codelet,
@@ -92,7 +92,7 @@ static codelet cl_sub = {
 	.nbuffers = 3
 };
 
-static codelet cl_mult = {
+static starpu_codelet cl_mult = {
 	.where = ANY,
 	.model = &strassen_model_mult,
 	.core_func = mult_core_codelet,
@@ -102,7 +102,7 @@ static codelet cl_mult = {
 	.nbuffers = 3
 };
 
-static codelet cl_self_add = {
+static starpu_codelet cl_self_add = {
 	.where = ANY,
 	.model = &strassen_model_self_add_sub,
 	.core_func = self_add_core_codelet,
@@ -112,7 +112,7 @@ static codelet cl_self_add = {
 	.nbuffers = 2
 };
 
-static codelet cl_self_sub = {
+static starpu_codelet cl_self_sub = {
 	.where = ANY,
 	.model = &strassen_model_self_add_sub,
 	.core_func = self_sub_core_codelet,

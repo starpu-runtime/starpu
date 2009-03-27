@@ -25,13 +25,11 @@
 
 typedef uint64_t tag_t;
 
-
-
 /*
  * A codelet describes the various function 
  * that may be called from a worker
  */
-typedef struct codelet_t {
+typedef struct starpu_codelet_t {
 	/* where can it be performed ? */
 	uint32_t where;
 
@@ -46,11 +44,10 @@ typedef struct codelet_t {
 	unsigned nbuffers;
 
 	struct perfmodel_t *model;
-} codelet;
+} starpu_codelet;
 
-/* XXX this structure is not used yet ! XXX */
 struct starpu_task {
-	struct codelet_t *cl;
+	struct starpu_codelet_t *cl;
 
 	/* arguments managed by the DSM */
 	struct buffer_descr_t buffers[NMAXBUFS];

@@ -323,7 +323,7 @@ struct cb2_s {
 };
 
 
-static codelet cl = {
+static starpu_codelet cl = {
 	.where = CORE|CUBLAS|GORDON,
 	.core_func = core_mult,
 #ifdef USE_CUDA

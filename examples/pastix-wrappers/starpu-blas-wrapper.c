@@ -213,7 +213,7 @@ void STARPU_DECLARE_WORK_BLOCKS(float *maxbloktab1, float *maxbloktab2, unsigned
 	monitor_vector_data(&work_block_1, 0 /* home */, (uintptr_t)maxbloktab1, solv_coefmax, sizeof(float));
 	monitor_vector_data(&work_block_2, 0 /* home */, (uintptr_t)maxbloktab2, solv_coefmax, sizeof(float));
 
-	codelet cl;
+	starpu_codelet cl;
 	job_t j;
 	sem_t sem;
 
@@ -301,7 +301,7 @@ static struct perfmodel_t starpu_cblk_strsm = {
 void STARPU_CBLK_STRSM(unsigned col)
 {
 	/* perform a strsm on the block column */
-	codelet cl;
+	starpu_codelet cl;
 	job_t j;
 	sem_t sem;
 
@@ -441,7 +441,7 @@ void STARPU_COMPUTE_CONTRIB_COMPACT(unsigned col, int dimi, int dimj, int dima, 
 		args.dimj = dimj;
 		args.dima = dima;
 
-	codelet cl;
+	starpu_codelet cl;
 	job_t j;
 	sem_t sem;
 
@@ -561,7 +561,7 @@ void STARPU_SGEMM (const char *transa, const char *transb, const int m,
 	data_state B_state;
 	data_state C_state;
 
-	codelet cl;
+	starpu_codelet cl;
 	job_t j;
 	sem_t sem;
 

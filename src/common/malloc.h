@@ -39,7 +39,7 @@ static inline void malloc_pinned_if_possible(float **A, size_t dim)
 			.dim = dim
 		};	
 	
-		codelet *cl = malloc(sizeof(codelet));
+		starpu_codelet *cl = malloc(sizeof(starpu_codelet));
 			cl->cublas_func = malloc_pinned_codelet; 
 			cl->where = CUBLAS;
 			cl->model = NULL;
