@@ -31,7 +31,7 @@ AC_MSG_RESULT($enable_cpu)
 AC_SUBST(USE_CPU, $enable_cpu)
 
 if test x$enable_cpu = xyes; then
-	AC_DEFINE(USE_CPU, [1], [CPU driver is activated])
+	AC_DEFINE(USE_CPUS, [1], [CPU driver is activated])
 
 	# This value is set quite randomly, but StarPU should not take more
 	# core than there are in the system
