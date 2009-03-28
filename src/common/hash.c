@@ -2,7 +2,7 @@
 
 #define CRC32C_POLY_BE 0x1EDC6F41
 
-static inline uint32_t crc32_be_8(uint8_t inputbyte, uint32_t inputcrc)
+static inline uint32_t __attribute__ ((pure)) crc32_be_8(uint8_t inputbyte, uint32_t inputcrc)
 {
 	unsigned i;
 	uint32_t crc;
