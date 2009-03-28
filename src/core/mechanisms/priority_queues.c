@@ -58,7 +58,7 @@ int priority_push_task(struct jobq_s *q, job_t j)
 	/* wake people waiting locally */
 	pthread_mutex_lock(&q->activity_mutex);
 
-	TRACE_JOB_PUSH(task, 1);
+	TRACE_JOB_PUSH(j, 1);
 	
 	unsigned priolevel = j->task->priority - MIN_PRIO;
 
