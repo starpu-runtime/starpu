@@ -333,9 +333,9 @@ void create_cleanup_task(struct cleanup_arg *cleanup_arg)
 	task->use_tag = 1;
 	task->tag_id = j_tag;
 
-	tag_declare_deps_array(j_tag, cleanup_arg->ndeps, cleanup_arg->tags);
+	starpu_tag_declare_deps_array(j_tag, cleanup_arg->ndeps, cleanup_arg->tags);
 
-	submit_task(task);
+	starpu_submit_task(task);
 }
 
 void strassen_mult(struct strassen_iter *iter)
@@ -358,12 +358,12 @@ void strassen_mult(struct strassen_iter *iter)
 			deps_array[indexB+indexA] = iter->B_deps.deps[indexB];
 		}
 
-		tag_declare_deps_array(tag_mult, indexA+indexB, deps_array);
+		starpu_tag_declare_deps_array(tag_mult, indexA+indexB, deps_array);
 
 		iter->C_deps.ndeps = 1;
 		iter->C_deps.deps[0] = tag_mult;
 
-		submit_task(task_mult);
+		starpu_submit_task(task_mult);
 
 		return;
 	}
@@ -389,71 +389,71 @@ void strassen_mult(struct strassen_iter *iter)
 	iter->Mia_data[0] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_1a = compute_add_sub_op(iter->Mia_data[0], ADD, A11, A22);
 	uint64_t tag_1a = task_1a->tag_id;
-	tag_declare_deps_array(tag_1a, iter->A_deps.ndeps, iter->A_deps.deps);
-	submit_task(task_1a);
+	starpu_tag_declare_deps_array(tag_1a, iter->A_deps.ndeps, iter->A_deps.deps);
+	starpu_submit_task(task_1a);
 
 	/* M1b = (B11 + B22) */
 	iter->Mib_data[0] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_1b = compute_add_sub_op(iter->Mib_data[0], ADD, B11, B22);
 	uint64_t tag_1b = task_1b->tag_id;
-	tag_declare_deps_array(tag_1b, iter->B_deps.ndeps, iter->B_deps.deps);
-	submit_task(task_1b);
+	starpu_tag_declare_deps_array(tag_1b, iter->B_deps.ndeps, iter->B_deps.deps);
+	starpu_submit_task(task_1b);
 
 	/* M2a = (A21 + A22) */
 	iter->Mia_data[1] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_2a = compute_add_sub_op(iter->Mia_data[1], ADD, A21, A22);
 	uint64_t tag_2a = task_2a->tag_id;
-	tag_declare_deps_array(tag_2a, iter->A_deps.ndeps, iter->A_deps.deps);
-	submit_task(task_2a);
+	starpu_tag_declare_deps_array(tag_2a, iter->A_deps.ndeps, iter->A_deps.deps);
+	starpu_submit_task(task_2a);
 
 	/* M3b = (B12 - B22) */
 	iter->Mib_data[2] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_3b = compute_add_sub_op(iter->Mib_data[2], SUB, B12, B22);
 	uint64_t tag_3b = task_3b->tag_id;
-	tag_declare_deps_array(tag_3b, iter->B_deps.ndeps, iter->B_deps.deps);
-	submit_task(task_3b);
+	starpu_tag_declare_deps_array(tag_3b, iter->B_deps.ndeps, iter->B_deps.deps);
+	starpu_submit_task(task_3b);
 	
 	/* M4b = (B21 - B11) */
 	iter->Mib_data[3] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_4b = compute_add_sub_op(iter->Mib_data[3], SUB, B21, B11);
 	uint64_t tag_4b = task_4b->tag_id;
-	tag_declare_deps_array(tag_4b, iter->B_deps.ndeps, iter->B_deps.deps);
-	submit_task(task_4b);
+	starpu_tag_declare_deps_array(tag_4b, iter->B_deps.ndeps, iter->B_deps.deps);
+	starpu_submit_task(task_4b);
 	
 	/* M5a = (A11 + A12) */
 	iter->Mia_data[4] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_5a = compute_add_sub_op(iter->Mia_data[4], ADD, A11, A12);
 	uint64_t tag_5a = task_5a->tag_id;
-	tag_declare_deps_array(tag_5a, iter->A_deps.ndeps, iter->A_deps.deps);
-	submit_task(task_5a);
+	starpu_tag_declare_deps_array(tag_5a, iter->A_deps.ndeps, iter->A_deps.deps);
+	starpu_submit_task(task_5a);
 
 	/* M6a = (A21 - A11) */
 	iter->Mia_data[5] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_6a = compute_add_sub_op(iter->Mia_data[5], SUB, A21, A11);
 	uint64_t tag_6a = task_6a->tag_id;
-	tag_declare_deps_array(tag_6a, iter->A_deps.ndeps, iter->A_deps.deps);
-	submit_task(task_6a);
+	starpu_tag_declare_deps_array(tag_6a, iter->A_deps.ndeps, iter->A_deps.deps);
+	starpu_submit_task(task_6a);
 
 	/* M6b = (B11 + B12) */
 	iter->Mib_data[5] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_6b = compute_add_sub_op(iter->Mib_data[5], SUB, B11, B12);
 	uint64_t tag_6b = task_6b->tag_id;
-	tag_declare_deps_array(tag_6b, iter->B_deps.ndeps, iter->B_deps.deps);
-	submit_task(task_6b);
+	starpu_tag_declare_deps_array(tag_6b, iter->B_deps.ndeps, iter->B_deps.deps);
+	starpu_submit_task(task_6b);
 
 	/* M7a = (A12 - A22) */
 	iter->Mia_data[6] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_7a = compute_add_sub_op(iter->Mia_data[6], SUB, A12, A22);
 	uint64_t tag_7a = task_7a->tag_id;
-	tag_declare_deps_array(tag_7a, iter->A_deps.ndeps, iter->A_deps.deps);
-	submit_task(task_7a);
+	starpu_tag_declare_deps_array(tag_7a, iter->A_deps.ndeps, iter->A_deps.deps);
+	starpu_submit_task(task_7a);
 
 	/* M7b = (B21 + B22) */
 	iter->Mib_data[6] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_7b = compute_add_sub_op(iter->Mib_data[6], ADD, B21, B22);
 	uint64_t tag_7b = task_7b->tag_id;
-	tag_declare_deps_array(tag_7b, iter->B_deps.ndeps, iter->B_deps.deps);
-	submit_task(task_7b);
+	starpu_tag_declare_deps_array(tag_7b, iter->B_deps.ndeps, iter->B_deps.deps);
+	starpu_submit_task(task_7b);
 
 	iter->Mi_data[0] = allocate_tmp_matrix(size, iter->reclevel);
 	iter->Mi_data[1] = allocate_tmp_matrix(size, iter->reclevel);
@@ -593,56 +593,56 @@ void strassen_mult(struct strassen_iter *iter)
 
 	if (iter->reclevel == 1)
 	{
-		tag_declare_deps(tag_c11_a, 1, tag_m1[0]);
-		tag_declare_deps(tag_c11_b, 2, tag_m4[0], tag_c11_a);
-		tag_declare_deps(tag_c11_c, 2, tag_m5[0], tag_c11_b);
-		tag_declare_deps(tag_c11_d, 2, tag_m7[0], tag_c11_c);
+		starpu_tag_declare_deps(tag_c11_a, 1, tag_m1[0]);
+		starpu_tag_declare_deps(tag_c11_b, 2, tag_m4[0], tag_c11_a);
+		starpu_tag_declare_deps(tag_c11_c, 2, tag_m5[0], tag_c11_b);
+		starpu_tag_declare_deps(tag_c11_d, 2, tag_m7[0], tag_c11_c);
 	
-		tag_declare_deps(tag_c12_a, 1, tag_m3[0]);
-		tag_declare_deps(tag_c12_b, 2, tag_m5[0], tag_c12_a);
-		
-		tag_declare_deps(tag_c21_a, 1, tag_m2[0]);
-		tag_declare_deps(tag_c21_b, 2, tag_m4[0], tag_c21_a);
+		starpu_tag_declare_deps(tag_c12_a, 1, tag_m3[0]);
+		starpu_tag_declare_deps(tag_c12_b, 2, tag_m5[0], tag_c12_a);
+
+		starpu_tag_declare_deps(tag_c21_a, 1, tag_m2[0]);
+		starpu_tag_declare_deps(tag_c21_b, 2, tag_m4[0], tag_c21_a);
 	
-		tag_declare_deps(tag_c22_a, 1, tag_m1[0]);
-		tag_declare_deps(tag_c22_b, 2, tag_m2[0], tag_c22_a);
-		tag_declare_deps(tag_c22_c, 2, tag_m3[0], tag_c22_b);
-		tag_declare_deps(tag_c22_d, 2, tag_m6[0], tag_c22_c);
+		starpu_tag_declare_deps(tag_c22_a, 1, tag_m1[0]);
+		starpu_tag_declare_deps(tag_c22_b, 2, tag_m2[0], tag_c22_a);
+		starpu_tag_declare_deps(tag_c22_c, 2, tag_m3[0], tag_c22_b);
+		starpu_tag_declare_deps(tag_c22_d, 2, tag_m6[0], tag_c22_c);
 	}
 	else
 	{
-		tag_declare_deps(tag_c11_a, 4, tag_m1[0], tag_m1[1], tag_m1[2], tag_m1[3]);
-		tag_declare_deps(tag_c11_b, 5, tag_m4[0], tag_m4[1], tag_m4[2], tag_m4[3], tag_c11_a);
-		tag_declare_deps(tag_c11_c, 5, tag_m5[0], tag_m5[1], tag_m5[2], tag_m5[3], tag_c11_b);
-		tag_declare_deps(tag_c11_d, 5, tag_m7[0], tag_m7[1], tag_m7[2], tag_m7[3], tag_c11_c);
+		starpu_tag_declare_deps(tag_c11_a, 4, tag_m1[0], tag_m1[1], tag_m1[2], tag_m1[3]);
+		starpu_tag_declare_deps(tag_c11_b, 5, tag_m4[0], tag_m4[1], tag_m4[2], tag_m4[3], tag_c11_a);
+		starpu_tag_declare_deps(tag_c11_c, 5, tag_m5[0], tag_m5[1], tag_m5[2], tag_m5[3], tag_c11_b);
+		starpu_tag_declare_deps(tag_c11_d, 5, tag_m7[0], tag_m7[1], tag_m7[2], tag_m7[3], tag_c11_c);
 
-		tag_declare_deps(tag_c12_a, 4, tag_m3[0], tag_m3[1], tag_m3[2], tag_m3[3]);
-		tag_declare_deps(tag_c12_b, 5, tag_m5[0], tag_m5[1], tag_m5[2], tag_m5[3], tag_c12_a);
+		starpu_tag_declare_deps(tag_c12_a, 4, tag_m3[0], tag_m3[1], tag_m3[2], tag_m3[3]);
+		starpu_tag_declare_deps(tag_c12_b, 5, tag_m5[0], tag_m5[1], tag_m5[2], tag_m5[3], tag_c12_a);
 
-		tag_declare_deps(tag_c21_a, 4, tag_m2[0], tag_m2[1], tag_m2[2], tag_m2[3]);
-		tag_declare_deps(tag_c21_b, 5, tag_m4[0], tag_m4[1], tag_m4[2], tag_m4[3], tag_c21_a);
+		starpu_tag_declare_deps(tag_c21_a, 4, tag_m2[0], tag_m2[1], tag_m2[2], tag_m2[3]);
+		starpu_tag_declare_deps(tag_c21_b, 5, tag_m4[0], tag_m4[1], tag_m4[2], tag_m4[3], tag_c21_a);
 
-		tag_declare_deps(tag_c22_a, 4, tag_m1[0], tag_m1[1], tag_m1[2], tag_m1[3]);
-		tag_declare_deps(tag_c22_b, 5, tag_m2[0], tag_m2[1], tag_m2[2], tag_m2[3], tag_c22_a);
-		tag_declare_deps(tag_c22_c, 5, tag_m3[0], tag_m3[1], tag_m3[2], tag_m3[3], tag_c22_b);
-		tag_declare_deps(tag_c22_d, 5, tag_m6[0], tag_m6[1], tag_m6[2], tag_m6[3], tag_c22_c);
+		starpu_tag_declare_deps(tag_c22_a, 4, tag_m1[0], tag_m1[1], tag_m1[2], tag_m1[3]);
+		starpu_tag_declare_deps(tag_c22_b, 5, tag_m2[0], tag_m2[1], tag_m2[2], tag_m2[3], tag_c22_a);
+		starpu_tag_declare_deps(tag_c22_c, 5, tag_m3[0], tag_m3[1], tag_m3[2], tag_m3[3], tag_c22_b);
+		starpu_tag_declare_deps(tag_c22_d, 5, tag_m6[0], tag_m6[1], tag_m6[2], tag_m6[3], tag_c22_c);
 	}
 
-	submit_task(task_c11_a);
-	submit_task(task_c11_b);
-	submit_task(task_c11_c);
-	submit_task(task_c11_d);
+	starpu_submit_task(task_c11_a);
+	starpu_submit_task(task_c11_b);
+	starpu_submit_task(task_c11_c);
+	starpu_submit_task(task_c11_d);
 
-	submit_task(task_c12_a);
-	submit_task(task_c12_b);
+	starpu_submit_task(task_c12_a);
+	starpu_submit_task(task_c12_b);
 
-	submit_task(task_c21_a);
-	submit_task(task_c21_b);
+	starpu_submit_task(task_c21_a);
+	starpu_submit_task(task_c21_b);
 
-	submit_task(task_c22_a);
-	submit_task(task_c22_b);
-	submit_task(task_c22_c);
-	submit_task(task_c22_d);
+	starpu_submit_task(task_c22_a);
+	starpu_submit_task(task_c22_b);
+	starpu_submit_task(task_c22_c);
+	starpu_submit_task(task_c22_d);
 
 	iter->C_deps.ndeps = 4;
 	iter->C_deps.deps[0] = tag_c11_d;
@@ -791,19 +791,19 @@ int main(int argc, char **argv)
 
 	strassen_mult(&iter);
 
-	tag_declare_deps_array(10, iter.C_deps.ndeps, iter.C_deps.deps);
+	starpu_tag_declare_deps_array(10, iter.C_deps.ndeps, iter.C_deps.deps);
 
 	fprintf(stderr, "Using %ld MB of memory\n", used_mem/(1024*1024));
 
 	struct starpu_task *task_start = dummy_task(42);
 
 	gettimeofday(&start, NULL);
-	submit_task(task_start);
+	starpu_submit_task(task_start);
 
 	struct starpu_task *task_end = dummy_task(10);
 	
 	task_end->synchronous = 1;
-	submit_task(task_end);
+	starpu_submit_task(task_end);
 
 	gettimeofday(&end, NULL);
 

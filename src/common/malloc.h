@@ -52,7 +52,7 @@ static inline void malloc_pinned_if_possible(float **A, size_t dim)
 
 		task->synchronous = 1;
 	
-		push_res = submit_task(task);
+		push_res = starpu_submit_task(task);
 		STARPU_ASSERT(push_res != -ENODEV);
 
 		free(cl);

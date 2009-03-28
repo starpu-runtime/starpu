@@ -65,8 +65,8 @@ void init_problem_callback(void *arg)
 		printf("DONE ...\n");
 		GET_TICK(end);
 
-//		unpartition_data(sparse_matrix, 0);
-		unpartition_data(vector_out, 0);
+//		starpu_unpartition_data(sparse_matrix, 0);
+		starpu_unpartition_data(vector_out, 0);
 
 		sem_post(&sem);
 	}
@@ -175,7 +175,7 @@ void launch_spmv_codelets(void)
 				if (index != rowptr[row & ~0x3])
 				{
 					/* this is not the first task in the row */
-					tag_declare_deps(taskid, 1, taskid-1);
+					starpu_tag_declare_deps(taskid, 1, taskid-1);
 
 					is_entry_tab[taskid] = 0;
 				}
@@ -200,7 +200,7 @@ void launch_spmv_codelets(void)
 			nchains++;
 		}
 
-		submit_task(&task_tab[task]);
+		starpu_submit_task(&task_tab[task]);
 	}
 
 	printf("end of task submission (there was %d chains for %d tasks : ratio %d tasks per chain) !\n", nchains, totaltasks, totaltasks/nchains);

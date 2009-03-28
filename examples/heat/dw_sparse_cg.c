@@ -90,7 +90,7 @@ void init_cg(struct cg_problem *problem)
 		task2->buffers[1].state = problem->ds_vecr;
 		task2->buffers[1].mode = R;
 	
-	tag_declare_deps(2UL, 1, 1UL);
+	starpu_tag_declare_deps(2UL, 1, 1UL);
 
 	/* delta_new = trans(r) r */
 	struct starpu_task *task3 = create_task(3UL);
@@ -108,12 +108,12 @@ void init_cg(struct cg_problem *problem)
 	task3->callback_arg = problem;
 	
 	/* XXX 3 should only depend on 1 ... */
-	tag_declare_deps(3UL, 1, 2UL);
+	starpu_tag_declare_deps(3UL, 1, 2UL);
 
 	/* launch the computation now */
-	submit_task(task1);
-	submit_task(task2);
-	submit_task(task3);
+	starpu_submit_task(task1);
+	starpu_submit_task(task2);
+	starpu_submit_task(task3);
 }
 
 /*
@@ -153,7 +153,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 		task5->buffers[1].state = problem->ds_vecq;
 		task5->buffers[1].mode = R;
 
-	tag_declare_deps(maskiter | 5UL, 1, maskiter | 4UL);
+	starpu_tag_declare_deps(maskiter | 5UL, 1, maskiter | 4UL);
 
 	/* x = x + alpha d */
 	struct starpu_task *task6 = create_task(maskiter | 6UL);
@@ -169,7 +169,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 		task6->buffers[1].state = problem->ds_vecd;
 		task6->buffers[1].mode = R;
 
-	tag_declare_deps(maskiter | 6UL, 1, maskiter | 5UL);
+	starpu_tag_declare_deps(maskiter | 6UL, 1, maskiter | 5UL);
 
 	/* r = r - alpha q */
 	struct starpu_task *task7 = create_task(maskiter | 7UL);
@@ -185,7 +185,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 		task7->buffers[1].state = problem->ds_vecq;
 		task7->buffers[1].mode = R;
 
-	tag_declare_deps(maskiter | 7UL, 1, maskiter | 6UL);
+	starpu_tag_declare_deps(maskiter | 7UL, 1, maskiter | 6UL);
 
 	/* update delta_* and compute beta */
 	struct starpu_task *task8 = create_task(maskiter | 8UL);
@@ -199,7 +199,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 		task8->buffers[0].state = problem->ds_vecr;
 		task8->buffers[0].mode = R;
 
-	tag_declare_deps(maskiter | 8UL, 1, maskiter | 7UL);
+	starpu_tag_declare_deps(maskiter | 8UL, 1, maskiter | 7UL);
 
 	/* d = r + beta d */
 	struct starpu_task *task9 = create_task(maskiter | 9UL);
@@ -215,18 +215,18 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 		task9->buffers[1].state = problem->ds_vecr;
 		task9->buffers[1].mode = R;
 
-	tag_declare_deps(maskiter | 9UL, 1, maskiter | 8UL);
+	starpu_tag_declare_deps(maskiter | 9UL, 1, maskiter | 8UL);
 
 	task9->callback_func = iteration_cg;
 	task9->callback_arg = problem;
 	
 	/* launch the computation now */
-	submit_task(task4);
-	submit_task(task5);
-	submit_task(task6);
-	submit_task(task7);
-	submit_task(task8);
-	submit_task(task9);
+	starpu_submit_task(task4);
+	starpu_submit_task(task5);
+	starpu_submit_task(task6);
+	starpu_submit_task(task7);
+	starpu_submit_task(task8);
+	starpu_submit_task(task9);
 }
 
 void iteration_cg(void *problem)

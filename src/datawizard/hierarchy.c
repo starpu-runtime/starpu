@@ -4,7 +4,7 @@
  * Stop monitoring a data
  */
 /* TODO : move in a more appropriate file */
-void delete_data(data_state *state)
+void starpu_delete_data(data_state *state)
 {
 	unsigned node;
 
@@ -204,7 +204,7 @@ void partition_data(data_state *initial_data, filter *f)
 	release_mutex(&initial_data->header_lock);
 }
 
-void unpartition_data(data_state *root_data, uint32_t gathering_node)
+void starpu_unpartition_data(data_state *root_data, uint32_t gathering_node)
 {
 	int child;
 	unsigned node;
@@ -212,7 +212,7 @@ void unpartition_data(data_state *root_data, uint32_t gathering_node)
 	take_mutex(&root_data->header_lock);
 
 #ifdef NO_DATA_RW_LOCK
-#warning unpartition_data is not supported with NO_DATA_RW_LOCK yet ...
+#warning starpu_unpartition_data is not supported with NO_DATA_RW_LOCK yet ...
 #endif
 
 	/* first take all the children lock (in order !) */
@@ -220,7 +220,7 @@ void unpartition_data(data_state *root_data, uint32_t gathering_node)
 	{
 		/* make sure the intermediate children is unpartitionned as well */
 		if (root_data->children[child].nchildren > 0)
-			unpartition_data(&root_data->children[child], gathering_node);
+			starpu_unpartition_data(&root_data->children[child], gathering_node);
 
 		int ret;
 		ret = _fetch_data(&root_data->children[child], gathering_node, 1, 0);

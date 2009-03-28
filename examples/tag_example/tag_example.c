@@ -55,7 +55,7 @@ static void tag_cleanup_grid(unsigned ni, unsigned nj, unsigned iter)
 	for (j = 0; j < nj; j++)
 	for (i = 0; i < ni; i++)
 	{
-		tag_remove(TAG(i,j,iter));
+		starpu_tag_remove(TAG(i,j,iter));
 	}
 
 
@@ -86,7 +86,7 @@ static void create_task_grid(unsigned iter)
 		/* express deps : (i,j) depends on (i-1, j-1) & (i-1, j+1) */		
 		express_deps(i, j, iter);
 		
-		submit_task(task);
+		starpu_submit_task(task);
 	}
 
 	/* create entry tasks */
@@ -102,7 +102,7 @@ static void create_task_grid(unsigned iter)
 		/* this is an entry task */
 		task->tag_id = TAG(0, j, iter);
 
-		submit_task(task);
+		starpu_submit_task(task);
 	}
 
 }
@@ -143,12 +143,12 @@ static void express_deps(unsigned i, unsigned j, unsigned iter)
 		if (j < nj - 1)
 		{
 			/* (i,j+1) exists */
-			tag_declare_deps(TAG(i,j,iter), 2, TAG(i-1,j-1,iter), TAG(i-1,j+1,iter));
+			starpu_tag_declare_deps(TAG(i,j,iter), 2, TAG(i-1,j-1,iter), TAG(i-1,j+1,iter));
 		}
 		else 
 		{
 			/* (i,j+1) does not exist */
-			tag_declare_deps(TAG(i,j,iter), 1, TAG(i-1,j-1,iter));
+			starpu_tag_declare_deps(TAG(i,j,iter), 1, TAG(i-1,j-1,iter));
 		}
 	}
 	else {
@@ -156,7 +156,7 @@ static void express_deps(unsigned i, unsigned j, unsigned iter)
 		if (j < nj - 1)
 		{
 			/* (i,j+1) exists */
-			tag_declare_deps(TAG(i,j,iter), 1, TAG(i-1,j+1,iter));
+			starpu_tag_declare_deps(TAG(i,j,iter), 1, TAG(i-1,j+1,iter));
 		}
 		else 
 		{

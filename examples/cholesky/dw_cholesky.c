@@ -54,7 +54,7 @@ static struct starpu_task * create_task_11(data_handle dataA, unsigned k, unsign
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
+		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
 	}
 
 	/* the very last task must be notified */
@@ -95,13 +95,13 @@ static void create_task_21(data_handle dataA, unsigned k, unsigned j)
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		tag_declare_deps(TAG21(k, j), 2, TAG11(k), TAG22(k-1, k, j));
+		starpu_tag_declare_deps(TAG21(k, j), 2, TAG11(k), TAG22(k-1, k, j));
 	}
 	else {
-		tag_declare_deps(TAG21(k, j), 1, TAG11(k));
+		starpu_tag_declare_deps(TAG21(k, j), 1, TAG11(k));
 	}
 
-	submit_task(task);
+	starpu_submit_task(task);
 }
 
 static starpu_codelet cl22 =
@@ -137,13 +137,13 @@ static void create_task_22(data_handle dataA, unsigned k, unsigned i, unsigned j
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), TAG21(k, i), TAG21(k, j));
+		starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), TAG21(k, i), TAG21(k, j));
 	}
 	else {
-		tag_declare_deps(TAG22(k, i, j), 2, TAG21(k, i), TAG21(k, j));
+		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG21(k, i), TAG21(k, j));
 	}
 
-	submit_task(task);
+	starpu_submit_task(task);
 }
 
 
@@ -176,7 +176,7 @@ static void _dw_cholesky(data_handle dataA, unsigned nblocks)
 			entry_task = task;
 		}
 		else {
-			submit_task(task);
+			starpu_submit_task(task);
 		}
 		
 		for (j = k+1; j<nblocks; j++)
@@ -193,7 +193,7 @@ static void _dw_cholesky(data_handle dataA, unsigned nblocks)
 
 	/* schedule the codelet */
 	gettimeofday(&start, NULL);
-	submit_task(entry_task);
+	starpu_submit_task(entry_task);
 
 	/* stall the application until the end of computations */
 	sem_wait(&sem);
@@ -245,7 +245,7 @@ void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	_dw_cholesky(dataA, nblocks);
 
-	unpartition_data(dataA, 0);
+	starpu_unpartition_data(dataA, 0);
 
 	starpu_shutdown();
 }

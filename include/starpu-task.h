@@ -117,12 +117,12 @@ void starpu_load_cuda_function(int devid, struct cuda_function_s *function);
 
 /* handle task dependencies: it is possible to associate a task with a unique
  * "tag" and to express dependencies among tasks by the means of those tags */
-void tag_remove(tag_t id);
-void tag_declare_deps_array(tag_t id, unsigned ndeps, tag_t *array);
-void tag_declare_deps(tag_t id, unsigned ndeps, ...);
+void starpu_tag_remove(tag_t id);
+void starpu_tag_declare_deps_array(tag_t id, unsigned ndeps, tag_t *array);
+void starpu_tag_declare_deps(tag_t id, unsigned ndeps, ...);
 
 struct starpu_task *starpu_task_create(void);
-int submit_task(struct starpu_task *task);
+int starpu_submit_task(struct starpu_task *task);
 
 
 #endif // __STARPU_TASK_H__

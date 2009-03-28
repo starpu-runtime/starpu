@@ -10,7 +10,7 @@ typedef struct filter_t {
 } filter;
 
 void partition_data(struct data_state_t *initial_data, filter *f); 
-void unpartition_data(struct data_state_t *root_data, uint32_t gathering_node);
+void starpu_unpartition_data(struct data_state_t *root_data, uint32_t gathering_node);
 void map_filter(struct data_state_t *root_data, filter *f);
 
 /* unsigned list */

@@ -274,7 +274,7 @@ static void cleanup_problem(void)
 		for (x = 0; x < nslicesx; x++)
 		{
 	//		free(C[y][x]);
-			tag_remove(TAG(nslicesz - 1, y, x, niter - 1));
+			starpu_tag_remove(TAG(nslicesz - 1, y, x, niter - 1));
 		}
 	}
 
@@ -359,12 +359,12 @@ static void callback_func_2(void *arg)
 	/* TAG(nslicesz - 1, y, x, iter) remains ... */
 	for (z = 0; z < nslicesz - 1; z++)
 	{
-		tag_remove(TAG(z, y, x, iter));
+		starpu_tag_remove(TAG(z, y, x, iter));
 	}
 
 	if (iter > 0)
 	{
-		tag_remove(TAG(nslicesz - 1, y, x, iter-1));
+		starpu_tag_remove(TAG(nslicesz - 1, y, x, iter-1));
 	}
 	
 	if (iter == niter - 1) {
@@ -386,7 +386,7 @@ static void submit_new_iter(unsigned x, unsigned y, unsigned iter)
 		task = construct_task(x, y, z, iter);
 		
 		if (z != 0) {
-			tag_declare_deps(TAG(z, y, x, iter), 1, TAG(z-1, y, x, iter));
+			starpu_tag_declare_deps(TAG(z, y, x, iter), 1, TAG(z-1, y, x, iter));
 		}
 
 		if (z == nslicesz - 1) {
@@ -399,7 +399,7 @@ static void submit_new_iter(unsigned x, unsigned y, unsigned iter)
 			task->callback_arg = cb2;
 		}
 
-		submit_task(task);
+		starpu_submit_task(task);
 	}
 }
 

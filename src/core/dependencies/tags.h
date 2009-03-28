@@ -47,7 +47,7 @@ typedef struct _cg_t {
 } cg_t;
 
 void notify_cg(cg_t *cg);
-void tag_declare_deps(tag_t id, unsigned ndeps, ...);
+void starpu_tag_declare_deps(tag_t id, unsigned ndeps, ...);
 
 cg_t *create_cg(unsigned ntags, struct tag_s *tag);
 struct tag_s *get_tag_struct(tag_t id);

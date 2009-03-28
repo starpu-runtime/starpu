@@ -48,7 +48,7 @@ static void tag_cleanup_grid(unsigned ni, unsigned iter)
 
 	for (i = 0; i < ni; i++)
 	{
-		tag_remove(TAG(i,iter));
+		starpu_tag_remove(TAG(i,iter));
 	}
 
 
@@ -75,9 +75,9 @@ static void create_task_grid(unsigned iter)
 		task->tag_id = TAG(i, iter);
 
 		if (i != 0)
-			tag_declare_deps(TAG(i,iter), 1, TAG(i-1,iter));
+			starpu_tag_declare_deps(TAG(i,iter), 1, TAG(i-1,iter));
 
-		submit_task(task);
+		starpu_submit_task(task);
 	}
 }
 

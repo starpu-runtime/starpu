@@ -19,8 +19,8 @@ typedef struct buffer_descr_t {
 	access_mode mode;
 } buffer_descr;
 
-void unpartition_data(struct data_state_t *root_data, uint32_t gathering_node);
-void delete_data(struct data_state_t *state);
+void starpu_unpartition_data(struct data_state_t *root_data, uint32_t gathering_node);
+void starpu_delete_data(struct data_state_t *state);
 
 void advise_if_data_is_important(struct data_state_t *state, unsigned is_important);
 

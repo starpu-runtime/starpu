@@ -229,8 +229,8 @@ void init_problem_callback(void *arg)
 		printf("DONE ...\n");
 		GET_TICK(end);
 
-		unpartition_data(sparse_matrix, 0);
-		unpartition_data(vector_out, 0);
+		starpu_unpartition_data(sparse_matrix, 0);
+		starpu_unpartition_data(vector_out, 0);
 
 		sem_post(&sem);
 	}
@@ -251,8 +251,8 @@ void call_spmv_codelet_filters(void)
 	vector_f.filter_func = block_filter_func_vector;
 	vector_f.filter_arg  = nblocks;
 
-	partition_data(sparse_matrix, &csr_f);
-	partition_data(vector_out, &vector_f);
+	starpu_partition_data(sparse_matrix, &csr_f);
+	starpu_partition_data(vector_out, &vector_f);
 
 	cl->where = CORE|CUDA;
 	cl->core_func =  core_spmv;
@@ -279,7 +279,7 @@ void call_spmv_codelet_filters(void)
 		task->buffers[2].state = get_sub_data(vector_out, 1, part);
 		task->buffers[2].mode = W;
 	
-		submit_task(task);
+		starpu_submit_task(task);
 	}
 }
 

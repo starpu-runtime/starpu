@@ -359,7 +359,7 @@ static void construct_task(unsigned x, unsigned y, unsigned z, unsigned iter, st
 	posp->z = z;
 	posp->iter = iter;
 
-	submit_task(task);
+	starpu_submit_task(task);
 }
 
 

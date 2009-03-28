@@ -137,7 +137,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		task->use_tag = 0;
 		task->synchronous = 0;
 
-		submit_task(task);
+		starpu_submit_task(task);
 	}
 
 	sem_wait(&sem);

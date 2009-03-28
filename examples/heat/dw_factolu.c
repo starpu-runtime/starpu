@@ -95,7 +95,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 
 		/* schedule the codelet */
 		task->priority = MAX_PRIO;
-		submit_task(task);
+		starpu_submit_task(task);
 	}
 
 	/* 11k+1 + 22k,k+1,j => 21 k+1,j */
@@ -130,7 +130,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 						get_sub_data(args->dataA, 2, u21a->i, u21a->k);
 					task21->buffers[1].mode = RW;
 		
-					submit_task(task21);
+					starpu_submit_task(task21);
 				}
 		}
 	}
@@ -164,7 +164,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					task12->buffers[1].state = get_sub_data(args->dataA, 2, u12a->k, u12a->i); 
 					task12->buffers[1].mode = RW;
 					
-					submit_task(task12);
+					starpu_submit_task(task12);
 				}
 		}
 	}
@@ -225,7 +225,7 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				if (slicey == i+1) 
 					task22->priority = MAX_PRIO;
 
-				submit_task(task22);
+				starpu_submit_task(task22);
 			}
 		}
 	}
@@ -285,7 +285,7 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				if (slicex == i+1)
 					task22->priority = MAX_PRIO;
 
-				submit_task(task22);
+				starpu_submit_task(task22);
 			}
 		}
 	}
@@ -350,7 +350,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					if (slice == i +1) 
 						task12->priority = MAX_PRIO;
 
-					submit_task(task12);
+					starpu_submit_task(task12);
 				}
 			}
 
@@ -388,7 +388,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					if (slice == i +1)
 						task21->priority = MAX_PRIO;
 
-					submit_task(task21);
+					starpu_submit_task(task21);
 				}
 			}
 		}
@@ -472,8 +472,8 @@ void dw_callback_codelet_update_u11(void *argcb)
 				get_sub_data(args->dataA, 2, u21a->i, u21a->k);
 			task21->buffers[1].mode = RW;
 		
-			submit_task(task12);
-			submit_task(task21);
+			starpu_submit_task(task12);
+			starpu_submit_task(task21);
 		}
 	}
 }
@@ -506,7 +506,7 @@ void dw_callback_codelet_update_u22(void *argcb)
 		u11arg->sem = args->sem;
 
 		/* schedule the codelet */
-		submit_task(task);
+		starpu_submit_task(task);
 	}
 
 	free(args);
@@ -558,7 +558,7 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 				task22->buffers[2].mode = RW;
 				
 				/* schedule that codelet */
-				submit_task(task22);
+				starpu_submit_task(task22);
 			}
 		}
 	}
@@ -596,7 +596,7 @@ void dw_codelet_facto(data_handle dataA, unsigned nblocks)
 		task->buffers[0].mode = RW;
 
 	/* schedule the codelet */
-	submit_task(task);
+	starpu_submit_task(task);
 
 	/* stall the application until the end of computations */
 	sem_wait(&sem);
@@ -649,7 +649,7 @@ void dw_codelet_facto_v2(data_handle dataA, unsigned nblocks)
 		task->buffers[0].mode = RW;
 
 	/* schedule the codelet */
-	submit_task(task);
+	starpu_submit_task(task);
 
 	/* stall the application until the end of computations */
 	sem_wait(&sem);
@@ -724,9 +724,9 @@ void dw_factoLU(float *matA, unsigned size,
 	}
 
 	/* gather all the data */
-	unpartition_data(dataA, 0);
+	starpu_unpartition_data(dataA, 0);
 
-	delete_data(dataA);
+	starpu_delete_data(dataA);
 
 #ifdef CHECK_RESULTS
 	compare_A_LU(Asaved, matA, size, ld);

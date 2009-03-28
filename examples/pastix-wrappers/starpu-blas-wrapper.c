@@ -407,8 +407,8 @@ int update_work_blocks(unsigned col, int dimi, int dimj, int dima, int stride)
 	notify_data_modification(get_sub_data(&work_block_2, 1, 1), 0);
 	notify_data_modification(&cblktab[col], 0);
 
-	unpartition_data(&work_block_1, 0);
-	unpartition_data(&work_block_2, 0);
+	starpu_unpartition_data(&work_block_1, 0);
+	starpu_unpartition_data(&work_block_2, 0);
 
 	filter f1, f2;
 	struct divide_vector_in_blas_filter_args args1, args2;
@@ -619,12 +619,12 @@ void STARPU_SGEMM (const char *transa, const char *transb, const int m,
 	sem_destroy(&sem);
 
 	/* make sure data are in memory again */
-	unpartition_data(&A_state, 0);
-	unpartition_data(&B_state, 0);
-	unpartition_data(&C_state, 0);
-	//delete_data(&A_state);
-	//delete_data(&B_state);
-	//delete_data(&C_state);
+	starpu_unpartition_data(&A_state, 0);
+	starpu_unpartition_data(&B_state, 0);
+	starpu_unpartition_data(&C_state, 0);
+	//starpu_delete_data(&A_state);
+	//starpu_delete_data(&B_state);
+	//starpu_delete_data(&C_state);
 	
 //	fprintf(stderr, "SGEMM done\n");
 }

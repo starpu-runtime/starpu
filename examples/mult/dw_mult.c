@@ -28,9 +28,9 @@ void terminate(void)
 {
 
 	fprintf(stderr, "unpartition !!\n");
-	unpartition_data(C_state, 0);
+	starpu_unpartition_data(C_state, 0);
 
-	delete_data(C_state);
+	starpu_delete_data(C_state);
 
 	gettimeofday(&end, NULL);
 
@@ -292,7 +292,7 @@ static void launch_codelets(void)
 				task->cl->model = &sgemm_model;
 			}
 			
-			submit_task(task);
+			starpu_submit_task(task);
 
 		}
 	}

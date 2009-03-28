@@ -49,7 +49,7 @@ static struct tag_s *tag_init(tag_t id)
 	return tag;
 }
 
-void tag_remove(tag_t id)
+void starpu_tag_remove(tag_t id)
 {
 	struct tag_s *tag;
 
@@ -171,7 +171,7 @@ void tag_declare(tag_t id, struct job_s *job)
 	job->tag = tag;
 }
 
-void tag_declare_deps_array(tag_t id, unsigned ndeps, tag_t *array)
+void starpu_tag_declare_deps_array(tag_t id, unsigned ndeps, tag_t *array)
 {
 	unsigned i;
 
@@ -194,7 +194,7 @@ void tag_declare_deps_array(tag_t id, unsigned ndeps, tag_t *array)
 	}
 }
 
-void tag_declare_deps(tag_t id, unsigned ndeps, ...)
+void starpu_tag_declare_deps(tag_t id, unsigned ndeps, ...)
 {
 	unsigned i;
 	

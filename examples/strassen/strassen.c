@@ -22,7 +22,7 @@ static data_handle create_tmp_matrix(data_handle M)
 
 static void free_tmp_matrix(data_handle matrix)
 {
-	delete_data(matrix);
+	starpu_delete_data(matrix);
 	free(matrix);
 }
 
@@ -67,9 +67,9 @@ static void partition_matrices(strassen_iter_state_t *iter)
 static void unpartition_matrices(strassen_iter_state_t *iter)
 {
 	/* TODO there is no  need to actually gather those results ... */
-	unpartition_data(iter->A, 0);
-	unpartition_data(iter->B, 0);
-	unpartition_data(iter->C, 0);
+	starpu_unpartition_data(iter->A, 0);
+	starpu_unpartition_data(iter->B, 0);
+	starpu_unpartition_data(iter->C, 0);
 }
 
 static starpu_codelet cl_add = {
@@ -172,7 +172,7 @@ static void compute_add_sub_op(data_handle A1, operation op,
 			STARPU_ASSERT(0);
 	}
 
-	submit_task(task);
+	starpu_submit_task(task);
 }
 
 /* Cij +=/-= Ek is done */

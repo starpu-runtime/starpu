@@ -89,7 +89,7 @@ static void block_if_sync_task(job_t j)
 }
 
 /* application should submit new tasks to StarPU through this function */
-int submit_task(struct starpu_task *task)
+int starpu_submit_task(struct starpu_task *task)
 {
 	int ret;
 	STARPU_ASSERT(task);
@@ -143,5 +143,5 @@ int submit_sync_task(struct starpu_task *task)
 {
 	task->synchronous = 1;
 
-	return submit_task(task);
+	return starpu_submit_task(task);
 }
