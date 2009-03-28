@@ -72,7 +72,7 @@ struct starpu_task {
 	int priority; /* MAX_PRIO = most important 
         		: MIN_PRIO = least important */
 
-	/* this is private the StarPU, do not modify */
+	/* this is private to StarPU, do not modify */
 	void *starpu_private;
 };
 
@@ -107,12 +107,12 @@ typedef struct cuda_codelet_s {
 	size_t stack_size;
 } cuda_codelet_t;
 
-void init_cuda_module(struct cuda_module_s *module, char *path);
-void load_cuda_module(int devid, struct cuda_module_s *module);
-void init_cuda_function(struct cuda_function_s *func,
+void starpu_init_cuda_module(struct cuda_module_s *module, char *path);
+void starpu_load_cuda_module(int devid, struct cuda_module_s *module);
+void starpu_init_cuda_function(struct cuda_function_s *func,
                         struct cuda_module_s *module,
                         char *symbol);
-void load_cuda_function(int devid, struct cuda_function_s *function);
+void starpu_load_cuda_function(int devid, struct cuda_function_s *function);
 #endif // USE_CUDA
 
 /* handle task dependencies: it is possible to associate a task with a unique

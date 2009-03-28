@@ -27,8 +27,8 @@ void initialize_cuda(void)
 		"%s/examples/cuda/spmv_cuda.cubin", STARPUDIR);
 	char *function_symbol = "spmv_kernel_3";
 
-	init_cuda_module(&cuda_module, module_path);
-	init_cuda_function(&cuda_function, &cuda_module, function_symbol);
+	starpu_init_cuda_module(&cuda_module, module_path);
+	starpu_init_cuda_function(&cuda_function, &cuda_module, function_symbol);
 
 	cuda_spmv.func = &cuda_function;
 	cuda_spmv.stack = NULL;

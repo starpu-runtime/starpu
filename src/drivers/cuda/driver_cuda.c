@@ -12,7 +12,7 @@ CUresult status;
 
 extern char *execpath;
 
-void init_cuda_module(struct cuda_module_s *module, char *path)
+void starpu_init_cuda_module(struct cuda_module_s *module, char *path)
 {
 	unsigned i;
 	for (i = 0; i < MAXCUDADEVS; i++)
@@ -23,7 +23,7 @@ void init_cuda_module(struct cuda_module_s *module, char *path)
 	module->module_path = path;
 }
 
-void load_cuda_module(int devid, struct cuda_module_s *module)
+void starpu_load_cuda_module(int devid, struct cuda_module_s *module)
 {
 	CUresult res;
 	if (!module->is_loaded[devid])
@@ -39,7 +39,7 @@ void load_cuda_module(int devid, struct cuda_module_s *module)
 	}
 }
 
-void init_cuda_function(struct cuda_function_s *func, 
+void starpu_init_cuda_function(struct cuda_function_s *func, 
 			struct cuda_module_s *module,
 			char *symbol)
 {
@@ -116,12 +116,12 @@ void set_function_args(cuda_codelet_t *args,
 	}
 }
 
-void load_cuda_function(int devid, struct cuda_function_s *function)
+void starpu_load_cuda_function(int devid, struct cuda_function_s *function)
 {
 	CUresult res;
 
 	/* load the module on the device if it is not already the case */
-	load_cuda_module(devid, function->module);
+	starpu_load_cuda_module(devid, function->module);
 
 	/* load the function on the device if it is not present yet */
 	res = cuModuleGetFunction( &function->function, 
@@ -227,7 +227,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 		cuda_codelet_t *args; 
 		args = cl->cuda_func;
 
-		load_cuda_function(devid, args->func);
+		starpu_load_cuda_function(devid, args->func);
 
 		status = cuFuncSetBlockShape(args->func->function,
 					args->blockx, 
