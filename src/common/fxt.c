@@ -4,7 +4,7 @@
 
 static char PROF_FILE_USER[128];
 static int fxt_started = 0;
-fxt_t fut;
+static fxt_t fut;
 
 void profile_stop(void)
 {
