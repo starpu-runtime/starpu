@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=
+libdir=@prefix@@libdir@
+includedir=@prefix@@includedir@
+
+Name: starpu
+Description: offers support for heterogeneous multicore architecture
+Version: @PACKAGE_VERSION@
+Requires:
+Libs: -L@prefix@@libdir@ -lstarpu
+Cflags: -I@prefix@@includedir@

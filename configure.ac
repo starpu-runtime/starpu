@@ -391,4 +391,5 @@ AC_OUTPUT([
 	examples/incrementer/Makefile
 	examples/spmv/Makefile
 	tools/Makefile
+	libstarpu.pc
 ])
