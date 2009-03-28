@@ -21,7 +21,7 @@ size_t job_get_data_size(job_t j)
 }
 
 /* create an internal job_t structure to encapsulate the task */
-job_t job_create(struct starpu_task *task)
+job_t __attribute__((malloc)) job_create(struct starpu_task *task)
 {
 	job_t job;
 
@@ -42,7 +42,7 @@ job_t job_create(struct starpu_task *task)
 	return job;
 }
 
-struct starpu_task *starpu_task_create(void)
+struct starpu_task * __attribute__((malloc)) starpu_task_create(void)
 {
 	struct starpu_task *task;
 
