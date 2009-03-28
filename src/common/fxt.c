@@ -4,7 +4,6 @@
 
 static char PROF_FILE_USER[128];
 static int fxt_started = 0;
-static fxt_t fut;
 
 void profile_stop(void)
 {
@@ -40,10 +39,6 @@ void start_fxt_profiling(void)
 		STARPU_ASSERT(0);
 	}
 
-	//fxt_register_thread(-1);
-
-	fut_get_mysymbols(fut);
-	
 	fut_keychange(FUT_ENABLE, FUT_KEYMASKALL, threadid);
 
 	return;
