@@ -119,7 +119,6 @@ typedef struct data_state_t {
 
 void display_msi_stats(void);
 
-void display_state(data_state *state);
 __attribute__((warn_unused_result))
 int fetch_data(data_state *state, access_mode mode);
 //void release_data(data_state *state, uint32_t write_through_mask);

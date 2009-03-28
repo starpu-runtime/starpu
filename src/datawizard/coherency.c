@@ -1,31 +1,8 @@
+#include <common/config.h>
 #include <datawizard/coherency.h>
 #include <datawizard/copy-driver.h>
 #include <datawizard/write_back.h>
 #include <core/dependencies/data-concurrency.h>
-
-void display_state(data_state *state)
-{
-	uint32_t node;
-
-	printf("******************************************\n");
-	for (node = 0; node < MAXNODES; node++)
-	{
-		switch(state->per_node[node].state) {
-			case INVALID:
-				printf("\t%d\tINVALID\n", node);
-				break;
-			case OWNER:
-				printf("\t%d\tOWNER\n", node);
-				break;
-			case SHARED:
-				printf("\t%d\tSHARED\n", node);
-				break;
-		}
-	}
-
-	printf("******************************************\n");
-
-}
 
 /* this function will actually copy a valid data into the requesting node */
 static int __attribute__((warn_unused_result)) copy_data_to_node(data_state *state, uint32_t requesting_node, 
