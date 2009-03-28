@@ -86,7 +86,7 @@ static void map_filter(data_state *root_data, filter *f)
 	if (root_data->nchildren == 0) 
 	{
 		/* this is a leaf */
-		partition_data(root_data, f);
+		starpu_partition_data(root_data, f);
 	}
 	else {
 		/* try to apply the filter recursively */
@@ -145,7 +145,7 @@ data_state *get_sub_data(data_state *root_data, unsigned depth, ... )
  * For now, we assume that partitionned_data is already properly allocated;
  * at least by the filter function !
  */
-void partition_data(data_state *initial_data, filter *f)
+void starpu_partition_data(data_state *initial_data, filter *f)
 {
 	int nparts;
 	int i;

@@ -224,8 +224,8 @@ static void partition_mult_data(void)
 	f2.filter_func = block_filter_func;
 	f2.filter_arg = nslicesy;
 		
-	partition_data(B_state, &f);
-	partition_data(A_state, &f2);
+	starpu_partition_data(B_state, &f);
+	starpu_partition_data(A_state, &f2);
 
 	starpu_map_filters(C_state, 2, &f, &f2);
 }

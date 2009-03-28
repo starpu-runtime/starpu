@@ -87,10 +87,10 @@ void call_filters(void)
 	vector_out_f.filter_func = block_filter_func_vector;
 	vector_out_f.filter_arg  = size/r;
 
-	partition_data(sparse_matrix, &bcsr_f);
+	starpu_partition_data(sparse_matrix, &bcsr_f);
 
-	partition_data(vector_in, &vector_in_f);
-	partition_data(vector_out, &vector_out_f);
+	starpu_partition_data(vector_in, &vector_in_f);
+	starpu_partition_data(vector_out, &vector_out_f);
 }
 
 #define NSPMV	32

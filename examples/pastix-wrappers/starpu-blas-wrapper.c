@@ -199,14 +199,14 @@ void allocate_maxbloktab_on_cublas(data_interface_t *descr __attribute__((unused
 		args1.stride = 1;
 
 	f1.filter_arg_ptr = &args1;
-	partition_data(&work_block_1, &f1);
+	starpu_partition_data(&work_block_1, &f1);
 
 	f2.filter_func = divide_vector_in_blas_filter;
 		args2.n1 = 0;
 		args2.n2 = 2;
 		args2.stride = 1;
 	f2.filter_arg_ptr = &args2;
-	partition_data(&work_block_2, &f2);
+	starpu_partition_data(&work_block_2, &f2);
 }
 
 void STARPU_DECLARE_WORK_BLOCKS(float *maxbloktab1, float *maxbloktab2, unsigned solv_coefmax)
@@ -419,14 +419,14 @@ int update_work_blocks(unsigned col, int dimi, int dimj, int dima, int stride)
 		args1.stride = (stride - dima);
 
 	f1.filter_arg_ptr = &args1;
-	partition_data(&work_block_1, &f1);
+	starpu_partition_data(&work_block_1, &f1);
 
 	f2.filter_func = divide_vector_in_blas_filter;
 		args2.n1 = 0;
 		args2.n2 = dimi*dimj;
 		args2.stride = dimi;
 	f2.filter_arg_ptr = &args2;
-	partition_data(&work_block_2, &f2);
+	starpu_partition_data(&work_block_2, &f2);
 
 	return (args1.n1!=0)?3:2;
 }

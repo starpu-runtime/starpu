@@ -9,7 +9,7 @@ typedef struct filter_t {
 	void *filter_arg_ptr;
 } filter;
 
-void partition_data(struct data_state_t *initial_data, filter *f); 
+void starpu_partition_data(struct data_state_t *initial_data, filter *f); 
 void starpu_unpartition_data(struct data_state_t *root_data, uint32_t gathering_node);
 
 /* unsigned list */
