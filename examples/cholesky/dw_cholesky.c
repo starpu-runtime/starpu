@@ -241,7 +241,7 @@ void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 		f2.filter_func = block_filter_func;
 		f2.filter_arg = nblocks;
 
-	map_filters(dataA, 2, &f, &f2);
+	starpu_map_filters(dataA, 2, &f, &f2);
 
 	_dw_cholesky(dataA, nblocks);
 

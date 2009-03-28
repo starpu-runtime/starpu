@@ -80,7 +80,7 @@ void monitor_new_data(data_state *state, uint32_t home_node, uint32_t wb_mask)
 /*
  * This function applies a filter on all the elements of a partition
  */
-void map_filter(data_state *root_data, filter *f)
+static void map_filter(data_state *root_data, filter *f)
 {
 	/* we need to apply the filter on all leaf of the tree */
 	if (root_data->nchildren == 0) 
@@ -98,7 +98,7 @@ void map_filter(data_state *root_data, filter *f)
 	}
 }
 
-void map_filters(data_state *root_data, unsigned nfilters, ...)
+void starpu_map_filters(data_state *root_data, unsigned nfilters, ...)
 {
 	unsigned i;
 	va_list pa;

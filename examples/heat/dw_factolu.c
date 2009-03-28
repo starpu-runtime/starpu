@@ -711,7 +711,7 @@ void dw_factoLU(float *matA, unsigned size,
 		f2.filter_func = block_filter_func;
 		f2.filter_arg = nblocks;
 
-	map_filters(dataA, 2, &f, &f2);
+	starpu_map_filters(dataA, 2, &f, &f2);
 
 	switch (version) {
 		case 1:

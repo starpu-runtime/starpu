@@ -227,7 +227,7 @@ static void partition_mult_data(void)
 	partition_data(B_state, &f);
 	partition_data(A_state, &f2);
 
-	map_filters(C_state, 2, &f, &f2);
+	starpu_map_filters(C_state, 2, &f, &f2);
 }
 
 static void launch_codelets(void)

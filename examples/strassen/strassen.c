@@ -42,9 +42,9 @@ static void partition_matrices(strassen_iter_state_t *iter)
 	f2.filter_func = vertical_block_filter_func;
 	f2.filter_arg = 2;
 
-	map_filters(A, 2, &f, &f2);
-	map_filters(B, 2, &f, &f2);
-	map_filters(C, 2, &f, &f2);
+	starpu_map_filters(A, 2, &f, &f2);
+	starpu_map_filters(B, 2, &f, &f2);
+	starpu_map_filters(C, 2, &f, &f2);
 
 	iter->A11 = get_sub_data(A, 2, 0, 0);
 	iter->A12 = get_sub_data(A, 2, 1, 0);

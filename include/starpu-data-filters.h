@@ -11,13 +11,12 @@ typedef struct filter_t {
 
 void partition_data(struct data_state_t *initial_data, filter *f); 
 void starpu_unpartition_data(struct data_state_t *root_data, uint32_t gathering_node);
-void map_filter(struct data_state_t *root_data, filter *f);
 
 /* unsigned list */
 struct data_state_t *get_sub_data(struct data_state_t *root_data, unsigned depth, ... );
 
 /* filter * list */
-void map_filters(struct data_state_t *root_data, unsigned nfilters, ...);
+void starpu_map_filters(struct data_state_t *root_data, unsigned nfilters, ...);
 
 /* a few examples of filters */
 

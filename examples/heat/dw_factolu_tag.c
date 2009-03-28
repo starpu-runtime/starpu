@@ -274,7 +274,7 @@ void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 		f2.filter_func = block_filter_func;
 		f2.filter_arg = nblocks;
 
-	map_filters(dataA, 2, &f, &f2);
+	starpu_map_filters(dataA, 2, &f, &f2);
 
 	dw_codelet_facto_v3(dataA, nblocks);
 

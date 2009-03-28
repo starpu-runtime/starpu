@@ -161,7 +161,7 @@ data_handle allocate_tmp_matrix(unsigned size, unsigned reclevel)
 	/* we construct a filter tree of depth reclevel */
 	unsigned rec;
 	for (rec = 0; rec < reclevel; rec++)
-		map_filters(*data, 2, &f, &f2);
+		starpu_map_filters(*data, 2, &f, &f2);
 
 	return *data;
 }
@@ -774,9 +774,9 @@ int main(int argc, char **argv)
 	unsigned rec;
 	for (rec = 0; rec < reclevel; rec++)
 	{
-		map_filters(data_A, 2, &f, &f2);
-		map_filters(data_B, 2, &f, &f2);
-		map_filters(data_C, 2, &f, &f2);
+		starpu_map_filters(data_A, 2, &f, &f2);
+		starpu_map_filters(data_B, 2, &f, &f2);
+		starpu_map_filters(data_C, 2, &f, &f2);
 	}
 
 	struct strassen_iter iter;
