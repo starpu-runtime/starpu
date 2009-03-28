@@ -8,4 +8,4 @@ Description: offers support for heterogeneous multicore architecture
 Version: @PACKAGE_VERSION@
 Requires:
 Libs: -L${libdir} -lstarpu
-Cflags: -I{prefixdir}
+Cflags: -I${includedir}
