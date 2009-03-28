@@ -9,6 +9,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdlib.h>
+#include <common/config.h>
 #include <starpu.h>
 
 /* some key to identify the worker kind */

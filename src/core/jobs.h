@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <pthread.h>
+#include <common/config.h>
 #include <common/timing.h>
 #include <common/list.h>
 #include <common/fxt.h>
