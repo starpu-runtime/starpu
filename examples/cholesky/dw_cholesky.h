@@ -3,14 +3,12 @@
 
 #include <semaphore.h>
 #include <common/timing.h>
-#include <common/blas.h>
+#include <examples/common/blas.h>
 #include <string.h>
 #include <math.h>
 #ifdef USE_CUDA
 #include <cuda.h>
 #endif
-
-#include <common/malloc.h>
 
 #include <starpu.h>
 

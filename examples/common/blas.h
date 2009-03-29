@@ -1,6 +1,8 @@
 #ifndef __BLAS_H__
 #define __BLAS_H__
 
+#include <starpu_config.h>
+
 #ifdef ATLAS
 #include <cblas.h>
 #endif

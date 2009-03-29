@@ -5,6 +5,9 @@
 #undef USE_CUDA
 #undef USE_GORDON
 
+#undef ATLAS
+#undef GOTO
+
 #undef STARPUDIR
 
 #endif

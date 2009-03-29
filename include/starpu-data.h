@@ -26,4 +26,6 @@ void advise_if_data_is_important(struct data_state_t *state, unsigned is_importa
 
 void sync_data_with_mem(struct data_state_t *state);
 
+void starpu_malloc_pinned_if_possible(float **A, size_t dim);
+
 #endif // __STARPU_DATA_H__

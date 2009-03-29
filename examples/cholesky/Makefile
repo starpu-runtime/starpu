@@ -1,6 +1,10 @@
 STARPU= ../../libstarpu.a
 CFLAGS+= -I../../src/
 
+CFLAGS+= -I../../
+
+LDFLAGS+= ../common/blas.o
+
 all: test_cholesky dw_cholesky_no_stride
 
 dw_cholesky_models.o: dw_cholesky_models.h dw_cholesky_models.c

@@ -122,7 +122,7 @@ void cublas_mult(data_interface_t *descr, __attribute__((unused)) void *arg)
 	cublasStatus st;
 	st = cublasGetError();
 	if (st != CUBLAS_STATUS_SUCCESS)
-		CUBLAS_REPORT_ERROR(st);
+		STARPU_ASSERT(0);
 
 	GET_TICK(sgemm_end);
 
@@ -149,9 +149,9 @@ static void init_problem_data(void)
 
 #ifdef USE_CUDA
 	if (pin) {
-		malloc_pinned_if_possible(&A, zdim*ydim*sizeof(float));
-		malloc_pinned_if_possible(&B, xdim*zdim*sizeof(float));
-		malloc_pinned_if_possible(&C, xdim*ydim*sizeof(float));
+		starpu_malloc_pinned_if_possible(&A, zdim*ydim*sizeof(float));
+		starpu_malloc_pinned_if_possible(&B, xdim*zdim*sizeof(float));
+		starpu_malloc_pinned_if_possible(&C, xdim*ydim*sizeof(float));
 	} else
 #endif
 	{

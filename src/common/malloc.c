@@ -1,13 +1,11 @@
-#ifndef __MALLOC_H__
-#define __MALLOC_H__
-
 #include <errno.h>
-#include <core/jobs.h>
-#include <core/policies/sched_policy.h>
+
+#include <common/config.h>
+#include <starpu.h>
+
 #ifdef USE_CUDA
 #include <cuda.h>
 #endif
-
 
 /* This method is not optimal at all, but it makes life much easier in many codes */
 
@@ -27,7 +25,7 @@ static void malloc_pinned_codelet(struct data_interface_s *buffers __attribute__
 }
 #endif
 
-static inline void malloc_pinned_if_possible(float **A, size_t dim)
+void starpu_malloc_pinned_if_possible(float **A, size_t dim)
 {
 	if (may_submit_cuda_task())
 	{
@@ -63,8 +61,3 @@ static inline void malloc_pinned_if_possible(float **A, size_t dim)
 		*A = malloc(dim);
 	}
 }
-
-
-
-
-#endif // __MALLOC_H__

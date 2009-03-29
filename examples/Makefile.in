@@ -13,6 +13,10 @@ ifeq ($(CHECK), 1)
 	CFLAGS += -DCHECK_RESULTS
 endif
 
+ifneq (@BLAS_LIB@,none)
+	TARGET+= common/blas.o
+endif
+
 ifeq (@BLAS_LIB@,goto)
 	TARGET += mult
 	TARGET+= cholesky

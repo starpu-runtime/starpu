@@ -98,7 +98,7 @@ static void cublas_mult(data_interface_t *descr, __attribute__((unused)) void *a
 	cublasStatus st;
 	st = cublasGetError();
 	if (st != CUBLAS_STATUS_SUCCESS)
-		CUBLAS_REPORT_ERROR(st);
+		STARPU_ASSERT(0);
 
 	GET_TICK(sgemm_end);
 

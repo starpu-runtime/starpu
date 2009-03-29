@@ -58,7 +58,6 @@ struct per_arch_perfmodel_t {
 #endif
 };
 
-
 struct perfmodel_t {
 	/* which model is used for that task ? */
 	enum {PER_ARCH, COMMON, HISTORY_BASED, REGRESSION_BASED} type;

@@ -2,6 +2,8 @@ STARPU= ../../libstarpu.a
 CFLAGS+= -I../..
 CFLAGS+= -I../../src/
 
+LDFLAGS+= ../common/blas.o
+
 all: dw_strassen
 
 strassen_kernels.o: strassen.h strassen_kernels.c

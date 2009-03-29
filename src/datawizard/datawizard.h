@@ -4,7 +4,6 @@
 #include <datawizard/coherency.h>
 #include <datawizard/hierarchy.h>
 #include <datawizard/copy-driver.h>
-#include <datawizard/memalloc.h>
 #include <datawizard/footprint.h>
 
 #include <datawizard/progress.h>

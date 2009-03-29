@@ -2,13 +2,9 @@ ifeq (@USE_FXT@,yes)
 	OPTTARGET+= fxt.o
 endif
 
-ifneq (@BLAS_LIB@,none)
-	OPTTARGET+= blas.o
-endif
-
 CFLAGS+= -I../
 
-OBJS := hash.o htable32.o mutex.o rwlock.o timing.o $(OPTTARGET)
+OBJS := malloc.o hash.o htable32.o mutex.o rwlock.o timing.o $(OPTTARGET)
 
 all: $(OBJS)
 

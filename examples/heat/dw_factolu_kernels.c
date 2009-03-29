@@ -1,5 +1,4 @@
 #include "dw_factolu.h"
-#include <common/blas.h>
 
 unsigned count_11_core = 0;
 unsigned count_12_core = 0;
@@ -55,7 +54,7 @@ static inline void dw_common_core_codelet_update_u22(data_interface_t *buffers, 
 					right, ld12, 1.0f, center, ld22);
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
-				CUBLAS_REPORT_ERROR(status);
+				STARPU_ASSERT(0);
 
 			break;
 #endif
@@ -112,7 +111,7 @@ static inline void dw_common_codelet_update_u12(data_interface_t *buffers, int s
 					1.0f, sub11, ld11, sub12, ld12);
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
-				CUBLAS_REPORT_ERROR(status);
+				STARPU_ASSERT(0);
 
 			break;
 #endif
@@ -166,7 +165,7 @@ static inline void dw_common_codelet_update_u21(data_interface_t *buffers, int s
 			cublasStrsm('R', 'U', 'N', 'U', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
-				CUBLAS_REPORT_ERROR(status);
+				STARPU_ASSERT(0);
 
 			break;
 #endif

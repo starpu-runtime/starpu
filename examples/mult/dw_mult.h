@@ -3,14 +3,13 @@
 
 #include <semaphore.h>
 #include <common/timing.h>
-#include <common/malloc.h>
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <pthread.h>
 #include <signal.h>
-#include <common/blas.h>
+#include <examples/common/blas.h>
 
 #include <task-models/blas_model.h>
 

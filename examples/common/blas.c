@@ -1,7 +1,8 @@
-#include <common/config.h>
-#include <common/blas.h>
 #include <ctype.h>
 #include <stdio.h>
+
+#include <starpu_config.h>
+#include <examples/common/blas.h>
 
 /*
     This files contains BLAS wrappers for the different BLAS implementations
