@@ -3,6 +3,14 @@
 
 export 
 
+exec_prefix = @exec_prefix@
+prefix = @prefix@
+bindir = @bindir@
+libdir = @libdir@
+includedir = @includedir@
+srcdir = @srcdir@
+pcdir = ${libdir}/pkgconfig/
+
 CC=gcc -m64
 NVCC = nvcc -m64
 NVCCFLAGS += -O3
@@ -163,9 +171,6 @@ libs: $(LIBS)
 examples: libs
 	@make -C examples
 
-INCLUDEDIR=@prefix@@includedir@
-LIBDIR=@prefix@@libdir@
-PCDIR=$(LIBDIR)/pkgconfig/
 
 HEADERS  = include/starpu.h include/starpu_config.h include/starpu-data-filters.h
 HEADERS += include/starpu-data-interfaces.h include/starpu-mutex.h include/starpu-task.h
@@ -174,22 +179,22 @@ HEADERS += include/starpu-data.h include/starpu-perfmodel.h include/starpu-util.
 PCFILE=libstarpu.pc
 
 install-pc: $(PCFILE)
-	if test ! -d $(PCDIR); then \
-		$(MKDIR_P) $(PCDIR); \
+	if test ! -d ${pcdir}; then \
+		$(MKDIR_P) ${pcdir}; \
 	fi
-	$(INSTALL) -m 0644 $(PCFILE) $(PCDIR)
+	$(INSTALL) -m 0644 $(PCFILE) ${pcdir}
 
 install-headers: $(HEADERS)
-	if test ! -d $(INCLUDEDIR); then \
-		$(MKDIR_P) $(INCLUDEDIR); \
+	if test ! -d ${includedir}; then \
+		$(MKDIR_P) ${includedir}; \
 	fi
-	$(INSTALL) -m 0644 $(HEADERS) $(INCLUDEDIR)
+	$(INSTALL) -m 0644 $(HEADERS) ${includedir}
 
 install-lib: libs
-	if test ! -d $(LIBDIR); then \
-		$(MKDIR_P) $(LIBDIR); \
+	if test ! -d ${libdir}; then \
+		$(MKDIR_P) ${libdir}; \
 	fi
-	$(INSTALL) -m 0644 $(LIBS) $(LIBDIR)
+	$(INSTALL) -m 0644 $(LIBS) ${libdir}
 
 install: install-headers install-lib install-pc
 
