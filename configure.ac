@@ -201,6 +201,15 @@ AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],
 AC_MSG_RESULT($enable_perf_debug)
 AC_SUBST(PERF_DEBUG, $enable_perf_debug)
 
+AC_MSG_CHECKING(whether performance model debugging should be enabled)
+AC_ARG_ENABLE(model-debug, [AS_HELP_STRING([--enable-model-debug],
+			[enable performance model debugging])],
+			enable_model_debug=$enableval, enable_model_debug=no)
+AC_MSG_RESULT($enable_model_debug)
+if  test x$enable_model_debug = xyes; then
+	AC_DEFINE(MODEL_DEBUG, [1], [enable performance model debug])
+fi
+
 AC_MSG_CHECKING(whether statistics should be generated)
 AC_ARG_ENABLE(stats, [AS_HELP_STRING([--enable-stats],
 			[enable statistics])],

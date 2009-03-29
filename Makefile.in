@@ -39,10 +39,6 @@ ifdef PERTURB_AMPL
 	CFLAGS+="-DAMPL=$(PERTURB_AMPL)"
 endif
 
-ifdef MODEL_DEBUG
-	CFLAGS+="-DMODEL_DEBUG "
-endif
-
 ifndef SCALPDIR
 SCALPDIR=/home/gonnet/Scalp/scalp/trunk/
 endif
