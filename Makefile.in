@@ -198,6 +198,18 @@ install-lib: libs
 
 install: install-headers install-lib install-pc
 
+uninstall-pc:
+	rm -f $(patsubst %,${pcdir}/%,$(PCFILE))
+
+uninstall-headers:
+	rm -f $(patsubst include/%,${includedir}/%,$(HEADERS))
+
+uninstall-lib:
+	rm -f $(patsubst %,${libdir}/%,$(LIBS))
+
+uninstall: uninstall-headers uninstall-lib uninstall-pc
+
+
 tags:
 	find .|xargs ctags
 
