@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <math.h>
 #include <sys/types.h>
+#include <sys/time.h>
 #include <pthread.h>
 #include <signal.h>
 

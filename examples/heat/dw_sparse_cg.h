@@ -4,14 +4,12 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <semaphore.h>
-#include <common/timing.h>
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
 #include <sys/types.h>
 #include <pthread.h>
 #include <signal.h>
-#include <common/timing.h>
 
 #include <starpu_config.h>
 #include <starpu.h>
@@ -20,6 +18,8 @@
 #include <cublas.h>
 #endif
 
+#include <common/timing.h>
+#include "../common/blas.h"
 
 #define MAXITER	100000
 #define EPSILON	0.0000001f

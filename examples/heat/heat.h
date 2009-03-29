@@ -18,6 +18,8 @@
 
 #include <common/timing.h>
 
+#include "../common/blas.h"
+
 #define X	0
 #define Y	1
 

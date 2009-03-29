@@ -1,5 +1,5 @@
 #include "dw_cholesky.h"
-#include <common/blas.h>
+#include "../common/blas.h"
 
 /*
  *   U22 

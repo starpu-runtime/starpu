@@ -2,6 +2,7 @@
 #define __STRASSEN_H__
 
 #include <semaphore.h>
+#include <sys/time.h>
 #include <common/timing.h>
 #include <string.h>
 #include <math.h>
