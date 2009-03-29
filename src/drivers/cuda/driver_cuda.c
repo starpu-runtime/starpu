@@ -373,8 +373,6 @@ void *cuda_worker(void *arg)
 
 //		cuMemcpyDtoH(&debugfoo, debugptr, sizeof(uint64_t));
 //		printf("AFTER TASK, debug ptr = %p\n", debugfoo);
-
-		job_delete(j);
 	} 
 
 #ifdef DATA_STATS

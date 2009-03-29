@@ -132,8 +132,6 @@ void *core_worker(void *arg)
 		}
 
 		handle_job_termination(j);
-
-		job_delete(j);
         }
 
 #ifdef DATA_STATS

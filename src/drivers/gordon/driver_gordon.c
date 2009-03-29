@@ -149,7 +149,6 @@ void handle_terminated_job(job_t j)
 {
 	push_codelet_output(j->buffers, j->nbuffers, 0);
 	handle_job_termination(j);
-	job_delete(j);
 	wake_all_blocked_workers();
 }
 

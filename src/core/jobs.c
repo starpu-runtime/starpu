@@ -1,6 +1,7 @@
 #include <core/jobs.h>
 #include <core/workers.h>
 #include <core/dependencies/data-concurrency.h>
+#include <common/config.h>
 
 size_t job_get_data_size(job_t j)
 {
@@ -76,7 +77,19 @@ void handle_job_termination(job_t j)
 	}
 
 	if (task->synchronous)
-		sem_post(&j->sync_sem);
+	{
+		if (sem_post(&j->sync_sem))
+			perror("sem_post");
+
+		/* as this is a synchronous task, we do not delete the job 
+		   structure which contains the j->sync_sem: we only liberate
+		   it once the semaphore is destroyed */
+	}
+	else
+	{
+		job_delete(j);
+	}
+
 }
 
 static void block_if_sync_task(job_t j)
@@ -85,6 +98,10 @@ static void block_if_sync_task(job_t j)
 	{
 		sem_wait(&j->sync_sem);
 		sem_destroy(&j->sync_sem);
+
+		/* as this is a synchronous task, the liberation of the job
+		   structure was deferred */
+		job_delete(j);
 	}
 }
 
