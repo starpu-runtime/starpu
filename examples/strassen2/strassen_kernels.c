@@ -1,24 +1,20 @@
 #include <stdio.h>
 #include <stdint.h>
-#include <math.h>
-#include <sys/types.h>
-#include <pthread.h>
-#include <signal.h>
-
-#include <semaphore.h>
-#include <common/timing.h>
-#include <common/blas.h>
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
 #include <pthread.h>
 #include <signal.h>
+#include <semaphore.h>
+
 #include <common/timing.h>
 
 #include <starpu_config.h>
 #ifdef USE_CUDA
 #include <cublas.h>
 #endif
+
+#include "../common/blas.h"
 
 #include <starpu.h>
 

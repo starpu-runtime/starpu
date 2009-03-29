@@ -5,7 +5,6 @@
 #include <stdint.h>
 #include <semaphore.h>
 #include <common/timing.h>
-#include <common/blas.h>
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
