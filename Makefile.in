@@ -11,9 +11,10 @@ includedir = @includedir@
 srcdir = @srcdir@
 pcdir = ${libdir}/pkgconfig/
 
-CC=gcc -m64
-NVCC = nvcc -m64
-NVCCFLAGS += -O3
+CC=@CC@
+#XXX how to detect if we are in 64bits ?
+NVCC = nvcc
+NVCCFLAGS = @NVCCFLAGS@
 
 MKDIR_P =       @MKDIR_P@
 INSTALL =       @INSTALL@

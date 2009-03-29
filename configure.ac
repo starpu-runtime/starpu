@@ -91,6 +91,13 @@ AC_MSG_RESULT($enable_cuda)
 AC_SUBST(USE_CUDA, $enable_cuda)
 if test x$enable_cuda = xyes; then
 	AC_DEFINE(USE_CUDA, [1], [CUDA support is activated])
+
+	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag
+	AC_CHECK_SIZEOF([void *])
+	if test x$SIZEOF_VOID_P = x$8; then
+		NVCCFLAGS="${NVCCFLAGS} -m64"
+		AC_SUBST(NVCCFLAGS)
+	fi
 fi
 
 ###############################################################################
