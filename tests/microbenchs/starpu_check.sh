@@ -23,7 +23,7 @@ test_with_timeout() {
 	echo "$application"
 
 	$application > /dev/null 2> /dev/null & _pid_appli=$!;
-	"(sleep $timeout ; kill -9 $_pid_appli 2> /dev/null)" & _pid_killer=$!
+	(sleep $timeout ; kill -9 $_pid_appli 2> /dev/null) & _pid_killer=$!
 	wait $_pid_appli
 	ret=$?
 	kill $_pid_killer 2> /dev/null
