@@ -2,8 +2,6 @@ ifeq (@USE_FXT@,yes)
 	OPTTARGET+= fxt.o
 endif
 
-CFLAGS+= -I../
-
 OBJS := malloc.o hash.o htable32.o mutex.o rwlock.o timing.o $(OPTTARGET)
 
 all: $(OBJS)

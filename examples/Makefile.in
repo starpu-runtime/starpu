@@ -43,8 +43,6 @@ ifeq (@USE_CUDA@,yes)
 endif
 endif
 
-CFLAGS += -I../
-
 all: $(TARGET)
 
 pastix-wrappers:

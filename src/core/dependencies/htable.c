@@ -1,4 +1,4 @@
-#include <dependencies/htable.h>
+#include <core/dependencies/htable.h>
 #include <string.h>
 
 void *htbl_search_tag(htbl_node_t *htbl, tag_t tag)

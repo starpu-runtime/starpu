@@ -1,6 +1,4 @@
 STARPU= ../../libstarpu.a
-CFLAGS+= -I../..
-CFLAGS+= -I../../src/
 
 ifeq (@USE_CUDA@,yes)
 	EXTRADEP += ../cuda/spmv_cuda.cubin

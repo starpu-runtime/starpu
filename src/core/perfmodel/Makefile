@@ -1,5 +1,3 @@
-CFLAGS += -I../../
-
 %.o: %.c %.h
 	$(CC) $(CFLAGS) $< -c -o $@
 	$(CC) $(CFLAGS) $< -MM > $*.d

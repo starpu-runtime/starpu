@@ -1,6 +1,4 @@
 STARPU= ../../libstarpu.a
-CFLAGS+= -I../../src/
-CFLAGS+= -I../../
 
 LDFLAGS+= ../common/blas.o
 

@@ -24,6 +24,8 @@ CFLAGS += @CFLAGS@
 LDFLAGS += @LDFLAGS@
 EXTRALDFLAGS += @LIBS@
 
+CFLAGS += -I${PWD}/
+CFLAGS += -I${PWD}/src/
 CFLAGS += -I${PWD}/include/
 
 #CFLAGS += -g -O3
@@ -157,11 +159,12 @@ all:
 	@make -C src/task-models
 	@make -C tools
 
-libstarpu.so: all
+libstarpu.so: $(OBJDEPS)
 	gcc --shared -o libstarpu.so $(OBJDEPS)
 
-libstarpu.a: all
+libstarpu.a: $(OBJDEPS)
 	$(AR) rcs $@ $(OBJDEPS)
+	echo prout
 
 libs: $(LIBS)
 

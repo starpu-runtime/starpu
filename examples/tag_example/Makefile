@@ -1,6 +1,4 @@
 STARPU= ../../libstarpu.a
-CFLAGS+= -I../../
-CFLAGS+= -I../../src/
 
 all: tag_example tag_example2
 

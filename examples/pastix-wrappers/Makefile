@@ -1,6 +1,4 @@
 STARPU= ../../libstarpu.a
-CFLAGS+= -I../.. -g
-CFLAGS+= -I../../src/
 
 all: starpu-blas-wrapper.a
 
