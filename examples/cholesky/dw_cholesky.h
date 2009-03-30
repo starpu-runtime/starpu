@@ -59,7 +59,7 @@ extern struct perfmodel_t chol_model_11;
 extern struct perfmodel_t chol_model_21;
 extern struct perfmodel_t chol_model_22;
 
-static void parse_args(int argc, char **argv)
+static void __attribute__((unused)) parse_args(int argc, char **argv)
 {
 	int i;
 	for (i = 1; i < argc; i++) {

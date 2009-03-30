@@ -19,11 +19,8 @@ dw_cholesky.o: dw_cholesky.c
 dw_cholesky_no_stride:  $(STARPU) dw_cholesky_no_stride.o
 	$(CC) dw_cholesky_no_stride.o dw_cholesky_kernels.o dw_cholesky_models.o -o dw_cholesky_no_stride $(LDFLAGS) $(STARPU) $(EXTRALDFLAGS)
 
-test_cholesky.o: test_cholesky.c
-	$(CC) $(CFLAGS) test_cholesky.c -c -o test_cholesky.o
-
-dw_cholesky: $(STARPU) test_cholesky.o dw_cholesky.o dw_cholesky_kernels.o dw_cholesky_models.o
-	$(CC)  test_cholesky.o dw_cholesky.o dw_cholesky_kernels.o dw_cholesky_models.o -o dw_cholesky $(LDFLAGS) $(STARPU) $(EXTRALDFLAGS)
+dw_cholesky: $(STARPU) dw_cholesky.o dw_cholesky_kernels.o dw_cholesky_models.o
+	$(CC)  dw_cholesky.o dw_cholesky_kernels.o dw_cholesky_models.o -o dw_cholesky $(LDFLAGS) $(STARPU) $(EXTRALDFLAGS)
 
 clean:
 	@rm -f *.o *.d gmon.out *.gcno *.gcda
