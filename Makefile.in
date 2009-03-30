@@ -209,7 +209,7 @@ uninstall-lib:
 uninstall: uninstall-headers uninstall-lib uninstall-pc
 
 # XXX this should not depend on install, but use local install instead
-check: install
+check: examples install
 	@make -C tests/microbenchs/ check
 
 tags:

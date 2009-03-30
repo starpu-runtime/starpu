@@ -22,7 +22,7 @@ test_with_timeout() {
 
 	echo "$application"
 
-	$application & _pid_appli=$!;
+	$application > /dev/null 2> /dev/null & _pid_appli=$!;
 	"(sleep $timeout ; kill -9 $_pid_appli 2> /dev/null)" & _pid_killer=$!
 	wait $_pid_appli
 	ret=$?
@@ -64,6 +64,14 @@ echo "***********************"
 echo
 
 test_with_timeout 10 "./async-tasks-overhead -i 20000" 2> /dev/null 
+
+echo
+echo "**************"
+echo "TEST increment"
+echo "**************"
+echo
+
+test_with_timeout 10 "../../examples/incrementer/incrementer" 2> /dev/null 
 
 
 echo

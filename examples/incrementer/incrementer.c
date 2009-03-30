@@ -153,6 +153,9 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 			my_lovely_float[1], my_lovely_float[2]);
 //	printf("stopping ... cnt was %d i %d\n", cnt, i);
 	
+	if (my_lovely_float[0] != my_lovely_float[1] + my_lovely_float[2])
+		return 1;
+	
 	starpu_shutdown();
 
 	return 0;
