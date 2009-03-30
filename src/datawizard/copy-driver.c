@@ -139,7 +139,7 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 				uint32_t dst_node, unsigned donotread)
 {
 	int ret_alloc, ret_copy;
-	unsigned com_id = 0;
+	unsigned __attribute__((unused)) com_id = 0;
 
 	/* first make sure the destination has an allocated buffer */
 	ret_alloc = allocate_per_node_buffer(state, dst_node);

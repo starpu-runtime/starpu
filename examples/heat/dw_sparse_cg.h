@@ -52,7 +52,7 @@ struct cg_problem {
 };
 
 /* some useful functions */
-static void parse_args(int argc, char **argv)
+static void __attribute__((unused)) parse_args(int argc, char **argv)
 {
 	int i;
 	for (i = 1; i < argc; i++) {
@@ -78,7 +78,7 @@ static void parse_args(int argc, char **argv)
 }
 
 
-static void print_results(float *result, unsigned size)
+static void __attribute__ ((unused)) print_results(float *result, unsigned size)
 {
 	printf("**** RESULTS **** \n");
 	unsigned i;
@@ -87,94 +87,6 @@ static void print_results(float *result, unsigned size)
 	{
 		printf("%d -> %f\n", i, result[i]);
 	}
-}
-
-static void create_data(float **_nzvalA, float **_vecb, float **_vecx, uint32_t *_nnz, uint32_t *_nrow, uint32_t **_colind, uint32_t **_rowptr)
-{
-	/* we need a sparse symetric (definite positive ?) matrix and a "dense" vector */
-	
-	/* example of 3-band matrix */
-	float *nzval;
-	uint32_t nnz;
-	uint32_t *colind;
-	uint32_t *rowptr;
-
-	nnz = 3*size-2;
-
-	nzval = malloc(nnz*sizeof(float));
-	colind = malloc(nnz*sizeof(uint32_t));
-	rowptr = malloc(size*sizeof(uint32_t));
-
-	assert(nzval);
-	assert(colind);
-	assert(rowptr);
-
-
-	/* fill the matrix */
-	unsigned row;
-	unsigned pos = 0;
-	for (row = 0; row < size; row++)
-	{
-		rowptr[row] = pos;
-
-		if (row > 0) {
-			nzval[pos] = 1.0f;
-			colind[pos] = row-1;
-			pos++;
-		}
-		
-		nzval[pos] = 5.0f;
-		colind[pos] = row;
-		pos++;
-
-		if (row < size - 1) {
-			nzval[pos] = 1.0f;
-			colind[pos] = row+1;
-			pos++;
-		}
-	}
-
-	*_nnz = nnz;
-	*_nrow = size;
-	*_nzvalA = nzval;
-	*_colind = colind;
-	*_rowptr = rowptr;
-
-	STARPU_ASSERT(pos == nnz);
-	
-	/* initiate the 2 vectors */
-	float *invec, *outvec;
-	invec = malloc(size*sizeof(float));
-	assert(invec);
-
-	outvec = malloc(size*sizeof(float));
-	assert(outvec);
-
-	/* fill those */
-	unsigned ind;
-	for (ind = 0; ind < size; ind++)
-	{
-		invec[ind] = 2.0f;
-		outvec[ind] = 0.0f;
-	}
-
-	*_vecb = invec;
-	*_vecx = outvec;
-}
-
-static struct starpu_task *create_task(tag_t id)
-{
-	starpu_codelet *cl = malloc(sizeof(starpu_codelet));
-		cl->where = ANY;
-		cl->model = NULL;
-
-	struct starpu_task *task = starpu_task_create();
-		task->cl = cl;
-		task->cl_arg = NULL;
-		task->use_tag = 1;
-		task->tag_id = id;
-
-	return task;
 }
 
 void core_codelet_func_1(data_interface_t *descr, void *arg);

@@ -68,9 +68,6 @@ void *core_worker(void *arg)
 {
 	struct worker_s *core_arg = arg;
 
-        int core = core_arg->id;
-
-
 #ifdef USE_FXT
 	fxt_register_thread(core_arg->bindid);
 #endif
@@ -85,7 +82,7 @@ void *core_worker(void *arg)
 #endif
 
 #ifdef VERBOSE
-        fprintf(stderr, "core worker %d is ready on logical core %d\n", core, core_arg->bindid);
+        fprintf(stderr, "core worker %d is ready on logical core %d\n", core_arg->id, core_arg->bindid);
 #endif
 
 	set_local_memory_node_key(&core_arg->memory_node);

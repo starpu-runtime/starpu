@@ -14,6 +14,7 @@ struct jobq_s *queue_array[32];
 static unsigned performed_total = 0;
 //static unsigned performed_local[16];
 
+#ifdef USE_OVERLOAD
 static float overload_metric(unsigned id)
 {
 	float execution_ratio = 0.0f;
@@ -32,7 +33,6 @@ static float overload_metric(unsigned id)
 	return (current_ratio - execution_ratio);
 }
 
-#ifdef USE_OVERLOAD
 /* who to steal work to ? */
 static struct jobq_s *select_victimq(void)
 {

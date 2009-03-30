@@ -1,5 +1,6 @@
 #include <errno.h>
 
+#include <core/workers.h>
 #include <common/config.h>
 #include <starpu.h>
 

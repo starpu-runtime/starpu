@@ -40,7 +40,6 @@ static void parse_args(int argc, char **argv)
 }
 
 void callback_core(void *argcb);
-static void express_deps(unsigned i, unsigned iter);
 
 static void tag_cleanup_grid(unsigned ni, unsigned iter)
 {
