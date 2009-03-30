@@ -35,6 +35,9 @@ test_with_timeout() {
 			137) # sigkill
 			echo "	TEST TIMEOUT"
 			;;
+			139)
+			echo "	TEST FAILED: SIGSEV"
+			;;
 			*)
 			echo "	TEST FAILED (ret = $ret)"
 		esac
