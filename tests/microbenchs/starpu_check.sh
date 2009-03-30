@@ -10,7 +10,7 @@ print_summary() {
 	if test $nfailed = 0; then
 		echo "**** All tests are successful ****"
 	else
-		echo "$nfailed tests failed out of $ntests" 
+		echo "$nfailed test(s) failed out of $ntests" 
 	fi
 }
 
@@ -72,6 +72,23 @@ echo "**************"
 echo
 
 test_with_timeout 10 "../../examples/incrementer/incrementer" 2> /dev/null 
+
+echo
+echo "**********"
+echo "TEST tag 1"
+echo "**********"
+echo
+
+test_with_timeout 10 "../../examples/tag_example/tag_example -iter 1000" 2> /dev/null 
+
+echo
+echo "**********"
+echo "TEST tag 2"
+echo "**********"
+echo
+
+test_with_timeout 10 "../../examples/tag_example/tag_example2 -iter 100" 2> /dev/null 
+
 
 
 echo
