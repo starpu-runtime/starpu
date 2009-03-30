@@ -92,9 +92,8 @@ void handle_job_termination(job_t j)
 
 }
 
-static void block_if_sync_task(job_t j)
+static void block_sync_task(job_t j)
 {
-	if (j->task->synchronous)
 	{
 		sem_wait(&j->sync_sem);
 		sem_destroy(&j->sync_sem);
@@ -109,6 +108,8 @@ static void block_if_sync_task(job_t j)
 int starpu_submit_task(struct starpu_task *task)
 {
 	int ret;
+	unsigned is_sync = task->synchronous;
+
 	STARPU_ASSERT(task);
 
 	if (!worker_exists(task->cl->where))
@@ -123,7 +124,8 @@ int starpu_submit_task(struct starpu_task *task)
 	{
 		if (submit_job_enforce_task_deps(j))
 		{
-			block_if_sync_task(j);
+			if (is_sync)
+				block_sync_task(j);
 			return 0;
 		}
 	}
@@ -132,14 +134,16 @@ int starpu_submit_task(struct starpu_task *task)
 	/* enforce data dependencies */
 	if (submit_job_enforce_data_deps(j))
 	{
-		block_if_sync_task(j);
+		if (is_sync)
+			block_sync_task(j);
 		return 0;
 	}
 #endif
 
 	ret = push_task(j);
 
-	block_if_sync_task(j);
+	if (is_sync)
+		block_sync_task(j);
 
 	return ret;
 }
