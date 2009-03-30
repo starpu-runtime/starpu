@@ -17,6 +17,9 @@ sync-tasks-overhead: sync-tasks-overhead.o
 sync-tasks-overhead.o: sync-tasks-overhead.c 
 	$(CC) $(CFLAGS) sync-tasks-overhead.c -c -o sync-tasks-overhead.o
 
+check: async-tasks-overhead sync-tasks-overhead
+	./starpu_check.sh
+
 clean:
 	rm -f *.o
 	rm -f sync-tasks-overhead
