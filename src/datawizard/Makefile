@@ -1,7 +1,5 @@
 .PHONY: interfaces common
 
-CFLAGS+= -I../
-
 OBJS := write_back.o coherency.o data_request.o progress.o copy-driver.o hierarchy.o memalloc.o footprint.o datastats.o
 
 DWOBJDEPS += ../common/hash.o

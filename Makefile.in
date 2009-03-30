@@ -164,7 +164,6 @@ libstarpu.so: $(OBJDEPS)
 
 libstarpu.a: $(OBJDEPS)
 	$(AR) rcs $@ $(OBJDEPS)
-	echo prout
 
 libs: $(LIBS)
 

@@ -1,5 +1,3 @@
-CFLAGS+= -I../../
-
 OBJS := bcsr_interface.o csr_interface.o blas_filters.o blas_interface.o vector_interface.o bcsr_filters.o csr_filters.o vector_filters.o
 
 all: $(OBJS)
