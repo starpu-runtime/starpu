@@ -1,6 +1,6 @@
 #include "fxt-tool.h"
 
-fxt_t fut;
+static fxt_t fut;
 struct fxt_ev_64 ev;
 
 static uint64_t transfers[16][16]; 

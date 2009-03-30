@@ -10,7 +10,7 @@ static char *cpus_worker_colors[MAXWORKERS] = {"/ylorrd9/9", "/ylorrd9/6", "/ylo
 static char *other_worker_colors[MAXWORKERS] = {"/greys9/9", "/greys9/8", "/greys9/7", "/greys9/6"};
 static char *worker_colors[MAXWORKERS];
 
-fxt_t fut;
+static fxt_t fut;
 struct fxt_ev_64 ev;
 
 unsigned first_event = 1;
