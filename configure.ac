@@ -19,6 +19,8 @@ AC_MSG_NOTICE([Configuring StarPU])
 
 AC_CONFIG_SRCDIR(src/core/jobs.h)
 
+AC_PREREQ(2.60)
+
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_SED
