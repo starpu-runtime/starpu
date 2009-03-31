@@ -99,7 +99,7 @@ echo "TEST tag 1"
 echo "**********"
 echo
 
-test_with_timeout 10 "../../examples/tag_example/tag_example -iter 1000" 2> /dev/null 
+test_with_timeout 60 "../../examples/tag_example/tag_example -iter 1000" 2> /dev/null 
 
 echo
 echo "**********"
