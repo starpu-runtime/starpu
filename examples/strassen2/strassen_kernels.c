@@ -23,8 +23,6 @@
 #include <signal.h>
 #include <semaphore.h>
 
-#include <common/timing.h>
-
 #include <starpu_config.h>
 #ifdef USE_CUDA
 #include <cublas.h>

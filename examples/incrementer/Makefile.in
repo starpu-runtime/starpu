@@ -14,8 +14,11 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-STARPU= ../../libstarpu.a
- 
+export PKG_CONFIG_PATH=@STARPUDIR@
+
+LIBS+=$$(pkg-config --libs libstarpu)
+CFLAGS+=$$(pkg-config --cflags libstarpu)
+
 ifeq (@USE_CUDA@,yes)
         EXTRADEP += ../cuda/incrementer_cuda.cubin
 endif
@@ -29,7 +32,7 @@ incrementer.o: incrementer.c
 	$(CC) $(CFLAGS) incrementer.c -c -o incrementer.o
 
 incrementer: $(STARPU) incrementer.o
-	$(CC) incrementer.o -o incrementer $(LDFLAGS) $(STARPU) $(EXTRALDFLAGS)
+	$(CC) incrementer.o -o incrementer $(LIBS)
 
 clean:
 	@rm -f *.o *.d *.gcno *.gcda

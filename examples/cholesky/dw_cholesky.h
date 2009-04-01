@@ -18,8 +18,6 @@
 #define __DW_CHOLESKY_H__
 
 #include <semaphore.h>
-#include <common/timing.h>
-#include <examples/common/blas.h>
 #include <string.h>
 #include <math.h>
 #ifdef USE_CUDA
@@ -27,6 +25,7 @@
 #include <cublas.h>
 #endif
 
+#include "../common/blas.h"
 #include <starpu.h>
 
 #define NMAXBLOCKS	32

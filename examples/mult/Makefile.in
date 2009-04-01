@@ -14,9 +14,12 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-STARPU= ../../libstarpu.a
+export PKG_CONFIG_PATH=@STARPUDIR@
 
-LDFLAGS+= ../common/blas.o
+LIBS+=$$(pkg-config --libs libstarpu)
+CFLAGS+=$$(pkg-config --cflags libstarpu)
+
+BLASOBJ=../common/blas.o ../common/blas_model.o
 
 all: dw_mult dw_mult_no_stride dw_mult_no_stride_no_tag
 
@@ -29,14 +32,14 @@ dw_mult_no_stride.o: dw_mult_no_stride.c dw_mult.h
 dw_mult_no_stride_no_tag.o: dw_mult_no_stride_no_tag.c dw_mult.h
 	$(CC) $(CFLAGS) dw_mult_no_stride_no_tag.c -c -o dw_mult_no_stride_no_tag.o
 
-dw_mult: $(STARPU) dw_mult.o
-	$(CC) dw_mult.o -o dw_mult $(LDFLAGS) $(STARPU) $(EXTRALDFLAGS)
+dw_mult: $(BLASOBJ) dw_mult.o
+	$(CC) $(BLASOBJ) dw_mult.o -o dw_mult $(LDFLAGS) $(LIBS)
 
-dw_mult_no_stride: $(STARPU) dw_mult_no_stride.o
-	$(CC) dw_mult_no_stride.o -o dw_mult_no_stride $(LDFLAGS) $(STARPU) $(EXTRALDFLAGS)
+dw_mult_no_stride: $(BLASOBJ) dw_mult_no_stride.o
+	$(CC) $(BLASOBJ) dw_mult_no_stride.o -o dw_mult_no_stride $(LDFLAGS) $(LIBS)
 
-dw_mult_no_stride_no_tag: $(STARPU) dw_mult_no_stride_no_tag.o
-	$(CC) dw_mult_no_stride_no_tag.o -o dw_mult_no_stride_no_tag $(LDFLAGS) $(STARPU) $(EXTRALDFLAGS)
+dw_mult_no_stride_no_tag: $(BLASOBJ) dw_mult_no_stride_no_tag.o
+	$(CC) $(BLASOBJ) dw_mult_no_stride_no_tag.o -o dw_mult_no_stride_no_tag $(LDFLAGS) $(LIBS)
 
 clean:
 	@rm -f *.o *.d *.gcno *.gcda

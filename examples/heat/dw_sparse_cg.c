@@ -20,8 +20,6 @@
 
 #include "dw_sparse_cg.h"
 
-tick_t start,end;
-
 #ifdef USE_CUDA
 /* CUDA spmv codelet */
 static struct cuda_module_s cuda_module;
@@ -157,9 +155,7 @@ void init_problem(void)
 
 	create_data(&nzval, &vecb, &vecx, &nnz, &nrow, &colind, &rowptr);
 
-	GET_TICK(start);
 	conjugate_gradient(nzval, vecb, vecx, nnz, nrow, colind, rowptr);
-	GET_TICK(end);
 }
 
 /*

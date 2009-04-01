@@ -14,7 +14,10 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-STARPU= ../../libstarpu.a
+export PKG_CONFIG_PATH=@STARPUDIR@
+
+LIBS+=$$(pkg-config --libs libstarpu)
+CFLAGS+=$$(pkg-config --cflags libstarpu)
 
 LDFLAGS+= ../common/blas.o
 
@@ -32,8 +35,8 @@ test_strassen.o: test_strassen.c strassen.h
 strassen_models.o: strassen_models.c strassen_models.h
 	$(CC) $(CFLAGS) strassen_models.c -c -o strassen_models.o
 
-dw_strassen: $(STARPU) strassen_models.o strassen.o strassen_kernels.o test_strassen.o
-	$(CC) strassen_models.o strassen.o strassen_kernels.o test_strassen.o -o dw_strassen $(LDFLAGS) $(STARPU) $(EXTRALDFLAGS)
+dw_strassen: $(STARPU) strassen_models.o strassen.o strassen_kernels.o test_strassen.o ../common/blas.o
+	$(CC) strassen_models.o strassen.o strassen_kernels.o test_strassen.o -o dw_strassen $(LDFLAGS) $(LIBS)
 
 clean:
 	@rm -f *.o *.d *.gcno *.gcda

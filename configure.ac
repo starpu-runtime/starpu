@@ -15,9 +15,10 @@
 #
 
 AC_INIT([StarPU],0.1, [http://runtime.bordeaux.inria.fr/StarPU/], starpu)
+AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_MSG_NOTICE([Configuring StarPU])
 
-AC_CONFIG_SRCDIR(src/core/jobs.h)
+AC_CONFIG_SRCDIR(include/starpu.h)
 
 AC_PREREQ(2.60)
 
@@ -26,6 +27,8 @@ AC_PROG_CPP
 AC_PROG_SED
 AC_PROG_LN_S
 AC_PROG_F77
+
+AC_PROG_RANLIB
 
 AC_PROG_INSTALL
 AC_PROG_MKDIR_P
@@ -36,6 +39,7 @@ AC_HEADER_STDC
 # This will be useful for program which use CUDA (and .cubin files) which need
 # some path to the CUDA code at runtime.
 AC_DEFINE_UNQUOTED(STARPUDIR, "$PWD", [location of StarPU sources])
+AC_SUBST(STARPUDIR, $PWD)
 
 AC_SEARCH_LIBS([pthread_create],[pthread],,AC_MSG_ERROR([pthread library unavailable]))
 
@@ -51,6 +55,7 @@ AC_ARG_ENABLE(cpu, [AS_HELP_STRING([--disable-cpu],
 			enable_cpu=$enableval, enable_cpu=yes)
 AC_MSG_RESULT($enable_cpu)
 AC_SUBST(USE_CPU, $enable_cpu)
+AM_CONDITIONAL(USE_CPU, test x$enable_cpu = xyes)
 
 if test x$enable_cpu = xyes; then
 	AC_DEFINE(USE_CPUS, [1], [CPU driver is activated])
@@ -107,6 +112,7 @@ fi
 AC_MSG_CHECKING(whether CUDA should be used)
 AC_MSG_RESULT($enable_cuda)
 AC_SUBST(USE_CUDA, $enable_cuda)
+AM_CONDITIONAL(USE_CUDA, test x$enable_cuda = xyes)
 if test x$enable_cuda = xyes; then
 	AC_DEFINE(USE_CUDA, [1], [CUDA support is activated])
 
@@ -130,6 +136,7 @@ AC_ARG_ENABLE(gordon, [AS_HELP_STRING([--enable-gordon],
 			enable_gordon=$enableval, enable_gordon=no)
 AC_MSG_RESULT($enable_gordon)
 AC_SUBST(USE_GORDON, $enable_gordon)
+AM_CONDITIONAL(USE_GORDON, test x$enable_gordon = xyes)
 
 if test x$enable_gordon = xyes; then
 	AC_CHECK_LIB(spe2, spe_context_create,,AC_MSG_ERROR([cannot find libspe2]))
@@ -191,6 +198,7 @@ AC_ARG_WITH(fxt, [AS_HELP_STRING([--with-fxt[=<dir>]], [generate fxt traces])],
 		AC_MSG_RESULT(no)
 	])
 AC_SUBST(USE_FXT, $use_fxt)
+AM_CONDITIONAL(USE_FXT, test x$use_fxt = xyes)
 
 if test x$use_fxt = xyes; then
 	AC_DEFINE(USE_FXT, [1], [enable FxT traces])
@@ -225,6 +233,11 @@ AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],
 			enable_perf_debug=$enableval, enable_perf_debug=no)
 AC_MSG_RESULT($enable_perf_debug)
 AC_SUBST(PERF_DEBUG, $enable_perf_debug)
+if test x$enable_perf_debuf = xyes; then
+	AC_DEFINE(PERF_DEBUG, [1], [enable performance debug])
+	CPPFLAGS="${CPPFLAGS} -pg "
+	LDFLAGS="${LDFLAGS} -pg "
+fi
 
 AC_MSG_CHECKING(whether performance model debugging should be enabled)
 AC_ARG_ENABLE(model-debug, [AS_HELP_STRING([--enable-model-debug],
@@ -415,15 +428,17 @@ AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h)
 
 AC_OUTPUT([
 	Makefile
-	examples/Makefile
-	src/common/Makefile
-	src/core/Makefile
-	src/core/mechanisms/Makefile
-	src/core/dependencies/Makefile
-	src/drivers/Makefile
-	examples/heat/Makefile
-	examples/incrementer/Makefile
-	examples/spmv/Makefile
+	src/Makefile
 	tools/Makefile
 	libstarpu.pc
+	examples/Makefile
+	examples/common/Makefile
+	examples/tag_example/Makefile
+	examples/cholesky/Makefile
+	examples/heat/Makefile
+	examples/mult/Makefile
+	examples/incrementer/Makefile
+	examples/spmv/Makefile
+	examples/strassen/Makefile
+	examples/strassen2/Makefile
 ])

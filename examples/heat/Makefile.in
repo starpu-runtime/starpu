@@ -14,11 +14,12 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-STARPU= ../../libstarpu.a
+export PKG_CONFIG_PATH=@STARPUDIR@
 
-LDFLAGS+= ../common/blas.o
+LIBS+=$$(pkg-config --libs libstarpu)
+CFLAGS+=$$(pkg-config --cflags libstarpu)
 
-OBJS := dw_sparse_cg.o dw_sparse_cg_kernels.o dw_factolu.o dw_factolu_tag.o heat_display.o heat.o lu_kernels_model.o dw_factolu_kernels.o
+OBJS := ../common/blas.o dw_sparse_cg.o dw_sparse_cg_kernels.o dw_factolu.o dw_factolu_tag.o heat_display.o heat.o lu_kernels_model.o dw_factolu_kernels.o
 
 all: heat
 
@@ -32,8 +33,8 @@ endif
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-heat: $(STARPU) $(OBJS) 
-	$(CC) $(OBJS) -o heat $(LDFLAGS) $(STARPU) $(EXTRALDFLAGS)
+heat: $(OBJS) 
+	$(CC) $(OBJS) -o heat $(LDFLAGS) $(LIBS)
 
 clean:
 	@rm -f *.o *.d *.gcno *.gcda

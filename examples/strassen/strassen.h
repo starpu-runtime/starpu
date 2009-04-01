@@ -19,7 +19,6 @@
 
 #include <semaphore.h>
 #include <sys/time.h>
-#include <common/timing.h>
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>

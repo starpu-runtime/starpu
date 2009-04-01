@@ -14,19 +14,17 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-%.o: %.c %.h
-	$(CC) $(CFLAGS) $< -c -o $@
-	$(CC) $(CFLAGS) $< -MM > $*.d
+export PKG_CONFIG_PATH=@STARPUDIR@
 
-all: jobs.o workers.o
-	@make -C perfmodel
-	@make -C dependencies
-	@make -C mechanisms
-	@make -C policies
+CFLAGS+=$$(pkg-config --cflags libstarpu)
+
+all: blas.o blas_model.o
+
+blas.o: blas.c blas.h
+	$(CC) $(CFLAGS) blas.c -c -o blas.o
+
+blas_model.o: blas_model.c blas_model.h
+	$(CC) $(CFLAGS) blas_model.c -c -o blas_model.o
 
 clean:
-	@make -C policies clean
-	@make -C mechanisms clean
-	@make -C dependencies clean
-	@make -C perfmodel clean
 	@rm -f *.o *.d *.gcno *.gcda

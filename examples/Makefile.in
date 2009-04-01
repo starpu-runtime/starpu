@@ -14,13 +14,13 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-.PHONY: incrementer tag_example cuda heat mult spmv cholesky strassen pastix-wrappers  strassen2
+.PHONY: common incrementer tag_example cuda heat mult spmv cholesky strassen pastix-wrappers  strassen2
 
 TARGET=tag_example 
 TARGET+= incrementer
 #TARGET+= dw_sparse_cg
 
-STARPU= $(PWD)/../libstarpu.a
+STARPU= $(PWD)/../src/libstarpu.a
 
 EXTRADEP=
 
@@ -30,7 +30,7 @@ ifeq ($(CHECK), 1)
 endif
 
 ifneq (@BLAS_LIB@,none)
-	TARGET+= common/blas.o
+	TARGET+= common
 endif
 
 ifeq (@BLAS_LIB@,goto)
@@ -60,6 +60,9 @@ endif
 endif
 
 all: $(TARGET)
+
+common:
+	make -C common
 
 pastix-wrappers:
 	make -C pastix-wrappers
@@ -92,6 +95,7 @@ cholesky:
 	make -C cholesky
 
 clean:
+	@make -C common clean
 	@make -C pastix-wrappers clean
 	@make -C cuda clean
 	@make -C heat clean

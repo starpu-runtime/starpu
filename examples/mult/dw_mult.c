@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <examples/mult/dw_mult.h>
+#include "dw_mult.h"
 
 float *A, *B, *C;
 data_handle A_state, B_state, C_state;
@@ -127,20 +127,12 @@ void cublas_mult(data_interface_t *descr, __attribute__((unused)) void *arg)
 {
 	COMMON_CODE
 
-	tick_t sgemm_start;
-	tick_t sgemm_end;
-
-
-	GET_TICK(sgemm_start);
-
 	cublasSgemm('n', 'n', nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 
 					     0.0f, subC, ldC);
 	cublasStatus st;
 	st = cublasGetError();
 	if (st != CUBLAS_STATUS_SUCCESS)
 		STARPU_ASSERT(0);
-
-	GET_TICK(sgemm_end);
 
 	uint64_t flopcnt = BLAS3_FLOP(nyC, nxC, nyA);
 

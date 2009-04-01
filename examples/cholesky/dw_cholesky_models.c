@@ -14,7 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <task-models/task_model.h>
 #include "dw_cholesky_models.h"
 
 /*

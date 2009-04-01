@@ -18,22 +18,22 @@
 #define __MULT_H__
 
 #include <semaphore.h>
-#include <common/timing.h>
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <pthread.h>
 #include <signal.h>
-#include <examples/common/blas.h>
 
-#include <task-models/blas_model.h>
+#include "../common/blas.h"
+#include "../common/blas_model.h"
 
 #include <starpu_config.h>
 #include <starpu.h>
 
 #ifdef USE_CUDA
 #include <cuda.h>
+#include <cublas.h>
 #endif
 
 #define MAXSLICESX	32
@@ -45,9 +45,6 @@
 
 #define BLAS3_LS(n1,n2,n3)    \
 	((2*(n1)*(n3) + (n1)*(n2) + (n2)*(n3))*sizeof(float))
-
-extern struct perfmodel_t sgemm_model;
-extern struct perfmodel_t sgemm_model_common;
 
 struct block_conf {
 	uint32_t m;
