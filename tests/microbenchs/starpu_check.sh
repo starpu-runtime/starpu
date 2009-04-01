@@ -62,13 +62,6 @@ test_with_timeout() {
 	fi
 }
 
-make clean > /dev/null 2> /dev/null
-make > /dev/null 2> /dev/null
-if test $? != 0; then
-	echo "Compilation failed, check installation ..."
-	exit 1
-fi
-
 echo
 echo "**********************"
 echo "TEST synchronous tasks"

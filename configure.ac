@@ -439,4 +439,6 @@ AC_OUTPUT([
 	tools/Makefile
 	libstarpu.pc
 	examples/Makefile
+	tests/Makefile
+	tests/microbenchs/Makefile
 ])

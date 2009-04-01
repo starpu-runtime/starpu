@@ -16,7 +16,7 @@
 
 .PHONY: examples
 
-SUBDIRS = src tools examples 
+SUBDIRS = src tools examples tests 
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpu.pc
