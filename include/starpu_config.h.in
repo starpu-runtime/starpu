@@ -11,4 +11,8 @@
 
 #undef STARPUDIR
 
+#undef OPENGL_RENDER
+
+#undef USE_GTK
+
 #endif

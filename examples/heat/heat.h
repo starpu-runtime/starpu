@@ -23,16 +23,18 @@
 #include <assert.h>
 #include <math.h>
 
+// needed for OPENGL_RENDER
+#include <starpu_config.h>
+#include <starpu.h>
+
+#include "../common/blas.h"
+
+
 #ifdef OPENGL_RENDER
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
 #endif
-
-#include <starpu_config.h>
-#include <starpu.h>
-
-#include "../common/blas.h"
 
 #define X	0
 #define Y	1
