@@ -18,7 +18,6 @@
 #define __DW_BLOCK_SPMV_H__
 
 #include <semaphore.h>
-#include <common/timing.h>
 #include <string.h>
 #include <stdint.h>
 #include <math.h>

@@ -17,7 +17,9 @@
 #include "dw_block_spmv.h"
 #include "matrix-market/mm_to_bcsr.h"
 
-tick_t start,end;
+struct timeval start;
+struct timeval end;
+
 sem_t sem;
 
 unsigned c = 256;
@@ -79,7 +81,7 @@ void init_problem_callback(void *arg)
 	if ( val == 0 )
 	{
 		printf("DONE ...\n");
-		GET_TICK(end);
+		gettimeofday(&end, NULL);
 
 //		starpu_unpartition_data(sparse_matrix, 0);
 		starpu_unpartition_data(vector_out, 0);
@@ -146,7 +148,7 @@ void launch_spmv_codelets(void)
 	uint32_t *rowptr = get_bcsr_local_rowptr(sparse_matrix);
 	uint32_t *colind = get_bcsr_local_colind(sparse_matrix);
 
-	GET_TICK(start);
+	gettimeofday(&start, NULL);
 
 	unsigned loop;
 	for (loop = 0; loop < NSPMV; loop++)
@@ -260,8 +262,6 @@ int main(__attribute__ ((unused)) int argc,
 
 	inputfile = argv[1];
 
-	timing_init();
-
 	/* start the runtime */
 	starpu_init();
 
@@ -278,7 +278,7 @@ int main(__attribute__ ((unused)) int argc,
 
 	double totalflop = 2.0*c*r*totaltasks;
 
-	double timing = timing_delay(&start, &end);
+	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	fprintf(stderr, "Computation took (in ms)\n");
 	printf("%2.2f\n", timing/1000);
 	fprintf(stderr, "Flop %e\n", totalflop);
