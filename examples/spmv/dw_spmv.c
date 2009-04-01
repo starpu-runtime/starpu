@@ -33,9 +33,9 @@ unsigned grids  = 8;
 
 #ifdef USE_CUDA
 /* CUDA spmv codelet */
-static struct cuda_module_s cuda_module;
-static struct cuda_function_s cuda_function;
-static cuda_codelet_t cuda_spmv;
+static struct starpu_cuda_module_s cuda_module;
+static struct starpu_cuda_function_s cuda_function;
+static starpu_cuda_codelet_t cuda_spmv;
 
 void initialize_cuda(void)
 {
@@ -263,7 +263,7 @@ void call_spmv_codelet_filters(void)
 
 	/* partition the data along a block distribution */
 	starpu_filter csr_f, vector_f;
-	csr_f.filter_func    = starpu_starpu_vertical_block_filter_func_csr;
+	csr_f.filter_func    = starpu_vertical_block_filter_func_csr;
 	csr_f.filter_arg     = nblocks;
 	vector_f.filter_func = starpu_block_filter_func_vector;
 	vector_f.filter_arg  = nblocks;

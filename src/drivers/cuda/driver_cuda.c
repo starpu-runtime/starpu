@@ -28,7 +28,7 @@ CUresult status;
 
 extern char *execpath;
 
-void starpu_init_cuda_module(struct cuda_module_s *module, char *path)
+void starpu_init_cuda_module(struct starpu_cuda_module_s *module, char *path)
 {
 	unsigned i;
 	for (i = 0; i < MAXCUDADEVS; i++)
@@ -39,7 +39,7 @@ void starpu_init_cuda_module(struct cuda_module_s *module, char *path)
 	module->module_path = path;
 }
 
-void starpu_load_cuda_module(int devid, struct cuda_module_s *module)
+void starpu_load_cuda_module(int devid, struct starpu_cuda_module_s *module)
 {
 	CUresult res;
 	if (!module->is_loaded[devid])
@@ -55,8 +55,8 @@ void starpu_load_cuda_module(int devid, struct cuda_module_s *module)
 	}
 }
 
-void starpu_init_cuda_function(struct cuda_function_s *func, 
-			struct cuda_module_s *module,
+void starpu_init_cuda_function(struct starpu_cuda_function_s *func, 
+			struct starpu_cuda_module_s *module,
 			char *symbol)
 {
 	unsigned i;
@@ -69,7 +69,7 @@ void starpu_init_cuda_function(struct cuda_function_s *func,
 	func->module = module;
 }
 
-void set_function_args(cuda_codelet_t *args, 
+void set_function_args(starpu_cuda_codelet_t *args, 
 			starpu_buffer_descr *descr,
 			starpu_data_interface_t *interface, 
 			unsigned nbuffers)
@@ -132,7 +132,7 @@ void set_function_args(cuda_codelet_t *args,
 	}
 }
 
-void starpu_load_cuda_function(int devid, struct cuda_function_s *function)
+void starpu_load_cuda_function(int devid, struct starpu_cuda_function_s *function)
 {
 	CUresult res;
 
@@ -240,7 +240,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 		GET_TICK(codelet_end);
 	} else {
 		/* load the module and the function */
-		cuda_codelet_t *args; 
+		starpu_cuda_codelet_t *args; 
 		args = cl->cuda_func;
 
 		starpu_load_cuda_function(devid, args->func);

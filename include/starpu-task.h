@@ -94,22 +94,22 @@ struct starpu_task {
 
 #ifdef USE_CUDA
 /* CUDA specific codelets */
-typedef struct cuda_module_s {
+typedef struct starpu_cuda_module_s {
 	CUmodule module;
 	char *module_path;
 	unsigned is_loaded[MAXCUDADEVS];
-} cuda_module_t;
+} starpu_cuda_module_t;
 
-typedef struct cuda_function_s {
-	struct cuda_module_s *module;
+typedef struct starpu_cuda_function_s {
+	struct starpu_cuda_module_s *module;
 	CUfunction function;
 	char *symbol;
 	unsigned is_loaded[MAXCUDADEVS];
-} cuda_function_t;
+} starpu_cuda_function_t;
 
-typedef struct cuda_codelet_s {
+typedef struct starpu_cuda_codelet_s {
 	/* which function to execute on the card ? */
-	struct cuda_function_s *func;
+	struct starpu_cuda_function_s *func;
 
 	/* grid and block shapes */
 	unsigned gridx;
@@ -121,14 +121,14 @@ typedef struct cuda_codelet_s {
 
 	void *stack; /* arguments */
 	size_t stack_size;
-} cuda_codelet_t;
+} starpu_cuda_codelet_t;
 
-void starpu_init_cuda_module(struct cuda_module_s *module, char *path);
-void starpu_load_cuda_module(int devid, struct cuda_module_s *module);
-void starpu_init_cuda_function(struct cuda_function_s *func,
-                        struct cuda_module_s *module,
+void starpu_init_cuda_module(struct starpu_cuda_module_s *module, char *path);
+void starpu_load_cuda_module(int devid, struct starpu_cuda_module_s *module);
+void starpu_init_cuda_function(struct starpu_cuda_function_s *func,
+                        struct starpu_cuda_module_s *module,
                         char *symbol);
-void starpu_load_cuda_function(int devid, struct cuda_function_s *function);
+void starpu_load_cuda_function(int devid, struct starpu_cuda_function_s *function);
 #endif // USE_CUDA
 
 /* handle task dependencies: it is possible to associate a task with a unique

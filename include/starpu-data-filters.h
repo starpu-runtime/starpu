@@ -38,7 +38,7 @@ void starpu_map_filters(struct starpu_data_state_t *root_data, unsigned nfilters
 
 /* for BCSR */
 unsigned starpu_canonical_block_filter_bcsr(starpu_filter *f, struct starpu_data_state_t *root_data);
-unsigned starpu_starpu_vertical_block_filter_func_csr(starpu_filter *f, struct starpu_data_state_t *root_data);
+unsigned starpu_vertical_block_filter_func_csr(starpu_filter *f, struct starpu_data_state_t *root_data);
 /* (filters for BLAS interface) */
 unsigned starpu_block_filter_func(starpu_filter *f, struct starpu_data_state_t *root_data);
 unsigned starpu_vertical_block_filter_func(starpu_filter *f, struct starpu_data_state_t *root_data);

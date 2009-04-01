@@ -22,9 +22,9 @@
 
 #ifdef USE_CUDA
 /* CUDA spmv codelet */
-static struct cuda_module_s cuda_module;
-static struct cuda_function_s cuda_function;
-static cuda_codelet_t cuda_codelet;
+static struct starpu_cuda_module_s cuda_module;
+static struct starpu_cuda_function_s cuda_function;
+static starpu_cuda_codelet_t cuda_codelet;
 
 void initialize_cuda(void)
 {

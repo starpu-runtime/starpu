@@ -72,10 +72,10 @@ void cublas_codelet(starpu_data_interface_t *buffers, __attribute__ ((unused)) v
 #endif
 
 #ifdef USE_CUDA
-static struct cuda_module_s cuda_module;
-static struct cuda_function_s cuda_function;
+static struct starpu_cuda_module_s cuda_module;
+static struct starpu_cuda_function_s cuda_function;
 
-static cuda_codelet_t cuda_codelet;
+static starpu_cuda_codelet_t cuda_codelet;
 
 void initialize_cuda(void)
 {
