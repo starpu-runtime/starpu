@@ -93,7 +93,7 @@ LIST_TYPE(data_requester,
 
 #endif
 
-typedef struct data_state_t {
+typedef struct starpu_data_state_t {
 #ifdef NO_DATA_RW_LOCK
 	data_requester_list_t req_list;
 	/* the number of requests currently in the scheduling engine
@@ -108,7 +108,7 @@ typedef struct data_state_t {
 	mutex header_lock;
 
 	uint32_t nnodes; /* the number of memory nodes that may use it */
-	struct data_state_t *children;
+	struct starpu_data_state_t *children;
 	int nchildren;
 
 	/* describe the state of the data in term of coherency */

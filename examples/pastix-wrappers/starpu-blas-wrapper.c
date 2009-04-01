@@ -146,7 +146,7 @@ unsigned divide_vector_in_blas_filter(filter *f, starpu_data_handle root_data)
 			local->ptr = root_data->interface[node].vector.ptr + n1*elemsize;
 		}
 
-		struct data_state_t *state = &root_data->children[child];
+		struct starpu_data_state_t *state = &root_data->children[child];
 		state->ops = &interface_blas_ops;
 	}
 
@@ -184,7 +184,7 @@ void STARPU_MONITOR_DATA(unsigned ncols)
 
 void STARPU_MONITOR_CBLK(unsigned col, float *data, unsigned stride, unsigned width)
 {
-	//void starpu_monitor_blas_data(struct data_state_t *state, uint32_t home_node,
+	//void starpu_monitor_blas_data(struct starpu_data_state_t *state, uint32_t home_node,
         //                uintptr_t ptr, uint32_t ld, uint32_t nx,
         //                uint32_t ny, size_t elemsize);
 

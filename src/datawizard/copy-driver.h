@@ -43,10 +43,10 @@ typedef struct {
 	unsigned queues_count[MAXNODES];
 } mem_node_descr;
 
-struct data_state_t;
+struct starpu_data_state_t;
 
 __attribute__((warn_unused_result))
-int driver_copy_data(struct data_state_t *state, uint32_t src_node_mask, uint32_t dst_node, unsigned donotread);
+int driver_copy_data(struct starpu_data_state_t *state, uint32_t src_node_mask, uint32_t dst_node, unsigned donotread);
 
 void init_memory_nodes(void);
 void set_local_memory_node_key(unsigned *node);
@@ -59,9 +59,9 @@ void wake_all_blocked_workers_on_node(unsigned nodeid);
 node_kind get_node_kind(uint32_t node);
 
 __attribute__((warn_unused_result))
-int driver_copy_data_1_to_1(struct data_state_t *state, uint32_t node, 
+int driver_copy_data_1_to_1(struct starpu_data_state_t *state, uint32_t node, 
 				uint32_t requesting_node, unsigned donotread);
 
-int allocate_per_node_buffer(struct data_state_t *state, uint32_t node);
+int allocate_per_node_buffer(struct starpu_data_state_t *state, uint32_t node);
 
 #endif // __COPY_DRIVER_H__

@@ -22,7 +22,7 @@
 
 #define NMAXBUFS        8
 
-struct data_state_t;
+struct starpu_data_state_t;
 
 typedef enum {
 	R,
@@ -35,12 +35,12 @@ typedef struct starpu_buffer_descr_t {
 	starpu_access_mode mode;
 } starpu_buffer_descr;
 
-void starpu_unpartition_data(struct data_state_t *root_data, uint32_t gathering_node);
-void starpu_delete_data(struct data_state_t *state);
+void starpu_unpartition_data(struct starpu_data_state_t *root_data, uint32_t gathering_node);
+void starpu_delete_data(struct starpu_data_state_t *state);
 
-void starpu_advise_if_data_is_important(struct data_state_t *state, unsigned is_important);
+void starpu_advise_if_data_is_important(struct starpu_data_state_t *state, unsigned is_important);
 
-void starpu_sync_data_with_mem(struct data_state_t *state);
+void starpu_sync_data_with_mem(struct starpu_data_state_t *state);
 
 void starpu_malloc_pinned_if_possible(float **A, size_t dim);
 

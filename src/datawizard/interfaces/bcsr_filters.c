@@ -68,7 +68,7 @@ unsigned canonical_block_filter_bcsr(filter *f __attribute__((unused)), data_sta
 			}
 		}
 
-		struct data_state_t *state = &root_data->children[chunk];
+		struct starpu_data_state_t *state = &root_data->children[chunk];
 		state->ops = &interface_blas_ops;
 	}
 

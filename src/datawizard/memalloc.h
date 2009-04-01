@@ -23,10 +23,10 @@
 #include <datawizard/copy-driver.h>
 #include <datawizard/progress.h>
 
-struct data_state_t;
+struct starpu_data_state_t;
 
 LIST_TYPE(mem_chunk,
-	struct data_state_t *data;
+	struct starpu_data_state_t *data;
 	size_t size;
 
 	uint32_t footprint;
@@ -44,8 +44,8 @@ LIST_TYPE(mem_chunk,
 );
 
 void init_mem_chunk_lists(void);
-void request_mem_chunk_removal(struct data_state_t *state, unsigned node);
-int allocate_memory_on_node(struct data_state_t *state, uint32_t dst_node);
+void request_mem_chunk_removal(struct starpu_data_state_t *state, unsigned node);
+int allocate_memory_on_node(struct starpu_data_state_t *state, uint32_t dst_node);
 size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node);
 
 #endif

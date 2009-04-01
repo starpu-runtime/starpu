@@ -17,8 +17,8 @@
 #ifndef __STARPU_DATA_INTERFACES_H__
 #define __STARPU_DATA_INTERFACES_H__
 
-struct data_state_t;
-typedef struct data_state_t * starpu_data_handle;
+struct starpu_data_state_t;
+typedef struct starpu_data_state_t * starpu_data_handle;
 
 /* BLAS interface for dense matrices */
 typedef struct starpu_blas_interface_s {

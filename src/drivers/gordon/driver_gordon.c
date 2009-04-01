@@ -126,7 +126,7 @@ static void starpu_to_gordon_buffers(job_t j, struct gordon_ppu_job_s *gordon_jo
 				break;
 		}
 
-		struct data_state_t *state = j->buffers[buffer].state;
+		struct starpu_data_state_t *state = j->buffers[buffer].state;
 
 		gordon_job->nalloc = 0;
 		gordon_job->nin = nin;

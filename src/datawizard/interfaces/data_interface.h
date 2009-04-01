@@ -33,20 +33,20 @@
 
 #include <starpu.h>
 
-struct data_state_t;
+struct starpu_data_state_t;
 
 struct data_interface_ops_t {
-	size_t (*allocate_data_on_node)(struct data_state_t *state,
+	size_t (*allocate_data_on_node)(struct starpu_data_state_t *state,
 					uint32_t node);
 	void (*liberate_data_on_node)(starpu_data_interface_t *interface,
 					uint32_t node);
-	int (*copy_data_1_to_1)(struct data_state_t *state, 
+	int (*copy_data_1_to_1)(struct starpu_data_state_t *state, 
 					uint32_t src, uint32_t dst);
 	size_t (*dump_data_interface)(starpu_data_interface_t *interface, 
 					void *buffer);
-	size_t (*get_size)(struct data_state_t *state);
-	uint32_t (*footprint)(struct data_state_t *state, uint32_t hstate);
-	void (*display)(struct data_state_t *state, FILE *f);
+	size_t (*get_size)(struct starpu_data_state_t *state);
+	uint32_t (*footprint)(struct starpu_data_state_t *state, uint32_t hstate);
+	void (*display)(struct starpu_data_state_t *state, FILE *f);
 #ifdef USE_GORDON
 	int (*convert_to_gordon)(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif

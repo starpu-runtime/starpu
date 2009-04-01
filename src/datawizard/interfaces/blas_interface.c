@@ -31,7 +31,7 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node);
 void liberate_blas_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
 int do_copy_blas_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node);
 size_t dump_blas_interface(starpu_data_interface_t *interface, void *buffer);
-size_t blas_interface_get_size(struct data_state_t *state);
+size_t blas_interface_get_size(struct starpu_data_state_t *state);
 uint32_t footprint_blas_interface_crc32(data_state *state, uint32_t hstate);
 void display_blas_interface(data_state *state, FILE *f);
 #ifdef USE_GORDON
@@ -73,11 +73,11 @@ int convert_blas_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, go
 #endif
 
 /* declare a new data with the BLAS interface */
-void starpu_monitor_blas_data(struct data_state_t **handle, uint32_t home_node,
+void starpu_monitor_blas_data(struct starpu_data_state_t **handle, uint32_t home_node,
 			uintptr_t ptr, uint32_t ld, uint32_t nx,
 			uint32_t ny, size_t elemsize)
 {
-	struct data_state_t *state = calloc(1, sizeof(struct data_state_t));
+	struct starpu_data_state_t *state = calloc(1, sizeof(struct starpu_data_state_t));
 	STARPU_ASSERT(state);
 
 	STARPU_ASSERT(handle);
@@ -152,7 +152,7 @@ size_t dump_blas_interface(starpu_data_interface_t *interface, void *_buffer)
 	return (sizeof(struct dumped_blas_interface_s));
 }
 
-size_t blas_interface_get_size(struct data_state_t *state)
+size_t blas_interface_get_size(struct starpu_data_state_t *state)
 {
 	size_t size;
 	starpu_blas_interface_t *interface;

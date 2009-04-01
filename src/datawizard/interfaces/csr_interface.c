@@ -27,11 +27,11 @@
 #include <cuda.h>
 #endif
 
-size_t allocate_csr_buffer_on_node(struct data_state_t *state, uint32_t dst_node);
+size_t allocate_csr_buffer_on_node(struct starpu_data_state_t *state, uint32_t dst_node);
 void liberate_csr_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
 size_t dump_csr_interface(starpu_data_interface_t *interface, void *_buffer);
-int do_copy_csr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, uint32_t dst_node);
-size_t csr_interface_get_size(struct data_state_t *state);
+int do_copy_csr_buffer_1_to_1(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
+size_t csr_interface_get_size(struct starpu_data_state_t *state);
 uint32_t footprint_csr_interface_crc32(data_state *state, uint32_t hstate);
 
 struct data_interface_ops_t interface_csr_ops = {
@@ -45,10 +45,10 @@ struct data_interface_ops_t interface_csr_ops = {
 };
 
 /* declare a new data with the BLAS interface */
-void starpu_monitor_csr_data(struct data_state_t **handle, uint32_t home_node,
+void starpu_monitor_csr_data(struct starpu_data_state_t **handle, uint32_t home_node,
 		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize)
 {
-	struct data_state_t *state = calloc(1, sizeof(struct data_state_t));
+	struct starpu_data_state_t *state = calloc(1, sizeof(struct starpu_data_state_t));
 	STARPU_ASSERT(state);
 
 	STARPU_ASSERT(handle);
@@ -126,27 +126,27 @@ size_t dump_csr_interface(starpu_data_interface_t *interface, void *_buffer)
 }
 
 /* offer an access to the data parameters */
-uint32_t starpu_get_csr_nnz(struct data_state_t *state)
+uint32_t starpu_get_csr_nnz(struct starpu_data_state_t *state)
 {
 	return (state->interface[0].csr.nnz);
 }
 
-uint32_t starpu_get_csr_nrow(struct data_state_t *state)
+uint32_t starpu_get_csr_nrow(struct starpu_data_state_t *state)
 {
 	return (state->interface[0].csr.nrow);
 }
 
-uint32_t starpu_get_csr_firstentry(struct data_state_t *state)
+uint32_t starpu_get_csr_firstentry(struct starpu_data_state_t *state)
 {
 	return (state->interface[0].csr.firstentry);
 }
 
-size_t starpu_get_csr_elemsize(struct data_state_t *state)
+size_t starpu_get_csr_elemsize(struct starpu_data_state_t *state)
 {
 	return (state->interface[0].csr.elemsize);
 }
 
-uintptr_t starpu_get_csr_local_nzval(struct data_state_t *state)
+uintptr_t starpu_get_csr_local_nzval(struct starpu_data_state_t *state)
 {
 	unsigned node;
 	node = get_local_memory_node();
@@ -156,7 +156,7 @@ uintptr_t starpu_get_csr_local_nzval(struct data_state_t *state)
 	return (state->interface[node].csr.nzval);
 }
 
-uint32_t *starpu_get_csr_local_colind(struct data_state_t *state)
+uint32_t *starpu_get_csr_local_colind(struct starpu_data_state_t *state)
 {
 	unsigned node;
 	node = get_local_memory_node();
@@ -166,7 +166,7 @@ uint32_t *starpu_get_csr_local_colind(struct data_state_t *state)
 	return (state->interface[node].csr.colind);
 }
 
-uint32_t *starpu_get_csr_local_rowptr(struct data_state_t *state)
+uint32_t *starpu_get_csr_local_rowptr(struct starpu_data_state_t *state)
 {
 	unsigned node;
 	node = get_local_memory_node();
@@ -176,7 +176,7 @@ uint32_t *starpu_get_csr_local_rowptr(struct data_state_t *state)
 	return (state->interface[node].csr.rowptr);
 }
 
-size_t csr_interface_get_size(struct data_state_t *state)
+size_t csr_interface_get_size(struct starpu_data_state_t *state)
 {
 	size_t size;
 
@@ -192,7 +192,7 @@ size_t csr_interface_get_size(struct data_state_t *state)
 /* memory allocation/deallocation primitives for the BLAS interface */
 
 /* returns the size of the allocated area */
-size_t allocate_csr_buffer_on_node(struct data_state_t *state, uint32_t dst_node)
+size_t allocate_csr_buffer_on_node(struct starpu_data_state_t *state, uint32_t dst_node)
 {
 	uintptr_t addr_nzval;
 	uint32_t *addr_colind, *addr_rowptr;
@@ -308,7 +308,7 @@ void liberate_csr_buffer_on_node(starpu_data_interface_t *interface, uint32_t no
 }
 
 #ifdef USE_CUDA
-static void copy_cublas_to_ram(struct data_state_t *state, uint32_t src_node, uint32_t dst_node)
+static void copy_cublas_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node)
 {
 	starpu_csr_interface_t *src_csr;
 	starpu_csr_interface_t *dst_csr;
@@ -333,7 +333,7 @@ static void copy_cublas_to_ram(struct data_state_t *state, uint32_t src_node, ui
 
 }
 
-static void copy_ram_to_cublas(struct data_state_t *state, uint32_t src_node, uint32_t dst_node)
+static void copy_ram_to_cublas(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node)
 {
 	starpu_csr_interface_t *src_csr;
 	starpu_csr_interface_t *dst_csr;
@@ -359,7 +359,7 @@ static void copy_ram_to_cublas(struct data_state_t *state, uint32_t src_node, ui
 #endif // USE_CUDA
 
 /* as not all platform easily have a BLAS lib installed ... */
-static void dummy_copy_ram_to_ram(struct data_state_t *state, uint32_t src_node, uint32_t dst_node)
+static void dummy_copy_ram_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node)
 {
 
 	starpu_csr_interface_t *src_csr;
@@ -382,7 +382,7 @@ static void dummy_copy_ram_to_ram(struct data_state_t *state, uint32_t src_node,
 }
 
 
-int do_copy_csr_buffer_1_to_1(struct data_state_t *state, uint32_t src_node, uint32_t dst_node)
+int do_copy_csr_buffer_1_to_1(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node)
 {
 	node_kind src_kind = get_node_kind(src_node);
 	node_kind dst_kind = get_node_kind(dst_node);
