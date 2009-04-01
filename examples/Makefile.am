@@ -17,21 +17,28 @@
 LIBS = $(top_builddir)/src/libstarpu.la @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/
 
-if USE_CUDA
-
-NVCC ?= nvcc
-
-.cu.cubin:
-	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
-
-BUILT_SOURCES =					\
-	cuda/incrementer_cuda.cubin		\
-	cuda/spmv_cuda.cubin			
+EXTRA_DIST = 					\
+	cuda/incrementer_cuda.cu		\
+	cuda/spmv_cuda.cu
 
 CLEANFILES = 					\
 	incrementer_cuda.linkinfo		\
 	cuda/incrementer_cuda.cubin		\
 	spmv_cuda.linkinfo			\
+	cuda/spmv_cuda.cubin			
+
+
+if USE_CUDA
+
+# TODO define NVCCFLAGS
+NVCC ?= nvcc
+
+.cu.cubin:
+	$(MKDIR_P) `dirname $@`
+	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
+
+BUILT_SOURCES =					\
+	cuda/incrementer_cuda.cubin		\
 	cuda/spmv_cuda.cubin			
 
 endif
