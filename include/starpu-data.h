@@ -28,11 +28,11 @@ typedef enum {
 	R,
 	W,
 	RW
-} access_mode;
+} starpu_access_mode;
 
 typedef struct buffer_descr_t {
 	starpu_data_handle state;
-	access_mode mode;
+	starpu_access_mode mode;
 } buffer_descr;
 
 void starpu_unpartition_data(struct data_state_t *root_data, uint32_t gathering_node);

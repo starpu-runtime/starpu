@@ -58,7 +58,7 @@ static unsigned may_unlock_data_req_list_head(data_state *data)
 }
 
 
-unsigned attempt_to_submit_data_request_from_apps(data_state *data, access_mode mode,
+unsigned attempt_to_submit_data_request_from_apps(data_state *data, starpu_access_mode mode,
 						void (*callback)(void *), void *argcb)
 {
 	unsigned ret;
@@ -112,7 +112,7 @@ static unsigned attempt_to_submit_data_request_from_job(job_t j, unsigned buffer
 	unsigned ret;
 
 	data_state *data = j->task->buffers[buffer_index].state;
-	access_mode mode = j->task->buffers[buffer_index].mode;
+	starpu_access_mode mode = j->task->buffers[buffer_index].mode;
 
 	take_mutex(&data->header_lock);
 

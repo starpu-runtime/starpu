@@ -76,7 +76,7 @@ typedef struct local_data_state_t {
 
 LIST_TYPE(data_requester,
 	/* what kind of access is requested ? */
-	access_mode mode;
+	starpu_access_mode mode;
 
 	unsigned is_requested_by_codelet;
 
@@ -99,7 +99,7 @@ typedef struct data_state_t {
 	/* the number of requests currently in the scheduling engine
 	 * (not in the req_list anymore) */
 	unsigned refcnt;
-	access_mode current_mode;
+	starpu_access_mode current_mode;
 #else
 	/* protect the data itself */
 	rw_lock	data_lock;
@@ -136,7 +136,7 @@ typedef struct data_state_t {
 void display_msi_stats(void);
 
 __attribute__((warn_unused_result))
-int fetch_data(data_state *state, access_mode mode);
+int fetch_data(data_state *state, starpu_access_mode mode);
 //void release_data(data_state *state, uint32_t write_through_mask);
 
 __attribute__((warn_unused_result))
