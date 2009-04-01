@@ -15,12 +15,14 @@
 #
 
 AC_INIT([StarPU],0.1, [http://runtime.bordeaux.inria.fr/StarPU/], starpu)
+AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_MSG_NOTICE([Configuring StarPU])
 
 AC_CONFIG_SRCDIR(include/starpu.h)
 
 AC_PREREQ(2.60)
+
 
 AC_PROG_CC
 AC_PROG_CPP
