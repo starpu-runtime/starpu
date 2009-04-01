@@ -27,8 +27,8 @@ unsigned r = 256;
 
 unsigned remainingtasks = -1;
 
-data_handle sparse_matrix;
-data_handle vector_in, vector_out;
+starpu_data_handle sparse_matrix;
+starpu_data_handle vector_in, vector_out;
 
 uint32_t size;
 char *inputfile;

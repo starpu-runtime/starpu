@@ -585,7 +585,7 @@ void dw_callback_codelet_update_u12_21(void *argcb)
  *	code to bootstrap the factorization 
  */
 
-void dw_codelet_facto(data_handle dataA, unsigned nblocks)
+void dw_codelet_facto(starpu_data_handle dataA, unsigned nblocks)
 {
 	cl_args *args = malloc(sizeof(cl_args));
 
@@ -628,7 +628,7 @@ void dw_codelet_facto(data_handle dataA, unsigned nblocks)
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
 
-void dw_codelet_facto_v2(data_handle dataA, unsigned nblocks)
+void dw_codelet_facto_v2(starpu_data_handle dataA, unsigned nblocks)
 {
 
 	advance_11 = calloc(nblocks, sizeof(uint8_t));
@@ -711,7 +711,7 @@ void dw_factoLU(float *matA, unsigned size,
 	memcpy(Asaved, matA, ld*ld*sizeof(float));
 #endif
 
-	data_handle dataA;
+	starpu_data_handle dataA;
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */

@@ -31,7 +31,7 @@ typedef enum {
 } access_mode;
 
 typedef struct buffer_descr_t {
-	data_handle state;
+	starpu_data_handle state;
 	access_mode mode;
 } buffer_descr;
 

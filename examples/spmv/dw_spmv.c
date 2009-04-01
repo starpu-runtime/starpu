@@ -69,8 +69,8 @@ void initialize_cuda(void)
 sem_t sem;
 uint32_t size = 4194304;
 
-data_handle sparse_matrix;
-data_handle vector_in, vector_out;
+starpu_data_handle sparse_matrix;
+starpu_data_handle vector_in, vector_out;
 
 float *sparse_matrix_nzval;
 uint32_t *sparse_matrix_colind;

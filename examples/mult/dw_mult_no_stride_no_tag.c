@@ -26,9 +26,9 @@ float *A[MAXSLICESY][MAXSLICESZ];
 float *B[MAXSLICESZ][MAXSLICESX];
 float *C[MAXSLICESY][MAXSLICESX];
 
-data_handle A_state[MAXSLICESY][MAXSLICESZ];
-data_handle B_state[MAXSLICESZ][MAXSLICESX];
-data_handle C_state[MAXSLICESY][MAXSLICESX];
+starpu_data_handle A_state[MAXSLICESY][MAXSLICESZ];
+starpu_data_handle B_state[MAXSLICESZ][MAXSLICESX];
+starpu_data_handle C_state[MAXSLICESY][MAXSLICESX];
 
 
 static void callback_func_3(void *arg);
@@ -133,9 +133,9 @@ static void init_problem_data(void)
 	memset(A, 0, MAXSLICESY*MAXSLICESZ*sizeof(float *));
 	memset(B, 0, MAXSLICESZ*MAXSLICESZ*sizeof(float *));
 	memset(C, 0, MAXSLICESY*MAXSLICESX*sizeof(float *));
-	memset(&A_state, 0, MAXSLICESY*MAXSLICESZ*sizeof(data_handle));
-	memset(&B_state, 0, MAXSLICESZ*MAXSLICESZ*sizeof(data_handle));
-	memset(&C_state, 0, MAXSLICESY*MAXSLICESX*sizeof(data_handle));
+	memset(&A_state, 0, MAXSLICESY*MAXSLICESZ*sizeof(starpu_data_handle));
+	memset(&B_state, 0, MAXSLICESZ*MAXSLICESZ*sizeof(starpu_data_handle));
+	memset(&C_state, 0, MAXSLICESY*MAXSLICESX*sizeof(starpu_data_handle));
 
 	/* Allocate grids of buffer */
 	/* TODO pin ... */

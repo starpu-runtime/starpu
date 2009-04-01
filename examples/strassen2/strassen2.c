@@ -122,13 +122,13 @@ struct strassen_iter {
 	unsigned reclevel;
 	struct strassen_iter *children[7];
 
-	data_handle A, B, C;
+	starpu_data_handle A, B, C;
 
 	/* temporary buffers */
 	/* Mi = Mia * Mib*/
-	data_handle Mia_data[7];
-	data_handle Mib_data[7];
-	data_handle Mi_data[7];
+	starpu_data_handle Mia_data[7];
+	starpu_data_handle Mib_data[7];
+	starpu_data_handle Mi_data[7];
 
 	/* input deps */
 	struct data_deps_t A_deps;
@@ -151,9 +151,9 @@ static filter f2 =
 	.filter_arg = 2
 };
 
-data_handle allocate_tmp_matrix(unsigned size, unsigned reclevel)
+starpu_data_handle allocate_tmp_matrix(unsigned size, unsigned reclevel)
 {
-	data_handle *data = malloc(sizeof(data_handle));
+	starpu_data_handle *data = malloc(sizeof(starpu_data_handle));
 	float *buffer;
 
 #ifdef USE_CUDA
@@ -219,7 +219,7 @@ static starpu_codelet cl_mult = {
 };
 
 /* C = A op B */
-struct starpu_task *compute_add_sub_op(data_handle C, enum operation op, data_handle A, data_handle B)
+struct starpu_task *compute_add_sub_op(starpu_data_handle C, enum operation op, starpu_data_handle A, starpu_data_handle B)
 {
 	struct starpu_task *task = starpu_task_create();
 
@@ -275,7 +275,7 @@ static starpu_codelet cl_self_sub = {
 };
 
 /* C = C op A */
-struct starpu_task *compute_self_add_sub_op(data_handle C, enum operation op, data_handle A)
+struct starpu_task *compute_self_add_sub_op(starpu_data_handle C, enum operation op, starpu_data_handle A)
 {
 	struct starpu_task *task = starpu_task_create();
 	uint64_t j_tag = current_tag++;
@@ -308,7 +308,7 @@ struct cleanup_arg {
 	unsigned ndeps;
 	uint64_t tags[8];
 	unsigned ndata;
-	data_handle data[32];
+	starpu_data_handle data[32];
 };
 
 void cleanup_callback(void *_arg)
@@ -384,20 +384,20 @@ void strassen_mult(struct strassen_iter *iter)
 		return;
 	}
 
-        data_handle A11 = get_sub_data(iter->A, 2, 0, 0);
-        data_handle A12 = get_sub_data(iter->A, 2, 1, 0);
-        data_handle A21 = get_sub_data(iter->A, 2, 0, 1);
-        data_handle A22 = get_sub_data(iter->A, 2, 1, 1);
+        starpu_data_handle A11 = get_sub_data(iter->A, 2, 0, 0);
+        starpu_data_handle A12 = get_sub_data(iter->A, 2, 1, 0);
+        starpu_data_handle A21 = get_sub_data(iter->A, 2, 0, 1);
+        starpu_data_handle A22 = get_sub_data(iter->A, 2, 1, 1);
 
-        data_handle B11 = get_sub_data(iter->B, 2, 0, 0);
-        data_handle B12 = get_sub_data(iter->B, 2, 1, 0);
-        data_handle B21 = get_sub_data(iter->B, 2, 0, 1);
-        data_handle B22 = get_sub_data(iter->B, 2, 1, 1);
+        starpu_data_handle B11 = get_sub_data(iter->B, 2, 0, 0);
+        starpu_data_handle B12 = get_sub_data(iter->B, 2, 1, 0);
+        starpu_data_handle B21 = get_sub_data(iter->B, 2, 0, 1);
+        starpu_data_handle B22 = get_sub_data(iter->B, 2, 1, 1);
 
-        data_handle C11 = get_sub_data(iter->C, 2, 0, 0);
-        data_handle C12 = get_sub_data(iter->C, 2, 1, 0);
-        data_handle C21 = get_sub_data(iter->C, 2, 0, 1);
-        data_handle C22 = get_sub_data(iter->C, 2, 1, 1);
+        starpu_data_handle C11 = get_sub_data(iter->C, 2, 0, 0);
+        starpu_data_handle C12 = get_sub_data(iter->C, 2, 1, 0);
+        starpu_data_handle C21 = get_sub_data(iter->C, 2, 0, 1);
+        starpu_data_handle C22 = get_sub_data(iter->C, 2, 1, 1);
 
 	unsigned size = get_blas_nx(A11);
 
@@ -750,7 +750,7 @@ void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-	data_handle data_A, data_B, data_C;
+	starpu_data_handle data_A, data_B, data_C;
 	float *A, *B, *C;
 
 	struct timeval start;

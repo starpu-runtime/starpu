@@ -46,12 +46,12 @@ static unsigned blocks = 512;
 static unsigned grids  = 8;
 
 struct cg_problem {
-	data_handle ds_matrixA;
-	data_handle ds_vecx;
-	data_handle ds_vecb;
-	data_handle ds_vecr;
-	data_handle ds_vecd;
-	data_handle ds_vecq;
+	starpu_data_handle ds_matrixA;
+	starpu_data_handle ds_vecx;
+	starpu_data_handle ds_vecb;
+	starpu_data_handle ds_vecr;
+	starpu_data_handle ds_vecd;
+	starpu_data_handle ds_vecq;
 
 	sem_t *sem;
 	

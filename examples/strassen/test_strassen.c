@@ -27,9 +27,9 @@ float *A;
 float *B;
 float *C;
 
-data_handle A_state;
-data_handle B_state;
-data_handle C_state;
+starpu_data_handle A_state;
+starpu_data_handle B_state;
+starpu_data_handle C_state;
 
 struct timeval start;
 struct timeval end;

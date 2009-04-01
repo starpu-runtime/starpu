@@ -33,8 +33,8 @@
 
 #define NITER	50000
 
-data_handle my_float_state;
-data_handle unity_state;
+starpu_data_handle my_float_state;
+starpu_data_handle unity_state;
 
 sem_t sem;
 

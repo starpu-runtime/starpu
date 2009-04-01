@@ -17,7 +17,7 @@
 #include "dw_mult.h"
 
 float *A, *B, *C;
-data_handle A_state, B_state, C_state;
+starpu_data_handle A_state, B_state, C_state;
 
 /*
  * That program should compute C = A * B 

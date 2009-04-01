@@ -363,9 +363,9 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 {
 	/* first declare all the data structures to the runtime */
 
-	data_handle ds_matrixA;
-	data_handle ds_vecx, ds_vecb;
-	data_handle ds_vecr, ds_vecd, ds_vecq; 
+	starpu_data_handle ds_matrixA;
+	starpu_data_handle ds_vecx, ds_vecb;
+	starpu_data_handle ds_vecr, ds_vecd, ds_vecq; 
 
 	/* first the user-allocated data */
 	monitor_csr_data(&ds_matrixA, 0, nnz, nrow, 
