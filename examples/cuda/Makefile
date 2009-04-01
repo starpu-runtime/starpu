@@ -17,6 +17,8 @@
 #NVCCFLAGS+= -deviceemu
 #CXXFLAGS+=  -D__DEVICE_EMULATION__
 
+NVCC ?= nvcc
+
 all: 
 
 %.cubin: %.cu
