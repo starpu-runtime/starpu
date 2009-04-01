@@ -42,7 +42,7 @@
 #endif
 
 /* codelet function */
-typedef void (*cl_func)(data_interface_t *, void *);
+typedef void (*cl_func)(starpu_data_interface_t *, void *);
 typedef void (*callback)(void *);
 
 #define CORE_MAY_PERFORM(j)	((j)->task->cl->where & CORE)

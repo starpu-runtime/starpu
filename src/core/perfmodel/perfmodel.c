@@ -24,10 +24,10 @@
  * PER ARCH model
  */
 
-static double per_arch_job_expected_length(struct perfmodel_t *model, enum perf_archtype arch, struct job_s *j)
+static double per_arch_job_expected_length(struct starpu_perfmodel_t *model, enum perf_archtype arch, struct job_s *j)
 {
 	double exp = -1.0;
-	double (*per_arch_cost_model)(struct buffer_descr_t *);
+	double (*per_arch_cost_model)(struct starpu_buffer_descr_t *);
 	
 	if (!model->is_loaded)
 	{
@@ -56,7 +56,7 @@ static double per_arch_job_expected_length(struct perfmodel_t *model, enum perf_
  * Common model
  */
 
-static double common_job_expected_length(struct perfmodel_t *model, uint32_t who, struct job_s *j)
+static double common_job_expected_length(struct starpu_perfmodel_t *model, uint32_t who, struct job_s *j)
 {
 	double exp;
 
@@ -86,7 +86,7 @@ static double common_job_expected_length(struct perfmodel_t *model, uint32_t who
 
 double job_expected_length(uint32_t who, struct job_s *j, enum perf_archtype arch)
 {
-	struct perfmodel_t *model = j->task->cl->model;
+	struct starpu_perfmodel_t *model = j->task->cl->model;
 
 	if (model) {
 		switch (model->type) {

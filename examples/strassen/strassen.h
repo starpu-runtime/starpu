@@ -91,24 +91,24 @@ typedef struct {
 	unsigned i;
 } phase3_t;
 
-void mult_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
-void sub_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
-void add_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
-void self_add_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
-void self_sub_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+void mult_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+void sub_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+void add_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+void self_add_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+void self_sub_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
 
 #ifdef USE_CUDA
-void mult_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
-void sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
-void add_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
-void self_add_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
-void self_sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+void mult_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+void sub_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+void add_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+void self_add_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+void self_sub_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
 #endif
 
 void strassen(starpu_data_handle A, starpu_data_handle B, starpu_data_handle C, void (*callback)(void *), void *argcb, unsigned reclevel);
 
-extern struct perfmodel_t strassen_model_mult;
-extern struct perfmodel_t strassen_model_add_sub;
-extern struct perfmodel_t strassen_model_self_add_sub;
+extern struct starpu_perfmodel_t strassen_model_mult;
+extern struct starpu_perfmodel_t strassen_model_add_sub;
+extern struct starpu_perfmodel_t strassen_model_self_add_sub;
 
 #endif // __STRASSEN_H__

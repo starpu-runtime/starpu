@@ -70,8 +70,8 @@ void starpu_init_cuda_function(struct cuda_function_s *func,
 }
 
 void set_function_args(cuda_codelet_t *args, 
-			buffer_descr *descr,
-			data_interface_t *interface, 
+			starpu_buffer_descr *descr,
+			starpu_data_interface_t *interface, 
 			unsigned nbuffers)
 {
 	CUresult res;

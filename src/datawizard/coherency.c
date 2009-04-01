@@ -243,7 +243,7 @@ static void release_data(data_state *state, uint32_t default_wb_mask)
 #endif
 }
 
-int fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsigned nbuffers, uint32_t mask)
+int fetch_codelet_input(starpu_buffer_descr *descrs, starpu_data_interface_t *interface, unsigned nbuffers, uint32_t mask)
 {
 	TRACE_START_FETCH_INPUT(NULL);
 
@@ -253,7 +253,7 @@ int fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsig
 	for (index = 0; index < nbuffers; index++)
 	{
 		int ret;
-		buffer_descr *descr;
+		starpu_buffer_descr *descr;
 		data_state *state;
 
 		descr = &descrs[index];
@@ -265,7 +265,7 @@ int fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsig
 			goto enomem;
 
 		memcpy(&interface[index], &state->interface[local_memory_node], 
-				sizeof(data_interface_t));
+				sizeof(starpu_data_interface_t));
 	}
 
 	TRACE_END_FETCH_INPUT(NULL);
@@ -279,7 +279,7 @@ enomem:
 	return -1;
 }
 
-void push_codelet_output(buffer_descr *descrs, unsigned nbuffers, uint32_t mask)
+void push_codelet_output(starpu_buffer_descr *descrs, unsigned nbuffers, uint32_t mask)
 {
 	TRACE_START_PUSH_OUTPUT(NULL);
 

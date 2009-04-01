@@ -25,7 +25,7 @@ unsigned block_filter_func(filter *f, data_state *root_data)
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
 
-	blas_interface_t *blas_root = &root_data->interface[0].blas;
+	starpu_blas_interface_t *blas_root = &root_data->interface[0].blas;
 	uint32_t nx = blas_root->nx;
 	uint32_t ny = blas_root->ny;
 	size_t elemsize = blas_root->elemsize;
@@ -50,7 +50,7 @@ unsigned block_filter_func(filter *f, data_state *root_data)
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
 		{
-			blas_interface_t *local = &root_data->children[chunk].interface[node].blas;
+			starpu_blas_interface_t *local = &root_data->children[chunk].interface[node].blas;
 
 			local->nx = child_nx;
 			local->ny = ny;
@@ -94,7 +94,7 @@ unsigned vertical_block_filter_func(filter *f, data_state *root_data)
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
 		{
-			blas_interface_t *local = &root_data->children[chunk].interface[node].blas;
+			starpu_blas_interface_t *local = &root_data->children[chunk].interface[node].blas;
 
 			local->nx = nx;
 			local->ny = child_ny;

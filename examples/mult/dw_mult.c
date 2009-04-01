@@ -123,7 +123,7 @@ void callback_func(void *arg)
 
 
 #ifdef USE_CUDA
-void cublas_mult(data_interface_t *descr, __attribute__((unused)) void *arg)
+void cublas_mult(starpu_data_interface_t *descr, __attribute__((unused)) void *arg)
 {
 	COMMON_CODE
 
@@ -141,7 +141,7 @@ void cublas_mult(data_interface_t *descr, __attribute__((unused)) void *arg)
 }
 #endif
 
-void core_mult(data_interface_t *descr, __attribute__((unused))  void *arg)
+void core_mult(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
 {
 	COMMON_CODE
 
@@ -213,11 +213,11 @@ static void partition_mult_data(void)
 {
 	gettimeofday(&start, NULL);
 
-	monitor_blas_data(&A_state, 0, (uintptr_t)A, 
+	starpu_monitor_blas_data(&A_state, 0, (uintptr_t)A, 
 		ydim, ydim, zdim, sizeof(float));
-	monitor_blas_data(&B_state, 0, (uintptr_t)B, 
+	starpu_monitor_blas_data(&B_state, 0, (uintptr_t)B, 
 		zdim, zdim, xdim, sizeof(float));
-	monitor_blas_data(&C_state, 0, (uintptr_t)C, 
+	starpu_monitor_blas_data(&C_state, 0, (uintptr_t)C, 
 		ydim, ydim, xdim, sizeof(float));
 
 	conf.k = zdim;
@@ -276,7 +276,7 @@ static void launch_codelets(void)
 			task->callback_func = callback_func;
 			task->callback_arg = &taskcounter;
 
-			tag_t tag = 
+			starpu_tag_t tag = 
 				((((unsigned long long)(taskx))<<32) 
 				| (unsigned long long)(tasky));
 

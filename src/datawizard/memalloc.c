@@ -227,7 +227,7 @@ static void reuse_mem_chunk(unsigned node, data_state *new_data, mem_chunk_t mc,
 	new_data->per_node[node].allocated = 1;
 	new_data->per_node[node].automatically_allocated = 1;
 
-	memcpy(&new_data->interface[node], &mc->interface, sizeof(data_interface_t));
+	memcpy(&new_data->interface[node], &mc->interface, sizeof(starpu_data_interface_t));
 
 	mc->data = new_data;
 	mc->data_was_deleted = 0;
@@ -400,7 +400,7 @@ static void register_mem_chunk(data_state *state, uint32_t dst_node, size_t size
 	mc->automatically_allocated = automatically_allocated;
 
 	/* the interface was already filled by ops->allocate_data_on_node */
-	memcpy(&mc->interface, &state->interface[dst_node], sizeof(data_interface_t));
+	memcpy(&mc->interface, &state->interface[dst_node], sizeof(starpu_data_interface_t));
 
 	take_mutex(&mc_mutex[dst_node]);
 	mem_chunk_list_push_front(mc_list[dst_node], mc);

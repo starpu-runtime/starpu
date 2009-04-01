@@ -25,7 +25,7 @@ starpu_data_handle A_state[NMAXBLOCKS][NMAXBLOCKS];
  *	Some useful functions
  */
 
-static struct starpu_task *create_task(tag_t id)
+static struct starpu_task *create_task(starpu_tag_t id)
 {
 	struct starpu_task *task = starpu_task_create();
 		task->cl_arg = NULL;
@@ -292,7 +292,7 @@ int main(int argc, char **argv)
 	for (x = 0; x < nblocks; x++)
 	{
 		if (x <= y) {
-			monitor_blas_data(&A_state[y][x], 0, (uintptr_t)A[y][x], 
+			starpu_monitor_blas_data(&A_state[y][x], 0, (uintptr_t)A[y][x], 
 				BLOCKSIZE, BLOCKSIZE, BLOCKSIZE, sizeof(float));
 		}
 	}

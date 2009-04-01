@@ -19,9 +19,9 @@
 
 #include <starpu.h>
 
-double gemm_cost(buffer_descr *descr);
+double gemm_cost(starpu_buffer_descr *descr);
 
-static struct perfmodel_t sgemm_model = {
+static struct starpu_perfmodel_t sgemm_model = {
 	.cost_model = gemm_cost,
 	.type = HISTORY_BASED,
 #ifdef ATLAS
@@ -33,7 +33,7 @@ static struct perfmodel_t sgemm_model = {
 #endif
 };
 
-static struct perfmodel_t sgemm_model_common = {
+static struct starpu_perfmodel_t sgemm_model_common = {
 	.cost_model = gemm_cost,
 	.type = COMMON,
 };

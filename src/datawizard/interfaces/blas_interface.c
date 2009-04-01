@@ -28,14 +28,14 @@
 #endif
 
 size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node);
-void liberate_blas_buffer_on_node(data_interface_t *interface, uint32_t node);
+void liberate_blas_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
 int do_copy_blas_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node);
-size_t dump_blas_interface(data_interface_t *interface, void *buffer);
+size_t dump_blas_interface(starpu_data_interface_t *interface, void *buffer);
 size_t blas_interface_get_size(struct data_state_t *state);
 uint32_t footprint_blas_interface_crc32(data_state *state, uint32_t hstate);
 void display_blas_interface(data_state *state, FILE *f);
 #ifdef USE_GORDON
-int convert_blas_to_gordon(data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
+int convert_blas_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 
 struct data_interface_ops_t interface_blas_ops = {
@@ -53,7 +53,7 @@ struct data_interface_ops_t interface_blas_ops = {
 };
 
 #ifdef USE_GORDON
-int convert_blas_to_gordon(data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
+int convert_blas_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
 	STARPU_ASSERT(gordon_interface);
 
@@ -73,7 +73,7 @@ int convert_blas_to_gordon(data_interface_t *interface, uint64_t *ptr, gordon_st
 #endif
 
 /* declare a new data with the BLAS interface */
-void monitor_blas_data(struct data_state_t **handle, uint32_t home_node,
+void starpu_monitor_blas_data(struct data_state_t **handle, uint32_t home_node,
 			uintptr_t ptr, uint32_t ld, uint32_t nx,
 			uint32_t ny, size_t elemsize)
 {
@@ -86,7 +86,7 @@ void monitor_blas_data(struct data_state_t **handle, uint32_t home_node,
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
 	{
-		blas_interface_t *local_interface = &state->interface[node].blas;
+		starpu_blas_interface_t *local_interface = &state->interface[node].blas;
 
 		if (node == home_node) {
 			local_interface->ptr = ptr;
@@ -112,8 +112,8 @@ static inline uint32_t footprint_blas_interface_generic(uint32_t (*hash_func)(ui
 	uint32_t hash;
 
 	hash = hstate;
-	hash = hash_func(get_blas_nx(state), hash);
-	hash = hash_func(get_blas_ny(state), hash);
+	hash = hash_func(starpu_get_blas_nx(state), hash);
+	hash = hash_func(starpu_get_blas_ny(state), hash);
 
 	return hash;
 }
@@ -132,14 +132,14 @@ struct dumped_blas_interface_s {
 
 void display_blas_interface(data_state *state, FILE *f)
 {
-	blas_interface_t *interface;
+	starpu_blas_interface_t *interface;
 
 	interface = &state->interface[0].blas;
 
 	fprintf(f, "%d\t%d\t", interface->nx, interface->ny);
 }
 
-size_t dump_blas_interface(data_interface_t *interface, void *_buffer)
+size_t dump_blas_interface(starpu_data_interface_t *interface, void *_buffer)
 {
 	/* yes, that's DIRTY ... */
 	struct dumped_blas_interface_s *buffer = _buffer;
@@ -155,7 +155,7 @@ size_t dump_blas_interface(data_interface_t *interface, void *_buffer)
 size_t blas_interface_get_size(struct data_state_t *state)
 {
 	size_t size;
-	blas_interface_t *interface;
+	starpu_blas_interface_t *interface;
 
 	interface = &state->interface[0].blas;
 
@@ -165,17 +165,17 @@ size_t blas_interface_get_size(struct data_state_t *state)
 }
 
 /* offer an access to the data parameters */
-uint32_t get_blas_nx(data_state *state)
+uint32_t starpu_get_blas_nx(data_state *state)
 {
 	return (state->interface[0].blas.nx);
 }
 
-uint32_t get_blas_ny(data_state *state)
+uint32_t starpu_get_blas_ny(data_state *state)
 {
 	return (state->interface[0].blas.ny);
 }
 
-uint32_t get_blas_local_ld(data_state *state)
+uint32_t starpu_get_blas_local_ld(data_state *state)
 {
 	unsigned node;
 	node = get_local_memory_node();
@@ -185,7 +185,7 @@ uint32_t get_blas_local_ld(data_state *state)
 	return (state->interface[node].blas.ld);
 }
 
-uintptr_t get_blas_local_ptr(data_state *state)
+uintptr_t starpu_get_blas_local_ptr(data_state *state)
 {
 	unsigned node;
 	node = get_local_memory_node();
@@ -254,7 +254,7 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 	return allocated_memory;
 }
 
-void liberate_blas_buffer_on_node(data_interface_t *interface, uint32_t node)
+void liberate_blas_buffer_on_node(starpu_data_interface_t *interface, uint32_t node)
 {
 #ifdef USE_CUDA
 	cublasStatus status;
@@ -282,8 +282,8 @@ void liberate_blas_buffer_on_node(data_interface_t *interface, uint32_t node)
 #ifdef USE_CUDA
 static void copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)
 {
-	blas_interface_t *src_blas;
-	blas_interface_t *dst_blas;
+	starpu_blas_interface_t *src_blas;
+	starpu_blas_interface_t *dst_blas;
 
 	src_blas = &state->interface[src_node].blas;
 	dst_blas = &state->interface[dst_node].blas;
@@ -297,8 +297,8 @@ static void copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t ds
 
 static void copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst_node)
 {
-	blas_interface_t *src_blas;
-	blas_interface_t *dst_blas;
+	starpu_blas_interface_t *src_blas;
+	starpu_blas_interface_t *dst_blas;
 
 	src_blas = &state->interface[src_node].blas;
 	dst_blas = &state->interface[dst_node].blas;

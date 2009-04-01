@@ -94,7 +94,7 @@ struct divide_vector_in_blas_filter_args {
 
 unsigned divide_vector_in_blas_filter(filter *f, starpu_data_handle root_data)
 {
-	vector_interface_t *vector_root = &root_data->interface[0].vector;
+	starpu_vector_interface_t *vector_root = &root_data->interface[0].vector;
 		uint32_t nx = vector_root->nx;
 		size_t elemsize = vector_root->elemsize;
 
@@ -119,7 +119,7 @@ unsigned divide_vector_in_blas_filter(filter *f, starpu_data_handle root_data)
 	{
 		for (node = 0; node < MAXNODES; node++)
 		{
-			vector_interface_t *local = &root_data->children[child].interface[node].vector;
+			starpu_vector_interface_t *local = &root_data->children[child].interface[node].vector;
 	
 			local->nx = n1;
 			local->elemsize = elemsize;
@@ -135,7 +135,7 @@ unsigned divide_vector_in_blas_filter(filter *f, starpu_data_handle root_data)
 	
 	for (node = 0; node < MAXNODES; node++)
 	{
-		blas_interface_t *local = &root_data->children[child].interface[node].blas;
+		starpu_blas_interface_t *local = &root_data->children[child].interface[node].blas;
 
 		local->nx = stride;
 		local->ny = n2/stride;
@@ -154,7 +154,7 @@ unsigned divide_vector_in_blas_filter(filter *f, starpu_data_handle root_data)
 
 	for (node = 0; node < MAXNODES; node++)
 	{
-		vector_interface_t *local = &root_data->children[child].interface[node].vector;
+		starpu_vector_interface_t *local = &root_data->children[child].interface[node].vector;
 
 		local->nx = n3;
 		local->elemsize = elemsize;
@@ -184,13 +184,13 @@ void STARPU_MONITOR_DATA(unsigned ncols)
 
 void STARPU_MONITOR_CBLK(unsigned col, float *data, unsigned stride, unsigned width)
 {
-	//void monitor_blas_data(struct data_state_t *state, uint32_t home_node,
+	//void starpu_monitor_blas_data(struct data_state_t *state, uint32_t home_node,
         //                uintptr_t ptr, uint32_t ld, uint32_t nx,
         //                uint32_t ny, size_t elemsize);
 
 	//fprintf(stderr, "col %d data %p stride %d width %d\n", col, data, stride, width);
 
-	monitor_blas_data(&cblktab[col], 0 /* home */,
+	starpu_monitor_blas_data(&cblktab[col], 0 /* home */,
 			(uintptr_t) data, stride, stride, width, sizeof(float));
 	
 }
@@ -198,7 +198,7 @@ void STARPU_MONITOR_CBLK(unsigned col, float *data, unsigned stride, unsigned wi
 static data_state work_block_1;
 static data_state work_block_2;
 
-void allocate_maxbloktab_on_cublas(data_interface_t *descr __attribute__((unused)), void *arg __attribute__((unused)))
+void allocate_maxbloktab_on_cublas(starpu_data_interface_t *descr __attribute__((unused)), void *arg __attribute__((unused)))
 {
 	request_data_allocation(&work_block_1, 1);
 	request_data_allocation(&work_block_2, 1);
@@ -225,8 +225,8 @@ void allocate_maxbloktab_on_cublas(data_interface_t *descr __attribute__((unused
 
 void STARPU_DECLARE_WORK_BLOCKS(float *maxbloktab1, float *maxbloktab2, unsigned solv_coefmax)
 {
-	monitor_vector_data(&work_block_1, 0 /* home */, (uintptr_t)maxbloktab1, solv_coefmax, sizeof(float));
-	monitor_vector_data(&work_block_2, 0 /* home */, (uintptr_t)maxbloktab2, solv_coefmax, sizeof(float));
+	starpu_monitor_vector_data(&work_block_1, 0 /* home */, (uintptr_t)maxbloktab1, solv_coefmax, sizeof(float));
+	starpu_monitor_vector_data(&work_block_2, 0 /* home */, (uintptr_t)maxbloktab2, solv_coefmax, sizeof(float));
 
 	starpu_codelet cl;
 	job_t j;
@@ -256,7 +256,7 @@ void STARPU_DECLARE_WORK_BLOCKS(float *maxbloktab1, float *maxbloktab2, unsigned
 
 }
 
-void _core_cblk_strsm(data_interface_t *descr, void *arg __attribute__((unused)))
+void _core_cblk_strsm(starpu_data_interface_t *descr, void *arg __attribute__((unused)))
 {
 	uint32_t nx, ny, ld;
 	nx = descr[0].blas.nx;
@@ -278,7 +278,7 @@ void _core_cblk_strsm(data_interface_t *descr, void *arg __attribute__((unused))
 }
 
 
-void _cublas_cblk_strsm(data_interface_t *descr, void *arg __attribute__((unused)))
+void _cublas_cblk_strsm(starpu_data_interface_t *descr, void *arg __attribute__((unused)))
 {
 	uint32_t nx, ny, ld;
 	nx = descr[0].blas.nx;
@@ -302,7 +302,7 @@ void _cublas_cblk_strsm(data_interface_t *descr, void *arg __attribute__((unused
 	STARPU_ASSERT(st == CUBLAS_STATUS_SUCCESS);
 }
 
-static struct perfmodel_t starpu_cblk_strsm = {
+static struct starpu_perfmodel_t starpu_cblk_strsm = {
 	.per_arch = { 
 		[CORE_DEFAULT] = { .cost_model = starpu_cblk_strsm_core_cost },
 		[CUDA_DEFAULT] = { .cost_model = starpu_cblk_strsm_cuda_cost }
@@ -326,7 +326,7 @@ void STARPU_CBLK_STRSM(unsigned col)
 	cl.cublas_func = _cublas_cblk_strsm;
 	
 	j = job_create();
-//	j->where = (get_blas_nx(&cblktab[col]) > BLOCK && get_blas_ny(&cblktab[col]) > BLOCK)? CUBLAS:CORE;
+//	j->where = (starpu_get_blas_nx(&cblktab[col]) > BLOCK && starpu_get_blas_ny(&cblktab[col]) > BLOCK)? CUBLAS:CORE;
 	j->cb = _cublas_cblk_strsm_callback;
 	j->argcb = &sem;
 	j->cl = &cl;
@@ -357,7 +357,7 @@ struct starpu_compute_contrib_compact_args {
 };
 
 
-void _core_compute_contrib_compact(data_interface_t *descr, void *arg)
+void _core_compute_contrib_compact(starpu_data_interface_t *descr, void *arg)
 {
 	struct starpu_compute_contrib_compact_args *args = arg;
 
@@ -378,7 +378,7 @@ void _core_compute_contrib_compact(data_interface_t *descr, void *arg)
 }
 
 
-void _cublas_compute_contrib_compact(data_interface_t *descr, void *arg)
+void _cublas_compute_contrib_compact(starpu_data_interface_t *descr, void *arg)
 {
 	struct starpu_compute_contrib_compact_args *args = arg;
 
@@ -401,7 +401,7 @@ void _cublas_compute_contrib_compact(data_interface_t *descr, void *arg)
 }
 
 
-static struct perfmodel_t starpu_compute_contrib_compact = {
+static struct starpu_perfmodel_t starpu_compute_contrib_compact = {
 	.per_arch = { 
 		[CORE_DEFAULT] = { .cost_model = starpu_compute_contrib_compact_core_cost },
 		[CUDA_DEFAULT] = { .cost_model = starpu_compute_contrib_compact_cuda_cost }
@@ -511,7 +511,7 @@ struct sgemm_args {
 };
 
 
-void _cublas_sgemm(data_interface_t *descr, void *arg)
+void _cublas_sgemm(starpu_data_interface_t *descr, void *arg)
 {
 	float *A, *B, *C;
 	uint32_t nxA, nyA, ldA;
@@ -584,23 +584,23 @@ void STARPU_SGEMM (const char *transa, const char *transb, const int m,
 
 	if (toupper(*transa) == 'N')
 	{
-		monitor_blas_data(&A_state, 0, (uintptr_t)A, lda, m, k, sizeof(float));
+		starpu_monitor_blas_data(&A_state, 0, (uintptr_t)A, lda, m, k, sizeof(float));
 	}
 	else 
 	{
-		monitor_blas_data(&A_state, 0, (uintptr_t)A, lda, k, m, sizeof(float));
+		starpu_monitor_blas_data(&A_state, 0, (uintptr_t)A, lda, k, m, sizeof(float));
 	}
 
 	if (toupper(*transb) == 'N')
 	{
-		monitor_blas_data(&B_state, 0, (uintptr_t)B, ldb, k, n, sizeof(float));
+		starpu_monitor_blas_data(&B_state, 0, (uintptr_t)B, ldb, k, n, sizeof(float));
 	}
 	else 
 	{	
-		monitor_blas_data(&B_state, 0, (uintptr_t)B, ldb, n, k, sizeof(float));
+		starpu_monitor_blas_data(&B_state, 0, (uintptr_t)B, ldb, n, k, sizeof(float));
 	}
 
-	monitor_blas_data(&C_state, 0, (uintptr_t)C, ldc, m, n, sizeof(float));
+	starpu_monitor_blas_data(&C_state, 0, (uintptr_t)C, ldc, m, n, sizeof(float));
 
 	/* initialize codelet */
 	cl.where = CUBLAS;
@@ -659,7 +659,7 @@ struct strsm_args {
 	int m,n;
 };
 //
-//void _core_strsm(data_interface_t *descr, void *arg)
+//void _core_strsm(starpu_data_interface_t *descr, void *arg)
 //{
 //	float *A, *B;
 //	uint32_t nxA, nyA, ldA;

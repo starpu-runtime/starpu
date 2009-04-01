@@ -20,7 +20,7 @@
  *   U22 
  */
 
-static inline void common_block_spmv(data_interface_t *buffers, int s, __attribute__((unused)) void *_args)
+static inline void common_block_spmv(starpu_data_interface_t *buffers, int s, __attribute__((unused)) void *_args)
 {
 	//printf("22\n");
 	float *block 	= (float *)buffers[0].blas.ptr;
@@ -47,7 +47,7 @@ static inline void common_block_spmv(data_interface_t *buffers, int s, __attribu
 	}
 }
 
-void core_block_spmv(data_interface_t *descr, void *_args)
+void core_block_spmv(starpu_data_interface_t *descr, void *_args)
 {
 //	printf("CORE CODELET \n");
 
@@ -55,7 +55,7 @@ void core_block_spmv(data_interface_t *descr, void *_args)
 }
 
 #ifdef USE_CUDA
-void cublas_block_spmv(data_interface_t *descr, void *_args)
+void cublas_block_spmv(starpu_data_interface_t *descr, void *_args)
 {
 //	printf("CUBLAS CODELET \n");
 

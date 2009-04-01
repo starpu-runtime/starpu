@@ -27,7 +27,7 @@
  *	Number of flops of Gemm 
  */
 
-static double gemm_cost(buffer_descr *descr)
+static double gemm_cost(starpu_buffer_descr *descr)
 {
 	/* C = A * B */
 	uint32_t nxC, nyC, nxA;
@@ -46,7 +46,7 @@ static double gemm_cost(buffer_descr *descr)
 	return cost;
 }
 
-struct perfmodel_t sgemm_model = {
+struct starpu_perfmodel_t sgemm_model = {
 	.cost_model = gemm_cost,
 	.type = HISTORY_BASED,
 #ifdef ATLAS
@@ -59,7 +59,7 @@ struct perfmodel_t sgemm_model = {
 };
 
 
-struct perfmodel_t sgemm_model_common = {
+struct starpu_perfmodel_t sgemm_model_common = {
 	.cost_model = gemm_cost,
 	.type = COMMON,
 };

@@ -74,7 +74,7 @@ static void scan_history_entry(FILE *f, struct history_entry_t *entry)
 	STARPU_ASSERT(res == 7);
 }
 
-static void parse_per_arch_model_file(FILE *f, struct per_arch_perfmodel_t *per_arch_model, unsigned scan_history)
+static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_t *per_arch_model, unsigned scan_history)
 {
 	unsigned nentries;
 
@@ -113,13 +113,13 @@ static void parse_per_arch_model_file(FILE *f, struct per_arch_perfmodel_t *per_
 	}
 }
 
-static void parse_model_file(FILE *f, struct perfmodel_t *model, unsigned scan_history)
+static void parse_model_file(FILE *f, struct starpu_perfmodel_t *model, unsigned scan_history)
 {
 	parse_per_arch_model_file(f, &model->per_arch[CORE_DEFAULT], scan_history);
 	parse_per_arch_model_file(f, &model->per_arch[CUDA_DEFAULT], scan_history);
 }
 
-static void dump_per_arch_model_file(FILE *f, struct per_arch_perfmodel_t *per_arch_model)
+static void dump_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_t *per_arch_model)
 {
 	/* count the number of elements in the lists */
 	struct history_list_t *ptr;
@@ -148,19 +148,19 @@ static void dump_per_arch_model_file(FILE *f, struct per_arch_perfmodel_t *per_a
 	}
 }
 
-static void dump_model_file(FILE *f, struct perfmodel_t *model)
+static void dump_model_file(FILE *f, struct starpu_perfmodel_t *model)
 {
 	dump_per_arch_model_file(f, &model->per_arch[CORE_DEFAULT]);
 	dump_per_arch_model_file(f, &model->per_arch[CUDA_DEFAULT]);
 }
 
-static void initialize_per_arch_model(struct per_arch_perfmodel_t *per_arch_model)
+static void initialize_per_arch_model(struct starpu_per_arch_perfmodel_t *per_arch_model)
 {
 	per_arch_model->history = NULL;
 	per_arch_model->list = NULL;
 }
 
-static void initialize_model(struct perfmodel_t *model)
+static void initialize_model(struct starpu_perfmodel_t *model)
 {
 	initialize_per_arch_model(&model->per_arch[CORE_DEFAULT]);
 	initialize_per_arch_model(&model->per_arch[CUDA_DEFAULT]);
@@ -170,7 +170,7 @@ static struct model_list_t *registered_models = NULL;
 //static unsigned debug_modelid = 0;
 
 #ifdef MODEL_DEBUG
-static void get_model_debug_path(struct perfmodel_t *model, const char *arch, char *path, size_t maxlen)
+static void get_model_debug_path(struct starpu_perfmodel_t *model, const char *arch, char *path, size_t maxlen)
 {
 	strncpy(path, PERF_MODEL_DIR, maxlen);
 	strncat(path, model->symbol, maxlen);
@@ -186,7 +186,7 @@ static void get_model_debug_path(struct perfmodel_t *model, const char *arch, ch
 #endif
 
 
-void register_model(struct perfmodel_t *model)
+void register_model(struct starpu_perfmodel_t *model)
 {
 	/* add the model to a linked list */
 	struct model_list_t *node = malloc(sizeof(struct model_list_t));
@@ -212,7 +212,7 @@ void register_model(struct perfmodel_t *model)
 	return;
 }
 
-static void get_model_path(struct perfmodel_t *model, char *path, size_t maxlen)
+static void get_model_path(struct starpu_perfmodel_t *model, char *path, size_t maxlen)
 {
 	strncpy(path, PERF_MODEL_DIR, maxlen);
 	strncat(path, model->symbol, maxlen);
@@ -223,7 +223,7 @@ static void get_model_path(struct perfmodel_t *model, char *path, size_t maxlen)
 	strncat(path, hostname, maxlen);
 }
 
-void save_history_based_model(struct perfmodel_t *model)
+void save_history_based_model(struct starpu_perfmodel_t *model)
 {
 	STARPU_ASSERT(model);
 	STARPU_ASSERT(model->symbol);
@@ -291,7 +291,7 @@ static void create_sampling_directory_if_needed(void)
 	}
 }
 
-void load_history_based_model(struct perfmodel_t *model, unsigned scan_history)
+void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_history)
 {
 	STARPU_ASSERT(model);
 	STARPU_ASSERT(model->symbol);
@@ -358,7 +358,7 @@ void load_history_based_model(struct perfmodel_t *model, unsigned scan_history)
 	release_mutex(&model->model_mutex);
 }
 
-double regression_based_job_expected_length(struct perfmodel_t *model, enum perf_archtype arch, struct job_s *j)
+double regression_based_job_expected_length(struct starpu_perfmodel_t *model, enum perf_archtype arch, struct job_s *j)
 {
 	double exp = -1.0;
 	size_t size = job_get_data_size(j);
@@ -375,10 +375,10 @@ double regression_based_job_expected_length(struct perfmodel_t *model, enum perf
 	return exp;
 }
 
-double history_based_job_expected_length(struct perfmodel_t *model, enum perf_archtype arch, struct job_s *j)
+double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum perf_archtype arch, struct job_s *j)
 {
 	double exp;
-	struct per_arch_perfmodel_t *per_arch_model;
+	struct starpu_per_arch_perfmodel_t *per_arch_model;
 	struct history_entry_t *entry;
 	struct htbl32_node_s *history;
 
@@ -407,11 +407,11 @@ double history_based_job_expected_length(struct perfmodel_t *model, enum perf_ar
 
 void update_perfmodel_history(job_t j, enum perf_archtype arch, double measured)
 {
-	struct perfmodel_t *model = j->task->cl->model;
+	struct starpu_perfmodel_t *model = j->task->cl->model;
 
 	if (model)
 	{
-		struct per_arch_perfmodel_t *per_arch_model = &model->per_arch[arch];
+		struct starpu_per_arch_perfmodel_t *per_arch_model = &model->per_arch[arch];
 
 		if (model->type == HISTORY_BASED || model->type == REGRESSION_BASED)
 		{

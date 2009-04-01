@@ -34,9 +34,9 @@ typedef struct _htbl_node_t {
 	struct _htbl_node_t *children[1<<HTBL_NODE_SIZE];
 } htbl_node_t;
 
-void *htbl_search_tag(htbl_node_t *htbl, tag_t tag);
-void *htbl_insert_tag(htbl_node_t **htbl, tag_t tag, void *entry);
-void *htbl_remove_tag(htbl_node_t *htbl, tag_t tag);
+void *htbl_search_tag(htbl_node_t *htbl, starpu_tag_t tag);
+void *htbl_insert_tag(htbl_node_t **htbl, starpu_tag_t tag, void *entry);
+void *htbl_remove_tag(htbl_node_t *htbl, starpu_tag_t tag);
 
 
 #endif

@@ -25,7 +25,7 @@
 #include <starpu-mutex.h>
 #include <stdio.h>
 
-struct buffer_descr_t;
+struct starpu_buffer_descr_t;
 struct jobq_s;
 struct job_s;
 enum archtype;
@@ -69,7 +69,7 @@ struct history_list_t {
 
 struct model_list_t {
 	struct model_list_t *next;
-	struct perfmodel_t *model;
+	struct starpu_perfmodel_t *model;
 };
 
 //
@@ -81,12 +81,12 @@ struct model_list_t {
 //	struct history_entry_t entries[];
 //}
 
-double history_based_job_expected_length(struct perfmodel_t *model, enum perf_archtype arch, struct job_s *j);
-void register_model(struct perfmodel_t *model);
+double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum perf_archtype arch, struct job_s *j);
+void register_model(struct starpu_perfmodel_t *model);
 void dump_registered_models(void);
 
 double job_expected_length(uint32_t who, struct job_s *j, enum perf_archtype arch);
-double regression_based_job_expected_length(struct perfmodel_t *model,
+double regression_based_job_expected_length(struct starpu_perfmodel_t *model,
 		uint32_t who, struct job_s *j);
 void update_perfmodel_history(struct job_s *j, enum perf_archtype arch, double measured);
 

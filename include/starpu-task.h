@@ -41,7 +41,7 @@
 #define MAX_PRIO        5
 #define DEFAULT_PRIO	0
 
-typedef uint64_t tag_t;
+typedef uint64_t starpu_tag_t;
 
 /*
  * A codelet describes the various function 
@@ -61,15 +61,15 @@ typedef struct starpu_codelet_t {
 	/* how many buffers do the codelet takes as argument ? */
 	unsigned nbuffers;
 
-	struct perfmodel_t *model;
+	struct starpu_perfmodel_t *model;
 } starpu_codelet;
 
 struct starpu_task {
 	struct starpu_codelet_t *cl;
 
 	/* arguments managed by the DSM */
-	struct buffer_descr_t buffers[NMAXBUFS];
-	data_interface_t interface[NMAXBUFS];
+	struct starpu_buffer_descr_t buffers[NMAXBUFS];
+	starpu_data_interface_t interface[NMAXBUFS];
 
 	/* arguments not managed by the DSM are given as a buffer */
 	void *cl_arg;
@@ -81,7 +81,7 @@ struct starpu_task {
 	void *callback_arg;
 
 	unsigned use_tag;
-	tag_t tag_id;
+	starpu_tag_t tag_id;
 
 	/* options for the task execution */
 	unsigned synchronous; /* if set, a call to push is blocking */
@@ -133,9 +133,9 @@ void starpu_load_cuda_function(int devid, struct cuda_function_s *function);
 
 /* handle task dependencies: it is possible to associate a task with a unique
  * "tag" and to express dependencies among tasks by the means of those tags */
-void starpu_tag_remove(tag_t id);
-void starpu_tag_declare_deps_array(tag_t id, unsigned ndeps, tag_t *array);
-void starpu_tag_declare_deps(tag_t id, unsigned ndeps, ...);
+void starpu_tag_remove(starpu_tag_t id);
+void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);
+void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 
 struct starpu_task *starpu_task_create(void);
 int starpu_submit_task(struct starpu_task *task);

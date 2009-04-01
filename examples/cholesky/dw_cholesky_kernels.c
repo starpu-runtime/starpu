@@ -21,7 +21,7 @@
  *   U22 
  */
 
-static inline void chol_common_core_codelet_update_u22(data_interface_t *buffers, int s, __attribute__((unused)) void *_args)
+static inline void chol_common_core_codelet_update_u22(starpu_data_interface_t *buffers, int s, __attribute__((unused)) void *_args)
 {
 	//printf("22\n");
 	float *left 	= (float *)buffers[0].blas.ptr;
@@ -54,13 +54,13 @@ static inline void chol_common_core_codelet_update_u22(data_interface_t *buffers
 	}
 }
 
-void chol_core_codelet_update_u22(data_interface_t *descr, void *_args)
+void chol_core_codelet_update_u22(starpu_data_interface_t *descr, void *_args)
 {
 	chol_common_core_codelet_update_u22(descr, 0, _args);
 }
 
 #ifdef USE_CUDA
-void chol_cublas_codelet_update_u22(data_interface_t *descr, void *_args)
+void chol_cublas_codelet_update_u22(starpu_data_interface_t *descr, void *_args)
 {
 	chol_common_core_codelet_update_u22(descr, 1, _args);
 }
@@ -70,7 +70,7 @@ void chol_cublas_codelet_update_u22(data_interface_t *descr, void *_args)
  * U21
  */
 
-static inline void chol_common_codelet_update_u21(data_interface_t *buffers, int s, __attribute__((unused)) void *_args)
+static inline void chol_common_codelet_update_u21(starpu_data_interface_t *buffers, int s, __attribute__((unused)) void *_args)
 {
 //	printf("21\n");
 	float *sub11;
@@ -100,13 +100,13 @@ static inline void chol_common_codelet_update_u21(data_interface_t *buffers, int
 	}
 }
 
-void chol_core_codelet_update_u21(data_interface_t *descr, void *_args)
+void chol_core_codelet_update_u21(starpu_data_interface_t *descr, void *_args)
 {
 	 chol_common_codelet_update_u21(descr, 0, _args);
 }
 
 #ifdef USE_CUDA
-void chol_cublas_codelet_update_u21(data_interface_t *descr, void *_args)
+void chol_cublas_codelet_update_u21(starpu_data_interface_t *descr, void *_args)
 {
 	chol_common_codelet_update_u21(descr, 1, _args);
 }
@@ -116,7 +116,7 @@ void chol_cublas_codelet_update_u21(data_interface_t *descr, void *_args)
  *	U11
  */
 
-static inline void chol_common_codelet_update_u11(data_interface_t *descr, int s, __attribute__((unused)) void *_args) 
+static inline void chol_common_codelet_update_u11(starpu_data_interface_t *descr, int s, __attribute__((unused)) void *_args) 
 {
 //	printf("11\n");
 	float *sub11;
@@ -182,13 +182,13 @@ static inline void chol_common_codelet_update_u11(data_interface_t *descr, int s
 }
 
 
-void chol_core_codelet_update_u11(data_interface_t *descr, void *_args)
+void chol_core_codelet_update_u11(starpu_data_interface_t *descr, void *_args)
 {
 	chol_common_codelet_update_u11(descr, 0, _args);
 }
 
 #ifdef USE_CUDA
-void chol_cublas_codelet_update_u11(data_interface_t *descr, void *_args)
+void chol_cublas_codelet_update_u11(starpu_data_interface_t *descr, void *_args)
 {
 	chol_common_codelet_update_u11(descr, 1, _args);
 }

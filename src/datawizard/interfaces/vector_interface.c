@@ -28,14 +28,14 @@
 #endif
 
 size_t allocate_vector_buffer_on_node(data_state *state, uint32_t dst_node);
-void liberate_vector_buffer_on_node(data_interface_t *interface, uint32_t node);
+void liberate_vector_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
 int do_copy_vector_buffer_1_to_1(data_state *state, uint32_t src_node, uint32_t dst_node);
-size_t dump_vector_interface(data_interface_t *interface, void *buffer);
+size_t dump_vector_interface(starpu_data_interface_t *interface, void *buffer);
 size_t vector_interface_get_size(struct data_state_t *state);
 uint32_t footprint_vector_interface_crc32(data_state *state, uint32_t hstate);
 void display_vector_interface(data_state *state, FILE *f);
 #ifdef USE_GORDON
-int convert_vector_to_gordon(data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
+int convert_vector_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 
 struct data_interface_ops_t interface_vector_ops = {
@@ -53,7 +53,7 @@ struct data_interface_ops_t interface_vector_ops = {
 };
 
 #ifdef USE_GORDON
-int convert_vector_to_gordon(data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
+int convert_vector_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
 	STARPU_ASSERT(gordon_interface);
 
@@ -65,7 +65,7 @@ int convert_vector_to_gordon(data_interface_t *interface, uint64_t *ptr, gordon_
 #endif
 
 /* declare a new data with the BLAS interface */
-void monitor_vector_data(struct data_state_t **handle, uint32_t home_node,
+void starpu_monitor_vector_data(struct data_state_t **handle, uint32_t home_node,
                         uintptr_t ptr, uint32_t nx, size_t elemsize)
 {
 	struct data_state_t *state = calloc(1, sizeof(struct data_state_t));
@@ -77,7 +77,7 @@ void monitor_vector_data(struct data_state_t **handle, uint32_t home_node,
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
 	{
-		vector_interface_t *local_interface = &state->interface[node].vector;
+		starpu_vector_interface_t *local_interface = &state->interface[node].vector;
 
 		if (node == home_node) {
 			local_interface->ptr = ptr;
@@ -101,7 +101,7 @@ static inline uint32_t footprint_vector_interface_generic(uint32_t (*hash_func)(
 	uint32_t hash;
 
 	hash = hstate;
-	hash = hash_func(get_vector_nx(state), hash);
+	hash = hash_func(starpu_get_vector_nx(state), hash);
 
 	return hash;
 }
@@ -119,14 +119,14 @@ struct dumped_vector_interface_s {
 
 void display_vector_interface(data_state *state, FILE *f)
 {
-	vector_interface_t *interface;
+	starpu_vector_interface_t *interface;
 	interface =  &state->interface[0].vector;
 
 	fprintf(f, "%d\t", interface->nx);
 }
 
 
-size_t dump_vector_interface(data_interface_t *interface, void *_buffer)
+size_t dump_vector_interface(starpu_data_interface_t *interface, void *_buffer)
 {
 	/* yes, that's DIRTY ... */
 	struct dumped_vector_interface_s *buffer = _buffer;
@@ -141,7 +141,7 @@ size_t dump_vector_interface(data_interface_t *interface, void *_buffer)
 size_t vector_interface_get_size(struct data_state_t *state)
 {
 	size_t size;
-	vector_interface_t *interface;
+	starpu_vector_interface_t *interface;
 
 	interface =  &state->interface[0].vector;
 
@@ -151,12 +151,12 @@ size_t vector_interface_get_size(struct data_state_t *state)
 }
 
 /* offer an access to the data parameters */
-uint32_t get_vector_nx(data_state *state)
+uint32_t starpu_get_vector_nx(data_state *state)
 {
 	return (state->interface[0].vector.nx);
 }
 
-uintptr_t get_vector_local_ptr(data_state *state)
+uintptr_t starpu_get_vector_local_ptr(data_state *state)
 {
 	unsigned node;
 	node = get_local_memory_node();
@@ -206,7 +206,7 @@ size_t allocate_vector_buffer_on_node(data_state *state, uint32_t dst_node)
 	return allocated_memory;
 }
 
-void liberate_vector_buffer_on_node(data_interface_t *interface, uint32_t node)
+void liberate_vector_buffer_on_node(starpu_data_interface_t *interface, uint32_t node)
 {
 	node_kind kind = get_node_kind(node);
 	switch(kind) {
@@ -226,8 +226,8 @@ void liberate_vector_buffer_on_node(data_interface_t *interface, uint32_t node)
 #ifdef USE_CUDA
 static void copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)
 {
-	vector_interface_t *src_vector;
-	vector_interface_t *dst_vector;
+	starpu_vector_interface_t *src_vector;
+	starpu_vector_interface_t *dst_vector;
 
 	src_vector = &state->interface[src_node].vector;
 	dst_vector = &state->interface[dst_node].vector;
@@ -241,8 +241,8 @@ static void copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t ds
 
 static void copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst_node)
 {
-	vector_interface_t *src_vector;
-	vector_interface_t *dst_vector;
+	starpu_vector_interface_t *src_vector;
+	starpu_vector_interface_t *dst_vector;
 
 	src_vector = &state->interface[src_node].vector;
 	dst_vector = &state->interface[dst_node].vector;

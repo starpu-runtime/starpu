@@ -93,7 +93,7 @@ static void terminate(void)
 
 
 #ifdef USE_CUDA
-static void cublas_mult(data_interface_t *descr, __attribute__((unused)) void *arg)
+static void cublas_mult(starpu_data_interface_t *descr, __attribute__((unused)) void *arg)
 {
 	COMMON_CODE
 
@@ -111,7 +111,7 @@ static void cublas_mult(data_interface_t *descr, __attribute__((unused)) void *a
 }
 #endif
 
-static void core_mult(data_interface_t *descr, __attribute__((unused))  void *arg)
+static void core_mult(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
 {
 	COMMON_CODE
 
@@ -225,7 +225,7 @@ static void init_problem_data(void)
 	{
 		for (z = 0; z < nslicesz; z++)
 		{
-			monitor_blas_data(&A_state[y][z], 0, (uintptr_t)A[y][z], 
+			starpu_monitor_blas_data(&A_state[y][z], 0, (uintptr_t)A[y][z], 
 				BLOCKSIZEY, BLOCKSIZEY, BLOCKSIZEZ, sizeof(float));
 		}
 	}
@@ -234,7 +234,7 @@ static void init_problem_data(void)
 	{
 		for (x = 0; x < nslicesx; x++)
 		{
-			monitor_blas_data(&B_state[z][x], 0, (uintptr_t)B[z][x], 
+			starpu_monitor_blas_data(&B_state[z][x], 0, (uintptr_t)B[z][x], 
 				BLOCKSIZEZ, BLOCKSIZEZ, BLOCKSIZEX, sizeof(float));
 		}
 	}
@@ -243,7 +243,7 @@ static void init_problem_data(void)
 	{
 		for (x = 0; x < nslicesx; x++)
 		{
-			monitor_blas_data(&C_state[y][x], 0, (uintptr_t)C[y][x], 
+			starpu_monitor_blas_data(&C_state[y][x], 0, (uintptr_t)C[y][x], 
 				BLOCKSIZEY, BLOCKSIZEY, BLOCKSIZEX, sizeof(float));
 		}
 	}

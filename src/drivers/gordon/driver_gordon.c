@@ -90,7 +90,7 @@ static void starpu_to_gordon_buffers(job_t j, struct gordon_ppu_job_s *gordon_jo
 	/* count the number of in/inout/out buffers */
 	for (buffer = 0; buffer < j->nbuffers; buffer++)
 	{
-		struct buffer_descr_t *descr;
+		struct starpu_buffer_descr_t *descr;
 		descr = &j->buffers[buffer];
 
 		switch (descr->mode) {
@@ -110,7 +110,7 @@ static void starpu_to_gordon_buffers(job_t j, struct gordon_ppu_job_s *gordon_jo
 	for (buffer = 0; buffer < j->nbuffers; buffer++)
 	{
 		unsigned gordon_buffer;
-		struct buffer_descr_t *descr;
+		struct starpu_buffer_descr_t *descr;
 		descr = &j->buffers[buffer];
 
 		switch (descr->mode) {

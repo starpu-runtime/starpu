@@ -104,29 +104,29 @@ static void __attribute__ ((unused)) print_results(float *result, unsigned size)
 	}
 }
 
-void core_codelet_func_1(data_interface_t *descr, void *arg);
+void core_codelet_func_1(starpu_data_interface_t *descr, void *arg);
 
-void core_codelet_func_2(data_interface_t *descr, void *arg);
+void core_codelet_func_2(starpu_data_interface_t *descr, void *arg);
 
-void cublas_codelet_func_3(data_interface_t *descr, void *arg);
-void core_codelet_func_3(data_interface_t *descr, void *arg);
+void cublas_codelet_func_3(starpu_data_interface_t *descr, void *arg);
+void core_codelet_func_3(starpu_data_interface_t *descr, void *arg);
 
-void core_codelet_func_4(data_interface_t *descr, void *arg);
+void core_codelet_func_4(starpu_data_interface_t *descr, void *arg);
 
-void core_codelet_func_5(data_interface_t *descr, void *arg);
-void cublas_codelet_func_5(data_interface_t *descr, void *arg);
+void core_codelet_func_5(starpu_data_interface_t *descr, void *arg);
+void cublas_codelet_func_5(starpu_data_interface_t *descr, void *arg);
 
-void cublas_codelet_func_6(data_interface_t *descr, void *arg);
-void core_codelet_func_6(data_interface_t *descr, void *arg);
+void cublas_codelet_func_6(starpu_data_interface_t *descr, void *arg);
+void core_codelet_func_6(starpu_data_interface_t *descr, void *arg);
 
-void cublas_codelet_func_7(data_interface_t *descr, void *arg);
-void core_codelet_func_7(data_interface_t *descr, void *arg);
+void cublas_codelet_func_7(starpu_data_interface_t *descr, void *arg);
+void core_codelet_func_7(starpu_data_interface_t *descr, void *arg);
 
-void cublas_codelet_func_8(data_interface_t *descr, void *arg);
-void core_codelet_func_8(data_interface_t *descr, void *arg);
+void cublas_codelet_func_8(starpu_data_interface_t *descr, void *arg);
+void core_codelet_func_8(starpu_data_interface_t *descr, void *arg);
 
-void cublas_codelet_func_9(data_interface_t *descr, void *arg);
-void core_codelet_func_9(data_interface_t *descr, void *arg);
+void cublas_codelet_func_9(starpu_data_interface_t *descr, void *arg);
+void core_codelet_func_9(starpu_data_interface_t *descr, void *arg);
 
 void iteration_cg(void *problem);
 

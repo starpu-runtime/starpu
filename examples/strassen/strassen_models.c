@@ -37,11 +37,11 @@
 #endif
 
 
-static double self_add_sub_cost(buffer_descr *descr)
+static double self_add_sub_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = get_blas_nx(descr[0].state);
+	n = starpu_get_blas_nx(descr[0].state);
 
 	double cost = (n*n)/10.0f/4.0f/7.75f;
 
@@ -52,11 +52,11 @@ static double self_add_sub_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double cuda_self_add_sub_cost(buffer_descr *descr)
+static double cuda_self_add_sub_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = get_blas_nx(descr[0].state);
+	n = starpu_get_blas_nx(descr[0].state);
 
 	double cost = (n*n)/10.0f/4.0f;
 
@@ -67,11 +67,11 @@ static double cuda_self_add_sub_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double add_sub_cost(buffer_descr *descr)
+static double add_sub_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = get_blas_nx(descr[0].state);
+	n = starpu_get_blas_nx(descr[0].state);
 
 	double cost = (1.45f*n*n)/10.0f/2.0f;
 
@@ -82,11 +82,11 @@ static double add_sub_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double cuda_add_sub_cost(buffer_descr *descr)
+static double cuda_add_sub_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = get_blas_nx(descr[0].state);
+	n = starpu_get_blas_nx(descr[0].state);
 
 	double cost = (1.45f*n*n)/10.0f/2.0f;
 
@@ -98,11 +98,11 @@ static double cuda_add_sub_cost(buffer_descr *descr)
 }
 
 
-static double mult_cost(buffer_descr *descr)
+static double mult_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = get_blas_nx(descr[0].state);
+	n = starpu_get_blas_nx(descr[0].state);
 
 	double cost = (((double)(n)*n*n)/1000.0f/4.11f/0.2588);
 
@@ -113,11 +113,11 @@ static double mult_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double cuda_mult_cost(buffer_descr *descr)
+static double cuda_mult_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = get_blas_nx(descr[0].state);
+	n = starpu_get_blas_nx(descr[0].state);
 
 	double cost = (((double)(n)*n*n)/1000.0f/4.11f);
 
@@ -128,7 +128,7 @@ static double cuda_mult_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-struct perfmodel_t strassen_model_mult = {
+struct starpu_perfmodel_t strassen_model_mult = {
 	.per_arch = { 
 		[CORE_DEFAULT] = { .cost_model = mult_cost },
 		[CUDA_DEFAULT] = { .cost_model = cuda_mult_cost }
@@ -137,7 +137,7 @@ struct perfmodel_t strassen_model_mult = {
 	.symbol = "strassen_model_mult"
 };
 
-struct perfmodel_t strassen_model_add_sub = {
+struct starpu_perfmodel_t strassen_model_add_sub = {
 	.per_arch = { 
 		[CORE_DEFAULT] = { .cost_model = add_sub_cost },
 		[CUDA_DEFAULT] = { .cost_model = cuda_add_sub_cost }
@@ -146,7 +146,7 @@ struct perfmodel_t strassen_model_add_sub = {
 	.symbol = "strassen_model_add_sub"
 };
 
-struct perfmodel_t strassen_model_self_add_sub = {
+struct starpu_perfmodel_t strassen_model_self_add_sub = {
 	.per_arch = { 
 		[CORE_DEFAULT] = { .cost_model = self_add_sub_cost },
 		[CUDA_DEFAULT] = { .cost_model = cuda_self_add_sub_cost }

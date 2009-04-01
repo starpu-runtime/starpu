@@ -22,7 +22,7 @@ unsigned block_filter_func_vector(filter *f, data_state *root_data)
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
 
-	vector_interface_t *vector_root = &root_data->interface[0].vector;
+	starpu_vector_interface_t *vector_root = &root_data->interface[0].vector;
 	uint32_t nx = vector_root->nx;
 	size_t elemsize = vector_root->elemsize;
 
@@ -46,7 +46,7 @@ unsigned block_filter_func_vector(filter *f, data_state *root_data)
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
 		{
-			vector_interface_t *local = &root_data->children[chunk].interface[node].vector;
+			starpu_vector_interface_t *local = &root_data->children[chunk].interface[node].vector;
 
 			local->nx = child_nx;
 			local->elemsize = elemsize;
@@ -65,7 +65,7 @@ unsigned divide_in_2_filter_func_vector(filter *f, data_state *root_data)
 {
 	uint32_t length_first = f->filter_arg;
 
-	vector_interface_t *vector_root = &root_data->interface[0].vector;
+	starpu_vector_interface_t *vector_root = &root_data->interface[0].vector;
 	uint32_t nx = vector_root->nx;
 	size_t elemsize = vector_root->elemsize;
 
@@ -78,7 +78,7 @@ unsigned divide_in_2_filter_func_vector(filter *f, data_state *root_data)
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
 	{
-		vector_interface_t *local = &root_data->children[0].interface[node].vector;
+		starpu_vector_interface_t *local = &root_data->children[0].interface[node].vector;
 
 		local->nx = length_first;
 		local->elemsize = elemsize;
@@ -90,7 +90,7 @@ unsigned divide_in_2_filter_func_vector(filter *f, data_state *root_data)
 
 	for (node = 0; node < MAXNODES; node++)
 	{
-		vector_interface_t *local = &root_data->children[1].interface[node].vector;
+		starpu_vector_interface_t *local = &root_data->children[1].interface[node].vector;
 
 		local->nx = nx - length_first;
 		local->elemsize = elemsize;
@@ -108,7 +108,7 @@ unsigned list_filter_func_vector(filter *f, data_state *root_data)
 	uint32_t nchunks = f->filter_arg;
 	uint32_t *length_tab = f->filter_arg_ptr;
 
-	vector_interface_t *vector_root = &root_data->interface[0].vector;
+	starpu_vector_interface_t *vector_root = &root_data->interface[0].vector;
 	uint32_t nx = vector_root->nx;
 	size_t elemsize = vector_root->elemsize;
 
@@ -127,7 +127,7 @@ unsigned list_filter_func_vector(filter *f, data_state *root_data)
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
 		{
-			vector_interface_t *local = &root_data->children[chunk].interface[node].vector;
+			starpu_vector_interface_t *local = &root_data->children[chunk].interface[node].vector;
 
 			local->nx = chunk_size;
 			local->elemsize = elemsize;

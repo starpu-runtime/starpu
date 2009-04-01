@@ -26,15 +26,15 @@
  *	Number of flops of Gemm 
  */
 
-double gemm_cost(buffer_descr *descr)
+double gemm_cost(starpu_buffer_descr *descr)
 {
 	/* C = A * B */
 	uint32_t nxC, nyC, nxA;
 
 
-	nxC = get_blas_nx(descr[2].state);
-	nyC = get_blas_ny(descr[2].state);
-	nxA = get_blas_nx(descr[0].state);
+	nxC = starpu_get_blas_nx(descr[2].state);
+	nyC = starpu_get_blas_ny(descr[2].state);
+	nxA = starpu_get_blas_nx(descr[0].state);
 
 //	printf("nxC %d nxC %d nxA %d\n", nxC, nyC, nxA);
 

@@ -115,7 +115,7 @@ typedef struct data_state_t {
 	local_data_state per_node[MAXNODES];
 
 	/* describe the actual data layout */
-	data_interface_t interface[MAXNODES];
+	starpu_data_interface_t interface[MAXNODES];
 
 	struct data_interface_ops_t *ops;
 
@@ -144,10 +144,10 @@ int _fetch_data(data_state *state, uint32_t requesting_node, uint8_t read, uint8
 
 uint32_t get_data_refcnt(data_state *state, uint32_t node);
 
-void push_codelet_output(buffer_descr *descrs, unsigned nbuffers, uint32_t mask);
+void push_codelet_output(starpu_buffer_descr *descrs, unsigned nbuffers, uint32_t mask);
 
 __attribute__((warn_unused_result))
-int fetch_codelet_input(buffer_descr *descrs, data_interface_t *interface, unsigned nbuffers, uint32_t mask);
+int fetch_codelet_input(starpu_buffer_descr *descrs, starpu_data_interface_t *interface, unsigned nbuffers, uint32_t mask);
 
 void notify_data_modification(data_state *state, uint32_t modifying_node);
 

@@ -183,16 +183,16 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 }
 #endif // CHECK_RESULTS
 
-void dw_core_codelet_update_u11(data_interface_t *, void *);
-void dw_core_codelet_update_u12(data_interface_t *, void *);
-void dw_core_codelet_update_u21(data_interface_t *, void *);
-void dw_core_codelet_update_u22(data_interface_t *, void *);
+void dw_core_codelet_update_u11(starpu_data_interface_t *, void *);
+void dw_core_codelet_update_u12(starpu_data_interface_t *, void *);
+void dw_core_codelet_update_u21(starpu_data_interface_t *, void *);
+void dw_core_codelet_update_u22(starpu_data_interface_t *, void *);
 
 #ifdef USE_CUDA
-void dw_cublas_codelet_update_u11(data_interface_t *descr, void *_args);
-void dw_cublas_codelet_update_u12(data_interface_t *descr, void *_args);
-void dw_cublas_codelet_update_u21(data_interface_t *descr, void *_args);
-void dw_cublas_codelet_update_u22(data_interface_t *descr, void *_args);
+void dw_cublas_codelet_update_u11(starpu_data_interface_t *descr, void *_args);
+void dw_cublas_codelet_update_u12(starpu_data_interface_t *descr, void *_args);
+void dw_cublas_codelet_update_u21(starpu_data_interface_t *descr, void *_args);
+void dw_cublas_codelet_update_u22(starpu_data_interface_t *descr, void *_args);
 #endif
 
 void dw_callback_codelet_update_u11(void *);
@@ -204,9 +204,9 @@ void dw_callback_v2_codelet_update_u12(void *);
 void dw_callback_v2_codelet_update_u21(void *);
 void dw_callback_v2_codelet_update_u22(void *);
 
-extern struct perfmodel_t model_11;
-extern struct perfmodel_t model_12;
-extern struct perfmodel_t model_21;
-extern struct perfmodel_t model_22;
+extern struct starpu_perfmodel_t model_11;
+extern struct starpu_perfmodel_t model_12;
+extern struct starpu_perfmodel_t model_21;
+extern struct starpu_perfmodel_t model_22;
 
 #endif // __DW_FACTO_LU_H__

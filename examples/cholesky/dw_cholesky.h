@@ -57,22 +57,22 @@ static unsigned size = 4*1024;
 static unsigned nblocks = 4;
 static unsigned pinned = 0;
 
-void chol_core_codelet_update_u11(data_interface_t *, void *);
-void chol_core_codelet_update_u21(data_interface_t *, void *);
-void chol_core_codelet_update_u22(data_interface_t *, void *);
+void chol_core_codelet_update_u11(starpu_data_interface_t *, void *);
+void chol_core_codelet_update_u21(starpu_data_interface_t *, void *);
+void chol_core_codelet_update_u22(starpu_data_interface_t *, void *);
 
 #ifdef USE_CUDA
-void chol_cublas_codelet_update_u11(data_interface_t *descr, void *_args);
-void chol_cublas_codelet_update_u21(data_interface_t *descr, void *_args);
-void chol_cublas_codelet_update_u22(data_interface_t *descr, void *_args);
+void chol_cublas_codelet_update_u11(starpu_data_interface_t *descr, void *_args);
+void chol_cublas_codelet_update_u21(starpu_data_interface_t *descr, void *_args);
+void chol_cublas_codelet_update_u22(starpu_data_interface_t *descr, void *_args);
 #endif
 
 void initialize_system(float **A, unsigned dim, unsigned pinned);
 void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks);
 
-extern struct perfmodel_t chol_model_11;
-extern struct perfmodel_t chol_model_21;
-extern struct perfmodel_t chol_model_22;
+extern struct starpu_perfmodel_t chol_model_11;
+extern struct starpu_perfmodel_t chol_model_21;
+extern struct starpu_perfmodel_t chol_model_22;
 
 static void __attribute__((unused)) parse_args(int argc, char **argv)
 {

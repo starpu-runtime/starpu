@@ -31,7 +31,7 @@
 #define NMAXDEPS	256
 #endif
 
-#define TAG_SIZE        (sizeof(tag_t)*8)
+#define TAG_SIZE        (sizeof(starpu_tag_t)*8)
 
 typedef enum {
 	UNASSIGNED,
@@ -45,7 +45,7 @@ struct job_s;
 
 struct tag_s {
 	mutex lock; /* do we really need that ? */
-	tag_t id; /* an identifier for the task */
+	starpu_tag_t id; /* an identifier for the task */
 	tag_state state;
 	unsigned nsuccs; /* how many successors ? */
 #ifdef DYNAMIC_DEPS_SIZE
@@ -63,14 +63,14 @@ typedef struct _cg_t {
 } cg_t;
 
 void notify_cg(cg_t *cg);
-void starpu_tag_declare_deps(tag_t id, unsigned ndeps, ...);
+void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 
 cg_t *create_cg(unsigned ntags, struct tag_s *tag);
-struct tag_s *get_tag_struct(tag_t id);
-void tag_add_succ(tag_t id, cg_t *cg);
+struct tag_s *get_tag_struct(starpu_tag_t id);
+void tag_add_succ(starpu_tag_t id, cg_t *cg);
 
 void notify_dependencies(struct job_s *j);
-void tag_declare(tag_t id, struct job_s *job);
+void tag_declare(starpu_tag_t id, struct job_s *job);
 void tag_set_ready(struct tag_s *tag);
 
 unsigned submit_job_enforce_task_deps(struct job_s *j);

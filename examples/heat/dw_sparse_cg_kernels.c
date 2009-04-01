@@ -50,7 +50,7 @@
  *		descr[0] = A, descr[1] = x, descr [2] = r, descr[3] = b
  */
 
-void core_codelet_func_1(data_interface_t *descr, __attribute__((unused)) void *arg)
+void core_codelet_func_1(starpu_data_interface_t *descr, __attribute__((unused)) void *arg)
 {
 	float *nzval = (float *)descr[0].csr.nzval;
 	uint32_t *colind = descr[0].csr.colind;
@@ -94,7 +94,7 @@ void core_codelet_func_1(data_interface_t *descr, __attribute__((unused)) void *
  *	compute d = r
  *		descr[0] = d, descr[1] = r
  */
-void core_codelet_func_2(data_interface_t *descr, __attribute__((unused)) void *arg)
+void core_codelet_func_2(starpu_data_interface_t *descr, __attribute__((unused)) void *arg)
 {
 	/* simply copy r into d */
 	uint32_t nx = descr[0].vector.nx;
@@ -116,7 +116,7 @@ void core_codelet_func_2(data_interface_t *descr, __attribute__((unused)) void *
  *		args = &delta_new, &delta_0
  */
 
-void core_codelet_func_3(data_interface_t *descr, void *arg)
+void core_codelet_func_3(starpu_data_interface_t *descr, void *arg)
 {
 	struct cg_problem *pb = arg;
 	float dot;
@@ -136,7 +136,7 @@ void core_codelet_func_3(data_interface_t *descr, void *arg)
 }
 
 #ifdef USE_CUDA
-void cublas_codelet_func_3(data_interface_t *descr, void *arg)
+void cublas_codelet_func_3(starpu_data_interface_t *descr, void *arg)
 {
 	struct cg_problem *pb = arg;
 	float dot;
@@ -161,7 +161,7 @@ void cublas_codelet_func_3(data_interface_t *descr, void *arg)
  *		descr[0] = A, descr[1] = d, descr [2] = q
  */
 
-void core_codelet_func_4(data_interface_t *descr, __attribute__((unused)) void *arg)
+void core_codelet_func_4(starpu_data_interface_t *descr, __attribute__((unused)) void *arg)
 {
 	float *nzval = (float *)descr[0].csr.nzval;
 	uint32_t *colind = descr[0].csr.colind;
@@ -207,7 +207,7 @@ void core_codelet_func_4(data_interface_t *descr, __attribute__((unused)) void *
  *		args = &alpha, &delta_new
  */
 
-void core_codelet_func_5(data_interface_t *descr, void *arg)
+void core_codelet_func_5(starpu_data_interface_t *descr, void *arg)
 {
 	float dot;
 	struct cg_problem *pb = arg;
@@ -227,7 +227,7 @@ void core_codelet_func_5(data_interface_t *descr, void *arg)
 }
 
 #ifdef USE_CUDA
-void cublas_codelet_func_5(data_interface_t *descr, void *arg)
+void cublas_codelet_func_5(starpu_data_interface_t *descr, void *arg)
 {
 	float dot;
 	struct cg_problem *pb = arg;
@@ -256,7 +256,7 @@ void cublas_codelet_func_5(data_interface_t *descr, void *arg)
  *		args = &alpha
  */
 
-void core_codelet_func_6(data_interface_t *descr, void *arg)
+void core_codelet_func_6(starpu_data_interface_t *descr, void *arg)
 {
 	struct cg_problem *pb = arg;
 	float *vecx, *vecd;
@@ -272,7 +272,7 @@ void core_codelet_func_6(data_interface_t *descr, void *arg)
 }
 
 #ifdef USE_CUDA
-void cublas_codelet_func_6(data_interface_t *descr, void *arg)
+void cublas_codelet_func_6(starpu_data_interface_t *descr, void *arg)
 {
 	struct cg_problem *pb = arg;
 	float *vecx, *vecd;
@@ -295,7 +295,7 @@ void cublas_codelet_func_6(data_interface_t *descr, void *arg)
  *		args = &alpha
  */
 
-void core_codelet_func_7(data_interface_t *descr, void *arg)
+void core_codelet_func_7(starpu_data_interface_t *descr, void *arg)
 {
 	struct cg_problem *pb = arg;
 	float *vecr, *vecq;
@@ -311,7 +311,7 @@ void core_codelet_func_7(data_interface_t *descr, void *arg)
 }
 
 #ifdef USE_CUDA
-void cublas_codelet_func_7(data_interface_t *descr, void *arg)
+void cublas_codelet_func_7(starpu_data_interface_t *descr, void *arg)
 {
 	struct cg_problem *pb = arg;
 	float *vecr, *vecq;
@@ -336,7 +336,7 @@ void cublas_codelet_func_7(data_interface_t *descr, void *arg)
  *		args = &delta_old, &delta_new, &beta
  */
 
-void core_codelet_func_8(data_interface_t *descr, void *arg)
+void core_codelet_func_8(starpu_data_interface_t *descr, void *arg)
 {
 	float dot;
 	struct cg_problem *pb = arg;
@@ -355,7 +355,7 @@ void core_codelet_func_8(data_interface_t *descr, void *arg)
 }
 
 #ifdef USE_CUDA
-void cublas_codelet_func_8(data_interface_t *descr, void *arg)
+void cublas_codelet_func_8(starpu_data_interface_t *descr, void *arg)
 {
 	float dot;
 	struct cg_problem *pb = arg;
@@ -382,7 +382,7 @@ void cublas_codelet_func_8(data_interface_t *descr, void *arg)
  *
  */
 
-void core_codelet_func_9(data_interface_t *descr, void *arg)
+void core_codelet_func_9(starpu_data_interface_t *descr, void *arg)
 {
 	struct cg_problem *pb = arg;
 	float *vecd, *vecr;
@@ -402,7 +402,7 @@ void core_codelet_func_9(data_interface_t *descr, void *arg)
 }
 
 #ifdef USE_CUDA
-void cublas_codelet_func_9(data_interface_t *descr, void *arg)
+void cublas_codelet_func_9(starpu_data_interface_t *descr, void *arg)
 {
 	struct cg_problem *pb = arg;
 	float *vecd, *vecr;

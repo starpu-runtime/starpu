@@ -43,11 +43,11 @@ void create_data(void)
 	bcsr_matrix = mm_file_to_bcsr(inputfile, c, r);
 
 	/* declare the corresponding block CSR to the runtime */
-	monitor_bcsr_data(&sparse_matrix, 0, bcsr_matrix->nnz_blocks, bcsr_matrix->nrows_blocks,
+	starpu_monitor_bcsr_data(&sparse_matrix, 0, bcsr_matrix->nnz_blocks, bcsr_matrix->nrows_blocks,
 	                (uintptr_t)bcsr_matrix->val, bcsr_matrix->colind, bcsr_matrix->rowptr, 
 			0, bcsr_matrix->r, bcsr_matrix->c, sizeof(float));
 
-	size = c*r*get_bcsr_nnz(sparse_matrix);
+	size = c*r*starpu_get_bcsr_nnz(sparse_matrix);
 //	printf("size = %d \n ", size);
 
 	/* initiate the 2 vectors */
@@ -65,8 +65,8 @@ void create_data(void)
 		vector_out_ptr[ind] = 0.0f;
 	}
 
-	monitor_vector_data(&vector_in, 0, (uintptr_t)vector_in_ptr, size, sizeof(float));
-	monitor_vector_data(&vector_out, 0, (uintptr_t)vector_out_ptr, size, sizeof(float));
+	starpu_monitor_vector_data(&vector_in, 0, (uintptr_t)vector_in_ptr, size, sizeof(float));
+	starpu_monitor_vector_data(&vector_out, 0, (uintptr_t)vector_out_ptr, size, sizeof(float));
 }
 
 void init_problem_callback(void *arg)
@@ -129,8 +129,8 @@ void launch_spmv_codelets(void)
 	uint8_t *is_entry_tab;
 
 	/* we call one codelet per block */
-	unsigned nblocks = get_bcsr_nnz(sparse_matrix); 
-	unsigned nrows = get_bcsr_nrow(sparse_matrix); 
+	unsigned nblocks = starpu_get_bcsr_nnz(sparse_matrix); 
+	unsigned nrows = starpu_get_bcsr_nrow(sparse_matrix); 
 
 	remainingtasks = NSPMV*nblocks;
 	totaltasks = remainingtasks;
@@ -145,8 +145,8 @@ void launch_spmv_codelets(void)
 
 	printf("there will be %d codelets\n", remainingtasks);
 
-	uint32_t *rowptr = get_bcsr_local_rowptr(sparse_matrix);
-	uint32_t *colind = get_bcsr_local_colind(sparse_matrix);
+	uint32_t *rowptr = starpu_get_bcsr_local_rowptr(sparse_matrix);
+	uint32_t *colind = starpu_get_bcsr_local_colind(sparse_matrix);
 
 	gettimeofday(&start, NULL);
 

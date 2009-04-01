@@ -55,7 +55,7 @@ unsigned canonical_block_filter_bcsr(filter *f __attribute__((unused)), data_sta
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
 		{
-			blas_interface_t *local = &root_data->children[chunk].interface[node].blas;
+			starpu_blas_interface_t *local = &root_data->children[chunk].interface[node].blas;
 
 			local->nx = c;
 			local->ny = r;

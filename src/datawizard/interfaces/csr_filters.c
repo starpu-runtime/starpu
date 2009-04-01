@@ -54,7 +54,7 @@ unsigned vertical_block_filter_func_csr(filter *f, data_state *root_data)
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
 		{
-			csr_interface_t *local = &root_data->children[chunk].interface[node].csr;
+			starpu_csr_interface_t *local = &root_data->children[chunk].interface[node].csr;
 
 			local->nnz = local_nnz;
 			local->nrow = child_nrow;

@@ -17,7 +17,7 @@
 #include "strassen.h"
 
 
-static void mult_common_codelet(data_interface_t *buffers, int s, __attribute__((unused))  void *arg)
+static void mult_common_codelet(starpu_data_interface_t *buffers, int s, __attribute__((unused))  void *arg)
 {
 	float *center 	= (float *)buffers[0].blas.ptr;
 	float *left 	= (float *)buffers[1].blas.ptr;
@@ -50,19 +50,19 @@ static void mult_common_codelet(data_interface_t *buffers, int s, __attribute__(
 	}
 }
 
-void mult_core_codelet(data_interface_t *descr, void *_args)
+void mult_core_codelet(starpu_data_interface_t *descr, void *_args)
 {
 	mult_common_codelet(descr, 0, _args);
 }
 
 #ifdef USE_CUDA
-void mult_cublas_codelet(data_interface_t *descr, void *_args)
+void mult_cublas_codelet(starpu_data_interface_t *descr, void *_args)
 {
 	mult_common_codelet(descr, 1, _args);
 }
 #endif
 
-static void add_sub_common_codelet(data_interface_t *buffers, int s, __attribute__((unused))  void *arg, float alpha)
+static void add_sub_common_codelet(starpu_data_interface_t *buffers, int s, __attribute__((unused))  void *arg, float alpha)
 {
 	/* C = A op B */
 
@@ -109,30 +109,30 @@ static void add_sub_common_codelet(data_interface_t *buffers, int s, __attribute
 	}
 }
 
-void sub_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg)
+void sub_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
 {
 	add_sub_common_codelet(descr, 0, arg, -1.0f);
 }
 
-void add_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg)
+void add_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
 {
 	add_sub_common_codelet(descr, 0, arg, 1.0f);
 }
 
 #ifdef USE_CUDA
-void sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg)
+void sub_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
 {
 	add_sub_common_codelet(descr, 1, arg, -1.0f);
 }
 
-void add_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg)
+void add_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
 {
 	add_sub_common_codelet(descr, 1, arg, 1.0f);
 }
 #endif
 
 
-static void self_add_sub_common_codelet(data_interface_t *buffers, int s, __attribute__((unused))  void *arg, float alpha)
+static void self_add_sub_common_codelet(starpu_data_interface_t *buffers, int s, __attribute__((unused))  void *arg, float alpha)
 {
 	/* C +=/-= A */
 
@@ -175,23 +175,23 @@ static void self_add_sub_common_codelet(data_interface_t *buffers, int s, __attr
 
 
 
-void self_add_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg)
+void self_add_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
 {
 	self_add_sub_common_codelet(descr, 0, arg, 1.0f);
 }
 
-void self_sub_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg)
+void self_sub_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
 {
 	self_add_sub_common_codelet(descr, 0, arg, -1.0f);
 }
 
 #ifdef USE_CUDA
-void self_add_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg)
+void self_add_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
 {
 	self_add_sub_common_codelet(descr, 1, arg, 1.0f);
 }
 
-void self_sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg)
+void self_sub_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
 {
 	self_add_sub_common_codelet(descr, 1, arg, -1.0f);
 }

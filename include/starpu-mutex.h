@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __MUTEX_H__
-#define __MUTEX_H__
+#ifndef __STARPU_MUTEX_H__
+#define __STARPU_MUTEX_H__
 
 #include <stdint.h>
 
@@ -29,4 +29,4 @@ void take_mutex(mutex *m);
 int take_mutex_try(mutex *m);
 void release_mutex(mutex *m);
 
-#endif
+#endif // __STARPU_MUTEX_H__

@@ -17,13 +17,13 @@
 #include <core/dependencies/htable.h>
 #include <string.h>
 
-void *htbl_search_tag(htbl_node_t *htbl, tag_t tag)
+void *htbl_search_tag(htbl_node_t *htbl, starpu_tag_t tag)
 {
 	unsigned currentbit;
 	htbl_node_t *current_htbl = htbl;
 
 	/* 000000000001111 with HTBL_NODE_SIZE 1's */
-	tag_t mask = (1<<HTBL_NODE_SIZE)-1;
+	starpu_tag_t mask = (1<<HTBL_NODE_SIZE)-1;
 
 	for(currentbit = 0; currentbit < TAG_SIZE; currentbit+=HTBL_NODE_SIZE)
 	{
@@ -40,7 +40,7 @@ void *htbl_search_tag(htbl_node_t *htbl, tag_t tag)
 
 		unsigned last_currentbit = 
 			TAG_SIZE - (currentbit + HTBL_NODE_SIZE);
-		tag_t offloaded_mask = mask << last_currentbit;
+		starpu_tag_t offloaded_mask = mask << last_currentbit;
 		unsigned current_index = 
 			(tag & (offloaded_mask)) >> (last_currentbit);
 
@@ -54,7 +54,7 @@ void *htbl_search_tag(htbl_node_t *htbl, tag_t tag)
  * returns the previous value of the tag, or NULL else
  */
 
-void *htbl_insert_tag(htbl_node_t **htbl, tag_t tag, void *entry)
+void *htbl_insert_tag(htbl_node_t **htbl, starpu_tag_t tag, void *entry)
 {
 
 	unsigned currentbit;
@@ -62,7 +62,7 @@ void *htbl_insert_tag(htbl_node_t **htbl, tag_t tag, void *entry)
 	htbl_node_t *previous_htbl_ptr = NULL;
 
 	/* 000000000001111 with HTBL_NODE_SIZE 1's */
-	tag_t mask = (1<<HTBL_NODE_SIZE)-1;
+	starpu_tag_t mask = (1<<HTBL_NODE_SIZE)-1;
 
 	for(currentbit = 0; currentbit < TAG_SIZE; currentbit+=HTBL_NODE_SIZE)
 	{
@@ -83,7 +83,7 @@ void *htbl_insert_tag(htbl_node_t **htbl, tag_t tag, void *entry)
 
 		unsigned last_currentbit = 
 			TAG_SIZE - (currentbit + HTBL_NODE_SIZE);
-		tag_t offloaded_mask = mask << last_currentbit;
+		starpu_tag_t offloaded_mask = mask << last_currentbit;
 		unsigned current_index = 
 			(tag & (offloaded_mask)) >> (last_currentbit);
 
@@ -105,7 +105,7 @@ void *htbl_insert_tag(htbl_node_t **htbl, tag_t tag, void *entry)
 }
 
 /* returns the entry corresponding to the tag and remove it from the htbl */
-void *htbl_remove_tag(htbl_node_t *htbl, tag_t tag)
+void *htbl_remove_tag(htbl_node_t *htbl, starpu_tag_t tag)
 {
 	/* NB : if the entry is "NULL", we assume this means it is not present XXX */
 	unsigned currentbit;
@@ -115,7 +115,7 @@ void *htbl_remove_tag(htbl_node_t *htbl, tag_t tag)
 	htbl_node_t *path[(TAG_SIZE + HTBL_NODE_SIZE - 1)/(HTBL_NODE_SIZE)];
 
 	/* 000000000001111 with HTBL_NODE_SIZE 1's */
-	tag_t mask = (1<<HTBL_NODE_SIZE)-1;
+	starpu_tag_t mask = (1<<HTBL_NODE_SIZE)-1;
 	int level, maxlevel;
 	unsigned tag_is_present = 1;
 
@@ -136,7 +136,7 @@ void *htbl_remove_tag(htbl_node_t *htbl, tag_t tag)
 
 		unsigned last_currentbit = 
 			TAG_SIZE - (currentbit + HTBL_NODE_SIZE);
-		tag_t offloaded_mask = mask << last_currentbit;
+		starpu_tag_t offloaded_mask = mask << last_currentbit;
 		unsigned current_index = 
 			(tag & (offloaded_mask)) >> (last_currentbit);
 		

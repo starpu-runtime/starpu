@@ -54,7 +54,7 @@ void callback_func(void *argcb)
 	}
 }
 
-void core_codelet(data_interface_t *buffers, __attribute__ ((unused)) void *_args)
+void core_codelet(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
 	float *val = (float *)buffers[0].vector.ptr;
 
@@ -62,7 +62,7 @@ void core_codelet(data_interface_t *buffers, __attribute__ ((unused)) void *_arg
 }
 
 #ifdef USE_CUDA
-void cublas_codelet(data_interface_t *buffers, __attribute__ ((unused)) void *_args)
+void cublas_codelet(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
 	float *val = (float *)buffers[0].vector.ptr;
 	float *dunity = (float *)buffers[1].vector.ptr;
@@ -101,9 +101,9 @@ void initialize_cuda(void)
 
 void init_data(void)
 {
-	monitor_vector_data(&my_float_state, 0 /* home node */, (uintptr_t)&my_lovely_float, 4, sizeof(float));
+	starpu_monitor_vector_data(&my_float_state, 0 /* home node */, (uintptr_t)&my_lovely_float, 4, sizeof(float));
 
-	monitor_vector_data(&unity_state, 0 /* home node */, (uintptr_t)&unity, 4, sizeof(float));
+	starpu_monitor_vector_data(&unity_state, 0 /* home node */, (uintptr_t)&unity, 4, sizeof(float));
 }
 
 int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)

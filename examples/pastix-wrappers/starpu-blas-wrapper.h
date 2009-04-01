@@ -41,7 +41,7 @@ static double transfer_time_htod(unsigned size)
 
 #define PERF_GEMM_CPU(i,j,k) (GEMM_CPU_A*(double)(i)*(double)(j)*(double)(k)+GEMM_CPU_B*(double)(i)*(double)(j)+GEMM_CPU_C*(double)(j)*(double)(k)+GEMM_CPU_D*(double)(i)+GEMM_CPU_E*(double)(j)+GEMM_CPU_F)
 
-static double starpu_compute_contrib_compact_core_cost(buffer_descr *descr)
+static double starpu_compute_contrib_compact_core_cost(starpu_buffer_descr *descr)
 {
 	unsigned nx0, ny0, ny2;
 	nx0 = descr[0].state->interface->blas.nx;
@@ -57,7 +57,7 @@ static double starpu_compute_contrib_compact_core_cost(buffer_descr *descr)
 
 #define PERF_GEMM_GPU(i,j,k) (GEMM_GPU_A*(double)(i)*(double)(j)*(double)(k)+GEMM_GPU_B*(double)(i)*(double)(j)+GEMM_GPU_C*(double)(j)*(double)(k)+GEMM_GPU_D*(double)(i)+GEMM_GPU_E*(double)(j)+GEMM_GPU_F)
 
-static double starpu_compute_contrib_compact_cuda_cost(buffer_descr *descr)
+static double starpu_compute_contrib_compact_cuda_cost(starpu_buffer_descr *descr)
 {
 	unsigned nx0, ny0, ny2;
 	nx0 = descr[0].state->interface->blas.nx;
@@ -72,7 +72,7 @@ static double starpu_compute_contrib_compact_cuda_cost(buffer_descr *descr)
 
 #define PERF_TRSM_GPU(i,j)   (TRSM_GPU_A*(double)(i)*(double)(i)*(double)(j)+TRSM_GPU_B*(double)(i)+TRSM_GPU_C)
 
-static double starpu_cblk_strsm_cuda_cost(buffer_descr *descr)
+static double starpu_cblk_strsm_cuda_cost(starpu_buffer_descr *descr)
 {
 	unsigned nx, ny;
 	nx = descr[0].state->interface->blas.nx;
@@ -85,7 +85,7 @@ static double starpu_cblk_strsm_cuda_cost(buffer_descr *descr)
 
 #define PERF_TRSM_CPU(i,j)   (TRSM_CPU_A*(double)(i)*(double)(i)*(double)(j)+TRSM_CPU_B*(double)(i)+TRSM_CPU_C)
 
-static double starpu_cblk_strsm_core_cost(buffer_descr *descr)
+static double starpu_cblk_strsm_core_cost(starpu_buffer_descr *descr)
 {
 	unsigned nx, ny;
 	nx = descr[0].state->interface->blas.nx;

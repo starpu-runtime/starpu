@@ -65,48 +65,48 @@ static unsigned reclevel = 3;
 static unsigned norandom = 0;
 static unsigned pin = 0;
 
-extern void mult_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
-extern void sub_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
-extern void add_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
-extern void self_add_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
-extern void self_sub_core_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void mult_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void sub_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void add_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void self_add_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void self_sub_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
 
 #ifdef USE_CUDA
-extern void mult_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
-extern void sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
-extern void add_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
-extern void self_add_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
-extern void self_sub_cublas_codelet(data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void mult_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void sub_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void add_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void self_add_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void self_sub_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
 #endif
 
-extern void null_codelet(__attribute__((unused)) data_interface_t *descr,
+extern void null_codelet(__attribute__((unused)) starpu_data_interface_t *descr,
                   __attribute__((unused))  void *arg);
 
 
 extern void display_perf(double timing, unsigned size);
 
-struct perfmodel_t strassen_model_mult = {
+struct starpu_perfmodel_t strassen_model_mult = {
         .type = HISTORY_BASED,
         .symbol = "strassen_model_mult"
 };
 
-struct perfmodel_t strassen_model_add = {
+struct starpu_perfmodel_t strassen_model_add = {
         .type = HISTORY_BASED,
         .symbol = "strassen_model_add"
 };
 
-struct perfmodel_t strassen_model_sub = {
+struct starpu_perfmodel_t strassen_model_sub = {
         .type = HISTORY_BASED,
         .symbol = "strassen_model_sub"
 };
 
 
-struct perfmodel_t strassen_model_self_add = {
+struct starpu_perfmodel_t strassen_model_self_add = {
         .type = HISTORY_BASED,
         .symbol = "strassen_model_self_add"
 };
 
-struct perfmodel_t strassen_model_self_sub = {
+struct starpu_perfmodel_t strassen_model_self_sub = {
         .type = HISTORY_BASED,
         .symbol = "strassen_model_self_sub"
 };
@@ -115,7 +115,7 @@ struct perfmodel_t strassen_model_self_sub = {
 
 struct data_deps_t {
 	unsigned ndeps;
-	tag_t deps[MAXDEPS];
+	starpu_tag_t deps[MAXDEPS];
 };
 
 struct strassen_iter {
@@ -172,7 +172,7 @@ starpu_data_handle allocate_tmp_matrix(unsigned size, unsigned reclevel)
 	memset(buffer, 0, size*size*sizeof(float));
 
 
-	monitor_blas_data(data, 0, (uintptr_t)buffer, size, size, size, sizeof(float));
+	starpu_monitor_blas_data(data, 0, (uintptr_t)buffer, size, size, size, sizeof(float));
 
 	/* we construct a filter tree of depth reclevel */
 	unsigned rec;
@@ -399,7 +399,7 @@ void strassen_mult(struct strassen_iter *iter)
         starpu_data_handle C21 = get_sub_data(iter->C, 2, 0, 1);
         starpu_data_handle C22 = get_sub_data(iter->C, 2, 1, 1);
 
-	unsigned size = get_blas_nx(A11);
+	unsigned size = starpu_get_blas_nx(A11);
 
 	/* M1a = (A11 + A22) */
 	iter->Mia_data[0] = allocate_tmp_matrix(size, iter->reclevel);
@@ -695,7 +695,7 @@ void strassen_mult(struct strassen_iter *iter)
 	create_cleanup_task(clean_struct);
 }
 
-static void dummy_codelet_func(__attribute__((unused))data_interface_t *descr,
+static void dummy_codelet_func(__attribute__((unused))starpu_data_interface_t *descr,
 				__attribute__((unused))  void *arg)
 {
 }
@@ -783,9 +783,9 @@ int main(int argc, char **argv)
 	memset(B, 0, size*size*sizeof(float));
 	memset(C, 0, size*size*sizeof(float));
 
-	monitor_blas_data(&data_A, 0, (uintptr_t)A, size, size, size, sizeof(float));
-	monitor_blas_data(&data_B, 0, (uintptr_t)B, size, size, size, sizeof(float));
-	monitor_blas_data(&data_C, 0, (uintptr_t)C, size, size, size, sizeof(float));
+	starpu_monitor_blas_data(&data_A, 0, (uintptr_t)A, size, size, size, sizeof(float));
+	starpu_monitor_blas_data(&data_B, 0, (uintptr_t)B, size, size, size, sizeof(float));
+	starpu_monitor_blas_data(&data_C, 0, (uintptr_t)C, size, size, size, sizeof(float));
 
 	unsigned rec;
 	for (rec = 0; rec < reclevel; rec++)

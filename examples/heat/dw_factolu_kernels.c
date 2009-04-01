@@ -39,7 +39,7 @@ void display_stat_heat(void)
  *   U22 
  */
 
-static inline void dw_common_core_codelet_update_u22(data_interface_t *buffers, int s, __attribute__((unused)) void *_args)
+static inline void dw_common_core_codelet_update_u22(starpu_data_interface_t *buffers, int s, __attribute__((unused)) void *_args)
 {
 	float *left 	= (float *)buffers[0].blas.ptr;
 	float *right 	= (float *)buffers[1].blas.ptr;
@@ -80,14 +80,14 @@ static inline void dw_common_core_codelet_update_u22(data_interface_t *buffers, 
 	}
 }
 
-void dw_core_codelet_update_u22(data_interface_t *descr, void *_args)
+void dw_core_codelet_update_u22(starpu_data_interface_t *descr, void *_args)
 {
 	dw_common_core_codelet_update_u22(descr, 0, _args);
 	(void)STARPU_ATOMIC_ADD(&count_22_core, 1);
 }
 
 #ifdef USE_CUDA
-void dw_cublas_codelet_update_u22(data_interface_t *descr, void *_args)
+void dw_cublas_codelet_update_u22(starpu_data_interface_t *descr, void *_args)
 {
 	dw_common_core_codelet_update_u22(descr, 1, _args);
 	(void)STARPU_ATOMIC_ADD(&count_22_cublas, 1);
@@ -98,7 +98,7 @@ void dw_cublas_codelet_update_u22(data_interface_t *descr, void *_args)
  * U12
  */
 
-static inline void dw_common_codelet_update_u12(data_interface_t *buffers, int s, __attribute__((unused)) void *_args) {
+static inline void dw_common_codelet_update_u12(starpu_data_interface_t *buffers, int s, __attribute__((unused)) void *_args) {
 	float *sub11;
 	float *sub12;
 
@@ -137,14 +137,14 @@ static inline void dw_common_codelet_update_u12(data_interface_t *buffers, int s
 	}
 }
 
-void dw_core_codelet_update_u12(data_interface_t *descr, void *_args)
+void dw_core_codelet_update_u12(starpu_data_interface_t *descr, void *_args)
 {
 	dw_common_codelet_update_u12(descr, 0, _args);
 	(void)STARPU_ATOMIC_ADD(&count_12_core, 1);
 }
 
 #ifdef USE_CUDA
-void dw_cublas_codelet_update_u12(data_interface_t *descr, void *_args)
+void dw_cublas_codelet_update_u12(starpu_data_interface_t *descr, void *_args)
 {
 	 dw_common_codelet_update_u12(descr, 1, _args);
 	(void)STARPU_ATOMIC_ADD(&count_12_cublas, 1);
@@ -155,7 +155,7 @@ void dw_cublas_codelet_update_u12(data_interface_t *descr, void *_args)
  * U21
  */
 
-static inline void dw_common_codelet_update_u21(data_interface_t *buffers, int s, __attribute__((unused)) void *_args) {
+static inline void dw_common_codelet_update_u21(starpu_data_interface_t *buffers, int s, __attribute__((unused)) void *_args) {
 	float *sub11;
 	float *sub21;
 
@@ -191,14 +191,14 @@ static inline void dw_common_codelet_update_u21(data_interface_t *buffers, int s
 	}
 }
 
-void dw_core_codelet_update_u21(data_interface_t *descr, void *_args)
+void dw_core_codelet_update_u21(starpu_data_interface_t *descr, void *_args)
 {
 	 dw_common_codelet_update_u21(descr, 0, _args);
 	(void)STARPU_ATOMIC_ADD(&count_21_core, 1);
 }
 
 #ifdef USE_CUDA
-void dw_cublas_codelet_update_u21(data_interface_t *descr, void *_args)
+void dw_cublas_codelet_update_u21(starpu_data_interface_t *descr, void *_args)
 {
 	dw_common_codelet_update_u21(descr, 1, _args);
 	(void)STARPU_ATOMIC_ADD(&count_21_cublas, 1);
@@ -224,7 +224,7 @@ static inline void debug_print(float *tab, unsigned ld, unsigned n)
 	fprintf(stderr, "\n");
 }
 
-static inline void dw_common_codelet_update_u11(data_interface_t *descr, int s, __attribute__((unused)) void *_args) 
+static inline void dw_common_codelet_update_u11(starpu_data_interface_t *descr, int s, __attribute__((unused)) void *_args) 
 {
 	float *sub11;
 
@@ -278,14 +278,14 @@ static inline void dw_common_codelet_update_u11(data_interface_t *descr, int s, 
 }
 
 
-void dw_core_codelet_update_u11(data_interface_t *descr, void *_args)
+void dw_core_codelet_update_u11(starpu_data_interface_t *descr, void *_args)
 {
 	dw_common_codelet_update_u11(descr, 0, _args);
 	(void)STARPU_ATOMIC_ADD(&count_11_core, 1);
 }
 
 #ifdef USE_CUDA
-void dw_cublas_codelet_update_u11(data_interface_t *descr, void *_args)
+void dw_cublas_codelet_update_u11(starpu_data_interface_t *descr, void *_args)
 {
 	dw_common_codelet_update_u11(descr, 1, _args);
 	(void)STARPU_ATOMIC_ADD(&count_11_cublas, 1);

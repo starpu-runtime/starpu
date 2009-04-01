@@ -42,7 +42,7 @@ cg_t *create_cg(unsigned ntags, struct tag_s *tag)
 	return cg;
 }
 
-static struct tag_s *tag_init(tag_t id)
+static struct tag_s *tag_init(starpu_tag_t id)
 {
 	struct tag_s *tag;
 	tag = malloc(sizeof(struct tag_s));
@@ -65,7 +65,7 @@ static struct tag_s *tag_init(tag_t id)
 	return tag;
 }
 
-void starpu_tag_remove(tag_t id)
+void starpu_tag_remove(starpu_tag_t id)
 {
 	struct tag_s *tag;
 
@@ -82,7 +82,7 @@ void starpu_tag_remove(tag_t id)
 	free(tag);
 }
 
-struct tag_s *gettag_struct(tag_t id)
+struct tag_s *gettag_struct(starpu_tag_t id)
 {
 	take_mutex(&tag_mutex);
 
@@ -117,7 +117,7 @@ void notify_cg(cg_t *cg)
 	}
 }
 
-void tag_add_succ(tag_t id, cg_t *cg)
+void tag_add_succ(starpu_tag_t id, cg_t *cg)
 {
 	/* find out the associated structure */
 	struct tag_s *tag = gettag_struct(id);
@@ -176,7 +176,7 @@ void notify_dependencies(struct job_s *j)
 	}
 }
 
-void tag_declare(tag_t id, struct job_s *job)
+void tag_declare(starpu_tag_t id, struct job_s *job)
 {
 	TRACE_CODELET_TAG(id, job);
 	job->task->use_tag = 1;
@@ -187,7 +187,7 @@ void tag_declare(tag_t id, struct job_s *job)
 	job->tag = tag;
 }
 
-void starpu_tag_declare_deps_array(tag_t id, unsigned ndeps, tag_t *array)
+void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array)
 {
 	unsigned i;
 
@@ -201,7 +201,7 @@ void starpu_tag_declare_deps_array(tag_t id, unsigned ndeps, tag_t *array)
 	
 	for (i = 0; i < ndeps; i++)
 	{
-		tag_t dep_id = array[i];
+		starpu_tag_t dep_id = array[i];
 		
 		/* id depends on dep_id
 		 * so cg should be among dep_id's successors*/
@@ -210,7 +210,7 @@ void starpu_tag_declare_deps_array(tag_t id, unsigned ndeps, tag_t *array)
 	}
 }
 
-void starpu_tag_declare_deps(tag_t id, unsigned ndeps, ...)
+void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 {
 	unsigned i;
 	
@@ -226,8 +226,8 @@ void starpu_tag_declare_deps(tag_t id, unsigned ndeps, ...)
 	va_start(pa, ndeps);
 	for (i = 0; i < ndeps; i++)
 	{
-		tag_t dep_id;
-		dep_id = va_arg(pa, tag_t);
+		starpu_tag_t dep_id;
+		dep_id = va_arg(pa, starpu_tag_t);
 		
 		/* id depends on dep_id
 		 * so cg should be among dep_id's successors*/

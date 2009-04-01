@@ -22,7 +22,7 @@
 
 struct htbl32_node_s;
 struct history_list_t;
-struct buffer_descr_t;
+struct starpu_buffer_descr_t;
 
 /* 
    it is possible that we have multiple versions of the same kind of workers,
@@ -63,8 +63,8 @@ struct regression_model_t {
 	unsigned nsample;
 };
 
-struct per_arch_perfmodel_t {
-	double (*cost_model)(struct buffer_descr_t *t);
+struct starpu_per_arch_perfmodel_t {
+	double (*cost_model)(struct starpu_buffer_descr_t *t);
 	double alpha;
 	struct htbl32_node_s *history;
 	struct history_list_t *list;
@@ -74,15 +74,15 @@ struct per_arch_perfmodel_t {
 #endif
 };
 
-struct perfmodel_t {
+struct starpu_perfmodel_t {
 	/* which model is used for that task ? */
 	enum {PER_ARCH, COMMON, HISTORY_BASED, REGRESSION_BASED} type;
 
 	/* single cost model */
-	double (*cost_model)(struct buffer_descr_t *);
+	double (*cost_model)(struct starpu_buffer_descr_t *);
 
 	/* per-architecture model */
-	struct per_arch_perfmodel_t per_arch[NARCH_VARIATIONS];
+	struct starpu_per_arch_perfmodel_t per_arch[NARCH_VARIATIONS];
 	
 	const char *symbol;
 	unsigned is_loaded;

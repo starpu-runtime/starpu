@@ -34,11 +34,11 @@
 #define PERTURBATE(a)	(a)
 #endif
 
-static double core_chol_task_11_cost(buffer_descr *descr)
+static double core_chol_task_11_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = get_blas_nx(descr[0].state);
+	n = starpu_get_blas_nx(descr[0].state);
 
 	double cost = (((double)(n)*n*n)/1000.0f*0.894/0.79176);
 
@@ -49,11 +49,11 @@ static double core_chol_task_11_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double cuda_chol_task_11_cost(buffer_descr *descr)
+static double cuda_chol_task_11_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = get_blas_nx(descr[0].state);
+	n = starpu_get_blas_nx(descr[0].state);
 
 	double cost = (((double)(n)*n*n)/50.0f/10.75/5.088633/0.9883);
 
@@ -64,11 +64,11 @@ static double cuda_chol_task_11_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double core_chol_task_21_cost(buffer_descr *descr)
+static double core_chol_task_21_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = get_blas_nx(descr[0].state);
+	n = starpu_get_blas_nx(descr[0].state);
 
 	double cost = (((double)(n)*n*n)/7706.674/0.95/0.9965);
 
@@ -79,11 +79,11 @@ static double core_chol_task_21_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double cuda_chol_task_21_cost(buffer_descr *descr)
+static double cuda_chol_task_21_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = get_blas_nx(descr[0].state);
+	n = starpu_get_blas_nx(descr[0].state);
 
 	double cost = (((double)(n)*n*n)/50.0f/10.75/87.29520);
 
@@ -94,11 +94,11 @@ static double cuda_chol_task_21_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double core_chol_task_22_cost(buffer_descr *descr)
+static double core_chol_task_22_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = get_blas_nx(descr[0].state);
+	n = starpu_get_blas_nx(descr[0].state);
 
 	double cost = (((double)(n)*n*n)/50.0f/10.75/8.0760);
 
@@ -109,11 +109,11 @@ static double core_chol_task_22_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-static double cuda_chol_task_22_cost(buffer_descr *descr)
+static double cuda_chol_task_22_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = get_blas_nx(descr[0].state);
+	n = starpu_get_blas_nx(descr[0].state);
 
 	double cost = (((double)(n)*n*n)/50.0f/10.75/76.30666);
 
@@ -124,7 +124,7 @@ static double cuda_chol_task_22_cost(buffer_descr *descr)
 	return PERTURBATE(cost);
 }
 
-struct perfmodel_t chol_model_11 = {
+struct starpu_perfmodel_t chol_model_11 = {
 	.per_arch = { 
 		[CORE_DEFAULT] = { .cost_model = core_chol_task_11_cost },
 		[CUDA_DEFAULT] = { .cost_model = cuda_chol_task_11_cost }
@@ -133,7 +133,7 @@ struct perfmodel_t chol_model_11 = {
 	.symbol = "chol_model_11"
 };
 
-struct perfmodel_t chol_model_21 = {
+struct starpu_perfmodel_t chol_model_21 = {
 	.per_arch = { 
 		[CORE_DEFAULT] = { .cost_model = core_chol_task_21_cost },
 		[CUDA_DEFAULT] = { .cost_model = cuda_chol_task_21_cost }
@@ -142,7 +142,7 @@ struct perfmodel_t chol_model_21 = {
 	.symbol = "chol_model_21"
 };
 
-struct perfmodel_t chol_model_22 = {
+struct starpu_perfmodel_t chol_model_22 = {
 	.per_arch = { 
 		[CORE_DEFAULT] = { .cost_model = core_chol_task_22_cost },
 		[CUDA_DEFAULT] = { .cost_model = cuda_chol_task_22_cost }
