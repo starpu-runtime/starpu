@@ -20,7 +20,8 @@
 
 #include "dw_spmv.h"
 
-tick_t start,end;
+struct timeval start;
+struct timeval end;
 
 unsigned nblocks = 1;
 unsigned remainingtasks = -1;
@@ -243,7 +244,7 @@ void init_problem_callback(void *arg)
 	if ( val == 0 )
 	{
 		printf("DONE ...\n");
-		GET_TICK(end);
+		gettimeofday(&end, NULL);
 
 		starpu_unpartition_data(sparse_matrix, 0);
 		starpu_unpartition_data(vector_out, 0);
@@ -277,7 +278,8 @@ void call_spmv_codelet_filters(void)
 #endif
 	cl->nbuffers = 3;
 
-	GET_TICK(start);
+	gettimeofday(&start, NULL);
+
 	unsigned part;
 	for (part = 0; part < nblocks; part++)
 	{
@@ -323,9 +325,6 @@ int main(__attribute__ ((unused)) int argc,
 {
 	parse_args(argc, argv);
 
-
-	timing_init();
-
 	/* start the runtime */
 	starpu_init();
 
@@ -342,7 +341,7 @@ int main(__attribute__ ((unused)) int argc,
 
 	print_results();
 
-	double timing = timing_delay(&start, &end);
+	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	fprintf(stderr, "Computation took (in ms)\n");
 	printf("%2.2f\n", timing/1000);
 
