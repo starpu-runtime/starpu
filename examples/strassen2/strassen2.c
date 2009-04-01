@@ -319,7 +319,7 @@ void cleanup_callback(void *_arg)
 
 	unsigned i;
 	for (i = 0; i < arg->ndata; i++)
-		advise_if_data_is_important(arg->data[i], 0);
+		starpu_advise_if_data_is_important(arg->data[i], 0);
 
 	free(arg);
 }

@@ -163,7 +163,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 //
 //	delete_data(&my_float_state);
 
-	sync_data_with_mem(my_float_state);
+	starpu_sync_data_with_mem(my_float_state);
 	
 	printf("array -> %f, %f, %f\n", my_lovely_float[0], 
 			my_lovely_float[1], my_lovely_float[2]);

@@ -305,7 +305,7 @@ void starpu_unpartition_data(data_state *root_data, uint32_t gathering_node)
 	release_mutex(&root_data->header_lock);
 }
 
-void advise_if_data_is_important(data_state *state, unsigned is_important)
+void starpu_advise_if_data_is_important(data_state *state, unsigned is_important)
 {
 
 	take_mutex(&state->header_lock);
@@ -316,7 +316,7 @@ void advise_if_data_is_important(data_state *state, unsigned is_important)
 	{
 		/* make sure the intermediate children is advised as well */
 		if (state->children[child].nchildren > 0)
-			advise_if_data_is_important(&state->children[child], is_important);
+			starpu_advise_if_data_is_important(&state->children[child], is_important);
 	}
 
 	state->is_not_important = !is_important;

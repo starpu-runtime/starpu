@@ -310,7 +310,7 @@ int request_data_allocation(data_state *state, uint32_t node)
 
 #ifdef NO_DATA_RW_LOCK
 /* put the current value of the data into RAM */
-static void _sync_data_with_mem_continuation(void *_state)
+static void _starpu_sync_data_with_mem_continuation(void *_state)
 {
 	int ret;
 	data_state *state = _state;
@@ -321,7 +321,7 @@ static void _sync_data_with_mem_continuation(void *_state)
 }
 #endif
 
-void sync_data_with_mem(data_state *state)
+void starpu_sync_data_with_mem(data_state *state)
 {
 	int ret;
 
@@ -329,7 +329,7 @@ void sync_data_with_mem(data_state *state)
 	/* we try to get the data, if we do not succeed immediately, we set a
  	* callback function that will be executed automatically when the data is
  	* available again, otherwise we fetch the data directly */
-	if (!attempt_to_submit_data_request_from_apps(state, R, _sync_data_with_mem_continuation, state))
+	if (!attempt_to_submit_data_request_from_apps(state, R, _starpu_sync_data_with_mem_continuation, state))
 	{
 		ret = fetch_data(state, R);
 		STARPU_ASSERT(!ret);
