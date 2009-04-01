@@ -14,13 +14,20 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-CFLAGS+= -I../.. -g
+.PHONY: examples
 
-all: example_read
+SUBDIRS = src tools examples 
 
-example_read: mm_to_bcsr.o example_read.o mmio.o
-	$(CC) example_read.o mm_to_bcsr.o mmio.o -o example_read $(LDFLAGS)
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libstarpu.pc
 
-clean:
-	@rm -f *.o *.d *.gcno *.gcda
-	@rm -f example_read
+include_HEADERS = 				\
+	include/starpu.h			\
+	include/starpu_config.h			\
+	include/starpu-data-filters.h		\
+	include/starpu-data-interfaces.h	\
+	include/starpu-mutex.h			\
+	include/starpu-task.h			\
+	include/starpu-data.h			\
+	include/starpu-perfmodel.h		\
+	include/starpu-util.h

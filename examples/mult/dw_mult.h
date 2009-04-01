@@ -25,8 +25,8 @@
 #include <pthread.h>
 #include <signal.h>
 
-#include "../common/blas.h"
-#include "../common/blas_model.h"
+#include <common/blas.h>
+#include <common/blas_model.h>
 
 #include <starpu_config.h>
 #include <starpu.h>

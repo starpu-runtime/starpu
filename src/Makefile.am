@@ -16,12 +16,12 @@
 
 SUBDIRS =
 
-lib_LIBRARIES = libstarpu.a
+lib_LTLIBRARIES = libstarpu.la
 
-libstarpu_a_CPPFLAGS = -I$(top_srcdir)/include/
+libstarpu_la_CPPFLAGS = -I$(top_srcdir)/include/
 
-libstarpu_a_CFLAGS = -W -Wall -Wextra
-libstarpu_a_LIBS = -lm
+libstarpu_la_CFLAGS = -W -Wall -Wextra
+libstarpu_la_LIBS = -lm
 
 noinst_HEADERS = 						\
 	core/dependencies/data-concurrency.h			\
@@ -77,8 +77,7 @@ noinst_HEADERS = 						\
 	drivers/cuda/driver_cuda.h				\
 	drivers/cuda/comp_cuda.h			
 
-
-libstarpu_a_SOURCES = 						\
+libstarpu_la_SOURCES = 						\
 	common/malloc.c						\
 	common/hash.c 						\
 	common/htable32.c					\
@@ -124,17 +123,17 @@ libstarpu_a_SOURCES = 						\
 	datawizard/interfaces/vector_filters.c
 	
 if USE_CPU
-libstarpu_a_SOURCES += drivers/core/driver_core.c
+libstarpu_la_SOURCES += drivers/core/driver_core.c
 endif
 
 if USE_CUDA
-libstarpu_a_SOURCES += drivers/cuda/driver_cuda.c
+libstarpu_la_SOURCES += drivers/cuda/driver_cuda.c
 endif
 
 if USE_GORDON
-libstarpu_a_SOURCES += drivers/gordon/driver_gordon.c
+libstarpu_la_SOURCES += drivers/gordon/driver_gordon.c
 endif
 
 if USE_FXT
-libstarpu_a_SOURCES += common/fxt.c
+libstarpu_la_SOURCES += common/fxt.c
 endif

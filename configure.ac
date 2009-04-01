@@ -28,7 +28,7 @@ AC_PROG_SED
 AC_PROG_LN_S
 AC_PROG_F77
 
-AC_PROG_RANLIB
+AC_PROG_LIBTOOL
 
 AC_PROG_INSTALL
 AC_PROG_MKDIR_P
@@ -420,6 +420,11 @@ if test x$blas_lib = xmaybe; then
      fi
 fi
 
+AM_CONDITIONAL(ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
+AM_CONDITIONAL(GOTO_BLAS_LIB, test x$blas_lib = xgoto)
+AM_CONDITIONAL(SYSTEM_BLAS_LIB, test x$blas_lib = xsystem)
+AM_CONDITIONAL(NO_BLAS_LIB, test x$blas_lib = xyes)
+
 AC_MSG_CHECKING(which BLAS lib should be used)
 AC_MSG_RESULT($blas_lib)
 AC_SUBST(BLAS_LIB,$blas_lib)
@@ -432,13 +437,4 @@ AC_OUTPUT([
 	tools/Makefile
 	libstarpu.pc
 	examples/Makefile
-	examples/common/Makefile
-	examples/tag_example/Makefile
-	examples/cholesky/Makefile
-	examples/heat/Makefile
-	examples/mult/Makefile
-	examples/incrementer/Makefile
-	examples/spmv/Makefile
-	examples/strassen/Makefile
-	examples/strassen2/Makefile
 ])
