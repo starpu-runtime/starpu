@@ -19,14 +19,14 @@
 
 #include <stdint.h>
 
-typedef struct mutex_t {
+typedef struct starpu_mutex_t {
 	/* we only have a trivial implementation yet ! */
 	volatile uint32_t taken __attribute__ ((aligned(16)));
-} mutex;
+} starpu_mutex;
 
-void init_mutex(mutex *m);
-void take_mutex(mutex *m);
-int take_mutex_try(mutex *m);
-void release_mutex(mutex *m);
+void init_mutex(starpu_mutex *m);
+void take_mutex(starpu_mutex *m);
+int take_mutex_try(starpu_mutex *m);
+void release_mutex(starpu_mutex *m);
 
 #endif // __STARPU_MUTEX_H__

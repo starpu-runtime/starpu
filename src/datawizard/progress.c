@@ -23,7 +23,7 @@ extern pthread_key_t local_workers_key;
 
 #ifdef USE_GORDON
 extern void handle_terminated_job_per_worker(struct worker_s *worker);
-extern struct mutex_t terminated_list_mutexes[32]; 
+extern struct starpu_mutex_t terminated_list_mutexes[32]; 
 #endif
 
 void datawizard_progress(uint32_t memory_node)

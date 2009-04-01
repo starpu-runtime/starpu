@@ -18,7 +18,7 @@
 #include <datawizard/footprint.h>
 
 extern mem_node_descr descr;
-static mutex mc_mutex[MAXNODES]; 
+static starpu_mutex mc_mutex[MAXNODES]; 
 static mem_chunk_list_t mc_list[MAXNODES];
 static mem_chunk_list_t mc_list_to_free[MAXNODES];
 

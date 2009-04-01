@@ -24,7 +24,7 @@
 #include <starpu.h>
 
 static htbl_node_t *tag_htbl = NULL;
-static mutex tag_mutex = {
+static starpu_mutex tag_mutex = {
 	.taken = 0
 };
 

@@ -24,7 +24,7 @@
 
 pthread_t progress_thread;
 sem_t progress_sem;
-struct mutex_t terminated_list_mutexes[32]; 
+struct starpu_mutex_t terminated_list_mutexes[32]; 
 
 struct gordon_task_wrapper_s {
 	/* who has executed that ? */

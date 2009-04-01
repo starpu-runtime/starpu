@@ -105,7 +105,7 @@ typedef struct starpu_data_state_t {
 	rw_lock	data_lock;
 #endif
 	/* protect meta data */
-	mutex header_lock;
+	starpu_mutex header_lock;
 
 	uint32_t nnodes; /* the number of memory nodes that may use it */
 	struct starpu_data_state_t *children;

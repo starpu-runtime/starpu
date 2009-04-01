@@ -17,7 +17,7 @@
 #include <datawizard/data_request.h>
 
 static data_request_list_t data_requests[MAXNODES];
-static mutex data_requests_mutex[MAXNODES];
+static starpu_mutex data_requests_mutex[MAXNODES];
 
 void init_data_request_lists(void)
 {

@@ -88,7 +88,7 @@ struct starpu_perfmodel_t {
 	unsigned is_loaded;
 	unsigned benchmarking;
 
-	mutex model_mutex;
+	starpu_mutex model_mutex;
 };
 
 #endif // __STARPU_PERFMODEL_H__

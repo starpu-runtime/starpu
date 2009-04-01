@@ -44,7 +44,7 @@ typedef enum {
 struct job_s;
 
 struct tag_s {
-	mutex lock; /* do we really need that ? */
+	starpu_mutex lock; /* do we really need that ? */
 	starpu_tag_t id; /* an identifier for the task */
 	tag_state state;
 	unsigned nsuccs; /* how many successors ? */
