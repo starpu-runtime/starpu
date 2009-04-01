@@ -17,8 +17,8 @@
 #include <core/policies/deque-modeling-policy-data-aware.h>
 #include <core/perfmodel/perfmodel.h>
 
-unsigned nworkers;
-struct jobq_s *queue_array[NMAXWORKERS];
+static unsigned nworkers;
+static struct jobq_s *queue_array[NMAXWORKERS];
 
 static job_t dmda_pop_task(struct jobq_s *q)
 {
