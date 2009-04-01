@@ -32,8 +32,6 @@
 #include <starpu_config.h>
 #include <starpu.h>
 
-#include <common/timing.h>
-
 #include "../common/blas.h"
 
 #define X	0

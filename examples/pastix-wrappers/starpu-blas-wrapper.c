@@ -18,7 +18,6 @@
 #include <core/jobs.h>
 #include <core/workers.h>
 #include <core/dependencies/tags.h>
-#include <common/timing.h>
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
@@ -26,7 +25,6 @@
 #include <pthread.h>
 #include <signal.h>
 #include <cblas.h>
-#include <common/timing.h>
 
 #include <datawizard/datawizard.h>
 #include <task-models/blas_model.h>

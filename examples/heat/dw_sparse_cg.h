@@ -34,7 +34,6 @@
 #include <cublas.h>
 #endif
 
-#include <common/timing.h>
 #include "../common/blas.h"
 
 #define MAXITER	100000

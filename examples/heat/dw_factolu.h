@@ -18,7 +18,6 @@
 #define __DW_FACTO_LU_H__
 
 #include <semaphore.h>
-#include <common/timing.h>
 #include <string.h>
 #include <math.h>
 /* for USE_CUDA */
