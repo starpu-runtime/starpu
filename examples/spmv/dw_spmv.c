@@ -262,10 +262,10 @@ void call_spmv_codelet_filters(void)
 	starpu_codelet *cl = malloc(sizeof(starpu_codelet));
 
 	/* partition the data along a block distribution */
-	filter csr_f, vector_f;
-	csr_f.filter_func    = vertical_block_filter_func_csr;
+	starpu_filter csr_f, vector_f;
+	csr_f.filter_func    = starpu_starpu_vertical_block_filter_func_csr;
 	csr_f.filter_arg     = nblocks;
-	vector_f.filter_func = block_filter_func_vector;
+	vector_f.filter_func = starpu_block_filter_func_vector;
 	vector_f.filter_arg  = nblocks;
 
 	starpu_partition_data(sparse_matrix, &csr_f);

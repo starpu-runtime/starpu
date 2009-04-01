@@ -92,7 +92,7 @@ struct divide_vector_in_blas_filter_args {
 	uint32_t stride; /* stride of the first portion (need to be a multiple of n */
 };
 
-unsigned divide_vector_in_blas_filter(filter *f, starpu_data_handle root_data)
+unsigned divide_vector_in_blas_filter(starpu_filter *f, starpu_data_handle root_data)
 {
 	starpu_vector_interface_t *vector_root = &root_data->interface[0].vector;
 		uint32_t nx = vector_root->nx;
@@ -204,7 +204,7 @@ void allocate_maxbloktab_on_cublas(starpu_data_interface_t *descr __attribute__(
 	request_data_allocation(&work_block_2, 1);
 
 
-	filter f1, f2;
+	starpu_filter f1, f2;
 	struct divide_vector_in_blas_filter_args args1, args2;
 
 	f1.filter_func = divide_vector_in_blas_filter;
@@ -424,7 +424,7 @@ int update_work_blocks(unsigned col, int dimi, int dimj, int dima, int stride)
 	starpu_unpartition_data(&work_block_1, 0);
 	starpu_unpartition_data(&work_block_2, 0);
 
-	filter f1, f2;
+	starpu_filter f1, f2;
 	struct divide_vector_in_blas_filter_args args1, args2;
 
 	f1.filter_func = divide_vector_in_blas_filter;

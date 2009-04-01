@@ -20,7 +20,7 @@
 /*
  * an example of a dummy partition function : blocks ...
  */
-unsigned block_filter_func(filter *f, data_state *root_data)
+unsigned starpu_block_filter_func(starpu_filter *f, data_state *root_data)
 {
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
@@ -66,7 +66,7 @@ unsigned block_filter_func(filter *f, data_state *root_data)
 	return nchunks;
 }
 
-unsigned vertical_block_filter_func(filter *f, data_state *root_data)
+unsigned starpu_vertical_block_filter_func(starpu_filter *f, data_state *root_data)
 {
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;

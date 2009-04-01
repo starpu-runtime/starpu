@@ -139,15 +139,15 @@ struct strassen_iter {
 };
 
 
-static filter f = 
+static starpu_filter f = 
 {
-	.filter_func = block_filter_func,
+	.filter_func = starpu_block_filter_func,
 	.filter_arg = 2
 };
 
-static filter f2 =
+static starpu_filter f2 =
 {
-	.filter_func = vertical_block_filter_func,
+	.filter_func = starpu_vertical_block_filter_func,
 	.filter_arg = 2
 };
 
@@ -174,7 +174,7 @@ starpu_data_handle allocate_tmp_matrix(unsigned size, unsigned reclevel)
 
 	starpu_monitor_blas_data(data, 0, (uintptr_t)buffer, size, size, size, sizeof(float));
 
-	/* we construct a filter tree of depth reclevel */
+	/* we construct a starpu_filter tree of depth reclevel */
 	unsigned rec;
 	for (rec = 0; rec < reclevel; rec++)
 		starpu_map_filters(*data, 2, &f, &f2);

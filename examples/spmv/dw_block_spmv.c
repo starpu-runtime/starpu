@@ -94,15 +94,15 @@ void init_problem_callback(void *arg)
 void call_filters(void)
 {
 
-	filter bcsr_f;
-	filter vector_in_f, vector_out_f;
+	starpu_filter bcsr_f;
+	starpu_filter vector_in_f, vector_out_f;
 
-	bcsr_f.filter_func    = canonical_block_filter_bcsr;
+	bcsr_f.filter_func    = starpu_canonical_block_filter_bcsr;
 
-	vector_in_f.filter_func = block_filter_func_vector;
+	vector_in_f.filter_func = starpu_block_filter_func_vector;
 	vector_in_f.filter_arg  = size/c;
 	
-	vector_out_f.filter_func = block_filter_func_vector;
+	vector_out_f.filter_func = starpu_block_filter_func_vector;
 	vector_out_f.filter_arg  = size/r;
 
 	starpu_partition_data(sparse_matrix, &bcsr_f);

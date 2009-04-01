@@ -50,12 +50,12 @@ static void partition_matrices(strassen_iter_state_t *iter)
 	starpu_data_handle B = iter->B;
 	starpu_data_handle C = iter->C;
 
-	filter f;
-	f.filter_func = block_filter_func;
+	starpu_filter f;
+	f.filter_func = starpu_block_filter_func;
 	f.filter_arg = 2;
 
-	filter f2;
-	f2.filter_func = vertical_block_filter_func;
+	starpu_filter f2;
+	f2.filter_func = starpu_vertical_block_filter_func;
 	f2.filter_arg = 2;
 
 	starpu_map_filters(A, 2, &f, &f2);

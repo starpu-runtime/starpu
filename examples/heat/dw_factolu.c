@@ -718,12 +718,12 @@ void dw_factoLU(float *matA, unsigned size,
 	starpu_monitor_blas_data(&dataA, 0, (uintptr_t)matA, ld, 
 			size, size, sizeof(float));
 
-	filter f;
-		f.filter_func = vertical_block_filter_func;
+	starpu_filter f;
+		f.filter_func = starpu_vertical_block_filter_func;
 		f.filter_arg = nblocks;
 
-	filter f2;
-		f2.filter_func = block_filter_func;
+	starpu_filter f2;
+		f2.filter_func = starpu_block_filter_func;
 		f2.filter_arg = nblocks;
 
 	starpu_map_filters(dataA, 2, &f, &f2);

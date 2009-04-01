@@ -17,7 +17,7 @@
 #include "vector_filters.h"
 #include "vector_interface.h"
 
-unsigned block_filter_func_vector(filter *f, data_state *root_data)
+unsigned starpu_block_filter_func_vector(starpu_filter *f, data_state *root_data)
 {
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
@@ -61,7 +61,7 @@ unsigned block_filter_func_vector(filter *f, data_state *root_data)
 }
 
 
-unsigned divide_in_2_filter_func_vector(filter *f, data_state *root_data)
+unsigned starpu_divide_in_2_filter_func_vector(starpu_filter *f, data_state *root_data)
 {
 	uint32_t length_first = f->filter_arg;
 
@@ -103,7 +103,7 @@ unsigned divide_in_2_filter_func_vector(filter *f, data_state *root_data)
 	return 2;
 }
 
-unsigned list_filter_func_vector(filter *f, data_state *root_data)
+unsigned starpu_list_filter_func_vector(starpu_filter *f, data_state *root_data)
 {
 	uint32_t nchunks = f->filter_arg;
 	uint32_t *length_tab = f->filter_arg_ptr;

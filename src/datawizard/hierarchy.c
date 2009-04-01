@@ -94,18 +94,18 @@ void monitor_new_data(data_state *state, uint32_t home_node, uint32_t wb_mask)
 }
 
 /*
- * This function applies a filter on all the elements of a partition
+ * This function applies a starpu_filter on all the elements of a partition
  */
-static void map_filter(data_state *root_data, filter *f)
+static void map_filter(data_state *root_data, starpu_filter *f)
 {
-	/* we need to apply the filter on all leaf of the tree */
+	/* we need to apply the starpu_filter on all leaf of the tree */
 	if (root_data->nchildren == 0) 
 	{
 		/* this is a leaf */
 		starpu_partition_data(root_data, f);
 	}
 	else {
-		/* try to apply the filter recursively */
+		/* try to apply the starpu_filter recursively */
 		int child;
 		for (child = 0; child < root_data->nchildren; child++)
 		{
@@ -121,8 +121,8 @@ void starpu_map_filters(data_state *root_data, unsigned nfilters, ...)
 	va_start(pa, nfilters);
 	for (i = 0; i < nfilters; i++)
 	{
-		filter *next_filter;
-		next_filter = va_arg(pa, filter *);
+		starpu_filter *next_filter;
+		next_filter = va_arg(pa, starpu_filter *);
 
 		STARPU_ASSERT(next_filter);
 
@@ -159,9 +159,9 @@ data_state *get_sub_data(data_state *root_data, unsigned depth, ... )
 
 /*
  * For now, we assume that partitionned_data is already properly allocated;
- * at least by the filter function !
+ * at least by the starpu_filter function !
  */
-void starpu_partition_data(data_state *initial_data, filter *f)
+void starpu_partition_data(data_state *initial_data, starpu_filter *f)
 {
 	int nparts;
 	int i;
@@ -189,7 +189,7 @@ void starpu_partition_data(data_state *initial_data, filter *f)
 		children->is_not_important = initial_data->is_not_important;
 
 		/* it is possible that the children does not use the same interface as the parent,
-		 * in that case, the filter must set the proper methods */
+		 * in that case, the starpu_filter must set the proper methods */
 		if (!children->ops)
 			children->ops = initial_data->ops;
 

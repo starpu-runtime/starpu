@@ -17,7 +17,7 @@
 #include "csr_filters.h"
 #include "csr_interface.h"
 
-unsigned vertical_block_filter_func_csr(filter *f, data_state *root_data)
+unsigned starpu_starpu_vertical_block_filter_func_csr(starpu_filter *f, data_state *root_data)
 {
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;

@@ -224,12 +224,12 @@ static void partition_mult_data(void)
 	conf.m = ydim/nslicesy;
 	conf.n = xdim/nslicesx;
 
-	filter f;
-	f.filter_func = vertical_block_filter_func;
+	starpu_filter f;
+	f.filter_func = starpu_vertical_block_filter_func;
 	f.filter_arg = nslicesx;
 		
-	filter f2;
-	f2.filter_func = block_filter_func;
+	starpu_filter f2;
+	f2.filter_func = starpu_block_filter_func;
 	f2.filter_arg = nslicesy;
 		
 	starpu_partition_data(B_state, &f);
