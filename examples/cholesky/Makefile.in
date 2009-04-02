@@ -1,0 +1,46 @@
+#
+# StarPU
+# Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
+
+export PKG_CONFIG_PATH=@STARPUDIR@
+
+LIBS+=$$(pkg-config --libs libstarpu)
+CFLAGS+=$$(pkg-config --cflags libstarpu)
+
+LDFLAGS+= ../common/blas.o
+
+all: dw_cholesky dw_cholesky_no_stride
+
+dw_cholesky_models.o: dw_cholesky_models.h dw_cholesky_models.c
+	$(CC) $(CFLAGS) dw_cholesky_models.c -c -o dw_cholesky_models.o
+
+dw_cholesky_kernels.o: dw_cholesky_kernels.c
+	$(CC) $(CFLAGS) dw_cholesky_kernels.c -c -o dw_cholesky_kernels.o
+
+dw_cholesky_no_stride.o: dw_cholesky_no_stride.c
+	$(CC) $(CFLAGS) dw_cholesky_no_stride.c -c -o dw_cholesky_no_stride.o
+
+dw_cholesky.o: dw_cholesky.c
+	$(CC) $(CFLAGS) dw_cholesky.c -c -o dw_cholesky.o
+
+dw_cholesky_no_stride:  $(STARPU) dw_cholesky_no_stride.o
+	$(CC) dw_cholesky_no_stride.o dw_cholesky_kernels.o dw_cholesky_models.o -o dw_cholesky_no_stride $(LDFLAGS) $(LIBS)
+
+dw_cholesky: $(STARPU) dw_cholesky.o dw_cholesky_kernels.o dw_cholesky_models.o
+	$(CC)  dw_cholesky.o dw_cholesky_kernels.o dw_cholesky_models.o -o dw_cholesky $(LDFLAGS) $(LIBS)
+
+clean:
+	@rm -f *.o *.d gmon.out *.gcno *.gcda
+	@rm -f dw_cholesky dw_cholesky_no_stride
