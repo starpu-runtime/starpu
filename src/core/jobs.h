@@ -57,7 +57,7 @@ LIST_TYPE(job,
 
 /* Mac OS X does not provide anonymous semaphores,
    so we use condition variable instead */
-#ifdef __APPLE__ && __MACH__
+#if defined(__APPLE__) && defined(__MACH__)
 	pthread_mutex_t sync_mutex;
 	pthread_cond_t sync_cond;
 #else

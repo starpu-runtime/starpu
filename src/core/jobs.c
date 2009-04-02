@@ -52,7 +52,7 @@ job_t __attribute__((malloc)) job_create(struct starpu_task *task)
 
 	if (task->synchronous)
 	{
-#ifdef __APPLE__ && __MACH__
+#if defined(__APPLE__) && defined(__MACH__)
 		pthread_mutex_init(&job->sync_mutex, NULL);
 		pthread_cond_init(&job->sync_cond, NULL);
 #else
@@ -102,7 +102,7 @@ void handle_job_termination(job_t j)
 
 	if (task->synchronous)
 	{
-#ifdef __APPLE__ && __MACH__
+#if defined(__APPLE__) && defined(__MACH__)
 		pthread_mutex_lock(&j->sync_mutex);
 		pthread_cond_signal(&j->sync_cond);
 		pthread_mutex_unlock(&j->sync_mutex);
@@ -125,7 +125,7 @@ void handle_job_termination(job_t j)
 static void block_sync_task(job_t j)
 {
 	{
-#ifdef __APPLE__ && __MACH__
+#if defined(__APPLE__) && defined(__MACH__)
 		pthread_mutex_lock(&j->sync_mutex);
 		pthread_cond_wait(&j->sync_cond, &j->sync_mutex);
 		pthread_mutex_unlock(&j->sync_mutex);
