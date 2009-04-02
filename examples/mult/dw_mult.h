@@ -17,7 +17,6 @@
 #ifndef __MULT_H__
 #define __MULT_H__
 
-#include <semaphore.h>
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
@@ -77,7 +76,6 @@ uint64_t ls_atlas = 0;
 
 struct timeval start;
 struct timeval end;
-sem_t sem;
 
 static int taskcounter __attribute__ ((unused));
 static struct block_conf conf __attribute__ ((aligned (128)));

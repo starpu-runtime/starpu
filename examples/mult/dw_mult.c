@@ -19,6 +19,9 @@
 float *A, *B, *C;
 starpu_data_handle A_state, B_state, C_state;
 
+pthread_mutex_t mutex;
+pthread_cond_t cond;
+
 /*
  * That program should compute C = A * B 
  * 
@@ -80,7 +83,9 @@ void terminate(void)
 	}
 #endif // CHECK_OUTPUT
 
-	sem_post(&sem);
+	pthread_mutex_lock(&mutex);
+	pthread_cond_signal(&cond);
+	pthread_mutex_unlock(&mutex);
 }
 
 void callback_func(void *arg)
@@ -321,7 +326,8 @@ int main(__attribute__ ((unused)) int argc,
 	/* start the runtime */
 	starpu_init();
 
-	sem_init(&sem, 0, 0U);
+	pthread_mutex_init(&mutex, NULL);
+	pthread_cond_init(&cond, NULL);
 
 	init_problem_data();
 
@@ -329,8 +335,9 @@ int main(__attribute__ ((unused)) int argc,
 
 	launch_codelets();
 
-	sem_wait(&sem);
-	sem_destroy(&sem);
+	pthread_mutex_lock(&mutex);
+	pthread_cond_wait(&cond, &mutex);
+	pthread_mutex_unlock(&mutex);
 
 	starpu_shutdown();
 

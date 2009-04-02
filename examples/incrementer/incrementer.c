@@ -14,7 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <semaphore.h>
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
@@ -36,7 +35,8 @@
 starpu_data_handle my_float_state;
 starpu_data_handle unity_state;
 
-sem_t sem;
+static pthread_mutex_t mutex;
+static pthread_cond_t cond;
 
 unsigned size __attribute__ ((aligned (16))) = 4*sizeof(float);
 
@@ -50,7 +50,10 @@ void callback_func(void *argcb)
 
 	if (cnt == NITER) 
 	{
-		sem_post(&sem);
+		pthread_mutex_lock(&mutex);
+		pthread_cond_signal(&cond);
+		pthread_mutex_unlock(&mutex);
+
 	}
 }
 
@@ -113,7 +116,8 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	starpu_init();
 	fprintf(stderr, "StarPU initialized ...\n");
 
-	sem_init(&sem, 0, 0);
+	pthread_mutex_init(&mutex, NULL);
+	pthread_cond_init(&cond, NULL);
 
 	init_data();
 
@@ -156,7 +160,9 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		starpu_submit_task(task);
 	}
 
-	sem_wait(&sem);
+	pthread_mutex_lock(&mutex);
+	pthread_cond_wait(&cond, &mutex);
+	pthread_mutex_unlock(&mutex);
 
 //	/* stop monitoring data and grab it in RAM */
 //	unpartition_data(&my_float_state, 0);

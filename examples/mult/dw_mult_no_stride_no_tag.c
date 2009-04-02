@@ -16,6 +16,9 @@
 
 #include "dw_mult.h"
 
+static pthread_mutex_t mutex;
+static pthread_cond_t cond;
+
 struct pos {
 	unsigned x,y, z,iter;
 };
@@ -66,7 +69,9 @@ static void terminate(void)
 	fprintf(stderr, "	GFlop : total (%2.2f) cublas (%2.2f) atlas (%2.2f)\n", (double)total_flop/1000000000.0f, (double)flop_cublas/1000000000.0f, (double)flop_atlas/1000000000.0f);
 	fprintf(stderr, "	GFlop/s : %2.2f\n", (double)total_flop / (double)timing/1000);
 
-	sem_post(&sem);
+	pthread_mutex_lock(&mutex);
+	pthread_cond_signal(&cond);
+	pthread_mutex_unlock(&mutex);
 }
 
 
@@ -461,14 +466,16 @@ int main(__attribute__ ((unused)) int argc,
 	/* start the runtime */
 	starpu_init();
 
-	sem_init(&sem, 0, 0U);
+	pthread_mutex_init(&mutex, NULL);
+	pthread_cond_init(&cond, NULL);
 
 	init_problem_data();
 
 	launch_codelets();
 
-	sem_wait(&sem);
-	sem_destroy(&sem);
+	pthread_mutex_lock(&mutex);
+	pthread_cond_wait(&cond, &mutex);
+	pthread_mutex_unlock(&mutex);
 
 	cleanup_problem();
 
