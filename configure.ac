@@ -270,13 +270,6 @@ fi
 #                                                                             #
 ###############################################################################
 
-AC_MSG_CHECKING(whether a dynamic library should be generated)
-AC_ARG_ENABLE(dynamic, [AS_HELP_STRING([--enable-dynamic],
-			[generate a dynamic library])],
-			enable_dynamic=$enableval, enable_dynamic=no)
-AC_MSG_RESULT($enable_dynamic)
-AC_SUBST(DYNAMIC, $enable_dynamic)
-
 AC_MSG_CHECKING(whether priorities should be enabled)
 AC_ARG_ENABLE(priority, [AS_HELP_STRING([--disable-priority],
 			[do not use priorities])],
