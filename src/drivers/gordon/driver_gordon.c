@@ -23,7 +23,10 @@
 #include <core/policies/sched_policy.h>
 
 pthread_t progress_thread;
-sem_t progress_sem;
+
+pthread_cond_t progress_cond;
+pthread_mutex_t progress_mutex;
+
 struct starpu_mutex_t terminated_list_mutexes[32]; 
 
 struct gordon_task_wrapper_s {
@@ -54,7 +57,9 @@ void *gordon_worker_progress(void *arg)
 	sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
 #endif
 
-	sem_post(&progress_sem);
+	pthread_mutex_lock(&progress_mutex);
+	pthread_cond_signal(&progress_cond);
+	pthread_mutex_unlock(&progress_mutex);
 
 	while (1) {
 		/* the Gordon runtime needs to make sure that we poll it 
@@ -455,16 +460,22 @@ void *gordon_worker(void *arg)
 	 */
 
 	/* launch the progression thread */
-	sem_init(&progress_sem, 0, 0);
+	pthread_mutex_init(&progress_mutex, NULL);
+	pthread_cond_init(&progress_cond, NULL);
+	
 	pthread_create(&progress_thread, NULL, gordon_worker_progress, gordon_set_arg);
 
 	/* wait for the progression thread to be ready */
-	sem_wait(&progress_sem);
+	pthread_mutex_lock(&progress_mutex);
+	pthread_cond_wait(&progress_cond, &progress_mutex);
+	pthread_mutex_unlock(&progress_mutex);
 
 	fprintf(stderr, "progress thread is running ... \n");
 	
 	/* tell the core that gordon is ready */
-	sem_post(&gordon_set_arg->ready_sem);
+	pthread_mutex_lock(&gordon_set_arg->mutex);
+	pthread_cond_signal(&gordon_set_arg->ready_cond);
+	pthread_mutex_unlock(&gordon_set_arg->mutex);
 
 	gordon_worker_inject(gordon_set_arg);
 

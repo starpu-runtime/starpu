@@ -229,7 +229,8 @@ static void init_workers(struct machine_config_s *config)
 	{
 		struct worker_s *workerarg = &config->workers[worker];
 
-		sem_init(&workerarg->ready_sem, 0, 0);
+		pthread_mutex_init(&workerarg->mutex, NULL);
+		pthread_cond_init(&workerarg->ready_cond, NULL);
 
 		/* if some codelet's termination cannot be handled directly :
 		 * for instance in the Gordon driver, Gordon tasks' callbacks
@@ -244,7 +245,11 @@ static void init_workers(struct machine_config_s *config)
 				workerarg->set = NULL;
 				pthread_create(&workerarg->worker_thread, 
 						NULL, core_worker, workerarg);
-				sem_wait(&workerarg->ready_sem);
+
+				pthread_mutex_lock(&workerarg->mutex);
+				pthread_cond_wait(&workerarg->ready_cond, &workerarg->mutex);
+				pthread_mutex_unlock(&workerarg->mutex);
+
 				break;
 #endif
 #ifdef USE_CUDA
@@ -252,7 +257,11 @@ static void init_workers(struct machine_config_s *config)
 				workerarg->set = NULL;
 				pthread_create(&workerarg->worker_thread, 
 						NULL, cuda_worker, workerarg);
-				sem_wait(&workerarg->ready_sem);
+
+				pthread_mutex_lock(&workerarg->mutex);
+				pthread_cond_wait(&workerarg->ready_cond, &workerarg->mutex);
+				pthread_mutex_unlock(&workerarg->mutex);
+
 				break;
 #endif
 #ifdef USE_GORDON
@@ -266,7 +275,10 @@ static void init_workers(struct machine_config_s *config)
 
 					pthread_create(&gordon_worker_set.worker_thread, NULL, 
 							gordon_worker, &gordon_worker_set);
-					sem_wait(&gordon_worker_set.ready_sem);
+
+					pthread_mutex_lock(&gordon_worker_set.mutex);
+					pthread_cond_wait(&gordon_worker_set.ready_cond, &gordon_worker_set.mutex);
+					pthread_mutex_unlock(&gordon_worker_set.mutex);
 
 					gordon_inited = 1;
 				}

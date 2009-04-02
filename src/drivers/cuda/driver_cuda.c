@@ -342,7 +342,9 @@ void *cuda_worker(void *arg)
 	
 
 	/* tell the main thread that this one is ready */
-	sem_post(&args->ready_sem);
+	pthread_mutex_lock(&args->mutex);
+	pthread_cond_signal(&args->ready_cond);
+	pthread_mutex_unlock(&args->mutex);
 
 	struct job_s * j;
 	int res;

@@ -63,12 +63,13 @@ enum archtype {
 };
 
 struct worker_s {
+        pthread_mutex_t mutex;
 	enum archtype arch; /* what is the type of worker ? */
 	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
 	pthread_t worker_thread; /* the thread which runs the worker */
 	int id; /* which core/gpu/etc is controlled by the workker ? */
-        sem_t ready_sem; /* indicate when the worker is ready */
 	int bindid; /* which core is the driver bound to ? */
+        pthread_cond_t ready_cond; /* indicate when the worker is ready */
 	unsigned memory_node; /* which memory node is associated that worker to ? */
 	struct jobq_s *jobq; /* in which queue will that worker get/put tasks ? */
 	struct worker_set_s *set; /* in case this worker belongs to a set */
@@ -79,12 +80,13 @@ struct worker_s {
 /* in case a single CPU worker may control multiple 
  * accelerators (eg. Gordon for n SPUs) */
 struct worker_set_s {
+        pthread_mutex_t mutex;
 	pthread_t worker_thread; /* the thread which runs the worker */
 	unsigned nworkers;
 	unsigned joined; /* only one thread may call pthread_join*/
 	void *retval;
 	struct worker_s *workers;
-        sem_t ready_sem; /* indicate when the worker is ready */
+        pthread_cond_t ready_cond; /* indicate when the set is ready */
 };
 
 struct machine_config_s {

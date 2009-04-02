@@ -102,7 +102,8 @@ void handle_node_data_requests(uint32_t src_node)
 		r->retval = driver_copy_data_1_to_1(r->state, r->src_node, r->dst_node, 0);
 		
 		/* wake the requesting worker up */
-		sem_post(&r->sem);
+		if (sem_post(&r->sem))
+			perror("sem_post");
 
 		take_mutex(&data_requests_mutex[src_node]);
 	}

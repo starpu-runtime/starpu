@@ -113,7 +113,9 @@ void *core_worker(void *arg)
 	core_arg->jobq->total_communication_time = 0.0;
 	
         /* tell the main thread that we are ready */
-        sem_post(&core_arg->ready_sem);
+	pthread_mutex_lock(&core_arg->mutex);
+	pthread_cond_signal(&core_arg->ready_cond);
+	pthread_mutex_unlock(&core_arg->mutex);
 
         job_t j;
 	int res;

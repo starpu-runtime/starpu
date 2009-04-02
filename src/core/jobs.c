@@ -51,7 +51,15 @@ job_t __attribute__((malloc)) job_create(struct starpu_task *task)
 	job->terminated = 0;
 
 	if (task->synchronous)
-		sem_init(&job->sync_sem, 0, 0);
+	{
+#ifdef __APPLE__ && __MACH__
+		pthread_mutex_init(&job->sync_mutex, NULL);
+		pthread_cond_init(&job->sync_cond, NULL);
+#else
+		if (sem_init(&job->sync_sem, 0, 0))
+			perror("sem_init");
+#endif
+	}
 
 	if (task->use_tag)
 		tag_declare(task->tag_id, job);
@@ -94,8 +102,14 @@ void handle_job_termination(job_t j)
 
 	if (task->synchronous)
 	{
+#ifdef __APPLE__ && __MACH__
+		pthread_mutex_lock(&j->sync_mutex);
+		pthread_cond_signal(&j->sync_cond);
+		pthread_mutex_unlock(&j->sync_mutex);
+#else
 		if (sem_post(&j->sync_sem))
 			perror("sem_post");
+#endif
 
 		/* as this is a synchronous task, we do not delete the job 
 		   structure which contains the j->sync_sem: we only liberate
@@ -111,8 +125,14 @@ void handle_job_termination(job_t j)
 static void block_sync_task(job_t j)
 {
 	{
+#ifdef __APPLE__ && __MACH__
+		pthread_mutex_lock(&j->sync_mutex);
+		pthread_cond_wait(&j->sync_cond, &j->sync_mutex);
+		pthread_mutex_unlock(&j->sync_mutex);
+#else
 		sem_wait(&j->sync_sem);
 		sem_destroy(&j->sync_sem);
+#endif
 
 		/* as this is a synchronous task, the liberation of the job
 		   structure was deferred */
@@ -163,13 +183,6 @@ int starpu_submit_task(struct starpu_task *task)
 
 	return ret;
 }
-
-//int submit_prio_job(job_t j)
-//{
-//	j->priority = MAX_PRIO;
-//	
-//	return submit_job(j);
-//}
 
 /* This function is supplied for convenience only, it is equivalent to setting
  * the proper flag and submitting the task with submit_task.

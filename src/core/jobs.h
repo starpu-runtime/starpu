@@ -55,7 +55,15 @@ typedef void (*callback)(void *);
 LIST_TYPE(job,
 	struct starpu_task *task;
 
+/* Mac OS X does not provide anonymous semaphores,
+   so we use condition variable instead */
+#ifdef __APPLE__ && __MACH__
+	pthread_mutex_t sync_mutex;
+	pthread_cond_t sync_cond;
+#else
 	sem_t sync_sem;
+#endif
+
 
 	struct tag_s *tag;
 
