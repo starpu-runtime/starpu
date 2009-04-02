@@ -22,7 +22,7 @@
 #include <core/jobs.h>
 #include <core/policies/sched_policy.h>
 
-enum perf_archtype;
+enum starpu_perf_archtype;
 
 struct jobq_s {
 	/* a pointer to some queue structure */
@@ -46,7 +46,7 @@ struct jobq_s {
 
 	/* this is only relevant if there is a single worker per queue */
 	uint32_t memory_node;
-	enum perf_archtype arch;
+	enum starpu_perf_archtype arch;
 	float alpha;
 
 	/* for performance analysis purpose */

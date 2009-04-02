@@ -126,8 +126,8 @@ static double cuda_chol_task_22_cost(starpu_buffer_descr *descr)
 
 struct starpu_perfmodel_t chol_model_11 = {
 	.per_arch = { 
-		[CORE_DEFAULT] = { .cost_model = core_chol_task_11_cost },
-		[CUDA_DEFAULT] = { .cost_model = cuda_chol_task_11_cost }
+		[STARPU_CORE_DEFAULT] = { .cost_model = core_chol_task_11_cost },
+		[STARPU_CUDA_DEFAULT] = { .cost_model = cuda_chol_task_11_cost }
 	},
 	.type = HISTORY_BASED,
 	.symbol = "chol_model_11"
@@ -135,8 +135,8 @@ struct starpu_perfmodel_t chol_model_11 = {
 
 struct starpu_perfmodel_t chol_model_21 = {
 	.per_arch = { 
-		[CORE_DEFAULT] = { .cost_model = core_chol_task_21_cost },
-		[CUDA_DEFAULT] = { .cost_model = cuda_chol_task_21_cost }
+		[STARPU_CORE_DEFAULT] = { .cost_model = core_chol_task_21_cost },
+		[STARPU_CUDA_DEFAULT] = { .cost_model = cuda_chol_task_21_cost }
 	},
 	.type = HISTORY_BASED,
 	.symbol = "chol_model_21"
@@ -144,8 +144,8 @@ struct starpu_perfmodel_t chol_model_21 = {
 
 struct starpu_perfmodel_t chol_model_22 = {
 	.per_arch = { 
-		[CORE_DEFAULT] = { .cost_model = core_chol_task_22_cost },
-		[CUDA_DEFAULT] = { .cost_model = cuda_chol_task_22_cost }
+		[STARPU_CORE_DEFAULT] = { .cost_model = core_chol_task_22_cost },
+		[STARPU_CUDA_DEFAULT] = { .cost_model = cuda_chol_task_22_cost }
 	},
 	.type = HISTORY_BASED,
 	.symbol = "chol_model_22"

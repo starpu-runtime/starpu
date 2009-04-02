@@ -24,12 +24,12 @@
 
 #define HTBL32_NODE_SIZE	16
 
-typedef struct htbl32_node_s {
+typedef struct starpu_htbl32_node_s {
 	unsigned nentries;
-	struct htbl32_node_s *children[1<<HTBL32_NODE_SIZE];
+	struct starpu_htbl32_node_s *children[1<<HTBL32_NODE_SIZE];
 } htbl32_node_t;
 
-void *htbl_search_32(struct htbl32_node_s *htbl, uint32_t key);
-void *htbl_insert_32(struct htbl32_node_s **htbl, uint32_t key, void *entry);
+void *htbl_search_32(struct starpu_htbl32_node_s *htbl, uint32_t key);
+void *htbl_insert_32(struct starpu_htbl32_node_s **htbl, uint32_t key, void *entry);
 
 #endif // __GENERIC_HTABLE_H__

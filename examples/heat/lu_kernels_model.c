@@ -215,8 +215,8 @@ double task_22_cost_core(starpu_buffer_descr *descr)
 struct starpu_perfmodel_t model_11 = {
 	.cost_model = task_11_cost,
 	.per_arch = { 
-		[CORE_DEFAULT] = { .cost_model = task_11_cost_core },
-		[CUDA_DEFAULT] = { .cost_model = task_11_cost_cuda }
+		[STARPU_CORE_DEFAULT] = { .cost_model = task_11_cost_core },
+		[STARPU_CUDA_DEFAULT] = { .cost_model = task_11_cost_cuda }
 	},
 	.type = HISTORY_BASED,
 #ifdef ATLAS
@@ -231,8 +231,8 @@ struct starpu_perfmodel_t model_11 = {
 struct starpu_perfmodel_t model_12 = {
 	.cost_model = task_12_cost,
 	.per_arch = { 
-		[CORE_DEFAULT] = { .cost_model = task_12_cost_core },
-		[CUDA_DEFAULT] = { .cost_model = task_12_cost_cuda }
+		[STARPU_CORE_DEFAULT] = { .cost_model = task_12_cost_core },
+		[STARPU_CUDA_DEFAULT] = { .cost_model = task_12_cost_cuda }
 	},
 	.type = HISTORY_BASED,
 #ifdef ATLAS
@@ -247,8 +247,8 @@ struct starpu_perfmodel_t model_12 = {
 struct starpu_perfmodel_t model_21 = {
 	.cost_model = task_21_cost,
 	.per_arch = { 
-		[CORE_DEFAULT] = { .cost_model = task_21_cost_core },
-		[CUDA_DEFAULT] = { .cost_model = task_21_cost_cuda }
+		[STARPU_CORE_DEFAULT] = { .cost_model = task_21_cost_core },
+		[STARPU_CUDA_DEFAULT] = { .cost_model = task_21_cost_cuda }
 	},
 	.type = HISTORY_BASED,
 #ifdef ATLAS
@@ -263,8 +263,8 @@ struct starpu_perfmodel_t model_21 = {
 struct starpu_perfmodel_t model_22 = {
 	.cost_model = task_22_cost,
 	.per_arch = { 
-		[CORE_DEFAULT] = { .cost_model = task_22_cost_core },
-		[CUDA_DEFAULT] = { .cost_model = task_22_cost_cuda }
+		[STARPU_CORE_DEFAULT] = { .cost_model = task_22_cost_core },
+		[STARPU_CUDA_DEFAULT] = { .cost_model = task_22_cost_cuda }
 	},
 	.type = HISTORY_BASED,
 #ifdef ATLAS

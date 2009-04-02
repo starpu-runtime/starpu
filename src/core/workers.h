@@ -64,7 +64,7 @@ enum archtype {
 
 struct worker_s {
 	enum archtype arch; /* what is the type of worker ? */
-	enum perf_archtype perf_arch; /* in case there are different models of the same arch */
+	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
 	pthread_t worker_thread; /* the thread which runs the worker */
 	int id; /* which core/gpu/etc is controlled by the workker ? */
         sem_t ready_sem; /* indicate when the worker is ready */

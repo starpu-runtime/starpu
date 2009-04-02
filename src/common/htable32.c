@@ -18,7 +18,7 @@
 #include <stdint.h>
 #include <string.h>
 
-void *htbl_search_32(struct htbl32_node_s *htbl, uint32_t key)
+void *htbl_search_32(struct starpu_htbl32_node_s *htbl, uint32_t key)
 {
 	unsigned currentbit;
 	unsigned keysize = 32;
@@ -57,7 +57,7 @@ void *htbl_search_32(struct htbl32_node_s *htbl, uint32_t key)
  * returns the previous value of the tag, or NULL else
  */
 
-void *htbl_insert_32(struct htbl32_node_s **htbl, uint32_t key, void *entry)
+void *htbl_insert_32(struct starpu_htbl32_node_s **htbl, uint32_t key, void *entry)
 {
 	unsigned currentbit;
 	unsigned keysize = 32;

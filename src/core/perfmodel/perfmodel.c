@@ -24,7 +24,7 @@
  * PER ARCH model
  */
 
-static double per_arch_job_expected_length(struct starpu_perfmodel_t *model, enum perf_archtype arch, struct job_s *j)
+static double per_arch_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct job_s *j)
 {
 	double exp = -1.0;
 	double (*per_arch_cost_model)(struct starpu_buffer_descr_t *);
@@ -84,7 +84,7 @@ static double common_job_expected_length(struct starpu_perfmodel_t *model, uint3
 	return -1.0;
 }
 
-double job_expected_length(uint32_t who, struct job_s *j, enum perf_archtype arch)
+double job_expected_length(uint32_t who, struct job_s *j, enum starpu_perf_archtype arch)
 {
 	struct starpu_perfmodel_t *model = j->task->cl->model;
 

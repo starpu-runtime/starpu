@@ -20,8 +20,8 @@
 #include <stdio.h>
 #include <starpu-mutex.h>
 
-struct htbl32_node_s;
-struct history_list_t;
+struct starpu_htbl32_node_s;
+struct starpu_history_list_t;
 struct starpu_buffer_descr_t;
 
 /* 
@@ -34,14 +34,14 @@ struct starpu_buffer_descr_t;
    are likely to be identical */
 #define NARCH_VARIATIONS	2
 
-enum perf_archtype {
-	CORE_DEFAULT = 0,
-	CUDA_DEFAULT = 1,
-	GORDON_DEFAULT = 2
+enum starpu_perf_archtype {
+	STARPU_CORE_DEFAULT = 0,
+	STARPU_CUDA_DEFAULT = 1,
+	STARPU_GORDON_DEFAULT = 2
 };
 
 
-struct regression_model_t {
+struct starpu_regression_model_t {
 	/* sum of ln(measured) */
 	double sumlny;
 
@@ -66,9 +66,9 @@ struct regression_model_t {
 struct starpu_per_arch_perfmodel_t {
 	double (*cost_model)(struct starpu_buffer_descr_t *t);
 	double alpha;
-	struct htbl32_node_s *history;
-	struct history_list_t *list;
-	struct regression_model_t regression;
+	struct starpu_htbl32_node_s *history;
+	struct starpu_history_list_t *list;
+	struct starpu_regression_model_t regression;
 #ifdef MODEL_DEBUG
 	FILE *debug_file;
 #endif

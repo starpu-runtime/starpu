@@ -113,11 +113,11 @@ static double test_r(double c, unsigned n, unsigned *x, double *y)
 	return r;
 }
 
-static unsigned find_list_size(struct history_list_t *list_history)
+static unsigned find_list_size(struct starpu_history_list_t *list_history)
 {
 	unsigned cnt = 0;
 
-	struct history_list_t *ptr = list_history;
+	struct starpu_history_list_t *ptr = list_history;
 	while (ptr) {
 		cnt++;
 		ptr = ptr->next;
@@ -139,9 +139,9 @@ static double find_list_min(double *y, unsigned n)
 	return min;
 }
 
-static void dump_list(unsigned *x, double *y, struct history_list_t *list_history)
+static void dump_list(unsigned *x, double *y, struct starpu_history_list_t *list_history)
 {
-	struct history_list_t *ptr = list_history;
+	struct starpu_history_list_t *ptr = list_history;
 	unsigned i = 0;
 
 	while (ptr) {
@@ -158,7 +158,7 @@ static void dump_list(unsigned *x, double *y, struct history_list_t *list_histor
  * 	return 0 if success, -1 otherwise
  * 	if success, a, b and c are modified
  * */
-int regression_non_linear_power(struct history_list_t *ptr, double *a, double *b, double *c)
+int regression_non_linear_power(struct starpu_history_list_t *ptr, double *a, double *b, double *c)
 {
 	unsigned n = find_list_size(ptr);
 

@@ -130,8 +130,8 @@ static double cuda_mult_cost(starpu_buffer_descr *descr)
 
 struct starpu_perfmodel_t strassen_model_mult = {
 	.per_arch = { 
-		[CORE_DEFAULT] = { .cost_model = mult_cost },
-		[CUDA_DEFAULT] = { .cost_model = cuda_mult_cost }
+		[STARPU_CORE_DEFAULT] = { .cost_model = mult_cost },
+		[STARPU_CUDA_DEFAULT] = { .cost_model = cuda_mult_cost }
 	},
 	.type = HISTORY_BASED,
 	.symbol = "strassen_model_mult"
@@ -139,8 +139,8 @@ struct starpu_perfmodel_t strassen_model_mult = {
 
 struct starpu_perfmodel_t strassen_model_add_sub = {
 	.per_arch = { 
-		[CORE_DEFAULT] = { .cost_model = add_sub_cost },
-		[CUDA_DEFAULT] = { .cost_model = cuda_add_sub_cost }
+		[STARPU_CORE_DEFAULT] = { .cost_model = add_sub_cost },
+		[STARPU_CUDA_DEFAULT] = { .cost_model = cuda_add_sub_cost }
 	},
 	.type = HISTORY_BASED,
 	.symbol = "strassen_model_add_sub"
@@ -148,8 +148,8 @@ struct starpu_perfmodel_t strassen_model_add_sub = {
 
 struct starpu_perfmodel_t strassen_model_self_add_sub = {
 	.per_arch = { 
-		[CORE_DEFAULT] = { .cost_model = self_add_sub_cost },
-		[CUDA_DEFAULT] = { .cost_model = cuda_self_add_sub_cost }
+		[STARPU_CORE_DEFAULT] = { .cost_model = self_add_sub_cost },
+		[STARPU_CUDA_DEFAULT] = { .cost_model = cuda_self_add_sub_cost }
 	},
 	.type = HISTORY_BASED,
 	.symbol = "strassen_model_self_add_sub"

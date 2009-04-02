@@ -29,9 +29,9 @@ struct starpu_buffer_descr_t;
 struct jobq_s;
 struct job_s;
 enum archtype;
-enum perf_archtype;
+enum starpu_perf_archtype;
 
-struct history_entry_t {
+struct starpu_history_entry_t {
 	//double measured;
 	
 	/* mean_n = 1/n sum */
@@ -62,13 +62,13 @@ struct history_entry_t {
 	size_t size; /* in bytes */
 };
 
-struct history_list_t {
-	struct history_list_t *next;
-	struct history_entry_t *entry;
+struct starpu_history_list_t {
+	struct starpu_history_list_t *next;
+	struct starpu_history_entry_t *entry;
 };
 
-struct model_list_t {
-	struct model_list_t *next;
+struct starpu_model_list_t {
+	struct starpu_model_list_t *next;
 	struct starpu_perfmodel_t *model;
 };
 
@@ -78,17 +78,17 @@ struct model_list_t {
 //	unsigned ncore_entries;
 //	unsigned ncuda_entries;
 //	/* contains core entries, then cuda ones */
-//	struct history_entry_t entries[];
+//	struct starpu_history_entry_t entries[];
 //}
 
-double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum perf_archtype arch, struct job_s *j);
+double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct job_s *j);
 void register_model(struct starpu_perfmodel_t *model);
 void dump_registered_models(void);
 
-double job_expected_length(uint32_t who, struct job_s *j, enum perf_archtype arch);
+double job_expected_length(uint32_t who, struct job_s *j, enum starpu_perf_archtype arch);
 double regression_based_job_expected_length(struct starpu_perfmodel_t *model,
 		uint32_t who, struct job_s *j);
-void update_perfmodel_history(struct job_s *j, enum perf_archtype arch, double measured);
+void update_perfmodel_history(struct job_s *j, enum starpu_perf_archtype arch, double measured);
 
 double data_expected_penalty(struct jobq_s *q, struct job_s *j);
 
