@@ -162,7 +162,11 @@ starpu_data_handle allocate_tmp_matrix(unsigned size, unsigned reclevel)
         } else
 #endif
         {
+#ifdef HAVE_POSIX_MEMALIGN
 		posix_memalign((void **)&buffer, 4096, size*size*sizeof(float));
+#else
+		buffer = malloc(size*size*sizeof(float));
+#endif
         }
 
 	assert(buffer);
@@ -768,9 +772,15 @@ int main(int argc, char **argv)
         } else
 #endif
         {
+#ifdef HAVE_POSIX_MEMALIGN
                 posix_memalign((void **)&A, 4096, size*size*sizeof(float));
                 posix_memalign((void **)&B, 4096, size*size*sizeof(float));
                 posix_memalign((void **)&C, 4096, size*size*sizeof(float));
+#else
+		A = malloc(size*size*sizeof(float));
+		B = malloc(size*size*sizeof(float));
+		C = malloc(size*size*sizeof(float));
+#endif
         }
 
 	assert(A);

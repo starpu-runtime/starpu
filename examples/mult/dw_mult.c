@@ -163,9 +163,15 @@ static void init_problem_data(void)
 	} else
 #endif
 	{
+#ifdef HAVE_POSIX_MEMALIGN
 		posix_memalign((void **)&A, 4096, zdim*ydim*sizeof(float));
 		posix_memalign((void **)&B, 4096, xdim*zdim*sizeof(float));
 		posix_memalign((void **)&C, 4096, xdim*ydim*sizeof(float));
+#else
+		A = malloc(zdim*ydim*sizeof(float));
+		B = malloc(xdim*zdim*sizeof(float));
+		C = malloc(xdim*ydim*sizeof(float));
+#endif
 	}
 
 	/* fill the A and B matrices */

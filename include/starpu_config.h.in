@@ -15,4 +15,8 @@
 
 #undef USE_GTK
 
+#undef DONTBIND
+
+#undef HAVE_POSIX_MEMALIGN
+
 #endif
