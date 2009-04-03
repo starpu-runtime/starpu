@@ -57,6 +57,8 @@ if test x$have_posix_memalign = xyes; then
 	AC_DEFINE(HAVE_POSIX_MEMALIGN,[],[posix_memalign is available])
 fi
 
+# This defines HAVE_SYNC_BUILTINS
+STARPU_CHECK_SYNC_BUILTINS
 
 ###############################################################################
 #                                                                             #

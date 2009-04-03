@@ -30,8 +30,12 @@
 #define STARPU_UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
 #define STARPU_LIKELY(expr)            (__builtin_expect(!!(expr),1))
 
+#ifdef HAVE_SYNC_BUILTINS
 #define STARPU_ATOMIC_ADD(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
 #define STARPU_ATOMIC_OR(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
+#else
+#error __sync_fetch_and_add is not available
+#endif
 
 #define STARPU_SUCCESS	0
 #define STARPU_TRYAGAIN	1

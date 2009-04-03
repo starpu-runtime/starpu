@@ -19,4 +19,6 @@
 
 #undef HAVE_POSIX_MEMALIGN
 
+#undef HAVE_SYNC_BUILTINS
+
 #endif
