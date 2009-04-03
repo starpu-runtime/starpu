@@ -62,6 +62,10 @@ static struct tag_s *tag_init(starpu_tag_t id)
 
 	tag->job = NULL;
 
+	/* initializing a mutex and a cond variable is a little expensive, so
+ 	 * we don't initialize them until they are needed */
+	tag->someone_is_waiting = 0;
+
 	return tag;
 }
 
@@ -76,6 +80,13 @@ void starpu_tag_remove(starpu_tag_t id)
 	if (tag)
 		free(tag->succ);
 #endif
+
+	/* the condition variable is only allocated if somebody starts waiting */
+	if (tag && tag->someone_is_waiting) 
+	{
+		pthread_cond_destroy(&tag->finished_cond);
+		pthread_mutex_destroy(&tag->finished_mutex);
+	}
 
 	release_mutex(&tag_mutex);
 
@@ -105,7 +116,7 @@ struct tag_s *gettag_struct(starpu_tag_t id)
 	return tag;
 }
 
-void notify_cg(cg_t *cg)
+static void notify_cg(cg_t *cg)
 {
 
 	STARPU_ASSERT(cg);
@@ -173,6 +184,14 @@ void notify_dependencies(struct job_s *j)
 		{
 			notify_cg(tag->succ[succ]);
 		}
+
+		/* the application may be waiting on this tag to finish */
+		if (tag->someone_is_waiting)
+		{
+			pthread_mutex_lock(&tag->finished_mutex);
+			pthread_cond_broadcast(&tag->finished_cond);
+			pthread_mutex_unlock(&tag->finished_mutex);
+		}
 	}
 }
 
@@ -235,6 +254,35 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 		tag_add_succ(dep_id, cg);
 	}
 	va_end(pa);
+}
+
+/* this function may be called by the application (outside callbacks !) */
+void starpu_tag_wait(starpu_tag_t id)
+{
+	struct tag_s *tag = gettag_struct(id);
+
+	take_mutex(&tag->lock);
+
+	if (tag->state == DONE)
+	{
+		/* the corresponding task is already finished */
+		release_mutex(&tag->lock);
+		return;
+	} 
+
+	if (!tag->someone_is_waiting)
+	{
+		/* condition variable is not allocated yet */
+		tag->someone_is_waiting = 1;
+		pthread_mutex_init(&tag->finished_mutex, NULL);
+		pthread_cond_init(&tag->finished_cond, NULL);
+	}
+
+	release_mutex(&tag->lock);
+
+	pthread_mutex_lock(&tag->finished_mutex);
+	pthread_cond_wait(&tag->finished_cond, &tag->finished_mutex);
+	pthread_mutex_unlock(&tag->finished_mutex);
 }
 
 void tag_set_ready(struct tag_s *tag)

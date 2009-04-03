@@ -44,7 +44,7 @@ typedef enum {
 struct job_s;
 
 struct tag_s {
-	starpu_mutex lock; /* do we really need that ? */
+	starpu_mutex lock;
 	starpu_tag_t id; /* an identifier for the task */
 	tag_state state;
 	unsigned nsuccs; /* how many successors ? */
@@ -55,6 +55,11 @@ struct tag_s {
 	struct _cg_t *succ[NMAXDEPS];
 #endif
 	struct job_s *job; /* which job is associated to the tag if any ? */
+	
+	/* the application may wait on a tag to finish */
+	unsigned someone_is_waiting;
+	pthread_mutex_t finished_mutex;
+	pthread_cond_t finished_cond;
 };
 
 typedef struct _cg_t {
@@ -62,7 +67,6 @@ typedef struct _cg_t {
 	struct tag_s *tag; /* which tags depends on that cg ?  */
 } cg_t;
 
-void notify_cg(cg_t *cg);
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 
 cg_t *create_cg(unsigned ntags, struct tag_s *tag);

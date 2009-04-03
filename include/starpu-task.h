@@ -136,6 +136,7 @@ void starpu_load_cuda_function(int devid, struct starpu_cuda_function_s *functio
 void starpu_tag_remove(starpu_tag_t id);
 void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
+void starpu_tag_wait(starpu_tag_t id);
 
 struct starpu_task *starpu_task_create(void);
 int starpu_submit_task(struct starpu_task *task);
