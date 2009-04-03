@@ -27,6 +27,8 @@ static pthread_cond_t cond;
 static unsigned ntasks = 65536;
 static unsigned cnt;
 
+static unsigned finished = 0;
+
 static void *dummy_func(void *arg __attribute__ ((unused)))
 {
 	return NULL;
@@ -48,6 +50,7 @@ void callback(void *arg)
 	if (res == 0)
 	{
 		pthread_mutex_lock(&mutex);
+		finished = 1;
 		pthread_cond_signal(&cond);
 		pthread_mutex_unlock(&mutex);
 	}
@@ -103,7 +106,8 @@ int main(int argc, char **argv)
 	}
 
 	pthread_mutex_lock(&mutex);
-	pthread_cond_wait(&cond, &mutex);
+	if (!finished)
+		pthread_cond_wait(&cond, &mutex);
 	pthread_mutex_unlock(&mutex);
 
 	gettimeofday(&end, NULL);
