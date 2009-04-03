@@ -31,13 +31,6 @@ static struct starpu_task *create_task(starpu_tag_t id)
 	return task;
 }
 
-static void terminal_callback(void *argcb)
-{
-	sem_t *sem = argcb;
-	sem_post(sem);
-}
-
-
 /*
  *	Create the codelets
  */
@@ -53,7 +46,7 @@ static starpu_codelet cl11 =
 	.model = &chol_model_11
 };
 
-static struct starpu_task * create_task_11(starpu_data_handle dataA, unsigned k, unsigned nblocks, sem_t *sem)
+static struct starpu_task * create_task_11(starpu_data_handle dataA, unsigned k)
 {
 //	printf("task 11 k = %d TAG = %llx\n", k, (TAG11(k)));
 
@@ -71,12 +64,6 @@ static struct starpu_task * create_task_11(starpu_data_handle dataA, unsigned k,
 	/* enforce dependencies ... */
 	if (k > 0) {
 		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
-	}
-
-	/* the very last task must be notified */
-	if (k == nblocks - 1) {
-		task->callback_func = terminal_callback;
-		task->callback_arg = sem;
 	}
 
 	return task;
@@ -186,7 +173,7 @@ static void _dw_cholesky(starpu_data_handle dataA, unsigned nblocks)
 
 	for (k = 0; k < nblocks; k++)
 	{
-		struct starpu_task *task = create_task_11(dataA, k, nblocks, &sem);
+		struct starpu_task *task = create_task_11(dataA, k);
 		/* we defer the launch of the first task */
 		if (k == 0) {
 			entry_task = task;
@@ -212,8 +199,7 @@ static void _dw_cholesky(starpu_data_handle dataA, unsigned nblocks)
 	starpu_submit_task(entry_task);
 
 	/* stall the application until the end of computations */
-	sem_wait(&sem);
-	sem_destroy(&sem);
+	starpu_tag_wait(TAG11(nblocks-1));
 	gettimeofday(&end, NULL);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
