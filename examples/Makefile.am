@@ -43,7 +43,9 @@ BUILT_SOURCES =					\
 
 endif
 
-noinst_PROGRAMS =
+examplebindir = $(bindir)/examples/
+
+examplebin_PROGRAMS =
 
 noinst_HEADERS = 				\
 	heat/lu_kernels_model.h			\
@@ -70,7 +72,7 @@ noinst_HEADERS = 				\
 
 if !NO_BLAS_LIB
 
-noinst_PROGRAMS += 				\
+examplebin_PROGRAMS += 			\
 	mult/dw_mult 				\
 	mult/dw_mult_no_stride			\
 	mult/dw_mult_no_stride_no_tag 
@@ -98,7 +100,7 @@ endif
 
 if !NO_BLAS_LIB
 
-noinst_PROGRAMS +=				\
+examplebin_PROGRAMS += 			\
 	cholesky/dw_cholesky			\
 	cholesky/dw_cholesky_no_stride
 
@@ -122,7 +124,7 @@ endif
 
 if !NO_BLAS_LIB
 
-noinst_PROGRAMS += heat/heat
+examplebin_PROGRAMS += heat/heat
 
 heat_heat_SOURCES =				\
 	heat/heat.c				\
@@ -141,7 +143,7 @@ endif
 # Tag examples #
 ################
 
-noinst_PROGRAMS +=				\
+examplebin_PROGRAMS +=			\
 	tag_example/tag_example			\
 	tag_example/tag_example2
 
@@ -157,7 +159,7 @@ tag_example_tag_example2_SOURCES =		\
 
 if ATLAS_BLAS_LIB 
 
-noinst_PROGRAMS += strassen/dw_strassen
+examplebin_PROGRAMS += strassen/dw_strassen
 
 strassen_dw_strassen_SOURCES = 			\
 	strassen/strassen.c			\
@@ -174,7 +176,7 @@ endif
 
 if !NO_BLAS_LIB 
 
-noinst_PROGRAMS += strassen2/strassen
+examplebin_PROGRAMS += strassen2/strassen
 
 strassen2_strassen_SOURCES = 			\
 	strassen2/strassen2.c			\
@@ -189,7 +191,7 @@ endif
 
 if ATLAS_BLAS_LIB 
 
-noinst_PROGRAMS += 				\
+examplebin_PROGRAMS += 				\
 	spmv/dw_spmv				\
 	spmv/dw_block_spmv
 
@@ -208,7 +210,7 @@ endif
 # Incrementer example #
 #######################
 
-noinst_PROGRAMS += incrementer/incrementer
+examplebin_PROGRAMS += incrementer/incrementer
 
 incrementer_incrementer_SOURCES =		\
 	incrementer/incrementer.c
