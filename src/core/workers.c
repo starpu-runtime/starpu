@@ -243,11 +243,13 @@ static void init_workers(struct machine_config_s *config)
 #ifdef USE_CPUS
 			case CORE_WORKER:
 				workerarg->set = NULL;
+				workerarg->worker_is_initialized = 0;
 				pthread_create(&workerarg->worker_thread, 
 						NULL, core_worker, workerarg);
 
 				pthread_mutex_lock(&workerarg->mutex);
-				pthread_cond_wait(&workerarg->ready_cond, &workerarg->mutex);
+				if (!workerarg->worker_is_initialized)
+					pthread_cond_wait(&workerarg->ready_cond, &workerarg->mutex);
 				pthread_mutex_unlock(&workerarg->mutex);
 
 				break;
@@ -255,11 +257,13 @@ static void init_workers(struct machine_config_s *config)
 #ifdef USE_CUDA
 			case CUDA_WORKER:
 				workerarg->set = NULL;
+				workerarg->worker_is_initialized = 0;
 				pthread_create(&workerarg->worker_thread, 
 						NULL, cuda_worker, workerarg);
 
 				pthread_mutex_lock(&workerarg->mutex);
-				pthread_cond_wait(&workerarg->ready_cond, &workerarg->mutex);
+				if (!workerarg->worker_is_initialized)
+					pthread_cond_wait(&workerarg->ready_cond, &workerarg->mutex);
 				pthread_mutex_unlock(&workerarg->mutex);
 
 				break;
@@ -273,11 +277,15 @@ static void init_workers(struct machine_config_s *config)
 					gordon_worker_set.nworkers = ngordon_spus; 
 					gordon_worker_set.workers = &config->workers[worker];
 
+					gordon_worker_set.set_is_initialized = 0;
+
 					pthread_create(&gordon_worker_set.worker_thread, NULL, 
 							gordon_worker, &gordon_worker_set);
 
 					pthread_mutex_lock(&gordon_worker_set.mutex);
-					pthread_cond_wait(&gordon_worker_set.ready_cond, &gordon_worker_set.mutex);
+					if (!gordon_worker_set.set_is_initialized)
+						pthread_cond_wait(&gordon_worker_set.ready_cond,
+									&gordon_worker_set.mutex);
 					pthread_mutex_unlock(&gordon_worker_set.mutex);
 
 					gordon_inited = 1;

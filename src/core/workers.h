@@ -75,6 +75,7 @@ struct worker_s {
 	struct worker_set_s *set; /* in case this worker belongs to a set */
 	struct job_list_s *terminated_jobs; /* list of pending jobs which were executed */
 	unsigned worker_is_running;
+	unsigned worker_is_initialized;
 };
 
 /* in case a single CPU worker may control multiple 
@@ -87,6 +88,7 @@ struct worker_set_s {
 	void *retval;
 	struct worker_s *workers;
         pthread_cond_t ready_cond; /* indicate when the set is ready */
+	unsigned set_is_initialized;
 };
 
 struct machine_config_s {

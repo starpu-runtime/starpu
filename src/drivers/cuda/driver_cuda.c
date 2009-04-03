@@ -343,6 +343,7 @@ void *cuda_worker(void *arg)
 
 	/* tell the main thread that this one is ready */
 	pthread_mutex_lock(&args->mutex);
+	args->worker_is_initialized = 1;
 	pthread_cond_signal(&args->ready_cond);
 	pthread_mutex_unlock(&args->mutex);
 

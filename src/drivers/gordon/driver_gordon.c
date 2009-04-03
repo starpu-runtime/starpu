@@ -474,6 +474,7 @@ void *gordon_worker(void *arg)
 	
 	/* tell the core that gordon is ready */
 	pthread_mutex_lock(&gordon_set_arg->mutex);
+	gordon_set_arg->set_is_initialized = 1;
 	pthread_cond_signal(&gordon_set_arg->ready_cond);
 	pthread_mutex_unlock(&gordon_set_arg->mutex);
 

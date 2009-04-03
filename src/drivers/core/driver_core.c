@@ -114,6 +114,7 @@ void *core_worker(void *arg)
 	
         /* tell the main thread that we are ready */
 	pthread_mutex_lock(&core_arg->mutex);
+	core_arg->worker_is_initialized = 1;
 	pthread_cond_signal(&core_arg->ready_cond);
 	pthread_mutex_unlock(&core_arg->mutex);
 
