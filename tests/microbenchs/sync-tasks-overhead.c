@@ -20,7 +20,7 @@
 
 #include <starpu.h>
 
-static unsigned ntasks = 1024;
+static unsigned ntasks = 65536;
 
 static void *dummy_func(void *arg __attribute__ ((unused)))
 {

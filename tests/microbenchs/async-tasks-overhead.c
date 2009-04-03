@@ -15,15 +15,16 @@
  */
 
 #include <sys/time.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <semaphore.h>
 
 #include <starpu.h>
 
-static sem_t sem;
+static pthread_mutex_t mutex;
+static pthread_cond_t cond;
 
-static unsigned ntasks = 1024;
+static unsigned ntasks = 65536;
 static unsigned cnt;
 
 static void *dummy_func(void *arg __attribute__ ((unused)))
@@ -45,7 +46,11 @@ void callback(void *arg)
 	unsigned res = STARPU_ATOMIC_ADD(&cnt, -1);
 
 	if (res == 0)
-		sem_post(&sem);
+	{
+		pthread_mutex_lock(&mutex);
+		pthread_cond_signal(&cond);
+		pthread_mutex_unlock(&mutex);
+	}
 }
 
 void inject_one_task(void)
@@ -80,7 +85,8 @@ int main(int argc, char **argv)
 	struct timeval start;
 	struct timeval end;
 
-	sem_init(&sem, 0, 0);
+	pthread_mutex_init(&mutex, NULL);
+	pthread_cond_init(&cond, NULL);
 
 	parse_args(argc, argv);
 
@@ -96,7 +102,10 @@ int main(int argc, char **argv)
 		inject_one_task();
 	}
 
-	sem_wait(&sem);
+	pthread_mutex_lock(&mutex);
+	pthread_cond_wait(&cond, &mutex);
+	pthread_mutex_unlock(&mutex);
+
 	gettimeofday(&end, NULL);
 
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
