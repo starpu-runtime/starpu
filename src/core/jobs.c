@@ -124,20 +124,19 @@ void handle_job_termination(job_t j)
 
 static void block_sync_task(job_t j)
 {
-	{
 #if defined(__APPLE__) && defined(__MACH__)
-		pthread_mutex_lock(&j->sync_mutex);
+	pthread_mutex_lock(&j->sync_mutex);
+	if (!j->terminated)
 		pthread_cond_wait(&j->sync_cond, &j->sync_mutex);
-		pthread_mutex_unlock(&j->sync_mutex);
+	pthread_mutex_unlock(&j->sync_mutex);
 #else
-		sem_wait(&j->sync_sem);
-		sem_destroy(&j->sync_sem);
+	sem_wait(&j->sync_sem);
+	sem_destroy(&j->sync_sem);
 #endif
 
-		/* as this is a synchronous task, the liberation of the job
-		   structure was deferred */
-		job_delete(j);
-	}
+	/* as this is a synchronous task, the liberation of the job
+	   structure was deferred */
+	job_delete(j);
 }
 
 /* application should submit new tasks to StarPU through this function */
