@@ -22,6 +22,8 @@
 #include "gordon_interface.h"
 #include <core/policies/sched_policy.h>
 
+static unsigned progress_thread_is_inited = 0;
+
 pthread_t progress_thread;
 
 pthread_cond_t progress_cond;
@@ -58,6 +60,7 @@ void *gordon_worker_progress(void *arg)
 #endif
 
 	pthread_mutex_lock(&progress_mutex);
+	progress_thread_is_inited = 1;
 	pthread_cond_signal(&progress_cond);
 	pthread_mutex_unlock(&progress_mutex);
 
@@ -467,7 +470,8 @@ void *gordon_worker(void *arg)
 
 	/* wait for the progression thread to be ready */
 	pthread_mutex_lock(&progress_mutex);
-	pthread_cond_wait(&progress_cond, &progress_mutex);
+	if (!progress_thread_is_inited)
+		pthread_cond_wait(&progress_cond, &progress_mutex);
 	pthread_mutex_unlock(&progress_mutex);
 
 	fprintf(stderr, "progress thread is running ... \n");
