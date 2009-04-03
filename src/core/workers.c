@@ -428,19 +428,15 @@ void kill_all_workers(struct machine_config_s *config)
 
 	struct sched_policy_s *sched = get_sched_policy();
 
-	fprintf(stderr, "LOCK\n");
-
 	operate_on_all_queues(LOCK);
 	pthread_mutex_lock(&sched->sched_activity_mutex);
 	
-	fprintf(stderr, "BROADCAST \n");
 	/* set the flag which will tell workers to stop */
 	config->running = 0;
 
 	operate_on_all_queues(BROADCAST);
 	pthread_cond_broadcast(&sched->sched_activity_cond);
 
-	fprintf(stderr, "UNLOCK\n");
 	pthread_mutex_unlock(&sched->sched_activity_mutex);
 	operate_on_all_queues(UNLOCK);
 }
