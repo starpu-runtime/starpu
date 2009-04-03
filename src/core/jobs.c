@@ -76,6 +76,9 @@ struct starpu_task * __attribute__((malloc)) starpu_task_create(void)
 
 	task->priority = DEFAULT_PRIO;
 
+	/* by default, we let StarPU free the task structure */
+	task->cleanup = 1;
+
 	return task;
 }
 
@@ -117,6 +120,9 @@ void handle_job_termination(job_t j)
 	}
 	else
 	{
+		if (j->task->cleanup)
+			free(j->task);
+
 		job_delete(j);
 	}
 
@@ -136,6 +142,9 @@ static void block_sync_task(job_t j)
 
 	/* as this is a synchronous task, the liberation of the job
 	   structure was deferred */
+	if (j->task->cleanup)
+		free(j->task);
+
 	job_delete(j);
 }
 

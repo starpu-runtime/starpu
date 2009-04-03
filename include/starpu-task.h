@@ -88,6 +88,9 @@ struct starpu_task {
 	int priority; /* MAX_PRIO = most important 
         		: MIN_PRIO = least important */
 
+	/* should the task be automatically liberated once executed ? */
+	int cleanup;
+
 	/* this is private to StarPU, do not modify */
 	void *starpu_private;
 };
