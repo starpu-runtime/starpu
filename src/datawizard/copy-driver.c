@@ -40,31 +40,70 @@ unsigned register_memory_node(node_kind kind)
 }
 
 
-/* TODO move in a more appropriate file */
-/* attach a queue to a memory node */
+/* TODO move in a more appropriate file  !! */
+/* attach a queue to a memory node (if it's not already attached) */
 void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
 {
-	unsigned nqueues;
-	nqueues = STARPU_ATOMIC_ADD(&descr.queues_count[nodeid], 1);
+	unsigned queue;
+	unsigned nqueues_total, nqueues;
+	
+	take_mutex(&descr.attached_queues_mutex);
 
-	descr.attached_queues[nodeid][nqueues-1] = q;
+	/* we only insert the queue if it's not already in the list */
+	nqueues = descr.queues_count[nodeid];
+	for (queue = 0; queue < nqueues; queue++)
+	{
+		if (descr.attached_queues_per_node[nodeid][queue] == q)
+		{
+			/* the queue is already in the list */
+			release_mutex(&descr.attached_queues_mutex);
+			return;
+		}
+	}
+
+	/* it was not found locally */
+	descr.attached_queues_per_node[nodeid][nqueues] = q;
+	descr.queues_count[nodeid]++;
+
+	/* do we have to add it in the global list as well ? */
+	nqueues_total = descr.total_queues_count; 
+	for (queue = 0; queue < nqueues_total; queue++)
+	{
+		if (descr.attached_queues_all[queue] == q)
+		{
+			/* the queue is already in the global list */
+			release_mutex(&descr.attached_queues_mutex);
+			return;
+		}
+	} 
+
+	/* it was not in the global queue either */
+	descr.attached_queues_all[nqueues_total] = q;
+	descr.total_queues_count++;
+
+	release_mutex(&descr.attached_queues_mutex);
 }
 
 void wake_all_blocked_workers_on_node(unsigned nodeid)
 {
 	/* wake up all queues on that node */
 	unsigned q_id;
+
+	take_mutex(&descr.attached_queues_mutex);
+
 	unsigned nqueues = descr.queues_count[nodeid];
 	for (q_id = 0; q_id < nqueues; q_id++)
 	{
 		struct jobq_s *q;
-		q  = descr.attached_queues[nodeid][q_id];
+		q  = descr.attached_queues_per_node[nodeid][q_id];
 
 		/* wake anybody waiting on that queue */
 		pthread_mutex_lock(&q->activity_mutex);
 		pthread_cond_broadcast(&q->activity_cond);
 		pthread_mutex_unlock(&q->activity_mutex);
 	}
+
+	release_mutex(&descr.attached_queues_mutex);
 }
 
 void wake_all_blocked_workers(void)

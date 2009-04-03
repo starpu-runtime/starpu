@@ -28,6 +28,7 @@
 
 
 static struct sched_policy_s policy;
+extern mem_node_descr descr;
 
 struct sched_policy_s *get_sched_policy(void)
 {
@@ -103,6 +104,8 @@ void init_sched_policy(struct machine_config_s *config)
 	pthread_cond_init(&policy.sched_activity_cond, NULL);
 	pthread_mutex_init(&policy.sched_activity_mutex, NULL);
 	pthread_key_create(&policy.local_queue_key, NULL);
+	init_mutex(&descr.attached_queues_mutex);
+	descr.total_queues_count = 0;
 
 	policy.init_sched(config, &policy);
 }
@@ -154,6 +157,9 @@ void wait_on_sched_event(void)
 	struct jobq_s *q = policy.get_local_queue(&policy);
 
 	pthread_mutex_lock(&q->activity_mutex);
-	pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
+
+	if (machine_is_running())
+		pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
+
 	pthread_mutex_unlock(&q->activity_mutex);
 }

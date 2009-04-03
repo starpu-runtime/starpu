@@ -382,14 +382,67 @@ unsigned machine_is_running(void)
 	return config.running;
 }
 
+typedef enum {
+	BROADCAST,
+	LOCK,
+	UNLOCK
+} queue_op;
+
+/* XXX we should use an accessor */
+extern mem_node_descr descr;
+
+static void operate_on_all_queues(queue_op op)
+{
+	unsigned q_id;
+	struct jobq_s *q;
+
+	take_mutex(&descr.attached_queues_mutex);
+
+	unsigned nqueues = descr.total_queues_count;
+
+	for (q_id = 0; q_id < nqueues; q_id++)
+	{
+		q  = descr.attached_queues_all[q_id];
+		switch (op) {
+			case BROADCAST:
+				pthread_cond_broadcast(&q->activity_cond);
+				break;
+			case LOCK:
+				pthread_mutex_lock(&q->activity_mutex);
+				break;
+			case UNLOCK:
+				pthread_mutex_unlock(&q->activity_mutex);
+				break;
+		}
+	}
+
+	release_mutex(&descr.attached_queues_mutex);
+}
+
 void kill_all_workers(struct machine_config_s *config)
 {
+	/* lock all workers and the scheduler (in the proper order) to make
+	   sure everyone will notice the termination */
+	/* WARNING: here we make the asumption that a queue is not attached to
+ 	 * different memory nodes ! */
+
+	struct sched_policy_s *sched = get_sched_policy();
+
+	fprintf(stderr, "LOCK\n");
+
+	operate_on_all_queues(LOCK);
+	pthread_mutex_lock(&sched->sched_activity_mutex);
+	
+	fprintf(stderr, "BROADCAST \n");
 	/* set the flag which will tell workers to stop */
 	config->running = 0;
 
-	/* in case some workers are waiting on some event 
-	   wake them up ... */
-	wake_all_blocked_workers();
+	operate_on_all_queues(BROADCAST);
+	pthread_cond_broadcast(&sched->sched_activity_cond);
+
+	fprintf(stderr, "UNLOCK\n");
+	pthread_mutex_unlock(&sched->sched_activity_mutex);
+	operate_on_all_queues(UNLOCK);
 }
 
 void starpu_shutdown(void)

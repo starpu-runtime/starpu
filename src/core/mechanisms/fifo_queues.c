@@ -125,7 +125,7 @@ job_t fifo_pop_task(struct jobq_s *q)
 	/* block until some event happens */
 	pthread_mutex_lock(&q->activity_mutex);
 
-	if (fifo_queue->njobs == 0)
+	if ((fifo_queue->njobs == 0) && machine_is_running())
 		pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
 
 	if (fifo_queue->njobs > 0) 
@@ -235,7 +235,7 @@ job_t fifo_non_blocking_pop_task_if_job_exists(struct jobq_s *q)
 		 * times and just get back to sleep */
 		pthread_mutex_lock(sched_mutex);
 
-		if (total_number_of_jobs == 0)
+		if ((total_number_of_jobs == 0) && machine_is_running())
 			pthread_cond_wait(sched_cond, sched_mutex);
 
 		pthread_mutex_unlock(sched_mutex);
