@@ -17,6 +17,10 @@
 LIBS = $(top_builddir)/src/libstarpu.la @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/
 
+TESTS = $(check_PROGRAMS)
+
+check_PROGRAMS =
+
 EXTRA_DIST = 					\
 	cuda/incrementer_cuda.cu		\
 	cuda/spmv_cuda.cu
@@ -142,6 +146,10 @@ endif
 ################
 # Tag examples #
 ################
+
+check_PROGRAMS +=			\
+	tag_example/tag_example			\
+	tag_example/tag_example2
 
 examplebin_PROGRAMS +=			\
 	tag_example/tag_example			\
