@@ -47,7 +47,7 @@ BUILT_SOURCES =					\
 
 endif
 
-examplebindir = $(bindir)/examples/
+examplebindir = $(libdir)/starpu/examples/
 
 examplebin_PROGRAMS =
 
