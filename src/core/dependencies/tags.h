@@ -69,13 +69,8 @@ typedef struct _cg_t {
 
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 
-cg_t *create_cg(unsigned ntags, struct tag_s *tag);
-struct tag_s *get_tag_struct(starpu_tag_t id);
-void tag_add_succ(starpu_tag_t id, cg_t *cg);
-
 void notify_dependencies(struct job_s *j);
 void tag_declare(starpu_tag_t id, struct job_s *job);
-void tag_set_ready(struct tag_s *tag);
 
 unsigned submit_job_enforce_task_deps(struct job_s *j);
 

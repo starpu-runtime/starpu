@@ -28,7 +28,7 @@ static starpu_mutex tag_mutex = {
 	.taken = 0
 };
 
-cg_t *create_cg(unsigned ntags, struct tag_s *tag)
+static cg_t *create_cg(unsigned ntags, struct tag_s *tag)
 {
 	cg_t *cg;
 
@@ -93,7 +93,7 @@ void starpu_tag_remove(starpu_tag_t id)
 	free(tag);
 }
 
-struct tag_s *gettag_struct(starpu_tag_t id)
+static struct tag_s *gettag_struct(starpu_tag_t id)
 {
 	take_mutex(&tag_mutex);
 
@@ -116,9 +116,28 @@ struct tag_s *gettag_struct(starpu_tag_t id)
 	return tag;
 }
 
+static void tag_set_ready(struct tag_s *tag)
+{
+	/* mark this tag as ready to run */
+	tag->state = READY;
+	/* declare it to the scheduler ! */
+	struct job_s *j = tag->job;
+
+	/* perhaps the corresponding task was not declared yet */
+	if (!j)
+		return;
+
+#ifdef NO_DATA_RW_LOCK
+	/* enforce data dependencies */
+	if (submit_job_enforce_data_deps(j))
+		return;
+#endif
+
+	push_task(j);
+}
+
 static void notify_cg(cg_t *cg)
 {
-
 	STARPU_ASSERT(cg);
 	unsigned ntags = STARPU_ATOMIC_ADD(&cg->ntags, -1);
 	if (ntags == 0) {
@@ -128,7 +147,7 @@ static void notify_cg(cg_t *cg)
 	}
 }
 
-void tag_add_succ(starpu_tag_t id, cg_t *cg)
+static void tag_add_succ(starpu_tag_t id, cg_t *cg)
 {
 	/* find out the associated structure */
 	struct tag_s *tag = gettag_struct(id);
@@ -283,26 +302,6 @@ void starpu_tag_wait(starpu_tag_t id)
 	pthread_mutex_lock(&tag->finished_mutex);
 	pthread_cond_wait(&tag->finished_cond, &tag->finished_mutex);
 	pthread_mutex_unlock(&tag->finished_mutex);
-}
-
-void tag_set_ready(struct tag_s *tag)
-{
-	/* mark this tag as ready to run */
-	tag->state = READY;
-	/* declare it to the scheduler ! */
-	struct job_s *j = tag->job;
-
-	/* perhaps the corresponding task was not declared yet */
-	if (!j)
-		return;
-
-#ifdef NO_DATA_RW_LOCK
-	/* enforce data dependencies */
-	if (submit_job_enforce_data_deps(j))
-		return;
-#endif
-
-	push_task(j);
 }
 
 /* This function is called when a new task is submitted to StarPU 
