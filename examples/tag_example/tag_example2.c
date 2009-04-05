@@ -81,8 +81,7 @@ static void create_task_grid(unsigned iter)
 	{
 		/* create a new task */
 		struct starpu_task *task = starpu_task_create();
-		task->callback_func = callback_core;
-		//jb->argcb = &coords[i][j];
+
 		task->cl = &cl;
 		task->cl_arg = NULL;
 
@@ -94,30 +93,7 @@ static void create_task_grid(unsigned iter)
 
 		starpu_submit_task(task);
 	}
-}
 
-
-void callback_core(void *argcb __attribute__ ((unused)))
-{
-	unsigned newcnt = STARPU_ATOMIC_ADD(&callback_cnt, -1);	
-
-	if (newcnt == 0)
-	{
-		
-		iter++;
-		if (iter < nk)
-		{
-			/* cleanup old grids ... */
-			if (iter > 2)
-				tag_cleanup_grid(ni, iter-2);
-
-			/* create a new iteration */
-			create_task_grid(iter);
-		}
-		else {
-			sem_post(&sem);
-		}
-	}
 }
 
 void core_codelet(void *_args __attribute__ ((unused)))
@@ -126,6 +102,8 @@ void core_codelet(void *_args __attribute__ ((unused)))
 
 int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 {
+	unsigned i;
+
 	starpu_init();
 
 	parse_args(argc, argv);
@@ -135,11 +113,18 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	cl.where = CORE;
 	cl.nbuffers = 0;
 
-	sem_init(&sem, 0, 0);
+	fprintf(stderr, "ITER : %d\n", iter);
 
-	create_task_grid(0);
+	for (i = 0; i < nk; i++)
+	{
+		create_task_grid(i);
 
-	sem_wait(&sem);
+		starpu_tag_wait(TAG(ni-1, i));
+
+		/* cleanup old grids ... */
+		if (i > 1)
+			tag_cleanup_grid(ni, i-1);
+	}
 
 	starpu_shutdown();
 
