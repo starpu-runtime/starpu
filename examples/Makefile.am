@@ -184,6 +184,8 @@ endif
 
 if !NO_BLAS_LIB 
 
+check_PROGRAMS += strassen2/strassen
+
 examplebin_PROGRAMS += strassen2/strassen
 
 strassen2_strassen_SOURCES = 			\
