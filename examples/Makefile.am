@@ -218,6 +218,8 @@ endif
 # Incrementer example #
 #######################
 
+check_PROGRAMS += incrementer/incrementer
+
 examplebin_PROGRAMS += incrementer/incrementer
 
 incrementer_incrementer_SOURCES =		\
