@@ -187,7 +187,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	parse_args(argc, argv);
 
-	fprintf(stderr, "ITER: %d\n", n);
+	fprintf(stderr, "ITER: %d\n", nk);
 
 	cl.where = CORE;
 	cl.core_func = core_codelet;
