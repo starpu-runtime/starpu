@@ -56,16 +56,20 @@ struct tag_s {
 	struct job_s *job; /* which job is associated to the tag if any ? */
 
 	unsigned is_assigned;
-	
-	/* the application may wait on a tag to finish */
-	unsigned someone_is_waiting;
-	pthread_mutex_t finished_mutex;
-	pthread_cond_t finished_cond;
 };
 
 typedef struct _cg_t {
 	unsigned ntags; /* number of remaining tags */
 	struct tag_s *tag; /* which tags depends on that cg ?  */
+
+	unsigned completed;
+
+	/* in case this completion group is related to an application, we have
+ 	 * to explicitely wake the waiting thread instead of reschedule the
+	 * corresponding task */
+	unsigned used_by_apps;
+	pthread_mutex_t cg_mutex;
+	pthread_cond_t cg_cond;
 } cg_t;
 
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
