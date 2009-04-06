@@ -71,7 +71,6 @@ void starpu_malloc_pinned_if_possible(float **A, size_t dim)
 		STARPU_ASSERT(push_res != -ENODEV);
 
 		free(cl);
-		free(task);
 #endif
 	}
 	else {
