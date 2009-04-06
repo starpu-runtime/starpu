@@ -48,8 +48,11 @@ static struct tag_s *tag_init(starpu_tag_t id)
 	tag = malloc(sizeof(struct tag_s));
 	STARPU_ASSERT(tag);
 
+	tag->job = NULL;
+	tag->is_assigned = 0;
+
 	tag->id = id;
-	tag->state = UNASSIGNED;
+	tag->state = READY;
 	tag->nsuccs = 0;
 
 #ifdef DYNAMIC_DEPS_SIZE
@@ -59,8 +62,6 @@ static struct tag_s *tag_init(starpu_tag_t id)
 #endif
 
 	init_mutex(&tag->lock);
-
-	tag->job = NULL;
 
 	/* initializing a mutex and a cond variable is a little expensive, so
  	 * we don't initialize them until they are needed */
@@ -118,22 +119,26 @@ static struct tag_s *gettag_struct(starpu_tag_t id)
 
 static void tag_set_ready(struct tag_s *tag)
 {
+	take_mutex(&tag->lock);
+
 	/* mark this tag as ready to run */
 	tag->state = READY;
 	/* declare it to the scheduler ! */
 	struct job_s *j = tag->job;
 
+	release_mutex(&tag->lock);
+
 	/* perhaps the corresponding task was not declared yet */
-	if (!j)
-		return;
-
+	if (tag->is_assigned)
+	{
 #ifdef NO_DATA_RW_LOCK
-	/* enforce data dependencies */
-	if (submit_job_enforce_data_deps(j))
-		return;
+		/* enforce data dependencies */
+		if (submit_job_enforce_data_deps(j))
+			return;
 #endif
-
-	push_task(j);
+	
+		push_task(j);
+	}
 }
 
 static void notify_cg(cg_t *cg)
@@ -195,10 +200,15 @@ void notify_dependencies(struct job_s *j)
 		/* in case there are dependencies, wake up the proper tasks */
 		tag = j->tag;
 
+		take_mutex(&tag->lock);
+
 		tag->state = DONE;
 		TRACE_TASK_DONE(tag->id);
 
 		nsuccs = tag->nsuccs;
+
+		release_mutex(&tag->lock);
+
 		for (succ = 0; succ < nsuccs; succ++)
 		{
 			notify_cg(tag->succ[succ]);
@@ -221,6 +231,7 @@ void tag_declare(starpu_tag_t id, struct job_s *job)
 	
 	struct tag_s *tag= gettag_struct(id);
 	tag->job = job;
+	tag->is_assigned = 1;
 	
 	job->tag = tag;
 }

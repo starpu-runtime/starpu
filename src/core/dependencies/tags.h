@@ -34,7 +34,6 @@
 #define TAG_SIZE        (sizeof(starpu_tag_t)*8)
 
 typedef enum {
-	UNASSIGNED,
 	DONE,
 	READY,
 	SCHEDULED,
@@ -55,6 +54,8 @@ struct tag_s {
 	struct _cg_t *succ[NMAXDEPS];
 #endif
 	struct job_s *job; /* which job is associated to the tag if any ? */
+
+	unsigned is_assigned;
 	
 	/* the application may wait on a tag to finish */
 	unsigned someone_is_waiting;
