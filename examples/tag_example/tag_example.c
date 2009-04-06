@@ -30,7 +30,7 @@ starpu_codelet cl;
 
 #define Ni	64
 #define Nj	32
-#define Nk	2
+#define Nk	128
 
 static unsigned ni = Ni, nj = Nj, nk = Nk;
 static unsigned callback_cnt;
@@ -81,8 +81,7 @@ static void create_task_grid(unsigned iter)
 {
 	unsigned i, j;
 
-	fprintf(stderr, "start iter %d...\n", iter);
-
+//	fprintf(stderr, "start iter %d...\n", iter);
 	callback_cnt = (ni*nj);
 
 	/* create non-entry tasks */
@@ -187,6 +186,8 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	starpu_init();
 
 	parse_args(argc, argv);
+
+	fprintf(stderr, "ITER: %d\n", n);
 
 	cl.where = CORE;
 	cl.core_func = core_codelet;

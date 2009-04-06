@@ -29,7 +29,7 @@ sem_t sem;
 starpu_codelet cl;
 
 #define Ni	64
-#define Nk	2
+#define Nk	256
 
 static unsigned ni = Ni, nk = Nk;
 static unsigned callback_cnt;
@@ -73,7 +73,7 @@ static void create_task_grid(unsigned iter)
 {
 	unsigned i;
 
-	fprintf(stderr, "start iter %d ni %d...\n", iter, ni);
+//	fprintf(stderr, "start iter %d ni %d...\n", iter, ni);
 
 	callback_cnt = (ni);
 
@@ -113,7 +113,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	cl.where = CORE;
 	cl.nbuffers = 0;
 
-	fprintf(stderr, "ITER : %d\n", iter);
+	fprintf(stderr, "ITER : %d\n", nk);
 
 	for (i = 0; i < nk; i++)
 	{
