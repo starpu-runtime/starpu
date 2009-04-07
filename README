@@ -6,7 +6,7 @@
 | I.a. What is StarPU ?
 
 StarPU is a runtime system that offers support for heterogeneous multicore
-machines. While many efforts are devoted to design efficient compute kernels
+machines. While many efforts are devoted to design efficient computation kernels
 for those architectures (eg. to implement BLAS kernels on GPUs or on Cell's
 SPUs), StarPU not only takes care to offload such kernels (and to implement
 data coherency accross the machine), but it also makes sure the kernels are
@@ -16,7 +16,7 @@ executed as efficiently as possible.
 | I.b. What StarPU is not
 
 StarPU is not a new langage, and it does not extends existing langages either.
-StarPU does not help to write compute kernels.
+StarPU does not help to write computation kernels.
 
 +---------------------------------
 | I.c. (How) Could StarPU help me?
@@ -34,6 +34,7 @@ TODO
    * CUBLAS (version >= 2.0)
  * extra requirements for the svn version
    * autoconf (version >= 2.60)
+   * automake
 
 ++=====================++
 || III. Getting StarPU ||
