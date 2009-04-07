@@ -762,7 +762,7 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	starpu_init();
+	starpu_init(NULL);
 
 #ifdef USE_CUDA
         if (pin) {

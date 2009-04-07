@@ -464,7 +464,7 @@ int main(__attribute__ ((unused)) int argc,
 	parse_args(argc, argv);
 
 	/* start the runtime */
-	starpu_init();
+	starpu_init(NULL);
 
 	pthread_mutex_init(&mutex, NULL);
 	pthread_cond_init(&cond, NULL);

@@ -683,7 +683,7 @@ void dw_codelet_facto_v2(starpu_data_handle dataA, unsigned nblocks)
 
 void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 {
-	starpu_init();
+	starpu_init(NULL);
 
 	timing_init();
 

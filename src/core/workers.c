@@ -58,26 +58,41 @@ static unsigned ngordon_spus;
 extern unsigned get_cuda_device_count(void);
 #endif
 
-static void init_machine_config(struct machine_config_s *config)
+static void init_machine_config(struct machine_config_s *config,
+				struct starpu_conf *user_conf)
 {
-	int envval __attribute__((unused));
+	int explicitval __attribute__((unused));
 	unsigned use_accelerator = 0;
 
 	config->nworkers = 0;
 
 #ifdef USE_CUDA
-	/* we need to initialize CUDA early to count the number of devices */
-	init_cuda();
-
-	envval = starpu_get_env_number("NCUDA");
-	if (envval < 0) {
-		ncudagpus = STARPU_MIN(get_cuda_device_count(), MAXCUDADEVS);
-	} else {
-		/* use the specified value */
-		ncudagpus = (unsigned)envval;
-		STARPU_ASSERT(ncudagpus <= MAXCUDADEVS);
+	if (user_conf && (user_conf->ncuda == 0))
+	{
+		/* the user explicitely disabled CUDA */
+		ncudagpus = 0;
 	}
-	STARPU_ASSERT(ncudagpus + config->nworkers <= NMAXWORKERS);
+	else {
+		/* we need to initialize CUDA early to count the number of devices */
+		init_cuda();
+
+		if (user_conf && (user_conf->ncuda != -1))
+		{
+			explicitval = user_conf->ncuda;
+		}
+		else {
+			explicitval = starpu_get_env_number("NCUDA");
+		}
+
+		if (explicitval < 0) {
+			ncudagpus = STARPU_MIN(get_cuda_device_count(), MAXCUDADEVS);
+		} else {
+			/* use the specified value */
+			ncudagpus = (unsigned)explicitval;
+			STARPU_ASSERT(ncudagpus <= MAXCUDADEVS);
+		}
+		STARPU_ASSERT(ncudagpus + config->nworkers <= NMAXWORKERS);
+	}
 
 	if (ncudagpus > 0)
 		use_accelerator = 1;
@@ -95,12 +110,18 @@ static void init_machine_config(struct machine_config_s *config)
 #endif
 	
 #ifdef USE_GORDON
-	envval = starpu_get_env_number("NGORDON");
-	if (envval < 0) {
+	if (user_conf && (user_conf->ncuda != -1)) {
+		explicitval = user_conf->ncuda;
+	}
+	else {
+		explicitval = starpu_get_env_number("NGORDON");
+	}
+
+	if (explicitval < 0) {
 		ngordon_spus = spe_cpu_info_get(SPE_COUNT_USABLE_SPES, -1);
 	} else {
 		/* use the specified value */
-		ngordon_spus = (unsigned)envval;
+		ngordon_spus = (unsigned)explicitval;
 		STARPU_ASSERT(ngordon_spus <= NMAXGORDONSPUS);
 	}
 	STARPU_ASSERT(ngordon_spus + config->nworkers <= NMAXWORKERS);
@@ -124,14 +145,20 @@ static void init_machine_config(struct machine_config_s *config)
 /* we put the CPU section after the accelerator : in case there was an
  * accelerator found, we devote one core */
 #ifdef USE_CPUS
-	envval = starpu_get_env_number("NCPUS");
-	if (envval < 0) {
+	if (user_conf && (user_conf->ncpus != -1)) {
+		explicitval = user_conf->ncpus;
+	}
+	else {
+		explicitval = starpu_get_env_number("NCPUS");
+	}
+
+	if (explicitval < 0) {
 		long avail_cores = sysconf(_SC_NPROCESSORS_ONLN) 
 						- (use_accelerator?1:0);
 		ncores = STARPU_MIN(avail_cores, NMAXCORES);
 	} else {
 		/* use the specified value */
-		ncores = (unsigned)envval;
+		ncores = (unsigned)explicitval;
 		STARPU_ASSERT(ncores <= NMAXCORES);
 	}
 	STARPU_ASSERT(ncores + config->nworkers <= NMAXWORKERS);
@@ -303,7 +330,7 @@ static void init_workers(struct machine_config_s *config)
 	}
 }
 
-void starpu_init(void)
+void starpu_init(struct starpu_conf *user_conf)
 {
 	srand(2008);
 
@@ -313,7 +340,7 @@ void starpu_init(void)
 
 	timing_init();
 
-	init_machine_config(&config);
+	init_machine_config(&config, user_conf);
 
 	/* for the data wizard */
 	init_memory_nodes();
@@ -323,7 +350,7 @@ void starpu_init(void)
 	/* initialize the scheduler */
 
 	/* initialize the queue containing the jobs */
-	init_sched_policy(&config);
+	init_sched_policy(&config, user_conf);
 
 	init_workers(&config);
 }

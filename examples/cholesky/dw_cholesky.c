@@ -214,7 +214,7 @@ static void _dw_cholesky(starpu_data_handle dataA, unsigned nblocks)
 
 void initialize_system(float **A, unsigned dim, unsigned pinned)
 {
-	starpu_init();
+	starpu_init(NULL);
 
 	timing_init();
 

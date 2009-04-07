@@ -183,7 +183,7 @@ static void express_deps(unsigned i, unsigned j, unsigned iter)
 
 int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 {
-	starpu_init();
+	starpu_init(NULL);
 
 	parse_args(argc, argv);
 

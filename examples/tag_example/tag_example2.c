@@ -104,7 +104,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 {
 	unsigned i;
 
-	starpu_init();
+	starpu_init(NULL);
 
 	parse_args(argc, argv);
 

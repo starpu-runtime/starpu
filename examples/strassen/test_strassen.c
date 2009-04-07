@@ -174,7 +174,7 @@ int main(__attribute__ ((unused)) int argc,
 	parse_args(argc, argv);
 
 	/* start the runtime */
-	starpu_init();
+	starpu_init(NULL);
 
 	sem_init(&sem, 0, 0U);
 

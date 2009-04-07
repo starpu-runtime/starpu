@@ -26,8 +26,25 @@
 #include <starpu-perfmodel.h>
 #include <starpu-task.h>
 
-/* Initialization method: it must be called prior to any other StarPU call */
-void starpu_init(void);
+struct starpu_conf {
+	/* which scheduling policy should be used ? (NULL for default) */
+	const char *sched_policy;
+
+	/* maximum number of CPUs (-1 for default) */
+	int ncpus;
+	/* maximum number of CUDA GPUs (-1 for default) */
+	int ncuda;
+	/* maximum number of Cell's SPUs (-1 for default) */
+	int nspus;
+
+	/* calibrate performance models, if any */
+	unsigned calibrate;
+};
+
+/* Initialization method: it must be called prior to any other StarPU call
+ * Default configuration is used if NULL is passed as argument.
+ */
+void starpu_init(struct starpu_conf *conf);
 
 /* Shutdown method: note that statistics are only generated once StarPU is
  * shutdown */

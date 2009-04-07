@@ -113,7 +113,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 {
 	unsigned counter = 0;
 
-	starpu_init();
+	starpu_init(NULL);
 	fprintf(stderr, "StarPU initialized ...\n");
 
 	pthread_mutex_init(&mutex, NULL);

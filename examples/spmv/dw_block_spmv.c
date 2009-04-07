@@ -263,7 +263,7 @@ int main(__attribute__ ((unused)) int argc,
 	inputfile = argv[1];
 
 	/* start the runtime */
-	starpu_init();
+	starpu_init(NULL);
 
 	sem_init(&sem, 0, 0U);
 

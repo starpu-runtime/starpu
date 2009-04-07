@@ -245,7 +245,7 @@ int main(int argc, char **argv)
 
 	fprintf(stderr, "BLOCK SIZE = %d\n", size / nblocks);
 
-	starpu_init();
+	starpu_init(NULL);
 	timing_init();
 
 	for (y = 0; y < nblocks; y++)

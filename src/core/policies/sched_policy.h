@@ -17,6 +17,7 @@
 #ifndef __SCHED_POLICY_H__
 #define __SCHED_POLICY_H__
 
+#include <starpu.h>
 #include <core/mechanisms/queues.h>
 //#include <core/mechanisms/work_stealing_queues.h>
 //#include <core/mechanisms/central_queues.h>
@@ -42,7 +43,7 @@ struct sched_policy_s {
 
 struct sched_policy_s *get_sched_policy(void);
 
-void init_sched_policy(struct machine_config_s *config);
+void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user_conf);
 //void set_local_queue(struct jobq_s *jobq);
 
 int push_task(job_t task);

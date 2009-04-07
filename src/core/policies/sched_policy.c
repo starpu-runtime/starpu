@@ -16,6 +16,7 @@
 
 #include <pthread.h>
 
+#include <starpu.h>
 #include <core/mechanisms/queues.h>
 #include <core/policies/sched_policy.h>
 #include <core/policies/no-prio-policy.h>
@@ -35,48 +36,55 @@ struct sched_policy_s *get_sched_policy(void)
 	return &policy;
 }
 
-void init_sched_policy(struct machine_config_s *config)
+void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user_conf)
 {
 	/* eager policy is taken by default */
-	char *sched_env;
-	sched_env = getenv("SCHED");
-	if (sched_env) {
-		 if (strcmp(sched_env, "ws") == 0) {
+	char *sched_pol;
+	if (user_conf && (user_conf->sched_policy))
+	{
+		sched_pol = user_conf->sched_policy;
+	}
+	else {
+		sched_pol = getenv("SCHED");
+	}
+
+	if (sched_pol) {
+		 if (strcmp(sched_pol, "ws") == 0) {
 #ifdef VERBOSE
 		 	fprintf(stderr, "USE WS SCHEDULER !! \n");
 #endif
 			policy.init_sched = initialize_ws_policy;
 			policy.get_local_queue = get_local_queue_ws;
 		 }
-		 else if (strcmp(sched_env, "prio") == 0) {
+		 else if (strcmp(sched_pol, "prio") == 0) {
 #ifdef VERBOSE
 		 	fprintf(stderr, "USE PRIO EAGER SCHEDULER !! \n");
 #endif
 			policy.init_sched = initialize_eager_center_priority_policy;
 			policy.get_local_queue = get_local_queue_eager_priority;
 		 }
-		 else if (strcmp(sched_env, "no-prio") == 0) {
+		 else if (strcmp(sched_pol, "no-prio") == 0) {
 #ifdef VERBOSE
 		 	fprintf(stderr, "USE _NO_ PRIO EAGER SCHEDULER !! \n");
 #endif
 			policy.init_sched = initialize_no_prio_policy;
 			policy.get_local_queue = get_local_queue_no_prio;
 		 }
-		 else if (strcmp(sched_env, "dm") == 0) {
+		 else if (strcmp(sched_pol, "dm") == 0) {
 #ifdef VERBOSE
 		 	fprintf(stderr, "USE MODEL SCHEDULER !! \n");
 #endif
 			policy.init_sched = initialize_dm_policy;
 			policy.get_local_queue = get_local_queue_dm;
 		 }
-		 else if (strcmp(sched_env, "dmda") == 0) {
+		 else if (strcmp(sched_pol, "dmda") == 0) {
 #ifdef VERBOSE
 		 	fprintf(stderr, "USE DATA AWARE MODEL SCHEDULER !! \n");
 #endif
 			policy.init_sched = initialize_dmda_policy;
 			policy.get_local_queue = get_local_queue_dmda;
 		 }
-		 else if (strcmp(sched_env, "random") == 0) {
+		 else if (strcmp(sched_pol, "random") == 0) {
 #ifdef VERBOSE
 		 	fprintf(stderr, "USE RANDOM SCHEDULER !! \n");
 #endif

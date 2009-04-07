@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	starpu_init();
+	starpu_init(NULL);
 
 	fprintf(stderr, "#tasks : %d\n", ntasks);
 

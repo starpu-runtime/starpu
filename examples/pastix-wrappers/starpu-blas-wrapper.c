@@ -53,7 +53,7 @@ void STARPU_INIT(void)
 {
 	if (!inited) {
 		inited = 1;
-		starpu_init();	
+		starpu_init(NULL);	
 	}
 }
 

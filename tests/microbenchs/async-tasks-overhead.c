@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 
 	cnt = ntasks;
 
-	starpu_init();
+	starpu_init(NULL);
 
 	fprintf(stderr, "#tasks : %d\n", ntasks);
 
