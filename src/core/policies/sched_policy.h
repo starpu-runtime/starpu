@@ -31,6 +31,9 @@ struct sched_policy_s {
 	/* create all the queues */
 	void (*init_sched)(struct machine_config_s *, struct sched_policy_s *);
 
+	/* cleanup method at termination */
+	void (*deinit_sched)(struct machine_config_s *, struct sched_policy_s *);
+
 	/* anyone can request which queue it is associated to */
 	struct jobq_s *(*get_local_queue)(struct sched_policy_s *);
 
@@ -44,6 +47,7 @@ struct sched_policy_s {
 struct sched_policy_s *get_sched_policy(void);
 
 void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user_conf);
+void deinit_sched_policy(struct machine_config_s *config);
 //void set_local_queue(struct jobq_s *jobq);
 
 int push_task(job_t task);

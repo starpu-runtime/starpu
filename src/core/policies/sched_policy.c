@@ -39,7 +39,7 @@ struct sched_policy_s *get_sched_policy(void)
 void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user_conf)
 {
 	/* eager policy is taken by default */
-	char *sched_pol;
+	const char *sched_pol;
 	if (user_conf && (user_conf->sched_policy))
 	{
 		sched_pol = user_conf->sched_policy;
@@ -54,6 +54,7 @@ void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user
 		 	fprintf(stderr, "USE WS SCHEDULER !! \n");
 #endif
 			policy.init_sched = initialize_ws_policy;
+			policy.deinit_sched = NULL;
 			policy.get_local_queue = get_local_queue_ws;
 		 }
 		 else if (strcmp(sched_pol, "prio") == 0) {
@@ -61,6 +62,7 @@ void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user
 		 	fprintf(stderr, "USE PRIO EAGER SCHEDULER !! \n");
 #endif
 			policy.init_sched = initialize_eager_center_priority_policy;
+			policy.deinit_sched = NULL;
 			policy.get_local_queue = get_local_queue_eager_priority;
 		 }
 		 else if (strcmp(sched_pol, "no-prio") == 0) {
@@ -68,6 +70,7 @@ void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user
 		 	fprintf(stderr, "USE _NO_ PRIO EAGER SCHEDULER !! \n");
 #endif
 			policy.init_sched = initialize_no_prio_policy;
+			policy.deinit_sched = NULL;
 			policy.get_local_queue = get_local_queue_no_prio;
 		 }
 		 else if (strcmp(sched_pol, "dm") == 0) {
@@ -75,6 +78,7 @@ void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user
 		 	fprintf(stderr, "USE MODEL SCHEDULER !! \n");
 #endif
 			policy.init_sched = initialize_dm_policy;
+			policy.deinit_sched = NULL;
 			policy.get_local_queue = get_local_queue_dm;
 		 }
 		 else if (strcmp(sched_pol, "dmda") == 0) {
@@ -82,6 +86,7 @@ void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user
 		 	fprintf(stderr, "USE DATA AWARE MODEL SCHEDULER !! \n");
 #endif
 			policy.init_sched = initialize_dmda_policy;
+			policy.deinit_sched = NULL;
 			policy.get_local_queue = get_local_queue_dmda;
 		 }
 		 else if (strcmp(sched_pol, "random") == 0) {
@@ -89,6 +94,7 @@ void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user
 		 	fprintf(stderr, "USE RANDOM SCHEDULER !! \n");
 #endif
 			policy.init_sched = initialize_random_policy;
+			policy.deinit_sched = NULL;
 			policy.get_local_queue = get_local_queue_random;
 		 }
 		 else {
@@ -97,6 +103,7 @@ void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user
 #endif
 			/* default scheduler is the eager one */
 			policy.init_sched = initialize_eager_center_policy;
+			policy.deinit_sched = NULL;
 			policy.get_local_queue = get_local_queue_eager;
 		 }
 	}
@@ -106,6 +113,7 @@ void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user
 #endif
 		/* default scheduler is the eager one */
 		policy.init_sched = initialize_eager_center_policy;
+		policy.deinit_sched = NULL;
 		policy.get_local_queue = get_local_queue_eager;
 	}
 
@@ -116,6 +124,16 @@ void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user
 	descr.total_queues_count = 0;
 
 	policy.init_sched(config, &policy);
+}
+
+void deinit_sched_policy(struct machine_config_s *config)
+{
+	if (policy.deinit_sched)
+		policy.deinit_sched(config, &policy);
+
+	pthread_key_delete(policy.local_queue_key);
+	pthread_mutex_destroy(&policy.sched_activity_mutex);
+	pthread_cond_destroy(&policy.sched_activity_cond);
 }
 
 /* the generic interface that call the proper underlying implementation */

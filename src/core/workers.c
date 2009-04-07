@@ -488,4 +488,6 @@ void starpu_shutdown(void)
 
 	/* cleanup StarPU internal data structures */
 	deinit_memory_nodes();
+
+	deinit_sched_policy(&config);
 }

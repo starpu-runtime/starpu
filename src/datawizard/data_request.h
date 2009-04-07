@@ -33,6 +33,7 @@ LIST_TYPE(data_request,
 );
 
 void init_data_request_lists(void);
+void deinit_data_request_lists(void);
 int post_data_request(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
 void handle_node_data_requests(uint32_t src_node);
 

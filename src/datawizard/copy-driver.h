@@ -53,6 +53,7 @@ __attribute__((warn_unused_result))
 int driver_copy_data(struct starpu_data_state_t *state, uint32_t src_node_mask, uint32_t dst_node, unsigned donotread);
 
 void init_memory_nodes(void);
+void deinit_memory_nodes(void);
 void set_local_memory_node_key(unsigned *node);
 unsigned get_local_memory_node(void);
 unsigned register_memory_node(node_kind kind);
