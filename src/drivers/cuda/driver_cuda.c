@@ -163,6 +163,23 @@ void init_context(int devid)
 	cublasInit();
 }
 
+void deinit_context(int devid)
+{
+	cublasShutdown();
+
+	/* cleanup the runtime API internal stuffs (which CUBLAS is using) */
+	status = cudaThreadExit();
+	if (status)
+		CUDA_REPORT_ERROR(status);
+
+	/* XXX driver API and runtime API does not seem to like each other,
+	 * so until CUDA is fixed, we cannot properly cleanup the cuInit that
+	 * was done initially */
+//	status = cuCtxDestroy(cuContext[devid]);
+//	if (status)
+//		CUDA_REPORT_ERROR(status);
+}
+
 unsigned get_cuda_device_count(void)
 {
 	int cnt;
@@ -394,10 +411,11 @@ void *cuda_worker(void *arg)
 //		printf("AFTER TASK, debug ptr = %p\n", debugfoo);
 	} 
 
+	deinit_context(devid);
+
 #ifdef DATA_STATS
 	fprintf(stderr, "CUDA #%d computation %le comm %le (%lf \%%)\n", args->id, args->jobq->total_computation_time, args->jobq->total_communication_time, args->jobq->total_communication_time*100.0/args->jobq->total_computation_time);
 #endif
-	cublasShutdown();
 	pthread_exit(NULL);
 
 	TRACE_WORKER_TERMINATED(FUT_CUDA_KEY);
