@@ -125,7 +125,7 @@ void wake_all_blocked_workers(void)
 	}
 }
 
-void init_memory_nodes()
+void init_memory_nodes(void)
 {
 	/* there is no node yet, subsequent nodes will be 
 	 * added using register_memory_node */
@@ -141,6 +141,14 @@ void init_memory_nodes()
 
 	init_mem_chunk_lists();
 	init_data_request_lists();
+}
+
+void deinit_memory_nodes(void)
+{
+	deinit_data_request_lists();
+	deinit_mem_chunk_lists();
+
+	pthread_key_delete(memory_node_key);
 }
 
 void set_local_memory_node_key(unsigned *node)

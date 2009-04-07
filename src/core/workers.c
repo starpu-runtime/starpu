@@ -485,4 +485,7 @@ void starpu_shutdown(void)
 
 	/* wait for their termination */
 	terminate_workers(&config);
+
+	/* cleanup StarPU internal data structures */
+	deinit_memory_nodes();
 }

@@ -33,6 +33,16 @@ void init_mem_chunk_lists(void)
 	}
 }
 
+void deinit_mem_chunk_lists(void)
+{
+	unsigned i;
+	for (i = 0; i < MAXNODES; i++)
+	{
+		mem_chunk_list_delete(mc_list[i]);
+		mem_chunk_list_delete(mc_list_to_free[i]);
+	}
+}
+
 static void lock_all_subtree(data_state *data)
 {
 	if (data->nchildren == 0)

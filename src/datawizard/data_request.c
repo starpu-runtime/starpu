@@ -29,6 +29,15 @@ void init_data_request_lists(void)
 	}
 }
 
+void deinit_data_request_lists(void)
+{
+	unsigned i;
+	for (i = 0; i < MAXNODES; i++)
+	{
+		data_request_list_delete(data_requests[i]);
+	}
+}
+
 int post_data_request(data_state *state, uint32_t src_node, uint32_t dst_node)
 {
 	int retvalue;
