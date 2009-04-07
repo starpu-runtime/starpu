@@ -36,9 +36,9 @@ static starpu_codelet dummy_codelet =
 
 static void callback(void *tag)
 {
-	fflush(stderr);
-	fprintf(stderr, "Callback for tag %p\n", tag);
-	fflush(stderr);
+//	fflush(stderr);
+//	fprintf(stderr, "Callback for tag %p\n", tag);
+//	fflush(stderr);
 }
 
 static struct starpu_task *create_dummy_task(starpu_tag_t tag)
@@ -135,8 +135,15 @@ int main(int argc, char **argv)
 
 	starpu_tag_t tagJKL[3] = {tagJ, tagK, tagL};
 
+	starpu_submit_task(taskH);
+	starpu_submit_task(taskI);
+	starpu_submit_task(taskJ);
+	starpu_submit_task(taskK);
+	starpu_submit_task(taskL);
+
 	starpu_tag_wait_array(3, tagJKL);
 
+	fprintf(stderr, "shutdown StarPU\n");
 	starpu_shutdown();
 
 	return 0;
