@@ -68,13 +68,33 @@ void inject_one_task(void)
 	starpu_submit_task(task);
 }
 
+static struct starpu_conf conf = {
+	.sched_policy = NULL,
+	.ncpus = -1,
+	.ncuda = -1,
+	.nspus = -1,
+	.calibrate = 0
+};
+
+static void usage(char **argv)
+{
+	fprintf(stderr, "%s [-i ntasks] [-p sched_policy] [-h]\n", argv[0]);
+	exit(-1);
+}
+
 static void parse_args(int argc, char **argv)
 {
 	int c;
-	while ((c = getopt(argc, argv, "i:")) != -1)
+	while ((c = getopt(argc, argv, "i:p:h")) != -1)
 	switch(c) {
 		case 'i':
 			ntasks = atoi(optarg);
+			break;
+		case 'p':
+			conf.sched_policy = optarg;
+			break;
+		case 'h':
+			usage(argv);
 			break;
 	}
 
@@ -95,7 +115,7 @@ int main(int argc, char **argv)
 
 	cnt = ntasks;
 
-	starpu_init(NULL);
+	starpu_init(&conf);
 
 	fprintf(stderr, "#tasks : %d\n", ntasks);
 
