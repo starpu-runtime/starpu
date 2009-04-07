@@ -160,7 +160,7 @@ enomem:
 	return -ENOMEM;
 }
 
-int fetch_data(data_state *state, starpu_access_mode mode)
+static int fetch_data(data_state *state, starpu_access_mode mode)
 {
 	int ret;
 	uint32_t requesting_node = get_local_memory_node(); 

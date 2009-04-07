@@ -135,8 +135,6 @@ typedef struct starpu_data_state_t {
 
 void display_msi_stats(void);
 
-__attribute__((warn_unused_result))
-int fetch_data(data_state *state, starpu_access_mode mode);
 //void release_data(data_state *state, uint32_t write_through_mask);
 
 __attribute__((warn_unused_result))
