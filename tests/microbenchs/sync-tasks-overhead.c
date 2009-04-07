@@ -83,8 +83,8 @@ int main(int argc, char **argv)
 
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	fprintf(stderr, "Total: %le usecs\n", timing);
-	fprintf(stderr, "Per task: %le usecs\n", timing/ntasks);
+	fprintf(stderr, "Total: %lf secs\n", timing/1000000);
+	fprintf(stderr, "Per task: %lf usecs\n", timing/ntasks);
 
 	starpu_shutdown();
 

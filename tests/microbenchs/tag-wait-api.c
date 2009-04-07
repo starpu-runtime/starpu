@@ -53,8 +53,6 @@ static struct starpu_task *create_dummy_task(starpu_tag_t tag)
 	task->use_tag = 1;
 	task->tag_id = tag;
 
-	task->cleanup = 0;
-
 	return task;
 }
 
@@ -72,7 +70,6 @@ static struct starpu_task *create_dummy_task(starpu_tag_t tag)
 #define tagJ	0x199
 #define tagK	0x231234
 #define tagL	0x2345
-
 
 int main(int argc, char **argv)
 {
@@ -94,9 +91,7 @@ int main(int argc, char **argv)
 
 	starpu_tag_wait(tagB);
 	
-	fflush(stderr);
 	fprintf(stderr, "{ C, D, E, F } -> { G }\n");
-	fflush(stderr);
 
 	struct starpu_task *taskC, *taskD, *taskE, *taskF, *taskG;
 
@@ -117,9 +112,7 @@ int main(int argc, char **argv)
 
 	starpu_tag_wait(tagG);
 
-	fflush(stderr);
 	fprintf(stderr, "{ H, I } -> { J, K, L }\n");
-	fflush(stderr);
 	
 	struct starpu_task *taskH, *taskI, *taskJ, *taskK, *taskL;
 
@@ -143,7 +136,6 @@ int main(int argc, char **argv)
 
 	starpu_tag_wait_array(3, tagJKL);
 
-	fprintf(stderr, "shutdown StarPU\n");
 	starpu_shutdown();
 
 	return 0;
