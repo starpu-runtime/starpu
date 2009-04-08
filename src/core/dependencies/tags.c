@@ -47,6 +47,7 @@ static cg_t *create_cg(unsigned ntags, struct tag_s *tag, unsigned is_apps_cg)
 		else
 		{
 			cg->tag = tag;
+			tag->ndeps++;
 		}
 	}
 
@@ -64,8 +65,10 @@ static struct tag_s *tag_init(starpu_tag_t id)
 	tag->is_submitted = 0;
 
 	tag->id = id;
-	tag->state = READY;
+	tag->state = INVALID_STATE;
 	tag->nsuccs = 0;
+	tag->ndeps = 0;
+	tag->ndeps_completed = 0;
 
 #ifdef DYNAMIC_DEPS_SIZE
 	/* this is a small initial default value ... may be changed */
@@ -130,17 +133,14 @@ static void tag_set_ready(struct tag_s *tag)
 
 //	release_mutex(&tag->lock);
 
-	/* perhaps the corresponding task was not declared yet */
-	if (tag->is_assigned)
-	{
 #ifdef NO_DATA_RW_LOCK
-		/* enforce data dependencies */
-		if (submit_job_enforce_data_deps(j))
-			return;
+	/* enforce data dependencies */
+	if (submit_job_enforce_data_deps(j))
+		return;
 #endif
-	
-		push_task(j);
-	}
+
+	push_task(j);
+//	}
 }
 
 static void notify_cg(cg_t *cg)
@@ -161,9 +161,14 @@ static void notify_cg(cg_t *cg)
 		else
 		{
 //			take_mutex(&cg->tag->lock);
-			if (cg->tag->is_submitted)
+			struct tag_s *tag = cg->tag;
+			tag->ndeps_completed++;
+
+			if ((tag->state == BLOCKED) 
+				&& (tag->ndeps == tag->ndeps_completed))
 				tag_set_ready(cg->tag);
 //			release_mutex(&cg->tag->lock);
+
 			free(cg);
 		}
 	}
@@ -195,7 +200,6 @@ static void tag_add_succ(struct tag_s *tag, cg_t *cg)
 #else
 		STARPU_ASSERT(index < NMAXDEPS);
 #endif
-
 		tag->succ[index] = cg;
 	}
 
@@ -221,7 +225,6 @@ void notify_dependencies(struct job_s *j)
 
 		nsuccs = tag->nsuccs;
 
-
 		for (succ = 0; succ < nsuccs; succ++)
 		{
 			notify_cg(tag->succ[succ]);
@@ -241,6 +244,9 @@ void tag_declare(starpu_tag_t id, struct job_s *job)
 	tag->is_assigned = 1;
 	
 	job->tag = tag;
+
+	/* the tag is now associated to a job */
+	tag->state = ASSOCIATED;
 }
 
 void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array)
@@ -253,9 +259,7 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 	take_mutex(&tag_child->lock);
 
 	cg_t *cg = create_cg(ndeps, tag_child, 0);
-	
-	tag_child->state = BLOCKED;
-	
+
 	STARPU_ASSERT(ndeps != 0);
 	
 	for (i = 0; i < ndeps; i++)
@@ -284,10 +288,9 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 	take_mutex(&tag_child->lock);
 
 	cg_t *cg = create_cg(ndeps, tag_child, 0);
-	
-	tag_child->state = BLOCKED;
-	
+
 	STARPU_ASSERT(ndeps != 0);
+
 	
 	va_list pa;
 	va_start(pa, ndeps);
@@ -295,7 +298,7 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 	{
 		starpu_tag_t dep_id;
 		dep_id = va_arg(pa, starpu_tag_t);
-		
+	
 		/* id depends on dep_id
 		 * so cg should be among dep_id's successors*/
 		TRACE_CODELET_TAG_DEPS(id, dep_id);

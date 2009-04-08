@@ -34,10 +34,20 @@
 #define TAG_SIZE        (sizeof(starpu_tag_t)*8)
 
 typedef enum {
-	DONE,
+	/* this tag is not declared by any task */
+	INVALID_STATE,
+	/* tag_declare was called to associate the tag to a task */
+	ASSOCIATED,
+	/* some task dependencies are not fulfilled yet */
+	BLOCKED,
+	/* the task can be (or has been) submitted to the scheduler (all deps
+ 	 * fulfilled) */
 	READY,
-	SCHEDULED,
-	BLOCKED
+// useless ...
+//	/* the task has been submitted to the scheduler */
+//	SCHEDULED,
+	/* the task has been performed */
+	DONE
 } tag_state;
 
 struct job_s;
@@ -47,6 +57,8 @@ struct tag_s {
 	starpu_tag_t id; /* an identifier for the task */
 	tag_state state;
 	unsigned nsuccs; /* how many successors ? */
+	unsigned ndeps; /* how many deps ? */
+	unsigned ndeps_completed; /* how many deps are done ? */
 #ifdef DYNAMIC_DEPS_SIZE
 	unsigned succ_list_size;
 	struct _cg_t **succ;
