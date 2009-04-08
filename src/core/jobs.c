@@ -166,14 +166,17 @@ int starpu_submit_task(struct starpu_task *task)
 	/* enfore task dependencies */
 	if (task->use_tag)
 	{
-		j->tag->is_submitted = 1;
-
 		if (submit_job_enforce_task_deps(j))
 		{
+			j->tag->is_submitted = 1;
+
 			if (is_sync)
 				block_sync_task(j);
 			return 0;
 		}
+		
+		j->tag->is_submitted = 1;
+
 	}
 
 #ifdef NO_DATA_RW_LOCK
