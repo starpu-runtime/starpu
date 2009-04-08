@@ -166,6 +166,8 @@ int starpu_submit_task(struct starpu_task *task)
 	/* enfore task dependencies */
 	if (task->use_tag)
 	{
+		j->tag->is_submitted = 1;
+
 		if (submit_job_enforce_task_deps(j))
 		{
 			if (is_sync)

@@ -61,6 +61,7 @@ static struct tag_s *tag_init(starpu_tag_t id)
 
 	tag->job = NULL;
 	tag->is_assigned = 0;
+	tag->is_submitted = 0;
 
 	tag->id = id;
 	tag->state = READY;
@@ -160,7 +161,8 @@ static void notify_cg(cg_t *cg)
 		else
 		{
 //			take_mutex(&cg->tag->lock);
-			tag_set_ready(cg->tag);
+			if (cg->tag->is_submitted)
+				tag_set_ready(cg->tag);
 //			release_mutex(&cg->tag->lock);
 			free(cg);
 		}

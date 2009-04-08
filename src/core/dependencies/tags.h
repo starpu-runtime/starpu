@@ -56,6 +56,7 @@ struct tag_s {
 	struct job_s *job; /* which job is associated to the tag if any ? */
 
 	unsigned is_assigned;
+	unsigned is_submitted;
 };
 
 typedef struct _cg_t {
