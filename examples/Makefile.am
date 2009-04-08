@@ -149,6 +149,7 @@ endif
 
 check_PROGRAMS +=			\
 	tag_example/tag_example			\
+	tag_example/tag_example3			\
 	tag_example/tag_example2
 
 examplebin_PROGRAMS +=			\
