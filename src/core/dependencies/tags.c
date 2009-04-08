@@ -369,10 +369,3 @@ void starpu_tag_wait(starpu_tag_t id)
 	starpu_tag_wait_array(1, &id);
 }
 
-/* This function is called when a new task is submitted to StarPU 
- * it returns 1 if the task deps are not fulfilled, 0 otherwise */
-unsigned submit_job_enforce_task_deps(job_t j)
-{
-	struct tag_s *tag = j->tag;
-	return (tag->state == BLOCKED);
-}

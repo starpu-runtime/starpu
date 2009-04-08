@@ -148,6 +148,50 @@ static void block_sync_task(job_t j)
 	job_delete(j);
 }
 
+
+/* This function is called when a new task is submitted to StarPU 
+ * it returns 1 if the task deps are not fulfilled, 0 otherwise */
+static unsigned enforce_task_deps(job_t j)
+{
+	if (j->task->use_tag)
+	{
+		unsigned deps_are_not_fulfilled;
+		struct tag_s *tag = j->tag;
+		deps_are_not_fulfilled = (tag->state == BLOCKED);
+
+		return deps_are_not_fulfilled;
+	}
+	else
+	{
+		/* this task does not use tags, so we can go on */
+		return 0;
+	}
+}
+
+static enforce_deps_and_schedule(job_t j)
+{
+	/* enfore task dependencies */
+	if (task->use_tag)
+	{
+		if (enforce_task_deps(j))
+		{
+			j->tag->is_submitted = 1;
+			return 0;
+		}
+		
+		j->tag->is_submitted = 1;
+
+	}
+
+#ifdef NO_DATA_RW_LOCK
+	/* enforce data dependencies */
+	if (submit_job_enforce_data_deps(j))
+		return 0;
+#endif
+
+	ret = push_task(j);
+}
+
 /* application should submit new tasks to StarPU through this function */
 int starpu_submit_task(struct starpu_task *task)
 {
@@ -163,33 +207,7 @@ int starpu_submit_task(struct starpu_task *task)
  	* task structure */
 	job_t j = job_create(task);
 
-	/* enfore task dependencies */
-	if (task->use_tag)
-	{
-		if (submit_job_enforce_task_deps(j))
-		{
-			j->tag->is_submitted = 1;
-
-			if (is_sync)
-				block_sync_task(j);
-			return 0;
-		}
-		
-		j->tag->is_submitted = 1;
-
-	}
-
-#ifdef NO_DATA_RW_LOCK
-	/* enforce data dependencies */
-	if (submit_job_enforce_data_deps(j))
-	{
-		if (is_sync)
-			block_sync_task(j);
-		return 0;
-	}
-#endif
-
-	ret = push_task(j);
+	enforce_deps_and_schedule(j);
 
 	if (is_sync)
 		block_sync_task(j);
