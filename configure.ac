@@ -15,14 +15,12 @@
 #
 
 AC_INIT([StarPU],0.1, [http://runtime.bordeaux.inria.fr/StarPU/], starpu)
-AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
-AC_MSG_NOTICE([Configuring StarPU])
-
 AC_CONFIG_SRCDIR(include/starpu.h)
+AC_CONFIG_AUX_DIR([build-aux])
+AC_CANONICAL_SYSTEM
+AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AC_PREREQ(2.60)
-
 
 AC_PROG_CC
 AC_PROG_CPP
@@ -37,6 +35,12 @@ AC_PROG_MKDIR_P
 AC_PROG_LN_S
 
 AC_HEADER_STDC
+
+# on Darwin, GCC targets i386 by default, so we don't have atomic ops
+case "$target" in
+i386-*darwin*) CFLAGS+=" -march=i486 " ;;
+esac
+
 
 # This will be useful for program which use CUDA (and .cubin files) which need
 # some path to the CUDA code at runtime.
