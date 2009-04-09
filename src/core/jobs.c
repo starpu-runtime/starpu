@@ -153,6 +153,8 @@ static void block_sync_task(job_t j)
  * it returns 1 if the task deps are not fulfilled, 0 otherwise */
 static unsigned not_all_task_deps_are_fulfilled(job_t j)
 {
+	unsigned ret;
+
 	if (!j->task->use_tag)
 	{
 		/* this task does not use tags, so we can go on */
