@@ -16,8 +16,12 @@
 
 #include "dw_mult.h"
 
+#define TAG(taskx, tasky)	((((unsigned long long)(taskx))<<32) | (unsigned long long)(tasky))
+
+
+
 float *A, *B, *C;
-starpu_data_handle A_state, B_state, C_state;
+starpu_data_handle A_handle, B_handle, C_handle;
 
 pthread_mutex_t mutex;
 pthread_cond_t cond;
@@ -47,9 +51,9 @@ void terminate(void)
 {
 
 	fprintf(stderr, "unpartition !!\n");
-	starpu_unpartition_data(C_state, 0);
+	starpu_unpartition_data(C_handle, 0);
 
-	starpu_delete_data(C_state);
+	starpu_delete_data(C_handle);
 
 	gettimeofday(&end, NULL);
 
@@ -224,11 +228,11 @@ static void partition_mult_data(void)
 {
 	gettimeofday(&start, NULL);
 
-	starpu_monitor_blas_data(&A_state, 0, (uintptr_t)A, 
+	starpu_monitor_blas_data(&A_handle, 0, (uintptr_t)A, 
 		ydim, ydim, zdim, sizeof(float));
-	starpu_monitor_blas_data(&B_state, 0, (uintptr_t)B, 
+	starpu_monitor_blas_data(&B_handle, 0, (uintptr_t)B, 
 		zdim, zdim, xdim, sizeof(float));
-	starpu_monitor_blas_data(&C_state, 0, (uintptr_t)C, 
+	starpu_monitor_blas_data(&C_handle, 0, (uintptr_t)C, 
 		ydim, ydim, xdim, sizeof(float));
 
 	conf.k = zdim;
@@ -243,10 +247,10 @@ static void partition_mult_data(void)
 	f2.filter_func = starpu_block_filter_func;
 	f2.filter_arg = nslicesy;
 		
-	starpu_partition_data(B_state, &f);
-	starpu_partition_data(A_state, &f2);
+	starpu_partition_data(B_handle, &f);
+	starpu_partition_data(A_handle, &f2);
 
-	starpu_map_filters(C_state, 2, &f, &f2);
+	starpu_map_filters(C_handle, 2, &f, &f2);
 }
 
 static void launch_codelets(void)
@@ -273,6 +277,15 @@ static void launch_codelets(void)
 		.nbuffers = 3
 	};
 
+	/* should we use a single performance model for all archs and use an
+ 	 * acceleration factor ? */
+	if (use_common_model) {
+		cl.model = &sgemm_model_common;
+	}
+	else {
+		cl.model = &sgemm_model;
+	}
+
 	for (taskx = 0; taskx < nslicesx; taskx++) 
 	{
 		for (tasky = 0; tasky < nslicesy; tasky++)
@@ -287,32 +300,20 @@ static void launch_codelets(void)
 			task->callback_func = callback_func;
 			task->callback_arg = &taskcounter;
 
-			starpu_tag_t tag = 
-				((((unsigned long long)(taskx))<<32) 
-				| (unsigned long long)(tasky));
+			starpu_tag_t tag = TAG(taskx, tasky); 
 
 			task->use_tag = 1;
 			task->tag_id = tag;
 
-			task->buffers[0].state = get_sub_data(A_state, 1, tasky);
+			task->buffers[0].state = get_sub_data(A_handle, 1, tasky);
 			task->buffers[0].mode = R;
-			task->buffers[1].state = get_sub_data(B_state, 1, taskx);
+			task->buffers[1].state = get_sub_data(B_handle, 1, taskx);
 			task->buffers[1].mode = R;
 			task->buffers[2].state = 
-				get_sub_data(C_state, 2, taskx, tasky);
+				get_sub_data(C_handle, 2, taskx, tasky);
 			task->buffers[2].mode = RW;
 
-			if (use_common_model)
-			{
-				task->cl->model = &sgemm_model_common;
-			}
-			else
-			{
-				task->cl->model = &sgemm_model;
-			}
-			
 			starpu_submit_task(task);
-
 		}
 	}
 }

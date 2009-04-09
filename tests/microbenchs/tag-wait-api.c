@@ -48,7 +48,7 @@ static struct starpu_task *create_dummy_task(starpu_tag_t tag)
 	task->cl = &dummy_codelet;
 	task->cl_arg = NULL;
 	task->callback_func = callback;
-	task->callback_arg = tag;
+	task->callback_arg = (void *)tag;
 
 	task->use_tag = 1;
 	task->tag_id = tag;
