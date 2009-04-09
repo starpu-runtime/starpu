@@ -253,7 +253,7 @@ struct starpu_task *compute_add_sub_op(starpu_data_handle C, enum operation op, 
 	};
 
 	task->use_tag = 1;
-	task->tag_id = j_tag;
+	task->tag_id = (starpu_tag_t)j_tag;
 
 	return task;
 }
@@ -303,14 +303,14 @@ struct starpu_task *compute_self_add_sub_op(starpu_data_handle C, enum operation
 	};
 
 	task->use_tag = 1;
-	task->tag_id = j_tag;
+	task->tag_id = (starpu_tag_t)j_tag;
 
 	return task;
 }
 
 struct cleanup_arg {
 	unsigned ndeps;
-	uint64_t tags[8];
+	starpu_tag_t tags[8];
 	unsigned ndata;
 	starpu_data_handle data[32];
 };
@@ -364,9 +364,9 @@ void strassen_mult(struct strassen_iter *iter)
 	{
 		struct starpu_task *task_mult = 
 			compute_add_sub_op(iter->C, MULT, iter->A, iter->B);
-		uint64_t tag_mult = task_mult->tag_id;
+		starpu_tag_t tag_mult = task_mult->tag_id;
 
-		uint64_t deps_array[10];
+		starpu_tag_t deps_array[10];
 		unsigned indexA, indexB;
 		for (indexA = 0; indexA < iter->A_deps.ndeps; indexA++)
 		{
@@ -408,70 +408,70 @@ void strassen_mult(struct strassen_iter *iter)
 	/* M1a = (A11 + A22) */
 	iter->Mia_data[0] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_1a = compute_add_sub_op(iter->Mia_data[0], ADD, A11, A22);
-	uint64_t tag_1a = task_1a->tag_id;
+	starpu_tag_t tag_1a = task_1a->tag_id;
 	starpu_tag_declare_deps_array(tag_1a, iter->A_deps.ndeps, iter->A_deps.deps);
 	starpu_submit_task(task_1a);
 
 	/* M1b = (B11 + B22) */
 	iter->Mib_data[0] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_1b = compute_add_sub_op(iter->Mib_data[0], ADD, B11, B22);
-	uint64_t tag_1b = task_1b->tag_id;
+	starpu_tag_t tag_1b = task_1b->tag_id;
 	starpu_tag_declare_deps_array(tag_1b, iter->B_deps.ndeps, iter->B_deps.deps);
 	starpu_submit_task(task_1b);
 
 	/* M2a = (A21 + A22) */
 	iter->Mia_data[1] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_2a = compute_add_sub_op(iter->Mia_data[1], ADD, A21, A22);
-	uint64_t tag_2a = task_2a->tag_id;
+	starpu_tag_t tag_2a = task_2a->tag_id;
 	starpu_tag_declare_deps_array(tag_2a, iter->A_deps.ndeps, iter->A_deps.deps);
 	starpu_submit_task(task_2a);
 
 	/* M3b = (B12 - B22) */
 	iter->Mib_data[2] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_3b = compute_add_sub_op(iter->Mib_data[2], SUB, B12, B22);
-	uint64_t tag_3b = task_3b->tag_id;
+	starpu_tag_t tag_3b = task_3b->tag_id;
 	starpu_tag_declare_deps_array(tag_3b, iter->B_deps.ndeps, iter->B_deps.deps);
 	starpu_submit_task(task_3b);
 	
 	/* M4b = (B21 - B11) */
 	iter->Mib_data[3] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_4b = compute_add_sub_op(iter->Mib_data[3], SUB, B21, B11);
-	uint64_t tag_4b = task_4b->tag_id;
+	starpu_tag_t tag_4b = task_4b->tag_id;
 	starpu_tag_declare_deps_array(tag_4b, iter->B_deps.ndeps, iter->B_deps.deps);
 	starpu_submit_task(task_4b);
 	
 	/* M5a = (A11 + A12) */
 	iter->Mia_data[4] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_5a = compute_add_sub_op(iter->Mia_data[4], ADD, A11, A12);
-	uint64_t tag_5a = task_5a->tag_id;
+	starpu_tag_t tag_5a = task_5a->tag_id;
 	starpu_tag_declare_deps_array(tag_5a, iter->A_deps.ndeps, iter->A_deps.deps);
 	starpu_submit_task(task_5a);
 
 	/* M6a = (A21 - A11) */
 	iter->Mia_data[5] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_6a = compute_add_sub_op(iter->Mia_data[5], SUB, A21, A11);
-	uint64_t tag_6a = task_6a->tag_id;
+	starpu_tag_t tag_6a = task_6a->tag_id;
 	starpu_tag_declare_deps_array(tag_6a, iter->A_deps.ndeps, iter->A_deps.deps);
 	starpu_submit_task(task_6a);
 
 	/* M6b = (B11 + B12) */
 	iter->Mib_data[5] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_6b = compute_add_sub_op(iter->Mib_data[5], SUB, B11, B12);
-	uint64_t tag_6b = task_6b->tag_id;
+	starpu_tag_t tag_6b = task_6b->tag_id;
 	starpu_tag_declare_deps_array(tag_6b, iter->B_deps.ndeps, iter->B_deps.deps);
 	starpu_submit_task(task_6b);
 
 	/* M7a = (A12 - A22) */
 	iter->Mia_data[6] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_7a = compute_add_sub_op(iter->Mia_data[6], SUB, A12, A22);
-	uint64_t tag_7a = task_7a->tag_id;
+	starpu_tag_t tag_7a = task_7a->tag_id;
 	starpu_tag_declare_deps_array(tag_7a, iter->A_deps.ndeps, iter->A_deps.deps);
 	starpu_submit_task(task_7a);
 
 	/* M7b = (B21 + B22) */
 	iter->Mib_data[6] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_7b = compute_add_sub_op(iter->Mib_data[6], ADD, B21, B22);
-	uint64_t tag_7b = task_7b->tag_id;
+	starpu_tag_t tag_7b = task_7b->tag_id;
 	starpu_tag_declare_deps_array(tag_7b, iter->B_deps.ndeps, iter->B_deps.deps);
 	starpu_submit_task(task_7b);
 
@@ -501,7 +501,7 @@ void strassen_mult(struct strassen_iter *iter)
 	iter->children[1]->A_deps.ndeps = 1;
 	iter->children[1]->A_deps.deps[0] = tag_2a;
 	iter->children[1]->B_deps.ndeps = iter->B_deps.ndeps;
-	memcpy(iter->children[1]->B_deps.deps, iter->B_deps.deps, iter->B_deps.ndeps*sizeof(uint64_t));
+	memcpy(iter->children[1]->B_deps.deps, iter->B_deps.deps, iter->B_deps.ndeps*sizeof(starpu_tag_t));
 	iter->children[1]->A = iter->Mia_data[1]; 
 	iter->children[1]->B = B11; 
 	iter->children[1]->C = iter->Mi_data[1];
@@ -511,7 +511,7 @@ void strassen_mult(struct strassen_iter *iter)
 	iter->children[2] = malloc(sizeof(struct strassen_iter));
 	iter->children[2]->reclevel = iter->reclevel - 1;
 	iter->children[2]->A_deps.ndeps = iter->B_deps.ndeps;
-	memcpy(iter->children[2]->A_deps.deps, iter->A_deps.deps, iter->A_deps.ndeps*sizeof(uint64_t));
+	memcpy(iter->children[2]->A_deps.deps, iter->A_deps.deps, iter->A_deps.ndeps*sizeof(starpu_tag_t));
 	iter->children[2]->B_deps.ndeps = 1;
 	iter->children[2]->B_deps.deps[0] = tag_3b;
 	iter->children[2]->A = A11; 
@@ -523,7 +523,7 @@ void strassen_mult(struct strassen_iter *iter)
 	iter->children[3] = malloc(sizeof(struct strassen_iter));
 	iter->children[3]->reclevel = iter->reclevel - 1;
 	iter->children[3]->A_deps.ndeps = iter->B_deps.ndeps;
-	memcpy(iter->children[3]->A_deps.deps, iter->A_deps.deps, iter->A_deps.ndeps*sizeof(uint64_t));
+	memcpy(iter->children[3]->A_deps.deps, iter->A_deps.deps, iter->A_deps.ndeps*sizeof(starpu_tag_t));
 	iter->children[3]->B_deps.ndeps = 1;
 	iter->children[3]->B_deps.deps[0] = tag_4b;
 	iter->children[3]->A = A22; 
@@ -537,7 +537,7 @@ void strassen_mult(struct strassen_iter *iter)
 	iter->children[4]->A_deps.ndeps = 1;
 	iter->children[4]->A_deps.deps[0] = tag_5a;
 	iter->children[4]->B_deps.ndeps = iter->B_deps.ndeps;
-	memcpy(iter->children[4]->B_deps.deps, iter->B_deps.deps, iter->B_deps.ndeps*sizeof(uint64_t));
+	memcpy(iter->children[4]->B_deps.deps, iter->B_deps.deps, iter->B_deps.ndeps*sizeof(starpu_tag_t));
 	iter->children[4]->A = iter->Mia_data[4]; 
 	iter->children[4]->B = B22; 
 	iter->children[4]->C = iter->Mi_data[4];
@@ -567,13 +567,13 @@ void strassen_mult(struct strassen_iter *iter)
 	iter->children[6]->C = iter->Mi_data[6];
 	strassen_mult(iter->children[6]);
 
-	uint64_t *tag_m1 = iter->children[0]->C_deps.deps;
-	uint64_t *tag_m2 = iter->children[1]->C_deps.deps;
-	uint64_t *tag_m3 = iter->children[2]->C_deps.deps;
-	uint64_t *tag_m4 = iter->children[3]->C_deps.deps;
-	uint64_t *tag_m5 = iter->children[4]->C_deps.deps;
-	uint64_t *tag_m6 = iter->children[5]->C_deps.deps;
-	uint64_t *tag_m7 = iter->children[6]->C_deps.deps;
+	starpu_tag_t *tag_m1 = iter->children[0]->C_deps.deps;
+	starpu_tag_t *tag_m2 = iter->children[1]->C_deps.deps;
+	starpu_tag_t *tag_m3 = iter->children[2]->C_deps.deps;
+	starpu_tag_t *tag_m4 = iter->children[3]->C_deps.deps;
+	starpu_tag_t *tag_m5 = iter->children[4]->C_deps.deps;
+	starpu_tag_t *tag_m6 = iter->children[5]->C_deps.deps;
+	starpu_tag_t *tag_m7 = iter->children[6]->C_deps.deps;
 
 	/* C11 = M1 + M4 - M5 + M7 */
 	struct starpu_task *task_c11_a = compute_self_add_sub_op(C11, ADD, iter->Mi_data[0]);
@@ -581,24 +581,24 @@ void strassen_mult(struct strassen_iter *iter)
 	struct starpu_task *task_c11_c = compute_self_add_sub_op(C11, SUB, iter->Mi_data[4]);
 	struct starpu_task *task_c11_d = compute_self_add_sub_op(C11, ADD, iter->Mi_data[6]);
 
-	uint64_t tag_c11_a = task_c11_a->tag_id;
-	uint64_t tag_c11_b = task_c11_b->tag_id;
-	uint64_t tag_c11_c = task_c11_c->tag_id;
-	uint64_t tag_c11_d = task_c11_d->tag_id;
+	starpu_tag_t tag_c11_a = task_c11_a->tag_id;
+	starpu_tag_t tag_c11_b = task_c11_b->tag_id;
+	starpu_tag_t tag_c11_c = task_c11_c->tag_id;
+	starpu_tag_t tag_c11_d = task_c11_d->tag_id;
 
 	/* C12 = M3 + M5 */
 	struct starpu_task *task_c12_a = compute_self_add_sub_op(C12, ADD, iter->Mi_data[2]);
 	struct starpu_task *task_c12_b = compute_self_add_sub_op(C12, ADD, iter->Mi_data[4]);
 
-	uint64_t tag_c12_a = task_c12_a->tag_id;
-	uint64_t tag_c12_b = task_c12_b->tag_id;
+	starpu_tag_t tag_c12_a = task_c12_a->tag_id;
+	starpu_tag_t tag_c12_b = task_c12_b->tag_id;
 
 	/* C21 = M2 + M4 */
 	struct starpu_task *task_c21_a = compute_self_add_sub_op(C21, ADD, iter->Mi_data[1]);
 	struct starpu_task *task_c21_b = compute_self_add_sub_op(C21, ADD, iter->Mi_data[3]);
 
-	uint64_t tag_c21_a = task_c21_a->tag_id;
-	uint64_t tag_c21_b = task_c21_b->tag_id;
+	starpu_tag_t tag_c21_a = task_c21_a->tag_id;
+	starpu_tag_t tag_c21_b = task_c21_b->tag_id;
 
 	/* C22 = M1 - M2 + M3 + M6 */
 	struct starpu_task *task_c22_a = compute_self_add_sub_op(C22, ADD, iter->Mi_data[0]);
@@ -606,10 +606,10 @@ void strassen_mult(struct strassen_iter *iter)
 	struct starpu_task *task_c22_c = compute_self_add_sub_op(C22, ADD, iter->Mi_data[3]);
 	struct starpu_task *task_c22_d = compute_self_add_sub_op(C22, ADD, iter->Mi_data[5]);
 
-	uint64_t tag_c22_a = task_c22_a->tag_id;
-	uint64_t tag_c22_b = task_c22_b->tag_id;
-	uint64_t tag_c22_c = task_c22_c->tag_id;
-	uint64_t tag_c22_d = task_c22_d->tag_id;
+	starpu_tag_t tag_c22_a = task_c22_a->tag_id;
+	starpu_tag_t tag_c22_b = task_c22_b->tag_id;
+	starpu_tag_t tag_c22_c = task_c22_c->tag_id;
+	starpu_tag_t tag_c22_d = task_c22_d->tag_id;
 
 	if (iter->reclevel == 1)
 	{
@@ -714,7 +714,7 @@ static starpu_codelet dummy_codelet = {
 	.nbuffers = 0
 };
 
-static struct starpu_task *dummy_task(uint64_t tag)
+static struct starpu_task *dummy_task(starpu_tag_t tag)
 {
 	struct starpu_task *task =starpu_task_create();
 		task->callback_func = NULL;

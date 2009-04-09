@@ -56,20 +56,20 @@ static struct starpu_task *create_dummy_task(starpu_tag_t tag)
 	return task;
 }
 
-#define tagA	0x42
-#define tagB	0x12300
+#define tagA	((starpu_tag_t)0x42)
+#define tagB	((starpu_tag_t)0x12300)
 
-#define tagC	0x32
-#define tagD	0x52
-#define tagE	0x19999
-#define tagF	0x2312
-#define tagG	0x1985
+#define tagC	((starpu_tag_t)0x32)
+#define tagD	((starpu_tag_t)0x52)
+#define tagE	((starpu_tag_t)0x19999)
+#define tagF	((starpu_tag_t)0x2312)
+#define tagG	((starpu_tag_t)0x1985)
 
-#define tagH	0x32234
-#define tagI	0x5234
-#define tagJ	0x199
-#define tagK	0x231234
-#define tagL	0x2345
+#define tagH	((starpu_tag_t)0x32234)
+#define tagI	((starpu_tag_t)0x5234)
+#define tagJ	((starpu_tag_t)0x199)
+#define tagK	((starpu_tag_t)0x231234)
+#define tagL	((starpu_tag_t)0x2345)
 
 int main(int argc, char **argv)
 {

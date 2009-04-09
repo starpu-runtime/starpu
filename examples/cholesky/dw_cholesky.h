@@ -30,12 +30,12 @@
 
 #define NMAXBLOCKS	32
 
-#define TAG11(k)	( (1ULL<<60) | (unsigned long long)(k))
-#define TAG21(k,j)	(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
-					| (unsigned long long)(j)))
-#define TAG22(k,i,j)	(((4ULL<<60) | ((unsigned long long)(k)<<32) 	\
+#define TAG11(k)	((starpu_tag_t)( (1ULL<<60) | (unsigned long long)(k)))
+#define TAG21(k,j)	((starpu_tag_t)(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
+					| (unsigned long long)(j))))
+#define TAG22(k,i,j)	((starpu_tag_t)(((4ULL<<60) | ((unsigned long long)(k)<<32) 	\
 					| ((unsigned long long)(i)<<16)	\
-					| (unsigned long long)(j)))
+					| (unsigned long long)(j))))
 
 #define BLOCKSIZE	(size/nblocks)
 

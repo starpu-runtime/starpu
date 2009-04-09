@@ -137,8 +137,18 @@ void starpu_load_cuda_function(int devid, struct starpu_cuda_function_s *functio
 /* handle task dependencies: it is possible to associate a task with a unique
  * "tag" and to express dependencies among tasks by the means of those tags */
 void starpu_tag_remove(starpu_tag_t id);
-void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);
+
+/*
+ * WARNING ! use with caution ...
+ *  In case starpu_tag_declare_deps is passed constant arguments, the caller
+ *  must make sure that the constants have the same size as starpu_tag_t.
+ *  Otherwise, nothing prevents the C compiler to consider the tag 0x20000003
+ *  instead of 0x2 and 0x3 when calling:
+ *      "starpu_tag_declare_deps(0x1, 2, 0x2, 0x3)"
+ *  Using starpu_tag_declare_deps_array is a way to avoid this problem.
+ */
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
+void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);
 
 void starpu_tag_wait(starpu_tag_t id);
 void starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id);

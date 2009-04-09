@@ -38,7 +38,7 @@ starpu_data_handle C_state[MAXSLICESY][MAXSLICESX];
 	(C[(i)/BLOCKSIZEY][(j)/BLOCKSIZEX][(i)%BLOCKSIZEY + ((j)%BLOCKSIZEX)*BLOCKSIZEY])
 
 #define TAG(x,y,z,iter)	\
-		((z) + (iter)*nslicesz + (x)*(nslicesz*niter) + (y)*(nslicesx*nslicesz*niter))
+		((starpu_tag_t)((z) + (iter)*nslicesz + (x)*(nslicesz*niter) + (y)*(nslicesx*nslicesz*niter)))
 
 static void submit_new_iter(unsigned x, unsigned y, unsigned iter);
 

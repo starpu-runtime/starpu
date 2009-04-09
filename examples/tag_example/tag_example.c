@@ -23,7 +23,7 @@
 
 #include <starpu.h>
 
-#define TAG(i, j, iter)	((uint64_t) ( ((uint64_t)(iter)<<48) |  ((uint64_t)(j)<<24) | (i)) )
+#define TAG(i, j, iter)	((starpu_tag_t) ( ((uint64_t)(iter)<<48) |  ((uint64_t)(j)<<24) | (i)) )
 
 sem_t sem;
 starpu_codelet cl;
