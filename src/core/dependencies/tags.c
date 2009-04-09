@@ -228,14 +228,16 @@ void notify_dependencies(struct job_s *j)
 		for (succ = 0; succ < nsuccs; succ++)
 		{
 			struct _cg_t *cg = tag->succ[succ];
+			unsigned used_by_apps = cg->used_by_apps;
+			struct tag_s *cgtag = cg->tag;
 
-			if (!cg->used_by_apps)
-				take_mutex(&cg->tag->lock);
+			if (!used_by_apps)
+				take_mutex(&cgtag->lock);
 
 			notify_cg(cg);
 
-			if (!cg->used_by_apps)
-				release_mutex(&cg->tag->lock);
+			if (!used_by_apps)
+				release_mutex(&cgtag->lock);
 		}
 
 		release_mutex(&tag->lock);
