@@ -14,43 +14,24 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <string.h>
-#include <math.h>
-#include <sys/types.h>
-#include <pthread.h>
-#include <signal.h>
-
-/* for USE_CUDA */
-#include <starpu_config.h>
-
-#ifdef USE_CUDA
-#include <cuda.h>
-#endif
-
 #include <starpu.h>
+#include <pthread.h>
 
 #define NITER	50000
 
 extern void cuda_codelet_host(float *tab);
 
-static starpu_data_handle my_float_state;
-
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-
-static float my_lovely_float[4] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f, 1664.0f}; 
-static unsigned i;
 
 void callback_func(void *argcb)
 {
 	unsigned cnt = STARPU_ATOMIC_ADD((unsigned *)argcb, 1);
-
 	if (cnt == NITER) 
 	{
 		pthread_mutex_lock(&mutex);
 		pthread_cond_signal(&cond);
 		pthread_mutex_unlock(&mutex);
-
 	}
 }
 
@@ -68,7 +49,6 @@ void cuda_codelet(starpu_data_interface_t *buffers, __attribute__ ((unused)) voi
 
 	cuda_codelet_host(val);
 }
-
 #endif
 
 int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)
@@ -77,8 +57,11 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 
 	starpu_init(NULL);
 
-	starpu_monitor_vector_data(&my_float_state, 0 /* home node */,
-			(uintptr_t)&my_lovely_float, 4, sizeof(float));
+	float float_array[3] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f}; 
+
+	starpu_data_handle float_array_handle;
+	starpu_monitor_vector_data(&float_array_handle, 0 /* home node */,
+			(uintptr_t)&float_array, 3, sizeof(float));
 
 	starpu_codelet cl =
 	{
@@ -91,15 +74,17 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		.nbuffers = 1
 	};
 
+	unsigned i;
 	for (i = 0; i < NITER; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
+
 		task->cl = &cl;
 		
 		task->callback_func = callback_func;
 		task->callback_arg = &counter;
 
-		task->buffers[0].state = my_float_state;
+		task->buffers[0].state = float_array_handle;
 		task->buffers[0].mode = RW;
 
 		starpu_submit_task(task);
@@ -109,12 +94,13 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	pthread_cond_wait(&cond, &mutex);
 	pthread_mutex_unlock(&mutex);
 
-	starpu_sync_data_with_mem(my_float_state);
+	/* update the array in RAM */
+	starpu_sync_data_with_mem(float_array_handle);
 	
-	printf("array -> %f, %f, %f\n", my_lovely_float[0], 
-			my_lovely_float[1], my_lovely_float[2]);
+	fprintf(stderr, "array -> %f, %f, %f\n", float_array[0], 
+			float_array[1], float_array[2]);
 	
-	if (my_lovely_float[0] != my_lovely_float[1] + my_lovely_float[2])
+	if (float_array[0] != float_array[1] + float_array[2])
 		return 1;
 	
 	starpu_shutdown();
