@@ -41,6 +41,10 @@ NVCC ?= nvcc
 	$(MKDIR_P) `dirname $@`
 	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
 
+.cu.o:
+	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
+
+
 BUILT_SOURCES =					\
 	cuda/incrementer_cuda.cubin		\
 	cuda/spmv_cuda.cubin			
@@ -225,9 +229,23 @@ endif
 # Incrementer example #
 #######################
 
-check_PROGRAMS += incrementer/incrementer
 
-examplebin_PROGRAMS += incrementer/incrementer
+check_PROGRAMS +=				\
+	incrementer/incrementer			\
+	incrementer/incrementer_runtime
+
+examplebin_PROGRAMS +=				\
+	incrementer/incrementer			\
+	incrementer/incrementer_runtime
 
 incrementer_incrementer_SOURCES =		\
 	incrementer/incrementer.c
+
+if USE_CUDA
+incrementer_incrementer_runtime_SOURCES =	\
+	incrementer/incrementer_runtime.c	\
+	incrementer/incrementer_runtime_kernels.cu
+else
+incrementer_incrementer_runtime_SOURCES =	\
+	incrementer/incrementer_runtime.c
+endif
