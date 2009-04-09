@@ -86,14 +86,19 @@ void starpu_tag_remove(starpu_tag_t id)
 	struct tag_s *tag;
 
 	take_mutex(&tag_mutex);
+
 	tag = htbl_remove_tag(tag_htbl, id);
+
+	release_mutex(&tag_mutex);
+
+	take_mutex(&tag->lock);
 	
 #ifdef DYNAMIC_DEPS_SIZE
 	if (tag)
 		free(tag->succ);
 #endif
 
-	release_mutex(&tag_mutex);
+	release_mutex(&tag->lock);
 
 	free(tag);
 }
