@@ -26,6 +26,7 @@ EXTRA_DIST = 					\
 	cuda/spmv_cuda.cu
 
 CLEANFILES = 					\
+	incrementer_runtime_kernels.linkinfo	\
 	incrementer_cuda.linkinfo		\
 	cuda/incrementer_cuda.cubin		\
 	spmv_cuda.linkinfo			\

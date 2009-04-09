@@ -51,7 +51,7 @@ void cuda_codelet(starpu_data_interface_t *buffers, __attribute__ ((unused)) voi
 }
 #endif
 
-int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)
+int main(int argc, char **argv)
 {
 	unsigned counter = 0;
 
@@ -69,7 +69,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		.where = CORE|CUBLAS,
 		.core_func = core_codelet,
 #ifdef USE_CUDA
-		.cublas_func = &cuda_codelet,
+		.cublas_func = cuda_codelet,
 #endif
 		.nbuffers = 1
 	};

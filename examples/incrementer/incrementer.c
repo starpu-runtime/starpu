@@ -15,34 +15,30 @@
  */
 
 #include <string.h>
-#include <math.h>
 #include <sys/types.h>
 #include <pthread.h>
-#include <signal.h>
 
 /* for USE_CUDA */
 #include <starpu_config.h>
+#include <starpu.h>
 
 #ifdef USE_CUDA
 #include <cuda.h>
 #include <cublas.h>
 #endif
 
-#include <starpu.h>
-
 #define NITER	50000
 
-starpu_data_handle my_float_state;
-starpu_data_handle unity_state;
+static starpu_data_handle my_float_state;
+static starpu_data_handle unity_state;
 
-static pthread_mutex_t mutex;
-static pthread_cond_t cond;
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 unsigned size __attribute__ ((aligned (16))) = 4*sizeof(float);
 
-float my_lovely_float[4] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f, 1664.0f}; 
-float unity[4] __attribute__ ((aligned (16))) = { 1.0f, 0.0f, 1.0f, 0.0f };
-unsigned i;
+float my_lovely_float[3] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f}; 
+float unity[3] __attribute__ ((aligned (16))) = { 1.0f, 0.0f, 1.0f};
 
 void callback_func(void *argcb)
 {
@@ -104,20 +100,18 @@ void initialize_cuda(void)
 
 void init_data(void)
 {
-	starpu_monitor_vector_data(&my_float_state, 0 /* home node */, (uintptr_t)&my_lovely_float, 4, sizeof(float));
+	starpu_monitor_vector_data(&my_float_state, 0 /* home node */,
+			(uintptr_t)&my_lovely_float, 3, sizeof(float));
 
-	starpu_monitor_vector_data(&unity_state, 0 /* home node */, (uintptr_t)&unity, 4, sizeof(float));
+	starpu_monitor_vector_data(&unity_state, 0 /* home node */,
+			(uintptr_t)&unity, 3, sizeof(float));
 }
 
-int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv)
+int main(int argc, char **argv)
 {
 	unsigned counter = 0;
 
 	starpu_init(NULL);
-	fprintf(stderr, "StarPU initialized ...\n");
-
-	pthread_mutex_init(&mutex, NULL);
-	pthread_cond_init(&cond, NULL);
 
 	init_data();
 
@@ -138,6 +132,7 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		.nbuffers = 2
 	};
 
+	unsigned i;
 	for (i = 0; i < NITER; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
@@ -154,9 +149,6 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 		task->buffers[1].state = unity_state; 
 		task->buffers[1].mode = R;
 
-		task->use_tag = 0;
-		task->synchronous = 0;
-
 		starpu_submit_task(task);
 	}
 
@@ -164,16 +156,10 @@ int main(__attribute__ ((unused)) int argc, __attribute__ ((unused)) char **argv
 	pthread_cond_wait(&cond, &mutex);
 	pthread_mutex_unlock(&mutex);
 
-//	/* stop monitoring data and grab it in RAM */
-//	unpartition_data(&my_float_state, 0);
-//
-//	delete_data(&my_float_state);
-
 	starpu_sync_data_with_mem(my_float_state);
 	
-	printf("array -> %f, %f, %f\n", my_lovely_float[0], 
+	fprintf(stderr, "array -> %f, %f, %f\n", my_lovely_float[0], 
 			my_lovely_float[1], my_lovely_float[2]);
-//	printf("stopping ... cnt was %d i %d\n", cnt, i);
 	
 	if (my_lovely_float[0] != my_lovely_float[1] + my_lovely_float[2])
 		return 1;
