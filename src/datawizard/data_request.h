@@ -28,7 +28,7 @@ LIST_TYPE(data_request,
 	struct starpu_data_state_t *state;
 	uint32_t src_node;
 	uint32_t dst_node;
-	sem_t sem;
+	unsigned completed;
 	int retval;
 );
 
