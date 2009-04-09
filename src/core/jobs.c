@@ -161,16 +161,21 @@ static unsigned not_all_task_deps_are_fulfilled(job_t j)
 
 	struct tag_s *tag = j->tag;
 
+	take_mutex(&tag->lock);
+
 	if (tag->ndeps != tag->ndeps_completed)
 	{
 		tag->state = BLOCKED;
-		return 1;
+		ret = 1;
 	}
 	else {
 		/* existing deps (if any) are fulfilled */
 		tag->state = READY;
-		return 0;
+		ret = 0;
 	}
+
+	release_mutex(&tag->lock);
+	return ret;
 }
 
 static unsigned enforce_deps_and_schedule(job_t j)
