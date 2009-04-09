@@ -75,6 +75,8 @@ struct starpu_task * __attribute__((malloc)) starpu_task_create(void)
 	STARPU_ASSERT(task);
 
 	task->priority = DEFAULT_PRIO;
+	task->use_tag = 0;
+	task->synchronous = 0;
 
 	/* by default, we let StarPU free the task structure */
 	task->cleanup = 1;
