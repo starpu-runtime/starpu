@@ -111,4 +111,9 @@ inline uint32_t may_submit_cuda_task(void);
 inline uint32_t may_submit_core_task(void);
 
 
+inline void lock_all_queues_attached_to_node(unsigned node);
+inline void unlock_all_queues_attached_to_node(unsigned node);
+inline void broadcast_all_queues_attached_to_node(unsigned node);
+
+
 #endif // __WORKERS_H__
