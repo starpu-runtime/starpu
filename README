@@ -28,7 +28,7 @@ TODO
 ++==================++
 
  * make
- * gcc (version >= 4)
+ * gcc (version >= 4.1)
  * if CUDA support is enabled
    * CUDA (version >= 2.0)
    * CUBLAS (version >= 2.0)
