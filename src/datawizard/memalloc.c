@@ -78,7 +78,7 @@ static void unlock_all_subtree(data_state *data)
 	}
 }
 
-unsigned may_free_subtree(data_state *data, unsigned node)
+static unsigned may_free_subtree(data_state *data, unsigned node)
 {
 	if (data->nchildren == 0)
 	{
@@ -101,7 +101,7 @@ unsigned may_free_subtree(data_state *data, unsigned node)
 	}
 }
 
-size_t do_free_mem_chunk(mem_chunk_t mc, unsigned node)
+static size_t do_free_mem_chunk(mem_chunk_t mc, unsigned node)
 {
 	size_t size;
 
@@ -115,7 +115,7 @@ size_t do_free_mem_chunk(mem_chunk_t mc, unsigned node)
 	return size; 
 }
 
-void transfer_subtree_to_node(data_state *data, unsigned src_node, 
+static void transfer_subtree_to_node(data_state *data, unsigned src_node, 
 						unsigned dst_node)
 {
 	unsigned i;
@@ -450,7 +450,7 @@ void request_mem_chunk_removal(data_state *state, unsigned node)
 	release_mutex(&mc_mutex[node]);
 }
 
-size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node)
+static size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node)
 {
 	size_t liberated = 0;
 
