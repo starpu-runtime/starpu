@@ -78,6 +78,7 @@ LIST_TYPE(data_requester,
 	/* what kind of access is requested ? */
 	starpu_access_mode mode;
 
+	/* applications may also directly manipulate data */
 	unsigned is_requested_by_codelet;
 
 	/* in case this is a codelet that will do the access */
