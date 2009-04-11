@@ -405,7 +405,7 @@ static inline void _notify_data_modification_continuation(void *arg)
 #endif
 
 /* in case the application did modify the data ... invalidate all other copies  */
-void notify_data_modification(data_state *state, uint32_t modifying_node)
+void starpu_notify_data_modification(data_state *state, uint32_t modifying_node)
 {
 	/* this may block .. XXX */
 #ifdef NO_DATA_RW_LOCK

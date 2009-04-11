@@ -148,8 +148,6 @@ void push_codelet_output(starpu_buffer_descr *descrs, unsigned nbuffers, uint32_
 __attribute__((warn_unused_result))
 int fetch_codelet_input(starpu_buffer_descr *descrs, starpu_data_interface_t *interface, unsigned nbuffers, uint32_t mask);
 
-void notify_data_modification(data_state *state, uint32_t modifying_node);
-
 int request_data_allocation(data_state *state, uint32_t node);
 
 unsigned is_data_present_or_requested(data_state *state, uint32_t node);
