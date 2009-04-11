@@ -371,8 +371,12 @@ void starpu_sync_data_with_mem(data_state *state)
 		pthread_mutex_unlock(&statenode.lock);
 	}
 #else
+	/* NB: fetch_data automatically grabs the RW-lock so it needs to be
+ 	 * released explicitely afterward */
 	ret = fetch_data(state, R);
 	STARPU_ASSERT(!ret);
+
+	release_rw_lock(&state->data_lock);
 #endif
 }
 
