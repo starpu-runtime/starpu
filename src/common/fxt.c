@@ -21,12 +21,12 @@
 static char PROF_FILE_USER[128];
 static int fxt_started = 0;
 
-void profile_stop(void)
+static void profile_stop(void)
 {
 	fut_endup(PROF_FILE_USER);
 }
 
-void profile_set_tracefile(char *fmt, ...)
+static void profile_set_tracefile(char *fmt, ...)
 {
 	va_list vl;
 	
