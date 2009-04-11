@@ -22,6 +22,8 @@ static starpu_mutex mc_mutex[MAXNODES];
 static mem_chunk_list_t mc_list[MAXNODES];
 static mem_chunk_list_t mc_list_to_free[MAXNODES];
 
+static size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node);
+
 void init_mem_chunk_lists(void)
 {
 	unsigned i;
