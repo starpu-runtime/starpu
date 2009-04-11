@@ -17,6 +17,23 @@
 LIBS = $(top_builddir)/src/libstarpu.la @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/
 
+if USE_CUDA
+
+# TODO define NVCCFLAGS
+NVCC ?= nvcc
+
+NVCCFLAGS += -I$(top_srcdir)/include/
+
+.cu.cubin:
+	$(MKDIR_P) `dirname $@`
+	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
+
+.cu.o:
+	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
+
+endif
+
+
 SUBDIRS = 
 
 TESTS = $(check_PROGRAMS)
@@ -26,7 +43,8 @@ check_PROGRAMS =
 check_PROGRAMS += 				\
 	microbenchs/async-tasks-overhead	\
 	microbenchs/sync-tasks-overhead		\
-	microbenchs/tag-wait-api
+	microbenchs/tag-wait-api		\
+	microbenchs/sync_and_notify_data
 
 microbenchs_async_tasks_overhead_SOURCES =	\
 	microbenchs/async-tasks-overhead.c
@@ -37,3 +55,15 @@ microbenchs_sync_tasks_overhead_SOURCES =	\
 microbenchs_tag_wait_api_SOURCES =		\
 	microbenchs/tag-wait-api.c
 
+if USE_CUDA
+
+microbenchs_sync_and_notify_data_SOURCES =	\
+	microbenchs/sync_and_notify_data.c	\
+	microbenchs/sync_and_notify_data_kernels.cu
+
+else
+
+microbenchs_sync_and_notify_data_SOURCES =	\
+	microbenchs/sync_and_notify_data.c
+
+endif
