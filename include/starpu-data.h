@@ -41,7 +41,7 @@ void starpu_delete_data(struct starpu_data_state_t *state);
 void starpu_advise_if_data_is_important(struct starpu_data_state_t *state, unsigned is_important);
 
 void starpu_sync_data_with_mem(struct starpu_data_state_t *state);
-void starpu_notify_data_modification(data_state *state, uint32_t modifying_node);
+void starpu_notify_data_modification(struct starpu_data_state_t *state, uint32_t modifying_node);
 
 void starpu_malloc_pinned_if_possible(float **A, size_t dim);
 
