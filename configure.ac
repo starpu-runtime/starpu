@@ -298,9 +298,9 @@ if test x$enable_priority = xno; then
 fi
 
 AC_MSG_CHECKING(whether data RW-lock should be used)
-AC_ARG_ENABLE(data-rw-lock, [AS_HELP_STRING([--disable-data-rw-lock],
-			[do not use data RW-locks])],
-			enable_data_rw_lock=$enableval, enable_data_rw_lock=yes)
+AC_ARG_ENABLE(data-rw-lock, [AS_HELP_STRING([--enable-data-rw-lock],
+			[use data RW-locks])],
+			enable_data_rw_lock=$enableval, enable_data_rw_lock=no)
 AC_MSG_RESULT($enable_data_rw_lock)
 if test x$enable_data_rw_lock = xno; then
 	AC_DEFINE(NO_DATA_RW_LOCK, [1], [data RW-lock are disabled])
