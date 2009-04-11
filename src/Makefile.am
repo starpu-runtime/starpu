@@ -55,6 +55,7 @@ noinst_HEADERS = 						\
 	datawizard/data_parameters.h				\
 	datawizard/copy-driver.h				\
 	datawizard/coherency.h					\
+	datawizard/memory_nodes.h				\
 	datawizard/interfaces/blas_interface.h			\
 	datawizard/interfaces/csr_filters.h			\
 	datawizard/interfaces/csc_interface.h			\
@@ -104,6 +105,7 @@ libstarpu_la_SOURCES = 						\
 	core/policies/deque-modeling-policy.c			\
 	core/policies/random-policy.c				\
 	core/policies/deque-modeling-policy-data-aware.c	\
+	datawizard/memory_nodes.c				\
 	datawizard/write_back.c					\
 	datawizard/coherency.c					\
 	datawizard/data_request.c				\
