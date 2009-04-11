@@ -241,8 +241,8 @@ static void init_workers_binding(struct machine_config_s *config)
 }
 
 #ifdef USE_GORDON
-unsigned gordon_inited = 0;	
-struct worker_set_s gordon_worker_set;
+static unsigned gordon_inited = 0;	
+static struct worker_set_s gordon_worker_set;
 #endif
 
 static void init_workers(struct machine_config_s *config)
@@ -359,7 +359,7 @@ void starpu_init(struct starpu_conf *user_conf)
  * Handle runtime termination 
  */
 
-void terminate_workers(struct machine_config_s *config)
+static void terminate_workers(struct machine_config_s *config)
 {
 	int status;
 	unsigned workerid;
@@ -489,7 +489,7 @@ static void operate_on_all_queues(queue_op op)
 	release_mutex(&descr.attached_queues_mutex);
 }
 
-void kill_all_workers(struct machine_config_s *config)
+static void kill_all_workers(struct machine_config_s *config)
 {
 	/* lock all workers and the scheduler (in the proper order) to make
 	   sure everyone will notice the termination */

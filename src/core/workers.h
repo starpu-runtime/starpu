@@ -100,8 +100,6 @@ struct machine_config_s {
 	unsigned running;
 };
 
-void terminate_workers(struct machine_config_s *config);
-void kill_all_workers(struct machine_config_s *config);
 void display_general_stats(void);
 
 unsigned machine_is_running(void);
