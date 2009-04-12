@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
+#include <common/config.h>
 #include <core/perfmodel/perfmodel.h>
 #include <core/jobs.h>
 #include <core/workers.h>
@@ -496,9 +497,10 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, double me
 		fprintf(debug_file, "%lf\t", measured);
 		unsigned i;
 			
-		for (i = 0; i < j->nbuffers; i++)
+		struct starpu_task *task = j->task;
+		for (i = 0; i < task->cl->nbuffers; i++)
 		{
-			data_state *state = j->buffers[i].state;
+			data_state *state = task->buffers[i].state;
 
 			STARPU_ASSERT(state->ops);
 			STARPU_ASSERT(state->ops->display);
