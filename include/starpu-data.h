@@ -17,6 +17,7 @@
 #ifndef __STARPU_DATA_H__
 #define __STARPU_DATA_H__
 
+#include <starpu_config.h>
 #include <starpu-data-interfaces.h>
 #include <starpu-data-filters.h>
 

@@ -17,6 +17,7 @@
 #ifndef __STARPU_MUTEX_H__
 #define __STARPU_MUTEX_H__
 
+#include <starpu_config.h>
 #include <stdint.h>
 
 typedef struct starpu_mutex_t {

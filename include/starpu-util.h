@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <starpu_config.h>
 
 #define STARPU_MIN(a,b)	((a)<(b)?(a):(b))
 #define STARPU_MAX(a,b)	((a)<(b)?(b):(a))

@@ -17,6 +17,8 @@
 #ifndef __STARPU_DATA_FILTERS_H__
 #define __STARPU_DATA_FILTERS_H__
 
+#include <starpu_config.h>
+
 struct starpu_data_state_t;
 
 typedef struct starpu_filter_t {
