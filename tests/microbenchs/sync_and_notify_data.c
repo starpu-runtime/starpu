@@ -19,7 +19,7 @@
 #include <starpu.h>
 
 #define N	100
-#define K	10
+#define K	256
 
 /*
  * In this test, we maintain a vector v = (a,b,c).
