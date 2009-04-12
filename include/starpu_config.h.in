@@ -21,4 +21,6 @@
 
 #undef HAVE_SYNC_BUILTINS
 
+#undef MODEL_DEBUG
+
 #endif

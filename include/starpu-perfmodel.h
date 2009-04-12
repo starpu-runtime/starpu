@@ -18,6 +18,7 @@
 #define __STARPU_PERFMODEL_H__
 
 #include <stdio.h>
+#include <starpu_config.h>
 #include <starpu-mutex.h>
 
 struct starpu_htbl32_node_s;
