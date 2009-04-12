@@ -21,7 +21,20 @@ StarPU does not help to write computation kernels.
 +---------------------------------
 | I.c. (How) Could StarPU help me?
 
-TODO
+While StarPU will not make it easier to write computation kernels, it does
+simplify their actual offloading as StarPU handle most low level aspects
+transparently.
+
+Obviously, it is crucial to have efficient kernels, but it must be noted that
+the way those kernels are mapped and scheduled onto the computational resources
+also affect the overall performance to a great extent.
+
+StarPU is especially helpful when considering multiple heterogeneous processing
+resources: statically mapping and synchronizing tasks in such a heterogeneous
+environment is very difficult, but making it in a portable way is virtually
+impossible. On the other hand, the scheduling capabilities of StarPU makes it
+possible to easily exploit all processors at the same time while taking
+advantage of their specificities in a portable fashion.
 
 ++==================++
 || II. Requirements ||
