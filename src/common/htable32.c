@@ -32,7 +32,7 @@ void *htbl_search_32(struct starpu_htbl32_node_s *htbl, uint32_t key)
 	{
 	
 	//	printf("search : current bit = %d \n", currentbit);
-		if (current_htbl == NULL)
+		if (STARPU_UNLIKELY(current_htbl == NULL))
 			return NULL;
 
 		/* 0000000000001111 
