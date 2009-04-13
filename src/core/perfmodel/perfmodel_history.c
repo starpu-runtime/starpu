@@ -494,7 +494,9 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, double me
 
 		take_mutex(&model->model_mutex);
 
-		fprintf(debug_file, "%lf\t", measured);
+		STARPU_ASSERT(j->footprint_is_computed);
+
+		fprintf(debug_file, "%x\t%lf\t\t", j->footprint, measured);
 		unsigned i;
 			
 		struct starpu_task *task = j->task;
