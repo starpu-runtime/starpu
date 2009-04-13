@@ -151,16 +151,72 @@ fi
 #                                                                             #
 ###############################################################################
 
-AC_MSG_CHECKING(whether GORDON should be used)
+#TODO fix the default dir
 AC_ARG_ENABLE(gordon, [AS_HELP_STRING([--enable-gordon],
-			[use Cell's SPUs])],
-			enable_gordon=$enableval, enable_gordon=no)
+			[use Cell's SPUs])],, enable_gordon=maybe)
+
+if test x$enable_gordon = xyes -o x$enable_gordon = xmaybe; then
+
+	AC_ARG_WITH(gordon-dir, [AS_HELP_STRING([--with-gordon-dir=<path>],
+			[specify Gordon installation directory (default is /usr/local/)])],
+			[
+				gordon_dir=$withval
+				enable_gordon=yes
+			], gordon_dir=/usr/local/)
+
+	# do we have a valid Gordon setup ?
+	have_valid_gordon=yes
+	
+	AC_CHECK_LIB(spe2, spe_context_create,,[have_valid_gordon=no])
+
+	if test -d "$gordon_dir"; then
+		CPPFLAGS="${CPPFLAGS} -I$gordon_dir/ "
+	fi
+
+	# XXX Scalp is weird ...
+	CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE "
+	AC_CHECK_HEADER([hinch/hmain.h],,[have_valid_gordon=no])
+
+#	if test -d "$gordon_dir/cell/gordon/"; then
+#		LDFLAGS="${LDFLAGS} -L$gordon_dir/cell/gordon/"
+#	fi
+#	if test -d "$gordon_dir/util/"; then
+#		LDFLAGS="${LDFLAGS} -L$gordon_dir/util/"
+#	fi
+#
+#	AC_SEARCH_LIBS([scalp_malloc],[libsp@ceutil],,[have_valid_gordon=no])
+#	AC_SEARCH_LIBS([scalp_malloc],[libsp@ceutil.spu],,[have_valid_gordon=no])
+#	AC_SEARCH_LIBS([gordon_init],[gordon],,[have_valid_gordon=no])
+
+	if test -f $gordon_dir/cell/gordon/libgordon.a; then
+		LIBS="${LIBS} $gordon_dir/cell/gordon/libgordon.a"
+	fi
+
+	if test -f $gordon_dir/util/libsp@ceutil.a; then
+		LIBS="${LIBS} $gordon_dir/util/libsp@ceutil.a"
+	fi
+
+	if test -f $gordon_dir/util/libsp@ceutil.spu.a; then
+		LIBS="${LIBS} $gordon_dir/util/libsp@ceutil.spu.a"
+	fi
+
+	AC_CHECK_FUNC(gordon_init, [], [have_valid_gordon=no])
+
+	# in case Gordon was explicitely required, but is not available, this is an error
+	if test x$enable_gordon = xyes -a x$have_valid_gordon = no; then
+		AC_MSG_ERROR([cannot find Gordon])
+	fi
+
+	# now we enable Gordon if and only if a proper setup is available
+	enable_gordon=$have_valid_gordon
+fi
+
+AC_MSG_CHECKING(whether GORDON should be used)
 AC_MSG_RESULT($enable_gordon)
 AC_SUBST(USE_GORDON, $enable_gordon)
 AM_CONDITIONAL(USE_GORDON, test x$enable_gordon = xyes)
 
 if test x$enable_gordon = xyes; then
-	AC_CHECK_LIB(spe2, spe_context_create,,AC_MSG_ERROR([cannot find libspe2]))
 	AC_DEFINE(USE_GORDON, [1], [Cell support is enabled])
 fi
 
