@@ -53,7 +53,11 @@ static starpu_codelet cl11 =
 	.cublas_func = chol_cublas_codelet_update_u11,
 #endif
 #ifdef USE_GORDON
+#ifdef SPU_FUNC_POTRF
 	.gordon_func = SPU_FUNC_POTRF,
+#else
+#warning SPU_FUNC_POTRF is not available
+#endif
 #endif
 	.nbuffers = 1,
 	.model = &chol_model_11
@@ -96,7 +100,11 @@ static starpu_codelet cl21 =
 	.cublas_func = chol_cublas_codelet_update_u21,
 #endif
 #ifdef USE_GORDON
+#ifdef SPU_FUNC_STRSM
 	.gordon_func = SPU_FUNC_STRSM,
+#else
+#warning SPU_FUNC_STRSM is not available
+#endif
 #endif
 	.nbuffers = 2,
 	.model = &chol_model_21
@@ -137,7 +145,11 @@ static starpu_codelet cl22 =
 	.cublas_func = chol_cublas_codelet_update_u22,
 #endif
 #ifdef USE_GORDON
+#ifdef SPU_FUNC_SGEMM
 	.gordon_func = SPU_FUNC_SGEMM,
+#else
+#warning SPU_FUNC_SGEMM is not available
+#endif
 #endif
 	.nbuffers = 3,
 	.model = &chol_model_22

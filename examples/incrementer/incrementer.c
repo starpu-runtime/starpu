@@ -127,7 +127,11 @@ int main(int argc, char **argv)
 		.cuda_func = &cuda_codelet,
 #endif
 #ifdef USE_GORDON
+#ifdef SPU_FUNC_ADD
 		.gordon_func = SPU_FUNC_ADD,
+#else
+#warning SPU_FUNC_ADD is not available
+#endif
 #endif
 		.nbuffers = 2
 	};

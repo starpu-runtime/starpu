@@ -356,7 +356,11 @@ static starpu_codelet cl = {
 	.cublas_func = cublas_mult,
 #endif
 #ifdef USE_GORDON
+#ifdef SPU_FUNC_SGEMM
 	.gordon_func = SPU_FUNC_SGEMM,
+#else
+#warning SPU_FUNC_SGEMM is not available
+#endif
 #endif
 	.nbuffers = 3
 };

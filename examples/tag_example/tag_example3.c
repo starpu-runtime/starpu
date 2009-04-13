@@ -110,7 +110,12 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	cl.core_func = core_codelet;
 	cl.cublas_func = core_codelet;
-	cl.where = CORE;
+#ifdef USE_GORDON
+#ifdef SPU_FUNC_NULL
+	cl.gordon_func = SPU_FUNC_NULL;
+#endif
+#endif
+	cl.where = ANY;
 	cl.nbuffers = 0;
 
 	fprintf(stderr, "ITER : %d\n", nk);

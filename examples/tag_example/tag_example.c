@@ -189,9 +189,14 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	fprintf(stderr, "ITER: %d\n", nk);
 
-	cl.where = CORE;
+	cl.where = ANY;
 	cl.core_func = core_codelet;
 	cl.cublas_func = core_codelet;
+#ifdef USE_GORDON
+#ifdef SPU_FUNC_NULL
+	cl.gordon_func = SPU_FUNC_NULL;
+#endif
+#endif
 	cl.nbuffers = 0;
 
 	sem_init(&sem, 0, 0);
