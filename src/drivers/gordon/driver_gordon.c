@@ -88,20 +88,24 @@ static void starpu_to_gordon_buffers(job_t j, struct gordon_ppu_job_s *gordon_jo
 	unsigned nin = 0, ninout = 0, nout = 0;
 	unsigned in = 0, inout = 0, out = 0;
 
+	struct starpu_task *task = j->task;
+	struct starpu_codelet_t *cl = task->cl;
+
 	/* if it is non null, the argument buffer is considered
  	 * as the first read-only buffer */
-	if (j->cl_arg) {
-		gordon_job->buffers[in] = (uint64_t)j->cl_arg;
-		gordon_job->ss[in].size = (uint32_t)j->cl_arg_size;
+	if (task->cl_arg) {
+		gordon_job->buffers[in] = (uint64_t)task->cl_arg;
+		gordon_job->ss[in].size = (uint32_t)task->cl_arg_size;
 		
 		nin++; in++;
 	}
 
 	/* count the number of in/inout/out buffers */
-	for (buffer = 0; buffer < j->nbuffers; buffer++)
+	unsigned nbuffers = cl->nbuffers;
+	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
 		struct starpu_buffer_descr_t *descr;
-		descr = &j->buffers[buffer];
+		descr = &task->buffers[buffer];
 
 		switch (descr->mode) {
 			case R:
@@ -117,11 +121,11 @@ static void starpu_to_gordon_buffers(job_t j, struct gordon_ppu_job_s *gordon_jo
 		}
 	}
 
-	for (buffer = 0; buffer < j->nbuffers; buffer++)
+	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
 		unsigned gordon_buffer;
 		struct starpu_buffer_descr_t *descr;
-		descr = &j->buffers[buffer];
+		descr = &task->buffers[buffer];
 
 		switch (descr->mode) {
 			case R:
@@ -136,7 +140,7 @@ static void starpu_to_gordon_buffers(job_t j, struct gordon_ppu_job_s *gordon_jo
 				break;
 		}
 
-		struct starpu_data_state_t *state = j->buffers[buffer].state;
+		struct starpu_data_state_t *state = task->buffers[buffer].state;
 
 		gordon_job->nalloc = 0;
 		gordon_job->nin = nin;
@@ -162,7 +166,7 @@ static struct gordon_task_wrapper_s *starpu_to_gordon_job(job_t j)
 	task_wrapper->j = j;
 	task_wrapper->terminated = 0;
 
-	gordon_job->index = j->cl->gordon_func;
+	gordon_job->index = j->task->cl->gordon_func;
 
 	/* we should not hardcore the memory node ... XXX */
 	unsigned memory_node = 0;
@@ -173,7 +177,7 @@ static struct gordon_task_wrapper_s *starpu_to_gordon_job(job_t j)
 
 void handle_terminated_job(job_t j)
 {
-	push_codelet_output(j->buffers, j->nbuffers, 0);
+	push_codelet_output(j->task->buffers, j->task->cl->nbuffers, 0);
 	handle_job_termination(j);
 	wake_all_blocked_workers();
 }
@@ -275,7 +279,8 @@ static void gordon_callback_func(void *arg)
 
 int inject_task(job_t j, struct worker_s *worker)
 {
-	int ret = fetch_codelet_input(j->buffers, j->interface, j->nbuffers, 0);
+	struct starpu_task *task = j->task;
+	int ret = fetch_codelet_input(task->buffers, task->interface, task->cl->nbuffers, 0);
 
 	if (ret != 0) {
 		/* there was not enough memory so the codelet cannot be executed right now ... */
@@ -330,10 +335,11 @@ int inject_task_list(struct job_list_s *list, struct worker_s *worker)
 	{
 		int ret;
 
-		ret = fetch_codelet_input(j->buffers, j->interface, j->nbuffers, 0);
+		struct starpu_task *task = j->task;
+		ret = fetch_codelet_input(task->buffers, task->interface, task->cl->nbuffers, 0);
 		STARPU_ASSERT(!ret);
 
-		gordon_jobs[index].index = j->cl->gordon_func;
+		gordon_jobs[index].index = task->cl->gordon_func;
 
 		/* we should not hardcore the memory node ... XXX */
 		unsigned memory_node = 0;
