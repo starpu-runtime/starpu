@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 
+#include <common/config.h>
 #include <datawizard/data_parameters.h>
 #include "blas_interface.h"
 #include "vector_interface.h"

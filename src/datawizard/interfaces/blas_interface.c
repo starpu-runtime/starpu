@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <common/config.h>
 #include <datawizard/data_parameters.h>
 #include <datawizard/coherency.h>
 #include <datawizard/copy-driver.h>

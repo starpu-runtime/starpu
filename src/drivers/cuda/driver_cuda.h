@@ -17,7 +17,9 @@
 #ifndef __DRIVER_CUDA_H__
 #define __DRIVER_CUDA_H__
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <sched.h>
 
 #include <assert.h>

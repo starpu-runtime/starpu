@@ -18,7 +18,9 @@
 #define __DRIVER_CORE_H__
 
 /* to bind threads onto a given cpu */
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <sched.h>
 
 #include <common/config.h>

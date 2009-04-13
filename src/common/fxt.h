@@ -18,7 +18,10 @@
 #define __FXT_H__
 
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE  /* ou _BSD_SOURCE ou _SVID_SOURCE */
+#endif
+
 #include <unistd.h>
 #include <sys/syscall.h> /* pour les définitions de SYS_xxx */
 
