@@ -363,7 +363,7 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 		else {
 #ifndef NOCHAIN
 			int ret = 0;
-			struct job_list_s *list = pop_every_task();
+			struct job_list_s *list = pop_every_task(GORDON);
 			/* XXX 0 is hardcoded */
 			if (list)
 			{

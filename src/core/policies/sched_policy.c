@@ -163,20 +163,21 @@ struct job_s * pop_task(void)
 	return pop_task_from_queue(queue);
 }
 
-struct job_list_s * pop_every_task_from_queue(struct jobq_s *queue)
+struct job_list_s * pop_every_task_from_queue(struct jobq_s *queue, uint32_t where)
 {
 	STARPU_ASSERT(queue->pop_every_task);
 
-	struct job_list_s *list = queue->pop_every_task(queue);
+	struct job_list_s *list = queue->pop_every_task(queue, where);
 
 	return list;
 }
 
-struct job_list_s *pop_every_task(void)
+/* pop every task that can be executed on "where" (eg. GORDON) */
+struct job_list_s *pop_every_task(uint32_t where)
 {
 	struct jobq_s *queue = policy.get_local_queue(&policy);
 
-	return pop_every_task_from_queue(queue);
+	return pop_every_task_from_queue(queue, where);
 }
 
 void wait_on_sched_event(void)

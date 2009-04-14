@@ -39,7 +39,7 @@ struct jobq_s {
  	 *
  	 * NB : this function is non blocking
  	 * */
-	struct job_list_s *(*pop_every_task)(struct jobq_s *);
+	struct job_list_s *(*pop_every_task)(struct jobq_s *, uint32_t);
 
 	/* what are the driver that may pop job from that queue ? */
 	uint32_t who;

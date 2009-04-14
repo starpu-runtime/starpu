@@ -156,9 +156,10 @@ job_t fifo_pop_task(struct jobq_s *q)
 	return j;
 }
 
-struct job_list_s * fifo_pop_every_task(struct jobq_s *q)
+/* pop every task that can be executed on the calling driver */
+struct job_list_s * fifo_pop_every_task(struct jobq_s *q, uint32_t where)
 {
-	struct job_list_s *list;
+	struct job_list_s *new_list, *old_list;
 	unsigned size;
 	
 	STARPU_ASSERT(q);
@@ -169,28 +170,55 @@ struct job_list_s * fifo_pop_every_task(struct jobq_s *q)
 	size = fifo_queue->njobs;
 
 	if (size == 0) {
-		list = NULL;
+		new_list = NULL;
 	}
 	else {
-		/* directly use the existing list of jobs */
-		list = fifo_queue->jobq;
+		old_list = fifo_queue->jobq;
+		new_list = job_list_new();
 
-	//	fprintf(stderr, "DEBUG, fifo_pop_every_task promised %d got %d\n",  size, job_list_size(list));
-		
-		/* the FIFO is now a new empty list */
-		fifo_queue->jobq = job_list_new();
-		fifo_queue->njobs = 0;
+		unsigned new_list_size = 0;
 
-		/* we are sure that we got it now, so at worst, some people thought
-		 * there remained some work and will soon discover it is not true */
-		pthread_mutex_lock(sched_mutex);
-		total_number_of_jobs -= size;
-		pthread_mutex_unlock(sched_mutex);
+		job_itor_t i;
+		job_t next_job;
+		/* note that this starts at the _head_ of the list, so we put
+ 		 * elements at the back of the new list */
+		for(i = job_list_begin(old_list);
+			i != job_list_end(old_list);
+			i  = next_job)
+		{
+			next_job = job_list_next(i);
+
+			if (i->task->cl->where & where)
+			{
+				/* this elements can be moved into the new list */
+				new_list_size++;
+				
+				job_list_erase(old_list, i);
+				job_list_push_back(new_list, i);
+			}
+		}
+
+		if (new_list_size == 0)
+		{
+			/* the new list is empty ... */
+			job_list_delete(new_list);
+			new_list = NULL;
+		}
+		else
+		{
+			fifo_queue->njobs -= new_list_size;
+	
+			/* we are sure that we got it now, so at worst, some people thought
+			 * there remained some work and will soon discover it is not true */
+			pthread_mutex_lock(sched_mutex);
+			total_number_of_jobs -= new_list_size;
+			pthread_mutex_unlock(sched_mutex);
+		}
 	}
 
 	pthread_mutex_unlock(&q->activity_mutex);
 
-	return list;
+	return new_list;
 }
 
 /* for work stealing, typically */
@@ -222,30 +250,6 @@ job_t fifo_non_blocking_pop_task(struct jobq_s *q)
 	}
 	
 	pthread_mutex_unlock(&q->activity_mutex);
-
-	return j;
-}
-
-job_t fifo_non_blocking_pop_task_if_job_exists(struct jobq_s *q)
-{
-	job_t j;
-
-	j = fifo_non_blocking_pop_task(q);
-
-	if (!j) {
-		/* there is no job at all in the entire system : go to sleep ! */
-
-		/* that wait is not an absolute sign that there is some work 
-		 * if there is some, the thread should be awoken, but if there is none 
-		 * at the moment it is awoken, it may simply poll a limited number of 
-		 * times and just get back to sleep */
-		pthread_mutex_lock(sched_mutex);
-
-		if ((total_number_of_jobs == 0) && machine_is_running())
-			pthread_cond_wait(sched_cond, sched_mutex);
-
-		pthread_mutex_unlock(sched_mutex);
-	}
 
 	return j;
 }
