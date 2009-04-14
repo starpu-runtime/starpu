@@ -32,6 +32,9 @@ static starpu_codelet dummy_codelet =
 	.where = ANY,
 	.core_func = dummy_func,
 	.cublas_func = dummy_func,
+#ifdef SPU_FUNC_NULL
+	.gordon_func = SPU_FUNC_NULL,
+#endif
 	.model = NULL,
 	.nbuffers = 0
 };
