@@ -329,13 +329,7 @@ void *cuda_worker(void *arg)
 #endif
 	TRACE_NEW_WORKER(FUT_CUDA_KEY, memory_node);
 
-#ifndef DONTBIND
-        /* fix the thread on the correct cpu */
-        cpu_set_t aff_mask;
-        CPU_ZERO(&aff_mask);
-        CPU_SET(args->bindid, &aff_mask);
-        sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
-#endif
+	bind_thread_on_cpu(args->bindid);
 
 	set_local_memory_node_key(&(args->memory_node));
 

@@ -183,6 +183,17 @@ static void init_machine_config(struct machine_config_s *config,
 	}
 }
 
+void bind_thread_on_cpu(unsigned coreid)
+{
+#ifndef DONTBIND
+	/* fix the thread on the correct cpu */
+	cpu_set_t aff_mask;
+	CPU_ZERO(&aff_mask);
+	CPU_SET(coreid, &aff_mask);
+	sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
+#endif
+}
+
 static void init_workers_binding(struct machine_config_s *config)
 {
 	/* launch one thread per CPU */

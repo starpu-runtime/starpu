@@ -108,6 +108,7 @@ inline uint32_t worker_exists(uint32_t task_mask);
 inline uint32_t may_submit_cuda_task(void);
 inline uint32_t may_submit_core_task(void);
 
+void bind_thread_on_cpu(unsigned coreid);
 
 inline void lock_all_queues_attached_to_node(unsigned node);
 inline void unlock_all_queues_attached_to_node(unsigned node);

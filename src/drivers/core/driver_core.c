@@ -89,13 +89,7 @@ void *core_worker(void *arg)
 #endif
 	TRACE_NEW_WORKER(FUT_CORE_KEY, core_arg->memory_node);
 
-#ifndef DONTBIND
-	/* fix the thread on the correct cpu */
-	cpu_set_t aff_mask; 
-	CPU_ZERO(&aff_mask);
-	CPU_SET(core_arg->bindid, &aff_mask);
-	sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
-#endif
+	bind_thread_on_cpu(core_arg->bindid);
 
 #ifdef VERBOSE
         fprintf(stderr, "core worker %d is ready on logical core %d\n", core_arg->id, core_arg->bindid);

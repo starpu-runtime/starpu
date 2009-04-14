@@ -55,10 +55,7 @@ void *gordon_worker_progress(void *arg)
 	struct worker_set_s *gordon_set_arg = arg;
 	unsigned prog_thread_bind_id = 
 		(gordon_set_arg->workers[0].bindid + 1)%(sysconf(_SC_NPROCESSORS_ONLN));
-	cpu_set_t aff_mask; 
-	CPU_ZERO(&aff_mask);
-	CPU_SET(prog_thread_bind_id, &aff_mask);
-	sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
+	bind_thread_on_cpu(prog_thread_bind_id);
 #endif
 
 	pthread_mutex_lock(&progress_mutex);
@@ -442,14 +439,7 @@ void *gordon_worker(void *arg)
 {
 	struct worker_set_s *gordon_set_arg = arg;
 
-#ifndef DONTBIND
-	/* fix the thread on the correct cpu */
-	cpu_set_t aff_mask; 
-	CPU_ZERO(&aff_mask);
-	CPU_SET(gordon_set_arg->workers[0].bindid, &aff_mask);
-	sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
-#endif
-
+	bind_thread_on_cpu(gordon_set_arg->workers[0].bindid);
 
 	/* TODO set_local_memory_node per SPU */
 	gordon_init(gordon_set_arg->nworkers);	
