@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 		{
 			/* increment a = v[0] */
 			starpu_codelet cl_inc_a = {
-				.where = ANY,
+				.where = CORE|CUBLAS,
 				.core_func = core_codelet_incA,
 #ifdef USE_CUDA
 				.cublas_func = cuda_codelet_incA,
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 		{
 			/* increment c = v[2] */
 			starpu_codelet cl_inc_c = {
-				.where = ANY,
+				.where = CORE|CUBLAS,
 				.core_func = core_codelet_incC,
 #ifdef USE_CUDA
 				.cublas_func = cuda_codelet_incC,
