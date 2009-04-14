@@ -186,11 +186,21 @@ static void init_machine_config(struct machine_config_s *config,
 void bind_thread_on_cpu(unsigned coreid)
 {
 #ifndef DONTBIND
+	int ret;
+
 	/* fix the thread on the correct cpu */
 	cpu_set_t aff_mask;
 	CPU_ZERO(&aff_mask);
 	CPU_SET(coreid, &aff_mask);
-	sched_setaffinity(0, sizeof(aff_mask), &aff_mask);
+
+	pthread_t self = pthread_self();
+
+	ret = pthread_setaffinity_np(self, sizeof(aff_mask), &aff_mask);
+	if (ret)
+	{
+		perror("pthread_setaffinity_np");
+		STARPU_ASSERT(0);
+	}
 #endif
 }
 

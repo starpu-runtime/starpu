@@ -51,9 +51,9 @@ AC_SEARCH_LIBS([pthread_create],[pthread],,AC_MSG_ERROR([pthread library unavail
 AC_SEARCH_LIBS([sqrt],[m],,AC_MSG_ERROR([math library unavailable]))
 AC_SEARCH_LIBS([sysconf],[c],,AC_MSG_ERROR([sysconf unavailable]))
 
-AC_CHECK_FUNC(sched_setaffinity,
+# yes, that's non portable, but it's still better than sched_setaffinity
+AC_CHECK_FUNC(pthread_setaffinity_np,
 	[], [AC_DEFINE(DONTBIND, [1], [Threads are not bound on a CPU])])
-
 
 # There is no posix_memalign on Mac OS X
 AC_CHECK_FUNC(posix_memalign, have_posix_memalign=yes, have_posix_memalign=no)
