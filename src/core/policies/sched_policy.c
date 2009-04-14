@@ -17,6 +17,7 @@
 #include <pthread.h>
 
 #include <starpu.h>
+#include <common/config.h>
 #include <core/mechanisms/queues.h>
 #include <core/policies/sched_policy.h>
 #include <core/policies/no-prio-policy.h>
@@ -185,7 +186,11 @@ void wait_on_sched_event(void)
 	pthread_mutex_lock(&q->activity_mutex);
 
 	if (machine_is_running())
+	{
+#ifndef NON_BLOCKING_DRIVERS
 		pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
+#endif
+	}
 
 	pthread_mutex_unlock(&q->activity_mutex);
 }

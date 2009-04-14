@@ -125,7 +125,13 @@ job_t deque_pop_task(struct jobq_s *q)
 	pthread_mutex_lock(&q->activity_mutex);
 
 	if ((deque_queue->njobs == 0) && machine_is_running())
+	{
+#ifdef NON_BLOCKING_DRIVERS
+		datawizard_progress(q->memory_node);
+#else
 		pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
+#endif
+	}
 
 	if (deque_queue->njobs > 0) 
 	{

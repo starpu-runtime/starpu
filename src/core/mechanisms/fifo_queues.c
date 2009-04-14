@@ -126,7 +126,13 @@ job_t fifo_pop_task(struct jobq_s *q)
 	pthread_mutex_lock(&q->activity_mutex);
 
 	if ((fifo_queue->njobs == 0) && machine_is_running())
+	{
+#ifdef NON_BLOCKING_DRIVERS
+		datawizard_progress(q->memory_node);
+#else
 		pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
+#endif
+	}
 
 	if (fifo_queue->njobs > 0) 
 	{

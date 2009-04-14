@@ -218,6 +218,7 @@ AM_CONDITIONAL(USE_GORDON, test x$enable_gordon = xyes)
 
 if test x$enable_gordon = xyes; then
 	AC_DEFINE(USE_GORDON, [1], [Cell support is enabled])
+	AC_DEFINE(NON_BLOCKING_DRIVERS, [1], [drivers must progress])
 fi
 
 ###############################################################################
