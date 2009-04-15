@@ -65,6 +65,7 @@ int main(int argc, char **argv)
 	unsigned iter;
 	for (iter = 0; iter < K; iter++)
 	{
+		int ret;
 		unsigned ind;
 		for (ind = 0; ind < N; ind++)
 		{
@@ -86,7 +87,9 @@ int main(int argc, char **argv)
 
 			task->synchronous = 1;
 
-			starpu_submit_task(task);
+			ret = starpu_submit_task(task);
+			if (ret == -ENODEV)
+				goto enodev;
 		}
 
 		/* synchronize v in RAM */
@@ -118,7 +121,9 @@ int main(int argc, char **argv)
 
 			task->synchronous = 1;
 
-			starpu_submit_task(task);
+			ret = starpu_submit_task(task);
+			if (ret == -ENODEV)
+				goto enodev;
 		}
 
 	}
@@ -132,5 +137,11 @@ int main(int argc, char **argv)
 	if ((v[0] != N*K) || (v[1] != K) || (v[2] != N*K))
 		return -1;
 
+	return 0;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
 	return 0;
 }
