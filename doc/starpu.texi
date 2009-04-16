@@ -44,6 +44,11 @@ This manual documents the usage of StarPU
 @node Introduction
 @chapter Introduction to StarPU
 
+@section Motivation
+
+@c DSM
+
+@c explain the notion of codelet and task (ie. g(A, B)
 
 @c ---------------------------------------------------------------------
 @c Installing StarPU
@@ -183,6 +188,11 @@ garanteed to be available until this method has been called.
 @node Codelets and Tasks
 @section Codelets and Tasks
 
+@c TODO
+@node starpu_task_create
+
+@c Callbacks : what can we put in callbacks ?
+
 @section Extensions
 
 @subsection CUDA extensions
@@ -242,6 +252,10 @@ starpu_codelet cl =
 @};
 @end cartouche
 @end example
+
+A codelet is a structure that represents a computational kernel. Such a codelet
+may contain an implementation of the same kernel on different architectures
+(eg. CUDA, Cell's SPU, x86, ...).
 
 The ''@code{.nbuffers}'' field specifies the number of data buffers that are
 manipulated by the codelet: here the codelet does not access or modify any data
@@ -309,6 +323,41 @@ int main(int argc, char **argv)
 @end cartouche
 @end example
 
-@c the task is executed on the device/accelerator but the callback is always
-@c executed on the CPUs
+Before submitting any tasks to StarPU, @code{starpu_init} must be called. The
+@code{NULL} arguments specifies that we use default configuration. Tasks cannot
+be submitted after the termination of StarPU by a call to
+@code{starpu_shutdown}.
+
+In the example above, a task structure is allocated by a call to
+@code{starpu_task_create}. This function only allocate and fills the
+corresponding structure with the default settings (@xref{starpu_task_create}),
+but it does not submit the task to StarPU.
+
+@c not really clear ;)
+The ''@code{.cl}'' field is a pointer to the codelet which the task will
+execute: in other words, the codelet structure describes which computational
+kernel should be offloaded on the different architectures, and the task
+structure is a wrapper containing a codelet and the piece of data on which the
+codelet should operate.
+
+The optional ''@code{.cl_arg}'' field is a pointer to a buffer (of size
+@code{.cl_arg_size}) with some parameters for some parameters for the kernel
+described by the codelet. For instance, if a codelet implements a computational
+kernel that multiplies its input vector by a constant, the constant could be
+specified by the means of this buffer.
+
+Once a task has been executed, an optional callback function can be called.
+While the computational kernel could be offloaded on various architectures, the
+callback function is always executed on a CPU. The ''@code{.callback_arg}''
+pointer is passed as an argument of the callback. The prototype of a callback
+function must be:
+@example
+void (*callback_function)(void *);
+@end example
+
+If the @code{.synchronous} field is non-null, task submission will be
+synchronous: the @code{starpu_submit_task} function will not return until the
+task was executed. Note that the @code{starpu_shutdown} method does not
+guaranty that asynchronous tasks have been executed before it returns.
+
 @bye
