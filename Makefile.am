@@ -16,6 +16,8 @@
 
 .PHONY: examples
 
+CLEANFILES = *.gcno *.gcda *.linkinfo
+
 SUBDIRS = src tools examples tests 
 
 pkgconfigdir = $(libdir)/pkgconfig

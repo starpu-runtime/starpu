@@ -18,6 +18,8 @@ SUBDIRS =
 
 bin_PROGRAMS =
 
+CLEANFILES = *.gcno *.gcda *.linkinfo
+
 if USE_FXT
 bin_PROGRAMS += fxt-tool fxt-stats
 

@@ -17,6 +17,8 @@
 LIBS = $(top_builddir)/src/libstarpu.la @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/
 
+CLEANFILES = *.gcno *.gcda *.linkinfo
+
 if USE_CUDA
 
 # TODO define NVCCFLAGS

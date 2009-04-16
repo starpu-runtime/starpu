@@ -16,6 +16,8 @@
 
 SUBDIRS =
 
+CLEANFILES = *.gcno *.gcda *.linkinfo
+
 lib_LTLIBRARIES = libstarpu.la
 
 libstarpu_la_CPPFLAGS = -I$(top_srcdir)/include/
