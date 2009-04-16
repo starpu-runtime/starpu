@@ -31,10 +31,10 @@ This manual documents the usage of StarPU
 @comment  better formatting.
 @comment
 @menu
-* Introduction::   A basic introduction to using @code{StarPU}.
-                   How to run a @code{StarPU} program.
-* Building and Installing StarPU::
-                   How to build and install StarPU
+* Introduction::       A basic introduction to using StarPU.
+* Installing StarPU::  How to configure, build and install StarPU
+* StarPU API::         The API to use StarPU
+* A Basic Example::    A basic example of the use of StarPU
 @end menu
 
 @c ---------------------------------------------------------------------
@@ -42,8 +42,8 @@ This manual documents the usage of StarPU
 @c ---------------------------------------------------------------------
 
 @node Introduction
-@chapter Introduction To StarPU
-Pouet
+@chapter Introduction to StarPU
+
 
 @c ---------------------------------------------------------------------
 @c Installing StarPU
@@ -52,17 +52,17 @@ Pouet
 @node Installing StarPU
 @chapter Installing StarPU
 
-@code{StarPU} can be built and install by the standard means of the GNU
-autotools. The following chapter is intended to briefly remind how these tools
-can be used to install @code{StarPU}.
+StarPU can be built and install by the standard means of the GNU autotools. The
+following chapter is intended to briefly remind how these tools can be used to
+install StarPU.
 
 @section Configuring StarPU
 
 @subsection Generating Makefiles and configuration scripts
 
-This step is not necessary when using the tarball releases of @code{StarPU}.
-If you are using the source code from the svn repository, you first need to
-generate the configure scripts and the Makefiles.
+This step is not necessary when using the tarball releases of StarPU.  If you
+are using the source code from the svn repository, you first need to generate
+the configure scripts and the Makefiles.
 
 @example
 $ autoreconf -i
@@ -74,7 +74,7 @@ $ autoreconf -i
 $ configure
 @end example
 
-TODO enumerate the list of interesting options
+@c TODO enumerate the list of interesting options
 
 @section Building and Installing StarPU
 
@@ -86,8 +86,8 @@ $ make
 
 @subsection Sanity Checks
 
-In order to make sure that @code{StarPU} is working properly on the system, it
-is also possible to run a test suite.
+In order to make sure that StarPU is working properly on the system, it is also
+possible to run a test suite.
 
 @example
 $ make check
@@ -95,7 +95,8 @@ $ make check
 
 @subsection Installing
 
-In order to install @code{StarPU} at the location that was specified during configuration:
+In order to install StarPU at the location that was specified during
+configuration:
 
 @example
 $ make install
@@ -103,20 +104,20 @@ $ make install
 
 @subsection pkg-config configuration
 
-It is possible that compiling and linking an application against @code{StarPU}
+It is possible that compiling and linking an application against StarPU
 requires to use specific flags or libraries (for instance @code{CUDA} or
 @code{libspe2}). Therefore, it is possible to use the @code{pkg-config} tool.
 
-If @code{StarPU} was not installed at some standard location, the path of
-@code{StarPU}'s library must be specified in the @code{PKG_CONFIG_PATH}
-environment variable so that @code{pkg-config} can find it. So if @code{StarPU}
-was installed in @code{$(prefix_dir)}:
+If StarPU was not installed at some standard location, the path of StarPU's
+library must be specified in the @code{PKG_CONFIG_PATH} environment variable so
+that @code{pkg-config} can find it. So if StarPU was installed in
+@code{$(prefix_dir)}:
 
 @example
-$ PKG_CONFIG_PATH = ${PKG_CONFIG_PATH}:$(prefix_dir)/lib/
+$ PKG_CONFIG_PATH = @{PKG_CONFIG_PATH@}:$(prefix_dir)/lib/
 @end example
 
-The flags required to compiled or linked against @code{StarPU} are then
+The flags required to compiled or linked against StarPU are then
 accessible with the following commands:
 
 @example
@@ -125,10 +126,75 @@ $ pkg-config --libs libstarpu    # options for the linker
 @end example
 
 @c ---------------------------------------------------------------------
+@c StarPU API
+@c ---------------------------------------------------------------------
+
+@node StarPU API
+@chapter StarPU API
+
+@menu
+* Initialization and Termination::       Initialization and Termination methods
+* Data Library::                         Methods to manipulate data
+* Codelets and Tasks::                   Methods to construct tasks
+@end menu
+
+@node Initialization and Termination
+@section Initialization and Termination
+
+@menu
+* starpu_init::            Initialize StarPU
+* starpu_shutdown::        Terminate StarPU
+@end menu
+
+@node starpu_init
+@subsection @code{starpu_init} -- Initialize StarPU
+@table @asis
+
+@item @emph{Description}:
+This is StarPU initialization method, which must be called prior to any other
+StarPU call.  It is possible to specify StarPU's configuration (eg. scheduling
+policy, number of cores, ...) by passing a non-null argument. Default
+configuration is used if the passed argument is @code{NULL}.
+
+@item @emph{Prototype}:
+@code{void starpu_init(struct starpu_conf *conf);}
+
+@end table
+
+
+@node starpu_shutdown
+@subsection @code{starpu_shutdown} -- Terminate StarPU
+@table @asis
+
+@item @emph{Description}:
+This is StarPU termination method. It must be called at the end of the
+application: statistics and other post-mortem debugging information are not
+garanteed to be available until this method has been called.
+
+@item @emph{Prototype}:
+@code{void starpu_shutdown(void);}
+
+@end table
+
+
+@node Data Library
+@section Data Library
+
+@node Codelets and Tasks
+@section Codelets and Tasks
+
+@section Extensions
+
+@subsection CUDA extensions
+
+@subsection Cell extensions
+
+@c ---------------------------------------------------------------------
 @c A basic Example
 @c ---------------------------------------------------------------------
 
-@chapter A basic example
+@node A Basic Example
+@chapter A Basic Example
 
 @section Compiling and linking
 
