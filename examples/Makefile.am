@@ -73,6 +73,17 @@ noinst_HEADERS = 				\
 	spmv/dw_spmv.h				\
 	spmv/dw_block_spmv.h
 
+
+##################
+# Basic examples #
+##################
+
+examplebin_PROGRAMS +=				\
+	basic-examples/hello-world
+
+basic_examples_hello_world_SOURCES =		\
+	basic-examples/hello-world.c
+
 ################
 # Mult example #
 ################
