@@ -14,20 +14,4 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-CLEANFILES = *.gcno *.gcda *.linkinfo
-
-SUBDIRS = src tools examples tests doc 
-
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libstarpu.pc
-
-include_HEADERS = 				\
-	include/starpu.h			\
-	include/starpu_config.h			\
-	include/starpu-data-filters.h		\
-	include/starpu-data-interfaces.h	\
-	include/starpu-mutex.h			\
-	include/starpu-task.h			\
-	include/starpu-data.h			\
-	include/starpu-perfmodel.h		\
-	include/starpu-util.h
+info_TEXINFOS = starpu.texi

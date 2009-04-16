@@ -509,4 +509,5 @@ AC_OUTPUT([
 	libstarpu.pc
 	examples/Makefile
 	tests/Makefile
+	doc/Makefile
 ])

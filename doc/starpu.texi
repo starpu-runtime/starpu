@@ -1,0 +1,57 @@
+\input texinfo @c -*-texinfo-*-
+
+@c %**start of header
+@setfilename starpu.info
+@settitle StarPU
+@c %**end of header
+
+@setchapternewpage odd
+
+@titlepage
+@title StarPU
+@page
+@vskip 0pt plus 1filll
+@comment For the @value{version-GCC} Version*
+@end titlepage
+
+@summarycontents
+@contents
+@page
+
+@node Top
+@top Preface
+@cindex Preface
+
+This manual documents the usage of StarPU
+
+
+@comment
+@comment  When you add a new menu item, please keep the right hand
+@comment  aligned to the same column.  Do not use tabs.  This provides
+@comment  better formatting.
+@comment
+@menu
+* Introduction::   A basic introduction to using @code{StarPU}.
+                   How to run a @code{StarPU} program.
+* Building and Installing StarPU::
+                   How to build and install StarPU
+@end menu
+
+@c ---------------------------------------------------------------------
+@c Introduction to StarPU
+@c ---------------------------------------------------------------------
+
+@node Introduction
+@chapter Introduction To StarPU
+Pouet
+
+@c ---------------------------------------------------------------------
+@c Building and Installing StarPU
+@c ---------------------------------------------------------------------
+
+@node Building and Installing StarPU
+@chapter Building and Installing StarPU
+Pif
+
+
+@bye
