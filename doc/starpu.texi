@@ -34,7 +34,7 @@ This manual documents the usage of StarPU
 * Introduction::       A basic introduction to using StarPU.
 * Installing StarPU::  How to configure, build and install StarPU
 * StarPU API::         The API to use StarPU
-* A Basic Example::    A basic example of the use of StarPU
+* Basic Examples::     Basic examples of the use of StarPU
 @end menu
 
 @c ---------------------------------------------------------------------
@@ -190,14 +190,123 @@ garanteed to be available until this method has been called.
 @subsection Cell extensions
 
 @c ---------------------------------------------------------------------
-@c A basic Example
+@c Basic Examples
 @c ---------------------------------------------------------------------
 
-@node A Basic Example
-@chapter A Basic Example
+@node Basic Examples
+@chapter Basic Examples
 
-@section Compiling and linking
+@section Compiling and linking options
 
+The Makefile could for instance contain the following lines to define which
+options must be given to the compiler and to the linker:
+
+@example
+@cartouche
+CFLAGS+=$$(pkg-config --cflags libstarpu)
+LIBS+=$$(pkg-config --libs libstarpu)
+@end cartouche
+@end example
+
+@section Hello World
+
+In this section, we show a simple 
+
+@subsection Required Headers
+
+The @code{starpu.h} header should be included in any code using StarPU.
+
+@example 
+@cartouche
+#include <starpu.h>
+@end cartouche
+@end example
+
+
+@subsection Defining a Codelet
+
+@example
+@cartouche
+void cpu_func(starpu_data_interface_t *buffers, void *func_arg)
+@{
+    float *array = func_arg;
+
+    printf("Hello world (array = @{%f, %f@} )\n", array[0], array[1]);
+@}
+
+starpu_codelet cl =
+@{
+    .where = CORE,
+    .core_func = cpu_func,
+    .nbuffers = 0
+@};
+@end cartouche
+@end example
+
+The ''@code{.nbuffers}'' field specifies the number of data buffers that are
+manipulated by the codelet: here the codelet does not access or modify any data
+that is controlled by our data management library. Note that the argument
+passed to the codelet (the ''@code{.cl_arg}'' field of the @code{starpu_task}
+structure) does not count as a buffer since it is not managed by our data
+management library. 
+
+@c TODO need a crossref to the proper description of "where" see bla for more ...
+We create a codelet which may only execute on the CPUs. The ''@code{.where}''
+field is a bitmask that defines where the codelet may be executed. Here, the
+@code{CORE} value means that only CPUs can execute this codelet.
+When a CPU core executes a codelet, it calls the @code{.core_func} function,
+which @emph{must} have the following prototype:
+
+@code{void (*core_func)(starpu_data_interface_t *, void *)}
+
+In this example, we can ignore the first argument of this function gives a
+description of the input and output buffers (eg. the size and the location of
+the matrices). The second argument is a pointer to a buffer passed as an
+argument to the codelet by the means of the ''@code{.cl_arg}'' field of the
+@code{starpu_task} structure. Be aware that this may be a pointer to a
+@emph{copy} of the actual buffer, and not the pointer given by the programmer:
+if the codelet modifies this buffer, there is no garantee that the initial
+buffer will be modified as well: this for instance implies that the buffer
+cannot be used as a synchronization medium.
+
+@subsection Submitting a Task
+
+@example
+@cartouche
+void callback_func(void *callback_arg)
+@{
+    printf("Callback function (arg %x)\n", callback_arg);
+@}
+
+int main(int argc, char **argv)
+@{
+    /* initialize StarPU */
+    starpu_init(NULL);
+
+    struct starpu_task *task = starpu_task_create();
+
+    task->cl = &cl;
+    
+    float array[2] = {1.0f, -1.0f};
+    task->cl_arg = &array;
+    task->cl_arg_size = 2*sizeof(float);
+
+    task->callback_func = callback_func;
+    task->callback_arg = 0x42;
+
+    /* starpu_submit_task will be a blocking call */
+    task->synchronous = 1;
+
+    /* submit the task to StarPU */
+    starpu_submit_task(task);
+
+    /* terminate StarPU */
+    starpu_shutdown();
+
+    return 0;
+@}
+@end cartouche
+@end example
 
 
 @bye
