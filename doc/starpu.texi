@@ -46,12 +46,92 @@ This manual documents the usage of StarPU
 Pouet
 
 @c ---------------------------------------------------------------------
-@c Building and Installing StarPU
+@c Installing StarPU
 @c ---------------------------------------------------------------------
 
-@node Building and Installing StarPU
-@chapter Building and Installing StarPU
-Pif
+@node Installing StarPU
+@chapter Installing StarPU
+
+@code{StarPU} can be built and install by the standard means of the GNU
+autotools. The following chapter is intended to briefly remind how these tools
+can be used to install @code{StarPU}.
+
+@section Configuring StarPU
+
+@subsection Generating Makefiles and configuration scripts
+
+This step is not necessary when using the tarball releases of @code{StarPU}.
+If you are using the source code from the svn repository, you first need to
+generate the configure scripts and the Makefiles.
+
+@example
+$ autoreconf -i
+@end example
+
+@subsection Configuring StarPU
+
+@example
+$ configure
+@end example
+
+TODO enumerate the list of interesting options
+
+@section Building and Installing StarPU
+
+@subsection Building
+
+@example
+$ make
+@end example
+
+@subsection Sanity Checks
+
+In order to make sure that @code{StarPU} is working properly on the system, it
+is also possible to run a test suite.
+
+@example
+$ make check
+@end example
+
+@subsection Installing
+
+In order to install @code{StarPU} at the location that was specified during configuration:
+
+@example
+$ make install
+@end example
+
+@subsection pkg-config configuration
+
+It is possible that compiling and linking an application against @code{StarPU}
+requires to use specific flags or libraries (for instance @code{CUDA} or
+@code{libspe2}). Therefore, it is possible to use the @code{pkg-config} tool.
+
+If @code{StarPU} was not installed at some standard location, the path of
+@code{StarPU}'s library must be specified in the @code{PKG_CONFIG_PATH}
+environment variable so that @code{pkg-config} can find it. So if @code{StarPU}
+was installed in @code{$(prefix_dir)}:
+
+@example
+$ PKG_CONFIG_PATH = ${PKG_CONFIG_PATH}:$(prefix_dir)/lib/
+@end example
+
+The flags required to compiled or linked against @code{StarPU} are then
+accessible with the following commands:
+
+@example
+$ pkg-config --cflags libstarpu  # options for the compiler
+$ pkg-config --libs libstarpu    # options for the linker
+@end example
+
+@c ---------------------------------------------------------------------
+@c A basic Example
+@c ---------------------------------------------------------------------
+
+@chapter A basic example
+
+@section Compiling and linking
+
 
 
 @bye
