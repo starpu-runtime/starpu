@@ -22,26 +22,31 @@ void callback_func(void *callback_arg)
 	printf("Callback function got argument %x\n", callback_arg);
 }
 
-void core_func(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
+void cpu_func(starpu_data_interface_t *buffers, void *func_arg)
 {
-	printf("Hello world\n");
+	float *array = func_arg;
+
+	printf("Hello world (array = {%f, %f} )\n", array[0], array[1]);
 }
+
+starpu_codelet cl =
+{
+	.where = CORE,
+	.core_func = cpu_func,
+	.nbuffers = 0
+};
 
 int main(int argc, char **argv)
 {
 	/* initialize StarPU */
 	starpu_init(NULL);
-
-	starpu_codelet cl =
-	{
-		.where = CORE,
-		.core_func = core_func,
-		.nbuffers = 0
-	};
-
 	struct starpu_task *task = starpu_task_create();
 
 	task->cl = &cl;
+
+	float array[2] = {1.0f, -1.0f};
+	task->cl_arg = &array;
+	task->cl_arg_size = 2*sizeof(float);
 		
 	task->callback_func = callback_func;
 	task->callback_arg = 0x42;

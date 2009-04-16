@@ -210,7 +210,7 @@ LIBS+=$$(pkg-config --libs libstarpu)
 
 @section Hello World
 
-In this section, we show a simple 
+In this section, we show how to implement a simple program that submits a task to StarPU.
 
 @subsection Required Headers
 
@@ -251,9 +251,10 @@ structure) does not count as a buffer since it is not managed by our data
 management library. 
 
 @c TODO need a crossref to the proper description of "where" see bla for more ...
-We create a codelet which may only execute on the CPUs. The ''@code{.where}''
+We create a codelet which may only be executed on the CPUs. The ''@code{.where}''
 field is a bitmask that defines where the codelet may be executed. Here, the
-@code{CORE} value means that only CPUs can execute this codelet.
+@code{CORE} value means that only CPUs can execute this codelet
+(@xref{Codelets and Tasks} for more details on that field).
 When a CPU core executes a codelet, it calls the @code{.core_func} function,
 which @emph{must} have the following prototype:
 
@@ -287,7 +288,7 @@ int main(int argc, char **argv)
 
     task->cl = &cl;
     
-    float array[2] = {1.0f, -1.0f};
+    float array[2] = @{1.0f, -1.0f@};
     task->cl_arg = &array;
     task->cl_arg_size = 2*sizeof(float);
 
@@ -308,5 +309,6 @@ int main(int argc, char **argv)
 @end cartouche
 @end example
 
-
+@c the task is executed on the device/accelerator but the callback is always
+@c executed on the CPUs
 @bye
