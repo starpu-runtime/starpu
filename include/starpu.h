@@ -26,6 +26,8 @@
 #include <starpu-perfmodel.h>
 #include <starpu-task.h>
 
+/* TODO: should either make 0 be the default, or provide an initializer, to
+ * make future extensions not problematic */
 struct starpu_conf {
 	/* which scheduling policy should be used ? (NULL for default) */
 	const char *sched_policy;
