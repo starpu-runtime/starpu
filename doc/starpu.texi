@@ -268,7 +268,7 @@ management library.
 We create a codelet which may only be executed on the CPUs. The ''@code{.where}''
 field is a bitmask that defines where the codelet may be executed. Here, the
 @code{CORE} value means that only CPUs can execute this codelet
-(@xref{Codelets and Tasks} for more details on that field).
+(@pxref{Codelets and Tasks} for more details on that field).
 When a CPU core executes a codelet, it calls the @code{.core_func} function,
 which @emph{must} have the following prototype:
 
@@ -330,7 +330,7 @@ be submitted after the termination of StarPU by a call to
 
 In the example above, a task structure is allocated by a call to
 @code{starpu_task_create}. This function only allocate and fills the
-corresponding structure with the default settings (@xref{starpu_task_create}),
+corresponding structure with the default settings (@pxref{starpu_task_create}),
 but it does not submit the task to StarPU.
 
 @c not really clear ;)
