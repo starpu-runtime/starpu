@@ -15,11 +15,12 @@
  */
 
 #include <stdio.h>
+#include <stdint.h>
 #include <starpu.h>
 
 void callback_func(void *callback_arg)
 {
-	printf("Callback function got argument %x\n", callback_arg);
+	printf("Callback function got argument %p\n", callback_arg);
 }
 
 void cpu_func(starpu_data_interface_t *buffers, void *func_arg)
@@ -49,7 +50,7 @@ int main(int argc, char **argv)
 	task->cl_arg_size = 2*sizeof(float);
 		
 	task->callback_func = callback_func;
-	task->callback_arg = 0x42;
+	task->callback_arg = (void*) (uintptr_t) 0x42;
 
 	/* starpu_submit_task will be a blocking call */
 	task->synchronous = 1;
