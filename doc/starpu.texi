@@ -57,9 +57,9 @@ This manual documents the usage of StarPU
 @node Installing StarPU
 @chapter Installing StarPU
 
-StarPU can be built and install by the standard means of the GNU autotools. The
-following chapter is intended to briefly remind how these tools can be used to
-install StarPU.
+StarPU can be built and installed by the standard means of the GNU
+autotools. The following chapter is intended to briefly remind how these tools
+can be used to install StarPU.
 
 @section Configuring StarPU
 
@@ -76,7 +76,7 @@ $ autoreconf -i
 @subsection Configuring StarPU
 
 @example
-$ configure
+$ ./configure
 @end example
 
 @c TODO enumerate the list of interesting options
@@ -104,7 +104,7 @@ In order to install StarPU at the location that was specified during
 configuration:
 
 @example
-$ make install
+# make install
 @end example
 
 @subsection pkg-config configuration
@@ -119,6 +119,7 @@ that @code{pkg-config} can find it. So if StarPU was installed in
 @code{$(prefix_dir)}:
 
 @example
+@c TODO: heu, c'est vraiment du shell ça ? :)
 $ PKG_CONFIG_PATH = @{PKG_CONFIG_PATH@}:$(prefix_dir)/lib/
 @end example
 
@@ -274,7 +275,7 @@ which @emph{must} have the following prototype:
 
 @code{void (*core_func)(starpu_data_interface_t *, void *)}
 
-In this example, we can ignore the first argument of this function gives a
+In this example, we can ignore the first argument of this function which gives a
 description of the input and output buffers (eg. the size and the location of
 the matrices). The second argument is a pointer to a buffer passed as an
 argument to the codelet by the means of the ''@code{.cl_arg}'' field of the
