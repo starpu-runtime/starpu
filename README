@@ -8,7 +8,7 @@
 StarPU is a runtime system that offers support for heterogeneous multicore
 machines. While many efforts are devoted to design efficient computation kernels
 for those architectures (eg. to implement BLAS kernels on GPUs or on Cell's
-SPUs), StarPU not only takes care to offload such kernels (and to implement
+SPUs), StarPU not only takes care of offloading such kernels (and implementing
 data coherency accross the machine), but it also makes sure the kernels are
 executed as efficiently as possible.
 
@@ -31,7 +31,7 @@ also affect the overall performance to a great extent.
 
 StarPU is especially helpful when considering multiple heterogeneous processing
 resources: statically mapping and synchronizing tasks in such a heterogeneous
-environment is very difficult, but making it in a portable way is virtually
+environment is already very difficult, making it in a portable way is virtually
 impossible. On the other hand, the scheduling capabilities of StarPU makes it
 possible to easily exploit all processors at the same time while taking
 advantage of their specificities in a portable fashion.
