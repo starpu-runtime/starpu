@@ -537,7 +537,7 @@ void scal_func(starpu_data_interface_t *buffers, void *arg)
     float *val = (float *)buffers[0].vector.ptr;
 
     for (i = 0; i < n; i++)
-        val[0] *= *factor;
+        val[i] *= *factor;
 @}
 
 starpu_codelet cl = @{
