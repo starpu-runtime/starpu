@@ -21,6 +21,8 @@ TESTS = $(check_PROGRAMS)
 
 check_PROGRAMS =
 
+BUILT_SOURCES =
+
 EXTRA_DIST = 					\
 	cuda/incrementer_cuda.cu		\
 	cuda/spmv_cuda.cu
@@ -44,9 +46,25 @@ NVCC ?= nvcc
 	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
 
 
-BUILT_SOURCES =					\
+BUILT_SOURCES +=				\
 	cuda/incrementer_cuda.cubin		\
 	cuda/spmv_cuda.cubin			
+
+endif
+
+if USE_GORDON
+
+SPU_CC ?= spu-gcc
+SPU_LD ?= spu-ld
+
+SPULDFLAGS = 
+SPULIBS = -lblas
+
+.c.spuo:
+	$(SPU_CC) -c -fpic $< -o $@
+
+.spuo.spuelf:
+	$(SPU_LD) $(SPULDFLAGS) $< -o $@ $(SPULIBS)
 
 endif
 
@@ -109,6 +127,13 @@ mult_dw_mult_no_stride_no_tag_SOURCES =		\
 	mult/dw_mult_no_stride_no_tag.c		\
 	common/blas.c				\
 	common/blas_model.c
+
+if USE_GORDON
+
+BUILT_SOURCES +=				\
+	mult/gordon/func_sgemm_ibm.spuelf
+
+endif
 
 endif
 

@@ -15,6 +15,9 @@
  */
 
 #include "dw_mult.h"
+#ifdef USE_GORDON
+#include "gordon/func_sgemm_ibm.h"
+#endif
 
 static pthread_mutex_t mutex;
 static pthread_cond_t cond;
@@ -323,15 +326,34 @@ static starpu_codelet cl = {
 	.cublas_func = cublas_mult,
 #endif
 #ifdef USE_GORDON
-#ifdef SPU_FUNC_SGEMM
-	.gordon_func = SPU_FUNC_SGEMM,
-#else
-#warning SPU_FUNC_SGEMM is not available
+	/* .gordon_func will be set by load_elf_sgemm */
 #endif
-#endif
+
+	.model = &sgemm_model,
 	.where = CORE|CUBLAS|GORDON,
 	.nbuffers = 3
 };
+
+#ifdef USE_GORDON
+static const char *spu_func_sgemm_elf_file = "./gordon/func_sgemm_ibm.spuelf";
+static unsigned spu_func_sgemm_elf_id;
+static unsigned spu_func_sgemm_ibm_id;
+
+static void load_elf_sgemm(void)
+{
+	spu_func_sgemm_elf_id =
+		gordon_register_elf_plugin(spu_func_sgemm_elf_file);
+
+	spu_func_sgemm_ibm_id = gordon_register_kernel(spu_func_sgemm_elf_id, "func_sgemm_ibm");
+
+	
+	gordon_load_plugin_on_all_spu(spu_func_sgemm_elf_id);
+	gordon_load_kernel_on_all_spu(spu_func_sgemm_ibm_id);
+
+	cl.gordon_func = spu_func_sgemm_ibm_id;
+}
+
+#endif // USE_GORDON
 
 static struct starpu_task *construct_task(unsigned x, unsigned y, unsigned z, unsigned iter)
 {
@@ -340,7 +362,7 @@ static struct starpu_task *construct_task(unsigned x, unsigned y, unsigned z, un
 	task->cl = &cl;
 
 	task->cl_arg = &conf;
-	task->cl_arg_size = sizeof(struct block_conf);
+	task->cl_arg_size = sizeof(struct ibm_sgemm_block_conf);
 
 	task->use_tag = 1;
 	task->tag_id = TAG(z, y, x, iter);
@@ -463,6 +485,10 @@ int main(__attribute__ ((unused)) int argc,
 
 	/* start the runtime */
 	starpu_init(NULL);
+
+#ifdef USE_GORDON
+	load_elf_sgemm();
+#endif
 
 	pthread_mutex_init(&mutex, NULL);
 	pthread_cond_init(&cond, NULL);

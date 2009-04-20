@@ -27,7 +27,6 @@
 #include <common/blas.h>
 #include <common/blas_model.h>
 
-#include <starpu_config.h>
 #include <starpu.h>
 
 #ifdef USE_CUDA
@@ -35,9 +34,13 @@
 #include <cublas.h>
 #endif
 
-#define MAXSLICESX	32
-#define MAXSLICESY	32
-#define MAXSLICESZ	32
+#ifdef USE_GORDON
+#include <cell/gordon/spu/functions.h> 
+#endif
+
+#define MAXSLICESX	64
+#define MAXSLICESY	64
+#define MAXSLICESZ	64
 
 #define BLAS3_FLOP(n1,n2,n3)	\
 	(2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
