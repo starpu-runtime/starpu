@@ -234,12 +234,24 @@ static void gordon_callback_list_func(void *arg)
 
 //	fprintf(stderr, "gordon callback : push job j %p\n", task_wrapper->j);
 
+	unsigned task_cnt = 0;
+
 	/* XXX 0 was hardcoded */
 	take_mutex(&terminated_list_mutexes[0]);
 	while (!job_list_empty(wrapper_list))
 	{
 		job_t j = job_list_pop_back(wrapper_list);
+
+		struct gordon_ppu_job_s * gordon_task = &task_wrapper->gordon_job[task_cnt];
+		
+		if (j->task->cl->model && j->task->cl->model->benchmarking)
+		{
+			//fprintf(stderr, "gordon_task -> execution time %lx\n", gordon_task->measured);
+			update_perfmodel_history(j, STARPU_GORDON_DEFAULT, gordon_task->measured);
+		}
+
 		job_list_push_back(terminated_list, j);
+		task_cnt++;
 	}
 
 	/* the job list was allocated by the gordon driver itself */
@@ -337,6 +349,9 @@ int inject_task_list(struct job_list_s *list, struct worker_s *worker)
 		STARPU_ASSERT(!ret);
 
 		gordon_jobs[index].index = task->cl->gordon_func;
+
+		if (j->task->cl->model && j->task->cl->model->benchmarking)
+			gordon_jobs[index].sampling = 1;
 
 		/* we should not hardcore the memory node ... XXX */
 		unsigned memory_node = 0;

@@ -37,6 +37,31 @@ static job_t dm_pop_task(struct jobq_s *q)
 	return j;
 }
 
+static struct job_list_s *dm_pop_every_task(struct jobq_s *q, uint32_t where)
+{
+	struct job_list_s *new_list;
+
+	new_list = fifo_pop_every_task(q, where);
+	if (new_list) {
+		job_itor_t i;
+		for(i = job_list_begin(new_list);
+			i != job_list_end(new_list);
+			i = job_list_next(i))
+		{
+			struct fifo_jobq_s *fifo = q->queue;
+			double model = i->predicted;
+	
+			fifo->exp_len -= model;
+			fifo->exp_start = timing_now()/1000000 + model;
+			fifo->exp_end = fifo->exp_start + fifo->exp_len;
+		}
+	}
+
+	return new_list;
+}
+
+
+
 static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)), job_t j, unsigned prio)
 {
 	/* find the queue */
@@ -130,6 +155,7 @@ static struct jobq_s *init_dm_fifo(void)
 	q->push_task = dm_push_task; 
 	q->push_prio_task = dm_push_prio_task; 
 	q->pop_task = dm_pop_task;
+	q->pop_every_task = dm_pop_every_task;
 	q->who = 0;
 
 	queue_array[nworkers++] = q;

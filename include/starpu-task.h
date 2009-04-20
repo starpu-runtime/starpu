@@ -17,6 +17,7 @@
 #ifndef __STARPU_TASK_H__
 #define __STARPU_TASK_H__
 
+#include <errno.h>
 #include <starpu_config.h>
 
 /* this is a randomly choosen value ... */

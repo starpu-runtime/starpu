@@ -155,6 +155,70 @@ job_t deque_pop_task(struct jobq_s *q)
 	return j;
 }
 
+struct job_list_s * deque_pop_every_task(struct jobq_s *q, uint32_t where)
+{
+	struct job_list_s *new_list, *old_list;
+
+	STARPU_ASSERT(q);
+	struct deque_jobq_s *deque_queue = q->queue;
+
+	/* block until some task is available in that queue */
+	pthread_mutex_lock(&q->activity_mutex);
+
+	if (deque_queue->njobs == 0)
+	{
+		new_list = NULL;
+	}
+	else {
+		/* there is a task */
+		old_list = deque_queue->jobq;
+		new_list = job_list_new();
+
+		unsigned new_list_size = 0;
+
+		job_itor_t i;
+		job_t next_job;
+		/* note that this starts at the _head_ of the list, so we put
+ 		 * elements at the back of the new list */
+		for(i = job_list_begin(old_list);
+			i != job_list_end(old_list);
+			i  = next_job)
+		{
+			next_job = job_list_next(i);
+
+			if (i->task->cl->where & where)
+			{
+				/* this elements can be moved into the new list */
+				new_list_size++;
+				
+				job_list_erase(old_list, i);
+				job_list_push_back(new_list, i);
+			}
+		}
+
+		if (new_list_size == 0)
+		{
+			/* the new list is empty ... */
+			job_list_delete(new_list);
+			new_list = NULL;
+		}
+		else
+		{
+			deque_queue->njobs -= new_list_size;
+	
+			/* we are sure that we got it now, so at worst, some people thought
+			 * there remained some work and will soon discover it is not true */
+			pthread_mutex_lock(sched_mutex);
+			total_number_of_jobs -= new_list_size;
+			pthread_mutex_unlock(sched_mutex);
+		}
+	}
+	
+	pthread_mutex_unlock(&q->activity_mutex);
+
+	return new_list;
+}
+
 job_t deque_non_blocking_pop_task(struct jobq_s *q)
 {
 	job_t j = NULL;
