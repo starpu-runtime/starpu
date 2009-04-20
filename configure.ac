@@ -167,7 +167,11 @@ if test x$enable_gordon = xyes -o x$enable_gordon = xmaybe; then
 	# do we have a valid Gordon setup ?
 	have_valid_gordon=yes
 	
+	# can we use dynamic code loading facilities ?
+	AC_CHECK_LIB(elf, elf_memory,, [have_valid_gordon=no])
+
 	AC_CHECK_LIB(spe2, spe_context_create,,[have_valid_gordon=no])
+	AC_CHECK_FUNC(spe_in_mbox_write, [], [have_valid_gordon=no])
 
 	if test -d "$gordon_dir"; then
 		CPPFLAGS="${CPPFLAGS} -I$gordon_dir/ "
