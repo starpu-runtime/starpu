@@ -32,7 +32,7 @@ NVCCFLAGS += -I$(top_srcdir)/include/
 	$(MKDIR_P) `dirname $@`
 	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
 
-.cu.cuo:
+.cu.o:
 	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
 
 endif

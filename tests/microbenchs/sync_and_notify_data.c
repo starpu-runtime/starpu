@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <errno.h>
 #include <starpu.h>
 
 #ifdef USE_GORDON
