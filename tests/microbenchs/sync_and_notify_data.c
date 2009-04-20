@@ -18,6 +18,10 @@
 #include <unistd.h>
 #include <starpu.h>
 
+#ifdef USE_GORDON
+#include <cell/gordon/gordon.h>
+#endif
+
 #define N	100
 #define K	256
 
@@ -41,8 +45,10 @@ void cuda_codelet_incA(starpu_data_interface_t *buffers, __attribute__ ((unused)
 void cuda_codelet_incC(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args);
 #endif
 
+#define VECTORSIZE	16
+
 starpu_data_handle v_handle;
-unsigned v[3] = {0, 0, 0};
+static unsigned v[VECTORSIZE] __attribute__((aligned(128))) = {0, 0, 0, 0};
 
 void core_codelet_incA(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
@@ -60,7 +66,20 @@ int main(int argc, char **argv)
 {
 	starpu_init(NULL);
 
-	starpu_monitor_vector_data(&v_handle, 0, (uintptr_t)v, 3, sizeof(unsigned));
+#ifdef USE_GORDON
+	unsigned elf_id = gordon_register_elf_plugin("./microbenchs/sync_and_notify_data_gordon_kernels.spuelf");
+	gordon_load_plugin_on_all_spu(elf_id);
+
+	unsigned kernel_incA_id = gordon_register_kernel(elf_id, "incA");
+	gordon_load_kernel_on_all_spu(kernel_incA_id);
+
+	unsigned kernel_incC_id = gordon_register_kernel(elf_id, "incC");
+	gordon_load_kernel_on_all_spu(kernel_incC_id);
+
+	fprintf(stderr, "kernel incA %d incC %d elf %d\n", kernel_incA_id, kernel_incC_id, elf_id);
+#endif
+	
+	starpu_monitor_vector_data(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 
 	unsigned iter;
 	for (iter = 0; iter < K; iter++)
@@ -71,10 +90,13 @@ int main(int argc, char **argv)
 		{
 			/* increment a = v[0] */
 			starpu_codelet cl_inc_a = {
-				.where = CORE|CUBLAS,
+				.where = CORE|CUBLAS|GORDON,
 				.core_func = core_codelet_incA,
 #ifdef USE_CUDA
 				.cublas_func = cuda_codelet_incA,
+#endif
+#ifdef USE_GORDON
+				.gordon_func = kernel_incA_id,
 #endif
 				.nbuffers = 1
 			};
@@ -105,10 +127,13 @@ int main(int argc, char **argv)
 		{
 			/* increment c = v[2] */
 			starpu_codelet cl_inc_c = {
-				.where = CORE|CUBLAS,
+				.where = CORE|CUBLAS|GORDON,
 				.core_func = core_codelet_incC,
 #ifdef USE_CUDA
 				.cublas_func = cuda_codelet_incC,
+#endif
+#ifdef USE_GORDON
+				.gordon_func = kernel_incC_id,
 #endif
 				.nbuffers = 1
 			};

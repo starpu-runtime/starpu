@@ -19,6 +19,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
+BUILT_SOURCES =
+
 if USE_CUDA
 
 # TODO define NVCCFLAGS
@@ -30,11 +32,23 @@ NVCCFLAGS += -I$(top_srcdir)/include/
 	$(MKDIR_P) `dirname $@`
 	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
 
-.cu.o:
+.cu.cuo:
 	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
 
 endif
 
+if USE_GORDON
+
+SPU_CC ?= spu-gcc
+SPU_LD ?= spu-ld
+
+.c.spuo:
+	$(SPU_CC) -c -fpic $< -o $@
+
+.spuo.spuelf:
+	$(SPU_LD) $< -o $@
+
+endif
 
 SUBDIRS = 
 
@@ -57,15 +71,15 @@ microbenchs_sync_tasks_overhead_SOURCES =	\
 microbenchs_tag_wait_api_SOURCES =		\
 	microbenchs/tag-wait-api.c
 
-if USE_CUDA
-
-microbenchs_sync_and_notify_data_SOURCES =	\
-	microbenchs/sync_and_notify_data.c	\
-	microbenchs/sync_and_notify_data_kernels.cu
-
-else
-
 microbenchs_sync_and_notify_data_SOURCES =	\
 	microbenchs/sync_and_notify_data.c
 
+if USE_CUDA
+microbenchs_sync_and_notify_data_SOURCES +=	\
+	microbenchs/sync_and_notify_data_kernels.cu
+endif
+
+if USE_GORDON
+BUILT_SOURCES += 				\
+	microbenchs/sync_and_notify_data_gordon_kernels.spuelf
 endif
