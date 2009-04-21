@@ -44,7 +44,38 @@ This manual documents the usage of StarPU
 @node Introduction
 @chapter Introduction to StarPU
 
+@menu
+* Motivation::             Why StarPU ?
+* StarPU in a Nutshell::   The Fundamentals of StarPU
+@end menu
+
+@node Motivation
 @section Motivation
+
+@c complex machines with heterogeneous cores/devices
+The use of specialized hardware such as accelerators or coprocessors offers an
+interesting approach to overcome  the physical limits encountered by processor
+architects. As a result, many machines are now equipped with one or several
+accelerators (eg. a GPU), in addition to the usual processor(s). While a lot of
+efforts have been devoted to offload computation onto such accelerators, very
+few attention as been paid to portability concerns on the one hand, and to the
+possibility of having heterogeneous accelerators and processors to interact.
+
+StarPU is a runtime system that offers support for heterogeneous multicore
+architectures, it not only offers a unified view of the computational resources
+(ie. CPUs and accelerators at the same time), but it also takes care to
+efficiently map and execute tasks onto an heterogeneous machine while
+transparently handling low-level issues in a portable fashion.
+
+@c this leads to a complicated distributed memory design
+@c which is not (easily) manageable by hand
+
+@c added value/benefits of StarPU
+@c   - portability
+@c   - scheduling, perf. portability
+
+@node StarPU in a Nutshell
+@section StarPU in a Nutshell
 
 @c DSM
 
@@ -319,6 +350,14 @@ TODO
 @node Basic Examples
 @chapter Basic Examples
 
+@menu
+* Compiling and linking::        Compiling and Linking Options
+* Hello World::                  Submitting Tasks
+* Scaling a Vector::             Manipulating Data
+* Scaling a Vector (hybrid)::    Handling Heterogeneous Architectures
+@end menu
+
+@node Compiling and linking
 @section Compiling and linking options
 
 The Makefile could for instance contain the following lines to define which
@@ -331,6 +370,7 @@ LIBS+=$$(pkg-config --libs libstarpu)
 @c @end cartouche
 @end example
 
+@node Hello World
 @section Hello World
 
 In this section, we show how to implement a simple program that submits a task to StarPU.
@@ -473,6 +513,7 @@ synchronous: the @code{starpu_submit_task} function will not return until the
 task was executed. Note that the @code{starpu_shutdown} method does not
 guarantee that asynchronous tasks have been executed before it returns.
 
+@node Scaling a Vector
 @section Manipulating Data: Scaling a Vector
 
 The previous example has shown how to submit tasks, in this section we show how
@@ -563,6 +604,7 @@ is accessible in the @code{.vector.ptr} (resp. @code{.vector.nx}) of this
 array. Since the vector is accessed in a read-write fashion, any modification
 will automatically affect future accesses to that vector made by other tasks.
 
+@node Scaling a Vector (hybrid)
 @section Vector Scaling on an Hybrid CPU/GPU Machine
 
 Contrary to the previous examples, the task submitted in the example may not
