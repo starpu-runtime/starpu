@@ -230,11 +230,11 @@ struct starpu_task *compute_add_sub_op(starpu_data_handle C, enum operation op, 
 	uint64_t j_tag = current_tag++;
 
 	task->buffers[0].state = C;
-	task->buffers[0].mode = W;
+	task->buffers[0].mode = STARPU_W;
 	task->buffers[1].state = A;
-	task->buffers[1].mode = R;
+	task->buffers[1].mode = STARPU_R;
 	task->buffers[2].state = B;
-	task->buffers[2].mode = R;
+	task->buffers[2].mode = STARPU_R;
 
 	task->callback_func = NULL;
 
@@ -285,9 +285,9 @@ struct starpu_task *compute_self_add_sub_op(starpu_data_handle C, enum operation
 	uint64_t j_tag = current_tag++;
 
 	task->buffers[0].state = C;
-	task->buffers[0].mode = RW;
+	task->buffers[0].mode = STARPU_RW;
 	task->buffers[1].state = A;
-	task->buffers[1].mode = R;
+	task->buffers[1].mode = STARPU_R;
 
 	task->callback_func = NULL;
 

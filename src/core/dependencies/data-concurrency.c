@@ -48,13 +48,13 @@ static unsigned may_unlock_data_req_list_head(data_state *data)
 	if (data->refcnt == 0)
 		return 1;
 
-	if (data->current_mode == W)
+	if (data->current_mode == STARPU_W)
 		return 0;
 
-	/* data->current_mode == R, so we can process more readers */
+	/* data->current_mode == STARPU_R, so we can process more readers */
 	data_requester_t r = data_requester_list_front(data->req_list);
 	
-	return (r->mode == R);
+	return (r->mode == STARPU_R);
 }
 
 
@@ -77,7 +77,7 @@ unsigned attempt_to_submit_data_request_from_apps(data_state *data, starpu_acces
 	else
 	{
 		/* there is already someone that may access the data */
-		if ( (mode == R) && (data->current_mode == R))
+		if ( (mode == STARPU_R) && (data->current_mode == STARPU_R))
 		{
 			data->refcnt++;
 
@@ -128,7 +128,7 @@ static unsigned attempt_to_submit_data_request_from_job(job_t j, unsigned buffer
 	else
 	{
 		/* there is already someone that may access the data */
-		if ( (mode == R) && (data->current_mode == R))
+		if ( (mode == STARPU_R) && (data->current_mode == STARPU_R))
 		{
 			data->refcnt++;
 

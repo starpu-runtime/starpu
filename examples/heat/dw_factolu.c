@@ -101,7 +101,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 
 			task->buffers[0].state =
 				get_sub_data(args->dataA, 2, k+1, k+1);
-			task->buffers[0].mode = RW;
+			task->buffers[0].mode = STARPU_RW;
 	
 		u11arg->dataA = args->dataA;
 		u11arg->i = k + 1;
@@ -140,10 +140,10 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 
 					task21->buffers[0].state = 
 						get_sub_data(args->dataA, 2, u21a->i, u21a->i);
-					task21->buffers[0].mode = R;
+					task21->buffers[0].mode = STARPU_R;
 					task21->buffers[1].state =
 						get_sub_data(args->dataA, 2, u21a->i, u21a->k);
-					task21->buffers[1].mode = RW;
+					task21->buffers[1].mode = STARPU_RW;
 		
 					starpu_submit_task(task21);
 				}
@@ -175,9 +175,9 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					u12a->sem = args->sem;
 
 					task12->buffers[0].state = get_sub_data(args->dataA, 2, u12a->i, u12a->i); 
-					task12->buffers[0].mode = R;
+					task12->buffers[0].mode = STARPU_R;
 					task12->buffers[1].state = get_sub_data(args->dataA, 2, u12a->k, u12a->i); 
-					task12->buffers[1].mode = RW;
+					task12->buffers[1].mode = STARPU_RW;
 					
 					starpu_submit_task(task12);
 				}
@@ -228,13 +228,13 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				u22a->sem = args->sem;
 
 				task22->buffers[0].state = get_sub_data(args->dataA, 2, u22a->i, u22a->k);
-				task22->buffers[0].mode = R;
+				task22->buffers[0].mode = STARPU_R;
 
 				task22->buffers[1].state = get_sub_data(args->dataA, 2, u22a->k, u22a->j);
-				task22->buffers[1].mode = R;
+				task22->buffers[1].mode = STARPU_R;
 
 				task22->buffers[2].state = get_sub_data(args->dataA, 2, u22a->i, u22a->j);
-				task22->buffers[2].mode = RW;
+				task22->buffers[2].mode = STARPU_RW;
 				
 				/* schedule that codelet */
 				if (slicey == i+1) 
@@ -288,13 +288,13 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				u22a->sem = args->sem;
 
 				task22->buffers[0].state = get_sub_data(args->dataA, 2, u22a->i, u22a->k);
-				task22->buffers[0].mode = R;
+				task22->buffers[0].mode = STARPU_R;
 
 				task22->buffers[1].state = get_sub_data(args->dataA, 2, u22a->k, u22a->j);
-				task22->buffers[1].mode = R;
+				task22->buffers[1].mode = STARPU_R;
 
 				task22->buffers[2].state = get_sub_data(args->dataA, 2, u22a->i, u22a->j);
-				task22->buffers[2].mode = RW;
+				task22->buffers[2].mode = STARPU_RW;
 				
 				/* schedule that codelet */
 				if (slicex == i+1)
@@ -358,9 +358,9 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					u12a->sem = args->sem;
 
 					task12->buffers[0].state = get_sub_data(args->dataA, 2, u12a->i, u12a->i); 
-					task12->buffers[0].mode = R;
+					task12->buffers[0].mode = STARPU_R;
 					task12->buffers[1].state = get_sub_data(args->dataA, 2, u12a->k, u12a->i); 
-					task12->buffers[1].mode = RW;
+					task12->buffers[1].mode = STARPU_RW;
 
 					if (slice == i +1) 
 						task12->priority = MAX_PRIO;
@@ -396,9 +396,9 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					u21a->sem = args->sem;
 
 					task21->buffers[0].state = get_sub_data(args->dataA, 2, u21a->i, u21a->i);
-					task21->buffers[0].mode = R;
+					task21->buffers[0].mode = STARPU_R;
 					task21->buffers[1].state = get_sub_data(args->dataA, 2, u21a->i, u21a->k);
-					task21->buffers[1].mode = RW;
+					task21->buffers[1].mode = STARPU_RW;
 		
 					if (slice == i +1)
 						task21->priority = MAX_PRIO;
@@ -475,17 +475,17 @@ void dw_callback_codelet_update_u11(void *argcb)
 
 			task12->buffers[0].state = 
 				get_sub_data(args->dataA, 2, u12a->i, u12a->i); 
-			task12->buffers[0].mode = R;
+			task12->buffers[0].mode = STARPU_R;
 			task12->buffers[1].state = 
 				get_sub_data(args->dataA, 2, u12a->k, u12a->i); 
-			task12->buffers[1].mode = RW;
+			task12->buffers[1].mode = STARPU_RW;
 
 			task21->buffers[0].state = 
 				get_sub_data(args->dataA, 2, u21a->i, u21a->i);
-			task21->buffers[0].mode = R;
+			task21->buffers[0].mode = STARPU_R;
 			task21->buffers[1].state = 
 				get_sub_data(args->dataA, 2, u21a->i, u21a->k);
-			task21->buffers[1].mode = RW;
+			task21->buffers[1].mode = STARPU_RW;
 		
 			starpu_submit_task(task12);
 			starpu_submit_task(task21);
@@ -513,7 +513,7 @@ void dw_callback_codelet_update_u22(void *argcb)
 			task->cl_arg = u11arg;
 
 			task->buffers[0].state = get_sub_data(args->dataA, 2, args->k + 1, args->k + 1);
-			task->buffers[0].mode = RW;
+			task->buffers[0].mode = STARPU_RW;
 	
 		u11arg->dataA = args->dataA;
 		u11arg->i = args->k + 1;
@@ -564,13 +564,13 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 				u22a->sem = args->sem;
 
 				task22->buffers[0].state = get_sub_data(args->dataA, 2, u22a->i, u22a->k);
-				task22->buffers[0].mode = R;
+				task22->buffers[0].mode = STARPU_R;
 
 				task22->buffers[1].state = get_sub_data(args->dataA, 2, u22a->k, u22a->j);
-				task22->buffers[1].mode = R;
+				task22->buffers[1].mode = STARPU_R;
 
 				task22->buffers[2].state = get_sub_data(args->dataA, 2, u22a->i, u22a->j);
-				task22->buffers[2].mode = RW;
+				task22->buffers[2].mode = STARPU_RW;
 				
 				/* schedule that codelet */
 				starpu_submit_task(task22);
@@ -608,7 +608,7 @@ void dw_codelet_facto(starpu_data_handle dataA, unsigned nblocks)
 		task->cl_arg = args;
 
 		task->buffers[0].state = get_sub_data(dataA, 2, 0, 0);
-		task->buffers[0].mode = RW;
+		task->buffers[0].mode = STARPU_RW;
 
 	/* schedule the codelet */
 	starpu_submit_task(task);
@@ -661,7 +661,7 @@ void dw_codelet_facto_v2(starpu_data_handle dataA, unsigned nblocks)
 		task->cl_arg = args;
 
 		task->buffers[0].state = get_sub_data(dataA, 2, 0, 0); 
-		task->buffers[0].mode = RW;
+		task->buffers[0].mode = STARPU_RW;
 
 	/* schedule the codelet */
 	starpu_submit_task(task);

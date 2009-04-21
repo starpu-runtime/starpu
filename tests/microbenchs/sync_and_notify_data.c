@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 			task->cl = &cl_inc_a;
 
 			task->buffers[0].state = v_handle;
-			task->buffers[0].mode = RW;
+			task->buffers[0].mode = STARPU_RW;
 
 			task->synchronous = 1;
 
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
 			task->cl = &cl_inc_c;
 
 			task->buffers[0].state = v_handle;
-			task->buffers[0].mode = RW;
+			task->buffers[0].mode = STARPU_RW;
 
 			task->synchronous = 1;
 

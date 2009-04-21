@@ -108,10 +108,10 @@ static void starpu_to_gordon_buffers(job_t j, struct gordon_ppu_job_s *gordon_jo
 			case R:
 				nin++;
 				break;
-			case W:
+			case STARPU_W:
 				nout++;
 				break;
-			case RW:
+			case STARPU_RW:
 			default:
 				ninout++;
 				break;
@@ -128,10 +128,10 @@ static void starpu_to_gordon_buffers(job_t j, struct gordon_ppu_job_s *gordon_jo
 			case R:
 				gordon_buffer = in++;
 				break;
-			case W:
+			case STARPU_W:
 				gordon_buffer = nin + ninout + out++;
 				break;
-			case RW:
+			case STARPU_RW:
 			default:
 				gordon_buffer = nin + inout++;
 				break;

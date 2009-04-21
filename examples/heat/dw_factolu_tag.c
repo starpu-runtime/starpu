@@ -60,7 +60,7 @@ static struct starpu_task *create_task_11(starpu_data_handle dataA, unsigned k)
 
 	/* which sub-data is manipulated ? */
 	task->buffers[0].state = get_sub_data(dataA, 2, k, k);
-	task->buffers[0].mode = RW;
+	task->buffers[0].mode = STARPU_RW;
 
 	/* this is an important task */
 	task->priority = MAX_PRIO;
@@ -93,9 +93,9 @@ static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned i)
 
 	/* which sub-data is manipulated ? */
 	task->buffers[0].state = get_sub_data(dataA, 2, k, k); 
-	task->buffers[0].mode = R;
+	task->buffers[0].mode = STARPU_R;
 	task->buffers[1].state = get_sub_data(dataA, 2, i, k); 
-	task->buffers[1].mode = RW;
+	task->buffers[1].mode = STARPU_RW;
 
 	if (i == k+1) {
 		task->priority = MAX_PRIO;
@@ -130,9 +130,9 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j)
 	
 	/* which sub-data is manipulated ? */
 	task->buffers[0].state = get_sub_data(dataA, 2, k, k); 
-	task->buffers[0].mode = R;
+	task->buffers[0].mode = STARPU_R;
 	task->buffers[1].state = get_sub_data(dataA, 2, k, j); 
-	task->buffers[1].mode = RW;
+	task->buffers[1].mode = STARPU_RW;
 
 	if (j == k+1) {
 		task->priority = MAX_PRIO;
@@ -169,11 +169,11 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 
 	/* which sub-data is manipulated ? */
 	task->buffers[0].state = get_sub_data(dataA, 2, i, k); 
-	task->buffers[0].mode = R;
+	task->buffers[0].mode = STARPU_R;
 	task->buffers[1].state = get_sub_data(dataA, 2, k, j); 
-	task->buffers[1].mode = R;
+	task->buffers[1].mode = STARPU_R;
 	task->buffers[2].state = get_sub_data(dataA, 2, i, j); 
-	task->buffers[2].mode = RW;
+	task->buffers[2].mode = STARPU_RW;
 
 	if ( (i == k + 1) && (j == k +1) ) {
 		task->priority = MAX_PRIO;

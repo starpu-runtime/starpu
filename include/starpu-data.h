@@ -26,9 +26,9 @@
 struct starpu_data_state_t;
 
 typedef enum {
-	R,
-	W,
-	RW
+	STARPU_R,
+	STARPU_W,
+	STARPU_RW
 } starpu_access_mode;
 
 typedef struct starpu_buffer_descr_t {

@@ -44,7 +44,7 @@ static int __attribute__((warn_unused_result)) copy_data_to_node(data_state *sta
 	return ret;
 }
 
-/* this may be called once the data is fetched with header and RW-lock hold */
+/* this may be called once the data is fetched with header and STARPU_RW-lock hold */
 static void update_data_state(data_state *state, uint32_t requesting_node,
 				uint8_t write)
 {
@@ -77,7 +77,7 @@ static void update_data_state(data_state *state, uint32_t requesting_node,
  * This function is called when the data is needed on the local node, this
  * returns a pointer to the local copy 
  *
- *			R 	W 	RW
+ *			R 	STARPU_W 	STARPU_RW
  *	Owner		OK	OK	OK
  *	Shared		OK	1	1
  *	Invalid		2	3	4
@@ -88,8 +88,8 @@ static void update_data_state(data_state *state, uint32_t requesting_node,
  * 	data copy + invalid->shared + owner->shared (STARPU_ASSERT(there is a valid))
  * case 3 : invalid + write : 
  * 	no data copy + invalid->owner + (owner,shared)->invalid
- * case 4 : invalid + R/W : 
- * 	data copy + if (W) (invalid->owner + owner->invalid) 
+ * case 4 : invalid + R/STARPU_W : 
+ * 	data copy + if (STARPU_W) (invalid->owner + owner->invalid) 
  * 		    else (invalid,owner->shared)
  */
 
@@ -166,8 +166,8 @@ static int fetch_data(data_state *state, starpu_access_mode mode)
 	uint32_t requesting_node = get_local_memory_node(); 
 
 	uint8_t read, write;
-	read = (mode != W); /* then R or RW */
-	write = (mode != R); /* then W or RW */
+	read = (mode != STARPU_W); /* then R or STARPU_RW */
+	write = (mode != STARPU_R); /* then STARPU_W or STARPU_RW */
 
 #ifndef NO_DATA_RW_LOCK
 	if (write) {
@@ -327,7 +327,7 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 
 	data_state *state = statenode->state;
 
-	ret = fetch_data(state, R);
+	ret = fetch_data(state, STARPU_R);
 	
 	STARPU_ASSERT(!ret);
 	
@@ -358,7 +358,7 @@ void starpu_sync_data_with_mem(data_state *state)
 	/* we try to get the data, if we do not succeed immediately, we set a
  	* callback function that will be executed automatically when the data is
  	* available again, otherwise we fetch the data directly */
-	if (!attempt_to_submit_data_request_from_apps(state, R, 
+	if (!attempt_to_submit_data_request_from_apps(state, STARPU_R, 
 			_starpu_sync_data_with_mem_continuation, &statenode))
 	{
 		/* no one has locked this data yet, so we proceed immediately */
@@ -371,9 +371,9 @@ void starpu_sync_data_with_mem(data_state *state)
 		pthread_mutex_unlock(&statenode.lock);
 	}
 #else
-	/* NB: fetch_data automatically grabs the RW-lock so it needs to be
+	/* NB: fetch_data automatically grabs the STARPU_RW-lock so it needs to be
  	 * released explicitely afterward */
-	ret = fetch_data(state, R);
+	ret = fetch_data(state, STARPU_R);
 	STARPU_ASSERT(!ret);
 
 	release_rw_lock(&state->data_lock);
@@ -422,7 +422,7 @@ void starpu_notify_data_modification(data_state *state, uint32_t modifying_node)
 		.finished = 0
 	};
 
-	if (!attempt_to_submit_data_request_from_apps(state, W, _notify_data_modification_continuation, &statenode))
+	if (!attempt_to_submit_data_request_from_apps(state, STARPU_W, _notify_data_modification_continuation, &statenode))
 	{
 		/* we can immediately proceed */
 		do_notify_data_modification(state, modifying_node);

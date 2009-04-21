@@ -310,12 +310,12 @@ static void launch_codelets(void)
 			task->tag_id = tag;
 
 			task->buffers[0].state = get_sub_data(A_handle, 1, tasky);
-			task->buffers[0].mode = R;
+			task->buffers[0].mode = STARPU_R;
 			task->buffers[1].state = get_sub_data(B_handle, 1, taskx);
-			task->buffers[1].mode = R;
+			task->buffers[1].mode = STARPU_R;
 			task->buffers[2].state = 
 				get_sub_data(C_handle, 2, taskx, tasky);
-			task->buffers[2].mode = RW;
+			task->buffers[2].mode = STARPU_RW;
 
 			starpu_submit_task(task);
 		}

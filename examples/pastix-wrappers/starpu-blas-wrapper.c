@@ -335,7 +335,7 @@ void STARPU_CBLK_STRSM(unsigned col)
 	j->nbuffers = 1;
 	/* we could be a little more precise actually */
 	j->buffers[0].state = &cblktab[col];
-	j->buffers[0].mode = RW;
+	j->buffers[0].mode = STARPU_RW;
 	
 	j->cl->model = &starpu_cblk_strsm;
 
@@ -479,11 +479,11 @@ void STARPU_COMPUTE_CONTRIB_COMPACT(unsigned col, int dimi, int dimj, int dima, 
 	j->nbuffers = 3;
 	/* we could be a little more precise actually */
 	j->buffers[0].state = &cblktab[col]; // gaik
-	j->buffers[0].mode = R;
+	j->buffers[0].mode = STARPU_R;
 	j->buffers[1].state = get_sub_data(&work_block_1, 1, (ret==2)?0:1);
-	j->buffers[1].mode = R;
+	j->buffers[1].mode = STARPU_R;
 	j->buffers[2].state = get_sub_data(&work_block_2, 1, 0);; 
-	j->buffers[2].mode = RW; // XXX W
+	j->buffers[2].mode = STARPU_RW; // XXX STARPU_W
 	
 	sem_init(&sem, 0, 0U);
 	
@@ -615,11 +615,11 @@ void STARPU_SGEMM (const char *transa, const char *transb, const int m,
 
 	j->nbuffers = 3;
 	j->buffers[0].state = &A_state;
-	j->buffers[0].mode = R;
+	j->buffers[0].mode = STARPU_R;
 	j->buffers[1].state = &B_state;
-	j->buffers[1].mode = R;
+	j->buffers[1].mode = STARPU_R;
 	j->buffers[2].state = &C_state;
-	j->buffers[2].mode = RW;
+	j->buffers[2].mode = STARPU_RW;
 	
 	j->cl->model = NULL;
 

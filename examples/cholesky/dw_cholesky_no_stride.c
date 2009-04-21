@@ -73,7 +73,7 @@ static struct starpu_task * create_task_11(unsigned k, unsigned nblocks, sem_t *
 
 	/* which sub-data is manipulated ? */
 	task->buffers[0].state = A_state[k][k];
-	task->buffers[0].mode = RW;
+	task->buffers[0].mode = STARPU_RW;
 
 	/* this is an important task */
 	task->priority = MAX_PRIO;
@@ -118,9 +118,9 @@ static void create_task_21(unsigned k, unsigned j)
 
 	/* which sub-data is manipulated ? */
 	task->buffers[0].state = A_state[k][k]; 
-	task->buffers[0].mode = R;
+	task->buffers[0].mode = STARPU_R;
 	task->buffers[1].state = A_state[j][k]; 
-	task->buffers[1].mode = RW;
+	task->buffers[1].mode = STARPU_RW;
 
 	if (j == k+1) {
 		task->priority = MAX_PRIO;
@@ -165,11 +165,11 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
 
 	/* which sub-data is manipulated ? */
 	task->buffers[0].state = A_state[i][k]; 
-	task->buffers[0].mode = R;
+	task->buffers[0].mode = STARPU_R;
 	task->buffers[1].state = A_state[j][k]; 
-	task->buffers[1].mode = R;
+	task->buffers[1].mode = STARPU_R;
 	task->buffers[2].state = A_state[j][i]; 
-	task->buffers[2].mode = RW;
+	task->buffers[2].mode = STARPU_RW;
 
 	if ( (i == k + 1) && (j == k +1) ) {
 		task->priority = MAX_PRIO;

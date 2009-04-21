@@ -291,11 +291,11 @@ void call_spmv_codelet_filters(void)
 		task->cl_arg = NULL;
 	
 		task->buffers[0].state = get_sub_data(sparse_matrix, 1, part);
-		task->buffers[0].mode  = R;
+		task->buffers[0].mode  = STARPU_R;
 		task->buffers[1].state = vector_in;
-		task->buffers[1].mode = R;
+		task->buffers[1].mode = STARPU_R;
 		task->buffers[2].state = get_sub_data(vector_out, 1, part);
-		task->buffers[2].mode = W;
+		task->buffers[2].mode = STARPU_W;
 	
 		starpu_submit_task(task);
 	}

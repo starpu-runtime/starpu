@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 		task->callback_arg = &counter;
 
 		task->buffers[0].state = float_array_handle;
-		task->buffers[0].mode = RW;
+		task->buffers[0].mode = STARPU_RW;
 
 		starpu_submit_task(task);
 	}

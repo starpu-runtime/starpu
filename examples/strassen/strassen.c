@@ -148,11 +148,11 @@ static void compute_add_sub_op(starpu_data_handle A1, operation op,
 		task->use_tag = 0;
 
 	task->buffers[0].state = C;
-	task->buffers[0].mode = W;
+	task->buffers[0].mode = STARPU_W;
 	task->buffers[1].state = A1;
-	task->buffers[1].mode = R;
+	task->buffers[1].mode = STARPU_R;
 	task->buffers[2].state = A2;
-	task->buffers[2].mode = R;
+	task->buffers[2].mode = STARPU_R;
 	
 	task->callback_func = callback;
 	task->callback_arg = argcallback;
@@ -177,11 +177,11 @@ static void compute_add_sub_op(starpu_data_handle A1, operation op,
 			task->cl = &cl_mult;
 			break;
 		case SELFADD:
-			task->buffers[0].mode = RW;
+			task->buffers[0].mode = STARPU_RW;
 			task->cl = &cl_self_add;
 			break;
 		case SELFSUB:
-			task->buffers[0].mode = RW;
+			task->buffers[0].mode = STARPU_RW;
 			task->cl = &cl_self_sub;
 			break;
 		default:

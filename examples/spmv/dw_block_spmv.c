@@ -182,11 +182,11 @@ void launch_spmv_codelets(void)
 				unsigned j = row;
 		
 				task->buffers[0].state = get_sub_data(sparse_matrix, 1, part);
-				task->buffers[0].mode  = R;
+				task->buffers[0].mode  = STARPU_R;
 				task->buffers[1].state = get_sub_data(vector_in, 1, i);
-				task->buffers[1].mode = R;
+				task->buffers[1].mode = STARPU_R;
 				task->buffers[2].state = get_sub_data(vector_out, 1, j);
-				task->buffers[2].mode = RW;
+				task->buffers[2].mode = STARPU_RW;
 
 				/* all tasks in the same row are dependant so that we don't wait too much for data 
 				 * we need to wait on the previous task if we are not the first task of a row */
