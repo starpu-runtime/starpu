@@ -32,7 +32,7 @@ typedef enum {
 } starpu_access_mode;
 
 typedef struct starpu_buffer_descr_t {
-	starpu_data_handle state;
+	starpu_data_handle handle;
 	starpu_access_mode mode;
 } starpu_buffer_descr;
 

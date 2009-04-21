@@ -30,7 +30,7 @@ size_t job_get_data_size(job_t j)
 	unsigned buffer;
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		data_state *state = task->buffers[buffer].state;
+		data_state *state = task->buffers[buffer].handle;
 		size += state->ops->get_size(state);
 	}
 

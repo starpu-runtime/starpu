@@ -258,7 +258,7 @@ int fetch_codelet_input(starpu_buffer_descr *descrs, starpu_data_interface_t *in
 
 		descr = &descrs[index];
 
-		state = descr->state;
+		state = descr->handle;
 
 		ret = fetch_data(state, descr->mode);
 		if (STARPU_UNLIKELY(ret))
@@ -286,7 +286,7 @@ void push_codelet_output(starpu_buffer_descr *descrs, unsigned nbuffers, uint32_
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
-		release_data(descrs[index].state, mask);
+		release_data(descrs[index].handle, mask);
 	}
 
 	TRACE_END_PUSH_OUTPUT(NULL);

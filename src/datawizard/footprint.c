@@ -25,7 +25,7 @@ void compute_buffers_footprint(job_t j)
 
 	for (buffer = 0; buffer < task->cl->nbuffers; buffer++)
 	{
-		data_state *state = task->buffers[buffer].state;
+		data_state *state = task->buffers[buffer].handle;
 
 		STARPU_ASSERT(state->ops);
 		STARPU_ASSERT(state->ops->footprint);

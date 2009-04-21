@@ -111,7 +111,7 @@ static unsigned attempt_to_submit_data_request_from_job(job_t j, unsigned buffer
 {
 	unsigned ret;
 
-	data_state *data = j->task->buffers[buffer_index].state;
+	data_state *data = j->task->buffers[buffer_index].handle;
 	starpu_access_mode mode = j->task->buffers[buffer_index].mode;
 
 	take_mutex(&data->header_lock);

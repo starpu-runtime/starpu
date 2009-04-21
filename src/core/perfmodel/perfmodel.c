@@ -123,7 +123,7 @@ double data_expected_penalty(struct jobq_s *q, struct job_s *j)
 
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		data_state *state = j->task->buffers[buffer].state;
+		data_state *state = j->task->buffers[buffer].handle;
 
 		if (!is_data_present_or_requested(state, memory_node))
 		{

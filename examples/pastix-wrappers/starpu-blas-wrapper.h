@@ -44,9 +44,9 @@ static double transfer_time_htod(unsigned size)
 static double starpu_compute_contrib_compact_core_cost(starpu_buffer_descr *descr)
 {
 	unsigned nx0, ny0, ny2;
-	nx0 = descr[0].state->interface->blas.nx;
-	ny0 = descr[0].state->interface->blas.ny;
-	ny2 = descr[2].state->interface->blas.ny;
+	nx0 = descr[0].handle->interface->blas.nx;
+	ny0 = descr[0].handle->interface->blas.ny;
+	ny2 = descr[2].handle->interface->blas.ny;
 
 	return PERF_GEMM_CPU(nx0-ny0, ny2, ny0); 
 }
@@ -60,9 +60,9 @@ static double starpu_compute_contrib_compact_core_cost(starpu_buffer_descr *desc
 static double starpu_compute_contrib_compact_cuda_cost(starpu_buffer_descr *descr)
 {
 	unsigned nx0, ny0, ny2;
-	nx0 = descr[0].state->interface->blas.nx;
-	ny0 = descr[0].state->interface->blas.ny;
-	ny2 = descr[2].state->interface->blas.ny;
+	nx0 = descr[0].handle->interface->blas.nx;
+	ny0 = descr[0].handle->interface->blas.ny;
+	ny2 = descr[2].handle->interface->blas.ny;
 
 	return PERF_GEMM_GPU(nx0-ny0, ny2, ny0) + OVERHEAD; 
 }
@@ -75,8 +75,8 @@ static double starpu_compute_contrib_compact_cuda_cost(starpu_buffer_descr *desc
 static double starpu_cblk_strsm_cuda_cost(starpu_buffer_descr *descr)
 {
 	unsigned nx, ny;
-	nx = descr[0].state->interface->blas.nx;
-	ny = descr[0].state->interface->blas.ny;
+	nx = descr[0].handle->interface->blas.nx;
+	ny = descr[0].handle->interface->blas.ny;
 
 	return PERF_TRSM_GPU(nx-ny, ny) + OVERHEAD; 
 }
@@ -88,8 +88,8 @@ static double starpu_cblk_strsm_cuda_cost(starpu_buffer_descr *descr)
 static double starpu_cblk_strsm_core_cost(starpu_buffer_descr *descr)
 {
 	unsigned nx, ny;
-	nx = descr[0].state->interface->blas.nx;
-	ny = descr[0].state->interface->blas.ny;
+	nx = descr[0].handle->interface->blas.nx;
+	ny = descr[0].handle->interface->blas.ny;
 
 	return PERF_TRSM_CPU(nx-ny, ny); 
 }

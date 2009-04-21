@@ -95,7 +95,7 @@ void set_function_args(starpu_cuda_codelet_t *args,
 		 * the size of the buffer may be changed if needed */
 		uint8_t argbuffer[128];
 
-		data_state *state = descr[buf].state;
+		data_state *state = descr[buf].handle;
 	
 		/* dump the stack into the buffer */
 		STARPU_ASSERT(state);

@@ -148,9 +148,9 @@ int main(int argc, char **argv)
 		task->cl_arg = &size;
 		task->cl_arg_size = sizeof(unsigned);
 
-		task->buffers[0].state = my_float_state;
+		task->buffers[0].handle = my_float_state;
 		task->buffers[0].mode = STARPU_RW;
-		task->buffers[1].state = unity_state; 
+		task->buffers[1].handle = unity_state; 
 		task->buffers[1].mode = STARPU_R;
 
 		starpu_submit_task(task);

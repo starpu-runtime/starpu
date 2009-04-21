@@ -147,11 +147,11 @@ static void compute_add_sub_op(starpu_data_handle A1, operation op,
 		task->cl_arg = NULL;
 		task->use_tag = 0;
 
-	task->buffers[0].state = C;
+	task->buffers[0].handle = C;
 	task->buffers[0].mode = STARPU_W;
-	task->buffers[1].state = A1;
+	task->buffers[1].handle = A1;
 	task->buffers[1].mode = STARPU_R;
-	task->buffers[2].state = A2;
+	task->buffers[2].handle = A2;
 	task->buffers[2].mode = STARPU_R;
 	
 	task->callback_func = callback;

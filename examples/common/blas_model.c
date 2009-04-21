@@ -32,9 +32,9 @@ double gemm_cost(starpu_buffer_descr *descr)
 	uint32_t nxC, nyC, nxA;
 
 
-	nxC = starpu_get_blas_nx(descr[2].state);
-	nyC = starpu_get_blas_ny(descr[2].state);
-	nxA = starpu_get_blas_nx(descr[0].state);
+	nxC = starpu_get_blas_nx(descr[2].handle);
+	nyC = starpu_get_blas_ny(descr[2].handle);
+	nxA = starpu_get_blas_nx(descr[0].handle);
 
 //	printf("nxC %d nxC %d nxA %d\n", nxC, nyC, nxA);
 

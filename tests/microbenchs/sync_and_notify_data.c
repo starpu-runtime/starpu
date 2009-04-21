@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 			struct starpu_task *task = starpu_task_create();
 			task->cl = &cl_inc_a;
 
-			task->buffers[0].state = v_handle;
+			task->buffers[0].handle = v_handle;
 			task->buffers[0].mode = STARPU_RW;
 
 			task->synchronous = 1;
@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 			struct starpu_task *task = starpu_task_create();
 			task->cl = &cl_inc_c;
 
-			task->buffers[0].state = v_handle;
+			task->buffers[0].handle = v_handle;
 			task->buffers[0].mode = STARPU_RW;
 
 			task->synchronous = 1;

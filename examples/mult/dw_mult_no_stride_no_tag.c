@@ -397,11 +397,11 @@ static void construct_task(unsigned x, unsigned y, unsigned z, unsigned iter, st
 
 	task->cl = &cl;
 
-	task->buffers[0].state = A_state[y][z];
+	task->buffers[0].handle = A_state[y][z];
 	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].state = B_state[z][x];
+	task->buffers[1].handle = B_state[z][x];
 	task->buffers[1].mode = STARPU_R;
-	task->buffers[2].state = C_state[y][x];
+	task->buffers[2].handle = C_state[y][x];
 	task->buffers[2].mode = STARPU_RW;
 
 	task->callback_func = callback_func_3;
