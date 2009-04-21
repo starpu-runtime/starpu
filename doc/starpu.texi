@@ -471,7 +471,7 @@ void (*callback_function)(void *);
 If the @code{.synchronous} field is non-null, task submission will be
 synchronous: the @code{starpu_submit_task} function will not return until the
 task was executed. Note that the @code{starpu_shutdown} method does not
-guaranty that asynchronous tasks have been executed before it returns.
+guarantee that asynchronous tasks have been executed before it returns.
 
 @section Manipulating Data: Scaling a Vector
 
@@ -482,11 +482,11 @@ Programmers can describe the data layout of their application so that StarPU is
 responsible for enforcing data coherency and availability accross the machine.
 Instead of handling complex (and non-portable) mechanisms to perform data
 movements, programmers only declare which piece of data is accessed and/or
-modify by a task, and StarPU makes sure that when a computational kernel starts
+modified by a task, and StarPU makes sure that when a computational kernel starts
 somewhere (eg. on a GPU), its data are available locally.
 
-Before submitting those tasks, the programmer first need to declare the
-different piece of data to StarPU using the @code{starpu_monitor_*_data}
+Before submitting those tasks, the programmer first needs to declare the
+different pieces of data to StarPU using the @code{starpu_monitor_*_data}
 functions. To ease the development of applications for StarPU, it is possible
 to describe multiple types of data layout. A type of data layout is called an
 @b{interface}. By default, there are different interfaces available in StarPU:
@@ -503,7 +503,9 @@ starpu_monitor_vector_data(&tab_handle, 0, tab, n, sizeof(float));
 
 The first argument, called the @b{data handle} is an opaque pointer which
 designates the array in StarPU. This is also the structure which is used to
-describe which data is used by a task. It is possible to construct a StarPU
+describe which data is used by a task.
+@c TODO: what is 0 ?
+It is possible to construct a StarPU
 task that multiplies this vector by a constant factor:
 @example
 float factor;
@@ -511,19 +513,22 @@ struct starpu_task *task = starpu_task_create();
 
 task->cl = &cl;
 
-task->cl_arg = &factor;
-task->cl_arg_size = sizeof(float);
-
 task->buffers[0].state = &tab_handle;
 task->buffers[0].mode = RW;
+
+task->cl_arg = &factor;
+task->cl_arg_size = sizeof(float);
 @end example
 
-The constant factor can be passed as a simple parameter of the task, but the
-size and the content of the vector is not known in advance so that we describe
-the vector by its handle. There are two fields in each element @code{buffers} array.
+Since the factor is constant, it does not need a preliminary declaration, and
+can just be passed through the @code{cl_arg} pointer like in the previous
+example.  The vector parameter is described by its handle.
+There are two fields in each element of the @code{buffers} array.
 @code{.state} is the handle of the data, and @code{.mode} specifies how the
 kernel will access the data (@code{R} for read-only, @code{W} for write-only
 and @code{RW} for read and write access).
+
+The definition of the codelet can be written as follows:
 
 @example
 void scal_func(starpu_data_interface_t *buffers, void *arg)
@@ -533,7 +538,7 @@ void scal_func(starpu_data_interface_t *buffers, void *arg)
 
     /* length of the vector */
     unsigned n = buffers[0].vector.nx;
-    /* local copy of the vector */
+    /* local copy of the vector pointer */
     float *val = (float *)buffers[0].vector.ptr;
 
     for (i = 0; i < n; i++)
@@ -547,16 +552,16 @@ starpu_codelet cl = @{
 @};
 @end example
 
-The @code{.nbuffers} field of the codelet structure specifies that there is
-only one piece of data that is handled by the codelet. The second argument of
-the @code{scal_func} function contains a pointer to the parameters of the
-codelet (given in @code{task->cl_arg}), so the we read the constant factor from
-this pointer. The first argument is an array that gives a description of every
-buffers passed in the @code{task->buffers}@ array. In the @b{vector interface},
-the location of the vector (resp. its length) is accessible in the
-@code{.vector.ptr} (resp. @code{.vector.nx}) of this array. Since the vector is
-accessed in a read-write fashion, any modification will automatically affect
-future accesses to that vector.
+
+The second argument of the @code{scal_func} function contains a pointer to the
+parameters of the codelet (given in @code{task->cl_arg}), so the we read the
+constant factor from this pointer. The first argument is an array that gives
+a description of every buffers passed in the @code{task->buffers}@ array, the
+number of which is given by the @code{.nbuffers} field of the codelet structure.
+In the @b{vector interface}, the location of the vector (resp. its length)
+is accessible in the @code{.vector.ptr} (resp. @code{.vector.nx}) of this
+array. Since the vector is accessed in a read-write fashion, any modification
+will automatically affect future accesses to that vector made by other tasks.
 
 @section Vector Scaling on an Hybrid CPU/GPU Machine
 
