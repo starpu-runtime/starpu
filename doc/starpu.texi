@@ -513,7 +513,7 @@ struct starpu_task *task = starpu_task_create();
 
 task->cl = &cl;
 
-task->buffers[0].state = &tab_handle;
+task->buffers[0].handle = &tab_handle;
 task->buffers[0].mode = STARPU_RW;
 
 task->cl_arg = &factor;
@@ -524,7 +524,7 @@ Since the factor is constant, it does not need a preliminary declaration, and
 can just be passed through the @code{cl_arg} pointer like in the previous
 example.  The vector parameter is described by its handle.
 There are two fields in each element of the @code{buffers} array.
-@code{.state} is the handle of the data, and @code{.mode} specifies how the
+@code{.handle} is the handle of the data, and @code{.mode} specifies how the
 kernel will access the data (@code{STARPU_R} for read-only, @code{STARPU_W} for
 write-only and @code{STARPU_RW} for read and write access).
 
