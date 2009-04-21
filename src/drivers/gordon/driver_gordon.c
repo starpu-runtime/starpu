@@ -105,7 +105,7 @@ static void starpu_to_gordon_buffers(job_t j, struct gordon_ppu_job_s *gordon_jo
 		descr = &task->buffers[buffer];
 
 		switch (descr->mode) {
-			case R:
+			case STARPU_R:
 				nin++;
 				break;
 			case STARPU_W:
@@ -125,7 +125,7 @@ static void starpu_to_gordon_buffers(job_t j, struct gordon_ppu_job_s *gordon_jo
 		descr = &task->buffers[buffer];
 
 		switch (descr->mode) {
-			case R:
+			case STARPU_R:
 				gordon_buffer = in++;
 				break;
 			case STARPU_W:
