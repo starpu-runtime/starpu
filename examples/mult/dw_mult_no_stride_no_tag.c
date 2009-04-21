@@ -269,9 +269,11 @@ static void init_problem_data(void)
 		}
 	}
 
+#ifdef USE_GORDON
 	conf.k = BLOCKSIZEZ;
 	conf.m = BLOCKSIZEY;
 	conf.n = BLOCKSIZEX;
+#endif
 
 	fprintf(stderr, "block size : x %d y %d z %d\n", BLOCKSIZEX, BLOCKSIZEY, BLOCKSIZEZ);
 
@@ -405,8 +407,10 @@ static void construct_task(unsigned x, unsigned y, unsigned z, unsigned iter, st
 	task->callback_func = callback_func_3;
 	task->callback_arg = posp;
 
+#ifdef USE_GORDON
 	task->cl_arg = &conf;
 	task->cl_arg_size = sizeof(struct ibm_sgemm_block_conf);
+#endif
 
 	posp->z = z;
 	posp->iter = iter;

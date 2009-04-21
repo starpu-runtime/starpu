@@ -271,9 +271,11 @@ static void init_problem_data(void)
 		}
 	}
 
+#ifdef USE_GORDON
 	conf.k = BLOCKSIZEZ;
 	conf.m = BLOCKSIZEY;
 	conf.n = BLOCKSIZEX;
+#endif
 
 	display_memory_consumption();
 }
@@ -361,8 +363,10 @@ static struct starpu_task *construct_task(unsigned x, unsigned y, unsigned z, un
 
 	task->cl = &cl;
 
+#ifdef USE_GORDON
 	task->cl_arg = &conf;
 	task->cl_arg_size = sizeof(struct ibm_sgemm_block_conf);
+#endif
 
 	task->use_tag = 1;
 	task->tag_id = TAG(z, y, x, iter);
