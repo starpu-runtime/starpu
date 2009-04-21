@@ -514,7 +514,7 @@ struct starpu_task *task = starpu_task_create();
 task->cl = &cl;
 
 task->buffers[0].state = &tab_handle;
-task->buffers[0].mode = RW;
+task->buffers[0].mode = STARPU_RW;
 
 task->cl_arg = &factor;
 task->cl_arg_size = sizeof(float);
@@ -525,8 +525,8 @@ can just be passed through the @code{cl_arg} pointer like in the previous
 example.  The vector parameter is described by its handle.
 There are two fields in each element of the @code{buffers} array.
 @code{.state} is the handle of the data, and @code{.mode} specifies how the
-kernel will access the data (@code{R} for read-only, @code{W} for write-only
-and @code{RW} for read and write access).
+kernel will access the data (@code{STARPU_R} for read-only, @code{STARPU_W} for
+write-only and @code{STARPU_RW} for read and write access).
 
 The definition of the codelet can be written as follows:
 
