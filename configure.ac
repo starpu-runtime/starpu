@@ -48,6 +48,7 @@ AC_DEFINE_UNQUOTED(STARPUDIR, "$PWD", [location of StarPU sources])
 AC_SUBST(STARPUDIR, $PWD)
 
 AC_SEARCH_LIBS([pthread_create],[pthread],,AC_MSG_ERROR([pthread library unavailable]))
+AC_CHECK_FUNC([pthread_spin_lock], [], AC_MSG_ERROR([pthread_spin_lock is not available]))
 AC_SEARCH_LIBS([sqrt],[m],,AC_MSG_ERROR([math library unavailable]))
 AC_SEARCH_LIBS([sysconf],[c],,AC_MSG_ERROR([sysconf unavailable]))
 
