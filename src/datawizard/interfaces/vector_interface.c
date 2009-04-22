@@ -66,7 +66,7 @@ int convert_vector_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, 
 #endif
 
 /* declare a new data with the BLAS interface */
-void starpu_monitor_vector_data(struct starpu_data_state_t **handle, uint32_t home_node,
+void starpu_register_vector_data(struct starpu_data_state_t **handle, uint32_t home_node,
                         uintptr_t ptr, uint32_t nx, size_t elemsize)
 {
 	struct starpu_data_state_t *state = calloc(1, sizeof(struct starpu_data_state_t));
@@ -93,7 +93,7 @@ void starpu_monitor_vector_data(struct starpu_data_state_t **handle, uint32_t ho
 
 	state->ops = &interface_vector_ops;
 
-	monitor_new_data(state, home_node, 0);
+	register_new_data(state, home_node, 0);
 }
 
 

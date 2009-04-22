@@ -31,7 +31,7 @@ static starpu_data_handle create_tmp_matrix(starpu_data_handle M)
 	data = malloc(nx*ny*sizeof(float));
 	STARPU_ASSERT(data);
 
-	starpu_monitor_blas_data(&state, 0, (uintptr_t)data, nx, nx, ny, sizeof(float));
+	starpu_register_blas_data(&state, 0, (uintptr_t)data, nx, nx, ny, sizeof(float));
 	
 	return state;
 }

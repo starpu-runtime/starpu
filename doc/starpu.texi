@@ -527,7 +527,7 @@ modified by a task, and StarPU makes sure that when a computational kernel start
 somewhere (eg. on a GPU), its data are available locally.
 
 Before submitting those tasks, the programmer first needs to declare the
-different pieces of data to StarPU using the @code{starpu_monitor_*_data}
+different pieces of data to StarPU using the @code{starpu_register_*_data}
 functions. To ease the development of applications for StarPU, it is possible
 to describe multiple types of data layout. A type of data layout is called an
 @b{interface}. By default, there are different interfaces available in StarPU:
@@ -539,7 +539,7 @@ The following lines show how to declare an array of @code{n} elements of type
 float tab[n];
 
 starpu_data_handle tab_handle;
-starpu_monitor_vector_data(&tab_handle, 0, tab, n, sizeof(float));
+starpu_register_vector_data(&tab_handle, 0, tab, n, sizeof(float));
 @end example
 
 The first argument, called the @b{data handle} is an opaque pointer which

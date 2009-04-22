@@ -184,13 +184,13 @@ void STARPU_MONITOR_DATA(unsigned ncols)
 
 void STARPU_MONITOR_CBLK(unsigned col, float *data, unsigned stride, unsigned width)
 {
-	//void starpu_monitor_blas_data(struct starpu_data_state_t *state, uint32_t home_node,
+	//void starpu_register_blas_data(struct starpu_data_state_t *state, uint32_t home_node,
         //                uintptr_t ptr, uint32_t ld, uint32_t nx,
         //                uint32_t ny, size_t elemsize);
 
 	//fprintf(stderr, "col %d data %p stride %d width %d\n", col, data, stride, width);
 
-	starpu_monitor_blas_data(&cblktab[col], 0 /* home */,
+	starpu_register_blas_data(&cblktab[col], 0 /* home */,
 			(uintptr_t) data, stride, stride, width, sizeof(float));
 	
 }
@@ -225,8 +225,8 @@ void allocate_maxbloktab_on_cublas(starpu_data_interface_t *descr __attribute__(
 
 void STARPU_DECLARE_WORK_BLOCKS(float *maxbloktab1, float *maxbloktab2, unsigned solv_coefmax)
 {
-	starpu_monitor_vector_data(&work_block_1, 0 /* home */, (uintptr_t)maxbloktab1, solv_coefmax, sizeof(float));
-	starpu_monitor_vector_data(&work_block_2, 0 /* home */, (uintptr_t)maxbloktab2, solv_coefmax, sizeof(float));
+	starpu_register_vector_data(&work_block_1, 0 /* home */, (uintptr_t)maxbloktab1, solv_coefmax, sizeof(float));
+	starpu_register_vector_data(&work_block_2, 0 /* home */, (uintptr_t)maxbloktab2, solv_coefmax, sizeof(float));
 
 	starpu_codelet cl;
 	job_t j;
@@ -584,23 +584,23 @@ void STARPU_SGEMM (const char *transa, const char *transb, const int m,
 
 	if (toupper(*transa) == 'N')
 	{
-		starpu_monitor_blas_data(&A_state, 0, (uintptr_t)A, lda, m, k, sizeof(float));
+		starpu_register_blas_data(&A_state, 0, (uintptr_t)A, lda, m, k, sizeof(float));
 	}
 	else 
 	{
-		starpu_monitor_blas_data(&A_state, 0, (uintptr_t)A, lda, k, m, sizeof(float));
+		starpu_register_blas_data(&A_state, 0, (uintptr_t)A, lda, k, m, sizeof(float));
 	}
 
 	if (toupper(*transb) == 'N')
 	{
-		starpu_monitor_blas_data(&B_state, 0, (uintptr_t)B, ldb, k, n, sizeof(float));
+		starpu_register_blas_data(&B_state, 0, (uintptr_t)B, ldb, k, n, sizeof(float));
 	}
 	else 
 	{	
-		starpu_monitor_blas_data(&B_state, 0, (uintptr_t)B, ldb, n, k, sizeof(float));
+		starpu_register_blas_data(&B_state, 0, (uintptr_t)B, ldb, n, k, sizeof(float));
 	}
 
-	starpu_monitor_blas_data(&C_state, 0, (uintptr_t)C, ldc, m, n, sizeof(float));
+	starpu_register_blas_data(&C_state, 0, (uintptr_t)C, ldc, m, n, sizeof(float));
 
 	/* initialize codelet */
 	cl.where = CUBLAS;

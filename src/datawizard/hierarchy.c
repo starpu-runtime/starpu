@@ -40,7 +40,7 @@ void starpu_delete_data(data_state *state)
 #endif
 }
 
-void monitor_new_data(data_state *state, uint32_t home_node, uint32_t wb_mask)
+void register_new_data(data_state *state, uint32_t home_node, uint32_t wb_mask)
 {
 	STARPU_ASSERT(state);
 

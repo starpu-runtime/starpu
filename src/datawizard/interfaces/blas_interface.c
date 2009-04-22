@@ -74,7 +74,7 @@ int convert_blas_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, go
 #endif
 
 /* declare a new data with the BLAS interface */
-void starpu_monitor_blas_data(struct starpu_data_state_t **handle, uint32_t home_node,
+void starpu_register_blas_data(struct starpu_data_state_t **handle, uint32_t home_node,
 			uintptr_t ptr, uint32_t ld, uint32_t nx,
 			uint32_t ny, size_t elemsize)
 {
@@ -105,7 +105,7 @@ void starpu_monitor_blas_data(struct starpu_data_state_t **handle, uint32_t home
 
 	state->ops = &interface_blas_ops;
 
-	monitor_new_data(state, home_node, 0);
+	register_new_data(state, home_node, 0);
 }
 
 static inline uint32_t footprint_blas_interface_generic(uint32_t (*hash_func)(uint32_t input, uint32_t hstate), data_state *state, uint32_t hstate)

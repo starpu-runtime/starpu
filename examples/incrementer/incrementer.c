@@ -100,10 +100,10 @@ void initialize_cuda(void)
 
 void init_data(void)
 {
-	starpu_monitor_vector_data(&my_float_state, 0 /* home node */,
+	starpu_register_vector_data(&my_float_state, 0 /* home node */,
 			(uintptr_t)&my_lovely_float, 3, sizeof(float));
 
-	starpu_monitor_vector_data(&unity_state, 0 /* home node */,
+	starpu_register_vector_data(&unity_state, 0 /* home node */,
 			(uintptr_t)&unity, 3, sizeof(float));
 }
 

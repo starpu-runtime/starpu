@@ -715,7 +715,7 @@ void dw_factoLU(float *matA, unsigned size,
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	starpu_monitor_blas_data(&dataA, 0, (uintptr_t)matA, ld, 
+	starpu_register_blas_data(&dataA, 0, (uintptr_t)matA, ld, 
 			size, size, sizeof(float));
 
 	starpu_filter f;

@@ -203,7 +203,7 @@ void create_data(void)
 
 	rowptr[size] = nnz;
 	
-	starpu_monitor_csr_data(&sparse_matrix, 0, nnz, size, (uintptr_t)nzval, colind, rowptr, 0, sizeof(float));
+	starpu_register_csr_data(&sparse_matrix, 0, nnz, size, (uintptr_t)nzval, colind, rowptr, 0, sizeof(float));
 
 	sparse_matrix_nzval = nzval;
 	sparse_matrix_colind = colind;
@@ -225,8 +225,8 @@ void create_data(void)
 		outvec[ind] = 0.0f;
 	}
 
-	starpu_monitor_vector_data(&vector_in, 0, (uintptr_t)invec, size, sizeof(float));
-	starpu_monitor_vector_data(&vector_out, 0, (uintptr_t)outvec, size, sizeof(float));
+	starpu_register_vector_data(&vector_in, 0, (uintptr_t)invec, size, sizeof(float));
+	starpu_register_vector_data(&vector_out, 0, (uintptr_t)outvec, size, sizeof(float));
 
 	vector_in_ptr = invec;
 	vector_out_ptr = outvec;

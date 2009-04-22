@@ -248,7 +248,7 @@ static void init_problem_data(void)
 	{
 		for (z = 0; z < nslicesz; z++)
 		{
-			starpu_monitor_blas_data(&A_state[y][z], 0, (uintptr_t)A[y][z], 
+			starpu_register_blas_data(&A_state[y][z], 0, (uintptr_t)A[y][z], 
 				BLOCKSIZEY, BLOCKSIZEY, BLOCKSIZEZ, sizeof(float));
 		}
 	}
@@ -257,7 +257,7 @@ static void init_problem_data(void)
 	{
 		for (x = 0; x < nslicesx; x++)
 		{
-			starpu_monitor_blas_data(&B_state[z][x], 0, (uintptr_t)B[z][x], 
+			starpu_register_blas_data(&B_state[z][x], 0, (uintptr_t)B[z][x], 
 				BLOCKSIZEZ, BLOCKSIZEZ, BLOCKSIZEX, sizeof(float));
 		}
 	}
@@ -266,7 +266,7 @@ static void init_problem_data(void)
 	{
 		for (x = 0; x < nslicesx; x++)
 		{
-			starpu_monitor_blas_data(&C_state[y][x], 0, (uintptr_t)C[y][x], 
+			starpu_register_blas_data(&C_state[y][x], 0, (uintptr_t)C[y][x], 
 				BLOCKSIZEY, BLOCKSIZEY, BLOCKSIZEX, sizeof(float));
 		}
 	}

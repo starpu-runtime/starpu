@@ -233,7 +233,7 @@ void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	starpu_monitor_blas_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
+	starpu_register_blas_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	starpu_filter f;
 		f.filter_func = starpu_vertical_block_filter_func;

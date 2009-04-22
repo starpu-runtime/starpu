@@ -308,7 +308,7 @@ int main(int argc, char **argv)
 	for (x = 0; x < nblocks; x++)
 	{
 		if (x <= y) {
-			starpu_monitor_blas_data(&A_state[y][x], 0, (uintptr_t)A[y][x], 
+			starpu_register_blas_data(&A_state[y][x], 0, (uintptr_t)A[y][x], 
 				BLOCKSIZE, BLOCKSIZE, BLOCKSIZE, sizeof(float));
 		}
 	}

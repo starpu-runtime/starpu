@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 	fprintf(stderr, "kernel incA %d incC %d elf %d\n", kernel_incA_id, kernel_incC_id, elf_id);
 #endif
 	
-	starpu_monitor_vector_data(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
+	starpu_register_vector_data(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 
 	unsigned iter;
 	for (iter = 0; iter < K; iter++)

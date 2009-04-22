@@ -156,11 +156,11 @@ void init_problem(void)
 		}
 	}
 
-	starpu_monitor_blas_data(&A_state, 0, (uintptr_t)A, 
+	starpu_register_blas_data(&A_state, 0, (uintptr_t)A, 
 		dim, dim, dim, sizeof(float));
-	starpu_monitor_blas_data(&B_state, 0, (uintptr_t)B, 
+	starpu_register_blas_data(&B_state, 0, (uintptr_t)B, 
 		dim, dim, dim, sizeof(float));
-	starpu_monitor_blas_data(&C_state, 0, (uintptr_t)C, 
+	starpu_register_blas_data(&C_state, 0, (uintptr_t)C, 
 		dim, dim, dim, sizeof(float));
 
 	gettimeofday(&start, NULL);

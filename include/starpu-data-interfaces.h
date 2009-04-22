@@ -29,7 +29,7 @@ typedef struct starpu_blas_interface_s {
 	size_t elemsize;
 } starpu_blas_interface_t;
 
-void starpu_monitor_blas_data(starpu_data_handle *handle, uint32_t home_node,
+void starpu_register_blas_data(starpu_data_handle *handle, uint32_t home_node,
                         uintptr_t ptr, uint32_t ld, uint32_t nx,
                         uint32_t ny, size_t elemsize);
 uint32_t starpu_get_blas_nx(starpu_data_handle handle);
@@ -44,7 +44,7 @@ typedef struct starpu_vector_interface_s {
 	size_t elemsize;
 } starpu_vector_interface_t;
 
-void starpu_monitor_vector_data(starpu_data_handle *handle, uint32_t home_node,
+void starpu_register_vector_data(starpu_data_handle *handle, uint32_t home_node,
                         uintptr_t ptr, uint32_t nx, size_t elemsize);
 uint32_t starpu_get_vector_nx(starpu_data_handle handle);
 uintptr_t starpu_get_vector_local_ptr(starpu_data_handle handle);
@@ -64,7 +64,7 @@ typedef struct starpu_csr_interface_s {
 	size_t elemsize;
 } starpu_csr_interface_t;
 
-void starpu_monitor_csr_data(starpu_data_handle *handle, uint32_t home_node, uint32_t nnz, uint32_t nrow,
+void starpu_register_csr_data(starpu_data_handle *handle, uint32_t home_node, uint32_t nnz, uint32_t nrow,
 		uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize);
 uint32_t starpu_get_csr_nnz(starpu_data_handle handle);
 uint32_t starpu_get_csr_nrow(starpu_data_handle handle);
@@ -108,7 +108,7 @@ typedef struct starpu_bcsr_interface_s {
 	size_t elemsize;
 } starpu_bcsr_interface_t;
 
-void starpu_monitor_bcsr_data(starpu_data_handle *handle, uint32_t home_node, uint32_t nnz, uint32_t nrow,
+void starpu_register_bcsr_data(starpu_data_handle *handle, uint32_t home_node, uint32_t nnz, uint32_t nrow,
 		uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize);
 
 

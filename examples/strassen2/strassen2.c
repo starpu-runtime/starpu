@@ -176,7 +176,7 @@ starpu_data_handle allocate_tmp_matrix(unsigned size, unsigned reclevel)
 	memset(buffer, 0, size*size*sizeof(float));
 
 
-	starpu_monitor_blas_data(data, 0, (uintptr_t)buffer, size, size, size, sizeof(float));
+	starpu_register_blas_data(data, 0, (uintptr_t)buffer, size, size, size, sizeof(float));
 
 	/* we construct a starpu_filter tree of depth reclevel */
 	unsigned rec;
@@ -793,9 +793,9 @@ int main(int argc, char **argv)
 	memset(B, 0, size*size*sizeof(float));
 	memset(C, 0, size*size*sizeof(float));
 
-	starpu_monitor_blas_data(&data_A, 0, (uintptr_t)A, size, size, size, sizeof(float));
-	starpu_monitor_blas_data(&data_B, 0, (uintptr_t)B, size, size, size, sizeof(float));
-	starpu_monitor_blas_data(&data_C, 0, (uintptr_t)C, size, size, size, sizeof(float));
+	starpu_register_blas_data(&data_A, 0, (uintptr_t)A, size, size, size, sizeof(float));
+	starpu_register_blas_data(&data_B, 0, (uintptr_t)B, size, size, size, sizeof(float));
+	starpu_register_blas_data(&data_C, 0, (uintptr_t)C, size, size, size, sizeof(float));
 
 	unsigned rec;
 	for (rec = 0; rec < reclevel; rec++)

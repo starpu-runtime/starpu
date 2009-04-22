@@ -46,7 +46,7 @@ struct data_interface_ops_t interface_bcsr_ops = {
 	.footprint = footprint_bcsr_interface_crc32
 };
 
-void starpu_monitor_bcsr_data(struct starpu_data_state_t **handle, uint32_t home_node,
+void starpu_register_bcsr_data(struct starpu_data_state_t **handle, uint32_t home_node,
 		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry,  uint32_t r, uint32_t c, size_t elemsize)
 {
 	struct starpu_data_state_t *state = calloc(1, sizeof(struct starpu_data_state_t));
@@ -81,7 +81,7 @@ void starpu_monitor_bcsr_data(struct starpu_data_state_t **handle, uint32_t home
 
 	state->ops = &interface_bcsr_ops;
 
-	monitor_new_data(state, home_node, 0);
+	register_new_data(state, home_node, 0);
 }
 
 static inline uint32_t footprint_bcsr_interface_generic(uint32_t (*hash_func)(uint32_t input, uint32_t hstate), data_state *state, uint32_t hstate)
