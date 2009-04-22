@@ -167,6 +167,8 @@ endif
 
 if !NO_BLAS_LIB
 
+check_PROGRAMS += heat/heat
+
 examplebin_PROGRAMS += heat/heat
 
 heat_heat_SOURCES =				\
