@@ -22,7 +22,7 @@
 //#include <core/jobs.h>
 #include <common/htable32.h>
 //#include <core/workers.h>
-#include <starpu-mutex.h>
+#include <pthread.h>
 #include <stdio.h>
 
 struct starpu_buffer_descr_t;

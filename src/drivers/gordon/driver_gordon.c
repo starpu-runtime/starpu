@@ -31,7 +31,7 @@ pthread_t progress_thread;
 pthread_cond_t progress_cond;
 pthread_mutex_t progress_mutex;
 
-struct starpu_mutex_t terminated_list_mutexes[32]; 
+pthread_spinlock_t terminated_list_mutexes[32]; 
 
 struct gordon_task_wrapper_s {
 	/* who has executed that ? */
@@ -205,13 +205,13 @@ static void handle_terminated_jobs(struct worker_set_s *arg)
 	unsigned spu;
 	for (spu = 0; spu < arg->nworkers; spu++)
 	{
-		take_mutex(&terminated_list_mutexes[spu]);
+		pthread_spin_lock(&terminated_list_mutexes[spu]);
 		handle_terminated_job_per_worker(&arg->workers[spu]);
-		release_mutex(&terminated_list_mutexes[spu]);
-		//if (!take_mutex_try(&terminated_list_mutexes[spu]))
+		pthread_spin_unlock(&terminated_list_mutexes[spu]);
+		//if (!pthread_spin_trylock(&terminated_list_mutexes[spu]))
 		//{
 		//	handle_terminated_job_per_worker(&arg->workers[spu]);
-		//	release_mutex(&terminated_list_mutexes[spu]);
+		//	pthread_spin_unlock(&terminated_list_mutexes[spu]);
 		//}
 	}
 }
@@ -237,7 +237,7 @@ static void gordon_callback_list_func(void *arg)
 	unsigned task_cnt = 0;
 
 	/* XXX 0 was hardcoded */
-	take_mutex(&terminated_list_mutexes[0]);
+	pthread_spin_lock(&terminated_list_mutexes[0]);
 	while (!job_list_empty(wrapper_list))
 	{
 		job_t j = job_list_pop_back(wrapper_list);
@@ -257,7 +257,7 @@ static void gordon_callback_list_func(void *arg)
 	/* the job list was allocated by the gordon driver itself */
 	job_list_delete(wrapper_list);
 
-	release_mutex(&terminated_list_mutexes[0]);
+	pthread_spin_unlock(&terminated_list_mutexes[0]);
 
 	wake_all_blocked_workers();
 	free(task_wrapper->gordon_job);
@@ -279,9 +279,9 @@ static void gordon_callback_func(void *arg)
 //	fprintf(stderr, "gordon callback : push job j %p\n", task_wrapper->j);
 
 	/* XXX 0 was hardcoded */
-	take_mutex(&terminated_list_mutexes[0]);
+	pthread_spin_lock(&terminated_list_mutexes[0]);
 	job_list_push_back(worker->terminated_jobs, task_wrapper->j);
-	release_mutex(&terminated_list_mutexes[0]);
+	pthread_spin_unlock(&terminated_list_mutexes[0]);
 	wake_all_blocked_workers();
 	free(task_wrapper);
 }
@@ -465,7 +465,7 @@ void *gordon_worker(void *arg)
 	unsigned spu;
 	for (spu = 0; spu < gordon_set_arg->nworkers; spu++)
 	{
-		init_mutex(&terminated_list_mutexes[spu]);
+		pthread_spin_init(&terminated_list_mutexes[spu], 0);
 	}
 
 

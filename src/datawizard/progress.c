@@ -23,7 +23,7 @@ extern pthread_key_t local_workers_key;
 
 #ifdef USE_GORDON
 extern void handle_terminated_job_per_worker(struct worker_s *worker);
-extern struct starpu_mutex_t terminated_list_mutexes[32]; 
+extern pthread_spinlock_t terminated_list_mutexes[32]; 
 #endif
 
 void datawizard_progress(uint32_t memory_node)
@@ -40,9 +40,9 @@ void datawizard_progress(uint32_t memory_node)
 		unsigned worker;
 		for (worker = 0; worker < set->nworkers; worker++)
 		{
-			take_mutex(&terminated_list_mutexes[0]);
+			pthread_spin_lock(&terminated_list_mutexes[0]);
 			handle_terminated_job_per_worker(&set->workers[worker]);
-			release_mutex(&terminated_list_mutexes[0]);
+			pthread_spin_unlock(&terminated_list_mutexes[0]);
 		}
 	}
 #endif

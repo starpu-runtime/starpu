@@ -18,7 +18,7 @@
 #include <datawizard/footprint.h>
 
 extern mem_node_descr descr;
-static starpu_mutex mc_mutex[MAXNODES]; 
+pthread_spinlock_t mc_mutex[MAXNODES]; 
 static mem_chunk_list_t mc_list[MAXNODES];
 static mem_chunk_list_t mc_list_to_free[MAXNODES];
 
@@ -29,7 +29,7 @@ void init_mem_chunk_lists(void)
 	unsigned i;
 	for (i = 0; i < MAXNODES; i++)
 	{
-		init_mutex(&mc_mutex[i]);
+		pthread_spin_init(&mc_mutex[i], 0);
 		mc_list[i] = mem_chunk_list_new();
 		mc_list_to_free[i] = mem_chunk_list_new();
 	}
@@ -50,7 +50,7 @@ static void lock_all_subtree(data_state *data)
 	if (data->nchildren == 0)
 	{
 		/* this is a leaf */	
-		while (take_mutex_try(&data->header_lock))
+		while (pthread_spin_trylock(&data->header_lock))
 			datawizard_progress(get_local_memory_node());
 	}
 	else {
@@ -68,7 +68,7 @@ static void unlock_all_subtree(data_state *data)
 	if (data->nchildren == 0)
 	{
 		/* this is a leaf */	
-		release_mutex(&data->header_lock);
+		pthread_spin_unlock(&data->header_lock);
 	}
 	else {
 		/* lock all sub-subtrees children */
@@ -291,7 +291,7 @@ static unsigned try_to_reuse_mem_chunk(mem_chunk_t mc, unsigned node, data_state
  * list of mem chunk that need to be liberated */
 static unsigned try_to_find_reusable_mem_chunk(unsigned node, data_state *data, uint32_t footprint)
 {
-	take_mutex(&mc_mutex[node]);
+	pthread_spin_lock(&mc_mutex[node]);
 
 	/* go through all buffers for which there was a removal request */
 	mem_chunk_t mc, next_mc;
@@ -312,7 +312,7 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, data_state *data, 
 			{
 				reuse_mem_chunk(node, data, mc, 0);
 
-				release_mutex(&mc_mutex[node]);
+				pthread_spin_unlock(&mc_mutex[node]);
 				return 1;
 			}
 		}
@@ -334,13 +334,13 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, data_state *data, 
 //			fprintf(stderr, "found a candidate ...\n");
 			if (try_to_reuse_mem_chunk(mc, node, data, 1))
 			{
-				release_mutex(&mc_mutex[node]);
+				pthread_spin_unlock(&mc_mutex[node]);
 				return 1;
 			}
 		}
 	}
 
-	release_mutex(&mc_mutex[node]);
+	pthread_spin_unlock(&mc_mutex[node]);
 
 	return 0;
 }
@@ -356,7 +356,7 @@ static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unu
 
 	size_t liberated = 0;
 
-	take_mutex(&mc_mutex[node]);
+	pthread_spin_lock(&mc_mutex[node]);
 
 	/* remove all buffers for which there was a removal request */
 	mem_chunk_t mc, next_mc;
@@ -392,7 +392,7 @@ static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unu
 
 //	fprintf(stderr, "got %d MB back\n", (int)liberated/(1024*1024));
 
-	release_mutex(&mc_mutex[node]);
+	pthread_spin_unlock(&mc_mutex[node]);
 
 	return liberated;
 }
@@ -414,14 +414,14 @@ static void register_mem_chunk(data_state *state, uint32_t dst_node, size_t size
 	/* the interface was already filled by ops->allocate_data_on_node */
 	memcpy(&mc->interface, &state->interface[dst_node], sizeof(starpu_data_interface_t));
 
-	take_mutex(&mc_mutex[dst_node]);
+	pthread_spin_lock(&mc_mutex[dst_node]);
 	mem_chunk_list_push_front(mc_list[dst_node], mc);
-	release_mutex(&mc_mutex[dst_node]);
+	pthread_spin_unlock(&mc_mutex[dst_node]);
 }
 
 void request_mem_chunk_removal(data_state *state, unsigned node)
 {
-	take_mutex(&mc_mutex[node]);
+	pthread_spin_lock(&mc_mutex[node]);
 
 	/* iterate over the list of memory chunks and remove the entry */
 	mem_chunk_t mc, next_mc;
@@ -441,7 +441,7 @@ void request_mem_chunk_removal(data_state *state, unsigned node)
 			/* put it in the list of buffers to be removed */
 			mem_chunk_list_push_front(mc_list_to_free[node], mc);
 
-			release_mutex(&mc_mutex[node]);
+			pthread_spin_unlock(&mc_mutex[node]);
 
 			return;
 		}
@@ -449,7 +449,7 @@ void request_mem_chunk_removal(data_state *state, unsigned node)
 
 	/* there was no corresponding buffer ... */
 
-	release_mutex(&mc_mutex[node]);
+	pthread_spin_unlock(&mc_mutex[node]);
 }
 
 static size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node)

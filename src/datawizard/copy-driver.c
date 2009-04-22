@@ -30,7 +30,7 @@ void wake_all_blocked_workers_on_node(unsigned nodeid)
 	/* wake up all queues on that node */
 	unsigned q_id;
 
-	take_mutex(&descr.attached_queues_mutex);
+	pthread_spin_lock(&descr.attached_queues_mutex);
 
 	unsigned nqueues = descr.queues_count[nodeid];
 	for (q_id = 0; q_id < nqueues; q_id++)
@@ -44,7 +44,7 @@ void wake_all_blocked_workers_on_node(unsigned nodeid)
 		pthread_mutex_unlock(&q->activity_mutex);
 	}
 
-	release_mutex(&descr.attached_queues_mutex);
+	pthread_spin_unlock(&descr.attached_queues_mutex);
 }
 
 void wake_all_blocked_workers(void)

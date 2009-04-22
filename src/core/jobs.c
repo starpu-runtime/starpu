@@ -165,7 +165,7 @@ static unsigned not_all_task_deps_are_fulfilled(job_t j)
 
 	struct tag_s *tag = j->tag;
 
-	take_mutex(&tag->lock);
+	pthread_spin_lock(&tag->lock);
 
 	if (tag->ndeps != tag->ndeps_completed)
 	{
@@ -178,7 +178,7 @@ static unsigned not_all_task_deps_are_fulfilled(job_t j)
 		ret = 0;
 	}
 
-	release_mutex(&tag->lock);
+	pthread_spin_unlock(&tag->lock);
 	return ret;
 }
 

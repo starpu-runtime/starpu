@@ -18,8 +18,8 @@
 #define __STARPU_PERFMODEL_H__
 
 #include <stdio.h>
+#include <pthread.h>
 #include <starpu_config.h>
-#include <starpu-mutex.h>
 
 struct starpu_htbl32_node_s;
 struct starpu_history_list_t;
@@ -89,7 +89,7 @@ struct starpu_perfmodel_t {
 	unsigned is_loaded;
 	unsigned benchmarking;
 
-	starpu_mutex model_mutex;
+	pthread_spinlock_t model_mutex;
 };
 
 #endif // __STARPU_PERFMODEL_H__

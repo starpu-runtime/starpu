@@ -97,7 +97,7 @@ void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
 	unsigned queue;
 	unsigned nqueues_total, nqueues;
 	
-	take_mutex(&descr.attached_queues_mutex);
+	pthread_spin_lock(&descr.attached_queues_mutex);
 
 	/* we only insert the queue if it's not already in the list */
 	nqueues = descr.queues_count[nodeid];
@@ -106,7 +106,7 @@ void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
 		if (descr.attached_queues_per_node[nodeid][queue] == q)
 		{
 			/* the queue is already in the list */
-			release_mutex(&descr.attached_queues_mutex);
+			pthread_spin_unlock(&descr.attached_queues_mutex);
 			return;
 		}
 	}
@@ -122,7 +122,7 @@ void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
 		if (descr.attached_queues_all[queue] == q)
 		{
 			/* the queue is already in the global list */
-			release_mutex(&descr.attached_queues_mutex);
+			pthread_spin_unlock(&descr.attached_queues_mutex);
 			return;
 		}
 	} 
@@ -131,7 +131,7 @@ void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
 	descr.attached_queues_all[nqueues_total] = q;
 	descr.total_queues_count++;
 
-	release_mutex(&descr.attached_queues_mutex);
+	pthread_spin_unlock(&descr.attached_queues_mutex);
 }
 
 

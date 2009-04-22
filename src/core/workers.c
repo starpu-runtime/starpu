@@ -369,6 +369,8 @@ void starpu_init(struct starpu_conf *user_conf)
 
 	init_workers_binding(&config);
 
+	initialize_tag_mutex();
+
 	/* initialize the scheduler */
 
 	/* initialize the queue containing the jobs */
@@ -445,7 +447,7 @@ static void operate_on_all_queues_attached_to_node(unsigned nodeid, queue_op op)
 	unsigned q_id;
 	struct jobq_s *q;
 
-	take_mutex(&descr.attached_queues_mutex);
+	pthread_spin_lock(&descr.attached_queues_mutex);
 
 	unsigned nqueues = descr.queues_count[nodeid];
 
@@ -465,7 +467,7 @@ static void operate_on_all_queues_attached_to_node(unsigned nodeid, queue_op op)
 		}
 	}
 
-	release_mutex(&descr.attached_queues_mutex);
+	pthread_spin_unlock(&descr.attached_queues_mutex);
 }
 
 inline void lock_all_queues_attached_to_node(unsigned node)
@@ -488,7 +490,7 @@ static void operate_on_all_queues(queue_op op)
 	unsigned q_id;
 	struct jobq_s *q;
 
-	take_mutex(&descr.attached_queues_mutex);
+	pthread_spin_lock(&descr.attached_queues_mutex);
 
 	unsigned nqueues = descr.total_queues_count;
 
@@ -508,7 +510,7 @@ static void operate_on_all_queues(queue_op op)
 		}
 	}
 
-	release_mutex(&descr.attached_queues_mutex);
+	pthread_spin_unlock(&descr.attached_queues_mutex);
 }
 
 static void kill_all_workers(struct machine_config_s *config)

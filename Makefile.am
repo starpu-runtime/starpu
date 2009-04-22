@@ -26,7 +26,6 @@ include_HEADERS = 				\
 	include/starpu_config.h			\
 	include/starpu-data-filters.h		\
 	include/starpu-data-interfaces.h	\
-	include/starpu-mutex.h			\
 	include/starpu-task.h			\
 	include/starpu-data.h			\
 	include/starpu-perfmodel.h		\

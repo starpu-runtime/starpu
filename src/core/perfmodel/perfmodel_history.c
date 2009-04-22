@@ -22,7 +22,7 @@
 #include <core/perfmodel/perfmodel.h>
 #include <core/jobs.h>
 #include <core/workers.h>
-#include <starpu-mutex.h>
+#include <pthread.h>
 #include <datawizard/datawizard.h>
 #include <core/perfmodel/regression.h>
 #include <common/config.h>
@@ -307,7 +307,7 @@ void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_hi
 
 	/* XXX we assume the lock is implicitely initialized (taken = 0) */
 	//init_mutex(&model->model_mutex);
-	take_mutex(&model->model_mutex);
+	pthread_spin_lock(&model->model_mutex);
 
 	/* perhaps some other thread got in before ... */
 	if (!model->is_loaded)
@@ -364,7 +364,7 @@ void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_hi
 		model->is_loaded = 1;
 	}
 
-	release_mutex(&model->model_mutex);
+	pthread_spin_unlock(&model->model_mutex);
 }
 
 double regression_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct job_s *j)
@@ -405,9 +405,9 @@ double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum 
 	if (!history)
 		return -1.0;
 
-	take_mutex(&model->model_mutex);
+	pthread_spin_lock(&model->model_mutex);
 	entry = htbl_search_32(history, key);
-	release_mutex(&model->model_mutex);
+	pthread_spin_unlock(&model->model_mutex);
 
 	exp = entry?entry->mean:-1.0;
 
@@ -439,7 +439,7 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, double me
 			reg_model = &per_arch_model->regression;
 			list = &per_arch_model->list;
 
-			take_mutex(&model->model_mutex);
+			pthread_spin_lock(&model->model_mutex);
 	
 				entry = htbl_search_32(history, key);
 	
@@ -494,13 +494,13 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, double me
 			reg_model->beta = num/denom;
 			reg_model->alpha = expl((reg_model->sumlny - reg_model->beta*reg_model->sumlnx)/n);
 			
-			release_mutex(&model->model_mutex);
+			pthread_spin_unlock(&model->model_mutex);
 		}
 
 #ifdef MODEL_DEBUG
 		FILE * debug_file = per_arch_model->debug_file;
 
-		take_mutex(&model->model_mutex);
+		pthread_spin_lock(&model->model_mutex);
 
 		STARPU_ASSERT(j->footprint_is_computed);
 
@@ -519,7 +519,7 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, double me
 		fprintf(debug_file, "\n");	
 
 
-		release_mutex(&model->model_mutex);
+		pthread_spin_unlock(&model->model_mutex);
 #endif
 	}
 }

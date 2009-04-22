@@ -51,10 +51,10 @@ void register_new_data(data_state *state, uint32_t home_node, uint32_t wb_mask)
 	state->req_list = data_requester_list_new();
 	state->refcnt = 0;
 #endif
-	init_mutex(&state->header_lock);
+	pthread_spin_init(&state->header_lock, 0);
 
 	/* first take care to properly lock the data */
-	take_mutex(&state->header_lock);
+	pthread_spin_lock(&state->header_lock);
 
 	/* we assume that all nodes may use that data */
 	state->nnodes = MAXNODES;
@@ -90,7 +90,7 @@ void register_new_data(data_state *state, uint32_t home_node, uint32_t wb_mask)
 	}
 
 	/* now the data is available ! */
-	release_mutex(&state->header_lock);
+	pthread_spin_unlock(&state->header_lock);
 }
 
 /*
@@ -167,7 +167,7 @@ void starpu_partition_data(data_state *initial_data, starpu_filter *f)
 	int i;
 
 	/* first take care to properly lock the data header */
-	take_mutex(&initial_data->header_lock);
+	pthread_spin_lock(&initial_data->header_lock);
 
 	/* there should not be mutiple filters applied on the same data */
 	STARPU_ASSERT(initial_data->nchildren == 0);
@@ -202,7 +202,7 @@ void starpu_partition_data(data_state *initial_data, starpu_filter *f)
 		children->req_list = data_requester_list_new();
 		children->refcnt = 0;
 #endif
-		init_mutex(&children->header_lock);
+		pthread_spin_init(&children->header_lock, 0);
 
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
@@ -217,7 +217,7 @@ void starpu_partition_data(data_state *initial_data, starpu_filter *f)
 	}
 
 	/* now let the header */
-	release_mutex(&initial_data->header_lock);
+	pthread_spin_unlock(&initial_data->header_lock);
 }
 
 void starpu_unpartition_data(data_state *root_data, uint32_t gathering_node)
@@ -225,7 +225,7 @@ void starpu_unpartition_data(data_state *root_data, uint32_t gathering_node)
 	int child;
 	unsigned node;
 
-	take_mutex(&root_data->header_lock);
+	pthread_spin_lock(&root_data->header_lock);
 
 #ifdef NO_DATA_RW_LOCK
 #warning starpu_unpartition_data is not supported with NO_DATA_RW_LOCK yet ...
@@ -302,13 +302,13 @@ void starpu_unpartition_data(data_state *root_data, uint32_t gathering_node)
 	root_data->nchildren = 0;
 
 	/* now the parent may be used again so we release the lock */
-	release_mutex(&root_data->header_lock);
+	pthread_spin_unlock(&root_data->header_lock);
 }
 
 void starpu_advise_if_data_is_important(data_state *state, unsigned is_important)
 {
 
-	take_mutex(&state->header_lock);
+	pthread_spin_lock(&state->header_lock);
 
 	/* first take all the children lock (in order !) */
 	int child;
@@ -322,6 +322,6 @@ void starpu_advise_if_data_is_important(data_state *state, unsigned is_important
 	state->is_not_important = !is_important;
 
 	/* now the parent may be used again so we release the lock */
-	release_mutex(&state->header_lock);
+	pthread_spin_unlock(&state->header_lock);
 
 }

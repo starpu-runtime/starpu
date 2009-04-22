@@ -84,7 +84,6 @@ libstarpu_la_SOURCES = 						\
 	common/malloc.c						\
 	common/hash.c 						\
 	common/htable32.c					\
-	common/mutex.c						\
 	common/rwlock.c						\
 	common/timing.c						\
 	core/jobs.c						\

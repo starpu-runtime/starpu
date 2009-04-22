@@ -63,7 +63,7 @@ unsigned attempt_to_submit_data_request_from_apps(data_state *data, starpu_acces
 {
 	unsigned ret;
 
-	take_mutex(&data->header_lock);
+	pthread_spin_lock(&data->header_lock);
 
 	if (data->refcnt == 0)
 	{
@@ -103,7 +103,7 @@ unsigned attempt_to_submit_data_request_from_apps(data_state *data, starpu_acces
 		}
 	}
 
-	release_mutex(&data->header_lock);
+	pthread_spin_unlock(&data->header_lock);
 	return ret;
 }
 
@@ -114,7 +114,7 @@ static unsigned attempt_to_submit_data_request_from_job(job_t j, unsigned buffer
 	data_state *data = j->task->buffers[buffer_index].handle;
 	starpu_access_mode mode = j->task->buffers[buffer_index].mode;
 
-	take_mutex(&data->header_lock);
+	pthread_spin_lock(&data->header_lock);
 
 	if (data->refcnt == 0)
 	{
@@ -154,7 +154,7 @@ static unsigned attempt_to_submit_data_request_from_job(job_t j, unsigned buffer
 		}
 	}
 
-	release_mutex(&data->header_lock);
+	pthread_spin_unlock(&data->header_lock);
 	return ret;
 }
 
@@ -189,7 +189,7 @@ unsigned submit_job_enforce_data_deps(job_t j)
 
 void notify_data_dependencies(data_state *data)
 {
-	take_mutex(&data->header_lock);
+	pthread_spin_lock(&data->header_lock);
 
 	data->refcnt--;
 
@@ -200,7 +200,7 @@ void notify_data_dependencies(data_state *data)
 
 		data->refcnt++;
 	
-		release_mutex(&data->header_lock);
+		pthread_spin_unlock(&data->header_lock);
 
 		if (r->is_requested_by_codelet)
 		{
@@ -217,10 +217,10 @@ void notify_data_dependencies(data_state *data)
 
 		data_requester_delete(r);
 		
-		take_mutex(&data->header_lock);
+		pthread_spin_lock(&data->header_lock);
 	}
 	
-	release_mutex(&data->header_lock);
+	pthread_spin_unlock(&data->header_lock);
 
 }
 

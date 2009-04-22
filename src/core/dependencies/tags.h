@@ -18,7 +18,7 @@
 #define __TAGS_H__
 
 #include <stdint.h>
-#include <starpu-mutex.h>
+#include <pthread.h>
 #include <core/jobs.h>
 
 /* we do not necessarily want to allocate room for 256 dependencies, but we
@@ -53,7 +53,7 @@ typedef enum {
 struct job_s;
 
 struct tag_s {
-	starpu_mutex lock;
+	pthread_spinlock_t lock;
 	starpu_tag_t id; /* an identifier for the task */
 	tag_state state;
 	unsigned nsuccs; /* how many successors ? */
@@ -84,6 +84,8 @@ typedef struct _cg_t {
 	pthread_mutex_t cg_mutex;
 	pthread_cond_t cg_cond;
 } cg_t;
+
+void initialize_tag_mutex(void);
 
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 
