@@ -127,6 +127,7 @@ typedef union {
 	starpu_csr_interface_t csr;	/* compressed sparse row */
 	starpu_csc_interface_t csc; 	/* compressed sparse column */
 	starpu_bcsr_interface_t bcsr;	/* blocked compressed sparse row */
+	uint8_t pad[64];
 } starpu_data_interface_t;
 
 
