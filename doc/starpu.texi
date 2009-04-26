@@ -35,6 +35,7 @@ This manual documents the usage of StarPU
 * Installing StarPU::  How to configure, build and install StarPU
 * StarPU API::         The API to use StarPU
 * Basic Examples::     Basic examples of the use of StarPU
+* Advanced Topics::    Advanced use of StarPU
 @end menu
 
 @c ---------------------------------------------------------------------
@@ -77,9 +78,41 @@ transparently handling low-level issues in a portable fashion.
 @node StarPU in a Nutshell
 @section StarPU in a Nutshell
 
-@c DSM
+From a programming point of view, StarPU is not a new language but a library
+that execute tasks explicitly submitted by the application.  The data that a
+task manipulate are automatically transferred onto the accelerators so that the
+programmer does not have to take care of complex data movements.  StarPU also
+takes particular care of scheduling those tasks efficiently and allows
+scheduling experts to implement custom scheduling policies in a portable
+fashion.
 
 @c explain the notion of codelet and task (ie. g(A, B)
+@subsection Codelet and Tasks
+One of StarPU primary data structure is the @b{codelet}. A codelet describes a
+computational kernel that can possibly be implemented on multiple architectures
+such as a CPU, a CUDA device or a Cell's SPU.
+
+@c TODO insert illustration f : f_spu, f_cpu, ...
+
+Another important data structure is the @b{task}. Executing a StarPU task
+consists in applying a codelet on a data set on one of the architecture on
+which the codelet is implemented. In addition to the codelet that a task
+implements, it also describes which data are accessed, and how they are
+accessed during the computation (read and/or write).
+StarPU tasks are asynchronous: submitting a task to StarPU is a non-blocking
+operation. The task structure can also specify a @b{callback} function that is
+called once StarPU has properly executed the task. It also contains optional
+fields that the application may use to give hints to the scheduler (such as
+priority levels).
+
+A task may be identified by a unique 64-bit number which we refer as a @b{tag}. 
+Task dependencies can be enforced either by the means of callback functions, or
+by expressing dependencies between tags.
+
+@c TODO insert illustration f(Ar, Brw, Cr) + ..
+
+@c DSM
+@subsection StarPU Data Management Library
 
 @c ---------------------------------------------------------------------
 @c Installing StarPU
@@ -611,5 +644,12 @@ Contrary to the previous examples, the task submitted in the example may not
 only be executed by the CPUs, but also by a CUDA device.
 
 TODO
+
+@c ---------------------------------------------------------------------
+@c Advanced Topics
+@c ---------------------------------------------------------------------
+
+@node Advanced Topics
+@chapter Advanced Topics
 
 @bye
