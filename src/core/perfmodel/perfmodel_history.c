@@ -310,7 +310,7 @@ void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_hi
 	pthread_spin_lock(&model->model_mutex);
 
 	/* perhaps some other thread got in before ... */
-	if (!model->is_loaded)
+	if (STARPU_UNLIKELY(!model->is_loaded))
 	{
 		/* make sure the performance model directory exists (or create it) */
 		if (!directory_existence_was_tested)
@@ -373,7 +373,7 @@ double regression_based_job_expected_length(struct starpu_perfmodel_t *model, en
 	size_t size = job_get_data_size(j);
 	struct starpu_regression_model_t *regmodel;
 
-	if (!model->is_loaded)
+	if (STARPU_UNLIKELY(!model->is_loaded))
 		load_history_based_model(model, 0);
 
 	regmodel = &model->per_arch[arch].regression;
@@ -391,10 +391,10 @@ double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum 
 	struct starpu_history_entry_t *entry;
 	struct starpu_htbl32_node_s *history;
 
-	if (!model->is_loaded)
+	if (STARPU_UNLIKELY(!model->is_loaded))
 		load_history_based_model(model, 1);
 
-	if (!j->footprint_is_computed)
+	if (STARPU_UNLIKELY(!j->footprint_is_computed))
 		compute_buffers_footprint(j);
 		
 	uint32_t key = j->footprint;

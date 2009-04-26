@@ -243,10 +243,9 @@ static void gordon_callback_list_func(void *arg)
 		job_t j = job_list_pop_back(wrapper_list);
 
 		struct gordon_ppu_job_s * gordon_task = &task_wrapper->gordon_job[task_cnt];
-		
-		if (j->task->cl->model && j->task->cl->model->benchmarking)
+		struct starpu_perfmodel_t *model = j->task->cl->model;
+		if (model && model->benchmarking)
 		{
-			//fprintf(stderr, "gordon_task -> execution time %lx\n", gordon_task->measured);
 			update_perfmodel_history(j, STARPU_GORDON_DEFAULT, gordon_task->measured);
 		}
 
@@ -350,7 +349,8 @@ int inject_task_list(struct job_list_s *list, struct worker_s *worker)
 
 		gordon_jobs[index].index = task->cl->gordon_func;
 
-		if (j->task->cl->model && j->task->cl->model->benchmarking)
+		struct starpu_perfmodel_t *model = j->task->cl->model;
+		if (model && model->benchmarking)
 			gordon_jobs[index].sampling = 1;
 
 		/* we should not hardcore the memory node ... XXX */
