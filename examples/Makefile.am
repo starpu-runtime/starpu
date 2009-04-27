@@ -58,7 +58,7 @@ SPU_CC ?= spu-gcc
 SPU_LD ?= spu-ld
 
 SPULDFLAGS = 
-SPULIBS = -lblas
+SPULIBS = -lblas #-lc -lgloss -lc
 
 .c.spuo:
 	$(SPU_CC) -c -fpic $< -o $@
@@ -101,6 +101,16 @@ examplebin_PROGRAMS +=				\
 
 basic_examples_hello_world_SOURCES =		\
 	basic-examples/hello-world.c
+
+###################
+# PPM downscaling #
+###################
+
+examplebin_PROGRAMS +=				\
+	ppm-downscaler/ppm-downscaler
+
+ppm_downscaler_ppm_downscaler_SOURCES =		\
+	ppm-downscaler/ppm-downscaler.c
 
 ################
 # Mult example #
