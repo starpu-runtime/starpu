@@ -25,6 +25,9 @@
 
 #include "yuv-downscaler.h"
 
+struct timeval start;
+struct timeval end;
+
 const char *filename_in_default = "hugefile.2s.yuv";
 const char *filename_out_default = "hugefile.2s.out.yuv";
 char filename_in[1024];
@@ -124,7 +127,7 @@ int main(int argc, char **argv)
 	
 	parse_args(argc, argv);
 
-	fprintf(stderr, "Reading input file ...\n");
+//	fprintf(stderr, "Reading input file ...\n");
 
 	/* how many frames ? */
 	struct stat stbuf;
@@ -133,8 +136,8 @@ int main(int argc, char **argv)
 
 	unsigned nframes = filesize/FRAMESIZE; 
 
-	fprintf(stderr, "filesize %lx (FRAME SIZE %lx NEW SIZE %lx); nframes %d\n", filesize, FRAMESIZE, NEW_FRAMESIZE, nframes);
-//	assert((filesize % sizeof(struct yuv_frame)) == 0);
+//	fprintf(stderr, "filesize %lx (FRAME SIZE %lx NEW SIZE %lx); nframes %d\n", filesize, FRAMESIZE, NEW_FRAMESIZE, nframes);
+	assert((filesize % sizeof(struct yuv_frame)) == 0);
 
 	/* fetch input data */
 	FILE *f_in = fopen(filename_in, "r");
@@ -147,7 +150,7 @@ int main(int argc, char **argv)
 	FILE *f_out = fopen(filename_out, "w+");
 	assert(f_out);
 
-	fprintf(stderr, "Alloc output file ...\n");
+//	fprintf(stderr, "Alloc output file ...\n");
 	struct yuv_new_frame *yuv_out_buffer = calloc(nframes, NEW_FRAMESIZE);
 	assert(yuv_out_buffer);
 
@@ -213,6 +216,8 @@ int main(int argc, char **argv)
 	ds_callback_cnt = (nblocks_y + 2*nblocks_uv)*nframes;
 
 	fprintf(stderr, "Start computation: there will be %d tasks for %d frames\n", ds_callback_cnt, nframes);
+	gettimeofday(&start, NULL);
+
 	/* do the computation */
 	for (frame = 0; frame < nframes; frame++)
 	{
@@ -275,6 +280,12 @@ int main(int argc, char **argv)
 	if (!ds_callback_terminated)
 		pthread_cond_wait(&ds_callback_cond, &ds_callback_mutex);
 	pthread_mutex_unlock(&ds_callback_mutex);
+
+	gettimeofday(&end, NULL);
+
+	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	fprintf(stderr, "Computation took %f seconds\n", timing/1000000);
+	fprintf(stderr, "FPS %f\n", (1000000*nframes)/timing);
 
 	/* make sure all output buffers are sync'ed */
 	for (frame = 0; frame < nframes; frame++)
