@@ -22,6 +22,8 @@
 #define NEW_WIDTH	(WIDTH/FACTOR)
 #define NEW_HEIGHT	(HEIGHT/FACTOR)
 
+#define BLOCK_HEIGHT    20
+
 #include <stdint.h>
 
 struct yuv_frame {
