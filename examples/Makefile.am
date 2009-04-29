@@ -112,6 +112,12 @@ examplebin_PROGRAMS +=				\
 ppm_downscaler_ppm_downscaler_SOURCES =		\
 	ppm-downscaler/ppm-downscaler.c
 
+examplebin_PROGRAMS +=				\
+	ppm-downscaler/yuv-downscaler
+
+ppm_downscaler_yuv_downscaler_SOURCES =		\
+	ppm-downscaler/yuv-downscaler.c
+
 ################
 # Mult example #
 ################
