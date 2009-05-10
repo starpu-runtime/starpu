@@ -293,6 +293,9 @@ if test x$use_fxt = xyes; then
 		LDFLAGS="${LDFLAGS} -L$fxtdir/lib/ "
 	fi
 
+	# if we use monotonic clocks, FxT uses -lrt
+	AC_CHECK_LIB(rt, clock_gettime,,AC_MSG_ERROR([cannot find clock_gettime]))
+
 	AC_CHECK_LIB(fxt, fut_setup,,AC_MSG_ERROR([cannot find fxt lib]))
 	AC_CHECK_HEADER([fxt/fxt.h],,AC_MSG_ERROR([cannot find headers for fxt]))
 	AC_CHECK_HEADER([fxt/fut.h],,AC_MSG_ERROR([cannot find headers for fxt]))
@@ -390,6 +393,16 @@ AC_ARG_WITH(perf-model-dir, [AS_HELP_STRING([--with-perf-model-dir=<dir>], [spec
 AC_MSG_CHECKING(performance models location)
 AC_MSG_RESULT($perf_model_dir)
 AC_DEFINE_UNQUOTED(PERF_MODEL_DIR, "$perf_model_dir", [performance models location])
+
+# On many multicore CPUs, clock cycles are not synchronized
+AC_ARG_ENABLE(sync-clock, [AS_HELP_STRING([--enable-sync-clock], [Use monotonic clocks])],
+		enable_sync_clock=$enableval, enable_sync_clock=no)
+AC_MSG_CHECKING(whether using a synchronous clock)
+AC_MSG_RESULT($enable_sync_clock)
+AC_DEFINE(USE_SYNC_CLOCK, [1], [Use a mononotic clock])
+if test x$enable_sync_clock = xyes; then
+	AC_CHECK_LIB(rt, clock_gettime,,AC_MSG_ERROR([cannot find clock_gettime]))
+fi
 
 ###############################################################################
 #                                                                             #

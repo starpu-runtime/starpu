@@ -32,14 +32,19 @@
 #include <starpu.h>
 
 #ifdef UNRELIABLETICKS
+#include <time.h>
+#ifndef _POSIX_C_SOURCE
+/* for clock_gettime */
+#define _POSIX_C_SOURCE 199309L
+#endif
 
 /* we use the usual gettimeofday method */
 typedef struct tick_s
 {
-	struct timeval tv;
+	struct timespec ts;
 } tick_t;
 
-#define GET_TICK(t) gettimeofday(&((t).tv), NULL)
+#define GET_TICK(t) clock_gettime(CLOCK_MONOTONIC, &((t).ts))
 
 #else // !UNRELIABLETICKS
 
