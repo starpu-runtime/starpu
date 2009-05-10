@@ -86,7 +86,11 @@ struct starpu_perfmodel_t {
 	struct starpu_per_arch_perfmodel_t per_arch[NARCH_VARIATIONS];
 	
 	const char *symbol;
-	unsigned is_loaded;
+	enum {
+		STARPU_PERFMODEL_NOT_LOADED,
+		STARPU_PERFMODEL_LOADING,
+		STARPU_PERFMODEL_LOADED
+	} is_loaded;
 	unsigned benchmarking;
 
 	pthread_spinlock_t model_mutex;

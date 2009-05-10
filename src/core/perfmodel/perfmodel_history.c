@@ -306,12 +306,24 @@ void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_hi
 	STARPU_ASSERT(model->symbol);
 
 	/* XXX we assume the lock is implicitely initialized (taken = 0) */
+	unsigned have_to_load;
+	have_to_load = __sync_bool_compare_and_swap (&model->is_loaded, 
+				STARPU_PERFMODEL_NOT_LOADED,
+				STARPU_PERFMODEL_LOADING);
+	if (!have_to_load)
+	{
+		/* someone is already loading the model, we wait until it's finished */
+		while (model->is_loaded != STARPU_PERFMODEL_LOADED)
+		{
+			__sync_synchronize();
+		}
+		return;
+	}
+	
 	//init_mutex(&model->model_mutex);
+	pthread_spin_init(&model->model_mutex, 0);
 	pthread_spin_lock(&model->model_mutex);
 
-	/* perhaps some other thread got in before ... */
-	if (STARPU_UNLIKELY(!model->is_loaded))
-	{
 		/* make sure the performance model directory exists (or create it) */
 		if (!directory_existence_was_tested)
 		{
@@ -361,8 +373,7 @@ void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_hi
 			model->benchmarking = 0;
 		}
 	
-		model->is_loaded = 1;
-	}
+		model->is_loaded = STARPU_PERFMODEL_LOADED;
 
 	pthread_spin_unlock(&model->model_mutex);
 }
@@ -373,7 +384,7 @@ double regression_based_job_expected_length(struct starpu_perfmodel_t *model, en
 	size_t size = job_get_data_size(j);
 	struct starpu_regression_model_t *regmodel;
 
-	if (STARPU_UNLIKELY(!model->is_loaded))
+	if (STARPU_UNLIKELY(model->is_loaded != STARPU_PERFMODEL_LOADED))
 		load_history_based_model(model, 0);
 
 	regmodel = &model->per_arch[arch].regression;
@@ -391,7 +402,7 @@ double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum 
 	struct starpu_history_entry_t *entry;
 	struct starpu_htbl32_node_s *history;
 
-	if (STARPU_UNLIKELY(!model->is_loaded))
+	if (STARPU_UNLIKELY(model->is_loaded != STARPU_PERFMODEL_LOADED))
 		load_history_based_model(model, 1);
 
 	if (STARPU_UNLIKELY(!j->footprint_is_computed))
