@@ -305,7 +305,6 @@ void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_hi
 	STARPU_ASSERT(model);
 	STARPU_ASSERT(model->symbol);
 
-	/* XXX we assume the lock is implicitely initialized (taken = 0) */
 	unsigned have_to_load;
 	have_to_load = __sync_bool_compare_and_swap (&model->is_loaded, 
 				STARPU_PERFMODEL_NOT_LOADED,
