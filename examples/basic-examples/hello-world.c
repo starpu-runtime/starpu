@@ -14,6 +14,18 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * This examples demonstrates how to construct and submit a task to StarPU and
+ * more precisely:
+ *  - how to allocate a new task structure (starpu_task_create)
+ *  - how to describe a multi-versionned computational kernel (ie. a codelet) 
+ *  - how to pass an argument to the codelet (task->cl_arg)
+ *  - how to declare a callback function that is called once the task has been
+ *    executed
+ *  - how to specify if starpu_submit_task is a blocking or non-blocking
+ *    operation (task->synchronous)
+ */
+
 #include <stdio.h>
 #include <stdint.h>
 #include <starpu.h>
