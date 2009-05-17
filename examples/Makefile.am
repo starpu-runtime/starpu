@@ -102,6 +102,12 @@ examplebin_PROGRAMS +=				\
 basic_examples_hello_world_SOURCES =		\
 	basic-examples/hello-world.c
 
+examplebin_PROGRAMS +=				\
+	basic-examples/vector-scal
+
+basic_examples_vector_scal_SOURCES =		\
+	basic-examples/vector-scal.c
+
 ###################
 # PPM downscaling #
 ###################
