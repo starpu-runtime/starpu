@@ -587,7 +587,7 @@ struct starpu_task *task = starpu_task_create();
 
 task->cl = &cl;
 
-task->buffers[0].handle = &tab_handle;
+task->buffers[0].handle = tab_handle;
 task->buffers[0].mode = STARPU_RW;
 
 task->cl_arg = &factor;
