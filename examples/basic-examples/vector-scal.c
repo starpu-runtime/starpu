@@ -14,6 +14,15 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * This example demonstrates how to use StarPU to scale an array by a factor.
+ * It shows how to manipulate data with StarPU's data management library.
+ *  1- how to declare a piece of data to StarPU (starpu_register_vector_data)
+ *  2- how to describe which data are accessed by a task (task->buffers[0])
+ *  3- how a kernel can manipulate the data (buffers[0].vector.ptr)
+ */
+
+
 #include <stdio.h>
 #include <stdint.h>
 #include <starpu.h>
@@ -95,6 +104,10 @@ int main(int argc, char **argv)
 
 	/* execute the task on any eligible computational ressource */
 	starpu_submit_task(task);
+
+	/* StarPU does not need to manipulate the array anymore so we can stop
+ 	 * to monitor it */
+	starpu_delete_data(tab_handle);
 
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
