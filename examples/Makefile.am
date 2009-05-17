@@ -108,6 +108,12 @@ examplebin_PROGRAMS +=				\
 basic_examples_vector_scal_SOURCES =		\
 	basic-examples/vector-scal.c
 
+examplebin_PROGRAMS +=				\
+	basic-examples/mult
+
+basic_examples_mult_SOURCES =			\
+	basic-examples/mult.c
+
 ###################
 # PPM downscaling #
 ###################
