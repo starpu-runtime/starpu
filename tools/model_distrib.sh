@@ -26,11 +26,13 @@ hashlist=`cut -f 1 $inputfile | sort | uniq | xargs`
 for h in $hashlist
 do
 	echo "Handling tasks with hash = $h"
-	grep "^$h" $inputfile| cut -f 2 > $inputfile.$h
+	grep "^$h" $inputfile| cut -f 2- > $inputfile.$h
 
 R --no-save > /dev/null << EOF
 
-x <- scan("$inputfile.$h")
+table <- read.table("$inputfile.$h")
+
+x <- table[,1]
 hist(x[x > quantile(x,0.01) & x<quantile(x,0.99)], col="red", breaks=50, density=10)
 
 EOF

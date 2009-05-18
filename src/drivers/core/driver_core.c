@@ -73,7 +73,7 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 		core_args->jobq->total_communication_time += measured_comm;
 
 		if (calibrate_model)
-			update_perfmodel_history(j, core_args->arch, measured);
+			update_perfmodel_history(j, core_args->arch, core_args->id, measured);
 	}
 //#endif
 

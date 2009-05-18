@@ -308,7 +308,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 		args->jobq->total_communication_time += measured_comm;
 
 		if (calibrate_model)
-			update_perfmodel_history(j, args->arch, measured);
+			update_perfmodel_history(j, args->arch, args->id, measured);
 	}
 //#endif
 

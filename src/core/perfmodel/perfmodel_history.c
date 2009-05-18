@@ -424,7 +424,7 @@ double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum 
 	return exp;
 }
 
-void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, double measured)
+void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned cpuid, double measured)
 {
 	struct starpu_perfmodel_t *model = j->task->cl->model;
 
@@ -514,7 +514,7 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, double me
 
 		STARPU_ASSERT(j->footprint_is_computed);
 
-		fprintf(debug_file, "%x\t%lf\t\t", j->footprint, measured);
+		fprintf(debug_file, "%x\t%lf\t%d\t\t", j->footprint, measured, cpuid);
 		unsigned i;
 			
 		struct starpu_task *task = j->task;

@@ -88,7 +88,8 @@ void dump_registered_models(void);
 double job_expected_length(uint32_t who, struct job_s *j, enum starpu_perf_archtype arch);
 double regression_based_job_expected_length(struct starpu_perfmodel_t *model,
 		uint32_t who, struct job_s *j);
-void update_perfmodel_history(struct job_s *j, enum starpu_perf_archtype arch, double measured);
+void update_perfmodel_history(struct job_s *j, enum starpu_perf_archtype arch,
+				unsigned cpuid, double measured);
 
 double data_expected_penalty(struct jobq_s *q, struct job_s *j);
 

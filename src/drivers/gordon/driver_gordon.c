@@ -246,7 +246,8 @@ static void gordon_callback_list_func(void *arg)
 		struct starpu_perfmodel_t *model = j->task->cl->model;
 		if (model && model->benchmarking)
 		{
-			update_perfmodel_history(j, STARPU_GORDON_DEFAULT, gordon_task->measured);
+			/* XXX we do not retrieve the SPU id yet */
+			update_perfmodel_history(j, STARPU_GORDON_DEFAULT, 0, gordon_task->measured);
 		}
 
 		job_list_push_back(terminated_list, j);
