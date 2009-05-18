@@ -205,12 +205,59 @@ void bind_thread_on_cpu(unsigned coreid)
 #endif
 }
 
+static int current_bindid = 0;
+static unsigned get_next_bindid_is_initialized = 0;
+static unsigned get_next_bindid_use_envvar = 0;
+static char *get_next_bindid_strval;
+
+static inline int get_next_bindid(void)
+{
+	int bindid;
+
+	/* do we use a round robin policy to distribute the workers on the
+ 	 * cores, or do we another distribution ? */
+	if (!get_next_bindid_is_initialized)
+	{
+		char *strval;
+		strval = getenv("WORKERS_CPUID");
+		if (strval) {
+			get_next_bindid_strval = strval;
+			get_next_bindid_use_envvar = 1;
+		}
+
+		get_next_bindid_is_initialized = 1;
+	}
+	
+	if (get_next_bindid_use_envvar)
+	{
+		/* read the value from the WORKERS_CPUID env variable */
+		long int val;
+		char *endptr;
+		val = strtol(get_next_bindid_strval, &endptr, 10);
+		if (endptr != get_next_bindid_strval)
+		{
+			bindid = (int)(val % sysconf(_SC_NPROCESSORS_ONLN));
+
+			get_next_bindid_strval = endptr;
+		}
+		else {
+			/* there was no valid value so we use a round robin */
+			bindid = (current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
+		}
+	}
+	else {
+		/* the user did not specify any worker distribution so we use a
+ 		 * round robin distribution by default */
+		bindid = (current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
+	}
+
+	return bindid;
+}
+
 static void init_workers_binding(struct machine_config_s *config)
 {
 	/* launch one thread per CPU */
 	unsigned ram_memory_node;
-
-	int current_bindid = 0;
 
 	/* a single core is dedicated for the accelerators */
 	int accelerator_bindid = -1;
@@ -251,11 +298,11 @@ static void init_workers_binding(struct machine_config_s *config)
 
 		if (is_an_accelerator) {
 			if (accelerator_bindid == -1)
-				accelerator_bindid = (current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
+				accelerator_bindid = get_next_bindid();
 			workerarg->bindid = accelerator_bindid;
 		}
 		else {
-			workerarg->bindid = (current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
+			workerarg->bindid = get_next_bindid();
 		}
 
 		workerarg->memory_node = memory_node;
