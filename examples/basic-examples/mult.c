@@ -304,6 +304,9 @@ static void launch_tasks(void)
 		for (tasky = 0; tasky < nslicesy; tasky++)
 		{
 			/* C[taskx, tasky] = A[tasky] B[taskx] */
+
+			/* by default, starpu_task_create() returns an
+ 			 * asynchronous task (ie. task->synchronous = 0) */
 			struct starpu_task *task = starpu_task_create();
 
 			/* this task implements codelet "cl" */
@@ -350,6 +353,7 @@ static void launch_tasks(void)
 				get_sub_data(C_handle, 2, taskx, tasky);
 			task->buffers[2].mode = STARPU_W;
 
+			/* this is not a blocking call since task->synchronous = 0 */
 			starpu_submit_task(task);
 		}
 	}
@@ -371,6 +375,7 @@ int main(__attribute__ ((unused)) int argc,
  	 * codelets */
 	partition_mult_data();
 
+	/* submit all tasks in an asynchronous fashion */
 	launch_tasks();
 
 	/* the different tasks are asynchronous so we use a callback to notify
