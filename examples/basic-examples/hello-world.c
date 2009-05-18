@@ -30,7 +30,9 @@
 #include <stdint.h>
 #include <starpu.h>
 
-/* When the task is done, call task->callback_func(task->callback_arg) */
+/* When the task is done, call task->callback_func(task->callback_arg). Any
+ * callback function must have the prototype void (*)(void *).
+ * NB: Callback are NOT allowed to performed potentially blocking operations */
 void callback_func(void *callback_arg)
 {
 	printf("Callback function got argument %p\n", callback_arg);
