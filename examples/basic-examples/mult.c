@@ -17,7 +17,7 @@
 /*
  * This example shows a simple implementation of a blocked matrix
  * multiplication. Note that this is NOT intended to be an efficient
- * implementation of sgemm ! In this example, we show:
+ * implementation of sgemm! In this example, we show:
  *  - how to declare dense matrices (starpu_register_blas_data)
  *  - how to manipulate matrices within codelets (eg. descr[0].blas.ld)
  *  - how to use filters to partition the matrices into blocks
@@ -125,7 +125,7 @@ static void cpu_mult(starpu_data_interface_t *descr, __attribute__((unused))  vo
 	 * stands for leading dimension).
 	 * NB: in case some filters were used, the leading dimension is not
 	 * guaranteed to be the same in main memory (on the original matrix)
-	 * and on the accelerator ! */
+	 * and on the accelerator! */
 	nxC = descr[2].blas.nx;
 	nyC = descr[2].blas.ny;
 	nyA = descr[0].blas.ny;
@@ -134,7 +134,7 @@ static void cpu_mult(starpu_data_interface_t *descr, __attribute__((unused))  vo
 	ldB = descr[1].blas.ld;
 	ldC = descr[2].blas.ld;
 
-	/* we assume a FORTRAN-ordering ! */
+	/* we assume a FORTRAN-ordering! */
 	unsigned i,j,k;
 	for (i = 0; i < nyC; i++)
 	{
@@ -185,7 +185,7 @@ static void init_problem_data(void)
 
 static void partition_mult_data(void)
 {
-	/* note that we assume a FORTRAN ordering here ! */
+	/* note that we assume a FORTRAN ordering here! */
 
 	/* The BLAS data interface is described by 4 parameters: 
 	 *  - the location of the first element of the matrix to monitor (3rd
@@ -228,16 +228,19 @@ static void partition_mult_data(void)
 		
 /*
  *	Illustration with nslicex = 4 and nslicey = 2, it is possible to access
- *	sub-data by using the "get_sub_data" method, for instance:
+ *	sub-data by using the "get_sub_data" method, which takes a data handle,
+ *	the number of filters to apply, and the indexes for each filters, for
+ *	instance:
  *
  *		A' handle is get_sub_data(A_handle, 1, 1); 
  *		B' handle is get_sub_data(B_handle, 1, 2); 
  *		C' handle is get_sub_data(C_handle, 2, 2, 1); 
  *
- *	Note that since we apply 2 filters recursively onto C,
- *	"get_sub_data(C_handle, 1, 3)" returns an handle to the 4th column of
- *	blocked matrix C for example.
- * 
+ *	Note that here we applied 2 filters recursively onto C.
+ *
+ *	"get_sub_data(C_handle, 1, 3)" would return a handle to the 4th column
+ *	of blocked matrix C for example.
+ *
  *		              |---|---|---|---|
  *		              |   |   | B'|   | B
  *		              |---|---|---|---|
@@ -256,7 +259,8 @@ static void partition_mult_data(void)
  *	for each of the elements independantly. The tasks should therefore NOT
  *	access inner nodes (eg. one column of C or the whole C) but only the
  *	leafs of the tree (ie. blocks here). Manipulating inner nodes is only
- *	possible by disapplying the filters (using starpu_unpartition_data).
+ *	possible by disapplying the filters (using starpu_unpartition_data), to
+ *	enforce memory consistency.
  */
 
 	starpu_partition_data(B_handle, &f);
@@ -331,7 +335,7 @@ static void launch_tasks(void)
 			 */
 
 			/* there was a single filter applied to matrices A
-			 * (respectively C) so we grab the handle to the chunk
+			 * (respectively B) so we grab the handle to the chunk
 			 * identified by "tasky" (respectively "taskx). The "1"
 			 * tells StarPU that there is a single argument to the
 			 * variable-arity function get_sub_data */
@@ -345,7 +349,7 @@ static void launch_tasks(void)
 			 * must match the order in which the filters were
 			 * applied.
 			 * NB: get_sub_data(C_handle, 1, k) would have returned
-			 * a handle to the k-th column of matrix C.
+			 * a handle to the column number k of matrix C.
 			 * NB2: get_sub_data(C_handle, 2, taskx, tasky) is
 			 * equivalent to
 			 * get_sub_data(get_sub_data(C_handle, 1, taskx), 1, tasky)*/
@@ -378,8 +382,8 @@ int main(__attribute__ ((unused)) int argc,
 	/* submit all tasks in an asynchronous fashion */
 	launch_tasks();
 
-	/* the different tasks are asynchronous so we use a callback to notify
- 	 * the termination of the computation */
+	/* the different tasks are asynchronous so we use a callback to get
+	 * notified of the termination of the computation */
 	pthread_mutex_lock(&mutex);
 	if (!terminated)
 		pthread_cond_wait(&cond, &mutex);

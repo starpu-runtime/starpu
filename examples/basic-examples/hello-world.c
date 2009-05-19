@@ -30,9 +30,9 @@
 #include <stdint.h>
 #include <starpu.h>
 
-/* When the task is done, call task->callback_func(task->callback_arg). Any
+/* When the task is done, task->callback_func(task->callback_arg) is called. Any
  * callback function must have the prototype void (*)(void *).
- * NB: Callback are NOT allowed to performed potentially blocking operations */
+ * NB: Callback are NOT allowed to perform potentially blocking operations */
 void callback_func(void *callback_arg)
 {
 	printf("Callback function got argument %p\n", callback_arg);
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 	 * called */
 	struct starpu_task *task = starpu_task_create();
 
-	/* the task implements codelet "cl" */
+	/* the task uses codelet "cl" */
 	task->cl = &cl;
 
 	/* It is possible to use buffers that are not managed by the DSM to the
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	 * the codelet is given a pointer to a copy of that buffer: this buffer
 	 * is read-only so that any modification is not passed to other copies
 	 * of the buffer.  For this reason, a buffer passed as a codelet
-	 * argument (cl_arg) is NOT a valid synchronization medium ! */
+	 * argument (cl_arg) is NOT a valid synchronization medium! */
 	float array[2] = {1.0f, -1.0f};
 	task->cl_arg = &array;
 	task->cl_arg_size = 2*sizeof(float);

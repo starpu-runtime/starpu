@@ -39,7 +39,7 @@ static void scal_func(starpu_data_interface_t *buffers, void *arg)
 	 * The "buffers" array matches the task->buffers one: for instance
 	 * task->buffers[0].handle is a handle that corresponds to a data with
 	 * vector "interface". The starpu_data_interface_t is a union type with
-	 * a field for each interface defined. We therefore manipulate the
+	 * a field for each defined interface. Here, we manipulate the
 	 * buffers[0].vector field: vector.nx gives the number of elements in
 	 * the array, vector.ptr gives the location of the array (that was
 	 * possibly migrated/replicated), and vector.elemsize gives the size of
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 	/* Initialize StarPU with default configuration */
 	starpu_init(NULL);
 
-	/* Tell StaPU to associate the "tab" vector to the "tab_handle"
+	/* Tell StaPU to associate the "tab" vector with the "tab_handle"
 	 * identifier. When a task needs to access a piece of data, it should
 	 * refer to the handle that is associated to it.
 	 * In the case of the "vector" data interface:
@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 	starpu_submit_task(task);
 
 	/* StarPU does not need to manipulate the array anymore so we can stop
- 	 * to monitor it */
+ 	 * monitoring it */
 	starpu_delete_data(tab_handle);
 
 	/* terminate StarPU, no task can be submitted after */
