@@ -156,6 +156,14 @@ mult_dw_mult_no_stride_no_tag_SOURCES =		\
 	common/blas.c				\
 	common/blas_model.c
 
+examplebin_PROGRAMS +=				\
+	mult/dw_mult_no_filters
+
+mult_dw_mult_no_filters_SOURCES =		\
+	mult/dw_mult_no_filters.c		\
+	common/blas.c				\
+	common/blas_model.c
+
 if USE_GORDON
 
 BUILT_SOURCES +=				\
