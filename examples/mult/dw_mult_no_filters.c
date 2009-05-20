@@ -20,9 +20,6 @@
 float *A, *B, *C;
 starpu_data_handle A_handle, B_handle, C_handle;
 
-pthread_mutex_t mutex;
-pthread_cond_t cond;
-
 /*
  * That program should compute C = A * B 
  * 
@@ -79,10 +76,6 @@ static void terminate(void)
 		fprintf(stderr, "There were errors ... err = %f\n", err);
 	}
 #endif // CHECK_OUTPUT
-
-	pthread_mutex_lock(&mutex);
-	pthread_cond_signal(&cond);
-	pthread_mutex_unlock(&mutex);
 }
 
 #define COMMON_CODE			\
@@ -219,7 +212,7 @@ static void launch_codelets(void)
 #ifdef USE_CUDA
 		.cublas_func = cublas_mult,
 #endif
-		.model = &sgemm_model_common,
+		.model = &sgemm_model,
 		.nbuffers = 3
 	};
 
@@ -250,9 +243,6 @@ int main(__attribute__ ((unused)) int argc,
 
 	/* start the runtime */
 	starpu_init(NULL);
-
-	pthread_mutex_init(&mutex, NULL);
-	pthread_cond_init(&cond, NULL);
 
 	init_problem_data();
 
