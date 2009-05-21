@@ -415,13 +415,14 @@ void *cuda_worker(void *arg)
 #ifdef DATA_STATS
 	fprintf(stderr, "CUDA #%d computation %le comm %le (%lf \%%)\n", args->id, args->jobq->total_computation_time, args->jobq->total_communication_time, args->jobq->total_communication_time*100.0/args->jobq->total_computation_time);
 #endif
-	pthread_exit(NULL);
 
 #ifdef VERBOSE
-	fprintf(stderr, "CORE #%d error %le error/exec %le\n", args->id, args->jobq->total_computation_time_error, args->jobq->total_computation_time_error/args->jobq->total_computation_time );
+	fprintf(stderr, "CUDA #%d error %le error/exec %le\n", args->id, args->jobq->total_computation_time_error, args->jobq->total_computation_time_error/args->jobq->total_computation_time );
 #endif
 
 	TRACE_WORKER_TERMINATED(FUT_CUDA_KEY);
+
+	pthread_exit(NULL);
 
 	return NULL;
 
