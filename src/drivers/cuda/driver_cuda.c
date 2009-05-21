@@ -307,6 +307,10 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 		args->jobq->total_computation_time += measured;
 		args->jobq->total_communication_time += measured_comm;
 
+		double error;
+		error = fabs(STARPU_MAX(measured, 0.0) - STARPU_MAX(j->predicted, 0.0)); 
+		args->jobq->total_computation_time_error += error;
+
 		if (calibrate_model)
 			update_perfmodel_history(j, args->arch, args->id, measured);
 	}
@@ -341,6 +345,7 @@ void *cuda_worker(void *arg)
 
 	args->jobq->total_computation_time = 0.0;
 	args->jobq->total_communication_time = 0.0;
+	args->jobq->total_computation_time_error = 0.0;
 
 	init_context(devid);
 #ifdef VERBOSE
@@ -411,6 +416,10 @@ void *cuda_worker(void *arg)
 	fprintf(stderr, "CUDA #%d computation %le comm %le (%lf \%%)\n", args->id, args->jobq->total_computation_time, args->jobq->total_communication_time, args->jobq->total_communication_time*100.0/args->jobq->total_computation_time);
 #endif
 	pthread_exit(NULL);
+
+#ifdef VERBOSE
+	fprintf(stderr, "CORE #%d error %le error/exec %le\n", args->id, args->jobq->total_computation_time_error, args->jobq->total_computation_time_error/args->jobq->total_computation_time );
+#endif
 
 	TRACE_WORKER_TERMINATED(FUT_CUDA_KEY);
 

@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <math.h>
+
 #include "driver_core.h"
 #include <core/policies/sched_policy.h>
 
@@ -72,6 +74,11 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 		core_args->jobq->total_computation_time += measured;
 		core_args->jobq->total_communication_time += measured_comm;
 
+		double error;
+		error = fabs(STARPU_MAX(measured, 0.0) - STARPU_MAX(j->predicted, 0.0)); 
+//		fprintf(stderr, "Error -> %le, predicted -> %le measured ->%le\n", error, j->predicted, measured);
+		core_args->jobq->total_computation_time_error += error;
+
 		if (calibrate_model)
 			update_perfmodel_history(j, core_args->arch, core_args->id, measured);
 	}
@@ -105,6 +112,7 @@ void *core_worker(void *arg)
 
 	core_arg->jobq->total_computation_time = 0.0;
 	core_arg->jobq->total_communication_time = 0.0;
+	core_arg->jobq->total_computation_time_error = 0.0;
 	
         /* tell the main thread that we are ready */
 	pthread_mutex_lock(&core_arg->mutex);
@@ -146,6 +154,10 @@ void *core_worker(void *arg)
 
 #ifdef DATA_STATS
 	fprintf(stderr, "CORE #%d computation %le comm %le (%lf \%%)\n", core_arg->id, core_arg->jobq->total_computation_time, core_arg->jobq->total_communication_time,  core_arg->jobq->total_communication_time*100.0/core_arg->jobq->total_computation_time);
+#endif
+
+#ifdef VERBOSE
+	fprintf(stderr, "CORE #%d error %le error/exec %le\n", core_arg->id, core_arg->jobq->total_computation_time_error,  core_arg->jobq->total_computation_time_error/core_arg->jobq->total_computation_time);
 #endif
 
 	TRACE_WORKER_TERMINATED(FUT_CORE_KEY);
