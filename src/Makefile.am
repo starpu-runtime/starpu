@@ -46,6 +46,7 @@ noinst_HEADERS = 						\
 	core/perfmodel/regression.h				\
 	core/jobs.h						\
 	core/workers.h						\
+	core/debug.h						\
 	datawizard/footprint.h					\
 	datawizard/datawizard.h					\
 	datawizard/data_request.h				\
@@ -88,6 +89,7 @@ libstarpu_la_SOURCES = 						\
 	common/timing.c						\
 	core/jobs.c						\
 	core/workers.c						\
+	core/debug.c						\
 	core/dependencies/tags.c				\
 	core/dependencies/htable.c				\
 	core/dependencies/data-concurrency.c			\

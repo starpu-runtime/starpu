@@ -417,7 +417,7 @@ void *cuda_worker(void *arg)
 #endif
 
 #ifdef VERBOSE
-	fprintf(stderr, "CUDA #%d error %le error/exec %le\n", args->id, args->jobq->total_computation_time_error, args->jobq->total_computation_time_error/args->jobq->total_computation_time );
+	print_to_logfile("MODEL ERROR: CUDA %d ERROR %le EXEC %le RATIO %le\n", args->id, args->jobq->total_computation_time_error, args->jobq->total_computation_time, args->jobq->total_computation_time_error/args->jobq->total_computation_time);
 #endif
 
 	TRACE_WORKER_TERMINATED(FUT_CUDA_KEY);

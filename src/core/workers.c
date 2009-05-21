@@ -14,8 +14,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <common/config.h>
 #include <core/workers.h>
+#include <core/debug.h>
 
 /* XXX quick and dirty implementation for now ... */
 pthread_key_t local_workers_key;
@@ -406,6 +409,8 @@ void starpu_init(struct starpu_conf *user_conf)
 #ifdef USE_FXT
 	start_fxt_profiling();
 #endif
+	
+	open_debug_logfile();
 
 	timing_init();
 
@@ -604,4 +609,6 @@ void starpu_shutdown(void)
 	deinit_memory_nodes();
 
 	deinit_sched_policy(&config);
+
+	close_debug_logfile();
 }

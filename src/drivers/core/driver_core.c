@@ -16,6 +16,7 @@
 
 #include <math.h>
 
+#include <core/debug.h>
 #include "driver_core.h"
 #include <core/policies/sched_policy.h>
 
@@ -157,7 +158,7 @@ void *core_worker(void *arg)
 #endif
 
 #ifdef VERBOSE
-	fprintf(stderr, "CORE #%d error %le error/exec %le\n", core_arg->id, core_arg->jobq->total_computation_time_error,  core_arg->jobq->total_computation_time_error/core_arg->jobq->total_computation_time);
+	print_to_logfile("MODEL ERROR: CORE %d ERROR %le EXEC %le RATIO %le\n", core_arg->id, core_arg->jobq->total_computation_time_error, core_arg->jobq->total_computation_time, core_arg->jobq->total_computation_time_error/core_arg->jobq->total_computation_time);
 #endif
 
 	TRACE_WORKER_TERMINATED(FUT_CORE_KEY);
