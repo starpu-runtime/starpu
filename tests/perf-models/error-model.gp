@@ -19,21 +19,30 @@
 set term postscript eps enhanced color
 set output "model_error.eps"
 
-set yrange [0.05:100]
-set xrange [4:16380]
+set yrange [0.05:50]
+set xrange [4:10000]
 
 set grid y
 set grid x
 
 set logscale y
-#set logscale x
+set logscale x
 
-#set ytics 1, 2.5, 50
+#set title "Cholesky on Cell (PS3)"
+set xlabel "Number of samples"
+set ylabel "Prediction error"
+set grid
+
 
 set ytics (0.01, 0.1, 1, 5,10,25,50)
 set xtics (10, 100, 1000, 10000)
 
-set format y "%.2f %%"
+set format y "%.1f %%"
+set format x "10^{%L}"
 
-plot "gnuplot.data" usi 3:($4*100) with linespoint title "prediction error (GPU)"	,\
-     "gnuplot.data" usi 1:($2*100) with linespoint title "prediction error (CPUs)"
+set key title "Execution time Prediction Error (%)" 
+
+set size 0.75
+
+plot "gnuplot.data" usi 1:($2*100) with linespoint pt -1 lt 1 lw 3 title "CPUs"	,\
+     "gnuplot.data" usi 3:($4*100) with linespoint pt -1 lt 2 lw 3 title "GPU"
