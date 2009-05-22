@@ -27,7 +27,6 @@ niter=5
 #niter=2
 
 
-rm -f .sampling/*
 rm -f log
 
 echo "#iter cpu0 (#tasks0) cpu1 (#tasks1) cpu2 (#tasks2) gpu0 (#tasksgpu0) #totaltask gflops" > gnuplot.data
@@ -51,6 +50,7 @@ do
 cpu_taskcnt=0
 gpu_taskcnt=0
 i=0
+rm -f ../../.sampling/*
 for nblocks in $nblockslist
 do
 	i=$(($i + 1))
@@ -59,7 +59,7 @@ do
 
 	echo "ITER $iter -> I $i NBLOCKS $nblocks"
 
-	CALIBRATE=1 SCHED="dm" ./examples/heat/heat -nblocks $nblocks -nthick 34 -ntheta $ntheta -pin 2> output.log.err > output.log
+	CALIBRATE=1 SCHED="dm" ../../examples/heat/heat -nblocks $nblocks -nthick 34 -ntheta $ntheta -pin 2> output.log.err > output.log
 	gflops=`grep "Synthetic GFlops :" output.log.err| sed -e "s/Synthetic GFlops ://"`
 
 	sumgflops[$i]=$(echo "${sumgflops[$i]} + $gflops"|bc -l)

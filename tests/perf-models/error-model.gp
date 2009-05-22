@@ -19,7 +19,7 @@
 set term postscript eps enhanced color
 set output "model_error.eps"
 
-set yrange [0.05:50]
+set yrange [0.05:100]
 set xrange [4:10000]
 
 set grid y
@@ -34,7 +34,7 @@ set ylabel "Prediction error"
 set grid
 
 
-set ytics (0.01, 0.1, 1, 5,10,25,50)
+set ytics (0.01, 0.1, 1, 5,10,25,50,100)
 set xtics (10, 100, 1000, 10000)
 
 set format y "%.1f %%"
