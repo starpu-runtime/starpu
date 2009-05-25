@@ -84,6 +84,7 @@ noinst_HEADERS = 				\
 	mult/dw_mult.h				\
 	cuda/incrementer_cuda.h			\
 	fortran/bindings/StarPU-fortran.h	\
+	ppm-downscaler/ppm-downscaler.h		\
 	strassen/strassen.h			\
 	strassen/strassen_models.h		\
 	spmv/matrix-market/mmio.h		\
