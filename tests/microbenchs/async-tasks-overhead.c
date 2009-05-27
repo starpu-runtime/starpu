@@ -39,12 +39,29 @@ static starpu_codelet dummy_codelet =
 	.where = ANY,
 	.core_func = dummy_func,
 	.cublas_func = dummy_func,
-#ifdef SPU_FUNC_NULL
-	.gordon_func = SPU_FUNC_NULL,
+#ifdef USE_GORDON
+	.gordon_func = 0, /* this will be defined later */
 #endif
 	.model = NULL,
 	.nbuffers = 0
 };
+
+static void init_gordon_kernel(void)
+{
+#ifdef USE_GORDON
+	unsigned elf_id = 
+		gordon_register_elf_plugin("./microbenchs/null_kernel_gordon.spuelf");
+	gordon_load_plugin_on_all_spu(elf_id);
+
+	unsigned gordon_null_kernel =
+		gordon_register_kernel(elf_id, "empty_kernel");
+	gordon_load_kernel_on_all_spu(gordon_null_kernel);
+
+	dummy_codelet.gordon_func = gordon_null_kernel;
+#endif
+}
+
+
 
 void callback(void *arg)
 {
@@ -117,6 +134,8 @@ int main(int argc, char **argv)
 	cnt = ntasks;
 
 	starpu_init(&conf);
+
+	init_gordon_kernel();
 
 	fprintf(stderr, "#tasks : %d\n", ntasks);
 

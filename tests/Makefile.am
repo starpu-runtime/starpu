@@ -80,6 +80,7 @@ microbenchs_sync_and_notify_data_SOURCES +=	\
 endif
 
 if USE_GORDON
-BUILT_SOURCES += 				\
-	microbenchs/sync_and_notify_data_gordon_kernels.spuelf
+BUILT_SOURCES += 						\
+	microbenchs/sync_and_notify_data_gordon_kernels.spuelf	\
+	microbenchs/null_kernel_gordon.spuelf
 endif
