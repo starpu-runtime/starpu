@@ -56,8 +56,6 @@ struct data_interface_ops_t interface_vector_ops = {
 #ifdef USE_GORDON
 int convert_vector_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
-	STARPU_ASSERT(gordon_interface);
-
 	*ptr = (*interface).vector.ptr;
 	(*ss).size = (*interface).vector.nx * (*interface).vector.elemsize;
 

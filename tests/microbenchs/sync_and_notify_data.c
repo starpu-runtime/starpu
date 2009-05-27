@@ -20,7 +20,7 @@
 #include <starpu.h>
 
 #ifdef USE_GORDON
-#include <cell/gordon/gordon.h>
+#include <gordon.h>
 #endif
 
 #define N	100

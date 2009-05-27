@@ -34,10 +34,6 @@
 #include <cublas.h>
 #endif
 
-#ifdef USE_GORDON
-#include <cell/gordon/spu/functions.h> 
-#endif
-
 #define MAXSLICESX	64
 #define MAXSLICESY	64
 #define MAXSLICESZ	64

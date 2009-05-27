@@ -65,6 +65,8 @@ fi
 # This defines HAVE_SYNC_BUILTINS
 STARPU_CHECK_SYNC_BUILTINS
 
+CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE "
+
 ###############################################################################
 #                                                                             #
 #                                 CPUs settings                               #
@@ -82,8 +84,8 @@ AM_CONDITIONAL(USE_CPU, test x$enable_cpu = xyes)
 if test x$enable_cpu = xyes; then
 	AC_DEFINE(USE_CPUS, [1], [CPU driver is activated])
 
-	# This value is set quite randomly, but StarPU should not take more
-	# core than there are in the system
+	# This value is set quite randomly, but StarPU should not take more
+	# core than there are in the system
 	AC_DEFINE(NMAXCORES, [16], [Maximum number of CPUs supported])
 fi
 
@@ -168,49 +170,29 @@ if test x$enable_gordon = xyes -o x$enable_gordon = xmaybe; then
 	# do we have a valid Gordon setup ?
 	have_valid_gordon=yes
 	
-	# can we use dynamic code loading facilities ?
+	# can we use dynamic code loading facilities ?
 	AC_CHECK_LIB(elf, elf_memory,, [have_valid_gordon=no])
 
 	AC_CHECK_LIB(spe2, spe_context_create,,[have_valid_gordon=no])
 	AC_CHECK_FUNC(spe_in_mbox_write, [], [have_valid_gordon=no])
 
 	if test -d "$gordon_dir"; then
-		CPPFLAGS="${CPPFLAGS} -I$gordon_dir/ "
+		PKG_PROG_PKG_CONFIG
+		PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:$gordon_dir"
+		AC_SUBST(PKG_CONFIG_PATH)
+		PKG_CHECK_MODULES([GORDON], [libgordon], [], have_valid_gordon=no)
 	fi
 
-	# XXX Scalp is weird ...
-	CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE "
-	AC_CHECK_HEADER([hinch/hmain.h],,[have_valid_gordon=no])
+	CPPFLAGS="${CPPFLAGS} ${GORDON_CFLAGS}"
+	LIBS="${LIBS} ${GORDON_LIBS}"
 
-#	if test -d "$gordon_dir/cell/gordon/"; then
-#		LDFLAGS="${LDFLAGS} -L$gordon_dir/cell/gordon/"
-#	fi
-#	if test -d "$gordon_dir/util/"; then
-#		LDFLAGS="${LDFLAGS} -L$gordon_dir/util/"
-#	fi
-#
-#	AC_SEARCH_LIBS([scalp_malloc],[libsp@ceutil],,[have_valid_gordon=no])
-#	AC_SEARCH_LIBS([scalp_malloc],[libsp@ceutil.spu],,[have_valid_gordon=no])
-#	AC_SEARCH_LIBS([gordon_init],[gordon],,[have_valid_gordon=no])
-
-	if test -f $gordon_dir/cell/gordon/libgordon.a; then
-		LIBS="${LIBS} $gordon_dir/cell/gordon/libgordon.a"
-	fi
-
-	if test -f $gordon_dir/util/libsp@ceutil.a; then
-		LIBS="${LIBS} $gordon_dir/util/libsp@ceutil.a"
-	fi
-
-	if test -f $gordon_dir/util/libsp@ceutil.spu.a; then
-		LIBS="${LIBS} $gordon_dir/util/libsp@ceutil.spu.a"
-	fi
-
-	AC_CHECK_FUNC(gordon_init, [], [have_valid_gordon=no])
+	# AC_CHECK_FUNC(gordon_init, [gordon], [have_valid_gordon=no])
 
 	# in case Gordon was explicitely required, but is not available, this is an error
 	if test x$enable_gordon = xyes -a x$have_valid_gordon = no; then
 		AC_MSG_ERROR([cannot find Gordon])
 	fi
+
 
 	# now we enable Gordon if and only if a proper setup is available
 	enable_gordon=$have_valid_gordon
@@ -427,7 +409,7 @@ AC_SUBST(OPENGL_RENDER, $enable_opengl_render)
 AC_MSG_RESULT($enable_opengl_render)
 
 # In case there are BLAS kernels that are used by the example applications
-# we may specify which library to use. Note that this is not used for StarPU
+# we may specify which library to use. Note that this is not used for StarPU
 # itself.
 
 blas_lib=maybe

@@ -18,6 +18,6 @@
 #define __GORDON_INTERFACE_H__
 
 //#include <util/util.h>
-#include <cell/gordon/gordon.h>
+#include <gordon.h>
 
 #endif // __GORDON_INTERFACE_H__

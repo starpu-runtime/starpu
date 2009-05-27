@@ -29,7 +29,7 @@
 
 #ifdef USE_GORDON
 /* to get the gordon_strideSize_t data structure from gordon */
-#include <cell/gordon/gordon.h>
+#include <gordon.h>
 #endif
 
 #include <starpu.h>

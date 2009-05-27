@@ -56,8 +56,6 @@ struct data_interface_ops_t interface_blas_ops = {
 #ifdef USE_GORDON
 int convert_blas_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
-	STARPU_ASSERT(gordon_interface);
-
 	size_t elemsize = (*interface).blas.elemsize;
 	uint32_t nx = (*interface).blas.nx;
 	uint32_t ny = (*interface).blas.ny;

@@ -246,8 +246,10 @@ static void gordon_callback_list_func(void *arg)
 		struct starpu_perfmodel_t *model = j->task->cl->model;
 		if (model && model->benchmarking)
 		{
-			/* XXX we do not retrieve the SPU id yet */
-			update_perfmodel_history(j, STARPU_GORDON_DEFAULT, 0, gordon_task->measured);
+			double measured = (double)gordon_task->measured;
+			unsigned cpuid = 0; /* XXX */
+
+			update_perfmodel_history(j, STARPU_GORDON_DEFAULT, cpuid, measured);
 		}
 
 		job_list_push_back(terminated_list, j);
@@ -330,6 +332,8 @@ int inject_task_list(struct job_list_s *list, struct worker_s *worker)
 	nvalids = job_list_size(list);
 //	fprintf(stderr, "nvalids %d \n", nvalids);
 
+	
+
 	struct gordon_task_wrapper_s *task_wrapper = malloc(sizeof(struct gordon_task_wrapper_s));
 	gordon_job_t *gordon_jobs = gordon_alloc_jobs(nvalids, 0);
 
@@ -352,7 +356,7 @@ int inject_task_list(struct job_list_s *list, struct worker_s *worker)
 
 		struct starpu_perfmodel_t *model = j->task->cl->model;
 		if (model && model->benchmarking)
-			gordon_jobs[index].sampling = 1;
+			gordon_jobs[index].flags.sampling = 1;
 
 		/* we should not hardcore the memory node ... XXX */
 		unsigned memory_node = 0;
@@ -386,6 +390,7 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 				/* partition lists */
 				unsigned size = job_list_size(list);
 				unsigned nchunks = (size<2*arg->nworkers)?size:(2*arg->nworkers);
+				//unsigned nchunks = (size<arg->nworkers)?size:(arg->nworkers);
 
 				/* last element may be a little smaller (by 1) */
 				unsigned chunksize = size/nchunks;
