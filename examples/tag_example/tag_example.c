@@ -23,6 +23,10 @@
 
 #include <starpu.h>
 
+#ifdef USE_GORDON
+#include <gordon/null.h>
+#endif
+
 #define TAG(i, j, iter)	((starpu_tag_t) ( ((uint64_t)(iter)<<48) |  ((uint64_t)(j)<<24) | (i)) )
 
 sem_t sem;
@@ -185,6 +189,11 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 {
 	starpu_init(NULL);
 
+#ifdef USE_GORDON
+	/* load an empty kernel and get its identifier */
+	unsigned gordon_null_kernel = load_gordon_null_kernel();
+#endif
+
 	parse_args(argc, argv);
 
 	fprintf(stderr, "ITER: %d\n", nk);
@@ -193,9 +202,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	cl.core_func = core_codelet;
 	cl.cublas_func = core_codelet;
 #ifdef USE_GORDON
-#ifdef SPU_FUNC_NULL
-	cl.gordon_func = SPU_FUNC_NULL;
-#endif
+	cl.gordon_func = gordon_null_kernel;
 #endif
 	cl.nbuffers = 0;
 

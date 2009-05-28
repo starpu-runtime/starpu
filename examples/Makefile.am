@@ -25,11 +25,14 @@ BUILT_SOURCES =
 
 EXTRA_DIST = 					\
 	cuda/incrementer_cuda.cu		\
-	cuda/spmv_cuda.cu
+	cuda/spmv_cuda.cu			\
+	gordon/null_kernel_gordon.c
 
 CLEANFILES = 					\
 	cuda/incrementer_cuda.cubin		\
-	cuda/spmv_cuda.cubin			
+	cuda/spmv_cuda.cubin			\
+	gordon/null_kernel_gordon.spuelf
+	
 
 CLEANFILES += *.gcno *.gcda *.linkinfo
 
@@ -66,6 +69,9 @@ SPULIBS = -lblas #-lc -lgloss -lc
 .spuo.spuelf:
 	$(SPU_LD) $(SPULDFLAGS) $< -o $@ $(SPULIBS)
 
+BUILT_SOURCES +=				\
+	gordon/null_kernel_gordon.spuelf
+
 endif
 
 examplebindir = $(libdir)/starpu/examples/
@@ -83,6 +89,7 @@ noinst_HEADERS = 				\
 	common/blas.h				\
 	mult/dw_mult.h				\
 	cuda/incrementer_cuda.h			\
+	gordon/null.h				\
 	fortran/bindings/StarPU-fortran.h	\
 	ppm-downscaler/ppm-downscaler.h		\
 	strassen/strassen.h			\
