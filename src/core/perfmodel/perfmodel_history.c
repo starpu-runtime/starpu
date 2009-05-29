@@ -377,6 +377,34 @@ void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_hi
 	pthread_spin_unlock(&model->model_mutex);
 }
 
+/* This function is intended to be used by external tools that should read the
+ * performance model files */
+int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *model)
+{
+	model->symbol = symbol;
+
+	/* where is the file if it exists ? */
+	char path[256];
+	get_model_path(model, path, 256);
+
+//	fprintf(stderr, "get_model_path -> %s\n", path);
+
+	/* does it exist ? */
+	int res;
+	res = access(path, F_OK);
+	if (res) {
+		fprintf(stderr, "There is no performance model for symbol %s\n", symbol);
+		return 1;
+	}
+
+	FILE *f = fopen(path, "r");
+	STARPU_ASSERT(f);
+
+	parse_model_file(f, model, 1);
+
+	return 0;
+}
+
 double regression_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct job_s *j)
 {
 	double exp = -1.0;

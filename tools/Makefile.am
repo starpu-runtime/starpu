@@ -16,6 +16,9 @@
 
 SUBDIRS = 
 
+LIBS = $(top_builddir)/src/libstarpu.la @LIBS@
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/tools/
+
 bin_PROGRAMS =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
@@ -37,3 +40,6 @@ endif
 # LDFLAGS+= -lming
 #endif
 
+bin_PROGRAMS += perfmodel-display
+
+perfmodel_display_SOURCES = perfmodel-display.c

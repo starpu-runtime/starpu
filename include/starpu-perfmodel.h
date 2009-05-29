@@ -96,4 +96,8 @@ struct starpu_perfmodel_t {
 	pthread_spinlock_t model_mutex;
 };
 
+/* This function is intended to be used by external tools that should read the
+ * performance model files */
+int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *model);
+
 #endif // __STARPU_PERFMODEL_H__
