@@ -99,5 +99,8 @@ struct starpu_perfmodel_t {
 /* This function is intended to be used by external tools that should read the
  * performance model files */
 int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *model);
+void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model,
+		enum starpu_perf_archtype arch, char **path, size_t maxlen);
+
 
 #endif // __STARPU_PERFMODEL_H__

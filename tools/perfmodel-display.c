@@ -99,6 +99,11 @@ static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_per
 			fprintf(stderr, "\t\tb = %le\n", arch_model->regression.b);
 			fprintf(stderr, "\t\tc = %le\n", arch_model->regression.c);
 		}
+
+		char *debugname = malloc(1024);
+		starpu_perfmodel_debugfilepath(model, arch, &debugname, 1024);
+		free(debugname);
+		printf("\t debug file path : %s\n", debugname);
 	}
 	else {
 		/* only display the parameter that was specifically requested */
@@ -124,6 +129,14 @@ static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_per
 
 		if (strcmp(parameter, "beta") == 0) {
 			printf("%le\n", arch_model->regression.beta);
+			return;
+		}
+
+		if (strcmp(parameter, "path-file-debug") == 0) {
+			char *debugname = malloc(1024);
+			starpu_perfmodel_debugfilepath(model, arch, &debugname, 1024);
+			printf("%s\n", debugname);
+			free(debugname);
 			return;
 		}
 

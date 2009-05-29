@@ -405,6 +405,32 @@ int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *mod
 	return 0;
 }
 
+void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model,
+		enum starpu_perf_archtype arch, char **path, size_t maxlen)
+{
+	char *archname;
+
+	STARPU_ASSERT(path);
+
+	switch(arch) {
+		case STARPU_CORE_DEFAULT:
+			archname = "core";
+			break;
+		case STARPU_CUDA_DEFAULT:
+			archname = "cuda";
+			break;
+		case STARPU_GORDON_DEFAULT:
+			archname = "gordon";
+			break;
+		default:
+			/* unknown architecture */
+			*path = NULL;
+			return;
+	}
+
+	get_model_debug_path(model, archname, *path, maxlen);
+}
+
 double regression_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct job_s *j)
 {
 	double exp = -1.0;
@@ -542,7 +568,7 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned 
 
 		STARPU_ASSERT(j->footprint_is_computed);
 
-		fprintf(debug_file, "%x\t%lf\t%d\t\t", j->footprint, measured, cpuid);
+		fprintf(debug_file, "%x\t%d\t%lf\t%lf\t%d\t\t", j->footprint, job_get_data_size(j), measured, j->predicted, cpuid);
 		unsigned i;
 			
 		struct starpu_task *task = j->task;
