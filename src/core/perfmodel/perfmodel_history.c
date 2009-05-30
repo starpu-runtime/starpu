@@ -568,7 +568,7 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned 
 
 		STARPU_ASSERT(j->footprint_is_computed);
 
-		fprintf(debug_file, "%x\t%d\t%lf\t%lf\t%d\t\t", j->footprint, job_get_data_size(j), measured, j->predicted, cpuid);
+		fprintf(debug_file, "0x%x\t%d\t%lf\t%lf\t%d\t\t", j->footprint, job_get_data_size(j), measured, j->predicted, cpuid);
 		unsigned i;
 			
 		struct starpu_task *task = j->task;

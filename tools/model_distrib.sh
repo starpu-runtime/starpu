@@ -16,28 +16,44 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-# we want to handle requests like *.debug
-for inputfile in "$@"
-do
-echo "Handle file $inputfile"
-hashlist=`cut -f 1 $inputfile | sort | uniq | xargs` 
+create_histograms()
+{
 
-# extract subfiles from the history file
-for h in $hashlist
-do
-	echo "Handling tasks with hash = $h"
-	grep "^$h" $inputfile| cut -f 2- > $inputfile.$h
+inputfile=$1
 
 R --no-save > /dev/null << EOF
 
-table <- read.table("$inputfile.$h")
+handle_hash <- function (hash)
+{
 
-x <- table[,1]
-hist(x[x > quantile(x,0.01) & x<quantile(x,0.99)], col="red", breaks=50, density=10)
+val <- table[table[,1]==hash,3]
+
+
+# there is certainly a better way to do this !
+size <- unique(table[table[,1]==hash,2])
+
+pdf(paste("$inputfile", hash, size, "pdf", sep="."));
+
+h <- hist(val[val > quantile(val,0.01) & val<quantile(val,0.99)], col="red", breaks=50, density=10)
+
+
+}
+
+table <- read.table("$inputfile")
+
+hashlist <- unique(table[,1])
+
+for (hash in hashlist)
+{
+	print(hash)
+	handle_hash(hash)
+}
 
 EOF
-mv Rplots.pdf $inputfile.$h.pdf
-done
 
+}
+
+for inputfile in $@
+do
+	create_histograms $inputfile 
 done
-echo "finished !"
