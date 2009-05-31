@@ -173,7 +173,6 @@ static void initialize_model(struct starpu_perfmodel_t *model)
 static struct starpu_model_list_t *registered_models = NULL;
 //static unsigned debug_modelid = 0;
 
-#ifdef MODEL_DEBUG
 static void get_model_debug_path(struct starpu_perfmodel_t *model, const char *arch, char *path, size_t maxlen)
 {
 	strncpy(path, PERF_MODEL_DIR, maxlen);
@@ -187,8 +186,6 @@ static void get_model_debug_path(struct starpu_perfmodel_t *model, const char *a
 	strncat(path, arch, maxlen);
 	strncat(path, ".debug", maxlen);
 }
-#endif
-
 
 void register_model(struct starpu_perfmodel_t *model)
 {
