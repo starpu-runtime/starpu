@@ -68,7 +68,7 @@ EOF
 
 }
 
-
+PERFMODELDISPLAY=./perfmodel-display
 
 function gnuplot_symbol()
 {
@@ -77,27 +77,27 @@ symbol=$1
 echo "Display symbol $symbol"
 
 # TODO check return value $? of perfmodel-display to ensure we have valid data
-cuda_a=`./perfmodel-display -s $symbol -a cuda -p a`
-cuda_b=`./perfmodel-display -s $symbol -a cuda -p b`
-cuda_c=`./perfmodel-display -s $symbol -a cuda -p c`
+cuda_a=`$PERFMODELDISPLAY -s $symbol -a cuda -p a`
+cuda_b=`$PERFMODELDISPLAY -s $symbol -a cuda -p b`
+cuda_c=`$PERFMODELDISPLAY -s $symbol -a cuda -p c`
 
-cuda_alpha=`./perfmodel-display -s $symbol -a cuda -p alpha`
-cuda_beta=`./perfmodel-display -s $symbol -a cuda -p beta`
+cuda_alpha=`$PERFMODELDISPLAY -s $symbol -a cuda -p alpha`
+cuda_beta=`$PERFMODELDISPLAY -s $symbol -a cuda -p beta`
 
-cuda_debug=`./perfmodel-display -s $symbol -p path-file-debug -a cuda`
+cuda_debug=`$PERFMODELDISPLAY -s $symbol -p path-file-debug -a cuda`
 
 echo "CUDA : y = $cuda_a * size ^ $cuda_b + $cuda_c"
 echo "CUDA : y = $cuda_alpha * size ^ $cuda_beta"
 echo "CUDA : debug file $cuda_debug"
 
-core_a=`./perfmodel-display -s $symbol -a core -p a`
-core_b=`./perfmodel-display -s $symbol -a core -p b`
-core_c=`./perfmodel-display -s $symbol -a core -p c`
+core_a=`$PERFMODELDISPLAY -s $symbol -a core -p a`
+core_b=`$PERFMODELDISPLAY -s $symbol -a core -p b`
+core_c=`$PERFMODELDISPLAY -s $symbol -a core -p c`
 
-core_alpha=`./perfmodel-display -s $symbol -a core -p alpha`
-core_beta=`./perfmodel-display -s $symbol -a core -p beta`
+core_alpha=`$PERFMODELDISPLAY -s $symbol -a core -p alpha`
+core_beta=`$PERFMODELDISPLAY -s $symbol -a core -p beta`
 
-core_debug=`./perfmodel-display -s $symbol -p path-file-debug -a core`
+core_debug=`$PERFMODELDISPLAY -s $symbol -p path-file-debug -a core`
 
 echo "CORE : y = $core_a * size ^ $core_b + $core_c"
 echo "CORE : y = $core_alpha * size ^ $core_beta"
@@ -121,22 +121,59 @@ gnuplot > /dev/null << EOF
 set term postscript eps enhanced color
 set output "model_$symbol.eps"
 
+set xlabel "Size (bytes)"
+set ylabel "Execution time (us)"
+
+
+set size 0.60
+
+set multiplot
+set style line 1 lt 1 lw 3 linecolor -1 
+set style line 2 lt 2 lw 3 linecolor -1
 set logscale x
 set logscale y
-set key top left box
 
-set size 0.75
+
+#set grid y
+#set grid x
+
+set format x "10^{%L}"
+set format y "10^{%L}"
+
+set key top left 
+
+set key title "Non-linear regression\n(y = {/Symbol a} x@^{{/Symbol b}} + {/Symbol g})"
+
 set bars 4.0
 
-set style line 1 lw 1 linecolor 1 
-set style line 2 lw 2 linecolor 2
-
-plot $core_a * ( x ** $core_b ) + $core_c ls 1 title "core (non linear)" ,\
-	$cuda_a * ( x ** $cuda_b ) + $cuda_c ls 2 title "cuda (non linear)" ,\
-	"$core_debug_data" usi 2:4:3:7:6 with candlesticks  ls 1 title "core measured" whiskerbars ,\
+plot $core_a * ( x ** $core_b ) + $core_c ls 1 title "CPU" ,\
+	$cuda_a * ( x ** $cuda_b ) + $cuda_c ls 2 title "GPU" ,\
+	"$core_debug_data" usi 2:4:3:7:6 with candlesticks  ls 1 notitle whiskerbars ,\
 	"$core_debug_data" usi 2:5:5:5:5 with candlesticks  ls 1 notitle ,\
-	"$cuda_debug_data" usi 2:4:3:7:6 with candlesticks  ls 2  title "cuda measured" whiskerbars ,\
+	"$cuda_debug_data" usi 2:4:3:7:6 with candlesticks  ls 2  notitle whiskerbars ,\
 	"$cuda_debug_data" usi 2:5:5:5:5 with candlesticks  ls 2  notitle
+
+set noborder
+set origin 0.42,0.10
+set nologscale xy
+set size .15,.25
+set tics scale 0 
+set xrange [-0.1:0.1]
+set noxtics
+set noytics
+set format y2 "%g %%"
+set y2tics (1,25,50,75,99)
+set y2tics nomirror
+set title "Percentiles"
+
+set xlabel ""
+set ylabel ""
+
+set key
+
+plot  "$cuda_debug_data" usi (0):(25):(1):(99):(75) with candlesticks ls 1 notitle whiskerbars ,\
+	"$cuda_debug_data" usi (0):(50):(50):(50):(50) with candlesticks ls 1 notitle
+unset multiplot
 
 EOF
 }
