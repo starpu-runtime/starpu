@@ -316,6 +316,8 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 	}
 //#endif
 
+	args->jobq->total_job_performed++;
+
 	push_codelet_output(task->buffers, cl->nbuffers, mask);
 
 	return STARPU_SUCCESS;
@@ -346,6 +348,7 @@ void *cuda_worker(void *arg)
 	args->jobq->total_computation_time = 0.0;
 	args->jobq->total_communication_time = 0.0;
 	args->jobq->total_computation_time_error = 0.0;
+	args->jobq->total_job_performed = 0;
 
 	init_context(devid);
 #ifdef VERBOSE
@@ -417,7 +420,14 @@ void *cuda_worker(void *arg)
 #endif
 
 #ifdef VERBOSE
-	print_to_logfile("MODEL ERROR: CUDA %d ERROR %le EXEC %le RATIO %le\n", args->id, args->jobq->total_computation_time_error, args->jobq->total_computation_time, args->jobq->total_computation_time_error/args->jobq->total_computation_time);
+	double ratio = 0;
+	if (args->jobq->total_job_performed != 0)
+	{
+		ratio = args->jobq->total_computation_time_error/args->jobq->total_computation_time;
+	}
+
+
+	print_to_logfile("MODEL ERROR: CUDA %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", args->id, args->jobq->total_computation_time_error, args->jobq->total_computation_time, ratio, args->jobq->total_job_performed);
 #endif
 
 	TRACE_WORKER_TERMINATED(FUT_CUDA_KEY);

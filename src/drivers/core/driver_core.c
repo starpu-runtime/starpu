@@ -85,6 +85,8 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 	}
 //#endif
 
+	core_args->jobq->total_job_performed++;
+
 	return STARPU_SUCCESS;
 }
 
@@ -114,6 +116,7 @@ void *core_worker(void *arg)
 	core_arg->jobq->total_computation_time = 0.0;
 	core_arg->jobq->total_communication_time = 0.0;
 	core_arg->jobq->total_computation_time_error = 0.0;
+	core_arg->jobq->total_job_performed = 0;
 	
         /* tell the main thread that we are ready */
 	pthread_mutex_lock(&core_arg->mutex);
@@ -158,7 +161,13 @@ void *core_worker(void *arg)
 #endif
 
 #ifdef VERBOSE
-	print_to_logfile("MODEL ERROR: CORE %d ERROR %le EXEC %le RATIO %le\n", core_arg->id, core_arg->jobq->total_computation_time_error, core_arg->jobq->total_computation_time, core_arg->jobq->total_computation_time_error/core_arg->jobq->total_computation_time);
+	double ratio = 0;
+	if (core_arg->jobq->total_job_performed != 0)
+	{
+		ratio = core_arg->jobq->total_computation_time_error/core_arg->jobq->total_computation_time;
+	}
+
+	print_to_logfile("MODEL ERROR: CORE %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", core_arg->id, core_arg->jobq->total_computation_time_error, core_arg->jobq->total_computation_time, ratio, core_arg->jobq->total_job_performed);
 #endif
 
 	TRACE_WORKER_TERMINATED(FUT_CORE_KEY);
