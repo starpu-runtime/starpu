@@ -343,8 +343,6 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 
 void starpu_sync_data_with_mem(data_state *state)
 {
-	int ret;
-
 #ifdef NO_DATA_RW_LOCK
 	struct state_and_node statenode =
 	{
@@ -373,6 +371,8 @@ void starpu_sync_data_with_mem(data_state *state)
 #else
 	/* NB: fetch_data automatically grabs the STARPU_RW-lock so it needs to be
  	 * released explicitely afterward */
+	int ret;
+
 	ret = fetch_data(state, STARPU_R);
 	STARPU_ASSERT(!ret);
 

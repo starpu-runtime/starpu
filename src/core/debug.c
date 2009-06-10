@@ -47,7 +47,7 @@ void close_debug_logfile(void)
 #endif
 }
 
-void print_to_logfile(const char *format, ...)
+void print_to_logfile(const char *format __attribute__((unused)), ...)
 {
 #ifdef VERBOSE
 	va_list args;
