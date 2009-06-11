@@ -29,6 +29,7 @@
 #include <core/jobs.h>
 #include <core/perfmodel/perfmodel.h>
 #include <core/policies/sched_policy.h>
+#include <core/topology.h>
 
 #include <starpu.h>
 
@@ -95,6 +96,9 @@ struct machine_config_s {
 	unsigned nworkers;
 
 	struct worker_s workers[NMAXWORKERS];
+	uint32_t worker_mask;
+
+	struct starpu_topo_obj_t *topology;
 
 	/* this flag is set until the runtime is stopped */
 	unsigned running;
