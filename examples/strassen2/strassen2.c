@@ -158,7 +158,7 @@ starpu_data_handle allocate_tmp_matrix(unsigned size, unsigned reclevel)
 
 #ifdef USE_CUDA
         if (pin) {
-                starpu_malloc_pinned_if_possible(&buffer, size*size*sizeof(float));
+                starpu_malloc_pinned_if_possible((void **)&buffer, size*size*sizeof(float));
         } else
 #endif
         {
@@ -766,9 +766,9 @@ int main(int argc, char **argv)
 
 #ifdef USE_CUDA
         if (pin) {
-                starpu_malloc_pinned_if_possible(&A, size*size*sizeof(float));
-                starpu_malloc_pinned_if_possible(&B, size*size*sizeof(float));
-                starpu_malloc_pinned_if_possible(&C, size*size*sizeof(float));
+                starpu_malloc_pinned_if_possible((void **)&A, size*size*sizeof(float));
+                starpu_malloc_pinned_if_possible((void **)&B, size*size*sizeof(float));
+                starpu_malloc_pinned_if_possible((void **)&C, size*size*sizeof(float));
         } else
 #endif
         {

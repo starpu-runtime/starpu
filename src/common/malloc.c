@@ -30,7 +30,7 @@
 struct data_interface_s;
 
 struct malloc_pinned_codelet_struct {
-	float **ptr;
+	void **ptr;
 	size_t dim;
 };
 
@@ -42,7 +42,7 @@ static void malloc_pinned_codelet(struct data_interface_s *buffers __attribute__
 }
 #endif
 
-void starpu_malloc_pinned_if_possible(float **A, size_t dim)
+void starpu_malloc_pinned_if_possible(void **A, size_t dim)
 {
 	if (may_submit_cuda_task())
 	{

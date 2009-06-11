@@ -166,9 +166,9 @@ static void init_problem_data(void)
 
 #ifdef USE_CUDA
 	if (pin) {
-		starpu_malloc_pinned_if_possible(&A, zdim*ydim*sizeof(float));
-		starpu_malloc_pinned_if_possible(&B, xdim*zdim*sizeof(float));
-		starpu_malloc_pinned_if_possible(&C, xdim*ydim*sizeof(float));
+		starpu_malloc_pinned_if_possible((void **)&A, zdim*ydim*sizeof(float));
+		starpu_malloc_pinned_if_possible((void **)&B, xdim*zdim*sizeof(float));
+		starpu_malloc_pinned_if_possible((void **)&C, xdim*ydim*sizeof(float));
 	} else
 #endif
 	{
