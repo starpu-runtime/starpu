@@ -25,17 +25,6 @@
  * Discover the topology of the machine
  */
 
-
-#ifdef USE_CPUS
-static unsigned ncores;
-#endif
-#ifdef USE_CUDA
-static unsigned ncudagpus;
-#endif
-#ifdef USE_GORDON
-static unsigned ngordon_spus;
-#endif
-
 #ifdef USE_CUDA
 extern unsigned get_cuda_device_count(void);
 #endif
@@ -52,7 +41,7 @@ static void init_machine_config(struct machine_config_s *config,
 	if (user_conf && (user_conf->ncuda == 0))
 	{
 		/* the user explicitely disabled CUDA */
-		ncudagpus = 0;
+		config->ncudagpus = 0;
 	}
 	else {
 		/* we need to initialize CUDA early to count the number of devices */
@@ -67,20 +56,21 @@ static void init_machine_config(struct machine_config_s *config,
 		}
 
 		if (explicitval < 0) {
-			ncudagpus = STARPU_MIN(get_cuda_device_count(), MAXCUDADEVS);
+			config->ncudagpus =
+				STARPU_MIN(get_cuda_device_count(), MAXCUDADEVS);
 		} else {
 			/* use the specified value */
-			ncudagpus = (unsigned)explicitval;
-			STARPU_ASSERT(ncudagpus <= MAXCUDADEVS);
+			config->ncudagpus = (unsigned)explicitval;
+			STARPU_ASSERT(config->ncudagpus <= MAXCUDADEVS);
 		}
-		STARPU_ASSERT(ncudagpus + config->nworkers <= NMAXWORKERS);
+		STARPU_ASSERT(config->ncudagpus + config->nworkers <= NMAXWORKERS);
 	}
 
-	if (ncudagpus > 0)
+	if (config->ncudagpus > 0)
 		use_accelerator = 1;
 
 	unsigned cudagpu;
-	for (cudagpu = 0; cudagpu < ncudagpus; cudagpu++)
+	for (cudagpu = 0; cudagpu < config->ncudagpus; cudagpu++)
 	{
 		config->workers[config->nworkers + cudagpu].arch = CUDA_WORKER;
 		config->workers[config->nworkers + cudagpu].perf_arch = STARPU_CUDA_DEFAULT;
@@ -88,7 +78,7 @@ static void init_machine_config(struct machine_config_s *config,
 		config->worker_mask |= (CUDA|CUBLAS);
 	}
 
-	config->nworkers += ncudagpus;
+	config->nworkers += config->ncudagpus;
 #endif
 	
 #ifdef USE_GORDON
@@ -100,19 +90,19 @@ static void init_machine_config(struct machine_config_s *config,
 	}
 
 	if (explicitval < 0) {
-		ngordon_spus = spe_cpu_info_get(SPE_COUNT_USABLE_SPES, -1);
+		config->ngordon_spus = spe_cpu_info_get(SPE_COUNT_USABLE_SPES, -1);
 	} else {
 		/* use the specified value */
-		ngordon_spus = (unsigned)explicitval;
-		STARPU_ASSERT(ngordon_spus <= NMAXGORDONSPUS);
+		config->ngordon_spus = (unsigned)explicitval;
+		STARPU_ASSERT(config->ngordon_spus <= NMAXGORDONSPUS);
 	}
-	STARPU_ASSERT(ngordon_spus + config->nworkers <= NMAXWORKERS);
+	STARPU_ASSERT(config->ngordon_spus + config->nworkers <= NMAXWORKERS);
 
-	if (ngordon_spus > 0)
+	if (config->ngordon_spus > 0)
 		use_accelerator = 1;
 
 	unsigned spu;
-	for (spu = 0; spu < ngordon_spus; spu++)
+	for (spu = 0; spu < config->ngordon_spus; spu++)
 	{
 		config->workers[config->nworkers + spu].arch = GORDON_WORKER;
 		config->workers[config->nworkers + spu].perf_arch = STARPU_GORDON_DEFAULT;
@@ -121,7 +111,7 @@ static void init_machine_config(struct machine_config_s *config,
 		config->worker_mask |= GORDON;
 	}
 
-	config->nworkers += ngordon_spus;
+	config->nworkers += config->ngordon_spus;
 #endif
 
 /* we put the CPU section after the accelerator : in case there was an
@@ -137,16 +127,16 @@ static void init_machine_config(struct machine_config_s *config,
 	if (explicitval < 0) {
 		long avail_cores = sysconf(_SC_NPROCESSORS_ONLN) 
 						- (use_accelerator?1:0);
-		ncores = STARPU_MIN(avail_cores, NMAXCORES);
+		config->ncores = STARPU_MIN(avail_cores, NMAXCORES);
 	} else {
 		/* use the specified value */
-		ncores = (unsigned)explicitval;
-		STARPU_ASSERT(ncores <= NMAXCORES);
+		config->ncores = (unsigned)explicitval;
+		STARPU_ASSERT(config->ncores <= NMAXCORES);
 	}
-	STARPU_ASSERT(ncores + config->nworkers <= NMAXWORKERS);
+	STARPU_ASSERT(config->ncores + config->nworkers <= NMAXWORKERS);
 
 	unsigned core;
-	for (core = 0; core < ncores; core++)
+	for (core = 0; core < config->ncores; core++)
 	{
 		config->workers[config->nworkers + core].arch = CORE_WORKER;
 		config->workers[config->nworkers + core].perf_arch = STARPU_CORE_DEFAULT;
@@ -154,7 +144,7 @@ static void init_machine_config(struct machine_config_s *config,
 		config->worker_mask |= CORE;
 	}
 
-	config->nworkers += ncores;
+	config->nworkers += config->ncores;
 #endif
 
 

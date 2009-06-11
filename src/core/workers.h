@@ -95,6 +95,10 @@ struct worker_set_s {
 struct machine_config_s {
 	unsigned nworkers;
 
+	unsigned ncores;
+	unsigned ncudagpus;
+	unsigned ngordon_spus;
+
 	struct worker_s workers[NMAXWORKERS];
 	uint32_t worker_mask;
 
