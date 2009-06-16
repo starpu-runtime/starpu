@@ -17,7 +17,6 @@
 #include "memalloc.h"
 #include <datawizard/footprint.h>
 
-extern mem_node_descr descr;
 pthread_spinlock_t mc_mutex[MAXNODES]; 
 static mem_chunk_list_t mc_list[MAXNODES];
 static mem_chunk_list_t mc_list_to_free[MAXNODES];

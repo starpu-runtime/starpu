@@ -221,21 +221,20 @@ typedef enum {
 	UNLOCK
 } queue_op;
 
-/* XXX we should use an accessor */
-extern mem_node_descr descr;
-
 static void operate_on_all_queues_attached_to_node(unsigned nodeid, queue_op op)
 {
 	unsigned q_id;
 	struct jobq_s *q;
 
-	pthread_spin_lock(&descr.attached_queues_mutex);
+	mem_node_descr * const descr = get_memory_node_description();
 
-	unsigned nqueues = descr.queues_count[nodeid];
+	pthread_spin_lock(&descr->attached_queues_mutex);
+
+	unsigned nqueues = descr->queues_count[nodeid];
 
 	for (q_id = 0; q_id < nqueues; q_id++)
 	{
-		q  = descr.attached_queues_per_node[nodeid][q_id];
+		q  = descr->attached_queues_per_node[nodeid][q_id];
 		switch (op) {
 			case BROADCAST:
 				pthread_cond_broadcast(&q->activity_cond);
@@ -249,7 +248,7 @@ static void operate_on_all_queues_attached_to_node(unsigned nodeid, queue_op op)
 		}
 	}
 
-	pthread_spin_unlock(&descr.attached_queues_mutex);
+	pthread_spin_unlock(&descr->attached_queues_mutex);
 }
 
 inline void lock_all_queues_attached_to_node(unsigned node)
@@ -272,13 +271,15 @@ static void operate_on_all_queues(queue_op op)
 	unsigned q_id;
 	struct jobq_s *q;
 
-	pthread_spin_lock(&descr.attached_queues_mutex);
+	mem_node_descr * const descr = get_memory_node_description();
 
-	unsigned nqueues = descr.total_queues_count;
+	pthread_spin_lock(&descr->attached_queues_mutex);
+
+	unsigned nqueues = descr->total_queues_count;
 
 	for (q_id = 0; q_id < nqueues; q_id++)
 	{
-		q  = descr.attached_queues_all[q_id];
+		q  = descr->attached_queues_all[q_id];
 		switch (op) {
 			case BROADCAST:
 				pthread_cond_broadcast(&q->activity_cond);
@@ -292,7 +293,7 @@ static void operate_on_all_queues(queue_op op)
 		}
 	}
 
-	pthread_spin_unlock(&descr.attached_queues_mutex);
+	pthread_spin_unlock(&descr->attached_queues_mutex);
 }
 
 static void kill_all_workers(struct machine_config_s *config)

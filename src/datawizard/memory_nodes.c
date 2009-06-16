@@ -22,7 +22,7 @@
 #include "copy-driver.h"
 #include "memalloc.h"
 
-mem_node_descr descr;
+static mem_node_descr descr;
 static pthread_key_t memory_node_key;
 
 void init_memory_nodes(void)
@@ -67,6 +67,11 @@ unsigned get_local_memory_node(void)
 		return 0;
 
 	return *memory_node;
+}
+
+inline mem_node_descr *get_memory_node_description(void)
+{
+	return &descr;
 }
 
 inline node_kind get_node_kind(uint32_t node)

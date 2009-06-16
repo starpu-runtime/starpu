@@ -57,4 +57,6 @@ void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid);
 
 node_kind get_node_kind(uint32_t node);
 
+inline mem_node_descr *get_memory_node_description(void);
+
 #endif // __MEMORY_NODES_H__

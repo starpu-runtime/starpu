@@ -22,21 +22,20 @@
 #include "copy-driver.h"
 #include "memalloc.h"
 
-/* TODO write an accessor */
-extern mem_node_descr descr;
-
 void wake_all_blocked_workers_on_node(unsigned nodeid)
 {
 	/* wake up all queues on that node */
 	unsigned q_id;
 
-	pthread_spin_lock(&descr.attached_queues_mutex);
+	mem_node_descr * const descr = get_memory_node_description();
 
-	unsigned nqueues = descr.queues_count[nodeid];
+	pthread_spin_lock(&descr->attached_queues_mutex);
+
+	unsigned nqueues = descr->queues_count[nodeid];
 	for (q_id = 0; q_id < nqueues; q_id++)
 	{
 		struct jobq_s *q;
-		q  = descr.attached_queues_per_node[nodeid][q_id];
+		q  = descr->attached_queues_per_node[nodeid][q_id];
 
 		/* wake anybody waiting on that queue */
 		pthread_mutex_lock(&q->activity_mutex);
@@ -44,7 +43,7 @@ void wake_all_blocked_workers_on_node(unsigned nodeid)
 		pthread_mutex_unlock(&q->activity_mutex);
 	}
 
-	pthread_spin_unlock(&descr.attached_queues_mutex);
+	pthread_spin_unlock(&descr->attached_queues_mutex);
 }
 
 void wake_all_blocked_workers(void)
@@ -53,6 +52,7 @@ void wake_all_blocked_workers(void)
 	struct sched_policy_s *sched = get_sched_policy();
 	pthread_cond_t *sched_cond = &sched->sched_activity_cond;
 	pthread_mutex_t *sched_mutex = &sched->sched_activity_mutex;
+	mem_node_descr * const descr = get_memory_node_description();
 
 	pthread_mutex_lock(sched_mutex);
 	pthread_cond_broadcast(sched_cond);
@@ -60,7 +60,8 @@ void wake_all_blocked_workers(void)
 
 	/* workers may be blocked on the various queues' conditions */
 	unsigned node;
-	for (node = 0; node < descr.nnodes; node++)
+	unsigned nnodes =  descr->nnodes;
+	for (node = 0; node < nnodes; node++)
 	{
 		wake_all_blocked_workers_on_node(node);
 	}
@@ -135,6 +136,8 @@ static uint32_t choose_src_node(uint32_t src_node_mask)
 	unsigned src_node = 0;
 	unsigned i;
 
+	mem_node_descr * const descr = get_memory_node_description();
+
 	/* first find the node that will be the actual source */
 	for (i = 0; i < MAXNODES; i++)
 	{
@@ -145,7 +148,7 @@ static uint32_t choose_src_node(uint32_t src_node_mask)
 
 			/* however GPU are expensive sources, really !
 			 * 	other should be ok */
-			if (descr.nodes[i] != CUDA_RAM)
+			if (descr->nodes[i] != CUDA_RAM)
 				break;
 
 			/* XXX do a better algorithm to distribute the memory copies */
