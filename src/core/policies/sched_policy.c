@@ -30,7 +30,6 @@
 
 
 static struct sched_policy_s policy;
-extern mem_node_descr descr;
 
 struct sched_policy_s *get_sched_policy(void)
 {
@@ -121,8 +120,10 @@ void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user
 	pthread_cond_init(&policy.sched_activity_cond, NULL);
 	pthread_mutex_init(&policy.sched_activity_mutex, NULL);
 	pthread_key_create(&policy.local_queue_key, NULL);
-	pthread_spin_init(&descr.attached_queues_mutex, 0);
-	descr.total_queues_count = 0;
+
+	mem_node_descr * const descr = get_memory_node_description();
+	pthread_spin_init(&descr->attached_queues_mutex, 0);
+	descr->total_queues_count = 0;
 
 	policy.init_sched(config, &policy);
 }
