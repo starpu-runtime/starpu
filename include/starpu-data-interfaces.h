@@ -37,6 +37,27 @@ uint32_t starpu_get_blas_ny(starpu_data_handle handle);
 uint32_t starpu_get_blas_local_ld(starpu_data_handle handle);
 uintptr_t starpu_get_blas_local_ptr(starpu_data_handle handle);
 
+/* BLOCK interface for 3D dense blocks */
+typedef struct starpu_block_interface_s {
+	uintptr_t ptr;
+	uint32_t nx;
+	uint32_t ny;
+	uint32_t nz;
+	uint32_t ldy;	/* number of elements between two lines */
+	uint32_t ldz;	/* number of elements between two planes */
+	size_t elemsize;
+} starpu_block_interface_t;
+
+void starpu_register_block_data(starpu_data_handle *handle, uint32_t home_node,
+                        uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx,
+                        uint32_t ny, uint32_t nz, size_t elemsize);
+uint32_t starpu_get_block_nx(starpu_data_handle handle);
+uint32_t starpu_get_block_ny(starpu_data_handle handle);
+uint32_t starpu_get_block_nz(starpu_data_handle handle);
+uint32_t starpu_get_block_local_ldy(starpu_data_handle handle);
+uint32_t starpu_get_block_local_ldz(starpu_data_handle handle);
+uintptr_t starpu_get_block_local_ptr(starpu_data_handle handle);
+
 /* vector interface for contiguous (non-strided) buffers */
 typedef struct starpu_vector_interface_s {
 	uintptr_t ptr;
@@ -123,6 +144,7 @@ uint32_t starpu_get_bcsr_c(starpu_data_handle);
 
 typedef union {
 	starpu_blas_interface_t blas;	/* dense BLAS representation */
+	starpu_block_interface_t block;	/* BLOCK interface for 3D dense blocks */
 	starpu_vector_interface_t vector; /* continuous vector */
 	starpu_csr_interface_t csr;	/* compressed sparse row */
 	starpu_csc_interface_t csc; 	/* compressed sparse column */

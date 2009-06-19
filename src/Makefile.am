@@ -61,6 +61,7 @@ noinst_HEADERS = 						\
 	datawizard/coherency.h					\
 	datawizard/memory_nodes.h				\
 	datawizard/interfaces/blas_interface.h			\
+	datawizard/interfaces/block_interface.h			\
 	datawizard/interfaces/csr_filters.h			\
 	datawizard/interfaces/csc_interface.h			\
 	datawizard/interfaces/bcsr_filters.h			\
@@ -124,6 +125,7 @@ libstarpu_la_SOURCES = 						\
 	datawizard/interfaces/csr_interface.c			\
 	datawizard/interfaces/blas_filters.c			\
 	datawizard/interfaces/blas_interface.c			\
+	datawizard/interfaces/block_interface.c			\
 	datawizard/interfaces/vector_interface.c		\
 	datawizard/interfaces/bcsr_filters.c			\
 	datawizard/interfaces/csr_filters.c			\
