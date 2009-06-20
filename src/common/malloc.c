@@ -44,6 +44,8 @@ static void malloc_pinned_codelet(struct data_interface_s *buffers __attribute__
 
 void starpu_malloc_pinned_if_possible(void **A, size_t dim)
 {
+	STARPU_ASSERT(A);
+
 	if (may_submit_cuda_task())
 	{
 #ifdef USE_CUDA
@@ -76,4 +78,6 @@ void starpu_malloc_pinned_if_possible(void **A, size_t dim)
 	else {
 		*A = malloc(dim);
 	}
+
+	STARPU_ASSERT(*A);
 }
