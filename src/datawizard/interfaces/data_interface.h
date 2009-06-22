@@ -22,6 +22,7 @@
 #include <common/config.h>
 #include <datawizard/data_parameters.h>
 #include "blas_interface.h"
+#include "block_interface.h"
 #include "vector_interface.h"
 #include "csr_interface.h"
 #include "csc_interface.h"

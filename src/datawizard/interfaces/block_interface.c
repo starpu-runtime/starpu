@@ -49,7 +49,7 @@ struct data_interface_ops_t interface_block_ops = {
 #ifdef USE_GORDON
 	.convert_to_gordon = convert_block_to_gordon,
 #endif
-	.interfaceid = BLAS_INTERFACE, 
+	.interfaceid = BLOCK_INTERFACE, 
 	.display = display_block_interface
 };
 

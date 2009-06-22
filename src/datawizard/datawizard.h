@@ -28,6 +28,7 @@
 #include <datawizard/interfaces/data_interface.h>
 
 #include <datawizard/interfaces/blas_interface.h>
+#include <datawizard/interfaces/block_interface.h>
 #include <datawizard/interfaces/vector_interface.h>
 #include <datawizard/interfaces/csr_interface.h>
 #include <datawizard/interfaces/csc_interface.h>
