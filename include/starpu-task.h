@@ -154,6 +154,9 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 void starpu_tag_wait(starpu_tag_t id);
 void starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id);
 
+/* it is possible that the application use tags explicitely */
+void starpu_tag_notify_from_apps(starpu_tag_t id);
+
 struct starpu_task *starpu_task_create(void);
 int starpu_submit_task(struct starpu_task *task);
 

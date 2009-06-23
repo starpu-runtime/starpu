@@ -214,42 +214,51 @@ static void tag_add_succ(struct tag_s *tag, cg_t *cg)
 	pthread_spin_unlock(&tag->lock);
 }
 
-void notify_dependencies(struct job_s *j)
+static void notify_tag_dependencies(struct tag_s *tag)
 {
-	struct tag_s *tag;
 	unsigned nsuccs;
 	unsigned succ;
 
-	STARPU_ASSERT(j);
-	
-	if (j->task->use_tag) {
-		/* in case there are dependencies, wake up the proper tasks */
-		tag = j->tag;
+	pthread_spin_lock(&tag->lock);
 
-		pthread_spin_lock(&tag->lock);
+	tag->state = DONE;
+	TRACE_TASK_DONE(tag->id);
 
-		tag->state = DONE;
-		TRACE_TASK_DONE(tag->id);
+	nsuccs = tag->nsuccs;
 
-		nsuccs = tag->nsuccs;
+	for (succ = 0; succ < nsuccs; succ++)
+	{
+		struct _cg_t *cg = tag->succ[succ];
+		unsigned used_by_apps = cg->used_by_apps;
+		struct tag_s *cgtag = cg->tag;
 
-		for (succ = 0; succ < nsuccs; succ++)
-		{
-			struct _cg_t *cg = tag->succ[succ];
-			unsigned used_by_apps = cg->used_by_apps;
-			struct tag_s *cgtag = cg->tag;
+		if (!used_by_apps)
+			pthread_spin_lock(&cgtag->lock);
 
-			if (!used_by_apps)
-				pthread_spin_lock(&cgtag->lock);
+		notify_cg(cg);
 
-			notify_cg(cg);
-
-			if (!used_by_apps)
-				pthread_spin_unlock(&cgtag->lock);
-		}
-
-		pthread_spin_unlock(&tag->lock);
+		if (!used_by_apps)
+			pthread_spin_unlock(&cgtag->lock);
 	}
+
+	pthread_spin_unlock(&tag->lock);
+}
+
+void notify_dependencies(struct job_s *j)
+{
+	STARPU_ASSERT(j);
+	STARPU_ASSERT(j->task);
+	
+	/* in case there are dependencies, wake up the proper tasks */
+	if (j->task->use_tag)
+		notify_tag_dependencies(j->tag);
+}
+
+void starpu_tag_notify_from_apps(starpu_tag_t id)
+{
+	struct tag_s *tag = gettag_struct(id);
+
+	notify_tag_dependencies(tag);
 }
 
 void tag_declare(starpu_tag_t id, struct job_s *job)
@@ -389,4 +398,3 @@ void starpu_tag_wait(starpu_tag_t id)
 {
 	starpu_tag_wait_array(1, &id);
 }
-
