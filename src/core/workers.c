@@ -108,7 +108,7 @@ static void init_workers(struct machine_config_s *config)
 				 * the different SPU workers */
 				if (!gordon_inited)
 				{
-					gordon_worker_set.nworkers = ngordon_spus; 
+					gordon_worker_set.nworkers = config->ngordon_spus; 
 					gordon_worker_set.workers = &config->workers[worker];
 
 					gordon_worker_set.set_is_initialized = 0;
