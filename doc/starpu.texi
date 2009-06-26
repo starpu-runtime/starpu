@@ -55,12 +55,12 @@ This manual documents the usage of StarPU
 
 @c complex machines with heterogeneous cores/devices
 The use of specialized hardware such as accelerators or coprocessors offers an
-interesting approach to overcome  the physical limits encountered by processor
+interesting approach to overcome the physical limits encountered by processor
 architects. As a result, many machines are now equipped with one or several
 accelerators (eg. a GPU), in addition to the usual processor(s). While a lot of
 efforts have been devoted to offload computation onto such accelerators, very
-few attention as been paid to portability concerns on the one hand, and to the
-possibility of having heterogeneous accelerators and processors to interact.
+little attention as been paid to portability concerns on the one hand, and to the
+possibility of having heterogeneous accelerators and processors to interact on the other hand.
 
 StarPU is a runtime system that offers support for heterogeneous multicore
 architectures, it not only offers a unified view of the computational resources
@@ -79,8 +79,8 @@ transparently handling low-level issues in a portable fashion.
 @section StarPU in a Nutshell
 
 From a programming point of view, StarPU is not a new language but a library
-that execute tasks explicitly submitted by the application.  The data that a
-task manipulate are automatically transferred onto the accelerators so that the
+that executes tasks explicitly submitted by the application.  The data that a
+task manipulate are automatically transferred onto the accelerator so that the
 programmer does not have to take care of complex data movements.  StarPU also
 takes particular care of scheduling those tasks efficiently and allows
 scheduling experts to implement custom scheduling policies in a portable
@@ -95,7 +95,7 @@ such as a CPU, a CUDA device or a Cell's SPU.
 @c TODO insert illustration f : f_spu, f_cpu, ...
 
 Another important data structure is the @b{task}. Executing a StarPU task
-consists in applying a codelet on a data set on one of the architecture on
+consists in applying a codelet on a data set, on one of the architecture on
 which the codelet is implemented. In addition to the codelet that a task
 implements, it also describes which data are accessed, and how they are
 accessed during the computation (read and/or write).
@@ -510,12 +510,12 @@ int main(int argc, char **argv)
 @end example
 
 Before submitting any tasks to StarPU, @code{starpu_init} must be called. The
-@code{NULL} arguments specifies that we use default configuration. Tasks cannot
+@code{NULL} argument specifies that we use default configuration. Tasks cannot
 be submitted after the termination of StarPU by a call to
 @code{starpu_shutdown}.
 
 In the example above, a task structure is allocated by a call to
-@code{starpu_task_create}. This function only allocate and fills the
+@code{starpu_task_create}. This function only allocates and fills the
 corresponding structure with the default settings (@pxref{starpu_task_create}),
 but it does not submit the task to StarPU.
 
@@ -527,7 +527,7 @@ structure is a wrapper containing a codelet and the piece of data on which the
 codelet should operate.
 
 The optional ''@code{.cl_arg}'' field is a pointer to a buffer (of size
-@code{.cl_arg_size}) with some parameters for some parameters for the kernel
+@code{.cl_arg_size}) with some parameters for the kernel
 described by the codelet. For instance, if a codelet implements a computational
 kernel that multiplies its input vector by a constant, the constant could be
 specified by the means of this buffer.
@@ -549,7 +549,7 @@ guarantee that asynchronous tasks have been executed before it returns.
 @node Scaling a Vector
 @section Manipulating Data: Scaling a Vector
 
-The previous example has shown how to submit tasks, in this section we show how
+The previous example has shown how to submit tasks. In this section we show how
 StarPU tasks can manipulate data.
 
 Programmers can describe the data layout of their application so that StarPU is
@@ -575,7 +575,7 @@ starpu_data_handle tab_handle;
 starpu_register_vector_data(&tab_handle, 0, tab, n, sizeof(float));
 @end example
 
-The first argument, called the @b{data handle} is an opaque pointer which
+The first argument, called the @b{data handle}, is an opaque pointer which
 designates the array in StarPU. This is also the structure which is used to
 describe which data is used by a task.
 @c TODO: what is 0 ?
@@ -628,7 +628,7 @@ starpu_codelet cl = @{
 
 
 The second argument of the @code{scal_func} function contains a pointer to the
-parameters of the codelet (given in @code{task->cl_arg}), so the we read the
+parameters of the codelet (given in @code{task->cl_arg}), so that we read the
 constant factor from this pointer. The first argument is an array that gives
 a description of every buffers passed in the @code{task->buffers}@ array, the
 number of which is given by the @code{.nbuffers} field of the codelet structure.
