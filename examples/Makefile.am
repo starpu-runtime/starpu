@@ -92,6 +92,7 @@ noinst_HEADERS = 				\
 	gordon/null.h				\
 	fortran/bindings/StarPU-fortran.h	\
 	ppm-downscaler/ppm-downscaler.h		\
+	ppm-downscaler/yuv-downscaler.h		\
 	strassen/strassen.h			\
 	strassen/strassen_models.h		\
 	spmv/matrix-market/mmio.h		\
