@@ -87,7 +87,12 @@ int main(int argc, char **argv)
 		task->buffers[0].handle = float_array_handle;
 		task->buffers[0].mode = STARPU_RW;
 
-		starpu_submit_task(task);
+		int ret = starpu_submit_task(task);
+		if (STARPU_UNLIKELY(ret == -ENODEV))
+		{
+			fprintf(stderr, "No worker may execute this task\n");
+			exit(0);
+		}
 	}
 
 	pthread_mutex_lock(&mutex);
