@@ -49,7 +49,7 @@
 #define CUDA_ALPHA	13.33f
 #define GORDON_ALPHA	6.0f /* XXX this is a random value ... */
 
-#define NMAXWORKERS	16
+#define NMAXWORKERS	32
 
 #ifdef DATA_STATS
 #define BENCHMARK_COMM	1
