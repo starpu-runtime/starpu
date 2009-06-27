@@ -37,8 +37,8 @@ static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 unsigned size __attribute__ ((aligned (16))) = 4*sizeof(float);
 
-float my_lovely_float[3] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f}; 
-float unity[3] __attribute__ ((aligned (16))) = { 1.0f, 0.0f, 1.0f};
+float my_lovely_float[4] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f}; 
+float unity[4] __attribute__ ((aligned (16))) = { 1.0f, 0.0f, 1.0f};
 
 void callback_func(void *argcb)
 {
@@ -101,10 +101,10 @@ void initialize_cuda(void)
 void init_data(void)
 {
 	starpu_register_vector_data(&my_float_state, 0 /* home node */,
-			(uintptr_t)&my_lovely_float, 3, sizeof(float));
+			(uintptr_t)&my_lovely_float, 4, sizeof(float));
 
 	starpu_register_vector_data(&unity_state, 0 /* home node */,
-			(uintptr_t)&unity, 3, sizeof(float));
+			(uintptr_t)&unity, 4, sizeof(float));
 }
 
 int main(int argc, char **argv)
@@ -122,16 +122,9 @@ int main(int argc, char **argv)
 	starpu_codelet cl =
 	{
 		.core_func = core_codelet,
-		.where = CORE|CUDA|GORDON,
+		.where = CORE|CUDA,
 #ifdef USE_CUDA
 		.cuda_func = &cuda_codelet,
-#endif
-#ifdef USE_GORDON
-#ifdef SPU_FUNC_ADD
-		.gordon_func = SPU_FUNC_ADD,
-#else
-#warning SPU_FUNC_ADD is not available
-#endif
 #endif
 		.nbuffers = 2
 	};
@@ -153,7 +146,12 @@ int main(int argc, char **argv)
 		task->buffers[1].handle = unity_state; 
 		task->buffers[1].mode = STARPU_R;
 
-		starpu_submit_task(task);
+		int ret = starpu_submit_task(task);
+		if (STARPU_UNLIKELY(ret == -ENODEV))
+		{
+			fprintf(stderr, "No worker may execute this task\n");
+			exit(0);
+		}
 	}
 
 	pthread_mutex_lock(&mutex);

@@ -26,7 +26,7 @@ struct timeval end;
 
 static starpu_codelet cl11 =
 {
-	.where = ANY,
+	.where = CORE|CUBLAS,
 	.core_func = dw_core_codelet_update_u11,
 #ifdef USE_CUDA
 	.cublas_func = dw_cublas_codelet_update_u11,
@@ -37,7 +37,7 @@ static starpu_codelet cl11 =
 
 static starpu_codelet cl12 =
 {
-	.where = ANY,
+	.where = CORE|CUBLAS,
 	.core_func = dw_core_codelet_update_u12,
 #ifdef USE_CUDA
 	.cublas_func = dw_cublas_codelet_update_u12,
@@ -48,7 +48,7 @@ static starpu_codelet cl12 =
 
 static starpu_codelet cl21 =
 {
-	.where = ANY,
+	.where = CORE|CUBLAS,
 	.core_func = dw_core_codelet_update_u21,
 #ifdef USE_CUDA
 	.cublas_func = dw_cublas_codelet_update_u21,
@@ -59,7 +59,7 @@ static starpu_codelet cl21 =
 
 static starpu_codelet cl22 =
 {
-	.where = ANY,
+	.where = CORE|CUBLAS,
 	.core_func = dw_core_codelet_update_u22,
 #ifdef USE_CUDA
 	.cublas_func = dw_cublas_codelet_update_u22,
@@ -664,7 +664,12 @@ void dw_codelet_facto_v2(starpu_data_handle dataA, unsigned nblocks)
 		task->buffers[0].mode = STARPU_RW;
 
 	/* schedule the codelet */
-	starpu_submit_task(task);
+	int ret = starpu_submit_task(task);
+	if (STARPU_UNLIKELY(ret == -ENODEV))
+	{
+		fprintf(stderr, "No worker may execute this task\n");
+		exit(0);
+	}
 
 	/* stall the application until the end of computations */
 	sem_wait(&sem);

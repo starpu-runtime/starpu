@@ -193,7 +193,7 @@ enum operation {
 };
 
 static starpu_codelet cl_add = {
-	.where = ANY,
+	.where = CORE|CUBLAS,
 	.model = &strassen_model_add,
 	.core_func = add_core_codelet,
 #ifdef USE_CUDA
@@ -203,7 +203,7 @@ static starpu_codelet cl_add = {
 };
 
 static starpu_codelet cl_sub = {
-	.where = ANY,
+	.where = CORE|CUBLAS,
 	.model = &strassen_model_sub,
 	.core_func = sub_core_codelet,
 #ifdef USE_CUDA
@@ -213,7 +213,7 @@ static starpu_codelet cl_sub = {
 };
 
 static starpu_codelet cl_mult = {
-	.where = ANY,
+	.where = CORE|CUBLAS,
 	.model = &strassen_model_mult,
 	.core_func = mult_core_codelet,
 #ifdef USE_CUDA
@@ -259,7 +259,7 @@ struct starpu_task *compute_add_sub_op(starpu_data_handle C, enum operation op, 
 }
 
 static starpu_codelet cl_self_add = {
-	.where = ANY,
+	.where = CORE|CUBLAS,
 	.model = &strassen_model_self_add,
 	.core_func = self_add_core_codelet,
 #ifdef USE_CUDA
@@ -269,7 +269,7 @@ static starpu_codelet cl_self_add = {
 };
 
 static starpu_codelet cl_self_sub = {
-	.where = ANY,
+	.where = CORE|CUBLAS,
 	.model = &strassen_model_self_sub,
 	.core_func = self_sub_core_codelet,
 #ifdef USE_CUDA
@@ -329,7 +329,7 @@ void cleanup_callback(void *_arg)
 }
 
 static starpu_codelet cleanup_codelet = {
-	.where = ANY,
+	.where = CORE|CUBLAS,
 	.model = NULL,
 	.core_func = null_codelet,
 #ifdef USE_CUDA
@@ -705,7 +705,7 @@ static void dummy_codelet_func(__attribute__((unused))starpu_data_interface_t *d
 }
 
 static starpu_codelet dummy_codelet = {
-	.where = ANY,
+	.where = CORE|CUBLAS,
 	.model = NULL,
 	.core_func = dummy_codelet_func,
 	#ifdef USE_CUDA

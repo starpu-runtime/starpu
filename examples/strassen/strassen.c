@@ -89,7 +89,7 @@ static void unpartition_matrices(strassen_iter_state_t *iter)
 }
 
 static starpu_codelet cl_add = {
-	.where = ANY,
+	.where = CORE|CUBLAS,
 	.model = &strassen_model_add_sub,
 	.core_func = add_core_codelet,
 #ifdef USE_CUDA
@@ -99,7 +99,7 @@ static starpu_codelet cl_add = {
 };
 
 static starpu_codelet cl_sub = {
-	.where = ANY,
+	.where = CORE|CUBLAS,
 	.model = &strassen_model_add_sub,
 	.core_func = sub_core_codelet,
 #ifdef USE_CUDA
@@ -109,7 +109,7 @@ static starpu_codelet cl_sub = {
 };
 
 static starpu_codelet cl_mult = {
-	.where = ANY,
+	.where = CORE|CUBLAS,
 	.model = &strassen_model_mult,
 	.core_func = mult_core_codelet,
 #ifdef USE_CUDA
@@ -119,7 +119,7 @@ static starpu_codelet cl_mult = {
 };
 
 static starpu_codelet cl_self_add = {
-	.where = ANY,
+	.where = CORE|CUBLAS,
 	.model = &strassen_model_self_add_sub,
 	.core_func = self_add_core_codelet,
 #ifdef USE_CUDA
@@ -129,7 +129,7 @@ static starpu_codelet cl_self_add = {
 };
 
 static starpu_codelet cl_self_sub = {
-	.where = ANY,
+	.where = CORE|CUBLAS,
 	.model = &strassen_model_self_add_sub,
 	.core_func = self_sub_core_codelet,
 #ifdef USE_CUDA
