@@ -17,7 +17,14 @@
 LIBS = $(top_builddir)/src/libstarpu.la @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/
 
-CLEANFILES = *.gcno *.gcda *.linkinfo
+EXTRA_DIST =					\
+	microbenchs/null_kernel_gordon.c	\
+	microbenchs/sync_and_notify_data_gordon_kernels.c
+
+CLEANFILES = 					\
+	*.gcno *.gcda *.linkinfo		\
+	microbenchs/null_kernel_gordon.spuelf	\
+	microbenchs/sync_and_notify_data_gordon_kernels.spuelf
 
 BUILT_SOURCES =
 
@@ -33,6 +40,7 @@ NVCCFLAGS += -I$(top_srcdir)/include/
 	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
 
 .cu.o:
+	$(MKDIR_P) `dirname $@`
 	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
 
 endif
@@ -43,10 +51,15 @@ SPU_CC ?= spu-gcc
 SPU_LD ?= spu-ld
 
 .c.spuo:
+	$(MKDIR_P) `dirname $@`
 	$(SPU_CC) -c -fpic $< -o $@
 
 .spuo.spuelf:
+	$(MKDIR_P) `dirname $@`
 	$(SPU_LD) $< -o $@
+
+#BUILT_SOURCES +=
+#	microbenchs/null_kernel_gordon.spuelf
 
 endif
 
@@ -80,6 +93,9 @@ microbenchs_sync_and_notify_data_SOURCES +=	\
 endif
 
 if USE_GORDON
+microbenchs_sync_and_notify_data_SOURCES +=	\
+	microbenchs/sync_and_notify_data_gordon_kernels.c
+
 BUILT_SOURCES += 						\
 	microbenchs/sync_and_notify_data_gordon_kernels.spuelf	\
 	microbenchs/null_kernel_gordon.spuelf

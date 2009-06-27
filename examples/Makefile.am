@@ -64,9 +64,11 @@ SPULDFLAGS =
 SPULIBS = -lblas #-lc -lgloss -lc
 
 .c.spuo:
+	$(MKDIR_P) `dirname $@`
 	$(SPU_CC) -c -fpic $< -o $@
 
 .spuo.spuelf:
+	$(MKDIR_P) `dirname $@`
 	$(SPU_LD) $(SPULDFLAGS) $< -o $@ $(SPULIBS)
 
 BUILT_SOURCES +=				\
@@ -88,6 +90,7 @@ noinst_HEADERS = 				\
 	common/blas_model.h			\
 	common/blas.h				\
 	mult/dw_mult.h				\
+	mult/gordon/func_sgemm_ibm.h		\
 	cuda/incrementer_cuda.h			\
 	gordon/null.h				\
 	fortran/bindings/StarPU-fortran.h	\
@@ -172,13 +175,6 @@ mult_dw_mult_no_filters_SOURCES =		\
 	mult/dw_mult_no_filters.c		\
 	common/blas.c				\
 	common/blas_model.c
-
-if USE_GORDON
-
-BUILT_SOURCES +=				\
-	mult/gordon/func_sgemm_ibm.spuelf
-
-endif
 
 endif
 
