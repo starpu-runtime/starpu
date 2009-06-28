@@ -26,12 +26,14 @@ BUILT_SOURCES =
 EXTRA_DIST = 					\
 	cuda/incrementer_cuda.cu		\
 	cuda/spmv_cuda.cu			\
-	gordon/null_kernel_gordon.c
+	gordon/null_kernel_gordon.c		\
+	mult/gordon/func_sgemm_ibm.c
 
 CLEANFILES = 					\
 	cuda/incrementer_cuda.cubin		\
 	cuda/spmv_cuda.cubin			\
-	gordon/null_kernel_gordon.spuelf
+	gordon/null_kernel_gordon.spuelf	\
+	mult/gordon/func_sgemm_ibm.spuelf
 	
 
 CLEANFILES += *.gcno *.gcda *.linkinfo
@@ -72,7 +74,8 @@ SPULIBS = -lblas #-lc -lgloss -lc
 	$(SPU_LD) $(SPULDFLAGS) $< -o $@ $(SPULIBS)
 
 BUILT_SOURCES +=				\
-	gordon/null_kernel_gordon.spuelf
+	gordon/null_kernel_gordon.spuelf	\
+	mult/gordon/func_sgemm_ibm.spuelf
 
 endif
 
