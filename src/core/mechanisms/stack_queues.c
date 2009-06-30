@@ -52,7 +52,7 @@ struct jobq_s *create_stack(void)
 	stack->njobs = 0;
 	stack->nprocessed = 0;
 
-	stack->exp_start = timing_now()/1000000;
+	stack->exp_start = timing_now();
 	stack->exp_len = 0.0;
 	stack->exp_end = stack->exp_start;
 

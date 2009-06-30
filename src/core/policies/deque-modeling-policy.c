@@ -30,7 +30,7 @@ static job_t dm_pop_task(struct jobq_s *q)
 		double model = j->predicted;
 	
 		fifo->exp_len -= model;
-		fifo->exp_start = timing_now()/1000000 + model;
+		fifo->exp_start = timing_now() + model;
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 	}	
 
@@ -52,7 +52,7 @@ static struct job_list_s *dm_pop_every_task(struct jobq_s *q, uint32_t where)
 			double model = i->predicted;
 	
 			fifo->exp_len -= model;
-			fifo->exp_start = timing_now()/1000000 + model;
+			fifo->exp_start = timing_now() + model;
 			fifo->exp_end = fifo->exp_start + fifo->exp_len;
 		}
 	}
@@ -78,9 +78,8 @@ static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)), job_t j, uns
 		
 		fifo = queue_array[worker]->queue;
 
-		/* XXX */
-		fifo->exp_start = STARPU_MAX(fifo->exp_start, timing_now()/1000000);
-		fifo->exp_end = STARPU_MAX(fifo->exp_start, timing_now()/1000000);
+		fifo->exp_start = STARPU_MAX(fifo->exp_start, timing_now());
+		fifo->exp_end = STARPU_MAX(fifo->exp_end, timing_now());
 
 		if ((queue_array[worker]->who & j->task->cl->where) == 0)
 		{

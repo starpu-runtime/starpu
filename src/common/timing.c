@@ -40,12 +40,13 @@ inline double timing_delay(tick_t *t1, tick_t *t2)
 	return TIMING_DELAY(*t1, *t2);
 }
 
+/* returns the current time in us */
 inline double timing_now(void)
 {
 	tick_t tick_now;
 	GET_TICK(tick_now);
 
-	return tick2usec(((tick_now).ts.tv_sec*1e9) + (tick_now).ts.tv_usec);
+	return tick2usec(((tick_now).ts.tv_sec*1e9) + (tick_now).ts.tv_usec*1e3);
 }
 
 

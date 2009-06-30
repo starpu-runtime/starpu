@@ -52,7 +52,7 @@ struct jobq_s *create_deque(void)
 	deque->njobs = 0;
 	deque->nprocessed = 0;
 
-	deque->exp_start = timing_now()/1000000;
+	deque->exp_start = timing_now();
 	deque->exp_len = 0.0;
 	deque->exp_end = deque->exp_start;
 

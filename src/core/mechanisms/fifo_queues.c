@@ -52,7 +52,7 @@ struct jobq_s *create_fifo(void)
 	fifo->njobs = 0;
 	fifo->nprocessed = 0;
 
-	fifo->exp_start = timing_now()/1000000;
+	fifo->exp_start = timing_now();
 	fifo->exp_len = 0.0;
 	fifo->exp_end = fifo->exp_start;
 
