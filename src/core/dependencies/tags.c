@@ -24,12 +24,7 @@
 #include <starpu.h>
 
 static htbl_node_t *tag_htbl = NULL;
-static pthread_spinlock_t tag_mutex;
-
-void initialize_tag_mutex(void)
-{
-	pthread_spin_init(&tag_mutex, 0);
-}
+static pthread_rwlock_t tag_global_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
 static cg_t *create_cg(unsigned ntags, struct tag_s *tag, unsigned is_apps_cg)
 {
@@ -88,11 +83,11 @@ void starpu_tag_remove(starpu_tag_t id)
 {
 	struct tag_s *tag;
 
-	pthread_spin_lock(&tag_mutex);
+	pthread_rwlock_wrlock(&tag_global_rwlock);
 
 	tag = htbl_remove_tag(tag_htbl, id);
 
-	pthread_spin_unlock(&tag_mutex);
+	pthread_rwlock_unlock(&tag_global_rwlock);
 
 	pthread_spin_lock(&tag->lock);
 	
@@ -108,7 +103,7 @@ void starpu_tag_remove(starpu_tag_t id)
 
 static struct tag_s *gettag_struct(starpu_tag_t id)
 {
-	pthread_spin_lock(&tag_mutex);
+	pthread_rwlock_wrlock(&tag_global_rwlock);
 
 	/* search if the tag is already declared or not */
 	struct tag_s *tag;
@@ -124,7 +119,7 @@ static struct tag_s *gettag_struct(starpu_tag_t id)
 		STARPU_ASSERT(old == NULL);
 	}
 
-	pthread_spin_unlock(&tag_mutex);
+	pthread_rwlock_unlock(&tag_global_rwlock);
 
 	return tag;
 }

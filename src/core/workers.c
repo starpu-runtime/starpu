@@ -151,8 +151,6 @@ void starpu_init(struct starpu_conf *user_conf)
 
 	starpu_build_topology(&config, user_conf);
 
-	initialize_tag_mutex();
-
 	/* initialize the scheduler */
 
 	/* initialize the queue containing the jobs */

@@ -85,8 +85,6 @@ typedef struct _cg_t {
 	pthread_cond_t cg_cond;
 } cg_t;
 
-void initialize_tag_mutex(void);
-
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 
 void notify_dependencies(struct job_s *j);
