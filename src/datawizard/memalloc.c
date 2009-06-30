@@ -17,7 +17,7 @@
 #include "memalloc.h"
 #include <datawizard/footprint.h>
 
-pthread_spinlock_t mc_mutex[MAXNODES]; 
+static pthread_rwlock_t mc_rwlock[MAXNODES]; 
 static mem_chunk_list_t mc_list[MAXNODES];
 static mem_chunk_list_t mc_list_to_free[MAXNODES];
 
@@ -28,7 +28,7 @@ void init_mem_chunk_lists(void)
 	unsigned i;
 	for (i = 0; i < MAXNODES; i++)
 	{
-		pthread_spin_init(&mc_mutex[i], 0);
+		pthread_rwlock_init(&mc_rwlock[i], NULL);
 		mc_list[i] = mem_chunk_list_new();
 		mc_list_to_free[i] = mem_chunk_list_new();
 	}
@@ -214,7 +214,7 @@ static size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node, unsigned atte
 }
 
 #ifdef USE_ALLOCATION_CACHE
-/* we assume that mc_mutex[node] is taken */
+/* we assume that mc_rwlock[node] is taken */
 static void reuse_mem_chunk(unsigned node, data_state *new_data, mem_chunk_t mc, unsigned is_already_in_mc_list)
 {
 	data_state *old_data;
@@ -290,7 +290,7 @@ static unsigned try_to_reuse_mem_chunk(mem_chunk_t mc, unsigned node, data_state
  * list of mem chunk that need to be liberated */
 static unsigned try_to_find_reusable_mem_chunk(unsigned node, data_state *data, uint32_t footprint)
 {
-	pthread_spin_lock(&mc_mutex[node]);
+	pthread_rwlock_wrlock(&mc_rwlock[node]);
 
 	/* go through all buffers for which there was a removal request */
 	mem_chunk_t mc, next_mc;
@@ -311,7 +311,7 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, data_state *data, 
 			{
 				reuse_mem_chunk(node, data, mc, 0);
 
-				pthread_spin_unlock(&mc_mutex[node]);
+				pthread_rwlock_unlock(&mc_rwlock[node]);
 				return 1;
 			}
 		}
@@ -333,13 +333,13 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, data_state *data, 
 //			fprintf(stderr, "found a candidate ...\n");
 			if (try_to_reuse_mem_chunk(mc, node, data, 1))
 			{
-				pthread_spin_unlock(&mc_mutex[node]);
+				pthread_rwlock_unlock(&mc_rwlock[node]);
 				return 1;
 			}
 		}
 	}
 
-	pthread_spin_unlock(&mc_mutex[node]);
+	pthread_rwlock_unlock(&mc_rwlock[node]);
 
 	return 0;
 }
@@ -355,7 +355,7 @@ static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unu
 
 	size_t liberated = 0;
 
-	pthread_spin_lock(&mc_mutex[node]);
+	pthread_rwlock_wrlock(&mc_rwlock[node]);
 
 	/* remove all buffers for which there was a removal request */
 	mem_chunk_t mc, next_mc;
@@ -391,7 +391,7 @@ static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unu
 
 //	fprintf(stderr, "got %d MB back\n", (int)liberated/(1024*1024));
 
-	pthread_spin_unlock(&mc_mutex[node]);
+	pthread_rwlock_unlock(&mc_rwlock[node]);
 
 	return liberated;
 }
@@ -413,14 +413,14 @@ static void register_mem_chunk(data_state *state, uint32_t dst_node, size_t size
 	/* the interface was already filled by ops->allocate_data_on_node */
 	memcpy(&mc->interface, &state->interface[dst_node], sizeof(starpu_data_interface_t));
 
-	pthread_spin_lock(&mc_mutex[dst_node]);
+	pthread_rwlock_wrlock(&mc_rwlock[dst_node]);
 	mem_chunk_list_push_front(mc_list[dst_node], mc);
-	pthread_spin_unlock(&mc_mutex[dst_node]);
+	pthread_rwlock_unlock(&mc_rwlock[dst_node]);
 }
 
 void request_mem_chunk_removal(data_state *state, unsigned node)
 {
-	pthread_spin_lock(&mc_mutex[node]);
+	pthread_rwlock_wrlock(&mc_rwlock[node]);
 
 	/* iterate over the list of memory chunks and remove the entry */
 	mem_chunk_t mc, next_mc;
@@ -440,15 +440,14 @@ void request_mem_chunk_removal(data_state *state, unsigned node)
 			/* put it in the list of buffers to be removed */
 			mem_chunk_list_push_front(mc_list_to_free[node], mc);
 
-			pthread_spin_unlock(&mc_mutex[node]);
+			pthread_rwlock_unlock(&mc_rwlock[node]);
 
 			return;
 		}
 	}
 
 	/* there was no corresponding buffer ... */
-
-	pthread_spin_unlock(&mc_mutex[node]);
+	pthread_rwlock_unlock(&mc_rwlock[node]);
 }
 
 static size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node)
