@@ -228,7 +228,7 @@ static void operate_on_all_queues_attached_to_node(unsigned nodeid, queue_op op)
 
 	mem_node_descr * const descr = get_memory_node_description();
 
-	pthread_spin_lock(&descr->attached_queues_mutex);
+	pthread_rwlock_rdlock(&descr->attached_queues_rwlock);
 
 	unsigned nqueues = descr->queues_count[nodeid];
 
@@ -248,7 +248,7 @@ static void operate_on_all_queues_attached_to_node(unsigned nodeid, queue_op op)
 		}
 	}
 
-	pthread_spin_unlock(&descr->attached_queues_mutex);
+	pthread_rwlock_unlock(&descr->attached_queues_rwlock);
 }
 
 inline void lock_all_queues_attached_to_node(unsigned node)
@@ -273,7 +273,7 @@ static void operate_on_all_queues(queue_op op)
 
 	mem_node_descr * const descr = get_memory_node_description();
 
-	pthread_spin_lock(&descr->attached_queues_mutex);
+	pthread_rwlock_rdlock(&descr->attached_queues_rwlock);
 
 	unsigned nqueues = descr->total_queues_count;
 
@@ -293,7 +293,7 @@ static void operate_on_all_queues(queue_op op)
 		}
 	}
 
-	pthread_spin_unlock(&descr->attached_queues_mutex);
+	pthread_rwlock_unlock(&descr->attached_queues_rwlock);
 }
 
 static void kill_all_workers(struct machine_config_s *config)

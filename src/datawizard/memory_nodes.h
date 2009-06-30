@@ -38,7 +38,7 @@ typedef struct {
 	/* the list of queues that are attached to a given node */
 	// XXX 32 is set randomly !
 	// TODO move this 2 lists outside mem_node_descr
-	pthread_spinlock_t attached_queues_mutex;
+	pthread_rwlock_t attached_queues_rwlock;
 	struct jobq_s *attached_queues_per_node[MAXNODES][32];
 	struct jobq_s *attached_queues_all[MAXNODES*32];
 	/* the number of queues attached to each node */

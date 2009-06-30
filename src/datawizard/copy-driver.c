@@ -29,7 +29,7 @@ void wake_all_blocked_workers_on_node(unsigned nodeid)
 
 	mem_node_descr * const descr = get_memory_node_description();
 
-	pthread_spin_lock(&descr->attached_queues_mutex);
+	pthread_rwlock_rdlock(&descr->attached_queues_rwlock);
 
 	unsigned nqueues = descr->queues_count[nodeid];
 	for (q_id = 0; q_id < nqueues; q_id++)
@@ -43,7 +43,7 @@ void wake_all_blocked_workers_on_node(unsigned nodeid)
 		pthread_mutex_unlock(&q->activity_mutex);
 	}
 
-	pthread_spin_unlock(&descr->attached_queues_mutex);
+	pthread_rwlock_unlock(&descr->attached_queues_rwlock);
 }
 
 void wake_all_blocked_workers(void)

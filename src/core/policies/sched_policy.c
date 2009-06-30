@@ -122,7 +122,7 @@ void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user
 	pthread_key_create(&policy.local_queue_key, NULL);
 
 	mem_node_descr * const descr = get_memory_node_description();
-	pthread_spin_init(&descr->attached_queues_mutex, 0);
+	pthread_rwlock_init(&descr->attached_queues_rwlock, NULL);
 	descr->total_queues_count = 0;
 
 	policy.init_sched(config, &policy);
