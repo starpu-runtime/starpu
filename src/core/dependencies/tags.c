@@ -24,7 +24,7 @@
 #include <starpu.h>
 
 static htbl_node_t *tag_htbl = NULL;
-pthread_spinlock_t tag_mutex;
+static pthread_spinlock_t tag_mutex;
 
 void initialize_tag_mutex(void)
 {
@@ -132,14 +132,10 @@ static struct tag_s *gettag_struct(starpu_tag_t id)
 /* lock should be taken */
 static void tag_set_ready(struct tag_s *tag)
 {
-//	pthread_spin_lock(&tag->lock);
-
 	/* mark this tag as ready to run */
 	tag->state = READY;
 	/* declare it to the scheduler ! */
 	struct job_s *j = tag->job;
-
-//	pthread_spin_unlock(&tag->lock);
 
 #ifdef NO_DATA_RW_LOCK
 	/* enforce data dependencies */
@@ -148,7 +144,6 @@ static void tag_set_ready(struct tag_s *tag)
 #endif
 
 	push_task(j);
-//	}
 }
 
 static void notify_cg(cg_t *cg)
@@ -168,14 +163,12 @@ static void notify_cg(cg_t *cg)
 		}
 		else
 		{
-//			pthread_spin_lock(&cg->tag->lock);
 			struct tag_s *tag = cg->tag;
 			tag->ndeps_completed++;
 
 			if ((tag->state == BLOCKED) 
 				&& (tag->ndeps == tag->ndeps_completed))
 				tag_set_ready(cg->tag);
-//			pthread_spin_unlock(&cg->tag->lock);
 
 			free(cg);
 		}
