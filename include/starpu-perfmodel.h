@@ -93,7 +93,7 @@ struct starpu_perfmodel_t {
 	} is_loaded;
 	unsigned benchmarking;
 
-	pthread_spinlock_t model_mutex;
+	pthread_rwlock_t model_rwlock;
 };
 
 /* This function is intended to be used by external tools that should read the

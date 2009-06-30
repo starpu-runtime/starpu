@@ -316,9 +316,8 @@ void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_hi
 		return;
 	}
 	
-	//init_mutex(&model->model_mutex);
-	pthread_spin_init(&model->model_mutex, 0);
-	pthread_spin_lock(&model->model_mutex);
+	pthread_rwlock_init(&model->model_rwlock, NULL);
+	pthread_rwlock_wrlock(&model->model_rwlock);
 
 		/* make sure the performance model directory exists (or create it) */
 		if (!directory_existence_was_tested)
@@ -371,7 +370,7 @@ void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_hi
 	
 		model->is_loaded = STARPU_PERFMODEL_LOADED;
 
-	pthread_spin_unlock(&model->model_mutex);
+	pthread_rwlock_unlock(&model->model_rwlock);
 }
 
 /* This function is intended to be used by external tools that should read the
@@ -466,9 +465,9 @@ double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum 
 	if (!history)
 		return -1.0;
 
-	pthread_spin_lock(&model->model_mutex);
+	pthread_rwlock_rdlock(&model->model_rwlock);
 	entry = htbl_search_32(history, key);
-	pthread_spin_unlock(&model->model_mutex);
+	pthread_rwlock_unlock(&model->model_rwlock);
 
 	exp = entry?entry->mean:-1.0;
 
@@ -500,7 +499,7 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned 
 			reg_model = &per_arch_model->regression;
 			list = &per_arch_model->list;
 
-			pthread_spin_lock(&model->model_mutex);
+			pthread_rwlock_wrlock(&model->model_rwlock);
 	
 				entry = htbl_search_32(history, key);
 	
@@ -555,13 +554,13 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned 
 			reg_model->beta = num/denom;
 			reg_model->alpha = expl((reg_model->sumlny - reg_model->beta*reg_model->sumlnx)/n);
 			
-			pthread_spin_unlock(&model->model_mutex);
+			pthread_rwlock_unlock(&model->model_rwlock);
 		}
 
 #ifdef MODEL_DEBUG
 		FILE * debug_file = per_arch_model->debug_file;
 
-		pthread_spin_lock(&model->model_mutex);
+		pthread_rwlock_wrlock(&model->model_rwlock);
 
 		STARPU_ASSERT(j->footprint_is_computed);
 
@@ -580,7 +579,7 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned 
 		fprintf(debug_file, "\n");	
 
 
-		pthread_spin_unlock(&model->model_mutex);
+		pthread_rwlock_unlock(&model->model_rwlock);
 #endif
 	}
 }
