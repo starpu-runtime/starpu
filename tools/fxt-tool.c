@@ -54,8 +54,10 @@ void paje_output_file_init(void)
 	1       P      0       \"Program\"                      	\n \
 	1       Mn      P       \"Memory Node\"                         \n \
 	1       T      Mn       \"Worker\"                               \n \
+	1       Sc       P       \"Scheduler State\"                        \n \
 	3       S       T       \"Thread State\"                        \n \
 	3       MS       Mn       \"Memory Node State\"                        \n \
+	4       ntask    Sc       \"Number of tasks\"                        \n \
 	6       Fi       S      FetchingInput       \"1.0 .1 1.0\"            \n \
 	6       Po       S      PushingOutput       \"0.1 1.0 1.0\"            \n \
 	6       E       S       Executing       \".0 .6 .4\"            \n \
@@ -157,7 +159,7 @@ void handle_worker_terminated(void)
 	char *tidstr = malloc(16*sizeof(char));
 	sprintf(tidstr, "%ld", ev.param[1]);
 
-	fprintf(out_paje_file, "8       %f	%s\n", (float)((ev.time-start_time)/1000000.0), tidstr);
+	fprintf(out_paje_file, "8       %f	%s	T\n", (float)((ev.time-start_time)/1000000.0), tidstr);
 }
 
 
@@ -384,6 +386,8 @@ void handle_job_push(void)
 	e->diff =  +1;
 	e->current_size = curq_size;
 
+	fprintf(out_paje_file, "13       %f ntask sched %f\n", (float)((ev.time-start_time)/1000000.0), (float)curq_size);
+
 	workq_list_push_back(taskq, e);
 }
 
@@ -395,6 +399,8 @@ void handle_job_pop(void)
 	e->time =  ev.time;
 	e->diff =  -1;
 	e->current_size = curq_size;
+
+	fprintf(out_paje_file, "13       %f ntask sched %f\n", (float)((ev.time-start_time)/1000000.0), (float)curq_size);
 
 	workq_list_push_back(taskq, e);
 }
@@ -560,7 +566,11 @@ int main(int argc, char **argv)
 			first_event = 0;
 			start_time = ev.time;
 
+			/* create the "program" container */
 			fprintf(out_paje_file, "7       %f p      P      0       program \n", (float)(start_time-start_time));
+			/* create a variable with the number of tasks */
+			fprintf(out_paje_file, "7       %f sched      Sc      p       scheduler \n", (float)(start_time-start_time));
+			fprintf(out_paje_file, "13       %f ntask sched 0.0\n", (float)(start_time-start_time));
 		}
 
 		switch (ev.code) {
