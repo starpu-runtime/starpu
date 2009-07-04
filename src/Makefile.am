@@ -76,6 +76,7 @@ noinst_HEADERS = 						\
 	common/htable32.h					\
 	common/list.h						\
 	common/rwlock.h						\
+	common/starpu-spinlock.h				\
 	common/fxt.h						\
 	drivers/core/driver_core.h				\
 	drivers/gordon/driver_gordon.h				\
@@ -88,6 +89,7 @@ libstarpu_la_SOURCES = 						\
 	common/hash.c 						\
 	common/htable32.c					\
 	common/rwlock.c						\
+	common/starpu-spinlock.c				\
 	common/timing.c						\
 	core/jobs.c						\
 	core/workers.c						\
