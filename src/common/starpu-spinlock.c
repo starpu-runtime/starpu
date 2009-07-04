@@ -66,7 +66,7 @@ int starpu_spin_unlock(starpu_spinlock_t *lock)
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 	return pthread_spin_unlock(&lock->lock);
 #else
-	lock->taken = 0;
+	__sync_lock_release(&lock->taken);
 	return 0;
 #endif
 }
