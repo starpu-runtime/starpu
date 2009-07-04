@@ -74,7 +74,7 @@ static struct tag_s *tag_init(starpu_tag_t id)
 	tag->succ = realloc(NULL, tag->succ_list_size*sizeof(struct _cg_t *));
 #endif
 
-	pthread_spin_init(&tag->lock, 0);
+	starpu_spin_init(&tag->lock);
 
 	return tag;
 }
@@ -89,14 +89,14 @@ void starpu_tag_remove(starpu_tag_t id)
 
 	pthread_rwlock_unlock(&tag_global_rwlock);
 
-	pthread_spin_lock(&tag->lock);
-	
 #ifdef DYNAMIC_DEPS_SIZE
+	starpu_spin_lock(&tag->lock);
+
 	if (tag)
 		free(tag->succ);
-#endif
 
-	pthread_spin_unlock(&tag->lock);
+	starpu_spin_unlock(&tag->lock);
+#endif
 
 	free(tag);
 }
@@ -198,8 +198,6 @@ static void tag_add_succ(struct tag_s *tag, cg_t *cg)
 #endif
 		tag->succ[index] = cg;
 	}
-
-	pthread_spin_unlock(&tag->lock);
 }
 
 static void notify_tag_dependencies(struct tag_s *tag)
@@ -207,7 +205,7 @@ static void notify_tag_dependencies(struct tag_s *tag)
 	unsigned nsuccs;
 	unsigned succ;
 
-	pthread_spin_lock(&tag->lock);
+	starpu_spin_lock(&tag->lock);
 
 	tag->state = DONE;
 	TRACE_TASK_DONE(tag->id);
@@ -221,15 +219,15 @@ static void notify_tag_dependencies(struct tag_s *tag)
 		struct tag_s *cgtag = cg->tag;
 
 		if (!used_by_apps)
-			pthread_spin_lock(&cgtag->lock);
+			starpu_spin_lock(&cgtag->lock);
 
 		notify_cg(cg);
 
 		if (!used_by_apps)
-			pthread_spin_unlock(&cgtag->lock);
+			starpu_spin_unlock(&cgtag->lock);
 	}
 
-	pthread_spin_unlock(&tag->lock);
+	starpu_spin_unlock(&tag->lock);
 }
 
 void notify_dependencies(struct job_s *j)
@@ -271,7 +269,7 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 	/* create the associated completion group */
 	struct tag_s *tag_child = gettag_struct(id);
 
-	pthread_spin_lock(&tag_child->lock);
+	starpu_spin_lock(&tag_child->lock);
 
 	cg_t *cg = create_cg(ndeps, tag_child, 0);
 
@@ -285,12 +283,12 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 		 * so cg should be among dep_id's successors*/
 		TRACE_CODELET_TAG_DEPS(id, dep_id);
 		struct tag_s *tag_dep = gettag_struct(dep_id);
-		pthread_spin_lock(&tag_dep->lock);
+		starpu_spin_lock(&tag_dep->lock);
 		tag_add_succ(tag_dep, cg);
-		pthread_spin_unlock(&tag_dep->lock);
+		starpu_spin_unlock(&tag_dep->lock);
 	}
 
-	pthread_spin_unlock(&tag_child->lock);
+	starpu_spin_unlock(&tag_child->lock);
 }
 
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
@@ -300,12 +298,11 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 	/* create the associated completion group */
 	struct tag_s *tag_child = gettag_struct(id);
 
-	pthread_spin_lock(&tag_child->lock);
+	starpu_spin_lock(&tag_child->lock);
 
 	cg_t *cg = create_cg(ndeps, tag_child, 0);
 
 	STARPU_ASSERT(ndeps != 0);
-
 	
 	va_list pa;
 	va_start(pa, ndeps);
@@ -318,13 +315,13 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 		 * so cg should be among dep_id's successors*/
 		TRACE_CODELET_TAG_DEPS(id, dep_id);
 		struct tag_s *tag_dep = gettag_struct(dep_id);
-		pthread_spin_lock(&tag_dep->lock);
+		starpu_spin_lock(&tag_dep->lock);
 		tag_add_succ(tag_dep, cg);
-		pthread_spin_unlock(&tag_dep->lock);
+		starpu_spin_unlock(&tag_dep->lock);
 	}
 	va_end(pa);
 
-	pthread_spin_unlock(&tag_child->lock);
+	starpu_spin_unlock(&tag_child->lock);
 }
 
 /* this function may be called by the application (outside callbacks !) */
@@ -340,12 +337,12 @@ void starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 	{
 		struct tag_s *tag = gettag_struct(id[i]);
 		
-		pthread_spin_lock(&tag->lock);
+		starpu_spin_lock(&tag->lock);
 
 		if (tag->state == DONE)
 		{
 			/* that tag is done already */
-			pthread_spin_unlock(&tag->lock);
+			starpu_spin_unlock(&tag->lock);
 		}
 		else
 		{
@@ -366,7 +363,7 @@ void starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 	for (i = 0; i < current; i++)
 	{
 		tag_add_succ(tag_array[i], cg);
-		pthread_spin_unlock(&tag_array[i]->lock);
+		starpu_spin_unlock(&tag_array[i]->lock);
 	}
 
 	pthread_mutex_lock(&cg->cg_mutex);

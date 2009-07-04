@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <core/jobs.h>
+#include <common/starpu-spinlock.h>
 
 /* we do not necessarily want to allocate room for 256 dependencies, but we
    want to handle the few situation where there are a lot of dependencies as
@@ -53,7 +54,7 @@ typedef enum {
 struct job_s;
 
 struct tag_s {
-	pthread_spinlock_t lock;
+	starpu_spinlock_t lock;
 	starpu_tag_t id; /* an identifier for the task */
 	tag_state state;
 	unsigned nsuccs; /* how many successors ? */
