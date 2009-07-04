@@ -48,9 +48,13 @@ AC_DEFINE_UNQUOTED(STARPUDIR, "$PWD", [location of StarPU sources])
 AC_SUBST(STARPUDIR, $PWD)
 
 AC_SEARCH_LIBS([pthread_create],[pthread],,AC_MSG_ERROR([pthread library unavailable]))
-AC_CHECK_FUNC([pthread_spin_lock], [], AC_MSG_ERROR([pthread_spin_lock is not available]))
 AC_SEARCH_LIBS([sqrt],[m],,AC_MSG_ERROR([math library unavailable]))
 AC_SEARCH_LIBS([sysconf],[c],,AC_MSG_ERROR([sysconf unavailable]))
+
+AC_CHECK_FUNC([pthread_spin_lock], have_pthread_spin_lock=yes, have_pthread_spin_lock=no)
+if test x$have_pthread_spin_lock = xyes; then
+	AC_DEFINE(HAVE_PTHREAD_SPIN_LOCK,[],[pthread_spin_lock is available])
+fi
 
 # yes, that's non portable, but it's still better than sched_setaffinity
 AC_CHECK_FUNC(pthread_setaffinity_np,
