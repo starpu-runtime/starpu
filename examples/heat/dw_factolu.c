@@ -24,6 +24,10 @@ uint8_t *advance_22; /* array of nblocks *nblocks*nblocks */
 struct timeval start;
 struct timeval end;
 
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+static unsigned finished = 0;
+
 static starpu_codelet cl11 =
 {
 	.where = CORE|CUBLAS,
@@ -106,7 +110,6 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 		u11arg->dataA = args->dataA;
 		u11arg->i = k + 1;
 		u11arg->nblocks = args->nblocks;
-		u11arg->sem = args->sem;
 
 		/* schedule the codelet */
 		task->priority = MAX_PRIO;
@@ -136,7 +139,6 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					u21a->k = j;
 					u21a->nblocks = args->nblocks;
 					u21a->dataA = args->dataA;
-					u21a->sem = args->sem;
 
 					task21->buffers[0].handle = 
 						get_sub_data(args->dataA, 2, u21a->i, u21a->i);
@@ -172,7 +174,6 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					u12a->k = i;
 					u12a->nblocks = args->nblocks;
 					u12a->dataA = args->dataA;
-					u12a->sem = args->sem;
 
 					task12->buffers[0].handle = get_sub_data(args->dataA, 2, u12a->i, u12a->i); 
 					task12->buffers[0].mode = STARPU_R;
@@ -225,7 +226,6 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				u22a->j = slicey;
 				u22a->dataA = args->dataA;
 				u22a->nblocks = nblocks;
-				u22a->sem = args->sem;
 
 				task22->buffers[0].handle = get_sub_data(args->dataA, 2, u22a->i, u22a->k);
 				task22->buffers[0].mode = STARPU_R;
@@ -285,7 +285,6 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				u22a->j = k;
 				u22a->dataA = args->dataA;
 				u22a->nblocks = nblocks;
-				u22a->sem = args->sem;
 
 				task22->buffers[0].handle = get_sub_data(args->dataA, 2, u22a->i, u22a->k);
 				task22->buffers[0].mode = STARPU_R;
@@ -320,7 +319,9 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 	if (i == nblocks - 1) 
 	{
 		/* we are done : wake the application up  */
-		sem_post(args->sem);
+		pthread_mutex_lock(&mutex);
+		pthread_cond_signal(&cond);
+		pthread_mutex_unlock(&mutex);
 		return;
 	}
 	else 
@@ -355,7 +356,6 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					u12a->k = slice;
 					u12a->nblocks = args->nblocks;
 					u12a->dataA = args->dataA;
-					u12a->sem = args->sem;
 
 					task12->buffers[0].handle = get_sub_data(args->dataA, 2, u12a->i, u12a->i); 
 					task12->buffers[0].mode = STARPU_R;
@@ -393,7 +393,6 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					u21a->k = slice;
 					u21a->nblocks = args->nblocks;
 					u21a->dataA = args->dataA;
-					u21a->sem = args->sem;
 
 					task21->buffers[0].handle = get_sub_data(args->dataA, 2, u21a->i, u21a->i);
 					task21->buffers[0].mode = STARPU_R;
@@ -425,7 +424,9 @@ void dw_callback_codelet_update_u11(void *argcb)
 	if (args->i == args->nblocks - 1) 
 	{
 		/* we are done : wake the application up  */
-		sem_post(args->sem);
+		pthread_mutex_lock(&mutex);
+		pthread_cond_signal(&cond);
+		pthread_mutex_unlock(&mutex);
 		return;
 	}
 	else 
@@ -464,14 +465,12 @@ void dw_callback_codelet_update_u11(void *argcb)
 			u12a->nblocks = args->nblocks;
 			u12a->dataA = args->dataA;
 			u12a->remaining = remaining;
-			u12a->sem = args->sem;
 			
 			u21a->i = args->i;
 			u21a->k = slice;
 			u21a->nblocks = args->nblocks;
 			u21a->dataA = args->dataA;
 			u21a->remaining = remaining;
-			u21a->sem = args->sem;
 
 			task12->buffers[0].handle = 
 				get_sub_data(args->dataA, 2, u12a->i, u12a->i); 
@@ -518,7 +517,6 @@ void dw_callback_codelet_update_u22(void *argcb)
 		u11arg->dataA = args->dataA;
 		u11arg->i = args->k + 1;
 		u11arg->nblocks = args->nblocks;
-		u11arg->sem = args->sem;
 
 		/* schedule the codelet */
 		starpu_submit_task(task);
@@ -561,7 +559,6 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 				u22a->dataA = args->dataA;
 				u22a->nblocks = nblocks;
 				u22a->remaining = remaining;
-				u22a->sem = args->sem;
 
 				task22->buffers[0].handle = get_sub_data(args->dataA, 2, u22a->i, u22a->k);
 				task22->buffers[0].mode = STARPU_R;
@@ -589,11 +586,6 @@ void dw_codelet_facto(starpu_data_handle dataA, unsigned nblocks)
 {
 	cl_args *args = malloc(sizeof(cl_args));
 
-	sem_t sem;
-
-	sem_init(&sem, 0, 0U);
-
-	args->sem = &sem;
 	args->i = 0;
 	args->nblocks = nblocks;
 	args->dataA = dataA;
@@ -614,8 +606,12 @@ void dw_codelet_facto(starpu_data_handle dataA, unsigned nblocks)
 	starpu_submit_task(task);
 
 	/* stall the application until the end of computations */
-	sem_wait(&sem);
-	sem_destroy(&sem);
+	pthread_mutex_lock(&mutex);
+
+	if (!finished)
+		pthread_cond_wait(&cond, &mutex);
+
+	pthread_mutex_unlock(&mutex);
 
 	gettimeofday(&end, NULL);
 
@@ -642,11 +638,6 @@ void dw_codelet_facto_v2(starpu_data_handle dataA, unsigned nblocks)
 
 	cl_args *args = malloc(sizeof(cl_args));
 
-	sem_t sem;
-
-	sem_init(&sem, 0, 0U);
-
-	args->sem = &sem;
 	args->i = 0;
 	args->nblocks = nblocks;
 	args->dataA = dataA;
@@ -672,8 +663,12 @@ void dw_codelet_facto_v2(starpu_data_handle dataA, unsigned nblocks)
 	}
 
 	/* stall the application until the end of computations */
-	sem_wait(&sem);
-	sem_destroy(&sem);
+	pthread_mutex_lock(&mutex);
+
+	if (!finished)
+		pthread_cond_wait(&cond, &mutex);
+
+	pthread_mutex_unlock(&mutex);
 
 	gettimeofday(&end, NULL);
 

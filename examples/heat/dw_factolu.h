@@ -43,7 +43,6 @@ typedef struct {
 	unsigned k;
 	unsigned nblocks;
 	unsigned *remaining;
-	sem_t *sem;
 } cl_args;
 
 #ifdef CHECK_RESULTS
