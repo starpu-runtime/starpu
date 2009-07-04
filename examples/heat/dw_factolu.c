@@ -320,6 +320,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 	{
 		/* we are done : wake the application up  */
 		pthread_mutex_lock(&mutex);
+		finished = 1;
 		pthread_cond_signal(&cond);
 		pthread_mutex_unlock(&mutex);
 		return;
@@ -425,6 +426,7 @@ void dw_callback_codelet_update_u11(void *argcb)
 	{
 		/* we are done : wake the application up  */
 		pthread_mutex_lock(&mutex);
+		finished = 1;
 		pthread_cond_signal(&cond);
 		pthread_mutex_unlock(&mutex);
 		return;
