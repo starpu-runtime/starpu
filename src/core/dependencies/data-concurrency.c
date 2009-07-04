@@ -17,6 +17,7 @@
 #include <core/dependencies/data-concurrency.h>
 #include <datawizard/coherency.h>
 #include <core/policies/sched_policy.h>
+#include <common/starpu-spinlock.h>
 
 #ifdef NO_DATA_RW_LOCK
 
@@ -63,7 +64,7 @@ unsigned attempt_to_submit_data_request_from_apps(data_state *data, starpu_acces
 {
 	unsigned ret;
 
-	pthread_spin_lock(&data->header_lock);
+	starpu_spin_lock(&data->header_lock);
 
 	if (data->refcnt == 0)
 	{
@@ -103,7 +104,7 @@ unsigned attempt_to_submit_data_request_from_apps(data_state *data, starpu_acces
 		}
 	}
 
-	pthread_spin_unlock(&data->header_lock);
+	starpu_spin_unlock(&data->header_lock);
 	return ret;
 }
 
@@ -114,7 +115,7 @@ static unsigned attempt_to_submit_data_request_from_job(job_t j, unsigned buffer
 	data_state *data = j->task->buffers[buffer_index].handle;
 	starpu_access_mode mode = j->task->buffers[buffer_index].mode;
 
-	pthread_spin_lock(&data->header_lock);
+	starpu_spin_lock(&data->header_lock);
 
 	if (data->refcnt == 0)
 	{
@@ -154,7 +155,7 @@ static unsigned attempt_to_submit_data_request_from_job(job_t j, unsigned buffer
 		}
 	}
 
-	pthread_spin_unlock(&data->header_lock);
+	starpu_spin_unlock(&data->header_lock);
 	return ret;
 }
 
@@ -189,7 +190,7 @@ unsigned submit_job_enforce_data_deps(job_t j)
 
 void notify_data_dependencies(data_state *data)
 {
-	pthread_spin_lock(&data->header_lock);
+	starpu_spin_lock(&data->header_lock);
 
 	data->refcnt--;
 
@@ -200,7 +201,7 @@ void notify_data_dependencies(data_state *data)
 
 		data->refcnt++;
 	
-		pthread_spin_unlock(&data->header_lock);
+		starpu_spin_unlock(&data->header_lock);
 
 		if (r->is_requested_by_codelet)
 		{
@@ -217,10 +218,10 @@ void notify_data_dependencies(data_state *data)
 
 		data_requester_delete(r);
 		
-		pthread_spin_lock(&data->header_lock);
+		starpu_spin_lock(&data->header_lock);
 	}
 	
-	pthread_spin_unlock(&data->header_lock);
+	starpu_spin_unlock(&data->header_lock);
 
 }
 

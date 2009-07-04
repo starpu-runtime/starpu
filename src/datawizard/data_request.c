@@ -70,7 +70,7 @@ int post_data_request(data_state *state, uint32_t src_node, uint32_t dst_node)
 	 * TODO: handle the situation of a possible invalidation caused by
 	 * memory eviction mechanism. This could be done by the means of a
 	 * specific state (or flag) in the MSI protocol. */
-	pthread_spin_unlock(&state->header_lock);
+	starpu_spin_unlock(&state->header_lock);
 #endif
 
 //	/* wait for the request to be performed */
@@ -96,7 +96,7 @@ int post_data_request(data_state *state, uint32_t src_node, uint32_t dst_node)
 	pthread_mutex_unlock(&data_requests_list_mutex[src_node]);
 
 #ifdef NO_DATA_RW_LOCK
-	pthread_spin_lock(&state->header_lock);
+	starpu_spin_lock(&state->header_lock);
 #endif
 
 	retvalue = r->retval;

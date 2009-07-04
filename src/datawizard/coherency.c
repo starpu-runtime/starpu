@@ -96,7 +96,7 @@ static void update_data_state(data_state *state, uint32_t requesting_node,
 int _fetch_data(data_state *state, uint32_t requesting_node,
 			uint8_t read, uint8_t write)
 {
-	while (pthread_spin_trylock(&state->header_lock)) {
+	while (starpu_spin_trylock(&state->header_lock)) {
 		datawizard_progress(requesting_node);
 	}
 
@@ -107,7 +107,7 @@ int _fetch_data(data_state *state, uint32_t requesting_node,
 	if ((local_state == OWNER) || (local_state == SHARED && !write))
 	{
 		/* the local node already got its data */
-		pthread_spin_unlock(&state->header_lock);
+		starpu_spin_unlock(&state->header_lock);
 		msi_cache_hit(requesting_node);
 		return 0;
 	}
@@ -126,7 +126,7 @@ int _fetch_data(data_state *state, uint32_t requesting_node,
 
 		}
 		
-		pthread_spin_unlock(&state->header_lock);
+		starpu_spin_unlock(&state->header_lock);
 		msi_cache_hit(requesting_node);
 		return 0;
 	}
@@ -150,13 +150,13 @@ int _fetch_data(data_state *state, uint32_t requesting_node,
 
 	update_data_state(state, requesting_node, write);
 
-	pthread_spin_unlock(&state->header_lock);
+	starpu_spin_unlock(&state->header_lock);
 
 	return 0;
 
 enomem:
 	/* there was not enough local memory to fetch the data */
-	pthread_spin_unlock(&state->header_lock);
+	starpu_spin_unlock(&state->header_lock);
 	return -ENOMEM;
 }
 
@@ -181,11 +181,11 @@ static int fetch_data(data_state *state, starpu_access_mode mode)
 	}
 #endif
 
-	while (pthread_spin_trylock(&state->header_lock))
+	while (starpu_spin_trylock(&state->header_lock))
 		datawizard_progress(requesting_node);
 
 	state->per_node[requesting_node].refcnt++;
-	pthread_spin_unlock(&state->header_lock);
+	starpu_spin_unlock(&state->header_lock);
 
 	ret = _fetch_data(state, requesting_node, read, write);
 	if (ret != 0)
@@ -194,11 +194,11 @@ static int fetch_data(data_state *state, starpu_access_mode mode)
 	return 0;
 enomem:
 	/* we did not get the data so remove the lock anyway */
-	while (pthread_spin_trylock(&state->header_lock))
+	while (starpu_spin_trylock(&state->header_lock))
 		datawizard_progress(requesting_node);
 
 	state->per_node[requesting_node].refcnt--;
-	pthread_spin_unlock(&state->header_lock);
+	starpu_spin_unlock(&state->header_lock);
 
 #ifndef NO_DATA_RW_LOCK
 	release_rw_lock(&state->data_lock);
@@ -229,11 +229,11 @@ static void release_data(data_state *state, uint32_t default_wb_mask)
 		write_through_data(state, requesting_node, wb_mask);
 	}
 
-	while (pthread_spin_trylock(&state->header_lock))
+	while (starpu_spin_trylock(&state->header_lock))
 		datawizard_progress(requesting_node);
 
 	state->per_node[requesting_node].refcnt--;
-	pthread_spin_unlock(&state->header_lock);
+	starpu_spin_unlock(&state->header_lock);
 
 #ifndef NO_DATA_RW_LOCK
 	/* this is intended to make data accessible again */
@@ -294,7 +294,7 @@ void push_codelet_output(starpu_buffer_descr *descrs, unsigned nbuffers, uint32_
 
 int request_data_allocation(data_state *state, uint32_t node)
 {
-	pthread_spin_lock(&state->header_lock);
+	starpu_spin_lock(&state->header_lock);
 
 	int ret;
 	ret = allocate_per_node_buffer(state, node);
@@ -303,7 +303,7 @@ int request_data_allocation(data_state *state, uint32_t node)
 	/* XXX quick and dirty hack */
 	state->per_node[node].automatically_allocated = 0;	
 
-	pthread_spin_unlock(&state->header_lock);
+	starpu_spin_unlock(&state->header_lock);
 
 	return 0;
 }
@@ -382,7 +382,7 @@ void starpu_sync_data_with_mem(data_state *state)
 
 static inline void do_notify_data_modification(data_state *state, uint32_t modifying_node)
 {
-	pthread_spin_lock(&state->header_lock);
+	starpu_spin_lock(&state->header_lock);
 
 	unsigned node = 0;
 	for (node = 0; node < MAXNODES; node++)
@@ -391,7 +391,7 @@ static inline void do_notify_data_modification(data_state *state, uint32_t modif
 			(node == modifying_node?OWNER:INVALID);
 	}
 
-	pthread_spin_unlock(&state->header_lock);
+	starpu_spin_unlock(&state->header_lock);
 }
 
 #ifdef NO_DATA_RW_LOCK

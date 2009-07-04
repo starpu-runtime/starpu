@@ -25,7 +25,7 @@ void write_through_data(data_state *state, uint32_t requesting_node,
 		return;
 	}
 
-	while (pthread_spin_trylock(&state->header_lock))
+	while (starpu_spin_trylock(&state->header_lock))
 		datawizard_progress(requesting_node);
 
 	/* first commit all changes onto the nodes specified by the mask */
@@ -59,7 +59,7 @@ void write_through_data(data_state *state, uint32_t requesting_node,
 		state->per_node[requesting_node].state = SHARED;
 	}
 
-	pthread_spin_unlock(&state->header_lock);
+	starpu_spin_unlock(&state->header_lock);
 }
 
 void data_set_wb_mask(data_state *data, uint32_t wb_mask)

@@ -49,7 +49,7 @@ static void lock_all_subtree(data_state *data)
 	if (data->nchildren == 0)
 	{
 		/* this is a leaf */	
-		while (pthread_spin_trylock(&data->header_lock))
+		while (starpu_spin_trylock(&data->header_lock))
 			datawizard_progress(get_local_memory_node());
 	}
 	else {
@@ -67,7 +67,7 @@ static void unlock_all_subtree(data_state *data)
 	if (data->nchildren == 0)
 	{
 		/* this is a leaf */	
-		pthread_spin_unlock(&data->header_lock);
+		starpu_spin_unlock(&data->header_lock);
 	}
 	else {
 		/* lock all sub-subtrees children */

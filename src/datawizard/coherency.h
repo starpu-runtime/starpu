@@ -27,6 +27,7 @@
 #include <starpu.h>
 
 #include <pthread.h>
+#include <common/starpu-spinlock.h>
 #include <common/rwlock.h>
 #include <common/timing.h>
 #include <common/fxt.h>
@@ -106,7 +107,7 @@ typedef struct starpu_data_state_t {
 	rw_lock	data_lock;
 #endif
 	/* protect meta data */
-	pthread_spinlock_t header_lock;
+	starpu_spinlock_t header_lock;
 
 	uint32_t nnodes; /* the number of memory nodes that may use it */
 	struct starpu_data_state_t *children;
