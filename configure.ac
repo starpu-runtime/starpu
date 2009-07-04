@@ -66,6 +66,12 @@ if test x$have_posix_memalign = xyes; then
 	AC_DEFINE(HAVE_POSIX_MEMALIGN,[],[posix_memalign is available])
 fi
 
+
+AC_CHECK_HEADER([malloc.h],[have_malloc_h_header=yes],[have_malloc_h_header=no])
+if test x$have_malloc_h_header = xyes; then
+	AC_DEFINE(HAVE_MALLOC_H_HEADER,[],[malloc.h header is available])
+fi
+
 # This defines HAVE_SYNC_BUILTINS
 STARPU_CHECK_SYNC_BUILTINS
 

@@ -18,7 +18,10 @@
 
 #include <starpu.h>
 
+#ifdef HAVE_MALLOC_H_HEADER
 #include <malloc.h>
+#endif
+#include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
 
