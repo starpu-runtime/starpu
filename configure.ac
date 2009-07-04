@@ -72,6 +72,11 @@ if test x$have_malloc_h_header = xyes; then
 	AC_DEFINE(HAVE_MALLOC_H_HEADER,[],[malloc.h header is available])
 fi
 
+AC_CHECK_FUNC(memalign, have_memalign=yes, have_memalign=no)
+if test x$have_memalign = xyes; then
+	AC_DEFINE(HAVE_MEMALIGN,[],[memalign is available])
+fi
+
 # This defines HAVE_SYNC_BUILTINS
 STARPU_CHECK_SYNC_BUILTINS
 

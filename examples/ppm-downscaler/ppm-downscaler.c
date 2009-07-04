@@ -34,7 +34,11 @@ struct ppm_image *allocate_new_ppm(int ncols, int nlines, int coldepth)
 	ppm->nlines = nlines;
 	ppm->coldepth = coldepth;
 
+#ifdef HAVE_MEMALIGN
 	ppm->data = memalign(16384, ncols*nlines*sizeof(struct ppm_color));
+#else
+	ppm->data = malloc(ncols*nlines*sizeof(struct ppm_color));
+#endif
 	assert(ppm->data);
 
 	return ppm;
@@ -58,7 +62,11 @@ struct ppm_image *file_to_ppm(char *filename)
 	}
 	
 	/* allocate a buffer for the image */
+#ifdef HAVE_MEMALIGN
 	ppm->data = memalign(16384, ppm->ncols*ppm->nlines*sizeof(struct ppm_color));
+#else
+	ppm->data = malloc(ppm->ncols*ppm->nlines*sizeof(struct ppm_color));
+#endif
 	assert(ppm->data);
 
 	fread(ppm->data, sizeof(struct ppm_color), ppm->ncols*ppm->nlines, file);
