@@ -67,23 +67,6 @@ void wake_all_blocked_workers(void)
 	}
 }
 
-int allocate_per_node_buffer(data_state *state, uint32_t node)
-{
-	int ret;
-
-	if (!state->per_node[node].allocated) {
-		/* there is no room available for the data yet */
-		ret = allocate_memory_on_node(state, node);
-		if (STARPU_UNLIKELY(ret == -ENOMEM))
-			goto nomem;
-	}
-
-	return 0;
-nomem:
-	/* there was not enough memory to allocate the buffer */
-	return -ENOMEM;
-}
-
 #ifdef USE_FXT
 /* we need to identify each communication so that we can match the beginning
  * and the end of a communication in the trace, so we use a unique identifier
@@ -180,7 +163,7 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 	unsigned __attribute__((unused)) com_id = 0;
 
 	/* first make sure the destination has an allocated buffer */
-	ret_alloc = allocate_per_node_buffer(state, dst_node);
+	ret_alloc = allocate_memory_on_node(state, dst_node);
 	if (ret_alloc)
 		goto nomem;
 

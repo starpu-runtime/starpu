@@ -495,6 +495,10 @@ int allocate_memory_on_node(data_state *state, uint32_t dst_node)
 
 	STARPU_ASSERT(state);
 
+	/* A buffer is already allocated on the node */
+	if (state->per_node[dst_node].allocated) 
+		return 0;
+
 	data_allocation_inc_stats(dst_node);
 
 #ifdef USE_ALLOCATION_CACHE
