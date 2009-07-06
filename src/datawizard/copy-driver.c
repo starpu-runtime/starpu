@@ -91,6 +91,85 @@ nomem:
 static unsigned communication_cnt = 0;
 #endif
 
+static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32_t dst_node)
+{
+	int ret;
+
+	//ret = state->ops->copy_data_1_to_1(state, src_node, dst_node);
+
+	const struct copy_data_methods_s *copy_methods = state->ops->copy_methods;
+
+	node_kind src_kind = get_node_kind(src_node);
+	node_kind dst_kind = get_node_kind(dst_node);
+
+	switch (dst_kind) {
+	case RAM:
+		switch (src_kind) {
+			case RAM:
+				/* RAM -> RAM */
+				 copy_methods->ram_to_ram(state, src_node, dst_node);
+				 break;
+#ifdef USE_CUDA
+			case CUDA_RAM:
+				/* CUBLAS_RAM -> RAM */
+				/* only the proper CUBLAS thread can initiate this ! */
+				if (get_local_memory_node() == src_node)
+				{
+					/* only the proper CUBLAS thread can initiate this directly ! */
+					copy_methods->cuda_to_ram(state, src_node, dst_node);
+				}
+				else
+				{
+					/* put a request to the corresponding GPU */
+					post_data_request(state, src_node, dst_node);
+				}
+				break;
+#endif
+			case SPU_LS:
+				STARPU_ASSERT(0); // TODO
+				break;
+			case UNUSED:
+				printf("error node %d UNUSED\n", src_node);
+			default:
+				assert(0);
+				break;
+		}
+		break;
+#ifdef USE_CUDA
+	case CUDA_RAM:
+		switch (src_kind) {
+			case RAM:
+				/* RAM -> CUBLAS_RAM */
+				/* only the proper CUBLAS thread can initiate this ! */
+				STARPU_ASSERT(get_local_memory_node() == dst_node);
+				copy_methods->ram_to_cuda(state, src_node, dst_node);
+				break;
+			case CUDA_RAM:
+			case SPU_LS:
+				STARPU_ASSERT(0); // TODO 
+				break;
+			case UNUSED:
+			default:
+				STARPU_ASSERT(0);
+				break;
+		}
+		break;
+#endif
+	case SPU_LS:
+		STARPU_ASSERT(0); // TODO
+		break;
+	case UNUSED:
+	default:
+		assert(0);
+		break;
+	}
+
+	/* XXX */
+	ret = 0;
+
+	return ret;
+}
+
 int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *state, uint32_t src_node, 
 				uint32_t dst_node, unsigned donotread)
 {
@@ -106,7 +185,7 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 	 * we do not perform any transfer */
 	if (!donotread) {
 		STARPU_ASSERT(state->ops);
-		STARPU_ASSERT(state->ops->copy_data_1_to_1);
+		//STARPU_ASSERT(state->ops->copy_data_1_to_1);
 
 #ifdef DATA_STATS
 		size_t size = state->ops->get_size(state);
@@ -119,7 +198,7 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 
 		/* for now we set the size to 0 in the FxT trace XXX */
 		TRACE_START_DRIVER_COPY(src_node, dst_node, 0, com_id);
-		ret_copy = state->ops->copy_data_1_to_1(state, src_node, dst_node);
+		ret_copy = copy_data_1_to_1_generic(state, src_node, dst_node);
 		TRACE_END_DRIVER_COPY(src_node, dst_node, 0, com_id);
 
 		return ret_copy;

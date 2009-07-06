@@ -29,17 +29,37 @@
 /*
  * BCSR : blocked CSR, we use blocks of size (r x c)
  */
+
+static int dummy_copy_ram_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
+#ifdef USE_CUDA
+static int copy_ram_to_cublas(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
+static int copy_cublas_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
+#endif
+
+static const struct copy_data_methods_s bcsr_copy_data_methods_s = {
+	.ram_to_ram = dummy_copy_ram_to_ram,
+	.ram_to_spu = NULL,
+#ifdef USE_CUDA
+	.ram_to_cuda = copy_ram_to_cublas,
+	.cuda_to_ram = copy_cublas_to_ram,
+#endif
+	.cuda_to_cuda = NULL,
+	.cuda_to_spu = NULL,
+	.spu_to_ram = NULL,
+	.spu_to_cuda = NULL,
+	.spu_to_spu = NULL
+};
+
 size_t allocate_bcsr_buffer_on_node(struct starpu_data_state_t *state, uint32_t dst_node);
 void liberate_bcsr_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
 size_t dump_bcsr_interface(starpu_data_interface_t *interface, void *_buffer);
-int do_copy_bcsr_buffer_1_to_1(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
 size_t bcsr_interface_get_size(struct starpu_data_state_t *state);
 uint32_t footprint_bcsr_interface_crc32(data_state *state, uint32_t hstate);
 
 struct data_interface_ops_t interface_bcsr_ops = {
 	.allocate_data_on_node = allocate_bcsr_buffer_on_node,
 	.liberate_data_on_node = liberate_bcsr_buffer_on_node,
-	.copy_data_1_to_1 = do_copy_bcsr_buffer_1_to_1,
+	.copy_methods = &bcsr_copy_data_methods_s,
 	.dump_data_interface = dump_bcsr_interface,
 	.get_size = bcsr_interface_get_size,
 	.interfaceid = BCSR_INTERFACE,
@@ -339,7 +359,7 @@ void liberate_bcsr_buffer_on_node(starpu_data_interface_t *interface, uint32_t n
 }
 
 #ifdef USE_CUDA
-static void copy_cublas_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node)
+static int copy_cublas_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node)
 {
 	starpu_bcsr_interface_t *src_bcsr;
 	starpu_bcsr_interface_t *dst_bcsr;
@@ -365,9 +385,10 @@ static void copy_cublas_to_ram(struct starpu_data_state_t *state, uint32_t src_n
 	
 	TRACE_DATA_COPY(src_node, dst_node, nnz*r*c*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
 
+	return 0;
 }
 
-static void copy_ram_to_cublas(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node)
+static int copy_ram_to_cublas(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node)
 {
 	starpu_bcsr_interface_t *src_bcsr;
 	starpu_bcsr_interface_t *dst_bcsr;
@@ -392,11 +413,13 @@ static void copy_ram_to_cublas(struct starpu_data_state_t *state, uint32_t src_n
 						(uint8_t *)dst_bcsr->rowptr, 1);
 	
 	TRACE_DATA_COPY(src_node, dst_node, nnz*r*c*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
+
+	return 0;
 }
 #endif // USE_CUDA
 
 /* as not all platform easily have a BLAS lib installed ... */
-static void dummy_copy_ram_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node)
+static int dummy_copy_ram_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node)
 {
 
 	starpu_bcsr_interface_t *src_bcsr;
@@ -419,73 +442,6 @@ static void dummy_copy_ram_to_ram(struct starpu_data_state_t *state, uint32_t sr
 	memcpy((void *)dst_bcsr->rowptr, (void *)src_bcsr->rowptr, (nrow+1)*sizeof(uint32_t));
 
 	TRACE_DATA_COPY(src_node, dst_node, nnz*elemsize*r*c + (nnz+nrow+1)*sizeof(uint32_t));
-}
-
-
-int do_copy_bcsr_buffer_1_to_1(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node)
-{
-	node_kind src_kind = get_node_kind(src_node);
-	node_kind dst_kind = get_node_kind(dst_node);
-
-	switch (dst_kind) {
-	case RAM:
-		switch (src_kind) {
-			case RAM:
-				/* RAM -> RAM */
-				 dummy_copy_ram_to_ram(state, src_node, dst_node);
-				 break;
-#ifdef USE_CUDA
-			case CUDA_RAM:
-				/* CUBLAS_RAM -> RAM */
-				/* only the proper CUBLAS thread can initiate this ! */
-				if (get_local_memory_node() == src_node)
-				{
-					copy_cublas_to_ram(state, src_node, dst_node);
-				}
-				else
-				{
-					post_data_request(state, src_node, dst_node);
-				}
-				break;
-#endif
-			case SPU_LS:
-				STARPU_ASSERT(0); // TODO
-				break;
-			case UNUSED:
-				printf("error node %d UNUSED\n", src_node);
-			default:
-				assert(0);
-				break;
-		}
-		break;
-#ifdef USE_CUDA
-	case CUDA_RAM:
-		switch (src_kind) {
-			case RAM:
-				/* RAM -> CUBLAS_RAM */
-				/* only the proper CUBLAS thread can initiate this ! */
-				STARPU_ASSERT(get_local_memory_node() == dst_node);
-				copy_ram_to_cublas(state, src_node, dst_node);
-				break;
-			case CUDA_RAM:
-			case SPU_LS:
-				STARPU_ASSERT(0); // TODO 
-				break;
-			case UNUSED:
-			default:
-				STARPU_ASSERT(0);
-				break;
-		}
-		break;
-#endif
-	case SPU_LS:
-		STARPU_ASSERT(0); // TODO
-		break;
-	case UNUSED:
-	default:
-		assert(0);
-		break;
-	}
 
 	return 0;
 }

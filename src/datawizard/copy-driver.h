@@ -28,6 +28,23 @@
 
 struct starpu_data_state_t;
 
+struct copy_data_methods_s {
+	/* src type is ram */
+	int (*ram_to_ram)(struct starpu_data_state_t *state, uint32_t src, uint32_t dst);
+	int (*ram_to_cuda)(struct starpu_data_state_t *state, uint32_t src, uint32_t dst);
+	int (*ram_to_spu)(struct starpu_data_state_t *state, uint32_t src, uint32_t dst);
+
+	/* src type is cuda */
+	int (*cuda_to_ram)(struct starpu_data_state_t *state, uint32_t src, uint32_t dst);
+	int (*cuda_to_cuda)(struct starpu_data_state_t *state, uint32_t src, uint32_t dst);
+	int (*cuda_to_spu)(struct starpu_data_state_t *state, uint32_t src, uint32_t dst);
+
+	/* src type is spu */
+	int (*spu_to_ram)(struct starpu_data_state_t *state, uint32_t src, uint32_t dst);
+	int (*spu_to_cuda)(struct starpu_data_state_t *state, uint32_t src, uint32_t dst);
+	int (*spu_to_spu)(struct starpu_data_state_t *state, uint32_t src, uint32_t dst);
+};
+
 __attribute__((warn_unused_result))
 int driver_copy_data(struct starpu_data_state_t *state, 
 			uint32_t src_node_mask,
