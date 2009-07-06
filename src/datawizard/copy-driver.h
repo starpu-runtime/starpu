@@ -45,12 +45,6 @@ struct copy_data_methods_s {
 	int (*spu_to_spu)(struct starpu_data_state_t *state, uint32_t src, uint32_t dst);
 };
 
-__attribute__((warn_unused_result))
-int driver_copy_data(struct starpu_data_state_t *state, 
-			uint32_t src_node_mask,
-			uint32_t dst_node,
-			unsigned donotread);
-
 void wake_all_blocked_workers(void);
 void wake_all_blocked_workers_on_node(unsigned nodeid);
 

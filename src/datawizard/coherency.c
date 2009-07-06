@@ -20,10 +20,11 @@
 #include <datawizard/write_back.h>
 #include <core/dependencies/data-concurrency.h>
 
-/* this function will actually copy a valid data into the requesting node */
-static int __attribute__((warn_unused_result)) copy_data_to_node(data_state *state, uint32_t requesting_node, 
-						 unsigned donotread)
+static uint32_t choose_src_node(data_state *state)
 {
+	unsigned src_node = 0;
+	unsigned i;
+
 	/* first find a valid copy, either a OWNER or a SHARED */
 	int ret;
 	uint32_t node;
@@ -39,7 +40,37 @@ static int __attribute__((warn_unused_result)) copy_data_to_node(data_state *sta
 	/* we should have found at least one copy ! */
 	STARPU_ASSERT(src_node_mask != 0);
 
-	ret = driver_copy_data(state, src_node_mask, requesting_node, donotread);
+	mem_node_descr * const descr = get_memory_node_description();
+
+	/* find the node that will be the actual source */
+	for (i = 0; i < MAXNODES; i++)
+	{
+		if (src_node_mask & (1<<i))
+		{
+			/* this is a potential candidate */
+			src_node = i;
+
+			/* however GPU are expensive sources, really !
+			 * 	other should be ok */
+			if (descr->nodes[i] != CUDA_RAM)
+				break;
+
+			/* XXX do a better algorithm to distribute the memory copies */
+			/* TODO : use the "requesting_node" as an argument to do so */
+		}
+	}
+
+	return src_node;
+}
+/* this function will actually copy a valid data into the requesting node */
+static int __attribute__((warn_unused_result)) copy_data_to_node(data_state *state, uint32_t dst_node, 
+						 unsigned donotread)
+{
+	int ret;
+	uint32_t src_node = choose_src_node(state);
+
+	/* possibly returns -1 if there was no memory left */
+	ret = driver_copy_data_1_to_1(state, src_node, dst_node, donotread);
 
 	return ret;
 }

@@ -107,8 +107,9 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 		switch (src_kind) {
 			case RAM:
 				/* RAM -> RAM */
-				 copy_methods->ram_to_ram(state, src_node, dst_node);
-				 break;
+				STARPU_ASSERT(copy_methods->ram_to_ram);
+				copy_methods->ram_to_ram(state, src_node, dst_node);
+				break;
 #ifdef USE_CUDA
 			case CUDA_RAM:
 				/* CUBLAS_RAM -> RAM */
@@ -116,6 +117,7 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 				if (get_local_memory_node() == src_node)
 				{
 					/* only the proper CUBLAS thread can initiate this directly ! */
+					STARPU_ASSERT(copy_methods->cuda_to_ram);
 					copy_methods->cuda_to_ram(state, src_node, dst_node);
 				}
 				else
@@ -142,6 +144,7 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 				/* RAM -> CUBLAS_RAM */
 				/* only the proper CUBLAS thread can initiate this ! */
 				STARPU_ASSERT(get_local_memory_node() == dst_node);
+				STARPU_ASSERT(copy_methods->ram_to_cuda);
 				copy_methods->ram_to_cuda(state, src_node, dst_node);
 				break;
 			case CUDA_RAM:
@@ -208,44 +211,4 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 
 nomem:
 	return -ENOMEM;
-}
-
-static uint32_t choose_src_node(uint32_t src_node_mask)
-{
-	unsigned src_node = 0;
-	unsigned i;
-
-	mem_node_descr * const descr = get_memory_node_description();
-
-	/* first find the node that will be the actual source */
-	for (i = 0; i < MAXNODES; i++)
-	{
-		if (src_node_mask & (1<<i))
-		{
-			/* this is a potential candidate */
-			src_node = i;
-
-			/* however GPU are expensive sources, really !
-			 * 	other should be ok */
-			if (descr->nodes[i] != CUDA_RAM)
-				break;
-
-			/* XXX do a better algorithm to distribute the memory copies */
-		}
-	}
-
-	return src_node;
-}
-
-__attribute__((warn_unused_result))
-int driver_copy_data(data_state *state, uint32_t src_node_mask,
-			 uint32_t dst_node, unsigned donotread)
-{
-	int ret;
-	uint32_t src_node = choose_src_node(src_node_mask);
-
-	/* possibly returns -1 if there was no memory left */
-	ret = driver_copy_data_1_to_1(state, src_node, dst_node, donotread);
-
-	return ret;
 }
