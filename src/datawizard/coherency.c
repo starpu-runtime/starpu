@@ -26,7 +26,6 @@ static uint32_t choose_src_node(data_state *state)
 	unsigned i;
 
 	/* first find a valid copy, either a OWNER or a SHARED */
-	int ret;
 	uint32_t node;
 	uint32_t src_node_mask = 0;
 	for (node = 0; node < MAXNODES; node++)
@@ -61,18 +60,6 @@ static uint32_t choose_src_node(data_state *state)
 	}
 
 	return src_node;
-}
-/* this function will actually copy a valid data into the requesting node */
-static int __attribute__((warn_unused_result)) copy_data_to_node(data_state *state, uint32_t dst_node, 
-						 unsigned donotread)
-{
-	int ret;
-	uint32_t src_node = choose_src_node(state);
-
-	/* possibly returns -1 if there was no memory left */
-	ret = driver_copy_data_1_to_1(state, src_node, dst_node, donotread);
-
-	return ret;
 }
 
 /* this may be called once the data is fetched with header and STARPU_RW-lock hold */
@@ -124,13 +111,9 @@ static void update_data_state(data_state *state, uint32_t requesting_node,
  * 		    else (invalid,owner->shared)
  */
 
-int _fetch_data(data_state *state, uint32_t requesting_node,
-			uint8_t read, uint8_t write)
+/* This function must be called with state->header_lock taken ! */
+static int fetch_data_needs_to_transfer(data_state *state, uint32_t requesting_node, uint8_t write)
 {
-	while (starpu_spin_trylock(&state->header_lock)) {
-		datawizard_progress(requesting_node);
-	}
-
 	cache_state local_state;
 	local_state = state->per_node[requesting_node].state;
 
@@ -138,8 +121,6 @@ int _fetch_data(data_state *state, uint32_t requesting_node,
 	if ((local_state == OWNER) || (local_state == SHARED && !write))
 	{
 		/* the local node already got its data */
-		starpu_spin_unlock(&state->header_lock);
-		msi_cache_hit(requesting_node);
 		return 0;
 	}
 
@@ -154,9 +135,27 @@ int _fetch_data(data_state *state, uint32_t requesting_node,
 				state->per_node[node].state =
 					(node == requesting_node ? OWNER:INVALID);
 			}
-
 		}
 		
+		return 0;
+	}
+
+	/* StarPU actually needs to perform a memory transfer to honour that
+ 	 * request */
+	return 1;
+}
+
+int _fetch_data(data_state *state, uint32_t requesting_node,
+			uint8_t read, uint8_t write)
+{
+	int ret;
+
+	while (starpu_spin_trylock(&state->header_lock)) {
+		datawizard_progress(requesting_node);
+	}
+
+	if (!fetch_data_needs_to_transfer(state, requesting_node, write))
+	{
 		starpu_spin_unlock(&state->header_lock);
 		msi_cache_hit(requesting_node);
 		return 0;
@@ -167,9 +166,11 @@ int _fetch_data(data_state *state, uint32_t requesting_node,
 
 	msi_cache_miss(requesting_node);
 
-	/* we need the data from either the owner or one of the sharer */
-	int ret;
-	ret = copy_data_to_node(state, requesting_node, !read);
+	/* find someone who already has the data */
+	uint32_t src_node = choose_src_node(state);
+
+	/* possibly returns -1 if there was no memory left */
+	ret = driver_copy_data_1_to_1(state, src_node, requesting_node, !read);
 	if (ret != 0)
 	switch (ret) {
 		case -ENOMEM:
