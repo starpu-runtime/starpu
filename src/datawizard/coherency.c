@@ -79,14 +79,17 @@ static void update_data_state(data_state *state, uint32_t requesting_node,
 		state->per_node[requesting_node].state = OWNER;
 	}
 	else { /* read only */
-		/* there was at least another copy of the data */
-		uint32_t node;
-		for (node = 0; node < MAXNODES; node++)
+		if (state->per_node[requesting_node].state != OWNER)
 		{
-			if (state->per_node[node].state != INVALID)
-				state->per_node[node].state = SHARED;
+			/* there was at least another copy of the data */
+			uint32_t node;
+			for (node = 0; node < MAXNODES; node++)
+			{
+				if (state->per_node[node].state != INVALID)
+					state->per_node[node].state = SHARED;
+			}
+			state->per_node[requesting_node].state = SHARED;
 		}
-		state->per_node[requesting_node].state = SHARED;
 	}
 }
 
@@ -111,40 +114,6 @@ static void update_data_state(data_state *state, uint32_t requesting_node,
  * 		    else (invalid,owner->shared)
  */
 
-/* This function must be called with state->header_lock taken ! */
-static int fetch_data_needs_to_transfer(data_state *state, uint32_t requesting_node, uint8_t write)
-{
-	cache_state local_state;
-	local_state = state->per_node[requesting_node].state;
-
-	/* we handle that case first to optimize the OWNER path */
-	if ((local_state == OWNER) || (local_state == SHARED && !write))
-	{
-		/* the local node already got its data */
-		return 0;
-	}
-
-	if ((local_state == SHARED) && write) {
-		/* local node already has the data but it must invalidate 
-		 * other copies */
-		uint32_t node;
-		for (node = 0; node < MAXNODES; node++)
-		{
-			if (state->per_node[node].state == SHARED) 
-			{
-				state->per_node[node].state =
-					(node == requesting_node ? OWNER:INVALID);
-			}
-		}
-		
-		return 0;
-	}
-
-	/* StarPU actually needs to perform a memory transfer to honour that
- 	 * request */
-	return 1;
-}
-
 int _fetch_data(data_state *state, uint32_t requesting_node,
 			uint8_t read, uint8_t write)
 {
@@ -154,8 +123,10 @@ int _fetch_data(data_state *state, uint32_t requesting_node,
 		datawizard_progress(requesting_node);
 	}
 
-	if (!fetch_data_needs_to_transfer(state, requesting_node, write))
+	if (state->per_node[requesting_node].state != INVALID)
 	{
+		update_data_state(state, requesting_node, write);
+
 		starpu_spin_unlock(&state->header_lock);
 		msi_cache_hit(requesting_node);
 		return 0;
