@@ -327,7 +327,7 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 	STARPU_ASSERT(!ret);
 	
 	/* the application does not need to "lock" the data anymore */
-	notify_data_dependencies(state);
+	release_data(state, 0);
 
 	pthread_mutex_lock(&statenode->lock);
 	statenode->finished = 1;
@@ -371,7 +371,7 @@ void starpu_sync_data_with_mem(data_state *state)
 	ret = fetch_data(state, STARPU_R);
 	STARPU_ASSERT(!ret);
 
-	release_rw_lock(&state->data_lock);
+	release_data(state, 0);
 #endif
 }
 
