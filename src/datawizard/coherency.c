@@ -74,6 +74,7 @@ static void update_data_state(data_state *state, uint32_t requesting_node,
 		uint32_t node;
 		for (node = 0; node < MAXNODES; node++)
 		{
+			STARPU_ASSERT((state->per_node[node].refcnt == 0) || (node == requesting_node));
 			state->per_node[node].state = INVALID;
 		}
 		state->per_node[requesting_node].state = OWNER;
