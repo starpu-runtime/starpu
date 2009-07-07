@@ -114,20 +114,16 @@ static void update_data_state(data_state *state, uint32_t requesting_node,
  * 		    else (invalid,owner->shared)
  */
 
+/* we assume that the header lock is already taken */
 int _fetch_data(data_state *state, uint32_t requesting_node,
 			uint8_t read, uint8_t write)
 {
 	int ret;
 
-	while (starpu_spin_trylock(&state->header_lock)) {
-		datawizard_progress(requesting_node);
-	}
-
 	if (state->per_node[requesting_node].state != INVALID)
 	{
 		update_data_state(state, requesting_node, write);
 
-		starpu_spin_unlock(&state->header_lock);
 		msi_cache_hit(requesting_node);
 		return 0;
 	}
@@ -153,13 +149,10 @@ int _fetch_data(data_state *state, uint32_t requesting_node,
 
 	update_data_state(state, requesting_node, write);
 
-	starpu_spin_unlock(&state->header_lock);
-
 	return 0;
 
 enomem:
 	/* there was not enough local memory to fetch the data */
-	starpu_spin_unlock(&state->header_lock);
 	return -ENOMEM;
 }
 
@@ -188,18 +181,16 @@ static int fetch_data(data_state *state, starpu_access_mode mode)
 		datawizard_progress(requesting_node);
 
 	state->per_node[requesting_node].refcnt++;
-	starpu_spin_unlock(&state->header_lock);
 
 	ret = _fetch_data(state, requesting_node, read, write);
 	if (ret != 0)
 		goto enomem;
 
+	starpu_spin_unlock(&state->header_lock);
+
 	return 0;
 enomem:
 	/* we did not get the data so remove the lock anyway */
-	while (starpu_spin_trylock(&state->header_lock))
-		datawizard_progress(requesting_node);
-
 	state->per_node[requesting_node].refcnt--;
 	starpu_spin_unlock(&state->header_lock);
 

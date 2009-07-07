@@ -239,7 +239,9 @@ void starpu_unpartition_data(data_state *root_data, uint32_t gathering_node)
 			starpu_unpartition_data(&root_data->children[child], gathering_node);
 
 		int ret;
+		starpu_spin_lock(&root_data->children[child].header_lock);
 		ret = _fetch_data(&root_data->children[child], gathering_node, 1, 0);
+		starpu_spin_unlock(&root_data->children[child].header_lock);
 		/* for now we pretend that the RAM is almost unlimited and that gathering 
 		 * data should be possible from the node that does the unpartionning ... we
 		 * don't want to have the programming deal with memory shortage at that time,
