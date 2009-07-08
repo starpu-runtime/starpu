@@ -231,7 +231,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 		GET_TICK(codelet_start_comm);
 	}
 
-	ret = fetch_codelet_input(task->buffers, task->interface, cl->nbuffers, mask);
+	ret = fetch_task_input(task, mask);
 	if (ret != 0) {
 		/* there was not enough memory, so the input of
 		 * the codelet cannot be fetched ... put the 
@@ -318,7 +318,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 
 	args->jobq->total_job_performed++;
 
-	push_codelet_output(task->buffers, cl->nbuffers, mask);
+	push_task_output(task, mask);
 
 	return STARPU_SUCCESS;
 }

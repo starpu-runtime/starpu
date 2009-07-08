@@ -238,11 +238,15 @@ static void release_data(data_state *state, uint32_t default_wb_mask)
 #endif
 }
 
-int fetch_codelet_input(starpu_buffer_descr *descrs, starpu_data_interface_t *interface, unsigned nbuffers, uint32_t mask)
+int fetch_task_input(struct starpu_task *task, uint32_t mask)
 {
 	TRACE_START_FETCH_INPUT(NULL);
 
 	uint32_t local_memory_node = get_local_memory_node();
+
+	starpu_buffer_descr *descrs = task->buffers;
+	starpu_data_interface_t *interface = task->interface;
+	unsigned nbuffers = task->cl->nbuffers;
 
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
@@ -269,14 +273,19 @@ int fetch_codelet_input(starpu_buffer_descr *descrs, starpu_data_interface_t *in
 
 enomem:
 	/* try to unreference all the input that were successfully taken */
+	/* XXX broken ... */
 	fprintf(stderr, "something went wrong with buffer %d\n", index);
-	push_codelet_output(descrs, index, mask);
+	//push_codelet_output(task, index, mask);
+	push_task_output(task, mask);
 	return -1;
 }
 
-void push_codelet_output(starpu_buffer_descr *descrs, unsigned nbuffers, uint32_t mask)
+void push_task_output(struct starpu_task *task, uint32_t mask)
 {
 	TRACE_START_PUSH_OUTPUT(NULL);
+
+        starpu_buffer_descr *descrs = task->buffers;
+        unsigned nbuffers = task->cl->nbuffers;
 
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)

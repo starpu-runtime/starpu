@@ -144,10 +144,10 @@ int _fetch_data(data_state *state, uint32_t requesting_node, uint8_t read, uint8
 
 uint32_t get_data_refcnt(data_state *state, uint32_t node);
 
-void push_codelet_output(starpu_buffer_descr *descrs, unsigned nbuffers, uint32_t mask);
+void push_task_output(struct starpu_task *task, uint32_t mask);
 
 __attribute__((warn_unused_result))
-int fetch_codelet_input(starpu_buffer_descr *descrs, starpu_data_interface_t *interface, unsigned nbuffers, uint32_t mask);
+int fetch_task_input(struct starpu_task *task, uint32_t mask);
 
 int request_data_allocation(data_state *state, uint32_t node);
 

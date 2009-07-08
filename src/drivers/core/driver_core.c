@@ -38,8 +38,7 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_start_comm);
 
-	ret = fetch_codelet_input(task->buffers, task->interface,
-			task->cl->nbuffers, 0);
+	ret = fetch_task_input(task, 0);
 
 	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_end_comm);
@@ -63,7 +62,7 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 
 	TRACE_END_CODELET_BODY(j);
 
-	push_codelet_output(task->buffers, task->cl->nbuffers, 0);
+	push_task_output(task, 0);
 
 //#ifdef MODEL_DEBUG
 	if (calibrate_model || BENCHMARK_COMM)

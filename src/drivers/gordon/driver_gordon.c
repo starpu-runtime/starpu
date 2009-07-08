@@ -174,7 +174,7 @@ static struct gordon_task_wrapper_s *starpu_to_gordon_job(job_t j)
 
 void handle_terminated_job(job_t j)
 {
-	push_codelet_output(j->task->buffers, j->task->cl->nbuffers, 0);
+	push_task_output(j->task, 0);
 	handle_job_termination(j);
 	wake_all_blocked_workers();
 }
@@ -291,7 +291,7 @@ static void gordon_callback_func(void *arg)
 int inject_task(job_t j, struct worker_s *worker)
 {
 	struct starpu_task *task = j->task;
-	int ret = fetch_codelet_input(task->buffers, task->interface, task->cl->nbuffers, 0);
+	int ret = fetch_task_input(task, 0);
 
 	if (ret != 0) {
 		/* there was not enough memory so the codelet cannot be executed right now ... */
@@ -349,7 +349,7 @@ int inject_task_list(struct job_list_s *list, struct worker_s *worker)
 		int ret;
 
 		struct starpu_task *task = j->task;
-		ret = fetch_codelet_input(task->buffers, task->interface, task->cl->nbuffers, 0);
+		ret = fetch_task_input(task, 0);
 		STARPU_ASSERT(!ret);
 
 		gordon_jobs[index].index = task->cl->gordon_func;
