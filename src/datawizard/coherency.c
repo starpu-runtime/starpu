@@ -183,33 +183,28 @@ uint32_t get_data_refcnt(data_state *state, uint32_t node)
 
 /* in case the data was accessed on a write mode, do not forget to 
  * make it accessible again once it is possible ! */
-static void release_data(data_state *state, uint32_t default_wb_mask)
+void release_data_on_node(data_state *state, uint32_t default_wb_mask, uint32_t memory_node)
 {
 	uint32_t wb_mask;
 
 	/* normally, the requesting node should have the data in an exclusive manner */
-	uint32_t requesting_node = get_local_memory_node();
-	STARPU_ASSERT(state->per_node[requesting_node].state != INVALID);
+	STARPU_ASSERT(state->per_node[memory_node].state != INVALID);
 
 	wb_mask = default_wb_mask | state->wb_mask;
 
 	/* are we doing write-through or just some normal write-back ? */
-	if (wb_mask & ~(1<<requesting_node)) {
-		write_through_data(state, requesting_node, wb_mask);
+	if (wb_mask & ~(1<<memory_node)) {
+		write_through_data(state, memory_node, wb_mask);
 	}
 
+	uint32_t local_node = get_local_memory_node();
 	while (starpu_spin_trylock(&state->header_lock))
-		datawizard_progress(requesting_node);
+		datawizard_progress(local_node);
 
-	state->per_node[requesting_node].refcnt--;
+	state->per_node[memory_node].refcnt--;
 	starpu_spin_unlock(&state->header_lock);
 
-#ifndef NO_DATA_RW_LOCK
-	/* this is intended to make data accessible again */
-	release_rw_lock(&state->data_lock);
-#else
 	notify_data_dependencies(state);
-#endif
 }
 
 int fetch_task_input(struct starpu_task *task, uint32_t mask)
@@ -261,167 +256,15 @@ void push_task_output(struct starpu_task *task, uint32_t mask)
         starpu_buffer_descr *descrs = task->buffers;
         unsigned nbuffers = task->cl->nbuffers;
 
+	uint32_t local_node = get_local_memory_node();
+
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
-		release_data(descrs[index].handle, mask);
+		release_data_on_node(descrs[index].handle, mask, local_node);
 	}
 
 	TRACE_END_PUSH_OUTPUT(NULL);
-}
-
-int request_data_allocation(data_state *state, uint32_t node)
-{
-	starpu_spin_lock(&state->header_lock);
-
-	int ret;
-	ret = allocate_memory_on_node(state, node);
-	STARPU_ASSERT(ret == 0);
-
-	/* XXX quick and dirty hack */
-	state->per_node[node].automatically_allocated = 0;	
-
-	starpu_spin_unlock(&state->header_lock);
-
-	return 0;
-}
-
-#ifdef NO_DATA_RW_LOCK
-struct state_and_node {
-	data_state *state;
-	unsigned node;
-	pthread_cond_t cond;
-	pthread_mutex_t lock;
-	unsigned finished;
-};
-#endif
-
-#ifdef NO_DATA_RW_LOCK
-/* put the current value of the data into RAM */
-static inline void _starpu_sync_data_with_mem_continuation(void *arg)
-{
-	int ret;
-	struct state_and_node *statenode = arg;
-
-	data_state *state = statenode->state;
-
-	ret = fetch_data(state, STARPU_R);
-	
-	STARPU_ASSERT(!ret);
-	
-	/* the application does not need to "lock" the data anymore */
-	release_data(state, 0);
-
-	pthread_mutex_lock(&statenode->lock);
-	statenode->finished = 1;
-	pthread_cond_signal(&statenode->cond);
-	pthread_mutex_unlock(&statenode->lock);
-}
-#endif
-
-void starpu_sync_data_with_mem(data_state *state)
-{
-#ifdef NO_DATA_RW_LOCK
-	struct state_and_node statenode =
-	{
-		.state = state,
-		.node = 0, /* unused here */
-		.cond = PTHREAD_COND_INITIALIZER,
-		.lock = PTHREAD_MUTEX_INITIALIZER,
-		.finished = 0
-	};
-
-	/* we try to get the data, if we do not succeed immediately, we set a
- 	* callback function that will be executed automatically when the data is
- 	* available again, otherwise we fetch the data directly */
-	if (!attempt_to_submit_data_request_from_apps(state, STARPU_R, 
-			_starpu_sync_data_with_mem_continuation, &statenode))
-	{
-		/* no one has locked this data yet, so we proceed immediately */
-		_starpu_sync_data_with_mem_continuation(&statenode);
-	}
-	else {
-		pthread_mutex_lock(&statenode.lock);
-		if (!statenode.finished)
-			pthread_cond_wait(&statenode.cond, &statenode.lock);
-		pthread_mutex_unlock(&statenode.lock);
-	}
-#else
-	/* NB: fetch_data automatically grabs the STARPU_RW-lock so it needs to be
- 	 * released explicitely afterward */
-	int ret;
-
-	ret = fetch_data(state, STARPU_R);
-	STARPU_ASSERT(!ret);
-
-	release_data(state, 0);
-#endif
-}
-
-static inline void do_notify_data_modification(data_state *state, uint32_t modifying_node)
-{
-	starpu_spin_lock(&state->header_lock);
-
-	unsigned node = 0;
-	for (node = 0; node < MAXNODES; node++)
-	{
-		state->per_node[node].state =
-			(node == modifying_node?OWNER:INVALID);
-	}
-
-	starpu_spin_unlock(&state->header_lock);
-}
-
-#ifdef NO_DATA_RW_LOCK
-static inline void _notify_data_modification_continuation(void *arg)
-{
-	struct state_and_node *statenode = arg;
-
-	do_notify_data_modification(statenode->state, statenode->node);
-
-	pthread_mutex_lock(&statenode->lock);
-	statenode->finished = 1;
-	pthread_cond_signal(&statenode->cond);
-	pthread_mutex_unlock(&statenode->lock);
-}
-#endif
-
-/* in case the application did modify the data ... invalidate all other copies  */
-void starpu_notify_data_modification(data_state *state, uint32_t modifying_node)
-{
-	/* this may block .. XXX */
-#ifdef NO_DATA_RW_LOCK
-	struct state_and_node statenode =
-	{
-		.state = state,
-		.node = modifying_node,
-		.cond = PTHREAD_COND_INITIALIZER,
-		.lock = PTHREAD_MUTEX_INITIALIZER,
-		.finished = 0
-	};
-
-	if (!attempt_to_submit_data_request_from_apps(state, STARPU_W, _notify_data_modification_continuation, &statenode))
-	{
-		/* we can immediately proceed */
-		do_notify_data_modification(state, modifying_node);
-	}
-	else {
-		pthread_mutex_lock(&statenode.lock);
-		if (!statenode.finished)
-			pthread_cond_wait(&statenode.cond, &statenode.lock);
-		pthread_mutex_unlock(&statenode.lock);
-	}
-
-	/* remove the "lock"/reference */
-	notify_data_dependencies(state);
-
-#else
-	take_rw_lock_write(&state->data_lock);
-
-	do_notify_data_modification(state, modifying_node);
-
-	release_rw_lock(&state->data_lock);
-#endif
 }
 
 /* NB : this value can only be an indication of the status of a data
