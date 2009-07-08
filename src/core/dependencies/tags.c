@@ -132,11 +132,9 @@ static void tag_set_ready(struct tag_s *tag)
 	/* declare it to the scheduler ! */
 	struct job_s *j = tag->job;
 
-#ifdef NO_DATA_RW_LOCK
 	/* enforce data dependencies */
 	if (submit_job_enforce_data_deps(j))
 		return;
-#endif
 
 	push_task(j);
 }

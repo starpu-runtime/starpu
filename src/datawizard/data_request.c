@@ -63,7 +63,6 @@ int post_data_request(data_state *state, uint32_t src_node, uint32_t dst_node)
 	/* wake the threads that could perform that operation */
 	wake_all_blocked_workers_on_node(src_node);
 
-#ifdef NO_DATA_RW_LOCK
 	/* XXX: since there is no concurrency on this data (we don't use the
 	 * rw-lock) we can assume that the data on the source node should not
 	 * be invalidated.
@@ -71,7 +70,6 @@ int post_data_request(data_state *state, uint32_t src_node, uint32_t dst_node)
 	 * memory eviction mechanism. This could be done by the means of a
 	 * specific state (or flag) in the MSI protocol. */
 	starpu_spin_unlock(&state->header_lock);
-#endif
 
 //	/* wait for the request to be performed */
 //	while(sem_trywait(&r->sem) == -1)
@@ -95,9 +93,7 @@ int post_data_request(data_state *state, uint32_t src_node, uint32_t dst_node)
 	}
 	pthread_mutex_unlock(&data_requests_list_mutex[src_node]);
 
-#ifdef NO_DATA_RW_LOCK
 	starpu_spin_lock(&state->header_lock);
-#endif
 
 	retvalue = r->retval;
 	

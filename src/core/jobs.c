@@ -190,11 +190,9 @@ static unsigned enforce_deps_and_schedule(job_t j)
 	if (not_all_task_deps_are_fulfilled(j))
 		return 0;
 
-#ifdef NO_DATA_RW_LOCK
 	/* enforce data dependencies */
 	if (submit_job_enforce_data_deps(j))
 		return 0;
-#endif
 
 	ret = push_task(j);
 

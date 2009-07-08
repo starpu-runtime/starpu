@@ -19,8 +19,6 @@
 #include <core/policies/sched_policy.h>
 #include <common/starpu-spinlock.h>
 
-#ifdef NO_DATA_RW_LOCK
-
 static unsigned _submit_job_enforce_data_deps(job_t j, unsigned start_buffer_index);
 
 static unsigned unlock_one_requester(data_requester_t r)
@@ -224,5 +222,3 @@ void notify_data_dependencies(data_state *data)
 	starpu_spin_unlock(&data->header_lock);
 
 }
-
-#endif

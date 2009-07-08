@@ -71,7 +71,6 @@ typedef struct local_data_state_t {
 	uint8_t requested;
 } local_data_state;
 
-#ifdef NO_DATA_RW_LOCK
 /* Everyone that wants to access some piece of data will post a request.
  * Not only StarPU internals, but also the application may put such requests */
 
@@ -93,19 +92,12 @@ LIST_TYPE(data_requester,
 	void *argcb;
 );
 
-#endif
-
 typedef struct starpu_data_state_t {
-#ifdef NO_DATA_RW_LOCK
 	data_requester_list_t req_list;
 	/* the number of requests currently in the scheduling engine
 	 * (not in the req_list anymore) */
 	unsigned refcnt;
 	starpu_access_mode current_mode;
-#else
-	/* protect the data itself */
-	rw_lock	data_lock;
-#endif
 	/* protect meta data */
 	starpu_spinlock_t header_lock;
 

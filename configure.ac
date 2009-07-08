@@ -359,16 +359,6 @@ if test x$enable_priority = xno; then
 	AC_DEFINE(NO_PRIO, [1], [Disable priorities])
 fi
 
-AC_MSG_CHECKING(whether data RW-lock should be used)
-AC_ARG_ENABLE(data-rw-lock, [AS_HELP_STRING([--enable-data-rw-lock],
-			[use data RW-locks])],
-			enable_data_rw_lock=$enableval, enable_data_rw_lock=no)
-AC_MSG_RESULT($enable_data_rw_lock)
-if test x$enable_data_rw_lock = xno; then
-	AC_DEFINE(NO_DATA_RW_LOCK, [1], [data RW-lock are disabled])
-fi
-
-
 AC_MSG_CHECKING(whether allocation cache should be used)
 AC_ARG_ENABLE(allocation-cache, [AS_HELP_STRING([--enable-allocation-cache],
 			[enable data allocation cache])],
