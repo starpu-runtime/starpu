@@ -140,7 +140,7 @@ void display_msi_stats(void);
 //void release_data(data_state *state, uint32_t write_through_mask);
 
 __attribute__((warn_unused_result))
-int _fetch_data(data_state *state, uint32_t requesting_node, uint8_t read, uint8_t write);
+int fetch_data_on_node(data_state *state, uint32_t requesting_node, uint8_t read, uint8_t write);
 
 uint32_t get_data_refcnt(data_state *state, uint32_t node);
 

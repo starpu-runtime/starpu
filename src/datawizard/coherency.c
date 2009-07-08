@@ -115,17 +115,20 @@ static void update_data_state(data_state *state, uint32_t requesting_node,
  * 		    else (invalid,owner->shared)
  */
 
-/* we assume that the header lock is already taken */
-int _fetch_data(data_state *state, uint32_t requesting_node,
+int fetch_data_on_node(data_state *state, uint32_t requesting_node,
 			uint8_t read, uint8_t write)
 {
-	int ret;
+	while (starpu_spin_trylock(&state->header_lock))
+		datawizard_progress(requesting_node);
+
+	state->per_node[requesting_node].refcnt++;
 
 	if (state->per_node[requesting_node].state != INVALID)
 	{
+		/* the data is already available so we can stop */
 		update_data_state(state, requesting_node, write);
-
 		msi_cache_hit(requesting_node);
+		starpu_spin_unlock(&state->header_lock);
 		return 0;
 	}
 
@@ -138,68 +141,39 @@ int _fetch_data(data_state *state, uint32_t requesting_node,
 	uint32_t src_node = choose_src_node(state);
 
 	/* possibly returns -1 if there was no memory left */
+	int ret;
 	ret = driver_copy_data_1_to_1(state, src_node, requesting_node, !read);
 	if (ret != 0)
 	switch (ret) {
 		case -ENOMEM:
 			goto enomem;
-		
 		default:
 			STARPU_ASSERT(0);
 	}
 
 	update_data_state(state, requesting_node, write);
+	starpu_spin_unlock(&state->header_lock);
 
 	return 0;
 
 enomem:
 	/* there was not enough local memory to fetch the data */
+	state->per_node[requesting_node].refcnt--;
+	/* we did not get the data so remove the lock anyway */
+	starpu_spin_unlock(&state->header_lock);
+
 	return -ENOMEM;
 }
 
 static int fetch_data(data_state *state, starpu_access_mode mode)
 {
-	int ret;
 	uint32_t requesting_node = get_local_memory_node(); 
 
 	uint8_t read, write;
 	read = (mode != STARPU_W); /* then R or STARPU_RW */
 	write = (mode != STARPU_R); /* then STARPU_W or STARPU_RW */
 
-#ifndef NO_DATA_RW_LOCK
-	if (write) {
-//		take_rw_lock_write(&state->data_lock);
-		while (take_rw_lock_write_try(&state->data_lock))
-			datawizard_progress(requesting_node);
-	} else {
-//		take_rw_lock_read(&state->data_lock);
-		while (take_rw_lock_read_try(&state->data_lock))
-			datawizard_progress(requesting_node);
-	}
-#endif
-
-	while (starpu_spin_trylock(&state->header_lock))
-		datawizard_progress(requesting_node);
-
-	state->per_node[requesting_node].refcnt++;
-
-	ret = _fetch_data(state, requesting_node, read, write);
-	if (ret != 0)
-		goto enomem;
-
-	starpu_spin_unlock(&state->header_lock);
-
-	return 0;
-enomem:
-	/* we did not get the data so remove the lock anyway */
-	state->per_node[requesting_node].refcnt--;
-	starpu_spin_unlock(&state->header_lock);
-
-#ifndef NO_DATA_RW_LOCK
-	release_rw_lock(&state->data_lock);
-#endif
-
-	return -1;
+	return fetch_data_on_node(state, requesting_node, read, write);
 }
 
 uint32_t get_data_refcnt(data_state *state, uint32_t node)
