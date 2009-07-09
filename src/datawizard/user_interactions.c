@@ -20,6 +20,7 @@
 #include <datawizard/write_back.h>
 #include <core/dependencies/data-concurrency.h>
 
+#warning request_data_allocation is not using requests yet 
 int request_data_allocation(data_state *state, uint32_t node)
 {
 	starpu_spin_lock(&state->header_lock);

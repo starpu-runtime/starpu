@@ -20,7 +20,30 @@
 #include <datawizard/write_back.h>
 #include <core/dependencies/data-concurrency.h>
 
-static uint32_t choose_src_node(data_state *state)
+static uint32_t select_node_to_handle_request(uint32_t src_node, uint32_t dst_node) 
+{
+	/* in case one of the node is a GPU, it needs to perform the transfer,
+	 * if both of them are GPU, it's a bit more complicated (TODO !) */
+
+	unsigned src_is_a_gpu = (get_node_kind(src_node) == CUDA_RAM);
+	unsigned dst_is_a_gpu = (get_node_kind(dst_node) == CUDA_RAM);
+
+	/* we do not handle GPU->GPU transfers yet ! */
+	STARPU_ASSERT( !(src_is_a_gpu && dst_is_a_gpu) );
+
+	if (src_is_a_gpu)
+		return src_node;
+
+	if (dst_is_a_gpu)
+		return dst_node;
+
+	/* otherwise perform it locally, since we should be on a "sane" arch
+	 * where anyone can do the transfer. NB: in StarPU this should actually never
+	 * happen */
+	return get_local_memory_node();
+}
+
+static uint32_t select_src_node(data_state *state)
 {
 	unsigned src_node = 0;
 	unsigned i;
@@ -39,8 +62,6 @@ static uint32_t choose_src_node(data_state *state)
 	/* we should have found at least one copy ! */
 	STARPU_ASSERT(src_node_mask != 0);
 
-	mem_node_descr * const descr = get_memory_node_description();
-
 	/* find the node that will be the actual source */
 	for (i = 0; i < MAXNODES; i++)
 	{
@@ -51,7 +72,7 @@ static uint32_t choose_src_node(data_state *state)
 
 			/* however GPU are expensive sources, really !
 			 * 	other should be ok */
-			if (descr->nodes[i] != CUDA_RAM)
+			if (get_node_kind(i) != CUDA_RAM)
 				break;
 
 			/* XXX do a better algorithm to distribute the memory copies */
@@ -63,8 +84,7 @@ static uint32_t choose_src_node(data_state *state)
 }
 
 /* this may be called once the data is fetched with header and STARPU_RW-lock hold */
-static void update_data_state(data_state *state, uint32_t requesting_node,
-				uint8_t write)
+void update_data_state(data_state *state, uint32_t requesting_node, uint8_t write)
 {
 	/* the data is present now */
 	state->per_node[requesting_node].requested = 0;
@@ -126,6 +146,7 @@ int fetch_data_on_node(data_state *state, uint32_t requesting_node,
 	if (state->per_node[requesting_node].state != INVALID)
 	{
 		/* the data is already available so we can stop */
+//		fprintf(stderr, "fetch_data_on_node hit !\n");
 		update_data_state(state, requesting_node, write);
 		msi_cache_hit(requesting_node);
 		starpu_spin_unlock(&state->header_lock);
@@ -137,32 +158,32 @@ int fetch_data_on_node(data_state *state, uint32_t requesting_node,
 
 	msi_cache_miss(requesting_node);
 
-	/* find someone who already has the data */
-	uint32_t src_node = choose_src_node(state);
+	data_request_t r;
 
-	/* possibly returns -1 if there was no memory left */
-	int ret;
-	ret = driver_copy_data_1_to_1(state, src_node, requesting_node, !read);
-	if (ret != 0)
-	switch (ret) {
-		case -ENOMEM:
-			goto enomem;
-		default:
-			STARPU_ASSERT(0);
+	/* is there already a pending request ? */
+	r = try_to_reuse_a_data_request(state, requesting_node, read, write);
+
+	if (!r) {
+		/* find someone who already has the data */
+		uint32_t src_node = select_src_node(state);
+	
+		STARPU_ASSERT(src_node != requesting_node);
+	
+		/* who will perform that request ? */
+		uint32_t handling_node =
+			select_node_to_handle_request(src_node, requesting_node);
+
+		r = create_data_request(state, src_node, requesting_node, handling_node, read, write);
+
+		starpu_spin_unlock(&state->header_lock);
+
+		post_data_request(r, handling_node);
+	}
+	else {
+		 starpu_spin_unlock(&state->header_lock);
 	}
 
-	update_data_state(state, requesting_node, write);
-	starpu_spin_unlock(&state->header_lock);
-
-	return 0;
-
-enomem:
-	/* there was not enough local memory to fetch the data */
-	state->per_node[requesting_node].refcnt--;
-	/* we did not get the data so remove the lock anyway */
-	starpu_spin_unlock(&state->header_lock);
-
-	return -ENOMEM;
+	return wait_data_request_completion(r);
 }
 
 static int fetch_data(data_state *state, starpu_access_mode mode)
@@ -227,7 +248,7 @@ int fetch_task_input(struct starpu_task *task, uint32_t mask)
 		descr = &descrs[index];
 
 		state = descr->handle;
-
+	
 		ret = fetch_data(state, descr->mode);
 		if (STARPU_UNLIKELY(ret))
 			goto enomem;
@@ -277,7 +298,7 @@ unsigned is_data_present_or_requested(data_state *state, uint32_t node)
 //	pthread_spin_lock(&state->header_lock);
 
 	if (state->per_node[node].state != INVALID 
-		|| state->per_node[node].requested)
+		|| state->per_node[node].requested || state->per_node[node].request)
 		ret = 1;
 
 //	pthread_spin_unlock(&state->header_lock);

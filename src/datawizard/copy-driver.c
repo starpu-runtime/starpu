@@ -105,8 +105,8 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 				}
 				else
 				{
-					/* put a request to the corresponding GPU */
-					post_data_request(state, src_node, dst_node);
+					/* we should not have a blocking call ! */
+					STARPU_ASSERT(0);
 				}
 				break;
 #endif
