@@ -52,7 +52,7 @@ void data_request_destroy(data_request_t r)
 }
 
 /* state->lock should already be taken !  */
-data_request_t create_data_request(data_state *state, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, uint8_t read, uint8_t write)
+data_request_t create_data_request(data_state *state, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, uint8_t read, uint8_t write, unsigned is_prefetch)
 {
 	data_request_t r = data_request_new();
 
@@ -73,6 +73,7 @@ data_request_t create_data_request(data_state *state, uint32_t src_node, uint32_
 	r->next_req_handler = 0;
 
 	r->strictness = 1;
+	r->is_a_prefetch_request = is_prefetch;
 
 	/* associate that request with the state so that further similar
 	 * requests will reuse that one  */
@@ -84,7 +85,7 @@ data_request_t create_data_request(data_state *state, uint32_t src_node, uint32_
 }
 
 /* state->lock should be taken */
-data_request_t try_to_reuse_a_data_request(data_state *state, uint32_t dst_node, uint8_t read, uint8_t write)
+data_request_t search_existing_data_request(data_state *state, uint32_t dst_node, uint8_t read, uint8_t write)
 {
 	data_request_t r = state->per_node[dst_node].request;
 
@@ -93,8 +94,6 @@ data_request_t try_to_reuse_a_data_request(data_state *state, uint32_t dst_node,
 		/* XXX perhaps this is too strict ! */
 		STARPU_ASSERT(r->read == read);		
 		STARPU_ASSERT(r->write == write);		
-
-		r->refcnt++;
 	}
 
 	return r;
@@ -176,6 +175,9 @@ static void handle_data_request(data_request_t r)
 
 	r->completed = 1;
 	
+	if (r->is_a_prefetch_request)
+		r->state->per_node[r->dst_node].refcnt--;
+
 	/* if nobody is waiting on that request, we can get rid of it */
 	if (r->refcnt == 0)
 		do_delete = 1;

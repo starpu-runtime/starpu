@@ -54,7 +54,7 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 
 	data_state *state = statenode->state;
 
-	ret = fetch_data_on_node(state, 0, 1, 0);
+	ret = fetch_data_on_node(state, 0, 1, 0, 0);
 	
 	STARPU_ASSERT(!ret);
 	

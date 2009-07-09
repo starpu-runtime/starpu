@@ -133,7 +133,7 @@ void display_msi_stats(void);
 //void release_data(data_state *state, uint32_t write_through_mask);
 
 __attribute__((warn_unused_result))
-int fetch_data_on_node(data_state *state, uint32_t requesting_node, uint8_t read, uint8_t write);
+int fetch_data_on_node(data_state *state, uint32_t requesting_node, uint8_t read, uint8_t write, unsigned is_prefetch);
 void release_data_on_node(data_state *state, uint32_t default_wb_mask, unsigned memory_node);
 
 void update_data_state(data_state *state, uint32_t requesting_node, uint8_t write);
@@ -150,5 +150,7 @@ int request_data_allocation(data_state *state, uint32_t node);
 unsigned is_data_present_or_requested(data_state *state, uint32_t node);
 
 inline void set_data_requested_flag_if_needed(data_state *state, uint32_t node);
+
+int prefetch_task_input_on_node(struct starpu_task *task, uint32_t node);
 
 #endif // __COHERENCY__H__

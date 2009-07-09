@@ -164,6 +164,7 @@ static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t j, 
 	j->penality = penality_best;
 
 	update_data_requests(queue_array[best], j);
+	prefetch_task_input_on_node(j->task, queue_array[best]->memory_node);
 
 	if (prio) {
 		return fifo_push_prio_task(queue_array[best], j);

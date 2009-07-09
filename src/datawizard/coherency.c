@@ -95,6 +95,8 @@ void update_data_state(data_state *state, uint32_t requesting_node, uint8_t writ
 		for (node = 0; node < MAXNODES; node++)
 		{
 			STARPU_ASSERT((state->per_node[node].refcnt == 0) || (node == requesting_node));
+//			if (!((state->per_node[node].refcnt == 0) || (node == requesting_node)))
+//				fprintf(stderr, "!!!! state %p is invalid : refcnt %d %d !!!!\n", state, state->per_node[0].refcnt, state->per_node[1].refcnt);
 			state->per_node[node].state = INVALID;
 		}
 		state->per_node[requesting_node].state = OWNER;
@@ -136,17 +138,25 @@ void update_data_state(data_state *state, uint32_t requesting_node, uint8_t writ
  */
 
 int fetch_data_on_node(data_state *state, uint32_t requesting_node,
-			uint8_t read, uint8_t write)
+			uint8_t read, uint8_t write, unsigned is_prefetch)
 {
 	while (starpu_spin_trylock(&state->header_lock))
 		datawizard_progress(requesting_node);
+
+//	if (is_prefetch)
+//		fprintf(stderr, "BEFORE PREFETCH ... refcnt %d %d\n", state->per_node[0].refcnt, state->per_node[1].refcnt);
+
 
 	state->per_node[requesting_node].refcnt++;
 
 	if (state->per_node[requesting_node].state != INVALID)
 	{
 		/* the data is already available so we can stop */
-//		fprintf(stderr, "fetch_data_on_node hit !\n");
+		//fprintf(stderr, "fetch_data_on_node hit %s !\n", is_prefetch?"PREFETCH":"");
+
+		if (is_prefetch)
+			state->per_node[requesting_node].refcnt--;
+
 		update_data_state(state, requesting_node, write);
 		msi_cache_hit(requesting_node);
 		starpu_spin_unlock(&state->header_lock);
@@ -161,9 +171,10 @@ int fetch_data_on_node(data_state *state, uint32_t requesting_node,
 	data_request_t r;
 
 	/* is there already a pending request ? */
-	r = try_to_reuse_a_data_request(state, requesting_node, read, write);
+	r = search_existing_data_request(state, requesting_node, read, write);
 
 	if (!r) {
+		//fprintf(stderr, "no request matched that one so we post a request\n");
 		/* find someone who already has the data */
 		uint32_t src_node = select_src_node(state);
 	
@@ -173,17 +184,44 @@ int fetch_data_on_node(data_state *state, uint32_t requesting_node,
 		uint32_t handling_node =
 			select_node_to_handle_request(src_node, requesting_node);
 
-		r = create_data_request(state, src_node, requesting_node, handling_node, read, write);
+		r = create_data_request(state, src_node, requesting_node, handling_node, read, write, is_prefetch);
 
 		starpu_spin_unlock(&state->header_lock);
 
 		post_data_request(r, handling_node);
 	}
 	else {
-		 starpu_spin_unlock(&state->header_lock);
-	}
+		/* there is already a similar request */
+		if (is_prefetch)
+		{
+		//	fprintf(stderr, "do not prefetch as there is already a request ... \n");
+		//	fprintf(stderr, "AFTER PREFETCH ... refcnt %d %d\n", state->per_node[0].refcnt, state->per_node[1].refcnt);
 
-	return wait_data_request_completion(r);
+			state->per_node[requesting_node].refcnt--;
+			starpu_spin_unlock(&state->header_lock);
+			return 0;
+		}
+
+		starpu_spin_lock(&r->lock);
+		r->refcnt++;
+		//fprintf(stderr, "found a similar request : refcnt (req) %d\n", r->refcnt);
+		starpu_spin_unlock(&r->lock);
+		starpu_spin_unlock(&state->header_lock);
+	}
+//
+//	if (is_prefetch)
+//		fprintf(stderr, "AFTER PREFETCH ... refcnt %d %d\n", state->per_node[0].refcnt, state->per_node[1].refcnt);
+
+	return (is_prefetch?0:wait_data_request_completion(r));
+}
+
+static int prefetch_data_on_node(data_state *state, starpu_access_mode mode, uint32_t node)
+{
+	uint8_t read, write;
+	read = (mode != STARPU_W); /* then R or STARPU_RW */
+	write = (mode != STARPU_R); /* then STARPU_W or STARPU_RW */
+
+	return fetch_data_on_node(state, node, read, write, 1);
 }
 
 static int fetch_data(data_state *state, starpu_access_mode mode)
@@ -194,7 +232,7 @@ static int fetch_data(data_state *state, starpu_access_mode mode)
 	read = (mode != STARPU_W); /* then R or STARPU_RW */
 	write = (mode != STARPU_R); /* then STARPU_W or STARPU_RW */
 
-	return fetch_data_on_node(state, requesting_node, read, write);
+	return fetch_data_on_node(state, requesting_node, read, write, 0);
 }
 
 uint32_t get_data_refcnt(data_state *state, uint32_t node)
@@ -228,9 +266,33 @@ void release_data_on_node(data_state *state, uint32_t default_wb_mask, uint32_t 
 	notify_data_dependencies(state);
 }
 
+int prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
+{
+	starpu_buffer_descr *descrs = task->buffers;
+	unsigned nbuffers = task->cl->nbuffers;
+
+	unsigned index;
+	for (index = 0; index < nbuffers; index++)
+	{
+		starpu_buffer_descr *descr;
+		data_state *state;
+
+		descr = &descrs[index];
+		state = descr->handle;
+	
+		prefetch_data_on_node(state, descr->mode, node);
+	}
+
+	return 0;
+}
+
+
+
 int fetch_task_input(struct starpu_task *task, uint32_t mask)
 {
 	TRACE_START_FETCH_INPUT(NULL);
+
+//	fprintf(stderr, "fetch_task_input\n");
 
 	uint32_t local_memory_node = get_local_memory_node();
 
@@ -273,6 +335,8 @@ enomem:
 void push_task_output(struct starpu_task *task, uint32_t mask)
 {
 	TRACE_START_PUSH_OUTPUT(NULL);
+
+	//fprintf(stderr, "push_task_output\n");
 
         starpu_buffer_descr *descrs = task->buffers;
         unsigned nbuffers = task->cl->nbuffers;
