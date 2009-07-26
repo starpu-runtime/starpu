@@ -46,6 +46,8 @@ void deinit_data_request_lists(void)
 /* this should be called with the lock r->state->header_lock taken */
 void data_request_destroy(data_request_t r)
 {
+/* TODO */
+#warning are we sure that it's r->dst_node ??
 	r->state->per_node[r->dst_node].request = NULL;
 
 	data_request_delete(r);
@@ -77,9 +79,19 @@ data_request_t create_data_request(data_state *state, uint32_t src_node, uint32_
 
 	/* associate that request with the state so that further similar
 	 * requests will reuse that one  */
+
+	starpu_spin_lock(&r->lock);
+
 	state->per_node[dst_node].request = r;
 
+	state->per_node[dst_node].refcnt++;
+	state->per_node[src_node].refcnt++;
+
 	r->refcnt = 1;
+
+	//fprintf(stderr, "created request %p data %p %d -> %d \n", r, state, src_node, dst_node);
+
+	starpu_spin_unlock(&r->lock);
 
 	return r;
 }
@@ -91,9 +103,11 @@ data_request_t search_existing_data_request(data_state *state, uint32_t dst_node
 
 	if (r)
 	{
-		/* XXX perhaps this is too strict ! */
-		STARPU_ASSERT(r->read == read);		
-		STARPU_ASSERT(r->write == write);		
+	//	/* XXX perhaps this is too strict ! */
+	//	STARPU_ASSERT(r->read == read);		
+	//	STARPU_ASSERT(r->write == write);		
+
+		starpu_spin_lock(&r->lock);
 	}
 
 	return r;
@@ -120,7 +134,7 @@ int wait_data_request_completion(data_request_t r)
 
 	} while (1);
 
-//	fprintf(stderr, "REQUEST COMPLETED !\n");
+//	fprintf(stderr, "REQUEST %p COMPLETED (refcnt before = %d) !\n", r, r->refcnt);
 
 	retval = r->retval;
 
@@ -155,28 +169,31 @@ void post_data_request(data_request_t r, uint32_t handling_node)
 static void handle_data_request(data_request_t r)
 {
 	unsigned do_delete = 0;
+	data_state *state = r->state;
 	
-	starpu_spin_lock(&r->state->header_lock);
+	starpu_spin_lock(&state->header_lock);
 
 	starpu_spin_lock(&r->lock);
 
-	//fprintf(stderr, "handle_data_request src %d dst %d state %p (read %d write %d)\n",  r->src_node, r->dst_node, r->state, r->read, r->write);
 
+	//fprintf(stderr, "handle_data_request BEFORE src %d dst %d state %p (read %d write %d) refcnt %d %d request %p %p\n",  r->src_node, r->dst_node, state, r->read, r->write, state->per_node[0].refcnt, state->per_node[1].refcnt,  state->per_node[0].request, state->per_node[1].request);
 	
 	//print_state_state("BEFORE handle_data_request ... ", r->state);
 
 	/* perform the transfer */
 	/* the header of the data must be locked by the worker that submitted the request */
-	r->retval = driver_copy_data_1_to_1(r->state, r->src_node, r->dst_node, 0);
+	r->retval = driver_copy_data_1_to_1(state, r->src_node, r->dst_node, 0);
 
-	update_data_state(r->state, r->dst_node, r->write);
+	update_data_state(state, r->dst_node, r->write);
 
 	//print_state_state("AFTER handle_data_request ... ", r->state);
 
 	r->completed = 1;
 	
-	if (r->is_a_prefetch_request)
-		r->state->per_node[r->dst_node].refcnt--;
+	state->per_node[r->dst_node].refcnt--;
+	state->per_node[r->src_node].refcnt--;
+
+	r->refcnt--;
 
 	/* if nobody is waiting on that request, we can get rid of it */
 	if (r->refcnt == 0)
