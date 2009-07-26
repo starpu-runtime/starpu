@@ -75,10 +75,10 @@ static struct starpu_cuda_module_s cuda_module;
 static struct starpu_cuda_function_s cuda_function;
 
 static starpu_cuda_codelet_t cuda_codelet;
+static char module_path[1024];
 
 void initialize_cuda(void)
 {
-	char module_path[1024];
 	sprintf(module_path, 
 		"%s/examples/cuda/incrementer_cuda.cubin", STARPUDIR);
 	char *function_symbol = "cuda_incrementer";
