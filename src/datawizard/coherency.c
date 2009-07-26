@@ -177,6 +177,9 @@ int fetch_data_on_node(data_state *state, uint32_t requesting_node,
 
 		r = create_data_request(state, src_node, requesting_node, handling_node, read, write, is_prefetch);
 
+		if (!is_prefetch)
+			r->refcnt++;
+
 		starpu_spin_unlock(&state->header_lock);
 
 		post_data_request(r, handling_node);
@@ -193,6 +196,8 @@ int fetch_data_on_node(data_state *state, uint32_t requesting_node,
 			return 0;
 		}
 
+		r->refcnt++;
+
 		//starpu_spin_lock(&r->lock);
 		if (r->is_a_prefetch_request)
 		{
@@ -203,10 +208,6 @@ int fetch_data_on_node(data_state *state, uint32_t requesting_node,
 			r->read = read;
 			r->write = write;
 		}
-		else {
-			r->refcnt++;
-		}
-
 
 		//fprintf(stderr, "found a similar request : refcnt (req) %d\n", r->refcnt);
 		starpu_spin_unlock(&r->lock);
