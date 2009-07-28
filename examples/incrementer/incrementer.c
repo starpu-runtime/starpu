@@ -37,7 +37,8 @@ static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 unsigned size __attribute__ ((aligned (16))) = 4*sizeof(float);
 
-float my_lovely_float[4] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f}; 
+//float my_lovely_float[4] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f}; 
+static float *my_lovely_float;
 float unity[4] __attribute__ ((aligned (16))) = { 1.0f, 0.0f, 1.0f};
 
 void callback_func(void *argcb)
@@ -100,8 +101,10 @@ void initialize_cuda(void)
 
 void init_data(void)
 {
+	starpu_malloc_pinned_if_possible((void **)&my_lovely_float, 4*sizeof(float));
+
 	starpu_register_vector_data(&my_float_state, 0 /* home node */,
-			(uintptr_t)&my_lovely_float, 4, sizeof(float));
+			(uintptr_t)my_lovely_float, 4, sizeof(float));
 
 	starpu_register_vector_data(&unity_state, 0 /* home node */,
 			(uintptr_t)&unity, 4, sizeof(float));
