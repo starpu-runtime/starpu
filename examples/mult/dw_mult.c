@@ -253,6 +253,22 @@ static void partition_mult_data(void)
 	starpu_map_filters(C_handle, 2, &f, &f2);
 }
 
+static starpu_codelet cl = {
+	.where = CORE|CUBLAS|GORDON,
+	.core_func = core_mult,
+#ifdef USE_CUDA
+	.cublas_func = cublas_mult,
+#endif
+#ifdef USE_GORDON
+#ifdef SPU_FUNC_SGEMM
+	.gordon_func = SPU_FUNC_SGEMM,
+#else
+#warning SPU_FUNC_SGEMM is not available
+#endif
+#endif
+	.nbuffers = 3
+};
+
 static void launch_codelets(void)
 {
 #ifdef USE_FXT
@@ -264,22 +280,6 @@ static void launch_codelets(void)
 	taskcounter = nslicesx * nslicesy;
 
 	srand(time(NULL));
-
-	starpu_codelet cl = {
-		.where = CORE|CUBLAS|GORDON,
-		.core_func = core_mult,
-#ifdef USE_CUDA
-		.cublas_func = cublas_mult,
-#endif
-#ifdef USE_GORDON
-#ifdef SPU_FUNC_SGEMM
-		.gordon_func = SPU_FUNC_SGEMM,
-#else
-#warning SPU_FUNC_SGEMM is not available
-#endif
-#endif
-		.nbuffers = 3
-	};
 
 	/* should we use a single performance model for all archs and use an
  	 * acceleration factor ? */
