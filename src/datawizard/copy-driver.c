@@ -74,9 +74,23 @@ void wake_all_blocked_workers(void)
 static unsigned communication_cnt = 0;
 #endif
 
-static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32_t dst_node)
+#ifdef USE_CUDA
+static CUstream *create_cuda_stream(struct data_request_s *req)
 {
-	int ret;
+	CUstream *stream = &(req->async_channel).stream;
+
+	/* TODO check status */
+	CUresult res = cuStreamCreate(stream, 0);
+
+	STARPU_ASSERT(res == CUDA_SUCCESS);
+
+	return stream;
+}
+#endif
+
+static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32_t dst_node, struct data_request_s *req)
+{
+	int ret = 0;
 
 	//ret = state->ops->copy_data_1_to_1(state, src_node, dst_node);
 
@@ -101,7 +115,15 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 				{
 					/* only the proper CUBLAS thread can initiate this directly ! */
 					STARPU_ASSERT(copy_methods->cuda_to_ram);
-					copy_methods->cuda_to_ram(state, src_node, dst_node);
+					if (!req || !copy_methods->cuda_to_ram_async)
+					{
+						/* this is not associated to a request so it's synchronous */
+						copy_methods->cuda_to_ram(state, src_node, dst_node);
+					}
+					else {
+						CUstream *stream = create_cuda_stream(req);
+						ret = copy_methods->cuda_to_ram_async(state, src_node, dst_node, stream);
+					}
 				}
 				else
 				{
@@ -128,7 +150,15 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 				/* only the proper CUBLAS thread can initiate this ! */
 				STARPU_ASSERT(get_local_memory_node() == dst_node);
 				STARPU_ASSERT(copy_methods->ram_to_cuda);
-				copy_methods->ram_to_cuda(state, src_node, dst_node);
+				if (!req || !copy_methods->ram_to_cuda_async)
+				{
+					/* this is not associated to a request so it's synchronous */
+					copy_methods->ram_to_cuda(state, src_node, dst_node);
+				}
+				else {
+					CUstream *stream = create_cuda_stream(req);
+					ret = copy_methods->ram_to_cuda_async(state, src_node, dst_node, stream);
+				}
 				break;
 			case CUDA_RAM:
 			case SPU_LS:
@@ -150,14 +180,11 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 		break;
 	}
 
-	/* XXX */
-	ret = 0;
-
 	return ret;
 }
 
 int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *state, uint32_t src_node, 
-				uint32_t dst_node, unsigned donotread)
+				uint32_t dst_node, unsigned donotread, struct data_request_s *req)
 {
 	int ret_alloc, ret_copy;
 	unsigned __attribute__((unused)) com_id = 0;
@@ -184,7 +211,7 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 
 		/* for now we set the size to 0 in the FxT trace XXX */
 		TRACE_START_DRIVER_COPY(src_node, dst_node, 0, com_id);
-		ret_copy = copy_data_1_to_1_generic(state, src_node, dst_node);
+		ret_copy = copy_data_1_to_1_generic(state, src_node, dst_node, req);
 		TRACE_END_DRIVER_COPY(src_node, dst_node, 0, com_id);
 
 		return ret_copy;
@@ -194,4 +221,67 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 
 nomem:
 	return -ENOMEM;
+}
+
+void driver_wait_request_completion(starpu_async_channel *async_channel,
+					unsigned handling_node)
+{
+	node_kind kind = get_node_kind(handling_node);
+	unsigned success;
+#ifdef USE_CUDA
+	CUstream stream;
+#endif
+
+	switch (kind) {
+#ifdef USE_CUDA
+		case CUDA_RAM:
+			stream = (*async_channel).stream;
+			cuStreamSynchronize(stream);
+			cuStreamDestroy(stream);
+			
+			break;
+#endif
+		case RAM:
+		default:
+			STARPU_ASSERT(0);
+	}
+}
+
+unsigned driver_test_request_completion(starpu_async_channel *async_channel,
+					unsigned handling_node)
+{
+	node_kind kind = get_node_kind(handling_node);
+	unsigned success;
+#ifdef USE_CUDA
+	CUstream stream;
+#endif
+
+	switch (kind) {
+#ifdef USE_CUDA
+		case CUDA_RAM:
+			stream = (*async_channel).stream;
+//#if 0
+//			cudaThreadSynchronize();
+			success = (cuStreamQuery(stream) == CUDA_SUCCESS);
+			if (success)
+				cuStreamDestroy(stream);
+
+//#endif
+#if 0
+			cuStreamSynchronize(stream);
+			cuStreamDestroy(stream);
+			success = 1;
+#endif
+			
+			//fprintf(stderr, "TEST stream %p -> %d\n", stream, success);
+
+			break;
+#endif
+		case RAM:
+		default:
+			STARPU_ASSERT(0);
+			success = 0;
+	}
+
+	return success;
 }

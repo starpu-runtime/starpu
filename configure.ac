@@ -82,6 +82,8 @@ STARPU_CHECK_SYNC_BUILTINS
 
 CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE "
 
+# CFLAGS=" -O0 -g -gdwarf-2 "
+
 ###############################################################################
 #                                                                             #
 #                                 CPUs settings                               #

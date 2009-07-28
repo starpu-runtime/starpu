@@ -40,7 +40,7 @@ void write_through_data(data_state *state, uint32_t requesting_node,
 				 * definition */
 				int ret;
 				ret = driver_copy_data_1_to_1(state, 
-						requesting_node, node, 0);
+						requesting_node, node, 0, NULL);
 
 				/* there must remain memory on the write-through mask to honor the request */
 				if (ret)

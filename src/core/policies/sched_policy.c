@@ -187,6 +187,8 @@ void wait_on_sched_event(void)
 
 	pthread_mutex_lock(&q->activity_mutex);
 
+	handle_all_pending_node_data_requests(get_local_memory_node());
+
 	if (machine_is_running())
 	{
 #ifndef NON_BLOCKING_DRIVERS

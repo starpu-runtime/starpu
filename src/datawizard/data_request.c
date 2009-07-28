@@ -17,9 +17,15 @@
 #include <datawizard/data_request.h>
 #include <pthread.h>
 
+/* requests that have not been treated at all */
 static data_request_list_t data_requests[MAXNODES];
 static pthread_cond_t data_requests_list_cond[MAXNODES];
 static pthread_mutex_t data_requests_list_mutex[MAXNODES];
+
+/* requests that are not terminated (eg. async transfers) */
+static data_request_list_t data_requests_pending[MAXNODES];
+static pthread_cond_t data_requests_pending_list_cond[MAXNODES];
+static pthread_mutex_t data_requests_pending_list_mutex[MAXNODES];
 
 void init_data_request_lists(void)
 {
@@ -29,6 +35,10 @@ void init_data_request_lists(void)
 		data_requests[i] = data_request_list_new();
 		pthread_mutex_init(&data_requests_list_mutex[i], NULL);
 		pthread_cond_init(&data_requests_list_cond[i], NULL);
+
+		data_requests_pending[i] = data_request_list_new();
+		pthread_mutex_init(&data_requests_pending_list_mutex[i], NULL);
+		pthread_cond_init(&data_requests_pending_list_cond[i], NULL);
 	}
 }
 
@@ -37,6 +47,10 @@ void deinit_data_request_lists(void)
 	unsigned i;
 	for (i = 0; i < MAXNODES; i++)
 	{
+		pthread_cond_destroy(&data_requests_pending_list_cond[i]);
+		pthread_mutex_destroy(&data_requests_pending_list_mutex[i]);
+		data_request_list_delete(data_requests_pending[i]);
+
 		pthread_cond_destroy(&data_requests_list_cond[i]);
 		pthread_mutex_destroy(&data_requests_list_mutex[i]);
 		data_request_list_delete(data_requests[i]);
@@ -165,28 +179,14 @@ void post_data_request(data_request_t r, uint32_t handling_node)
 	wake_all_blocked_workers_on_node(handling_node);
 }
 
-/* TODO : accounting to see how much time was spent working for other people ... */
-static void handle_data_request(data_request_t r)
+static void handle_data_request_completion(data_request_t r)
 {
 	unsigned do_delete = 0;
 	data_state *state = r->state;
-	
-	starpu_spin_lock(&state->header_lock);
-
-	starpu_spin_lock(&r->lock);
-
-
-	//fprintf(stderr, "handle_data_request BEFORE src %d dst %d state %p (read %d write %d) refcnt %d %d request %p %p\n",  r->src_node, r->dst_node, state, r->read, r->write, state->per_node[0].refcnt, state->per_node[1].refcnt,  state->per_node[0].request, state->per_node[1].request);
-	
-	//print_state_state("BEFORE handle_data_request ... ", r->state);
-
-	/* perform the transfer */
-	/* the header of the data must be locked by the worker that submitted the request */
-	r->retval = driver_copy_data_1_to_1(state, r->src_node, r->dst_node, 0);
 
 	update_data_state(state, r->dst_node, r->write);
 
-	//print_state_state("AFTER handle_data_request ... ", r->state);
+	/* TODO we should handle linked requests here */
 
 	r->completed = 1;
 	
@@ -201,10 +201,43 @@ static void handle_data_request(data_request_t r)
 	
 	starpu_spin_unlock(&r->lock);
 
+	r->retval = 0;
+
 	if (do_delete)
 		data_request_destroy(r);
 
-	starpu_spin_unlock(&r->state->header_lock);
+	starpu_spin_unlock(&state->header_lock);
+}
+
+/* TODO : accounting to see how much time was spent working for other people ... */
+static void handle_data_request(data_request_t r)
+{
+	unsigned do_delete = 0;
+	data_state *state = r->state;
+	
+	starpu_spin_lock(&state->header_lock);
+
+	starpu_spin_lock(&r->lock);
+
+	/* perform the transfer */
+	/* the header of the data must be locked by the worker that submitted the request */
+	r->retval = driver_copy_data_1_to_1(state, r->src_node, r->dst_node, 0, r);
+
+	if (r->retval != EAGAIN)
+	{
+		/* the request has been handled */
+		handle_data_request_completion(r);
+	}
+	else {
+		starpu_spin_unlock(&r->lock);
+		starpu_spin_unlock(&state->header_lock);
+
+		/* the request is pending and we put it in the corresponding queue  */
+		pthread_mutex_lock(&data_requests_pending_list_mutex[r->handling_node]);
+	//	fprintf(stderr, "push request %p in pending list for node %d..\n", r, r->handling_node);
+		data_request_list_push_front(data_requests_pending[r->handling_node], r);
+		pthread_mutex_unlock(&data_requests_pending_list_mutex[r->handling_node]);
+	}
 }
 
 void handle_node_data_requests(uint32_t src_node)
@@ -230,4 +263,83 @@ void handle_node_data_requests(uint32_t src_node)
 	}
 
 	pthread_mutex_unlock(&data_requests_list_mutex[src_node]);
+}
+
+void handle_all_pending_node_data_requests(uint32_t src_node)
+{
+//	fprintf(stderr, "handle_pending_node_data_requests ...\n");
+	
+	pthread_mutex_lock(&data_requests_pending_list_mutex[src_node]);
+
+	/* for all entries of the list */
+	data_request_list_t l = data_requests_pending[src_node];
+	data_request_t r;
+
+	while (!data_request_list_empty(l))
+	{
+		r = data_request_list_pop_back(l);		
+
+		pthread_mutex_unlock(&data_requests_pending_list_mutex[src_node]);
+
+		data_state *state = r->state;
+		
+		starpu_spin_lock(&state->header_lock);
+	
+		starpu_spin_lock(&r->lock);
+	
+		/* wait until the transfer is terminated */
+		driver_wait_request_completion(&r->async_channel, src_node);
+
+		handle_data_request_completion(r);
+
+		/* wake the requesting worker up */
+		pthread_mutex_lock(&data_requests_pending_list_mutex[src_node]);
+	}
+
+	pthread_mutex_unlock(&data_requests_pending_list_mutex[src_node]);
+}
+
+void handle_pending_node_data_requests(uint32_t src_node)
+{
+//	fprintf(stderr, "handle_pending_node_data_requests ...\n");
+	
+	pthread_mutex_lock(&data_requests_pending_list_mutex[src_node]);
+
+	/* for all entries of the list */
+	data_request_list_t l = data_requests_pending[src_node];
+	data_request_t r;
+	data_request_t next_r;
+
+	for (r = data_request_list_begin(l);
+		r != data_request_list_end(l);
+		r = next_r)
+	{
+		next_r = data_request_list_next(r);
+
+		pthread_mutex_unlock(&data_requests_pending_list_mutex[src_node]);
+
+		data_state *state = r->state;
+		
+		starpu_spin_lock(&state->header_lock);
+	
+		starpu_spin_lock(&r->lock);
+	
+		/* wait until the transfer is terminated */
+		if (driver_test_request_completion(&r->async_channel, src_node))
+		{
+			/* this is not optimal  */			
+			data_request_list_erase(l, r);
+
+			handle_data_request_completion(r);
+		}
+		else {
+			starpu_spin_unlock(&r->lock);
+			starpu_spin_unlock(&state->header_lock);
+		}
+
+		/* wake the requesting worker up */
+		pthread_mutex_lock(&data_requests_pending_list_mutex[src_node]);
+	}
+
+	pthread_mutex_unlock(&data_requests_pending_list_mutex[src_node]);
 }

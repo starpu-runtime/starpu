@@ -44,6 +44,8 @@ LIST_TYPE(data_request,
 	uint8_t read;
 	uint8_t write;
 
+	starpu_async_channel async_channel;
+
 	unsigned completed;
 	int retval;
 
@@ -62,6 +64,9 @@ void init_data_request_lists(void);
 void deinit_data_request_lists(void);
 void post_data_request(data_request_t r, uint32_t handling_node);
 void handle_node_data_requests(uint32_t src_node);
+
+void handle_pending_node_data_requests(uint32_t src_node);
+void handle_all_pending_node_data_requests(uint32_t src_node);
 
 data_request_t create_data_request(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, uint8_t read, uint8_t write, unsigned is_prefetch);
 data_request_t search_existing_data_request(struct starpu_data_state_t *state, uint32_t dst_node, uint8_t read, uint8_t write);

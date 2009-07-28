@@ -134,7 +134,7 @@ static void transfer_subtree_to_node(data_state *data, unsigned src_node,
 			data->per_node[src_node].state = INVALID;
 			data->per_node[dst_node].state = OWNER;
 
-			ret = driver_copy_data_1_to_1(data, src_node, dst_node, 0);
+			ret = driver_copy_data_1_to_1(data, src_node, dst_node, 0, NULL);
 			STARPU_ASSERT(ret == 0);
 
 			break;

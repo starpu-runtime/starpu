@@ -32,6 +32,8 @@ static int dummy_copy_ram_to_ram(struct starpu_data_state_t *state, uint32_t src
 #ifdef USE_CUDA
 static int copy_ram_to_cublas(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
 static int copy_cublas_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
+static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, CUstream *stream);
+static int copy_cublas_to_ram_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, CUstream *stream);
 #endif
 
 static const struct copy_data_methods_s vector_copy_data_methods_s = {
@@ -40,6 +42,8 @@ static const struct copy_data_methods_s vector_copy_data_methods_s = {
 #ifdef USE_CUDA
 	.ram_to_cuda = copy_ram_to_cublas,
 	.cuda_to_ram = copy_cublas_to_ram,
+	.ram_to_cuda_async = copy_ram_to_cublas_async,
+	.cuda_to_ram_async = copy_cublas_to_ram_async,
 #endif
 	.cuda_to_cuda = NULL,
 	.cuda_to_spu = NULL,
@@ -275,6 +279,60 @@ static int copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst
 
 	return 0;
 }
+
+static int copy_cublas_to_ram_async(data_state *state, uint32_t src_node, uint32_t dst_node, CUstream *stream)
+{
+	starpu_vector_interface_t *src_vector;
+	starpu_vector_interface_t *dst_vector;
+
+	src_vector = &state->interface[src_node].vector;
+	dst_vector = &state->interface[dst_node].vector;
+
+	CUresult res;
+	res = cuMemcpyDtoHAsync((char *)dst_vector->ptr, (CUdeviceptr)src_vector->ptr, src_vector->nx*src_vector->elemsize, *stream);
+	if (res)
+	{
+		/* do it in a synchronous fashion */
+		res = cuMemcpyDtoH((char *)dst_vector->ptr, (CUdeviceptr)src_vector->ptr, src_vector->nx*src_vector->elemsize);
+		if (STARPU_UNLIKELY(res))
+			STARPU_ASSERT(0);
+
+		return 0;
+	}
+
+	TRACE_DATA_COPY(src_node, dst_node, src_vector->nx*src_vector->elemsize);
+
+	return EAGAIN;
+}
+
+static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, CUstream *stream)
+{
+	starpu_vector_interface_t *src_vector;
+	starpu_vector_interface_t *dst_vector;
+
+	src_vector = &state->interface[src_node].vector;
+	dst_vector = &state->interface[dst_node].vector;
+
+	CUresult res;
+	
+	res = cuMemcpyHtoDAsync((CUdeviceptr)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize, *stream);
+	if (res)
+	{
+		/* do it in a synchronous fashion */
+		res = cuMemcpyHtoD((CUdeviceptr)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize);
+		if (STARPU_UNLIKELY(res))
+			STARPU_ASSERT(0);
+
+//		cuCtxSynchronize();
+		return 0;
+	}
+
+	TRACE_DATA_COPY(src_node, dst_node, src_vector->nx*src_vector->elemsize);
+
+	return EAGAIN;
+}
+
+
 #endif // USE_CUDA
 
 static int dummy_copy_ram_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)

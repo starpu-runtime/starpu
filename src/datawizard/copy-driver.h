@@ -23,8 +23,20 @@
 #include "memalloc.h"
 
 #ifdef USE_CUDA
+#include <cuda.h>
 #include <cublas.h>
 #endif
+
+struct data_request_s;
+
+/* this is a structure that can be queried to see whether an asynchronous
+ * transfer has terminated or not */
+typedef union {
+	int dummy;
+#ifdef USE_CUDA
+	CUstream stream;
+#endif
+} starpu_async_channel;
 
 struct starpu_data_state_t;
 
@@ -43,6 +55,16 @@ struct copy_data_methods_s {
 	int (*spu_to_ram)(struct starpu_data_state_t *state, uint32_t src, uint32_t dst);
 	int (*spu_to_cuda)(struct starpu_data_state_t *state, uint32_t src, uint32_t dst);
 	int (*spu_to_spu)(struct starpu_data_state_t *state, uint32_t src, uint32_t dst);
+
+#ifdef USE_CUDA
+	/* for asynchronous CUDA transfers */
+	int (*ram_to_cuda_async)(struct starpu_data_state_t *state, uint32_t src,
+					uint32_t dst, CUstream *stream);
+	int (*cuda_to_ram_async)(struct starpu_data_state_t *state, uint32_t src,
+					uint32_t dst, CUstream *stream);
+	int (*cuda_to_cuda_async)(struct starpu_data_state_t *state, uint32_t src,
+					uint32_t dst, CUstream *stream);
+#endif
 };
 
 void wake_all_blocked_workers(void);
@@ -50,6 +72,8 @@ void wake_all_blocked_workers_on_node(unsigned nodeid);
 
 __attribute__((warn_unused_result))
 int driver_copy_data_1_to_1(struct starpu_data_state_t *state, uint32_t node, 
-				uint32_t requesting_node, unsigned donotread);
+				uint32_t requesting_node, unsigned donotread, struct data_request_s *req);
 
+unsigned driver_test_request_completion(starpu_async_channel *async_channel, unsigned handling_node);
+void driver_wait_request_completion(starpu_async_channel *async_channel, unsigned handling_node);
 #endif // __COPY_DRIVER_H__

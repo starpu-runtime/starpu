@@ -32,6 +32,8 @@ static int dummy_copy_ram_to_ram(struct starpu_data_state_t *state, uint32_t src
 #ifdef USE_CUDA
 static int copy_ram_to_cublas(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
 static int copy_cublas_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
+static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, CUstream *stream);
+static int copy_cublas_to_ram_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, CUstream *stream);
 #endif
 
 static const struct copy_data_methods_s blas_copy_data_methods_s = {
@@ -40,6 +42,8 @@ static const struct copy_data_methods_s blas_copy_data_methods_s = {
 #ifdef USE_CUDA
 	.ram_to_cuda = copy_ram_to_cublas,
 	.cuda_to_ram = copy_cublas_to_ram,
+	.ram_to_cuda_async = copy_ram_to_cublas_async,
+	.cuda_to_ram_async = copy_cublas_to_ram_async,
 #endif
 	.cuda_to_cuda = NULL,
 	.cuda_to_spu = NULL,
@@ -333,6 +337,89 @@ static int copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst
 
 	return 0;
 }
+
+static int copy_cublas_to_ram_async(data_state *state, uint32_t src_node, uint32_t dst_node, CUstream *stream)
+{
+	starpu_blas_interface_t *src_blas;
+	starpu_blas_interface_t *dst_blas;
+
+	src_blas = &state->interface[src_node].blas;
+	dst_blas = &state->interface[dst_node].blas;
+
+	size_t elemsize = src_blas->elemsize;
+
+	const CUDA_MEMCPY2D copyParam = {
+		.srcMemoryType = CU_MEMORYTYPE_DEVICE,
+		.srcXInBytes = src_blas->nx*elemsize,
+		.srcY = src_blas->ny,
+		.srcPitch = src_blas->ld*elemsize,
+		.srcDevice = (CUdeviceptr)src_blas->ptr,
+
+		.dstMemoryType = CU_MEMORYTYPE_HOST,
+		.dstXInBytes = dst_blas->nx*elemsize,
+		.dstY = dst_blas->ny,
+		.dstHost = (char *)dst_blas->ptr,
+		.dstPitch = dst_blas->ld*elemsize
+	};
+
+	CUresult res;
+	res = cuMemcpy2DAsync(&copyParam, *stream);
+	if (res)
+	{
+		res = cuMemcpy2D(&copyParam);
+		if (STARPU_UNLIKELY(res))
+			STARPU_ASSERT(0);
+
+		return 0;
+	}
+
+
+
+	TRACE_DATA_COPY(src_node, dst_node, src_blas->nx*src_blas->ny*src_blas->elemsize);
+
+	return EAGAIN;
+}
+
+static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, CUstream *stream)
+{
+	starpu_blas_interface_t *src_blas;
+	starpu_blas_interface_t *dst_blas;
+
+	src_blas = &state->interface[src_node].blas;
+	dst_blas = &state->interface[dst_node].blas;
+
+	size_t elemsize = src_blas->elemsize;
+
+	const CUDA_MEMCPY2D copyParam = {
+		.srcMemoryType = CU_MEMORYTYPE_HOST,
+		.srcXInBytes = src_blas->nx*elemsize,
+		.srcY = src_blas->ny,
+		.srcHost = (char *)src_blas->ptr,
+		.srcPitch = src_blas->ld*elemsize,
+
+		.dstMemoryType = CU_MEMORYTYPE_DEVICE,
+		.dstXInBytes = dst_blas->nx*elemsize,
+		.dstY = dst_blas->ny,
+		.dstPitch = dst_blas->ld*elemsize,
+		.dstDevice = (CUdeviceptr)dst_blas->ptr
+	};
+
+	CUresult res;
+	res = cuMemcpy2DAsync(&copyParam, *stream);
+	if (res)
+	{
+		res = cuMemcpy2D(&copyParam);
+		if (STARPU_UNLIKELY(res))
+			STARPU_ASSERT(0);
+
+		return 0;
+	}
+
+	TRACE_DATA_COPY(src_node, dst_node, src_blas->nx*src_blas->ny*src_blas->elemsize);
+
+	return EAGAIN;
+}
+
 #endif // USE_CUDA
 
 /* as not all platform easily have a BLAS lib installed ... */
