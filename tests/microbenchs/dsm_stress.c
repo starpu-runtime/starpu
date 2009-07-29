@@ -32,8 +32,8 @@ static unsigned finished = 0;
 static unsigned cnt = N;
 
 starpu_data_handle v_handle, v_handle2;
-static unsigned v[VECTORSIZE] __attribute__((aligned(128))) = {0, 0, 0, 0};
-static unsigned v2[VECTORSIZE] __attribute__((aligned(128))) = {0, 0, 0, 0};
+static unsigned *v;
+static unsigned *v2;
 
 static void callback(void *arg)
 {
@@ -84,6 +84,9 @@ static starpu_codelet cl = {
 int main(int argc, char **argv)
 {
 	starpu_init(NULL);
+
+	starpu_malloc_pinned_if_possible(&v, VECTORSIZE*sizeof(unsigned));
+	starpu_malloc_pinned_if_possible(&v2, VECTORSIZE*sizeof(unsigned));
 
 	starpu_register_vector_data(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 	starpu_register_vector_data(&v_handle2, 0, (uintptr_t)v2, VECTORSIZE, sizeof(unsigned));
