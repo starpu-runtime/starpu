@@ -73,6 +73,7 @@ check_PROGRAMS += 				\
 	microbenchs/async-tasks-overhead	\
 	microbenchs/sync-tasks-overhead		\
 	microbenchs/tag-wait-api		\
+	microbenchs/dsm_stress			\
 	microbenchs/sync_and_notify_data
 
 microbenchs_async_tasks_overhead_SOURCES =	\
@@ -83,6 +84,9 @@ microbenchs_sync_tasks_overhead_SOURCES =	\
 
 microbenchs_tag_wait_api_SOURCES =		\
 	microbenchs/tag-wait-api.c
+
+microbenchs_dsm_stress_SOURCES =		\
+	microbenchs/dsm_stress.c
 
 microbenchs_sync_and_notify_data_SOURCES =	\
 	microbenchs/sync_and_notify_data.c
