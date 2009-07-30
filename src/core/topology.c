@@ -126,7 +126,7 @@ static void init_machine_config(struct machine_config_s *config,
 
 	if (explicitval < 0) {
 		unsigned already_busy_cores = (config->ngordon_spus?1:0) + config->ncudagpus;
-		long avail_cores = sysconf(_SC_NPROCESSORS_ONLN) - use_accelerator?already_busy_cores:0;
+		long avail_cores = sysconf(_SC_NPROCESSORS_ONLN) - (use_accelerator?already_busy_cores:0);
 		config->ncores = STARPU_MIN(avail_cores, NMAXCORES);
 	} else {
 		/* use the specified value */
