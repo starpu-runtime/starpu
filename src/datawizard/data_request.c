@@ -186,6 +186,11 @@ static void handle_data_request_completion(data_request_t r)
 
 	update_data_state(state, r->dst_node, r->write);
 
+#ifdef USE_FXT
+	TRACE_END_DRIVER_COPY(r->src_node, r->dst_node, 0, r->com_id);
+#endif
+
+
 	/* TODO we should handle linked requests here */
 
 	r->completed = 1;

@@ -207,12 +207,18 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 		
 #ifdef USE_FXT
 		com_id = STARPU_ATOMIC_ADD(&communication_cnt, 1);
+
+		if (req)
+			req->com_id = com_id;
 #endif
 
 		/* for now we set the size to 0 in the FxT trace XXX */
 		TRACE_START_DRIVER_COPY(src_node, dst_node, 0, com_id);
 		ret_copy = copy_data_1_to_1_generic(state, src_node, dst_node, req);
-		TRACE_END_DRIVER_COPY(src_node, dst_node, 0, com_id);
+		if (ret_copy != EAGAIN)
+		{
+			TRACE_END_DRIVER_COPY(src_node, dst_node, 0, com_id);
+		}
 
 		return ret_copy;
 	}
