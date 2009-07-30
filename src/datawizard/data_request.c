@@ -199,9 +199,9 @@ static void handle_data_request_completion(data_request_t r)
 	if (r->refcnt == 0)
 		do_delete = 1;
 	
-	starpu_spin_unlock(&r->lock);
-
 	r->retval = 0;
+
+	starpu_spin_unlock(&r->lock);
 
 	if (do_delete)
 		data_request_destroy(r);
