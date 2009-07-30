@@ -171,18 +171,60 @@ int fetch_data_on_node(data_state *state, uint32_t requesting_node,
 	
 		STARPU_ASSERT(src_node != requesting_node);
 	
-		/* who will perform that request ? */
-		uint32_t handling_node =
-			select_node_to_handle_request(src_node, requesting_node);
+		unsigned src_is_a_gpu = (get_node_kind(src_node) == CUDA_RAM);
+		unsigned dst_is_a_gpu = (get_node_kind(requesting_node) == CUDA_RAM);
 
-		r = create_data_request(state, src_node, requesting_node, handling_node, read, write, is_prefetch);
+		/* we have to perform 2 successive requests for GPU->GPU transfers */
+		if (src_is_a_gpu && dst_is_a_gpu) {
+			unsigned reuse_r_src_to_ram;
+			data_request_t r_src_to_ram;
+			data_request_t r_ram_to_dst;
 
-		if (!is_prefetch)
-			r->refcnt++;
+			/* XXX we hardcore 0 as the RAM node ... */
+			r_ram_to_dst = create_data_request(state, 0, requesting_node, requesting_node, read, write, is_prefetch);
 
-		starpu_spin_unlock(&state->header_lock);
+			if (!is_prefetch)
+				r_ram_to_dst->refcnt++;
 
-		post_data_request(r, handling_node);
+			r_src_to_ram = search_existing_data_request(state, 0, read, write);
+			if (!r_src_to_ram)
+			{
+				reuse_r_src_to_ram = 0;
+				r_src_to_ram = create_data_request(state, src_node, 0, src_node, read, write, is_prefetch);
+			}
+			else {
+				reuse_r_src_to_ram = 1;
+			}
+
+			/* we chain both requests */
+			r_src_to_ram->next_req[r_src_to_ram->next_req_count++]= r_ram_to_dst;
+
+			if (reuse_r_src_to_ram)
+				starpu_spin_unlock(&r_src_to_ram->lock);
+
+			starpu_spin_unlock(&state->header_lock);
+
+			/* we only submit the first request, the remaining will be automatically submitted afterward */
+			if (!reuse_r_src_to_ram)
+				post_data_request(r_src_to_ram, src_node);
+
+			/* the application only waits for the termination of the last request */
+			r = r_ram_to_dst;
+		}
+		else {
+			/* who will perform that request ? */
+			uint32_t handling_node =
+				select_node_to_handle_request(src_node, requesting_node);
+
+			r = create_data_request(state, src_node, requesting_node, handling_node, read, write, is_prefetch);
+
+			if (!is_prefetch)
+				r->refcnt++;
+
+			starpu_spin_unlock(&state->header_lock);
+
+			post_data_request(r, handling_node);
+		}
 	}
 	else {
 		/* the lock was taken by search_existing_data_request */

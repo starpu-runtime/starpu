@@ -50,9 +50,9 @@ LIST_TYPE(data_request,
 	int retval;
 
 	/* in case we have a chain of request (eg. for nvidia multi-GPU) */
-	struct data_request_s *next_req;
+	struct data_request_s *next_req[MAXNODES];
 	/* who should perform the next request ? */
-	uint32_t next_req_handler;
+	unsigned next_req_count;
 
 	/* is StarPU forced to honour that request ? (not really when
 	 * prefetching for instance) */

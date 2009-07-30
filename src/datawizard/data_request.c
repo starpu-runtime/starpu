@@ -85,8 +85,7 @@ data_request_t create_data_request(data_state *state, uint32_t src_node, uint32_
 	r->completed = 0;
 	r->retval = -1;
 
-	r->next_req = NULL;
-	r->next_req_handler = 0;
+	r->next_req_count = 0;
 
 	r->strictness = 1;
 	r->is_a_prefetch_request = is_prefetch;
@@ -192,6 +191,11 @@ static void handle_data_request_completion(data_request_t r)
 
 
 	/* TODO we should handle linked requests here */
+	unsigned chained_req;
+	for (chained_req = 0; chained_req < r->next_req_count; chained_req++)
+	{
+		post_data_request(r->next_req[chained_req], r->next_req[chained_req]->handling_node);
+	}
 
 	r->completed = 1;
 	
