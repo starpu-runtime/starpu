@@ -14,13 +14,15 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <common/config.h>
+#include <core/debug.h>
 #include "driver_cuda.h"
 #include <core/policies/sched_policy.h>
 
 /* the number of CUDA devices */
 static int ncudagpus;
 
-//static CUdevice cuDevice;
+static CUdevice cuDevice[MAXCUDADEVS];
 static CUcontext cuContext[MAXCUDADEVS];
 CUresult status;
 
@@ -44,10 +46,13 @@ void starpu_load_cuda_module(int devid, struct starpu_cuda_module_s *module)
 	CUresult res;
 	if (!module->is_loaded[devid])
 	{
+#ifdef VERBOSE
+		fprintf(stderr, "cuModuleLoad load module %s on device %d\n", module->module_path, devid);
+#endif
 		res = cuModuleLoad(&module->module, module->module_path);
 		if (res) {
-			fprintf(stderr, "cuModuleLoad failed to open %s\n",
-					module->module_path);
+			fprintf(stderr, "cuModuleLoad failed to open %s on device %d\n",
+					module->module_path, devid);
 			CUDA_REPORT_ERROR(res);
 		}
 	
@@ -136,21 +141,33 @@ void starpu_load_cuda_function(int devid, struct starpu_cuda_function_s *functio
 {
 	CUresult res;
 
-	/* load the module on the device if it is not already the case */
-	starpu_load_cuda_module(devid, function->module);
-
-	/* load the function on the device if it is not present yet */
-	res = cuModuleGetFunction( &function->function, 
-			function->module->module, function->symbol );
-	if (res) {
-		CUDA_REPORT_ERROR(res);
+	if (!function->is_loaded[devid])
+	{
+		/* load the module on the device if it is not already the case */
+		starpu_load_cuda_module(devid, function->module);
+	
+		/* load the function on the device if it is not present yet */
+		res = cuModuleGetFunction(&function->function, 
+				function->module->module, function->symbol );
+		if (res) {
+			fprintf(stderr, "failed to load cuda function %s module %p on device %d\n", function->symbol, &function->module->module, devid);
+			CUDA_REPORT_ERROR(res);
+		}
+	
+		fprintf(stderr, "loaded cuda function %s (%p) module %p on device %d\n", function->symbol, &function->function, &function->module->module, devid);
+		function->is_loaded[devid] = 1;
 	}
-
 }
 
 void init_context(int devid)
 {
-	status = cuCtxCreate( &cuContext[devid], 0, 0);
+	/* XXX perhaps this is not devid if we actually skip some GPUs ! */
+	status = cuDeviceGet(&cuDevice[devid], devid);
+	if (status) {
+		CUDA_REPORT_ERROR(status);
+	}
+
+	status = cuCtxCreate( &cuContext[devid], 0, cuDevice[devid]);
 	if (status) {
 		CUDA_REPORT_ERROR(status);
 	}
@@ -268,6 +285,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 					args->blockx, 
 					args->blocky, 1);
 		if (status) {
+			fprintf(stderr, "cuFuncSetBlockShape on function %p failed\n", &args->func->function);
 			CUDA_REPORT_ERROR(status);
 		}
 
@@ -354,7 +372,9 @@ void *cuda_worker(void *arg)
 
 	init_context(devid);
 #ifdef VERBOSE
-	fprintf(stderr, "cuda thread is ready to run on CPU %d !\n", args->bindid);
+	char devname[128];
+	cuDeviceGetName(devname, 128, cuDevice[devid]);
+	fprintf(stderr, "cuda (%s) thread is ready to run on CPU %d !\n", devname, args->bindid);
 #endif
 
 //	uint64_t foo = 1664;
