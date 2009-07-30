@@ -125,8 +125,8 @@ static void init_machine_config(struct machine_config_s *config,
 	}
 
 	if (explicitval < 0) {
-		long avail_cores = sysconf(_SC_NPROCESSORS_ONLN) 
-						- (use_accelerator?1:0);
+		unsigned already_busy_cores = (config->ngordon_spus?1:0) + config->ncudagpus;
+		long avail_cores = sysconf(_SC_NPROCESSORS_ONLN) - use_accelerator?already_busy_cores:0;
 		config->ncores = STARPU_MIN(avail_cores, NMAXCORES);
 	} else {
 		/* use the specified value */
@@ -247,25 +247,25 @@ static void init_workers_binding(struct machine_config_s *config)
 	for (worker = 0; worker < config->nworkers; worker++)
 	{
 		unsigned memory_node = -1;
-		unsigned is_an_accelerator = 0;
+		unsigned is_a_set_of_accelerators = 0;
 		struct worker_s *workerarg = &config->workers[worker];
 		
 		/* select the memory node that contains worker's memory */
 		switch (workerarg->arch) {
 			case CORE_WORKER:
 			/* "dedicate" a cpu core to that worker */
-				is_an_accelerator = 0;
+				is_a_set_of_accelerators = 0;
 				memory_node = ram_memory_node;
 				break;
 #ifdef USE_GORDON
 			case GORDON_WORKER:
-				is_an_accelerator = 1;
+				is_a_set_of_accelerators = 1;
 				memory_node = ram_memory_node;
 				break;
 #endif
 #ifdef USE_CUDA
 			case CUDA_WORKER:
-				is_an_accelerator = 1;
+				is_a_set_of_accelerators = 0;
 				memory_node = register_memory_node(CUDA_RAM);
 				break;
 #endif
@@ -273,7 +273,7 @@ static void init_workers_binding(struct machine_config_s *config)
 				STARPU_ASSERT(0);
 		}
 
-		if (is_an_accelerator) {
+		if (is_a_set_of_accelerators) {
 			if (accelerator_bindid == -1)
 				accelerator_bindid = get_next_bindid();
 			workerarg->bindid = accelerator_bindid;
