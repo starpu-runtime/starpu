@@ -244,7 +244,7 @@ void handle_start_fetch_input(void)
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
 
-	fprintf(out_paje_file, "10       %f	S      %ld      Fi\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+//	fprintf(out_paje_file, "10       %f	S      %ld      Fi\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 
 	event_t e = event_new();
 	e->time =  ev.time;
@@ -260,7 +260,7 @@ void handle_end_fetch_input(void)
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
 
-	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+	//fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 
 	event_t e = event_new();
 	e->time =  ev.time;
@@ -276,7 +276,7 @@ void handle_start_push_output(void)
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
 
-	fprintf(out_paje_file, "10       %f	S      %ld      Po\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+//	fprintf(out_paje_file, "10       %f	S      %ld      Po\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 
 	event_t e = event_new();
 	e->time =  ev.time;
@@ -292,7 +292,7 @@ void handle_end_push_output(void)
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
 	
-	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+//	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 
 	event_t e = event_new();
 	e->time =  ev.time;

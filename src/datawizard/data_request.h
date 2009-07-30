@@ -58,6 +58,10 @@ LIST_TYPE(data_request,
 	 * prefetching for instance) */
 	unsigned strictness;
 	unsigned is_a_prefetch_request;
+
+#ifdef USE_FXT
+	unsigned com_id;
+#endif
 );
 
 void init_data_request_lists(void);
