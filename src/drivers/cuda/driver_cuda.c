@@ -160,7 +160,9 @@ void init_context(int devid)
 		CUDA_REPORT_ERROR(status);
 	}
 
-	cublasInit();
+	cublasStatus cublasst = cublasInit();
+	if (cublasst != CUBLAS_STATUS_SUCCESS)
+		STARPU_ASSERT(0);
 }
 
 void deinit_context(int devid)
