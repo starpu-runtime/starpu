@@ -73,7 +73,9 @@ static void init_machine_config(struct machine_config_s *config,
 	for (cudagpu = 0; cudagpu < config->ncudagpus; cudagpu++)
 	{
 		config->workers[config->nworkers + cudagpu].arch = CUDA_WORKER;
-		config->workers[config->nworkers + cudagpu].perf_arch = STARPU_CUDA_DEFAULT;
+		/* XXX could be cleaner, we something like STARPU_CUDA_DEFAULT + gpuid */
+		config->workers[config->nworkers + cudagpu].perf_arch = 
+			((cudagpu == 0)?STARPU_CUDA_DEFAULT:STARPU_CUDA_AUX);
 		config->workers[config->nworkers + cudagpu].id = cudagpu;
 		config->worker_mask |= (CUDA|CUBLAS);
 	}

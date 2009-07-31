@@ -118,6 +118,7 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel_t *model, unsigned
 {
 	parse_per_arch_model_file(f, &model->per_arch[STARPU_CORE_DEFAULT], scan_history);
 	parse_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_DEFAULT], scan_history);
+	parse_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_AUX], scan_history);
 	parse_per_arch_model_file(f, &model->per_arch[STARPU_GORDON_DEFAULT], scan_history);
 }
 
@@ -154,6 +155,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel_t *model)
 {
 	dump_per_arch_model_file(f, &model->per_arch[STARPU_CORE_DEFAULT]);
 	dump_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_DEFAULT]);
+	dump_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_AUX]);
 	dump_per_arch_model_file(f, &model->per_arch[STARPU_GORDON_DEFAULT]);
 }
 
@@ -167,6 +169,7 @@ static void initialize_model(struct starpu_perfmodel_t *model)
 {
 	initialize_per_arch_model(&model->per_arch[STARPU_CORE_DEFAULT]);
 	initialize_per_arch_model(&model->per_arch[STARPU_CUDA_DEFAULT]);
+	initialize_per_arch_model(&model->per_arch[STARPU_CUDA_AUX]);
 	initialize_per_arch_model(&model->per_arch[STARPU_GORDON_DEFAULT]);
 }
 
@@ -204,6 +207,10 @@ void register_model(struct starpu_perfmodel_t *model)
 	get_model_debug_path(model, "cuda", debugpath, 256);
 	model->per_arch[STARPU_CUDA_DEFAULT].debug_file = fopen(debugpath, "a+");
 	STARPU_ASSERT(model->per_arch[STARPU_CUDA_DEFAULT].debug_file);
+
+	get_model_debug_path(model, "cuda_aux", debugpath, 256);
+	model->per_arch[STARPU_CUDA_AUX].debug_file = fopen(debugpath, "a+");
+	STARPU_ASSERT(model->per_arch[STARPU_CUDA_AUX].debug_file);
 
 	get_model_debug_path(model, "core", debugpath, 256);
 	model->per_arch[STARPU_CORE_DEFAULT].debug_file = fopen(debugpath, "a+");
@@ -316,8 +323,20 @@ void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_hi
 		return;
 	}
 	
-	pthread_rwlock_init(&model->model_rwlock, NULL);
-	pthread_rwlock_wrlock(&model->model_rwlock);
+	int res;
+	res = pthread_rwlock_init(&model->model_rwlock, NULL);
+	if (STARPU_UNLIKELY(res))
+	{
+		perror("pthread_rwlock_init failed");
+		STARPU_ASSERT(0);
+	}
+
+	res = pthread_rwlock_wrlock(&model->model_rwlock);
+	if (STARPU_UNLIKELY(res))
+	{
+		perror("pthread_rwlock_wrlock failed");
+		STARPU_ASSERT(0);
+	}
 
 		/* make sure the performance model directory exists (or create it) */
 		if (!directory_existence_was_tested)
@@ -340,7 +359,6 @@ void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_hi
 #endif
 	
 		/* try to open an existing file and load it */
-		int res;
 		res = access(path, F_OK); 
 		if (res == 0) {
 		//	fprintf(stderr, "File exists !\n");
@@ -370,7 +388,12 @@ void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_hi
 	
 		model->is_loaded = STARPU_PERFMODEL_LOADED;
 
-	pthread_rwlock_unlock(&model->model_rwlock);
+	res = pthread_rwlock_unlock(&model->model_rwlock);
+	if (STARPU_UNLIKELY(res))
+	{
+		perror("pthread_rwlock_unlock");
+		STARPU_ASSERT(0);
+	}
 }
 
 /* This function is intended to be used by external tools that should read the
@@ -414,6 +437,9 @@ void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model,
 			break;
 		case STARPU_CUDA_DEFAULT:
 			archname = "cuda";
+			break;
+		case STARPU_CUDA_AUX:
+			archname = "cuda_aux";
 			break;
 		case STARPU_GORDON_DEFAULT:
 			archname = "gordon";
@@ -577,7 +603,6 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned 
 			state->ops->display(state, debug_file);
 		}
 		fprintf(debug_file, "\n");	
-
 
 		pthread_rwlock_unlock(&model->model_rwlock);
 #endif

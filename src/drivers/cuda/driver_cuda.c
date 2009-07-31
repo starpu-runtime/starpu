@@ -332,7 +332,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 		args->jobq->total_computation_time_error += error;
 
 		if (calibrate_model)
-			update_perfmodel_history(j, args->arch, args->id, measured);
+			update_perfmodel_history(j, args->perf_arch, (unsigned)args->id, measured);
 	}
 //#endif
 
