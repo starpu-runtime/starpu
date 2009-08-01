@@ -29,6 +29,56 @@
 extern unsigned get_cuda_device_count(void);
 #endif
 
+static int current_gpuid = 0;
+static unsigned get_next_gpuid_is_initialized = 0;
+static unsigned get_next_gpuid_use_envvar = 0;
+static char *get_next_gpuid_strval;
+
+static inline int get_next_gpuid(void)
+{
+	int gpuid;
+
+	if (!get_next_gpuid_is_initialized)
+	{
+		char *strval;
+		strval = getenv("WORKERS_GPUID");
+		if (strval) {
+			get_next_gpuid_strval = strval;
+			get_next_gpuid_use_envvar = 1;
+		}
+
+		get_next_gpuid_is_initialized = 1;
+	}
+	
+	if (get_next_gpuid_use_envvar)
+	{
+		/* read the value from the WORKERS_GPUID env variable */
+		long int val;
+		char *endptr;
+		val = strtol(get_next_gpuid_strval, &endptr, 10);
+		if (endptr != get_next_gpuid_strval)
+		{
+			gpuid = val;
+
+			get_next_gpuid_strval = endptr;
+		}
+		else {
+			/* there was no valid value so we use a round robin */
+			gpuid = current_gpuid++;
+		}
+	}
+	else {
+		/* the user did not specify any worker distribution so we use a
+ 		 * round robin distribution by default */
+		gpuid = current_gpuid++;
+	}
+
+	return gpuid;
+}
+
+
+
+
 static void init_machine_config(struct machine_config_s *config,
 				struct starpu_conf *user_conf)
 {
@@ -76,7 +126,7 @@ static void init_machine_config(struct machine_config_s *config,
 		/* XXX could be cleaner, we something like STARPU_CUDA_DEFAULT + gpuid */
 		config->workers[config->nworkers + cudagpu].perf_arch = 
 			((cudagpu == 0)?STARPU_CUDA_DEFAULT:STARPU_CUDA_AUX);
-		config->workers[config->nworkers + cudagpu].id = cudagpu;
+		config->workers[config->nworkers + cudagpu].id = get_next_gpuid();
 		config->worker_mask |= (CUDA|CUBLAS);
 	}
 
