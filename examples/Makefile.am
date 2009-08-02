@@ -219,6 +219,7 @@ heat_heat_SOURCES =				\
 	heat/heat.c				\
 	heat/dw_factolu.c			\
 	heat/dw_factolu_tag.c			\
+	heat/dw_factolu_grain.c			\
 	heat/dw_sparse_cg.c			\
 	heat/heat_display.c			\
 	heat/lu_kernels_model.c			\

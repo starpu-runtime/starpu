@@ -235,6 +235,8 @@ static inline void dw_common_codelet_update_u11(starpu_data_interface_t *descr, 
 
 	unsigned z;
 
+	float pouet;
+
 	switch (s) {
 		case 0:
 			for (z = 0; z < nx; z++)
@@ -257,7 +259,9 @@ static inline void dw_common_codelet_update_u11(starpu_data_interface_t *descr, 
 			{
 				float pivot;
 				/* ok that's dirty and ridiculous ... */
-				cublasGetVector(1, sizeof(float), &sub11[z+z*ld], sizeof(float), &pivot, sizeof(float));
+				//cublasGetVector(1, sizeof(float), &sub11[z+z*ld], sizeof(float), &pivot, sizeof(float));
+				cudaMemcpy(&pivot, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost);
+				cudaStreamSynchronize(0);
 
 				STARPU_ASSERT(pivot != 0.0f);
 				

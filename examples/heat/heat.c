@@ -72,6 +72,10 @@ static void parse_args(int argc, char **argv)
 			version = 3;
 		}
 
+		if (strcmp(argv[i], "-v4") == 0) {
+			version = 4;
+		}
+
 		if (strcmp(argv[i], "-pin") == 0) {
 			pinned = 1;
 		}
@@ -738,11 +742,19 @@ int main(int argc, char **argv)
 
 		fprintf(stderr, "Problem size : %dx%d (%dx%d)\n", newsize, newsize, DIM, DIM);
 
-		if (version < 3) {
-			dw_factoLU(A, newsize, newsize, nblocks, version);
-		}
-		else {
-			dw_factoLU_tag(A, newsize, newsize, nblocks);
+		switch (version) {
+			case 1:
+			case 2:
+				dw_factoLU(A, newsize, newsize, nblocks, version);
+				break;
+			case 3:
+				dw_factoLU_tag(A, newsize, newsize, nblocks);
+				break;
+			case 4:
+				dw_factoLU_grain(A, newsize, newsize, nblocks);
+				break;
+			default:
+				STARPU_ASSERT(0);
 		}
 
 		display_stat_heat();
