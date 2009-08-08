@@ -500,7 +500,7 @@ double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum 
 	return exp;
 }
 
-void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned cpuid, double measured)
+void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned cpuid __attribute__((unused)), double measured)
 {
 	struct starpu_perfmodel_t *model = j->task->cl->model;
 
