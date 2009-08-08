@@ -406,8 +406,6 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 	return NULL;
 }
 
-extern pthread_key_t local_workers_key;
-
 void *gordon_worker(void *arg)
 {
 	struct worker_set_s *gordon_set_arg = arg;
@@ -417,8 +415,10 @@ void *gordon_worker(void *arg)
 	/* TODO set_local_memory_node per SPU */
 	gordon_init(gordon_set_arg->nworkers);	
 
-	/* XXX quick and dirty ... */
-	pthread_setspecific(local_workers_key, arg);
+	/* NB: On SPUs, the worker_key is set to NULL since there is no point
+	 * in associating the PPU thread with a specific SPU (worker) while
+	 * it's handling multiple processing units. */
+	set_local_worker_key(NULL);
 
 	/*
  	 * To take advantage of PPE being hyperthreaded, we should have 2 threads

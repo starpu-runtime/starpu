@@ -122,5 +122,6 @@ inline void lock_all_queues_attached_to_node(unsigned node);
 inline void unlock_all_queues_attached_to_node(unsigned node);
 inline void broadcast_all_queues_attached_to_node(unsigned node);
 
+void set_local_worker_key(struct worker_s *worker);
 
 #endif // __WORKERS_H__

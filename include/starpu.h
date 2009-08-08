@@ -52,4 +52,13 @@ void starpu_init(struct starpu_conf *conf);
  * shutdown */
 void starpu_shutdown(void);
 
+/* Return the identifier of the thread in case this is associated to a worker.
+ * This will return -1 if this function is called directly from the application
+ * or if it is some SPU worker where a single thread controls different SPUs.
+ * */
+int starpu_get_worker_id(void);
+
+/* TODO enum archtype starpu_get_worker_type(int id) */
+/* TODO void starpu_get_worker_name(int id, char *dst, length_t maxlen) */
+
 #endif // __STARPU_H__

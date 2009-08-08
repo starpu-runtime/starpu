@@ -20,8 +20,7 @@
 #include <core/workers.h>
 #include <core/debug.h>
 
-/* XXX quick and dirty implementation for now ... */
-pthread_key_t local_workers_key;
+static pthread_key_t worker_key;
 
 static struct machine_config_s config;
 
@@ -56,7 +55,7 @@ static void init_workers(struct machine_config_s *config)
 {
 	config->running = 1;
 
-	pthread_key_create(&local_workers_key, NULL);
+	pthread_key_create(&worker_key, NULL);
 
 	unsigned worker;
 	for (worker = 0; worker < config->nworkers; worker++)
@@ -135,6 +134,16 @@ static void init_workers(struct machine_config_s *config)
 				STARPU_ASSERT(0);
 		}
 	}
+}
+
+void set_local_worker_key(struct worker_s *worker)
+{
+	pthread_setspecific(worker_key, worker);
+}
+
+static inline struct worker_s *get_local_worker_key(void)
+{
+	return pthread_getspecific(worker_key);
 }
 
 void starpu_init(struct starpu_conf *user_conf)
@@ -340,4 +349,25 @@ void starpu_shutdown(void)
 	deinit_sched_policy(&config);
 
 	close_debug_logfile();
+}
+
+/* When analyzing performance, it is useful to see what is the processing unit
+ * that actually performed the task. This function returns the id of the
+ * processing unit actually executing it, therefore it makes no sense to use it
+ * within the callbacks of SPU functions for instance. If called by some thread
+ * that is not controlled by StarPU, starpu_get_worker_id returns -1. */
+int starpu_get_worker_id(void)
+{
+	struct worker_s * worker;
+
+	worker = get_local_worker_key();
+	if (worker)
+	{
+		return worker->id;
+	}
+	else {
+		/* there is no worker associated to that thread, perhaps it is
+		 * a thread from the application or this is some SPU worker */
+		return -1;
+	}
 }

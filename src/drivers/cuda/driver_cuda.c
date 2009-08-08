@@ -361,6 +361,8 @@ void *cuda_worker(void *arg)
 
 	set_local_queue(args->jobq);
 
+	set_local_worker_key(args);
+
 	/* this is only useful (and meaningful) is there is a single
 	   memory node "related" to that queue */
 	args->jobq->memory_node = memory_node;
