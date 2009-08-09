@@ -353,6 +353,11 @@ void starpu_shutdown(void)
 	close_debug_logfile();
 }
 
+inline unsigned starpu_get_worker_count(void)
+{
+	return config.nworkers;
+}
+
 /* When analyzing performance, it is useful to see what is the processing unit
  * that actually performed the task. This function returns the id of the
  * processing unit actually executing it, therefore it makes no sense to use it
