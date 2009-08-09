@@ -57,15 +57,9 @@
 #define BENCHMARK_COMM	0
 #endif
 
-enum archtype {
-	CORE_WORKER,
-	CUDA_WORKER,
-	GORDON_WORKER
-};
-
 struct worker_s {
         pthread_mutex_t mutex;
-	enum archtype arch; /* what is the type of worker ? */
+	enum starpu_archtype arch; /* what is the type of worker ? */
 	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
 	pthread_t worker_thread; /* the thread which runs the worker */
 	int id; /* which core/gpu/etc is controlled by the workker ? */

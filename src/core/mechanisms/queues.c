@@ -43,15 +43,15 @@ void setup_queues(void (*init_queue_design)(void),
 		workerarg->jobq->arch = workerarg->perf_arch;
 
 		switch (workerarg->arch) {
-			case CORE_WORKER:
+			case STARPU_CORE_WORKER:
 				workerarg->jobq->who |= CORE;
 				workerarg->jobq->alpha = CORE_ALPHA;
 				break;
-			case CUDA_WORKER:
+			case STARPU_CUDA_WORKER:
 				workerarg->jobq->who |= CUDA|CUBLAS;
 				workerarg->jobq->alpha = CUDA_ALPHA;
 				break;
-			case GORDON_WORKER:
+			case STARPU_GORDON_WORKER:
 				workerarg->jobq->who |= GORDON;
 				workerarg->jobq->alpha = GORDON_ALPHA;
 				break;

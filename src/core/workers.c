@@ -76,7 +76,7 @@ static void init_workers(struct machine_config_s *config)
 	
 		switch (workerarg->arch) {
 #ifdef USE_CPUS
-			case CORE_WORKER:
+			case STARPU_CORE_WORKER:
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
 				pthread_create(&workerarg->worker_thread, 
@@ -90,7 +90,7 @@ static void init_workers(struct machine_config_s *config)
 				break;
 #endif
 #ifdef USE_CUDA
-			case CUDA_WORKER:
+			case STARPU_CUDA_WORKER:
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
 				pthread_create(&workerarg->worker_thread, 
@@ -104,7 +104,7 @@ static void init_workers(struct machine_config_s *config)
 				break;
 #endif
 #ifdef USE_GORDON
-			case GORDON_WORKER:
+			case STARPU_GORDON_WORKER:
 				/* we will only launch gordon once, but it will handle 
 				 * the different SPU workers */
 				if (!gordon_inited)
@@ -372,6 +372,11 @@ int starpu_get_worker_id(void)
 		 * a thread from the application or this is some SPU worker */
 		return -1;
 	}
+}
+
+enum starpu_archtype starpu_get_worker_type(int id)
+{
+	return config.workers[id].arch;
 }
 
 void starpu_get_worker_name(int id, char *dst, size_t maxlen)

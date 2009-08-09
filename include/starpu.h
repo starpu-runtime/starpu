@@ -58,7 +58,13 @@ void starpu_shutdown(void);
  * */
 int starpu_get_worker_id(void);
 
-/* TODO enum archtype starpu_get_worker_type(int id) */
+enum starpu_archtype {
+	STARPU_CORE_WORKER,
+	STARPU_CUDA_WORKER,
+	STARPU_GORDON_WORKER
+};
+
+enum starpu_archtype starpu_get_worker_type(int id);
 
 void starpu_get_worker_name(int id, char *dst, size_t maxlen);
 

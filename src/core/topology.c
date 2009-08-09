@@ -122,7 +122,7 @@ static void init_machine_config(struct machine_config_s *config,
 	unsigned cudagpu;
 	for (cudagpu = 0; cudagpu < config->ncudagpus; cudagpu++)
 	{
-		config->workers[config->nworkers + cudagpu].arch = CUDA_WORKER;
+		config->workers[config->nworkers + cudagpu].arch = STARPU_CUDA_WORKER;
 		/* XXX could be cleaner, we something like STARPU_CUDA_DEFAULT + gpuid */
 		int devid = get_next_gpuid();
 		config->workers[config->nworkers + cudagpu].id = devid;
@@ -157,7 +157,7 @@ static void init_machine_config(struct machine_config_s *config,
 	unsigned spu;
 	for (spu = 0; spu < config->ngordon_spus; spu++)
 	{
-		config->workers[config->nworkers + spu].arch = GORDON_WORKER;
+		config->workers[config->nworkers + spu].arch = STARPU_GORDON_WORKER;
 		config->workers[config->nworkers + spu].perf_arch = STARPU_GORDON_DEFAULT;
 		config->workers[config->nworkers + spu].id = spu;
 		config->workers[config->nworkers + spu].worker_is_running = 0;
@@ -191,7 +191,7 @@ static void init_machine_config(struct machine_config_s *config,
 	unsigned core;
 	for (core = 0; core < config->ncores; core++)
 	{
-		config->workers[config->nworkers + core].arch = CORE_WORKER;
+		config->workers[config->nworkers + core].arch = STARPU_CORE_WORKER;
 		config->workers[config->nworkers + core].perf_arch = STARPU_CORE_DEFAULT;
 		config->workers[config->nworkers + core].id = core;
 		config->worker_mask |= CORE;
@@ -305,19 +305,19 @@ static void init_workers_binding(struct machine_config_s *config)
 		
 		/* select the memory node that contains worker's memory */
 		switch (workerarg->arch) {
-			case CORE_WORKER:
+			case STARPU_CORE_WORKER:
 			/* "dedicate" a cpu core to that worker */
 				is_a_set_of_accelerators = 0;
 				memory_node = ram_memory_node;
 				break;
 #ifdef USE_GORDON
-			case GORDON_WORKER:
+			case STARPU_GORDON_WORKER:
 				is_a_set_of_accelerators = 1;
 				memory_node = ram_memory_node;
 				break;
 #endif
 #ifdef USE_CUDA
-			case CUDA_WORKER:
+			case STARPU_CUDA_WORKER:
 				is_a_set_of_accelerators = 0;
 				memory_node = register_memory_node(CUDA_RAM);
 				break;
