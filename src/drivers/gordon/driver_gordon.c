@@ -420,6 +420,14 @@ void *gordon_worker(void *arg)
 	 * it's handling multiple processing units. */
 	set_local_worker_key(NULL);
 
+	/* TODO set workers' name field */
+	unsigned spu;
+	for (spu = 0; spu < gordon_set_arg->nworkers; spu++)
+	{
+		struct worker_s *worker = &gordon_set_arg->workers[spu];
+		snprintf(worker->name, 32, "SPU %d", worker->id);
+	}
+
 	/*
  	 * To take advantage of PPE being hyperthreaded, we should have 2 threads
  	 * for the gordon driver : one injects works, the other makes sure that

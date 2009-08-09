@@ -59,6 +59,7 @@ void starpu_shutdown(void);
 int starpu_get_worker_id(void);
 
 /* TODO enum archtype starpu_get_worker_type(int id) */
-/* TODO void starpu_get_worker_name(int id, char *dst, length_t maxlen) */
+
+void starpu_get_worker_name(int id, char *dst, size_t maxlen);
 
 #endif // __STARPU_H__

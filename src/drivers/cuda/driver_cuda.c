@@ -373,9 +373,13 @@ void *cuda_worker(void *arg)
 	args->jobq->total_job_performed = 0;
 
 	init_context(devid);
-#ifdef VERBOSE
+
 	char devname[128];
 	cuDeviceGetName(devname, 128, cuDevice[devid]);
+
+	snprintf(args->name, 32, "CUDA %d (%s)", args->id, devname);
+
+#ifdef VERBOSE
 	fprintf(stderr, "cuda (%s) thread is ready to run on CPU %d !\n", devname, args->bindid);
 #endif
 

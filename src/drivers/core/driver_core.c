@@ -110,6 +110,8 @@ void *core_worker(void *arg)
 
 	set_local_worker_key(core_arg);
 
+	snprintf(core_arg->name, 32, "CORE %d", core_arg->id);
+
 	/* this is only useful (and meaningful) is there is a single
 	   memory node "related" to that queue */
 	core_arg->jobq->memory_node = core_arg->memory_node;

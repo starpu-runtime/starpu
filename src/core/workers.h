@@ -70,6 +70,7 @@ struct worker_s {
 	pthread_t worker_thread; /* the thread which runs the worker */
 	int id; /* which core/gpu/etc is controlled by the workker ? */
 	int bindid; /* which core is the driver bound to ? */
+	int workerid; /* uniquely identify the worker among all processing units types */
         pthread_cond_t ready_cond; /* indicate when the worker is ready */
 	unsigned memory_node; /* which memory node is associated that worker to ? */
 	struct jobq_s *jobq; /* in which queue will that worker get/put tasks ? */
@@ -77,6 +78,7 @@ struct worker_s {
 	struct job_list_s *terminated_jobs; /* list of pending jobs which were executed */
 	unsigned worker_is_running;
 	unsigned worker_is_initialized;
+	char name[32];
 };
 
 /* in case a single CPU worker may control multiple 

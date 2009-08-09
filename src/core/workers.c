@@ -65,6 +65,8 @@ static void init_workers(struct machine_config_s *config)
 		pthread_mutex_init(&workerarg->mutex, NULL);
 		pthread_cond_init(&workerarg->ready_cond, NULL);
 
+		workerarg->workerid = (int)worker;
+
 		/* if some codelet's termination cannot be handled directly :
 		 * for instance in the Gordon driver, Gordon tasks' callbacks
 		 * may be executed by another thread than that of the Gordon
@@ -363,11 +365,18 @@ int starpu_get_worker_id(void)
 	worker = get_local_worker_key();
 	if (worker)
 	{
-		return worker->id;
+		return worker->workerid;
 	}
 	else {
 		/* there is no worker associated to that thread, perhaps it is
 		 * a thread from the application or this is some SPU worker */
 		return -1;
 	}
+}
+
+void starpu_get_worker_name(int id, char *dst, size_t maxlen)
+{
+	char *name = config.workers[id].name;
+
+	snprintf(dst, maxlen, "%s", name);
 }
