@@ -30,6 +30,19 @@
 uint64_t current_tag = 1024;
 
 uint64_t used_mem = 0;
+uint64_t used_mem_predicted = 0;
+
+#define MAXREC	7
+
+/* the size consumed by the algorithm should be
+ *	<= (size)^2 * ( predicted_mem[rec] + 1)
+ * NB: we don't really need this, but this is useful to avoid allocating
+ * thousands of pinned buffers and as many VMA that pressure Linux a lot */
+static unsigned predicted_mem[7] = {
+	12, 29, 58, 110, 201, 361, 640
+};
+
+static unsigned char *bigbuffer;
 
 /*
 
@@ -151,30 +164,32 @@ static starpu_filter f2 =
 	.filter_arg = 2
 };
 
-starpu_data_handle allocate_tmp_matrix(unsigned size, unsigned reclevel)
+static float *allocate_tmp_matrix_wrapper(size_t size)
+{
+	float *buffer;
+
+	buffer = (float *)&bigbuffer[used_mem];
+
+	/* XXX there could be some extra alignment constraints here */
+	used_mem += size;
+
+	if (used_mem > used_mem_predicted)
+		fprintf(stderr, "used %ld predict %ld\n", used_mem, used_mem_predicted);
+
+	assert(used_mem <= used_mem_predicted);
+
+	memset(buffer, 0, size);
+
+	return buffer;
+
+}
+
+static starpu_data_handle allocate_tmp_matrix(unsigned size, unsigned reclevel)
 {
 	starpu_data_handle *data = malloc(sizeof(starpu_data_handle));
 	float *buffer;
 
-#ifdef USE_CUDA
-        if (pin) {
-                starpu_malloc_pinned_if_possible((void **)&buffer, size*size*sizeof(float));
-        } else
-#endif
-        {
-#ifdef HAVE_POSIX_MEMALIGN
-		posix_memalign((void **)&buffer, 4096, size*size*sizeof(float));
-#else
-		buffer = malloc(size*size*sizeof(float));
-#endif
-        }
-
-	assert(buffer);
-
-	used_mem += size*size*sizeof(float);
-
-	memset(buffer, 0, size*size*sizeof(float));
-
+	buffer = allocate_tmp_matrix_wrapper(size*size*sizeof(float));
 
 	starpu_register_blas_data(data, 0, (uintptr_t)buffer, size, size, size, sizeof(float));
 
@@ -762,36 +777,31 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
+	assert(reclevel <= MAXREC);
+
+	/* this is an upper bound ! */
+	used_mem_predicted = size*size*(predicted_mem[reclevel] + 1);
+
+	fprintf(stderr, "(Predicted) Memory consumption: %ld MB\n", used_mem_predicted/(1024*1024));
+
 	starpu_init(NULL);
 
 #ifdef USE_CUDA
         if (pin) {
-                starpu_malloc_pinned_if_possible((void **)&A, size*size*sizeof(float));
-                starpu_malloc_pinned_if_possible((void **)&B, size*size*sizeof(float));
-                starpu_malloc_pinned_if_possible((void **)&C, size*size*sizeof(float));
+                starpu_malloc_pinned_if_possible((void **)&bigbuffer, used_mem_predicted);
         } else
 #endif
         {
 #ifdef HAVE_POSIX_MEMALIGN
-                posix_memalign((void **)&A, 4096, size*size*sizeof(float));
-                posix_memalign((void **)&B, 4096, size*size*sizeof(float));
-                posix_memalign((void **)&C, 4096, size*size*sizeof(float));
+                posix_memalign((void **)&bigbuffer, 4096, used_mem_predicted);
 #else
-		A = malloc(size*size*sizeof(float));
-		B = malloc(size*size*sizeof(float));
-		C = malloc(size*size*sizeof(float));
+		bigbuffer = malloc(used_mem_predicted);
 #endif
-        }
+	}
 
-	assert(A);
-	assert(B);
-	assert(C);
-
-	used_mem += 3*size*size*sizeof(float);
-
-	memset(A, 0, size*size*sizeof(float));
-	memset(B, 0, size*size*sizeof(float));
-	memset(C, 0, size*size*sizeof(float));
+	A = allocate_tmp_matrix_wrapper(size*size*sizeof(float));
+	B = allocate_tmp_matrix_wrapper(size*size*sizeof(float));
+	C = allocate_tmp_matrix_wrapper(size*size*sizeof(float));
 
 	starpu_register_blas_data(&data_A, 0, (uintptr_t)A, size, size, size, sizeof(float));
 	starpu_register_blas_data(&data_B, 0, (uintptr_t)B, size, size, size, sizeof(float));
