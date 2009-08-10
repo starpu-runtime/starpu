@@ -258,8 +258,6 @@ static inline void dw_common_codelet_update_u11(starpu_data_interface_t *descr, 
 			for (z = 0; z < nx; z++)
 			{
 				float pivot;
-				/* ok that's dirty and ridiculous ... */
-				//cublasGetVector(1, sizeof(float), &sub11[z+z*ld], sizeof(float), &pivot, sizeof(float));
 				cudaMemcpy(&pivot, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost);
 				cudaStreamSynchronize(0);
 
