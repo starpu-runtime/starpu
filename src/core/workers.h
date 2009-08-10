@@ -49,8 +49,6 @@
 #define CUDA_ALPHA	13.33f
 #define GORDON_ALPHA	6.0f /* XXX this is a random value ... */
 
-#define NMAXWORKERS	32
-
 #ifdef DATA_STATS
 #define BENCHMARK_COMM	1
 #else
@@ -95,7 +93,7 @@ struct machine_config_s {
 	unsigned ncudagpus;
 	unsigned ngordon_spus;
 
-	struct worker_s workers[NMAXWORKERS];
+	struct worker_s workers[STARPU_NMAXWORKERS];
 	uint32_t worker_mask;
 
 	struct starpu_topo_obj_t *topology;

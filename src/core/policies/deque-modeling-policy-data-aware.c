@@ -18,7 +18,7 @@
 #include <core/perfmodel/perfmodel.h>
 
 static unsigned nworkers;
-static struct jobq_s *queue_array[NMAXWORKERS];
+static struct jobq_s *queue_array[STARPU_NMAXWORKERS];
 
 static job_t dmda_pop_task(struct jobq_s *q)
 {

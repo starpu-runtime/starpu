@@ -113,7 +113,7 @@ static void init_machine_config(struct machine_config_s *config,
 			config->ncudagpus = (unsigned)explicitval;
 			STARPU_ASSERT(config->ncudagpus <= MAXCUDADEVS);
 		}
-		STARPU_ASSERT(config->ncudagpus + config->nworkers <= NMAXWORKERS);
+		STARPU_ASSERT(config->ncudagpus + config->nworkers <= STARPU_NMAXWORKERS);
 	}
 
 	if (config->ncudagpus > 0)
@@ -149,7 +149,7 @@ static void init_machine_config(struct machine_config_s *config,
 		config->ngordon_spus = (unsigned)explicitval;
 		STARPU_ASSERT(config->ngordon_spus <= NMAXGORDONSPUS);
 	}
-	STARPU_ASSERT(config->ngordon_spus + config->nworkers <= NMAXWORKERS);
+	STARPU_ASSERT(config->ngordon_spus + config->nworkers <= STARPU_NMAXWORKERS);
 
 	if (config->ngordon_spus > 0)
 		use_accelerator = 1;
@@ -186,7 +186,7 @@ static void init_machine_config(struct machine_config_s *config,
 		config->ncores = (unsigned)explicitval;
 		STARPU_ASSERT(config->ncores <= NMAXCORES);
 	}
-	STARPU_ASSERT(config->ncores + config->nworkers <= NMAXWORKERS);
+	STARPU_ASSERT(config->ncores + config->nworkers <= STARPU_NMAXWORKERS);
 
 	unsigned core;
 	for (core = 0; core < config->ncores; core++)

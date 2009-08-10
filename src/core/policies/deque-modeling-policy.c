@@ -19,7 +19,7 @@
 #include <core/perfmodel/perfmodel.h>
 
 static unsigned nworkers;
-static struct jobq_s *queue_array[NMAXWORKERS];
+static struct jobq_s *queue_array[STARPU_NMAXWORKERS];
 static int use_prefetch = 0;
 
 static job_t dm_pop_task(struct jobq_s *q)

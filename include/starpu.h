@@ -26,6 +26,8 @@
 #include <starpu-perfmodel.h>
 #include <starpu-task.h>
 
+#define STARPU_NMAXWORKERS	32
+
 /* TODO: should either make 0 be the default, or provide an initializer, to
  * make future extensions not problematic */
 struct starpu_conf {
