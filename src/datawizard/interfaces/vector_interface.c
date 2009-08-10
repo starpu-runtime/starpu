@@ -32,8 +32,8 @@ static int dummy_copy_ram_to_ram(struct starpu_data_state_t *state, uint32_t src
 #ifdef USE_CUDA
 static int copy_ram_to_cublas(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
 static int copy_cublas_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
-static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, CUstream *stream);
-static int copy_cublas_to_ram_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, CUstream *stream);
+static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
+static int copy_cublas_to_ram_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
 #endif
 
 static const struct copy_data_methods_s vector_copy_data_methods_s = {
@@ -280,7 +280,7 @@ static int copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst
 	return 0;
 }
 
-static int copy_cublas_to_ram_async(data_state *state, uint32_t src_node, uint32_t dst_node, CUstream *stream)
+static int copy_cublas_to_ram_async(data_state *state, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream)
 {
 	starpu_vector_interface_t *src_vector;
 	starpu_vector_interface_t *dst_vector;
@@ -288,14 +288,16 @@ static int copy_cublas_to_ram_async(data_state *state, uint32_t src_node, uint32
 	src_vector = &state->interface[src_node].vector;
 	dst_vector = &state->interface[dst_node].vector;
 
-	CUresult res;
-	res = cuMemcpyDtoHAsync((char *)dst_vector->ptr, (CUdeviceptr)src_vector->ptr, src_vector->nx*src_vector->elemsize, *stream);
-	if (res)
+	cudaError_t cures;
+	cures = cudaMemcpyAsync((char *)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize, cudaMemcpyDeviceToHost, *stream);
+	if (cures)
 	{
 		/* do it in a synchronous fashion */
-		res = cuMemcpyDtoH((char *)dst_vector->ptr, (CUdeviceptr)src_vector->ptr, src_vector->nx*src_vector->elemsize);
-		if (STARPU_UNLIKELY(res))
-			STARPU_ASSERT(0);
+		cures = cudaMemcpy((char *)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize, cudaMemcpyDeviceToHost);
+		cudaThreadSynchronize();
+
+		if (STARPU_UNLIKELY(cures))
+			CUDA_REPORT_ERROR(cures);
 
 		return 0;
 	}
@@ -305,7 +307,7 @@ static int copy_cublas_to_ram_async(data_state *state, uint32_t src_node, uint32
 	return EAGAIN;
 }
 
-static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, CUstream *stream)
+static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream)
 {
 	starpu_vector_interface_t *src_vector;
 	starpu_vector_interface_t *dst_vector;
@@ -313,17 +315,18 @@ static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t 
 	src_vector = &state->interface[src_node].vector;
 	dst_vector = &state->interface[dst_node].vector;
 
-	CUresult res;
+	cudaError_t cures;
 	
-	res = cuMemcpyHtoDAsync((CUdeviceptr)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize, *stream);
-	if (res)
+	cures = cudaMemcpyAsync((char *)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize, cudaMemcpyHostToDevice, *stream);
+	if (cures)
 	{
 		/* do it in a synchronous fashion */
-		res = cuMemcpyHtoD((CUdeviceptr)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize);
-		if (STARPU_UNLIKELY(res))
-			STARPU_ASSERT(0);
+		cures = cudaMemcpy((char *)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize, cudaMemcpyHostToDevice);
+		cudaThreadSynchronize();
 
-//		cuCtxSynchronize();
+		if (STARPU_UNLIKELY(cures))
+			CUDA_REPORT_ERROR(cures);
+
 		return 0;
 	}
 

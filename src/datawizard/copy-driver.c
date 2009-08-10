@@ -75,14 +75,14 @@ static unsigned communication_cnt = 0;
 #endif
 
 #ifdef USE_CUDA
-static CUstream *create_cuda_stream(struct data_request_s *req)
+static cudaStream_t *create_cuda_stream(struct data_request_s *req)
 {
-	CUstream *stream = &(req->async_channel).stream;
+	cudaStream_t *stream = &(req->async_channel).stream;
 
-	/* TODO check status */
-	CUresult res = cuStreamCreate(stream, 0);
-
-	STARPU_ASSERT(res == CUDA_SUCCESS);
+	cudaError_t cures;
+	cures = cudaStreamCreate(stream);
+	if (STARPU_UNLIKELY(cures))
+		CUDA_REPORT_ERROR(cures);
 
 	return stream;
 }
@@ -121,7 +121,7 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 						copy_methods->cuda_to_ram(state, src_node, dst_node);
 					}
 					else {
-						CUstream *stream = create_cuda_stream(req);
+						cudaStream_t *stream = create_cuda_stream(req);
 						ret = copy_methods->cuda_to_ram_async(state, src_node, dst_node, stream);
 					}
 				}
@@ -156,7 +156,7 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 					copy_methods->ram_to_cuda(state, src_node, dst_node);
 				}
 				else {
-					CUstream *stream = create_cuda_stream(req);
+					cudaStream_t *stream = create_cuda_stream(req);
 					ret = copy_methods->ram_to_cuda_async(state, src_node, dst_node, stream);
 				}
 				break;
@@ -233,18 +233,24 @@ void driver_wait_request_completion(starpu_async_channel *async_channel,
 					unsigned handling_node)
 {
 	node_kind kind = get_node_kind(handling_node);
-	unsigned success;
 #ifdef USE_CUDA
-	CUstream stream;
+	cudaStream_t stream;
+	cudaError_t cures;
 #endif
 
 	switch (kind) {
 #ifdef USE_CUDA
 		case CUDA_RAM:
 			stream = (*async_channel).stream;
-			cuStreamSynchronize(stream);
-			cuStreamDestroy(stream);
-			
+
+			cures = cudaStreamSynchronize(stream);
+			if (STARPU_UNLIKELY(cures))
+				CUDA_REPORT_ERROR(cures);				
+
+			cures = cudaStreamDestroy(stream);
+			if (STARPU_UNLIKELY(cures))
+				CUDA_REPORT_ERROR(cures);				
+
 			break;
 #endif
 		case RAM:
@@ -259,27 +265,17 @@ unsigned driver_test_request_completion(starpu_async_channel *async_channel,
 	node_kind kind = get_node_kind(handling_node);
 	unsigned success;
 #ifdef USE_CUDA
-	CUstream stream;
+	cudaStream_t stream;
 #endif
 
 	switch (kind) {
 #ifdef USE_CUDA
 		case CUDA_RAM:
 			stream = (*async_channel).stream;
-//#if 0
-//			cudaThreadSynchronize();
-			success = (cuStreamQuery(stream) == CUDA_SUCCESS);
-			if (success)
-				cuStreamDestroy(stream);
 
-//#endif
-#if 0
-			cuStreamSynchronize(stream);
-			cuStreamDestroy(stream);
-			success = 1;
-#endif
-			
-			//fprintf(stderr, "TEST stream %p -> %d\n", stream, success);
+			success = (cudaStreamQuery(stream) == cudaSuccess);
+			if (success)
+				cudaStreamDestroy(stream);
 
 			break;
 #endif

@@ -24,6 +24,7 @@
 
 #ifdef USE_CUDA
 #include <cuda.h>
+#include <cuda_runtime.h>
 #include <cublas.h>
 #endif
 
@@ -34,7 +35,7 @@ struct data_request_s;
 typedef union {
 	int dummy;
 #ifdef USE_CUDA
-	CUstream stream;
+	cudaStream_t stream;
 #endif
 } starpu_async_channel;
 
@@ -59,11 +60,11 @@ struct copy_data_methods_s {
 #ifdef USE_CUDA
 	/* for asynchronous CUDA transfers */
 	int (*ram_to_cuda_async)(struct starpu_data_state_t *state, uint32_t src,
-					uint32_t dst, CUstream *stream);
+					uint32_t dst, cudaStream_t *stream);
 	int (*cuda_to_ram_async)(struct starpu_data_state_t *state, uint32_t src,
-					uint32_t dst, CUstream *stream);
+					uint32_t dst, cudaStream_t *stream);
 	int (*cuda_to_cuda_async)(struct starpu_data_state_t *state, uint32_t src,
-					uint32_t dst, CUstream *stream);
+					uint32_t dst, cudaStream_t *stream);
 #endif
 };
 
