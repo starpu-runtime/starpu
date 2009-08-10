@@ -59,15 +59,7 @@ void terminate(void)
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	uint64_t total_flop = BLAS3_FLOP(ydim, xdim, zdim);
-	uint64_t total_ls = ls_cublas + ls_atlas;
-
-	fprintf(stderr, "Computation took (ms):\n");
-	printf("%2.2f\n", timing/1000);
-	fprintf(stderr, "	GFlop : total (%2.2f) cublas (%2.2f) atlas (%2.2f)\n", (double)total_flop/1000000000.0f, (double)flop_cublas/1000000000.0f, (double)flop_atlas/1000000000.0f);
-	fprintf(stderr, "	GFlop/s : %2.2f\n", (double)total_flop / (double)timing/1000);
-	fprintf(stderr, "	GB : total (%2.2f) cublas (%2.2f) atlas (%2.2f)\n", (double)total_ls/1000000000.0f, (double)ls_cublas/1000000000.0f, (double)ls_atlas/1000000000.0f);
-	fprintf(stderr, "	GB/s : %2.2f\n", (double)total_ls / (double)timing/1000);
+	display_stats(timing);
 
 #ifdef CHECK_OUTPUT
 	/* check results */
@@ -94,6 +86,11 @@ void terminate(void)
 
 void callback_func(void *arg)
 {
+	/* do some accounting */
+	int id = starpu_get_worker_id();
+	flop_per_worker[id] += BLAS3_FLOP(conf.m, conf.n, conf.k);
+	ls_per_worker[id] += BLAS3_LS(conf.m, conf.n, conf.k);
+
 	/* the argument is a pointer to a counter of the remaining tasks */
 	int *counterptr = arg;
 
@@ -142,11 +139,6 @@ void cublas_mult(starpu_data_interface_t *descr, __attribute__((unused)) void *a
 	st = cublasGetError();
 	if (st != CUBLAS_STATUS_SUCCESS)
 		STARPU_ASSERT(0);
-
-	uint64_t flopcnt = BLAS3_FLOP(nyC, nxC, nyA);
-
-	flop_cublas += flopcnt;
-	ls_cublas += BLAS3_LS(nyC, nxC, nyA);
 }
 #endif
 
@@ -155,9 +147,6 @@ void core_mult(starpu_data_interface_t *descr, __attribute__((unused))  void *ar
 	COMMON_CODE
 
 	SGEMM("N", "N", nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 0.0f, subC, ldC);
-
-	flop_atlas += BLAS3_FLOP(nxC, nyC, nyA);
-	ls_atlas += BLAS3_LS(nxC, nyC, nyA);
 }
 
 static void init_problem_data(void)

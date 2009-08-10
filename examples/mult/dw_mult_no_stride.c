@@ -72,12 +72,7 @@ static void terminate(void)
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	uint64_t total_flop = BLAS3_FLOP(ydim, xdim, zdim)*niter;
-
-	fprintf(stderr, "Computation took (ms):\n");
-	printf("%2.2f\n", timing/1000);
-	fprintf(stderr, "	GFlop : total (%2.2f) cublas (%2.2f) atlas (%2.2f)\n", (double)total_flop/1000000000.0f, (double)flop_cublas/1000000000.0f, (double)flop_atlas/1000000000.0f);
-	fprintf(stderr, "	GFlop/s : %2.2f\n", (double)total_flop / (double)timing/1000);
+	display_stats(timing);
 
 	pthread_mutex_lock(&mutex);
 	pthread_cond_signal(&cond);
@@ -119,10 +114,10 @@ static void cublas_mult(starpu_data_interface_t *descr, __attribute__((unused)) 
 	if (st != CUBLAS_STATUS_SUCCESS)
 		STARPU_ASSERT(0);
 
-	uint64_t flopcnt = BLAS3_FLOP(nyC, nxC, nyA);
-
-	flop_cublas += flopcnt;
-	ls_cublas += BLAS3_LS(nyC, nxC, nyA);
+	/* do some accounting */
+	int id = starpu_get_worker_id();
+	flop_per_worker[id] += BLAS3_FLOP(BLOCKSIZEX, BLOCKSIZEY, BLOCKSIZEZ);
+	ls_per_worker[id] += BLAS3_LS(BLOCKSIZEX, BLOCKSIZEY, BLOCKSIZEZ);
 }
 #endif
 
@@ -134,8 +129,10 @@ static void core_mult(starpu_data_interface_t *descr, __attribute__((unused))  v
 //				nxC, nyC, nyA, subA, ldA, subB, ldB, subC, ldC);
 	SGEMM("N", "N", nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 1.0f, subC, ldC);
 
-	flop_atlas += BLAS3_FLOP(nxC, nyC, nyA);
-	ls_atlas += BLAS3_LS(nxC, nyC, nyA);
+	/* do some accounting */
+	int id = starpu_get_worker_id();
+	flop_per_worker[id] += BLAS3_FLOP(BLOCKSIZEX, BLOCKSIZEY, BLOCKSIZEZ);
+	ls_per_worker[id] += BLAS3_LS(BLOCKSIZEX, BLOCKSIZEY, BLOCKSIZEZ);
 }
 
 #define MEM_ALIGNMENT	16

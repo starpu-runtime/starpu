@@ -67,10 +67,12 @@ unsigned use_common_model = 0;
 /* to compute MFlop/s */
 uint64_t flop_cublas = 0;
 uint64_t flop_atlas = 0;
+uint64_t flop_per_worker[STARPU_NMAXWORKERS] = {0};
 
 /* to compute MB/s (load/store) */
 uint64_t ls_cublas = 0;
 uint64_t ls_atlas = 0;
+uint64_t ls_per_worker[STARPU_NMAXWORKERS] = {0};
 
 
 struct timeval start;
@@ -82,6 +84,30 @@ static struct block_conf conf __attribute__ ((aligned (128)));
 #define BLOCKSIZEX	(xdim / nslicesx)
 #define BLOCKSIZEY	(ydim / nslicesy)
 #define BLOCKSIZEZ	(zdim / nslicesz)
+
+static void display_stats(double timing)
+{
+	unsigned worker;
+	unsigned nworkers = starpu_get_worker_count();
+
+	fprintf(stderr, "Computation took (ms):\n");
+	printf("%2.2f\n", timing/1000);
+
+	uint64_t flop_total = 0, ls_total = 0;
+	
+	for (worker = 0; worker < nworkers; worker++)
+	{
+		flop_total += flop_per_worker[worker];
+		ls_total += ls_per_worker[worker];
+
+		char name[32];
+		starpu_get_worker_name(worker, name, 32);
+
+		fprintf(stderr, "\t%s -> %2.2f GFlop\t%2.2f GFlop/s\n", name, (double)flop_per_worker[worker]/1000000000.0f, (double)flop_per_worker[worker]/(double)timing/1000);
+	}
+
+	fprintf(stderr, "Total: %2.2f GFlops\t%2.2f GFlop/s\n", (double)flop_total/1000000000.0f, (double)flop_total/(double)timing/1000);
+}
 
 static void parse_args(int argc, char **argv)
 {
