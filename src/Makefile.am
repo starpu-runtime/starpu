@@ -78,7 +78,6 @@ noinst_HEADERS = 						\
 	common/rwlock.h						\
 	common/starpu-spinlock.h				\
 	common/fxt.h						\
-	common/cuda_helper.h					\
 	drivers/core/driver_core.h				\
 	drivers/gordon/driver_gordon.h				\
 	drivers/gordon/gordon_interface.h			\
