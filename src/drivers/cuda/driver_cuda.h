@@ -38,7 +38,6 @@
 #include <core/perfmodel/perfmodel.h>
 
 #include <common/fxt.h>
-#include <common/cuda_helper.h>
 
 
 void init_cuda(void);

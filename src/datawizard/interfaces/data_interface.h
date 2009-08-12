@@ -21,7 +21,6 @@
 
 #include <common/config.h>
 #include <datawizard/data_parameters.h>
-#include <common/cuda_helper.h>
 #include "blas_interface.h"
 #include "block_interface.h"
 #include "vector_interface.h"
