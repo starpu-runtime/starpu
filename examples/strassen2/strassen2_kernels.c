@@ -65,6 +65,10 @@ static void mult_common_codelet(starpu_data_interface_t *buffers, int s, __attri
 
 	double flop = 2.0*n*n*n;
 
+#ifdef USE_CUDA
+	cublasStatus cublasres;
+#endif
+
 	switch (s) {
 		case 0:
 			cpus_flop += flop;
@@ -73,7 +77,11 @@ static void mult_common_codelet(starpu_data_interface_t *buffers, int s, __attri
 #ifdef USE_CUDA
 		case 1:
 			cublas_flop += flop;
+
 			cublasSgemm('n', 'n', n, n, n, 1.0f, right, ld12, left, ld21, 0.0f, center, ld22);
+			cublasres = cublasGetError();
+			if (STARPU_UNLIKELY(cublasres))
+				CUBLAS_REPORT_ERROR(cublasres);
 			break;
 #endif
 		default:
@@ -113,6 +121,9 @@ static void add_sub_common_codelet(starpu_data_interface_t *buffers, int s, __at
 	// TODO check dim ...
 
 	unsigned line;
+#ifdef USE_CUDA
+	cublasStatus cublasres;
+#endif
 
 	switch (s) {
 		case 0:
@@ -132,8 +143,14 @@ static void add_sub_common_codelet(starpu_data_interface_t *buffers, int s, __at
 			{
 				/* copy line A into C */
 				cublasSaxpy(n, 1.0f, &A[line*ldA], 1, &C[line*ldC], 1);
+				cublasres = cublasGetError();
+				if (STARPU_UNLIKELY(cublasres))
+					CUBLAS_REPORT_ERROR(cublasres);
 				/* add line B to C = A */
 				cublasSaxpy(n, alpha, &B[line*ldB], 1, &C[line*ldC], 1);
+				cublasres = cublasGetError();
+				if (STARPU_UNLIKELY(cublasres))
+					CUBLAS_REPORT_ERROR(cublasres);
 			}
 
 			break;
@@ -185,6 +202,10 @@ static void self_add_sub_common_codelet(starpu_data_interface_t *buffers, int s,
 	
 	unsigned line;
 
+#ifdef USE_CUDA
+	cublasStatus cublasres;
+#endif
+
 	switch (s) {
 		case 0:
 			cpus_flop += flop;
@@ -201,6 +222,9 @@ static void self_add_sub_common_codelet(starpu_data_interface_t *buffers, int s,
 			{
 				/* add line A to C */
 				cublasSaxpy(n, alpha, &A[line*ldA], 1, &C[line*ldC], 1);
+				cublasres = cublasGetError();
+				if (STARPU_UNLIKELY(cublasres))
+					CUBLAS_REPORT_ERROR(cublasres);
 			}
 			break;
 #endif
