@@ -10,6 +10,11 @@
 #include <cufft.h>
 #endif
 
+#define DEFAULTINPUTFILE	"input.wav"
+#define DEFAULTOUTPUTFILE	"output.wav"
+static char *inputfilename = DEFAULTINPUTFILE;
+static char *outputfilename = DEFAULTOUTPUTFILE;
+
 #define NSAMPLES	8192
 #define SAMPLERATE	44100
 
@@ -22,7 +27,7 @@ static unsigned hifreq_index = (HIFREQ*NSAMPLES)/SAMPLERATE;
 
 static const size_t headersize = 37+9;
 static FILE *infile, *outfile;
-static FILE *file, *file2, *file3;
+static FILE *infile_raw, *outfile_raw;
 
 unsigned length_data;
 
@@ -214,12 +219,11 @@ void create_starpu_task(unsigned iter)
 
 static void init_problem(void)
 {
-	infile = fopen("input.wav", "r");
-	outfile = fopen("output.wav", "w+");
+	infile = fopen(inputfilename, "r");
+	outfile = fopen(outputfilename, "w+");
 
-	file = fopen("input.dat", "w");
-	file2 = fopen("input.raw", "w");
-	file3 = fopen("output.raw", "w");
+	infile_raw = fopen("input.raw", "w");
+	outfile_raw = fopen("output.raw", "w");
 
 	/* copy input's header into output WAV  */
 	copy_wav_header(infile, outfile);
@@ -235,12 +239,33 @@ static void init_problem(void)
 	outdata = malloc(length_data*sizeof(fftwf_complex));
 
 	/* read input data into buffer "A" */
-	read_16bit_wav(infile, length_data, A, file2);
+	read_16bit_wav(infile, length_data, A, infile_raw);
+}
+
+static void parse_args(int argc, char **argv)
+{
+	/* use default option */
+	if (argc == 1)
+		return;
+
+	if (argc == 3)
+	{
+		inputfilename = argv[1];
+		outputfilename = argv[2];
+		return;
+	}
+
+	fprintf(stderr, "Usage: %s [input.wav output.wav]\n", argv[0]);
+	exit(-1);
 }
 
 int main(int argc, char **argv)
 {
+	parse_args(argc, argv);
+
 	init_problem();
+
+	fprintf(stderr, "input: %s\noutput: %s\n", inputfilename, outputfilename);
 
 	unsigned niter = length_data/NSAMPLES;
 	ntasks_remaining = niter;
@@ -279,13 +304,12 @@ int main(int argc, char **argv)
 	/* we are done ! */
 	starpu_shutdown();
 
-	write_16bit_wav(outfile, length_data, A, file3);
+	write_16bit_wav(outfile, length_data, A, outfile_raw);
 
-	fclose(file);
-	fclose(file2);
-	fclose(file3);
 	fclose(infile);
 	fclose(outfile);
+	fclose(infile_raw);
+	fclose(outfile_raw);
 
 	return 0;
 }
