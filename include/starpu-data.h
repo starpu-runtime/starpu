@@ -46,4 +46,6 @@ void starpu_notify_data_modification(struct starpu_data_state_t *state, uint32_t
 
 void starpu_malloc_pinned_if_possible(void **A, size_t dim);
 
+void data_set_wb_mask(struct starpu_data_state_t *state, uint32_t wb_mask);
+
 #endif // __STARPU_DATA_H__

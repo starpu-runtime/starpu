@@ -20,7 +20,7 @@
 #include <datawizard/write_back.h>
 #include <core/dependencies/data-concurrency.h>
 
-static uint32_t select_node_to_handle_request(uint32_t src_node, uint32_t dst_node) 
+uint32_t select_node_to_handle_request(uint32_t src_node, uint32_t dst_node) 
 {
 	/* in case one of the node is a GPU, it needs to perform the transfer,
 	 * if both of them are GPU, it's a bit more complicated (TODO !) */
@@ -282,7 +282,7 @@ static int fetch_data(data_state *state, starpu_access_mode mode)
 	return fetch_data_on_node(state, requesting_node, read, write, 0);
 }
 
-uint32_t get_data_refcnt(data_state *state, uint32_t node)
+inline uint32_t get_data_refcnt(data_state *state, uint32_t node)
 {
 	return state->per_node[node].refcnt;
 }
