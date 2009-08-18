@@ -18,22 +18,26 @@
 
 
 maxiter=1
-MAXCPU=3
-
-MINSIZE=$((17*1024))
-MAXSIZE=$((29*1024))
+MINSIZE=$((4*1024))
+MAXSIZE=$((28*1024))
 
 trace_granularity()
 {
 	grain=$1
 
+	echo "GRAIN $grain"
+
 	#minblocks=1
 	minblocks=$(($MINSIZE/$grain))
 	#maxblocks=2
 	maxblocks=$(($MAXSIZE/$grain))
+	
+	if test $maxblocks -ge 32; then
+		maxblocks=32
+	fi
 
 	#step=2
-	step=2
+	step=$((2048/$grain))
 
 	for blocks in `seq $minblocks $step $maxblocks`
 	do
@@ -51,47 +55,11 @@ trace_granularity()
 		for iter in `seq 1 $maxiter`
 		do
 			echo "$iter / $maxiter"
-			 val=`SCHED="dm" $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
+			 val=`SCHED="dmda" PREFETCH=1 CALIBRATE=1 $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
 			 echo "$val" >> $filename
 		done
 	done
 }
-
-
-trace_granularity_nomodel()
-{
-	grain=$1
-
-	#minblocks=1
-	minblocks=$(($MINSIZE/$grain))
-	#maxblocks=2
-	maxblocks=$(($MAXSIZE/$grain))
-
-	step=2
-
-	for blocks in `seq $minblocks $step $maxblocks`
-	do
-		size=$(($blocks*$grain))
-		
-		ntheta=$(( $(($size/32)) + 2))
-	
-		echo "size : $size (grain $grain nblocks $blocks)"
-	
-		OPTIONS="-pin -nblocks $blocks -ntheta $ntheta -nthick 34 -v2"
-		
-		filename=$TIMINGDIR/granularity.nomodel.$grain.$size
-		#rm -f $filename
-		
-		for iter in `seq 1 $maxiter`
-		do
-			echo "$iter / $maxiter"
-			 val=`SCHED="greedy" $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
-			 echo "$val" >> $filename
-		done
-	done
-}
-
-
 
 calibrate_grain()
 {
@@ -119,7 +87,7 @@ calibrate_grain()
 	do
 		OPTIONS="-pin -nblocks $blocks -ntheta $ntheta -nthick 34 -v2"
 
-		val=`CALIBRATE=1 SCHED="dm" $ROOTDIR/examples/heat/heat $OPTIONS `
+		val=`CALIBRATE=1 SCHED="dm" $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
 	done
 	
 }
@@ -133,15 +101,12 @@ mkdir -p $SAMPLINGDIR
 #rm  -f $SAMPLINGDIR/*
 
 #grainlist="64 128 256 512 768 1024 1536 2048"
-grainlist="1024 512 256"
+grainlist="2048 1024 512 256"
 #grainlist="1280"
 
 export PERF_MODEL_DIR=$SAMPLINGDIR
 
 cd $ROOTDIR
-
-make clean 1> /dev/null 2> /dev/null
-make examples -j ATLAS=1 CPUS=$MAXCPU CUDA=1 1> /dev/null 2> /dev/null
 
 cd $DIR
 
