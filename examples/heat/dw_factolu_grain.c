@@ -244,7 +244,6 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 			create_task_21(dataA, k, i, tag_prefix);
 		}
 
-		if (k != (maxk-1))
 		for (i = k+1; i<nblocks; i++)
 		{
 			for (j = k+1; j<nblocks; j++)
@@ -274,15 +273,15 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 		 * call dw_factoLU_grain_inner recursively in the remaining blocks
 		 */
 
-		unsigned ndeps_tags = 2*(nblocks - maxk);
+		unsigned ndeps_tags = (nblocks - maxk)*(nblocks - maxk);
 		starpu_tag_t *tag_array = malloc(ndeps_tags*sizeof(starpu_tag_t));
 		STARPU_ASSERT(tag_array);
 
 		unsigned ind = 0;
-		for (k = maxk; k < nblocks; k++)
+		for (i = maxk; i < nblocks; i++)
+		for (j = maxk; j < nblocks; j++)
 		{
-			tag_array[ind++] = TAG12(maxk - 1, k, tag_prefix);
-			tag_array[ind++] = TAG21(maxk - 1, k, tag_prefix);
+			tag_array[ind++] = TAG22(maxk-1, i, j, tag_prefix);
 		}
 
 		starpu_tag_wait_array(ndeps_tags, tag_array);
@@ -305,7 +304,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 
 }
 
-void dw_factoLU_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks)
+void dw_factoLU_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks)
 {
 
 #ifdef CHECK_RESULTS
@@ -323,7 +322,7 @@ void dw_factoLU_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	gettimeofday(&start, NULL);
 
 	/* that's only ok for powers of 2 yet ! */
-	dw_factoLU_grain_inner(matA, size, size/2, ld, size/nblocks, 0);
+	dw_factoLU_grain_inner(matA, size, (size/nblocks) * nbigblocks, ld, size/nblocks, 0);
 
 	gettimeofday(&end, NULL);
 

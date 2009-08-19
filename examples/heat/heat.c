@@ -20,6 +20,7 @@
 static unsigned ntheta = 32+2;
 static unsigned nthick = 32+2;
 static unsigned nblocks = 16;
+static unsigned nbigblocks = 8;
 static unsigned shape = 0;
 static unsigned pinned = 0;
 static unsigned version = 2;
@@ -58,6 +59,11 @@ static void parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-nblocks") == 0) {
 		        char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-nbigblocks") == 0) {
+		        char *argptr;
+			nbigblocks = strtol(argv[++i], &argptr, 10);
 		}
 
 		if (strcmp(argv[i], "-v1") == 0) {
@@ -751,7 +757,7 @@ int main(int argc, char **argv)
 				dw_factoLU_tag(A, newsize, newsize, nblocks);
 				break;
 			case 4:
-				dw_factoLU_grain(A, newsize, newsize, nblocks);
+				dw_factoLU_grain(A, newsize, newsize, nblocks, nbigblocks);
 				break;
 			default:
 				STARPU_ASSERT(0);
