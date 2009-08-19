@@ -46,6 +46,10 @@ void starpu_notify_data_modification(struct starpu_data_state_t *state, uint32_t
 
 void starpu_malloc_pinned_if_possible(void **A, size_t dim);
 
-void data_set_wb_mask(struct starpu_data_state_t *state, uint32_t wb_mask);
+/* It is possible to associate a mask to a piece of data (and its children) so
+ * that when it is modified, it is automatically transfered into those memory
+ * node. For instance a (1<<0) write-back mask means that the CUDA workers will
+ * commit their changes in main memory (node 0). */
+void starpu_data_set_wb_mask(struct starpu_data_state_t *state, uint32_t wb_mask);
 
 #endif // __STARPU_DATA_H__

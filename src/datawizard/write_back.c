@@ -62,7 +62,7 @@ void write_through_data(data_state *state, uint32_t requesting_node,
 	starpu_spin_unlock(&state->header_lock);
 }
 
-void data_set_wb_mask(data_state *data, uint32_t wb_mask)
+void starpu_data_set_wb_mask(data_state *data, uint32_t wb_mask)
 {
 	data->wb_mask = wb_mask;
 
@@ -71,6 +71,6 @@ void data_set_wb_mask(data_state *data, uint32_t wb_mask)
 	{
 		int child;
 		for (child = 0; child < data->nchildren; child++)
-			data_set_wb_mask(&data->children[child], wb_mask);
+			starpu_data_set_wb_mask(&data->children[child], wb_mask);
 	}
 }
