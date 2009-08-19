@@ -161,25 +161,15 @@ void starpu_load_cuda_function(int devid, struct starpu_cuda_function_s *functio
 
 void init_context(int devid)
 {
-	/* XXX perhaps this is not devid if we actually skip some GPUs ! */
-	status = cuDeviceGet(&cuDevice[devid], devid);
-	if (status) {
-		CUDA_REPORT_ERROR(status);
-	}
+	cudaError_t cures;
 
-	status = cuCtxCreate( &cuContext[devid], 0, cuDevice[devid]);
-	if (status) {
-		CUDA_REPORT_ERROR(status);
-	}
-
-	status = cuCtxAttach(&cuContext[devid], 0);
-	if (status) {
-		CUDA_REPORT_ERROR(status);
-	}
+	cures = cudaSetDevice(devid);
+	if (STARPU_UNLIKELY(cures))
+		CUDA_REPORT_ERROR(cures);
 
 	cublasStatus cublasst = cublasInit();
-	if (cublasst != CUBLAS_STATUS_SUCCESS)
-		STARPU_ASSERT(0);
+	if (STARPU_UNLIKELY(cublasst))
+		CUBLAS_REPORT_ERROR(cublasst);
 }
 
 void deinit_context(int devid)
@@ -202,19 +192,17 @@ void deinit_context(int devid)
 unsigned get_cuda_device_count(void)
 {
 	int cnt;
-	cuDeviceGetCount(&cnt);
+
+	cudaError_t cures;
+	cures = cudaGetDeviceCount(&cnt);
+	if (STARPU_UNLIKELY(cures))
+		 CUDA_REPORT_ERROR(cures);
+	
 	return (unsigned)cnt;
 }
 
 void init_cuda(void)
 {
-	CUresult status;
-
-	status = cuInit(0);
-	if (status) {
-		CUDA_REPORT_ERROR(status);
-	}
-
 	ncudagpus = get_cuda_device_count();
 	assert(ncudagpus <= MAXCUDADEVS);
 }
@@ -229,6 +217,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 	struct starpu_task *task = j->task;
 
 	CUresult status;
+	cudaError_t cures;
 	tick_t codelet_start, codelet_end;
 	tick_t codelet_start_comm, codelet_end_comm;
 	
@@ -246,7 +235,9 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 	/* we do not take communication into account when modeling the performance */
 	if (calibrate_model || BENCHMARK_COMM)
 	{
-		cuCtxSynchronize();
+		cures = cudaThreadSynchronize();
+		if (STARPU_UNLIKELY(cures))
+			CUDA_REPORT_ERROR(cures);
 		GET_TICK(codelet_start_comm);
 	}
 
@@ -260,11 +251,13 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 
 	if (calibrate_model || BENCHMARK_COMM)
 	{
-		cuCtxSynchronize();
+		cures = cudaThreadSynchronize();
+		if (STARPU_UNLIKELY(cures))
+			CUDA_REPORT_ERROR(cures);
 		GET_TICK(codelet_end_comm);
 	}
 
-
+	datawizard_progress(get_local_memory_node());
 
 	TRACE_START_CODELET_BODY(j);
 	if (use_cublas) {
@@ -272,7 +265,12 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 		STARPU_ASSERT(func);
 		GET_TICK(codelet_start);
 		func(task->interface, task->cl_arg);
-		cuCtxSynchronize();
+
+		/* perform a barrier after the kernel */
+		cures = cudaThreadSynchronize();
+		if (STARPU_UNLIKELY(cures))
+			CUDA_REPORT_ERROR(cures);
+
 		GET_TICK(codelet_end);
 	} else {
 		/* load the module and the function */
@@ -296,22 +294,25 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 //#ifdef MODEL_DEBUG
 		if (calibrate_model || BENCHMARK_COMM)
 		{
-			status = cuCtxSynchronize();
+			cures = cudaThreadSynchronize();
+			if (STARPU_UNLIKELY(cures))
+				CUDA_REPORT_ERROR(cures);
+
 			GET_TICK(codelet_start);
 		}
 //#endif
 		status = cuLaunchGrid(args->func->function, 
 				args->gridx, args->gridy);
-		if (status) {
+		if (STARPU_UNLIKELY(status)) {
 			CUDA_REPORT_ERROR(status);
 		}
 
 
 		/* launch the function */
-		status = cuCtxSynchronize();
-		if (status) {
-			CUDA_REPORT_ERROR(status);
-		}
+		cures = cudaThreadSynchronize();
+		if (STARPU_UNLIKELY(cures))
+			CUDA_REPORT_ERROR(cures);
+
 		GET_TICK(codelet_end);
 
 	}
@@ -374,9 +375,11 @@ void *cuda_worker(void *arg)
 
 	init_context(devid);
 
+	/* get the device's name */
 	char devname[128];
-	cuDeviceGetName(devname, 128, cuDevice[devid]);
-
+	struct cudaDeviceProp prop;
+	cudaGetDeviceProperties(&prop, devid);
+	strncpy(devname, prop.name, 128);
 	snprintf(args->name, 32, "CUDA %d (%s)", args->id, devname);
 
 #ifdef VERBOSE
