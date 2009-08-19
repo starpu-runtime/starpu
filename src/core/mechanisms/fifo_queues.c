@@ -130,6 +130,11 @@ job_t fifo_pop_task(struct jobq_s *q)
 #ifdef NON_BLOCKING_DRIVERS
 		datawizard_progress(q->memory_node);
 #else
+		/* TODO that should be protected correctly !!! XXX this is a
+		 * potential deadlock since the worker could sleep right at the
+		 * moment when it's assigned some memory request */
+		handle_node_data_requests(q->memory_node);
+		handle_all_pending_node_data_requests(q->memory_node);
 		pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
 #endif
 	}
