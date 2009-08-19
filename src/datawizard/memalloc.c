@@ -81,25 +81,25 @@ static void unlock_all_subtree(data_state *data)
 
 static unsigned may_free_subtree(data_state *data, unsigned node)
 {
-	if (data->nchildren == 0)
-	{
-		/* we only free if no one refers to the leaf */
-		uint32_t refcnt = get_data_refcnt(data, node);
-		return (refcnt == 0);
-	}
-	else {
-		/* lock all sub-subtrees children */
-		int child;
-		for (child = 0; child < data->nchildren; child++)
-		{
-			unsigned res;
-			res = may_free_subtree(&data->children[child], node);
-			if (!res) return 0;
-		}
-
-		/* no problem was found */
+	/* we only free if no one refers to the leaf */
+	uint32_t refcnt = get_data_refcnt(data, node);
+	if (refcnt)
+		return 0;
+	
+	if (!data->nchildren)
 		return 1;
+	
+	/* look into all sub-subtrees children */
+	int child;
+	for (child = 0; child < data->nchildren; child++)
+	{
+		unsigned res;
+		res = may_free_subtree(&data->children[child], node);
+		if (!res) return 0;
 	}
+
+	/* no problem was found */
+	return 1;
 }
 
 static size_t do_free_mem_chunk(mem_chunk_t mc, unsigned node)
@@ -134,8 +134,16 @@ static void transfer_subtree_to_node(data_state *data, unsigned src_node,
 			data->per_node[src_node].state = INVALID;
 			data->per_node[dst_node].state = OWNER;
 
+#warning we should use requests during memory reclaim
+			/* TODO use request !! */
+			data->per_node[src_node].refcnt++;
+			data->per_node[dst_node].refcnt++;
+
 			ret = driver_copy_data_1_to_1(data, src_node, dst_node, 0, NULL);
 			STARPU_ASSERT(ret == 0);
+
+			data->per_node[src_node].refcnt--;
+			data->per_node[dst_node].refcnt--;
 
 			break;
 		case SHARED:
@@ -199,9 +207,13 @@ static size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node, unsigned atte
 	/* check if they are all "free" */
 	if (may_free_subtree(data, node))
 	{
+		STARPU_ASSERT(data->per_node[node].refcnt == 0);
+
 		/* in case there was nobody using that buffer, throw it 
 		 * away after writing it back to main memory */
 		transfer_subtree_to_node(data, node, 0);
+
+		STARPU_ASSERT(data->per_node[node].refcnt == 0);
 
 		/* now the actual buffer may be liberated */
 		liberated = do_free_mem_chunk(mc, node);
@@ -457,14 +469,22 @@ static size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node)
 	STARPU_ASSERT(mc->ops);
 	STARPU_ASSERT(mc->ops->liberate_data_on_node);
 
-	if (mc->automatically_allocated)
+	data_state *state = mc->data;
+
+//	while (starpu_spin_trylock(&state->header_lock))
+//		datawizard_progress(get_local_memory_node());
+
+#warning can we block here ?
+//	starpu_spin_lock(&state->header_lock);
+
+	if (mc->automatically_allocated && (state->per_node[node].refcnt == 0))
 	{
+		STARPU_ASSERT(state->per_node[node].allocated);
+
 		mc->ops->liberate_data_on_node(&mc->interface, node);
 
 		if (!mc->data_was_deleted)
 		{
-			data_state *state = mc->data;
-
 			state->per_node[node].allocated = 0;
 
 			/* XXX why do we need that ? */
@@ -472,7 +492,11 @@ static size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node)
 		}
 
 		liberated = mc->size;
+
+		STARPU_ASSERT(state->per_node[node].refcnt == 0);
 	}
+
+//	starpu_spin_unlock(&state->header_lock);
 
 	return liberated;
 }
