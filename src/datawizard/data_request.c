@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <common/config.h>
 #include <datawizard/data_request.h>
 #include <pthread.h>
 
@@ -60,8 +61,6 @@ void deinit_data_request_lists(void)
 /* this should be called with the lock r->state->header_lock taken */
 void data_request_destroy(data_request_t r)
 {
-/* TODO */
-#warning are we sure that it's r->dst_node ??
 	r->state->per_node[r->dst_node].request = NULL;
 
 	data_request_delete(r);
@@ -147,9 +146,11 @@ int wait_data_request_completion(data_request_t r)
 
 	} while (1);
 
-//	fprintf(stderr, "REQUEST %p COMPLETED (refcnt before = %d) !\n", r, r->refcnt);
 
 	retval = r->retval;
+	if (retval)
+		fprintf(stderr, "REQUEST %p COMPLETED (retval %d) !\n", r, r->retval);
+		
 
 	r->refcnt--;
 
@@ -170,9 +171,15 @@ void post_data_request(data_request_t r, uint32_t handling_node)
 {
 //	fprintf(stderr, "POST REQUEST\n");
 
+	STARPU_ASSERT(r->state->per_node[r->src_node].allocated);
+	STARPU_ASSERT(r->state->per_node[r->src_node].refcnt);
+
 	/* insert the request in the proper list */
 	pthread_mutex_lock(&data_requests_list_mutex[handling_node]);
+
+#warning there should be some proper locking here
 	data_request_list_push_front(data_requests[handling_node], r);
+
 	pthread_mutex_unlock(&data_requests_list_mutex[handling_node]);
 
 	wake_all_blocked_workers_on_node(handling_node);
@@ -188,7 +195,6 @@ static void handle_data_request_completion(data_request_t r)
 #ifdef USE_FXT
 	TRACE_END_DRIVER_COPY(r->src_node, r->dst_node, 0, r->com_id);
 #endif
-
 
 	/* TODO we should handle linked requests here */
 	unsigned chained_req;
@@ -227,6 +233,9 @@ static void handle_data_request(data_request_t r)
 	starpu_spin_lock(&state->header_lock);
 
 	starpu_spin_lock(&r->lock);
+
+	STARPU_ASSERT(state->per_node[r->src_node].allocated);
+	STARPU_ASSERT(state->per_node[r->src_node].refcnt);
 
 	/* perform the transfer */
 	/* the header of the data must be locked by the worker that submitted the request */
