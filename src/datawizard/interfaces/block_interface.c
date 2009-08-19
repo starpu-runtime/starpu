@@ -40,6 +40,8 @@ static const struct copy_data_methods_s block_copy_data_methods_s = {
 #ifdef USE_CUDA
 	.ram_to_cuda = copy_ram_to_cublas,
 	.cuda_to_ram = copy_cublas_to_ram,
+	.ram_to_cuda_async = NULL,
+	.cuda_to_ram_async = NULL,
 #endif
 	.cuda_to_cuda = NULL,
 	.cuda_to_spu = NULL,
@@ -229,7 +231,7 @@ uintptr_t starpu_get_block_local_ptr(data_state *state)
 	return (state->interface[node].block.ptr);
 }
 
-/* memory allocation/deallocation primitives for the BLAS interface */
+/* memory allocation/deallocation primitives for the BLOCK interface */
 
 /* returns the size of the allocated area */
 size_t allocate_block_buffer_on_node(data_state *state, uint32_t dst_node)
@@ -239,7 +241,7 @@ size_t allocate_block_buffer_on_node(data_state *state, uint32_t dst_node)
 	size_t allocated_memory;
 
 #ifdef USE_CUDA
-	cublasStatus status;
+	cudaError_t status;
 #endif
 	uint32_t nx = state->interface[dst_node].block.nx;
 	uint32_t ny = state->interface[dst_node].block.ny;
@@ -257,14 +259,13 @@ size_t allocate_block_buffer_on_node(data_state *state, uint32_t dst_node)
 			break;
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			status = cublasAlloc(nx*ny*nz, elemsize, (void **)&addr);
+			status = cudaMalloc((void **)&addr, nx*ny*nz*elemsize);
 
-			if (!addr || status != CUBLAS_STATUS_SUCCESS)
+			if (!addr || status != cudaSuccess)
 			{
-				STARPU_ASSERT(status != CUBLAS_STATUS_INTERNAL_ERROR);
-				STARPU_ASSERT(status != CUBLAS_STATUS_NOT_INITIALIZED);
-				STARPU_ASSERT(status != CUBLAS_STATUS_INVALID_VALUE);
-				STARPU_ASSERT(status == CUBLAS_STATUS_ALLOC_FAILED);
+				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
+					CUDA_REPORT_ERROR(status);
+
 				fail = 1;
 			}
 
@@ -293,7 +294,7 @@ size_t allocate_block_buffer_on_node(data_state *state, uint32_t dst_node)
 void liberate_block_buffer_on_node(starpu_data_interface_t *interface, uint32_t node)
 {
 #ifdef USE_CUDA
-	cublasStatus status;
+	cudaError_t status;
 #endif
 
 	node_kind kind = get_node_kind(node);
@@ -303,10 +304,9 @@ void liberate_block_buffer_on_node(starpu_data_interface_t *interface, uint32_t 
 			break;
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			status = cublasFree((void*)interface->block.ptr);
-			
-			STARPU_ASSERT(status != CUBLAS_STATUS_INTERNAL_ERROR);
-			STARPU_ASSERT(status == CUBLAS_STATUS_SUCCESS);
+			status = cudaFree((void*)interface->blas.ptr);
+			if (STARPU_UNLIKELY(status))
+				CUDA_REPORT_ERROR(status);
 
 			break;
 #endif
@@ -327,9 +327,11 @@ static int copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t dst
 	if ((src_block->nx == src_block->ldy) && (src_block->ldy == dst_block->ldy))
 	{
 		/* we are lucky */
-		cublasGetMatrix(src_block->nx*src_block->ny, src_block->nz, src_block->elemsize,
+		cublasStatus st;
+		st = cublasGetMatrix(src_block->nx*src_block->ny, src_block->nz, src_block->elemsize,
 			(uint8_t *)src_block->ptr, src_block->ldz,
 			(uint8_t *)dst_block->ptr, dst_block->ldz);
+		STARPU_ASSERT(st == CUBLAS_STATUS_SUCCESS);
 	}
 	else {
 		unsigned layer;
