@@ -38,6 +38,17 @@
 					| ((unsigned long long)(i)<<16)	\
 					| (unsigned long long)(j))))
 
+
+
+#define TAG11_AUX(k, prefix)	((starpu_tag_t)( (((unsigned long long)(prefix))<<60)  |  (1ULL<<56) | (unsigned long long)(k)))
+#define TAG21_AUX(k,j, prefix)	((starpu_tag_t)( (((unsigned long long)(prefix))<<60)  			\
+					|  ((3ULL<<56) | (((unsigned long long)(k))<<32)	\
+					| (unsigned long long)(j))))
+#define TAG22_AUX(k,i,j, prefix)    ((starpu_tag_t)(  (((unsigned long long)(prefix))<<60)	\
+					|  ((4ULL<<56) | ((unsigned long long)(k)<<32)  	\
+					| ((unsigned long long)(i)<<16) 			\
+					| (unsigned long long)(j))))
+
 #define BLOCKSIZE	(size/nblocks)
 
 
@@ -54,8 +65,9 @@ typedef struct {
 	sem_t *sem;
 } cl_args;
 
-static unsigned size = 4*1024;
-static unsigned nblocks = 4;
+static unsigned size = 16*1024;
+static unsigned nblocks = 16;
+static unsigned nbigblocks = 8;
 static unsigned pinned = 0;
 
 void chol_core_codelet_update_u11(starpu_data_interface_t *, void *);
@@ -87,6 +99,11 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-nblocks") == 0) {
 		        char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-nbigblocks") == 0) {
+		        char *argptr;
+			nbigblocks = strtol(argv[++i], &argptr, 10);
 		}
 
 		if (strcmp(argv[i], "-pin") == 0) {
