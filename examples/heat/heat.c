@@ -86,8 +86,16 @@ static void parse_args(int argc, char **argv)
 			pinned = 1;
 		}
 
+		if (strcmp(argv[i], "-size") == 0) {
+			char *argptr;
+			unsigned size = strtol(argv[++i], &argptr, 10);
+			nthick = 130;
+			ntheta = (size/128) + 2;
+			STARPU_ASSERT((nthick - 2)*(ntheta - 2) == size);
+		}
+
 		if (strcmp(argv[i], "-h") == 0) {
-			printf("usage : %s [-v1|-v2|-v3] [-pin] [-nthick number] [-ntheta number] [-shape [0|1|2]] [-cg]\n", argv[0]);
+			printf("usage : %s [-v1|-v2|-v3] [-pin] [-nthick number] [-ntheta number] [-shape [0|1|2]] [-cg] [-size number]\n", argv[0]);
 		}
 	}
 }
@@ -747,6 +755,8 @@ int main(int argc, char **argv)
 		build_dense_stiffness_matrix_A(pmesh, A, newsize, RefArray, RefArrayBack);
 
 		fprintf(stderr, "Problem size : %dx%d (%dx%d)\n", newsize, newsize, DIM, DIM);
+
+		STARPU_ASSERT(newsize % nblocks == 0);
 
 		switch (version) {
 			case 1:
