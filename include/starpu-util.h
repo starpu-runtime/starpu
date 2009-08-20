@@ -180,7 +180,7 @@
 #define STARPU_TRYAGAIN	1
 #define STARPU_FATAL	2
 
-static int __attribute__ ((unused)) starpu_get_env_number(const char *str)
+static inline int starpu_get_env_number(const char *str)
 {
 	char *strval;
 
