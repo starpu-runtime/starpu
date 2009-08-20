@@ -353,7 +353,7 @@ void starpu_shutdown(void)
 	close_debug_logfile();
 }
 
-inline unsigned starpu_get_worker_count(void)
+unsigned starpu_get_worker_count(void)
 {
 	return config.nworkers;
 }
