@@ -15,15 +15,12 @@
  */
 
 #include <stdio.h>
+#include <complex.h>
 
 #define STARPUFFT_FORWARD -1
 #define STARPUFFT_INVERSE 1
 
-#if defined(_Complex_I) && defined(complex) && defined(I)
 typedef float _Complex starpufftf_complex;
-#else
-typedef float starpufftf_complex[2];
-#endif
 
 typedef struct starpufftf_plan *starpufftf_plan;
 

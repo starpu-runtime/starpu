@@ -14,7 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <complex.h>
 #include <math.h>
 #include <pthread.h>
 #include <sys/time.h>
@@ -54,6 +53,7 @@ struct starpufftf_plan {
 	int *n2;
 	int dim;
 	enum type type;
+	int sign;
 
 	starpufftf_complex *roots;
 
@@ -65,6 +65,7 @@ struct starpufftf_plan {
 	struct {
 #ifdef USE_CUDA
 		cufftHandle plan_cuda;
+		int initialized;
 #endif
 #ifdef HAVE_FFTW
 		fftwf_plan plan_cpu;
@@ -93,8 +94,15 @@ dft_1d_kernel_gpu(starpu_data_interface_t *descr, void *_plan)
 
 	int workerid = starpu_get_worker_id();
 
+	if (!plan->plans[workerid].initialized) {
+		cufftResult cures;
+		cures = cufftPlan1d(&plan->plans[workerid].plan_cuda, plan->n2[0], CUFFT_C2C, 1);
+		plan->plans[workerid].initialized = 1;
+		STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	}
+
 	/* May be in-place */
-	cures = cufftExecC2C(plan->plans[workerid].plan_cuda, in, out);
+	cures = cufftExecC2C(plan->plans[workerid].plan_cuda, in, out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
 }
 
@@ -110,7 +118,7 @@ dft_r2c_1d_kernel_gpu(starpu_data_interface_t *descr, void *_plan)
 	int workerid = starpu_get_worker_id();
 
 	/* May be in-place */
-	cures = cufftExecR2C(plan->plans[workerid].plan_cuda, in, out);
+	cures = cufftExecR2C(plan->plans[workerid].plan_cuda, in, (cufftComplex*) out);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
 }
 
@@ -126,7 +134,7 @@ dft_c2r_1d_kernel_gpu(starpu_data_interface_t *descr, void *_plan)
 	int workerid = starpu_get_worker_id();
 
 	/* May be in-place */
-	cures = cufftExecC2R(plan->plans[workerid].plan_cuda, in, out);
+	cures = cufftExecC2R(plan->plans[workerid].plan_cuda, (cufftComplex*) in, out);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
 }
 #endif
@@ -243,7 +251,7 @@ starpufftf_plan
 starpufftf_plan_dft_1d(int n, int sign, unsigned flags)
 {
 	int workerid;
-	int n1 = 1024;
+	int n1 = 128;
 	int n2 = n / n1;
 	int i;
 
@@ -265,6 +273,7 @@ starpufftf_plan_dft_1d(int n, int sign, unsigned flags)
 	plan->n2 = malloc(plan->dim * sizeof(*plan->n2));
 	plan->n2[0] = n2;
 	plan->type = C2C;
+	plan->sign = sign;
 
 	/* Compute n1 n-roots of unity for twiddling */
 	starpufftf_complex exp = (sign * 2. * 4.*atan(1.)) * _Complex_I / (starpufftf_complex) n, curroot = 1;
@@ -277,22 +286,19 @@ starpufftf_plan_dft_1d(int n, int sign, unsigned flags)
 
 	for (workerid = 0; workerid < starpu_get_worker_count(); workerid++) {
 		switch (starpu_get_worker_type(workerid)) {
-#ifdef HAVE_FFTW
 		case STARPU_CORE_WORKER:
+#ifdef HAVE_FFTW
 			plan->plans[workerid].in = fftwf_malloc(n2 * sizeof(fftwf_complex));
 			plan->plans[workerid].out = fftwf_malloc(n2 * sizeof(fftwf_complex));
 			plan->plans[workerid].plan_cpu = fftwf_plan_dft_1d(n2, plan->plans[workerid].in, plan->plans[workerid].out, sign, FFTW_ESTIMATE);
 			STARPU_ASSERT(plan->plans[workerid].plan_cpu);
-			break;
 #endif
+			break;
+		case STARPU_CUDA_WORKER:
 #ifdef USE_CUDA
-		case STARPU_CUDA_WORKER: {
-			cufftResult cures;
-			cures = cufftPlan1d(&plan[workerid].plan_cuda, n2, CUFFT_C2C, 1);
-			STARPU_ASSERT(cures == CUFFT_SUCCESS);
-			break;
-		}
+			plan->plans[workerid].initialized = 0;
 #endif
+			break;
 		default:
 			STARPU_ASSERT(0);
 			break;
@@ -303,11 +309,15 @@ starpufftf_plan_dft_1d(int n, int sign, unsigned flags)
 	plan->split_out = starpufftf_malloc(n * sizeof(starpufftf_complex));
 	plan->output = starpufftf_malloc(n * sizeof(starpufftf_complex));
 
+#ifdef HAVE_FFTW
 	plan->plan_gather = fftwf_plan_many_dft(1, &n1, n2,
 			/* input */ plan->split_out, NULL, plan->n2[0], 1,
 			/* output */ plan->output, NULL, plan->n2[0], 1,
 			sign, FFTW_ESTIMATE);
 	STARPU_ASSERT(plan->plan_gather);
+#else
+#warning libstarpufft can not work correctly without libfftw3
+#endif
 
 	return plan;
 }
@@ -371,6 +381,8 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 
 				/* Unregister data */
 				for (i = 0; i < n1; i++) {
+					/* Make sure output is here? */
+					starpu_sync_data_with_mem(out_handle[i]);
 					starpu_delete_data(in_handle[i]);
 					starpu_delete_data(out_handle[i]);
 				}
@@ -381,9 +393,11 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 				for (i = 0; i < n1; i++)
 					for (j = 0; j < n2; j++)
 						split_out[i*n2+j] *= plan->roots[i*j];
+#ifdef HAVE_FFTW
 				/* Perform n2 n1-ffts */
 				fftwf_execute(plan->plan_gather);
 				memcpy(out, plan->output, n * sizeof(*out));
+#endif
 				break;
 			}
 			default:
@@ -407,21 +421,15 @@ starpufftf_destroy_plan(starpufftf_plan plan)
 
 	for (workerid = 0; workerid < starpu_get_worker_count(); workerid++) {
 		switch (starpu_get_worker_type(workerid)) {
-#ifdef HAVE_FFTW
 		case STARPU_CORE_WORKER:
+#ifdef HAVE_FFTW
 			fftwf_free(plan->plans[workerid].in);
 			fftwf_free(plan->plans[workerid].out);
 			fftwf_destroy_plan(plan->plans[workerid].plan_cpu);
-			break;
 #endif
-#ifdef USE_CUDA
-		case STARPU_CUDA_WORKER: {
-			cufftResult cures;
-			cures = cufftDestroy(plan[workerid].plan_cuda);
-			STARPU_ASSERT(cures == CUFFT_SUCCESS);
 			break;
-		}
-#endif
+		case STARPU_CUDA_WORKER:
+			break;
 		default:
 			STARPU_ASSERT(0);
 			break;
@@ -433,13 +441,21 @@ starpufftf_destroy_plan(starpufftf_plan plan)
 void *
 starpufftf_malloc(size_t n)
 {
+#ifdef HAVE_FFTW
 	return fftwf_malloc(n);
+#else
+	return malloc(n);
+#endif
 }
 
 void
 starpufftf_free(void *p)
 {
-	return fftwf_free(p);
+#ifdef HAVE_FFTW
+	fftwf_free(p);
+#else
+	free(p);
+#endif
 }
 
 void
