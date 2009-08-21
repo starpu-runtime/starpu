@@ -507,6 +507,19 @@ AC_MSG_CHECKING(which BLAS lib should be used)
 AC_MSG_RESULT($blas_lib)
 AC_SUBST(BLAS_LIB,$blas_lib)
 
+PKG_CHECK_MODULES([FFTW],  [fftw3],  [
+  AC_DEFINE([HAVE_FFTW], [1], [Define to 1 if you have the libfftw3 library.])
+  AC_SUBST([HAVE_FFTW], [1])
+], [:])
+PKG_CHECK_MODULES([FFTWF], [fftw3f], [
+  AC_DEFINE([HAVE_FFTWF], [1], [Define to 1 if you have the libfftw3f library.])
+  AC_SUBST([HAVE_FFTWF], [1])
+], [:])
+PKG_CHECK_MODULES([FFTWL], [fftw3l], [
+  AC_DEFINE([HAVE_FFTWL], [1], [Define to 1 if you have the libfftw3l library.])
+  AC_SUBST([HAVE_FFTWFL], [1])
+], [:])
+
 AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h)
 
 AC_OUTPUT([
@@ -515,6 +528,7 @@ AC_OUTPUT([
 	tools/Makefile
 	libstarpu.pc
 	examples/Makefile
+	examples/starpufft/Makefile
 	tests/Makefile
 	doc/Makefile
 ])

@@ -27,4 +27,8 @@
 
 #undef MODEL_DEBUG
 
+#undef HAVE_FFTW
+#undef HAVE_FFTWF
+#undef HAVE_FFTWL
+
 #endif
