@@ -367,7 +367,9 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 					tasks[i] = task = starpu_task_create();
 					task->cl = &dft_1d_codelet;
 					task->buffers[0].handle = in_handle[i];
+					task->buffers[0].mode = STARPU_R;
 					task->buffers[1].handle = out_handle[i];
+					task->buffers[1].mode = STARPU_W;
 					task->cl_arg = plan;
 					task->callback_func = callback;
 					task->callback_arg = plan;
