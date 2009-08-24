@@ -25,6 +25,7 @@ typedef float _Complex starpufftf_complex;
 typedef struct starpufftf_plan *starpufftf_plan;
 
 starpufftf_plan starpufftf_plan_dft_1d(int n, int sign, unsigned flags);
+starpufftf_plan starpufftf_plan_dft_2d(int n, int m, int sign, unsigned flags);
 starpufftf_plan starpufftf_plan_dft_r2c_1d(int n, unsigned flags);
 starpufftf_plan starpufftf_plan_dft_c2r_1d(int n, unsigned flags);
 

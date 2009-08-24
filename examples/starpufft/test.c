@@ -18,6 +18,9 @@
 #include <math.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <assert.h>
+#include <sys/time.h>
+
 #include <starpu.h>
 
 #include <starpu_config.h>
@@ -29,71 +32,114 @@
 
 int main(int argc, char *argv[]) {
 	int i;
+	struct timeval begin, end;
+	int size;
+	int n = 0, m = 0;
+	starpufftf_plan plan;
+	fftwf_plan fftw_plan;
 
-	if (argc != 2) {
-		fprintf(stderr,"just need size of vector\n");
+	if (argc < 2 || argc > 3) {
+		fprintf(stderr,"need one or two size of vector\n");
 		exit(EXIT_FAILURE);
 	}
 
 	starpu_init(NULL);
-	int size = atoi(argv[1]);
+
+	if (argc == 2) {
+		n = atoi(argv[1]);
+
+		/* 1D */
+		size = n;
+	} else if (argc == 3) {
+		n = atoi(argv[1]);
+		m = atoi(argv[2]);
+
+		/* 2D */
+		size = n * m;
+	} else {
+		assert(0);
+	}
 
 	starpufftf_complex *in = starpufftf_malloc(size * sizeof(*in));
-
 	srand48(0);
 	for (i = 0; i < size; i++)
 		in[i] = drand48();// + I * drand48();
 
 	starpufftf_complex *out = starpufftf_malloc(size * sizeof(*out));
-#if 1
 
-	starpufftf_plan plan = starpufftf_plan_dft_1d(size, -1, 0);
+#ifdef HAVE_FFTW
+	starpufftf_complex *out_fftw = starpufftf_malloc(size * sizeof(*out_fftw));
+#endif
+
+	if (argc == 2) {
+		plan = starpufftf_plan_dft_1d(n, -1, 0);
+#ifdef HAVE_FFTW
+		fftw_plan = fftwf_plan_dft_1d(n, in, out_fftw, -1, FFTW_ESTIMATE);
+#endif
+
+	} else if (argc == 3) {
+		plan = starpufftf_plan_dft_2d(n, m, -1, 0);
+#ifdef HAVE_FFTW
+		fftw_plan = fftwf_plan_dft_2d(n, m, in, out_fftw, -1, FFTW_ESTIMATE);
+#endif
+	} else {
+		assert(0);
+	}
 
 	starpufftf_execute(plan, in, out);
+
+#ifdef HAVE_FFTW
+	gettimeofday(&begin, NULL);
+	fftwf_execute(fftw_plan);
+	gettimeofday(&end, NULL);
+	fftwf_destroy_plan(fftw_plan);
+	double timing = (double)((end.tv_sec - begin.tv_sec)*1000000 + (end.tv_usec - begin.tv_usec));
+	printf("FFTW took %2.2f ms\n\n", timing/1000);
+#endif
 
 	starpufftf_showstats(stdout);
 	starpufftf_destroy_plan(plan);
 
 	starpu_shutdown();
-#endif
 
-#ifdef HAVE_FFTW
-	starpufftf_complex *out_fftw = starpufftf_malloc(size * sizeof(*out_fftw));
-	fftwf_plan fftw_plan = fftwf_plan_dft_1d(size, in, out_fftw, -1, FFTW_ESTIMATE);
-	fftwf_execute(fftw_plan);
-	fftwf_destroy_plan(fftw_plan);
-#endif
-
-	if (size < 16) {
+	printf("\n");
+	if (size <= 16) {
 		for (i = 0; i < size; i++)
 			printf("(%f,%f) ", cimag(in[i]), creal(in[i]));
-		printf("\n");
+		printf("\n\n");
 		for (i = 0; i < size; i++)
 			printf("(%f,%f) ", cimag(out[i]), creal(out[i]));
-		printf("\n");
+		printf("\n\n");
 #ifdef HAVE_FFTW
 		for (i = 0; i < size; i++)
 			printf("(%f,%f) ", cimag(out_fftw[i]), creal(out_fftw[i]));
-		printf("\n");
+		printf("\n\n");
 #endif
 	}
+
 #ifdef HAVE_FFTW
-	float max = 0., tot = 0., relmax = 0., reltot = 0.;
+	double max = 0., tot = 0., norm = 0., normdiff = 0.;
 	for (i = 0; i < size; i++) {
-		float diff = cabs(out[i]-out_fftw[i]);
-		float reldiff = diff / cabs(out[i]);
+		double diff = cabs(out[i]-out_fftw[i]);
+		double diff2 = diff * diff;
+		double size = cabs(out_fftw[i]);
+		double size2 = size * size;
 		if (diff > max)
 			max = diff;
-		if (reldiff > relmax)
-			relmax = reldiff;
 		tot += diff;
-		reltot += reldiff;
+		normdiff += diff2;
+		norm += size2;
 	}
-	fprintf(stderr,"\nmaximum difference %f\n", max);
-	fprintf(stderr,"maximum relative difference %f\n", relmax);
-	fprintf(stderr,"average difference %f\n", tot / size);
-	fprintf(stderr,"average relative difference %f\n", reltot / size);
+	fprintf(stderr, "\nmaximum difference %g\n", max);
+	fprintf(stderr, "average difference %g\n", tot / size);
+	fprintf(stderr, "difference norm %g\n", sqrt(normdiff));
+	double relmaxdiff = max / sqrt(norm);
+	fprintf(stderr, "relative maximum difference %g\n", relmaxdiff);
+	double relavgdiff = (tot / size) / sqrt(norm);
+	fprintf(stderr, "relative average difference %g\n", relavgdiff);
+	if (relmaxdiff > 0.0000001 || relavgdiff > 0.0000001)
+		return EXIT_FAILURE;
 #endif
 
-	return 0;
+	return EXIT_SUCCESS;
 }

@@ -26,9 +26,15 @@
 #ifdef HAVE_FFTW
 #include <fftw3.h>
 #endif
+
 #ifdef USE_CUDA
 #include <cufft.h>
 #endif
+
+#define DIV_1D 128
+#define DIV_2D 2
+
+#define _FFTW_FLAGS FFTW_ESTIMATE
 
 enum type {
 	R2C,
@@ -51,11 +57,14 @@ struct starpufftf_plan {
 	int *n;
 	int *n1;
 	int *n2;
+	int totsize;
+	int totsize1;
+	int totsize2;
 	int dim;
 	enum type type;
 	int sign;
 
-	starpufftf_complex *roots;
+	starpufftf_complex *roots[2];
 
 	/* Synchronization for termination */
 	unsigned todo;
@@ -102,7 +111,7 @@ dft_1d_kernel_gpu(starpu_data_interface_t *descr, void *_plan)
 	}
 
 	/* May be in-place */
-	cures = cufftExecC2C(plan->plans[workerid].plan_cuda, in, out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
+	cures = cufftExecC2C(plan->plans[workerid].plan_cuda, (cufftComplex*) in, (cufftComplex*) out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
 }
 
@@ -137,11 +146,34 @@ dft_c2r_1d_kernel_gpu(starpu_data_interface_t *descr, void *_plan)
 	cures = cufftExecC2R(plan->plans[workerid].plan_cuda, (cufftComplex*) in, out);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
 }
+
+static void
+dft_2d_kernel_gpu(starpu_data_interface_t *descr, void *_plan)
+{
+	starpufftf_plan plan = _plan;
+	cufftResult cures;
+
+	starpufftf_complex *in = (starpufftf_complex *)descr[0].vector.ptr;
+	starpufftf_complex *out = (starpufftf_complex *)descr[1].vector.ptr;
+
+	int workerid = starpu_get_worker_id();
+
+	if (!plan->plans[workerid].initialized) {
+		cufftResult cures;
+		cures = cufftPlan2d(&plan->plans[workerid].plan_cuda, plan->n2[0], plan->n2[1], CUFFT_C2C);
+		plan->plans[workerid].initialized = 1;
+		STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	}
+
+	/* May be in-place */
+	cures = cufftExecC2C(plan->plans[workerid].plan_cuda, (cufftComplex*) in, (cufftComplex*) out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
+	STARPU_ASSERT(cures == CUFFT_SUCCESS);
+}
 #endif
 
 #ifdef HAVE_FFTW
 static void
-dft_1d_kernel_cpu(starpu_data_interface_t *descr, void *_plan)
+dft_kernel_cpu(starpu_data_interface_t *descr, void *_plan)
 {
 	starpufftf_plan plan = _plan;
 
@@ -150,9 +182,9 @@ dft_1d_kernel_cpu(starpu_data_interface_t *descr, void *_plan)
 
 	int workerid = starpu_get_worker_id();
 	
-	memcpy(plan->plans[workerid].in, in, plan->n2[0]*sizeof(starpufftf_complex));
+	memcpy(plan->plans[workerid].in, in, plan->totsize2*sizeof(starpufftf_complex));
 	fftwf_execute(plan->plans[workerid].plan_cpu);
-	memcpy(out, plan->plans[workerid].out, plan->n2[0]*sizeof(starpufftf_complex));
+	memcpy(out, plan->plans[workerid].out, plan->totsize2*sizeof(starpufftf_complex));
 }
 #endif
 
@@ -171,6 +203,11 @@ struct starpu_perfmodel_t dft_c2r_1d_model = {
 	.symbol = "dft_c2r_1d"
 };
 
+struct starpu_perfmodel_t dft_2d_model = {
+	.type = HISTORY_BASED,
+	.symbol = "dft_2d"
+};
+
 static starpu_codelet dft_1d_codelet = {
 	.where =
 #ifdef USE_CUDA
@@ -184,7 +221,7 @@ static starpu_codelet dft_1d_codelet = {
 	.cublas_func = dft_1d_kernel_gpu,
 #endif
 #ifdef HAVE_FFTW
-	.core_func = dft_1d_kernel_cpu,
+	.core_func = dft_kernel_cpu,
 #endif
 	.model = &dft_1d_model,
 	.nbuffers = 2
@@ -203,7 +240,7 @@ static starpu_codelet dft_r2c_1d_codelet = {
 	.cublas_func = dft_r2c_1d_kernel_gpu,
 #endif
 #ifdef HAVE_FFTW
-	.core_func = dft_1d_kernel_cpu,
+	.core_func = dft_kernel_cpu,
 #endif
 	.model = &dft_r2c_1d_model,
 	.nbuffers = 2
@@ -222,9 +259,28 @@ static starpu_codelet dft_c2r_1d_codelet = {
 	.cublas_func = dft_c2r_1d_kernel_gpu,
 #endif
 #ifdef HAVE_FFTW
-	.core_func = dft_1d_kernel_cpu,
+	.core_func = dft_kernel_cpu,
 #endif
 	.model = &dft_c2r_1d_model,
+	.nbuffers = 2
+};
+
+static starpu_codelet dft_2d_codelet = {
+	.where =
+#ifdef USE_CUDA
+		CUBLAS|
+#endif
+#ifdef HAVE_FFTW
+		CORE|
+#endif
+		0,
+#ifdef USE_CUDA
+	.cublas_func = dft_2d_kernel_gpu,
+#endif
+#ifdef HAVE_FFTW
+	.core_func = dft_kernel_cpu,
+#endif
+	.model = &dft_2d_model,
 	.nbuffers = 2
 };
 
@@ -237,7 +293,7 @@ callback(void *_plan)
 
 	/* do some accounting */
 	task_per_worker[workerid]++;
-	samples_per_worker[workerid] += plan->n2[0];
+	samples_per_worker[workerid] += plan->totsize2;
 
 	if (STARPU_ATOMIC_ADD(&plan->todo, -1) == 0)
 	{
@@ -247,18 +303,38 @@ callback(void *_plan)
 	}
 }
 
+static void
+check_dims(starpufftf_plan plan)
+{
+	int dim;
+	for (dim = 0; dim < plan->dim; dim++)
+		if (plan->n[dim] & (plan->n[dim]-1)) {
+			fprintf(stderr,"can't cope with non-power-of-2\n");
+			STARPU_ASSERT(0);
+		}
+}
+
+static void
+compute_roots(starpufftf_plan plan)
+{
+	int dim, k;
+
+	/* Compute the n-roots and m-roots of unity for twiddling */
+	for (dim = 0; dim < plan->dim; dim++) {
+		starpufftf_complex exp = (plan->sign * 2. * 4.*atan(1.)) * _Complex_I / (starpufftf_complex) plan->n[dim];
+		plan->roots[dim] = malloc(plan->n[dim] * sizeof(**plan->roots));
+		for (k = 0; k < plan->n[dim]; k++)
+			plan->roots[dim][k] = cexp(exp*k);
+	}
+}
+
 starpufftf_plan
 starpufftf_plan_dft_1d(int n, int sign, unsigned flags)
 {
 	int workerid;
-	int n1 = 128;
+	int n1 = DIV_1D;
 	int n2 = n / n1;
-	int i;
 
-	if (n%n1) {
-		fprintf(stderr,"can't cope with non-power-of-2 n\n");
-		STARPU_ASSERT(0);
-	}
 	/* TODO: flags? Automatically set FFTW_MEASURE on calibration? */
 	STARPU_ASSERT(flags == 0);
 
@@ -268,18 +344,20 @@ starpufftf_plan_dft_1d(int n, int sign, unsigned flags)
 	plan->dim = 1;
 	plan->n = malloc(plan->dim * sizeof(*plan->n));
 	plan->n[0] = n;
+
+	check_dims(plan);
+
 	plan->n1 = malloc(plan->dim * sizeof(*plan->n1));
 	plan->n1[0] = n1;
 	plan->n2 = malloc(plan->dim * sizeof(*plan->n2));
 	plan->n2[0] = n2;
+	plan->totsize = n;
+	plan->totsize1 = n1;
+	plan->totsize2 = n2;
 	plan->type = C2C;
 	plan->sign = sign;
 
-	/* Compute n1 n-roots of unity for twiddling */
-	starpufftf_complex exp = (sign * 2. * 4.*atan(1.)) * _Complex_I / (starpufftf_complex) n, curroot = 1;
-	plan->roots = malloc(n * sizeof(*plan->roots));
-	for (i = 0; i < n; i++)
-		plan->roots[i] = cexp(exp*i);
+	compute_roots(plan);
 
 	pthread_mutex_init(&plan->mutex, NULL);
 	pthread_cond_init(&plan->cond, NULL);
@@ -290,7 +368,7 @@ starpufftf_plan_dft_1d(int n, int sign, unsigned flags)
 #ifdef HAVE_FFTW
 			plan->plans[workerid].in = fftwf_malloc(n2 * sizeof(fftwf_complex));
 			plan->plans[workerid].out = fftwf_malloc(n2 * sizeof(fftwf_complex));
-			plan->plans[workerid].plan_cpu = fftwf_plan_dft_1d(n2, plan->plans[workerid].in, plan->plans[workerid].out, sign, FFTW_ESTIMATE);
+			plan->plans[workerid].plan_cpu = fftwf_plan_dft_1d(n2, plan->plans[workerid].in, plan->plans[workerid].out, sign, _FFTW_FLAGS);
 			STARPU_ASSERT(plan->plans[workerid].plan_cpu);
 #endif
 			break;
@@ -310,10 +388,88 @@ starpufftf_plan_dft_1d(int n, int sign, unsigned flags)
 	plan->output = starpufftf_malloc(n * sizeof(starpufftf_complex));
 
 #ifdef HAVE_FFTW
-	plan->plan_gather = fftwf_plan_many_dft(1, &n1, n2,
-			/* input */ plan->split_out, NULL, plan->n2[0], 1,
-			/* output */ plan->output, NULL, plan->n2[0], 1,
-			sign, FFTW_ESTIMATE);
+	plan->plan_gather = fftwf_plan_many_dft(plan->dim, plan->n1, plan->totsize2,
+			/* input */ plan->split_out, NULL, n2, 1,
+			/* output */ plan->output, NULL, n2, 1,
+			sign, _FFTW_FLAGS);
+	STARPU_ASSERT(plan->plan_gather);
+#else
+#warning libstarpufft can not work correctly without libfftw3
+#endif
+
+	return plan;
+}
+
+starpufftf_plan
+starpufftf_plan_dft_2d(int n, int m, int sign, unsigned flags)
+{
+	int workerid;
+	int n1 = DIV_2D;
+	int n2 = n / n1;
+	int m1 = DIV_2D;
+	int m2 = m / m1;
+
+	/* TODO: flags? Automatically set FFTW_MEASURE on calibration? */
+	STARPU_ASSERT(flags == 0);
+
+	starpufftf_plan plan = malloc(sizeof(*plan));
+	memset(plan, 0, sizeof(*plan));
+
+	plan->dim = 2;
+	plan->n = malloc(plan->dim * sizeof(*plan->n));
+	plan->n[0] = n;
+	plan->n[1] = m;
+
+	check_dims(plan);
+
+	plan->n1 = malloc(plan->dim * sizeof(*plan->n1));
+	plan->n1[0] = n1;
+	plan->n1[1] = m1;
+	plan->n2 = malloc(plan->dim * sizeof(*plan->n2));
+	plan->n2[0] = n2;
+	plan->n2[1] = m2;
+	plan->totsize = n * m;
+	plan->totsize1 = n1 * m1;
+	plan->totsize2 = n2 * m2;
+	plan->type = C2C;
+	plan->sign = sign;
+
+	compute_roots(plan);
+
+	pthread_mutex_init(&plan->mutex, NULL);
+	pthread_cond_init(&plan->cond, NULL);
+
+	for (workerid = 0; workerid < starpu_get_worker_count(); workerid++) {
+		switch (starpu_get_worker_type(workerid)) {
+		case STARPU_CORE_WORKER:
+#ifdef HAVE_FFTW
+			plan->plans[workerid].in = fftwf_malloc(plan->totsize2 * sizeof(fftwf_complex));
+			plan->plans[workerid].out = fftwf_malloc(plan->totsize2 * sizeof(fftwf_complex));
+			plan->plans[workerid].plan_cpu = fftwf_plan_dft_2d(n2, m2, plan->plans[workerid].in, plan->plans[workerid].out, sign, _FFTW_FLAGS);
+			STARPU_ASSERT(plan->plans[workerid].plan_cpu);
+#endif
+			break;
+		case STARPU_CUDA_WORKER:
+#ifdef USE_CUDA
+			plan->plans[workerid].initialized = 0;
+#endif
+			break;
+		default:
+			STARPU_ASSERT(0);
+			break;
+		}
+	}
+
+	plan->split_in = starpufftf_malloc(plan->totsize * sizeof(starpufftf_complex));
+	plan->split_out = starpufftf_malloc(plan->totsize * sizeof(starpufftf_complex));
+	plan->output = starpufftf_malloc(plan->totsize * sizeof(starpufftf_complex));
+
+#ifdef HAVE_FFTW
+	int nembed[2] = {m2 * n2 * n, n};
+	plan->plan_gather = fftwf_plan_many_dft(plan->dim, plan->n1, plan->totsize2,
+			/* input */ plan->split_out, 0, n2*m2, 1,
+			/* output */ plan->output, nembed, n2, 1,
+			sign, _FFTW_FLAGS);
 	STARPU_ASSERT(plan->plan_gather);
 #else
 #warning libstarpufft can not work correctly without libfftw3
@@ -331,34 +487,29 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 
 	switch (plan->dim) {
 		case 1: {
-
-#define WORK1D(in_type, out_type, codelet) \
-	do { \
-	} while(0)
-
 			switch (plan->type) {
 			case C2C: {
 				starpufftf_complex *in = _in;
 				starpufftf_complex *out = _out;
 				starpufftf_complex *split_in = plan->split_in;
 				starpufftf_complex *split_out = plan->split_out;
-				int n1 = plan->n1[0], n2 = plan->n2[0], n = plan->n[0];
+				int n1 = plan->n1[0], n2 = plan->n2[0];
 				starpu_data_handle in_handle[n1];
 				starpu_data_handle out_handle[n1];
 				struct starpu_task *tasks[n1];
 				struct starpu_task *task;
 				int i,j;
 
-				plan->todo = n1;
+				plan->todo = plan->totsize1;
 
 				for (i = 0; i < n1; i++)
 					for (j = 0; j < n2; j++)
-						split_in[i*n2 + j] = in[j*n1 + i];
+						split_in[i*n2 + j] = in[i + j*n1];
 
-				for (i=0; i < n1; i++) {
+				for (i=0; i < plan->totsize1; i++) {
 					/* Register data */
-					starpu_register_vector_data(&in_handle[i], 0, (uintptr_t) &split_in[i*n2], n2, sizeof(*split_in));
-					starpu_register_vector_data(&out_handle[i], 0, (uintptr_t) &split_out[i*n2], n2, sizeof(*split_out));
+					starpu_register_vector_data(&in_handle[i], 0, (uintptr_t) &split_in[i*plan->totsize2], plan->totsize2, sizeof(*split_in));
+					starpu_register_vector_data(&out_handle[i], 0, (uintptr_t) &split_out[i*plan->totsize2], plan->totsize2, sizeof(*split_out));
 
 					/* We'll need it on the CPU only anyway */
 					starpu_data_set_wb_mask(out_handle[i], 1<<0);
@@ -382,7 +533,7 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 				pthread_mutex_unlock(&plan->mutex);
 
 				/* Unregister data */
-				for (i = 0; i < n1; i++) {
+				for (i = 0; i < plan->totsize1; i++) {
 					/* Make sure output is here? */
 					starpu_sync_data_with_mem(out_handle[i]);
 					starpu_delete_data(in_handle[i]);
@@ -394,11 +545,11 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 				/* Twiddle values */
 				for (i = 0; i < n1; i++)
 					for (j = 0; j < n2; j++)
-						split_out[i*n2+j] *= plan->roots[i*j];
+						split_out[i*n2 + j] *= plan->roots[0][i*j];
 #ifdef HAVE_FFTW
 				/* Perform n2 n1-ffts */
 				fftwf_execute(plan->plan_gather);
-				memcpy(out, plan->output, n * sizeof(*out));
+				memcpy(out, plan->output, plan->totsize * sizeof(*out));
 #endif
 				break;
 			}
@@ -406,6 +557,76 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 				STARPU_ASSERT(0);
 				break;
 			}
+			break;
+		}
+		case 2: {
+			STARPU_ASSERT(plan->type == C2C);
+			starpufftf_complex *in = _in;
+			starpufftf_complex *out = _out;
+			starpufftf_complex *split_in = plan->split_in;
+			starpufftf_complex *split_out = plan->split_out;
+			int n1 = plan->n1[0], n2 = plan->n2[0], n = plan->n[0], m = plan->n[1];
+			int m1 = plan->n1[1], m2 = plan->n2[1];
+			starpu_data_handle in_handle[plan->totsize1];
+			starpu_data_handle out_handle[plan->totsize1];
+			struct starpu_task *tasks[plan->totsize1];
+			struct starpu_task *task;
+			int i,j,k,l;
+
+			plan->todo = plan->totsize1;
+
+			for (i = 0; i < n1; i++)
+				for (j = 0; j < m1; j++)
+					for (k = 0; k < n2; k++)
+						for (l = 0; l < m2; l++)
+							split_in[i*m1*n2*m2+j*n2*m2+k*m2+l] = in[i*m+j+k*m*n1+l*m1];
+
+			for (i=0; i < plan->totsize1; i++) {
+				/* Register data */
+				starpu_register_vector_data(&in_handle[i], 0, (uintptr_t) &split_in[i*plan->totsize2], plan->totsize2, sizeof(*split_in));
+				starpu_register_vector_data(&out_handle[i], 0, (uintptr_t) &split_out[i*plan->totsize2], plan->totsize2, sizeof(*split_out));
+
+				/* We'll need it on the CPU only anyway */
+				starpu_data_set_wb_mask(out_handle[i], 1<<0);
+
+				/* Create task */
+				tasks[i] = task = starpu_task_create();
+				task->cl = &dft_2d_codelet;
+				task->buffers[0].handle = in_handle[i];
+				task->buffers[1].handle = out_handle[i];
+				task->cl_arg = plan;
+				task->callback_func = callback;
+				task->callback_arg = plan;
+				starpu_submit_task(task);
+			}
+			/* Wait for tasks */
+			pthread_mutex_lock(&plan->mutex);
+			while (plan->todo != 0)
+				pthread_cond_wait(&plan->cond, &plan->mutex);
+			pthread_mutex_unlock(&plan->mutex);
+
+			/* Unregister data */
+			for (i = 0; i < plan->totsize1; i++) {
+				/* Make sure output is here? */
+				starpu_sync_data_with_mem(out_handle[i]);
+				starpu_delete_data(in_handle[i]);
+				starpu_delete_data(out_handle[i]);
+			}
+
+			gettimeofday(&middle, NULL);
+
+			/* Twiddle values */
+			for (i = 0; i < n1; i++)
+				for (j = 0; j < m1; j++)
+					for (k = 0; k < n2; k++)
+						for (l = 0; l < m2; l++)
+							split_out[i*m1*n2*m2+j*n2*m2+k*m2+l] *= plan->roots[0][i*k] * plan->roots[1][j*l];
+
+#ifdef HAVE_FFTW
+			/* Perform n2*m2 n1*m1-ffts */
+			fftwf_execute(plan->plan_gather);
+			memcpy(out, plan->output, plan->totsize * sizeof(*out));
+#endif
 			break;
 		}
 		default:
@@ -431,6 +652,7 @@ starpufftf_destroy_plan(starpufftf_plan plan)
 #endif
 			break;
 		case STARPU_CUDA_WORKER:
+			/* FIXME: Can't deallocate */
 			break;
 		default:
 			STARPU_ASSERT(0);
