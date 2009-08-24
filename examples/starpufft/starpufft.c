@@ -465,10 +465,10 @@ starpufftf_plan_dft_2d(int n, int m, int sign, unsigned flags)
 	plan->output = starpufftf_malloc(plan->totsize * sizeof(starpufftf_complex));
 
 #ifdef HAVE_FFTW
-	int nembed[2] = {m2 * n2 * n, n};
+	//int nembed[2] = {m2 * n2 * n, n};
 	plan->plan_gather = fftwf_plan_many_dft(plan->dim, plan->n1, plan->totsize2,
 			/* input */ plan->split_out, 0, n2*m2, 1,
-			/* output */ plan->output, nembed, n2, 1,
+			/* output */ plan->output, 0, n2*m2, 1,
 			sign, _FFTW_FLAGS);
 	STARPU_ASSERT(plan->plan_gather);
 #else
@@ -481,9 +481,9 @@ starpufftf_plan_dft_2d(int n, int m, int sign, unsigned flags)
 void
 starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 {
+	gettimeofday(&start, NULL);
 	memset(task_per_worker, 0, sizeof(task_per_worker));
 	memset(samples_per_worker, 0, sizeof(task_per_worker));
-	gettimeofday(&start, NULL);
 
 	switch (plan->dim) {
 		case 1: {
@@ -549,8 +549,8 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 #ifdef HAVE_FFTW
 				/* Perform n2 n1-ffts */
 				fftwf_execute(plan->plan_gather);
-				memcpy(out, plan->output, plan->totsize * sizeof(*out));
 #endif
+				memcpy(out, plan->output, plan->totsize * sizeof(*out));
 				break;
 			}
 			default:
@@ -565,7 +565,8 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 			starpufftf_complex *out = _out;
 			starpufftf_complex *split_in = plan->split_in;
 			starpufftf_complex *split_out = plan->split_out;
-			int n1 = plan->n1[0], n2 = plan->n2[0], n = plan->n[0], m = plan->n[1];
+			starpufftf_complex *output = plan->output;
+			int n1 = plan->n1[0], n2 = plan->n2[0], /*n = plan->n[0],*/ m = plan->n[1];
 			int m1 = plan->n1[1], m2 = plan->n2[1];
 			starpu_data_handle in_handle[plan->totsize1];
 			starpu_data_handle out_handle[plan->totsize1];
@@ -625,8 +626,14 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 #ifdef HAVE_FFTW
 			/* Perform n2*m2 n1*m1-ffts */
 			fftwf_execute(plan->plan_gather);
-			memcpy(out, plan->output, plan->totsize * sizeof(*out));
 #endif
+
+			for (i = 0; i < n1; i++)
+				for (j = 0; j < m1; j++)
+					for (k = 0; k < n2; k++)
+						for (l = 0; l < m2; l++)
+							out[i*m1*n2*m2+j*m2+k*m2*m1+l] = output[i*m1*n2*m2+j*n2*m2+k*m2+l];
+
 			break;
 		}
 		default:
