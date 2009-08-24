@@ -465,7 +465,6 @@ starpufftf_plan_dft_2d(int n, int m, int sign, unsigned flags)
 	plan->output = starpufftf_malloc(plan->totsize * sizeof(starpufftf_complex));
 
 #ifdef HAVE_FFTW
-	//int nembed[2] = {m2 * n2 * n, n};
 	plan->plan_gather = fftwf_plan_many_dft(plan->dim, plan->n1, plan->totsize2,
 			/* input */ plan->split_out, 0, n2*m2, 1,
 			/* output */ plan->output, 0, n2*m2, 1,
