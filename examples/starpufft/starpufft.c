@@ -126,6 +126,13 @@ dft_r2c_1d_kernel_gpu(starpu_data_interface_t *descr, void *_plan)
 
 	int workerid = starpu_get_worker_id();
 
+	if (!plan->plans[workerid].initialized) {
+		cufftResult cures;
+		cures = cufftPlan1d(&plan->plans[workerid].plan_cuda, plan->n2[0], CUFFT_R2C, 1);
+		plan->plans[workerid].initialized = 1;
+		STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	}
+
 	/* May be in-place */
 	cures = cufftExecR2C(plan->plans[workerid].plan_cuda, in, (cufftComplex*) out);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
@@ -141,6 +148,13 @@ dft_c2r_1d_kernel_gpu(starpu_data_interface_t *descr, void *_plan)
 	float *out = (float *)descr[1].vector.ptr;
 
 	int workerid = starpu_get_worker_id();
+
+	if (!plan->plans[workerid].initialized) {
+		cufftResult cures;
+		cures = cufftPlan1d(&plan->plans[workerid].plan_cuda, plan->n2[0], CUFFT_C2R, 1);
+		plan->plans[workerid].initialized = 1;
+		STARPU_ASSERT(cures == CUFFT_SUCCESS);
+	}
 
 	/* May be in-place */
 	cures = cufftExecC2R(plan->plans[workerid].plan_cuda, (cufftComplex*) in, out);
