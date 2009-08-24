@@ -29,14 +29,24 @@
 #ifdef HAVE_FFTW
 #include <fftw3.h>
 #endif
+#ifdef USE_CUDA
+#include <cufft.h>
+#endif
 
 int main(int argc, char *argv[]) {
 	int i;
 	struct timeval begin, end;
 	int size;
+	int bytes;
 	int n = 0, m = 0;
 	starpufftf_plan plan;
+#ifdef HAVE_FFTW
 	fftwf_plan fftw_plan;
+#endif
+#ifdef USE_CUDA
+	cufftHandle cuda_plan;
+#endif
+	double timing;
 
 	if (argc < 2 || argc > 3) {
 		fprintf(stderr,"need one or two size of vector\n");
@@ -60,6 +70,8 @@ int main(int argc, char *argv[]) {
 		assert(0);
 	}
 
+	bytes = size * sizeof(starpufftf_complex);
+
 	starpufftf_complex *in = starpufftf_malloc(size * sizeof(*in));
 	srand48(0);
 	for (i = 0; i < size; i++)
@@ -71,10 +83,17 @@ int main(int argc, char *argv[]) {
 	starpufftf_complex *out_fftw = starpufftf_malloc(size * sizeof(*out_fftw));
 #endif
 
+#ifdef USE_CUDA
+	starpufftf_complex *out_cuda = malloc(size * sizeof(*out_cuda));
+#endif
+
 	if (argc == 2) {
 		plan = starpufftf_plan_dft_1d(n, -1, 0);
 #ifdef HAVE_FFTW
 		fftw_plan = fftwf_plan_dft_1d(n, in, out_fftw, -1, FFTW_ESTIMATE);
+#endif
+#ifdef USE_CUDA
+		STARPU_ASSERT(cufftPlan1d(&cuda_plan, n, CUFFT_C2C, 1) == CUFFT_SUCCESS);
 #endif
 
 	} else if (argc == 3) {
@@ -82,20 +101,33 @@ int main(int argc, char *argv[]) {
 #ifdef HAVE_FFTW
 		fftw_plan = fftwf_plan_dft_2d(n, m, in, out_fftw, -1, FFTW_ESTIMATE);
 #endif
+#ifdef USE_CUDA
+		STARPU_ASSERT(cufftPlan2d(&cuda_plan, n, m, CUFFT_C2C) == CUFFT_SUCCESS);
+#endif
 	} else {
 		assert(0);
 	}
-
-	starpufftf_execute(plan, in, out);
 
 #ifdef HAVE_FFTW
 	gettimeofday(&begin, NULL);
 	fftwf_execute(fftw_plan);
 	gettimeofday(&end, NULL);
 	fftwf_destroy_plan(fftw_plan);
-	double timing = (double)((end.tv_sec - begin.tv_sec)*1000000 + (end.tv_usec - begin.tv_usec));
-	printf("FFTW took %2.2f ms\n\n", timing/1000);
+	timing = (double)((end.tv_sec - begin.tv_sec)*1000000 + (end.tv_usec - begin.tv_usec));
+	printf("FFTW took %2.2f ms (%2.2f MB/s)\n\n", timing/1000, bytes/timing);
 #endif
+#ifdef USE_CUDA
+	gettimeofday(&begin, NULL);
+	STARPU_ASSERT(cufftExecC2C(cuda_plan, (void*) in, (void*) out_cuda, CUFFT_FORWARD) == CUFFT_SUCCESS);
+	gettimeofday(&end, NULL);
+	cufftDestroy(cuda_plan);
+	timing = (double)((end.tv_sec - begin.tv_sec)*1000000 + (end.tv_usec - begin.tv_usec));
+	printf("CUDA took %2.2f ms (%2.2f MB/s)\n\n", timing/1000, bytes/timing);
+#endif
+
+#ifdef USE_CUDA
+#endif
+	starpufftf_execute(plan, in, out);
 
 	starpufftf_showstats(stdout);
 	starpufftf_destroy_plan(plan);
