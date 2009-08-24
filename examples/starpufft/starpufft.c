@@ -32,7 +32,7 @@
 #endif
 
 #define DIV_1D 128
-#define DIV_2D 2
+#define DIV_2D 8
 
 #define _FFTW_FLAGS FFTW_ESTIMATE
 
