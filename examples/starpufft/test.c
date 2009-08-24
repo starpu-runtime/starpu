@@ -26,6 +26,8 @@
 #include <starpu_config.h>
 #include "starpufft.h"
 
+#undef USE_CUDA
+
 #ifdef HAVE_FFTW
 #include <fftw3.h>
 #endif
@@ -45,6 +47,7 @@ int main(int argc, char *argv[]) {
 #endif
 #ifdef USE_CUDA
 	cufftHandle cuda_plan;
+	cudaError_t cures;
 #endif
 	double timing;
 
@@ -93,7 +96,8 @@ int main(int argc, char *argv[]) {
 		fftw_plan = fftwf_plan_dft_1d(n, in, out_fftw, -1, FFTW_ESTIMATE);
 #endif
 #ifdef USE_CUDA
-		STARPU_ASSERT(cufftPlan1d(&cuda_plan, n, CUFFT_C2C, 1) == CUFFT_SUCCESS);
+		if (cufftPlan1d(&cuda_plan, n, CUFFT_C2C, 1) != CUFFT_SUCCESS)
+			printf("erf\n");
 #endif
 
 	} else if (argc == 3) {
@@ -118,15 +122,16 @@ int main(int argc, char *argv[]) {
 #endif
 #ifdef USE_CUDA
 	gettimeofday(&begin, NULL);
-	STARPU_ASSERT(cufftExecC2C(cuda_plan, (void*) in, (void*) out_cuda, CUFFT_FORWARD) == CUFFT_SUCCESS);
+	if (cufftExecC2C(cuda_plan, (cufftComplex*) in, (cufftComplex*) out_cuda, CUFFT_FORWARD) != CUFFT_SUCCESS)
+		printf("erf2\n");
+	if ((cures = cudaThreadSynchronize()) != cudaSuccess)
+		CUDA_REPORT_ERROR(cures);
 	gettimeofday(&end, NULL);
 	cufftDestroy(cuda_plan);
 	timing = (double)((end.tv_sec - begin.tv_sec)*1000000 + (end.tv_usec - begin.tv_usec));
 	printf("CUDA took %2.2f ms (%2.2f MB/s)\n\n", timing/1000, bytes/timing);
 #endif
 
-#ifdef USE_CUDA
-#endif
 	starpufftf_execute(plan, in, out);
 
 	starpufftf_showstats(stdout);
@@ -150,6 +155,7 @@ int main(int argc, char *argv[]) {
 	}
 
 #ifdef HAVE_FFTW
+{
 	double max = 0., tot = 0., norm = 0., normdiff = 0.;
 	for (i = 0; i < size; i++) {
 		double diff = cabs(out[i]-out_fftw[i]);
@@ -171,6 +177,33 @@ int main(int argc, char *argv[]) {
 	fprintf(stderr, "relative average difference %g\n", relavgdiff);
 	if (relmaxdiff > 0.0000001 || relavgdiff > 0.0000001)
 		return EXIT_FAILURE;
+}
+#endif
+
+#ifdef USE_CUDA
+{
+	double max = 0., tot = 0., norm = 0., normdiff = 0.;
+	for (i = 0; i < size; i++) {
+		double diff = cabs(out_cuda[i]-out_fftw[i]);
+		double diff2 = diff * diff;
+		double size = cabs(out_fftw[i]);
+		double size2 = size * size;
+		if (diff > max)
+			max = diff;
+		tot += diff;
+		normdiff += diff2;
+		norm += size2;
+	}
+	fprintf(stderr, "\nmaximum difference %g\n", max);
+	fprintf(stderr, "average difference %g\n", tot / size);
+	fprintf(stderr, "difference norm %g\n", sqrt(normdiff));
+	double relmaxdiff = max / sqrt(norm);
+	fprintf(stderr, "relative maximum difference %g\n", relmaxdiff);
+	double relavgdiff = (tot / size) / sqrt(norm);
+	fprintf(stderr, "relative average difference %g\n", relavgdiff);
+	if (relmaxdiff > 0.0000001 || relavgdiff > 0.0000001)
+		return EXIT_FAILURE;
+}
 #endif
 
 	return EXIT_SUCCESS;
