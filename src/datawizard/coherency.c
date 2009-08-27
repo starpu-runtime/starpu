@@ -43,7 +43,7 @@ uint32_t select_node_to_handle_request(uint32_t src_node, uint32_t dst_node)
 	return get_local_memory_node();
 }
 
-static uint32_t select_src_node(data_state *state)
+uint32_t select_src_node(data_state *state)
 {
 	unsigned src_node = 0;
 	unsigned i;
