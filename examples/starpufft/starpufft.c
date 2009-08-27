@@ -31,7 +31,7 @@
 #include <cufft.h>
 #endif
 
-#define DIV_1D 128
+#define DIV_1D 64
 #define DIV_2D 8
 
 #define _FFTW_FLAGS FFTW_ESTIMATE
@@ -44,7 +44,7 @@ enum type {
 
 static unsigned task_per_worker[STARPU_NMAXWORKERS];
 static unsigned samples_per_worker[STARPU_NMAXWORKERS];
-static struct timeval start, middle, end;
+static struct timeval start, init, init_tasks, do_tasks, tasks_done, twiddle, gather, end;
 
 /*
  *
@@ -518,6 +518,7 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 				for (i = 0; i < n1; i++)
 					for (j = 0; j < n2; j++)
 						split_in[i*n2 + j] = in[i + j*n1];
+				gettimeofday(&init, NULL);
 
 				for (i=0; i < plan->totsize1; i++) {
 					/* Register data */
@@ -539,11 +540,13 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 					task->callback_arg = plan;
 					starpu_submit_task(task);
 				}
+				gettimeofday(&init_tasks, NULL);
 				/* Wait for tasks */
 				pthread_mutex_lock(&plan->mutex);
 				while (plan->todo != 0)
 					pthread_cond_wait(&plan->cond, &plan->mutex);
 				pthread_mutex_unlock(&plan->mutex);
+				gettimeofday(&do_tasks, NULL);
 
 				/* Unregister data */
 				for (i = 0; i < plan->totsize1; i++) {
@@ -553,15 +556,17 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 					starpu_delete_data(out_handle[i]);
 				}
 
-				gettimeofday(&middle, NULL);
+				gettimeofday(&tasks_done, NULL);
 
 				/* Twiddle values */
 				for (i = 0; i < n1; i++)
 					for (j = 0; j < n2; j++)
 						split_out[i*n2 + j] *= plan->roots[0][i*j];
+				gettimeofday(&twiddle, NULL);
 #ifdef HAVE_FFTW
 				/* Perform n2 n1-ffts */
 				fftwf_execute(plan->plan_gather);
+				gettimeofday(&gather, NULL);
 #endif
 				memcpy(out, plan->output, plan->totsize * sizeof(*out));
 				break;
@@ -594,6 +599,7 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 					for (k = 0; k < n2; k++)
 						for (l = 0; l < m2; l++)
 							split_in[i*m1*n2*m2+j*n2*m2+k*m2+l] = in[i*m+j+k*m*n1+l*m1];
+			gettimeofday(&init, NULL);
 
 			for (i=0; i < plan->totsize1; i++) {
 				/* Register data */
@@ -613,11 +619,13 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 				task->callback_arg = plan;
 				starpu_submit_task(task);
 			}
+			gettimeofday(&init_tasks, NULL);
 			/* Wait for tasks */
 			pthread_mutex_lock(&plan->mutex);
 			while (plan->todo != 0)
 				pthread_cond_wait(&plan->cond, &plan->mutex);
 			pthread_mutex_unlock(&plan->mutex);
+			gettimeofday(&do_tasks, NULL);
 
 			/* Unregister data */
 			for (i = 0; i < plan->totsize1; i++) {
@@ -626,8 +634,7 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 				starpu_delete_data(in_handle[i]);
 				starpu_delete_data(out_handle[i]);
 			}
-
-			gettimeofday(&middle, NULL);
+			gettimeofday(&tasks_done, NULL);
 
 			/* Twiddle values */
 			for (i = 0; i < n1; i++)
@@ -636,10 +643,13 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 						for (l = 0; l < m2; l++)
 							split_out[i*m1*n2*m2+j*n2*m2+k*m2+l] *= plan->roots[0][i*k] * plan->roots[1][j*l];
 
+			gettimeofday(&twiddle, NULL);
+
 #ifdef HAVE_FFTW
 			/* Perform n2*m2 n1*m1-ffts */
 			fftwf_execute(plan->plan_gather);
 #endif
+			gettimeofday(&gather, NULL);
 
 			for (i = 0; i < n1; i++)
 				for (j = 0; j < m1; j++)
@@ -708,12 +718,18 @@ starpufftf_showstats(FILE *out)
 	int worker;
 	unsigned total;
 
-	double paratiming = (double)((middle.tv_sec - start.tv_sec)*1000000 + (middle.tv_usec - start.tv_usec));
-	double gathertiming = (double)((end.tv_sec - middle.tv_sec)*1000000 + (end.tv_usec - middle.tv_usec));
-	double timing = paratiming + gathertiming;
-	fprintf(out, "Fully parallel computation took %2.2f ms\n", paratiming/1000);
-	fprintf(out, "Gather computation took %2.2f ms\n", gathertiming/1000);
-	fprintf(out, "Total %2.2f ms\n", timing/1000);
+#define TIMING(begin,end) (double)((end.tv_sec - begin.tv_sec)*1000000 + (end.tv_usec - begin.tv_usec))
+#define MSTIMING(begin,end) (TIMING(begin,end)/1000.)
+	double paratiming = TIMING(init,do_tasks);
+	fprintf(out, "Initialization took %2.2f ms\n", MSTIMING(start,init));
+	fprintf(out, "Tasks submission took %2.2f ms\n", MSTIMING(init,init_tasks));
+	fprintf(out, "Tasks termination took %2.2f ms\n", MSTIMING(init_tasks,do_tasks));
+	fprintf(out, "Tasks cleanup took %2.2f ms\n", MSTIMING(do_tasks,tasks_done));
+	fprintf(out, "Twiddle took %2.2f ms\n", MSTIMING(tasks_done,twiddle));
+	fprintf(out, "Gather took %2.2f ms\n", MSTIMING(twiddle,gather));
+	fprintf(out, "Finalization took %2.2f ms\n", MSTIMING(gather,end));
+
+	fprintf(out, "Total %2.2f ms\n", MSTIMING(start,end));
 
 	for (worker = 0, total = 0; worker < STARPU_NMAXWORKERS; worker++)
 		total += task_per_worker[worker];
