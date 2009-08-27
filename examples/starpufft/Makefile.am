@@ -13,6 +13,8 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+#
+AM_CPPFLAGS = -I$(top_srcdir)/include/
 
 lib_LTLIBRARIES = libstarpufft.la
 
