@@ -142,12 +142,11 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	found_cudalib=no
 	if test -d "$cuda_dir/lib/"; then
 		LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib/ "
-		AC_SEARCH_LIBS([cuInit],[cuda],[foud_cudalib=yes],[found_cudalib=no])
+		AC_SEARCH_LIBS([cuInit],[cuda],[found_cudalib=yes],[found_cudalib=no])
 	fi
 
 	if test x$found_cudalib=xno -o -d "$cuda_dir/lib64/"; then
 		LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib64/ "
-		AC_SEARCH_LIBS([cuInit],[cuda],[foud_cudalib=yes],[found_cudalib=no])
 	fi
 
 	AC_SEARCH_LIBS([cuInit],[cuda],[],[have_valid_cuda=no])
