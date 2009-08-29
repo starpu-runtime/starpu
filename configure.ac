@@ -129,14 +129,28 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	if test -d "$cuda_dir/include/"; then
 		CPPFLAGS="${CPPFLAGS} -I$cuda_dir/include/ "
 	fi
-	if test -d "$cuda_dir/lib/"; then
-		LDFLAGS="${LDFLAGS} -L$cuda_dir/lib/ "
-	fi
 
 	# do we have a valid CUDA setup ?
 	have_valid_cuda=yes
 	AC_CHECK_HEADER([cuda.h],,[have_valid_cuda=no])
-	AC_SEARCH_LIBS([cuInit],[cuda],,[have_valid_cuda=no])
+
+	# we are looking for the proper option in LDFLAGS, so we save the
+	# current value of LDFLAGS so that we can add new things in it and
+	# restore it in case it's not working.
+	SAVED_LDFLAGS="${LDFLAGS}"
+
+	found_cudalib=no
+	if test -d "$cuda_dir/lib/"; then
+		LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib/ "
+		AC_SEARCH_LIBS([cuInit],[cuda],[foud_cudalib=yes],[found_cudalib=no])
+	fi
+
+	if test x$found_cudalib=xno -o -d "$cuda_dir/lib64/"; then
+		LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib64/ "
+		AC_SEARCH_LIBS([cuInit],[cuda],[foud_cudalib=yes],[found_cudalib=no])
+	fi
+
+	AC_SEARCH_LIBS([cuInit],[cuda],[],[have_valid_cuda=no])
 
 	# we also check that CUBLAS is available
 	AC_SEARCH_LIBS([cublasInit],[cublas],,[have_valid_cuda=no])
