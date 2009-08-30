@@ -49,9 +49,9 @@ void spmv_kernel(uint32_t nnz, uint32_t nrow, float *nzval, uint32_t *colind, ui
 }
 
 extern "C" __global__ 
-void spmv_kernel_2(uint32_t nnz, uint32_t nrow, float *nzval, uint32_t *colind, uint32_t *rowptr, 
-			uint32_t firstentry, uint32_t elemsize, 
-			float *vecin, uint32_t nx_in, uint32_t elemsize1, float * vecout, uint32_t nx_out, uint32_t elemsize2)
+void spmv_kernel_3(uint32_t nnz, uint32_t nrow, float *nzval, uint32_t *colind, uint32_t *rowptr, 
+			uint32_t firstentry, 
+			float *vecin, uint32_t nx_in, float * vecout, uint32_t nx_out)
 {
 	/* only one dimension is used here */
 	unsigned block_rowstart = blockIdx.x*( (nrow + gridDim.x - 1)/gridDim.x );
@@ -77,34 +77,17 @@ void spmv_kernel_2(uint32_t nnz, uint32_t nrow, float *nzval, uint32_t *colind, 
 
 }
 
-
-
-extern "C" __global__ 
-void spmv_kernel_3(uint32_t nnz, uint32_t nrow, float *nzval, uint32_t *colind, uint32_t *rowptr, 
-			uint32_t firstentry, uint32_t elemsize, 
-			float *vecin, uint32_t nx_in, uint32_t elemsize1, float * vecout, uint32_t nx_out, uint32_t elemsize2)
+extern "C" void spmv_kernel_cpu_wrapper(uint32_t nnz, uint32_t nrow, float *nzval,
+			uint32_t *colind, uint32_t *rowptr, uint32_t firstentry,
+			float *vecin, uint32_t nx_in,
+			float * vecout, uint32_t nx_out)
 {
-	/* only one dimension is used here */
-	unsigned block_rowstart = blockIdx.x*( (nrow + gridDim.x - 1)/gridDim.x );
-	unsigned block_rowend = MIN((blockIdx.x+1)*( (nrow + gridDim.x - 1)/gridDim.x ), nrow);
+	dim3 dimBlock(8, 1);
+	dim3 dimGrid(512, 1);
 
-	unsigned row;
-	for (row = block_rowstart + threadIdx.x; row < block_rowend; row+=blockDim.x)
-	{
-		float tmp = 0.0f;
-		unsigned index;
+	spmv_kernel_3<<<dimGrid, dimBlock>>>(nnz, nrow, nzval, colind, rowptr,
+						firstentry, vecin, nx_in, vecout, nx_out);
 
-		unsigned firstindex = rowptr[row] - firstentry;
-		unsigned lastindex = rowptr[row+1] - firstentry;
-
-		for (index = firstindex; index < lastindex; index++)
-		{
-			tmp += nzval[index]*vecin[colind[index]];
-		}
-
-		vecout[row] = tmp;
-	}
-	
-
+	cudaThreadSynchronize();
 }
 

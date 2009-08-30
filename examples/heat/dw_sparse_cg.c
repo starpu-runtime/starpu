@@ -20,40 +20,6 @@
 
 #include "dw_sparse_cg.h"
 
-#ifdef USE_CUDA
-/* CUDA spmv codelet */
-static struct starpu_cuda_module_s cuda_module;
-static struct starpu_cuda_function_s cuda_function;
-static starpu_cuda_codelet_t cuda_codelet;
-static char module_path[1024];
-
-void initialize_cuda(void)
-{
-	sprintf(module_path,
-		"%s/examples/cuda/spmv_cuda.cubin", STARPUDIR);
-	char *function_symbol = "spmv_kernel_3";
-
-	starpu_init_cuda_module(&cuda_module, module_path);
-	starpu_init_cuda_function(&cuda_function, &cuda_module, function_symbol);
-
-	cuda_codelet.func = &cuda_function;
-	cuda_codelet.stack = NULL;
-	cuda_codelet.stack_size = 0; 
-
-	cuda_codelet.gridx = grids;
-	cuda_codelet.gridy = 1;
-
-	cuda_codelet.blockx = blocks;
-	cuda_codelet.blocky = 1;
-
-	cuda_codelet.shmemsize = 128;
-}
-
-
-
-
-#endif // USE_CUDA
-
 static struct starpu_task *create_task(starpu_tag_t id)
 {
 	starpu_codelet *cl = malloc(sizeof(starpu_codelet));
@@ -430,37 +396,5 @@ void do_conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz
 	/* start the runtime */
 	starpu_init(NULL);
 
-
-#ifdef USE_CUDA
-	initialize_cuda();
-#endif
-
 	conjugate_gradient(nzvalA, vecb, vecx, nnz, nrow, colind, rowptr);
 }
-
-#if 0
-int main(__attribute__ ((unused)) int argc,
-	__attribute__ ((unused)) char **argv)
-{
-	parse_args(argc, argv);
-
-	timing_init();
-
-	/* start the runtime */
-	starpu_init(NULL);
-
-
-#ifdef USE_CUDA
-	initialize_cuda();
-#endif
-
-	init_problem();
-
-	double timing = timing_delay(&start, &end);
-	fprintf(stderr, "Computation took (in ms)\n");
-	printf("%2.2f\n", timing/1000);
-
-
-	return 0;
-}
-#endif

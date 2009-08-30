@@ -32,8 +32,6 @@ EXTRA_DIST = 					\
 	mult/gordon/func_sgemm_ibm.c
 
 CLEANFILES = 					\
-	cuda/incrementer_cuda.cubin		\
-	cuda/spmv_cuda.cubin			\
 	gordon/null_kernel_gordon.spuelf	\
 	mult/gordon/func_sgemm_ibm.spuelf
 	
@@ -52,10 +50,6 @@ NVCC ?= nvcc
 .cu.o:
 	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
 
-
-BUILT_SOURCES +=				\
-	cuda/incrementer_cuda.cubin		\
-	cuda/spmv_cuda.cubin			
 
 endif
 
@@ -306,7 +300,8 @@ examplebin_PROGRAMS += 				\
 	spmv/dw_block_spmv
 
 spmv_dw_spmv_SOURCES = 				\
-	spmv/dw_spmv.c
+	spmv/dw_spmv.c				\
+	spmv/spmv_cuda.cu
 
 spmv_dw_block_spmv_SOURCES =			\
 	spmv/dw_block_spmv.c			\
@@ -322,21 +317,16 @@ endif
 
 
 check_PROGRAMS +=				\
-	incrementer/incrementer			\
-	incrementer/incrementer_runtime
+	incrementer/incrementer
 
 examplebin_PROGRAMS +=				\
-	incrementer/incrementer			\
-	incrementer/incrementer_runtime
-
-incrementer_incrementer_SOURCES =		\
-	incrementer/incrementer.c
+	incrementer/incrementer
 
 if USE_CUDA
-incrementer_incrementer_runtime_SOURCES =	\
-	incrementer/incrementer_runtime.c	\
-	incrementer/incrementer_runtime_kernels.cu
+incrementer_incrementer_SOURCES =	\
+	incrementer/incrementer.c	\
+	incrementer/incrementer_kernels.cu
 else
-incrementer_incrementer_runtime_SOURCES =	\
-	incrementer/incrementer_runtime.c
+incrementer_incrementer_SOURCES =	\
+	incrementer/incrementer.c
 endif

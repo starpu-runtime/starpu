@@ -96,45 +96,6 @@ struct starpu_task {
 	void *starpu_private;
 };
 
-#ifdef USE_CUDA
-/* CUDA specific codelets */
-typedef struct starpu_cuda_module_s {
-	CUmodule module;
-	char *module_path;
-	unsigned is_loaded[MAXCUDADEVS];
-} starpu_cuda_module_t;
-
-typedef struct starpu_cuda_function_s {
-	struct starpu_cuda_module_s *module;
-	CUfunction function;
-	char *symbol;
-	unsigned is_loaded[MAXCUDADEVS];
-} starpu_cuda_function_t;
-
-typedef struct starpu_cuda_codelet_s {
-	/* which function to execute on the card ? */
-	struct starpu_cuda_function_s *func;
-
-	/* grid and block shapes */
-	unsigned gridx;
-	unsigned gridy;
-	unsigned blockx;
-	unsigned blocky;
-
-	unsigned shmemsize;
-
-	void *stack; /* arguments */
-	size_t stack_size;
-} starpu_cuda_codelet_t;
-
-void starpu_init_cuda_module(struct starpu_cuda_module_s *module, char *path);
-void starpu_load_cuda_module(int devid, struct starpu_cuda_module_s *module);
-void starpu_init_cuda_function(struct starpu_cuda_function_s *func,
-                        struct starpu_cuda_module_s *module,
-                        char *symbol);
-void starpu_load_cuda_function(int devid, struct starpu_cuda_function_s *function);
-#endif // USE_CUDA
-
 /* handle task dependencies: it is possible to associate a task with a unique
  * "tag" and to express dependencies among tasks by the means of those tags */
 void starpu_tag_remove(starpu_tag_t id);
