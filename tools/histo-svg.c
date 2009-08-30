@@ -61,16 +61,6 @@ static void display_worker(event_list_t events, unsigned worker, char *worker_na
 	uint64_t prev = start_time;
 	worker_mode prev_state = IDLE;
 
-//	SWFText namestr = newSWFText();
-//	SWFText_setFont(namestr, font);
-//	SWFText_setColor(namestr, 0, 0, 0, 0xff);
-//	SWFText_setHeight(namestr, 10);
-//	SWFText_moveTo(namestr, SVG_BORDERX/2 - strlen(worker_name), 
-//			SVG_BORDERY + (SVG_THICKNESS + SVG_GAP)*worker + SVG_THICKNESS/2);
-//	SWFText_addString(namestr, worker_name, NULL);
-//
-//	SWFMovie_add(movie, (SWFBlock)namestr);
-
 	fprintf(out_file, "<text x=\"%fcm\" y=\"%fcm\" font-size=\"%fcm\" fill=\"blue\" text-anchor=\"center\" > <tspan font-weight=\"bold\">%s</tspan></text>\n", 0.5f*SVG_BORDERX, SVG_BORDERY + (SVG_THICKNESS + SVG_GAP)*worker + 0.5f*SVG_THICKNESS, SVG_THICKNESS/4.0f, worker_name);
 
 	event_itor_t i;
@@ -84,40 +74,6 @@ static void display_worker(event_list_t events, unsigned worker, char *worker_na
 		prev_state = i->mode;
 	}
 }
-
-//char str_start[20];
-//char str_end[20];
-//
-//static void display_start_end_buttons(void)
-//{
-//	unsigned x_start, x_end, y;
-//	unsigned size = 15;
-//
-//	sprintf(str_start, "start\n%lu", start_time-absolute_start_time);
-//	sprintf(str_end, "end\n%lu", end_time -absolute_start_time);
-//
-//	x_start = SVG_BORDERX;
-//	x_end = SVG_WIDTH - SVG_BORDERX;
-//	y = SVG_BORDERY/2;
-//
-//	SWFText text_start = newSWFText();
-//	SWFText_setFont(text_start, font);
-//	SWFText_setColor(text_start, 0, 0, 0, 0xff);
-//	SWFText_setHeight(text_start, size);
-//	SWFText_moveTo(text_start, x_start, y);
-//	SWFText_addString(text_start, str_start, NULL);
-//
-//	SWFText text_end = newSWFText();
-//	SWFText_setFont(text_end, font);
-//	SWFText_setColor(text_end, 0, 0, 0, 0xff);
-//	SWFText_setHeight(text_end, size);
-//	SWFText_moveTo(text_end, x_end, y);
-//	SWFText_addString(text_end, str_end, NULL);
-//
-//	SWFMovie_add(movie, (SWFBlock)text_start);
-//	SWFMovie_add(movie, (SWFBlock)text_end);
-//
-//}
 
 static void display_workq_evolution(workq_list_t taskq, unsigned nworkers, unsigned maxq_size)
 {
@@ -156,10 +112,6 @@ static void display_workq_evolution(workq_list_t taskq, unsigned nworkers, unsig
 		prevx = event_pos;
 		prevy = y;
 	}
-
-//	SWFShape_drawLine(shape, (int)SVG_BORDERX - (int)prevx, (int)endy - (int)prevy);
-//
-//	SWFMovie_add(movie, (SWFBlock)shape);
 
 	fprintf(out_file, "<line x1=\"%fcm\" y1=\"%fcm\" x2=\"%fcm\" y2=\"%fcm\" stroke=\"black\" stroke-width=\"100\%%\" />\n", prevx, prevy, SVG_BORDERX, endy);
 

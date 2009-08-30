@@ -311,18 +311,6 @@ if test x$use_fxt = xyes; then
 	AC_CHECK_LIB(fxt, fut_setup,,AC_MSG_ERROR([cannot find fxt lib]))
 	AC_CHECK_HEADER([fxt/fxt.h],,AC_MSG_ERROR([cannot find headers for fxt]))
 	AC_CHECK_HEADER([fxt/fut.h],,AC_MSG_ERROR([cannot find headers for fxt]))
-
-	# In case FxT traces are generated, we may use our (poor) hand-made gtk
-	# tool to visualize traces
-
-	PKG_PROG_PKG_CONFIG
-	PKG_CHECK_MODULES([GTK], [gtk+-2.0], enable_gtk=yes, enable_gtk=no) 
-	AC_SUBST(USE_GTK, $enable_gtk)
-	if test x$enable_gtk = xyes; then
-		AC_SUBST(GTK_CFLAGS)
-		AC_SUBST(GTK_LIBS)
-		AC_DEFINE(USE_GTK, [1], [enable GTK])
-	fi
 fi
 
 AC_MSG_CHECKING(whether performance debugging should be enabled)
