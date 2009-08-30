@@ -33,13 +33,15 @@ struct starpu_buffer_descr_t;
 
 /* on most system we will consider one or two architectures as all accelerators
    are likely to be identical */
-#define NARCH_VARIATIONS	4
+#define NARCH_VARIATIONS	6
 
 enum starpu_perf_archtype {
 	STARPU_CORE_DEFAULT = 0,
 	STARPU_CUDA_DEFAULT = 1,
-	STARPU_CUDA_AUX = 2,
-	STARPU_GORDON_DEFAULT = 3
+	STARPU_CUDA_2 = 2,
+	STARPU_CUDA_3 = 3,
+	STARPU_CUDA_4 = 4,
+	STARPU_GORDON_DEFAULT = 5
 };
 
 
