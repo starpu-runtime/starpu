@@ -21,7 +21,13 @@
 
 #include <starpu.h>
 
+starpu_data_handle data_handles[8];
+float *buffers[8];
+
 static unsigned ntasks = 65536;
+static unsigned nbuffers = 0;
+
+struct starpu_task *tasks;
 
 static void *dummy_func(void *arg __attribute__ ((unused)))
 {
@@ -52,10 +58,17 @@ void inject_one_task(void)
 static void parse_args(int argc, char **argv)
 {
 	int c;
-	while ((c = getopt(argc, argv, "i:")) != -1)
+	while ((c = getopt(argc, argv, "i:b:h")) != -1)
 	switch(c) {
 		case 'i':
 			ntasks = atoi(optarg);
+			break;
+		case 'b':
+			nbuffers = atoi(optarg);
+			dummy_codelet.nbuffers = nbuffers;
+			break;
+		case 'h':
+			fprintf(stderr, "Usage: %s [-i ntasks] [-b nbuffers] [-h]\n", argv[0]);
 			break;
 	}
 }
@@ -74,38 +87,48 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
+	unsigned buffer;
+	for (buffer = 0; buffer < nbuffers; buffer++)
+	{
+		buffers[buffer] = malloc(16*sizeof(float));
+		starpu_register_vector_data(&data_handles[buffer], 0, (uintptr_t)buffers[buffer], 16, sizeof(float));
+	}
+
 	starpu_init(NULL);
 
-	fprintf(stderr, "#tasks : %d\n", ntasks);
+	fprintf(stderr, "#tasks : %d\n#buffers : %d\n", ntasks, nbuffers);
 
 	/* submit tasks (but don't execute them yet !) */
+	tasks = malloc(ntasks*sizeof(struct starpu_task));
+
+	gettimeofday(&start_submit, NULL);
+	for (i = 0; i < ntasks; i++)
+	{
+		tasks[i].callback_func = NULL;
+		tasks[i].cl = &dummy_codelet;
+		tasks[i].cl_arg = NULL;
+		tasks[i].synchronous = 0;
+		tasks[i].use_tag = 1;
+		tasks[i].tag_id = (starpu_tag_t)i;
+
+		/* we have 8 buffers at most */
+		for (buffer = 0; buffer < nbuffers; buffer++)
+		{
+			tasks[i].buffers[buffer].handle = data_handles[buffer];
+			tasks[i].buffers[buffer].mode = STARPU_RW;
+		}
+	}
 
 	gettimeofday(&start_submit, NULL);
 	for (i = 1; i < ntasks; i++)
 	{
-		struct starpu_task *task = starpu_task_create();
-			task->callback_func = NULL;
-			task->cl = &dummy_codelet;
-			task->cl_arg = NULL;
-			task->synchronous = 0;
-			task->use_tag = 1;
-			task->tag_id = (starpu_tag_t)i;
-
 		starpu_tag_declare_deps((starpu_tag_t)i, 1, (starpu_tag_t)(i-1));
 
-		starpu_submit_task(task);
+		starpu_submit_task(&tasks[i]);
 	}
 
 	/* submit the first task */
-	struct starpu_task *task = starpu_task_create();
-		task->cl = &dummy_codelet;
-		task->cl_arg = NULL;
-		task->callback_func = NULL;
-		task->synchronous = 0;
-		task->use_tag = 1;
-		task->tag_id = (starpu_tag_t)0;
-
-	starpu_submit_task(task);
+	starpu_submit_task(&tasks[0]);
 
 	gettimeofday(&end_submit, NULL);
 
@@ -119,9 +142,10 @@ int main(int argc, char **argv)
 
 	fprintf(stderr, "Total submit: %lf secs\n", timing_submit/1000000);
 	fprintf(stderr, "Per task submit: %lf usecs\n", timing_submit/ntasks);
+	fprintf(stderr, "\n");
 	fprintf(stderr, "Total execution: %lf secs\n", timing_exec/1000000);
 	fprintf(stderr, "Per task execution: %lf usecs\n", timing_exec/ntasks);
-
+	fprintf(stderr, "\n");
 	fprintf(stderr, "Total: %lf secs\n", (timing_submit+timing_exec)/1000000);
 	fprintf(stderr, "Per task: %lf usecs\n", (timing_submit+timing_exec)/ntasks);
 
