@@ -112,7 +112,11 @@ int execute_job_on_cuda(job_t j, struct worker_s *args)
 		GET_TICK(codelet_end_comm);
 	}
 
-	datawizard_progress(get_local_memory_node());
+	unsigned memnode = get_local_memory_node();
+
+	TRACE_START_PROGRESS(memnode);
+	datawizard_progress(memnode);
+	TRACE_END_PROGRESS(memnode);
 
 	TRACE_START_CODELET_BODY(j);
 

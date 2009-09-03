@@ -78,6 +78,8 @@
 #define	FUT_START_DRIVER_COPY	0x5126
 #define	FUT_END_DRIVER_COPY	0x5127
 
+#define	FUT_START_PROGRESS	0x5130
+#define	FUT_END_PROGRESS	0x5131
 
 #ifdef USE_FXT
 #include <fxt/fxt.h>
@@ -172,6 +174,15 @@ void fxt_register_thread(unsigned);
 	FUT_DO_PROBE2(FUT_END_MEMRECLAIM, memnode, syscall(SYS_gettid));
 	
 
+#define TRACE_START_PROGRESS(memnode)		\
+	FUT_DO_PROBE2(FUT_START_PROGRESS, memnode, syscall(SYS_gettid));
+	
+
+#define TRACE_END_PROGRESS(memnode)		\
+	FUT_DO_PROBE2(FUT_END_PROGRESS, memnode, syscall(SYS_gettid));
+	
+
+
 #else // !USE_FXT
 
 #define TRACE_NEW_MEM_NODE(nodeid)	do {} while(0);
@@ -202,6 +213,8 @@ void fxt_register_thread(unsigned);
 #define TRACE_END_ALLOC_REUSE(a)	do {} while(0);
 #define TRACE_START_MEMRECLAIM(memnode)	do {} while(0);
 #define TRACE_END_MEMRECLAIM(memnode)	do {} while(0);
+#define TRACE_START_PROGRESS(memnode)	do {} while(0);
+#define TRACE_END_PROGRESS(memnode)	do {} while(0);
 
 #endif // USE_FXT
 

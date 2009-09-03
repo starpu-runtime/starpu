@@ -63,6 +63,7 @@ void paje_output_file_init(void)
 	6       E       S       Executing       \".0 .6 .4\"            \n \
 	6       C       S       Callback       \".0 .3 .8\"            \n \
 	6       B       S       Blocked         \".9 .1 .0\"		\n \
+	6       P       S       Progressing         \".4 .1 .6\"		\n \
 	6       A       MS      Allocating         \".4 .1 .0\"		\n \
 	6       Ar       MS      AllocatingReuse       \".1 .1 .8\"		\n \
 	6       R       MS      Reclaiming         \".0 .1 .4\"		\n \
@@ -244,7 +245,7 @@ void handle_start_fetch_input(void)
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
 
-//	fprintf(out_paje_file, "10       %f	S      %ld      Fi\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+	fprintf(out_paje_file, "10       %f	S      %ld      Fi\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 
 	event_t e = event_new();
 	e->time =  ev.time;
@@ -260,7 +261,7 @@ void handle_end_fetch_input(void)
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
 
-	//fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 
 	event_t e = event_new();
 	e->time =  ev.time;
@@ -276,7 +277,7 @@ void handle_start_push_output(void)
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
 
-//	fprintf(out_paje_file, "10       %f	S      %ld      Po\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+	fprintf(out_paje_file, "10       %f	S      %ld      Po\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 
 	event_t e = event_new();
 	e->time =  ev.time;
@@ -292,7 +293,7 @@ void handle_end_push_output(void)
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
 	
-//	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 
 	event_t e = event_new();
 	e->time =  ev.time;
@@ -301,6 +302,39 @@ void handle_end_push_output(void)
 
 	end_time = STARPU_MAX(end_time, ev.time);
 }
+
+void handle_start_progress(void)
+{
+	int worker;
+	worker = find_workder_id(ev.param[1]);
+	if (worker < 0) return;
+
+	fprintf(out_paje_file, "10       %f	S      %ld      P\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+
+	event_t e = event_new();
+	e->time =  ev.time;
+	e->mode = PUSHING;
+	event_list_push_back(events[worker], e);
+
+	end_time = STARPU_MAX(end_time, ev.time);
+}
+
+void handle_end_progress(void)
+{
+	int worker;
+	worker = find_workder_id(ev.param[1]);
+	if (worker < 0) return;
+	
+	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+
+	event_t e = event_new();
+	e->time =  ev.time;
+	e->mode = IDLE;
+	event_list_push_back(events[worker], e);
+
+	end_time = STARPU_MAX(end_time, ev.time);
+}
+
 
 void handle_data_copy(void)
 {
@@ -604,6 +638,14 @@ int main(int argc, char **argv)
 			case FUT_END_PUSH_OUTPUT:
 				handle_end_push_output();
 				break;
+
+			case FUT_START_PROGRESS:
+				handle_start_progress();
+				break;
+			case FUT_END_PROGRESS:
+				handle_end_progress();
+				break;
+
 
 			case FUT_CODELET_TAG:
 				//handle_codelet_tag();

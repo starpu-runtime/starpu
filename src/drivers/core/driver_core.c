@@ -49,6 +49,12 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 		return STARPU_TRYAGAIN;
 	}
 
+	unsigned memnode = get_local_memory_node();
+
+	TRACE_START_PROGRESS(memnode);
+	datawizard_progress(memnode);
+	TRACE_END_PROGRESS(memnode);
+
 	TRACE_START_CODELET_BODY(j);
 
 	if (calibrate_model || BENCHMARK_COMM)
