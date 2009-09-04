@@ -23,6 +23,11 @@
 #include <starpu_config.h>
 #include "starpufft.h"
 
+/* TODO:
+ * - cufft 1D limited to 8M elements
+ * - cufft 2D-3D limited to [2,16384]
+ */
+
 #ifdef HAVE_FFTW
 #include <fftw3.h>
 #endif
