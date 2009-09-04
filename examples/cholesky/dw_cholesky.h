@@ -69,6 +69,7 @@ static unsigned size = 16*1024;
 static unsigned nblocks = 16;
 static unsigned nbigblocks = 8;
 static unsigned pinned = 0;
+static unsigned noprio = 0;
 
 void chol_core_codelet_update_u11(starpu_data_interface_t *, void *);
 void chol_core_codelet_update_u21(starpu_data_interface_t *, void *);
@@ -108,6 +109,10 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 
 		if (strcmp(argv[i], "-pin") == 0) {
 			pinned = 1;
+		}
+
+		if (strcmp(argv[i], "-no-prio") == 0) {
+			noprio = 1;
 		}
 
 		if (strcmp(argv[i], "-h") == 0) {

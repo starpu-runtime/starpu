@@ -59,7 +59,8 @@ static struct starpu_task * create_task_11(starpu_data_handle dataA, unsigned k)
 	task->buffers[0].mode = STARPU_RW;
 
 	/* this is an important task */
-	task->priority = MAX_PRIO;
+	if (!noprio)
+		task->priority = MAX_PRIO;
 
 	/* enforce dependencies ... */
 	if (k > 0) {
@@ -92,7 +93,7 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j)
 	task->buffers[1].handle = get_sub_data(dataA, 2, k, j); 
 	task->buffers[1].mode = STARPU_RW;
 
-	if (j == k+1) {
+	if (!noprio && (j == k+1)) {
 		task->priority = MAX_PRIO;
 	}
 
@@ -134,7 +135,7 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 	task->buffers[2].handle = get_sub_data(dataA, 2, i, j); 
 	task->buffers[2].mode = STARPU_RW;
 
-	if ( (i == k + 1) && (j == k +1) ) {
+	if (!noprio && (i == k + 1) && (j == k +1) ) {
 		task->priority = MAX_PRIO;
 	}
 
