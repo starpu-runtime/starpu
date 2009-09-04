@@ -1,11 +1,13 @@
 #!/bin/bash
 
-outputfile=granularity.data
+prefix=granularity
+prefix=hybrid
+outputfile=$prefix.data
 
-find timing/* -name "granularity.*" > filelist
+find timing/* -name "$prefix.*" > filelist
 
-grainlist=`sed -e "s/.*granularity\.\(.*\)\.\(.*\)$/\1/" filelist |sort -n|uniq|xargs`
-sizelist=`sed -e "s/.*granularity\.\(.*\)\.\(.*\)$/\2/" filelist |sort -n|uniq`
+grainlist=`sed -e "s/.*$prefix\.\(.*\)\.\(.*\)$/\1/" filelist |sort -n|uniq|xargs`
+sizelist=`sed -e "s/.*$prefix\.\(.*\)\.\(.*\)$/\2/" filelist |sort -n|uniq`
 
 # Make some header 
 line="#SIZE	"
@@ -23,9 +25,9 @@ do
 	do
 		# Compute Average value ...
 
-		if test -f timing/granularity.$grain.$size; then
+		if test -f timing/$prefix.$grain.$size; then
 			# file does exists 
-			filename=timing/granularity.$grain.$size
+			filename=timing/$prefix.$grain.$size
 
 			# echo "GRAIN $grain SIZE $size exists !"
 			# how many samples do we have ?
@@ -77,7 +79,7 @@ done
 gnuplot > /dev/null << EOF
 
 set term postscript eps enhanced color
-set output "granularity.eps"
+set output "$prefix.eps"
 
 
 set pointsize 0.75

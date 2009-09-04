@@ -18,8 +18,8 @@
 
 
 maxiter=1
-MINSIZE=$((4*1024))
-MAXSIZE=$((28*1024))
+MINSIZE=$((2*1024))
+MAXSIZE=$((29*1024))
 
 trace_granularity()
 {
@@ -32,8 +32,8 @@ trace_granularity()
 	#maxblocks=2
 	maxblocks=$(($MAXSIZE/$grain))
 	
-	if test $maxblocks -ge 32; then
-		maxblocks=32
+	if test $maxblocks -ge 64; then
+		maxblocks=64
 	fi
 
 	#step=2
@@ -61,6 +61,48 @@ trace_granularity()
 	done
 }
 
+trace_granularity_hybrid()
+{
+	grain=$1
+
+	echo "GRAIN $grain"
+
+	#minblocks=1
+	minblocks=$(($MINSIZE/$grain))
+	#maxblocks=2
+	maxblocks=$(($MAXSIZE/$grain))
+	
+	if test $maxblocks -ge 64; then
+		maxblocks=64
+	fi
+
+	#step=2
+	step=$((2048/$grain))
+
+	for blocks in `seq $minblocks $step $maxblocks`
+	do
+		size=$(($blocks*$grain))
+		
+		ntheta=$(( $(($size/32)) + 2))
+	
+		echo "size : $size (grain $grain nblocks $blocks)"
+	
+		OPTIONS="-pin -nblocks $blocks -ntheta $ntheta -nthick 34 -v4"
+		
+		filename=$TIMINGDIR/hybrid.$grain.$size
+		#rm -f $filename
+		
+		for iter in `seq 1 $maxiter`
+		do
+			echo "$iter / $maxiter"
+			 val=`SCHED="dmda" PREFETCH=1 CALIBRATE=1 $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
+			 echo "$val" >> $filename
+		done
+	done
+}
+
+
+
 calibrate_grain()
 {
 	grain=$1;
@@ -74,8 +116,10 @@ calibrate_grain()
 #	blocks=$((4096/$grain))
 #	ntheta=$((128+2))
 #
-#	blocks=$((2048/$grain))
-#	ntheta=$((64+2))
+	if test $blocks -ge 24; then
+		blocks=$((2048/$grain))
+		ntheta=$((64+2))
+	fi
 #
 #	blocks=8
 #	ntheta=$((2+$(($size/32))))
@@ -101,8 +145,8 @@ mkdir -p $SAMPLINGDIR
 #rm  -f $SAMPLINGDIR/*
 
 #grainlist="64 128 256 512 768 1024 1536 2048"
+
 grainlist="2048 1024 512 256"
-#grainlist="1280"
 
 export PERF_MODEL_DIR=$SAMPLINGDIR
 
@@ -111,14 +155,16 @@ cd $ROOTDIR
 cd $DIR
 
 # calibrate (sampling)
-#for grain in $grainlist
-#do
-#	calibrate_grain $grain;
-#done
+# for grain in $grainlist
+# do
+#  	calibrate_grain $grain;
+#  	calibrate_grain $(( $grain / 2));
+# done
 
 # perform the actual benchmarking now
 for grain in $grainlist
 do
-	trace_granularity $grain;	
+	trace_granularity_hybrid $grain;
+#	trace_granularity $grain;	
 #	trace_granularity_nomodel $grain;
 done
