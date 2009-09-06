@@ -28,6 +28,8 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 static unsigned finished = 0;
 
+static unsigned no_prio = 0;
+
 static starpu_codelet cl11 =
 {
 	.where = CORE|CUBLAS,
@@ -112,7 +114,9 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 		u11arg->nblocks = args->nblocks;
 
 		/* schedule the codelet */
-		task->priority = MAX_PRIO;
+		if (!no_prio)
+			task->priority = MAX_PRIO;
+
 		starpu_submit_task(task);
 	}
 
@@ -237,7 +241,7 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				task22->buffers[2].mode = STARPU_RW;
 				
 				/* schedule that codelet */
-				if (slicey == i+1) 
+				if (!no_prio && (slicey == i+1))
 					task22->priority = MAX_PRIO;
 
 				starpu_submit_task(task22);
@@ -296,7 +300,7 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				task22->buffers[2].mode = STARPU_RW;
 				
 				/* schedule that codelet */
-				if (slicex == i+1)
+				if (!no_prio && (slicex == i+1))
 					task22->priority = MAX_PRIO;
 
 				starpu_submit_task(task22);
@@ -363,7 +367,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					task12->buffers[1].handle = get_sub_data(args->dataA, 2, u12a->k, u12a->i); 
 					task12->buffers[1].mode = STARPU_RW;
 
-					if (slice == i +1) 
+					if (!no_prio && (slice == i +1))
 						task12->priority = MAX_PRIO;
 
 					starpu_submit_task(task12);
@@ -400,7 +404,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					task21->buffers[1].handle = get_sub_data(args->dataA, 2, u21a->i, u21a->k);
 					task21->buffers[1].mode = STARPU_RW;
 		
-					if (slice == i +1)
+					if (!no_prio && (slice == i +1))
 						task21->priority = MAX_PRIO;
 
 					starpu_submit_task(task21);
@@ -702,7 +706,7 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 
 void dw_factoLU(float *matA, unsigned size, 
 		unsigned ld, unsigned nblocks, 
-		unsigned version)
+		unsigned version, unsigned _no_prio)
 {
 
 #ifdef CHECK_RESULTS
@@ -712,6 +716,8 @@ void dw_factoLU(float *matA, unsigned size,
 
 	memcpy(Asaved, matA, ld*ld*sizeof(float));
 #endif
+
+	no_prio = _no_prio;
 
 	starpu_data_handle dataA;
 

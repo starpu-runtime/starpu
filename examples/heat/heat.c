@@ -26,6 +26,7 @@ static unsigned pinned = 0;
 static unsigned check = 0;
 static unsigned version = 2;
 static unsigned use_cg = 0; /* use a LU decomposition of CG ? */
+static unsigned no_prio = 0;
 
 extern void do_conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
               		unsigned nrow, uint32_t *colind, uint32_t *rowptr);
@@ -88,6 +89,10 @@ static void parse_args(int argc, char **argv)
 			check = 1;
 		}
 
+		if (strcmp(argv[i], "-no-prio") == 0) {
+			no_prio = 1;
+		}
+
 		if (strcmp(argv[i], "-size") == 0) {
 			char *argptr;
 			unsigned size = strtol(argv[++i], &argptr, 10);
@@ -97,7 +102,7 @@ static void parse_args(int argc, char **argv)
 		}
 
 		if (strcmp(argv[i], "-h") == 0) {
-			printf("usage : %s [-v1|-v2|-v3] [-pin] [-nthick number] [-ntheta number] [-shape [0|1|2]] [-cg] [-size number]\n", argv[0]);
+			printf("usage : %s [-v1|-v2|-v3] [-pin] [-nthick number] [-ntheta number] [-shape [0|1|2]] [-cg] [-size number] [-no-prio]\n", argv[0]);
 		}
 	}
 }
@@ -730,10 +735,10 @@ int main(int argc, char **argv)
 		switch (version) {
 			case 1:
 			case 2:
-				dw_factoLU(A, newsize, newsize, nblocks, version);
+				dw_factoLU(A, newsize, newsize, nblocks, version, no_prio);
 				break;
 			case 3:
-				dw_factoLU_tag(A, newsize, newsize, nblocks);
+				dw_factoLU_tag(A, newsize, newsize, nblocks, no_prio);
 				break;
 			case 4:
 				dw_factoLU_grain(A, newsize, newsize, nblocks, nbigblocks);
