@@ -154,5 +154,6 @@ inline void set_data_requested_flag_if_needed(data_state *state, uint32_t node);
 int prefetch_task_input_on_node(struct starpu_task *task, uint32_t node);
 
 uint32_t select_node_to_handle_request(uint32_t src_node, uint32_t dst_node);
+uint32_t select_src_node(data_state *state);
 
 #endif // __COHERENCY__H__
