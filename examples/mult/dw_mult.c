@@ -224,6 +224,8 @@ static void partition_mult_data(void)
 	starpu_register_blas_data(&C_handle, 0, (uintptr_t)C, 
 		ydim, ydim, xdim, sizeof(float));
 
+	starpu_data_set_wb_mask(C_handle, 1<<0);
+
 	conf.k = zdim;
 	conf.m = ydim/nslicesy;
 	conf.n = xdim/nslicesx;
