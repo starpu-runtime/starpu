@@ -16,50 +16,91 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+maxiter=5
 
-maxiter=1
-MAXCPU=3
+calibrate_point()
+{
+	strat=$1
+	nblocks=$2
+	prefetch=$3
+
+	size=$(($nblocks * 1024))
+
+	echo "CALIBRATE size : $size / blocks : $nblocks strat -> $strat prefetch -> $prefetch"
+
+	rm -f $SAMPLINGDIR/*
+	
+	for iter in `seq 1 $maxiter`
+	do
+		echo "$iter / $maxiter"
+		export SCHED=$strat
+		export CALIBRATE=1
+		export PREFETCH=$prefetch
+		val=`$ROOTDIR/examples/heat/heat -pin -nblocks $nblocks -size $size -v3 2> /dev/null`
+		echo "$val"
+	done
+
+}
+
+trace_point()
+{
+	strat=$1
+	nblocks=$2
+	docalibrate=$3
+	prefetch=$4
+
+	size=$(($nblocks * 1024))
+
+	echo "size : $size ... docalibrate $docalibrate"
+	
+	filename=$TIMINGDIR/sched.$prefetch.$strat.$size
+
+	if [ $docalibrate == 1 ];
+	then
+		calibrate_point $strat $nblocks $prefetch
+	fi
+
+	for iter in `seq 1 $maxiter`
+	do
+		echo "$iter / $maxiter"
+		export SCHED=$strat
+		export CALIBRATE=$docalibrate
+		export PREFETCH=$prefetch
+		val=`$ROOTDIR/examples/heat/heat -pin -nblocks $nblocks -size $size -v3  2> /dev/null`
+		echo "$val"
+		echo "$val" >> $filename
+	done
+}
 
 trace_sched()
 {
-	for blocks in `seq 2 2 24`
+	strat=$1
+	prefetch=$2
+	docalibrate=$3
+
+	for nblocks in `seq 2 2 30`
 	do
-		ntheta=$(( $(($blocks*32)) + 2))
-		size=$(( $(($blocks*32)) * 32))
-	
-		echo "size : $size"
-	
-		OPTIONS="-pin -nblocks $blocks -ntheta $ntheta -nthick 34"
-		
-		cd $ROOTDIR
-		filename=$TIMINGDIR/sched.$SCHED.$size
-		#rm -f $filename
-		make clean 1> /dev/null 2> /dev/null
-		make examples -j ATLAS=1 CPUS=$MAXCPU CUDA=1 1> /dev/null 2> /dev/null
-		cd $DIR
-		
-		for iter in `seq 1 $maxiter`
-		do
-			echo "$iter / $maxiter"
-			 val=`$ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
-			 echo "$val" >> $filename
-		done
+		trace_point $strat $nblocks $docalibrate $prefetch 
 	done
 }
+
 
 DIR=$PWD
 ROOTDIR=$DIR/../..
 TIMINGDIR=$DIR/timings-sched/
+SAMPLINGDIR=$DIR/sampling/
+export PERF_MODEL_DIR=$SAMPLINGDIR
+
 mkdir -p $TIMINGDIR
+mkdir -p $SAMPLINGDIR
 
 #schedlist="ws no-prio greedy prio dm random"
 #schedlist="random random random random"
-schedlist="greedy greedy greedy"
 
-for sched in $schedlist
-do
-	export SCHED=$sched
-	echo "sched : $SCHED"
+export NCUDA=3
+export NCPUS=8 
 
-	trace_sched;
-done
+trace_sched "greedy" 0 0;
+trace_sched "dm" 0 1;
+trace_sched "dm" 1 1;
+trace_sched "dmda" 1 1;
