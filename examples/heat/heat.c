@@ -472,7 +472,7 @@ void build_mesh(point *mesh)
 	}
 }
 
-static unsigned build_neighbour_vector(unsigned *neighbours, unsigned node, int *RefArray, int *RefArrayBack)
+static unsigned long build_neighbour_vector(unsigned long*neighbours, unsigned node, int *RefArray, int *RefArrayBack)
 {
 	/* where is that point in the former space ? */
 	int former = TRANSLATE(node);
@@ -558,9 +558,9 @@ static void build_sparse_stiffness_matrix_B(point *pmesh, float *B, float *Bform
 	for (j = 0 ; j < newsize ; j++)
 	{
 
-		unsigned neighbour;
-		unsigned nneighbours;
-		unsigned neighbours[9];
+		unsigned long neighbour;
+		unsigned long nneighbours;
+		unsigned long neighbours[9];
 
 		nneighbours = build_neighbour_vector(&neighbours[0], j, RefArray, RefArrayBack);
 
@@ -592,9 +592,9 @@ static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uin
 	{
 		rowptr[j] = pos;
 
-		unsigned neighbour;
-		unsigned nneighbours;
-		unsigned neighbours[9];
+		unsigned long neighbour;
+		unsigned long nneighbours;
+		unsigned long neighbours[9];
 
 		nneighbours = build_neighbour_vector(&neighbours[0], j, RefArray, RefArrayBack);
 
@@ -637,15 +637,15 @@ static void build_dense_stiffness_matrix_A(point *pmesh, float *A, unsigned news
 	/* now the actual stiffness (reordered) matrix*/
 	for (j = 0 ; j < newsize ; j++)
 	{
-		unsigned neighbour;
-		unsigned nneighbours;
-		unsigned neighbours[9];
+		unsigned long neighbour;
+		unsigned long nneighbours;
+		unsigned long neighbours[9];
 
 		nneighbours = build_neighbour_vector(&neighbours[0], j, RefArray, RefArrayBack);
 
 		for (neighbour = 0; neighbour < nneighbours; neighbour++)
 		{
-			unsigned nodeneighbour =  neighbours[neighbour];
+			unsigned long nodeneighbour =  neighbours[neighbour];
 
 			if (nodeneighbour < newsize) {
 				float val;
@@ -749,7 +749,8 @@ int main(int argc, char **argv)
 
 		display_stat_heat();
 
-		solve_system(DIM, newsize, result, RefArray, Bformer, A, B);
+		if (check)
+			solve_system(DIM, newsize, result, RefArray, Bformer, A, B);
 
 		starpu_shutdown();
 	}

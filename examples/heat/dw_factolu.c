@@ -699,8 +699,10 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 		starpu_malloc_pinned_if_possible((void **)B, dim*sizeof(float));
 	} 
 	else {
-		*A = malloc(dim*dim*sizeof(float));
-		*B = malloc(dim*sizeof(float));
+		*A = malloc((unsigned long)dim*dim*sizeof(float));
+		STARPU_ASSERT(*A);
+		*B = malloc((unsigned long)dim*sizeof(float));
+		STARPU_ASSERT(*B);
 	}
 }
 

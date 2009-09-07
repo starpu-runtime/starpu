@@ -46,7 +46,7 @@
 
 #define Pi	(3.141592f)
 
-#define NODE_NUMBER(theta, thick)	((thick)+(theta)*nthick)
+#define NODE_NUMBER(theta, thick)	((unsigned long)((thick)+(theta)*nthick))
 #define NODE_TO_THICK(n)		((n) % nthick)
 #define NODE_TO_THETA(n)		((n) / nthick)
 
