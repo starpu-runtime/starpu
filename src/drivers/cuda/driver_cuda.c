@@ -33,6 +33,14 @@ static void init_context(int devid)
 	cublasStatus cublasst = cublasInit();
 	if (STARPU_UNLIKELY(cublasst))
 		CUBLAS_REPORT_ERROR(cublasst);
+
+	void *dummy;
+
+#if 0
+	cublasst = cublasAlloc(950*1024*1024, sizeof(float), &dummy);
+	if (STARPU_UNLIKELY(cublasst))
+		CUBLAS_REPORT_ERROR(cublasst);
+#endif
 }
 
 static void deinit_context(void)
@@ -115,7 +123,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args)
 	unsigned memnode = get_local_memory_node();
 
 	TRACE_START_PROGRESS(memnode);
-	datawizard_progress(memnode);
+	datawizard_progress(memnode, 1);
 	TRACE_END_PROGRESS(memnode);
 
 	TRACE_START_CODELET_BODY(j);
@@ -213,7 +221,7 @@ void *cuda_worker(void *arg)
 	
 	while (machine_is_running())
 	{
-		datawizard_progress(args->memory_node);
+		datawizard_progress(args->memory_node, 1);
 
 		//int debugfoo;
 		j = pop_task();

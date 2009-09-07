@@ -147,7 +147,7 @@ job_t stack_pop_task(struct jobq_s *q)
 	if ((stack_queue->njobs == 0) && machine_is_running())
 	{
 #ifdef NON_BLOCKING_DRIVERS
-		datawizard_progress(q->memory_node);
+		datawizard_progress(q->memory_node, 1);
 #else
 		pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
 #endif

@@ -73,7 +73,7 @@ void wake_all_blocked_workers_on_node(unsigned nodeid);
 
 __attribute__((warn_unused_result))
 int driver_copy_data_1_to_1(struct starpu_data_state_t *state, uint32_t node, 
-				uint32_t requesting_node, unsigned donotread, struct data_request_s *req);
+		uint32_t requesting_node, unsigned donotread, struct data_request_s *req, unsigned may_allloc);
 
 unsigned driver_test_request_completion(starpu_async_channel *async_channel, unsigned handling_node);
 void driver_wait_request_completion(starpu_async_channel *async_channel, unsigned handling_node);

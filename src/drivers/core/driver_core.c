@@ -52,7 +52,7 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 	unsigned memnode = get_local_memory_node();
 
 	TRACE_START_PROGRESS(memnode);
-	datawizard_progress(memnode);
+	datawizard_progress(memnode, 1);
 	TRACE_END_PROGRESS(memnode);
 
 	TRACE_START_CODELET_BODY(j);

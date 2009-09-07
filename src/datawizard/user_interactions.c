@@ -26,7 +26,7 @@ int request_data_allocation(data_state *state, uint32_t node)
 	starpu_spin_lock(&state->header_lock);
 
 	int ret;
-	ret = allocate_memory_on_node(state, node);
+	ret = allocate_memory_on_node(state, node, 1);
 	STARPU_ASSERT(ret == 0);
 
 	/* XXX quick and dirty hack */

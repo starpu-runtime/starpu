@@ -67,13 +67,13 @@ LIST_TYPE(data_request,
 void init_data_request_lists(void);
 void deinit_data_request_lists(void);
 void post_data_request(data_request_t r, uint32_t handling_node);
-void handle_node_data_requests(uint32_t src_node);
+void handle_node_data_requests(uint32_t src_node, unsigned may_alloc);
 
 void handle_pending_node_data_requests(uint32_t src_node);
 void handle_all_pending_node_data_requests(uint32_t src_node);
 
 data_request_t create_data_request(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, uint8_t read, uint8_t write, unsigned is_prefetch);
 data_request_t search_existing_data_request(struct starpu_data_state_t *state, uint32_t dst_node, uint8_t read, uint8_t write);
-int wait_data_request_completion(data_request_t r);
+int wait_data_request_completion(data_request_t r, unsigned may_alloc);
 
 #endif // __DATA_REQUEST_H__

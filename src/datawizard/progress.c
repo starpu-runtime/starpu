@@ -19,9 +19,9 @@
 #include <datawizard/progress.h>
 #include <datawizard/data_request.h>
 
-void datawizard_progress(uint32_t memory_node)
+void datawizard_progress(uint32_t memory_node, unsigned may_alloc)
 {
 	/* in case some other driver requested data */
 	handle_pending_node_data_requests(memory_node);
-	handle_node_data_requests(memory_node);
+	handle_node_data_requests(memory_node, may_alloc);
 }

@@ -19,6 +19,6 @@
 
 #include <stdint.h>
 
-void datawizard_progress(uint32_t memory_node);
+void datawizard_progress(uint32_t memory_node, unsigned may_alloc);
 
 #endif

@@ -125,7 +125,7 @@ data_request_t search_existing_data_request(data_state *state, uint32_t dst_node
 	return r;
 }
 
-int wait_data_request_completion(data_request_t r)
+int wait_data_request_completion(data_request_t r, unsigned may_alloc)
 {
 	int retval;
 	int do_delete = 0;
@@ -142,7 +142,7 @@ int wait_data_request_completion(data_request_t r)
 
 		wake_all_blocked_workers_on_node(r->handling_node);
 
-		datawizard_progress(local_node);
+		datawizard_progress(local_node, may_alloc);
 
 	} while (1);
 
@@ -169,18 +169,21 @@ int wait_data_request_completion(data_request_t r)
 /* this is non blocking */
 void post_data_request(data_request_t r, uint32_t handling_node)
 {
+	int res;
 //	fprintf(stderr, "POST REQUEST\n");
 
 	STARPU_ASSERT(r->state->per_node[r->src_node].allocated);
 	STARPU_ASSERT(r->state->per_node[r->src_node].refcnt);
 
 	/* insert the request in the proper list */
-	pthread_mutex_lock(&data_requests_list_mutex[handling_node]);
+	res = pthread_mutex_lock(&data_requests_list_mutex[handling_node]);
+	STARPU_ASSERT(!res);
 
 #warning there should be some proper locking here
 	data_request_list_push_front(data_requests[handling_node], r);
 
-	pthread_mutex_unlock(&data_requests_list_mutex[handling_node]);
+	res = pthread_mutex_unlock(&data_requests_list_mutex[handling_node]);
+	STARPU_ASSERT(!res);
 
 	wake_all_blocked_workers_on_node(handling_node);
 }
@@ -225,11 +228,13 @@ static void handle_data_request_completion(data_request_t r)
 }
 
 /* TODO : accounting to see how much time was spent working for other people ... */
-static void handle_data_request(data_request_t r)
+static int handle_data_request(data_request_t r, unsigned may_alloc)
 {
 	unsigned do_delete = 0;
 	data_state *state = r->state;
-	
+
+//	fprintf(stderr, "handle_data_request %p %d->%d\n", r->state, r->src_node, r->dst_node);
+
 	starpu_spin_lock(&state->header_lock);
 
 	starpu_spin_lock(&r->lock);
@@ -239,65 +244,97 @@ static void handle_data_request(data_request_t r)
 
 	/* perform the transfer */
 	/* the header of the data must be locked by the worker that submitted the request */
-	r->retval = driver_copy_data_1_to_1(state, r->src_node, r->dst_node, 0, r);
+	r->retval = driver_copy_data_1_to_1(state, r->src_node, r->dst_node, 0, r, may_alloc);
 
-	if (r->retval != EAGAIN)
+	if (r->retval == ENOMEM)
 	{
-		/* the request has been handled */
-		handle_data_request_completion(r);
+		starpu_spin_unlock(&r->lock);
+		starpu_spin_unlock(&state->header_lock);
+
+		return ENOMEM;
 	}
-	else {
+
+	if (r->retval == EAGAIN)
+	{
 		starpu_spin_unlock(&r->lock);
 		starpu_spin_unlock(&state->header_lock);
 
 		/* the request is pending and we put it in the corresponding queue  */
 		pthread_mutex_lock(&data_requests_pending_list_mutex[r->handling_node]);
-	//	fprintf(stderr, "push request %p in pending list for node %d..\n", r, r->handling_node);
+//		fprintf(stderr, "Push request %p (data %p) on pending list\n", r, r->state);
 		data_request_list_push_front(data_requests_pending[r->handling_node], r);
 		pthread_mutex_unlock(&data_requests_pending_list_mutex[r->handling_node]);
+
+		return EAGAIN;
 	}
+
+	/* the request has been handled */
+	handle_data_request_completion(r);
+
+	return 0;
 }
 
-void handle_node_data_requests(uint32_t src_node)
+void handle_node_data_requests(uint32_t src_node, unsigned may_alloc)
 {
-	pthread_mutex_lock(&data_requests_list_mutex[src_node]);
+	int res;
 
 	/* for all entries of the list */
-	data_request_list_t l = data_requests[src_node];
 	data_request_t r;
 
-	while (!data_request_list_empty(l))
+	/* take all the entries from the request list */
+	res = pthread_mutex_lock(&data_requests_list_mutex[src_node]);
+	STARPU_ASSERT(!res);
+
+	data_request_list_t local_list = data_requests[src_node];
+
+	data_requests[src_node] = data_request_list_new();
+
+	res = pthread_mutex_unlock(&data_requests_list_mutex[src_node]);
+	STARPU_ASSERT(!res);
+
+	while (!data_request_list_empty(local_list))
 	{
-		r = data_request_list_pop_back(l);		
-		pthread_mutex_unlock(&data_requests_list_mutex[src_node]);
+		r = data_request_list_pop_back(local_list);
 
-		handle_data_request(r);
-	
+		res = handle_data_request(r, may_alloc);
+		if (res == ENOMEM)
+		{
+			res = pthread_mutex_lock(&data_requests_list_mutex[src_node]);
+			STARPU_ASSERT(!res);
+
+			data_request_list_push_front(data_requests[src_node], r);
+
+			res = pthread_mutex_unlock(&data_requests_list_mutex[src_node]);
+			STARPU_ASSERT(!res);
+		}
+
 		/* wake the requesting worker up */
-		pthread_mutex_lock(&data_requests_list_mutex[src_node]);
-
 		// if we do not progress ..
 		// pthread_cond_broadcast(&data_requests_list_cond[src_node]);
 	}
 
-	pthread_mutex_unlock(&data_requests_list_mutex[src_node]);
+	data_request_list_delete(local_list);
 }
 
-void handle_all_pending_node_data_requests(uint32_t src_node)
+static void _handle_pending_node_data_requests(uint32_t src_node, unsigned force)
 {
+	int res;
 //	fprintf(stderr, "handle_pending_node_data_requests ...\n");
-	
-	pthread_mutex_lock(&data_requests_pending_list_mutex[src_node]);
+
+	res = pthread_mutex_lock(&data_requests_pending_list_mutex[src_node]);
+	STARPU_ASSERT(!res);
 
 	/* for all entries of the list */
-	data_request_list_t l = data_requests_pending[src_node];
-	data_request_t r;
+	data_request_list_t local_list = data_requests_pending[src_node];
+	data_requests_pending[src_node] = data_request_list_new();
 
-	while (!data_request_list_empty(l))
+	res = pthread_mutex_unlock(&data_requests_pending_list_mutex[src_node]);
+	STARPU_ASSERT(!res);
+
+	while (!data_request_list_empty(local_list))
 	{
-		r = data_request_list_pop_back(l);		
-
-		pthread_mutex_unlock(&data_requests_pending_list_mutex[src_node]);
+		data_request_t r;
+		r = data_request_list_pop_back(local_list);
 
 		data_state *state = r->state;
 		
@@ -306,58 +343,40 @@ void handle_all_pending_node_data_requests(uint32_t src_node)
 		starpu_spin_lock(&r->lock);
 	
 		/* wait until the transfer is terminated */
-		driver_wait_request_completion(&r->async_channel, src_node);
+		if (force)
+		{
+			driver_wait_request_completion(&r->async_channel, src_node);
+			handle_data_request_completion(r);
+		}
+		else {
+			if (driver_test_request_completion(&r->async_channel, src_node))
+			{
+				
+				handle_data_request_completion(r);
+			}
+			else {
+				starpu_spin_unlock(&r->lock);
+				starpu_spin_unlock(&state->header_lock);
 
-		handle_data_request_completion(r);
-
-		/* wake the requesting worker up */
-		pthread_mutex_lock(&data_requests_pending_list_mutex[src_node]);
+				/* wake the requesting worker up */
+				pthread_mutex_lock(&data_requests_pending_list_mutex[src_node]);
+				data_request_list_push_front(data_requests_pending[src_node], r);
+				pthread_mutex_unlock(&data_requests_pending_list_mutex[src_node]);
+			}
+		}
 	}
 
-	pthread_mutex_unlock(&data_requests_pending_list_mutex[src_node]);
+	data_request_list_delete(local_list);
 }
 
 void handle_pending_node_data_requests(uint32_t src_node)
 {
-//	fprintf(stderr, "handle_pending_node_data_requests ...\n");
-	
-	pthread_mutex_lock(&data_requests_pending_list_mutex[src_node]);
-
-	/* for all entries of the list */
-	data_request_list_t l = data_requests_pending[src_node];
-	data_request_t r;
-	data_request_t next_r;
-
-	for (r = data_request_list_begin(l);
-		r != data_request_list_end(l);
-		r = next_r)
-	{
-		next_r = data_request_list_next(r);
-
-		pthread_mutex_unlock(&data_requests_pending_list_mutex[src_node]);
-
-		data_state *state = r->state;
-		
-		starpu_spin_lock(&state->header_lock);
-	
-		starpu_spin_lock(&r->lock);
-	
-		/* wait until the transfer is terminated */
-		if (driver_test_request_completion(&r->async_channel, src_node))
-		{
-			/* this is not optimal  */			
-			data_request_list_erase(l, r);
-
-			handle_data_request_completion(r);
-		}
-		else {
-			starpu_spin_unlock(&r->lock);
-			starpu_spin_unlock(&state->header_lock);
-		}
-
-		/* wake the requesting worker up */
-		pthread_mutex_lock(&data_requests_pending_list_mutex[src_node]);
-	}
-
-	pthread_mutex_unlock(&data_requests_pending_list_mutex[src_node]);
+	_handle_pending_node_data_requests(src_node, 0);
 }
+
+void handle_all_pending_node_data_requests(uint32_t src_node)
+{
+	_handle_pending_node_data_requests(src_node, 1);
+}
+
+

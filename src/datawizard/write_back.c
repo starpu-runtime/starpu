@@ -26,7 +26,7 @@ void write_through_data(data_state *state, uint32_t requesting_node,
 	}
 
 	while (starpu_spin_trylock(&state->header_lock))
-		datawizard_progress(requesting_node);
+		datawizard_progress(requesting_node, 1);
 
 	/* first commit all changes onto the nodes specified by the mask */
 	uint32_t node;

@@ -139,7 +139,7 @@ int fetch_data_on_node(data_state *state, uint32_t requesting_node,
 	uint32_t local_node = get_local_memory_node();
 
 	while (starpu_spin_trylock(&state->header_lock))
-		datawizard_progress(local_node);
+		datawizard_progress(local_node, 1);
 
 	if (!is_prefetch)
 		state->per_node[requesting_node].refcnt++;
@@ -259,7 +259,7 @@ int fetch_data_on_node(data_state *state, uint32_t requesting_node,
 
 //	fprintf(stderr, "AFTER %s... refcnt %d %d req %p %p\n", is_prefetch?"PREFETCH":"", state->per_node[0].refcnt, state->per_node[1].refcnt,  state->per_node[0].request, state->per_node[1].request);
 
-	return (is_prefetch?0:wait_data_request_completion(r));
+	return (is_prefetch?0:wait_data_request_completion(r, 1));
 }
 
 static int prefetch_data_on_node(data_state *state, starpu_access_mode mode, uint32_t node)
@@ -305,7 +305,7 @@ void release_data_on_node(data_state *state, uint32_t default_wb_mask, uint32_t 
 
 	uint32_t local_node = get_local_memory_node();
 	while (starpu_spin_trylock(&state->header_lock))
-		datawizard_progress(local_node);
+		datawizard_progress(local_node, 1);
 
 	state->per_node[memory_node].refcnt--;
 	starpu_spin_unlock(&state->header_lock);
