@@ -58,8 +58,8 @@ mkdir -p $SAMPLINGDIR
 export NCUDA=3
 export NCPUS=8 
 
-sizelist="1024 2048 4096 8192 16384 30720"
-sizelist="30720 16384 8192 4096 2048 1024"
+#sizelist="2048 4096 6144 8192 10240 12288 14336 16384 24576 28672 30720"
+sizelist=`seq 2048 2048 30720`
 
 outputfile=dmda.data
 
@@ -74,21 +74,21 @@ do
 	export SCHED="dm"
 	export CALIBRATE=1
 	export PREFETCH=1
-	`$ROOTDIR/examples/heat/heat -pin -size $size -nblocks $nblocks -v3 2> logdm > /dev/null`
-	
+	valdm=$($ROOTDIR/examples/heat/heat -pin -size $size -nblocks $nblocks -v3 2> logdm)
+
 	calibrate_point "dmda" $nblocks 1
 
 	export SCHED="dmda"
 	export CALIBRATE=1
 	export PREFETCH=1
-	`$ROOTDIR/examples/heat/heat -pin -size $size -nblocks $nblocks -v3 2> logdmda > /dev/null`
+	valdmda=$($ROOTDIR/examples/heat/heat -pin -size $size -nblocks $nblocks -v3 2> logdmda)
 	
 	dmmiss=`grep "TOTAL MSI" logdm|sed -e "s/.*miss.*[1-9]* (\(.*\) %)/\1/"`
 	dmtotal=`grep "TOTAL transfers" logdm|sed -e "s/TOTAL transfers \(.*\) MB/\1/"`
 	dmdamiss=`grep "TOTAL MSI" logdmda|sed -e "s/.*miss.*[1-9]* (\(.*\) %)/\1/"`
 	dmdatotal=`grep "TOTAL transfers" logdmda|sed -e "s/TOTAL transfers \(.*\) MB/\1/"`
 
-	echo "$size	$dmmiss	$dmdamiss	$dmtotal	$dmdatotal" >> $outputfile
-	echo "$size	$dmmiss	$dmdamiss	$dmtotal	$dmdatotal" 
+	echo "$size	$dmmiss	$dmdamiss	$dmtotal	$dmdatotal	$valdm	$valdmda" >> $outputfile
+	echo "$size	$dmmiss	$dmdamiss	$dmtotal	$dmdatotal	$valdm	$valdmda" 
 done
 

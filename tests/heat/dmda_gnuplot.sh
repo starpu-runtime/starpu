@@ -18,25 +18,25 @@ set xlabel "Matrix size"
 
 set xtics 4096,4096,30760
 
-set size 0.8,0.8
+set size 0.7,0.8
 
 set multiplot
 
-set size 0.8,0.4
+set size 0.7,0.4
 set origin 0.0,0.0
 set ylabel "Cache miss ratio"
 set format y "%.0f %%"
 set key box right top title "Penality for non-local accesses"
-plot "$outputfile" usi 1:2 with lines lt rgb "black"  lw 2 title "with" ,\
-     "$outputfile" usi 1:3 with lines lt rgb "black"  lw 2 title "without"
+plot "$outputfile" usi 1:2 with linespoint lt rgb "black"  lw 4 title "with" ,\
+     "$outputfile" usi 1:3 with linespoint lt rgb "black"  lw 4 title "without"
 
-set size 0.8,0.4
+set size 0.7,0.4
 set origin 0.0,0.4
-set ylabel "Total data transfers"
-set format y "%.0f GB"
-set key  box left top title "Penality for non-local accesses"
-plot "$outputfile" usi 1:((\$4/1024)) with linespoint lt rgb "black" lw 2 title "with",\
-     "$outputfile" usi 1:((\$5/1024)) with linespoint lt rgb "black"  lw 2 title "without"
+set ylabel "Avg. activity on bus (GB/s)"
+set format y "%.1f"
+set key  box right bottom title "Penality for non-local accesses"
+plot "$outputfile" usi 1:((\$4/\$6)) with linespoint lt rgb "black" lw 4 title "with",\
+     "$outputfile" usi 1:((\$5/\$7)) with linespoint lt rgb "black"  lw 4 title "without"
 
 unset multiplot
 
