@@ -180,7 +180,7 @@ dft_c2r_1d_kernel_gpu(starpu_data_interface_t *descr, void *_args)
 static void
 dft_2d_kernel_gpu(starpu_data_interface_t *descr, void *_args)
 {
-	starpufftf_2d_args args = _args;
+	struct starpufftf_2d_args *args = _args;
 	starpufftf_plan plan = args->plan;
 	int i = args->i;
 	int j = args->j;
