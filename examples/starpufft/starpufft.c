@@ -23,11 +23,6 @@
 #include <starpu_config.h>
 #include "starpufft.h"
 
-/* TODO:
- * - cufft 1D limited to 8M elements
- * - cufft 2D-3D limited to [2,16384]
- */
-
 #ifdef HAVE_FFTW
 #include <fftw3.h>
 #endif
@@ -354,6 +349,15 @@ starpufftf_plan_dft_1d(int n, int sign, unsigned flags)
 	int n1 = DIV_1D;
 	int n2 = n / n1;
 
+#ifdef USE_CUDA
+	/* cufft 1D limited to 8M elements */
+	while (n2 > 8 << 10) {
+		n1 *= 2;
+		n2 /= 2;
+	}
+#endif
+	STARPU_ASSERT(n == n1*n2);
+
 	/* TODO: flags? Automatically set FFTW_MEASURE on calibration? */
 	STARPU_ASSERT(flags == 0);
 
@@ -427,6 +431,24 @@ starpufftf_plan_dft_2d(int n, int m, int sign, unsigned flags)
 	int n2 = n / n1;
 	int m1 = DIV_2D;
 	int m2 = m / m1;
+
+#ifdef USE_CUDA
+	/* cufft 2D-3D limited to [2,16384] */
+	while (n2 > 16384) {
+		n1 *= 2;
+		n2 /= 2;
+	}
+#endif
+	STARPU_ASSERT(n == n1*n2);
+
+#ifdef USE_CUDA
+	/* cufft 2D-3D limited to [2,16384] */
+	while (m2 > 16384) {
+		m1 *= 2;
+		m2 /= 2;
+	}
+#endif
+	STARPU_ASSERT(m == m1*m2);
 
 	/* TODO: flags? Automatically set FFTW_MEASURE on calibration? */
 	STARPU_ASSERT(flags == 0);
