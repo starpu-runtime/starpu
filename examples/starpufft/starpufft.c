@@ -91,11 +91,23 @@ struct starpufftf_plan {
 	void *output;
 };
 
+struct starpufftf_1d_args {
+	struct starpufftf_plan *plan;
+	int i;
+};
+
+struct starpufftf_2d_args {
+	struct starpufftf_plan *plan;
+	int i,j;
+};
+
 #ifdef USE_CUDA
 static void
-dft_1d_kernel_gpu(starpu_data_interface_t *descr, void *_plan)
+dft_1d_kernel_gpu(starpu_data_interface_t *descr, void *_args)
 {
-	starpufftf_plan plan = _plan;
+	struct starpufftf_1d_args *args = _args;
+	starpufftf_plan plan = args->plan;
+	int i = args->i;
 	cufftResult cures;
 
 	starpufftf_complex *in = (starpufftf_complex *)descr[0].vector.ptr;
@@ -116,9 +128,11 @@ dft_1d_kernel_gpu(starpu_data_interface_t *descr, void *_plan)
 }
 
 static void
-dft_r2c_1d_kernel_gpu(starpu_data_interface_t *descr, void *_plan)
+dft_r2c_1d_kernel_gpu(starpu_data_interface_t *descr, void *_args)
 {
-	starpufftf_plan plan = _plan;
+	struct starpufftf_1d_args *args = _args;
+	starpufftf_plan plan = args->plan;
+	int i = args->i;
 	cufftResult cures;
 
 	float *in = (float *)descr[0].vector.ptr;
@@ -139,9 +153,11 @@ dft_r2c_1d_kernel_gpu(starpu_data_interface_t *descr, void *_plan)
 }
 
 static void
-dft_c2r_1d_kernel_gpu(starpu_data_interface_t *descr, void *_plan)
+dft_c2r_1d_kernel_gpu(starpu_data_interface_t *descr, void *_args)
 {
-	starpufftf_plan plan = _plan;
+	struct starpufftf_1d_args *args = _args;
+	starpufftf_plan plan = args->plan;
+	int i = args->i;
 	cufftResult cures;
 
 	starpufftf_complex *in = (starpufftf_complex *)descr[0].vector.ptr;
@@ -162,9 +178,12 @@ dft_c2r_1d_kernel_gpu(starpu_data_interface_t *descr, void *_plan)
 }
 
 static void
-dft_2d_kernel_gpu(starpu_data_interface_t *descr, void *_plan)
+dft_2d_kernel_gpu(starpu_data_interface_t *descr, void *_args)
 {
-	starpufftf_plan plan = _plan;
+	starpufftf_2d_args args = _args;
+	starpufftf_plan plan = args->plan;
+	int i = args->i;
+	int j = args->j;
 	cufftResult cures;
 
 	starpufftf_complex *in = (starpufftf_complex *)descr[0].vector.ptr;
@@ -187,15 +206,40 @@ dft_2d_kernel_gpu(starpu_data_interface_t *descr, void *_plan)
 
 #ifdef HAVE_FFTW
 static void
-dft_kernel_cpu(starpu_data_interface_t *descr, void *_plan)
+dft_1d_kernel_cpu(starpu_data_interface_t *descr, void *_args)
 {
-	starpufftf_plan plan = _plan;
+	struct starpufftf_1d_args *args = _args;
+	starpufftf_plan plan = args->plan;
+	int i = args->i;
+	int j;
+	int workerid = starpu_get_worker_id();
+
+	starpufftf_complex *in = (starpufftf_complex *)descr[0].vector.ptr;
+	starpufftf_complex *out = (starpufftf_complex *)descr[1].vector.ptr;
+
+	fftwf_complex *worker_out = (starpufftf_complex *)plan->plans[workerid].out;
+
+	memcpy(plan->plans[workerid].in, in, plan->totsize2*sizeof(starpufftf_complex));
+	fftwf_execute(plan->plans[workerid].plan_cpu);
+
+	for (j = 0; j < plan->n2[0]; j++)
+		out[j] = worker_out[j] * plan->roots[0][i*j];
+}
+
+static void
+dft_2d_kernel_cpu(starpu_data_interface_t *descr, void *_args)
+{
+	struct starpufftf_2d_args *args = _args;
+	starpufftf_plan plan = args->plan;
+	int i = args->i;
+	int j = args->j;
+	int k, l;
 
 	starpufftf_complex *in = (starpufftf_complex *)descr[0].vector.ptr;
 	starpufftf_complex *out = (starpufftf_complex *)descr[1].vector.ptr;
 
 	int workerid = starpu_get_worker_id();
-	
+
 	memcpy(plan->plans[workerid].in, in, plan->totsize2*sizeof(starpufftf_complex));
 	fftwf_execute(plan->plans[workerid].plan_cpu);
 	memcpy(out, plan->plans[workerid].out, plan->totsize2*sizeof(starpufftf_complex));
@@ -235,7 +279,7 @@ static starpu_codelet dft_1d_codelet = {
 	.cublas_func = dft_1d_kernel_gpu,
 #endif
 #ifdef HAVE_FFTW
-	.core_func = dft_kernel_cpu,
+	.core_func = dft_1d_kernel_cpu,
 #endif
 	.model = &dft_1d_model,
 	.nbuffers = 2
@@ -254,7 +298,7 @@ static starpu_codelet dft_r2c_1d_codelet = {
 	.cublas_func = dft_r2c_1d_kernel_gpu,
 #endif
 #ifdef HAVE_FFTW
-	.core_func = dft_kernel_cpu,
+	.core_func = dft_1d_kernel_cpu,
 #endif
 	.model = &dft_r2c_1d_model,
 	.nbuffers = 2
@@ -273,7 +317,7 @@ static starpu_codelet dft_c2r_1d_codelet = {
 	.cublas_func = dft_c2r_1d_kernel_gpu,
 #endif
 #ifdef HAVE_FFTW
-	.core_func = dft_kernel_cpu,
+	.core_func = dft_1d_kernel_cpu,
 #endif
 	.model = &dft_c2r_1d_model,
 	.nbuffers = 2
@@ -292,7 +336,7 @@ static starpu_codelet dft_2d_codelet = {
 	.cublas_func = dft_2d_kernel_gpu,
 #endif
 #ifdef HAVE_FFTW
-	.core_func = dft_kernel_cpu,
+	.core_func = dft_2d_kernel_cpu,
 #endif
 	.model = &dft_2d_model,
 	.nbuffers = 2
@@ -537,6 +581,7 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 				starpu_data_handle in_handle[n1];
 				starpu_data_handle out_handle[n1];
 				struct starpu_task *tasks[n1];
+				struct starpufftf_1d_args args[n1];
 				struct starpu_task *task;
 				int i,j;
 
@@ -562,7 +607,9 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 					task->buffers[0].mode = STARPU_R;
 					task->buffers[1].handle = out_handle[i];
 					task->buffers[1].mode = STARPU_W;
-					task->cl_arg = plan;
+					args[i].plan = plan;
+					args[i].i = i;
+					task->cl_arg = &args[i];
 					task->callback_func = callback;
 					task->callback_arg = plan;
 					starpu_submit_task(task);
@@ -585,10 +632,6 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 
 				gettimeofday(&tasks_done, NULL);
 
-				/* Twiddle values */
-				for (i = 0; i < n1; i++)
-					for (j = 0; j < n2; j++)
-						split_out[i*n2 + j] *= plan->roots[0][i*j];
 				gettimeofday(&twiddle, NULL);
 #ifdef HAVE_FFTW
 				/* Perform n2 n1-ffts */
@@ -616,6 +659,7 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 			starpu_data_handle in_handle[plan->totsize1];
 			starpu_data_handle out_handle[plan->totsize1];
 			struct starpu_task *tasks[plan->totsize1];
+			struct starpufftf_2d_args args[plan->totsize1];
 			struct starpu_task *task;
 			int i,j,k,l;
 
@@ -641,7 +685,10 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 				task->cl = &dft_2d_codelet;
 				task->buffers[0].handle = in_handle[i];
 				task->buffers[1].handle = out_handle[i];
-				task->cl_arg = plan;
+				args[i].plan = plan;
+				args[i].i = i; // FIXME
+				args[i].j = i;
+				task->cl_arg = &args[i];
 				task->callback_func = callback;
 				task->callback_arg = plan;
 				starpu_submit_task(task);
