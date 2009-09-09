@@ -35,6 +35,9 @@
 #include <cufft.h>
 #endif
 
+#define SIGN (-1)
+//#define SIGN (1)
+
 int main(int argc, char *argv[]) {
 	int i;
 	struct timeval begin, end;
@@ -78,7 +81,7 @@ int main(int argc, char *argv[]) {
 	starpufftf_complex *in = starpufftf_malloc(size * sizeof(*in));
 	srand48(0);
 	for (i = 0; i < size; i++)
-		in[i] = drand48();// + I * drand48();
+		in[i] = drand48() + I * drand48();
 
 	starpufftf_complex *out = starpufftf_malloc(size * sizeof(*out));
 
@@ -91,9 +94,9 @@ int main(int argc, char *argv[]) {
 #endif
 
 	if (argc == 2) {
-		plan = starpufftf_plan_dft_1d(n, -1, 0);
+		plan = starpufftf_plan_dft_1d(n, SIGN, 0);
 #ifdef HAVE_FFTW
-		fftw_plan = fftwf_plan_dft_1d(n, in, out_fftw, -1, FFTW_ESTIMATE);
+		fftw_plan = fftwf_plan_dft_1d(n, in, out_fftw, SIGN, FFTW_ESTIMATE);
 #endif
 #ifdef USE_CUDA
 		if (cufftPlan1d(&cuda_plan, n, CUFFT_C2C, 1) != CUFFT_SUCCESS)
@@ -101,9 +104,9 @@ int main(int argc, char *argv[]) {
 #endif
 
 	} else if (argc == 3) {
-		plan = starpufftf_plan_dft_2d(n, m, -1, 0);
+		plan = starpufftf_plan_dft_2d(n, m, SIGN, 0);
 #ifdef HAVE_FFTW
-		fftw_plan = fftwf_plan_dft_2d(n, m, in, out_fftw, -1, FFTW_ESTIMATE);
+		fftw_plan = fftwf_plan_dft_2d(n, m, in, out_fftw, SIGN, FFTW_ESTIMATE);
 #endif
 #ifdef USE_CUDA
 		STARPU_ASSERT(cufftPlan2d(&cuda_plan, n, m, CUFFT_C2C) == CUFFT_SUCCESS);
