@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 	int i;
 	struct timeval begin, end;
 	int size;
-	int bytes;
+	size_t bytes;
 	int n = 0, m = 0;
 	starpufftf_plan plan;
 #ifdef HAVE_FFTW
