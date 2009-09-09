@@ -351,7 +351,7 @@ starpufftf_plan_dft_1d(int n, int sign, unsigned flags)
 
 #ifdef USE_CUDA
 	/* cufft 1D limited to 8M elements */
-	while (n2 > 8 << 10) {
+	while (n2 > 8 << 20) {
 		n1 *= 2;
 		n2 /= 2;
 	}
