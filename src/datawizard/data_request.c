@@ -179,7 +179,6 @@ void post_data_request(data_request_t r, uint32_t handling_node)
 	res = pthread_mutex_lock(&data_requests_list_mutex[handling_node]);
 	STARPU_ASSERT(!res);
 
-#warning there should be some proper locking here
 	data_request_list_push_front(data_requests[handling_node], r);
 
 	res = pthread_mutex_unlock(&data_requests_list_mutex[handling_node]);
@@ -286,6 +285,15 @@ void handle_node_data_requests(uint32_t src_node, unsigned may_alloc)
 	STARPU_ASSERT(!res);
 
 	data_request_list_t local_list = data_requests[src_node];
+
+	if (data_request_list_empty(local_list))
+	{
+		/* there is no request */
+		res = pthread_mutex_unlock(&data_requests_list_mutex[src_node]);
+		STARPU_ASSERT(!res);
+
+		return;
+	}
 
 	data_requests[src_node] = data_request_list_new();
 
