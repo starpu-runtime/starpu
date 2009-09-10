@@ -44,7 +44,7 @@ enum type {
 
 static unsigned task_per_worker[STARPU_NMAXWORKERS];
 static unsigned samples_per_worker[STARPU_NMAXWORKERS];
-static struct timeval start, init, init_tasks, do_tasks, tasks_done, twiddle, gather, end;
+static struct timeval start, init, init_tasks, do_tasks, tasks_done, gather, end;
 
 /*
  *
@@ -234,15 +234,20 @@ dft_2d_kernel_cpu(starpu_data_interface_t *descr, void *_args)
 	int i = args->i;
 	int j = args->j;
 	int k, l;
+	int n2 = plan->n2[0];
+	int m2 = plan->n2[1];
+	int workerid = starpu_get_worker_id();
 
 	starpufftf_complex *in = (starpufftf_complex *)descr[0].vector.ptr;
 	starpufftf_complex *out = (starpufftf_complex *)descr[1].vector.ptr;
 
-	int workerid = starpu_get_worker_id();
+	fftwf_complex *worker_out = (starpufftf_complex *)plan->plans[workerid].out;
 
 	memcpy(plan->plans[workerid].in, in, plan->totsize2*sizeof(starpufftf_complex));
 	fftwf_execute(plan->plans[workerid].plan_cpu);
-	memcpy(out, plan->plans[workerid].out, plan->totsize2*sizeof(starpufftf_complex));
+	for (k = 0; k < n2; k++)
+		for (l = 0; l < m2; l++)
+			out[k*m2 + l] = worker_out[k*m2 + l] * plan->roots[0][i*k] * plan->roots[1][j*l];
 }
 #endif
 
@@ -601,6 +606,7 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 					starpu_data_set_wb_mask(out_handle[i], 1<<0);
 
 					/* Create task */
+					/* TODO: move to planning */
 					tasks[i] = task = starpu_task_create();
 					task->cl = &dft_1d_codelet;
 					task->buffers[0].handle = in_handle[i];
@@ -629,10 +635,8 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 					starpu_delete_data(in_handle[i]);
 					starpu_delete_data(out_handle[i]);
 				}
-
 				gettimeofday(&tasks_done, NULL);
 
-				gettimeofday(&twiddle, NULL);
 #ifdef HAVE_FFTW
 				/* Perform n2 n1-ffts */
 				fftwf_execute(plan->plan_gather);
@@ -681,13 +685,14 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 				starpu_data_set_wb_mask(out_handle[i], 1<<0);
 
 				/* Create task */
+				/* TODO: move to planning */
 				tasks[i] = task = starpu_task_create();
 				task->cl = &dft_2d_codelet;
 				task->buffers[0].handle = in_handle[i];
 				task->buffers[1].handle = out_handle[i];
 				args[i].plan = plan;
-				args[i].i = i; // FIXME
-				args[i].j = i;
+				args[i].i = i/m1;
+				args[i].j = i%m1;
 				task->cl_arg = &args[i];
 				task->callback_func = callback;
 				task->callback_arg = plan;
@@ -709,15 +714,6 @@ starpufftf_execute(starpufftf_plan plan, void *_in, void *_out)
 				starpu_delete_data(out_handle[i]);
 			}
 			gettimeofday(&tasks_done, NULL);
-
-			/* Twiddle values */
-			for (i = 0; i < n1; i++)
-				for (j = 0; j < m1; j++)
-					for (k = 0; k < n2; k++)
-						for (l = 0; l < m2; l++)
-							split_out[i*m1*n2*m2+j*n2*m2+k*m2+l] *= plan->roots[0][i*k] * plan->roots[1][j*l];
-
-			gettimeofday(&twiddle, NULL);
 
 #ifdef HAVE_FFTW
 			/* Perform n2*m2 n1*m1-ffts */
@@ -799,8 +795,7 @@ starpufftf_showstats(FILE *out)
 	fprintf(out, "Tasks submission took %2.2f ms\n", MSTIMING(init,init_tasks));
 	fprintf(out, "Tasks termination took %2.2f ms\n", MSTIMING(init_tasks,do_tasks));
 	fprintf(out, "Tasks cleanup took %2.2f ms\n", MSTIMING(do_tasks,tasks_done));
-	fprintf(out, "Twiddle took %2.2f ms\n", MSTIMING(tasks_done,twiddle));
-	fprintf(out, "Gather took %2.2f ms\n", MSTIMING(twiddle,gather));
+	fprintf(out, "Gather took %2.2f ms\n", MSTIMING(tasks_done,gather));
 	fprintf(out, "Finalization took %2.2f ms\n", MSTIMING(gather,end));
 
 	fprintf(out, "Total %2.2f ms\n", MSTIMING(start,end));
