@@ -21,7 +21,7 @@
 extern "C" __global__ void starpufftf_cuda_1d_twiddle(cuComplex * out, cuComplex * roots, unsigned n, unsigned i)
 {
 	unsigned j;
-	unsigned start = blockIdx.x;
+	unsigned start = threadIdx.x + blockIdx.x * blockDim.x;
 	unsigned end = start + 1;
 
 	//for (j = start; j < end; j++)
@@ -32,15 +32,23 @@ extern "C" __global__ void starpufftf_cuda_1d_twiddle(cuComplex * out, cuComplex
 
 extern "C" void starpufftf_cuda_1d_twiddle_host(cuComplex *out, cuComplex *roots, unsigned n, unsigned i)
 {
-	dim3 dimGrid(n);
-	starpufftf_cuda_1d_twiddle <<<dimGrid, 1>>> (out, roots, n, i);
+	unsigned threads_per_block = 128;
+
+	if (n < threads_per_block) {
+		dim3 dimGrid(n);
+		starpufftf_cuda_1d_twiddle <<<dimGrid, 1>>> (out, roots, n, i);
+	} else {
+		dim3 dimGrid(n / threads_per_block);
+		dim3 dimBlock(threads_per_block);
+		starpufftf_cuda_1d_twiddle <<<dimGrid, dimBlock>>> (out, roots, n, i);
+	}
 }
 
 extern "C" __global__ void starpufftf_cuda_2d_twiddle(cuComplex * out, cuComplex * roots0, cuComplex * roots1, unsigned n2, unsigned m2, unsigned i, unsigned j)
 {
 	unsigned k, l;
-	unsigned startx = blockIdx.x;
-	unsigned starty = blockIdx.y;
+	unsigned startx = threadIdx.x + blockIdx.x * blockDim.x;
+	unsigned starty = threadIdx.y + blockIdx.y * blockDim.y;
 	unsigned endx = startx + 1;
 	unsigned endy = starty + 1;
 
@@ -54,6 +62,25 @@ extern "C" __global__ void starpufftf_cuda_2d_twiddle(cuComplex * out, cuComplex
 
 extern "C" void starpufftf_cuda_2d_twiddle_host(cuComplex *out, cuComplex *roots0, cuComplex *roots1, unsigned n2, unsigned m2, unsigned i, unsigned j)
 {
-	dim3 dimGrid(n2, m2);
-	starpufftf_cuda_2d_twiddle <<<dimGrid, 1>>> (out, roots0, roots1, n2, m2, i, j);
+	unsigned threads_per_dim = 16;
+	if (n2 < threads_per_dim) {
+		if (m2 < threads_per_dim) {
+			dim3 dimGrid(n2, m2);
+			starpufftf_cuda_2d_twiddle <<<dimGrid, 1>>> (out, roots0, roots1, n2, m2, i, j);
+		} else {
+			dim3 dimGrid(n2, threads_per_dim);
+			dim3 dimBlock(1, m2 / threads_per_dim);
+			starpufftf_cuda_2d_twiddle <<<dimGrid, dimBlock>>> (out, roots0, roots1, n2, m2, i, j);
+		}
+	} else { 
+		if (m2 < threads_per_dim) {
+			dim3 dimGrid(threads_per_dim, m2);
+			dim3 dimBlock(n2 / threads_per_dim, 1);
+			starpufftf_cuda_2d_twiddle <<<dimGrid, dimBlock>>> (out, roots0, roots1, n2, m2, i, j);
+		} else {
+			dim3 dimGrid(threads_per_dim, threads_per_dim);
+			dim3 dimBlock(n2 / threads_per_dim, m2 / threads_per_dim);
+			starpufftf_cuda_2d_twiddle <<<dimGrid, dimBlock>>> (out, roots0, roots1, n2, m2, i, j);
+		}
+	}
 }
