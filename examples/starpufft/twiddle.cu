@@ -22,9 +22,10 @@ extern "C" __global__ void starpufftf_cuda_1d_twiddle(cuComplex * out, cuComplex
 {
 	unsigned j;
 	unsigned start = threadIdx.x + blockIdx.x * blockDim.x;
-	unsigned end = start + 1;
+	unsigned numthreads = blockDim.x * gridDim.x;
+	unsigned end = n;
 
-	for (j = start; j < end; j++)
+	for (j = start; j < end; j += numthreads)
 		out[j] = cuCmulf(out[j], roots[i*j]);
 	return;
 }
@@ -48,11 +49,13 @@ extern "C" __global__ void starpufftf_cuda_2d_twiddle(cuComplex * out, cuComplex
 	unsigned k, l;
 	unsigned startx = threadIdx.x + blockIdx.x * blockDim.x;
 	unsigned starty = threadIdx.y + blockIdx.y * blockDim.y;
-	unsigned endx = startx + 1;
-	unsigned endy = starty + 1;
+	unsigned numthreadsx = blockDim.x * gridDim.x;
+	unsigned numthreadsy = blockDim.y * gridDim.y;
+	unsigned endx = n2;
+	unsigned endy = m2;
 
-	for (k = startx; k < endx ; k++)
-		for (l = starty; l < endy ; l++)
+	for (k = startx; k < endx ; k += numthreadsx)
+		for (l = starty; l < endy ; l += numthreadsy)
 			out[k*m2 + l] = cuCmulf(cuCmulf(out[k*m2 + l], roots0[i*k]), roots1[j*l]);
 	return;
 }
