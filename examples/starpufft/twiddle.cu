@@ -51,10 +51,8 @@ extern "C" __global__ void starpufftf_cuda_2d_twiddle(cuComplex * out, cuComplex
 	unsigned endx = startx + 1;
 	unsigned endy = starty + 1;
 
-	//for (k = startx; k < endx ; k++)
-		//for (l = starty; l < endy ; l++)
-	k = startx;
-	l = starty;
+	for (k = startx; k < endx ; k++)
+		for (l = starty; l < endy ; l++)
 			out[k*m2 + l] = cuCmulf(cuCmulf(out[k*m2 + l], roots0[i*k]), roots1[j*l]);
 	return;
 }
