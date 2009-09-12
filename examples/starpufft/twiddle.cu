@@ -67,18 +67,18 @@ extern "C" void starpufftf_cuda_2d_twiddle_host(cuComplex *out, cuComplex *roots
 			dim3 dimGrid(n2, m2);
 			starpufftf_cuda_2d_twiddle <<<dimGrid, 1>>> (out, roots0, roots1, n2, m2, i, j);
 		} else {
-			dim3 dimGrid(n2, threads_per_dim);
-			dim3 dimBlock(1, m2 / threads_per_dim);
+			dim3 dimGrid(1, m2 / threads_per_dim);
+			dim3 dimBlock(n2, threads_per_dim);
 			starpufftf_cuda_2d_twiddle <<<dimGrid, dimBlock>>> (out, roots0, roots1, n2, m2, i, j);
 		}
 	} else { 
 		if (m2 < threads_per_dim) {
-			dim3 dimGrid(threads_per_dim, m2);
-			dim3 dimBlock(n2 / threads_per_dim, 1);
+			dim3 dimGrid(n2 / threads_per_dim, 1);
+			dim3 dimBlock(threads_per_dim, m2);
 			starpufftf_cuda_2d_twiddle <<<dimGrid, dimBlock>>> (out, roots0, roots1, n2, m2, i, j);
 		} else {
-			dim3 dimGrid(threads_per_dim, threads_per_dim);
-			dim3 dimBlock(n2 / threads_per_dim, m2 / threads_per_dim);
+			dim3 dimGrid(n2 / threads_per_dim, m2 / threads_per_dim);
+			dim3 dimBlock(threads_per_dim, threads_per_dim);
 			starpufftf_cuda_2d_twiddle <<<dimGrid, dimBlock>>> (out, roots0, roots1, n2, m2, i, j);
 		}
 	}
