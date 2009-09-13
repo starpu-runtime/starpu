@@ -813,6 +813,7 @@ STARPUFFT(malloc)(size_t n)
 	void *res;
 	starpu_malloc_pinned_if_possible(&res, n);
 	return res;
+#else
 #  ifdef HAVE_FFTW
 	return _FFTW(malloc)(n);
 #  else
@@ -826,6 +827,7 @@ STARPUFFT(free)(void *p)
 {
 #ifdef USE_CUDA
 	// TODO: FIXME
+#else
 #  ifdef HAVE_FFTW
 	_FFTW(free)(p);
 #  else
