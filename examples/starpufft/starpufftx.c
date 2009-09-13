@@ -35,7 +35,7 @@ enum type {
 
 static unsigned task_per_worker[STARPU_NMAXWORKERS];
 static unsigned samples_per_worker[STARPU_NMAXWORKERS];
-static struct timeval start, init, init_tasks, do_tasks, tasks_done, gather, end;
+static struct timeval start, init, submit_tasks, do_tasks, tasks_done, gather, end;
 
 /*
  *
@@ -79,18 +79,18 @@ struct STARPUFFT(plan) {
 	_fftw_plan plan_gather;
 #endif
 
-	void *split_in, *split_out;
-	void *output;
+	STARPUFFT(complex) *split_in, *split_out;
+	STARPUFFT(complex) *output;
+
+	starpu_data_handle *in_handle;
+	starpu_data_handle *out_handle;
+	struct starpu_task **tasks;
+	struct STARPUFFT(args) *args;
 };
 
-struct STARPUFFT(1d_args) {
+struct STARPUFFT(args) {
 	struct STARPUFFT(plan) *plan;
-	int i;
-};
-
-struct STARPUFFT(2d_args) {
-	struct STARPUFFT(plan) *plan;
-	int i,j;
+	int i, j, *iv;
 };
 
 #ifdef USE_CUDA
@@ -100,7 +100,7 @@ extern void STARPUFFT(cuda_1d_twiddle_host)(_cuComplex *out, _cuComplex *roots, 
 static void
 STARPUFFT(dft_1d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 {
-	struct STARPUFFT(1d_args) *args = _args;
+	struct STARPUFFT(args) *args = _args;
 	STARPUFFT(plan) plan = args->plan;
 	int i = args->i;
 	cufftResult cures;
@@ -130,7 +130,7 @@ STARPUFFT(dft_1d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 static void
 STARPUFFT(dft_r2c_1d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 {
-	struct STARPUFFT(1d_args) *args = _args;
+	struct STARPUFFT(args) *args = _args;
 	STARPUFFT(plan) plan = args->plan;
 	int i = args->i;
 	cufftResult cures;
@@ -160,7 +160,7 @@ STARPUFFT(dft_r2c_1d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 static void
 STARPUFFT(dft_c2r_1d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 {
-	struct STARPUFFT(1d_args) *args = _args;
+	struct STARPUFFT(args) *args = _args;
 	STARPUFFT(plan) plan = args->plan;
 	int i = args->i;
 	cufftResult cures;
@@ -193,7 +193,7 @@ extern void STARPUFFT(cuda_2d_twiddle_host)(_cuComplex *out, _cuComplex *roots0,
 static void
 STARPUFFT(dft_2d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 {
-	struct STARPUFFT(2d_args) *args = _args;
+	struct STARPUFFT(args) *args = _args;
 	STARPUFFT(plan) plan = args->plan;
 	int i = args->i;
 	int j = args->j;
@@ -229,7 +229,7 @@ STARPUFFT(dft_2d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 static void
 STARPUFFT(dft_1d_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
 {
-	struct STARPUFFT(1d_args) *args = _args;
+	struct STARPUFFT(args) *args = _args;
 	STARPUFFT(plan) plan = args->plan;
 	int i = args->i;
 	int j;
@@ -250,7 +250,7 @@ STARPUFFT(dft_1d_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
 static void
 STARPUFFT(dft_2d_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
 {
-	struct STARPUFFT(2d_args) *args = _args;
+	struct STARPUFFT(args) *args = _args;
 	STARPUFFT(plan) plan = args->plan;
 	int i = args->i;
 	int j = args->j;
@@ -419,6 +419,8 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 	int workerid;
 	int n1 = DIV_1D;
 	int n2 = n / n1;
+	int i;
+	struct starpu_task *task;
 
 #ifdef USE_CUDA
 	/* cufft 1D limited to 8M elements */
@@ -491,6 +493,34 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 #warning libstarpufft can not work correctly without libfftw3
 #endif
 
+	plan->in_handle = malloc(plan->totsize1 * sizeof(*plan->in_handle));
+	plan->out_handle = malloc(plan->totsize1 * sizeof(*plan->out_handle));
+	plan->tasks = malloc(plan->totsize1 * sizeof(*plan->tasks));
+	plan->args = malloc(plan->totsize1 * sizeof(*plan->args));
+	for (i = 0; i < plan->totsize1; i++) {
+		/* Register data */
+		starpu_register_vector_data(&plan->in_handle[i], 0, (uintptr_t) &plan->split_in[i*plan->totsize2], plan->totsize2, sizeof(*plan->split_in));
+		starpu_register_vector_data(&plan->out_handle[i], 0, (uintptr_t) &plan->split_out[i*plan->totsize2], plan->totsize2, sizeof(*plan->split_out));
+
+		/* We'll need it on the CPU only anyway */
+		starpu_data_set_wb_mask(plan->out_handle[i], 1<<0);
+
+		/* Create task */
+		plan->tasks[i] = task = starpu_task_create();
+		task->cl = &STARPUFFT(dft_1d_codelet;)
+		task->buffers[0].handle = plan->in_handle[i];
+		task->buffers[0].mode = STARPU_R;
+		task->buffers[1].handle = plan->out_handle[i];
+		task->buffers[1].mode = STARPU_W;
+		task->buffers[2].handle = plan->roots_handle[0];
+		task->buffers[2].mode = STARPU_R;
+		plan->args[i].plan = plan;
+		plan->args[i].i = i;
+		task->cl_arg = &plan->args[i];
+		task->callback_func = STARPUFFT(callback);
+		task->callback_arg = plan;
+	}
+
 	return plan;
 }
 
@@ -502,6 +532,8 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 	int n2 = n / n1;
 	int m1 = DIV_2D;
 	int m2 = m / m1;
+	int i;
+	struct starpu_task *task;
 
 #ifdef USE_CUDA
 	/* cufft 2D-3D limited to [2,16384] */
@@ -586,6 +618,37 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 #warning libstarpufft can not work correctly without libfftw3
 #endif
 
+	plan->in_handle = malloc(plan->totsize1 * sizeof(*plan->in_handle));
+	plan->out_handle = malloc(plan->totsize1 * sizeof(*plan->out_handle));
+	plan->tasks = malloc(plan->totsize1 * sizeof(*plan->tasks));
+	plan->args = malloc(plan->totsize1 * sizeof(*plan->args));
+	for (i = 0; i < plan->totsize1; i++) {
+		/* Register data */
+		starpu_register_vector_data(&plan->in_handle[i], 0, (uintptr_t) &plan->split_in[i*plan->totsize2], plan->totsize2, sizeof(*plan->split_in));
+		starpu_register_vector_data(&plan->out_handle[i], 0, (uintptr_t) &plan->split_out[i*plan->totsize2], plan->totsize2, sizeof(*plan->split_out));
+
+		/* We'll need it on the CPU only anyway */
+		starpu_data_set_wb_mask(plan->out_handle[i], 1<<0);
+
+		/* Create task */
+		plan->tasks[i] = task = starpu_task_create();
+		task->cl = &STARPUFFT(dft_2d_codelet;)
+		task->buffers[0].handle = plan->in_handle[i];
+		task->buffers[0].mode = STARPU_R;
+		task->buffers[1].handle = plan->out_handle[i];
+		task->buffers[1].mode = STARPU_W;
+		task->buffers[2].handle = plan->roots_handle[0];
+		task->buffers[2].mode = STARPU_R;
+		task->buffers[3].handle = plan->roots_handle[1];
+		task->buffers[3].mode = STARPU_R;
+		plan->args[i].plan = plan;
+		plan->args[i].i = i/m1;
+		plan->args[i].j = i%m1;
+		task->cl_arg = &plan->args[i];
+		task->callback_func = STARPUFFT(callback);
+		task->callback_arg = plan;
+	}
+
 	return plan;
 }
 
@@ -603,13 +666,9 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *_in, void *_out)
 				STARPUFFT(complex) *in = _in;
 				STARPUFFT(complex) *out = _out;
 				STARPUFFT(complex) *split_in = plan->split_in;
-				STARPUFFT(complex) *split_out = plan->split_out;
 				int n1 = plan->n1[0], n2 = plan->n2[0];
-				starpu_data_handle in_handle[n1];
-				starpu_data_handle out_handle[n1];
-				struct starpu_task *tasks[n1];
-				struct STARPUFFT(1d_args) args[n1];
-				struct starpu_task *task;
+				starpu_data_handle *out_handle = plan->out_handle;
+				struct starpu_task **tasks = plan->tasks;
 				int i,j;
 
 				plan->todo = plan->totsize1;
@@ -619,32 +678,10 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *_in, void *_out)
 						split_in[i*n2 + j] = in[i + j*n1];
 				gettimeofday(&init, NULL);
 
-				for (i=0; i < plan->totsize1; i++) {
-					/* Register data */
-					starpu_register_vector_data(&in_handle[i], 0, (uintptr_t) &split_in[i*plan->totsize2], plan->totsize2, sizeof(*split_in));
-					starpu_register_vector_data(&out_handle[i], 0, (uintptr_t) &split_out[i*plan->totsize2], plan->totsize2, sizeof(*split_out));
+				for (i=0; i < plan->totsize1; i++)
+					starpu_submit_task(tasks[i]);
 
-					/* We'll need it on the CPU only anyway */
-					starpu_data_set_wb_mask(out_handle[i], 1<<0);
-
-					/* Create task */
-					/* TODO: move to planning */
-					tasks[i] = task = starpu_task_create();
-					task->cl = &STARPUFFT(dft_1d_codelet;)
-					task->buffers[0].handle = in_handle[i];
-					task->buffers[0].mode = STARPU_R;
-					task->buffers[1].handle = out_handle[i];
-					task->buffers[1].mode = STARPU_W;
-					task->buffers[2].handle = plan->roots_handle[0];
-					task->buffers[2].mode = STARPU_R;
-					args[i].plan = plan;
-					args[i].i = i;
-					task->cl_arg = &args[i];
-					task->callback_func = STARPUFFT(callback);
-					task->callback_arg = plan;
-					starpu_submit_task(task);
-				}
-				gettimeofday(&init_tasks, NULL);
+				gettimeofday(&submit_tasks, NULL);
 				/* Wait for tasks */
 				pthread_mutex_lock(&plan->mutex);
 				while (plan->todo != 0)
@@ -653,12 +690,10 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *_in, void *_out)
 				gettimeofday(&do_tasks, NULL);
 
 				/* Unregister data */
-				for (i = 0; i < plan->totsize1; i++) {
+				for (i = 0; i < plan->totsize1; i++)
 					/* Make sure output is here? */
 					starpu_sync_data_with_mem(out_handle[i]);
-					starpu_delete_data(in_handle[i]);
-					starpu_delete_data(out_handle[i]);
-				}
+
 				gettimeofday(&tasks_done, NULL);
 
 #ifdef HAVE_FFTW
@@ -680,15 +715,11 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *_in, void *_out)
 			STARPUFFT(complex) *in = _in;
 			STARPUFFT(complex) *out = _out;
 			STARPUFFT(complex) *split_in = plan->split_in;
-			STARPUFFT(complex) *split_out = plan->split_out;
 			STARPUFFT(complex) *output = plan->output;
 			int n1 = plan->n1[0], n2 = plan->n2[0], /*n = plan->n[0],*/ m = plan->n[1];
 			int m1 = plan->n1[1], m2 = plan->n2[1];
-			starpu_data_handle in_handle[plan->totsize1];
-			starpu_data_handle out_handle[plan->totsize1];
-			struct starpu_task *tasks[plan->totsize1];
-			struct STARPUFFT(2d_args) args[plan->totsize1];
-			struct starpu_task *task;
+			starpu_data_handle *out_handle = plan->out_handle;
+			struct starpu_task **tasks = plan->tasks;
 			int i,j,k,l;
 
 			plan->todo = plan->totsize1;
@@ -700,35 +731,10 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *_in, void *_out)
 							split_in[i*m1*n2*m2+j*n2*m2+k*m2+l] = in[i*m+j+k*m*n1+l*m1];
 			gettimeofday(&init, NULL);
 
-			for (i=0; i < plan->totsize1; i++) {
-				/* Register data */
-				starpu_register_vector_data(&in_handle[i], 0, (uintptr_t) &split_in[i*plan->totsize2], plan->totsize2, sizeof(*split_in));
-				starpu_register_vector_data(&out_handle[i], 0, (uintptr_t) &split_out[i*plan->totsize2], plan->totsize2, sizeof(*split_out));
+			for (i=0; i < plan->totsize1; i++)
+				starpu_submit_task(tasks[i]);
 
-				/* We'll need it on the CPU only anyway */
-				starpu_data_set_wb_mask(out_handle[i], 1<<0);
-
-				/* Create task */
-				/* TODO: move to planning */
-				tasks[i] = task = starpu_task_create();
-				task->cl = &STARPUFFT(dft_2d_codelet;)
-				task->buffers[0].handle = in_handle[i];
-				task->buffers[0].mode = STARPU_R;
-				task->buffers[1].handle = out_handle[i];
-				task->buffers[1].mode = STARPU_W;
-				task->buffers[2].handle = plan->roots_handle[0];
-				task->buffers[2].mode = STARPU_R;
-				task->buffers[3].handle = plan->roots_handle[1];
-				task->buffers[3].mode = STARPU_R;
-				args[i].plan = plan;
-				args[i].i = i/m1;
-				args[i].j = i%m1;
-				task->cl_arg = &args[i];
-				task->callback_func = STARPUFFT(callback);
-				task->callback_arg = plan;
-				starpu_submit_task(task);
-			}
-			gettimeofday(&init_tasks, NULL);
+			gettimeofday(&submit_tasks, NULL);
 			/* Wait for tasks */
 			pthread_mutex_lock(&plan->mutex);
 			while (plan->todo != 0)
@@ -737,12 +743,9 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *_in, void *_out)
 			gettimeofday(&do_tasks, NULL);
 
 			/* Unregister data */
-			for (i = 0; i < plan->totsize1; i++) {
+			for (i = 0; i < plan->totsize1; i++)
 				/* Make sure output is here? */
 				starpu_sync_data_with_mem(out_handle[i]);
-				starpu_delete_data(in_handle[i]);
-				starpu_delete_data(out_handle[i]);
-			}
 			gettimeofday(&tasks_done, NULL);
 
 #ifdef HAVE_FFTW
@@ -770,7 +773,7 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *_in, void *_out)
 void
 STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 {
-	int workerid, dim;
+	int workerid, dim, i;
 
 	for (workerid = 0; workerid < starpu_get_worker_count(); workerid++) {
 		switch (starpu_get_worker_type(workerid)) {
@@ -791,13 +794,21 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 			break;
 		}
 	}
+	for (i = 0; i < plan->totsize1; i++) {
+		starpu_delete_data(plan->in_handle[i]);
+		starpu_delete_data(plan->out_handle[i]);
+	}
+	free(plan->in_handle);
+	free(plan->out_handle);
+	free(plan->tasks);
+	free(plan->args);
 	for (dim = 0; dim < plan->dim; dim++) {
 		starpu_delete_data(plan->roots_handle[dim]);
 		free(plan->roots[dim]);
 	}
-	STARPUFFT(free)(plan->n);
-	STARPUFFT(free)(plan->n1);
-	STARPUFFT(free)(plan->n2);
+	free(plan->n);
+	free(plan->n1);
+	free(plan->n2);
 	STARPUFFT(free)(plan->split_in);
 	STARPUFFT(free)(plan->split_out);
 	STARPUFFT(free)(plan->output);
@@ -838,8 +849,8 @@ STARPUFFT(showstats)(FILE *out)
 #define MSTIMING(begin,end) (TIMING(begin,end)/1000.)
 	double paratiming = TIMING(init,do_tasks);
 	fprintf(out, "Initialization took %2.2f ms\n", MSTIMING(start,init));
-	fprintf(out, "Tasks submission took %2.2f ms\n", MSTIMING(init,init_tasks));
-	fprintf(out, "Tasks termination took %2.2f ms\n", MSTIMING(init_tasks,do_tasks));
+	fprintf(out, "Tasks submission took %2.2f ms\n", MSTIMING(init,submit_tasks));
+	fprintf(out, "Tasks termination took %2.2f ms\n", MSTIMING(submit_tasks,do_tasks));
 	fprintf(out, "Tasks cleanup took %2.2f ms\n", MSTIMING(do_tasks,tasks_done));
 	fprintf(out, "Gather took %2.2f ms\n", MSTIMING(tasks_done,gather));
 	fprintf(out, "Finalization took %2.2f ms\n", MSTIMING(gather,end));
