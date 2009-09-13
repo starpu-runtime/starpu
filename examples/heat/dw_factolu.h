@@ -20,6 +20,7 @@
 #include <semaphore.h>
 #include <string.h>
 #include <math.h>
+#include <sys/time.h>
 /* for USE_CUDA */
 #include <starpu_config.h>
 #ifdef USE_CUDA
