@@ -659,12 +659,14 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *_in, void *_out)
 				struct starpu_task **tasks = plan->tasks;
 				int i,j;
 
-				plan->todo = plan->totsize1;
-
 				for (i = 0; i < n1; i++)
 					for (j = 0; j < n2; j++)
 						split_in[i*n2 + j] = in[i + j*n1];
 				gettimeofday(&init, NULL);
+
+				pthread_mutex_lock(&plan->mutex);
+				plan->todo = plan->totsize1;
+				pthread_mutex_unlock(&plan->mutex);
 
 				for (i=0; i < plan->totsize1; i++)
 					starpu_submit_task(tasks[i]);
@@ -677,7 +679,6 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *_in, void *_out)
 				pthread_mutex_unlock(&plan->mutex);
 				gettimeofday(&do_tasks, NULL);
 
-				/* Unregister data */
 				for (i = 0; i < plan->totsize1; i++)
 					/* Make sure output is here? */
 					starpu_sync_data_with_mem(out_handle[i]);
@@ -710,14 +711,16 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *_in, void *_out)
 			struct starpu_task **tasks = plan->tasks;
 			int i,j,k,l;
 
-			plan->todo = plan->totsize1;
-
 			for (i = 0; i < n1; i++)
 				for (j = 0; j < m1; j++)
 					for (k = 0; k < n2; k++)
 						for (l = 0; l < m2; l++)
 							split_in[i*m1*n2*m2+j*n2*m2+k*m2+l] = in[i*m+j+k*m*n1+l*m1];
 			gettimeofday(&init, NULL);
+
+			pthread_mutex_lock(&plan->mutex);
+			plan->todo = plan->totsize1;
+			pthread_mutex_unlock(&plan->mutex);
 
 			for (i=0; i < plan->totsize1; i++)
 				starpu_submit_task(tasks[i]);
