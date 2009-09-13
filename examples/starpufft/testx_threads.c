@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
 	gettimeofday(&end, NULL);
 	_FFTW(destroy_plan)(fftw_plan);
 	timing = (double)((end.tv_sec - begin.tv_sec)*1000000 + (end.tv_usec - begin.tv_usec));
-	printf("FFTW took %2.2f ms (%2.2f MB/s)\n\n", timing/1000, bytes/(timing*num_threads));
+	printf("FFTW with %d threads took %2.2f ms (%2.2f MB/s)\n\n", num_threads, timing/1000, bytes/(timing*num_threads));
 
 	printf("\n");
 
