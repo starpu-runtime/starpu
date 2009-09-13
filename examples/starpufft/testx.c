@@ -178,7 +178,9 @@ int main(int argc, char *argv[]) {
 	fprintf(stderr, "relative maximum difference %g\n", relmaxdiff);
 	double relavgdiff = (tot / size) / sqrt(norm);
 	fprintf(stderr, "relative average difference %g\n", relavgdiff);
-	if (relmaxdiff > 0.0000001 || relavgdiff > 0.0000001)
+	if (!strcmp(TYPE, "f") && relmaxdiff > 1e-8 || relavgdiff > 1e-8)
+		return EXIT_FAILURE;
+	if (!strcmp(TYPE, "") && relmaxdiff > 1e-16 || relavgdiff > 1e-16)
 		return EXIT_FAILURE;
 }
 #endif
