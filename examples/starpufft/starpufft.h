@@ -20,22 +20,31 @@
 #define STARPUFFT_FORWARD -1
 #define STARPUFFT_INVERSE 1
 
-typedef float _Complex starpufftf_complex;
+#define __STARPUFFT(name) starpufft_##name
+#define __STARPUFFTF(name) starpufftf_##name
+#define __STARPUFFTL(name) starpufftl_##name
 
-typedef struct starpufftf_plan *starpufftf_plan;
+#define __STARPUFFT_INTERFACE(starpufft,real) \
+typedef real _Complex starpufft(complex); \
+\
+typedef struct starpufft(plan) *starpufft(plan); \
+\
+starpufft(plan) starpufft(plan_dft_1d)(int n, int sign, unsigned flags); \
+starpufft(plan) starpufft(plan_dft_2d)(int n, int m, int sign, unsigned flags); \
+starpufft(plan) starpufft(plan_dft_r2c_1d)(int n, unsigned flags); \
+starpufft(plan) starpufft(plan_dft_c2r_1d)(int n, unsigned flags); \
+\
+void *starpufft(malloc)(size_t n); \
+void starpufft(free)(void *p); \
+\
+void starpufft(execute)(starpufft(plan) p, void *in, void *out); \
+\
+void starpufft(destroy_plan)(starpufft(plan) p); \
+\
+void starpufft(startstats)(void); \
+void starpufft(stopstats)(void); \
+void starpufft(showstats)(FILE *out);
 
-starpufftf_plan starpufftf_plan_dft_1d(int n, int sign, unsigned flags);
-starpufftf_plan starpufftf_plan_dft_2d(int n, int m, int sign, unsigned flags);
-starpufftf_plan starpufftf_plan_dft_r2c_1d(int n, unsigned flags);
-starpufftf_plan starpufftf_plan_dft_c2r_1d(int n, unsigned flags);
-
-void *starpufftf_malloc(size_t n);
-void starpufftf_free(void *p);
-
-void starpufftf_execute(starpufftf_plan p, void *in, void *out);
-
-void starpufftf_destroy_plan(starpufftf_plan p);
-
-void starpufftf_startstats(void);
-void starpufftf_stopstats(void);
-void starpufftf_showstats(FILE *out);
+__STARPUFFT_INTERFACE(__STARPUFFT, double)
+__STARPUFFT_INTERFACE(__STARPUFFTF, float)
+__STARPUFFT_INTERFACE(__STARPUFFTL, long double)

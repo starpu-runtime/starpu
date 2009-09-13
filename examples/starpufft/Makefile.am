@@ -18,8 +18,9 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/
 
 lib_LTLIBRARIES = libstarpufft.la
 
-libstarpufft_la_SOURCES = starpufft.c
-libstarpufft_la_LDFLAGS = $(top_builddir)/src/libstarpu.la $(FFTWF_LIBS)
+EXTRA_DIST = starpufftx.c float.h double.h
+libstarpufft_la_SOURCES = starpufft.c starpufftf.c
+libstarpufft_la_LDFLAGS = $(top_builddir)/src/libstarpu.la $(FFTW_LIBS) $(FFTWF_LIBS)
 libstarpufft_la_CFLAGS = $(FFTWF_CFLAGS)
 
 if USE_CUDA
@@ -27,19 +28,20 @@ if USE_CUDA
 NVCC ?= nvcc
 NVCCFLAGS += -Xcompiler -fPIC -Xlinker -fPIC
 
-.cu.cubin:
-	$(MKDIR_P) `dirname $@`
-	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
+twiddle.o: twiddle.cu
+	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir} -arch sm_13 
 
-.cu.o:
-	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
+twiddlef.o: twiddlef.cu
+	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
 
-
-libstarpufft_la_SOURCES += twiddle.cu
-am_libstarpufft_la_OBJECTS = twiddle.o starpufft.lo
+libstarpufft_la_SOURCES += twiddle.cu twiddlef.cu
+am_libstarpufft_la_OBJECTS = twiddle.o twiddlef.o starpufft.lo starpufftf.lo
 libstarpufft_la_LDFLAGS += -lcufft
 endif
 
-check_PROGRAMS = test test_threads
-test_LDFLAGS = libstarpufft.la $(top_builddir)/src/libstarpu.la $(FFTWF_LIBS)
-test_threads_LDFLAGS = libstarpufft.la $(top_builddir)/src/libstarpu.la -lfftw3f_threads
+EXTRA_DIST += testx.c testx_threads.c
+check_PROGRAMS = test testf test_threads testf_threads
+test_LDFLAGS = libstarpufft.la $(top_builddir)/src/libstarpu.la $(FFTW_LIBS)
+testf_LDFLAGS = libstarpufft.la $(top_builddir)/src/libstarpu.la $(FFTWF_LIBS)
+test_threads_LDFLAGS = libstarpufft.la $(top_builddir)/src/libstarpu.la -lfftw3_threads
+testf_threads_LDFLAGS = libstarpufft.la $(top_builddir)/src/libstarpu.la -lfftw3f_threads

@@ -14,5 +14,5 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "double.h"
+#include "float.h"
 #include "starpufftx.c"

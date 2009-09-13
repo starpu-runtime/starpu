@@ -44,9 +44,9 @@ int main(int argc, char *argv[]) {
 	int size;
 	size_t bytes;
 	int n = 0, m = 0;
-	starpufftf_plan plan;
+	STARPUFFT(plan) plan;
 #ifdef HAVE_FFTW
-	fftwf_plan fftw_plan;
+	_FFTW(plan) fftw_plan;
 #endif
 #ifdef USE_CUDA
 	cufftHandle cuda_plan;
@@ -76,40 +76,40 @@ int main(int argc, char *argv[]) {
 		assert(0);
 	}
 
-	bytes = size * sizeof(starpufftf_complex);
+	bytes = size * sizeof(STARPUFFT(complex));
 
-	starpufftf_complex *in = starpufftf_malloc(size * sizeof(*in));
+	STARPUFFT(complex) *in = STARPUFFT(malloc)(size * sizeof(*in));
 	srand48(0);
 	for (i = 0; i < size; i++)
 		in[i] = drand48() + I * drand48();
 
-	starpufftf_complex *out = starpufftf_malloc(size * sizeof(*out));
+	STARPUFFT(complex) *out = STARPUFFT(malloc)(size * sizeof(*out));
 
 #ifdef HAVE_FFTW
-	starpufftf_complex *out_fftw = starpufftf_malloc(size * sizeof(*out_fftw));
+	STARPUFFT(complex) *out_fftw = STARPUFFT(malloc)(size * sizeof(*out_fftw));
 #endif
 
 #ifdef USE_CUDA
-	starpufftf_complex *out_cuda = malloc(size * sizeof(*out_cuda));
+	STARPUFFT(complex) *out_cuda = malloc(size * sizeof(*out_cuda));
 #endif
 
 	if (argc == 2) {
-		plan = starpufftf_plan_dft_1d(n, SIGN, 0);
+		plan = STARPUFFT(plan_dft_1d)(n, SIGN, 0);
 #ifdef HAVE_FFTW
-		fftw_plan = fftwf_plan_dft_1d(n, in, out_fftw, SIGN, FFTW_ESTIMATE);
+		fftw_plan = _FFTW(plan_dft_1d)(n, in, out_fftw, SIGN, FFTW_ESTIMATE);
 #endif
 #ifdef USE_CUDA
-		if (cufftPlan1d(&cuda_plan, n, CUFFT_C2C, 1) != CUFFT_SUCCESS)
+		if (cufftPlan1d(&cuda_plan, n, _CUFFT_C2C, 1) != CUFFT_SUCCESS)
 			printf("erf\n");
 #endif
 
 	} else if (argc == 3) {
-		plan = starpufftf_plan_dft_2d(n, m, SIGN, 0);
+		plan = STARPUFFT(plan_dft_2d)(n, m, SIGN, 0);
 #ifdef HAVE_FFTW
-		fftw_plan = fftwf_plan_dft_2d(n, m, in, out_fftw, SIGN, FFTW_ESTIMATE);
+		fftw_plan = _FFTW(plan_dft_2d)(n, m, in, out_fftw, SIGN, FFTW_ESTIMATE);
 #endif
 #ifdef USE_CUDA
-		STARPU_ASSERT(cufftPlan2d(&cuda_plan, n, m, CUFFT_C2C) == CUFFT_SUCCESS);
+		STARPU_ASSERT(cufftPlan2d(&cuda_plan, n, m, _CUFFT_C2C) == CUFFT_SUCCESS);
 #endif
 	} else {
 		assert(0);
@@ -117,9 +117,9 @@ int main(int argc, char *argv[]) {
 
 #ifdef HAVE_FFTW
 	gettimeofday(&begin, NULL);
-	fftwf_execute(fftw_plan);
+	_FFTW(execute)(fftw_plan);
 	gettimeofday(&end, NULL);
-	fftwf_destroy_plan(fftw_plan);
+	_FFTW(destroy_plan)(fftw_plan);
 	timing = (double)((end.tv_sec - begin.tv_sec)*1000000 + (end.tv_usec - begin.tv_usec));
 	printf("FFTW took %2.2f ms (%2.2f MB/s)\n\n", timing/1000, bytes/timing);
 #endif
@@ -135,10 +135,10 @@ int main(int argc, char *argv[]) {
 	printf("CUDA took %2.2f ms (%2.2f MB/s)\n\n", timing/1000, bytes/timing);
 #endif
 
-	starpufftf_execute(plan, in, out);
+	STARPUFFT(execute)(plan, in, out);
 
-	starpufftf_showstats(stdout);
-	starpufftf_destroy_plan(plan);
+	STARPUFFT(showstats)(stdout);
+	STARPUFFT(destroy_plan)(plan);
 
 	starpu_shutdown();
 
@@ -204,7 +204,9 @@ int main(int argc, char *argv[]) {
 	fprintf(stderr, "relative maximum difference %g\n", relmaxdiff);
 	double relavgdiff = (tot / size) / sqrt(norm);
 	fprintf(stderr, "relative average difference %g\n", relavgdiff);
-	if (relmaxdiff > 0.0000001 || relavgdiff > 0.0000001)
+	if (!strcmp(TYPE, "f") && relmaxdiff > 1e-8 || relavgdiff > 1e-8)
+		return EXIT_FAILURE;
+	if (!strcmp(TYPE, "") && relmaxdiff > 1e-16 || relavgdiff > 1e-16)
 		return EXIT_FAILURE;
 }
 #endif

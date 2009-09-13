@@ -37,17 +37,17 @@ int main(int argc, char *argv[]) {
 	int size;
 	size_t bytes;
 	int n = 0, m = 0;
-	fftwf_plan fftw_plan;
+	_FFTW(plan) fftw_plan;
 	double timing;
 	char *num;
 	int num_threads = 1;
 
-	fftwf_init_threads();
+	_FFTW(init_threads)();
 
 	num = getenv("NUM_THREADS");
 	if (num)
 		num_threads = atoi(num);
-	fftwf_plan_with_nthreads(num_threads);
+	_FFTW(plan_with_nthreads)(num_threads);
 
 	if (argc < 2 || argc > 3) {
 		fprintf(stderr,"need one or two size of vector\n");
@@ -69,28 +69,28 @@ int main(int argc, char *argv[]) {
 		assert(0);
 	}
 
-	bytes = size * sizeof(starpufftf_complex);
+	bytes = size * sizeof(_FFTW(complex));
 
-	starpufftf_complex *in = starpufftf_malloc(size * sizeof(*in));
+	_FFTW(complex) *in = _FFTW(malloc)(size * sizeof(*in));
 	srand48(0);
 	for (i = 0; i < size; i++)
 		in[i] = drand48() + I * drand48();
 
-	starpufftf_complex *out_fftw = starpufftf_malloc(size * sizeof(*out_fftw));
+	_FFTW(complex) *out_fftw = _FFTW(malloc)(size * sizeof(*out_fftw));
 
 	if (argc == 2) {
-		fftw_plan = fftwf_plan_dft_1d(n, in, out_fftw, SIGN, FFTW_ESTIMATE);
+		fftw_plan = _FFTW(plan_dft_1d)(n, in, out_fftw, SIGN, FFTW_ESTIMATE);
 
 	} else if (argc == 3) {
-		fftw_plan = fftwf_plan_dft_2d(n, m, in, out_fftw, SIGN, FFTW_ESTIMATE);
+		fftw_plan = _FFTW(plan_dft_2d)(n, m, in, out_fftw, SIGN, FFTW_ESTIMATE);
 	} else {
 		assert(0);
 	}
 
 	gettimeofday(&begin, NULL);
-	fftwf_execute(fftw_plan);
+	_FFTW(execute)(fftw_plan);
 	gettimeofday(&end, NULL);
-	fftwf_destroy_plan(fftw_plan);
+	_FFTW(destroy_plan)(fftw_plan);
 	timing = (double)((end.tv_sec - begin.tv_sec)*1000000 + (end.tv_usec - begin.tv_usec));
 	printf("FFTW took %2.2f ms (%2.2f MB/s)\n\n", timing/1000, bytes/(timing*num_threads));
 
