@@ -809,21 +809,28 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 void *
 STARPUFFT(malloc)(size_t n)
 {
-	// TODO alloc pinned memory instead.
-#ifdef HAVE_FFTW
+#ifdef USE_CUDA
+	void *res;
+	starpu_malloc_pinned_if_possible(&res, n);
+	return res;
+#  ifdef HAVE_FFTW
 	return _FFTW(malloc)(n);
-#else
+#  else
 	return malloc(n);
+#  endif
 #endif
 }
 
 void
 STARPUFFT(free)(void *p)
 {
-#ifdef HAVE_FFTW
+#ifdef USE_CUDA
+	// TODO: FIXME
+#  ifdef HAVE_FFTW
 	_FFTW(free)(p);
-#else
+#  else
 	free(p);
+#  endif
 #endif
 }
 
