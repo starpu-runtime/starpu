@@ -695,13 +695,13 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 
 	if (pinned)
 	{
-		starpu_malloc_pinned_if_possible((void **)A, dim*dim*sizeof(float));
-		starpu_malloc_pinned_if_possible((void **)B, dim*sizeof(float));
+		starpu_malloc_pinned_if_possible((void **)A, (size_t)dim*dim*sizeof(float));
+		starpu_malloc_pinned_if_possible((void **)B, (size_t)dim*sizeof(float));
 	} 
 	else {
-		*A = malloc((unsigned long)dim*dim*sizeof(float));
+		*A = malloc((size_t)dim*dim*sizeof(float));
 		STARPU_ASSERT(*A);
-		*B = malloc((unsigned long)dim*sizeof(float));
+		*B = malloc((size_t)dim*sizeof(float));
 		STARPU_ASSERT(*B);
 	}
 }
@@ -714,9 +714,9 @@ void dw_factoLU(float *matA, unsigned size,
 #ifdef CHECK_RESULTS
 	fprintf(stderr, "Checking results ...\n");
 	float *Asaved;
-	Asaved = malloc(ld*ld*sizeof(float));
+	Asaved = malloc((size_t)ld*ld*sizeof(float));
 
-	memcpy(Asaved, matA, ld*ld*sizeof(float));
+	memcpy(Asaved, matA, (size_t)ld*ld*sizeof(float));
 #endif
 
 	no_prio = _no_prio;

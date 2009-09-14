@@ -629,7 +629,7 @@ static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uin
 
 static void build_dense_stiffness_matrix_A(point *pmesh, float *A, unsigned newsize, int *RefArray, int *RefArrayBack)
 {
-	unsigned j;
+	unsigned long j;
 
 	/* touch all the memory */
 	memset(A, 0, newsize*newsize*sizeof(float));
@@ -650,7 +650,7 @@ static void build_dense_stiffness_matrix_A(point *pmesh, float *A, unsigned news
 			if (nodeneighbour < newsize) {
 				float val;
 				val = compute_A_value(TRANSLATE(j), TRANSLATE(nodeneighbour), pmesh);
-				A[j+ newsize*nodeneighbour] = val;
+				A[j+ (unsigned long)newsize*nodeneighbour] = val;
 			}
 		}
 	}
@@ -728,7 +728,7 @@ int main(int argc, char **argv)
 
 		build_dense_stiffness_matrix_A(pmesh, A, newsize, RefArray, RefArrayBack);
 
-		fprintf(stderr, "Problem size : %dx%d (%dx%d) (%ld MB)\n", newsize, newsize, DIM, DIM, (newsize*newsize*4UL)/(1024*1024));
+		fprintf(stderr, "Problem size : %dx%d (%dx%d) (%ld MB)\n", newsize, newsize, DIM, DIM, ((unsigned long)newsize*newsize*4UL)/(1024*1024));
 
 		STARPU_ASSERT(newsize % nblocks == 0);
 

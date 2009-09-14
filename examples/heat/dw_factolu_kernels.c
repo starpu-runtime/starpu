@@ -291,7 +291,7 @@ static inline void debug_print(float *tab, unsigned ld, unsigned n)
 	{
 		for (i = 0; i < n; i++)
 		{
-			fprintf(stderr, "%2.2f\t", tab[j+i*ld]);
+			fprintf(stderr, "%2.2f\t", tab[(size_t)j+(size_t)i*ld]);
 		}
 		fprintf(stderr, "\n");
 	}
@@ -305,10 +305,10 @@ static inline void dw_common_codelet_update_u11(starpu_data_interface_t *descr, 
 
 	sub11 = (float *)descr[0].blas.ptr; 
 
-	unsigned nx = descr[0].blas.nx;
-	unsigned ld = descr[0].blas.ld;
+	unsigned long nx = descr[0].blas.nx;
+	unsigned long ld = descr[0].blas.ld;
 
-	unsigned z;
+	unsigned long z;
 
 	float pouet;
 

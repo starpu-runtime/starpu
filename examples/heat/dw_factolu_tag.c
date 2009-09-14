@@ -265,9 +265,9 @@ void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks, u
 #ifdef CHECK_RESULTS
 	fprintf(stderr, "Checking results ...\n");
 	float *Asaved;
-	Asaved = malloc(ld*ld*sizeof(float));
+	Asaved = malloc((size_t)ld*ld*sizeof(float));
 
-	memcpy(Asaved, matA, ld*ld*sizeof(float));
+	memcpy(Asaved, matA, (size_t)ld*ld*sizeof(float));
 #endif
 
 	no_prio = _no_prio;
