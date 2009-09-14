@@ -41,11 +41,11 @@ unsigned starpu_block_filter_func(starpu_filter *f, data_state *root_data)
 	unsigned chunk;
 	for (chunk = 0; chunk < nchunks; chunk++)
 	{
-		uint32_t chunk_size = (nx + nchunks - 1)/nchunks;
-		size_t offset = chunk*chunk_size*elemsize;
+		size_t chunk_size = ((size_t)nx + nchunks - 1)/nchunks;
+		size_t offset = (size_t)chunk*chunk_size*elemsize;
 
 		uint32_t child_nx = 
-			STARPU_MIN(chunk_size, nx - chunk*chunk_size);
+			STARPU_MIN(chunk_size, (size_t)nx - (size_t)chunk*chunk_size);
 
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
@@ -86,10 +86,10 @@ unsigned starpu_vertical_block_filter_func(starpu_filter *f, data_state *root_da
 	unsigned chunk;
 	for (chunk = 0; chunk < nchunks; chunk++)
 	{
-		uint32_t chunk_size = (ny + nchunks - 1)/nchunks;
+		size_t chunk_size = ((size_t)ny + nchunks - 1)/nchunks;
 
-		uint32_t child_ny = 
-			STARPU_MIN(chunk_size, ny - chunk*chunk_size);
+		size_t child_ny = 
+			STARPU_MIN(chunk_size, (size_t)ny - (size_t)chunk*chunk_size);
 
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
@@ -102,7 +102,7 @@ unsigned starpu_vertical_block_filter_func(starpu_filter *f, data_state *root_da
 
 			if (root_data->per_node[node].allocated) {
 				size_t offset = 
-					chunk*chunk_size*root_data->interface[node].blas.ld*elemsize;
+					(size_t)chunk*chunk_size*root_data->interface[node].blas.ld*elemsize;
 				local->ptr = root_data->interface[node].blas.ptr + offset;
 				local->ld = root_data->interface[node].blas.ld;
 			}

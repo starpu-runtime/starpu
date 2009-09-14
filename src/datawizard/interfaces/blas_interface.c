@@ -183,7 +183,7 @@ size_t blas_interface_get_size(struct starpu_data_state_t *state)
 
 	interface = &state->interface[0].blas;
 
-	size = interface->nx*interface->ny*interface->elemsize; 
+	size = (size_t)interface->nx*interface->ny*interface->elemsize; 
 
 	return size;
 }
@@ -233,20 +233,22 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 #endif
 	uint32_t nx = state->interface[dst_node].blas.nx;
 	uint32_t ny = state->interface[dst_node].blas.ny;
+	uint32_t ld = nx; // by default
+	size_t pitch;
 	size_t elemsize = state->interface[dst_node].blas.elemsize;
 
 	node_kind kind = get_node_kind(dst_node);
 
 	switch(kind) {
 		case RAM:
-			addr = (uintptr_t)malloc(nx*ny*elemsize);
+			addr = (uintptr_t)malloc((size_t)nx*ny*elemsize);
 			if (!addr) 
 				fail = 1;
 
 			break;
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			status = cudaMalloc((void **)&addr, nx*ny*elemsize);
+			status = cudaMallocPitch((void **)&addr, &pitch, (size_t)nx*elemsize, (size_t)ny);
 			if (!addr || status != cudaSuccess)
 			{
 				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
@@ -254,6 +256,8 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 					
 				fail = 1;
 			}
+
+			ld = (uint32_t)(pitch/elemsize);
 
 			break;
 #endif
@@ -263,11 +267,11 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 
 	if (!fail) {
 		/* allocation succeeded */
-		allocated_memory = nx*ny*elemsize;
+		allocated_memory = (size_t)nx*ny*elemsize;
 
 		/* update the data properly in consequence */
 		state->interface[dst_node].blas.ptr = addr;
-		state->interface[dst_node].blas.ld = nx;
+		state->interface[dst_node].blas.ld = ld;
 	} else {
 		/* allocation failed */
 		allocated_memory = 0;
@@ -318,7 +322,7 @@ static int copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t dst
 	if (STARPU_UNLIKELY(cures))
 		CUDA_REPORT_ERROR(cures);
 
-	TRACE_DATA_COPY(src_node, dst_node, src_blas->nx*src_blas->ny*src_blas->elemsize);
+	TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
 
 	return 0;
 }
@@ -343,7 +347,7 @@ static int copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst
 	if (STARPU_UNLIKELY(cures))
 		CUDA_REPORT_ERROR(cures);
 		
-	TRACE_DATA_COPY(src_node, dst_node, src_blas->nx*src_blas->ny*src_blas->elemsize);
+	TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
 
 	return 0;
 }
@@ -360,14 +364,14 @@ static int copy_cublas_to_ram_async(data_state *state, uint32_t src_node, uint32
 
 	cudaError_t cures;	
 	cures = cudaMemcpy2DAsync((char *)dst_blas->ptr, dst_blas->ld*elemsize,
-			(char *)src_blas->ptr, src_blas->ld*elemsize,
-			src_blas->nx*elemsize, src_blas->ny,
+			(char *)src_blas->ptr, (size_t)src_blas->ld*elemsize,
+			(size_t)src_blas->nx*elemsize, src_blas->ny,
 			cudaMemcpyDeviceToHost, *stream);
 	if (cures)
 	{
 		cures = cudaMemcpy2D((char *)dst_blas->ptr, dst_blas->ld*elemsize,
-			(char *)src_blas->ptr, src_blas->ld*elemsize,
-			src_blas->nx*elemsize, src_blas->ny,
+			(char *)src_blas->ptr, (size_t)src_blas->ld*elemsize,
+			(size_t)src_blas->nx*elemsize, (size_t)src_blas->ny,
 			cudaMemcpyDeviceToHost);
 
 		if (STARPU_UNLIKELY(cures))
@@ -381,7 +385,7 @@ static int copy_cublas_to_ram_async(data_state *state, uint32_t src_node, uint32
 		return 0;
 	}
 
-	TRACE_DATA_COPY(src_node, dst_node, src_blas->nx*src_blas->ny*src_blas->elemsize);
+	TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
 
 	return EAGAIN;
 }
@@ -414,7 +418,7 @@ static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t 
 		return 0;
 	}
 
-	TRACE_DATA_COPY(src_node, dst_node, src_blas->nx*src_blas->ny*src_blas->elemsize);
+	TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
 
 	return EAGAIN;
 }
@@ -445,7 +449,7 @@ static int dummy_copy_ram_to_ram(data_state *state, uint32_t src_node, uint32_t 
 			(void *)(ptr_src + src_offset), nx*elemsize);
 	}
 
-	TRACE_DATA_COPY(src_node, dst_node, nx*ny*elemsize);
+	TRACE_DATA_COPY(src_node, dst_node, (size_t)nx*ny*elemsize);
 
 	return 0;
 }
