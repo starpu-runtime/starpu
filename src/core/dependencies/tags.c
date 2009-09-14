@@ -90,12 +90,13 @@ void starpu_tag_remove(starpu_tag_t id)
 	pthread_rwlock_unlock(&tag_global_rwlock);
 
 #ifdef DYNAMIC_DEPS_SIZE
-	starpu_spin_lock(&tag->lock);
+	if (tag) {
+		starpu_spin_lock(&tag->lock);
 
-	if (tag)
 		free(tag->succ);
 
-	starpu_spin_unlock(&tag->lock);
+		starpu_spin_unlock(&tag->lock);
+	}
 #endif
 
 	free(tag);
