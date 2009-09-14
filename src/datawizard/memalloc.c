@@ -134,25 +134,16 @@ static void transfer_subtree_to_node(data_state *data, unsigned src_node,
 			data->per_node[src_node].state = INVALID;
 			data->per_node[dst_node].state = OWNER;
 
-			data_request_t r;
+#warning we should use requests during memory reclaim
+			/* TODO use request !! */
+			data->per_node[src_node].refcnt++;
+			data->per_node[dst_node].refcnt++;
 
-			/* check that there is not already a similar
-			 * request that we should reuse */
-			r = search_existing_data_request(data, dst_node, 1, 0);
-			if (!r) {
-				/* there was no existing request so we create one now */
-				/* XXX we hardcode the handling node */
-				r = create_data_request(data, src_node, dst_node, src_node, 1, 0, 0);
-				post_data_request(r, src_node);
-			}
-			else {
-				/* if there is already a similar request, it is
-				 * useless to post another one */
-				starpu_spin_unlock(&r->lock);
-			}
+			ret = driver_copy_data_1_to_1(data, src_node, dst_node, 0, NULL, 1);
+			STARPU_ASSERT(ret == 0);
 
-			ret = wait_data_request_completion(r, 0);
-			STARPU_ASSERT(!ret);
+			data->per_node[src_node].refcnt--;
+			data->per_node[dst_node].refcnt--;
 
 			break;
 		case SHARED:
