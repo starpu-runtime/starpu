@@ -97,26 +97,32 @@ struct starpu_task {
 };
 
 /* handle task dependencies: it is possible to associate a task with a unique
- * "tag" and to express dependencies among tasks by the means of those tags */
-void starpu_tag_remove(starpu_tag_t id);
+ * "tag" and to express dependencies among tasks by the means of those tags
+ *
+ * To do so, fill the tag_id field and set use_tag to 1.
+ */
 
 /*
  * WARNING ! use with caution ...
  *  In case starpu_tag_declare_deps is passed constant arguments, the caller
- *  must make sure that the constants have the same size as starpu_tag_t.
- *  Otherwise, nothing prevents the C compiler to consider the tag 0x20000003
- *  instead of 0x2 and 0x3 when calling:
+ *  must make sure that the constants are casted to starpu_tag_t. Otherwise,
+ *  due to integer sizes and argument passing on the stack, the C compiler
+ *  might consider the tag *  0x200000003 instead of 0x2 and 0x3 when calling:
  *      "starpu_tag_declare_deps(0x1, 2, 0x2, 0x3)"
  *  Using starpu_tag_declare_deps_array is a way to avoid this problem.
  */
+/* make id depend on the list of ids */
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);
 
 void starpu_tag_wait(starpu_tag_t id);
 void starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id);
 
-/* it is possible that the application use tags explicitely */
+/* The application can feed a tag explicitely */
 void starpu_tag_notify_from_apps(starpu_tag_t id);
+
+/* To release resources, tags should be freed after use */
+void starpu_tag_remove(starpu_tag_t id);
 
 struct starpu_task *starpu_task_create(void);
 int starpu_submit_task(struct starpu_task *task);
