@@ -39,7 +39,9 @@ static void malloc_pinned_codelet(struct data_interface_s *buffers __attribute__
 	struct malloc_pinned_codelet_struct *s = arg;
 
 	cudaError_t cures;
-	cures = cudaHostAlloc((void **)(s->ptr), s->dim, cudaHostAllocPortable);
+#warning we should use runtime API but it seems buggy yet
+//	cures = cudaHostAlloc((void **)(s->ptr), s->dim, cudaHostAllocPortable);
+	cures = cuMemHostAlloc((void **)(s->ptr), s->dim, CU_MEMHOSTALLOC_PORTABLE);
 	if (STARPU_UNLIKELY(cures))
 		CUDA_REPORT_ERROR(cures);
 }
