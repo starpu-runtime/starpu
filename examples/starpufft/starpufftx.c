@@ -67,6 +67,8 @@ struct STARPUFFT(plan) {
 	struct {
 #ifdef USE_CUDA
 		cufftHandle plan_cuda;
+		_cufftComplex *gpu_in;
+		STARPUFFT(complex) *local_in;
 		int initialized;
 #endif
 #ifdef HAVE_FFTW
@@ -80,6 +82,7 @@ struct STARPUFFT(plan) {
 	_fftw_plan plan_gather;
 #endif
 
+	STARPUFFT(complex) *in;
 	STARPUFFT(complex) *split_in, *split_out;
 	STARPUFFT(complex) *output;
 
@@ -104,6 +107,9 @@ STARPUFFT(dft_1d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 	struct STARPUFFT(args) *args = _args;
 	STARPUFFT(plan) plan = args->plan;
 	int i = args->i;
+	int j;
+	int n1 = plan->n1[0];
+	int n2 = plan->n2[0];
 	cufftResult cures;
 
 	_cufftComplex *in = (_cufftComplex *)descr[0].vector.ptr;
@@ -113,71 +119,23 @@ STARPUFFT(dft_1d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 	int workerid = starpu_get_worker_id();
 
 	if (!plan->plans[workerid].initialized) {
-		cures = cufftPlan1d(&plan->plans[workerid].plan_cuda, plan->n2[0], _CUFFT_C2C, 1);
-		plan->plans[workerid].initialized = 1;
+		cures = cufftPlan1d(&plan->plans[workerid].plan_cuda, n2, _CUFFT_C2C, 1);
 		STARPU_ASSERT(cures == CUFFT_SUCCESS);
+		cures = cudaMalloc((void**) &plan->plans[workerid].gpu_in, n2 * sizeof(_cufftComplex));
+		plan->plans[workerid].local_in = malloc(n2 * sizeof(_cufftComplex));
+		STARPU_ASSERT(cures == CUDA_SUCCESS);
+		plan->plans[workerid].initialized = 1;
 	}
 
-	/* May be in-place */
+	for (j = 0; j < n2; j++)
+		plan->plans[workerid].local_in[j] = plan->in[i + j*n1];
+	cudaMemcpy(plan->plans[workerid].gpu_in, plan->plans[workerid].local_in, n2 * sizeof(_cufftComplex), cudaMemcpyHostToDevice);
+	in = plan->plans[workerid].gpu_in;
+
 	cures = _cufftExecC2C(plan->plans[workerid].plan_cuda, in, out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
 
-	STARPUFFT(cuda_1d_twiddle_host)(out, roots, plan->n2[0], i);
-}
-
-static void
-STARPUFFT(dft_r2c_1d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
-{
-	struct STARPUFFT(args) *args = _args;
-	STARPUFFT(plan) plan = args->plan;
-	int i = args->i;
-	cufftResult cures;
-
-	real *in = (real *)descr[0].vector.ptr;
-	_cufftComplex *out = (_cufftComplex *)descr[1].vector.ptr;
-	_cufftComplex *roots = (_cufftComplex *)descr[2].vector.ptr;
-
-	int workerid = starpu_get_worker_id();
-
-	if (!plan->plans[workerid].initialized) {
-		cures = cufftPlan1d(&plan->plans[workerid].plan_cuda, plan->n2[0], _CUFFT_R2C, 1);
-		plan->plans[workerid].initialized = 1;
-		STARPU_ASSERT(cures == CUFFT_SUCCESS);
-	}
-
-	/* May be in-place */
-	cures = _cufftExecR2C(plan->plans[workerid].plan_cuda, in, out);
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
-
-	STARPUFFT(cuda_1d_twiddle_host)(out, roots, plan->n2[0], i);
-}
-
-static void
-STARPUFFT(dft_c2r_1d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
-{
-	struct STARPUFFT(args) *args = _args;
-	STARPUFFT(plan) plan = args->plan;
-	int i = args->i;
-	cufftResult cures;
-
-	_cufftComplex *in = (_cufftComplex *)descr[0].vector.ptr;
-	real *out = (real *)descr[1].vector.ptr;
-	_cufftComplex *roots = (_cufftComplex *)descr[2].vector.ptr;
-
-	int workerid = starpu_get_worker_id();
-
-	if (!plan->plans[workerid].initialized) {
-		cures = cufftPlan1d(&plan->plans[workerid].plan_cuda, plan->n2[0], _CUFFT_C2R, 1);
-		plan->plans[workerid].initialized = 1;
-		STARPU_ASSERT(cures == CUFFT_SUCCESS);
-	}
-
-	/* May be in-place */
-	cures = _cufftExecC2R(plan->plans[workerid].plan_cuda, in, out);
-	STARPU_ASSERT(cures == CUFFT_SUCCESS);
-
-	// FIXME: not complexes...
-	STARPUFFT(cuda_1d_twiddle_host)(out, roots, plan->n2[0], i);
+	STARPUFFT(cuda_1d_twiddle_host)(out, roots, n2, i);
 }
 
 extern void STARPUFFT(cuda_2d_twiddle_host)(_cuComplex *out, _cuComplex *roots0, _cuComplex *roots1, unsigned n2, unsigned m2, unsigned i, unsigned j);
@@ -189,8 +147,12 @@ STARPUFFT(dft_2d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 	STARPUFFT(plan) plan = args->plan;
 	int i = args->i;
 	int j = args->j;
+	int k, l;
+	int n1 = plan->n1[0];
 	int n2 = plan->n2[0];
+	int m1 = plan->n1[1];
 	int m2 = plan->n2[1];
+	int m = plan->n[1];
 	cufftResult cures;
 
 	_cufftComplex *in = (_cufftComplex *)descr[0].vector.ptr;
@@ -202,11 +164,19 @@ STARPUFFT(dft_2d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 
 	if (!plan->plans[workerid].initialized) {
 		cures = cufftPlan2d(&plan->plans[workerid].plan_cuda, n2, m2, _CUFFT_C2C);
-		plan->plans[workerid].initialized = 1;
 		STARPU_ASSERT(cures == CUFFT_SUCCESS);
+		cures = cudaMalloc((void**) &plan->plans[workerid].gpu_in, n2 * m2 * sizeof(_cufftComplex));
+		plan->plans[workerid].local_in = malloc(n2 * m2 * sizeof(_cufftComplex));
+		STARPU_ASSERT(cures == CUDA_SUCCESS);
+		plan->plans[workerid].initialized = 1;
 	}
 
-	/* May be in-place */
+	for (k = 0; k < n2; k++)
+		for (l = 0; l < m2; l++)
+			plan->plans[workerid].local_in[k*m2+l] = plan->in[i*m+j+k*m*n1+l*m1];
+	cudaMemcpy(plan->plans[workerid].gpu_in, plan->plans[workerid].local_in, n2 * m2 * sizeof(_cufftComplex), cudaMemcpyHostToDevice);
+	in = plan->plans[workerid].gpu_in;
+
 	cures = _cufftExecC2C(plan->plans[workerid].plan_cuda, in, out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
 
@@ -223,16 +193,17 @@ STARPUFFT(dft_1d_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
 	int i = args->i;
 	int j;
 	int workerid = starpu_get_worker_id();
+	int n1 = plan->n1[0], n2 = plan->n2[0];
 
-	STARPUFFT(complex) *in = (STARPUFFT(complex) *)descr[0].vector.ptr;
 	STARPUFFT(complex) *out = (STARPUFFT(complex) *)descr[1].vector.ptr;
 
 	_fftw_complex *worker_out = (STARPUFFT(complex) *)plan->plans[workerid].out;
 
-	memcpy(plan->plans[workerid].in, in, plan->totsize2*sizeof(STARPUFFT(complex)));
+	for (j = 0; j < n2; j++)
+		plan->plans[workerid].in[j] = plan->in[i + j*n1];
 	_FFTW(execute)(plan->plans[workerid].plan_cpu);
 
-	for (j = 0; j < plan->n2[0]; j++)
+	for (j = 0; j < n2; j++)
 		out[j] = worker_out[j] * plan->roots[0][i*j];
 }
 
@@ -244,16 +215,20 @@ STARPUFFT(dft_2d_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
 	int i = args->i;
 	int j = args->j;
 	int k, l;
+	int n1 = plan->n1[0];
 	int n2 = plan->n2[0];
+	int m1 = plan->n1[1];
 	int m2 = plan->n2[1];
+	int m = plan->n[1];
 	int workerid = starpu_get_worker_id();
 
-	STARPUFFT(complex) *in = (STARPUFFT(complex) *)descr[0].vector.ptr;
 	STARPUFFT(complex) *out = (STARPUFFT(complex) *)descr[1].vector.ptr;
 
 	_fftw_complex *worker_out = (STARPUFFT(complex) *)plan->plans[workerid].out;
 
-	memcpy(plan->plans[workerid].in, in, plan->totsize2*sizeof(STARPUFFT(complex)));
+	for (k = 0; k < n2; k++)
+		for (l = 0; l < m2; l++)
+			plan->plans[workerid].in[k*m2+l] = plan->in[i*m+j+k*m*n1+l*m1];
 	_FFTW(execute)(plan->plans[workerid].plan_cpu);
 	for (k = 0; k < n2; k++)
 		for (l = 0; l < m2; l++)
@@ -264,16 +239,6 @@ STARPUFFT(dft_2d_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
 struct starpu_perfmodel_t STARPUFFT(dft_1d_model) = {
 	.type = HISTORY_BASED,
 	.symbol = TYPE"dft_1d"
-};
-
-struct starpu_perfmodel_t STARPUFFT(dft_r2c_1d_model) = {
-	.type = HISTORY_BASED,
-	.symbol = TYPE"dft_r2c_1d"
-};
-
-struct starpu_perfmodel_t STARPUFFT(dft_c2r_1d_model) = {
-	.type = HISTORY_BASED,
-	.symbol = TYPE"dft_c2r_1d"
 };
 
 struct starpu_perfmodel_t STARPUFFT(dft_2d_model) = {
@@ -297,44 +262,6 @@ static starpu_codelet STARPUFFT(dft_1d_codelet) = {
 	.core_func = STARPUFFT(dft_1d_kernel_cpu),
 #endif
 	.model = &STARPUFFT(dft_1d_model),
-	.nbuffers = 3
-};
-
-static starpu_codelet STARPUFFT(dft_r2c_1d_codelet) = {
-	.where =
-#ifdef USE_CUDA
-		CUBLAS|
-#endif
-#ifdef HAVE_FFTW
-		CORE|
-#endif
-		0,
-#ifdef USE_CUDA
-	.cublas_func = STARPUFFT(dft_r2c_1d_kernel_gpu),
-#endif
-#ifdef HAVE_FFTW
-	.core_func = STARPUFFT(dft_1d_kernel_cpu),
-#endif
-	.model = &STARPUFFT(dft_r2c_1d_model),
-	.nbuffers = 3
-};
-
-static starpu_codelet STARPUFFT(dft_c2r_1d_codelet) = {
-	.where =
-#ifdef USE_CUDA
-		CUBLAS|
-#endif
-#ifdef HAVE_FFTW
-		CORE|
-#endif
-		0,
-#ifdef USE_CUDA
-	.cublas_func = STARPUFFT(dft_c2r_1d_kernel_gpu),
-#endif
-#ifdef HAVE_FFTW
-	.core_func = STARPUFFT(dft_1d_kernel_cpu),
-#endif
-	.model = &STARPUFFT(dft_c2r_1d_model),
 	.nbuffers = 3
 };
 
@@ -648,21 +575,17 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *_in, void *_out)
 	memset(task_per_worker, 0, sizeof(task_per_worker));
 	memset(samples_per_worker, 0, sizeof(task_per_worker));
 
+	plan->in = _in;
+
 	switch (plan->dim) {
 		case 1: {
 			switch (plan->type) {
 			case C2C: {
-				STARPUFFT(complex) *in = _in;
 				STARPUFFT(complex) *out = _out;
-				STARPUFFT(complex) *split_in = plan->split_in;
-				int n1 = plan->n1[0], n2 = plan->n2[0];
 				starpu_data_handle *out_handle = plan->out_handle;
 				struct starpu_task **tasks = plan->tasks;
-				int i,j;
+				int i;
 
-				for (i = 0; i < n1; i++)
-					for (j = 0; j < n2; j++)
-						split_in[i*n2 + j] = in[i + j*n1];
 				gettimeofday(&init, NULL);
 
 				pthread_mutex_lock(&plan->mutex);
@@ -702,21 +625,14 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *_in, void *_out)
 		}
 		case 2: {
 			STARPU_ASSERT(plan->type == C2C);
-			STARPUFFT(complex) *in = _in;
 			STARPUFFT(complex) *out = _out;
-			STARPUFFT(complex) *split_in = plan->split_in;
 			STARPUFFT(complex) *output = plan->output;
-			int n1 = plan->n1[0], n2 = plan->n2[0], /*n = plan->n[0],*/ m = plan->n[1];
+			int n1 = plan->n1[0], n2 = plan->n2[0];
 			int m1 = plan->n1[1], m2 = plan->n2[1];
 			starpu_data_handle *out_handle = plan->out_handle;
 			struct starpu_task **tasks = plan->tasks;
 			int i,j,k,l;
 
-			for (i = 0; i < n1; i++)
-				for (j = 0; j < m1; j++)
-					for (k = 0; k < n2; k++)
-						for (l = 0; l < m2; l++)
-							split_in[i*m1*n2*m2+j*n2*m2+k*m2+l] = in[i*m+j+k*m*n1+l*m1];
 			gettimeofday(&init, NULL);
 
 			pthread_mutex_lock(&plan->mutex);
