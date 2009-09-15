@@ -178,9 +178,9 @@ int main(int argc, char *argv[]) {
 	fprintf(stderr, "relative maximum difference %g\n", relmaxdiff);
 	double relavgdiff = (tot / size) / sqrt(norm);
 	fprintf(stderr, "relative average difference %g\n", relavgdiff);
-	if (!strcmp(TYPE, "f") && relmaxdiff > 1e-8 || relavgdiff > 1e-8)
+	if (!strcmp(TYPE, "f") && (relmaxdiff > 1e-8 || relavgdiff > 1e-8))
 		return EXIT_FAILURE;
-	if (!strcmp(TYPE, "") && relmaxdiff > 1e-16 || relavgdiff > 1e-16)
+	if (!strcmp(TYPE, "") && (relmaxdiff > 1e-16 || relavgdiff > 1e-16))
 		return EXIT_FAILURE;
 }
 #endif
@@ -206,9 +206,9 @@ int main(int argc, char *argv[]) {
 	fprintf(stderr, "relative maximum difference %g\n", relmaxdiff);
 	double relavgdiff = (tot / size) / sqrt(norm);
 	fprintf(stderr, "relative average difference %g\n", relavgdiff);
-	if (!strcmp(TYPE, "f") && relmaxdiff > 1e-8 || relavgdiff > 1e-8)
+	if (!strcmp(TYPE, "f") && (relmaxdiff > 1e-8 || relavgdiff > 1e-8))
 		return EXIT_FAILURE;
-	if (!strcmp(TYPE, "") && relmaxdiff > 1e-16 || relavgdiff > 1e-16)
+	if (!strcmp(TYPE, "") && (relmaxdiff > 1e-16 || relavgdiff > 1e-16))
 		return EXIT_FAILURE;
 }
 #endif
