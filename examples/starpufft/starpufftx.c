@@ -36,7 +36,7 @@ enum type {
 
 static unsigned task_per_worker[STARPU_NMAXWORKERS];
 static unsigned samples_per_worker[STARPU_NMAXWORKERS];
-static struct timeval start, init, submit_tasks, do_tasks, tasks_done, gather, end;
+static struct timeval start, submit_tasks, do_tasks, tasks_done, gather, end;
 
 /*
  *
@@ -586,8 +586,6 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *_in, void *_out)
 				struct starpu_task **tasks = plan->tasks;
 				int i;
 
-				gettimeofday(&init, NULL);
-
 				pthread_mutex_lock(&plan->mutex);
 				plan->todo = plan->totsize1;
 				pthread_mutex_unlock(&plan->mutex);
@@ -632,8 +630,6 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *_in, void *_out)
 			starpu_data_handle *out_handle = plan->out_handle;
 			struct starpu_task **tasks = plan->tasks;
 			int i,j,k,l;
-
-			gettimeofday(&init, NULL);
 
 			pthread_mutex_lock(&plan->mutex);
 			plan->todo = plan->totsize1;
@@ -764,9 +760,8 @@ STARPUFFT(showstats)(FILE *out)
 
 #define TIMING(begin,end) (double)((end.tv_sec - begin.tv_sec)*1000000 + (end.tv_usec - begin.tv_usec))
 #define MSTIMING(begin,end) (TIMING(begin,end)/1000.)
-	double paratiming = TIMING(init,do_tasks);
-	fprintf(out, "Initialization took %2.2f ms\n", MSTIMING(start,init));
-	fprintf(out, "Tasks submission took %2.2f ms\n", MSTIMING(init,submit_tasks));
+	double paratiming = TIMING(start,do_tasks);
+	fprintf(out, "Tasks submission took %2.2f ms\n", MSTIMING(start,submit_tasks));
 	fprintf(out, "Tasks termination took %2.2f ms\n", MSTIMING(submit_tasks,do_tasks));
 	fprintf(out, "Tasks cleanup took %2.2f ms\n", MSTIMING(do_tasks,tasks_done));
 	fprintf(out, "Gather took %2.2f ms\n", MSTIMING(tasks_done,gather));
