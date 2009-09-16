@@ -18,7 +18,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/
 
 lib_LTLIBRARIES = libstarpufft.la
 
-EXTRA_DIST = starpufftx.c float.h double.h
+EXTRA_DIST = starpufftx.c starpufftx1d.c starpufftx2d.c float.h double.h
 libstarpufft_la_SOURCES = starpufft.c starpufftf.c starpufft-common.c
 libstarpufft_la_LDFLAGS = $(top_builddir)/src/libstarpu.la $(FFTW_LIBS) $(FFTWF_LIBS)
 libstarpufft_la_CFLAGS = $(FFTWF_CFLAGS)
