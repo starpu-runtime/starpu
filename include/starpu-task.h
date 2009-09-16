@@ -31,7 +31,6 @@
 
 #include <starpu-data.h>
 
-#define ANY	(~0)
 #define CORE	((1ULL)<<1)
 #define CUBLAS	((1ULL)<<2)
 #define CUDA	((1ULL)<<3)

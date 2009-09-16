@@ -36,7 +36,7 @@ static void *dummy_func(void *arg __attribute__ ((unused)))
 
 static starpu_codelet dummy_codelet = 
 {
-	.where = ANY,
+	.where = CORE|CUBLAS|GORDON,
 	.core_func = dummy_func,
 	.cublas_func = dummy_func,
 #ifdef USE_GORDON

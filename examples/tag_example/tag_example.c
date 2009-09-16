@@ -198,7 +198,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	fprintf(stderr, "ITER: %d\n", nk);
 
-	cl.where = ANY;
+	cl.where = CORE|CUBLAS|GORDON;
 	cl.core_func = core_codelet;
 	cl.cublas_func = core_codelet;
 #ifdef USE_GORDON
