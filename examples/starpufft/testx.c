@@ -213,5 +213,16 @@ int main(int argc, char *argv[]) {
 }
 #endif
 
+	fftw_free/*STARPUFFT(free)*/(in);
+	fftw_free/*STARPUFFT(free)*/(out);
+
+#ifdef HAVE_FFTW
+	fftw_free/*STARPUFFT(free)*/(out_fftw);
+#endif
+
+#ifdef USE_CUDA
+	free(out_cuda);
+#endif
+
 	return EXIT_SUCCESS;
 }
