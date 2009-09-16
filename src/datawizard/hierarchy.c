@@ -36,6 +36,8 @@ void starpu_delete_data(data_state *state)
 	}
 
 	data_requester_list_delete(state->req_list);
+
+	free(state);
 }
 
 void register_new_data(data_state *state, uint32_t home_node, uint32_t wb_mask)
