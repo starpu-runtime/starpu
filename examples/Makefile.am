@@ -239,12 +239,14 @@ endif
 check_PROGRAMS +=			\
 	tag_example/tag_example			\
 	tag_example/tag_example3			\
-	tag_example/tag_example2
+	tag_example/tag_example2	\
+	tag_example/tag_restartable
 
 examplebin_PROGRAMS +=			\
 	tag_example/tag_example			\
 	tag_example/tag_example3		\
-	tag_example/tag_example2
+	tag_example/tag_example2	\
+	tag_example/tag_restartable
 
 tag_example_tag_example_SOURCES =		\
 	tag_example/tag_example.c
@@ -254,6 +256,9 @@ tag_example_tag_example2_SOURCES =		\
 
 tag_example_tag_example3_SOURCES =		\
 	tag_example/tag_example2.c
+
+tag_example_tag_restartable_SOURCES =		\
+	tag_example/tag_restartable.c
 
 ####################
 # Strassen example #

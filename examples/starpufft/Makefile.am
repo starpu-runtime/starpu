@@ -19,7 +19,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/
 lib_LTLIBRARIES = libstarpufft.la
 
 EXTRA_DIST = starpufftx.c float.h double.h
-libstarpufft_la_SOURCES = starpufft.c starpufftf.c
+libstarpufft_la_SOURCES = starpufft.c starpufftf.c starpufft-common.c
 libstarpufft_la_LDFLAGS = $(top_builddir)/src/libstarpu.la $(FFTW_LIBS) $(FFTWF_LIBS)
 libstarpufft_la_CFLAGS = $(FFTWF_CFLAGS)
 
@@ -35,7 +35,7 @@ twiddlef.o: twiddlef.cu
 	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
 
 libstarpufft_la_SOURCES += twiddle.cu twiddlef.cu
-am_libstarpufft_la_OBJECTS = twiddle.o twiddlef.o starpufft.lo starpufftf.lo
+am_libstarpufft_la_OBJECTS = twiddle.o twiddlef.o starpufft.lo starpufftf.lo starpufft-common.lo
 libstarpufft_la_LDFLAGS += -lcufft
 endif
 

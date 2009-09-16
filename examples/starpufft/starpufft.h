@@ -48,3 +48,5 @@ void starpufft(showstats)(FILE *out);
 __STARPUFFT_INTERFACE(__STARPUFFT, double)
 __STARPUFFT_INTERFACE(__STARPUFFTF, float)
 __STARPUFFT_INTERFACE(__STARPUFFTL, long double)
+
+int starpufft_last_plan_number;

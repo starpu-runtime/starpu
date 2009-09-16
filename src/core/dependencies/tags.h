@@ -72,8 +72,10 @@ struct tag_s {
 	unsigned is_submitted;
 };
 
+/* Completion Group */
 typedef struct _cg_t {
-	unsigned ntags; /* number of remaining tags */
+	unsigned ntags; /* number of tags depended on */
+	unsigned remaining; /* number of remaining tags */
 	struct tag_s *tag; /* which tags depends on that cg ?  */
 
 	unsigned completed;

@@ -34,6 +34,7 @@ static cg_t *create_cg(unsigned ntags, struct tag_s *tag, unsigned is_apps_cg)
 	STARPU_ASSERT(cg);
 	if (cg) {
 		cg->ntags = ntags;
+		cg->remaining = ntags;
 		cg->completed = 0;
 		cg->used_by_apps = is_apps_cg;
 
@@ -89,15 +90,31 @@ void starpu_tag_remove(starpu_tag_t id)
 
 	pthread_rwlock_unlock(&tag_global_rwlock);
 
-#ifdef DYNAMIC_DEPS_SIZE
 	if (tag) {
 		starpu_spin_lock(&tag->lock);
 
+		unsigned nsuccs = tag->nsuccs;
+		unsigned succ;
+
+		for (succ = 0; succ < nsuccs; succ++)
+		{
+			struct _cg_t *cg = tag->succ[succ];
+			unsigned used_by_apps = cg->used_by_apps;
+
+			unsigned ntags = STARPU_ATOMIC_ADD(&cg->ntags, -1);
+			unsigned remaining __attribute__ ((unused)) = STARPU_ATOMIC_ADD(&cg->remaining, -1);
+
+			if (!ntags && !used_by_apps)
+				/* Last tag this cg depends on, cg becomes unreferenced */
+				free(cg);
+		}
+
+#ifdef DYNAMIC_DEPS_SIZE
 		free(tag->succ);
+#endif
 
 		starpu_spin_unlock(&tag->lock);
 	}
-#endif
 
 	free(tag);
 }
@@ -143,8 +160,9 @@ static void tag_set_ready(struct tag_s *tag)
 static void notify_cg(cg_t *cg)
 {
 	STARPU_ASSERT(cg);
-	unsigned ntags = STARPU_ATOMIC_ADD(&cg->ntags, -1);
-	if (ntags == 0) {
+	unsigned remaining = STARPU_ATOMIC_ADD(&cg->remaining, -1);
+	if (remaining == 0) {
+		cg->remaining = cg->ntags;
 		/* the group is now completed */
 		if (cg->used_by_apps)
 		{
@@ -161,10 +179,10 @@ static void notify_cg(cg_t *cg)
 			tag->ndeps_completed++;
 
 			if ((tag->state == BLOCKED) 
-				&& (tag->ndeps == tag->ndeps_completed))
-				tag_set_ready(cg->tag);
-
-			free(cg);
+				&& (tag->ndeps == tag->ndeps_completed)) {
+				tag->ndeps_completed = 0;
+				tag_set_ready(tag);
+			}
 		}
 	}
 }
@@ -174,28 +192,27 @@ static void tag_add_succ(struct tag_s *tag, cg_t *cg)
 {
 	STARPU_ASSERT(tag);
 
+	/* where should that cg should be put in the array ? */
+	unsigned index = STARPU_ATOMIC_ADD(&tag->nsuccs, 1) - 1;
+
+#ifdef DYNAMIC_DEPS_SIZE
+	if (index >= tag->succ_list_size)
+	{
+		/* the successor list is too small */
+		tag->succ_list_size *= 2;
+
+		/* NB: this is thread safe as the tag->lock is taken */
+		tag->succ = realloc(tag->succ, 
+			tag->succ_list_size*sizeof(struct _cg_t *));
+	}
+#else
+	STARPU_ASSERT(index < NMAXDEPS);
+#endif
+	tag->succ[index] = cg;
+
 	if (tag->state == DONE) {
 		/* the tag was already completed sooner */
 		notify_cg(cg);
-	}
-	else {
-		/* where should that cg should be put in the array ? */
-		unsigned index = STARPU_ATOMIC_ADD(&tag->nsuccs, 1) - 1;
-
-#ifdef DYNAMIC_DEPS_SIZE
-		if (index >= tag->succ_list_size)
-		{
-			/* the successor list is too small */
-			tag->succ_list_size *= 2;
-
-			/* NB: this is thread safe as the tag->lock is taken */
-			tag->succ = realloc(tag->succ, 
-				tag->succ_list_size*sizeof(struct _cg_t *));
-		}
-#else
-		STARPU_ASSERT(index < NMAXDEPS);
-#endif
-		tag->succ[index] = cg;
 	}
 }
 
@@ -221,6 +238,13 @@ static void notify_tag_dependencies(struct tag_s *tag)
 			starpu_spin_lock(&cgtag->lock);
 
 		notify_cg(cg);
+		if (used_by_apps) {
+			/* Remove the temporary ref to the cg */
+			memmove(&tag->succ[succ], &tag->succ[succ+1], (nsuccs-(succ+1)) * sizeof(tag->succ[succ]));
+			succ--;
+			nsuccs--;
+			tag->nsuccs--;
+		}
 
 		if (!used_by_apps)
 			starpu_spin_unlock(&cgtag->lock);
@@ -258,7 +282,9 @@ void tag_declare(starpu_tag_t id, struct job_s *job)
 	job->tag = tag;
 
 	/* the tag is now associated to a job */
+	starpu_spin_lock(&tag->lock);
 	tag->state = ASSOCIATED;
+	starpu_spin_unlock(&tag->lock);
 }
 
 void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array)

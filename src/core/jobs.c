@@ -175,6 +175,8 @@ static unsigned not_all_task_deps_are_fulfilled(job_t j)
 	else {
 		/* existing deps (if any) are fulfilled */
 		tag->state = READY;
+		/* already prepare for next run */
+		tag->ndeps_completed = 0;
 		ret = 0;
 	}
 

@@ -27,6 +27,11 @@
 
 #define _FFTW_FLAGS FFTW_ESTIMATE
 
+enum steps {
+	START, SHUFFLED_1, FFT_1, SHUFFLED_2, FFT_2, SHUFFLED_3, END
+};
+#define STEP_TAG(plan, step, n) (((starpu_tag_t) plan->number << 60) | ((starpu_tag_t)(step) << 56) | (starpu_tag_t) n)
+
 // TODO: Z2Z, D2Z, Z2D
 enum type {
 	R2C,
@@ -44,8 +49,9 @@ static struct timeval start, submit_tasks, do_tasks, tasks_done, gather, end;
  *
  */
 
-/* we don't reinitialize the FFT plan for every kernel, so we "cache" it */
 struct STARPUFFT(plan) {
+	int number;	/* uniquely identifies the plan, for starpu tags */
+
 	int *n;
 	int *n1;
 	int *n2;
@@ -353,6 +359,11 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 	STARPUFFT(plan) plan = malloc(sizeof(*plan));
 	memset(plan, 0, sizeof(*plan));
 
+	plan->number = STARPU_ATOMIC_ADD(&starpufft_last_plan_number, 1) - 1;
+
+	/* 4bit limitation in the tag space */
+	STARPU_ASSERT(plan->number < 16);
+
 	plan->dim = 1;
 	plan->n = malloc(plan->dim * sizeof(*plan->n));
 	plan->n[0] = n;
@@ -435,6 +446,8 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 		task->cl_arg = &plan->args[i];
 		task->callback_func = STARPUFFT(callback);
 		task->callback_arg = plan;
+
+		task->cleanup = 0;
 	}
 
 	return plan;
@@ -563,6 +576,8 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 		task->cl_arg = &plan->args[i];
 		task->callback_func = STARPUFFT(callback);
 		task->callback_arg = plan;
+
+		task->cleanup = 0;
 	}
 
 	return plan;
