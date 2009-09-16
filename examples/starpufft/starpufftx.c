@@ -716,6 +716,7 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 	for (i = 0; i < plan->totsize1; i++) {
 		starpu_delete_data(plan->in_handle[i]);
 		starpu_delete_data(plan->out_handle[i]);
+		free(plan->tasks[i]);
 	}
 	free(plan->in_handle);
 	free(plan->out_handle);
