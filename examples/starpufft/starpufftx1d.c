@@ -164,8 +164,8 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 		switch (starpu_get_worker_type(workerid)) {
 		case STARPU_CORE_WORKER:
 #ifdef HAVE_FFTW
-			plan->plans[workerid].in = _FFTW(malloc)(n2 * sizeof(_fftw_complex));
-			plan->plans[workerid].out = _FFTW(malloc)(n2 * sizeof(_fftw_complex));
+			plan->plans[workerid].in = _FFTW(malloc)(plan->totsize2 * sizeof(_fftw_complex));
+			plan->plans[workerid].out = _FFTW(malloc)(plan->totsize2 * sizeof(_fftw_complex));
 			plan->plans[workerid].plan_cpu = _FFTW(plan_dft_1d)(n2, plan->plans[workerid].in, plan->plans[workerid].out, sign, _FFTW_FLAGS);
 			STARPU_ASSERT(plan->plans[workerid].plan_cpu);
 #endif
@@ -187,8 +187,8 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 
 #ifdef HAVE_FFTW
 	plan->plan_gather = _FFTW(plan_many_dft)(plan->dim, plan->n1, plan->totsize2,
-			/* input */ plan->split_out, NULL, n2, 1,
-			/* output */ plan->output, NULL, n2, 1,
+			/* input */ plan->split_out, NULL, plan->totsize2, 1,
+			/* output */ plan->output, NULL, plan->totsize2, 1,
 			sign, _FFTW_FLAGS);
 	STARPU_ASSERT(plan->plan_gather);
 #else
@@ -231,6 +231,7 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 static void
 STARPUFFT(execute1dC2C)(STARPUFFT(plan) plan, void *_in, void *_out)
 {
+	STARPU_ASSERT(plan->type == C2C);
 	STARPUFFT(complex) *out = _out;
 	starpu_data_handle *out_handle = plan->out_handle;
 	struct starpu_task **tasks = plan->tasks;
@@ -260,7 +261,8 @@ STARPUFFT(execute1dC2C)(STARPUFFT(plan) plan, void *_in, void *_out)
 #ifdef HAVE_FFTW
 	/* Perform n2 n1-ffts */
 	_FFTW(execute)(plan->plan_gather);
-	gettimeofday(&gather, NULL);
 #endif
+	gettimeofday(&gather, NULL);
+
 	memcpy(out, plan->output, plan->totsize * sizeof(*out));
 }

@@ -155,6 +155,11 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 	STARPUFFT(plan) plan = malloc(sizeof(*plan));
 	memset(plan, 0, sizeof(*plan));
 
+	plan->number = STARPU_ATOMIC_ADD(&starpufft_last_plan_number, 1) - 1;
+
+	/* 4bit limitation in the tag space */
+	STARPU_ASSERT(plan->number < 16);
+
 	plan->dim = 2;
 	plan->n = malloc(plan->dim * sizeof(*plan->n));
 	plan->n[0] = n;
@@ -206,8 +211,8 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 
 #ifdef HAVE_FFTW
 	plan->plan_gather = _FFTW(plan_many_dft)(plan->dim, plan->n1, plan->totsize2,
-			/* input */ plan->split_out, 0, n2*m2, 1,
-			/* output */ plan->output, 0, n2*m2, 1,
+			/* input */ plan->split_out, NULL, plan->totsize2, 1,
+			/* output */ plan->output, NULL, plan->totsize2, 1,
 			sign, _FFTW_FLAGS);
 	STARPU_ASSERT(plan->plan_gather);
 #else
@@ -250,7 +255,7 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 	return plan;
 }
 
-void
+static void
 STARPUFFT(execute2dC2C)(STARPUFFT(plan) plan, void *_in, void *_out)
 {
 	STARPU_ASSERT(plan->type == C2C);
@@ -277,10 +282,10 @@ STARPUFFT(execute2dC2C)(STARPUFFT(plan) plan, void *_in, void *_out)
 	pthread_mutex_unlock(&plan->mutex);
 	gettimeofday(&do_tasks, NULL);
 
-	/* Unregister data */
 	for (i = 0; i < plan->totsize1; i++)
 		/* Make sure output is here? */
 		starpu_sync_data_with_mem(out_handle[i]);
+
 	gettimeofday(&tasks_done, NULL);
 
 #ifdef HAVE_FFTW
