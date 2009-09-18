@@ -95,10 +95,16 @@ struct starpu_task {
 	void *starpu_private;
 };
 
-/* handle task dependencies: it is possible to associate a task with a unique
- * "tag" and to express dependencies among tasks by the means of those tags
+/*
+ * handle task dependencies: it is possible to associate a task with a unique
+ * "tag" and to express dependencies between tasks by the means of those tags
  *
- * To do so, fill the tag_id field and set use_tag to 1.
+ * To do so, fill the tag_id field with a tag number (can be arbitrary) and set
+ * use_tag to 1.
+ *
+ * If starpu_tag_declare_deps is called with that tag number, the task will not
+ * be started until the task which wears the declared dependency tags are
+ * complete.
  */
 
 /*
