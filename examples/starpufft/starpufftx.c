@@ -25,8 +25,15 @@
 #define _FFTW_FLAGS FFTW_ESTIMATE
 
 enum steps {
-	START, SHUFFLED_1, FFT_1, SHUFFLED_2, FFT_2, SHUFFLED_3, END
+	TWIST1, FFT1, JOIN, TWIST2, FFT2, TWIST3, END
 };
+
+#define NUMBER_BITS 5
+#define NUMBER_SHIFT (64 - NUMBER_BITS)
+#define STEP_BITS 3
+#define STEP_SHIFT (NUMBER_SHIFT - STEP_BITS)
+
+#define I_BITS STEP_SHIFT
 
 // TODO: Z2Z, D2Z, Z2D
 enum type {
@@ -37,7 +44,7 @@ enum type {
 
 static unsigned task_per_worker[STARPU_NMAXWORKERS];
 static unsigned samples_per_worker[STARPU_NMAXWORKERS];
-static struct timeval start, submit_tasks, do_tasks, tasks_done, gather, end;
+static struct timeval start, submit_tasks, end;
 
 /*
  *
@@ -52,8 +59,10 @@ struct STARPUFFT(plan) {
 	int *n1;
 	int *n2;
 	int totsize;
-	int totsize1;
-	int totsize2;
+	int totsize1;	/* Number of first-round tasks */
+	int totsize2;	/* Size of first-round tasks */
+	int totsize3;	/* Number of second-round tasks */
+	int totsize4;	/* Size of second-round tasks */
 	int dim;
 	enum type type;
 	int sign;
@@ -61,22 +70,15 @@ struct STARPUFFT(plan) {
 	STARPUFFT(complex) *roots[2];
 	starpu_data_handle roots_handle[2];
 
-	/* Synchronization for termination */
-	unsigned todo;
-	pthread_mutex_t mutex;
-	pthread_cond_t cond;
-
 	struct {
 #ifdef USE_CUDA
-		cufftHandle plan_cuda;
-		_cufftComplex *gpu_in;
-		STARPUFFT(complex) *local_in;
-		int initialized;
+		cufftHandle plan1_cuda, plan2_cuda;
+		int initialized1, initialized2;
 #endif
 #ifdef HAVE_FFTW
-		_fftw_plan plan_cpu;
-		_fftw_complex *in;
-		_fftw_complex *out;
+		_fftw_plan plan1_cpu, plan2_cpu;
+		_fftw_complex *in1, *out1;
+		_fftw_complex *in2, *out2;
 #endif
 	} plans[STARPU_NMAXWORKERS];
 
@@ -84,39 +86,18 @@ struct STARPUFFT(plan) {
 	_fftw_plan plan_gather;
 #endif
 
-	STARPUFFT(complex) *in;
-	STARPUFFT(complex) *split_in, *split_out;
-	STARPUFFT(complex) *output;
+	STARPUFFT(complex) *in, *twisted1, *fft1, *twisted2, *fft2, *out;
 
-	starpu_data_handle *in_handle;
-	starpu_data_handle *out_handle;
-	struct starpu_task **tasks;
-	struct STARPUFFT(args) *args;
+	starpu_data_handle *in_handle, *twisted1_handle, *fft1_handle, *twisted2_handle, *fft2_handle;
+	struct starpu_task **twist1_tasks, **fft1_tasks, **twist2_tasks, **fft2_tasks, **twist3_tasks;
+	struct starpu_task *join_task, *end_task;
+	struct STARPUFFT(args) *fft1_args, *fft2_args;
 };
 
 struct STARPUFFT(args) {
 	struct STARPUFFT(plan) *plan;
-	int i, j, *iv;
+	int i, j, jj, kk, ll, *iv, *kkv;
 };
-
-void
-STARPUFFT(callback)(void *_plan)
-{
-	STARPUFFT(plan) plan = _plan;
-
-	int workerid = starpu_get_worker_id();
-
-	/* do some accounting */
-	task_per_worker[workerid]++;
-	samples_per_worker[workerid] += plan->totsize2;
-
-	if (STARPU_ATOMIC_ADD(&plan->todo, -1) == 0)
-	{
-		pthread_mutex_lock(&plan->mutex);
-		pthread_cond_signal(&plan->cond);
-		pthread_mutex_unlock(&plan->mutex);
-	}
-}
 
 static void
 check_dims(STARPUFFT(plan) plan)
@@ -144,23 +125,39 @@ compute_roots(STARPUFFT(plan) plan)
 	}
 }
 
+/* Empty task */
+static void
+STARPUFFT(void_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
+{
+}
+
+struct starpu_perfmodel_t STARPUFFT(void_model) = {
+	.type = HISTORY_BASED,
+	.symbol = TYPE"void"
+};
+
+static starpu_codelet STARPUFFT(void_codelet) = {
+	.where = CORE,
+	.core_func = STARPUFFT(void_kernel_cpu),
+	.model = &STARPUFFT(void_model),
+	.nbuffers = 0
+};
+
 #include "starpufftx1d.c"
 #include "starpufftx2d.c"
 
-void
-STARPUFFT(execute)(STARPUFFT(plan) plan, void *_in, void *_out)
+starpu_tag_t
+STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 {
-	gettimeofday(&start, NULL);
-	memset(task_per_worker, 0, sizeof(task_per_worker));
-	memset(samples_per_worker, 0, sizeof(task_per_worker));
-
+	starpu_tag_t tag;
 	plan->in = _in;
+	plan->out = _out;
 
 	switch (plan->dim) {
 		case 1: {
 			switch (plan->type) {
 			case C2C:
-				STARPUFFT(execute1dC2C)(plan, _in, _out);
+				tag = STARPUFFT(start1dC2C)(plan, _in, _out);
 				break;
 			default:
 				STARPU_ASSERT(0);
@@ -169,12 +166,25 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *_in, void *_out)
 			break;
 		}
 		case 2:
-			STARPUFFT(execute2dC2C)(plan, _in, _out);
+			tag = STARPUFFT(start2dC2C)(plan, _in, _out);
 			break;
 		default:
 			STARPU_ASSERT(0);
 			break;
 	}
+	return tag;
+}
+
+void
+STARPUFFT(execute)(STARPUFFT(plan) plan, void *in, void *out)
+{
+	gettimeofday(&start, NULL);
+	memset(task_per_worker, 0, sizeof(task_per_worker));
+	memset(samples_per_worker, 0, sizeof(task_per_worker));
+
+	starpu_tag_t tag = STARPUFFT(start)(plan, in, out);
+	gettimeofday(&submit_tasks, NULL);
+	starpu_tag_wait(tag);
 
 	gettimeofday(&end, NULL);
 }
@@ -188,9 +198,12 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 		switch (starpu_get_worker_type(workerid)) {
 		case STARPU_CORE_WORKER:
 #ifdef HAVE_FFTW
-			_FFTW(free)(plan->plans[workerid].in);
-			_FFTW(free)(plan->plans[workerid].out);
-			_FFTW(destroy_plan)(plan->plans[workerid].plan_cpu);
+			_FFTW(free)(plan->plans[workerid].in1);
+			_FFTW(free)(plan->plans[workerid].out1);
+			_FFTW(destroy_plan)(plan->plans[workerid].plan1_cpu);
+			_FFTW(free)(plan->plans[workerid].in2);
+			_FFTW(free)(plan->plans[workerid].out2);
+			_FFTW(destroy_plan)(plan->plans[workerid].plan2_cpu);
 #endif
 			break;
 		case STARPU_CUDA_WORKER:
@@ -204,24 +217,59 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 		}
 	}
 	for (i = 0; i < plan->totsize1; i++) {
-		starpu_delete_data(plan->in_handle[i]);
-		starpu_delete_data(plan->out_handle[i]);
-		free(plan->tasks[i]);
+		starpu_delete_data(plan->twisted1_handle[i]);
+		free(plan->twist1_tasks[i]);
+		starpu_delete_data(plan->fft1_handle[i]);
+		free(plan->fft1_tasks[i]);
 	}
-	free(plan->in_handle);
-	free(plan->out_handle);
-	free(plan->tasks);
-	free(plan->args);
+
+	free(plan->twisted1_handle);
+	free(plan->twist1_tasks);
+	free(plan->fft1_handle);
+	free(plan->fft1_tasks);
+	free(plan->fft1_args);
+
+	free(plan->join_task);
+
+	for (i = 0; i < plan->totsize3; i++) {
+		starpu_delete_data(plan->twisted2_handle[i]);
+		free(plan->twist2_tasks[i]);
+		starpu_delete_data(plan->fft2_handle[i]);
+		free(plan->fft2_tasks[i]);
+		free(plan->twist3_tasks[i]);
+	}
+
+	free(plan->twisted2_handle);
+	free(plan->twist2_tasks);
+	free(plan->fft2_handle);
+	free(plan->fft2_tasks);
+	free(plan->twist3_tasks);
+	free(plan->fft2_args);
+
 	for (dim = 0; dim < plan->dim; dim++) {
 		starpu_delete_data(plan->roots_handle[dim]);
 		free(plan->roots[dim]);
 	}
+
+	switch (plan->dim) {
+		case 1:
+			STARPUFFT(free_1d_tags)(plan);
+			break;
+		case 2:
+			STARPUFFT(free_2d_tags)(plan);
+			break;
+		default:
+			STARPU_ASSERT(0);
+			break;
+	}
+
 	free(plan->n);
 	free(plan->n1);
 	free(plan->n2);
-	STARPUFFT(free)(plan->split_in);
-	STARPUFFT(free)(plan->split_out);
-	STARPUFFT(free)(plan->output);
+	STARPUFFT(free)(plan->twisted1);
+	STARPUFFT(free)(plan->fft1);
+	STARPUFFT(free)(plan->twisted2);
+	STARPUFFT(free)(plan->fft2);
 #ifdef HAVE_FFTW
 	_FFTW(destroy_plan)(plan->plan_gather);
 #endif
@@ -266,12 +314,9 @@ STARPUFFT(showstats)(FILE *out)
 
 #define TIMING(begin,end) (double)((end.tv_sec - begin.tv_sec)*1000000 + (end.tv_usec - begin.tv_usec))
 #define MSTIMING(begin,end) (TIMING(begin,end)/1000.)
-	double paratiming = TIMING(start,do_tasks);
+	double paratiming = TIMING(start,end);
 	fprintf(out, "Tasks submission took %2.2f ms\n", MSTIMING(start,submit_tasks));
-	fprintf(out, "Tasks termination took %2.2f ms\n", MSTIMING(submit_tasks,do_tasks));
-	fprintf(out, "Tasks cleanup took %2.2f ms\n", MSTIMING(do_tasks,tasks_done));
-	fprintf(out, "Gather took %2.2f ms\n", MSTIMING(tasks_done,gather));
-	fprintf(out, "Finalization took %2.2f ms\n", MSTIMING(gather,end));
+	fprintf(out, "Tasks termination took %2.2f ms\n", MSTIMING(submit_tasks,end));
 
 	fprintf(out, "Total %2.2f ms\n", MSTIMING(start,end));
 

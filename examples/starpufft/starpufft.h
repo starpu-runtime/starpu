@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <complex.h>
+#include <starpu.h>
 
 #define STARPUFFT_FORWARD -1
 #define STARPUFFT_INVERSE 1
@@ -38,6 +39,7 @@ void *starpufft(malloc)(size_t n); \
 void starpufft(free)(void *p); \
 \
 void starpufft(execute)(starpufft(plan) p, void *in, void *out); \
+starpu_tag_t starpufft(start)(starpufft(plan) p, void *in, void *out); \
 \
 void starpufft(destroy_plan)(starpufft(plan) p); \
 \

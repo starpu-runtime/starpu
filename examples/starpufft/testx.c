@@ -143,19 +143,19 @@ int main(int argc, char *argv[]) {
 	starpu_shutdown();
 
 	printf("\n");
-	if (size <= 16) {
-		for (i = 0; i < size; i++)
-			printf("(%f,%f) ", cimag(in[i]), creal(in[i]));
-		printf("\n\n");
-		for (i = 0; i < size; i++)
-			printf("(%f,%f) ", cimag(out[i]), creal(out[i]));
-		printf("\n\n");
+#if 0
+	for (i = 0; i < 16; i++)
+		printf("(%f,%f) ", cimag(in[i]), creal(in[i]));
+	printf("\n\n");
+	for (i = 0; i < 16; i++)
+		printf("(%f,%f) ", cimag(out[i]), creal(out[i]));
+	printf("\n\n");
 #ifdef HAVE_FFTW
-		for (i = 0; i < size; i++)
-			printf("(%f,%f) ", cimag(out_fftw[i]), creal(out_fftw[i]));
-		printf("\n\n");
+	for (i = 0; i < 16; i++)
+		printf("(%f,%f) ", cimag(out_fftw[i]), creal(out_fftw[i]));
+	printf("\n\n");
 #endif
-	}
+#endif
 
 #ifdef HAVE_FFTW
 {

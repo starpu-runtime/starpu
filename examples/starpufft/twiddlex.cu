@@ -18,7 +18,7 @@
 
 /* Note: these assume that the sizes are powers of two */
 
-extern "C" __global__ void STARPUFFT(cuda_1d_twiddle)(_cuComplex * out, _cuComplex * roots, unsigned n, unsigned i)
+extern "C" __global__ void STARPUFFT(cuda_1d_twiddle)(_cuComplex * out, const _cuComplex * roots, unsigned n, unsigned i)
 {
 	unsigned j;
 	unsigned start = threadIdx.x + blockIdx.x * blockDim.x;
@@ -30,7 +30,7 @@ extern "C" __global__ void STARPUFFT(cuda_1d_twiddle)(_cuComplex * out, _cuCompl
 	return;
 }
 
-extern "C" void STARPUFFT(cuda_1d_twiddle_host)(_cuComplex *out, _cuComplex *roots, unsigned n, unsigned i)
+extern "C" void STARPUFFT(cuda_1d_twiddle_host)(_cuComplex *out, const _cuComplex *roots, unsigned n, unsigned i)
 {
 	unsigned threads_per_block = 128;
 
@@ -44,7 +44,7 @@ extern "C" void STARPUFFT(cuda_1d_twiddle_host)(_cuComplex *out, _cuComplex *roo
 	}
 }
 
-extern "C" __global__ void STARPUFFT(cuda_2d_twiddle)(_cuComplex * out, _cuComplex * roots0, _cuComplex * roots1, unsigned n2, unsigned m2, unsigned i, unsigned j)
+extern "C" __global__ void STARPUFFT(cuda_2d_twiddle)(_cuComplex * out, const _cuComplex * roots0, const _cuComplex * roots1, unsigned n2, unsigned m2, unsigned i, unsigned j)
 {
 	unsigned k, l;
 	unsigned startx = threadIdx.x + blockIdx.x * blockDim.x;
@@ -60,7 +60,7 @@ extern "C" __global__ void STARPUFFT(cuda_2d_twiddle)(_cuComplex * out, _cuCompl
 	return;
 }
 
-extern "C" void STARPUFFT(cuda_2d_twiddle_host)(_cuComplex *out, _cuComplex *roots0, _cuComplex *roots1, unsigned n2, unsigned m2, unsigned i, unsigned j)
+extern "C" void STARPUFFT(cuda_2d_twiddle_host)(_cuComplex *out, const _cuComplex *roots0, const _cuComplex *roots1, unsigned n2, unsigned m2, unsigned i, unsigned j)
 {
 	unsigned threads_per_dim = 16;
 	if (n2 < threads_per_dim) {
