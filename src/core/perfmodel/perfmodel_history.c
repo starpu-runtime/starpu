@@ -89,7 +89,6 @@ static void scan_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
 
 static void dump_history_entry(FILE *f, struct starpu_history_entry_t *entry)
 {
-	fprintf(f, "# hash\t\tsize\t\tmean\t\tdev\t\tsum\t\tsum2\t\tn\n");
 	fprintf(f, "%x\t%-15lu\t%-15le\t%-15le\t%-15le\t%-15le\t%d\n", entry->footprint, (unsigned long) entry->size, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
 }
 
@@ -178,6 +177,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_t
 	fprintf(f, "# a\t\tb\t\tc\n");
 	fprintf(f, "%-15le\t%-15le\t%-15le\n", a, b, c);
 
+	fprintf(f, "# hash\t\tsize\t\tmean\t\tdev\t\tsum\t\tsum2\t\tn\n");
 	ptr = per_arch_model->list;
 	while (ptr) {
 		//memcpy(&entries_array[i++], ptr->entry, sizeof(struct starpu_history_entry_t));
