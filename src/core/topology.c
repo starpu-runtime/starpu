@@ -21,6 +21,10 @@
 #include <core/debug.h>
 #include <core/topology.h>
 
+#ifdef HAVE_HWLOC
+#include <hwloc.h>
+#endif
+
 /*
  * Discover the topology of the machine
  */
@@ -86,6 +90,24 @@ static void init_machine_config(struct machine_config_s *config,
 	unsigned use_accelerator = 0;
 
 	config->nworkers = 0;
+
+#ifdef HAVE_HWLOC
+	hwloc_topology_init(&config->hwtopology);
+	hwloc_topology_load(config->hwtopology);
+
+	config->core_depth = hwloc_get_type_depth(config->hwtopology, HWLOC_OBJ_CORE);
+
+	/* Would be very odd */
+	STARPU_ASSERT(config->core_depth != HWLOC_TYPE_DEPTH_MULTIPLE);
+
+	if (config->core_depth == HWLOC_TYPE_DEPTH_UNKNOWN)
+		/* unknown, using logical procesors as fallback */
+		config->core_depth = hwloc_get_type_depth(config->hwtopology, HWLOC_OBJ_PROC);
+
+	config->nhwcores = hwloc_get_nbobjs_by_depth(config->hwtopology, config->core_depth);
+#else
+	config->nhwcores = sysconf(_SC_NPROCESSORS_ONLN);
+#endif
 
 #ifdef USE_CUDA
 	if (user_conf && (user_conf->ncuda == 0))
@@ -194,7 +216,7 @@ static void init_machine_config(struct machine_config_s *config,
 
 	if (explicitval < 0) {
 		unsigned already_busy_cores = (config->ngordon_spus?1:0) + config->ncudagpus;
-		long avail_cores = sysconf(_SC_NPROCESSORS_ONLN) - (use_accelerator?already_busy_cores:0);
+		long avail_cores = config->nhwcores - (use_accelerator?already_busy_cores:0);
 		config->ncores = STARPU_MIN(avail_cores, NMAXCORES);
 	} else {
 		/* use the specified value */
@@ -232,7 +254,7 @@ static unsigned get_next_bindid_is_initialized = 0;
 static unsigned get_next_bindid_use_envvar = 0;
 static char *get_next_bindid_strval;
 
-static inline int get_next_bindid(void)
+static inline int get_next_bindid(struct machine_config_s *config)
 {
 	int bindid;
 
@@ -258,19 +280,19 @@ static inline int get_next_bindid(void)
 		val = strtol(get_next_bindid_strval, &endptr, 10);
 		if (endptr != get_next_bindid_strval)
 		{
-			bindid = (int)(val % sysconf(_SC_NPROCESSORS_ONLN));
+			bindid = (int)(val % config->nhwcores);
 
 			get_next_bindid_strval = endptr;
 		}
 		else {
 			/* there was no valid value so we use a round robin */
-			bindid = (current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
+			bindid = (current_bindid++) % config->nhwcores;
 		}
 	}
 	else {
 		/* the user did not specify any worker distribution so we use a
  		 * round robin distribution by default */
-		bindid = (current_bindid++) % (sysconf(_SC_NPROCESSORS_ONLN));
+		bindid = (current_bindid++) % config->nhwcores;
 	}
 
 	return bindid;
@@ -278,9 +300,12 @@ static inline int get_next_bindid(void)
 
 
 
-void bind_thread_on_cpu(unsigned coreid)
+void bind_thread_on_cpu(struct machine_config_s *config __attribute__((unused)), unsigned coreid)
 {
-#ifdef HAVE_PTHREAD_SETAFFINITY_NP
+#ifdef HAVE_HWLOC
+	hwloc_obj_t obj = hwloc_get_obj_by_depth(config->hwtopology, config->core_depth, coreid);
+	hwloc_set_cpubind(config->hwtopology, &obj->cpuset, HWLOC_CPUBIND_THREAD);
+#elif defined(HAVE_PTHREAD_SETAFFINITY_NP)
 	int ret;
 
 	/* fix the thread on the correct cpu */
@@ -296,6 +321,8 @@ void bind_thread_on_cpu(unsigned coreid)
 		perror("pthread_setaffinity_np");
 		STARPU_ASSERT(0);
 	}
+#else
+#warning no CPU binding support
 #endif
 }
 
@@ -343,17 +370,16 @@ static void init_workers_binding(struct machine_config_s *config)
 
 		if (is_a_set_of_accelerators) {
 			if (accelerator_bindid == -1)
-				accelerator_bindid = get_next_bindid();
+				accelerator_bindid = get_next_bindid(config);
 			workerarg->bindid = accelerator_bindid;
 		}
 		else {
-			workerarg->bindid = get_next_bindid();
+			workerarg->bindid = get_next_bindid(config);
 		}
 
 		workerarg->memory_node = memory_node;
 	}
 }
-
 
 
 void starpu_build_topology(struct machine_config_s *config,

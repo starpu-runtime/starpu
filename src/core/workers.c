@@ -62,6 +62,8 @@ static void init_workers(struct machine_config_s *config)
 	{
 		struct worker_s *workerarg = &config->workers[worker];
 
+		workerarg->config = config;
+
 		pthread_mutex_init(&workerarg->mutex, NULL);
 		pthread_cond_init(&workerarg->ready_cond, NULL);
 

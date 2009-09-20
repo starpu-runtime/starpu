@@ -180,7 +180,7 @@ void *cuda_worker(void *arg)
 #endif
 	TRACE_NEW_WORKER(FUT_CUDA_KEY, memory_node);
 
-	bind_thread_on_cpu(args->bindid);
+	bind_thread_on_cpu(args->config, args->bindid);
 
 	set_local_memory_node_key(&(args->memory_node));
 

@@ -33,6 +33,10 @@
 
 #include <starpu.h>
 
+#ifdef HAVE_HWLOC
+#include <hwloc.h>
+#endif
+
 #ifdef USE_CUDA
 #include <drivers/cuda/driver_cuda.h>
 #endif
@@ -56,6 +60,7 @@
 #endif
 
 struct worker_s {
+	struct machine_config_s *config;
         pthread_mutex_t mutex;
 	enum starpu_archtype arch; /* what is the type of worker ? */
 	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
@@ -89,6 +94,13 @@ struct worker_set_s {
 struct machine_config_s {
 	unsigned nworkers;
 
+#ifdef HAVE_HWLOC
+	hwloc_topology_t hwtopology;
+	int core_depth;
+#endif
+
+	unsigned nhwcores;
+
 	unsigned ncores;
 	unsigned ncudagpus;
 	unsigned ngordon_spus;
@@ -110,7 +122,7 @@ inline uint32_t worker_exists(uint32_t task_mask);
 inline uint32_t may_submit_cuda_task(void);
 inline uint32_t may_submit_core_task(void);
 
-void bind_thread_on_cpu(unsigned coreid);
+void bind_thread_on_cpu(struct machine_config_s *config, unsigned coreid);
 
 inline void lock_all_queues_attached_to_node(unsigned node);
 inline void unlock_all_queues_attached_to_node(unsigned node);

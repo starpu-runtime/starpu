@@ -48,13 +48,11 @@ void *gordon_worker_progress(void *arg)
 {
 	fprintf(stderr, "gordon_worker_progress\n");
 
-#ifdef HAVE_PTHREAD_SETAFFINITY_NP
 	/* fix the thread on the correct cpu */
 	struct worker_set_s *gordon_set_arg = arg;
 	unsigned prog_thread_bind_id = 
-		(gordon_set_arg->workers[0].bindid + 1)%(sysconf(_SC_NPROCESSORS_ONLN));
-	bind_thread_on_cpu(prog_thread_bind_id);
-#endif
+		(gordon_set_arg->workers[0].bindid + 1)%(gordon_set_arg->config->nhwcores);
+	bind_thread_on_cpu(gordon_set_arg->config, prog_thread_bind_id);
 
 	pthread_mutex_lock(&progress_mutex);
 	progress_thread_is_inited = 1;
@@ -410,7 +408,7 @@ void *gordon_worker(void *arg)
 {
 	struct worker_set_s *gordon_set_arg = arg;
 
-	bind_thread_on_cpu(gordon_set_arg->workers[0].bindid);
+	bind_thread_on_cpu(gordon_set_arg->config, gordon_set_arg->workers[0].bindid);
 
 	/* TODO set_local_memory_node per SPU */
 	gordon_init(gordon_set_arg->nworkers);	

@@ -104,7 +104,7 @@ void *core_worker(void *arg)
 #endif
 	TRACE_NEW_WORKER(FUT_CORE_KEY, core_arg->memory_node);
 
-	bind_thread_on_cpu(core_arg->bindid);
+	bind_thread_on_cpu(core_arg->config, core_arg->bindid);
 
 #ifdef VERBOSE
         fprintf(stderr, "core worker %d is ready on logical core %d\n", core_arg->id, core_arg->bindid);

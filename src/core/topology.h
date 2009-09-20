@@ -32,8 +32,8 @@
 /* TODO actually move this struct into this header */
 struct machine_config_s;
 
-/* This structure is "inspired" by the libtopology project
- * (see http://runtime.bordeaux.inria.fr/libtopology/) */
+/* This structure is "inspired" by the hwloc project
+ * (see http://www.open-mpi.org/projects/hwloc/) */
 
 struct starpu_topo_obj_t {
 	/* global position */

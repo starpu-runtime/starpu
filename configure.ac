@@ -507,6 +507,10 @@ PKG_CHECK_MODULES([FFTWL], [fftw3l], [
   AC_DEFINE([HAVE_FFTWL], [1], [Define to 1 if you have the libfftw3l library.])
   AC_SUBST([HAVE_FFTWFL], [1])
 ], [:])
+PKG_CHECK_MODULES([HWLOC], [hwloc], [
+  AC_DEFINE([HAVE_HWLOC], [1], [Define to 1 if you have the hwloc library.])
+  AC_SUBST([HAVE_HWLOC], [1])
+], [:])
 
 AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h)
 
