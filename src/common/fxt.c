@@ -29,11 +29,14 @@ static void profile_stop(void)
 static void profile_set_tracefile(char *fmt, ...)
 {
 	va_list vl;
+	char *user;
 	
 	va_start(vl, fmt);
 	vsprintf(PROF_FILE_USER, fmt, vl);
 	va_end(vl);
 	strcat(PROF_FILE_USER, "_user_");
+	if ((user = getenv("USER")))
+		strcat(PROF_FILE_USER, user);
 }
 
 
