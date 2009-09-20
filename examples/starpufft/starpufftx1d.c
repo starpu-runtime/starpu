@@ -57,7 +57,6 @@ STARPUFFT(fft2_1d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 	int n1 = plan->n1[0];
 	int n2 = plan->n2[0];
 	int n3 = n2/DIV_1D;
-	int n;
 	cufftResult cures;
 
 	_cufftComplex *in = (_cufftComplex *)descr[0].vector.ptr;
