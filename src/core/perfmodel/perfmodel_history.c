@@ -73,7 +73,7 @@ static void drop_comments(FILE *f)
 static void dump_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
 {
 	fprintf(f, "# sumlnx\tsumlnx2\t\tsumlny\t\tsumlnxlny\talpha\t\tbeta\t\tn\n");
-	fprintf(f, "%le\t%le\t%le\t%le\t%le\t%le\t%d\n", reg_model->sumlnx, reg_model->sumlnx2, reg_model->sumlny, reg_model->sumlnxlny, reg_model->alpha, reg_model->beta, reg_model->nsample);
+	fprintf(f, "%-15le\t%-15le\t%-15le\t%-15le\t%-15le\t%-15le\t%d\n", reg_model->sumlnx, reg_model->sumlnx2, reg_model->sumlny, reg_model->sumlnxlny, reg_model->alpha, reg_model->beta, reg_model->nsample);
 }
 
 static void scan_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
@@ -89,8 +89,8 @@ static void scan_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
 
 static void dump_history_entry(FILE *f, struct starpu_history_entry_t *entry)
 {
-	fprintf(f, "# hash\t\tsize\tmean\t\tdev\t\tsum\t\tsum2\t\tn\n");
-	fprintf(f, "%x\t%zu\t%le\t%le\t%le\t%le\t%d\n", entry->footprint, entry->size, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
+	fprintf(f, "# hash\t\tsize\t\tmean\t\tdev\t\tsum\t\tsum2\t\tn\n");
+	fprintf(f, "%x\t%-15lu\t%-15le\t%-15le\t%-15le\t%-15le\t%d\n", entry->footprint, (unsigned long) entry->size, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
 }
 
 static void scan_history_entry(FILE *f, struct starpu_history_entry_t *entry)
@@ -176,7 +176,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_t
 	double a,b,c;
 	regression_non_linear_power(per_arch_model->list, &a, &b, &c);
 	fprintf(f, "# a\t\tb\t\tc\n");
-	fprintf(f, "%le\t%le\t%le\n", a, b, c);
+	fprintf(f, "%-15le\t%-15le\t%-15le\n", a, b, c);
 
 	ptr = per_arch_model->list;
 	while (ptr) {
