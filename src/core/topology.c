@@ -302,12 +302,12 @@ static inline int get_next_bindid(struct machine_config_s *config)
 
 void bind_thread_on_cpu(struct machine_config_s *config __attribute__((unused)), unsigned coreid)
 {
-#ifdef HAVE_HWLOC
-	hwloc_obj_t obj = hwloc_get_obj_by_depth(config->hwtopology, config->core_depth, coreid);
-	hwloc_set_cpubind(config->hwtopology, &obj->cpuset, HWLOC_CPUBIND_THREAD);
-#elif defined(HAVE_PTHREAD_SETAFFINITY_NP)
 	int ret;
 
+#ifdef HAVE_HWLOC
+	hwloc_obj_t obj = hwloc_get_obj_by_depth(config->hwtopology, config->core_depth, coreid);
+	ret = hwloc_set_cpubind(config->hwtopology, &obj->cpuset, HWLOC_CPUBIND_THREAD);
+#elif defined(HAVE_PTHREAD_SETAFFINITY_NP)
 	/* fix the thread on the correct cpu */
 	cpu_set_t aff_mask;
 	CPU_ZERO(&aff_mask);
@@ -316,14 +316,14 @@ void bind_thread_on_cpu(struct machine_config_s *config __attribute__((unused)),
 	pthread_t self = pthread_self();
 
 	ret = pthread_setaffinity_np(self, sizeof(aff_mask), &aff_mask);
-	if (ret)
-	{
-		perror("pthread_setaffinity_np");
-		STARPU_ASSERT(0);
-	}
 #else
 #warning no CPU binding support
 #endif
+	if (ret)
+	{
+		perror("binding thread");
+		STARPU_ASSERT(0);
+	}
 }
 
 static void init_workers_binding(struct machine_config_s *config)
