@@ -57,25 +57,12 @@ if test x$have_pthread_spin_lock = xyes; then
 fi
 
 # yes, that's non portable, but it's still better than sched_setaffinity
-AC_CHECK_FUNC(pthread_setaffinity_np,
-	[], [AC_DEFINE(DONTBIND, [1], [Threads are not bound on a CPU])])
+AC_CHECK_FUNCS(pthread_setaffinity_np)
 
-# There is no posix_memalign on Mac OS X
-AC_CHECK_FUNC(posix_memalign, have_posix_memalign=yes, have_posix_memalign=no)
-if test x$have_posix_memalign = xyes; then
-	AC_DEFINE(HAVE_POSIX_MEMALIGN,[],[posix_memalign is available])
-fi
+# There is no posix_memalign on Mac OS X, only memalign
+AC_CHECK_FUNCS([posix_memalign memalign])
 
-
-AC_CHECK_HEADER([malloc.h],[have_malloc_h_header=yes],[have_malloc_h_header=no])
-if test x$have_malloc_h_header = xyes; then
-	AC_DEFINE(HAVE_MALLOC_H_HEADER,[],[malloc.h header is available])
-fi
-
-AC_CHECK_FUNC(memalign, have_memalign=yes, have_memalign=no)
-if test x$have_memalign = xyes; then
-	AC_DEFINE(HAVE_MEMALIGN,[],[memalign is available])
-fi
+AC_CHECK_HEADERS([malloc.h])
 
 # This defines HAVE_SYNC_BUILTINS
 STARPU_CHECK_SYNC_BUILTINS

@@ -280,7 +280,7 @@ static inline int get_next_bindid(void)
 
 void bind_thread_on_cpu(unsigned coreid)
 {
-#ifndef DONTBIND
+#ifdef HAVE_PTHREAD_SETAFFINITY_NP
 	int ret;
 
 	/* fix the thread on the correct cpu */

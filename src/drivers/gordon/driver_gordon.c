@@ -48,7 +48,7 @@ void *gordon_worker_progress(void *arg)
 {
 	fprintf(stderr, "gordon_worker_progress\n");
 
-#ifndef DONTBIND
+#ifdef HAVE_PTHREAD_SETAFFINITY_NP
 	/* fix the thread on the correct cpu */
 	struct worker_set_s *gordon_set_arg = arg;
 	unsigned prog_thread_bind_id = 

@@ -15,13 +15,11 @@
 
 #undef USE_GTK
 
-#undef DONTBIND
-
 #undef HAVE_POSIX_MEMALIGN
 
 #undef HAVE_MEMALIGN
 
-#undef HAVE_MALLOC_H_HEADER
+#undef HAVE_MALLOC_H
 
 #undef HAVE_SYNC_BUILTINS
 
