@@ -49,6 +49,16 @@ void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user
 	}
 
 	if (sched_pol) {
+		 if (strcmp(sched_pol, "help") == 0) {
+			fprintf(stderr, "SCHED can be either of\n");
+			fprintf(stderr, "ws\twork stealing\n");
+			fprintf(stderr, "prio\tprio eager\n");
+			fprintf(stderr, "no-prio\teager (without prio)\n");
+			fprintf(stderr, "dm\tperformance model\n");
+			fprintf(stderr, "dmda\tdata-aware performance model\n");
+			fprintf(stderr, "random\trandom\n");
+			fprintf(stderr, "else the eager scheduler will be used\n");
+		 }
 		 if (strcmp(sched_pol, "ws") == 0) {
 #ifdef VERBOSE
 		 	fprintf(stderr, "USE WS SCHEDULER !! \n");
