@@ -48,14 +48,39 @@ static void insert_history_entry(struct starpu_history_entry_t *entry, struct st
 }
 
 
+static void drop_comments(FILE *f)
+{
+	while(1) {
+		int c = getc(f);
+
+		switch (c) {
+			case '#':
+			{
+				char s[128];
+				do {
+					fgets(s, sizeof(s), f);
+				} while (!strchr(s, '\n'));
+			}
+			case '\n':
+				continue;
+			default:
+				ungetc(c, f);
+				return;
+		}
+	}
+}
+
 static void dump_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
 {
+	fprintf(f, "# sumlnx\tsumlnx2\t\tsumlny\t\tsumlnxlny\talpha\t\tbeta\t\tn\n");
 	fprintf(f, "%le\t%le\t%le\t%le\t%le\t%le\t%d\n", reg_model->sumlnx, reg_model->sumlnx2, reg_model->sumlny, reg_model->sumlnxlny, reg_model->alpha, reg_model->beta, reg_model->nsample);
 }
 
 static void scan_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
 {
 	int res;
+
+	drop_comments(f);
 
 	res = fscanf(f, "%le\t%le\t%le\t%le\t%le\t%le\t%d\n", &reg_model->sumlnx, &reg_model->sumlnx2, &reg_model->sumlny, &reg_model->sumlnxlny, &reg_model->alpha, &reg_model->beta, &reg_model->nsample);
 	STARPU_ASSERT(res == 7);
@@ -64,12 +89,15 @@ static void scan_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
 
 static void dump_history_entry(FILE *f, struct starpu_history_entry_t *entry)
 {
+	fprintf(f, "# hash\t\tsize\tmean\t\tdev\t\tsum\t\tsum2\t\tn\n");
 	fprintf(f, "%x\t%zu\t%le\t%le\t%le\t%le\t%d\n", entry->footprint, entry->size, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
 }
 
 static void scan_history_entry(FILE *f, struct starpu_history_entry_t *entry)
 {
 	int res;
+
+	drop_comments(f);
 
 	res = fscanf(f, "%x\t%zu\t%le\t%le\t%le\t%le\t%d\n", &entry->footprint, &entry->size, &entry->mean, &entry->deviation, &entry->sum, &entry->sum2, &entry->nsample);
 	STARPU_ASSERT(res == 7);
@@ -79,10 +107,14 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_
 {
 	unsigned nentries;
 
+	drop_comments(f);
+
 	int res = fscanf(f, "%d\n", &nentries);
 	STARPU_ASSERT(res == 1);
 
 	scan_reg_model(f, &per_arch_model->regression);
+
+	drop_comments(f);
 
 	res = fscanf(f, "%le\t%le\t%le\n", 
 		&per_arch_model->regression.a,
@@ -137,12 +169,13 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_t
 	}
 
 	/* header */
-	fprintf(f, "%d\n", nentries);
+	fprintf(f, "# number of entries\n%d\n", nentries);
 
 	dump_reg_model(f, &per_arch_model->regression);
 
 	double a,b,c;
 	regression_non_linear_power(per_arch_model->list, &a, &b, &c);
+	fprintf(f, "# a\t\tb\t\tc\n");
 	fprintf(f, "%le\t%le\t%le\n", a, b, c);
 
 	ptr = per_arch_model->list;
@@ -155,11 +188,23 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_t
 
 static void dump_model_file(FILE *f, struct starpu_perfmodel_t *model)
 {
+	fprintf(f, "#################\n");
+	fprintf(f, "# Model for COREs\n");
 	dump_per_arch_model_file(f, &model->per_arch[STARPU_CORE_DEFAULT]);
+	fprintf(f, "\n##################\n");
+	fprintf(f,   "# Model for CUDA 1\n");
 	dump_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_DEFAULT]);
+	fprintf(f, "\n##################\n");
+	fprintf(f,   "# Model for CUDA 2\n");
 	dump_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_2]);
+	fprintf(f, "\n##################\n");
+	fprintf(f,   "# Model for CUDA 3\n");
 	dump_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_3]);
+	fprintf(f, "\n##################\n");
+	fprintf(f,   "# Model for CUDA 4\n");
 	dump_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_4]);
+	fprintf(f, "\n##################\n");
+	fprintf(f,   "# Model for GORDON\n");
 	dump_per_arch_model_file(f, &model->per_arch[STARPU_GORDON_DEFAULT]);
 }
 
@@ -610,7 +655,7 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned 
 
 		STARPU_ASSERT(j->footprint_is_computed);
 
-		fprintf(debug_file, "0x%x\t%d\t%lf\t%lf\t%d\t\t", j->footprint, job_get_data_size(j), measured, j->predicted, cpuid);
+		fprintf(debug_file, "0x%x\t%lu\t%lf\t%lf\t%d\t\t", j->footprint, (unsigned long) job_get_data_size(j), measured, j->predicted, cpuid);
 		unsigned i;
 			
 		struct starpu_task *task = j->task;
