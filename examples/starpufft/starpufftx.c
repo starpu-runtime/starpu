@@ -35,7 +35,6 @@ enum steps {
 
 #define I_BITS STEP_SHIFT
 
-// TODO: Z2Z, D2Z, Z2D
 enum type {
 	R2C,
 	C2R,
