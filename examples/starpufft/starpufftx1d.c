@@ -19,7 +19,21 @@
 #define STEP_TAG_1D(plan, step, i) _STEP_TAG(plan, step, i)
 
 #ifdef USE_CUDA
-extern void STARPUFFT(cuda_1d_twiddle_host)(_cuComplex *out, const _cuComplex *roots, unsigned n, unsigned i);
+/* Twist the full vector into a n2 chunk */
+static void
+STARPUFFT(twist1_1d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
+{
+	struct STARPUFFT(args) *args = _args;
+	STARPUFFT(plan) plan = args->plan;
+	int i = args->i;
+	int n1 = plan->n1[0];
+	int n2 = plan->n2[0];
+
+	_cufftComplex *in = (_cufftComplex *)descr[0].vector.ptr;
+	_cufftComplex *twisted1 = (_cufftComplex *)descr[1].vector.ptr;
+
+	STARPUFFT(cuda_twist1_1d_host)(in, twisted1, i, n1, n2);
+}
 
 /* Perform an n2 fft */
 static void
@@ -46,7 +60,7 @@ STARPUFFT(fft1_1d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 	cures = _cufftExecC2C(plan->plans[workerid].plan1_cuda, in, out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
 
-	STARPUFFT(cuda_1d_twiddle_host)(out, roots, n2, i);
+	STARPUFFT(cuda_twiddle_1d_host)(out, roots, n2, i);
 }
 
 static void
@@ -77,7 +91,7 @@ STARPUFFT(fft2_1d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 #endif
 
 #ifdef HAVE_FFTW
-/* Twist the full vector into a n2,m2 chunk */
+/* Twist the full vector into a n2 chunk */
 static void
 STARPUFFT(twist1_1d_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
 {
@@ -88,12 +102,13 @@ STARPUFFT(twist1_1d_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
 	int n1 = plan->n1[0];
 	int n2 = plan->n2[0];
 
-	STARPUFFT(complex) *twisted1 = (STARPUFFT(complex) *)descr[0].vector.ptr;
+	STARPUFFT(complex) *in = (STARPUFFT(complex) *)descr[0].vector.ptr;
+	STARPUFFT(complex) *twisted1 = (STARPUFFT(complex) *)descr[1].vector.ptr;
 
 	//printf("twist1 %d %g\n", i, (double) cabs(plan->in[i]));
 
 	for (j = 0; j < n2; j++)
-		twisted1[j] = plan->in[i+j*n1];
+		twisted1[j] = in[i+j*n1];
 }
 
 /* Perform an n2 fft */
@@ -221,15 +236,16 @@ static struct starpu_perfmodel_t STARPUFFT(twist3_1d_model) = {
 
 static starpu_codelet STARPUFFT(twist1_1d_codelet) = {
 	.where =
-#ifdef HAVE_FFTW
-		CORE|
+#ifdef USE_CUDA
+		CUBLAS|
 #endif
-		0,
-#ifdef HAVE_FFTW
+		CORE,
+#ifdef USE_CUDA
+	.cublas_func = STARPUFFT(twist1_1d_kernel_gpu),
+#endif
 	.core_func = STARPUFFT(twist1_1d_kernel_cpu),
-#endif
 	.model = &STARPUFFT(twist1_1d_model),
-	.nbuffers = 1
+	.nbuffers = 2
 };
 
 static starpu_codelet STARPUFFT(fft1_1d_codelet) = {
@@ -252,14 +268,8 @@ static starpu_codelet STARPUFFT(fft1_1d_codelet) = {
 };
 
 static starpu_codelet STARPUFFT(twist2_1d_codelet) = {
-	.where =
-#ifdef HAVE_FFTW
-		CORE|
-#endif
-		0,
-#ifdef HAVE_FFTW
+	.where = CORE,
 	.core_func = STARPUFFT(twist2_1d_kernel_cpu),
-#endif
 	.model = &STARPUFFT(twist2_1d_model),
 	.nbuffers = 1
 };
@@ -284,14 +294,8 @@ static starpu_codelet STARPUFFT(fft2_1d_codelet) = {
 };
 
 static starpu_codelet STARPUFFT(twist3_1d_codelet) = {
-	.where =
-#ifdef HAVE_FFTW
-		CORE|
-#endif
-		0,
-#ifdef HAVE_FFTW
+	.where = CORE,
 	.core_func = STARPUFFT(twist3_1d_kernel_cpu),
-#endif
 	.model = &STARPUFFT(twist3_1d_model),
 	.nbuffers = 1
 };
@@ -443,8 +447,10 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 		/* Create twist1 task */
 		plan->twist1_tasks[z] = task = starpu_task_create();
 		task->cl = &STARPUFFT(twist1_1d_codelet);
-		task->buffers[0].handle = plan->twisted1_handle[z];
-		task->buffers[0].mode = STARPU_W;
+		//task->buffers[0].handle = to be filled at execution
+		task->buffers[0].mode = STARPU_R;
+		task->buffers[1].handle = plan->twisted1_handle[z];
+		task->buffers[1].mode = STARPU_W;
 		task->cl_arg = &plan->fft1_args[z];
 		task->tag_id = STEP_TAG(TWIST1);
 		task->use_tag = 1;
@@ -559,7 +565,7 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 }
 
 static starpu_tag_t
-STARPUFFT(start1dC2C)(STARPUFFT(plan) plan, void *_in, void *_out)
+STARPUFFT(start1dC2C)(STARPUFFT(plan) plan)
 {
 	STARPU_ASSERT(plan->type == C2C);
 	int z;

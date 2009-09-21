@@ -16,11 +16,14 @@
 
 #include <math.h>
 #include <pthread.h>
+#include <unistd.h>
 #include <sys/time.h>
 
 #include <starpu.h>
 
 #include "starpufft.h"
+#define _externC extern
+#include "cudax_kernels.h"
 
 #define _FFTW_FLAGS FFTW_ESTIMATE
 
@@ -90,7 +93,7 @@ struct STARPUFFT(plan) {
 
 	STARPUFFT(complex) *in, *twisted1, *fft1, *twisted2, *fft2, *out;
 
-	starpu_data_handle *in_handle, *twisted1_handle, *fft1_handle, *twisted2_handle, *fft2_handle;
+	starpu_data_handle in_handle, *twisted1_handle, *fft1_handle, *twisted2_handle, *fft2_handle;
 	struct starpu_task **twist1_tasks, **fft1_tasks, **twist2_tasks, **fft2_tasks, **twist3_tasks;
 	struct starpu_task *join_task, *end_task;
 	struct STARPUFFT(args) *fft1_args, *fft2_args;
@@ -201,6 +204,8 @@ starpu_tag_t
 STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 {
 	starpu_tag_t tag;
+	int z;
+
 	plan->in = _in;
 	plan->out = _out;
 
@@ -208,7 +213,10 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 		case 1: {
 			switch (plan->type) {
 			case C2C:
-				tag = STARPUFFT(start1dC2C)(plan, _in, _out);
+				starpu_register_vector_data(&plan->in_handle, 0, (uintptr_t) plan->in, plan->totsize, sizeof(STARPUFFT(complex)));
+				for (z = 0; z < plan->totsize1; z++)
+					plan->twist1_tasks[z]->buffers[0].handle = plan->in_handle;
+				tag = STARPUFFT(start1dC2C)(plan);
 				break;
 			default:
 				STARPU_ASSERT(0);
@@ -217,7 +225,10 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 			break;
 		}
 		case 2:
-			tag = STARPUFFT(start2dC2C)(plan, _in, _out);
+			starpu_register_vector_data(&plan->in_handle, 0, (uintptr_t) plan->in, plan->totsize, sizeof(STARPUFFT(complex)));
+			for (z = 0; z < plan->totsize1; z++)
+				plan->twist1_tasks[z]->buffers[0].handle = plan->in_handle;
+			tag = STARPUFFT(start2dC2C)(plan);
 			break;
 		default:
 			STARPU_ASSERT(0);
@@ -227,15 +238,24 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 }
 
 void
+STARPUFFT(cleanup)(STARPUFFT(plan) plan)
+{
+	starpu_delete_data(plan->in_handle);
+}
+
+void
 STARPUFFT(execute)(STARPUFFT(plan) plan, void *in, void *out)
 {
-	gettimeofday(&start, NULL);
 	memset(task_per_worker, 0, sizeof(task_per_worker));
 	memset(samples_per_worker, 0, sizeof(task_per_worker));
+
+	gettimeofday(&start, NULL);
 
 	starpu_tag_t tag = STARPUFFT(start)(plan, in, out);
 	gettimeofday(&submit_tasks, NULL);
 	starpu_tag_wait(tag);
+
+	STARPUFFT(cleanup)(plan);
 
 	gettimeofday(&end, NULL);
 }

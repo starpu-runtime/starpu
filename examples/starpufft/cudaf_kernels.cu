@@ -15,4 +15,4 @@
  */
 
 #include "float.h"
-#include "twiddlex.cu"
+#include "cudax_kernels.cu"

@@ -28,14 +28,14 @@ if USE_CUDA
 NVCC ?= nvcc
 NVCCFLAGS += -Xcompiler -fPIC -Xlinker -fPIC
 
-twiddle.o: twiddle.cu
+cuda_kernels.o: cuda_kernels.cu
 	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir} -arch sm_13 
 
-twiddlef.o: twiddlef.cu
+cudaf_kernels.o: cudaf_kernels.cu
 	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
 
-libstarpufft_la_SOURCES += twiddle.cu twiddlef.cu
-am_libstarpufft_la_OBJECTS = twiddle.o twiddlef.o starpufft.lo starpufftf.lo starpufft-common.lo
+libstarpufft_la_SOURCES += cuda_kernels.cu cudaf_kernels.cu
+am_libstarpufft_la_OBJECTS = cuda_kernels.o cudaf_kernels.o starpufft.lo starpufftf.lo starpufft-common.lo
 libstarpufft_la_LDFLAGS += -lcufft
 endif
 
