@@ -306,7 +306,9 @@ void bind_thread_on_cpu(struct machine_config_s *config __attribute__((unused)),
 
 #ifdef HAVE_HWLOC
 	hwloc_obj_t obj = hwloc_get_obj_by_depth(config->hwtopology, config->core_depth, coreid);
-	ret = hwloc_set_cpubind(config->hwtopology, &obj->cpuset, HWLOC_CPUBIND_THREAD);
+	hwloc_cpuset_t set = obj->cpuset;
+	hwloc_cpuset_singlify(&set);
+	ret = hwloc_set_cpubind(config->hwtopology, &set, HWLOC_CPUBIND_THREAD);
 #elif defined(HAVE_PTHREAD_SETAFFINITY_NP)
 	/* fix the thread on the correct cpu */
 	cpu_set_t aff_mask;
