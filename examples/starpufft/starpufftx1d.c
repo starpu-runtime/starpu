@@ -194,27 +194,27 @@ STARPUFFT(twist3_1d_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
 }
 #endif
 
-struct starpu_perfmodel_t STARPUFFT(twist1_1d_model) = {
+static struct starpu_perfmodel_t STARPUFFT(twist1_1d_model) = {
 	.type = HISTORY_BASED,
 	.symbol = TYPE"twist1_1d"
 };
 
-struct starpu_perfmodel_t STARPUFFT(fft1_1d_model) = {
+static struct starpu_perfmodel_t STARPUFFT(fft1_1d_model) = {
 	.type = HISTORY_BASED,
 	.symbol = TYPE"fft1_1d"
 };
 
-struct starpu_perfmodel_t STARPUFFT(twist2_1d_model) = {
+static struct starpu_perfmodel_t STARPUFFT(twist2_1d_model) = {
 	.type = HISTORY_BASED,
 	.symbol = TYPE"twist2_1d"
 };
 
-struct starpu_perfmodel_t STARPUFFT(fft2_1d_model) = {
+static struct starpu_perfmodel_t STARPUFFT(fft2_1d_model) = {
 	.type = HISTORY_BASED,
 	.symbol = TYPE"fft2_1d"
 };
 
-struct starpu_perfmodel_t STARPUFFT(twist3_1d_model) = {
+static struct starpu_perfmodel_t STARPUFFT(twist3_1d_model) = {
 	.type = HISTORY_BASED,
 	.symbol = TYPE"twist3_1d"
 };
