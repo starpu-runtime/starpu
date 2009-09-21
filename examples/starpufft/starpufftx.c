@@ -238,6 +238,8 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 		free(plan->twist3_tasks[i]);
 	}
 
+	free(plan->end_task);
+
 	free(plan->twisted2_handle);
 	free(plan->twist2_tasks);
 	free(plan->fft2_handle);
