@@ -78,15 +78,15 @@ int main(int argc, char *argv[]) {
 
 	bytes = size * sizeof(STARPUFFT(complex));
 
-	STARPUFFT(complex) *in = fftw_malloc/*STARPUFFT(malloc)*/(size * sizeof(*in));
+	STARPUFFT(complex) *in = STARPUFFT(malloc)(size * sizeof(*in));
 	srand48(0);
 	for (i = 0; i < size; i++)
 		in[i] = drand48() + I * drand48();
 
-	STARPUFFT(complex) *out = fftw_malloc/*STARPUFFT(malloc)*/(size * sizeof(*out));
+	STARPUFFT(complex) *out = STARPUFFT(malloc)(size * sizeof(*out));
 
 #ifdef HAVE_FFTW
-	STARPUFFT(complex) *out_fftw = fftw_malloc/*STARPUFFT(malloc)*/(size * sizeof(*out_fftw));
+	STARPUFFT(complex) *out_fftw = STARPUFFT(malloc)(size * sizeof(*out_fftw));
 #endif
 
 #ifdef USE_CUDA
@@ -213,11 +213,11 @@ int main(int argc, char *argv[]) {
 }
 #endif
 
-	fftw_free/*STARPUFFT(free)*/(in);
-	fftw_free/*STARPUFFT(free)*/(out);
+	STARPUFFT(free)(in);
+	STARPUFFT(free)(out);
 
 #ifdef HAVE_FFTW
-	fftw_free/*STARPUFFT(free)*/(out_fftw);
+	STARPUFFT(free)(out_fftw);
 #endif
 
 #ifdef USE_CUDA

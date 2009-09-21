@@ -40,8 +40,8 @@ libstarpufft_la_LIBADD += -lcufft
 endif
 
 EXTRA_DIST += testx.c testx_threads.c
-check_PROGRAMS = test testf test_threads testf_threads
+check_PROGRAMS = test testf
 test_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la $(FFTW_LIBS)
 testf_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la $(FFTWF_LIBS)
-test_threads_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la -lfftw3_threads
-testf_threads_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la -lfftw3f_threads
+#test_threads_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la -lfftw3_threads
+#testf_threads_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la -lfftw3f_threads
