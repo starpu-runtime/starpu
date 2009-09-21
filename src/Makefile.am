@@ -23,7 +23,7 @@ lib_LTLIBRARIES = libstarpu.la
 libstarpu_la_CPPFLAGS = -I$(top_srcdir)/include/
 
 libstarpu_la_CFLAGS = -W -Wall -Wextra $(HWLOC_CFLAGS)
-libstarpu_la_LDFLAGS = -lm $(HWLOC_LIBS)
+libstarpu_la_LIBADD = -lm $(HWLOC_LIBS)
 
 noinst_HEADERS = 						\
 	core/dependencies/data-concurrency.h			\

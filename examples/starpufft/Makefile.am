@@ -20,7 +20,7 @@ lib_LTLIBRARIES = libstarpufft.la
 
 EXTRA_DIST = starpufftx.c starpufftx1d.c starpufftx2d.c float.h double.h
 libstarpufft_la_SOURCES = starpufft.c starpufftf.c starpufft-common.c
-libstarpufft_la_LDFLAGS = $(top_builddir)/src/libstarpu.la $(FFTW_LIBS) $(FFTWF_LIBS)
+libstarpufft_la_LIBADD = $(top_builddir)/src/libstarpu.la $(FFTW_LIBS) $(FFTWF_LIBS)
 libstarpufft_la_CFLAGS = $(FFTWF_CFLAGS)
 
 if USE_CUDA
@@ -36,12 +36,12 @@ cudaf_kernels.o: cudaf_kernels.cu
 
 libstarpufft_la_SOURCES += cuda_kernels.cu cudaf_kernels.cu
 am_libstarpufft_la_OBJECTS = cuda_kernels.o cudaf_kernels.o starpufft.lo starpufftf.lo starpufft-common.lo
-libstarpufft_la_LDFLAGS += -lcufft
+libstarpufft_la_LIBADD += -lcufft
 endif
 
 EXTRA_DIST += testx.c testx_threads.c
 check_PROGRAMS = test testf test_threads testf_threads
-test_LDFLAGS = libstarpufft.la $(top_builddir)/src/libstarpu.la $(FFTW_LIBS)
-testf_LDFLAGS = libstarpufft.la $(top_builddir)/src/libstarpu.la $(FFTWF_LIBS)
-test_threads_LDFLAGS = libstarpufft.la $(top_builddir)/src/libstarpu.la -lfftw3_threads
-testf_threads_LDFLAGS = libstarpufft.la $(top_builddir)/src/libstarpu.la -lfftw3f_threads
+test_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la $(FFTW_LIBS)
+testf_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la $(FFTWF_LIBS)
+test_threads_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la -lfftw3_threads
+testf_threads_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la -lfftw3f_threads

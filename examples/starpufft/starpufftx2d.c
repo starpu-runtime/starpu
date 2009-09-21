@@ -105,7 +105,6 @@ STARPUFFT(fft2_2d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 }
 #endif
 
-#ifdef HAVE_FFTW
 /* Twist the full vector into a n2,m2 chunk */
 static void
 STARPUFFT(twist1_2d_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
@@ -131,6 +130,7 @@ STARPUFFT(twist1_2d_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
 			twisted1[k*m2+l] = in[i*m+j+k*m*n1+l*m1];
 }
 
+#ifdef HAVE_FFTW
 /* Perform an n2,m2 fft */
 static void
 STARPUFFT(fft1_2d_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
@@ -158,6 +158,7 @@ STARPUFFT(fft1_2d_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
 		for (l = 0; l < m2; l++)
 			fft1[k*m2 + l] = worker_out1[k*m2 + l] * plan->roots[0][i*k] * plan->roots[1][j*l];
 }
+#endif
 
 /* Twist the full vector into a package of n2/DIV_2D_N,m2/DIV_2D_M (n1,m1) chunks */
 static void
@@ -191,6 +192,7 @@ STARPUFFT(twist2_2d_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
 	}
 }
 
+#ifdef HAVE_FFTW
 /* Perform (n2/DIV_2D_N)*(m2/DIV_2D_M) (n1,m1) ffts */
 static void
 STARPUFFT(fft2_2d_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
@@ -214,6 +216,7 @@ STARPUFFT(fft2_2d_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
 	/* no twiddle */
 	memcpy(fft2, worker_out2, plan->totsize4 * sizeof(*worker_out2));
 }
+#endif
 
 /* Spread the package of (n2/DIV_2D_N)*(m2/DIV_2D_M) (n1,m1) chunks into the full vector */
 static void
@@ -247,7 +250,6 @@ STARPUFFT(twist3_2d_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
 		}
 	}
 }
-#endif
 
 struct starpu_perfmodel_t STARPUFFT(twist1_2d_model) = {
 	.type = HISTORY_BASED,

@@ -28,7 +28,7 @@ bin_PROGRAMS += fxt-tool fxt-stats
 
 fxt_tool_SOURCES = fxt-tool.c histo-svg.c dag-dot.c histo-paje.c
 fxt_tool_CFLAGS = -I$(top_srcdir)/src/
-fxt_tool_LDFLAGS = 
+fxt_tool_LDADD = 
 
 fxt_stats_SOURCES = fxt-stats.c
 fxt_stats_CFLAGS = -I$(top_srcdir)/src/

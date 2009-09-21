@@ -22,8 +22,10 @@
 #include <starpu.h>
 
 #include "starpufft.h"
+#ifdef USE_CUDA
 #define _externC extern
 #include "cudax_kernels.h"
+#endif
 
 #define _FFTW_FLAGS FFTW_ESTIMATE
 
@@ -121,6 +123,7 @@ STARPUFFT(void_kernel)(starpu_data_interface_t *descr, void *_args)
 {
 }
 
+#ifdef USE_CUDA
 static void
 STARPUFFT(not_so_void_kernel)(starpu_data_interface_t *descr, void *_args)
 {
@@ -138,6 +141,7 @@ static starpu_codelet STARPUFFT(prefetch_codelet) = {
 	.model = &STARPUFFT(not_so_void_model),
 	.nbuffers = 1,
 };
+#endif
 
 static void
 compute_roots(STARPUFFT(plan) plan)
