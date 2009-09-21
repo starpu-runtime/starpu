@@ -25,13 +25,16 @@
 #define _FFTW_FLAGS FFTW_ESTIMATE
 
 enum steps {
-	TWIST1, FFT1, JOIN, TWIST2, FFT2, TWIST3, END
+	SPECIAL, TWIST1, FFT1, JOIN, TWIST2, FFT2, TWIST3, END
 };
 
 #define NUMBER_BITS 5
 #define NUMBER_SHIFT (64 - NUMBER_BITS)
 #define STEP_BITS 3
 #define STEP_SHIFT (NUMBER_SHIFT - STEP_BITS)
+
+#define _STEP_TAG(plan, step, i) (((starpu_tag_t) plan->number << NUMBER_SHIFT) | ((starpu_tag_t)(step) << STEP_SHIFT) | (starpu_tag_t) (i))
+
 
 #define I_BITS STEP_SHIFT
 
@@ -109,6 +112,30 @@ check_dims(STARPUFFT(plan) plan)
 		}
 }
 
+/* Empty task */
+static void
+STARPUFFT(void_kernel)(starpu_data_interface_t *descr, void *_args)
+{
+}
+
+static void
+STARPUFFT(not_so_void_kernel)(starpu_data_interface_t *descr, void *_args)
+{
+	fprintf(stderr,"prefetching roots on %d\n", starpu_get_worker_id());
+	sleep(1);
+}
+
+static struct starpu_perfmodel_t STARPUFFT(not_so_void_model) = {
+	.type = HISTORY_BASED,
+	.symbol = TYPE"not_so_void",
+};
+static starpu_codelet STARPUFFT(prefetch_codelet) = {
+	.where = CUBLAS,
+	.cublas_func = STARPUFFT(not_so_void_kernel),
+	.model = &STARPUFFT(not_so_void_model),
+	.nbuffers = 1,
+};
+
 static void
 compute_roots(STARPUFFT(plan) plan)
 {
@@ -121,13 +148,38 @@ compute_roots(STARPUFFT(plan) plan)
 		for (k = 0; k < plan->n[dim]; k++)
 			plan->roots[dim][k] = cexp(exp*k);
 		starpu_register_vector_data(&plan->roots_handle[dim], 0, (uintptr_t) plan->roots[dim], plan->n[dim], sizeof(**plan->roots));
-	}
-}
 
-/* Empty task */
-static void
-STARPUFFT(void_kernel_cpu)(starpu_data_interface_t *descr, void *_args)
-{
+#ifdef USE_CUDA
+		if (plan->n[dim] > 100000) {
+			/* prefetch the big root array on GPUs */
+			int worker;
+
+			/* FIXME: it's really fortunate that this works */
+			for (worker = 0; worker < STARPU_NMAXWORKERS; worker++) {
+				struct starpu_task *task;
+
+				if (starpu_get_worker_type(worker) != STARPU_CUDA_WORKER)
+					continue;
+
+				task = starpu_task_create();
+
+				task->cl = &STARPUFFT(prefetch_codelet);
+				task->buffers[0].handle = plan->roots_handle[dim];
+				task->buffers[0].mode = STARPU_R;
+				task->tag_id = _STEP_TAG(plan, SPECIAL, worker);
+				task->use_tag = 1;
+				starpu_submit_task(task);
+			}
+			for (worker = 0; worker < STARPU_NMAXWORKERS; worker++) {
+				if (starpu_get_worker_type(worker) != STARPU_CUDA_WORKER)
+					continue;
+
+				starpu_tag_wait(_STEP_TAG(plan, SPECIAL, worker));
+				//starpu_tag_remove(_STEP_TAG(plan, SPECIAL, worker));
+			}
+		}
+#endif
+	}
 }
 
 struct starpu_perfmodel_t STARPUFFT(void_model) = {
@@ -137,7 +189,7 @@ struct starpu_perfmodel_t STARPUFFT(void_model) = {
 
 static starpu_codelet STARPUFFT(void_codelet) = {
 	.where = CORE,
-	.core_func = STARPUFFT(void_kernel_cpu),
+	.core_func = STARPUFFT(void_kernel),
 	.model = &STARPUFFT(void_model),
 	.nbuffers = 0
 };

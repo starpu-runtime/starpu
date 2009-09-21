@@ -16,7 +16,7 @@
 
 #define DIV_1D 64
 
-#define STEP_TAG_1D(plan, step, i) (((starpu_tag_t) plan->number << NUMBER_SHIFT) | ((starpu_tag_t)(step) << STEP_SHIFT) | (starpu_tag_t) i)
+#define STEP_TAG_1D(plan, step, i) _STEP_TAG(plan, step, i)
 
 #ifdef USE_CUDA
 extern void STARPUFFT(cuda_1d_twiddle_host)(_cuComplex *out, const _cuComplex *roots, unsigned n, unsigned i);

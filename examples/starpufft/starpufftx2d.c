@@ -20,7 +20,7 @@
 #define I_SHIFT (I_BITS/2)
 #define J_BITS I_SHIFT
 
-#define STEP_TAG_2D(plan, step, i, j) (((starpu_tag_t) plan->number << NUMBER_SHIFT) | ((starpu_tag_t)(step) << STEP_SHIFT) | ((starpu_tag_t) i << I_SHIFT) | (starpu_tag_t) j)
+#define STEP_TAG_2D(plan, step, i, j) _STEP_TAG(plan, step, ((starpu_tag_t) i << I_SHIFT) | (starpu_tag_t) j)
 
 #ifdef USE_CUDA
 extern void STARPUFFT(cuda_2d_twiddle_host)(_cuComplex *out, const _cuComplex *roots0, const _cuComplex *roots1, unsigned n2, unsigned m2, unsigned i, unsigned j);
