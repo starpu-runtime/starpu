@@ -88,6 +88,22 @@
 void start_fxt_profiling(void);
 void fxt_register_thread(unsigned);
 
+/* sometimes we need something a little more specific than the wrappers from
+ * FxT */
+#define FUT_DO_PROBE3STR(CODE, P1, P2, P3, str)				\
+do {									\
+	/* we add a \0 just in case ... */				\
+	size_t len = strlen((str)) + 1;					\
+	unsigned nbargs = 3 + (len + sizeof(unsigned long) - 1)/(sizeof(unsigned long));\
+	size_t total_len = FUT_SIZE(nbargs);				\
+	unsigned long *args =						\
+		fut_getstampedbuffer(FUT_CODE(CODE, nbargs), total_len);\
+	*(args++) = (unsigned long)(P1);				\
+	*(args++) = (unsigned long)(P2);				\
+	*(args++) = (unsigned long)(P3);				\
+	sprintf((char *)args, "%s\0", str);				\
+} while (0);
+
 /* workerkind = FUT_CORE_KEY for instance */
 #define TRACE_NEW_MEM_NODE(nodeid)	\
 	FUT_DO_PROBE2(FUT_NEW_MEM_NODE, nodeid, syscall(SYS_gettid));
@@ -95,8 +111,19 @@ void fxt_register_thread(unsigned);
 #define TRACE_NEW_WORKER(workerkind,memnode)	\
 	FUT_DO_PROBE3(FUT_NEW_WORKER_KEY, workerkind, memnode, syscall(SYS_gettid));
 
-#define TRACE_START_CODELET_BODY(job)	\
-	FUT_DO_PROBE2(FUT_START_CODELET_BODY, job, syscall(SYS_gettid));
+#define TRACE_START_CODELET_BODY(job)					\
+do {									\
+	struct starpu_perfmodel_t *model = (job)->task->cl->model;	\
+	if (model && model->symbol)					\
+	{								\
+		/* we include the symbol name */			\
+		FUT_DO_PROBE3STR(FUT_START_CODELET_BODY, job, syscall(SYS_gettid), 1, model->symbol);\
+	}								\
+	else {								\
+		FUT_DO_PROBE3(FUT_START_CODELET_BODY, job, syscall(SYS_gettid), 0);\
+	}								\
+} while(0);
+
 
 #define TRACE_END_CODELET_BODY(job)	\
 	FUT_DO_PROBE2(FUT_END_CODELET_BODY, job, syscall(SYS_gettid));

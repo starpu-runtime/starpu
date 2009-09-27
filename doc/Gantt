@@ -8,7 +8,7 @@
   there should be a file named "/tmp/prof_file_user_".
 
 - Call tools/fxt-tool on that file
-	./tools/fxt-tool /tmp/prof_file_user_yourlogin
+	./tools/fxt-tool -i /tmp/prof_file_user_yourlogin
 
 - Some files should have been created in the current directory
 	- paje.trace : A Gantt diagram of the execution

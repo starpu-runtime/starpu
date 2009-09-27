@@ -20,5 +20,6 @@
 #include <stdint.h>
 
 uint32_t crc32_be(uint32_t input, uint32_t inputcrc);
+uint32_t crc32_string(char *str, uint32_t inputcrc);
 
 #endif // __HASH_H__

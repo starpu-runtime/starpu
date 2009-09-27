@@ -75,6 +75,16 @@ void write_paje_header(FILE *file)
 	fprintf(file, "\%%	Container	string\n");
 	fprintf(file, "\%%	Value	string\n");
 	fprintf(file, "\%%EndEventDef\n");
+	fprintf(file, "\%%EventDef PajeSetState 101\n");
+	fprintf(file, "\%%	Time	date\n");
+	fprintf(file, "\%%	Type	string\n");
+	fprintf(file, "\%%	Container	string\n");
+	fprintf(file, "\%%	Value	string\n");
+	/* XXX that's a hack as we redefine Value ! this should be a secondary
+	 * field displayed by Vite or we should create a state for each type of
+	 * codelet */
+	fprintf(file, "\%%	Value	string\n");
+	fprintf(file, "\%%EndEventDef\n");
 	fprintf(file, "\%%EventDef	PajePushState	11\n");
 	fprintf(file, "\%%	Time	date\n");
 	fprintf(file, "\%%	Type	string\n");
