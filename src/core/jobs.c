@@ -235,3 +235,27 @@ int submit_sync_task(struct starpu_task *task)
 
 	return starpu_submit_task(task);
 }
+
+void starpu_display_codelet_stats(struct starpu_codelet_t *cl)
+{
+	unsigned worker;
+	unsigned nworkers = starpu_get_worker_count();
+
+	if (cl->model && cl->model->symbol)
+		fprintf(stderr, "Statistics for codelet %s\n", cl->model->symbol);
+
+	unsigned total = 0;
+	
+	for (worker = 0; worker < nworkers; worker++)
+		total += cl->per_worker_stats[worker];
+
+	for (worker = 0; worker < nworkers; worker++)
+	{
+		char name[32];
+		starpu_get_worker_name(worker, name, 32);
+
+		fprintf(stderr, "\t%s -> %d / %d (%2.2f \%%)\n", name, cl->per_worker_stats[worker], total, (100.0f*cl->per_worker_stats[worker])/total);
+	}
+}
+
+

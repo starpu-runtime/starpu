@@ -62,6 +62,8 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 
 	cl_func func = task->cl->core_func;
 	func(task->interface, task->cl_arg);
+
+	task->cl->per_worker_stats[core_args->workerid]++;
 	
 	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_end);

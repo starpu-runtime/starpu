@@ -19,6 +19,7 @@
 
 #include <errno.h>
 #include <starpu_config.h>
+#include <starpu.h>
 
 /* this is a randomly choosen value ... */
 #ifndef MAXCUDADEVS
@@ -61,6 +62,9 @@ typedef struct starpu_codelet_t {
 	unsigned nbuffers;
 
 	struct starpu_perfmodel_t *model;
+
+	/* statistics collected at runtime */
+	unsigned long per_worker_stats[STARPU_NMAXWORKERS];
 } starpu_codelet;
 
 struct starpu_task {
@@ -131,5 +135,6 @@ void starpu_tag_remove(starpu_tag_t id);
 struct starpu_task *starpu_task_create(void);
 int starpu_submit_task(struct starpu_task *task);
 
+void starpu_display_codelet_stats(struct starpu_codelet_t *cl);
 
 #endif // __STARPU_TASK_H__

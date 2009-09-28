@@ -133,6 +133,8 @@ int execute_job_on_cuda(job_t j, struct worker_s *args)
 	GET_TICK(codelet_start);
 	func(task->interface, task->cl_arg);
 
+	task->cl->per_worker_stats[args->workerid]++;
+
 	/* perform a barrier after the kernel */
 	cures = cudaThreadSynchronize();
 	if (STARPU_UNLIKELY(cures))

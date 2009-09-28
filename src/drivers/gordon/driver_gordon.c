@@ -235,6 +235,8 @@ static void gordon_callback_func(void *arg)
 
 	task_wrapper->terminated = 1;
 
+	task_wrapper->j->task->cl->per_worker_stats[worker->workerid]++;
+
 	handle_terminated_job(task_wrapper->j);
 
 	wake_all_blocked_workers();
