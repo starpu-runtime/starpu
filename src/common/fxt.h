@@ -101,7 +101,7 @@ do {									\
 	*(args++) = (unsigned long)(P1);				\
 	*(args++) = (unsigned long)(P2);				\
 	*(args++) = (unsigned long)(P3);				\
-	sprintf((char *)args, "%s\0", str);				\
+	sprintf((char *)args, "%s", str);				\
 } while (0);
 
 /* workerkind = FUT_CORE_KEY for instance */
