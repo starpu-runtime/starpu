@@ -39,7 +39,10 @@ STARPUFFT(twist1_2d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 	_cufftComplex * restrict in = (_cufftComplex *)descr[0].vector.ptr;
 	_cufftComplex * restrict twisted1 = (_cufftComplex *)descr[1].vector.ptr;
 
-	STARPUFFT(cuda_twist1_2d_host)(in, twisted1, i, j, n1, n2, m1, m2);
+	cudaStream_t stream = STARPUFFT(get_local_stream)(plan, starpu_get_worker_id());
+
+	STARPUFFT(cuda_twist1_2d_host)(in, twisted1, i, j, n1, n2, m1, m2, stream);
+	cudaStreamSynchronize(stream);
 }
 
 /* Perform an n2,m2 fft */
@@ -61,16 +64,27 @@ STARPUFFT(fft1_2d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 
 	int workerid = starpu_get_worker_id();
 
+	cudaStream_t stream;
+
 	if (!plan->plans[workerid].initialized1) {
 		cures = cufftPlan2d(&plan->plans[workerid].plan1_cuda, n2, m2, _CUFFT_C2C);
+
+		stream = STARPUFFT(get_local_stream)(plan, workerid);
+		cufftSetStream(plan->plans[workerid].plan1_cuda, stream);
+
 		STARPU_ASSERT(cures == CUFFT_SUCCESS);
 		plan->plans[workerid].initialized1 = 1;
 	}
 
+	stream = plan->plans[workerid].stream;
+
 	cures = _cufftExecC2C(plan->plans[workerid].plan1_cuda, in, out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
 
-	STARPUFFT(cuda_twiddle_2d_host)(out, roots0, roots1, n2, m2, i, j);
+	/* synchronization is done after the twiddling */
+	STARPUFFT(cuda_twiddle_2d_host)(out, roots0, roots1, n2, m2, i, j, stream);
+
+	cudaStreamSynchronize(stream);
 }
 
 static void
@@ -94,6 +108,10 @@ STARPUFFT(fft2_2d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 
 	if (!plan->plans[workerid].initialized2) {
 		cures = cufftPlan2d(&plan->plans[workerid].plan2_cuda, n1, m1, _CUFFT_C2C);
+
+		cudaStream_t stream = STARPUFFT(get_local_stream)(plan, workerid);
+		cufftSetStream(plan->plans[workerid].plan2_cuda, stream);
+
 		STARPU_ASSERT(cures == CUFFT_SUCCESS);
 		plan->plans[workerid].initialized2 = 1;
 	}
@@ -102,6 +120,8 @@ STARPUFFT(fft2_2d_kernel_gpu)(starpu_data_interface_t *descr, void *_args)
 		cures = _cufftExecC2C(plan->plans[workerid].plan2_cuda, in + n * n1*m1, out + n * n1*m1, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
 		STARPU_ASSERT(cures == CUFFT_SUCCESS);
 	}
+
+	cudaStreamSynchronize(plan->plans[workerid].stream);
 }
 #endif
 

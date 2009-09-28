@@ -82,6 +82,8 @@ struct STARPUFFT(plan) {
 #ifdef USE_CUDA
 		cufftHandle plan1_cuda, plan2_cuda;
 		int initialized1, initialized2;
+		cudaStream_t stream;
+		int stream_is_initialized;
 #endif
 #ifdef HAVE_FFTW
 		_fftw_plan plan1_cpu, plan2_cpu;
@@ -106,6 +108,21 @@ struct STARPUFFT(args) {
 	struct STARPUFFT(plan) *plan;
 	int i, j, jj, kk, ll, *iv, *kkv;
 };
+
+#ifdef USE_CUDA
+cudaStream_t
+STARPUFFT(get_local_stream)(STARPUFFT(plan) plan, int workerid)
+{
+	if (!plan->plans[workerid].stream_is_initialized)
+	{
+		cudaStreamCreate(&plan->plans[workerid].stream);
+
+		plan->plans[workerid].stream_is_initialized = 1;
+	}
+
+	return plan->plans[workerid].stream;
+}
+#endif
 
 static void
 check_dims(STARPUFFT(plan) plan)

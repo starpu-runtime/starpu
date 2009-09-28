@@ -58,6 +58,9 @@ static inline void chol_common_core_codelet_update_u22(starpu_data_interface_t *
 					 1.0f, center, ld22);
 			st = cublasGetError();
 			STARPU_ASSERT(!st);
+
+			cudaThreadSynchronize();
+
 			break;
 #endif
 		default:
@@ -104,6 +107,7 @@ static inline void chol_common_codelet_update_u21(starpu_data_interface_t *buffe
 #ifdef USE_CUDA
 		case 1:
 			cublasStrsm('R', 'L', 'T', 'N', nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
+			cudaThreadSynchronize();
 			break;
 #endif
 		default:
@@ -184,13 +188,15 @@ static inline void chol_common_codelet_update_u11(starpu_data_interface_t *descr
 							&sub11[(z+1)+z*ld], 1,
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
+		
+			cudaThreadSynchronize();
+
 			break;
 #endif
 		default:
 			STARPU_ASSERT(0);
 			break;
 	}
-
 }
 
 

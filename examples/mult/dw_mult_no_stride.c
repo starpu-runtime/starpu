@@ -114,6 +114,8 @@ static void cublas_mult(starpu_data_interface_t *descr, __attribute__((unused)) 
 	if (st != CUBLAS_STATUS_SUCCESS)
 		STARPU_ASSERT(0);
 
+	cudaThreadSynchronize();
+
 	/* do some accounting */
 	int id = starpu_get_worker_id();
 	flop_per_worker[id] += BLAS3_FLOP(BLOCKSIZEX, BLOCKSIZEY, BLOCKSIZEZ);

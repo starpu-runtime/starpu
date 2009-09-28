@@ -23,17 +23,18 @@
 	unsigned start = threadIdx.x + blockIdx.x * blockDim.x; \
 	unsigned numthreads = blockDim.x * gridDim.x;
 
-#define DISTRIB_1d(n, func,args) \
+#define DISTRIB_1d(n, func,args,stream) \
 	unsigned threads_per_block = 128; \
 \
 	if (n < threads_per_block) { \
 		dim3 dimGrid(n); \
-		func <<<dimGrid, 1>>> args; \
+		func <<<dimGrid, 1, stream>>> args; \
 	} else { \
 		dim3 dimGrid(n / threads_per_block); \
 		dim3 dimBlock(threads_per_block); \
-		func <<<dimGrid, dimBlock>>> args; \
+		func <<<dimGrid, dimBlock, stream>>> args; \
 	} \
+	cudaStreamSynchronize(stream); \
 
 extern "C" __global__ void
 STARPUFFT(cuda_twist1_1d)(const _cuComplex *in, _cuComplex *twisted1, unsigned i, unsigned n1, unsigned n2)
@@ -47,9 +48,9 @@ STARPUFFT(cuda_twist1_1d)(const _cuComplex *in, _cuComplex *twisted1, unsigned i
 }
 
 extern "C" void
-STARPUFFT(cuda_twist1_1d_host)(const _cuComplex *in, _cuComplex *twisted1, unsigned i, unsigned n1, unsigned n2)
+STARPUFFT(cuda_twist1_1d_host)(const _cuComplex *in, _cuComplex *twisted1, unsigned i, unsigned n1, unsigned n2, cudaStream_t stream)
 {
-	DISTRIB_1d(n2, STARPUFFT(cuda_twist1_1d), (in, twisted1, i, n1, n2));
+	DISTRIB_1d(n2, STARPUFFT(cuda_twist1_1d), (in, twisted1, i, n1, n2), stream);
 }
 
 extern "C" __global__ void
@@ -65,9 +66,9 @@ STARPUFFT(cuda_twiddle_1d)(_cuComplex * out, const _cuComplex * roots, unsigned 
 }
 
 extern "C" void
-STARPUFFT(cuda_twiddle_1d_host)(_cuComplex *out, const _cuComplex *roots, unsigned n, unsigned i)
+STARPUFFT(cuda_twiddle_1d_host)(_cuComplex *out, const _cuComplex *roots, unsigned n, unsigned i, cudaStream_t stream)
 {
-	DISTRIB_1d(n, STARPUFFT(cuda_twiddle_1d), (out, roots, n, i));
+	DISTRIB_1d(n, STARPUFFT(cuda_twiddle_1d), (out, roots, n, i), stream);
 }
 
 #define VARS_2d \
@@ -76,28 +77,29 @@ STARPUFFT(cuda_twiddle_1d_host)(_cuComplex *out, const _cuComplex *roots, unsign
 	unsigned numthreadsx = blockDim.x * gridDim.x; \
 	unsigned numthreadsy = blockDim.y * gridDim.y;
 
-#define DISTRIB_2d(n, m, func, args) \
+#define DISTRIB_2d(n, m, func, args, stream) \
 	unsigned threads_per_dim = 16; \
 	if (n < threads_per_dim) { \
 		if (m < threads_per_dim) { \
 			dim3 dimGrid(n, m); \
-			func <<<dimGrid, 1>>> args; \
+			func <<<dimGrid, 1, stream>>> args; \
 		} else { \
 			dim3 dimGrid(1, m / threads_per_dim); \
 			dim3 dimBlock(n, threads_per_dim); \
-			func <<<dimGrid, dimBlock>>> args; \
+			func <<<dimGrid, dimBlock, stream>>> args; \
 		} \
 	} else {  \
 		if (m < threads_per_dim) { \
 			dim3 dimGrid(n / threads_per_dim, 1); \
 			dim3 dimBlock(threads_per_dim, m); \
-			func <<<dimGrid, dimBlock>>> args; \
+			func <<<dimGrid, dimBlock, stream>>> args; \
 		} else { \
 			dim3 dimGrid(n / threads_per_dim, m / threads_per_dim); \
 			dim3 dimBlock(threads_per_dim, threads_per_dim); \
-			func <<<dimGrid, dimBlock>>> args; \
+			func <<<dimGrid, dimBlock, stream>>> args; \
 		} \
-	}
+	} \
+	cudaStreamSynchronize(stream);
 
 extern "C" __global__ void
 STARPUFFT(cuda_twist1_2d)(const _cuComplex *in, _cuComplex *twisted1, unsigned i, unsigned j, unsigned n1, unsigned n2, unsigned m1, unsigned m2)
@@ -114,9 +116,9 @@ STARPUFFT(cuda_twist1_2d)(const _cuComplex *in, _cuComplex *twisted1, unsigned i
 }
 
 extern "C" void
-STARPUFFT(cuda_twist1_2d_host)(const _cuComplex *in, _cuComplex *twisted1, unsigned i, unsigned j, unsigned n1, unsigned n2, unsigned m1, unsigned m2)
+STARPUFFT(cuda_twist1_2d_host)(const _cuComplex *in, _cuComplex *twisted1, unsigned i, unsigned j, unsigned n1, unsigned n2, unsigned m1, unsigned m2, cudaStream_t stream)
 {
-	DISTRIB_2d(n2, m2, STARPUFFT(cuda_twist1_2d), (in, twisted1, i, j, n1, n2, m1, m2));
+	DISTRIB_2d(n2, m2, STARPUFFT(cuda_twist1_2d), (in, twisted1, i, j, n1, n2, m1, m2), stream);
 }
 
 extern "C" __global__ void
@@ -134,7 +136,7 @@ STARPUFFT(cuda_twiddle_2d)(_cuComplex * out, const _cuComplex * roots0, const _c
 }
 
 extern "C" void
-STARPUFFT(cuda_twiddle_2d_host)(_cuComplex *out, const _cuComplex *roots0, const _cuComplex *roots1, unsigned n2, unsigned m2, unsigned i, unsigned j)
+STARPUFFT(cuda_twiddle_2d_host)(_cuComplex *out, const _cuComplex *roots0, const _cuComplex *roots1, unsigned n2, unsigned m2, unsigned i, unsigned j, cudaStream_t stream)
 {
-	DISTRIB_2d(n2, m2, STARPUFFT(cuda_twiddle_2d), (out, roots0, roots1, n2, m2, i, j));
+	DISTRIB_2d(n2, m2, STARPUFFT(cuda_twiddle_2d), (out, roots0, roots1, n2, m2, i, j), stream);
 }

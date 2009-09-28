@@ -135,6 +135,8 @@ static inline void dw_common_core_codelet_update_u22(starpu_data_interface_t *bu
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_ASSERT(0);
 
+			cudaThreadSynchronize();
+
 			break;
 #endif
 		default:
@@ -196,6 +198,8 @@ static inline void dw_common_codelet_update_u12(starpu_data_interface_t *buffers
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_ASSERT(0);
 
+			cudaThreadSynchronize();
+
 			break;
 #endif
 		default:
@@ -253,6 +257,8 @@ static inline void dw_common_codelet_update_u21(starpu_data_interface_t *buffers
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_ASSERT(0);
+
+			cudaThreadSynchronize();
 
 			break;
 #endif
@@ -345,13 +351,15 @@ static inline void dw_common_codelet_update_u11(starpu_data_interface_t *descr, 
 								&sub11[(z+1)+z*ld], 1,
 								&sub11[(z+1) + (z+1)*ld],ld);
 			}
+
+			cudaThreadSynchronize();
+
 			break;
 #endif
 		default:
 			STARPU_ASSERT(0);
 			break;
 	}
-
 }
 
 

@@ -135,10 +135,12 @@ int execute_job_on_cuda(job_t j, struct worker_s *args)
 
 	task->cl->per_worker_stats[args->workerid]++;
 
+#if 0
 	/* perform a barrier after the kernel */
 	cures = cudaThreadSynchronize();
 	if (STARPU_UNLIKELY(cures))
 		CUDA_REPORT_ERROR(cures);
+#endif
 
 	GET_TICK(codelet_end);
 

@@ -244,7 +244,7 @@ void starpu_display_codelet_stats(struct starpu_codelet_t *cl)
 	if (cl->model && cl->model->symbol)
 		fprintf(stderr, "Statistics for codelet %s\n", cl->model->symbol);
 
-	unsigned total = 0;
+	unsigned long total = 0;
 	
 	for (worker = 0; worker < nworkers; worker++)
 		total += cl->per_worker_stats[worker];
@@ -254,7 +254,7 @@ void starpu_display_codelet_stats(struct starpu_codelet_t *cl)
 		char name[32];
 		starpu_get_worker_name(worker, name, 32);
 
-		fprintf(stderr, "\t%s -> %d / %d (%2.2f \%%)\n", name, cl->per_worker_stats[worker], total, (100.0f*cl->per_worker_stats[worker])/total);
+		fprintf(stderr, "\t%s -> %ld / %ld (%2.2f \%%)\n", name, cl->per_worker_stats[worker], total, (100.0f*cl->per_worker_stats[worker])/total);
 	}
 }
 

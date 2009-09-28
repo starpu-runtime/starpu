@@ -139,6 +139,8 @@ void cublas_mult(starpu_data_interface_t *descr, __attribute__((unused)) void *a
 	st = cublasGetError();
 	if (st != CUBLAS_STATUS_SUCCESS)
 		STARPU_ASSERT(0);
+
+	cudaThreadSynchronize();
 }
 #endif
 
