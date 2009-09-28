@@ -138,7 +138,7 @@ static struct starpu_perfmodel_t STARPUFFT(not_so_void_model) = {
 };
 static starpu_codelet STARPUFFT(prefetch_codelet) = {
 	.where = CUBLAS,
-	.cublas_func = STARPUFFT(not_so_void_kernel),
+	.cuda_func = STARPUFFT(not_so_void_kernel),
 	.model = &STARPUFFT(not_so_void_model),
 	.nbuffers = 1,
 };

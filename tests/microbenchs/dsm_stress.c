@@ -76,7 +76,7 @@ static starpu_access_mode select_random_mode(void)
 static starpu_codelet cl = {
 	.where = CORE|CUBLAS,
 	.core_func = core_codelet_null,
-	.cublas_func = cuda_codelet_null,
+	.cuda_func = cuda_codelet_null,
 	.nbuffers = 2
 };
 

@@ -38,7 +38,7 @@ static starpu_codelet dummy_codelet =
 {
 	.where = CORE|CUBLAS,
 	.core_func = dummy_func,
-	.cublas_func = dummy_func,
+	.cuda_func = dummy_func,
 	.model = NULL,
 	.nbuffers = 0
 };

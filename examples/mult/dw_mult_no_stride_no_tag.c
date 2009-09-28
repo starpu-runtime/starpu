@@ -356,7 +356,7 @@ static starpu_codelet cl = {
 	.where = CORE|CUBLAS|GORDON,
 	.core_func = core_mult,
 #ifdef USE_CUDA
-	.cublas_func = cublas_mult,
+	.cuda_func = cublas_mult,
 #endif
 #ifdef USE_GORDON
 	/* .gordon_func will be set by load_elf_sgemm */

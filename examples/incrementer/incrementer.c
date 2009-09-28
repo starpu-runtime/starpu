@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 		.where = CORE|CUBLAS,
 		.core_func = core_codelet,
 #ifdef USE_CUDA
-		.cublas_func = cuda_codelet,
+		.cuda_func = cuda_codelet,
 #endif
 		.nbuffers = 1
 	};

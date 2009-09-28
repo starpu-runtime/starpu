@@ -212,7 +212,7 @@ static starpu_codelet cl_add = {
 	.model = &strassen_model_add,
 	.core_func = add_core_codelet,
 #ifdef USE_CUDA
-	.cublas_func = add_cublas_codelet,
+	.cuda_func = add_cublas_codelet,
 #endif
 	.nbuffers = 3
 };
@@ -222,7 +222,7 @@ static starpu_codelet cl_sub = {
 	.model = &strassen_model_sub,
 	.core_func = sub_core_codelet,
 #ifdef USE_CUDA
-	.cublas_func = sub_cublas_codelet,
+	.cuda_func = sub_cublas_codelet,
 #endif
 	.nbuffers = 3
 };
@@ -232,7 +232,7 @@ static starpu_codelet cl_mult = {
 	.model = &strassen_model_mult,
 	.core_func = mult_core_codelet,
 #ifdef USE_CUDA
-	.cublas_func = mult_cublas_codelet,
+	.cuda_func = mult_cublas_codelet,
 #endif
 	.nbuffers = 3
 };
@@ -278,7 +278,7 @@ static starpu_codelet cl_self_add = {
 	.model = &strassen_model_self_add,
 	.core_func = self_add_core_codelet,
 #ifdef USE_CUDA
-	.cublas_func = self_add_cublas_codelet,
+	.cuda_func = self_add_cublas_codelet,
 #endif
 	.nbuffers = 2
 };
@@ -288,7 +288,7 @@ static starpu_codelet cl_self_sub = {
 	.model = &strassen_model_self_sub,
 	.core_func = self_sub_core_codelet,
 #ifdef USE_CUDA
-	.cublas_func = self_sub_cublas_codelet,
+	.cuda_func = self_sub_cublas_codelet,
 #endif
 	.nbuffers = 2
 };
@@ -348,7 +348,7 @@ static starpu_codelet cleanup_codelet = {
 	.model = NULL,
 	.core_func = null_codelet,
 #ifdef USE_CUDA
-	.cublas_func = null_codelet,
+	.cuda_func = null_codelet,
 #endif
 	.nbuffers = 0
 };
@@ -724,7 +724,7 @@ static starpu_codelet dummy_codelet = {
 	.model = NULL,
 	.core_func = dummy_codelet_func,
 	#ifdef USE_CUDA
-	.cublas_func = dummy_codelet_func,
+	.cuda_func = dummy_codelet_func,
 	#endif
 	.nbuffers = 0
 };

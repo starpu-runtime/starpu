@@ -118,7 +118,7 @@ starpu_codelet cl = {
 	.where = CORE|CUBLAS,
 	.core_func =  core_block_spmv,
 #ifdef USE_CUDA
-	.cublas_func = cublas_block_spmv,
+	.cuda_func = cublas_block_spmv,
 #endif
 	.nbuffers = 3
 };

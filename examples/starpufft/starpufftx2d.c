@@ -283,7 +283,7 @@ static starpu_codelet STARPUFFT(twist1_2d_codelet) = {
 #endif
 		CORE,
 #ifdef USE_CUDA
-	.cublas_func = STARPUFFT(twist1_2d_kernel_gpu),
+	.cuda_func = STARPUFFT(twist1_2d_kernel_gpu),
 #endif
 	.core_func = STARPUFFT(twist1_2d_kernel_cpu),
 	.model = &STARPUFFT(twist1_2d_model),
@@ -300,7 +300,7 @@ static starpu_codelet STARPUFFT(fft1_2d_codelet) = {
 #endif
 		0,
 #ifdef USE_CUDA
-	.cublas_func = STARPUFFT(fft1_2d_kernel_gpu),
+	.cuda_func = STARPUFFT(fft1_2d_kernel_gpu),
 #endif
 #ifdef HAVE_FFTW
 	.core_func = STARPUFFT(fft1_2d_kernel_cpu),
@@ -326,7 +326,7 @@ static starpu_codelet STARPUFFT(fft2_2d_codelet) = {
 #endif
 		0,
 #ifdef USE_CUDA
-	.cublas_func = STARPUFFT(fft2_2d_kernel_gpu),
+	.cuda_func = STARPUFFT(fft2_2d_kernel_gpu),
 #endif
 #ifdef HAVE_FFTW
 	.core_func = STARPUFFT(fft2_2d_kernel_cpu),

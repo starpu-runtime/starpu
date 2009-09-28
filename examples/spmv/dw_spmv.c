@@ -252,7 +252,7 @@ void call_spmv_codelet_filters(void)
 	cl->where = CORE|CUDA;
 	cl->core_func =  core_spmv;
 #ifdef USE_CUDA
-	cl->cublas_func = spmv_kernel_cuda;
+	cl->cuda_func = spmv_kernel_cuda;
 #endif
 	cl->nbuffers = 3;
 

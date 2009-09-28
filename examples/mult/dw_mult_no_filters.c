@@ -210,7 +210,7 @@ static void launch_codelets(void)
 		.where = CORE|CUBLAS,
 		.core_func = core_mult,
 #ifdef USE_CUDA
-		.cublas_func = cublas_mult,
+		.cuda_func = cublas_mult,
 #endif
 		.model = &sgemm_model,
 		.nbuffers = 3

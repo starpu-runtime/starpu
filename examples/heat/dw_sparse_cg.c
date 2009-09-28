@@ -161,7 +161,7 @@ void init_cg(struct cg_problem *problem)
 	struct starpu_task *task3 = create_task(3UL);
 	task3->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
-	task3->cl->cublas_func = cublas_codelet_func_3;
+	task3->cl->cuda_func = cublas_codelet_func_3;
 #endif
 	task3->cl->core_func = core_codelet_func_3;
 	task3->cl_arg = problem;
@@ -208,7 +208,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	struct starpu_task *task5 = create_task(maskiter | 5UL);
 	task5->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
-	task5->cl->cublas_func = cublas_codelet_func_5;
+	task5->cl->cuda_func = cublas_codelet_func_5;
 #endif
 	task5->cl->core_func = core_codelet_func_5;
 	task5->cl_arg = problem;
@@ -224,7 +224,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	struct starpu_task *task6 = create_task(maskiter | 6UL);
 	task6->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
-	task6->cl->cublas_func = cublas_codelet_func_6;
+	task6->cl->cuda_func = cublas_codelet_func_6;
 #endif
 	task6->cl->core_func = core_codelet_func_6;
 	task6->cl_arg = problem;
@@ -240,7 +240,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	struct starpu_task *task7 = create_task(maskiter | 7UL);
 	task7->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
-	task7->cl->cublas_func = cublas_codelet_func_7;
+	task7->cl->cuda_func = cublas_codelet_func_7;
 #endif
 	task7->cl->core_func = core_codelet_func_7;
 	task7->cl_arg = problem;
@@ -256,7 +256,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	struct starpu_task *task8 = create_task(maskiter | 8UL);
 	task8->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
-	task8->cl->cublas_func = cublas_codelet_func_8;
+	task8->cl->cuda_func = cublas_codelet_func_8;
 #endif
 	task8->cl->core_func = core_codelet_func_8;
 	task8->cl_arg = problem;
@@ -270,7 +270,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	struct starpu_task *task9 = create_task(maskiter | 9UL);
 	task9->cl->where = CUBLAS|CORE;
 #ifdef USE_CUDA
-	task9->cl->cublas_func = cublas_codelet_func_9;
+	task9->cl->cuda_func = cublas_codelet_func_9;
 #endif
 	task9->cl->core_func = core_codelet_func_9;
 	task9->cl_arg = problem;

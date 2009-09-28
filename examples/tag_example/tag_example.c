@@ -200,7 +200,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	cl.where = CORE|CUBLAS|GORDON;
 	cl.core_func = core_codelet;
-	cl.cublas_func = core_codelet;
+	cl.cuda_func = core_codelet;
 #ifdef USE_GORDON
 	cl.gordon_func = gordon_null_kernel;
 #endif

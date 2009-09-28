@@ -38,7 +38,7 @@ static starpu_codelet dummy_codelet =
 {
 	.where = CORE|CUBLAS|GORDON,
 	.core_func = dummy_func,
-	.cublas_func = dummy_func,
+	.cuda_func = dummy_func,
 #ifdef USE_GORDON
 	.gordon_func = 0, /* this will be defined later */
 #endif

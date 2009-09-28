@@ -62,7 +62,7 @@ void starpu_malloc_pinned_if_possible(void **A, size_t dim)
 		};	
 	
 		starpu_codelet *cl = malloc(sizeof(starpu_codelet));
-			cl->cublas_func = malloc_pinned_codelet; 
+			cl->cuda_func = malloc_pinned_codelet; 
 			cl->where = CUBLAS;
 			cl->model = NULL;
 			cl->nbuffers = 0;

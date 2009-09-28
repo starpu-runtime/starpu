@@ -40,7 +40,7 @@ static starpu_codelet cl11 =
 	.where = CORE|CUBLAS,
 	.core_func = chol_core_codelet_update_u11,
 #ifdef USE_CUDA
-	.cublas_func = chol_cublas_codelet_update_u11,
+	.cuda_func = chol_cublas_codelet_update_u11,
 #endif
 	.nbuffers = 1,
 	.model = &chol_model_11
@@ -75,7 +75,7 @@ static starpu_codelet cl21 =
 	.where = CORE|CUBLAS,
 	.core_func = chol_core_codelet_update_u21,
 #ifdef USE_CUDA
-	.cublas_func = chol_cublas_codelet_update_u21,
+	.cuda_func = chol_cublas_codelet_update_u21,
 #endif
 	.nbuffers = 2,
 	.model = &chol_model_21
@@ -113,7 +113,7 @@ static starpu_codelet cl22 =
 	.where = CORE|CUBLAS,
 	.core_func = chol_core_codelet_update_u22,
 #ifdef USE_CUDA
-	.cublas_func = chol_cublas_codelet_update_u22,
+	.cuda_func = chol_cublas_codelet_update_u22,
 #endif
 	.nbuffers = 3,
 	.model = &chol_model_22

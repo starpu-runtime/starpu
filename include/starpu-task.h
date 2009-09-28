@@ -53,7 +53,6 @@ typedef struct starpu_codelet_t {
 
 	/* the different implementations of the codelet */
 	void *cuda_func;
-	void *cublas_func;
 	void *core_func;
 	void *spu_func;
 	uint8_t gordon_func;

@@ -128,7 +128,7 @@ int execute_job_on_cuda(job_t j, struct worker_s *args)
 
 	TRACE_START_CODELET_BODY(j);
 
-	cl_func func = cl->cublas_func;
+	cl_func func = cl->cuda_func;
 	STARPU_ASSERT(func);
 	GET_TICK(codelet_start);
 	func(task->interface, task->cl_arg);
