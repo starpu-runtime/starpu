@@ -16,6 +16,7 @@
 
 #include <common/hash.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define CRC32C_POLY_BE 0x1EDC6F41
 
