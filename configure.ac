@@ -36,6 +36,8 @@ AC_PROG_LN_S
 
 AC_HEADER_STDC
 
+AC_C_RESTRICT
+
 # on Darwin, GCC targets i386 by default, so we don't have atomic ops
 case "$target" in
 i386-*darwin*) CFLAGS+=" -march=i686 " ;;
