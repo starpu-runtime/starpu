@@ -41,6 +41,8 @@
 #include <cuda.h>
 #endif
 
+struct worker_s;
+
 /* codelet function */
 typedef void (*cl_func)(starpu_data_interface_t *, void *);
 typedef void (*callback)(void *);
@@ -84,5 +86,8 @@ size_t job_get_data_size(job_t j);
 //int submit_job(job_t j);
 //int submit_prio_job(job_t j);
 //int submit_job_sync(job_t j);
+
+job_t pop_local_task(struct worker_s *worker);
+int push_local_task(struct worker_s *worker, job_t j);
 
 #endif // __JOBS_H__

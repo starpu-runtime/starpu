@@ -78,6 +78,8 @@ struct starpu_task * __attribute__((malloc)) starpu_task_create(void)
 	task->use_tag = 0;
 	task->synchronous = 0;
 
+	task->execute_on_a_specific_worker = 0;
+
 	/* by default, we let StarPU free the task structure */
 	task->cleanup = 1;
 
@@ -258,4 +260,32 @@ void starpu_display_codelet_stats(struct starpu_codelet_t *cl)
 	}
 }
 
+struct job_s *pop_local_task(struct worker_s *worker)
+{
+	struct job_s *j = NULL;
 
+	pthread_mutex_lock(&worker->local_jobs_mutex);
+
+	if (!job_list_empty(worker->local_jobs))
+		j = job_list_pop_back(worker->local_jobs);
+
+	pthread_mutex_unlock(&worker->local_jobs_mutex);
+
+	return j;
+}
+
+int push_local_task(struct worker_s *worker, struct job_s *j)
+{
+	/* TODO check that the worker is able to execute the task ! */
+
+	pthread_mutex_lock(&worker->local_jobs_mutex);
+
+	job_list_push_front(worker->local_jobs, j);
+
+	pthread_mutex_unlock(&worker->local_jobs_mutex);
+
+	/* XXX that's a bit excessive ... */
+	wake_all_blocked_workers_on_node(worker->memory_node);
+
+	return 0;
+}

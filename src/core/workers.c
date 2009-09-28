@@ -75,6 +75,9 @@ static void init_workers(struct machine_config_s *config)
 		 * driver so that we cannot call the push_codelet_output method
 		 * directly */
 		workerarg->terminated_jobs = job_list_new();
+
+		workerarg->local_jobs = job_list_new();
+		pthread_mutex_init(&workerarg->local_jobs_mutex, NULL);
 	
 		switch (workerarg->arch) {
 #ifdef USE_CPUS
@@ -379,6 +382,11 @@ int starpu_get_worker_id(void)
 		 * a thread from the application or this is some SPU worker */
 		return -1;
 	}
+}
+
+struct worker_s *get_worker_struct(unsigned id)
+{
+	return &config.workers[id];
 }
 
 enum starpu_archtype starpu_get_worker_type(int id)

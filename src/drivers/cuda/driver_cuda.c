@@ -227,8 +227,13 @@ void *cuda_worker(void *arg)
 	{
 		datawizard_progress(args->memory_node, 1);
 
-		//int debugfoo;
-		j = pop_task();
+		/* perhaps there is some local task to be executed first */
+		j = pop_local_task(args);
+
+		/* otherwise ask a task to the scheduler */
+		if (!j)
+			j = pop_task();
+
 		if (j == NULL) continue;
 
 		/* can CUDA do that task ? */

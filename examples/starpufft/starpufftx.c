@@ -146,7 +146,6 @@ static void
 STARPUFFT(not_so_void_kernel)(starpu_data_interface_t *descr, void *_args)
 {
 	fprintf(stderr,"prefetching roots on %d\n", starpu_get_worker_id());
-	sleep(1);
 }
 
 static struct starpu_perfmodel_t STARPUFFT(not_so_void_model) = {
@@ -179,7 +178,6 @@ compute_roots(STARPUFFT(plan) plan)
 			/* prefetch the big root array on GPUs */
 			int worker;
 
-			/* FIXME: it's really fortunate that this works */
 			for (worker = 0; worker < STARPU_NMAXWORKERS; worker++) {
 				struct starpu_task *task;
 
@@ -193,6 +191,8 @@ compute_roots(STARPUFFT(plan) plan)
 				task->buffers[0].mode = STARPU_R;
 				task->tag_id = _STEP_TAG(plan, SPECIAL, worker);
 				task->use_tag = 1;
+				task->execute_on_a_specific_worker = 1;
+				task->workerid = worker;
 				starpu_submit_task(task);
 			}
 			for (worker = 0; worker < STARPU_NMAXWORKERS; worker++) {

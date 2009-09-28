@@ -71,6 +71,8 @@ struct worker_s {
         pthread_cond_t ready_cond; /* indicate when the worker is ready */
 	unsigned memory_node; /* which memory node is associated that worker to ? */
 	struct jobq_s *jobq; /* in which queue will that worker get/put tasks ? */
+	struct job_list_s *local_jobs; /* this queue contains tasks that have been explicitely submitted to that queue */
+	pthread_mutex_t local_jobs_mutex; /* protect the local_jobs list */
 	struct worker_set_s *set; /* in case this worker belongs to a set */
 	struct job_list_s *terminated_jobs; /* list of pending jobs which were executed */
 	unsigned worker_is_running;
@@ -129,5 +131,7 @@ inline void unlock_all_queues_attached_to_node(unsigned node);
 inline void broadcast_all_queues_attached_to_node(unsigned node);
 
 void set_local_worker_key(struct worker_s *worker);
+
+struct worker_s *get_worker_struct(unsigned id);
 
 #endif // __WORKERS_H__

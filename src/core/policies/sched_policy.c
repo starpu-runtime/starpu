@@ -153,9 +153,16 @@ int push_task(job_t task)
 {
 	struct jobq_s *queue = policy.get_local_queue(&policy);
 
-	STARPU_ASSERT(queue->push_task);
+	if (STARPU_UNLIKELY(task->task->execute_on_a_specific_worker))
+	{
+		struct worker_s *worker = get_worker_struct(task->task->workerid);
+		return push_local_task(worker, task);
+	}
+	else {
+		STARPU_ASSERT(queue->push_task);
 
-	return queue->push_task(queue, task);
+		return queue->push_task(queue, task);
+	}
 }
 
 struct job_s * pop_task_from_queue(struct jobq_s *queue)

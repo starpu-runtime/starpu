@@ -140,7 +140,13 @@ void *core_worker(void *arg)
 
 	while (machine_is_running())
 	{
-                j = pop_task();
+		/* perhaps there is some local task to be executed first */
+		j = pop_local_task(core_arg);
+
+		/* otherwise ask a task to the scheduler */
+		if (!j)
+			j = pop_task();
+
                 if (j == NULL) continue;
 
 		/* can a core perform that task ? */

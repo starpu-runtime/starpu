@@ -91,6 +91,10 @@ struct starpu_task {
 	int priority; /* MAX_PRIO = most important 
         		: MIN_PRIO = least important */
 
+	/* in case the task has to be executed on a specific worker */
+	unsigned execute_on_a_specific_worker;
+	unsigned workerid;
+
 	/* should the task be automatically liberated once executed ? */
 	int cleanup;
 
