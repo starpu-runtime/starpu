@@ -75,7 +75,8 @@ check_PROGRAMS += 				\
 	microbenchs/tasks-overhead		\
 	microbenchs/tag-wait-api		\
 	microbenchs/dsm_stress			\
-	microbenchs/sync_and_notify_data
+	microbenchs/sync_and_notify_data	\
+	overlap/overlap
 
 microbenchs_async_tasks_overhead_SOURCES =	\
 	microbenchs/async-tasks-overhead.c
@@ -108,3 +109,6 @@ BUILT_SOURCES += 						\
 	microbenchs/sync_and_notify_data_gordon_kernels.spuelf	\
 	microbenchs/null_kernel_gordon.spuelf
 endif
+
+overlap_overlap_SOURCES =			\
+	overlap/overlap.c
