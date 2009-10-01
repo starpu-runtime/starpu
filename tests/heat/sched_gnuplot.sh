@@ -82,25 +82,23 @@ gnuplot > /dev/null << EOF
 set term postscript eps enhanced color
 set output "$prefix.eps"
 
-
 set pointsize 0.75
 #set title "Impact of granularity"
 set grid y
 set grid x
+set xrange [0:49152]
 #set logscale x
-set xtics 4096,4096,30760
-set key invert box left top title "Scheduling policy"
+set xtics 8192,8192,65536
+set key invert box right bottom title "Scheduling policy"
 set size 0.65
 
 set xlabel "Matrix size"
 set ylabel "GFlop/s"
 
-plot "$outputfile" usi 1:2 with linespoint title "greedy" lt rgb "black",\
-	"$outputfile" usi 1:3 with linespoint title "tm" lt rgb "black",\
-	"$outputfile" usi 1:4 with linespoint title "tm + prefetch" lt rgb "black",\
-	"$outputfile" usi 1:5 with linespoint title "tm + dm + prefetch" lt rgb "black"
-
-	
+plot "$outputfile" usi 1:2 with linespoint title "greedy" lt rgb "black" lw 2,\
+	"$outputfile" usi 1:3 with linespoint title "heft-tm" lt rgb "black" lw 2,\
+	"$outputfile" usi 1:4 with linespoint title "heft-tm-pr" lt rgb "black" lw 2,\
+	"$outputfile" usi 1:5 with linespoint title "heft-tmdp-pr" lt rgb "black" lw 2
 
 EOF
 
