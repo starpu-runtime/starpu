@@ -46,6 +46,12 @@ void starpu_notify_data_modification(struct starpu_data_state_t *state, uint32_t
 
 void starpu_malloc_pinned_if_possible(void **A, size_t dim);
 
+int starpu_request_data_allocation(struct starpu_data_state_t *state, uint32_t node);
+
+void starpu_prefetch_data_on_node(struct starpu_data_state_t *state, unsigned node, unsigned async);
+
+unsigned starpu_get_worker_memory_node(unsigned workerid);
+
 /* It is possible to associate a mask to a piece of data (and its children) so
  * that when it is modified, it is automatically transfered into those memory
  * node. For instance a (1<<0) write-back mask means that the CUDA workers will

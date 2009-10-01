@@ -243,7 +243,7 @@ static int handle_data_request(data_request_t r, unsigned may_alloc)
 
 	/* perform the transfer */
 	/* the header of the data must be locked by the worker that submitted the request */
-	r->retval = driver_copy_data_1_to_1(state, r->src_node, r->dst_node, 0, r, may_alloc);
+	r->retval = driver_copy_data_1_to_1(state, r->src_node, r->dst_node, !r->read, r, may_alloc);
 
 	if (r->retval == ENOMEM)
 	{

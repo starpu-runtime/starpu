@@ -200,8 +200,8 @@ static data_state work_block_2;
 
 void allocate_maxbloktab_on_cublas(starpu_data_interface_t *descr __attribute__((unused)), void *arg __attribute__((unused)))
 {
-	request_data_allocation(&work_block_1, 1);
-	request_data_allocation(&work_block_2, 1);
+	starpu_request_data_allocation(&work_block_1, 1);
+	starpu_request_data_allocation(&work_block_2, 1);
 
 
 	starpu_filter f1, f2;

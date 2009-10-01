@@ -139,6 +139,9 @@ void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
 	pthread_rwlock_unlock(&descr.attached_queues_rwlock);
 }
 
+unsigned starpu_get_worker_memory_node(unsigned workerid)
+{
+	struct worker_s *worker = get_worker_struct(workerid);
 
-
-
+	return worker->memory_node;
+}

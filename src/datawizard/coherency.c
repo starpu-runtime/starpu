@@ -262,7 +262,7 @@ int fetch_data_on_node(data_state *state, uint32_t requesting_node,
 	return (is_prefetch?0:wait_data_request_completion(r, 1));
 }
 
-static int prefetch_data_on_node(data_state *state, starpu_access_mode mode, uint32_t node)
+int prefetch_data_on_node(data_state *state, starpu_access_mode mode, uint32_t node)
 {
 	uint8_t read, write;
 	read = (mode != STARPU_W); /* then R or STARPU_RW */

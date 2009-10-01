@@ -145,8 +145,6 @@ void push_task_output(struct starpu_task *task, uint32_t mask);
 __attribute__((warn_unused_result))
 int fetch_task_input(struct starpu_task *task, uint32_t mask);
 
-int request_data_allocation(data_state *state, uint32_t node);
-
 unsigned is_data_present_or_requested(data_state *state, uint32_t node);
 
 inline void set_data_requested_flag_if_needed(data_state *state, uint32_t node);

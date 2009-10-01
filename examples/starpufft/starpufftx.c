@@ -141,25 +141,6 @@ STARPUFFT(void_kernel)(starpu_data_interface_t *descr, void *_args)
 {
 }
 
-#ifdef USE_CUDA
-static void
-STARPUFFT(not_so_void_kernel)(starpu_data_interface_t *descr, void *_args)
-{
-	fprintf(stderr,"prefetching roots on %d\n", starpu_get_worker_id());
-}
-
-static struct starpu_perfmodel_t STARPUFFT(not_so_void_model) = {
-	.type = HISTORY_BASED,
-	.symbol = TYPE"not_so_void",
-};
-static starpu_codelet STARPUFFT(prefetch_codelet) = {
-	.where = CUBLAS,
-	.cuda_func = STARPUFFT(not_so_void_kernel),
-	.model = &STARPUFFT(not_so_void_model),
-	.nbuffers = 1,
-};
-#endif
-
 static void
 compute_roots(STARPUFFT(plan) plan)
 {
@@ -176,38 +157,20 @@ compute_roots(STARPUFFT(plan) plan)
 #ifdef USE_CUDA
 		if (plan->n[dim] > 100000) {
 			/* prefetch the big root array on GPUs */
-			int worker;
-
-			for (worker = 0; worker < STARPU_NMAXWORKERS; worker++) {
-				struct starpu_task *task;
-
-				if (starpu_get_worker_type(worker) != STARPU_CUDA_WORKER)
-					continue;
-
-				task = starpu_task_create();
-
-				task->cl = &STARPUFFT(prefetch_codelet);
-				task->buffers[0].handle = plan->roots_handle[dim];
-				task->buffers[0].mode = STARPU_R;
-				task->tag_id = _STEP_TAG(plan, SPECIAL, worker);
-				task->use_tag = 1;
-				task->execute_on_a_specific_worker = 1;
-				task->workerid = worker;
-				starpu_submit_task(task);
-			}
-			for (worker = 0; worker < STARPU_NMAXWORKERS; worker++) {
-				if (starpu_get_worker_type(worker) != STARPU_CUDA_WORKER)
-					continue;
-
-				starpu_tag_wait(_STEP_TAG(plan, SPECIAL, worker));
-				//starpu_tag_remove(_STEP_TAG(plan, SPECIAL, worker));
+			unsigned worker;
+			unsigned nworkers = starpu_get_worker_count();
+			for (worker = 0; worker < nworkers; worker++)
+			{
+				unsigned node = starpu_get_worker_memory_node(worker);
+				if (starpu_get_worker_type(worker) == STARPU_CUDA_WORKER)
+					starpu_prefetch_data_on_node(plan->roots_handle[dim], node, 0);
 			}
 		}
 #endif
 	}
 }
 
-struct starpu_perfmodel_t STARPUFFT(void_model) = {
+static struct starpu_perfmodel_t STARPUFFT(void_model) = {
 	.type = HISTORY_BASED,
 	.symbol = TYPE"void"
 };

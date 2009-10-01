@@ -20,19 +20,16 @@
 #include <datawizard/write_back.h>
 #include <core/dependencies/data-concurrency.h>
 
-#warning request_data_allocation is not using requests yet 
-int request_data_allocation(data_state *state, uint32_t node)
+int starpu_request_data_allocation(data_state *state, uint32_t node)
 {
-	starpu_spin_lock(&state->header_lock);
+	data_request_t r;
 
-	int ret;
-	ret = allocate_memory_on_node(state, node, 1);
-	STARPU_ASSERT(ret == 0);
+	r = create_data_request(state, 0, node, node, 0, 0, 1);
 
-	/* XXX quick and dirty hack */
-	state->per_node[node].automatically_allocated = 0;	
+	/* we do not increase the refcnt associated to the request since we are
+	 * not waiting for its termination */
 
-	starpu_spin_unlock(&state->header_lock);
+	post_data_request(r, node);
 
 	return 0;
 }
@@ -44,6 +41,7 @@ struct state_and_node {
 	pthread_cond_t cond;
 	pthread_mutex_t lock;
 	unsigned finished;
+	unsigned async;
 };
 
 /* put the current value of the data into RAM */
@@ -150,4 +148,40 @@ void starpu_notify_data_modification(data_state *state, uint32_t modifying_node)
 	notify_data_dependencies(state);
 }
 
+static void _prefetch_data_on_node(void *arg)
+{
+	struct state_and_node *statenode = arg;
 
+	fetch_data_on_node(statenode->state, statenode->node, 1, 0, statenode->async);
+
+	pthread_mutex_lock(&statenode->lock);
+	statenode->finished = 1;
+	pthread_cond_signal(&statenode->cond);
+	pthread_mutex_unlock(&statenode->lock);
+}
+
+void starpu_prefetch_data_on_node(data_state *state, unsigned node, unsigned async)
+{
+	/* this may block .. XXX */
+	struct state_and_node statenode =
+	{
+		.state = state,
+		.node = node,
+		.async = async,
+		.cond = PTHREAD_COND_INITIALIZER,
+		.lock = PTHREAD_MUTEX_INITIALIZER,
+		.finished = 0
+	};
+
+	if (!attempt_to_submit_data_request_from_apps(state, STARPU_R, _prefetch_data_on_node, &statenode))
+	{
+		/* we can immediately proceed */
+		fetch_data_on_node(state, node, 1, 0, async);
+	}
+	else {
+		pthread_mutex_lock(&statenode.lock);
+		if (!statenode.finished)
+			pthread_cond_wait(&statenode.cond, &statenode.lock);
+		pthread_mutex_unlock(&statenode.lock);
+	}
+}
