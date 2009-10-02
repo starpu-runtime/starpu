@@ -70,6 +70,7 @@ TESTS = $(check_PROGRAMS)
 check_PROGRAMS =
 
 check_PROGRAMS += 				\
+	core/restart				\
 	microbenchs/async-tasks-overhead	\
 	microbenchs/sync-tasks-overhead		\
 	microbenchs/tasks-overhead		\
@@ -79,6 +80,9 @@ check_PROGRAMS += 				\
 	microbenchs/prefetch_data_on_node \
 	microbenchs/sync_and_notify_data	\
 	overlap/overlap
+
+core_restart_SOURCES =				\
+	core/restart.c
 
 microbenchs_async_tasks_overhead_SOURCES =	\
 	microbenchs/async-tasks-overhead.c
