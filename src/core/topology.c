@@ -404,3 +404,13 @@ void starpu_build_topology(struct machine_config_s *config,
 
 	init_workers_binding(config);
 }
+
+void starpu_destroy_topology(struct machine_config_s *config)
+{
+	/* cleanup StarPU internal data structures */
+	deinit_memory_nodes();
+
+#ifdef HAVE_HWLOC
+	hwloc_topology_destroy(config->hwtopology);
+#endif
+}

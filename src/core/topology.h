@@ -65,4 +65,6 @@ struct starpu_topo_obj_t {
 void starpu_build_topology(struct machine_config_s *config,
 			   struct starpu_conf *user_conf);
 
+void starpu_destroy_topology(struct machine_config_s *config);
+
 #endif // __TOPOLOGY_H__
