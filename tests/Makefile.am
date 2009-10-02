@@ -75,6 +75,8 @@ check_PROGRAMS += 				\
 	microbenchs/tasks-overhead		\
 	microbenchs/tag-wait-api		\
 	microbenchs/dsm_stress			\
+	microbenchs/execute_on_a_specific_worker\
+	microbenchs/prefetch_data_on_node \
 	microbenchs/sync_and_notify_data	\
 	overlap/overlap
 
@@ -92,6 +94,12 @@ microbenchs_tag_wait_api_SOURCES =		\
 
 microbenchs_dsm_stress_SOURCES =		\
 	microbenchs/dsm_stress.c
+
+microbenchs_execute_on_a_specific_worker_SOURCES = \
+	microbenchs/execute_on_a_specific_worker.c
+
+microbenchs_prefetch_data_on_node_SOURCES =	\
+	microbenchs/prefetch_data_on_node.c
 
 microbenchs_sync_and_notify_data_SOURCES =	\
 	microbenchs/sync_and_notify_data.c
