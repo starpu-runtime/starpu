@@ -193,6 +193,7 @@ static void terminate_workers(struct machine_config_s *config)
 #endif
 
 		struct worker_set_s *set = config->workers[workerid].set;
+		struct worker_s *worker = &config->workers[workerid];
 
 		/* in case StarPU termination code is called from a callback,
  		 * we have to check if pthread_self() is the worker itself */
@@ -211,7 +212,6 @@ static void terminate_workers(struct machine_config_s *config)
 			}
 		}
 		else {
-			struct worker_s *worker = &config->workers[workerid];
 			if (pthread_self() != worker->worker_thread)
 			{
 				status = pthread_join(worker->worker_thread, NULL);
@@ -221,6 +221,9 @@ static void terminate_workers(struct machine_config_s *config)
 #endif
 			}
 		}
+
+		job_list_delete(worker->local_jobs);
+		job_list_delete(worker->terminated_jobs);
 	}
 }
 
