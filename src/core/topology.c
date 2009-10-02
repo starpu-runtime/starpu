@@ -33,6 +33,11 @@
 extern unsigned get_cuda_device_count(void);
 #endif
 
+static int current_bindid;
+static unsigned get_next_bindid_is_initialized;
+static unsigned get_next_bindid_use_envvar;
+static char *get_next_bindid_strval;
+
 static int current_gpuid;
 static unsigned get_next_gpuid_is_initialized;
 static unsigned get_next_gpuid_use_envvar;
@@ -253,10 +258,6 @@ static void init_machine_config(struct machine_config_s *config,
  * Bind workers on the different processors
  */
 
-static int current_bindid = 0;
-static unsigned get_next_bindid_is_initialized = 0;
-static unsigned get_next_bindid_use_envvar = 0;
-static char *get_next_bindid_strval;
 
 static inline int get_next_bindid(struct machine_config_s *config)
 {
@@ -343,6 +344,11 @@ static void init_workers_binding(struct machine_config_s *config)
 	/* note that even if the CPU core are not used, we always have a RAM node */
 	/* TODO : support NUMA  ;) */
 	ram_memory_node = register_memory_node(RAM);
+
+	/* we need to reinitialize these value in case StarPU was restarted */
+	current_bindid = 0;
+	get_next_bindid_is_initialized = 0;
+	get_next_bindid_use_envvar = 0;
 
 	unsigned worker;
 	for (worker = 0; worker < config->nworkers; worker++)
