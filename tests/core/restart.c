@@ -20,7 +20,7 @@
 #include <starpu.h>
 #include <stdlib.h>
 
-#define N	16
+#define N	3
 
 int main(int argc, char **argv)
 {

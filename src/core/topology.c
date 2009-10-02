@@ -33,9 +33,9 @@
 extern unsigned get_cuda_device_count(void);
 #endif
 
-static int current_gpuid = 0;
-static unsigned get_next_gpuid_is_initialized = 0;
-static unsigned get_next_gpuid_use_envvar = 0;
+static int current_gpuid;
+static unsigned get_next_gpuid_is_initialized;
+static unsigned get_next_gpuid_use_envvar;
 static char *get_next_gpuid_strval;
 
 static inline int get_next_gpuid(void)
@@ -117,6 +117,9 @@ static void init_machine_config(struct machine_config_s *config,
 	}
 	else {
 		/* we need to initialize CUDA early to count the number of devices */
+		current_gpuid = 0;
+		get_next_gpuid_is_initialized = 0;
+		get_next_gpuid_use_envvar = 0;
 		init_cuda();
 
 		if (user_conf && (user_conf->ncuda != -1))
@@ -150,6 +153,7 @@ static void init_machine_config(struct machine_config_s *config,
 		enum starpu_perf_archtype arch;
 		switch (devid) {
 			case 0:
+			default:
 				arch = STARPU_CUDA_DEFAULT;
 				break;
 			case 1:
