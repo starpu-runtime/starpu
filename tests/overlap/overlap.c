@@ -55,7 +55,7 @@ static void codelet_sleep(starpu_data_interface_t *buffers, __attribute__ ((unus
 
 static struct starpu_perfmodel_t model = {
 	.type = HISTORY_BASED,
-	.symbol = SYMBOL
+	.symbol = NULL /* to be defined later */
 };
 
 static starpu_codelet cl = {
@@ -65,6 +65,8 @@ static starpu_codelet cl = {
 	.nbuffers = 1,
 	.model =  &model
 };
+
+static char symbolname[128];
 
 int main(int argc, char **argv)
 {
@@ -86,6 +88,10 @@ int main(int argc, char **argv)
 	};
 
 	starpu_partition_data(handle, &f);
+
+	snprintf(symbolname, 128, "overlap_sleep_%d_%d", VECTORSIZE, TASKDURATION);
+
+	model.symbol = symbolname;
 
 	unsigned iter;
 	for (iter = 0; iter < NTASKS; iter++)
