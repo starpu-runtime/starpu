@@ -15,14 +15,17 @@ The asynchronous heterogeneous multi-accelerator release
     - All data transfers use data requests now
     - Implement asynchronous data transfers
     - Implement prefetch mechanism
-    - chain data requests to support GPU->RAM->GPU transfers 
-  * Make it possible to bypass the scheduler and to assign a task to a specific worker
+    - Chain data requests to support GPU->RAM->GPU transfers 
+  * Make it possible to bypass the scheduler and to assign a task to a specific
+    worker
+  * Support restartable tasks to reinstanciate dependencies task graphs
   * Improve performance prediction
     - Model data transfer overhead
     - One model is created for each accelerator
   * Support for CUDA's driver API is deprecated
-  * The WORKERS_GPUID and WORKERS_CPUID env. variables make it possible to specify where to
-    bind the workers
+  * The WORKERS_GPUID and WORKERS_CPUID env. variables make it possible to
+    specify where to bind the workers
+  * Use the hwloc library to detect the actual number of cores
 
 StarPU 0.2.0 (svn revision 1013)
 ==============================================
