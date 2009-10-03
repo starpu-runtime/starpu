@@ -158,6 +158,10 @@ static void _prefetch_data_on_node(void *arg)
 	statenode->finished = 1;
 	pthread_cond_signal(&statenode->cond);
 	pthread_mutex_unlock(&statenode->lock);
+
+	if (!statenode->async)
+		notify_data_dependencies(statenode->state);
+
 }
 
 void starpu_prefetch_data_on_node(data_state *state, unsigned node, unsigned async)
@@ -177,6 +181,10 @@ void starpu_prefetch_data_on_node(data_state *state, unsigned node, unsigned asy
 	{
 		/* we can immediately proceed */
 		fetch_data_on_node(state, node, 1, 0, async);
+
+		/* remove the "lock"/reference */
+		if (!async)
+			notify_data_dependencies(state);
 	}
 	else {
 		pthread_mutex_lock(&statenode.lock);
@@ -184,4 +192,5 @@ void starpu_prefetch_data_on_node(data_state *state, unsigned node, unsigned asy
 			pthread_cond_wait(&statenode.cond, &statenode.lock);
 		pthread_mutex_unlock(&statenode.lock);
 	}
+
 }
