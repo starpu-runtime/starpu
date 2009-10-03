@@ -230,11 +230,11 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 
 #ifdef USE_CUDA
 	cudaError_t status;
+	size_t pitch;
 #endif
 	uint32_t nx = state->interface[dst_node].blas.nx;
 	uint32_t ny = state->interface[dst_node].blas.ny;
 	uint32_t ld = nx; // by default
-	size_t pitch;
 	size_t elemsize = state->interface[dst_node].blas.elemsize;
 
 	node_kind kind = get_node_kind(dst_node);

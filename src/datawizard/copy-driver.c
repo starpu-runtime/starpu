@@ -241,7 +241,7 @@ nomem:
 	return ENOMEM;
 }
 
-void driver_wait_request_completion(starpu_async_channel *async_channel,
+void driver_wait_request_completion(starpu_async_channel *async_channel __attribute__ ((unused)),
 					unsigned handling_node)
 {
 	node_kind kind = get_node_kind(handling_node);
@@ -271,7 +271,7 @@ void driver_wait_request_completion(starpu_async_channel *async_channel,
 	}
 }
 
-unsigned driver_test_request_completion(starpu_async_channel *async_channel,
+unsigned driver_test_request_completion(starpu_async_channel *async_channel __attribute__ ((unused)),
 					unsigned handling_node)
 {
 	node_kind kind = get_node_kind(handling_node);
