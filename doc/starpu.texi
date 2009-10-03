@@ -114,6 +114,14 @@ by expressing dependencies between tags.
 @c DSM
 @subsection StarPU Data Management Library
 
+Because StarPU schedules tasks at runtime, data transfers have to be
+done automatically and ``just-in-time'' between processing units,
+relieving the application programmer from explicit data transfers.
+Moreover, to avoid unnecessary transfers, StarPU keeps data
+where it was last needed, even if was modified there, and it
+allows multiple copies of the same data to reside at the same time on
+several processing units as long as it is not modified. 
+
 @c ---------------------------------------------------------------------
 @c Installing StarPU
 @c ---------------------------------------------------------------------
@@ -204,6 +212,7 @@ $ pkg-config --libs libstarpu    # options for the linker
 
 @menu
 * Initialization and Termination::       Initialization and Termination methods
+* Workers' Properties::                  Methods to enumerate workers' properties
 * Data Library::                         Methods to manipulate data
 * Codelets and Tasks::                   Methods to construct tasks
 * Tags::                                 Task dependencies
@@ -259,6 +268,78 @@ garanteed to be available until this method has been called.
 
 @end table
 
+@node Workers' Properties
+@section Workers' Properties
+
+@menu
+* starpu_get_worker_count:: Get the number of processing units
+* starpu_get_worker_id::    Get the identifier of the current worker
+* starpu_get_worker_type::  Get the type of processing unit associated to a worker
+* starpu_get_worker_name::  Get the name of a worker
+@end menu
+
+@node starpu_get_worker_count
+@subsection @code{starpu_get_worker_count} -- Get the number of processing units
+@table @asis
+
+@item @emph{Description}:
+This function returns the number of workers (ie. processing units executing
+StarPU tasks). The returned value should be at most @code{STARPU_NMAXWORKERS}. 
+
+@item @emph{Prototype}:
+@code{unsigned starpu_get_worker_count(void);}
+
+@end table
+
+
+@node starpu_get_worker_id
+@subsection @code{starpu_get_worker_id} -- Get the identifier of the current worker
+@table @asis
+
+@item @emph{Description}:
+This function returns the identifier of the worker associated to the calling
+thread. The returned value is either -1 if the current context is not a StarPU
+worker (ie. when called from the application outside a task or a callback), or
+an integer between 0 and @code{starpu_get_worker_count() - 1}.
+
+@item @emph{Prototype}:
+@code{int starpu_get_worker_count(void);}
+
+@end table
+
+@node starpu_get_worker_type
+@subsection @code{starpu_get_worker_type} -- Get the type of processing unit associated to a worker
+@table @asis
+
+@item @emph{Description}:
+This function returns the type of worker associated to an identifier (as
+returned by the @code{starpu_get_worker_id} function). The returned value
+indicates the architecture of the worker: @code{STARPU_CORE_WORKER} for a CPU
+core, @code{STARPU_CUDA_WORKER} for a CUDA device, and
+@code{STARPU_GORDON_WORKER} for a Cell SPU. The value returned for an invalid
+identifier is unspecified.
+
+@item @emph{Prototype}:
+@code{enum starpu_archtype starpu_get_worker_type(int id);}
+
+@end table
+
+@node starpu_get_worker_name
+@subsection @code{starpu_get_worker_name} -- Get the name of a worker
+@table @asis
+
+@item @emph{Description}:
+StarPU associates a unique human readable string to each processing unit. This
+function copies at most the @code{maxlen} first bytes of the unique string
+associated to a worker identified by its identifier @code{id} into the
+@code{dst} buffer. The caller is responsible for ensuring that the @code{dst}
+is a valid pointer to a buffer of @code{maxlen} bytes at least. Calling this
+function on an invalid identifier results in an unspecified behaviour.
+
+@item @emph{Prototype}:
+@code{void starpu_get_worker_name(int id, char *dst, size_t maxlen);}
+
+@end table
 
 @node Data Library
 @section Data Library
@@ -275,20 +356,177 @@ garanteed to be available until this method has been called.
 @section Codelets and Tasks
 
 @menu
+* struct starpu_codelet::         StarPU codelet structure
+* struct starpu_task::            StarPU task structure
 * starpu_task_create::            Allocate and Initialize a Task
+* starpu_submit_task::            Submit a Task
 @end menu
 
 
 @c struct starpu_task
 @c struct starpu_codelet
 
+@node struct starpu_codelet
+@subsection @code{struct starpu_codelet} -- StarPU codelet structure
+@table @asis 
+@item @emph{Description}:
+The codelet structure describes a kernel that is possibly implemented on
+various targets.
+@item @emph{Fields}:
+@table @asis
+@item @code{where}: 
+Indicates which types of processing units are able to execute that codelet.
+@code{CORE|CUDA} for instance indicates that the codelet is implemented for
+both CPU cores and CUDA devices while @code{GORDON} indicates that it is only
+available on Cell SPUs.
+
+@item @code{core_func} (optionnal):
+Is a function pointer to the CPU implementation of the codelet. Its prototype
+must be: @code{void core_func(starpu_data_interface_t *descr, void *arg)}. The
+first argument being the array of data managed by the data management library,
+and the second argument is a pointer to the argument (possibly a copy of it)
+passed from the @code{.cl_arg} field of the @code{starpu_task} structure. This
+pointer is ignored if @code{CORE} does not appear in the @code{.where} field,
+it must be non-null otherwise.
+
+@item @code{cuda_func} (optionnal):
+Is a function pointer to the CUDA implementation of the codelet. @emph{This
+must be a host-function written in the CUDA runtime API}. Its prototype must
+be: @code{void cuda_func(starpu_data_interface_t *descr, void *arg);}. This
+pointer is ignored if @code{CUDA} does not appear in the @code{.where} field,
+it must be non-null otherwise.
+
+@item @code{gordon_func} (optionnal):
+This is the index of the Cell SPU implementation within the Gordon library.
+TODO
+
+@item @code{nbuffers}:
+Specifies the number of arguments taken by the codelet. These arguments are
+managed by the DSM and are accessed from the @code{starpu_data_interface_t *}
+array. The constant argument passed with the @code{.cl_arg} field of the
+@code{starpu_task} structure is not counted in this number.  This value should
+not be above @code{NMAXBUFS}.
+
+@item @code{model} (optionnal):
+This is a pointer to the performance model associated to this codelet. This
+optionnal field is ignored when null. TODO
+
+@end table
+@end table
+
+@node struct starpu_task
+@subsection @code{struct starpu_task} -- StarPU task structure
+@table @asis
+@item @emph{Description}:
+The starpu_task structure describes a task that can be offloaded on the various
+processing units managed by StarPU. It instanciates a codelet. It can either be
+allocated dynamically with the @code{starpu_task_create} method, or declared
+statically. In the latter case, the programmer has to zero the
+@code{starpu_task} structure and to fill the different fields properly. The
+indicated default values correspond to the configuration of a task allocated
+with @code{starpu_task_create}.
+
+@item @emph{Fields}:
+@table @asis
+@item @code{cl}:
+Is a pointer to the corresponding @code{starpu_codelet} data structure. This
+describes where the kernel should be executed, and supplies the appropriate
+implementations. 
+
+@item @code{buffers}:
+TODO
+
+@item @code{cl_arg} (optional) (default = NULL):
+TODO
+
+@item @code{cl_arg_size} (optional):
+TODO
+@c ignored if only executable on CPUs or CUDA ...
+
+@item @code{callback_func} (optional) (default = @code{NULL}):
+This is a function pointer of prototype @code{void (*f)(void *)} which
+specifies a possible callback. If that pointer is non-null, the callback
+function is executed @emph{on the host} after the execution of the task. The
+callback is passed the value contained in the @code{callback_arg} field. No
+callback is executed if that field is null.
+
+@item @code{callback_arg} (optional) (default = @code{NULL}):
+This is the pointer passed to the callback function. This field is ignored if
+the @code{callback_func} is null.
+
+@item @code{use_tag} (optional) (default = 0):
+If set, this flag indicates that the task should be associated with the tag
+conained in the @code{tag_id} field. Tag allow the application to synchronize
+with the task and to express task dependencies easily.
+
+@item @code{tag_id}:
+This fields contains the tag associated to the tag if the @code{use_tag} field
+was set, it is ignored otherwise.
+
+@item @code{synchronous}:
+If this flag is set, the @code{starpu_submit_task} function is blocking and
+returns only when the task has been executed (or if no worker is able to
+process the task). Otherwise, @code{starpu_submit_task} returns immediately.
+
+@item @code{priority} (optionnal) (default = @code{DEFAULT_PRIO}):
+This field indicates a level of priority for the task. This is an integer value
+that must be selected between @code{MIN_PRIO} (for the least important tasks)
+and @code{MAX_PRIO} (for the most important tasks) included. Default priority
+is @code{DEFAULT_PRIO}.  Scheduling strategies that take priorities into
+account can use this parameter to take better scheduling decisions, but the
+scheduling policy may also ignore it.
+
+@item @code{execute_on_a_specific_worker} (default = 0):
+If this flag is set, StarPU will bypass the scheduler and directly affect this
+task to the worker specified by the @code{workerid} field.
+
+@item @code{workerid} (optional):
+If the @code{execute_on_a_specific_worker} field is set, this field indicates
+which is the identifier of the worker that should process this task (as
+returned by @code{starpu_get_worker_id}). This field is ignored if
+@code{execute_on_a_specific_worker} field is set to 0.
+
+@item @code{cleanup} (optional) (default = 1):
+If this flag is set, StarPU will automatically free the @code{starpu_task} data
+structure after the execution of the task. This is obviously not adapted for
+statically allocated data structures. Note that it is still possible to
+synchronize with the tag associated to that task even though the
+@code{starpu_task} structure was deallocated (as long as
+@code{starpu_tag_remove} is not called).
+
+@end table
+@end table
+
+
 @node starpu_task_create
 @subsection @code{starpu_task_create} -- Allocate and Initialize a Task
 @table @asis
 @item @emph{Description}:
 TODO
+(Describe the different default fields ...)
 @item @emph{Prototype}:
 @code{struct starpu_task *starpu_task_create(void);}
+@end table
+
+@node starpu_submit_task
+@subsection @code{starpu_submit_task} -- Submit a Task
+@table @asis
+@item @emph{Description}:
+This function submits task @code{task} to StarPU. Calling this function does
+not mean that the task will be executed immediatly as there can be data or task
+(tag) dependencies that are not fulfilled yet: StarPU will take care to
+schedule this task with respect to such dependencies.
+This function returns immediately if the @code{synchronous} field of the
+@code{starpu_task} structure was set to 0, and block until the termination of
+the task otherwise. It is also possible to synchronize the application with
+asynchronous tasks by the means of tags, using the @code{starpu_tag_wait}
+function for instance. 
+
+In case of success, this function returns 0, a return value of @code{-ENODEV}
+means that there is no worker able to process that task (eg. there is no GPU
+available and this task is only implemented on top of CUDA).
+@item @emph{Prototype}:
+@code{int starpu_submit_task(struct starpu_task *task);}
 @end table
 
 
@@ -306,33 +544,78 @@ TODO
 * starpu_tag_wait::                Block until a Tag is terminated
 * starpu_tag_wait_array::          Block until a set of Tags is terminated
 * starpu_tag_remove::              Destroy a Tag
+* starpu_tag_notify_from_apps::    Feed a tag explicitely
 @end menu
 
 
 @node starpu_tag_t 
 @subsection @code{starpu_tag_t} -- Task identifier
-@c mention the tag_id field of the task structure
 @table @asis
-@item @emph{Definition}:
-TODO
+@item @emph{Description}:
+It is possible to associate a task with a unique "tag" and to express
+dependencies between tasks by the means of those tags. To do so, fill the
+@code{tag_id} field of the @code{starpu_task} structure with a tag number (can
+be arbitrary) and set the @code{use_tag} field to 1.
+
+If @code{starpu_tag_declare_deps} is called with that tag number, the task will
+not be started until the task which wears the declared dependency tags are
+complete.
 @end table
 
 @node starpu_tag_declare_deps
 @subsection @code{starpu_tag_declare_deps} -- Declare the Dependencies of a Tag
 @table @asis
 @item @emph{Description}:
-TODO
+Specify the dependencies of the task identified by tag @code{id}. The first
+argument specifies the tag which is configured, the second argument gives the
+number of tag(s) on which @code{id} depends. The following arguments are the
+tags which have to terminated to unlock the task.
+
+This function must be called before the associated task is submitted to StarPU
+with @code{starpu_submit_task}.
+
+@item @emph{Remark}
+Because of the variable arity of @code{starpu_tag_declare_deps}, note that the
+last arguments @emph{must} be of type @code{starpu_tag_t}: constant values
+typically need to be explicitely casted. Using the
+@code{starpu_tag_declare_deps_array} function avoids this hazard.
+
 @item @emph{Prototype}:
 @code{void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);}
+
+@item @emph{Example}:
+@example
+@c @cartouche
+/*  Tag 0x1 depends on tags 0x32 and 0x52 */
+starpu_tag_declare_deps((starpu_tag_t)0x1,
+        2, (starpu_tag_t)0x32, (starpu_tag_t)0x52);
+
+@c @end cartouche
+@end example
+
+
 @end table
 
 @node starpu_tag_declare_deps_array
 @subsection @code{starpu_tag_declare_deps_array} -- Declare the Dependencies of a Tag
 @table @asis
 @item @emph{Description}:
-TODO
+This function is similar to @code{starpu_tag_declare_deps}, except that its
+does not take a variable number of arguments but an array of tags of size
+@code{ndeps}.
 @item @emph{Prototype}:
 @code{void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);}
+@item @emph{Example}:
+@example
+@c @cartouche
+/*  Tag 0x1 depends on tags 0x32 and 0x52 */
+starpu_tag_t tag_array[2] = @{0x32, 0x52@};
+starpu_tag_declare_deps((starpu_tag_t)0x1, 2, tag_array);
+
+@c @end cartouche
+@end example
+
+
 @end table
 
 
@@ -340,7 +623,15 @@ TODO
 @subsection @code{starpu_tag_wait} -- Block until a Tag is terminated
 @table @asis
 @item @emph{Description}:
-TODO
+This function blocks until the task associated to tag @code{id} has been
+executed. This is a blocking call which must therefore not be called within
+tasks or callbacks, but only from the application directly.  It is possible to
+synchronize with the same tag multiple times, as long as the
+@code{starpu_tag_remove} function is not called.  Note that it is still
+possible to synchronize wih a tag associated to a task which @code{starpu_task}
+data structure was liberated (eg. if the @code{cleanup} flag of the
+@code{starpu_task} was enabled).
+
 @item @emph{Prototype}:
 @code{void starpu_tag_wait(starpu_tag_t id);}
 @end table
@@ -349,21 +640,39 @@ TODO
 @subsection @code{starpu_tag_wait_array} -- Block until a set of Tags is terminated
 @table @asis
 @item @emph{Description}:
-TODO
+This function is similar to @code{starpu_tag_wait} except that it blocks until
+@emph{all} the @code{ntags} tags contained in the @code{id} array are
+terminated.
 @item @emph{Prototype}:
 @code{void starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id);}
 @end table
-
 
 
 @node starpu_tag_remove
 @subsection @code{starpu_tag_remove} -- Destroy a Tag
 @table @asis
 @item @emph{Description}:
-TODO
+This function release the resources associated to tag @code{id}. It can be
+called once the corresponding task has been executed and when there is no tag
+that depend on that one anymore.
 @item @emph{Prototype}:
 @code{void starpu_tag_remove(starpu_tag_t id);}
 @end table
+
+@node starpu_tag_notify_from_apps
+@subsection @code{starpu_tag_notify_from_apps} -- Feed a Tag explicitely
+@table @asis
+@item @emph{Description}:
+This function explicitely unlocks tag @code{id}. It may be useful in the
+case of applications which execute part of their computation outside StarPU
+tasks (eg. third-party libraries).  It is also provided as a
+convenient tool for the programmer, for instance to entirely construct the task
+DAG before actually giving StarPU the opportunity to execute the tasks.
+@item @emph{Prototype}:
+@code{void starpu_tag_notify_from_apps(starpu_tag_t id);}
+@end table
+
+
 
 
 @section Extensions
@@ -556,8 +865,8 @@ Programmers can describe the data layout of their application so that StarPU is
 responsible for enforcing data coherency and availability accross the machine.
 Instead of handling complex (and non-portable) mechanisms to perform data
 movements, programmers only declare which piece of data is accessed and/or
-modified by a task, and StarPU makes sure that when a computational kernel starts
-somewhere (eg. on a GPU), its data are available locally.
+modified by a task, and StarPU makes sure that when a computational kernel
+starts somewhere (eg. on a GPU), its data are available locally.
 
 Before submitting those tasks, the programmer first needs to declare the
 different pieces of data to StarPU using the @code{starpu_register_*_data}
