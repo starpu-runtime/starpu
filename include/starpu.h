@@ -20,6 +20,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+/* Maximum number of workers supported by StarPU, the actual number of worker
+ * is given by the startpu_get_worker_count method */
 #define STARPU_NMAXWORKERS	32
 
 #include <starpu_config.h>
@@ -54,22 +56,35 @@ void starpu_init(struct starpu_conf *conf);
  * shutdown */
 void starpu_shutdown(void);
 
+/* This function returns the number of workers (ie. processing units executing
+ * StarPU tasks). The returned value should be at most STARPU_NMAXWORKERS. */
 unsigned starpu_get_worker_count(void);
 
 /* Return the identifier of the thread in case this is associated to a worker.
  * This will return -1 if this function is called directly from the application
- * or if it is some SPU worker where a single thread controls different SPUs.
- * */
+ * or if it is some SPU worker where a single thread controls different SPUs. */
 int starpu_get_worker_id(void);
 
 enum starpu_archtype {
-	STARPU_CORE_WORKER,
-	STARPU_CUDA_WORKER,
-	STARPU_GORDON_WORKER
+	STARPU_CORE_WORKER, /* CPU core */
+	STARPU_CUDA_WORKER, /* NVIDIA CUDA device */
+	STARPU_GORDON_WORKER /* Cell SPU */
 };
 
+/* This function returns the type of worker associated to an identifier (as
+ * returned by the starpu_get_worker_id function). The returned value indicates
+ * the architecture of the worker: STARPU_CORE_WORKER for a CPU core,
+ * STARPU_CUDA_WORKER for a CUDA device, and STARPU_GORDON_WORKER for a Cell
+ * SPU. The value returned for an invalid identifier is unspecified.  */
 enum starpu_archtype starpu_get_worker_type(int id);
 
+/* StarPU associates a unique human readable string to each processing unit.
+ * This function copies at most the "maxlen" first bytes of the unique
+ * string associated to a worker identified by its identifier "id" into
+ * the "dst" buffer. The caller is responsible for ensuring that the
+ * "dst" is a valid pointer to a buffer of "maxlen" bytes at least.
+ * Calling this function on an invalid identifier results in an unspecified
+ * behaviour. */
 void starpu_get_worker_name(int id, char *dst, size_t maxlen);
 
 #endif // __STARPU_H__

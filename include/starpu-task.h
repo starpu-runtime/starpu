@@ -55,7 +55,6 @@ typedef struct starpu_codelet_t {
 	/* the different implementations of the codelet */
 	void *cuda_func;
 	void *core_func;
-	void *spu_func;
 	uint8_t gordon_func;
 
 	/* how many buffers do the codelet takes as argument ? */
@@ -63,7 +62,9 @@ typedef struct starpu_codelet_t {
 
 	struct starpu_perfmodel_t *model;
 
-	/* statistics collected at runtime */
+	/* statistics collected at runtime: this is filled by StarPU and should
+	 * not be accessed directly (use the starpu_display_codelet_stats
+	 * function instead for instance). */
 	unsigned long per_worker_stats[STARPU_NMAXWORKERS];
 } starpu_codelet;
 
@@ -98,7 +99,9 @@ struct starpu_task {
 	/* should the task be automatically liberated once executed ? */
 	int cleanup;
 
-	/* this is private to StarPU, do not modify */
+	/* this is private to StarPU, do not modify. If the task is allocated
+	 * by hand (without starpu_task_create), this field should be set to
+	 * NULL. */
 	void *starpu_private;
 };
 
