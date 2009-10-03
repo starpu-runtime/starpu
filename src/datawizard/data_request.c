@@ -198,7 +198,6 @@ static void handle_data_request_completion(data_request_t r)
 	TRACE_END_DRIVER_COPY(r->src_node, r->dst_node, 0, r->com_id);
 #endif
 
-	/* TODO we should handle linked requests here */
 	unsigned chained_req;
 	for (chained_req = 0; chained_req < r->next_req_count; chained_req++)
 	{
@@ -387,4 +386,11 @@ void handle_all_pending_node_data_requests(uint32_t src_node)
 	_handle_pending_node_data_requests(src_node, 1);
 }
 
+int check_that_no_data_request_exists(uint32_t node)
+{
+	/* XXX lock that !!! that's a quick'n'dirty test */
+	int no_request = data_request_list_empty(data_requests[node]);
+	int no_pending = data_request_list_empty(data_requests_pending[node]);
 
+	return (no_request && no_pending);
+}

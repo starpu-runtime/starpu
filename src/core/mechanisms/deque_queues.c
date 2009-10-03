@@ -121,16 +121,21 @@ job_t deque_pop_task(struct jobq_s *q)
 	STARPU_ASSERT(q);
 	struct deque_jobq_s *deque_queue = q->queue;
 
+#if 0
 	/* block until some task is available in that queue */
 	pthread_mutex_lock(&q->activity_mutex);
+#endif
 
 	if ((deque_queue->njobs == 0) && machine_is_running())
 	{
+#if 0
 #ifdef NON_BLOCKING_DRIVERS
 		datawizard_progress(q->memory_node, 1);
 #else
 		pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
 #endif
+#endif
+		return NULL;
 	}
 
 	if (deque_queue->njobs > 0) 
@@ -150,7 +155,9 @@ job_t deque_pop_task(struct jobq_s *q)
 		pthread_mutex_unlock(sched_mutex);
 	}
 	
+#if 0
 	pthread_mutex_unlock(&q->activity_mutex);
+#endif
 
 	return j;
 }

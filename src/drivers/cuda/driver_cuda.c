@@ -34,9 +34,8 @@ static void init_context(int devid)
 	if (STARPU_UNLIKELY(cublasst))
 		CUBLAS_REPORT_ERROR(cublasst);
 
-	void *dummy;
-
 #if 0
+	void *dummy;
 	cublasst = cublasAlloc(950*1024*1024, sizeof(float), &dummy);
 	if (STARPU_UNLIKELY(cublasst))
 		CUBLAS_REPORT_ERROR(cublasst);
@@ -121,10 +120,6 @@ int execute_job_on_cuda(job_t j, struct worker_s *args)
 	}
 
 	unsigned memnode = get_local_memory_node();
-
-	TRACE_START_PROGRESS(memnode);
-	datawizard_progress(memnode, 1);
-	TRACE_END_PROGRESS(memnode);
 
 	TRACE_START_CODELET_BODY(j);
 
@@ -222,10 +217,18 @@ void *cuda_worker(void *arg)
 
 	struct job_s * j;
 	int res;
+
+	struct sched_policy_s *policy = get_sched_policy();
+	struct jobq_s *queue = policy->get_local_queue(policy);
+	unsigned memnode = args->memory_node;
 	
 	while (machine_is_running())
 	{
-		datawizard_progress(args->memory_node, 1);
+		TRACE_START_PROGRESS(memnode);
+		datawizard_progress(memnode, 1);
+		TRACE_END_PROGRESS(memnode);
+	
+		jobq_lock(queue);
 
 		/* perhaps there is some local task to be executed first */
 		j = pop_local_task(args);
@@ -234,7 +237,14 @@ void *cuda_worker(void *arg)
 		if (!j)
 			j = pop_task();
 
-		if (j == NULL) continue;
+		if (j == NULL) {
+			if (check_that_no_data_request_exists(memnode) && machine_is_running())
+				pthread_cond_wait(&queue->activity_cond, &queue->activity_mutex);
+			jobq_unlock(queue);
+			continue;
+		}
+
+		jobq_unlock(queue);
 
 		/* can CUDA do that task ? */
 		if (!CUDA_MAY_PERFORM(j) && !CUBLAS_MAY_PERFORM(j))

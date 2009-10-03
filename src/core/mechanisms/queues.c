@@ -78,3 +78,18 @@ void set_local_queue(struct jobq_s *jobq)
 
 	pthread_setspecific(policy->local_queue_key, jobq);
 }
+
+void jobq_lock(struct jobq_s *jobq)
+{
+	pthread_mutex_lock(&jobq->activity_mutex);	
+}
+
+void jobq_unlock(struct jobq_s *jobq)
+{
+	pthread_mutex_unlock(&jobq->activity_mutex);	
+}
+
+int jobq_trylock(struct jobq_s *jobq)
+{
+	return pthread_mutex_trylock(&jobq->activity_mutex);	
+}

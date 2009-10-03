@@ -49,12 +49,6 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 		return STARPU_TRYAGAIN;
 	}
 
-	unsigned memnode = get_local_memory_node();
-
-	TRACE_START_PROGRESS(memnode);
-	datawizard_progress(memnode, 1);
-	TRACE_END_PROGRESS(memnode);
-
 	TRACE_START_CODELET_BODY(j);
 
 	if (calibrate_model || BENCHMARK_COMM)
@@ -138,8 +132,18 @@ void *core_worker(void *arg)
         job_t j;
 	int res;
 
+	struct sched_policy_s *policy = get_sched_policy();
+	struct jobq_s *queue = policy->get_local_queue(policy);
+	unsigned memnode = core_arg->memory_node;
+
 	while (machine_is_running())
 	{
+		TRACE_START_PROGRESS(memnode);
+		datawizard_progress(memnode, 1);
+		TRACE_END_PROGRESS(memnode);
+
+		jobq_lock(queue);
+
 		/* perhaps there is some local task to be executed first */
 		j = pop_local_task(core_arg);
 
@@ -147,7 +151,14 @@ void *core_worker(void *arg)
 		if (!j)
 			j = pop_task();
 
-                if (j == NULL) continue;
+                if (j == NULL) {
+			if (check_that_no_data_request_exists(memnode) && machine_is_running())
+				pthread_cond_wait(&queue->activity_cond, &queue->activity_mutex);
+			jobq_unlock(queue);
+ 			continue;
+		};
+		
+		jobq_unlock(queue);
 
 		/* can a core perform that task ? */
 		if (!CORE_MAY_PERFORM(j)) 
