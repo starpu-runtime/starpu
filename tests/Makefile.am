@@ -77,7 +77,7 @@ check_PROGRAMS += 				\
 	microbenchs/tasks-overhead		\
 	microbenchs/tag-wait-api		\
 	microbenchs/dsm_stress			\
-	microbenchs/prefetch_data_on_node \
+	microbenchs/prefetch_data_on_node 	\
 	microbenchs/sync_and_notify_data	\
 	overlap/overlap
 
@@ -85,7 +85,7 @@ core_restart_SOURCES =				\
 	core/restart.c
 
 core_execute_on_a_specific_worker_SOURCES = 	\
-	microbenchs/execute_on_a_specific_worker.c
+	core/execute_on_a_specific_worker.c
 
 microbenchs_async_tasks_overhead_SOURCES =	\
 	microbenchs/async-tasks-overhead.c
