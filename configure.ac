@@ -71,8 +71,6 @@ STARPU_CHECK_SYNC_BUILTINS
 
 CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE "
 
-# CFLAGS=" -O0 -g -gdwarf-2 "
-
 ###############################################################################
 #                                                                             #
 #                                 CPUs settings                               #
@@ -232,6 +230,17 @@ fi
 #                   Debug and Performance analysis tools                      #
 #                                                                             #
 ###############################################################################
+
+AC_MSG_CHECKING(whether debug mode should be enabled)
+AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [enable debug mode])],
+			enable_debug=$enableval, enable_debug=no)
+AC_MSG_RESULT($enable_debug)
+
+if test x$enable_debug = xyes; then
+	CFLAGS=" -O0 -gdwarf-2 -g3 "
+else
+	CFLAGS=" -O3 "
+fi
 
 AC_MSG_CHECKING(whether debug messages should be displayed)
 AC_ARG_ENABLE(verbose, [AS_HELP_STRING([--enable-verbose],
