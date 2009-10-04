@@ -106,8 +106,6 @@ int execute_job_on_cuda(job_t j, struct worker_s *args)
 		GET_TICK(codelet_end_comm);
 	}
 
-	unsigned memnode = get_local_memory_node();
-
 	TRACE_START_CODELET_BODY(j);
 
 	cl_func func = cl->cuda_func;
@@ -116,13 +114,6 @@ int execute_job_on_cuda(job_t j, struct worker_s *args)
 	func(task->interface, task->cl_arg);
 
 	task->cl->per_worker_stats[args->workerid]++;
-
-#if 0
-	/* perform a barrier after the kernel */
-	cures = cudaThreadSynchronize();
-	if (STARPU_UNLIKELY(cures))
-		CUDA_REPORT_ERROR(cures);
-#endif
 
 	GET_TICK(codelet_end);
 
