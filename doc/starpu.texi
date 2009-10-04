@@ -247,9 +247,35 @@ configuration is used if the passed argument is @code{NULL}.
 
 @table @asis
 @item @emph{Description}:
-TODO
-@item @emph{Definition}:
-TODO
+This structure is passed to the @code{starpu_init} function in order configure
+StarPU. When the default value is used, StarPU automatically select the number
+of processing units and takes the default scheduling policy. This parameters
+overwrite the equivalent environnement variables. 
+
+@item @emph{Fields}:
+@table @asis 
+@item @code{sched_policy} (default = NULL):
+This is the name of the scheduling policy. This can also be specified with the
+@code{SCHED} environment variable.
+
+@item @code{ncpus} (default = -1):
+This is the maximum number of CPU cores that StarPU can use. This can also be
+specified with the @code{NCPUS} environment variable.
+
+@item @code{ncuda} (default = -1):
+This is the maximum number of CUDA devices that StarPU can use. This can also be
+specified with the @code{NCUDA} environment variable.
+
+@item @code{nspus} (default = -1):
+This is the maximum number of Cell SPUs that StarPU can use. This can also be
+specified with the @code{NGORDON} environment variable.
+
+@item @code{calibrate} (default = 0):
+If this flag is set, StarPU will calibrate the performance models when
+executing tasks. This can also be specified with the @code{CALIBRATE}
+environment variable.
+@end table
+
 @end table
 
 
