@@ -19,10 +19,9 @@
 /* save the general machine configuration */
 //static struct machine_config_s *machineconfig;
 
-/* XXX 32 is set randomly */
 static unsigned nworkers;
 static unsigned rr_worker;
-static struct jobq_s *queue_array[32];
+static struct jobq_s *queue_array[STARPU_NMAXWORKERS];
 
 /* keep track of the work performed from the beginning of the algorithm to make
  * better decisions about which queue to select when stealing or deferring work
