@@ -431,7 +431,7 @@ Specifies the number of arguments taken by the codelet. These arguments are
 managed by the DSM and are accessed from the @code{starpu_data_interface_t *}
 array. The constant argument passed with the @code{.cl_arg} field of the
 @code{starpu_task} structure is not counted in this number.  This value should
-not be above @code{NMAXBUFS}.
+not be above @code{STARPU_NMAXBUFS}.
 
 @item @code{model} (optionnal):
 This is a pointer to the performance model associated to this codelet. This

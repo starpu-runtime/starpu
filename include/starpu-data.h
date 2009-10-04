@@ -21,7 +21,7 @@
 #include <starpu-data-interfaces.h>
 #include <starpu-data-filters.h>
 
-#define NMAXBUFS        8
+#define STARPU_NMAXBUFS        8
 
 struct starpu_data_state_t;
 

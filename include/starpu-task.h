@@ -72,8 +72,8 @@ struct starpu_task {
 	struct starpu_codelet_t *cl;
 
 	/* arguments managed by the DSM */
-	struct starpu_buffer_descr_t buffers[NMAXBUFS];
-	starpu_data_interface_t interface[NMAXBUFS];
+	struct starpu_buffer_descr_t buffers[STARPU_NMAXBUFS];
+	starpu_data_interface_t interface[STARPU_NMAXBUFS];
 
 	/* arguments not managed by the DSM are given as a buffer */
 	void *cl_arg;
