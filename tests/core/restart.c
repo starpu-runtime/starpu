@@ -22,15 +22,33 @@
 
 #define N	3
 
+struct timeval start;
+struct timeval end;
+
 int main(int argc, char **argv)
 {
 	unsigned iter;
 
+	double init_timing = 0.0;
+	double shutdown_timing = 0.0;
+
 	for (iter = 0; iter < N; iter++)
 	{
+		gettimeofday(&start, NULL);
+		/* Initialize StarPU */
 		starpu_init(NULL);
+		gettimeofday(&end, NULL);
+		init_timing += (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+
+		gettimeofday(&start, NULL);
+		/* Shutdown StarPU */
 		starpu_shutdown();
+		gettimeofday(&end, NULL);
+		shutdown_timing += (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	}
+
+	fprintf(stderr, "starpu_init: %2.2f seconds\n", init_timing/(N*1000000));
+	fprintf(stderr, "starpu_shutdown: %2.2f seconds\n", shutdown_timing/(N*1000000));
 
 	return 0;
 }
