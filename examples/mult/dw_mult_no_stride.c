@@ -489,6 +489,8 @@ int main(__attribute__ ((unused)) int argc,
 	/* start the runtime */
 	starpu_init(NULL);
 
+	init_cublas_on_all_cuda_devices();
+
 #ifdef USE_GORDON
 	load_elf_sgemm();
 #endif
@@ -506,7 +508,7 @@ int main(__attribute__ ((unused)) int argc,
 
 	cleanup_problem();
 
-	exit(-1);
+	shutdown_cublas_on_all_cuda_devices();
 	starpu_shutdown();
 
 	return 0;

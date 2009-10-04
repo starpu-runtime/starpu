@@ -23,6 +23,7 @@
 #include <signal.h>
 
 #include <starpu.h>
+#include <common/starpu_cublas.h>
 
 
 #define MAXDEPS	4
@@ -786,6 +787,8 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
+	init_cublas_on_all_cuda_devices();
+
 #ifdef USE_CUDA
         if (pin) {
                 starpu_malloc_pinned_if_possible((void **)&bigbuffer, used_mem_predicted);
@@ -842,6 +845,8 @@ int main(int argc, char **argv)
 	starpu_submit_task(task_end);
 
 	gettimeofday(&end, NULL);
+
+	shutdown_cublas_on_all_cuda_devices();
 
 	starpu_shutdown();
 

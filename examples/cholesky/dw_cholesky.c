@@ -216,6 +216,8 @@ static void _dw_cholesky(starpu_data_handle dataA, unsigned nblocks)
 void initialize_system(float **A, unsigned dim, unsigned pinned)
 {
 	starpu_init(NULL);
+	
+	init_cublas_on_all_cuda_devices();
 
 	timing_init();
 
@@ -249,6 +251,8 @@ void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	_dw_cholesky(dataA, nblocks);
 
 	starpu_unpartition_data(dataA, 0);
+
+	shutdown_cublas_on_all_cuda_devices();
 
 	starpu_shutdown();
 }

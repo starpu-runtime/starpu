@@ -395,5 +395,7 @@ void do_conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz
 	/* start the runtime */
 	starpu_init(NULL);
 
+	init_cublas_on_all_cuda_devices();
+
 	conjugate_gradient(nzvalA, vecb, vecx, nnz, nrow, colind, rowptr);
 }

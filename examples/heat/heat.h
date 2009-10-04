@@ -27,8 +27,8 @@
 #include <starpu_config.h>
 #include <starpu.h>
 
-#include "../common/blas.h"
-
+#include <common/blas.h>
+#include <common/starpu_cublas.h>
 
 #ifdef OPENGL_RENDER
 #include <GL/gl.h>

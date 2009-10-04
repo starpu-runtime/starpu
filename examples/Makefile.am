@@ -88,6 +88,7 @@ noinst_HEADERS = 				\
 	cholesky/dw_cholesky.h			\
 	common/blas_model.h			\
 	common/blas.h				\
+	common/starpu_cublas.h			\
 	mult/dw_mult.h				\
 	mult/gordon/func_sgemm_ibm.h		\
 	cuda/incrementer_cuda.h			\
@@ -154,16 +155,19 @@ examplebin_PROGRAMS += 			\
 
 mult_dw_mult_SOURCES = 				\
 	mult/dw_mult.c				\
+	common/starpu_cublas.c			\
 	common/blas.c				\
 	common/blas_model.c
 		
 mult_dw_mult_no_stride_SOURCES = 		\
 	mult/dw_mult_no_stride.c		\
+	common/starpu_cublas.c			\
 	common/blas.c				\
 	common/blas_model.c
 
 mult_dw_mult_no_stride_no_tag_SOURCES =		\
 	mult/dw_mult_no_stride_no_tag.c		\
+	common/starpu_cublas.c			\
 	common/blas.c				\
 	common/blas_model.c
 
@@ -172,6 +176,7 @@ examplebin_PROGRAMS +=				\
 
 mult_dw_mult_no_filters_SOURCES =		\
 	mult/dw_mult_no_filters.c		\
+	common/starpu_cublas.c			\
 	common/blas.c				\
 	common/blas_model.c
 
@@ -192,18 +197,21 @@ cholesky_dw_cholesky_SOURCES =			\
 	cholesky/dw_cholesky.c			\
 	cholesky/dw_cholesky_models.c		\
 	cholesky/dw_cholesky_kernels.c		\
+	common/starpu_cublas.c			\
 	common/blas.c
 
 cholesky_dw_cholesky_no_stride_SOURCES =	\
 	cholesky/dw_cholesky_no_stride.c	\
 	cholesky/dw_cholesky_models.c		\
 	cholesky/dw_cholesky_kernels.c		\
+	common/starpu_cublas.c			\
 	common/blas.c
 
 cholesky_dw_cholesky_grain_SOURCES =		\
 	cholesky/dw_cholesky_grain.c		\
 	cholesky/dw_cholesky_models.c		\
 	cholesky/dw_cholesky_kernels.c		\
+	common/starpu_cublas.c			\
 	common/blas.c
 
 endif
@@ -228,6 +236,7 @@ heat_heat_SOURCES =				\
 	heat/lu_kernels_model.c			\
 	heat/dw_sparse_cg_kernels.c		\
 	heat/dw_factolu_kernels.c		\
+	common/starpu_cublas.c			\
 	common/blas.c
 
 endif
@@ -273,6 +282,7 @@ strassen_dw_strassen_SOURCES = 			\
 	strassen/strassen_kernels.c		\
 	strassen/test_strassen.c		\
 	strassen/strassen_models.c		\
+	common/starpu_cublas.c			\
 	common/blas.c
 
 endif
@@ -290,6 +300,7 @@ examplebin_PROGRAMS += strassen2/strassen
 strassen2_strassen_SOURCES = 			\
 	strassen2/strassen2.c			\
 	strassen2/strassen2_kernels.c		\
+	common/starpu_cublas.c			\
 	common/blas.c
 
 endif

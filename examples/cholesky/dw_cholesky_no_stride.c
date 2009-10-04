@@ -258,6 +258,9 @@ int main(int argc, char **argv)
 	fprintf(stderr, "BLOCK SIZE = %d\n", size / nblocks);
 
 	starpu_init(NULL);
+
+	init_cublas_on_all_cuda_devices();
+
 	timing_init();
 
 	for (y = 0; y < nblocks; y++)
@@ -314,6 +317,8 @@ int main(int argc, char **argv)
 	}
 
 	dw_cholesky_no_stride();
+
+	shutdown_cublas_on_all_cuda_devices();
 
 	starpu_shutdown();
 	return 0;

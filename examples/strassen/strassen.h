@@ -34,6 +34,8 @@
 
 #include <starpu.h>
 
+#include <common/starpu_cublas.h>
+
 typedef enum {
 	ADD,
 	SUB,

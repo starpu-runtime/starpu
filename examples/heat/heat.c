@@ -752,6 +752,8 @@ int main(int argc, char **argv)
 		if (check)
 			solve_system(DIM, newsize, result, RefArray, Bformer, A, B);
 
+		init_cublas_on_all_cuda_devices();
+
 		starpu_shutdown();
 	}
 

@@ -323,6 +323,7 @@ int main(__attribute__ ((unused)) int argc,
 
 	/* start the runtime */
 	starpu_init(NULL);
+	init_cublas_on_all_cuda_devices();
 
 	pthread_mutex_init(&mutex, NULL);
 	pthread_cond_init(&cond, NULL);
@@ -337,6 +338,7 @@ int main(__attribute__ ((unused)) int argc,
 	pthread_cond_wait(&cond, &mutex);
 	pthread_mutex_unlock(&mutex);
 
+	shutdown_cublas_on_all_cuda_devices();
 	starpu_shutdown();
 
 	return 0;

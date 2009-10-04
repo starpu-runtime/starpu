@@ -250,6 +250,8 @@ void initialize_system(float **A, unsigned dim, unsigned pinned)
 {
 	starpu_init(NULL);
 
+	init_cublas_on_all_cuda_devices();
+
 	timing_init();
 
 	if (pinned)
@@ -278,6 +280,8 @@ void dw_cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks
 
 	double flop = (1.0f*size*size*size)/3.0f;
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+
+	shutdown_cublas_on_all_cuda_devices();
 
 	starpu_shutdown();
 }

@@ -693,6 +693,8 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 
 	timing_init();
 
+	init_cublas_on_all_cuda_devices();
+
 	if (pinned)
 	{
 		starpu_malloc_pinned_if_possible((void **)A, (size_t)dim*dim*sizeof(float));

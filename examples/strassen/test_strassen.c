@@ -176,11 +176,15 @@ int main(__attribute__ ((unused)) int argc,
 	/* start the runtime */
 	starpu_init(NULL);
 
+	init_cublas_on_all_cuda_devices();
+
 	sem_init(&sem, 0, 0U);
 
 	init_problem();
 	sem_wait(&sem);
 	sem_destroy(&sem);
+
+	shutdown_cublas_on_all_cuda_devices();
 
 	starpu_shutdown();
 

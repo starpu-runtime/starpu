@@ -26,6 +26,7 @@
 
 #include <common/blas.h>
 #include <common/blas_model.h>
+#include <common/starpu_cublas.h>
 
 #include <starpu.h>
 

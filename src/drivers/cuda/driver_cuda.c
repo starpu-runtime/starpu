@@ -29,24 +29,11 @@ static void init_context(int devid)
 	cures = cudaSetDevice(devid);
 	if (STARPU_UNLIKELY(cures))
 		CUDA_REPORT_ERROR(cures);
-
-	cublasStatus cublasst = cublasInit();
-	if (STARPU_UNLIKELY(cublasst))
-		CUBLAS_REPORT_ERROR(cublasst);
-
-#if 0
-	void *dummy;
-	cublasst = cublasAlloc(950*1024*1024, sizeof(float), &dummy);
-	if (STARPU_UNLIKELY(cublasst))
-		CUBLAS_REPORT_ERROR(cublasst);
-#endif
 }
 
 static void deinit_context(void)
 {
 	cudaError_t cures;
-
-	cublasShutdown();
 
 	/* cleanup the runtime API internal stuffs (which CUBLAS is using) */
 	cures = cudaThreadExit();

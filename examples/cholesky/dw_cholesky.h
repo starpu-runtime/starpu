@@ -27,7 +27,8 @@
 #include <cublas.h>
 #endif
 
-#include "../common/blas.h"
+#include <common/blas.h>
+#include <common/starpu_cublas.h>
 #include <starpu.h>
 
 #define NMAXBLOCKS	32
