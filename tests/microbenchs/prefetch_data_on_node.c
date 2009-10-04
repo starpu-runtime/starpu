@@ -38,6 +38,9 @@ static void callback(void *arg)
 {
 	unsigned res = STARPU_ATOMIC_ADD(&cnt, -1);
 
+	//fprintf(stderr, "res ...%d\n", res);
+	//fflush(stderr);
+
 	if (res == 0)
 	{
 		pthread_mutex_lock(&mutex);
@@ -49,12 +52,10 @@ static void callback(void *arg)
 
 
 
-static void cuda_codelet_null(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
+static void codelet_null(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
-}
-
-static void core_codelet_null(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
-{
+//	fprintf(stderr, "pif\n");
+//	fflush(stderr);
 }
 
 static starpu_access_mode select_random_mode(void)
@@ -65,7 +66,8 @@ static starpu_access_mode select_random_mode(void)
 		case 0:
 			return STARPU_R;
 		case 1:
-			return STARPU_W;
+			return STARPU_RW;
+			//return STARPU_W;
 		case 2:
 			return STARPU_RW;
 	};
@@ -74,8 +76,8 @@ static starpu_access_mode select_random_mode(void)
 
 static starpu_codelet cl = {
 	.where = CORE|CUBLAS,
-	.core_func = core_codelet_null,
-	.cuda_func = cuda_codelet_null,
+	.core_func = codelet_null,
+	.cuda_func = codelet_null,
 	.nbuffers = 1
 };
 
@@ -96,9 +98,9 @@ int main(int argc, char **argv)
 	{
 		for (worker = 0; worker < nworker; worker++)
 		{
-			/* prefetch */
+			/* synchronous prefetch */
 			unsigned node = starpu_get_worker_memory_node(worker);
-			starpu_prefetch_data_on_node(v_handle, node, 1);
+			starpu_prefetch_data_on_node(v_handle, node, 0);
 
 			/* execute a task */
 			struct starpu_task *task = starpu_task_create();
@@ -109,6 +111,8 @@ int main(int argc, char **argv)
 
 			task->callback_func = callback;
 			task->callback_arg = NULL;
+
+			task->synchronous = 1;
 
 			int ret = starpu_submit_task(task);
 			if (ret == -ENODEV)

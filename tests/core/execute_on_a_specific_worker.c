@@ -49,12 +49,10 @@ static void callback(void *arg)
 
 
 
-static void cuda_codelet_null(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
+static void codelet_null(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
-}
-
-static void core_codelet_null(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
-{
+//	int id = starpu_get_worker_id();
+//	fprintf(stderr, "worker #%d\n", id);
 }
 
 static starpu_access_mode select_random_mode(void)
@@ -74,8 +72,8 @@ static starpu_access_mode select_random_mode(void)
 
 static starpu_codelet cl = {
 	.where = CORE|CUBLAS,
-	.core_func = core_codelet_null,
-	.cuda_func = cuda_codelet_null,
+	.core_func = codelet_null,
+	.cuda_func = codelet_null,
 	.nbuffers = 1
 };
 
