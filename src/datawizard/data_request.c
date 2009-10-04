@@ -115,9 +115,12 @@ data_request_t search_existing_data_request(data_state *state, uint32_t dst_node
 
 	if (r)
 	{
-	//	/* XXX perhaps this is too strict ! */
-	//	STARPU_ASSERT(r->read == read);		
-	//	STARPU_ASSERT(r->write == write);		
+		/* perhaps we need to "upgrade" the request */
+		if (read)
+			r->read = 1;
+
+		if (write)
+			r->write = 1;
 
 		starpu_spin_lock(&r->lock);
 	}
@@ -228,7 +231,6 @@ static void handle_data_request_completion(data_request_t r)
 /* TODO : accounting to see how much time was spent working for other people ... */
 static int handle_data_request(data_request_t r, unsigned may_alloc)
 {
-	unsigned do_delete = 0;
 	data_state *state = r->state;
 
 //	fprintf(stderr, "handle_data_request %p %d->%d\n", r->state, r->src_node, r->dst_node);
