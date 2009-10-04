@@ -20,7 +20,7 @@
 #include <starpu.h>
 #include <stdlib.h>
 
-#define N	3
+#define N	10
 
 struct timeval start;
 struct timeval end;
