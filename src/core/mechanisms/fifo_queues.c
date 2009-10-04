@@ -122,28 +122,8 @@ job_t fifo_pop_task(struct jobq_s *q)
 	STARPU_ASSERT(q);
 	struct fifo_jobq_s *fifo_queue = q->queue;
 
-	/* block until some event happens */
-#if 0
-	pthread_mutex_lock(&q->activity_mutex);
-#endif
-
-	// XXX what if !machine_is_running ?
-	if ((fifo_queue->njobs == 0) && machine_is_running())
-	{
-#if 0
-#ifdef NON_BLOCKING_DRIVERS
-		datawizard_progress(q->memory_node, 1);
-#else
-		/* TODO that should be protected correctly !!! XXX this is a
-		 * potential deadlock since the worker could sleep right at the
-		 * moment when it's assigned some memory request */
-		handle_node_data_requests(q->memory_node, 1);
-		handle_all_pending_node_data_requests(q->memory_node);
-		pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
-#endif
-#endif
+	if (fifo_queue->njobs == 0)
 		return NULL;
-	}
 
 	if (fifo_queue->njobs > 0) 
 	{
@@ -162,10 +142,6 @@ job_t fifo_pop_task(struct jobq_s *q)
 		pthread_mutex_unlock(sched_mutex);
 	}
 	
-#if 0
-	pthread_mutex_unlock(&q->activity_mutex);
-#endif
-
 	return j;
 }
 
@@ -232,37 +208,4 @@ struct job_list_s * fifo_pop_every_task(struct jobq_s *q, uint32_t where)
 	pthread_mutex_unlock(&q->activity_mutex);
 
 	return new_list;
-}
-
-/* for work stealing, typically */
-job_t fifo_non_blocking_pop_task(struct jobq_s *q)
-{
-	job_t j = NULL;
-
-	STARPU_ASSERT(q);
-	struct fifo_jobq_s *fifo_queue = q->queue;
-
-	/* block until some event happens */
-	pthread_mutex_lock(&q->activity_mutex);
-
-	if (fifo_queue->njobs > 0) 
-	{
-		/* there is a task */
-		j = job_list_pop_back(fifo_queue->jobq);
-	
-		STARPU_ASSERT(j);
-		fifo_queue->njobs--;
-		
-		TRACE_JOB_POP(j, 0);
-
-		/* we are sure that we got it now, so at worst, some people thought 
-		 * there remained some work and will soon discover it is not true */
-		pthread_mutex_lock(sched_mutex);
-		total_number_of_jobs--;
-		pthread_mutex_unlock(sched_mutex);
-	}
-	
-	pthread_mutex_unlock(&q->activity_mutex);
-
-	return j;
 }
