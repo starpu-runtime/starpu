@@ -27,7 +27,7 @@ BUILT_SOURCES =
 
 EXTRA_DIST = 					\
 	cuda/incrementer_cuda.cu		\
-	cuda/spmv_cuda.cu			\
+	spmv/spmv_cuda.cu			\
 	gordon/null_kernel_gordon.c		\
 	mult/gordon/func_sgemm_ibm.c
 
