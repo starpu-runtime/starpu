@@ -135,7 +135,7 @@ static job_t ws_pop_task(struct jobq_s *q)
 {
 	job_t j;
 
-	j = deque_non_blocking_pop_task(q);
+	j = deque_pop_task(q);
 	if (j) {
 		/* there was a local task */
 		performed_total++;
@@ -146,10 +146,11 @@ static job_t ws_pop_task(struct jobq_s *q)
 	struct jobq_s *victimq;
 	victimq = select_victimq();
 
-	j = deque_non_blocking_pop_task_if_job_exists(victimq);
-
-	if (j)
+	if (!jobq_trylock(victimq))
 	{
+		j = deque_pop_task(victimq);
+		jobq_unlock(victimq);
+
 		TRACE_WORK_STEALING(q, j);
 		performed_total++;
 	}
