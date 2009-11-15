@@ -19,6 +19,7 @@
 
 #include <errno.h>
 #include <starpu_config.h>
+#include <starpu.h>
 
 /* this is a randomly choosen value ... */
 #ifndef MAXCUDADEVS
@@ -31,9 +32,7 @@
 
 #include <starpu-data.h>
 
-#define ANY	(~0)
 #define CORE	((1ULL)<<1)
-#define CUBLAS	((1ULL)<<2)
 #define CUDA	((1ULL)<<3)
 #define SPU	((1ULL)<<4)
 #define GORDON	((1ULL)<<5)
@@ -41,6 +40,10 @@
 #define MIN_PRIO        (-4)
 #define MAX_PRIO        5
 #define DEFAULT_PRIO	0
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef uint64_t starpu_tag_t;
 
@@ -53,24 +56,27 @@ typedef struct starpu_codelet_t {
 	uint32_t where;
 
 	/* the different implementations of the codelet */
-	void *cuda_func;
-	void *cublas_func;
-	void *core_func;
-	void *spu_func;
+	void (*cuda_func)(starpu_data_interface_t *, void *);
+	void (*core_func)(starpu_data_interface_t *, void *);
 	uint8_t gordon_func;
 
 	/* how many buffers do the codelet takes as argument ? */
 	unsigned nbuffers;
 
 	struct starpu_perfmodel_t *model;
+
+	/* statistics collected at runtime: this is filled by StarPU and should
+	 * not be accessed directly (use the starpu_display_codelet_stats
+	 * function instead for instance). */
+	unsigned long per_worker_stats[STARPU_NMAXWORKERS];
 } starpu_codelet;
 
 struct starpu_task {
 	struct starpu_codelet_t *cl;
 
 	/* arguments managed by the DSM */
-	struct starpu_buffer_descr_t buffers[NMAXBUFS];
-	starpu_data_interface_t interface[NMAXBUFS];
+	struct starpu_buffer_descr_t buffers[STARPU_NMAXBUFS];
+	starpu_data_interface_t interface[STARPU_NMAXBUFS];
 
 	/* arguments not managed by the DSM are given as a buffer */
 	void *cl_arg;
@@ -89,76 +95,102 @@ struct starpu_task {
 	int priority; /* MAX_PRIO = most important 
         		: MIN_PRIO = least important */
 
-	/* should the task be automatically liberated once executed ? */
-	int cleanup;
+	/* in case the task has to be executed on a specific worker */
+	unsigned execute_on_a_specific_worker;
+	unsigned workerid;
 
-	/* this is private to StarPU, do not modify */
+	/* If this flag is set, it is not possible to synchronize with the task
+	 * by the means of starpu_wait_task later on. Internal data structures
+	 * are only garanteed to be liberated once starpu_wait_task is called
+	 * if that flag is not set. */
+	int detach;
+
+	/* If that flag is set, the task structure will automatically be
+	 * liberated, either after the execution of the callback if the task is
+	 * detached, or during starpu_task_wait otherwise. If this flag is not
+	 * set, dynamically allocated data structures will not be liberated
+	 * until starpu_task_destroy is called explicitely. Setting this flag
+	 * for a statically allocated task structure will result in undefined
+	 * behaviour. */
+	int destroy;
+
+	/* this is private to StarPU, do not modify. If the task is allocated
+	 * by hand (without starpu_task_create), this field should be set to
+	 * NULL. */
 	void *starpu_private;
 };
 
-#ifdef USE_CUDA
-/* CUDA specific codelets */
-typedef struct starpu_cuda_module_s {
-	CUmodule module;
-	char *module_path;
-	unsigned is_loaded[MAXCUDADEVS];
-} starpu_cuda_module_t;
+/* It is possible to initialize statically allocated tasks with this value.
+ * This is equivalent to initializing a starpu_task structure with the
+ * starpu_task_init function. */
+#define STARPU_TASK_INITIALIZER 			\
+{							\
+	.cl = NULL,					\
+	.cl_arg = NULL,					\
+	.cl_arg_size = 0,				\
+	.callback_func = NULL,				\
+	.callback_arg = NULL,				\
+	.priority = DEFAULT_PRIO,			\
+	.use_tag = 0,					\
+	.synchronous = 0,				\
+	.execute_on_a_specific_worker = 0,		\
+	.detach = 1,					\
+	.destroy = 0,					\
+	.starpu_private = NULL				\
+};
 
-typedef struct starpu_cuda_function_s {
-	struct starpu_cuda_module_s *module;
-	CUfunction function;
-	char *symbol;
-	unsigned is_loaded[MAXCUDADEVS];
-} starpu_cuda_function_t;
-
-typedef struct starpu_cuda_codelet_s {
-	/* which function to execute on the card ? */
-	struct starpu_cuda_function_s *func;
-
-	/* grid and block shapes */
-	unsigned gridx;
-	unsigned gridy;
-	unsigned blockx;
-	unsigned blocky;
-
-	unsigned shmemsize;
-
-	void *stack; /* arguments */
-	size_t stack_size;
-} starpu_cuda_codelet_t;
-
-void starpu_init_cuda_module(struct starpu_cuda_module_s *module, char *path);
-void starpu_load_cuda_module(int devid, struct starpu_cuda_module_s *module);
-void starpu_init_cuda_function(struct starpu_cuda_function_s *func,
-                        struct starpu_cuda_module_s *module,
-                        char *symbol);
-void starpu_load_cuda_function(int devid, struct starpu_cuda_function_s *function);
-#endif // USE_CUDA
-
-/* handle task dependencies: it is possible to associate a task with a unique
- * "tag" and to express dependencies among tasks by the means of those tags */
-void starpu_tag_remove(starpu_tag_t id);
+/*
+ * handle task dependencies: it is possible to associate a task with a unique
+ * "tag" and to express dependencies between tasks by the means of those tags
+ *
+ * To do so, fill the tag_id field with a tag number (can be arbitrary) and set
+ * use_tag to 1.
+ *
+ * If starpu_tag_declare_deps is called with that tag number, the task will not
+ * be started until the task which wears the declared dependency tags are
+ * complete.
+ */
 
 /*
  * WARNING ! use with caution ...
  *  In case starpu_tag_declare_deps is passed constant arguments, the caller
- *  must make sure that the constants have the same size as starpu_tag_t.
- *  Otherwise, nothing prevents the C compiler to consider the tag 0x20000003
- *  instead of 0x2 and 0x3 when calling:
+ *  must make sure that the constants are casted to starpu_tag_t. Otherwise,
+ *  due to integer sizes and argument passing on the stack, the C compiler
+ *  might consider the tag *  0x200000003 instead of 0x2 and 0x3 when calling:
  *      "starpu_tag_declare_deps(0x1, 2, 0x2, 0x3)"
  *  Using starpu_tag_declare_deps_array is a way to avoid this problem.
  */
+/* make id depend on the list of ids */
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);
 
 void starpu_tag_wait(starpu_tag_t id);
 void starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id);
 
-/* it is possible that the application use tags explicitely */
+/* The application can feed a tag explicitely */
 void starpu_tag_notify_from_apps(starpu_tag_t id);
 
+/* To release resources, tags should be freed after use */
+void starpu_tag_remove(starpu_tag_t id);
+
+void starpu_task_init(struct starpu_task *task);
 struct starpu_task *starpu_task_create(void);
+void starpu_task_destroy(struct starpu_task *task);
 int starpu_submit_task(struct starpu_task *task);
 
+/* This function blocks until the task was executed. It is not possible to
+ * synchronize with a task more than once. It is not possible to wait
+ * synchronous or detached tasks.
+ * Upon successful completion, this function returns 0. Otherwise, -EINVAL
+ * indicates that the waited task was either synchronous or detached. */
+int starpu_wait_task(struct starpu_task *task);
+
+void starpu_wait_all_tasks(void);
+
+void starpu_display_codelet_stats(struct starpu_codelet_t *cl);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __STARPU_TASK_H__

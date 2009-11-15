@@ -32,6 +32,8 @@ static int dummy_copy_ram_to_ram(struct starpu_data_state_t *state, uint32_t src
 #ifdef USE_CUDA
 static int copy_ram_to_cublas(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
 static int copy_cublas_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
+static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
+static int copy_cublas_to_ram_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
 #endif
 
 static const struct copy_data_methods_s vector_copy_data_methods_s = {
@@ -40,6 +42,8 @@ static const struct copy_data_methods_s vector_copy_data_methods_s = {
 #ifdef USE_CUDA
 	.ram_to_cuda = copy_ram_to_cublas,
 	.cuda_to_ram = copy_cublas_to_ram,
+	.ram_to_cuda_async = copy_ram_to_cublas_async,
+	.cuda_to_ram_async = copy_cublas_to_ram_async,
 #endif
 	.cuda_to_cuda = NULL,
 	.cuda_to_spu = NULL,
@@ -48,14 +52,14 @@ static const struct copy_data_methods_s vector_copy_data_methods_s = {
 	.spu_to_spu = NULL
 };
 
-size_t allocate_vector_buffer_on_node(data_state *state, uint32_t dst_node);
-void liberate_vector_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
-size_t dump_vector_interface(starpu_data_interface_t *interface, void *buffer);
-size_t vector_interface_get_size(struct starpu_data_state_t *state);
-uint32_t footprint_vector_interface_crc32(data_state *state, uint32_t hstate);
-void display_vector_interface(data_state *state, FILE *f);
+static size_t allocate_vector_buffer_on_node(data_state *state, uint32_t dst_node);
+static void liberate_vector_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
+static size_t dump_vector_interface(starpu_data_interface_t *interface, void *buffer);
+static size_t vector_interface_get_size(struct starpu_data_state_t *state);
+static uint32_t footprint_vector_interface_crc32(data_state *state, uint32_t hstate);
+static void display_vector_interface(data_state *state, FILE *f);
 #ifdef USE_GORDON
-int convert_vector_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
+static int convert_vector_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 
 struct data_interface_ops_t interface_vector_ops = {
@@ -135,16 +139,16 @@ struct dumped_vector_interface_s {
 	uint32_t elemsize;
 } __attribute__ ((packed));
 
-void display_vector_interface(data_state *state, FILE *f)
+static void display_vector_interface(data_state *state, FILE *f)
 {
 	starpu_vector_interface_t *interface;
 	interface =  &state->interface[0].vector;
 
-	fprintf(f, "%d\t", interface->nx);
+	fprintf(f, "%u\t", interface->nx);
 }
 
 
-size_t dump_vector_interface(starpu_data_interface_t *interface, void *_buffer)
+static size_t dump_vector_interface(starpu_data_interface_t *interface, void *_buffer)
 {
 	/* yes, that's DIRTY ... */
 	struct dumped_vector_interface_s *buffer = _buffer;
@@ -156,7 +160,7 @@ size_t dump_vector_interface(starpu_data_interface_t *interface, void *_buffer)
 	return (sizeof(struct dumped_vector_interface_s));
 }
 
-size_t vector_interface_get_size(struct starpu_data_state_t *state)
+static size_t vector_interface_get_size(struct starpu_data_state_t *state)
 {
 	size_t size;
 	starpu_vector_interface_t *interface;
@@ -187,7 +191,7 @@ uintptr_t starpu_get_vector_local_ptr(data_state *state)
 /* memory allocation/deallocation primitives for the vector interface */
 
 /* returns the size of the allocated area */
-size_t allocate_vector_buffer_on_node(data_state *state, uint32_t dst_node)
+static size_t allocate_vector_buffer_on_node(data_state *state, uint32_t dst_node)
 {
 	uintptr_t addr = 0;
 	size_t allocated_memory;
@@ -275,6 +279,63 @@ static int copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst
 
 	return 0;
 }
+
+static int copy_cublas_to_ram_async(data_state *state, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream)
+{
+	starpu_vector_interface_t *src_vector;
+	starpu_vector_interface_t *dst_vector;
+
+	src_vector = &state->interface[src_node].vector;
+	dst_vector = &state->interface[dst_node].vector;
+
+	cudaError_t cures;
+	cures = cudaMemcpyAsync((char *)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize, cudaMemcpyDeviceToHost, *stream);
+	if (cures)
+	{
+		/* do it in a synchronous fashion */
+		cures = cudaMemcpy((char *)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize, cudaMemcpyDeviceToHost);
+		cudaThreadSynchronize();
+
+		if (STARPU_UNLIKELY(cures))
+			CUDA_REPORT_ERROR(cures);
+
+		return 0;
+	}
+
+	TRACE_DATA_COPY(src_node, dst_node, src_vector->nx*src_vector->elemsize);
+
+	return EAGAIN;
+}
+
+static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream)
+{
+	starpu_vector_interface_t *src_vector;
+	starpu_vector_interface_t *dst_vector;
+
+	src_vector = &state->interface[src_node].vector;
+	dst_vector = &state->interface[dst_node].vector;
+
+	cudaError_t cures;
+	
+	cures = cudaMemcpyAsync((char *)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize, cudaMemcpyHostToDevice, *stream);
+	if (cures)
+	{
+		/* do it in a synchronous fashion */
+		cures = cudaMemcpy((char *)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize, cudaMemcpyHostToDevice);
+		cudaThreadSynchronize();
+
+		if (STARPU_UNLIKELY(cures))
+			CUDA_REPORT_ERROR(cures);
+
+		return 0;
+	}
+
+	TRACE_DATA_COPY(src_node, dst_node, src_vector->nx*src_vector->elemsize);
+
+	return EAGAIN;
+}
+
+
 #endif // USE_CUDA
 
 static int dummy_copy_ram_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)

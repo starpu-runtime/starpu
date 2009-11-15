@@ -14,11 +14,13 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-AC_INIT([StarPU],0.2, [http://runtime.bordeaux.inria.fr/StarPU/], starpu)
+AC_INIT([StarPU],0.2.901, [http://runtime.bordeaux.inria.fr/StarPU/], starpu)
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_PREREQ(2.60)
 
@@ -35,6 +37,8 @@ AC_PROG_MKDIR_P
 AC_PROG_LN_S
 
 AC_HEADER_STDC
+
+AC_C_RESTRICT
 
 # on Darwin, GCC targets i386 by default, so we don't have atomic ops
 case "$target" in
@@ -57,28 +61,18 @@ if test x$have_pthread_spin_lock = xyes; then
 fi
 
 # yes, that's non portable, but it's still better than sched_setaffinity
-AC_CHECK_FUNC(pthread_setaffinity_np,
-	[], [AC_DEFINE(DONTBIND, [1], [Threads are not bound on a CPU])])
+AC_CHECK_FUNCS(pthread_setaffinity_np)
 
-# There is no posix_memalign on Mac OS X
-AC_CHECK_FUNC(posix_memalign, have_posix_memalign=yes, have_posix_memalign=no)
-if test x$have_posix_memalign = xyes; then
-	AC_DEFINE(HAVE_POSIX_MEMALIGN,[],[posix_memalign is available])
-fi
+# There is no posix_memalign on Mac OS X, only memalign
+AC_CHECK_FUNCS([posix_memalign memalign])
 
-
-AC_CHECK_HEADER([malloc.h],[have_malloc_h_header=yes],[have_malloc_h_header=no])
-if test x$have_malloc_h_header = xyes; then
-	AC_DEFINE(HAVE_MALLOC_H_HEADER,[],[malloc.h header is available])
-fi
-
-AC_CHECK_FUNC(memalign, have_memalign=yes, have_memalign=no)
-if test x$have_memalign = xyes; then
-	AC_DEFINE(HAVE_MEMALIGN,[],[memalign is available])
-fi
+AC_CHECK_HEADERS([malloc.h])
 
 # This defines HAVE_SYNC_BUILTINS
 STARPU_CHECK_SYNC_BUILTINS
+
+# This defines HAVE_SYNC_FETCH_AND_ADD
+STARPU_CHECK_SYNC_FETCH_AND_ADD
 
 CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE "
 
@@ -127,14 +121,27 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	if test -d "$cuda_dir/include/"; then
 		CPPFLAGS="${CPPFLAGS} -I$cuda_dir/include/ "
 	fi
-	if test -d "$cuda_dir/lib/"; then
-		LDFLAGS="${LDFLAGS} -L$cuda_dir/lib/ "
-	fi
 
 	# do we have a valid CUDA setup ?
 	have_valid_cuda=yes
 	AC_CHECK_HEADER([cuda.h],,[have_valid_cuda=no])
-	AC_SEARCH_LIBS([cuInit],[cuda],,[have_valid_cuda=no])
+
+	# we are looking for the proper option in LDFLAGS, so we save the
+	# current value of LDFLAGS so that we can add new things in it and
+	# restore it in case it's not working.
+	SAVED_LDFLAGS="${LDFLAGS}"
+
+	found_cudalib=no
+	if test -d "$cuda_dir/lib/"; then
+		LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib/ "
+		AC_SEARCH_LIBS([cuInit],[cuda],[found_cudalib=yes],[found_cudalib=no])
+	fi
+
+	if test x$found_cudalib=xno -o -d "$cuda_dir/lib64/"; then
+		LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib64/ "
+	fi
+
+	AC_SEARCH_LIBS([cuInit],[cuda],[],[have_valid_cuda=no])
 
 	# we also check that CUBLAS is available
 	AC_SEARCH_LIBS([cublasInit],[cublas],,[have_valid_cuda=no])
@@ -229,6 +236,18 @@ fi
 #                                                                             #
 ###############################################################################
 
+AC_MSG_CHECKING(whether debug mode should be enabled)
+AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [enable debug mode])],
+			enable_debug=$enableval, enable_debug=no)
+AC_MSG_RESULT($enable_debug)
+
+if test x$enable_debug = xyes; then
+	CFLAGS=" -O0 "
+else
+	CFLAGS=" -O3 "
+fi
+CFLAGS+=" -gdwarf-2 -g3 "
+
 AC_MSG_CHECKING(whether debug messages should be displayed)
 AC_ARG_ENABLE(verbose, [AS_HELP_STRING([--enable-verbose],
 			[display verbose debug messages])],
@@ -296,18 +315,6 @@ if test x$use_fxt = xyes; then
 	AC_CHECK_LIB(fxt, fut_setup,,AC_MSG_ERROR([cannot find fxt lib]))
 	AC_CHECK_HEADER([fxt/fxt.h],,AC_MSG_ERROR([cannot find headers for fxt]))
 	AC_CHECK_HEADER([fxt/fut.h],,AC_MSG_ERROR([cannot find headers for fxt]))
-
-	# In case FxT traces are generated, we may use our (poor) hand-made gtk
-	# tool to visualize traces
-
-	PKG_PROG_PKG_CONFIG
-	PKG_CHECK_MODULES([GTK], [gtk+-2.0], enable_gtk=yes, enable_gtk=no) 
-	AC_SUBST(USE_GTK, $enable_gtk)
-	if test x$enable_gtk = xyes; then
-		AC_SUBST(GTK_CFLAGS)
-		AC_SUBST(GTK_LIBS)
-		AC_DEFINE(USE_GTK, [1], [enable GTK])
-	fi
 fi
 
 AC_MSG_CHECKING(whether performance debugging should be enabled)
@@ -359,16 +366,6 @@ if test x$enable_priority = xno; then
 	AC_DEFINE(NO_PRIO, [1], [Disable priorities])
 fi
 
-AC_MSG_CHECKING(whether data RW-lock should be used)
-AC_ARG_ENABLE(data-rw-lock, [AS_HELP_STRING([--enable-data-rw-lock],
-			[use data RW-locks])],
-			enable_data_rw_lock=$enableval, enable_data_rw_lock=no)
-AC_MSG_RESULT($enable_data_rw_lock)
-if test x$enable_data_rw_lock = xno; then
-	AC_DEFINE(NO_DATA_RW_LOCK, [1], [data RW-lock are disabled])
-fi
-
-
 AC_MSG_CHECKING(whether allocation cache should be used)
 AC_ARG_ENABLE(allocation-cache, [AS_HELP_STRING([--enable-allocation-cache],
 			[enable data allocation cache])],
@@ -396,8 +393,8 @@ AC_ARG_ENABLE(sync-clock, [AS_HELP_STRING([--enable-sync-clock], [Use monotonic 
 		enable_sync_clock=$enableval, enable_sync_clock=no)
 AC_MSG_CHECKING(whether using a synchronous clock)
 AC_MSG_RESULT($enable_sync_clock)
-AC_DEFINE(USE_SYNC_CLOCK, [1], [Use a mononotic clock])
 if test x$enable_sync_clock = xyes; then
+	AC_DEFINE(USE_SYNC_CLOCK, [1], [Use a mononotic clock])
 	AC_CHECK_LIB(rt, clock_gettime,,AC_MSG_ERROR([cannot find clock_gettime]))
 fi
 
@@ -515,6 +512,23 @@ AC_MSG_CHECKING(which BLAS lib should be used)
 AC_MSG_RESULT($blas_lib)
 AC_SUBST(BLAS_LIB,$blas_lib)
 
+PKG_CHECK_MODULES([FFTW],  [fftw3],  [
+  AC_DEFINE([HAVE_FFTW], [1], [Define to 1 if you have the libfftw3 library.])
+  AC_SUBST([HAVE_FFTW], [1])
+], [:])
+PKG_CHECK_MODULES([FFTWF], [fftw3f], [
+  AC_DEFINE([HAVE_FFTWF], [1], [Define to 1 if you have the libfftw3f library.])
+  AC_SUBST([HAVE_FFTWF], [1])
+], [:])
+PKG_CHECK_MODULES([FFTWL], [fftw3l], [
+  AC_DEFINE([HAVE_FFTWL], [1], [Define to 1 if you have the libfftw3l library.])
+  AC_SUBST([HAVE_FFTWFL], [1])
+], [:])
+PKG_CHECK_MODULES([HWLOC], [hwloc], [
+  AC_DEFINE([HAVE_HWLOC], [1], [Define to 1 if you have the hwloc library.])
+  AC_SUBST([HAVE_HWLOC], [1])
+], [:])
+
 AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h)
 
 AC_OUTPUT([
@@ -523,6 +537,7 @@ AC_OUTPUT([
 	tools/Makefile
 	libstarpu.pc
 	examples/Makefile
+	examples/starpufft/Makefile
 	tests/Makefile
 	doc/Makefile
 ])

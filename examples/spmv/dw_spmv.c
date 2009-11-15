@@ -26,42 +26,30 @@ struct timeval end;
 unsigned nblocks = 1;
 unsigned remainingtasks = -1;
 
-/* First a Matrix-Vector product (SpMV) */
-
-unsigned blocks = 512;
-unsigned grids  = 8;
-
 #ifdef USE_CUDA
-/* CUDA spmv codelet */
-static struct starpu_cuda_module_s cuda_module;
-static struct starpu_cuda_function_s cuda_function;
-static starpu_cuda_codelet_t cuda_spmv;
 
-void initialize_cuda(void)
+extern void spmv_kernel_cpu_wrapper(uint32_t nnz, uint32_t nrow, float *nzval,
+			uint32_t *colind, uint32_t *rowptr, uint32_t firstentry,
+			float *vecin, uint32_t nx_in,
+			float * vecout, uint32_t nx_out);
+
+void spmv_kernel_cuda(starpu_data_interface_t *buffers, void *args)
 {
-	char module_path[1024];
-	sprintf(module_path,
-		"%s/examples/cuda/spmv_cuda.cubin", STARPUDIR);
-	char *function_symbol = "spmv_kernel_3";
+	uint32_t nnz = buffers[0].csr.nnz;
+	uint32_t nrow = buffers[0].csr.nrow;
+	float *nzval = (float *)buffers[0].csr.nzval;
+	uint32_t *colind = buffers[0].csr.colind;
+	uint32_t *rowptr = buffers[0].csr.rowptr;
+	uint32_t firstentry = buffers[0].csr.firstentry;
 
-	starpu_init_cuda_module(&cuda_module, module_path);
-	starpu_init_cuda_function(&cuda_function, &cuda_module, function_symbol);
+	float *vecin = (float *)buffers[1].vector.ptr;
+	uint32_t nx_in = buffers[1].vector.nx;
 
-	cuda_spmv.func = &cuda_function;
-	cuda_spmv.stack = NULL;
-	cuda_spmv.stack_size = 0; 
+	float *vecout = (float *)buffers[2].vector.ptr;
+	uint32_t nx_out = buffers[2].vector.nx;
 
-	cuda_spmv.gridx = grids;
-	cuda_spmv.gridy = 1;
-
-	cuda_spmv.blockx = blocks;
-	cuda_spmv.blocky = 1;
-
-	cuda_spmv.shmemsize = 60;
+	spmv_kernel_cpu_wrapper(nnz, nrow, nzval, colind, rowptr, firstentry, vecin, nx_in, vecout, nx_out);
 }
-
-
-
 
 #endif // USE_CUDA
 
@@ -89,16 +77,6 @@ void parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-size") == 0) {
 			char *argptr;
 			size = strtol(argv[++i], &argptr, 10);
-		}
-
-		if (strcmp(argv[i], "-block") == 0) {
-			char *argptr;
-			blocks = strtol(argv[++i], &argptr, 10);
-		}
-
-		if (strcmp(argv[i], "-grid") == 0) {
-			char *argptr;
-			grids = strtol(argv[++i], &argptr, 10);
 		}
 
 		if (strcmp(argv[i], "-nblocks") == 0) {
@@ -274,7 +252,7 @@ void call_spmv_codelet_filters(void)
 	cl->where = CORE|CUDA;
 	cl->core_func =  core_spmv;
 #ifdef USE_CUDA
-	cl->cuda_func = &cuda_spmv;
+	cl->cuda_func = spmv_kernel_cuda;
 #endif
 	cl->nbuffers = 3;
 
@@ -329,10 +307,6 @@ int main(__attribute__ ((unused)) int argc,
 	starpu_init(NULL);
 
 	sem_init(&sem, 0, 0U);
-
-#ifdef USE_CUDA
-	initialize_cuda();
-#endif
 
 	init_problem();
 

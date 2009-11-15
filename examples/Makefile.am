@@ -19,19 +19,25 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/
 
 TESTS = $(check_PROGRAMS)
 
+SUBDIRS = starpufft
+
 check_PROGRAMS =
 
 BUILT_SOURCES =
 
 EXTRA_DIST = 					\
 	cuda/incrementer_cuda.cu		\
-	cuda/spmv_cuda.cu			\
+	spmv/spmv_cuda.cu			\
 	gordon/null_kernel_gordon.c		\
-	mult/gordon/func_sgemm_ibm.c
+	mult/xgemm.c				\
+	mult/xgemm_kernels.c			\
+	mult/gordon/func_sgemm_ibm.c		\
+	lu/xlu.c				\
+	lu/xlu_pivot.c				\
+	lu/xlu_kernels.c			\
+	lu/lu_example.c
 
 CLEANFILES = 					\
-	cuda/incrementer_cuda.cubin		\
-	cuda/spmv_cuda.cubin			\
 	gordon/null_kernel_gordon.spuelf	\
 	mult/gordon/func_sgemm_ibm.spuelf
 	
@@ -50,10 +56,6 @@ NVCC ?= nvcc
 .cu.o:
 	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
 
-
-BUILT_SOURCES +=				\
-	cuda/incrementer_cuda.cubin		\
-	cuda/spmv_cuda.cubin			
 
 endif
 
@@ -88,6 +90,10 @@ noinst_HEADERS = 				\
 	heat/dw_sparse_cg.h			\
 	heat/heat.h				\
 	heat/dw_factolu.h			\
+	lu/xlu.h				\
+	lu/xlu_kernels.h			\
+	lu/float.h				\
+	lu/double.h				\
 	cholesky/dw_cholesky_models.h		\
 	cholesky/dw_cholesky.h			\
 	common/blas_model.h			\
@@ -145,37 +151,53 @@ examplebin_PROGRAMS +=				\
 ppm_downscaler_yuv_downscaler_SOURCES =		\
 	ppm-downscaler/yuv-downscaler.c
 
+
+################
+# AXPY example #
+################
+
+if !NO_BLAS_LIB
+
+examplebin_PROGRAMS +=				\
+	axpy/axpy
+
+axpy_axpy_SOURCES =				\
+	axpy/axpy.c				\
+	common/blas.c
+
+endif
+
 ################
 # Mult example #
 ################
 
 if !NO_BLAS_LIB
 
-examplebin_PROGRAMS += 			\
-	mult/dw_mult 				\
+examplebin_PROGRAMS += 				\
+	mult/sgemm 				\
+	mult/dgemm 				\
 	mult/dw_mult_no_stride			\
 	mult/dw_mult_no_stride_no_tag 
 
-mult_dw_mult_SOURCES = 				\
-	mult/dw_mult.c				\
+mult_sgemm_SOURCES = 				\
+	mult/sgemm.c				\
+	common/blas.c				\
+	common/blas_model.c
+	
+mult_dgemm_SOURCES = 				\
+	mult/dgemm.c				\
 	common/blas.c				\
 	common/blas_model.c
 		
 mult_dw_mult_no_stride_SOURCES = 		\
 	mult/dw_mult_no_stride.c		\
+	mult/sgemm_kernels.c			\
 	common/blas.c				\
 	common/blas_model.c
 
 mult_dw_mult_no_stride_no_tag_SOURCES =		\
 	mult/dw_mult_no_stride_no_tag.c		\
-	common/blas.c				\
-	common/blas_model.c
-
-examplebin_PROGRAMS +=				\
-	mult/dw_mult_no_filters
-
-mult_dw_mult_no_filters_SOURCES =		\
-	mult/dw_mult_no_filters.c		\
+	mult/sgemm_kernels.c			\
 	common/blas.c				\
 	common/blas_model.c
 
@@ -189,7 +211,8 @@ if !NO_BLAS_LIB
 
 examplebin_PROGRAMS += 			\
 	cholesky/dw_cholesky			\
-	cholesky/dw_cholesky_no_stride
+	cholesky/dw_cholesky_no_stride		\
+	cholesky/dw_cholesky_grain
 
 cholesky_dw_cholesky_SOURCES =			\
 	cholesky/dw_cholesky.c			\
@@ -203,7 +226,40 @@ cholesky_dw_cholesky_no_stride_SOURCES =	\
 	cholesky/dw_cholesky_kernels.c		\
 	common/blas.c
 
+cholesky_dw_cholesky_grain_SOURCES =		\
+	cholesky/dw_cholesky_grain.c		\
+	cholesky/dw_cholesky_models.c		\
+	cholesky/dw_cholesky_kernels.c		\
+	common/blas.c
+
 endif
+
+##############
+# LU example #
+##############
+
+if !NO_BLAS_LIB
+
+examplebin_PROGRAMS += 				\
+	lu/lu_example_float			\
+	lu/lu_example_double
+
+lu_lu_example_float_SOURCES =			\
+	lu/lu_example_float.c			\
+	lu/slu.c				\
+	lu/slu_pivot.c				\
+	lu/slu_kernels.c			\
+	common/blas.c
+
+lu_lu_example_double_SOURCES =			\
+	lu/lu_example_double.c			\
+	lu/dlu.c				\
+	lu/dlu_pivot.c				\
+	lu/dlu_kernels.c			\
+	common/blas.c
+
+endif
+
 
 ################
 # Heat example #
@@ -219,6 +275,7 @@ heat_heat_SOURCES =				\
 	heat/heat.c				\
 	heat/dw_factolu.c			\
 	heat/dw_factolu_tag.c			\
+	heat/dw_factolu_grain.c			\
 	heat/dw_sparse_cg.c			\
 	heat/heat_display.c			\
 	heat/lu_kernels_model.c			\
@@ -235,12 +292,14 @@ endif
 check_PROGRAMS +=			\
 	tag_example/tag_example			\
 	tag_example/tag_example3			\
-	tag_example/tag_example2
+	tag_example/tag_example2	\
+	tag_example/tag_restartable
 
 examplebin_PROGRAMS +=			\
 	tag_example/tag_example			\
 	tag_example/tag_example3		\
-	tag_example/tag_example2
+	tag_example/tag_example2	\
+	tag_example/tag_restartable
 
 tag_example_tag_example_SOURCES =		\
 	tag_example/tag_example.c
@@ -250,6 +309,9 @@ tag_example_tag_example2_SOURCES =		\
 
 tag_example_tag_example3_SOURCES =		\
 	tag_example/tag_example2.c
+
+tag_example_tag_restartable_SOURCES =		\
+	tag_example/tag_restartable.c
 
 ####################
 # Strassen example #
@@ -296,7 +358,8 @@ examplebin_PROGRAMS += 				\
 	spmv/dw_block_spmv
 
 spmv_dw_spmv_SOURCES = 				\
-	spmv/dw_spmv.c
+	spmv/dw_spmv.c				\
+	spmv/spmv_cuda.cu
 
 spmv_dw_block_spmv_SOURCES =			\
 	spmv/dw_block_spmv.c			\
@@ -312,21 +375,16 @@ endif
 
 
 check_PROGRAMS +=				\
-	incrementer/incrementer			\
-	incrementer/incrementer_runtime
+	incrementer/incrementer
 
 examplebin_PROGRAMS +=				\
-	incrementer/incrementer			\
-	incrementer/incrementer_runtime
-
-incrementer_incrementer_SOURCES =		\
-	incrementer/incrementer.c
+	incrementer/incrementer
 
 if USE_CUDA
-incrementer_incrementer_runtime_SOURCES =	\
-	incrementer/incrementer_runtime.c	\
-	incrementer/incrementer_runtime_kernels.cu
+incrementer_incrementer_SOURCES =	\
+	incrementer/incrementer.c	\
+	incrementer/incrementer_kernels.cu
 else
-incrementer_incrementer_runtime_SOURCES =	\
-	incrementer/incrementer_runtime.c
+incrementer_incrementer_SOURCES =	\
+	incrementer/incrementer.c
 endif

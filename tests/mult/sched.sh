@@ -16,33 +16,29 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-
-maxiter=10
-MAXCPU=3
+maxiter=5
 
 trace_sched()
 {
+	sched=$1
+
 	for blocks in `seq 2 1 24`
 	do
 		size=$(($blocks*1024))
 	
 		echo "size : $size"
 	
-		OPTIONS="-pin -nblocks $blocks -x $size -y $size -z $size"
+		OPTIONS="-pin -nblocks $blocks -x $size -y $size -z 1024"
 		
 		cd $ROOTDIR
-		filename=$TIMINGDIR/sched.$SCHED.$size
-		#rm -f $filename
-		make clean 1> /dev/null 2> /dev/null
-		make examples -j ATLAS=1 CPUS=$MAXCPU CUDA=1 1> /dev/null 2> /dev/null
-		cd $DIR
+		filename=$TIMINGDIR/sched.$sched.$size
 		
 		for iter in `seq 1 $maxiter`
 		do
 			echo "$iter / $maxiter"
-			 echo "$ROOTDIR/examples/mult/dw_mult $OPTIONS 2> /dev/null"
-			 val=`$ROOTDIR/examples/mult/dw_mult $OPTIONS 2> /dev/null`
-			 echo "$val" >> $filename
+			#echo "$ROOTDIR/examples/mult/sgemm $OPTIONS 2> /dev/null"
+			NCUDA=1 CALIBRATE=1 SCHED="$sched" $ROOTDIR/examples/mult/sgemm $OPTIONS 2> /dev/null >> $filename
+			tail -1 $filename
 		done
 	done
 }
@@ -52,13 +48,14 @@ ROOTDIR=$DIR/../..
 TIMINGDIR=$DIR/timings-sched/
 mkdir -p $TIMINGDIR
 
-schedlist="random greedy model random random random greedy dm greedy dm random random random random"
-#schedlist="random"
+schedlist="random random random greedy greedy dm"
 
+for iter in `seq 1 10000`
+do
+echo "ITER $iter"
 for sched in $schedlist
 do
-	export SCHED=$sched
-	echo "sched : $SCHED"
+	trace_sched $sched;
+done
 
-	trace_sched;
 done

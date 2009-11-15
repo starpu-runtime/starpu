@@ -20,16 +20,15 @@
 
 #include <starpu.h>
 
-static void *dummy_func(void *arg __attribute__ ((unused)))
+static void dummy_func(starpu_data_interface_t *descr __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
-	return NULL;
 }
 
 static starpu_codelet dummy_codelet = 
 {
-	.where = ANY,
+	.where = CORE|CUDA,
 	.core_func = dummy_func,
-	.cublas_func = dummy_func,
+	.cuda_func = dummy_func,
 	.model = NULL,
 	.nbuffers = 0
 };

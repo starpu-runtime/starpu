@@ -29,16 +29,15 @@ static unsigned cnt;
 
 static unsigned finished = 0;
 
-static void *dummy_func(void *arg __attribute__ ((unused)))
+static void dummy_func(starpu_data_interface_t *descr __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
-	return NULL;
 }
 
 static starpu_codelet dummy_codelet = 
 {
-	.where = ANY,
+	.where = CORE|CUDA|GORDON,
 	.core_func = dummy_func,
-	.cublas_func = dummy_func,
+	.cuda_func = dummy_func,
 #ifdef USE_GORDON
 	.gordon_func = 0, /* this will be defined later */
 #endif
@@ -93,6 +92,8 @@ static struct starpu_conf conf = {
 	.ncpus = -1,
 	.ncuda = -1,
 	.nspus = -1,
+	.use_explicit_workers_bindid = 0,
+	.use_explicit_workers_gpuid = 0,
 	.calibrate = 0
 };
 

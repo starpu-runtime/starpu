@@ -14,7 +14,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
+#include <common/config.h>
 #include <common/fxt.h>
+
+#ifdef USE_FXT
 
 #define PROF_BUFFER_SIZE  (8*1024*1024)
 
@@ -29,11 +33,14 @@ static void profile_stop(void)
 static void profile_set_tracefile(char *fmt, ...)
 {
 	va_list vl;
+	char *user;
 	
 	va_start(vl, fmt);
 	vsprintf(PROF_FILE_USER, fmt, vl);
 	va_end(vl);
 	strcat(PROF_FILE_USER, "_user_");
+	if ((user = getenv("USER")))
+		strcat(PROF_FILE_USER, user);
 }
 
 
@@ -63,4 +70,11 @@ void start_fxt_profiling(void)
 void fxt_register_thread(unsigned coreid)
 {
 	FUT_DO_PROBE2(FUT_NEW_LWP_CODE, coreid, syscall(SYS_gettid));
+}
+
+#endif
+
+void starpu_trace_user_event(unsigned code __attribute__((unused)))
+{
+	TRACE_USER_EVENT(code);
 }

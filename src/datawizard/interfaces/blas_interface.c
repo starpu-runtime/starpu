@@ -20,18 +20,22 @@
 #include <datawizard/copy-driver.h>
 #include <datawizard/hierarchy.h>
 
+
 #include <common/hash.h>
 
 #include <starpu.h>
 
 #ifdef USE_CUDA
 #include <cuda.h>
+#include <cuda_runtime.h>
 #endif
 
 static int dummy_copy_ram_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
 #ifdef USE_CUDA
 static int copy_ram_to_cublas(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
 static int copy_cublas_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
+static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
+static int copy_cublas_to_ram_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
 #endif
 
 static const struct copy_data_methods_s blas_copy_data_methods_s = {
@@ -40,6 +44,8 @@ static const struct copy_data_methods_s blas_copy_data_methods_s = {
 #ifdef USE_CUDA
 	.ram_to_cuda = copy_ram_to_cublas,
 	.cuda_to_ram = copy_cublas_to_ram,
+	.ram_to_cuda_async = copy_ram_to_cublas_async,
+	.cuda_to_ram_async = copy_cublas_to_ram_async,
 #endif
 	.cuda_to_cuda = NULL,
 	.cuda_to_spu = NULL,
@@ -48,14 +54,14 @@ static const struct copy_data_methods_s blas_copy_data_methods_s = {
 	.spu_to_spu = NULL
 };
 
-size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node);
-void liberate_blas_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
-size_t dump_blas_interface(starpu_data_interface_t *interface, void *buffer);
-size_t blas_interface_get_size(struct starpu_data_state_t *state);
-uint32_t footprint_blas_interface_crc32(data_state *state, uint32_t hstate);
-void display_blas_interface(data_state *state, FILE *f);
+static size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node);
+static void liberate_blas_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
+static size_t dump_blas_interface(starpu_data_interface_t *interface, void *buffer);
+static size_t blas_interface_get_size(struct starpu_data_state_t *state);
+static uint32_t footprint_blas_interface_crc32(data_state *state, uint32_t hstate);
+static void display_blas_interface(data_state *state, FILE *f);
 #ifdef USE_GORDON
-int convert_blas_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
+static int convert_blas_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 
 struct data_interface_ops_t interface_blas_ops = {
@@ -73,7 +79,7 @@ struct data_interface_ops_t interface_blas_ops = {
 };
 
 #ifdef USE_GORDON
-int convert_blas_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
+static int convert_blas_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
 	size_t elemsize = (*interface).blas.elemsize;
 	uint32_t nx = (*interface).blas.nx;
@@ -136,7 +142,7 @@ static inline uint32_t footprint_blas_interface_generic(uint32_t (*hash_func)(ui
 	return hash;
 }
 
-uint32_t footprint_blas_interface_crc32(data_state *state, uint32_t hstate)
+static uint32_t footprint_blas_interface_crc32(data_state *state, uint32_t hstate)
 {
 	return footprint_blas_interface_generic(crc32_be, state, hstate);
 }
@@ -148,16 +154,16 @@ struct dumped_blas_interface_s {
 	uint32_t ld;
 } __attribute__ ((packed));
 
-void display_blas_interface(data_state *state, FILE *f)
+static void display_blas_interface(data_state *state, FILE *f)
 {
 	starpu_blas_interface_t *interface;
 
 	interface = &state->interface[0].blas;
 
-	fprintf(f, "%d\t%d\t", interface->nx, interface->ny);
+	fprintf(f, "%u\t%u\t", interface->nx, interface->ny);
 }
 
-size_t dump_blas_interface(starpu_data_interface_t *interface, void *_buffer)
+static size_t dump_blas_interface(starpu_data_interface_t *interface, void *_buffer)
 {
 	/* yes, that's DIRTY ... */
 	struct dumped_blas_interface_s *buffer = _buffer;
@@ -170,14 +176,14 @@ size_t dump_blas_interface(starpu_data_interface_t *interface, void *_buffer)
 	return (sizeof(struct dumped_blas_interface_s));
 }
 
-size_t blas_interface_get_size(struct starpu_data_state_t *state)
+static size_t blas_interface_get_size(struct starpu_data_state_t *state)
 {
 	size_t size;
 	starpu_blas_interface_t *interface;
 
 	interface = &state->interface[0].blas;
 
-	size = interface->nx*interface->ny*interface->elemsize; 
+	size = (size_t)interface->nx*interface->ny*interface->elemsize; 
 
 	return size;
 }
@@ -216,40 +222,42 @@ uintptr_t starpu_get_blas_local_ptr(data_state *state)
 /* memory allocation/deallocation primitives for the BLAS interface */
 
 /* returns the size of the allocated area */
-size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
+static size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 {
 	uintptr_t addr = 0;
 	unsigned fail = 0;
 	size_t allocated_memory;
 
 #ifdef USE_CUDA
-	cublasStatus status;
+	cudaError_t status;
+	size_t pitch;
 #endif
 	uint32_t nx = state->interface[dst_node].blas.nx;
 	uint32_t ny = state->interface[dst_node].blas.ny;
+	uint32_t ld = nx; // by default
 	size_t elemsize = state->interface[dst_node].blas.elemsize;
 
 	node_kind kind = get_node_kind(dst_node);
 
 	switch(kind) {
 		case RAM:
-			addr = (uintptr_t)malloc(nx*ny*elemsize);
+			addr = (uintptr_t)malloc((size_t)nx*ny*elemsize);
 			if (!addr) 
 				fail = 1;
 
 			break;
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			status = cublasAlloc(nx*ny, elemsize, (void **)&addr);
-
-			if (!addr || status != CUBLAS_STATUS_SUCCESS)
+			status = cudaMallocPitch((void **)&addr, &pitch, (size_t)nx*elemsize, (size_t)ny);
+			if (!addr || status != cudaSuccess)
 			{
-				STARPU_ASSERT(status != CUBLAS_STATUS_INTERNAL_ERROR);
-				STARPU_ASSERT(status != CUBLAS_STATUS_NOT_INITIALIZED);
-				STARPU_ASSERT(status != CUBLAS_STATUS_INVALID_VALUE);
-				STARPU_ASSERT(status == CUBLAS_STATUS_ALLOC_FAILED);
+				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
+					 CUDA_REPORT_ERROR(status);
+					
 				fail = 1;
 			}
+
+			ld = (uint32_t)(pitch/elemsize);
 
 			break;
 #endif
@@ -259,11 +267,11 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 
 	if (!fail) {
 		/* allocation succeeded */
-		allocated_memory = nx*ny*elemsize;
+		allocated_memory = (size_t)nx*ny*elemsize;
 
 		/* update the data properly in consequence */
 		state->interface[dst_node].blas.ptr = addr;
-		state->interface[dst_node].blas.ld = nx;
+		state->interface[dst_node].blas.ld = ld;
 	} else {
 		/* allocation failed */
 		allocated_memory = 0;
@@ -272,10 +280,10 @@ size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 	return allocated_memory;
 }
 
-void liberate_blas_buffer_on_node(starpu_data_interface_t *interface, uint32_t node)
+static void liberate_blas_buffer_on_node(starpu_data_interface_t *interface, uint32_t node)
 {
 #ifdef USE_CUDA
-	cublasStatus status;
+	cudaError_t status;
 #endif
 
 	node_kind kind = get_node_kind(node);
@@ -285,10 +293,9 @@ void liberate_blas_buffer_on_node(starpu_data_interface_t *interface, uint32_t n
 			break;
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			status = cublasFree((void*)interface->blas.ptr);
-			
-			STARPU_ASSERT(status != CUBLAS_STATUS_INTERNAL_ERROR);
-			STARPU_ASSERT(status == CUBLAS_STATUS_SUCCESS);
+			status = cudaFree((void*)interface->blas.ptr);			
+			if (STARPU_UNLIKELY(status))
+				CUDA_REPORT_ERROR(status);
 
 			break;
 #endif
@@ -306,33 +313,116 @@ static int copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t dst
 	src_blas = &state->interface[src_node].blas;
 	dst_blas = &state->interface[dst_node].blas;
 
-	cublasGetMatrix(src_blas->nx, src_blas->ny, src_blas->elemsize,
-		(uint8_t *)src_blas->ptr, src_blas->ld,
-		(uint8_t *)dst_blas->ptr, dst_blas->ld);
+	size_t elemsize = src_blas->elemsize;
 
-	TRACE_DATA_COPY(src_node, dst_node, src_blas->nx*src_blas->ny*src_blas->elemsize);
+	cudaError_t cures;
+	cures = cudaMemcpy2D((char *)dst_blas->ptr, dst_blas->ld*elemsize,
+			(char *)src_blas->ptr, src_blas->ld*elemsize,
+			src_blas->nx*elemsize, src_blas->ny, cudaMemcpyDeviceToHost);
+	if (STARPU_UNLIKELY(cures))
+		CUDA_REPORT_ERROR(cures);
+
+	TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
 
 	return 0;
 }
 
 static int copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst_node)
 {
+	starpu_blas_interface_t *src_blas;
+	starpu_blas_interface_t *dst_blas;
 
+	src_blas = &state->interface[src_node].blas;
+	dst_blas = &state->interface[dst_node].blas;
+	size_t elemsize = src_blas->elemsize;
+
+	cudaError_t cures;
+	cures = cudaMemcpy2D((char *)dst_blas->ptr, dst_blas->ld*elemsize,
+			(char *)src_blas->ptr, src_blas->ld*elemsize,
+			src_blas->nx*elemsize, src_blas->ny, cudaMemcpyHostToDevice);
+	if (STARPU_UNLIKELY(cures))
+		CUDA_REPORT_ERROR(cures);
+		
+	cures = cudaThreadSynchronize();
+	if (STARPU_UNLIKELY(cures))
+		CUDA_REPORT_ERROR(cures);
+		
+	TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
+
+	return 0;
+}
+
+static int copy_cublas_to_ram_async(data_state *state, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream)
+{
 	starpu_blas_interface_t *src_blas;
 	starpu_blas_interface_t *dst_blas;
 
 	src_blas = &state->interface[src_node].blas;
 	dst_blas = &state->interface[dst_node].blas;
 
+	size_t elemsize = src_blas->elemsize;
 
-	cublasSetMatrix(src_blas->nx, src_blas->ny, src_blas->elemsize,
-		(uint8_t *)src_blas->ptr, src_blas->ld,
-		(uint8_t *)dst_blas->ptr, dst_blas->ld);
+	cudaError_t cures;	
+	cures = cudaMemcpy2DAsync((char *)dst_blas->ptr, dst_blas->ld*elemsize,
+			(char *)src_blas->ptr, (size_t)src_blas->ld*elemsize,
+			(size_t)src_blas->nx*elemsize, src_blas->ny,
+			cudaMemcpyDeviceToHost, *stream);
+	if (cures)
+	{
+		cures = cudaMemcpy2D((char *)dst_blas->ptr, dst_blas->ld*elemsize,
+			(char *)src_blas->ptr, (size_t)src_blas->ld*elemsize,
+			(size_t)src_blas->nx*elemsize, (size_t)src_blas->ny,
+			cudaMemcpyDeviceToHost);
 
-	TRACE_DATA_COPY(src_node, dst_node, src_blas->nx*src_blas->ny*src_blas->elemsize);
+		if (STARPU_UNLIKELY(cures))
+			CUDA_REPORT_ERROR(cures);
 
-	return 0;
+		cures = cudaThreadSynchronize();
+		if (STARPU_UNLIKELY(cures))
+			CUDA_REPORT_ERROR(cures);
+		
+
+		return 0;
+	}
+
+	TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
+
+	return EAGAIN;
 }
+
+static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream)
+{
+	starpu_blas_interface_t *src_blas;
+	starpu_blas_interface_t *dst_blas;
+
+	src_blas = &state->interface[src_node].blas;
+	dst_blas = &state->interface[dst_node].blas;
+
+	size_t elemsize = src_blas->elemsize;
+
+	cudaError_t cures;
+	cures = cudaMemcpy2DAsync((char *)dst_blas->ptr, dst_blas->ld*elemsize,
+				(char *)src_blas->ptr, src_blas->ld*elemsize,
+				src_blas->nx*elemsize, src_blas->ny,
+				cudaMemcpyHostToDevice, *stream);
+	if (cures)
+	{
+		cures = cudaMemcpy2D((char *)dst_blas->ptr, dst_blas->ld*elemsize,
+				(char *)src_blas->ptr, src_blas->ld*elemsize,
+				src_blas->nx*elemsize, src_blas->ny, cudaMemcpyHostToDevice);
+		cudaThreadSynchronize();
+
+		if (STARPU_UNLIKELY(cures))
+			CUDA_REPORT_ERROR(cures);
+
+		return 0;
+	}
+
+	TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
+
+	return EAGAIN;
+}
+
 #endif // USE_CUDA
 
 /* as not all platform easily have a BLAS lib installed ... */
@@ -359,7 +449,7 @@ static int dummy_copy_ram_to_ram(data_state *state, uint32_t src_node, uint32_t 
 			(void *)(ptr_src + src_offset), nx*elemsize);
 	}
 
-	TRACE_DATA_COPY(src_node, dst_node, nx*ny*elemsize);
+	TRACE_DATA_COPY(src_node, dst_node, (size_t)nx*ny*elemsize);
 
 	return 0;
 }

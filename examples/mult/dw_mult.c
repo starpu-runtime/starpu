@@ -23,9 +23,6 @@
 float *A, *B, *C;
 starpu_data_handle A_handle, B_handle, C_handle;
 
-pthread_mutex_t mutex;
-pthread_cond_t cond;
-
 /*
  * That program should compute C = A * B 
  * 
@@ -59,15 +56,7 @@ void terminate(void)
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	uint64_t total_flop = BLAS3_FLOP(ydim, xdim, zdim);
-	uint64_t total_ls = ls_cublas + ls_atlas;
-
-	fprintf(stderr, "Computation took (ms):\n");
-	printf("%2.2f\n", timing/1000);
-	fprintf(stderr, "	GFlop : total (%2.2f) cublas (%2.2f) atlas (%2.2f)\n", (double)total_flop/1000000000.0f, (double)flop_cublas/1000000000.0f, (double)flop_atlas/1000000000.0f);
-	fprintf(stderr, "	GFlop/s : %2.2f\n", (double)total_flop / (double)timing/1000);
-	fprintf(stderr, "	GB : total (%2.2f) cublas (%2.2f) atlas (%2.2f)\n", (double)total_ls/1000000000.0f, (double)ls_cublas/1000000000.0f, (double)ls_atlas/1000000000.0f);
-	fprintf(stderr, "	GB/s : %2.2f\n", (double)total_ls / (double)timing/1000);
+	display_stats(timing);
 
 #ifdef CHECK_OUTPUT
 	/* check results */
@@ -86,78 +75,14 @@ void terminate(void)
 		fprintf(stderr, "There were errors ... err = %f\n", err);
 	}
 #endif // CHECK_OUTPUT
-
-	pthread_mutex_lock(&mutex);
-	pthread_cond_signal(&cond);
-	pthread_mutex_unlock(&mutex);
 }
 
 void callback_func(void *arg)
 {
-	/* the argument is a pointer to a counter of the remaining tasks */
-	int *counterptr = arg;
-
-	int counter = STARPU_ATOMIC_ADD(counterptr, -1);
-	if (counter == 0)
-	{
-		/* we are done */	
-		fprintf(stderr, "done ...\n");
-		terminate();
-	}
-
-	return;
-}
-
-
-#define COMMON_CODE			\
-	uint32_t nxC, nyC, nyA;		\
-	uint32_t ldA, ldB, ldC;		\
-					\
-	float *subA;			\
-	float *subB;			\
-	float *subC;			\
-					\
-	subA = (float *)descr[0].blas.ptr;	\
-	subB = (float *)descr[1].blas.ptr;	\
-	subC = (float *)descr[2].blas.ptr;	\
-					\
-	nxC = descr[2].blas.nx;		\
-	nyC = descr[2].blas.ny;		\
-	nyA = descr[0].blas.ny;		\
-					\
-	ldA = descr[0].blas.ld;		\
-	ldB = descr[1].blas.ld;		\
-	ldC = descr[2].blas.ld;
-
-
-
-#ifdef USE_CUDA
-void cublas_mult(starpu_data_interface_t *descr, __attribute__((unused)) void *arg)
-{
-	COMMON_CODE
-
-	cublasSgemm('n', 'n', nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 
-					     0.0f, subC, ldC);
-	cublasStatus st;
-	st = cublasGetError();
-	if (st != CUBLAS_STATUS_SUCCESS)
-		STARPU_ASSERT(0);
-
-	uint64_t flopcnt = BLAS3_FLOP(nyC, nxC, nyA);
-
-	flop_cublas += flopcnt;
-	ls_cublas += BLAS3_LS(nyC, nxC, nyA);
-}
-#endif
-
-void core_mult(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
-{
-	COMMON_CODE
-
-	SGEMM("N", "N", nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 0.0f, subC, ldC);
-
-	flop_atlas += BLAS3_FLOP(nxC, nyC, nyA);
-	ls_atlas += BLAS3_LS(nxC, nyC, nyA);
+	/* do some accounting */
+	int id = starpu_get_worker_id();
+	flop_per_worker[id] += BLAS3_FLOP(conf.m, conf.n, conf.k);
+	ls_per_worker[id] += BLAS3_LS(conf.m, conf.n, conf.k);
 }
 
 static void init_problem_data(void)
@@ -235,6 +160,8 @@ static void partition_mult_data(void)
 	starpu_register_blas_data(&C_handle, 0, (uintptr_t)C, 
 		ydim, ydim, xdim, sizeof(float));
 
+	starpu_data_set_wb_mask(C_handle, 1<<0);
+
 	conf.k = zdim;
 	conf.m = ydim/nslicesy;
 	conf.n = xdim/nslicesx;
@@ -253,6 +180,22 @@ static void partition_mult_data(void)
 	starpu_map_filters(C_handle, 2, &f, &f2);
 }
 
+static starpu_codelet cl = {
+	.where = CORE|CUDA|GORDON,
+	.core_func = core_mult,
+#ifdef USE_CUDA
+	.cuda_func = cublas_mult,
+#endif
+#ifdef USE_GORDON
+#ifdef SPU_FUNC_SGEMM
+	.gordon_func = SPU_FUNC_SGEMM,
+#else
+#warning SPU_FUNC_SGEMM is not available
+#endif
+#endif
+	.nbuffers = 3
+};
+
 static void launch_codelets(void)
 {
 #ifdef USE_FXT
@@ -261,25 +204,7 @@ static void launch_codelets(void)
 	/* partition the work into slices */
 	unsigned taskx, tasky;
 
-	taskcounter = nslicesx * nslicesy;
-
 	srand(time(NULL));
-
-	starpu_codelet cl = {
-		.where = CORE|CUBLAS|GORDON,
-		.core_func = core_mult,
-#ifdef USE_CUDA
-		.cublas_func = cublas_mult,
-#endif
-#ifdef USE_GORDON
-#ifdef SPU_FUNC_SGEMM
-		.gordon_func = SPU_FUNC_SGEMM,
-#else
-#warning SPU_FUNC_SGEMM is not available
-#endif
-#endif
-		.nbuffers = 3
-	};
 
 	/* should we use a single performance model for all archs and use an
  	 * acceleration factor ? */
@@ -302,7 +227,7 @@ static void launch_codelets(void)
 			task->cl_arg_size = sizeof(struct block_conf);
 
 			task->callback_func = callback_func;
-			task->callback_arg = &taskcounter;
+			task->callback_arg = NULL;
 
 			starpu_tag_t tag = TAG(taskx, tasky); 
 
@@ -330,9 +255,7 @@ int main(__attribute__ ((unused)) int argc,
 
 	/* start the runtime */
 	starpu_init(NULL);
-
-	pthread_mutex_init(&mutex, NULL);
-	pthread_cond_init(&cond, NULL);
+	starpu_helper_init_cublas();
 
 	init_problem_data();
 
@@ -340,10 +263,11 @@ int main(__attribute__ ((unused)) int argc,
 
 	launch_codelets();
 
-	pthread_mutex_lock(&mutex);
-	pthread_cond_wait(&cond, &mutex);
-	pthread_mutex_unlock(&mutex);
+	starpu_wait_all_tasks();
 
+	terminate();
+	
+	starpu_helper_shutdown_cublas();
 	starpu_shutdown();
 
 	return 0;

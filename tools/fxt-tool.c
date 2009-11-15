@@ -20,9 +20,8 @@ event_list_t events[MAXWORKERS];
 workq_list_t taskq;
 char *worker_name[MAXWORKERS];
 
-
-static char *cuda_worker_colors[MAXWORKERS] = {"/greens9/7", "/greens9/6", "/greens9/5", "/greens9/4"};
-static char *cpus_worker_colors[MAXWORKERS] = {"/ylorrd9/9", "/ylorrd9/6", "/ylorrd9/3", "/ylorrd9/1"};
+static char *cpus_worker_colors[MAXWORKERS] = {"/greens9/7", "/greens9/6", "/greens9/5", "/greens9/4",  "/greens9/9", "/greens9/3",  "/greens9/2",  "/greens9/1"  };
+static char *cuda_worker_colors[MAXWORKERS] = {"/ylorrd9/9", "/ylorrd9/6", "/ylorrd9/3", "/ylorrd9/1", "/ylorrd9/8", "/ylorrd9/7", "/ylorrd9/4", "/ylorrd9/2",  "/ylorrd9/1"};
 static char *other_worker_colors[MAXWORKERS] = {"/greys9/9", "/greys9/8", "/greys9/7", "/greys9/6"};
 static char *worker_colors[MAXWORKERS];
 
@@ -34,6 +33,17 @@ uint64_t start_time = 0;
 uint64_t end_time = 0;
 
 unsigned nworkers = 0;
+
+char *filename = NULL;
+unsigned per_task_colour = 0;
+
+
+LIST_TYPE(symbol_name,
+	char *name;
+);
+
+symbol_name_list_t symbol_list;
+
 
 
 /*
@@ -55,14 +65,18 @@ void paje_output_file_init(void)
 	1       Mn      P       \"Memory Node\"                         \n \
 	1       T      Mn       \"Worker\"                               \n \
 	1       Sc       P       \"Scheduler State\"                        \n \
+	2       event   T       \"event type\"				\n \
 	3       S       T       \"Thread State\"                        \n \
 	3       MS       Mn       \"Memory Node State\"                        \n \
 	4       ntask    Sc       \"Number of tasks\"                        \n \
+	6       I       S      Initializing       \"0.0 .7 1.0\"            \n \
+	6       D       S      Deinitializing       \"0.0 .1 .7\"            \n \
 	6       Fi       S      FetchingInput       \"1.0 .1 1.0\"            \n \
 	6       Po       S      PushingOutput       \"0.1 1.0 1.0\"            \n \
 	6       E       S       Executing       \".0 .6 .4\"            \n \
 	6       C       S       Callback       \".0 .3 .8\"            \n \
 	6       B       S       Blocked         \".9 .1 .0\"		\n \
+	6       P       S       Progressing         \".4 .1 .6\"		\n \
 	6       A       MS      Allocating         \".4 .1 .0\"		\n \
 	6       Ar       MS      AllocatingReuse       \".1 .1 .8\"		\n \
 	6       R       MS      Reclaiming         \".0 .1 .4\"		\n \
@@ -96,7 +110,7 @@ static unsigned cuda_index = 0;
 static unsigned cpus_index = 0;
 static unsigned other_index = 0;
 
-void handle_new_worker(void)
+void handle_worker_init_start(void)
 {
 	/* 
 	   arg0 : type of worker (cuda, core ..)
@@ -152,14 +166,26 @@ void handle_new_worker(void)
 	STARPU_ASSERT(res);
 
 	events[workerid] = event_list_new();
+
+	/* start initialization */
+	fprintf(out_paje_file, "10       %f     S      %ld      I\n", (float)((ev.time-start_time)/1000000.0), ev.param[2]);
 }
 
-void handle_worker_terminated(void)
+void handle_worker_init_end(void)
 {
-	char *tidstr = malloc(16*sizeof(char));
-	sprintf(tidstr, "%ld", ev.param[1]);
+	fprintf(out_paje_file, "10       %f     S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[0]);
+	
+}
 
-	fprintf(out_paje_file, "8       %f	%s	T\n", (float)((ev.time-start_time)/1000000.0), tidstr);
+void handle_worker_deinit_start(void)
+{
+	fprintf(out_paje_file, "10       %f     S      %ld      D\n", (float)((ev.time-start_time)/1000000.0), ev.param[0]);
+}
+
+
+void handle_worker_deinit_end(void)
+{
+	fprintf(out_paje_file, "8       %f	%ld	T\n", (float)((ev.time-start_time)/1000000.0), ev.param[1]);
 }
 
 
@@ -182,16 +208,65 @@ int find_workder_id(unsigned long tid)
 	return id;
 }
 
+static void create_paje_state_if_not_found(char *name)
+{
+	symbol_name_itor_t itor;
+	for (itor = symbol_name_list_begin(symbol_list);
+		itor != symbol_name_list_end(symbol_list);
+		itor = symbol_name_list_next(itor))
+	{
+		if (!strcmp(name, itor->name))
+		{
+			/* we found an entry */
+			return;
+		}
+	}
+
+	/* it's the first time ... */
+	symbol_name_t entry = symbol_name_new();
+		entry->name = malloc(strlen(name));
+		strcpy(entry->name, name);
+
+	symbol_name_list_push_front(symbol_list, entry);
+	
+	/* choose some colour ... that's disguting yes */
+	uint32_t hash_symbol = crc32_string(name, 0);
+
+	unsigned hash_symbol_red = (unsigned)crc32_string("red", hash_symbol) % 1024;
+	unsigned hash_symbol_green = (unsigned)crc32_string("green", hash_symbol) % 1024;
+	unsigned hash_symbol_blue = (unsigned)crc32_string("blue", hash_symbol) % 1024;
+
+	fprintf(stderr, "name %s hash red %d green %d blue %d \n", name, hash_symbol_red, hash_symbol_green, hash_symbol_blue);
+
+	uint32_t hash_sum = hash_symbol_red + hash_symbol_green + hash_symbol_blue;
+
+	float red = (1.0f * hash_symbol_red) / hash_sum;
+	float green = (1.0f * hash_symbol_green) / hash_sum;
+	float blue = (1.0f * hash_symbol_blue) / hash_sum;
+
+	/* create the Paje state */
+	fprintf(out_paje_file, "6       %s       S       %s \"%f %f %f\" \n", name, red, green, blue, name);
+}
+
 void handle_start_codelet_body(void)
 {
-
-	//fprintf(stderr, "start codelet %p on tid %d\n", (void *)ev.param[0], ev.param[1]);
-
 	int worker;
 	worker = find_workder_id(ev.param[1]);
+
 	if (worker < 0) return;
-//	printf("-> worker %d\n", worker);
-	fprintf(out_paje_file, "10       %f	S      %ld      E\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+
+	if (per_task_colour)
+	{
+		unsigned long has_name = ev.param[2];
+		char *name = has_name?(char *)&ev.param[3]:"unknown";
+
+		create_paje_state_if_not_found(name);
+
+		fprintf(out_paje_file, "101       %f	S      %ld      E	%s\n", (float)((ev.time-start_time)/1000000.0), ev.param[1], name);
+	}
+	else {
+		fprintf(out_paje_file, "10       %f	S      %ld      E\n", (float)((ev.time-start_time)/1000000.0), ev.param[1]);
+	}
 
 	event_t e = event_new();
 	e->time =  ev.time;
@@ -219,7 +294,17 @@ void handle_end_codelet_body(void)
 	end_time = STARPU_MAX(end_time, ev.time);
 }
 
+void handle_user_event(void)
+{
+	int worker;
+	worker = find_workder_id(ev.param[1]);
+	if (worker < 0) return;
 
+	unsigned code;
+	code = ev.param[2];	
+
+	fprintf(out_paje_file, "9       %f     event      %ld      %d\n", (float)((ev.time-start_time)/1000000.0), ev.param[1], code);
+}
 
 void handle_start_callback(void)
 {
@@ -301,6 +386,39 @@ void handle_end_push_output(void)
 
 	end_time = STARPU_MAX(end_time, ev.time);
 }
+
+void handle_start_progress(void)
+{
+	int worker;
+	worker = find_workder_id(ev.param[1]);
+	if (worker < 0) return;
+
+	fprintf(out_paje_file, "10       %f	S      %ld      P\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+
+	event_t e = event_new();
+	e->time =  ev.time;
+	e->mode = PUSHING;
+	event_list_push_back(events[worker], e);
+
+	end_time = STARPU_MAX(end_time, ev.time);
+}
+
+void handle_end_progress(void)
+{
+	int worker;
+	worker = find_workder_id(ev.param[1]);
+	if (worker < 0) return;
+	
+	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+
+	event_t e = event_new();
+	e->time =  ev.time;
+	e->mode = IDLE;
+	event_list_push_back(events[worker], e);
+
+	end_time = STARPU_MAX(end_time, ev.time);
+}
+
 
 void handle_data_copy(void)
 {
@@ -427,14 +545,6 @@ void handle_task_done(void)
 	dot_set_tag_done(tag_id, worker_colors[worker]);
 }
 
-#ifdef FLASH_RENDER
-void generate_flash_output(void)
-{
-	flash_engine_init();
-	flash_engine_generate_output(events, taskq, worker_name, nworkers, maxq_size, start_time, end_time, "toto.swf");
-}
-#endif
-
 void generate_svg_output(void)
 {
 	svg_engine_generate_output(events, taskq, worker_name, nworkers, maxq_size, start_time, end_time, "toto.svg");
@@ -464,14 +574,6 @@ void generate_gnuplot_output(void)
 		maxline = STARPU_MAX(maxline, linesize);
 	}
 
-	unsigned i;
-	for (i = 0; i < maxline + 1; i++)
-	{
-		fprintf(output, "bla\t");
-	}
-	fprintf(output,"\n");
-
-
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		unsigned long prev = start_time;
@@ -492,33 +594,43 @@ void generate_gnuplot_output(void)
 	fclose(output);
 }
 
-#ifdef USE_GTK
-void gtk_viewer(int argc, char **argv)
+static void parse_args(int argc, char **argv)
 {
-	gtk_viewer_apps(argc, argv, events, taskq, worker_name, nworkers, maxq_size, start_time, end_time);
+	int i;
+	for (i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "-c") == 0) {
+			per_task_colour = 1;
+		}
+
+		if (strcmp(argv[i], "-o") == 0) {
+			out_paje_path = argv[++i];
+		}
+
+		if (strcmp(argv[i], "-i") == 0) {
+			filename = argv[++i];
+		}
+
+		if (strcmp(argv[i], "-h") == 0) {
+		        fprintf(stderr, "Usage : %s [-c] [-i input_filename] [-o output_filename]\n", argv[0]);
+			fprintf(stderr, "\t-c: use a different colour for every type of task.\n");
+		        exit(-1);
+		}
+	}
 }
-#endif
 
 /*
  * This program should be used to parse the log generated by FxT 
  */
 int main(int argc, char **argv)
 {
-	char *filename, *filenameout = NULL;
 	int ret;
 	int fd_in, fd_out;
 
 	int use_stdout = 1;
 
 	init_dag_dot();
-	
-	if (argc < 2) {
-	        fprintf(stderr, "Usage : %s input_filename [-o output_filename]\n", argv[0]);
-	        exit(-1);
-	}
-	
-	filename = argv[1];
-	
+
+	parse_args(argc, argv);
 
 	fd_in = open(filename, O_RDONLY);
 	if (fd_in < 0) {
@@ -526,16 +638,6 @@ int main(int argc, char **argv)
 	        exit(-1);
 	}
 
-	if (argc > 2) {
-		filenameout = argv[2];
-		use_stdout = 0;
-		fd_out = open(filenameout, O_RDWR);
-		if (fd_out < 0) {
-			perror("open (out) failed :");
-			exit(-1);
-		}
-	}
-	
 	fut = fxt_fdopen(fd_in);
 	if (!fut) {
 	        perror("fxt_fdopen :");
@@ -547,6 +649,8 @@ int main(int argc, char **argv)
 
 	/* create a htable to identify each worker(tid) */
 	hcreate(MAXWORKERS);
+
+	symbol_list = symbol_name_list_new(); 
 
 	paje_output_file_init();
 
@@ -574,8 +678,12 @@ int main(int argc, char **argv)
 		}
 
 		switch (ev.code) {
-			case FUT_NEW_WORKER_KEY:
-				handle_new_worker();
+			case FUT_WORKER_INIT_START:
+				handle_worker_init_start();
+				break;
+
+			case FUT_WORKER_INIT_END:
+				handle_worker_init_end();
 				break;
 
 			case FUT_NEW_MEM_NODE:
@@ -620,6 +728,14 @@ int main(int argc, char **argv)
 				handle_end_push_output();
 				break;
 
+			case FUT_START_PROGRESS:
+				handle_start_progress();
+				break;
+			case FUT_END_PROGRESS:
+				handle_end_progress();
+				break;
+
+
 			case FUT_CODELET_TAG:
 				//handle_codelet_tag();
 				break;
@@ -648,8 +764,12 @@ int main(int argc, char **argv)
 				/* XXX */
 				break;
 
-			case FUT_WORKER_TERMINATED:
-				handle_worker_terminated();
+			case FUT_WORKER_DEINIT_START:
+				handle_worker_deinit_start();
+				break;
+
+			case FUT_WORKER_DEINIT_END:
+				handle_worker_deinit_end();
 				break;
 
 			case FUT_START_ALLOC:
@@ -677,6 +797,10 @@ int main(int argc, char **argv)
 				handle_end_memreclaim();
 				break;
 
+			case FUT_USER_EVENT:
+				handle_user_event();
+				break;
+
 			default:
 				fprintf(stderr, "unknown event.. %x at time %llx\n", (unsigned)ev.code, (long long unsigned)ev.time);
 				break;
@@ -684,15 +808,10 @@ int main(int argc, char **argv)
 	}
 
 	generate_gnuplot_output();
-	//generate_flash_output();
 	generate_svg_output();
 	paje_output_file_terminate();
 
 	terminate_dat_dot();
-
-#ifdef USE_GTK
-	gtk_viewer(argc, argv);
-#endif
 
 	return 0;
 }

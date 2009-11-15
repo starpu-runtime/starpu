@@ -48,11 +48,11 @@ static const struct copy_data_methods_s csr_copy_data_methods_s = {
 };
 
 
-size_t allocate_csr_buffer_on_node(struct starpu_data_state_t *state, uint32_t dst_node);
-void liberate_csr_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
-size_t dump_csr_interface(starpu_data_interface_t *interface, void *_buffer);
-size_t csr_interface_get_size(struct starpu_data_state_t *state);
-uint32_t footprint_csr_interface_crc32(data_state *state, uint32_t hstate);
+static size_t allocate_csr_buffer_on_node(struct starpu_data_state_t *state, uint32_t dst_node);
+static void liberate_csr_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
+static size_t dump_csr_interface(starpu_data_interface_t *interface, void *_buffer);
+static size_t csr_interface_get_size(struct starpu_data_state_t *state);
+static uint32_t footprint_csr_interface_crc32(data_state *state, uint32_t hstate);
 
 struct data_interface_ops_t interface_csr_ops = {
 	.allocate_data_on_node = allocate_csr_buffer_on_node,
@@ -112,7 +112,7 @@ static inline uint32_t footprint_csr_interface_generic(uint32_t (*hash_func)(uin
 	return hash;
 }
 
-uint32_t footprint_csr_interface_crc32(data_state *state, uint32_t hstate)
+static uint32_t footprint_csr_interface_crc32(data_state *state, uint32_t hstate)
 {
 	return footprint_csr_interface_generic(crc32_be, state, hstate);
 }
@@ -129,7 +129,7 @@ struct dumped_csr_interface_s {
 	uint32_t elemsize;
 }  __attribute__ ((packed));
 
-size_t dump_csr_interface(starpu_data_interface_t *interface, void *_buffer)
+static size_t dump_csr_interface(starpu_data_interface_t *interface, void *_buffer)
 {
 	/* yes, that's DIRTY ... */
 	struct dumped_csr_interface_s *buffer = _buffer;
@@ -196,7 +196,7 @@ uint32_t *starpu_get_csr_local_rowptr(struct starpu_data_state_t *state)
 	return (state->interface[node].csr.rowptr);
 }
 
-size_t csr_interface_get_size(struct starpu_data_state_t *state)
+static size_t csr_interface_get_size(struct starpu_data_state_t *state)
 {
 	size_t size;
 
@@ -212,7 +212,7 @@ size_t csr_interface_get_size(struct starpu_data_state_t *state)
 /* memory allocation/deallocation primitives for the BLAS interface */
 
 /* returns the size of the allocated area */
-size_t allocate_csr_buffer_on_node(struct starpu_data_state_t *state, uint32_t dst_node)
+static size_t allocate_csr_buffer_on_node(struct starpu_data_state_t *state, uint32_t dst_node)
 {
 	uintptr_t addr_nzval;
 	uint32_t *addr_colind, *addr_rowptr;
@@ -306,7 +306,7 @@ fail_nzval:
 	return allocated_memory;
 }
 
-void liberate_csr_buffer_on_node(starpu_data_interface_t *interface, uint32_t node)
+static void liberate_csr_buffer_on_node(starpu_data_interface_t *interface, uint32_t node)
 {
 	node_kind kind = get_node_kind(node);
 	switch(kind) {

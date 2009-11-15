@@ -19,6 +19,10 @@
 
 #include <starpu_config.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct starpu_data_state_t;
 
 typedef struct starpu_filter_t {
@@ -49,5 +53,9 @@ unsigned starpu_vertical_block_filter_func(starpu_filter *f, struct starpu_data_
 unsigned starpu_block_filter_func_vector(starpu_filter *f, struct starpu_data_state_t *root_data);
 unsigned starpu_list_filter_func_vector(starpu_filter *f, struct starpu_data_state_t *root_data);
 unsigned starpu_divide_in_2_filter_func_vector(starpu_filter *f, struct starpu_data_state_t *root_data);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

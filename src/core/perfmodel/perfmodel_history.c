@@ -48,30 +48,57 @@ static void insert_history_entry(struct starpu_history_entry_t *entry, struct st
 }
 
 
+static void drop_comments(FILE *f)
+{
+	while(1) {
+		int c = getc(f);
+
+		switch (c) {
+			case '#':
+			{
+				char s[128];
+				do {
+					fgets(s, sizeof(s), f);
+				} while (!strchr(s, '\n'));
+			}
+			case '\n':
+				continue;
+			default:
+				ungetc(c, f);
+				return;
+		}
+	}
+}
+
 static void dump_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
 {
-	fprintf(f, "%le\t%le\t%le\t%le\t%le\t%le\t%d\n", reg_model->sumlnx, reg_model->sumlnx2, reg_model->sumlny, reg_model->sumlnxlny, reg_model->alpha, reg_model->beta, reg_model->nsample);
+	fprintf(f, "# sumlnx\tsumlnx2\t\tsumlny\t\tsumlnxlny\talpha\t\tbeta\t\tn\n");
+	fprintf(f, "%-15le\t%-15le\t%-15le\t%-15le\t%-15le\t%-15le\t%u\n", reg_model->sumlnx, reg_model->sumlnx2, reg_model->sumlny, reg_model->sumlnxlny, reg_model->alpha, reg_model->beta, reg_model->nsample);
 }
 
 static void scan_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
 {
 	int res;
 
-	res = fscanf(f, "%le\t%le\t%le\t%le\t%le\t%le\t%d\n", &reg_model->sumlnx, &reg_model->sumlnx2, &reg_model->sumlny, &reg_model->sumlnxlny, &reg_model->alpha, &reg_model->beta, &reg_model->nsample);
+	drop_comments(f);
+
+	res = fscanf(f, "%le\t%le\t%le\t%le\t%le\t%le\t%u\n", &reg_model->sumlnx, &reg_model->sumlnx2, &reg_model->sumlny, &reg_model->sumlnxlny, &reg_model->alpha, &reg_model->beta, &reg_model->nsample);
 	STARPU_ASSERT(res == 7);
 }
 
 
 static void dump_history_entry(FILE *f, struct starpu_history_entry_t *entry)
 {
-	fprintf(f, "%x\t%zu\t%le\t%le\t%le\t%le\t%d\n", entry->footprint, entry->size, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
+	fprintf(f, "%x\t%-15lu\t%-15le\t%-15le\t%-15le\t%-15le\t%u\n", entry->footprint, (unsigned long) entry->size, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
 }
 
 static void scan_history_entry(FILE *f, struct starpu_history_entry_t *entry)
 {
 	int res;
 
-	res = fscanf(f, "%x\t%zu\t%le\t%le\t%le\t%le\t%d\n", &entry->footprint, &entry->size, &entry->mean, &entry->deviation, &entry->sum, &entry->sum2, &entry->nsample);
+	drop_comments(f);
+
+	res = fscanf(f, "%x\t%zu\t%le\t%le\t%le\t%le\t%u\n", &entry->footprint, &entry->size, &entry->mean, &entry->deviation, &entry->sum, &entry->sum2, &entry->nsample);
 	STARPU_ASSERT(res == 7);
 }
 
@@ -79,10 +106,14 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_
 {
 	unsigned nentries;
 
-	int res = fscanf(f, "%d\n", &nentries);
+	drop_comments(f);
+
+	int res = fscanf(f, "%u\n", &nentries);
 	STARPU_ASSERT(res == 1);
 
 	scan_reg_model(f, &per_arch_model->regression);
+
+	drop_comments(f);
 
 	res = fscanf(f, "%le\t%le\t%le\n", 
 		&per_arch_model->regression.a,
@@ -118,6 +149,9 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel_t *model, unsigned
 {
 	parse_per_arch_model_file(f, &model->per_arch[STARPU_CORE_DEFAULT], scan_history);
 	parse_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_DEFAULT], scan_history);
+	parse_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_2], scan_history);
+	parse_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_3], scan_history);
+	parse_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_4], scan_history);
 	parse_per_arch_model_file(f, &model->per_arch[STARPU_GORDON_DEFAULT], scan_history);
 }
 
@@ -134,14 +168,16 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_t
 	}
 
 	/* header */
-	fprintf(f, "%d\n", nentries);
+	fprintf(f, "# number of entries\n%u\n", nentries);
 
 	dump_reg_model(f, &per_arch_model->regression);
 
 	double a,b,c;
 	regression_non_linear_power(per_arch_model->list, &a, &b, &c);
-	fprintf(f, "%le\t%le\t%le\n", a, b, c);
+	fprintf(f, "# a\t\tb\t\tc\n");
+	fprintf(f, "%-15le\t%-15le\t%-15le\n", a, b, c);
 
+	fprintf(f, "# hash\t\tsize\t\tmean\t\tdev\t\tsum\t\tsum2\t\tn\n");
 	ptr = per_arch_model->list;
 	while (ptr) {
 		//memcpy(&entries_array[i++], ptr->entry, sizeof(struct starpu_history_entry_t));
@@ -152,8 +188,23 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_t
 
 static void dump_model_file(FILE *f, struct starpu_perfmodel_t *model)
 {
+	fprintf(f, "#################\n");
+	fprintf(f, "# Model for COREs\n");
 	dump_per_arch_model_file(f, &model->per_arch[STARPU_CORE_DEFAULT]);
+	fprintf(f, "\n##################\n");
+	fprintf(f,   "# Model for CUDA 1\n");
 	dump_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_DEFAULT]);
+	fprintf(f, "\n##################\n");
+	fprintf(f,   "# Model for CUDA 2\n");
+	dump_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_2]);
+	fprintf(f, "\n##################\n");
+	fprintf(f,   "# Model for CUDA 3\n");
+	dump_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_3]);
+	fprintf(f, "\n##################\n");
+	fprintf(f,   "# Model for CUDA 4\n");
+	dump_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_4]);
+	fprintf(f, "\n##################\n");
+	fprintf(f,   "# Model for GORDON\n");
 	dump_per_arch_model_file(f, &model->per_arch[STARPU_GORDON_DEFAULT]);
 }
 
@@ -167,6 +218,9 @@ static void initialize_model(struct starpu_perfmodel_t *model)
 {
 	initialize_per_arch_model(&model->per_arch[STARPU_CORE_DEFAULT]);
 	initialize_per_arch_model(&model->per_arch[STARPU_CUDA_DEFAULT]);
+	initialize_per_arch_model(&model->per_arch[STARPU_CUDA_2]);
+	initialize_per_arch_model(&model->per_arch[STARPU_CUDA_3]);
+	initialize_per_arch_model(&model->per_arch[STARPU_CUDA_4]);
 	initialize_per_arch_model(&model->per_arch[STARPU_GORDON_DEFAULT]);
 }
 
@@ -205,6 +259,18 @@ void register_model(struct starpu_perfmodel_t *model)
 	model->per_arch[STARPU_CUDA_DEFAULT].debug_file = fopen(debugpath, "a+");
 	STARPU_ASSERT(model->per_arch[STARPU_CUDA_DEFAULT].debug_file);
 
+	get_model_debug_path(model, "cuda_2", debugpath, 256);
+	model->per_arch[STARPU_CUDA_2].debug_file = fopen(debugpath, "a+");
+	STARPU_ASSERT(model->per_arch[STARPU_CUDA_2].debug_file);
+
+	get_model_debug_path(model, "cuda_3", debugpath, 256);
+	model->per_arch[STARPU_CUDA_3].debug_file = fopen(debugpath, "a+");
+	STARPU_ASSERT(model->per_arch[STARPU_CUDA_3].debug_file);
+
+	get_model_debug_path(model, "cuda_4", debugpath, 256);
+	model->per_arch[STARPU_CUDA_4].debug_file = fopen(debugpath, "a+");
+	STARPU_ASSERT(model->per_arch[STARPU_CUDA_4].debug_file);
+
 	get_model_debug_path(model, "core", debugpath, 256);
 	model->per_arch[STARPU_CORE_DEFAULT].debug_file = fopen(debugpath, "a+");
 	STARPU_ASSERT(model->per_arch[STARPU_CORE_DEFAULT].debug_file);
@@ -228,7 +294,7 @@ static void get_model_path(struct starpu_perfmodel_t *model, char *path, size_t 
 	strncat(path, hostname, maxlen);
 }
 
-void save_history_based_model(struct starpu_perfmodel_t *model)
+static void save_history_based_model(struct starpu_perfmodel_t *model)
 {
 	STARPU_ASSERT(model);
 	STARPU_ASSERT(model->symbol);
@@ -297,7 +363,7 @@ static void create_sampling_directory_if_needed(void)
 	}
 }
 
-void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_history)
+static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_history)
 {
 	STARPU_ASSERT(model);
 	STARPU_ASSERT(model->symbol);
@@ -316,8 +382,20 @@ void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_hi
 		return;
 	}
 	
-	pthread_rwlock_init(&model->model_rwlock, NULL);
-	pthread_rwlock_wrlock(&model->model_rwlock);
+	int res;
+	res = pthread_rwlock_init(&model->model_rwlock, NULL);
+	if (STARPU_UNLIKELY(res))
+	{
+		perror("pthread_rwlock_init failed");
+		STARPU_ASSERT(0);
+	}
+
+	res = pthread_rwlock_wrlock(&model->model_rwlock);
+	if (STARPU_UNLIKELY(res))
+	{
+		perror("pthread_rwlock_wrlock failed");
+		STARPU_ASSERT(0);
+	}
 
 		/* make sure the performance model directory exists (or create it) */
 		if (!directory_existence_was_tested)
@@ -340,7 +418,6 @@ void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_hi
 #endif
 	
 		/* try to open an existing file and load it */
-		int res;
 		res = access(path, F_OK); 
 		if (res == 0) {
 		//	fprintf(stderr, "File exists !\n");
@@ -370,7 +447,12 @@ void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_hi
 	
 		model->is_loaded = STARPU_PERFMODEL_LOADED;
 
-	pthread_rwlock_unlock(&model->model_rwlock);
+	res = pthread_rwlock_unlock(&model->model_rwlock);
+	if (STARPU_UNLIKELY(res))
+	{
+		perror("pthread_rwlock_unlock");
+		STARPU_ASSERT(0);
+	}
 }
 
 /* This function is intended to be used by external tools that should read the
@@ -414,6 +496,15 @@ void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model,
 			break;
 		case STARPU_CUDA_DEFAULT:
 			archname = "cuda";
+			break;
+		case STARPU_CUDA_2:
+			archname = "cuda_2";
+			break;
+		case STARPU_CUDA_3:
+			archname = "cuda_3";
+			break;
+		case STARPU_CUDA_4:
+			archname = "cuda_4";
 			break;
 		case STARPU_GORDON_DEFAULT:
 			archname = "gordon";
@@ -474,7 +565,7 @@ double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum 
 	return exp;
 }
 
-void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned cpuid, double measured)
+void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned cpuid __attribute__((unused)), double measured)
 {
 	struct starpu_perfmodel_t *model = j->task->cl->model;
 
@@ -537,8 +628,8 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned 
 			
 			/* update the regression model as well */
 			double logy, logx;
-			logx = logl(entry->size);
-			logy = logl(measured);
+			logx = log(entry->size);
+			logy = log(measured);
 
 			reg_model->sumlnx += logx;
 			reg_model->sumlnx2 += logx*logx;
@@ -552,7 +643,7 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned 
 			double denom = (n*reg_model->sumlnx2 - reg_model->sumlnx*reg_model->sumlnx);
 
 			reg_model->beta = num/denom;
-			reg_model->alpha = expl((reg_model->sumlny - reg_model->beta*reg_model->sumlnx)/n);
+			reg_model->alpha = exp((reg_model->sumlny - reg_model->beta*reg_model->sumlnx)/n);
 			
 			pthread_rwlock_unlock(&model->model_rwlock);
 		}
@@ -564,7 +655,7 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned 
 
 		STARPU_ASSERT(j->footprint_is_computed);
 
-		fprintf(debug_file, "0x%x\t%d\t%lf\t%lf\t%d\t\t", j->footprint, job_get_data_size(j), measured, j->predicted, cpuid);
+		fprintf(debug_file, "0x%x\t%lu\t%lf\t%lf\t%d\t\t", j->footprint, (unsigned long) job_get_data_size(j), measured, j->predicted, cpuid);
 		unsigned i;
 			
 		struct starpu_task *task = j->task;
@@ -577,7 +668,6 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned 
 			state->ops->display(state, debug_file);
 		}
 		fprintf(debug_file, "\n");	
-
 
 		pthread_rwlock_unlock(&model->model_rwlock);
 #endif

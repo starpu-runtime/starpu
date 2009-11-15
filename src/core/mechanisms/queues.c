@@ -43,15 +43,15 @@ void setup_queues(void (*init_queue_design)(void),
 		workerarg->jobq->arch = workerarg->perf_arch;
 
 		switch (workerarg->arch) {
-			case CORE_WORKER:
+			case STARPU_CORE_WORKER:
 				workerarg->jobq->who |= CORE;
 				workerarg->jobq->alpha = CORE_ALPHA;
 				break;
-			case CUDA_WORKER:
-				workerarg->jobq->who |= CUDA|CUBLAS;
+			case STARPU_CUDA_WORKER:
+				workerarg->jobq->who |= CUDA;
 				workerarg->jobq->alpha = CUDA_ALPHA;
 				break;
-			case GORDON_WORKER:
+			case STARPU_GORDON_WORKER:
 				workerarg->jobq->who |= GORDON;
 				workerarg->jobq->alpha = GORDON_ALPHA;
 				break;
@@ -77,4 +77,19 @@ void set_local_queue(struct jobq_s *jobq)
 	struct sched_policy_s *policy = get_sched_policy();
 
 	pthread_setspecific(policy->local_queue_key, jobq);
+}
+
+void jobq_lock(struct jobq_s *jobq)
+{
+	pthread_mutex_lock(&jobq->activity_mutex);	
+}
+
+void jobq_unlock(struct jobq_s *jobq)
+{
+	pthread_mutex_unlock(&jobq->activity_mutex);	
+}
+
+int jobq_trylock(struct jobq_s *jobq)
+{
+	return pthread_mutex_trylock(&jobq->activity_mutex);	
 }

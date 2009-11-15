@@ -74,9 +74,23 @@ void wake_all_blocked_workers(void)
 static unsigned communication_cnt = 0;
 #endif
 
-static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32_t dst_node)
+#ifdef USE_CUDA
+static cudaStream_t *create_cuda_stream(struct data_request_s *req)
 {
-	int ret;
+	cudaStream_t *stream = &(req->async_channel).stream;
+
+	cudaError_t cures;
+	cures = cudaStreamCreate(stream);
+	if (STARPU_UNLIKELY(cures))
+		CUDA_REPORT_ERROR(cures);
+
+	return stream;
+}
+#endif
+
+static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32_t dst_node, struct data_request_s *req __attribute__((unused)))
+{
+	int ret = 0;
 
 	//ret = state->ops->copy_data_1_to_1(state, src_node, dst_node);
 
@@ -84,6 +98,12 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 
 	node_kind src_kind = get_node_kind(src_node);
 	node_kind dst_kind = get_node_kind(dst_node);
+
+	STARPU_ASSERT(state->per_node[src_node].refcnt);
+	STARPU_ASSERT(state->per_node[dst_node].refcnt);
+
+	STARPU_ASSERT(state->per_node[src_node].allocated);
+	STARPU_ASSERT(state->per_node[dst_node].allocated);
 
 	switch (dst_kind) {
 	case RAM:
@@ -101,12 +121,20 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 				{
 					/* only the proper CUBLAS thread can initiate this directly ! */
 					STARPU_ASSERT(copy_methods->cuda_to_ram);
-					copy_methods->cuda_to_ram(state, src_node, dst_node);
+					if (!req || !copy_methods->cuda_to_ram_async)
+					{
+						/* this is not associated to a request so it's synchronous */
+						copy_methods->cuda_to_ram(state, src_node, dst_node);
+					}
+					else {
+						cudaStream_t *stream = create_cuda_stream(req);
+						ret = copy_methods->cuda_to_ram_async(state, src_node, dst_node, stream);
+					}
 				}
 				else
 				{
-					/* put a request to the corresponding GPU */
-					post_data_request(state, src_node, dst_node);
+					/* we should not have a blocking call ! */
+					STARPU_ASSERT(0);
 				}
 				break;
 #endif
@@ -114,7 +142,7 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 				STARPU_ASSERT(0); // TODO
 				break;
 			case UNUSED:
-				printf("error node %d UNUSED\n", src_node);
+				printf("error node %u UNUSED\n", src_node);
 			default:
 				assert(0);
 				break;
@@ -128,7 +156,15 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 				/* only the proper CUBLAS thread can initiate this ! */
 				STARPU_ASSERT(get_local_memory_node() == dst_node);
 				STARPU_ASSERT(copy_methods->ram_to_cuda);
-				copy_methods->ram_to_cuda(state, src_node, dst_node);
+				if (!req || !copy_methods->ram_to_cuda_async)
+				{
+					/* this is not associated to a request so it's synchronous */
+					copy_methods->ram_to_cuda(state, src_node, dst_node);
+				}
+				else {
+					cudaStream_t *stream = create_cuda_stream(req);
+					ret = copy_methods->ram_to_cuda_async(state, src_node, dst_node, stream);
+				}
 				break;
 			case CUDA_RAM:
 			case SPU_LS:
@@ -150,22 +186,25 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 		break;
 	}
 
-	/* XXX */
-	ret = 0;
-
 	return ret;
 }
 
 int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *state, uint32_t src_node, 
-				uint32_t dst_node, unsigned donotread)
+		uint32_t dst_node, unsigned donotread, struct data_request_s *req, unsigned may_alloc)
 {
+	STARPU_ASSERT(state->per_node[src_node].allocated);
+	STARPU_ASSERT(state->per_node[src_node].refcnt);
+
 	int ret_alloc, ret_copy;
 	unsigned __attribute__((unused)) com_id = 0;
 
 	/* first make sure the destination has an allocated buffer */
-	ret_alloc = allocate_memory_on_node(state, dst_node);
+	ret_alloc = allocate_memory_on_node(state, dst_node, may_alloc);
 	if (ret_alloc)
 		goto nomem;
+
+	STARPU_ASSERT(state->per_node[dst_node].allocated);
+	STARPU_ASSERT(state->per_node[dst_node].refcnt);
 
 	/* if there is no need to actually read the data, 
 	 * we do not perform any transfer */
@@ -180,12 +219,18 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 		
 #ifdef USE_FXT
 		com_id = STARPU_ATOMIC_ADD(&communication_cnt, 1);
+
+		if (req)
+			req->com_id = com_id;
 #endif
 
 		/* for now we set the size to 0 in the FxT trace XXX */
 		TRACE_START_DRIVER_COPY(src_node, dst_node, 0, com_id);
-		ret_copy = copy_data_1_to_1_generic(state, src_node, dst_node);
-		TRACE_END_DRIVER_COPY(src_node, dst_node, 0, com_id);
+		ret_copy = copy_data_1_to_1_generic(state, src_node, dst_node, req);
+		if (ret_copy != EAGAIN)
+		{
+			TRACE_END_DRIVER_COPY(src_node, dst_node, 0, com_id);
+		}
 
 		return ret_copy;
 	}
@@ -193,5 +238,64 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 	return 0;
 
 nomem:
-	return -ENOMEM;
+	return ENOMEM;
+}
+
+void driver_wait_request_completion(starpu_async_channel *async_channel __attribute__ ((unused)),
+					unsigned handling_node)
+{
+	node_kind kind = get_node_kind(handling_node);
+#ifdef USE_CUDA
+	cudaStream_t stream;
+	cudaError_t cures;
+#endif
+
+	switch (kind) {
+#ifdef USE_CUDA
+		case CUDA_RAM:
+			stream = (*async_channel).stream;
+
+			cures = cudaStreamSynchronize(stream);
+			if (STARPU_UNLIKELY(cures))
+				CUDA_REPORT_ERROR(cures);				
+
+			cures = cudaStreamDestroy(stream);
+			if (STARPU_UNLIKELY(cures))
+				CUDA_REPORT_ERROR(cures);				
+
+			break;
+#endif
+		case RAM:
+		default:
+			STARPU_ASSERT(0);
+	}
+}
+
+unsigned driver_test_request_completion(starpu_async_channel *async_channel __attribute__ ((unused)),
+					unsigned handling_node)
+{
+	node_kind kind = get_node_kind(handling_node);
+	unsigned success;
+#ifdef USE_CUDA
+	cudaStream_t stream;
+#endif
+
+	switch (kind) {
+#ifdef USE_CUDA
+		case CUDA_RAM:
+			stream = (*async_channel).stream;
+
+			success = (cudaStreamQuery(stream) == cudaSuccess);
+			if (success)
+				cudaStreamDestroy(stream);
+
+			break;
+#endif
+		case RAM:
+		default:
+			STARPU_ASSERT(0);
+			success = 0;
+	}
+
+	return success;
 }

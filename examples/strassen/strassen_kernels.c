@@ -42,6 +42,7 @@ static void mult_common_codelet(starpu_data_interface_t *buffers, int s, __attri
 			cublasSgemm('t', 'n', dx, dy, dz, 
 					-1.0f, right, ld12, left, ld21, 
 					 1.0f, center, ld22);
+			cudaThreadSynchronize();
 			break;
 #endif
 		default:
@@ -100,6 +101,8 @@ static void add_sub_common_codelet(starpu_data_interface_t *buffers, int s, __at
 				/* add line B to C = A */
 				cublasSaxpy(dx, alpha, &B[line*ldB], 1, &C[line*ldC], 1);
 			}
+			
+			cudaThreadSynchronize();
 
 			break;
 #endif
@@ -164,6 +167,9 @@ static void self_add_sub_common_codelet(starpu_data_interface_t *buffers, int s,
 				/* add line A to C */
 				cublasSaxpy(dx, alpha, &A[line*ldA], 1, &C[line*ldC], 1);
 			}
+			
+			cudaThreadSynchronize();
+
 			break;
 #endif
 		default:

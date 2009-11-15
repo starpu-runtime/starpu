@@ -1,0 +1,17 @@
+- Configure StarPU to use FxT
+
+	./configure --with-fxt=/home/gonnet/hannibal/Libs/FxT/FxT/target/
+
+- Execute applications as usual
+
+- If the application was properly terminated (ie. starpu_shutdown was called),
+  there should be a file named "/tmp/prof_file_user_".
+
+- Call tools/fxt-tool on that file
+	./tools/fxt-tool -i /tmp/prof_file_user_yourlogin
+
+- Some files should have been created in the current directory
+	- paje.trace : A Gantt diagram of the execution
+		$ vite paje.trace
+	- dag.dot : A graphviz graph of the task dependencies (according to tags)
+		$ dot -Tpdf dag.dot -o dag.pdf

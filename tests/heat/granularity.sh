@@ -16,34 +16,43 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+DIR=$PWD
+ROOTDIR=$DIR/../..
+SAMPLINGDIR=$DIR/sampling/
+TIMINGDIR=$DIR/timing/
 
-maxiter=1
-MAXCPU=3
-
-MINSIZE=$((17*1024))
-MAXSIZE=$((29*1024))
+maxiter=5
+MINSIZE=$((30*1024))
+MAXSIZE=$((31*1024))
 
 trace_granularity()
 {
 	grain=$1
 
+	echo "GRAIN $grain"
+
 	#minblocks=1
 	minblocks=$(($MINSIZE/$grain))
 	#maxblocks=2
 	maxblocks=$(($MAXSIZE/$grain))
+	
+	if test $maxblocks -ge 128; then
+		maxblocks=128
+	fi
 
 	#step=2
-	step=2
+#	step=$((2048/$grain))
+	step=$((4096/$grain))
 
 	for blocks in `seq $minblocks $step $maxblocks`
 	do
 		size=$(($blocks*$grain))
 		
-		ntheta=$(( $(($size/32)) + 2))
-	
 		echo "size : $size (grain $grain nblocks $blocks)"
 	
-		OPTIONS="-pin -nblocks $blocks -ntheta $ntheta -nthick 34 -v2"
+		calibrate_grain $grain $size
+	
+		OPTIONS="-pin -nblocks $blocks -size $size -v3"
 		
 		filename=$TIMINGDIR/granularity.$grain.$size
 		#rm -f $filename
@@ -51,23 +60,30 @@ trace_granularity()
 		for iter in `seq 1 $maxiter`
 		do
 			echo "$iter / $maxiter"
-			 val=`SCHED="dm" $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
+			 val=`NCPUS=8 NCUDA=3 SCHED="dmda" PREFETCH=1 CALIBRATE=1 $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
+			 echo "$val"
 			 echo "$val" >> $filename
 		done
 	done
 }
 
-
-trace_granularity_nomodel()
+trace_granularity_hybrid()
 {
 	grain=$1
+
+	echo "GRAIN $grain"
 
 	#minblocks=1
 	minblocks=$(($MINSIZE/$grain))
 	#maxblocks=2
 	maxblocks=$(($MAXSIZE/$grain))
+	
+	if test $maxblocks -ge 64; then
+		maxblocks=64
+	fi
 
-	step=2
+	#step=2
+	step=$((2048/$grain))
 
 	for blocks in `seq $minblocks $step $maxblocks`
 	do
@@ -77,15 +93,16 @@ trace_granularity_nomodel()
 	
 		echo "size : $size (grain $grain nblocks $blocks)"
 	
-		OPTIONS="-pin -nblocks $blocks -ntheta $ntheta -nthick 34 -v2"
+		OPTIONS="-pin -nblocks $blocks -ntheta $ntheta -nthick 34 -v4"
 		
-		filename=$TIMINGDIR/granularity.nomodel.$grain.$size
+		filename=$TIMINGDIR/hybrid.$grain.$size
 		#rm -f $filename
 		
 		for iter in `seq 1 $maxiter`
 		do
 			echo "$iter / $maxiter"
-			 val=`SCHED="greedy" $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
+			 val=`SCHED="dmda" PREFETCH=1 CALIBRATE=1 $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null`
+			 echo "$val"
 			 echo "$val" >> $filename
 		done
 	done
@@ -95,65 +112,49 @@ trace_granularity_nomodel()
 
 calibrate_grain()
 {
-	grain=$1;
+	grain=$1
+	size=$2
 
-
-	# calibrate with 12k problems
-	blocks=$((12288/$grain))
-	ntheta=$((384+2))
-
-#	#in case this is *really* a small granularity, only 4K
-#	blocks=$((4096/$grain))
-#	ntheta=$((128+2))
-#
-#	blocks=$((2048/$grain))
-#	ntheta=$((64+2))
-#
-#	blocks=8
-#	ntheta=$((2+$(($size/32))))
-
-	size=$(($blocks*$grain))
 	echo "Calibrating grain $grain size $size ($blocks blocks)"
 
-	for iter in `seq 1 4`
-	do
-		OPTIONS="-pin -nblocks $blocks -ntheta $ntheta -nthick 34 -v2"
+	rm -f $SAMPLINGDIR/*
 
-		val=`CALIBRATE=1 SCHED="dm" $ROOTDIR/examples/heat/heat $OPTIONS `
-	done
-	
+	OPTIONS="-pin -nblocks $blocks -size $size -v3"
+
+	NCUDA=3 NCPUS=8 CALIBRATE=1 SCHED="dm" $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null 
+	NCUDA=3 NCPUS=8 CALIBRATE=1 PREFETCH=1 SCHED="dmda" $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
+	NCUDA=3 NCPUS=8 CALIBRATE=1 PREFETCH=1 SCHED="dmda" $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
+	NCUDA=3 NCPUS=8 CALIBRATE=1 PREFETCH=1 SCHED="dmda" $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
+	NCUDA=3 NCPUS=8 CALIBRATE=1 PREFETCH=1 SCHED="dmda" $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
+	NCUDA=3 NCPUS=8 CALIBRATE=1 PREFETCH=1 SCHED="dmda" $ROOTDIR/examples/heat/heat $OPTIONS 2> /dev/null
 }
 
-DIR=$PWD
-ROOTDIR=$DIR/../..
-SAMPLINGDIR=$DIR/sampling/
-TIMINGDIR=$DIR/timing/
 mkdir -p $TIMINGDIR
 mkdir -p $SAMPLINGDIR
 #rm  -f $SAMPLINGDIR/*
 
 #grainlist="64 128 256 512 768 1024 1536 2048"
-grainlist="1024 512 256"
-#grainlist="1280"
+
+#grainlist="1024 2048 1024 512 256"
+grainlist="256 32 64 128 256 512 1024 2048 4096"
 
 export PERF_MODEL_DIR=$SAMPLINGDIR
 
 cd $ROOTDIR
 
-make clean 1> /dev/null 2> /dev/null
-make examples -j ATLAS=1 CPUS=$MAXCPU CUDA=1 1> /dev/null 2> /dev/null
-
 cd $DIR
 
 # calibrate (sampling)
-#for grain in $grainlist
-#do
-#	calibrate_grain $grain;
-#done
+#	for grain in $grainlist
+#	do
+#	 	calibrate_grain $grain;
+#	#  	calibrate_grain $(( $grain / 2));
+#	done
 
 # perform the actual benchmarking now
 for grain in $grainlist
 do
+#	trace_granularity_hybrid $grain;
 	trace_granularity $grain;	
 #	trace_granularity_nomodel $grain;
 done

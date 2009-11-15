@@ -26,19 +26,13 @@ CLEANFILES = *.gcno *.gcda *.linkinfo
 if USE_FXT
 bin_PROGRAMS += fxt-tool fxt-stats
 
-fxt_tool_SOURCES = fxt-tool.c histo-svg.c dag-dot.c gtk-viewer.c histo-paje.c
-fxt_tool_CFLAGS = @GTK_CFLAGS@ -I$(top_srcdir)/src/
-fxt_tool_LDFLAGS = @GTK_LIBS@
+fxt_tool_SOURCES = fxt-tool.c histo-svg.c dag-dot.c histo-paje.c
+fxt_tool_CFLAGS = -I$(top_srcdir)/src/
+fxt_tool_LDADD = 
 
 fxt_stats_SOURCES = fxt-stats.c
-fxt_stats_CFLAGS = @GTK_CFLAGS@ -I$(top_srcdir)/src/
+fxt_stats_CFLAGS = -I$(top_srcdir)/src/
 endif
-
-#if FLASH_RENDER
-# bin_PROGRAMS += gtk-viewer
-# gtk_viewer_SOURCES = gtk-viewer.c
-# LDFLAGS+= -lming
-#endif
 
 bin_PROGRAMS += perfmodel-display
 

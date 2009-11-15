@@ -20,8 +20,7 @@
 #include <core/workers.h>
 #include <core/debug.h>
 
-/* XXX quick and dirty implementation for now ... */
-pthread_key_t local_workers_key;
+static pthread_key_t worker_key;
 
 static struct machine_config_s config;
 
@@ -35,7 +34,7 @@ inline uint32_t worker_exists(uint32_t task_mask)
 
 inline uint32_t may_submit_cuda_task(void)
 {
-	return ((CUDA|CUBLAS) & config.worker_mask);
+	return (CUDA & config.worker_mask);
 }
 
 inline uint32_t may_submit_core_task(void)
@@ -56,15 +55,20 @@ static void init_workers(struct machine_config_s *config)
 {
 	config->running = 1;
 
-	pthread_key_create(&local_workers_key, NULL);
+	pthread_key_create(&worker_key, NULL);
 
+	/* Launch workers asynchronously (except for SPUs) */
 	unsigned worker;
 	for (worker = 0; worker < config->nworkers; worker++)
 	{
 		struct worker_s *workerarg = &config->workers[worker];
 
+		workerarg->config = config;
+
 		pthread_mutex_init(&workerarg->mutex, NULL);
 		pthread_cond_init(&workerarg->ready_cond, NULL);
+
+		workerarg->workerid = (int)worker;
 
 		/* if some codelet's termination cannot be handled directly :
 		 * for instance in the Gordon driver, Gordon tasks' callbacks
@@ -72,38 +76,30 @@ static void init_workers(struct machine_config_s *config)
 		 * driver so that we cannot call the push_codelet_output method
 		 * directly */
 		workerarg->terminated_jobs = job_list_new();
+
+		workerarg->local_jobs = job_list_new();
+		pthread_mutex_init(&workerarg->local_jobs_mutex, NULL);
 	
 		switch (workerarg->arch) {
 #ifdef USE_CPUS
-			case CORE_WORKER:
+			case STARPU_CORE_WORKER:
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
 				pthread_create(&workerarg->worker_thread, 
 						NULL, core_worker, workerarg);
-
-				pthread_mutex_lock(&workerarg->mutex);
-				if (!workerarg->worker_is_initialized)
-					pthread_cond_wait(&workerarg->ready_cond, &workerarg->mutex);
-				pthread_mutex_unlock(&workerarg->mutex);
-
 				break;
 #endif
 #ifdef USE_CUDA
-			case CUDA_WORKER:
+			case STARPU_CUDA_WORKER:
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
 				pthread_create(&workerarg->worker_thread, 
 						NULL, cuda_worker, workerarg);
 
-				pthread_mutex_lock(&workerarg->mutex);
-				if (!workerarg->worker_is_initialized)
-					pthread_cond_wait(&workerarg->ready_cond, &workerarg->mutex);
-				pthread_mutex_unlock(&workerarg->mutex);
-
 				break;
 #endif
 #ifdef USE_GORDON
-			case GORDON_WORKER:
+			case STARPU_GORDON_WORKER:
 				/* we will only launch gordon once, but it will handle 
 				 * the different SPU workers */
 				if (!gordon_inited)
@@ -135,10 +131,46 @@ static void init_workers(struct machine_config_s *config)
 				STARPU_ASSERT(0);
 		}
 	}
+
+	for (worker = 0; worker < config->nworkers; worker++)
+	{
+		struct worker_s *workerarg = &config->workers[worker];
+
+		switch (workerarg->arch) {
+			case STARPU_CORE_WORKER:
+			case STARPU_CUDA_WORKER:
+				pthread_mutex_lock(&workerarg->mutex);
+				if (!workerarg->worker_is_initialized)
+					pthread_cond_wait(&workerarg->ready_cond, &workerarg->mutex);
+				pthread_mutex_unlock(&workerarg->mutex);
+				break;
+#ifdef USE_GORDON
+			case STARPU_GORDON_WORKER:
+				/* the initialization of Gordon worker is
+				 * synchronous for now */
+				break;
+#endif
+			default:
+				STARPU_ASSERT(0);
+		}
+	}
+
 }
 
-void starpu_init(struct starpu_conf *user_conf)
+void set_local_worker_key(struct worker_s *worker)
 {
+	pthread_setspecific(worker_key, worker);
+}
+
+static inline struct worker_s *get_local_worker_key(void)
+{
+	return pthread_getspecific(worker_key);
+}
+
+int starpu_init(struct starpu_conf *user_conf)
+{
+	int ret;
+
 	srand(2008);
 
 #ifdef USE_FXT
@@ -149,14 +181,22 @@ void starpu_init(struct starpu_conf *user_conf)
 
 	timing_init();
 
-	starpu_build_topology(&config, user_conf);
+	/* store the pointer to the user explicit configuration during the
+	 * initialization */
+	config.user_conf = user_conf;
+
+	ret = starpu_build_topology(&config);
+	if (ret)
+		return ret;
 
 	/* initialize the scheduler */
 
 	/* initialize the queue containing the jobs */
-	init_sched_policy(&config, user_conf);
+	init_sched_policy(&config);
 
 	init_workers(&config);
+
+	return 0;
 }
 
 /*
@@ -177,6 +217,7 @@ static void terminate_workers(struct machine_config_s *config)
 #endif
 
 		struct worker_set_s *set = config->workers[workerid].set;
+		struct worker_s *worker = &config->workers[workerid];
 
 		/* in case StarPU termination code is called from a callback,
  		 * we have to check if pthread_self() is the worker itself */
@@ -195,7 +236,6 @@ static void terminate_workers(struct machine_config_s *config)
 			}
 		}
 		else {
-			struct worker_s *worker = &config->workers[workerid];
 			if (pthread_self() != worker->worker_thread)
 			{
 				status = pthread_join(worker->worker_thread, NULL);
@@ -205,6 +245,9 @@ static void terminate_workers(struct machine_config_s *config)
 #endif
 			}
 		}
+
+		job_list_delete(worker->local_jobs);
+		job_list_delete(worker->terminated_jobs);
 	}
 }
 
@@ -334,10 +377,67 @@ void starpu_shutdown(void)
 	/* wait for their termination */
 	terminate_workers(&config);
 
-	/* cleanup StarPU internal data structures */
-	deinit_memory_nodes();
-
 	deinit_sched_policy(&config);
 
+	starpu_destroy_topology(&config);
+
 	close_debug_logfile();
+}
+
+unsigned starpu_get_worker_count(void)
+{
+	return config.nworkers;
+}
+
+unsigned starpu_get_core_worker_count(void)
+{
+	return config.ncores;
+}
+
+unsigned starpu_get_cuda_worker_count(void)
+{
+	return config.ncudagpus;
+}
+
+unsigned starpu_get_spu_worker_count(void)
+{
+	return config.ngordon_spus;
+}
+
+/* When analyzing performance, it is useful to see what is the processing unit
+ * that actually performed the task. This function returns the id of the
+ * processing unit actually executing it, therefore it makes no sense to use it
+ * within the callbacks of SPU functions for instance. If called by some thread
+ * that is not controlled by StarPU, starpu_get_worker_id returns -1. */
+int starpu_get_worker_id(void)
+{
+	struct worker_s * worker;
+
+	worker = get_local_worker_key();
+	if (worker)
+	{
+		return worker->workerid;
+	}
+	else {
+		/* there is no worker associated to that thread, perhaps it is
+		 * a thread from the application or this is some SPU worker */
+		return -1;
+	}
+}
+
+struct worker_s *get_worker_struct(unsigned id)
+{
+	return &config.workers[id];
+}
+
+enum starpu_archtype starpu_get_worker_type(int id)
+{
+	return config.workers[id].arch;
+}
+
+void starpu_get_worker_name(int id, char *dst, size_t maxlen)
+{
+	char *name = config.workers[id].name;
+
+	snprintf(dst, maxlen, "%s", name);
 }

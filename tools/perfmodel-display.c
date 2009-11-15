@@ -161,6 +161,15 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 		fprintf(stderr, "performance model for CUDA :\n");
 		display_perf_model(model, STARPU_CUDA_DEFAULT);
 	
+		fprintf(stderr, "performance model for CUDA (2):\n");
+		display_perf_model(model, STARPU_CUDA_2);
+	
+		fprintf(stderr, "performance model for CUDA (3):\n");
+		display_perf_model(model, STARPU_CUDA_3);
+	
+		fprintf(stderr, "performance model for CUDA (4):\n");
+		display_perf_model(model, STARPU_CUDA_4);
+	
 		fprintf(stderr, "performance model for GORDON :\n");
 		display_perf_model(model, STARPU_GORDON_DEFAULT);
 	}
@@ -172,6 +181,9 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 
 		if (strcmp(arch, "cuda") == 0) {
 			display_perf_model(model, STARPU_CUDA_DEFAULT);
+			display_perf_model(model, STARPU_CUDA_2);
+			display_perf_model(model, STARPU_CUDA_3);
+			display_perf_model(model, STARPU_CUDA_4);
 			return;
 		}
 

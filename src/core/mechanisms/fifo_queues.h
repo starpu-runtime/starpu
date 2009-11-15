@@ -42,8 +42,6 @@ int fifo_push_prio_task(struct jobq_s *q, job_t task);
 
 job_t fifo_pop_task(struct jobq_s *q);
 struct job_list_s * fifo_pop_every_task(struct jobq_s *q, uint32_t where);
-job_t fifo_non_blocking_pop_task(struct jobq_s *q);
-job_t fifo_non_blocking_pop_task_if_job_exists(struct jobq_s *q);
 
 void init_fifo_queues_mechanisms(void);
 

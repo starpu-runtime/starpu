@@ -19,8 +19,6 @@
 #include <core/policies/sched_policy.h>
 #include <common/starpu-spinlock.h>
 
-#ifdef NO_DATA_RW_LOCK
-
 static unsigned _submit_job_enforce_data_deps(job_t j, unsigned start_buffer_index);
 
 static unsigned unlock_one_requester(data_requester_t r)
@@ -47,7 +45,11 @@ static unsigned may_unlock_data_req_list_head(data_state *data)
 
 	/* if there is no reference to the data anymore, we can use it */
 	if (data->refcnt == 0)
+	{
+		STARPU_ASSERT(!data->per_node[0].request);
+		STARPU_ASSERT(!data->per_node[1].request);
 		return 1;
+	}
 
 	if (data->current_mode == STARPU_W)
 		return 0;
@@ -115,13 +117,14 @@ static unsigned attempt_to_submit_data_request_from_job(job_t j, unsigned buffer
 	data_state *data = j->task->buffers[buffer_index].handle;
 	starpu_access_mode mode = j->task->buffers[buffer_index].mode;
 
-	starpu_spin_lock(&data->header_lock);
+	while (starpu_spin_trylock(&data->header_lock))
+		datawizard_progress(get_local_memory_node(), 0);
 
 	if (data->refcnt == 0)
 	{
 		/* there is nobody currently about to manipulate the data */
 		data->refcnt++;
-		data->current_mode = mode;
+		data->current_mode = (mode==STARPU_R)?STARPU_R:STARPU_W;
 
 		/* success */
 		ret = 0;
@@ -181,7 +184,7 @@ static unsigned _submit_job_enforce_data_deps(job_t j, unsigned start_buffer_ind
    reading and another writing) */
 unsigned submit_job_enforce_data_deps(job_t j)
 {
-	if (j->task->cl->nbuffers == 0)
+	if ((j->task->cl == NULL) || (j->task->cl->nbuffers == 0))
 		return 0;
 
 	return _submit_job_enforce_data_deps(j, 0);
@@ -224,5 +227,3 @@ void notify_data_dependencies(data_state *data)
 	starpu_spin_unlock(&data->header_lock);
 
 }
-
-#endif

@@ -32,8 +32,8 @@
 /* TODO actually move this struct into this header */
 struct machine_config_s;
 
-/* This structure is "inspired" by the libtopology project
- * (see http://runtime.bordeaux.inria.fr/libtopology/) */
+/* This structure is "inspired" by the hwloc project
+ * (see http://www.open-mpi.org/projects/hwloc/) */
 
 struct starpu_topo_obj_t {
 	/* global position */
@@ -62,7 +62,8 @@ struct starpu_topo_obj_t {
 	struct worker_s *worker; /* (ignored if !is_a_worker) */
 };
 
-void starpu_build_topology(struct machine_config_s *config,
-			   struct starpu_conf *user_conf);
+int starpu_build_topology(struct machine_config_s *config);
+
+void starpu_destroy_topology(struct machine_config_s *config);
 
 #endif // __TOPOLOGY_H__

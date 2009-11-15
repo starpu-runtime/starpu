@@ -28,12 +28,14 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 static unsigned finished = 0;
 
+static unsigned no_prio = 0;
+
 static starpu_codelet cl11 =
 {
-	.where = CORE|CUBLAS,
+	.where = CORE|CUDA,
 	.core_func = dw_core_codelet_update_u11,
 #ifdef USE_CUDA
-	.cublas_func = dw_cublas_codelet_update_u11,
+	.cuda_func = dw_cublas_codelet_update_u11,
 #endif
 	.nbuffers = 1,
 	.model = &model_11
@@ -41,10 +43,10 @@ static starpu_codelet cl11 =
 
 static starpu_codelet cl12 =
 {
-	.where = CORE|CUBLAS,
+	.where = CORE|CUDA,
 	.core_func = dw_core_codelet_update_u12,
 #ifdef USE_CUDA
-	.cublas_func = dw_cublas_codelet_update_u12,
+	.cuda_func = dw_cublas_codelet_update_u12,
 #endif
 	.nbuffers = 2,
 	.model = &model_12
@@ -52,10 +54,10 @@ static starpu_codelet cl12 =
 
 static starpu_codelet cl21 =
 {
-	.where = CORE|CUBLAS,
+	.where = CORE|CUDA,
 	.core_func = dw_core_codelet_update_u21,
 #ifdef USE_CUDA
-	.cublas_func = dw_cublas_codelet_update_u21,
+	.cuda_func = dw_cublas_codelet_update_u21,
 #endif
 	.nbuffers = 2,
 	.model = &model_21
@@ -63,10 +65,10 @@ static starpu_codelet cl21 =
 
 static starpu_codelet cl22 =
 {
-	.where = CORE|CUBLAS,
+	.where = CORE|CUDA,
 	.core_func = dw_core_codelet_update_u22,
 #ifdef USE_CUDA
-	.cublas_func = dw_cublas_codelet_update_u22,
+	.cuda_func = dw_cublas_codelet_update_u22,
 #endif
 	.nbuffers = 3,
 	.model = &model_22
@@ -112,7 +114,9 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 		u11arg->nblocks = args->nblocks;
 
 		/* schedule the codelet */
-		task->priority = MAX_PRIO;
+		if (!no_prio)
+			task->priority = MAX_PRIO;
+
 		starpu_submit_task(task);
 	}
 
@@ -237,7 +241,7 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				task22->buffers[2].mode = STARPU_RW;
 				
 				/* schedule that codelet */
-				if (slicey == i+1) 
+				if (!no_prio && (slicey == i+1))
 					task22->priority = MAX_PRIO;
 
 				starpu_submit_task(task22);
@@ -296,7 +300,7 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				task22->buffers[2].mode = STARPU_RW;
 				
 				/* schedule that codelet */
-				if (slicex == i+1)
+				if (!no_prio && (slicex == i+1))
 					task22->priority = MAX_PRIO;
 
 				starpu_submit_task(task22);
@@ -363,7 +367,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					task12->buffers[1].handle = get_sub_data(args->dataA, 2, u12a->k, u12a->i); 
 					task12->buffers[1].mode = STARPU_RW;
 
-					if (slice == i +1) 
+					if (!no_prio && (slice == i +1))
 						task12->priority = MAX_PRIO;
 
 					starpu_submit_task(task12);
@@ -400,7 +404,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					task21->buffers[1].handle = get_sub_data(args->dataA, 2, u21a->i, u21a->k);
 					task21->buffers[1].mode = STARPU_RW;
 		
-					if (slice == i +1)
+					if (!no_prio && (slice == i +1))
 						task21->priority = MAX_PRIO;
 
 					starpu_submit_task(task21);
@@ -689,29 +693,35 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 
 	timing_init();
 
+	starpu_helper_init_cublas();
+
 	if (pinned)
 	{
-		starpu_malloc_pinned_if_possible((void **)A, dim*dim*sizeof(float));
-		starpu_malloc_pinned_if_possible((void **)B, dim*sizeof(float));
+		starpu_malloc_pinned_if_possible((void **)A, (size_t)dim*dim*sizeof(float));
+		starpu_malloc_pinned_if_possible((void **)B, (size_t)dim*sizeof(float));
 	} 
 	else {
-		*A = malloc(dim*dim*sizeof(float));
-		*B = malloc(dim*sizeof(float));
+		*A = malloc((size_t)dim*dim*sizeof(float));
+		STARPU_ASSERT(*A);
+		*B = malloc((size_t)dim*sizeof(float));
+		STARPU_ASSERT(*B);
 	}
 }
 
 void dw_factoLU(float *matA, unsigned size, 
 		unsigned ld, unsigned nblocks, 
-		unsigned version)
+		unsigned version, unsigned _no_prio)
 {
 
 #ifdef CHECK_RESULTS
 	fprintf(stderr, "Checking results ...\n");
 	float *Asaved;
-	Asaved = malloc(ld*ld*sizeof(float));
+	Asaved = malloc((size_t)ld*ld*sizeof(float));
 
-	memcpy(Asaved, matA, ld*ld*sizeof(float));
+	memcpy(Asaved, matA, (size_t)ld*ld*sizeof(float));
 #endif
+
+	no_prio = _no_prio;
 
 	starpu_data_handle dataA;
 

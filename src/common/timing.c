@@ -16,15 +16,11 @@
 
 #include "timing.h"
 
-#ifdef UNRELIABLETICKS
+#ifdef USE_SYNC_CLOCK
 
-#define TICK_RAW_DIFF(t1, t2) (((t2).ts.tv_sec*1e9 + (t2).ts.tv_nsec) + \
-				- ((t1).ts.tv_sec*1e9) + (t1).ts.tv_nsec)
-#define TICK_DIFF(t1, t2) (TICK_RAW_DIFF(t1, t2))
-#define TIMING_DELAY(t1, t2) tick2usec(TICK_DIFF(t1, t2))
-
-static double scale = 0;
-static unsigned long long residual = 0;
+#define TICK_DIFF(t1, t2) ((long long)((t2).ts.tv_sec*1e9 + (t2).ts.tv_nsec) + \
+				- (long long)((t1).ts.tv_sec*1e9) + (long long)(t1).ts.tv_nsec)
+#define TIMING_DELAY(t1, t2) tick2usec(TICK_DIFF((t1), (t2)))
 
 void timing_init(void)
 {
@@ -37,7 +33,12 @@ inline double tick2usec(long long t)
 
 inline double timing_delay(tick_t *t1, tick_t *t2)
 {
-	return TIMING_DELAY(*t1, *t2);
+	double d1, d2;
+
+	d1 = tick2usec((t1->ts.tv_sec*1e9) + t1->ts.tv_nsec);
+	d2 = tick2usec((t2->ts.tv_sec*1e9) + t2->ts.tv_nsec);
+
+	return (d2 - d1);;
 }
 
 /* returns the current time in us */
@@ -46,12 +47,12 @@ inline double timing_now(void)
 	tick_t tick_now;
 	GET_TICK(tick_now);
 
-	return tick2usec(((tick_now).ts.tv_sec*1e9) + (tick_now).ts.tv_usec*1e3);
+	return tick2usec(((tick_now).ts.tv_sec*1e9) + (tick_now).ts.tv_nsec);
 }
 
 
 
-#else // UNRELIABLETICKS
+#else // USE_SYNC_CLOCK
 
 #define TICK_RAW_DIFF(t1, t2) ((t2).tick - (t1).tick)
 #define TICK_DIFF(t1, t2) (TICK_RAW_DIFF(t1, t2) - residual)
@@ -112,4 +113,4 @@ inline double timing_now(void)
 	return tick2usec(tick_now.tick);
 }
 
-#endif // UNRELIABLETICKS
+#endif // USE_SYNC_CLOCK

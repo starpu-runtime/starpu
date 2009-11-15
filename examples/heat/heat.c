@@ -20,13 +20,13 @@
 static unsigned ntheta = 32+2;
 static unsigned nthick = 32+2;
 static unsigned nblocks = 16;
+static unsigned nbigblocks = 8;
 static unsigned shape = 0;
 static unsigned pinned = 0;
+static unsigned check = 0;
 static unsigned version = 2;
 static unsigned use_cg = 0; /* use a LU decomposition of CG ? */
-
-static int argc_;
-static char **argv_;
+static unsigned no_prio = 0;
 
 extern void do_conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
               		unsigned nrow, uint32_t *colind, uint32_t *rowptr);
@@ -60,6 +60,11 @@ static void parse_args(int argc, char **argv)
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
 
+		if (strcmp(argv[i], "-nbigblocks") == 0) {
+		        char *argptr;
+			nbigblocks = strtol(argv[++i], &argptr, 10);
+		}
+
 		if (strcmp(argv[i], "-v1") == 0) {
 			version = 1;
 		}
@@ -72,12 +77,32 @@ static void parse_args(int argc, char **argv)
 			version = 3;
 		}
 
+		if (strcmp(argv[i], "-v4") == 0) {
+			version = 4;
+		}
+
 		if (strcmp(argv[i], "-pin") == 0) {
 			pinned = 1;
 		}
 
+		if (strcmp(argv[i], "-check") == 0) {
+			check = 1;
+		}
+
+		if (strcmp(argv[i], "-no-prio") == 0) {
+			no_prio = 1;
+		}
+
+		if (strcmp(argv[i], "-size") == 0) {
+			char *argptr;
+			unsigned size = strtol(argv[++i], &argptr, 10);
+			nthick = 130;
+			ntheta = (size/128) + 2;
+			STARPU_ASSERT((nthick - 2)*(ntheta - 2) == size);
+		}
+
 		if (strcmp(argv[i], "-h") == 0) {
-			printf("usage : %s [-v1|-v2|-v3] [-pin] [-nthick number] [-ntheta number] [-shape [0|1|2]] [-cg]\n", argv[0]);
+			printf("usage : %s [-v1|-v2|-v3] [-pin] [-nthick number] [-ntheta number] [-shape [0|1|2]] [-cg] [-size number] [-no-prio]\n", argv[0]);
 		}
 	}
 }
@@ -297,44 +322,51 @@ static void solve_system(unsigned size, unsigned subsize, float *result, int *Re
         /* solve UX = X' */
 	fprintf(stderr, "Solving the problem ...\n");
 
-#ifdef CHECK_RESULTS
-	float *savedB = malloc(subsize*sizeof(float));
-	memcpy(savedB, B, subsize*sizeof(float));
+	float *savedB;
+	float *LUB;
 
-	float *LUB = malloc(subsize*sizeof(float));
-#endif
+	if (check)
+	{
+		savedB = malloc(subsize*sizeof(float));
+		memcpy(savedB, B, subsize*sizeof(float));
+		LUB = malloc(subsize*sizeof(float));
+	}
 
-	/* L */
-	STRSV("L", "N", "N", subsize, A, subsize, B, 1);
-
-	/* U */
-        STRSV("U", "N", "U", subsize, A, subsize, B, 1);
-
-	STARPU_ASSERT(DIM == size);
-
-#ifdef CHECK_RESULTS
-	/* compute the error on (LUB - savedB) which should be 0 */
-
-	/* LUB = B */
-	memcpy(LUB, B, subsize*sizeof(float));
-
-
-	/* LUB = U * LUB */
-	STRMV("U", "N", "U", subsize, A, subsize, LUB, 1);
+		/* L */
+		STRSV("L", "N", "N", subsize, A, subsize, B, 1);
 	
-	/* LUB = L * LUB */
-	STRMV("L", "N", "N", subsize, A, subsize, LUB, 1);
+		/* U */
+	        STRSV("U", "N", "U", subsize, A, subsize, B, 1);
+	
+		STARPU_ASSERT(DIM == size);
+	
+	if (check)
+	{
+		/* compute the error on (LUB - savedB) which should be 0 */
+	
+		/* LUB = B */
+		memcpy(LUB, B, subsize*sizeof(float));
+	
+	
+		/* LUB = U * LUB */
+		STRMV("U", "N", "U", subsize, A, subsize, LUB, 1);
+		
+		/* LUB = L * LUB */
+		STRMV("L", "N", "N", subsize, A, subsize, LUB, 1);
+	
+		/* LUB -= B */
+		SAXPY(subsize, -1.0f, savedB, 1, LUB, 1);
+	
+		/* check if LUB is close to the 0 vector */
+		int maxind = ISAMAX(subsize, LUB, 1);
+		fprintf(stderr, "max error (LUX - B) = %e\n",LUB[maxind - 1]);
 
-	/* LUB -= B */
-	SAXPY(subsize, -1.0f, savedB, 1, LUB, 1);
-
-	/* check if LUB is close to the 0 vector */
-	int maxind = ISAMAX(subsize, LUB, 1);
-	fprintf(stderr, "max (LUX - B) = %f\n",LUB[maxind - 1]);
-
-	free(LUB);
-	free(savedB);
-#endif
+		float sum = SASUM(subsize, LUB, 1);
+		fprintf(stderr,"avg. error %e\n", sum/subsize);
+	
+		free(LUB);
+		free(savedB);
+	}
 
 	/* now display back the ACTUAL result */
 	for (i = 0; i < subsize; i++)
@@ -440,7 +472,7 @@ void build_mesh(point *mesh)
 	}
 }
 
-static unsigned build_neighbour_vector(unsigned *neighbours, unsigned node, int *RefArray, int *RefArrayBack)
+static unsigned long build_neighbour_vector(unsigned long*neighbours, unsigned node, int *RefArray, int *RefArrayBack)
 {
 	/* where is that point in the former space ? */
 	int former = TRANSLATE(node);
@@ -526,9 +558,9 @@ static void build_sparse_stiffness_matrix_B(point *pmesh, float *B, float *Bform
 	for (j = 0 ; j < newsize ; j++)
 	{
 
-		unsigned neighbour;
-		unsigned nneighbours;
-		unsigned neighbours[9];
+		unsigned long neighbour;
+		unsigned long nneighbours;
+		unsigned long neighbours[9];
 
 		nneighbours = build_neighbour_vector(&neighbours[0], j, RefArray, RefArrayBack);
 
@@ -560,9 +592,9 @@ static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uin
 	{
 		rowptr[j] = pos;
 
-		unsigned neighbour;
-		unsigned nneighbours;
-		unsigned neighbours[9];
+		unsigned long neighbour;
+		unsigned long nneighbours;
+		unsigned long neighbours[9];
 
 		nneighbours = build_neighbour_vector(&neighbours[0], j, RefArray, RefArrayBack);
 
@@ -597,7 +629,7 @@ static unsigned build_sparse_stiffness_matrix_A(point *pmesh, float **nzval, uin
 
 static void build_dense_stiffness_matrix_A(point *pmesh, float *A, unsigned newsize, int *RefArray, int *RefArrayBack)
 {
-	unsigned j;
+	unsigned long j;
 
 	/* touch all the memory */
 	memset(A, 0, newsize*newsize*sizeof(float));
@@ -605,20 +637,20 @@ static void build_dense_stiffness_matrix_A(point *pmesh, float *A, unsigned news
 	/* now the actual stiffness (reordered) matrix*/
 	for (j = 0 ; j < newsize ; j++)
 	{
-		unsigned neighbour;
-		unsigned nneighbours;
-		unsigned neighbours[9];
+		unsigned long neighbour;
+		unsigned long nneighbours;
+		unsigned long neighbours[9];
 
 		nneighbours = build_neighbour_vector(&neighbours[0], j, RefArray, RefArrayBack);
 
 		for (neighbour = 0; neighbour < nneighbours; neighbour++)
 		{
-			unsigned nodeneighbour =  neighbours[neighbour];
+			unsigned long nodeneighbour =  neighbours[neighbour];
 
 			if (nodeneighbour < newsize) {
 				float val;
 				val = compute_A_value(TRANSLATE(j), TRANSLATE(nodeneighbour), pmesh);
-				A[j+ newsize*nodeneighbour] = val;
+				A[j+ (unsigned long)newsize*nodeneighbour] = val;
 			}
 		}
 	}
@@ -635,13 +667,6 @@ int main(int argc, char **argv)
 	point *pmesh;
 	float *Bformer;
 
-	argc_ = argc;
-	argv_ = argv;
-
-#ifdef USE_MARCEL
-	marcel_init(&argc, argv);
-#endif
-
 	parse_args(argc, argv);
 
 	pmesh = malloc(DIM*sizeof(point));
@@ -651,10 +676,6 @@ int main(int argc, char **argv)
 	result = malloc(DIM*sizeof(float));
 
 	build_mesh(pmesh);
-
-#ifdef USE_POSTSCRIPT
-	postscript_gen();
-#endif
 
 	/* now simplify that problem given the boundary conditions 
 	 * to do so, we remove the already known variables from the system
@@ -677,35 +698,6 @@ int main(int argc, char **argv)
 		build_sparse_stiffness_matrix_B(pmesh, B, Bformer, DIM, newsize, RefArray, RefArrayBack);
 
 		nnz = build_sparse_stiffness_matrix_A(pmesh, &nzval, &colind, rowptr, newsize, RefArray, RefArrayBack);
-
-#if 0
-		printf("nnz : %d\n", nnz);
-
-		fprintf(stdout, "MUMPS FORMAT BEGIN\n");
-		FILE *fm = fopen("input_mumps", "w+");
-		fprintf(fm, "%d\t:N\n%d\t:NZ\n", newsize, nnz);
-
-		unsigned r;
-		for (r = 0; r < newsize; r++)
-		{
-			int first_ind = rowptr[r];
-			int last_ind = rowptr[r+1];
-
-			int ind;
-			for (ind = first_ind; ind < last_ind; ind++)
-			{
-				 fprintf(fm, "%d %d %f\n", colind[ind]+1, r+1, nzval[ind]);
-			}
-		} 
-
-		for (r = 0; r < newsize; r++)
-		{
-			fprintf(fm, "%f\n", B[r]);
-		}
-	
-		fclose(fm);
-		fprintf(stdout, "MUMPS FORMAT END\n");
-#endif		
 
 		do_conjugate_gradient(nzval, B, result, nnz, newsize, colind, rowptr);
 
@@ -736,18 +728,31 @@ int main(int argc, char **argv)
 
 		build_dense_stiffness_matrix_A(pmesh, A, newsize, RefArray, RefArrayBack);
 
-		fprintf(stderr, "Problem size : %dx%d (%dx%d)\n", newsize, newsize, DIM, DIM);
+		fprintf(stderr, "Problem size : %dx%d (%dx%d) (%ld MB)\n", newsize, newsize, DIM, DIM, ((unsigned long)newsize*newsize*4UL)/(1024*1024));
 
-		if (version < 3) {
-			dw_factoLU(A, newsize, newsize, nblocks, version);
-		}
-		else {
-			dw_factoLU_tag(A, newsize, newsize, nblocks);
+		STARPU_ASSERT(newsize % nblocks == 0);
+
+		switch (version) {
+			case 1:
+			case 2:
+				dw_factoLU(A, newsize, newsize, nblocks, version, no_prio);
+				break;
+			case 3:
+				dw_factoLU_tag(A, newsize, newsize, nblocks, no_prio);
+				break;
+			case 4:
+				dw_factoLU_grain(A, newsize, newsize, nblocks, nbigblocks);
+				break;
+			default:
+				STARPU_ASSERT(0);
 		}
 
 		display_stat_heat();
 
-		solve_system(DIM, newsize, result, RefArray, Bformer, A, B);
+		if (check)
+			solve_system(DIM, newsize, result, RefArray, Bformer, A, B);
+
+		starpu_helper_init_cublas();
 
 		starpu_shutdown();
 	}

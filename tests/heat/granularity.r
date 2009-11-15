@@ -1,9 +1,13 @@
-max <- 30
+max <- 28
 
-sizelist <- seq(64, max*1024, 64);
+maxy <- 400
+
+sizelist <- seq(2048, max*1024, 64);
 #schedlist <- c("greedy", "prio", "dm", "random", "no-prio", "ws");
 #schedlist <- c("greedy", "prio", "dm", "random");
-grainlist <- c(64, 128, 256, 512, 768, 1024, 1280, 1536, 2048);
+# grainlist <- c(64, 128, 256, 512, 768, 1024, 1280, 1536, 2048);
+grainlist <- c(256, 512, 1024, 2048);
+grainlistchar <- c("256", "512", "1024", "2048");
 
 gflops <- function (x, size)
 {
@@ -93,10 +97,11 @@ trace_grain <- function(grain, color, style)
 display_grain <- function()
 {
 	xlist <- range(sizelist);
-	ylist <- range(c(0,100));
+	ylist <- range(c(0,maxy));
 
 	plot.new();
-	plot.window(xlist, ylist, log="x");
+	#plot.window(xlist, ylist, log="x");
+	plot.window(xlist, ylist);
 
 	i <- 0;
 
@@ -107,13 +112,13 @@ display_grain <- function()
 		i <- i + 1;
 	}
 
-	#axis(1, at=seq(0, max*1024, 1024), log="x")
-	axis(1)
-	axis(2, at=seq(0, 100, 10), tck=1)
+	axis(1, at=seq(0, max*1024, 2048))
+	#axis(1)
+	axis(2, at=seq(0, maxy, 25), tck=1)
 #	axis(4, at=seq(0, 100, 10))
 	box(bty="u")
 
-	labels <- c("64", "128", "256", "512", "768", "1024", "1280", "1536", "2048");
+	labels <- grainlistchar;
 
 	legend("topleft", inset=.05, title="Tile size", labels, lwd=2, lty=c(1, 1, 1, 1, 1, 1), pch=-1, col=colarray, bty="y", bg="white")
 

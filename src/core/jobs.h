@@ -41,13 +41,14 @@
 #include <cuda.h>
 #endif
 
+struct worker_s;
+
 /* codelet function */
 typedef void (*cl_func)(starpu_data_interface_t *, void *);
 typedef void (*callback)(void *);
 
 #define CORE_MAY_PERFORM(j)	((j)->task->cl->where & CORE)
 #define CUDA_MAY_PERFORM(j)     ((j)->task->cl->where & CUDA)
-#define CUBLAS_MAY_PERFORM(j)   ((j)->task->cl->where & CUBLAS)
 #define SPU_MAY_PERFORM(j)	((j)->task->cl->where & SPU)
 #define GORDON_MAY_PERFORM(j)	((j)->task->cl->where & GORDON)
 
@@ -55,15 +56,8 @@ typedef void (*callback)(void *);
 LIST_TYPE(job,
 	struct starpu_task *task;
 
-/* Mac OS X does not provide anonymous semaphores,
-   so we use condition variable instead */
-#if defined(__APPLE__) && defined(__MACH__)
 	pthread_mutex_t sync_mutex;
 	pthread_cond_t sync_cond;
-#else
-	sem_t sync_sem;
-#endif
-
 
 	struct tag_s *tag;
 
@@ -76,6 +70,12 @@ LIST_TYPE(job,
 	unsigned terminated;
 );
 
+job_t __attribute__((malloc)) job_create(struct starpu_task *task);
+void starpu_wait_job(job_t j);
+
+/* try to submit job j, enqueue it if it's not schedulable yet */
+unsigned enforce_deps_and_schedule(job_t j);
+
 //#warning this must not be exported anymore ... 
 //job_t job_create(struct starpu_task *task);
 void handle_job_termination(job_t j);
@@ -84,5 +84,8 @@ size_t job_get_data_size(job_t j);
 //int submit_job(job_t j);
 //int submit_prio_job(job_t j);
 //int submit_job_sync(job_t j);
+
+job_t pop_local_task(struct worker_s *worker);
+int push_local_task(struct worker_s *worker, job_t j);
 
 #endif // __JOBS_H__

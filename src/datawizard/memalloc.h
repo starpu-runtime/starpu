@@ -41,11 +41,11 @@ LIST_TYPE(mem_chunk,
 	starpu_data_interface_t interface;
 	unsigned automatically_allocated;
 	unsigned data_was_deleted;
-);
+)
 
 void init_mem_chunk_lists(void);
 void deinit_mem_chunk_lists(void);
 void request_mem_chunk_removal(struct starpu_data_state_t *state, unsigned node);
-int allocate_memory_on_node(struct starpu_data_state_t *state, uint32_t dst_node);
+int allocate_memory_on_node(struct starpu_data_state_t *state, uint32_t dst_node, unsigned may_alloc);
 
 #endif

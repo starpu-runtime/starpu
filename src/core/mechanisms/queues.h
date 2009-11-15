@@ -70,5 +70,8 @@ void setup_queues(void (*init_queue_design)(void),
 struct jobq_s *get_local_queue(void);
 void set_local_queue(struct jobq_s *jobq);
 
+void jobq_lock(struct jobq_s *jobq);
+void jobq_unlock(struct jobq_s *jobq);
+int jobq_trylock(struct jobq_s *jobq);
 
 #endif // __QUEUES_H__

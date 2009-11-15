@@ -14,8 +14,14 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu_config.h>
 #include "dw_cholesky.h"
 #include "../common/blas.h"
+#ifdef USE_CUDA
+#include <cuda.h>
+#include <cuda_runtime.h>
+#include <cublas.h>
+#endif
 
 /*
  *   U22 
@@ -36,6 +42,10 @@ static inline void chol_common_core_codelet_update_u22(starpu_data_interface_t *
 	unsigned ld12 = buffers[1].blas.ld;
 	unsigned ld22 = buffers[2].blas.ld;
 
+#ifdef USE_CUDA
+	cublasStatus st;
+#endif
+
 	switch (s) {
 		case 0:
 			SGEMM("N", "T", dy, dx, dz, -1.0f, left, ld21, 
@@ -46,6 +56,11 @@ static inline void chol_common_core_codelet_update_u22(starpu_data_interface_t *
 			cublasSgemm('n', 't', dy, dx, dz, 
 					-1.0f, left, ld21, right, ld12, 
 					 1.0f, center, ld22);
+			st = cublasGetError();
+			STARPU_ASSERT(!st);
+
+			cudaThreadSynchronize();
+
 			break;
 #endif
 		default:
@@ -92,6 +107,7 @@ static inline void chol_common_codelet_update_u21(starpu_data_interface_t *buffe
 #ifdef USE_CUDA
 		case 1:
 			cublasStrsm('R', 'L', 'T', 'N', nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
+			cudaThreadSynchronize();
 			break;
 #endif
 		default:
@@ -157,28 +173,30 @@ static inline void chol_common_codelet_update_u11(starpu_data_interface_t *descr
 			for (z = 0; z < nx; z++)
 			{
 				float lambda11;
-				/* ok that's dirty and ridiculous ... */
-				cublasGetVector(1, sizeof(float), &sub11[z+z*ld], sizeof(float), &lambda11, sizeof(float));
+				cudaMemcpy(&lambda11, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost);
+				cudaStreamSynchronize(0);
 
+				STARPU_ASSERT(lambda11 != 0.0f);
+				
 				lambda11 = sqrt(lambda11);
 
 				cublasSetVector(1, sizeof(float), &lambda11, sizeof(float), &sub11[z+z*ld], sizeof(float));
 
-				STARPU_ASSERT(lambda11 != 0.0f);
-				
 				cublasSscal(nx - z - 1, 1.0f/lambda11, &sub11[(z+1)+z*ld], 1);
 
 				cublasSsyr('U', nx - z - 1, -1.0f,
 							&sub11[(z+1)+z*ld], 1,
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
+		
+			cudaThreadSynchronize();
+
 			break;
 #endif
 		default:
 			STARPU_ASSERT(0);
 			break;
 	}
-
 }
 
 

@@ -141,17 +141,8 @@ job_t stack_pop_task(struct jobq_s *q)
 	STARPU_ASSERT(q);
 	struct stack_jobq_s *stack_queue = q->queue;
 
-	/* block until some task is available in that queue */
-	pthread_mutex_lock(&q->activity_mutex);
-
-	if ((stack_queue->njobs == 0) && machine_is_running())
-	{
-#ifdef NON_BLOCKING_DRIVERS
-		datawizard_progress(q->memory_node);
-#else
-		pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
-#endif
-	}
+	if (stack_queue->njobs == 0)
+		return NULL;
 
 	if (stack_queue->njobs > 0) 
 	{
@@ -170,65 +161,6 @@ job_t stack_pop_task(struct jobq_s *q)
 		pthread_mutex_unlock(sched_mutex);
 	}
 	
-	pthread_mutex_unlock(&q->activity_mutex);
-
 	return j;
 
-}
-
-/* for work stealing, typically */
-job_t stack_non_blocking_pop_task(struct jobq_s *q)
-{
-	job_t j = NULL;
-
-	STARPU_ASSERT(q);
-	struct stack_jobq_s *stack_queue = q->queue;
-
-	/* block until some task is available in that queue */
-	pthread_mutex_lock(&q->activity_mutex);
-
-	if (stack_queue->njobs > 0) 
-	{
-		/* there is a task */
-		j = job_list_pop_back(stack_queue->jobq);
-	
-		STARPU_ASSERT(j);
-		stack_queue->njobs--;
-		
-		TRACE_JOB_POP(j, 0);
-
-		/* we are sure that we got it now, so at worst, some people thought 
-		 * there remained some work and will soon discover it is not true */
-		pthread_mutex_lock(sched_mutex);
-		total_number_of_jobs--;
-		pthread_mutex_unlock(sched_mutex);
-	}
-	
-	pthread_mutex_unlock(&q->activity_mutex);
-
-	return j;
-}
-
-job_t stack_non_blocking_pop_task_if_job_exists(struct jobq_s *q)
-{
-	job_t j;
-
-	j = stack_non_blocking_pop_task(q);
-
-	if (!j) {
-		/* there is no job at all in the entire system : go to sleep ! */
-
-		/* that wait is not an absolute sign that there is some work 
-		 * if there is some, the thread should be awoken, but if there is none 
-		 * at the moment it is awoken, it may simply poll a limited number of 
-		 * times and just get back to sleep */
-		pthread_mutex_lock(sched_mutex);
-
-		if ((total_number_of_jobs == 0) && machine_is_running())
-			pthread_cond_wait(sched_cond, sched_mutex);
-
-		pthread_mutex_unlock(sched_mutex);
-	}
-
-	return j;
 }

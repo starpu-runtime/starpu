@@ -111,6 +111,24 @@ double job_expected_length(uint32_t who, struct job_s *j, enum starpu_perf_archt
 	return 0.0;
 }
 
+/* hand hard coded, does not really reflect anything real ! */
+static double bandwith_matrix[4][4] = 
+{
+	{0.0, 5700.0, 3000.0, 2000.0},
+	{5300.0, 0.0, 500.0, 500.0},
+	{3000.0, 500.0, 0.0, 500.0},
+	{2000.0, 500.0, 500.0, 0.0}
+};
+
+static double latency_matrix[4][4] = 
+{
+	{0.0, 500.0, 500.0, 500.0},
+	{500.0, 0.0, 2000.0, 2000.0},
+	{500.0, 2000.0, 0.0, 2000.0},
+	{500.0, 2000.0, 2000.0, 0.0}
+};
+
+
 
 /* Data transfer performance modeling */
 double data_expected_penalty(struct jobq_s *q, struct job_s *j)
@@ -127,8 +145,15 @@ double data_expected_penalty(struct jobq_s *q, struct job_s *j)
 
 		if (!is_data_present_or_requested(state, memory_node))
 		{
+			size_t size = state->ops->get_size(state);
+
+			uint32_t src_node = select_src_node(state);
+
 			/* TODO */
-			penalty += 1000.0;
+			double bandwith = bandwith_matrix[src_node][memory_node];
+			double latency = latency_matrix[src_node][memory_node];
+
+			penalty += latency + size/bandwith;
 		}
 	}
 

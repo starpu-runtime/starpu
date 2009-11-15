@@ -69,9 +69,9 @@ typedef struct local_data_state_t {
 	   use this hint can simply ignore it.
 	 */
 	uint8_t requested;
+	struct data_request_s *request;
 } local_data_state;
 
-#ifdef NO_DATA_RW_LOCK
 /* Everyone that wants to access some piece of data will post a request.
  * Not only StarPU internals, but also the application may put such requests */
 
@@ -93,19 +93,12 @@ LIST_TYPE(data_requester,
 	void *argcb;
 );
 
-#endif
-
 typedef struct starpu_data_state_t {
-#ifdef NO_DATA_RW_LOCK
 	data_requester_list_t req_list;
 	/* the number of requests currently in the scheduling engine
 	 * (not in the req_list anymore) */
 	unsigned refcnt;
 	starpu_access_mode current_mode;
-#else
-	/* protect the data itself */
-	rw_lock	data_lock;
-#endif
 	/* protect meta data */
 	starpu_spinlock_t header_lock;
 
@@ -140,19 +133,25 @@ void display_msi_stats(void);
 //void release_data(data_state *state, uint32_t write_through_mask);
 
 __attribute__((warn_unused_result))
-int _fetch_data(data_state *state, uint32_t requesting_node, uint8_t read, uint8_t write);
+int fetch_data_on_node(data_state *state, uint32_t requesting_node, uint8_t read, uint8_t write, unsigned is_prefetch);
+void release_data_on_node(data_state *state, uint32_t default_wb_mask, unsigned memory_node);
+
+void update_data_state(data_state *state, uint32_t requesting_node, uint8_t write);
 
 uint32_t get_data_refcnt(data_state *state, uint32_t node);
 
-void push_codelet_output(starpu_buffer_descr *descrs, unsigned nbuffers, uint32_t mask);
+void push_task_output(struct starpu_task *task, uint32_t mask);
 
 __attribute__((warn_unused_result))
-int fetch_codelet_input(starpu_buffer_descr *descrs, starpu_data_interface_t *interface, unsigned nbuffers, uint32_t mask);
-
-int request_data_allocation(data_state *state, uint32_t node);
+int fetch_task_input(struct starpu_task *task, uint32_t mask);
 
 unsigned is_data_present_or_requested(data_state *state, uint32_t node);
 
 inline void set_data_requested_flag_if_needed(data_state *state, uint32_t node);
+
+int prefetch_task_input_on_node(struct starpu_task *task, uint32_t node);
+
+uint32_t select_node_to_handle_request(uint32_t src_node, uint32_t dst_node);
+uint32_t select_src_node(data_state *state);
 
 #endif // __COHERENCY__H__

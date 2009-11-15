@@ -20,9 +20,6 @@
 #endif
 
 
-static pthread_mutex_t mutex;
-static pthread_cond_t cond;
-
 struct pos {
 	unsigned x,y, z,iter;
 };
@@ -59,78 +56,6 @@ static void callback_func_3(void *arg);
      |----|   |---------------|
 
  */
-
-static void terminate(void)
-{
-	gettimeofday(&end, NULL);
-
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-
-	uint64_t total_flop = BLAS3_FLOP(ydim, xdim, zdim)*niter;
-
-	fprintf(stderr, "Computation took (ms):\n");
-	printf("%2.2f\n", timing/1000);
-	fprintf(stderr, "	GFlop : total (%2.2f) cublas (%2.2f) atlas (%2.2f)\n", (double)total_flop/1000000000.0f, (double)flop_cublas/1000000000.0f, (double)flop_atlas/1000000000.0f);
-	fprintf(stderr, "	GFlop/s : %2.2f\n", (double)total_flop / (double)timing/1000);
-
-	pthread_mutex_lock(&mutex);
-	pthread_cond_signal(&cond);
-	pthread_mutex_unlock(&mutex);
-}
-
-
-#define COMMON_CODE			\
-	uint32_t nxC, nyC, nyA;		\
-	uint32_t ldA, ldB, ldC;		\
-					\
-	float *subA;			\
-	float *subB;			\
-	float *subC;			\
-					\
-	subA = (float *)descr[0].blas.ptr;	\
-	subB = (float *)descr[1].blas.ptr;	\
-	subC = (float *)descr[2].blas.ptr;	\
-					\
-	nxC = descr[2].blas.nx;		\
-	nyC = descr[2].blas.ny;		\
-	nyA = descr[0].blas.ny;		\
-					\
-	ldA = descr[0].blas.ld;		\
-	ldB = descr[1].blas.ld;		\
-	ldC = descr[2].blas.ld;
-
-
-
-#ifdef USE_CUDA
-static void cublas_mult(starpu_data_interface_t *descr, __attribute__((unused)) void *arg)
-{
-	COMMON_CODE
-
-	cublasSgemm('n', 'n', nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 
-					     1.0f, subC, ldC);
-	cublasStatus st;
-	st = cublasGetError();
-	if (st != CUBLAS_STATUS_SUCCESS)
-		STARPU_ASSERT(0);
-
-	uint64_t flopcnt = BLAS3_FLOP(nyC, nxC, nyA);
-
-	flop_cublas += flopcnt;
-	ls_cublas += BLAS3_LS(nyC, nxC, nyA);
-}
-#endif
-
-static void core_mult(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
-{
-	COMMON_CODE
-
-//	fprintf(stderr, "Call SGEMM : nxC %d nyC %d nyA %d subA %p ldA %d subB %p ldB %d subC %p ldC %d\n",
-//				nxC, nyC, nyA, subA, ldA, subB, ldB, subC, ldC);
-	SGEMM("N", "N", nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 1.0f, subC, ldC);
-
-	flop_atlas += BLAS3_FLOP(nxC, nyC, nyA);
-	ls_atlas += BLAS3_LS(nxC, nyC, nyA);
-}
 
 #define MEM_ALIGNMENT	16
 
@@ -347,21 +272,18 @@ static void cleanup_problem(void)
 	
 }
 
-int xycounter;
-
 struct cb2_s {
 	unsigned blockx;
 	unsigned blocky;
 	unsigned iter;
-	int *xycounter;
 };
 
 
 static starpu_codelet cl = {
-	.where = CORE|CUBLAS|GORDON,
+	.where = CORE|CUDA|GORDON,
 	.core_func = core_mult,
 #ifdef USE_CUDA
-	.cublas_func = cublas_mult,
+	.cuda_func = cublas_mult,
 #endif
 #ifdef USE_GORDON
 	/* .gordon_func will be set by load_elf_sgemm */
@@ -419,23 +341,13 @@ static void construct_task(unsigned x, unsigned y, unsigned z, unsigned iter, st
 }
 
 
-static void callback_func(void *arg)
-{
-	/* the argument is a pointer to a counter of the remaining tasks */
-	int *counter = arg;
-	int newvalue = STARPU_ATOMIC_ADD(counter, -1);
-	if (newvalue == 0)
-	{
-		/* we are done */	
-		fprintf(stderr, "done ...\n");
-		terminate();
-	}
-
-	return;
-}
-
 static void callback_func_3(void *arg)
 {
+	/* do some accounting */
+	int id = starpu_get_worker_id();
+	flop_per_worker[id] += BLAS3_FLOP(BLOCKSIZEX, BLOCKSIZEY, BLOCKSIZEZ);
+	ls_per_worker[id] += BLAS3_LS(BLOCKSIZEX, BLOCKSIZEY, BLOCKSIZEZ);
+
 	/* the argument is a pointer to a counter of the remaining tasks */
 	struct pos *posp = arg;
 	unsigned x,y,z,iter;
@@ -455,10 +367,6 @@ static void callback_func_3(void *arg)
 		{
 			construct_task(x, y, 0, iter+1, posp);
 		}
-		else
-		{
-			callback_func(&xycounter);
-		}
 	}
 }
 
@@ -472,9 +380,6 @@ static void launch_codelets(void)
 #endif
 	/* partition the work into slices */
 	unsigned taskx, tasky;
-
-	/* only a callback per (nslicesz * niter) task given deps */
-	xycounter = nslicesx * nslicesy;
 
 	srand(time(NULL));
 
@@ -496,24 +401,27 @@ int main(__attribute__ ((unused)) int argc,
 	/* start the runtime */
 	starpu_init(NULL);
 
+	starpu_helper_init_cublas();
+
 #ifdef USE_GORDON
 	load_elf_sgemm();
 #endif
-
-	pthread_mutex_init(&mutex, NULL);
-	pthread_cond_init(&cond, NULL);
 
 	init_problem_data();
 
 	launch_codelets();
 
-	pthread_mutex_lock(&mutex);
-	pthread_cond_wait(&cond, &mutex);
-	pthread_mutex_unlock(&mutex);
+	starpu_wait_all_tasks();
+
+	gettimeofday(&end, NULL);
+
+	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+
+	display_stats(timing);
 
 	cleanup_problem();
 
-	exit(-1);
+	starpu_helper_shutdown_cublas();
 	starpu_shutdown();
 
 	return 0;

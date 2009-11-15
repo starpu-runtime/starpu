@@ -37,10 +37,10 @@ static struct starpu_task *create_task(starpu_tag_t id)
 
 static starpu_codelet cl11 =
 {
-	.where = ANY,
+	.where = CORE|CUDA,
 	.core_func = chol_core_codelet_update_u11,
 #ifdef USE_CUDA
-	.cublas_func = chol_cublas_codelet_update_u11,
+	.cuda_func = chol_cublas_codelet_update_u11,
 #endif
 	.nbuffers = 1,
 	.model = &chol_model_11
@@ -59,7 +59,8 @@ static struct starpu_task * create_task_11(starpu_data_handle dataA, unsigned k)
 	task->buffers[0].mode = STARPU_RW;
 
 	/* this is an important task */
-	task->priority = MAX_PRIO;
+	if (!noprio)
+		task->priority = MAX_PRIO;
 
 	/* enforce dependencies ... */
 	if (k > 0) {
@@ -71,10 +72,10 @@ static struct starpu_task * create_task_11(starpu_data_handle dataA, unsigned k)
 
 static starpu_codelet cl21 =
 {
-	.where = ANY,
+	.where = CORE|CUDA,
 	.core_func = chol_core_codelet_update_u21,
 #ifdef USE_CUDA
-	.cublas_func = chol_cublas_codelet_update_u21,
+	.cuda_func = chol_cublas_codelet_update_u21,
 #endif
 	.nbuffers = 2,
 	.model = &chol_model_21
@@ -92,7 +93,7 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j)
 	task->buffers[1].handle = get_sub_data(dataA, 2, k, j); 
 	task->buffers[1].mode = STARPU_RW;
 
-	if (j == k+1) {
+	if (!noprio && (j == k+1)) {
 		task->priority = MAX_PRIO;
 	}
 
@@ -109,10 +110,10 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j)
 
 static starpu_codelet cl22 =
 {
-	.where = ANY,
+	.where = CORE|CUDA,
 	.core_func = chol_core_codelet_update_u22,
 #ifdef USE_CUDA
-	.cublas_func = chol_cublas_codelet_update_u22,
+	.cuda_func = chol_cublas_codelet_update_u22,
 #endif
 	.nbuffers = 3,
 	.model = &chol_model_22
@@ -134,7 +135,7 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 	task->buffers[2].handle = get_sub_data(dataA, 2, i, j); 
 	task->buffers[2].mode = STARPU_RW;
 
-	if ( (i == k + 1) && (j == k +1) ) {
+	if (!noprio && (i == k + 1) && (j == k +1) ) {
 		task->priority = MAX_PRIO;
 	}
 
@@ -170,6 +171,7 @@ static void _dw_cholesky(starpu_data_handle dataA, unsigned nblocks)
 	/* create all the DAG nodes */
 	unsigned i,j,k;
 
+	gettimeofday(&start, NULL);
 
 	for (k = 0; k < nblocks; k++)
 	{
@@ -195,12 +197,15 @@ static void _dw_cholesky(starpu_data_handle dataA, unsigned nblocks)
 	}
 
 	/* schedule the codelet */
-	gettimeofday(&start, NULL);
 	starpu_submit_task(entry_task);
 
 	/* stall the application until the end of computations */
 	starpu_tag_wait(TAG11(nblocks-1));
+
+	starpu_unpartition_data(dataA, 0);
+
 	gettimeofday(&end, NULL);
+
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	fprintf(stderr, "Computation took (in ms)\n");
@@ -215,12 +220,14 @@ static void _dw_cholesky(starpu_data_handle dataA, unsigned nblocks)
 void initialize_system(float **A, unsigned dim, unsigned pinned)
 {
 	starpu_init(NULL);
+	
+	starpu_helper_init_cublas();
 
 	timing_init();
 
 	if (pinned)
 	{
-		starpu_malloc_pinned_if_possible((void **)A, dim*dim*sizeof(float));
+		starpu_malloc_pinned_if_possible((void **)A, (size_t)dim*dim*sizeof(float));
 	} 
 	else {
 		*A = malloc(dim*dim*sizeof(float));
@@ -247,7 +254,7 @@ void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	_dw_cholesky(dataA, nblocks);
 
-	starpu_unpartition_data(dataA, 0);
+	starpu_helper_shutdown_cublas();
 
 	starpu_shutdown();
 }

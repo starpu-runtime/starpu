@@ -39,14 +39,35 @@ inline void SGEMM(char *transa, char *transb, int M, int N, int K,
 			M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);				
 }
 
+inline void DGEMM(char *transa, char *transb, int M, int N, int K, 
+			double alpha, double *A, int lda, double *B, int ldb, 
+			double beta, double *C, int ldc)
+{
+	enum CBLAS_TRANSPOSE ta = (toupper(transa[0]) == 'N')?CblasNoTrans:CblasTrans;
+	enum CBLAS_TRANSPOSE tb = (toupper(transb[0]) == 'N')?CblasNoTrans:CblasTrans;
+
+	cblas_dgemm(CblasColMajor, ta, tb,
+			M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);				
+}
+
 inline float SASUM(int N, float *X, int incX)
 {
 	return cblas_sasum(N, X, incX);
 }
 
+inline double DASUM(int N, double *X, int incX)
+{
+	return cblas_dasum(N, X, incX);
+}
+
 void SSCAL(int N, float alpha, float *X, int incX)
 {
 	cblas_sscal(N, alpha, X, incX);
+}
+
+void DSCAL(int N, double alpha, double *X, int incX)
+{
+	cblas_dscal(N, alpha, X, incX);
 }
 
 void STRSM (const char *side, const char *uplo, const char *transa,
@@ -60,6 +81,19 @@ void STRSM (const char *side, const char *uplo, const char *transa,
 	enum CBLAS_DIAG diag_ = (toupper(diag[0]) == 'N')?CblasNonUnit:CblasUnit;
 
 	cblas_strsm(CblasColMajor, side_, uplo_, transa_, diag_, m, n, alpha, A, lda, B, ldb);
+}
+
+void DTRSM (const char *side, const char *uplo, const char *transa,
+                   const char *diag, const int m, const int n,
+                   const double alpha, const double *A, const int lda,
+                   double *B, const int ldb)
+{
+	enum CBLAS_SIDE side_ = (toupper(side[0]) == 'L')?CblasLeft:CblasRight;
+	enum CBLAS_UPLO uplo_ = (toupper(uplo[0]) == 'U')?CblasUpper:CblasLower;
+	enum CBLAS_TRANSPOSE transa_ = (toupper(transa[0]) == 'N')?CblasNoTrans:CblasTrans;
+	enum CBLAS_DIAG diag_ = (toupper(diag[0]) == 'N')?CblasNonUnit:CblasUnit;
+
+	cblas_dtrsm(CblasColMajor, side_, uplo_, transa_, diag_, m, n, alpha, A, lda, B, ldb);
 }
 
 void SSYR (const char *uplo, const int n, const float alpha,
@@ -81,11 +115,18 @@ void SSYRK (const char *uplo, const char *trans, const int n,
 	cblas_ssyrk(CblasColMajor, uplo_, trans_, n, k, alpha, A, lda, beta, C, ldc); 
 }
 
-void SGER (const int m, const int n, const float alpha,
+void SGER(const int m, const int n, const float alpha,
                   const float *x, const int incx, const float *y,
                   const int incy, float *A, const int lda)
 {
-	cblas_sger(CblasRowMajor, m, n, alpha, x, incx, y, incy, A, lda);
+	cblas_sger(CblasColMajor, m, n, alpha, x, incx, y, incy, A, lda);
+}
+
+void DGER(const int m, const int n, const double alpha,
+                  const double *x, const int incx, const double *y,
+                  const int incy, double *A, const int lda)
+{
+	cblas_dger(CblasColMajor, m, n, alpha, x, incx, y, incy, A, lda);
 }
 
 void STRSV (const char *uplo, const char *trans, const char *diag, 
@@ -112,6 +153,19 @@ void STRMM(const char *side, const char *uplo, const char *transA,
 	cblas_strmm(CblasColMajor, side_, uplo_, transA_, diag_, m, n, alpha, A, lda, B, ldb);
 }
 
+void DTRMM(const char *side, const char *uplo, const char *transA,
+                 const char *diag, const int m, const int n,
+                 const double alpha, const double *A, const int lda,
+                 double *B, const int ldb)
+{
+	enum CBLAS_SIDE side_ = (toupper(side[0]) == 'L')?CblasLeft:CblasRight;
+	enum CBLAS_UPLO uplo_ = (toupper(uplo[0]) == 'U')?CblasUpper:CblasLower;
+	enum CBLAS_TRANSPOSE transA_ = (toupper(transA[0]) == 'N')?CblasNoTrans:CblasTrans;
+	enum CBLAS_DIAG diag_ = (toupper(diag[0]) == 'N')?CblasNonUnit:CblasUnit;
+
+	cblas_dtrmm(CblasColMajor, side_, uplo_, transA_, diag_, m, n, alpha, A, lda, B, ldb);
+}
+
 void STRMV(const char *uplo, const char *transA, const char *diag,
                  const int n, const float *A, const int lda, float *X,
                  const int incX)
@@ -128,10 +182,22 @@ void SAXPY(const int n, const float alpha, float *X, const int incX, float *Y, c
 	cblas_saxpy(n, alpha, X, incX, Y, incY);
 }
 
+void DAXPY(const int n, const double alpha, double *X, const int incX, double *Y, const int incY)
+{
+	cblas_daxpy(n, alpha, X, incX, Y, incY);
+}
+
 int ISAMAX (const int n, float *X, const int incX)
 {
     int retVal;
     retVal = cblas_isamax(n, X, incX);
+    return retVal;
+}
+
+int IDAMAX (const int n, double *X, const int incX)
+{
+    int retVal;
+    retVal = cblas_idamax(n, X, incX);
     return retVal;
 }
 
@@ -140,6 +206,15 @@ float SDOT(const int n, const float *x, const int incx, const float *y, const in
 	return cblas_sdot(n, x, incx, y, incy);
 }
 
+void SSWAP(const int n, float *x, const int incx, float *y, const int incy)
+{
+	cblas_sswap(n, x, incx, y, incy);
+}
+
+void DSWAP(const int n, double *x, const int incx, double *y, const int incy)
+{
+	cblas_dswap(n, x, incx, y, incy);
+}
 
 #elif defined(GOTO) || defined(SYSTEM_BLAS)
 
@@ -152,14 +227,33 @@ inline void SGEMM(char *transa, char *transb, int M, int N, int K,
 			 &beta, C, &ldc);	
 }
 
+inline void DGEMM(char *transa, char *transb, int M, int N, int K, 
+			double alpha, double *A, int lda, double *B, int ldb, 
+			double beta, double *C, int ldc)
+{
+	dgemm_(transa, transb, &M, &N, &K, &alpha,
+			 A, &lda, B, &ldb,
+			 &beta, C, &ldc);	
+}
+
 inline float SASUM(int N, float *X, int incX)
 {
 	return sasum_(&N, X, &incX);
 }
 
+inline double DASUM(int N, double *X, int incX)
+{
+	return dasum_(&N, X, &incX);
+}
+
 void SSCAL(int N, float alpha, float *X, int incX)
 {
 	sscal_(&N, &alpha, X, &incX);
+}
+
+void DSCAL(int N, double alpha, double *X, int incX)
+{
+	dscal_(&N, &alpha, X, &incX);
 }
 
 void STRSM (const char *side, const char *uplo, const char *transa,
@@ -168,6 +262,14 @@ void STRSM (const char *side, const char *uplo, const char *transa,
                    float *B, const int ldb)
 {
 	strsm_(side, uplo, transa, diag, &m, &n, &alpha, A, &lda, B, &ldb);
+}
+
+void DTRSM (const char *side, const char *uplo, const char *transa,
+                   const char *diag, const int m, const int n,
+                   const double alpha, const double *A, const int lda,
+                   double *B, const int ldb)
+{
+	dtrsm_(side, uplo, transa, diag, &m, &n, &alpha, A, &lda, B, &ldb);
 }
 
 void SSYR (const char *uplo, const int n, const float alpha,
@@ -184,13 +286,19 @@ void SSYRK (const char *uplo, const char *trans, const int n,
 	ssyrk_(uplo, trans, &n, &k, &alpha, A, &lda, &beta, C, &ldc); 
 }
 
-void SGER (const int m, const int n, const float alpha,
+void SGER(const int m, const int n, const float alpha,
                   const float *x, const int incx, const float *y,
                   const int incy, float *A, const int lda)
 {
 	sger_(&m, &n, &alpha, x, &incx, y, &incy, A, &lda);
 }
 
+void DGER(const int m, const int n, const double alpha,
+                  const double *x, const int incx, const double *y,
+                  const int incy, double *A, const int lda)
+{
+	dger_(&m, &n, &alpha, x, &incx, y, &incy, A, &lda);
+}
 
 void STRSV (const char *uplo, const char *trans, const char *diag, 
                    const int n, const float *A, const int lda, float *x, 
@@ -207,6 +315,14 @@ void STRMM(const char *side, const char *uplo, const char *transA,
 	strmm_(side, uplo, transA, diag, &m, &n, &alpha, A, &lda, B, &ldb);
 }
 
+void DTRMM(const char *side, const char *uplo, const char *transA,
+                 const char *diag, const int m, const int n,
+                 const double alpha, const double *A, const int lda,
+                 double *B, const int ldb)
+{
+	dtrmm_(side, uplo, transA, diag, &m, &n, &alpha, A, &lda, B, &ldb);
+}
+
 void STRMV(const char *uplo, const char *transA, const char *diag,
                  const int n, const float *A, const int lda, float *X,
                  const int incX)
@@ -219,10 +335,22 @@ void SAXPY(const int n, const float alpha, float *X, const int incX, float *Y, c
 	saxpy_(&n, &alpha, X, &incX, Y, &incY);
 }
 
+void DAXPY(const int n, const double alpha, double *X, const int incX, double *Y, const int incY)
+{
+	daxpy_(&n, &alpha, X, &incX, Y, &incY);
+}
+
 int ISAMAX (const int n, float *X, const int incX)
 {
     int retVal;
     retVal = isamax_ (&n, X, &incX);
+    return retVal;
+}
+
+int IDAMAX (const int n, double *X, const int incX)
+{
+    int retVal;
+    retVal = idamax_ (&n, X, &incX);
     return retVal;
 }
 
@@ -235,6 +363,17 @@ float SDOT(const int n, const float *x, const int incx, const float *y, const in
 
 	return retVal;
 }
+
+void SSWAP(const int n, float *X, const int incX, float *Y, const int incY)
+{
+	sswap_(&n, X, &incX, Y, &incY);
+}
+
+void DSWAP(const int n, double *X, const int incX, double *Y, const int incY)
+{
+	dswap_(&n, X, &incX, Y, &incY);
+}
+
 
 #else
 #error "no BLAS lib available..."

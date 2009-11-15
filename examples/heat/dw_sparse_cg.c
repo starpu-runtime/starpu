@@ -20,44 +20,9 @@
 
 #include "dw_sparse_cg.h"
 
-#ifdef USE_CUDA
-/* CUDA spmv codelet */
-static struct starpu_cuda_module_s cuda_module;
-static struct starpu_cuda_function_s cuda_function;
-static starpu_cuda_codelet_t cuda_codelet;
-
-void initialize_cuda(void)
-{
-	char module_path[1024];
-	sprintf(module_path,
-		"%s/examples/cuda/spmv_cuda.cubin", STARPUDIR);
-	char *function_symbol = "spmv_kernel_3";
-
-	starpu_init_cuda_module(&cuda_module, module_path);
-	starpu_init_cuda_function(&cuda_function, &cuda_module, function_symbol);
-
-	cuda_codelet.func = &cuda_function;
-	cuda_codelet.stack = NULL;
-	cuda_codelet.stack_size = 0; 
-
-	cuda_codelet.gridx = grids;
-	cuda_codelet.gridy = 1;
-
-	cuda_codelet.blockx = blocks;
-	cuda_codelet.blocky = 1;
-
-	cuda_codelet.shmemsize = 128;
-}
-
-
-
-
-#endif // USE_CUDA
-
 static struct starpu_task *create_task(starpu_tag_t id)
 {
 	starpu_codelet *cl = malloc(sizeof(starpu_codelet));
-		cl->where = ANY;
 		cl->model = NULL;
 
 	struct starpu_task *task = starpu_task_create();
@@ -194,9 +159,9 @@ void init_cg(struct cg_problem *problem)
 
 	/* delta_new = trans(r) r */
 	struct starpu_task *task3 = create_task(3UL);
-	task3->cl->where = CUBLAS|CORE;
+	task3->cl->where = CUDA|CORE;
 #ifdef USE_CUDA
-	task3->cl->cublas_func = cublas_codelet_func_3;
+	task3->cl->cuda_func = cublas_codelet_func_3;
 #endif
 	task3->cl->core_func = core_codelet_func_3;
 	task3->cl_arg = problem;
@@ -241,9 +206,9 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* alpha = delta_new / ( trans(d) q )*/
 	struct starpu_task *task5 = create_task(maskiter | 5UL);
-	task5->cl->where = CUBLAS|CORE;
+	task5->cl->where = CUDA|CORE;
 #ifdef USE_CUDA
-	task5->cl->cublas_func = cublas_codelet_func_5;
+	task5->cl->cuda_func = cublas_codelet_func_5;
 #endif
 	task5->cl->core_func = core_codelet_func_5;
 	task5->cl_arg = problem;
@@ -257,9 +222,9 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* x = x + alpha d */
 	struct starpu_task *task6 = create_task(maskiter | 6UL);
-	task6->cl->where = CUBLAS|CORE;
+	task6->cl->where = CUDA|CORE;
 #ifdef USE_CUDA
-	task6->cl->cublas_func = cublas_codelet_func_6;
+	task6->cl->cuda_func = cublas_codelet_func_6;
 #endif
 	task6->cl->core_func = core_codelet_func_6;
 	task6->cl_arg = problem;
@@ -273,9 +238,9 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* r = r - alpha q */
 	struct starpu_task *task7 = create_task(maskiter | 7UL);
-	task7->cl->where = CUBLAS|CORE;
+	task7->cl->where = CUDA|CORE;
 #ifdef USE_CUDA
-	task7->cl->cublas_func = cublas_codelet_func_7;
+	task7->cl->cuda_func = cublas_codelet_func_7;
 #endif
 	task7->cl->core_func = core_codelet_func_7;
 	task7->cl_arg = problem;
@@ -289,9 +254,9 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* update delta_* and compute beta */
 	struct starpu_task *task8 = create_task(maskiter | 8UL);
-	task8->cl->where = CUBLAS|CORE;
+	task8->cl->where = CUDA|CORE;
 #ifdef USE_CUDA
-	task8->cl->cublas_func = cublas_codelet_func_8;
+	task8->cl->cuda_func = cublas_codelet_func_8;
 #endif
 	task8->cl->core_func = core_codelet_func_8;
 	task8->cl_arg = problem;
@@ -303,9 +268,9 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	/* d = r + beta d */
 	struct starpu_task *task9 = create_task(maskiter | 9UL);
-	task9->cl->where = CUBLAS|CORE;
+	task9->cl->where = CUDA|CORE;
 #ifdef USE_CUDA
-	task9->cl->cublas_func = cublas_codelet_func_9;
+	task9->cl->cuda_func = cublas_codelet_func_9;
 #endif
 	task9->cl->core_func = core_codelet_func_9;
 	task9->cl_arg = problem;
@@ -430,37 +395,7 @@ void do_conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz
 	/* start the runtime */
 	starpu_init(NULL);
 
-
-#ifdef USE_CUDA
-	initialize_cuda();
-#endif
+	starpu_helper_init_cublas();
 
 	conjugate_gradient(nzvalA, vecb, vecx, nnz, nrow, colind, rowptr);
 }
-
-#if 0
-int main(__attribute__ ((unused)) int argc,
-	__attribute__ ((unused)) char **argv)
-{
-	parse_args(argc, argv);
-
-	timing_init();
-
-	/* start the runtime */
-	starpu_init(NULL);
-
-
-#ifdef USE_CUDA
-	initialize_cuda();
-#endif
-
-	init_problem();
-
-	double timing = timing_delay(&start, &end);
-	fprintf(stderr, "Computation took (in ms)\n");
-	printf("%2.2f\n", timing/1000);
-
-
-	return 0;
-}
-#endif

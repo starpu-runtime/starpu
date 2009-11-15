@@ -15,6 +15,8 @@
  */
 
 #include <common/hash.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define CRC32C_POLY_BE 0x1EDC6F41
 
@@ -42,4 +44,19 @@ uint32_t crc32_be(uint32_t input, uint32_t inputcrc)
 	crc = crc32_be_8(p[3], crc);
 
 	return crc;
+}
+
+uint32_t crc32_string(char *str, uint32_t inputcrc)
+{
+	uint32_t hash = inputcrc;
+
+	size_t len = strlen(str);
+
+	unsigned i;
+	for (i = 0; i < len; i++)
+	{
+		hash = crc32_be_8((uint8_t)str[i], hash);
+	}
+
+	return hash;
 }

@@ -31,8 +31,6 @@ pthread_t progress_thread;
 pthread_cond_t progress_cond;
 pthread_mutex_t progress_mutex;
 
-pthread_spinlock_t terminated_list_mutexes[32]; 
-
 struct gordon_task_wrapper_s {
 	/* who has executed that ? */
 	struct worker_s *worker;
@@ -50,13 +48,11 @@ void *gordon_worker_progress(void *arg)
 {
 	fprintf(stderr, "gordon_worker_progress\n");
 
-#ifndef DONTBIND
 	/* fix the thread on the correct cpu */
 	struct worker_set_s *gordon_set_arg = arg;
 	unsigned prog_thread_bind_id = 
-		(gordon_set_arg->workers[0].bindid + 1)%(sysconf(_SC_NPROCESSORS_ONLN));
-	bind_thread_on_cpu(prog_thread_bind_id);
-#endif
+		(gordon_set_arg->workers[0].bindid + 1)%(gordon_set_arg->config->nhwcores);
+	bind_thread_on_cpu(gordon_set_arg->config, prog_thread_bind_id);
 
 	pthread_mutex_lock(&progress_mutex);
 	progress_thread_is_inited = 1;
@@ -172,55 +168,17 @@ static struct gordon_task_wrapper_s *starpu_to_gordon_job(job_t j)
 	return task_wrapper;
 }
 
-void handle_terminated_job(job_t j)
+static void handle_terminated_job(job_t j)
 {
-	push_codelet_output(j->task->buffers, j->task->cl->nbuffers, 0);
+	push_task_output(j->task, 0);
 	handle_job_termination(j);
 	wake_all_blocked_workers();
-}
-
-void handle_terminated_job_per_worker(struct worker_s *worker)
-{
-
-	if (STARPU_UNLIKELY(!worker->worker_is_running))
-		return;
-
-//	fprintf(stderr, " handle_terminated_job_per_worker worker %p worker->terminated_jobs %p \n", worker, worker->terminated_jobs);
-
-	while (!job_list_empty(worker->terminated_jobs))
-	{
-		job_t j;
-		j = job_list_pop_front(worker->terminated_jobs);
-//		fprintf(stderr, "handle_terminated_job %p\n", j);
-		handle_terminated_job(j);
-	}
-}
-
-static void handle_terminated_jobs(struct worker_set_s *arg)
-{
-//	fprintf(stderr, "handle_terminated_jobs\n");
-
-	/* terminate all the pending jobs and remove 
- 	 * them from the terminated_jobs lists */
-	unsigned spu;
-	for (spu = 0; spu < arg->nworkers; spu++)
-	{
-		pthread_spin_lock(&terminated_list_mutexes[spu]);
-		handle_terminated_job_per_worker(&arg->workers[spu]);
-		pthread_spin_unlock(&terminated_list_mutexes[spu]);
-		//if (!pthread_spin_trylock(&terminated_list_mutexes[spu]))
-		//{
-		//	handle_terminated_job_per_worker(&arg->workers[spu]);
-		//	pthread_spin_unlock(&terminated_list_mutexes[spu]);
-		//}
-	}
 }
 
 static void gordon_callback_list_func(void *arg)
 {
 	struct gordon_task_wrapper_s *task_wrapper = arg; 
 	struct job_list_s *wrapper_list; 
-	struct job_list_s *terminated_list; 
 
 	/* we don't know who will execute that codelet : so we actually defer the
  	 * execution of the StarPU codelet and the job termination later */
@@ -228,7 +186,6 @@ static void gordon_callback_list_func(void *arg)
 	STARPU_ASSERT(worker);
 
 	wrapper_list = task_wrapper->list;
-	terminated_list = worker->terminated_jobs;
 
 	task_wrapper->terminated = 1;
 
@@ -237,7 +194,6 @@ static void gordon_callback_list_func(void *arg)
 	unsigned task_cnt = 0;
 
 	/* XXX 0 was hardcoded */
-	pthread_spin_lock(&terminated_list_mutexes[0]);
 	while (!job_list_empty(wrapper_list))
 	{
 		job_t j = job_list_pop_back(wrapper_list);
@@ -252,14 +208,15 @@ static void gordon_callback_list_func(void *arg)
 			update_perfmodel_history(j, STARPU_GORDON_DEFAULT, cpuid, measured);
 		}
 
-		job_list_push_back(terminated_list, j);
+		push_task_output(j->task, 0);
+		handle_job_termination(j);
+		//wake_all_blocked_workers();
+
 		task_cnt++;
 	}
 
 	/* the job list was allocated by the gordon driver itself */
 	job_list_delete(wrapper_list);
-
-	pthread_spin_unlock(&terminated_list_mutexes[0]);
 
 	wake_all_blocked_workers();
 	free(task_wrapper->gordon_job);
@@ -278,12 +235,10 @@ static void gordon_callback_func(void *arg)
 
 	task_wrapper->terminated = 1;
 
-//	fprintf(stderr, "gordon callback : push job j %p\n", task_wrapper->j);
+	task_wrapper->j->task->cl->per_worker_stats[worker->workerid]++;
 
-	/* XXX 0 was hardcoded */
-	pthread_spin_lock(&terminated_list_mutexes[0]);
-	job_list_push_back(worker->terminated_jobs, task_wrapper->j);
-	pthread_spin_unlock(&terminated_list_mutexes[0]);
+	handle_terminated_job(task_wrapper->j);
+
 	wake_all_blocked_workers();
 	free(task_wrapper);
 }
@@ -291,7 +246,7 @@ static void gordon_callback_func(void *arg)
 int inject_task(job_t j, struct worker_s *worker)
 {
 	struct starpu_task *task = j->task;
-	int ret = fetch_codelet_input(task->buffers, task->interface, task->cl->nbuffers, 0);
+	int ret = fetch_task_input(task, 0);
 
 	if (ret != 0) {
 		/* there was not enough memory so the codelet cannot be executed right now ... */
@@ -349,7 +304,7 @@ int inject_task_list(struct job_list_s *list, struct worker_s *worker)
 		int ret;
 
 		struct starpu_task *task = j->task;
-		ret = fetch_codelet_input(task->buffers, task->interface, task->cl->nbuffers, 0);
+		ret = fetch_task_input(task, 0);
 		STARPU_ASSERT(!ret);
 
 		gordon_jobs[index].index = task->cl->gordon_func;
@@ -373,9 +328,6 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 {
 
 	while(machine_is_running()) {
-		/* make gordon driver progress */
-		handle_terminated_jobs(arg);
-
 		if (gordon_busy_enough()) {
 			/* gordon already has enough work, wait a little TODO */
 			wait_on_sched_event();
@@ -383,6 +335,8 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 		else {
 #ifndef NOCHAIN
 			int ret = 0;
+#warning we should look into the local job list here !
+
 			struct job_list_s *list = pop_every_task(GORDON);
 			/* XXX 0 is hardcoded */
 			if (list)
@@ -454,26 +408,27 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 	return NULL;
 }
 
-extern pthread_key_t local_workers_key;
-
 void *gordon_worker(void *arg)
 {
 	struct worker_set_s *gordon_set_arg = arg;
 
-	bind_thread_on_cpu(gordon_set_arg->workers[0].bindid);
+	bind_thread_on_cpu(gordon_set_arg->config, gordon_set_arg->workers[0].bindid);
 
 	/* TODO set_local_memory_node per SPU */
 	gordon_init(gordon_set_arg->nworkers);	
 
-	/* XXX quick and dirty ... */
-	pthread_setspecific(local_workers_key, arg);
+	/* NB: On SPUs, the worker_key is set to NULL since there is no point
+	 * in associating the PPU thread with a specific SPU (worker) while
+	 * it's handling multiple processing units. */
+	set_local_worker_key(NULL);
 
+	/* TODO set workers' name field */
 	unsigned spu;
 	for (spu = 0; spu < gordon_set_arg->nworkers; spu++)
 	{
-		pthread_spin_init(&terminated_list_mutexes[spu], 0);
+		struct worker_s *worker = &gordon_set_arg->workers[spu];
+		snprintf(worker->name, 32, "SPU %d", worker->id);
 	}
-
 
 	/*
  	 * To take advantage of PPE being hyperthreaded, we should have 2 threads

@@ -115,10 +115,10 @@ void call_filters(void)
 unsigned totaltasks;
 
 starpu_codelet cl = {
-	.where = CORE|CUBLAS,
+	.where = CORE|CUDA,
 	.core_func =  core_block_spmv,
 #ifdef USE_CUDA
-	.cublas_func = cublas_block_spmv,
+	.cuda_func = cublas_block_spmv,
 #endif
 	.nbuffers = 3
 };

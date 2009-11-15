@@ -15,3 +15,7 @@
 #
 
 info_TEXINFOS = starpu.texi
+
+MAINTAINERCLEANFILES = starpu.pdf
+
+EXTRA_DIST = starpu.pdf

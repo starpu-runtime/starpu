@@ -18,7 +18,8 @@
 #include <core/perfmodel/perfmodel.h>
 
 static unsigned nworkers;
-static struct jobq_s *queue_array[NMAXWORKERS];
+static struct jobq_s *queue_array[STARPU_NMAXWORKERS];
+static int use_prefetch = 0;
 
 static job_t dmda_pop_task(struct jobq_s *q)
 {
@@ -164,6 +165,9 @@ static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t j, 
 	j->penality = penality_best;
 
 	update_data_requests(queue_array[best], j);
+	
+	if (use_prefetch)
+		prefetch_task_input_on_node(j->task, queue_array[best]->memory_node);
 
 	if (prio) {
 		return fifo_push_prio_task(queue_array[best], j);
@@ -205,6 +209,10 @@ void initialize_dmda_policy(struct machine_config_s *config,
  __attribute__ ((unused)) struct sched_policy_s *_policy) 
 {
 	nworkers = 0;
+
+	use_prefetch = starpu_get_env_number("PREFETCH");
+	if (use_prefetch == -1)
+		use_prefetch = 0;
 
 	setup_queues(init_fifo_queues_mechanisms, init_dmda_fifo, config);
 }

@@ -42,8 +42,6 @@ void stack_push_task(struct jobq_s *q, job_t task);
 void stack_push_prio_task(struct jobq_s *q, job_t task);
 
 job_t stack_pop_task(struct jobq_s *q);
-job_t stack_non_blocking_pop_task(struct jobq_s *q);
-job_t stack_non_blocking_pop_task_if_job_exists(struct jobq_s *q);
 
 void init_stack_queues_mechanisms(void);
 

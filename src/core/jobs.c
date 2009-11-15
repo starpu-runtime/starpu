@@ -15,9 +15,11 @@
  */
 
 #include <core/jobs.h>
+#include <core/task.h>
 #include <core/workers.h>
 #include <core/dependencies/data-concurrency.h>
 #include <common/config.h>
+
 
 size_t job_get_data_size(job_t j)
 {
@@ -38,7 +40,7 @@ size_t job_get_data_size(job_t j)
 }
 
 /* create an internal job_t structure to encapsulate the task */
-static job_t __attribute__((malloc)) job_create(struct starpu_task *task)
+job_t __attribute__((malloc)) job_create(struct starpu_task *task)
 {
 	job_t job;
 
@@ -50,16 +52,8 @@ static job_t __attribute__((malloc)) job_create(struct starpu_task *task)
 	job->footprint_is_computed = 0;
 	job->terminated = 0;
 
-	if (task->synchronous)
-	{
-#if defined(__APPLE__) && defined(__MACH__)
-		pthread_mutex_init(&job->sync_mutex, NULL);
-		pthread_cond_init(&job->sync_cond, NULL);
-#else
-		if (sem_init(&job->sync_sem, 0, 0))
-			perror("sem_init");
-#endif
-	}
+	pthread_mutex_init(&job->sync_mutex, NULL);
+	pthread_cond_init(&job->sync_cond, NULL);
 
 	if (task->use_tag)
 		tag_declare(task->tag_id, job);
@@ -67,21 +61,17 @@ static job_t __attribute__((malloc)) job_create(struct starpu_task *task)
 	return job;
 }
 
-struct starpu_task * __attribute__((malloc)) starpu_task_create(void)
+void starpu_wait_job(job_t j)
 {
-	struct starpu_task *task;
+	STARPU_ASSERT(j->task);
+	STARPU_ASSERT(!j->task->detach);
 
-	task = calloc(1, sizeof(struct starpu_task));
-	STARPU_ASSERT(task);
+	pthread_mutex_lock(&j->sync_mutex);
+	if (!j->terminated)
+		pthread_cond_wait(&j->sync_cond, &j->sync_mutex);
+	pthread_mutex_unlock(&j->sync_mutex);
 
-	task->priority = DEFAULT_PRIO;
-	task->use_tag = 0;
-	task->synchronous = 0;
-
-	/* by default, we let StarPU free the task structure */
-	task->cleanup = 1;
-
-	return task;
+	job_delete(j);
 }
 
 void handle_job_termination(job_t j)
@@ -105,51 +95,26 @@ void handle_job_termination(job_t j)
 		TRACE_END_CALLBACK(j);
 	}
 
-	if (task->synchronous)
+	if (!task->detach)
 	{
-#if defined(__APPLE__) && defined(__MACH__)
+		/* we do not desallocate the job structure if some is going to
+		 * wait after the task */
 		pthread_mutex_lock(&j->sync_mutex);
-		pthread_cond_signal(&j->sync_cond);
+		pthread_cond_broadcast(&j->sync_cond);
 		pthread_mutex_unlock(&j->sync_mutex);
-#else
-		if (sem_post(&j->sync_sem))
-			perror("sem_post");
-#endif
-
-		/* as this is a synchronous task, we do not delete the job 
-		   structure which contains the j->sync_sem: we only liberate
-		   it once the semaphore is destroyed */
 	}
-	else
-	{
-		if (j->task->cleanup)
-			free(j->task);
+	else {
+		/* no one is going to synchronize with that task so we release
+ 		 * the data structures now */
+		if (task->detach)
+			job_delete(j);
 
-		job_delete(j);
+		if (task->destroy)
+			free(task);
 	}
 
+	decrement_nsubmitted_tasks();
 }
-
-static void block_sync_task(job_t j)
-{
-#if defined(__APPLE__) && defined(__MACH__)
-	pthread_mutex_lock(&j->sync_mutex);
-	if (!j->terminated)
-		pthread_cond_wait(&j->sync_cond, &j->sync_mutex);
-	pthread_mutex_unlock(&j->sync_mutex);
-#else
-	sem_wait(&j->sync_sem);
-	sem_destroy(&j->sync_sem);
-#endif
-
-	/* as this is a synchronous task, the liberation of the job
-	   structure was deferred */
-	if (j->task->cleanup)
-		free(j->task);
-
-	job_delete(j);
-}
-
 
 /* This function is called when a new task is submitted to StarPU 
  * it returns 1 if the task deps are not fulfilled, 0 otherwise */
@@ -175,6 +140,8 @@ static unsigned not_all_task_deps_are_fulfilled(job_t j)
 	else {
 		/* existing deps (if any) are fulfilled */
 		tag->state = READY;
+		/* already prepare for next run */
+		tag->ndeps_completed = 0;
 		ret = 0;
 	}
 
@@ -182,7 +149,7 @@ static unsigned not_all_task_deps_are_fulfilled(job_t j)
 	return ret;
 }
 
-static unsigned enforce_deps_and_schedule(job_t j)
+unsigned enforce_deps_and_schedule(job_t j)
 {
 	unsigned ret;
 
@@ -190,48 +157,41 @@ static unsigned enforce_deps_and_schedule(job_t j)
 	if (not_all_task_deps_are_fulfilled(j))
 		return 0;
 
-#ifdef NO_DATA_RW_LOCK
 	/* enforce data dependencies */
 	if (submit_job_enforce_data_deps(j))
 		return 0;
-#endif
 
 	ret = push_task(j);
 
 	return ret;
 }
 
-/* application should submit new tasks to StarPU through this function */
-int starpu_submit_task(struct starpu_task *task)
+struct job_s *pop_local_task(struct worker_s *worker)
 {
-	int ret;
-	unsigned is_sync = task->synchronous;
+	struct job_s *j = NULL;
 
-	STARPU_ASSERT(task);
+	pthread_mutex_lock(&worker->local_jobs_mutex);
 
-	if (!worker_exists(task->cl->where))
-		return -ENODEV;
+	if (!job_list_empty(worker->local_jobs))
+		j = job_list_pop_back(worker->local_jobs);
 
-	/* internally, StarPU manipulates a job_t which is a wrapper around a
- 	* task structure */
-	job_t j = job_create(task);
+	pthread_mutex_unlock(&worker->local_jobs_mutex);
 
-	ret = enforce_deps_and_schedule(j);
-
-	if (is_sync)
-		block_sync_task(j);
-
-	return ret;
+	return j;
 }
 
-/* This function is supplied for convenience only, it is equivalent to setting
- * the proper flag and submitting the task with submit_task.
- * Note that this call is blocking, and will not make StarPU progress,
- * so it must only be called from the programmer thread, not by StarPU.
- * NB: This also means that it cannot be submitted within a callback ! */
-int submit_sync_task(struct starpu_task *task)
+int push_local_task(struct worker_s *worker, struct job_s *j)
 {
-	task->synchronous = 1;
+	/* TODO check that the worker is able to execute the task ! */
 
-	return starpu_submit_task(task);
+	pthread_mutex_lock(&worker->local_jobs_mutex);
+
+	job_list_push_front(worker->local_jobs, j);
+
+	pthread_mutex_unlock(&worker->local_jobs_mutex);
+
+	/* XXX that's a bit excessive ... */
+	wake_all_blocked_workers_on_node(worker->memory_node);
+
+	return 0;
 }

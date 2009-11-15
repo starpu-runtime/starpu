@@ -14,193 +14,55 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <common/config.h>
+#include <core/debug.h>
 #include "driver_cuda.h"
 #include <core/policies/sched_policy.h>
 
 /* the number of CUDA devices */
 static int ncudagpus;
 
-//static CUdevice cuDevice;
-static CUcontext cuContext[MAXCUDADEVS];
-CUresult status;
-
-//CUdeviceptr debugptr;
-
-extern char *execpath;
-
-void starpu_init_cuda_module(struct starpu_cuda_module_s *module, char *path)
+static void init_context(int devid)
 {
-	unsigned i;
-	for (i = 0; i < MAXCUDADEVS; i++)
-	{
-		module->is_loaded[i] = 0;
-	}
+	cudaError_t cures;
 
-	module->module_path = path;
+	cures = cudaSetDevice(devid);
+	if (STARPU_UNLIKELY(cures))
+		CUDA_REPORT_ERROR(cures);
+
+	/* force CUDA to initialize the context for real */
+	cudaFree(0);
 }
 
-void starpu_load_cuda_module(int devid, struct starpu_cuda_module_s *module)
+static void deinit_context(void)
 {
-	CUresult res;
-	if (!module->is_loaded[devid])
-	{
-		res = cuModuleLoad(&module->module, module->module_path);
-		if (res) {
-			fprintf(stderr, "cuModuleLoad failed to open %s\n",
-					module->module_path);
-			CUDA_REPORT_ERROR(res);
-		}
-	
-		module->is_loaded[devid] = 1;
-	}
-}
-
-void starpu_init_cuda_function(struct starpu_cuda_function_s *func, 
-			struct starpu_cuda_module_s *module,
-			char *symbol)
-{
-	unsigned i;
-	for (i = 0; i < MAXCUDADEVS; i++)
-	{
-		func->is_loaded[i] = 0;
-	}
-
-	func->symbol = symbol;
-	func->module = module;
-}
-
-void set_function_args(starpu_cuda_codelet_t *args, 
-			starpu_buffer_descr *descr,
-			starpu_data_interface_t *interface, 
-			unsigned nbuffers)
-{
-	CUresult res;
-
-	unsigned offset = 0;
-
-//	res = cuParamSetv(args->func->function, offset, 
-//		&debugptr, sizeof(uint64_t *));
-//	if (res != CUDA_SUCCESS) {
-//		CUDA_REPORT_ERROR(res);
-//	}
-//	offset += sizeof(uint64_t *);
-//
-
-
-	unsigned buf;
-	for (buf = 0; buf < nbuffers; buf++)
-	{
-		size_t size;
-		/* this buffer is filled with the stack to be given to the GPU 
-		 * the size of the buffer may be changed if needed */
-		uint8_t argbuffer[128];
-
-		data_state *state = descr[buf].handle;
-	
-		/* dump the stack into the buffer */
-		STARPU_ASSERT(state);
-		STARPU_ASSERT(state->ops);
-		STARPU_ASSERT(state->ops->dump_data_interface);
-
-		size = state->ops->dump_data_interface(&interface[buf], argbuffer);
-
-		res = cuParamSetv(args->func->function, offset, (void *)argbuffer, size);
-		if (res != CUDA_SUCCESS) {
-			CUDA_REPORT_ERROR(res);
-		}
-		offset += size;
-	}
-
-	if (args->stack_size) {
-		res = cuParamSetv(args->func->function, offset, 
-			args->stack, args->stack_size);
-		if (res != CUDA_SUCCESS) {
-			CUDA_REPORT_ERROR(res);
-		}
-		offset += args->stack_size;
-	}
-
-	res = cuParamSetSize(args->func->function, offset);
-	if (res != CUDA_SUCCESS) {
-		CUDA_REPORT_ERROR(res);
-	}
-
-	unsigned shmsize = args->shmemsize;
-	res = cuFuncSetSharedSize(args->func->function, shmsize);
-	if (res != CUDA_SUCCESS) {
-		CUDA_REPORT_ERROR(res);
-	}
-}
-
-void starpu_load_cuda_function(int devid, struct starpu_cuda_function_s *function)
-{
-	CUresult res;
-
-	/* load the module on the device if it is not already the case */
-	starpu_load_cuda_module(devid, function->module);
-
-	/* load the function on the device if it is not present yet */
-	res = cuModuleGetFunction( &function->function, 
-			function->module->module, function->symbol );
-	if (res) {
-		CUDA_REPORT_ERROR(res);
-	}
-
-}
-
-void init_context(int devid)
-{
-	status = cuCtxCreate( &cuContext[devid], 0, 0);
-	if (status) {
-		CUDA_REPORT_ERROR(status);
-	}
-
-	status = cuCtxAttach(&cuContext[devid], 0);
-	if (status) {
-		CUDA_REPORT_ERROR(status);
-	}
-
-	cublasInit();
-}
-
-void deinit_context(int devid)
-{
-	cublasShutdown();
+	cudaError_t cures;
 
 	/* cleanup the runtime API internal stuffs (which CUBLAS is using) */
-	status = cudaThreadExit();
-	if (status)
-		CUDA_REPORT_ERROR(status);
-
-	/* XXX driver API and runtime API does not seem to like each other,
-	 * so until CUDA is fixed, we cannot properly cleanup the cuInit that
-	 * was done initially */
-//	status = cuCtxDestroy(cuContext[devid]);
-//	if (status)
-//		CUDA_REPORT_ERROR(status);
+	cures = cudaThreadExit();
+	if (cures)
+		CUDA_REPORT_ERROR(cures);
 }
 
 unsigned get_cuda_device_count(void)
 {
 	int cnt;
-	cuDeviceGetCount(&cnt);
+
+	cudaError_t cures;
+	cures = cudaGetDeviceCount(&cnt);
+	if (STARPU_UNLIKELY(cures))
+		 CUDA_REPORT_ERROR(cures);
+	
 	return (unsigned)cnt;
 }
 
 void init_cuda(void)
 {
-	CUresult status;
-
-	status = cuInit(0);
-	if (status) {
-		CUDA_REPORT_ERROR(status);
-	}
-
 	ncudagpus = get_cuda_device_count();
 	assert(ncudagpus <= MAXCUDADEVS);
 }
 
-int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
+static int execute_job_on_cuda(job_t j, struct worker_s *args)
 {
 	int ret;
 //	uint32_t mask = (1<<0);
@@ -209,12 +71,10 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
 
-	CUresult status;
+	cudaError_t cures;
 	tick_t codelet_start, codelet_end;
 	tick_t codelet_start_comm, codelet_end_comm;
 	
-	int devid = args->id;
-
 	unsigned calibrate_model = 0;
 
 	STARPU_ASSERT(task);
@@ -227,11 +87,13 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 	/* we do not take communication into account when modeling the performance */
 	if (calibrate_model || BENCHMARK_COMM)
 	{
-		cuCtxSynchronize();
+		cures = cudaThreadSynchronize();
+		if (STARPU_UNLIKELY(cures))
+			CUDA_REPORT_ERROR(cures);
 		GET_TICK(codelet_start_comm);
 	}
 
-	ret = fetch_codelet_input(task->buffers, task->interface, cl->nbuffers, mask);
+	ret = fetch_task_input(task, mask);
 	if (ret != 0) {
 		/* there was not enough memory, so the input of
 		 * the codelet cannot be fetched ... put the 
@@ -241,60 +103,23 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 
 	if (calibrate_model || BENCHMARK_COMM)
 	{
-		cuCtxSynchronize();
+		cures = cudaThreadSynchronize();
+		if (STARPU_UNLIKELY(cures))
+			CUDA_REPORT_ERROR(cures);
 		GET_TICK(codelet_end_comm);
 	}
 
-
-
 	TRACE_START_CODELET_BODY(j);
-	if (use_cublas) {
-		cl_func func = cl->cublas_func;
-		STARPU_ASSERT(func);
-		GET_TICK(codelet_start);
-		func(task->interface, task->cl_arg);
-		cuCtxSynchronize();
-		GET_TICK(codelet_end);
-	} else {
-		/* load the module and the function */
-		starpu_cuda_codelet_t *args; 
-		args = cl->cuda_func;
 
-		starpu_load_cuda_function(devid, args->func);
+	cl_func func = cl->cuda_func;
+	STARPU_ASSERT(func);
+	GET_TICK(codelet_start);
+	func(task->interface, task->cl_arg);
 
-		status = cuFuncSetBlockShape(args->func->function,
-					args->blockx, 
-					args->blocky, 1);
-		if (status) {
-			CUDA_REPORT_ERROR(status);
-		}
+	task->cl->per_worker_stats[args->workerid]++;
 
-		/* set up the function args */
-		set_function_args(args, task->buffers, task->interface, cl->nbuffers);
+	GET_TICK(codelet_end);
 
-		/* set up the grids */
-//#ifdef MODEL_DEBUG
-		if (calibrate_model || BENCHMARK_COMM)
-		{
-			status = cuCtxSynchronize();
-			GET_TICK(codelet_start);
-		}
-//#endif
-		status = cuLaunchGrid(args->func->function, 
-				args->gridx, args->gridy);
-		if (status) {
-			CUDA_REPORT_ERROR(status);
-		}
-
-
-		/* launch the function */
-		status = cuCtxSynchronize();
-		if (status) {
-			CUDA_REPORT_ERROR(status);
-		}
-		GET_TICK(codelet_end);
-
-	}
 	TRACE_END_CODELET_BODY(j);	
 
 //#ifdef MODEL_DEBUG
@@ -312,13 +137,13 @@ int execute_job_on_cuda(job_t j, struct worker_s *args, unsigned use_cublas)
 		args->jobq->total_computation_time_error += error;
 
 		if (calibrate_model)
-			update_perfmodel_history(j, args->arch, args->id, measured);
+			update_perfmodel_history(j, args->perf_arch, (unsigned)args->id, measured);
 	}
 //#endif
 
 	args->jobq->total_job_performed++;
 
-	push_codelet_output(task->buffers, cl->nbuffers, mask);
+	push_task_output(task, mask);
 
 	return STARPU_SUCCESS;
 }
@@ -333,13 +158,15 @@ void *cuda_worker(void *arg)
 #ifdef USE_FXT
 	fxt_register_thread(args->bindid);
 #endif
-	TRACE_NEW_WORKER(FUT_CUDA_KEY, memory_node);
+	TRACE_WORKER_INIT_START(FUT_CUDA_KEY, memory_node);
 
-	bind_thread_on_cpu(args->bindid);
+	bind_thread_on_cpu(args->config, args->bindid);
 
 	set_local_memory_node_key(&(args->memory_node));
 
 	set_local_queue(args->jobq);
+
+	set_local_worker_key(args);
 
 	/* this is only useful (and meaningful) is there is a single
 	   memory node "related" to that queue */
@@ -351,14 +178,19 @@ void *cuda_worker(void *arg)
 	args->jobq->total_job_performed = 0;
 
 	init_context(devid);
+
+	/* get the device's name */
+	char devname[128];
+	struct cudaDeviceProp prop;
+	cudaGetDeviceProperties(&prop, devid);
+	strncpy(devname, prop.name, 128);
+	snprintf(args->name, 32, "CUDA %d (%s)", args->id, devname);
+
 #ifdef VERBOSE
-	fprintf(stderr, "cuda thread is ready to run on CPU %d !\n", args->bindid);
+	fprintf(stderr, "cuda (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 #endif
 
-//	uint64_t foo = 1664;
-//	cuMemAlloc(&debugptr, sizeof(uint64_t));
-//	cuMemcpyHtoD(debugptr, &foo, sizeof(uint64_t));
-	
+	TRACE_WORKER_INIT_END
 
 	/* tell the main thread that this one is ready */
 	pthread_mutex_lock(&args->mutex);
@@ -368,29 +200,44 @@ void *cuda_worker(void *arg)
 
 	struct job_s * j;
 	int res;
+
+	struct sched_policy_s *policy = get_sched_policy();
+	struct jobq_s *queue = policy->get_local_queue(policy);
+	unsigned memnode = args->memory_node;
 	
 	while (machine_is_running())
 	{
-		datawizard_progress(args->memory_node);
+		TRACE_START_PROGRESS(memnode);
+		datawizard_progress(memnode, 1);
+		TRACE_END_PROGRESS(memnode);
+	
+		jobq_lock(queue);
 
-		//int debugfoo;
-		j = pop_task();
-		if (j == NULL) continue;
+		/* perhaps there is some local task to be executed first */
+		j = pop_local_task(args);
+
+		/* otherwise ask a task to the scheduler */
+		if (!j)
+			j = pop_task();
+
+		if (j == NULL) {
+			if (check_that_no_data_request_exists(memnode) && machine_is_running())
+				pthread_cond_wait(&queue->activity_cond, &queue->activity_mutex);
+			jobq_unlock(queue);
+			continue;
+		}
+
+		jobq_unlock(queue);
 
 		/* can CUDA do that task ? */
-		if (!CUDA_MAY_PERFORM(j) && !CUBLAS_MAY_PERFORM(j))
+		if (!CUDA_MAY_PERFORM(j))
 		{
 			/* this is neither a cuda or a cublas task */
 			push_task(j);
 			continue;
 		}
 
-//		cuMemcpyDtoH(&debugfoo, debugptr, sizeof(uint64_t));
-//		printf("BEFORE TASK, debug ptr = %p\n", debugfoo);
-
-
-		unsigned use_cublas = CUBLAS_MAY_PERFORM(j) ? 1:0;
-		res = execute_job_on_cuda(j, args, use_cublas);
+		res = execute_job_on_cuda(j, args);
 
 		if (res != STARPU_SUCCESS) {
 			switch (res) {
@@ -408,12 +255,11 @@ void *cuda_worker(void *arg)
 		}
 
 		handle_job_termination(j);
+	}
 
-//		cuMemcpyDtoH(&debugfoo, debugptr, sizeof(uint64_t));
-//		printf("AFTER TASK, debug ptr = %p\n", debugfoo);
-	} 
+	TRACE_WORKER_DEINIT_START
 
-	deinit_context(devid);
+	deinit_context();
 
 #ifdef DATA_STATS
 	fprintf(stderr, "CUDA #%d computation %le comm %le (%lf \%%)\n", args->id, args->jobq->total_computation_time, args->jobq->total_communication_time, args->jobq->total_communication_time*100.0/args->jobq->total_computation_time);
@@ -430,14 +276,10 @@ void *cuda_worker(void *arg)
 	print_to_logfile("MODEL ERROR: CUDA %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", args->id, args->jobq->total_computation_time_error, args->jobq->total_computation_time, ratio, args->jobq->total_job_performed);
 #endif
 
-	TRACE_WORKER_TERMINATED(FUT_CUDA_KEY);
+	TRACE_WORKER_DEINIT_END(FUT_CUDA_KEY);
 
 	pthread_exit(NULL);
 
 	return NULL;
-
-//error:
-//	CUDA_REPORT_ERROR(status);
-//	assert(0);
 
 }

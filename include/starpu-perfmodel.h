@@ -21,6 +21,10 @@
 #include <pthread.h>
 #include <starpu_config.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct starpu_htbl32_node_s;
 struct starpu_history_list_t;
 struct starpu_buffer_descr_t;
@@ -33,12 +37,15 @@ struct starpu_buffer_descr_t;
 
 /* on most system we will consider one or two architectures as all accelerators
    are likely to be identical */
-#define NARCH_VARIATIONS	3
+#define NARCH_VARIATIONS	6
 
 enum starpu_perf_archtype {
 	STARPU_CORE_DEFAULT = 0,
 	STARPU_CUDA_DEFAULT = 1,
-	STARPU_GORDON_DEFAULT = 2
+	STARPU_CUDA_2 = 2,
+	STARPU_CUDA_3 = 3,
+	STARPU_CUDA_4 = 4,
+	STARPU_GORDON_DEFAULT = 5
 };
 
 
@@ -102,5 +109,8 @@ int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *mod
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model,
 		enum starpu_perf_archtype arch, char **path, size_t maxlen);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __STARPU_PERFMODEL_H__

@@ -41,11 +41,10 @@ int deque_push_task(struct jobq_s *q, job_t task);
 int deque_push_prio_task(struct jobq_s *q, job_t task);
 
 job_t deque_pop_task(struct jobq_s *q);
-job_t deque_non_blocking_pop_task(struct jobq_s *q);
-job_t deque_non_blocking_pop_task_if_job_exists(struct jobq_s *q);
 
 void init_deque_queues_mechanisms(void);
 
+unsigned get_total_njobs_deques(void);
 
 unsigned get_deque_njobs(struct jobq_s *q);
 unsigned get_deque_nprocessed(struct jobq_s *q);

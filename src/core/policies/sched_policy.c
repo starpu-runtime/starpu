@@ -36,8 +36,10 @@ struct sched_policy_s *get_sched_policy(void)
 	return &policy;
 }
 
-void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user_conf)
+void init_sched_policy(struct machine_config_s *config)
 {
+	struct starpu_conf *user_conf = config->user_conf;
+
 	/* eager policy is taken by default */
 	const char *sched_pol;
 	if (user_conf && (user_conf->sched_policy))
@@ -49,6 +51,16 @@ void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user
 	}
 
 	if (sched_pol) {
+		 if (strcmp(sched_pol, "help") == 0) {
+			fprintf(stderr, "SCHED can be either of\n");
+			fprintf(stderr, "ws\twork stealing\n");
+			fprintf(stderr, "prio\tprio eager\n");
+			fprintf(stderr, "no-prio\teager (without prio)\n");
+			fprintf(stderr, "dm\tperformance model\n");
+			fprintf(stderr, "dmda\tdata-aware performance model\n");
+			fprintf(stderr, "random\trandom\n");
+			fprintf(stderr, "else the eager scheduler will be used\n");
+		 }
 		 if (strcmp(sched_pol, "ws") == 0) {
 #ifdef VERBOSE
 		 	fprintf(stderr, "USE WS SCHEDULER !! \n");
@@ -139,13 +151,29 @@ void deinit_sched_policy(struct machine_config_s *config)
 }
 
 /* the generic interface that call the proper underlying implementation */
-int push_task(job_t task)
+int push_task(job_t j)
 {
 	struct jobq_s *queue = policy.get_local_queue(&policy);
 
-	STARPU_ASSERT(queue->push_task);
+	/* in case there is no codelet associated to the task (that's a control
+	 * task), we directly execute its callback and enforce the
+	 * corresponding dependencies */
+	if (j->task->cl == NULL)
+	{
+		handle_job_termination(j);
+		return 0;
+	}
 
-	return queue->push_task(queue, task);
+	if (STARPU_UNLIKELY(j->task->execute_on_a_specific_worker))
+	{
+		struct worker_s *worker = get_worker_struct(j->task->workerid);
+		return push_local_task(worker, j);
+	}
+	else {
+		STARPU_ASSERT(queue->push_task);
+
+		return queue->push_task(queue, j);
+	}
 }
 
 struct job_s * pop_task_from_queue(struct jobq_s *queue)
@@ -186,6 +214,8 @@ void wait_on_sched_event(void)
 	struct jobq_s *q = policy.get_local_queue(&policy);
 
 	pthread_mutex_lock(&q->activity_mutex);
+
+	handle_all_pending_node_data_requests(get_local_memory_node());
 
 	if (machine_is_running())
 	{

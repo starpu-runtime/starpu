@@ -91,10 +91,10 @@ int main(int argc, char **argv)
 		{
 			/* increment a = v[0] */
 			starpu_codelet cl_inc_a = {
-				.where = CORE|CUBLAS|GORDON,
+				.where = CORE|CUDA|GORDON,
 				.core_func = core_codelet_incA,
 #ifdef USE_CUDA
-				.cublas_func = cuda_codelet_incA,
+				.cuda_func = cuda_codelet_incA,
 #endif
 #ifdef USE_GORDON
 				.gordon_func = kernel_incA_id,
@@ -128,10 +128,10 @@ int main(int argc, char **argv)
 		{
 			/* increment c = v[2] */
 			starpu_codelet cl_inc_c = {
-				.where = CORE|CUBLAS|GORDON,
+				.where = CORE|CUDA|GORDON,
 				.core_func = core_codelet_incC,
 #ifdef USE_CUDA
-				.cublas_func = cuda_codelet_incC,
+				.cuda_func = cuda_codelet_incC,
 #endif
 #ifdef USE_GORDON
 				.gordon_func = kernel_incC_id,

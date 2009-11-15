@@ -70,10 +70,67 @@ TESTS = $(check_PROGRAMS)
 check_PROGRAMS =
 
 check_PROGRAMS += 				\
+	core/restart				\
+	core/execute_on_a_specific_worker	\
+	core/multithreaded			\
+	core/starpu_wait_all_tasks		\
+	core/starpu_wait_task			\
+	core/static_restartable			\
+	core/static_restartable_using_initializer\
+	core/static_restartable_tag		\
+	core/empty_task				\
+	core/empty_task_sync_point		\
+	errorcheck/starpu_init_noworker		\
+	helper/cublas_init			\
+	helper/pinned_memory			\
 	microbenchs/async-tasks-overhead	\
 	microbenchs/sync-tasks-overhead		\
+	microbenchs/tasks-overhead		\
 	microbenchs/tag-wait-api		\
-	microbenchs/sync_and_notify_data
+	microbenchs/dsm_stress			\
+	microbenchs/prefetch_data_on_node 	\
+	microbenchs/sync_and_notify_data	\
+	microbenchs/redundant_buffer		\
+	overlap/overlap
+
+core_restart_SOURCES =				\
+	core/restart.c
+
+core_execute_on_a_specific_worker_SOURCES = 	\
+	core/execute_on_a_specific_worker.c
+
+core_multithreaded_SOURCES =			\
+	core/multithreaded.c
+
+core_starpu_wait_all_tasks_SOURCES =		\
+	core/starpu_wait_all_tasks.c
+
+core_starpu_wait_task_SOURCES =			\
+	core/starpu_wait_task.c
+
+core_static_restartable_SOURCES =		\
+	core/static_restartable.c
+
+core_static_restartable_using_initializer_SOURCES =		\
+	core/static_restartable_using_initializer.c
+
+core_static_restartable_tag_SOURCES =		\
+	core/static_restartable_tag.c
+
+core_empty_task_SOURCES =			\
+	core/empty_task.c
+
+core_empty_task_sync_point_SOURCES =		\
+	core/empty_task_sync_point.c
+
+errorcheck_starpu_init_noworker_SOURCES =	\
+	errorcheck/starpu_init_noworker.c
+
+helper_cublas_init_SOURCES =			\
+	helper/cublas_init.c
+
+helper_pinned_memory_SOURCES =			\
+	helper/pinned_memory.c
 
 microbenchs_async_tasks_overhead_SOURCES =	\
 	microbenchs/async-tasks-overhead.c
@@ -81,11 +138,23 @@ microbenchs_async_tasks_overhead_SOURCES =	\
 microbenchs_sync_tasks_overhead_SOURCES =	\
 	microbenchs/sync-tasks-overhead.c
 
+microbenchs_tasks_overhead_SOURCES =		\
+	microbenchs/tasks-overhead.c
+
 microbenchs_tag_wait_api_SOURCES =		\
 	microbenchs/tag-wait-api.c
 
+microbenchs_dsm_stress_SOURCES =		\
+	microbenchs/dsm_stress.c
+
+microbenchs_prefetch_data_on_node_SOURCES =	\
+	microbenchs/prefetch_data_on_node.c
+
 microbenchs_sync_and_notify_data_SOURCES =	\
 	microbenchs/sync_and_notify_data.c
+
+microbenchs_redundant_buffer_SOURCES =		\
+	microbenchs/redundant_buffer.c
 
 if USE_CUDA
 microbenchs_sync_and_notify_data_SOURCES +=	\
@@ -100,3 +169,6 @@ BUILT_SOURCES += 						\
 	microbenchs/sync_and_notify_data_gordon_kernels.spuelf	\
 	microbenchs/null_kernel_gordon.spuelf
 endif
+
+overlap_overlap_SOURCES =			\
+	overlap/overlap.c

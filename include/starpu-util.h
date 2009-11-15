@@ -23,6 +23,16 @@
 #include <assert.h>
 #include <starpu_config.h>
 
+#ifdef USE_CUDA
+#include <cuda.h>
+#include <cuda_runtime_api.h>
+#include <cublas.h>
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define STARPU_MIN(a,b)	((a)<(b)?(a):(b))
 #define STARPU_MAX(a,b)	((a)<(b)?(b):(a))
 
@@ -31,18 +41,150 @@
 #define STARPU_UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
 #define STARPU_LIKELY(expr)            (__builtin_expect(!!(expr),1))
 
-#ifdef HAVE_SYNC_BUILTINS
+#ifdef HAVE_SYNC_FETCH_AND_ADD
 #define STARPU_ATOMIC_ADD(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
 #define STARPU_ATOMIC_OR(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
 #else
 #error __sync_fetch_and_add is not available
 #endif
 
+#ifdef USE_CUDA
+
+#define CUBLAS_REPORT_ERROR(status) 					\
+	do {								\
+		char *errormsg;						\
+		switch (status) {					\
+			case CUBLAS_STATUS_SUCCESS:			\
+				errormsg = "success";			\
+				break;					\
+			case CUBLAS_STATUS_NOT_INITIALIZED:		\
+				errormsg = "not initialized";		\
+				break;					\
+			case CUBLAS_STATUS_ALLOC_FAILED:		\
+				errormsg = "alloc failed";		\
+				break;					\
+			case CUBLAS_STATUS_INVALID_VALUE:		\
+				errormsg = "invalid value";		\
+				break;					\
+			case CUBLAS_STATUS_ARCH_MISMATCH:		\
+				errormsg = "arch mismatch";		\
+				break;					\
+			case CUBLAS_STATUS_EXECUTION_FAILED:		\
+				errormsg = "execution failed";		\
+				break;					\
+			case CUBLAS_STATUS_INTERNAL_ERROR:		\
+				errormsg = "internal error";		\
+				break;					\
+			default:					\
+				errormsg = "unknown error";		\
+				break;					\
+		}							\
+		printf("oops  in %s ... %s \n", __func__, errormsg);	\
+		assert(0);						\
+	} while (0)  
+
+
+
+#define CUDA_REPORT_ERROR(status) 					\
+	do {								\
+		char *errormsg;						\
+		switch (status) {					\
+			case CUDA_SUCCESS:				\
+				errormsg = "success";			\
+				break;					\
+			case CUDA_ERROR_INVALID_VALUE:			\
+				errormsg = "invalid value";		\
+				break;					\
+			case CUDA_ERROR_OUT_OF_MEMORY:			\
+				errormsg = "out of memory";		\
+				break;					\
+			case CUDA_ERROR_NOT_INITIALIZED:		\
+				errormsg = "not initialized";		\
+				break;					\
+			case CUDA_ERROR_DEINITIALIZED:			\
+				errormsg = "deinitialized";		\
+				break;					\
+			case CUDA_ERROR_NO_DEVICE:			\
+				errormsg = "no device";			\
+				break;					\
+			case CUDA_ERROR_INVALID_DEVICE:			\
+				errormsg = "invalid device";		\
+				break;					\
+			case CUDA_ERROR_INVALID_IMAGE:			\
+				errormsg = "invalid image";		\
+				break;					\
+			case CUDA_ERROR_INVALID_CONTEXT:		\
+				errormsg = "invalid context";		\
+				break;					\
+			case CUDA_ERROR_CONTEXT_ALREADY_CURRENT:	\
+				errormsg = "context already current";	\
+				break;					\
+			case CUDA_ERROR_MAP_FAILED:			\
+				errormsg = "map failed";		\
+				break;					\
+			case CUDA_ERROR_UNMAP_FAILED:			\
+				errormsg = "unmap failed";		\
+				break;					\
+			case CUDA_ERROR_ARRAY_IS_MAPPED:		\
+				errormsg = "array is mapped";		\
+				break;					\
+			case CUDA_ERROR_ALREADY_MAPPED:			\
+				errormsg = "already mapped";		\
+				break;					\
+			case CUDA_ERROR_NO_BINARY_FOR_GPU:		\
+				errormsg = "no binary for gpu";		\
+				break;					\
+			case CUDA_ERROR_ALREADY_ACQUIRED:		\
+				errormsg = "already acquired";		\
+				break;					\
+			case CUDA_ERROR_NOT_MAPPED:			\
+				errormsg = "not mapped";		\
+				break;					\
+			case CUDA_ERROR_INVALID_SOURCE:			\
+				errormsg = "invalid source";		\
+				break;					\
+			case CUDA_ERROR_FILE_NOT_FOUND:			\
+				errormsg = "file not found";		\
+				break;					\
+			case CUDA_ERROR_INVALID_HANDLE:			\
+				errormsg = "invalid handle";		\
+				break;					\
+			case CUDA_ERROR_NOT_FOUND:			\
+				errormsg = "not found";			\
+				break;					\
+			case CUDA_ERROR_NOT_READY:			\
+				errormsg = "not ready";			\
+				break;					\
+			case CUDA_ERROR_LAUNCH_FAILED:			\
+				errormsg = "launch failed";		\
+				break;					\
+			case CUDA_ERROR_LAUNCH_OUT_OF_RESOURCES:	\
+				errormsg = "launch out of resources";	\
+				break;					\
+			case CUDA_ERROR_LAUNCH_TIMEOUT:			\
+				errormsg = "launch timeout";		\
+				break;					\
+			case CUDA_ERROR_LAUNCH_INCOMPATIBLE_TEXTURING:	\
+				errormsg = "launch incompatible texturing";\
+				break;					\
+			case CUDA_ERROR_UNKNOWN:			\
+			default:					\
+				errormsg = "unknown error";		\
+				break;					\
+		}							\
+		printf("oops  in %s ... %s \n", __func__, errormsg);	\
+		assert(0);						\
+	} while (0)  
+
+#endif // USE_CUDA
+
+
+
 #define STARPU_SUCCESS	0
 #define STARPU_TRYAGAIN	1
 #define STARPU_FATAL	2
 
-static int __attribute__ ((unused)) starpu_get_env_number(const char *str)
+static inline int starpu_get_env_number(const char *str)
 {
 	char *strval;
 
@@ -64,5 +206,15 @@ static int __attribute__ ((unused)) starpu_get_env_number(const char *str)
 		return -1;
 	}
 }
+
+void starpu_trace_user_event(unsigned code);
+
+/* Some helper functions for application using CUBLAS kernels */
+void starpu_helper_init_cublas(void);
+void starpu_helper_shutdown_cublas(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __STARPU_UTIL_H__

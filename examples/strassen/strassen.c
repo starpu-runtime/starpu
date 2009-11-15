@@ -89,51 +89,51 @@ static void unpartition_matrices(strassen_iter_state_t *iter)
 }
 
 static starpu_codelet cl_add = {
-	.where = CORE|CUBLAS,
+	.where = CORE|CUDA,
 	.model = &strassen_model_add_sub,
 	.core_func = add_core_codelet,
 #ifdef USE_CUDA
-	.cublas_func = add_cublas_codelet,
+	.cuda_func = add_cublas_codelet,
 #endif
 	.nbuffers = 3
 };
 
 static starpu_codelet cl_sub = {
-	.where = CORE|CUBLAS,
+	.where = CORE|CUDA,
 	.model = &strassen_model_add_sub,
 	.core_func = sub_core_codelet,
 #ifdef USE_CUDA
-	.cublas_func = sub_cublas_codelet,
+	.cuda_func = sub_cublas_codelet,
 #endif
 	.nbuffers = 3
 };
 
 static starpu_codelet cl_mult = {
-	.where = CORE|CUBLAS,
+	.where = CORE|CUDA,
 	.model = &strassen_model_mult,
 	.core_func = mult_core_codelet,
 #ifdef USE_CUDA
-	.cublas_func = mult_cublas_codelet,
+	.cuda_func = mult_cublas_codelet,
 #endif
 	.nbuffers = 3
 };
 
 static starpu_codelet cl_self_add = {
-	.where = CORE|CUBLAS,
+	.where = CORE|CUDA,
 	.model = &strassen_model_self_add_sub,
 	.core_func = self_add_core_codelet,
 #ifdef USE_CUDA
-	.cublas_func = self_add_cublas_codelet,
+	.cuda_func = self_add_cublas_codelet,
 #endif
 	.nbuffers = 2
 };
 
 static starpu_codelet cl_self_sub = {
-	.where = CORE|CUBLAS,
+	.where = CORE|CUDA,
 	.model = &strassen_model_self_add_sub,
 	.core_func = self_sub_core_codelet,
 #ifdef USE_CUDA
-	.cublas_func = self_sub_cublas_codelet,
+	.cuda_func = self_sub_cublas_codelet,
 #endif
 	.nbuffers = 2
 };

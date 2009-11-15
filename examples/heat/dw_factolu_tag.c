@@ -25,6 +25,8 @@
 					| ((unsigned long long)(i)<<16)	\
 					| (unsigned long long)(j))))
 
+static unsigned no_prio = 0;
+
 /*
  *	Construct the DAG
  */
@@ -41,10 +43,10 @@ static struct starpu_task *create_task(starpu_tag_t id)
 }
 
 static starpu_codelet cl11 = {
-	.where = CORE|CUBLAS,
+	.where = CORE|CUDA,
 	.core_func = dw_core_codelet_update_u11,
 #ifdef USE_CUDA
-	.cublas_func = dw_cublas_codelet_update_u11,
+	.cuda_func = dw_cublas_codelet_update_u11,
 #endif
 	.nbuffers = 1,
 	.model = &model_11
@@ -63,7 +65,8 @@ static struct starpu_task *create_task_11(starpu_data_handle dataA, unsigned k)
 	task->buffers[0].mode = STARPU_RW;
 
 	/* this is an important task */
-	task->priority = MAX_PRIO;
+	if (!no_prio)
+		task->priority = MAX_PRIO;
 
 	/* enforce dependencies ... */
 	if (k > 0) {
@@ -74,10 +77,10 @@ static struct starpu_task *create_task_11(starpu_data_handle dataA, unsigned k)
 }
 
 static starpu_codelet cl12 = {
-	.where = CORE|CUBLAS,
+	.where = CORE|CUDA,
 	.core_func = dw_core_codelet_update_u12,
 #ifdef USE_CUDA
-	.cublas_func = dw_cublas_codelet_update_u12,
+	.cuda_func = dw_cublas_codelet_update_u12,
 #endif
 	.nbuffers = 2,
 	.model = &model_12
@@ -97,7 +100,7 @@ static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned i)
 	task->buffers[1].handle = get_sub_data(dataA, 2, i, k); 
 	task->buffers[1].mode = STARPU_RW;
 
-	if (i == k+1) {
+	if (!no_prio && (i == k+1)) {
 		task->priority = MAX_PRIO;
 	}
 
@@ -113,10 +116,10 @@ static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned i)
 }
 
 static starpu_codelet cl21 = {
-	.where = CORE|CUBLAS,
+	.where = CORE|CUDA,
 	.core_func = dw_core_codelet_update_u21,
 #ifdef USE_CUDA
-	.cublas_func = dw_cublas_codelet_update_u21,
+	.cuda_func = dw_cublas_codelet_update_u21,
 #endif
 	.nbuffers = 2,
 	.model = &model_21
@@ -134,7 +137,7 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j)
 	task->buffers[1].handle = get_sub_data(dataA, 2, k, j); 
 	task->buffers[1].mode = STARPU_RW;
 
-	if (j == k+1) {
+	if (!no_prio && (j == k+1)) {
 		task->priority = MAX_PRIO;
 	}
 
@@ -150,10 +153,10 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j)
 }
 
 static starpu_codelet cl22 = {
-	.where = CORE|CUBLAS,
+	.where = CORE|CUDA,
 	.core_func = dw_core_codelet_update_u22,
 #ifdef USE_CUDA
-	.cublas_func = dw_cublas_codelet_update_u22,
+	.cuda_func = dw_cublas_codelet_update_u22,
 #endif
 	.nbuffers = 3,
 	.model = &model_22
@@ -175,7 +178,7 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 	task->buffers[2].handle = get_sub_data(dataA, 2, i, j); 
 	task->buffers[2].mode = STARPU_RW;
 
-	if ( (i == k + 1) && (j == k +1) ) {
+	if (!no_prio &&  (i == k + 1) && (j == k +1) ) {
 		task->priority = MAX_PRIO;
 	}
 
@@ -256,16 +259,18 @@ static void dw_codelet_facto_v3(starpu_data_handle dataA, unsigned nblocks)
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
 
-void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks)
+void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned _no_prio)
 {
 
 #ifdef CHECK_RESULTS
 	fprintf(stderr, "Checking results ...\n");
 	float *Asaved;
-	Asaved = malloc(ld*ld*sizeof(float));
+	Asaved = malloc((size_t)ld*ld*sizeof(float));
 
-	memcpy(Asaved, matA, ld*ld*sizeof(float));
+	memcpy(Asaved, matA, (size_t)ld*ld*sizeof(float));
 #endif
+
+	no_prio = _no_prio;
 
 	starpu_data_handle dataA;
 

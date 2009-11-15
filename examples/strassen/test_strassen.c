@@ -176,11 +176,15 @@ int main(__attribute__ ((unused)) int argc,
 	/* start the runtime */
 	starpu_init(NULL);
 
+	starpu_helper_init_cublas();
+
 	sem_init(&sem, 0, 0U);
 
 	init_problem();
 	sem_wait(&sem);
 	sem_destroy(&sem);
+
+	starpu_helper_shutdown_cublas();
 
 	starpu_shutdown();
 

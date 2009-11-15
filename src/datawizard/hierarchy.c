@@ -35,9 +35,9 @@ void starpu_delete_data(data_state *state)
 		}
 	}
 
-#ifdef NO_DATA_RW_LOCK
 	data_requester_list_delete(state->req_list);
-#endif
+
+	free(state);
 }
 
 void register_new_data(data_state *state, uint32_t home_node, uint32_t wb_mask)
@@ -45,12 +45,8 @@ void register_new_data(data_state *state, uint32_t home_node, uint32_t wb_mask)
 	STARPU_ASSERT(state);
 
 	/* initialize the new lock */
-#ifndef NO_DATA_RW_LOCK
-	init_rw_lock(&state->data_lock);
-#else
 	state->req_list = data_requester_list_new();
 	state->refcnt = 0;
-#endif
 	starpu_spin_init(&state->header_lock);
 
 	/* first take care to properly lock the data */
@@ -196,12 +192,8 @@ void starpu_partition_data(data_state *initial_data, starpu_filter *f)
 		children->wb_mask = initial_data->wb_mask;
 
 		/* initialize the chunk lock */
-#ifndef NO_DATA_RW_LOCK
-		init_rw_lock(&children->data_lock);
-#else
 		children->req_list = data_requester_list_new();
 		children->refcnt = 0;
-#endif
 		starpu_spin_init(&children->header_lock);
 
 		unsigned node;
@@ -227,9 +219,7 @@ void starpu_unpartition_data(data_state *root_data, uint32_t gathering_node)
 
 	starpu_spin_lock(&root_data->header_lock);
 
-#ifdef NO_DATA_RW_LOCK
 #warning starpu_unpartition_data is not supported with NO_DATA_RW_LOCK yet ...
-#endif
 
 	/* first take all the children lock (in order !) */
 	for (child = 0; child < root_data->nchildren; child++)
@@ -239,9 +229,7 @@ void starpu_unpartition_data(data_state *root_data, uint32_t gathering_node)
 			starpu_unpartition_data(&root_data->children[child], gathering_node);
 
 		int ret;
-		starpu_spin_lock(&root_data->children[child].header_lock);
-		ret = _fetch_data(&root_data->children[child], gathering_node, 1, 0);
-		starpu_spin_unlock(&root_data->children[child].header_lock);
+		ret = fetch_data_on_node(&root_data->children[child], gathering_node, 1, 0, 0);
 		/* for now we pretend that the RAM is almost unlimited and that gathering 
 		 * data should be possible from the node that does the unpartionning ... we
 		 * don't want to have the programming deal with memory shortage at that time,

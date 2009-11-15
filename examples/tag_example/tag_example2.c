@@ -100,7 +100,8 @@ static void create_task_grid(unsigned iter)
 
 }
 
-void core_codelet(void *_args __attribute__ ((unused)))
+void core_codelet(starpu_data_interface_t *buffers __attribute__ ((unused)),
+			void *_args __attribute__ ((unused)))
 {
 }
 
@@ -118,11 +119,11 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	parse_args(argc, argv);
 
 	cl.core_func = core_codelet;
-	cl.cublas_func = core_codelet;
+	cl.cuda_func = core_codelet;
 #ifdef USE_GORDON
 	cl.gordon_func = gordon_null_kernel;
 #endif
-	cl.where = ANY;
+	cl.where = CORE|CUDA|GORDON;
 	cl.nbuffers = 0;
 
 	fprintf(stderr, "ITER : %d\n", nk);

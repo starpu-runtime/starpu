@@ -47,10 +47,10 @@ static void terminal_callback(void *argcb)
 
 static starpu_codelet cl11 =
 {
-	.where = ANY,
+	.where = CORE|CUDA|GORDON,
 	.core_func = chol_core_codelet_update_u11,
 #ifdef USE_CUDA
-	.cublas_func = chol_cublas_codelet_update_u11,
+	.cuda_func = chol_cublas_codelet_update_u11,
 #endif
 #ifdef USE_GORDON
 #ifdef SPU_FUNC_POTRF
@@ -94,10 +94,10 @@ static struct starpu_task * create_task_11(unsigned k, unsigned nblocks, sem_t *
 
 static starpu_codelet cl21 =
 {
-	.where = ANY,
+	.where = CORE|CUDA|GORDON,
 	.core_func = chol_core_codelet_update_u21,
 #ifdef USE_CUDA
-	.cublas_func = chol_cublas_codelet_update_u21,
+	.cuda_func = chol_cublas_codelet_update_u21,
 #endif
 #ifdef USE_GORDON
 #ifdef SPU_FUNC_STRSM
@@ -139,10 +139,10 @@ static void create_task_21(unsigned k, unsigned j)
 
 static starpu_codelet cl22 =
 {
-	.where = ANY,
+	.where = CORE|CUDA|GORDON,
 	.core_func = chol_core_codelet_update_u22,
 #ifdef USE_CUDA
-	.cublas_func = chol_cublas_codelet_update_u22,
+	.cuda_func = chol_cublas_codelet_update_u22,
 #endif
 #ifdef USE_GORDON
 #ifdef SPU_FUNC_SGEMM
@@ -258,6 +258,9 @@ int main(int argc, char **argv)
 	fprintf(stderr, "BLOCK SIZE = %d\n", size / nblocks);
 
 	starpu_init(NULL);
+
+	starpu_helper_init_cublas();
+
 	timing_init();
 
 	for (y = 0; y < nblocks; y++)
@@ -314,6 +317,8 @@ int main(int argc, char **argv)
 	}
 
 	dw_cholesky_no_stride();
+
+	starpu_helper_shutdown_cublas();
 
 	starpu_shutdown();
 	return 0;

@@ -27,8 +27,7 @@
 #include <starpu_config.h>
 #include <starpu.h>
 
-#include "../common/blas.h"
-
+#include <common/blas.h>
 
 #ifdef OPENGL_RENDER
 #include <GL/gl.h>
@@ -46,19 +45,17 @@
 
 #define Pi	(3.141592f)
 
-#define NODE_NUMBER(theta, thick)	((thick)+(theta)*nthick)
+#define NODE_NUMBER(theta, thick)	((unsigned long)((thick)+(theta)*nthick))
 #define NODE_TO_THICK(n)		((n) % nthick)
 #define NODE_TO_THETA(n)		((n) / nthick)
-
-//#define USE_POSTSCRIPT	1
 
 typedef struct point_t {
 	float x;
 	float y;
 } point;
 
-extern void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned version);
-extern void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks);
+extern void dw_factoLU(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned version, unsigned no_prio);
+extern void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned no_prio);
 extern void initialize_system(float **A, float **B, unsigned dim, unsigned pinned);
 
 void display_stat_heat(void);

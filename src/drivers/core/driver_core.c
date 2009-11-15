@@ -20,7 +20,7 @@
 #include "driver_core.h"
 #include <core/policies/sched_policy.h>
 
-int execute_job_on_core(job_t j, struct worker_s *core_args)
+static int execute_job_on_core(job_t j, struct worker_s *core_args)
 {
 	int ret;
 	tick_t codelet_start, codelet_end;
@@ -38,8 +38,7 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_start_comm);
 
-	ret = fetch_codelet_input(task->buffers, task->interface,
-			task->cl->nbuffers, 0);
+	ret = fetch_task_input(task, 0);
 
 	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_end_comm);
@@ -57,13 +56,15 @@ int execute_job_on_core(job_t j, struct worker_s *core_args)
 
 	cl_func func = task->cl->core_func;
 	func(task->interface, task->cl_arg);
+
+	task->cl->per_worker_stats[core_args->workerid]++;
 	
 	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_end);
 
 	TRACE_END_CODELET_BODY(j);
 
-	push_codelet_output(task->buffers, task->cl->nbuffers, 0);
+	push_task_output(task, 0);
 
 //#ifdef MODEL_DEBUG
 	if (calibrate_model || BENCHMARK_COMM)
@@ -97,9 +98,9 @@ void *core_worker(void *arg)
 #ifdef USE_FXT
 	fxt_register_thread(core_arg->bindid);
 #endif
-	TRACE_NEW_WORKER(FUT_CORE_KEY, core_arg->memory_node);
+	TRACE_WORKER_INIT_START(FUT_CORE_KEY, core_arg->memory_node);
 
-	bind_thread_on_cpu(core_arg->bindid);
+	bind_thread_on_cpu(core_arg->config, core_arg->bindid);
 
 #ifdef VERBOSE
         fprintf(stderr, "core worker %d is ready on logical core %d\n", core_arg->id, core_arg->bindid);
@@ -108,6 +109,10 @@ void *core_worker(void *arg)
 	set_local_memory_node_key(&core_arg->memory_node);
 
 	set_local_queue(core_arg->jobq);
+
+	set_local_worker_key(core_arg);
+
+	snprintf(core_arg->name, 32, "CORE %d", core_arg->id);
 
 	/* this is only useful (and meaningful) is there is a single
 	   memory node "related" to that queue */
@@ -118,6 +123,8 @@ void *core_worker(void *arg)
 	core_arg->jobq->total_computation_time_error = 0.0;
 	core_arg->jobq->total_job_performed = 0;
 	
+	TRACE_WORKER_INIT_END
+
         /* tell the main thread that we are ready */
 	pthread_mutex_lock(&core_arg->mutex);
 	core_arg->worker_is_initialized = 1;
@@ -127,10 +134,33 @@ void *core_worker(void *arg)
         job_t j;
 	int res;
 
+	struct sched_policy_s *policy = get_sched_policy();
+	struct jobq_s *queue = policy->get_local_queue(policy);
+	unsigned memnode = core_arg->memory_node;
+
 	while (machine_is_running())
 	{
-                j = pop_task();
-                if (j == NULL) continue;
+		TRACE_START_PROGRESS(memnode);
+		datawizard_progress(memnode, 1);
+		TRACE_END_PROGRESS(memnode);
+
+		jobq_lock(queue);
+
+		/* perhaps there is some local task to be executed first */
+		j = pop_local_task(core_arg);
+
+		/* otherwise ask a task to the scheduler */
+		if (!j)
+			j = pop_task();
+
+                if (j == NULL) {
+			if (check_that_no_data_request_exists(memnode) && machine_is_running())
+				pthread_cond_wait(&queue->activity_cond, &queue->activity_mutex);
+			jobq_unlock(queue);
+ 			continue;
+		};
+		
+		jobq_unlock(queue);
 
 		/* can a core perform that task ? */
 		if (!CORE_MAY_PERFORM(j)) 
@@ -156,6 +186,8 @@ void *core_worker(void *arg)
 		handle_job_termination(j);
         }
 
+	TRACE_WORKER_DEINIT_START
+
 #ifdef DATA_STATS
 	fprintf(stderr, "CORE #%d computation %le comm %le (%lf \%%)\n", core_arg->id, core_arg->jobq->total_computation_time, core_arg->jobq->total_communication_time,  core_arg->jobq->total_communication_time*100.0/core_arg->jobq->total_computation_time);
 #endif
@@ -170,7 +202,7 @@ void *core_worker(void *arg)
 	print_to_logfile("MODEL ERROR: CORE %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", core_arg->id, core_arg->jobq->total_computation_time_error, core_arg->jobq->total_computation_time, ratio, core_arg->jobq->total_job_performed);
 #endif
 
-	TRACE_WORKER_TERMINATED(FUT_CORE_KEY);
+	TRACE_WORKER_DEINIT_END(FUT_CORE_KEY);
 
 	pthread_exit(NULL);
 }

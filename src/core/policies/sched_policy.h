@@ -46,7 +46,7 @@ struct sched_policy_s {
 
 struct sched_policy_s *get_sched_policy(void);
 
-void init_sched_policy(struct machine_config_s *config, struct starpu_conf *user_conf);
+void init_sched_policy(struct machine_config_s *config);
 void deinit_sched_policy(struct machine_config_s *config);
 //void set_local_queue(struct jobq_s *jobq);
 

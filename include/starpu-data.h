@@ -21,7 +21,11 @@
 #include <starpu-data-interfaces.h>
 #include <starpu-data-filters.h>
 
-#define NMAXBUFS        8
+#define STARPU_NMAXBUFS        8
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct starpu_data_state_t;
 
@@ -45,5 +49,22 @@ void starpu_sync_data_with_mem(struct starpu_data_state_t *state);
 void starpu_notify_data_modification(struct starpu_data_state_t *state, uint32_t modifying_node);
 
 void starpu_malloc_pinned_if_possible(void **A, size_t dim);
+void starpu_free_pinned_if_possible(void *A);
+
+int starpu_request_data_allocation(struct starpu_data_state_t *state, uint32_t node);
+
+void starpu_prefetch_data_on_node(struct starpu_data_state_t *state, unsigned node, unsigned async);
+
+unsigned starpu_get_worker_memory_node(unsigned workerid);
+
+/* It is possible to associate a mask to a piece of data (and its children) so
+ * that when it is modified, it is automatically transfered into those memory
+ * node. For instance a (1<<0) write-back mask means that the CUDA workers will
+ * commit their changes in main memory (node 0). */
+void starpu_data_set_wb_mask(struct starpu_data_state_t *state, uint32_t wb_mask);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __STARPU_DATA_H__

@@ -43,11 +43,23 @@ inline void msi_cache_miss(unsigned node __attribute__ ((unused)))
 void display_msi_stats(void)
 {
 #ifdef DATA_STATS
-	fprintf(stderr, "MSI cache stats :\n");
 	unsigned node;
-	for (node = 0; node < 4; node++) 
+	unsigned total_hit_cnt = 0;
+	unsigned total_miss_cnt = 0;
+
+	fprintf(stderr, "MSI cache stats :\n");
+
+	for (node = 0; node < 4; node++)
 	{
-		if (hit_cnt[node]+miss_cnt[node]) 
+		total_hit_cnt += hit_cnt[node];
+		total_miss_cnt += miss_cnt[node];
+	}
+
+	fprintf(stderr, "TOTAL MSI stats\thit %u (%2.2f \%%)\tmiss %u (%2.2f \%%)\n", total_hit_cnt, (100.0f*total_hit_cnt)/(total_hit_cnt+total_miss_cnt), total_miss_cnt, (100.0f*total_miss_cnt)/(total_hit_cnt+total_miss_cnt));
+
+	for (node = 0; node < 4; node++)
+	{
+		if (hit_cnt[node]+miss_cnt[node])
 		{
 			fprintf(stderr, "memory node %d\n", node);
 			fprintf(stderr, "\thit : %u (%2.2f \%%)\n", hit_cnt[node], (100.0f*hit_cnt[node])/(hit_cnt[node]+miss_cnt[node]));
@@ -105,11 +117,24 @@ void display_comm_ammounts(void)
 {
 	unsigned src, dst;
 
+	unsigned long sum = 0;
+
 	for (dst = 0; dst < 8; dst++)
 	for (src = 0; src < 8; src++)
 	{
+		sum += (unsigned long)comm_ammount[src][dst];
+	}
+
+	fprintf(stderr, "\nData transfers stats:\nTOTAL transfers %ld MB\n", sum/(1024*1024));
+
+	for (dst = 0; dst < 8; dst++)
+	for (src = dst + 1; src < 8; src++)
+	{
 		if (comm_ammount[src][dst])
-			fprintf(stderr, "Total comm from %d to %d \t%dMB\n", src, dst, ((unsigned)comm_ammount[src][dst])/(1024*1024));
+			fprintf(stderr, "\t%d <-> %d\t%ld MB\n\t\t%d -> %d\t%ld MB\n\t\t%d -> %d\t%ld MB\n",
+				src, dst, ((unsigned long)comm_ammount[src][dst] + (unsigned long)comm_ammount[dst][src])/(1024*1024),
+				src, dst, ((unsigned long)comm_ammount[src][dst])/(1024*1024),
+				dst, src, ((unsigned long)comm_ammount[dst][src])/(1024*1024));
 	}
 }
 

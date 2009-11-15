@@ -29,9 +29,10 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <common/config.h>
 #include <starpu.h>
 
-#ifdef UNRELIABLETICKS
+#ifdef USE_SYNC_CLOCK
 #include <time.h>
 #ifndef _POSIX_C_SOURCE
 /* for clock_gettime */
@@ -43,10 +44,9 @@ typedef struct tick_s
 {
 	struct timespec ts;
 } tick_t;
-
 #define GET_TICK(t) clock_gettime(CLOCK_MONOTONIC, &((t).ts))
 
-#else // !UNRELIABLETICKS
+#else // !USE_SYNC_CLOCK
 
 typedef union u_tick
 {
@@ -69,7 +69,7 @@ typedef union u_tick
 #  define GET_TICK(t) do {} while(0);
 #endif
 
-#endif // UNRELIABLETICKS
+#endif // USE_SYNC_CLOCK
 
 void __attribute__ ((unused)) timing_init(void);
 inline double __attribute__ ((unused)) tick2usec(long long t);

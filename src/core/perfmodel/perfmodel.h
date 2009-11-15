@@ -18,6 +18,7 @@
 #define __PERFMODEL_H__
 
 #include <common/config.h>
+#include <starpu.h>
 #include <starpu-perfmodel.h>
 //#include <core/jobs.h>
 #include <common/htable32.h>
@@ -28,7 +29,6 @@
 struct starpu_buffer_descr_t;
 struct jobq_s;
 struct job_s;
-enum archtype;
 enum starpu_perf_archtype;
 
 struct starpu_history_entry_t {

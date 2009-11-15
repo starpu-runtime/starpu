@@ -32,11 +32,7 @@ trace_sched()
 		
 		cd $ROOTDIR
 		filename=$TIMINGDIR/sched.$SCHED.$size
-		#rm -f $filename
-		make clean 1> /dev/null 2> /dev/null
-		make examples -j ATLAS=1 CPUS=$MAXCPU CUDA=1 1> /dev/null 2> /dev/null
-		cd $DIR
-		
+
 		for iter in `seq 1 $maxiter`
 		do
 			echo "$iter / $maxiter"
@@ -52,7 +48,7 @@ ROOTDIR=$DIR/../..
 TIMINGDIR=$DIR/timings-sched/
 mkdir -p $TIMINGDIR
 
-schedlist="no-prio greedy greedy no-prio dm dm random greedy prio no-prio dm"
+schedlist="greedy no-prio dm random"
 #schedlist="random"
 
 for sched in $schedlist

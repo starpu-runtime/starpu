@@ -33,6 +33,10 @@
 
 #include <starpu.h>
 
+#ifdef HAVE_HWLOC
+#include <hwloc.h>
+#endif
+
 #ifdef USE_CUDA
 #include <drivers/cuda/driver_cuda.h>
 #endif
@@ -49,34 +53,31 @@
 #define CUDA_ALPHA	13.33f
 #define GORDON_ALPHA	6.0f /* XXX this is a random value ... */
 
-#define NMAXWORKERS	32
-
 #ifdef DATA_STATS
 #define BENCHMARK_COMM	1
 #else
 #define BENCHMARK_COMM	0
 #endif
 
-enum archtype {
-	CORE_WORKER,
-	CUDA_WORKER,
-	GORDON_WORKER
-};
-
 struct worker_s {
+	struct machine_config_s *config;
         pthread_mutex_t mutex;
-	enum archtype arch; /* what is the type of worker ? */
+	enum starpu_archtype arch; /* what is the type of worker ? */
 	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
 	pthread_t worker_thread; /* the thread which runs the worker */
 	int id; /* which core/gpu/etc is controlled by the workker ? */
 	int bindid; /* which core is the driver bound to ? */
+	int workerid; /* uniquely identify the worker among all processing units types */
         pthread_cond_t ready_cond; /* indicate when the worker is ready */
 	unsigned memory_node; /* which memory node is associated that worker to ? */
 	struct jobq_s *jobq; /* in which queue will that worker get/put tasks ? */
+	struct job_list_s *local_jobs; /* this queue contains tasks that have been explicitely submitted to that queue */
+	pthread_mutex_t local_jobs_mutex; /* protect the local_jobs list */
 	struct worker_set_s *set; /* in case this worker belongs to a set */
 	struct job_list_s *terminated_jobs; /* list of pending jobs which were executed */
 	unsigned worker_is_running;
 	unsigned worker_is_initialized;
+	char name[32];
 };
 
 /* in case a single CPU worker may control multiple 
@@ -95,14 +96,33 @@ struct worker_set_s {
 struct machine_config_s {
 	unsigned nworkers;
 
+#ifdef HAVE_HWLOC
+	hwloc_topology_t hwtopology;
+	int core_depth;
+#endif
+
+	unsigned nhwcores;
+
 	unsigned ncores;
 	unsigned ncudagpus;
 	unsigned ngordon_spus;
 
-	struct worker_s workers[NMAXWORKERS];
+	/* Where to bind workers ? */
+	int current_bindid;
+	unsigned workers_bindid[STARPU_NMAXWORKERS];
+	
+	/* Which GPU(s) do we use ? */
+	int current_gpuid;
+	unsigned workers_gpuid[STARPU_NMAXWORKERS];
+	
+	struct worker_s workers[STARPU_NMAXWORKERS];
 	uint32_t worker_mask;
 
 	struct starpu_topo_obj_t *topology;
+
+	/* in case the user gives an explicit configuration, this is only valid
+	 * during starpu_init. */
+	struct starpu_conf *user_conf;
 
 	/* this flag is set until the runtime is stopped */
 	unsigned running;
@@ -116,11 +136,14 @@ inline uint32_t worker_exists(uint32_t task_mask);
 inline uint32_t may_submit_cuda_task(void);
 inline uint32_t may_submit_core_task(void);
 
-void bind_thread_on_cpu(unsigned coreid);
+void bind_thread_on_cpu(struct machine_config_s *config, unsigned coreid);
 
 inline void lock_all_queues_attached_to_node(unsigned node);
 inline void unlock_all_queues_attached_to_node(unsigned node);
 inline void broadcast_all_queues_attached_to_node(unsigned node);
 
+void set_local_worker_key(struct worker_s *worker);
+
+struct worker_s *get_worker_struct(unsigned id);
 
 #endif // __WORKERS_H__

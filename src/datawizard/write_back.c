@@ -26,7 +26,7 @@ void write_through_data(data_state *state, uint32_t requesting_node,
 	}
 
 	while (starpu_spin_trylock(&state->header_lock))
-		datawizard_progress(requesting_node);
+		datawizard_progress(requesting_node, 1);
 
 	/* first commit all changes onto the nodes specified by the mask */
 	uint32_t node;
@@ -36,33 +36,33 @@ void write_through_data(data_state *state, uint32_t requesting_node,
 			/* we need to commit the buffer on that node */
 			if (node != requesting_node) 
 			{
-				/* the requesting node already has the data by
-				 * definition */
-				int ret;
-				ret = driver_copy_data_1_to_1(state, 
-						requesting_node, node, 0);
+				uint32_t handling_node =
+					select_node_to_handle_request(requesting_node, node);
 
-				/* there must remain memory on the write-through mask to honor the request */
-				if (ret)
-					STARPU_ASSERT(0);
+				data_request_t r;
+
+				/* check that there is not already a similar
+				 * request that we should reuse */
+				r = search_existing_data_request(state, node, 1, 0);
+				if (!r) {
+					/* there was no existing request so we create one now */
+					r = create_data_request(state, requesting_node,
+							node, handling_node, 1, 0, 1);
+					post_data_request(r, handling_node);
+				}
+				else {
+					/* if there is already a similar request, it is
+					 * useless to post another one */
+					starpu_spin_unlock(&r->lock);
+				}
 			}
-				
-			/* now the data is shared among the nodes on the
-			 * write_through_mask */
-			state->per_node[node].state = SHARED;
 		}
-	}
-
-	/* the requesting node is now one sharer */
-	if (write_through_mask & ~(1<<requesting_node))
-	{
-		state->per_node[requesting_node].state = SHARED;
 	}
 
 	starpu_spin_unlock(&state->header_lock);
 }
 
-void data_set_wb_mask(data_state *data, uint32_t wb_mask)
+void starpu_data_set_wb_mask(data_state *data, uint32_t wb_mask)
 {
 	data->wb_mask = wb_mask;
 
@@ -71,6 +71,6 @@ void data_set_wb_mask(data_state *data, uint32_t wb_mask)
 	{
 		int child;
 		for (child = 0; child < data->nchildren; child++)
-			data_set_wb_mask(&data->children[child], wb_mask);
+			starpu_data_set_wb_mask(&data->children[child], wb_mask);
 	}
 }

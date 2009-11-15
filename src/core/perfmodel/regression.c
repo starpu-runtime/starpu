@@ -34,8 +34,8 @@ static double compute_b(double c, unsigned n, unsigned *x, double *y)
 	unsigned i;
 	for (i = 0; i < n; i++)
 	{
-		double xi = logl(x[i]);
-		double yi = logl(y[i]-c);
+		double xi = log(x[i]);
+		double yi = log(y[i]-c);
 
 		sumxy += xi*yi;
 		sumx += xi;
@@ -59,8 +59,8 @@ static double compute_a(double c, double b, unsigned n, unsigned *x, double *y)
 	unsigned i;
 	for (i = 0; i < n; i++)
 	{
-		double xi = logl(x[i]);
-		double yi = logl(y[i]-c);
+		double xi = log(x[i]);
+		double yi = log(y[i]-c);
 
 		sumx += xi;
 		sumy += yi;
@@ -90,8 +90,8 @@ static double test_r(double c, unsigned n, unsigned *x, double *y)
 	unsigned i;
 	for (i = 0; i < n; i++)
 	{
-		double xi = logl(x[i]);
-		double yi = logl(y[i]-c);
+		double xi = log(x[i]);
+		double yi = log(y[i]-c);
 
 	//	printf("Xi = %e, Yi = %e\n", xi, yi);
 
@@ -191,8 +191,8 @@ int regression_non_linear_power(struct starpu_history_list_t *ptr, double *a, do
 		r2 = test_r(c2, n, x, y);
 
 		double err1, err2;
-		err1 = fabsl(1.0 - r1);
-		err2 = fabsl(1.0 - r2);
+		err1 = fabs(1.0 - r1);
+		err2 = fabs(1.0 - r2);
 
 		if (err1 < err2)
 		{
@@ -203,7 +203,7 @@ int regression_non_linear_power(struct starpu_history_list_t *ptr, double *a, do
 			cmin = (cmin + cmax)/2;
 		}
 
-		if (fabsl(err - STARPU_MIN(err1, err2)) < EPS)
+		if (fabs(err - STARPU_MIN(err1, err2)) < EPS)
 		{
 			err = STARPU_MIN(err1, err2);
 			break;
@@ -215,7 +215,7 @@ int regression_non_linear_power(struct starpu_history_list_t *ptr, double *a, do
 	*c = (cmin + cmax)/2;
 
 	*b = compute_b(*c, n, x, y); 
-	*a = expl(compute_a(*c, *b, n, x, y));
+	*a = exp(compute_a(*c, *b, n, x, y));
 
 	free(x);
 	free(y);
