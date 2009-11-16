@@ -135,6 +135,7 @@ libstarpu_la_SOURCES = 						\
 	datawizard/interfaces/csr_filters.c			\
 	datawizard/interfaces/vector_filters.c			\
 	util/malloc.c						\
+	util/execute_on_all.c					\
 	util/starpu_cublas.c
 	
 if USE_CPU

@@ -212,6 +212,7 @@ void starpu_trace_user_event(unsigned code);
 /* Some helper functions for application using CUBLAS kernels */
 void starpu_helper_init_cublas(void);
 void starpu_helper_shutdown_cublas(void);
+void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where);
 
 #ifdef __cplusplus
 }
