@@ -82,9 +82,11 @@ struct starpu_per_arch_perfmodel_t {
 #endif
 };
 
+typedef enum {PER_ARCH, COMMON, HISTORY_BASED, REGRESSION_BASED} starpu_perfmodel_type;
+
 struct starpu_perfmodel_t {
 	/* which model is used for that task ? */
-	enum {PER_ARCH, COMMON, HISTORY_BASED, REGRESSION_BASED} type;
+	starpu_perfmodel_type type;
 
 	/* single cost model */
 	double (*cost_model)(struct starpu_buffer_descr_t *);
