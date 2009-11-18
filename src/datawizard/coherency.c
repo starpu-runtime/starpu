@@ -167,15 +167,20 @@ int fetch_data_on_node(data_state *state, uint32_t requesting_node,
 	if (!r) {
 		//fprintf(stderr, "no request matched that one so we post a request %s\n", is_prefetch?"PREFETCH":"");
 		/* find someone who already has the data */
-		uint32_t src_node = select_src_node(state);
-	
-		STARPU_ASSERT(src_node != requesting_node);
+		uint32_t src_node = 0;
+
+		/* if the data is in read only mode, there is no need for a source */
+		if (read)
+		{
+			src_node = select_src_node(state);
+			STARPU_ASSERT(src_node != requesting_node);
+		}
 	
 		unsigned src_is_a_gpu = (get_node_kind(src_node) == CUDA_RAM);
 		unsigned dst_is_a_gpu = (get_node_kind(requesting_node) == CUDA_RAM);
 
 		/* we have to perform 2 successive requests for GPU->GPU transfers */
-		if (src_is_a_gpu && dst_is_a_gpu) {
+		if (read && (src_is_a_gpu && dst_is_a_gpu)) {
 			unsigned reuse_r_src_to_ram;
 			data_request_t r_src_to_ram;
 			data_request_t r_ram_to_dst;

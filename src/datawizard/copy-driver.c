@@ -192,8 +192,11 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *state, uint32_t src_node, 
 		uint32_t dst_node, unsigned donotread, struct data_request_s *req, unsigned may_alloc)
 {
-	STARPU_ASSERT(state->per_node[src_node].allocated);
-	STARPU_ASSERT(state->per_node[src_node].refcnt);
+	if (req->read)
+	{
+		STARPU_ASSERT(state->per_node[src_node].allocated);
+		STARPU_ASSERT(state->per_node[src_node].refcnt);
+	}
 
 	int ret_alloc, ret_copy;
 	unsigned __attribute__((unused)) com_id = 0;

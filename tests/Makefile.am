@@ -80,6 +80,7 @@ check_PROGRAMS += 				\
 	core/static_restartable_tag		\
 	core/empty_task				\
 	core/empty_task_sync_point		\
+	datawizard/write_only_tmp_buffer	\
 	errorcheck/starpu_init_noworker		\
 	helper/cublas_init			\
 	helper/pinned_memory			\
@@ -123,6 +124,9 @@ core_empty_task_SOURCES =			\
 
 core_empty_task_sync_point_SOURCES =		\
 	core/empty_task_sync_point.c
+
+datawizard_write_only_tmp_buffer_SOURCES =	\
+	datawizard/write_only_tmp_buffer.c
 
 errorcheck_starpu_init_noworker_SOURCES =	\
 	errorcheck/starpu_init_noworker.c

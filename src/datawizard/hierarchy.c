@@ -60,9 +60,6 @@ void register_new_data(data_state *state, uint32_t home_node, uint32_t wb_mask)
 
 	state->is_not_important = 0;
 
-	/* make sure we do have a valid copy */
-	STARPU_ASSERT(home_node < MAXNODES);
-
 	state->wb_mask = wb_mask;
 
 	/* that new data is invalid from all nodes perpective except for the

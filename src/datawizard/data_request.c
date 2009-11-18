@@ -97,7 +97,9 @@ data_request_t create_data_request(data_state *state, uint32_t src_node, uint32_
 	state->per_node[dst_node].request = r;
 
 	state->per_node[dst_node].refcnt++;
-	state->per_node[src_node].refcnt++;
+
+	if (read)
+		state->per_node[src_node].refcnt++;
 
 	r->refcnt = 1;
 
@@ -175,8 +177,11 @@ void post_data_request(data_request_t r, uint32_t handling_node)
 	int res;
 //	fprintf(stderr, "POST REQUEST\n");
 
-	STARPU_ASSERT(r->state->per_node[r->src_node].allocated);
-	STARPU_ASSERT(r->state->per_node[r->src_node].refcnt);
+	if (r->read)
+	{
+		STARPU_ASSERT(r->state->per_node[r->src_node].allocated);
+		STARPU_ASSERT(r->state->per_node[r->src_node].refcnt);
+	}
 
 	/* insert the request in the proper list */
 	res = pthread_mutex_lock(&data_requests_list_mutex[handling_node]);
@@ -210,7 +215,9 @@ static void handle_data_request_completion(data_request_t r)
 	r->completed = 1;
 	
 	state->per_node[r->dst_node].refcnt--;
-	state->per_node[r->src_node].refcnt--;
+
+	if (r->read)
+		state->per_node[r->src_node].refcnt--;
 
 	r->refcnt--;
 
@@ -239,8 +246,11 @@ static int handle_data_request(data_request_t r, unsigned may_alloc)
 
 	starpu_spin_lock(&r->lock);
 
-	STARPU_ASSERT(state->per_node[r->src_node].allocated);
-	STARPU_ASSERT(state->per_node[r->src_node].refcnt);
+	if (r->read)
+	{
+		STARPU_ASSERT(state->per_node[r->src_node].allocated);
+		STARPU_ASSERT(state->per_node[r->src_node].refcnt);
+	}
 
 	/* perform the transfer */
 	/* the header of the data must be locked by the worker that submitted the request */
