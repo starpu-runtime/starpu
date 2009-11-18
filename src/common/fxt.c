@@ -38,9 +38,19 @@ static void profile_set_tracefile(char *fmt, ...)
 	va_start(vl, fmt);
 	vsprintf(PROF_FILE_USER, fmt, vl);
 	va_end(vl);
-	strcat(PROF_FILE_USER, "_user_");
-	if ((user = getenv("USER")))
-		strcat(PROF_FILE_USER, user);
+
+	user = getenv("USER");
+	if (!user)
+		user = "";
+
+	int pid = getpid();
+
+	char suffix[128];
+	snprintf(suffix, 128, "_user_%s_%d", user, pid);
+
+	strcat(PROF_FILE_USER, suffix);
+
+
 }
 
 
