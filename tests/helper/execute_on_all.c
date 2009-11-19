@@ -34,6 +34,10 @@ int main(int argc, char **argv)
 
 	starpu_execute_on_each_worker(func, &arg, CORE|CUDA);
 
+	starpu_execute_on_each_worker(func, &arg, CORE);
+	
+	starpu_execute_on_each_worker(func, &arg, CUDA);
+
 	starpu_shutdown();
 
 	return 0;
