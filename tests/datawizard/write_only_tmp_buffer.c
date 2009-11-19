@@ -26,7 +26,6 @@ starpu_data_handle v_handle;
 
 static void cuda_codelet_null(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
-	fprintf(stderr, "POUET CUDA\n");
 	int *buf = (int *)buffers[0].vector.ptr;
 
 	cudaMemset(buf, 42, sizeof(int));
@@ -34,7 +33,6 @@ static void cuda_codelet_null(starpu_data_interface_t *buffers, __attribute__ ((
 
 static void core_codelet_null(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
-	fprintf(stderr, "POUET CUDA\n");
 	int *buf = (int *)buffers[0].vector.ptr;
 
 	*buf = 42;
@@ -43,12 +41,11 @@ static void core_codelet_null(starpu_data_interface_t *buffers, __attribute__ ((
 static void display_var(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
 	int *buf = (int *)buffers[0].vector.ptr;
-
-	fprintf(stderr, "Value = %d (should be %d)\n", *buf, 42);
-	fflush(stderr);
-
 	if (*buf != 42)
+	{
+		fprintf(stderr, "Value = %d (should be %d)\n", *buf, 42);
 		exit(-1);
+	}
 }
 
 static starpu_codelet cl = {
@@ -67,6 +64,8 @@ static starpu_codelet display_cl = {
 
 int main(int argc, char **argv)
 {
+	int ret;
+
 	starpu_init(NULL);
 
 	/* The buffer should never be explicitely allocated */
@@ -76,27 +75,29 @@ int main(int argc, char **argv)
 		task->cl = &cl;
 		task->buffers[0].handle = v_handle;
 		task->buffers[0].mode = STARPU_W;
-
-		task->synchronous = 1;
-
-	int ret = starpu_submit_task(task);
-	if (ret == -ENODEV)
-			goto enodev;
-
-//	starpu_wait_task(task);
-
-	task = starpu_task_create();
-		task->cl = &display_cl;
-		task->buffers[0].handle = v_handle;
-		task->buffers[0].mode = STARPU_R;
-
-		task->synchronous = 1;
+		task->detach = 0;
 
 	ret = starpu_submit_task(task);
 	if (ret == -ENODEV)
 			goto enodev;
 
-//	starpu_wait_task(task);
+	ret = starpu_wait_task(task);
+	if (ret)
+		exit(-1);
+
+	task = starpu_task_create();
+		task->cl = &display_cl;
+		task->buffers[0].handle = v_handle;
+		task->buffers[0].mode = STARPU_R;
+		task->detach = 0;
+
+	ret = starpu_submit_task(task);
+	if (ret == -ENODEV)
+			goto enodev;
+
+	ret = starpu_wait_task(task);
+	if (ret)
+		exit(-1);
 
 	/* this should get rid of automatically allocated buffers */
 	starpu_delete_data(v_handle);
