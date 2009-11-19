@@ -198,6 +198,7 @@ static int init_machine_config(struct machine_config_s *config,
 		
 		config->workers[config->nworkers + cudagpu].id = devid;
 		config->workers[config->nworkers + cudagpu].perf_arch = arch; 
+		config->workers[config->nworkers + cudagpu].worker_mask = CUDA;
 		config->worker_mask |= CUDA;
 	}
 
@@ -231,6 +232,7 @@ static int init_machine_config(struct machine_config_s *config,
 		config->workers[config->nworkers + spu].perf_arch = STARPU_GORDON_DEFAULT;
 		config->workers[config->nworkers + spu].id = spu;
 		config->workers[config->nworkers + spu].worker_is_running = 0;
+		config->workers[config->nworkers + spu].worker_mask = GORDON;
 		config->worker_mask |= GORDON;
 	}
 
@@ -264,6 +266,7 @@ static int init_machine_config(struct machine_config_s *config,
 		config->workers[config->nworkers + core].arch = STARPU_CORE_WORKER;
 		config->workers[config->nworkers + core].perf_arch = STARPU_CORE_DEFAULT;
 		config->workers[config->nworkers + core].id = core;
+		config->workers[config->nworkers + core].worker_mask = CORE;
 		config->worker_mask |= CORE;
 	}
 

@@ -115,8 +115,20 @@ int starpu_submit_task(struct starpu_task *task)
 
 	STARPU_ASSERT(task);
 
-	if (task->cl && !worker_exists(task->cl->where))
-		return -ENODEV;
+	if (task->cl)
+	{
+		uint32_t where = task->cl->where;
+		if (!worker_exists(where))
+			return -ENODEV;
+
+		/* In case we require that a task should be explicitely
+		 * executed on a specific worker, we make sure that the worker
+		 * is able to execute this task.  */
+		if (task->execute_on_a_specific_worker 
+			&& !worker_may_execute_task(task->workerid, where))
+			return -ENODEV;
+	}
+
 
 	/* internally, StarPU manipulates a job_t which is a wrapper around a
  	* task structure */

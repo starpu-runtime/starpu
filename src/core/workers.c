@@ -42,6 +42,11 @@ inline uint32_t may_submit_core_task(void)
 	return (CORE & config.worker_mask);
 }
 
+inline uint32_t worker_may_execute_task(unsigned workerid, uint32_t where)
+{
+	return (where & config.workers[workerid].worker_mask);
+}
+
 /*
  * Runtime initialization methods
  */

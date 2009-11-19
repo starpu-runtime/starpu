@@ -63,6 +63,7 @@ struct worker_s {
 	struct machine_config_s *config;
         pthread_mutex_t mutex;
 	enum starpu_archtype arch; /* what is the type of worker ? */
+	uint32_t worker_mask; /* what is the type of worker ? */
 	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
 	pthread_t worker_thread; /* the thread which runs the worker */
 	int id; /* which core/gpu/etc is controlled by the workker ? */
@@ -135,6 +136,7 @@ unsigned machine_is_running(void);
 inline uint32_t worker_exists(uint32_t task_mask);
 inline uint32_t may_submit_cuda_task(void);
 inline uint32_t may_submit_core_task(void);
+inline uint32_t worker_may_execute_task(unsigned workerid, uint32_t where);
 
 void bind_thread_on_cpu(struct machine_config_s *config, unsigned coreid);
 
