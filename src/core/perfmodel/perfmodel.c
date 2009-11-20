@@ -143,6 +143,9 @@ double data_expected_penalty(struct jobq_s *q, struct job_s *j)
 	{
 		data_state *state = j->task->buffers[buffer].handle;
 
+		if (j->task->buffers[buffer].mode == STARPU_W)
+			break;
+
 		if (!is_data_present_or_requested(state, memory_node))
 		{
 			size_t size = state->ops->get_size(state);
