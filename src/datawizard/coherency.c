@@ -267,12 +267,8 @@ int fetch_data_on_node(data_state *state, uint32_t requesting_node,
 	return (is_prefetch?0:wait_data_request_completion(r, 1));
 }
 
-static int prefetch_data_on_node(data_state *state, starpu_access_mode mode, uint32_t node)
+static int prefetch_data_on_node(data_state *state, uint8_t read, uint8_t write, uint32_t node)
 {
-	uint8_t read, write;
-	read = (mode != STARPU_W); /* then R or STARPU_RW */
-	write = (mode != STARPU_R); /* then STARPU_W or STARPU_RW */
-
 	return fetch_data_on_node(state, node, read, write, 1);
 }
 
@@ -331,8 +327,13 @@ int prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 
 		descr = &descrs[index];
 		state = descr->handle;
+		
+		uint32_t mode = task->buffers[index].mode;
 	
-		prefetch_data_on_node(state, STARPU_R, node);
+		uint8_t read = (mode != STARPU_W);
+		uint8_t write = (mode != STARPU_R);
+
+		prefetch_data_on_node(state, read, write, node);
 	}
 
 	return 0;
