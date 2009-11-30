@@ -369,6 +369,12 @@ void bind_thread_on_cpu(struct machine_config_s *config __attribute__((unused)),
 	hwloc_cpuset_t set = obj->cpuset;
 	hwloc_cpuset_singlify(set);
 	ret = hwloc_set_cpubind(config->hwtopology, set, HWLOC_CPUBIND_THREAD);
+	if (ret)
+	{
+		perror("binding thread");
+		STARPU_ASSERT(0);
+	}
+
 #elif defined(HAVE_PTHREAD_SETAFFINITY_NP)
 	/* fix the thread on the correct cpu */
 	cpu_set_t aff_mask;
@@ -378,14 +384,15 @@ void bind_thread_on_cpu(struct machine_config_s *config __attribute__((unused)),
 	pthread_t self = pthread_self();
 
 	ret = pthread_setaffinity_np(self, sizeof(aff_mask), &aff_mask);
-#else
-#warning no CPU binding support
-#endif
 	if (ret)
 	{
 		perror("binding thread");
 		STARPU_ASSERT(0);
 	}
+
+#else
+#warning no CPU binding support
+#endif
 }
 
 static void init_workers_binding(struct machine_config_s *config)
