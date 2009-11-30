@@ -19,7 +19,11 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/
 
 TESTS = $(check_PROGRAMS)
 
+if HAVE_FFTW
+if HAVE_FFTWL
 SUBDIRS = starpufft
+endif
+endif
 
 check_PROGRAMS =
 
