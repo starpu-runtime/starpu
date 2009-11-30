@@ -24,12 +24,14 @@
 
 starpu_data_handle v_handle;
 
+#ifdef USE_CUDA
 static void cuda_codelet_null(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
 	int *buf = (int *)buffers[0].vector.ptr;
 
 	cudaMemset(buf, 42, sizeof(int));
 }
+#endif
 
 static void core_codelet_null(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
@@ -51,7 +53,9 @@ static void display_var(starpu_data_interface_t *buffers, __attribute__ ((unused
 static starpu_codelet cl = {
 	.where = CORE|CUDA,
 	.core_func = core_codelet_null,
+#ifdef USE_CUDA
 	.cuda_func = cuda_codelet_null,
+#endif
 	.nbuffers = 1
 };
 
