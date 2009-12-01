@@ -34,32 +34,9 @@
 #define MAXWORKERS      32
 #define FACTOR  100
 
-typedef enum {
-	WORKING,
-	FETCHING,
-	PUSHING,
-	IDLE
-} worker_mode;
-
-LIST_TYPE(event,
-        uint64_t time;
-	worker_mode mode;
-);
-
-LIST_TYPE(workq,
-	uint64_t time;
-	int diff;
-	int current_size;
-);
-
 extern void init_dag_dot(void);
 extern void terminate_dat_dot(void);
 extern void add_deps(uint64_t child, uint64_t father);
 extern void dot_set_tag_done(uint64_t tag, char *color);
-
-extern void svg_engine_generate_output(event_list_t *events, 
-	workq_list_t taskq, char **worker_name, unsigned nworkers,
-	unsigned maxq_size, uint64_t _start_time, uint64_t _end_time,
-	char *path);
 
 #endif // __FXT_TOOL_H__

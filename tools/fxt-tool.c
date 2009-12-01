@@ -16,8 +16,6 @@
 
 #include "fxt-tool.h"
 
-event_list_t events[MAXWORKERS];
-workq_list_t taskq;
 char *worker_name[MAXWORKERS];
 
 static char *cpus_worker_colors[MAXWORKERS] = {"/greens9/7", "/greens9/6", "/greens9/5", "/greens9/4",  "/greens9/9", "/greens9/3",  "/greens9/2",  "/greens9/1"  };
@@ -37,14 +35,14 @@ unsigned nworkers = 0;
 char *filename = NULL;
 unsigned per_task_colour = 0;
 
+unsigned no_counter = 0;
+unsigned no_bus = 0;
 
 LIST_TYPE(symbol_name,
 	char *name;
 );
 
 symbol_name_list_t symbol_list;
-
-
 
 /*
  * Paje trace file tools
@@ -164,8 +162,6 @@ void handle_worker_init_start(void)
 
 	res = hsearch(item, ENTER);
 	STARPU_ASSERT(res);
-
-	events[workerid] = event_list_new();
 
 	/* start initialization */
 	fprintf(out_paje_file, "10       %f     S      %ld      I\n", (float)((ev.time-start_time)/1000000.0), ev.param[2]);
@@ -287,11 +283,6 @@ void handle_start_codelet_body(void)
 		fprintf(out_paje_file, "10       %f	S      %ld      E\n", (float)((ev.time-start_time)/1000000.0), ev.param[1]);
 	}
 
-	event_t e = event_new();
-	e->time =  ev.time;
-	e->mode = WORKING;
-	event_list_push_back(events[worker], e);
-
 	end_time = STARPU_MAX(end_time, ev.time);
 }
 
@@ -304,11 +295,6 @@ void handle_end_codelet_body(void)
 	if (worker < 0) return;
 //	printf("<- worker %d\n", worker);
 	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
-
-	event_t e = event_new();
-	e->time =  ev.time;
-	e->mode = IDLE;
-	event_list_push_back(events[worker], e);
 
 	end_time = STARPU_MAX(end_time, ev.time);
 }
@@ -350,11 +336,6 @@ void handle_start_fetch_input(void)
 
 	fprintf(out_paje_file, "10       %f	S      %ld      Fi\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 
-	event_t e = event_new();
-	e->time =  ev.time;
-	e->mode = FETCHING;
-	event_list_push_back(events[worker], e);
-
 	end_time = STARPU_MAX(end_time, ev.time);
 }
 
@@ -365,11 +346,6 @@ void handle_end_fetch_input(void)
 	if (worker < 0) return;
 
 	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
-
-	event_t e = event_new();
-	e->time =  ev.time;
-	e->mode = IDLE;
-	event_list_push_back(events[worker], e);
 
 	end_time = STARPU_MAX(end_time, ev.time);
 }
@@ -382,11 +358,6 @@ void handle_start_push_output(void)
 
 	fprintf(out_paje_file, "10       %f	S      %ld      Po\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 
-	event_t e = event_new();
-	e->time =  ev.time;
-	e->mode = PUSHING;
-	event_list_push_back(events[worker], e);
-
 	end_time = STARPU_MAX(end_time, ev.time);
 }
 
@@ -397,11 +368,6 @@ void handle_end_push_output(void)
 	if (worker < 0) return;
 	
 	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
-
-	event_t e = event_new();
-	e->time =  ev.time;
-	e->mode = IDLE;
-	event_list_push_back(events[worker], e);
 
 	end_time = STARPU_MAX(end_time, ev.time);
 }
@@ -414,11 +380,6 @@ void handle_start_progress(void)
 
 	fprintf(out_paje_file, "10       %f	S      %ld      P\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 
-	event_t e = event_new();
-	e->time =  ev.time;
-	e->mode = PUSHING;
-	event_list_push_back(events[worker], e);
-
 	end_time = STARPU_MAX(end_time, ev.time);
 }
 
@@ -429,11 +390,6 @@ void handle_end_progress(void)
 	if (worker < 0) return;
 	
 	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
-
-	event_t e = event_new();
-	e->time =  ev.time;
-	e->mode = IDLE;
-	event_list_push_back(events[worker], e);
 
 	end_time = STARPU_MAX(end_time, ev.time);
 }
@@ -450,7 +406,10 @@ void handle_start_driver_copy(void)
 	unsigned size = ev.param[2];
 	unsigned comid = ev.param[3];
 
+	if (!no_bus)
 	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      Co\n", (float)((ev.time-start_time)/1000000.0), dst);
+
+	if (!no_bus)
 	fprintf(out_paje_file, "18       %f	L      p	%d	MEMNODE%d	com_%d\n", (float)((ev.time-start_time)/1000000.0), size, src, comid);
 
 }
@@ -509,37 +468,20 @@ void handle_end_memreclaim(void)
 	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      No\n", (float)((ev.time-start_time)/1000000.0), memnode);
 }
 
-int maxq_size = 0;
 int curq_size = 0;
 
 void handle_job_push(void)
 {
 	curq_size++;
 
-	maxq_size = STARPU_MAX(maxq_size, curq_size);
-
-	workq_t e = workq_new();
-	e->time =  ev.time;
-	e->diff =  +1;
-	e->current_size = curq_size;
-
 	fprintf(out_paje_file, "13       %f ntask sched %f\n", (float)((ev.time-start_time)/1000000.0), (float)curq_size);
-
-	workq_list_push_back(taskq, e);
 }
 
 void handle_job_pop(void)
 {
 	curq_size--;
 
-	workq_t e = workq_new();
-	e->time =  ev.time;
-	e->diff =  -1;
-	e->current_size = curq_size;
-
 	fprintf(out_paje_file, "13       %f ntask sched %f\n", (float)((ev.time-start_time)/1000000.0), (float)curq_size);
-
-	workq_list_push_back(taskq, e);
 }
 
 void handle_codelet_tag_deps(void)
@@ -574,59 +516,10 @@ void handle_task_done(void)
 		colour = &buffer[0];
 	}
 	else {
-		colour = worker_colors[worker];
+		colour=(worker < 0)?"0.0,0.0,0.0":worker_colors[worker];
 	}
 
 	dot_set_tag_done(tag_id, colour);
-}
-
-void generate_svg_output(void)
-{
-	svg_engine_generate_output(events, taskq, worker_name, nworkers, maxq_size, start_time, end_time, "toto.svg");
-}
-
-void generate_gnuplot_output(void)
-{
-	FILE *output;
-	output = fopen("data", "w+");
-	STARPU_ASSERT(output);
-	
-	unsigned linesize;
-	unsigned maxline = 0;
-
-	unsigned worker;
-	for (worker = 0; worker < nworkers; worker++)
-	{
-		linesize = 0;
-
-		event_itor_t i;
-		for (i = event_list_begin(events[worker]);
-		     i != event_list_end(events[worker]);
-		     i = event_list_next(i))
-		{
-			linesize++;
-		}
-		maxline = STARPU_MAX(maxline, linesize);
-	}
-
-	for (worker = 0; worker < nworkers; worker++)
-	{
-		unsigned long prev = start_time;
-
-		fprintf(output, "%d\t", 0);
-
-		event_itor_t i;
-		for (i = event_list_begin(events[worker]);
-		     i != event_list_end(events[worker]);
-		     i = event_list_next(i))
-		{
-			fprintf(output, "%lu\t", (i->time - prev)/FACTOR);
-			prev = i->time;
-		}
-		fprintf(output, "\n");
-	}
-
-	fclose(output);
 }
 
 static void parse_args(int argc, char **argv)
@@ -645,8 +538,17 @@ static void parse_args(int argc, char **argv)
 			filename = argv[++i];
 		}
 
+		if (strcmp(argv[i], "-no-counter") == 0) {
+			no_counter = 1;
+		}
+
+		if (strcmp(argv[i], "-no-bus") == 0) {
+			no_bus = 1;
+		}
+
+
 		if (strcmp(argv[i], "-h") == 0) {
-		        fprintf(stderr, "Usage : %s [-c] [-i input_filename] [-o output_filename]\n", argv[0]);
+		        fprintf(stderr, "Usage : %s [-c] [-no-counter] [-no-bus] [-i input_filename] [-o output_filename]\n", argv[0]);
 			fprintf(stderr, "\t-c: use a different colour for every type of task.\n");
 		        exit(-1);
 		}
@@ -689,8 +591,6 @@ int main(int argc, char **argv)
 
 	paje_output_file_init();
 
-	taskq = workq_list_new();
-
 	while(1) {
 		ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
 		if (ret != FXT_EV_OK) {
@@ -708,8 +608,11 @@ int main(int argc, char **argv)
 			/* create the "program" container */
 			fprintf(out_paje_file, "7       %f p      P      0       program \n", (float)(start_time-start_time));
 			/* create a variable with the number of tasks */
-			fprintf(out_paje_file, "7       %f sched      Sc      p       scheduler \n", (float)(start_time-start_time));
-			fprintf(out_paje_file, "13       %f ntask sched 0.0\n", (float)(start_time-start_time));
+			if (!no_counter)
+			{
+				fprintf(out_paje_file, "7       %f sched      Sc      p       scheduler \n", (float)(start_time-start_time));
+				fprintf(out_paje_file, "13       %f ntask sched 0.0\n", (float)(start_time-start_time));
+			}
 		}
 
 		switch (ev.code) {
@@ -743,9 +646,11 @@ int main(int argc, char **argv)
 
 			/* monitor stack size */
 			case FUT_JOB_PUSH:
+				if (!no_counter)
 				handle_job_push();
 				break;
 			case FUT_JOB_POP:
+				if (!no_counter)
 				handle_job_pop();
 				break;
 
@@ -784,14 +689,17 @@ int main(int argc, char **argv)
 				break;
 
 			case FUT_DATA_COPY:
+				if (!no_bus)
 				handle_data_copy();
 				break;
 
 			case FUT_START_DRIVER_COPY:
+				if (!no_bus)
 				handle_start_driver_copy();
 				break;
 
 			case FUT_END_DRIVER_COPY:
+				if (!no_bus)
 				handle_end_driver_copy();
 				break;
 
@@ -808,21 +716,24 @@ int main(int argc, char **argv)
 				break;
 
 			case FUT_START_ALLOC:
+				if (!no_bus)
 				handle_start_alloc();
 				break;
 
 			case FUT_END_ALLOC:
+				if (!no_bus)
 				handle_end_alloc();
 				break;
 
 			case FUT_START_ALLOC_REUSE:
+				if (!no_bus)
 				handle_start_alloc_reuse();
 				break;
 
 			case FUT_END_ALLOC_REUSE:
+				if (!no_bus)
 				handle_end_alloc_reuse();
 				break;
-
 
 			case FUT_START_MEMRECLAIM:
 				handle_start_memreclaim();
@@ -842,8 +753,6 @@ int main(int argc, char **argv)
 		}
 	}
 
-	generate_gnuplot_output();
-	generate_svg_output();
 	paje_output_file_terminate();
 
 	terminate_dat_dot();

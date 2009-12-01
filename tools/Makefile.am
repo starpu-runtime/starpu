@@ -26,7 +26,7 @@ CLEANFILES = *.gcno *.gcda *.linkinfo
 if USE_FXT
 bin_PROGRAMS += fxt-tool fxt-stats
 
-fxt_tool_SOURCES = fxt-tool.c histo-svg.c dag-dot.c histo-paje.c
+fxt_tool_SOURCES = fxt-tool.c dag-dot.c histo-paje.c
 fxt_tool_CFLAGS = -I$(top_srcdir)/src/
 fxt_tool_LDADD = 
 
