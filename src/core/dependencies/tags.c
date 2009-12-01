@@ -235,7 +235,8 @@ static void notify_tag_dependencies(struct tag_s *tag)
 	starpu_spin_lock(&tag->lock);
 
 	tag->state = DONE;
-	TRACE_TASK_DONE(tag->id);
+
+	TRACE_TASK_DONE(tag);
 
 	nsuccs = tag->nsuccs;
 

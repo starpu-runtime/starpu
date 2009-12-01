@@ -166,8 +166,21 @@ do {									\
 #define TRACE_CODELET_TAG_DEPS(tag_child, tag_father)	\
 	FUT_DO_PROBE2(FUT_CODELET_TAG_DEPS, tag_child, tag_father)
 
-#define TRACE_TASK_DONE(tag)	\
-	FUT_DO_PROBE2(FUT_TASK_DONE, tag, syscall(SYS_gettid))
+#define TRACE_TASK_DONE(tag)							\
+do {										\
+	struct job_s *job = (tag)->job;						\
+	if (job && job->task 							\
+		&& job->task->cl						\
+		&& job->task->cl->model						\
+		&& job->task->cl->model->symbol)				\
+	{									\
+		char *symbol = job->task->cl->model->symbol;			\
+		FUT_DO_PROBE3STR(FUT_TASK_DONE, tag->id, syscall(SYS_gettid), 1, symbol);\
+	}									\
+	else {									\
+		FUT_DO_PROBE3(FUT_TASK_DONE, tag->id, syscall(SYS_gettid), 0);	\
+	}									\
+} while(0);
 
 #define TRACE_DATA_COPY(src_node, dst_node, size)	\
 	FUT_DO_PROBE3(FUT_DATA_COPY, src_node, dst_node, size)

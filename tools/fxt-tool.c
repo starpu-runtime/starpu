@@ -208,6 +208,27 @@ int find_workder_id(unsigned long tid)
 	return id;
 }
 
+static unsigned get_colour_symbol_red(char *name)
+{
+	/* choose some colour ... that's disguting yes */
+	uint32_t hash_symbol = crc32_string(name, 0);
+	return (unsigned)crc32_string("red", hash_symbol) % 1024;
+}
+
+static unsigned get_colour_symbol_green(char *name)
+{
+	/* choose some colour ... that's disguting yes */
+	uint32_t hash_symbol = crc32_string(name, 0);
+	return (unsigned)crc32_string("green", hash_symbol) % 1024;
+}
+
+static unsigned get_colour_symbol_blue(char *name)
+{
+	/* choose some colour ... that's disguting yes */
+	uint32_t hash_symbol = crc32_string(name, 0);
+	return (unsigned)crc32_string("blue", hash_symbol) % 1024;
+}
+
 static void create_paje_state_if_not_found(char *name)
 {
 	symbol_name_itor_t itor;
@@ -230,11 +251,9 @@ static void create_paje_state_if_not_found(char *name)
 	symbol_name_list_push_front(symbol_list, entry);
 	
 	/* choose some colour ... that's disguting yes */
-	uint32_t hash_symbol = crc32_string(name, 0);
-
-	unsigned hash_symbol_red = (unsigned)crc32_string("red", hash_symbol) % 1024;
-	unsigned hash_symbol_green = (unsigned)crc32_string("green", hash_symbol) % 1024;
-	unsigned hash_symbol_blue = (unsigned)crc32_string("blue", hash_symbol) % 1024;
+	unsigned hash_symbol_red = get_colour_symbol_red(name);
+	unsigned hash_symbol_green = get_colour_symbol_green(name);
+	unsigned hash_symbol_blue = get_colour_symbol_blue(name);
 
 	fprintf(stderr, "name %s hash red %d green %d blue %d \n", name, hash_symbol_red, hash_symbol_green, hash_symbol_blue);
 
@@ -539,10 +558,26 @@ void handle_task_done(void)
 	uint64_t tag_id;
 	tag_id = ev.param[0];
 
+	unsigned long has_name = ev.param[2];
+	char *name = has_name?(char *)&ev.param[3]:"unknown";
+
         int worker;
         worker = find_workder_id(ev.param[1]);
 
-	dot_set_tag_done(tag_id, worker_colors[worker]);
+	char *colour;
+	char buffer[32];
+	if (per_task_colour) {
+		snprintf(buffer, 32, "%.4f,%.4f,%.4f",
+			get_colour_symbol_red(name)/1024.0,
+			get_colour_symbol_green(name)/1024.0,
+			get_colour_symbol_blue(name)/1024.0);
+		colour = &buffer[0];
+	}
+	else {
+		colour = worker_colors[worker];
+	}
+
+	dot_set_tag_done(tag_id, colour);
 }
 
 void generate_svg_output(void)
