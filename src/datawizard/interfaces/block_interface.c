@@ -32,6 +32,8 @@ static int dummy_copy_ram_to_ram(struct starpu_data_state_t *state, uint32_t src
 #ifdef USE_CUDA
 static int copy_ram_to_cublas(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
 static int copy_cublas_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
+static int copy_ram_to_cublas_async(data_state *state, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
+static int copy_cublas_to_ram_async(data_state *state, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
 #endif
 
 static const struct copy_data_methods_s block_copy_data_methods_s = {
@@ -40,8 +42,8 @@ static const struct copy_data_methods_s block_copy_data_methods_s = {
 #ifdef USE_CUDA
 	.ram_to_cuda = copy_ram_to_cublas,
 	.cuda_to_ram = copy_cublas_to_ram,
-	.ram_to_cuda_async = NULL,
-	.cuda_to_ram_async = NULL,
+	.ram_to_cuda_async = copy_ram_to_cublas_async,
+	.cuda_to_ram_async = copy_cublas_to_ram_async,
 #endif
 	.cuda_to_cuda = NULL,
 	.cuda_to_spu = NULL,
@@ -261,6 +263,8 @@ static size_t allocate_block_buffer_on_node(data_state *state, uint32_t dst_node
 		case CUDA_RAM:
 			status = cudaMalloc((void **)&addr, nx*ny*nz*elemsize);
 
+			//fprintf(stderr, "cudaMalloc -> addr %p\n", addr);
+
 			if (!addr || status != cudaSuccess)
 			{
 				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
@@ -324,6 +328,8 @@ static int copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t dst
 	src_block = &state->interface[src_node].block;
 	dst_block = &state->interface[dst_node].block;
 
+	//fprintf(stderr, "COPY BLOCK -> RAM nx %d ny %d nz %d SRC ldy %d DST ldy %d\n", src_block->nx,  src_block->ny,  src_block->nz,  src_block->ldy, dst_block->ldy);
+
 	if ((src_block->nx == src_block->ldy) && (src_block->ldy == dst_block->ldy))
 	{
 		/* we are lucky */
@@ -346,10 +352,250 @@ static int copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t dst
 				src_ptr, src_block->ldy, dst_ptr, dst_block->ldy);
 		}
 	}
+	
+	cudaThreadSynchronize();
 
 	TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->elemsize*src_block->elemsize);
 
 	return 0;
+}
+
+static int copy_cublas_to_ram_async(data_state *state, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream)
+{
+	starpu_block_interface_t *src_block;
+	starpu_block_interface_t *dst_block;
+
+	src_block = &state->interface[src_node].block;
+	dst_block = &state->interface[dst_node].block;
+
+	uint32_t nx = src_block->nx;
+	uint32_t ny = src_block->ny;
+	uint32_t nz = src_block->nz;
+	size_t elemsize = src_block->elemsize;
+
+	cudaError_t cures;
+
+	int ret;
+
+	/* We may have a contiguous buffer for the entire block, or contiguous
+	 * plans within the block, we can avoid many small transfers that way */
+	if ((nx == src_block->ldy) && (src_block->ldy == dst_block->ldy))
+	{
+		/* Is that a single contiguous buffer ? */
+		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
+		{
+			cures = cudaMemcpyAsync((char *)dst_block->ptr, (char *)src_block->ptr,
+					nx*ny*nz*elemsize, cudaMemcpyDeviceToHost, *stream);
+			if (STARPU_UNLIKELY(cures))
+			{
+				cures = cudaMemcpy((char *)dst_block->ptr, (char *)src_block->ptr,
+					nx*nx*ny*elemsize, cudaMemcpyDeviceToHost);
+				if (STARPU_UNLIKELY(cures))
+					CUDA_REPORT_ERROR(cures);
+				cudaThreadSynchronize();
+
+				ret = 0;
+			}
+			else {
+				ret = EAGAIN;
+			}
+			
+		}
+		else {
+			/* Are all plans contiguous */
+			cures = cudaMemcpy2DAsync((char *)dst_block->ptr, dst_block->ldz*elemsize,
+					(char *)src_block->ptr, src_block->ldz*elemsize,
+					nx*ny*elemsize, nz, cudaMemcpyDeviceToHost, *stream);
+			if (STARPU_UNLIKELY(cures))
+			{
+				cures = cudaMemcpy2D((char *)dst_block->ptr, dst_block->ldz*elemsize,
+						(char *)src_block->ptr, src_block->ldz*elemsize,
+						nx*ny*elemsize, nz, cudaMemcpyDeviceToHost);
+				if (STARPU_UNLIKELY(cures))
+					CUDA_REPORT_ERROR(cures);
+				cudaThreadSynchronize();
+
+				ret = 0;
+			}
+			else {
+				ret = EAGAIN;
+			}
+		}
+	}
+	else {
+		/* Default case: we transfer all lines one by one: ny*nz transfers */
+		unsigned layer;
+		for (layer = 0; layer < src_block->nz; layer++)
+		{
+			uint8_t *src_ptr = ((uint8_t *)src_block->ptr) 
+						+ src_block->ldz*src_block->elemsize;
+			uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) 
+						+ dst_block->ldz*dst_block->elemsize;
+
+			cures = cudaMemcpy2DAsync((char *)dst_ptr, dst_block->ldy*elemsize,
+					(char *)src_ptr, src_block->ldy*elemsize,
+					nx*elemsize, ny, cudaMemcpyDeviceToHost, *stream);
+
+			if (STARPU_UNLIKELY(cures))
+			{
+				/* I don't know how to do that "better" */
+				goto no_async_default;
+			}
+
+		}
+		
+		ret = EAGAIN;
+
+	}
+
+	TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
+
+	return ret;
+
+no_async_default:
+
+	{
+	unsigned layer;
+	for (layer = 0; layer < src_block->nz; layer++)
+	{
+		uint8_t *src_ptr = ((uint8_t *)src_block->ptr) 
+					+ src_block->ldz*src_block->elemsize;
+		uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) 
+					+ dst_block->ldz*dst_block->elemsize;
+
+		cures = cudaMemcpy2D((char *)dst_ptr, dst_block->ldy*elemsize,
+				(char *)src_ptr, src_block->ldy*elemsize,
+				nx*elemsize, ny, cudaMemcpyDeviceToHost);
+
+		if (STARPU_UNLIKELY(cures))
+			CUDA_REPORT_ERROR(cures);
+		
+	}
+	cudaThreadSynchronize();
+
+	TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
+	return 0;
+	}
+}
+
+
+
+static int copy_ram_to_cublas_async(data_state *state, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream)
+{
+	starpu_block_interface_t *src_block;
+	starpu_block_interface_t *dst_block;
+
+	src_block = &state->interface[src_node].block;
+	dst_block = &state->interface[dst_node].block;
+
+	uint32_t nx = src_block->nx;
+	uint32_t ny = src_block->ny;
+	uint32_t nz = src_block->nz;
+	size_t elemsize = src_block->elemsize;
+
+	cudaError_t cures;
+
+	int ret;
+
+	/* We may have a contiguous buffer for the entire block, or contiguous
+	 * plans within the block, we can avoid many small transfers that way */
+	if ((nx == src_block->ldy) && (src_block->ldy == dst_block->ldy))
+	{
+		/* Is that a single contiguous buffer ? */
+		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
+		{
+			cures = cudaMemcpyAsync((char *)dst_block->ptr, (char *)src_block->ptr,
+					nx*ny*nz*elemsize, cudaMemcpyHostToDevice, *stream);
+			if (STARPU_UNLIKELY(cures))
+			{
+				cures = cudaMemcpy((char *)dst_block->ptr, (char *)src_block->ptr,
+					nx*nx*ny*elemsize, cudaMemcpyHostToDevice);
+				if (STARPU_UNLIKELY(cures))
+					CUDA_REPORT_ERROR(cures);
+				cudaThreadSynchronize();
+
+				ret = 0;
+			}
+			else {
+				ret = EAGAIN;
+			}
+			
+		}
+		else {
+			/* Are all plans contiguous */
+			cures = cudaMemcpy2DAsync((char *)dst_block->ptr, dst_block->ldz*elemsize,
+					(char *)src_block->ptr, src_block->ldz*elemsize,
+					nx*ny*elemsize, nz, cudaMemcpyHostToDevice, *stream);
+			if (STARPU_UNLIKELY(cures))
+			{
+				cures = cudaMemcpy2D((char *)dst_block->ptr, dst_block->ldz*elemsize,
+						(char *)src_block->ptr, src_block->ldz*elemsize,
+						nx*ny*elemsize, nz, cudaMemcpyHostToDevice);
+				if (STARPU_UNLIKELY(cures))
+					CUDA_REPORT_ERROR(cures);
+				cudaThreadSynchronize();
+
+				ret = 0;
+			}
+			else {
+				ret = EAGAIN;
+			}
+		}
+	}
+	else {
+		/* Default case: we transfer all lines one by one: ny*nz transfers */
+		unsigned layer;
+		for (layer = 0; layer < src_block->nz; layer++)
+		{
+			uint8_t *src_ptr = ((uint8_t *)src_block->ptr) 
+						+ src_block->ldz*src_block->elemsize;
+			uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) 
+						+ dst_block->ldz*dst_block->elemsize;
+
+			cures = cudaMemcpy2DAsync((char *)dst_ptr, dst_block->ldy*elemsize,
+					(char *)src_ptr, src_block->ldy*elemsize,
+					nx*elemsize, ny, cudaMemcpyHostToDevice, *stream);
+
+			if (STARPU_UNLIKELY(cures))
+			{
+				/* I don't know how to do that "better" */
+				goto no_async_default;
+			}
+
+		}
+		
+		ret = EAGAIN;
+
+	}
+
+	TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
+
+	return ret;
+
+no_async_default:
+
+	{
+	unsigned layer;
+	for (layer = 0; layer < src_block->nz; layer++)
+	{
+		uint8_t *src_ptr = ((uint8_t *)src_block->ptr) 
+					+ src_block->ldz*src_block->elemsize;
+		uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) 
+					+ dst_block->ldz*dst_block->elemsize;
+
+		cures = cudaMemcpy2D((char *)dst_ptr, dst_block->ldy*elemsize,
+				(char *)src_ptr, src_block->ldy*elemsize,
+				nx*elemsize, ny, cudaMemcpyHostToDevice);
+
+		if (STARPU_UNLIKELY(cures))
+			CUDA_REPORT_ERROR(cures);
+		
+	}
+	cudaThreadSynchronize();
+
+	TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
+	return 0;
+	}
 }
 
 static int copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst_node)
@@ -380,6 +626,8 @@ static int copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst
 				src_ptr, src_block->ldy, dst_ptr, dst_block->ldy);
 		}
 	}
+
+	cudaThreadSynchronize();
 
 	TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
 
