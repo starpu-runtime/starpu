@@ -30,4 +30,6 @@
 #undef HAVE_FFTWF
 #undef HAVE_FFTWL
 
+#undef STARPU_NMAXBUFS
+
 #endif

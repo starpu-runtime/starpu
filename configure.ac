@@ -357,6 +357,15 @@ fi
 #                                                                             #
 ###############################################################################
 
+AC_MSG_CHECKING(how many buffers can be manipulated per task)
+AC_ARG_ENABLE(maxbuffers, [AS_HELP_STRING([--enable-maxbuffers=<nbuffers>],
+			[maximum number of buffers per task])],
+			nmaxbuffers=$enableval, nmaxbuffers=8)
+AC_MSG_RESULT($nmaxbuffers)
+AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers], 
+		[how many buffers can be manipulated per task])
+
+
 AC_MSG_CHECKING(whether priorities should be enabled)
 AC_ARG_ENABLE(priority, [AS_HELP_STRING([--disable-priority],
 			[do not use priorities])],

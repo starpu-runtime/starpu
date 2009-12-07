@@ -21,8 +21,6 @@
 #include <starpu-data-interfaces.h>
 #include <starpu-data-filters.h>
 
-#define STARPU_NMAXBUFS        8
-
 #ifdef __cplusplus
 extern "C" {
 #endif
