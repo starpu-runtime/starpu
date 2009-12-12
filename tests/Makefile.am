@@ -82,6 +82,7 @@ check_PROGRAMS += 				\
 	core/empty_task_sync_point		\
 	datawizard/write_only_tmp_buffer	\
 	datawizard/dining_philosophers		\
+	datawizard/readers_and_writers		\
 	errorcheck/starpu_init_noworker		\
 	helper/cublas_init			\
 	helper/pinned_memory			\
@@ -131,6 +132,9 @@ datawizard_write_only_tmp_buffer_SOURCES =	\
 
 datawizard_dining_philosophers_SOURCES = 	\
 	datawizard/dining_philosophers.c
+
+datawizard_readers_and_writers_SOURCES = 	\
+	datawizard/readers_and_writers.c
 
 errorcheck_starpu_init_noworker_SOURCES =	\
 	errorcheck/starpu_init_noworker.c
