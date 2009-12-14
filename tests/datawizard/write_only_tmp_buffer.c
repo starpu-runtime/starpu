@@ -27,25 +27,25 @@ starpu_data_handle v_handle;
 #ifdef USE_CUDA
 static void cuda_codelet_null(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
-	int *buf = (int *)buffers[0].vector.ptr;
+	char *buf = (char *)buffers[0].vector.ptr;
 
-	cudaMemset(buf, 42, sizeof(int));
+	cudaMemset(buf, 42, 1);
 }
 #endif
 
 static void core_codelet_null(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
-	int *buf = (int *)buffers[0].vector.ptr;
+	char *buf = (char *)buffers[0].vector.ptr;
 
 	*buf = 42;
 }
 
 static void display_var(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
 {
-	int *buf = (int *)buffers[0].vector.ptr;
+	char *buf = (char *)buffers[0].vector.ptr;
 	if (*buf != 42)
 	{
-		fprintf(stderr, "Value = %d (should be %d)\n", *buf, 42);
+		fprintf(stderr, "Value = %c (should be %c)\n", *buf, 42);
 		exit(-1);
 	}
 }
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 	starpu_init(NULL);
 
 	/* The buffer should never be explicitely allocated */
-	starpu_register_vector_data(&v_handle, (uint32_t)-1, (uintptr_t)NULL, VECTORSIZE, sizeof(int));
+	starpu_register_vector_data(&v_handle, (uint32_t)-1, (uintptr_t)NULL, VECTORSIZE, sizeof(char));
 
 	struct starpu_task *task = starpu_task_create();
 		task->cl = &cl;
