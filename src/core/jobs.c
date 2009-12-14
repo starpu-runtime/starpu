@@ -90,9 +90,15 @@ void handle_job_termination(job_t j)
  	 * of the task itself */
 	if (task->callback_func)
 	{
+		/* so that we can check whether we are doing blocking calls
+		 * within the callback */
+		set_local_worker_status(STATUS_CALLBACK);
+
 		TRACE_START_CALLBACK(j);
 		task->callback_func(task->callback_arg);
 		TRACE_END_CALLBACK(j);
+
+		set_local_worker_status(STATUS_UNKNOWN);
 	}
 
 	if (!task->detach)

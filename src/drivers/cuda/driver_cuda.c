@@ -111,6 +111,7 @@ static int execute_job_on_cuda(job_t j, struct worker_s *args)
 
 	TRACE_START_CODELET_BODY(j);
 
+	args->status = STATUS_EXECUTING;
 	cl_func func = cl->cuda_func;
 	STARPU_ASSERT(func);
 	GET_TICK(codelet_start);
@@ -119,6 +120,8 @@ static int execute_job_on_cuda(job_t j, struct worker_s *args)
 	task->cl->per_worker_stats[args->workerid]++;
 
 	GET_TICK(codelet_end);
+
+	args->status = STATUS_UNKNOWN;
 
 	TRACE_END_CODELET_BODY(j);	
 
@@ -178,6 +181,8 @@ void *cuda_worker(void *arg)
 	args->jobq->total_job_performed = 0;
 
 	init_context(devid);
+
+	args->status = STATUS_UNKNOWN;
 
 	/* get the device's name */
 	char devname[128];

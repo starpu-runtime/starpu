@@ -54,6 +54,7 @@ static int execute_job_on_core(job_t j, struct worker_s *core_args)
 	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_start);
 
+	core_args->status = STATUS_EXECUTING;
 	cl_func func = task->cl->core_func;
 	func(task->interface, task->cl_arg);
 
@@ -63,6 +64,7 @@ static int execute_job_on_core(job_t j, struct worker_s *core_args)
 		GET_TICK(codelet_end);
 
 	TRACE_END_CODELET_BODY(j);
+	core_args->status = STATUS_UNKNOWN;
 
 	push_task_output(task, 0);
 
@@ -122,6 +124,8 @@ void *core_worker(void *arg)
 	core_arg->jobq->total_communication_time = 0.0;
 	core_arg->jobq->total_computation_time_error = 0.0;
 	core_arg->jobq->total_job_performed = 0;
+
+	core_arg->status = STATUS_UNKNOWN;
 	
 	TRACE_WORKER_INIT_END
 

@@ -30,12 +30,10 @@
 #include <common/timing.h>
 #include <common/list.h>
 #include <common/fxt.h>
-
 #include <core/dependencies/tags.h>
-
 #include <datawizard/datawizard.h>
-
 #include <core/perfmodel/perfmodel.h>
+#include <core/errorcheck.h>
 
 #ifdef USE_CUDA
 #include <cuda.h>
@@ -80,10 +78,6 @@ unsigned enforce_deps_and_schedule(job_t j);
 //job_t job_create(struct starpu_task *task);
 void handle_job_termination(job_t j);
 size_t job_get_data_size(job_t j);
-
-//int submit_job(job_t j);
-//int submit_prio_job(job_t j);
-//int submit_job_sync(job_t j);
 
 job_t pop_local_task(struct worker_s *worker);
 int push_local_task(struct worker_s *worker, job_t j);

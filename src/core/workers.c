@@ -85,6 +85,8 @@ static void init_workers(struct machine_config_s *config)
 		workerarg->local_jobs = job_list_new();
 		pthread_mutex_init(&workerarg->local_jobs_mutex, NULL);
 	
+		workerarg->status = STATUS_INITIALIZING;
+
 		switch (workerarg->arch) {
 #ifdef USE_CPUS
 			case STARPU_CORE_WORKER:
@@ -167,7 +169,7 @@ void set_local_worker_key(struct worker_s *worker)
 	pthread_setspecific(worker_key, worker);
 }
 
-static inline struct worker_s *get_local_worker_key(void)
+struct worker_s *get_local_worker_key(void)
 {
 	return pthread_getspecific(worker_key);
 }

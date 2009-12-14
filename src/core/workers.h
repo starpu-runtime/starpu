@@ -30,6 +30,7 @@
 #include <core/perfmodel/perfmodel.h>
 #include <core/policies/sched_policy.h>
 #include <core/topology.h>
+#include <core/errorcheck.h>
 
 #include <starpu.h>
 
@@ -78,6 +79,7 @@ struct worker_s {
 	struct job_list_s *terminated_jobs; /* list of pending jobs which were executed */
 	unsigned worker_is_running;
 	unsigned worker_is_initialized;
+	worker_status status; /* what is the worker doing now ? (eg. CALLBACK) */
 	char name[32];
 };
 
@@ -145,6 +147,7 @@ inline void unlock_all_queues_attached_to_node(unsigned node);
 inline void broadcast_all_queues_attached_to_node(unsigned node);
 
 void set_local_worker_key(struct worker_s *worker);
+struct worker_s *get_local_worker_key(void);
 
 struct worker_s *get_worker_struct(unsigned id);
 

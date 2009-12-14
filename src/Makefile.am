@@ -49,6 +49,7 @@ noinst_HEADERS = 						\
 	core/workers.h						\
 	core/topology.h						\
 	core/debug.h						\
+	core/errorcheck.h					\
 	datawizard/footprint.h					\
 	datawizard/datawizard.h					\
 	datawizard/data_request.h				\
@@ -96,6 +97,7 @@ libstarpu_la_SOURCES = 						\
 	core/workers.c						\
 	core/topology.c						\
 	core/debug.c						\
+	core/errorcheck.c					\
 	core/dependencies/tags.c				\
 	core/dependencies/htable.c				\
 	core/dependencies/data-concurrency.c			\
