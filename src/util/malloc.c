@@ -48,8 +48,11 @@ static starpu_codelet malloc_pinned_cl = {
 };
 #endif
 
-void starpu_malloc_pinned_if_possible(void **A, size_t dim)
+int starpu_malloc_pinned_if_possible(void **A, size_t dim)
 {
+	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
+		return -EDEADLK;
+
 	STARPU_ASSERT(A);
 
 	if (may_submit_cuda_task())
@@ -78,6 +81,8 @@ void starpu_malloc_pinned_if_possible(void **A, size_t dim)
 	}
 
 	STARPU_ASSERT(*A);
+
+	return 0;
 }
 
 #ifdef USE_CUDA
@@ -97,8 +102,11 @@ static starpu_codelet free_pinned_cl = {
 };
 #endif
 
-void starpu_free_pinned_if_possible(void *A)
+int starpu_free_pinned_if_possible(void *A)
 {
+	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
+		return -EDEADLK;
+
 	if (may_submit_cuda_task())
 	{
 #ifdef USE_CUDA
@@ -118,4 +126,6 @@ void starpu_free_pinned_if_possible(void *A)
 	else {
 		free(A);
 	}
+
+	return 0;
 }
