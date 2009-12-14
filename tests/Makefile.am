@@ -84,6 +84,7 @@ check_PROGRAMS += 				\
 	datawizard/dining_philosophers		\
 	datawizard/readers_and_writers		\
 	errorcheck/starpu_init_noworker		\
+	errorcheck/invalid_blocking_calls	\
 	helper/cublas_init			\
 	helper/pinned_memory			\
 	helper/execute_on_all			\
@@ -138,6 +139,9 @@ datawizard_readers_and_writers_SOURCES = 	\
 
 errorcheck_starpu_init_noworker_SOURCES =	\
 	errorcheck/starpu_init_noworker.c
+
+errorcheck_invalid_blocking_calls_SOURCES =	\
+	errorcheck/invalid_blocking_calls.c
 
 helper_cublas_init_SOURCES =			\
 	helper/cublas_init.c

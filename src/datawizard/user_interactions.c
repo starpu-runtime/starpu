@@ -65,8 +65,12 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 	pthread_mutex_unlock(&statenode->lock);
 }
 
-void starpu_sync_data_with_mem(data_state *state)
+int starpu_sync_data_with_mem(data_state *state)
 {
+	/* it is forbidden to call this function from a callback or a codelet */
+	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
+		return -EDEADLK;
+
 	struct state_and_node statenode =
 	{
 		.state = state,
@@ -91,6 +95,8 @@ void starpu_sync_data_with_mem(data_state *state)
 			pthread_cond_wait(&statenode.cond, &statenode.lock);
 		pthread_mutex_unlock(&statenode.lock);
 	}
+
+	return 0;
 }
 
 static inline void do_notify_data_modification(data_state *state, uint32_t modifying_node)
@@ -120,9 +126,12 @@ static inline void _notify_data_modification_continuation(void *arg)
 }
 
 /* in case the application did modify the data ... invalidate all other copies  */
-void starpu_notify_data_modification(data_state *state, uint32_t modifying_node)
+int starpu_notify_data_modification(data_state *state, uint32_t modifying_node)
 {
-	/* this may block .. XXX */
+	/* It is forbidden to call this function from a callback or a codelet */
+	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
+		return -EDEADLK;
+
 	struct state_and_node statenode =
 	{
 		.state = state,
@@ -146,6 +155,8 @@ void starpu_notify_data_modification(data_state *state, uint32_t modifying_node)
 
 	/* remove the "lock"/reference */
 	notify_data_dependencies(state);
+
+	return 0;
 }
 
 static void _prefetch_data_on_node(void *arg)
@@ -164,9 +175,12 @@ static void _prefetch_data_on_node(void *arg)
 
 }
 
-void starpu_prefetch_data_on_node(data_state *state, unsigned node, unsigned async)
+int starpu_prefetch_data_on_node(data_state *state, unsigned node, unsigned async)
 {
-	/* this may block .. XXX */
+	/* it is forbidden to call this function from a callback or a codelet */
+	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
+		return -EDEADLK;
+
 	struct state_and_node statenode =
 	{
 		.state = state,
@@ -193,4 +207,5 @@ void starpu_prefetch_data_on_node(data_state *state, unsigned node, unsigned asy
 		pthread_mutex_unlock(&statenode.lock);
 	}
 
+	return 0;
 }
