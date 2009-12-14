@@ -164,8 +164,8 @@ struct starpu_task {
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);
 
-void starpu_tag_wait(starpu_tag_t id);
-void starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id);
+int starpu_tag_wait(starpu_tag_t id);
+int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id);
 
 /* The application can feed a tag explicitely */
 void starpu_tag_notify_from_apps(starpu_tag_t id);

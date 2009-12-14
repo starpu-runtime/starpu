@@ -16,14 +16,22 @@
 
 #include <starpu.h>
 
+#define TAG	0x42
+
 static starpu_data_handle handle;
 static unsigned data = 42;
 
 static void wrong_func(starpu_data_interface_t *descr, void *arg)
 {
+	int ret;
+
 	/* try to fetch data in the RAM while we are in a codelet, such a
 	 * blocking call is forbidden */
-	int ret = starpu_sync_data_with_mem(handle);
+	ret = starpu_sync_data_with_mem(handle);
+	if (ret != -EDEADLK)
+		exit(-1);
+
+	ret = starpu_tag_wait(TAG);
 	if (ret != -EDEADLK)
 		exit(-1);
 }
@@ -39,7 +47,13 @@ static starpu_codelet wrong_codelet =
 
 static void wrong_callback(void *arg)
 {
-	int ret = starpu_sync_data_with_mem(handle);
+	int ret;
+
+	ret  = starpu_sync_data_with_mem(handle);
+	if (ret != -EDEADLK)
+		exit(-1);
+
+	ret = starpu_tag_wait(TAG);
 	if (ret != -EDEADLK)
 		exit(-1);
 }
@@ -61,12 +75,18 @@ int main(int argc, char **argv)
 	task->buffers[0].handle = handle;
 	task->buffers[0].mode = STARPU_RW;
 
+	task->use_tag = 1;
+	task->tag_id = TAG;
+
 	task->callback_func = wrong_callback;
 
-	task->synchronous = 1;
 	ret = starpu_submit_task(task);
 	if (ret == -ENODEV)
 		goto enodev;
+
+	ret = starpu_tag_wait(TAG);
+	if (ret)
+		return -1;
 
 	/* This call is valid as it is done by the application outside a
 	 * callback */

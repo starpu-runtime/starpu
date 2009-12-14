@@ -362,12 +362,16 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 }
 
 /* this function may be called by the application (outside callbacks !) */
-void starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
+int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 {
 	unsigned i;
 	unsigned current;
 
 	struct tag_s *tag_array[ntags];
+
+	/* It is forbidden to block within callbacks or codelets */
+	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
+		return -EDEADLK;
 
 	/* only wait the tags that are not done yet */
 	for (i = 0, current = 0; i < ntags; i++)
@@ -391,7 +395,7 @@ void starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 	if (current == 0)
 	{
 		/* all deps are already fulfilled */
-		return;
+		return 0;
 	}
 	
 	/* there is at least one task that is not finished */
@@ -414,9 +418,11 @@ void starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 	pthread_cond_destroy(&cg->cg_cond);
 
 	free(cg);
+
+	return 0;
 }
 
-void starpu_tag_wait(starpu_tag_t id)
+int starpu_tag_wait(starpu_tag_t id)
 {
-	starpu_tag_wait_array(1, &id);
+	return starpu_tag_wait_array(1, &id);
 }
