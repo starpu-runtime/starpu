@@ -185,7 +185,7 @@ int starpu_submit_task(struct starpu_task *task);
  * indicates that the waited task was either synchronous or detached. */
 int starpu_wait_task(struct starpu_task *task);
 
-void starpu_wait_all_tasks(void);
+int starpu_wait_all_tasks(void);
 
 void starpu_display_codelet_stats(struct starpu_codelet_t *cl);
 

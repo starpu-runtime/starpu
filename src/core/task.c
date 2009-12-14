@@ -91,6 +91,9 @@ int starpu_wait_task(struct starpu_task *task)
 	if (task->detach || task->synchronous)
 		return -EINVAL;
 
+	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
+		return -EDEADLK;
+
 	job_t j = (struct job_s *)task->starpu_private;
 
 	starpu_wait_job(j);
@@ -109,9 +112,15 @@ int starpu_submit_task(struct starpu_task *task)
 	int ret;
 	unsigned is_sync = task->synchronous;
 
-#warning synchronous tasks should perhaps be deprecated instead !
 	if (is_sync)
+	{
+		/* Perhaps it is not possible to submit a synchronous
+		 * (blocking) task */
+		if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
+			return -EDEADLK;
+
 		task->detach = 0;
+	}
 
 	STARPU_ASSERT(task);
 
@@ -181,9 +190,13 @@ void starpu_display_codelet_stats(struct starpu_codelet_t *cl)
 	}
 }
 
-void starpu_wait_all_tasks(void)
+int starpu_wait_all_tasks(void)
 {
 	int res;
+
+	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
+		return -EDEADLK;
+
 
 	pthread_mutex_lock(&submitted_mutex);
 
@@ -192,9 +205,10 @@ void starpu_wait_all_tasks(void)
 		res = pthread_cond_wait(&submitted_cond, &submitted_mutex);
 		STARPU_ASSERT(!res);
 	}
-
 	
 	pthread_mutex_unlock(&submitted_mutex);
+
+	return 0;
 }
 
 void decrement_nsubmitted_tasks(void)
