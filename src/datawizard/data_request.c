@@ -119,7 +119,15 @@ data_request_t search_existing_data_request(data_state *state, uint32_t dst_node
 	{
 		/* perhaps we need to "upgrade" the request */
 		if (read)
+		{
+			/* in case the exisiting request did not imply a memory
+			 * transfer yet, we have to increment the refcnt now
+			 * (so that the source remains valid) */
+			if (!r->read)
+				state->per_node[dst_node].refcnt++;
+
 			r->read = 1;
+		}
 
 		if (write)
 			r->write = 1;
