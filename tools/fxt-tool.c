@@ -35,6 +35,8 @@ unsigned nworkers = 0;
 char *filename = NULL;
 unsigned per_task_colour = 0;
 
+unsigned generate_distrib = 0;
+
 unsigned no_counter = 0;
 unsigned no_bus = 0;
 
@@ -51,10 +53,16 @@ symbol_name_list_t symbol_list;
 static char *out_paje_path = "paje.trace";
 static FILE *out_paje_file;
 
+static char *distrib_time_path = "distrib.data";
+static FILE *distrib_time;
+
 void paje_output_file_init(void)
 {
 	/* create a new file */
 	out_paje_file = fopen(out_paje_path, "w+");
+
+	if (generate_distrib)
+		distrib_time = fopen(distrib_time_path, "w+");
 	
 	write_paje_header(out_paje_file);
 
@@ -85,9 +93,11 @@ void paje_output_file_init(void)
 
 void paje_output_file_terminate(void)
 {
-
 	/* close the file */
 	fclose(out_paje_file);
+
+	if (generate_distrib)
+		fclose(distrib_time);
 }
 
 
@@ -263,6 +273,11 @@ static void create_paje_state_if_not_found(char *name)
 	fprintf(out_paje_file, "6       %s       S       %s \"%f %f %f\" \n", name, red, green, blue, name);
 }
 
+/* TODO  remove 32 */
+double last_codelet_start[32];
+uint64_t last_codelet_hash[32];
+char last_codelet_symbol[128][32];
+
 void handle_start_codelet_body(void)
 {
 	int worker;
@@ -270,17 +285,25 @@ void handle_start_codelet_body(void)
 
 	if (worker < 0) return;
 
+	unsigned long has_name = ev.param[2];
+	char *name = has_name?(char *)&ev.param[3]:"unknown";
+
+	snprintf(last_codelet_symbol[worker], 128, "%s", name);
+
+	/* TODO */
+	last_codelet_hash[worker] = 0;
+
+	float start_codelet_time = (float)((ev.time-start_time)/1000000.0);
+	last_codelet_start[worker] = start_codelet_time;
+
 	if (per_task_colour)
 	{
-		unsigned long has_name = ev.param[2];
-		char *name = has_name?(char *)&ev.param[3]:"unknown";
-
 		create_paje_state_if_not_found(name);
 
-		fprintf(out_paje_file, "101       %f	S      %ld      E	%s\n", (float)((ev.time-start_time)/1000000.0), ev.param[1], name);
+		fprintf(out_paje_file, "101       %f	S      %ld      E	%s\n", start_codelet_time, ev.param[1], name);
 	}
 	else {
-		fprintf(out_paje_file, "10       %f	S      %ld      E\n", (float)((ev.time-start_time)/1000000.0), ev.param[1]);
+		fprintf(out_paje_file, "10       %f	S      %ld      E\n", start_codelet_time, ev.param[1]);
 	}
 
 	end_time = STARPU_MAX(end_time, ev.time);
@@ -293,8 +316,17 @@ void handle_end_codelet_body(void)
 	int worker;
 	worker = find_workder_id(ev.param[1]);
 	if (worker < 0) return;
+
+	float end_codelet_time = (float)((ev.time-start_time)/1000000.0);
+
 //	printf("<- worker %d\n", worker);
-	fprintf(out_paje_file, "10       %f	S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
+	fprintf(out_paje_file, "10       %f	S      %ld      B\n", end_codelet_time, ev.param[1] );
+
+	float codelet_length = (end_codelet_time - last_codelet_start[worker]);
+	
+	if (generate_distrib)
+	fprintf(distrib_time, "%s\t%lx\t%d\t%f\n", last_codelet_symbol[worker],
+				worker, last_codelet_hash[worker], codelet_length);
 
 	end_time = STARPU_MAX(end_time, ev.time);
 }
@@ -546,6 +578,9 @@ static void parse_args(int argc, char **argv)
 			no_bus = 1;
 		}
 
+		if (strcmp(argv[i], "-d") == 0) {
+			generate_distrib = 1;
+		}
 
 		if (strcmp(argv[i], "-h") == 0) {
 		        fprintf(stderr, "Usage : %s [-c] [-no-counter] [-no-bus] [-i input_filename] [-o output_filename]\n", argv[0]);
