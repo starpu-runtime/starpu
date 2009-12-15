@@ -154,7 +154,9 @@ int starpu_notify_data_modification(data_state *state, uint32_t modifying_node)
 	}
 
 	/* remove the "lock"/reference */
+	starpu_spin_lock(&state->header_lock);
 	notify_data_dependencies(state);
+	starpu_spin_unlock(&state->header_lock);
 
 	return 0;
 }
@@ -171,7 +173,11 @@ static void _prefetch_data_on_node(void *arg)
 	pthread_mutex_unlock(&statenode->lock);
 
 	if (!statenode->async)
+	{
+		starpu_spin_lock(&statenode->state->header_lock);
 		notify_data_dependencies(statenode->state);
+		starpu_spin_unlock(&statenode->state->header_lock);
+	}
 
 }
 
@@ -198,7 +204,11 @@ int starpu_prefetch_data_on_node(data_state *state, unsigned node, unsigned asyn
 
 		/* remove the "lock"/reference */
 		if (!async)
+		{
+			starpu_spin_lock(&state->header_lock);
 			notify_data_dependencies(state);
+			starpu_spin_unlock(&state->header_lock);
+		}
 	}
 	else {
 		pthread_mutex_lock(&statenode.lock);

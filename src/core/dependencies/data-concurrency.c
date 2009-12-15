@@ -191,10 +191,9 @@ unsigned submit_job_enforce_data_deps(job_t j)
 }
 
 
+/* The header lock must already be taken by the caller */
 void notify_data_dependencies(data_state *data)
 {
-	starpu_spin_lock(&data->header_lock);
-
 	data->refcnt--;
 
 	while (may_unlock_data_req_list_head(data))
@@ -226,7 +225,4 @@ void notify_data_dependencies(data_state *data)
 		
 		starpu_spin_lock(&data->header_lock);
 	}
-	
-	starpu_spin_unlock(&data->header_lock);
-
 }

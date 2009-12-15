@@ -309,9 +309,10 @@ void release_data_on_node(data_state *state, uint32_t default_wb_mask, uint32_t 
 		datawizard_progress(local_node, 1);
 
 	state->per_node[memory_node].refcnt--;
-	starpu_spin_unlock(&state->header_lock);
 
 	notify_data_dependencies(state);
+
+	starpu_spin_unlock(&state->header_lock);
 }
 
 int prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
