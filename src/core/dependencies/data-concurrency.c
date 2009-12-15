@@ -204,6 +204,9 @@ void notify_data_dependencies(data_state *data)
 
 		data->refcnt++;
 	
+		/* the data is now attributed to that request */
+		data->current_mode = (r->mode==STARPU_R)?STARPU_R:STARPU_W;
+
 		starpu_spin_unlock(&data->header_lock);
 
 		if (r->is_requested_by_codelet)
