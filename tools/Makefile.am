@@ -34,6 +34,10 @@ fxt_stats_SOURCES = fxt-stats.c
 fxt_stats_CFLAGS = -I$(top_srcdir)/src/
 endif
 
-bin_PROGRAMS += perfmodel-display
-
+bin_PROGRAMS +=	perfmodel-display
 perfmodel_display_SOURCES = perfmodel-display.c
+
+if USE_CUDA
+bin_PROGRAMS += bandwith-cuda
+bandwith_cuda_SOURCES = bandwith-cuda.c
+endif
