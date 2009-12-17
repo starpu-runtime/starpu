@@ -34,9 +34,9 @@ int starpu_request_data_allocation(data_state *state, uint32_t node)
 	return 0;
 }
 
-
 struct state_and_node {
 	data_state *state;
+	starpu_access_mode mode;
 	unsigned node;
 	pthread_cond_t cond;
 	pthread_mutex_t lock;
@@ -52,20 +52,20 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 
 	data_state *state = statenode->state;
 
-	ret = fetch_data_on_node(state, 0, 1, 0, 0);
-	
+	unsigned r = (statenode->mode != STARPU_W);
+	unsigned w = (statenode->mode != STARPU_R);
+
+	ret = fetch_data_on_node(state, 0, r, w, 0);
 	STARPU_ASSERT(!ret);
 	
-	/* the application does not need to "lock" the data anymore */
-	release_data_on_node(state, 0, 0);
-
 	pthread_mutex_lock(&statenode->lock);
 	statenode->finished = 1;
 	pthread_cond_signal(&statenode->cond);
 	pthread_mutex_unlock(&statenode->lock);
 }
 
-int starpu_sync_data_with_mem(data_state *state)
+/* The data must be released by calling starpu_release_data_from_mem later on */
+int starpu_sync_data_with_mem(data_state *state, starpu_access_mode mode)
 {
 	/* it is forbidden to call this function from a callback or a codelet */
 	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
@@ -74,7 +74,8 @@ int starpu_sync_data_with_mem(data_state *state)
 	struct state_and_node statenode =
 	{
 		.state = state,
-		.node = 0, /* unused here */
+		.mode = mode,
+		.node = 0, // unused
 		.cond = PTHREAD_COND_INITIALIZER,
 		.lock = PTHREAD_MUTEX_INITIALIZER,
 		.finished = 0
@@ -83,7 +84,7 @@ int starpu_sync_data_with_mem(data_state *state)
 	/* we try to get the data, if we do not succeed immediately, we set a
  	* callback function that will be executed automatically when the data is
  	* available again, otherwise we fetch the data directly */
-	if (!attempt_to_submit_data_request_from_apps(state, STARPU_R, 
+	if (!attempt_to_submit_data_request_from_apps(state, mode,
 			_starpu_sync_data_with_mem_continuation, &statenode))
 	{
 		/* no one has locked this data yet, so we proceed immediately */
@@ -99,67 +100,15 @@ int starpu_sync_data_with_mem(data_state *state)
 	return 0;
 }
 
-static inline void do_notify_data_modification(data_state *state, uint32_t modifying_node)
+/* This function must be called after starpu_sync_data_with_mem so that the
+ * application release the data */
+void starpu_release_data_from_mem(data_state *state)
 {
-	starpu_spin_lock(&state->header_lock);
-
-	unsigned node = 0;
-	for (node = 0; node < MAXNODES; node++)
-	{
-		state->per_node[node].state =
-			(node == modifying_node?OWNER:INVALID);
-	}
-
-	starpu_spin_unlock(&state->header_lock);
+	/* The application can now release the rw-lock */
+	release_data_on_node(state, 0, 0);
 }
 
-static inline void _notify_data_modification_continuation(void *arg)
-{
-	struct state_and_node *statenode = arg;
 
-	do_notify_data_modification(statenode->state, statenode->node);
-
-	pthread_mutex_lock(&statenode->lock);
-	statenode->finished = 1;
-	pthread_cond_signal(&statenode->cond);
-	pthread_mutex_unlock(&statenode->lock);
-}
-
-/* in case the application did modify the data ... invalidate all other copies  */
-int starpu_notify_data_modification(data_state *state, uint32_t modifying_node)
-{
-	/* It is forbidden to call this function from a callback or a codelet */
-	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
-		return -EDEADLK;
-
-	struct state_and_node statenode =
-	{
-		.state = state,
-		.node = modifying_node,
-		.cond = PTHREAD_COND_INITIALIZER,
-		.lock = PTHREAD_MUTEX_INITIALIZER,
-		.finished = 0
-	};
-
-	if (!attempt_to_submit_data_request_from_apps(state, STARPU_W, _notify_data_modification_continuation, &statenode))
-	{
-		/* we can immediately proceed */
-		do_notify_data_modification(state, modifying_node);
-	}
-	else {
-		pthread_mutex_lock(&statenode.lock);
-		if (!statenode.finished)
-			pthread_cond_wait(&statenode.cond, &statenode.lock);
-		pthread_mutex_unlock(&statenode.lock);
-	}
-
-	/* remove the "lock"/reference */
-	starpu_spin_lock(&state->header_lock);
-	notify_data_dependencies(state);
-	starpu_spin_unlock(&state->header_lock);
-
-	return 0;
-}
 
 static void _prefetch_data_on_node(void *arg)
 {

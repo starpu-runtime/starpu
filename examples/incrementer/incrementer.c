@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 	starpu_wait_all_tasks();
 
 	/* update the array in RAM */
-	starpu_sync_data_with_mem(float_array_handle);
+	starpu_sync_data_with_mem(float_array_handle, STARPU_R);
 	
 	fprintf(stderr, "array -> %f, %f, %f\n", float_array[0], 
 			float_array[1], float_array[2]);
@@ -85,6 +85,8 @@ int main(int argc, char **argv)
 	if (float_array[0] != float_array[1] + float_array[2])
 		return 1;
 	
+	starpu_release_data_from_mem(float_array_handle);
+
 	starpu_shutdown();
 
 	return 0;
