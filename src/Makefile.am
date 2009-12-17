@@ -106,6 +106,7 @@ libstarpu_la_SOURCES = 						\
 	core/mechanisms/priority_queues.c			\
 	core/mechanisms/fifo_queues.c				\
 	core/perfmodel/perfmodel_history.c			\
+	core/perfmodel/perfmodel_bus.c				\
 	core/perfmodel/perfmodel.c				\
 	core/perfmodel/regression.c				\
 	core/policies/no-prio-policy.c				\

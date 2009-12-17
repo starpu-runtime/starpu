@@ -188,6 +188,8 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	timing_init();
 
+	load_bus_performance_files();
+
 	/* store the pointer to the user explicit configuration during the
 	 * initialization */
 	config.user_conf = user_conf;
