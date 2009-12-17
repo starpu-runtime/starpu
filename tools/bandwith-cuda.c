@@ -88,10 +88,10 @@ int main(int argc, char **argv)
 	fprintf(stderr, "\n\nLatency Matrix\n\n");
 
 	fprintf(stderr, "{\n");
-	for (j = 0; j < MAXNODES; j++)
+	for (i = 0; i < MAXNODES; i++)
 	{
 		fprintf(stderr, "\t{");
-		for (i = 0; i < MAXNODES; i++)
+		for (j = 0; j < MAXNODES; j++)
 		{
 			double latency;
 
@@ -108,20 +108,20 @@ int main(int argc, char **argv)
 				latency = ((i && j)?2000.0:500.0);
 			}
 	
-			fprintf(stderr, "%.2f%s", latency, ((i != (MAXNODES -1)?", ":"")));
+			fprintf(stderr, "%.2f%s", latency, ((j != (MAXNODES -1)?", ":"")));
 		}
 
-		fprintf(stderr, "}%s\n", ((j != (MAXNODES - 1))?",":""));
+		fprintf(stderr, "}%s\n", ((i != (MAXNODES - 1))?",":""));
 	}
 	fprintf(stderr, "};\n");
 
 	fprintf(stderr, "\n\nBandwith Matrix\n\n");
 
 	fprintf(stderr, "{\n");
-	for (j = 0; j < MAXNODES; j++)
+	for (i = 0; i < MAXNODES; i++)
 	{
 		fprintf(stderr, "\t{");
-		for (i = 0; i < MAXNODES; i++)
+		for (j = 0; j < MAXNODES; j++)
 		{
 			double bandwith;
 
@@ -144,10 +144,10 @@ int main(int argc, char **argv)
 				bandwith = 0.0;
 			}
 	
-			fprintf(stderr, "%.2f%s", bandwith, ((i != (MAXNODES -1)?", ":"")));
+			fprintf(stderr, "%.2f%s", bandwith, ((j != (MAXNODES -1)?", ":"")));
 		}
 
-		fprintf(stderr, "}%s\n", ((j != (MAXNODES - 1))?",":""));
+		fprintf(stderr, "}%s\n", ((i != (MAXNODES - 1))?",":""));
 	}
 
 	fprintf(stderr, "};\n");
