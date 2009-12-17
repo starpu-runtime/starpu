@@ -22,19 +22,19 @@
 #include <core/perfmodel/perfmodel.h>
 #include <datawizard/data_parameters.h>
 
-
 #define SIZE	(32*1024*1024*sizeof(char))
 #define NITER	128
 
 static double bandwith_matrix[MAXNODES][MAXNODES] = {{-1.0}};
 static double latency_matrix[MAXNODES][MAXNODES] = {{ -1.0}};
+static unsigned was_benchmarked = 0;
+static int ncuda = 0;
 
 /* Benchmarking the performance of the bus */
 
+#ifdef USE_CUDA
 static double cudadev_timing_htod[MAXNODES] = {0.0};
 static double cudadev_timing_dtoh[MAXNODES] = {0.0};
-static int ncuda;
-static unsigned was_benchmarked = 0;
 
 static void measure_bandwith_between_host_and_dev(int dev)
 {
@@ -93,6 +93,7 @@ static void measure_bandwith_between_host_and_dev(int dev)
 
 	cudaThreadExit();
 }
+#endif
 
 static void benchmark_all_cuda_devices(void)
 {
@@ -100,14 +101,15 @@ static void benchmark_all_cuda_devices(void)
 	fprintf(stderr, "Benchmarking the speed of the bus\n");
 #endif
 
+#ifdef USE_CUDA
         cudaGetDeviceCount(&ncuda);
-
 	int i;
 	for (i = 0; i < ncuda; i++)
 	{
 		/* measure bandwith between Host and Device i */
 		measure_bandwith_between_host_and_dev(i);
 	}
+#endif
 
 	was_benchmarked = 1;
 
@@ -291,9 +293,10 @@ static void write_bus_bandwith_file_content(void)
 			{
 				bandwith = -1.0;
 			}
+#ifdef USE_CUDA
 			else if (src != dst)
 			{
-				/* Bandwith = (SIZE)/(time i -> ram + time ram -> j)*/
+			/* Bandwith = (SIZE)/(time i -> ram + time ram -> j)*/
 				double time_src_to_ram = (src==0)?0.0:cudadev_timing_dtoh[src];
 				double time_ram_to_dst = (dst==0)?0.0:cudadev_timing_htod[dst];
 				
@@ -301,6 +304,7 @@ static void write_bus_bandwith_file_content(void)
 				
 				bandwith = 1.0*SIZE/timing;
 			}
+#endif
 			else {
 			        /* convention */
 			        bandwith = 0.0;
