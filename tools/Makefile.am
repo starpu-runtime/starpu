@@ -36,8 +36,3 @@ endif
 
 bin_PROGRAMS +=	perfmodel-display
 perfmodel_display_SOURCES = perfmodel-display.c
-
-if USE_CUDA
-bin_PROGRAMS += bandwith-cuda
-bandwith_cuda_SOURCES = bandwith-cuda.c
-endif
