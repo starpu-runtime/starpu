@@ -26,6 +26,9 @@
 #include <pthread.h>
 #include <stdio.h>
 
+#define PERF_MODEL_DIR_CODELETS	PERF_MODEL_DIR"/codelets/"
+#define PERF_MODEL_DIR_BUS	PERF_MODEL_DIR"/bus/"
+
 struct starpu_buffer_descr_t;
 struct jobq_s;
 struct job_s;
@@ -93,4 +96,6 @@ void update_perfmodel_history(struct job_s *j, enum starpu_perf_archtype arch,
 
 double data_expected_penalty(struct jobq_s *q, struct job_s *j);
 
+void create_sampling_directory_if_needed(void);
+ 
 #endif // __PERFMODEL_H__

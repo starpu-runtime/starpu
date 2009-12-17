@@ -15,6 +15,7 @@
  */
 
 #include <unistd.h>
+#include <sys/stat.h>
 #include <core/perfmodel/perfmodel.h>
 #include <core/jobs.h>
 #include <core/workers.h>
@@ -163,3 +164,54 @@ double data_expected_penalty(struct jobq_s *q, struct job_s *j)
 	return penalty;
 }
 
+static int directory_existence_was_tested = 0;
+
+void create_sampling_directory_if_needed(void)
+{
+	if (!directory_existence_was_tested)
+	{
+		/* The performance of the codelets are stored in
+		 * $PERF_MODEL_DIR/codelets/ while those of the bus are stored in
+		 * $PERF_MODEL_DIR/bus/ so that we don't have name collisions */
+		
+		/* Testing if a directory exists and creating it otherwise 
+		   may not be safe: it is possible that the permission are
+		   changed in between. Instead, we create it and check if
+		   it already existed before */
+		int ret;
+		ret = mkdir(PERF_MODEL_DIR, S_IRWXU);
+		if (ret == -1)
+		{
+			STARPU_ASSERT(errno == EEXIST);
+	
+			/* make sure that it is actually a directory */
+			struct stat sb;
+			stat(PERF_MODEL_DIR, &sb);
+			STARPU_ASSERT(S_ISDIR(sb.st_mode));
+		}
+	
+		ret = mkdir(PERF_MODEL_DIR_CODELETS, S_IRWXU);
+		if (ret == -1)
+		{
+			STARPU_ASSERT(errno == EEXIST);
+	
+			/* make sure that it is actually a directory */
+			struct stat sb;
+			stat(PERF_MODEL_DIR, &sb);
+			STARPU_ASSERT(S_ISDIR(sb.st_mode));
+		}
+	
+		ret = mkdir(PERF_MODEL_DIR_BUS, S_IRWXU);
+		if (ret == -1)
+		{
+			STARPU_ASSERT(errno == EEXIST);
+	
+			/* make sure that it is actually a directory */
+			struct stat sb;
+			stat(PERF_MODEL_DIR, &sb);
+			STARPU_ASSERT(S_ISDIR(sb.st_mode));
+		}
+	
+		directory_existence_was_tested = 1;
+	}
+}

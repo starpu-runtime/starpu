@@ -16,7 +16,6 @@
 
 #include <unistd.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include <errno.h>
 #include <common/config.h>
 #include <core/perfmodel/perfmodel.h>
@@ -285,7 +284,7 @@ void register_model(struct starpu_perfmodel_t *model)
 
 static void get_model_path(struct starpu_perfmodel_t *model, char *path, size_t maxlen)
 {
-	strncpy(path, PERF_MODEL_DIR, maxlen);
+	strncpy(path, PERF_MODEL_DIR_CODELETS, maxlen);
 	strncat(path, model->symbol, maxlen);
 	
 	char hostname[32];
@@ -301,7 +300,7 @@ static void save_history_based_model(struct starpu_perfmodel_t *model)
 
 	/* TODO checks */
 
-	/* filename = $PERF_MODEL_DIR/symbol.hostname */
+	/* filename = $PERF_MODEL_DIR/codelets/symbol.hostname */
 	char path[256];
 	get_model_path(model, path, 256);
 
@@ -342,26 +341,6 @@ void dump_registered_models(void)
 	}
 }
 
-static int directory_existence_was_tested = 0;
-
-static void create_sampling_directory_if_needed(void)
-{
-	/* Testing if a directory exists and creating it otherwise 
-	   may not be safe: it is possible that the permission are
-	   changed in between. Instead, we create it and check if
-	   it already existed before */
-	int ret;
-	ret = mkdir(PERF_MODEL_DIR, S_IRWXU);
-	if (ret == -1)
-	{
-		STARPU_ASSERT(errno == EEXIST);
-
-		/* make sure that it is actually a directory */
-		struct stat sb;
-		stat(PERF_MODEL_DIR, &sb);
-		STARPU_ASSERT(S_ISDIR(sb.st_mode));
-	}
-}
 
 static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_history)
 {
@@ -397,55 +376,55 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
 		STARPU_ASSERT(0);
 	}
 
-		/* make sure the performance model directory exists (or create it) */
-		if (!directory_existence_was_tested)
-		{
-			create_sampling_directory_if_needed();
-			directory_existence_was_tested = 1;
-		}
+	/* make sure the performance model directory exists (or create it) */
+	create_sampling_directory_if_needed();
 
-		/*
-		 * We need to keep track of all the model that were opened so that we can 
-		 * possibly update them at runtime termination ...
-		 */
-		register_model(model);
-	
-		char path[256];
-		get_model_path(model, path, 256);
-	
+	/*
+	 * We need to keep track of all the model that were opened so that we can 
+	 * possibly update them at runtime termination ...
+	 */
+	register_model(model);
+
+	char path[256];
+	get_model_path(model, path, 256);
+
 #ifdef VERBOSE
-		fprintf(stderr, "Opening performance model file %s for model %s\n", path, model->symbol);
+	fprintf(stderr, "Opening performance model file %s for model %s ... ", path, model->symbol);
 #endif
 	
-		/* try to open an existing file and load it */
-		res = access(path, F_OK); 
-		if (res == 0) {
-		//	fprintf(stderr, "File exists !\n");
-	
-			FILE *f;
-			f = fopen(path, "r");
-			STARPU_ASSERT(f);
-	
-			parse_model_file(f, model, scan_history);
-	
-			fclose(f);
-		}
-		else {
-			//fprintf(stderr, "File does not exists !\n");
-			initialize_model(model);
-		}
-	
-	
-		if (starpu_get_env_number("CALIBRATE") != -1)
-		{
-			fprintf(stderr, "CALIBRATE model %s\n", model->symbol);
-			model->benchmarking = 1;
-		}
-		else {
-			model->benchmarking = 0;
-		}
-	
-		model->is_loaded = STARPU_PERFMODEL_LOADED;
+	/* try to open an existing file and load it */
+	res = access(path, F_OK); 
+	if (res == 0) {
+#ifdef VERBOSE
+		fprintf(stderr, "File exists !\n");
+#endif
+
+		FILE *f;
+		f = fopen(path, "r");
+		STARPU_ASSERT(f);
+
+		parse_model_file(f, model, scan_history);
+
+		fclose(f);
+	}
+	else {
+#ifdef VERBOSE
+		fprintf(stderr, "File does not exists !\n");
+#endif
+		initialize_model(model);
+	}
+
+
+	if (starpu_get_env_number("CALIBRATE") != -1)
+	{
+		fprintf(stderr, "CALIBRATE model %s\n", model->symbol);
+		model->benchmarking = 1;
+	}
+	else {
+		model->benchmarking = 0;
+	}
+
+	model->is_loaded = STARPU_PERFMODEL_LOADED;
 
 	res = pthread_rwlock_unlock(&model->model_rwlock);
 	if (STARPU_UNLIKELY(res))
