@@ -180,7 +180,11 @@ static void write_bus_latency_file_content(void)
 	get_latency_path(path, 256);
 
 	f = fopen(path, "w+");
-	STARPU_ASSERT(f);
+	if (!f)
+	{
+		perror("fopen");
+		STARPU_ASSERT(0);
+	}
 
 	for (src = 0; src < MAXNODES; src++)
 	{
@@ -249,7 +253,11 @@ static void load_bus_bandwith_file_content(void)
 	get_bandwith_path(path, 256);
 
 	f = fopen(path, "r");
-	STARPU_ASSERT(f);
+	if (!f)
+	{
+		perror("fopen");
+		STARPU_ASSERT(0);
+	}
 
 	for (src = 0; src < MAXNODES; src++)
 	{
@@ -345,6 +353,8 @@ static void load_bus_bandwith_file(void)
 
 void load_bus_performance_files(void)
 {
+	create_sampling_directory_if_needed();
+
 	load_bus_latency_file();
 	load_bus_bandwith_file();
 }
