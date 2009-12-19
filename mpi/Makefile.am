@@ -16,6 +16,19 @@
 
 CC=mpicc
 
+if USE_CUDA
+# TODO define NVCCFLAGS
+NVCC ?= nvcc
+
+.cu.cubin:
+	$(MKDIR_P) `dirname $@`
+	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
+
+.cu.o:
+	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I$(top_srcdir)/include/
+endif
+
+
 LIBS = $(top_builddir)/src/libstarpu.la @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/mpi/ -I$(top_srcdir)/src/
 
@@ -43,3 +56,7 @@ tests_ring_LDADD =					\
 
 tests_ring_SOURCES =					\
 	tests/ring.c
+
+if USE_CUDA
+tests_ring_SOURCES += tests/ring_kernel.cu
+endif

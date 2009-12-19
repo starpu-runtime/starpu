@@ -21,6 +21,39 @@
 unsigned token = 42;
 starpu_data_handle token_handle;
 
+#ifdef USE_CUDA
+extern void increment_cuda(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args);
+#endif
+
+void increment_core(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
+{
+	unsigned *tokenptr = (unsigned *)buffers[0].vector.ptr;
+	(*tokenptr)++;
+}
+
+static starpu_codelet increment_cl = {
+	.where = CORE|CUDA,
+#ifdef USE_CUDA
+	.cuda_func = increment_cuda,
+#endif
+	.core_func = increment_core,
+	.nbuffers = 1
+};
+
+void increment_token(void)
+{
+	struct starpu_task *task = starpu_task_create();
+
+	task->cl = &increment_cl;
+	
+	task->buffers[0].handle = token_handle;
+	task->buffers[0].mode = STARPU_RW;
+
+	task->synchronous = 1;
+
+	starpu_submit_task(task);
+}
+
 int main(int argc, char **argv)
 {
 	MPI_Init(NULL, NULL);
@@ -64,17 +97,20 @@ int main(int argc, char **argv)
 			fprintf(stdout, "Start with token value %d\n", token);
 		}
 
-		token += 1;
+		increment_token();
 		
 		if (!((loop == last_loop) && (rank == last_rank)))
 		{
 			starpu_mpi_send(token_handle, (rank+1)%size, tag+1, MPI_COMM_WORLD);
 		}
 		else {
+
+			starpu_sync_data_with_mem(token_handle, STARPU_R);
 			fprintf(stdout, "Finished : token value %d\n", token);
+			starpu_release_data_from_mem(token_handle);
 		}
 	}
-	
+
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
