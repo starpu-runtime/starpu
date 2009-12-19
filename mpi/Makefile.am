@@ -14,23 +14,32 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-CLEANFILES = *.gcno *.gcda *.linkinfo
+CC=mpicc
 
-SUBDIRS = src tools examples tests doc
+LIBS = $(top_builddir)/src/libstarpu.la @LIBS@
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/mpi/ -I$(top_srcdir)/src/
 
-if USE_MPI
-SUBDIRS += mpi
-endif
+lib_LTLIBRARIES = libstarpumpi.la
 
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libstarpu.pc
+libstarpumpi_la_SOURCES = starpu_mpi.c
+libstarpumpi_la_LIBADD = $(top_builddir)/src/libstarpu.la
 
-include_HEADERS = 				\
-	include/starpu.h			\
-	include/starpu_config.h			\
-	include/starpu-data-filters.h		\
-	include/starpu-data-interfaces.h	\
-	include/starpu-task.h			\
-	include/starpu-data.h			\
-	include/starpu-perfmodel.h		\
-	include/starpu-util.h
+TESTS = $(check_PROGRAMS)
+
+check_PROGRAMS =
+
+check_PROGRAMS +=					\
+	tests/pingpong					\
+	tests/ring
+
+tests_pingpong_LDADD =					\
+	libstarpumpi.la
+
+tests_pingpong_SOURCES =				\
+	tests/pingpong.c
+
+tests_ring_LDADD =					\
+	libstarpumpi.la
+
+tests_ring_SOURCES =					\
+	tests/ring.c

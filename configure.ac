@@ -409,6 +409,39 @@ fi
 
 ###############################################################################
 #                                                                             #
+#                                    MPI                                      #
+#                                                                             #
+###############################################################################
+
+AC_ARG_WITH(mpi, [AS_HELP_STRING([--with-mpi[=<dir>]],
+			[Generate a library to use StarPU with MPI])],
+	[
+		if test x$withval != xno; then
+			use_mpi=yes
+			if test x$withval = xyes; then
+				# mpi option is enabled explicitely, but no dir
+				# is specified
+				use_default_mpi=yes
+			else
+				use_default_mpi=no
+				mpidir=$withval
+				AC_SUBST(MPIDIR, $mpidir)
+			fi
+		else
+			# explicitly without mpi
+			use_mpi=no
+		fi
+	],
+	[
+		use_mpi=no
+	])
+AC_MSG_CHECKING(whether mpi lib should be generated)
+AC_MSG_RESULT($use_mpi)
+AC_SUBST(USE_MPI, $use_mpi)
+AM_CONDITIONAL(USE_MPI, test x$use_mpi = xyes)
+
+###############################################################################
+#                                                                             #
 #                                  Examples                                   #
 #                                                                             #
 ###############################################################################
@@ -562,4 +595,5 @@ AC_OUTPUT([
 	examples/starpufft/Makefile
 	tests/Makefile
 	doc/Makefile
+	mpi/Makefile
 ])
