@@ -39,7 +39,7 @@ void compute_buffers_footprint(job_t j)
 
 inline uint32_t compute_data_footprint(data_state *state)
 {
-	uint32_t interfaceid = state->ops->interfaceid;
+	uint32_t interfaceid = (uint32_t)starpu_get_handle_interface_id(state);
 
 	return state->ops->footprint(state, interfaceid);
 }

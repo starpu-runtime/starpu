@@ -118,6 +118,7 @@ libstarpu_la_SOURCES = 						\
 	datawizard/footprint.c					\
 	datawizard/datastats.c					\
 	datawizard/user_interactions.c				\
+	datawizard/interfaces/data_interface.c			\
 	datawizard/interfaces/bcsr_interface.c			\
 	datawizard/interfaces/csr_interface.c			\
 	datawizard/interfaces/blas_filters.c			\

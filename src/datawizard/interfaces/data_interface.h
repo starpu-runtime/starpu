@@ -17,8 +17,7 @@
 #ifndef __DATA_INTERFACE_H__
 #define __DATA_INTERFACE_H__
 
-#include <stdio.h>
-
+#include <starpu.h>
 #include <common/config.h>
 #include <datawizard/data_parameters.h>
 
@@ -27,7 +26,6 @@
 #include <gordon.h>
 #endif
 
-#include <starpu.h>
 
 struct starpu_data_state_t;
 
@@ -46,7 +44,7 @@ struct data_interface_ops_t {
 	int (*convert_to_gordon)(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 	/* an identifier that is unique to each interface */
-	uint32_t interfaceid;
+	unsigned interfaceid;
 };
 
 #endif // __DATA_INTERFACE_H__

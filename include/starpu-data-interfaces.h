@@ -149,7 +149,7 @@ uint32_t *starpu_get_bcsr_local_colind(starpu_data_handle);
 uint32_t *starpu_get_bcsr_local_rowptr(starpu_data_handle);
 uint32_t starpu_get_bcsr_r(starpu_data_handle);
 uint32_t starpu_get_bcsr_c(starpu_data_handle);
-size_t starpu_get_bcsr_elemsize(struct starpu_data_state_t *state);
+size_t starpu_get_bcsr_elemsize(starpu_data_handle);
 
 #define STARPU_BLAS_INTERFACE_ID	0
 #define STARPU_BLOCK_INTERFACE_ID	1
@@ -158,6 +158,8 @@ size_t starpu_get_bcsr_elemsize(struct starpu_data_state_t *state);
 #define STARPU_CSC_INTERFACE_ID		4
 #define STARPU_BCSCR_INTERFACE_ID	5
 #define STARPU_NINTERFACES_ID		6 /* number of data interfaces */
+
+unsigned starpu_get_handle_interface_id(starpu_data_handle);
 
 typedef union {
 	starpu_blas_interface_t blas;	/* dense BLAS representation */
