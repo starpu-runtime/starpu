@@ -42,6 +42,7 @@ uint32_t starpu_get_blas_nx(starpu_data_handle handle);
 uint32_t starpu_get_blas_ny(starpu_data_handle handle);
 uint32_t starpu_get_blas_local_ld(starpu_data_handle handle);
 uintptr_t starpu_get_blas_local_ptr(starpu_data_handle handle);
+size_t starpu_get_blas_elemsize(starpu_data_handle handle);
 
 /* BLOCK interface for 3D dense blocks */
 typedef struct starpu_block_interface_s {

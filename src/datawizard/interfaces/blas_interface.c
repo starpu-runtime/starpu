@@ -219,6 +219,11 @@ uintptr_t starpu_get_blas_local_ptr(data_state *state)
 	return (state->interface[node].blas.ptr);
 }
 
+size_t starpu_get_blas_elemsize(data_state *state)
+{
+	return (state->interface[0].blas.elemsize);
+}
+
 /* memory allocation/deallocation primitives for the BLAS interface */
 
 /* returns the size of the allocated area */
