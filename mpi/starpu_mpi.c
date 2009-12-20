@@ -36,18 +36,18 @@ int starpu_mpi_irecv(starpu_data_handle data_handle, starpu_mpi_req_t *req,
 }
 
 int starpu_mpi_recv(starpu_data_handle data_handle,
-		int source, int mpi_tag, MPI_Comm comm)
+		int source, int mpi_tag, MPI_Comm comm, MPI_Status *status)
 {
-	/* TODO test if we are blocking in a callback .. */
+	/* test if we are blocking in a callback .. */
+	int ret = starpu_sync_data_with_mem(data_handle, STARPU_W);
+	if (ret)
+		return ret;
 
-	starpu_sync_data_with_mem(data_handle, STARPU_W);
-
-	void *ptr = (void *)starpu_get_vector_local_ptr(data_handle);
+	void *ptr = starpu_mpi_handle_to_ptr(data_handle);
 	
-	MPI_Status status;
 	MPI_Datatype datatype;
 	starpu_mpi_handle_to_datatype(data_handle, &datatype);
-	MPI_Recv(ptr, 1, datatype, source, mpi_tag, comm, &status);
+	MPI_Recv(ptr, 1, datatype, source, mpi_tag, comm, status);
 
 	starpu_release_data_from_mem(data_handle);
 
@@ -57,11 +57,12 @@ int starpu_mpi_recv(starpu_data_handle data_handle,
 int starpu_mpi_send(starpu_data_handle data_handle,
 		int dest, int mpi_tag, MPI_Comm comm)
 {
-	/* TODO test if we are blocking in a callback .. */
+	/* test if we are blocking in a callback .. */
+	int ret = starpu_sync_data_with_mem(data_handle, STARPU_R);
+	if (ret)
+		return ret;
 
-	starpu_sync_data_with_mem(data_handle, STARPU_R);
-
-	void *ptr = (void *)starpu_get_vector_local_ptr(data_handle);
+	void *ptr = starpu_mpi_handle_to_ptr(data_handle);
 	
 	MPI_Status status;
 	MPI_Datatype datatype;

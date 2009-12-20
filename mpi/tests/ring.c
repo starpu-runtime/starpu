@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 		if (!((loop == 0) && (rank == 0)))
 		{
 			token = 0;
-			starpu_mpi_recv(token_handle, (rank+size-1)%size, tag, MPI_COMM_WORLD);
+			starpu_mpi_recv(token_handle, (rank+size-1)%size, tag, MPI_COMM_WORLD, NULL);
 		}
 		else {
 			token = 0;

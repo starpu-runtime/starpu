@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 			starpu_mpi_send(tab_handle, other_rank, loop, MPI_COMM_WORLD);
 		}
 		else {
-			starpu_mpi_recv(tab_handle, other_rank, loop, MPI_COMM_WORLD);
+			starpu_mpi_recv(tab_handle, other_rank, loop, MPI_COMM_WORLD, NULL);
 		}
 	}
 	

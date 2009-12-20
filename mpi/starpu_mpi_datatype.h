@@ -20,5 +20,6 @@
 #include <starpu_mpi.h>
 
 int starpu_mpi_handle_to_datatype(starpu_data_handle data_handle, MPI_Datatype *datatype);
+void *starpu_mpi_handle_to_ptr(starpu_data_handle data_handle);
 
 #endif // __STARPU_MPI_DATATYPE_H__

@@ -37,7 +37,7 @@ int starpu_mpi_irecv(starpu_data_handle data_handle, starpu_mpi_req_t *req,
 int starpu_mpi_send(starpu_data_handle data_handle,
 		int dest, int mpi_tag, MPI_Comm comm);
 int starpu_mpi_recv(starpu_data_handle data_handle,
-		int source, int mpi_tag, MPI_Comm comm);
+		int source, int mpi_tag, MPI_Comm comm, MPI_Status *status);
 int starpu_mpi_wait(starpu_mpi_req_t *req);
 int starpu_mpi_test(starpu_mpi_req_t *req, int *flag);
 int starpu_mpi_initialize(void);
