@@ -62,17 +62,7 @@ noinst_HEADERS = 						\
 	datawizard/copy-driver.h				\
 	datawizard/coherency.h					\
 	datawizard/memory_nodes.h				\
-	datawizard/interfaces/blas_interface.h			\
-	datawizard/interfaces/block_interface.h			\
-	datawizard/interfaces/csr_filters.h			\
-	datawizard/interfaces/csc_interface.h			\
-	datawizard/interfaces/bcsr_filters.h			\
-	datawizard/interfaces/bcsr_interface.h			\
 	datawizard/interfaces/data_interface.h			\
-	datawizard/interfaces/vector_filters.h			\
-	datawizard/interfaces/vector_interface.h		\
-	datawizard/interfaces/blas_filters.h			\
-	datawizard/interfaces/csr_interface.h			\
 	common/hash.h						\
 	common/timing.h						\
 	common/htable32.h					\

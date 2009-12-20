@@ -14,17 +14,14 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
+#include <common/config.h>
+
 #include <datawizard/data_parameters.h>
 #include <datawizard/coherency.h>
 #include <datawizard/copy-driver.h>
 #include <datawizard/hierarchy.h>
-#include <starpu.h>
-
 #include <common/hash.h>
-
-#ifdef USE_CUDA
-#include <cuda.h>
-#endif
 
 /*
  * BCSR : blocked CSR, we use blocks of size (r x c)
@@ -62,7 +59,7 @@ struct data_interface_ops_t interface_bcsr_ops = {
 	.copy_methods = &bcsr_copy_data_methods_s,
 	.dump_data_interface = dump_bcsr_interface,
 	.get_size = bcsr_interface_get_size,
-	.interfaceid = BCSR_INTERFACE,
+	.interfaceid = STARPU_BCSCR_INTERFACE_ID,
 	.footprint = footprint_bcsr_interface_crc32
 };
 

@@ -21,12 +21,6 @@
 
 #include <common/config.h>
 #include <datawizard/data_parameters.h>
-#include "blas_interface.h"
-#include "block_interface.h"
-#include "vector_interface.h"
-#include "csr_interface.h"
-#include "csc_interface.h"
-#include "bcsr_interface.h"
 
 #ifdef USE_GORDON
 /* to get the gordon_strideSize_t data structure from gordon */

@@ -72,7 +72,7 @@ struct data_interface_ops_t interface_vector_ops = {
 #ifdef USE_GORDON
 	.convert_to_gordon = convert_vector_to_gordon,
 #endif
-	.interfaceid = VECTOR_INTERFACE,
+	.interfaceid = STARPU_VECTOR_INTERFACE_ID,
 	.display = display_vector_interface
 };
 

@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
 #include <datawizard/data_parameters.h>
 #include <datawizard/coherency.h>
 #include <datawizard/copy-driver.h>
@@ -21,11 +22,6 @@
 
 #include <common/hash.h>
 
-#include <starpu.h>
-
-#ifdef USE_CUDA
-#include <cuda.h>
-#endif
 
 static int dummy_copy_ram_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
 #ifdef USE_CUDA
@@ -60,7 +56,7 @@ struct data_interface_ops_t interface_csr_ops = {
 	.copy_methods = &csr_copy_data_methods_s,
 	.dump_data_interface = dump_csr_interface,
 	.get_size = csr_interface_get_size,
-	.interfaceid = CSR_INTERFACE,
+	.interfaceid = STARPU_CSR_INTERFACE_ID,
 	.footprint = footprint_csr_interface_crc32
 };
 

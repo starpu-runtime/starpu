@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
 #include <common/config.h>
 #include <datawizard/data_parameters.h>
 #include <datawizard/coherency.h>
@@ -21,12 +22,6 @@
 #include <datawizard/hierarchy.h>
 
 #include <common/hash.h>
-
-#include <starpu.h>
-
-#ifdef USE_CUDA
-#include <cuda.h>
-#endif
 
 static int dummy_copy_ram_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
 #ifdef USE_CUDA
@@ -73,7 +68,7 @@ struct data_interface_ops_t interface_block_ops = {
 #ifdef USE_GORDON
 	.convert_to_gordon = convert_block_to_gordon,
 #endif
-	.interfaceid = BLOCK_INTERFACE, 
+	.interfaceid = STARPU_BLOCK_INTERFACE_ID, 
 	.display = display_block_interface
 };
 

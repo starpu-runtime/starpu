@@ -14,10 +14,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "bcsr_filters.h"
-#include "bcsr_interface.h"
-#include "blas_filters.h"
-#include "blas_interface.h"
+#include <starpu.h>
+#include <common/config.h>
+#include <datawizard/hierarchy.h>
 
 extern struct data_interface_ops_t interface_blas_ops;
 
