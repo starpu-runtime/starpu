@@ -30,10 +30,12 @@ typedef void *(*handle_to_ptr_func)(starpu_data_handle);
 
 static int handle_to_datatype_blas(starpu_data_handle data_handle, MPI_Datatype *datatype)
 {
-	unsigned nx = starpu_get_vector_nx(data_handle);
-	size_t elemsize = starpu_get_vector_elemsize(data_handle);
+	unsigned nx = starpu_get_blas_nx(data_handle);
+	unsigned ny = starpu_get_blas_ny(data_handle);
+	unsigned ld = starpu_get_blas_local_ld(data_handle);
+	size_t elemsize = starpu_get_blas_elemsize(data_handle);
 
-	MPI_Type_contiguous(nx*elemsize, MPI_BYTE, datatype);
+	MPI_Type_vector(ny, nx*elemsize, ld*elemsize, MPI_BYTE, datatype);
 	MPI_Type_commit(datatype);
 
 	return 0;
