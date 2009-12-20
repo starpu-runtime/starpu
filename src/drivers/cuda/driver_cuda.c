@@ -182,6 +182,9 @@ void *cuda_worker(void *arg)
 
 	init_context(devid);
 
+	/* one more time to avoid hacks from third party lib :) */
+	bind_thread_on_cpu(args->config, args->bindid);
+
 	args->status = STATUS_UNKNOWN;
 
 	/* get the device's name */
