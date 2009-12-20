@@ -74,6 +74,7 @@ typedef struct starpu_vector_interface_s {
 void starpu_register_vector_data(starpu_data_handle *handle, uint32_t home_node,
                         uintptr_t ptr, uint32_t nx, size_t elemsize);
 uint32_t starpu_get_vector_nx(starpu_data_handle handle);
+size_t starpu_get_vector_elemsize(starpu_data_handle handle);
 uintptr_t starpu_get_vector_local_ptr(starpu_data_handle handle);
 
 /* CSR interface for sparse matrices (compressed sparse row representation) */

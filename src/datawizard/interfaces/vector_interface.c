@@ -188,6 +188,11 @@ uintptr_t starpu_get_vector_local_ptr(data_state *state)
 	return (state->interface[node].vector.ptr);
 }
 
+size_t starpu_get_vector_elemsize(data_state *state)
+{
+	return (state->interface[0].vector.elemsize);
+}
+
 /* memory allocation/deallocation primitives for the vector interface */
 
 /* returns the size of the allocated area */
