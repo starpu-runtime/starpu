@@ -34,8 +34,16 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/mpi/ -I$(top_srcdir)/src/
 
 lib_LTLIBRARIES = libstarpumpi.la
 
-libstarpumpi_la_SOURCES = starpu_mpi.c
 libstarpumpi_la_LIBADD = $(top_builddir)/src/libstarpu.la
+
+noinst_HEADERS =					\
+	starpu_mpi.h					\
+	starpu_mpi_datatype.h
+
+libstarpumpi_la_SOURCES =				\
+	starpu_mpi.c					\
+	starpu_mpi_datatype.c
+
 
 TESTS = $(check_PROGRAMS)
 

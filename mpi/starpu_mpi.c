@@ -15,23 +15,11 @@
  */
 
 #include <starpu_mpi.h>
+#include <starpu_mpi_datatype.h>
 
 pthread_cond_t cond;
 pthread_mutex_t mutex;
 pthread_t progress_thread;
-
-static int handle_to_datatype(starpu_data_handle data_handle, MPI_Datatype *datatype)
-{
-	/* TODO we assume that we have a vector yet ! */
-
-	unsigned nx = starpu_get_vector_nx(data_handle);
-	size_t elemsize = starpu_get_vector_elemsize(data_handle);
-
-	MPI_Type_contiguous(nx*elemsize, MPI_BYTE, datatype);
-	MPI_Type_commit(datatype);
-
-	return 0;
-}
 
 int starpu_mpi_isend(starpu_data_handle data_handle, starpu_mpi_req_t *req,
 		int dest, int mpi_tag, MPI_Comm comm,
@@ -58,7 +46,7 @@ int starpu_mpi_recv(starpu_data_handle data_handle,
 	
 	MPI_Status status;
 	MPI_Datatype datatype;
-	handle_to_datatype(data_handle, &datatype);
+	starpu_mpi_handle_to_datatype(data_handle, &datatype);
 	MPI_Recv(ptr, 1, datatype, source, mpi_tag, comm, &status);
 
 	starpu_release_data_from_mem(data_handle);
@@ -77,7 +65,7 @@ int starpu_mpi_send(starpu_data_handle data_handle,
 	
 	MPI_Status status;
 	MPI_Datatype datatype;
-	handle_to_datatype(data_handle, &datatype);
+	starpu_mpi_handle_to_datatype(data_handle, &datatype);
 	MPI_Send(ptr, 1, datatype, dest,  mpi_tag, comm);
 
 	starpu_release_data_from_mem(data_handle);
