@@ -25,6 +25,27 @@ typedef int (*handle_to_datatype_func)(starpu_data_handle, MPI_Datatype *);
 typedef void *(*handle_to_ptr_func)(starpu_data_handle);
 
 /*
+ * 	Blas
+ */
+
+static int handle_to_datatype_blas(starpu_data_handle data_handle, MPI_Datatype *datatype)
+{
+	unsigned nx = starpu_get_vector_nx(data_handle);
+	size_t elemsize = starpu_get_vector_elemsize(data_handle);
+
+	MPI_Type_contiguous(nx*elemsize, MPI_BYTE, datatype);
+	MPI_Type_commit(datatype);
+
+	return 0;
+}
+
+static void *handle_to_ptr_blas(starpu_data_handle data_handle)
+{
+	return (void *)starpu_get_blas_local_ptr(data_handle);
+}
+
+
+/*
  * 	Vector
  */
 
@@ -49,7 +70,7 @@ static void *handle_to_ptr_vector(starpu_data_handle data_handle)
  */
 
 static handle_to_datatype_func handle_to_datatype_funcs[STARPU_NINTERFACES_ID] = {
-	[STARPU_BLAS_INTERFACE_ID]	= NULL,
+	[STARPU_BLAS_INTERFACE_ID]	= handle_to_datatype_blas,
 	[STARPU_BLOCK_INTERFACE_ID]	= NULL,
 	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_datatype_vector,
 	[STARPU_CSR_INTERFACE_ID]	= NULL,
@@ -58,7 +79,7 @@ static handle_to_datatype_func handle_to_datatype_funcs[STARPU_NINTERFACES_ID] =
 };
 
 static handle_to_ptr_func handle_to_ptr_funcs[STARPU_NINTERFACES_ID] = {
-	[STARPU_BLAS_INTERFACE_ID]	= NULL,
+	[STARPU_BLAS_INTERFACE_ID]	= handle_to_ptr_blas,
 	[STARPU_BLOCK_INTERFACE_ID]	= NULL,
 	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_ptr_vector,
 	[STARPU_CSR_INTERFACE_ID]	= NULL,
