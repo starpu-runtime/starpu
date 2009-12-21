@@ -28,6 +28,7 @@
 
 #define PERF_MODEL_DIR_CODELETS	PERF_MODEL_DIR"/codelets/"
 #define PERF_MODEL_DIR_BUS	PERF_MODEL_DIR"/bus/"
+#define PERF_MODEL_DIR_DEBUG	PERF_MODEL_DIR"/debug/"
 
 struct starpu_buffer_descr_t;
 struct jobq_s;

@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <starpu_config.h>
+#include <starpu-task.h> // for MAXCUDADEVS
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,19 +36,14 @@ struct starpu_buffer_descr_t;
    so we do not use the archtype enum type directly for performance models
 */
 
-/* on most system we will consider one or two architectures as all accelerators
-   are likely to be identical */
-#define NARCH_VARIATIONS	6
-
 enum starpu_perf_archtype {
 	STARPU_CORE_DEFAULT = 0,
 	STARPU_CUDA_DEFAULT = 1,
-	STARPU_CUDA_2 = 2,
-	STARPU_CUDA_3 = 3,
-	STARPU_CUDA_4 = 4,
-	STARPU_GORDON_DEFAULT = 5
+	/* STARPU_CUDA_DEFAULT + devid */
+	STARPU_GORDON_DEFAULT = STARPU_CUDA_DEFAULT + MAXCUDADEVS
 };
 
+#define NARCH_VARIATIONS	(STARPU_GORDON_DEFAULT+1)
 
 struct starpu_regression_model_t {
 	/* sum of ln(measured) */
@@ -109,7 +105,9 @@ struct starpu_perfmodel_t {
  * performance model files */
 int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *model);
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model,
-		enum starpu_perf_archtype arch, char **path, size_t maxlen);
+		enum starpu_perf_archtype arch, char *path, size_t maxlen);
+void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch,
+		char *archname, size_t maxlen);
 
 #ifdef __cplusplus
 }

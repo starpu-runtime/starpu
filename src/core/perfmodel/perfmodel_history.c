@@ -146,12 +146,9 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_
 
 static void parse_model_file(FILE *f, struct starpu_perfmodel_t *model, unsigned scan_history)
 {
-	parse_per_arch_model_file(f, &model->per_arch[STARPU_CORE_DEFAULT], scan_history);
-	parse_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_DEFAULT], scan_history);
-	parse_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_2], scan_history);
-	parse_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_3], scan_history);
-	parse_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_4], scan_history);
-	parse_per_arch_model_file(f, &model->per_arch[STARPU_GORDON_DEFAULT], scan_history);
+	unsigned arch;
+	for (arch = 0; arch < NARCH_VARIATIONS; arch++)
+		parse_per_arch_model_file(f, &model->per_arch[arch], scan_history);
 }
 
 static void dump_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_t *per_arch_model)
@@ -188,23 +185,16 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_t
 static void dump_model_file(FILE *f, struct starpu_perfmodel_t *model)
 {
 	fprintf(f, "#################\n");
-	fprintf(f, "# Model for COREs\n");
-	dump_per_arch_model_file(f, &model->per_arch[STARPU_CORE_DEFAULT]);
-	fprintf(f, "\n##################\n");
-	fprintf(f,   "# Model for CUDA 1\n");
-	dump_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_DEFAULT]);
-	fprintf(f, "\n##################\n");
-	fprintf(f,   "# Model for CUDA 2\n");
-	dump_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_2]);
-	fprintf(f, "\n##################\n");
-	fprintf(f,   "# Model for CUDA 3\n");
-	dump_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_3]);
-	fprintf(f, "\n##################\n");
-	fprintf(f,   "# Model for CUDA 4\n");
-	dump_per_arch_model_file(f, &model->per_arch[STARPU_CUDA_4]);
-	fprintf(f, "\n##################\n");
-	fprintf(f,   "# Model for GORDON\n");
-	dump_per_arch_model_file(f, &model->per_arch[STARPU_GORDON_DEFAULT]);
+
+	unsigned arch;
+	for (arch = 0; arch < NARCH_VARIATIONS; arch++)
+	{
+		char archname[32];
+		starpu_perfmodel_get_arch_name(arch, archname, 32);
+		fprintf(f, "# Model for %s\n", archname);
+		dump_per_arch_model_file(f, &model->per_arch[arch]);
+		fprintf(f, "\n##################\n");
+	}
 }
 
 static void initialize_per_arch_model(struct starpu_per_arch_perfmodel_t *per_arch_model)
@@ -215,12 +205,9 @@ static void initialize_per_arch_model(struct starpu_per_arch_perfmodel_t *per_ar
 
 static void initialize_model(struct starpu_perfmodel_t *model)
 {
-	initialize_per_arch_model(&model->per_arch[STARPU_CORE_DEFAULT]);
-	initialize_per_arch_model(&model->per_arch[STARPU_CUDA_DEFAULT]);
-	initialize_per_arch_model(&model->per_arch[STARPU_CUDA_2]);
-	initialize_per_arch_model(&model->per_arch[STARPU_CUDA_3]);
-	initialize_per_arch_model(&model->per_arch[STARPU_CUDA_4]);
-	initialize_per_arch_model(&model->per_arch[STARPU_GORDON_DEFAULT]);
+	unsigned arch;
+	for (arch = 0; arch < NARCH_VARIATIONS; arch++)
+		initialize_per_arch_model(&model->per_arch[arch]);
 }
 
 static struct starpu_model_list_t *registered_models = NULL;
@@ -228,7 +215,9 @@ static struct starpu_model_list_t *registered_models = NULL;
 
 static void get_model_debug_path(struct starpu_perfmodel_t *model, const char *arch, char *path, size_t maxlen)
 {
-	strncpy(path, PERF_MODEL_DIR, maxlen);
+	STARPU_ASSERT(path);
+
+	strncpy(path, PERF_MODEL_DIR_DEBUG, maxlen);
 	strncat(path, model->symbol, maxlen);
 	
 	char hostname[32];
@@ -253,30 +242,16 @@ void register_model(struct starpu_perfmodel_t *model)
 	registered_models = node;
 
 #ifdef MODEL_DEBUG
-	char debugpath[256];
-	get_model_debug_path(model, "cuda", debugpath, 256);
-	model->per_arch[STARPU_CUDA_DEFAULT].debug_file = fopen(debugpath, "a+");
-	STARPU_ASSERT(model->per_arch[STARPU_CUDA_DEFAULT].debug_file);
+	create_sampling_directory_if_needed();
 
-	get_model_debug_path(model, "cuda_2", debugpath, 256);
-	model->per_arch[STARPU_CUDA_2].debug_file = fopen(debugpath, "a+");
-	STARPU_ASSERT(model->per_arch[STARPU_CUDA_2].debug_file);
-
-	get_model_debug_path(model, "cuda_3", debugpath, 256);
-	model->per_arch[STARPU_CUDA_3].debug_file = fopen(debugpath, "a+");
-	STARPU_ASSERT(model->per_arch[STARPU_CUDA_3].debug_file);
-
-	get_model_debug_path(model, "cuda_4", debugpath, 256);
-	model->per_arch[STARPU_CUDA_4].debug_file = fopen(debugpath, "a+");
-	STARPU_ASSERT(model->per_arch[STARPU_CUDA_4].debug_file);
-
-	get_model_debug_path(model, "core", debugpath, 256);
-	model->per_arch[STARPU_CORE_DEFAULT].debug_file = fopen(debugpath, "a+");
-	STARPU_ASSERT(model->per_arch[STARPU_CORE_DEFAULT].debug_file);
-
-	get_model_debug_path(model, "gordon", debugpath, 256);
-	model->per_arch[STARPU_GORDON_DEFAULT].debug_file = fopen(debugpath, "a+");
-	STARPU_ASSERT(model->per_arch[STARPU_GORDON_DEFAULT].debug_file);
+	unsigned arch;
+	for (arch = 0; arch < NARCH_VARIATIONS; arch++)
+	{
+		char debugpath[256];
+		starpu_perfmodel_debugfilepath(model, arch, debugpath, 256);
+		model->per_arch[arch].debug_file = fopen(debugpath, "a+");
+		STARPU_ASSERT(model->per_arch[arch].debug_file);
+	}
 #endif
 
 	return;
@@ -462,39 +437,37 @@ int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *mod
 	return 0;
 }
 
-void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model,
-		enum starpu_perf_archtype arch, char **path, size_t maxlen)
+void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archname, size_t maxlen)
 {
-	char *archname;
+	if (arch == STARPU_CORE_DEFAULT)
+	{
+		snprintf(archname, maxlen, "core");
+	}
+	else if ((STARPU_CUDA_DEFAULT <= arch)
+		&& (arch < STARPU_CUDA_DEFAULT + MAXCUDADEVS))
+	{
+		int devid = arch - STARPU_CUDA_DEFAULT;
+		snprintf(archname, maxlen, "cuda_%d", devid);
+	}
+	else if (arch == STARPU_GORDON_DEFAULT)
+	{
+		snprintf(archname, maxlen, "gordon");
+	}
+	else
+	{
+		STARPU_ASSERT(0);
+	}
+}
+
+void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model,
+		enum starpu_perf_archtype arch, char *path, size_t maxlen)
+{
+	char archname[32];
+	starpu_perfmodel_get_arch_name(arch, archname, 32);
 
 	STARPU_ASSERT(path);
 
-	switch(arch) {
-		case STARPU_CORE_DEFAULT:
-			archname = "core";
-			break;
-		case STARPU_CUDA_DEFAULT:
-			archname = "cuda";
-			break;
-		case STARPU_CUDA_2:
-			archname = "cuda_2";
-			break;
-		case STARPU_CUDA_3:
-			archname = "cuda_3";
-			break;
-		case STARPU_CUDA_4:
-			archname = "cuda_4";
-			break;
-		case STARPU_GORDON_DEFAULT:
-			archname = "gordon";
-			break;
-		default:
-			/* unknown architecture */
-			*path = NULL;
-			return;
-	}
-
-	get_model_debug_path(model, archname, *path, maxlen);
+	get_model_debug_path(model, archname, path, maxlen);
 }
 
 double regression_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct job_s *j)

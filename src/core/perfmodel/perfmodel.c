@@ -189,6 +189,17 @@ void create_sampling_directory_if_needed(void)
 			STARPU_ASSERT(S_ISDIR(sb.st_mode));
 		}
 	
+		ret = mkdir(PERF_MODEL_DIR_DEBUG, S_IRWXU);
+		if (ret == -1)
+		{
+			STARPU_ASSERT(errno == EEXIST);
+	
+			/* make sure that it is actually a directory */
+			struct stat sb;
+			stat(PERF_MODEL_DIR, &sb);
+			STARPU_ASSERT(S_ISDIR(sb.st_mode));
+		}
+	
 		directory_existence_was_tested = 1;
 	}
 }

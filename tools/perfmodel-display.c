@@ -100,9 +100,8 @@ static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_per
 			fprintf(stderr, "\t\tc = %le\n", arch_model->regression.c);
 		}
 
-		char *debugname = malloc(1024);
-		starpu_perfmodel_debugfilepath(model, arch, &debugname, 1024);
-		free(debugname);
+		char debugname[256];
+		starpu_perfmodel_debugfilepath(model, arch, debugname, 1024);
 		printf("\t debug file path : %s\n", debugname);
 	}
 	else {
@@ -133,10 +132,9 @@ static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_per
 		}
 
 		if (strcmp(parameter, "path-file-debug") == 0) {
-			char *debugname = malloc(1024);
-			starpu_perfmodel_debugfilepath(model, arch, &debugname, 1024);
+			char debugname[256];
+			starpu_perfmodel_debugfilepath(model, arch, debugname, 1024);
 			printf("%s\n", debugname);
-			free(debugname);
 			return;
 		}
 
@@ -152,26 +150,14 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 	if (arch == NULL)
 	{
 		/* display all architectures */
-
-		/* yet, we assume there is a single performance model per
-		 * architecture */
-		fprintf(stderr, "performance model for CPUs :\n");
-		display_perf_model(model, STARPU_CORE_DEFAULT);
-	
-		fprintf(stderr, "performance model for CUDA :\n");
-		display_perf_model(model, STARPU_CUDA_DEFAULT);
-	
-		fprintf(stderr, "performance model for CUDA (2):\n");
-		display_perf_model(model, STARPU_CUDA_2);
-	
-		fprintf(stderr, "performance model for CUDA (3):\n");
-		display_perf_model(model, STARPU_CUDA_3);
-	
-		fprintf(stderr, "performance model for CUDA (4):\n");
-		display_perf_model(model, STARPU_CUDA_4);
-	
-		fprintf(stderr, "performance model for GORDON :\n");
-		display_perf_model(model, STARPU_GORDON_DEFAULT);
+		unsigned arch;
+		for (arch = 0; arch < NARCH_VARIATIONS; arch++)
+		{
+			char archname[32];
+			starpu_perfmodel_get_arch_name(arch, archname, 32);
+			fprintf(stderr, "performance model for %s\n", archname);
+			display_perf_model(model, arch);
+		}
 	}
 	else {
 		if (strcmp(arch, "core") == 0) {
@@ -180,14 +166,19 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 		}
 
 		if (strcmp(arch, "cuda") == 0) {
-			display_perf_model(model, STARPU_CUDA_DEFAULT);
-			display_perf_model(model, STARPU_CUDA_2);
-			display_perf_model(model, STARPU_CUDA_3);
-			display_perf_model(model, STARPU_CUDA_4);
+			unsigned archid;
+			for (archid = STARPU_CUDA_DEFAULT; archid < STARPU_CUDA_DEFAULT + MAXCUDADEVS; archid++)
+			{
+				char archname[32];
+				starpu_perfmodel_get_arch_name(archid, archname, 32);
+				fprintf(stderr, "performance model for %s\n", archname);
+				display_perf_model(model, archid);
+			}
 			return;
 		}
 
 		if (strcmp(arch, "gordon") == 0) {
+			fprintf(stderr, "performance model for gordon\n");
 			display_perf_model(model, STARPU_GORDON_DEFAULT);
 			return;
 		}

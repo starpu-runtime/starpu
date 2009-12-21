@@ -177,25 +177,8 @@ static int init_machine_config(struct machine_config_s *config,
 	for (cudagpu = 0; cudagpu < config->ncudagpus; cudagpu++)
 	{
 		config->workers[config->nworkers + cudagpu].arch = STARPU_CUDA_WORKER;
-		/* XXX could be cleaner, we something like STARPU_CUDA_DEFAULT + gpuid */
 		int devid = get_next_gpuid(config);
-		enum starpu_perf_archtype arch;
-		switch (devid) {
-			case 0:
-			default:
-				arch = STARPU_CUDA_DEFAULT;
-				break;
-			case 1:
-				arch = STARPU_CUDA_2;
-				break;
-			case 2:
-				arch = STARPU_CUDA_3;
-				break;
-			case 3:
-				arch = STARPU_CUDA_4;
-				break;
-		}
-		
+		enum starpu_perf_archtype arch = STARPU_CUDA_DEFAULT + devid;
 		config->workers[config->nworkers + cudagpu].id = devid;
 		config->workers[config->nworkers + cudagpu].perf_arch = arch; 
 		config->workers[config->nworkers + cudagpu].worker_mask = CUDA;
