@@ -46,6 +46,33 @@ static void *handle_to_ptr_blas(starpu_data_handle data_handle)
 	return (void *)starpu_get_blas_local_ptr(data_handle);
 }
 
+/*
+ * 	Block
+ */
+
+static int handle_to_datatype_block(starpu_data_handle data_handle, MPI_Datatype *datatype)
+{
+	unsigned nx = starpu_get_block_nx(data_handle);
+	unsigned ny = starpu_get_block_ny(data_handle);
+	unsigned nz = starpu_get_block_nz(data_handle);
+	unsigned ldy = starpu_get_block_local_ldy(data_handle);
+	unsigned ldz = starpu_get_block_local_ldz(data_handle);
+	size_t elemsize = starpu_get_block_elemsize(data_handle);
+
+	MPI_Datatype datatype_2dlayer;
+	MPI_Type_vector(ny, nx*elemsize, ldy*elemsize, MPI_BYTE, &datatype_2dlayer);
+
+	MPI_Type_hvector(nz, 1, ldz*elemsize, datatype_2dlayer, datatype);
+
+	MPI_Type_commit(datatype);
+
+	return 0;
+}
+
+static void *handle_to_ptr_block(starpu_data_handle data_handle)
+{
+	return (void *)starpu_get_block_local_ptr(data_handle);
+}
 
 /*
  * 	Vector
@@ -73,7 +100,7 @@ static void *handle_to_ptr_vector(starpu_data_handle data_handle)
 
 static handle_to_datatype_func handle_to_datatype_funcs[STARPU_NINTERFACES_ID] = {
 	[STARPU_BLAS_INTERFACE_ID]	= handle_to_datatype_blas,
-	[STARPU_BLOCK_INTERFACE_ID]	= NULL,
+	[STARPU_BLOCK_INTERFACE_ID]	= handle_to_datatype_block,
 	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_datatype_vector,
 	[STARPU_CSR_INTERFACE_ID]	= NULL,
 	[STARPU_CSC_INTERFACE_ID]	= NULL,
@@ -82,7 +109,7 @@ static handle_to_datatype_func handle_to_datatype_funcs[STARPU_NINTERFACES_ID] =
 
 static handle_to_ptr_func handle_to_ptr_funcs[STARPU_NINTERFACES_ID] = {
 	[STARPU_BLAS_INTERFACE_ID]	= handle_to_ptr_blas,
-	[STARPU_BLOCK_INTERFACE_ID]	= NULL,
+	[STARPU_BLOCK_INTERFACE_ID]	= handle_to_ptr_block,
 	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_ptr_vector,
 	[STARPU_CSR_INTERFACE_ID]	= NULL,
 	[STARPU_CSC_INTERFACE_ID]	= NULL,

@@ -51,7 +51,8 @@ check_PROGRAMS =
 
 check_PROGRAMS +=					\
 	tests/pingpong					\
-	tests/ring
+	tests/ring					\
+	tests/block_interface
 
 tests_pingpong_LDADD =					\
 	libstarpumpi.la
@@ -64,6 +65,12 @@ tests_ring_LDADD =					\
 
 tests_ring_SOURCES =					\
 	tests/ring.c
+
+tests_block_interface_LDADD =				\
+	libstarpumpi.la
+
+tests_block_interface_SOURCES =				\
+	tests/block_interface.c
 
 if USE_CUDA
 tests_ring_SOURCES += tests/ring_kernel.cu
