@@ -228,6 +228,12 @@ uintptr_t starpu_get_block_local_ptr(data_state *state)
 	return (state->interface[node].block.ptr);
 }
 
+size_t starpu_get_block_elemsize(data_state *state)
+{
+	return (state->interface[0].block.elemsize);
+}
+
+
 /* memory allocation/deallocation primitives for the BLOCK interface */
 
 /* returns the size of the allocated area */

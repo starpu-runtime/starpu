@@ -64,6 +64,7 @@ uint32_t starpu_get_block_nz(starpu_data_handle handle);
 uint32_t starpu_get_block_local_ldy(starpu_data_handle handle);
 uint32_t starpu_get_block_local_ldz(starpu_data_handle handle);
 uintptr_t starpu_get_block_local_ptr(starpu_data_handle handle);
+size_t starpu_get_block_elemsize(starpu_data_handle handle);
 
 /* vector interface for contiguous (non-strided) buffers */
 typedef struct starpu_vector_interface_s {
