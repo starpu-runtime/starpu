@@ -127,6 +127,14 @@ void starpu_map_filters(data_state *root_data, unsigned nfilters, ...)
 /*
  * example get_sub_data(data_state *root_data, 3, 42, 0, 1);
  */
+starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i)
+{
+#warning TODO nchildren should not be an int
+	STARPU_ASSERT(i < (unsigned)handle->nchildren);
+
+	return &handle->children[i];
+}
+
 data_state *get_sub_data(data_state *root_data, unsigned depth, ... )
 {
 	STARPU_ASSERT(root_data);
@@ -292,6 +300,7 @@ void starpu_unpartition_data(data_state *root_data, uint32_t gathering_node)
 	starpu_spin_unlock(&root_data->header_lock);
 }
 
+/* TODO move ! */
 void starpu_advise_if_data_is_important(data_state *state, unsigned is_important)
 {
 
@@ -311,4 +320,12 @@ void starpu_advise_if_data_is_important(data_state *state, unsigned is_important
 	/* now the parent may be used again so we release the lock */
 	starpu_spin_unlock(&state->header_lock);
 
+}
+
+void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren)
+{
+	handle->children = calloc(nchildren, sizeof(data_state));
+	STARPU_ASSERT(handle->children);
+
+	handle->nchildren = nchildren;
 }

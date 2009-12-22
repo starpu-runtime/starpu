@@ -17,16 +17,18 @@
 #ifndef __STARPU_DATA_H__
 #define __STARPU_DATA_H__
 
+#include <starpu.h>
 #include <starpu_config.h>
+
+struct starpu_data_state_t;
+typedef struct starpu_data_state_t * starpu_data_handle;
+
 #include <starpu-data-interfaces.h>
 #include <starpu-data-filters.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct starpu_data_state_t;
-
 typedef enum {
 	STARPU_R,
 	STARPU_W,
@@ -38,20 +40,20 @@ typedef struct starpu_buffer_descr_t {
 	starpu_access_mode mode;
 } starpu_buffer_descr;
 
-void starpu_unpartition_data(struct starpu_data_state_t *root_data, uint32_t gathering_node);
-void starpu_delete_data(struct starpu_data_state_t *state);
+void starpu_unpartition_data(starpu_data_handle root_data, uint32_t gathering_node);
+void starpu_delete_data(starpu_data_handle state);
 
-void starpu_advise_if_data_is_important(struct starpu_data_state_t *state, unsigned is_important);
+void starpu_advise_if_data_is_important(starpu_data_handle state, unsigned is_important);
 
-int starpu_sync_data_with_mem(struct starpu_data_state_t *state, starpu_access_mode mode);
-void starpu_release_data_from_mem(struct starpu_data_state_t *state);
+int starpu_sync_data_with_mem(starpu_data_handle state, starpu_access_mode mode);
+void starpu_release_data_from_mem(starpu_data_handle state);
 
 int starpu_malloc_pinned_if_possible(void **A, size_t dim);
 int starpu_free_pinned_if_possible(void *A);
 
-int starpu_request_data_allocation(struct starpu_data_state_t *state, uint32_t node);
+int starpu_request_data_allocation(starpu_data_handle state, uint32_t node);
 
-int starpu_prefetch_data_on_node(struct starpu_data_state_t *state, unsigned node, unsigned async);
+int starpu_prefetch_data_on_node(starpu_data_handle state, unsigned node, unsigned async);
 
 unsigned starpu_get_worker_memory_node(unsigned workerid);
 
@@ -59,7 +61,7 @@ unsigned starpu_get_worker_memory_node(unsigned workerid);
  * that when it is modified, it is automatically transfered into those memory
  * node. For instance a (1<<0) write-back mask means that the CUDA workers will
  * commit their changes in main memory (node 0). */
-void starpu_data_set_wb_mask(struct starpu_data_state_t *state, uint32_t wb_mask);
+void starpu_data_set_wb_mask(starpu_data_handle state, uint32_t wb_mask);
 
 #ifdef __cplusplus
 }

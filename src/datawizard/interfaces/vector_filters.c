@@ -23,7 +23,9 @@ unsigned starpu_block_filter_func_vector(starpu_filter *f, data_state *root_data
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
 
-	starpu_vector_interface_t *vector_root = &root_data->interface[0].vector;
+	starpu_vector_interface_t *vector_root =
+		starpu_data_get_interface_on_node(root_data, 0);
+
 	uint32_t nx = vector_root->nx;
 	size_t elemsize = vector_root->elemsize;
 
@@ -31,8 +33,7 @@ unsigned starpu_block_filter_func_vector(starpu_filter *f, data_state *root_data
 	nchunks = STARPU_MIN(nx, arg);
 
 	/* first allocate the children data_state */
-	root_data->children = calloc(nchunks, sizeof(data_state));
-	STARPU_ASSERT(root_data->children);
+	starpu_data_create_children(root_data, nchunks);
 
 	/* actually create all the chunks */
 	unsigned chunk;
@@ -44,16 +45,23 @@ unsigned starpu_block_filter_func_vector(starpu_filter *f, data_state *root_data
 		uint32_t child_nx = 
 			STARPU_MIN(chunk_size, nx - chunk*chunk_size);
 
+		starpu_data_handle chunk_handle =
+			starpu_data_get_child(root_data, chunk);
+
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
 		{
-			starpu_vector_interface_t *local = &root_data->children[chunk].interface[node].vector;
+			starpu_vector_interface_t *local =
+				starpu_data_get_interface_on_node(chunk_handle, node);
 
 			local->nx = child_nx;
 			local->elemsize = elemsize;
 
 			if (root_data->per_node[node].allocated) {
-				local->ptr = root_data->interface[node].vector.ptr + offset;
+				starpu_vector_interface_t *local_root =
+					starpu_data_get_interface_on_node(root_data, node);
+
+				local->ptr = local_root->ptr + offset;
 			}
 		}
 	}
@@ -66,38 +74,53 @@ unsigned starpu_divide_in_2_filter_func_vector(starpu_filter *f, data_state *roo
 {
 	uint32_t length_first = f->filter_arg;
 
-	starpu_vector_interface_t *vector_root = &root_data->interface[0].vector;
+	starpu_vector_interface_t *vector_root =
+		starpu_data_get_interface_on_node(root_data, 0);
+
 	uint32_t nx = vector_root->nx;
 	size_t elemsize = vector_root->elemsize;
 
 	/* first allocate the children data_state */
-	root_data->children = calloc(2, sizeof(data_state));
-	STARPU_ASSERT(root_data->children);
+	starpu_data_create_children(root_data, 2);
 
 	STARPU_ASSERT(length_first < nx);
+
+	starpu_data_handle chunk0_handle =
+		starpu_data_get_child(root_data, 0);
 
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
 	{
-		starpu_vector_interface_t *local = &root_data->children[0].interface[node].vector;
+		starpu_vector_interface_t *local =
+			starpu_data_get_interface_on_node(chunk0_handle, node);
 
 		local->nx = length_first;
 		local->elemsize = elemsize;
 
 		if (root_data->per_node[node].allocated) {
-			local->ptr = root_data->interface[node].vector.ptr;
+			starpu_vector_interface_t *local_root =
+				starpu_data_get_interface_on_node(root_data, node);
+
+			local->ptr = local_root->ptr;
 		}
 	}
 
+	starpu_data_handle chunk1_handle =
+		starpu_data_get_child(root_data, 1);
+
 	for (node = 0; node < MAXNODES; node++)
 	{
-		starpu_vector_interface_t *local = &root_data->children[1].interface[node].vector;
+		starpu_vector_interface_t *local =
+			starpu_data_get_interface_on_node(chunk1_handle, node);
 
 		local->nx = nx - length_first;
 		local->elemsize = elemsize;
 
 		if (root_data->per_node[node].allocated) {
-			local->ptr = root_data->interface[node].vector.ptr + length_first*elemsize;
+			starpu_vector_interface_t *local_root =
+				starpu_data_get_interface_on_node(root_data, node);
+
+			local->ptr = local_root->ptr + length_first*elemsize;
 		}
 	}
 
@@ -109,13 +132,14 @@ unsigned starpu_list_filter_func_vector(starpu_filter *f, data_state *root_data)
 	uint32_t nchunks = f->filter_arg;
 	uint32_t *length_tab = f->filter_arg_ptr;
 
-	starpu_vector_interface_t *vector_root = &root_data->interface[0].vector;
+	starpu_vector_interface_t *vector_root =
+		starpu_data_get_interface_on_node(root_data, 0);
+
 	uint32_t nx = vector_root->nx;
 	size_t elemsize = vector_root->elemsize;
 
 	/* first allocate the children data_state */
-	root_data->children = calloc(nchunks, sizeof(data_state));
-	STARPU_ASSERT(root_data->children);
+	starpu_data_create_children(root_data, nchunks);
 
 	unsigned current_pos = 0;
 
@@ -123,18 +147,25 @@ unsigned starpu_list_filter_func_vector(starpu_filter *f, data_state *root_data)
 	unsigned chunk;
 	for (chunk = 0; chunk < nchunks; chunk++)
 	{
+		starpu_data_handle chunk_handle =
+			starpu_data_get_child(root_data, chunk);
+
 		uint32_t chunk_size = length_tab[chunk];
 
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
 		{
-			starpu_vector_interface_t *local = &root_data->children[chunk].interface[node].vector;
+			starpu_vector_interface_t *local =
+				starpu_data_get_interface_on_node(chunk_handle, node);
 
 			local->nx = chunk_size;
 			local->elemsize = elemsize;
 
 			if (root_data->per_node[node].allocated) {
-				local->ptr = root_data->interface[node].vector.ptr + current_pos*elemsize;
+				starpu_vector_interface_t *local_root =
+					starpu_data_get_interface_on_node(root_data, node);
+
+				local->ptr = local_root->ptr + current_pos*elemsize;
 			}
 		}
 

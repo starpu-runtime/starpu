@@ -18,13 +18,13 @@
 #define __STARPU_DATA_INTERFACES_H__
 
 #include <starpu.h>
+#include <starpu-data.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct starpu_data_state_t;
-typedef struct starpu_data_state_t * starpu_data_handle;
+void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node);
 
 /* BLAS interface for dense matrices */
 typedef struct starpu_blas_interface_s {
@@ -102,7 +102,7 @@ uint32_t starpu_get_csr_firstentry(starpu_data_handle handle);
 uintptr_t starpu_get_csr_local_nzval(starpu_data_handle handle);
 uint32_t *starpu_get_csr_local_colind(starpu_data_handle handle);
 uint32_t *starpu_get_csr_local_rowptr(starpu_data_handle handle);
-size_t starpu_get_csr_elemsize(struct starpu_data_state_t *state);
+size_t starpu_get_csr_elemsize(starpu_data_handle handle);
 
 /* CSC interface for sparse matrices (compressed sparse column representation) */
 typedef struct starpu_csc_interface_s {

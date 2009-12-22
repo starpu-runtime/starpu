@@ -37,8 +37,7 @@ unsigned starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unus
 	nchunks = nnz;
 	
 	/* first allocate the children data_state */
-	root_data->children = calloc(nchunks, sizeof(data_state));
-	STARPU_ASSERT(root_data->children);
+	starpu_data_create_children(root_data, nchunks);
 
 	/* actually create all the chunks */
 
@@ -49,12 +48,13 @@ unsigned starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unus
 	unsigned chunk;
 	for (chunk = 0; chunk < nchunks; chunk++)
 	{
+		starpu_data_handle sub_handle = starpu_data_get_child(root_data, chunk);
 		uint32_t ptr_offset = c*r*chunk*elemsize;
 
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
 		{
-			starpu_blas_interface_t *local = &root_data->children[chunk].interface[node].blas;
+			starpu_blas_interface_t *local = &sub_handle->interface[node].blas;
 
 			local->nx = c;
 			local->ny = r;
@@ -67,8 +67,7 @@ unsigned starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unus
 			}
 		}
 
-		struct starpu_data_state_t *state = &root_data->children[chunk];
-		state->ops = &interface_blas_ops;
+		sub_handle->ops = &interface_blas_ops;
 	}
 
 	return nchunks;
