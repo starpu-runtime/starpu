@@ -71,8 +71,6 @@ static void _handle_new_mpi_irecv(struct starpu_mpi_req_s *req)
 }
 
 
-/* NB: there is no status field here as we (may) return before the request is
- * actually transmitted to MPI. */
 int starpu_mpi_irecv(starpu_data_handle data_handle, struct starpu_mpi_req_s *req,
 		int source, int mpi_tag, MPI_Comm comm,
 		void (*callback)(void *))
