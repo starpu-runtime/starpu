@@ -23,23 +23,25 @@ unsigned starpu_vertical_block_filter_func_csr(starpu_filter *f, data_state *roo
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
 
-	uint32_t nrow = root_data->interface[0].csr.nrow;
-	size_t elemsize = root_data->interface[0].csr.elemsize;
-	uint32_t firstentry = root_data->interface[0].csr.firstentry;
+	starpu_csr_interface_t *root_interface =
+		starpu_data_get_interface_on_node(root_data, 0);
+
+	uint32_t nrow = root_interface->nrow;
+	size_t elemsize = root_interface->elemsize;
+	uint32_t firstentry = root_interface->firstentry;
 
 	/* we will have arg chunks */
 	nchunks = STARPU_MIN(nrow, arg);
 	
 	/* first allocate the children data_state */
-	root_data->children = calloc(nchunks, sizeof(data_state));
-	STARPU_ASSERT(root_data->children);
+	starpu_data_create_children(root_data, nchunks);
 
 	/* actually create all the chunks */
 	uint32_t chunk_size = (nrow + nchunks - 1)/nchunks;
 
 	/* XXX */
 	STARPU_ASSERT(root_data->per_node[0].allocated);
-	uint32_t *rowptr = root_data->interface[0].csr.rowptr;
+	uint32_t *rowptr = root_interface->rowptr;
 
 	unsigned chunk;
 	for (chunk = 0; chunk < nchunks; chunk++)
@@ -52,10 +54,14 @@ unsigned starpu_vertical_block_filter_func_csr(starpu_filter *f, data_state *roo
 
 		uint32_t local_nnz = rowptr[first_index + child_nrow] - rowptr[first_index]; 
 
+		starpu_data_handle chunk_handle =
+			starpu_data_get_child(root_data, chunk);
+
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
 		{
-			starpu_csr_interface_t *local = &root_data->children[chunk].interface[node].csr;
+			starpu_csr_interface_t *local = 
+				starpu_data_get_interface_on_node(chunk_handle, node);
 
 			local->nnz = local_nnz;
 			local->nrow = child_nrow;
@@ -63,9 +69,9 @@ unsigned starpu_vertical_block_filter_func_csr(starpu_filter *f, data_state *roo
 			local->elemsize = elemsize;
 
 			if (root_data->per_node[node].allocated) {
-				local->rowptr = &root_data->interface[node].csr.rowptr[first_index];
-				local->colind = &root_data->interface[node].csr.colind[local_firstentry];
-				float *nzval = (float *)(root_data->interface[node].csr.nzval);
+				local->rowptr = &local->rowptr[first_index];
+				local->colind = &local->colind[local_firstentry];
+				float *nzval = (float *)(local->nzval);
 				local->nzval = (uintptr_t)&nzval[local_firstentry];
 			}
 		}
