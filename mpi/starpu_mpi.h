@@ -24,22 +24,33 @@
 
 LIST_TYPE(starpu_mpi_req,
 	void *ptr;
+	starpu_data_handle data_handle;
+	starpu_access_mode mode;
 	MPI_Datatype datatype;
 	MPI_Request request;
+	void (*handle_new)(struct starpu_mpi_req_s *);
+	void (*handle_pending)(struct starpu_mpi_req_s *);
+	unsigned submitted;
+	int dst;
+	int src;
+	int mpi_tag;
+	MPI_Comm comm;
+	pthread_mutex_t req_mutex;
+	pthread_cond_t req_cond;
 );
 
-int starpu_mpi_isend(starpu_data_handle data_handle, starpu_mpi_req_t *req,
+int starpu_mpi_isend(starpu_data_handle data_handle, struct starpu_mpi_req_s *req,
 		int dest, int mpi_tag, MPI_Comm comm,
 		void (*callback)(void *));
-int starpu_mpi_irecv(starpu_data_handle data_handle, starpu_mpi_req_t *req,
+int starpu_mpi_irecv(starpu_data_handle data_handle, struct starpu_mpi_req_s *req,
 		int source, int mpi_tag, MPI_Comm comm,
 		void (*callback)(void *));
 int starpu_mpi_send(starpu_data_handle data_handle,
 		int dest, int mpi_tag, MPI_Comm comm);
 int starpu_mpi_recv(starpu_data_handle data_handle,
 		int source, int mpi_tag, MPI_Comm comm, MPI_Status *status);
-int starpu_mpi_wait(starpu_mpi_req_t *req);
-int starpu_mpi_test(starpu_mpi_req_t *req, int *flag);
+int starpu_mpi_wait(struct starpu_mpi_req_s *req, MPI_Status *status);
+int starpu_mpi_test(struct starpu_mpi_req_s *req, int *flag, MPI_Status *status);
 int starpu_mpi_initialize(void);
 int starpu_mpi_shutdown(void);
 

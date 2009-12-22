@@ -51,8 +51,16 @@ check_PROGRAMS =
 
 check_PROGRAMS +=					\
 	tests/pingpong					\
+	tests/mpi_isend					\
 	tests/ring					\
 	tests/block_interface
+
+tests_mpi_isend_LDADD =					\
+	libstarpumpi.la
+
+tests_mpi_isend_SOURCES =				\
+	tests/pingpong.c
+
 
 tests_pingpong_LDADD =					\
 	libstarpumpi.la
