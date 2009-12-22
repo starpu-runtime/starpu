@@ -88,8 +88,7 @@ unsigned starpu_vertical_block_filter_func(starpu_filter *f, data_state *root_da
 	nchunks = STARPU_MIN(ny, arg);
 	
 	/* first allocate the children data_state */
-	root_data->children = calloc(nchunks, sizeof(data_state));
-	STARPU_ASSERT(root_data->children);
+	starpu_data_create_children(root_data, nchunks);
 
 	/* actually create all the chunks */
 	unsigned chunk;
