@@ -250,11 +250,9 @@ static void reuse_mem_chunk(unsigned node, data_state *new_data, mem_chunk_t mc,
 	new_data->per_node[node].allocated = 1;
 	new_data->per_node[node].automatically_allocated = 1;
 
-	memcpy(&new_data->interface[node], &mc->interface, sizeof(starpu_data_interface_t));
-
 	mc->data = new_data;
 	mc->data_was_deleted = 0;
-	/* mc->ops, mc->size, mc->footprint and mc->interface should be
+	/* mc->ops, mc->size and mc->footprint should be
  	 * unchanged ! */
 	
 	/* reinsert the mem chunk in the list of active memory chunks */
@@ -427,9 +425,6 @@ static void register_mem_chunk(data_state *state, uint32_t dst_node, size_t size
 	mc->data_was_deleted = 0;
 	mc->automatically_allocated = automatically_allocated;
 
-	/* the interface was already filled by ops->allocate_data_on_node */
-	memcpy(&mc->interface, &state->interface[dst_node], sizeof(starpu_data_interface_t));
-
 	res = pthread_rwlock_wrlock(&mc_rwlock[dst_node]);
 	STARPU_ASSERT(!res);
 
@@ -494,7 +489,9 @@ static size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node)
 	{
 		STARPU_ASSERT(state->per_node[node].allocated);
 
-		mc->ops->liberate_data_on_node(&mc->interface, node);
+		starpu_data_interface_t *interface =
+			starpu_data_get_interface_on_node(state, node);
+		mc->ops->liberate_data_on_node(interface, node);
 
 		if (!mc->data_was_deleted)
 		{
