@@ -18,12 +18,13 @@
 #include <datawizard/datastats.h>
 #include <common/config.h>
 #include <starpu.h>
+#include <datawizard/data_parameters.h>
 
 /* measure the cache hit ratio for each node */
 
 #ifdef DATA_STATS
-static unsigned hit_cnt[16];
-static unsigned miss_cnt[16];
+static unsigned hit_cnt[MAXNODES];
+static unsigned miss_cnt[MAXNODES];
 #endif
 
 inline void msi_cache_hit(unsigned node __attribute__ ((unused)))
@@ -49,7 +50,7 @@ void display_msi_stats(void)
 
 	fprintf(stderr, "MSI cache stats :\n");
 
-	for (node = 0; node < 4; node++)
+	for (node = 0; node < MAXNODES; node++)
 	{
 		total_hit_cnt += hit_cnt[node];
 		total_miss_cnt += miss_cnt[node];
@@ -57,7 +58,7 @@ void display_msi_stats(void)
 
 	fprintf(stderr, "TOTAL MSI stats\thit %u (%2.2f \%%)\tmiss %u (%2.2f \%%)\n", total_hit_cnt, (100.0f*total_hit_cnt)/(total_hit_cnt+total_miss_cnt), total_miss_cnt, (100.0f*total_miss_cnt)/(total_hit_cnt+total_miss_cnt));
 
-	for (node = 0; node < 4; node++)
+	for (node = 0; node < MAXNODES; node++)
 	{
 		if (hit_cnt[node]+miss_cnt[node])
 		{
@@ -72,8 +73,8 @@ void display_msi_stats(void)
 /* measure the efficiency of our allocation cache */
 
 #ifdef DATA_STATS
-static unsigned alloc_cnt[16];
-static unsigned alloc_cache_hit_cnt[16];
+static unsigned alloc_cnt[MAXNODES];
+static unsigned alloc_cache_hit_cnt[MAXNODES];
 #endif
 
 inline void allocation_cache_hit(unsigned node __attribute__ ((unused)))
@@ -95,7 +96,7 @@ void display_alloc_cache_stats(void)
 #ifdef DATA_STATS
 	fprintf(stderr, "Allocation cache stats:\n");
 	unsigned node;
-	for (node = 0; node < 4; node++) 
+	for (node = 0; node < MAXNODES; node++) 
 	{
 		if (alloc_cnt[node]) 
 		{
@@ -111,7 +112,7 @@ void display_alloc_cache_stats(void)
 /* measure the amount of data transfers between each pair of nodes */
 #ifdef DATA_STATS
 
-static size_t comm_ammount[8][8];
+static size_t comm_ammount[MAXNODES][MAXNODES];
 
 void display_comm_ammounts(void)
 {
@@ -119,16 +120,16 @@ void display_comm_ammounts(void)
 
 	unsigned long sum = 0;
 
-	for (dst = 0; dst < 8; dst++)
-	for (src = 0; src < 8; src++)
+	for (dst = 0; dst < MAXNODES; dst++)
+	for (src = 0; src < MAXNODES; src++)
 	{
 		sum += (unsigned long)comm_ammount[src][dst];
 	}
 
 	fprintf(stderr, "\nData transfers stats:\nTOTAL transfers %ld MB\n", sum/(1024*1024));
 
-	for (dst = 0; dst < 8; dst++)
-	for (src = dst + 1; src < 8; src++)
+	for (dst = 0; dst < MAXNODES; dst++)
+	for (src = dst + 1; src < MAXNODES; src++)
 	{
 		if (comm_ammount[src][dst])
 			fprintf(stderr, "\t%d <-> %d\t%ld MB\n\t\t%d -> %d\t%ld MB\n\t\t%d -> %d\t%ld MB\n",
