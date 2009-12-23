@@ -369,8 +369,9 @@ int fetch_task_input(struct starpu_task *task, uint32_t mask)
 		if (STARPU_UNLIKELY(ret))
 			goto enomem;
 
-		memcpy(&interface[index], &state->interface[local_memory_node], 
-				sizeof(starpu_data_interface_t));
+		void *src_interface = starpu_data_get_interface_on_node(state, local_memory_node);
+
+		memcpy(&interface[index], src_interface, sizeof(starpu_data_interface_t));
 	}
 
 	TRACE_END_FETCH_INPUT(NULL);

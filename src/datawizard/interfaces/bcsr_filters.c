@@ -24,14 +24,17 @@ unsigned starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unus
 {
 	unsigned nchunks;
 
-	uint32_t nnz = root_data->interface[0].bcsr.nnz;
+	struct starpu_bcsr_interface_s *interface =
+		starpu_data_get_interface_on_node(root_data, 0);
 
-	size_t elemsize = root_data->interface[0].bcsr.elemsize;
-	uint32_t firstentry = root_data->interface[0].bcsr.firstentry;
+	uint32_t nnz = interface->nnz;
+
+	size_t elemsize = interface->elemsize;
+	uint32_t firstentry = interface->firstentry;
 
 	/* size of the tiles */
-	uint32_t r = root_data->interface[0].bcsr.r;
-	uint32_t c = root_data->interface[0].bcsr.c;
+	uint32_t r = interface->r;
+	uint32_t c = interface->c;
 
 	/* we create as many subdata as there are blocks ... */
 	nchunks = nnz;
@@ -54,7 +57,8 @@ unsigned starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unus
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
 		{
-			starpu_blas_interface_t *local = &sub_handle->interface[node].blas;
+			starpu_blas_interface_t *local =
+				starpu_data_get_interface_on_node(root_data, node);
 
 			local->nx = c;
 			local->ny = r;
@@ -62,7 +66,9 @@ unsigned starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unus
 			local->elemsize = elemsize;
 
 			if (root_data->per_node[node].allocated) {
-				uint8_t *nzval = (uint8_t *)(root_data->interface[node].bcsr.nzval);
+				struct starpu_bcsr_interface_s *node_interface =
+					starpu_data_get_interface_on_node(root_data, node);
+				uint8_t *nzval = (uint8_t *)(node_interface->nzval);
 				local->ptr = (uintptr_t)&nzval[firstentry + ptr_offset];
 			}
 		}

@@ -99,7 +99,8 @@ void starpu_register_vector_data(struct starpu_data_state_t **handle, uint32_t h
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
 	{
-		starpu_vector_interface_t *local_interface = &state->interface[node].vector;
+		starpu_vector_interface_t *local_interface = 
+			starpu_data_get_interface_on_node(state, node);
 
 		if (node == home_node) {
 			local_interface->ptr = ptr;
@@ -141,8 +142,8 @@ struct dumped_vector_interface_s {
 
 static void display_vector_interface(data_state *state, FILE *f)
 {
-	starpu_vector_interface_t *interface;
-	interface =  &state->interface[0].vector;
+	starpu_vector_interface_t *interface =
+		starpu_data_get_interface_on_node(state, 0);
 
 	fprintf(f, "%u\t", interface->nx);
 }
@@ -163,9 +164,8 @@ static size_t dump_vector_interface(starpu_data_interface_t *interface, void *_b
 static size_t vector_interface_get_size(struct starpu_data_state_t *state)
 {
 	size_t size;
-	starpu_vector_interface_t *interface;
-
-	interface =  &state->interface[0].vector;
+	starpu_vector_interface_t *interface =
+		starpu_data_get_interface_on_node(state, 0);
 
 	size = interface->nx*interface->elemsize;
 
@@ -175,7 +175,10 @@ static size_t vector_interface_get_size(struct starpu_data_state_t *state)
 /* offer an access to the data parameters */
 uint32_t starpu_get_vector_nx(data_state *state)
 {
-	return (state->interface[0].vector.nx);
+	starpu_vector_interface_t *interface =
+		starpu_data_get_interface_on_node(state, 0);
+
+	return interface->nx;
 }
 
 uintptr_t starpu_get_vector_local_ptr(data_state *state)
@@ -185,12 +188,18 @@ uintptr_t starpu_get_vector_local_ptr(data_state *state)
 
 	STARPU_ASSERT(state->per_node[node].allocated);
 
-	return (state->interface[node].vector.ptr);
+	starpu_vector_interface_t *interface =
+		starpu_data_get_interface_on_node(state, node);
+
+	return interface->ptr;
 }
 
 size_t starpu_get_vector_elemsize(data_state *state)
 {
-	return (state->interface[0].vector.elemsize);
+	starpu_vector_interface_t *interface =
+		starpu_data_get_interface_on_node(state, 0);
+
+	return interface->elemsize;
 }
 
 /* memory allocation/deallocation primitives for the vector interface */
@@ -198,11 +207,14 @@ size_t starpu_get_vector_elemsize(data_state *state)
 /* returns the size of the allocated area */
 static size_t allocate_vector_buffer_on_node(data_state *state, uint32_t dst_node)
 {
+	starpu_vector_interface_t *interface =
+		starpu_data_get_interface_on_node(state, dst_node);
+
 	uintptr_t addr = 0;
 	size_t allocated_memory;
 
-	uint32_t nx = state->interface[dst_node].vector.nx;
-	size_t elemsize = state->interface[dst_node].vector.elemsize;
+	uint32_t nx = interface->nx;
+	size_t elemsize = interface->elemsize;
 
 	node_kind kind = get_node_kind(dst_node);
 
@@ -224,7 +236,7 @@ static size_t allocate_vector_buffer_on_node(data_state *state, uint32_t dst_nod
 		allocated_memory = nx*elemsize;
 
 		/* update the data properly in consequence */
-		state->interface[dst_node].vector.ptr = addr;
+		interface->ptr = addr;
 	} else {
 		/* allocation failed */
 		allocated_memory = 0;
@@ -256,8 +268,8 @@ static int copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t dst
 	starpu_vector_interface_t *src_vector;
 	starpu_vector_interface_t *dst_vector;
 
-	src_vector = &state->interface[src_node].vector;
-	dst_vector = &state->interface[dst_node].vector;
+	src_vector = starpu_data_get_interface_on_node(state, src_node);
+	dst_vector = starpu_data_get_interface_on_node(state, dst_node);
 
 	cublasGetVector(src_vector->nx, src_vector->elemsize,
 		(uint8_t *)src_vector->ptr, 1,
@@ -273,8 +285,8 @@ static int copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst
 	starpu_vector_interface_t *src_vector;
 	starpu_vector_interface_t *dst_vector;
 
-	src_vector = &state->interface[src_node].vector;
-	dst_vector = &state->interface[dst_node].vector;
+	src_vector = starpu_data_get_interface_on_node(state, src_node);
+	dst_vector = starpu_data_get_interface_on_node(state, dst_node);
 
 	cublasSetVector(src_vector->nx, src_vector->elemsize,
 		(uint8_t *)src_vector->ptr, 1,
@@ -290,8 +302,8 @@ static int copy_cublas_to_ram_async(data_state *state, uint32_t src_node, uint32
 	starpu_vector_interface_t *src_vector;
 	starpu_vector_interface_t *dst_vector;
 
-	src_vector = &state->interface[src_node].vector;
-	dst_vector = &state->interface[dst_node].vector;
+	src_vector = starpu_data_get_interface_on_node(state, src_node);
+	dst_vector = starpu_data_get_interface_on_node(state, dst_node);
 
 	cudaError_t cures;
 	cures = cudaMemcpyAsync((char *)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize, cudaMemcpyDeviceToHost, *stream);
@@ -317,8 +329,8 @@ static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t 
 	starpu_vector_interface_t *src_vector;
 	starpu_vector_interface_t *dst_vector;
 
-	src_vector = &state->interface[src_node].vector;
-	dst_vector = &state->interface[dst_node].vector;
+	src_vector = starpu_data_get_interface_on_node(state, src_node);
+	dst_vector = starpu_data_get_interface_on_node(state, dst_node);
 
 	cudaError_t cures;
 	
@@ -345,11 +357,17 @@ static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t 
 
 static int dummy_copy_ram_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)
 {
-	uint32_t nx = state->interface[dst_node].vector.nx;
-	size_t elemsize = state->interface[dst_node].vector.elemsize;
+	starpu_vector_interface_t *src_vector;
+	starpu_vector_interface_t *dst_vector;
 
-	uintptr_t ptr_src = state->interface[src_node].vector.ptr;
-	uintptr_t ptr_dst = state->interface[dst_node].vector.ptr;
+	src_vector = starpu_data_get_interface_on_node(state, src_node);
+	dst_vector = starpu_data_get_interface_on_node(state, dst_node);
+
+	uint32_t nx = dst_vector->nx;
+	size_t elemsize = dst_vector->elemsize;
+
+	uintptr_t ptr_src = src_vector->ptr;
+	uintptr_t ptr_dst = dst_vector->ptr;
 
 	memcpy((void *)ptr_dst, (void *)ptr_src, nx*elemsize);
 

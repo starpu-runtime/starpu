@@ -110,7 +110,8 @@ void starpu_register_blas_data(struct starpu_data_state_t **handle, uint32_t hom
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
 	{
-		starpu_blas_interface_t *local_interface = &state->interface[node].blas;
+		starpu_blas_interface_t *local_interface =
+			starpu_data_get_interface_on_node(state, node);
 
 		if (node == home_node) {
 			local_interface->ptr = ptr;
@@ -157,8 +158,7 @@ struct dumped_blas_interface_s {
 static void display_blas_interface(data_state *state, FILE *f)
 {
 	starpu_blas_interface_t *interface;
-
-	interface = &state->interface[0].blas;
+		starpu_data_get_interface_on_node(state, 0);
 
 	fprintf(f, "%u\t%u\t", interface->nx, interface->ny);
 }
@@ -178,11 +178,10 @@ static size_t dump_blas_interface(starpu_data_interface_t *interface, void *_buf
 
 static size_t blas_interface_get_size(struct starpu_data_state_t *state)
 {
+	starpu_blas_interface_t *interface =
+		starpu_data_get_interface_on_node(state, 0);
+
 	size_t size;
-	starpu_blas_interface_t *interface;
-
-	interface = &state->interface[0].blas;
-
 	size = (size_t)interface->nx*interface->ny*interface->elemsize; 
 
 	return size;
@@ -191,12 +190,18 @@ static size_t blas_interface_get_size(struct starpu_data_state_t *state)
 /* offer an access to the data parameters */
 uint32_t starpu_get_blas_nx(data_state *state)
 {
-	return (state->interface[0].blas.nx);
+	starpu_blas_interface_t *interface =
+		starpu_data_get_interface_on_node(state, 0);
+
+	return interface->nx;
 }
 
 uint32_t starpu_get_blas_ny(data_state *state)
 {
-	return (state->interface[0].blas.ny);
+	starpu_blas_interface_t *interface =
+		starpu_data_get_interface_on_node(state, 0);
+
+	return interface->ny;
 }
 
 uint32_t starpu_get_blas_local_ld(data_state *state)
@@ -206,7 +211,10 @@ uint32_t starpu_get_blas_local_ld(data_state *state)
 
 	STARPU_ASSERT(state->per_node[node].allocated);
 
-	return (state->interface[node].blas.ld);
+	starpu_blas_interface_t *interface =
+		starpu_data_get_interface_on_node(state, node);
+
+	return interface->ld;
 }
 
 uintptr_t starpu_get_blas_local_ptr(data_state *state)
@@ -216,12 +224,18 @@ uintptr_t starpu_get_blas_local_ptr(data_state *state)
 
 	STARPU_ASSERT(state->per_node[node].allocated);
 
-	return (state->interface[node].blas.ptr);
+	starpu_blas_interface_t *interface =
+		starpu_data_get_interface_on_node(state, node);
+
+	return interface->ptr;
 }
 
 size_t starpu_get_blas_elemsize(data_state *state)
 {
-	return (state->interface[0].blas.elemsize);
+	starpu_blas_interface_t *interface =
+		starpu_data_get_interface_on_node(state, 0);
+
+	return interface->elemsize;
 }
 
 /* memory allocation/deallocation primitives for the BLAS interface */
@@ -237,10 +251,14 @@ static size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 	cudaError_t status;
 	size_t pitch;
 #endif
-	uint32_t nx = state->interface[dst_node].blas.nx;
-	uint32_t ny = state->interface[dst_node].blas.ny;
+
+	starpu_blas_interface_t *interface =
+		starpu_data_get_interface_on_node(state, dst_node);
+
+	uint32_t nx = interface->nx;
+	uint32_t ny = interface->ny;
 	uint32_t ld = nx; // by default
-	size_t elemsize = state->interface[dst_node].blas.elemsize;
+	size_t elemsize = interface->elemsize;
 
 	node_kind kind = get_node_kind(dst_node);
 
@@ -275,8 +293,8 @@ static size_t allocate_blas_buffer_on_node(data_state *state, uint32_t dst_node)
 		allocated_memory = (size_t)nx*ny*elemsize;
 
 		/* update the data properly in consequence */
-		state->interface[dst_node].blas.ptr = addr;
-		state->interface[dst_node].blas.ld = ld;
+		interface->ptr = addr;
+		interface->ld = ld;
 	} else {
 		/* allocation failed */
 		allocated_memory = 0;
@@ -315,8 +333,8 @@ static int copy_cublas_to_ram(data_state *state, uint32_t src_node, uint32_t dst
 	starpu_blas_interface_t *src_blas;
 	starpu_blas_interface_t *dst_blas;
 
-	src_blas = &state->interface[src_node].blas;
-	dst_blas = &state->interface[dst_node].blas;
+	src_blas = starpu_data_get_interface_on_node(state, src_node);
+	dst_blas = starpu_data_get_interface_on_node(state, dst_node);
 
 	size_t elemsize = src_blas->elemsize;
 
@@ -337,8 +355,9 @@ static int copy_ram_to_cublas(data_state *state, uint32_t src_node, uint32_t dst
 	starpu_blas_interface_t *src_blas;
 	starpu_blas_interface_t *dst_blas;
 
-	src_blas = &state->interface[src_node].blas;
-	dst_blas = &state->interface[dst_node].blas;
+	src_blas = starpu_data_get_interface_on_node(state, src_node);
+	dst_blas = starpu_data_get_interface_on_node(state, dst_node);
+
 	size_t elemsize = src_blas->elemsize;
 
 	cudaError_t cures;
@@ -362,8 +381,8 @@ static int copy_cublas_to_ram_async(data_state *state, uint32_t src_node, uint32
 	starpu_blas_interface_t *src_blas;
 	starpu_blas_interface_t *dst_blas;
 
-	src_blas = &state->interface[src_node].blas;
-	dst_blas = &state->interface[dst_node].blas;
+	src_blas = starpu_data_get_interface_on_node(state, src_node);
+	dst_blas = starpu_data_get_interface_on_node(state, dst_node);
 
 	size_t elemsize = src_blas->elemsize;
 
@@ -400,8 +419,8 @@ static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t 
 	starpu_blas_interface_t *src_blas;
 	starpu_blas_interface_t *dst_blas;
 
-	src_blas = &state->interface[src_node].blas;
-	dst_blas = &state->interface[dst_node].blas;
+	src_blas = starpu_data_get_interface_on_node(state, src_node);
+	dst_blas = starpu_data_get_interface_on_node(state, dst_node);
 
 	size_t elemsize = src_blas->elemsize;
 
@@ -433,16 +452,22 @@ static int copy_ram_to_cublas_async(struct starpu_data_state_t *state, uint32_t 
 /* as not all platform easily have a BLAS lib installed ... */
 static int dummy_copy_ram_to_ram(data_state *state, uint32_t src_node, uint32_t dst_node)
 {
+	starpu_blas_interface_t *src_blas;
+	starpu_blas_interface_t *dst_blas;
+
+	src_blas = starpu_data_get_interface_on_node(state, src_node);
+	dst_blas = starpu_data_get_interface_on_node(state, dst_node);
+
 	unsigned y;
-	uint32_t nx = state->interface[dst_node].blas.nx;
-	uint32_t ny = state->interface[dst_node].blas.ny;
-	size_t elemsize = state->interface[dst_node].blas.elemsize;
+	uint32_t nx = dst_blas->nx;
+	uint32_t ny = dst_blas->ny;
+	size_t elemsize = dst_blas->elemsize;
 
-	uint32_t ld_src = state->interface[src_node].blas.ld;
-	uint32_t ld_dst = state->interface[dst_node].blas.ld;
+	uint32_t ld_src = src_blas->ld;
+	uint32_t ld_dst = dst_blas->ld;
 
-	uintptr_t ptr_src = state->interface[src_node].blas.ptr;
-	uintptr_t ptr_dst = state->interface[dst_node].blas.ptr;
+	uintptr_t ptr_src = src_blas->ptr;
+	uintptr_t ptr_dst = dst_blas->ptr;
 
 
 	for (y = 0; y < ny; y++)

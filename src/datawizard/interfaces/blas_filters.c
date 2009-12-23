@@ -80,9 +80,12 @@ unsigned starpu_vertical_block_filter_func(starpu_filter *f, data_state *root_da
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
 
-	uint32_t nx = root_data->interface[0].blas.nx;
-	uint32_t ny = root_data->interface[0].blas.ny;
-	size_t elemsize = root_data->interface[0].blas.elemsize;
+	starpu_blas_interface_t *interface =
+		starpu_data_get_interface_on_node(root_data, 0);
+
+	uint32_t nx = interface->nx;
+	uint32_t ny = interface->ny;
+	size_t elemsize = interface->elemsize;
 
 	/* we will have arg chunks */
 	nchunks = STARPU_MIN(ny, arg);
