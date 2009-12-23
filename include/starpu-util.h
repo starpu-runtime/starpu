@@ -214,6 +214,11 @@ void starpu_helper_init_cublas(void);
 void starpu_helper_shutdown_cublas(void);
 void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where);
 
+#ifdef USE_CUDA
+void starpu_helper_create_per_gpu_streams(void);
+cudaStream_t *starpu_helper_get_local_stream(void);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
