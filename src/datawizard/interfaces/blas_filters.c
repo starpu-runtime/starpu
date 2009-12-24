@@ -36,8 +36,9 @@ unsigned starpu_block_filter_func(starpu_filter *f, starpu_data_handle root_hand
 	/* we will have arg chunks */
 	nchunks = STARPU_MIN(nx, arg);
 
-	/* first allocate the children data_state */
-	starpu_data_create_children(root_handle, nchunks, sizeof(starpu_blas_interface_t));
+	/* first allocate the children, they have the same interface type as
+	 * the root (blas) */
+	starpu_data_create_children(root_handle, nchunks, root_handle->ops);
 
 	/* actually create all the chunks */
 	unsigned chunk;
@@ -90,8 +91,8 @@ unsigned starpu_vertical_block_filter_func(starpu_filter *f, starpu_data_handle 
 	/* we will have arg chunks */
 	nchunks = STARPU_MIN(ny, arg);
 	
-	/* first allocate the children data_state */
-	starpu_data_create_children(root_handle, nchunks, sizeof(starpu_blas_interface_t));
+	/* first allocate the children: they also use a BLAS interface */
+	starpu_data_create_children(root_handle, nchunks, root_handle->ops);
 
 	/* actually create all the chunks */
 	unsigned chunk;

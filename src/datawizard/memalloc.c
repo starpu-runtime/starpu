@@ -431,10 +431,10 @@ static void register_mem_chunk(starpu_data_handle handle, uint32_t dst_node, siz
 	/* the interface was already filled by ops->allocate_data_on_node */
 	void *src_interface = starpu_data_get_interface_on_node(handle, dst_node);
 
-	mc->interface = malloc(handle->interface_size);
+	mc->interface = malloc(handle->ops->interface_size);
 	STARPU_ASSERT(mc->interface);
 
-	memcpy(mc->interface, src_interface, handle->interface_size);
+	memcpy(mc->interface, src_interface, handle->ops->interface_size);
 
 	res = pthread_rwlock_wrlock(&mc_rwlock[dst_node]);
 	STARPU_ASSERT(!res);

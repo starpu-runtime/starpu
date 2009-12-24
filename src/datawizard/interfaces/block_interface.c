@@ -67,6 +67,7 @@ struct data_interface_ops_t interface_block_ops = {
 	.convert_to_gordon = convert_block_to_gordon,
 #endif
 	.interfaceid = STARPU_BLOCK_INTERFACE_ID, 
+	.interface_size = sizeof(starpu_block_interface_t),
 	.display = display_block_interface
 };
 
@@ -86,7 +87,7 @@ void starpu_register_block_data(starpu_data_handle *handleptr, uint32_t home_nod
 			uint32_t ny, uint32_t nz, size_t elemsize)
 {
 	starpu_data_handle handle =
-		starpu_data_state_create(sizeof(starpu_block_interface_t));
+		starpu_data_state_create(&interface_block_ops);
 
 	STARPU_ASSERT(handleptr);
 	*handleptr = handle;

@@ -73,6 +73,7 @@ struct data_interface_ops_t interface_blas_ops = {
 	.convert_to_gordon = convert_blas_to_gordon,
 #endif
 	.interfaceid = STARPU_BLAS_INTERFACE_ID, 
+	.interface_size = sizeof(starpu_blas_interface_t),
 	.display = display_blas_interface
 };
 
@@ -100,7 +101,7 @@ void starpu_register_blas_data(starpu_data_handle *handleptr, uint32_t home_node
 			uint32_t ny, size_t elemsize)
 {
 	starpu_data_handle handle =
-		starpu_data_state_create(sizeof(starpu_blas_interface_t));
+		starpu_data_state_create(&interface_blas_ops);
 
 	STARPU_ASSERT(handleptr);
 	*handleptr = handle;

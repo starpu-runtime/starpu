@@ -71,6 +71,7 @@ struct data_interface_ops_t interface_vector_ops = {
 	.convert_to_gordon = convert_vector_to_gordon,
 #endif
 	.interfaceid = STARPU_VECTOR_INTERFACE_ID,
+	.interface_size = sizeof(starpu_vector_interface_t), 
 	.display = display_vector_interface
 };
 
@@ -89,7 +90,7 @@ void starpu_register_vector_data(starpu_data_handle *handleptr, uint32_t home_no
                         uintptr_t ptr, uint32_t nx, size_t elemsize)
 {
 	starpu_data_handle handle =
-		starpu_data_state_create(sizeof(starpu_vector_interface_t));
+		starpu_data_state_create(&interface_vector_ops);
 
 	STARPU_ASSERT(handleptr);
 	*handleptr = handle;

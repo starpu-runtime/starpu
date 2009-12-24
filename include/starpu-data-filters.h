@@ -33,7 +33,9 @@ typedef struct starpu_filter_t {
 void starpu_partition_data(starpu_data_handle initial_data, starpu_filter *f); 
 void starpu_unpartition_data(starpu_data_handle root_data, uint32_t gathering_node);
 
-void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren, size_t interfacesize);
+struct data_interface_ops_t;
+void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren,
+		 struct data_interface_ops_t *children_interface_ops);
 
 starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i);
 

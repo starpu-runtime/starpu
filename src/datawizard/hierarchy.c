@@ -200,11 +200,6 @@ void starpu_partition_data(starpu_data_handle initial_handle, starpu_filter *f)
 
 		children->is_not_important = initial_handle->is_not_important;
 
-		/* it is possible that the children does not use the same interface as the parent,
-		 * in that case, the starpu_filter must set the proper methods */
-		if (!children->ops)
-			children->ops = initial_handle->ops;
-
 		children->wb_mask = initial_handle->wb_mask;
 
 		/* initialize the chunk lock */
@@ -334,14 +329,16 @@ void starpu_advise_if_data_is_important(starpu_data_handle handle, unsigned is_i
 
 }
 
-starpu_data_handle starpu_data_state_create(size_t interfacesize)
+starpu_data_handle starpu_data_state_create(struct data_interface_ops_t *interface_ops)
 {
 	starpu_data_handle handle =
 		calloc(1, sizeof(struct starpu_data_state_t));
 
 	STARPU_ASSERT(handle);
 
-	handle->interface_size = interfacesize;
+	handle->ops = interface_ops;
+
+	size_t interfacesize = interface_ops->interface_size;
 
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
@@ -354,7 +351,7 @@ starpu_data_handle starpu_data_state_create(size_t interfacesize)
 }
 
 void starpu_data_create_children(starpu_data_handle handle,
-		unsigned nchildren, size_t interfacesize)
+		unsigned nchildren, struct data_interface_ops_t *children_interface_ops)
 {
 	handle->children = calloc(nchildren, sizeof(struct starpu_data_state_t));
 	STARPU_ASSERT(handle->children);
@@ -366,7 +363,9 @@ void starpu_data_create_children(starpu_data_handle handle,
 	{
 		starpu_data_handle handle_child = &handle->children[child];
 
-		handle_child->interface_size = interfacesize;
+		handle_child->ops = children_interface_ops;
+
+		size_t interfacesize = children_interface_ops->interface_size;
 
 		for (node = 0; node < MAXNODES; node++)
 		{

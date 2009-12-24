@@ -368,7 +368,7 @@ int fetch_task_input(struct starpu_task *task, uint32_t mask)
 
 		void *src_interface = starpu_data_get_interface_on_node(handle, local_memory_node);
 
-		memcpy(&interface[index], src_interface, handle->interface_size);
+		memcpy(&interface[index], src_interface, handle->ops->interface_size);
 	}
 
 	TRACE_END_FETCH_INPUT(NULL);

@@ -39,6 +39,7 @@ struct data_interface_ops_t {
 #endif
 	/* an identifier that is unique to each interface */
 	unsigned interfaceid;
+	size_t interface_size;
 };
 
 #endif // __DATA_INTERFACE_H__

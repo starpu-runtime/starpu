@@ -33,8 +33,8 @@ unsigned starpu_vertical_block_filter_func_csr(starpu_filter *f, starpu_data_han
 	/* we will have arg chunks */
 	nchunks = STARPU_MIN(nrow, arg);
 	
-	/* first allocate the children data_state */
-	starpu_data_create_children(root_handle, nchunks, sizeof(starpu_csr_interface_t));
+	/* first allocate the children (they also use the csr interface) */
+	starpu_data_create_children(root_handle, nchunks, root_handle->ops);
 
 	/* actually create all the chunks */
 	uint32_t chunk_size = (nrow + nchunks - 1)/nchunks;

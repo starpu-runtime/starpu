@@ -55,6 +55,7 @@ struct data_interface_ops_t interface_csr_ops = {
 	.copy_methods = &csr_copy_data_methods_s,
 	.get_size = csr_interface_get_size,
 	.interfaceid = STARPU_CSR_INTERFACE_ID,
+	.interface_size = sizeof(starpu_csr_interface_t),
 	.footprint = footprint_csr_interface_crc32
 };
 
@@ -63,7 +64,7 @@ void starpu_register_csr_data(starpu_data_handle *handleptr, uint32_t home_node,
 		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize)
 {
 	starpu_data_handle handle =
-		starpu_data_state_create(sizeof(starpu_csr_interface_t));	
+		starpu_data_state_create(&interface_csr_ops);	
 
 	STARPU_ASSERT(handleptr);
 	*handleptr = handle;

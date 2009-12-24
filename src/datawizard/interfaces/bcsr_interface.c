@@ -58,6 +58,7 @@ struct data_interface_ops_t interface_bcsr_ops = {
 	.copy_methods = &bcsr_copy_data_methods_s,
 	.get_size = bcsr_interface_get_size,
 	.interfaceid = STARPU_BCSCR_INTERFACE_ID,
+	.interface_size = sizeof(starpu_bcsr_interface_t),
 	.footprint = footprint_bcsr_interface_crc32
 };
 
@@ -65,7 +66,7 @@ void starpu_register_bcsr_data(starpu_data_handle *handleptr, uint32_t home_node
 		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry,  uint32_t r, uint32_t c, size_t elemsize)
 {
 	starpu_data_handle handle =
-		starpu_data_state_create(sizeof(starpu_bcsr_interface_t));
+		starpu_data_state_create(&interface_bcsr_ops);
 
 	STARPU_ASSERT(handleptr);
 	*handleptr = handle;
