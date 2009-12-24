@@ -93,8 +93,6 @@ void starpu_register_csr_data(starpu_data_handle *handleptr, uint32_t home_node,
 
 	}
 
-	handle->ops = &interface_csr_ops;
-
 	register_new_data(handle, home_node, 0);
 }
 

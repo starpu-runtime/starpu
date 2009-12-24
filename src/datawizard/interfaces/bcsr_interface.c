@@ -96,8 +96,6 @@ void starpu_register_bcsr_data(starpu_data_handle *handleptr, uint32_t home_node
 		local_interface->elemsize = elemsize;
 	}
 
-	handle->ops = &interface_bcsr_ops;
-
 	register_new_data(handle, home_node, 0);
 }
 

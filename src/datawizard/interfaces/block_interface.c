@@ -115,8 +115,6 @@ void starpu_register_block_data(starpu_data_handle *handleptr, uint32_t home_nod
 		local_interface->elemsize = elemsize;
 	}
 
-	handle->ops = &interface_block_ops;
-
 	register_new_data(handle, home_node, 0);
 }
 

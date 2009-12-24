@@ -126,8 +126,6 @@ void starpu_register_blas_data(starpu_data_handle *handleptr, uint32_t home_node
 		local_interface->elemsize = elemsize;
 	}
 
-	handle->ops = &interface_blas_ops;
-
 	register_new_data(handle, home_node, 0);
 }
 
