@@ -23,7 +23,7 @@ unsigned starpu_get_handle_interface_id(starpu_data_handle handle)
 
 void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node)
 {
-	return &handle->interface[memory_node];
+	return handle->interface[memory_node];
 }
 
 /* register data interface ? (do we need to register ?) descr =  type enum, required to get an id !  */

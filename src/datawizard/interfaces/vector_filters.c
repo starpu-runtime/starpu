@@ -33,7 +33,7 @@ unsigned starpu_block_filter_func_vector(starpu_filter *f, data_state *root_data
 	nchunks = STARPU_MIN(nx, arg);
 
 	/* first allocate the children data_state */
-	starpu_data_create_children(root_data, nchunks);
+	starpu_data_create_children(root_data, nchunks, sizeof(starpu_vector_interface_t));
 
 	/* actually create all the chunks */
 	unsigned chunk;
@@ -81,7 +81,7 @@ unsigned starpu_divide_in_2_filter_func_vector(starpu_filter *f, data_state *roo
 	size_t elemsize = vector_root->elemsize;
 
 	/* first allocate the children data_state */
-	starpu_data_create_children(root_data, 2);
+	starpu_data_create_children(root_data, 2, sizeof(starpu_vector_interface_t));
 
 	STARPU_ASSERT(length_first < nx);
 
@@ -139,7 +139,7 @@ unsigned starpu_list_filter_func_vector(starpu_filter *f, data_state *root_data)
 	size_t elemsize = vector_root->elemsize;
 
 	/* first allocate the children data_state */
-	starpu_data_create_children(root_data, nchunks);
+	starpu_data_create_children(root_data, nchunks, sizeof(starpu_vector_interface_t));
 
 	unsigned current_pos = 0;
 

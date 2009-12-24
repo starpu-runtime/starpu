@@ -90,8 +90,8 @@ int convert_vector_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, 
 void starpu_register_vector_data(struct starpu_data_state_t **handle, uint32_t home_node,
                         uintptr_t ptr, uint32_t nx, size_t elemsize)
 {
-	struct starpu_data_state_t *state = calloc(1, sizeof(struct starpu_data_state_t));
-	STARPU_ASSERT(state);
+	struct starpu_data_state_t *state =
+		starpu_data_state_create(sizeof(starpu_vector_interface_t));
 
 	STARPU_ASSERT(handle);
 	*handle = state;

@@ -87,8 +87,8 @@ void starpu_register_block_data(struct starpu_data_state_t **handle, uint32_t ho
 			uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx,
 			uint32_t ny, uint32_t nz, size_t elemsize)
 {
-	struct starpu_data_state_t *state = calloc(1, sizeof(struct starpu_data_state_t));
-	STARPU_ASSERT(state);
+	struct starpu_data_state_t *state =
+		starpu_data_state_create(sizeof(starpu_block_interface_t));
 
 	STARPU_ASSERT(handle);
 	*handle = state;

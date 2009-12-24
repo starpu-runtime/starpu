@@ -64,8 +64,8 @@ struct data_interface_ops_t interface_csr_ops = {
 void starpu_register_csr_data(struct starpu_data_state_t **handle, uint32_t home_node,
 		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize)
 {
-	struct starpu_data_state_t *state = calloc(1, sizeof(struct starpu_data_state_t));
-	STARPU_ASSERT(state);
+	struct starpu_data_state_t *state =
+		starpu_data_state_create(sizeof(starpu_csr_interface_t));	
 
 	STARPU_ASSERT(handle);
 	*handle = state;

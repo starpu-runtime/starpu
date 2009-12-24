@@ -40,7 +40,7 @@ unsigned starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unus
 	nchunks = nnz;
 	
 	/* first allocate the children data_state */
-	starpu_data_create_children(root_data, nchunks);
+	starpu_data_create_children(root_data, nchunks, sizeof(starpu_blas_interface_t));
 
 	/* actually create all the chunks */
 

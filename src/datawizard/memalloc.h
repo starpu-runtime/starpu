@@ -38,7 +38,7 @@ LIST_TYPE(mem_chunk,
 	 * because when a data is deleted, the memory chunk remains.
 	 */
 	struct data_interface_ops_t *ops;
-	starpu_data_interface_t interface;
+	void *interface;
 	unsigned automatically_allocated;
 	unsigned data_was_deleted;
 )

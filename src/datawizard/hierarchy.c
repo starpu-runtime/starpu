@@ -19,6 +19,14 @@
 /* 
  * Stop monitoring a data
  */
+
+static void starpu_data_liberate_interfaces(data_state *state)
+{
+	unsigned node;
+	for (node = 0; node < MAXNODES; node++)
+		free(state->interface[node]);
+}
+
 /* TODO : move in a more appropriate file */
 void starpu_delete_data(data_state *state)
 {
@@ -36,6 +44,8 @@ void starpu_delete_data(data_state *state)
 	}
 
 	data_requester_list_delete(state->req_list);
+
+	starpu_data_liberate_interfaces(state);
 
 	free(state);
 }
@@ -181,7 +191,7 @@ void starpu_partition_data(data_state *initial_data, starpu_filter *f)
 
 	for (i = 0; i < nparts; i++)
 	{
-		data_state *children = &initial_data->children[i];
+		data_state *children = starpu_data_get_child(initial_data, i);
 
 		STARPU_ASSERT(children);
 
@@ -240,6 +250,8 @@ void starpu_unpartition_data(data_state *root_data, uint32_t gathering_node)
 		 * don't want to have the programming deal with memory shortage at that time,
 		 * really */
 		STARPU_ASSERT(ret == 0); 
+
+		starpu_data_liberate_interfaces(&root_data->children[child]);
 	}
 
 	/* the gathering_node should now have a valid copy of all the children.
@@ -322,10 +334,46 @@ void starpu_advise_if_data_is_important(data_state *state, unsigned is_important
 
 }
 
-void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren)
+starpu_data_handle starpu_data_state_create(size_t interfacesize)
+{
+	struct starpu_data_state_t *state =
+		calloc(1, sizeof(struct starpu_data_state_t));
+
+	STARPU_ASSERT(state);
+
+	state->interface_size = interfacesize;
+
+	unsigned node;
+	for (node = 0; node < MAXNODES; node++)
+	{
+		state->interface[node] = calloc(1, interfacesize);
+		STARPU_ASSERT(state->interface[node]);
+	}
+
+	return state;
+}
+
+void starpu_data_create_children(starpu_data_handle handle,
+		unsigned nchildren, size_t interfacesize)
 {
 	handle->children = calloc(nchildren, sizeof(data_state));
 	STARPU_ASSERT(handle->children);
+
+	unsigned node;
+	unsigned child;
+
+	for (child = 0; child < nchildren; child++)
+	{
+		starpu_data_handle handle_child = &handle->children[child];
+
+		handle_child->interface_size = interfacesize;
+
+		for (node = 0; node < MAXNODES; node++)
+		{
+			handle_child->interface[node] = calloc(1, interfacesize);
+			STARPU_ASSERT(handle->children->interface[node]);
+		}
+	}
 
 	handle->nchildren = nchildren;
 }

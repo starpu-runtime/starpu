@@ -101,8 +101,8 @@ void starpu_register_blas_data(struct starpu_data_state_t **handle, uint32_t hom
 			uintptr_t ptr, uint32_t ld, uint32_t nx,
 			uint32_t ny, size_t elemsize)
 {
-	struct starpu_data_state_t *state = calloc(1, sizeof(struct starpu_data_state_t));
-	STARPU_ASSERT(state);
+	struct starpu_data_state_t *state =
+		starpu_data_state_create(sizeof(starpu_blas_interface_t));
 
 	STARPU_ASSERT(handle);
 	*handle = state;
