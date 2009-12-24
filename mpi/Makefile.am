@@ -55,7 +55,8 @@ check_PROGRAMS +=					\
 	tests/mpi_irecv					\
 	tests/ring					\
 	tests/ring_async				\
-	tests/block_interface
+	tests/block_interface				\
+	tests/block_interface_pinned
 
 tests_mpi_isend_LDADD =					\
 	libstarpumpi.la
@@ -81,10 +82,10 @@ tests_ring_LDADD =					\
 tests_ring_SOURCES =					\
 	tests/ring.c
 
-tests_ring_async_LDADD =					\
+tests_ring_async_LDADD =				\
 	libstarpumpi.la
 
-tests_ring_async_SOURCES =					\
+tests_ring_async_SOURCES =				\
 	tests/ring_async.c
 
 tests_block_interface_LDADD =				\
@@ -92,6 +93,12 @@ tests_block_interface_LDADD =				\
 
 tests_block_interface_SOURCES =				\
 	tests/block_interface.c
+
+tests_block_interface_pinned_LDADD =			\
+	libstarpumpi.la
+
+tests_block_interface_pinned_SOURCES =			\
+	tests/block_interface_pinned.c
 
 if USE_CUDA
 tests_ring_SOURCES += tests/ring_kernel.cu

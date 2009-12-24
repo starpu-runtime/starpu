@@ -28,12 +28,14 @@ LIST_TYPE(starpu_mpi_req,
 	starpu_access_mode mode;
 	MPI_Datatype datatype;
 	MPI_Request request;
+	MPI_Status *status;
 	void (*handle_new)(struct starpu_mpi_req_s *);
 	void (*handle_pending)(struct starpu_mpi_req_s *);
 	unsigned submitted;
 	int dst;
 	int src;
 	int mpi_tag;
+	int ret;
 	MPI_Comm comm;
 	pthread_mutex_t req_mutex;
 	pthread_cond_t req_cond;

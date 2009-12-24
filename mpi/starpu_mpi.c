@@ -30,11 +30,6 @@ static int running = 0;
 
 static void _handle_new_mpi_isend(struct starpu_mpi_req_s *req)
 {
-	//int rank;
-	//MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	//fprintf(stdout, "Rank %d _handle_new_mpi_isend\n", rank);
-	//fflush(stdout);
-
 	void *ptr = starpu_mpi_handle_to_ptr(req->data_handle);
 	starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype);
 
@@ -131,18 +126,37 @@ int starpu_mpi_send(starpu_data_handle data_handle,
 	return 0;
 }
 
+static void _handle_new_mpi_wait(struct starpu_mpi_req_s *req)
+{
+	req->ret = MPI_Wait(&req->request, req->status);
+	handle_request_termination(req);
+}
+
+
+
 int starpu_mpi_wait(struct starpu_mpi_req_s *req, MPI_Status *status)
 {
 	int ret;
 
 	pthread_mutex_lock(&req->req_mutex);
 
+	req->status = status;
+
+	/* we don't submit a wait request until the previous mpi request was
+	 * actually submitted */
 	while (!req->submitted)
 		pthread_cond_wait(&req->req_cond, &req->req_mutex);
 
-	ret = MPI_Wait(&req->request, status);
+	req->submitted = 0;
+	req->handle_new = _handle_new_mpi_wait;
+	req->status = status;
 
-	handle_request_termination(req);
+	submit_mpi_req(req);
+
+	while (!req->submitted)
+		pthread_cond_wait(&req->req_cond, &req->req_mutex);
+
+	ret = req->ret;
 
 	pthread_mutex_unlock(&req->req_mutex);
 
