@@ -23,6 +23,6 @@
 
 #include <starpu.h>
 
-void register_new_data(struct starpu_data_state_t *state, uint32_t home_node, uint32_t wb_mask);
+void register_new_data(starpu_data_handle handle, uint32_t home_node, uint32_t wb_mask);
 
 #endif

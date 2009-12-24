@@ -17,16 +17,17 @@
 #ifndef __MEMALLOC_H__
 #define __MEMALLOC_H__
 
+#include <starpu.h>
+#include <common/config.h>
+
 #include <common/list.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/coherency.h>
 #include <datawizard/copy-driver.h>
 #include <datawizard/progress.h>
 
-struct starpu_data_state_t;
-
 LIST_TYPE(mem_chunk,
-	struct starpu_data_state_t *data;
+	starpu_data_handle data;
 	size_t size;
 
 	uint32_t footprint;
@@ -45,7 +46,7 @@ LIST_TYPE(mem_chunk,
 
 void init_mem_chunk_lists(void);
 void deinit_mem_chunk_lists(void);
-void request_mem_chunk_removal(struct starpu_data_state_t *state, unsigned node);
-int allocate_memory_on_node(struct starpu_data_state_t *state, uint32_t dst_node, unsigned may_alloc);
+void request_mem_chunk_removal(starpu_data_handle handle, unsigned node);
+int allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node, unsigned may_alloc);
 
 #endif

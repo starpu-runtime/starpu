@@ -26,18 +26,14 @@
 #include <gordon.h>
 #endif
 
-
-struct starpu_data_state_t;
-
 struct data_interface_ops_t {
-	size_t (*allocate_data_on_node)(struct starpu_data_state_t *state,
-					uint32_t node);
+	size_t (*allocate_data_on_node)(starpu_data_handle handle, uint32_t node);
 	void (*liberate_data_on_node)(starpu_data_interface_t *interface,
 					uint32_t node);
 	const struct copy_data_methods_s *copy_methods;
-	size_t (*get_size)(struct starpu_data_state_t *state);
-	uint32_t (*footprint)(struct starpu_data_state_t *state, uint32_t hstate);
-	void (*display)(struct starpu_data_state_t *state, FILE *f);
+	size_t (*get_size)(starpu_data_handle handle);
+	uint32_t (*footprint)(starpu_data_handle handle, uint32_t hstate);
+	void (*display)(starpu_data_handle handle, FILE *f);
 #ifdef USE_GORDON
 	int (*convert_to_gordon)(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif

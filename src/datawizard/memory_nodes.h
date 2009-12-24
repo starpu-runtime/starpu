@@ -46,8 +46,6 @@ typedef struct {
 	unsigned queues_count[MAXNODES];
 } mem_node_descr;
 
-struct starpu_data_state_t;
-
 void init_memory_nodes(void);
 void deinit_memory_nodes(void);
 void set_local_memory_node_key(unsigned *node);
