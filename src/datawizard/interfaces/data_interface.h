@@ -35,8 +35,6 @@ struct data_interface_ops_t {
 	void (*liberate_data_on_node)(starpu_data_interface_t *interface,
 					uint32_t node);
 	const struct copy_data_methods_s *copy_methods;
-	size_t (*dump_data_interface)(starpu_data_interface_t *interface, 
-					void *buffer);
 	size_t (*get_size)(struct starpu_data_state_t *state);
 	uint32_t (*footprint)(struct starpu_data_state_t *state, uint32_t hstate);
 	void (*display)(struct starpu_data_state_t *state, FILE *f);

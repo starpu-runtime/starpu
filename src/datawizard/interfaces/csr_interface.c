@@ -46,7 +46,6 @@ static const struct copy_data_methods_s csr_copy_data_methods_s = {
 
 static size_t allocate_csr_buffer_on_node(struct starpu_data_state_t *state, uint32_t dst_node);
 static void liberate_csr_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
-static size_t dump_csr_interface(starpu_data_interface_t *interface, void *_buffer);
 static size_t csr_interface_get_size(struct starpu_data_state_t *state);
 static uint32_t footprint_csr_interface_crc32(data_state *state, uint32_t hstate);
 
@@ -54,7 +53,6 @@ struct data_interface_ops_t interface_csr_ops = {
 	.allocate_data_on_node = allocate_csr_buffer_on_node,
 	.liberate_data_on_node = liberate_csr_buffer_on_node,
 	.copy_methods = &csr_copy_data_methods_s,
-	.dump_data_interface = dump_csr_interface,
 	.get_size = csr_interface_get_size,
 	.interfaceid = STARPU_CSR_INTERFACE_ID,
 	.footprint = footprint_csr_interface_crc32
@@ -125,22 +123,6 @@ struct dumped_csr_interface_s {
 	uint32_t firstentry;
 	uint32_t elemsize;
 }  __attribute__ ((packed));
-
-static size_t dump_csr_interface(starpu_data_interface_t *interface, void *_buffer)
-{
-	/* yes, that's DIRTY ... */
-	struct dumped_csr_interface_s *buffer = _buffer;
-
-	buffer->nnz = (*interface).csr.nnz;
-	buffer->nrow = (*interface).csr.nrow;
-	buffer->nzval = (*interface).csr.nzval;
-	buffer->colind = (*interface).csr.colind;
-	buffer->rowptr = (*interface).csr.rowptr;
-	buffer->firstentry = (*interface).csr.firstentry;
-	buffer->elemsize = (*interface).csr.elemsize;
-
-	return (sizeof(struct dumped_csr_interface_s));
-}
 
 /* offer an access to the data parameters */
 uint32_t starpu_get_csr_nnz(struct starpu_data_state_t *state)

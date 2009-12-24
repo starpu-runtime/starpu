@@ -50,7 +50,6 @@ static const struct copy_data_methods_s block_copy_data_methods_s = {
 
 static size_t allocate_block_buffer_on_node(data_state *state, uint32_t dst_node);
 static void liberate_block_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
-static size_t dump_block_interface(starpu_data_interface_t *interface, void *buffer);
 static size_t block_interface_get_size(struct starpu_data_state_t *state);
 static uint32_t footprint_block_interface_crc32(data_state *state, uint32_t hstate);
 static void display_block_interface(data_state *state, FILE *f);
@@ -62,7 +61,6 @@ struct data_interface_ops_t interface_block_ops = {
 	.allocate_data_on_node = allocate_block_buffer_on_node,
 	.liberate_data_on_node = liberate_block_buffer_on_node,
 	.copy_methods = &block_copy_data_methods_s,
-	.dump_data_interface = dump_block_interface,
 	.get_size = block_interface_get_size,
 	.footprint = footprint_block_interface_crc32,
 #ifdef USE_GORDON
@@ -154,21 +152,6 @@ static void display_block_interface(data_state *state, FILE *f)
 	interface = starpu_data_get_interface_on_node(state, 0);
 
 	fprintf(f, "%u\t%u\t%u\t", interface->nx, interface->ny, interface->nz);
-}
-
-static size_t dump_block_interface(starpu_data_interface_t *interface, void *_buffer)
-{
-	/* yes, that's DIRTY ... */
-	struct dumped_block_interface_s *buffer = _buffer;
-
-	buffer->ptr = (*interface).block.ptr;
-	buffer->nx = (*interface).block.nx;
-	buffer->ny = (*interface).block.ny;
-	buffer->nz = (*interface).block.nz;
-	buffer->ldy = (*interface).block.ldy;
-	buffer->ldz = (*interface).block.ldz;
-
-	return (sizeof(struct dumped_block_interface_s));
 }
 
 static size_t block_interface_get_size(struct starpu_data_state_t *state)

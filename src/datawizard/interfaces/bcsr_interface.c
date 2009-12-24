@@ -49,7 +49,6 @@ static const struct copy_data_methods_s bcsr_copy_data_methods_s = {
 
 static size_t allocate_bcsr_buffer_on_node(struct starpu_data_state_t *state, uint32_t dst_node);
 static void liberate_bcsr_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
-static size_t dump_bcsr_interface(starpu_data_interface_t *interface, void *_buffer);
 static size_t bcsr_interface_get_size(struct starpu_data_state_t *state);
 static uint32_t footprint_bcsr_interface_crc32(data_state *state, uint32_t hstate);
 
@@ -57,7 +56,6 @@ struct data_interface_ops_t interface_bcsr_ops = {
 	.allocate_data_on_node = allocate_bcsr_buffer_on_node,
 	.liberate_data_on_node = liberate_bcsr_buffer_on_node,
 	.copy_methods = &bcsr_copy_data_methods_s,
-	.dump_data_interface = dump_bcsr_interface,
 	.get_size = bcsr_interface_get_size,
 	.interfaceid = STARPU_BCSCR_INTERFACE_ID,
 	.footprint = footprint_bcsr_interface_crc32
@@ -119,8 +117,6 @@ static uint32_t footprint_bcsr_interface_crc32(data_state *state, uint32_t hstat
 	return footprint_bcsr_interface_generic(crc32_be, state, hstate);
 }
 
-
-
 struct dumped_bcsr_interface_s {
 	uint32_t nnz;
 	uint32_t nrow;
@@ -132,24 +128,6 @@ struct dumped_bcsr_interface_s {
 	uint32_t c;
 	uint32_t elemsize;
 }  __attribute__ ((packed));
-
-static size_t dump_bcsr_interface(starpu_data_interface_t *interface, void *_buffer)
-{
-	/* yes, that's DIRTY ... */
-	struct dumped_bcsr_interface_s *buffer = _buffer;
-
-	buffer->nnz = (*interface).bcsr.nnz;
-	buffer->nrow = (*interface).bcsr.nrow;
-	buffer->nzval = (*interface).bcsr.nzval;
-	buffer->colind = (*interface).bcsr.colind;
-	buffer->rowptr = (*interface).bcsr.rowptr;
-	buffer->firstentry = (*interface).bcsr.firstentry;
-	buffer->r = (*interface).bcsr.r;
-	buffer->c = (*interface).bcsr.c;
-	buffer->elemsize = (*interface).bcsr.elemsize;
-
-	return (sizeof(struct dumped_bcsr_interface_s));
-}
 
 /* offer an access to the data parameters */
 uint32_t starpu_get_bcsr_nnz(struct starpu_data_state_t *state)
