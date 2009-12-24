@@ -21,13 +21,13 @@
 /*
  * an example of a dummy partition function : blocks ...
  */
-unsigned starpu_block_filter_func(starpu_filter *f, data_state *root_data)
+unsigned starpu_block_filter_func(starpu_filter *f, starpu_data_handle root_handle)
 {
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
 
 	starpu_blas_interface_t *blas_root =
-		starpu_data_get_interface_on_node(root_data, 0);
+		starpu_data_get_interface_on_node(root_handle, 0);
 
 	uint32_t nx = blas_root->nx;
 	uint32_t ny = blas_root->ny;
@@ -37,7 +37,7 @@ unsigned starpu_block_filter_func(starpu_filter *f, data_state *root_data)
 	nchunks = STARPU_MIN(nx, arg);
 
 	/* first allocate the children data_state */
-	starpu_data_create_children(root_data, nchunks, sizeof(starpu_blas_interface_t));
+	starpu_data_create_children(root_handle, nchunks, sizeof(starpu_blas_interface_t));
 
 	/* actually create all the chunks */
 	unsigned chunk;
@@ -50,7 +50,7 @@ unsigned starpu_block_filter_func(starpu_filter *f, data_state *root_data)
 			STARPU_MIN(chunk_size, (size_t)nx - (size_t)chunk*chunk_size);
 
 		starpu_data_handle chunk_handle =
-			starpu_data_get_child(root_data, chunk);
+			starpu_data_get_child(root_handle, chunk);
 
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
@@ -62,9 +62,9 @@ unsigned starpu_block_filter_func(starpu_filter *f, data_state *root_data)
 			local->ny = ny;
 			local->elemsize = elemsize;
 
-			if (root_data->per_node[node].allocated) {
+			if (root_handle->per_node[node].allocated) {
 				starpu_blas_interface_t *local_root =
-					starpu_data_get_interface_on_node(root_data, node);
+					starpu_data_get_interface_on_node(root_handle, node);
 
 				local->ptr = local_root->ptr + offset;
 				local->ld = local_root->ld;
@@ -75,13 +75,13 @@ unsigned starpu_block_filter_func(starpu_filter *f, data_state *root_data)
 	return nchunks;
 }
 
-unsigned starpu_vertical_block_filter_func(starpu_filter *f, data_state *root_data)
+unsigned starpu_vertical_block_filter_func(starpu_filter *f, starpu_data_handle root_handle)
 {
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
 
 	starpu_blas_interface_t *interface =
-		starpu_data_get_interface_on_node(root_data, 0);
+		starpu_data_get_interface_on_node(root_handle, 0);
 
 	uint32_t nx = interface->nx;
 	uint32_t ny = interface->ny;
@@ -91,7 +91,7 @@ unsigned starpu_vertical_block_filter_func(starpu_filter *f, data_state *root_da
 	nchunks = STARPU_MIN(ny, arg);
 	
 	/* first allocate the children data_state */
-	starpu_data_create_children(root_data, nchunks, sizeof(starpu_blas_interface_t));
+	starpu_data_create_children(root_handle, nchunks, sizeof(starpu_blas_interface_t));
 
 	/* actually create all the chunks */
 	unsigned chunk;
@@ -103,7 +103,7 @@ unsigned starpu_vertical_block_filter_func(starpu_filter *f, data_state *root_da
 			STARPU_MIN(chunk_size, (size_t)ny - (size_t)chunk*chunk_size);
 
 		starpu_data_handle chunk_handle =
-			starpu_data_get_child(root_data, chunk);
+			starpu_data_get_child(root_handle, chunk);
 
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
@@ -115,9 +115,9 @@ unsigned starpu_vertical_block_filter_func(starpu_filter *f, data_state *root_da
 			local->ny = child_ny;
 			local->elemsize = elemsize;
 
-			if (root_data->per_node[node].allocated) {
+			if (root_handle->per_node[node].allocated) {
 				starpu_blas_interface_t *local_root =
-					starpu_data_get_interface_on_node(root_data, node);
+					starpu_data_get_interface_on_node(root_handle, node);
 
 				size_t offset = 
 					(size_t)chunk*chunk_size*local_root->ld*elemsize;

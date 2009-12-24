@@ -20,57 +20,57 @@
  * Stop monitoring a data
  */
 
-static void starpu_data_liberate_interfaces(data_state *state)
+static void starpu_data_liberate_interfaces(starpu_data_handle handle)
 {
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
-		free(state->interface[node]);
+		free(handle->interface[node]);
 }
 
 /* TODO : move in a more appropriate file */
-void starpu_delete_data(data_state *state)
+void starpu_delete_data(starpu_data_handle handle)
 {
 	unsigned node;
 
-	STARPU_ASSERT(state);
+	STARPU_ASSERT(handle);
 	for (node = 0; node < MAXNODES; node++)
 	{
-		local_data_state *local = &state->per_node[node];
+		local_data_state *local = &handle->per_node[node];
 
 		if (local->allocated && local->automatically_allocated){
 			/* free the data copy in a lazy fashion */
-			request_mem_chunk_removal(state, node);
+			request_mem_chunk_removal(handle, node);
 		}
 	}
 
-	data_requester_list_delete(state->req_list);
+	data_requester_list_delete(handle->req_list);
 
-	starpu_data_liberate_interfaces(state);
+	starpu_data_liberate_interfaces(handle);
 
-	free(state);
+	free(handle);
 }
 
-void register_new_data(data_state *state, uint32_t home_node, uint32_t wb_mask)
+void register_new_data(starpu_data_handle handle, uint32_t home_node, uint32_t wb_mask)
 {
-	STARPU_ASSERT(state);
+	STARPU_ASSERT(handle);
 
 	/* initialize the new lock */
-	state->req_list = data_requester_list_new();
-	state->refcnt = 0;
-	starpu_spin_init(&state->header_lock);
+	handle->req_list = data_requester_list_new();
+	handle->refcnt = 0;
+	starpu_spin_init(&handle->header_lock);
 
 	/* first take care to properly lock the data */
-	starpu_spin_lock(&state->header_lock);
+	starpu_spin_lock(&handle->header_lock);
 
 	/* we assume that all nodes may use that data */
-	state->nnodes = MAXNODES;
+	handle->nnodes = MAXNODES;
 
 	/* there is no hierarchy yet */
-	state->nchildren = 0;
+	handle->nchildren = 0;
 
-	state->is_not_important = 0;
+	handle->is_not_important = 0;
 
-	state->wb_mask = wb_mask;
+	handle->wb_mask = wb_mask;
 
 	/* that new data is invalid from all nodes perpective except for the
 	 * home node */
@@ -79,45 +79,45 @@ void register_new_data(data_state *state, uint32_t home_node, uint32_t wb_mask)
 	{
 		if (node == home_node) {
 			/* this is the home node with the only valid copy */
-			state->per_node[node].state = OWNER;
-			state->per_node[node].allocated = 1;
-			state->per_node[node].automatically_allocated = 0;
-			state->per_node[node].refcnt = 0;
+			handle->per_node[node].state = OWNER;
+			handle->per_node[node].allocated = 1;
+			handle->per_node[node].automatically_allocated = 0;
+			handle->per_node[node].refcnt = 0;
 		}
 		else {
 			/* the value is not available here yet */
-			state->per_node[node].state = INVALID;
-			state->per_node[node].allocated = 0;
-			state->per_node[node].refcnt = 0;
+			handle->per_node[node].state = INVALID;
+			handle->per_node[node].allocated = 0;
+			handle->per_node[node].refcnt = 0;
 		}
 	}
 
 	/* now the data is available ! */
-	starpu_spin_unlock(&state->header_lock);
+	starpu_spin_unlock(&handle->header_lock);
 }
 
 /*
  * This function applies a starpu_filter on all the elements of a partition
  */
-static void map_filter(data_state *root_data, starpu_filter *f)
+static void map_filter(starpu_data_handle root_handle, starpu_filter *f)
 {
 	/* we need to apply the starpu_filter on all leaf of the tree */
-	if (root_data->nchildren == 0) 
+	if (root_handle->nchildren == 0)
 	{
 		/* this is a leaf */
-		starpu_partition_data(root_data, f);
+		starpu_partition_data(root_handle, f);
 	}
 	else {
 		/* try to apply the starpu_filter recursively */
 		int child;
-		for (child = 0; child < root_data->nchildren; child++)
+		for (child = 0; child < root_handle->nchildren; child++)
 		{
-			map_filter(&root_data->children[child], f);
+			map_filter(&root_handle->children[child], f);
 		}
 	}
 }
 
-void starpu_map_filters(data_state *root_data, unsigned nfilters, ...)
+void starpu_map_filters(starpu_data_handle root_handle, unsigned nfilters, ...)
 {
 	unsigned i;
 	va_list pa;
@@ -129,13 +129,13 @@ void starpu_map_filters(data_state *root_data, unsigned nfilters, ...)
 
 		STARPU_ASSERT(next_filter);
 
-		map_filter(root_data, next_filter);
+		map_filter(root_handle, next_filter);
 	}
 	va_end(pa);
 }
 
 /*
- * example get_sub_data(data_state *root_data, 3, 42, 0, 1);
+ * example get_sub_data(starpu_data_handle root_handle, 3, 42, 0, 1);
  */
 starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i)
 {
@@ -145,10 +145,10 @@ starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i)
 	return &handle->children[i];
 }
 
-data_state *get_sub_data(data_state *root_data, unsigned depth, ... )
+starpu_data_handle get_sub_data(starpu_data_handle root_handle, unsigned depth, ... )
 {
-	STARPU_ASSERT(root_data);
-	data_state *current_data = root_data;
+	STARPU_ASSERT(root_handle);
+	starpu_data_handle current_handle = root_handle;
 
 	/* the variable number of argument must correlate the depth in the tree */
 	unsigned i; 
@@ -159,52 +159,53 @@ data_state *get_sub_data(data_state *root_data, unsigned depth, ... )
 		unsigned next_child;
 		next_child = va_arg(pa, unsigned);
 
-		STARPU_ASSERT((int)next_child < current_data->nchildren);
+		STARPU_ASSERT((int)next_child < current_handle->nchildren);
 
-		current_data = &current_data->children[next_child];
+		current_handle = &current_handle->children[next_child];
 	}
 	va_end(pa);
 
-	return current_data;
+	return current_handle;
 }
 
 /*
  * For now, we assume that partitionned_data is already properly allocated;
  * at least by the starpu_filter function !
  */
-void starpu_partition_data(data_state *initial_data, starpu_filter *f)
+void starpu_partition_data(starpu_data_handle initial_handle, starpu_filter *f)
 {
 	int nparts;
 	int i;
 
 	/* first take care to properly lock the data header */
-	starpu_spin_lock(&initial_data->header_lock);
+	starpu_spin_lock(&initial_handle->header_lock);
 
 	/* there should not be mutiple filters applied on the same data */
-	STARPU_ASSERT(initial_data->nchildren == 0);
+	STARPU_ASSERT(initial_handle->nchildren == 0);
 
 	/* this should update the pointers and size of the chunk */
-	nparts = f->filter_func(f, initial_data);
+	nparts = f->filter_func(f, initial_handle);
 	STARPU_ASSERT(nparts > 0);
 
-	initial_data->nchildren = nparts;
+	initial_handle->nchildren = nparts;
 
 	for (i = 0; i < nparts; i++)
 	{
-		data_state *children = starpu_data_get_child(initial_data, i);
+		starpu_data_handle children =
+			starpu_data_get_child(initial_handle, i);
 
 		STARPU_ASSERT(children);
 
 		children->nchildren = 0;
 
-		children->is_not_important = initial_data->is_not_important;
+		children->is_not_important = initial_handle->is_not_important;
 
 		/* it is possible that the children does not use the same interface as the parent,
 		 * in that case, the starpu_filter must set the proper methods */
 		if (!children->ops)
-			children->ops = initial_data->ops;
+			children->ops = initial_handle->ops;
 
-		children->wb_mask = initial_data->wb_mask;
+		children->wb_mask = initial_handle->wb_mask;
 
 		/* initialize the chunk lock */
 		children->req_list = data_requester_list_new();
@@ -215,43 +216,43 @@ void starpu_partition_data(data_state *initial_data, starpu_filter *f)
 		for (node = 0; node < MAXNODES; node++)
 		{
 			children->per_node[node].state = 
-				initial_data->per_node[node].state;
+				initial_handle->per_node[node].state;
 			children->per_node[node].allocated = 
-				initial_data->per_node[node].allocated;
-			children->per_node[node].automatically_allocated = initial_data->per_node[node].automatically_allocated;
+				initial_handle->per_node[node].allocated;
+			children->per_node[node].automatically_allocated = initial_handle->per_node[node].automatically_allocated;
 			children->per_node[node].refcnt = 0;
 		}
 	}
 
 	/* now let the header */
-	starpu_spin_unlock(&initial_data->header_lock);
+	starpu_spin_unlock(&initial_handle->header_lock);
 }
 
-void starpu_unpartition_data(data_state *root_data, uint32_t gathering_node)
+void starpu_unpartition_data(starpu_data_handle root_handle, uint32_t gathering_node)
 {
 	int child;
 	unsigned node;
 
-	starpu_spin_lock(&root_data->header_lock);
+	starpu_spin_lock(&root_handle->header_lock);
 
 #warning starpu_unpartition_data is not supported with NO_DATA_RW_LOCK yet ...
 
 	/* first take all the children lock (in order !) */
-	for (child = 0; child < root_data->nchildren; child++)
+	for (child = 0; child < root_handle->nchildren; child++)
 	{
 		/* make sure the intermediate children is unpartitionned as well */
-		if (root_data->children[child].nchildren > 0)
-			starpu_unpartition_data(&root_data->children[child], gathering_node);
+		if (root_handle->children[child].nchildren > 0)
+			starpu_unpartition_data(&root_handle->children[child], gathering_node);
 
 		int ret;
-		ret = fetch_data_on_node(&root_data->children[child], gathering_node, 1, 0, 0);
+		ret = fetch_data_on_node(&root_handle->children[child], gathering_node, 1, 0, 0);
 		/* for now we pretend that the RAM is almost unlimited and that gathering 
 		 * data should be possible from the node that does the unpartionning ... we
 		 * don't want to have the programming deal with memory shortage at that time,
 		 * really */
 		STARPU_ASSERT(ret == 0); 
 
-		starpu_data_liberate_interfaces(&root_data->children[child]);
+		starpu_data_liberate_interfaces(&root_handle->children[child]);
 	}
 
 	/* the gathering_node should now have a valid copy of all the children.
@@ -274,9 +275,9 @@ void starpu_unpartition_data(data_state *root_data, uint32_t gathering_node)
 		/* until an issue is found the data is assumed to be valid */
 		unsigned isvalid = 1;
 
-		for (child = 0; child < root_data->nchildren; child++)
+		for (child = 0; child < root_handle->nchildren; child++)
 		{
-			local_data_state *local = &root_data->children[child].per_node[node];
+			local_data_state *local = &root_handle->children[child].per_node[node];
 
 			if (local->state == INVALID) {
 				isvalid = 0; 
@@ -284,7 +285,7 @@ void starpu_unpartition_data(data_state *root_data, uint32_t gathering_node)
 	
 			if (local->allocated && local->automatically_allocated){
 				/* free the data copy in a lazy fashion */
-				request_mem_chunk_removal(root_data, node);
+				request_mem_chunk_removal(root_handle, node);
 				isvalid = 0; 
 			}
 		}
@@ -301,36 +302,35 @@ void starpu_unpartition_data(data_state *root_data, uint32_t gathering_node)
 
 	for (node = 0; node < MAXNODES; node++)
 	{
-		root_data->per_node[node].state = 
+		root_handle->per_node[node].state = 
 			still_valid[node]?newstate:INVALID;
 	}
 
 	/* there is no child anymore */
-	root_data->nchildren = 0;
+	root_handle->nchildren = 0;
 
 	/* now the parent may be used again so we release the lock */
-	starpu_spin_unlock(&root_data->header_lock);
+	starpu_spin_unlock(&root_handle->header_lock);
 }
 
 /* TODO move ! */
-void starpu_advise_if_data_is_important(data_state *state, unsigned is_important)
+void starpu_advise_if_data_is_important(starpu_data_handle handle, unsigned is_important)
 {
-
-	starpu_spin_lock(&state->header_lock);
+	starpu_spin_lock(&handle->header_lock);
 
 	/* first take all the children lock (in order !) */
 	int child;
-	for (child = 0; child < state->nchildren; child++)
+	for (child = 0; child < handle->nchildren; child++)
 	{
 		/* make sure the intermediate children is advised as well */
-		if (state->children[child].nchildren > 0)
-			starpu_advise_if_data_is_important(&state->children[child], is_important);
+		if (handle->children[child].nchildren > 0)
+			starpu_advise_if_data_is_important(&handle->children[child], is_important);
 	}
 
-	state->is_not_important = !is_important;
+	handle->is_not_important = !is_important;
 
 	/* now the parent may be used again so we release the lock */
-	starpu_spin_unlock(&state->header_lock);
+	starpu_spin_unlock(&handle->header_lock);
 
 }
 
@@ -356,7 +356,7 @@ starpu_data_handle starpu_data_state_create(size_t interfacesize)
 void starpu_data_create_children(starpu_data_handle handle,
 		unsigned nchildren, size_t interfacesize)
 {
-	handle->children = calloc(nchildren, sizeof(data_state));
+	handle->children = calloc(nchildren, sizeof(struct starpu_data_state_t));
 	STARPU_ASSERT(handle->children);
 
 	unsigned node;

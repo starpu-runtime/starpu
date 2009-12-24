@@ -26,8 +26,6 @@
 #define DATA_REQ_ALLOCATE	(1<<0)
 #define DATA_REQ_COPY		(1<<1)
 
-struct starpu_data_state_t;
-
 LIST_TYPE(data_request,
 	starpu_spinlock_t lock;
 	unsigned refcnt;

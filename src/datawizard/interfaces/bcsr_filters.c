@@ -20,12 +20,12 @@
 
 extern struct data_interface_ops_t interface_blas_ops;
 
-unsigned starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unused)), data_state *root_data)
+unsigned starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unused)), starpu_data_handle root_handle)
 {
 	unsigned nchunks;
 
 	struct starpu_bcsr_interface_s *interface =
-		starpu_data_get_interface_on_node(root_data, 0);
+		starpu_data_get_interface_on_node(root_handle, 0);
 
 	uint32_t nnz = interface->nnz;
 
@@ -40,34 +40,34 @@ unsigned starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unus
 	nchunks = nnz;
 	
 	/* first allocate the children data_state */
-	starpu_data_create_children(root_data, nchunks, sizeof(starpu_blas_interface_t));
+	starpu_data_create_children(root_handle, nchunks, sizeof(starpu_blas_interface_t));
 
 	/* actually create all the chunks */
 
 	/* XXX */
-	STARPU_ASSERT(root_data->per_node[0].allocated);
+	STARPU_ASSERT(root_handle->per_node[0].allocated);
 
 	/* each chunk becomes a small dense matrix */
 	unsigned chunk;
 	for (chunk = 0; chunk < nchunks; chunk++)
 	{
-		starpu_data_handle sub_handle = starpu_data_get_child(root_data, chunk);
+		starpu_data_handle sub_handle = starpu_data_get_child(root_handle, chunk);
 		uint32_t ptr_offset = c*r*chunk*elemsize;
 
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
 		{
 			starpu_blas_interface_t *local =
-				starpu_data_get_interface_on_node(root_data, node);
+				starpu_data_get_interface_on_node(root_handle, node);
 
 			local->nx = c;
 			local->ny = r;
 			local->ld = c;
 			local->elemsize = elemsize;
 
-			if (root_data->per_node[node].allocated) {
+			if (root_handle->per_node[node].allocated) {
 				struct starpu_bcsr_interface_s *node_interface =
-					starpu_data_get_interface_on_node(root_data, node);
+					starpu_data_get_interface_on_node(root_handle, node);
 				uint8_t *nzval = (uint8_t *)(node_interface->nzval);
 				local->ptr = (uintptr_t)&nzval[firstentry + ptr_offset];
 			}

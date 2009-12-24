@@ -88,22 +88,22 @@ static cudaStream_t *create_cuda_stream(struct data_request_s *req)
 }
 #endif
 
-static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32_t dst_node, struct data_request_s *req __attribute__((unused)))
+static int copy_data_1_to_1_generic(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, struct data_request_s *req __attribute__((unused)))
 {
 	int ret = 0;
 
-	//ret = state->ops->copy_data_1_to_1(state, src_node, dst_node);
+	//ret = handle->ops->copy_data_1_to_1(handle, src_node, dst_node);
 
-	const struct copy_data_methods_s *copy_methods = state->ops->copy_methods;
+	const struct copy_data_methods_s *copy_methods = handle->ops->copy_methods;
 
 	node_kind src_kind = get_node_kind(src_node);
 	node_kind dst_kind = get_node_kind(dst_node);
 
-	STARPU_ASSERT(state->per_node[src_node].refcnt);
-	STARPU_ASSERT(state->per_node[dst_node].refcnt);
+	STARPU_ASSERT(handle->per_node[src_node].refcnt);
+	STARPU_ASSERT(handle->per_node[dst_node].refcnt);
 
-	STARPU_ASSERT(state->per_node[src_node].allocated);
-	STARPU_ASSERT(state->per_node[dst_node].allocated);
+	STARPU_ASSERT(handle->per_node[src_node].allocated);
+	STARPU_ASSERT(handle->per_node[dst_node].allocated);
 
 	switch (dst_kind) {
 	case RAM:
@@ -111,7 +111,7 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 			case RAM:
 				/* RAM -> RAM */
 				STARPU_ASSERT(copy_methods->ram_to_ram);
-				copy_methods->ram_to_ram(state, src_node, dst_node);
+				copy_methods->ram_to_ram(handle, src_node, dst_node);
 				break;
 #ifdef USE_CUDA
 			case CUDA_RAM:
@@ -124,11 +124,11 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 					if (!req || !copy_methods->cuda_to_ram_async)
 					{
 						/* this is not associated to a request so it's synchronous */
-						copy_methods->cuda_to_ram(state, src_node, dst_node);
+						copy_methods->cuda_to_ram(handle, src_node, dst_node);
 					}
 					else {
 						cudaStream_t *stream = create_cuda_stream(req);
-						ret = copy_methods->cuda_to_ram_async(state, src_node, dst_node, stream);
+						ret = copy_methods->cuda_to_ram_async(handle, src_node, dst_node, stream);
 					}
 				}
 				else
@@ -159,11 +159,11 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 				if (!req || !copy_methods->ram_to_cuda_async)
 				{
 					/* this is not associated to a request so it's synchronous */
-					copy_methods->ram_to_cuda(state, src_node, dst_node);
+					copy_methods->ram_to_cuda(handle, src_node, dst_node);
 				}
 				else {
 					cudaStream_t *stream = create_cuda_stream(req);
-					ret = copy_methods->ram_to_cuda_async(state, src_node, dst_node, stream);
+					ret = copy_methods->ram_to_cuda_async(handle, src_node, dst_node, stream);
 				}
 				break;
 			case CUDA_RAM:
@@ -189,34 +189,34 @@ static int copy_data_1_to_1_generic(data_state *state, uint32_t src_node, uint32
 	return ret;
 }
 
-int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *state, uint32_t src_node, 
+int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(starpu_data_handle handle, uint32_t src_node, 
 		uint32_t dst_node, unsigned donotread, struct data_request_s *req, unsigned may_alloc)
 {
 	if (!donotread)
 	{
-		STARPU_ASSERT(state->per_node[src_node].allocated);
-		STARPU_ASSERT(state->per_node[src_node].refcnt);
+		STARPU_ASSERT(handle->per_node[src_node].allocated);
+		STARPU_ASSERT(handle->per_node[src_node].refcnt);
 	}
 
 	int ret_alloc, ret_copy;
 	unsigned __attribute__((unused)) com_id = 0;
 
 	/* first make sure the destination has an allocated buffer */
-	ret_alloc = allocate_memory_on_node(state, dst_node, may_alloc);
+	ret_alloc = allocate_memory_on_node(handle, dst_node, may_alloc);
 	if (ret_alloc)
 		goto nomem;
 
-	STARPU_ASSERT(state->per_node[dst_node].allocated);
-	STARPU_ASSERT(state->per_node[dst_node].refcnt);
+	STARPU_ASSERT(handle->per_node[dst_node].allocated);
+	STARPU_ASSERT(handle->per_node[dst_node].refcnt);
 
 	/* if there is no need to actually read the data, 
 	 * we do not perform any transfer */
 	if (!donotread) {
-		STARPU_ASSERT(state->ops);
-		//STARPU_ASSERT(state->ops->copy_data_1_to_1);
+		STARPU_ASSERT(handle->ops);
+		//STARPU_ASSERT(handle->ops->copy_data_1_to_1);
 
 #ifdef DATA_STATS
-		size_t size = state->ops->get_size(state);
+		size_t size = handle->ops->get_size(handle);
 		update_comm_ammount(src_node, dst_node, size);
 #endif
 		
@@ -229,7 +229,7 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(data_state *stat
 
 		/* for now we set the size to 0 in the FxT trace XXX */
 		TRACE_START_DRIVER_COPY(src_node, dst_node, 0, com_id);
-		ret_copy = copy_data_1_to_1_generic(state, src_node, dst_node, req);
+		ret_copy = copy_data_1_to_1_generic(handle, src_node, dst_node, req);
 		if (ret_copy != EAGAIN)
 		{
 			TRACE_END_DRIVER_COPY(src_node, dst_node, 0, com_id);

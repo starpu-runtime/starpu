@@ -46,9 +46,9 @@ static void update_data_requests(struct jobq_s *q, struct job_s *j)
 
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		data_state *state = j->task->buffers[buffer].handle;
+		starpu_data_handle handle = j->task->buffers[buffer].handle;
 
-		set_data_requested_flag_if_needed(state, memory_node);
+		set_data_requested_flag_if_needed(handle, memory_node);
 	}
 }
 

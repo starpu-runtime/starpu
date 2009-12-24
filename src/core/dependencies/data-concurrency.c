@@ -37,42 +37,42 @@ static unsigned unlock_one_requester(data_requester_t r)
 }
 
 /* the header lock must be taken by the caller */
-static unsigned may_unlock_data_req_list_head(data_state *data)
+static unsigned may_unlock_data_req_list_head(starpu_data_handle handle)
 {
 	/* if there is no one to unlock ... */
-	if (data_requester_list_empty(data->req_list))
+	if (data_requester_list_empty(handle->req_list))
 		return 0;
 
 	/* if there is no reference to the data anymore, we can use it */
-	if (data->refcnt == 0)
+	if (handle->refcnt == 0)
 	{
-		STARPU_ASSERT(!data->per_node[0].request);
-		STARPU_ASSERT(!data->per_node[1].request);
+		STARPU_ASSERT(!handle->per_node[0].request);
+		STARPU_ASSERT(!handle->per_node[1].request);
 		return 1;
 	}
 
-	if (data->current_mode == STARPU_W)
+	if (handle->current_mode == STARPU_W)
 		return 0;
 
 	/* data->current_mode == STARPU_R, so we can process more readers */
-	data_requester_t r = data_requester_list_front(data->req_list);
+	data_requester_t r = data_requester_list_front(handle->req_list);
 	
 	return (r->mode == STARPU_R);
 }
 
 
-unsigned attempt_to_submit_data_request_from_apps(data_state *data, starpu_access_mode mode,
+unsigned attempt_to_submit_data_request_from_apps(starpu_data_handle handle, starpu_access_mode mode,
 						void (*callback)(void *), void *argcb)
 {
 	unsigned ret;
 
-	starpu_spin_lock(&data->header_lock);
+	starpu_spin_lock(&handle->header_lock);
 
-	if (data->refcnt == 0)
+	if (handle->refcnt == 0)
 	{
 		/* there is nobody currently about to manipulate the data */
-		data->refcnt++;
-		data->current_mode = mode;
+		handle->refcnt++;
+		handle->current_mode = mode;
 
 		/* success */
 		ret = 0;
@@ -80,9 +80,9 @@ unsigned attempt_to_submit_data_request_from_apps(data_state *data, starpu_acces
 	else
 	{
 		/* there is already someone that may access the data */
-		if ( (mode == STARPU_R) && (data->current_mode == STARPU_R))
+		if ( (mode == STARPU_R) && (handle->current_mode == STARPU_R))
 		{
-			data->refcnt++;
+			handle->refcnt++;
 
 			/* success : there is a new reader */
 			ret = 0;
@@ -99,14 +99,14 @@ unsigned attempt_to_submit_data_request_from_apps(data_state *data, starpu_acces
 				r->ready_data_callback = callback;
 				r->argcb = argcb;
 
-			data_requester_list_push_back(data->req_list, r);
+			data_requester_list_push_back(handle->req_list, r);
 
 			/* failed */
 			ret = 1;
 		}
 	}
 
-	starpu_spin_unlock(&data->header_lock);
+	starpu_spin_unlock(&handle->header_lock);
 	return ret;
 }
 
@@ -114,17 +114,17 @@ static unsigned attempt_to_submit_data_request_from_job(job_t j, unsigned buffer
 {
 	unsigned ret;
 
-	data_state *data = j->task->buffers[buffer_index].handle;
+	starpu_data_handle handle = j->task->buffers[buffer_index].handle;
 	starpu_access_mode mode = j->task->buffers[buffer_index].mode;
 
-	while (starpu_spin_trylock(&data->header_lock))
+	while (starpu_spin_trylock(&handle->header_lock))
 		datawizard_progress(get_local_memory_node(), 0);
 
-	if (data->refcnt == 0)
+	if (handle->refcnt == 0)
 	{
 		/* there is nobody currently about to manipulate the data */
-		data->refcnt++;
-		data->current_mode = (mode==STARPU_R)?STARPU_R:STARPU_W;
+		handle->refcnt++;
+		handle->current_mode = (mode==STARPU_R)?STARPU_R:STARPU_W;
 
 		/* success */
 		ret = 0;
@@ -132,9 +132,9 @@ static unsigned attempt_to_submit_data_request_from_job(job_t j, unsigned buffer
 	else
 	{
 		/* there is already someone that may access the data */
-		if ( (mode == STARPU_R) && (data->current_mode == STARPU_R))
+		if ( (mode == STARPU_R) && (handle->current_mode == STARPU_R))
 		{
-			data->refcnt++;
+			handle->refcnt++;
 
 			/* success : there is a new reader */
 			ret = 0;
@@ -151,14 +151,14 @@ static unsigned attempt_to_submit_data_request_from_job(job_t j, unsigned buffer
 				r->j = j;
 				r->buffer_index = buffer_index;
 
-			data_requester_list_push_back(data->req_list, r);
+			data_requester_list_push_back(handle->req_list, r);
 
 			/* failed */
 			ret = 1;
 		}
 	}
 
-	starpu_spin_unlock(&data->header_lock);
+	starpu_spin_unlock(&handle->header_lock);
 	return ret;
 }
 
@@ -192,21 +192,21 @@ unsigned submit_job_enforce_data_deps(job_t j)
 
 
 /* The header lock must already be taken by the caller */
-void notify_data_dependencies(data_state *data)
+void notify_data_dependencies(starpu_data_handle handle)
 {
-	data->refcnt--;
+	handle->refcnt--;
 
-	while (may_unlock_data_req_list_head(data))
+	while (may_unlock_data_req_list_head(handle))
 	{
 		/* unlock the head of the requester list */
-		data_requester_t r = data_requester_list_pop_front(data->req_list);
+		data_requester_t r = data_requester_list_pop_front(handle->req_list);
 
-		data->refcnt++;
+		handle->refcnt++;
 	
 		/* the data is now attributed to that request */
-		data->current_mode = (r->mode==STARPU_R)?STARPU_R:STARPU_W;
+		handle->current_mode = (r->mode==STARPU_R)?STARPU_R:STARPU_W;
 
-		starpu_spin_unlock(&data->header_lock);
+		starpu_spin_unlock(&handle->header_lock);
 
 		if (r->is_requested_by_codelet)
 		{
@@ -223,6 +223,6 @@ void notify_data_dependencies(data_state *data)
 
 		data_requester_delete(r);
 		
-		starpu_spin_lock(&data->header_lock);
+		starpu_spin_lock(&handle->header_lock);
 	}
 }

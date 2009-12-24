@@ -123,16 +123,16 @@ double data_expected_penalty(struct jobq_s *q, struct job_s *j)
 
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		data_state *state = j->task->buffers[buffer].handle;
+		starpu_data_handle handle = j->task->buffers[buffer].handle;
 
 		if (j->task->buffers[buffer].mode == STARPU_W)
 			break;
 
-		if (!is_data_present_or_requested(state, memory_node))
+		if (!is_data_present_or_requested(handle, memory_node))
 		{
-			size_t size = state->ops->get_size(state);
+			size_t size = handle->ops->get_size(handle);
 
-			uint32_t src_node = select_src_node(state);
+			uint32_t src_node = select_src_node(handle);
 
 			penalty += predict_transfer_time(src_node, memory_node, size);
 		}

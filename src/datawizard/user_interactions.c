@@ -20,11 +20,11 @@
 #include <datawizard/write_back.h>
 #include <core/dependencies/data-concurrency.h>
 
-int starpu_request_data_allocation(data_state *state, uint32_t node)
+int starpu_request_data_allocation(starpu_data_handle handle, uint32_t node)
 {
 	data_request_t r;
 
-	r = create_data_request(state, 0, node, node, 0, 0, 1);
+	r = create_data_request(handle, 0, node, node, 0, 0, 1);
 
 	/* we do not increase the refcnt associated to the request since we are
 	 * not waiting for its termination */
@@ -35,7 +35,7 @@ int starpu_request_data_allocation(data_state *state, uint32_t node)
 }
 
 struct state_and_node {
-	data_state *state;
+	starpu_data_handle state;
 	starpu_access_mode mode;
 	unsigned node;
 	pthread_cond_t cond;
@@ -50,12 +50,12 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 	int ret;
 	struct state_and_node *statenode = arg;
 
-	data_state *state = statenode->state;
+	starpu_data_handle handle = statenode->state;
 
 	unsigned r = (statenode->mode != STARPU_W);
 	unsigned w = (statenode->mode != STARPU_R);
 
-	ret = fetch_data_on_node(state, 0, r, w, 0);
+	ret = fetch_data_on_node(handle, 0, r, w, 0);
 	STARPU_ASSERT(!ret);
 	
 	pthread_mutex_lock(&statenode->lock);
@@ -65,7 +65,7 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 }
 
 /* The data must be released by calling starpu_release_data_from_mem later on */
-int starpu_sync_data_with_mem(data_state *state, starpu_access_mode mode)
+int starpu_sync_data_with_mem(starpu_data_handle handle, starpu_access_mode mode)
 {
 	/* it is forbidden to call this function from a callback or a codelet */
 	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
@@ -73,7 +73,7 @@ int starpu_sync_data_with_mem(data_state *state, starpu_access_mode mode)
 
 	struct state_and_node statenode =
 	{
-		.state = state,
+		.state = handle,
 		.mode = mode,
 		.node = 0, // unused
 		.cond = PTHREAD_COND_INITIALIZER,
@@ -84,7 +84,7 @@ int starpu_sync_data_with_mem(data_state *state, starpu_access_mode mode)
 	/* we try to get the data, if we do not succeed immediately, we set a
  	* callback function that will be executed automatically when the data is
  	* available again, otherwise we fetch the data directly */
-	if (!attempt_to_submit_data_request_from_apps(state, mode,
+	if (!attempt_to_submit_data_request_from_apps(handle, mode,
 			_starpu_sync_data_with_mem_continuation, &statenode))
 	{
 		/* no one has locked this data yet, so we proceed immediately */
@@ -102,10 +102,10 @@ int starpu_sync_data_with_mem(data_state *state, starpu_access_mode mode)
 
 /* This function must be called after starpu_sync_data_with_mem so that the
  * application release the data */
-void starpu_release_data_from_mem(data_state *state)
+void starpu_release_data_from_mem(starpu_data_handle handle)
 {
 	/* The application can now release the rw-lock */
-	release_data_on_node(state, 0, 0);
+	release_data_on_node(handle, 0, 0);
 }
 
 
@@ -130,7 +130,7 @@ static void _prefetch_data_on_node(void *arg)
 
 }
 
-int starpu_prefetch_data_on_node(data_state *state, unsigned node, unsigned async)
+int starpu_prefetch_data_on_node(starpu_data_handle handle, unsigned node, unsigned async)
 {
 	/* it is forbidden to call this function from a callback or a codelet */
 	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
@@ -138,7 +138,7 @@ int starpu_prefetch_data_on_node(data_state *state, unsigned node, unsigned asyn
 
 	struct state_and_node statenode =
 	{
-		.state = state,
+		.state = handle,
 		.node = node,
 		.async = async,
 		.cond = PTHREAD_COND_INITIALIZER,
@@ -146,17 +146,17 @@ int starpu_prefetch_data_on_node(data_state *state, unsigned node, unsigned asyn
 		.finished = 0
 	};
 
-	if (!attempt_to_submit_data_request_from_apps(state, STARPU_R, _prefetch_data_on_node, &statenode))
+	if (!attempt_to_submit_data_request_from_apps(handle, STARPU_R, _prefetch_data_on_node, &statenode))
 	{
 		/* we can immediately proceed */
-		fetch_data_on_node(state, node, 1, 0, async);
+		fetch_data_on_node(handle, node, 1, 0, async);
 
 		/* remove the "lock"/reference */
 		if (!async)
 		{
-			starpu_spin_lock(&state->header_lock);
-			notify_data_dependencies(state);
-			starpu_spin_unlock(&state->header_lock);
+			starpu_spin_lock(&handle->header_lock);
+			notify_data_dependencies(handle);
+			starpu_spin_unlock(&handle->header_lock);
 		}
 	}
 	else {

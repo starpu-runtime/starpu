@@ -25,21 +25,21 @@ void compute_buffers_footprint(job_t j)
 
 	for (buffer = 0; buffer < task->cl->nbuffers; buffer++)
 	{
-		data_state *state = task->buffers[buffer].handle;
+		starpu_data_handle handle = task->buffers[buffer].handle;
 
-		STARPU_ASSERT(state->ops);
-		STARPU_ASSERT(state->ops->footprint);
+		STARPU_ASSERT(handle->ops);
+		STARPU_ASSERT(handle->ops->footprint);
 
-		footprint = state->ops->footprint(state, footprint);
+		footprint = handle->ops->footprint(handle, footprint);
 	}
 
 	j->footprint = footprint;
 	j->footprint_is_computed = 1;
 }
 
-inline uint32_t compute_data_footprint(data_state *state)
+inline uint32_t compute_data_footprint(starpu_data_handle handle)
 {
-	uint32_t interfaceid = (uint32_t)starpu_get_handle_interface_id(state);
+	uint32_t interfaceid = (uint32_t)starpu_get_handle_interface_id(handle);
 
-	return state->ops->footprint(state, interfaceid);
+	return handle->ops->footprint(handle, interfaceid);
 }

@@ -18,13 +18,13 @@
 #include <common/config.h>
 #include <datawizard/hierarchy.h>
 
-unsigned starpu_block_filter_func_vector(starpu_filter *f, data_state *root_data)
+unsigned starpu_block_filter_func_vector(starpu_filter *f, starpu_data_handle root_handle)
 {
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
 
 	starpu_vector_interface_t *vector_root =
-		starpu_data_get_interface_on_node(root_data, 0);
+		starpu_data_get_interface_on_node(root_handle, 0);
 
 	uint32_t nx = vector_root->nx;
 	size_t elemsize = vector_root->elemsize;
@@ -33,7 +33,7 @@ unsigned starpu_block_filter_func_vector(starpu_filter *f, data_state *root_data
 	nchunks = STARPU_MIN(nx, arg);
 
 	/* first allocate the children data_state */
-	starpu_data_create_children(root_data, nchunks, sizeof(starpu_vector_interface_t));
+	starpu_data_create_children(root_handle, nchunks, sizeof(starpu_vector_interface_t));
 
 	/* actually create all the chunks */
 	unsigned chunk;
@@ -46,7 +46,7 @@ unsigned starpu_block_filter_func_vector(starpu_filter *f, data_state *root_data
 			STARPU_MIN(chunk_size, nx - chunk*chunk_size);
 
 		starpu_data_handle chunk_handle =
-			starpu_data_get_child(root_data, chunk);
+			starpu_data_get_child(root_handle, chunk);
 
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
@@ -57,9 +57,9 @@ unsigned starpu_block_filter_func_vector(starpu_filter *f, data_state *root_data
 			local->nx = child_nx;
 			local->elemsize = elemsize;
 
-			if (root_data->per_node[node].allocated) {
+			if (root_handle->per_node[node].allocated) {
 				starpu_vector_interface_t *local_root =
-					starpu_data_get_interface_on_node(root_data, node);
+					starpu_data_get_interface_on_node(root_handle, node);
 
 				local->ptr = local_root->ptr + offset;
 			}
@@ -70,23 +70,23 @@ unsigned starpu_block_filter_func_vector(starpu_filter *f, data_state *root_data
 }
 
 
-unsigned starpu_divide_in_2_filter_func_vector(starpu_filter *f, data_state *root_data)
+unsigned starpu_divide_in_2_filter_func_vector(starpu_filter *f, starpu_data_handle root_handle)
 {
 	uint32_t length_first = f->filter_arg;
 
 	starpu_vector_interface_t *vector_root =
-		starpu_data_get_interface_on_node(root_data, 0);
+		starpu_data_get_interface_on_node(root_handle, 0);
 
 	uint32_t nx = vector_root->nx;
 	size_t elemsize = vector_root->elemsize;
 
 	/* first allocate the children data_state */
-	starpu_data_create_children(root_data, 2, sizeof(starpu_vector_interface_t));
+	starpu_data_create_children(root_handle, 2, sizeof(starpu_vector_interface_t));
 
 	STARPU_ASSERT(length_first < nx);
 
 	starpu_data_handle chunk0_handle =
-		starpu_data_get_child(root_data, 0);
+		starpu_data_get_child(root_handle, 0);
 
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
@@ -97,16 +97,16 @@ unsigned starpu_divide_in_2_filter_func_vector(starpu_filter *f, data_state *roo
 		local->nx = length_first;
 		local->elemsize = elemsize;
 
-		if (root_data->per_node[node].allocated) {
+		if (root_handle->per_node[node].allocated) {
 			starpu_vector_interface_t *local_root =
-				starpu_data_get_interface_on_node(root_data, node);
+				starpu_data_get_interface_on_node(root_handle, node);
 
 			local->ptr = local_root->ptr;
 		}
 	}
 
 	starpu_data_handle chunk1_handle =
-		starpu_data_get_child(root_data, 1);
+		starpu_data_get_child(root_handle, 1);
 
 	for (node = 0; node < MAXNODES; node++)
 	{
@@ -116,9 +116,9 @@ unsigned starpu_divide_in_2_filter_func_vector(starpu_filter *f, data_state *roo
 		local->nx = nx - length_first;
 		local->elemsize = elemsize;
 
-		if (root_data->per_node[node].allocated) {
+		if (root_handle->per_node[node].allocated) {
 			starpu_vector_interface_t *local_root =
-				starpu_data_get_interface_on_node(root_data, node);
+				starpu_data_get_interface_on_node(root_handle, node);
 
 			local->ptr = local_root->ptr + length_first*elemsize;
 		}
@@ -127,19 +127,19 @@ unsigned starpu_divide_in_2_filter_func_vector(starpu_filter *f, data_state *roo
 	return 2;
 }
 
-unsigned starpu_list_filter_func_vector(starpu_filter *f, data_state *root_data)
+unsigned starpu_list_filter_func_vector(starpu_filter *f, starpu_data_handle root_handle)
 {
 	uint32_t nchunks = f->filter_arg;
 	uint32_t *length_tab = f->filter_arg_ptr;
 
 	starpu_vector_interface_t *vector_root =
-		starpu_data_get_interface_on_node(root_data, 0);
+		starpu_data_get_interface_on_node(root_handle, 0);
 
 	uint32_t nx = vector_root->nx;
 	size_t elemsize = vector_root->elemsize;
 
 	/* first allocate the children data_state */
-	starpu_data_create_children(root_data, nchunks, sizeof(starpu_vector_interface_t));
+	starpu_data_create_children(root_handle, nchunks, sizeof(starpu_vector_interface_t));
 
 	unsigned current_pos = 0;
 
@@ -148,7 +148,7 @@ unsigned starpu_list_filter_func_vector(starpu_filter *f, data_state *root_data)
 	for (chunk = 0; chunk < nchunks; chunk++)
 	{
 		starpu_data_handle chunk_handle =
-			starpu_data_get_child(root_data, chunk);
+			starpu_data_get_child(root_handle, chunk);
 
 		uint32_t chunk_size = length_tab[chunk];
 
@@ -161,9 +161,9 @@ unsigned starpu_list_filter_func_vector(starpu_filter *f, data_state *root_data)
 			local->nx = chunk_size;
 			local->elemsize = elemsize;
 
-			if (root_data->per_node[node].allocated) {
+			if (root_handle->per_node[node].allocated) {
 				starpu_vector_interface_t *local_root =
-					starpu_data_get_interface_on_node(root_data, node);
+					starpu_data_get_interface_on_node(root_handle, node);
 
 				local->ptr = local_root->ptr + current_pos*elemsize;
 			}

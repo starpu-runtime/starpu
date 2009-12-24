@@ -18,13 +18,13 @@
 #include <common/config.h>
 #include <datawizard/hierarchy.h>
 
-unsigned starpu_vertical_block_filter_func_csr(starpu_filter *f, data_state *root_data)
+unsigned starpu_vertical_block_filter_func_csr(starpu_filter *f, starpu_data_handle root_handle)
 {
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
 
 	starpu_csr_interface_t *root_interface =
-		starpu_data_get_interface_on_node(root_data, 0);
+		starpu_data_get_interface_on_node(root_handle, 0);
 
 	uint32_t nrow = root_interface->nrow;
 	size_t elemsize = root_interface->elemsize;
@@ -34,13 +34,13 @@ unsigned starpu_vertical_block_filter_func_csr(starpu_filter *f, data_state *roo
 	nchunks = STARPU_MIN(nrow, arg);
 	
 	/* first allocate the children data_state */
-	starpu_data_create_children(root_data, nchunks, sizeof(starpu_csr_interface_t));
+	starpu_data_create_children(root_handle, nchunks, sizeof(starpu_csr_interface_t));
 
 	/* actually create all the chunks */
 	uint32_t chunk_size = (nrow + nchunks - 1)/nchunks;
 
 	/* XXX */
-	STARPU_ASSERT(root_data->per_node[0].allocated);
+	STARPU_ASSERT(root_handle->per_node[0].allocated);
 	uint32_t *rowptr = root_interface->rowptr;
 
 	unsigned chunk;
@@ -55,7 +55,7 @@ unsigned starpu_vertical_block_filter_func_csr(starpu_filter *f, data_state *roo
 		uint32_t local_nnz = rowptr[first_index + child_nrow] - rowptr[first_index]; 
 
 		starpu_data_handle chunk_handle =
-			starpu_data_get_child(root_data, chunk);
+			starpu_data_get_child(root_handle, chunk);
 
 		unsigned node;
 		for (node = 0; node < MAXNODES; node++)
@@ -68,7 +68,7 @@ unsigned starpu_vertical_block_filter_func_csr(starpu_filter *f, data_state *roo
 			local->firstentry = local_firstentry;
 			local->elemsize = elemsize;
 
-			if (root_data->per_node[node].allocated) {
+			if (root_handle->per_node[node].allocated) {
 				local->rowptr = &local->rowptr[first_index];
 				local->colind = &local->colind[local_firstentry];
 				float *nzval = (float *)(local->nzval);
