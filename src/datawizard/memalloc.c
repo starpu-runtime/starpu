@@ -315,7 +315,7 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 		if (mc->footprint == footprint)
 		{
 
-			data_state *old_data;
+			starpu_data_handle old_data;
 			old_data = mc->data;
 
 			if (old_data->per_node[node].allocated &&

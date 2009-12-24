@@ -132,8 +132,6 @@ struct starpu_data_state_t {
 
 void display_msi_stats(void);
 
-//void release_data(struct starpu_data_state_t *state, uint32_t write_through_mask);
-
 __attribute__((warn_unused_result))
 int fetch_data_on_node(struct starpu_data_state_t *state, uint32_t requesting_node, uint8_t read, uint8_t write, unsigned is_prefetch);
 void release_data_on_node(struct starpu_data_state_t *state, uint32_t default_wb_mask, unsigned memory_node);

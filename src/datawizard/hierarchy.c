@@ -336,21 +336,21 @@ void starpu_advise_if_data_is_important(starpu_data_handle handle, unsigned is_i
 
 starpu_data_handle starpu_data_state_create(size_t interfacesize)
 {
-	struct starpu_data_state_t *state =
+	starpu_data_handle handle =
 		calloc(1, sizeof(struct starpu_data_state_t));
 
-	STARPU_ASSERT(state);
+	STARPU_ASSERT(handle);
 
-	state->interface_size = interfacesize;
+	handle->interface_size = interfacesize;
 
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
 	{
-		state->interface[node] = calloc(1, interfacesize);
-		STARPU_ASSERT(state->interface[node]);
+		handle->interface[node] = calloc(1, interfacesize);
+		STARPU_ASSERT(handle->interface[node]);
 	}
 
-	return state;
+	return handle;
 }
 
 void starpu_data_create_children(starpu_data_handle handle,

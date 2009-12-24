@@ -133,15 +133,15 @@ static void starpu_to_gordon_buffers(job_t j, struct gordon_ppu_job_s *gordon_jo
 				break;
 		}
 
-		struct starpu_data_state_t *state = task->buffers[buffer].handle;
+		starpu_data_handle handle = task->buffers[buffer].handle;
 
 		gordon_job->nalloc = 0;
 		gordon_job->nin = nin;
 		gordon_job->ninout = ninout;
 		gordon_job->nout = nout;
 
-		STARPU_ASSERT(state->ops->convert_to_gordon);
-		state->ops->convert_to_gordon(&state->interface[memory_node],
+		STARPU_ASSERT(handle->ops->convert_to_gordon);
+		handle->ops->convert_to_gordon(&handle->interface[memory_node],
 				&gordon_job->buffers[gordon_buffer],
 				&gordon_job->ss[gordon_buffer]);
 	}

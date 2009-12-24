@@ -27,10 +27,10 @@
  * BCSR : blocked CSR, we use blocks of size (r x c)
  */
 
-static int dummy_copy_ram_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
+static int dummy_copy_ram_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
 #ifdef USE_CUDA
-static int copy_ram_to_cublas(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
-static int copy_cublas_to_ram(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node);
+static int copy_ram_to_cublas(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
+static int copy_cublas_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
 #endif
 
 static const struct copy_data_methods_s bcsr_copy_data_methods_s = {
@@ -61,20 +61,20 @@ struct data_interface_ops_t interface_bcsr_ops = {
 	.footprint = footprint_bcsr_interface_crc32
 };
 
-void starpu_register_bcsr_data(struct starpu_data_state_t **handle, uint32_t home_node,
+void starpu_register_bcsr_data(starpu_data_handle *handleptr, uint32_t home_node,
 		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry,  uint32_t r, uint32_t c, size_t elemsize)
 {
-	struct starpu_data_state_t *state =
+	starpu_data_handle handle =
 		starpu_data_state_create(sizeof(starpu_bcsr_interface_t));
 
-	STARPU_ASSERT(handle);
-	*handle = state;
+	STARPU_ASSERT(handleptr);
+	*handleptr = handle;
 
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
 	{
 		starpu_bcsr_interface_t *local_interface =
-			starpu_data_get_interface_on_node(state, node);
+			starpu_data_get_interface_on_node(handle, node);
 
 		if (node == home_node) {
 			local_interface->nzval = nzval;
@@ -95,9 +95,9 @@ void starpu_register_bcsr_data(struct starpu_data_state_t **handle, uint32_t hom
 		local_interface->elemsize = elemsize;
 	}
 
-	state->ops = &interface_bcsr_ops;
+	handle->ops = &interface_bcsr_ops;
 
-	register_new_data(state, home_node, 0);
+	register_new_data(handle, home_node, 0);
 }
 
 static inline uint32_t footprint_bcsr_interface_generic(uint32_t (*hash_func)(uint32_t input, uint32_t hstate), starpu_data_handle handle, uint32_t hstate)
