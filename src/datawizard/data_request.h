@@ -35,7 +35,7 @@ LIST_TYPE(data_request,
 	/* parameters to define the type of request */
 	unsigned flags;
 
-	struct starpu_data_state_t *state;
+	starpu_data_handle handle;
 	uint32_t src_node;
 	uint32_t dst_node;
 
@@ -74,8 +74,8 @@ void handle_all_pending_node_data_requests(uint32_t src_node);
 
 int check_that_no_data_request_exists(uint32_t node);
 
-data_request_t create_data_request(struct starpu_data_state_t *state, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, uint8_t read, uint8_t write, unsigned is_prefetch);
-data_request_t search_existing_data_request(struct starpu_data_state_t *state, uint32_t dst_node, uint8_t read, uint8_t write);
+data_request_t create_data_request(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, uint8_t read, uint8_t write, unsigned is_prefetch);
+data_request_t search_existing_data_request(starpu_data_handle handle, uint32_t dst_node, uint8_t read, uint8_t write);
 int wait_data_request_completion(data_request_t r, unsigned may_alloc);
 
 #endif // __DATA_REQUEST_H__
