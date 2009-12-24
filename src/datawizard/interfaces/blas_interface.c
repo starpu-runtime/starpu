@@ -157,7 +157,7 @@ struct dumped_blas_interface_s {
 
 static void display_blas_interface(data_state *state, FILE *f)
 {
-	starpu_blas_interface_t *interface;
+	starpu_blas_interface_t *interface =
 		starpu_data_get_interface_on_node(state, 0);
 
 	fprintf(f, "%u\t%u\t", interface->nx, interface->ny);
