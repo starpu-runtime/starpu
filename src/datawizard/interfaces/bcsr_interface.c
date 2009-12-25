@@ -185,7 +185,7 @@ uintptr_t starpu_get_bcsr_local_nzval(starpu_data_handle handle)
 	unsigned node;
 	node = get_local_memory_node();
 
-	STARPU_ASSERT(handle->per_node[node].allocated);
+	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
 
 	starpu_bcsr_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, node);

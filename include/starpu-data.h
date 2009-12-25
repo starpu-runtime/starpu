@@ -66,6 +66,8 @@ unsigned starpu_get_worker_memory_node(unsigned workerid);
  * commit their changes in main memory (node 0). */
 void starpu_data_set_wb_mask(starpu_data_handle state, uint32_t wb_mask);
 
+unsigned starpu_test_if_data_is_allocated_on_node(starpu_data_handle handle, uint32_t memory_node);
+
 #ifdef __cplusplus
 }
 #endif

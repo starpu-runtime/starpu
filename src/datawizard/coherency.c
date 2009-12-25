@@ -432,3 +432,8 @@ inline void set_data_requested_flag_if_needed(starpu_data_handle handle, uint32_
 
 //	pthread_spin_unlock(&handle->header_lock);
 }
+
+unsigned starpu_test_if_data_is_allocated_on_node(starpu_data_handle handle, uint32_t memory_node)
+{
+	return handle->per_node[memory_node].allocated;
+} 
