@@ -21,7 +21,7 @@
 /*
  * an example of a dummy partition function : blocks ...
  */
-unsigned starpu_block_filter_func(starpu_filter *f, starpu_data_handle root_handle)
+void starpu_block_filter_func(starpu_filter *f, starpu_data_handle root_handle)
 {
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
@@ -72,11 +72,9 @@ unsigned starpu_block_filter_func(starpu_filter *f, starpu_data_handle root_hand
 			}
 		}
 	}
-
-	return nchunks;
 }
 
-unsigned starpu_vertical_block_filter_func(starpu_filter *f, starpu_data_handle root_handle)
+void starpu_vertical_block_filter_func(starpu_filter *f, starpu_data_handle root_handle)
 {
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
@@ -127,6 +125,4 @@ unsigned starpu_vertical_block_filter_func(starpu_filter *f, starpu_data_handle 
 			}
 		}
 	}
-
-	return nchunks;
 }

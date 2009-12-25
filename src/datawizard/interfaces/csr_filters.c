@@ -18,7 +18,7 @@
 #include <common/config.h>
 #include <datawizard/hierarchy.h>
 
-unsigned starpu_vertical_block_filter_func_csr(starpu_filter *f, starpu_data_handle root_handle)
+void starpu_vertical_block_filter_func_csr(starpu_filter *f, starpu_data_handle root_handle)
 {
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
@@ -76,6 +76,4 @@ unsigned starpu_vertical_block_filter_func_csr(starpu_filter *f, starpu_data_han
 			}
 		}
 	}
-
-	return nchunks;
 }

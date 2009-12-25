@@ -18,7 +18,7 @@
 #include <common/config.h>
 #include <datawizard/hierarchy.h>
 
-unsigned starpu_block_filter_func_vector(starpu_filter *f, starpu_data_handle root_handle)
+void starpu_block_filter_func_vector(starpu_filter *f, starpu_data_handle root_handle)
 {
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
@@ -65,12 +65,10 @@ unsigned starpu_block_filter_func_vector(starpu_filter *f, starpu_data_handle ro
 			}
 		}
 	}
-
-	return nchunks;
 }
 
 
-unsigned starpu_divide_in_2_filter_func_vector(starpu_filter *f, starpu_data_handle root_handle)
+void starpu_divide_in_2_filter_func_vector(starpu_filter *f, starpu_data_handle root_handle)
 {
 	uint32_t length_first = f->filter_arg;
 
@@ -123,11 +121,9 @@ unsigned starpu_divide_in_2_filter_func_vector(starpu_filter *f, starpu_data_han
 			local->ptr = local_root->ptr + length_first*elemsize;
 		}
 	}
-
-	return 2;
 }
 
-unsigned starpu_list_filter_func_vector(starpu_filter *f, starpu_data_handle root_handle)
+void starpu_list_filter_func_vector(starpu_filter *f, starpu_data_handle root_handle)
 {
 	uint32_t nchunks = f->filter_arg;
 	uint32_t *length_tab = f->filter_arg_ptr;
@@ -173,6 +169,4 @@ unsigned starpu_list_filter_func_vector(starpu_filter *f, starpu_data_handle roo
 	}
 
 	STARPU_ASSERT(current_pos == nx);
-
-	return nchunks;
 }

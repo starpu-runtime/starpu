@@ -20,7 +20,7 @@
 
 extern struct data_interface_ops_t interface_blas_ops;
 
-unsigned starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unused)), starpu_data_handle root_handle)
+void starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unused)), starpu_data_handle root_handle)
 {
 	unsigned nchunks;
 
@@ -73,7 +73,4 @@ unsigned starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unus
 			}
 		}
 	}
-
-	return nchunks;
-
 }

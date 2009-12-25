@@ -92,7 +92,7 @@ struct divide_vector_in_blas_filter_args {
 	uint32_t stride; /* stride of the first portion (need to be a multiple of n */
 };
 
-unsigned divide_vector_in_blas_filter(starpu_filter *f, starpu_data_handle root_data)
+void divide_vector_in_blas_filter(starpu_filter *f, starpu_data_handle root_data)
 {
 	starpu_vector_interface_t *vector_root = &root_data->interface[0].vector;
 		uint32_t nx = vector_root->nx;
@@ -107,8 +107,7 @@ unsigned divide_vector_in_blas_filter(starpu_filter *f, starpu_data_handle root_
 		
 
 	/* first allocate the children starpu_data_handle */
-	root_data->children = calloc((n1==0)?2:3, sizeof(starpu_data_handle));
-	STARPU_ASSERT(root_data->children);
+	starpu_data_create_children(root_data, (n1==0)?2:3, root_data->ops);
 
 	STARPU_ASSERT((n2 % args->stride) == 0);
 
@@ -163,8 +162,6 @@ unsigned divide_vector_in_blas_filter(starpu_filter *f, starpu_data_handle root_
 			local->ptr = root_data->interface[node].vector.ptr + (n1+n2)*elemsize;
 		}
 	}
-
-	return (n1==0)?2:3;
 }
 
 

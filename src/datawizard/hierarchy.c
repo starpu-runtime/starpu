@@ -184,10 +184,10 @@ void starpu_partition_data(starpu_data_handle initial_handle, starpu_filter *f)
 	STARPU_ASSERT(initial_handle->nchildren == 0);
 
 	/* this should update the pointers and size of the chunk */
-	nparts = f->filter_func(f, initial_handle);
-	STARPU_ASSERT(nparts > 0);
+	f->filter_func(f, initial_handle);
 
-	initial_handle->nchildren = nparts;
+	nparts = initial_handle->nchildren;
+	STARPU_ASSERT(nparts > 0);
 
 	for (i = 0; i < nparts; i++)
 	{

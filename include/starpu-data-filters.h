@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 typedef struct starpu_filter_t {
-	unsigned (*filter_func)(struct starpu_filter_t *, starpu_data_handle); /* the actual partitionning function */
+	void (*filter_func)(struct starpu_filter_t *, starpu_data_handle); /* the actual partitionning function */
 	uint32_t filter_arg;
 	void *filter_arg_ptr;
 } starpu_filter;
@@ -48,16 +48,16 @@ void starpu_map_filters(starpu_data_handle root_data, unsigned nfilters, ...);
 /* a few examples of filters */
 
 /* for BCSR */
-unsigned starpu_canonical_block_filter_bcsr(starpu_filter *f, starpu_data_handle root_data);
-unsigned starpu_vertical_block_filter_func_csr(starpu_filter *f, starpu_data_handle root_data);
+void starpu_canonical_block_filter_bcsr(starpu_filter *f, starpu_data_handle root_data);
+void starpu_vertical_block_filter_func_csr(starpu_filter *f, starpu_data_handle root_data);
 /* (filters for BLAS interface) */
-unsigned starpu_block_filter_func(starpu_filter *f, starpu_data_handle root_data);
-unsigned starpu_vertical_block_filter_func(starpu_filter *f, starpu_data_handle root_data);
+void starpu_block_filter_func(starpu_filter *f, starpu_data_handle root_data);
+void starpu_vertical_block_filter_func(starpu_filter *f, starpu_data_handle root_data);
 
 /* for vector */
-unsigned starpu_block_filter_func_vector(starpu_filter *f, starpu_data_handle root_data);
-unsigned starpu_list_filter_func_vector(starpu_filter *f, starpu_data_handle root_data);
-unsigned starpu_divide_in_2_filter_func_vector(starpu_filter *f, starpu_data_handle root_data);
+void starpu_block_filter_func_vector(starpu_filter *f, starpu_data_handle root_data);
+void starpu_list_filter_func_vector(starpu_filter *f, starpu_data_handle root_data);
+void starpu_divide_in_2_filter_func_vector(starpu_filter *f, starpu_data_handle root_data);
 
 #ifdef __cplusplus
 }
