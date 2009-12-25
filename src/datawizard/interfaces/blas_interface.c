@@ -54,6 +54,7 @@ static const struct copy_data_methods_s blas_copy_data_methods_s = {
 	.spu_to_spu = NULL
 };
 
+static void register_blas_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
 static size_t allocate_blas_buffer_on_node(starpu_data_handle handle, uint32_t dst_node);
 static void liberate_blas_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
 static size_t blas_interface_get_size(starpu_data_handle handle);
@@ -64,6 +65,7 @@ static int convert_blas_to_gordon(starpu_data_interface_t *interface, uint64_t *
 #endif
 
 struct data_interface_ops_t interface_blas_ops = {
+	.register_data_handle = register_blas_handle,
 	.allocate_data_on_node = allocate_blas_buffer_on_node,
 	.liberate_data_on_node = liberate_blas_buffer_on_node,
 	.copy_methods = &blas_copy_data_methods_s,
@@ -95,16 +97,9 @@ static int convert_blas_to_gordon(starpu_data_interface_t *interface, uint64_t *
 }
 #endif
 
-/* declare a new data with the BLAS interface */
-void starpu_register_blas_data(starpu_data_handle *handleptr, uint32_t home_node,
-			uintptr_t ptr, uint32_t ld, uint32_t nx,
-			uint32_t ny, size_t elemsize)
+static void register_blas_handle(starpu_data_handle handle, uint32_t home_node, void *interface)
 {
-	starpu_data_handle handle =
-		starpu_data_state_create(&interface_blas_ops);
-
-	STARPU_ASSERT(handleptr);
-	*handleptr = handle;
+	starpu_blas_interface_t *blas_interface = interface;
 
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
@@ -113,20 +108,34 @@ void starpu_register_blas_data(starpu_data_handle *handleptr, uint32_t home_node
 			starpu_data_get_interface_on_node(handle, node);
 
 		if (node == home_node) {
-			local_interface->ptr = ptr;
-			local_interface->ld  = ld;
+			local_interface->ptr = blas_interface->ptr;
+			local_interface->ld  = blas_interface->ld;
 		}
 		else {
 			local_interface->ptr = 0;
 			local_interface->ld  = 0;
 		}
 
-		local_interface->nx = nx;
-		local_interface->ny = ny;
-		local_interface->elemsize = elemsize;
+		local_interface->nx = blas_interface->nx;
+		local_interface->ny = blas_interface->ny;
+		local_interface->elemsize = blas_interface->elemsize;
 	}
+}
 
-	register_new_data(handle, home_node, 0);
+/* declare a new data with the BLAS interface */
+void starpu_register_blas_data(starpu_data_handle *handleptr, uint32_t home_node,
+			uintptr_t ptr, uint32_t ld, uint32_t nx,
+			uint32_t ny, size_t elemsize)
+{
+	starpu_blas_interface_t interface = {
+		.ptr = ptr,
+		.ld = ld,
+		.nx = nx,
+		.ny = ny,
+		.elemsize = elemsize
+	};
+
+	register_data_handle(handleptr, home_node, &interface, &interface_blas_ops);
 }
 
 static inline uint32_t footprint_blas_interface_generic(uint32_t (*hash_func)(uint32_t input, uint32_t hstate), starpu_data_handle handle, uint32_t hstate)
@@ -144,13 +153,6 @@ static uint32_t footprint_blas_interface_crc32(starpu_data_handle handle, uint32
 {
 	return footprint_blas_interface_generic(crc32_be, handle, hstate);
 }
-
-struct dumped_blas_interface_s {
-	uintptr_t ptr;
-	uint32_t nx;
-	uint32_t ny;
-	uint32_t ld;
-} __attribute__ ((packed));
 
 static void display_blas_interface(starpu_data_handle handle, FILE *f)
 {

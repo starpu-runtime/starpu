@@ -52,6 +52,7 @@ static const struct copy_data_methods_s vector_copy_data_methods_s = {
 	.spu_to_spu = NULL
 };
 
+static void register_vector_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
 static size_t allocate_vector_buffer_on_node(starpu_data_handle handle, uint32_t dst_node);
 static void liberate_vector_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
 static size_t vector_interface_get_size(starpu_data_handle handle);
@@ -62,6 +63,7 @@ static int convert_vector_to_gordon(starpu_data_interface_t *interface, uint64_t
 #endif
 
 struct data_interface_ops_t interface_vector_ops = {
+	.register_data_handle = register_vector_handle,
 	.allocate_data_on_node = allocate_vector_buffer_on_node,
 	.liberate_data_on_node = liberate_vector_buffer_on_node,
 	.copy_methods = &vector_copy_data_methods_s,
@@ -74,6 +76,28 @@ struct data_interface_ops_t interface_vector_ops = {
 	.interface_size = sizeof(starpu_vector_interface_t), 
 	.display = display_vector_interface
 };
+
+static void register_vector_handle(starpu_data_handle handle, uint32_t home_node, void *interface)
+{
+	starpu_vector_interface_t *vector_interface = interface;
+
+	unsigned node;
+	for (node = 0; node < MAXNODES; node++)
+	{
+		starpu_vector_interface_t *local_interface = 
+			starpu_data_get_interface_on_node(handle, node);
+
+		if (node == home_node) {
+			local_interface->ptr = vector_interface->ptr;
+		}
+		else {
+			local_interface->ptr = 0;
+		}
+
+		local_interface->nx = vector_interface->nx;
+		local_interface->elemsize = vector_interface->elemsize;
+	}
+}
 
 #ifdef USE_GORDON
 int convert_vector_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
@@ -89,30 +113,13 @@ int convert_vector_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, 
 void starpu_register_vector_data(starpu_data_handle *handleptr, uint32_t home_node,
                         uintptr_t ptr, uint32_t nx, size_t elemsize)
 {
-	starpu_data_handle handle =
-		starpu_data_state_create(&interface_vector_ops);
+	starpu_vector_interface_t vector = {
+		.ptr = ptr,
+		.nx = nx,
+		.elemsize = elemsize
+	};	
 
-	STARPU_ASSERT(handleptr);
-	*handleptr = handle;
-
-	unsigned node;
-	for (node = 0; node < MAXNODES; node++)
-	{
-		starpu_vector_interface_t *local_interface = 
-			starpu_data_get_interface_on_node(handle, node);
-
-		if (node == home_node) {
-			local_interface->ptr = ptr;
-		}
-		else {
-			local_interface->ptr = 0;
-		}
-
-		local_interface->nx = nx;
-		local_interface->elemsize = elemsize;
-	}
-
-	register_new_data(handle, home_node, 0);
+	register_data_handle(handleptr, home_node, &vector, &interface_vector_ops); 
 }
 
 
@@ -130,12 +137,6 @@ uint32_t footprint_vector_interface_crc32(starpu_data_handle handle, uint32_t hs
 {
 	return footprint_vector_interface_generic(crc32_be, handle, hstate);
 }
-
-struct dumped_vector_interface_s {
-	uintptr_t ptr;
-	uint32_t nx;
-	uint32_t elemsize;
-} __attribute__ ((packed));
 
 static void display_vector_interface(starpu_data_handle handle, FILE *f)
 {

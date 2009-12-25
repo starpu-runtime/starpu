@@ -26,4 +26,19 @@ void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memo
 	return handle->interface[memory_node];
 }
 
+void register_data_handle(starpu_data_handle *handleptr, uint32_t home_node,
+				void *interface,
+				struct data_interface_ops_t *ops)
+{
+	starpu_data_handle handle =
+		starpu_data_state_create(ops);
+
+	STARPU_ASSERT(handleptr);
+	*handleptr = handle;
+
+	/* fill the interface fields with the appropriate method */
+	ops->register_data_handle(handle, home_node, interface);
+
+	register_new_data(handle, home_node, 0);
+}
 /* register data interface ? (do we need to register ?) descr =  type enum, required to get an id !  */

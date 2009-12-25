@@ -43,13 +43,14 @@ static const struct copy_data_methods_s csr_copy_data_methods_s = {
 	.spu_to_spu = NULL
 };
 
-
+static void register_csr_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
 static size_t allocate_csr_buffer_on_node(starpu_data_handle handle, uint32_t dst_node);
 static void liberate_csr_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
 static size_t csr_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle handle, uint32_t hstate);
 
 struct data_interface_ops_t interface_csr_ops = {
+	.register_data_handle = register_csr_handle,
 	.allocate_data_on_node = allocate_csr_buffer_on_node,
 	.liberate_data_on_node = liberate_csr_buffer_on_node,
 	.copy_methods = &csr_copy_data_methods_s,
@@ -59,15 +60,9 @@ struct data_interface_ops_t interface_csr_ops = {
 	.footprint = footprint_csr_interface_crc32
 };
 
-/* declare a new data with the BLAS interface */
-void starpu_register_csr_data(starpu_data_handle *handleptr, uint32_t home_node,
-		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize)
+static void register_csr_handle(starpu_data_handle handle, uint32_t home_node, void *interface)
 {
-	starpu_data_handle handle =
-		starpu_data_state_create(&interface_csr_ops);	
-
-	STARPU_ASSERT(handleptr);
-	*handleptr = handle;
+	starpu_csr_interface_t *csr_interface = interface;
 
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
@@ -76,9 +71,9 @@ void starpu_register_csr_data(starpu_data_handle *handleptr, uint32_t home_node,
 			starpu_data_get_interface_on_node(handle, node);
 
 		if (node == home_node) {
-			local_interface->nzval = nzval;
-			local_interface->colind = colind;
-			local_interface->rowptr = rowptr;
+			local_interface->nzval = csr_interface->nzval;
+			local_interface->colind = csr_interface->colind;
+			local_interface->rowptr = csr_interface->rowptr;
 		}
 		else {
 			local_interface->nzval = 0;
@@ -86,14 +81,29 @@ void starpu_register_csr_data(starpu_data_handle *handleptr, uint32_t home_node,
 			local_interface->rowptr = NULL;
 		}
 
-		local_interface->nnz = nnz;
-		local_interface->nrow = nrow;
-		local_interface->firstentry = firstentry;
-		local_interface->elemsize = elemsize;
+		local_interface->nnz = csr_interface->nnz;
+		local_interface->nrow = csr_interface->nrow;
+		local_interface->firstentry = csr_interface->firstentry;
+		local_interface->elemsize = csr_interface->elemsize;
 
 	}
+}
 
-	register_new_data(handle, home_node, 0);
+/* declare a new data with the BLAS interface */
+void starpu_register_csr_data(starpu_data_handle *handleptr, uint32_t home_node,
+		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize)
+{
+	starpu_csr_interface_t interface = {
+		.nnz = nnz,
+		.nrow = nrow,
+		.nzval = nzval,
+		.colind = colind,
+		.rowptr = rowptr,
+		.firstentry = firstentry,
+		.elemsize = elemsize
+	};
+
+	register_data_handle(handleptr, home_node, &interface, &interface_csr_ops);
 }
 
 static inline uint32_t footprint_csr_interface_generic(uint32_t (*hash_func)(uint32_t input, uint32_t hstate), starpu_data_handle handle, uint32_t hstate)
@@ -110,16 +120,6 @@ static uint32_t footprint_csr_interface_crc32(starpu_data_handle handle, uint32_
 {
 	return footprint_csr_interface_generic(crc32_be, handle, hstate);
 }
-
-struct dumped_csr_interface_s {
-	uint32_t nnz;
-	uint32_t nrow;
-	uintptr_t nzval;
-	uint32_t *colind;
-	uint32_t *rowptr;
-	uint32_t firstentry;
-	uint32_t elemsize;
-}  __attribute__ ((packed));
 
 /* offer an access to the data parameters */
 uint32_t starpu_get_csr_nnz(starpu_data_handle handle)

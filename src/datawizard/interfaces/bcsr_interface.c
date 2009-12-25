@@ -47,12 +47,14 @@ static const struct copy_data_methods_s bcsr_copy_data_methods_s = {
 	.spu_to_spu = NULL
 };
 
+static void register_bcsr_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
 static size_t allocate_bcsr_buffer_on_node(starpu_data_handle handle, uint32_t dst_node);
 static void liberate_bcsr_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
 static size_t bcsr_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle handle, uint32_t hstate);
 
 struct data_interface_ops_t interface_bcsr_ops = {
+	.register_data_handle = register_bcsr_handle,
 	.allocate_data_on_node = allocate_bcsr_buffer_on_node,
 	.liberate_data_on_node = liberate_bcsr_buffer_on_node,
 	.copy_methods = &bcsr_copy_data_methods_s,
@@ -62,14 +64,9 @@ struct data_interface_ops_t interface_bcsr_ops = {
 	.footprint = footprint_bcsr_interface_crc32
 };
 
-void starpu_register_bcsr_data(starpu_data_handle *handleptr, uint32_t home_node,
-		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry,  uint32_t r, uint32_t c, size_t elemsize)
+static void register_bcsr_handle(starpu_data_handle handle, uint32_t home_node, void *interface)
 {
-	starpu_data_handle handle =
-		starpu_data_state_create(&interface_bcsr_ops);
-
-	STARPU_ASSERT(handleptr);
-	*handleptr = handle;
+	starpu_bcsr_interface_t *bcsr_interface = interface;
 
 	unsigned node;
 	for (node = 0; node < MAXNODES; node++)
@@ -78,9 +75,9 @@ void starpu_register_bcsr_data(starpu_data_handle *handleptr, uint32_t home_node
 			starpu_data_get_interface_on_node(handle, node);
 
 		if (node == home_node) {
-			local_interface->nzval = nzval;
-			local_interface->colind = colind;
-			local_interface->rowptr = rowptr;
+			local_interface->nzval = bcsr_interface->nzval;
+			local_interface->colind = bcsr_interface->colind;
+			local_interface->rowptr = bcsr_interface->rowptr;
 		}
 		else {
 			local_interface->nzval = 0;
@@ -88,15 +85,33 @@ void starpu_register_bcsr_data(starpu_data_handle *handleptr, uint32_t home_node
 			local_interface->rowptr = NULL;
 		}
 
-		local_interface->nnz = nnz;
-		local_interface->nrow = nrow;
-		local_interface->firstentry = firstentry;
-		local_interface->r = r;
-		local_interface->c = c;
-		local_interface->elemsize = elemsize;
+		local_interface->nnz = bcsr_interface->nnz;
+		local_interface->nrow = bcsr_interface->nrow;
+		local_interface->firstentry = bcsr_interface->firstentry;
+		local_interface->r = bcsr_interface->r;
+		local_interface->c = bcsr_interface->c;
+		local_interface->elemsize = bcsr_interface->elemsize;
 	}
+}
 
-	register_new_data(handle, home_node, 0);
+void starpu_register_bcsr_data(starpu_data_handle *handleptr, uint32_t home_node,
+		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind,
+		uint32_t *rowptr, uint32_t firstentry,
+		uint32_t r, uint32_t c, size_t elemsize)
+{
+	starpu_bcsr_interface_t interface = {
+		.nzval = nzval,
+		.colind = colind,
+		.rowptr = rowptr,
+		.nnz = nnz,
+		.nrow = nrow,
+		.firstentry = firstentry,
+		.r = r,
+		.c = c,
+		.elemsize = elemsize
+	};
+
+	register_data_handle(handleptr, home_node, &interface, &interface_bcsr_ops);
 }
 
 static inline uint32_t footprint_bcsr_interface_generic(uint32_t (*hash_func)(uint32_t input, uint32_t hstate), starpu_data_handle handle, uint32_t hstate)
@@ -115,18 +130,6 @@ static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle handle, uint32
 {
 	return footprint_bcsr_interface_generic(crc32_be, handle, hstate);
 }
-
-struct dumped_bcsr_interface_s {
-	uint32_t nnz;
-	uint32_t nrow;
-	uintptr_t nzval;
-	uint32_t *colind;
-	uint32_t *rowptr;
-	uint32_t firstentry;
-	uint32_t r;
-	uint32_t c;
-	uint32_t elemsize;
-}  __attribute__ ((packed));
 
 /* offer an access to the data parameters */
 uint32_t starpu_get_bcsr_nnz(starpu_data_handle handle)

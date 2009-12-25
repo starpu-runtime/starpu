@@ -27,6 +27,8 @@
 #endif
 
 struct data_interface_ops_t {
+	void (*register_data_handle)(starpu_data_handle handle,
+					uint32_t home_node, void *interface);
 	size_t (*allocate_data_on_node)(starpu_data_handle handle, uint32_t node);
 	void (*liberate_data_on_node)(starpu_data_interface_t *interface,
 					uint32_t node);
@@ -41,5 +43,9 @@ struct data_interface_ops_t {
 	unsigned interfaceid;
 	size_t interface_size;
 };
+
+void register_data_handle(starpu_data_handle *handleptr, uint32_t home_node,
+				void *interface,
+				struct data_interface_ops_t *ops);
 
 #endif // __DATA_INTERFACE_H__
