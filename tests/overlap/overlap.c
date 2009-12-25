@@ -48,7 +48,7 @@ static void callback(void *arg)
 	}
 }
 
-static void codelet_sleep(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
+static void codelet_sleep(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	usleep(TASKDURATION);
 }

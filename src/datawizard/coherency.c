@@ -348,7 +348,6 @@ int fetch_task_input(struct starpu_task *task, uint32_t mask)
 	uint32_t local_memory_node = get_local_memory_node();
 
 	starpu_buffer_descr *descrs = task->buffers;
-	starpu_data_interface_t *interface = task->interface;
 	unsigned nbuffers = task->cl->nbuffers;
 
 	unsigned index;
@@ -367,8 +366,7 @@ int fetch_task_input(struct starpu_task *task, uint32_t mask)
 			goto enomem;
 
 		void *src_interface = starpu_data_get_interface_on_node(handle, local_memory_node);
-
-		memcpy(&interface[index], src_interface, handle->ops->interface_size);
+		task->interface[index] = src_interface;
 	}
 
 	TRACE_END_FETCH_INPUT(NULL);

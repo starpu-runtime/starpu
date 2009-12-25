@@ -23,20 +23,20 @@
 #define xstr(s)        str(s)
 #define STARPU_LU_STR(name)  xstr(STARPU_LU(name))
 
-void STARPU_LU(cpu_pivot)(starpu_data_interface_t *descr, void *_args);
-void STARPU_LU(cpu_u11_pivot)(starpu_data_interface_t *descr, void *_args);
-void STARPU_LU(cpu_u11)(starpu_data_interface_t *descr, void *_args);
-void STARPU_LU(cpu_u12)(starpu_data_interface_t *descr, void *_args);
-void STARPU_LU(cpu_u21)(starpu_data_interface_t *descr, void *_args);
-void STARPU_LU(cpu_u22)(starpu_data_interface_t *descr, void *_args);
+void STARPU_LU(cpu_pivot)(void *descr[], void *_args);
+void STARPU_LU(cpu_u11_pivot)(void *descr[], void *_args);
+void STARPU_LU(cpu_u11)(void *descr[], void *_args);
+void STARPU_LU(cpu_u12)(void *descr[], void *_args);
+void STARPU_LU(cpu_u21)(void *descr[], void *_args);
+void STARPU_LU(cpu_u22)(void *descr[], void *_args);
 
 #ifdef USE_CUDA
-void STARPU_LU(cublas_pivot)(starpu_data_interface_t *descr, void *_args);
-void STARPU_LU(cublas_u11_pivot)(starpu_data_interface_t *descr, void *_args);
-void STARPU_LU(cublas_u11)(starpu_data_interface_t *descr, void *_args);
-void STARPU_LU(cublas_u12)(starpu_data_interface_t *descr, void *_args);
-void STARPU_LU(cublas_u21)(starpu_data_interface_t *descr, void *_args);
-void STARPU_LU(cublas_u22)(starpu_data_interface_t *descr, void *_args);
+void STARPU_LU(cublas_pivot)(void *descr[], void *_args);
+void STARPU_LU(cublas_u11_pivot)(void *descr[], void *_args);
+void STARPU_LU(cublas_u11)(void *descr[], void *_args);
+void STARPU_LU(cublas_u12)(void *descr[], void *_args);
+void STARPU_LU(cublas_u21)(void *descr[], void *_args);
+void STARPU_LU(cublas_u22)(void *descr[], void *_args);
 #endif
 
 #endif // __XLU_KERNELS_H__

@@ -52,7 +52,7 @@ static void callback(void *arg)
 
 
 
-static void codelet_null(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
+static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
 //	fprintf(stderr, "pif\n");
 //	fflush(stderr);

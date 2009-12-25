@@ -110,7 +110,6 @@ struct starpu_data_state_t {
 	local_data_state per_node[MAXNODES];
 
 	/* describe the actual data layout */
-//	starpu_data_interface_t interface[MAXNODES];
 	void *interface[MAXNODES];
 
 	struct data_interface_ops_t *ops;

@@ -23,7 +23,7 @@
 
 static unsigned ntasks = 65536;
 
-static void dummy_func(starpu_data_interface_t *descr __attribute__ ((unused)), void *arg __attribute__ ((unused)))
+static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
 }
 

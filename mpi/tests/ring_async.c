@@ -22,12 +22,12 @@ unsigned token = 42;
 starpu_data_handle token_handle;
 
 #ifdef USE_CUDA
-extern void increment_cuda(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args);
+extern void increment_cuda(void *descr[], __attribute__ ((unused)) void *_args);
 #endif
 
-void increment_core(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
+void increment_core(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	unsigned *tokenptr = (unsigned *)buffers[0].vector.ptr;
+	unsigned *tokenptr = (unsigned *)GET_VECTOR_PTR(descr[0]);
 	(*tokenptr)++;
 }
 

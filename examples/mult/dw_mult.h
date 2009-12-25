@@ -194,9 +194,9 @@ static void display_memory_consumption(void)
 }
 
 #ifdef USE_CUDA
-void cublas_mult(starpu_data_interface_t *descr, __attribute__((unused)) void *arg);
+void cublas_mult(void *descr[], __attribute__((unused)) void *arg);
 #endif
 
-void core_mult(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+void core_mult(void *descr[], __attribute__((unused))  void *arg);
 
 #endif // __MULT_H__

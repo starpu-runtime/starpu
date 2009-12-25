@@ -33,20 +33,20 @@ extern void spmv_kernel_cpu_wrapper(uint32_t nnz, uint32_t nrow, float *nzval,
 			float *vecin, uint32_t nx_in,
 			float * vecout, uint32_t nx_out);
 
-void spmv_kernel_cuda(starpu_data_interface_t *buffers, void *args)
+void spmv_kernel_cuda(void *descr[], void *args)
 {
-	uint32_t nnz = buffers[0].csr.nnz;
-	uint32_t nrow = buffers[0].csr.nrow;
-	float *nzval = (float *)buffers[0].csr.nzval;
-	uint32_t *colind = buffers[0].csr.colind;
-	uint32_t *rowptr = buffers[0].csr.rowptr;
-	uint32_t firstentry = buffers[0].csr.firstentry;
+	uint32_t nnz = GET_CSR_NNZ(descr[0]);
+	uint32_t nrow = GET_CSR_NROW(descr[0]);
+	float *nzval = (float *)GET_CSR_NZVAL(descr[0]);
+	uint32_t *colind = GET_CSR_COLIND(descr[0]);
+	uint32_t *rowptr = GET_CSR_ROWPTR(descr[0]);
+	uint32_t firstentry = GET_CSR_FIRSTENTRY(descr[0]);
 
-	float *vecin = (float *)buffers[1].vector.ptr;
-	uint32_t nx_in = buffers[1].vector.nx;
+	float *vecin = (float *)GET_VECTOR_PTR(descr[1]);
+	uint32_t nx_in = GET_VECTOR_NX(descr[1]);
 
-	float *vecout = (float *)buffers[2].vector.ptr;
-	uint32_t nx_out = buffers[2].vector.nx;
+	float *vecout = (float *)GET_VECTOR_PTR(descr[2]);
+	uint32_t nx_out = GET_VECTOR_NX(descr[2]);
 
 	spmv_kernel_cpu_wrapper(nnz, nrow, nzval, colind, rowptr, firstentry, vecin, nx_in, vecout, nx_out);
 }
@@ -91,25 +91,25 @@ void parse_args(int argc, char **argv)
 	}
 }
 
-void core_spmv(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
+void core_spmv(void *descr[], __attribute__((unused))  void *arg)
 {
-	float *nzval = (float *)descr[0].csr.nzval;
-	uint32_t *colind = descr[0].csr.colind;
-	uint32_t *rowptr = descr[0].csr.rowptr;
+	float *nzval = (float *)GET_CSR_NZVAL(descr[0]);
+	uint32_t *colind = GET_CSR_COLIND(descr[0]);
+	uint32_t *rowptr = GET_CSR_ROWPTR(descr[0]);
 
-	float *vecin = (float *)descr[1].vector.ptr;
-	float *vecout = (float *)descr[2].vector.ptr;
+	float *vecin = (float *)GET_VECTOR_PTR(descr[1]);
+	float *vecout = (float *)GET_VECTOR_PTR(descr[2]);
 
-	uint32_t firstelem = descr[0].csr.firstentry;
+	uint32_t firstelem = GET_CSR_FIRSTENTRY(descr[0]);
 
 	uint32_t nnz;
 	uint32_t nrow;
 
-	nnz = descr[0].csr.nnz;
-	nrow = descr[0].csr.nrow;
+	nnz = GET_CSR_NNZ(descr[0]);
+	nrow = GET_CSR_NROW(descr[0]);
 
-	//STARPU_ASSERT(nrow == descr[1].vector.nx);
-	STARPU_ASSERT(nrow == descr[2].vector.nx);
+	//STARPU_ASSERT(nrow == GET_VECTOR_NX(descr[1]));
+	STARPU_ASSERT(nrow == GET_VECTOR_NX(descr[2]));
 
 	unsigned row;
 	for (row = 0; row < nrow; row++)

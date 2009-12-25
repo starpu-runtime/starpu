@@ -74,16 +74,16 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 }
 #endif // CHECK_RESULTS
 
-void dw_core_codelet_update_u11(starpu_data_interface_t *, void *);
-void dw_core_codelet_update_u12(starpu_data_interface_t *, void *);
-void dw_core_codelet_update_u21(starpu_data_interface_t *, void *);
-void dw_core_codelet_update_u22(starpu_data_interface_t *, void *);
+void dw_core_codelet_update_u11(void **, void *);
+void dw_core_codelet_update_u12(void **, void *);
+void dw_core_codelet_update_u21(void **, void *);
+void dw_core_codelet_update_u22(void **, void *);
 
 #ifdef USE_CUDA
-void dw_cublas_codelet_update_u11(starpu_data_interface_t *descr, void *_args);
-void dw_cublas_codelet_update_u12(starpu_data_interface_t *descr, void *_args);
-void dw_cublas_codelet_update_u21(starpu_data_interface_t *descr, void *_args);
-void dw_cublas_codelet_update_u22(starpu_data_interface_t *descr, void *_args);
+void dw_cublas_codelet_update_u11(void *descr[], void *_args);
+void dw_cublas_codelet_update_u12(void *descr[], void *_args);
+void dw_cublas_codelet_update_u21(void *descr[], void *_args);
+void dw_cublas_codelet_update_u22(void *descr[], void *_args);
 #endif
 
 void dw_callback_codelet_update_u11(void *);

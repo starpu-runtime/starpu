@@ -102,7 +102,7 @@ static void start_task_grid(unsigned iter)
 		starpu_submit_task(tasks[iter][i]);
 }
 
-void core_codelet(starpu_data_interface_t *descr, void *_args __attribute__((unused)))
+void core_codelet(void *descr[], void *_args __attribute__((unused)))
 {
 	//int i = (uintptr_t) _args;
 	//printf("doing %x\n", i);

@@ -44,6 +44,14 @@ uint32_t starpu_get_blas_local_ld(starpu_data_handle handle);
 uintptr_t starpu_get_blas_local_ptr(starpu_data_handle handle);
 size_t starpu_get_blas_elemsize(starpu_data_handle handle);
 
+/* helper methods */
+#define GET_BLAS_PTR(interface)	(((starpu_blas_interface_t *)(interface))->ptr)
+#define GET_BLAS_NX(interface)	(((starpu_blas_interface_t *)(interface))->nx)
+#define GET_BLAS_NY(interface)	(((starpu_blas_interface_t *)(interface))->ny)
+#define GET_BLAS_LD(interface)	(((starpu_blas_interface_t *)(interface))->ld)
+#define GET_BLAS_ELEMSIZE(interface)	(((starpu_blas_interface_t *)(interface))->elemsize)
+
+
 /* BLOCK interface for 3D dense blocks */
 typedef struct starpu_block_interface_s {
 	uintptr_t ptr;
@@ -79,6 +87,11 @@ uint32_t starpu_get_vector_nx(starpu_data_handle handle);
 size_t starpu_get_vector_elemsize(starpu_data_handle handle);
 uintptr_t starpu_get_vector_local_ptr(starpu_data_handle handle);
 
+/* helper methods */
+#define GET_VECTOR_PTR(interface)	(((starpu_vector_interface_t *)(interface))->ptr)
+#define GET_VECTOR_NX(interface)	(((starpu_vector_interface_t *)(interface))->nx)
+#define GET_VECTOR_ELEMSIZE(interface)	(((starpu_vector_interface_t *)(interface))->elemsize)
+
 /* CSR interface for sparse matrices (compressed sparse row representation) */
 typedef struct starpu_csr_interface_s {
 	uint32_t nnz; /* number of non-zero entries */
@@ -103,6 +116,14 @@ uintptr_t starpu_get_csr_local_nzval(starpu_data_handle handle);
 uint32_t *starpu_get_csr_local_colind(starpu_data_handle handle);
 uint32_t *starpu_get_csr_local_rowptr(starpu_data_handle handle);
 size_t starpu_get_csr_elemsize(starpu_data_handle handle);
+
+#define GET_CSR_NNZ(interface)	(((starpu_csr_interface_t *)(interface))->nnz)
+#define GET_CSR_NROW(interface)	(((starpu_csr_interface_t *)(interface))->nrow)
+#define GET_CSR_NZVAL(interface)	(((starpu_csr_interface_t *)(interface))->nzval)
+#define GET_CSR_COLIND(interface)	(((starpu_csr_interface_t *)(interface))->colind)
+#define GET_CSR_ROWPTR(interface)	(((starpu_csr_interface_t *)(interface))->rowptr)
+#define GET_CSR_FIRSTENTRY(interface)	(((starpu_csr_interface_t *)(interface))->firstentry)
+#define GET_CSR_ELEMSIZE(interface)	(((starpu_csr_interface_t *)(interface))->elemsize)
 
 /* CSC interface for sparse matrices (compressed sparse column representation) */
 typedef struct starpu_csc_interface_s {
@@ -163,6 +184,7 @@ size_t starpu_get_bcsr_elemsize(starpu_data_handle);
 
 unsigned starpu_get_handle_interface_id(starpu_data_handle);
 
+#if 0
 typedef union {
 	starpu_blas_interface_t blas;	/* dense BLAS representation */
 	starpu_block_interface_t block;	/* BLOCK interface for 3D dense blocks */
@@ -172,6 +194,7 @@ typedef union {
 	starpu_bcsr_interface_t bcsr;	/* blocked compressed sparse row */
 	uint8_t pad[64];
 } starpu_data_interface_t;
+#endif
 
 #ifdef __cplusplus
 }

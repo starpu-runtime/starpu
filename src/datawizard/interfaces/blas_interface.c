@@ -56,12 +56,12 @@ static const struct copy_data_methods_s blas_copy_data_methods_s = {
 
 static void register_blas_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
 static size_t allocate_blas_buffer_on_node(starpu_data_handle handle, uint32_t dst_node);
-static void liberate_blas_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
+static void liberate_blas_buffer_on_node(void *interface, uint32_t node);
 static size_t blas_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_blas_interface_crc32(starpu_data_handle handle, uint32_t hstate);
 static void display_blas_interface(starpu_data_handle handle, FILE *f);
 #ifdef USE_GORDON
-static int convert_blas_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
+static int convert_blas_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 
 struct data_interface_ops_t interface_blas_ops = {
@@ -80,14 +80,14 @@ struct data_interface_ops_t interface_blas_ops = {
 };
 
 #ifdef USE_GORDON
-static int convert_blas_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
+static int convert_blas_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
-	size_t elemsize = (*interface).blas.elemsize;
-	uint32_t nx = (*interface).blas.nx;
-	uint32_t ny = (*interface).blas.ny;
-	uint32_t ld = (*interface).blas.ld;
+	size_t elemsize = GET_BLAS_ELEMSIZE(interface);
+	uint32_t nx = GET_BLAS_NX(interface);
+	uint32_t ny = GET_BLAS_NY(interface);
+	uint32_t ld = GET_BLAS_LD(interface);
 
-	*ptr = (*interface).blas.ptr;
+	*ptr = GET_BLAS_PTR(interface);
 
 	/* The gordon_stride_init function may use a contiguous buffer
  	 * in case nx = ld (in that case, (*ss).size = elemsize*nx*ny */
@@ -289,8 +289,10 @@ static size_t allocate_blas_buffer_on_node(starpu_data_handle handle, uint32_t d
 	return allocated_memory;
 }
 
-static void liberate_blas_buffer_on_node(starpu_data_interface_t *interface, uint32_t node)
+static void liberate_blas_buffer_on_node(void *interface, uint32_t node)
 {
+	starpu_blas_interface_t *blas_interface = interface;
+
 #ifdef USE_CUDA
 	cudaError_t status;
 #endif
@@ -298,11 +300,11 @@ static void liberate_blas_buffer_on_node(starpu_data_interface_t *interface, uin
 	node_kind kind = get_node_kind(node);
 	switch(kind) {
 		case RAM:
-			free((void*)interface->blas.ptr);
+			free((void*)blas_interface->ptr);
 			break;
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			status = cudaFree((void*)interface->blas.ptr);			
+			status = cudaFree((void*)blas_interface->ptr);			
 			if (STARPU_UNLIKELY(status))
 				CUDA_REPORT_ERROR(status);
 

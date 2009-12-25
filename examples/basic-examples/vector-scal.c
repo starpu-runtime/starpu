@@ -30,11 +30,12 @@
 #define	N	2048
 
 /* This kernel takes a buffer and scales it by a constant factor */
-static void scal_func(starpu_data_interface_t *buffers, void *arg)
+static void scal_func(void *buffers[], void *arg)
 {
 	unsigned i;
 	float *factor = arg;
 
+#warning TODO update
 	/* 
 	 * The "buffers" array matches the task->buffers one: for instance
 	 * task->buffers[0].handle is a handle that corresponds to a data with
@@ -46,13 +47,15 @@ static void scal_func(starpu_data_interface_t *buffers, void *arg)
 	 * each elements.
 	 */
 
+	starpu_vector_interface_t *vector = buffers[0];
+
 	/* length of the vector */
-	unsigned n = buffers[0].vector.nx;
+	unsigned n = vector->nx;
 
 	/* get a pointer to the local copy of the vector : note that we have to
 	 * cast it in (float *) since a vector could contain any type of
 	 * elements so that the .ptr field is actually a uintptr_t */
-	float *val = (float *)buffers[0].vector.ptr;
+	float *val = (float *)vector->ptr;
 
 	/* scale the vector */
 	for (i = 0; i < n; i++)

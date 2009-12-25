@@ -27,11 +27,11 @@
 starpu_data_handle v_handle;
 static unsigned *v;
 
-static void cuda_codelet_null(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
+static void cuda_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
 }
 
-static void core_codelet_null(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
+static void core_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
 }
 

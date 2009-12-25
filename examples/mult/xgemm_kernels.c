@@ -25,22 +25,22 @@
 	TYPE *subB;			\
 	TYPE *subC;			\
 					\
-	subA = (TYPE *)descr[0].blas.ptr;	\
-	subB = (TYPE *)descr[1].blas.ptr;	\
-	subC = (TYPE *)descr[2].blas.ptr;	\
+	subA = (TYPE *)GET_BLAS_PTR(descr[0]);	\
+	subB = (TYPE *)GET_BLAS_PTR(descr[1]);	\
+	subC = (TYPE *)GET_BLAS_PTR(descr[2]);	\
 					\
-	nxC = descr[2].blas.nx;		\
-	nyC = descr[2].blas.ny;		\
-	nyA = descr[0].blas.ny;		\
+	nxC = GET_BLAS_NX(descr[2]);		\
+	nyC = GET_BLAS_NY(descr[2]);		\
+	nyA = GET_BLAS_NY(descr[0]);		\
 					\
-	ldA = descr[0].blas.ld;		\
-	ldB = descr[1].blas.ld;		\
-	ldC = descr[2].blas.ld;
+	ldA = GET_BLAS_LD(descr[0]);		\
+	ldB = GET_BLAS_LD(descr[1]);		\
+	ldC = GET_BLAS_LD(descr[2]);
 
 
 
 #ifdef USE_CUDA
-void STARPU_GEMM(cublas_mult)(starpu_data_interface_t *descr, __attribute__((unused)) void *arg)
+void STARPU_GEMM(cublas_mult)(void *descr[], __attribute__((unused)) void *arg)
 {
 	COMMON_CODE
 
@@ -59,7 +59,7 @@ void STARPU_GEMM(cublas_mult)(starpu_data_interface_t *descr, __attribute__((unu
 }
 #endif
 
-void STARPU_GEMM(core_mult)(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
+void STARPU_GEMM(core_mult)(void *descr[], __attribute__((unused))  void *arg)
 {
 	COMMON_CODE
 

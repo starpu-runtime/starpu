@@ -56,8 +56,11 @@ typedef struct starpu_codelet_t {
 	uint32_t where;
 
 	/* the different implementations of the codelet */
-	void (*cuda_func)(starpu_data_interface_t *, void *);
-	void (*core_func)(starpu_data_interface_t *, void *);
+	//void (*cuda_func)(starpu_data_interface_t *, void *);
+	//void (*core_func)(starpu_data_interface_t *, void *);
+
+	void (*cuda_func)(void **, void *);
+	void (*core_func)(void **, void *);
 	uint8_t gordon_func;
 
 	/* how many buffers do the codelet takes as argument ? */
@@ -76,7 +79,8 @@ struct starpu_task {
 
 	/* arguments managed by the DSM */
 	struct starpu_buffer_descr_t buffers[STARPU_NMAXBUFS];
-	starpu_data_interface_t interface[STARPU_NMAXBUFS];
+	//starpu_data_interface_t interface[STARPU_NMAXBUFS];
+	void *interface[STARPU_NMAXBUFS];
 
 	/* arguments not managed by the DSM are given as a buffer */
 	void *cl_arg;

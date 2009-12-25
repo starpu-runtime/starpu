@@ -42,7 +42,7 @@
 struct worker_s;
 
 /* codelet function */
-typedef void (*cl_func)(starpu_data_interface_t *, void *);
+typedef void (*cl_func)(void **, void *);
 typedef void (*callback)(void *);
 
 #define CORE_MAY_PERFORM(j)	((j)->task->cl->where & CORE)

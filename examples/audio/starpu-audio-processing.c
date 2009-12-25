@@ -144,11 +144,11 @@ typedef struct {
 static fft_plan_cache plans[STARPU_NMAXWORKERS];
 
 #ifdef USE_CUDA
-static void band_filter_kernel_gpu(starpu_data_interface_t *descr, __attribute__((unused)) void *arg)
+static void band_filter_kernel_gpu(void *descr[], __attribute__((unused)) void *arg)
 {
 	cufftResult cures;
 
-	float *localA = (float *)descr[0].vector.ptr;
+	float *localA = (float *)GET_VECTOR_PTR(descr[0]);
 	cufftComplex *localout;
 
 	int workerid = starpu_get_worker_id();
@@ -194,9 +194,9 @@ static void band_filter_kernel_gpu(starpu_data_interface_t *descr, __attribute__
 
 static pthread_mutex_t fftw_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static void band_filter_kernel_cpu(starpu_data_interface_t *descr, __attribute__((unused)) void *arg)
+static void band_filter_kernel_cpu(void *descr[], __attribute__((unused)) void *arg)
 {
-	float *localA = (float *)descr[0].vector.ptr;
+	float *localA = (float *)GET_VECTOR_PTR(descr[0]);
 
 	int workerid = starpu_get_worker_id();
 	

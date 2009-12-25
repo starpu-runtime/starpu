@@ -22,7 +22,7 @@ typedef struct wrapper_func_args {
 	void *arg;
 } _wrapper_func_args;
 
-static void wrapper_func(starpu_data_interface_t *buffers __attribute__ ((unused)), void *_args)
+static void wrapper_func(void *buffers[] __attribute__ ((unused)), void *_args)
 {
 	_wrapper_func_args *args = _args;
 	args->func(args->arg);

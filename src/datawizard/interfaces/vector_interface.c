@@ -54,12 +54,12 @@ static const struct copy_data_methods_s vector_copy_data_methods_s = {
 
 static void register_vector_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
 static size_t allocate_vector_buffer_on_node(starpu_data_handle handle, uint32_t dst_node);
-static void liberate_vector_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
+static void liberate_vector_buffer_on_node(void *interface, uint32_t node);
 static size_t vector_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_vector_interface_crc32(starpu_data_handle handle, uint32_t hstate);
 static void display_vector_interface(starpu_data_handle handle, FILE *f);
 #ifdef USE_GORDON
-static int convert_vector_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
+static int convert_vector_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 
 struct data_interface_ops_t interface_vector_ops = {
@@ -100,10 +100,12 @@ static void register_vector_handle(starpu_data_handle handle, uint32_t home_node
 }
 
 #ifdef USE_GORDON
-int convert_vector_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
+int convert_vector_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
-	*ptr = (*interface).vector.ptr;
-	(*ss).size = (*interface).vector.nx * (*interface).vector.elemsize;
+	starpu_vector_interface_t *vector_interface = interface;
+	
+	*ptr = vector_interface->ptr;
+	(*ss).size = vector_interface->nx * vector_interface->elemsize;
 
 	return 0;
 }
@@ -230,16 +232,18 @@ static size_t allocate_vector_buffer_on_node(starpu_data_handle handle, uint32_t
 	return allocated_memory;
 }
 
-void liberate_vector_buffer_on_node(starpu_data_interface_t *interface, uint32_t node)
+void liberate_vector_buffer_on_node(void *interface, uint32_t node)
 {
+	starpu_vector_interface_t *vector_interface = interface;
+
 	node_kind kind = get_node_kind(node);
 	switch(kind) {
 		case RAM:
-			free((void*)interface->vector.ptr);
+			free((void*)vector_interface->ptr);
 			break;
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			cublasFree((void*)interface->vector.ptr);
+			cublasFree((void*)vector_interface->ptr);
 			break;
 #endif
 		default:

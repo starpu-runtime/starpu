@@ -6,7 +6,7 @@
 starpu_data_handle fork_handles[N];
 unsigned forks[N];
 
-static void eat_kernel(starpu_data_interface_t *buffers, void *arg)
+static void eat_kernel(void *descr[], void *arg)
 {
 }
 

@@ -42,8 +42,8 @@
  */
 
 #ifdef USE_CUDA
-void cuda_codelet_incA(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args);
-void cuda_codelet_incC(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args);
+void cuda_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args);
+void cuda_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args);
 #endif
 
 #define VECTORSIZE	16
@@ -51,15 +51,15 @@ void cuda_codelet_incC(starpu_data_interface_t *buffers, __attribute__ ((unused)
 starpu_data_handle v_handle;
 static unsigned v[VECTORSIZE] __attribute__((aligned(128))) = {0, 0, 0, 0};
 
-void core_codelet_incA(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
+void core_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	unsigned *val = (unsigned *)buffers[0].vector.ptr;
+	unsigned *val = (unsigned *)GET_VECTOR_PTR(descr[0]);
 	val[0]++;
 }
 
-void core_codelet_incC(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
+void core_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	unsigned *val = (unsigned *)buffers[0].vector.ptr;
+	unsigned *val = (unsigned *)GET_VECTOR_PTR(descr[0]);
 	val[2]++;
 }
 

@@ -66,16 +66,16 @@ static void ds_callback(void *arg)
 	}
 }
 
-static void ds_kernel_cpu(starpu_data_interface_t *descr, __attribute__((unused)) void *arg)
+static void ds_kernel_cpu(void *descr[], __attribute__((unused)) void *arg)
 {
-	uint8_t *input = (uint8_t *)descr[0].blas.ptr;
-	unsigned input_ld = descr[0].blas.ld;
+	uint8_t *input = (uint8_t *)GET_BLAS_PTR(descr[0]);
+	unsigned input_ld = GET_BLAS_LD(descr[0]);
 
-	uint8_t *output = (uint8_t *)descr[1].blas.ptr;
-	unsigned output_ld = descr[1].blas.ld;
+	uint8_t *output = (uint8_t *)GET_BLAS_PTR(descr[1]);
+	unsigned output_ld = GET_BLAS_LD(descr[1]);
 
-	unsigned ncols = descr[0].blas.nx;
-	unsigned nlines = descr[0].blas.ny;
+	unsigned ncols = GET_BLAS_NX(descr[0]);
+	unsigned nlines = GET_BLAS_NY(descr[0]);
 
 	unsigned line, col;
 	for (line = 0; line < nlines; line+=FACTOR)

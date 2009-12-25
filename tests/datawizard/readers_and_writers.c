@@ -3,7 +3,7 @@
 static unsigned book = 0;
 static starpu_data_handle book_handle;
 
-static void dummy_kernel(starpu_data_interface_t *buffers, void *arg)
+static void dummy_kernel(void *descr[], void *arg)
 {
 }
 

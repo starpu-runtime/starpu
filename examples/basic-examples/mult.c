@@ -109,16 +109,16 @@ static void callback_func(void *arg)
  * field of the descr[x] elements which are union types.
  */
 
-static void cpu_mult(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
+static void cpu_mult(void *descr[], __attribute__((unused))  void *arg)
 {
 	float *subA, *subB, *subC;
 	uint32_t nxC, nyC, nyA;
 	uint32_t ldA, ldB, ldC;
 
 	/* .blas.ptr gives a pointer to the first element of the local copy */
-	subA = (float *)descr[0].blas.ptr;
-	subB = (float *)descr[1].blas.ptr;
-	subC = (float *)descr[2].blas.ptr;
+	subA = (float *)GET_BLAS_PTR(descr[0]);
+	subB = (float *)GET_BLAS_PTR(descr[1]);
+	subC = (float *)GET_BLAS_PTR(descr[2]);
 
 	/* .blas.nx is the number of rows (consecutive elements) and .blas.ny
 	 * is the number of lines that are separated by .blas.ld elements (ld
@@ -126,13 +126,13 @@ static void cpu_mult(starpu_data_interface_t *descr, __attribute__((unused))  vo
 	 * NB: in case some filters were used, the leading dimension is not
 	 * guaranteed to be the same in main memory (on the original matrix)
 	 * and on the accelerator! */
-	nxC = descr[2].blas.nx;
-	nyC = descr[2].blas.ny;
-	nyA = descr[0].blas.ny;
+	nxC = GET_BLAS_NX(descr[2]);
+	nyC = GET_BLAS_NY(descr[2]);
+	nyA = GET_BLAS_NY(descr[0]);
 
-	ldA = descr[0].blas.ld;
-	ldB = descr[1].blas.ld;
-	ldC = descr[2].blas.ld;
+	ldA = GET_BLAS_LD(descr[0]);
+	ldB = GET_BLAS_LD(descr[1]);
+	ldC = GET_BLAS_LD(descr[2]);
 
 	/* we assume a FORTRAN-ordering! */
 	unsigned i,j,k;

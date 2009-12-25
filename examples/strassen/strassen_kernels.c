@@ -17,19 +17,19 @@
 #include "strassen.h"
 
 
-static void mult_common_codelet(starpu_data_interface_t *buffers, int s, __attribute__((unused))  void *arg)
+static void mult_common_codelet(void *descr[], int s, __attribute__((unused))  void *arg)
 {
-	float *center 	= (float *)buffers[0].blas.ptr;
-	float *left 	= (float *)buffers[1].blas.ptr;
-	float *right 	= (float *)buffers[2].blas.ptr;
+	float *center 	= (float *)GET_BLAS_PTR(descr[0]);
+	float *left 	= (float *)GET_BLAS_PTR(descr[1]);
+	float *right 	= (float *)GET_BLAS_PTR(descr[2]);
 
-	unsigned dx = buffers[0].blas.nx;
-	unsigned dy = buffers[0].blas.ny;
-	unsigned dz = buffers[1].blas.nx;
+	unsigned dx = GET_BLAS_NX(descr[0]);
+	unsigned dy = GET_BLAS_NY(descr[0]);
+	unsigned dz = GET_BLAS_NX(descr[1]);
 
-	unsigned ld21 = buffers[1].blas.ld;
-	unsigned ld12 = buffers[2].blas.ld;
-	unsigned ld22 = buffers[0].blas.ld;
+	unsigned ld21 = GET_BLAS_LD(descr[1]);
+	unsigned ld12 = GET_BLAS_LD(descr[2]);
+	unsigned ld22 = GET_BLAS_LD(descr[0]);
 
 	switch (s) {
 		case 0:
@@ -51,32 +51,32 @@ static void mult_common_codelet(starpu_data_interface_t *buffers, int s, __attri
 	}
 }
 
-void mult_core_codelet(starpu_data_interface_t *descr, void *_args)
+void mult_core_codelet(void *descr[], void *_args)
 {
 	mult_common_codelet(descr, 0, _args);
 }
 
 #ifdef USE_CUDA
-void mult_cublas_codelet(starpu_data_interface_t *descr, void *_args)
+void mult_cublas_codelet(void *descr[], void *_args)
 {
 	mult_common_codelet(descr, 1, _args);
 }
 #endif
 
-static void add_sub_common_codelet(starpu_data_interface_t *buffers, int s, __attribute__((unused))  void *arg, float alpha)
+static void add_sub_common_codelet(void *descr[], int s, __attribute__((unused))  void *arg, float alpha)
 {
 	/* C = A op B */
 
-	float *C 	= (float *)buffers[0].blas.ptr;
-	float *A 	= (float *)buffers[1].blas.ptr;
-	float *B 	= (float *)buffers[2].blas.ptr;
+	float *C 	= (float *)GET_BLAS_PTR(descr[0]);
+	float *A 	= (float *)GET_BLAS_PTR(descr[1]);
+	float *B 	= (float *)GET_BLAS_PTR(descr[2]);
 
-	unsigned dx = buffers[0].blas.nx;
-	unsigned dy = buffers[0].blas.ny;
+	unsigned dx = GET_BLAS_NX(descr[0]);
+	unsigned dy = GET_BLAS_NY(descr[0]);
 
-	unsigned ldA = buffers[1].blas.ld;
-	unsigned ldB = buffers[2].blas.ld;
-	unsigned ldC = buffers[0].blas.ld;
+	unsigned ldA = GET_BLAS_LD(descr[1]);
+	unsigned ldB = GET_BLAS_LD(descr[2]);
+	unsigned ldC = GET_BLAS_LD(descr[0]);
 
 	// TODO check dim ...
 
@@ -112,41 +112,41 @@ static void add_sub_common_codelet(starpu_data_interface_t *buffers, int s, __at
 	}
 }
 
-void sub_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
+void sub_core_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	add_sub_common_codelet(descr, 0, arg, -1.0f);
 }
 
-void add_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
+void add_core_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	add_sub_common_codelet(descr, 0, arg, 1.0f);
 }
 
 #ifdef USE_CUDA
-void sub_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
+void sub_cublas_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	add_sub_common_codelet(descr, 1, arg, -1.0f);
 }
 
-void add_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
+void add_cublas_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	add_sub_common_codelet(descr, 1, arg, 1.0f);
 }
 #endif
 
 
-static void self_add_sub_common_codelet(starpu_data_interface_t *buffers, int s, __attribute__((unused))  void *arg, float alpha)
+static void self_add_sub_common_codelet(void *descr[], int s, __attribute__((unused))  void *arg, float alpha)
 {
 	/* C +=/-= A */
 
-	float *C 	= (float *)buffers[0].blas.ptr;
-	float *A 	= (float *)buffers[1].blas.ptr;
+	float *C 	= (float *)GET_BLAS_PTR(descr[0]);
+	float *A 	= (float *)GET_BLAS_PTR(descr[1]);
 
-	unsigned dx = buffers[0].blas.nx;
-	unsigned dy = buffers[0].blas.ny;
+	unsigned dx = GET_BLAS_NX(descr[0]);
+	unsigned dy = GET_BLAS_NY(descr[0]);
 
-	unsigned ldA = buffers[1].blas.ld;
-	unsigned ldC = buffers[0].blas.ld;
+	unsigned ldA = GET_BLAS_LD(descr[1]);
+	unsigned ldC = GET_BLAS_LD(descr[0]);
 
 	// TODO check dim ...
 	
@@ -181,23 +181,23 @@ static void self_add_sub_common_codelet(starpu_data_interface_t *buffers, int s,
 
 
 
-void self_add_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
+void self_add_core_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	self_add_sub_common_codelet(descr, 0, arg, 1.0f);
 }
 
-void self_sub_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
+void self_sub_core_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	self_add_sub_common_codelet(descr, 0, arg, -1.0f);
 }
 
 #ifdef USE_CUDA
-void self_add_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
+void self_add_cublas_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	self_add_sub_common_codelet(descr, 1, arg, 1.0f);
 }
 
-void self_sub_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg)
+void self_sub_cublas_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	self_add_sub_common_codelet(descr, 1, arg, -1.0f);
 }

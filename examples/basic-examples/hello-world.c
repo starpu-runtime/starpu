@@ -43,7 +43,7 @@ void callback_func(void *callback_arg)
  * DSM; the second arguments references a read-only buffer that is passed as an
  * argument of the codelet (task->cl_arg). Here, "buffers" is unused as there
  * are no data input/output managed by the DSM (cl.nbuffers = 0) */
-void cpu_func(starpu_data_interface_t *buffers, void *func_arg)
+void cpu_func(void *buffers[], void *func_arg)
 {
 	float *array = func_arg;
 

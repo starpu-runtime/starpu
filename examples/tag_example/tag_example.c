@@ -150,7 +150,7 @@ void callback_core(void *argcb __attribute__ ((unused)))
 	}
 }
 
-void core_codelet(starpu_data_interface_t *buffers __attribute__((unused)),
+void core_codelet(void *descr[] __attribute__((unused)),
 			void *_args __attribute__ ((unused)))
 {
 //	printf("execute task\n");

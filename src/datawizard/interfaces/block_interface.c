@@ -50,12 +50,12 @@ static const struct copy_data_methods_s block_copy_data_methods_s = {
 
 static void register_block_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
 static size_t allocate_block_buffer_on_node(starpu_data_handle handle, uint32_t dst_node);
-static void liberate_block_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
+static void liberate_block_buffer_on_node(void *interface, uint32_t node);
 static size_t block_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_block_interface_crc32(starpu_data_handle handle, uint32_t hstate);
 static void display_block_interface(starpu_data_handle handle, FILE *f);
 #ifdef USE_GORDON
-static int convert_block_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss);
+static int convert_block_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss);
 #endif
 
 struct data_interface_ops_t interface_block_ops = {
@@ -74,7 +74,7 @@ struct data_interface_ops_t interface_block_ops = {
 };
 
 #ifdef USE_GORDON
-int convert_block_to_gordon(starpu_data_interface_t *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
+int convert_block_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
 	/* TODO */
 	STARPU_ASSERT(0);
@@ -305,8 +305,10 @@ static size_t allocate_block_buffer_on_node(starpu_data_handle handle, uint32_t 
 	return allocated_memory;
 }
 
-static void liberate_block_buffer_on_node(starpu_data_interface_t *interface, uint32_t node)
+static void liberate_block_buffer_on_node(void *interface, uint32_t node)
 {
+	starpu_block_interface_t *block_interface = interface;
+
 #ifdef USE_CUDA
 	cudaError_t status;
 #endif
@@ -314,11 +316,11 @@ static void liberate_block_buffer_on_node(starpu_data_interface_t *interface, ui
 	node_kind kind = get_node_kind(node);
 	switch(kind) {
 		case RAM:
-			free((void*)interface->block.ptr);
+			free((void*)block_interface->ptr);
 			break;
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			status = cudaFree((void*)interface->blas.ptr);
+			status = cudaFree((void*)block_interface->ptr);
 			if (STARPU_UNLIKELY(status))
 				CUDA_REPORT_ERROR(status);
 

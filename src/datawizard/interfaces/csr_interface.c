@@ -45,7 +45,7 @@ static const struct copy_data_methods_s csr_copy_data_methods_s = {
 
 static void register_csr_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
 static size_t allocate_csr_buffer_on_node(starpu_data_handle handle, uint32_t dst_node);
-static void liberate_csr_buffer_on_node(starpu_data_interface_t *interface, uint32_t node);
+static void liberate_csr_buffer_on_node(void *interface, uint32_t node);
 static size_t csr_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle handle, uint32_t hstate);
 
@@ -305,20 +305,22 @@ fail_nzval:
 	return allocated_memory;
 }
 
-static void liberate_csr_buffer_on_node(starpu_data_interface_t *interface, uint32_t node)
+static void liberate_csr_buffer_on_node(void *interface, uint32_t node)
 {
+	starpu_csr_interface_t *csr_interface = interface;	
+
 	node_kind kind = get_node_kind(node);
 	switch(kind) {
 		case RAM:
-			free((void*)interface->csr.nzval);
-			free((void*)interface->csr.colind);
-			free((void*)interface->csr.rowptr);
+			free((void*)csr_interface->nzval);
+			free((void*)csr_interface->colind);
+			free((void*)csr_interface->rowptr);
 			break;
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			cublasFree((void*)interface->csr.nzval);
-			cublasFree((void*)interface->csr.colind);
-			cublasFree((void*)interface->csr.rowptr);
+			cublasFree((void*)csr_interface->nzval);
+			cublasFree((void*)csr_interface->colind);
+			cublasFree((void*)csr_interface->rowptr);
 			break;
 #endif
 		default:

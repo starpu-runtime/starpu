@@ -195,7 +195,7 @@ void STARPU_MONITOR_CBLK(unsigned col, float *data, unsigned stride, unsigned wi
 static data_state work_block_1;
 static data_state work_block_2;
 
-void allocate_maxbloktab_on_cublas(starpu_data_interface_t *descr __attribute__((unused)), void *arg __attribute__((unused)))
+void allocate_maxbloktab_on_cublas(void *descr[] __attribute__((unused)), void *arg __attribute__((unused)))
 {
 	starpu_request_data_allocation(&work_block_1, 1);
 	starpu_request_data_allocation(&work_block_2, 1);
@@ -253,15 +253,15 @@ void STARPU_DECLARE_WORK_BLOCKS(float *maxbloktab1, float *maxbloktab2, unsigned
 
 }
 
-void _core_cblk_strsm(starpu_data_interface_t *descr, void *arg __attribute__((unused)))
+void _core_cblk_strsm(void *descr[], void *arg __attribute__((unused)))
 {
 	uint32_t nx, ny, ld;
-	nx = descr[0].blas.nx;
-	ny = descr[0].blas.ny;
-	ld = descr[0].blas.ld;
+	nx = GET_BLAS_NX(descr[0]);
+	ny = GET_BLAS_NY(descr[0]);
+	ld = GET_BLAS_LD(descr[0]);
 
 	float *diag_cblkdata, *extra_cblkdata;
-	diag_cblkdata = (float *)descr[0].blas.ptr;
+	diag_cblkdata = (float *)GET_BLAS_PTR(descr[0]);
 	extra_cblkdata = diag_cblkdata + ny;
 
 	unsigned m = nx - ny;
@@ -275,15 +275,15 @@ void _core_cblk_strsm(starpu_data_interface_t *descr, void *arg __attribute__((u
 }
 
 
-void _cublas_cblk_strsm(starpu_data_interface_t *descr, void *arg __attribute__((unused)))
+void _cublas_cblk_strsm(void *descr[], void *arg __attribute__((unused)))
 {
 	uint32_t nx, ny, ld;
-	nx = descr[0].blas.nx;
-	ny = descr[0].blas.ny;
-	ld = descr[0].blas.ld;
+	nx = GET_BLAS_NX(descr[0]);
+	ny = GET_BLAS_NY(descr[0]);
+	ld = GET_BLAS_LD(descr[0]);
 
 	float *diag_cblkdata, *extra_cblkdata;
-	diag_cblkdata = (float *)descr[0].blas.ptr;
+	diag_cblkdata = (float *)GET_BLAS_PTR(descr[0]);
 	extra_cblkdata = diag_cblkdata + ny;
 
 	unsigned m = nx - ny;
@@ -354,15 +354,15 @@ struct starpu_compute_contrib_compact_args {
 };
 
 
-void _core_compute_contrib_compact(starpu_data_interface_t *descr, void *arg)
+void _core_compute_contrib_compact(void *descr[], void *arg)
 {
 	struct starpu_compute_contrib_compact_args *args = arg;
 
-	float *gaik = (float *)descr[0].blas.ptr + args->dima;
-	float *gb = (float *)descr[1].blas.ptr; 
-	unsigned strideb = (unsigned)descr[1].blas.ld;
-	float *gc = (float *)descr[2].blas.ptr;
-	unsigned stridec = (unsigned)descr[2].blas.ld;
+	float *gaik = (float *)GET_BLAS_PTR(descr[0]) + args->dima;
+	float *gb = (float *)GET_BLAS_PTR(descr[1]); 
+	unsigned strideb = (unsigned)GET_BLAS_LD(descr[1]);
+	float *gc = (float *)GET_BLAS_PTR(descr[2]);
+	unsigned stridec = (unsigned)GET_BLAS_LD(descr[2]);
 
 	core_sgemm++;
 
@@ -375,15 +375,15 @@ void _core_compute_contrib_compact(starpu_data_interface_t *descr, void *arg)
 }
 
 
-void _cublas_compute_contrib_compact(starpu_data_interface_t *descr, void *arg)
+void _cublas_compute_contrib_compact(void *descr[], void *arg)
 {
 	struct starpu_compute_contrib_compact_args *args = arg;
 
-	float *gaik = (float *)descr[0].blas.ptr + args->dima;
-	float *gb = (float *)descr[1].blas.ptr;
-	unsigned strideb = (unsigned)descr[1].blas.ld;
-	float *gc = (float *)descr[2].blas.ptr;
-	unsigned stridec = (unsigned)descr[2].blas.ld;
+	float *gaik = (float *)GET_BLAS_PTR(descr[0]) + args->dima;
+	float *gb = (float *)GET_BLAS_PTR(descr[1]);
+	unsigned strideb = (unsigned)GET_BLAS_LD(descr[1]);
+	float *gc = (float *)GET_BLAS_PTR(descr[2]);
+	unsigned stridec = (unsigned)GET_BLAS_LD(descr[2]);
 	
 	cublas_sgemm++;
 
@@ -508,27 +508,27 @@ struct sgemm_args {
 };
 
 
-void _cublas_sgemm(starpu_data_interface_t *descr, void *arg)
+void _cublas_sgemm(void *descr[], void *arg)
 {
 	float *A, *B, *C;
 	uint32_t nxA, nyA, ldA;
 	uint32_t nxB, nyB, ldB;
 	uint32_t nxC, nyC, ldC;
 
-	A = (float *)descr[0].blas.ptr;
-	nxA = descr[0].blas.nx;
-	nyA = descr[0].blas.ny;
-	ldA = descr[0].blas.ld;
+	A = (float *)GET_BLAS_PTR(descr[0]);
+	nxA = GET_BLAS_NX(descr[0]);
+	nyA = GET_BLAS_NY(descr[0]);
+	ldA = GET_BLAS_LD(descr[0]);
 
-	B = (float *)descr[1].blas.ptr;
-	nxB = descr[1].blas.nx;
-	nyB = descr[1].blas.ny;
-	ldB = descr[1].blas.ld;
+	B = (float *)GET_BLAS_PTR(descr[1]);
+	nxB = GET_BLAS_NX(descr[1]);
+	nyB = GET_BLAS_NY(descr[1]);
+	ldB = GET_BLAS_LD(descr[1]);
 
-	C = (float *)descr[2].blas.ptr;
-	nxC = descr[2].blas.nx;
-	nyC = descr[2].blas.ny;
-	ldC = descr[2].blas.ld;
+	C = (float *)GET_BLAS_PTR(descr[2]);
+	nxC = GET_BLAS_NX(descr[2]);
+	nyC = GET_BLAS_NY(descr[2]);
+	ldC = GET_BLAS_LD(descr[2]);
 
 	struct sgemm_args *args = arg;
 
@@ -656,21 +656,21 @@ struct strsm_args {
 	int m,n;
 };
 //
-//void _core_strsm(starpu_data_interface_t *descr, void *arg)
+//void _core_strsm(void *descr[], void *arg)
 //{
 //	float *A, *B;
 //	uint32_t nxA, nyA, ldA;
 //	uint32_t nxB, nyB, ldB;
 //
-//	A = (float *)descr[0].blas.ptr;
-//	nxA = descr[0].blas.nx;
-//	nyA = descr[0].blas.ny;
-//	ldA = descr[0].blas.ld;
+//	A = (float *)GET_BLAS_PTR(descr[0]);
+//	nxA = GET_BLAS_NX(descr[0]);
+//	nyA = GET_BLAS_NY(descr[0]);
+//	ldA = GET_BLAS_LD(descr[0]);
 //
-//	B = (float *)descr[1].blas.ptr;
-//	nxB = descr[1].blas.nx;
-//	nyB = descr[1].blas.ny;
-//	ldB = descr[1].blas.ld;
+//	B = (float *)GET_BLAS_PTR(descr[1]);
+//	nxB = GET_BLAS_NX(descr[1]);
+//	nyB = GET_BLAS_NY(descr[1]);
+//	ldB = GET_BLAS_LD(descr[1]);
 //
 //	struct strsm_args *args = arg;
 //

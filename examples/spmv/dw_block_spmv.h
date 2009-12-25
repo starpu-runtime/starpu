@@ -32,10 +32,10 @@
 #include <cublas.h>
 #endif
 
-void core_block_spmv(starpu_data_interface_t *descr, void *_args);
+void core_block_spmv(void *descr[], void *_args);
 
 #ifdef USE_CUDA
-void cublas_block_spmv(starpu_data_interface_t *descr, void *_args);
+void cublas_block_spmv(void *descr[], void *_args);
 #endif // USE_CUDA
 
 #endif // __DW_BLOCK_SPMV_H__

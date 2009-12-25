@@ -77,21 +77,21 @@ static unsigned reclevel = 3;
 static unsigned norandom = 0;
 static unsigned pin = 0;
 
-extern void mult_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
-extern void sub_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
-extern void add_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
-extern void self_add_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
-extern void self_sub_core_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void mult_core_codelet(void *descr[], __attribute__((unused))  void *arg);
+extern void sub_core_codelet(void *descr[], __attribute__((unused))  void *arg);
+extern void add_core_codelet(void *descr[], __attribute__((unused))  void *arg);
+extern void self_add_core_codelet(void *descr[], __attribute__((unused))  void *arg);
+extern void self_sub_core_codelet(void *descr[], __attribute__((unused))  void *arg);
 
 #ifdef USE_CUDA
-extern void mult_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
-extern void sub_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
-extern void add_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
-extern void self_add_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
-extern void self_sub_cublas_codelet(starpu_data_interface_t *descr, __attribute__((unused))  void *arg);
+extern void mult_cublas_codelet(void *descr[], __attribute__((unused))  void *arg);
+extern void sub_cublas_codelet(void *descr[], __attribute__((unused))  void *arg);
+extern void add_cublas_codelet(void *descr[], __attribute__((unused))  void *arg);
+extern void self_add_cublas_codelet(void *descr[], __attribute__((unused))  void *arg);
+extern void self_sub_cublas_codelet(void *descr[], __attribute__((unused))  void *arg);
 #endif
 
-extern void null_codelet(__attribute__((unused)) starpu_data_interface_t *descr,
+extern void null_codelet(__attribute__((unused)) void *descr[],
                   __attribute__((unused))  void *arg);
 
 
@@ -713,7 +713,7 @@ void strassen_mult(struct strassen_iter *iter)
 	create_cleanup_task(clean_struct);
 }
 
-static void dummy_codelet_func(__attribute__((unused))starpu_data_interface_t *descr,
+static void dummy_codelet_func(__attribute__((unused))void *descr[],
 				__attribute__((unused))  void *arg)
 {
 }

@@ -30,7 +30,7 @@ struct malloc_pinned_codelet_struct {
 	size_t dim;
 };
 
-static void malloc_pinned_codelet(starpu_data_interface_t *buffers __attribute__((unused)), void *arg)
+static void malloc_pinned_codelet(void *buffers[] __attribute__((unused)), void *arg)
 {
 	struct malloc_pinned_codelet_struct *s = arg;
 
@@ -86,7 +86,7 @@ int starpu_malloc_pinned_if_possible(void **A, size_t dim)
 }
 
 #ifdef USE_CUDA
-static void free_pinned_codelet(starpu_data_interface_t *buffers __attribute__((unused)), void *arg)
+static void free_pinned_codelet(void *buffers[] __attribute__((unused)), void *arg)
 {
 	cudaError_t cures;
 	cures = cudaFreeHost(arg);

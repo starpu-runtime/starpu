@@ -21,9 +21,9 @@ static __global__ void cuda_incrementer(unsigned *token)
 	(*token)++;
 }
 
-extern "C" void increment_cuda(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
+extern "C" void increment_cuda(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	unsigned *tokenptr = (unsigned *)buffers[0].vector.ptr;
+	unsigned *tokenptr = (unsigned *)GET_VECTOR_PTR(descr[0]);
 
 	cuda_incrementer<<<1,1>>>(tokenptr);
 }

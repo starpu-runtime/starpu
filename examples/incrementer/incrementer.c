@@ -20,15 +20,15 @@
 #define NITER	50000
 
 #ifdef USE_CUDA
-extern void cuda_codelet(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args);
+extern void cuda_codelet(void *descr[], __attribute__ ((unused)) void *_args);
 #endif
 
 
 extern void cuda_codelet_host(float *tab);
 
-void core_codelet(starpu_data_interface_t *buffers, __attribute__ ((unused)) void *_args)
+void core_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	float *val = (float *)buffers[0].vector.ptr;
+	float *val = (float *)GET_VECTOR_PTR(descr[0]);
 
 	val[0] += 1.0f; val[1] += 1.0f;
 }

@@ -21,7 +21,7 @@
 static starpu_data_handle handle;
 static unsigned data = 42;
 
-static void wrong_func(starpu_data_interface_t *descr, void *arg)
+static void wrong_func(void *descr[], void *arg)
 {
 	int ret;
 

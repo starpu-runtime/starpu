@@ -14,16 +14,15 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
 #include <sys/time.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
 
-#include <starpu.h>
-
 static unsigned ntasks = 65536;
 
-static void dummy_func(starpu_data_interface_t *descr __attribute__ ((unused)), void *arg __attribute__ ((unused)))
+static void dummy_func(void *descr[], void *arg)
 {
 }
 

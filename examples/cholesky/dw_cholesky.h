@@ -72,14 +72,14 @@ static unsigned nbigblocks = 8;
 static unsigned pinned = 0;
 static unsigned noprio = 0;
 
-void chol_core_codelet_update_u11(starpu_data_interface_t *, void *);
-void chol_core_codelet_update_u21(starpu_data_interface_t *, void *);
-void chol_core_codelet_update_u22(starpu_data_interface_t *, void *);
+void chol_core_codelet_update_u11(void **, void *);
+void chol_core_codelet_update_u21(void **, void *);
+void chol_core_codelet_update_u22(void **, void *);
 
 #ifdef USE_CUDA
-void chol_cublas_codelet_update_u11(starpu_data_interface_t *descr, void *_args);
-void chol_cublas_codelet_update_u21(starpu_data_interface_t *descr, void *_args);
-void chol_cublas_codelet_update_u22(starpu_data_interface_t *descr, void *_args);
+void chol_cublas_codelet_update_u11(void *descr[], void *_args);
+void chol_cublas_codelet_update_u21(void *descr[], void *_args);
+void chol_cublas_codelet_update_u22(void *descr[], void *_args);
 #endif
 
 void initialize_system(float **A, unsigned dim, unsigned pinned);

@@ -21,20 +21,20 @@
  *   U22 
  */
 
-static inline void STARPU_LU(common_u22)(starpu_data_interface_t *buffers,
+static inline void STARPU_LU(common_u22)(void *descr[],
 				int s, __attribute__((unused)) void *_args)
 {
-	TYPE *right 	= (TYPE *)buffers[0].blas.ptr;
-	TYPE *left 	= (TYPE *)buffers[1].blas.ptr;
-	TYPE *center 	= (TYPE *)buffers[2].blas.ptr;
+	TYPE *right 	= (TYPE *)GET_BLAS_PTR(descr[0]);
+	TYPE *left 	= (TYPE *)GET_BLAS_PTR(descr[1]);
+	TYPE *center 	= (TYPE *)GET_BLAS_PTR(descr[2]);
 
-	unsigned dx = buffers[2].blas.nx;
-	unsigned dy = buffers[2].blas.ny;
-	unsigned dz = buffers[0].blas.ny;
+	unsigned dx = GET_BLAS_NX(descr[2]);
+	unsigned dy = GET_BLAS_NY(descr[2]);
+	unsigned dz = GET_BLAS_NY(descr[0]);
 
-	unsigned ld12 = buffers[0].blas.ld;
-	unsigned ld21 = buffers[1].blas.ld;
-	unsigned ld22 = buffers[2].blas.ld;
+	unsigned ld12 = GET_BLAS_LD(descr[0]);
+	unsigned ld21 = GET_BLAS_LD(descr[1]);
+	unsigned ld22 = GET_BLAS_LD(descr[2]);
 
 #ifdef USE_CUDA
 	cublasStatus status;
@@ -69,13 +69,13 @@ static inline void STARPU_LU(common_u22)(starpu_data_interface_t *buffers,
 	}
 }
 
-void STARPU_LU(cpu_u22)(starpu_data_interface_t *descr, void *_args)
+void STARPU_LU(cpu_u22)(void *descr[], void *_args)
 {
 	STARPU_LU(common_u22)(descr, 0, _args);
 }
 
 #ifdef USE_CUDA
-void STARPU_LU(cublas_u22)(starpu_data_interface_t *descr, void *_args)
+void STARPU_LU(cublas_u22)(void *descr[], void *_args)
 {
 	STARPU_LU(common_u22)(descr, 1, _args);
 }
@@ -85,20 +85,20 @@ void STARPU_LU(cublas_u22)(starpu_data_interface_t *descr, void *_args)
  * U12
  */
 
-static inline void STARPU_LU(common_u12)(starpu_data_interface_t *buffers,
+static inline void STARPU_LU(common_u12)(void *descr[],
 				int s, __attribute__((unused)) void *_args)
 {
 	TYPE *sub11;
 	TYPE *sub12;
 
-	sub11 = (TYPE *)buffers[0].blas.ptr;	
-	sub12 = (TYPE *)buffers[1].blas.ptr;
+	sub11 = (TYPE *)GET_BLAS_PTR(descr[0]);	
+	sub12 = (TYPE *)GET_BLAS_PTR(descr[1]);
 
-	unsigned ld11 = buffers[0].blas.ld;
-	unsigned ld12 = buffers[1].blas.ld;
+	unsigned ld11 = GET_BLAS_LD(descr[0]);
+	unsigned ld12 = GET_BLAS_LD(descr[1]);
 
-	unsigned nx12 = buffers[1].blas.nx;
-	unsigned ny12 = buffers[1].blas.ny;
+	unsigned nx12 = GET_BLAS_NX(descr[1]);
+	unsigned ny12 = GET_BLAS_NY(descr[1]);
 
 #ifdef USE_CUDA
 	cublasStatus status;
@@ -131,13 +131,13 @@ static inline void STARPU_LU(common_u12)(starpu_data_interface_t *buffers,
 	}
 }
 
-void STARPU_LU(cpu_u12)(starpu_data_interface_t *descr, void *_args)
+void STARPU_LU(cpu_u12)(void *descr[], void *_args)
 {
 	STARPU_LU(common_u12)(descr, 0, _args);
 }
 
 #ifdef USE_CUDA
-void STARPU_LU(cublas_u12)(starpu_data_interface_t *descr, void *_args)
+void STARPU_LU(cublas_u12)(void *descr[], void *_args)
 {
 	STARPU_LU(common_u12)(descr, 1, _args);
 }
@@ -147,20 +147,20 @@ void STARPU_LU(cublas_u12)(starpu_data_interface_t *descr, void *_args)
  * U21
  */
 
-static inline void STARPU_LU(common_u21)(starpu_data_interface_t *buffers,
+static inline void STARPU_LU(common_u21)(void *descr[],
 				int s, __attribute__((unused)) void *_args)
 {
 	TYPE *sub11;
 	TYPE *sub21;
 
-	sub11 = (TYPE *)buffers[0].blas.ptr;
-	sub21 = (TYPE *)buffers[1].blas.ptr;
+	sub11 = (TYPE *)GET_BLAS_PTR(descr[0]);
+	sub21 = (TYPE *)GET_BLAS_PTR(descr[1]);
 
-	unsigned ld11 = buffers[0].blas.ld;
-	unsigned ld21 = buffers[1].blas.ld;
+	unsigned ld11 = GET_BLAS_LD(descr[0]);
+	unsigned ld21 = GET_BLAS_LD(descr[1]);
 
-	unsigned nx21 = buffers[1].blas.nx;
-	unsigned ny21 = buffers[1].blas.ny;
+	unsigned nx21 = GET_BLAS_NX(descr[1]);
+	unsigned ny21 = GET_BLAS_NY(descr[1]);
 	
 #ifdef USE_CUDA
 	cublasStatus status;
@@ -191,13 +191,13 @@ static inline void STARPU_LU(common_u21)(starpu_data_interface_t *buffers,
 	}
 }
 
-void STARPU_LU(cpu_u21)(starpu_data_interface_t *descr, void *_args)
+void STARPU_LU(cpu_u21)(void *descr[], void *_args)
 {
 	STARPU_LU(common_u21)(descr, 0, _args);
 }
 
 #ifdef USE_CUDA
-void STARPU_LU(cublas_u21)(starpu_data_interface_t *descr, void *_args)
+void STARPU_LU(cublas_u21)(void *descr[], void *_args)
 {
 	STARPU_LU(common_u21)(descr, 1, _args);
 }
@@ -207,15 +207,15 @@ void STARPU_LU(cublas_u21)(starpu_data_interface_t *descr, void *_args)
  *	U11
  */
 
-static inline void STARPU_LU(common_u11)(starpu_data_interface_t *descr,
+static inline void STARPU_LU(common_u11)(void *descr[],
 				int s, __attribute__((unused)) void *_args)
 {
 	TYPE *sub11;
 
-	sub11 = (TYPE *)descr[0].blas.ptr; 
+	sub11 = (TYPE *)GET_BLAS_PTR(descr[0]); 
 
-	unsigned long nx = descr[0].blas.nx;
-	unsigned long ld = descr[0].blas.ld;
+	unsigned long nx = GET_BLAS_NX(descr[0]);
+	unsigned long ld = GET_BLAS_LD(descr[0]);
 
 	unsigned long z;
 
@@ -263,13 +263,13 @@ static inline void STARPU_LU(common_u11)(starpu_data_interface_t *descr,
 	}
 }
 
-void STARPU_LU(cpu_u11)(starpu_data_interface_t *descr, void *_args)
+void STARPU_LU(cpu_u11)(void *descr[], void *_args)
 {
 	STARPU_LU(common_u11)(descr, 0, _args);
 }
 
 #ifdef USE_CUDA
-void STARPU_LU(cublas_u11)(starpu_data_interface_t *descr, void *_args)
+void STARPU_LU(cublas_u11)(void *descr[], void *_args)
 {
 	STARPU_LU(common_u11)(descr, 1, _args);
 }
@@ -279,15 +279,15 @@ void STARPU_LU(cublas_u11)(starpu_data_interface_t *descr, void *_args)
  *	U11 with pivoting
  */
 
-static inline void STARPU_LU(common_u11_pivot)(starpu_data_interface_t *descr,
+static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 				int s, void *_args)
 {
 	TYPE *sub11;
 
-	sub11 = (TYPE *)descr[0].blas.ptr; 
+	sub11 = (TYPE *)GET_BLAS_PTR(descr[0]); 
 
-	unsigned long nx = descr[0].blas.nx;
-	unsigned long ld = descr[0].blas.ld;
+	unsigned long nx = GET_BLAS_NX(descr[0]);
+	unsigned long ld = GET_BLAS_LD(descr[0]);
 
 	unsigned long z;
 
@@ -378,13 +378,13 @@ static inline void STARPU_LU(common_u11_pivot)(starpu_data_interface_t *descr,
 	}
 }
 
-void STARPU_LU(cpu_u11_pivot)(starpu_data_interface_t *descr, void *_args)
+void STARPU_LU(cpu_u11_pivot)(void *descr[], void *_args)
 {
 	STARPU_LU(common_u11_pivot)(descr, 0, _args);
 }
 
 #ifdef USE_CUDA
-void STARPU_LU(cublas_u11_pivot)(starpu_data_interface_t *descr, void *_args)
+void STARPU_LU(cublas_u11_pivot)(void *descr[], void *_args)
 {
 	STARPU_LU(common_u11_pivot)(descr, 1, _args);
 }
@@ -394,14 +394,14 @@ void STARPU_LU(cublas_u11_pivot)(starpu_data_interface_t *descr, void *_args)
  *	Pivoting
  */
 
-static inline void STARPU_LU(common_pivot)(starpu_data_interface_t *descr,
+static inline void STARPU_LU(common_pivot)(void *descr[],
 				int s, void *_args)
 {
 	TYPE *matrix;
 
-	matrix = (TYPE *)descr[0].blas.ptr; 
-	unsigned long nx = descr[0].blas.nx;
-	unsigned long ld = descr[0].blas.ld;
+	matrix = (TYPE *)GET_BLAS_PTR(descr[0]); 
+	unsigned long nx = GET_BLAS_NX(descr[0]);
+	unsigned long ld = GET_BLAS_LD(descr[0]);
 
 	unsigned row, rowaux;
 
@@ -442,13 +442,13 @@ static inline void STARPU_LU(common_pivot)(starpu_data_interface_t *descr,
 	}
 }
 
-void STARPU_LU(cpu_pivot)(starpu_data_interface_t *descr, void *_args)
+void STARPU_LU(cpu_pivot)(void *descr[], void *_args)
 {
 	STARPU_LU(common_pivot)(descr, 0, _args);
 }
 
 #ifdef USE_CUDA
-void STARPU_LU(cublas_pivot)(starpu_data_interface_t *descr, void *_args)
+void STARPU_LU(cublas_pivot)(void *descr[], void *_args)
 {
 	STARPU_LU(common_pivot)(descr, 1, _args);
 }
