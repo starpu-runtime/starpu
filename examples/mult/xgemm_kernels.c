@@ -51,7 +51,7 @@ void STARPU_GEMM(cublas_mult)(void *descr[], __attribute__((unused)) void *arg)
 	cublasStatus st;
 	st = cublasGetError();
 	if (st != CUBLAS_STATUS_SUCCESS)
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 
 	cudaThreadSynchronize();
 

@@ -42,7 +42,7 @@ static inline void common_block_spmv(void *descr[], int s, __attribute__((unused
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 }

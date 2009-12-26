@@ -56,7 +56,7 @@ void setup_queues(void (*init_queue_design)(void),
 				workerarg->jobq->alpha = GORDON_ALPHA;
 				break;
 			default:
-				STARPU_ASSERT(0);
+				STARPU_ABORT();
 		}
 		
 		memory_node_attach_queue(workerarg->jobq, workerarg->memory_node);

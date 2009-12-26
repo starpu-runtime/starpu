@@ -183,7 +183,7 @@ static void write_bus_latency_file_content(void)
 	if (!f)
 	{
 		perror("fopen");
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 	}
 
 	for (src = 0; src < MAXNODES; src++)
@@ -256,7 +256,7 @@ static void load_bus_bandwith_file_content(void)
 	if (!f)
 	{
 		perror("fopen");
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 	}
 
 	for (src = 0; src < MAXNODES; src++)

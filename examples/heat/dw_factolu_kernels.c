@@ -133,14 +133,14 @@ static inline void dw_common_core_codelet_update_u22(void *descr[], int s, __att
 					right, ld12, 1.0f, center, ld22);
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
-				STARPU_ASSERT(0);
+				STARPU_ABORT();
 
 			cudaThreadSynchronize();
 
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 }
@@ -196,14 +196,14 @@ static inline void dw_common_codelet_update_u12(void *descr[], int s, __attribut
 					1.0f, sub11, ld11, sub12, ld12);
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
-				STARPU_ASSERT(0);
+				STARPU_ABORT();
 
 			cudaThreadSynchronize();
 
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 }
@@ -256,14 +256,14 @@ static inline void dw_common_codelet_update_u21(void *descr[], int s, __attribut
 			cublasStrsm('R', 'U', 'N', 'U', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
-				STARPU_ASSERT(0);
+				STARPU_ABORT();
 
 			cudaThreadSynchronize();
 
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 }
@@ -357,7 +357,7 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, __attribut
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 }

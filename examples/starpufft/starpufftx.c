@@ -131,7 +131,7 @@ check_dims(STARPUFFT(plan) plan)
 	for (dim = 0; dim < plan->dim; dim++)
 		if (plan->n[dim] & (plan->n[dim]-1)) {
 			fprintf(stderr,"can't cope with non-power-of-2\n");
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 		}
 }
 
@@ -186,7 +186,7 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 				tag = STARPUFFT(start1dC2C)(plan);
 				break;
 			default:
-				STARPU_ASSERT(0);
+				STARPU_ABORT();
 				break;
 			}
 			break;
@@ -198,7 +198,7 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 			tag = STARPUFFT(start2dC2C)(plan);
 			break;
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 	return tag;
@@ -250,7 +250,7 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 #endif
 			break;
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 		}
 	}
@@ -299,7 +299,7 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 			STARPUFFT(free_2d_tags)(plan);
 			break;
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 

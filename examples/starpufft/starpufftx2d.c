@@ -482,7 +482,7 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 #endif
 			break;
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 		}
 	}

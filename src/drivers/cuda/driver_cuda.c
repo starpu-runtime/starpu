@@ -255,7 +255,7 @@ void *cuda_worker(void *arg)
 				case STARPU_TRYAGAIN:
 					fprintf(stderr, "ouch, put the codelet %p back ... \n", j);
 					push_task(j);
-					STARPU_ASSERT(0);
+					STARPU_ABORT();
 					continue;
 				default:
 					assert(0);

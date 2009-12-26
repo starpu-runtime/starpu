@@ -341,14 +341,14 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
 	if (STARPU_UNLIKELY(res))
 	{
 		perror("pthread_rwlock_init failed");
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 	}
 
 	res = pthread_rwlock_wrlock(&model->model_rwlock);
 	if (STARPU_UNLIKELY(res))
 	{
 		perror("pthread_rwlock_wrlock failed");
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 	}
 
 	/* make sure the performance model directory exists (or create it) */
@@ -405,7 +405,7 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
 	if (STARPU_UNLIKELY(res))
 	{
 		perror("pthread_rwlock_unlock");
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 	}
 }
 
@@ -455,7 +455,7 @@ void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archna
 	}
 	else
 	{
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 	}
 }
 

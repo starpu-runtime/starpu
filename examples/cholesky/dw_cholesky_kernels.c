@@ -64,7 +64,7 @@ static inline void chol_common_core_codelet_update_u22(void *descr[], int s, __a
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 }
@@ -111,7 +111,7 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, __attrib
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 }
@@ -194,7 +194,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 }

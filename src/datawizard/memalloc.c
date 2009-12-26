@@ -170,7 +170,7 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 			/* nothing to be done */
 			break;
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 		}
 	}

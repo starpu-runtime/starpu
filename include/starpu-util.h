@@ -36,7 +36,13 @@ extern "C" {
 #define STARPU_MIN(a,b)	((a)<(b)?(a):(b))
 #define STARPU_MAX(a,b)	((a)<(b)?(b):(a))
 
+#ifdef STARPU_NO_ASSERT
+#define STARPU_ASSERT(x)	do {} while(0);
+#else
 #define STARPU_ASSERT(x)	assert(x)
+#endif
+
+#define STARPU_ABORT()		abort()
 
 #define STARPU_UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
 #define STARPU_LIKELY(expr)            (__builtin_expect(!!(expr),1))

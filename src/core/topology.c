@@ -355,7 +355,7 @@ void bind_thread_on_cpu(struct machine_config_s *config __attribute__((unused)),
 	if (ret)
 	{
 		perror("binding thread");
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 	}
 
 #elif defined(HAVE_PTHREAD_SETAFFINITY_NP)
@@ -370,7 +370,7 @@ void bind_thread_on_cpu(struct machine_config_s *config __attribute__((unused)),
 	if (ret)
 	{
 		perror("binding thread");
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 	}
 
 #else
@@ -417,7 +417,7 @@ static void init_workers_binding(struct machine_config_s *config)
 				break;
 #endif
 			default:
-				STARPU_ASSERT(0);
+				STARPU_ABORT();
 		}
 
 		if (is_a_set_of_accelerators) {

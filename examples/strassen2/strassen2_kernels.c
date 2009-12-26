@@ -85,7 +85,7 @@ static void mult_common_codelet(void *descr[], int s, __attribute__((unused))  v
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 }
@@ -156,7 +156,7 @@ static void add_sub_common_codelet(void *descr[], int s, __attribute__((unused))
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 }
@@ -229,7 +229,7 @@ static void self_add_sub_common_codelet(void *descr[], int s, __attribute__((unu
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 }

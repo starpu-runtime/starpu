@@ -181,7 +181,7 @@ static void express_deps(unsigned i, unsigned j, unsigned iter)
 		else 
 		{
 			/* (i,j+1) does not exist */
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 		}
 	}
 }

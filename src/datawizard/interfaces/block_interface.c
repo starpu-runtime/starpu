@@ -77,7 +77,7 @@ struct data_interface_ops_t interface_block_ops = {
 int convert_block_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
 	/* TODO */
-	STARPU_ASSERT(0);
+	STARPU_ABORT();
 
 	return 0;
 }

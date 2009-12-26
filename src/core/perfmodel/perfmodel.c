@@ -104,7 +104,7 @@ double job_expected_length(uint32_t who, struct job_s *j, enum starpu_perf_archt
 				return regression_based_job_expected_length(model, arch, j);
 
 			default:
-				STARPU_ASSERT(0);
+				STARPU_ABORT();
 		};
 	}
 

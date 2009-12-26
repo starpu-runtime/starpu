@@ -134,12 +134,12 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, uint32_t src_node
 				else
 				{
 					/* we should not have a blocking call ! */
-					STARPU_ASSERT(0);
+					STARPU_ABORT();
 				}
 				break;
 #endif
 			case SPU_LS:
-				STARPU_ASSERT(0); // TODO
+				STARPU_ABORT(); // TODO
 				break;
 			case UNUSED:
 				printf("error node %u UNUSED\n", src_node);
@@ -168,17 +168,17 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, uint32_t src_node
 				break;
 			case CUDA_RAM:
 			case SPU_LS:
-				STARPU_ASSERT(0); // TODO 
+				STARPU_ABORT(); // TODO 
 				break;
 			case UNUSED:
 			default:
-				STARPU_ASSERT(0);
+				STARPU_ABORT();
 				break;
 		}
 		break;
 #endif
 	case SPU_LS:
-		STARPU_ASSERT(0); // TODO
+		STARPU_ABORT(); // TODO
 		break;
 	case UNUSED:
 	default:
@@ -270,7 +270,7 @@ void driver_wait_request_completion(starpu_async_channel *async_channel __attrib
 #endif
 		case RAM:
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 }
 
@@ -296,7 +296,7 @@ unsigned driver_test_request_completion(starpu_async_channel *async_channel __at
 #endif
 		case RAM:
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			success = 0;
 	}
 

@@ -125,7 +125,7 @@ static void init_problem_data(void)
 	else {
 #ifdef NORANDOM
 		srand(2008);
-		STARPU_ASSERT(0);
+		STARPU_ABORT();
 #endif
 		for (j=0; j < ydim; j++) {
 			for (i=0; i < zdim; i++) {

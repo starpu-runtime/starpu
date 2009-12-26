@@ -744,7 +744,7 @@ int main(int argc, char **argv)
 				dw_factoLU_grain(A, newsize, newsize, nblocks, nbigblocks);
 				break;
 			default:
-				STARPU_ASSERT(0);
+				STARPU_ABORT();
 		}
 
 		display_stat_heat();

@@ -56,7 +56,7 @@ static inline void STARPU_LU(common_u22)(void *descr[],
 
 			status = cublasGetError();
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
-				STARPU_ASSERT(0);
+				STARPU_ABORT();
 
 			if (STARPU_UNLIKELY((cures = cudaThreadSynchronize()) != cudaSuccess))
 				CUDA_REPORT_ERROR(cures);
@@ -64,7 +64,7 @@ static inline void STARPU_LU(common_u22)(void *descr[],
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 }
@@ -118,7 +118,7 @@ static inline void STARPU_LU(common_u12)(void *descr[],
 
 			status = cublasGetError();
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
-				STARPU_ASSERT(0);
+				STARPU_ABORT();
 
 			if (STARPU_UNLIKELY((cures = cudaThreadSynchronize()) != cudaSuccess))
 				CUDA_REPORT_ERROR(cures);
@@ -126,7 +126,7 @@ static inline void STARPU_LU(common_u12)(void *descr[],
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 }
@@ -179,14 +179,14 @@ static inline void STARPU_LU(common_u21)(void *descr[],
 
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
-				STARPU_ASSERT(0);
+				STARPU_ABORT();
 
 			cudaThreadSynchronize();
 
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 }
@@ -258,7 +258,7 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 }
@@ -373,7 +373,7 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 }
@@ -437,7 +437,7 @@ static inline void STARPU_LU(common_pivot)(void *descr[],
 			break;
 #endif
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 			break;
 	}
 }

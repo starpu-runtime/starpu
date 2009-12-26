@@ -25,6 +25,7 @@
 #undef HAVE_SYNC_FETCH_AND_ADD
 
 #undef MODEL_DEBUG
+#undef STARPU_NO_ASSERT
 
 #undef HAVE_FFTW
 #undef HAVE_FFTWF

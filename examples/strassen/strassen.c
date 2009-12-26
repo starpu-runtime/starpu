@@ -185,7 +185,7 @@ static void compute_add_sub_op(starpu_data_handle A1, operation op,
 			task->cl = &cl_self_sub;
 			break;
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 
 	starpu_submit_task(task);
@@ -229,7 +229,7 @@ void phase_3_callback_function(void *_arg)
 				free_tmp_matrix(iter->E7);
 				break;
 			default:
-				STARPU_ASSERT(0);
+				STARPU_ABORT();
 		}
 	}
 
@@ -321,7 +321,7 @@ void phase_2_callback_function(void *_arg)
 			compute_add_sub_op(iter->E7, SELFSUB, NULL, iter->C22, phase_3_callback_function, arg2);
 			break;
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 }
 
@@ -376,7 +376,7 @@ static void _strassen_phase_2(strassen_iter_state_t *iter, unsigned i)
 			C = iter->E7;
 			break;
 		default:
-			STARPU_ASSERT(0);
+			STARPU_ABORT();
 	}
 
 	STARPU_ASSERT(A);

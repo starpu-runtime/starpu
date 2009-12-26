@@ -248,6 +248,17 @@ else
 fi
 CFLAGS+=" -gdwarf-2 -g3 "
 
+AC_MSG_CHECKING(whether extra checks should be performed)
+AC_ARG_ENABLE(fast, [AS_HELP_STRING([--enable-fast],
+			[enforce assertions])],
+			enable_fast=$enableval, enable_fast=no)
+AC_MSG_RESULT($enable_fast)
+if test x$enable_fast = xyes; then
+	AC_DEFINE(STARPU_NO_ASSERT, [1], [disable assertions])
+fi
+
+
+
 AC_MSG_CHECKING(whether debug messages should be displayed)
 AC_ARG_ENABLE(verbose, [AS_HELP_STRING([--enable-verbose],
 			[display verbose debug messages])],

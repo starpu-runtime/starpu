@@ -135,7 +135,7 @@ static void init_workers(struct machine_config_s *config)
 				break;
 #endif
 			default:
-				STARPU_ASSERT(0);
+				STARPU_ABORT();
 		}
 	}
 
@@ -158,7 +158,7 @@ static void init_workers(struct machine_config_s *config)
 				break;
 #endif
 			default:
-				STARPU_ASSERT(0);
+				STARPU_ABORT();
 		}
 	}
 
@@ -179,7 +179,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	int ret;
 
 	srand(2008);
-
+	
 #ifdef USE_FXT
 	start_fxt_profiling();
 #endif
