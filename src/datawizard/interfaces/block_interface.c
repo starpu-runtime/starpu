@@ -129,20 +129,15 @@ void starpu_register_block_data(starpu_data_handle *handleptr, uint32_t home_nod
 	register_data_handle(handleptr, home_node, &interface, &interface_block_ops);
 }
 
-static inline uint32_t footprint_block_interface_generic(uint32_t (*hash_func)(uint32_t input, uint32_t hstate), starpu_data_handle handle)
+static uint32_t footprint_block_interface_crc32(starpu_data_handle handle)
 {
 	uint32_t hash;
 
-	hash = hash_func(starpu_get_block_nx(handle), 0);
-	hash = hash_func(starpu_get_block_ny(handle), hash);
-	hash = hash_func(starpu_get_block_nz(handle), hash);
+	hash = crc32_be(starpu_get_block_nx(handle), 0);
+	hash = crc32_be(starpu_get_block_ny(handle), hash);
+	hash = crc32_be(starpu_get_block_nz(handle), hash);
 
 	return hash;
-}
-
-static uint32_t footprint_block_interface_crc32(starpu_data_handle handle)
-{
-	return footprint_block_interface_generic(crc32_be, handle);
 }
 
 static void display_block_interface(starpu_data_handle handle, FILE *f)
