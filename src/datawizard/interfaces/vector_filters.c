@@ -131,7 +131,6 @@ void starpu_list_filter_func_vector(starpu_filter *f, starpu_data_handle root_ha
 	starpu_vector_interface_t *vector_root =
 		starpu_data_get_interface_on_node(root_handle, 0);
 
-	uint32_t nx = vector_root->nx;
 	size_t elemsize = vector_root->elemsize;
 
 	/* first allocate the children data_state */
@@ -168,5 +167,6 @@ void starpu_list_filter_func_vector(starpu_filter *f, starpu_data_handle root_ha
 		current_pos += chunk_size;
 	}
 
+	__attribute__ ((unused)) uint32_t nx = vector_root->nx;
 	STARPU_ASSERT(current_pos == nx);
 }

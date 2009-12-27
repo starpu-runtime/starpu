@@ -56,7 +56,7 @@ static void register_vector_handle(starpu_data_handle handle, uint32_t home_node
 static size_t allocate_vector_buffer_on_node(starpu_data_handle handle, uint32_t dst_node);
 static void liberate_vector_buffer_on_node(void *interface, uint32_t node);
 static size_t vector_interface_get_size(starpu_data_handle handle);
-static uint32_t footprint_vector_interface_crc32(starpu_data_handle handle, uint32_t hstate);
+static uint32_t footprint_vector_interface_crc32(starpu_data_handle handle);
 static void display_vector_interface(starpu_data_handle handle, FILE *f);
 #ifdef USE_GORDON
 static int convert_vector_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
@@ -125,19 +125,9 @@ void starpu_register_vector_data(starpu_data_handle *handleptr, uint32_t home_no
 }
 
 
-static inline uint32_t footprint_vector_interface_generic(uint32_t (*hash_func)(uint32_t input, uint32_t hstate), starpu_data_handle handle, uint32_t hstate)
+static uint32_t footprint_vector_interface_crc32(starpu_data_handle handle)
 {
-	uint32_t hash;
-
-	hash = hstate;
-	hash = hash_func(starpu_get_vector_nx(handle), hash);
-
-	return hash;
-}
-
-uint32_t footprint_vector_interface_crc32(starpu_data_handle handle, uint32_t hstate)
-{
-	return footprint_vector_interface_generic(crc32_be, handle, hstate);
+	return crc32_be(starpu_get_vector_nx(handle), 0);
 }
 
 static void display_vector_interface(starpu_data_handle handle, FILE *f)

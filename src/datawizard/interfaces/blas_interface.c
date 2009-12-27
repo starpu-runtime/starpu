@@ -58,7 +58,7 @@ static void register_blas_handle(starpu_data_handle handle, uint32_t home_node, 
 static size_t allocate_blas_buffer_on_node(starpu_data_handle handle, uint32_t dst_node);
 static void liberate_blas_buffer_on_node(void *interface, uint32_t node);
 static size_t blas_interface_get_size(starpu_data_handle handle);
-static uint32_t footprint_blas_interface_crc32(starpu_data_handle handle, uint32_t hstate);
+static uint32_t footprint_blas_interface_crc32(starpu_data_handle handle);
 static void display_blas_interface(starpu_data_handle handle, FILE *f);
 #ifdef USE_GORDON
 static int convert_blas_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
@@ -138,20 +138,9 @@ void starpu_register_blas_data(starpu_data_handle *handleptr, uint32_t home_node
 	register_data_handle(handleptr, home_node, &interface, &interface_blas_ops);
 }
 
-static inline uint32_t footprint_blas_interface_generic(uint32_t (*hash_func)(uint32_t input, uint32_t hstate), starpu_data_handle handle, uint32_t hstate)
+static uint32_t footprint_blas_interface_crc32(starpu_data_handle handle)
 {
-	uint32_t hash;
-
-	hash = hstate;
-	hash = hash_func(starpu_get_blas_nx(handle), hash);
-	hash = hash_func(starpu_get_blas_ny(handle), hash);
-
-	return hash;
-}
-
-static uint32_t footprint_blas_interface_crc32(starpu_data_handle handle, uint32_t hstate)
-{
-	return footprint_blas_interface_generic(crc32_be, handle, hstate);
+	return crc32_be(starpu_get_blas_nx(handle), starpu_get_blas_ny(handle));
 }
 
 static void display_blas_interface(starpu_data_handle handle, FILE *f)

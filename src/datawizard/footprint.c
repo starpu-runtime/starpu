@@ -15,6 +15,7 @@
  */
 
 #include <datawizard/footprint.h>
+#include <common/hash.h>
 
 void compute_buffers_footprint(job_t j)
 {
@@ -30,7 +31,9 @@ void compute_buffers_footprint(job_t j)
 		STARPU_ASSERT(handle->ops);
 		STARPU_ASSERT(handle->ops->footprint);
 
-		footprint = handle->ops->footprint(handle, footprint);
+		uint32_t handle_footprint = handle->ops->footprint(handle);
+
+		footprint = crc32_be(handle_footprint, footprint);
 	}
 
 	j->footprint = footprint;
@@ -41,5 +44,7 @@ inline uint32_t compute_data_footprint(starpu_data_handle handle)
 {
 	uint32_t interfaceid = (uint32_t)starpu_get_handle_interface_id(handle);
 
-	return handle->ops->footprint(handle, interfaceid);
+	uint32_t handle_footprint = handle->ops->footprint(handle);
+
+	return crc32_be(handle_footprint, interfaceid);
 }

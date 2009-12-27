@@ -51,7 +51,7 @@ static void register_bcsr_handle(starpu_data_handle handle, uint32_t home_node, 
 static size_t allocate_bcsr_buffer_on_node(starpu_data_handle handle, uint32_t dst_node);
 static void liberate_bcsr_buffer_on_node(void *interface, uint32_t node);
 static size_t bcsr_interface_get_size(starpu_data_handle handle);
-static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle handle, uint32_t hstate);
+static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle handle);
 
 struct data_interface_ops_t interface_bcsr_ops = {
 	.register_data_handle = register_bcsr_handle,
@@ -114,21 +114,15 @@ void starpu_register_bcsr_data(starpu_data_handle *handleptr, uint32_t home_node
 	register_data_handle(handleptr, home_node, &interface, &interface_bcsr_ops);
 }
 
-static inline uint32_t footprint_bcsr_interface_generic(uint32_t (*hash_func)(uint32_t input, uint32_t hstate), starpu_data_handle handle, uint32_t hstate)
+static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle handle)
 {
 	uint32_t hash;
 
-	hash = hstate;
-	hash = hash_func(starpu_get_bcsr_nnz(handle), hash);
-	hash = hash_func(starpu_get_bcsr_c(handle), hash);
-	hash = hash_func(starpu_get_bcsr_r(handle), hash);
+	hash = crc32_be(starpu_get_bcsr_nnz(handle), 0);
+	hash = crc32_be(starpu_get_bcsr_c(handle), hash);
+	hash = crc32_be(starpu_get_bcsr_r(handle), hash);
 
 	return hash;
-}
-
-static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle handle, uint32_t hstate)
-{
-	return footprint_bcsr_interface_generic(crc32_be, handle, hstate);
 }
 
 /* offer an access to the data parameters */
