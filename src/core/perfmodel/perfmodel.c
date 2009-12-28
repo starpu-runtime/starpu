@@ -127,7 +127,7 @@ double data_expected_penalty(struct jobq_s *q, struct starpu_task *task)
 		starpu_data_handle handle = task->buffers[buffer].handle;
 
 		if (task->buffers[buffer].mode == STARPU_W)
-			break;
+			continue;
 
 		if (!is_data_present_or_requested(handle, memory_node))
 		{
