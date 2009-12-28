@@ -25,6 +25,10 @@
 #ifdef HAVE_HWLOC
 #include <hwloc.h>
 #endif
+		
+static unsigned topology_is_initialized = 0;
+
+static unsigned may_bind_automatically = 0;
 
 static void initialize_workers_bindid(struct machine_config_s *config);
 
@@ -100,6 +104,9 @@ static void initialize_workers_gpuid(struct machine_config_s *config)
 		/* by default, we take a round robin policy */
 		for (i = 0; i < STARPU_NMAXWORKERS; i++)
 			config->workers_gpuid[i] = (unsigned)i;
+
+		/* StarPU can use sampling techniques to bind threads correctly */
+		may_bind_automatically = 1;
 	}
 }
 #endif
@@ -111,6 +118,39 @@ static inline int get_next_gpuid(struct machine_config_s *config)
 	return (int)config->workers_gpuid[i];
 }
 
+static void init_topology(struct machine_config_s *config)
+{
+	if (!topology_is_initialized)
+	{
+#ifdef HAVE_HWLOC
+		hwloc_topology_init(&config->hwtopology);
+		hwloc_topology_load(config->hwtopology);
+
+		config->core_depth = hwloc_get_type_depth(config->hwtopology, HWLOC_OBJ_CORE);
+
+		/* Would be very odd */
+		STARPU_ASSERT(config->core_depth != HWLOC_TYPE_DEPTH_MULTIPLE);
+
+		if (config->core_depth == HWLOC_TYPE_DEPTH_UNKNOWN)
+			/* unknown, using logical procesors as fallback */
+			config->core_depth = hwloc_get_type_depth(config->hwtopology, HWLOC_OBJ_PROC);
+
+		config->nhwcores = hwloc_get_nbobjs_by_depth(config->hwtopology, config->core_depth);
+#else
+		config->nhwcores = sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+	
+		topology_is_initialized = 1;
+	}
+}
+
+unsigned topology_get_nhwcore(struct machine_config_s *config)
+{
+	init_topology(config);
+	
+	return config->nhwcores;
+}
+
 static int init_machine_config(struct machine_config_s *config,
 				struct starpu_conf *user_conf)
 {
@@ -119,23 +159,7 @@ static int init_machine_config(struct machine_config_s *config,
 
 	config->nworkers = 0;
 
-#ifdef HAVE_HWLOC
-	hwloc_topology_init(&config->hwtopology);
-	hwloc_topology_load(config->hwtopology);
-
-	config->core_depth = hwloc_get_type_depth(config->hwtopology, HWLOC_OBJ_CORE);
-
-	/* Would be very odd */
-	STARPU_ASSERT(config->core_depth != HWLOC_TYPE_DEPTH_MULTIPLE);
-
-	if (config->core_depth == HWLOC_TYPE_DEPTH_UNKNOWN)
-		/* unknown, using logical procesors as fallback */
-		config->core_depth = hwloc_get_type_depth(config->hwtopology, HWLOC_OBJ_PROC);
-
-	config->nhwcores = hwloc_get_nbobjs_by_depth(config->hwtopology, config->core_depth);
-#else
-	config->nhwcores = sysconf(_SC_NPROCESSORS_ONLN);
-#endif
+	init_topology(config);
 
 	initialize_workers_bindid(config);
 
@@ -336,8 +360,44 @@ static void initialize_workers_bindid(struct machine_config_s *config)
 	}
 }
 
-static inline int get_next_bindid(struct machine_config_s *config)
+/* This function gets the identifier of the next core on which to bind a
+ * worker. In case a list of preferred cores was specified, we look for a an
+ * available core among the list if possible, otherwise a round-robin policy is
+ * used. */
+static inline int get_next_bindid(struct machine_config_s *config,
+				int *preferred_binding, int npreferred)
 {
+	unsigned found = 0;
+	int current_preferred;
+
+	for (current_preferred = 0; current_preferred < npreferred; current_preferred++)
+	{
+		if (found)
+			break;
+
+		unsigned requested_core = preferred_binding[current_preferred];
+
+		/* can we bind the worker on the requested core ? */
+		unsigned ind;
+		for (ind = config->current_bindid; ind < config->nhwcores; ind++)
+		{
+			if (config->workers_bindid[ind] == requested_core)
+			{
+				/* the core is available, we  use it ! In order
+				 * to make sure that it will not be used again
+				 * later on, we remove the entry from the list
+				 * */
+				config->workers_bindid[ind] =
+					config->workers_bindid[config->current_bindid];
+				config->workers_bindid[config->current_bindid] = requested_core;
+
+				found = 1;
+
+				break;
+			}
+		}
+	}
+
 	unsigned i = ((config->current_bindid++) % STARPU_NMAXWORKERS);
 
 	return (int)config->workers_bindid[i];
@@ -348,6 +408,8 @@ void bind_thread_on_cpu(struct machine_config_s *config __attribute__((unused)),
 	int ret;
 
 #ifdef HAVE_HWLOC
+	init_topology(config);
+
 	hwloc_obj_t obj = hwloc_get_obj_by_depth(config->hwtopology, config->core_depth, coreid);
 	hwloc_cpuset_t set = obj->cpuset;
 	hwloc_cpuset_singlify(set);
@@ -396,6 +458,10 @@ static void init_workers_binding(struct machine_config_s *config)
 		unsigned memory_node = -1;
 		unsigned is_a_set_of_accelerators = 0;
 		struct worker_s *workerarg = &config->workers[worker];
+
+		/* Perhaps the worker has some "favourite" bindings  */
+		int *preferred_binding = NULL;
+		int npreferred = 0;
 		
 		/* select the memory node that contains worker's memory */
 		switch (workerarg->arch) {
@@ -412,6 +478,12 @@ static void init_workers_binding(struct machine_config_s *config)
 #endif
 #ifdef USE_CUDA
 			case STARPU_CUDA_WORKER:
+				if (may_bind_automatically)
+				{
+					/* StarPU is allowed to bind threads automatically */
+					preferred_binding = get_gpu_affinity_vector(workerarg->id);
+					npreferred = config->nhwcores;
+				}
 				is_a_set_of_accelerators = 0;
 				memory_node = register_memory_node(CUDA_RAM);
 				break;
@@ -422,11 +494,12 @@ static void init_workers_binding(struct machine_config_s *config)
 
 		if (is_a_set_of_accelerators) {
 			if (accelerator_bindid == -1)
-				accelerator_bindid = get_next_bindid(config);
+				accelerator_bindid = get_next_bindid(config, preferred_binding, npreferred);
+
 			workerarg->bindid = accelerator_bindid;
 		}
 		else {
-			workerarg->bindid = get_next_bindid(config);
+			workerarg->bindid = get_next_bindid(config, preferred_binding, npreferred);
 		}
 
 		workerarg->memory_node = memory_node;

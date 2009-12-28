@@ -24,6 +24,11 @@ static pthread_key_t worker_key;
 
 static struct machine_config_s config;
 
+struct machine_config_s *get_machine_config(void)
+{
+	return &config;
+}
+
 /* in case a task is submitted, we may check whether there exists a worker
    that may execute the task or not */
 

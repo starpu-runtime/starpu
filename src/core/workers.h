@@ -140,8 +140,6 @@ inline uint32_t may_submit_cuda_task(void);
 inline uint32_t may_submit_core_task(void);
 inline uint32_t worker_may_execute_task(unsigned workerid, uint32_t where);
 
-void bind_thread_on_cpu(struct machine_config_s *config, unsigned coreid);
-
 inline void lock_all_queues_attached_to_node(unsigned node);
 inline void unlock_all_queues_attached_to_node(unsigned node);
 inline void broadcast_all_queues_attached_to_node(unsigned node);
@@ -150,5 +148,7 @@ void set_local_worker_key(struct worker_s *worker);
 struct worker_s *get_local_worker_key(void);
 
 struct worker_s *get_worker_struct(unsigned id);
+
+struct machine_config_s *get_machine_config(void);
 
 #endif // __WORKERS_H__
