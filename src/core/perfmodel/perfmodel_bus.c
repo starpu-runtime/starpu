@@ -149,8 +149,6 @@ static void measure_bandwith_between_host_and_dev(int dev, unsigned ncores)
 			compar_cudadev_timing);
 	
 #ifdef VERBOSE
-	/* find the best candidate(s) */
-	unsigned best_core = 0;
 	for (core = 0; core < ncores; core++)
 	{
 		unsigned current_core = cudadev_timing_per_cpu[dev+1][core].cpu_id;
@@ -160,13 +158,9 @@ static void measure_bandwith_between_host_and_dev(int dev, unsigned ncores)
 		double bandwith_sum2 = bandwith_dtoh*bandwith_dtoh + bandwith_htod*bandwith_htod;
 
 		fprintf(stderr, "BANDWITH GPU %d CPU %d - htod %lf - dtoh %lf - %lf\n", dev, current_core, bandwith_htod, bandwith_dtoh, sqrt(bandwith_sum2));
-
-		if (bandwith_sum2 > best_bandwith_sum2)
-		{
-			best_bandwith_sum2 = bandwith_sum2;
-			best_core = current_core;
-		}
 	}
+
+	unsigned best_core = cudadev_timing_per_cpu[dev+1][0].cpu_id;
 
 	fprintf(stderr, "BANDWITH GPU %d BEST CPU %d\n", dev, best_core);
 #endif
