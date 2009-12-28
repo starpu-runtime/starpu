@@ -85,7 +85,7 @@ static int execute_job_on_cuda(job_t j, struct worker_s *args)
 		calibrate_model = 1;
 
 	/* we do not take communication into account when modeling the performance */
-	if (calibrate_model || BENCHMARK_COMM)
+	if (BENCHMARK_COMM)
 	{
 		cures = cudaThreadSynchronize();
 		if (STARPU_UNLIKELY(cures))
@@ -117,7 +117,7 @@ static int execute_job_on_cuda(job_t j, struct worker_s *args)
 	GET_TICK(codelet_start);
 	func(task->interface, task->cl_arg);
 
-	task->cl->per_worker_stats[args->workerid]++;
+	cl->per_worker_stats[args->workerid]++;
 
 	GET_TICK(codelet_end);
 
@@ -125,8 +125,6 @@ static int execute_job_on_cuda(job_t j, struct worker_s *args)
 
 	TRACE_END_CODELET_BODY(j);	
 
-//#ifdef MODEL_DEBUG
-	
 	if (calibrate_model || BENCHMARK_COMM)
 	{
 		double measured = timing_delay(&codelet_start, &codelet_end);
@@ -142,7 +140,6 @@ static int execute_job_on_cuda(job_t j, struct worker_s *args)
 		if (calibrate_model)
 			update_perfmodel_history(j, args->perf_arch, (unsigned)args->id, measured);
 	}
-//#endif
 
 	args->jobq->total_job_performed++;
 

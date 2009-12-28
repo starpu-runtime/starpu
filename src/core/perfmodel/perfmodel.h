@@ -95,7 +95,7 @@ double regression_based_job_expected_length(struct starpu_perfmodel_t *model,
 void update_perfmodel_history(struct job_s *j, enum starpu_perf_archtype arch,
 				unsigned cpuid, double measured);
 
-double data_expected_penalty(struct jobq_s *q, struct job_s *j);
+double data_expected_penalty(struct jobq_s *q, struct starpu_task *task);
 
 void create_sampling_directory_if_needed(void);
 

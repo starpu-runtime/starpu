@@ -38,15 +38,15 @@ static job_t dmda_pop_task(struct jobq_s *q)
 	return j;
 }
 
-static void update_data_requests(struct jobq_s *q, struct job_s *j)
+static void update_data_requests(struct jobq_s *q, struct starpu_task *task)
 {
 	uint32_t memory_node = q->memory_node;
-	unsigned nbuffers = j->task->cl->nbuffers;
+	unsigned nbuffers = task->cl->nbuffers;
 	unsigned buffer;
 
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		starpu_data_handle handle = j->task->buffers[buffer].handle;
+		starpu_data_handle handle = task->buffers[buffer].handle;
 
 		set_data_requested_flag_if_needed(handle, memory_node);
 	}
@@ -73,6 +73,8 @@ static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t j, 
 	double model_best = 0.0;
 	double penality_best = 0.0;
 
+	struct starpu_task *task = j->task;
+
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		fifo = queue_array[worker]->queue;
@@ -80,7 +82,7 @@ static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t j, 
 		fifo->exp_start = STARPU_MAX(fifo->exp_start, timing_now());
 		fifo->exp_end = STARPU_MAX(fifo->exp_end, timing_now());
 
-		if ((queue_array[worker]->who & j->task->cl->where) == 0)
+		if ((queue_array[worker]->who & task->cl->where) == 0)
 		{
 			/* no one on that queue may execute this task */
 			continue;
@@ -90,7 +92,7 @@ static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t j, 
 							j, queue_array[worker]->arch);
 
 		//local_data_penalty[worker] = 0;
-		local_data_penalty[worker] = data_expected_penalty(queue_array[worker], j);
+		local_data_penalty[worker] = data_expected_penalty(queue_array[worker], task);
 
 		if (local_task_length[worker] == -1.0)
 		{
@@ -118,7 +120,7 @@ static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t j, 
 		{
 			fifo = queue_array[worker]->queue;
 	
-			if ((queue_array[worker]->who & j->task->cl->where) == 0)
+			if ((queue_array[worker]->who & task->cl->where) == 0)
 			{
 				/* no one on that queue may execute this task */
 				continue;
@@ -164,10 +166,10 @@ static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t j, 
 	j->predicted = model_best;
 	j->penality = penality_best;
 
-	update_data_requests(queue_array[best], j);
+	update_data_requests(queue_array[best], task);
 	
 	if (use_prefetch)
-		prefetch_task_input_on_node(j->task, queue_array[best]->memory_node);
+		prefetch_task_input_on_node(task, queue_array[best]->memory_node);
 
 	if (prio) {
 		return fifo_push_prio_task(queue_array[best], j);

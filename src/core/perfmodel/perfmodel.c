@@ -25,7 +25,7 @@
  * PER ARCH model
  */
 
-static double per_arch_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct job_s *j)
+static double per_arch_task_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_task *task)
 {
 	double exp = -1.0;
 	double (*per_arch_cost_model)(struct starpu_buffer_descr_t *);
@@ -48,7 +48,7 @@ static double per_arch_job_expected_length(struct starpu_perfmodel_t *model, enu
 	per_arch_cost_model = model->per_arch[arch].cost_model;
 
 	if (per_arch_cost_model)
-		exp = per_arch_cost_model(j->task->buffers);
+		exp = per_arch_cost_model(task->buffers);
 
 	return exp;
 }
@@ -57,13 +57,13 @@ static double per_arch_job_expected_length(struct starpu_perfmodel_t *model, enu
  * Common model
  */
 
-static double common_job_expected_length(struct starpu_perfmodel_t *model, uint32_t who, struct job_s *j)
+static double common_task_expected_length(struct starpu_perfmodel_t *model, uint32_t who, struct starpu_task *task)
 {
 	double exp;
 
 	if (model->cost_model) {
 		float alpha;
-		exp = model->cost_model(j->task->buffers);
+		exp = model->cost_model(task->buffers);
 		switch (who) {
 			case CORE:
 				alpha = CORE_ALPHA;
@@ -87,15 +87,16 @@ static double common_job_expected_length(struct starpu_perfmodel_t *model, uint3
 
 double job_expected_length(uint32_t who, struct job_s *j, enum starpu_perf_archtype arch)
 {
-	struct starpu_perfmodel_t *model = j->task->cl->model;
+	struct starpu_task *task = j->task;
+	struct starpu_perfmodel_t *model = task->cl->model;
 
 	if (model) {
 		switch (model->type) {
 			case PER_ARCH:
-				return per_arch_job_expected_length(model, arch, j);
+				return per_arch_task_expected_length(model, arch, task);
 
 			case COMMON:
-				return common_job_expected_length(model, who, j);
+				return common_task_expected_length(model, who, task);
 
 			case HISTORY_BASED:
 				return history_based_job_expected_length(model, arch, j);
@@ -113,19 +114,19 @@ double job_expected_length(uint32_t who, struct job_s *j, enum starpu_perf_archt
 }
 
 /* Data transfer performance modeling */
-double data_expected_penalty(struct jobq_s *q, struct job_s *j)
+double data_expected_penalty(struct jobq_s *q, struct starpu_task *task)
 {
 	uint32_t memory_node = q->memory_node;
-	unsigned nbuffers = j->task->cl->nbuffers;
+	unsigned nbuffers = task->cl->nbuffers;
 	unsigned buffer;
 
 	double penalty = 0.0;
 
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		starpu_data_handle handle = j->task->buffers[buffer].handle;
+		starpu_data_handle handle = task->buffers[buffer].handle;
 
-		if (j->task->buffers[buffer].mode == STARPU_W)
+		if (task->buffers[buffer].mode == STARPU_W)
 			break;
 
 		if (!is_data_present_or_requested(handle, memory_node))
