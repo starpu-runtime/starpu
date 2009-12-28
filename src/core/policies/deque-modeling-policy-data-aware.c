@@ -108,7 +108,7 @@ static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t j, 
 	}
 
 	double alpha = 1.0;
-	double beta = 40.0;
+	double beta = 1.0;
 
 	double best_fitness = -1;
 	
