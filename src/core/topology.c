@@ -533,4 +533,6 @@ void starpu_destroy_topology(struct machine_config_s *config __attribute__ ((unu
 #ifdef HAVE_HWLOC
 	hwloc_topology_destroy(config->hwtopology);
 #endif
+
+	topology_is_initialized = 0;
 }
