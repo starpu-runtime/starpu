@@ -16,7 +16,7 @@
 
 #include "fxt-tool.h"
 
-char *worker_name[MAXWORKERS];
+static char *worker_name[MAXWORKERS];
 
 static char *cpus_worker_colors[MAXWORKERS] = {"/greens9/7", "/greens9/6", "/greens9/5", "/greens9/4",  "/greens9/9", "/greens9/3",  "/greens9/2",  "/greens9/1"  };
 static char *cuda_worker_colors[MAXWORKERS] = {"/ylorrd9/9", "/ylorrd9/6", "/ylorrd9/3", "/ylorrd9/1", "/ylorrd9/8", "/ylorrd9/7", "/ylorrd9/4", "/ylorrd9/2",  "/ylorrd9/1"};
@@ -26,25 +26,25 @@ static char *worker_colors[MAXWORKERS];
 static fxt_t fut;
 struct fxt_ev_64 ev;
 
-unsigned first_event = 1;
-uint64_t start_time = 0;
-uint64_t end_time = 0;
+static unsigned first_event = 1;
+static uint64_t start_time = 0;
+static uint64_t end_time = 0;
 
-unsigned nworkers = 0;
+static unsigned nworkers = 0;
 
-char *filename = NULL;
-unsigned per_task_colour = 0;
+static char *filename = NULL;
+static unsigned per_task_colour = 0;
 
-unsigned generate_distrib = 0;
+static unsigned generate_distrib = 0;
 
-unsigned no_counter = 0;
-unsigned no_bus = 0;
+static unsigned no_counter = 0;
+static unsigned no_bus = 0;
 
 LIST_TYPE(symbol_name,
 	char *name;
 );
 
-symbol_name_list_t symbol_list;
+static symbol_name_list_t symbol_list;
 
 LIST_TYPE(communication,
 	unsigned comid;
@@ -53,7 +53,7 @@ LIST_TYPE(communication,
 	unsigned node;
 );
 
-communication_list_t communication_list;
+static communication_list_t communication_list;
 
 /*
  * Paje trace file tools
@@ -65,7 +65,7 @@ static FILE *out_paje_file;
 static char *distrib_time_path = "distrib.data";
 static FILE *distrib_time;
 
-void paje_output_file_init(void)
+static void paje_output_file_init(void)
 {
 	/* create a new file */
 	out_paje_file = fopen(out_paje_path, "w+");
@@ -101,7 +101,7 @@ void paje_output_file_init(void)
 	5       L       P	Mn	Mn      L\n");
 }
 
-void paje_output_file_terminate(void)
+static void paje_output_file_terminate(void)
 {
 	/* close the file */
 	fclose(out_paje_file);
@@ -110,32 +110,26 @@ void paje_output_file_terminate(void)
 		fclose(distrib_time);
 }
 
-
 /*
  * Generic tools
  */
 
-
-void handle_new_mem_node(void)
+static void handle_new_mem_node(void)
 {
 	char *memnodestr = malloc(16*sizeof(char));
 	sprintf(memnodestr, "%ld", ev.param[0]);
 	
 	fprintf(out_paje_file, "7       %f	%s      Mn      p	MEMNODE%s\n", (float)((ev.time-start_time)/1000000.0), memnodestr, memnodestr);
 
-//	if (!no_bus && (ev.param[0] == 0))
-	{
-		/* we affect everything to node 0 ? */
-		/* TODO sum of bandwith + per gpu */
+	if (!no_bus)
 		fprintf(out_paje_file, "13       %f bw MEMNODE%d 0.0\n", (float)(start_time-start_time), ev.param[0]);
-	}
 }
 
 static unsigned cuda_index = 0;
 static unsigned cpus_index = 0;
 static unsigned other_index = 0;
 
-void handle_worker_init_start(void)
+static void handle_worker_init_start(void)
 {
 	/* 
 	   arg0 : type of worker (cuda, core ..)
@@ -194,25 +188,22 @@ void handle_worker_init_start(void)
 	fprintf(out_paje_file, "10       %f     S      %ld      I\n", (float)((ev.time-start_time)/1000000.0), ev.param[2]);
 }
 
-void handle_worker_init_end(void)
+static void handle_worker_init_end(void)
 {
 	fprintf(out_paje_file, "10       %f     S      %ld      B\n", (float)((ev.time-start_time)/1000000.0), ev.param[0]);
-	
 }
 
-void handle_worker_deinit_start(void)
+static void handle_worker_deinit_start(void)
 {
 	fprintf(out_paje_file, "10       %f     S      %ld      D\n", (float)((ev.time-start_time)/1000000.0), ev.param[0]);
 }
 
-
-void handle_worker_deinit_end(void)
+static void handle_worker_deinit_end(void)
 {
 	fprintf(out_paje_file, "8       %f	%ld	T\n", (float)((ev.time-start_time)/1000000.0), ev.param[1]);
 }
 
-
-int find_workder_id(unsigned long tid)
+static int find_workder_id(unsigned long tid)
 {
 	char tidstr[16];
 	sprintf(tidstr, "%ld", tid);
@@ -291,11 +282,11 @@ static void create_paje_state_if_not_found(char *name)
 }
 
 /* TODO  remove 32 */
-double last_codelet_start[32];
-uint64_t last_codelet_hash[32];
-char last_codelet_symbol[128][32];
+static double last_codelet_start[32];
+static uint64_t last_codelet_hash[32];
+static char last_codelet_symbol[128][32];
 
-void handle_start_codelet_body(void)
+static void handle_start_codelet_body(void)
 {
 	int worker;
 	worker = find_workder_id(ev.param[1]);
@@ -326,7 +317,7 @@ void handle_start_codelet_body(void)
 	end_time = STARPU_MAX(end_time, ev.time);
 }
 
-void handle_end_codelet_body(void)
+static void handle_end_codelet_body(void)
 {
 	//fprintf(stderr, "end codelet %p on tid %d\n", (void *)ev.param[0], ev.param[1]);
 
@@ -348,7 +339,7 @@ void handle_end_codelet_body(void)
 	end_time = STARPU_MAX(end_time, ev.time);
 }
 
-void handle_user_event(void)
+static void handle_user_event(void)
 {
 	int worker;
 	worker = find_workder_id(ev.param[1]);
@@ -360,7 +351,7 @@ void handle_user_event(void)
 	fprintf(out_paje_file, "9       %f     event      %ld      %d\n", (float)((ev.time-start_time)/1000000.0), ev.param[1], code);
 }
 
-void handle_start_callback(void)
+static void handle_start_callback(void)
 {
 	int worker;
 	worker = find_workder_id(ev.param[1]);
@@ -368,7 +359,7 @@ void handle_start_callback(void)
 	fprintf(out_paje_file, "10       %f	S      %ld      C\n", (float)((ev.time-start_time)/1000000.0), ev.param[1] );
 }
 
-void handle_end_callback(void)
+static void handle_end_callback(void)
 {
 	int worker;
 	worker = find_workder_id(ev.param[1]);
@@ -377,7 +368,7 @@ void handle_end_callback(void)
 }
 
 
-void handle_start_fetch_input(void)
+static void handle_start_fetch_input(void)
 {
 	int worker;
 	worker = find_workder_id(ev.param[1]);
@@ -388,7 +379,7 @@ void handle_start_fetch_input(void)
 	end_time = STARPU_MAX(end_time, ev.time);
 }
 
-void handle_end_fetch_input(void)
+static void handle_end_fetch_input(void)
 {
 	int worker;
 	worker = find_workder_id(ev.param[1]);
@@ -399,7 +390,7 @@ void handle_end_fetch_input(void)
 	end_time = STARPU_MAX(end_time, ev.time);
 }
 
-void handle_start_push_output(void)
+static void handle_start_push_output(void)
 {
 	int worker;
 	worker = find_workder_id(ev.param[1]);
@@ -410,7 +401,7 @@ void handle_start_push_output(void)
 	end_time = STARPU_MAX(end_time, ev.time);
 }
 
-void handle_end_push_output(void)
+static void handle_end_push_output(void)
 {
 	int worker;
 	worker = find_workder_id(ev.param[1]);
@@ -421,7 +412,7 @@ void handle_end_push_output(void)
 	end_time = STARPU_MAX(end_time, ev.time);
 }
 
-void handle_start_progress(void)
+static void handle_start_progress(void)
 {
 	int worker;
 	worker = find_workder_id(ev.param[1]);
@@ -432,7 +423,7 @@ void handle_start_progress(void)
 	end_time = STARPU_MAX(end_time, ev.time);
 }
 
-void handle_end_progress(void)
+static void handle_end_progress(void)
 {
 	int worker;
 	worker = find_workder_id(ev.param[1]);
@@ -444,11 +435,11 @@ void handle_end_progress(void)
 }
 
 
-void handle_data_copy(void)
+static void handle_data_copy(void)
 {
 }
 
-void handle_start_driver_copy(void)
+static void handle_start_driver_copy(void)
 {
 	unsigned src = ev.param[0];
 	unsigned dst = ev.param[1];
@@ -473,7 +464,7 @@ void handle_start_driver_copy(void)
 
 }
 
-void handle_end_driver_copy(void)
+static void handle_end_driver_copy(void)
 {
 	unsigned dst = ev.param[1];
 	unsigned size = ev.param[2];
@@ -506,19 +497,13 @@ void handle_end_driver_copy(void)
 
 				communication_list_push_back(communication_list, com);
 
-//
-//				/* we found the transfer */
-//				fprintf(out_paje_file, "14  %f bw MEMNODE0 %f\n", itor->comm_start, bandwith);
-//				fprintf(out_paje_file, "15  %f bw MEMNODE0 %f\n", comm_end, bandwith);
-
-				/* TODO remove from the list */
 				break;
 			}
 		}
 	}
 }
 
-void display_bandwith_evolution(void)
+static void display_bandwith_evolution(void)
 {
 	float current_bandwith = 0.0;
 	float current_bandwith_per_node[32] = {0.0};
@@ -538,67 +523,65 @@ void display_bandwith_evolution(void)
 	}
 }
 
-void handle_start_alloc(void)
+static void handle_start_alloc(void)
 {
 	unsigned memnode = ev.param[0];
 
 	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      A\n", (float)((ev.time-start_time)/1000000.0), memnode);
 }
 
-void handle_end_alloc(void)
+static void handle_end_alloc(void)
 {
 	unsigned memnode = ev.param[0];
 
 	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      No\n", (float)((ev.time-start_time)/1000000.0), memnode);
 }
 
-
-void handle_start_alloc_reuse(void)
+static void handle_start_alloc_reuse(void)
 {
 	unsigned memnode = ev.param[0];
 
 	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      Ar\n", (float)((ev.time-start_time)/1000000.0), memnode);
 }
 
-void handle_end_alloc_reuse(void)
+static void handle_end_alloc_reuse(void)
 {
 	unsigned memnode = ev.param[0];
 
 	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      No\n", (float)((ev.time-start_time)/1000000.0), memnode);
 }
 
-
-void handle_start_memreclaim(void)
+static void handle_start_memreclaim(void)
 {
 	unsigned memnode = ev.param[0];
 
 	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      R\n", (float)((ev.time-start_time)/1000000.0), memnode);
 }
 
-void handle_end_memreclaim(void)
+static void handle_end_memreclaim(void)
 {
 	unsigned memnode = ev.param[0];
 
 	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      No\n", (float)((ev.time-start_time)/1000000.0), memnode);
 }
 
-int curq_size = 0;
+static int curq_size = 0;
 
-void handle_job_push(void)
+static void handle_job_push(void)
 {
 	curq_size++;
 
 	fprintf(out_paje_file, "13       %f ntask sched %f\n", (float)((ev.time-start_time)/1000000.0), (float)curq_size);
 }
 
-void handle_job_pop(void)
+static void handle_job_pop(void)
 {
 	curq_size--;
 
 	fprintf(out_paje_file, "13       %f ntask sched %f\n", (float)((ev.time-start_time)/1000000.0), (float)curq_size);
 }
 
-void handle_codelet_tag_deps(void)
+static void handle_codelet_tag_deps(void)
 {
 	uint64_t child;
 	uint64_t father;
@@ -609,7 +592,7 @@ void handle_codelet_tag_deps(void)
 	add_deps(child, father);
 }
 
-void handle_task_done(void)
+static void handle_task_done(void)
 {
 	uint64_t tag_id;
 	tag_id = ev.param[0];
