@@ -88,7 +88,7 @@ static void inject_one_task(void)
 }
 
 static struct starpu_conf conf = {
-	.sched_policy = NULL,
+	.sched_policy_name = NULL,
 	.ncpus = -1,
 	.ncuda = -1,
 	.nspus = -1,
@@ -112,7 +112,7 @@ static void parse_args(int argc, char **argv)
 			ntasks = atoi(optarg);
 			break;
 		case 'p':
-			conf.sched_policy = optarg;
+			conf.sched_policy_name = optarg;
 			break;
 		case 'h':
 			usage(argv);

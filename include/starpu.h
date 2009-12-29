@@ -38,7 +38,8 @@ extern "C" {
  * make future extensions not problematic */
 struct starpu_conf {
 	/* which scheduling policy should be used ? (NULL for default) */
-	const char *sched_policy;
+	const char *sched_policy_name;
+	struct sched_policy_s *sched_policy;
 
 	/* maximum number of CPUs (-1 for default) */
 	int ncpus;

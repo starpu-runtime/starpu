@@ -207,8 +207,8 @@ static struct jobq_s *init_dmda_fifo(void)
 	return q;
 }
 
-void initialize_dmda_policy(struct machine_config_s *config, 
- __attribute__ ((unused)) struct sched_policy_s *_policy) 
+static void initialize_dmda_policy(struct machine_config_s *config, 
+	 __attribute__ ((unused)) struct sched_policy_s *_policy) 
 {
 	nworkers = 0;
 
@@ -219,7 +219,7 @@ void initialize_dmda_policy(struct machine_config_s *config,
 	setup_queues(init_fifo_queues_mechanisms, init_dmda_fifo, config);
 }
 
-struct jobq_s *get_local_queue_dmda(struct sched_policy_s *policy __attribute__ ((unused)))
+static struct jobq_s *get_local_queue_dmda(struct sched_policy_s *policy __attribute__ ((unused)))
 {
 	struct jobq_s *queue;
 	queue = pthread_getspecific(policy->local_queue_key);
@@ -233,3 +233,10 @@ struct jobq_s *get_local_queue_dmda(struct sched_policy_s *policy __attribute__ 
 	return queue;
 }
 
+struct sched_policy_s sched_dmda_policy = {
+	.init_sched = initialize_dmda_policy,
+	.deinit_sched = NULL,
+	.get_local_queue = get_local_queue_dmda,
+	.policy_name = "dmda",
+	.policy_description = "data-aware performance model"
+};

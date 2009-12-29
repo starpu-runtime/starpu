@@ -95,8 +95,8 @@ static struct jobq_s *init_random_fifo(void)
 	return q;
 }
 
-void initialize_random_policy(struct machine_config_s *config, 
- __attribute__ ((unused)) struct sched_policy_s *_policy) 
+static void initialize_random_policy(struct machine_config_s *config, 
+	 __attribute__ ((unused)) struct sched_policy_s *_policy) 
 {
 	nworkers = 0;
 
@@ -105,7 +105,7 @@ void initialize_random_policy(struct machine_config_s *config,
 	setup_queues(init_fifo_queues_mechanisms, init_random_fifo, config);
 }
 
-struct jobq_s *get_local_queue_random(struct sched_policy_s *policy __attribute__ ((unused)))
+static struct jobq_s *get_local_queue_random(struct sched_policy_s *policy __attribute__ ((unused)))
 {
 	struct jobq_s *queue;
 	queue = pthread_getspecific(policy->local_queue_key);
@@ -119,3 +119,10 @@ struct jobq_s *get_local_queue_random(struct sched_policy_s *policy __attribute_
 	return queue;
 }
 
+struct sched_policy_s sched_random_policy = {
+	.init_sched = initialize_random_policy,
+	.deinit_sched = NULL,
+	.get_local_queue = get_local_queue_random,
+	.policy_name = "random",
+	.policy_description = "weighted random"
+};

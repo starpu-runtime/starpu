@@ -36,106 +36,113 @@ struct sched_policy_s *get_sched_policy(void)
 	return &policy;
 }
 
-void init_sched_policy(struct machine_config_s *config)
+static void load_sched_policy(struct sched_policy_s *sched_policy)
 {
-	struct starpu_conf *user_conf = config->user_conf;
+	STARPU_ASSERT(sched_policy);
 
-	/* eager policy is taken by default */
-	const char *sched_pol;
-	if (user_conf && (user_conf->sched_policy))
+#ifdef VERBOSE
+	if (sched_policy->policy_name)
 	{
-		sched_pol = user_conf->sched_policy;
-	}
-	else {
-		sched_pol = getenv("SCHED");
-	}
+		fprintf(stderr, "Use %s scheduler", sched_policy->policy_name);
 
-	if (sched_pol) {
-		 if (strcmp(sched_pol, "help") == 0) {
-			fprintf(stderr, "SCHED can be either of\n");
-			fprintf(stderr, "ws\twork stealing\n");
-			fprintf(stderr, "prio\tprio eager\n");
-			fprintf(stderr, "no-prio\teager (without prio)\n");
-			fprintf(stderr, "dm\tperformance model\n");
-			fprintf(stderr, "dmda\tdata-aware performance model\n");
-			fprintf(stderr, "random\trandom\n");
-			fprintf(stderr, "else the eager scheduler will be used\n");
-		 }
-		 if (strcmp(sched_pol, "ws") == 0) {
-#ifdef VERBOSE
-		 	fprintf(stderr, "USE WS SCHEDULER !! \n");
-#endif
-			policy.init_sched = initialize_ws_policy;
-			policy.deinit_sched = NULL;
-			policy.get_local_queue = get_local_queue_ws;
-		 }
-		 else if (strcmp(sched_pol, "prio") == 0) {
-#ifdef VERBOSE
-		 	fprintf(stderr, "USE PRIO EAGER SCHEDULER !! \n");
-#endif
-			policy.init_sched = initialize_eager_center_priority_policy;
-			policy.deinit_sched = NULL;
-			policy.get_local_queue = get_local_queue_eager_priority;
-		 }
-		 else if (strcmp(sched_pol, "no-prio") == 0) {
-#ifdef VERBOSE
-		 	fprintf(stderr, "USE _NO_ PRIO EAGER SCHEDULER !! \n");
-#endif
-			policy.init_sched = initialize_no_prio_policy;
-			policy.deinit_sched = NULL;
-			policy.get_local_queue = get_local_queue_no_prio;
-		 }
-		 else if (strcmp(sched_pol, "dm") == 0) {
-#ifdef VERBOSE
-		 	fprintf(stderr, "USE MODEL SCHEDULER !! \n");
-#endif
-			policy.init_sched = initialize_dm_policy;
-			policy.deinit_sched = NULL;
-			policy.get_local_queue = get_local_queue_dm;
-		 }
-		 else if (strcmp(sched_pol, "dmda") == 0) {
-#ifdef VERBOSE
-		 	fprintf(stderr, "USE DATA AWARE MODEL SCHEDULER !! \n");
-#endif
-			policy.init_sched = initialize_dmda_policy;
-			policy.deinit_sched = NULL;
-			policy.get_local_queue = get_local_queue_dmda;
-		 }
-		 else if (strcmp(sched_pol, "random") == 0) {
-#ifdef VERBOSE
-		 	fprintf(stderr, "USE RANDOM SCHEDULER !! \n");
-#endif
-			policy.init_sched = initialize_random_policy;
-			policy.deinit_sched = NULL;
-			policy.get_local_queue = get_local_queue_random;
-		 }
-		 else {
-#ifdef VERBOSE
-		 	fprintf(stderr, "USE EAGER SCHEDULER !! \n");
-#endif
-			/* default scheduler is the eager one */
-			policy.init_sched = initialize_eager_center_policy;
-			policy.deinit_sched = NULL;
-			policy.get_local_queue = get_local_queue_eager;
-		 }
+		if (sched_policy->policy_description)
+		{
+			fprintf(stderr, " (%s)", sched_policy->policy_description);
+		}
+
+		fprintf(stderr, "\n");
 	}
-	else {
-#ifdef VERBOSE
-	 	fprintf(stderr, "USE EAGER SCHEDULER !! \n");
 #endif
-		/* default scheduler is the eager one */
-		policy.init_sched = initialize_eager_center_policy;
-		policy.deinit_sched = NULL;
-		policy.get_local_queue = get_local_queue_eager;
-	}
+
+	policy.init_sched = sched_policy->init_sched;
+	policy.deinit_sched = sched_policy->deinit_sched;
+	policy.get_local_queue = sched_policy->get_local_queue;
 
 	pthread_cond_init(&policy.sched_activity_cond, NULL);
 	pthread_mutex_init(&policy.sched_activity_mutex, NULL);
 	pthread_key_create(&policy.local_queue_key, NULL);
+}
 
-	mem_node_descr * const descr = get_memory_node_description();
-	pthread_rwlock_init(&descr->attached_queues_rwlock, NULL);
-	descr->total_queues_count = 0;
+static struct sched_policy_s *find_sched_policy_from_name(const char *policy_name)
+{
+
+	if (!policy_name)
+		return NULL;
+
+	if (strcmp(policy_name, "ws") == 0) {
+		return &sched_ws_policy;
+	}
+	else if (strcmp(policy_name, "prio") == 0) {
+		return &sched_prio_policy;
+	}
+	else if (strcmp(policy_name, "no-prio") == 0) {
+		return &sched_no_prio_policy;
+	}
+	else if (strcmp(policy_name, "dm") == 0) {
+		return &sched_dm_policy;
+	}
+	else if (strcmp(policy_name, "dmda") == 0) {
+		return &sched_dmda_policy;
+	}
+	else if (strcmp(policy_name, "random") == 0) {
+		return &sched_random_policy;
+	}
+	else if (strcmp(policy_name, "eager") == 0) {
+		return &sched_eager_policy;
+	}
+
+	return NULL;
+}
+
+static void display_sched_help_message(void)
+{
+	const char *sched_env = getenv("SCHED");
+	if (sched_env && (strcmp(sched_env, "help") == 0)) {
+		fprintf(stderr, "SCHED can be either of\n");
+		fprintf(stderr, "ws\twork stealing\n");
+		fprintf(stderr, "prio\tprio eager\n");
+		fprintf(stderr, "no-prio\teager (without prio)\n");
+		fprintf(stderr, "dm\tperformance model\n");
+		fprintf(stderr, "dmda\tdata-aware performance model\n");
+		fprintf(stderr, "random\trandom\n");
+		fprintf(stderr, "else the eager scheduler will be used\n");
+	 }
+}
+
+static struct sched_policy_s *select_sched_policy(struct machine_config_s *config)
+{
+	struct starpu_conf *user_conf = config->user_conf;
+
+	/* First, we check whether the application explicitely gave a scheduling policy or not */
+	if (user_conf && (user_conf->sched_policy))
+		return user_conf->sched_policy;
+
+	/* Otherwise, we look if the application specified the name of a policy to load */
+	const char *sched_pol_name;
+	if (user_conf && (user_conf->sched_policy_name))
+	{
+		sched_pol_name = user_conf->sched_policy_name;
+	}
+	else {
+		sched_pol_name = getenv("SCHED");
+	}
+
+	if (sched_pol_name)
+		return find_sched_policy_from_name(sched_pol_name);
+
+	/* If no policy was specified, we use the greedy policy as a default */
+	return &sched_eager_policy;
+}
+
+void init_sched_policy(struct machine_config_s *config)
+{
+	/* Perhaps we have to display some help */
+	display_sched_help_message();
+
+	struct sched_policy_s *selected_policy;
+	selected_policy = select_sched_policy(config);
+
+	load_sched_policy(selected_policy);
 
 	policy.init_sched(config, &policy);
 }

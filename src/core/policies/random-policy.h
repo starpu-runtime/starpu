@@ -21,9 +21,6 @@
 #include <core/mechanisms/queues.h>
 #include <core/mechanisms/fifo_queues.h>
 
-void initialize_random_policy(struct machine_config_s *config,
- __attribute__ ((unused)) struct sched_policy_s *_policy);
-
-struct jobq_s *get_local_queue_random(struct sched_policy_s *policy __attribute__ ((unused)));
+extern struct sched_policy_s sched_random_policy;
 
 #endif // __RANDOM_POLICY_H__

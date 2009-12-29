@@ -20,7 +20,6 @@
 #include <core/workers.h>
 #include <core/mechanisms/deque_queues.h>
 
-void initialize_ws_policy(struct machine_config_s *config, struct sched_policy_s *policy);
-struct jobq_s *get_local_queue_ws(struct sched_policy_s *policy);
+extern struct sched_policy_s sched_ws_policy;
 
 #endif // __WORK_STEALING_POLICY_H__

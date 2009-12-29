@@ -169,8 +169,8 @@ static struct jobq_s *init_dm_fifo(void)
 	return q;
 }
 
-void initialize_dm_policy(struct machine_config_s *config, 
- __attribute__ ((unused)) struct sched_policy_s *_policy) 
+static void initialize_dm_policy(struct machine_config_s *config, 
+	 __attribute__ ((unused)) struct sched_policy_s *_policy) 
 {
 	nworkers = 0;
 
@@ -185,7 +185,7 @@ void initialize_dm_policy(struct machine_config_s *config,
 	setup_queues(init_fifo_queues_mechanisms, init_dm_fifo, config);
 }
 
-struct jobq_s *get_local_queue_dm(struct sched_policy_s *policy __attribute__ ((unused)))
+static struct jobq_s *get_local_queue_dm(struct sched_policy_s *policy __attribute__ ((unused)))
 {
 	struct jobq_s *queue;
 	queue = pthread_getspecific(policy->local_queue_key);
@@ -199,3 +199,10 @@ struct jobq_s *get_local_queue_dm(struct sched_policy_s *policy __attribute__ ((
 	return queue;
 }
 
+struct sched_policy_s sched_dm_policy = {
+	.init_sched = initialize_dm_policy,
+	.deinit_sched = NULL,
+	.get_local_queue = get_local_queue_dm,
+	.policy_name = "dm",
+	.policy_description = "performance model"
+};

@@ -55,3 +55,11 @@ struct jobq_s *get_local_queue_no_prio(struct sched_policy_s *policy
 	/* this is trivial for that strategy :) */
 	return jobq;
 }
+
+struct sched_policy_s sched_no_prio_policy = {
+	.init_sched = initialize_no_prio_policy,
+	.deinit_sched = NULL,
+	.get_local_queue = get_local_queue_no_prio,
+	.policy_name = "no-prio",
+	.policy_description = "eager without priority"
+};

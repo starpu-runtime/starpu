@@ -35,12 +35,13 @@ void init_memory_nodes(void)
 
 	unsigned i;
 	for (i = 0; i < MAXNODES; i++) 
-	{
 		descr.nodes[i] = UNUSED; 
-	}
 
 	init_mem_chunk_lists();
 	init_data_request_lists();
+
+	pthread_rwlock_init(&descr.attached_queues_rwlock, NULL);
+	descr.total_queues_count = 0;
 }
 
 void deinit_memory_nodes(void)

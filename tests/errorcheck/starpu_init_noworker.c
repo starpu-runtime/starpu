@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 
 	/* We try to initialize StarPU without any worker */
 	struct starpu_conf conf = {
-		.sched_policy = NULL, /* default */
+		.sched_policy_name = NULL, /* default */
 		.ncpus = 0,
 		.ncuda = 0,
 		.nspus = 0,
