@@ -79,6 +79,10 @@ inline node_kind get_node_kind(uint32_t node)
 	return descr.nodes[node];
 }
 
+unsigned get_memory_nodes_count(void)
+{
+	return descr.nnodes;
+}
 
 unsigned register_memory_node(node_kind kind)
 {

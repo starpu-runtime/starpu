@@ -48,10 +48,13 @@ uint32_t select_src_node(starpu_data_handle handle)
 	unsigned src_node = 0;
 	unsigned i;
 
+	unsigned nnodes = get_memory_nodes_count();
+
 	/* first find a valid copy, either a OWNER or a SHARED */
 	uint32_t node;
+
 	uint32_t src_node_mask = 0;
-	for (node = 0; node < MAXNODES; node++)
+	for (node = 0; node < nnodes; node++)
 	{
 		if (handle->per_node[node].state != INVALID) {
 			/* we found a copy ! */
@@ -63,7 +66,7 @@ uint32_t select_src_node(starpu_data_handle handle)
 	STARPU_ASSERT(src_node_mask != 0);
 
 	/* find the node that will be the actual source */
-	for (i = 0; i < MAXNODES; i++)
+	for (i = 0; i < nnodes; i++)
 	{
 		if (src_node_mask & (1<<i))
 		{
@@ -86,13 +89,15 @@ uint32_t select_src_node(starpu_data_handle handle)
 /* this may be called once the data is fetched with header and STARPU_RW-lock hold */
 void update_data_state(starpu_data_handle handle, uint32_t requesting_node, uint8_t write)
 {
+	unsigned nnodes = get_memory_nodes_count();
+
 	/* the data is present now */
 	handle->per_node[requesting_node].requested = 0;
 
 	if (write) {
 		/* the requesting node now has the only valid copy */
 		uint32_t node;
-		for (node = 0; node < MAXNODES; node++)
+		for (node = 0; node < nnodes; node++)
 			handle->per_node[node].state = INVALID;
 
 		handle->per_node[requesting_node].state = OWNER;
@@ -102,7 +107,7 @@ void update_data_state(starpu_data_handle handle, uint32_t requesting_node, uint
 		{
 			/* there was at least another copy of the data */
 			uint32_t node;
-			for (node = 0; node < MAXNODES; node++)
+			for (node = 0; node < nnodes; node++)
 			{
 				if (handle->per_node[node].state != INVALID)
 					handle->per_node[node].state = SHARED;

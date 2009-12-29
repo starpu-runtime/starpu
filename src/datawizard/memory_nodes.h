@@ -54,6 +54,7 @@ unsigned register_memory_node(node_kind kind);
 void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid);
 
 node_kind get_node_kind(uint32_t node);
+unsigned get_memory_nodes_count(void);
 
 inline mem_node_descr *get_memory_node_description(void);
 

@@ -52,7 +52,6 @@ void wake_all_blocked_workers(void)
 	struct sched_policy_s *sched = get_sched_policy();
 	pthread_cond_t *sched_cond = &sched->sched_activity_cond;
 	pthread_mutex_t *sched_mutex = &sched->sched_activity_mutex;
-	mem_node_descr * const descr = get_memory_node_description();
 
 	pthread_mutex_lock(sched_mutex);
 	pthread_cond_broadcast(sched_cond);
@@ -60,7 +59,7 @@ void wake_all_blocked_workers(void)
 
 	/* workers may be blocked on the various queues' conditions */
 	unsigned node;
-	unsigned nnodes =  descr->nnodes;
+	unsigned nnodes = get_memory_nodes_count();
 	for (node = 0; node < nnodes; node++)
 	{
 		wake_all_blocked_workers_on_node(node);
