@@ -28,12 +28,11 @@
 		
 static unsigned topology_is_initialized = 0;
 
-static unsigned may_bind_automatically = 0;
-
 static void initialize_workers_bindid(struct machine_config_s *config);
 
 #ifdef USE_CUDA
 static void initialize_workers_gpuid(struct machine_config_s *config);
+static unsigned may_bind_automatically = 0;
 #endif
 
 /*
