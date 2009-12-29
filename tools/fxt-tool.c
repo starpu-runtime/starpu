@@ -50,6 +50,7 @@ LIST_TYPE(communication,
 	unsigned comid;
 	float comm_start;	
 	float bandwith;
+	unsigned node;
 );
 
 communication_list_t communication_list;
@@ -122,11 +123,11 @@ void handle_new_mem_node(void)
 	
 	fprintf(out_paje_file, "7       %f	%s      Mn      p	MEMNODE%s\n", (float)((ev.time-start_time)/1000000.0), memnodestr, memnodestr);
 
-	if (!no_bus && (ev.param[0] == 0))
+//	if (!no_bus && (ev.param[0] == 0))
 	{
 		/* we affect everything to node 0 ? */
 		/* TODO sum of bandwith + per gpu */
-		fprintf(out_paje_file, "13       %f bw MEMNODE0 0.0\n", (float)(start_time-start_time));
+		fprintf(out_paje_file, "13       %f bw MEMNODE%d 0.0\n", (float)(start_time-start_time), ev.param[0]);
 	}
 }
 
@@ -464,6 +465,9 @@ void handle_start_driver_copy(void)
 		com->comid = comid;
 		com->comm_start = (float)((ev.time-start_time)/1000000.0);
 
+		/* that's a hack: either src or dst is non null */
+		com->node = (src + dst);
+
 		communication_list_push_back(communication_list, com);
 	}
 
@@ -498,6 +502,8 @@ void handle_end_driver_copy(void)
 				com->comm_start = (float)((ev.time-start_time)/1000000.0);
 				com->bandwith = -bandwith;
 
+				com->node = itor->node;
+
 				communication_list_push_back(communication_list, com);
 
 //
@@ -515,6 +521,7 @@ void handle_end_driver_copy(void)
 void display_bandwith_evolution(void)
 {
 	float current_bandwith = 0.0;
+	float current_bandwith_per_node[32] = {0.0};
 
 	communication_itor_t itor;
 	for (itor = communication_list_begin(communication_list);
@@ -524,6 +531,10 @@ void display_bandwith_evolution(void)
 		current_bandwith += itor->bandwith;
 		fprintf(out_paje_file, "13  %f bw MEMNODE0 %f\n",
 				itor->comm_start, current_bandwith);
+
+		current_bandwith_per_node[itor->node] +=  itor->bandwith;
+		fprintf(out_paje_file, "13  %f bw MEMNODE%d %f\n",
+				itor->comm_start, itor->node, current_bandwith_per_node[itor->node]);
 	}
 }
 
