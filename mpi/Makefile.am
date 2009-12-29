@@ -44,12 +44,9 @@ libstarpumpi_la_SOURCES =				\
 	starpu_mpi.c					\
 	starpu_mpi_datatype.c
 
+mpiexamplebindir=$(libdir)/starpu/mpi/
 
-TESTS = $(check_PROGRAMS)
-
-check_PROGRAMS =
-
-check_PROGRAMS +=					\
+mpiexamplebin_PROGRAMS =				\
 	tests/pingpong					\
 	tests/mpi_isend					\
 	tests/mpi_irecv					\
