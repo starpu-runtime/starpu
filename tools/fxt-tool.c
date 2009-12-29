@@ -46,6 +46,14 @@ LIST_TYPE(symbol_name,
 
 symbol_name_list_t symbol_list;
 
+LIST_TYPE(communication,
+	unsigned comid;
+	float comm_start;	
+	float bandwith;
+);
+
+communication_list_t communication_list;
+
 /*
  * Paje trace file tools
  */
@@ -75,6 +83,7 @@ void paje_output_file_init(void)
 	3       S       T       \"Thread State\"                        \n \
 	3       MS       Mn       \"Memory Node State\"                        \n \
 	4       ntask    Sc       \"Number of tasks\"                        \n \
+	4       bw      Mn       \"Bandwith\"                        \n \
 	6       I       S      Initializing       \"0.0 .7 1.0\"            \n \
 	6       D       S      Deinitializing       \"0.0 .1 .7\"            \n \
 	6       Fi       S      FetchingInput       \"1.0 .1 1.0\"            \n \
@@ -112,6 +121,13 @@ void handle_new_mem_node(void)
 	sprintf(memnodestr, "%ld", ev.param[0]);
 	
 	fprintf(out_paje_file, "7       %f	%s      Mn      p	MEMNODE%s\n", (float)((ev.time-start_time)/1000000.0), memnodestr, memnodestr);
+
+	if (!no_bus && (ev.param[0] == 0))
+	{
+		/* we affect everything to node 0 ? */
+		/* TODO sum of bandwith + per gpu */
+		fprintf(out_paje_file, "13       %f bw MEMNODE0 0.0\n", (float)(start_time-start_time));
+	}
 }
 
 static unsigned cuda_index = 0;
@@ -439,10 +455,17 @@ void handle_start_driver_copy(void)
 	unsigned comid = ev.param[3];
 
 	if (!no_bus)
-	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      Co\n", (float)((ev.time-start_time)/1000000.0), dst);
+	{
+		fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      Co\n", (float)((ev.time-start_time)/1000000.0), dst);
+		fprintf(out_paje_file, "18       %f	L      p	%d	MEMNODE%d	com_%d\n", (float)((ev.time-start_time)/1000000.0), size, src, comid);
 
-	if (!no_bus)
-	fprintf(out_paje_file, "18       %f	L      p	%d	MEMNODE%d	com_%d\n", (float)((ev.time-start_time)/1000000.0), size, src, comid);
+		/* create a structure to store the start of the communication, this will be matched later */
+		communication_t com = communication_new();
+		com->comid = comid;
+		com->comm_start = (float)((ev.time-start_time)/1000000.0);
+
+		communication_list_push_back(communication_list, com);
+	}
 
 }
 
@@ -452,8 +475,56 @@ void handle_end_driver_copy(void)
 	unsigned size = ev.param[2];
 	unsigned comid = ev.param[3];
 
-	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      No\n", (float)((ev.time-start_time)/1000000.0), dst);
-	fprintf(out_paje_file, "19       %f	L      p	%d	MEMNODE%d	com_%d\n", (float)((ev.time-start_time)/1000000.0), size, dst, comid);
+	if (!no_bus)
+	{
+		fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      No\n", (float)((ev.time-start_time)/1000000.0), dst);
+		fprintf(out_paje_file, "19       %f	L      p	%d	MEMNODE%d	com_%d\n", (float)((ev.time-start_time)/1000000.0), size, dst, comid);
+
+		/* look for a data transfer to match */
+		communication_itor_t itor;
+		for (itor = communication_list_begin(communication_list);
+			itor != communication_list_end(communication_list);
+			itor = communication_list_next(itor))
+		{
+			if (itor->comid == comid)
+			{
+				float comm_end = (float)((ev.time-start_time)/1000000.0);
+				float bandwith = (float)((0.001*size)/(comm_end - itor->comm_start));
+
+				itor->bandwith = bandwith;
+
+				communication_t com = communication_new();
+				com->comid = comid;
+				com->comm_start = (float)((ev.time-start_time)/1000000.0);
+				com->bandwith = -bandwith;
+
+				communication_list_push_back(communication_list, com);
+
+//
+//				/* we found the transfer */
+//				fprintf(out_paje_file, "14  %f bw MEMNODE0 %f\n", itor->comm_start, bandwith);
+//				fprintf(out_paje_file, "15  %f bw MEMNODE0 %f\n", comm_end, bandwith);
+
+				/* TODO remove from the list */
+				break;
+			}
+		}
+	}
+}
+
+void display_bandwith_evolution(void)
+{
+	float current_bandwith = 0.0;
+
+	communication_itor_t itor;
+	for (itor = communication_list_begin(communication_list);
+		itor != communication_list_end(communication_list);
+		itor = communication_list_next(itor))
+	{
+		current_bandwith += itor->bandwith;
+		fprintf(out_paje_file, "13  %f bw MEMNODE0 %f\n",
+				itor->comm_start, current_bandwith);
+	}
 }
 
 void handle_start_alloc(void)
@@ -624,6 +695,8 @@ int main(int argc, char **argv)
 
 	symbol_list = symbol_name_list_new(); 
 
+	communication_list = communication_list_new();
+
 	paje_output_file_init();
 
 	while(1) {
@@ -648,6 +721,7 @@ int main(int argc, char **argv)
 				fprintf(out_paje_file, "7       %f sched      Sc      p       scheduler \n", (float)(start_time-start_time));
 				fprintf(out_paje_file, "13       %f ntask sched 0.0\n", (float)(start_time-start_time));
 			}
+
 		}
 
 		switch (ev.code) {
@@ -787,6 +861,8 @@ int main(int argc, char **argv)
 				break;
 		}
 	}
+
+	display_bandwith_evolution();
 
 	paje_output_file_terminate();
 
