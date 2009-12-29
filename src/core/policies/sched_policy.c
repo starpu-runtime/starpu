@@ -111,6 +111,7 @@ static void display_sched_help_message(void)
 
 static struct sched_policy_s *select_sched_policy(struct machine_config_s *config)
 {
+	struct sched_policy_s *selected_policy = NULL;
 	struct starpu_conf *user_conf = config->user_conf;
 
 	/* First, we check whether the application explicitely gave a scheduling policy or not */
@@ -128,7 +129,11 @@ static struct sched_policy_s *select_sched_policy(struct machine_config_s *confi
 	}
 
 	if (sched_pol_name)
-		return find_sched_policy_from_name(sched_pol_name);
+		selected_policy = find_sched_policy_from_name(sched_pol_name);
+
+	/* Perhaps there was no policy that matched the name */
+	if (selected_policy)
+		return selected_policy;
 
 	/* If no policy was specified, we use the greedy policy as a default */
 	return &sched_eager_policy;
