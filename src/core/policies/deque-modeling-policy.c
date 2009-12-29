@@ -74,6 +74,8 @@ static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)), job_t j, uns
 	double best_exp_end = 0.0;
 	double model_best = 0.0;
 
+	struct starpu_task *task = j->task;
+
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		double exp_end;
@@ -83,7 +85,7 @@ static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)), job_t j, uns
 		fifo->exp_start = STARPU_MAX(fifo->exp_start, timing_now());
 		fifo->exp_end = STARPU_MAX(fifo->exp_end, timing_now());
 
-		if ((queue_array[worker]->who & j->task->cl->where) == 0)
+		if ((queue_array[worker]->who & task->cl->where) == 0)
 		{
 			/* no one on that queue may execute this task */
 			continue;
@@ -128,7 +130,7 @@ static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)), job_t j, uns
 	j->predicted = model_best;
 
 	if (use_prefetch)
-		prefetch_task_input_on_node(j->task, queue_array[best]->memory_node);
+		prefetch_task_input_on_node(task, queue_array[best]->memory_node);
 
 	if (prio) {
 		return fifo_push_prio_task(queue_array[best], j);
