@@ -109,7 +109,7 @@ static void map_filter(starpu_data_handle root_handle, starpu_filter *f)
 	}
 	else {
 		/* try to apply the starpu_filter recursively */
-		int child;
+		unsigned child;
 		for (child = 0; child < root_handle->nchildren; child++)
 		{
 			map_filter(&root_handle->children[child], f);
@@ -139,8 +139,7 @@ void starpu_map_filters(starpu_data_handle root_handle, unsigned nfilters, ...)
  */
 starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i)
 {
-#warning TODO nchildren should not be an int
-	STARPU_ASSERT(i < (unsigned)handle->nchildren);
+	STARPU_ASSERT(i < handle->nchildren);
 
 	return &handle->children[i];
 }
@@ -159,7 +158,7 @@ starpu_data_handle get_sub_data(starpu_data_handle root_handle, unsigned depth, 
 		unsigned next_child;
 		next_child = va_arg(pa, unsigned);
 
-		STARPU_ASSERT((int)next_child < current_handle->nchildren);
+		STARPU_ASSERT(next_child < current_handle->nchildren);
 
 		current_handle = &current_handle->children[next_child];
 	}
@@ -225,7 +224,7 @@ void starpu_partition_data(starpu_data_handle initial_handle, starpu_filter *f)
 
 void starpu_unpartition_data(starpu_data_handle root_handle, uint32_t gathering_node)
 {
-	int child;
+	unsigned child;
 	unsigned node;
 
 	starpu_spin_lock(&root_handle->header_lock);
@@ -314,7 +313,7 @@ void starpu_advise_if_data_is_important(starpu_data_handle handle, unsigned is_i
 	starpu_spin_lock(&handle->header_lock);
 
 	/* first take all the children lock (in order !) */
-	int child;
+	unsigned child;
 	for (child = 0; child < handle->nchildren; child++)
 	{
 		/* make sure the intermediate children is advised as well */
@@ -350,6 +349,8 @@ starpu_data_handle starpu_data_state_create(struct data_interface_ops_t *interfa
 	return handle;
 }
 
+/* TODO create an alternative version of that function which takes an array of
+ * data interface ops in case each child may have its own interface type */
 void starpu_data_create_children(starpu_data_handle handle,
 		unsigned nchildren, struct data_interface_ops_t *children_interface_ops)
 {

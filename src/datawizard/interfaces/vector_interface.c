@@ -222,7 +222,7 @@ static size_t allocate_vector_buffer_on_node(starpu_data_handle handle, uint32_t
 	return allocated_memory;
 }
 
-void liberate_vector_buffer_on_node(void *interface, uint32_t node)
+static void liberate_vector_buffer_on_node(void *interface, uint32_t node)
 {
 	starpu_vector_interface_t *vector_interface = interface;
 

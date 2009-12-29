@@ -20,7 +20,6 @@
 #include <datawizard/copy-driver.h>
 #include <datawizard/hierarchy.h>
 
-
 #include <common/hash.h>
 
 #include <starpu.h>

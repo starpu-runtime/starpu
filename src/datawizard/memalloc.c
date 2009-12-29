@@ -54,7 +54,7 @@ static void lock_all_subtree(starpu_data_handle handle)
 	}
 	else {
 		/* lock all sub-subtrees children */
-		int child;
+		unsigned child;
 		for (child = 0; child < handle->nchildren; child++)
 		{
 			lock_all_subtree(&handle->children[child]);
@@ -70,10 +70,13 @@ static void unlock_all_subtree(starpu_data_handle handle)
 		starpu_spin_unlock(&handle->header_lock);
 	}
 	else {
-		/* lock all sub-subtrees children */
-		int child;
-		for (child = handle->nchildren - 1; child >= 0; child--)
+		/* lock all sub-subtrees children 
+		 * Note that this is done in the reverse order of the
+		 * lock_all_subtree so that we avoid deadlock */
+		unsigned i;
+		for (i =0; i < handle->nchildren; i++)
 		{
+			unsigned child = handle->nchildren - 1 - i;
 			unlock_all_subtree(&handle->children[child]);
 		}
 	}
@@ -90,7 +93,7 @@ static unsigned may_free_subtree(starpu_data_handle handle, unsigned node)
 		return 1;
 	
 	/* look into all sub-subtrees children */
-	int child;
+	unsigned child;
 	for (child = 0; child < handle->nchildren; child++)
 	{
 		unsigned res;
@@ -176,7 +179,7 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 	}
 	else {
 		/* lock all sub-subtrees children */
-		int child;
+		unsigned child;
 		for (child = 0; child < handle->nchildren; child++)
 		{
 			transfer_subtree_to_node(&handle->children[child],

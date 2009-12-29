@@ -206,11 +206,14 @@ static void handle_data_request_completion(data_request_t r)
 	unsigned do_delete = 0;
 	starpu_data_handle handle = r->handle;
 
-	update_data_state(handle, r->dst_node, r->write);
+	uint32_t src_node = r->src_node;
+	uint32_t dst_node = r->dst_node;
+
+	update_data_state(handle, dst_node, r->write);
 
 #ifdef USE_FXT
 	size_t size = handle->ops->get_size(handle);
-	TRACE_END_DRIVER_COPY(r->src_node, r->dst_node, size, r->com_id);
+	TRACE_END_DRIVER_COPY(src_node, dst_node, size, r->com_id);
 #endif
 
 	unsigned chained_req;
@@ -221,10 +224,10 @@ static void handle_data_request_completion(data_request_t r)
 
 	r->completed = 1;
 	
-	handle->per_node[r->dst_node].refcnt--;
+	handle->per_node[dst_node].refcnt--;
 
 	if (r->read)
-		handle->per_node[r->src_node].refcnt--;
+		handle->per_node[src_node].refcnt--;
 
 	r->refcnt--;
 

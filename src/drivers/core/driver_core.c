@@ -28,11 +28,12 @@ static int execute_job_on_core(job_t j, struct worker_s *core_args)
 
 	unsigned calibrate_model = 0;
 	struct starpu_task *task = j->task;
+	struct starpu_codelet_t *cl = task->cl;
 
-	STARPU_ASSERT(task->cl);
-	STARPU_ASSERT(task->cl->core_func);
+	STARPU_ASSERT(cl);
+	STARPU_ASSERT(cl->core_func);
 
-	if (task->cl->model && task->cl->model->benchmarking)
+	if (cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
 
 	if (calibrate_model || BENCHMARK_COMM)
@@ -55,10 +56,10 @@ static int execute_job_on_core(job_t j, struct worker_s *core_args)
 		GET_TICK(codelet_start);
 
 	core_args->status = STATUS_EXECUTING;
-	cl_func func = task->cl->core_func;
+	cl_func func = cl->core_func;
 	func(task->interface, task->cl_arg);
 
-	task->cl->per_worker_stats[core_args->workerid]++;
+	cl->per_worker_stats[core_args->workerid]++;
 	
 	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_end);

@@ -40,7 +40,6 @@
 #include <datawizard/datastats.h>
 
 typedef enum {
-//	MODIFIED,
 	OWNER,
 	SHARED,
 	INVALID
@@ -72,29 +71,10 @@ typedef struct local_data_state_t {
 	struct data_request_s *request;
 } local_data_state;
 
-/* Everyone that wants to access some piece of data will post a request.
- * Not only StarPU internals, but also the application may put such requests */
-
-LIST_TYPE(data_requester,
-	/* what kind of access is requested ? */
-	starpu_access_mode mode;
-
-	/* applications may also directly manipulate data */
-	unsigned is_requested_by_codelet;
-
-	/* in case this is a codelet that will do the access */
-	struct job_s *j;
-	unsigned buffer_index;
-
-	/* if this is more complicated ... (eg. application request) 
-	 * NB: this callback is not called with the lock taken !
-	 */
-	void (*ready_data_callback)(void *argcb);
-	void *argcb;
-);
+struct data_requester_list_s;
 
 struct starpu_data_state_t {
-	data_requester_list_t req_list;
+	struct data_requester_list_s *req_list;
 	/* the number of requests currently in the scheduling engine
 	 * (not in the req_list anymore) */
 	unsigned refcnt;
@@ -104,7 +84,7 @@ struct starpu_data_state_t {
 
 	uint32_t nnodes; /* the number of memory nodes that may use it */
 	struct starpu_data_state_t *children;
-	int nchildren;
+	unsigned nchildren;
 
 	/* describe the state of the data in term of coherency */
 	local_data_state per_node[MAXNODES];

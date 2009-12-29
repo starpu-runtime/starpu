@@ -17,14 +17,14 @@
 #include <starpu.h>
 #include <common/config.h>
 
-typedef struct wrapper_func_args {
+struct wrapper_func_args {
 	void (*func)(void *);
 	void *arg;
-} _wrapper_func_args;
+};
 
 static void wrapper_func(void *buffers[] __attribute__ ((unused)), void *_args)
 {
-	_wrapper_func_args *args = _args;
+	struct wrapper_func_args *args = _args;
 	args->func(args->arg);
 }
 
@@ -46,7 +46,7 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 
 	struct starpu_task *tasks[STARPU_NMAXWORKERS];
 
-	_wrapper_func_args args = {
+	struct wrapper_func_args args = {
 		.func = func,
 		.arg = arg
 	};

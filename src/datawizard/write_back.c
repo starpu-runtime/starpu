@@ -69,7 +69,7 @@ void starpu_data_set_wb_mask(starpu_data_handle handle, uint32_t wb_mask)
 	/* in case the data has some children, set their wb_mask as well */
 	if (handle->nchildren > 0) 
 	{
-		int child;
+		unsigned child;
 		for (child = 0; child < handle->nchildren; child++)
 			starpu_data_set_wb_mask(&handle->children[child], wb_mask);
 	}

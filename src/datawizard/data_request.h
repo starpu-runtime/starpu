@@ -62,6 +62,26 @@ LIST_TYPE(data_request,
 #endif
 );
 
+/* Everyone that wants to access some piece of data will post a request.
+ * Not only StarPU internals, but also the application may put such requests */
+LIST_TYPE(data_requester,
+	/* what kind of access is requested ? */
+	starpu_access_mode mode;
+
+	/* applications may also directly manipulate data */
+	unsigned is_requested_by_codelet;
+
+	/* in case this is a codelet that will do the access */
+	struct job_s *j;
+	unsigned buffer_index;
+
+	/* if this is more complicated ... (eg. application request) 
+	 * NB: this callback is not called with the lock taken !
+	 */
+	void (*ready_data_callback)(void *argcb);
+	void *argcb;
+);
+
 void init_data_request_lists(void);
 void deinit_data_request_lists(void);
 void post_data_request(data_request_t r, uint32_t handling_node);
