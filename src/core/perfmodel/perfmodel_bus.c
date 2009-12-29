@@ -318,6 +318,14 @@ static void write_bus_affinity_file_content(void)
 	fclose(f);
 }
 
+static void generate_bus_affinity_file(void)
+{
+	if (!was_benchmarked)
+		benchmark_all_cuda_devices();
+
+	write_bus_affinity_file_content();
+}
+
 static void load_bus_affinity_file(void)
 {
 	int res;
@@ -329,10 +337,7 @@ static void load_bus_affinity_file(void)
 	if (res)
 	{
 		/* File does not exist yet */
-		if (!was_benchmarked)
-			benchmark_all_cuda_devices();
-
-		write_bus_affinity_file_content();
+		generate_bus_affinity_file();
 	}
 
 	load_bus_affinity_file_content();
@@ -428,6 +433,14 @@ static void write_bus_latency_file_content(void)
 	fclose(f);
 }
 
+static void generate_bus_latency_file(void)
+{
+	if (!was_benchmarked)
+		benchmark_all_cuda_devices();
+
+	write_bus_latency_file_content();
+}
+
 static void load_bus_latency_file(void)
 {
 	int res;
@@ -439,10 +452,7 @@ static void load_bus_latency_file(void)
 	if (res)
 	{
 		/* File does not exist yet */
-		if (!was_benchmarked)
-			benchmark_all_cuda_devices();
-
-		write_bus_latency_file_content();
+		generate_bus_latency_file();
 	}
 
 	load_bus_latency_file_content();
@@ -541,6 +551,14 @@ static void write_bus_bandwith_file_content(void)
 	fclose(f);
 }
 
+static void generate_bus_bandwith_file(void)
+{
+	if (!was_benchmarked)
+		benchmark_all_cuda_devices();
+
+	write_bus_bandwith_file_content();
+}
+
 static void load_bus_bandwith_file(void)
 {
 	int res;
@@ -552,10 +570,7 @@ static void load_bus_bandwith_file(void)
 	if (res)
 	{
 		/* File does not exist yet */
-		if (!was_benchmarked)
-			benchmark_all_cuda_devices();
-
-		write_bus_bandwith_file_content();
+		generate_bus_bandwith_file();
 	}
 
 	load_bus_bandwith_file_content();
@@ -564,6 +579,15 @@ static void load_bus_bandwith_file(void)
 /*
  *	Generic
  */
+
+void starpu_force_bus_sampling(void)
+{
+	create_sampling_directory_if_needed();
+
+	generate_bus_affinity_file();
+	generate_bus_latency_file();
+	generate_bus_bandwith_file();
+}
 
 void load_bus_performance_files(void)
 {

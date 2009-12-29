@@ -23,6 +23,10 @@ bin_PROGRAMS =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
+bin_PROGRAMS += calibrate_bus
+
+calibrate_bus_SOURCES = calibrate_bus.c
+
 if USE_FXT
 bin_PROGRAMS += fxt-tool fxt-stats
 
