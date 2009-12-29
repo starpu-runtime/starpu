@@ -209,7 +209,8 @@ static void handle_data_request_completion(data_request_t r)
 	update_data_state(handle, r->dst_node, r->write);
 
 #ifdef USE_FXT
-	TRACE_END_DRIVER_COPY(r->src_node, r->dst_node, 0, r->com_id);
+	size_t size = handle->ops->get_size(handle);
+	TRACE_END_DRIVER_COPY(r->src_node, r->dst_node, size, r->com_id);
 #endif
 
 	unsigned chained_req;
