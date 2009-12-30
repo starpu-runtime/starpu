@@ -28,13 +28,32 @@
 #include <core/policies/random-policy.h>
 #include <core/policies/deque-modeling-policy-data-aware.h>
 
-
 static struct sched_policy_s policy;
+
+/*
+ *	Predefined policies
+ */
+
+#define NPREDEFINED_POLICIES	7
+
+struct sched_policy_s *predefined_policies[NPREDEFINED_POLICIES] = {
+	&sched_ws_policy,
+	&sched_prio_policy,
+	&sched_no_prio_policy,
+	&sched_dm_policy,
+	&sched_dmda_policy,
+	&sched_random_policy,
+	&sched_eager_policy
+};
 
 struct sched_policy_s *get_sched_policy(void)
 {
 	return &policy;
 }
+
+/*
+ *	Methods to initialize the scheduling policy
+ */
 
 static void load_sched_policy(struct sched_policy_s *sched_policy)
 {
@@ -69,28 +88,21 @@ static struct sched_policy_s *find_sched_policy_from_name(const char *policy_nam
 	if (!policy_name)
 		return NULL;
 
-	if (strcmp(policy_name, "ws") == 0) {
-		return &sched_ws_policy;
-	}
-	else if (strcmp(policy_name, "prio") == 0) {
-		return &sched_prio_policy;
-	}
-	else if (strcmp(policy_name, "no-prio") == 0) {
-		return &sched_no_prio_policy;
-	}
-	else if (strcmp(policy_name, "dm") == 0) {
-		return &sched_dm_policy;
-	}
-	else if (strcmp(policy_name, "dmda") == 0) {
-		return &sched_dmda_policy;
-	}
-	else if (strcmp(policy_name, "random") == 0) {
-		return &sched_random_policy;
-	}
-	else if (strcmp(policy_name, "eager") == 0) {
-		return &sched_eager_policy;
+	unsigned i;
+	for (i = 0; i < NPREDEFINED_POLICIES; i++)
+	{
+		struct sched_policy_s *p;
+		p = predefined_policies[i];
+		if (p->policy_name)
+		{
+			if (strcmp(policy_name, p->policy_name) == 0) {
+				/* we found a policy with the requested name */
+				return p;
+			}
+		}
 	}
 
+	/* nothing was found */
 	return NULL;
 }
 
@@ -99,13 +111,15 @@ static void display_sched_help_message(void)
 	const char *sched_env = getenv("SCHED");
 	if (sched_env && (strcmp(sched_env, "help") == 0)) {
 		fprintf(stderr, "SCHED can be either of\n");
-		fprintf(stderr, "ws\twork stealing\n");
-		fprintf(stderr, "prio\tprio eager\n");
-		fprintf(stderr, "no-prio\teager (without prio)\n");
-		fprintf(stderr, "dm\tperformance model\n");
-		fprintf(stderr, "dmda\tdata-aware performance model\n");
-		fprintf(stderr, "random\trandom\n");
-		fprintf(stderr, "else the eager scheduler will be used\n");
+
+		/* display the description of all predefined policies */
+		unsigned i;
+		for (i = 0; i < NPREDEFINED_POLICIES; i++)
+		{
+			struct sched_policy_s *p;
+			p = predefined_policies[i];
+			fprintf(stderr, "%s\t-> %s\n", p->policy_name, p->policy_description);
+		}
 	 }
 }
 
