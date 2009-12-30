@@ -61,6 +61,33 @@ static unsigned gordon_inited = 0;
 static struct worker_set_s gordon_worker_set;
 #endif
 
+static void init_worker_queue(struct worker_s *workerarg)
+{
+	struct jobq_s *jobq = workerarg->jobq;
+
+	/* warning : in case there are multiple workers on the same
+	  queue, we overwrite this value so that it is meaningless */
+	jobq->arch = workerarg->perf_arch;
+		
+	jobq->who |= workerarg->worker_mask;
+
+	switch (workerarg->arch) {
+		case STARPU_CORE_WORKER:
+			jobq->alpha = CORE_ALPHA;
+			break;
+		case STARPU_CUDA_WORKER:
+			jobq->alpha = CUDA_ALPHA;
+			break;
+		case STARPU_GORDON_WORKER:
+			jobq->alpha = GORDON_ALPHA;
+			break;
+		default:
+			STARPU_ABORT();
+	}
+		
+	memory_node_attach_queue(jobq, workerarg->memory_node);
+}
+
 static void init_workers(struct machine_config_s *config)
 {
 	config->running = 1;
@@ -91,6 +118,8 @@ static void init_workers(struct machine_config_s *config)
 		pthread_mutex_init(&workerarg->local_jobs_mutex, NULL);
 	
 		workerarg->status = STATUS_INITIALIZING;
+
+		init_worker_queue(workerarg);
 
 		switch (workerarg->arch) {
 #ifdef USE_CPUS

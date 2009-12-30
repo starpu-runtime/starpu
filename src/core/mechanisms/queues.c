@@ -36,30 +36,6 @@ void setup_queues(void (*init_queue_design)(void),
 		struct  worker_s *workerarg = &config->workers[worker];
 		
 		workerarg->jobq = func_init_queue();
-
-		/* warning : in case there are multiple workers on the same
-                   queue, we overwrite this value so that it is meaningless
-		 */
-		workerarg->jobq->arch = workerarg->perf_arch;
-
-		switch (workerarg->arch) {
-			case STARPU_CORE_WORKER:
-				workerarg->jobq->who |= CORE;
-				workerarg->jobq->alpha = CORE_ALPHA;
-				break;
-			case STARPU_CUDA_WORKER:
-				workerarg->jobq->who |= CUDA;
-				workerarg->jobq->alpha = CUDA_ALPHA;
-				break;
-			case STARPU_GORDON_WORKER:
-				workerarg->jobq->who |= GORDON;
-				workerarg->jobq->alpha = GORDON_ALPHA;
-				break;
-			default:
-				STARPU_ABORT();
-		}
-		
-		memory_node_attach_queue(workerarg->jobq, workerarg->memory_node);
 	}
 }
 
