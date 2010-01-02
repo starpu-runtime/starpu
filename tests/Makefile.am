@@ -83,6 +83,7 @@ check_PROGRAMS += 				\
 	datawizard/write_only_tmp_buffer	\
 	datawizard/dining_philosophers		\
 	datawizard/readers_and_writers		\
+	datawizard/unpartition			\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	helper/cublas_init			\
@@ -136,6 +137,9 @@ datawizard_dining_philosophers_SOURCES = 	\
 
 datawizard_readers_and_writers_SOURCES = 	\
 	datawizard/readers_and_writers.c
+
+datawizard_unpartition_SOURCES =		\
+	datawizard/unpartition.c
 
 errorcheck_starpu_init_noworker_SOURCES =	\
 	errorcheck/starpu_init_noworker.c
