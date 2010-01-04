@@ -61,6 +61,22 @@ void use_handle(starpu_data_handle handle)
 	}
 }
 
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+static unsigned n_synced_buffers;
+
+void callback_sync_data(void *arg __attribute__ ((unused)))
+{
+	pthread_mutex_lock(&mutex);
+
+	n_synced_buffers++;
+
+	if (n_synced_buffers == NBUFFERS)
+		pthread_cond_signal(&cond);
+
+	pthread_mutex_unlock(&mutex);
+}
+
 int main(int argc, char **argv)
 {
 	starpu_init(NULL);
@@ -84,9 +100,24 @@ int main(int argc, char **argv)
 	
 		starpu_wait_all_tasks();
 
+		pthread_mutex_lock(&mutex);
+		n_synced_buffers = 0;
+		pthread_mutex_unlock(&mutex);
+
 		/* Grab the different pieces of data into main memory */
 		for (b = 0; b < NBUFFERS; b++)
-			starpu_sync_data_with_mem(v_handle[b], STARPU_RW);
+		{
+			starpu_sync_data_with_mem_non_blocking(v_handle[b], STARPU_RW,
+					callback_sync_data, NULL);
+		}
+
+		/* Wait for all buffers to be available */
+		pthread_mutex_lock(&mutex);
+
+		while (n_synced_buffers != NBUFFERS)
+			pthread_cond_wait(&cond, &mutex);
+
+		pthread_mutex_unlock(&mutex);
 
 		/* Release them */
 		for (b = 0; b < NBUFFERS; b++)

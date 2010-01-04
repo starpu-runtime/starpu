@@ -42,6 +42,9 @@ struct state_and_node {
 	pthread_mutex_t lock;
 	unsigned finished;
 	unsigned async;
+	unsigned non_blocking;
+	void (*callback)(void *);
+	void *callback_arg;
 };
 
 /* put the current value of the data into RAM */
@@ -58,10 +61,20 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 	ret = fetch_data_on_node(handle, 0, r, w, 0);
 	STARPU_ASSERT(!ret);
 	
-	pthread_mutex_lock(&statenode->lock);
-	statenode->finished = 1;
-	pthread_cond_signal(&statenode->cond);
-	pthread_mutex_unlock(&statenode->lock);
+	if (statenode->non_blocking)
+	{
+		/* continuation of starpu_sync_data_with_mem_non_blocking: we
+		 * execute the callback if any  */
+		if (statenode->callback)
+			statenode->callback(statenode->callback_arg);
+	}
+	else {
+		/* continuation of starpu_sync_data_with_mem */
+		pthread_mutex_lock(&statenode->lock);
+		statenode->finished = 1;
+		pthread_cond_signal(&statenode->cond);
+		pthread_mutex_unlock(&statenode->lock);
+	}
 }
 
 /* The data must be released by calling starpu_release_data_from_mem later on */
@@ -76,6 +89,7 @@ int starpu_sync_data_with_mem(starpu_data_handle handle, starpu_access_mode mode
 		.state = handle,
 		.mode = mode,
 		.node = 0, // unused
+		.non_blocking = 0,
 		.cond = PTHREAD_COND_INITIALIZER,
 		.lock = PTHREAD_MUTEX_INITIALIZER,
 		.finished = 0
@@ -95,6 +109,36 @@ int starpu_sync_data_with_mem(starpu_data_handle handle, starpu_access_mode mode
 		if (!statenode.finished)
 			pthread_cond_wait(&statenode.cond, &statenode.lock);
 		pthread_mutex_unlock(&statenode.lock);
+	}
+
+	return 0;
+}
+
+/* The data must be released by calling starpu_release_data_from_mem later on */
+int starpu_sync_data_with_mem_non_blocking(starpu_data_handle handle,
+		starpu_access_mode mode, void (*callback)(void *), void *arg)
+{
+	struct state_and_node statenode =
+	{
+		.state = handle,
+		.mode = mode,
+		.node = 0, // unused
+		.non_blocking = 1,
+		.callback = callback,
+		.callback_arg = arg,
+		.cond = PTHREAD_COND_INITIALIZER,
+		.lock = PTHREAD_MUTEX_INITIALIZER,
+		.finished = 0
+	};
+
+	/* we try to get the data, if we do not succeed immediately, we set a
+ 	* callback function that will be executed automatically when the data is
+ 	* available again, otherwise we fetch the data directly */
+	if (!attempt_to_submit_data_request_from_apps(handle, mode,
+			_starpu_sync_data_with_mem_continuation, &statenode))
+	{
+		/* no one has locked this data yet, so we proceed immediately */
+		_starpu_sync_data_with_mem_continuation(&statenode);
 	}
 
 	return 0;

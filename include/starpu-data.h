@@ -49,6 +49,8 @@ void starpu_delete_data(starpu_data_handle state);
 void starpu_advise_if_data_is_important(starpu_data_handle state, unsigned is_important);
 
 int starpu_sync_data_with_mem(starpu_data_handle state, starpu_access_mode mode);
+int starpu_sync_data_with_mem_non_blocking(starpu_data_handle handle,
+			starpu_access_mode mode, void (*callback)(void *), void *arg);
 void starpu_release_data_from_mem(starpu_data_handle state);
 
 int starpu_malloc_pinned_if_possible(void **A, size_t dim);

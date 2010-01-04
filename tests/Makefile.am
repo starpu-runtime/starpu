@@ -85,6 +85,7 @@ check_PROGRAMS += 				\
 	datawizard/readers_and_writers		\
 	datawizard/unpartition			\
 	datawizard/sync_with_data_with_mem	\
+	datawizard/sync_with_data_with_mem_non_blocking\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	helper/cublas_init			\
@@ -144,6 +145,9 @@ datawizard_unpartition_SOURCES =		\
 
 datawizard_sync_with_data_with_mem_SOURCES =	\
 	datawizard/sync_with_data_with_mem.c
+
+datawizard_sync_with_data_with_mem_non_blocking_SOURCES = \
+	datawizard/sync_with_data_with_mem_non_blocking.c
 
 errorcheck_starpu_init_noworker_SOURCES =	\
 	errorcheck/starpu_init_noworker.c
