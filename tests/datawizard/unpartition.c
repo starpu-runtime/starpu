@@ -64,7 +64,6 @@ int main(int argc, char **argv)
 
 	starpu_malloc_pinned_if_possible((void **)&buffer, VECTORSIZE);
 
-	/* The buffer should never be explicitely allocated */
 	starpu_register_vector_data(&v_handle, 0, (uintptr_t)buffer, VECTORSIZE, sizeof(char));
 
 	starpu_filter f = {
