@@ -33,9 +33,15 @@ static char *arch = NULL;
 static void usage(char **argv)
 {
 	/* TODO */
-	fprintf(stderr, "%s\n", argv[0]);
-	
-	exit(-1);
+	fprintf(stderr, "Usage: %s [ options ]\n", argv[0]);
+        fprintf(stderr, "\n");
+        fprintf(stderr, "Options:\n");
+        fprintf(stderr, "   -s <symbol>         specify the symbol\n");
+        fprintf(stderr, "   -p <parameter>      specify the parameter (e.g. a, b, c)\n");
+        fprintf(stderr, "   -a <arch>           specify the architecture (e.g. core, cuda, gordon)\n");
+        fprintf(stderr, "\n");
+
+        exit(-1);
 }
 
 static void parse_args(int argc, char **argv)
