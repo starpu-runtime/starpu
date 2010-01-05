@@ -67,7 +67,7 @@ or via http (DAV):
 +---------------------------
 | IV.a. For svn version only
 
-  $ autoreconf
+  $ ./autogen.sh
 
 +------------------------
 | IV.b. For all versions:
