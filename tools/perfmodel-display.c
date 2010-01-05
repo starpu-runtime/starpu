@@ -100,7 +100,7 @@ static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_per
 			fprintf(stderr, "\t\tc = %le\n", arch_model->regression.c);
 		}
 
-		char debugname[256];
+		char debugname[1024];
 		starpu_perfmodel_debugfilepath(model, arch, debugname, 1024);
 		printf("\t debug file path : %s\n", debugname);
 	}
