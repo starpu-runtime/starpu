@@ -150,13 +150,13 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 	if (arch == NULL)
 	{
 		/* display all architectures */
-		unsigned arch;
-		for (arch = 0; arch < NARCH_VARIATIONS; arch++)
+		unsigned archid;
+		for (archid = 0; archid < NARCH_VARIATIONS; archid++)
 		{
 			char archname[32];
-			starpu_perfmodel_get_arch_name(arch, archname, 32);
+			starpu_perfmodel_get_arch_name(archid, archname, 32);
 			fprintf(stderr, "performance model for %s\n", archname);
-			display_perf_model(model, arch);
+			display_perf_model(model, archid);
 		}
 	}
 	else {
