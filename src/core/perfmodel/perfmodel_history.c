@@ -613,7 +613,7 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned 
 		struct starpu_task *task = j->task;
 		for (i = 0; i < task->cl->nbuffers; i++)
 		{
-			data_state *state = task->buffers[i].handle;
+			struct starpu_data_state_t *state = task->buffers[i].handle;
 
 			STARPU_ASSERT(state->ops);
 			STARPU_ASSERT(state->ops->display);
