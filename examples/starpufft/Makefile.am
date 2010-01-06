@@ -14,7 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 #
-AM_CPPFLAGS = -I$(top_srcdir)/include/
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include
 
 lib_LTLIBRARIES = libstarpufft.la
 
@@ -31,7 +31,7 @@ EXTRA_DIST =			\
 	cudax_kernels.cu	\
 	testx.c			\
 	testx_threads.c	
-	
+
 
 libstarpufft_la_SOURCES = starpufft.c starpufftf.c starpufft-common.c
 libstarpufft_la_LIBADD = $(top_builddir)/src/libstarpu.la $(FFTW_LIBS) $(FFTWF_LIBS)

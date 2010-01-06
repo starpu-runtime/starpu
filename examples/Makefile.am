@@ -15,7 +15,7 @@
 #
 
 LIBS = $(top_builddir)/src/libstarpu.la @LIBS@
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
 
 TESTS = $(check_PROGRAMS)
 
@@ -44,7 +44,7 @@ EXTRA_DIST = 					\
 CLEANFILES = 					\
 	gordon/null_kernel_gordon.spuelf	\
 	mult/gordon/func_sgemm_ibm.spuelf
-	
+
 
 CLEANFILES += *.gcno *.gcda *.linkinfo
 
@@ -58,7 +58,7 @@ NVCC ?= nvcc
 	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
 
 .cu.o:
-	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I$(top_srcdir)/include/
+	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I$(top_srcdir)/include/ -I$(top_builddir)/include/
 
 
 endif
@@ -68,7 +68,7 @@ if USE_GORDON
 SPU_CC ?= spu-gcc
 SPU_LD ?= spu-ld
 
-SPULDFLAGS = 
+SPULDFLAGS =
 SPULIBS = -lblas #-lc -lgloss -lc
 
 .c.spuo:
@@ -181,18 +181,18 @@ examplebin_PROGRAMS += 				\
 	mult/sgemm 				\
 	mult/dgemm 				\
 	mult/dw_mult_no_stride			\
-	mult/dw_mult_no_stride_no_tag 
+	mult/dw_mult_no_stride_no_tag
 
 mult_sgemm_SOURCES = 				\
 	mult/sgemm.c				\
 	common/blas.c				\
 	common/blas_model.c
-	
+
 mult_dgemm_SOURCES = 				\
 	mult/dgemm.c				\
 	common/blas.c				\
 	common/blas_model.c
-		
+
 mult_dw_mult_no_stride_SOURCES = 		\
 	mult/dw_mult_no_stride.c		\
 	mult/sgemm_kernels.c			\
@@ -321,7 +321,7 @@ tag_example_tag_restartable_SOURCES =		\
 # Strassen example #
 ####################
 
-if ATLAS_BLAS_LIB 
+if ATLAS_BLAS_LIB
 
 examplebin_PROGRAMS += strassen/dw_strassen
 
@@ -338,7 +338,7 @@ endif
 # Strassen2 example #
 #####################
 
-if !NO_BLAS_LIB 
+if !NO_BLAS_LIB
 
 check_PROGRAMS += strassen2/strassen
 
@@ -355,7 +355,7 @@ endif
 # SpMV example #
 ################
 
-if ATLAS_BLAS_LIB 
+if ATLAS_BLAS_LIB
 
 examplebin_PROGRAMS += 				\
 	spmv/dw_spmv				\
