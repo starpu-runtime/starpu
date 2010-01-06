@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,8 @@
 
 static struct starpu_perfmodel_t model;
 
+/* display all available models */
+static int list = 0;
 /* what kernel ? */
 static char *symbol = NULL;
 /* what parameter should be displayed ? (NULL = all) */
@@ -35,7 +37,9 @@ static void usage(char **argv)
 	/* TODO */
 	fprintf(stderr, "Usage: %s [ options ]\n", argv[0]);
         fprintf(stderr, "\n");
+        fprintf(stderr, "One must specify either -l or -s\n");
         fprintf(stderr, "Options:\n");
+        fprintf(stderr, "   -l                  display all available models\n");
         fprintf(stderr, "   -s <symbol>         specify the symbol\n");
         fprintf(stderr, "   -p <parameter>      specify the parameter (e.g. a, b, c)\n");
         fprintf(stderr, "   -a <arch>           specify the architecture (e.g. core, cuda, gordon)\n");
@@ -48,8 +52,13 @@ static void parse_args(int argc, char **argv)
 {
 	int c;
 
-	while ((c = getopt(argc, argv, "s:p:a:h")) != -1) {
+	while ((c = getopt(argc, argv, "ls:p:a:h")) != -1) {
 	switch (c) {
+                case 'l':
+                        /* list all models */
+                        list = 1;
+                        break;
+
 		case 's':
 			/* symbol */
 			symbol = optarg;
@@ -75,9 +84,10 @@ static void parse_args(int argc, char **argv)
 	}
 	}
 
-	if (!symbol)
+	if (!symbol && !list)
 	{
-		fprintf(stderr, "No symbol name was given, aborting\n");
+		fprintf(stderr, "Incorrect usage, aborting\n");
+                usage(argv);
 		exit(-1);
 	}
 }
@@ -200,14 +210,23 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	int ret = starpu_load_history_debug(symbol, &model);
-	if (ret == 1)
-	{
-		fprintf(stderr, "The performance model could not be loaded\n");
-		return 1;
-	}
+        if (list) {
+                int ret = starpu_list_models();
+                if (ret) {
+                        fprintf(stderr, "The performance model directory is invalid\n");
+                        return 1;
+                }
+        }
+        else {
+                int ret = starpu_load_history_debug(symbol, &model);
+                if (ret == 1)
+                        {
+                                fprintf(stderr, "The performance model could not be loaded\n");
+                                return 1;
+                        }
 
-	display_all_perf_models(&model);
+                display_all_perf_models(&model);
+        }
 
 	return 0;
 }

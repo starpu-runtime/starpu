@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <dirent.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -407,6 +408,30 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
 		perror("pthread_rwlock_unlock");
 		STARPU_ABORT();
 	}
+}
+
+/* This function is intended to be used by external tools that should read
+ * the performance model files */
+int starpu_list_models() {
+        char path[256];
+        DIR *dp;
+        struct dirent *ep;
+
+        strncpy(path, PERF_MODEL_DIR_CODELETS, 256);
+        dp = opendir(path);
+        if (dp != NULL) {
+                while ((ep = readdir(dp))) {
+                        if (ep->d_type == DT_REG) {
+                                fprintf(stdout, "file: <%s>\n", ep->d_name);
+                        }
+                }
+                closedir (dp);
+                return 0;
+        }
+        else {
+                perror ("Couldn't open the directory");
+                return 1;
+        }
 }
 
 /* This function is intended to be used by external tools that should read the
