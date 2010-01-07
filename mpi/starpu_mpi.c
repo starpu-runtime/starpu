@@ -183,6 +183,7 @@ int starpu_mpi_wait(struct starpu_mpi_req_s *req, MPI_Status *status)
 {
 	int ret;
 	struct starpu_mpi_req_s waiting_req;
+	memset(&waiting_req, 0, sizeof(struct starpu_mpi_req_s));
 
 	/* We cannot try to complete a MPI request that was not actually posted
 	 * to MPI yet. */
@@ -383,7 +384,8 @@ int starpu_mpi_shutdown(void)
 	void *value;
 	pthread_join(progress_thread, &value);
 
-	/* TODO liberate the queues */
+	/* liberate the request queues */
+	starpu_mpi_req_list_delete(new_requests);
 
 	return 0;
 }
