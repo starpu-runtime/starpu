@@ -48,6 +48,7 @@ mpiexamplebindir=$(libdir)/starpu/mpi/
 
 mpiexamplebin_PROGRAMS =				\
 	tests/pingpong					\
+	tests/mpi_test					\
 	tests/mpi_isend					\
 	tests/mpi_irecv					\
 	tests/ring					\
@@ -72,6 +73,12 @@ tests_pingpong_LDADD =					\
 
 tests_pingpong_SOURCES =				\
 	tests/pingpong.c
+
+tests_mpi_test_LDADD =					\
+	libstarpumpi.la
+
+tests_mpi_test_SOURCES =				\
+	tests/mpi_test.c
 
 tests_ring_LDADD =					\
 	libstarpumpi.la

@@ -237,11 +237,6 @@ static void starpu_mpi_test_func(struct starpu_mpi_req_s *testing_req)
 int starpu_mpi_test(struct starpu_mpi_req_s *req, int *flag, MPI_Status *status)
 {
 	int ret = 0;
-	struct starpu_mpi_req_s testing_req;
-
-	memset(&testing_req, 0, sizeof(struct starpu_mpi_req_s));
-
-	pthread_mutex_lock(&req->req_mutex);
 
 	STARPU_ASSERT(!req->detached);
 
@@ -251,13 +246,16 @@ int starpu_mpi_test(struct starpu_mpi_req_s *req, int *flag, MPI_Status *status)
 
 	if (submitted)
 	{
+		struct starpu_mpi_req_s testing_req;
+		memset(&testing_req, 0, sizeof(struct starpu_mpi_req_s));
+
 		/* Initialize the request structure */
 		pthread_mutex_init(&testing_req.req_mutex, NULL);
 		pthread_cond_init(&testing_req.req_cond, NULL);
 		testing_req.flag = flag;
 		testing_req.status = status;
 		testing_req.other_request = req;
-		testing_req.func = starpu_mpi_wait_func;
+		testing_req.func = starpu_mpi_test_func;
 		testing_req.completed = 0;
 		
 		submit_mpi_req(&testing_req);
@@ -332,9 +330,6 @@ void *progress_thread_func(void *arg __attribute__((unused)))
 		if (!running)
 			break;		
 
-		/* Handle new requests  */
-	//	while (req = starpu_mpi_req_list_pop_back(new_requests))
-
 		/* get one request */
 		struct starpu_mpi_req_s *req;
 		while (!starpu_mpi_req_list_empty(new_requests))
@@ -349,9 +344,8 @@ void *progress_thread_func(void *arg __attribute__((unused)))
 			handle_new_request(req);
 			pthread_mutex_lock(&mutex);
 		}
-
-		pthread_mutex_unlock(&mutex);
 	}
+
 	pthread_mutex_unlock(&mutex);
 
 	return NULL;
