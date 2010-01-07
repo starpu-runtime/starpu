@@ -66,7 +66,7 @@ int starpu_mpi_isend(starpu_data_handle data_handle, struct starpu_mpi_req_s *re
 	/* Asynchronously request StarPU to fetch the data in main memory: when
 	 * it is available in main memory, submit_mpi_req(req) is called and
 	 * the request is actually submitted  */
-	starpu_sync_data_with_mem_non_blocking(data_handle, STARPU_W,
+	starpu_sync_data_with_mem_non_blocking(data_handle, STARPU_R,
 			submit_mpi_req, (void *)req);
 
 	return 0;
