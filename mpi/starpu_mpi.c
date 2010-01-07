@@ -50,6 +50,8 @@ int starpu_mpi_isend(starpu_data_handle data_handle, struct starpu_mpi_req_s *re
 {
 	STARPU_ASSERT(req);
 
+	memset(req, 0, sizeof(struct starpu_mpi_req_s));
+
 	/* Initialize the request structure */
 	req->submitted = 0;
 	req->completed = 0;
@@ -104,6 +106,8 @@ int starpu_mpi_irecv(starpu_data_handle data_handle, struct starpu_mpi_req_s *re
 {
 	STARPU_ASSERT(req);
 
+	memset(req, 0, sizeof(struct starpu_mpi_req_s));
+
 	/* Initialize the request structure */
 	req->submitted = 0;
 	pthread_mutex_init(&req->req_mutex, NULL);
@@ -135,6 +139,8 @@ int starpu_mpi_recv(starpu_data_handle data_handle,
 {
 	struct starpu_mpi_req_s req;
 
+	memset(&req, 0, sizeof(struct starpu_mpi_req_s));
+
 	starpu_mpi_irecv(data_handle, &req, source, mpi_tag, comm);
 	starpu_mpi_wait(&req, status);
 
@@ -150,6 +156,9 @@ int starpu_mpi_send(starpu_data_handle data_handle,
 {
 	struct starpu_mpi_req_s req;
 	MPI_Status status;
+
+	memset(&req, 0, sizeof(struct starpu_mpi_req_s));
+	memset(&status, 0, sizeof(MPI_Status));
 
 	starpu_mpi_isend(data_handle, &req, dest, mpi_tag, comm);
 	starpu_mpi_wait(&req, &status);
@@ -229,6 +238,8 @@ int starpu_mpi_test(struct starpu_mpi_req_s *req, int *flag, MPI_Status *status)
 {
 	int ret = 0;
 	struct starpu_mpi_req_s testing_req;
+
+	memset(&testing_req, 0, sizeof(struct starpu_mpi_req_s));
 
 	pthread_mutex_lock(&req->req_mutex);
 
