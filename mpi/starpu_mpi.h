@@ -23,30 +23,45 @@
 #include <pthread.h>
 
 LIST_TYPE(starpu_mpi_req,
-	void *ptr;
+	/* description of the data at StarPU level */
 	starpu_data_handle data_handle;
-	starpu_access_mode mode;
+
+	/* description of the data to be sent/received */
+	void *ptr;
 	MPI_Datatype datatype;
-	MPI_Request request;
-	MPI_Status *status;
-	void (*handle_new)(struct starpu_mpi_req_s *);
-	void (*handle_pending)(struct starpu_mpi_req_s *);
-	unsigned submitted;
-	int dst;
-	int src;
+
+	/* who are we talking to ? */
+	int srcdst;
 	int mpi_tag;
-	int ret;
 	MPI_Comm comm;
+
+	void (*func)(struct starpu_mpi_req_s *);
+
+	MPI_Status *status;
+	MPI_Request request;
+	int *flag;
+
+	int ret;
 	pthread_mutex_t req_mutex;
 	pthread_cond_t req_cond;
+
+	unsigned submitted;
+	unsigned completed;
+
+	/* In the case of a Wait/Test request, we are going to post a request
+	 * to test the completion of another request */
+	struct starpu_mpi_req_s *other_request;
+
+	/* in the case of detached requests */
+	unsigned detached;
+	void *arg;
+	void (*callback)(void *);
 );
 
 int starpu_mpi_isend(starpu_data_handle data_handle, struct starpu_mpi_req_s *req,
-		int dest, int mpi_tag, MPI_Comm comm,
-		void (*callback)(void *));
+		int dest, int mpi_tag, MPI_Comm comm);
 int starpu_mpi_irecv(starpu_data_handle data_handle, struct starpu_mpi_req_s *req,
-		int source, int mpi_tag, MPI_Comm comm,
-		void (*callback)(void *));
+		int source, int mpi_tag, MPI_Comm comm);
 int starpu_mpi_send(starpu_data_handle data_handle,
 		int dest, int mpi_tag, MPI_Comm comm);
 int starpu_mpi_recv(starpu_data_handle data_handle,

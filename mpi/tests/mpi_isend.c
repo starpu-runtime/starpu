@@ -58,8 +58,7 @@ int main(int argc, char **argv)
 		{
 			MPI_Status status;
 			struct starpu_mpi_req_s req;
-			starpu_mpi_isend(tab_handle, &req, other_rank, loop,
-						MPI_COMM_WORLD, NULL);
+			starpu_mpi_isend(tab_handle, &req, other_rank, loop, MPI_COMM_WORLD);
 			starpu_mpi_wait(&req, &status);
 		}
 		else {

@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 			token = 0;
 			MPI_Status status;
 			struct starpu_mpi_req_s req;
-			starpu_mpi_irecv(token_handle, &req, (rank+size-1)%size, tag, MPI_COMM_WORLD, NULL);
+			starpu_mpi_irecv(token_handle, &req, (rank+size-1)%size, tag, MPI_COMM_WORLD);
 			starpu_mpi_wait(&req, &status);
 		}
 		else {
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 		{
 			struct starpu_mpi_req_s req;
 			MPI_Status status;
-			starpu_mpi_isend(token_handle, &req, (rank+1)%size, tag+1, MPI_COMM_WORLD, NULL);
+			starpu_mpi_isend(token_handle, &req, (rank+1)%size, tag+1, MPI_COMM_WORLD);
 			starpu_mpi_wait(&req, &status);
 		}
 		else {
