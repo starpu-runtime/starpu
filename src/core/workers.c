@@ -299,6 +299,22 @@ unsigned machine_is_running(void)
 	return config.running;
 }
 
+unsigned worker_can_block(unsigned memnode)
+{
+	unsigned can_block = 1;
+
+	if (!check_that_no_data_request_exists(memnode))
+		can_block = 0;
+
+	if (!machine_is_running())
+		can_block = 0;
+
+	if (!execute_registered_progression_hooks())
+		can_block = 0;
+
+	return can_block;
+}
+
 typedef enum {
 	BROADCAST,
 	LOCK,

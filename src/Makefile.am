@@ -88,6 +88,7 @@ libstarpu_la_SOURCES = 						\
 	core/topology.c						\
 	core/debug.c						\
 	core/errorcheck.c					\
+	core/progress_hook.c					\
 	core/dependencies/tags.c				\
 	core/dependencies/htable.c				\
 	core/dependencies/data-concurrency.c			\

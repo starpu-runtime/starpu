@@ -149,6 +149,8 @@ void *core_worker(void *arg)
 		datawizard_progress(memnode, 1);
 		TRACE_END_PROGRESS(memnode);
 
+		execute_registered_progression_hooks();
+
 		jobq_lock(queue);
 
 		/* perhaps there is some local task to be executed first */
@@ -159,7 +161,7 @@ void *core_worker(void *arg)
 			j = pop_task();
 
                 if (j == NULL) {
-			if (check_that_no_data_request_exists(memnode) && machine_is_running())
+			if (worker_can_block(memnode))
 				pthread_cond_wait(&queue->activity_cond, &queue->activity_mutex);
 			jobq_unlock(queue);
  			continue;
