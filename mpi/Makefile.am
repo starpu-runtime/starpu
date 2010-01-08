@@ -14,7 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-CC=/opt/mpich2-mx/bin/mpicc
+CC=mpicc
 
 if USE_CUDA
 # TODO define NVCCFLAGS
