@@ -81,8 +81,6 @@ void handle_job_termination(job_t j)
 	if (STARPU_UNLIKELY(j->terminated))
 		fprintf(stderr, "OOPS ... job %p was already terminated !!\n", j);
 
-	j->terminated = 1;
-
 	/* in case there are dependencies, wake up the proper tasks */
 	notify_dependencies(j);
 
@@ -106,6 +104,7 @@ void handle_job_termination(job_t j)
 		/* we do not desallocate the job structure if some is going to
 		 * wait after the task */
 		pthread_mutex_lock(&j->sync_mutex);
+		j->terminated = 1;
 		pthread_cond_broadcast(&j->sync_cond);
 		pthread_mutex_unlock(&j->sync_mutex);
 	}
