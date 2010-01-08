@@ -78,7 +78,7 @@ unsigned execute_registered_progression_hooks(void)
 		active = hooks[hook].active;
 		pthread_mutex_unlock(&progression_hook_mutex);
 
-		unsigned may_block_hook;
+		unsigned may_block_hook = 1;
 
 		if (active)
 			may_block_hook = hooks[hook].func(hooks[hook].arg);
