@@ -14,7 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-CC=mpicc
+CC=/opt/mpich2-mx/bin/mpicc
 
 if USE_CUDA
 # TODO define NVCCFLAGS
@@ -50,6 +50,8 @@ mpiexamplebin_PROGRAMS =				\
 	tests/pingpong					\
 	tests/mpi_test					\
 	tests/mpi_isend					\
+	tests/mpi_isend_detached			\
+	tests/mpi_irecv_detached			\
 	tests/mpi_irecv					\
 	tests/ring					\
 	tests/ring_async				\
@@ -61,6 +63,18 @@ tests_mpi_isend_LDADD =					\
 
 tests_mpi_isend_SOURCES =				\
 	tests/mpi_isend.c
+
+tests_mpi_isend_detached_LDADD =			\
+	libstarpumpi.la
+
+tests_mpi_isend_detached_SOURCES =			\
+	tests/mpi_isend_detached.c
+
+tests_mpi_irecv_detached_LDADD =			\
+	libstarpumpi.la
+
+tests_mpi_irecv_detached_SOURCES =			\
+	tests/mpi_irecv_detached.c
 
 tests_mpi_irecv_LDADD =					\
 	libstarpumpi.la
