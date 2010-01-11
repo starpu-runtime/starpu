@@ -42,6 +42,7 @@ noinst_HEADERS =					\
 
 libstarpumpi_la_SOURCES =				\
 	starpu_mpi.c					\
+	starpu_mpi_helper.c				\
 	starpu_mpi_datatype.c
 
 mpiexamplebindir=$(libdir)/starpu/mpi/
@@ -50,9 +51,10 @@ mpiexamplebin_PROGRAMS =				\
 	tests/pingpong					\
 	tests/mpi_test					\
 	tests/mpi_isend					\
+	tests/mpi_irecv					\
 	tests/mpi_isend_detached			\
 	tests/mpi_irecv_detached			\
-	tests/mpi_irecv					\
+	tests/mpi_detached_tag				\
 	tests/ring					\
 	tests/ring_async				\
 	tests/block_interface				\
@@ -63,6 +65,12 @@ tests_mpi_isend_LDADD =					\
 
 tests_mpi_isend_SOURCES =				\
 	tests/mpi_isend.c
+
+tests_mpi_irecv_LDADD =					\
+	libstarpumpi.la
+
+tests_mpi_irecv_SOURCES =				\
+	tests/mpi_irecv.c
 
 tests_mpi_isend_detached_LDADD =			\
 	libstarpumpi.la
@@ -76,11 +84,11 @@ tests_mpi_irecv_detached_LDADD =			\
 tests_mpi_irecv_detached_SOURCES =			\
 	tests/mpi_irecv_detached.c
 
-tests_mpi_irecv_LDADD =					\
+tests_mpi_detached_tag_LDADD =				\
 	libstarpumpi.la
 
-tests_mpi_irecv_SOURCES =				\
-	tests/mpi_irecv.c
+tests_mpi_detached_tag_SOURCES =			\
+	tests/mpi_detached_tag.c
 
 tests_pingpong_LDADD =					\
 	libstarpumpi.la

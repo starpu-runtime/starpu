@@ -19,7 +19,7 @@
 
 /* TODO find a better way to select the polling method (perhaps during the
  * configuration) */
-#define USE_STARPU_ACTIVITY	1
+//#define USE_STARPU_ACTIVITY	1
 
 static void submit_mpi_req(void *arg);
 static void handle_request_termination(struct starpu_mpi_req_s *req);
