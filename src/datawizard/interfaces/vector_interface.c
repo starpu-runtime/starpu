@@ -30,20 +30,20 @@
 
 static int dummy_copy_ram_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
 #ifdef USE_CUDA
-static int copy_ram_to_cublas(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
-static int copy_cublas_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
-static int copy_ram_to_cublas_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
-static int copy_cublas_to_ram_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
+static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
+static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
+static int copy_ram_to_cuda_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
+static int copy_cuda_to_ram_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
 #endif
 
 static const struct copy_data_methods_s vector_copy_data_methods_s = {
 	.ram_to_ram = dummy_copy_ram_to_ram,
 	.ram_to_spu = NULL,
 #ifdef USE_CUDA
-	.ram_to_cuda = copy_ram_to_cublas,
-	.cuda_to_ram = copy_cublas_to_ram,
-	.ram_to_cuda_async = copy_ram_to_cublas_async,
-	.cuda_to_ram_async = copy_cublas_to_ram_async,
+	.ram_to_cuda = copy_ram_to_cuda,
+	.cuda_to_ram = copy_cuda_to_ram,
+	.ram_to_cuda_async = copy_ram_to_cuda_async,
+	.cuda_to_ram_async = copy_cuda_to_ram_async,
 #endif
 	.cuda_to_cuda = NULL,
 	.cuda_to_spu = NULL,
@@ -187,6 +187,7 @@ static size_t allocate_vector_buffer_on_node(starpu_data_handle handle, uint32_t
 	starpu_vector_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, dst_node);
 
+	unsigned fail = 0;
 	uintptr_t addr = 0;
 	size_t allocated_memory;
 
@@ -195,29 +196,40 @@ static size_t allocate_vector_buffer_on_node(starpu_data_handle handle, uint32_t
 
 	node_kind kind = get_node_kind(dst_node);
 
+#ifdef USE_CUDA
+	cudaError_t status;
+#endif
+
 	switch(kind) {
 		case RAM:
 			addr = (uintptr_t)malloc(nx*elemsize);
+			if (!addr)
+				fail = 1;
 			break;
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			cublasAlloc(nx, elemsize, (void **)&addr);
+			status = cudaMalloc((void **)&addr, nx*elemsize);
+			if (!addr || (status != cudaSuccess))
+			{
+				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
+					CUDA_REPORT_ERROR(status);
+
+				fail = 1;
+			}
 			break;
 #endif
 		default:
 			assert(0);
 	}
 
-	if (addr) {
-		/* allocation succeeded */
-		allocated_memory = nx*elemsize;
+	if (fail)
+		return 0;
 
-		/* update the data properly in consequence */
-		interface->ptr = addr;
-	} else {
-		/* allocation failed */
-		allocated_memory = 0;
-	}
+	/* allocation succeeded */
+	allocated_memory = nx*elemsize;
+
+	/* update the data properly in consequence */
+	interface->ptr = addr;
 	
 	return allocated_memory;
 }
@@ -233,7 +245,7 @@ static void liberate_vector_buffer_on_node(void *interface, uint32_t node)
 			break;
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			cublasFree((void*)vector_interface->ptr);
+			cudaFree((void*)vector_interface->ptr);
 			break;
 #endif
 		default:
@@ -242,7 +254,7 @@ static void liberate_vector_buffer_on_node(void *interface, uint32_t node)
 }
 
 #ifdef USE_CUDA
-static int copy_cublas_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
+static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
 {
 	starpu_vector_interface_t *src_vector;
 	starpu_vector_interface_t *dst_vector;
@@ -250,16 +262,19 @@ static int copy_cublas_to_ram(starpu_data_handle handle, uint32_t src_node, uint
 	src_vector = starpu_data_get_interface_on_node(handle, src_node);
 	dst_vector = starpu_data_get_interface_on_node(handle, dst_node);
 
-	cublasGetVector(src_vector->nx, src_vector->elemsize,
-		(uint8_t *)src_vector->ptr, 1,
-		(uint8_t *)dst_vector->ptr, 1);
+	cudaError_t cures;
+	cures = cudaMemcpy((char *)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize, cudaMemcpyDeviceToHost);
+	cudaThreadSynchronize();
+
+	if (STARPU_UNLIKELY(cures))
+		CUDA_REPORT_ERROR(cures);
 
 	TRACE_DATA_COPY(src_node, dst_node, src_vector->nx*src_vector->elemsize);
 
 	return 0;
 }
 
-static int copy_ram_to_cublas(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
+static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
 {
 	starpu_vector_interface_t *src_vector;
 	starpu_vector_interface_t *dst_vector;
@@ -267,16 +282,19 @@ static int copy_ram_to_cublas(starpu_data_handle handle, uint32_t src_node, uint
 	src_vector = starpu_data_get_interface_on_node(handle, src_node);
 	dst_vector = starpu_data_get_interface_on_node(handle, dst_node);
 
-	cublasSetVector(src_vector->nx, src_vector->elemsize,
-		(uint8_t *)src_vector->ptr, 1,
-		(uint8_t *)dst_vector->ptr, 1);
+	cudaError_t cures;
+	cures = cudaMemcpy((char *)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize, cudaMemcpyHostToDevice);
+	cudaThreadSynchronize();
+
+	if (STARPU_UNLIKELY(cures))
+		CUDA_REPORT_ERROR(cures);
 
 	TRACE_DATA_COPY(src_node, dst_node, src_vector->nx*src_vector->elemsize);
 
 	return 0;
 }
 
-static int copy_cublas_to_ram_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream)
+static int copy_cuda_to_ram_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream)
 {
 	starpu_vector_interface_t *src_vector;
 	starpu_vector_interface_t *dst_vector;
@@ -303,7 +321,7 @@ static int copy_cublas_to_ram_async(starpu_data_handle handle, uint32_t src_node
 	return EAGAIN;
 }
 
-static int copy_ram_to_cublas_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream)
+static int copy_ram_to_cuda_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream)
 {
 	starpu_vector_interface_t *src_vector;
 	starpu_vector_interface_t *dst_vector;
