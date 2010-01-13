@@ -31,20 +31,20 @@
 
 static int dummy_copy_ram_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
 #ifdef USE_CUDA
-static int copy_ram_to_cublas(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
-static int copy_cublas_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
-static int copy_ram_to_cublas_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
-static int copy_cublas_to_ram_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
+static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
+static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
+static int copy_ram_to_cuda_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
+static int copy_cuda_to_ram_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
 #endif
 
 static const struct copy_data_methods_s blas_copy_data_methods_s = {
 	.ram_to_ram = dummy_copy_ram_to_ram,
 	.ram_to_spu = NULL,
 #ifdef USE_CUDA
-	.ram_to_cuda = copy_ram_to_cublas,
-	.cuda_to_ram = copy_cublas_to_ram,
-	.ram_to_cuda_async = copy_ram_to_cublas_async,
-	.cuda_to_ram_async = copy_cublas_to_ram_async,
+	.ram_to_cuda = copy_ram_to_cuda,
+	.cuda_to_ram = copy_cuda_to_ram,
+	.ram_to_cuda_async = copy_ram_to_cuda_async,
+	.cuda_to_ram_async = copy_cuda_to_ram_async,
 #endif
 	.cuda_to_cuda = NULL,
 	.cuda_to_spu = NULL,
@@ -304,7 +304,7 @@ static void liberate_blas_buffer_on_node(void *interface, uint32_t node)
 }
 
 #ifdef USE_CUDA
-static int copy_cublas_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
+static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
 {
 	starpu_blas_interface_t *src_blas;
 	starpu_blas_interface_t *dst_blas;
@@ -326,7 +326,7 @@ static int copy_cublas_to_ram(starpu_data_handle handle, uint32_t src_node, uint
 	return 0;
 }
 
-static int copy_ram_to_cublas(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
+static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
 {
 	starpu_blas_interface_t *src_blas;
 	starpu_blas_interface_t *dst_blas;
@@ -352,7 +352,7 @@ static int copy_ram_to_cublas(starpu_data_handle handle, uint32_t src_node, uint
 	return 0;
 }
 
-static int copy_cublas_to_ram_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream)
+static int copy_cuda_to_ram_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream)
 {
 	starpu_blas_interface_t *src_blas;
 	starpu_blas_interface_t *dst_blas;
@@ -390,7 +390,7 @@ static int copy_cublas_to_ram_async(starpu_data_handle handle, uint32_t src_node
 	return EAGAIN;
 }
 
-static int copy_ram_to_cublas_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream)
+static int copy_ram_to_cuda_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream)
 {
 	starpu_blas_interface_t *src_blas;
 	starpu_blas_interface_t *dst_blas;

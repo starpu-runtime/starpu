@@ -25,16 +25,16 @@
 
 static int dummy_copy_ram_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
 #ifdef USE_CUDA
-static int copy_ram_to_cublas(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
-static int copy_cublas_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
+static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
+static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
 #endif
 
 static const struct copy_data_methods_s csr_copy_data_methods_s = {
 	.ram_to_ram = dummy_copy_ram_to_ram,
 	.ram_to_spu = NULL,
 #ifdef USE_CUDA
-	.ram_to_cuda = copy_ram_to_cublas,
-	.cuda_to_ram = copy_cublas_to_ram,
+	.ram_to_cuda = copy_ram_to_cuda,
+	.cuda_to_ram = copy_cuda_to_ram,
 #endif
 	.cuda_to_cuda = NULL,
 	.cuda_to_spu = NULL,
@@ -232,15 +232,15 @@ static size_t allocate_csr_buffer_on_node(starpu_data_handle handle, uint32_t ds
 			break;
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			cublasAlloc(nnz, elemsize, (void **)&addr_nzval);
+			cudaMalloc((void **)&addr_nzval, nnz*elemsize);
 			if (!addr_nzval)
 				goto fail_nzval;
 
-			cublasAlloc(nnz, sizeof(uint32_t), (void **)&addr_colind);
+			cudaMalloc((void **)&addr_colind, nnz*sizeof(uint32_t));
 			if (!addr_colind)
 				goto fail_colind;
 
-			cublasAlloc((nrow+1), sizeof(uint32_t), (void **)&addr_rowptr);
+			cudaMalloc((void **)&addr_rowptr, (nrow+1)*sizeof(uint32_t));
 			if (!addr_rowptr)
 				goto fail_rowptr;
 
@@ -267,7 +267,7 @@ fail_rowptr:
 			free((void *)addr_colind);
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			cublasFree((void*)addr_colind);
+			cudaFree((void*)addr_colind);
 			break;
 #endif
 		default:
@@ -280,7 +280,7 @@ fail_colind:
 			free((void *)addr_nzval);
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			cublasFree((void*)addr_nzval);
+			cudaFree((void*)addr_nzval);
 			break;
 #endif
 		default:
@@ -308,9 +308,9 @@ static void liberate_csr_buffer_on_node(void *interface, uint32_t node)
 			break;
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			cublasFree((void*)csr_interface->nzval);
-			cublasFree((void*)csr_interface->colind);
-			cublasFree((void*)csr_interface->rowptr);
+			cudaFree((void*)csr_interface->nzval);
+			cudaFree((void*)csr_interface->colind);
+			cudaFree((void*)csr_interface->rowptr);
 			break;
 #endif
 		default:
@@ -319,7 +319,7 @@ static void liberate_csr_buffer_on_node(void *interface, uint32_t node)
 }
 
 #ifdef USE_CUDA
-static int copy_cublas_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
+static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
 {
 	starpu_csr_interface_t *src_csr;
 	starpu_csr_interface_t *dst_csr;
@@ -331,21 +331,28 @@ static int copy_cublas_to_ram(starpu_data_handle handle, uint32_t src_node, uint
 	uint32_t nrow = src_csr->nrow;
 	size_t elemsize = src_csr->elemsize;
 
-	cublasGetVector(nnz, elemsize, (uint8_t *)src_csr->nzval, 1, 
-					(uint8_t *)dst_csr->nzval, 1);
+	cudaError_t cures;
 
-	cublasGetVector(nnz, sizeof(uint32_t), (uint8_t *)src_csr->colind, 1, 
-						(uint8_t *)dst_csr->colind, 1);
+	cures = cudaMemcpy((char *)dst_csr->nzval, (char *)src_csr->nzval, nnz*elemsize, cudaMemcpyDeviceToHost);
+	if (STARPU_UNLIKELY(cures))
+		CUDA_REPORT_ERROR(cures);
 
-	cublasGetVector((nrow+1), sizeof(uint32_t), (uint8_t *)src_csr->rowptr, 1, 
-						(uint8_t *)dst_csr->rowptr, 1);
-	
+	cures = cudaMemcpy((char *)dst_csr->colind, (char *)src_csr->colind, nnz*sizeof(uint32_t), cudaMemcpyDeviceToHost);
+	if (STARPU_UNLIKELY(cures))
+		CUDA_REPORT_ERROR(cures);
+
+	cures = cudaMemcpy((char *)dst_csr->rowptr, (char *)src_csr->rowptr, (nrow+1)*sizeof(uint32_t), cudaMemcpyDeviceToHost);
+	if (STARPU_UNLIKELY(cures))
+		CUDA_REPORT_ERROR(cures);
+
+	cudaThreadSynchronize();
+
 	TRACE_DATA_COPY(src_node, dst_node, nnz*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
 
 	return 0;
 }
 
-static int copy_ram_to_cublas(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
+static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
 {
 	starpu_csr_interface_t *src_csr;
 	starpu_csr_interface_t *dst_csr;
@@ -357,15 +364,22 @@ static int copy_ram_to_cublas(starpu_data_handle handle, uint32_t src_node, uint
 	uint32_t nrow = src_csr->nrow;
 	size_t elemsize = src_csr->elemsize;
 
-	cublasSetVector(nnz, elemsize, (uint8_t *)src_csr->nzval, 1, 
-					(uint8_t *)dst_csr->nzval, 1);
+	cudaError_t cures;
 
-	cublasSetVector(nnz, sizeof(uint32_t), (uint8_t *)src_csr->colind, 1, 
-						(uint8_t *)dst_csr->colind, 1);
+	cures = cudaMemcpy((char *)dst_csr->nzval, (char *)src_csr->nzval, nnz*elemsize, cudaMemcpyHostToDevice);
+	if (STARPU_UNLIKELY(cures))
+		CUDA_REPORT_ERROR(cures);
 
-	cublasSetVector((nrow+1), sizeof(uint32_t), (uint8_t *)src_csr->rowptr, 1, 
-						(uint8_t *)dst_csr->rowptr, 1);
-	
+	cures = cudaMemcpy((char *)dst_csr->colind, (char *)src_csr->colind, nnz*sizeof(uint32_t), cudaMemcpyHostToDevice);
+	if (STARPU_UNLIKELY(cures))
+		CUDA_REPORT_ERROR(cures);
+
+	cures = cudaMemcpy((char *)dst_csr->rowptr, (char *)src_csr->rowptr, (nrow+1)*sizeof(uint32_t), cudaMemcpyHostToDevice);
+	if (STARPU_UNLIKELY(cures))
+		CUDA_REPORT_ERROR(cures);
+
+	cudaThreadSynchronize();
+
 	TRACE_DATA_COPY(src_node, dst_node, nnz*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
 
 	return 0;
