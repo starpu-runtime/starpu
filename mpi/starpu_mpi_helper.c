@@ -25,22 +25,22 @@ static void starpu_mpi_unlock_tag_callback(void *arg)
 	free(tagptr);
 }
 
-int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle data_handle, struct starpu_mpi_req_s *req,
+int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle data_handle,
 				int dest, int mpi_tag, MPI_Comm comm, starpu_tag_t tag)
 {
 	starpu_tag_t *tagptr = malloc(sizeof(starpu_tag_t));
 	*tagptr = tag;
 	
-	return starpu_mpi_isend_detached(data_handle, req, dest, mpi_tag, comm,
+	return starpu_mpi_isend_detached(data_handle, dest, mpi_tag, comm,
 						starpu_mpi_unlock_tag_callback, tagptr);
 }
 
 
-int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle data_handle, struct starpu_mpi_req_s *req, int source, int mpi_tag, MPI_Comm comm, starpu_tag_t tag)
+int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle data_handle, int source, int mpi_tag, MPI_Comm comm, starpu_tag_t tag)
 {
 	starpu_tag_t *tagptr = malloc(sizeof(starpu_tag_t));
 	*tagptr = tag;
 	
-	return starpu_mpi_irecv_detached(data_handle, req, source, mpi_tag, comm,
+	return starpu_mpi_irecv_detached(data_handle, source, mpi_tag, comm,
 						starpu_mpi_unlock_tag_callback, tagptr);
 }

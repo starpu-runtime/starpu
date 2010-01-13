@@ -74,10 +74,8 @@ int main(int argc, char **argv)
 		}
 		else {
 			MPI_Status status;
-			struct starpu_mpi_req_s req;
-
 			int received = 0;
-			starpu_mpi_irecv_detached(tab_handle, &req, other_rank, loop, MPI_COMM_WORLD, callback, &received);
+			starpu_mpi_irecv_detached(tab_handle, other_rank, loop, MPI_COMM_WORLD, callback, &received);
 
 			pthread_mutex_lock(&mutex);
 			while (!received)

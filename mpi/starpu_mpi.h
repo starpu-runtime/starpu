@@ -66,8 +66,8 @@ int starpu_mpi_send(starpu_data_handle data_handle,
 		int dest, int mpi_tag, MPI_Comm comm);
 int starpu_mpi_recv(starpu_data_handle data_handle,
 		int source, int mpi_tag, MPI_Comm comm, MPI_Status *status);
-int starpu_mpi_isend_detached(starpu_data_handle data_handle, struct starpu_mpi_req_s *req, int dest, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg);
-int starpu_mpi_irecv_detached(starpu_data_handle data_handle, struct starpu_mpi_req_s *req, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg);
+int starpu_mpi_isend_detached(starpu_data_handle data_handle, int dest, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg);
+int starpu_mpi_irecv_detached(starpu_data_handle data_handle, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg);
 int starpu_mpi_wait(struct starpu_mpi_req_s *req, MPI_Status *status);
 int starpu_mpi_test(struct starpu_mpi_req_s *req, int *flag, MPI_Status *status);
 int starpu_mpi_initialize(void);
@@ -76,7 +76,7 @@ int starpu_mpi_shutdown(void);
 /* Some helper functions */
 
 /* When the transfer is completed, the tag is unlocked */
-int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle data_handle, struct starpu_mpi_req_s *req, int dest, int mpi_tag, MPI_Comm comm, starpu_tag_t tag);
-int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle data_handle, struct starpu_mpi_req_s *req, int source, int mpi_tag, MPI_Comm comm, starpu_tag_t tag);
+int starpu_mpi_isend_detached_unlock_tag(starpu_data_handle data_handle, int dest, int mpi_tag, MPI_Comm comm, starpu_tag_t tag);
+int starpu_mpi_irecv_detached_unlock_tag(starpu_data_handle data_handle, int source, int mpi_tag, MPI_Comm comm, starpu_tag_t tag);
 
 #endif // __STARPU_MPI_H__

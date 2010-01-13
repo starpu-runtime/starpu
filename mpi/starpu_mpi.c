@@ -86,12 +86,11 @@ int starpu_mpi_isend(starpu_data_handle data_handle, struct starpu_mpi_req_s *re
  *	Isend (detached)
  */
 
-int starpu_mpi_isend_detached(starpu_data_handle data_handle, struct starpu_mpi_req_s *req,
+int starpu_mpi_isend_detached(starpu_data_handle data_handle,
 				int dest, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 {
+	struct starpu_mpi_req_s *req = calloc(1, sizeof(struct starpu_mpi_req_s));
 	STARPU_ASSERT(req);
-
-	memset(req, 0, sizeof(struct starpu_mpi_req_s));
 
 	/* Initialize the request structure */
 	req->submitted = 0;
@@ -168,11 +167,10 @@ int starpu_mpi_irecv(starpu_data_handle data_handle, struct starpu_mpi_req_s *re
  *	Irecv (detached)
  */
 
-int starpu_mpi_irecv_detached(starpu_data_handle data_handle, struct starpu_mpi_req_s *req, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
+int starpu_mpi_irecv_detached(starpu_data_handle data_handle, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 {
+	struct starpu_mpi_req_s *req = calloc(1, sizeof(struct starpu_mpi_req_s));
 	STARPU_ASSERT(req);
-
-	memset(req, 0, sizeof(struct starpu_mpi_req_s));
 
 	/* Initialize the request structure */
 	req->submitted = 0;
@@ -424,6 +422,11 @@ void test_detached_requests(void)
 
 		if (flag)
 			starpu_mpi_req_list_erase(detached_requests, req);
+
+#warning TODO fix memleak
+		/* Detached requests are automatically allocated by the lib */
+//		if (req->detached)
+//			free(req);
 	}
 	
 	pthread_mutex_unlock(&detached_requests_mutex);

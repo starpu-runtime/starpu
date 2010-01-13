@@ -54,15 +54,14 @@ int main(int argc, char **argv)
 
 	for (loop = 0; loop < nloops; loop++)
 	{
-		struct starpu_mpi_req_s req;
 		starpu_tag_t tag = (starpu_tag_t)loop;
 
 		if ((loop % 2) == rank)
 		{
-			starpu_mpi_isend_detached_unlock_tag(tab_handle, &req, other_rank, loop, MPI_COMM_WORLD, tag);
+			starpu_mpi_isend_detached_unlock_tag(tab_handle, other_rank, loop, MPI_COMM_WORLD, tag);
 		}
 		else {
-			starpu_mpi_irecv_detached_unlock_tag(tab_handle, &req, other_rank, loop, MPI_COMM_WORLD, tag);
+			starpu_mpi_irecv_detached_unlock_tag(tab_handle, other_rank, loop, MPI_COMM_WORLD, tag);
 		}
 
 		starpu_tag_wait(tag);
