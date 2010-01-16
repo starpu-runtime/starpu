@@ -20,9 +20,12 @@
 void set_local_worker_status(worker_status st)
 {
 	struct worker_s *worker = get_local_worker_key();
-	STARPU_ASSERT(worker);
 
-	worker->status = st;
+	/* It is possible that we call this function from the application (and
+	 * thereforce outside a worker), for instance if we are executing the
+	 * callback function of a task with a "NULL" codelet. */
+	if (worker)
+		worker->status = st;
 }
 
 worker_status get_local_worker_status(void)
