@@ -14,7 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-CC=mpicc
+CC=$(MPICC)
 
 if USE_CUDA
 # TODO define NVCCFLAGS
