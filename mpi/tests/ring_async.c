@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 		{
 			token = 0;
 			MPI_Status status;
-			struct starpu_mpi_req_s req;
+			starpu_mpi_req req;
 			starpu_mpi_irecv(token_handle, &req, (rank+size-1)%size, tag, MPI_COMM_WORLD);
 			starpu_mpi_wait(&req, &status);
 		}
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 		
 		if (!((loop == last_loop) && (rank == last_rank)))
 		{
-			struct starpu_mpi_req_s req;
+			starpu_mpi_req req;
 			MPI_Status status;
 			starpu_mpi_isend(token_handle, &req, (rank+1)%size, tag+1, MPI_COMM_WORLD);
 			starpu_mpi_wait(&req, &status);

@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 
 	for (loop = 0; loop < nloops; loop++)
 	{
-		struct starpu_mpi_req_s req;
+		starpu_mpi_req req;
 
 		if ((loop % 2) == rank)
 		{

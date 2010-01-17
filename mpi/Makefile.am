@@ -37,6 +37,9 @@ lib_LTLIBRARIES = libstarpumpi.la
 libstarpumpi_la_LIBADD = $(top_builddir)/src/libstarpu.la
 
 noinst_HEADERS =					\
+	starpu_mpi_private.h
+
+include_HEADERS =					\
 	starpu_mpi.h					\
 	starpu_mpi_datatype.h
 
