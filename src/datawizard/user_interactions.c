@@ -24,6 +24,8 @@ int starpu_request_data_allocation(starpu_data_handle handle, uint32_t node)
 {
 	data_request_t r;
 
+	STARPU_ASSERT(handle);
+
 	r = create_data_request(handle, 0, node, node, 0, 0, 1);
 
 	/* we do not increase the refcnt associated to the request since we are
@@ -55,6 +57,8 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 
 	starpu_data_handle handle = statenode->state;
 
+	STARPU_ASSERT(handle);
+
 	unsigned r = (statenode->mode != STARPU_W);
 	unsigned w = (statenode->mode != STARPU_R);
 
@@ -67,6 +71,8 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 		 * execute the callback if any  */
 		if (statenode->callback)
 			statenode->callback(statenode->callback_arg);
+
+		free(statenode);
 	}
 	else {
 		/* continuation of starpu_sync_data_with_mem */
@@ -80,6 +86,8 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 /* The data must be released by calling starpu_release_data_from_mem later on */
 int starpu_sync_data_with_mem(starpu_data_handle handle, starpu_access_mode mode)
 {
+	STARPU_ASSERT(handle);
+
 	/* it is forbidden to call this function from a callback or a codelet */
 	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
 		return -EDEADLK;
@@ -118,27 +126,28 @@ int starpu_sync_data_with_mem(starpu_data_handle handle, starpu_access_mode mode
 int starpu_sync_data_with_mem_non_blocking(starpu_data_handle handle,
 		starpu_access_mode mode, void (*callback)(void *), void *arg)
 {
-	struct state_and_node statenode =
-	{
-		.state = handle,
-		.mode = mode,
-		.node = 0, // unused
-		.non_blocking = 1,
-		.callback = callback,
-		.callback_arg = arg,
-		.cond = PTHREAD_COND_INITIALIZER,
-		.lock = PTHREAD_MUTEX_INITIALIZER,
-		.finished = 0
-	};
+	STARPU_ASSERT(handle);
+
+	struct state_and_node *statenode = malloc(sizeof(struct state_and_node));
+	STARPU_ASSERT(statenode);
+
+	statenode->state = handle;
+	statenode->mode = mode;
+	statenode->non_blocking = 1;
+	statenode->callback = callback;
+	statenode->callback_arg = arg;
+	pthread_cond_init(&statenode->cond, NULL);
+	pthread_mutex_init(&statenode->lock, NULL);
+	statenode->finished = 0;
 
 	/* we try to get the data, if we do not succeed immediately, we set a
  	* callback function that will be executed automatically when the data is
  	* available again, otherwise we fetch the data directly */
 	if (!attempt_to_submit_data_request_from_apps(handle, mode,
-			_starpu_sync_data_with_mem_continuation, &statenode))
+			_starpu_sync_data_with_mem_continuation, statenode))
 	{
 		/* no one has locked this data yet, so we proceed immediately */
-		_starpu_sync_data_with_mem_continuation(&statenode);
+		_starpu_sync_data_with_mem_continuation(statenode);
 	}
 
 	return 0;
@@ -148,6 +157,8 @@ int starpu_sync_data_with_mem_non_blocking(starpu_data_handle handle,
  * application release the data */
 void starpu_release_data_from_mem(starpu_data_handle handle)
 {
+	STARPU_ASSERT(handle);
+
 	/* The application can now release the rw-lock */
 	release_data_on_node(handle, 0, 0);
 }
@@ -176,6 +187,8 @@ static void _prefetch_data_on_node(void *arg)
 
 int starpu_prefetch_data_on_node(starpu_data_handle handle, unsigned node, unsigned async)
 {
+	STARPU_ASSERT(handle);
+
 	/* it is forbidden to call this function from a callback or a codelet */
 	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
 		return -EDEADLK;
