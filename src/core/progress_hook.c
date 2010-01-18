@@ -50,7 +50,7 @@ int starpu_register_progression_hook(unsigned (*func)(void *arg), void *arg)
 
 	pthread_mutex_unlock(&progression_hook_mutex);
 
-	wake_all_blocked_workers();
+	starpu_wake_all_blocked_workers();
 
 	/* We could not find an empty slot */
 	return -1;
@@ -63,7 +63,7 @@ void starpu_deregister_progression_hook(int hook_id)
 	pthread_mutex_unlock(&progression_hook_mutex);
 }
 
-unsigned execute_registered_progression_hooks(void)
+unsigned _starpu_execute_registered_progression_hooks(void)
 {
 	/* By default, it is possible to block, but if some progression hooks
 	 * requires that it's not blocking, we disable blocking. */

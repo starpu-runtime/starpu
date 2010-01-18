@@ -118,7 +118,7 @@ static unsigned attempt_to_submit_data_request_from_job(job_t j, unsigned buffer
 	starpu_access_mode mode = j->task->buffers[buffer_index].mode;
 
 	while (starpu_spin_trylock(&handle->header_lock))
-		datawizard_progress(get_local_memory_node(), 0);
+		_starpu_datawizard_progress(get_local_memory_node(), 0);
 
 	if (handle->refcnt == 0)
 	{
@@ -182,7 +182,7 @@ static unsigned _submit_job_enforce_data_deps(job_t j, unsigned start_buffer_ind
    with concurrent data-access at the same time in the scheduling engine (eg.
    there can be 2 tasks reading a piece of data, but there cannot be one
    reading and another writing) */
-unsigned submit_job_enforce_data_deps(job_t j)
+unsigned _starpu_submit_job_enforce_data_deps(job_t j)
 {
 	if ((j->task->cl == NULL) || (j->task->cl->nbuffers == 0))
 		return 0;

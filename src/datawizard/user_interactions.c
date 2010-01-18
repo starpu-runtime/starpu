@@ -89,7 +89,7 @@ int starpu_sync_data_with_mem(starpu_data_handle handle, starpu_access_mode mode
 	STARPU_ASSERT(handle);
 
 	/* it is forbidden to call this function from a callback or a codelet */
-	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
+	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
 	struct state_and_node statenode =
@@ -190,7 +190,7 @@ int starpu_prefetch_data_on_node(starpu_data_handle handle, unsigned node, unsig
 	STARPU_ASSERT(handle);
 
 	/* it is forbidden to call this function from a callback or a codelet */
-	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
+	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
 	struct state_and_node statenode =

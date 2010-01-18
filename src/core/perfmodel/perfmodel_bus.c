@@ -52,14 +52,14 @@ static struct cudadev_timing cudadev_timing_per_cpu[MAXNODES][MAXCPUS];
 
 static void measure_bandwith_between_host_and_dev_on_cpu(int dev, int cpu)
 {
-	struct machine_config_s *config = get_machine_config();
-	bind_thread_on_cpu(config, cpu);
+	struct machine_config_s *config = _starpu_get_machine_config();
+	_starpu_bind_thread_on_cpu(config, cpu);
 
 	/* Initiliaze CUDA context on the device */
 	cudaSetDevice(dev);
 
 	/* hack to avoid third party libs to rebind threads */
-	bind_thread_on_cpu(config, cpu);
+	_starpu_bind_thread_on_cpu(config, cpu);
 
 	/* hack to force the initialization */
 	cudaFree(0);
@@ -190,8 +190,8 @@ static void benchmark_all_cuda_devices(void)
 	}
 
 #ifdef USE_CUDA
-	struct machine_config_s *config = get_machine_config();
-	unsigned ncores = topology_get_nhwcore(config);
+	struct machine_config_s *config = _starpu_get_machine_config();
+	unsigned ncores = _starpu_topology_get_nhwcore(config);
 
         cudaGetDeviceCount(&ncuda);
 	int i;
@@ -248,8 +248,8 @@ static void load_bus_affinity_file_content(void)
 	STARPU_ASSERT(f);
 
 #ifdef USE_CUDA
-	struct machine_config_s *config = get_machine_config();
-	unsigned ncores = topology_get_nhwcore(config);
+	struct machine_config_s *config = _starpu_get_machine_config();
+	unsigned ncores = _starpu_topology_get_nhwcore(config);
 
         cudaGetDeviceCount(&ncuda);
 
@@ -297,8 +297,8 @@ static void write_bus_affinity_file_content(void)
 	}
 
 #ifdef USE_CUDA
-	struct machine_config_s *config = get_machine_config();
-	unsigned ncores = topology_get_nhwcore(config);
+	struct machine_config_s *config = _starpu_get_machine_config();
+	unsigned ncores = _starpu_topology_get_nhwcore(config);
 
 	int gpu;
 	for (gpu = 0; gpu < ncuda; gpu++)

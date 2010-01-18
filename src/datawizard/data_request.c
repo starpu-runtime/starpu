@@ -151,9 +151,9 @@ int wait_data_request_completion(data_request_t r, unsigned may_alloc)
 
 		starpu_spin_unlock(&r->lock);
 
-		wake_all_blocked_workers_on_node(r->handling_node);
+		_starpu_wake_all_blocked_workers_on_node(r->handling_node);
 
-		datawizard_progress(local_node, may_alloc);
+		_starpu_datawizard_progress(local_node, may_alloc);
 
 	} while (1);
 
@@ -198,7 +198,7 @@ void post_data_request(data_request_t r, uint32_t handling_node)
 	res = pthread_mutex_unlock(&data_requests_list_mutex[handling_node]);
 	STARPU_ASSERT(!res);
 
-	wake_all_blocked_workers_on_node(handling_node);
+	_starpu_wake_all_blocked_workers_on_node(handling_node);
 }
 
 static void handle_data_request_completion(data_request_t r)

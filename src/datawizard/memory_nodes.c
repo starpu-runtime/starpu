@@ -28,7 +28,7 @@ static pthread_key_t memory_node_key;
 void init_memory_nodes(void)
 {
 	/* there is no node yet, subsequent nodes will be 
-	 * added using register_memory_node */
+	 * added using _starpu_register_memory_node */
 	descr.nnodes = 0;
 
 	pthread_key_create(&memory_node_key, NULL);
@@ -85,7 +85,7 @@ unsigned get_memory_nodes_count(void)
 	return descr.nnodes;
 }
 
-unsigned register_memory_node(node_kind kind)
+unsigned _starpu_register_memory_node(node_kind kind)
 {
 	unsigned nnodes;
 	/* ATOMIC_ADD returns the new value ... */
@@ -146,7 +146,7 @@ void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
 
 unsigned starpu_get_worker_memory_node(unsigned workerid)
 {
-	struct worker_s *worker = get_worker_struct(workerid);
+	struct worker_s *worker = _starpu_get_worker_struct(workerid);
 
 	return worker->memory_node;
 }

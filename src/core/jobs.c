@@ -55,7 +55,7 @@ job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task)
 	pthread_cond_init(&job->sync_cond, NULL);
 
 	if (task->use_tag)
-		tag_declare(task->tag_id, job);
+		_starpu_tag_declare(task->tag_id, job);
 
 	return job;
 }
@@ -81,7 +81,7 @@ void _starpu_handle_job_termination(job_t j)
 		fprintf(stderr, "OOPS ... job %p was already terminated !!\n", j);
 
 	/* in case there are dependencies, wake up the proper tasks */
-	notify_dependencies(j);
+	_starpu_notify_dependencies(j);
 
 	/* the callback is executed after the dependencies so that we may remove the tag 
  	 * of the task itself */
@@ -89,13 +89,13 @@ void _starpu_handle_job_termination(job_t j)
 	{
 		/* so that we can check whether we are doing blocking calls
 		 * within the callback */
-		set_local_worker_status(STATUS_CALLBACK);
+		_starpu_set_local_worker_status(STATUS_CALLBACK);
 
 		TRACE_START_CALLBACK(j);
 		task->callback_func(task->callback_arg);
 		TRACE_END_CALLBACK(j);
 
-		set_local_worker_status(STATUS_UNKNOWN);
+		_starpu_set_local_worker_status(STATUS_UNKNOWN);
 	}
 
 	if (!task->detach)
@@ -162,7 +162,7 @@ unsigned _starpu_enforce_deps_and_schedule(job_t j)
 		return 0;
 
 	/* enforce data dependencies */
-	if (submit_job_enforce_data_deps(j))
+	if (_starpu_submit_job_enforce_data_deps(j))
 		return 0;
 
 	ret = push_task(j);
@@ -195,7 +195,7 @@ int _starpu_push_local_task(struct worker_s *worker, struct job_s *j)
 	pthread_mutex_unlock(&worker->local_jobs_mutex);
 
 	/* XXX that's a bit excessive ... */
-	wake_all_blocked_workers_on_node(worker->memory_node);
+	_starpu_wake_all_blocked_workers_on_node(worker->memory_node);
 
 	return 0;
 }

@@ -24,9 +24,9 @@
 #include <common/config.h>
 #include <core/workers.h>
 
-void open_debug_logfile(void);
-void close_debug_logfile(void);
+void _starpu_open_debug_logfile(void);
+void _starpu_close_debug_logfile(void);
 
-void print_to_logfile(const char *format, ...);
+void _starpu_print_to_logfile(const char *format, ...);
 
 #endif // __DEBUG_H__

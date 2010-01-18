@@ -192,7 +192,7 @@ int push_task(job_t j)
 
 	if (STARPU_UNLIKELY(j->task->execute_on_a_specific_worker))
 	{
-		struct worker_s *worker = get_worker_struct(j->task->workerid);
+		struct worker_s *worker = _starpu_get_worker_struct(j->task->workerid);
 		return _starpu_push_local_task(worker, j);
 	}
 	else {
@@ -243,7 +243,7 @@ void wait_on_sched_event(void)
 
 	handle_all_pending_node_data_requests(get_local_memory_node());
 
-	if (machine_is_running())
+	if (_starpu_machine_is_running())
 	{
 #ifndef NON_BLOCKING_DRIVERS
 		pthread_cond_wait(&q->activity_cond, &q->activity_mutex);

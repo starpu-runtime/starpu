@@ -28,10 +28,10 @@
 		
 static unsigned topology_is_initialized = 0;
 
-static void initialize_workers_bindid(struct machine_config_s *config);
+static void _starpu_initialize_workers_bindid(struct machine_config_s *config);
 
 #ifdef USE_CUDA
-static void initialize_workers_gpuid(struct machine_config_s *config);
+static void _starpu_initialize_workers_gpuid(struct machine_config_s *config);
 static unsigned may_bind_automatically = 0;
 #endif
 
@@ -40,7 +40,7 @@ static unsigned may_bind_automatically = 0;
  */
 
 #ifdef USE_CUDA
-static void initialize_workers_gpuid(struct machine_config_s *config)
+static void _starpu_initialize_workers_gpuid(struct machine_config_s *config)
 {
 	char *strval;
 	unsigned i;
@@ -110,14 +110,14 @@ static void initialize_workers_gpuid(struct machine_config_s *config)
 }
 #endif
 
-static inline int get_next_gpuid(struct machine_config_s *config)
+static inline int _starpu_get_next_gpuid(struct machine_config_s *config)
 {
 	unsigned i = ((config->current_gpuid++) % config->ncudagpus);
 
 	return (int)config->workers_gpuid[i];
 }
 
-static void init_topology(struct machine_config_s *config)
+static void _starpu_init_topology(struct machine_config_s *config)
 {
 	if (!topology_is_initialized)
 	{
@@ -143,14 +143,14 @@ static void init_topology(struct machine_config_s *config)
 	}
 }
 
-unsigned topology_get_nhwcore(struct machine_config_s *config)
+unsigned _starpu_topology_get_nhwcore(struct machine_config_s *config)
 {
-	init_topology(config);
+	_starpu_init_topology(config);
 	
 	return config->nhwcores;
 }
 
-static int init_machine_config(struct machine_config_s *config,
+static int _starpu_init_machine_config(struct machine_config_s *config,
 				struct starpu_conf *user_conf)
 {
 	int explicitval __attribute__((unused));
@@ -158,9 +158,9 @@ static int init_machine_config(struct machine_config_s *config,
 
 	config->nworkers = 0;
 
-	init_topology(config);
+	_starpu_init_topology(config);
 
-	initialize_workers_bindid(config);
+	_starpu_initialize_workers_bindid(config);
 
 #ifdef USE_CUDA
 	if (user_conf && (user_conf->ncuda == 0))
@@ -170,7 +170,7 @@ static int init_machine_config(struct machine_config_s *config,
 	}
 	else {
 		/* we need to initialize CUDA early to count the number of devices */
-		init_cuda();
+		_starpu_init_cuda();
 
 		if (user_conf && (user_conf->ncuda != -1))
 		{
@@ -194,13 +194,13 @@ static int init_machine_config(struct machine_config_s *config,
 	if (config->ncudagpus > 0)
 		use_accelerator = 1;
 
-	initialize_workers_gpuid(config);
+	_starpu_initialize_workers_gpuid(config);
 
 	unsigned cudagpu;
 	for (cudagpu = 0; cudagpu < config->ncudagpus; cudagpu++)
 	{
 		config->workers[config->nworkers + cudagpu].arch = STARPU_CUDA_WORKER;
-		int devid = get_next_gpuid(config);
+		int devid = _starpu_get_next_gpuid(config);
 		enum starpu_perf_archtype arch = STARPU_CUDA_DEFAULT + devid;
 		config->workers[config->nworkers + cudagpu].id = devid;
 		config->workers[config->nworkers + cudagpu].perf_arch = arch; 
@@ -293,7 +293,7 @@ static int init_machine_config(struct machine_config_s *config,
 /*
  * Bind workers on the different processors
  */
-static void initialize_workers_bindid(struct machine_config_s *config)
+static void _starpu_initialize_workers_bindid(struct machine_config_s *config)
 {
 	char *strval;
 	unsigned i;
@@ -363,7 +363,7 @@ static void initialize_workers_bindid(struct machine_config_s *config)
  * worker. In case a list of preferred cores was specified, we look for a an
  * available core among the list if possible, otherwise a round-robin policy is
  * used. */
-static inline int get_next_bindid(struct machine_config_s *config,
+static inline int _starpu_get_next_bindid(struct machine_config_s *config,
 				int *preferred_binding, int npreferred)
 {
 	unsigned found = 0;
@@ -402,12 +402,12 @@ static inline int get_next_bindid(struct machine_config_s *config,
 	return (int)config->workers_bindid[i];
 }
 
-void bind_thread_on_cpu(struct machine_config_s *config __attribute__((unused)), unsigned coreid)
+void _starpu_bind_thread_on_cpu(struct machine_config_s *config __attribute__((unused)), unsigned coreid)
 {
 	int ret;
 
 #ifdef HAVE_HWLOC
-	init_topology(config);
+	_starpu_init_topology(config);
 
 	hwloc_obj_t obj = hwloc_get_obj_by_depth(config->hwtopology, config->core_depth, coreid);
 	hwloc_cpuset_t set = obj->cpuset;
@@ -439,7 +439,7 @@ void bind_thread_on_cpu(struct machine_config_s *config __attribute__((unused)),
 #endif
 }
 
-static void init_workers_binding(struct machine_config_s *config)
+static void _starpu_init_workers_binding(struct machine_config_s *config)
 {
 	/* launch one thread per CPU */
 	unsigned ram_memory_node;
@@ -449,7 +449,7 @@ static void init_workers_binding(struct machine_config_s *config)
 
 	/* note that even if the CPU core are not used, we always have a RAM node */
 	/* TODO : support NUMA  ;) */
-	ram_memory_node = register_memory_node(RAM);
+	ram_memory_node = _starpu_register_memory_node(RAM);
 
 	unsigned worker;
 	for (worker = 0; worker < config->nworkers; worker++)
@@ -484,7 +484,7 @@ static void init_workers_binding(struct machine_config_s *config)
 					npreferred = config->nhwcores;
 				}
 				is_a_set_of_accelerators = 0;
-				memory_node = register_memory_node(CUDA_RAM);
+				memory_node = _starpu_register_memory_node(CUDA_RAM);
 				break;
 #endif
 			default:
@@ -493,12 +493,12 @@ static void init_workers_binding(struct machine_config_s *config)
 
 		if (is_a_set_of_accelerators) {
 			if (accelerator_bindid == -1)
-				accelerator_bindid = get_next_bindid(config, preferred_binding, npreferred);
+				accelerator_bindid = _starpu_get_next_bindid(config, preferred_binding, npreferred);
 
 			workerarg->bindid = accelerator_bindid;
 		}
 		else {
-			workerarg->bindid = get_next_bindid(config, preferred_binding, npreferred);
+			workerarg->bindid = _starpu_get_next_bindid(config, preferred_binding, npreferred);
 		}
 
 		workerarg->memory_node = memory_node;
@@ -512,14 +512,14 @@ int starpu_build_topology(struct machine_config_s *config)
 
 	struct starpu_conf *user_conf = config->user_conf;
 
-	ret = init_machine_config(config, user_conf);
+	ret = _starpu_init_machine_config(config, user_conf);
 	if (ret)
 		return ret;
 
 	/* for the data management library */
 	init_memory_nodes();
 
-	init_workers_binding(config);
+	_starpu_init_workers_binding(config);
 
 	return 0;
 }

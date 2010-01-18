@@ -72,7 +72,7 @@ typedef union u_tick
 #endif // USE_SYNC_CLOCK
 
 void __attribute__ ((unused)) timing_init(void);
-inline double __attribute__ ((unused)) tick2usec(long long t);
+inline double __attribute__ ((unused)) _starpu_tick2usec(long long t);
 inline double __attribute__ ((unused)) timing_delay(tick_t *t1, tick_t *t2);
 
 inline double __attribute__ ((unused)) timing_now(void);

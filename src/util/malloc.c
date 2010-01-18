@@ -50,7 +50,7 @@ static starpu_codelet malloc_pinned_cl = {
 
 int starpu_malloc_pinned_if_possible(void **A, size_t dim)
 {
-	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
+	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
 	STARPU_ASSERT(A);
@@ -104,7 +104,7 @@ static starpu_codelet free_pinned_cl = {
 
 int starpu_free_pinned_if_possible(void *A)
 {
-	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
+	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
 	if (may_submit_cuda_task())

@@ -23,7 +23,7 @@ static pthread_mutex_t logfile_mutex = PTHREAD_MUTEX_INITIALIZER;
 static FILE *logfile;
 #endif
 
-void open_debug_logfile(void)
+void _starpu_open_debug_logfile(void)
 {
 #ifdef VERBOSE
 	/* what is  the name of the file ? default = "starpu.log" */
@@ -40,14 +40,14 @@ void open_debug_logfile(void)
 #endif
 }
 
-void close_debug_logfile(void)
+void _starpu_close_debug_logfile(void)
 {
 #ifdef VERBOSE
 	fclose(logfile);
 #endif
 }
 
-void print_to_logfile(const char *format __attribute__((unused)), ...)
+void _starpu_print_to_logfile(const char *format __attribute__((unused)), ...)
 {
 #ifdef VERBOSE
 	va_list args;

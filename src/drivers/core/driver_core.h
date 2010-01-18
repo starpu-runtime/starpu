@@ -32,7 +32,7 @@
 
 #include <starpu.h>
 
-void *core_worker(void *);
+void *_starpu_core_worker(void *);
 
 #ifndef NMAXCORES
 #define NMAXCORES       4

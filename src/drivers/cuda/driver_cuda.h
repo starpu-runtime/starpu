@@ -44,8 +44,8 @@
 unsigned get_cuda_device_count(void);
 
 #ifdef USE_CUDA
-void init_cuda(void);
-void *cuda_worker(void *);
+void _starpu_init_cuda(void);
+void *_starpu_cuda_worker(void *);
 #endif
 
 #endif //  __DRIVER_CUDA_H__

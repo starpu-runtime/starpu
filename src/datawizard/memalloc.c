@@ -50,7 +50,7 @@ static void lock_all_subtree(starpu_data_handle handle)
 	{
 		/* this is a leaf */
 		while (starpu_spin_trylock(&handle->header_lock))
-			datawizard_progress(get_local_memory_node(), 0);
+			_starpu_datawizard_progress(get_local_memory_node(), 0);
 	}
 	else {
 		/* lock all sub-subtrees children */
@@ -494,7 +494,7 @@ static size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node)
 	starpu_data_handle handle = mc->data;
 
 //	while (starpu_spin_trylock(&handle->header_lock))
-//		datawizard_progress(get_local_memory_node());
+//		_starpu_datawizard_progress(get_local_memory_node());
 
 #warning can we block here ?
 //	starpu_spin_lock(&handle->header_lock);

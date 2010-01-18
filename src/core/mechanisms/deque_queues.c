@@ -121,7 +121,7 @@ job_t deque_pop_task(struct jobq_s *q)
 	STARPU_ASSERT(q);
 	struct deque_jobq_s *deque_queue = q->queue;
 
-	if ((deque_queue->njobs == 0) && machine_is_running())
+	if ((deque_queue->njobs == 0) && _starpu_machine_is_running())
 	{
 		return NULL;
 	}

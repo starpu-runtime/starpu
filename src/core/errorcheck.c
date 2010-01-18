@@ -17,9 +17,9 @@
 #include <core/errorcheck.h>
 #include <core/workers.h>
 
-void set_local_worker_status(worker_status st)
+void _starpu_set_local_worker_status(worker_status st)
 {
-	struct worker_s *worker = get_local_worker_key();
+	struct worker_s *worker = _starpu_get_local_worker_key();
 
 	/* It is possible that we call this function from the application (and
 	 * thereforce outside a worker), for instance if we are executing the
@@ -28,9 +28,9 @@ void set_local_worker_status(worker_status st)
 		worker->status = st;
 }
 
-worker_status get_local_worker_status(void)
+worker_status _starpu_get_local_worker_status(void)
 {
-	struct worker_s *worker = get_local_worker_key();
+	struct worker_s *worker = _starpu_get_local_worker_key();
 	if (STARPU_UNLIKELY(!worker))
 		return STATUS_INVALID;
 
@@ -39,9 +39,9 @@ worker_status get_local_worker_status(void)
 
 /* It is forbidden to call blocking operations with Callback and during the
  * execution of a task. */
-unsigned worker_may_perform_blocking_calls(void)
+unsigned _starpu_worker_may_perform_blocking_calls(void)
 {
-	worker_status st = get_local_worker_status();
+	worker_status st = _starpu_get_local_worker_status();
 
 	return ( !(st == STATUS_CALLBACK) && !(st == STATUS_EXECUTING));
 }

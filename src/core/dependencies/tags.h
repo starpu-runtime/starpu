@@ -37,7 +37,7 @@
 typedef enum {
 	/* this tag is not declared by any task */
 	INVALID_STATE,
-	/* tag_declare was called to associate the tag to a task */
+	/* _starpu_tag_declare was called to associate the tag to a task */
 	ASSOCIATED,
 	/* some task dependencies are not fulfilled yet */
 	BLOCKED,
@@ -90,8 +90,8 @@ typedef struct _cg_t {
 
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 
-void notify_dependencies(struct job_s *j);
-void tag_declare(starpu_tag_t id, struct job_s *job);
+void _starpu_notify_dependencies(struct job_s *j);
+void _starpu_tag_declare(starpu_tag_t id, struct job_s *job);
 
 unsigned submit_job_enforce_task_deps(struct job_s *j);
 

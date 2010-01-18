@@ -52,7 +52,7 @@ void *gordon_worker_progress(void *arg)
 	struct worker_set_s *gordon_set_arg = arg;
 	unsigned prog_thread_bind_id = 
 		(gordon_set_arg->workers[0].bindid + 1)%(gordon_set_arg->config->nhwcores);
-	bind_thread_on_cpu(gordon_set_arg->config, prog_thread_bind_id);
+	_starpu_bind_thread_on_cpu(gordon_set_arg->config, prog_thread_bind_id);
 
 	pthread_mutex_lock(&progress_mutex);
 	progress_thread_is_inited = 1;
@@ -68,7 +68,7 @@ void *gordon_worker_progress(void *arg)
 		if (ret)
 		{
 			/* possibly wake the thread that injects work */
-			wake_all_blocked_workers();
+			starpu_wake_all_blocked_workers();
 		}
 	}
 
@@ -172,7 +172,7 @@ static void handle_terminated_job(job_t j)
 {
 	push_task_output(j->task, 0);
 	_starpu_handle_job_termination(j);
-	wake_all_blocked_workers();
+	starpu_wake_all_blocked_workers();
 }
 
 static void gordon_callback_list_func(void *arg)
@@ -205,12 +205,12 @@ static void gordon_callback_list_func(void *arg)
 			double measured = (double)gordon_task->measured;
 			unsigned cpuid = 0; /* XXX */
 
-			update_perfmodel_history(j, STARPU_GORDON_DEFAULT, cpuid, measured);
+			_starpu_update_perfmodel_history(j, STARPU_GORDON_DEFAULT, cpuid, measured);
 		}
 
 		push_task_output(j->task, 0);
 		_starpu_handle_job_termination(j);
-		//wake_all_blocked_workers();
+		//starpu_wake_all_blocked_workers();
 
 		task_cnt++;
 	}
@@ -218,7 +218,7 @@ static void gordon_callback_list_func(void *arg)
 	/* the job list was allocated by the gordon driver itself */
 	job_list_delete(wrapper_list);
 
-	wake_all_blocked_workers();
+	starpu_wake_all_blocked_workers();
 	free(task_wrapper->gordon_job);
 	free(task_wrapper);
 }
@@ -239,14 +239,14 @@ static void gordon_callback_func(void *arg)
 
 	handle_terminated_job(task_wrapper->j);
 
-	wake_all_blocked_workers();
+	starpu_wake_all_blocked_workers();
 	free(task_wrapper);
 }
 
 int inject_task(job_t j, struct worker_s *worker)
 {
 	struct starpu_task *task = j->task;
-	int ret = fetch_task_input(task, 0);
+	int ret = _starpu_fetch_task_input(task, 0);
 
 	if (ret != 0) {
 		/* there was not enough memory so the codelet cannot be executed right now ... */
@@ -304,7 +304,7 @@ int inject_task_list(struct job_list_s *list, struct worker_s *worker)
 		int ret;
 
 		struct starpu_task *task = j->task;
-		ret = fetch_task_input(task, 0);
+		ret = _starpu_fetch_task_input(task, 0);
 		STARPU_ASSERT(!ret);
 
 		gordon_jobs[index].index = task->cl->gordon_func;
@@ -327,7 +327,7 @@ int inject_task_list(struct job_list_s *list, struct worker_s *worker)
 void *gordon_worker_inject(struct worker_set_s *arg)
 {
 
-	while(machine_is_running()) {
+	while(_starpu_machine_is_running()) {
 		if (gordon_busy_enough()) {
 			/* gordon already has enough work, wait a little TODO */
 			wait_on_sched_event();
@@ -412,7 +412,7 @@ void *gordon_worker(void *arg)
 {
 	struct worker_set_s *gordon_set_arg = arg;
 
-	bind_thread_on_cpu(gordon_set_arg->config, gordon_set_arg->workers[0].bindid);
+	_starpu_bind_thread_on_cpu(gordon_set_arg->config, gordon_set_arg->workers[0].bindid);
 
 	/* TODO set_local_memory_node per SPU */
 	gordon_init(gordon_set_arg->nworkers);	
@@ -420,7 +420,7 @@ void *gordon_worker(void *arg)
 	/* NB: On SPUs, the worker_key is set to NULL since there is no point
 	 * in associating the PPU thread with a specific SPU (worker) while
 	 * it's handling multiple processing units. */
-	set_local_worker_key(NULL);
+	_starpu_set_local_worker_key(NULL);
 
 	/* TODO set workers' name field */
 	unsigned spu;

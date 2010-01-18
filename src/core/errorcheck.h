@@ -33,9 +33,9 @@ typedef enum {
 	STATUS_CALLBACK
 } worker_status;
 
-void set_local_worker_status(worker_status st);
-worker_status get_local_worker_status(void);
+void _starpu_set_local_worker_status(worker_status st);
+worker_status _starpu_get_local_worker_status(void);
 
-unsigned worker_may_perform_blocking_calls(void);
+unsigned _starpu_worker_may_perform_blocking_calls(void);
 
 #endif // __ERRORCHECK_H__

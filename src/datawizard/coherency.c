@@ -144,7 +144,7 @@ int fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_node,
 	uint32_t local_node = get_local_memory_node();
 
 	while (starpu_spin_trylock(&handle->header_lock))
-		datawizard_progress(local_node, 1);
+		_starpu_datawizard_progress(local_node, 1);
 
 	if (!is_prefetch)
 		handle->per_node[requesting_node].refcnt++;
@@ -308,7 +308,7 @@ void release_data_on_node(starpu_data_handle handle, uint32_t default_wb_mask, u
 
 	uint32_t local_node = get_local_memory_node();
 	while (starpu_spin_trylock(&handle->header_lock))
-		datawizard_progress(local_node, 1);
+		_starpu_datawizard_progress(local_node, 1);
 
 	handle->per_node[memory_node].refcnt--;
 
@@ -344,11 +344,11 @@ int prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 
 
 
-int fetch_task_input(struct starpu_task *task, uint32_t mask)
+int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 {
 	TRACE_START_FETCH_INPUT(NULL);
 
-//	fprintf(stderr, "fetch_task_input\n");
+//	fprintf(stderr, "_starpu_fetch_task_input\n");
 
 	uint32_t local_memory_node = get_local_memory_node();
 

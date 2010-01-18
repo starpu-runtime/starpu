@@ -24,7 +24,7 @@ static pthread_key_t worker_key;
 
 static struct machine_config_s config;
 
-struct machine_config_s *get_machine_config(void)
+struct machine_config_s *_starpu_get_machine_config(void)
 {
 	return &config;
 }
@@ -32,7 +32,7 @@ struct machine_config_s *get_machine_config(void)
 /* in case a task is submitted, we may check whether there exists a worker
    that may execute the task or not */
 
-inline uint32_t worker_exists(uint32_t task_mask)
+inline uint32_t _starpu_worker_exists(uint32_t task_mask)
 {
 	return (task_mask & config.worker_mask);
 } 
@@ -47,7 +47,7 @@ inline uint32_t may_submit_core_task(void)
 	return (CORE & config.worker_mask);
 }
 
-inline uint32_t worker_may_execute_task(unsigned workerid, uint32_t where)
+inline uint32_t _starpu_worker_may_execute_task(unsigned workerid, uint32_t where)
 {
 	return (where & config.workers[workerid].worker_mask);
 }
@@ -61,7 +61,7 @@ static unsigned gordon_inited = 0;
 static struct worker_set_s gordon_worker_set;
 #endif
 
-static void init_worker_queue(struct worker_s *workerarg)
+static void _starpu_init_worker_queue(struct worker_s *workerarg)
 {
 	struct jobq_s *jobq = workerarg->jobq;
 
@@ -88,7 +88,7 @@ static void init_worker_queue(struct worker_s *workerarg)
 	memory_node_attach_queue(jobq, workerarg->memory_node);
 }
 
-static void init_workers(struct machine_config_s *config)
+static void _starpu_init_workers(struct machine_config_s *config)
 {
 	config->running = 1;
 
@@ -119,7 +119,7 @@ static void init_workers(struct machine_config_s *config)
 	
 		workerarg->status = STATUS_INITIALIZING;
 
-		init_worker_queue(workerarg);
+		_starpu_init_worker_queue(workerarg);
 
 		switch (workerarg->arch) {
 #ifdef USE_CPUS
@@ -127,7 +127,7 @@ static void init_workers(struct machine_config_s *config)
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
 				pthread_create(&workerarg->worker_thread, 
-						NULL, core_worker, workerarg);
+						NULL, _starpu_core_worker, workerarg);
 				break;
 #endif
 #ifdef USE_CUDA
@@ -135,7 +135,7 @@ static void init_workers(struct machine_config_s *config)
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
 				pthread_create(&workerarg->worker_thread, 
-						NULL, cuda_worker, workerarg);
+						NULL, _starpu_cuda_worker, workerarg);
 
 				break;
 #endif
@@ -198,12 +198,12 @@ static void init_workers(struct machine_config_s *config)
 
 }
 
-void set_local_worker_key(struct worker_s *worker)
+void _starpu_set_local_worker_key(struct worker_s *worker)
 {
 	pthread_setspecific(worker_key, worker);
 }
 
-struct worker_s *get_local_worker_key(void)
+struct worker_s *_starpu_get_local_worker_key(void)
 {
 	return pthread_getspecific(worker_key);
 }
@@ -218,7 +218,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	start_fxt_profiling();
 #endif
 	
-	open_debug_logfile();
+	_starpu_open_debug_logfile();
 
 	timing_init();
 
@@ -237,7 +237,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	/* initialize the queue containing the jobs */
 	init_sched_policy(&config);
 
-	init_workers(&config);
+	_starpu_init_workers(&config);
 
 	return 0;
 }
@@ -246,14 +246,14 @@ int starpu_init(struct starpu_conf *user_conf)
  * Handle runtime termination 
  */
 
-static void terminate_workers(struct machine_config_s *config)
+static void _starpu_terminate_workers(struct machine_config_s *config)
 {
 	int status;
 	unsigned workerid;
 
 	for (workerid = 0; workerid < config->nworkers; workerid++)
 	{
-		wake_all_blocked_workers();
+		starpu_wake_all_blocked_workers();
 		
 #ifdef VERBOSE
 		fprintf(stderr, "wait for worker %d\n", workerid);
@@ -294,22 +294,22 @@ static void terminate_workers(struct machine_config_s *config)
 	}
 }
 
-unsigned machine_is_running(void)
+unsigned _starpu_machine_is_running(void)
 {
 	return config.running;
 }
 
-unsigned worker_can_block(unsigned memnode)
+unsigned _starpu_worker_can_block(unsigned memnode)
 {
 	unsigned can_block = 1;
 
 	if (!check_that_no_data_request_exists(memnode))
 		can_block = 0;
 
-	if (!machine_is_running())
+	if (!_starpu_machine_is_running())
 		can_block = 0;
 
-	if (!execute_registered_progression_hooks())
+	if (!_starpu_execute_registered_progression_hooks())
 		can_block = 0;
 
 	return can_block;
@@ -321,7 +321,7 @@ typedef enum {
 	UNLOCK
 } queue_op;
 
-static void operate_on_all_queues_attached_to_node(unsigned nodeid, queue_op op)
+static void _starpu_operate_on_all_queues_attached_to_node(unsigned nodeid, queue_op op)
 {
 	unsigned q_id;
 	struct jobq_s *q;
@@ -351,22 +351,22 @@ static void operate_on_all_queues_attached_to_node(unsigned nodeid, queue_op op)
 	pthread_rwlock_unlock(&descr->attached_queues_rwlock);
 }
 
-inline void lock_all_queues_attached_to_node(unsigned node)
+inline void _starpu_lock_all_queues_attached_to_node(unsigned node)
 {
-	operate_on_all_queues_attached_to_node(node, LOCK);
+	_starpu_operate_on_all_queues_attached_to_node(node, LOCK);
 }
 
-inline void unlock_all_queues_attached_to_node(unsigned node)
+inline void _starpu_unlock_all_queues_attached_to_node(unsigned node)
 {
-	operate_on_all_queues_attached_to_node(node, UNLOCK);
+	_starpu_operate_on_all_queues_attached_to_node(node, UNLOCK);
 }
 
-inline void broadcast_all_queues_attached_to_node(unsigned node)
+inline void _starpu_broadcast_all_queues_attached_to_node(unsigned node)
 {
-	operate_on_all_queues_attached_to_node(node, BROADCAST);
+	_starpu_operate_on_all_queues_attached_to_node(node, BROADCAST);
 }
 
-static void operate_on_all_queues(queue_op op)
+static void _starpu_operate_on_all_queues(queue_op op)
 {
 	unsigned q_id;
 	struct jobq_s *q;
@@ -396,7 +396,7 @@ static void operate_on_all_queues(queue_op op)
 	pthread_rwlock_unlock(&descr->attached_queues_rwlock);
 }
 
-static void kill_all_workers(struct machine_config_s *config)
+static void _starpu_kill_all_workers(struct machine_config_s *config)
 {
 	/* lock all workers and the scheduler (in the proper order) to make
 	   sure everyone will notice the termination */
@@ -405,17 +405,17 @@ static void kill_all_workers(struct machine_config_s *config)
 
 	struct sched_policy_s *sched = get_sched_policy();
 
-	operate_on_all_queues(LOCK);
+	_starpu_operate_on_all_queues(LOCK);
 	pthread_mutex_lock(&sched->sched_activity_mutex);
 	
 	/* set the flag which will tell workers to stop */
 	config->running = 0;
 
-	operate_on_all_queues(BROADCAST);
+	_starpu_operate_on_all_queues(BROADCAST);
 	pthread_cond_broadcast(&sched->sched_activity_cond);
 
 	pthread_mutex_unlock(&sched->sched_activity_mutex);
-	operate_on_all_queues(UNLOCK);
+	_starpu_operate_on_all_queues(UNLOCK);
 }
 
 void starpu_shutdown(void)
@@ -424,7 +424,7 @@ void starpu_shutdown(void)
 	display_alloc_cache_stats();
 
 	/* tell all workers to shutdown */
-	kill_all_workers(&config);
+	_starpu_kill_all_workers(&config);
 
 #ifdef DATA_STATS
 	display_comm_ammounts();
@@ -434,13 +434,13 @@ void starpu_shutdown(void)
 		dump_registered_models();
 
 	/* wait for their termination */
-	terminate_workers(&config);
+	_starpu_terminate_workers(&config);
 
 	deinit_sched_policy(&config);
 
 	starpu_destroy_topology(&config);
 
-	close_debug_logfile();
+	_starpu_close_debug_logfile();
 }
 
 unsigned starpu_get_worker_count(void)
@@ -472,7 +472,7 @@ int starpu_get_worker_id(void)
 {
 	struct worker_s * worker;
 
-	worker = get_local_worker_key();
+	worker = _starpu_get_local_worker_key();
 	if (worker)
 	{
 		return worker->workerid;
@@ -484,7 +484,7 @@ int starpu_get_worker_id(void)
 	}
 }
 
-struct worker_s *get_worker_struct(unsigned id)
+struct worker_s *_starpu_get_worker_struct(unsigned id)
 {
 	return &config.workers[id];
 }

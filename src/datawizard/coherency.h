@@ -121,7 +121,7 @@ uint32_t get_data_refcnt(struct starpu_data_state_t *state, uint32_t node);
 void push_task_output(struct starpu_task *task, uint32_t mask);
 
 __attribute__((warn_unused_result))
-int fetch_task_input(struct starpu_task *task, uint32_t mask);
+int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask);
 
 unsigned is_data_present_or_requested(struct starpu_data_state_t *state, uint32_t node);
 

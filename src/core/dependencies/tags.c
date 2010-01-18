@@ -53,7 +53,7 @@ static cg_t *create_cg(unsigned ntags, struct tag_s *tag, unsigned is_apps_cg)
 	return cg;
 }
 
-static struct tag_s *tag_init(starpu_tag_t id)
+static struct tag_s *_starpu_tag_init(starpu_tag_t id)
 {
 	struct tag_s *tag;
 	tag = malloc(sizeof(struct tag_s));
@@ -129,7 +129,7 @@ static struct tag_s *gettag_struct(starpu_tag_t id)
 
 	if (tag == NULL) {
 		/* the tag does not exist yet : create an entry */
-		tag = tag_init(id);
+		tag = _starpu_tag_init(id);
 
 		void *old;
 		old = htbl_insert_tag(&tag_htbl, id, tag);
@@ -143,7 +143,7 @@ static struct tag_s *gettag_struct(starpu_tag_t id)
 }
 
 /* lock should be taken */
-static void tag_set_ready(struct tag_s *tag)
+static void _starpu_tag_set_ready(struct tag_s *tag)
 {
 	/* mark this tag as ready to run */
 	tag->state = READY;
@@ -157,7 +157,7 @@ static void tag_set_ready(struct tag_s *tag)
 	starpu_spin_unlock(&tag->lock);
 
 	/* enforce data dependencies */
-	if (submit_job_enforce_data_deps(j))
+	if (_starpu_submit_job_enforce_data_deps(j))
 	{
 		starpu_spin_lock(&tag->lock);
 		return;
@@ -192,14 +192,14 @@ static void notify_cg(cg_t *cg)
 			if ((tag->state == BLOCKED) 
 				&& (tag->ndeps == tag->ndeps_completed)) {
 				tag->ndeps_completed = 0;
-				tag_set_ready(tag);
+				_starpu_tag_set_ready(tag);
 			}
 		}
 	}
 }
 
 /* the lock must be taken ! */
-static void tag_add_succ(struct tag_s *tag, cg_t *cg)
+static void _starpu_tag_add_succ(struct tag_s *tag, cg_t *cg)
 {
 	STARPU_ASSERT(tag);
 
@@ -227,7 +227,7 @@ static void tag_add_succ(struct tag_s *tag, cg_t *cg)
 	}
 }
 
-static void notify_tag_dependencies(struct tag_s *tag)
+static void _starpu_notify_tag_dependencies(struct tag_s *tag)
 {
 	unsigned nsuccs;
 	unsigned succ;
@@ -265,24 +265,24 @@ static void notify_tag_dependencies(struct tag_s *tag)
 	starpu_spin_unlock(&tag->lock);
 }
 
-void notify_dependencies(struct job_s *j)
+void _starpu_notify_dependencies(struct job_s *j)
 {
 	STARPU_ASSERT(j);
 	STARPU_ASSERT(j->task);
 	
 	/* in case there are dependencies, wake up the proper tasks */
 	if (j->task->use_tag)
-		notify_tag_dependencies(j->tag);
+		_starpu_notify_tag_dependencies(j->tag);
 }
 
 void starpu_tag_notify_from_apps(starpu_tag_t id)
 {
 	struct tag_s *tag = gettag_struct(id);
 
-	notify_tag_dependencies(tag);
+	_starpu_notify_tag_dependencies(tag);
 }
 
-void tag_declare(starpu_tag_t id, struct job_s *job)
+void _starpu_tag_declare(starpu_tag_t id, struct job_s *job)
 {
 	TRACE_CODELET_TAG(id, job);
 	job->task->use_tag = 1;
@@ -321,7 +321,7 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 		TRACE_CODELET_TAG_DEPS(id, dep_id);
 		struct tag_s *tag_dep = gettag_struct(dep_id);
 		starpu_spin_lock(&tag_dep->lock);
-		tag_add_succ(tag_dep, cg);
+		_starpu_tag_add_succ(tag_dep, cg);
 		starpu_spin_unlock(&tag_dep->lock);
 	}
 
@@ -353,7 +353,7 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 		TRACE_CODELET_TAG_DEPS(id, dep_id);
 		struct tag_s *tag_dep = gettag_struct(dep_id);
 		starpu_spin_lock(&tag_dep->lock);
-		tag_add_succ(tag_dep, cg);
+		_starpu_tag_add_succ(tag_dep, cg);
 		starpu_spin_unlock(&tag_dep->lock);
 	}
 	va_end(pa);
@@ -370,7 +370,7 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 	struct tag_s *tag_array[ntags];
 
 	/* It is forbidden to block within callbacks or codelets */
-	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
+	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
 	/* only wait the tags that are not done yet */
@@ -403,7 +403,7 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 
 	for (i = 0; i < current; i++)
 	{
-		tag_add_succ(tag_array[i], cg);
+		_starpu_tag_add_succ(tag_array[i], cg);
 		starpu_spin_unlock(&tag_array[i]->lock);
 	}
 

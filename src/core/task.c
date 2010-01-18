@@ -91,7 +91,7 @@ int starpu_wait_task(struct starpu_task *task)
 	if (task->detach || task->synchronous)
 		return -EINVAL;
 
-	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
+	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
 	job_t j = (struct job_s *)task->starpu_private;
@@ -116,7 +116,7 @@ int starpu_submit_task(struct starpu_task *task)
 	{
 		/* Perhaps it is not possible to submit a synchronous
 		 * (blocking) task */
-		if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
+		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 			return -EDEADLK;
 
 		task->detach = 0;
@@ -127,14 +127,14 @@ int starpu_submit_task(struct starpu_task *task)
 	if (task->cl)
 	{
 		uint32_t where = task->cl->where;
-		if (!worker_exists(where))
+		if (!_starpu_worker_exists(where))
 			return -ENODEV;
 
 		/* In case we require that a task should be explicitely
 		 * executed on a specific worker, we make sure that the worker
 		 * is able to execute this task.  */
 		if (task->execute_on_a_specific_worker 
-			&& !worker_may_execute_task(task->workerid, where))
+			&& !_starpu_worker_may_execute_task(task->workerid, where))
 			return -ENODEV;
 	}
 
@@ -194,7 +194,7 @@ int starpu_wait_all_tasks(void)
 {
 	int res;
 
-	if (STARPU_UNLIKELY(!worker_may_perform_blocking_calls()))
+	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
 

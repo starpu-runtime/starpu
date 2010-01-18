@@ -56,7 +56,7 @@ unsigned get_cuda_device_count(void)
 	return (unsigned)cnt;
 }
 
-void init_cuda(void)
+void _starpu_init_cuda(void)
 {
 	ncudagpus = get_cuda_device_count();
 	assert(ncudagpus <= MAXCUDADEVS);
@@ -93,7 +93,7 @@ static int execute_job_on_cuda(job_t j, struct worker_s *args)
 		GET_TICK(codelet_start_comm);
 	}
 
-	ret = fetch_task_input(task, mask);
+	ret = _starpu_fetch_task_input(task, mask);
 	if (ret != 0) {
 		/* there was not enough memory, so the input of
 		 * the codelet cannot be fetched ... put the 
@@ -138,7 +138,7 @@ static int execute_job_on_cuda(job_t j, struct worker_s *args)
 		args->jobq->total_computation_time_error += error;
 
 		if (calibrate_model)
-			update_perfmodel_history(j, args->perf_arch, (unsigned)args->id, measured);
+			_starpu_update_perfmodel_history(j, args->perf_arch, (unsigned)args->id, measured);
 	}
 
 	args->jobq->total_job_performed++;
@@ -148,7 +148,7 @@ static int execute_job_on_cuda(job_t j, struct worker_s *args)
 	return STARPU_SUCCESS;
 }
 
-void *cuda_worker(void *arg)
+void *_starpu_cuda_worker(void *arg)
 {
 	struct worker_s* args = arg;
 
@@ -160,13 +160,13 @@ void *cuda_worker(void *arg)
 #endif
 	TRACE_WORKER_INIT_START(FUT_CUDA_KEY, memory_node);
 
-	bind_thread_on_cpu(args->config, args->bindid);
+	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
 	set_local_memory_node_key(&(args->memory_node));
 
 	set_local_queue(args->jobq);
 
-	set_local_worker_key(args);
+	_starpu_set_local_worker_key(args);
 
 	/* this is only useful (and meaningful) is there is a single
 	   memory node "related" to that queue */
@@ -180,7 +180,7 @@ void *cuda_worker(void *arg)
 	init_context(devid);
 
 	/* one more time to avoid hacks from third party lib :) */
-	bind_thread_on_cpu(args->config, args->bindid);
+	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
 	args->status = STATUS_UNKNOWN;
 
@@ -210,13 +210,13 @@ void *cuda_worker(void *arg)
 	struct jobq_s *queue = policy->get_local_queue(policy);
 	unsigned memnode = args->memory_node;
 	
-	while (machine_is_running())
+	while (_starpu_machine_is_running())
 	{
 		TRACE_START_PROGRESS(memnode);
-		datawizard_progress(memnode, 1);
+		_starpu_datawizard_progress(memnode, 1);
 		TRACE_END_PROGRESS(memnode);
 
-		execute_registered_progression_hooks();
+		_starpu_execute_registered_progression_hooks();
 	
 		jobq_lock(queue);
 
@@ -228,7 +228,7 @@ void *cuda_worker(void *arg)
 			j = pop_task();
 
 		if (j == NULL) {
-			if (worker_can_block(memnode))
+			if (_starpu_worker_can_block(memnode))
 				pthread_cond_wait(&queue->activity_cond, &queue->activity_mutex);
 			jobq_unlock(queue);
 			continue;
@@ -280,7 +280,7 @@ void *cuda_worker(void *arg)
 	}
 
 
-	print_to_logfile("MODEL ERROR: CUDA %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", args->id, args->jobq->total_computation_time_error, args->jobq->total_computation_time, ratio, args->jobq->total_job_performed);
+	_starpu_print_to_logfile("MODEL ERROR: CUDA %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", args->id, args->jobq->total_computation_time_error, args->jobq->total_computation_time, ratio, args->jobq->total_job_performed);
 #endif
 
 	TRACE_WORKER_DEINIT_END(FUT_CUDA_KEY);

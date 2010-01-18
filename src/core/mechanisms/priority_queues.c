@@ -98,10 +98,10 @@ job_t priority_pop_task(struct jobq_s *q)
 	/* block until some event happens */
 	pthread_mutex_lock(&q->activity_mutex);
 
-	if ((queue->total_njobs == 0) && machine_is_running())
+	if ((queue->total_njobs == 0) && _starpu_machine_is_running())
 	{
 #ifdef NON_BLOCKING_DRIVERS
-		datawizard_progress(q->memory_node, 1);
+		_starpu_datawizard_progress(q->memory_node, 1);
 #else
 		pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
 #endif

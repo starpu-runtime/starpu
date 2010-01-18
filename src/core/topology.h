@@ -67,8 +67,8 @@ int starpu_build_topology(struct machine_config_s *config);
 void starpu_destroy_topology(struct machine_config_s *config);
 
 /* returns the number of physical cores */
-unsigned topology_get_nhwcore(struct machine_config_s *config);
+unsigned _starpu_topology_get_nhwcore(struct machine_config_s *config);
 
-void bind_thread_on_cpu(struct machine_config_s *config, unsigned coreid);
+void _starpu_bind_thread_on_cpu(struct machine_config_s *config, unsigned coreid);
 
 #endif // __TOPOLOGY_H__

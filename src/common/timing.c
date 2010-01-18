@@ -20,13 +20,13 @@
 
 #define TICK_DIFF(t1, t2) ((long long)((t2).ts.tv_sec*1e9 + (t2).ts.tv_nsec) + \
 				- (long long)((t1).ts.tv_sec*1e9) + (long long)(t1).ts.tv_nsec)
-#define TIMING_DELAY(t1, t2) tick2usec(TICK_DIFF((t1), (t2)))
+#define TIMING_DELAY(t1, t2) _starpu_tick2usec(TICK_DIFF((t1), (t2)))
 
 void timing_init(void)
 {
 }
 
-inline double tick2usec(long long t)
+inline double _starpu_tick2usec(long long t)
 {
   return (double)(t)/1000;
 }
@@ -35,8 +35,8 @@ inline double timing_delay(tick_t *t1, tick_t *t2)
 {
 	double d1, d2;
 
-	d1 = tick2usec((t1->ts.tv_sec*1e9) + t1->ts.tv_nsec);
-	d2 = tick2usec((t2->ts.tv_sec*1e9) + t2->ts.tv_nsec);
+	d1 = _starpu_tick2usec((t1->ts.tv_sec*1e9) + t1->ts.tv_nsec);
+	d2 = _starpu_tick2usec((t2->ts.tv_sec*1e9) + t2->ts.tv_nsec);
 
 	return (d2 - d1);;
 }
@@ -47,7 +47,7 @@ inline double timing_now(void)
 	tick_t tick_now;
 	GET_TICK(tick_now);
 
-	return tick2usec(((tick_now).ts.tv_sec*1e9) + (tick_now).ts.tv_nsec);
+	return _starpu_tick2usec(((tick_now).ts.tv_sec*1e9) + (tick_now).ts.tv_nsec);
 }
 
 
@@ -56,7 +56,7 @@ inline double timing_now(void)
 
 #define TICK_RAW_DIFF(t1, t2) ((t2).tick - (t1).tick)
 #define TICK_DIFF(t1, t2) (TICK_RAW_DIFF(t1, t2) - residual)
-#define TIMING_DELAY(t1, t2) tick2usec(TICK_DIFF(t1, t2))
+#define TIMING_DELAY(t1, t2) _starpu_tick2usec(TICK_DIFF(t1, t2))
 
 static double scale = 0.0;
 static unsigned long long residual = 0;
@@ -95,7 +95,7 @@ void timing_init(void)
   inited = 1;
 }
 
-inline double tick2usec(long long t)
+inline double _starpu_tick2usec(long long t)
 {
   return (double)(t)*scale;
 }
@@ -110,7 +110,7 @@ inline double timing_now(void)
 	tick_t tick_now;
 	GET_TICK(tick_now);
 
-	return tick2usec(tick_now.tick);
+	return _starpu_tick2usec(tick_now.tick);
 }
 
 #endif // USE_SYNC_CLOCK

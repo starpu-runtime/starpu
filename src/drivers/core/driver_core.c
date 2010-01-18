@@ -39,7 +39,7 @@ static int execute_job_on_core(job_t j, struct worker_s *core_args)
 	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_start_comm);
 
-	ret = fetch_task_input(task, 0);
+	ret = _starpu_fetch_task_input(task, 0);
 
 	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_end_comm);
@@ -85,7 +85,7 @@ static int execute_job_on_core(job_t j, struct worker_s *core_args)
 		core_args->jobq->total_computation_time_error += error;
 
 		if (calibrate_model)
-			update_perfmodel_history(j, core_args->arch, core_args->id, measured);
+			_starpu_update_perfmodel_history(j, core_args->arch, core_args->id, measured);
 	}
 //#endif
 
@@ -94,7 +94,7 @@ static int execute_job_on_core(job_t j, struct worker_s *core_args)
 	return STARPU_SUCCESS;
 }
 
-void *core_worker(void *arg)
+void *_starpu_core_worker(void *arg)
 {
 	struct worker_s *core_arg = arg;
 
@@ -103,7 +103,7 @@ void *core_worker(void *arg)
 #endif
 	TRACE_WORKER_INIT_START(FUT_CORE_KEY, core_arg->memory_node);
 
-	bind_thread_on_cpu(core_arg->config, core_arg->bindid);
+	_starpu_bind_thread_on_cpu(core_arg->config, core_arg->bindid);
 
 #ifdef VERBOSE
         fprintf(stderr, "core worker %d is ready on logical core %d\n", core_arg->id, core_arg->bindid);
@@ -113,7 +113,7 @@ void *core_worker(void *arg)
 
 	set_local_queue(core_arg->jobq);
 
-	set_local_worker_key(core_arg);
+	_starpu_set_local_worker_key(core_arg);
 
 	snprintf(core_arg->name, 32, "CORE %d", core_arg->id);
 
@@ -143,13 +143,13 @@ void *core_worker(void *arg)
 	struct jobq_s *queue = policy->get_local_queue(policy);
 	unsigned memnode = core_arg->memory_node;
 
-	while (machine_is_running())
+	while (_starpu_machine_is_running())
 	{
 		TRACE_START_PROGRESS(memnode);
-		datawizard_progress(memnode, 1);
+		_starpu_datawizard_progress(memnode, 1);
 		TRACE_END_PROGRESS(memnode);
 
-		execute_registered_progression_hooks();
+		_starpu_execute_registered_progression_hooks();
 
 		jobq_lock(queue);
 
@@ -161,7 +161,7 @@ void *core_worker(void *arg)
 			j = pop_task();
 
                 if (j == NULL) {
-			if (worker_can_block(memnode))
+			if (_starpu_worker_can_block(memnode))
 				pthread_cond_wait(&queue->activity_cond, &queue->activity_mutex);
 			jobq_unlock(queue);
  			continue;
@@ -206,7 +206,7 @@ void *core_worker(void *arg)
 		ratio = core_arg->jobq->total_computation_time_error/core_arg->jobq->total_computation_time;
 	}
 
-	print_to_logfile("MODEL ERROR: CORE %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", core_arg->id, core_arg->jobq->total_computation_time_error, core_arg->jobq->total_computation_time, ratio, core_arg->jobq->total_job_performed);
+	_starpu_print_to_logfile("MODEL ERROR: CORE %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", core_arg->id, core_arg->jobq->total_computation_time_error, core_arg->jobq->total_computation_time, ratio, core_arg->jobq->total_job_performed);
 #endif
 
 	TRACE_WORKER_DEINIT_END(FUT_CORE_KEY);

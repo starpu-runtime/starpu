@@ -66,8 +66,8 @@ struct copy_data_methods_s {
 #endif
 };
 
-void wake_all_blocked_workers(void);
-void wake_all_blocked_workers_on_node(unsigned nodeid);
+void starpu_wake_all_blocked_workers(void);
+void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid);
 
 __attribute__((warn_unused_result))
 int driver_copy_data_1_to_1(starpu_data_handle handle, uint32_t node, 

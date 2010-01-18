@@ -50,7 +50,7 @@ void init_memory_nodes(void);
 void deinit_memory_nodes(void);
 void set_local_memory_node_key(unsigned *node);
 unsigned get_local_memory_node(void);
-unsigned register_memory_node(node_kind kind);
+unsigned _starpu_register_memory_node(node_kind kind);
 void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid);
 
 node_kind get_node_kind(uint32_t node);

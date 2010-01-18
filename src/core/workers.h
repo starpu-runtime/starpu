@@ -133,26 +133,26 @@ struct machine_config_s {
 
 void display_general_stats(void);
 
-unsigned machine_is_running(void);
+unsigned _starpu_machine_is_running(void);
 
-inline uint32_t worker_exists(uint32_t task_mask);
+inline uint32_t _starpu_worker_exists(uint32_t task_mask);
 inline uint32_t may_submit_cuda_task(void);
 inline uint32_t may_submit_core_task(void);
-inline uint32_t worker_may_execute_task(unsigned workerid, uint32_t where);
-unsigned worker_can_block(unsigned memnode);
+inline uint32_t _starpu_worker_may_execute_task(unsigned workerid, uint32_t where);
+unsigned _starpu_worker_can_block(unsigned memnode);
 
-inline void lock_all_queues_attached_to_node(unsigned node);
-inline void unlock_all_queues_attached_to_node(unsigned node);
-inline void broadcast_all_queues_attached_to_node(unsigned node);
+inline void _starpu_lock_all_queues_attached_to_node(unsigned node);
+inline void _starpu_unlock_all_queues_attached_to_node(unsigned node);
+inline void _starpu_broadcast_all_queues_attached_to_node(unsigned node);
 
-void set_local_worker_key(struct worker_s *worker);
-struct worker_s *get_local_worker_key(void);
+void _starpu_set_local_worker_key(struct worker_s *worker);
+struct worker_s *_starpu_get_local_worker_key(void);
 
-struct worker_s *get_worker_struct(unsigned id);
+struct worker_s *_starpu_get_worker_struct(unsigned id);
 
-struct machine_config_s *get_machine_config(void);
+struct machine_config_s *_starpu_get_machine_config(void);
 
 /* TODO move */
-unsigned execute_registered_progression_hooks(void);
+unsigned _starpu_execute_registered_progression_hooks(void);
 
 #endif // __WORKERS_H__

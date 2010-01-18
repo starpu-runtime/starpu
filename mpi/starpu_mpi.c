@@ -472,7 +472,7 @@ static void handle_new_request(struct starpu_mpi_req_s *req)
 		starpu_mpi_req_list_push_front(detached_requests, req);
 		pthread_mutex_unlock(&mutex);
 
-		wake_all_blocked_workers();
+		starpu_wake_all_blocked_workers();
 
 		/* put the submitted request into the list of pending requests
 		 * so that it can be handled by the progression mechanisms */

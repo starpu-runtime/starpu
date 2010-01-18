@@ -22,7 +22,7 @@
 #include "copy-driver.h"
 #include "memalloc.h"
 
-void wake_all_blocked_workers_on_node(unsigned nodeid)
+void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 {
 	/* wake up all queues on that node */
 	unsigned q_id;
@@ -46,7 +46,7 @@ void wake_all_blocked_workers_on_node(unsigned nodeid)
 	pthread_rwlock_unlock(&descr->attached_queues_rwlock);
 }
 
-void wake_all_blocked_workers(void)
+void starpu_wake_all_blocked_workers(void)
 {
 	/* workers may be blocked on the policy's global condition */
 	struct sched_policy_s *sched = get_sched_policy();
@@ -62,7 +62,7 @@ void wake_all_blocked_workers(void)
 	unsigned nnodes = get_memory_nodes_count();
 	for (node = 0; node < nnodes; node++)
 	{
-		wake_all_blocked_workers_on_node(node);
+		_starpu_wake_all_blocked_workers_on_node(node);
 	}
 }
 
