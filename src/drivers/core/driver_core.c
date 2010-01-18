@@ -154,7 +154,7 @@ void *core_worker(void *arg)
 		jobq_lock(queue);
 
 		/* perhaps there is some local task to be executed first */
-		j = pop_local_task(core_arg);
+		j = _starpu_pop_local_task(core_arg);
 
 		/* otherwise ask a task to the scheduler */
 		if (!j)
@@ -190,7 +190,7 @@ void *core_worker(void *arg)
 			}
 		}
 
-		handle_job_termination(j);
+		_starpu_handle_job_termination(j);
         }
 
 	TRACE_WORKER_DEINIT_START

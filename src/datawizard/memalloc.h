@@ -44,9 +44,9 @@ LIST_TYPE(mem_chunk,
 	unsigned data_was_deleted;
 )
 
-void init_mem_chunk_lists(void);
-void deinit_mem_chunk_lists(void);
-void request_mem_chunk_removal(starpu_data_handle handle, unsigned node);
-int allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node, unsigned may_alloc);
+void _starpu_init_mem_chunk_lists(void);
+void _starpu_deinit_mem_chunk_lists(void);
+void _starpu_request_mem_chunk_removal(starpu_data_handle handle, unsigned node);
+int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node, unsigned may_alloc);
 
 #endif

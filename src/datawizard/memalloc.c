@@ -23,7 +23,7 @@ static mem_chunk_list_t mc_list_to_free[MAXNODES];
 
 static size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node);
 
-void init_mem_chunk_lists(void)
+void _starpu_init_mem_chunk_lists(void)
 {
 	unsigned i;
 	for (i = 0; i < MAXNODES; i++)
@@ -34,7 +34,7 @@ void init_mem_chunk_lists(void)
 	}
 }
 
-void deinit_mem_chunk_lists(void)
+void _starpu_deinit_mem_chunk_lists(void)
 {
 	unsigned i;
 	for (i = 0; i < MAXNODES; i++)
@@ -448,7 +448,7 @@ static void register_mem_chunk(starpu_data_handle handle, uint32_t dst_node, siz
 	STARPU_ASSERT(!res);
 }
 
-void request_mem_chunk_removal(starpu_data_handle handle, unsigned node)
+void _starpu_request_mem_chunk_removal(starpu_data_handle handle, unsigned node)
 {
 	int res;
 	res = pthread_rwlock_wrlock(&mc_rwlock[node]);
@@ -534,7 +534,7 @@ static size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node)
  *	not referenced (or part of those).
  *
  */
-int allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node, unsigned may_alloc)
+int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node, unsigned may_alloc)
 {
 	unsigned attempts = 0;
 	size_t allocated_memory;

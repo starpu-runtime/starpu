@@ -201,7 +201,7 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(starpu_data_hand
 	unsigned __attribute__((unused)) com_id = 0;
 
 	/* first make sure the destination has an allocated buffer */
-	ret_alloc = allocate_memory_on_node(handle, dst_node, may_alloc);
+	ret_alloc = _starpu_allocate_memory_on_node(handle, dst_node, may_alloc);
 	if (ret_alloc)
 		goto nomem;
 

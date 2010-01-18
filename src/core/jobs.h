@@ -68,18 +68,18 @@ LIST_TYPE(job,
 	unsigned terminated;
 );
 
-job_t __attribute__((malloc)) job_create(struct starpu_task *task);
+job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task);
 void starpu_wait_job(job_t j);
 
 /* try to submit job j, enqueue it if it's not schedulable yet */
-unsigned enforce_deps_and_schedule(job_t j);
+unsigned _starpu_enforce_deps_and_schedule(job_t j);
 
 //#warning this must not be exported anymore ... 
-//job_t job_create(struct starpu_task *task);
-void handle_job_termination(job_t j);
-size_t job_get_data_size(job_t j);
+//job_t _starpu_job_create(struct starpu_task *task);
+void _starpu_handle_job_termination(job_t j);
+size_t _starpu_job_get_data_size(job_t j);
 
-job_t pop_local_task(struct worker_s *worker);
-int push_local_task(struct worker_s *worker, job_t j);
+job_t _starpu_pop_local_task(struct worker_s *worker);
+int _starpu_push_local_task(struct worker_s *worker, job_t j);
 
 #endif // __JOBS_H__

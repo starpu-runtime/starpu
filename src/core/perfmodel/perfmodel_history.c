@@ -498,7 +498,7 @@ void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model,
 double regression_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct job_s *j)
 {
 	double exp = -1.0;
-	size_t size = job_get_data_size(j);
+	size_t size = _starpu_job_get_data_size(j);
 	struct starpu_regression_model_t *regmodel;
 
 	if (STARPU_UNLIKELY(model->is_loaded != STARPU_PERFMODEL_LOADED))
@@ -582,7 +582,7 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned 
 						entry->deviation = 0.0;
 						entry->sum2 = measured*measured;
 	
-						entry->size = job_get_data_size(j);
+						entry->size = _starpu_job_get_data_size(j);
 	
 						entry->footprint = key;
 						entry->nsample = 1;
@@ -632,7 +632,7 @@ void update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned 
 
 		STARPU_ASSERT(j->footprint_is_computed);
 
-		fprintf(debug_file, "0x%x\t%lu\t%lf\t%lf\t%d\t\t", j->footprint, (unsigned long) job_get_data_size(j), measured, j->predicted, cpuid);
+		fprintf(debug_file, "0x%x\t%lu\t%lf\t%lf\t%d\t\t", j->footprint, (unsigned long) _starpu_job_get_data_size(j), measured, j->predicted, cpuid);
 		unsigned i;
 			
 		struct starpu_task *task = j->task;

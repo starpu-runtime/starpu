@@ -233,7 +233,7 @@ void STARPU_DECLARE_WORK_BLOCKS(float *maxbloktab1, float *maxbloktab2, unsigned
 	cl.where = CUDA;
 	cl.cuda_func = allocate_maxbloktab_on_cublas;
 	
-	j = job_create();
+	j = _starpu_job_create();
 	j->cb = _cublas_cblk_strsm_callback;
 	j->argcb = &sem;
 	j->cl = &cl;
@@ -322,7 +322,7 @@ void STARPU_CBLK_STRSM(unsigned col)
 	cl.core_func = _core_cblk_strsm;
 	cl.cuda_func = _cublas_cblk_strsm;
 	
-	j = job_create();
+	j = _starpu_job_create();
 //	j->where = (starpu_get_blas_nx(&cblktab[col]) > BLOCK && starpu_get_blas_ny(&cblktab[col]) > BLOCK)? CUBLAS:CORE;
 	j->cb = _cublas_cblk_strsm_callback;
 	j->argcb = &sem;
@@ -462,7 +462,7 @@ void STARPU_COMPUTE_CONTRIB_COMPACT(unsigned col, int dimi, int dimj, int dima, 
 	cl.core_func = _core_compute_contrib_compact;
 	cl.cuda_func = _cublas_compute_contrib_compact;
 	
-	j = job_create();
+	j = _starpu_job_create();
 
 	j->cb = _cublas_cblk_strsm_callback;
 	j->argcb = &sem;
@@ -604,7 +604,7 @@ void STARPU_SGEMM (const char *transa, const char *transb, const int m,
 	//cl.core_func = _core_strsm;
 	cl.cuda_func = _cublas_sgemm;
 	
-	j = job_create();
+	j = _starpu_job_create();
 	j->cb = _cublas_sgemm_callback;
 	j->argcb = &sem;
 	j->cl = &cl;

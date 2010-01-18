@@ -171,7 +171,7 @@ static struct gordon_task_wrapper_s *starpu_to_gordon_job(job_t j)
 static void handle_terminated_job(job_t j)
 {
 	push_task_output(j->task, 0);
-	handle_job_termination(j);
+	_starpu_handle_job_termination(j);
 	wake_all_blocked_workers();
 }
 
@@ -209,7 +209,7 @@ static void gordon_callback_list_func(void *arg)
 		}
 
 		push_task_output(j->task, 0);
-		handle_job_termination(j);
+		_starpu_handle_job_termination(j);
 		//wake_all_blocked_workers();
 
 		task_cnt++;

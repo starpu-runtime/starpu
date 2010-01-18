@@ -39,7 +39,7 @@ void starpu_delete_data(starpu_data_handle handle)
 
 		if (local->allocated && local->automatically_allocated){
 			/* free the data copy in a lazy fashion */
-			request_mem_chunk_removal(handle, node);
+			_starpu_request_mem_chunk_removal(handle, node);
 		}
 	}
 
@@ -279,7 +279,7 @@ void starpu_unpartition_data(starpu_data_handle root_handle, uint32_t gathering_
 	
 			if (local->allocated && local->automatically_allocated){
 				/* free the data copy in a lazy fashion */
-				request_mem_chunk_removal(root_handle, node);
+				_starpu_request_mem_chunk_removal(root_handle, node);
 				isvalid = 0; 
 			}
 		}

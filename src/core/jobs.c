@@ -20,8 +20,7 @@
 #include <core/dependencies/data-concurrency.h>
 #include <common/config.h>
 
-
-size_t job_get_data_size(job_t j)
+size_t _starpu_job_get_data_size(job_t j)
 {
 	size_t size = 0;
 
@@ -40,7 +39,7 @@ size_t job_get_data_size(job_t j)
 }
 
 /* create an internal job_t structure to encapsulate the task */
-job_t __attribute__((malloc)) job_create(struct starpu_task *task)
+job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task)
 {
 	job_t job;
 
@@ -74,7 +73,7 @@ void starpu_wait_job(job_t j)
 	job_delete(j);
 }
 
-void handle_job_termination(job_t j)
+void _starpu_handle_job_termination(job_t j)
 {
 	struct starpu_task *task = j->task;
 
@@ -118,12 +117,12 @@ void handle_job_termination(job_t j)
 			free(task);
 	}
 
-	decrement_nsubmitted_tasks();
+	_starpu_decrement_nsubmitted_tasks();
 }
 
 /* This function is called when a new task is submitted to StarPU 
  * it returns 1 if the task deps are not fulfilled, 0 otherwise */
-static unsigned not_all_task_deps_are_fulfilled(job_t j)
+static unsigned _starpu_not_all_task_deps_are_fulfilled(job_t j)
 {
 	unsigned ret;
 
@@ -154,12 +153,12 @@ static unsigned not_all_task_deps_are_fulfilled(job_t j)
 	return ret;
 }
 
-unsigned enforce_deps_and_schedule(job_t j)
+unsigned _starpu_enforce_deps_and_schedule(job_t j)
 {
 	unsigned ret;
 
 	/* enfore task dependencies */
-	if (not_all_task_deps_are_fulfilled(j))
+	if (_starpu_not_all_task_deps_are_fulfilled(j))
 		return 0;
 
 	/* enforce data dependencies */
@@ -171,7 +170,7 @@ unsigned enforce_deps_and_schedule(job_t j)
 	return ret;
 }
 
-struct job_s *pop_local_task(struct worker_s *worker)
+struct job_s *_starpu_pop_local_task(struct worker_s *worker)
 {
 	struct job_s *j = NULL;
 
@@ -185,7 +184,7 @@ struct job_s *pop_local_task(struct worker_s *worker)
 	return j;
 }
 
-int push_local_task(struct worker_s *worker, struct job_s *j)
+int _starpu_push_local_task(struct worker_s *worker, struct job_s *j)
 {
 	/* TODO check that the worker is able to execute the task ! */
 

@@ -141,13 +141,13 @@ int starpu_submit_task(struct starpu_task *task)
 
 	/* internally, StarPU manipulates a job_t which is a wrapper around a
  	* task structure */
-	job_t j = job_create(task);
+	job_t j = _starpu_job_create(task);
 
 	task->starpu_private = j;
 
-	increment_nsubmitted_tasks();
+	_starpu_increment_nsubmitted_tasks();
 
-	ret = enforce_deps_and_schedule(j);
+	ret = _starpu_enforce_deps_and_schedule(j);
 
 	/* XXX modify when we'll have starpu_wait_task */
 	if (is_sync)
@@ -211,7 +211,7 @@ int starpu_wait_all_tasks(void)
 	return 0;
 }
 
-void decrement_nsubmitted_tasks(void)
+void _starpu_decrement_nsubmitted_tasks(void)
 {
 	pthread_mutex_lock(&submitted_mutex);
 	if (--nsubmitted == 0)
@@ -225,7 +225,7 @@ void decrement_nsubmitted_tasks(void)
 
 }
 
-void increment_nsubmitted_tasks(void)
+void _starpu_increment_nsubmitted_tasks(void)
 {
 	pthread_mutex_lock(&submitted_mutex);
 	nsubmitted++;

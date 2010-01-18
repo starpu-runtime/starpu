@@ -22,7 +22,7 @@
 
 /* In order to implement starpu_wait_all_tasks, we keep track of the number of
  * task currently submitted */
-void increment_nsubmitted_tasks(void);
-void decrement_nsubmitted_tasks(void);
+void _starpu_increment_nsubmitted_tasks(void);
+void _starpu_decrement_nsubmitted_tasks(void);
 
 #endif // __CORE_TASK_H__

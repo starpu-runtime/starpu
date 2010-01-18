@@ -186,14 +186,14 @@ int push_task(job_t j)
 	 * corresponding dependencies */
 	if (j->task->cl == NULL)
 	{
-		handle_job_termination(j);
+		_starpu_handle_job_termination(j);
 		return 0;
 	}
 
 	if (STARPU_UNLIKELY(j->task->execute_on_a_specific_worker))
 	{
 		struct worker_s *worker = get_worker_struct(j->task->workerid);
-		return push_local_task(worker, j);
+		return _starpu_push_local_task(worker, j);
 	}
 	else {
 		STARPU_ASSERT(queue->push_task);
