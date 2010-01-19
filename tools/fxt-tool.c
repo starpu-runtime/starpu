@@ -27,13 +27,19 @@ static unsigned no_bus = 0;
 
 /* TODO don't make that global ? */
 struct fxt_ev_64 ev;
+/* In case we are going to gather multiple traces (eg in the case of MPI
+ * processes), we may need to prefix the name of the containers. */
+char *prefix = "";
 
 static uint64_t start_time = 0;
 static uint64_t end_time = 0;
 
 static int nworkers = 0;
 
-static char *filename = NULL;
+//static char *filename = NULL;
+/* XXX remove the 64 ... */
+unsigned ninputfiles = 0;
+static char *filenames[64];
 
 LIST_TYPE(symbol_name,
 	char *name;
@@ -150,10 +156,10 @@ static int find_worker_id(unsigned long tid)
 
 static void handle_new_mem_node(void)
 {
-	fprintf(out_paje_file, "7       %f	%ld      Mn      p	MEMNODE%ld\n", get_event_time_stamp(), ev.param[0], ev.param[0]);
+	fprintf(out_paje_file, "7       %f	%ld      Mn      %sp	%sMEMNODE%ld\n", get_event_time_stamp(), ev.param[0], prefix, prefix, ev.param[0]);
 
 	if (!no_bus)
-		fprintf(out_paje_file, "13       %f bw MEMNODE%d 0.0\n", 0.0f, ev.param[0]);
+		fprintf(out_paje_file, "13       %f bw %sMEMNODE%d 0.0\n", 0.0f, prefix, ev.param[0]);
 }
 
 static void handle_worker_init_start(void)
@@ -163,8 +169,8 @@ static void handle_worker_init_start(void)
 	   arg1 : memory node
 	   arg2 : thread id 
 	*/
-	fprintf(out_paje_file, "7       %f	%ld      T      MEMNODE%ld       %ld\n",
-		get_event_time_stamp(), ev.param[2], ev.param[1], ev.param[2]);
+	fprintf(out_paje_file, "7       %f	%s%ld      T      %sMEMNODE%ld       %s%ld\n",
+		get_event_time_stamp(), prefix, ev.param[2], prefix, ev.param[1], prefix, ev.param[2]);
 
 	int workerid = register_worker_id(ev.param[2]);
 
@@ -183,26 +189,26 @@ static void handle_worker_init_start(void)
 	}
 
 	/* start initialization */
-	fprintf(out_paje_file, "10       %f     S      %ld      I\n",
-			get_event_time_stamp(), ev.param[2]);
+	fprintf(out_paje_file, "10       %f     S      %s%ld      I\n",
+			get_event_time_stamp(), prefix, ev.param[2]);
 }
 
 static void handle_worker_init_end(void)
 {
-	fprintf(out_paje_file, "10       %f     S      %ld      B\n",
-			get_event_time_stamp(), ev.param[0]);
+	fprintf(out_paje_file, "10       %f     S      %s%ld      B\n",
+			get_event_time_stamp(), prefix, ev.param[0]);
 }
 
 static void handle_worker_deinit_start(void)
 {
-	fprintf(out_paje_file, "10       %f     S      %ld      D\n",
-			get_event_time_stamp(), ev.param[0]);
+	fprintf(out_paje_file, "10       %f     S      %s%ld      D\n",
+			get_event_time_stamp(), prefix, ev.param[0]);
 }
 
 static void handle_worker_deinit_end(void)
 {
-	fprintf(out_paje_file, "8       %f	%ld	T\n",
-			get_event_time_stamp(), ev.param[1]);
+	fprintf(out_paje_file, "8       %f	%s%ld	T\n",
+			get_event_time_stamp(), prefix, ev.param[1]);
 }
 
 static void create_paje_state_if_not_found(char *name)
@@ -269,10 +275,10 @@ static void handle_start_codelet_body(void)
 	{
 		create_paje_state_if_not_found(name);
 
-		fprintf(out_paje_file, "101       %f	S      %ld      E	%s\n", start_codelet_time, ev.param[1], name);
+		fprintf(out_paje_file, "101       %f	S      %s%ld      E	%s\n", start_codelet_time, prefix, ev.param[1], name);
 	}
 	else {
-		fprintf(out_paje_file, "10       %f	S      %ld      E\n", start_codelet_time, ev.param[1]);
+		fprintf(out_paje_file, "10       %f	S      %s%ld      E\n", start_codelet_time, prefix, ev.param[1]);
 	}
 
 	end_time = STARPU_MAX(end_time, ev.time);
@@ -286,13 +292,13 @@ static void handle_end_codelet_body(void)
 
 	float end_codelet_time = get_event_time_stamp();
 
-	fprintf(out_paje_file, "10       %f	S      %ld      B\n", end_codelet_time, ev.param[1] );
+	fprintf(out_paje_file, "10       %f	S      %s%ld      B\n", end_codelet_time, prefix, ev.param[1]);
 
 	float codelet_length = (end_codelet_time - last_codelet_start[worker]);
 	
 	if (generate_distrib)
-	fprintf(distrib_time, "%s\t%d\t%lx\t%f\n", last_codelet_symbol[worker],
-				worker, last_codelet_hash[worker], codelet_length);
+	fprintf(distrib_time, "%s\t%s%d\t%lx\t%f\n", last_codelet_symbol[worker],
+				prefix, worker, last_codelet_hash[worker], codelet_length);
 
 	end_time = STARPU_MAX(end_time, ev.time);
 }
@@ -306,7 +312,7 @@ static void handle_user_event(void)
 	unsigned code;
 	code = ev.param[2];	
 
-	fprintf(out_paje_file, "9       %f     event      %ld      %d\n", get_event_time_stamp(), ev.param[1], code);
+	fprintf(out_paje_file, "9       %f     event      %s%ld      %d\n", get_event_time_stamp(), prefix, ev.param[1], code);
 }
 
 static void handle_start_callback(void)
@@ -314,7 +320,7 @@ static void handle_start_callback(void)
 	int worker;
 	worker = find_worker_id(ev.param[1]);
 	if (worker < 0) return;
-	fprintf(out_paje_file, "10       %f	S      %ld      C\n", get_event_time_stamp(), ev.param[1] );
+	fprintf(out_paje_file, "10       %f	S      %s%ld      C\n", get_event_time_stamp(), prefix, ev.param[1] );
 }
 
 static void handle_end_callback(void)
@@ -322,7 +328,7 @@ static void handle_end_callback(void)
 	int worker;
 	worker = find_worker_id(ev.param[1]);
 	if (worker < 0) return;
-	fprintf(out_paje_file, "10       %f	S      %ld      B\n", get_event_time_stamp(), ev.param[1] );
+	fprintf(out_paje_file, "10       %f	S      %s%ld      B\n", get_event_time_stamp(), prefix, ev.param[1] );
 }
 
 static void handle_worker_status(const char *newstatus)
@@ -331,8 +337,8 @@ static void handle_worker_status(const char *newstatus)
 	worker = find_worker_id(ev.param[1]);
 	if (worker < 0) return;
 
-	fprintf(out_paje_file, "10       %f	S      %ld      %s\n",
-				get_event_time_stamp(), ev.param[1], newstatus);
+	fprintf(out_paje_file, "10       %f	S      %s%ld      %s\n",
+				get_event_time_stamp(), prefix, ev.param[1], newstatus);
 
 	end_time = STARPU_MAX(end_time, ev.time);
 }
@@ -350,8 +356,8 @@ static void handle_start_driver_copy(void)
 
 	if (!no_bus)
 	{
-		fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      Co\n", get_event_time_stamp(), dst);
-		fprintf(out_paje_file, "18       %f	L      p	%d	MEMNODE%d	com_%d\n", get_event_time_stamp(), size, src, comid);
+		fprintf(out_paje_file, "10       %f     MS      %sMEMNODE%d      Co\n", get_event_time_stamp(), prefix, dst);
+		fprintf(out_paje_file, "18       %f	L      %sp	%d	%sMEMNODE%d	com_%d\n", get_event_time_stamp(), prefix, size, prefix, src, comid);
 
 		/* create a structure to store the start of the communication, this will be matched later */
 		communication_t com = communication_new();
@@ -374,8 +380,8 @@ static void handle_end_driver_copy(void)
 
 	if (!no_bus)
 	{
-		fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      No\n", get_event_time_stamp(), dst);
-		fprintf(out_paje_file, "19       %f	L      p	%d	MEMNODE%d	com_%d\n", get_event_time_stamp(), size, dst, comid);
+		fprintf(out_paje_file, "10       %f     MS      %sMEMNODE%d      No\n", get_event_time_stamp(), prefix, dst);
+		fprintf(out_paje_file, "19       %f	L      %sp	%d	%sMEMNODE%d	com_%d\n", get_event_time_stamp(), prefix, size, prefix, dst, comid);
 
 		/* look for a data transfer to match */
 		communication_itor_t itor;
@@ -416,27 +422,21 @@ static void display_bandwith_evolution(void)
 		itor = communication_list_next(itor))
 	{
 		current_bandwith += itor->bandwith;
-		fprintf(out_paje_file, "13  %f bw MEMNODE0 %f\n",
-				itor->comm_start, current_bandwith);
+		fprintf(out_paje_file, "13  %f bw %sMEMNODE0 %f\n",
+				itor->comm_start, prefix, current_bandwith);
 
 		current_bandwith_per_node[itor->node] +=  itor->bandwith;
-		fprintf(out_paje_file, "13  %f bw MEMNODE%d %f\n",
-				itor->comm_start, itor->node, current_bandwith_per_node[itor->node]);
+		fprintf(out_paje_file, "13  %f bw %sMEMNODE%d %f\n",
+				itor->comm_start, prefix, itor->node, current_bandwith_per_node[itor->node]);
 	}
 }
 
-static void handle_start_memnode_event(const char *eventstr)
+static void handle_memnode_event(const char *eventstr)
 {
 	unsigned memnode = ev.param[0];
 
-	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      %s\n", get_event_time_stamp(), memnode, eventstr);
-}
-
-static void handle_end_memnode_event(void)
-{
-	unsigned memnode = ev.param[0];
-
-	fprintf(out_paje_file, "10       %f     MS      MEMNODE%d      No\n", get_event_time_stamp(), memnode);
+	fprintf(out_paje_file, "10       %f     MS      %sMEMNODE%d      %s\n",
+		get_event_time_stamp(), prefix, memnode, eventstr);
 }
 
 /*
@@ -447,13 +447,13 @@ static int curq_size = 0;
 static void handle_job_push(void)
 {
 	curq_size++;
-	fprintf(out_paje_file, "13       %f ntask sched %f\n", get_event_time_stamp(), (float)curq_size);
+	fprintf(out_paje_file, "13       %f ntask %ssched %f\n", get_event_time_stamp(), prefix, (float)curq_size);
 }
 
 static void handle_job_pop(void)
 {
 	curq_size--;
-	fprintf(out_paje_file, "13       %f ntask sched %f\n", get_event_time_stamp(), (float)curq_size);
+	fprintf(out_paje_file, "13       %f ntask %ssched %f\n", get_event_time_stamp(), prefix, (float)curq_size);
 }
 
 static void handle_codelet_tag_deps(void)
@@ -507,7 +507,7 @@ static void parse_args(int argc, char **argv)
 		}
 
 		if (strcmp(argv[i], "-i") == 0) {
-			filename = argv[++i];
+			filenames[ninputfiles++] = argv[++i];
 		}
 
 		if (strcmp(argv[i], "-no-counter") == 0) {
@@ -530,21 +530,13 @@ static void parse_args(int argc, char **argv)
 	}
 }
 
-/*
- * This program should be used to parse the log generated by FxT 
- */
-int main(int argc, char **argv)
+void parse_new_file(char *filename_in, char *file_prefix)
 {
-	int ret;
-	int fd_in, fd_out;
+	prefix = file_prefix;
 
-	int use_stdout = 1;
-
-	init_dag_dot();
-
-	parse_args(argc, argv);
-
-	fd_in = open(filename, O_RDONLY);
+	/* Open the trace file */
+	int fd_in;
+	fd_in = open(filename_in, O_RDONLY);
 	if (fd_in < 0) {
 	        perror("open failed :");
 	        exit(-1);
@@ -564,18 +556,12 @@ int main(int argc, char **argv)
 	hcreate(MAXWORKERS);
 
 	symbol_list = symbol_name_list_new(); 
-
 	communication_list = communication_list_new();
-
-	if (generate_distrib)
-		distrib_time = fopen(distrib_time_path, "w+");
-
-	paje_output_file_init();
 
 	unsigned first_event = 1;
 
 	while(1) {
-		ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
+		int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
 		if (ret != FXT_EV_OK) {
 			fprintf(stderr, "no more block ...\n");
 			break;
@@ -589,12 +575,12 @@ int main(int argc, char **argv)
 			start_time = ev.time;
 
 			/* create the "program" container */
-			fprintf(out_paje_file, "7       %f p      P      0       program \n", 0.0f);
+			fprintf(out_paje_file, "7      0.0 %sp      P      0       program%s \n", prefix, prefix);
 			/* create a variable with the number of tasks */
 			if (!no_counter)
 			{
-				fprintf(out_paje_file, "7       0.0 sched      Sc      p       scheduler \n");
-				fprintf(out_paje_file, "13    0.0    ntask sched 0.0\n");
+				fprintf(out_paje_file, "7     0.0    %ssched   Sc    %sp     scheduler \n", prefix, prefix);
+				fprintf(out_paje_file, "13    0.0    ntask %ssched 0.0\n", prefix);
 			}
 
 		}
@@ -697,23 +683,23 @@ int main(int argc, char **argv)
 
 			case FUT_START_ALLOC:
 				if (!no_bus)
-				handle_start_memnode_event("A");
+				handle_memnode_event("A");
 				break;
 
 			case FUT_START_ALLOC_REUSE:
 				if (!no_bus)
-				handle_start_memnode_event("Ar");
+				handle_memnode_event("Ar");
 				break;
 
 			case FUT_START_MEMRECLAIM:
-				handle_start_memnode_event("R");
+				handle_memnode_event("R");
 				break;
 
 			case FUT_END_ALLOC:
 			case FUT_END_ALLOC_REUSE:
 			case FUT_END_MEMRECLAIM:
 				if (!no_bus)
-				handle_end_memnode_event();
+				handle_memnode_event("No");
 				break;
 
 			case FUT_USER_EVENT:
@@ -721,8 +707,52 @@ int main(int argc, char **argv)
 				break;
 
 			default:
-				fprintf(stderr, "unknown event.. %x at time %llx\n", (unsigned)ev.code, (long long unsigned)ev.time);
+				fprintf(stderr, "unknown event.. %x at time %llx\n",
+					(unsigned)ev.code, (long long unsigned)ev.time);
 				break;
+		}
+	}
+
+	hdestroy();
+
+	/* Close the trace file */
+	if (close(fd_in))
+	{
+	        perror("close failed :");
+	        exit(-1);
+	}
+}
+
+/*
+ * This program should be used to parse the log generated by FxT 
+ */
+int main(int argc, char **argv)
+{
+	int fd_out;
+
+	int use_stdout = 1;
+
+	parse_args(argc, argv);
+
+	init_dag_dot();
+
+	if (generate_distrib)
+		distrib_time = fopen(distrib_time_path, "w+");
+
+	paje_output_file_init();
+
+	if (ninputfiles == 1)
+	{
+		/* we usually only have a single trace */
+		parse_new_file(filenames[0], "");
+	}
+	else {
+		unsigned inputfile;
+		for (inputfile = 0; inputfile < ninputfiles; inputfile++)
+		{
+			char file_prefix[32];
+			snprintf(file_prefix, 32, "FILE%d", inputfile);
+			parse_new_file(filenames[inputfile], file_prefix);
 		}
 	}
 
