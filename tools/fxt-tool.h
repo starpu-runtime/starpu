@@ -39,4 +39,15 @@ extern void terminate_dat_dot(void);
 extern void add_deps(uint64_t child, uint64_t father);
 extern void dot_set_tag_done(uint64_t tag, char *color);
 
+void set_next_other_worker_color(int workerid);
+void set_next_cpu_worker_color(int workerid);
+void set_next_cuda_worker_color(int workerid);
+const char *get_worker_color(int workerid);
+
+unsigned get_colour_symbol_red(char *name);
+unsigned get_colour_symbol_green(char *name);
+unsigned get_colour_symbol_blue(char *name);
+
+void reinit_colors(void);
+
 #endif // __FXT_TOOL_H__
