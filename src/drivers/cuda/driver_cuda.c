@@ -98,7 +98,7 @@ static int execute_job_on_cuda(job_t j, struct worker_s *args)
 		/* there was not enough memory, so the input of
 		 * the codelet cannot be fetched ... put the 
 		 * codelet back, and try it later */
-		return STARPU_TRYAGAIN;
+		return -EAGAIN;
 	}
 
 	if (calibrate_model || BENCHMARK_COMM)
@@ -145,7 +145,7 @@ static int execute_job_on_cuda(job_t j, struct worker_s *args)
 
 	push_task_output(task, mask);
 
-	return STARPU_SUCCESS;
+	return 0;
 }
 
 void *_starpu_cuda_worker(void *arg)
@@ -246,12 +246,9 @@ void *_starpu_cuda_worker(void *arg)
 
 		res = execute_job_on_cuda(j, args);
 
-		if (res != STARPU_SUCCESS) {
+		if (res) {
 			switch (res) {
-				case STARPU_SUCCESS:
-				case STARPU_FATAL:
-					assert(0);
-				case STARPU_TRYAGAIN:
+				case -EAGAIN:
 					fprintf(stderr, "ouch, put the codelet %p back ... \n", j);
 					push_task(j);
 					STARPU_ABORT();

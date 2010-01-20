@@ -193,8 +193,6 @@ size_t starpu_get_bcsr_elemsize(starpu_data_handle);
 
 unsigned starpu_get_handle_interface_id(starpu_data_handle);
 
-#endif
-
 #ifdef __cplusplus
 }
 #endif
