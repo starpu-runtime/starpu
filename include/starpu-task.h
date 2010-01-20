@@ -177,8 +177,21 @@ void starpu_tag_notify_from_apps(starpu_tag_t id);
 /* To release resources, tags should be freed after use */
 void starpu_tag_remove(starpu_tag_t id);
 
+/* Initialize a task structure with default values. */
 void starpu_task_init(struct starpu_task *task);
+
+/* Allocate a task structure and initialize it with default values. Tasks
+ * allocated dynamically with starpu_task_create are automatically liberated
+ * when the task is terminated. If the destroy flag is explicitely unset, the
+ * ressources used by the task are liberated by calling starpu_task_destroy.
+ * */
 struct starpu_task *starpu_task_create(void);
+
+/* Liberate the ressource allocated during starpu_task_create. This function
+ * can be called automatically after the execution of a task by setting the
+ * "destroy" flag of the starpu_task structure (default behaviour). Calling
+ * this function on a statically allocated task results in an undefined
+ * behaviour. */
 void starpu_task_destroy(struct starpu_task *task);
 int starpu_submit_task(struct starpu_task *task);
 
@@ -189,6 +202,8 @@ int starpu_submit_task(struct starpu_task *task);
  * indicates that the waited task was either synchronous or detached. */
 int starpu_wait_task(struct starpu_task *task);
 
+/* This function waits until all the tasks that were already submitted have
+ * been executed. */
 int starpu_wait_all_tasks(void);
 
 void starpu_display_codelet_stats(struct starpu_codelet_t *cl);

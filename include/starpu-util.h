@@ -184,12 +184,6 @@ extern "C" {
 
 #endif // USE_CUDA
 
-
-
-#define STARPU_SUCCESS	0
-#define STARPU_TRYAGAIN	1
-#define STARPU_FATAL	2
-
 static inline int starpu_get_env_number(const char *str)
 {
 	char *strval;
@@ -213,14 +207,22 @@ static inline int starpu_get_env_number(const char *str)
 	}
 }
 
+/* Add an event in the execution trace if FxT is enabled */
 void starpu_trace_user_event(unsigned code);
 
 /* Some helper functions for application using CUBLAS kernels */
 void starpu_helper_init_cublas(void);
 void starpu_helper_shutdown_cublas(void);
+
+/* Call func(arg) on every worker matching the "where" mask (eg. CUDA|CORE to
+ * execute the function on every CPUs and every CUDA devices). This function is
+ * synchronous, but the different workers may execute the function in parallel.
+ * */
 void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where);
 
 #ifdef USE_CUDA
+/* In case the application is using streams, these functions will
+ * repespectively create, and return, a unique stream for every GPU worker. */
 void starpu_helper_create_per_gpu_streams(void);
 cudaStream_t *starpu_helper_get_local_stream(void);
 #endif

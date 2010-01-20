@@ -193,16 +193,6 @@ size_t starpu_get_bcsr_elemsize(starpu_data_handle);
 
 unsigned starpu_get_handle_interface_id(starpu_data_handle);
 
-#if 0
-typedef union {
-	starpu_blas_interface_t blas;	/* dense BLAS representation */
-	starpu_block_interface_t block;	/* BLOCK interface for 3D dense blocks */
-	starpu_vector_interface_t vector; /* continuous vector */
-	starpu_csr_interface_t csr;	/* compressed sparse row */
-	starpu_csc_interface_t csc; 	/* compressed sparse column */
-	starpu_bcsr_interface_t bcsr;	/* blocked compressed sparse row */
-	uint8_t pad[64];
-} starpu_data_interface_t;
 #endif
 
 #ifdef __cplusplus
