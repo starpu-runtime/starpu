@@ -21,11 +21,6 @@
 #include <starpu_config.h>
 #include <starpu.h>
 
-/* this is a randomly choosen value ... */
-#ifndef MAXCUDADEVS
-#define MAXCUDADEVS     4
-#endif
-
 #ifdef USE_CUDA
 #include <cuda.h>
 #endif

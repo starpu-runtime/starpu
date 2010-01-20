@@ -469,7 +469,7 @@ void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archna
 		snprintf(archname, maxlen, "core");
 	}
 	else if ((STARPU_CUDA_DEFAULT <= arch)
-		&& (arch < STARPU_CUDA_DEFAULT + MAXCUDADEVS))
+		&& (arch < STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS))
 	{
 		int devid = arch - STARPU_CUDA_DEFAULT;
 		snprintf(archname, maxlen, "cuda_%d", devid);

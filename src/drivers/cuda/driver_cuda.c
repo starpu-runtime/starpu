@@ -59,7 +59,7 @@ unsigned get_cuda_device_count(void)
 void _starpu_init_cuda(void)
 {
 	ncudagpus = get_cuda_device_count();
-	assert(ncudagpus <= MAXCUDADEVS);
+	assert(ncudagpus <= STARPU_MAXCUDADEVS);
 }
 
 static int execute_job_on_cuda(job_t j, struct worker_s *args)

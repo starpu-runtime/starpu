@@ -40,7 +40,7 @@ static double latency_matrix[MAXNODES][MAXNODES] = {{ -1.0}};
 static unsigned was_benchmarked = 0;
 static int ncuda = 0;
 
-static int affinity_matrix[MAXCUDADEVS][MAXCPUS];
+static int affinity_matrix[STARPU_MAXCUDADEVS][MAXCPUS];
 
 /* Benchmarking the performance of the bus */
 

@@ -104,6 +104,14 @@ fi
 #                                                                             #
 ###############################################################################
 
+AC_MSG_CHECKING(maximum number of CUDA devices)
+AC_ARG_ENABLE(maxcudadev, [AS_HELP_STRING([--enable-maxcudadev=<number>],
+			[maximum number of CUDA devices])],
+			nmaxcudadev=$enableval, nmaxcudadev=4)
+AC_MSG_RESULT($nmaxcudadev)
+AC_DEFINE_UNQUOTED(STARPU_MAXCUDADEVS, [$nmaxcudadev], 
+		[maximum number of CUDA devices])
+
 AC_ARG_ENABLE(cuda, [AS_HELP_STRING([--disable-cuda],
 		[do not use CUDA device(s)])],, [enable_cuda=maybe])
 

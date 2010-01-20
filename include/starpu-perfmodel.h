@@ -19,8 +19,8 @@
 
 #include <stdio.h>
 #include <pthread.h>
+#include <starpu.h>
 #include <starpu_config.h>
-#include <starpu-task.h> // for MAXCUDADEVS
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,7 +40,7 @@ enum starpu_perf_archtype {
 	STARPU_CORE_DEFAULT = 0,
 	STARPU_CUDA_DEFAULT = 1,
 	/* STARPU_CUDA_DEFAULT + devid */
-	STARPU_GORDON_DEFAULT = STARPU_CUDA_DEFAULT + MAXCUDADEVS
+	STARPU_GORDON_DEFAULT = STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS
 };
 
 #define NARCH_VARIATIONS	(STARPU_GORDON_DEFAULT+1)

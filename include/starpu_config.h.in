@@ -32,5 +32,6 @@
 #undef HAVE_FFTWL
 
 #undef STARPU_NMAXBUFS
+#undef STARPU_MAXCUDADEVS
 
 #endif
