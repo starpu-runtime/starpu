@@ -183,7 +183,7 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 
 		if (strcmp(arch, "cuda") == 0) {
 			unsigned archid;
-			for (archid = STARPU_CUDA_DEFAULT; archid < STARPU_CUDA_DEFAULT + MAXCUDADEVS; archid++)
+			for (archid = STARPU_CUDA_DEFAULT; archid < STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS; archid++)
 			{
 				char archname[32];
 				starpu_perfmodel_get_arch_name(archid, archname, 32);
