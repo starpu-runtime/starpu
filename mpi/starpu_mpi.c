@@ -49,6 +49,8 @@ static void starpu_mpi_isend_func(struct starpu_mpi_req_s *req)
 
 	MPI_Isend(ptr, 1, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
 
+	TRACE_MPI_ISEND(req->srcdst, req->mpi_tag, 0);
+
 	/* somebody is perhaps waiting for the MPI request to be posted */
 	pthread_mutex_lock(&req->req_mutex);
 	req->submitted = 1;
@@ -71,6 +73,8 @@ int starpu_mpi_isend(starpu_data_handle data_handle, starpu_mpi_req *public_req,
 	req->completed = 0;
 	pthread_mutex_init(&req->req_mutex, NULL);
 	pthread_cond_init(&req->req_cond, NULL);
+
+	req->request_type = SEND_REQ;
 
 	req->data_handle = data_handle;
 	req->srcdst = dest;
@@ -103,6 +107,8 @@ int starpu_mpi_isend_detached(starpu_data_handle data_handle,
 	req->completed = 0;
 	pthread_mutex_init(&req->req_mutex, NULL);
 	pthread_cond_init(&req->req_cond, NULL);
+
+	req->request_type = SEND_REQ;
 
 	req->data_handle = data_handle;
 	req->srcdst = dest;
@@ -158,6 +164,8 @@ int starpu_mpi_irecv(starpu_data_handle data_handle, starpu_mpi_req *public_req,
 	pthread_mutex_init(&req->req_mutex, NULL);
 	pthread_cond_init(&req->req_cond, NULL);
 
+	req->request_type = RECV_REQ;
+
 	req->data_handle = data_handle;
 	req->srcdst = source;
 	req->mpi_tag = mpi_tag;
@@ -188,6 +196,8 @@ int starpu_mpi_irecv_detached(starpu_data_handle data_handle, int source, int mp
 	req->submitted = 0;
 	pthread_mutex_init(&req->req_mutex, NULL);
 	pthread_cond_init(&req->req_cond, NULL);
+
+	req->request_type = RECV_REQ;
 
 	req->data_handle = data_handle;
 	req->srcdst = source;
@@ -380,6 +390,11 @@ static void handle_request_termination(struct starpu_mpi_req_s *req)
 {
 	MPI_Type_free(&req->datatype);
 	starpu_release_data_from_mem(req->data_handle);
+
+	if (req->request_type == RECV_REQ)
+	{
+		TRACE_MPI_IRECV_END(req->srcdst, req->mpi_tag);
+	}
 
 	/* Execute the specified callback, if any */
 	if (req->callback)

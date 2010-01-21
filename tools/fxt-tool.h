@@ -51,7 +51,22 @@ unsigned get_colour_symbol_blue(char *name);
 
 void reinit_colors(void);
 
-int find_sync_point(char *filename_in, uint64_t *offset, int *key);
+/*
+ *	MPI
+ */
+
+int find_sync_point(char *filename_in, uint64_t *offset, int *key, int *rank);
 uint64_t find_start_time(char *filename_in);
+
+struct mpi_transfer {
+	unsigned matched;
+	int other_rank; /* src for a recv, dest for a send */
+	int mpi_tag;
+	size_t size;
+	float date;
+};
+
+void add_mpi_send_transfer(int src, int dst, int mpi_tag, size_t size, float date);
+void add_mpi_recv_transfer(int src, int dst, int mpi_tag, float date);
 
 #endif // __FXT_TOOL_H__

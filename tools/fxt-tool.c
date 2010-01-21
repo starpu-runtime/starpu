@@ -31,6 +31,7 @@ struct fxt_ev_64 ev;
  * processes), we may need to prefix the name of the containers. */
 char *prefix = "";
 uint64_t offset = 0;
+int rank = -1;
 
 static uint64_t start_time = 0;
 static uint64_t end_time = 0;
@@ -75,7 +76,8 @@ static void paje_output_file_init(void)
 	write_paje_header(out_paje_file);
 
 	fprintf(out_paje_file, "                                        \n \
-	1       P      0       \"Program\"                      	\n \
+	1       MPIP      0       \"MPI Program\"                      	\n \
+	1       P      MPIP       \"Program\"                      	\n \
 	1       Mn      P       \"Memory Node\"                         \n \
 	1       T      Mn       \"Worker\"                               \n \
 	1       Sc       P       \"Scheduler State\"                        \n \
@@ -97,7 +99,10 @@ static void paje_output_file_init(void)
 	6       R       MS      Reclaiming         \".0 .1 .4\"		\n \
 	6       Co       MS     DriverCopy         \".3 .5 .1\"		\n \
 	6       No       MS     Nothing         \".0 .0 .0\"		\n \
+	5       MPIL     MPIP	P	P      MPIL\n \
 	5       L       P	Mn	Mn      L\n");
+
+	fprintf(out_paje_file, "7      0.0 MPIroot      MPIP      0       root\n");
 }
 
 /*
@@ -495,6 +500,33 @@ static void handle_task_done(void)
 	dot_set_tag_done(tag_id, colour);
 }
 
+static void handle_mpi_barrier(void)
+{
+	rank = ev.param[0];
+
+	/* Add an event in the trace */
+	fprintf(out_paje_file, "9       %f     event      %sp      %d\n", get_event_time_stamp(), prefix, rank);
+}
+
+static void handle_mpi_isend(void)
+{
+	int dest = ev.param[0];
+	int mpi_tag = ev.param[1];
+	size_t size = ev.param[2];
+	float date = get_event_time_stamp();
+
+	add_mpi_send_transfer(rank, dest, mpi_tag, size, date);
+}
+
+static void handle_mpi_irecv_end(void)
+{
+	int src = ev.param[0];
+	int mpi_tag = ev.param[1];
+	float date = get_event_time_stamp();
+
+	add_mpi_recv_transfer(src, rank, mpi_tag, date);
+}
+
 static void parse_args(int argc, char **argv)
 {
 	int i;
@@ -562,7 +594,7 @@ void parse_new_file(char *filename_in, char *file_prefix, uint64_t file_offset)
 
 	/* TODO starttime ...*/
 	/* create the "program" container */
-	fprintf(out_paje_file, "7      0.0 %sp      P      0       program%s \n", prefix, prefix);
+	fprintf(out_paje_file, "7      0.0 %sp      P      MPIroot       program%s \n", prefix, prefix);
 	/* create a variable with the number of tasks */
 	if (!no_counter)
 	{
@@ -709,6 +741,18 @@ void parse_new_file(char *filename_in, char *file_prefix, uint64_t file_offset)
 				handle_user_event();
 				break;
 
+			case FUT_MPI_BARRIER:
+				handle_mpi_barrier();
+				break;
+
+			case FUT_MPI_ISEND:
+				handle_mpi_isend();
+				break;
+
+			case FUT_MPI_IRECV_END:
+				handle_mpi_irecv_end();
+				break;
+
 			default:
 				fprintf(stderr, "unknown event.. %x at time %llx WITH OFFSET %llx\n",
 					(unsigned)ev.code, (long long unsigned)ev.time, (long long unsigned)(ev.time-offset));
@@ -769,6 +813,7 @@ int main(int argc, char **argv)
 		 */
 		
 		int unique_keys[64];
+		int rank_k[64];
 		uint64_t start_k[64];
 		uint64_t sync_k[64];
 		unsigned sync_k_exists[64];
@@ -790,7 +835,8 @@ int main(int argc, char **argv)
 		{
 			int ret = find_sync_point(filenames[inputfile],
 							&sync_k[inputfile],
-							&unique_keys[inputfile]);
+							&unique_keys[inputfile],
+							&rank_k[inputfile]);
 			if (ret == -1)
 			{
 				/* There was no sync point, we assume there is no offset */
@@ -831,10 +877,18 @@ int main(int argc, char **argv)
 		/* generate the Paje trace for the different files */
 		for (inputfile = 0; inputfile < ninputfiles; inputfile++)
 		{
+			int filerank = rank_k[inputfile];
 
 			char file_prefix[32];
-			snprintf(file_prefix, 32, "file_%d_", inputfile);
+			snprintf(file_prefix, 32, "mpi_%d_", filerank);
 			parse_new_file(filenames[inputfile], file_prefix, offsets[inputfile]);
+		}
+
+		/* display the MPI transfers if possible */
+		for (inputfile = 0; inputfile < ninputfiles; inputfile++)
+		{
+			int filerank = rank_k[inputfile];
+			display_all_transfers_from_trace(out_paje_file, filerank);
 		}
 	}
 

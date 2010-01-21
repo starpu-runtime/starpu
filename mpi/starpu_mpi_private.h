@@ -24,6 +24,9 @@
 #include <common/list.h>
 #include <pthread.h>
 
+#define SEND_REQ	0
+#define RECV_REQ	1
+
 LIST_TYPE(starpu_mpi_req,
 	/* description of the data at StarPU level */
 	starpu_data_handle data_handle;
@@ -46,6 +49,8 @@ LIST_TYPE(starpu_mpi_req,
 	int ret;
 	pthread_mutex_t req_mutex;
 	pthread_cond_t req_cond;
+
+	unsigned request_type; /* 0 send, 1 recv */
 
 	unsigned submitted;
 	unsigned completed;
