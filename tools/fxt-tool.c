@@ -871,7 +871,8 @@ int main(int argc, char **argv)
 		/* Compute the offset */
 		for (inputfile = 0; inputfile < ninputfiles; inputfile++)
 		{
-			offsets[inputfile] = (sync_k_exists[inputfile]?start_k[inputfile]:(M-sync_k[inputfile]));
+			offsets[inputfile] = sync_k_exists[inputfile]?
+						(sync_k[inputfile]-M):start_k[inputfile];
 		}
 
 		/* generate the Paje trace for the different files */
