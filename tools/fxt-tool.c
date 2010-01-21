@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,6 +30,7 @@ struct fxt_ev_64 ev;
 /* In case we are going to gather multiple traces (eg in the case of MPI
  * processes), we may need to prefix the name of the containers. */
 char *prefix = "";
+uint64_t offset = 0;
 
 static uint64_t start_time = 0;
 static uint64_t end_time = 0;
@@ -105,7 +106,7 @@ static void paje_output_file_init(void)
 
 static float get_event_time_stamp(void)
 {
-	return (float)((ev.time-start_time)/1000000.0);
+	return (float)((ev.time-offset)/1000000.0);
 }
 
 static int register_worker_id(unsigned long tid)
@@ -530,9 +531,10 @@ static void parse_args(int argc, char **argv)
 	}
 }
 
-void parse_new_file(char *filename_in, char *file_prefix)
+void parse_new_file(char *filename_in, char *file_prefix, uint64_t file_offset)
 {
 	prefix = file_prefix;
+	offset = file_offset;
 
 	/* Open the trace file */
 	int fd_in;
@@ -558,6 +560,16 @@ void parse_new_file(char *filename_in, char *file_prefix)
 	symbol_list = symbol_name_list_new(); 
 	communication_list = communication_list_new();
 
+	/* TODO starttime ...*/
+	/* create the "program" container */
+	fprintf(out_paje_file, "7      0.0 %sp      P      0       program%s \n", prefix, prefix);
+	/* create a variable with the number of tasks */
+	if (!no_counter)
+	{
+		fprintf(out_paje_file, "7     %f    %ssched   Sc    %sp     scheduler \n", 0.0, prefix, prefix);
+		fprintf(out_paje_file, "13    0.0    ntask %ssched 0.0\n", prefix);
+	}
+
 	unsigned first_event = 1;
 
 	while(1) {
@@ -573,15 +585,6 @@ void parse_new_file(char *filename_in, char *file_prefix)
 		{
 			first_event = 0;
 			start_time = ev.time;
-
-			/* create the "program" container */
-			fprintf(out_paje_file, "7      0.0 %sp      P      0       program%s \n", prefix, prefix);
-			/* create a variable with the number of tasks */
-			if (!no_counter)
-			{
-				fprintf(out_paje_file, "7     0.0    %ssched   Sc    %sp     scheduler \n", prefix, prefix);
-				fprintf(out_paje_file, "13    0.0    ntask %ssched 0.0\n", prefix);
-			}
 
 		}
 
@@ -707,8 +710,8 @@ void parse_new_file(char *filename_in, char *file_prefix)
 				break;
 
 			default:
-				fprintf(stderr, "unknown event.. %x at time %llx\n",
-					(unsigned)ev.code, (long long unsigned)ev.time);
+				fprintf(stderr, "unknown event.. %x at time %llx WITH OFFSET %llx\n",
+					(unsigned)ev.code, (long long unsigned)ev.time, (long long unsigned)(ev.time-offset));
 				break;
 		}
 	}
@@ -744,15 +747,78 @@ int main(int argc, char **argv)
 	if (ninputfiles == 1)
 	{
 		/* we usually only have a single trace */
-		parse_new_file(filenames[0], "");
+		uint64_t file_start_time = find_start_time(filenames[0]);
+		parse_new_file(filenames[0], "", file_start_time);
 	}
 	else {
 		unsigned inputfile;
+
+		uint64_t offsets[64];
+		uint64_t found_offsets[64];
+		uint64_t start_times[64];
+
+		uint64_t max = 0;
+
+		/*
+		 * Find the trace offsets:
+		 *	- If there is no sync point
+		 *		psi_k(x) = x - start_k
+		 *	- If there is a sync point sync_k
+		 *		psi_k(x) = x - sync_k + M
+		 *		where M = max { sync_i - start_i | there exists sync_i}
+		 * More generally:
+		 *	- psi_k(x) = x - offset_k
+		 */
+		
+		uint64_t start_k[64];
+		uint64_t sync_k[64];
+		unsigned sync_k_exists[64];
+		uint64_t M = 0;
+
+		/* Compute all start_k */
 		for (inputfile = 0; inputfile < ninputfiles; inputfile++)
 		{
+			uint64_t file_start = find_start_time(filenames[inputfile]);
+			start_k[inputfile] = file_start; 
+		}
+
+		/* Compute all sync_k if they exist */
+		for (inputfile = 0; inputfile < ninputfiles; inputfile++)
+		{
+			int ret = find_sync_point(filenames[inputfile],
+							&sync_k[inputfile]);
+			if (ret == -1)
+			{
+				/* There was no sync point, we assume there is no offset */
+				sync_k_exists[inputfile] = 0;
+				fprintf(stderr, "BAD ret %d\n", ret);
+			}
+			else {
+				fprintf(stderr, "GOOD ret %d\n", ret);
+
+				STARPU_ASSERT(sync_k[inputfile] >= start_k[inputfile]);
+
+				sync_k_exists[inputfile] = 1;
+
+				uint64_t diff = sync_k[inputfile] - start_k[inputfile];
+				if (diff > M)
+					M = diff;
+			}
+		}
+
+		/* Compute the offset */
+		for (inputfile = 0; inputfile < ninputfiles; inputfile++)
+		{
+			offsets[inputfile] = (sync_k_exists[inputfile]?start_k[inputfile]:(M-sync_k[inputfile]));
+		}
+
+		/* generate the Paje trace for the different files */
+		for (inputfile = 0; inputfile < ninputfiles; inputfile++)
+		{
+
 			char file_prefix[32];
-			snprintf(file_prefix, 32, "FILE%d", inputfile);
-			parse_new_file(filenames[inputfile], file_prefix);
+			snprintf(file_prefix, 32, "file_%d_", inputfile);
+			parse_new_file(filenames[inputfile], file_prefix, offsets[inputfile]);
 		}
 	}
 

@@ -17,7 +17,7 @@
 SUBDIRS = 
 
 LIBS = $(top_builddir)/src/libstarpu.la @LIBS@
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/tools/
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/tools/ -I$(top_srcdir)/mpi/
 
 bin_PROGRAMS =
 
@@ -30,7 +30,7 @@ calibrate_bus_SOURCES = calibrate_bus.c
 if USE_FXT
 bin_PROGRAMS += fxt-tool fxt-stats
 
-fxt_tool_SOURCES = fxt-tool.c fxt-tool-common.c dag-dot.c histo-paje.c
+fxt_tool_SOURCES = fxt-tool.c fxt-tool-common.c fxt-tool-mpi.c dag-dot.c histo-paje.c
 fxt_tool_CFLAGS = -I$(top_srcdir)/src/
 fxt_tool_LDADD = 
 

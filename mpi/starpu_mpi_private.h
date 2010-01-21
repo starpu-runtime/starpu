@@ -17,7 +17,10 @@
 #ifndef __STARPU_MPI_PRIVATE_H__
 #define __STARPU_MPI_PRIVATE_H__
 
+#include <starpu.h>
+#include <common/config.h>
 #include "starpu_mpi.h"
+#include "starpu_mpi_fxt.h"
 #include <common/list.h>
 #include <pthread.h>
 

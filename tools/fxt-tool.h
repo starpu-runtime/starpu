@@ -28,6 +28,7 @@
 
 #include <common/fxt.h>
 #include <common/list.h>
+#include <starpu_mpi_fxt.h>
 
 #include "histo-paje.h"
 
@@ -49,5 +50,8 @@ unsigned get_colour_symbol_green(char *name);
 unsigned get_colour_symbol_blue(char *name);
 
 void reinit_colors(void);
+
+int find_sync_point(char *filename_in, uint64_t *offset);
+uint64_t find_start_time(char *filename_in);
 
 #endif // __FXT_TOOL_H__

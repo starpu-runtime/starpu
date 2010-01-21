@@ -559,6 +559,19 @@ int starpu_mpi_initialize(void)
 	hookid = starpu_register_progression_hook(progression_hook_func, NULL);
 	STARPU_ASSERT(hookid >= 0);
 #endif
+	
+#ifdef USE_FXT
+	int rank;
+	int worldsize;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
+	
+	int barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
+	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
+
+	fprintf(stderr, "BARRIER\n");
+	TRACE_MPI_BARRIER(rank, worldsize);
+#endif
 
 	return 0;
 }

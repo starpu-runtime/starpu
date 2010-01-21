@@ -75,3 +75,39 @@ void reinit_colors(void)
 	cpus_index = 0;
 	cuda_index = 0;
 }
+
+uint64_t find_start_time(char *filename_in)
+{
+	/* Open the trace file */
+	int fd_in;
+	fd_in = open(filename_in, O_RDONLY);
+	if (fd_in < 0) {
+	        perror("open failed :");
+	        exit(-1);
+	}
+
+	static fxt_t fut;
+	fut = fxt_fdopen(fd_in);
+	if (!fut) {
+	        perror("fxt_fdopen :");
+	        exit(-1);
+	}
+	
+	fxt_blockev_t block;
+	block = fxt_blockev_enter(fut);
+
+	struct fxt_ev_64 ev;
+
+	int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
+	STARPU_ASSERT (ret == FXT_EV_OK);
+
+	/* Close the trace file */
+	if (close(fd_in))
+	{
+	        perror("close failed :");
+	        exit(-1);
+	}
+	return (ev.time);
+}
+
+
