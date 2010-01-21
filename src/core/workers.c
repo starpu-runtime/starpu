@@ -440,6 +440,10 @@ void starpu_shutdown(void)
 
 	starpu_destroy_topology(&config);
 
+#ifdef USE_FXT
+	stop_fxt_profiling();
+#endif
+
 	_starpu_close_debug_logfile();
 }
 

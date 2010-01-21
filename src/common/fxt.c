@@ -25,10 +25,7 @@
 static char PROF_FILE_USER[128];
 static int fxt_started = 0;
 
-static void profile_stop(void)
-{
-	fut_endup(PROF_FILE_USER);
-}
+static int written = 0;
 
 static void profile_set_tracefile(char *fmt, ...)
 {
@@ -49,10 +46,7 @@ static void profile_set_tracefile(char *fmt, ...)
 	snprintf(suffix, 128, "_user_%s_%d", user, pid);
 
 	strcat(PROF_FILE_USER, suffix);
-
-
 }
-
 
 void start_fxt_profiling(void)
 {
@@ -65,7 +59,7 @@ void start_fxt_profiling(void)
 
 	threadid = syscall(SYS_gettid);
 
-	atexit(profile_stop);
+	atexit(stop_fxt_profiling);
 
 	if(fut_setup(PROF_BUFFER_SIZE, FUT_KEYMASKALL, threadid) < 0) {
 		perror("fut_setup");
@@ -75,6 +69,20 @@ void start_fxt_profiling(void)
 	fut_keychange(FUT_ENABLE, FUT_KEYMASKALL, threadid);
 
 	return;
+}
+
+void stop_fxt_profiling(void)
+{
+	if (!written)
+	{
+#ifdef VERBOSE
+	        char hostname[128];
+		gethostname(hostname, 128);
+		fprintf(stderr, "Writing FxT traces into file %s:%s\n", hostname, PROF_FILE_USER);
+#endif
+		fut_endup(PROF_FILE_USER);
+		written = 1;
+	}
 }
 
 void fxt_register_thread(unsigned coreid)
