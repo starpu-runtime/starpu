@@ -61,6 +61,7 @@ static int handle_to_datatype_block(starpu_data_handle data_handle, MPI_Datatype
 
 	MPI_Datatype datatype_2dlayer;
 	MPI_Type_vector(ny, nx*elemsize, ldy*elemsize, MPI_BYTE, &datatype_2dlayer);
+	MPI_Type_commit(&datatype_2dlayer);
 
 	MPI_Type_hvector(nz, 1, ldz*elemsize, datatype_2dlayer, datatype);
 
