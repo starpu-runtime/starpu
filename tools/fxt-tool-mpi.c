@@ -18,7 +18,7 @@
 
 /* Returns 0 if a barrier is found, -1 otherwise. In case of success, offset is
  * filled with the timestamp of the barrier */
-int find_sync_point(char *filename_in, uint64_t *offset)
+int find_sync_point(char *filename_in, uint64_t *offset, int *key)
 {
 	STARPU_ASSERT(offset);
 
@@ -55,10 +55,9 @@ int find_sync_point(char *filename_in, uint64_t *offset)
 		{
 			/* We found the sync point */
 			*offset = ev.time;
+			*key = ev.param[2];
 			found = 1;
 			func_ret = 0;
-
-			fprintf(stderr, "OK !\n");
 		}
 	}
 

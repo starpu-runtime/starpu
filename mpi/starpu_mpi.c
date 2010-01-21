@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <stdlib.h>
 #include <starpu_mpi.h>
 #include <starpu_mpi_datatype.h>
 #include <starpu_mpi_private.h>
@@ -539,6 +540,41 @@ static void *progress_thread_func(void *arg __attribute__((unused)))
 static int hookid = - 1;
 #endif
 
+static void _starpu_mpi_add_sync_point_in_fxt(void)
+{
+#ifdef USE_FXT
+	int rank;
+	int worldsize;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
+	
+	int barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
+	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
+
+	/* We generate a "unique" key so that we can make sure that different
+	 * FxT traces come from the same MPI run. */
+	int random_number;
+
+	/* XXX perhaps we don't want to generate a new seed if the application
+	 * specified some reproductible behaviour ? */
+	if (rank == 0)
+	{
+		srand(time(NULL));
+		random_number = rand();
+	}
+		
+	MPI_Bcast(&random_number, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+	TRACE_MPI_BARRIER(rank, worldsize, random_number);
+
+#ifdef VERBOSE
+	fprintf(stderr, "StarPU MPI (rank %d): unique key %x\n", rank, random_number);
+#endif
+
+#endif
+}
+
+
 int starpu_mpi_initialize(void)
 {
 	pthread_mutex_init(&mutex, NULL);
@@ -559,20 +595,9 @@ int starpu_mpi_initialize(void)
 	hookid = starpu_register_progression_hook(progression_hook_func, NULL);
 	STARPU_ASSERT(hookid >= 0);
 #endif
-	
-#ifdef USE_FXT
-	int rank;
-	int worldsize;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
-	
-	int barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
-	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 
-	fprintf(stderr, "BARRIER\n");
-	TRACE_MPI_BARRIER(rank, worldsize);
-#endif
-
+	_starpu_mpi_add_sync_point_in_fxt();
+	
 	return 0;
 }
 

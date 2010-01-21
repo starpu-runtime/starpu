@@ -24,10 +24,10 @@
 #define FUT_MPI_BARRIER		0x5201
 
 #ifdef USE_FXT
-#define TRACE_MPI_BARRIER(rank, worldsize)	\
-	FUT_DO_PROBE3(FUT_MPI_BARRIER, rank, worldsize, syscall(SYS_gettid));
+#define TRACE_MPI_BARRIER(rank, worldsize, key)	\
+	FUT_DO_PROBE4(FUT_MPI_BARRIER, rank, worldsize, key, syscall(SYS_gettid));
 #else
-#define TRACE_MPI_BARRIER(a, b)		do {} while(0);
+#define TRACE_MPI_BARRIER(a, b, c)	do {} while(0);
 #endif
 
 

@@ -733,8 +733,6 @@ int main(int argc, char **argv)
 {
 	int fd_out;
 
-	int use_stdout = 1;
-
 	parse_args(argc, argv);
 
 	init_dag_dot();
@@ -770,10 +768,15 @@ int main(int argc, char **argv)
 		 *	- psi_k(x) = x - offset_k
 		 */
 		
+		int unique_keys[64];
 		uint64_t start_k[64];
 		uint64_t sync_k[64];
 		unsigned sync_k_exists[64];
 		uint64_t M = 0;
+
+		unsigned found_one_sync_point = 0;
+		int key;
+		unsigned display_mpi = 0; 
 
 		/* Compute all start_k */
 		for (inputfile = 0; inputfile < ninputfiles; inputfile++)
@@ -786,15 +789,28 @@ int main(int argc, char **argv)
 		for (inputfile = 0; inputfile < ninputfiles; inputfile++)
 		{
 			int ret = find_sync_point(filenames[inputfile],
-							&sync_k[inputfile]);
+							&sync_k[inputfile],
+							&unique_keys[inputfile]);
 			if (ret == -1)
 			{
 				/* There was no sync point, we assume there is no offset */
 				sync_k_exists[inputfile] = 0;
-				fprintf(stderr, "BAD ret %d\n", ret);
 			}
 			else {
-				fprintf(stderr, "GOOD ret %d\n", ret);
+				if (!found_one_sync_point)
+				{
+					key = unique_keys[inputfile];
+					display_mpi = 1;
+					found_one_sync_point = 1;
+				}
+				else {
+					if (key != unique_keys[inputfile])
+					{
+						fprintf(stderr, "Warning: traces are coming from different run so we will not try to display MPI communications.\n");
+						display_mpi = 0;
+					}
+				}
+
 
 				STARPU_ASSERT(sync_k[inputfile] >= start_k[inputfile]);
 
