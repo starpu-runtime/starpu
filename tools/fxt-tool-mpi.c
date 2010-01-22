@@ -88,6 +88,11 @@ unsigned mpi_recvs_list_size[64] = {0};
 unsigned mpi_sends_used[64] = {0};
 unsigned mpi_recvs_used[64] = {0};
 
+/* number of slots already matched at the beginning of the list. This permits
+ * going through the lists from the beginning to match each and every
+ * transfer, thus avoiding a quadratic complexity. */
+unsigned mpi_recvs_matched[64] = {0};
+
 void add_mpi_send_transfer(int src, int dst, int mpi_tag, size_t size, float date)
 {
 	unsigned slot = mpi_sends_used[src]++;
@@ -138,8 +143,11 @@ void add_mpi_recv_transfer(int src, int dst, int mpi_tag, float date)
 struct mpi_transfer *try_to_match_send_transfer(int src, int dst, int mpi_tag)
 {
 	unsigned slot;
-#warning TODO improve !! this creates a quadratic complexity
-	for (slot = 0; slot < mpi_recvs_used[dst]; slot++)
+	unsigned firstslot = mpi_recvs_matched[dst];
+
+	unsigned all_previous_were_matched = 1;
+
+	for (slot = firstslot; slot < mpi_recvs_used[dst]; slot++)
 	{
 		if (!mpi_recvs[dst][slot].matched)
 		{
@@ -148,6 +156,16 @@ struct mpi_transfer *try_to_match_send_transfer(int src, int dst, int mpi_tag)
 				/* we found a match ! */
 				mpi_recvs[dst][slot].matched = 1;
 				return &mpi_recvs[dst][slot];
+			}
+
+			all_previous_were_matched = 0;
+		}
+		else {
+			if (all_previous_were_matched)
+			{
+				/* All previous transfers are already matched,
+				 * we need not consider them anymore */
+				mpi_recvs_matched[dst] = slot;
 			}
 		}
 	}
