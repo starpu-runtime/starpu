@@ -89,7 +89,7 @@ static void scan_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
 
 static void dump_history_entry(FILE *f, struct starpu_history_entry_t *entry)
 {
-	fprintf(f, "%x\t%-15lu\t%-15le\t%-15le\t%-15le\t%-15le\t%u\n", entry->footprint, (unsigned long) entry->size, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
+	fprintf(f, "%08x\t%-15lu\t%-15le\t%-15le\t%-15le\t%-15le\t%u\n", entry->footprint, (unsigned long) entry->size, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
 }
 
 static void scan_history_entry(FILE *f, struct starpu_history_entry_t *entry)
