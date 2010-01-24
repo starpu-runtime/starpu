@@ -30,6 +30,8 @@
 
 static struct sched_policy_s policy;
 
+static int use_prefetch = 0;
+
 /*
  *	Predefined policies
  */
@@ -158,6 +160,10 @@ void init_sched_policy(struct machine_config_s *config)
 	/* Perhaps we have to display some help */
 	display_sched_help_message();
 
+	use_prefetch = starpu_get_env_number("PREFETCH");
+	if (use_prefetch == -1)
+		use_prefetch = 0;
+
 	struct sched_policy_s *selected_policy;
 	selected_policy = select_sched_policy(config);
 
@@ -192,7 +198,16 @@ int push_task(job_t j)
 
 	if (STARPU_UNLIKELY(j->task->execute_on_a_specific_worker))
 	{
-		struct worker_s *worker = _starpu_get_worker_struct(j->task->workerid);
+		struct starpu_task *task = j->task;
+		unsigned workerid = task->workerid;
+		struct worker_s *worker = _starpu_get_worker_struct(workerid);
+		
+		if (use_prefetch)
+		{
+			uint32_t memory_node = starpu_get_worker_memory_node(workerid); 
+			prefetch_task_input_on_node(task, memory_node);
+		}
+
 		return _starpu_push_local_task(worker, j);
 	}
 	else {
