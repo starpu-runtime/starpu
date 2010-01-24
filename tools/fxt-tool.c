@@ -529,36 +529,60 @@ static void handle_mpi_irecv_end(void)
 
 static void parse_args(int argc, char **argv)
 {
+	/* We want to support arguments such as "fxt-tool -i trace_*" */
+	unsigned reading_input_filenames = 0;
+
 	int i;
 	for (i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-c") == 0) {
 			per_task_colour = 1;
+			reading_input_filenames = 0;
+			continue;
 		}
 
 		if (strcmp(argv[i], "-o") == 0) {
 			out_paje_path = argv[++i];
+			reading_input_filenames = 0;
+			continue;
 		}
 
 		if (strcmp(argv[i], "-i") == 0) {
 			filenames[ninputfiles++] = argv[++i];
+			reading_input_filenames = 1;
+			continue;
 		}
 
 		if (strcmp(argv[i], "-no-counter") == 0) {
 			no_counter = 1;
+			reading_input_filenames = 0;
+			continue;
 		}
 
 		if (strcmp(argv[i], "-no-bus") == 0) {
 			no_bus = 1;
+			reading_input_filenames = 0;
+			continue;
 		}
 
 		if (strcmp(argv[i], "-d") == 0) {
 			generate_distrib = 1;
+			reading_input_filenames = 0;
+			continue;
 		}
 
 		if (strcmp(argv[i], "-h") == 0) {
 		        fprintf(stderr, "Usage : %s [-c] [-no-counter] [-no-bus] [-i input_filename] [-o output_filename]\n", argv[0]);
 			fprintf(stderr, "\t-c: use a different colour for every type of task.\n");
 		        exit(-1);
+		}
+
+		/* That's pretty dirty: if the reading_input_filenames flag is
+		 * set, and that the argument does not match an option, we
+		 * assume this may be another filename */
+		if (reading_input_filenames)
+		{
+			filenames[ninputfiles++] = argv[i];
+			continue;
 		}
 	}
 }
@@ -880,12 +904,15 @@ int main(int argc, char **argv)
 		{
 			int filerank = rank_k[inputfile];
 
+			fprintf(stderr, "Handle file %s (rank %d)\n", filenames[inputfile], filerank);
+
 			char file_prefix[32];
 			snprintf(file_prefix, 32, "mpi_%d_", filerank);
 			parse_new_file(filenames[inputfile], file_prefix, offsets[inputfile]);
 		}
 
 		/* display the MPI transfers if possible */
+		if (display_mpi)
 		for (inputfile = 0; inputfile < ninputfiles; inputfile++)
 		{
 			int filerank = rank_k[inputfile];
