@@ -54,7 +54,12 @@ void start_fxt_profiling(void)
 
 	if (!fxt_started) {
 		fxt_started = 1;
-		profile_set_tracefile("/tmp/prof_file");
+
+		char *fxt_prefix = getenv("STARPU_FXT_PREFIX");
+		if (!fxt_prefix)
+			fxt_prefix = "/tmp/prof_file";
+
+		profile_set_tracefile(fxt_prefix);
 	}
 
 	threadid = syscall(SYS_gettid);
