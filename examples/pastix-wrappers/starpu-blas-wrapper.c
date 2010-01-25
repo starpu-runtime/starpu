@@ -116,7 +116,7 @@ void divide_vector_in_blas_filter(starpu_filter *f, starpu_data_handle root_data
 	
 	if (n1 > 0)
 	{
-		for (node = 0; node < MAXNODES; node++)
+		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
 			starpu_vector_interface_t *local = &root_data->children[child].interface[node].vector;
 	
@@ -132,7 +132,7 @@ void divide_vector_in_blas_filter(starpu_filter *f, starpu_data_handle root_data
 		child++;
 	}
 	
-	for (node = 0; node < MAXNODES; node++)
+	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		starpu_blas_interface_t *local = &root_data->children[child].interface[node].blas;
 
@@ -151,7 +151,7 @@ void divide_vector_in_blas_filter(starpu_filter *f, starpu_data_handle root_data
 
 	child++;
 
-	for (node = 0; node < MAXNODES; node++)
+	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		starpu_vector_interface_t *local = &root_data->children[child].interface[node].vector;
 

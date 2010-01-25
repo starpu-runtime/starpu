@@ -384,6 +384,20 @@ AC_MSG_RESULT($nmaxbuffers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers], 
 		[how many buffers can be manipulated per task])
 
+# We have one memory node shared by all CPU workers, one node per GPU, and
+# currently the Cell driver is using the same memory node as the CPU.
+if test x$enable_cuda = xyes; then
+	# we could have used nmaxcudadev + 1, but this would certainly give an
+	# odd number.
+	maxnodes=`expr 2 \* $nmaxcudadev`
+else
+	maxnodes=1	
+fi
+AC_MSG_CHECKING(maximum number of memory nodes)
+AC_MSG_RESULT($maxnodes)
+AC_DEFINE_UNQUOTED(STARPU_MAXNODES, [$maxnodes],
+		[maximum number of memory nodes])
+
 
 AC_MSG_CHECKING(whether priorities should be enabled)
 AC_ARG_ENABLE(priority, [AS_HELP_STRING([--disable-priority],

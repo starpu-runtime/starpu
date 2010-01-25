@@ -19,19 +19,19 @@
 #include <pthread.h>
 
 /* requests that have not been treated at all */
-static data_request_list_t data_requests[MAXNODES];
-static pthread_cond_t data_requests_list_cond[MAXNODES];
-static pthread_mutex_t data_requests_list_mutex[MAXNODES];
+static data_request_list_t data_requests[STARPU_MAXNODES];
+static pthread_cond_t data_requests_list_cond[STARPU_MAXNODES];
+static pthread_mutex_t data_requests_list_mutex[STARPU_MAXNODES];
 
 /* requests that are not terminated (eg. async transfers) */
-static data_request_list_t data_requests_pending[MAXNODES];
-static pthread_cond_t data_requests_pending_list_cond[MAXNODES];
-static pthread_mutex_t data_requests_pending_list_mutex[MAXNODES];
+static data_request_list_t data_requests_pending[STARPU_MAXNODES];
+static pthread_cond_t data_requests_pending_list_cond[STARPU_MAXNODES];
+static pthread_mutex_t data_requests_pending_list_mutex[STARPU_MAXNODES];
 
 void init_data_request_lists(void)
 {
 	unsigned i;
-	for (i = 0; i < MAXNODES; i++)
+	for (i = 0; i < STARPU_MAXNODES; i++)
 	{
 		data_requests[i] = data_request_list_new();
 		pthread_mutex_init(&data_requests_list_mutex[i], NULL);
@@ -46,7 +46,7 @@ void init_data_request_lists(void)
 void deinit_data_request_lists(void)
 {
 	unsigned i;
-	for (i = 0; i < MAXNODES; i++)
+	for (i = 0; i < STARPU_MAXNODES; i++)
 	{
 		pthread_cond_destroy(&data_requests_pending_list_cond[i]);
 		pthread_mutex_destroy(&data_requests_pending_list_mutex[i]);

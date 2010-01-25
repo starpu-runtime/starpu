@@ -54,7 +54,7 @@ void starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unused))
 		uint32_t ptr_offset = c*r*chunk*elemsize;
 
 		unsigned node;
-		for (node = 0; node < MAXNODES; node++)
+		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
 			starpu_blas_interface_t *local =
 				starpu_data_get_interface_on_node(sub_handle, node);

@@ -48,7 +48,7 @@ LIST_TYPE(data_request,
 	int retval;
 
 	/* in case we have a chain of request (eg. for nvidia multi-GPU) */
-	struct data_request_s *next_req[MAXNODES];
+	struct data_request_s *next_req[STARPU_MAXNODES];
 	/* who should perform the next request ? */
 	unsigned next_req_count;
 

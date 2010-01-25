@@ -17,7 +17,6 @@
 #include <starpu.h>
 #include <common/config.h>
 
-#include <datawizard/data_parameters.h>
 #include <datawizard/coherency.h>
 #include <datawizard/copy-driver.h>
 #include <datawizard/hierarchy.h>
@@ -69,7 +68,7 @@ static void register_bcsr_handle(starpu_data_handle handle, uint32_t home_node, 
 	starpu_bcsr_interface_t *bcsr_interface = interface;
 
 	unsigned node;
-	for (node = 0; node < MAXNODES; node++)
+	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		starpu_bcsr_interface_t *local_interface =
 			starpu_data_get_interface_on_node(handle, node);

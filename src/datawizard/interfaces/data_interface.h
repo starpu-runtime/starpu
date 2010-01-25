@@ -19,7 +19,6 @@
 
 #include <starpu.h>
 #include <common/config.h>
-#include <datawizard/data_parameters.h>
 
 #ifdef USE_GORDON
 /* to get the gordon_strideSize_t data structure from gordon */

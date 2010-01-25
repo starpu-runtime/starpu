@@ -22,7 +22,6 @@
 #include <common/config.h>
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
-#include <datawizard/data_parameters.h>
 
 #define SIZE	(32*1024*1024*sizeof(char))
 #define NITER	128
@@ -35,8 +34,8 @@ struct cudadev_timing {
 	double timing_dtoh;
 };
 
-static double bandwith_matrix[MAXNODES][MAXNODES] = {{-1.0}};
-static double latency_matrix[MAXNODES][MAXNODES] = {{ -1.0}};
+static double bandwith_matrix[STARPU_MAXNODES][STARPU_MAXNODES] = {{-1.0}};
+static double latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES] = {{ -1.0}};
 static unsigned was_benchmarked = 0;
 static int ncuda = 0;
 
@@ -45,10 +44,10 @@ static int affinity_matrix[STARPU_MAXCUDADEVS][MAXCPUS];
 /* Benchmarking the performance of the bus */
 
 #ifdef USE_CUDA
-static double cudadev_timing_htod[MAXNODES] = {0.0};
-static double cudadev_timing_dtoh[MAXNODES] = {0.0};
+static double cudadev_timing_htod[STARPU_MAXNODES] = {0.0};
+static double cudadev_timing_dtoh[STARPU_MAXNODES] = {0.0};
 
-static struct cudadev_timing cudadev_timing_per_cpu[MAXNODES][MAXCPUS];
+static struct cudadev_timing cudadev_timing_per_cpu[STARPU_MAXNODES][MAXCPUS];
 
 static void measure_bandwith_between_host_and_dev_on_cpu(int dev, int cpu)
 {
@@ -64,19 +63,35 @@ static void measure_bandwith_between_host_and_dev_on_cpu(int dev, int cpu)
 	/* hack to force the initialization */
 	cudaFree(0);
 
+	/* hack to avoid third party libs to rebind threads */
+	_starpu_bind_thread_on_cpu(config, cpu);
+
+
 	/* Allocate a buffer on the device */
 	unsigned char *d_buffer;
 	cudaMalloc((void **)&d_buffer, SIZE);
 	assert(d_buffer);
+
+	/* hack to avoid third party libs to rebind threads */
+	_starpu_bind_thread_on_cpu(config, cpu);
+
 
 	/* Allocate a buffer on the host */
 	unsigned char *h_buffer;
 	cudaHostAlloc((void **)&h_buffer, SIZE, 0); 
 	assert(h_buffer);
 
+	/* hack to avoid third party libs to rebind threads */
+	_starpu_bind_thread_on_cpu(config, cpu);
+
+
 	/* Fill them */
 	memset(h_buffer, 0, SIZE);
 	cudaMemset(d_buffer, 0, SIZE);
+
+	/* hack to avoid third party libs to rebind threads */
+	_starpu_bind_thread_on_cpu(config, cpu);
+
 
 	unsigned iter;
 	double timing;
@@ -369,9 +384,9 @@ static void load_bus_latency_file_content(void)
 	f = fopen(path, "r");
 	STARPU_ASSERT(f);
 
-	for (src = 0; src < MAXNODES; src++)
+	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
-		for (dst = 0; dst < MAXNODES; dst++)
+		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		{
 			double latency;
 
@@ -405,9 +420,9 @@ static void write_bus_latency_file_content(void)
 		STARPU_ABORT();
 	}
 
-	for (src = 0; src < MAXNODES; src++)
+	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
-		for (dst = 0; dst < MAXNODES; dst++)
+		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		{
 			double latency;
 
@@ -483,9 +498,9 @@ static void load_bus_bandwith_file_content(void)
 		STARPU_ABORT();
 	}
 
-	for (src = 0; src < MAXNODES; src++)
+	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
-		for (dst = 0; dst < MAXNODES; dst++)
+		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		{
 			double bandwith;
 
@@ -515,9 +530,9 @@ static void write_bus_bandwith_file_content(void)
 	f = fopen(path, "w+");
 	STARPU_ASSERT(f);
 
-	for (src = 0; src < MAXNODES; src++)
+	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
-		for (dst = 0; dst < MAXNODES; dst++)
+		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		{
 			double bandwith;
 			

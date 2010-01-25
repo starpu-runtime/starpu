@@ -33,17 +33,17 @@ typedef enum {
 
 typedef struct {
 	unsigned nnodes;
-	node_kind nodes[MAXNODES];
+	node_kind nodes[STARPU_MAXNODES];
 
 	/* the list of queues that are attached to a given node */
 	// XXX 32 is set randomly !
 	// TODO move this 2 lists outside mem_node_descr
 	pthread_rwlock_t attached_queues_rwlock;
-	struct jobq_s *attached_queues_per_node[MAXNODES][32];
-	struct jobq_s *attached_queues_all[MAXNODES*32];
+	struct jobq_s *attached_queues_per_node[STARPU_MAXNODES][32];
+	struct jobq_s *attached_queues_all[STARPU_MAXNODES*32];
 	/* the number of queues attached to each node */
 	unsigned total_queues_count;
-	unsigned queues_count[MAXNODES];
+	unsigned queues_count[STARPU_MAXNODES];
 } mem_node_descr;
 
 void init_memory_nodes(void);

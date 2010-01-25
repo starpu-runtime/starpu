@@ -58,7 +58,6 @@ noinst_HEADERS = 						\
 	datawizard/write_back.h					\
 	datawizard/datastats.h					\
 	datawizard/memalloc.h					\
-	datawizard/data_parameters.h				\
 	datawizard/copy-driver.h				\
 	datawizard/coherency.h					\
 	datawizard/memory_nodes.h				\

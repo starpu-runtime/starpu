@@ -32,8 +32,8 @@
 #include <common/timing.h>
 #include <common/fxt.h>
 #include <common/list.h>
+#include <common/config.h>
 
-#include <datawizard/data_parameters.h>
 #include <datawizard/data_request.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/progress.h>
@@ -87,10 +87,10 @@ struct starpu_data_state_t {
 	unsigned nchildren;
 
 	/* describe the state of the data in term of coherency */
-	local_data_state per_node[MAXNODES];
+	local_data_state per_node[STARPU_MAXNODES];
 
 	/* describe the actual data layout */
-	void *interface[MAXNODES];
+	void *interface[STARPU_MAXNODES];
 
 	struct data_interface_ops_t *ops;
 

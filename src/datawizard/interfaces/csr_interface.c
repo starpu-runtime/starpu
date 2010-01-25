@@ -15,7 +15,7 @@
  */
 
 #include <starpu.h>
-#include <datawizard/data_parameters.h>
+#include <common/config.h>
 #include <datawizard/coherency.h>
 #include <datawizard/copy-driver.h>
 #include <datawizard/hierarchy.h>
@@ -65,7 +65,7 @@ static void register_csr_handle(starpu_data_handle handle, uint32_t home_node, v
 	starpu_csr_interface_t *csr_interface = interface;
 
 	unsigned node;
-	for (node = 0; node < MAXNODES; node++)
+	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		starpu_csr_interface_t *local_interface =
 			starpu_data_get_interface_on_node(handle, node);

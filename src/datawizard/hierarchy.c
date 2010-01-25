@@ -23,7 +23,7 @@
 static void starpu_data_liberate_interfaces(starpu_data_handle handle)
 {
 	unsigned node;
-	for (node = 0; node < MAXNODES; node++)
+	for (node = 0; node < STARPU_MAXNODES; node++)
 		free(handle->interface[node]);
 }
 
@@ -33,7 +33,7 @@ void starpu_delete_data(starpu_data_handle handle)
 	unsigned node;
 
 	STARPU_ASSERT(handle);
-	for (node = 0; node < MAXNODES; node++)
+	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		local_data_state *local = &handle->per_node[node];
 
@@ -63,7 +63,7 @@ void register_new_data(starpu_data_handle handle, uint32_t home_node, uint32_t w
 	starpu_spin_lock(&handle->header_lock);
 
 	/* we assume that all nodes may use that data */
-	handle->nnodes = MAXNODES;
+	handle->nnodes = STARPU_MAXNODES;
 
 	/* there is no hierarchy yet */
 	handle->nchildren = 0;
@@ -75,7 +75,7 @@ void register_new_data(starpu_data_handle handle, uint32_t home_node, uint32_t w
 	/* that new data is invalid from all nodes perpective except for the
 	 * home node */
 	unsigned node;
-	for (node = 0; node < MAXNODES; node++)
+	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		if (node == home_node) {
 			/* this is the home node with the only valid copy */
@@ -207,7 +207,7 @@ void starpu_partition_data(starpu_data_handle initial_handle, starpu_filter *f)
 		starpu_spin_init(&children->header_lock);
 
 		unsigned node;
-		for (node = 0; node < MAXNODES; node++)
+		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
 			children->per_node[node].state = 
 				initial_handle->per_node[node].state;
@@ -255,7 +255,7 @@ void starpu_unpartition_data(starpu_data_handle root_handle, uint32_t gathering_
 	 * for the gathering node, if we have some locally allocated data, we 
 	 * copy all the children (XXX this should not happen so we just do not
 	 * do anything since this is transparent ?) */
-	unsigned still_valid[MAXNODES];
+	unsigned still_valid[STARPU_MAXNODES];
 
 	/* we do 2 passes : the first pass determines wether the data is still
 	 * valid or not, the second pass is needed to choose between SHARED and
@@ -264,7 +264,7 @@ void starpu_unpartition_data(starpu_data_handle root_handle, uint32_t gathering_
 	unsigned nvalids = 0;
 
 	/* still valid ? */
-	for (node = 0; node < MAXNODES; node++)
+	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		/* until an issue is found the data is assumed to be valid */
 		unsigned isvalid = 1;
@@ -294,7 +294,7 @@ void starpu_unpartition_data(starpu_data_handle root_handle, uint32_t gathering_
 
 	cache_state newstate = (nvalids == 1)?OWNER:SHARED;
 
-	for (node = 0; node < MAXNODES; node++)
+	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		root_handle->per_node[node].state = 
 			still_valid[node]?newstate:INVALID;
@@ -340,7 +340,7 @@ starpu_data_handle starpu_data_state_create(struct data_interface_ops_t *interfa
 	size_t interfacesize = interface_ops->interface_size;
 
 	unsigned node;
-	for (node = 0; node < MAXNODES; node++)
+	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		handle->interface[node] = calloc(1, interfacesize);
 		STARPU_ASSERT(handle->interface[node]);
@@ -368,7 +368,7 @@ void starpu_data_create_children(starpu_data_handle handle,
 
 		size_t interfacesize = children_interface_ops->interface_size;
 
-		for (node = 0; node < MAXNODES; node++)
+		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
 			handle_child->interface[node] = calloc(1, interfacesize);
 			STARPU_ASSERT(handle->children->interface[node]);

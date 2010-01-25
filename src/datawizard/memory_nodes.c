@@ -34,7 +34,7 @@ void init_memory_nodes(void)
 	pthread_key_create(&memory_node_key, NULL);
 
 	unsigned i;
-	for (i = 0; i < MAXNODES; i++) 
+	for (i = 0; i < STARPU_MAXNODES; i++) 
 		descr.nodes[i] = UNUSED; 
 
 	_starpu_init_mem_chunk_lists();

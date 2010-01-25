@@ -54,7 +54,7 @@ void starpu_block_filter_func(starpu_filter *f, starpu_data_handle root_handle)
 			starpu_data_get_child(root_handle, chunk);
 
 		unsigned node;
-		for (node = 0; node < MAXNODES; node++)
+		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
 			starpu_blas_interface_t *local = 
 				starpu_data_get_interface_on_node(chunk_handle, node);
@@ -105,7 +105,7 @@ void starpu_vertical_block_filter_func(starpu_filter *f, starpu_data_handle root
 			starpu_data_get_child(root_handle, chunk);
 
 		unsigned node;
-		for (node = 0; node < MAXNODES; node++)
+		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
 			starpu_blas_interface_t *local =
 				starpu_data_get_interface_on_node(chunk_handle, node);

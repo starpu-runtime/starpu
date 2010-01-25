@@ -30,7 +30,7 @@ void write_through_data(starpu_data_handle handle, uint32_t requesting_node,
 
 	/* first commit all changes onto the nodes specified by the mask */
 	uint32_t node;
-	for (node = 0; node < MAXNODES; node++)
+	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		if (write_through_mask & (1<<node)) {
 			/* we need to commit the buffer on that node */
