@@ -19,7 +19,10 @@
 
 /* This creates (and submits) an empty task that unlocks a tag once all its
  * dependencies are fulfilled. */
-void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps)
+/* TODO it would be nice to have such a function without sync_tag in case we
+ * just want to execute the callback. */
+void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps,
+				void (*callback)(void *), void *callback_arg)
 {
 	starpu_tag_declare_deps_array(sync_tag, ndeps, deps);
 
@@ -28,6 +31,9 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 
 	sync_task->use_tag = 1;
 	sync_task->tag_id = sync_tag;
+
+	sync_task->callback_func = callback;
+	sync_task->callback_arg = callback_arg;
 
 	/* This task does nothing */
 	sync_task->cl = NULL;

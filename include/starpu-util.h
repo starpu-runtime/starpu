@@ -223,7 +223,8 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 
 /* This creates (and submits) an empty task that unlocks a tag once all its
  * dependencies are fulfilled. */
-void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps);
+void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps,
+				void (*callback)(void *), void *callback_arg);
 
 #ifdef USE_CUDA
 /* In case the application is using streams, these functions will

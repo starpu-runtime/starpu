@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 			create_dummy_task(deps[d]);
 		}
 
-		starpu_create_sync_task(sync_tag, ndeps, deps);
+		starpu_create_sync_task(sync_tag, ndeps, deps, NULL, NULL);
 	}
 
 	/* Wait all the synchronization tasks */
