@@ -417,18 +417,27 @@ if test x$enable_allocation_cache = xyes; then
 	AC_DEFINE(USE_ALLOCATION_CACHE, [1], [enable data allocation cache])
 fi
 
-# by default, we put the performance models in $PWD/.sampling/
-perf_model_dir=($PWD/.sampling/)
 AC_ARG_WITH(perf-model-dir, [AS_HELP_STRING([--with-perf-model-dir=<dir>], [specify where performance models shoulds be stored])],
 	[
-		if x$withval != x$no; then
-			perf_model_dir=$withval
+		if x$withval = xno; then
+			AC_MSG_ERROR(--without-perf-model-dir is not a valid option)
 		fi
+	
+		perf_model_dir=$withval
+		have_explicit_perf_model_dir=yes
+		AC_DEFINE_UNQUOTED(PERF_MODEL_DIR, ["$perf_model_dir"], [performance models location])
+	], [
+		# by default, we put the performance models in
+		# $HOME/.starpu/sampling/
+		have_explicit_perf_model_dir=no
+		perf_model_dir="\$HOME/.starpu/sampling/"
 	]
 	)
+AC_MSG_CHECKING(using explicit performance model location)
+AC_MSG_RESULT($have_explicit_perf_model_dir)
+
 AC_MSG_CHECKING(performance models location)
 AC_MSG_RESULT($perf_model_dir)
-AC_DEFINE_UNQUOTED(PERF_MODEL_DIR, "$perf_model_dir", [performance models location])
 
 # On many multicore CPUs, clock cycles are not synchronized
 AC_ARG_ENABLE(sync-clock, [AS_HELP_STRING([--enable-sync-clock], [Use monotonic clocks])],

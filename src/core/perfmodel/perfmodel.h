@@ -26,10 +26,6 @@
 #include <pthread.h>
 #include <stdio.h>
 
-#define PERF_MODEL_DIR_CODELETS	PERF_MODEL_DIR"/codelets/"
-#define PERF_MODEL_DIR_BUS	PERF_MODEL_DIR"/bus/"
-#define PERF_MODEL_DIR_DEBUG	PERF_MODEL_DIR"/debug/"
-
 struct starpu_buffer_descr_t;
 struct jobq_s;
 struct job_s;
@@ -84,6 +80,11 @@ struct starpu_model_list_t {
 //	/* contains core entries, then cuda ones */
 //	struct starpu_history_entry_t entries[];
 //}
+
+void _starpu_get_perf_model_dir(char *path, size_t maxlen);
+void _starpu_get_perf_model_dir_codelets(char *path, size_t maxlen);
+void _starpu_get_perf_model_dir_bus(char *path, size_t maxlen);
+void _starpu_get_perf_model_dir_debug(char *path, size_t maxlen);
 
 double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct job_s *j);
 void register_model(struct starpu_perfmodel_t *model);

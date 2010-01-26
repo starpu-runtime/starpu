@@ -234,7 +234,7 @@ static void benchmark_all_cuda_devices(void)
 
 static void get_bus_path(const char *type, char *path, size_t maxlen)
 {
-	strncpy(path, PERF_MODEL_DIR_BUS, maxlen);
+	_starpu_get_perf_model_dir_bus(path, maxlen);
 	strncat(path, type, maxlen);
 	
 	char hostname[32];

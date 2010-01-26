@@ -218,7 +218,7 @@ static void get_model_debug_path(struct starpu_perfmodel_t *model, const char *a
 {
 	STARPU_ASSERT(path);
 
-	strncpy(path, PERF_MODEL_DIR_DEBUG, maxlen);
+	_starpu_get_perf_model_dir_debug(path, maxlen);
 	strncat(path, model->symbol, maxlen);
 	
 	char hostname[32];
@@ -260,7 +260,7 @@ void register_model(struct starpu_perfmodel_t *model)
 
 static void get_model_path(struct starpu_perfmodel_t *model, char *path, size_t maxlen)
 {
-	strncpy(path, PERF_MODEL_DIR_CODELETS, maxlen);
+	_starpu_get_perf_model_dir_codelets(path, maxlen);
 	strncat(path, model->symbol, maxlen);
 	
 	char hostname[32];
@@ -412,12 +412,16 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
 
 /* This function is intended to be used by external tools that should read
  * the performance model files */
-int starpu_list_models() {
+int starpu_list_models(void)
+{
         char path[256];
         DIR *dp;
         struct dirent *ep;
 
-        strncpy(path, PERF_MODEL_DIR_CODELETS, 256);
+	char perf_model_dir_codelets[256];
+	_starpu_get_perf_model_dir_codelets(perf_model_dir_codelets, 256);
+
+        strncpy(path, perf_model_dir_codelets, 256);
         dp = opendir(path);
         if (dp != NULL) {
                 while ((ep = readdir(dp))) {

@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <common/utils.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <core/perfmodel/perfmodel.h>
@@ -144,10 +145,43 @@ double data_expected_penalty(struct jobq_s *q, struct starpu_task *task)
 
 static int directory_existence_was_tested = 0;
 
+void _starpu_get_perf_model_dir(char *path, size_t maxlen)
+{
+#ifdef PERF_MODEL_DIR
+	/* use the directory specified at configure time */
+	snprintf(path, maxlen, "%s", PERF_MODEL_DIR);
+#else
+	/* by default, we use $HOME/.starpu/sampling */
+	const char *home_path = getenv("HOME");
+	snprintf(path, maxlen, "%s/.starpu/sampling/", home_path);
+#endif
+}
+
+void _starpu_get_perf_model_dir_codelets(char *path, size_t maxlen)
+{
+	_starpu_get_perf_model_dir(path, maxlen);
+	strncat(path, "codelets/", maxlen);
+}
+
+void _starpu_get_perf_model_dir_bus(char *path, size_t maxlen)
+{
+	_starpu_get_perf_model_dir(path, maxlen);
+	strncat(path, "bus/", maxlen);
+}
+
+void _starpu_get_perf_model_dir_debug(char *path, size_t maxlen)
+{
+	_starpu_get_perf_model_dir(path, maxlen);
+	strncat(path, "debug/", maxlen);
+}
+
 void create_sampling_directory_if_needed(void)
 {
 	if (!directory_existence_was_tested)
 	{
+		char perf_model_dir[256];
+		_starpu_get_perf_model_dir(perf_model_dir, 256);
+
 		/* The performance of the codelets are stored in
 		 * $PERF_MODEL_DIR/codelets/ while those of the bus are stored in
 		 * $PERF_MODEL_DIR/bus/ so that we don't have name collisions */
@@ -157,47 +191,60 @@ void create_sampling_directory_if_needed(void)
 		   changed in between. Instead, we create it and check if
 		   it already existed before */
 		int ret;
-		ret = mkdir(PERF_MODEL_DIR, S_IRWXU);
+		ret = starpu_mkpath(perf_model_dir, S_IRWXU);
+
 		if (ret == -1)
 		{
 			STARPU_ASSERT(errno == EEXIST);
 	
 			/* make sure that it is actually a directory */
 			struct stat sb;
-			stat(PERF_MODEL_DIR, &sb);
+			stat(perf_model_dir, &sb);
 			STARPU_ASSERT(S_ISDIR(sb.st_mode));
 		}
 	
-		ret = mkdir(PERF_MODEL_DIR_CODELETS, S_IRWXU);
+		/* Per-task performance models */
+		char perf_model_dir_codelets[256];
+		_starpu_get_perf_model_dir_codelets(perf_model_dir_codelets, 256);
+
+		ret = starpu_mkpath(perf_model_dir_codelets, S_IRWXU);
 		if (ret == -1)
 		{
 			STARPU_ASSERT(errno == EEXIST);
 	
 			/* make sure that it is actually a directory */
 			struct stat sb;
-			stat(PERF_MODEL_DIR, &sb);
+			stat(perf_model_dir_codelets, &sb);
 			STARPU_ASSERT(S_ISDIR(sb.st_mode));
 		}
 	
-		ret = mkdir(PERF_MODEL_DIR_BUS, S_IRWXU);
+		/* Performance of the memory subsystem */
+		char perf_model_dir_bus[256];
+		_starpu_get_perf_model_dir_bus(perf_model_dir_bus, 256);
+
+		ret = starpu_mkpath(perf_model_dir_bus, S_IRWXU);
 		if (ret == -1)
 		{
 			STARPU_ASSERT(errno == EEXIST);
 	
 			/* make sure that it is actually a directory */
 			struct stat sb;
-			stat(PERF_MODEL_DIR, &sb);
+			stat(perf_model_dir_bus, &sb);
 			STARPU_ASSERT(S_ISDIR(sb.st_mode));
 		}
 	
-		ret = mkdir(PERF_MODEL_DIR_DEBUG, S_IRWXU);
+		/* Performance debug measurements */
+		char perf_model_dir_debug[256];
+		_starpu_get_perf_model_dir_debug(perf_model_dir_debug, 256);
+
+		ret = starpu_mkpath(perf_model_dir_debug, S_IRWXU);
 		if (ret == -1)
 		{
 			STARPU_ASSERT(errno == EEXIST);
 	
 			/* make sure that it is actually a directory */
 			struct stat sb;
-			stat(PERF_MODEL_DIR, &sb);
+			stat(perf_model_dir_debug, &sb);
 			STARPU_ASSERT(S_ISDIR(sb.st_mode));
 		}
 	
