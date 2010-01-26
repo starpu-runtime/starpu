@@ -91,6 +91,7 @@ check_PROGRAMS += 				\
 	helper/cublas_init			\
 	helper/pinned_memory			\
 	helper/execute_on_all			\
+	helper/starpu_create_sync_task		\
 	microbenchs/async-tasks-overhead	\
 	microbenchs/sync-tasks-overhead		\
 	microbenchs/tasks-overhead		\
@@ -163,6 +164,9 @@ helper_pinned_memory_SOURCES =			\
 
 helper_execute_on_all_SOURCES =			\
 	helper/execute_on_all.c
+
+helper_starpu_create_sync_task_SOURCES =	\
+	helper/starpu_create_sync_task.c
 
 microbenchs_async_tasks_overhead_SOURCES =	\
 	microbenchs/async-tasks-overhead.c
