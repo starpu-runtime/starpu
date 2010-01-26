@@ -22,6 +22,7 @@
 #include <string.h>
 #include <assert.h>
 #include <starpu_config.h>
+#include <starpu-task.h>
 
 #ifdef USE_CUDA
 #include <cuda.h>
@@ -219,6 +220,10 @@ void starpu_helper_shutdown_cublas(void);
  * synchronous, but the different workers may execute the function in parallel.
  * */
 void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where);
+
+/* This creates (and submits) an empty task that unlocks a tag once all its
+ * dependencies are fulfilled. */
+void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps);
 
 #ifdef USE_CUDA
 /* In case the application is using streams, these functions will
