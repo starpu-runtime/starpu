@@ -239,8 +239,8 @@ int main(int argc, char **argv)
 
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
-	fprintf(stderr, "Rank %d PID %d\n", rank, getpid());
-	sleep(10);
+//	fprintf(stderr, "Rank %d PID %d\n", rank, getpid());
+//	sleep(10);
 
 	STARPU_PLU(plu_main)(nblocks, rank, world_size);
 
