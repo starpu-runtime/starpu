@@ -17,9 +17,9 @@
 #include "pxlu.h"
 #include "pxlu_kernels.h"
 
-#define MPI_TAG11(k)	((1U << 30) | (k))
-#define MPI_TAG12(k, j)	((2U << 30) | (j)*nblocks | (k))
-#define MPI_TAG21(k, i)	((3U << 30) | (i)*nblocks | (k))
+#define MPI_TAG11(k)	((1U << 16) | (k))
+#define MPI_TAG12(k, j)	((2U << 16) | (j)*nblocks | (k))
+#define MPI_TAG21(k, i)	((3U << 16) | (i)*nblocks | (k))
 
 #define TAG11(k)	((starpu_tag_t)( (1ULL<<50) | (unsigned long long)(k)))
 #define TAG12(k,i)	((starpu_tag_t)(((2ULL<<50) | (((unsigned long long)(k))<<32)	\
@@ -129,12 +129,6 @@ static void receive_when_deps_are_done(unsigned ndeps, starpu_tag_t *deps_tags,
 				starpu_tag_t partial_tag,
 				starpu_tag_t unlocked_tag)
 {
-	if (ndeps == 0)
-	{
-		starpu_tag_notify_from_apps(unlocked_tag);
-		return;
-	}
-
 	struct recv_when_done_callback_arg *arg =
 		malloc(sizeof(struct recv_when_done_callback_arg));
 	
@@ -142,6 +136,12 @@ static void receive_when_deps_are_done(unsigned ndeps, starpu_tag_t *deps_tags,
 	arg->mpi_tag = mpi_tag;
 	arg->handle = handle;
 	arg->unlocked_tag = unlocked_tag;
+
+	if (ndeps == 0)
+	{
+		callback_receive_when_done(arg);
+		return;
+	}
 
 	starpu_create_sync_task(partial_tag, ndeps, deps_tags,
 					callback_receive_when_done, arg);
@@ -185,6 +185,7 @@ static void create_task_11_recv(unsigned k)
 	starpu_tag_t partial_tag = TAG11_SAVE_PARTIAL(k);
 	starpu_tag_t unlocked_tag = TAG11_SAVE(k);
 
+	fprintf(stderr, "NODE %d - 11 (%d) - recv when done ndeps %d - tag array %lx\n", rank, k, ndeps, tag_array[0]);
 	receive_when_deps_are_done(ndeps, tag_array, source, mpi_tag, block_handle, partial_tag, unlocked_tag);
 }
 
@@ -263,6 +264,7 @@ static void create_task_11(unsigned k)
 {
 	if (get_block_rank(k, k) == rank)
 	{
+		fprintf(stderr, "CREATE real task 11(%d) on node %d\n", k, rank);
 		create_task_11_real(k);
 	}
 	else {
@@ -271,7 +273,13 @@ static void create_task_11(unsigned k)
 		find_nodes_using_11(k, rank_mask);
 		
 		if (rank_mask[rank])
+		{
+			fprintf(stderr, "create RECV task 11(%d) on node %d\n", k, rank);
 			create_task_11_recv(k);
+		}
+		else {
+			fprintf(stderr, "Node %d needs not 11(%d)\n", rank, k);
+		}
 	}
 }
 
@@ -303,9 +311,9 @@ static void create_task_12_recv(unsigned k, unsigned j)
 	
 	int source = get_block_rank(k, j);
 	starpu_data_handle block_handle = STARPU_PLU(get_tmp_12_block_handle)(j);
-	int mpi_tag = MPI_TAG21(j, k);
-	starpu_tag_t partial_tag = TAG21_SAVE_PARTIAL(j, k);
-	starpu_tag_t unlocked_tag = TAG21_SAVE(j, k);
+	int mpi_tag = MPI_TAG12(k, j);
+	starpu_tag_t partial_tag = TAG12_SAVE_PARTIAL(k, j);
+	starpu_tag_t unlocked_tag = TAG12_SAVE(k, j);
 
 	receive_when_deps_are_done(ndeps, tag_array, source, mpi_tag, block_handle, partial_tag, unlocked_tag);
 }
@@ -388,6 +396,7 @@ static void create_task_12(unsigned k, unsigned j)
 {
 	if (get_block_rank(k, j) == rank)
 	{
+		fprintf(stderr, "CREATE real task 12(k = %d, j = %d) on node %d\n", k, j, rank);
 		create_task_12_real(k, j);
 	}
 	else {
@@ -396,7 +405,13 @@ static void create_task_12(unsigned k, unsigned j)
 		find_nodes_using_12(k, j, rank_mask);
 		
 		if (rank_mask[rank])
+		{
+			fprintf(stderr, "create RECV task 12(k = %d, j = %d) on node %d\n", k, j, rank);
 			create_task_12_recv(k, j);
+		}
+		else {
+			fprintf(stderr, "Node %d needs not 12(k=%d, i=%d)\n", rank, k, j);
+		}
 	}
 }
 
@@ -430,6 +445,7 @@ static void create_task_21_recv(unsigned k, unsigned i)
 	starpu_tag_t partial_tag = TAG21_SAVE_PARTIAL(k, i);
 	starpu_tag_t unlocked_tag = TAG21_SAVE(k, i);
 
+	fprintf(stderr, "NODE %d - 21 (%d, %d) - recv when done ndeps %d - tag array %lx\n", rank, k, i, ndeps, tag_array[0]);
 	receive_when_deps_are_done(ndeps, tag_array, source, mpi_tag, block_handle, partial_tag, unlocked_tag);
 }
 
@@ -511,6 +527,7 @@ static void create_task_21(unsigned k, unsigned i)
 {
 	if (get_block_rank(i, k) == rank)
 	{
+		fprintf(stderr, "CREATE real task 21(k = %d, i = %d) on node %d\n", k, i, rank);
 		create_task_21_real(k, i);
 	}
 	else {
@@ -519,7 +536,13 @@ static void create_task_21(unsigned k, unsigned i)
 		find_nodes_using_21(k, i, rank_mask);
 		
 		if (rank_mask[rank])
+		{
+			fprintf(stderr, "create RECV task 21(k = %d, i = %d) on node %d\n", k, i, rank);
 			create_task_21_recv(k, i);
+		}
+		else {
+			fprintf(stderr, "Node %d needs not 21(k=%d, i=%d)\n", rank, k,i);
+		}
 	}
 }
 
@@ -527,7 +550,7 @@ static void create_task_21(unsigned k, unsigned i)
  *	Task 22 (GEMM)
  */
 
-static void create_task_22(unsigned k, unsigned i, unsigned j)
+static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 {
 //	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j));
 
@@ -575,6 +598,20 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
 
 	starpu_submit_task(task);
 }
+
+static void create_task_22(unsigned k, unsigned i, unsigned j)
+{
+	if (get_block_rank(i, j) == rank)
+	{
+		fprintf(stderr, "CREATE real task 22(k = %d, i = %d, j = %d) on node %d\n", k, i, j, rank);
+		create_task_22_real(k, i, j);
+	}
+	else {
+		fprintf(stderr, "Node %d needs not 22(k=%d, i=%d, j = %d)\n", rank, k,i,j);
+	}
+}
+
+
 
 /*
  *	code to bootstrap the factorization 
