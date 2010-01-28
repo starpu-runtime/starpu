@@ -27,6 +27,10 @@ void SGEMM(char *transa, char *transb, int M, int N, int K, float alpha, float *
 		float *B, int ldb, float beta, float *C, int ldc);
 void DGEMM(char *transa, char *transb, int M, int N, int K, double alpha, double *A, int lda, 
 		double *B, int ldb, double beta, double *C, int ldc);
+void SGEMV(char *transa, int M, int N, float alpha, float *A, int lda,
+		float *X, int incX, float beta, float *Y, int incY);
+void DGEMV(char *transa, int M, int N, double alpha, double *A, int lda,
+		double *X, int incX, double beta, double *Y, int incY);
 float SASUM(int N, float *X, int incX);
 double DASUM(int N, double *X, int incX);
 void SSCAL(int N, float alpha, float *X, int incX);

@@ -50,6 +50,22 @@ inline void DGEMM(char *transa, char *transb, int M, int N, int K,
 			M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);				
 }
 
+inline void SGEMV(char *transa, int M, int N, float alpha, float *A, int lda, float *X, int incX, float beta, float *Y, int incY)
+{
+	enum CBLAS_TRANSPOSE ta = (toupper(transa[0]) == 'N')?CblasNoTrans:CblasTrans;
+
+	cblas_sgemv(CblasColMajor, ta, M, N, alpha, A, lda,
+					X, incX, beta, Y, incY);
+}
+
+inline void DGEMV(char *transa, int M, int N, double alpha, double *A, int lda, double *X, int incX, double beta, double *Y, int incY)
+{
+	enum CBLAS_TRANSPOSE ta = (toupper(transa[0]) == 'N')?CblasNoTrans:CblasTrans;
+
+	cblas_dgemv(CblasColMajor, ta, M, N, alpha, A, lda,
+					X, incX, beta, Y, incY);
+}
+
 inline float SASUM(int N, float *X, int incX)
 {
 	return cblas_sasum(N, X, incX);
@@ -234,6 +250,19 @@ inline void DGEMM(char *transa, char *transb, int M, int N, int K,
 	dgemm_(transa, transb, &M, &N, &K, &alpha,
 			 A, &lda, B, &ldb,
 			 &beta, C, &ldc);	
+}
+
+
+inline void SGEMV(char *transa, int M, int N, float alpha, float *A, int lda,
+		float *X, int incX, float beta, float *Y, int incY)
+{
+	sgemv_(transa, &M, &N, &alpha, A, &lda, X, &incX, &beta, Y, &incY);
+}
+
+inline void DGEMV(char *transa, int M, int N, double alpha, double *A, int lda,
+		double *X, int incX, double beta, double *Y, int incY)
+{
+	dgemv_(transa, &M, &N, &alpha, A, &lda, X, &incX, &beta, Y, &incY);
 }
 
 inline float SASUM(int N, float *X, int incX)
