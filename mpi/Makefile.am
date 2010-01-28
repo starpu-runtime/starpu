@@ -14,6 +14,8 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+SUBDIRS = examples
+
 CC=$(MPICC)
 
 if USE_CUDA
