@@ -666,4 +666,5 @@ AC_OUTPUT([
 	tests/Makefile
 	doc/Makefile
 	mpi/Makefile
+	mpi/examples/Makefile
 ])
