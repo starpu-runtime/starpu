@@ -17,12 +17,11 @@
 #include <starpu.h>
 #include <pthread.h>
 
-#define NITER	50000
+static unsigned niter = 50000;
 
 #ifdef USE_CUDA
 extern void cuda_codelet(void *descr[], __attribute__ ((unused)) void *_args);
 #endif
-
 
 extern void cuda_codelet_host(float *tab);
 
@@ -36,6 +35,9 @@ void core_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 int main(int argc, char **argv)
 {
 	starpu_init(NULL);
+
+	if (argc == 2)
+		niter = atoi(argv[1]);
 
 	float float_array[3] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f}; 
 
@@ -54,8 +56,13 @@ int main(int argc, char **argv)
 		.nbuffers = 1
 	};
 
+	struct timeval start;
+	struct timeval end;
+
+	gettimeofday(&start, NULL);
+
 	unsigned i;
-	for (i = 0; i < NITER; i++)
+	for (i = 0; i < niter; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
 
@@ -79,6 +86,8 @@ int main(int argc, char **argv)
 	/* update the array in RAM */
 	starpu_sync_data_with_mem(float_array_handle, STARPU_R);
 	
+	gettimeofday(&end, NULL);
+
 	fprintf(stderr, "array -> %f, %f, %f\n", float_array[0], 
 			float_array[1], float_array[2]);
 	
@@ -86,6 +95,11 @@ int main(int argc, char **argv)
 		return 1;
 	
 	starpu_release_data_from_mem(float_array_handle);
+
+	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 +
+					(end.tv_usec - start.tv_usec));
+
+	fprintf(stderr, "%d elems took %lf ms\n", niter, timing/1000);
 
 	starpu_shutdown();
 
