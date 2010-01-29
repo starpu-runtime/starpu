@@ -34,6 +34,8 @@
 extern "C" {
 #endif
 
+#define STARPU_POISON_PTR	((void *)0xdeadbeef)
+
 #define STARPU_MIN(a,b)	((a)<(b)?(a):(b))
 #define STARPU_MAX(a,b)	((a)<(b)?(b):(a))
 
