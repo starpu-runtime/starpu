@@ -37,9 +37,9 @@ static inline void STARPU_PLU(common_u22)(void *descr[],
 	unsigned ld21 = GET_BLAS_LD(descr[1]);
 	unsigned ld22 = GET_BLAS_LD(descr[2]);
 
-	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	fprintf(stderr, "KERNEL 22 %d\n", rank);
+//	int rank;
+//	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//	fprintf(stderr, "KERNEL 22 %d\n", rank);
 
 #ifdef USE_CUDA
 	cublasStatus status;
@@ -127,9 +127,9 @@ static inline void STARPU_PLU(common_u12)(void *descr[],
 	unsigned nx12 = GET_BLAS_NX(descr[1]);
 	unsigned ny12 = GET_BLAS_NY(descr[1]);
 
-	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	fprintf(stderr, "KERNEL 12 %d\n", rank);
+//	int rank;
+//	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//	fprintf(stderr, "KERNEL 12 %d\n", rank);
 
 #ifdef USE_CUDA
 	cublasStatus status;
@@ -215,9 +215,9 @@ static inline void STARPU_PLU(common_u21)(void *descr[],
 	unsigned nx21 = GET_BLAS_NX(descr[1]);
 	unsigned ny21 = GET_BLAS_NY(descr[1]);
 	
-	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	fprintf(stderr, "KERNEL 21 %d\n", rank);
+//	int rank;
+//	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//	fprintf(stderr, "KERNEL 21 %d\n", rank);
 
 
 #ifdef USE_CUDA
@@ -299,9 +299,9 @@ static inline void STARPU_PLU(common_u11)(void *descr[],
 
 	unsigned long z;
 
-	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	fprintf(stderr, "KERNEL 11 %d\n", rank);
+//	int rank;
+//	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//	fprintf(stderr, "KERNEL 11 %d\n", rank);
 
 	switch (s) {
 		case 0:

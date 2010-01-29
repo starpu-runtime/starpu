@@ -28,6 +28,8 @@
 #define BLAS3_FLOP(n1,n2,n3)    \
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
 
+double STARPU_PLU(plu_main)(unsigned nblocks, int rank, int world_size);
+
 starpu_data_handle STARPU_PLU(get_block_handle)(unsigned j, unsigned i);
 TYPE *STARPU_PLU(get_block)(unsigned j, unsigned i);
 starpu_data_handle STARPU_PLU(get_tmp_11_block_handle)(void);

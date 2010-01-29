@@ -36,11 +36,11 @@ static TYPE **dataA;
 /* In order to implement the distributed LU decomposition, we allocate
  * temporary buffers */
 static starpu_data_handle tmp_11_block_handle;
-static TYPE **tmp_11_block;
+static TYPE *tmp_11_block;
 static starpu_data_handle *tmp_12_block_handles;
 static TYPE **tmp_12_block;
 static starpu_data_handle *tmp_21_block_handles;
-static TYPE *tmp_21_block;
+static TYPE **tmp_21_block;
 
 static void parse_args(int argc, char **argv)
 {
@@ -131,12 +131,25 @@ static void init_matrix(int rank)
 				starpu_malloc_pinned_if_possible((void **)&dataA[i+j*nblocks], blocksize);
 
 				fill_block_with_random(STARPU_PLU(get_block)(j, i), size, nblocks);
+				if (i == j)
+				{
+					TYPE *b = STARPU_PLU(get_block)(j, i);
+					unsigned tmp;
+					for (tmp = 0; tmp < size/nblocks; tmp++)
+					{
+						b[tmp*((size/nblocks)+1)] += (TYPE)10*nblocks;
+					}
+				}
 
 				/* Register it to StarPU */
 				starpu_register_blas_data(&dataA_handles[i+nblocks*j], 0,
 					(uintptr_t)dataA[i+nblocks*j], size/nblocks,
 					size/nblocks, size/nblocks, sizeof(TYPE));
-			} 
+			}
+			else {
+				dataA[i+j*nblocks] = STARPU_POISON_PTR;
+				dataA_handles[i+j*nblocks] = STARPU_POISON_PTR;
+			}
 		}
 	}
 
@@ -148,20 +161,24 @@ static void init_matrix(int rank)
 			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 
 	/* tmp buffers 12 and 21 */
-	tmp_12_block_handles = malloc(nblocks*sizeof(starpu_data_handle));
-	tmp_21_block_handles = malloc(nblocks*sizeof(starpu_data_handle));
-	tmp_12_block = malloc(nblocks*sizeof(TYPE *));
-	tmp_21_block = malloc(nblocks*sizeof(TYPE *));
+	tmp_12_block_handles = calloc(nblocks, sizeof(starpu_data_handle));
+	tmp_21_block_handles = calloc(nblocks, sizeof(starpu_data_handle));
+	tmp_12_block = calloc(nblocks, sizeof(TYPE *));
+	tmp_21_block = calloc(nblocks, sizeof(TYPE *));
 	
 	unsigned k;
 	for (k = 0; k < nblocks; k++)
 	{
 		starpu_malloc_pinned_if_possible((void **)&tmp_12_block[k], blocksize);
+		STARPU_ASSERT(tmp_12_block[k]);
+
 		starpu_register_blas_data(&tmp_12_block_handles[k], 0,
 			(uintptr_t)tmp_12_block[k],
 			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 
 		starpu_malloc_pinned_if_possible((void **)&tmp_21_block[k], blocksize);
+		STARPU_ASSERT(tmp_21_block[k]);
+
 		starpu_register_blas_data(&tmp_21_block_handles[k], 0,
 			(uintptr_t)tmp_21_block[k],
 			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
@@ -173,6 +190,24 @@ int get_block_rank(unsigned i, unsigned j)
 	/* Take a 2D block cyclic distribution */
 	/* NB: p (resp. q) is for "direction" i (resp. j) */
 	return (j % q) * p + (i % p);
+}
+
+static void display_grid(int rank, unsigned nblocks)
+{
+	if (rank == 0)
+	{
+		fprintf(stderr, "2D grid layout: \n");
+		
+		unsigned i, j;
+		for (j = 0; j < nblocks; j++)
+		{
+			for (i = 0; i < nblocks; i++)
+			{
+				fprintf(stderr, "%d ", get_block_rank(i, j));
+			}
+			fprintf(stderr, "\n");
+		}
+	}
 }
 
 int main(int argc, char **argv)
@@ -192,6 +227,8 @@ int main(int argc, char **argv)
 	parse_args(argc, argv);
 
 	STARPU_ASSERT(p*q == world_size);
+
+	//display_grid(rank, nblocks);
 
 	starpu_init(NULL);
 	starpu_mpi_initialize();
@@ -239,14 +276,46 @@ int main(int argc, char **argv)
 
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
-//	fprintf(stderr, "Rank %d PID %d\n", rank, getpid());
-//	sleep(10);
 
-	STARPU_PLU(plu_main)(nblocks, rank, world_size);
+	double timing = STARPU_PLU(plu_main)(nblocks, rank, world_size);
+
+	/*
+	 * 	Report performance
+	 */
+
+	int reduce_ret;
+	double min_timing = timing;
+	double max_timing = timing;
+	double sum_timing = timing;
+
+	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
+	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
+	
+	reduce_ret = MPI_Reduce(&timing, &min_timing, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+	STARPU_ASSERT(reduce_ret == MPI_SUCCESS);
+
+	reduce_ret = MPI_Reduce(&timing, &max_timing, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+	STARPU_ASSERT(reduce_ret == MPI_SUCCESS);
+
+	reduce_ret = MPI_Reduce(&timing, &sum_timing, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	STARPU_ASSERT(reduce_ret == MPI_SUCCESS);
+
+	if (rank == 0)
+	{
+		fprintf(stderr, "Computation took: %lf ms\n", max_timing/1000);
+		fprintf(stderr, "\tMIN : %lf ms\n", min_timing/1000);
+		fprintf(stderr, "\tMAX : %lf ms\n", max_timing/1000);
+		fprintf(stderr, "\tAVG : %lf ms\n", sum_timing/(world_size*1000));
+
+		unsigned n = size;
+		double flop = (2.0f*n*n*n)/3.0f;
+		fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/max_timing/1000.0f));
+	}
 
 	/*
 	 * 	Termination
 	 */
+
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 

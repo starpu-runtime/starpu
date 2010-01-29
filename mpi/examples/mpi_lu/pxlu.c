@@ -75,6 +75,8 @@ static void send_data_to_mask(starpu_data_handle handle, int *rank_mask, int mpi
 {
 	unsigned cnt = 0;
 
+	STARPU_ASSERT(handle != STARPU_POISON_PTR);
+
 	int rank_array[world_size];
 	int comm_array[world_size];
 	int mpi_tag_array[world_size];
@@ -179,13 +181,13 @@ static void create_task_11_recv(unsigned k)
 	}
 	
 	
-	int source = get_block_rank(k, j);
+	int source = get_block_rank(k, k);
 	starpu_data_handle block_handle = STARPU_PLU(get_tmp_11_block_handle)();
 	int mpi_tag = MPI_TAG11(k);
 	starpu_tag_t partial_tag = TAG11_SAVE_PARTIAL(k);
 	starpu_tag_t unlocked_tag = TAG11_SAVE(k);
 
-	fprintf(stderr, "NODE %d - 11 (%d) - recv when done ndeps %d - tag array %lx\n", rank, k, ndeps, tag_array[0]);
+//	fprintf(stderr, "NODE %d - 11 (%d) - recv when done ndeps %d - tag array %lx\n", rank, k, ndeps, tag_array[0]);
 	receive_when_deps_are_done(ndeps, tag_array, source, mpi_tag, block_handle, partial_tag, unlocked_tag);
 }
 
@@ -264,7 +266,7 @@ static void create_task_11(unsigned k)
 {
 	if (get_block_rank(k, k) == rank)
 	{
-		fprintf(stderr, "CREATE real task 11(%d) on node %d\n", k, rank);
+//		fprintf(stderr, "CREATE real task 11(%d) (TAG11_SAVE(%d) = %lx) on node %d\n", k, k, TAG11_SAVE(k), rank);
 		create_task_11_real(k);
 	}
 	else {
@@ -274,11 +276,11 @@ static void create_task_11(unsigned k)
 		
 		if (rank_mask[rank])
 		{
-			fprintf(stderr, "create RECV task 11(%d) on node %d\n", k, rank);
+//			fprintf(stderr, "create RECV task 11(%d) on node %d\n", k, rank);
 			create_task_11_recv(k);
 		}
 		else {
-			fprintf(stderr, "Node %d needs not 11(%d)\n", rank, k);
+//			fprintf(stderr, "Node %d needs not 11(%d)\n", rank, k);
 		}
 	}
 }
@@ -396,7 +398,7 @@ static void create_task_12(unsigned k, unsigned j)
 {
 	if (get_block_rank(k, j) == rank)
 	{
-		fprintf(stderr, "CREATE real task 12(k = %d, j = %d) on node %d\n", k, j, rank);
+//		fprintf(stderr, "CREATE real task 12(k = %d, j = %d) on node %d\n", k, j, rank);
 		create_task_12_real(k, j);
 	}
 	else {
@@ -406,12 +408,12 @@ static void create_task_12(unsigned k, unsigned j)
 		
 		if (rank_mask[rank])
 		{
-			fprintf(stderr, "create RECV task 12(k = %d, j = %d) on node %d\n", k, j, rank);
+//			fprintf(stderr, "create RECV task 12(k = %d, j = %d) on node %d\n", k, j, rank);
 			create_task_12_recv(k, j);
 		}
-		else {
-			fprintf(stderr, "Node %d needs not 12(k=%d, i=%d)\n", rank, k, j);
-		}
+//		else {
+//			fprintf(stderr, "Node %d needs not 12(k=%d, i=%d)\n", rank, k, j);
+//		}
 	}
 }
 
@@ -445,7 +447,7 @@ static void create_task_21_recv(unsigned k, unsigned i)
 	starpu_tag_t partial_tag = TAG21_SAVE_PARTIAL(k, i);
 	starpu_tag_t unlocked_tag = TAG21_SAVE(k, i);
 
-	fprintf(stderr, "NODE %d - 21 (%d, %d) - recv when done ndeps %d - tag array %lx\n", rank, k, i, ndeps, tag_array[0]);
+//	fprintf(stderr, "NODE %d - 21 (%d, %d) - recv when done ndeps %d - tag array %lx\n", rank, k, i, ndeps, tag_array[0]);
 	receive_when_deps_are_done(ndeps, tag_array, source, mpi_tag, block_handle, partial_tag, unlocked_tag);
 }
 
@@ -527,7 +529,7 @@ static void create_task_21(unsigned k, unsigned i)
 {
 	if (get_block_rank(i, k) == rank)
 	{
-		fprintf(stderr, "CREATE real task 21(k = %d, i = %d) on node %d\n", k, i, rank);
+	//	fprintf(stderr, "CREATE real task 21(k = %d, i = %d) on node %d\n", k, i, rank);
 		create_task_21_real(k, i);
 	}
 	else {
@@ -537,12 +539,12 @@ static void create_task_21(unsigned k, unsigned i)
 		
 		if (rank_mask[rank])
 		{
-			fprintf(stderr, "create RECV task 21(k = %d, i = %d) on node %d\n", k, i, rank);
+	//		fprintf(stderr, "create RECV task 21(k = %d, i = %d) on node %d\n", k, i, rank);
 			create_task_21_recv(k, i);
 		}
-		else {
-			fprintf(stderr, "Node %d needs not 21(k=%d, i=%d)\n", rank, k,i);
-		}
+//		else {
+//			fprintf(stderr, "Node %d needs not 21(k=%d, i=%d)\n", rank, k,i);
+//		}
 	}
 }
 
@@ -603,20 +605,20 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
 {
 	if (get_block_rank(i, j) == rank)
 	{
-		fprintf(stderr, "CREATE real task 22(k = %d, i = %d, j = %d) on node %d\n", k, i, j, rank);
+	//	fprintf(stderr, "CREATE real task 22(k = %d, i = %d, j = %d) on node %d\n", k, i, j, rank);
 		create_task_22_real(k, i, j);
 	}
-	else {
-		fprintf(stderr, "Node %d needs not 22(k=%d, i=%d, j = %d)\n", rank, k,i,j);
-	}
+//	else {
+//		fprintf(stderr, "Node %d needs not 22(k=%d, i=%d, j = %d)\n", rank, k,i,j);
+//	}
 }
 
 static void wait_tag_and_fetch_handle(starpu_tag_t tag, starpu_data_handle handle)
 {
-	
-	fprintf(stderr, "Rank %d : waiting tag %lx\n", rank, tag);
+	STARPU_ASSERT(handle != STARPU_POISON_PTR);
+
 	starpu_tag_wait(tag);
-	fprintf(stderr, "Rank %d : tag %lx is done\n", rank, tag);
+//	fprintf(stderr, "Rank %d : tag %lx is done\n", rank, tag);
 
 	starpu_sync_data_with_mem(handle, STARPU_R);
 
@@ -632,6 +634,7 @@ static void wait_termination(void)
 		if (get_block_rank(k, k) == rank)
 		{
 			starpu_data_handle diag_block = STARPU_PLU(get_block_handle)(k, k);
+//			fprintf(stderr, "Rank %d : waiting tag %lx = TAG11_SAVE(k=%d)\n", rank, TAG11_SAVE(k), k);
 			wait_tag_and_fetch_handle(TAG11_SAVE(k), diag_block);
 		}
 		
@@ -642,6 +645,7 @@ static void wait_termination(void)
 			if (get_block_rank(i, k) == rank)
 			{
 				starpu_data_handle block21 = STARPU_PLU(get_block_handle)(k, i);
+//				fprintf(stderr, "Rank %d : waiting tag %lx = TAG21_SAVE(k=%d, i=%d)\n", rank, TAG21_SAVE(k, i), k, i);
 				wait_tag_and_fetch_handle(TAG21_SAVE(k, i), block21);
 			}
 		}
@@ -652,6 +656,7 @@ static void wait_termination(void)
 			if (get_block_rank(k, j) == rank)
 			{
 				starpu_data_handle block12 = STARPU_PLU(get_block_handle)(j, k);
+//				fprintf(stderr, "Rank %d : waiting tag %lx = TAG12_SAVE(k=%d, j=%d)\n", rank, TAG12_SAVE(k, j), k, j);
 				wait_tag_and_fetch_handle(TAG12_SAVE(k, j), block12);
 			}
 		}
@@ -662,7 +667,7 @@ static void wait_termination(void)
  *	code to bootstrap the factorization 
  */
 
-void STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
+double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 {
 	struct timeval start;
 	struct timeval end;
@@ -695,10 +700,12 @@ void STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 		}
 	}
 
+	int barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
+	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
+
 	/* schedule the codelet */
 	gettimeofday(&start, NULL);
 
-	fprintf(stderr, "Rank %d GO\n", rank);
 	starpu_tag_notify_from_apps(STARPU_TAG_INIT);
 
 	wait_termination();
@@ -706,10 +713,8 @@ void STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 	gettimeofday(&end, NULL);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-	fprintf(stderr, "Computation took (in ms)\n");
-	printf("%2.2f\n", timing/1000);
-
-//	unsigned n = size;
-//	double flop = (2.0f*n*n*n)/3.0f;
-//	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+	
+//	fprintf(stderr, "RANK %d -> took %lf ms\n", rank, timing/1000);
+	
+	return timing;
 }
