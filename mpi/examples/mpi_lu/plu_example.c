@@ -42,6 +42,21 @@ static TYPE **tmp_12_block;
 static starpu_data_handle *tmp_21_block_handles;
 static TYPE **tmp_21_block;
 
+
+TYPE *STARPU_PLU(reconstruct_matrix)(unsigned size, unsigned nblocks);
+static void display_block_content(unsigned bi, unsigned bj, unsigned blocksize);
+
+static void display_all_blocks(unsigned nblocks, unsigned blocksize)
+{
+	fprintf(stderr, "DISPLAY ALL\n");
+	unsigned bi, bj;
+	for (bj = 0; bj < nblocks; bj++)
+	for (bi = 0; bi < nblocks; bi++)
+		display_block_content(bi, bj, blocksize);
+
+	fprintf(stderr, "*****************\n");
+}
+
 static void parse_args(int argc, char **argv)
 {
 	int i;
@@ -80,8 +95,8 @@ static void fill_block_with_random(TYPE *blockptr, unsigned size, unsigned nbloc
 	for (j = 0; j < block_size; j++)
 	for (i = 0; i < block_size; i++)
 	{
-		blockptr[i+j*block_size] = (TYPE)drand48();
-//		blockptr[i+j*block_size] = (i == j)?2.0:0.0;
+	//	blockptr[i+j*block_size] = (TYPE)drand48();
+		blockptr[i+j*block_size] = (i == j)?2.0:(TYPE)j;
 	}
 }
 
@@ -183,6 +198,9 @@ static void init_matrix(int rank)
 			(uintptr_t)tmp_21_block[k],
 			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 	}
+
+
+	display_all_blocks(nblocks, size/nblocks);
 }
 
 int get_block_rank(unsigned i, unsigned j)
@@ -208,6 +226,25 @@ static void display_grid(int rank, unsigned nblocks)
 			fprintf(stderr, "\n");
 		}
 	}
+}
+
+static void display_block_content(unsigned bi, unsigned bj, unsigned blocksize)
+{
+	TYPE *data = STARPU_PLU(get_block)(bj, bi);
+
+	fprintf(stderr, "BLOCK i = %d j = %d\n", bi, bj);
+
+	unsigned i, j;
+	for (j = 0; j < blocksize; j++)
+	{
+		for (i = 0; i < blocksize; i++)
+		{
+			fprintf(stderr, "%f ", data[j+i*blocksize]);
+		}
+		fprintf(stderr, "\n");
+	}
+
+	fprintf(stderr, "****\n");
 }
 
 int main(int argc, char **argv)
@@ -243,12 +280,15 @@ int main(int argc, char **argv)
 
 	init_matrix(rank);
 
+	TYPE *a_r = STARPU_PLU(reconstruct_matrix)(size, nblocks);
+	STARPU_PLU(display_data_content)(a_r, size);
+	
+
 	TYPE *x, *y;
 
 	if (check)
 	{
-		if (rank == 0)
-			fprintf(stderr, "Compute AX = B\n");
+		unsigned ind;
 
 		x = calloc(size, sizeof(TYPE));
 		STARPU_ASSERT(x);
@@ -256,22 +296,25 @@ int main(int argc, char **argv)
 		y = calloc(size, sizeof(TYPE));
 		STARPU_ASSERT(y);
 		
-		unsigned ind;
-		for (ind = 0; ind < size; ind++)
+		if (rank == 0)
 		{
-			//x[ind] = (TYPE)1.0;
-			x[ind] = (TYPE)drand48();
-			y[ind] = (TYPE)0.0;
+			fprintf(stderr, "Compute AX = B\n");
+
+			for (ind = 0; ind < size; ind++)
+			{
+				x[ind] = (TYPE)ind;
+//				x[ind] = (TYPE)drand48();
+				y[ind] = (TYPE)0.0;
+			}
 		}
 
 		STARPU_PLU(compute_ax)(size, x, y, nblocks, rank);
 
 		if (rank == 0)
-		for (ind = 0; ind < 10; ind++)
+		for (ind = 0; ind < STARPU_MIN(10, size); ind++)
 		{
 			fprintf(stderr, "y[%d] = %f\n", ind, (float)y[ind]);
 		}
-		
 	}
 
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
@@ -310,6 +353,40 @@ int main(int argc, char **argv)
 		unsigned n = size;
 		double flop = (2.0f*n*n*n)/3.0f;
 		fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/max_timing/1000.0f));
+	}
+
+	/*
+	 *	Test Result Correctness
+	 */
+
+	STARPU_PLU(compute_lu_matrix)(size, nblocks);
+
+	TYPE *y2;
+
+	if (check)
+	{
+		unsigned ind;
+
+		y2 = calloc(size, sizeof(TYPE));
+		STARPU_ASSERT(y);
+		
+		if (rank == 0)
+		{
+			fprintf(stderr, "Compute LUX = B2\n");
+
+			for (ind = 0; ind < size; ind++)
+			{
+				y2[ind] = (TYPE)0.0;
+			}
+		}
+
+		STARPU_PLU(compute_lux)(size, x, y2, nblocks, rank);
+
+		if (rank == 0)
+		for (ind = 0; ind < STARPU_MIN(10, size); ind++)
+		{
+			fprintf(stderr, "y[%d] = %f\n", ind, (float)y2[ind]);
+		}
 	}
 
 	/*

@@ -36,4 +36,6 @@ starpu_data_handle STARPU_PLU(get_tmp_11_block_handle)(void);
 starpu_data_handle STARPU_PLU(get_tmp_12_block_handle)(unsigned j);
 starpu_data_handle STARPU_PLU(get_tmp_21_block_handle)(unsigned i);
 
+void STARPU_PLU(display_data_content)(TYPE *data, unsigned blocksize);
+
 #endif // __PXLU_H__
