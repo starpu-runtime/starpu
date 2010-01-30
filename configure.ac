@@ -128,6 +128,7 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	
 	if test -d "$cuda_dir/include/"; then
 		CPPFLAGS="${CPPFLAGS} -I$cuda_dir/include/ "
+		NVCCFLAGS="${NVCCFLAGS} -I$cuda_dir/include/ "
 	fi
 
 	# do we have a valid CUDA setup ?
