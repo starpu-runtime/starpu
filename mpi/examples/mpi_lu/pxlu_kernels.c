@@ -39,7 +39,7 @@ static inline void STARPU_PLU(common_u22)(void *descr[],
 
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	fprintf(stderr, "KERNEL 22 %d\n", rank);
+	//fprintf(stderr, "KERNEL 22 %d\n", rank);
 
 #ifdef USE_CUDA
 	cublasStatus status;
@@ -129,12 +129,19 @@ static inline void STARPU_PLU(common_u12)(void *descr[],
 
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	fprintf(stderr, "KERNEL 12 %d\n", rank);
+//	fprintf(stderr, "KERNEL 12 %d\n", rank);
 
 #ifdef USE_CUDA
 	cublasStatus status;
 	cudaError_t cures;
 #endif
+
+//	fprintf(stderr, "INPUT 12 U11\n");
+//	STARPU_PLU(display_data_content)(sub11, nx12);
+//	fprintf(stderr, "INPUT 12 U12\n");
+//	STARPU_PLU(display_data_content)(sub12, nx12);
+
+
 
 	/* solve L11 U12 = A12 (find U12) */
 	switch (s) {
@@ -160,6 +167,9 @@ static inline void STARPU_PLU(common_u12)(void *descr[],
 			STARPU_ABORT();
 			break;
 	}
+
+//	fprintf(stderr, "OUTPUT 12 U12\n");
+//	STARPU_PLU(display_data_content)(sub12, nx12);
 }
 
 static void STARPU_PLU(cpu_u12)(void *descr[], void *_args)
@@ -217,13 +227,20 @@ static inline void STARPU_PLU(common_u21)(void *descr[],
 	
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	fprintf(stderr, "KERNEL 21 %d\n", rank);
+//	fprintf(stderr, "KERNEL 21 %d \n", rank);
+
+	//fprintf(stderr, "INPUT 21 U11\n");
+	//STARPU_PLU(display_data_content)(sub11, nx21);
+	//fprintf(stderr, "INPUT 21 U12\n");
+	//STARPU_PLU(display_data_content)(sub21, nx21);
+
 
 
 #ifdef USE_CUDA
 	cublasStatus status;
 	cudaError_t cures;
 #endif
+
 
 	switch (s) {
 		case 0:
@@ -247,6 +264,11 @@ static inline void STARPU_PLU(common_u21)(void *descr[],
 			STARPU_ABORT();
 			break;
 	}
+
+//	fprintf(stderr, "INPUT 21 U21\n");
+//	STARPU_PLU(display_data_content)(sub21, nx21);
+
+
 }
 
 static void STARPU_PLU(cpu_u21)(void *descr[], void *_args)
@@ -301,7 +323,7 @@ static inline void STARPU_PLU(common_u11)(void *descr[],
 
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	fprintf(stderr, "KERNEL 11 %d\n", rank);
+//	fprintf(stderr, "KERNEL 11 %d\n", rank);
 
 	switch (s) {
 		case 0:

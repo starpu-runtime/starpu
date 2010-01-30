@@ -54,26 +54,6 @@ void STARPU_PLU(extract_upper)(unsigned block_size, TYPE *inblock, TYPE *outbloc
 	}
 }
 
-static STARPU_PLU(compute_ax_block_upper)(unsigned size, unsigned nblocks,
-				 TYPE *block_data, TYPE *sub_x, TYPE *sub_y)
-{
-	unsigned block_size = size/nblocks;
-
-	fprintf(stderr, "KEEP UPPER\n");
-	STARPU_PLU(display_data_content)(block_data, block_size);
-
-	/* Take a copy of the upper part of the diagonal block */
-	TYPE *upper_block_copy = calloc((block_size)*(block_size), sizeof(TYPE));
-	STARPU_PLU(extract_upper)(block_size, block_data, upper_block_copy);
-		
-	STARPU_PLU(display_data_content)(upper_block_copy, block_size);
-
-	STARPU_PLU(compute_ax_block)(size/nblocks, upper_block_copy, sub_x, sub_y);
-	
-	free(upper_block_copy);
-}
-
-
 void STARPU_PLU(extract_lower)(unsigned block_size, TYPE *inblock, TYPE *outblock)
 {
 	unsigned li, lj;
@@ -86,6 +66,52 @@ void STARPU_PLU(extract_lower)(unsigned block_size, TYPE *inblock, TYPE *outbloc
 	}
 }
 
+#if 0
+void STARPU_PLU(extract_upper)(unsigned block_size, TYPE *inblock, TYPE *outblock)
+{
+	unsigned li, lj;
+	for (lj = 0; lj < block_size; lj++)
+	{
+		for (li = lj; li < block_size; li++)
+		{
+			outblock[lj + li*block_size] = inblock[lj + li*block_size];
+		}
+	}
+}
+
+void STARPU_PLU(extract_lower)(unsigned block_size, TYPE *inblock, TYPE *outblock)
+{
+	unsigned li, lj;
+	for (lj = 0; lj < block_size; lj++)
+	{
+		for (li = 0; li < lj; li++)
+		{
+			outblock[lj + li*block_size] = inblock[lj + li*block_size];
+		}
+
+		outblock[lj*(block_size + 1)] = (TYPE)1.0;
+	}
+}
+#endif
+
+static STARPU_PLU(compute_ax_block_upper)(unsigned size, unsigned nblocks,
+				 TYPE *block_data, TYPE *sub_x, TYPE *sub_y)
+{
+	unsigned block_size = size/nblocks;
+
+//	fprintf(stderr, "KEEP UPPER\n");
+//	STARPU_PLU(display_data_content)(block_data, block_size);
+
+	/* Take a copy of the upper part of the diagonal block */
+	TYPE *upper_block_copy = calloc((block_size)*(block_size), sizeof(TYPE));
+	STARPU_PLU(extract_upper)(block_size, block_data, upper_block_copy);
+		
+//	STARPU_PLU(display_data_content)(upper_block_copy, block_size);
+
+	STARPU_PLU(compute_ax_block)(size/nblocks, upper_block_copy, sub_x, sub_y);
+	
+	free(upper_block_copy);
+}
 
 TYPE *STARPU_PLU(reconstruct_matrix)(unsigned size, unsigned nblocks)
 {
@@ -135,25 +161,57 @@ static TYPE *reconstruct_upper(unsigned size, unsigned nblocks)
 }
 
 
-void STARPU_PLU(compute_lu_matrix)(unsigned size, unsigned nblocks)
+void STARPU_PLU(compute_lu_matrix)(unsigned size, unsigned nblocks, TYPE *Asaved)
 {
-	fprintf(stderr, "ALL\n\n");
+//	fprintf(stderr, "ALL\n\n");
 	TYPE *all_r = STARPU_PLU(reconstruct_matrix)(size, nblocks);
-	STARPU_PLU(display_data_content)(all_r, size);
+//	STARPU_PLU(display_data_content)(all_r, size);
 
-	fprintf(stderr, "\nLOWER\n");
-	TYPE *lower_r = reconstruct_lower(size, nblocks);
-	STARPU_PLU(display_data_content)(lower_r, size);
+        TYPE *L = malloc((size_t)size*size*sizeof(TYPE));
+        TYPE *U = malloc((size_t)size*size*sizeof(TYPE));
 
-	fprintf(stderr, "\nUPPER\n");
-	TYPE *upper_r = reconstruct_upper(size, nblocks);
-	STARPU_PLU(display_data_content)(upper_r, size);
+        memset(L, 0, size*size*sizeof(TYPE));
+        memset(U, 0, size*size*sizeof(TYPE));
 
-	TYPE *lu_r = calloc(size*size, sizeof(TYPE));
-	CPU_TRMM("R", "U", "N", "U", size, size, 1.0f, lower_r, size, upper_r, size);
+        /* only keep the lower part */
+	unsigned i, j;
+        for (j = 0; j < size; j++)
+        {
+                for (i = 0; i < j; i++)
+                {
+                        L[j+i*size] = all_r[j+i*size];
+                }
 
-	fprintf(stderr, "\nLU\n");
-	STARPU_PLU(display_data_content)(lower_r, size);
+                /* diag i = j */
+                L[j+j*size] = all_r[j+j*size];
+                U[j+j*size] = 1.0;
+
+                for (i = j+1; i < size; i++)
+                {
+                        U[j+i*size] = all_r[j+i*size];
+                }
+        }
+
+//	STARPU_PLU(display_data_content)(L, size);
+//	STARPU_PLU(display_data_content)(U, size);
+
+        /* now A_err = L, compute L*U */
+        CPU_TRMM("R", "U", "N", "U", size, size, 1.0f, U, size, L, size);
+
+//	fprintf(stderr, "\nLU\n");
+//	STARPU_PLU(display_data_content)(L, size);
+
+        /* compute "LU - A" in L*/
+        CPU_AXPY(size*size, -1.0, Asaved, 1, L, 1);
+
+        TYPE err = CPU_ASUM(size*size, L, 1);
+        int max = CPU_IAMAX(size*size, L, 1);
+
+//	STARPU_PLU(display_data_content)(L, size);
+
+        fprintf(stderr, "(A - LU) Avg error : %e\n", err/(size*size));
+        fprintf(stderr, "(A - LU) Max error : %e\n", L[max]);
+
 }
 
 static STARPU_PLU(compute_ax_block_lower)(unsigned size, unsigned nblocks,
@@ -161,14 +219,14 @@ static STARPU_PLU(compute_ax_block_lower)(unsigned size, unsigned nblocks,
 {
 	unsigned block_size = size/nblocks;
 
-	fprintf(stderr, "KEEP LOWER\n");
-	STARPU_PLU(display_data_content)(block_data, block_size);
+//	fprintf(stderr, "KEEP LOWER\n");
+//	STARPU_PLU(display_data_content)(block_data, block_size);
 
 	/* Take a copy of the upper part of the diagonal block */
 	TYPE *lower_block_copy = calloc((block_size)*(block_size), sizeof(TYPE));
 	STARPU_PLU(extract_lower)(block_size, block_data, lower_block_copy);
 
-	STARPU_PLU(display_data_content)(lower_block_copy, block_size);
+//	STARPU_PLU(display_data_content)(lower_block_copy, block_size);
 
 	STARPU_PLU(compute_ax_block)(size/nblocks, lower_block_copy, sub_x, sub_y);
 	
@@ -217,15 +275,15 @@ void STARPU_PLU(compute_lux)(unsigned size, TYPE *x, TYPE *y, unsigned nblocks, 
 	memset(yi, 0, size*sizeof(TYPE));
 
 	unsigned ind;
-	if (rank == 0)
-	{
-		fprintf(stderr, "INTERMEDIATE\n");
-		for (ind = 0; ind < STARPU_MIN(10, size); ind++)
-		{
-			fprintf(stderr, "x[%d] = %f\n", ind, (float)x[ind]);
-		}
-		fprintf(stderr, "****\n");
-	}
+//	if (rank == 0)
+//	{
+//		fprintf(stderr, "INTERMEDIATE\n");
+//		for (ind = 0; ind < STARPU_MIN(10, size); ind++)
+//		{
+//			fprintf(stderr, "x[%d] = %f\n", ind, (float)x[ind]);
+//		}
+//		fprintf(stderr, "****\n");
+//	}
 
 	/* Everyone needs x */
 	int bcst_ret;
@@ -273,15 +331,6 @@ void STARPU_PLU(compute_ax)(unsigned size, TYPE *x, TYPE *y, unsigned nblocks, i
 	int bcst_ret;
 	bcst_ret = MPI_Bcast(&x, size, MPI_TYPE, 0, MPI_COMM_WORLD);
 	STARPU_ASSERT(bcst_ret == MPI_SUCCESS);
-
-	if (rank == 0)
-	{
-		unsigned ind;
-		for (ind = 0; ind < STARPU_MIN(10, size); ind++)
-			fprintf(stderr, "x[%d] = %f\n", ind, (float)x[ind]);
-
-		fprintf(stderr, "Compute AX = B\n");
-	}
 
 	/* Create temporary buffers where all MPI processes are going to
 	 * compute Ai x = yi where Ai is the matrix containing the blocks of A

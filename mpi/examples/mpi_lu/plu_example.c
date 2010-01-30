@@ -95,8 +95,7 @@ static void fill_block_with_random(TYPE *blockptr, unsigned size, unsigned nbloc
 	for (j = 0; j < block_size; j++)
 	for (i = 0; i < block_size; i++)
 	{
-	//	blockptr[i+j*block_size] = (TYPE)drand48();
-		blockptr[i+j*block_size] = (i == j)?2.0:(TYPE)j;
+		blockptr[i+j*block_size] = (TYPE)drand48();
 	}
 }
 
@@ -199,8 +198,7 @@ static void init_matrix(int rank)
 			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 	}
 
-
-	display_all_blocks(nblocks, size/nblocks);
+//	display_all_blocks(nblocks, size/nblocks);
 }
 
 int get_block_rank(unsigned i, unsigned j)
@@ -280,9 +278,8 @@ int main(int argc, char **argv)
 
 	init_matrix(rank);
 
-	TYPE *a_r = STARPU_PLU(reconstruct_matrix)(size, nblocks);
-	STARPU_PLU(display_data_content)(a_r, size);
-	
+	TYPE *a_r;
+//	STARPU_PLU(display_data_content)(a_r, size);
 
 	TYPE *x, *y;
 
@@ -295,26 +292,19 @@ int main(int argc, char **argv)
 
 		y = calloc(size, sizeof(TYPE));
 		STARPU_ASSERT(y);
-		
+
+		a_r = STARPU_PLU(reconstruct_matrix)(size, nblocks);
+	
 		if (rank == 0)
 		{
-			fprintf(stderr, "Compute AX = B\n");
-
 			for (ind = 0; ind < size; ind++)
 			{
-				x[ind] = (TYPE)ind;
-//				x[ind] = (TYPE)drand48();
+				x[ind] = (TYPE)drand48();
 				y[ind] = (TYPE)0.0;
 			}
 		}
 
 		STARPU_PLU(compute_ax)(size, x, y, nblocks, rank);
-
-		if (rank == 0)
-		for (ind = 0; ind < STARPU_MIN(10, size); ind++)
-		{
-			fprintf(stderr, "y[%d] = %f\n", ind, (float)y[ind]);
-		}
 	}
 
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
@@ -359,12 +349,20 @@ int main(int argc, char **argv)
 	 *	Test Result Correctness
 	 */
 
-	STARPU_PLU(compute_lu_matrix)(size, nblocks);
-
 	TYPE *y2;
 
 	if (check)
 	{
+		/*
+		 *	Compute || A - LU ||
+		 */
+
+		STARPU_PLU(compute_lu_matrix)(size, nblocks, a_r);
+
+		/*
+		 *	Compute || Ax - LUx ||
+		 */
+
 		unsigned ind;
 
 		y2 = calloc(size, sizeof(TYPE));
@@ -372,8 +370,6 @@ int main(int argc, char **argv)
 		
 		if (rank == 0)
 		{
-			fprintf(stderr, "Compute LUX = B2\n");
-
 			for (ind = 0; ind < size; ind++)
 			{
 				y2[ind] = (TYPE)0.0;
@@ -382,11 +378,14 @@ int main(int argc, char **argv)
 
 		STARPU_PLU(compute_lux)(size, x, y2, nblocks, rank);
 
-		if (rank == 0)
-		for (ind = 0; ind < STARPU_MIN(10, size); ind++)
-		{
-			fprintf(stderr, "y[%d] = %f\n", ind, (float)y2[ind]);
-		}
+		/* Compute y2 = y2 - y */
+	        CPU_AXPY(size, -1.0, y, 1, y2, 1);
+	
+	        TYPE err = CPU_ASUM(size, y2, 1);
+	        int max = CPU_IAMAX(size, y2, 1);
+	
+	        fprintf(stderr, "(A - LU)X Avg error : %e\n", err/(size*size));
+	        fprintf(stderr, "(A - LU)X Max error : %e\n", y2[max]);
 	}
 
 	/*
