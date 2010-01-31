@@ -33,6 +33,8 @@ double STARPU_PLU(plu_main)(unsigned nblocks, int rank, int world_size);
 TYPE *STARPU_PLU(reconstruct_matrix)(unsigned size, unsigned nblocks);
 void STARPU_PLU(compute_lu_matrix)(unsigned size, unsigned nblocks, TYPE *Asaved);
 
+unsigned STARPU_PLU(display_flag)(void);
+
 void STARPU_PLU(compute_ax)(unsigned size, TYPE *x, TYPE *y, unsigned nblocks, int rank);
 void STARPU_PLU(compute_lux)(unsigned size, TYPE *x, TYPE *y, unsigned nblocks, int rank);
 starpu_data_handle STARPU_PLU(get_block_handle)(unsigned i, unsigned j);

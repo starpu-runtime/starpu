@@ -41,6 +41,9 @@ static double frobenius_norm(TYPE *v, unsigned n)
 
 void STARPU_PLU(display_data_content)(TYPE *data, unsigned blocksize)
 {
+	if (!STARPU_PLU(display_flag)())
+		return;
+
 	fprintf(stderr, "DISPLAY BLOCK\n");
 
 	unsigned i, j;
@@ -324,6 +327,8 @@ void STARPU_PLU(compute_lu_matrix)(unsigned size, unsigned nblocks, TYPE *Asaved
 {
 	TYPE *all_r = STARPU_PLU(reconstruct_matrix)(size, nblocks);
 
+	unsigned display = STARPU_PLU(display_flag)();
+
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -360,7 +365,9 @@ void STARPU_PLU(compute_lu_matrix)(unsigned size, unsigned nblocks, TYPE *Asaved
 	        /* now A_err = L, compute L*U */
 	        CPU_TRMM("R", "U", "N", "U", size, size, 1.0f, U, size, L, size);
 	
-		fprintf(stderr, "\nLU\n");
+		if (display)
+			fprintf(stderr, "\nLU\n");
+
 		STARPU_PLU(display_data_content)(L, size);
 	
 	        /* compute "LU - A" in L*/
@@ -369,7 +376,8 @@ void STARPU_PLU(compute_lu_matrix)(unsigned size, unsigned nblocks, TYPE *Asaved
 	        TYPE err = CPU_ASUM(size*size, L, 1);
 	        int max = CPU_IAMAX(size*size, L, 1);
 	
-		fprintf(stderr, "DISPLAY ERROR\n");
+		if (display)
+			fprintf(stderr, "DISPLAY ERROR\n");
 
 		STARPU_PLU(display_data_content)(L, size);
 	

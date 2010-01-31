@@ -29,6 +29,7 @@ static unsigned nblocks = 16;
 static unsigned check = 0;
 static unsigned p = 1;
 static unsigned q = 1;
+static unsigned display = 0;
 
 static starpu_data_handle *dataA_handles;
 static TYPE **dataA;
@@ -60,6 +61,10 @@ static void parse_args(int argc, char **argv)
 			check = 1;
 		}
 
+		if (strcmp(argv[i], "-display") == 0) {
+			display = 1;
+		}
+
 		if (strcmp(argv[i], "-p") == 0) {
 			char *argptr;
 			p = strtol(argv[++i], &argptr, 10);
@@ -70,6 +75,11 @@ static void parse_args(int argc, char **argv)
 			q = strtol(argv[++i], &argptr, 10);
 		}
 	}
+}
+
+unsigned STARPU_PLU(display_flag)(void)
+{
+	return display;
 }
 
 static void fill_block_with_random(TYPE *blockptr, unsigned size, unsigned nblocks)
@@ -101,8 +111,6 @@ starpu_data_handle STARPU_PLU(get_tmp_21_block_handle)(unsigned i)
 
 static void init_matrix(int rank)
 {
-	fprintf(stderr, "INIT MATRIX on node %d\n", rank);
-
 	/* Allocate a grid of data handles, not all of them have to be allocated later on */
 	dataA_handles = calloc(nblocks*nblocks, sizeof(starpu_data_handle));
 	dataA = calloc(nblocks*nblocks, sizeof(TYPE *));
@@ -202,6 +210,9 @@ starpu_data_handle STARPU_PLU(get_block_handle)(unsigned i, unsigned j)
 
 static void display_grid(int rank, unsigned nblocks)
 {
+	if (!display)
+		return;
+
 	//if (rank == 0)
 	{
 		fprintf(stderr, "2D grid layout (Rank %d): \n", rank);
@@ -279,16 +290,12 @@ int main(int argc, char **argv)
 		if (rank == 0)
 			STARPU_PLU(display_data_content)(a_r, size);
 
-		fprintf(stderr, "COMPUTE AX on node %d \n", rank);
 //		STARPU_PLU(compute_ax)(size, x, y, nblocks, rank);
-
-		fprintf(stderr, "COMPUTE AX on node %d AFTER\n", rank);
 	}
 
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 
-	fprintf(stderr, "GO for main on node %d\n", rank);
 	double timing = STARPU_PLU(plu_main)(nblocks, rank, world_size);
 
 	/*

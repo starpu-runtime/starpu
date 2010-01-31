@@ -684,7 +684,7 @@ static void wait_termination(void)
 			{
 				starpu_data_handle block21 = STARPU_PLU(get_block_handle)(i, k);
 				//starpu_data_handle block21 = STARPU_PLU(get_block_handle)(k, i);
-				fprintf(stderr, "BLOCK21 i %d k %d -> handle %p\n", i, k, block21);
+				//fprintf(stderr, "BLOCK21 i %d k %d -> handle %p\n", i, k, block21);
 				wait_tag_and_fetch_handle(TAG21_SAVE(k, i), block21);
 			}
 		}
@@ -696,7 +696,7 @@ static void wait_termination(void)
 			{
 				//starpu_data_handle block12 = STARPU_PLU(get_block_handle)(j, k);
 				starpu_data_handle block12 = STARPU_PLU(get_block_handle)(k, j);
-				fprintf(stderr, "BLOCK12 j %d k %d -> handle %p\n", j, k, block12);
+				//fprintf(stderr, "BLOCK12 j %d k %d -> handle %p\n", j, k, block12);
 				wait_tag_and_fetch_handle(TAG12_SAVE(k, j), block12);
 			}
 		}
