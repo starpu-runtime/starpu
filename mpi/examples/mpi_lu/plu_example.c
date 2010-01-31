@@ -42,21 +42,6 @@ static TYPE **tmp_12_block;
 static starpu_data_handle *tmp_21_block_handles;
 static TYPE **tmp_21_block;
 
-
-TYPE *STARPU_PLU(reconstruct_matrix)(unsigned size, unsigned nblocks);
-static void display_block_content(unsigned bi, unsigned bj, unsigned blocksize);
-
-static void display_all_blocks(unsigned nblocks, unsigned blocksize)
-{
-	fprintf(stderr, "DISPLAY ALL\n");
-	unsigned bi, bj;
-	for (bj = 0; bj < nblocks; bj++)
-	for (bi = 0; bi < nblocks; bi++)
-		display_block_content(bi, bj, blocksize);
-
-	fprintf(stderr, "*****************\n");
-}
-
 static void parse_args(int argc, char **argv)
 {
 	int i;
@@ -92,16 +77,16 @@ static void fill_block_with_random(TYPE *blockptr, unsigned size, unsigned nbloc
 	const unsigned block_size = (size/nblocks);
 
 	unsigned i, j;
-	for (j = 0; j < block_size; j++)
 	for (i = 0; i < block_size; i++)
+	for (j = 0; j < block_size; j++)
 	{
-		blockptr[i+j*block_size] = (TYPE)drand48();
+		blockptr[j+i*block_size] = (TYPE)drand48();
 	}
 }
 
-starpu_data_handle STARPU_PLU(get_block_handle)(unsigned j, unsigned i)
+starpu_data_handle STARPU_PLU(get_block_handle)(unsigned i, unsigned j)
 {
-	return dataA_handles[i+j*nblocks];
+	return dataA_handles[j+i*nblocks];
 }
 
 starpu_data_handle STARPU_PLU(get_tmp_11_block_handle)(void)
@@ -119,13 +104,15 @@ starpu_data_handle STARPU_PLU(get_tmp_21_block_handle)(unsigned i)
 	return tmp_21_block_handles[i];
 }
 
-TYPE *STARPU_PLU(get_block)(unsigned j, unsigned i)
+TYPE *STARPU_PLU(get_block)(unsigned i, unsigned j)
 {
-	return dataA[i+j*nblocks];
+	return dataA[j+i*nblocks];
 }
 
 static void init_matrix(int rank)
 {
+	fprintf(stderr, "INIT MATRIX on node %d\n", rank);
+
 	/* Allocate a grid of data handles, not all of them have to be allocated later on */
 	dataA_handles = calloc(nblocks*nblocks, sizeof(starpu_data_handle));
 	dataA = calloc(nblocks*nblocks, sizeof(TYPE *));
@@ -138,31 +125,36 @@ static void init_matrix(int rank)
 	{
 		for (i = 0; i < nblocks; i++)
 		{
+			TYPE **blockptr = &dataA[j+i*nblocks];
+//			starpu_data_handle *handleptr = &dataA_handles[j+nblocks*i];
+			starpu_data_handle *handleptr = &dataA_handles[j+nblocks*i];
+
 			if (get_block_rank(i, j) == rank)
 			{
 				/* This blocks should be treated by the current MPI process */
 				/* Allocate and fill it */
-				starpu_malloc_pinned_if_possible((void **)&dataA[i+j*nblocks], blocksize);
+				starpu_malloc_pinned_if_possible((void **)blockptr, blocksize);
 
-				fill_block_with_random(STARPU_PLU(get_block)(j, i), size, nblocks);
+				//fprintf(stderr, "Rank %d : fill block (i = %d, j = %d)\n", rank, i, j);
+				fill_block_with_random(*blockptr, size, nblocks);
+				//fprintf(stderr, "Rank %d : fill block (i = %d, j = %d)\n", rank, i, j);
 				if (i == j)
 				{
-					TYPE *b = STARPU_PLU(get_block)(j, i);
 					unsigned tmp;
 					for (tmp = 0; tmp < size/nblocks; tmp++)
 					{
-						b[tmp*((size/nblocks)+1)] += (TYPE)10*nblocks;
+						(*blockptr)[tmp*((size/nblocks)+1)] += (TYPE)10*nblocks;
 					}
 				}
 
 				/* Register it to StarPU */
-				starpu_register_blas_data(&dataA_handles[i+nblocks*j], 0,
-					(uintptr_t)dataA[i+nblocks*j], size/nblocks,
+				starpu_register_blas_data(handleptr, 0,
+					(uintptr_t)*blockptr, size/nblocks,
 					size/nblocks, size/nblocks, sizeof(TYPE));
 			}
 			else {
-				dataA[i+j*nblocks] = STARPU_POISON_PTR;
-				dataA_handles[i+j*nblocks] = STARPU_POISON_PTR;
+				*blockptr = STARPU_POISON_PTR;
+				*handleptr = STARPU_POISON_PTR;
 			}
 		}
 	}
@@ -198,7 +190,7 @@ static void init_matrix(int rank)
 			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 	}
 
-//	display_all_blocks(nblocks, size/nblocks);
+	//display_all_blocks(nblocks, size/nblocks);
 }
 
 int get_block_rank(unsigned i, unsigned j)
@@ -210,39 +202,23 @@ int get_block_rank(unsigned i, unsigned j)
 
 static void display_grid(int rank, unsigned nblocks)
 {
-	if (rank == 0)
+	//if (rank == 0)
 	{
-		fprintf(stderr, "2D grid layout: \n");
+		fprintf(stderr, "2D grid layout (Rank %d): \n", rank);
 		
 		unsigned i, j;
 		for (j = 0; j < nblocks; j++)
 		{
 			for (i = 0; i < nblocks; i++)
 			{
-				fprintf(stderr, "%d ", get_block_rank(i, j));
+				TYPE *blockptr = STARPU_PLU(get_block)(i, j);
+				starpu_data_handle handle = STARPU_PLU(get_block_handle)(i, j);
+
+				fprintf(stderr, "%d (data %p handle %p)", get_block_rank(i, j), blockptr, handle);
 			}
 			fprintf(stderr, "\n");
 		}
 	}
-}
-
-static void display_block_content(unsigned bi, unsigned bj, unsigned blocksize)
-{
-	TYPE *data = STARPU_PLU(get_block)(bj, bi);
-
-	fprintf(stderr, "BLOCK i = %d j = %d\n", bi, bj);
-
-	unsigned i, j;
-	for (j = 0; j < blocksize; j++)
-	{
-		for (i = 0; i < blocksize; i++)
-		{
-			fprintf(stderr, "%f ", data[j+i*blocksize]);
-		}
-		fprintf(stderr, "\n");
-	}
-
-	fprintf(stderr, "****\n");
 }
 
 int main(int argc, char **argv)
@@ -263,8 +239,6 @@ int main(int argc, char **argv)
 
 	STARPU_ASSERT(p*q == world_size);
 
-	//display_grid(rank, nblocks);
-
 	starpu_init(NULL);
 	starpu_mpi_initialize();
 	starpu_helper_init_cublas();
@@ -278,6 +252,8 @@ int main(int argc, char **argv)
 
 	init_matrix(rank);
 
+	display_grid(rank, nblocks);
+
 	TYPE *a_r;
 //	STARPU_PLU(display_data_content)(a_r, size);
 
@@ -285,31 +261,34 @@ int main(int argc, char **argv)
 
 	if (check)
 	{
-		unsigned ind;
-
 		x = calloc(size, sizeof(TYPE));
 		STARPU_ASSERT(x);
 
 		y = calloc(size, sizeof(TYPE));
 		STARPU_ASSERT(y);
 
-		a_r = STARPU_PLU(reconstruct_matrix)(size, nblocks);
-	
 		if (rank == 0)
 		{
+			unsigned ind;
 			for (ind = 0; ind < size; ind++)
-			{
 				x[ind] = (TYPE)drand48();
-				y[ind] = (TYPE)0.0;
-			}
 		}
 
-		STARPU_PLU(compute_ax)(size, x, y, nblocks, rank);
+		a_r = STARPU_PLU(reconstruct_matrix)(size, nblocks);
+
+		if (rank == 0)
+			STARPU_PLU(display_data_content)(a_r, size);
+
+		fprintf(stderr, "COMPUTE AX on node %d \n", rank);
+//		STARPU_PLU(compute_ax)(size, x, y, nblocks, rank);
+
+		fprintf(stderr, "COMPUTE AX on node %d AFTER\n", rank);
 	}
 
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 
+	fprintf(stderr, "GO for main on node %d\n", rank);
 	double timing = STARPU_PLU(plu_main)(nblocks, rank, world_size);
 
 	/*
@@ -321,9 +300,6 @@ int main(int argc, char **argv)
 	double max_timing = timing;
 	double sum_timing = timing;
 
-	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
-	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
-	
 	reduce_ret = MPI_Reduce(&timing, &min_timing, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
 	STARPU_ASSERT(reduce_ret == MPI_SUCCESS);
 
@@ -359,6 +335,7 @@ int main(int argc, char **argv)
 
 		STARPU_PLU(compute_lu_matrix)(size, nblocks, a_r);
 
+#if 0
 		/*
 		 *	Compute || Ax - LUx ||
 		 */
@@ -386,6 +363,7 @@ int main(int argc, char **argv)
 	
 	        fprintf(stderr, "(A - LU)X Avg error : %e\n", err/(size*size));
 	        fprintf(stderr, "(A - LU)X Max error : %e\n", y2[max]);
+#endif
 	}
 
 	/*

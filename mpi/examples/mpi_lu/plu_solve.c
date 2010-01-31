@@ -15,7 +15,25 @@
  */
 
 #include <starpu.h>
+#include <math.h>
 #include "pxlu.h"
+
+static double frobenius_norm(TYPE *v, unsigned n)
+{
+        double sum2 = 0.0;
+
+        /* compute sqrt(Sum(|x|^2)) */
+
+        unsigned i,j;
+        for (j = 0; j < n; j++)
+        for (i = 0; i < n; i++)
+        {
+                double a = fabsl((double)v[i+n*j]);
+                sum2 += a*a;
+        }
+
+        return sqrt(sum2);
+}
 
 void STARPU_PLU(display_data_content)(TYPE *data, unsigned blocksize)
 {
@@ -36,6 +54,7 @@ void STARPU_PLU(display_data_content)(TYPE *data, unsigned blocksize)
 
 static STARPU_PLU(compute_ax_block)(unsigned block_size, TYPE *block_data, TYPE *sub_x, TYPE *sub_y)
 {
+	fprintf(stderr, "block data %p sub x %p sub y %p\n", block_data, sub_x, sub_y);
 	CPU_GEMV("N", block_size, block_size, 1.0, block_data, block_size, sub_x, 1, 1.0, sub_y, 1);
 }
 
@@ -66,34 +85,6 @@ void STARPU_PLU(extract_lower)(unsigned block_size, TYPE *inblock, TYPE *outbloc
 	}
 }
 
-#if 0
-void STARPU_PLU(extract_upper)(unsigned block_size, TYPE *inblock, TYPE *outblock)
-{
-	unsigned li, lj;
-	for (lj = 0; lj < block_size; lj++)
-	{
-		for (li = lj; li < block_size; li++)
-		{
-			outblock[lj + li*block_size] = inblock[lj + li*block_size];
-		}
-	}
-}
-
-void STARPU_PLU(extract_lower)(unsigned block_size, TYPE *inblock, TYPE *outblock)
-{
-	unsigned li, lj;
-	for (lj = 0; lj < block_size; lj++)
-	{
-		for (li = 0; li < lj; li++)
-		{
-			outblock[lj + li*block_size] = inblock[lj + li*block_size];
-		}
-
-		outblock[lj*(block_size + 1)] = (TYPE)1.0;
-	}
-}
-#endif
-
 static STARPU_PLU(compute_ax_block_upper)(unsigned size, unsigned nblocks,
 				 TYPE *block_data, TYPE *sub_x, TYPE *sub_y)
 {
@@ -108,30 +99,66 @@ static STARPU_PLU(compute_ax_block_upper)(unsigned size, unsigned nblocks,
 		
 //	STARPU_PLU(display_data_content)(upper_block_copy, block_size);
 
-	STARPU_PLU(compute_ax_block)(size/nblocks, upper_block_copy, sub_x, sub_y);
+	STARPU_PLU(compute_ax_block)(block_size, upper_block_copy, sub_x, sub_y);
 	
 	free(upper_block_copy);
 }
 
 TYPE *STARPU_PLU(reconstruct_matrix)(unsigned size, unsigned nblocks)
 {
+//	fprintf(stderr, "RECONSTRUCT MATRIX size %d nblocks %d\n", size, nblocks);
+
 	TYPE *bigmatrix = calloc(size*size, sizeof(TYPE));
 
 	unsigned block_size = size/nblocks;
+
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
 	unsigned bi, bj;
 	for (bj = 0; bj < nblocks; bj++)
 	for (bi = 0; bi < nblocks; bi++)
 	{
-		TYPE *block = STARPU_PLU(get_block)(bj, bi);
-		//TYPE *block = STARPU_PLU(get_block)(bj, bi);
-
-		unsigned j, i;
-		for (j = 0; j < block_size; j++)
-		for (i = 0; i < block_size; i++)
+		TYPE *block;
+		
+		if (get_block_rank(bi, bj) == 0)
 		{
-			bigmatrix[(j + bj*block_size)+(i+bi*block_size)*size] =
-								block[j+i*block_size];
+	//		if (rank == 0)
+	//			fprintf(stderr, "RECONSTRUCT bi %d bj %d\n", bi, bj);
+
+			block = STARPU_PLU(get_block)(bi, bj);
+		}
+		else {
+			MPI_Status status;
+
+			if (rank == 0)
+			{
+				block = calloc(block_size*block_size, sizeof(TYPE));
+
+	//			fprintf(stderr, "RECONSTRUCT bi %d bj %d - receive in %p from node %d\n", bi, bj, block, get_block_rank(bi, bj));
+				int ret = MPI_Recv(block, block_size*block_size, MPI_TYPE, get_block_rank(bi, bj), 0, MPI_COMM_WORLD, &status);
+				STARPU_ASSERT(ret == MPI_SUCCESS);
+			}
+			else {
+				block = STARPU_PLU(get_block)(bi, bj);
+	//			fprintf(stderr, "RECONSTRUCT bi %d bj %d - send %p from node %d\n", bi, bj, block, get_block_rank(bi, bj));
+				int ret = MPI_Send(block, block_size*block_size, MPI_TYPE, 0, 0, MPI_COMM_WORLD);
+				STARPU_ASSERT(ret == MPI_SUCCESS);
+			}
+		}
+
+		if (rank == 0)
+		{
+			unsigned j, i;
+			for (j = 0; j < block_size; j++)
+			for (i = 0; i < block_size; i++)
+			{
+				bigmatrix[(j + bj*block_size)+(i+bi*block_size)*size] =
+									block[j+i*block_size];
+			}
+
+			if (get_block_rank(bi, bj) != 0)
+				free(block);
 		}
 	}
 
@@ -163,55 +190,65 @@ static TYPE *reconstruct_upper(unsigned size, unsigned nblocks)
 
 void STARPU_PLU(compute_lu_matrix)(unsigned size, unsigned nblocks, TYPE *Asaved)
 {
-//	fprintf(stderr, "ALL\n\n");
 	TYPE *all_r = STARPU_PLU(reconstruct_matrix)(size, nblocks);
-//	STARPU_PLU(display_data_content)(all_r, size);
 
-        TYPE *L = malloc((size_t)size*size*sizeof(TYPE));
-        TYPE *U = malloc((size_t)size*size*sizeof(TYPE));
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-        memset(L, 0, size*size*sizeof(TYPE));
-        memset(U, 0, size*size*sizeof(TYPE));
+	if (rank == 0)
+	{
+	        TYPE *L = malloc((size_t)size*size*sizeof(TYPE));
+	        TYPE *U = malloc((size_t)size*size*sizeof(TYPE));
+	
+	        memset(L, 0, size*size*sizeof(TYPE));
+	        memset(U, 0, size*size*sizeof(TYPE));
+	
+	        /* only keep the lower part */
+		unsigned i, j;
+	        for (j = 0; j < size; j++)
+	        {
+	                for (i = 0; i < j; i++)
+	                {
+	                        L[j+i*size] = all_r[j+i*size];
+	                }
+	
+	                /* diag i = j */
+	                L[j+j*size] = all_r[j+j*size];
+	                U[j+j*size] = 1.0;
+	
+	                for (i = j+1; i < size; i++)
+	                {
+	                        U[j+i*size] = all_r[j+i*size];
+	                }
+	        }
+	
+		STARPU_PLU(display_data_content)(L, size);
+		STARPU_PLU(display_data_content)(U, size);
+	
+	        /* now A_err = L, compute L*U */
+	        CPU_TRMM("R", "U", "N", "U", size, size, 1.0f, U, size, L, size);
+	
+		fprintf(stderr, "\nLU\n");
+		STARPU_PLU(display_data_content)(L, size);
+	
+	        /* compute "LU - A" in L*/
+	        CPU_AXPY(size*size, -1.0, Asaved, 1, L, 1);
+	
+	        TYPE err = CPU_ASUM(size*size, L, 1);
+	        int max = CPU_IAMAX(size*size, L, 1);
+	
+		fprintf(stderr, "DISPLAY ERROR\n");
 
-        /* only keep the lower part */
-	unsigned i, j;
-        for (j = 0; j < size; j++)
-        {
-                for (i = 0; i < j; i++)
-                {
-                        L[j+i*size] = all_r[j+i*size];
-                }
-
-                /* diag i = j */
-                L[j+j*size] = all_r[j+j*size];
-                U[j+j*size] = 1.0;
-
-                for (i = j+1; i < size; i++)
-                {
-                        U[j+i*size] = all_r[j+i*size];
-                }
-        }
-
-//	STARPU_PLU(display_data_content)(L, size);
-//	STARPU_PLU(display_data_content)(U, size);
-
-        /* now A_err = L, compute L*U */
-        CPU_TRMM("R", "U", "N", "U", size, size, 1.0f, U, size, L, size);
-
-//	fprintf(stderr, "\nLU\n");
-//	STARPU_PLU(display_data_content)(L, size);
-
-        /* compute "LU - A" in L*/
-        CPU_AXPY(size*size, -1.0, Asaved, 1, L, 1);
-
-        TYPE err = CPU_ASUM(size*size, L, 1);
-        int max = CPU_IAMAX(size*size, L, 1);
-
-//	STARPU_PLU(display_data_content)(L, size);
-
-        fprintf(stderr, "(A - LU) Avg error : %e\n", err/(size*size));
-        fprintf(stderr, "(A - LU) Max error : %e\n", L[max]);
-
+		STARPU_PLU(display_data_content)(L, size);
+	
+	        fprintf(stderr, "(A - LU) Avg error : %e\n", err/(size*size));
+	        fprintf(stderr, "(A - LU) Max error : %e\n", L[max]);
+	
+		double residual = frobenius_norm(L, size);
+		double matnorm = frobenius_norm(Asaved, size);
+	
+		fprintf(stderr, "||A-LU|| / (||A||*N) : %e\n", residual/(matnorm*size));
+	}
 }
 
 static STARPU_PLU(compute_ax_block_lower)(unsigned size, unsigned nblocks,
@@ -241,6 +278,8 @@ void STARPU_PLU(compute_lux)(unsigned size, TYPE *x, TYPE *y, unsigned nblocks, 
 	 * sum of all yi. */
 	TYPE *yi = calloc(size, sizeof(TYPE));
 
+	fprintf(stderr, "Compute LU\n");
+
 	unsigned block_size = size/nblocks;
 
 	/* Compute UiX = Yi */
@@ -261,7 +300,7 @@ void STARPU_PLU(compute_lux)(unsigned size, TYPE *x, TYPE *y, unsigned nblocks, 
 			if (get_block_rank(i, j) == rank)
 			{
 				/* That block belongs to the current MPI process */
-				TYPE *block_data = STARPU_PLU(get_block)(j, i);
+				TYPE *block_data = STARPU_PLU(get_block)(i, j);
 				TYPE *sub_x = &x[i*(block_size)];
 				TYPE *sub_yi = &yi[j*(block_size)];
 
@@ -299,7 +338,7 @@ void STARPU_PLU(compute_lux)(unsigned size, TYPE *x, TYPE *y, unsigned nblocks, 
 			if (get_block_rank(i, j) == rank)
 			{
 				/* That block belongs to the current MPI process */
-				TYPE *block_data = STARPU_PLU(get_block)(j, i);
+				TYPE *block_data = STARPU_PLU(get_block)(i, j);
 				TYPE *sub_x = &x[i*(block_size)];
 				TYPE *sub_yi = &yi[j*(block_size)];
 
@@ -327,6 +366,8 @@ void STARPU_PLU(compute_lux)(unsigned size, TYPE *x, TYPE *y, unsigned nblocks, 
 /* x and y must be valid (at least) on 0 */
 void STARPU_PLU(compute_ax)(unsigned size, TYPE *x, TYPE *y, unsigned nblocks, int rank)
 {
+	unsigned block_size = size/nblocks;
+
 	/* Send x to everyone */
 	int bcst_ret;
 	bcst_ret = MPI_Bcast(&x, size, MPI_TYPE, 0, MPI_COMM_WORLD);
@@ -347,17 +388,19 @@ void STARPU_PLU(compute_ax)(unsigned size, TYPE *x, TYPE *y, unsigned nblocks, i
 			if (get_block_rank(i, j) == rank)
 			{
 				/* That block belongs to the current MPI process */
-				TYPE *block_data = STARPU_PLU(get_block)(j, i);
-				TYPE *sub_x = &x[i*(size/nblocks)];
-				TYPE *sub_yi = &yi[j*(size/nblocks)];
+				TYPE *block_data = STARPU_PLU(get_block)(i, j);
+				TYPE *sub_x = &x[i*block_size];
+				TYPE *sub_yi = &yi[j*block_size];
 
-				STARPU_PLU(compute_ax_block)(size/nblocks, block_data, sub_x, sub_yi);
+				STARPU_PLU(compute_ax_block)(block_size, block_data, sub_x, sub_yi);
 			}
 		}
 	}
 
 	/* Compute the Sum of all yi = y */
 	MPI_Reduce(yi, y, size, MPI_TYPE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+	fprintf(stderr, "RANK %d - FOO 1 y[0] %f\n", rank, y[0]);
 
 	free(yi);
 }
