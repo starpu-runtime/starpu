@@ -84,11 +84,6 @@ static void fill_block_with_random(TYPE *blockptr, unsigned size, unsigned nbloc
 	}
 }
 
-starpu_data_handle STARPU_PLU(get_block_handle)(unsigned i, unsigned j)
-{
-	return dataA_handles[j+i*nblocks];
-}
-
 starpu_data_handle STARPU_PLU(get_tmp_11_block_handle)(void)
 {
 	return tmp_11_block_handle;
@@ -102,11 +97,6 @@ starpu_data_handle STARPU_PLU(get_tmp_12_block_handle)(unsigned j)
 starpu_data_handle STARPU_PLU(get_tmp_21_block_handle)(unsigned i)
 {
 	return tmp_21_block_handles[i];
-}
-
-TYPE *STARPU_PLU(get_block)(unsigned i, unsigned j)
-{
-	return dataA[j+i*nblocks];
 }
 
 static void init_matrix(int rank)
@@ -193,11 +183,21 @@ static void init_matrix(int rank)
 	//display_all_blocks(nblocks, size/nblocks);
 }
 
+TYPE *STARPU_PLU(get_block)(unsigned i, unsigned j)
+{
+	return dataA[j+i*nblocks];
+}
+
 int get_block_rank(unsigned i, unsigned j)
 {
 	/* Take a 2D block cyclic distribution */
 	/* NB: p (resp. q) is for "direction" i (resp. j) */
 	return (j % q) * p + (i % p);
+}
+
+starpu_data_handle STARPU_PLU(get_block_handle)(unsigned i, unsigned j)
+{
+	return dataA_handles[j+i*nblocks];
 }
 
 static void display_grid(int rank, unsigned nblocks)

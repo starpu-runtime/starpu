@@ -361,8 +361,9 @@ static void create_task_12_real(unsigned k, unsigned j)
 {
 	struct starpu_task *task = create_task(TAG12(k, j));
 	
-	task->cl = &STARPU_PLU(cl12);
-//	task->cl = &STARPU_PLU(cl21);
+#warning temporary fix :/
+//	task->cl = &STARPU_PLU(cl12);
+	task->cl = &STARPU_PLU(cl21);
 
 	int myrank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
@@ -504,8 +505,9 @@ static void create_task_21_real(unsigned k, unsigned i)
 {
 	struct starpu_task *task = create_task(TAG21(k, i));
 
-	task->cl = &STARPU_PLU(cl21);
-//	task->cl = &STARPU_PLU(cl12);
+#warning temporary fix 
+//	task->cl = &STARPU_PLU(cl21);
+	task->cl = &STARPU_PLU(cl12);
 	
 	/* which sub-data is manipulated ? */
 	starpu_data_handle diag_block;
@@ -605,10 +607,12 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 
 
 
-	task->buffers[0].handle = block21;
+	//task->buffers[0].handle = block21;
+	task->buffers[0].handle = block12;
 	task->buffers[0].mode = STARPU_R;
 
-	task->buffers[1].handle = block12;
+	//task->buffers[1].handle = block12;
+	task->buffers[1].handle = block21;
 	task->buffers[1].mode = STARPU_R;
 
 	/* produced by TAG22(k-1, i, j) */
