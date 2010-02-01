@@ -66,7 +66,6 @@ struct copy_data_methods_s {
 #endif
 };
 
-void starpu_wake_all_blocked_workers(void);
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid);
 
 __attribute__((warn_unused_result))

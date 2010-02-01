@@ -29,6 +29,7 @@
 #include <starpu-data.h>
 #include <starpu-perfmodel.h>
 #include <starpu-task.h>
+#include <starpu-expert.h>
 
 #ifdef __cplusplus
 extern "C" {

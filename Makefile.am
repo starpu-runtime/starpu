@@ -33,4 +33,5 @@ include_HEADERS = 				\
 	include/starpu-task.h			\
 	include/starpu-data.h			\
 	include/starpu-perfmodel.h		\
-	include/starpu-util.h
+	include/starpu-util.h			\
+	include/starpu-expert.h
