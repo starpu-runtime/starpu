@@ -80,6 +80,7 @@ check_PROGRAMS += 				\
 	core/static_restartable_tag		\
 	core/empty_task				\
 	core/empty_task_sync_point		\
+	datawizard/dsm_stress			\
 	datawizard/write_only_tmp_buffer	\
 	datawizard/dining_philosophers		\
 	datawizard/readers_and_writers		\
@@ -96,7 +97,6 @@ check_PROGRAMS += 				\
 	microbenchs/sync-tasks-overhead		\
 	microbenchs/tasks-overhead		\
 	microbenchs/tag-wait-api		\
-	microbenchs/dsm_stress			\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/sync_and_notify_data	\
 	microbenchs/redundant_buffer		\
@@ -131,6 +131,9 @@ core_empty_task_SOURCES =			\
 
 core_empty_task_sync_point_SOURCES =		\
 	core/empty_task_sync_point.c
+
+datawizard_dsm_stress_SOURCES =			\
+	datawizard/dsm_stress.c
 
 datawizard_write_only_tmp_buffer_SOURCES =	\
 	datawizard/write_only_tmp_buffer.c
@@ -179,9 +182,6 @@ microbenchs_tasks_overhead_SOURCES =		\
 
 microbenchs_tag_wait_api_SOURCES =		\
 	microbenchs/tag-wait-api.c
-
-microbenchs_dsm_stress_SOURCES =		\
-	microbenchs/dsm_stress.c
 
 microbenchs_prefetch_data_on_node_SOURCES =	\
 	microbenchs/prefetch_data_on_node.c
