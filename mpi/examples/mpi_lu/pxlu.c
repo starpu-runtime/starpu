@@ -18,8 +18,8 @@
 #include "pxlu_kernels.h"
 
 #define MPI_TAG11(k)	((1U << 16) | (k))
-#define MPI_TAG12(k, j)	((2U << 16) | (j)*nblocks | (k))
-#define MPI_TAG21(k, i)	((3U << 16) | (i)*nblocks | (k))
+#define MPI_TAG12(k, j)	((2U << 16) | (j)<<8 | (k))
+#define MPI_TAG21(k, i)	((3U << 16) | (i)<<8 | (k))
 
 #define TAG11(k)	((starpu_tag_t)( (1ULL<<50) | (unsigned long long)(k)))
 #define TAG12(k,i)	((starpu_tag_t)(((2ULL<<50) | (((unsigned long long)(k))<<32)	\
@@ -43,6 +43,9 @@
 
 #define STARPU_TAG_INIT	((starpu_tag_t)(11ULL<<50))
 
+//#define VERBOSE_INIT	1
+
+#define DEBUG	1
 
 static unsigned no_prio = 0;
 
@@ -57,6 +60,17 @@ struct callback_arg {
 /*
  *	Various
  */
+
+static struct debug_info *create_debug_info(unsigned i, unsigned j, unsigned k)
+{
+	struct debug_info *info = malloc(sizeof(struct debug_info));
+
+	info->i = i;
+	info->j = j;
+	info->k = k;
+
+	return info;
+}
 
 static struct starpu_task *create_task(starpu_tag_t id)
 {
@@ -182,7 +196,6 @@ static void create_task_11_recv(unsigned k)
 			tag_array[ndeps++] = TAG12(k-1, j);
 	}
 	
-	
 	int source = get_block_rank(k, k);
 	starpu_data_handle block_handle = STARPU_PLU(get_tmp_11_block_handle)();
 	int mpi_tag = MPI_TAG11(k);
@@ -239,6 +252,8 @@ static void create_task_11_real(unsigned k)
 
 	task->cl = &STARPU_PLU(cl11);
 
+	task->cl_arg = create_debug_info(k, k, k);
+
 	/* which sub-data is manipulated ? */
 	task->buffers[0].handle = STARPU_PLU(get_block_handle)(k, k);
 	task->buffers[0].mode = STARPU_RW;
@@ -268,7 +283,9 @@ static void create_task_11(unsigned k)
 {
 	if (get_block_rank(k, k) == rank)
 	{
-//		fprintf(stderr, "CREATE real task 11(%d) (TAG11_SAVE(%d) = %lx) on node %d\n", k, k, TAG11_SAVE(k), rank);
+#ifdef VERBOSE_INIT
+		fprintf(stderr, "CREATE real task 11(%d) (TAG11_SAVE(%d) = %lx) on node %d\n", k, k, TAG11_SAVE(k), rank);
+#endif
 		create_task_11_real(k);
 	}
 	else {
@@ -278,11 +295,15 @@ static void create_task_11(unsigned k)
 		
 		if (rank_mask[rank])
 		{
-//			fprintf(stderr, "create RECV task 11(%d) on node %d\n", k, rank);
+#ifdef VERBOSE_INIT
+			fprintf(stderr, "create RECV task 11(%d) on node %d\n", k, rank);
+#endif
 			create_task_11_recv(k);
 		}
 		else {
-//			fprintf(stderr, "Node %d needs not 11(%d)\n", rank, k);
+#ifdef VERBOSE_INIT
+			fprintf(stderr, "Node %d needs not 11(%d)\n", rank, k);
+#endif
 		}
 	}
 }
@@ -365,6 +386,8 @@ static void create_task_12_real(unsigned k, unsigned j)
 //	task->cl = &STARPU_PLU(cl12);
 	task->cl = &STARPU_PLU(cl21);
 
+	task->cl_arg = create_debug_info(j, j, k);
+
 	int myrank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 
@@ -414,7 +437,9 @@ static void create_task_12(unsigned k, unsigned j)
 {
 	if (get_block_rank(k, j) == rank)
 	{
-//		fprintf(stderr, "CREATE real task 12(k = %d, j = %d) on node %d\n", k, j, rank);
+#ifdef VERBOSE_INIT
+		fprintf(stderr, "CREATE real task 12(k = %d, j = %d) on node %d\n", k, j, rank);
+#endif
 		create_task_12_real(k, j);
 	}
 	else {
@@ -424,12 +449,16 @@ static void create_task_12(unsigned k, unsigned j)
 		
 		if (rank_mask[rank])
 		{
-//			fprintf(stderr, "create RECV task 12(k = %d, j = %d) on node %d\n", k, j, rank);
+#ifdef VERBOSE_INIT
+			fprintf(stderr, "create RECV task 12(k = %d, j = %d) on node %d\n", k, j, rank);
+#endif
 			create_task_12_recv(k, j);
 		}
-//		else {
-//			fprintf(stderr, "Node %d needs not 12(k=%d, i=%d)\n", rank, k, j);
-//		}
+		else {
+#ifdef VERBOSE_INIT
+			fprintf(stderr, "Node %d needs not 12(k=%d, i=%d)\n", rank, k, j);
+#endif
+		}
 	}
 }
 
@@ -456,7 +485,7 @@ static void create_task_21_recv(unsigned k, unsigned i)
 		if (rank == get_block_rank(i, j))
 			tag_array[ndeps++] = TAG22(k-1, i, j);
 	}
-	
+
 	int source = get_block_rank(i, k);
 	starpu_data_handle block_handle = STARPU_PLU(get_tmp_21_block_handle)(i);
 	int mpi_tag = MPI_TAG21(k, i);
@@ -508,6 +537,8 @@ static void create_task_21_real(unsigned k, unsigned i)
 #warning temporary fix 
 //	task->cl = &STARPU_PLU(cl21);
 	task->cl = &STARPU_PLU(cl12);
+
+	task->cl_arg = create_debug_info(i, i, k);
 	
 	/* which sub-data is manipulated ? */
 	starpu_data_handle diag_block;
@@ -553,7 +584,9 @@ static void create_task_21(unsigned k, unsigned i)
 {
 	if (get_block_rank(i, k) == rank)
 	{
-	//	fprintf(stderr, "CREATE real task 21(k = %d, i = %d) on node %d\n", k, i, rank);
+#ifdef VERBOSE_INIT
+		fprintf(stderr, "CREATE real task 21(k = %d, i = %d) on node %d\n", k, i, rank);
+#endif
 		create_task_21_real(k, i);
 	}
 	else {
@@ -563,12 +596,16 @@ static void create_task_21(unsigned k, unsigned i)
 		
 		if (rank_mask[rank])
 		{
-	//		fprintf(stderr, "create RECV task 21(k = %d, i = %d) on node %d\n", k, i, rank);
+#ifdef VERBOSE_INIT
+			fprintf(stderr, "create RECV task 21(k = %d, i = %d) on node %d\n", k, i, rank);
+#endif
 			create_task_21_recv(k, i);
 		}
-//		else {
-//			fprintf(stderr, "Node %d needs not 21(k=%d, i=%d)\n", rank, k,i);
-//		}
+		else {
+#ifdef VERBOSE_INIT
+			fprintf(stderr, "Node %d needs not 21(k=%d, i=%d)\n", rank, k,i);
+#endif
+		}
 	}
 }
 

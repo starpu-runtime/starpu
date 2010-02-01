@@ -28,6 +28,12 @@
 #define BLAS3_FLOP(n1,n2,n3)    \
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
 
+struct debug_info {
+	unsigned i;
+	unsigned j;
+	unsigned k;
+};
+
 double STARPU_PLU(plu_main)(unsigned nblocks, int rank, int world_size);
 
 TYPE *STARPU_PLU(reconstruct_matrix)(unsigned size, unsigned nblocks);

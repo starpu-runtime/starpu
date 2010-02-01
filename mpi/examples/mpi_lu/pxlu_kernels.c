@@ -18,7 +18,7 @@
 #include "pxlu_kernels.h"
 #include <math.h>
 
-//#define VERBOSE_KERNELS	1
+#define VERBOSE_KERNELS	1
 
 /*
  *   U22 
@@ -40,9 +40,11 @@ static inline void STARPU_PLU(common_u22)(void *descr[],
 	unsigned ld22 = GET_BLAS_LD(descr[2]);
 
 #ifdef VERBOSE_KERNELS
+	struct debug_info *info = _args;
+
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	fprintf(stderr, "KERNEL 22 %d\n", rank);
+	fprintf(stderr, "KERNEL 22 %d - k = %d i = %d j = %d\n", rank, info->k, info->i, info->j);
 #endif
 
 #ifdef USE_CUDA
@@ -132,9 +134,11 @@ static inline void STARPU_PLU(common_u12)(void *descr[],
 	unsigned ny12 = GET_BLAS_NY(descr[1]);
 
 #ifdef VERBOSE_KERNELS
+	struct debug_info *info = _args;
+
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	fprintf(stderr, "KERNEL 12 %d\n", rank);
+	fprintf(stderr, "KERNEL 12 %d - k = %d i %d\n", rank, info->k, info->i);
 
 	fprintf(stderr, "INPUT 12 U11\n");
 	STARPU_PLU(display_data_content)(sub11, nx12);
@@ -232,9 +236,11 @@ static inline void STARPU_PLU(common_u21)(void *descr[],
 	unsigned ny21 = GET_BLAS_NY(descr[1]);
 	
 #ifdef VERBOSE_KERNELS
+	struct debug_info *info = _args;
+
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	fprintf(stderr, "KERNEL 21 %d \n", rank);
+	fprintf(stderr, "KERNEL 21 %d (k = %d, i = %d)\n", rank, info->k, info->i);
 
 	fprintf(stderr, "INPUT 21 U11\n");
 	STARPU_PLU(display_data_content)(sub11, nx21);
@@ -329,9 +335,13 @@ static inline void STARPU_PLU(common_u11)(void *descr[],
 
 	unsigned long z;
 
+#ifdef VERBOSE_KERNELS
+	struct debug_info *info = _args;
+
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//	fprintf(stderr, "KERNEL 11 %d\n", rank);
+	fprintf(stderr, "KERNEL 11 %d - k = %d\n", rank, info->k);
+#endif
 
 	switch (s) {
 		case 0:

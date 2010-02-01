@@ -19,6 +19,8 @@
 #include <starpu_mpi_datatype.h>
 #include <starpu_mpi_private.h>
 
+#define VERBOSE_STARPU_MPI	1
+
 /* TODO find a better way to select the polling method (perhaps during the
  * configuration) */
 #define USE_STARPU_ACTIVITY	1
@@ -45,8 +47,17 @@ static int running = 0;
 static void starpu_mpi_isend_func(struct starpu_mpi_req_s *req)
 {
 	void *ptr = starpu_mpi_handle_to_ptr(req->data_handle);
+
+#ifdef VERBOSE_STARPU_MPI
+	int rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+	fprintf(stderr, "<<<< STARPU MPI >>>> : Rank %d post MPI isend tag %x dst %d ptr %p req %p\n", rank, req->mpi_tag, req->srcdst, ptr, &req->request);
+#endif
+
 	starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype);
 
+	//MPI_Isend(ptr, 1, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
 	MPI_Isend(ptr, 1, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
 
 	TRACE_MPI_ISEND(req->srcdst, req->mpi_tag, 0);
@@ -136,7 +147,16 @@ int starpu_mpi_isend_detached(starpu_data_handle data_handle,
 static void starpu_mpi_irecv_func(struct starpu_mpi_req_s *req)
 {
 	void *ptr = starpu_mpi_handle_to_ptr(req->data_handle);
+	STARPU_ASSERT(ptr);
+
 	starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype);
+
+#ifdef VERBOSE_STARPU_MPI
+	int rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+	fprintf(stderr, "<<<< STARPU MPI >>>> : Rank %d post MPI irecv tag %x src %d ptr %p req %p datatype %d\n", rank, req->mpi_tag, req->srcdst, ptr, &req->request, req->datatype);
+#endif
 
 	MPI_Irecv(ptr, 1, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
 
@@ -314,6 +334,7 @@ static void starpu_mpi_test_func(struct starpu_mpi_req_s *testing_req)
 	/* Which is the mpi request we are testing for ? */
 	struct starpu_mpi_req_s *req = testing_req->other_request;
 
+//	fprintf(stderr, "<<<< STARPU MPI >>>> Test request %p - mpitag %x - TYPE %s %d\n", &req->request, req->mpi_tag, (req->request_type == RECV_REQ)?"recv : source":"send : dest", req->srcdst);
 	int ret = MPI_Test(&req->request, testing_req->flag, testing_req->status);
 
 	if (*testing_req->flag)
@@ -391,6 +412,13 @@ static void handle_request_termination(struct starpu_mpi_req_s *req)
 	MPI_Type_free(&req->datatype);
 	starpu_release_data_from_mem(req->data_handle);
 
+#ifdef VERBOSE_STARPU_MPI
+	int rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+	fprintf(stderr, "<<<< STARPU MPI >>>> Rank %d : complete MPI (%s %d) req %p - tag %x\n", rank, (req->request_type == RECV_REQ)?"recv : source":"send : dest", req->srcdst, &req->request, req->mpi_tag);
+#endif
+
 	if (req->request_type == RECV_REQ)
 	{
 		TRACE_MPI_IRECV_END(req->srcdst, req->mpi_tag);
@@ -457,9 +485,27 @@ static void test_detached_requests(void)
 
 		pthread_mutex_unlock(&detached_requests_mutex);
 
-		MPI_Test(&req->request, &flag, &status);
+		int ret = MPI_Test(&req->request, &flag, &status);
+		STARPU_ASSERT(ret == MPI_SUCCESS);
+
+
+#ifdef VERBOSE_STARPU_MPI
+//		if ((req->mpi_tag == 0x20003) || (req->mpi_tag == 0x30003))
+//		if (0)
+		if ((req->mpi_tag == 0x20003))
+		{
+			int rank;
+		        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+			fprintf(stderr, "<<<< STARPU MPI >>>> Rank %d Test request %p - mpitag %x - TYPE %s %d\n", rank, &req->request, req->mpi_tag, (req->request_type == RECV_REQ)?"recv : source":"send : dest", req->srcdst);
+		}
+#endif
+
+
 		if (flag)
+		{
 			handle_request_termination(req);
+		}
 
 		pthread_mutex_lock(&detached_requests_mutex);
 
@@ -468,8 +514,8 @@ static void test_detached_requests(void)
 
 #warning TODO fix memleak
 		/* Detached requests are automatically allocated by the lib */
-//		if (req->detached)
-//			free(req);
+		//if (req->detached)
+		//	free(req);
 	}
 	
 	pthread_mutex_unlock(&detached_requests_mutex);
@@ -516,7 +562,14 @@ static void *progress_thread_func(void *arg __attribute__((unused)))
 #endif
 
 		if (block)
+		{
+//			int rank;
+//		        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//			if (rank == 3)
+//			fprintf(stderr, "<<<< STARPU MPI >>>> Rank %d NO MORE REQUESTS TO HANDLE\n", rank);
+
 			pthread_cond_wait(&cond, &mutex);
+		}
 
 		if (!running)
 			break;		
