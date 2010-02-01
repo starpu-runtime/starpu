@@ -30,13 +30,18 @@ typedef void *(*handle_to_ptr_func)(starpu_data_handle);
 
 static int handle_to_datatype_blas(starpu_data_handle data_handle, MPI_Datatype *datatype)
 {
+	int ret;
+
 	unsigned nx = starpu_get_blas_nx(data_handle);
 	unsigned ny = starpu_get_blas_ny(data_handle);
 	unsigned ld = starpu_get_blas_local_ld(data_handle);
 	size_t elemsize = starpu_get_blas_elemsize(data_handle);
 
-	MPI_Type_vector(ny, nx*elemsize, ld*elemsize, MPI_BYTE, datatype);
-	MPI_Type_commit(datatype);
+	ret = MPI_Type_vector(ny, nx*elemsize, ld*elemsize, MPI_BYTE, datatype);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
+
+	ret = MPI_Type_commit(datatype);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
 
 	return 0;
 }
@@ -52,6 +57,8 @@ static void *handle_to_ptr_blas(starpu_data_handle data_handle)
 
 static int handle_to_datatype_block(starpu_data_handle data_handle, MPI_Datatype *datatype)
 {
+	int ret;
+
 	unsigned nx = starpu_get_block_nx(data_handle);
 	unsigned ny = starpu_get_block_ny(data_handle);
 	unsigned nz = starpu_get_block_nz(data_handle);
@@ -60,12 +67,17 @@ static int handle_to_datatype_block(starpu_data_handle data_handle, MPI_Datatype
 	size_t elemsize = starpu_get_block_elemsize(data_handle);
 
 	MPI_Datatype datatype_2dlayer;
-	MPI_Type_vector(ny, nx*elemsize, ldy*elemsize, MPI_BYTE, &datatype_2dlayer);
-	MPI_Type_commit(&datatype_2dlayer);
+	ret = MPI_Type_vector(ny, nx*elemsize, ldy*elemsize, MPI_BYTE, &datatype_2dlayer);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
 
-	MPI_Type_hvector(nz, 1, ldz*elemsize, datatype_2dlayer, datatype);
+	ret = MPI_Type_commit(&datatype_2dlayer);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
 
-	MPI_Type_commit(datatype);
+	ret = MPI_Type_hvector(nz, 1, ldz*elemsize, datatype_2dlayer, datatype);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
+
+	ret = MPI_Type_commit(datatype);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
 
 	return 0;
 }
@@ -81,11 +93,16 @@ static void *handle_to_ptr_block(starpu_data_handle data_handle)
 
 static int handle_to_datatype_vector(starpu_data_handle data_handle, MPI_Datatype *datatype)
 {
+	int ret;
+
 	unsigned nx = starpu_get_vector_nx(data_handle);
 	size_t elemsize = starpu_get_vector_elemsize(data_handle);
 
-	MPI_Type_contiguous(nx*elemsize, MPI_BYTE, datatype);
-	MPI_Type_commit(datatype);
+	ret = MPI_Type_contiguous(nx*elemsize, MPI_BYTE, datatype);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
+
+	ret = MPI_Type_commit(datatype);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
 
 	return 0;
 }
