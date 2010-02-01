@@ -19,12 +19,12 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/
 
 EXTRA_DIST =					\
 	microbenchs/null_kernel_gordon.c	\
-	microbenchs/sync_and_notify_data_gordon_kernels.c
+	datawizard/sync_and_notify_data_gordon_kernels.c
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo		\
 	microbenchs/null_kernel_gordon.spuelf	\
-	microbenchs/sync_and_notify_data_gordon_kernels.spuelf
+	datawizard/sync_and_notify_data_gordon_kernels.spuelf
 
 BUILT_SOURCES =
 
@@ -80,6 +80,7 @@ check_PROGRAMS += 				\
 	core/static_restartable_tag		\
 	core/empty_task				\
 	core/empty_task_sync_point		\
+	datawizard/sync_and_notify_data		\
 	datawizard/dsm_stress			\
 	datawizard/write_only_tmp_buffer	\
 	datawizard/dining_philosophers		\
@@ -98,7 +99,6 @@ check_PROGRAMS += 				\
 	microbenchs/tasks-overhead		\
 	microbenchs/tag-wait-api		\
 	microbenchs/prefetch_data_on_node 	\
-	microbenchs/sync_and_notify_data	\
 	microbenchs/redundant_buffer		\
 	overlap/overlap
 
@@ -186,23 +186,23 @@ microbenchs_tag_wait_api_SOURCES =		\
 microbenchs_prefetch_data_on_node_SOURCES =	\
 	microbenchs/prefetch_data_on_node.c
 
-microbenchs_sync_and_notify_data_SOURCES =	\
-	microbenchs/sync_and_notify_data.c
+datawizard_sync_and_notify_data_SOURCES =	\
+	datawizard/sync_and_notify_data.c
 
 microbenchs_redundant_buffer_SOURCES =		\
 	microbenchs/redundant_buffer.c
 
 if USE_CUDA
-microbenchs_sync_and_notify_data_SOURCES +=	\
-	microbenchs/sync_and_notify_data_kernels.cu
+datawizard_sync_and_notify_data_SOURCES +=	\
+	datawizard/sync_and_notify_data_kernels.cu
 endif
 
 if USE_GORDON
-microbenchs_sync_and_notify_data_SOURCES +=	\
-	microbenchs/sync_and_notify_data_gordon_kernels.c
+datawizard_sync_and_notify_data_SOURCES +=	\
+	datawizard/sync_and_notify_data_gordon_kernels.c
 
 BUILT_SOURCES += 						\
-	microbenchs/sync_and_notify_data_gordon_kernels.spuelf	\
+	datawizard/sync_and_notify_data_gordon_kernels.spuelf	\
 	microbenchs/null_kernel_gordon.spuelf
 endif
 

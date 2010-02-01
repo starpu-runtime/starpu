@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 	starpu_init(NULL);
 
 #ifdef USE_GORDON
-	unsigned elf_id = gordon_register_elf_plugin("./microbenchs/sync_and_notify_data_gordon_kernels.spuelf");
+	unsigned elf_id = gordon_register_elf_plugin("./datawizard/sync_and_notify_data_gordon_kernels.spuelf");
 	gordon_load_plugin_on_all_spu(elf_id);
 
 	unsigned kernel_incA_id = gordon_register_kernel(elf_id, "incA");
