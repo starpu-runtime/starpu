@@ -80,6 +80,7 @@ check_PROGRAMS += 				\
 	core/static_restartable_tag		\
 	core/empty_task				\
 	core/empty_task_sync_point		\
+	core/tag-wait-api			\
 	datawizard/sync_and_notify_data		\
 	datawizard/dsm_stress			\
 	datawizard/write_only_tmp_buffer	\
@@ -97,7 +98,6 @@ check_PROGRAMS += 				\
 	microbenchs/async-tasks-overhead	\
 	microbenchs/sync-tasks-overhead		\
 	microbenchs/tasks-overhead		\
-	microbenchs/tag-wait-api		\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
 	overlap/overlap
@@ -131,6 +131,9 @@ core_empty_task_SOURCES =			\
 
 core_empty_task_sync_point_SOURCES =		\
 	core/empty_task_sync_point.c
+
+core_tag_wait_api_SOURCES =			\
+	core/tag-wait-api.c
 
 datawizard_dsm_stress_SOURCES =			\
 	datawizard/dsm_stress.c
@@ -179,9 +182,6 @@ microbenchs_sync_tasks_overhead_SOURCES =	\
 
 microbenchs_tasks_overhead_SOURCES =		\
 	microbenchs/tasks-overhead.c
-
-microbenchs_tag_wait_api_SOURCES =		\
-	microbenchs/tag-wait-api.c
 
 microbenchs_prefetch_data_on_node_SOURCES =	\
 	microbenchs/prefetch_data_on_node.c
