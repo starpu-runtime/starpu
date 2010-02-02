@@ -35,7 +35,7 @@ struct data_request_s;
 typedef union {
 	int dummy;
 #ifdef USE_CUDA
-	cudaStream_t stream;
+	cudaEvent_t event;
 #endif
 } starpu_async_channel;
 

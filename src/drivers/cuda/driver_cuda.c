@@ -22,6 +22,15 @@
 /* the number of CUDA devices */
 static int ncudagpus;
 
+static cudaStream_t streams[STARPU_NMAXWORKERS];
+
+cudaStream_t *starpu_get_local_stream(void)
+{
+	int worker = starpu_get_worker_id();
+
+	return &streams[worker];
+}
+
 static void init_context(int devid)
 {
 	cudaError_t cures;
@@ -32,11 +41,17 @@ static void init_context(int devid)
 
 	/* force CUDA to initialize the context for real */
 	cudaFree(0);
+
+	cures = cudaStreamCreate(starpu_get_local_stream());
+	if (STARPU_UNLIKELY(cures))
+		CUDA_REPORT_ERROR(cures);
 }
 
-static void deinit_context(void)
+static void deinit_context(int workerid)
 {
 	cudaError_t cures;
+
+	cudaStreamDestroy(streams[workerid]);
 
 	/* cleanup the runtime API internal stuffs (which CUBLAS is using) */
 	cures = cudaThreadExit();
@@ -263,7 +278,7 @@ void *_starpu_cuda_worker(void *arg)
 
 	TRACE_WORKER_DEINIT_START
 
-	deinit_context();
+	deinit_context(args->workerid);
 
 #ifdef DATA_STATS
 	fprintf(stderr, "CUDA #%d computation %le comm %le (%lf \%%)\n", args->id, args->jobq->total_computation_time, args->jobq->total_communication_time, args->jobq->total_communication_time*100.0/args->jobq->total_computation_time);

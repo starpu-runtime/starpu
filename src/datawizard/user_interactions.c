@@ -185,7 +185,7 @@ static void _prefetch_data_on_node(void *arg)
 
 }
 
-int starpu_prefetch_data_on_node(starpu_data_handle handle, unsigned node, unsigned async)
+int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned node, unsigned async, starpu_access_mode mode)
 {
 	STARPU_ASSERT(handle);
 
@@ -203,10 +203,12 @@ int starpu_prefetch_data_on_node(starpu_data_handle handle, unsigned node, unsig
 		.finished = 0
 	};
 
-	if (!attempt_to_submit_data_request_from_apps(handle, STARPU_R, _prefetch_data_on_node, &statenode))
+	if (!attempt_to_submit_data_request_from_apps(handle, mode, _prefetch_data_on_node, &statenode))
 	{
 		/* we can immediately proceed */
-		fetch_data_on_node(handle, node, 1, 0, async);
+		uint8_t read = (mode != STARPU_W);
+		uint8_t write = (mode != STARPU_R);
+		fetch_data_on_node(handle, node, read, write, async);
 
 		/* remove the "lock"/reference */
 		if (!async)
@@ -224,4 +226,9 @@ int starpu_prefetch_data_on_node(starpu_data_handle handle, unsigned node, unsig
 	}
 
 	return 0;
+}
+
+int starpu_prefetch_data_on_node(starpu_data_handle handle, unsigned node, unsigned async)
+{
+	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R);
 }

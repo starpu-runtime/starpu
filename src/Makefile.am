@@ -133,7 +133,6 @@ libstarpu_la_SOURCES = 						\
 	util/malloc.c						\
 	util/execute_on_all.c					\
 	util/starpu_create_sync_task.c				\
-	util/starpu_get_local_cuda_stream.c			\
 	util/starpu_cublas.c
 	
 if USE_CPU
