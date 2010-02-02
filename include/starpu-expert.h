@@ -17,11 +17,17 @@
 #ifndef __STARPU_EXPERT_H__
 #define __STARPU_EXPERT_H__
 
+#include <starpu.h>
+#include <starpu_config.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void starpu_wake_all_blocked_workers(void);
+
+int starpu_register_progression_hook(unsigned (*func)(void *arg), void *arg);
+void starpu_deregister_progression_hook(int hook_id);
 
 #ifdef __cplusplus
 }

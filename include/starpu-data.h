@@ -70,9 +70,6 @@ void starpu_data_set_wb_mask(starpu_data_handle state, uint32_t wb_mask);
 
 unsigned starpu_test_if_data_is_allocated_on_node(starpu_data_handle handle, uint32_t memory_node);
 
-int starpu_register_progression_hook(unsigned (*func)(void *arg), void *arg);
-void starpu_deregister_progression_hook(int hook_id);
-
 #ifdef __cplusplus
 }
 #endif
