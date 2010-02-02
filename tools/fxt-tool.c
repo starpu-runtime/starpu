@@ -312,13 +312,18 @@ static void handle_end_codelet_body(void)
 static void handle_user_event(void)
 {
 	int worker;
-	worker = find_worker_id(ev.param[1]);
-	if (worker < 0) return;
-
 	unsigned code;
 	code = ev.param[2];	
 
-	fprintf(out_paje_file, "9       %f     event      %s%ld      %d\n", get_event_time_stamp(), prefix, ev.param[1], code);
+	worker = find_worker_id(ev.param[1]);
+	if (worker < 0)
+	{
+		fprintf(out_paje_file, "9       %f     event      %sp      %d\n", get_event_time_stamp(), prefix, rank);
+	}
+	else {
+		fprintf(out_paje_file, "9       %f     event      %s%ld      %d\n", get_event_time_stamp(), prefix, ev.param[1], code);
+	}
+
 }
 
 static void handle_start_callback(void)
