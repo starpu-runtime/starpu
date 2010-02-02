@@ -229,10 +229,7 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 				void (*callback)(void *), void *callback_arg);
 
 #ifdef USE_CUDA
-/* In case the application is using streams, these functions will
- * repespectively create, and return, a unique stream for every GPU worker. */
-void starpu_helper_create_per_gpu_streams(void);
-cudaStream_t *starpu_helper_get_local_stream(void);
+cudaStream_t *starpu_get_local_stream(void);
 #endif
 
 #ifdef __cplusplus
