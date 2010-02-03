@@ -236,11 +236,20 @@ int main(int argc, char **argv)
 {
 	int rank;
 	int world_size;
+	int thread_support;
 
 	/*
 	 *	Initialization
 	 */
-	MPI_Init(&argc, &argv);
+	if (MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS) {
+		fprintf(stderr,"MPI_Init_thread failed\n");
+		exit(1);
+	}
+	if (thread_support == MPI_THREAD_FUNNELED)
+		fprintf(stderr,"Warning: MPI only has funneled thread support, not serialized, hoping this will work\n");
+	if (thread_support < MPI_THREAD_FUNNELED)
+		fprintf(stderr,"Warning: MPI does not have thread support!\n");
+	
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
