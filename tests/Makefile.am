@@ -100,6 +100,7 @@ check_PROGRAMS += 				\
 	microbenchs/tasks-overhead		\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
+	microbenchs/local_pingpong		\
 	overlap/overlap
 
 core_restart_SOURCES =				\
@@ -191,6 +192,9 @@ datawizard_sync_and_notify_data_SOURCES =	\
 
 microbenchs_redundant_buffer_SOURCES =		\
 	microbenchs/redundant_buffer.c
+
+microbenchs_local_pingpong_SOURCES =		\
+	microbenchs/local_pingpong.c
 
 if USE_CUDA
 datawizard_sync_and_notify_data_SOURCES +=	\
