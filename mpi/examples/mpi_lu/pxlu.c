@@ -21,11 +21,14 @@
 #define MPI_TAG12(k, j)	((2U << 16) | (j)<<8 | (k))
 #define MPI_TAG21(k, i)	((3U << 16) | (i)<<8 | (k))
 
+// 11 21
+// 12 22
+
 #define TAG11(k)	((starpu_tag_t)( (1ULL<<50) | (unsigned long long)(k)))
-#define TAG12(k,i)	((starpu_tag_t)(((2ULL<<50) | (((unsigned long long)(k))<<32)	\
-					| (unsigned long long)(i))))
-#define TAG21(k,j)	((starpu_tag_t)(((3ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG12(k,j)	((starpu_tag_t)(((2ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
+#define TAG21(k,i)	((starpu_tag_t)(((3ULL<<50) | (((unsigned long long)(k))<<32)	\
+					| (unsigned long long)(i))))
 #define TAG22(k,i,j)	((starpu_tag_t)(((4ULL<<50) | ((unsigned long long)(k)<<32) 	\
 					| ((unsigned long long)(i)<<16)	\
 					| (unsigned long long)(j))))
