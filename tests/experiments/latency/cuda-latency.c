@@ -19,6 +19,7 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+#include <assert.h>
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
@@ -52,13 +53,21 @@ static cudaStream_t stream[2];
 
 void send_data(unsigned src, unsigned dst)
 {
+	cudaError_t cures;
+
 	/* Copy data from GPU to RAM */
 #ifdef ASYNC
-	cudaMemcpyAsync(cpu_buffer, gpu_buffer[src], buffer_size, cudaMemcpyDeviceToHost, stream[src]);
-	cudaStreamSynchronize(stream[src]);
+	cures = cudaMemcpyAsync(cpu_buffer, gpu_buffer[src], buffer_size, cudaMemcpyDeviceToHost, stream[src]);
+	assert(!cures);
+
+	cures = cudaStreamSynchronize(stream[src]);
+	assert(!cures);
 #else
-	cudaMemcpy(cpu_buffer, gpu_buffer[src], buffer_size, cudaMemcpyDeviceToHost);
-	cudaThreadSynchronize();
+	cures = cudaMemcpy(cpu_buffer, gpu_buffer[src], buffer_size, cudaMemcpyDeviceToHost);
+	assert(!cures);
+
+	cures = cudaThreadSynchronize();
+	assert(!cures);
 #endif
 
 	/* Tell the other GPU that data is in RAM */
@@ -72,6 +81,8 @@ void send_data(unsigned src, unsigned dst)
 
 void recv_data(unsigned src, unsigned dst)
 {
+	cudaError_t cures;
+
 	/* Wait for the data to be in RAM */
 	pthread_mutex_lock(&mutex_gpu);
 	while (!data_is_available[dst])
@@ -83,11 +94,16 @@ void recv_data(unsigned src, unsigned dst)
 
 	/* Upload data */
 #ifdef ASYNC
-	cudaMemcpyAsync(gpu_buffer[dst], cpu_buffer, buffer_size, cudaMemcpyDeviceToHost, stream[dst]);
-	cudaThreadSynchronize();
+	cures = cudaMemcpyAsync(gpu_buffer[dst], cpu_buffer, buffer_size, cudaMemcpyDeviceToHost, stream[dst]);
+	assert(!cures);
+	cures = cudaThreadSynchronize();
+	assert(!cures);
 #else
-	cudaMemcpy(gpu_buffer[dst], cpu_buffer, buffer_size, cudaMemcpyDeviceToHost);
-	cudaThreadSynchronize();
+	cures = cudaMemcpy(gpu_buffer[dst], cpu_buffer, buffer_size, cudaMemcpyHostToDevice);
+	assert(!cures);
+
+	cures = cudaThreadSynchronize();
+	assert(!cures);
 #endif
 }
 
@@ -139,11 +155,14 @@ void *launch_gpu_thread(void *arg)
 
 int main(int argc, char **argv)
 {
+
 	pthread_mutex_init(&mutex, NULL);
 	pthread_cond_init(&cond, NULL);
 	pthread_cond_init(&cond_go, NULL);
 
-	cudaHostAlloc(&cpu_buffer, buffer_size, cudaHostAllocPortable);
+	cudaError_t cures;
+	cures = cudaHostAlloc(&cpu_buffer, buffer_size, cudaHostAllocPortable);
+	assert(!cures);
 
 	unsigned id;
 	for (id = 0; id < 2; id++)
