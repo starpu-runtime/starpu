@@ -33,7 +33,7 @@ static unsigned thread_is_initialized[2];
 static pthread_cond_t cond;
 static pthread_mutex_t mutex;
 
-static size_t buffer_size = 1;
+static size_t buffer_size = 4;
 static void *cpu_buffer;
 static void *gpu_buffer[2];
 
@@ -41,7 +41,7 @@ static pthread_cond_t cond_go;
 static unsigned ready = 0;
 static unsigned nready_gpu = 0;
 
-static unsigned niter = 100000;
+static unsigned niter = 250000;
 
 static pthread_cond_t cond_gpu;
 static pthread_mutex_t mutex_gpu;
@@ -50,12 +50,15 @@ static unsigned data_is_available[2];
 static cudaStream_t stream[2];
 
 #define ASYNC	1
+#define DO_TRANSFER_GPU_TO_RAM	1
+#define DO_TRANSFER_RAM_TO_GPU	1
 
 void send_data(unsigned src, unsigned dst)
 {
 	cudaError_t cures;
 
 	/* Copy data from GPU to RAM */
+#ifdef DO_TRANSFER_GPU_TO_RAM
 #ifdef ASYNC
 	cures = cudaMemcpyAsync(cpu_buffer, gpu_buffer[src], buffer_size, cudaMemcpyDeviceToHost, stream[src]);
 	assert(!cures);
@@ -68,6 +71,7 @@ void send_data(unsigned src, unsigned dst)
 
 	cures = cudaThreadSynchronize();
 	assert(!cures);
+#endif
 #endif
 
 	/* Tell the other GPU that data is in RAM */
@@ -93,8 +97,9 @@ void recv_data(unsigned src, unsigned dst)
 	//fprintf(stderr, "RECV on %d\n", dst);
 
 	/* Upload data */
+#ifdef DO_TRANSFER_RAM_TO_GPU
 #ifdef ASYNC
-	cures = cudaMemcpyAsync(gpu_buffer[dst], cpu_buffer, buffer_size, cudaMemcpyDeviceToHost, stream[dst]);
+	cures = cudaMemcpyAsync(gpu_buffer[dst], cpu_buffer, buffer_size, cudaMemcpyHostToDevice, stream[dst]);
 	assert(!cures);
 	cures = cudaThreadSynchronize();
 	assert(!cures);
@@ -105,6 +110,7 @@ void recv_data(unsigned src, unsigned dst)
 	cures = cudaThreadSynchronize();
 	assert(!cures);
 #endif
+#endif
 }
 
 void *launch_gpu_thread(void *arg)
@@ -112,7 +118,6 @@ void *launch_gpu_thread(void *arg)
 	unsigned *idptr = arg;
 	unsigned id = *idptr;
 
-	fprintf(stderr, "Initialize device %d\n", id);
 	cudaSetDevice(id);
 	cudaFree(0);
 
@@ -129,8 +134,6 @@ void *launch_gpu_thread(void *arg)
 		pthread_cond_wait(&cond_go, &mutex);
 
 	pthread_mutex_unlock(&mutex);
-
-	fprintf(stderr, "Device %d GOGO\n", id);
 
 	unsigned iter;
 	for (iter = 0; iter < niter; iter++)
