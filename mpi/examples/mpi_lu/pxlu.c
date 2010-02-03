@@ -99,12 +99,14 @@ static void send_data_to_mask(starpu_data_handle handle, int *rank_mask, int mpi
 	unsigned r;
 	for (r = 0; r < world_size; r++)
 	{
-		if (rank_mask[r])
-			rank_array[cnt++] = r;
+		if (rank_mask[r]) {
+			rank_array[cnt] = r;
 
-		comm_array[r] = MPI_COMM_WORLD;
-		mpi_tag_array[r] = mpi_tag;
-		handle_array[r] = handle;
+			comm_array[cnt] = MPI_COMM_WORLD;
+			mpi_tag_array[cnt] = mpi_tag;
+			handle_array[cnt] = handle;
+			cnt++;
+		}
 	}
 
 	if (cnt == 0)
