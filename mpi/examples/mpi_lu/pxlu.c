@@ -33,16 +33,16 @@
 					| ((unsigned long long)(i)<<16)	\
 					| (unsigned long long)(j))))
 #define TAG11_SAVE(k)	((starpu_tag_t)( (5ULL<<50) | (unsigned long long)(k)))
-#define TAG12_SAVE(k,i)	((starpu_tag_t)(((6ULL<<50) | (((unsigned long long)(k))<<32)	\
-					| (unsigned long long)(i))))
-#define TAG21_SAVE(k,j)	((starpu_tag_t)(((7ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG12_SAVE(k,j)	((starpu_tag_t)(((6ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
+#define TAG21_SAVE(k,i)	((starpu_tag_t)(((7ULL<<50) | (((unsigned long long)(k))<<32)	\
+					| (unsigned long long)(i))))
 
 #define TAG11_SAVE_PARTIAL(k)	((starpu_tag_t)( (8ULL<<50) | (unsigned long long)(k)))
-#define TAG12_SAVE_PARTIAL(k,i)	((starpu_tag_t)(((9ULL<<50) | (((unsigned long long)(k))<<32)	\
-					| (unsigned long long)(i))))
-#define TAG21_SAVE_PARTIAL(k,j)	((starpu_tag_t)(((10ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG12_SAVE_PARTIAL(k,j)	((starpu_tag_t)(((9ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
+#define TAG21_SAVE_PARTIAL(k,i)	((starpu_tag_t)(((10ULL<<50) | (((unsigned long long)(k))<<32)	\
+					| (unsigned long long)(i))))
 
 #define STARPU_TAG_INIT	((starpu_tag_t)(11ULL<<50))
 
@@ -188,14 +188,14 @@ static void create_task_11_recv(unsigned k)
 	starpu_tag_t tag_array[2*nblocks];
 	
 	if (k > 0)
-	for (i = k; i < nblocks; i++)
+	for (i = (k-1)+1; i < nblocks; i++)
 	{
 		if (rank == get_block_rank(i, k))
 			tag_array[ndeps++] = TAG21(k-1, i);
 	}
 
 	if (k > 0)
-	for (j = k; j < nblocks; j++)
+	for (j = (k-1)+1; j < nblocks; j++)
 	{
 		if (rank == get_block_rank(k, j))
 			tag_array[ndeps++] = TAG12(k-1, j);
@@ -217,14 +217,14 @@ static void find_nodes_using_11(unsigned k, int *rank_mask)
 
 	/* Block 11_k is used to compute 12_kj + 12ki with i,j > k */
 	unsigned i;
-	for (i = k; i < nblocks; i++)
+	for (i = k+1; i < nblocks; i++)
 	{
 		int r = get_block_rank(i, k);
 		rank_mask[r] = 1;
 	}
 
 	unsigned j;
-	for (j = k; j < nblocks; j++)
+	for (j = k+1; j < nblocks; j++)
 	{
 		int r = get_block_rank(k, j);
 		rank_mask[r] = 1;
@@ -333,7 +333,7 @@ static void create_task_12_recv(unsigned k, unsigned j)
 	starpu_tag_t tag_array[nblocks];
 	
 	if (k > 0)
-	for (i = k; i < nblocks; i++)
+	for (i = (k-1)+1; i < nblocks; i++)
 	{
 		if (rank == get_block_rank(i, j))
 			tag_array[ndeps++] = TAG22(k-1, i, j);
@@ -354,7 +354,7 @@ static void find_nodes_using_12(unsigned k, unsigned j, int *rank_mask)
 
 	/* Block 12_kj is used to compute 22_kij with i > k */
 	unsigned i;
-	for (i = k; i < nblocks; i++)
+	for (i = k+1; i < nblocks; i++)
 	{
 		int r = get_block_rank(i, j);
 		rank_mask[r] = 1;
@@ -374,7 +374,6 @@ static void callback_task_12_real(void *_arg)
 	rank_mask[rank] = 0;
 
 	/* Send the block to those nodes */
-//	starpu_data_handle block_handle = STARPU_PLU(get_block_handle)(j, k);
 	starpu_data_handle block_handle = STARPU_PLU(get_block_handle)(k, j);
 	starpu_tag_t tag = TAG12_SAVE(k, j);
 	int mpi_tag = MPI_TAG12(k, j);
@@ -485,7 +484,7 @@ static void create_task_21_recv(unsigned k, unsigned i)
 	starpu_tag_t tag_array[nblocks];
 	
 	if (k > 0)
-	for (j = k; j < nblocks; j++)
+	for (j = (k-1)+1; j < nblocks; j++)
 	{
 		if (rank == get_block_rank(i, j))
 			tag_array[ndeps++] = TAG22(k-1, i, j);
@@ -507,7 +506,7 @@ static void find_nodes_using_21(unsigned k, unsigned i, int *rank_mask)
 
 	/* Block 21_ki is used to compute 22_kij with j > k */
 	unsigned j;
-	for (j = k; j < nblocks; j++)
+	for (j = k+1; j < nblocks; j++)
 	{
 		int r = get_block_rank(i, j);
 		rank_mask[r] = 1;
@@ -626,6 +625,8 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 
 	task->cl = &STARPU_PLU(cl22);
 
+	task->cl_arg = create_debug_info(k, i, j);
+
 	/* which sub-data is manipulated ? */
 
 	/* produced by TAG21_SAVE(k, i) */ 
@@ -649,6 +650,7 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 
 
 
+#warning temporary fix :/
 	//task->buffers[0].handle = block21;
 	task->buffers[0].handle = block12;
 	task->buffers[0].mode = STARPU_R;
@@ -721,7 +723,7 @@ static void wait_termination(void)
 
 		for (i = k + 1; i < nblocks; i++)
 		{
-			/* Wait task 21ki is needed */
+			/* Wait task 21ki if needed */
 			if (get_block_rank(i, k) == rank)
 			{
 				starpu_data_handle block21 = STARPU_PLU(get_block_handle)(i, k);
@@ -733,7 +735,7 @@ static void wait_termination(void)
 
 		for (j = k + 1; j < nblocks; j++)
 		{
-			/* Wait task 12kj is needed */
+			/* Wait task 12kj if needed */
 			if (get_block_rank(k, j) == rank)
 			{
 				//starpu_data_handle block12 = STARPU_PLU(get_block_handle)(j, k);
