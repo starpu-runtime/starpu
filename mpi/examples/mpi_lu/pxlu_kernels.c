@@ -18,7 +18,7 @@
 #include "pxlu_kernels.h"
 #include <math.h>
 
-#define VERBOSE_KERNELS	1
+///#define VERBOSE_KERNELS	1
 
 /*
  *   U22 

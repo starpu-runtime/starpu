@@ -48,7 +48,7 @@
 
 //#define VERBOSE_INIT	1
 
-#define DEBUG	1
+//#define DEBUG	1
 
 static unsigned no_prio = 0;
 
