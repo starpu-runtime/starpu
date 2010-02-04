@@ -18,7 +18,7 @@
 #include "pxlu_kernels.h"
 
 #define MPI_TAG11(k)	((1U << 16) | (k))
-#define MPI_TAG12(k, j)	((2U << 16) | (j)<<8 | (k))
+#define MPI_TAG12(k, j)	((2U << 16) | (k)<<8 | (j))
 #define MPI_TAG21(k, i)	((3U << 16) | (i)<<8 | (k))
 
 // 11 21
@@ -625,7 +625,7 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 
 	task->cl = &STARPU_PLU(cl22);
 
-	task->cl_arg = create_debug_info(k, i, j);
+	task->cl_arg = create_debug_info(i, j, k);
 
 	/* which sub-data is manipulated ? */
 
