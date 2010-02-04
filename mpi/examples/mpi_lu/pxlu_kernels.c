@@ -78,6 +78,9 @@ static inline void STARPU_PLU(common_u22)(void *descr[],
 			STARPU_ABORT();
 			break;
 	}
+#ifdef VERBOSE_KERNELS
+	fprintf(stderr, "KERNEL 22 %d - k = %d i = %d j = %d done\n", rank, info->k, info->i, info->j);
+#endif
 }
 
 static void STARPU_PLU(cpu_u22)(void *descr[], void *_args)
@@ -138,11 +141,15 @@ static inline void STARPU_PLU(common_u12)(void *descr[],
 
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	fprintf(stderr, "KERNEL 12 %d - k = %d i %d\n", rank, info->k, info->i);
+#warning fixed debugging according to other tweak
+	//fprintf(stderr, "KERNEL 12 %d - k = %d i %d\n", rank, info->k, info->i);
+	fprintf(stderr, "KERNEL 21 %d - k = %d i %d\n", rank, info->k, info->j);
 
-	fprintf(stderr, "INPUT 12 U11\n");
+	//fprintf(stderr, "INPUT 12 U11\n");
+	fprintf(stderr, "INPUT 21 U11\n");
 	STARPU_PLU(display_data_content)(sub11, nx12);
-	fprintf(stderr, "INPUT 12 U12\n");
+	//fprintf(stderr, "INPUT 12 U12\n");
+	fprintf(stderr, "INPUT 21 U21\n");
 	STARPU_PLU(display_data_content)(sub12, nx12);
 #endif
 
@@ -177,7 +184,8 @@ static inline void STARPU_PLU(common_u12)(void *descr[],
 	}
 
 #ifdef VERBOSE_KERNELS
-	fprintf(stderr, "OUTPUT 12 U12\n");
+	//fprintf(stderr, "OUTPUT 12 U12\n");
+	fprintf(stderr, "OUTPUT 21 U21\n");
 	STARPU_PLU(display_data_content)(sub12, nx12);
 #endif
 }
@@ -240,11 +248,15 @@ static inline void STARPU_PLU(common_u21)(void *descr[],
 
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	fprintf(stderr, "KERNEL 21 %d (k = %d, i = %d)\n", rank, info->k, info->i);
+#warning fixed debugging according to other tweak
+	//fprintf(stderr, "KERNEL 21 %d (k = %d, i = %d)\n", rank, info->k, info->i);
+	fprintf(stderr, "KERNEL 12 %d (k = %d, j = %d)\n", rank, info->k, info->j);
 
-	fprintf(stderr, "INPUT 21 U11\n");
+	//fprintf(stderr, "INPUT 21 U11\n");
+	fprintf(stderr, "INPUT 12 U11\n");
 	STARPU_PLU(display_data_content)(sub11, nx21);
-	fprintf(stderr, "INPUT 21 U21\n");
+	//fprintf(stderr, "INPUT 21 U21\n");
+	fprintf(stderr, "INPUT 12 U12\n");
 	STARPU_PLU(display_data_content)(sub21, nx21);
 #endif
 
@@ -278,9 +290,11 @@ static inline void STARPU_PLU(common_u21)(void *descr[],
 	}
 
 #ifdef VERBOSE_KERNELS
-	fprintf(stderr, "OUTPUT 21 U11\n");
+	//fprintf(stderr, "OUTPUT 21 U11\n");
+	fprintf(stderr, "OUTPUT 12 U11\n");
 	STARPU_PLU(display_data_content)(sub11, nx21);
-	fprintf(stderr, "OUTPUT 21 U21\n");
+	//fprintf(stderr, "OUTPUT 21 U21\n");
+	fprintf(stderr, "OUTPUT 12 U12\n");
 	STARPU_PLU(display_data_content)(sub21, nx21);
 #endif
 }
@@ -385,6 +399,9 @@ static inline void STARPU_PLU(common_u11)(void *descr[],
 			STARPU_ABORT();
 			break;
 	}
+#ifdef VERBOSE_KERNELS
+	fprintf(stderr, "KERNEL 11 %d - k = %d\n", rank, info->k);
+#endif
 }
 
 static void STARPU_PLU(cpu_u11)(void *descr[], void *_args)
