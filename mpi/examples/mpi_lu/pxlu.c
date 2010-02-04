@@ -190,14 +190,14 @@ static void create_task_11_recv(unsigned k)
 	if (k > 0)
 	for (i = (k-1)+1; i < nblocks; i++)
 	{
-		if (rank == get_block_rank(i, k))
+		if (rank == get_block_rank(i, k-1))
 			tag_array[ndeps++] = TAG21(k-1, i);
 	}
 
 	if (k > 0)
 	for (j = (k-1)+1; j < nblocks; j++)
 	{
-		if (rank == get_block_rank(k, j))
+		if (rank == get_block_rank(k-1, j))
 			tag_array[ndeps++] = TAG12(k-1, j);
 	}
 	
