@@ -29,6 +29,7 @@
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
 
 //#define SINGLE_TMP11	1
+//#define SINGLE_TMP1221	1
 
 struct debug_info {
 	unsigned i;
@@ -52,8 +53,13 @@ starpu_data_handle STARPU_PLU(get_tmp_11_block_handle)(void);
 #else
 starpu_data_handle STARPU_PLU(get_tmp_11_block_handle)(unsigned k);
 #endif
+#ifdef SINGLE_TMP1221
 starpu_data_handle STARPU_PLU(get_tmp_12_block_handle)(unsigned j);
 starpu_data_handle STARPU_PLU(get_tmp_21_block_handle)(unsigned i);
+#else
+starpu_data_handle STARPU_PLU(get_tmp_12_block_handle)(unsigned j, unsigned k);
+starpu_data_handle STARPU_PLU(get_tmp_21_block_handle)(unsigned i, unsigned k);
+#endif
 
 void STARPU_PLU(display_data_content)(TYPE *data, unsigned blocksize);
 

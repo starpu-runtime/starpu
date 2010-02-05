@@ -338,15 +338,28 @@ static void create_task_12_recv(unsigned k, unsigned j)
 	unsigned ndeps = 0;
 	starpu_tag_t tag_array[nblocks];
 	
+#ifdef SINGLE_TMP1221
 	if (k > 0)
 	for (i = (k-1)+1; i < nblocks; i++)
+#else
+	if (k > 1)
+	for (i = (k-2)+1; i < nblocks; i++)
+#endif
 	{
 		if (rank == get_block_rank(i, j))
+#ifdef SINGLE_TMP1221
 			tag_array[ndeps++] = TAG22(k-1, i, j);
+#else
+			tag_array[ndeps++] = TAG22(k-2, i, j);
+#endif
 	}
 	
 	int source = get_block_rank(k, j);
+#ifdef SINGLE_TMP1221
 	starpu_data_handle block_handle = STARPU_PLU(get_tmp_12_block_handle)(j);
+#else
+	starpu_data_handle block_handle = STARPU_PLU(get_tmp_12_block_handle)(j,k);
+#endif
 	int mpi_tag = MPI_TAG12(k, j);
 	starpu_tag_t partial_tag = TAG12_SAVE_PARTIAL(k, j);
 	starpu_tag_t unlocked_tag = TAG12_SAVE(k, j);
@@ -497,15 +510,28 @@ static void create_task_21_recv(unsigned k, unsigned i)
 	unsigned ndeps = 0;
 	starpu_tag_t tag_array[nblocks];
 	
+#ifdef SINGLE_TMP1221
 	if (k > 0)
 	for (j = (k-1)+1; j < nblocks; j++)
+#else
+	if (k > 1)
+	for (j = (k-2)+1; j < nblocks; j++)
+#endif
 	{
 		if (rank == get_block_rank(i, j))
+#ifdef SINGLE_TMP1221
 			tag_array[ndeps++] = TAG22(k-1, i, j);
+#else
+			tag_array[ndeps++] = TAG22(k-2, i, j);
+#endif
 	}
 
 	int source = get_block_rank(i, k);
+#ifdef SINGLE_TMP1221
 	starpu_data_handle block_handle = STARPU_PLU(get_tmp_21_block_handle)(i);
+#else
+	starpu_data_handle block_handle = STARPU_PLU(get_tmp_21_block_handle)(i, k);
+#endif
 	int mpi_tag = MPI_TAG21(k, i);
 	starpu_tag_t partial_tag = TAG21_SAVE_PARTIAL(k, i);
 	starpu_tag_t unlocked_tag = TAG21_SAVE(k, i);
@@ -666,7 +692,11 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 	}
 	else 
 	{
+#ifdef SINGLE_TMP1221
 		block21 = STARPU_PLU(get_tmp_21_block_handle)(i);
+#else
+		block21 = STARPU_PLU(get_tmp_21_block_handle)(i, k);
+#endif
 		tag_21_dep = TAG21_SAVE(k, i);
 	}
 
@@ -683,7 +713,11 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 	}
 	else 
 	{
+#ifdef SINGLE_TMP1221
 		block12 = STARPU_PLU(get_tmp_12_block_handle)(j);
+#else
+		block12 = STARPU_PLU(get_tmp_12_block_handle)(j, k);
+#endif
 		tag_12_dep = TAG12_SAVE(k, j);
 	}
 

@@ -43,10 +43,17 @@ static TYPE *tmp_11_block;
 static starpu_data_handle *tmp_11_block_handles;
 static TYPE **tmp_11_block;
 #endif
+#ifdef SINGLE_TMP1221
 static starpu_data_handle *tmp_12_block_handles;
 static TYPE **tmp_12_block;
 static starpu_data_handle *tmp_21_block_handles;
 static TYPE **tmp_21_block;
+#else
+static starpu_data_handle *(tmp_12_block_handles[2]);
+static TYPE **(tmp_12_block[2]);
+static starpu_data_handle *(tmp_21_block_handles[2]);
+static TYPE **(tmp_21_block[2]);
+#endif
 
 static void parse_args(int argc, char **argv)
 {
@@ -111,6 +118,7 @@ starpu_data_handle STARPU_PLU(get_tmp_11_block_handle)(unsigned k)
 }
 #endif
 
+#ifdef SINGLE_TMP1221
 starpu_data_handle STARPU_PLU(get_tmp_12_block_handle)(unsigned j)
 {
 	return tmp_12_block_handles[j];
@@ -120,6 +128,17 @@ starpu_data_handle STARPU_PLU(get_tmp_21_block_handle)(unsigned i)
 {
 	return tmp_21_block_handles[i];
 }
+#else
+starpu_data_handle STARPU_PLU(get_tmp_12_block_handle)(unsigned j, unsigned k)
+{
+	return tmp_12_block_handles[k%2][j];
+}
+
+starpu_data_handle STARPU_PLU(get_tmp_21_block_handle)(unsigned i, unsigned k)
+{
+	return tmp_21_block_handles[k%2][i];
+}
+#endif
 
 static void init_matrix(int rank)
 {
@@ -194,13 +213,23 @@ static void init_matrix(int rank)
 #endif
 
 	/* tmp buffers 12 and 21 */
+#ifdef SINGLE_TMP1221
 	tmp_12_block_handles = calloc(nblocks, sizeof(starpu_data_handle));
 	tmp_21_block_handles = calloc(nblocks, sizeof(starpu_data_handle));
 	tmp_12_block = calloc(nblocks, sizeof(TYPE *));
 	tmp_21_block = calloc(nblocks, sizeof(TYPE *));
+#else
+	for (i = 0; i < 2; i++) {
+		tmp_12_block_handles[i] = calloc(nblocks, sizeof(starpu_data_handle));
+		tmp_21_block_handles[i] = calloc(nblocks, sizeof(starpu_data_handle));
+		tmp_12_block[i] = calloc(nblocks, sizeof(TYPE *));
+		tmp_21_block[i] = calloc(nblocks, sizeof(TYPE *));
+	}
+#endif
 	
 	for (k = 0; k < nblocks; k++)
 	{
+#ifdef SINGLE_TMP1221
 		starpu_malloc_pinned_if_possible((void **)&tmp_12_block[k], blocksize);
 		STARPU_ASSERT(tmp_12_block[k]);
 
@@ -214,6 +243,23 @@ static void init_matrix(int rank)
 		starpu_register_blas_data(&tmp_21_block_handles[k], 0,
 			(uintptr_t)tmp_21_block[k],
 			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
+#else
+	for (i = 0; i < 2; i++) {
+		starpu_malloc_pinned_if_possible((void **)&tmp_12_block[i][k], blocksize);
+		STARPU_ASSERT(tmp_12_block[i][k]);
+
+		starpu_register_blas_data(&tmp_12_block_handles[i][k], 0,
+			(uintptr_t)tmp_12_block[i][k],
+			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
+
+		starpu_malloc_pinned_if_possible((void **)&tmp_21_block[i][k], blocksize);
+		STARPU_ASSERT(tmp_21_block[i][k]);
+
+		starpu_register_blas_data(&tmp_21_block_handles[i][k], 0,
+			(uintptr_t)tmp_21_block[i][k],
+			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
+	}
+#endif
 	}
 
 	//display_all_blocks(nblocks, size/nblocks);
