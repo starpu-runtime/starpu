@@ -189,12 +189,14 @@ static void measure_bandwith_between_host_and_dev(int dev, unsigned ncores)
 
 static void benchmark_all_cuda_devices(void)
 {
+#ifdef USE_CUDA
 	int ret;
 
 #ifdef VERBOSE
 	fprintf(stderr, "Benchmarking the speed of the bus\n");
 #endif
 
+	/* TODO: use hwloc */
 	/* Save the current cpu binding */
 	cpu_set_t former_process_affinity;
 	ret = sched_getaffinity(0, sizeof(former_process_affinity), &former_process_affinity);
@@ -204,7 +206,6 @@ static void benchmark_all_cuda_devices(void)
 		STARPU_ABORT();
 	}
 
-#ifdef USE_CUDA
 	struct machine_config_s *config = _starpu_get_machine_config();
 	unsigned ncores = _starpu_topology_get_nhwcore(config);
 
@@ -215,9 +216,6 @@ static void benchmark_all_cuda_devices(void)
 		/* measure bandwith between Host and Device i */
 		measure_bandwith_between_host_and_dev(i, ncores);
 	}
-#endif
-
-	was_benchmarked = 1;
 
 	/* Restore the former affinity */
 	ret = sched_setaffinity(0, sizeof(former_process_affinity), &former_process_affinity);
@@ -230,6 +228,9 @@ static void benchmark_all_cuda_devices(void)
 #ifdef VERBOSE
 	fprintf(stderr, "Benchmarking the speed of the bus is done.\n");
 #endif
+#endif
+
+	was_benchmarked = 1;
 }
 
 static void get_bus_path(const char *type, char *path, size_t maxlen)
