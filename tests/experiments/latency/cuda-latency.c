@@ -18,14 +18,9 @@
 #include <stdio.h>
 #include <cuda.h>
 #include <cuda_runtime.h>
-
 #include <assert.h>
-#include <string.h>
-#include <math.h>
 #include <sys/types.h>
 #include <sys/time.h>
-#include <pthread.h>
-#include <signal.h>
 
 static pthread_t thread[2];
 static unsigned thread_is_initialized[2];
@@ -128,6 +123,14 @@ void *launch_gpu_thread(void *arg)
 	thread_is_initialized[id] = 1;
 	pthread_cond_signal(&cond);
 
+	if (id == 0)
+	{
+		cudaError_t cures;
+		cures = cudaHostAlloc(&cpu_buffer, buffer_size, cudaHostAllocPortable);
+		assert(!cures);
+		cudaThreadSynchronize();
+	}
+
 	nready_gpu++;
 
 	while (!ready)
@@ -162,10 +165,6 @@ int main(int argc, char **argv)
 	pthread_mutex_init(&mutex, NULL);
 	pthread_cond_init(&cond, NULL);
 	pthread_cond_init(&cond_go, NULL);
-
-	cudaError_t cures;
-	cures = cudaHostAlloc(&cpu_buffer, buffer_size, cudaHostAllocPortable);
-	assert(!cures);
 
 	unsigned id;
 	for (id = 0; id < 2; id++)
