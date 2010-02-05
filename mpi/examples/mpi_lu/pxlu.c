@@ -187,6 +187,7 @@ static void create_task_11_recv(unsigned k)
 	unsigned ndeps = 0;
 	starpu_tag_t tag_array[2*nblocks];
 	
+#ifdef SINGLE_TMP11
 	if (k > 0)
 	for (i = (k-1)+1; i < nblocks; i++)
 	{
@@ -200,9 +201,14 @@ static void create_task_11_recv(unsigned k)
 		if (rank == get_block_rank(k-1, j))
 			tag_array[ndeps++] = TAG12(k-1, j);
 	}
+#endif
 	
 	int source = get_block_rank(k, k);
+#ifdef SINGLE_TMP11
 	starpu_data_handle block_handle = STARPU_PLU(get_tmp_11_block_handle)();
+#else
+	starpu_data_handle block_handle = STARPU_PLU(get_tmp_11_block_handle)(k);
+#endif
 	int mpi_tag = MPI_TAG11(k);
 	starpu_tag_t partial_tag = TAG11_SAVE_PARTIAL(k);
 	starpu_tag_t unlocked_tag = TAG11_SAVE(k);
@@ -400,9 +406,17 @@ static void create_task_12_real(unsigned k, unsigned j)
 	/* which sub-data is manipulated ? */
 	starpu_data_handle diag_block;
 	if (get_block_rank(k, k) == rank)
+	{
 		diag_block = STARPU_PLU(get_block_handle)(k, k);
+	}
 	else 
+	{
+#ifdef SINGLE_TMP11
 		diag_block = STARPU_PLU(get_tmp_11_block_handle)();
+#else
+		diag_block = STARPU_PLU(get_tmp_11_block_handle)(k);
+#endif
+	}
 
 	task->buffers[0].handle = diag_block; 
 	task->buffers[0].mode = STARPU_R;
@@ -410,7 +424,6 @@ static void create_task_12_real(unsigned k, unsigned j)
 	task->buffers[1].mode = STARPU_RW;
 
 	STARPU_ASSERT(get_block_rank(k, j) == rank);
-	STARPU_ASSERT(STARPU_PLU(get_tmp_11_block_handle)() != STARPU_POISON_PTR);
 
 	STARPU_ASSERT(task->buffers[0].handle != STARPU_POISON_PTR);
 	STARPU_ASSERT(task->buffers[1].handle != STARPU_POISON_PTR);
@@ -547,16 +560,22 @@ static void create_task_21_real(unsigned k, unsigned i)
 	/* which sub-data is manipulated ? */
 	starpu_data_handle diag_block;
 	if (get_block_rank(k, k) == rank)
+	{
 		diag_block = STARPU_PLU(get_block_handle)(k, k);
+	}
 	else 
+	{
+#ifdef SINGLE_TMP11
 		diag_block = STARPU_PLU(get_tmp_11_block_handle)();
+#else
+		diag_block = STARPU_PLU(get_tmp_11_block_handle)(k);
+#endif
+	}
 
 	task->buffers[0].handle = diag_block; 
 	task->buffers[0].mode = STARPU_R;
 	task->buffers[1].handle = STARPU_PLU(get_block_handle)(i, k);
 	task->buffers[1].mode = STARPU_RW;
-
-	STARPU_ASSERT(STARPU_PLU(get_tmp_11_block_handle)() != STARPU_POISON_PTR);
 
 	STARPU_ASSERT(task->buffers[0].handle != STARPU_POISON_PTR);
 	STARPU_ASSERT(task->buffers[1].handle != STARPU_POISON_PTR);

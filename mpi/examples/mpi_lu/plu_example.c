@@ -36,8 +36,13 @@ static TYPE **dataA;
 
 /* In order to implement the distributed LU decomposition, we allocate
  * temporary buffers */
+#ifdef SINGLE_TMP11
 static starpu_data_handle tmp_11_block_handle;
 static TYPE *tmp_11_block;
+#else
+static starpu_data_handle *tmp_11_block_handles;
+static TYPE **tmp_11_block;
+#endif
 static starpu_data_handle *tmp_12_block_handles;
 static TYPE **tmp_12_block;
 static starpu_data_handle *tmp_21_block_handles;
@@ -94,10 +99,17 @@ static void fill_block_with_random(TYPE *blockptr, unsigned size, unsigned nbloc
 	}
 }
 
+#ifdef SINGLE_TMP11
 starpu_data_handle STARPU_PLU(get_tmp_11_block_handle)(void)
 {
 	return tmp_11_block_handle;
 }
+#else
+starpu_data_handle STARPU_PLU(get_tmp_11_block_handle)(unsigned k)
+{
+	return tmp_11_block_handles[k];
+}
+#endif
 
 starpu_data_handle STARPU_PLU(get_tmp_12_block_handle)(unsigned j)
 {
@@ -159,10 +171,27 @@ static void init_matrix(int rank)
 
 	/* Allocate the temporary buffers required for the distributed algorithm */
 
+	unsigned k;
+
 	/* tmp buffer 11 */
+#ifdef SINGLE_TMP11
 	starpu_malloc_pinned_if_possible((void **)&tmp_11_block, blocksize);
 	starpu_register_blas_data(&tmp_11_block_handle, 0, (uintptr_t)tmp_11_block,
 			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
+#else
+	tmp_11_block_handles = calloc(nblocks, sizeof(starpu_data_handle));
+	tmp_11_block = calloc(nblocks, sizeof(TYPE *));
+
+	for (k = 0; k < nblocks; k++)
+	{
+		starpu_malloc_pinned_if_possible((void **)&tmp_11_block[k], blocksize);
+		STARPU_ASSERT(tmp_11_block[k]);
+
+		starpu_register_blas_data(&tmp_11_block_handles[k], 0,
+			(uintptr_t)tmp_11_block[k],
+			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
+	}
+#endif
 
 	/* tmp buffers 12 and 21 */
 	tmp_12_block_handles = calloc(nblocks, sizeof(starpu_data_handle));
@@ -170,7 +199,6 @@ static void init_matrix(int rank)
 	tmp_12_block = calloc(nblocks, sizeof(TYPE *));
 	tmp_21_block = calloc(nblocks, sizeof(TYPE *));
 	
-	unsigned k;
 	for (k = 0; k < nblocks; k++)
 	{
 		starpu_malloc_pinned_if_possible((void **)&tmp_12_block[k], blocksize);
