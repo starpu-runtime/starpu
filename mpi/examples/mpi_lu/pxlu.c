@@ -398,16 +398,16 @@ static void create_task_12_real(unsigned k, unsigned j)
 
 	task->cl_arg = create_debug_info(j, j, k);
 
-	int myrank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+	unsigned diag_block_is_local = (get_block_rank(k, k) == rank);
 
-	STARPU_ASSERT(myrank == rank);
+	starpu_tag_t tag_11_dep; 
 
 	/* which sub-data is manipulated ? */
 	starpu_data_handle diag_block;
-	if (get_block_rank(k, k) == rank)
+	if (diag_block_is_local)
 	{
 		diag_block = STARPU_PLU(get_block_handle)(k, k);
+		tag_11_dep = TAG11(k);
 	}
 	else 
 	{
@@ -416,6 +416,7 @@ static void create_task_12_real(unsigned k, unsigned j)
 #else
 		diag_block = STARPU_PLU(get_tmp_11_block_handle)(k);
 #endif
+		tag_11_dep = TAG11_SAVE(k);
 	}
 
 	task->buffers[0].handle = diag_block; 
@@ -441,10 +442,10 @@ static void create_task_12_real(unsigned k, unsigned j)
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		starpu_tag_declare_deps(TAG12(k, j), 2, TAG11_SAVE(k), TAG22(k-1, k, j));
+		starpu_tag_declare_deps(TAG12(k, j), 2, tag_11_dep, TAG22(k-1, k, j));
 	}
 	else {
-		starpu_tag_declare_deps(TAG12(k, j), 1, TAG11_SAVE(k));
+		starpu_tag_declare_deps(TAG12(k, j), 1, tag_11_dep);
 	}
 
 	starpu_submit_task(task);
@@ -556,12 +557,17 @@ static void create_task_21_real(unsigned k, unsigned i)
 	task->cl = &STARPU_PLU(cl12);
 
 	task->cl_arg = create_debug_info(i, i, k);
+
+	unsigned diag_block_is_local = (get_block_rank(k, k) == rank);
+
+	starpu_tag_t tag_11_dep; 
 	
 	/* which sub-data is manipulated ? */
 	starpu_data_handle diag_block;
-	if (get_block_rank(k, k) == rank)
+	if (diag_block_is_local)
 	{
 		diag_block = STARPU_PLU(get_block_handle)(k, k);
+		tag_11_dep = TAG11(k);
 	}
 	else 
 	{
@@ -570,6 +576,7 @@ static void create_task_21_real(unsigned k, unsigned i)
 #else
 		diag_block = STARPU_PLU(get_tmp_11_block_handle)(k);
 #endif
+		tag_11_dep = TAG11_SAVE(k);
 	}
 
 	task->buffers[0].handle = diag_block; 
@@ -579,7 +586,6 @@ static void create_task_21_real(unsigned k, unsigned i)
 
 	STARPU_ASSERT(task->buffers[0].handle != STARPU_POISON_PTR);
 	STARPU_ASSERT(task->buffers[1].handle != STARPU_POISON_PTR);
-
 
 	struct callback_arg *arg = malloc(sizeof(struct callback_arg));
 		arg->i = i;
@@ -594,10 +600,10 @@ static void create_task_21_real(unsigned k, unsigned i)
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		starpu_tag_declare_deps(TAG21(k, i), 2, TAG11_SAVE(k), TAG22(k-1, i, k));
+		starpu_tag_declare_deps(TAG21(k, i), 2, tag_11_dep, TAG22(k-1, i, k));
 	}
 	else {
-		starpu_tag_declare_deps(TAG21(k, i), 1, TAG11_SAVE(k));
+		starpu_tag_declare_deps(TAG21(k, i), 1, tag_11_dep);
 	}
 
 	starpu_submit_task(task);
@@ -649,23 +655,37 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 	/* which sub-data is manipulated ? */
 
 	/* produced by TAG21_SAVE(k, i) */ 
+	unsigned block21_is_local = (get_block_rank(i, k) == rank);
+	starpu_tag_t tag_21_dep;
+
 	starpu_data_handle block21;
-	if (get_block_rank(i, k) == rank)
+	if (block21_is_local)
 	{
 		block21 = STARPU_PLU(get_block_handle)(i, k);
+		tag_21_dep = TAG21(k, i);
 	}
 	else 
+	{
 		block21 = STARPU_PLU(get_tmp_21_block_handle)(i);
+		tag_21_dep = TAG21_SAVE(k, i);
+	}
 
 	/* produced by TAG12_SAVE(k, j) */
+	unsigned block12_is_local = (get_block_rank(k, j) == rank);
+	starpu_tag_t tag_12_dep;
+
 	starpu_data_handle block12;
-	if (get_block_rank(k, j) == rank)
+	if (block12_is_local)
 	{
 	//	block12 = STARPU_PLU(get_block_handle)(j, k);
 		block12 = STARPU_PLU(get_block_handle)(k, j);
+		tag_12_dep = TAG12(k, j);
 	}
 	else 
+	{
 		block12 = STARPU_PLU(get_tmp_12_block_handle)(j);
+		tag_12_dep = TAG12_SAVE(k, j);
+	}
 
 
 
@@ -692,10 +712,10 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), TAG12_SAVE(k, j), TAG21_SAVE(k, i));
+		starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), tag_12_dep, tag_21_dep);
 	}
 	else {
-		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG12_SAVE(k, j), TAG21_SAVE(k, i));
+		starpu_tag_declare_deps(TAG22(k, i, j), 2, tag_12_dep, tag_21_dep);
 	}
 
 	starpu_submit_task(task);
