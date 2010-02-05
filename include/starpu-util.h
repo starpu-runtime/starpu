@@ -228,6 +228,10 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps,
 				void (*callback)(void *), void *callback_arg);
 
+#ifdef USE_CUDA
+cudaStream_t *starpu_get_local_cuda_stream(void);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
