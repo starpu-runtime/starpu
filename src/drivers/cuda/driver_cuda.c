@@ -24,7 +24,7 @@ static int ncudagpus;
 
 static cudaStream_t streams[STARPU_NMAXWORKERS];
 
-cudaStream_t *starpu_get_local_stream(void)
+cudaStream_t *starpu_get_local_cuda_stream(void)
 {
 	int worker = starpu_get_worker_id();
 
@@ -42,7 +42,7 @@ static void init_context(int devid)
 	/* force CUDA to initialize the context for real */
 	cudaFree(0);
 
-	cures = cudaStreamCreate(starpu_get_local_stream());
+	cures = cudaStreamCreate(starpu_get_local_cuda_stream());
 	if (STARPU_UNLIKELY(cures))
 		CUDA_REPORT_ERROR(cures);
 }

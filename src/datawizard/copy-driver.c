@@ -117,13 +117,13 @@ cudaStream_t *stream;
 						copy_methods->cuda_to_ram(handle, src_node, dst_node);
 					}
 					else {
-						cures = cudaEventCreate(&req->async_channel.event);
+						cures = cudaEventCreate(&req->async_channel.cuda_event);
 						STARPU_ASSERT(cures == cudaSuccess);
 
-						stream = starpu_get_local_stream();
+						stream = starpu_get_local_cuda_stream();
 						ret = copy_methods->cuda_to_ram_async(handle, src_node, dst_node, stream);
 
-						cures = cudaEventRecord(req->async_channel.event, *stream);
+						cures = cudaEventRecord(req->async_channel.cuda_event, *stream);
 						STARPU_ASSERT(cures == cudaSuccess);
 					}
 				}
@@ -158,13 +158,13 @@ cudaStream_t *stream;
 					copy_methods->ram_to_cuda(handle, src_node, dst_node);
 				}
 				else {
-					cures = cudaEventCreate(&req->async_channel.event);
+					cures = cudaEventCreate(&req->async_channel.cuda_event);
 					STARPU_ASSERT(cures == cudaSuccess);
 
-					stream = starpu_get_local_stream();
+					stream = starpu_get_local_cuda_stream();
 					ret = copy_methods->ram_to_cuda_async(handle, src_node, dst_node, stream);
 
-					cures = cudaEventRecord(req->async_channel.event, *stream);
+					cures = cudaEventRecord(req->async_channel.cuda_event, *stream);
 					STARPU_ASSERT(cures == cudaSuccess);
 				}
 				break;
@@ -262,15 +262,15 @@ void driver_wait_request_completion(starpu_async_channel *async_channel __attrib
 	switch (kind) {
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			event = (*async_channel).event;
+			event = (*async_channel).cuda_event;
 
 			cures = cudaEventSynchronize(event);
 			if (STARPU_UNLIKELY(cures))
-				CUDA_REPORT_ERROR(cures);				
+				CUDA_REPORT_ERROR(cures);
 
 			cures = cudaEventDestroy(event);
 			if (STARPU_UNLIKELY(cures))
-				CUDA_REPORT_ERROR(cures);				
+				CUDA_REPORT_ERROR(cures);
 
 			break;
 #endif
@@ -292,7 +292,7 @@ unsigned driver_test_request_completion(starpu_async_channel *async_channel __at
 	switch (kind) {
 #ifdef USE_CUDA
 		case CUDA_RAM:
-			event = (*async_channel).event;
+			event = (*async_channel).cuda_event;
 
 			success = (cudaEventQuery(event) == cudaSuccess);
 			if (success)
