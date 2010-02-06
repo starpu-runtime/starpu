@@ -14,9 +14,20 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-SUBDIRS = examples
-
 CC=$(MPICC)
+
+TESTS = $(check_PROGRAMS)
+
+check_PROGRAMS =
+
+BUILT_SOURCES =
+
+CLEANFILES = *.gcno *.gcda *.linkinfo
+
+examplebindir = $(libdir)/starpu/mpi/examples/
+mpiexamplebindir=$(libdir)/starpu/mpi/
+
+examplebin_PROGRAMS =
 
 if USE_CUDA
 # TODO define NVCCFLAGS
@@ -30,9 +41,8 @@ NVCC ?= nvcc
 	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I$(top_srcdir)/include/
 endif
 
-
 LIBS = $(top_builddir)/src/libstarpu.la @LIBS@
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/mpi/ -I$(top_srcdir)/src/
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/mpi/ -I$(top_srcdir)/src/  -I$(top_srcdir)/examples/
 
 lib_LTLIBRARIES = libstarpumpi.la
 
@@ -50,7 +60,37 @@ libstarpumpi_la_SOURCES =				\
 	starpu_mpi_helper.c				\
 	starpu_mpi_datatype.c
 
-mpiexamplebindir=$(libdir)/starpu/mpi/
+
+##################
+# MPI LU example #
+##################
+
+if !NO_BLAS_LIB
+
+examplebin_PROGRAMS += 				\
+	examples/mpi_lu/plu_example_float	\
+	examples/mpi_lu/plu_example_double
+
+examples_mpi_lu_plu_example_float_LDADD =	\
+	libstarpumpi.la
+
+examples_mpi_lu_plu_example_float_SOURCES =	\
+	examples/mpi_lu/plu_example_float.c	\
+	examples/mpi_lu/plu_solve_float.c	\
+	examples/mpi_lu/pslu_kernels.c		\
+	examples/mpi_lu/pslu.c			\
+	$(top_srcdir)/examples/common/blas.c
+
+examples_mpi_lu_plu_example_double_LDADD =	\
+	libstarpumpi.la
+
+examples_mpi_lu_plu_example_double_SOURCES =	\
+	examples/mpi_lu/plu_example_double.c	\
+	examples/mpi_lu/plu_solve_double.c  	\
+	examples/mpi_lu/pdlu_kernels.c	    	\
+	examples/mpi_lu/pdlu.c		    	\
+	$(top_srcdir)/examples/common/blas.c
+endif
 
 mpiexamplebin_PROGRAMS =				\
 	tests/pingpong					\
