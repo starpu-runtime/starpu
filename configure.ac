@@ -76,6 +76,13 @@ STARPU_CHECK_SYNC_FETCH_AND_ADD
 
 CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE "
 
+AC_SEARCH_LIBS([set_mempolicy],[numa],[enable_libnuma=yes],[enable_libnuma=no])
+AC_MSG_CHECKING(whether libnuma is available)
+AC_MSG_RESULT($enable_libnuma)
+if test x$enable_libnuma = xyes; then
+	AC_DEFINE(HAVE_LIBNUMA,[],[libnuma is available])
+fi
+
 ###############################################################################
 #                                                                             #
 #                                 CPUs settings                               #

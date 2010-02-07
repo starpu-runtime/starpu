@@ -34,4 +34,6 @@
 #undef STARPU_NMAXBUFS
 #undef STARPU_MAXCUDADEVS
 
+#undef HAVE_LIBNUMA
+
 #endif
