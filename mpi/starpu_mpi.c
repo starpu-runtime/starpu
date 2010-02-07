@@ -19,7 +19,7 @@
 #include <starpu_mpi_datatype.h>
 #include <starpu_mpi_private.h>
 
-#define VERBOSE_STARPU_MPI	1
+//#define VERBOSE_STARPU_MPI	1
 
 /* TODO find a better way to select the polling method (perhaps during the
  * configuration) */
