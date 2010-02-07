@@ -781,8 +781,6 @@ static void wait_tag_and_fetch_handle(starpu_tag_t tag, starpu_data_handle handl
 
 static void wait_termination(void)
 {
-	starpu_wait_all_tasks();
-
 	unsigned k, i, j;
 	for (k = 0; k < nblocks; k++)
 	{
