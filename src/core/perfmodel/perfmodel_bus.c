@@ -430,7 +430,7 @@ static void write_bus_latency_file_content(void)
 
 	fprintf(f, "# ");
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
-		fprintf(f, "to %d\t", dst);
+		fprintf(f, "to %d\t\t", dst);
 	fprintf(f, "\n");
 
 	for (src = 0; src < STARPU_MAXNODES; src++)
@@ -546,7 +546,7 @@ static void write_bus_bandwith_file_content(void)
 
 	fprintf(f, "# ");
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
-		fprintf(f, "to %d\t", dst);
+		fprintf(f, "to %d\t\t", dst);
 	fprintf(f, "\n");
 
 	for (src = 0; src < STARPU_MAXNODES; src++)
