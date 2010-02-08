@@ -316,6 +316,7 @@ static void write_bus_affinity_file_content(void)
 #ifdef USE_CUDA
 	struct machine_config_s *config = _starpu_get_machine_config();
 	unsigned ncores = _starpu_topology_get_nhwcore(config);
+	unsigned core;
 
 	fprintf(f, "# GPU\t");
 	for (core = 0; core < ncores; core++)
@@ -327,7 +328,6 @@ static void write_bus_affinity_file_content(void)
 	{
 		fprintf(f, "%d\t", gpu);
 
-		unsigned core;
 		for (core = 0; core < ncores; core++)
 		{
 			fprintf(f, "%d\t", cudadev_timing_per_cpu[gpu+1][core].cpu_id);
