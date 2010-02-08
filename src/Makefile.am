@@ -133,7 +133,8 @@ libstarpu_la_SOURCES = 						\
 	util/malloc.c						\
 	util/execute_on_all.c					\
 	util/starpu_create_sync_task.c				\
-	util/starpu_cublas.c
+	util/starpu_cublas.c					\
+	util/file.c
 	
 if USE_CPU
 libstarpu_la_SOURCES += drivers/core/driver_core.c

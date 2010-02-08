@@ -276,6 +276,7 @@ static void load_bus_affinity_file_content(void)
 
 		int dummy;
 
+		starpu_drop_comments(f);
 		ret = fscanf(f, "%d\t", &dummy);
 		STARPU_ASSERT(ret == 1);
 
@@ -315,6 +316,11 @@ static void write_bus_affinity_file_content(void)
 #ifdef USE_CUDA
 	struct machine_config_s *config = _starpu_get_machine_config();
 	unsigned ncores = _starpu_topology_get_nhwcore(config);
+
+	fprintf(f, "# GPU\t");
+	for (core = 0; core < ncores; core++)
+		fprintf(f, "CPU%d\t", core);
+	fprintf(f, "\n");
 
 	int gpu;
 	for (gpu = 0; gpu < ncuda; gpu++)
@@ -387,11 +393,12 @@ static void load_bus_latency_file_content(void)
 
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
+		starpu_drop_comments(f);
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		{
 			double latency;
 
-			n = fscanf(f, "%lf ", &latency);
+			n = fscanf(f, "%lf\t", &latency);
 			STARPU_ASSERT(n == 1);
 
 			latency_matrix[src][dst] = latency;
@@ -421,6 +428,11 @@ static void write_bus_latency_file_content(void)
 		STARPU_ABORT();
 	}
 
+	fprintf(f, "# ");
+	for (dst = 0; dst < STARPU_MAXNODES; dst++)
+		fprintf(f, "to %d\t", dst);
+	fprintf(f, "\n");
+
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
@@ -440,7 +452,7 @@ static void write_bus_latency_file_content(void)
                                 latency = ((src && dst)?2000.0:500.0);
 			}
 
-			fprintf(f, "%lf ", latency);
+			fprintf(f, "%lf\t", latency);
 		}
 
 		fprintf(f, "\n");
@@ -501,11 +513,12 @@ static void load_bus_bandwith_file_content(void)
 
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
+		starpu_drop_comments(f);
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		{
 			double bandwith;
 
-			n = fscanf(f, "%lf ", &bandwith);
+			n = fscanf(f, "%lf\t", &bandwith);
 			STARPU_ASSERT(n == 1);
 
 			bandwith_matrix[src][dst] = bandwith;
@@ -530,6 +543,11 @@ static void write_bus_bandwith_file_content(void)
 
 	f = fopen(path, "w+");
 	STARPU_ASSERT(f);
+
+	fprintf(f, "# ");
+	for (dst = 0; dst < STARPU_MAXNODES; dst++)
+		fprintf(f, "to %d\t", dst);
+	fprintf(f, "\n");
 
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
@@ -558,7 +576,7 @@ static void write_bus_bandwith_file_content(void)
 			        bandwith = 0.0;
 			}
 			
-			fprintf(f, "%lf ", bandwith);
+			fprintf(f, "%lf\t", bandwith);
 		}
 
 		fprintf(f, "\n");

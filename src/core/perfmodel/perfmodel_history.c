@@ -48,28 +48,6 @@ static void insert_history_entry(struct starpu_history_entry_t *entry, struct st
 }
 
 
-static void drop_comments(FILE *f)
-{
-	while(1) {
-		int c = getc(f);
-
-		switch (c) {
-			case '#':
-			{
-				char s[128];
-				do {
-					fgets(s, sizeof(s), f);
-				} while (!strchr(s, '\n'));
-			}
-			case '\n':
-				continue;
-			default:
-				ungetc(c, f);
-				return;
-		}
-	}
-}
-
 static void dump_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
 {
 	fprintf(f, "# sumlnx\tsumlnx2\t\tsumlny\t\tsumlnxlny\talpha\t\tbeta\t\tn\n");
@@ -80,7 +58,7 @@ static void scan_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
 {
 	int res;
 
-	drop_comments(f);
+	starpu_drop_comments(f);
 
 	res = fscanf(f, "%le\t%le\t%le\t%le\t%le\t%le\t%u\n", &reg_model->sumlnx, &reg_model->sumlnx2, &reg_model->sumlny, &reg_model->sumlnxlny, &reg_model->alpha, &reg_model->beta, &reg_model->nsample);
 	STARPU_ASSERT(res == 7);
@@ -96,7 +74,7 @@ static void scan_history_entry(FILE *f, struct starpu_history_entry_t *entry)
 {
 	int res;
 
-	drop_comments(f);
+	starpu_drop_comments(f);
 
 	res = fscanf(f, "%x\t%zu\t%le\t%le\t%le\t%le\t%u\n", &entry->footprint, &entry->size, &entry->mean, &entry->deviation, &entry->sum, &entry->sum2, &entry->nsample);
 	STARPU_ASSERT(res == 7);
@@ -106,14 +84,14 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_
 {
 	unsigned nentries;
 
-	drop_comments(f);
+	starpu_drop_comments(f);
 
 	int res = fscanf(f, "%u\n", &nentries);
 	STARPU_ASSERT(res == 1);
 
 	scan_reg_model(f, &per_arch_model->regression);
 
-	drop_comments(f);
+	starpu_drop_comments(f);
 
 	res = fscanf(f, "%le\t%le\t%le\n", 
 		&per_arch_model->regression.a,
