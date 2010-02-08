@@ -75,6 +75,7 @@ uintptr_t starpu_get_block_local_ptr(starpu_data_handle handle);
 size_t starpu_get_block_elemsize(starpu_data_handle handle);
 
 /* helper methods */
+/* TODO: prefix */
 #define GET_BLOCK_PTR(interface)	(((starpu_block_interface_t *)(interface))->ptr)
 #define GET_BLOCK_NX(interface)	(((starpu_block_interface_t *)(interface))->nx)
 #define GET_BLOCK_NY(interface)	(((starpu_block_interface_t *)(interface))->ny)
