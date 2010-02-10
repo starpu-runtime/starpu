@@ -304,6 +304,8 @@ TODO
 @item @emph{Description}:
 TODO
 
+Use @code{SCHED=help} to get the list of available schedulers
+
 @end table
 
 @node CALIBRATE
@@ -312,6 +314,8 @@ TODO
 
 @item @emph{Description}:
 TODO
+
+Note: only applies to dm and dmda scheduling policies.
 
 @end table
 
