@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,9 @@
 static unsigned nworkers;
 static struct jobq_s *queue_array[STARPU_NMAXWORKERS];
 static int use_prefetch = 0;
+
+static double alpha = 1.0;
+static double beta = 1.0;
 
 static job_t dmda_pop_task(struct jobq_s *q)
 {
@@ -108,9 +111,6 @@ static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t j, 
 			best_exp_end = exp_end[worker];
 		}
 	}
-
-	double alpha = 1.0;
-	double beta = 1.0;
 
 	double best_fitness = -1;
 	
@@ -215,6 +215,14 @@ static void initialize_dmda_policy(struct machine_config_s *config,
 	use_prefetch = starpu_get_env_number("PREFETCH");
 	if (use_prefetch == -1)
 		use_prefetch = 0;
+
+	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
+	if (strval_alpha)
+		beta = atof(strval_alpha);
+
+	const char *strval_beta = getenv("STARPU_SCHED_BETA");
+	if (strval_beta)
+		beta = atof(strval_beta);
 
 	setup_queues(init_fifo_queues_mechanisms, init_dmda_fifo, config);
 }
