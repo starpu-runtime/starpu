@@ -293,6 +293,8 @@ TODO
 * SCHED     :: Scheduling policy
 * CALIBRATE :: Calibrate performance models
 * PREFETCH  :: Use data prefetch
+* STARPU_SCHED_ALPHA  :: Computation factor
+* STARPU_SCHED_BETA  :: Communication factor
 @end menu
 
 @node SCHED
@@ -315,6 +317,24 @@ TODO
 
 @node PREFETCH
 @subsection @code{PREFETCH} -- Use data prefetch
+@table @asis
+
+@item @emph{Description}:
+TODO
+
+@end table
+
+@node STARPU_SCHED_ALPHA
+@subsection @code{STARPU_SCHED_ALPHA} -- Computation factor
+@table @asis
+
+@item @emph{Description}:
+TODO
+
+@end table
+
+@node STARPU_SCHED_BETA
+@subsection @code{STARPU_SCHED_BETA} -- Communication factor
 @table @asis
 
 @item @emph{Description}:
