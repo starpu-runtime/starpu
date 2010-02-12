@@ -73,13 +73,13 @@ static void _starpu_init_worker_queue(struct worker_s *workerarg)
 
 	switch (workerarg->arch) {
 		case STARPU_CORE_WORKER:
-			jobq->alpha = CORE_ALPHA;
+			jobq->alpha = STARPU_CORE_ALPHA;
 			break;
 		case STARPU_CUDA_WORKER:
-			jobq->alpha = CUDA_ALPHA;
+			jobq->alpha = STARPU_CUDA_ALPHA;
 			break;
 		case STARPU_GORDON_WORKER:
-			jobq->alpha = GORDON_ALPHA;
+			jobq->alpha = STARPU_GORDON_ALPHA;
 			break;
 		default:
 			STARPU_ABORT();

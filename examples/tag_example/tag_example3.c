@@ -122,7 +122,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 #ifdef USE_GORDON
 	cl.gordon_func = gordon_null_kernel;
 #endif
-	cl.where = CORE|CUDA|GORDON;
+	cl.where = STARPU_CORE|STARPU_CUDA|STARPU_GORDON;
 	cl.nbuffers = 0;
 
 	fprintf(stderr, "ITER : %d\n", nk);

@@ -181,7 +181,7 @@ static void partition_mult_data(void)
 }
 
 static starpu_codelet cl = {
-	.where = CORE|CUDA|GORDON,
+	.where = STARPU_CORE|STARPU_CUDA|STARPU_GORDON,
 	.core_func = core_mult,
 #ifdef USE_CUDA
 	.cuda_func = cublas_mult,

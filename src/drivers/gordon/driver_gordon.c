@@ -274,7 +274,7 @@ int inject_task_list(struct job_list_s *list, struct worker_s *worker)
 //	
 //	for (j = job_list_begin(list); j != job_list_end(list); j = job_list_next(j) )
 //	{
-//		if (!GORDON_MAY_PERFORM(j)) {
+//		if (!STARPU_GORDON_MAY_PERFORM(j)) {
 //			// XXX TODO
 //			ninvalids++;
 //			assert(0);
@@ -337,7 +337,7 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 			int ret = 0;
 #warning we should look into the local job list here !
 
-			struct job_list_s *list = pop_every_task(GORDON);
+			struct job_list_s *list = pop_every_task(STARPU_GORDON);
 			/* XXX 0 is hardcoded */
 			if (list)
 			{
@@ -391,7 +391,7 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 			j =  pop_task();
 	//		fprintf(stderr, "pop task %p\n", j);
 			if (j) {
-				if (GORDON_MAY_PERFORM(j)) {
+				if (STARPU_GORDON_MAY_PERFORM(j)) {
 					/* inject that task */
 					/* XXX we hardcore &arg->workers[0] for now */
 					inject_task(j, &arg->workers[0]);

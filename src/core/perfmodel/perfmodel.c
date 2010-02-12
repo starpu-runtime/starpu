@@ -67,10 +67,10 @@ static double common_task_expected_length(struct starpu_perfmodel_t *model, uint
 		exp = model->cost_model(task->buffers);
 		switch (who) {
 			case STARPU_CORE:
-				alpha = CORE_ALPHA;
+				alpha = STARPU_CORE_ALPHA;
 				break;
 			case STARPU_CUDA:
-				alpha = CUDA_ALPHA;
+				alpha = STARPU_CUDA_ALPHA;
 				break;
 			default:
 				/* perhaps there are various worker types on that queue */

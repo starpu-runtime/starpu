@@ -238,8 +238,8 @@ static int _starpu_init_machine_config(struct machine_config_s *config,
 		config->workers[config->nworkers + spu].perf_arch = STARPU_GORDON_DEFAULT;
 		config->workers[config->nworkers + spu].id = spu;
 		config->workers[config->nworkers + spu].worker_is_running = 0;
-		config->workers[config->nworkers + spu].worker_mask = GORDON;
-		config->worker_mask |= GORDON;
+		config->workers[config->nworkers + spu].worker_mask = STARPU_GORDON;
+		config->worker_mask |= STARPU_GORDON;
 	}
 
 	config->nworkers += config->ngordon_spus;
