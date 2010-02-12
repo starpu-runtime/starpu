@@ -24,8 +24,8 @@ static inline void common_block_spmv(void *descr[], int s, __attribute__((unused
 {
 	//printf("22\n");
 	float *block 	= (float *)GET_BLAS_PTR(descr[0]);
-	float *in 	= (float *)GET_VECTOR_PTR(descr[1]);
-	float *out 	= (float *)GET_VECTOR_PTR(descr[2]);
+	float *in 	= (float *)STARPU_GET_VECTOR_PTR(descr[1]);
+	float *out 	= (float *)STARPU_GET_VECTOR_PTR(descr[2]);
 
 	unsigned dx = GET_BLAS_NX(descr[0]);
 	unsigned dy = GET_BLAS_NY(descr[0]);

@@ -53,13 +53,13 @@ static unsigned v[VECTORSIZE] __attribute__((aligned(128))) = {0, 0, 0, 0};
 
 void core_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	unsigned *val = (unsigned *)GET_VECTOR_PTR(descr[0]);
+	unsigned *val = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
 	val[0]++;
 }
 
 void core_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	unsigned *val = (unsigned *)GET_VECTOR_PTR(descr[0]);
+	unsigned *val = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
 	val[2]++;
 }
 

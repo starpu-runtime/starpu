@@ -27,7 +27,7 @@ starpu_data_handle v_handle;
 #ifdef USE_CUDA
 static void cuda_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	char *buf = (char *)GET_VECTOR_PTR(descr[0]);
+	char *buf = (char *)STARPU_GET_VECTOR_PTR(descr[0]);
 
 	cudaMemset(buf, 42, 1);
 }
@@ -35,14 +35,14 @@ static void cuda_codelet_null(void *descr[], __attribute__ ((unused)) void *_arg
 
 static void core_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	char *buf = (char *)GET_VECTOR_PTR(descr[0]);
+	char *buf = (char *)STARPU_GET_VECTOR_PTR(descr[0]);
 
 	*buf = 42;
 }
 
 static void display_var(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	char *buf = (char *)GET_VECTOR_PTR(descr[0]);
+	char *buf = (char *)STARPU_GET_VECTOR_PTR(descr[0]);
 	if (*buf != 42)
 	{
 		fprintf(stderr, "Value = %c (should be %c)\n", *buf, 42);

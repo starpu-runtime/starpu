@@ -27,7 +27,7 @@ extern void cuda_codelet_host(float *tab);
 
 void core_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	float *val = (float *)GET_VECTOR_PTR(descr[0]);
+	float *val = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
 
 	val[0] += 1.0f; val[1] += 1.0f;
 }

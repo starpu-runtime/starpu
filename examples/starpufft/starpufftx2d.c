@@ -36,8 +36,8 @@ STARPUFFT(twist1_2d_kernel_gpu)(void *descr[], void *_args)
 	int m1 = plan->n1[1];
 	int m2 = plan->n2[1];
 
-	_cufftComplex * restrict in = (_cufftComplex *)GET_VECTOR_PTR(descr[0]);
-	_cufftComplex * restrict twisted1 = (_cufftComplex *)GET_VECTOR_PTR(descr[1]);
+	_cufftComplex * restrict in = (_cufftComplex *)STARPU_GET_VECTOR_PTR(descr[0]);
+	_cufftComplex * restrict twisted1 = (_cufftComplex *)STARPU_GET_VECTOR_PTR(descr[1]);
 
 	cudaStream_t stream = STARPUFFT(get_local_stream)(plan, starpu_get_worker_id());
 
@@ -57,10 +57,10 @@ STARPUFFT(fft1_2d_kernel_gpu)(void *descr[], void *_args)
 	int m2 = plan->n2[1];
 	cufftResult cures;
 
-	_cufftComplex * restrict in = (_cufftComplex *)GET_VECTOR_PTR(descr[0]);
-	_cufftComplex * restrict out = (_cufftComplex *)GET_VECTOR_PTR(descr[1]);
-	const _cufftComplex * restrict roots0 = (_cufftComplex *)GET_VECTOR_PTR(descr[2]);
-	const _cufftComplex * restrict roots1 = (_cufftComplex *)GET_VECTOR_PTR(descr[3]);
+	_cufftComplex * restrict in = (_cufftComplex *)STARPU_GET_VECTOR_PTR(descr[0]);
+	_cufftComplex * restrict out = (_cufftComplex *)STARPU_GET_VECTOR_PTR(descr[1]);
+	const _cufftComplex * restrict roots0 = (_cufftComplex *)STARPU_GET_VECTOR_PTR(descr[2]);
+	const _cufftComplex * restrict roots1 = (_cufftComplex *)STARPU_GET_VECTOR_PTR(descr[3]);
 
 	int workerid = starpu_get_worker_id();
 
@@ -101,8 +101,8 @@ STARPUFFT(fft2_2d_kernel_gpu)(void *descr[], void *_args)
 	int n;
 	cufftResult cures;
 
-	_cufftComplex * restrict in = (_cufftComplex *)GET_VECTOR_PTR(descr[0]);
-	_cufftComplex * restrict out = (_cufftComplex *)GET_VECTOR_PTR(descr[1]);
+	_cufftComplex * restrict in = (_cufftComplex *)STARPU_GET_VECTOR_PTR(descr[0]);
+	_cufftComplex * restrict out = (_cufftComplex *)STARPU_GET_VECTOR_PTR(descr[1]);
 
 	int workerid = starpu_get_worker_id();
 
@@ -140,8 +140,8 @@ STARPUFFT(twist1_2d_kernel_cpu)(void *descr[], void *_args)
 	int m2 = plan->n2[1];
 	int m = plan->n[1];
 
-	STARPUFFT(complex) * restrict in = (STARPUFFT(complex) *)GET_VECTOR_PTR(descr[0]);
-	STARPUFFT(complex) * restrict twisted1 = (STARPUFFT(complex) *)GET_VECTOR_PTR(descr[1]);
+	STARPUFFT(complex) * restrict in = (STARPUFFT(complex) *)STARPU_GET_VECTOR_PTR(descr[0]);
+	STARPUFFT(complex) * restrict twisted1 = (STARPUFFT(complex) *)STARPU_GET_VECTOR_PTR(descr[1]);
 
 	//printf("twist1 %d %d %g\n", i, j, (double) cabs(plan->in[i+j]));
 
@@ -164,8 +164,8 @@ STARPUFFT(fft1_2d_kernel_cpu)(void *descr[], void *_args)
 	int m2 = plan->n2[1];
 	int workerid = starpu_get_worker_id();
 
-	const STARPUFFT(complex) *twisted1 = (STARPUFFT(complex) *)GET_VECTOR_PTR(descr[0]);
-	STARPUFFT(complex) *fft1 = (STARPUFFT(complex) *)GET_VECTOR_PTR(descr[1]);
+	const STARPUFFT(complex) *twisted1 = (STARPUFFT(complex) *)STARPU_GET_VECTOR_PTR(descr[0]);
+	STARPUFFT(complex) *fft1 = (STARPUFFT(complex) *)STARPU_GET_VECTOR_PTR(descr[1]);
 
 	_fftw_complex * restrict worker_in1 = (STARPUFFT(complex) *)plan->plans[workerid].in1;
 	_fftw_complex * restrict worker_out1 = (STARPUFFT(complex) *)plan->plans[workerid].out1;
@@ -197,7 +197,7 @@ STARPUFFT(twist2_2d_kernel_cpu)(void *descr[], void *_args)
 	int n3 = n2/DIV_2D_N;
 	int m3 = m2/DIV_2D_M;
 
-	STARPUFFT(complex) * restrict twisted2 = (STARPUFFT(complex) *)GET_VECTOR_PTR(descr[0]);
+	STARPUFFT(complex) * restrict twisted2 = (STARPUFFT(complex) *)STARPU_GET_VECTOR_PTR(descr[0]);
 
 	//printf("twist2 %d %d %g\n", kk, ll, (double) cabs(plan->fft1[kk+ll]));
 
@@ -223,8 +223,8 @@ STARPUFFT(fft2_2d_kernel_cpu)(void *descr[], void *_args)
 	//int ll = args->ll;
 	int workerid = starpu_get_worker_id();
 
-	const STARPUFFT(complex) *twisted2 = (STARPUFFT(complex) *)GET_VECTOR_PTR(descr[0]);
-	STARPUFFT(complex) *fft2 = (STARPUFFT(complex) *)GET_VECTOR_PTR(descr[1]);
+	const STARPUFFT(complex) *twisted2 = (STARPUFFT(complex) *)STARPU_GET_VECTOR_PTR(descr[0]);
+	STARPUFFT(complex) *fft2 = (STARPUFFT(complex) *)STARPU_GET_VECTOR_PTR(descr[1]);
 
 	//printf("fft2 %d %d %g\n", kk, ll, (double) cabs(twisted2[plan->totsize4-1]));
 
@@ -256,7 +256,7 @@ STARPUFFT(twist3_2d_kernel_cpu)(void *descr[], void *_args)
 	int m3 = m2/DIV_2D_M;
 	int m = plan->n[1];
 
-	const STARPUFFT(complex) * restrict fft2 = (STARPUFFT(complex) *)GET_VECTOR_PTR(descr[0]);
+	const STARPUFFT(complex) * restrict fft2 = (STARPUFFT(complex) *)STARPU_GET_VECTOR_PTR(descr[0]);
 
 	//printf("twist3 %d %d %g\n", kk, ll, (double) cabs(fft2[0]));
 

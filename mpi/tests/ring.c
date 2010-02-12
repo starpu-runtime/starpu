@@ -27,7 +27,7 @@ extern void increment_cuda(void *descr[], __attribute__ ((unused)) void *_args);
 
 void increment_core(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	unsigned *tokenptr = (unsigned *)GET_VECTOR_PTR(descr[0]);
+	unsigned *tokenptr = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
 	(*tokenptr)++;
 }
 

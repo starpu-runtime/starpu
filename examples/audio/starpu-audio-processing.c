@@ -164,7 +164,7 @@ static void band_filter_kernel_gpu(void *descr[], __attribute__((unused)) void *
 {
 	cufftResult cures;
 
-	float *localA = (float *)GET_VECTOR_PTR(descr[0]);
+	float *localA = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
 	cufftComplex *localout;
 
 	int workerid = starpu_get_worker_id();
@@ -212,7 +212,7 @@ static pthread_mutex_t fftw_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void band_filter_kernel_cpu(void *descr[], __attribute__((unused)) void *arg)
 {
-	float *localA = (float *)GET_VECTOR_PTR(descr[0]);
+	float *localA = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
 
 	int workerid = starpu_get_worker_id();
 	

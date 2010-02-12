@@ -40,10 +40,10 @@ void axpy_cpu(void *descr[], __attribute__((unused)) void *arg)
 {
 	TYPE alpha = *((TYPE *)arg);
 
-	unsigned n = GET_VECTOR_NX(descr[0]);
+	unsigned n = STARPU_GET_VECTOR_NX(descr[0]);
 
-	TYPE *block_x = (TYPE *)GET_VECTOR_PTR(descr[0]);
-	TYPE *block_y = (TYPE *)GET_VECTOR_PTR(descr[1]);
+	TYPE *block_x = (TYPE *)STARPU_GET_VECTOR_PTR(descr[0]);
+	TYPE *block_y = (TYPE *)STARPU_GET_VECTOR_PTR(descr[1]);
 
 	AXPY((int)n, alpha, block_x, 1, block_y, 1);
 }
@@ -53,10 +53,10 @@ void axpy_gpu(void *descr[], __attribute__((unused)) void *arg)
 {
 	TYPE alpha = *((TYPE *)arg);
 
-	unsigned n = GET_VECTOR_NX(descr[0]);
+	unsigned n = STARPU_GET_VECTOR_NX(descr[0]);
 
-	TYPE *block_x = (TYPE *)GET_VECTOR_PTR(descr[0]);
-	TYPE *block_y = (TYPE *)GET_VECTOR_PTR(descr[1]);
+	TYPE *block_x = (TYPE *)STARPU_GET_VECTOR_PTR(descr[0]);
+	TYPE *block_y = (TYPE *)STARPU_GET_VECTOR_PTR(descr[1]);
 
 	CUBLASAXPY((int)n, alpha, block_x, 1, block_y, 1);
 	cudaThreadSynchronize();
