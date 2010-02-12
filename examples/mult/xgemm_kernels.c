@@ -25,17 +25,17 @@
 	TYPE *subB;			\
 	TYPE *subC;			\
 					\
-	subA = (TYPE *)GET_BLAS_PTR(descr[0]);	\
-	subB = (TYPE *)GET_BLAS_PTR(descr[1]);	\
-	subC = (TYPE *)GET_BLAS_PTR(descr[2]);	\
+	subA = (TYPE *)STARPU_GET_BLAS_PTR(descr[0]);	\
+	subB = (TYPE *)STARPU_GET_BLAS_PTR(descr[1]);	\
+	subC = (TYPE *)STARPU_GET_BLAS_PTR(descr[2]);	\
 					\
-	nxC = GET_BLAS_NX(descr[2]);		\
-	nyC = GET_BLAS_NY(descr[2]);		\
-	nyA = GET_BLAS_NY(descr[0]);		\
+	nxC = STARPU_GET_BLAS_NX(descr[2]);		\
+	nyC = STARPU_GET_BLAS_NY(descr[2]);		\
+	nyA = STARPU_GET_BLAS_NY(descr[0]);		\
 					\
-	ldA = GET_BLAS_LD(descr[0]);		\
-	ldB = GET_BLAS_LD(descr[1]);		\
-	ldC = GET_BLAS_LD(descr[2]);
+	ldA = STARPU_GET_BLAS_LD(descr[0]);		\
+	ldB = STARPU_GET_BLAS_LD(descr[1]);		\
+	ldC = STARPU_GET_BLAS_LD(descr[2]);
 
 
 

@@ -51,7 +51,7 @@ static void display_var(void *descr[], __attribute__ ((unused)) void *_args)
 }
 
 static starpu_codelet cl = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.core_func = core_codelet_null,
 #ifdef USE_CUDA
 	.cuda_func = cuda_codelet_null,
@@ -60,7 +60,7 @@ static starpu_codelet cl = {
 };
 
 static starpu_codelet display_cl = {
-	.where = CORE,
+	.where = STARPU_CORE,
 	.core_func = display_var,
 	.nbuffers = 1
 };

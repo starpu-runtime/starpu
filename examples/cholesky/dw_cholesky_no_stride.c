@@ -47,7 +47,7 @@ static void terminal_callback(void *argcb)
 
 static starpu_codelet cl11 =
 {
-	.where = CORE|CUDA|GORDON,
+	.where = STARPU_CORE|STARPU_CUDA|STARPU_GORDON,
 	.core_func = chol_core_codelet_update_u11,
 #ifdef USE_CUDA
 	.cuda_func = chol_cublas_codelet_update_u11,
@@ -76,7 +76,7 @@ static struct starpu_task * create_task_11(unsigned k, unsigned nblocks, sem_t *
 	task->buffers[0].mode = STARPU_RW;
 
 	/* this is an important task */
-	task->priority = MAX_PRIO;
+	task->priority = STARPU_MAX_PRIO;
 
 	/* enforce dependencies ... */
 	if (k > 0) {
@@ -94,7 +94,7 @@ static struct starpu_task * create_task_11(unsigned k, unsigned nblocks, sem_t *
 
 static starpu_codelet cl21 =
 {
-	.where = CORE|CUDA|GORDON,
+	.where = STARPU_CORE|STARPU_CUDA|STARPU_GORDON,
 	.core_func = chol_core_codelet_update_u21,
 #ifdef USE_CUDA
 	.cuda_func = chol_cublas_codelet_update_u21,
@@ -123,7 +123,7 @@ static void create_task_21(unsigned k, unsigned j)
 	task->buffers[1].mode = STARPU_RW;
 
 	if (j == k+1) {
-		task->priority = MAX_PRIO;
+		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
@@ -139,7 +139,7 @@ static void create_task_21(unsigned k, unsigned j)
 
 static starpu_codelet cl22 =
 {
-	.where = CORE|CUDA|GORDON,
+	.where = STARPU_CORE|STARPU_CUDA|STARPU_GORDON,
 	.core_func = chol_core_codelet_update_u22,
 #ifdef USE_CUDA
 	.cuda_func = chol_cublas_codelet_update_u22,
@@ -172,7 +172,7 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
 	task->buffers[2].mode = STARPU_RW;
 
 	if ( (i == k + 1) && (j == k +1) ) {
-		task->priority = MAX_PRIO;
+		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */

@@ -68,14 +68,14 @@ static void ds_callback(void *arg)
 
 static void ds_kernel_cpu(void *descr[], __attribute__((unused)) void *arg)
 {
-	uint8_t *input = (uint8_t *)GET_BLAS_PTR(descr[0]);
-	unsigned input_ld = GET_BLAS_LD(descr[0]);
+	uint8_t *input = (uint8_t *)STARPU_GET_BLAS_PTR(descr[0]);
+	unsigned input_ld = STARPU_GET_BLAS_LD(descr[0]);
 
-	uint8_t *output = (uint8_t *)GET_BLAS_PTR(descr[1]);
-	unsigned output_ld = GET_BLAS_LD(descr[1]);
+	uint8_t *output = (uint8_t *)STARPU_GET_BLAS_PTR(descr[1]);
+	unsigned output_ld = STARPU_GET_BLAS_LD(descr[1]);
 
-	unsigned ncols = GET_BLAS_NX(descr[0]);
-	unsigned nlines = GET_BLAS_NY(descr[0]);
+	unsigned ncols = STARPU_GET_BLAS_NX(descr[0]);
+	unsigned nlines = STARPU_GET_BLAS_NY(descr[0]);
 
 	unsigned line, col;
 	for (line = 0; line < nlines; line+=FACTOR)
@@ -98,7 +98,7 @@ static void ds_kernel_cpu(void *descr[], __attribute__((unused)) void *arg)
 }
 
 static struct starpu_codelet_t ds_codelet = {
-	.where = CORE,
+	.where = STARPU_CORE,
 	.core_func = ds_kernel_cpu,
 	.nbuffers = 2, /* input -> output */
 	.model = NULL
@@ -229,11 +229,11 @@ int main(int argc, char **argv)
 				task->callback_func = ds_callback;
 
 				/* input */
-				task->buffers[0].handle = get_sub_data(frame_y_handle[frame], 1, blocky);
+				task->buffers[0].handle = starpu_get_sub_data(frame_y_handle[frame], 1, blocky);
 				task->buffers[0].mode = STARPU_R;
 
 				/* output */
-				task->buffers[1].handle = get_sub_data(new_frame_y_handle[frame], 1, blocky);
+				task->buffers[1].handle = starpu_get_sub_data(new_frame_y_handle[frame], 1, blocky);
 				task->buffers[1].mode = STARPU_W;
 
 			starpu_submit_task(task);
@@ -247,11 +247,11 @@ int main(int argc, char **argv)
 				task->callback_func = ds_callback;
 
 				/* input */
-				task->buffers[0].handle = get_sub_data(frame_u_handle[frame], 1, blocku);
+				task->buffers[0].handle = starpu_get_sub_data(frame_u_handle[frame], 1, blocku);
 				task->buffers[0].mode = STARPU_R;
 
 				/* output */
-				task->buffers[1].handle = get_sub_data(new_frame_u_handle[frame], 1, blocku);
+				task->buffers[1].handle = starpu_get_sub_data(new_frame_u_handle[frame], 1, blocku);
 				task->buffers[1].mode = STARPU_W;
 
 			starpu_submit_task(task);
@@ -265,11 +265,11 @@ int main(int argc, char **argv)
 				task->callback_func = ds_callback;
 
 				/* input */
-				task->buffers[0].handle = get_sub_data(frame_v_handle[frame], 1, blockv);
+				task->buffers[0].handle = starpu_get_sub_data(frame_v_handle[frame], 1, blockv);
 				task->buffers[0].mode = STARPU_R;
 
 				/* output */
-				task->buffers[1].handle = get_sub_data(new_frame_v_handle[frame], 1, blockv);
+				task->buffers[1].handle = starpu_get_sub_data(new_frame_v_handle[frame], 1, blockv);
 				task->buffers[1].mode = STARPU_W;
 
 			starpu_submit_task(task);

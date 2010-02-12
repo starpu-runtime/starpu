@@ -252,7 +252,7 @@ void *_starpu_cuda_worker(void *arg)
 		jobq_unlock(queue);
 
 		/* can CUDA do that task ? */
-		if (!CUDA_MAY_PERFORM(j))
+		if (!STARPU_CUDA_MAY_PERFORM(j))
 		{
 			/* this is neither a cuda or a cublas task */
 			push_task(j);

@@ -98,28 +98,28 @@ extern void null_codelet(__attribute__((unused)) void *descr[],
 extern void display_perf(double timing, unsigned size);
 
 struct starpu_perfmodel_t strassen_model_mult = {
-        .type = HISTORY_BASED,
+        .type = STARPU_HISTORY_BASED,
         .symbol = "strassen_model_mult"
 };
 
 struct starpu_perfmodel_t strassen_model_add = {
-        .type = HISTORY_BASED,
+        .type = STARPU_HISTORY_BASED,
         .symbol = "strassen_model_add"
 };
 
 struct starpu_perfmodel_t strassen_model_sub = {
-        .type = HISTORY_BASED,
+        .type = STARPU_HISTORY_BASED,
         .symbol = "strassen_model_sub"
 };
 
 
 struct starpu_perfmodel_t strassen_model_self_add = {
-        .type = HISTORY_BASED,
+        .type = STARPU_HISTORY_BASED,
         .symbol = "strassen_model_self_add"
 };
 
 struct starpu_perfmodel_t strassen_model_self_sub = {
-        .type = HISTORY_BASED,
+        .type = STARPU_HISTORY_BASED,
         .symbol = "strassen_model_self_sub"
 };
 
@@ -207,7 +207,7 @@ enum operation {
 };
 
 static starpu_codelet cl_add = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.model = &strassen_model_add,
 	.core_func = add_core_codelet,
 #ifdef USE_CUDA
@@ -217,7 +217,7 @@ static starpu_codelet cl_add = {
 };
 
 static starpu_codelet cl_sub = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.model = &strassen_model_sub,
 	.core_func = sub_core_codelet,
 #ifdef USE_CUDA
@@ -227,7 +227,7 @@ static starpu_codelet cl_sub = {
 };
 
 static starpu_codelet cl_mult = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.model = &strassen_model_mult,
 	.core_func = mult_core_codelet,
 #ifdef USE_CUDA
@@ -273,7 +273,7 @@ struct starpu_task *compute_add_sub_op(starpu_data_handle C, enum operation op, 
 }
 
 static starpu_codelet cl_self_add = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.model = &strassen_model_self_add,
 	.core_func = self_add_core_codelet,
 #ifdef USE_CUDA
@@ -283,7 +283,7 @@ static starpu_codelet cl_self_add = {
 };
 
 static starpu_codelet cl_self_sub = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.model = &strassen_model_self_sub,
 	.core_func = self_sub_core_codelet,
 #ifdef USE_CUDA
@@ -343,7 +343,7 @@ void cleanup_callback(void *_arg)
 }
 
 static starpu_codelet cleanup_codelet = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.model = NULL,
 	.core_func = null_codelet,
 #ifdef USE_CUDA
@@ -402,20 +402,20 @@ void strassen_mult(struct strassen_iter *iter)
 		return;
 	}
 
-        starpu_data_handle A11 = get_sub_data(iter->A, 2, 0, 0);
-        starpu_data_handle A12 = get_sub_data(iter->A, 2, 1, 0);
-        starpu_data_handle A21 = get_sub_data(iter->A, 2, 0, 1);
-        starpu_data_handle A22 = get_sub_data(iter->A, 2, 1, 1);
+        starpu_data_handle A11 = starpu_get_sub_data(iter->A, 2, 0, 0);
+        starpu_data_handle A12 = starpu_get_sub_data(iter->A, 2, 1, 0);
+        starpu_data_handle A21 = starpu_get_sub_data(iter->A, 2, 0, 1);
+        starpu_data_handle A22 = starpu_get_sub_data(iter->A, 2, 1, 1);
 
-        starpu_data_handle B11 = get_sub_data(iter->B, 2, 0, 0);
-        starpu_data_handle B12 = get_sub_data(iter->B, 2, 1, 0);
-        starpu_data_handle B21 = get_sub_data(iter->B, 2, 0, 1);
-        starpu_data_handle B22 = get_sub_data(iter->B, 2, 1, 1);
+        starpu_data_handle B11 = starpu_get_sub_data(iter->B, 2, 0, 0);
+        starpu_data_handle B12 = starpu_get_sub_data(iter->B, 2, 1, 0);
+        starpu_data_handle B21 = starpu_get_sub_data(iter->B, 2, 0, 1);
+        starpu_data_handle B22 = starpu_get_sub_data(iter->B, 2, 1, 1);
 
-        starpu_data_handle C11 = get_sub_data(iter->C, 2, 0, 0);
-        starpu_data_handle C12 = get_sub_data(iter->C, 2, 1, 0);
-        starpu_data_handle C21 = get_sub_data(iter->C, 2, 0, 1);
-        starpu_data_handle C22 = get_sub_data(iter->C, 2, 1, 1);
+        starpu_data_handle C11 = starpu_get_sub_data(iter->C, 2, 0, 0);
+        starpu_data_handle C12 = starpu_get_sub_data(iter->C, 2, 1, 0);
+        starpu_data_handle C21 = starpu_get_sub_data(iter->C, 2, 0, 1);
+        starpu_data_handle C22 = starpu_get_sub_data(iter->C, 2, 1, 1);
 
 	unsigned size = starpu_get_blas_nx(A11);
 
@@ -719,7 +719,7 @@ static void dummy_codelet_func(__attribute__((unused))void *descr[],
 }
 
 static starpu_codelet dummy_codelet = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.model = NULL,
 	.core_func = dummy_codelet_func,
 	#ifdef USE_CUDA

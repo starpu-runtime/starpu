@@ -104,17 +104,17 @@ void display_stat_heat(void)
 
 static inline void dw_common_core_codelet_update_u22(void *descr[], int s, __attribute__((unused)) void *_args)
 {
-	float *left 	= (float *)GET_BLAS_PTR(descr[0]);
-	float *right 	= (float *)GET_BLAS_PTR(descr[1]);
-	float *center 	= (float *)GET_BLAS_PTR(descr[2]);
+	float *left 	= (float *)STARPU_GET_BLAS_PTR(descr[0]);
+	float *right 	= (float *)STARPU_GET_BLAS_PTR(descr[1]);
+	float *center 	= (float *)STARPU_GET_BLAS_PTR(descr[2]);
 
-	unsigned dx = GET_BLAS_NX(descr[2]);
-	unsigned dy = GET_BLAS_NY(descr[2]);
-	unsigned dz = GET_BLAS_NY(descr[0]);
+	unsigned dx = STARPU_GET_BLAS_NX(descr[2]);
+	unsigned dy = STARPU_GET_BLAS_NY(descr[2]);
+	unsigned dz = STARPU_GET_BLAS_NY(descr[0]);
 
-	unsigned ld12 = GET_BLAS_LD(descr[0]);
-	unsigned ld21 = GET_BLAS_LD(descr[1]);
-	unsigned ld22 = GET_BLAS_LD(descr[2]);
+	unsigned ld12 = STARPU_GET_BLAS_LD(descr[0]);
+	unsigned ld21 = STARPU_GET_BLAS_LD(descr[1]);
+	unsigned ld22 = STARPU_GET_BLAS_LD(descr[2]);
 
 #ifdef USE_CUDA
 	cublasStatus status;
@@ -171,14 +171,14 @@ static inline void dw_common_codelet_update_u12(void *descr[], int s, __attribut
 	float *sub11;
 	float *sub12;
 
-	sub11 = (float *)GET_BLAS_PTR(descr[0]);	
-	sub12 = (float *)GET_BLAS_PTR(descr[1]);
+	sub11 = (float *)STARPU_GET_BLAS_PTR(descr[0]);	
+	sub12 = (float *)STARPU_GET_BLAS_PTR(descr[1]);
 
-	unsigned ld11 = GET_BLAS_LD(descr[0]);
-	unsigned ld12 = GET_BLAS_LD(descr[1]);
+	unsigned ld11 = STARPU_GET_BLAS_LD(descr[0]);
+	unsigned ld12 = STARPU_GET_BLAS_LD(descr[1]);
 
-	unsigned nx12 = GET_BLAS_NX(descr[1]);
-	unsigned ny12 = GET_BLAS_NY(descr[1]);
+	unsigned nx12 = STARPU_GET_BLAS_NX(descr[1]);
+	unsigned ny12 = STARPU_GET_BLAS_NY(descr[1]);
 	
 #ifdef USE_CUDA
 	cublasStatus status;
@@ -234,14 +234,14 @@ static inline void dw_common_codelet_update_u21(void *descr[], int s, __attribut
 	float *sub11;
 	float *sub21;
 
-	sub11 = (float *)GET_BLAS_PTR(descr[0]);
-	sub21 = (float *)GET_BLAS_PTR(descr[1]);
+	sub11 = (float *)STARPU_GET_BLAS_PTR(descr[0]);
+	sub21 = (float *)STARPU_GET_BLAS_PTR(descr[1]);
 
-	unsigned ld11 = GET_BLAS_LD(descr[0]);
-	unsigned ld21 = GET_BLAS_LD(descr[1]);
+	unsigned ld11 = STARPU_GET_BLAS_LD(descr[0]);
+	unsigned ld21 = STARPU_GET_BLAS_LD(descr[1]);
 
-	unsigned nx21 = GET_BLAS_NX(descr[1]);
-	unsigned ny21 = GET_BLAS_NY(descr[1]);
+	unsigned nx21 = STARPU_GET_BLAS_NX(descr[1]);
+	unsigned ny21 = STARPU_GET_BLAS_NY(descr[1]);
 	
 #ifdef USE_CUDA
 	cublasStatus status;
@@ -309,10 +309,10 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, __attribut
 {
 	float *sub11;
 
-	sub11 = (float *)GET_BLAS_PTR(descr[0]); 
+	sub11 = (float *)STARPU_GET_BLAS_PTR(descr[0]); 
 
-	unsigned long nx = GET_BLAS_NX(descr[0]);
-	unsigned long ld = GET_BLAS_LD(descr[0]);
+	unsigned long nx = STARPU_GET_BLAS_NX(descr[0]);
+	unsigned long ld = STARPU_GET_BLAS_LD(descr[0]);
 
 	unsigned long z;
 

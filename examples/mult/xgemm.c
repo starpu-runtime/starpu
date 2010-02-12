@@ -172,7 +172,7 @@ static void unpartition_mult_data(void)
 }
 
 static struct starpu_perfmodel_t gemm_model = {
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 #ifdef ATLAS
 	.symbol = STARPU_GEMM_STR(gemm_atlas)
 #elif defined(GOTO)
@@ -183,7 +183,7 @@ static struct starpu_perfmodel_t gemm_model = {
 };
 
 static starpu_codelet cl = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.core_func = STARPU_GEMM(core_mult),
 #ifdef USE_CUDA
 	.cuda_func = STARPU_GEMM(cublas_mult),
@@ -212,12 +212,11 @@ static void launch_codelets(void)
 			task->callback_func = callback_func;
 			task->callback_arg = NULL;
 
-			task->buffers[0].handle = get_sub_data(A_handle, 1, tasky);
+			task->buffers[0].handle = starpu_get_sub_data(A_handle, 1, tasky);
 			task->buffers[0].mode = STARPU_R;
-			task->buffers[1].handle = get_sub_data(B_handle, 1, taskx);
+			task->buffers[1].handle = starpu_get_sub_data(B_handle, 1, taskx);
 			task->buffers[1].mode = STARPU_R;
-			task->buffers[2].handle = 
-				get_sub_data(C_handle, 2, taskx, tasky);
+			task->buffers[2].handle = starpu_get_sub_data(C_handle, 2, taskx, tasky);
 			task->buffers[2].mode = STARPU_RW;
 
 			starpu_submit_task(task);

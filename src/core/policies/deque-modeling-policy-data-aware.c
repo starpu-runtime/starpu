@@ -185,7 +185,7 @@ static int dmda_push_prio_task(struct jobq_s *q, job_t j)
 
 static int dmda_push_task(struct jobq_s *q, job_t j)
 {
-	if (j->task->priority == MAX_PRIO)
+	if (j->task->priority == STARPU_MAX_PRIO)
 		return _dmda_push_task(q, j, 1);
 
 	return _dmda_push_task(q, j, 0);

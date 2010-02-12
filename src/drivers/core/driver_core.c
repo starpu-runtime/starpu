@@ -170,7 +170,7 @@ void *_starpu_core_worker(void *arg)
 		jobq_unlock(queue);
 
 		/* can a core perform that task ? */
-		if (!CORE_MAY_PERFORM(j)) 
+		if (!STARPU_CORE_MAY_PERFORM(j)) 
 		{
 			/* put it and the end of the queue ... XXX */
 			push_task(j);

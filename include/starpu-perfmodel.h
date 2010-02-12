@@ -43,7 +43,7 @@ enum starpu_perf_archtype {
 	STARPU_GORDON_DEFAULT = STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS
 };
 
-#define NARCH_VARIATIONS	(STARPU_GORDON_DEFAULT+1)
+#define STARPU_NARCH_VARIATIONS	(STARPU_GORDON_DEFAULT+1)
 
 struct starpu_regression_model_t {
 	/* sum of ln(measured) */
@@ -78,7 +78,7 @@ struct starpu_per_arch_perfmodel_t {
 #endif
 };
 
-typedef enum {PER_ARCH, COMMON, HISTORY_BASED, REGRESSION_BASED} starpu_perfmodel_type;
+typedef enum {STARPU_PER_ARCH, STARPU_COMMON, STARPU_HISTORY_BASED, STARPU_REGRESSION_BASED} starpu_perfmodel_type;
 
 struct starpu_perfmodel_t {
 	/* which model is used for that task ? */
@@ -88,7 +88,7 @@ struct starpu_perfmodel_t {
 	double (*cost_model)(struct starpu_buffer_descr_t *);
 
 	/* per-architecture model */
-	struct starpu_per_arch_perfmodel_t per_arch[NARCH_VARIATIONS];
+	struct starpu_per_arch_perfmodel_t per_arch[STARPU_NARCH_VARIATIONS];
 	
 	const char *symbol;
 	enum {

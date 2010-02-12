@@ -33,7 +33,7 @@ static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attri
 
 static starpu_codelet dummy_codelet = 
 {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.core_func = dummy_func,
 	.cuda_func = dummy_func,
 	.model = NULL,

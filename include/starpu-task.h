@@ -27,14 +27,14 @@
 
 #include <starpu-data.h>
 
-#define CORE	((1ULL)<<1)
-#define CUDA	((1ULL)<<3)
-#define SPU	((1ULL)<<4)
-#define GORDON	((1ULL)<<5)
+#define STARPU_CORE	((1ULL)<<1)
+#define STARPU_CUDA	((1ULL)<<3)
+#define STARPU_SPU	((1ULL)<<4)
+#define STARPU_GORDON	((1ULL)<<5)
 
-#define MIN_PRIO        (-4)
-#define MAX_PRIO        5
-#define DEFAULT_PRIO	0
+#define STARPU_MIN_PRIO        (-4)
+#define STARPU_MAX_PRIO        5
+#define STARPU_DEFAULT_PRIO	0
 
 #ifdef __cplusplus
 extern "C" {
@@ -129,7 +129,7 @@ struct starpu_task {
 	.cl_arg_size = 0,				\
 	.callback_func = NULL,				\
 	.callback_arg = NULL,				\
-	.priority = DEFAULT_PRIO,			\
+	.priority = STARPU_DEFAULT_PRIO,                \
 	.use_tag = 0,					\
 	.synchronous = 0,				\
 	.execute_on_a_specific_worker = 0,		\

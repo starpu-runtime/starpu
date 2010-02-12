@@ -66,9 +66,9 @@ void axpy_gpu(void *descr[], __attribute__((unused)) void *arg)
 static starpu_codelet axpy_cl = {
         .where =
 #ifdef USE_CUDA
-                CUDA|
+                STARPU_CUDA|
 #endif
-                CORE,
+                STARPU_CORE,
 
 	.core_func = axpy_cpu,
 #ifdef USE_CUDA
@@ -133,10 +133,10 @@ int main(int argc, char **argv)
 
 		task->cl_arg = &alpha;
 
-		task->buffers[0].handle = get_sub_data(handle_x, 1, b);
+		task->buffers[0].handle = starpu_get_sub_data(handle_x, 1, b);
 		task->buffers[0].mode = STARPU_R;
 		
-		task->buffers[1].handle = get_sub_data(handle_y, 1, b);
+		task->buffers[1].handle = starpu_get_sub_data(handle_y, 1, b);
 		task->buffers[1].mode = STARPU_RW;
 		
 		starpu_submit_task(task);

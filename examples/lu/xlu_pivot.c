@@ -50,7 +50,7 @@ static struct starpu_task *create_task(starpu_tag_t id)
 
 
 static struct starpu_perfmodel_t STARPU_LU(model_pivot) = {
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 #ifdef ATLAS
 	.symbol = STARPU_LU_STR(lu_model_pivot_atlas)
 #elif defined(GOTO)
@@ -61,7 +61,7 @@ static struct starpu_perfmodel_t STARPU_LU(model_pivot) = {
 };
 
 static starpu_codelet cl_pivot = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.core_func = STARPU_LU(cpu_pivot),
 #ifdef USE_CUDA
 	.cuda_func = STARPU_LU(cublas_pivot),
@@ -87,7 +87,7 @@ static void create_task_pivot(starpu_data_handle *dataAp, unsigned nblocks,
 
 	/* this is an important task */
 	if (!no_prio && (i == k+1))
-		task->priority = MAX_PRIO;
+		task->priority = STARPU_MAX_PRIO;
 
 	/* enforce dependencies ... */
 	if (k == 0) {
@@ -117,7 +117,7 @@ static void create_task_pivot(starpu_data_handle *dataAp, unsigned nblocks,
 }
 
 static struct starpu_perfmodel_t STARPU_LU(model_11_pivot) = {
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 #ifdef ATLAS
 	.symbol = STARPU_LU_STR(lu_model_11_pivot_atlas)
 #elif defined(GOTO)
@@ -128,7 +128,7 @@ static struct starpu_perfmodel_t STARPU_LU(model_11_pivot) = {
 };
 
 static starpu_codelet cl11_pivot = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.core_func = STARPU_LU(cpu_u11_pivot),
 #ifdef USE_CUDA
 	.cuda_func = STARPU_LU(cublas_u11_pivot),
@@ -153,7 +153,7 @@ static struct starpu_task *create_task_11_pivot(starpu_data_handle *dataAp, unsi
 
 	/* this is an important task */
 	if (!no_prio)
-		task->priority = MAX_PRIO;
+		task->priority = STARPU_MAX_PRIO;
 
 	/* enforce dependencies ... */
 	if (k > 0) {
@@ -164,7 +164,7 @@ static struct starpu_task *create_task_11_pivot(starpu_data_handle *dataAp, unsi
 }
 
 static struct starpu_perfmodel_t STARPU_LU(model_12) = {
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 #ifdef ATLAS
 	.symbol = STARPU_LU_STR(lu_model_12_atlas)
 #elif defined(GOTO)
@@ -175,7 +175,7 @@ static struct starpu_perfmodel_t STARPU_LU(model_12) = {
 };
 
 static starpu_codelet cl12 = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.core_func = STARPU_LU(cpu_u12),
 #ifdef USE_CUDA
 	.cuda_func = STARPU_LU(cublas_u12),
@@ -202,7 +202,7 @@ static void create_task_12(starpu_data_handle *dataAp, unsigned nblocks, unsigne
 	task->buffers[1].mode = STARPU_RW;
 
 	if (!no_prio && (j == k+1)) {
-		task->priority = MAX_PRIO;
+		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
@@ -220,7 +220,7 @@ static void create_task_12(starpu_data_handle *dataAp, unsigned nblocks, unsigne
 }
 
 static struct starpu_perfmodel_t STARPU_LU(model_21) = {
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 #ifdef ATLAS
 	.symbol = STARPU_LU_STR(lu_model_21_atlas)
 #elif defined(GOTO)
@@ -231,7 +231,7 @@ static struct starpu_perfmodel_t STARPU_LU(model_21) = {
 };
 
 static starpu_codelet cl21 = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.core_func = STARPU_LU(cpu_u21),
 #ifdef USE_CUDA
 	.cuda_func = STARPU_LU(cublas_u21),
@@ -254,7 +254,7 @@ static void create_task_21(starpu_data_handle *dataAp, unsigned nblocks, unsigne
 	task->buffers[1].mode = STARPU_RW;
 
 	if (!no_prio && (i == k+1)) {
-		task->priority = MAX_PRIO;
+		task->priority = STARPU_MAX_PRIO;
 	}
 
 	task->cl_arg = (void *)(task->tag_id);
@@ -274,7 +274,7 @@ static void create_task_21(starpu_data_handle *dataAp, unsigned nblocks, unsigne
 }
 
 static struct starpu_perfmodel_t STARPU_LU(model_22) = {
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 #ifdef ATLAS
 	.symbol = STARPU_LU_STR(lu_model_22_atlas)
 #elif defined(GOTO)
@@ -285,7 +285,7 @@ static struct starpu_perfmodel_t STARPU_LU(model_22) = {
 };
 
 static starpu_codelet cl22 = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.core_func = STARPU_LU(cpu_u22),
 #ifdef USE_CUDA
 	.cuda_func = STARPU_LU(cublas_u22),
@@ -314,7 +314,7 @@ static void create_task_22(starpu_data_handle *dataAp, unsigned nblocks, unsigne
 	task->buffers[2].mode = STARPU_RW;
 
 	if (!no_prio &&  (i == k + 1) && (j == k +1) ) {
-		task->priority = MAX_PRIO;
+		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
@@ -415,7 +415,7 @@ starpu_data_handle get_block_with_striding(starpu_data_handle *dataAp,
 			unsigned nblocks __attribute__((unused)), unsigned j, unsigned i)
 {
 	/* we use filters */
-	return get_sub_data(*dataAp, 2, j, i);
+	return starpu_get_sub_data(*dataAp, 2, j, i);
 }
 
 

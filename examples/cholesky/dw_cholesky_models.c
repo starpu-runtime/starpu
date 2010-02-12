@@ -129,7 +129,7 @@ struct starpu_perfmodel_t chol_model_11 = {
 		[STARPU_CORE_DEFAULT] = { .cost_model = core_chol_task_11_cost },
 		[STARPU_CUDA_DEFAULT] = { .cost_model = cuda_chol_task_11_cost }
 	},
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 	.symbol = "chol_model_11"
 };
 
@@ -138,7 +138,7 @@ struct starpu_perfmodel_t chol_model_21 = {
 		[STARPU_CORE_DEFAULT] = { .cost_model = core_chol_task_21_cost },
 		[STARPU_CUDA_DEFAULT] = { .cost_model = cuda_chol_task_21_cost }
 	},
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 	.symbol = "chol_model_21"
 };
 
@@ -147,6 +147,6 @@ struct starpu_perfmodel_t chol_model_22 = {
 		[STARPU_CORE_DEFAULT] = { .cost_model = core_chol_task_22_cost },
 		[STARPU_CUDA_DEFAULT] = { .cost_model = cuda_chol_task_22_cost }
 	},
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 	.symbol = "chol_model_22"
 };

@@ -41,7 +41,7 @@ static void malloc_pinned_codelet(void *buffers[] __attribute__((unused)), void 
 }
 
 static starpu_codelet malloc_pinned_cl = {
-	.where = CUDA,
+	.where = STARPU_CUDA,
 	.cuda_func = malloc_pinned_codelet,
 	.model = NULL,
 	.nbuffers = 0
@@ -95,7 +95,7 @@ static void free_pinned_codelet(void *buffers[] __attribute__((unused)), void *a
 }
 
 static starpu_codelet free_pinned_cl = {
-	.where = CUDA,
+	.where = STARPU_CUDA,
 	.cuda_func = free_pinned_codelet,
 	.model = NULL,
 	.nbuffers = 0

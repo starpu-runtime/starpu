@@ -45,11 +45,11 @@ uintptr_t starpu_get_blas_local_ptr(starpu_data_handle handle);
 size_t starpu_get_blas_elemsize(starpu_data_handle handle);
 
 /* helper methods */
-#define GET_BLAS_PTR(interface)	(((starpu_blas_interface_t *)(interface))->ptr)
-#define GET_BLAS_NX(interface)	(((starpu_blas_interface_t *)(interface))->nx)
-#define GET_BLAS_NY(interface)	(((starpu_blas_interface_t *)(interface))->ny)
-#define GET_BLAS_LD(interface)	(((starpu_blas_interface_t *)(interface))->ld)
-#define GET_BLAS_ELEMSIZE(interface)	(((starpu_blas_interface_t *)(interface))->elemsize)
+#define STARPU_GET_BLAS_PTR(interface)	(((starpu_blas_interface_t *)(interface))->ptr)
+#define STARPU_GET_BLAS_NX(interface)	(((starpu_blas_interface_t *)(interface))->nx)
+#define STARPU_GET_BLAS_NY(interface)	(((starpu_blas_interface_t *)(interface))->ny)
+#define STARPU_GET_BLAS_LD(interface)	(((starpu_blas_interface_t *)(interface))->ld)
+#define STARPU_GET_BLAS_ELEMSIZE(interface)	(((starpu_blas_interface_t *)(interface))->elemsize)
 
 
 /* BLOCK interface for 3D dense blocks */

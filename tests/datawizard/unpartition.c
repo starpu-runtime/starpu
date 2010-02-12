@@ -32,7 +32,7 @@ static void dummy_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 }
 
 static starpu_codelet cl = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.core_func = dummy_codelet,
 #ifdef USE_CUDA
 	.cuda_func = dummy_codelet,
@@ -76,11 +76,11 @@ int main(int argc, char **argv)
 	{
 		starpu_map_filters(v_handle, 1, &f);
 	
-		ret = use_handle(get_sub_data(v_handle, 1, 0));
+		ret = use_handle(starpu_get_sub_data(v_handle, 1, 0));
 		if (ret == -ENODEV)
 			goto enodev;
 	
-		ret = use_handle(get_sub_data(v_handle, 1, 1));
+		ret = use_handle(starpu_get_sub_data(v_handle, 1, 1));
 		if (ret == -ENODEV)
 			goto enodev;
 	

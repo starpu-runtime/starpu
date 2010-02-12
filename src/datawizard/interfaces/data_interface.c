@@ -28,7 +28,7 @@ void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memo
 
 void register_data_handle(starpu_data_handle *handleptr, uint32_t home_node,
 				void *interface,
-				struct data_interface_ops_t *ops)
+				struct starpu_data_interface_ops_t *ops)
 {
 	starpu_data_handle handle =
 		starpu_data_state_create(ops);

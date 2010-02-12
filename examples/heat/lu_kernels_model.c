@@ -218,7 +218,7 @@ struct starpu_perfmodel_t model_11 = {
 		[STARPU_CORE_DEFAULT] = { .cost_model = task_11_cost_core },
 		[STARPU_CUDA_DEFAULT] = { .cost_model = task_11_cost_cuda }
 	},
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 #ifdef ATLAS
 	.symbol = "lu_model_11_atlas"
 #elif defined(GOTO)
@@ -234,7 +234,7 @@ struct starpu_perfmodel_t model_12 = {
 		[STARPU_CORE_DEFAULT] = { .cost_model = task_12_cost_core },
 		[STARPU_CUDA_DEFAULT] = { .cost_model = task_12_cost_cuda }
 	},
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 #ifdef ATLAS
 	.symbol = "lu_model_12_atlas"
 #elif defined(GOTO)
@@ -250,7 +250,7 @@ struct starpu_perfmodel_t model_21 = {
 		[STARPU_CORE_DEFAULT] = { .cost_model = task_21_cost_core },
 		[STARPU_CUDA_DEFAULT] = { .cost_model = task_21_cost_cuda }
 	},
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 #ifdef ATLAS
 	.symbol = "lu_model_21_atlas"
 #elif defined(GOTO)
@@ -266,7 +266,7 @@ struct starpu_perfmodel_t model_22 = {
 		[STARPU_CORE_DEFAULT] = { .cost_model = task_22_cost_core },
 		[STARPU_CUDA_DEFAULT] = { .cost_model = task_22_cost_cuda }
 	},
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 #ifdef ATLAS
 	.symbol = "lu_model_22_atlas"
 #elif defined(GOTO)

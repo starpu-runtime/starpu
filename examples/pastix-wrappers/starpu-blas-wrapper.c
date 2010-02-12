@@ -40,7 +40,7 @@
 
 #include "starpu-blas-wrapper.h"
 
-extern struct data_interface_ops_t interface_blas_ops;
+extern struct starpu_data_interface_ops_t interface_blas_ops;
 
 static int core_sgemm = 0;
 static int cublas_sgemm = 0;

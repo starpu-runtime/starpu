@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 	starpu_codelet cl =
 	{
 		/* CUBLAS stands for CUDA kernels controlled from the host */
-		.where = CORE|CUDA,
+		.where = STARPU_CORE|STARPU_CUDA,
 		.core_func = core_codelet,
 #ifdef USE_CUDA
 		.cuda_func = cuda_codelet,

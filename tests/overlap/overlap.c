@@ -54,12 +54,12 @@ static void codelet_sleep(void *descr[], __attribute__ ((unused)) void *_args)
 }
 
 static struct starpu_perfmodel_t model = {
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 	.symbol = NULL /* to be defined later */
 };
 
 static starpu_codelet cl = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.core_func = codelet_sleep,
 	.cuda_func = codelet_sleep,
 	.nbuffers = 1,
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 		struct starpu_task *task = starpu_task_create();
 		task->cl = &cl;
 
-		task->buffers[0].handle = get_sub_data(handle, 1, iter);
+		task->buffers[0].handle = starpu_get_sub_data(handle, 1, iter);
 		task->buffers[0].mode = STARPU_R;
 
 		task->callback_func = callback;

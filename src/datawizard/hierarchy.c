@@ -144,7 +144,7 @@ starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i)
 	return &handle->children[i];
 }
 
-starpu_data_handle get_sub_data(starpu_data_handle root_handle, unsigned depth, ... )
+starpu_data_handle starpu_get_sub_data(starpu_data_handle root_handle, unsigned depth, ... )
 {
 	STARPU_ASSERT(root_handle);
 	starpu_data_handle current_handle = root_handle;
@@ -328,7 +328,7 @@ void starpu_advise_if_data_is_important(starpu_data_handle handle, unsigned is_i
 
 }
 
-starpu_data_handle starpu_data_state_create(struct data_interface_ops_t *interface_ops)
+starpu_data_handle starpu_data_state_create(struct starpu_data_interface_ops_t *interface_ops)
 {
 	starpu_data_handle handle =
 		calloc(1, sizeof(struct starpu_data_state_t));
@@ -352,7 +352,7 @@ starpu_data_handle starpu_data_state_create(struct data_interface_ops_t *interfa
 /* TODO create an alternative version of that function which takes an array of
  * data interface ops in case each child may have its own interface type */
 void starpu_data_create_children(starpu_data_handle handle,
-		unsigned nchildren, struct data_interface_ops_t *children_interface_ops)
+		unsigned nchildren, struct starpu_data_interface_ops_t *children_interface_ops)
 {
 	handle->children = calloc(nchildren, sizeof(struct starpu_data_state_t));
 	STARPU_ASSERT(handle->children);

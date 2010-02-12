@@ -38,7 +38,7 @@ void starpu_task_init(struct starpu_task *task)
 	task->callback_func = NULL;
 	task->callback_arg = NULL;
 
-	task->priority = DEFAULT_PRIO;
+	task->priority = STARPU_DEFAULT_PRIO;
 	task->use_tag = 0;
 	task->synchronous = 0;
 

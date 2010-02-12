@@ -38,7 +38,7 @@ LIST_TYPE(mem_chunk,
 	 * the starpu_data_interface_t) to stay on the safe side. We make a copy of
 	 * because when a data is deleted, the memory chunk remains.
 	 */
-	struct data_interface_ops_t *ops;
+	struct starpu_data_interface_ops_t *ops;
 	void *interface;
 	unsigned automatically_allocated;
 	unsigned data_was_deleted;

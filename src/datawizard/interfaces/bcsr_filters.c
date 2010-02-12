@@ -18,7 +18,7 @@
 #include <common/config.h>
 #include <datawizard/hierarchy.h>
 
-extern struct data_interface_ops_t interface_blas_ops;
+extern struct starpu_data_interface_ops_t interface_blas_ops;
 
 void starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unused)), starpu_data_handle root_handle)
 {

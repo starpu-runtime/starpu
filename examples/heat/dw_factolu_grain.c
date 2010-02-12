@@ -41,7 +41,7 @@ static struct starpu_task *create_task(starpu_tag_t id)
 }
 
 static starpu_codelet cl11 = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.core_func = dw_core_codelet_update_u11,
 #ifdef USE_CUDA
 	.cuda_func = dw_cublas_codelet_update_u11,
@@ -59,11 +59,11 @@ static struct starpu_task *create_task_11(starpu_data_handle dataA, unsigned k, 
 	task->cl = &cl11;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = get_sub_data(dataA, 2, k, k);
+	task->buffers[0].handle = starpu_get_sub_data(dataA, 2, k, k);
 	task->buffers[0].mode = STARPU_RW;
 
 	/* this is an important task */
-	task->priority = MAX_PRIO;
+	task->priority = STARPU_MAX_PRIO;
 
 	/* enforce dependencies ... */
 	if (k > 0) {
@@ -74,7 +74,7 @@ static struct starpu_task *create_task_11(starpu_data_handle dataA, unsigned k, 
 }
 
 static starpu_codelet cl12 = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.core_func = dw_core_codelet_update_u12,
 #ifdef USE_CUDA
 	.cuda_func = dw_cublas_codelet_update_u12,
@@ -92,13 +92,13 @@ static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned i, uns
 	task->cl = &cl12;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = get_sub_data(dataA, 2, k, k); 
+	task->buffers[0].handle = starpu_get_sub_data(dataA, 2, k, k); 
 	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = get_sub_data(dataA, 2, i, k); 
+	task->buffers[1].handle = starpu_get_sub_data(dataA, 2, i, k); 
 	task->buffers[1].mode = STARPU_RW;
 
 	if (i == k+1) {
-		task->priority = MAX_PRIO;
+		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
@@ -113,7 +113,7 @@ static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned i, uns
 }
 
 static starpu_codelet cl21 = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.core_func = dw_core_codelet_update_u21,
 #ifdef USE_CUDA
 	.cuda_func = dw_cublas_codelet_update_u21,
@@ -129,13 +129,13 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j, uns
 	task->cl = &cl21;
 	
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = get_sub_data(dataA, 2, k, k); 
+	task->buffers[0].handle = starpu_get_sub_data(dataA, 2, k, k); 
 	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = get_sub_data(dataA, 2, k, j); 
+	task->buffers[1].handle = starpu_get_sub_data(dataA, 2, k, j); 
 	task->buffers[1].mode = STARPU_RW;
 
 	if (j == k+1) {
-		task->priority = MAX_PRIO;
+		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
@@ -150,7 +150,7 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j, uns
 }
 
 static starpu_codelet cl22 = {
-	.where = CORE|CUDA,
+	.where = STARPU_CORE|STARPU_CUDA,
 	.core_func = dw_core_codelet_update_u22,
 #ifdef USE_CUDA
 	.cuda_func = dw_cublas_codelet_update_u22,
@@ -168,15 +168,15 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 	task->cl = &cl22;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = get_sub_data(dataA, 2, i, k); 
+	task->buffers[0].handle = starpu_get_sub_data(dataA, 2, i, k); 
 	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = get_sub_data(dataA, 2, k, j); 
+	task->buffers[1].handle = starpu_get_sub_data(dataA, 2, k, j); 
 	task->buffers[1].mode = STARPU_R;
-	task->buffers[2].handle = get_sub_data(dataA, 2, i, j); 
+	task->buffers[2].handle = starpu_get_sub_data(dataA, 2, i, j); 
 	task->buffers[2].mode = STARPU_RW;
 
 	if ( (i == k + 1) && (j == k +1) ) {
-		task->priority = MAX_PRIO;
+		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */

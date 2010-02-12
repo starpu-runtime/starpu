@@ -204,8 +204,8 @@ static int _starpu_init_machine_config(struct machine_config_s *config,
 		enum starpu_perf_archtype arch = STARPU_CUDA_DEFAULT + devid;
 		config->workers[config->nworkers + cudagpu].id = devid;
 		config->workers[config->nworkers + cudagpu].perf_arch = arch; 
-		config->workers[config->nworkers + cudagpu].worker_mask = CUDA;
-		config->worker_mask |= CUDA;
+		config->workers[config->nworkers + cudagpu].worker_mask = STARPU_CUDA;
+		config->worker_mask |= STARPU_CUDA;
 	}
 
 	config->nworkers += config->ncudagpus;
@@ -272,8 +272,8 @@ static int _starpu_init_machine_config(struct machine_config_s *config,
 		config->workers[config->nworkers + core].arch = STARPU_CORE_WORKER;
 		config->workers[config->nworkers + core].perf_arch = STARPU_CORE_DEFAULT;
 		config->workers[config->nworkers + core].id = core;
-		config->workers[config->nworkers + core].worker_mask = CORE;
-		config->worker_mask |= CORE;
+		config->workers[config->nworkers + core].worker_mask = STARPU_CORE;
+		config->worker_mask |= STARPU_CORE;
 	}
 
 	config->nworkers += config->ncores;

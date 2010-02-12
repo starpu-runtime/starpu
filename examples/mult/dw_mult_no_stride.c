@@ -236,7 +236,7 @@ static starpu_codelet cl = {
 #endif
 
 	.model = &sgemm_model,
-	.where = CORE|CUDA|GORDON,
+	.where = STARPU_CORE|STARPU_CUDA|STARPU_GORDON,
 	.nbuffers = 3
 };
 

@@ -45,10 +45,10 @@ struct worker_s;
 typedef void (*cl_func)(void **, void *);
 typedef void (*callback)(void *);
 
-#define CORE_MAY_PERFORM(j)	((j)->task->cl->where & CORE)
-#define CUDA_MAY_PERFORM(j)     ((j)->task->cl->where & CUDA)
-#define SPU_MAY_PERFORM(j)	((j)->task->cl->where & SPU)
-#define GORDON_MAY_PERFORM(j)	((j)->task->cl->where & GORDON)
+#define STARPU_CORE_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_CORE)
+#define STARPU_CUDA_MAY_PERFORM(j)     ((j)->task->cl->where & STARPU_CUDA)
+#define STARPU_SPU_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_SPU)
+#define STARPU_GORDON_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_GORDON)
 
 /* a job is the internal representation of a task */
 LIST_TYPE(job,

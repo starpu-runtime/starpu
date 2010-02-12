@@ -92,7 +92,7 @@ struct starpu_data_state_t {
 	/* describe the actual data layout */
 	void *interface[STARPU_MAXNODES];
 
-	struct data_interface_ops_t *ops;
+	struct starpu_data_interface_ops_t *ops;
 
 	/* where is the data home ? -1 if none yet */
 	int data_home;

@@ -39,12 +39,12 @@ inline uint32_t _starpu_worker_exists(uint32_t task_mask)
 
 inline uint32_t may_submit_cuda_task(void)
 {
-	return (CUDA & config.worker_mask);
+	return (STARPU_CUDA & config.worker_mask);
 }
 
 inline uint32_t may_submit_core_task(void)
 {
-	return (CORE & config.worker_mask);
+	return (STARPU_CORE & config.worker_mask);
 }
 
 inline uint32_t _starpu_worker_may_execute_task(unsigned workerid, uint32_t where)

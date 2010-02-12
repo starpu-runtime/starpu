@@ -25,7 +25,7 @@
 #include <gordon.h>
 #endif
 
-struct data_interface_ops_t {
+struct starpu_data_interface_ops_t {
 	void (*register_data_handle)(starpu_data_handle handle,
 					uint32_t home_node, void *interface);
 	size_t (*allocate_data_on_node)(starpu_data_handle handle, uint32_t node);
@@ -44,6 +44,6 @@ struct data_interface_ops_t {
 
 void register_data_handle(starpu_data_handle *handleptr, uint32_t home_node,
 				void *interface,
-				struct data_interface_ops_t *ops);
+				struct starpu_data_interface_ops_t *ops);
 
 #endif // __DATA_INTERFACE_H__

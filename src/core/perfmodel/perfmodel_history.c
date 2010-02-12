@@ -126,7 +126,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_
 static void parse_model_file(FILE *f, struct starpu_perfmodel_t *model, unsigned scan_history)
 {
 	unsigned arch;
-	for (arch = 0; arch < NARCH_VARIATIONS; arch++)
+	for (arch = 0; arch < STARPU_NARCH_VARIATIONS; arch++)
 		parse_per_arch_model_file(f, &model->per_arch[arch], scan_history);
 }
 
@@ -166,7 +166,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel_t *model)
 	fprintf(f, "#################\n");
 
 	unsigned arch;
-	for (arch = 0; arch < NARCH_VARIATIONS; arch++)
+	for (arch = 0; arch < STARPU_NARCH_VARIATIONS; arch++)
 	{
 		char archname[32];
 		starpu_perfmodel_get_arch_name(arch, archname, 32);
@@ -185,7 +185,7 @@ static void initialize_per_arch_model(struct starpu_per_arch_perfmodel_t *per_ar
 static void initialize_model(struct starpu_perfmodel_t *model)
 {
 	unsigned arch;
-	for (arch = 0; arch < NARCH_VARIATIONS; arch++)
+	for (arch = 0; arch < STARPU_NARCH_VARIATIONS; arch++)
 		initialize_per_arch_model(&model->per_arch[arch]);
 }
 
@@ -532,7 +532,7 @@ void _starpu_update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, u
 	{
 		struct starpu_per_arch_perfmodel_t *per_arch_model = &model->per_arch[arch];
 
-		if (model->type == HISTORY_BASED || model->type == REGRESSION_BASED)
+		if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_REGRESSION_BASED)
 		{
 			uint32_t key = j->footprint;
 			struct starpu_history_entry_t *entry;

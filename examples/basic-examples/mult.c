@@ -116,9 +116,9 @@ static void cpu_mult(void *descr[], __attribute__((unused))  void *arg)
 	uint32_t ldA, ldB, ldC;
 
 	/* .blas.ptr gives a pointer to the first element of the local copy */
-	subA = (float *)GET_BLAS_PTR(descr[0]);
-	subB = (float *)GET_BLAS_PTR(descr[1]);
-	subC = (float *)GET_BLAS_PTR(descr[2]);
+	subA = (float *)STARPU_GET_BLAS_PTR(descr[0]);
+	subB = (float *)STARPU_GET_BLAS_PTR(descr[1]);
+	subC = (float *)STARPU_GET_BLAS_PTR(descr[2]);
 
 	/* .blas.nx is the number of rows (consecutive elements) and .blas.ny
 	 * is the number of lines that are separated by .blas.ld elements (ld
@@ -126,13 +126,13 @@ static void cpu_mult(void *descr[], __attribute__((unused))  void *arg)
 	 * NB: in case some filters were used, the leading dimension is not
 	 * guaranteed to be the same in main memory (on the original matrix)
 	 * and on the accelerator! */
-	nxC = GET_BLAS_NX(descr[2]);
-	nyC = GET_BLAS_NY(descr[2]);
-	nyA = GET_BLAS_NY(descr[0]);
+	nxC = STARPU_GET_BLAS_NX(descr[2]);
+	nyC = STARPU_GET_BLAS_NY(descr[2]);
+	nyA = STARPU_GET_BLAS_NY(descr[0]);
 
-	ldA = GET_BLAS_LD(descr[0]);
-	ldB = GET_BLAS_LD(descr[1]);
-	ldC = GET_BLAS_LD(descr[2]);
+	ldA = STARPU_GET_BLAS_LD(descr[0]);
+	ldB = STARPU_GET_BLAS_LD(descr[1]);
+	ldC = STARPU_GET_BLAS_LD(descr[2]);
 
 	/* we assume a FORTRAN-ordering! */
 	unsigned i,j,k;
@@ -277,7 +277,7 @@ static void partition_mult_data(void)
 }
 
 static struct starpu_perfmodel_t mult_perf_model = {
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 	.symbol = "mult_perf_model"
 };
 
@@ -293,7 +293,7 @@ static void launch_tasks(void)
 
 	starpu_codelet cl = {
 		/* we can only execute that kernel on a CPU yet */
-		.where = CORE,
+		.where = STARPU_CORE,
 		/* CPU implementation of the codelet */
 		.core_func = cpu_mult,
 		/* the codelet manipulates 3 buffers that are managed by the
@@ -339,9 +339,9 @@ static void launch_tasks(void)
 			 * identified by "tasky" (respectively "taskx). The "1"
 			 * tells StarPU that there is a single argument to the
 			 * variable-arity function get_sub_data */
-			task->buffers[0].handle = get_sub_data(A_handle, 1, tasky);
+			task->buffers[0].handle = starpu_get_sub_data(A_handle, 1, tasky);
 			task->buffers[0].mode = STARPU_R;
-			task->buffers[1].handle = get_sub_data(B_handle, 1, taskx);
+			task->buffers[1].handle = starpu_get_sub_data(B_handle, 1, taskx);
 			task->buffers[1].mode = STARPU_R;
 
 			/* 2 filters were applied on matrix C, so we give
@@ -353,8 +353,7 @@ static void launch_tasks(void)
 			 * NB2: get_sub_data(C_handle, 2, taskx, tasky) is
 			 * equivalent to
 			 * get_sub_data(get_sub_data(C_handle, 1, taskx), 1, tasky)*/
-			task->buffers[2].handle = 
-				get_sub_data(C_handle, 2, taskx, tasky);
+			task->buffers[2].handle = starpu_get_sub_data(C_handle, 2, taskx, tasky);
 			task->buffers[2].mode = STARPU_W;
 
 			/* this is not a blocking call since task->synchronous = 0 */

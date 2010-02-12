@@ -66,10 +66,10 @@ static double common_task_expected_length(struct starpu_perfmodel_t *model, uint
 		float alpha;
 		exp = model->cost_model(task->buffers);
 		switch (who) {
-			case CORE:
+			case STARPU_CORE:
 				alpha = CORE_ALPHA;
 				break;
-			case CUDA:
+			case STARPU_CUDA:
 				alpha = CUDA_ALPHA;
 				break;
 			default:
@@ -93,16 +93,16 @@ double job_expected_length(uint32_t who, struct job_s *j, enum starpu_perf_archt
 
 	if (model) {
 		switch (model->type) {
-			case PER_ARCH:
+			case STARPU_PER_ARCH:
 				return per_arch_task_expected_length(model, arch, task);
 
-			case COMMON:
+			case STARPU_COMMON:
 				return common_task_expected_length(model, who, task);
 
-			case HISTORY_BASED:
+			case STARPU_HISTORY_BASED:
 				return history_based_job_expected_length(model, arch, j);
 
-			case REGRESSION_BASED:
+			case STARPU_REGRESSION_BASED:
 				return regression_based_job_expected_length(model, arch, j);
 
 			default:

@@ -53,15 +53,15 @@ void display_perf(double timing, unsigned size)
 
 static void mult_common_codelet(void *descr[], int s, __attribute__((unused))  void *arg)
 {
-	float *center 	= (float *)GET_BLAS_PTR(descr[0]);
-	float *left 	= (float *)GET_BLAS_PTR(descr[1]);
-	float *right 	= (float *)GET_BLAS_PTR(descr[2]);
+	float *center 	= (float *)STARPU_GET_BLAS_PTR(descr[0]);
+	float *left 	= (float *)STARPU_GET_BLAS_PTR(descr[1]);
+	float *right 	= (float *)STARPU_GET_BLAS_PTR(descr[2]);
 
-	unsigned n = GET_BLAS_NX(descr[0]);
+	unsigned n = STARPU_GET_BLAS_NX(descr[0]);
 
-	unsigned ld21 = GET_BLAS_LD(descr[1]);
-	unsigned ld12 = GET_BLAS_LD(descr[2]);
-	unsigned ld22 = GET_BLAS_LD(descr[0]);
+	unsigned ld21 = STARPU_GET_BLAS_LD(descr[1]);
+	unsigned ld12 = STARPU_GET_BLAS_LD(descr[2]);
+	unsigned ld22 = STARPU_GET_BLAS_LD(descr[0]);
 
 	double flop = 2.0*n*n*n;
 
@@ -106,15 +106,15 @@ static void add_sub_common_codelet(void *descr[], int s, __attribute__((unused))
 {
 	/* C = A op B */
 
-	float *C 	= (float *)GET_BLAS_PTR(descr[0]);
-	float *A 	= (float *)GET_BLAS_PTR(descr[1]);
-	float *B 	= (float *)GET_BLAS_PTR(descr[2]);
+	float *C 	= (float *)STARPU_GET_BLAS_PTR(descr[0]);
+	float *A 	= (float *)STARPU_GET_BLAS_PTR(descr[1]);
+	float *B 	= (float *)STARPU_GET_BLAS_PTR(descr[2]);
 
-	unsigned n = GET_BLAS_NX(descr[0]);
+	unsigned n = STARPU_GET_BLAS_NX(descr[0]);
 
-	unsigned ldA = GET_BLAS_LD(descr[1]);
-	unsigned ldB = GET_BLAS_LD(descr[2]);
-	unsigned ldC = GET_BLAS_LD(descr[0]);
+	unsigned ldA = STARPU_GET_BLAS_LD(descr[1]);
+	unsigned ldB = STARPU_GET_BLAS_LD(descr[2]);
+	unsigned ldC = STARPU_GET_BLAS_LD(descr[0]);
 
 	double flop = 2.0*n*n;
 
@@ -188,13 +188,13 @@ static void self_add_sub_common_codelet(void *descr[], int s, __attribute__((unu
 {
 	/* C +=/-= A */
 
-	float *C 	= (float *)GET_BLAS_PTR(descr[0]);
-	float *A 	= (float *)GET_BLAS_PTR(descr[1]);
+	float *C 	= (float *)STARPU_GET_BLAS_PTR(descr[0]);
+	float *A 	= (float *)STARPU_GET_BLAS_PTR(descr[1]);
 
-	unsigned n = GET_BLAS_NX(descr[0]);
+	unsigned n = STARPU_GET_BLAS_NX(descr[0]);
 
-	unsigned ldA = GET_BLAS_LD(descr[1]);
-	unsigned ldC = GET_BLAS_LD(descr[0]);
+	unsigned ldA = STARPU_GET_BLAS_LD(descr[1]);
+	unsigned ldC = STARPU_GET_BLAS_LD(descr[0]);
 
 	double flop = 1.0*n*n;
 

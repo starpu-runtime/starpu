@@ -232,36 +232,36 @@ STARPUFFT(twist3_1d_kernel_cpu)(void *descr[], void *_args)
 }
 
 static struct starpu_perfmodel_t STARPUFFT(twist1_1d_model) = {
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 	.symbol = TYPE"twist1_1d"
 };
 
 static struct starpu_perfmodel_t STARPUFFT(fft1_1d_model) = {
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 	.symbol = TYPE"fft1_1d"
 };
 
 static struct starpu_perfmodel_t STARPUFFT(twist2_1d_model) = {
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 	.symbol = TYPE"twist2_1d"
 };
 
 static struct starpu_perfmodel_t STARPUFFT(fft2_1d_model) = {
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 	.symbol = TYPE"fft2_1d"
 };
 
 static struct starpu_perfmodel_t STARPUFFT(twist3_1d_model) = {
-	.type = HISTORY_BASED,
+	.type = STARPU_HISTORY_BASED,
 	.symbol = TYPE"twist3_1d"
 };
 
 static starpu_codelet STARPUFFT(twist1_1d_codelet) = {
 	.where =
 #ifdef USE_CUDA
-		CUDA|
+		STARPU_CUDA|
 #endif
-		CORE,
+		STARPU_CORE,
 #ifdef USE_CUDA
 	.cuda_func = STARPUFFT(twist1_1d_kernel_gpu),
 #endif
@@ -273,10 +273,10 @@ static starpu_codelet STARPUFFT(twist1_1d_codelet) = {
 static starpu_codelet STARPUFFT(fft1_1d_codelet) = {
 	.where =
 #ifdef USE_CUDA
-		CUDA|
+		STARPU_CUDA|
 #endif
 #ifdef HAVE_FFTW
-		CORE|
+		STARPU_CORE|
 #endif
 		0,
 #ifdef USE_CUDA
@@ -290,7 +290,7 @@ static starpu_codelet STARPUFFT(fft1_1d_codelet) = {
 };
 
 static starpu_codelet STARPUFFT(twist2_1d_codelet) = {
-	.where = CORE,
+	.where = STARPU_CORE,
 	.core_func = STARPUFFT(twist2_1d_kernel_cpu),
 	.model = &STARPUFFT(twist2_1d_model),
 	.nbuffers = 1
@@ -299,10 +299,10 @@ static starpu_codelet STARPUFFT(twist2_1d_codelet) = {
 static starpu_codelet STARPUFFT(fft2_1d_codelet) = {
 	.where =
 #ifdef USE_CUDA
-		CUDA|
+		STARPU_CUDA|
 #endif
 #ifdef HAVE_FFTW
-		CORE|
+		STARPU_CORE|
 #endif
 		0,
 #ifdef USE_CUDA
@@ -316,7 +316,7 @@ static starpu_codelet STARPUFFT(fft2_1d_codelet) = {
 };
 
 static starpu_codelet STARPUFFT(twist3_1d_codelet) = {
-	.where = CORE,
+	.where = STARPU_CORE,
 	.core_func = STARPUFFT(twist3_1d_kernel_cpu),
 	.model = &STARPUFFT(twist3_1d_model),
 	.nbuffers = 1

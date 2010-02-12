@@ -167,7 +167,7 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 	{
 		/* display all architectures */
 		unsigned archid;
-		for (archid = 0; archid < NARCH_VARIATIONS; archid++)
+		for (archid = 0; archid < STARPU_NARCH_VARIATIONS; archid++)
 		{
 			char archname[32];
 			starpu_perfmodel_get_arch_name(archid, archname, 32);
