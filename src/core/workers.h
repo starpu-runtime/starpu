@@ -46,7 +46,7 @@
 #include <drivers/gordon/driver_gordon.h>
 #endif
 
-#include <drivers/core/driver_core.h>
+#include <drivers/cpu/driver_cpu.h>
 
 #include <datawizard/datawizard.h>
 

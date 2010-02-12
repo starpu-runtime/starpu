@@ -70,7 +70,7 @@ noinst_HEADERS = 						\
 	common/starpu-spinlock.h				\
 	common/fxt.h						\
 	common/utils.h						\
-	drivers/core/driver_core.h				\
+	drivers/cpu/driver_cpu.h				\
 	drivers/gordon/driver_gordon.h				\
 	drivers/gordon/gordon_interface.h			\
 	drivers/cuda/driver_cuda.h
@@ -135,9 +135,9 @@ libstarpu_la_SOURCES = 						\
 	util/starpu_create_sync_task.c				\
 	util/starpu_cublas.c					\
 	util/file.c
-	
+
 if USE_CPU
-libstarpu_la_SOURCES += drivers/core/driver_core.c
+libstarpu_la_SOURCES += drivers/cpu/driver_cpu.c
 endif
 
 if USE_CUDA
