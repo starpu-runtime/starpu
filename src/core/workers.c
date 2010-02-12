@@ -42,9 +42,9 @@ inline uint32_t may_submit_cuda_task(void)
 	return (STARPU_CUDA & config.worker_mask);
 }
 
-inline uint32_t may_submit_core_task(void)
+inline uint32_t may_submit_cpu_task(void)
 {
-	return (STARPU_CORE & config.worker_mask);
+	return (STARPU_CPU & config.worker_mask);
 }
 
 inline uint32_t _starpu_worker_may_execute_task(unsigned workerid, uint32_t where)
@@ -72,8 +72,8 @@ static void _starpu_init_worker_queue(struct worker_s *workerarg)
 	jobq->who |= workerarg->worker_mask;
 
 	switch (workerarg->arch) {
-		case STARPU_CORE_WORKER:
-			jobq->alpha = STARPU_CORE_ALPHA;
+		case STARPU_CPU_WORKER:
+			jobq->alpha = STARPU_CPU_ALPHA;
 			break;
 		case STARPU_CUDA_WORKER:
 			jobq->alpha = STARPU_CUDA_ALPHA;
@@ -123,11 +123,11 @@ static void _starpu_init_workers(struct machine_config_s *config)
 
 		switch (workerarg->arch) {
 #ifdef USE_CPUS
-			case STARPU_CORE_WORKER:
+			case STARPU_CPU_WORKER:
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
 				pthread_create(&workerarg->worker_thread, 
-						NULL, _starpu_core_worker, workerarg);
+						NULL, _starpu_cpu_worker, workerarg);
 				break;
 #endif
 #ifdef USE_CUDA
@@ -178,7 +178,7 @@ static void _starpu_init_workers(struct machine_config_s *config)
 		struct worker_s *workerarg = &config->workers[worker];
 
 		switch (workerarg->arch) {
-			case STARPU_CORE_WORKER:
+			case STARPU_CPU_WORKER:
 			case STARPU_CUDA_WORKER:
 				pthread_mutex_lock(&workerarg->mutex);
 				if (!workerarg->worker_is_initialized)
@@ -452,9 +452,9 @@ unsigned starpu_get_worker_count(void)
 	return config.nworkers;
 }
 
-unsigned starpu_get_core_worker_count(void)
+unsigned starpu_get_cpu_worker_count(void)
 {
-	return config.ncores;
+	return config.ncpus;
 }
 
 unsigned starpu_get_cuda_worker_count(void)

@@ -68,9 +68,9 @@ static starpu_codelet axpy_cl = {
 #ifdef USE_CUDA
                 STARPU_CUDA|
 #endif
-                STARPU_CORE,
+                STARPU_CPU,
 
-	.core_func = axpy_cpu,
+	.cpu_func = axpy_cpu,
 #ifdef USE_CUDA
 	.cuda_func = axpy_gpu,
 #endif

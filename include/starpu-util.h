@@ -217,7 +217,7 @@ void starpu_trace_user_event(unsigned code);
 void starpu_helper_init_cublas(void);
 void starpu_helper_shutdown_cublas(void);
 
-/* Call func(arg) on every worker matching the "where" mask (eg. CUDA|CORE to
+/* Call func(arg) on every worker matching the "where" mask (eg. CUDA|CPU to
  * execute the function on every CPUs and every CUDA devices). This function is
  * synchronous, but the different workers may execute the function in parallel.
  * */

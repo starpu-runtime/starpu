@@ -21,7 +21,7 @@ set term postscript eps enhanced color
 set output "speedup.eps"
 set title "Facto LU : impact of granularity"
 set xlabel "problem size (unknowns)"
-set ylabel "speedup ( 3 Cores + 1 GPU vs . 4 Cores )"
+set ylabel "speedup ( 3 Cpus + 1 GPU vs . 4 Cpus )"
 set yrange [0.5:2.5]
 plot "speedup.8" usi 1:($3/$2) with lines title "(8x8)",\
 	"speedup.16" usi 1:($3/$2) with lines title "(16x16)",\

@@ -65,7 +65,7 @@ static void parse_args(int argc, char **argv)
 	}
 }
 
-void callback_core(void *argcb);
+void callback_cpu(void *argcb);
 static void express_deps(unsigned i, unsigned j, unsigned iter);
 
 static void tag_cleanup_grid(unsigned ni, unsigned nj, unsigned iter)
@@ -94,7 +94,7 @@ static void create_task_grid(unsigned iter)
 	{
 		/* create a new task */
 		struct starpu_task *task = starpu_task_create();
-		task->callback_func = callback_core;
+		task->callback_func = callback_cpu;
 		//jb->argcb = &coords[i][j];
 		task->cl = &cl;
 		task->cl_arg = NULL;
@@ -113,7 +113,7 @@ static void create_task_grid(unsigned iter)
 	{
 		/* create a new task */
 		struct starpu_task *task = starpu_task_create();
-		task->callback_func = callback_core;
+		task->callback_func = callback_cpu;
 		task->cl = &cl;
 		task->cl_arg = NULL;
 
@@ -127,7 +127,7 @@ static void create_task_grid(unsigned iter)
 }
 
 
-void callback_core(void *argcb __attribute__ ((unused)))
+void callback_cpu(void *argcb __attribute__ ((unused)))
 {
 	unsigned newcnt = STARPU_ATOMIC_ADD(&callback_cnt, -1);	
 
@@ -150,7 +150,7 @@ void callback_core(void *argcb __attribute__ ((unused)))
 	}
 }
 
-void core_codelet(void *descr[] __attribute__((unused)),
+void cpu_codelet(void *descr[] __attribute__((unused)),
 			void *_args __attribute__ ((unused)))
 {
 //	printf("execute task\n");
@@ -199,9 +199,9 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	fprintf(stderr, "ITER: %d\n", nk);
 
-	cl.where = STARPU_CORE|STARPU_CUDA|STARPU_GORDON;
-	cl.core_func = core_codelet;
-	cl.cuda_func = core_codelet;
+	cl.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON;
+	cl.cpu_func = cpu_codelet;
+	cl.cuda_func = cpu_codelet;
 #ifdef USE_GORDON
 	cl.gordon_func = gordon_null_kernel;
 #endif

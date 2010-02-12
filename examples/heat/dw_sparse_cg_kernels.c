@@ -50,7 +50,7 @@
  *		descr[0] = A, descr[1] = x, descr [2] = r, descr[3] = b
  */
 
-void core_codelet_func_1(void *descr[], __attribute__((unused)) void *arg)
+void cpu_codelet_func_1(void *descr[], __attribute__((unused)) void *arg)
 {
 	float *nzval = (float *)STARPU_GET_CSR_NZVAL(descr[0]);
 	uint32_t *colind = STARPU_GET_CSR_COLIND(descr[0]);
@@ -94,7 +94,7 @@ void core_codelet_func_1(void *descr[], __attribute__((unused)) void *arg)
  *	compute d = r
  *		descr[0] = d, descr[1] = r
  */
-void core_codelet_func_2(void *descr[], __attribute__((unused)) void *arg)
+void cpu_codelet_func_2(void *descr[], __attribute__((unused)) void *arg)
 {
 	/* simply copy r into d */
 	uint32_t nx = STARPU_GET_VECTOR_NX(descr[0]);
@@ -116,7 +116,7 @@ void core_codelet_func_2(void *descr[], __attribute__((unused)) void *arg)
  *		args = &delta_new, &delta_0
  */
 
-void core_codelet_func_3(void *descr[], void *arg)
+void cpu_codelet_func_3(void *descr[], void *arg)
 {
 	struct cg_problem *pb = arg;
 	float dot;
@@ -161,7 +161,7 @@ void cublas_codelet_func_3(void *descr[], void *arg)
  *		descr[0] = A, descr[1] = d, descr [2] = q
  */
 
-void core_codelet_func_4(void *descr[], __attribute__((unused)) void *arg)
+void cpu_codelet_func_4(void *descr[], __attribute__((unused)) void *arg)
 {
 	float *nzval = (float *)STARPU_GET_CSR_NZVAL(descr[0]);
 	uint32_t *colind = STARPU_GET_CSR_COLIND(descr[0]);
@@ -207,7 +207,7 @@ void core_codelet_func_4(void *descr[], __attribute__((unused)) void *arg)
  *		args = &alpha, &delta_new
  */
 
-void core_codelet_func_5(void *descr[], void *arg)
+void cpu_codelet_func_5(void *descr[], void *arg)
 {
 	float dot;
 	struct cg_problem *pb = arg;
@@ -256,7 +256,7 @@ void cublas_codelet_func_5(void *descr[], void *arg)
  *		args = &alpha
  */
 
-void core_codelet_func_6(void *descr[], void *arg)
+void cpu_codelet_func_6(void *descr[], void *arg)
 {
 	struct cg_problem *pb = arg;
 	float *vecx, *vecd;
@@ -295,7 +295,7 @@ void cublas_codelet_func_6(void *descr[], void *arg)
  *		args = &alpha
  */
 
-void core_codelet_func_7(void *descr[], void *arg)
+void cpu_codelet_func_7(void *descr[], void *arg)
 {
 	struct cg_problem *pb = arg;
 	float *vecr, *vecq;
@@ -336,7 +336,7 @@ void cublas_codelet_func_7(void *descr[], void *arg)
  *		args = &delta_old, &delta_new, &beta
  */
 
-void core_codelet_func_8(void *descr[], void *arg)
+void cpu_codelet_func_8(void *descr[], void *arg)
 {
 	float dot;
 	struct cg_problem *pb = arg;
@@ -382,7 +382,7 @@ void cublas_codelet_func_8(void *descr[], void *arg)
  *
  */
 
-void core_codelet_func_9(void *descr[], void *arg)
+void cpu_codelet_func_9(void *descr[], void *arg)
 {
 	struct cg_problem *pb = arg;
 	float *vecd, *vecr;

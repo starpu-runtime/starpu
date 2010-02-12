@@ -293,9 +293,9 @@ static void launch_tasks(void)
 
 	starpu_codelet cl = {
 		/* we can only execute that kernel on a CPU yet */
-		.where = STARPU_CORE,
+		.where = STARPU_CPU,
 		/* CPU implementation of the codelet */
-		.core_func = cpu_mult,
+		.cpu_func = cpu_mult,
 		/* the codelet manipulates 3 buffers that are managed by the
  		 * DSM */
 		.nbuffers = 3,

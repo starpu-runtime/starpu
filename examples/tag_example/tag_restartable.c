@@ -62,7 +62,7 @@ static void parse_args(int argc, char **argv)
 	}
 }
 
-void callback_core(void *argcb);
+void callback_cpu(void *argcb);
 
 static void create_task_grid(unsigned iter)
 {
@@ -102,7 +102,7 @@ static void start_task_grid(unsigned iter)
 		starpu_submit_task(tasks[iter][i]);
 }
 
-void core_codelet(void *descr[], void *_args __attribute__((unused)))
+void cpu_codelet(void *descr[], void *_args __attribute__((unused)))
 {
 	//int i = (uintptr_t) _args;
 	//printf("doing %x\n", i);
@@ -123,12 +123,12 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	parse_args(argc, argv);
 
-	cl.core_func = core_codelet;
-	cl.cuda_func = core_codelet;
+	cl.cpu_func = cpu_codelet;
+	cl.cuda_func = cpu_codelet;
 #ifdef USE_GORDON
 	cl.gordon_func = gordon_null_kernel;
 #endif
-	cl.where = STARPU_CORE|STARPU_CUDA|STARPU_GORDON;
+	cl.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON;
 	cl.nbuffers = 0;
 
 	fprintf(stderr, "ITER : %d\n", nk);

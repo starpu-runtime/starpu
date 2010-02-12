@@ -51,13 +51,13 @@ void cuda_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args);
 starpu_data_handle v_handle;
 static unsigned v[VECTORSIZE] __attribute__((aligned(128))) = {0, 0, 0, 0};
 
-void core_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
+void cpu_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	unsigned *val = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
 	val[0]++;
 }
 
-void core_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
+void cpu_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	unsigned *val = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
 	val[2]++;
@@ -91,8 +91,8 @@ int main(int argc, char **argv)
 		{
 			/* increment a = v[0] */
 			starpu_codelet cl_inc_a = {
-				.where = STARPU_CORE|STARPU_CUDA|STARPU_GORDON,
-				.core_func = core_codelet_incA,
+				.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
+				.cpu_func = cpu_codelet_incA,
 #ifdef USE_CUDA
 				.cuda_func = cuda_codelet_incA,
 #endif
@@ -127,8 +127,8 @@ int main(int argc, char **argv)
 		{
 			/* increment c = v[2] */
 			starpu_codelet cl_inc_c = {
-				.where = STARPU_CORE|STARPU_CUDA|STARPU_GORDON,
-				.core_func = core_codelet_incC,
+				.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
+				.cpu_func = cpu_codelet_incC,
 #ifdef USE_CUDA
 				.cuda_func = cuda_codelet_incC,
 #endif

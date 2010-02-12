@@ -33,7 +33,7 @@ static void cuda_codelet_null(void *descr[], __attribute__ ((unused)) void *_arg
 }
 #endif
 
-static void core_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
+static void cpu_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	char *buf = (char *)STARPU_GET_VECTOR_PTR(descr[0]);
 
@@ -51,8 +51,8 @@ static void display_var(void *descr[], __attribute__ ((unused)) void *_args)
 }
 
 static starpu_codelet cl = {
-	.where = STARPU_CORE|STARPU_CUDA,
-	.core_func = core_codelet_null,
+	.where = STARPU_CPU|STARPU_CUDA,
+	.cpu_func = cpu_codelet_null,
 #ifdef USE_CUDA
 	.cuda_func = cuda_codelet_null,
 #endif
@@ -60,8 +60,8 @@ static starpu_codelet cl = {
 };
 
 static starpu_codelet display_cl = {
-	.where = STARPU_CORE,
-	.core_func = display_var,
+	.where = STARPU_CPU,
+	.cpu_func = display_var,
 	.nbuffers = 1
 };
 

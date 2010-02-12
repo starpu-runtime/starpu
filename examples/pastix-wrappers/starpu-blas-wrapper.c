@@ -42,9 +42,9 @@
 
 extern struct starpu_data_interface_ops_t interface_blas_ops;
 
-static int core_sgemm = 0;
+static int cpu_sgemm = 0;
 static int cublas_sgemm = 0;
-static int core_strsm = 0;
+static int cpu_strsm = 0;
 static int cublas_strsm = 0;
 
 static int inited = 0;
@@ -61,8 +61,8 @@ void STARPU_TERMINATE(void)
 {
 	starpu_shutdown();
 
-	fprintf(stderr, "sgemm : core %d cublas %d\n", core_sgemm, cublas_sgemm);
-	fprintf(stderr, "strsm : core %d cublas %d\n", core_strsm, cublas_strsm);
+	fprintf(stderr, "sgemm : cpu %d cublas %d\n", cpu_sgemm, cublas_sgemm);
+	fprintf(stderr, "strsm : cpu %d cublas %d\n", cpu_strsm, cublas_strsm);
 }
 
 /*
@@ -230,7 +230,7 @@ void STARPU_DECLARE_WORK_BLOCKS(float *maxbloktab1, float *maxbloktab2, unsigned
 	sem_t sem;
 
 	/* initialize codelet */
-	cl.where = CUDA;
+	cl.where = STARPU_CUDA;
 	cl.cuda_func = allocate_maxbloktab_on_cublas;
 	
 	j = _starpu_job_create();
@@ -253,7 +253,7 @@ void STARPU_DECLARE_WORK_BLOCKS(float *maxbloktab1, float *maxbloktab2, unsigned
 
 }
 
-void _core_cblk_strsm(void *descr[], void *arg __attribute__((unused)))
+void _cpu_cblk_strsm(void *descr[], void *arg __attribute__((unused)))
 {
 	uint32_t nx, ny, ld;
 	nx = GET_BLAS_NX(descr[0]);
@@ -268,7 +268,7 @@ void _core_cblk_strsm(void *descr[], void *arg __attribute__((unused)))
 	unsigned n = ny;
 
 //	SOPALIN_TRSM("R","L","T","U",dimb,dima,fun,ga,stride,gb,stride);
-	core_strsm++;
+	cpu_strsm++;
 
 	cblas_strsm(CblasColMajor, CblasRight, CblasLower, CblasTrans, CblasUnit, m, n, 1.0f, 
 			diag_cblkdata, ld, extra_cblkdata, ld);
@@ -301,7 +301,7 @@ void _cublas_cblk_strsm(void *descr[], void *arg __attribute__((unused)))
 
 static struct starpu_perfmodel_t starpu_cblk_strsm = {
 	.per_arch = { 
-		[STARPU_CORE_DEFAULT] = { .cost_model = starpu_cblk_strsm_core_cost },
+		[STARPU_CPU_DEFAULT] = { .cost_model = starpu_cblk_strsm_cpu_cost },
 		[STARPU_CUDA_DEFAULT] = { .cost_model = starpu_cblk_strsm_cuda_cost }
 	},
 //	.type = REGRESSION_BASED,
@@ -318,12 +318,12 @@ void STARPU_CBLK_STRSM(unsigned col)
 	sem_t sem;
 
 	/* initialize codelet */
-	cl.where = CORE|CUDA;
-	cl.core_func = _core_cblk_strsm;
+	cl.where = STARPU_CPU|STARPU_CUDA;
+	cl.cpu_func = _cpu_cblk_strsm;
 	cl.cuda_func = _cublas_cblk_strsm;
 	
 	j = _starpu_job_create();
-//	j->where = (starpu_get_blas_nx(&cblktab[col]) > BLOCK && starpu_get_blas_ny(&cblktab[col]) > BLOCK)? CUBLAS:CORE;
+//	j->where = (starpu_get_blas_nx(&cblktab[col]) > BLOCK && starpu_get_blas_ny(&cblktab[col]) > BLOCK)? CUBLAS:CPU;
 	j->cb = _cublas_cblk_strsm_callback;
 	j->argcb = &sem;
 	j->cl = &cl;
@@ -354,7 +354,7 @@ struct starpu_compute_contrib_compact_args {
 };
 
 
-void _core_compute_contrib_compact(void *descr[], void *arg)
+void _cpu_compute_contrib_compact(void *descr[], void *arg)
 {
 	struct starpu_compute_contrib_compact_args *args = arg;
 
@@ -364,7 +364,7 @@ void _core_compute_contrib_compact(void *descr[], void *arg)
 	float *gc = (float *)GET_BLAS_PTR(descr[2]);
 	unsigned stridec = (unsigned)GET_BLAS_LD(descr[2]);
 
-	core_sgemm++;
+	cpu_sgemm++;
 
 	cblas_sgemm(CblasColMajor, CblasNoTrans, CblasTrans, 
 			args->dimi, args->dimj, args->dima,
@@ -400,7 +400,7 @@ void _cublas_compute_contrib_compact(void *descr[], void *arg)
 
 static struct starpu_perfmodel_t starpu_compute_contrib_compact = {
 	.per_arch = { 
-		[STARPU_CORE_DEFAULT] = { .cost_model = starpu_compute_contrib_compact_core_cost },
+		[STARPU_CPU_DEFAULT] = { .cost_model = starpu_compute_contrib_compact_cpu_cost },
 		[STARPU_CUDA_DEFAULT] = { .cost_model = starpu_compute_contrib_compact_cuda_cost }
 	},
 //	.type = REGRESSION_BASED,
@@ -458,8 +458,8 @@ void STARPU_COMPUTE_CONTRIB_COMPACT(unsigned col, int dimi, int dimj, int dima, 
 	sem_t sem;
 
 	/* initialize codelet */
-	cl.where = CUDA|CORE;
-	cl.core_func = _core_compute_contrib_compact;
+	cl.where = STARPU_CUDA|STARPU_CPU;
+	cl.cpu_func = _cpu_compute_contrib_compact;
 	cl.cuda_func = _cublas_compute_contrib_compact;
 	
 	j = _starpu_job_create();
@@ -600,8 +600,8 @@ void STARPU_SGEMM (const char *transa, const char *transb, const int m,
 	starpu_register_blas_data(&C_state, 0, (uintptr_t)C, ldc, m, n, sizeof(float));
 
 	/* initialize codelet */
-	cl.where = CUDA;
-	//cl.core_func = _core_strsm;
+	cl.where = STARPU_CUDA;
+	//cl.cpu_func = _cpu_strsm;
 	cl.cuda_func = _cublas_sgemm;
 	
 	j = _starpu_job_create();
@@ -656,7 +656,7 @@ struct strsm_args {
 	int m,n;
 };
 //
-//void _core_strsm(void *descr[], void *arg)
+//void _cpu_strsm(void *descr[], void *arg)
 //{
 //	float *A, *B;
 //	uint32_t nxA, nyA, ldA;
@@ -674,7 +674,7 @@ struct strsm_args {
 //
 //	struct strsm_args *args = arg;
 //
-//	fprintf(stderr, "CORE STRSM nxA %d nyA %d nxB %d nyB %d lda %d ldb %d\n", nxA, nyA, nxB, nyB, ldA, ldB);
+//	fprintf(stderr, "CPU STRSM nxA %d nyA %d nxB %d nyB %d lda %d ldb %d\n", nxA, nyA, nxB, nyB, ldA, ldB);
 //
 //	SOPALIN_TRSM("R","L","T","U",dimb,dima,fun,ga,stride,gb,stride);
 //	

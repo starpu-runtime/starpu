@@ -77,11 +77,11 @@ static unsigned reclevel = 3;
 static unsigned norandom = 0;
 static unsigned pin = 0;
 
-extern void mult_core_codelet(void *descr[], __attribute__((unused))  void *arg);
-extern void sub_core_codelet(void *descr[], __attribute__((unused))  void *arg);
-extern void add_core_codelet(void *descr[], __attribute__((unused))  void *arg);
-extern void self_add_core_codelet(void *descr[], __attribute__((unused))  void *arg);
-extern void self_sub_core_codelet(void *descr[], __attribute__((unused))  void *arg);
+extern void mult_cpu_codelet(void *descr[], __attribute__((unused))  void *arg);
+extern void sub_cpu_codelet(void *descr[], __attribute__((unused))  void *arg);
+extern void add_cpu_codelet(void *descr[], __attribute__((unused))  void *arg);
+extern void self_add_cpu_codelet(void *descr[], __attribute__((unused))  void *arg);
+extern void self_sub_cpu_codelet(void *descr[], __attribute__((unused))  void *arg);
 
 #ifdef USE_CUDA
 extern void mult_cublas_codelet(void *descr[], __attribute__((unused))  void *arg);
@@ -207,9 +207,9 @@ enum operation {
 };
 
 static starpu_codelet cl_add = {
-	.where = STARPU_CORE|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.model = &strassen_model_add,
-	.core_func = add_core_codelet,
+	.cpu_func = add_cpu_codelet,
 #ifdef USE_CUDA
 	.cuda_func = add_cublas_codelet,
 #endif
@@ -217,9 +217,9 @@ static starpu_codelet cl_add = {
 };
 
 static starpu_codelet cl_sub = {
-	.where = STARPU_CORE|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.model = &strassen_model_sub,
-	.core_func = sub_core_codelet,
+	.cpu_func = sub_cpu_codelet,
 #ifdef USE_CUDA
 	.cuda_func = sub_cublas_codelet,
 #endif
@@ -227,9 +227,9 @@ static starpu_codelet cl_sub = {
 };
 
 static starpu_codelet cl_mult = {
-	.where = STARPU_CORE|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.model = &strassen_model_mult,
-	.core_func = mult_core_codelet,
+	.cpu_func = mult_cpu_codelet,
 #ifdef USE_CUDA
 	.cuda_func = mult_cublas_codelet,
 #endif
@@ -273,9 +273,9 @@ struct starpu_task *compute_add_sub_op(starpu_data_handle C, enum operation op, 
 }
 
 static starpu_codelet cl_self_add = {
-	.where = STARPU_CORE|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.model = &strassen_model_self_add,
-	.core_func = self_add_core_codelet,
+	.cpu_func = self_add_cpu_codelet,
 #ifdef USE_CUDA
 	.cuda_func = self_add_cublas_codelet,
 #endif
@@ -283,9 +283,9 @@ static starpu_codelet cl_self_add = {
 };
 
 static starpu_codelet cl_self_sub = {
-	.where = STARPU_CORE|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.model = &strassen_model_self_sub,
-	.core_func = self_sub_core_codelet,
+	.cpu_func = self_sub_cpu_codelet,
 #ifdef USE_CUDA
 	.cuda_func = self_sub_cublas_codelet,
 #endif
@@ -343,9 +343,9 @@ void cleanup_callback(void *_arg)
 }
 
 static starpu_codelet cleanup_codelet = {
-	.where = STARPU_CORE|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.model = NULL,
-	.core_func = null_codelet,
+	.cpu_func = null_codelet,
 #ifdef USE_CUDA
 	.cuda_func = null_codelet,
 #endif
@@ -719,9 +719,9 @@ static void dummy_codelet_func(__attribute__((unused))void *descr[],
 }
 
 static starpu_codelet dummy_codelet = {
-	.where = STARPU_CORE|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.model = NULL,
-	.core_func = dummy_codelet_func,
+	.cpu_func = dummy_codelet_func,
 	#ifdef USE_CUDA
 	.cuda_func = dummy_codelet_func,
 	#endif

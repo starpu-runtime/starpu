@@ -32,8 +32,8 @@ static void dummy_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 }
 
 static starpu_codelet cl = {
-	.where = STARPU_CORE|STARPU_CUDA,
-	.core_func = dummy_codelet,
+	.where = STARPU_CPU|STARPU_CUDA,
+	.cpu_func = dummy_codelet,
 #ifdef USE_CUDA
 	.cuda_func = dummy_codelet,
 #endif

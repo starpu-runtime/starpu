@@ -102,7 +102,7 @@ void display_stat_heat(void)
  *   U22 
  */
 
-static inline void dw_common_core_codelet_update_u22(void *descr[], int s, __attribute__((unused)) void *_args)
+static inline void dw_common_cpu_codelet_update_u22(void *descr[], int s, __attribute__((unused)) void *_args)
 {
 	float *left 	= (float *)STARPU_GET_BLAS_PTR(descr[0]);
 	float *right 	= (float *)STARPU_GET_BLAS_PTR(descr[1]);
@@ -145,9 +145,9 @@ static inline void dw_common_core_codelet_update_u22(void *descr[], int s, __att
 	}
 }
 
-void dw_core_codelet_update_u22(void *descr[], void *_args)
+void dw_cpu_codelet_update_u22(void *descr[], void *_args)
 {
-	dw_common_core_codelet_update_u22(descr, 0, _args);
+	dw_common_cpu_codelet_update_u22(descr, 0, _args);
 
 	int id = starpu_get_worker_id();
 	count_22_per_worker[id]++;
@@ -156,7 +156,7 @@ void dw_core_codelet_update_u22(void *descr[], void *_args)
 #ifdef USE_CUDA
 void dw_cublas_codelet_update_u22(void *descr[], void *_args)
 {
-	dw_common_core_codelet_update_u22(descr, 1, _args);
+	dw_common_cpu_codelet_update_u22(descr, 1, _args);
 
 	int id = starpu_get_worker_id();
 	count_22_per_worker[id]++;
@@ -208,7 +208,7 @@ static inline void dw_common_codelet_update_u12(void *descr[], int s, __attribut
 	}
 }
 
-void dw_core_codelet_update_u12(void *descr[], void *_args)
+void dw_cpu_codelet_update_u12(void *descr[], void *_args)
 {
 	dw_common_codelet_update_u12(descr, 0, _args);
 
@@ -268,7 +268,7 @@ static inline void dw_common_codelet_update_u21(void *descr[], int s, __attribut
 	}
 }
 
-void dw_core_codelet_update_u21(void *descr[], void *_args)
+void dw_cpu_codelet_update_u21(void *descr[], void *_args)
 {
 	dw_common_codelet_update_u21(descr, 0, _args);
 
@@ -363,7 +363,7 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, __attribut
 }
 
 
-void dw_core_codelet_update_u11(void *descr[], void *_args)
+void dw_cpu_codelet_update_u11(void *descr[], void *_args)
 {
 	dw_common_codelet_update_u11(descr, 0, _args);
 

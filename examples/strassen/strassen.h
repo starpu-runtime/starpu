@@ -91,11 +91,11 @@ typedef struct {
 	unsigned i;
 } phase3_t;
 
-void mult_core_codelet(void *descr[], __attribute__((unused))  void *arg);
-void sub_core_codelet(void *descr[], __attribute__((unused))  void *arg);
-void add_core_codelet(void *descr[], __attribute__((unused))  void *arg);
-void self_add_core_codelet(void *descr[], __attribute__((unused))  void *arg);
-void self_sub_core_codelet(void *descr[], __attribute__((unused))  void *arg);
+void mult_cpu_codelet(void *descr[], __attribute__((unused))  void *arg);
+void sub_cpu_codelet(void *descr[], __attribute__((unused))  void *arg);
+void add_cpu_codelet(void *descr[], __attribute__((unused))  void *arg);
+void self_add_cpu_codelet(void *descr[], __attribute__((unused))  void *arg);
+void self_sub_cpu_codelet(void *descr[], __attribute__((unused))  void *arg);
 
 #ifdef USE_CUDA
 void mult_cublas_codelet(void *descr[], __attribute__((unused))  void *arg);

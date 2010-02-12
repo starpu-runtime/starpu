@@ -33,7 +33,7 @@
 
 /* some key to identify the worker kind */
 #define FUT_APPS_KEY	0x100
-#define FUT_CORE_KEY	0x101
+#define FUT_CPU_KEY	0x101
 #define FUT_CUDA_KEY	0x102
 
 #define FUT_WORKER_INIT_START	0x5133
@@ -110,7 +110,7 @@ do {									\
 	sprintf((char *)args, "%s", str);				\
 } while (0);
 
-/* workerkind = FUT_CORE_KEY for instance */
+/* workerkind = FUT_CPU_KEY for instance */
 #define TRACE_NEW_MEM_NODE(nodeid)			\
 	FUT_DO_PROBE2(FUT_NEW_MEM_NODE, nodeid, syscall(SYS_gettid));
 

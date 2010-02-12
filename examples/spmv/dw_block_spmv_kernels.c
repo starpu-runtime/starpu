@@ -47,9 +47,9 @@ static inline void common_block_spmv(void *descr[], int s, __attribute__((unused
 	}
 }
 
-void core_block_spmv(void *descr[], void *_args)
+void cpu_block_spmv(void *descr[], void *_args)
 {
-//	printf("CORE CODELET \n");
+//	printf("CPU CODELET \n");
 
 	common_block_spmv(descr, 0, _args);
 }

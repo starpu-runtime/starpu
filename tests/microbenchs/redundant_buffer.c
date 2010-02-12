@@ -31,13 +31,13 @@ static void cuda_codelet_null(void *descr[], __attribute__ ((unused)) void *_arg
 {
 }
 
-static void core_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
+static void cpu_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
 }
 
 static starpu_codelet cl = {
-	.where = STARPU_CORE|STARPU_CUDA,
-	.core_func = core_codelet_null,
+	.where = STARPU_CPU|STARPU_CUDA,
+	.cpu_func = cpu_codelet_null,
 	.cuda_func = cuda_codelet_null,
 	.nbuffers = 2
 };

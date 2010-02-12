@@ -28,8 +28,8 @@ static void dummy_func(void *descr[], void *arg)
 
 static starpu_codelet dummy_codelet = 
 {
-	.where = STARPU_CORE|STARPU_CUDA|STARPU_GORDON,
-	.core_func = dummy_func,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
+	.cpu_func = dummy_func,
 	.cuda_func = dummy_func,
 #ifdef USE_GORDON
 	.gordon_func = 0, /* this will be defined later */

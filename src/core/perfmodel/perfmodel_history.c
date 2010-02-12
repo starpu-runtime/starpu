@@ -110,7 +110,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_
 	if (!scan_history)
 		return;
 
-	/* parse core entries */
+	/* parse cpu entries */
 	unsigned i;
 	for (i = 0; i < nentries; i++) {
 		struct starpu_history_entry_t *entry = malloc(sizeof(struct starpu_history_entry_t));
@@ -274,7 +274,7 @@ static void save_history_based_model(struct starpu_perfmodel_t *model)
 #ifdef DEBUG_MODEL
 	fclose(model->gordon_debug_file);
 	fclose(model->cuda_debug_file);
-	fclose(model->core_debug_file);
+	fclose(model->cpu_debug_file);
 #endif
 }
 
@@ -446,9 +446,9 @@ int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *mod
 
 void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archname, size_t maxlen)
 {
-	if (arch == STARPU_CORE_DEFAULT)
+	if (arch == STARPU_CPU_DEFAULT)
 	{
-		snprintf(archname, maxlen, "core");
+		snprintf(archname, maxlen, "cpu");
 	}
 	else if ((STARPU_CUDA_DEFAULT <= arch)
 		&& (arch < STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS))

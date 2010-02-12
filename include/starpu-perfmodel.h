@@ -37,7 +37,7 @@ struct starpu_buffer_descr_t;
 */
 
 enum starpu_perf_archtype {
-	STARPU_CORE_DEFAULT = 0,
+	STARPU_CPU_DEFAULT = 0,
 	STARPU_CUDA_DEFAULT = 1,
 	/* STARPU_CUDA_DEFAULT + devid */
 	STARPU_GORDON_DEFAULT = STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS

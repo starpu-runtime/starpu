@@ -50,7 +50,7 @@
 
 #include <datawizard/datawizard.h>
 
-#define STARPU_CORE_ALPHA	1.0f
+#define STARPU_CPU_ALPHA	1.0f
 #define STARPU_CUDA_ALPHA	13.33f
 #define STARPU_GORDON_ALPHA	6.0f /* XXX this is a random value ... */
 
@@ -67,8 +67,8 @@ struct worker_s {
 	uint32_t worker_mask; /* what is the type of worker ? */
 	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
 	pthread_t worker_thread; /* the thread which runs the worker */
-	int id; /* which core/gpu/etc is controlled by the workker ? */
-	int bindid; /* which core is the driver bound to ? */
+	int id; /* which cpu/gpu/etc is controlled by the workker ? */
+	int bindid; /* which cpu is the driver bound to ? */
 	int workerid; /* uniquely identify the worker among all processing units types */
         pthread_cond_t ready_cond; /* indicate when the worker is ready */
 	unsigned memory_node; /* which memory node is associated that worker to ? */
@@ -101,12 +101,12 @@ struct machine_config_s {
 
 #ifdef HAVE_HWLOC
 	hwloc_topology_t hwtopology;
-	int core_depth;
+	int cpu_depth;
 #endif
 
-	unsigned nhwcores;
+	unsigned nhwcpus;
 
-	unsigned ncores;
+	unsigned ncpus;
 	unsigned ncudagpus;
 	unsigned ngordon_spus;
 
@@ -137,7 +137,7 @@ unsigned _starpu_machine_is_running(void);
 
 inline uint32_t _starpu_worker_exists(uint32_t task_mask);
 inline uint32_t may_submit_cuda_task(void);
-inline uint32_t may_submit_core_task(void);
+inline uint32_t may_submit_cpu_task(void);
 inline uint32_t _starpu_worker_may_execute_task(unsigned workerid, uint32_t where);
 unsigned _starpu_worker_can_block(unsigned memnode);
 

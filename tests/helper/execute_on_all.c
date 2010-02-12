@@ -32,9 +32,9 @@ int main(int argc, char **argv)
 
 	int arg = 0x42;
 
-	starpu_execute_on_each_worker(func, &arg, STARPU_CORE|STARPU_CUDA);
+	starpu_execute_on_each_worker(func, &arg, STARPU_CPU|STARPU_CUDA);
 
-	starpu_execute_on_each_worker(func, &arg, STARPU_CORE);
+	starpu_execute_on_each_worker(func, &arg, STARPU_CPU);
 	
 	starpu_execute_on_each_worker(func, &arg, STARPU_CUDA);
 

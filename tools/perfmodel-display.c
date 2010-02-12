@@ -42,7 +42,7 @@ static void usage(char **argv)
         fprintf(stderr, "   -l                  display all available models\n");
         fprintf(stderr, "   -s <symbol>         specify the symbol\n");
         fprintf(stderr, "   -p <parameter>      specify the parameter (e.g. a, b, c)\n");
-        fprintf(stderr, "   -a <arch>           specify the architecture (e.g. core, cuda, gordon)\n");
+        fprintf(stderr, "   -a <arch>           specify the architecture (e.g. cpu, cuda, gordon)\n");
         fprintf(stderr, "\n");
 
         exit(-1);
@@ -70,7 +70,7 @@ static void parse_args(int argc, char **argv)
 			break;
 
 		case 'a':
-			/* architecture (core, cuda, gordon) */
+			/* architecture (cpu, cuda, gordon) */
 			arch = optarg;
 			break;
 
@@ -176,8 +176,8 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 		}
 	}
 	else {
-		if (strcmp(arch, "core") == 0) {
-			display_perf_model(model, STARPU_CORE_DEFAULT);
+		if (strcmp(arch, "cpu") == 0) {
+			display_perf_model(model, STARPU_CPU_DEFAULT);
 			return;
 		}
 

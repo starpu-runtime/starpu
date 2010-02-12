@@ -59,7 +59,7 @@ void cublas_mult(void *descr[], __attribute__((unused)) void *arg)
 }
 #endif
 
-void core_mult(void *descr[], __attribute__((unused))  void *arg)
+void cpu_mult(void *descr[], __attribute__((unused))  void *arg)
 {
 	COMMON_CODE
 

@@ -20,7 +20,7 @@
 #include "driver_core.h"
 #include <core/policies/sched_policy.h>
 
-static int execute_job_on_core(job_t j, struct worker_s *core_args)
+static int execute_job_on_cpu(job_t j, struct worker_s *cpu_args)
 {
 	int ret;
 	tick_t codelet_start, codelet_end;
@@ -31,7 +31,7 @@ static int execute_job_on_core(job_t j, struct worker_s *core_args)
 	struct starpu_codelet_t *cl = task->cl;
 
 	STARPU_ASSERT(cl);
-	STARPU_ASSERT(cl->core_func);
+	STARPU_ASSERT(cl->cpu_func);
 
 	if (cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
@@ -55,17 +55,17 @@ static int execute_job_on_core(job_t j, struct worker_s *core_args)
 	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_start);
 
-	core_args->status = STATUS_EXECUTING;
-	cl_func func = cl->core_func;
+	cpu_args->status = STATUS_EXECUTING;
+	cl_func func = cl->cpu_func;
 	func(task->interface, task->cl_arg);
 
-	cl->per_worker_stats[core_args->workerid]++;
+	cl->per_worker_stats[cpu_args->workerid]++;
 	
 	if (calibrate_model || BENCHMARK_COMM)
 		GET_TICK(codelet_end);
 
 	TRACE_END_CODELET_BODY(j);
-	core_args->status = STATUS_UNKNOWN;
+	cpu_args->status = STATUS_UNKNOWN;
 
 	push_task_output(task, 0);
 
@@ -76,72 +76,72 @@ static int execute_job_on_core(job_t j, struct worker_s *core_args)
 		double measured_comm = timing_delay(&codelet_start_comm, &codelet_end_comm);
 
 //		fprintf(stderr, "%d\t%d\n", (int)j->penality, (int)measured_comm);
-		core_args->jobq->total_computation_time += measured;
-		core_args->jobq->total_communication_time += measured_comm;
+		cpu_args->jobq->total_computation_time += measured;
+		cpu_args->jobq->total_communication_time += measured_comm;
 
 		double error;
 		error = fabs(STARPU_MAX(measured, 0.0) - STARPU_MAX(j->predicted, 0.0)); 
 //		fprintf(stderr, "Error -> %le, predicted -> %le measured ->%le\n", error, j->predicted, measured);
-		core_args->jobq->total_computation_time_error += error;
+		cpu_args->jobq->total_computation_time_error += error;
 
 		if (calibrate_model)
-			_starpu_update_perfmodel_history(j, core_args->arch, core_args->id, measured);
+			_starpu_update_perfmodel_history(j, cpu_args->arch, cpu_args->id, measured);
 	}
 //#endif
 
-	core_args->jobq->total_job_performed++;
+	cpu_args->jobq->total_job_performed++;
 
 	return 0;
 }
 
-void *_starpu_core_worker(void *arg)
+void *_starpu_cpu_worker(void *arg)
 {
-	struct worker_s *core_arg = arg;
+	struct worker_s *cpu_arg = arg;
 
 #ifdef USE_FXT
-	fxt_register_thread(core_arg->bindid);
+	fxt_register_thread(cpu_arg->bindid);
 #endif
-	TRACE_WORKER_INIT_START(FUT_CORE_KEY, core_arg->memory_node);
+	TRACE_WORKER_INIT_START(FUT_CPU_KEY, cpu_arg->memory_node);
 
-	_starpu_bind_thread_on_cpu(core_arg->config, core_arg->bindid);
+	_starpu_bind_thread_on_cpu(cpu_arg->config, cpu_arg->bindid);
 
 #ifdef VERBOSE
-        fprintf(stderr, "core worker %d is ready on logical core %d\n", core_arg->id, core_arg->bindid);
+        fprintf(stderr, "cpu worker %d is ready on logical cpu %d\n", cpu_arg->id, cpu_arg->bindid);
 #endif
 
-	set_local_memory_node_key(&core_arg->memory_node);
+	set_local_memory_node_key(&cpu_arg->memory_node);
 
-	set_local_queue(core_arg->jobq);
+	set_local_queue(cpu_arg->jobq);
 
-	_starpu_set_local_worker_key(core_arg);
+	_starpu_set_local_worker_key(cpu_arg);
 
-	snprintf(core_arg->name, 32, "CORE %d", core_arg->id);
+	snprintf(cpu_arg->name, 32, "CPU %d", cpu_arg->id);
 
 	/* this is only useful (and meaningful) is there is a single
 	   memory node "related" to that queue */
-	core_arg->jobq->memory_node = core_arg->memory_node;
+	cpu_arg->jobq->memory_node = cpu_arg->memory_node;
 
-	core_arg->jobq->total_computation_time = 0.0;
-	core_arg->jobq->total_communication_time = 0.0;
-	core_arg->jobq->total_computation_time_error = 0.0;
-	core_arg->jobq->total_job_performed = 0;
+	cpu_arg->jobq->total_computation_time = 0.0;
+	cpu_arg->jobq->total_communication_time = 0.0;
+	cpu_arg->jobq->total_computation_time_error = 0.0;
+	cpu_arg->jobq->total_job_performed = 0;
 
-	core_arg->status = STATUS_UNKNOWN;
+	cpu_arg->status = STATUS_UNKNOWN;
 	
 	TRACE_WORKER_INIT_END
 
         /* tell the main thread that we are ready */
-	pthread_mutex_lock(&core_arg->mutex);
-	core_arg->worker_is_initialized = 1;
-	pthread_cond_signal(&core_arg->ready_cond);
-	pthread_mutex_unlock(&core_arg->mutex);
+	pthread_mutex_lock(&cpu_arg->mutex);
+	cpu_arg->worker_is_initialized = 1;
+	pthread_cond_signal(&cpu_arg->ready_cond);
+	pthread_mutex_unlock(&cpu_arg->mutex);
 
         job_t j;
 	int res;
 
 	struct sched_policy_s *policy = get_sched_policy();
 	struct jobq_s *queue = policy->get_local_queue(policy);
-	unsigned memnode = core_arg->memory_node;
+	unsigned memnode = cpu_arg->memory_node;
 
 	while (_starpu_machine_is_running())
 	{
@@ -154,7 +154,7 @@ void *_starpu_core_worker(void *arg)
 		jobq_lock(queue);
 
 		/* perhaps there is some local task to be executed first */
-		j = _starpu_pop_local_task(core_arg);
+		j = _starpu_pop_local_task(cpu_arg);
 
 		/* otherwise ask a task to the scheduler */
 		if (!j)
@@ -169,15 +169,15 @@ void *_starpu_core_worker(void *arg)
 		
 		jobq_unlock(queue);
 
-		/* can a core perform that task ? */
-		if (!STARPU_CORE_MAY_PERFORM(j)) 
+		/* can a cpu perform that task ? */
+		if (!STARPU_CPU_MAY_PERFORM(j)) 
 		{
 			/* put it and the end of the queue ... XXX */
 			push_task(j);
 			continue;
 		}
 
-                res = execute_job_on_core(j, core_arg);
+                res = execute_job_on_cpu(j, cpu_arg);
 		if (res) {
 			switch (res) {
 				case -EAGAIN:
@@ -194,20 +194,20 @@ void *_starpu_core_worker(void *arg)
 	TRACE_WORKER_DEINIT_START
 
 #ifdef DATA_STATS
-	fprintf(stderr, "CORE #%d computation %le comm %le (%lf \%%)\n", core_arg->id, core_arg->jobq->total_computation_time, core_arg->jobq->total_communication_time,  core_arg->jobq->total_communication_time*100.0/core_arg->jobq->total_computation_time);
+	fprintf(stderr, "CPU #%d computation %le comm %le (%lf \%%)\n", cpu_arg->id, cpu_arg->jobq->total_computation_time, cpu_arg->jobq->total_communication_time,  cpu_arg->jobq->total_communication_time*100.0/cpu_arg->jobq->total_computation_time);
 #endif
 
 #ifdef VERBOSE
 	double ratio = 0;
-	if (core_arg->jobq->total_job_performed != 0)
+	if (cpu_arg->jobq->total_job_performed != 0)
 	{
-		ratio = core_arg->jobq->total_computation_time_error/core_arg->jobq->total_computation_time;
+		ratio = cpu_arg->jobq->total_computation_time_error/cpu_arg->jobq->total_computation_time;
 	}
 
-	_starpu_print_to_logfile("MODEL ERROR: CORE %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", core_arg->id, core_arg->jobq->total_computation_time_error, core_arg->jobq->total_computation_time, ratio, core_arg->jobq->total_job_performed);
+	_starpu_print_to_logfile("MODEL ERROR: CPU %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", cpu_arg->id, cpu_arg->jobq->total_computation_time_error, cpu_arg->jobq->total_computation_time, ratio, cpu_arg->jobq->total_job_performed);
 #endif
 
-	TRACE_WORKER_DEINIT_END(FUT_CORE_KEY);
+	TRACE_WORKER_DEINIT_END(FUT_CPU_KEY);
 
 	pthread_exit(NULL);
 }

@@ -272,11 +272,11 @@ struct starpu_perfmodel_t band_filter_model = {
 };
 
 static starpu_codelet band_filter_cl = {
-	.where = CORE|CUDA,
+	.where = STARPU_CPU|STARPU_CUDA,
 #ifdef USE_CUDA
 	.cuda_func = band_filter_kernel_gpu,
 #endif
-	.core_func = band_filter_kernel_cpu,
+	.cpu_func = band_filter_kernel_cpu,
 	.model = &band_filter_model,
 	.nbuffers = 1
 };

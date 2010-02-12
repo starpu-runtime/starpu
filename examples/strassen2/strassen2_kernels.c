@@ -90,7 +90,7 @@ static void mult_common_codelet(void *descr[], int s, __attribute__((unused))  v
 	}
 }
 
-void mult_core_codelet(void *descr[], void *_args)
+void mult_cpu_codelet(void *descr[], void *_args)
 {
 	mult_common_codelet(descr, 0, _args);
 }
@@ -161,12 +161,12 @@ static void add_sub_common_codelet(void *descr[], int s, __attribute__((unused))
 	}
 }
 
-void sub_core_codelet(void *descr[], __attribute__((unused))  void *arg)
+void sub_cpu_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	add_sub_common_codelet(descr, 0, arg, -1.0f);
 }
 
-void add_core_codelet(void *descr[], __attribute__((unused))  void *arg)
+void add_cpu_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	add_sub_common_codelet(descr, 0, arg, 1.0f);
 }
@@ -237,12 +237,12 @@ static void self_add_sub_common_codelet(void *descr[], int s, __attribute__((unu
 
 
 
-void self_add_core_codelet(void *descr[], __attribute__((unused))  void *arg)
+void self_add_cpu_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	self_add_sub_common_codelet(descr, 0, arg, 1.0f);
 }
 
-void self_sub_core_codelet(void *descr[], __attribute__((unused))  void *arg)
+void self_sub_cpu_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	self_add_sub_common_codelet(descr, 0, arg, -1.0f);
 }

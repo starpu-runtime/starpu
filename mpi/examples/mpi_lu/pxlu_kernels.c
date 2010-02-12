@@ -107,8 +107,8 @@ static struct starpu_perfmodel_t STARPU_PLU(model_22) = {
 };
 
 starpu_codelet STARPU_PLU(cl22) = {
-	.where = CORE|CUDA,
-	.core_func = STARPU_PLU(cpu_u22),
+	.where = STARPU_CPU|STARPU_CUDA,
+	.cpu_func = STARPU_PLU(cpu_u22),
 #ifdef USE_CUDA
 	.cuda_func = STARPU_PLU(cublas_u22),
 #endif
@@ -214,8 +214,8 @@ static struct starpu_perfmodel_t STARPU_PLU(model_12) = {
 };
 
 starpu_codelet STARPU_PLU(cl12) = {
-	.where = CORE|CUDA,
-	.core_func = STARPU_PLU(cpu_u12),
+	.where = STARPU_CPU|STARPU_CUDA,
+	.cpu_func = STARPU_PLU(cpu_u12),
 #ifdef USE_CUDA
 	.cuda_func = STARPU_PLU(cublas_u12),
 #endif
@@ -323,8 +323,8 @@ static struct starpu_perfmodel_t STARPU_PLU(model_21) = {
 };
 
 starpu_codelet STARPU_PLU(cl21) = {
-	.where = CORE|CUDA,
-	.core_func = STARPU_PLU(cpu_u21),
+	.where = STARPU_CPU|STARPU_CUDA,
+	.cpu_func = STARPU_PLU(cpu_u21),
 #ifdef USE_CUDA
 	.cuda_func = STARPU_PLU(cublas_u21),
 #endif
@@ -428,8 +428,8 @@ static struct starpu_perfmodel_t STARPU_PLU(model_11) = {
 };
 
 starpu_codelet STARPU_PLU(cl11) = {
-	.where = CORE|CUDA,
-	.core_func = STARPU_PLU(cpu_u11),
+	.where = STARPU_CPU|STARPU_CUDA,
+	.cpu_func = STARPU_PLU(cpu_u11),
 #ifdef USE_CUDA
 	.cuda_func = STARPU_PLU(cublas_u11),
 #endif

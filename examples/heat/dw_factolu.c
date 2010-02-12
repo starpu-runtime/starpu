@@ -32,8 +32,8 @@ static unsigned no_prio = 0;
 
 static starpu_codelet cl11 =
 {
-	.where = STARPU_CORE|STARPU_CUDA,
-	.core_func = dw_core_codelet_update_u11,
+	.where = STARPU_CPU|STARPU_CUDA,
+	.cpu_func = dw_cpu_codelet_update_u11,
 #ifdef USE_CUDA
 	.cuda_func = dw_cublas_codelet_update_u11,
 #endif
@@ -43,8 +43,8 @@ static starpu_codelet cl11 =
 
 static starpu_codelet cl12 =
 {
-	.where = STARPU_CORE|STARPU_CUDA,
-	.core_func = dw_core_codelet_update_u12,
+	.where = STARPU_CPU|STARPU_CUDA,
+	.cpu_func = dw_cpu_codelet_update_u12,
 #ifdef USE_CUDA
 	.cuda_func = dw_cublas_codelet_update_u12,
 #endif
@@ -54,8 +54,8 @@ static starpu_codelet cl12 =
 
 static starpu_codelet cl21 =
 {
-	.where = STARPU_CORE|STARPU_CUDA,
-	.core_func = dw_core_codelet_update_u21,
+	.where = STARPU_CPU|STARPU_CUDA,
+	.cpu_func = dw_cpu_codelet_update_u21,
 #ifdef USE_CUDA
 	.cuda_func = dw_cublas_codelet_update_u21,
 #endif
@@ -65,8 +65,8 @@ static starpu_codelet cl21 =
 
 static starpu_codelet cl22 =
 {
-	.where = STARPU_CORE|STARPU_CUDA,
-	.core_func = dw_core_codelet_update_u22,
+	.where = STARPU_CPU|STARPU_CUDA,
+	.cpu_func = dw_cpu_codelet_update_u22,
 #ifdef USE_CUDA
 	.cuda_func = dw_cublas_codelet_update_u22,
 #endif

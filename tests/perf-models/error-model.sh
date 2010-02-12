@@ -36,8 +36,8 @@ for nblocks in $nblockslist
 do
 	i=$(($i + 1))
 
-	sumcore[$i]='0'
-	ntaskcore[$i]='0'
+	sumcpu[$i]='0'
+	ntaskcpu[$i]='0'
 	sumcuda[$i]='0'
 	ntaskcuda[$i]='0'
 	cpu_ntasktotal[$i]='0'
@@ -64,23 +64,23 @@ do
 
 	sumgflops[$i]=$(echo "${sumgflops[$i]} + $gflops"|bc -l)
 
-	# retrieve ratio for core 0, 1 and 2
-	avgcore0=`grep "MODEL ERROR: CORE 0" starpu.log | sed -e "s/^.*RATIO \(.*\) NTASKS\(.*\)$/\1/"`
-	avgcore1=`grep "MODEL ERROR: CORE 1" starpu.log | sed -e "s/^.*RATIO \(.*\) NTASKS\(.*\)$/\1/"`
-	avgcore2=`grep "MODEL ERROR: CORE 2" starpu.log | sed -e "s/^.*RATIO \(.*\) NTASKS\(.*\)$/\1/"`
+	# retrieve ratio for cpu 0, 1 and 2
+	avgcpu0=`grep "MODEL ERROR: CPU 0" starpu.log | sed -e "s/^.*RATIO \(.*\) NTASKS\(.*\)$/\1/"`
+	avgcpu1=`grep "MODEL ERROR: CPU 1" starpu.log | sed -e "s/^.*RATIO \(.*\) NTASKS\(.*\)$/\1/"`
+	avgcpu2=`grep "MODEL ERROR: CPU 2" starpu.log | sed -e "s/^.*RATIO \(.*\) NTASKS\(.*\)$/\1/"`
 	avgcuda0=`grep "MODEL ERROR: CUDA 0" starpu.log | sed -e "s/^.*RATIO \(.*\) NTASKS\(.*\)$/\1/"`
 
-	ntaskcore0=`grep "MODEL ERROR: CORE 0" starpu.log | sed -e "s/^.*RATIO \(.*\) NTASKS\(.*\)$/\2/"`
-	ntaskcore1=`grep "MODEL ERROR: CORE 1" starpu.log | sed -e "s/^.*RATIO \(.*\) NTASKS\(.*\)$/\2/"`
-	ntaskcore2=`grep "MODEL ERROR: CORE 2" starpu.log | sed -e "s/^.*RATIO \(.*\) NTASKS\(.*\)$/\2/"`
+	ntaskcpu0=`grep "MODEL ERROR: CPU 0" starpu.log | sed -e "s/^.*RATIO \(.*\) NTASKS\(.*\)$/\2/"`
+	ntaskcpu1=`grep "MODEL ERROR: CPU 1" starpu.log | sed -e "s/^.*RATIO \(.*\) NTASKS\(.*\)$/\2/"`
+	ntaskcpu2=`grep "MODEL ERROR: CPU 2" starpu.log | sed -e "s/^.*RATIO \(.*\) NTASKS\(.*\)$/\2/"`
 	ntaskcuda0=`grep "MODEL ERROR: CUDA 0" starpu.log | sed -e "s/^.*RATIO \(.*\) NTASKS\(.*\)$/\2/"`
 
-	sumcore[$i]=$(echo "${sumcore[$i]} + ( $avgcore0 * $ntaskcore0 ) + ( $avgcore1 * $ntaskcore1 ) +  ( $avgcore2 * $ntaskcore2 )"| bc -l)
-	ntaskcore[$i]=$(echo "${ntaskcore[$i]} + $ntaskcore0 + $ntaskcore1 + $ntaskcore2"|bc -l)
+	sumcpu[$i]=$(echo "${sumcpu[$i]} + ( $avgcpu0 * $ntaskcpu0 ) + ( $avgcpu1 * $ntaskcpu1 ) +  ( $avgcpu2 * $ntaskcpu2 )"| bc -l)
+	ntaskcpu[$i]=$(echo "${ntaskcpu[$i]} + $ntaskcpu0 + $ntaskcpu1 + $ntaskcpu2"|bc -l)
 	sumcuda[$i]=$(echo "${sumcuda[$i]} + ( $avgcuda0 * $ntaskcuda0 )"| bc -l)
 	ntaskcuda[$i]=$(echo "${ntaskcuda[$i]} + $ntaskcuda0"|bc -l)
 
-	cpu_taskcnt=$(($cpu_taskcnt + $ntaskcore0 + $ntaskcore1 + $ntaskcore2 ))
+	cpu_taskcnt=$(($cpu_taskcnt + $ntaskcpu0 + $ntaskcpu1 + $ntaskcpu2 ))
 	gpu_taskcnt=$(($gpu_taskcnt + $ntaskcuda0))
 
 	cpu_ntasktotal[$i]=$( echo "$cpu_taskcnt + ${cpu_ntasktotal[$i]}" | bc -l) 
@@ -99,7 +99,7 @@ do
 	cpu_ntasks=$(echo "${cpu_ntasktotal[$i]}/$niter" | bc -l)
 	gpu_ntasks=$(echo "${gpu_ntasktotal[$i]}/$niter" | bc -l)
 
-	avgcpu=$(echo "${sumcore[$i]}/${ntaskcore[$i]}"|bc -l)
+	avgcpu=$(echo "${sumcpu[$i]}/${ntaskcpu[$i]}"|bc -l)
 	avgcuda=$(echo "${sumcuda[$i]}/${ntaskcuda[$i]}"|bc -l)
 
 	echo "$cpu_ntasks $avgcpu $gpu_ntasks $avgcuda $avggflops" >> gnuplot.data

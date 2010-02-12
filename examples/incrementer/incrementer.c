@@ -25,7 +25,7 @@ extern void cuda_codelet(void *descr[], __attribute__ ((unused)) void *_args);
 
 extern void cuda_codelet_host(float *tab);
 
-void core_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	float *val = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
 
@@ -48,8 +48,8 @@ int main(int argc, char **argv)
 	starpu_codelet cl =
 	{
 		/* CUBLAS stands for CUDA kernels controlled from the host */
-		.where = STARPU_CORE|STARPU_CUDA,
-		.core_func = core_codelet,
+		.where = STARPU_CPU|STARPU_CUDA,
+		.cpu_func = cpu_codelet,
 #ifdef USE_CUDA
 		.cuda_func = cuda_codelet,
 #endif

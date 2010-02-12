@@ -150,34 +150,34 @@ int compar_cudadev_timing(const void *left_cudadev_timing, const void *right_cud
 	return (bandwith_sum2_left < bandwith_sum2_right);
 }
 
-static void measure_bandwith_between_host_and_dev(int dev, unsigned ncores)
+static void measure_bandwith_between_host_and_dev(int dev, unsigned ncpus)
 {
-	unsigned core;
-	for (core = 0; core < ncores; core++)
+	unsigned cpu;
+	for (cpu = 0; cpu < ncpus; cpu++)
 	{
-		measure_bandwith_between_host_and_dev_on_cpu(dev, core);
+		measure_bandwith_between_host_and_dev_on_cpu(dev, cpu);
 	}
 
 	/* sort the results */
-	qsort(cudadev_timing_per_cpu[dev+1], ncores,
+	qsort(cudadev_timing_per_cpu[dev+1], ncpus,
 			sizeof(struct cudadev_timing),
 			compar_cudadev_timing);
 	
 #ifdef VERBOSE
-	for (core = 0; core < ncores; core++)
+	for (cpu = 0; cpu < ncpus; cpu++)
 	{
-		unsigned current_core = cudadev_timing_per_cpu[dev+1][core].cpu_id;
-		double bandwith_dtoh = cudadev_timing_per_cpu[dev+1][core].timing_dtoh;
-		double bandwith_htod = cudadev_timing_per_cpu[dev+1][core].timing_htod;
+		unsigned current_cpu = cudadev_timing_per_cpu[dev+1][cpu].cpu_id;
+		double bandwith_dtoh = cudadev_timing_per_cpu[dev+1][cpu].timing_dtoh;
+		double bandwith_htod = cudadev_timing_per_cpu[dev+1][cpu].timing_htod;
 
 		double bandwith_sum2 = bandwith_dtoh*bandwith_dtoh + bandwith_htod*bandwith_htod;
 
-		fprintf(stderr, "BANDWITH GPU %d CPU %d - htod %lf - dtoh %lf - %lf\n", dev, current_core, bandwith_htod, bandwith_dtoh, sqrt(bandwith_sum2));
+		fprintf(stderr, "BANDWITH GPU %d CPU %d - htod %lf - dtoh %lf - %lf\n", dev, current_cpu, bandwith_htod, bandwith_dtoh, sqrt(bandwith_sum2));
 	}
 
-	unsigned best_core = cudadev_timing_per_cpu[dev+1][0].cpu_id;
+	unsigned best_cpu = cudadev_timing_per_cpu[dev+1][0].cpu_id;
 
-	fprintf(stderr, "BANDWITH GPU %d BEST CPU %d\n", dev, best_core);
+	fprintf(stderr, "BANDWITH GPU %d BEST CPU %d\n", dev, best_cpu);
 #endif
 
 	/* The results are sorted in a decreasing order, so that the best
@@ -207,14 +207,14 @@ static void benchmark_all_cuda_devices(void)
 	}
 
 	struct machine_config_s *config = _starpu_get_machine_config();
-	unsigned ncores = _starpu_topology_get_nhwcore(config);
+	unsigned ncpus = _starpu_topology_get_nhwcpu(config);
 
         cudaGetDeviceCount(&ncuda);
 	int i;
 	for (i = 0; i < ncuda; i++)
 	{
 		/* measure bandwith between Host and Device i */
-		measure_bandwith_between_host_and_dev(i, ncores);
+		measure_bandwith_between_host_and_dev(i, ncpus);
 	}
 
 	/* Restore the former affinity */
@@ -265,7 +265,7 @@ static void load_bus_affinity_file_content(void)
 
 #ifdef USE_CUDA
 	struct machine_config_s *config = _starpu_get_machine_config();
-	unsigned ncores = _starpu_topology_get_nhwcore(config);
+	unsigned ncpus = _starpu_topology_get_nhwcpu(config);
 
         cudaGetDeviceCount(&ncuda);
 
@@ -282,10 +282,10 @@ static void load_bus_affinity_file_content(void)
 
 		STARPU_ASSERT(dummy == gpu);
 
-		unsigned core;
-		for (core = 0; core < ncores; core++)
+		unsigned cpu;
+		for (cpu = 0; cpu < ncpus; cpu++)
 		{
-			ret = fscanf(f, "%d\t", &affinity_matrix[gpu][core]);
+			ret = fscanf(f, "%d\t", &affinity_matrix[gpu][cpu]);
 			STARPU_ASSERT(ret == 1);
 		}
 
@@ -315,12 +315,12 @@ static void write_bus_affinity_file_content(void)
 
 #ifdef USE_CUDA
 	struct machine_config_s *config = _starpu_get_machine_config();
-	unsigned ncores = _starpu_topology_get_nhwcore(config);
-	unsigned core;
+	unsigned ncpus = _starpu_topology_get_nhwcpu(config);
+	unsigned cpu;
 
 	fprintf(f, "# GPU\t");
-	for (core = 0; core < ncores; core++)
-		fprintf(f, "CPU%d\t", core);
+	for (cpu = 0; cpu < ncpus; cpu++)
+		fprintf(f, "CPU%d\t", cpu);
 	fprintf(f, "\n");
 
 	int gpu;
@@ -328,9 +328,9 @@ static void write_bus_affinity_file_content(void)
 	{
 		fprintf(f, "%d\t", gpu);
 
-		for (core = 0; core < ncores; core++)
+		for (cpu = 0; cpu < ncpus; cpu++)
 		{
-			fprintf(f, "%d\t", cudadev_timing_per_cpu[gpu+1][core].cpu_id);
+			fprintf(f, "%d\t", cudadev_timing_per_cpu[gpu+1][cpu].cpu_id);
 		}
 
 		fprintf(f, "\n");

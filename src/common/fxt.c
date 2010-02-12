@@ -90,9 +90,9 @@ void stop_fxt_profiling(void)
 	}
 }
 
-void fxt_register_thread(unsigned coreid)
+void fxt_register_thread(unsigned cpuid)
 {
-	FUT_DO_PROBE2(FUT_NEW_LWP_CODE, coreid, syscall(SYS_gettid));
+	FUT_DO_PROBE2(FUT_NEW_LWP_CODE, cpuid, syscall(SYS_gettid));
 }
 
 #endif

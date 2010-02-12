@@ -45,8 +45,8 @@ struct worker_s;
 typedef void (*cl_func)(void **, void *);
 typedef void (*callback)(void *);
 
-#define STARPU_CORE_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_CORE)
-#define STARPU_CUDA_MAY_PERFORM(j)     ((j)->task->cl->where & STARPU_CUDA)
+#define STARPU_CPU_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_CPU)
+#define STARPU_CUDA_MAY_PERFORM(j)      ((j)->task->cl->where & STARPU_CUDA)
 #define STARPU_SPU_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_SPU)
 #define STARPU_GORDON_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_GORDON)
 

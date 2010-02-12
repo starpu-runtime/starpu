@@ -502,7 +502,7 @@ an integer between 0 and @code{starpu_get_worker_count() - 1}.
 @item @emph{Description}:
 This function returns the type of worker associated to an identifier (as
 returned by the @code{starpu_get_worker_id} function). The returned value
-indicates the architecture of the worker: @code{STARPU_CORE_WORKER} for a CPU
+indicates the architecture of the worker: @code{STARPU_CPU_WORKER} for a CPU
 core, @code{STARPU_CUDA_WORKER} for a CUDA device, and
 @code{STARPU_GORDON_WORKER} for a Cell SPU. The value returned for an invalid
 identifier is unspecified.
@@ -568,17 +568,17 @@ various targets.
 @table @asis
 @item @code{where}: 
 Indicates which types of processing units are able to execute that codelet.
-@code{CORE|CUDA} for instance indicates that the codelet is implemented for
+@code{CPU|CUDA} for instance indicates that the codelet is implemented for
 both CPU cores and CUDA devices while @code{GORDON} indicates that it is only
 available on Cell SPUs.
 
-@item @code{core_func} (optionnal):
+@item @code{cpu_func} (optionnal):
 Is a function pointer to the CPU implementation of the codelet. Its prototype
-must be: @code{void core_func(starpu_data_interface_t *descr, void *arg)}. The
+must be: @code{void cpu_func(starpu_data_interface_t *descr, void *arg)}. The
 first argument being the array of data managed by the data management library,
 and the second argument is a pointer to the argument (possibly a copy of it)
 passed from the @code{.cl_arg} field of the @code{starpu_task} structure. This
-pointer is ignored if @code{CORE} does not appear in the @code{.where} field,
+pointer is ignored if @code{CPU} does not appear in the @code{.where} field,
 it must be non-null otherwise.
 
 @item @code{cuda_func} (optionnal):
@@ -986,8 +986,8 @@ void cpu_func(starpu_data_interface_t *buffers, void *func_arg)
 
 starpu_codelet cl =
 @{
-    .where = CORE,
-    .core_func = cpu_func,
+    .where = CPU,
+    .cpu_func = cpu_func,
     .nbuffers = 0
 @};
 @c @end cartouche
@@ -1007,12 +1007,12 @@ management library.
 @c TODO need a crossref to the proper description of "where" see bla for more ...
 We create a codelet which may only be executed on the CPUs. The ''@code{.where}''
 field is a bitmask that defines where the codelet may be executed. Here, the
-@code{CORE} value means that only CPUs can execute this codelet
+@code{CPU} value means that only CPUs can execute this codelet
 (@pxref{Codelets and Tasks} for more details on that field).
-When a CPU core executes a codelet, it calls the @code{.core_func} function,
+When a CPU core executes a codelet, it calls the @code{.cpu_func} function,
 which @emph{must} have the following prototype:
 
-@code{void (*core_func)(starpu_data_interface_t *, void *)}
+@code{void (*cpu_func)(starpu_data_interface_t *, void *)}
 
 In this example, we can ignore the first argument of this function which gives a
 description of the input and output buffers (eg. the size and the location of
@@ -1174,8 +1174,8 @@ void scal_func(starpu_data_interface_t *buffers, void *arg)
 @}
 
 starpu_codelet cl = @{
-    .where = CORE,
-    .core_func = scal_func,
+    .where = CPU,
+    .cpu_func = scal_func,
     .nbuffers = 1
 @};
 @end example

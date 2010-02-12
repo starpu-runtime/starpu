@@ -32,10 +32,10 @@
 
 #include <starpu.h>
 
-void *_starpu_core_worker(void *);
+void *_starpu_cpu_worker(void *);
 
-#ifndef NMAXCORES
-#define NMAXCORES       4
+#ifndef NMAXCPUS
+#define NMAXCPUS       4
 #endif
 
 #endif //  __DRIVER_CORE_H__

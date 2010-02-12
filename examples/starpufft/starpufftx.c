@@ -234,7 +234,7 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 
 	for (workerid = 0; workerid < starpu_get_worker_count(); workerid++) {
 		switch (starpu_get_worker_type(workerid)) {
-		case STARPU_CORE_WORKER:
+		case STARPU_CPU_WORKER:
 #ifdef HAVE_FFTW
 			_FFTW(free)(plan->plans[workerid].in1);
 			_FFTW(free)(plan->plans[workerid].out1);

@@ -25,18 +25,18 @@ starpu_data_handle token_handle;
 extern void increment_cuda(void *descr[], __attribute__ ((unused)) void *_args);
 #endif
 
-void increment_core(void *descr[], __attribute__ ((unused)) void *_args)
+void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	unsigned *tokenptr = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
 	(*tokenptr)++;
 }
 
 static starpu_codelet increment_cl = {
-	.where = CORE|CUDA,
+	.where = STARPU_CPU|STARPU_CUDA,
 #ifdef USE_CUDA
 	.cuda_func = increment_cuda,
 #endif
-	.core_func = increment_core,
+	.cpu_func = increment_cpu,
 	.nbuffers = 1
 };
 

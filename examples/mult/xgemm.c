@@ -183,8 +183,8 @@ static struct starpu_perfmodel_t gemm_model = {
 };
 
 static starpu_codelet cl = {
-	.where = STARPU_CORE|STARPU_CUDA,
-	.core_func = STARPU_GEMM(core_mult),
+	.where = STARPU_CPU|STARPU_CUDA,
+	.cpu_func = STARPU_GEMM(cpu_mult),
 #ifdef USE_CUDA
 	.cuda_func = STARPU_GEMM(cublas_mult),
 #endif

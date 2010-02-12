@@ -27,7 +27,7 @@
 
 #include <starpu-data.h>
 
-#define STARPU_CORE	((1ULL)<<1)
+#define STARPU_CPU	((1ULL)<<1)
 #define STARPU_CUDA	((1ULL)<<3)
 #define STARPU_SPU	((1ULL)<<4)
 #define STARPU_GORDON	((1ULL)<<5)
@@ -52,10 +52,10 @@ typedef struct starpu_codelet_t {
 
 	/* the different implementations of the codelet */
 	//void (*cuda_func)(starpu_data_interface_t *, void *);
-	//void (*core_func)(starpu_data_interface_t *, void *);
+	//void (*cpu_func)(starpu_data_interface_t *, void *);
 
 	void (*cuda_func)(void **, void *);
-	void (*core_func)(void **, void *);
+	void (*cpu_func)(void **, void *);
 	uint8_t gordon_func;
 
 	/* how many buffers do the codelet takes as argument ? */

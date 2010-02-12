@@ -227,7 +227,7 @@ struct cb2_s {
 };
 
 static starpu_codelet cl = {
-	.core_func = core_mult,
+	.cpu_func = cpu_mult,
 #ifdef USE_CUDA
 	.cuda_func = cublas_mult,
 #endif
@@ -236,7 +236,7 @@ static starpu_codelet cl = {
 #endif
 
 	.model = &sgemm_model,
-	.where = STARPU_CORE|STARPU_CUDA|STARPU_GORDON,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
 	.nbuffers = 3
 };
 

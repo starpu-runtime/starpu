@@ -59,7 +59,7 @@ void STARPU_GEMM(cublas_mult)(void *descr[], __attribute__((unused)) void *arg)
 }
 #endif
 
-void STARPU_GEMM(core_mult)(void *descr[], __attribute__((unused))  void *arg)
+void STARPU_GEMM(cpu_mult)(void *descr[], __attribute__((unused))  void *arg)
 {
 	COMMON_CODE
 

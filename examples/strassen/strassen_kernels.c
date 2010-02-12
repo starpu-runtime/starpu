@@ -19,17 +19,17 @@
 
 static void mult_common_codelet(void *descr[], int s, __attribute__((unused))  void *arg)
 {
-	float *center 	= (float *)GET_BLAS_PTR(descr[0]);
-	float *left 	= (float *)GET_BLAS_PTR(descr[1]);
-	float *right 	= (float *)GET_BLAS_PTR(descr[2]);
+	float *center 	= (float *)STARPU_GET_BLAS_PTR(descr[0]);
+	float *left 	= (float *)STARPU_GET_BLAS_PTR(descr[1]);
+	float *right 	= (float *)STARPU_GET_BLAS_PTR(descr[2]);
 
-	unsigned dx = GET_BLAS_NX(descr[0]);
-	unsigned dy = GET_BLAS_NY(descr[0]);
-	unsigned dz = GET_BLAS_NX(descr[1]);
+	unsigned dx = STARPU_GET_BLAS_NX(descr[0]);
+	unsigned dy = STARPU_GET_BLAS_NY(descr[0]);
+	unsigned dz = STARPU_GET_BLAS_NX(descr[1]);
 
-	unsigned ld21 = GET_BLAS_LD(descr[1]);
-	unsigned ld12 = GET_BLAS_LD(descr[2]);
-	unsigned ld22 = GET_BLAS_LD(descr[0]);
+	unsigned ld21 = STARPU_GET_BLAS_LD(descr[1]);
+	unsigned ld12 = STARPU_GET_BLAS_LD(descr[2]);
+	unsigned ld22 = STARPU_GET_BLAS_LD(descr[0]);
 
 	switch (s) {
 		case 0:
@@ -51,7 +51,7 @@ static void mult_common_codelet(void *descr[], int s, __attribute__((unused))  v
 	}
 }
 
-void mult_core_codelet(void *descr[], void *_args)
+void mult_cpu_codelet(void *descr[], void *_args)
 {
 	mult_common_codelet(descr, 0, _args);
 }
@@ -67,16 +67,16 @@ static void add_sub_common_codelet(void *descr[], int s, __attribute__((unused))
 {
 	/* C = A op B */
 
-	float *C 	= (float *)GET_BLAS_PTR(descr[0]);
-	float *A 	= (float *)GET_BLAS_PTR(descr[1]);
-	float *B 	= (float *)GET_BLAS_PTR(descr[2]);
+	float *C 	= (float *)STARPU_GET_BLAS_PTR(descr[0]);
+	float *A 	= (float *)STARPU_GET_BLAS_PTR(descr[1]);
+	float *B 	= (float *)STARPU_GET_BLAS_PTR(descr[2]);
 
-	unsigned dx = GET_BLAS_NX(descr[0]);
-	unsigned dy = GET_BLAS_NY(descr[0]);
+	unsigned dx = STARPU_GET_BLAS_NX(descr[0]);
+	unsigned dy = STARPU_GET_BLAS_NY(descr[0]);
 
-	unsigned ldA = GET_BLAS_LD(descr[1]);
-	unsigned ldB = GET_BLAS_LD(descr[2]);
-	unsigned ldC = GET_BLAS_LD(descr[0]);
+	unsigned ldA = STARPU_GET_BLAS_LD(descr[1]);
+	unsigned ldB = STARPU_GET_BLAS_LD(descr[2]);
+	unsigned ldC = STARPU_GET_BLAS_LD(descr[0]);
 
 	// TODO check dim ...
 
@@ -112,12 +112,12 @@ static void add_sub_common_codelet(void *descr[], int s, __attribute__((unused))
 	}
 }
 
-void sub_core_codelet(void *descr[], __attribute__((unused))  void *arg)
+void sub_cpu_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	add_sub_common_codelet(descr, 0, arg, -1.0f);
 }
 
-void add_core_codelet(void *descr[], __attribute__((unused))  void *arg)
+void add_cpu_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	add_sub_common_codelet(descr, 0, arg, 1.0f);
 }
@@ -139,14 +139,14 @@ static void self_add_sub_common_codelet(void *descr[], int s, __attribute__((unu
 {
 	/* C +=/-= A */
 
-	float *C 	= (float *)GET_BLAS_PTR(descr[0]);
-	float *A 	= (float *)GET_BLAS_PTR(descr[1]);
+	float *C 	= (float *)STARPU_GET_BLAS_PTR(descr[0]);
+	float *A 	= (float *)STARPU_GET_BLAS_PTR(descr[1]);
 
-	unsigned dx = GET_BLAS_NX(descr[0]);
-	unsigned dy = GET_BLAS_NY(descr[0]);
+	unsigned dx = STARPU_GET_BLAS_NX(descr[0]);
+	unsigned dy = STARPU_GET_BLAS_NY(descr[0]);
 
-	unsigned ldA = GET_BLAS_LD(descr[1]);
-	unsigned ldC = GET_BLAS_LD(descr[0]);
+	unsigned ldA = STARPU_GET_BLAS_LD(descr[1]);
+	unsigned ldC = STARPU_GET_BLAS_LD(descr[0]);
 
 	// TODO check dim ...
 	
@@ -181,12 +181,12 @@ static void self_add_sub_common_codelet(void *descr[], int s, __attribute__((unu
 
 
 
-void self_add_core_codelet(void *descr[], __attribute__((unused))  void *arg)
+void self_add_cpu_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	self_add_sub_common_codelet(descr, 0, arg, 1.0f);
 }
 
-void self_sub_core_codelet(void *descr[], __attribute__((unused))  void *arg)
+void self_sub_cpu_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	self_add_sub_common_codelet(descr, 0, arg, -1.0f);
 }

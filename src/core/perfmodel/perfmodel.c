@@ -66,8 +66,8 @@ static double common_task_expected_length(struct starpu_perfmodel_t *model, uint
 		float alpha;
 		exp = model->cost_model(task->buffers);
 		switch (who) {
-			case STARPU_CORE:
-				alpha = STARPU_CORE_ALPHA;
+			case STARPU_CPU:
+				alpha = STARPU_CPU_ALPHA;
 				break;
 			case STARPU_CUDA:
 				alpha = STARPU_CUDA_ALPHA;

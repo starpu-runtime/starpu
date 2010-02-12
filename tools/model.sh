@@ -21,32 +21,32 @@ trace_model()
 {
 	inputfile=$1
 	
-	coreentries=`head -1 $inputfile`
+	cpuentries=`head -1 $inputfile`
 	gpuentries=`head -2 $inputfile|tail -1`
 	
-	coremodel=`head -3 $inputfile|tail -1`
+	cpumodel=`head -3 $inputfile|tail -1`
 	gpumodel=`head -4 $inputfile|tail -1`
 	
-	a_core=`cut -f 1 $inputfile| head -5|tail -1`
-	b_core=`cut -f 2 $inputfile| head -5|tail -1`
-	c_core=`cut -f 3 $inputfile| head -5|tail -1`
+	a_cpu=`cut -f 1 $inputfile| head -5|tail -1`
+	b_cpu=`cut -f 2 $inputfile| head -5|tail -1`
+	c_cpu=`cut -f 3 $inputfile| head -5|tail -1`
 	
 	a_gpu=`cut -f 1 $inputfile| head -6|tail -1`
 	b_gpu=`cut -f 2 $inputfile| head -6|tail -1`
 	c_gpu=`cut -f 3 $inputfile| head -6|tail -1`
 
-	alpha_core=`cut -f 5 $inputfile| head -3|tail -1` 
+	alpha_cpu=`cut -f 5 $inputfile| head -3|tail -1` 
 	alpha_gpu=`cut -f 5 $inputfile| head -4|tail -1` 
 	
-	beta_core=`cut -f 6 $inputfile| head -3|tail -1` 
+	beta_cpu=`cut -f 6 $inputfile| head -3|tail -1` 
 	beta_gpu=`cut -f 6 $inputfile| head -4|tail -1` 
 	
-	tail -$(($gpuentries + $coreentries)) $inputfile | head -$(($coreentries)) |cut -f 2-4 > $inputfile.core
+	tail -$(($gpuentries + $cpuentries)) $inputfile | head -$(($cpuentries)) |cut -f 2-4 > $inputfile.cpu
 	tail -$(($gpuentries)) $inputfile | cut -f 2-4> $inputfile.gpu
 	
-	echo "pouet $coreentries gpu $gpuentries toot"
+	echo "pouet $cpuentries gpu $gpuentries toot"
 	
-	echo "coremodel $alpha_core * size ^ $beta_core"
+	echo "cpumodel $alpha_cpu * size ^ $beta_cpu"
 	echo "gpumodel $alpha_gpu * size ^ $beta_gpu"
 	
 	gpfile=$inputfile.gp
@@ -62,9 +62,9 @@ trace_model()
 	echo  "plot	$alpha_gpu*x**$beta_gpu title \"GPU regression\" ,\\" >> $gpfile
 	echo  "	\"$inputfile.gpu\" with errorbar title \"GPU measured\" ,\\" >> $gpfile
 	echo  "	$c_gpu + exp(log($a_gpu) + $b_gpu * log(x) ) title \"GPU regression (non linear)\" ,\\" >> $gpfile
-	echo  "	\"$inputfile.core\" with errorbar title \"CORE measured\" ,\\" >> $gpfile
-	echo  "	$alpha_core*x**$beta_core title \"CORE regression\" ,\\" >> $gpfile
-	echo  "	$c_core + exp(log($a_core) + $b_core * log(x) ) title \"CORE regression (non linear)\"" >> $gpfile
+	echo  "	\"$inputfile.cpu\" with errorbar title \"CPU measured\" ,\\" >> $gpfile
+	echo  "	$alpha_cpu*x**$beta_cpu title \"CPU regression\" ,\\" >> $gpfile
+	echo  "	$c_cpu + exp(log($a_cpu) + $b_cpu * log(x) ) title \"CPU regression (non linear)\"" >> $gpfile
 	
 	gnuplot $gpfile
 }

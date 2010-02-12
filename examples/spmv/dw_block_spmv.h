@@ -32,7 +32,7 @@
 #include <cublas.h>
 #endif
 
-void core_block_spmv(void *descr[], void *_args);
+void cpu_block_spmv(void *descr[], void *_args);
 
 #ifdef USE_CUDA
 void cublas_block_spmv(void *descr[], void *_args);

@@ -47,12 +47,12 @@ static void _starpu_initialize_workers_gpuid(struct machine_config_s *config)
 
 	config->current_gpuid = 0;
 
-	/* conf->workers_bindid indicates the successive core identifier that
+	/* conf->workers_bindid indicates the successive cpu identifier that
 	 * should be used to bind the workers. It should be either filled
 	 * according to the user's explicit parameters (from starpu_conf) or
 	 * according to the WORKERS_CPUID env. variable. Otherwise, a
 	 * round-robin policy is used to distributed the workers over the
-	 * cores. */
+	 * cpus. */
 
 	/* what do we use, explicit value, env. variable, or round-robin ? */
 	if (config->user_conf && config->user_conf->use_explicit_workers_gpuid)
@@ -125,29 +125,29 @@ static void _starpu_init_topology(struct machine_config_s *config)
 		hwloc_topology_init(&config->hwtopology);
 		hwloc_topology_load(config->hwtopology);
 
-		config->core_depth = hwloc_get_type_depth(config->hwtopology, HWLOC_OBJ_CORE);
+		config->cpu_depth = hwloc_get_type_depth(config->hwtopology, HWLOC_OBJ_CORE);
 
 		/* Would be very odd */
-		STARPU_ASSERT(config->core_depth != HWLOC_TYPE_DEPTH_MULTIPLE);
+		STARPU_ASSERT(config->cpu_depth != HWLOC_TYPE_DEPTH_MULTIPLE);
 
-		if (config->core_depth == HWLOC_TYPE_DEPTH_UNKNOWN)
+		if (config->cpu_depth == HWLOC_TYPE_DEPTH_UNKNOWN)
 			/* unknown, using logical procesors as fallback */
-			config->core_depth = hwloc_get_type_depth(config->hwtopology, HWLOC_OBJ_PROC);
+			config->cpu_depth = hwloc_get_type_depth(config->hwtopology, HWLOC_OBJ_PROC);
 
-		config->nhwcores = hwloc_get_nbobjs_by_depth(config->hwtopology, config->core_depth);
+		config->nhwcpus = hwloc_get_nbobjs_by_depth(config->hwtopology, config->cpu_depth);
 #else
-		config->nhwcores = sysconf(_SC_NPROCESSORS_ONLN);
+		config->nhwcpus = sysconf(_SC_NPROCESSORS_ONLN);
 #endif
 	
 		topology_is_initialized = 1;
 	}
 }
 
-unsigned _starpu_topology_get_nhwcore(struct machine_config_s *config)
+unsigned _starpu_topology_get_nhwcpu(struct machine_config_s *config)
 {
 	_starpu_init_topology(config);
 	
-	return config->nhwcores;
+	return config->nhwcpus;
 }
 
 static int _starpu_init_machine_config(struct machine_config_s *config,
@@ -246,7 +246,7 @@ static int _starpu_init_machine_config(struct machine_config_s *config,
 #endif
 
 /* we put the CPU section after the accelerator : in case there was an
- * accelerator found, we devote one core */
+ * accelerator found, we devote one cpu */
 #ifdef USE_CPUS
 	if (user_conf && (user_conf->ncpus != -1)) {
 		explicitval = user_conf->ncpus;
@@ -256,27 +256,27 @@ static int _starpu_init_machine_config(struct machine_config_s *config,
 	}
 
 	if (explicitval < 0) {
-		unsigned already_busy_cores = (config->ngordon_spus?1:0) + config->ncudagpus;
-		long avail_cores = config->nhwcores - (use_accelerator?already_busy_cores:0);
-		config->ncores = STARPU_MIN(avail_cores, NMAXCORES);
+		unsigned already_busy_cpus = (config->ngordon_spus?1:0) + config->ncudagpus;
+		long avail_cpus = config->nhwcpus - (use_accelerator?already_busy_cpus:0);
+		config->ncpus = STARPU_MIN(avail_cpus, NMAXCPUS);
 	} else {
 		/* use the specified value */
-		config->ncores = (unsigned)explicitval;
-		STARPU_ASSERT(config->ncores <= NMAXCORES);
+		config->ncpus = (unsigned)explicitval;
+		STARPU_ASSERT(config->ncpus <= NMAXCPUS);
 	}
-	STARPU_ASSERT(config->ncores + config->nworkers <= STARPU_NMAXWORKERS);
+	STARPU_ASSERT(config->ncpus + config->nworkers <= STARPU_NMAXWORKERS);
 
-	unsigned core;
-	for (core = 0; core < config->ncores; core++)
+	unsigned cpu;
+	for (cpu = 0; cpu < config->ncpus; cpu++)
 	{
-		config->workers[config->nworkers + core].arch = STARPU_CORE_WORKER;
-		config->workers[config->nworkers + core].perf_arch = STARPU_CORE_DEFAULT;
-		config->workers[config->nworkers + core].id = core;
-		config->workers[config->nworkers + core].worker_mask = STARPU_CORE;
-		config->worker_mask |= STARPU_CORE;
+		config->workers[config->nworkers + cpu].arch = STARPU_CPU_WORKER;
+		config->workers[config->nworkers + cpu].perf_arch = STARPU_CPU_DEFAULT;
+		config->workers[config->nworkers + cpu].id = cpu;
+		config->workers[config->nworkers + cpu].worker_mask = STARPU_CPU;
+		config->worker_mask |= STARPU_CPU;
 	}
 
-	config->nworkers += config->ncores;
+	config->nworkers += config->ncpus;
 #endif
 
 	if (config->nworkers == 0)
@@ -300,12 +300,12 @@ static void _starpu_initialize_workers_bindid(struct machine_config_s *config)
 
 	config->current_bindid = 0;
 
-	/* conf->workers_bindid indicates the successive core identifier that
+	/* conf->workers_bindid indicates the successive cpu identifier that
 	 * should be used to bind the workers. It should be either filled
 	 * according to the user's explicit parameters (from starpu_conf) or
 	 * according to the WORKERS_CPUID env. variable. Otherwise, a
 	 * round-robin policy is used to distributed the workers over the
-	 * cores. */
+	 * cpus. */
 
 	/* what do we use, explicit value, env. variable, or round-robin ? */
 	if (config->user_conf && config->user_conf->use_explicit_workers_bindid)
@@ -332,7 +332,7 @@ static void _starpu_initialize_workers_bindid(struct machine_config_s *config)
 				val = strtol(strval, &endptr, 10);
 				if (endptr != strval)
 				{
-					config->workers_bindid[i] = (unsigned)(val % config->nhwcores);
+					config->workers_bindid[i] = (unsigned)(val % config->nhwcpus);
 					strval = endptr;
 				}
 				else {
@@ -355,13 +355,13 @@ static void _starpu_initialize_workers_bindid(struct machine_config_s *config)
 	{
 		/* by default, we take a round robin policy */
 		for (i = 0; i < STARPU_NMAXWORKERS; i++)
-			config->workers_bindid[i] = (unsigned)(i % config->nhwcores);
+			config->workers_bindid[i] = (unsigned)(i % config->nhwcpus);
 	}
 }
 
-/* This function gets the identifier of the next core on which to bind a
- * worker. In case a list of preferred cores was specified, we look for a an
- * available core among the list if possible, otherwise a round-robin policy is
+/* This function gets the identifier of the next cpu on which to bind a
+ * worker. In case a list of preferred cpus was specified, we look for a an
+ * available cpu among the list if possible, otherwise a round-robin policy is
  * used. */
 static inline int _starpu_get_next_bindid(struct machine_config_s *config,
 				int *preferred_binding, int npreferred)
@@ -374,21 +374,21 @@ static inline int _starpu_get_next_bindid(struct machine_config_s *config,
 		if (found)
 			break;
 
-		unsigned requested_core = preferred_binding[current_preferred];
+		unsigned requested_cpu = preferred_binding[current_preferred];
 
-		/* can we bind the worker on the requested core ? */
+		/* can we bind the worker on the requested cpu ? */
 		unsigned ind;
-		for (ind = config->current_bindid; ind < config->nhwcores; ind++)
+		for (ind = config->current_bindid; ind < config->nhwcpus; ind++)
 		{
-			if (config->workers_bindid[ind] == requested_core)
+			if (config->workers_bindid[ind] == requested_cpu)
 			{
-				/* the core is available, we  use it ! In order
+				/* the cpu is available, we  use it ! In order
 				 * to make sure that it will not be used again
 				 * later on, we remove the entry from the list
 				 * */
 				config->workers_bindid[ind] =
 					config->workers_bindid[config->current_bindid];
-				config->workers_bindid[config->current_bindid] = requested_core;
+				config->workers_bindid[config->current_bindid] = requested_cpu;
 
 				found = 1;
 
@@ -402,14 +402,14 @@ static inline int _starpu_get_next_bindid(struct machine_config_s *config,
 	return (int)config->workers_bindid[i];
 }
 
-void _starpu_bind_thread_on_cpu(struct machine_config_s *config __attribute__((unused)), unsigned coreid)
+void _starpu_bind_thread_on_cpu(struct machine_config_s *config __attribute__((unused)), unsigned cpuid)
 {
 	int ret;
 
 #ifdef HAVE_HWLOC
 	_starpu_init_topology(config);
 
-	hwloc_obj_t obj = hwloc_get_obj_by_depth(config->hwtopology, config->core_depth, coreid);
+	hwloc_obj_t obj = hwloc_get_obj_by_depth(config->hwtopology, config->cpu_depth, cpuid);
 	hwloc_cpuset_t set = obj->cpuset;
 	hwloc_cpuset_singlify(set);
 	ret = hwloc_set_cpubind(config->hwtopology, set, HWLOC_CPUBIND_THREAD);
@@ -423,7 +423,7 @@ void _starpu_bind_thread_on_cpu(struct machine_config_s *config __attribute__((u
 	/* fix the thread on the correct cpu */
 	cpu_set_t aff_mask;
 	CPU_ZERO(&aff_mask);
-	CPU_SET(coreid, &aff_mask);
+	CPU_SET(cpuid, &aff_mask);
 
 	pthread_t self = pthread_self();
 
@@ -444,10 +444,10 @@ static void _starpu_init_workers_binding(struct machine_config_s *config)
 	/* launch one thread per CPU */
 	unsigned ram_memory_node;
 
-	/* a single core is dedicated for the accelerators */
+	/* a single cpu is dedicated for the accelerators */
 	int accelerator_bindid = -1;
 
-	/* note that even if the CPU core are not used, we always have a RAM node */
+	/* note that even if the CPU cpu are not used, we always have a RAM node */
 	/* TODO : support NUMA  ;) */
 	ram_memory_node = _starpu_register_memory_node(RAM);
 
@@ -464,8 +464,8 @@ static void _starpu_init_workers_binding(struct machine_config_s *config)
 		
 		/* select the memory node that contains worker's memory */
 		switch (workerarg->arch) {
-			case STARPU_CORE_WORKER:
-			/* "dedicate" a cpu core to that worker */
+			case STARPU_CPU_WORKER:
+			/* "dedicate" a cpu cpu to that worker */
 				is_a_set_of_accelerators = 0;
 				memory_node = ram_memory_node;
 				break;
@@ -481,7 +481,7 @@ static void _starpu_init_workers_binding(struct machine_config_s *config)
 				{
 					/* StarPU is allowed to bind threads automatically */
 					preferred_binding = get_gpu_affinity_vector(workerarg->id);
-					npreferred = config->nhwcores;
+					npreferred = config->nhwcpus;
 				}
 				is_a_set_of_accelerators = 0;
 				memory_node = _starpu_register_memory_node(CUDA_RAM);

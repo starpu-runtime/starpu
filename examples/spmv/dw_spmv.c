@@ -91,7 +91,7 @@ void parse_args(int argc, char **argv)
 	}
 }
 
-void core_spmv(void *descr[], __attribute__((unused))  void *arg)
+void cpu_spmv(void *descr[], __attribute__((unused))  void *arg)
 {
 	float *nzval = (float *)STARPU_GET_CSR_NZVAL(descr[0]);
 	uint32_t *colind = STARPU_GET_CSR_COLIND(descr[0]);
@@ -249,8 +249,8 @@ void call_spmv_codelet_filters(void)
 	starpu_partition_data(sparse_matrix, &csr_f);
 	starpu_partition_data(vector_out, &vector_f);
 
-	cl->where = CORE|CUDA;
-	cl->core_func =  core_spmv;
+	cl->where = STARPU_CPU|STARPU_CUDA;
+	cl->cpu_func =  cpu_spmv;
 #ifdef USE_CUDA
 	cl->cuda_func = spmv_kernel_cuda;
 #endif

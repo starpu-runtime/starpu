@@ -27,9 +27,9 @@ static void eat_kernel(void *descr[], void *arg)
 }
 
 static starpu_codelet eating_cl = {
-	.where = STARPU_CORE|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.cuda_func = eat_kernel,
-	.core_func = eat_kernel,
+	.cpu_func = eat_kernel,
 	.nbuffers = 2
 };
 

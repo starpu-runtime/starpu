@@ -38,8 +38,8 @@ static void wrong_func(void *descr[], void *arg)
 
 static starpu_codelet wrong_codelet = 
 {
-	.where = STARPU_CORE|STARPU_CUDA,
-	.core_func = wrong_func,
+	.where = STARPU_CPU|STARPU_CUDA,
+	.cpu_func = wrong_func,
 	.cuda_func = wrong_func,
 	.model = NULL,
 	.nbuffers = 0

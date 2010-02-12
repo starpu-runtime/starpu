@@ -280,8 +280,8 @@ struct cb2_s {
 
 
 static starpu_codelet cl = {
-	.where = STARPU_CORE|STARPU_CUDA|STARPU_GORDON,
-	.core_func = core_mult,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
+	.cpu_func = cpu_mult,
 #ifdef USE_CUDA
 	.cuda_func = cublas_mult,
 #endif

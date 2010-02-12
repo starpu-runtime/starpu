@@ -171,7 +171,7 @@ static void handle_new_mem_node(void)
 static void handle_worker_init_start(void)
 {
 	/* 
-	   arg0 : type of worker (cuda, core ..)
+	   arg0 : type of worker (cuda, cpu ..)
 	   arg1 : memory node
 	   arg2 : thread id 
 	*/
@@ -184,7 +184,7 @@ static void handle_worker_init_start(void)
 		case FUT_APPS_KEY:
 			set_next_other_worker_color(workerid);
 			break;
-		case FUT_CORE_KEY:
+		case FUT_CPU_KEY:
 			set_next_cpu_worker_color(workerid);
 			break;
 		case FUT_CUDA_KEY:

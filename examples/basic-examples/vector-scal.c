@@ -100,9 +100,9 @@ int main(int argc, char **argv)
 	task->synchronous = 1;
 
 	starpu_codelet cl = {
-		.where = STARPU_CORE,
+		.where = STARPU_CPU,
 		/* CPU implementation of the codelet */
-		.core_func = scal_func,
+		.cpu_func = scal_func,
 		.nbuffers = 1
 	};
 

@@ -90,32 +90,32 @@ echo "CUDA : y = $cuda_a * size ^ $cuda_b + $cuda_c"
 echo "CUDA : y = $cuda_alpha * size ^ $cuda_beta"
 echo "CUDA : debug file $cuda_debug"
 
-core_a=`$PERFMODELDISPLAY -s $symbol -a core -p a`
-core_b=`$PERFMODELDISPLAY -s $symbol -a core -p b`
-core_c=`$PERFMODELDISPLAY -s $symbol -a core -p c`
+cpu_a=`$PERFMODELDISPLAY -s $symbol -a cpu -p a`
+cpu_b=`$PERFMODELDISPLAY -s $symbol -a cpu -p b`
+cpu_c=`$PERFMODELDISPLAY -s $symbol -a cpu -p c`
 
-core_alpha=`$PERFMODELDISPLAY -s $symbol -a core -p alpha`
-core_beta=`$PERFMODELDISPLAY -s $symbol -a core -p beta`
+cpu_alpha=`$PERFMODELDISPLAY -s $symbol -a cpu -p alpha`
+cpu_beta=`$PERFMODELDISPLAY -s $symbol -a cpu -p beta`
 
-core_debug=`$PERFMODELDISPLAY -s $symbol -p path-file-debug -a core`
+cpu_debug=`$PERFMODELDISPLAY -s $symbol -p path-file-debug -a cpu`
 
-echo "CORE : y = $core_a * size ^ $core_b + $core_c"
-echo "CORE : y = $core_alpha * size ^ $core_beta"
-echo "CORE : debug file $core_debug"
+echo "CPU : y = $cpu_a * size ^ $cpu_b + $cpu_c"
+echo "CPU : y = $cpu_alpha * size ^ $cpu_beta"
+echo "CPU : debug file $cpu_debug"
 
 # get the list of the different sizes of the tasks
 cuda_size_list=`cut -f2 $cuda_debug| sort -n |uniq|xargs` 
-core_size_list=`cut -f2 $core_debug| sort -n |uniq|xargs` 
+cpu_size_list=`cut -f2 $cpu_debug| sort -n |uniq|xargs` 
 
-core_debug_data="model_$symbol.core.data"
+cpu_debug_data="model_$symbol.cpu.data"
 cuda_debug_data="model_$symbol.cuda.data"
 
 # In case we want stddev instead of a cloud of points ...
-compute_mean_and_stddev "$core_debug" "core"  "$core_debug_data"
+compute_mean_and_stddev "$cpu_debug" "cpu"  "$cpu_debug_data"
 compute_mean_and_stddev "$cuda_debug" "cuda"  "$cuda_debug_data"
 
 # use .. 
-# 	"$core_debug_data" usi 2:3:4 with errorbars title "core measured" 
+# 	"$cpu_debug_data" usi 2:3:4 with errorbars title "cpu measured" 
 
 gnuplot > /dev/null << EOF
 set term postscript eps enhanced color
@@ -146,10 +146,10 @@ set key title "Non-linear regression\n(y = {/Symbol a} x@^{{/Symbol b}} + {/Symb
 
 set bars 4.0
 
-plot $core_a * ( x ** $core_b ) + $core_c ls 1 title "CPU" ,\
+plot $cpu_a * ( x ** $cpu_b ) + $cpu_c ls 1 title "CPU" ,\
 	$cuda_a * ( x ** $cuda_b ) + $cuda_c ls 2 title "GPU" ,\
-	"$core_debug_data" usi 2:4:3:7:6 with candlesticks  ls 1 notitle whiskerbars ,\
-	"$core_debug_data" usi 2:5:5:5:5 with candlesticks  ls 1 notitle ,\
+	"$cpu_debug_data" usi 2:4:3:7:6 with candlesticks  ls 1 notitle whiskerbars ,\
+	"$cpu_debug_data" usi 2:5:5:5:5 with candlesticks  ls 1 notitle ,\
 	"$cuda_debug_data" usi 2:4:3:7:6 with candlesticks  ls 2  notitle whiskerbars ,\
 	"$cuda_debug_data" usi 2:5:5:5:5 with candlesticks  ls 2  notitle
 

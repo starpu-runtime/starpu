@@ -102,7 +102,7 @@ if test x$enable_cpu = xyes; then
 
 	# This value is set quite randomly, but StarPU should not take more
 	# core than there are in the system
-	AC_DEFINE(NMAXCORES, [16], [Maximum number of CPUs supported])
+	AC_DEFINE(NMAXCPUS, [16], [Maximum number of CPUs supported])
 fi
 
 ###############################################################################

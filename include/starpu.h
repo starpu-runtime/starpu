@@ -72,7 +72,7 @@ void starpu_shutdown(void);
  * StarPU tasks). The returned value should be at most STARPU_NMAXWORKERS. */
 unsigned starpu_get_worker_count(void);
 
-unsigned starpu_get_core_worker_count(void);
+unsigned starpu_get_cpu_worker_count(void);
 unsigned starpu_get_cuda_worker_count(void);
 unsigned starpu_get_spu_worker_count(void);
 
@@ -82,14 +82,14 @@ unsigned starpu_get_spu_worker_count(void);
 int starpu_get_worker_id(void);
 
 enum starpu_archtype {
-	STARPU_CORE_WORKER, /* CPU core */
+	STARPU_CPU_WORKER, /* CPU core */
 	STARPU_CUDA_WORKER, /* NVIDIA CUDA device */
 	STARPU_GORDON_WORKER /* Cell SPU */
 };
 
 /* This function returns the type of worker associated to an identifier (as
  * returned by the starpu_get_worker_id function). The returned value indicates
- * the architecture of the worker: STARPU_CORE_WORKER for a CPU core,
+ * the architecture of the worker: STARPU_CPU_WORKER for a CPU core,
  * STARPU_CUDA_WORKER for a CUDA device, and STARPU_GORDON_WORKER for a Cell
  * SPU. The value returned for an invalid identifier is unspecified.  */
 enum starpu_archtype starpu_get_worker_type(int id);

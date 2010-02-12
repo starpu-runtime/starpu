@@ -159,7 +159,7 @@ double task_22_cost_cuda(starpu_buffer_descr *descr)
  *
  */
 
-double task_11_cost_core(starpu_buffer_descr *descr)
+double task_11_cost_cpu(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -167,11 +167,11 @@ double task_11_cost_core(starpu_buffer_descr *descr)
 
 	double cost = ((n*n*n)/537.5);
 
-//	printf("CORE task 11 ; predict %e\n", cost);
+//	printf("CPU task 11 ; predict %e\n", cost);
 	return PERTURBATE(cost);
 }
 
-double task_12_cost_core(starpu_buffer_descr *descr)
+double task_12_cost_cpu(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -179,12 +179,12 @@ double task_12_cost_core(starpu_buffer_descr *descr)
 
 	double cost = ((n*n*n)/6668.224);
 
-//	printf("CORE task 12 ; predict %e\n", cost);
+//	printf("CPU task 12 ; predict %e\n", cost);
 	return PERTURBATE(cost);
 }
 
 
-double task_21_cost_core(starpu_buffer_descr *descr)
+double task_21_cost_cpu(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
@@ -192,13 +192,13 @@ double task_21_cost_core(starpu_buffer_descr *descr)
 
 	double cost = ((n*n*n)/6793.8423);
 
-//	printf("CORE task 21 ; predict %e\n", cost);
+//	printf("CPU task 21 ; predict %e\n", cost);
 	return PERTURBATE(cost);
 }
 
 
 
-double task_22_cost_core(starpu_buffer_descr *descr)
+double task_22_cost_cpu(starpu_buffer_descr *descr)
 {
 	uint32_t nx, ny, nz;
 
@@ -208,14 +208,14 @@ double task_22_cost_core(starpu_buffer_descr *descr)
 
 	double cost = ((nx*ny*nz)/4203.0175);
 
-//	printf("CORE task 22 ; predict %e\n", cost);
+//	printf("CPU task 22 ; predict %e\n", cost);
 	return PERTURBATE(cost);
 }
 
 struct starpu_perfmodel_t model_11 = {
 	.cost_model = task_11_cost,
 	.per_arch = { 
-		[STARPU_CORE_DEFAULT] = { .cost_model = task_11_cost_core },
+		[STARPU_CPU_DEFAULT] = { .cost_model = task_11_cost_cpu },
 		[STARPU_CUDA_DEFAULT] = { .cost_model = task_11_cost_cuda }
 	},
 	.type = STARPU_HISTORY_BASED,
@@ -231,7 +231,7 @@ struct starpu_perfmodel_t model_11 = {
 struct starpu_perfmodel_t model_12 = {
 	.cost_model = task_12_cost,
 	.per_arch = { 
-		[STARPU_CORE_DEFAULT] = { .cost_model = task_12_cost_core },
+		[STARPU_CPU_DEFAULT] = { .cost_model = task_12_cost_cpu },
 		[STARPU_CUDA_DEFAULT] = { .cost_model = task_12_cost_cuda }
 	},
 	.type = STARPU_HISTORY_BASED,
@@ -247,7 +247,7 @@ struct starpu_perfmodel_t model_12 = {
 struct starpu_perfmodel_t model_21 = {
 	.cost_model = task_21_cost,
 	.per_arch = { 
-		[STARPU_CORE_DEFAULT] = { .cost_model = task_21_cost_core },
+		[STARPU_CPU_DEFAULT] = { .cost_model = task_21_cost_cpu },
 		[STARPU_CUDA_DEFAULT] = { .cost_model = task_21_cost_cuda }
 	},
 	.type = STARPU_HISTORY_BASED,
@@ -263,7 +263,7 @@ struct starpu_perfmodel_t model_21 = {
 struct starpu_perfmodel_t model_22 = {
 	.cost_model = task_22_cost,
 	.per_arch = { 
-		[STARPU_CORE_DEFAULT] = { .cost_model = task_22_cost_core },
+		[STARPU_CPU_DEFAULT] = { .cost_model = task_22_cost_cpu },
 		[STARPU_CUDA_DEFAULT] = { .cost_model = task_22_cost_cuda }
 	},
 	.type = STARPU_HISTORY_BASED,

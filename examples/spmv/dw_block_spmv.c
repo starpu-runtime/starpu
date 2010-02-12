@@ -115,8 +115,8 @@ void call_filters(void)
 unsigned totaltasks;
 
 starpu_codelet cl = {
-	.where = CORE|CUDA,
-	.core_func =  core_block_spmv,
+	.where = STARPU_CPU|STARPU_CUDA,
+	.cpu_func =  cpu_block_spmv,
 #ifdef USE_CUDA
 	.cuda_func = cublas_block_spmv,
 #endif

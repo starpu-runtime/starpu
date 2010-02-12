@@ -301,11 +301,11 @@ static starpu_codelet STARPUFFT(twist1_2d_codelet) = {
 #ifdef USE_CUDA
 		STARPU_CUDA|
 #endif
-		STARPU_CORE,
+		STARPU_CPU,
 #ifdef USE_CUDA
 	.cuda_func = STARPUFFT(twist1_2d_kernel_gpu),
 #endif
-	.core_func = STARPUFFT(twist1_2d_kernel_cpu),
+	.cpu_func = STARPUFFT(twist1_2d_kernel_cpu),
 	.model = &STARPUFFT(twist1_2d_model),
 	.nbuffers = 2
 };
@@ -316,22 +316,22 @@ static starpu_codelet STARPUFFT(fft1_2d_codelet) = {
 		STARPU_CUDA|
 #endif
 #ifdef HAVE_FFTW
-		STARPU_CORE|
+		STARPU_CPU|
 #endif
 		0,
 #ifdef USE_CUDA
 	.cuda_func = STARPUFFT(fft1_2d_kernel_gpu),
 #endif
 #ifdef HAVE_FFTW
-	.core_func = STARPUFFT(fft1_2d_kernel_cpu),
+	.cpu_func = STARPUFFT(fft1_2d_kernel_cpu),
 #endif
 	.model = &STARPUFFT(fft1_2d_model),
 	.nbuffers = 4
 };
 
 static starpu_codelet STARPUFFT(twist2_2d_codelet) = {
-	.where = STARPU_CORE,
-	.core_func = STARPUFFT(twist2_2d_kernel_cpu),
+	.where = STARPU_CPU,
+	.cpu_func = STARPUFFT(twist2_2d_kernel_cpu),
 	.model = &STARPUFFT(twist2_2d_model),
 	.nbuffers = 1
 };
@@ -342,22 +342,22 @@ static starpu_codelet STARPUFFT(fft2_2d_codelet) = {
 		STARPU_CUDA|
 #endif
 #ifdef HAVE_FFTW
-		STARPU_CORE|
+		STARPU_CPU|
 #endif
 		0,
 #ifdef USE_CUDA
 	.cuda_func = STARPUFFT(fft2_2d_kernel_gpu),
 #endif
 #ifdef HAVE_FFTW
-	.core_func = STARPUFFT(fft2_2d_kernel_cpu),
+	.cpu_func = STARPUFFT(fft2_2d_kernel_cpu),
 #endif
 	.model = &STARPUFFT(fft2_2d_model),
 	.nbuffers = 2
 };
 
 static starpu_codelet STARPUFFT(twist3_2d_codelet) = {
-	.where = STARPU_CORE,
-	.core_func = STARPUFFT(twist3_2d_kernel_cpu),
+	.where = STARPU_CPU,
+	.cpu_func = STARPUFFT(twist3_2d_kernel_cpu),
 	.model = &STARPUFFT(twist3_2d_model),
 	.nbuffers = 1
 };
@@ -450,7 +450,7 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 	/* Initialize per-worker working set */
 	for (workerid = 0; workerid < starpu_get_worker_count(); workerid++) {
 		switch (starpu_get_worker_type(workerid)) {
-		case STARPU_CORE_WORKER:
+		case STARPU_CPU_WORKER:
 #ifdef HAVE_FFTW
 			/* first fft plan: one n2*m2 fft */
 			plan->plans[workerid].in1 = _FFTW(malloc)(plan->totsize2 * sizeof(_fftw_complex));

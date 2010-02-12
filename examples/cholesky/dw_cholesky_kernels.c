@@ -27,7 +27,7 @@
  *   U22 
  */
 
-static inline void chol_common_core_codelet_update_u22(void *descr[], int s, __attribute__((unused)) void *_args)
+static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, __attribute__((unused)) void *_args)
 {
 	//printf("22\n");
 	float *left 	= (float *)STARPU_GET_BLAS_PTR(descr[0]);
@@ -69,15 +69,15 @@ static inline void chol_common_core_codelet_update_u22(void *descr[], int s, __a
 	}
 }
 
-void chol_core_codelet_update_u22(void *descr[], void *_args)
+void chol_cpu_codelet_update_u22(void *descr[], void *_args)
 {
-	chol_common_core_codelet_update_u22(descr, 0, _args);
+	chol_common_cpu_codelet_update_u22(descr, 0, _args);
 }
 
 #ifdef USE_CUDA
 void chol_cublas_codelet_update_u22(void *descr[], void *_args)
 {
-	chol_common_core_codelet_update_u22(descr, 1, _args);
+	chol_common_cpu_codelet_update_u22(descr, 1, _args);
 }
 #endif// USE_CUDA
 
@@ -116,7 +116,7 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, __attrib
 	}
 }
 
-void chol_core_codelet_update_u21(void *descr[], void *_args)
+void chol_cpu_codelet_update_u21(void *descr[], void *_args)
 {
 	 chol_common_codelet_update_u21(descr, 0, _args);
 }
@@ -200,7 +200,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 }
 
 
-void chol_core_codelet_update_u11(void *descr[], void *_args)
+void chol_cpu_codelet_update_u11(void *descr[], void *_args)
 {
 	chol_common_codelet_update_u11(descr, 0, _args);
 }
