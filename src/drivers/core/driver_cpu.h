@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __DRIVER_CORE_H__
-#define __DRIVER_CORE_H__
+#ifndef __DRIVER_CPU_H__
+#define __DRIVER_CPU_H__
 
 /* to bind threads onto a given cpu */
 #ifndef _GNU_SOURCE
@@ -38,4 +38,4 @@ void *_starpu_cpu_worker(void *);
 #define NMAXCPUS       4
 #endif
 
-#endif //  __DRIVER_CORE_H__
+#endif //  __DRIVER_CPU_H__

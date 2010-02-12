@@ -17,7 +17,7 @@
 #include <math.h>
 
 #include <core/debug.h>
-#include "driver_core.h"
+#include "driver_cpu.h"
 #include <core/policies/sched_policy.h>
 
 static int execute_job_on_cpu(job_t j, struct worker_s *cpu_args)

@@ -16,7 +16,7 @@
 
 CFLAGS += -I../../
 
-OBJS := driver_core.o
+OBJS := driver_cpu.o
 
 all: $(OBJS)
 
