@@ -61,5 +61,5 @@ struct starpu_perfmodel_t sgemm_model = {
 
 struct starpu_perfmodel_t sgemm_model_common = {
 	.cost_model = gemm_cost,
-	.type = COMMON,
+	.type = STARPU_COMMON,
 };

@@ -305,7 +305,7 @@ static struct starpu_perfmodel_t starpu_cblk_strsm = {
 		[STARPU_CUDA_DEFAULT] = { .cost_model = starpu_cblk_strsm_cuda_cost }
 	},
 //	.type = REGRESSION_BASED,
-	.type = PER_ARCH,
+	.type = STARPU_PER_ARCH,
 	.symbol = "starpu_cblk_strsm"
 };
 
@@ -404,7 +404,7 @@ static struct starpu_perfmodel_t starpu_compute_contrib_compact = {
 		[STARPU_CUDA_DEFAULT] = { .cost_model = starpu_compute_contrib_compact_cuda_cost }
 	},
 //	.type = REGRESSION_BASED,
-	.type = PER_ARCH,
+	.type = STARPU_PER_ARCH,
 	.symbol = "starpu_compute_contrib_compact"
 };
 
