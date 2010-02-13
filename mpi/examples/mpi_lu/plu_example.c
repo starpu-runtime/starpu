@@ -37,6 +37,7 @@ static unsigned display = 0;
 static unsigned numa = 0;
 
 static size_t allocated_memory = 0;
+static size_t allocated_memory_extra = 0;
 
 static starpu_data_handle *dataA_handles;
 static TYPE **dataA;
@@ -156,6 +157,35 @@ starpu_data_handle STARPU_PLU(get_tmp_21_block_handle)(unsigned i, unsigned k)
 }
 #endif
 
+static unsigned tmp_11_block_is_needed(int rank, unsigned nblocks, unsigned k)
+{
+	return 1;
+}
+
+static unsigned tmp_12_block_is_needed(int rank, unsigned nblocks, unsigned j)
+{
+	unsigned i;
+	for (i = 1; i < nblocks; i++)
+	{
+		if (get_block_rank(i, j) == rank)
+			return 1;
+	}
+
+	return 0;
+}
+
+static unsigned tmp_21_block_is_needed(int rank, unsigned nblocks, unsigned i)
+{
+	unsigned j;
+	for (j = 1; j < nblocks; j++)
+	{
+		if (get_block_rank(i, j) == rank)
+			return 1;
+	}
+
+	return 0;
+}
+
 static void init_matrix(int rank)
 {
 #ifdef HAVE_LIBNUMA
@@ -172,6 +202,7 @@ static void init_matrix(int rank)
 	/* Allocate a grid of data handles, not all of them have to be allocated later on */
 	dataA_handles = calloc(nblocks*nblocks, sizeof(starpu_data_handle));
 	dataA = calloc(nblocks*nblocks, sizeof(TYPE *));
+	allocated_memory_extra += nblocks*nblocks*(sizeof(starpu_data_handle) + sizeof(TYPE *));
 
 	size_t blocksize = (size_t)(size/nblocks)*(size/nblocks)*sizeof(TYPE);
 
@@ -223,22 +254,26 @@ static void init_matrix(int rank)
 	/* tmp buffer 11 */
 #ifdef SINGLE_TMP11
 	starpu_malloc_pinned_if_possible((void **)&tmp_11_block, blocksize);
-	allocated_memory += blocksize;
+	allocated_memory_extra += blocksize;
 	starpu_register_blas_data(&tmp_11_block_handle, 0, (uintptr_t)tmp_11_block,
 			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 #else
 	tmp_11_block_handles = calloc(nblocks, sizeof(starpu_data_handle));
 	tmp_11_block = calloc(nblocks, sizeof(TYPE *));
+	allocated_memory_extra += nblocks*(sizeof(starpu_data_handle) + sizeof(TYPE *));
 
 	for (k = 0; k < nblocks; k++)
 	{
-		starpu_malloc_pinned_if_possible((void **)&tmp_11_block[k], blocksize);
-		allocated_memory += blocksize;
-		STARPU_ASSERT(tmp_11_block[k]);
+		if (tmp_11_block_is_needed(rank, nblocks, k))
+		{
+			starpu_malloc_pinned_if_possible((void **)&tmp_11_block[k], blocksize);
+			allocated_memory_extra += blocksize;
+			STARPU_ASSERT(tmp_11_block[k]);
 
-		starpu_register_blas_data(&tmp_11_block_handles[k], 0,
-			(uintptr_t)tmp_11_block[k],
-			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
+			starpu_register_blas_data(&tmp_11_block_handles[k], 0,
+				(uintptr_t)tmp_11_block[k],
+				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
+		}
 	}
 #endif
 
@@ -248,50 +283,66 @@ static void init_matrix(int rank)
 	tmp_21_block_handles = calloc(nblocks, sizeof(starpu_data_handle));
 	tmp_12_block = calloc(nblocks, sizeof(TYPE *));
 	tmp_21_block = calloc(nblocks, sizeof(TYPE *));
+
+	allocated_memory_extra += 2*nblocks*(sizeof(starpu_data_handle) + sizeof(TYPE *));
 #else
 	for (i = 0; i < 2; i++) {
 		tmp_12_block_handles[i] = calloc(nblocks, sizeof(starpu_data_handle));
 		tmp_21_block_handles[i] = calloc(nblocks, sizeof(starpu_data_handle));
 		tmp_12_block[i] = calloc(nblocks, sizeof(TYPE *));
 		tmp_21_block[i] = calloc(nblocks, sizeof(TYPE *));
+
+		allocated_memory_extra += 2*nblocks*(sizeof(starpu_data_handle) + sizeof(TYPE *));
 	}
 #endif
 	
 	for (k = 0; k < nblocks; k++)
 	{
 #ifdef SINGLE_TMP1221
-		starpu_malloc_pinned_if_possible((void **)&tmp_12_block[k], blocksize);
-		allocated_memory += blocksize;
-		STARPU_ASSERT(tmp_12_block[k]);
+		if (tmp_12_block_is_needed(rank, nblocks, k))
+		{
+			starpu_malloc_pinned_if_possible((void **)&tmp_12_block[k], blocksize);
+			allocated_memory_extra += blocksize;
+			STARPU_ASSERT(tmp_12_block[k]);
 
-		starpu_register_blas_data(&tmp_12_block_handles[k], 0,
-			(uintptr_t)tmp_12_block[k],
-			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
+			starpu_register_blas_data(&tmp_12_block_handles[k], 0,
+				(uintptr_t)tmp_12_block[k],
+				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
+		}
 
-		starpu_malloc_pinned_if_possible((void **)&tmp_21_block[k], blocksize);
-		allocated_memory += blocksize;
-		STARPU_ASSERT(tmp_21_block[k]);
+		if (tmp_21_block_is_needed(rank, nblocks, k))
+		{
+			starpu_malloc_pinned_if_possible((void **)&tmp_21_block[k], blocksize);
+			allocated_memory_extra += blocksize;
+			STARPU_ASSERT(tmp_21_block[k]);
 
-		starpu_register_blas_data(&tmp_21_block_handles[k], 0,
-			(uintptr_t)tmp_21_block[k],
-			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
+			starpu_register_blas_data(&tmp_21_block_handles[k], 0,
+				(uintptr_t)tmp_21_block[k],
+				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
+		}
 #else
 	for (i = 0; i < 2; i++) {
-		starpu_malloc_pinned_if_possible((void **)&tmp_12_block[i][k], blocksize);
-		allocated_memory += blocksize;
-		STARPU_ASSERT(tmp_12_block[i][k]);
+		if (tmp_12_block_is_needed(rank, nblocks, k))
+		{
+			starpu_malloc_pinned_if_possible((void **)&tmp_12_block[i][k], blocksize);
+			allocated_memory_extra += blocksize;
+			STARPU_ASSERT(tmp_12_block[i][k]);
+	
+			starpu_register_blas_data(&tmp_12_block_handles[i][k], 0,
+				(uintptr_t)tmp_12_block[i][k],
+				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
+		}
 
-		starpu_register_blas_data(&tmp_12_block_handles[i][k], 0,
-			(uintptr_t)tmp_12_block[i][k],
-			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
-
-		starpu_malloc_pinned_if_possible((void **)&tmp_21_block[i][k], blocksize);
-		allocated_memory += blocksize;
-		STARPU_ASSERT(tmp_21_block[i][k]);
-
-		starpu_register_blas_data(&tmp_21_block_handles[i][k], 0,
-			(uintptr_t)tmp_21_block[i][k],
-			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
+		if (tmp_21_block_is_needed(rank, nblocks, k))
+		{
+			starpu_malloc_pinned_if_possible((void **)&tmp_21_block[i][k], blocksize);
+			allocated_memory_extra += blocksize;
+			STARPU_ASSERT(tmp_21_block[i][k]);
+	
+			starpu_register_blas_data(&tmp_21_block_handles[i][k], 0,
+				(uintptr_t)tmp_21_block[i][k],
+				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
+		}
 	}
 #endif
 	}
@@ -380,7 +431,10 @@ int main(int argc, char **argv)
 
 	init_matrix(rank);
 
-	fprintf(stderr, "Rank %d: allocated %d MB\n", rank, allocated_memory/(1024*1024));
+	fprintf(stderr, "Rank %d: allocated (%d + %d) MB = %d MB\n", rank,
+			allocated_memory/(1024*1024),
+			allocated_memory_extra/(1024*1024),
+			(allocated_memory+allocated_memory_extra)/(1024*1024));
 
 	display_grid(rank, nblocks);
 
