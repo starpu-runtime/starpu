@@ -277,7 +277,7 @@ static void create_task_11_real(unsigned k)
 
 	/* this is an important task */
 	if (!no_prio)
-		task->priority = MAX_PRIO;
+		task->priority = STARPU_MAX_PRIO;
 
 	/* enforce dependencies ... */
 	if (k > 0) {
@@ -450,7 +450,7 @@ static void create_task_12_real(unsigned k, unsigned j)
 	task->callback_arg = arg;
 
 	if (!no_prio && (j == k+1)) {
-		task->priority = MAX_PRIO;
+		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
@@ -621,7 +621,7 @@ static void create_task_21_real(unsigned k, unsigned i)
 	task->callback_arg = arg;
 
 	if (!no_prio && (i == k+1)) {
-		task->priority = MAX_PRIO;
+		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */
@@ -741,7 +741,7 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 	STARPU_ASSERT(task->buffers[2].handle != STARPU_POISON_PTR);
 
 	if (!no_prio &&  (i == k + 1) && (j == k +1) ) {
-		task->priority = MAX_PRIO;
+		task->priority = STARPU_MAX_PRIO;
 	}
 
 	/* enforce dependencies ... */

@@ -17,16 +17,15 @@
 #ifndef __PRIORITY_QUEUES_H__
 #define __PRIORITY_QUEUES_H__
 
-#define MIN_PRIO	(-4)
-#define MAX_PRIO	5
-
-#define NPRIO_LEVELS	((MAX_PRIO) - (MIN_PRIO) + 1)
-
+#include <starpu.h>
+#include <common/config.h>
 #include <core/mechanisms/queues.h>
+
+#define NPRIO_LEVELS	((STARPU_MAX_PRIO) - (STARPU_MIN_PRIO) + 1)
 
 struct priority_jobq_s {
 	/* the actual lists 
-	 *	jobq[p] is for priority [p - MIN_PRIO] */
+	 *	jobq[p] is for priority [p - STARPU_MIN_PRIO] */
 	job_list_t jobq[NPRIO_LEVELS];
 	unsigned njobs[NPRIO_LEVELS];
 

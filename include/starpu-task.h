@@ -91,8 +91,8 @@ struct starpu_task {
 
 	/* options for the task execution */
 	unsigned synchronous; /* if set, a call to push is blocking */
-	int priority; /* MAX_PRIO = most important 
-        		: MIN_PRIO = least important */
+	int priority; /* STARPU_MAX_PRIO = most important 
+        		: STARPU_MIN_PRIO = least important */
 
 	/* in case the task has to be executed on a specific worker */
 	unsigned execute_on_a_specific_worker;

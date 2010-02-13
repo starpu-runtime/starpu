@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
+#include <common/config.h>
 #include <core/mechanisms/priority_queues.h>
 
 /*
@@ -76,7 +78,7 @@ int priority_push_task(struct jobq_s *q, job_t j)
 
 	TRACE_JOB_PUSH(j, 1);
 	
-	unsigned priolevel = j->task->priority - MIN_PRIO;
+	unsigned priolevel = j->task->priority - STARPU_MIN_PRIO;
 
 	job_list_push_front(queue->jobq[priolevel], j);
 	queue->njobs[priolevel]++;
