@@ -256,12 +256,12 @@ void STARPU_DECLARE_WORK_BLOCKS(float *maxbloktab1, float *maxbloktab2, unsigned
 void _cpu_cblk_strsm(void *descr[], void *arg __attribute__((unused)))
 {
 	uint32_t nx, ny, ld;
-	nx = GET_BLAS_NX(descr[0]);
-	ny = GET_BLAS_NY(descr[0]);
-	ld = GET_BLAS_LD(descr[0]);
+	nx = STARPU_GET_BLAS_NX(descr[0]);
+	ny = STARPU_GET_BLAS_NY(descr[0]);
+	ld = STARPU_GET_BLAS_LD(descr[0]);
 
 	float *diag_cblkdata, *extra_cblkdata;
-	diag_cblkdata = (float *)GET_BLAS_PTR(descr[0]);
+	diag_cblkdata = (float *)STARPU_GET_BLAS_PTR(descr[0]);
 	extra_cblkdata = diag_cblkdata + ny;
 
 	unsigned m = nx - ny;
@@ -278,12 +278,12 @@ void _cpu_cblk_strsm(void *descr[], void *arg __attribute__((unused)))
 void _cublas_cblk_strsm(void *descr[], void *arg __attribute__((unused)))
 {
 	uint32_t nx, ny, ld;
-	nx = GET_BLAS_NX(descr[0]);
-	ny = GET_BLAS_NY(descr[0]);
-	ld = GET_BLAS_LD(descr[0]);
+	nx = STARPU_GET_BLAS_NX(descr[0]);
+	ny = STARPU_GET_BLAS_NY(descr[0]);
+	ld = STARPU_GET_BLAS_LD(descr[0]);
 
 	float *diag_cblkdata, *extra_cblkdata;
-	diag_cblkdata = (float *)GET_BLAS_PTR(descr[0]);
+	diag_cblkdata = (float *)STARPU_GET_BLAS_PTR(descr[0]);
 	extra_cblkdata = diag_cblkdata + ny;
 
 	unsigned m = nx - ny;
@@ -358,11 +358,11 @@ void _cpu_compute_contrib_compact(void *descr[], void *arg)
 {
 	struct starpu_compute_contrib_compact_args *args = arg;
 
-	float *gaik = (float *)GET_BLAS_PTR(descr[0]) + args->dima;
-	float *gb = (float *)GET_BLAS_PTR(descr[1]); 
-	unsigned strideb = (unsigned)GET_BLAS_LD(descr[1]);
-	float *gc = (float *)GET_BLAS_PTR(descr[2]);
-	unsigned stridec = (unsigned)GET_BLAS_LD(descr[2]);
+	float *gaik = (float *)STARPU_GET_BLAS_PTR(descr[0]) + args->dima;
+	float *gb = (float *)STARPU_GET_BLAS_PTR(descr[1]); 
+	unsigned strideb = (unsigned)STARPU_GET_BLAS_LD(descr[1]);
+	float *gc = (float *)STARPU_GET_BLAS_PTR(descr[2]);
+	unsigned stridec = (unsigned)STARPU_GET_BLAS_LD(descr[2]);
 
 	cpu_sgemm++;
 
@@ -379,11 +379,11 @@ void _cublas_compute_contrib_compact(void *descr[], void *arg)
 {
 	struct starpu_compute_contrib_compact_args *args = arg;
 
-	float *gaik = (float *)GET_BLAS_PTR(descr[0]) + args->dima;
-	float *gb = (float *)GET_BLAS_PTR(descr[1]);
-	unsigned strideb = (unsigned)GET_BLAS_LD(descr[1]);
-	float *gc = (float *)GET_BLAS_PTR(descr[2]);
-	unsigned stridec = (unsigned)GET_BLAS_LD(descr[2]);
+	float *gaik = (float *)STARPU_GET_BLAS_PTR(descr[0]) + args->dima;
+	float *gb = (float *)STARPU_GET_BLAS_PTR(descr[1]);
+	unsigned strideb = (unsigned)STARPU_GET_BLAS_LD(descr[1]);
+	float *gc = (float *)STARPU_GET_BLAS_PTR(descr[2]);
+	unsigned stridec = (unsigned)STARPU_GET_BLAS_LD(descr[2]);
 	
 	cublas_sgemm++;
 
@@ -515,20 +515,20 @@ void _cublas_sgemm(void *descr[], void *arg)
 	uint32_t nxB, nyB, ldB;
 	uint32_t nxC, nyC, ldC;
 
-	A = (float *)GET_BLAS_PTR(descr[0]);
-	nxA = GET_BLAS_NX(descr[0]);
-	nyA = GET_BLAS_NY(descr[0]);
-	ldA = GET_BLAS_LD(descr[0]);
+	A = (float *)STARPU_GET_BLAS_PTR(descr[0]);
+	nxA = STARPU_GET_BLAS_NX(descr[0]);
+	nyA = STARPU_GET_BLAS_NY(descr[0]);
+	ldA = STARPU_GET_BLAS_LD(descr[0]);
 
-	B = (float *)GET_BLAS_PTR(descr[1]);
-	nxB = GET_BLAS_NX(descr[1]);
-	nyB = GET_BLAS_NY(descr[1]);
-	ldB = GET_BLAS_LD(descr[1]);
+	B = (float *)STARPU_GET_BLAS_PTR(descr[1]);
+	nxB = STARPU_GET_BLAS_NX(descr[1]);
+	nyB = STARPU_GET_BLAS_NY(descr[1]);
+	ldB = STARPU_GET_BLAS_LD(descr[1]);
 
-	C = (float *)GET_BLAS_PTR(descr[2]);
-	nxC = GET_BLAS_NX(descr[2]);
-	nyC = GET_BLAS_NY(descr[2]);
-	ldC = GET_BLAS_LD(descr[2]);
+	C = (float *)STARPU_GET_BLAS_PTR(descr[2]);
+	nxC = STARPU_GET_BLAS_NX(descr[2]);
+	nyC = STARPU_GET_BLAS_NY(descr[2]);
+	ldC = STARPU_GET_BLAS_LD(descr[2]);
 
 	struct sgemm_args *args = arg;
 
@@ -662,15 +662,15 @@ struct strsm_args {
 //	uint32_t nxA, nyA, ldA;
 //	uint32_t nxB, nyB, ldB;
 //
-//	A = (float *)GET_BLAS_PTR(descr[0]);
-//	nxA = GET_BLAS_NX(descr[0]);
-//	nyA = GET_BLAS_NY(descr[0]);
-//	ldA = GET_BLAS_LD(descr[0]);
+//	A = (float *)STARPU_GET_BLAS_PTR(descr[0]);
+//	nxA = STARPU_GET_BLAS_NX(descr[0]);
+//	nyA = STARPU_GET_BLAS_NY(descr[0]);
+//	ldA = STARPU_GET_BLAS_LD(descr[0]);
 //
-//	B = (float *)GET_BLAS_PTR(descr[1]);
-//	nxB = GET_BLAS_NX(descr[1]);
-//	nyB = GET_BLAS_NY(descr[1]);
-//	ldB = GET_BLAS_LD(descr[1]);
+//	B = (float *)STARPU_GET_BLAS_PTR(descr[1]);
+//	nxB = STARPU_GET_BLAS_NX(descr[1]);
+//	nyB = STARPU_GET_BLAS_NY(descr[1]);
+//	ldB = STARPU_GET_BLAS_LD(descr[1]);
 //
 //	struct strsm_args *args = arg;
 //

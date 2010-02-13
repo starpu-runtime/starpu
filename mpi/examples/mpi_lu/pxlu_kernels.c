@@ -27,17 +27,17 @@
 static inline void STARPU_PLU(common_u22)(void *descr[],
 				int s, __attribute__((unused)) void *_args)
 {
-	TYPE *right 	= (TYPE *)GET_BLAS_PTR(descr[0]);
-	TYPE *left 	= (TYPE *)GET_BLAS_PTR(descr[1]);
-	TYPE *center 	= (TYPE *)GET_BLAS_PTR(descr[2]);
+	TYPE *right 	= (TYPE *)STARPU_GET_BLAS_PTR(descr[0]);
+	TYPE *left 	= (TYPE *)STARPU_GET_BLAS_PTR(descr[1]);
+	TYPE *center 	= (TYPE *)STARPU_GET_BLAS_PTR(descr[2]);
 
-	unsigned dx = GET_BLAS_NX(descr[2]);
-	unsigned dy = GET_BLAS_NY(descr[2]);
-	unsigned dz = GET_BLAS_NY(descr[0]);
+	unsigned dx = STARPU_GET_BLAS_NX(descr[2]);
+	unsigned dy = STARPU_GET_BLAS_NY(descr[2]);
+	unsigned dz = STARPU_GET_BLAS_NY(descr[0]);
 
-	unsigned ld12 = GET_BLAS_LD(descr[0]);
-	unsigned ld21 = GET_BLAS_LD(descr[1]);
-	unsigned ld22 = GET_BLAS_LD(descr[2]);
+	unsigned ld12 = STARPU_GET_BLAS_LD(descr[0]);
+	unsigned ld21 = STARPU_GET_BLAS_LD(descr[1]);
+	unsigned ld22 = STARPU_GET_BLAS_LD(descr[2]);
 
 #ifdef VERBOSE_KERNELS
 	struct debug_info *info = _args;
@@ -127,14 +127,14 @@ static inline void STARPU_PLU(common_u12)(void *descr[],
 	TYPE *sub11;
 	TYPE *sub12;
 
-	sub11 = (TYPE *)GET_BLAS_PTR(descr[0]);	
-	sub12 = (TYPE *)GET_BLAS_PTR(descr[1]);
+	sub11 = (TYPE *)STARPU_GET_BLAS_PTR(descr[0]);	
+	sub12 = (TYPE *)STARPU_GET_BLAS_PTR(descr[1]);
 
-	unsigned ld11 = GET_BLAS_LD(descr[0]);
-	unsigned ld12 = GET_BLAS_LD(descr[1]);
+	unsigned ld11 = STARPU_GET_BLAS_LD(descr[0]);
+	unsigned ld12 = STARPU_GET_BLAS_LD(descr[1]);
 
-	unsigned nx12 = GET_BLAS_NX(descr[1]);
-	unsigned ny12 = GET_BLAS_NY(descr[1]);
+	unsigned nx12 = STARPU_GET_BLAS_NX(descr[1]);
+	unsigned ny12 = STARPU_GET_BLAS_NY(descr[1]);
 
 #ifdef VERBOSE_KERNELS
 	struct debug_info *info = _args;
@@ -234,14 +234,14 @@ static inline void STARPU_PLU(common_u21)(void *descr[],
 	TYPE *sub11;
 	TYPE *sub21;
 
-	sub11 = (TYPE *)GET_BLAS_PTR(descr[0]);
-	sub21 = (TYPE *)GET_BLAS_PTR(descr[1]);
+	sub11 = (TYPE *)STARPU_GET_BLAS_PTR(descr[0]);
+	sub21 = (TYPE *)STARPU_GET_BLAS_PTR(descr[1]);
 
-	unsigned ld11 = GET_BLAS_LD(descr[0]);
-	unsigned ld21 = GET_BLAS_LD(descr[1]);
+	unsigned ld11 = STARPU_GET_BLAS_LD(descr[0]);
+	unsigned ld21 = STARPU_GET_BLAS_LD(descr[1]);
 
-	unsigned nx21 = GET_BLAS_NX(descr[1]);
-	unsigned ny21 = GET_BLAS_NY(descr[1]);
+	unsigned nx21 = STARPU_GET_BLAS_NX(descr[1]);
+	unsigned ny21 = STARPU_GET_BLAS_NY(descr[1]);
 	
 #ifdef VERBOSE_KERNELS
 	struct debug_info *info = _args;
@@ -342,10 +342,10 @@ static inline void STARPU_PLU(common_u11)(void *descr[],
 {
 	TYPE *sub11;
 
-	sub11 = (TYPE *)GET_BLAS_PTR(descr[0]); 
+	sub11 = (TYPE *)STARPU_GET_BLAS_PTR(descr[0]); 
 
-	unsigned long nx = GET_BLAS_NX(descr[0]);
-	unsigned long ld = GET_BLAS_LD(descr[0]);
+	unsigned long nx = STARPU_GET_BLAS_NX(descr[0]);
+	unsigned long ld = STARPU_GET_BLAS_LD(descr[0]);
 
 	unsigned long z;
 

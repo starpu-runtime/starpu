@@ -80,11 +80,11 @@ struct starpu_data_interface_ops_t interface_blas_ops = {
 static int convert_blas_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
 	size_t elemsize = GET_BLAS_ELEMSIZE(interface);
-	uint32_t nx = GET_BLAS_NX(interface);
-	uint32_t ny = GET_BLAS_NY(interface);
-	uint32_t ld = GET_BLAS_LD(interface);
+	uint32_t nx = STARPU_GET_BLAS_NX(interface);
+	uint32_t ny = STARPU_GET_BLAS_NY(interface);
+	uint32_t ld = STARPU_GET_BLAS_LD(interface);
 
-	*ptr = GET_BLAS_PTR(interface);
+	*ptr = STARPU_GET_BLAS_PTR(interface);
 
 	/* The gordon_stride_init function may use a contiguous buffer
  	 * in case nx = ld (in that case, (*ss).size = elemsize*nx*ny */
