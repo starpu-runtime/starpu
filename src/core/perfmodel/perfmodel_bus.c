@@ -14,6 +14,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#ifdef USE_CUDA
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#include <sched.h>
+#endif
 #include <unistd.h>
 #include <sys/time.h>
 #include <stdlib.h>
@@ -217,6 +223,7 @@ static void benchmark_all_cuda_devices(void)
 		measure_bandwith_between_host_and_dev(i, ncpus);
 	}
 
+	/* FIXME: use hwloc */
 	/* Restore the former affinity */
 	ret = sched_setaffinity(0, sizeof(former_process_affinity), &former_process_affinity);
 	if (ret)

@@ -17,12 +17,6 @@
 #ifndef __DRIVER_CPU_H__
 #define __DRIVER_CPU_H__
 
-/* to bind threads onto a given cpu */
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
-#include <sched.h>
-
 #include <common/config.h>
 #include <core/jobs.h>
 
