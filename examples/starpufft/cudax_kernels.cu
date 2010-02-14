@@ -77,6 +77,7 @@ STARPUFFT(cuda_twiddle_1d_host)(_cuComplex *out, const _cuComplex *roots, unsign
 	unsigned numthreadsx = blockDim.x * gridDim.x; \
 	unsigned numthreadsy = blockDim.y * gridDim.y;
 
+/* FIXME: introduce threads_per_dim_n / m instead */
 #define DISTRIB_2d(n, m, func, args, stream) \
 	unsigned threads_per_dim = 16; \
 	if (n < threads_per_dim) { \
