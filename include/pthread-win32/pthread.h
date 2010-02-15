@@ -138,7 +138,6 @@ static inline int pthread_join (pthread_t thread, void **res) {
 #define PTHREAD_MUTEX_INITIALIZER NULL
 #define PTHREAD_RWLOCK_INITIALIZER NULL
 typedef HANDLE pthread_mutex_t;
-typedef HANDLE pthread_rwlock_t;
 #define PTHREAD_MUTEX_RECURSIVE 1
 typedef int pthread_mutexattr_t;
 
@@ -168,19 +167,25 @@ static inline int pthread_mutex_unlock (pthread_mutex_t *mutex) {
   return 0;
 }
 
+static inline int pthread_mutex_lock (pthread_mutex_t *mutex);
+static inline int __pthread_mutex_alloc_concurrently (pthread_mutex_t *mutex) {
+  HANDLE mutex_init_mutex;
+  /* Get access to one global named mutex to serialize mutex initialization */
+  winPthreadAssertWindows((mutex_init_mutex = CreateMutex(NULL, FALSE, "StarPU mutex init")));
+  winPthreadAssert(!pthread_mutex_lock(&mutex_init_mutex));
+  /* Now we are the one that can initialize it */
+  if (!*mutex)
+    winPthreadAssert(!pthread_mutex_init((pthread_mutex_t *) mutex,NULL));
+  winPthreadAssert(!pthread_mutex_unlock(&mutex_init_mutex));
+  winPthreadAssertWindows(CloseHandle(mutex_init_mutex));
+  return 0;
+}
+
 static inline int pthread_mutex_lock (pthread_mutex_t *mutex) {
-  volatile pthread_mutex_t *vmutex = mutex;
-  if (!*vmutex) {
-    HANDLE mutex_init_mutex;
-    winPthreadAssertWindows((mutex_init_mutex = CreateMutex(NULL, FALSE, "BRLTTY mutex init")));
-    winPthreadAssert(!pthread_mutex_lock(&mutex_init_mutex));
-    if (!*vmutex)
-      winPthreadAssert(!pthread_mutex_init((pthread_mutex_t *) vmutex,NULL));
-    winPthreadAssert(!pthread_mutex_unlock(&mutex_init_mutex));
-    winPthreadAssertWindows(CloseHandle(mutex_init_mutex));
-  }
+  if (!*mutex)
+    __pthread_mutex_alloc_concurrently (mutex);
 again:
-  switch (WaitForSingleObject(*vmutex, INFINITE)) {
+  switch (WaitForSingleObject(*mutex, INFINITE)) {
     default:
     case WAIT_FAILED:
       setSystemErrno();
@@ -193,10 +198,39 @@ again:
   }
 }
 
+static inline int pthread_mutex_trylock (pthread_mutex_t *mutex) {
+  if (!*mutex)
+    __pthread_mutex_alloc_concurrently (mutex);
+  switch (WaitForSingleObject(*mutex, 0)) {
+    default:
+    case WAIT_FAILED:
+      setSystemErrno();
+      return errno;
+    case WAIT_ABANDONED:
+    case WAIT_OBJECT_0:
+      return 0;
+    case WAIT_TIMEOUT:
+      return EBUSY;
+  }
+}
+
 static inline int pthread_mutex_destroy (pthread_mutex_t *mutex) {
   winPthreadAssertWindows(CloseHandle(*mutex));
   return 0;
 }
+
+/********************************************
+ * rwlock                                   *
+ * VERY LAZY, don't even look at it please! *
+ * Should be fine unoptimized for now.      *
+ * TODO: FIXME, using conds for instance?   *
+ ********************************************/
+
+typedef pthread_mutex_t pthread_rwlock_t;
+#define pthread_rwlock_init(lock, attr) pthread_mutex_init(lock, NULL)
+#define pthread_rwlock_wrlock(lock) pthread_mutex_lock(lock)
+#define pthread_rwlock_rdlock(lock) pthread_mutex_lock(lock)
+#define pthread_rwlock_unlock(lock) pthread_mutex_unlock(lock)
 
 /**************
  * conditions *

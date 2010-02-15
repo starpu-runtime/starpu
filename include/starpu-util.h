@@ -73,7 +73,7 @@ static inline unsigned starpu_atomic_##name(unsigned *ptr, unsigned value) { \
 		if (starpu_cmpxchg(ptr, next) == old) \
 			break; \
 	}; \
-	return old + value; \
+	return expr; \
 }
 
 #ifdef STARPU_HAVE_SYNC_FETCH_AND_ADD
@@ -94,6 +94,14 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #error __sync_fetch_and_or is not available
 #endif
 
+#ifdef STARPU_HAVE_SYNC_BOOL_COMPARE_AND_SWAP
+#define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value)  (__sync_bool_compare_and_swap ((ptr), (old), (value)))
+#elif defined(STARPU_HAVE_XCHG)
+#define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value) (starpu_cmpxchg((ptr), (value)) == (old))
+#else
+#error __sync_bool_compare_and_swap is not available
+#endif
+
 #ifdef STARPU_HAVE_SYNC_LOCK_TEST_AND_SET
 #define STARPU_TEST_AND_SET(ptr, value) (__sync_lock_test_and_set ((ptr), (value)))
 #define STARPU_RELEASE(ptr) (__sync_lock_release ((ptr)))
@@ -102,6 +110,18 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #define STARPU_RELEASE(ptr) (starpu_xchg((ptr), 0))
 #else
 #error __sync_lock_test_and_set is not available
+#endif
+
+#ifdef STARPU_HAVE_SYNC_SYNCHRONIZE
+#define STARPU_SYNCHRONIZE() __sync_synchronize()
+#elif defined(__i386__)
+#define STARPU_SYNCHRONIZE() __asm__ __volatile__("lock; addl $0,0(%%esp)" ::: "memory")
+#elif defined(__x86_64__)
+#define STARPU_SYNCHRONIZE() __asm__ __volatile__("mfence" ::: "memory")
+#elif defined(__ppc__) || defined(__ppc64__)
+#define STARPU_SYNCHRONIZE() __asm__ __volatile__("sync" ::: "memory")
+#else
+#error __sync_synchronize is not available
 #endif
 
 #ifdef USE_CUDA

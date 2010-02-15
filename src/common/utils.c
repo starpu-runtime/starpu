@@ -19,6 +19,11 @@
 #include <common/utils.h>
 #include <libgen.h>
 
+#ifdef __MINGW32__
+#include <io.h>
+#define mkdir(path, mode) mkdir(path)
+#endif
+
 /* Function with behaviour like `mkdir -p'. This function was adapted from
  * http://niallohiggins.com/2009/01/08/mkpath-mkdir-p-alike-in-c-for-unix/ */
 

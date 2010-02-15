@@ -302,7 +302,7 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
 	STARPU_ASSERT(model->symbol);
 
 	unsigned have_to_load;
-	have_to_load = __sync_bool_compare_and_swap (&model->is_loaded, 
+	have_to_load = STARPU_BOOL_COMPARE_AND_SWAP (&model->is_loaded, 
 				STARPU_PERFMODEL_NOT_LOADED,
 				STARPU_PERFMODEL_LOADING);
 	if (!have_to_load)
@@ -310,7 +310,7 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
 		/* someone is already loading the model, we wait until it's finished */
 		while (model->is_loaded != STARPU_PERFMODEL_LOADED)
 		{
-			__sync_synchronize();
+			STARPU_SYNCHRONIZE();
 		}
 		return;
 	}

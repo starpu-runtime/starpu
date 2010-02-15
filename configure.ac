@@ -61,6 +61,7 @@ AC_COMPILE_IFELSE(
   ]], [[ pthread_t t; pthread_create(&t, NULL, NULL, NULL); ]]),,
   AC_MSG_ERROR([pthread_create unavailable]))
 AC_SEARCH_LIBS([sqrt],[m],,AC_MSG_ERROR([math library unavailable]))
+AC_HAVE_LIBRARY([wsock32])
 AC_CHECK_FUNCS([sysconf])
 
 AC_CHECK_FUNC([pthread_spin_lock], have_pthread_spin_lock=yes, have_pthread_spin_lock=no)
@@ -84,8 +85,11 @@ AC_CHECK_FUNCS([drand48],
 
 AC_CHECK_HEADERS([malloc.h])
 
-# This defines HAVE_SYNC_BUILTINS
-STARPU_CHECK_SYNC_BUILTINS
+# This defines HAVE_SYNC_VAL_COMPARE_AND_SWAP
+STARPU_CHECK_VAL_COMPARE_AND_SWAP
+
+# This defines HAVE_SYNC_BOOL_COMPARE_AND_SWAP
+STARPU_CHECK_SYNC_BOOL_COMPARE_AND_SWAP
 
 # This defines HAVE_SYNC_FETCH_AND_ADD
 STARPU_CHECK_SYNC_FETCH_AND_ADD
@@ -95,6 +99,9 @@ STARPU_CHECK_SYNC_FETCH_AND_OR
 
 # This defines HAVE_SYNC_LOCK_TEST_AND_SET
 STARPU_CHECK_SYNC_LOCK_TEST_AND_SET
+
+# This defines HAVE_SYNC_SYNCHRONIZE
+STARPU_CHECK_SYNC_SYNCHRONIZE
 
 CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE "
 
