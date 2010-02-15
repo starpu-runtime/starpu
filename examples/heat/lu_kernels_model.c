@@ -29,7 +29,7 @@
 
 
 #ifdef USE_PERTURBATION
-#define PERTURBATE(a)	((drand48()*2.0f*(AMPL) + 1.0f - (AMPL))*(a))
+#define PERTURBATE(a)	((starpu_drand48()*2.0f*(AMPL) + 1.0f - (AMPL))*(a))
 #else
 #define PERTURBATE(a)	(a)
 #endif

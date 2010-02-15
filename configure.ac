@@ -66,6 +66,12 @@ AC_CHECK_FUNCS(pthread_setaffinity_np)
 # There is no posix_memalign on Mac OS X, only memalign
 AC_CHECK_FUNCS([posix_memalign memalign])
 
+# Some systems don't have drand48
+AC_CHECK_FUNCS([drand48],
+  AC_DEFINE([starpu_drand48()],[drand48()],[drand48 equivalent function]),
+  AC_DEFINE([starpu_drand48()],[((double)rand() / RAND_MAX)],[drand48 equivalent function])
+)
+
 AC_CHECK_HEADERS([malloc.h])
 
 # This defines HAVE_SYNC_BUILTINS

@@ -110,13 +110,13 @@ static void init_problem_data(void)
 	else {
 		for (j=0; j < ydim; j++) {
 			for (i=0; i < zdim; i++) {
-				A[j+i*ydim] = (TYPE)(drand48());
+				A[j+i*ydim] = (TYPE)(starpu_drand48());
 			}
 		}
 	
 		for (j=0; j < zdim; j++) {
 			for (i=0; i < xdim; i++) {
-				B[j+i*zdim] = (TYPE)(drand48());
+				B[j+i*zdim] = (TYPE)(starpu_drand48());
 			}
 		}
 	}

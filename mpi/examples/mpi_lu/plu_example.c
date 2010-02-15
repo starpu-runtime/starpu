@@ -119,7 +119,7 @@ static void fill_block_with_random(TYPE *blockptr, unsigned size, unsigned nbloc
 	for (i = 0; i < block_size; i++)
 	for (j = 0; j < block_size; j++)
 	{
-		blockptr[j+i*block_size] = (TYPE)drand48();
+		blockptr[j+i*block_size] = (TYPE)starpu_drand48();
 	}
 }
 
@@ -455,7 +455,7 @@ int main(int argc, char **argv)
 		{
 			unsigned ind;
 			for (ind = 0; ind < size; ind++)
-				x[ind] = (TYPE)drand48();
+				x[ind] = (TYPE)starpu_drand48();
 		}
 
 		a_r = STARPU_PLU(reconstruct_matrix)(size, nblocks);

@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
 	STARPUFFT(complex) *in = STARPUFFT(malloc)(size * sizeof(*in));
 	srand48(0);
 	for (i = 0; i < size; i++)
-		in[i] = drand48() + I * drand48();
+		in[i] = starpu_drand48() + I * starpu_drand48();
 
 	STARPUFFT(complex) *out = STARPUFFT(malloc)(size * sizeof(*out));
 

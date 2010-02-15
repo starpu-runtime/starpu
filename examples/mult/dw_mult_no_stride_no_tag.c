@@ -144,7 +144,7 @@ static void init_problem_data(void)
 				for (j = 0; j < BLOCKSIZEY; j++)
 					for (i = 0; i < BLOCKSIZEZ; i++)
 					{
-						A[blocky][blockz][i*BLOCKSIZEY + j] = (float)(drand48());
+						A[blocky][blockz][i*BLOCKSIZEY + j] = (float)(starpu_drand48());
 					}
 
 		for (blockz = 0; blockz < nslicesz; blockz++)
@@ -152,7 +152,7 @@ static void init_problem_data(void)
 				for (j = 0; j < BLOCKSIZEZ; j++)
 					for (i = 0; i < BLOCKSIZEX; i++)
 					{
-						B[blockz][blockx][i*BLOCKSIZEZ + j] = (float)(drand48());
+						B[blockz][blockx][i*BLOCKSIZEZ + j] = (float)(starpu_drand48());
 					}
 
 	}

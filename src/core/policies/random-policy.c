@@ -44,7 +44,7 @@ static int _random_push_task(struct jobq_s *q __attribute__ ((unused)), job_t ta
 		alpha_sum += queue_array[worker]->alpha;
 	}
 
-	double rand = drand48()*alpha_sum;
+	double rand = starpu_drand48()*alpha_sum;
 //	fprintf(stderr, "my rand is %e\n", rand);
 
 	double alpha = 0.0;

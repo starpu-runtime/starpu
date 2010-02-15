@@ -166,13 +166,13 @@ static void init_problem_data(void)
 	srand(2009);
 	for (j=0; j < ydim; j++) {
 		for (i=0; i < zdim; i++) {
-			A[j+i*ydim] = (float)(drand48());
+			A[j+i*ydim] = (float)(starpu_drand48());
 		}
 	}
 
 	for (j=0; j < zdim; j++) {
 		for (i=0; i < xdim; i++) {
-			B[j+i*zdim] = (float)(drand48());
+			B[j+i*zdim] = (float)(starpu_drand48());
 		}
 	}
 

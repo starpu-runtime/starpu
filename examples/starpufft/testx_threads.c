@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
 	_FFTW(complex) *in = _FFTW(malloc)(size * sizeof(*in));
 	srand48(0);
 	for (i = 0; i < size; i++)
-		in[i] = drand48() + I * drand48();
+		in[i] = starpu_drand48() + I * starpu_drand48();
 
 	_FFTW(complex) *out_fftw = _FFTW(malloc)(size * sizeof(*out_fftw));
 

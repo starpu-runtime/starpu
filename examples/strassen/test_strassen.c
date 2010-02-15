@@ -139,13 +139,13 @@ void init_problem(void)
 		srand(2008);
 		for (j=0; j < dim; j++) {
 			for (i=0; i < dim; i++) {
-				A[i+j*dim] = (float)(drand48());
+				A[i+j*dim] = (float)(starpu_drand48());
 			}
 		}
 	
 		for (j=0; j < dim; j++) {
 			for (i=0; i < dim; i++) {
-				B[i+j*dim] = (float)(drand48());
+				B[i+j*dim] = (float)(starpu_drand48());
 			}
 		}
 	}

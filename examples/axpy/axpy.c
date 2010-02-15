@@ -97,8 +97,8 @@ int main(int argc, char **argv)
 	unsigned i;
 	for (i = 0; i < N; i++)
 	{
-		vec_x[i] = 1.0f;//(TYPE)drand48();
-		vec_y[i] = 4.0f;//(TYPE)drand48();
+		vec_x[i] = 1.0f;//(TYPE)starpu_drand48();
+		vec_y[i] = 4.0f;//(TYPE)starpu_drand48();
 	}
 
 	fprintf(stderr, "BEFORE x[0] = %2.2f\n", vec_x[0]);

@@ -36,4 +36,6 @@
 
 #undef HAVE_LIBNUMA
 
+#undef starpu_drand48
+
 #endif

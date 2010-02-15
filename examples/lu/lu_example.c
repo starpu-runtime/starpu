@@ -139,7 +139,7 @@ static void init_matrix(void)
 	{
 		for (i = 0; i < size; i++)
 		{
-			A[i + j*size] = (TYPE)drand48();
+			A[i + j*size] = (TYPE)starpu_drand48();
 		}
 	}
 
