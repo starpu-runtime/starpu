@@ -1,7 +1,7 @@
 dnl This test is taken from libgfortran
 
 dnl Check whether the target supports __sync_val_compare_and_swap.
-AC_DEFUN([STARPU_CHECK_SYNC_VAL_COMPARE_SWAP], [
+AC_DEFUN([STARPU_CHECK_SYNC_VAL_COMPARE_AND_SWAP], [
   AC_CACHE_CHECK([whether the target supports __sync_val_compare_and_swap],
 		 ac_cv_have_sync_val_compare_and_swap, [
   AC_LINK_IFELSE([AC_LANG_PROGRAM([int foo, bar;],
@@ -9,7 +9,7 @@ AC_DEFUN([STARPU_CHECK_SYNC_VAL_COMPARE_SWAP], [
 			[ac_cv_have_sync_val_compare_and_swap=yes],
 			[ac_cv_have_sync_val_compare_and_swap=no])])
   if test $ac_cv_have_sync_val_compare_and_swap = yes; then
-    AC_DEFINE(STARPU_HAVE_SYNC_VAL_COMPARE_SWAP, 1,
+    AC_DEFINE(STARPU_HAVE_SYNC_VAL_COMPARE_AND_SWAP, 1,
 	      [Define to 1 if the target supports __sync_val_compare_and_swap])
   fi])
 
