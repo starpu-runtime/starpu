@@ -23,7 +23,6 @@
 #endif
 
 #include <unistd.h>
-#include <sys/syscall.h> /* pour les définitions de SYS_xxx */
 
 #include <string.h>
 #include <sys/types.h>
@@ -87,6 +86,7 @@
 #define FUT_USER_EVENT		0x5132
 
 #ifdef USE_FXT
+#include <sys/syscall.h> /* pour les définitions de SYS_xxx */
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
 

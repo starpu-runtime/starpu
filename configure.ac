@@ -51,9 +51,17 @@ esac
 AC_DEFINE_UNQUOTED(STARPUDIR, "$PWD", [location of StarPU sources])
 AC_SUBST(STARPUDIR, $PWD)
 
-AC_SEARCH_LIBS([pthread_create],[pthread],,AC_MSG_ERROR([pthread library unavailable]))
+AC_CHECK_LIB([pthread], [pthread_create])
+case "$target" in
+*-*-mingw*) CPPFLAGS+=" -I$PWD/include/pthread-win32 " ;;
+esac
+AC_COMPILE_IFELSE(
+  AC_LANG_PROGRAM([[
+    #include <pthread.h>
+  ]], [[ pthread_t t; pthread_create(&t, NULL, NULL, NULL); ]]),,
+  AC_MSG_ERROR([pthread_create unavailable]))
 AC_SEARCH_LIBS([sqrt],[m],,AC_MSG_ERROR([math library unavailable]))
-AC_SEARCH_LIBS([sysconf],[c],,AC_MSG_ERROR([sysconf unavailable]))
+AC_CHECK_FUNCS([sysconf])
 
 AC_CHECK_FUNC([pthread_spin_lock], have_pthread_spin_lock=yes, have_pthread_spin_lock=no)
 if test x$have_pthread_spin_lock = xyes; then
@@ -81,6 +89,12 @@ STARPU_CHECK_SYNC_BUILTINS
 
 # This defines HAVE_SYNC_FETCH_AND_ADD
 STARPU_CHECK_SYNC_FETCH_AND_ADD
+
+# This defines HAVE_SYNC_FETCH_AND_OR
+STARPU_CHECK_SYNC_FETCH_AND_OR
+
+# This defines HAVE_SYNC_LOCK_TEST_AND_SET
+STARPU_CHECK_SYNC_LOCK_TEST_AND_SET
 
 CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE "
 

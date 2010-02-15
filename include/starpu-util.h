@@ -50,11 +50,58 @@ extern "C" {
 #define STARPU_UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
 #define STARPU_LIKELY(expr)            (__builtin_expect(!!(expr),1))
 
-#ifdef HAVE_SYNC_FETCH_AND_ADD
+#if defined(__i386__) || defined(__x86_64__)
+static inline unsigned starpu_cmpxchg(unsigned *ptr, unsigned next) {
+	unsigned tmp = *ptr;
+	__asm__ __volatile__("lock cmpxchgl %2,%1": "+a" (tmp), "+m" (*ptr) : "q" (next) : "memory");
+	return tmp;
+}
+static inline unsigned starpu_xchg(unsigned *ptr, unsigned next) {
+	/* Note: xchg is always locked already */
+	__asm__ __volatile__("xchgl %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
+	return next;
+}
+#define STARPU_HAVE_XCHG
+#endif
+
+#define STARPU_ATOMIC_SOMETHING(name,expr) \
+static inline unsigned starpu_atomic_##name(unsigned *ptr, unsigned value) { \
+	unsigned old, next; \
+	while (1) { \
+		old = *ptr; \
+		next = expr; \
+		if (starpu_cmpxchg(ptr, next) == old) \
+			break; \
+	}; \
+	return old + value; \
+}
+
+#ifdef STARPU_HAVE_SYNC_FETCH_AND_ADD
 #define STARPU_ATOMIC_ADD(ptr, value)  (__sync_fetch_and_add ((ptr), (value)) + (value))
-#define STARPU_ATOMIC_OR(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
+#elif defined(STARPU_HAVE_XCHG)
+STARPU_ATOMIC_SOMETHING(add, old + value)
+#define STARPU_ATOMIC_ADD(ptr, value) starpu_atomic_add(ptr, value)
 #else
 #error __sync_fetch_and_add is not available
+#endif
+
+#ifdef STARPU_HAVE_SYNC_FETCH_AND_OR
+#define STARPU_ATOMIC_OR(ptr, value)  (__sync_fetch_and_or ((ptr), (value)))
+#elif defined(STARPU_HAVE_XCHG)
+STARPU_ATOMIC_SOMETHING(or, old | value)
+#define STARPU_ATOMIC_OR(ptr, value) starpu_atomic_or(ptr, value)
+#else
+#error __sync_fetch_and_or is not available
+#endif
+
+#ifdef STARPU_HAVE_SYNC_LOCK_TEST_AND_SET
+#define STARPU_TEST_AND_SET(ptr, value) (__sync_lock_test_and_set ((ptr), (value)))
+#define STARPU_RELEASE(ptr) (__sync_lock_release ((ptr)))
+#elif defined(STARPU_HAVE_XCHG)
+#define STARPU_TEST_AND_SET(ptr, value) (starpu_xchg((ptr), (value)))
+#define STARPU_RELEASE(ptr) (starpu_xchg((ptr), 0))
+#else
+#error __sync_lock_test_and_set is not available
 #endif
 
 #ifdef USE_CUDA

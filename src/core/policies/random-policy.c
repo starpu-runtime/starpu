@@ -44,13 +44,13 @@ static int _random_push_task(struct jobq_s *q __attribute__ ((unused)), job_t ta
 		alpha_sum += queue_array[worker]->alpha;
 	}
 
-	double rand = starpu_drand48()*alpha_sum;
-//	fprintf(stderr, "my rand is %e\n", rand);
+	double random = starpu_drand48()*alpha_sum;
+//	fprintf(stderr, "my rand is %e\n", random);
 
 	double alpha = 0.0;
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		if (alpha + queue_array[worker]->alpha > rand) {
+		if (alpha + queue_array[worker]->alpha > random) {
 			/* we found the worker */
 			selected = worker;
 			break;

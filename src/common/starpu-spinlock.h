@@ -26,7 +26,7 @@ typedef struct starpu_spinlock_s {
 	pthread_spinlock_t lock;
 #else
 	/* we only have a trivial implementation yet ! */
-	volatile uint32_t taken __attribute__ ((aligned(16)));
+	uint32_t taken __attribute__ ((aligned(16)));
 #endif
 } starpu_spinlock_t;
 

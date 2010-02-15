@@ -16,6 +16,7 @@
 
 #include <common/starpu-spinlock.h>
 #include <common/config.h>
+#include <starpu-util.h>
 
 int starpu_spin_init(starpu_spinlock_t *lock)
 {
@@ -44,7 +45,7 @@ int starpu_spin_lock(starpu_spinlock_t *lock)
 #else
 	uint32_t prev;
 	do {
-		prev = __sync_lock_test_and_set(&lock->taken, 1);
+		prev = STARPU_TEST_AND_SET(&lock->taken, 1);
 	} while (prev);
 	return 0;
 #endif
@@ -56,7 +57,7 @@ int starpu_spin_trylock(starpu_spinlock_t *lock)
 	return pthread_spin_trylock(&lock->lock);
 #else
 	uint32_t prev;
-	prev = __sync_lock_test_and_set(&lock->taken, 1);
+	prev = STARPU_TEST_AND_SET(&lock->taken, 1);
 	return (prev == 0)?0:EBUSY;
 #endif
 }
@@ -66,7 +67,7 @@ int starpu_spin_unlock(starpu_spinlock_t *lock)
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 	return pthread_spin_unlock(&lock->lock);
 #else
-	__sync_lock_release(&lock->taken);
+	STARPU_RELEASE(&lock->taken);
 	return 0;
 #endif
 }

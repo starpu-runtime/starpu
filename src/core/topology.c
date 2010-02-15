@@ -25,6 +25,10 @@
 #ifdef HAVE_HWLOC
 #include <hwloc.h>
 #endif
+
+#if defined(__MINGW32__) || defined(__CYGWIN__)
+#include <windows.h>
+#endif
 		
 static unsigned topology_is_initialized = 0;
 
@@ -135,8 +139,15 @@ static void _starpu_init_topology(struct machine_config_s *config)
 			config->cpu_depth = hwloc_get_type_depth(config->hwtopology, HWLOC_OBJ_PROC);
 
 		config->nhwcpus = hwloc_get_nbobjs_by_depth(config->hwtopology, config->cpu_depth);
-#else
+#elif defined(__MINGW32__) || defined(__CYGWIN__)
+		SYSTEM_INFO sysinfo;
+		GetSystemInfo(&sysinfo);
+		config->nhwcpus += sysinfo.dwNumberOfProcessors;
+#elif defined(HAVE_SYSCONF)
 		config->nhwcpus = sysconf(_SC_NPROCESSORS_ONLN);
+#else
+#warning no way to know number of cores, assuming 1
+		config->nhwcpus = 1;
 #endif
 	
 		topology_is_initialized = 1;
@@ -404,9 +415,8 @@ static inline int _starpu_get_next_bindid(struct machine_config_s *config,
 
 void _starpu_bind_thread_on_cpu(struct machine_config_s *config __attribute__((unused)), unsigned cpuid)
 {
-	int ret;
-
 #ifdef HAVE_HWLOC
+	int ret;
 	_starpu_init_topology(config);
 
 	hwloc_obj_t obj = hwloc_get_obj_by_depth(config->hwtopology, config->cpu_depth, cpuid);
@@ -420,6 +430,7 @@ void _starpu_bind_thread_on_cpu(struct machine_config_s *config __attribute__((u
 	}
 
 #elif defined(HAVE_PTHREAD_SETAFFINITY_NP)
+	int ret;
 	/* fix the thread on the correct cpu */
 	cpu_set_t aff_mask;
 	CPU_ZERO(&aff_mask);
@@ -434,6 +445,12 @@ void _starpu_bind_thread_on_cpu(struct machine_config_s *config __attribute__((u
 		STARPU_ABORT();
 	}
 
+#elif defined(__MINGW32__) || defined(__CYGWIN__)
+	DWORD mask = 1 << cpuid;
+	if (!SetThreadAffinityMask(GetCurrentThread(), mask)) {
+		fprintf(stderr,"SetThreadMaskAffinity(%lx) failed\n", mask);
+		STARPU_ABORT();
+	}
 #else
 #warning no CPU binding support
 #endif

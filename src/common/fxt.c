@@ -16,9 +16,9 @@
 
 #include <starpu.h>
 #include <common/config.h>
-#include <common/fxt.h>
-
 #ifdef USE_FXT
+
+#include <common/fxt.h>
 
 #define PROF_BUFFER_SIZE  (8*1024*1024)
 
@@ -99,5 +99,7 @@ void fxt_register_thread(unsigned cpuid)
 
 void starpu_trace_user_event(unsigned code __attribute__((unused)))
 {
+#ifdef USE_FXT
 	TRACE_USER_EVENT(code);
+#endif
 }

@@ -24,13 +24,13 @@ static void _take_busy_lock(rw_lock *lock)
 {
 	uint32_t prev;
 	do {
-		prev = __sync_lock_test_and_set(&lock->busy, 1);
+		prev = STARPU_TEST_AND_SET(&lock->busy, 1);
 	} while (prev);
 }
 
 static void _release_busy_lock(rw_lock *lock)
 {
-	lock->busy = 0;
+	STARPU_RELEASE(&lock->busy);
 }
 
 void init_rw_lock(rw_lock *lock)
