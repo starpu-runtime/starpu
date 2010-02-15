@@ -448,14 +448,8 @@ AC_MSG_CHECKING(performance models location)
 AC_MSG_RESULT($perf_model_dir)
 
 # On many multicore CPUs, clock cycles are not synchronized
-AC_ARG_ENABLE(sync-clock, [AS_HELP_STRING([--disable-sync-clock], [Do not use monotonic clocks])],
-		enable_sync_clock=$enableval, enable_sync_clock=yes)
-AC_MSG_CHECKING(whether using a synchronous clock)
-AC_MSG_RESULT($enable_sync_clock)
-if test x$enable_sync_clock = xyes; then
-	AC_DEFINE(USE_SYNC_CLOCK, [1], [Use a mononotic clock])
-	AC_CHECK_LIB(rt, clock_gettime,,AC_MSG_ERROR([cannot find clock_gettime]))
-fi
+AC_CHECK_LIB([rt], [clock_gettime])
+AC_CHECK_FUNCS([clock_gettime])
 
 ###############################################################################
 #                                                                             #
