@@ -312,7 +312,7 @@ tag_example_tag_example2_SOURCES =		\
 	tag_example/tag_example2.c
 
 tag_example_tag_example3_SOURCES =		\
-	tag_example/tag_example2.c
+	tag_example/tag_example3.c
 
 tag_example_tag_restartable_SOURCES =		\
 	tag_example/tag_restartable.c
