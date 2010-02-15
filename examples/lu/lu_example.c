@@ -130,8 +130,8 @@ static void init_matrix(void)
 	starpu_malloc_pinned_if_possible((void **)&A, (size_t)size*size*sizeof(TYPE));
 	STARPU_ASSERT(A);
 
-	srand48((long int)time(NULL));
-	//srand48(0);
+	starpu_srand48((long int)time(NULL));
+	//starpu_srand48(0);
 
 	/* initialize matrix content */
 	unsigned long i,j;

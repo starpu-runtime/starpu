@@ -100,7 +100,7 @@ static void initialize_random_policy(struct machine_config_s *config,
 {
 	nworkers = 0;
 
-	srand48(time(NULL));
+	starpu_srand48(time(NULL));
 
 	setup_queues(init_fifo_queues_mechanisms, init_random_fifo, config);
 }

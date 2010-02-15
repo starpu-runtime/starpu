@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
 	bytes = size * sizeof(STARPUFFT(complex));
 
 	STARPUFFT(complex) *in = STARPUFFT(malloc)(size * sizeof(*in));
-	srand48(0);
+	starpu_srand48(0);
 	for (i = 0; i < size; i++)
 		in[i] = starpu_drand48() + I * starpu_drand48();
 

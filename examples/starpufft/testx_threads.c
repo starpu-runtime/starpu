@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
 	bytes = size * sizeof(_FFTW(complex));
 
 	_FFTW(complex) *in = _FFTW(malloc)(size * sizeof(*in));
-	srand48(0);
+	starpu_srand48(0);
 	for (i = 0; i < size; i++)
 		in[i] = starpu_drand48() + I * starpu_drand48();
 
