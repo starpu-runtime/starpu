@@ -100,7 +100,7 @@ static void create_task_grid(unsigned iter)
 
 }
 
-void cpu_codelet(void *_args __attribute__ ((unused)))
+void cpu_codelet(void *descr[], void *_args __attribute__ ((unused)))
 {
 }
 
