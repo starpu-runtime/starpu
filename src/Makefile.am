@@ -92,6 +92,7 @@ libstarpu_la_SOURCES = 						\
 	core/debug.c						\
 	core/errorcheck.c					\
 	core/progress_hook.c					\
+	core/dependencies/cg.c					\
 	core/dependencies/tags.c				\
 	core/dependencies/htable.c				\
 	core/dependencies/data-concurrency.c			\

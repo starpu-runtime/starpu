@@ -14,14 +14,13 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <stdarg.h>
-#include <stdlib.h>
+#include <starpu.h>
+#include <common/config.h>
 #include <core/dependencies/tags.h>
 #include <core/dependencies/htable.h>
 #include <core/jobs.h>
 #include <core/policies/sched_policy.h>
 #include <core/dependencies/data-concurrency.h>
-#include <starpu.h>
 
 static htbl_node_t *tag_htbl = NULL;
 static pthread_rwlock_t tag_global_rwlock = PTHREAD_RWLOCK_INITIALIZER;
@@ -148,7 +147,7 @@ static struct tag_s *gettag_struct(starpu_tag_t id)
 }
 
 /* lock should be taken */
-static void _starpu_tag_set_ready(struct tag_s *tag)
+void _starpu_tag_set_ready(struct tag_s *tag)
 {
 	/* mark this tag as ready to run */
 	tag->state = READY;
@@ -171,50 +170,6 @@ static void _starpu_tag_set_ready(struct tag_s *tag)
 	push_task(j);
 
 	starpu_spin_lock(&tag->lock);
-}
-
-static void notify_cg(cg_t *cg)
-{
-	STARPU_ASSERT(cg);
-	unsigned remaining = STARPU_ATOMIC_ADD(&cg->remaining, -1);
-	if (remaining == 0) {
-		cg->remaining = cg->ntags;
-
-		struct tag_s *tag;
-		struct cg_list_s *tag_successors;
-
-		/* the group is now completed */
-		switch (cg->cg_type) {
-			case CG_APPS:
-				/* this is a cg for an application waiting on a set of
-	 			 * tags, wake the thread */
-				pthread_mutex_lock(&cg->succ.succ_apps.cg_mutex);
-				cg->succ.succ_apps.completed = 1;
-				pthread_cond_signal(&cg->succ.succ_apps.cg_cond);
-				pthread_mutex_unlock(&cg->succ.succ_apps.cg_mutex);
-				break;
-
-			case CG_TAG:
-				tag = cg->succ.tag;
-				tag_successors = &tag->tag_successors;
-	
-				tag_successors->ndeps_completed++;
-	
-				if ((tag->state == BLOCKED) &&
-					(tag_successors->ndeps == tag_successors->ndeps_completed)) {
-					tag_successors->ndeps_completed = 0;
-					_starpu_tag_set_ready(tag);
-				}
-				break;
-
-			case CG_TASK:
-				/* TODO */
-				break;
-
-			default:
-				STARPU_ABORT();
-		}
-	}
 }
 
 /* the lock must be taken ! */
@@ -244,7 +199,7 @@ static void _starpu_tag_add_succ(struct tag_s *tag, cg_t *cg)
 
 	if (tag->state == DONE) {
 		/* the tag was already completed sooner */
-		notify_cg(cg);
+		_starpu_notify_cg(cg);
 	}
 }
 
@@ -273,7 +228,7 @@ static void _starpu_notify_tag_dependencies(struct tag_s *tag)
 		if (cg_type == CG_TAG)
 			starpu_spin_lock(&cgtag->lock);
 
-		notify_cg(cg);
+		_starpu_notify_cg(cg);
 		if (cg_type == CG_APPS) {
 			/* Remove the temporary ref to the cg */
 			memmove(&tag_successors->succ[succ], &tag_successors->succ[succ+1], (nsuccs-(succ+1)) * sizeof(tag_successors->succ[succ]));

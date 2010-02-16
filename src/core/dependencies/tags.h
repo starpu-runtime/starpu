@@ -60,6 +60,7 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 
 void _starpu_notify_dependencies(struct job_s *j);
 void _starpu_tag_declare(starpu_tag_t id, struct job_s *job);
+void _starpu_tag_set_ready(struct tag_s *tag);
 
 unsigned submit_job_enforce_task_deps(struct job_s *j);
 

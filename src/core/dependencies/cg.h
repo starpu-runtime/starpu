@@ -73,4 +73,6 @@ typedef struct cg_s {
 	} succ;
 } cg_t;
 
+void _starpu_notify_cg(cg_t *cg);
+
 #endif // __CG_H__
