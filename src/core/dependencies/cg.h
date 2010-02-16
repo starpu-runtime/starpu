@@ -43,20 +43,34 @@ struct cg_list_s {
 #endif
 };
 
+#define CG_APPS	(1<<0)
+#define CG_TAG	(1<<1)
+#define CG_TASK	(1<<2)
+
 /* Completion Group */
 typedef struct cg_s {
 	unsigned ntags; /* number of tags depended on */
 	unsigned remaining; /* number of remaining tags */
-	struct tag_s *tag; /* which tags depends on that cg ?  */
 
-	unsigned completed;
+	unsigned cg_type; /* CG_APPS or CG_TAG or CG_TASK */
 
-	/* in case this completion group is related to an application, we have
- 	 * to explicitely wake the waiting thread instead of reschedule the
-	 * corresponding task */
-	unsigned used_by_apps;
-	pthread_mutex_t cg_mutex;
-	pthread_cond_t cg_cond;
+	union {
+		/* CG_TAG */
+		struct tag_s *tag;
+
+		/* CG_TASK */
+		struct job_s *succ_job;
+
+		/* CG_APPS */
+		/* in case this completion group is related to an application,
+		 * we have to explicitely wake the waiting thread instead of
+		 * reschedule the corresponding task */
+		struct {
+			unsigned completed;
+			pthread_mutex_t cg_mutex;
+			pthread_cond_t cg_cond;
+		} succ_apps;
+	} succ;
 } cg_t;
 
 #endif // __CG_H__
