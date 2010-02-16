@@ -98,6 +98,13 @@ void _starpu_handle_job_termination(job_t j)
 		_starpu_set_local_worker_status(STATUS_UNKNOWN);
 	}
 
+	/* NB: we do not save those values before the callback, in case the
+	 * application changes some parameters eventually (eg. a task may not
+	 * be generated if the application is terminated). */
+	int destroy = task->destroy;
+	int detach = task->detach;
+	int regenerate = task->regenerate;
+
 	if (!task->detach)
 	{
 		/* we do not desallocate the job structure if some is going to
@@ -110,14 +117,23 @@ void _starpu_handle_job_termination(job_t j)
 	else {
 		/* no one is going to synchronize with that task so we release
  		 * the data structures now */
-		if (task->detach)
+		if (detach && !regenerate)
 			job_delete(j);
 
-		if (task->destroy)
+		if (destroy)
 			free(task);
 	}
 
 	_starpu_decrement_nsubmitted_tasks();
+
+	if (regenerate)
+	{
+		STARPU_ASSERT(detach && !destroy && !task->synchronous);
+
+		/* We reuse the same job structure */
+		int ret = _starpu_submit_job(j);
+		STARPU_ASSERT(!ret);
+	}	
 }
 
 /* This function is called when a new task is submitted to StarPU 

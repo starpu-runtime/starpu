@@ -51,6 +51,8 @@ void starpu_task_init(struct starpu_task *task)
 	 * tasks */
 	task->destroy = 0;
 
+	task->regenerate = 0;
+
 	task->starpu_private = NULL;
 }
 
@@ -106,6 +108,13 @@ int starpu_wait_task(struct starpu_task *task)
 	return 0;
 }
 
+int _starpu_submit_job(job_t j)
+{
+	_starpu_increment_nsubmitted_tasks();
+
+	return _starpu_enforce_deps_and_schedule(j);
+}
+
 /* application should submit new tasks to StarPU through this function */
 int starpu_submit_task(struct starpu_task *task)
 {
@@ -145,9 +154,7 @@ int starpu_submit_task(struct starpu_task *task)
 
 	task->starpu_private = j;
 
-	_starpu_increment_nsubmitted_tasks();
-
-	ret = _starpu_enforce_deps_and_schedule(j);
+	ret = _starpu_submit_job(j);
 
 	/* XXX modify when we'll have starpu_wait_task */
 	if (is_sync)

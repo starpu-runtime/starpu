@@ -51,9 +51,6 @@ typedef struct starpu_codelet_t {
 	uint32_t where;
 
 	/* the different implementations of the codelet */
-	//void (*cuda_func)(starpu_data_interface_t *, void *);
-	//void (*cpu_func)(starpu_data_interface_t *, void *);
-
 	void (*cuda_func)(void **, void *);
 	void (*cpu_func)(void **, void *);
 	uint8_t gordon_func;
@@ -74,7 +71,6 @@ struct starpu_task {
 
 	/* arguments managed by the DSM */
 	struct starpu_buffer_descr_t buffers[STARPU_NMAXBUFS];
-	//starpu_data_interface_t interface[STARPU_NMAXBUFS];
 	void *interface[STARPU_NMAXBUFS];
 
 	/* arguments not managed by the DSM are given as a buffer */
@@ -113,6 +109,11 @@ struct starpu_task {
 	 * behaviour. */
 	int destroy;
 
+	/* If this flag is set, the task will be re-submitted to StarPU once it
+	 * has been executed. This flag must not be set if the destroy flag is
+	 * set too. */ 
+	int regenerate;
+
 	/* this is private to StarPU, do not modify. If the task is allocated
 	 * by hand (without starpu_task_create), this field should be set to
 	 * NULL. */
@@ -135,6 +136,7 @@ struct starpu_task {
 	.execute_on_a_specific_worker = 0,		\
 	.detach = 1,					\
 	.destroy = 0,					\
+	.regenerate = 0,				\
 	.starpu_private = NULL				\
 };
 

@@ -25,4 +25,6 @@
 void _starpu_increment_nsubmitted_tasks(void);
 void _starpu_decrement_nsubmitted_tasks(void);
 
+int _starpu_submit_job(job_t j);
+
 #endif // __CORE_TASK_H__

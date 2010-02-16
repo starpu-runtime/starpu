@@ -35,7 +35,7 @@ LIST_TYPE(mem_chunk,
 	/* The footprint of the data is not sufficient to determine whether two
 	 * pieces of data have the same layout (there could be collision in the
 	 * hash function ...) so we still keep a copy of the actual layout (ie.
-	 * the starpu_data_interface_t) to stay on the safe side. We make a copy of
+	 * the data interface) to stay on the safe side. We make a copy of
 	 * because when a data is deleted, the memory chunk remains.
 	 */
 	struct starpu_data_interface_ops_t *ops;
