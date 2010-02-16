@@ -62,9 +62,9 @@ struct tag_s {
 	unsigned ndeps_completed; /* how many deps are done ? */
 #ifdef DYNAMIC_DEPS_SIZE
 	unsigned succ_list_size;
-	struct _cg_t **succ;
+	struct cg_s **succ;
 #else
-	struct _cg_t *succ[NMAXDEPS];
+	struct cg_s *succ[NMAXDEPS];
 #endif
 	struct job_s *job; /* which job is associated to the tag if any ? */
 
@@ -73,7 +73,7 @@ struct tag_s {
 };
 
 /* Completion Group */
-typedef struct _cg_t {
+typedef struct cg_s {
 	unsigned ntags; /* number of tags depended on */
 	unsigned remaining; /* number of remaining tags */
 	struct tag_s *tag; /* which tags depends on that cg ?  */

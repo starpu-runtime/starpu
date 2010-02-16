@@ -72,7 +72,7 @@ static struct tag_s *_starpu_tag_init(starpu_tag_t id)
 #ifdef DYNAMIC_DEPS_SIZE
 	/* this is a small initial default value ... may be changed */
 	tag->succ_list_size = 4;
-	tag->succ = realloc(NULL, tag->succ_list_size*sizeof(struct _cg_t *));
+	tag->succ = realloc(NULL, tag->succ_list_size*sizeof(struct cg_s *));
 #endif
 
 	starpu_spin_init(&tag->lock);
@@ -98,7 +98,7 @@ void starpu_tag_remove(starpu_tag_t id)
 
 		for (succ = 0; succ < nsuccs; succ++)
 		{
-			struct _cg_t *cg = tag->succ[succ];
+			struct cg_s *cg = tag->succ[succ];
 			unsigned used_by_apps = cg->used_by_apps;
 
 			unsigned ntags = STARPU_ATOMIC_ADD(&cg->ntags, -1);
@@ -214,7 +214,7 @@ static void _starpu_tag_add_succ(struct tag_s *tag, cg_t *cg)
 
 		/* NB: this is thread safe as the tag->lock is taken */
 		tag->succ = realloc(tag->succ, 
-			tag->succ_list_size*sizeof(struct _cg_t *));
+			tag->succ_list_size*sizeof(struct cg_s *));
 	}
 #else
 	STARPU_ASSERT(index < NMAXDEPS);
@@ -242,7 +242,7 @@ static void _starpu_notify_tag_dependencies(struct tag_s *tag)
 
 	for (succ = 0; succ < nsuccs; succ++)
 	{
-		struct _cg_t *cg = tag->succ[succ];
+		struct cg_s *cg = tag->succ[succ];
 		unsigned used_by_apps = cg->used_by_apps;
 		struct tag_s *cgtag = cg->tag;
 
