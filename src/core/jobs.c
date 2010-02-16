@@ -134,9 +134,11 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(job_t j)
 
 	struct tag_s *tag = j->tag;
 
+	struct cg_list_s *tag_successors = &tag->tag_successors;
+
 	starpu_spin_lock(&tag->lock);
 
-	if (tag->ndeps != tag->ndeps_completed)
+	if (tag_successors->ndeps != tag_successors->ndeps_completed)
 	{
 		tag->state = BLOCKED;
 		ret = 1;
@@ -145,7 +147,7 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(job_t j)
 		/* existing deps (if any) are fulfilled */
 		tag->state = READY;
 		/* already prepare for next run */
-		tag->ndeps_completed = 0;
+		tag_successors->ndeps_completed = 0;
 		ret = 0;
 	}
 

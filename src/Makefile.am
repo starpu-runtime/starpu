@@ -28,6 +28,7 @@ libstarpu_la_LDFLAGS = --no-undefined
 
 noinst_HEADERS = 						\
 	core/dependencies/data-concurrency.h			\
+	core/dependencies/cg.h					\
 	core/dependencies/tags.h				\
 	core/dependencies/htable.h				\
 	core/policies/eager-central-priority-policy.h		\

@@ -46,7 +46,7 @@ static cg_t *create_cg(unsigned ntags, struct tag_s *tag, unsigned is_apps_cg)
 		else
 		{
 			cg->tag = tag;
-			tag->ndeps++;
+			tag->tag_successors.ndeps++;
 		}
 	}
 
@@ -65,14 +65,15 @@ static struct tag_s *_starpu_tag_init(starpu_tag_t id)
 
 	tag->id = id;
 	tag->state = INVALID_STATE;
-	tag->nsuccs = 0;
-	tag->ndeps = 0;
-	tag->ndeps_completed = 0;
+	tag->tag_successors.nsuccs = 0;
+	tag->tag_successors.ndeps = 0;
+	tag->tag_successors.ndeps_completed = 0;
 
 #ifdef DYNAMIC_DEPS_SIZE
 	/* this is a small initial default value ... may be changed */
-	tag->succ_list_size = 4;
-	tag->succ = realloc(NULL, tag->succ_list_size*sizeof(struct cg_s *));
+	tag->tag_successors.succ_list_size = 4;
+	tag->tag_successors.succ =
+		realloc(NULL, tag->tag_successors.succ_list_size*sizeof(struct cg_s *));
 #endif
 
 	starpu_spin_init(&tag->lock);
@@ -93,12 +94,12 @@ void starpu_tag_remove(starpu_tag_t id)
 	if (tag) {
 		starpu_spin_lock(&tag->lock);
 
-		unsigned nsuccs = tag->nsuccs;
+		unsigned nsuccs = tag->tag_successors.nsuccs;
 		unsigned succ;
 
 		for (succ = 0; succ < nsuccs; succ++)
 		{
-			struct cg_s *cg = tag->succ[succ];
+			struct cg_s *cg = tag->tag_successors.succ[succ];
 			unsigned used_by_apps = cg->used_by_apps;
 
 			unsigned ntags = STARPU_ATOMIC_ADD(&cg->ntags, -1);
@@ -110,7 +111,7 @@ void starpu_tag_remove(starpu_tag_t id)
 		}
 
 #ifdef DYNAMIC_DEPS_SIZE
-		free(tag->succ);
+		free(tag->tag_successors.succ);
 #endif
 
 		starpu_spin_unlock(&tag->lock);
@@ -187,11 +188,13 @@ static void notify_cg(cg_t *cg)
 		else
 		{
 			struct tag_s *tag = cg->tag;
-			tag->ndeps_completed++;
+			struct cg_list_s *tag_successors = &tag->tag_successors;
 
-			if ((tag->state == BLOCKED) 
-				&& (tag->ndeps == tag->ndeps_completed)) {
-				tag->ndeps_completed = 0;
+			tag_successors->ndeps_completed++;
+
+			if ((tag->state == BLOCKED) &&
+				(tag_successors->ndeps == tag_successors->ndeps_completed)) {
+				tag_successors->ndeps_completed = 0;
 				_starpu_tag_set_ready(tag);
 			}
 		}
@@ -203,23 +206,25 @@ static void _starpu_tag_add_succ(struct tag_s *tag, cg_t *cg)
 {
 	STARPU_ASSERT(tag);
 
+	struct cg_list_s *tag_successors = &tag->tag_successors;
+
 	/* where should that cg should be put in the array ? */
-	unsigned index = STARPU_ATOMIC_ADD(&tag->nsuccs, 1) - 1;
+	unsigned index = STARPU_ATOMIC_ADD(&tag_successors->nsuccs, 1) - 1;
 
 #ifdef DYNAMIC_DEPS_SIZE
-	if (index >= tag->succ_list_size)
+	if (index >= tag_successors->succ_list_size)
 	{
 		/* the successor list is too small */
-		tag->succ_list_size *= 2;
+		tag_successors->succ_list_size *= 2;
 
 		/* NB: this is thread safe as the tag->lock is taken */
-		tag->succ = realloc(tag->succ, 
-			tag->succ_list_size*sizeof(struct cg_s *));
+		tag_successors->succ = realloc(tag_successors->succ, 
+			tag_successors->succ_list_size*sizeof(struct cg_s *));
 	}
 #else
 	STARPU_ASSERT(index < NMAXDEPS);
 #endif
-	tag->succ[index] = cg;
+	tag_successors->succ[index] = cg;
 
 	if (tag->state == DONE) {
 		/* the tag was already completed sooner */
@@ -232,17 +237,19 @@ static void _starpu_notify_tag_dependencies(struct tag_s *tag)
 	unsigned nsuccs;
 	unsigned succ;
 
+	struct cg_list_s *tag_successors = &tag->tag_successors;
+
 	starpu_spin_lock(&tag->lock);
 
 	tag->state = DONE;
 
 	TRACE_TASK_DONE(tag);
 
-	nsuccs = tag->nsuccs;
+	nsuccs = tag_successors->nsuccs;
 
 	for (succ = 0; succ < nsuccs; succ++)
 	{
-		struct cg_s *cg = tag->succ[succ];
+		struct cg_s *cg = tag_successors->succ[succ];
 		unsigned used_by_apps = cg->used_by_apps;
 		struct tag_s *cgtag = cg->tag;
 
@@ -252,10 +259,10 @@ static void _starpu_notify_tag_dependencies(struct tag_s *tag)
 		notify_cg(cg);
 		if (used_by_apps) {
 			/* Remove the temporary ref to the cg */
-			memmove(&tag->succ[succ], &tag->succ[succ+1], (nsuccs-(succ+1)) * sizeof(tag->succ[succ]));
+			memmove(&tag_successors->succ[succ], &tag_successors->succ[succ+1], (nsuccs-(succ+1)) * sizeof(tag_successors->succ[succ]));
 			succ--;
 			nsuccs--;
-			tag->nsuccs--;
+			tag_successors->nsuccs--;
 		}
 
 		if (!used_by_apps)

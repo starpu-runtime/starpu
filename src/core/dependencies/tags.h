@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,20 +17,10 @@
 #ifndef __TAGS_H__
 #define __TAGS_H__
 
-#include <stdint.h>
-#include <pthread.h>
-#include <core/jobs.h>
+#include <starpu.h>
+#include <common/config.h>
 #include <common/starpu-spinlock.h>
-
-/* we do not necessarily want to allocate room for 256 dependencies, but we
-   want to handle the few situation where there are a lot of dependencies as
-   well */
-#define DYNAMIC_DEPS_SIZE	1
-
-/* randomly choosen ! */
-#ifndef DYNAMIC_DEPS_SIZE
-#define NMAXDEPS	256
-#endif
+#include <core/dependencies/cg.h>
 
 #define TAG_SIZE        (sizeof(starpu_tag_t)*8)
 
@@ -57,36 +47,14 @@ struct tag_s {
 	starpu_spinlock_t lock;
 	starpu_tag_t id; /* an identifier for the task */
 	tag_state state;
-	unsigned nsuccs; /* how many successors ? */
-	unsigned ndeps; /* how many deps ? */
-	unsigned ndeps_completed; /* how many deps are done ? */
-#ifdef DYNAMIC_DEPS_SIZE
-	unsigned succ_list_size;
-	struct cg_s **succ;
-#else
-	struct cg_s *succ[NMAXDEPS];
-#endif
+
+	struct cg_list_s tag_successors;
+
 	struct job_s *job; /* which job is associated to the tag if any ? */
 
 	unsigned is_assigned;
 	unsigned is_submitted;
 };
-
-/* Completion Group */
-typedef struct cg_s {
-	unsigned ntags; /* number of tags depended on */
-	unsigned remaining; /* number of remaining tags */
-	struct tag_s *tag; /* which tags depends on that cg ?  */
-
-	unsigned completed;
-
-	/* in case this completion group is related to an application, we have
- 	 * to explicitely wake the waiting thread instead of reschedule the
-	 * corresponding task */
-	unsigned used_by_apps;
-	pthread_mutex_t cg_mutex;
-	pthread_cond_t cg_cond;
-} cg_t;
 
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 
