@@ -143,7 +143,6 @@ static inline int pthread_join (pthread_t thread, void **res) {
  ***********/
 
 #define PTHREAD_MUTEX_INITIALIZER NULL
-#define PTHREAD_RWLOCK_INITIALIZER NULL
 typedef HANDLE pthread_mutex_t;
 #define PTHREAD_MUTEX_RECURSIVE 1
 typedef int pthread_mutexattr_t;
@@ -234,6 +233,7 @@ static inline int pthread_mutex_destroy (pthread_mutex_t *mutex) {
  * TODO: FIXME, using conds for instance?   *
  ********************************************/
 
+#define PTHREAD_RWLOCK_INITIALIZER NULL
 typedef pthread_mutex_t pthread_rwlock_t;
 #define pthread_rwlock_init(lock, attr) pthread_mutex_init(lock, NULL)
 #define pthread_rwlock_wrlock(lock) pthread_mutex_lock(lock)
