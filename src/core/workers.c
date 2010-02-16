@@ -275,7 +275,7 @@ static void _starpu_terminate_workers(struct machine_config_s *config)
  		 * we have to check if pthread_self() is the worker itself */
 		if (set){ 
 			if (!set->joined) {
-				if (pthread_self() != set->worker_thread)
+				if (!pthread_equal(pthread_self(), set->worker_thread))
 				{
 					status = pthread_join(set->worker_thread, NULL);
 #ifdef VERBOSE
@@ -288,7 +288,7 @@ static void _starpu_terminate_workers(struct machine_config_s *config)
 			}
 		}
 		else {
-			if (pthread_self() != worker->worker_thread)
+			if (!pthread_equal(pthread_self(), worker->worker_thread))
 			{
 				status = pthread_join(worker->worker_thread, NULL);
 #ifdef VERBOSE

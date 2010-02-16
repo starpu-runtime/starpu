@@ -63,6 +63,10 @@ static inline pthread_t pthread_self(void) {
   return GetCurrentThread();
 }
 
+static inline int pthread_equal(pthread_t t1, pthread_t t2) {
+  return t1 == t2;
+}
+
 static inline int pthread_attr_init (pthread_attr_t *attr) {
   *attr = 0;
   return 0;
