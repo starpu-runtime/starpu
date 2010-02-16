@@ -30,6 +30,7 @@ AC_PROG_SED
 AC_PROG_LN_S
 AC_PROG_F77
 
+AC_LIBTOOL_WIN32_DLL
 AC_PROG_LIBTOOL
 
 AC_PROG_INSTALL
@@ -39,6 +40,9 @@ AC_PROG_LN_S
 AC_HEADER_STDC
 
 AC_C_RESTRICT
+
+AC_PATH_PROGS([STARPU_MS_LIB], [lib])
+AC_ARG_VAR([STARPU_MS_LIB], [Path to Microsoft's Visual Studio `lib' tool])
 
 # on Darwin, GCC targets i386 by default, so we don't have atomic ops
 case "$target" in

@@ -33,7 +33,11 @@ int starpu_mkpath(const char *s, mode_t mode)
 	int rv;
 
 	rv = -1;
-	if (strcmp(s, ".") == 0 || strcmp(s, "/") == 0)
+	if (strcmp(s, ".") == 0 || strcmp(s, "/") == 0
+#ifdef __MINGW32__
+		|| (s[0] && s[1] == ':' && s[2] == '/' && !s[3])
+#endif
+		)
 		return 0;
 
 	if ((path = strdup(s)) == NULL)

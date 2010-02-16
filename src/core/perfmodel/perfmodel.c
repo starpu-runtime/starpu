@@ -153,6 +153,12 @@ void _starpu_get_perf_model_dir(char *path, size_t maxlen)
 #else
 	/* by default, we use $HOME/.starpu/sampling */
 	const char *home_path = getenv("HOME");
+	if (!home_path)
+		home_path = getenv("USERPROFILE");
+	if (!home_path) {
+		fprintf(stderr,"couldn't find a home place to put starpu data\n");
+		STARPU_ABORT();
+	}
 	snprintf(path, maxlen, "%s/.starpu/sampling/", home_path);
 #endif
 }

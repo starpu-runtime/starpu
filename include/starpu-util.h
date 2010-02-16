@@ -51,10 +51,9 @@ extern "C" {
 #define STARPU_LIKELY(expr)            (__builtin_expect(!!(expr),1))
 
 #if defined(__i386__) || defined(__x86_64__)
-static inline unsigned starpu_cmpxchg(unsigned *ptr, unsigned next) {
-	unsigned tmp = *ptr;
-	__asm__ __volatile__("lock cmpxchgl %2,%1": "+a" (tmp), "+m" (*ptr) : "q" (next) : "memory");
-	return tmp;
+static inline unsigned starpu_cmpxchg(unsigned *ptr, unsigned old, unsigned next) {
+	__asm__ __volatile__("lock cmpxchgl %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
+	return old;
 }
 static inline unsigned starpu_xchg(unsigned *ptr, unsigned next) {
 	/* Note: xchg is always locked already */
@@ -70,7 +69,7 @@ static inline unsigned starpu_atomic_##name(unsigned *ptr, unsigned value) { \
 	while (1) { \
 		old = *ptr; \
 		next = expr; \
-		if (starpu_cmpxchg(ptr, next) == old) \
+		if (starpu_cmpxchg(ptr, old, next) == old) \
 			break; \
 	}; \
 	return expr; \
@@ -97,7 +96,7 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #ifdef STARPU_HAVE_SYNC_BOOL_COMPARE_AND_SWAP
 #define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value)  (__sync_bool_compare_and_swap ((ptr), (old), (value)))
 #elif defined(STARPU_HAVE_XCHG)
-#define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value) (starpu_cmpxchg((ptr), (value)) == (old))
+#define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value) (starpu_cmpxchg((ptr), (old), (value)) == (old))
 #else
 #error __sync_bool_compare_and_swap is not available
 #endif

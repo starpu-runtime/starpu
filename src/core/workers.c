@@ -20,6 +20,10 @@
 #include <core/workers.h>
 #include <core/debug.h>
 
+#ifdef __MINGW32__
+#include <windows.h>
+#endif
+
 static pthread_key_t worker_key;
 
 static struct machine_config_s config;
@@ -211,6 +215,11 @@ struct worker_s *_starpu_get_local_worker_key(void)
 int starpu_init(struct starpu_conf *user_conf)
 {
 	int ret;
+
+#ifdef __MINGW32__
+	WSADATA wsadata;
+	WSAStartup(MAKEWORD(1,0), &wsadata);
+#endif
 
 	srand(2008);
 	

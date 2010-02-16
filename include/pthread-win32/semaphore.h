@@ -54,7 +54,7 @@ static inline int do_sem_wait(sem_t *sem, DWORD timeout) {
 #define sem_trywait(sem) do_sem_wait(sem, 0)
 
 static inline int sem_post(sem_t *sem) {
-  winPthreadAssertWindows(ReleaseSemaphore(*sem, 0, NULL));
+  winPthreadAssertWindows(ReleaseSemaphore(*sem, 1, NULL));
   return 0;
 }
 
