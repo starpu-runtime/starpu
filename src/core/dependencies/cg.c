@@ -14,14 +14,45 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <core/dependencies/htable.h>
-#include <core/jobs.h>
-#include <core/policies/sched_policy.h>
-#include <core/dependencies/data-concurrency.h>
 #include <starpu.h>
 #include <common/config.h>
-#include <core/dependencies/tags.h>
 #include <core/dependencies/cg.h>
+#include <core/dependencies/tags.h>
+
+void _starpu_cg_list_init(struct cg_list_s *list)
+{
+	list->nsuccs = 0;
+	list->ndeps = 0;
+	list->ndeps_completed = 0;
+
+#ifdef DYNAMIC_DEPS_SIZE
+	/* this is a small initial default value ... may be changed */
+	list->succ_list_size = 4;
+	list->succ =
+		realloc(NULL, list->succ_list_size*sizeof(struct cg_s *));
+#endif
+}
+
+void _starpu_add_successor_to_cg_list(struct cg_list_s *successors, cg_t *cg)
+{
+	/* where should that cg should be put in the array ? */
+	unsigned index = STARPU_ATOMIC_ADD(&successors->nsuccs, 1) - 1;
+
+#ifdef DYNAMIC_DEPS_SIZE
+	if (index >= successors->succ_list_size)
+	{
+		/* the successor list is too small */
+		successors->succ_list_size *= 2;
+
+		/* NB: this is thread safe as the tag->lock is taken */
+		successors->succ = realloc(successors->succ, 
+			successors->succ_list_size*sizeof(struct cg_s *));
+	}
+#else
+	STARPU_ASSERT(index < NMAXDEPS);
+#endif
+	successors->succ[index] = cg;
+}
 
 void _starpu_notify_cg(cg_t *cg)
 {

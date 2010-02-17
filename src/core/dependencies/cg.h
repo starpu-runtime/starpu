@@ -73,6 +73,8 @@ typedef struct cg_s {
 	} succ;
 } cg_t;
 
+void _starpu_cg_list_init(struct cg_list_s *list);
+void _starpu_add_successor_to_cg_list(struct cg_list_s *successors, cg_t *cg);
 void _starpu_notify_cg(cg_t *cg);
 
 #endif // __CG_H__

@@ -69,16 +69,8 @@ static struct tag_s *_starpu_tag_init(starpu_tag_t id)
 
 	tag->id = id;
 	tag->state = INVALID_STATE;
-	tag->tag_successors.nsuccs = 0;
-	tag->tag_successors.ndeps = 0;
-	tag->tag_successors.ndeps_completed = 0;
 
-#ifdef DYNAMIC_DEPS_SIZE
-	/* this is a small initial default value ... may be changed */
-	tag->tag_successors.succ_list_size = 4;
-	tag->tag_successors.succ =
-		realloc(NULL, tag->tag_successors.succ_list_size*sizeof(struct cg_s *));
-#endif
+	_starpu_cg_list_init(&tag->tag_successors);
 
 	starpu_spin_init(&tag->lock);
 
@@ -177,25 +169,7 @@ static void _starpu_tag_add_succ(struct tag_s *tag, cg_t *cg)
 {
 	STARPU_ASSERT(tag);
 
-	struct cg_list_s *tag_successors = &tag->tag_successors;
-
-	/* where should that cg should be put in the array ? */
-	unsigned index = STARPU_ATOMIC_ADD(&tag_successors->nsuccs, 1) - 1;
-
-#ifdef DYNAMIC_DEPS_SIZE
-	if (index >= tag_successors->succ_list_size)
-	{
-		/* the successor list is too small */
-		tag_successors->succ_list_size *= 2;
-
-		/* NB: this is thread safe as the tag->lock is taken */
-		tag_successors->succ = realloc(tag_successors->succ, 
-			tag_successors->succ_list_size*sizeof(struct cg_s *));
-	}
-#else
-	STARPU_ASSERT(index < NMAXDEPS);
-#endif
-	tag_successors->succ[index] = cg;
+	_starpu_add_successor_to_cg_list(&tag->tag_successors, cg);
 
 	if (tag->state == DONE) {
 		/* the tag was already completed sooner */
