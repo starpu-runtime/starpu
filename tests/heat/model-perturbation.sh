@@ -26,7 +26,7 @@ MAXCPU=3
 
 trace_perturbation()
 {
-	export SCHED="dm"
+	export STARPU_SCHED="dm"
 
 	for blocks in `seq 12 2 24`
 	do

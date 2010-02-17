@@ -29,7 +29,7 @@ void _starpu_open_debug_logfile(void)
 	/* what is  the name of the file ? default = "starpu.log" */
 	char *logfile_name;
 	
-	logfile_name = getenv("LOGFILENAME");
+	logfile_name = getenv("STARPU_LOGFILENAME");
 	if (!logfile_name)
 	{
 		logfile_name = "starpu.log";

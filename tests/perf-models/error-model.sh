@@ -59,7 +59,7 @@ do
 
 	echo "ITER $iter -> I $i NBLOCKS $nblocks"
 
-	CALIBRATE=1 SCHED="dm" ../../examples/heat/heat -nblocks $nblocks -nthick 34 -ntheta $ntheta -pin 2> output.log.err > output.log
+	STARPU_CALIBRATE=1 STARPU_SCHED="dm" ../../examples/heat/heat -nblocks $nblocks -nthick 34 -ntheta $ntheta -pin 2> output.log.err > output.log
 	gflops=`grep "Synthetic GFlops :" output.log.err| sed -e "s/Synthetic GFlops ://"`
 
 	sumgflops[$i]=$(echo "${sumgflops[$i]} + $gflops"|bc -l)

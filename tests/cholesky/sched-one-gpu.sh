@@ -27,7 +27,7 @@ trace_sched()
 	sched=$1
 	use_prio=$2
 
-	export SCHED=$sched
+	export STARPU_SCHED=$sched
 
 	for blocks in `seq 24 2 24`
 	do
@@ -42,7 +42,7 @@ trace_sched()
 			OPTIONS="$OPTIONS -no-prio"
 		fi
 		
-		filename=$TIMINGDIR/sched.$SCHED.$size.$use_prio
+		filename=$TIMINGDIR/sched.$STARPU_SCHED.$size.$use_prio
 
 		for iter in `seq 1 $maxiter`
 		do
@@ -58,14 +58,14 @@ trace_sched()
 schedlist='dm dm dm dm greedy dm'
 
 export STARPU_NCUDA=1
-export CALIBRATE=1
+export STARPU_CALIBRATE=1
 
 mkdir -p $TIMINGDIR
 
 # calibrate
 for i in `seq 1 5` 
 do
-SCHED="dm" $ROOTDIR/examples/cholesky/dw_cholesky -nblocks 16 -size 16384 2> /dev/null
+STARPU_SCHED="dm" $ROOTDIR/examples/cholesky/dw_cholesky -nblocks 16 -size 16384 2> /dev/null
 done
 
 for sched in $schedlist

@@ -33,9 +33,9 @@ static double per_arch_task_expected_length(struct starpu_perfmodel_t *model, en
 	
 	if (!model->is_loaded)
 	{
-		if (starpu_get_env_number("CALIBRATE") != -1)
+		if (starpu_get_env_number("STARPU_CALIBRATE") != -1)
 		{
-			fprintf(stderr, "CALIBRATE model %s\n", model->symbol);
+			fprintf(stderr, "STARPU_CALIBRATE model %s\n", model->symbol);
 			model->benchmarking = 1;
 		}
 		else {

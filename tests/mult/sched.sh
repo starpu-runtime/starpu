@@ -37,7 +37,7 @@ trace_sched()
 		do
 			echo "$iter / $maxiter"
 			#echo "$ROOTDIR/examples/mult/sgemm $OPTIONS 2> /dev/null"
-			STARPU_NCUDA=1 CALIBRATE=1 SCHED="$sched" $ROOTDIR/examples/mult/sgemm $OPTIONS 2> /dev/null >> $filename
+			STARPU_NCUDA=1 STARPU_CALIBRATE=1 STARPU_SCHED="$sched" $ROOTDIR/examples/mult/sgemm $OPTIONS 2> /dev/null >> $filename
 			tail -1 $filename
 		done
 	done

@@ -26,16 +26,16 @@ calibrate_point()
 
 	size=$(($nblocks * 1024))
 
-	echo "CALIBRATE size : $size / blocks : $nblocks strat -> $strat prefetch -> $prefetch"
+	echo "STARPU_CALIBRATE size : $size / blocks : $nblocks strat -> $strat prefetch -> $prefetch"
 
 	rm -f $SAMPLINGDIR/*
 	
 	for iter in `seq 1 $maxiter`
 	do
 		echo "$iter / $maxiter"
-		export SCHED=$strat
-		export CALIBRATE=1
-		export PREFETCH=$prefetch
+		export STARPU_SCHED=$strat
+		export STARPU_CALIBRATE=1
+		export STARPU_PREFETCH=$prefetch
 		val=`$ROOTDIR/examples/heat/heat -pin -nblocks $nblocks -size $size -v3 2> /dev/null`
 		echo "$val"
 	done
@@ -63,9 +63,9 @@ trace_point()
 	for iter in `seq 1 $maxiter`
 	do
 		echo "$iter / $maxiter"
-		export SCHED=$strat
-		export CALIBRATE=$docalibrate
-		export PREFETCH=$prefetch
+		export STARPU_SCHED=$strat
+		export STARPU_CALIBRATE=$docalibrate
+		export STARPU_PREFETCH=$prefetch
 		val=`$ROOTDIR/examples/heat/heat -pin -nblocks $nblocks -size $size -v3  2> /dev/null`
 		echo "$val"
 		echo "$val" >> $filename

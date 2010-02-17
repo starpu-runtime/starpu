@@ -290,26 +290,26 @@ TODO
 @section Configuring the Scheduling engine
 
 @menu
-* SCHED     :: Scheduling policy
-* CALIBRATE :: Calibrate performance models
-* PREFETCH  :: Use data prefetch
+* STARPU_SCHED     :: Scheduling policy
+* STARPU_CALIBRATE :: Calibrate performance models
+* STARPU_PREFETCH  :: Use data prefetch
 * STARPU_SCHED_ALPHA  :: Computation factor
 * STARPU_SCHED_BETA  :: Communication factor
 @end menu
 
-@node SCHED
-@subsection @code{SCHED} -- Scheduling policy
+@node STARPU_SCHED
+@subsection @code{STARPU_SCHED} -- Scheduling policy
 @table @asis
 
 @item @emph{Description}:
 TODO
 
-Use @code{SCHED=help} to get the list of available schedulers
+Use @code{STARPU_SCHED=help} to get the list of available schedulers
 
 @end table
 
-@node CALIBRATE
-@subsection @code{CALIBRATE} -- Calibrate performance models
+@node STARPU_CALIBRATE
+@subsection @code{STARPU_CALIBRATE} -- Calibrate performance models
 @table @asis
 
 @item @emph{Description}:
@@ -319,8 +319,8 @@ Note: only applies to dm and dmda scheduling policies.
 
 @end table
 
-@node PREFETCH
-@subsection @code{PREFETCH} -- Use data prefetch
+@node STARPU_PREFETCH
+@subsection @code{STARPU_PREFETCH} -- Use data prefetch
 @table @asis
 
 @item @emph{Description}:
@@ -350,11 +350,11 @@ TODO
 @section Miscellaneous and debug
 
 @menu
-* LOGFILENAME  :: Select debug file name
+* STARPU_LOGFILENAME  :: Select debug file name
 @end menu
 
-@node LOGFILENAME
-@subsection @code{LOGFILENAME} -- Select debug file name
+@node STARPU_LOGFILENAME
+@subsection @code{STARPU_LOGFILENAME} -- Select debug file name
 @table @asis
 
 @item @emph{Description}:
@@ -418,7 +418,7 @@ overwrite the equivalent environnement variables.
 @table @asis 
 @item @code{sched_policy} (default = NULL):
 This is the name of the scheduling policy. This can also be specified with the
-@code{SCHED} environment variable.
+@code{STARPU_SCHED} environment variable.
 
 @item @code{ncpus} (default = -1):
 This is the maximum number of CPU cores that StarPU can use. This can also be
@@ -434,7 +434,7 @@ specified with the @code{STARPU_NGORDON} environment variable.
 
 @item @code{calibrate} (default = 0):
 If this flag is set, StarPU will calibrate the performance models when
-executing tasks. This can also be specified with the @code{CALIBRATE}
+executing tasks. This can also be specified with the @code{STARPU_CALIBRATE}
 environment variable.
 @end table
 

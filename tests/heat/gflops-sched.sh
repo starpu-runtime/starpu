@@ -52,7 +52,7 @@ measure_heat()
 	for i in `seq 1 $nsample`
 	do
 		echo "iter $i/$nsample"
-		val=`SCHED=$policy $ROOTDIR/examples/heat/heat -nthick $thick -ntheta $theta -nblocks $nblocks -pin -v2 2>/dev/null`
+		val=`STARPU_SCHED=$policy $ROOTDIR/examples/heat/heat -nthick $thick -ntheta $theta -nblocks $nblocks -pin -v2 2>/dev/null`
 		total=`echo "$val + $total" |bc -l`
 	done
 
@@ -87,7 +87,7 @@ trace_size()
 
 		if [ $tile -le $size -a $nblocks -le 32 -a $(($size % $tile)) == 0 ];
 		then
-			echo "SCHED=$policy $ROOTDIR/examples/heat/heat -nthick $thick -ntheta $theta -nblocks $nblocks -pin -v2"
+			echo "STARPU_SCHED=$policy $ROOTDIR/examples/heat/heat -nthick $thick -ntheta $theta -nblocks $nblocks -pin -v2"
 			measure_heat $thick $theta $nblocks $size;
 			timing=$heat_ret
 		else

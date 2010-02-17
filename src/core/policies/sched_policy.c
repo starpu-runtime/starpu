@@ -110,9 +110,9 @@ static struct sched_policy_s *find_sched_policy_from_name(const char *policy_nam
 
 static void display_sched_help_message(void)
 {
-	const char *sched_env = getenv("SCHED");
+	const char *sched_env = getenv("STARPU_SCHED");
 	if (sched_env && (strcmp(sched_env, "help") == 0)) {
-		fprintf(stderr, "SCHED can be either of\n");
+		fprintf(stderr, "STARPU_SCHED can be either of\n");
 
 		/* display the description of all predefined policies */
 		unsigned i;
@@ -141,7 +141,7 @@ static struct sched_policy_s *select_sched_policy(struct machine_config_s *confi
 		sched_pol_name = user_conf->sched_policy_name;
 	}
 	else {
-		sched_pol_name = getenv("SCHED");
+		sched_pol_name = getenv("STARPU_SCHED");
 	}
 
 	if (sched_pol_name)
@@ -160,7 +160,7 @@ void init_sched_policy(struct machine_config_s *config)
 	/* Perhaps we have to display some help */
 	display_sched_help_message();
 
-	use_prefetch = starpu_get_env_number("PREFETCH");
+	use_prefetch = starpu_get_env_number("STARPU_PREFETCH");
 	if (use_prefetch == -1)
 		use_prefetch = 0;
 

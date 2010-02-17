@@ -170,7 +170,7 @@ int fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_node,
 	/* at the exit of search_existing_data_request the lock is taken is the request existed ! */
 
 	if (!r) {
-		//fprintf(stderr, "no request matched that one so we post a request %s\n", is_prefetch?"PREFETCH":"");
+		//fprintf(stderr, "no request matched that one so we post a request %s\n", is_prefetch?"STARPU_PREFETCH":"");
 		/* find someone who already has the data */
 		uint32_t src_node = 0;
 

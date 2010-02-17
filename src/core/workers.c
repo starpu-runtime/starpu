@@ -439,7 +439,7 @@ void starpu_shutdown(void)
 	display_comm_ammounts();
 #endif
 
-	if (starpu_get_env_number("CALIBRATE") != -1)
+	if (starpu_get_env_number("STARPU_CALIBRATE") != -1)
 		dump_registered_models();
 
 	/* wait for their termination */

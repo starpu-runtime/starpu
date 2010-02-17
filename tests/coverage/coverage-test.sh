@@ -75,42 +75,42 @@ save_cov "tag_example2";
 # save_cov "spmv.cpu";
 # 
 # echo "spmv.dm"
-# timing=`SCHED="dm" $BUILDDIR/examples/spmv/dw_spmv 2> /dev/null`
+# timing=`STARPU_SCHED="dm" $BUILDDIR/examples/spmv/dw_spmv 2> /dev/null`
 # save_cov "spmv.dm";
 # 
 # echo "spmv.dmda"
-# timing=`SCHED="dmda" $BUILDDIR/examples/spmv/dw_spmv 2> /dev/null`
+# timing=`STARPU_SCHED="dmda" $BUILDDIR/examples/spmv/dw_spmv 2> /dev/null`
 # save_cov "spmv.dmda";
 
 echo "strassen.ws"
-timing=`SCHED="ws" $EXAMPLEDIR/dw_strassen -rec 3 -size 2048 -pin 2> /dev/null`
+timing=`STARPU_SCHED="ws" $EXAMPLEDIR/dw_strassen -rec 3 -size 2048 -pin 2> /dev/null`
 save_cov "strassen.ws";
 
 
 echo "strassen.dm"
-timing=`SCHED="dm" $EXAMPLEDIR/dw_strassen -rec 3 -size 2048 -pin 2> /dev/null`
+timing=`STARPU_SCHED="dm" $EXAMPLEDIR/dw_strassen -rec 3 -size 2048 -pin 2> /dev/null`
 save_cov "strassen.dm";
 
 
 echo "strassen.dmda"
-timing=`SCHED="dmda" $EXAMPLEDIR/dw_strassen -rec 3 -size 2048 -pin 2> /dev/null`
+timing=`STARPU_SCHED="dmda" $EXAMPLEDIR/dw_strassen -rec 3 -size 2048 -pin 2> /dev/null`
 save_cov "strassen.dmda";
 
 echo "chol.dm"
-timing=`CALIBRATE=1 SCHED="dm" $EXAMPLEDIR/dw_cholesky -pin 2> /dev/null`
+timing=`STARPU_CALIBRATE=1 STARPU_SCHED="dm" $EXAMPLEDIR/dw_cholesky -pin 2> /dev/null`
 save_cov "chol.dm";
 
 
 echo "chol.dmda"
-timing=`CALIBRATE=1 SCHED="dmda" $EXAMPLEDIR/dw_cholesky -pin 2> /dev/null`
+timing=`STARPU_CALIBRATE=1 STARPU_SCHED="dmda" $EXAMPLEDIR/dw_cholesky -pin 2> /dev/null`
 save_cov "chol.dmda";
 
 echo "chol.cpu"
-timing=`CALIBRATE=1 STARPU_NCUDA=0 SCHED="dm" $EXAMPLEDIR/dw_cholesky -pin 2> /dev/null`
+timing=`STARPU_CALIBRATE=1 STARPU_NCUDA=0 STARPU_SCHED="dm" $EXAMPLEDIR/dw_cholesky -pin 2> /dev/null`
 save_cov "chol.cpu";
 
 echo "chol.gpu"
-timing=`CALIBRATE=1 STARPU_NCPUS=0 SCHED="dm" $EXAMPLEDIR/dw_cholesky -pin 2> /dev/null`
+timing=`STARPU_CALIBRATE=1 STARPU_NCPUS=0 STARPU_SCHED="dm" $EXAMPLEDIR/dw_cholesky -pin 2> /dev/null`
 save_cov "chol.gpu";
 
 echo "chol"
@@ -118,48 +118,48 @@ timing=`$EXAMPLE/dw_cholesky 2> /dev/null`
 save_cov "chol";
 
 echo "heat.dm.4k.calibrate.v2"
-timing=`CALIBRATE=1 SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 66 -nblocks 4 -v2 -pin 2> /dev/null`
+timing=`STARPU_CALIBRATE=1 STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 66 -nblocks 4 -v2 -pin 2> /dev/null`
 save_cov "heat.dm.4k.calibrate.v2";
 
 
 echo "heat.dm.8k.calibrate.v2"
-timing=`CALIBRATE=1 SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 -pin 2> /dev/null`
+timing=`STARPU_CALIBRATE=1 STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 -pin 2> /dev/null`
 save_cov "heat.dm.8k.calibrate.v2";
 
 echo "heat.dm.16k.calibrate.v2"
-timing=`CALIBRATE=1 SCHED="dm" $EXAMPLEDIR/heat -ntheta 130 -nthick 130 -nblocks 16 -v2 -pin 2> /dev/null`
+timing=`STARPU_CALIBRATE=1 STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 130 -nthick 130 -nblocks 16 -v2 -pin 2> /dev/null`
 save_cov "heat.dm.16k.calibrate.v2";
 
 echo "heat.dm.8k.no.pin.v2"
-timing=`SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 2> /dev/null`
+timing=`STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 2> /dev/null`
 save_cov "heat.dm.8k.no.pin.v2";
 
 echo "heat.prio.8k"
-timing=`SCHED="prio" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 -pin 2> /dev/null`
+timing=`STARPU_SCHED="prio" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 -pin 2> /dev/null`
 save_cov "heat.prio.8k";
 
 echo "heat.dm.8k.v2.no.prio"
-timing=`SCHED="no-prio" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> /dev/null`
+timing=`STARPU_SCHED="no-prio" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> /dev/null`
 save_cov "heat.dm.8k.v2.no.prio";
 
 echo "heat.dm.8k.v2.random"
-timing=`SCHED="random" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> /dev/null`
+timing=`STARPU_SCHED="random" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> /dev/null`
 save_cov "heat.dm.8k.v2.random";
 
 echo "heat.dm.8k.v2"
-timing=`SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> /dev/null`
+timing=`STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> /dev/null`
 save_cov "heat.dm.8k.v2";
 
 echo "heat.dm.16k.v2"
-timing=`SCHED="dm" $EXAMPLEDIR/heat -ntheta 130 -nthick 130 -nblocks 16 -pin -v2 2> /dev/null`
+timing=`STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 130 -nthick 130 -nblocks 16 -pin -v2 2> /dev/null`
 save_cov "heat.dm.16k.v2";
 
 echo "heat.ws.8k.v2"
-timing=`SCHED="ws" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> /dev/null`
+timing=`STARPU_SCHED="ws" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> /dev/null`
 save_cov "heat.ws.8k.v2";
 
 echo "heat.greedy.8k.v2"
-timing=`SCHED="greedy" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> /dev/null`
+timing=`STARPU_SCHED="greedy" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> /dev/null`
 save_cov "heat.greedy.8k.v2";
 
 echo "heat.8k.cg"
@@ -168,23 +168,23 @@ save_cov "heat.8k.cg";
 
 
 echo "heat.dm.8k.cg"
-timing=`SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 -cg 2> /dev/null`
+timing=`STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 -cg 2> /dev/null`
 save_cov "heat.dm.8k.cg";
 
 echo "heat.dm.8k.v3"
-timing=`SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v3 2> /dev/null`
+timing=`STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v3 2> /dev/null`
 save_cov "heat.dm.8k.v3";
 
 echo "mult.dm.common"
-timing=`SCHED="dm" $EXAMPLEDIR/dw_mult -nblocks 4 -x 4096 -y 4096 -z 1024 -pin -common-model 2> /dev/null`
+timing=`STARPU_SCHED="dm" $EXAMPLEDIR/dw_mult -nblocks 4 -x 4096 -y 4096 -z 1024 -pin -common-model 2> /dev/null`
 save_cov "mult.dm.common";
 
 echo "mult.dm"
-timing=`CALIBRATE=1 SCHED="dm" $EXAMPLEDIR/dw_mult -nblocks 8 -x 8192 -y 8192 -z 8192 -pin 2> /dev/null`
+timing=`STARPU_CALIBRATE=1 STARPU_SCHED="dm" $EXAMPLEDIR/dw_mult -nblocks 8 -x 8192 -y 8192 -z 8192 -pin 2> /dev/null`
 save_cov "mult.dm";
 
 echo "mult.dmda"
-timing=`CALIBRATE=1 SCHED="dmda" $EXAMPLEDIR/dw_mult -nblocks 8 -x 8192 -y 8192 -z 8192 -pin 2> /dev/null`
+timing=`STARPU_CALIBRATE=1 STARPU_SCHED="dmda" $EXAMPLEDIR/dw_mult -nblocks 8 -x 8192 -y 8192 -z 8192 -pin 2> /dev/null`
 save_cov "mult.dmda";
 
 

@@ -41,8 +41,8 @@ rm -f $cpu_output
 rm -f $gpu_output
 
 export STARPU_WORKERS_CPUID="2"
-export CALIBRATE=1
-export SCHED="dm"
+export STARPU_CALIBRATE=1
+export STARPU_SCHED="dm"
 
 # benchmark GotoBLAS
 for size in $sizelist;

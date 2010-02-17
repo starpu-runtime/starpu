@@ -212,7 +212,7 @@ static void initialize_dmda_policy(struct machine_config_s *config,
 {
 	nworkers = 0;
 
-	use_prefetch = starpu_get_env_number("PREFETCH");
+	use_prefetch = starpu_get_env_number("STARPU_PREFETCH");
 	if (use_prefetch == -1)
 		use_prefetch = 0;
 

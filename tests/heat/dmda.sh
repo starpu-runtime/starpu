@@ -26,16 +26,16 @@ calibrate_point()
 
 	size=$(($nblocks * 1024))
 
-	echo "CALIBRATE size : $size / blocks : $nblocks strat -> $strat prefetch -> $prefetch"
+	echo "STARPU_CALIBRATE size : $size / blocks : $nblocks strat -> $strat prefetch -> $prefetch"
 
 	rm -f $SAMPLINGDIR/*
 	
 	for iter in `seq 1 $maxiter`
 	do
 		echo "$iter / $maxiter"
-		export SCHED=$strat
-		export CALIBRATE=1
-		export PREFETCH=$prefetch
+		export STARPU_SCHED=$strat
+		export STARPU_CALIBRATE=1
+		export STARPU_PREFETCH=$prefetch
 		val=`$ROOTDIR/examples/heat/heat -pin -nblocks $nblocks -size $size -v3 2> /dev/null`
 		echo "$val"
 	done
@@ -71,16 +71,16 @@ do
 
 	calibrate_point "dm" $nblocks 1
 
-	export SCHED="dm"
-	export CALIBRATE=1
-	export PREFETCH=1
+	export STARPU_SCHED="dm"
+	export STARPU_CALIBRATE=1
+	export STARPU_PREFETCH=1
 	valdm=$($ROOTDIR/examples/heat/heat -pin -size $size -nblocks $nblocks -v3 2> logdm)
 
 	calibrate_point "dmda" $nblocks 1
 
-	export SCHED="dmda"
-	export CALIBRATE=1
-	export PREFETCH=1
+	export STARPU_SCHED="dmda"
+	export STARPU_CALIBRATE=1
+	export STARPU_PREFETCH=1
 	valdmda=$($ROOTDIR/examples/heat/heat -pin -size $size -nblocks $nblocks -v3 2> logdmda)
 	
 	dmmiss=`grep "TOTAL MSI" logdm|sed -e "s/.*miss.*[1-9]* (\(.*\) %)/\1/"`

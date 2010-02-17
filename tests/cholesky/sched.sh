@@ -31,7 +31,7 @@ trace_sched()
 		OPTIONS="-pin -nblocks $blocks -size $size"
 		
 		cd $ROOTDIR
-		filename=$TIMINGDIR/sched.$SCHED.$size
+		filename=$TIMINGDIR/sched.$STARPU_SCHED.$size
 
 		for iter in `seq 1 $maxiter`
 		do
@@ -53,8 +53,8 @@ schedlist="greedy no-prio dm random"
 
 for sched in $schedlist
 do
-	export SCHED=$sched
-	echo "sched : $SCHED"
+	export STARPU_SCHED=$sched
+	echo "sched : $STARPU_SCHED"
 
 	trace_sched;
 done
