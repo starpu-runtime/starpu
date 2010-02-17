@@ -42,7 +42,7 @@ echo "*******************************************">> log
 cat log
 cat log >> log.all
 
-NCPUS=0 NCUDA=$ngpus SCHED="dmda" PREFETCH=1 mpirun -machinefile machinefile.${PBS_JOBID} -np $np ./mpi_lu/plu_example_float -p $p -q $q -nblocks $nblocks -size $(($nblocks * $BLOCKSIZE)) -numa > log.out 2> log.err
+STARPU_NCPUS=0 STARPU_NCUDA=$ngpus SCHED="dmda" PREFETCH=1 mpirun -machinefile machinefile.${PBS_JOBID} -np $np ./mpi_lu/plu_example_float -p $p -q $q -nblocks $nblocks -size $(($nblocks * $BLOCKSIZE)) -numa > log.out 2> log.err
 cat log.out > log
 cat log.err >> log
 cat log

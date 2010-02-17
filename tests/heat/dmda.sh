@@ -55,8 +55,8 @@ mkdir -p $SAMPLINGDIR
 #schedlist="ws no-prio greedy prio dm random"
 #schedlist="random random random random"
 
-export NCUDA=3
-export NCPUS=8 
+export STARPU_NCUDA=3
+export STARPU_NCPUS=8 
 
 #sizelist="2048 4096 6144 8192 10240 12288 14336 16384 24576 28672 30720"
 sizelist=`seq 2048 2048 30720`

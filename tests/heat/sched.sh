@@ -97,8 +97,8 @@ mkdir -p $SAMPLINGDIR
 #schedlist="ws no-prio greedy prio dm random"
 #schedlist="random random random random"
 
-export NCUDA=3
-export NCPUS=8 
+export STARPU_NCUDA=3
+export STARPU_NCPUS=8 
 
 trace_sched "greedy" 0 0;
 trace_sched "dm" 0 1;

@@ -40,7 +40,7 @@ gpu_output=$DIR/output.gpu
 rm -f $cpu_output
 rm -f $gpu_output
 
-export WORKERS_CPUID="2"
+export STARPU_WORKERS_CPUID="2"
 export CALIBRATE=1
 export SCHED="dm"
 
@@ -56,7 +56,7 @@ do
 	fi
 
 	echo "GotoBLAS -> size $size niter $niter"
-	timing=`NCPUS=1 NCUDA=0 $INSTALLDIR/lib/starpu/examples/dw_mult_no_filters -x $size -y $size -z $size -nblocks 1 -iter $niter 2> /dev/null`
+	timing=`STARPU_NCPUS=1 STARPU_NCUDA=0 $INSTALLDIR/lib/starpu/examples/dw_mult_no_filters -x $size -y $size -z $size -nblocks 1 -iter $niter 2> /dev/null`
 	echo "$size	$timing	$niter" >> $cpu_output
 done
 
@@ -73,7 +73,7 @@ do
 	fi
 
 	echo "CUBLAS -> size $size niter $niter"
-	timing=`NCPUS=0 NCUDA=1 $INSTALLDIR/lib/starpu/examples/dw_mult_no_filters -x $size -y $size -z $size -nblocks 1 -iter $niter 2 -pin 2> /dev/null`
+	timing=`STARPU_NCPUS=0 STARPU_NCUDA=1 $INSTALLDIR/lib/starpu/examples/dw_mult_no_filters -x $size -y $size -z $size -nblocks 1 -iter $niter 2 -pin 2> /dev/null`
 	echo "$size	$timing	$niter" >> $gpu_output
 done
 

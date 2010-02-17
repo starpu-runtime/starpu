@@ -23,7 +23,7 @@ The asynchronous heterogeneous multi-accelerator release
     - Model data transfer overhead
     - One model is created for each accelerator
   * Support for CUDA's driver API is deprecated
-  * The WORKERS_GPUID and WORKERS_CPUID env. variables make it possible to
+  * The STARPU_WORKERS_GPUID and STARPU_WORKERS_CPUID env. variables make it possible to
     specify where to bind the workers
   * Use the hwloc library to detect the actual number of cores
 

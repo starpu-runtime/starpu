@@ -35,7 +35,7 @@ do
 
 	for cpus in 1 2 4 6 8 10 12 14 16
 	do
-		export NCPUS=$cpus
+		export STARPU_NCPUS=$cpus
 
 		echo "ncpus $cpus size $size"
 

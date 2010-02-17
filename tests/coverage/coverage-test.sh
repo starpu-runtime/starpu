@@ -67,11 +67,11 @@ save_cov "tag_example2";
 # save_cov "spmv";
 # 
 # echo "spmv.gpu"
-# timing=`NCPUS=0 $BUILDDIR/examples/spmv/dw_spmv 2> /dev/null`
+# timing=`STARPU_NCPUS=0 $BUILDDIR/examples/spmv/dw_spmv 2> /dev/null`
 # save_cov "spmv.gpu";
 # 
 # echo "spmv.cpu"
-# timing=`NCUDA=0 $BUILDDIR/examples/spmv/dw_spmv 2> /dev/null`
+# timing=`STARPU_NCUDA=0 $BUILDDIR/examples/spmv/dw_spmv 2> /dev/null`
 # save_cov "spmv.cpu";
 # 
 # echo "spmv.dm"
@@ -106,11 +106,11 @@ timing=`CALIBRATE=1 SCHED="dmda" $EXAMPLEDIR/dw_cholesky -pin 2> /dev/null`
 save_cov "chol.dmda";
 
 echo "chol.cpu"
-timing=`CALIBRATE=1 NCUDA=0 SCHED="dm" $EXAMPLEDIR/dw_cholesky -pin 2> /dev/null`
+timing=`CALIBRATE=1 STARPU_NCUDA=0 SCHED="dm" $EXAMPLEDIR/dw_cholesky -pin 2> /dev/null`
 save_cov "chol.cpu";
 
 echo "chol.gpu"
-timing=`CALIBRATE=1 NCPUS=0 SCHED="dm" $EXAMPLEDIR/dw_cholesky -pin 2> /dev/null`
+timing=`CALIBRATE=1 STARPU_NCPUS=0 SCHED="dm" $EXAMPLEDIR/dw_cholesky -pin 2> /dev/null`
 save_cov "chol.gpu";
 
 echo "chol"

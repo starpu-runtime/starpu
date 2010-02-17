@@ -31,8 +31,8 @@ trace_stress()
 {
 	memstress=$1
 
-	export NCPUS=0
-	export NCUDA=1
+	export STARPU_NCPUS=0
+	export STARPU_NCUDA=1
 	export STRESS_MEM=$memstress
 
 	line="$memstress"

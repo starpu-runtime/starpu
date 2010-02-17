@@ -44,8 +44,8 @@ do
 			blocks=$BLOCKS
 			filename=$TIMINGDIR/timing.$cpus.$cublas.$size.$blocks
 
-			export NCPUS=$cpus
-			export NCUDA=$cublas
+			export STARPU_NCPUS=$cpus
+			export STARPU_NCUDA=$cublas
 
 			echo "size $size cpus $cpus cublas $cublas blocks $blocks" 
 			$ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $BLOCKS 2>/dev/null| tee $filename
@@ -60,8 +60,8 @@ do
 			blocks=$BLOCKS
 			filename=$TIMINGDIR/timing.$cpus.$cublas.$size.$blocks
 
-			export NCPUS=$cpus
-			export NCUDA=$cublas
+			export STARPU_NCPUS=$cpus
+			export STARPU_NCUDA=$cublas
 
 			echo "size $size cpus $cpus cublas $cublas blocks $blocks" 
 			$ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $BLOCKS 2>/dev/null| tee $filename
@@ -86,15 +86,15 @@ do
 	do
 		size=$(($theta*32))
 
-		export NCPUS=4
-		export NCUDA=0
+		export STARPU_NCPUS=4
+		export STARPU_NCUDA=0
 
 		echo "size $size cpus 4 cublas 0 blocks $blocks"
 		filename=$TIMINGDIR/timing.4.0.$size.$blocks
 		$ROOTDIR/examples/heat -nthick 34 -ntheta $(($theta+2)) -nblocks $blocks 2>/dev/null| tee $filename
 
-		export NCPUS=3
-		export NCUDA=1
+		export STARPU_NCPUS=3
+		export STARPU_NCUDA=1
 
 		echo "size $size cpus 3 cublas 1 blocks $blocks"
 		filename=$TIMINGDIR/timing.3.1.$size.$blocks

@@ -20,7 +20,7 @@ maxiter=5
 ROOTDIR=../../
 TIMINGDIR=$PWD/timing/
 
-export WORKERS_GPUID="1"
+export STARPU_WORKERS_GPUID="1"
 
 trace_sched()
 {
@@ -57,7 +57,7 @@ trace_sched()
 
 schedlist='dm dm dm dm greedy dm'
 
-export NCUDA=1
+export STARPU_NCUDA=1
 export CALIBRATE=1
 
 mkdir -p $TIMINGDIR

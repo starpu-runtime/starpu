@@ -233,15 +233,15 @@ TODO, explicit configuration (passed to starpu_init) overrides env variables.
 @section Configuring workers
 
 @menu
-* NCPUS     :: Number of CPU workers
-* NCUDA     :: Number of CUDA workers
-* NGORDON   :: Number of SPU workers (Cell)
-* WORKERS_CPUID  :: Bind workers to specific CPUs
-* WORKERS_GPUID  :: Select specific CUDA devices
+* STARPU_NCPUS     :: Number of CPU workers
+* STARPU_NCUDA     :: Number of CUDA workers
+* STARPU_NGORDON   :: Number of SPU workers (Cell)
+* STARPU_WORKERS_CPUID  :: Bind workers to specific CPUs
+* STARPU_WORKERS_GPUID  :: Select specific CUDA devices
 @end menu
 
-@node NCPUS
-@subsection @code{NCPUS} -- Number of CPU workers
+@node STARPU_NCPUS
+@subsection @code{STARPU_NCPUS} -- Number of CPU workers
 @table @asis
 
 @item @emph{Description}:
@@ -249,8 +249,8 @@ TODO
 
 @end table
 
-@node NCUDA
-@subsection @code{NCUDA} -- Number of CUDA workers
+@node STARPU_NCUDA
+@subsection @code{STARPU_NCUDA} -- Number of CUDA workers
 @table @asis
 
 @item @emph{Description}:
@@ -258,8 +258,8 @@ TODO
 
 @end table
 
-@node NGORDON
-@subsection @code{NGORDON} -- Number of SPU workers (Cell)
+@node STARPU_NGORDON
+@subsection @code{STARPU_NGORDON} -- Number of SPU workers (Cell)
 @table @asis
 
 @item @emph{Description}:
@@ -268,8 +268,8 @@ TODO
 @end table
 
 
-@node WORKERS_CPUID
-@subsection @code{WORKERS_CPUID} -- Bind workers to specific CPUs
+@node STARPU_WORKERS_CPUID
+@subsection @code{STARPU_WORKERS_CPUID} -- Bind workers to specific CPUs
 @table @asis
 
 @item @emph{Description}:
@@ -277,8 +277,8 @@ TODO
 
 @end table
 
-@node WORKERS_GPUID
-@subsection @code{WORKERS_GPUID} -- Select specific CUDA devices
+@node STARPU_WORKERS_GPUID
+@subsection @code{STARPU_WORKERS_GPUID} -- Select specific CUDA devices
 @table @asis
 
 @item @emph{Description}:
@@ -422,15 +422,15 @@ This is the name of the scheduling policy. This can also be specified with the
 
 @item @code{ncpus} (default = -1):
 This is the maximum number of CPU cores that StarPU can use. This can also be
-specified with the @code{NCPUS} environment variable.
+specified with the @code{STARPU_NCPUS} environment variable.
 
 @item @code{ncuda} (default = -1):
 This is the maximum number of CUDA devices that StarPU can use. This can also be
-specified with the @code{NCUDA} environment variable.
+specified with the @code{STARPU_NCUDA} environment variable.
 
 @item @code{nspus} (default = -1):
 This is the maximum number of Cell SPUs that StarPU can use. This can also be
-specified with the @code{NGORDON} environment variable.
+specified with the @code{STARPU_NGORDON} environment variable.
 
 @item @code{calibrate} (default = 0):
 If this flag is set, StarPU will calibrate the performance models when

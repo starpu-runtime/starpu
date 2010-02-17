@@ -54,7 +54,7 @@ static void _starpu_initialize_workers_gpuid(struct machine_config_s *config)
 	/* conf->workers_bindid indicates the successive cpu identifier that
 	 * should be used to bind the workers. It should be either filled
 	 * according to the user's explicit parameters (from starpu_conf) or
-	 * according to the WORKERS_CPUID env. variable. Otherwise, a
+	 * according to the STARPU_WORKERS_CPUID env. variable. Otherwise, a
 	 * round-robin policy is used to distributed the workers over the
 	 * cpus. */
 
@@ -66,16 +66,16 @@ static void _starpu_initialize_workers_gpuid(struct machine_config_s *config)
 			config->user_conf->workers_gpuid,
 			STARPU_NMAXWORKERS*sizeof(unsigned));
 	}
-	else if ((strval = getenv("WORKERS_GPUID")))
+	else if ((strval = getenv("STARPU_WORKERS_GPUID")))
 	{
-		/* WORKERS_GPUID certainly contains less entries than
+		/* STARPU_WORKERS_GPUID certainly contains less entries than
 		 * STARPU_NMAXWORKERS, so we reuse its entries in a round robin
 		 * fashion: "1 2" is equivalent to "1 2 1 2 1 2 .... 1 2". */
 		unsigned wrap = 0;
 		unsigned number_of_entries = 0;
 
 		char *endptr;
-		/* we use the content of the WORKERS_GPUID env. variable */
+		/* we use the content of the STARPU_WORKERS_GPUID env. variable */
 		for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		{
 			if (!wrap) {
@@ -188,7 +188,7 @@ static int _starpu_init_machine_config(struct machine_config_s *config,
 			explicitval = user_conf->ncuda;
 		}
 		else {
-			explicitval = starpu_get_env_number("NCUDA");
+			explicitval = starpu_get_env_number("STARPU_NCUDA");
 		}
 
 		if (explicitval < 0) {
@@ -227,7 +227,7 @@ static int _starpu_init_machine_config(struct machine_config_s *config,
 		explicitval = user_conf->ncuda;
 	}
 	else {
-		explicitval = starpu_get_env_number("NGORDON");
+		explicitval = starpu_get_env_number("STARPU_NGORDON");
 	}
 
 	if (explicitval < 0) {
@@ -263,7 +263,7 @@ static int _starpu_init_machine_config(struct machine_config_s *config,
 		explicitval = user_conf->ncpus;
 	}
 	else {
-		explicitval = starpu_get_env_number("NCPUS");
+		explicitval = starpu_get_env_number("STARPU_NCPUS");
 	}
 
 	if (explicitval < 0) {
@@ -314,7 +314,7 @@ static void _starpu_initialize_workers_bindid(struct machine_config_s *config)
 	/* conf->workers_bindid indicates the successive cpu identifier that
 	 * should be used to bind the workers. It should be either filled
 	 * according to the user's explicit parameters (from starpu_conf) or
-	 * according to the WORKERS_CPUID env. variable. Otherwise, a
+	 * according to the STARPU_WORKERS_CPUID env. variable. Otherwise, a
 	 * round-robin policy is used to distributed the workers over the
 	 * cpus. */
 
@@ -326,16 +326,16 @@ static void _starpu_initialize_workers_bindid(struct machine_config_s *config)
 			config->user_conf->workers_bindid,
 			STARPU_NMAXWORKERS*sizeof(unsigned));
 	}
-	else if ((strval = getenv("WORKERS_CPUID")))
+	else if ((strval = getenv("STARPU_WORKERS_CPUID")))
 	{
-		/* WORKERS_CPUID certainly contains less entries than
+		/* STARPU_WORKERS_CPUID certainly contains less entries than
 		 * STARPU_NMAXWORKERS, so we reuse its entries in a round robin
 		 * fashion: "1 2" is equivalent to "1 2 1 2 1 2 .... 1 2". */
 		unsigned wrap = 0;
 		unsigned number_of_entries = 0;
 
 		char *endptr;
-		/* we use the content of the WORKERS_GPUID env. variable */
+		/* we use the content of the STARPU_WORKERS_GPUID env. variable */
 		for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		{
 			if (!wrap) {
