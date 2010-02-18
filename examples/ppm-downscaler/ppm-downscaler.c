@@ -18,7 +18,7 @@
 
 #include <starpu.h>
 
-#ifdef HAVE_MALLOC_H
+#ifdef STARPU_HAVE_MALLOC_H
 #include <malloc.h>
 #endif
 #include <stdlib.h>
@@ -34,7 +34,7 @@ struct ppm_image *allocate_new_ppm(int ncols, int nlines, int coldepth)
 	ppm->nlines = nlines;
 	ppm->coldepth = coldepth;
 
-#ifdef HAVE_MEMALIGN
+#ifdef STARPU_HAVE_MEMALIGN
 	ppm->data = memalign(16384, ncols*nlines*sizeof(struct ppm_color));
 #else
 	ppm->data = malloc(ncols*nlines*sizeof(struct ppm_color));
@@ -62,7 +62,7 @@ struct ppm_image *file_to_ppm(char *filename)
 	}
 	
 	/* allocate a buffer for the image */
-#ifdef HAVE_MEMALIGN
+#ifdef STARPU_HAVE_MEMALIGN
 	ppm->data = memalign(16384, ppm->ncols*ppm->nlines*sizeof(struct ppm_color));
 #else
 	ppm->data = malloc(ppm->ncols*ppm->nlines*sizeof(struct ppm_color));

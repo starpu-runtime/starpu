@@ -277,7 +277,7 @@ int main(int argc, char **argv)
 	for (x = 0; x < nblocks; x++)
 	{
 		if (x <= y) {
-#ifdef HAVE_POSIX_MEMALIGN
+#ifdef STARPU_HAVE_POSIX_MEMALIGN
 			posix_memalign((void **)&A[y][x], 128, BLOCKSIZE*BLOCKSIZE*sizeof(float));
 #else
 			A[y][x] = malloc(BLOCKSIZE*BLOCKSIZE*sizeof(float));

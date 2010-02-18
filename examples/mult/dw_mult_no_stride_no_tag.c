@@ -79,7 +79,7 @@ static void init_problem_data(void)
 	{
 		for (z = 0; z < nslicesz; z++)
 		{
-#ifdef HAVE_POSIX_MEMALIGN
+#ifdef STARPU_HAVE_POSIX_MEMALIGN
 			posix_memalign((void **)&A[y][z], MEM_ALIGNMENT, BLOCKSIZEZ*BLOCKSIZEY*sizeof(float));
 #else
 			A[y][z] = malloc(BLOCKSIZEZ*BLOCKSIZEY*sizeof(float));
@@ -92,7 +92,7 @@ static void init_problem_data(void)
 	{
 		for (x = 0; x < nslicesx; x++)
 		{
-#ifdef HAVE_POSIX_MEMALIGN
+#ifdef STARPU_HAVE_POSIX_MEMALIGN
 			posix_memalign((void **)&B[z][x], MEM_ALIGNMENT, BLOCKSIZEX*BLOCKSIZEZ*sizeof(float));
 #else
 			B[z][x] = malloc(BLOCKSIZEX*BLOCKSIZEZ*sizeof(float));
@@ -105,7 +105,7 @@ static void init_problem_data(void)
 	{
 		for (x = 0; x < nslicesx; x++)
 		{
-#ifdef HAVE_POSIX_MEMALIGN
+#ifdef STARPU_HAVE_POSIX_MEMALIGN
 			posix_memalign((void **)&C[y][x], MEM_ALIGNMENT, BLOCKSIZEX*BLOCKSIZEY*sizeof(float));
 #else
 			C[y][x] = malloc(BLOCKSIZEX*BLOCKSIZEY*sizeof(float));

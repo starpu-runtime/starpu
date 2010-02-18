@@ -82,7 +82,7 @@ static void init_problem_data(void)
 	} else
 #endif
 	{
-#ifdef HAVE_POSIX_MEMALIGN
+#ifdef STARPU_HAVE_POSIX_MEMALIGN
 		posix_memalign((void **)&A, 4096, zdim*ydim*sizeof(TYPE));
 		posix_memalign((void **)&B, 4096, xdim*zdim*sizeof(TYPE));
 		posix_memalign((void **)&C, 4096, xdim*ydim*sizeof(TYPE));

@@ -793,7 +793,7 @@ int main(int argc, char **argv)
         } else
 #endif
         {
-#ifdef HAVE_POSIX_MEMALIGN
+#ifdef STARPU_HAVE_POSIX_MEMALIGN
                 posix_memalign((void **)&bigbuffer, 4096, used_mem_predicted);
 #else
 		bigbuffer = malloc(used_mem_predicted);

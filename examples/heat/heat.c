@@ -757,7 +757,7 @@ int main(int argc, char **argv)
 		starpu_shutdown();
 	}
 
-#ifdef OPENGL_RENDER
+#ifdef STARPU_OPENGL_RENDER
 	opengl_render(ntheta, nthick, result, pmesh, argc, argv);
 #endif
 

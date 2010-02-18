@@ -16,7 +16,7 @@
 
 #include "heat.h"
 
-#ifdef OPENGL_RENDER
+#ifdef STARPU_OPENGL_RENDER
 /*
  * Just some dummy OpenGL code to display our results 
  *
@@ -235,4 +235,4 @@ void opengl_render(unsigned _ntheta, unsigned _nthick, float *_result, point *_p
 	glutReshapeFunc(reshape);
 	glutMainLoop();
 }
-#endif // OPENGL_RENDER
+#endif // STARPU_OPENGL_RENDER

@@ -560,11 +560,11 @@ if test x$enable_opengl_render = xyes; then
 	AC_CHECK_LIB(GL, glXCreateContext,,AC_MSG_ERROR([cannot find GL]))
 	AC_CHECK_LIB(GLU, gluLookAt,,AC_MSG_ERROR([cannot find GLU]))
 	
-	AC_DEFINE(OPENGL_RENDER, [1], [enable OpenGL rendering of some examples])
+	AC_DEFINE(STARPU_OPENGL_RENDER, [1], [enable OpenGL rendering of some examples])
 fi
 
 AC_MSG_CHECKING(whether OpenGL rendering is enabled)
-AC_SUBST(OPENGL_RENDER, $enable_opengl_render)
+AC_SUBST(STARPU_OPENGL_RENDER, $enable_opengl_render)
 AC_MSG_RESULT($enable_opengl_render)
 
 # In case there are BLAS kernels that are used by the example applications

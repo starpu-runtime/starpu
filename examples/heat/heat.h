@@ -23,13 +23,13 @@
 #include <assert.h>
 #include <math.h>
 
-// needed for OPENGL_RENDER
+// needed for STARPU_OPENGL_RENDER
 #include <starpu_config.h>
 #include <starpu.h>
 
 #include <common/blas.h>
 
-#ifdef OPENGL_RENDER
+#ifdef STARPU_OPENGL_RENDER
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
@@ -60,7 +60,7 @@ extern void initialize_system(float **A, float **B, unsigned dim, unsigned pinne
 
 void display_stat_heat(void);
 
-#ifdef OPENGL_RENDER
+#ifdef STARPU_OPENGL_RENDER
 extern void opengl_render(unsigned _ntheta, unsigned _nthick, float *_result, point *_pmesh, int argc_, char **argv_);
 #endif
 
