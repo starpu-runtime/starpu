@@ -435,7 +435,7 @@ void starpu_shutdown(void)
 	/* tell all workers to shutdown */
 	_starpu_kill_all_workers(&config);
 
-#ifdef DATA_STATS
+#ifdef STARPU_DATA_STATS
 	display_comm_ammounts();
 #endif
 

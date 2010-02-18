@@ -361,7 +361,7 @@ AM_CONDITIONAL(USE_FXT, test x$use_fxt = xyes)
 
 if test x$use_fxt = xyes; then
 	AC_DEFINE(USE_FXT, [1], [enable FxT traces])
-	AC_DEFINE(CONFIG_FUT, [1], [enable FUT traces])
+	AC_DEFINE(STARPU_CONFIG_FUT, [1], [enable FUT traces])
 
 	AC_SUBST(USE_FXTDIR_FROM_USER,$use_fxt_from_system)
 	if test x$use_fxt_from_system = xno; then
@@ -404,10 +404,10 @@ AC_ARG_ENABLE(stats, [AS_HELP_STRING([--enable-stats],
 			enable_stats=$enableval, enable_stats=no)
 AC_MSG_RESULT($enable_stats)
 AC_SUBST(STATS, $enable_stats)
-AC_SUBST(DATA_STATS, $enable_stats)
+AC_SUBST(STARPU_DATA_STATS, $enable_stats)
 
 if test x$enable_stats = xyes; then
-        AC_DEFINE(DATA_STATS, [1], [enable statistics])
+        AC_DEFINE(STARPU_DATA_STATS, [1], [enable statistics])
 fi
 
 

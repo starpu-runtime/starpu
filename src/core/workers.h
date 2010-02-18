@@ -54,7 +54,7 @@
 #define STARPU_CUDA_ALPHA	13.33f
 #define STARPU_GORDON_ALPHA	6.0f /* XXX this is a random value ... */
 
-#ifdef DATA_STATS
+#ifdef STARPU_DATA_STATS
 #define BENCHMARK_COMM	1
 #else
 #define BENCHMARK_COMM	0

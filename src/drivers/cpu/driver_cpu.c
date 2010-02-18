@@ -193,7 +193,7 @@ void *_starpu_cpu_worker(void *arg)
 
 	TRACE_WORKER_DEINIT_START
 
-#ifdef DATA_STATS
+#ifdef STARPU_DATA_STATS
 	fprintf(stderr, "CPU #%d computation %le comm %le (%lf \%%)\n", cpu_arg->id, cpu_arg->jobq->total_computation_time, cpu_arg->jobq->total_communication_time,  cpu_arg->jobq->total_communication_time*100.0/cpu_arg->jobq->total_computation_time);
 #endif
 

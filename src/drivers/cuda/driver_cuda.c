@@ -280,7 +280,7 @@ void *_starpu_cuda_worker(void *arg)
 
 	deinit_context(args->workerid);
 
-#ifdef DATA_STATS
+#ifdef STARPU_DATA_STATS
 	fprintf(stderr, "CUDA #%d computation %le comm %le (%lf \%%)\n", args->id, args->jobq->total_computation_time, args->jobq->total_communication_time, args->jobq->total_communication_time*100.0/args->jobq->total_computation_time);
 #endif
 

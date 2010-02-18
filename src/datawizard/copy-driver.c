@@ -217,7 +217,7 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(starpu_data_hand
 		STARPU_ASSERT(handle->ops);
 		//STARPU_ASSERT(handle->ops->copy_data_1_to_1);
 
-#ifdef DATA_STATS
+#ifdef STARPU_DATA_STATS
 		size_t size = handle->ops->get_size(handle);
 		update_comm_ammount(src_node, dst_node, size);
 #endif

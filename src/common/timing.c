@@ -16,7 +16,7 @@
 
 #include "timing.h"
 
-#ifdef HAVE_CLOCK_GETTIME
+#ifdef STARPU_HAVE_CLOCK_GETTIME
 
 #define TICK_DIFF(t1, t2) ((long long)((t2).ts.tv_sec*1e9 + (t2).ts.tv_nsec) + \
 				- (long long)((t1).ts.tv_sec*1e9) + (long long)(t1).ts.tv_nsec)
@@ -52,7 +52,7 @@ inline double timing_now(void)
 
 
 
-#else // HAVE_CLOCK_GETTIME
+#else // STARPU_HAVE_CLOCK_GETTIME
 
 #define TICK_RAW_DIFF(t1, t2) ((t2).tick - (t1).tick)
 #define TICK_DIFF(t1, t2) (TICK_RAW_DIFF(t1, t2) - residual)
@@ -113,4 +113,4 @@ inline double timing_now(void)
 	return _starpu_tick2usec(tick_now.tick);
 }
 
-#endif // HAVE_CLOCK_GETTIME
+#endif // STARPU_HAVE_CLOCK_GETTIME

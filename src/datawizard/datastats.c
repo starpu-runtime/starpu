@@ -21,28 +21,28 @@
 
 /* measure the cache hit ratio for each node */
 
-#ifdef DATA_STATS
+#ifdef STARPU_DATA_STATS
 static unsigned hit_cnt[STARPU_MAXNODES];
 static unsigned miss_cnt[STARPU_MAXNODES];
 #endif
 
 inline void msi_cache_hit(unsigned node __attribute__ ((unused)))
 {
-#ifdef DATA_STATS
+#ifdef STARPU_DATA_STATS
 	hit_cnt[node]++;
 #endif
 }
 
 inline void msi_cache_miss(unsigned node __attribute__ ((unused)))
 {
-#ifdef DATA_STATS
+#ifdef STARPU_DATA_STATS
 	miss_cnt[node]++;
 #endif
 }
 
 void display_msi_stats(void)
 {
-#ifdef DATA_STATS
+#ifdef STARPU_DATA_STATS
 	unsigned node;
 	unsigned total_hit_cnt = 0;
 	unsigned total_miss_cnt = 0;
@@ -71,28 +71,28 @@ void display_msi_stats(void)
 
 /* measure the efficiency of our allocation cache */
 
-#ifdef DATA_STATS
+#ifdef STARPU_DATA_STATS
 static unsigned alloc_cnt[STARPU_MAXNODES];
 static unsigned alloc_cache_hit_cnt[STARPU_MAXNODES];
 #endif
 
 inline void allocation_cache_hit(unsigned node __attribute__ ((unused)))
 {
-#ifdef DATA_STATS
+#ifdef STARPU_DATA_STATS
 	alloc_cache_hit_cnt[node]++;
 #endif
 }
 
 inline void data_allocation_inc_stats(unsigned node __attribute__ ((unused)))
 {
-#ifdef DATA_STATS
+#ifdef STARPU_DATA_STATS
 	alloc_cnt[node]++;
 #endif
 }
 
 void display_alloc_cache_stats(void)
 {
-#ifdef DATA_STATS
+#ifdef STARPU_DATA_STATS
 	fprintf(stderr, "Allocation cache stats:\n");
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++) 
@@ -109,7 +109,7 @@ void display_alloc_cache_stats(void)
 }
 
 /* measure the amount of data transfers between each pair of nodes */
-#ifdef DATA_STATS
+#ifdef STARPU_DATA_STATS
 
 static size_t comm_ammount[STARPU_MAXNODES][STARPU_MAXNODES];
 

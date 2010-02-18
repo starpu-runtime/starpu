@@ -33,7 +33,7 @@ inline void data_allocation_inc_stats(unsigned node __attribute__ ((unused)));
 void display_comm_ammounts(void);
 void display_alloc_cache_stats(void);
 
-#ifdef DATA_STATS
+#ifdef STARPU_DATA_STATS
 inline void update_comm_ammount(uint32_t src_node, uint32_t dst_node, size_t size);
 #endif
 

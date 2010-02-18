@@ -32,7 +32,7 @@
 #include <common/config.h>
 #include <starpu.h>
 
-#ifdef HAVE_CLOCK_GETTIME
+#ifdef STARPU_HAVE_CLOCK_GETTIME
 #include <time.h>
 #ifndef _POSIX_C_SOURCE
 /* for clock_gettime */
@@ -46,7 +46,7 @@ typedef struct tick_s
 } tick_t;
 #define GET_TICK(t) clock_gettime(CLOCK_MONOTONIC, &((t).ts))
 
-#else // !HAVE_CLOCK_GETTIME
+#else // !STARPU_HAVE_CLOCK_GETTIME
 
 typedef union u_tick
 {
@@ -69,7 +69,7 @@ typedef union u_tick
 #  define GET_TICK(t) do {} while(0);
 #endif
 
-#endif // HAVE_CLOCK_GETTIME
+#endif // STARPU_HAVE_CLOCK_GETTIME
 
 void __attribute__ ((unused)) timing_init(void);
 inline double __attribute__ ((unused)) _starpu_tick2usec(long long t);
