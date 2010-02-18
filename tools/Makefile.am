@@ -27,7 +27,7 @@ bin_PROGRAMS += calibrate_bus
 
 calibrate_bus_SOURCES = calibrate_bus.c
 
-if USE_FXT
+if STARPU_USE_FXT
 bin_PROGRAMS += fxt-tool fxt-stats
 
 fxt_tool_SOURCES = fxt-tool.c fxt-tool-common.c fxt-tool-mpi.c dag-dot.c histo-paje.c

@@ -113,7 +113,7 @@ void init_problem(void)
 {
 	unsigned i,j;
 
-#ifdef USE_FXT
+#ifdef STARPU_USE_FXT
 	fxt_register_thread(0);
 #endif
 

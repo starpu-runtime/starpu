@@ -610,7 +610,7 @@ static int hookid = - 1;
 
 static void _starpu_mpi_add_sync_point_in_fxt(void)
 {
-#ifdef USE_FXT
+#ifdef STARPU_USE_FXT
 	int rank;
 	int worldsize;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -635,7 +635,7 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 
 	TRACE_MPI_BARRIER(rank, worldsize, random_number);
 
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 	fprintf(stderr, "StarPU MPI (rank %d): unique key %x\n", rank, random_number);
 #endif
 

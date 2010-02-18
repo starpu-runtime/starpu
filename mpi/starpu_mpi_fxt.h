@@ -25,7 +25,7 @@
 #define FUT_MPI_ISEND		0x5202
 #define FUT_MPI_IRECV_END	0x5203
 
-#ifdef USE_FXT
+#ifdef STARPU_USE_FXT
 #define TRACE_MPI_BARRIER(rank, worldsize, key)	\
 	FUT_DO_PROBE4(FUT_MPI_BARRIER, (rank), (worldsize), (key), syscall(SYS_gettid));
 #define TRACE_MPI_ISEND(dest, mpi_tag, size)	\

@@ -131,7 +131,7 @@ AC_SUBST(STARPU_USE_CPU, $enable_cpu)
 AM_CONDITIONAL(STARPU_USE_CPU, test x$enable_cpu = xyes)
 
 if test x$enable_cpu = xyes; then
-	AC_DEFINE(USE_CPUS, [1], [CPU driver is activated])
+	AC_DEFINE(STARPU_USE_CPUS, [1], [CPU driver is activated])
 
 	# This value is set quite randomly, but StarPU should not take more
 	# core than there are in the system
@@ -314,7 +314,7 @@ AC_ARG_ENABLE(verbose, [AS_HELP_STRING([--enable-verbose],
 			enable_verbose=$enableval, enable_verbose=no)
 AC_MSG_RESULT($enable_verbose)
 if test x$enable_verbose = xyes; then
-	AC_DEFINE(VERBOSE, [1], [display verbose debug messages])
+	AC_DEFINE(STARPU_VERBOSE, [1], [display verbose debug messages])
 fi
 
 
@@ -356,11 +356,11 @@ AC_ARG_WITH(fxt, [AS_HELP_STRING([--with-fxt[=<dir>]], [generate fxt traces])],
 		use_fxt=no
 		AC_MSG_RESULT(no)
 	])
-AC_SUBST(USE_FXT, $use_fxt)
-AM_CONDITIONAL(USE_FXT, test x$use_fxt = xyes)
+AC_SUBST(STARPU_USE_FXT, $use_fxt)
+AM_CONDITIONAL(STARPU_USE_FXT, test x$use_fxt = xyes)
 
 if test x$use_fxt = xyes; then
-	AC_DEFINE(USE_FXT, [1], [enable FxT traces])
+	AC_DEFINE(STARPU_USE_FXT, [1], [enable FxT traces])
 	AC_DEFINE(STARPU_CONFIG_FUT, [1], [enable FUT traces])
 
 	AC_SUBST(USE_FXTDIR_FROM_USER,$use_fxt_from_system)
@@ -455,7 +455,7 @@ AC_ARG_ENABLE(allocation-cache, [AS_HELP_STRING([--enable-allocation-cache],
 			enable_allocation_cache=$enableval, enable_allocation_cache=no)
 AC_MSG_RESULT($enable_allocation_cache)
 if test x$enable_allocation_cache = xyes; then
-	AC_DEFINE(USE_ALLOCATION_CACHE, [1], [enable data allocation cache])
+	AC_DEFINE(STARPU_USE_ALLOCATION_CACHE, [1], [enable data allocation cache])
 fi
 
 AC_ARG_WITH(perf-model-dir, [AS_HELP_STRING([--with-perf-model-dir=<dir>], [specify where performance models shoulds be stored])],

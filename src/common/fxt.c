@@ -16,7 +16,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
-#ifdef USE_FXT
+#ifdef STARPU_USE_FXT
 
 #include <common/fxt.h>
 
@@ -80,7 +80,7 @@ void stop_fxt_profiling(void)
 {
 	if (!written)
 	{
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 	        char hostname[128];
 		gethostname(hostname, 128);
 		fprintf(stderr, "Writing FxT traces into file %s:%s\n", hostname, PROF_FILE_USER);
@@ -99,7 +99,7 @@ void fxt_register_thread(unsigned cpuid)
 
 void starpu_trace_user_event(unsigned code __attribute__((unused)))
 {
-#ifdef USE_FXT
+#ifdef STARPU_USE_FXT
 	TRACE_USER_EVENT(code);
 #endif
 }

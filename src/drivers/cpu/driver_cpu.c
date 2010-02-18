@@ -98,14 +98,14 @@ void *_starpu_cpu_worker(void *arg)
 {
 	struct worker_s *cpu_arg = arg;
 
-#ifdef USE_FXT
+#ifdef STARPU_USE_FXT
 	fxt_register_thread(cpu_arg->bindid);
 #endif
 	TRACE_WORKER_INIT_START(FUT_CPU_KEY, cpu_arg->memory_node);
 
 	_starpu_bind_thread_on_cpu(cpu_arg->config, cpu_arg->bindid);
 
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
         fprintf(stderr, "cpu worker %d is ready on logical cpu %d\n", cpu_arg->id, cpu_arg->bindid);
 #endif
 
@@ -197,7 +197,7 @@ void *_starpu_cpu_worker(void *arg)
 	fprintf(stderr, "CPU #%d computation %le comm %le (%lf \%%)\n", cpu_arg->id, cpu_arg->jobq->total_computation_time, cpu_arg->jobq->total_communication_time,  cpu_arg->jobq->total_communication_time*100.0/cpu_arg->jobq->total_computation_time);
 #endif
 
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 	double ratio = 0;
 	if (cpu_arg->jobq->total_job_performed != 0)
 	{

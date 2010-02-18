@@ -57,7 +57,7 @@ LIST_TYPE(data_request,
 	unsigned strictness;
 	unsigned is_a_prefetch_request;
 
-#ifdef USE_FXT
+#ifdef STARPU_USE_FXT
 	unsigned com_id;
 #endif
 );

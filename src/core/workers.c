@@ -126,7 +126,7 @@ static void _starpu_init_workers(struct machine_config_s *config)
 		_starpu_init_worker_queue(workerarg);
 
 		switch (workerarg->arch) {
-#ifdef USE_CPUS
+#ifdef STARPU_USE_CPUS
 			case STARPU_CPU_WORKER:
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
@@ -223,7 +223,7 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	srand(2008);
 	
-#ifdef USE_FXT
+#ifdef STARPU_USE_FXT
 	start_fxt_profiling();
 #endif
 	
@@ -264,7 +264,7 @@ static void _starpu_terminate_workers(struct machine_config_s *config)
 	{
 		starpu_wake_all_blocked_workers();
 		
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 		fprintf(stderr, "wait for worker %d\n", workerid);
 #endif
 
@@ -278,7 +278,7 @@ static void _starpu_terminate_workers(struct machine_config_s *config)
 				if (!pthread_equal(pthread_self(), set->worker_thread))
 				{
 					status = pthread_join(set->worker_thread, NULL);
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 					if (status)
 						fprintf(stderr, "pthread_join -> %d\n", status);
 #endif
@@ -291,7 +291,7 @@ static void _starpu_terminate_workers(struct machine_config_s *config)
 			if (!pthread_equal(pthread_self(), worker->worker_thread))
 			{
 				status = pthread_join(worker->worker_thread, NULL);
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 				if (status)
 					fprintf(stderr, "pthread_join -> %d\n", status);
 #endif
@@ -449,7 +449,7 @@ void starpu_shutdown(void)
 
 	starpu_destroy_topology(&config);
 
-#ifdef USE_FXT
+#ifdef STARPU_USE_FXT
 	stop_fxt_profiling();
 #endif
 

@@ -61,7 +61,7 @@ static void load_sched_policy(struct sched_policy_s *sched_policy)
 {
 	STARPU_ASSERT(sched_policy);
 
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 	if (sched_policy->policy_name)
 	{
 		fprintf(stderr, "Use %s scheduler", sched_policy->policy_name);

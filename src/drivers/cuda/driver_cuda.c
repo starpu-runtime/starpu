@@ -170,7 +170,7 @@ void *_starpu_cuda_worker(void *arg)
 	int devid = args->id;
 	unsigned memory_node = args->memory_node;
 
-#ifdef USE_FXT
+#ifdef STARPU_USE_FXT
 	fxt_register_thread(args->bindid);
 #endif
 	TRACE_WORKER_INIT_START(FUT_CUDA_KEY, memory_node);
@@ -206,7 +206,7 @@ void *_starpu_cuda_worker(void *arg)
 	strncpy(devname, prop.name, 128);
 	snprintf(args->name, 32, "CUDA %d (%s)", args->id, devname);
 
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 	fprintf(stderr, "cuda (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 #endif
 
@@ -284,7 +284,7 @@ void *_starpu_cuda_worker(void *arg)
 	fprintf(stderr, "CUDA #%d computation %le comm %le (%lf \%%)\n", args->id, args->jobq->total_computation_time, args->jobq->total_communication_time, args->jobq->total_communication_time*100.0/args->jobq->total_computation_time);
 #endif
 
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 	double ratio = 0;
 	if (args->jobq->total_job_performed != 0)
 	{

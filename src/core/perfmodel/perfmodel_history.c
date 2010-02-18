@@ -258,7 +258,7 @@ static void save_history_based_model(struct starpu_perfmodel_t *model)
 	char path[256];
 	get_model_path(model, path, 256);
 
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 	fprintf(stderr, "Opening performance model file %s for model %s\n", path, model->symbol);
 #endif
 
@@ -283,7 +283,7 @@ void dump_registered_models(void)
 	struct starpu_model_list_t *node;
 	node = registered_models;
 
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 	fprintf(stderr, "DUMP MODELS !\n");
 #endif
 
@@ -342,14 +342,14 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
 	char path[256];
 	get_model_path(model, path, 256);
 
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 	fprintf(stderr, "Opening performance model file %s for model %s ... ", path, model->symbol);
 #endif
 	
 	/* try to open an existing file and load it */
 	res = access(path, F_OK); 
 	if (res == 0) {
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 		fprintf(stderr, "File exists !\n");
 #endif
 
@@ -362,7 +362,7 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
 		fclose(f);
 	}
 	else {
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 		fprintf(stderr, "File does not exists !\n");
 #endif
 		initialize_model(model);

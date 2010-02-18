@@ -198,7 +198,7 @@ static starpu_codelet cl = {
 
 static void launch_codelets(void)
 {
-#ifdef USE_FXT
+#ifdef STARPU_USE_FXT
 	fxt_register_thread(0);
 #endif
 	/* partition the work into slices */

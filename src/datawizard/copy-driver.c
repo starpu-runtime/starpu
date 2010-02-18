@@ -66,7 +66,7 @@ void starpu_wake_all_blocked_workers(void)
 	}
 }
 
-#ifdef USE_FXT
+#ifdef STARPU_USE_FXT
 /* we need to identify each communication so that we can match the beginning
  * and the end of a communication in the trace, so we use a unique identifier
  * per communication */
@@ -222,7 +222,7 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(starpu_data_hand
 		update_comm_ammount(src_node, dst_node, size);
 #endif
 		
-#ifdef USE_FXT
+#ifdef STARPU_USE_FXT
 		com_id = STARPU_ATOMIC_ADD(&communication_cnt, 1);
 
 		if (req)
@@ -233,7 +233,7 @@ int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(starpu_data_hand
 		TRACE_START_DRIVER_COPY(src_node, dst_node, 0, com_id);
 		ret_copy = copy_data_1_to_1_generic(handle, src_node, dst_node, req);
 
-#ifdef USE_FXT
+#ifdef STARPU_USE_FXT
 		if (ret_copy != EAGAIN)
 		{
 			size_t size = handle->ops->get_size(handle);

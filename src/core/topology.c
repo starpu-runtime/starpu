@@ -258,7 +258,7 @@ static int _starpu_init_machine_config(struct machine_config_s *config,
 
 /* we put the CPU section after the accelerator : in case there was an
  * accelerator found, we devote one cpu */
-#ifdef USE_CPUS
+#ifdef STARPU_USE_CPUS
 	if (user_conf && (user_conf->ncpus != -1)) {
 		explicitval = user_conf->ncpus;
 	}
@@ -292,7 +292,7 @@ static int _starpu_init_machine_config(struct machine_config_s *config,
 
 	if (config->nworkers == 0)
 	{
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 		fprintf(stderr, "No worker found, aborting ...\n");
 #endif
 		return -ENODEV;

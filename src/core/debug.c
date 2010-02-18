@@ -17,7 +17,7 @@
 #include <common/config.h>
 #include <core/debug.h>
 
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 /* we want a single writer at the same time to have a log that is readable */
 static pthread_mutex_t logfile_mutex = PTHREAD_MUTEX_INITIALIZER;
 static FILE *logfile;
@@ -25,7 +25,7 @@ static FILE *logfile;
 
 void _starpu_open_debug_logfile(void)
 {
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 	/* what is  the name of the file ? default = "starpu.log" */
 	char *logfile_name;
 	
@@ -42,14 +42,14 @@ void _starpu_open_debug_logfile(void)
 
 void _starpu_close_debug_logfile(void)
 {
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 	fclose(logfile);
 #endif
 }
 
 void _starpu_print_to_logfile(const char *format __attribute__((unused)), ...)
 {
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 	va_list args;
 	va_start(args, format);
 	pthread_mutex_lock(&logfile_mutex);

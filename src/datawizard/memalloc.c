@@ -230,7 +230,7 @@ static size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node, unsigned atte
 	return liberated;
 }
 
-#ifdef USE_ALLOCATION_CACHE
+#ifdef STARPU_USE_ALLOCATION_CACHE
 /* we assume that mc_rwlock[node] is taken */
 static void reuse_mem_chunk(unsigned node, starpu_data_handle new_data, mem_chunk_t mc, unsigned is_already_in_mc_list)
 {
@@ -550,7 +550,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node
 
 	data_allocation_inc_stats(dst_node);
 
-#ifdef USE_ALLOCATION_CACHE
+#ifdef STARPU_USE_ALLOCATION_CACHE
 	/* perhaps we can directly reuse a buffer in the free-list */
 	uint32_t footprint = compute_data_footprint(handle);
 

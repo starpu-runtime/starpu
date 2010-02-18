@@ -178,7 +178,7 @@ static void initialize_dm_policy(struct machine_config_s *config,
 	if (use_prefetch == -1)
 		use_prefetch = 0;
 
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 	fprintf(stderr, "Using prefetch ? %s\n", use_prefetch?"yes":"no");
 #endif
 

@@ -85,7 +85,7 @@
 
 #define FUT_USER_EVENT		0x5132
 
-#ifdef USE_FXT
+#ifdef STARPU_USE_FXT
 #include <sys/syscall.h> /* pour les définitions de SYS_xxx */
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -234,7 +234,7 @@ do {										\
 #define TRACE_USER_EVENT(code)			\
 	FUT_DO_PROBE2(FUT_USER_EVENT, code, syscall(SYS_gettid));
 
-#else // !USE_FXT
+#else // !STARPU_USE_FXT
 
 #define TRACE_NEW_MEM_NODE(nodeid)	do {} while(0);
 #define TRACE_NEW_WORKER(a,b)		do {} while(0);
@@ -271,6 +271,6 @@ do {										\
 #define TRACE_END_PROGRESS(memnode)	do {} while(0);
 #define TRACE_USER_EVENT(code)		do {} while(0);
 
-#endif // USE_FXT
+#endif // STARPU_USE_FXT
 
 #endif // __FXT_H__

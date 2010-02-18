@@ -169,7 +169,7 @@ static void measure_bandwith_between_host_and_dev(int dev, unsigned ncpus)
 			sizeof(struct cudadev_timing),
 			compar_cudadev_timing);
 	
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 	for (cpu = 0; cpu < ncpus; cpu++)
 	{
 		unsigned current_cpu = cudadev_timing_per_cpu[dev+1][cpu].cpu_id;
@@ -198,7 +198,7 @@ static void benchmark_all_cuda_devices(void)
 #ifdef STARPU_USE_CUDA
 	int ret;
 
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 	fprintf(stderr, "Benchmarking the speed of the bus\n");
 #endif
 
@@ -232,7 +232,7 @@ static void benchmark_all_cuda_devices(void)
 		STARPU_ABORT();
 	}
 
-#ifdef VERBOSE
+#ifdef STARPU_VERBOSE
 	fprintf(stderr, "Benchmarking the speed of the bus is done.\n");
 #endif
 #endif
