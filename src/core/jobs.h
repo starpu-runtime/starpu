@@ -35,7 +35,7 @@
 #include <core/perfmodel/perfmodel.h>
 #include <core/errorcheck.h>
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #endif
 

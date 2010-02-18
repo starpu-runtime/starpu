@@ -89,7 +89,7 @@ static void init_problem_data(void)
 {
 	unsigned i,j;
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	if (pin) {
 		starpu_malloc_pinned_if_possible((void **)&A, zdim*ydim*sizeof(float));
 		starpu_malloc_pinned_if_possible((void **)&B, xdim*zdim*sizeof(float));
@@ -183,10 +183,10 @@ static void partition_mult_data(void)
 static starpu_codelet cl = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
 	.cpu_func = cpu_mult,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = cublas_mult,
 #endif
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 #ifdef SPU_FUNC_SGEMM
 	.gordon_func = SPU_FUNC_SGEMM,
 #else

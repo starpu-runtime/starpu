@@ -17,7 +17,7 @@
 #ifndef __PXLU_H__
 #define __PXLU_H__
 
-/* for USE_CUDA */
+/* for STARPU_USE_CUDA */
 #include <starpu_config.h>
 #include <starpu.h>
 

@@ -24,7 +24,7 @@
 
 #include <starpu.h>
 
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 #include <gordon/null.h>
 #endif
 
@@ -116,7 +116,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	starpu_init(NULL);
 
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 	/* load an empty kernel and get its identifier */
 	unsigned gordon_null_kernel = load_gordon_null_kernel();
 #endif
@@ -125,7 +125,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	cl.cpu_func = cpu_codelet;
 	cl.cuda_func = cpu_codelet;
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 	cl.gordon_func = gordon_null_kernel;
 #endif
 	cl.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON;

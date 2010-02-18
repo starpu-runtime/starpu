@@ -20,11 +20,11 @@
 #include <common/config.h>
 #include <starpu.h>
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #endif
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 struct malloc_pinned_codelet_struct {
 	void **ptr;
 	size_t dim;
@@ -57,7 +57,7 @@ int starpu_malloc_pinned_if_possible(void **A, size_t dim)
 
 	if (may_submit_cuda_task())
 	{
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		int push_res;
 	
 		struct malloc_pinned_codelet_struct s = {
@@ -85,7 +85,7 @@ int starpu_malloc_pinned_if_possible(void **A, size_t dim)
 	return 0;
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 static void free_pinned_codelet(void *buffers[] __attribute__((unused)), void *arg)
 {
 	cudaError_t cures;
@@ -109,7 +109,7 @@ int starpu_free_pinned_if_possible(void *A)
 
 	if (may_submit_cuda_task())
 	{
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		int push_res;
 	
 		struct starpu_task *task = starpu_task_create();

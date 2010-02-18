@@ -17,7 +17,7 @@
 #ifndef __XLU_H__
 #define __XLU_H__
 
-/* for USE_CUDA */
+/* for STARPU_USE_CUDA */
 #include <starpu_config.h>
 #include <starpu.h>
 
@@ -79,7 +79,7 @@ void dw_cpu_codelet_update_u12(void **, void *);
 void dw_cpu_codelet_update_u21(void **, void *);
 void dw_cpu_codelet_update_u22(void **, void *);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void dw_cublas_codelet_update_u11(void *descr[], void *_args);
 void dw_cublas_codelet_update_u12(void *descr[], void *_args);
 void dw_cublas_codelet_update_u21(void *descr[], void *_args);

@@ -90,7 +90,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, uint32_t src_node
 	STARPU_ASSERT(handle->per_node[src_node].allocated);
 	STARPU_ASSERT(handle->per_node[dst_node].allocated);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 cudaError_t cures;
 cudaStream_t *stream;
 #endif
@@ -103,7 +103,7 @@ cudaStream_t *stream;
 				STARPU_ASSERT(copy_methods->ram_to_ram);
 				copy_methods->ram_to_ram(handle, src_node, dst_node);
 				break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 			case CUDA_RAM:
 				/* CUBLAS_RAM -> RAM */
 				/* only the proper CUBLAS thread can initiate this ! */
@@ -144,7 +144,7 @@ cudaStream_t *stream;
 				break;
 		}
 		break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	case CUDA_RAM:
 		switch (src_kind) {
 			case RAM:
@@ -254,13 +254,13 @@ void driver_wait_request_completion(starpu_async_channel *async_channel __attrib
 					unsigned handling_node)
 {
 	node_kind kind = get_node_kind(handling_node);
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cudaEvent_t event;
 	cudaError_t cures;
 #endif
 
 	switch (kind) {
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case CUDA_RAM:
 			event = (*async_channel).cuda_event;
 
@@ -285,12 +285,12 @@ unsigned driver_test_request_completion(starpu_async_channel *async_channel __at
 {
 	node_kind kind = get_node_kind(handling_node);
 	unsigned success;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cudaEvent_t event;
 #endif
 
 	switch (kind) {
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case CUDA_RAM:
 			event = (*async_channel).cuda_event;
 

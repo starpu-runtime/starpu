@@ -24,7 +24,7 @@
 
 starpu_data_handle v_handle;
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 static void cuda_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	char *buf = (char *)STARPU_GET_VECTOR_PTR(descr[0]);
@@ -53,7 +53,7 @@ static void display_var(void *descr[], __attribute__ ((unused)) void *_args)
 static starpu_codelet cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = cpu_codelet_null,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = cuda_codelet_null,
 #endif
 	.nbuffers = 1

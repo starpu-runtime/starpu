@@ -38,11 +38,11 @@
 #include <hwloc.h>
 #endif
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #include <drivers/cuda/driver_cuda.h>
 #endif
 
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 #include <drivers/gordon/driver_gordon.h>
 #endif
 

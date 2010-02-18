@@ -160,7 +160,7 @@ void init_cg(struct cg_problem *problem)
 	/* delta_new = trans(r) r */
 	struct starpu_task *task3 = create_task(3UL);
 	task3->cl->where = STARPU_CUDA|STARPU_CPU;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	task3->cl->cuda_func = cublas_codelet_func_3;
 #endif
 	task3->cl->cpu_func = cpu_codelet_func_3;
@@ -207,7 +207,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	/* alpha = delta_new / ( trans(d) q )*/
 	struct starpu_task *task5 = create_task(maskiter | 5UL);
 	task5->cl->where = STARPU_CUDA|STARPU_CPU;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	task5->cl->cuda_func = cublas_codelet_func_5;
 #endif
 	task5->cl->cpu_func = cpu_codelet_func_5;
@@ -223,7 +223,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	/* x = x + alpha d */
 	struct starpu_task *task6 = create_task(maskiter | 6UL);
 	task6->cl->where = STARPU_CUDA|STARPU_CPU;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	task6->cl->cuda_func = cublas_codelet_func_6;
 #endif
 	task6->cl->cpu_func = cpu_codelet_func_6;
@@ -239,7 +239,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	/* r = r - alpha q */
 	struct starpu_task *task7 = create_task(maskiter | 7UL);
 	task7->cl->where = STARPU_CUDA|STARPU_CPU;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	task7->cl->cuda_func = cublas_codelet_func_7;
 #endif
 	task7->cl->cpu_func = cpu_codelet_func_7;
@@ -255,7 +255,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	/* update delta_* and compute beta */
 	struct starpu_task *task8 = create_task(maskiter | 8UL);
 	task8->cl->where = STARPU_CUDA|STARPU_CPU;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	task8->cl->cuda_func = cublas_codelet_func_8;
 #endif
 	task8->cl->cpu_func = cpu_codelet_func_8;
@@ -269,7 +269,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	/* d = r + beta d */
 	struct starpu_task *task9 = create_task(maskiter | 9UL);
 	task9->cl->where = STARPU_CUDA|STARPU_CPU;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	task9->cl->cuda_func = cublas_codelet_func_9;
 #endif
 	task9->cl->cpu_func = cpu_codelet_func_9;

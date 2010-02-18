@@ -49,9 +49,9 @@ static double gemm_cost(starpu_buffer_descr *descr)
 struct starpu_perfmodel_t sgemm_model = {
 	.cost_model = gemm_cost,
 	.type = STARPU_HISTORY_BASED,
-#ifdef ATLAS
+#ifdef STARPU_ATLAS
 	.symbol = "sgemm_atlas"
-#elif defined(GOTO)
+#elif defined(STARPU_GOTO)
 	.symbol = "sgemm_goto"
 #else
 	.symbol = "sgemm"

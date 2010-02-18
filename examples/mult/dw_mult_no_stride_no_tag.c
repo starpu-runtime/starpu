@@ -15,7 +15,7 @@
  */
 
 #include "dw_mult.h"
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 #include "gordon/func_sgemm_ibm.h"
 #endif
 
@@ -194,7 +194,7 @@ static void init_problem_data(void)
 		}
 	}
 
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 	conf.k = BLOCKSIZEZ;
 	conf.m = BLOCKSIZEY;
 	conf.n = BLOCKSIZEX;
@@ -282,17 +282,17 @@ struct cb2_s {
 static starpu_codelet cl = {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
 	.cpu_func = cpu_mult,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = cublas_mult,
 #endif
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 	/* .gordon_func will be set by load_elf_sgemm */
 #endif
 	.nbuffers = 3
 };
 
 
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 static const char *spu_func_sgemm_elf_file = "./gordon/func_sgemm_ibm.spuelf";
 static unsigned spu_func_sgemm_elf_id;
 static unsigned spu_func_sgemm_ibm_id;
@@ -329,7 +329,7 @@ static void construct_task(unsigned x, unsigned y, unsigned z, unsigned iter, st
 	task->callback_func = callback_func_3;
 	task->callback_arg = posp;
 
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 	task->cl_arg = &conf;
 	task->cl_arg_size = sizeof(struct ibm_sgemm_block_conf);
 #endif
@@ -403,7 +403,7 @@ int main(__attribute__ ((unused)) int argc,
 
 	starpu_helper_init_cublas();
 
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 	load_elf_sgemm();
 #endif
 

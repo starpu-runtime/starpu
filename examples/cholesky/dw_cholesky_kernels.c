@@ -17,7 +17,7 @@
 #include <starpu_config.h>
 #include "dw_cholesky.h"
 #include "../common/blas.h"
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cublas.h>
@@ -42,7 +42,7 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, __at
 	unsigned ld12 = STARPU_GET_BLAS_LD(descr[1]);
 	unsigned ld22 = STARPU_GET_BLAS_LD(descr[2]);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cublasStatus st;
 #endif
 
@@ -51,7 +51,7 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, __at
 			SGEMM("N", "T", dy, dx, dz, -1.0f, left, ld21, 
 				right, ld12, 1.0f, center, ld22);
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			cublasSgemm('n', 't', dy, dx, dz, 
 					-1.0f, left, ld21, right, ld12, 
@@ -74,12 +74,12 @@ void chol_cpu_codelet_update_u22(void *descr[], void *_args)
 	chol_common_cpu_codelet_update_u22(descr, 0, _args);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void chol_cublas_codelet_update_u22(void *descr[], void *_args)
 {
 	chol_common_cpu_codelet_update_u22(descr, 1, _args);
 }
-#endif// USE_CUDA
+#endif// STARPU_USE_CUDA
 
 /* 
  * U21
@@ -104,7 +104,7 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, __attrib
 		case 0:
 			STRSM("R", "L", "T", "N", nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			cublasStrsm('R', 'L', 'T', 'N', nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 			cudaThreadSynchronize();
@@ -121,7 +121,7 @@ void chol_cpu_codelet_update_u21(void *descr[], void *_args)
 	 chol_common_codelet_update_u21(descr, 0, _args);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void chol_cublas_codelet_update_u21(void *descr[], void *_args)
 {
 	chol_common_codelet_update_u21(descr, 1, _args);
@@ -168,7 +168,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			for (z = 0; z < nx; z++)
 			{
@@ -205,9 +205,9 @@ void chol_cpu_codelet_update_u11(void *descr[], void *_args)
 	chol_common_codelet_update_u11(descr, 0, _args);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void chol_cublas_codelet_update_u11(void *descr[], void *_args)
 {
 	chol_common_codelet_update_u11(descr, 1, _args);
 }
-#endif// USE_CUDA
+#endif// STARPU_USE_CUDA

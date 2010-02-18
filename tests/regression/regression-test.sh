@@ -44,7 +44,7 @@ generatehtml()
 
 cd $ROOTDIR
 make clean 1> /dev/null 2> /dev/null
-make examples -j ATLAS=1 CPUS=$MAXCPU CUDA=1 COVERAGE=1 1> /dev/null 2> /dev/null
+make examples -j STARPU_ATLAS=1 CPUS=$MAXCPU CUDA=1 COVERAGE=1 1> /dev/null 2> /dev/null
 cd $DIR
 
 init;

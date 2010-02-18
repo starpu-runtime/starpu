@@ -48,7 +48,7 @@ void axpy_cpu(void *descr[], __attribute__((unused)) void *arg)
 	AXPY((int)n, alpha, block_x, 1, block_y, 1);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void axpy_gpu(void *descr[], __attribute__((unused)) void *arg)
 {
 	TYPE alpha = *((TYPE *)arg);
@@ -65,13 +65,13 @@ void axpy_gpu(void *descr[], __attribute__((unused)) void *arg)
 
 static starpu_codelet axpy_cl = {
         .where =
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
                 STARPU_CUDA|
 #endif
                 STARPU_CPU,
 
 	.cpu_func = axpy_cpu,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = axpy_gpu,
 #endif
 	.nbuffers = 2

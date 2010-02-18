@@ -28,7 +28,7 @@ CLEANFILES = 					\
 
 BUILT_SOURCES =
 
-if USE_CUDA
+if STARPU_USE_CUDA
 
 # TODO define NVCCFLAGS
 NVCC ?= nvcc
@@ -45,7 +45,7 @@ NVCCFLAGS += -I$(top_srcdir)/include/
 
 endif
 
-if USE_GORDON
+if STARPU_USE_GORDON
 
 SPU_CC ?= spu-gcc
 SPU_LD ?= spu-ld
@@ -200,12 +200,12 @@ microbenchs_redundant_buffer_SOURCES =		\
 microbenchs_local_pingpong_SOURCES =		\
 	microbenchs/local_pingpong.c
 
-if USE_CUDA
+if STARPU_USE_CUDA
 datawizard_sync_and_notify_data_SOURCES +=	\
 	datawizard/sync_and_notify_data_kernels.cu
 endif
 
-if USE_GORDON
+if STARPU_USE_GORDON
 datawizard_sync_and_notify_data_SOURCES +=	\
 	datawizard/sync_and_notify_data_gordon_kernels.c
 

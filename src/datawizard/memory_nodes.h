@@ -20,7 +20,7 @@
 #include "coherency.h"
 #include "memalloc.h"
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #include <cublas.h>
 #endif
 

@@ -48,7 +48,7 @@ CLEANFILES = 					\
 
 CLEANFILES += *.gcno *.gcda *.linkinfo
 
-if USE_CUDA
+if STARPU_USE_CUDA
 
 # TODO define NVCCFLAGS
 NVCC ?= nvcc
@@ -63,7 +63,7 @@ NVCC ?= nvcc
 
 endif
 
-if USE_GORDON
+if STARPU_USE_GORDON
 
 SPU_CC ?= spu-gcc
 SPU_LD ?= spu-ld
@@ -384,7 +384,7 @@ check_PROGRAMS +=				\
 examplebin_PROGRAMS +=				\
 	incrementer/incrementer
 
-if USE_CUDA
+if STARPU_USE_CUDA
 incrementer_incrementer_SOURCES =	\
 	incrementer/incrementer.c	\
 	incrementer/incrementer_kernels.cu

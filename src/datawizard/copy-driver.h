@@ -22,7 +22,7 @@
 #include "coherency.h"
 #include "memalloc.h"
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cublas.h>
@@ -34,7 +34,7 @@ struct data_request_s;
  * transfer has terminated or not */
 typedef union {
 	int dummy;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cudaEvent_t cuda_event;
 #endif
 } starpu_async_channel;
@@ -55,7 +55,7 @@ struct copy_data_methods_s {
 	int (*spu_to_cuda)(starpu_data_handle handle, uint32_t src, uint32_t dst);
 	int (*spu_to_spu)(starpu_data_handle handle, uint32_t src, uint32_t dst);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	/* for asynchronous CUDA transfers */
 	int (*ram_to_cuda_async)(starpu_data_handle handle, uint32_t src,
 					uint32_t dst, cudaStream_t *stream);

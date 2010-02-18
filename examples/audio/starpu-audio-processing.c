@@ -24,7 +24,7 @@
 
 #include <starpu.h>
 #include <fftw3.h>
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #include <cufft.h>
 #endif
 
@@ -146,7 +146,7 @@ void write_16bit_wav(FILE *outfile, unsigned size, float *arrayin, FILE *save_fi
 /* we don't reinitialize the CUFFT plan for every kernel, so we "cache" it */
 typedef struct {
 	unsigned is_initialized;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cufftHandle plan;
 	cufftHandle inv_plan;
 	cufftComplex *localout;
@@ -159,7 +159,7 @@ typedef struct {
 
 static fft_plan_cache plans[STARPU_NMAXWORKERS];
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 static void band_filter_kernel_gpu(void *descr[], __attribute__((unused)) void *arg)
 {
 	cufftResult cures;
@@ -273,7 +273,7 @@ struct starpu_perfmodel_t band_filter_model = {
 
 static starpu_codelet band_filter_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = band_filter_kernel_gpu,
 #endif
 	.cpu_func = band_filter_kernel_cpu,

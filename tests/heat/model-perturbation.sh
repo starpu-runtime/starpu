@@ -42,7 +42,7 @@ trace_perturbation()
 		filename=$TIMINGDIR/pertubate.$size.$AMPL
 		#rm -f $filename
 		make clean 1> /dev/null 2> /dev/null
-		make examples -j ATLAS=1 CPUS=$MAXCPU CUDA=1 PERTURB_AMPL=$AMPL 1> /dev/null 2> /dev/null
+		make examples -j STARPU_ATLAS=1 CPUS=$MAXCPU CUDA=1 PERTURB_AMPL=$AMPL 1> /dev/null 2> /dev/null
 		cd $DIR
 
 		if [ $size -le 16384 ]

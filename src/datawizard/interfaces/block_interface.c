@@ -23,7 +23,7 @@
 #include <common/hash.h>
 
 static int dummy_copy_ram_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
 static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
 static int copy_ram_to_cuda_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
@@ -33,7 +33,7 @@ static int copy_cuda_to_ram_async(starpu_data_handle handle, uint32_t src_node, 
 static const struct copy_data_methods_s block_copy_data_methods_s = {
 	.ram_to_ram = dummy_copy_ram_to_ram,
 	.ram_to_spu = NULL,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.ram_to_cuda = copy_ram_to_cuda,
 	.cuda_to_ram = copy_cuda_to_ram,
 	.ram_to_cuda_async = copy_ram_to_cuda_async,
@@ -53,7 +53,7 @@ static void liberate_block_buffer_on_node(void *interface, uint32_t node);
 static size_t block_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_block_interface_crc32(starpu_data_handle handle);
 static void display_block_interface(starpu_data_handle handle, FILE *f);
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 static int convert_block_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss);
 #endif
 
@@ -64,7 +64,7 @@ struct starpu_data_interface_ops_t interface_block_ops = {
 	.copy_methods = &block_copy_data_methods_s,
 	.get_size = block_interface_get_size,
 	.footprint = footprint_block_interface_crc32,
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 	.convert_to_gordon = convert_block_to_gordon,
 #endif
 	.interfaceid = STARPU_BLOCK_INTERFACE_ID, 
@@ -72,7 +72,7 @@ struct starpu_data_interface_ops_t interface_block_ops = {
 	.display = display_block_interface
 };
 
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 int convert_block_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
 	/* TODO */
@@ -242,7 +242,7 @@ static size_t allocate_block_buffer_on_node(starpu_data_handle handle, uint32_t 
 	unsigned fail = 0;
 	size_t allocated_memory;
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cudaError_t status;
 #endif
 	starpu_block_interface_t *dst_block =
@@ -262,7 +262,7 @@ static size_t allocate_block_buffer_on_node(starpu_data_handle handle, uint32_t 
 				fail = 1;
 
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case CUDA_RAM:
 			status = cudaMalloc((void **)&addr, nx*ny*nz*elemsize);
 
@@ -302,7 +302,7 @@ static void liberate_block_buffer_on_node(void *interface, uint32_t node)
 {
 	starpu_block_interface_t *block_interface = interface;
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cudaError_t status;
 #endif
 
@@ -311,7 +311,7 @@ static void liberate_block_buffer_on_node(void *interface, uint32_t node)
 		case RAM:
 			free((void*)block_interface->ptr);
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case CUDA_RAM:
 			status = cudaFree((void*)block_interface->ptr);
 			if (STARPU_UNLIKELY(status))
@@ -324,7 +324,7 @@ static void liberate_block_buffer_on_node(void *interface, uint32_t node)
 	}
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
 {
 	cudaError_t cures;
@@ -658,7 +658,7 @@ static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32
 
 	return 0;
 }
-#endif // USE_CUDA
+#endif // STARPU_USE_CUDA
 
 /* as not all platform easily have a BLAS lib installed ... */
 static int dummy_copy_ram_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)

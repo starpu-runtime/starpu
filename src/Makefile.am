@@ -139,14 +139,14 @@ libstarpu_la_SOURCES = 						\
 	util/starpu_cublas.c					\
 	util/file.c
 
-if USE_CPU
+if STARPU_USE_CPU
 libstarpu_la_SOURCES += drivers/cpu/driver_cpu.c
 endif
 
-if USE_CUDA
+if STARPU_USE_CUDA
 libstarpu_la_SOURCES += drivers/cuda/driver_cuda.c
 endif
 
-if USE_GORDON
+if STARPU_USE_GORDON
 libstarpu_la_SOURCES += drivers/gordon/driver_gordon.c
 endif

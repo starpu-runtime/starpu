@@ -49,10 +49,10 @@ static starpu_codelet cl11 =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
 	.cpu_func = chol_cpu_codelet_update_u11,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = chol_cublas_codelet_update_u11,
 #endif
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 #ifdef SPU_FUNC_POTRF
 	.gordon_func = SPU_FUNC_POTRF,
 #else
@@ -96,10 +96,10 @@ static starpu_codelet cl21 =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
 	.cpu_func = chol_cpu_codelet_update_u21,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = chol_cublas_codelet_update_u21,
 #endif
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 #ifdef SPU_FUNC_STRSM
 	.gordon_func = SPU_FUNC_STRSM,
 #else
@@ -141,10 +141,10 @@ static starpu_codelet cl22 =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
 	.cpu_func = chol_cpu_codelet_update_u22,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = chol_cublas_codelet_update_u22,
 #endif
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 #ifdef SPU_FUNC_SGEMM
 	.gordon_func = SPU_FUNC_SGEMM,
 #else

@@ -36,7 +36,7 @@ static inline void common_block_spmv(void *descr[], int s, __attribute__((unused
 		case 0:
 			cblas_sgemv(CblasRowMajor, CblasNoTrans, dx, dy, 1.0f, block, ld, in, 1, 1.0f, out, 1);
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			cublasSgemv ('t', dx, dy, 1.0f, block, ld, in, 1, 1.0f, out, 1);
 			break;
@@ -54,11 +54,11 @@ void cpu_block_spmv(void *descr[], void *_args)
 	common_block_spmv(descr, 0, _args);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void cublas_block_spmv(void *descr[], void *_args)
 {
 //	printf("CUBLAS CODELET \n");
 
 	common_block_spmv(descr, 1, _args);
 }
-#endif// USE_CUDA
+#endif// STARPU_USE_CUDA

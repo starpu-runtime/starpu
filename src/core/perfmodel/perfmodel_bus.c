@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
@@ -49,7 +49,7 @@ static int affinity_matrix[STARPU_MAXCUDADEVS][MAXCPUS];
 
 /* Benchmarking the performance of the bus */
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 static double cudadev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double cudadev_timing_dtoh[STARPU_MAXNODES] = {0.0};
 
@@ -195,7 +195,7 @@ static void measure_bandwith_between_host_and_dev(int dev, unsigned ncpus)
 
 static void benchmark_all_cuda_devices(void)
 {
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	int ret;
 
 #ifdef VERBOSE
@@ -270,7 +270,7 @@ static void load_bus_affinity_file_content(void)
 	f = fopen(path, "r");
 	STARPU_ASSERT(f);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	struct machine_config_s *config = _starpu_get_machine_config();
 	unsigned ncpus = _starpu_topology_get_nhwcpu(config);
 
@@ -320,7 +320,7 @@ static void write_bus_affinity_file_content(void)
 		STARPU_ABORT();
 	}
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	struct machine_config_s *config = _starpu_get_machine_config();
 	unsigned ncpus = _starpu_topology_get_nhwcpu(config);
 	unsigned cpu;
@@ -566,7 +566,7 @@ static void write_bus_bandwith_file_content(void)
 			{
 				bandwith = -1.0;
 			}
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 			else if (src != dst)
 			{
 			/* Bandwith = (SIZE)/(time i -> ram + time ram -> j)*/

@@ -25,7 +25,7 @@ mkdir -p $TIMINGDIR
 cd $ROOTDIR
 
 make clean 1> /dev/null 2> /dev/null
-make examples ATLAS=1 CPUS=16 1> /dev/null 2> /dev/null
+make examples STARPU_ATLAS=1 CPUS=16 1> /dev/null 2> /dev/null
 
 echo "speedup ..."
 

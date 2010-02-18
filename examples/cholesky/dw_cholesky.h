@@ -21,7 +21,7 @@
 #include <string.h>
 #include <math.h>
 #include <sys/time.h>
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cublas.h>
@@ -76,7 +76,7 @@ void chol_cpu_codelet_update_u11(void **, void *);
 void chol_cpu_codelet_update_u21(void **, void *);
 void chol_cpu_codelet_update_u22(void **, void *);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void chol_cublas_codelet_update_u11(void *descr[], void *_args);
 void chol_cublas_codelet_update_u21(void *descr[], void *_args);
 void chol_cublas_codelet_update_u22(void *descr[], void *_args);

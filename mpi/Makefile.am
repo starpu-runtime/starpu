@@ -29,7 +29,7 @@ mpiexamplebindir=$(libdir)/starpu/mpi/
 
 examplebin_PROGRAMS =
 
-if USE_CUDA
+if STARPU_USE_CUDA
 # TODO define NVCCFLAGS
 NVCC ?= nvcc
 
@@ -171,7 +171,7 @@ tests_block_interface_pinned_LDADD =			\
 tests_block_interface_pinned_SOURCES =			\
 	tests/block_interface_pinned.c
 
-if USE_CUDA
+if STARPU_USE_CUDA
 tests_ring_SOURCES += tests/ring_kernel.cu
 tests_ring_async_SOURCES += tests/ring_kernel.cu
 endif

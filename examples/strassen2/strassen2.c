@@ -83,7 +83,7 @@ extern void add_cpu_codelet(void *descr[], __attribute__((unused))  void *arg);
 extern void self_add_cpu_codelet(void *descr[], __attribute__((unused))  void *arg);
 extern void self_sub_cpu_codelet(void *descr[], __attribute__((unused))  void *arg);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 extern void mult_cublas_codelet(void *descr[], __attribute__((unused))  void *arg);
 extern void sub_cublas_codelet(void *descr[], __attribute__((unused))  void *arg);
 extern void add_cublas_codelet(void *descr[], __attribute__((unused))  void *arg);
@@ -210,7 +210,7 @@ static starpu_codelet cl_add = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.model = &strassen_model_add,
 	.cpu_func = add_cpu_codelet,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = add_cublas_codelet,
 #endif
 	.nbuffers = 3
@@ -220,7 +220,7 @@ static starpu_codelet cl_sub = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.model = &strassen_model_sub,
 	.cpu_func = sub_cpu_codelet,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = sub_cublas_codelet,
 #endif
 	.nbuffers = 3
@@ -230,7 +230,7 @@ static starpu_codelet cl_mult = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.model = &strassen_model_mult,
 	.cpu_func = mult_cpu_codelet,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = mult_cublas_codelet,
 #endif
 	.nbuffers = 3
@@ -276,7 +276,7 @@ static starpu_codelet cl_self_add = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.model = &strassen_model_self_add,
 	.cpu_func = self_add_cpu_codelet,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = self_add_cublas_codelet,
 #endif
 	.nbuffers = 2
@@ -286,7 +286,7 @@ static starpu_codelet cl_self_sub = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.model = &strassen_model_self_sub,
 	.cpu_func = self_sub_cpu_codelet,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = self_sub_cublas_codelet,
 #endif
 	.nbuffers = 2
@@ -346,7 +346,7 @@ static starpu_codelet cleanup_codelet = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.model = NULL,
 	.cpu_func = null_codelet,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = null_codelet,
 #endif
 	.nbuffers = 0
@@ -722,7 +722,7 @@ static starpu_codelet dummy_codelet = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.model = NULL,
 	.cpu_func = dummy_codelet_func,
-	#ifdef USE_CUDA
+	#ifdef STARPU_USE_CUDA
 	.cuda_func = dummy_codelet_func,
 	#endif
 	.nbuffers = 0
@@ -787,7 +787,7 @@ int main(int argc, char **argv)
 
 	starpu_helper_init_cublas();
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
         if (pin) {
                 starpu_malloc_pinned_if_possible((void **)&bigbuffer, used_mem_predicted);
         } else

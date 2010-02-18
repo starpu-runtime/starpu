@@ -18,7 +18,7 @@
 
 #define STEP_TAG_1D(plan, step, i) _STEP_TAG(plan, step, i)
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 /* Twist the full vector into a n2 chunk */
 static void
 STARPUFFT(twist1_1d_kernel_gpu)(void *descr[], void *_args)
@@ -258,11 +258,11 @@ static struct starpu_perfmodel_t STARPUFFT(twist3_1d_model) = {
 
 static starpu_codelet STARPUFFT(twist1_1d_codelet) = {
 	.where =
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
 #endif
 		STARPU_CPU,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = STARPUFFT(twist1_1d_kernel_gpu),
 #endif
 	.cpu_func = STARPUFFT(twist1_1d_kernel_cpu),
@@ -272,14 +272,14 @@ static starpu_codelet STARPUFFT(twist1_1d_codelet) = {
 
 static starpu_codelet STARPUFFT(fft1_1d_codelet) = {
 	.where =
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
 #endif
 #ifdef HAVE_FFTW
 		STARPU_CPU|
 #endif
 		0,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = STARPUFFT(fft1_1d_kernel_gpu),
 #endif
 #ifdef HAVE_FFTW
@@ -298,14 +298,14 @@ static starpu_codelet STARPUFFT(twist2_1d_codelet) = {
 
 static starpu_codelet STARPUFFT(fft2_1d_codelet) = {
 	.where =
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
 #endif
 #ifdef HAVE_FFTW
 		STARPU_CPU|
 #endif
 		0,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = STARPUFFT(fft2_1d_kernel_gpu),
 #endif
 #ifdef HAVE_FFTW
@@ -343,7 +343,7 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 	 * - twist3: twist back into output
 	 */
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	/* cufft 1D limited to 8M elements */
 	while (n2 > 8 << 20) {
 		n1 *= 2;
@@ -417,7 +417,7 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 #endif
 			break;
 		case STARPU_CUDA_WORKER:
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 			plan->plans[workerid].initialized1 = 0;
 			plan->plans[workerid].initialized2 = 0;
 #endif

@@ -39,7 +39,7 @@ static starpu_codelet cl11 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = chol_cpu_codelet_update_u11,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = chol_cublas_codelet_update_u11,
 #endif
 	.nbuffers = 1,
@@ -73,7 +73,7 @@ static starpu_codelet cl21 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = chol_cpu_codelet_update_u21,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = chol_cublas_codelet_update_u21,
 #endif
 	.nbuffers = 2,
@@ -111,7 +111,7 @@ static starpu_codelet cl22 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = chol_cpu_codelet_update_u22,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = chol_cublas_codelet_update_u22,
 #endif
 	.nbuffers = 3,

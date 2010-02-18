@@ -28,14 +28,14 @@
 
 #include <starpu.h>
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #include <cublas.h>
 #endif
 
 void cpu_block_spmv(void *descr[], void *_args);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void cublas_block_spmv(void *descr[], void *_args);
-#endif // USE_CUDA
+#endif // STARPU_USE_CUDA
 
 #endif // __DW_BLOCK_SPMV_H__

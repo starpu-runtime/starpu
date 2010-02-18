@@ -19,7 +19,7 @@
 
 #include <starpu.h>
 
-#ifdef ATLAS
+#ifdef STARPU_ATLAS
 #include <cblas.h>
 #endif
 
@@ -76,7 +76,7 @@ float SDOT(const int n, const float *x, const int incx, const float *y, const in
 void SSWAP(const int n, float *x, const int incx, float *y, const int incy);
 void DSWAP(const int n, double *x, const int incx, double *y, const int incy);
 
-#if defined(GOTO) || defined(SYSTEM_BLAS)
+#if defined(STARPU_GOTO) || defined(STARPU_SYSTEM_BLAS)
 
 extern void sgemm_ (const char *transa, const char *transb, const int *m,
                    const int *n, const int *k, const float *alpha, 

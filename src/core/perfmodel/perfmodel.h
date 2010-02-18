@@ -103,7 +103,7 @@ void create_sampling_directory_if_needed(void);
 void load_bus_performance_files(void);
 double predict_transfer_time(unsigned src_node, unsigned dst_node, size_t size);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 int *get_gpu_affinity_vector(unsigned gpuid);
 #endif
  

@@ -48,9 +48,9 @@ static struct starpu_task *create_task(starpu_tag_t id)
 
 static struct starpu_perfmodel_t STARPU_LU(model_11) = {
 	.type = STARPU_HISTORY_BASED,
-#ifdef ATLAS
+#ifdef STARPU_ATLAS
 	.symbol = STARPU_LU_STR(lu_model_11_atlas)
-#elif defined(GOTO)
+#elif defined(STARPU_GOTO)
 	.symbol = STARPU_LU_STR(lu_model_11_goto)
 #else
 	.symbol = STARPU_LU_STR(lu_model_11)
@@ -60,7 +60,7 @@ static struct starpu_perfmodel_t STARPU_LU(model_11) = {
 static starpu_codelet cl11 = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = STARPU_LU(cpu_u11),
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = STARPU_LU(cublas_u11),
 #endif
 	.nbuffers = 1,
@@ -93,9 +93,9 @@ static struct starpu_task *create_task_11(starpu_data_handle dataA, unsigned k)
 
 static struct starpu_perfmodel_t STARPU_LU(model_12) = {
 	.type = STARPU_HISTORY_BASED,
-#ifdef ATLAS
+#ifdef STARPU_ATLAS
 	.symbol = STARPU_LU_STR(lu_model_12_atlas)
-#elif defined(GOTO)
+#elif defined(STARPU_GOTO)
 	.symbol = STARPU_LU_STR(lu_model_12_goto)
 #else
 	.symbol = STARPU_LU_STR(lu_model_12)
@@ -105,7 +105,7 @@ static struct starpu_perfmodel_t STARPU_LU(model_12) = {
 static starpu_codelet cl12 = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = STARPU_LU(cpu_u12),
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = STARPU_LU(cublas_u12),
 #endif
 	.nbuffers = 2,
@@ -143,9 +143,9 @@ static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned j)
 
 static struct starpu_perfmodel_t STARPU_LU(model_21) = {
 	.type = STARPU_HISTORY_BASED,
-#ifdef ATLAS
+#ifdef STARPU_ATLAS
 	.symbol = STARPU_LU_STR(lu_model_21_atlas)
-#elif defined(GOTO)
+#elif defined(STARPU_GOTO)
 	.symbol = STARPU_LU_STR(lu_model_21_goto)
 #else
 	.symbol = STARPU_LU_STR(lu_model_21)
@@ -155,7 +155,7 @@ static struct starpu_perfmodel_t STARPU_LU(model_21) = {
 static starpu_codelet cl21 = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = STARPU_LU(cpu_u21),
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = STARPU_LU(cublas_u21),
 #endif
 	.nbuffers = 2,
@@ -191,9 +191,9 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned i)
 
 static struct starpu_perfmodel_t STARPU_LU(model_22) = {
 	.type = STARPU_HISTORY_BASED,
-#ifdef ATLAS
+#ifdef STARPU_ATLAS
 	.symbol = STARPU_LU_STR(lu_model_22_atlas)
-#elif defined(GOTO)
+#elif defined(STARPU_GOTO)
 	.symbol = STARPU_LU_STR(lu_model_22_goto)
 #else
 	.symbol = STARPU_LU_STR(lu_model_22)
@@ -203,7 +203,7 @@ static struct starpu_perfmodel_t STARPU_LU(model_22) = {
 static starpu_codelet cl22 = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = STARPU_LU(cpu_u22),
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = STARPU_LU(cublas_u22),
 #endif
 	.nbuffers = 3,

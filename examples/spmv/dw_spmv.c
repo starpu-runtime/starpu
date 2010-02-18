@@ -26,7 +26,7 @@ struct timeval end;
 unsigned nblocks = 1;
 unsigned remainingtasks = -1;
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 
 extern void spmv_kernel_cpu_wrapper(uint32_t nnz, uint32_t nrow, float *nzval,
 			uint32_t *colind, uint32_t *rowptr, uint32_t firstentry,
@@ -51,7 +51,7 @@ void spmv_kernel_cuda(void *descr[], void *args)
 	spmv_kernel_cpu_wrapper(nnz, nrow, nzval, colind, rowptr, firstentry, vecin, nx_in, vecout, nx_out);
 }
 
-#endif // USE_CUDA
+#endif // STARPU_USE_CUDA
 
 
 sem_t sem;
@@ -251,7 +251,7 @@ void call_spmv_codelet_filters(void)
 
 	cl->where = STARPU_CPU|STARPU_CUDA;
 	cl->cpu_func =  cpu_spmv;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cl->cuda_func = spmv_kernel_cuda;
 #endif
 	cl->nbuffers = 3;

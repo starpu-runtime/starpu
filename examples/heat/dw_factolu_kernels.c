@@ -116,7 +116,7 @@ static inline void dw_common_cpu_codelet_update_u22(void *descr[], int s, __attr
 	unsigned ld21 = STARPU_GET_BLAS_LD(descr[1]);
 	unsigned ld22 = STARPU_GET_BLAS_LD(descr[2]);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cublasStatus status;
 #endif
 
@@ -127,7 +127,7 @@ static inline void dw_common_cpu_codelet_update_u22(void *descr[], int s, __attr
 					     1.0f, center, ld22);
 			break;
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			cublasSgemm('n', 'n', dx, dy, dz, -1.0f, left, ld21,
 					right, ld12, 1.0f, center, ld22);
@@ -153,7 +153,7 @@ void dw_cpu_codelet_update_u22(void *descr[], void *_args)
 	count_22_per_worker[id]++;
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void dw_cublas_codelet_update_u22(void *descr[], void *_args)
 {
 	dw_common_cpu_codelet_update_u22(descr, 1, _args);
@@ -161,7 +161,7 @@ void dw_cublas_codelet_update_u22(void *descr[], void *_args)
 	int id = starpu_get_worker_id();
 	count_22_per_worker[id]++;
 }
-#endif// USE_CUDA
+#endif// STARPU_USE_CUDA
 
 /*
  * U12
@@ -180,7 +180,7 @@ static inline void dw_common_codelet_update_u12(void *descr[], int s, __attribut
 	unsigned nx12 = STARPU_GET_BLAS_NX(descr[1]);
 	unsigned ny12 = STARPU_GET_BLAS_NY(descr[1]);
 	
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cublasStatus status;
 #endif
 
@@ -190,7 +190,7 @@ static inline void dw_common_codelet_update_u12(void *descr[], int s, __attribut
 			STRSM("L", "L", "N", "N",
 					 nx12, ny12, 1.0f, sub11, ld11, sub12, ld12);
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			cublasStrsm('L', 'L', 'N', 'N', ny12, nx12,
 					1.0f, sub11, ld11, sub12, ld12);
@@ -216,7 +216,7 @@ void dw_cpu_codelet_update_u12(void *descr[], void *_args)
 	count_12_per_worker[id]++;
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void dw_cublas_codelet_update_u12(void *descr[], void *_args)
 {
 	 dw_common_codelet_update_u12(descr, 1, _args);
@@ -224,7 +224,7 @@ void dw_cublas_codelet_update_u12(void *descr[], void *_args)
 	int id = starpu_get_worker_id();
 	count_12_per_worker[id]++;
 }
-#endif // USE_CUDA
+#endif // STARPU_USE_CUDA
 
 /* 
  * U21
@@ -243,7 +243,7 @@ static inline void dw_common_codelet_update_u21(void *descr[], int s, __attribut
 	unsigned nx21 = STARPU_GET_BLAS_NX(descr[1]);
 	unsigned ny21 = STARPU_GET_BLAS_NY(descr[1]);
 	
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cublasStatus status;
 #endif
 
@@ -251,7 +251,7 @@ static inline void dw_common_codelet_update_u21(void *descr[], int s, __attribut
 		case 0:
 			STRSM("R", "U", "N", "U", nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			cublasStrsm('R', 'U', 'N', 'U', ny21, nx21, 1.0f, sub11, ld11, sub21, ld21);
 			status = cublasGetError();
@@ -276,7 +276,7 @@ void dw_cpu_codelet_update_u21(void *descr[], void *_args)
 	count_21_per_worker[id]++;
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void dw_cublas_codelet_update_u21(void *descr[], void *_args)
 {
 	dw_common_codelet_update_u21(descr, 1, _args);
@@ -334,7 +334,7 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, __attribut
 						&sub11[(z+1) + (z+1)*ld],ld);
 			}
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			for (z = 0; z < nx; z++)
 			{
@@ -371,7 +371,7 @@ void dw_cpu_codelet_update_u11(void *descr[], void *_args)
 	count_11_per_worker[id]++;
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void dw_cublas_codelet_update_u11(void *descr[], void *_args)
 {
 	dw_common_codelet_update_u11(descr, 1, _args);
@@ -379,4 +379,4 @@ void dw_cublas_codelet_update_u11(void *descr[], void *_args)
 	int id = starpu_get_worker_id();
 	count_11_per_worker[id]++;
 }
-#endif// USE_CUDA
+#endif// STARPU_USE_CUDA

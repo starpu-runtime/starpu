@@ -19,7 +19,7 @@
 #include <errno.h>
 #include <starpu.h>
 
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 #include <gordon.h>
 #endif
 
@@ -41,7 +41,7 @@
  *  v == (kn, k, kn)
  */
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void cuda_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args);
 void cuda_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args);
 #endif
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 {
 	starpu_init(NULL);
 
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 	unsigned elf_id = gordon_register_elf_plugin("./datawizard/sync_and_notify_data_gordon_kernels.spuelf");
 	gordon_load_plugin_on_all_spu(elf_id);
 
@@ -93,10 +93,10 @@ int main(int argc, char **argv)
 			starpu_codelet cl_inc_a = {
 				.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
 				.cpu_func = cpu_codelet_incA,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 				.cuda_func = cuda_codelet_incA,
 #endif
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 				.gordon_func = kernel_incA_id,
 #endif
 				.nbuffers = 1
@@ -129,10 +129,10 @@ int main(int argc, char **argv)
 			starpu_codelet cl_inc_c = {
 				.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
 				.cpu_func = cpu_codelet_incC,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 				.cuda_func = cuda_codelet_incC,
 #endif
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 				.gordon_func = kernel_incC_id,
 #endif
 				.nbuffers = 1

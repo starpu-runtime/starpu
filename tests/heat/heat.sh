@@ -25,7 +25,7 @@ mkdir -p $TIMINGDIR
 cd $ROOTDIR
 
 make clean 1> /dev/null 2> /dev/null
-make ATLAS=1 CUDA=1 CPUS=4 1> /dev/null 2> /dev/null
+make STARPU_ATLAS=1 CUDA=1 CPUS=4 1> /dev/null 2> /dev/null
 
 BLOCKS=8
 

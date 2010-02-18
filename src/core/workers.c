@@ -60,7 +60,7 @@ inline uint32_t _starpu_worker_may_execute_task(unsigned workerid, uint32_t wher
  * Runtime initialization methods
  */
 
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 static unsigned gordon_inited = 0;	
 static struct worker_set_s gordon_worker_set;
 #endif
@@ -134,7 +134,7 @@ static void _starpu_init_workers(struct machine_config_s *config)
 						NULL, _starpu_cpu_worker, workerarg);
 				break;
 #endif
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 			case STARPU_CUDA_WORKER:
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
@@ -143,7 +143,7 @@ static void _starpu_init_workers(struct machine_config_s *config)
 
 				break;
 #endif
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 			case STARPU_GORDON_WORKER:
 				/* we will only launch gordon once, but it will handle 
 				 * the different SPU workers */
@@ -189,7 +189,7 @@ static void _starpu_init_workers(struct machine_config_s *config)
 					pthread_cond_wait(&workerarg->ready_cond, &workerarg->mutex);
 				pthread_mutex_unlock(&workerarg->mutex);
 				break;
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 			case STARPU_GORDON_WORKER:
 				/* the initialization of Gordon worker is
 				 * synchronous for now */

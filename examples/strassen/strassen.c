@@ -92,7 +92,7 @@ static starpu_codelet cl_add = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.model = &strassen_model_add_sub,
 	.cpu_func = add_cpu_codelet,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = add_cublas_codelet,
 #endif
 	.nbuffers = 3
@@ -102,7 +102,7 @@ static starpu_codelet cl_sub = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.model = &strassen_model_add_sub,
 	.cpu_func = sub_cpu_codelet,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = sub_cublas_codelet,
 #endif
 	.nbuffers = 3
@@ -112,7 +112,7 @@ static starpu_codelet cl_mult = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.model = &strassen_model_mult,
 	.cpu_func = mult_cpu_codelet,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = mult_cublas_codelet,
 #endif
 	.nbuffers = 3
@@ -122,7 +122,7 @@ static starpu_codelet cl_self_add = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.model = &strassen_model_self_add_sub,
 	.cpu_func = self_add_cpu_codelet,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = self_add_cublas_codelet,
 #endif
 	.nbuffers = 2
@@ -132,7 +132,7 @@ static starpu_codelet cl_self_sub = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.model = &strassen_model_self_add_sub,
 	.cpu_func = self_sub_cpu_codelet,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = self_sub_cublas_codelet,
 #endif
 	.nbuffers = 2

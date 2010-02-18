@@ -105,7 +105,7 @@ trace_size()
 cd $ROOTDIR
 
 make clean 1> /dev/null 2> /dev/null
-make ATLAS=1 CUDA=1 CPUS=3 1> /dev/null 2> /dev/null
+make STARPU_ATLAS=1 CUDA=1 CPUS=3 1> /dev/null 2> /dev/null
 
 cd $DIR
 

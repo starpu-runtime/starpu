@@ -37,7 +37,7 @@ libstarpufft_la_SOURCES = starpufft.c starpufftf.c starpufft-common.c
 libstarpufft_la_LIBADD = $(top_builddir)/src/libstarpu.la $(FFTW_LIBS) $(FFTWF_LIBS)
 libstarpufft_la_CFLAGS = $(FFTWF_CFLAGS)
 
-if USE_CUDA
+if STARPU_USE_CUDA
 # TODO define NVCCFLAGS
 NVCC ?= nvcc
 NVCCFLAGS += -Xcompiler -fPIC -Xlinker -fPIC

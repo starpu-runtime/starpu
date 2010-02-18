@@ -21,7 +21,7 @@
 unsigned token = 42;
 starpu_data_handle token_handle;
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 extern void increment_cuda(void *descr[], __attribute__ ((unused)) void *_args);
 #endif
 
@@ -33,7 +33,7 @@ void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 
 static starpu_codelet increment_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = increment_cuda,
 #endif
 	.cpu_func = increment_cpu,

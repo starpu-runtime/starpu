@@ -22,7 +22,7 @@
 
 #define STEP_TAG_2D(plan, step, i, j) _STEP_TAG(plan, step, ((starpu_tag_t) i << I_SHIFT) | (starpu_tag_t) j)
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 /* Twist the full vector into a n2,m2 chunk */
 static void
 STARPUFFT(twist1_2d_kernel_gpu)(void *descr[], void *_args)
@@ -298,11 +298,11 @@ struct starpu_perfmodel_t STARPUFFT(twist3_2d_model) = {
 
 static starpu_codelet STARPUFFT(twist1_2d_codelet) = {
 	.where =
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
 #endif
 		STARPU_CPU,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = STARPUFFT(twist1_2d_kernel_gpu),
 #endif
 	.cpu_func = STARPUFFT(twist1_2d_kernel_cpu),
@@ -312,14 +312,14 @@ static starpu_codelet STARPUFFT(twist1_2d_codelet) = {
 
 static starpu_codelet STARPUFFT(fft1_2d_codelet) = {
 	.where =
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
 #endif
 #ifdef HAVE_FFTW
 		STARPU_CPU|
 #endif
 		0,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = STARPUFFT(fft1_2d_kernel_gpu),
 #endif
 #ifdef HAVE_FFTW
@@ -338,14 +338,14 @@ static starpu_codelet STARPUFFT(twist2_2d_codelet) = {
 
 static starpu_codelet STARPUFFT(fft2_2d_codelet) = {
 	.where =
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
 #endif
 #ifdef HAVE_FFTW
 		STARPU_CPU|
 #endif
 		0,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = STARPUFFT(fft2_2d_kernel_gpu),
 #endif
 #ifdef HAVE_FFTW
@@ -386,7 +386,7 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 	 * - twist3: twist back into output
 	 */
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	/* cufft 2D-3D limited to [2,16384] */
 	while (n2 > 16384) {
 		n1 *= 2;
@@ -397,7 +397,7 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 	STARPU_ASSERT(n1 < (1ULL << J_BITS));
 
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	/* cufft 2D-3D limited to [2,16384] */
 	while (m2 > 16384) {
 		m1 *= 2;
@@ -476,7 +476,7 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 #endif
 			break;
 		case STARPU_CUDA_WORKER:
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 			plan->plans[workerid].initialized1 = 0;
 			plan->plans[workerid].initialized2 = 0;
 #endif

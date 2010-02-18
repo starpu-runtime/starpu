@@ -24,7 +24,7 @@
 #include <semaphore.h>
 
 #include <starpu_config.h>
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #include <cublas.h>
 #endif
 
@@ -65,7 +65,7 @@ static void mult_common_codelet(void *descr[], int s, __attribute__((unused))  v
 
 	double flop = 2.0*n*n*n;
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cublasStatus cublasres;
 #endif
 
@@ -74,7 +74,7 @@ static void mult_common_codelet(void *descr[], int s, __attribute__((unused))  v
 			cpus_flop += flop;
 			SGEMM("N", "N", n, n, n, 1.0f, right, ld21, left, ld12, 0.0f, center, ld22);
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			cublas_flop += flop;
 
@@ -95,7 +95,7 @@ void mult_cpu_codelet(void *descr[], void *_args)
 	mult_common_codelet(descr, 0, _args);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void mult_cublas_codelet(void *descr[], void *_args)
 {
 	mult_common_codelet(descr, 1, _args);
@@ -121,7 +121,7 @@ static void add_sub_common_codelet(void *descr[], int s, __attribute__((unused))
 	// TODO check dim ...
 
 	unsigned line;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cublasStatus cublasres;
 #endif
 
@@ -136,7 +136,7 @@ static void add_sub_common_codelet(void *descr[], int s, __attribute__((unused))
 				SAXPY(n, alpha, &B[line*ldB], 1, &C[line*ldC], 1);
 			}
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			cublas_flop += flop;
 			for (line = 0; line < n; line++)
@@ -171,7 +171,7 @@ void add_cpu_codelet(void *descr[], __attribute__((unused))  void *arg)
 	add_sub_common_codelet(descr, 0, arg, 1.0f);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void sub_cublas_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	add_sub_common_codelet(descr, 1, arg, -1.0f);
@@ -202,7 +202,7 @@ static void self_add_sub_common_codelet(void *descr[], int s, __attribute__((unu
 	
 	unsigned line;
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cublasStatus cublasres;
 #endif
 
@@ -215,7 +215,7 @@ static void self_add_sub_common_codelet(void *descr[], int s, __attribute__((unu
 				SAXPY(n, alpha, &A[line*ldA], 1, &C[line*ldC], 1);
 			}
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			cublas_flop += flop;
 			for (line = 0; line < n; line++)
@@ -247,7 +247,7 @@ void self_sub_cpu_codelet(void *descr[], __attribute__((unused))  void *arg)
 	self_add_sub_common_codelet(descr, 0, arg, -1.0f);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void self_add_cublas_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	self_add_sub_common_codelet(descr, 1, arg, 1.0f);

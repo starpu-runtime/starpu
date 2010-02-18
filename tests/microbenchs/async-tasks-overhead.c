@@ -38,7 +38,7 @@ static starpu_codelet dummy_codelet =
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
 	.cpu_func = dummy_func,
 	.cuda_func = dummy_func,
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 	.gordon_func = 0, /* this will be defined later */
 #endif
 	.model = NULL,
@@ -47,7 +47,7 @@ static starpu_codelet dummy_codelet =
 
 static void init_gordon_kernel(void)
 {
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 	unsigned elf_id = 
 		gordon_register_elf_plugin("./microbenchs/null_kernel_gordon.spuelf");
 	gordon_load_plugin_on_all_spu(elf_id);

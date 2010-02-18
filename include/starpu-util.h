@@ -24,7 +24,7 @@
 #include <starpu_config.h>
 #include <starpu-task.h>
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 #include <cublas.h>
@@ -123,7 +123,7 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #error __sync_synchronize is not available
 #endif
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 
 #define CUBLAS_REPORT_ERROR(status) 					\
 	do {								\
@@ -251,7 +251,7 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 		assert(0);						\
 	} while (0)  
 
-#endif // USE_CUDA
+#endif // STARPU_USE_CUDA
 
 static inline int starpu_get_env_number(const char *str)
 {
@@ -294,7 +294,7 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps,
 				void (*callback)(void *), void *callback_arg);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 cudaStream_t *starpu_get_local_cuda_stream(void);
 #endif
 

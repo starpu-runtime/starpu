@@ -27,7 +27,7 @@
  */
 
 static int dummy_copy_ram_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
 static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
 #endif
@@ -35,7 +35,7 @@ static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32
 static const struct copy_data_methods_s bcsr_copy_data_methods_s = {
 	.ram_to_ram = dummy_copy_ram_to_ram,
 	.ram_to_spu = NULL,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.ram_to_cuda = copy_ram_to_cuda,
 	.cuda_to_ram = copy_cuda_to_ram,
 #endif
@@ -258,7 +258,7 @@ static size_t allocate_bcsr_buffer_on_node(starpu_data_handle handle, uint32_t d
 				goto fail_rowptr;
 
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case CUDA_RAM:
 			cudaMalloc((void **)&addr_nzval, nnz*r*c*elemsize);
 			if (!addr_nzval)
@@ -293,7 +293,7 @@ fail_rowptr:
 	switch(kind) {
 		case RAM:
 			free((void *)addr_colind);
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case CUDA_RAM:
 			cudaFree((void*)addr_colind);
 			break;
@@ -306,7 +306,7 @@ fail_colind:
 	switch(kind) {
 		case RAM:
 			free((void *)addr_nzval);
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case CUDA_RAM:
 			cudaFree((void*)addr_nzval);
 			break;
@@ -334,7 +334,7 @@ static void liberate_bcsr_buffer_on_node(void *interface, uint32_t node)
 			free((void*)bcsr_interface->colind);
 			free((void*)bcsr_interface->rowptr);
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case CUDA_RAM:
 			cudaFree((void*)bcsr_interface->nzval);
 			cudaFree((void*)bcsr_interface->colind);
@@ -346,7 +346,7 @@ static void liberate_bcsr_buffer_on_node(void *interface, uint32_t node)
 	}
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
 {
 	starpu_bcsr_interface_t *src_bcsr;
@@ -418,7 +418,7 @@ static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32
 
 	return 0;
 }
-#endif // USE_CUDA
+#endif // STARPU_USE_CUDA
 
 /* as not all platform easily have a BLAS lib installed ... */
 static int dummy_copy_ram_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)

@@ -21,7 +21,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 #include <cublas.h>
@@ -38,7 +38,7 @@
 
 unsigned get_cuda_device_count(void);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void _starpu_init_cuda(void);
 void *_starpu_cuda_worker(void *);
 #endif

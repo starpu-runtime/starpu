@@ -1,13 +1,13 @@
 #ifndef __STARPU_CONFIG_PUBLIC_H__
 #define __STARPU_CONFIG_PUBLIC_H__
 
-#undef USE_CPU
-#undef USE_CUDA
-#undef USE_GORDON
+#undef STARPU_USE_CPU
+#undef STARPU_USE_CUDA
+#undef STARPU_USE_GORDON
 
-#undef ATLAS
-#undef GOTO
-#undef SYSTEM_BLAS
+#undef STARPU_ATLAS
+#undef STARPU_GOTO
+#undef STARPU_SYSTEM_BLAS
 
 #undef STARPUDIR
 

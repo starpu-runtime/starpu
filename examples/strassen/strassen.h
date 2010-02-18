@@ -27,7 +27,7 @@
 #include <cblas.h>
 
 #include <starpu_config.h>
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cublas.h>
 #endif
@@ -97,7 +97,7 @@ void add_cpu_codelet(void *descr[], __attribute__((unused))  void *arg);
 void self_add_cpu_codelet(void *descr[], __attribute__((unused))  void *arg);
 void self_sub_cpu_codelet(void *descr[], __attribute__((unused))  void *arg);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void mult_cublas_codelet(void *descr[], __attribute__((unused))  void *arg);
 void sub_cublas_codelet(void *descr[], __attribute__((unused))  void *arg);
 void add_cublas_codelet(void *descr[], __attribute__((unused))  void *arg);

@@ -34,7 +34,7 @@ static unsigned topology_is_initialized = 0;
 
 static void _starpu_initialize_workers_bindid(struct machine_config_s *config);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 static void _starpu_initialize_workers_gpuid(struct machine_config_s *config);
 static unsigned may_bind_automatically = 0;
 #endif
@@ -43,7 +43,7 @@ static unsigned may_bind_automatically = 0;
  * Discover the topology of the machine
  */
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 static void _starpu_initialize_workers_gpuid(struct machine_config_s *config)
 {
 	char *strval;
@@ -173,7 +173,7 @@ static int _starpu_init_machine_config(struct machine_config_s *config,
 
 	_starpu_initialize_workers_bindid(config);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	if (user_conf && (user_conf->ncuda == 0))
 	{
 		/* the user explicitely disabled CUDA */
@@ -222,7 +222,7 @@ static int _starpu_init_machine_config(struct machine_config_s *config,
 	config->nworkers += config->ncudagpus;
 #endif
 	
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 	if (user_conf && (user_conf->ncuda != -1)) {
 		explicitval = user_conf->ncuda;
 	}
@@ -486,13 +486,13 @@ static void _starpu_init_workers_binding(struct machine_config_s *config)
 				is_a_set_of_accelerators = 0;
 				memory_node = ram_memory_node;
 				break;
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 			case STARPU_GORDON_WORKER:
 				is_a_set_of_accelerators = 1;
 				memory_node = ram_memory_node;
 				break;
 #endif
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 			case STARPU_CUDA_WORKER:
 				if (may_bind_automatically)
 				{

@@ -127,8 +127,8 @@ AC_ARG_ENABLE(cpu, [AS_HELP_STRING([--disable-cpu],
 			[do not use the CPU(s)])],
 			enable_cpu=$enableval, enable_cpu=yes)
 AC_MSG_RESULT($enable_cpu)
-AC_SUBST(USE_CPU, $enable_cpu)
-AM_CONDITIONAL(USE_CPU, test x$enable_cpu = xyes)
+AC_SUBST(STARPU_USE_CPU, $enable_cpu)
+AM_CONDITIONAL(STARPU_USE_CPU, test x$enable_cpu = xyes)
 
 if test x$enable_cpu = xyes; then
 	AC_DEFINE(USE_CPUS, [1], [CPU driver is activated])
@@ -206,10 +206,10 @@ fi
 
 AC_MSG_CHECKING(whether CUDA should be used)
 AC_MSG_RESULT($enable_cuda)
-AC_SUBST(USE_CUDA, $enable_cuda)
-AM_CONDITIONAL(USE_CUDA, test x$enable_cuda = xyes)
+AC_SUBST(STARPU_USE_CUDA, $enable_cuda)
+AM_CONDITIONAL(STARPU_USE_CUDA, test x$enable_cuda = xyes)
 if test x$enable_cuda = xyes; then
-	AC_DEFINE(USE_CUDA, [1], [CUDA support is activated])
+	AC_DEFINE(STARPU_USE_CUDA, [1], [CUDA support is activated])
 
 	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag
 	AC_CHECK_SIZEOF([void *])
@@ -271,11 +271,11 @@ fi
 
 AC_MSG_CHECKING(whether GORDON should be used)
 AC_MSG_RESULT($enable_gordon)
-AC_SUBST(USE_GORDON, $enable_gordon)
-AM_CONDITIONAL(USE_GORDON, test x$enable_gordon = xyes)
+AC_SUBST(STARPU_USE_GORDON, $enable_gordon)
+AM_CONDITIONAL(STARPU_USE_GORDON, test x$enable_gordon = xyes)
 
 if test x$enable_gordon = xyes; then
-	AC_DEFINE(USE_GORDON, [1], [Cell support is enabled])
+	AC_DEFINE(STARPU_USE_GORDON, [1], [Cell support is enabled])
 	AC_DEFINE(NON_BLOCKING_DRIVERS, [1], [drivers must progress])
 fi
 
@@ -575,8 +575,8 @@ blas_lib=maybe
 AC_ARG_ENABLE(blas-lib,
  [  --enable-blas-lib[=blaslibname]:
                       none [default]: no BLAS lib is used
-                      atlas: use ATLAS library
-                      goto: use GOTO library],
+                      atlas: use STARPU_ATLAS library
+                      goto: use STARPU_GOTO library],
  [ 
      if   test "x$enableval" = "xatlas" ; then
         blas_lib=atlas
@@ -595,7 +595,7 @@ AC_ARG_ENABLE(blas-lib,
  ])
 
 if test x$blas_lib = xmaybe -o x$blas_lib = xgoto; then
-AC_ARG_WITH(goto-dir, [AS_HELP_STRING([--with-goto-dir=<dir>], [specify GOTO lib location])],
+AC_ARG_WITH(goto-dir, [AS_HELP_STRING([--with-goto-dir=<dir>], [specify STARPU_GOTO lib location])],
 	[
 		blas_lib=goto
 		gotodir=$withval
@@ -607,17 +607,17 @@ AC_ARG_WITH(goto-dir, [AS_HELP_STRING([--with-goto-dir=<dir>], [specify GOTO lib
 	)
 
 if test x$blas_lib = xgoto; then
-# test whether ATLAS is actually available
+# test whether STARPU_ATLAS is actually available
 AC_CHECK_LIB(goto, sgemm_,,AC_MSG_ERROR([cannot find goto lib]))
-AC_DEFINE(GOTO, [1], [use GOTO library])
+AC_DEFINE(STARPU_GOTO, [1], [use STARPU_GOTO library])
 fi
 
 fi
      
 if test x$blas_lib = xmaybe -o x$blas_lib = xatlas; then
-AC_ARG_WITH(atlas-dir, [AS_HELP_STRING([--with-atlas-dir=<dir>], [specify ATLAS lib location])],
+AC_ARG_WITH(atlas-dir, [AS_HELP_STRING([--with-atlas-dir=<dir>], [specify STARPU_ATLAS lib location])],
 	[
-		AC_MSG_CHECKING(ATLAS location)
+		AC_MSG_CHECKING(STARPU_ATLAS location)
 		blas_lib=atlas
 		atlasdir=$withval
 		AC_MSG_RESULT($atlasdir)
@@ -629,11 +629,11 @@ AC_ARG_WITH(atlas-dir, [AS_HELP_STRING([--with-atlas-dir=<dir>], [specify ATLAS 
 	)
 
 if test x$blas_lib = xatlas; then
-# test whether ATLAS is actually available
+# test whether STARPU_ATLAS is actually available
 AC_CHECK_HEADER([cblas.h],,AC_MSG_ERROR([cannot find atlas headers]))
 AC_CHECK_LIB(atlas, ATL_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),)
 AC_CHECK_LIB(cblas, cblas_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),[-latlas])
-AC_DEFINE(ATLAS, [1], [use ATLAS library])
+AC_DEFINE(STARPU_ATLAS, [1], [use STARPU_ATLAS library])
 fi
 
 fi
@@ -643,7 +643,7 @@ if test x$blas_lib = xmaybe; then
      use_system_blas=no
      AC_SEARCH_LIBS([sgemm_],[blas],use_system_blas=yes,,)
      if test x$use_system_blas = xyes; then
-        AC_DEFINE(SYSTEM_BLAS, [1], [use refblas library])
+        AC_DEFINE(STARPU_SYSTEM_BLAS, [1], [use refblas library])
 	blas_lib=system
      else
 	blas_lib=none

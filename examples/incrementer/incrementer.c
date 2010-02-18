@@ -19,7 +19,7 @@
 
 static unsigned niter = 50000;
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 extern void cuda_codelet(void *descr[], __attribute__ ((unused)) void *_args);
 #endif
 
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 		/* CUBLAS stands for CUDA kernels controlled from the host */
 		.where = STARPU_CPU|STARPU_CUDA,
 		.cpu_func = cpu_codelet,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		.cuda_func = cuda_codelet,
 #endif
 		.nbuffers = 1

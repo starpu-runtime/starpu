@@ -135,7 +135,7 @@ void cpu_codelet_func_3(void *descr[], void *arg)
 	pb->delta_0 = dot;
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void cublas_codelet_func_3(void *descr[], void *arg)
 {
 	struct cg_problem *pb = arg;
@@ -226,7 +226,7 @@ void cpu_codelet_func_5(void *descr[], void *arg)
 	pb->alpha = pb->delta_new / dot;
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void cublas_codelet_func_5(void *descr[], void *arg)
 {
 	float dot;
@@ -271,7 +271,7 @@ void cpu_codelet_func_6(void *descr[], void *arg)
 	SAXPY(size, pb->alpha, vecd, 1, vecx, 1);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void cublas_codelet_func_6(void *descr[], void *arg)
 {
 	struct cg_problem *pb = arg;
@@ -310,7 +310,7 @@ void cpu_codelet_func_7(void *descr[], void *arg)
 	SAXPY(size, -pb->alpha, vecq, 1, vecr, 1);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void cublas_codelet_func_7(void *descr[], void *arg)
 {
 	struct cg_problem *pb = arg;
@@ -354,7 +354,7 @@ void cpu_codelet_func_8(void *descr[], void *arg)
 	pb->beta = pb->delta_new/pb->delta_old;
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void cublas_codelet_func_8(void *descr[], void *arg)
 {
 	float dot;
@@ -401,7 +401,7 @@ void cpu_codelet_func_9(void *descr[], void *arg)
 	SAXPY (size, 1.0f, vecr, 1, vecd, 1);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void cublas_codelet_func_9(void *descr[], void *arg)
 {
 	struct cg_problem *pb = arg;

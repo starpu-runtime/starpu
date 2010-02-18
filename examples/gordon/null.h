@@ -16,7 +16,7 @@
 
 #include <starpu.h>
 
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 static inline unsigned load_gordon_null_kernel(void)
 {
 	unsigned elf_id =

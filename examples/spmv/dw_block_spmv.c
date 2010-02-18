@@ -117,7 +117,7 @@ unsigned totaltasks;
 starpu_codelet cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func =  cpu_block_spmv,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = cublas_block_spmv,
 #endif
 	.nbuffers = 3

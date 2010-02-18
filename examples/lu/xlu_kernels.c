@@ -36,7 +36,7 @@ static inline void STARPU_LU(common_u22)(void *descr[],
 	unsigned ld21 = STARPU_GET_BLAS_LD(descr[1]);
 	unsigned ld22 = STARPU_GET_BLAS_LD(descr[2]);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cublasStatus status;
 	cudaError_t cures;
 #endif
@@ -48,7 +48,7 @@ static inline void STARPU_LU(common_u22)(void *descr[],
 				(TYPE)1.0, center, ld22);
 			break;
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			CUBLAS_GEMM('n', 'n', dx, dy, dz,
 				(TYPE)-1.0, right, ld21, left, ld12,
@@ -74,12 +74,12 @@ void STARPU_LU(cpu_u22)(void *descr[], void *_args)
 	STARPU_LU(common_u22)(descr, 0, _args);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void STARPU_LU(cublas_u22)(void *descr[], void *_args)
 {
 	STARPU_LU(common_u22)(descr, 1, _args);
 }
-#endif// USE_CUDA
+#endif// STARPU_USE_CUDA
 
 /*
  * U12
@@ -100,7 +100,7 @@ static inline void STARPU_LU(common_u12)(void *descr[],
 	unsigned nx12 = STARPU_GET_BLAS_NX(descr[1]);
 	unsigned ny12 = STARPU_GET_BLAS_NY(descr[1]);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cublasStatus status;
 	cudaError_t cures;
 #endif
@@ -111,7 +111,7 @@ static inline void STARPU_LU(common_u12)(void *descr[],
 			CPU_TRSM("L", "L", "N", "N", nx12, ny12,
 					(TYPE)1.0, sub11, ld11, sub12, ld12);
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			CUBLAS_TRSM('L', 'L', 'N', 'N', ny12, nx12,
 					(TYPE)1.0, sub11, ld11, sub12, ld12);
@@ -136,12 +136,12 @@ void STARPU_LU(cpu_u12)(void *descr[], void *_args)
 	STARPU_LU(common_u12)(descr, 0, _args);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void STARPU_LU(cublas_u12)(void *descr[], void *_args)
 {
 	STARPU_LU(common_u12)(descr, 1, _args);
 }
-#endif // USE_CUDA
+#endif // STARPU_USE_CUDA
 
 /* 
  * U21
@@ -162,7 +162,7 @@ static inline void STARPU_LU(common_u21)(void *descr[],
 	unsigned nx21 = STARPU_GET_BLAS_NX(descr[1]);
 	unsigned ny21 = STARPU_GET_BLAS_NY(descr[1]);
 	
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cublasStatus status;
 	cudaError_t cures;
 #endif
@@ -172,7 +172,7 @@ static inline void STARPU_LU(common_u21)(void *descr[],
 			CPU_TRSM("R", "U", "N", "U", nx21, ny21,
 					(TYPE)1.0, sub11, ld11, sub21, ld21);
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			CUBLAS_TRSM('R', 'U', 'N', 'U', ny21, nx21,
 					(TYPE)1.0, sub11, ld11, sub21, ld21);
@@ -196,7 +196,7 @@ void STARPU_LU(cpu_u21)(void *descr[], void *_args)
 	STARPU_LU(common_u21)(descr, 0, _args);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void STARPU_LU(cublas_u21)(void *descr[], void *_args)
 {
 	STARPU_LU(common_u21)(descr, 1, _args);
@@ -235,7 +235,7 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 						&sub11[(z+1) + (z+1)*ld],ld);
 			}
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			for (z = 0; z < nx; z++)
 			{
@@ -268,12 +268,12 @@ void STARPU_LU(cpu_u11)(void *descr[], void *_args)
 	STARPU_LU(common_u11)(descr, 0, _args);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void STARPU_LU(cublas_u11)(void *descr[], void *_args)
 {
 	STARPU_LU(common_u11)(descr, 1, _args);
 }
-#endif// USE_CUDA
+#endif// STARPU_USE_CUDA
 
 /*
  *	U11 with pivoting
@@ -332,7 +332,7 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 			}
 
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			for (z = 0; z < nx; z++)
 			{
@@ -383,12 +383,12 @@ void STARPU_LU(cpu_u11_pivot)(void *descr[], void *_args)
 	STARPU_LU(common_u11_pivot)(descr, 0, _args);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void STARPU_LU(cublas_u11_pivot)(void *descr[], void *_args)
 {
 	STARPU_LU(common_u11_pivot)(descr, 1, _args);
 }
-#endif// USE_CUDA
+#endif// STARPU_USE_CUDA
 
 /*
  *	Pivoting
@@ -421,7 +421,7 @@ static inline void STARPU_LU(common_pivot)(void *descr[],
 				}
 			}
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			for (row = 0; row < nx; row++)
 			{
@@ -447,11 +447,11 @@ void STARPU_LU(cpu_pivot)(void *descr[], void *_args)
 	STARPU_LU(common_pivot)(descr, 0, _args);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void STARPU_LU(cublas_pivot)(void *descr[], void *_args)
 {
 	STARPU_LU(common_pivot)(descr, 1, _args);
 }
-#endif// USE_CUDA
+#endif// STARPU_USE_CUDA
 
 

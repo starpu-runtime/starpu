@@ -23,7 +23,7 @@
 #include <config.h>
 
 #include "starpufft.h"
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #define _externC extern
 #include "cudax_kernels.h"
 #endif
@@ -79,7 +79,7 @@ struct STARPUFFT(plan) {
 	starpu_data_handle roots_handle[2];
 
 	struct {
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		cufftHandle plan1_cuda, plan2_cuda;
 		int initialized1, initialized2;
 		cudaStream_t stream;
@@ -109,7 +109,7 @@ struct STARPUFFT(args) {
 	int i, j, jj, kk, ll, *iv, *kkv;
 };
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 cudaStream_t
 STARPUFFT(get_local_stream)(STARPUFFT(plan) plan, int workerid)
 {
@@ -148,7 +148,7 @@ compute_roots(STARPUFFT(plan) plan)
 			plan->roots[dim][k] = cexp(exp*k);
 		starpu_register_vector_data(&plan->roots_handle[dim], 0, (uintptr_t) plan->roots[dim], plan->n[dim], sizeof(**plan->roots));
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		if (plan->n[dim] > 100000) {
 			/* prefetch the big root array on GPUs */
 			unsigned worker;
@@ -245,7 +245,7 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 #endif
 			break;
 		case STARPU_CUDA_WORKER:
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 			/* FIXME: Can't deallocate */
 #endif
 			break;
@@ -319,7 +319,7 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 void *
 STARPUFFT(malloc)(size_t n)
 {
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	void *res;
 	starpu_malloc_pinned_if_possible(&res, n);
 	return res;
@@ -335,7 +335,7 @@ STARPUFFT(malloc)(size_t n)
 void
 STARPUFFT(free)(void *p)
 {
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	// TODO: FIXME
 #else
 #  ifdef HAVE_FFTW

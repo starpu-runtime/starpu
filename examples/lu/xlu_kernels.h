@@ -30,7 +30,7 @@ void STARPU_LU(cpu_u12)(void *descr[], void *_args);
 void STARPU_LU(cpu_u21)(void *descr[], void *_args);
 void STARPU_LU(cpu_u22)(void *descr[], void *_args);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void STARPU_LU(cublas_pivot)(void *descr[], void *_args);
 void STARPU_LU(cublas_u11_pivot)(void *descr[], void *_args);
 void STARPU_LU(cublas_u11)(void *descr[], void *_args);

@@ -219,9 +219,9 @@ struct starpu_perfmodel_t model_11 = {
 		[STARPU_CUDA_DEFAULT] = { .cost_model = task_11_cost_cuda }
 	},
 	.type = STARPU_HISTORY_BASED,
-#ifdef ATLAS
+#ifdef STARPU_ATLAS
 	.symbol = "lu_model_11_atlas"
-#elif defined(GOTO)
+#elif defined(STARPU_GOTO)
 	.symbol = "lu_model_11_goto"
 #else
 	.symbol = "lu_model_11"
@@ -235,9 +235,9 @@ struct starpu_perfmodel_t model_12 = {
 		[STARPU_CUDA_DEFAULT] = { .cost_model = task_12_cost_cuda }
 	},
 	.type = STARPU_HISTORY_BASED,
-#ifdef ATLAS
+#ifdef STARPU_ATLAS
 	.symbol = "lu_model_12_atlas"
-#elif defined(GOTO)
+#elif defined(STARPU_GOTO)
 	.symbol = "lu_model_12_goto"
 #else
 	.symbol = "lu_model_12"
@@ -251,9 +251,9 @@ struct starpu_perfmodel_t model_21 = {
 		[STARPU_CUDA_DEFAULT] = { .cost_model = task_21_cost_cuda }
 	},
 	.type = STARPU_HISTORY_BASED,
-#ifdef ATLAS
+#ifdef STARPU_ATLAS
 	.symbol = "lu_model_21_atlas"
-#elif defined(GOTO)
+#elif defined(STARPU_GOTO)
 	.symbol = "lu_model_21_goto"
 #else
 	.symbol = "lu_model_21"
@@ -267,9 +267,9 @@ struct starpu_perfmodel_t model_22 = {
 		[STARPU_CUDA_DEFAULT] = { .cost_model = task_22_cost_cuda }
 	},
 	.type = STARPU_HISTORY_BASED,
-#ifdef ATLAS
+#ifdef STARPU_ATLAS
 	.symbol = "lu_model_22_atlas"
-#elif defined(GOTO)
+#elif defined(STARPU_GOTO)
 	.symbol = "lu_model_22_goto"
 #else
 	.symbol = "lu_model_22"

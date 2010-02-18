@@ -74,7 +74,7 @@ static void init_problem_data(void)
 {
 	unsigned i,j;
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	if (pin) {
 		starpu_malloc_pinned_if_possible((void **)&A, zdim*ydim*sizeof(TYPE));
 		starpu_malloc_pinned_if_possible((void **)&B, xdim*zdim*sizeof(TYPE));
@@ -173,9 +173,9 @@ static void unpartition_mult_data(void)
 
 static struct starpu_perfmodel_t gemm_model = {
 	.type = STARPU_HISTORY_BASED,
-#ifdef ATLAS
+#ifdef STARPU_ATLAS
 	.symbol = STARPU_GEMM_STR(gemm_atlas)
-#elif defined(GOTO)
+#elif defined(STARPU_GOTO)
 	.symbol = STARPU_GEMM_STR(gemm_goto)
 #else
 	.symbol = STARPU_GEMM_STR(gemm)
@@ -185,7 +185,7 @@ static struct starpu_perfmodel_t gemm_model = {
 static starpu_codelet cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = STARPU_GEMM(cpu_mult),
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = STARPU_GEMM(cublas_mult),
 #endif
 	.model = &gemm_model,

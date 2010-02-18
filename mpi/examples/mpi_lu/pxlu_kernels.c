@@ -47,7 +47,7 @@ static inline void STARPU_PLU(common_u22)(void *descr[],
 	fprintf(stderr, "KERNEL 22 %d - k = %d i = %d j = %d\n", rank, info->k, info->i, info->j);
 #endif
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cublasStatus status;
 	cudaError_t cures;
 #endif
@@ -59,7 +59,7 @@ static inline void STARPU_PLU(common_u22)(void *descr[],
 				(TYPE)1.0, center, ld22);
 			break;
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			CUBLAS_GEMM('n', 'n', dx, dy, dz,
 				(TYPE)-1.0, right, ld21, left, ld12,
@@ -88,18 +88,18 @@ static void STARPU_PLU(cpu_u22)(void *descr[], void *_args)
 	STARPU_PLU(common_u22)(descr, 0, _args);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 static void STARPU_PLU(cublas_u22)(void *descr[], void *_args)
 {
 	STARPU_PLU(common_u22)(descr, 1, _args);
 }
-#endif// USE_CUDA
+#endif// STARPU_USE_CUDA
 
 static struct starpu_perfmodel_t STARPU_PLU(model_22) = {
 	.type = STARPU_HISTORY_BASED,
-#ifdef ATLAS
+#ifdef STARPU_ATLAS
 	.symbol = STARPU_PLU_STR(lu_model_22_atlas)
-#elif defined(GOTO)
+#elif defined(STARPU_GOTO)
 	.symbol = STARPU_PLU_STR(lu_model_22_goto)
 #else
 	.symbol = STARPU_PLU_STR(lu_model_22)
@@ -109,7 +109,7 @@ static struct starpu_perfmodel_t STARPU_PLU(model_22) = {
 starpu_codelet STARPU_PLU(cl22) = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = STARPU_PLU(cpu_u22),
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = STARPU_PLU(cublas_u22),
 #endif
 	.nbuffers = 3,
@@ -153,7 +153,7 @@ static inline void STARPU_PLU(common_u12)(void *descr[],
 	STARPU_PLU(display_data_content)(sub12, nx12);
 #endif
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cublasStatus status;
 	cudaError_t cures;
 #endif
@@ -164,7 +164,7 @@ static inline void STARPU_PLU(common_u12)(void *descr[],
 			CPU_TRSM("L", "L", "N", "N", nx12, ny12,
 					(TYPE)1.0, sub11, ld11, sub12, ld12);
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			CUBLAS_TRSM('L', 'L', 'N', 'N', ny12, nx12,
 					(TYPE)1.0, sub11, ld11, sub12, ld12);
@@ -195,18 +195,18 @@ static void STARPU_PLU(cpu_u12)(void *descr[], void *_args)
 	STARPU_PLU(common_u12)(descr, 0, _args);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 static void STARPU_PLU(cublas_u12)(void *descr[], void *_args)
 {
 	STARPU_PLU(common_u12)(descr, 1, _args);
 }
-#endif // USE_CUDA
+#endif // STARPU_USE_CUDA
 
 static struct starpu_perfmodel_t STARPU_PLU(model_12) = {
 	.type = STARPU_HISTORY_BASED,
-#ifdef ATLAS
+#ifdef STARPU_ATLAS
 	.symbol = STARPU_PLU_STR(lu_model_12_atlas)
-#elif defined(GOTO)
+#elif defined(STARPU_GOTO)
 	.symbol = STARPU_PLU_STR(lu_model_12_goto)
 #else
 	.symbol = STARPU_PLU_STR(lu_model_12)
@@ -216,7 +216,7 @@ static struct starpu_perfmodel_t STARPU_PLU(model_12) = {
 starpu_codelet STARPU_PLU(cl12) = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = STARPU_PLU(cpu_u12),
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = STARPU_PLU(cublas_u12),
 #endif
 	.nbuffers = 2,
@@ -260,7 +260,7 @@ static inline void STARPU_PLU(common_u21)(void *descr[],
 	STARPU_PLU(display_data_content)(sub21, nx21);
 #endif
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cublasStatus status;
 	cudaError_t cures;
 #endif
@@ -271,7 +271,7 @@ static inline void STARPU_PLU(common_u21)(void *descr[],
 			CPU_TRSM("R", "U", "N", "U", nx21, ny21,
 					(TYPE)1.0, sub11, ld11, sub21, ld21);
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			CUBLAS_TRSM('R', 'U', 'N', 'U', ny21, nx21,
 					(TYPE)1.0, sub11, ld11, sub21, ld21);
@@ -304,7 +304,7 @@ static void STARPU_PLU(cpu_u21)(void *descr[], void *_args)
 	STARPU_PLU(common_u21)(descr, 0, _args);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 static void STARPU_PLU(cublas_u21)(void *descr[], void *_args)
 {
 	STARPU_PLU(common_u21)(descr, 1, _args);
@@ -313,9 +313,9 @@ static void STARPU_PLU(cublas_u21)(void *descr[], void *_args)
 
 static struct starpu_perfmodel_t STARPU_PLU(model_21) = {
 	.type = STARPU_HISTORY_BASED,
-#ifdef ATLAS
+#ifdef STARPU_ATLAS
 	.symbol = STARPU_PLU_STR(lu_model_21_atlas)
-#elif defined(GOTO)
+#elif defined(STARPU_GOTO)
 	.symbol = STARPU_PLU_STR(lu_model_21_goto)
 #else
 	.symbol = STARPU_PLU_STR(lu_model_21)
@@ -325,7 +325,7 @@ static struct starpu_perfmodel_t STARPU_PLU(model_21) = {
 starpu_codelet STARPU_PLU(cl21) = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = STARPU_PLU(cpu_u21),
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = STARPU_PLU(cublas_u21),
 #endif
 	.nbuffers = 2,
@@ -373,7 +373,7 @@ static inline void STARPU_PLU(common_u11)(void *descr[],
 						&sub11[(z+1) + (z+1)*ld],ld);
 			}
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			for (z = 0; z < nx; z++)
 			{
@@ -409,18 +409,18 @@ static void STARPU_PLU(cpu_u11)(void *descr[], void *_args)
 	STARPU_PLU(common_u11)(descr, 0, _args);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 static void STARPU_PLU(cublas_u11)(void *descr[], void *_args)
 {
 	STARPU_PLU(common_u11)(descr, 1, _args);
 }
-#endif// USE_CUDA
+#endif// STARPU_USE_CUDA
 
 static struct starpu_perfmodel_t STARPU_PLU(model_11) = {
 	.type = STARPU_HISTORY_BASED,
-#ifdef ATLAS
+#ifdef STARPU_ATLAS
 	.symbol = STARPU_PLU_STR(lu_model_11_atlas)
-#elif defined(GOTO)
+#elif defined(STARPU_GOTO)
 	.symbol = STARPU_PLU_STR(lu_model_11_goto)
 #else
 	.symbol = STARPU_PLU_STR(lu_model_11)
@@ -430,7 +430,7 @@ static struct starpu_perfmodel_t STARPU_PLU(model_11) = {
 starpu_codelet STARPU_PLU(cl11) = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = STARPU_PLU(cpu_u11),
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.cuda_func = STARPU_PLU(cublas_u11),
 #endif
 	.nbuffers = 1,

@@ -22,12 +22,12 @@
 
 #include <common/hash.h>
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #endif
 
 static int dummy_copy_ram_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
 static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
 static int copy_ram_to_cuda_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
@@ -37,7 +37,7 @@ static int copy_cuda_to_ram_async(starpu_data_handle handle, uint32_t src_node, 
 static const struct copy_data_methods_s vector_copy_data_methods_s = {
 	.ram_to_ram = dummy_copy_ram_to_ram,
 	.ram_to_spu = NULL,
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	.ram_to_cuda = copy_ram_to_cuda,
 	.cuda_to_ram = copy_cuda_to_ram,
 	.ram_to_cuda_async = copy_ram_to_cuda_async,
@@ -56,7 +56,7 @@ static void liberate_vector_buffer_on_node(void *interface, uint32_t node);
 static size_t vector_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_vector_interface_crc32(starpu_data_handle handle);
 static void display_vector_interface(starpu_data_handle handle, FILE *f);
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 static int convert_vector_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 
@@ -67,7 +67,7 @@ struct starpu_data_interface_ops_t interface_vector_ops = {
 	.copy_methods = &vector_copy_data_methods_s,
 	.get_size = vector_interface_get_size,
 	.footprint = footprint_vector_interface_crc32,
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 	.convert_to_gordon = convert_vector_to_gordon,
 #endif
 	.interfaceid = STARPU_VECTOR_INTERFACE_ID,
@@ -97,7 +97,7 @@ static void register_vector_handle(starpu_data_handle handle, uint32_t home_node
 	}
 }
 
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 int convert_vector_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
 	starpu_vector_interface_t *vector_interface = interface;
@@ -194,7 +194,7 @@ static size_t allocate_vector_buffer_on_node(starpu_data_handle handle, uint32_t
 
 	node_kind kind = get_node_kind(dst_node);
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 	cudaError_t status;
 #endif
 
@@ -204,7 +204,7 @@ static size_t allocate_vector_buffer_on_node(starpu_data_handle handle, uint32_t
 			if (!addr)
 				fail = 1;
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case CUDA_RAM:
 			status = cudaMalloc((void **)&addr, nx*elemsize);
 			if (!addr || (status != cudaSuccess))
@@ -241,7 +241,7 @@ static void liberate_vector_buffer_on_node(void *interface, uint32_t node)
 		case RAM:
 			free((void*)vector_interface->ptr);
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case CUDA_RAM:
 			cudaFree((void*)vector_interface->ptr);
 			break;
@@ -251,7 +251,7 @@ static void liberate_vector_buffer_on_node(void *interface, uint32_t node)
 	}
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
 {
 	starpu_vector_interface_t *src_vector;
@@ -348,7 +348,7 @@ static int copy_ram_to_cuda_async(starpu_data_handle handle, uint32_t src_node, 
 }
 
 
-#endif // USE_CUDA
+#endif // STARPU_USE_CUDA
 
 static int dummy_copy_ram_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
 {

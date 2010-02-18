@@ -22,11 +22,11 @@
 
 /*
     This files contains BLAS wrappers for the different BLAS implementations
-  (eg. REFBLAS, ATLAS, GOTOBLAS ...). We assume a Fortran orientation as most
+  (eg. REFBLAS, STARPU_ATLAS, GOTOBLAS ...). We assume a Fortran orientation as most
   libraries do not supply C-based ordering.
  */
 
-#ifdef ATLAS
+#ifdef STARPU_ATLAS
 
 inline void SGEMM(char *transa, char *transb, int M, int N, int K, 
 			float alpha, float *A, int lda, float *B, int ldb, 
@@ -232,7 +232,7 @@ void DSWAP(const int n, double *x, const int incx, double *y, const int incy)
 	cblas_dswap(n, x, incx, y, incy);
 }
 
-#elif defined(GOTO) || defined(SYSTEM_BLAS)
+#elif defined(STARPU_GOTO) || defined(STARPU_SYSTEM_BLAS)
 
 inline void SGEMM(char *transa, char *transb, int M, int N, int K, 
 			float alpha, float *A, int lda, float *B, int ldb, 

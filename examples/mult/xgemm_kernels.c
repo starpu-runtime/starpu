@@ -39,7 +39,7 @@
 
 
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void STARPU_GEMM(cublas_mult)(void *descr[], __attribute__((unused)) void *arg)
 {
 	COMMON_CODE

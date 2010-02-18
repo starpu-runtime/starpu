@@ -20,7 +20,7 @@
 #include <starpu.h>
 #include <common/config.h>
 
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 /* to get the gordon_strideSize_t data structure from gordon */
 #include <gordon.h>
 #endif
@@ -34,7 +34,7 @@ struct starpu_data_interface_ops_t {
 	size_t (*get_size)(starpu_data_handle handle);
 	uint32_t (*footprint)(starpu_data_handle handle);
 	void (*display)(starpu_data_handle handle, FILE *f);
-#ifdef USE_GORDON
+#ifdef STARPU_USE_GORDON
 	int (*convert_to_gordon)(void *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 	/* an identifier that is unique to each interface */

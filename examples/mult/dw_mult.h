@@ -29,7 +29,7 @@
 
 #include <starpu.h>
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cublas.h>
 #endif
@@ -193,7 +193,7 @@ static void display_memory_consumption(void)
 		+ ydim*xdim*sizeof(float))/(1024*1024) );
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void cublas_mult(void *descr[], __attribute__((unused)) void *arg);
 #endif
 

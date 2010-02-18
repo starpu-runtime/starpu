@@ -37,7 +37,7 @@ static void mult_common_codelet(void *descr[], int s, __attribute__((unused))  v
 				dy, dx, dz, -1.0f, left, ld21, right, ld12,
 					     1.0f, center, ld22);
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			cublasSgemm('t', 'n', dx, dy, dz, 
 					-1.0f, right, ld12, left, ld21, 
@@ -56,7 +56,7 @@ void mult_cpu_codelet(void *descr[], void *_args)
 	mult_common_codelet(descr, 0, _args);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void mult_cublas_codelet(void *descr[], void *_args)
 {
 	mult_common_codelet(descr, 1, _args);
@@ -92,7 +92,7 @@ static void add_sub_common_codelet(void *descr[], int s, __attribute__((unused))
 				cblas_saxpy(dx, alpha, &B[line*ldB], 1, &C[line*ldC], 1);
 			}
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			for (line = 0; line < dy; line++)
 			{
@@ -122,7 +122,7 @@ void add_cpu_codelet(void *descr[], __attribute__((unused))  void *arg)
 	add_sub_common_codelet(descr, 0, arg, 1.0f);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void sub_cublas_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	add_sub_common_codelet(descr, 1, arg, -1.0f);
@@ -160,7 +160,7 @@ static void self_add_sub_common_codelet(void *descr[], int s, __attribute__((unu
 				cblas_saxpy(dx, alpha, &A[line*ldA], 1, &C[line*ldC], 1);
 			}
 			break;
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 		case 1:
 			for (line = 0; line < dy; line++)
 			{
@@ -191,7 +191,7 @@ void self_sub_cpu_codelet(void *descr[], __attribute__((unused))  void *arg)
 	self_add_sub_common_codelet(descr, 0, arg, -1.0f);
 }
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 void self_add_cublas_codelet(void *descr[], __attribute__((unused))  void *arg)
 {
 	self_add_sub_common_codelet(descr, 1, arg, 1.0f);

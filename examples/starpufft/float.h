@@ -21,7 +21,7 @@
 #include <fftw3.h>
 #endif
 
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 #include <cufft.h>
 #endif
 
@@ -30,7 +30,7 @@ typedef float real;
 typedef fftwf_complex _fftw_complex;
 typedef fftwf_plan _fftw_plan;
 #endif
-#ifdef USE_CUDA
+#ifdef STARPU_USE_CUDA
 typedef cuComplex _cuComplex;
 typedef cufftComplex _cufftComplex;
 #define _cufftExecC2C cufftExecC2C
