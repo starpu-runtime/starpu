@@ -269,11 +269,11 @@ static int _starpu_init_machine_config(struct machine_config_s *config,
 	if (explicitval < 0) {
 		unsigned already_busy_cpus = (config->ngordon_spus?1:0) + config->ncudagpus;
 		long avail_cpus = config->nhwcpus - (use_accelerator?already_busy_cpus:0);
-		config->ncpus = STARPU_MIN(avail_cpus, NMAXCPUS);
+		config->ncpus = STARPU_MIN(avail_cpus, STARPU_NMAXCPUS);
 	} else {
 		/* use the specified value */
 		config->ncpus = (unsigned)explicitval;
-		STARPU_ASSERT(config->ncpus <= NMAXCPUS);
+		STARPU_ASSERT(config->ncpus <= STARPU_NMAXCPUS);
 	}
 	STARPU_ASSERT(config->ncpus + config->nworkers <= STARPU_NMAXWORKERS);
 

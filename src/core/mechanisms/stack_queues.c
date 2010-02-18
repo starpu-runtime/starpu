@@ -86,7 +86,7 @@ unsigned get_stack_nprocessed(struct jobq_s *q)
 
 void stack_push_prio_task(struct jobq_s *q, job_t task)
 {
-#ifndef NO_PRIO
+#ifndef STARPU_NO_PRIO
 	STARPU_ASSERT(q);
 	struct stack_jobq_s *stack_queue = q->queue;
 

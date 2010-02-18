@@ -102,7 +102,7 @@ job_t priority_pop_task(struct jobq_s *q)
 
 	if ((queue->total_njobs == 0) && _starpu_machine_is_running())
 	{
-#ifdef NON_BLOCKING_DRIVERS
+#ifdef STARPU_NON_BLOCKING_DRIVERS
 		_starpu_datawizard_progress(q->memory_node, 1);
 #else
 		pthread_cond_wait(&q->activity_cond, &q->activity_mutex);

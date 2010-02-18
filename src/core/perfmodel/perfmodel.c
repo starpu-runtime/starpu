@@ -147,9 +147,9 @@ static int directory_existence_was_tested = 0;
 
 void _starpu_get_perf_model_dir(char *path, size_t maxlen)
 {
-#ifdef PERF_MODEL_DIR
+#ifdef STARPU_PERF_MODEL_DIR
 	/* use the directory specified at configure time */
-	snprintf(path, maxlen, "%s", PERF_MODEL_DIR);
+	snprintf(path, maxlen, "%s", STARPU_PERF_MODEL_DIR);
 #else
 	/* by default, we use $HOME/.starpu/sampling */
 	const char *home_path = getenv("HOME");
@@ -189,8 +189,8 @@ void create_sampling_directory_if_needed(void)
 		_starpu_get_perf_model_dir(perf_model_dir, 256);
 
 		/* The performance of the codelets are stored in
-		 * $PERF_MODEL_DIR/codelets/ while those of the bus are stored in
-		 * $PERF_MODEL_DIR/bus/ so that we don't have name collisions */
+		 * $STARPU_PERF_MODEL_DIR/codelets/ while those of the bus are stored in
+		 * $STARPU_PERF_MODEL_DIR/bus/ so that we don't have name collisions */
 		
 		/* Testing if a directory exists and creating it otherwise 
 		   may not be safe: it is possible that the permission are

@@ -63,7 +63,7 @@ struct jobq_s *create_fifo(void)
 
 int fifo_push_prio_task(struct jobq_s *q, job_t task)
 {
-#ifndef NO_PRIO
+#ifndef STARPU_NO_PRIO
 	STARPU_ASSERT(q);
 	struct fifo_jobq_s *fifo_queue = q->queue;
 

@@ -135,7 +135,7 @@ if test x$enable_cpu = xyes; then
 
 	# This value is set quite randomly, but StarPU should not take more
 	# core than there are in the system
-	AC_DEFINE(NMAXCPUS, [16], [Maximum number of CPUs supported])
+	AC_DEFINE(STARPU_NMAXCPUS, [16], [Maximum number of CPUs supported])
 fi
 
 ###############################################################################
@@ -276,7 +276,7 @@ AM_CONDITIONAL(STARPU_USE_GORDON, test x$enable_gordon = xyes)
 
 if test x$enable_gordon = xyes; then
 	AC_DEFINE(STARPU_USE_GORDON, [1], [Cell support is enabled])
-	AC_DEFINE(NON_BLOCKING_DRIVERS, [1], [drivers must progress])
+	AC_DEFINE(STARPU_NON_BLOCKING_DRIVERS, [1], [drivers must progress])
 fi
 
 ###############################################################################
@@ -382,9 +382,9 @@ AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],
 			[enable performance debugging])],
 			enable_perf_debug=$enableval, enable_perf_debug=no)
 AC_MSG_RESULT($enable_perf_debug)
-AC_SUBST(PERF_DEBUG, $enable_perf_debug)
+AC_SUBST(STARPU_PERF_DEBUG, $enable_perf_debug)
 if test x$enable_perf_debuf = xyes; then
-	AC_DEFINE(PERF_DEBUG, [1], [enable performance debug])
+	AC_DEFINE(STARPU_PERF_DEBUG, [1], [enable performance debug])
 	CPPFLAGS="${CPPFLAGS} -pg "
 	LDFLAGS="${LDFLAGS} -pg "
 fi
@@ -446,7 +446,7 @@ AC_ARG_ENABLE(priority, [AS_HELP_STRING([--disable-priority],
 			enable_priority=$enableval, enable_priority=yes)
 AC_MSG_RESULT($enable_priority)
 if test x$enable_priority = xno; then
-	AC_DEFINE(NO_PRIO, [1], [Disable priorities])
+	AC_DEFINE(STARPU_NO_PRIO, [1], [Disable priorities])
 fi
 
 AC_MSG_CHECKING(whether allocation cache should be used)
@@ -466,7 +466,7 @@ AC_ARG_WITH(perf-model-dir, [AS_HELP_STRING([--with-perf-model-dir=<dir>], [spec
 	
 		perf_model_dir=$withval
 		have_explicit_perf_model_dir=yes
-		AC_DEFINE_UNQUOTED(PERF_MODEL_DIR, ["$perf_model_dir"], [performance models location])
+		AC_DEFINE_UNQUOTED(STARPU_PERF_MODEL_DIR, ["$perf_model_dir"], [performance models location])
 	], [
 		# by default, we put the performance models in
 		# $HOME/.starpu/sampling/

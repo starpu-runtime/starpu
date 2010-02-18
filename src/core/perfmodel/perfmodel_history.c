@@ -254,7 +254,7 @@ static void save_history_based_model(struct starpu_perfmodel_t *model)
 
 	/* TODO checks */
 
-	/* filename = $PERF_MODEL_DIR/codelets/symbol.hostname */
+	/* filename = $STARPU_PERF_MODEL_DIR/codelets/symbol.hostname */
 	char path[256];
 	get_model_path(model, path, 256);
 
