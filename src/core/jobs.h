@@ -58,6 +58,7 @@ LIST_TYPE(job,
 	pthread_cond_t sync_cond;
 
 	struct tag_s *tag;
+	struct cg_list_s job_successors;
 
 	double predicted;
 	double penality;
@@ -73,6 +74,9 @@ void starpu_wait_job(job_t j);
 
 /* try to submit job j, enqueue it if it's not schedulable yet */
 unsigned _starpu_enforce_deps_and_schedule(job_t j);
+unsigned _starpu_enforce_deps_starting_from_task(job_t j);
+unsigned _starpu_enforce_deps_starting_from_data(job_t j);
+
 
 //#warning this must not be exported anymore ... 
 //job_t _starpu_job_create(struct starpu_task *task);

@@ -94,6 +94,7 @@ libstarpu_la_SOURCES = 						\
 	core/progress_hook.c					\
 	core/dependencies/cg.c					\
 	core/dependencies/tags.c				\
+	core/dependencies/task-deps.c				\
 	core/dependencies/htable.c				\
 	core/dependencies/data-concurrency.c			\
 	core/mechanisms/queues.c				\

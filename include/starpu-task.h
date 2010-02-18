@@ -165,6 +165,9 @@ struct starpu_task {
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);
 
+/* task depends on the tasks in task array */
+void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
+
 int starpu_tag_wait(starpu_tag_t id);
 int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id);
 

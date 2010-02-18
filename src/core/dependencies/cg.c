@@ -16,6 +16,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
+#include <core/jobs.h>
 #include <core/dependencies/cg.h>
 #include <core/dependencies/tags.h>
 
@@ -27,7 +28,7 @@ void _starpu_cg_list_init(struct cg_list_s *list)
 
 #ifdef DYNAMIC_DEPS_SIZE
 	/* this is a small initial default value ... may be changed */
-	list->succ_list_size = 4;
+	list->succ_list_size = 0;
 	list->succ =
 		realloc(NULL, list->succ_list_size*sizeof(struct cg_s *));
 #endif
@@ -42,7 +43,10 @@ void _starpu_add_successor_to_cg_list(struct cg_list_s *successors, cg_t *cg)
 	if (index >= successors->succ_list_size)
 	{
 		/* the successor list is too small */
-		successors->succ_list_size *= 2;
+		if (successors->succ_list_size > 0)
+			successors->succ_list_size *= 2;
+		else
+			successors->succ_list_size = 4;
 
 		/* NB: this is thread safe as the tag->lock is taken */
 		successors->succ = realloc(successors->succ, 
@@ -62,7 +66,8 @@ void _starpu_notify_cg(cg_t *cg)
 		cg->remaining = cg->ntags;
 
 		struct tag_s *tag;
-		struct cg_list_s *tag_successors;
+		struct cg_list_s *tag_successors, *job_successors;
+		job_t j;
 
 		/* the group is now completed */
 		switch (cg->cg_type) {
@@ -83,6 +88,7 @@ void _starpu_notify_cg(cg_t *cg)
 	
 				if ((tag->state == BLOCKED) &&
 					(tag_successors->ndeps == tag_successors->ndeps_completed)) {
+					/* reset the counter so that we can reuse the completion group */
 					tag_successors->ndeps_completed = 0;
 					_starpu_tag_set_ready(tag);
 				}
@@ -90,6 +96,20 @@ void _starpu_notify_cg(cg_t *cg)
 
 			case CG_TASK:
 				/* TODO */
+				j = cg->succ.job;
+
+				job_successors = &j->job_successors;
+
+				unsigned ndeps_completed =
+					STARPU_ATOMIC_ADD(&job_successors->ndeps_completed, 1);
+
+				if (job_successors->ndeps == ndeps_completed)
+				{
+					/* reset the counter so that we can reuse the completion group */
+					job_successors->ndeps_completed = 0;
+					_starpu_enforce_deps_starting_from_data(j);
+				}
+
 				break;
 
 			default:
@@ -98,4 +118,33 @@ void _starpu_notify_cg(cg_t *cg)
 	}
 }
 
+void _starpu_notify_cg_list(struct cg_list_s *successors)
+{
+	unsigned nsuccs;
+	unsigned succ;
 
+	nsuccs = successors->nsuccs;
+
+	for (succ = 0; succ < nsuccs; succ++)
+	{
+		struct cg_s *cg = successors->succ[succ];
+		struct tag_s *cgtag = cg->succ.tag;
+
+		unsigned cg_type = cg->cg_type;
+
+		if (cg_type == CG_TAG)
+			starpu_spin_lock(&cgtag->lock);
+
+		_starpu_notify_cg(cg);
+		if (cg_type == CG_APPS) {
+			/* Remove the temporary ref to the cg */
+			memmove(&successors->succ[succ], &successors->succ[succ+1], (nsuccs-(succ+1)) * sizeof(successors->succ[succ]));
+			succ--;
+			nsuccs--;
+			successors->nsuccs--;
+		}
+
+		if (cg_type == CG_TAG)
+			starpu_spin_unlock(&cgtag->lock);
+	}
+}

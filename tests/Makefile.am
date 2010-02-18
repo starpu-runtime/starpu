@@ -82,6 +82,7 @@ check_PROGRAMS += 				\
 	core/empty_task				\
 	core/empty_task_sync_point		\
 	core/tag-wait-api			\
+	core/task-wait-api			\
 	datawizard/sync_and_notify_data		\
 	datawizard/dsm_stress			\
 	datawizard/write_only_tmp_buffer	\
@@ -139,6 +140,9 @@ core_empty_task_sync_point_SOURCES =		\
 
 core_tag_wait_api_SOURCES =			\
 	core/tag-wait-api.c
+
+core_task_wait_api_SOURCES =			\
+	core/task-wait-api.c
 
 datawizard_dsm_stress_SOURCES =			\
 	datawizard/dsm_stress.c

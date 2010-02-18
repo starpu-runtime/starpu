@@ -26,5 +26,6 @@ void _starpu_increment_nsubmitted_tasks(void);
 void _starpu_decrement_nsubmitted_tasks(void);
 
 int _starpu_submit_job(job_t j);
+job_t _starpu_get_job_associated_to_task(struct starpu_task *task);
 
 #endif // __CORE_TASK_H__

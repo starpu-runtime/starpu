@@ -153,13 +153,7 @@ void _starpu_tag_set_ready(struct tag_s *tag)
 	starpu_spin_unlock(&tag->lock);
 
 	/* enforce data dependencies */
-	if (_starpu_submit_job_enforce_data_deps(j))
-	{
-		starpu_spin_lock(&tag->lock);
-		return;
-	}
-
-	push_task(j);
+	_starpu_enforce_deps_starting_from_task(j);
 
 	starpu_spin_lock(&tag->lock);
 }
@@ -179,41 +173,12 @@ static void _starpu_tag_add_succ(struct tag_s *tag, cg_t *cg)
 
 static void _starpu_notify_tag_dependencies(struct tag_s *tag)
 {
-	unsigned nsuccs;
-	unsigned succ;
-
-	struct cg_list_s *tag_successors = &tag->tag_successors;
-
 	starpu_spin_lock(&tag->lock);
 
 	tag->state = DONE;
-
 	TRACE_TASK_DONE(tag);
 
-	nsuccs = tag_successors->nsuccs;
-
-	for (succ = 0; succ < nsuccs; succ++)
-	{
-		struct cg_s *cg = tag_successors->succ[succ];
-		struct tag_s *cgtag = cg->succ.tag;
-
-		unsigned cg_type = cg->cg_type;
-
-		if (cg_type == CG_TAG)
-			starpu_spin_lock(&cgtag->lock);
-
-		_starpu_notify_cg(cg);
-		if (cg_type == CG_APPS) {
-			/* Remove the temporary ref to the cg */
-			memmove(&tag_successors->succ[succ], &tag_successors->succ[succ+1], (nsuccs-(succ+1)) * sizeof(tag_successors->succ[succ]));
-			succ--;
-			nsuccs--;
-			tag_successors->nsuccs--;
-		}
-
-		if (cg_type == CG_TAG)
-			starpu_spin_unlock(&cgtag->lock);
-	}
+	_starpu_notify_cg_list(&tag->tag_successors);
 
 	starpu_spin_unlock(&tag->lock);
 }
@@ -222,8 +187,11 @@ void _starpu_notify_dependencies(struct job_s *j)
 {
 	STARPU_ASSERT(j);
 	STARPU_ASSERT(j->task);
+
+	/* unlock tasks depending on that task */
+	_starpu_notify_task_dependencies(j);
 	
-	/* in case there are dependencies, wake up the proper tasks */
+	/* unlock tags depending on that task */
 	if (j->task->use_tag)
 		_starpu_notify_tag_dependencies(j->tag);
 }

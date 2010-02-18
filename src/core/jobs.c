@@ -51,6 +51,8 @@ job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task)
 	job->footprint_is_computed = 0;
 	job->terminated = 0;
 
+	_starpu_cg_list_init(&job->job_successors);
+
 	pthread_mutex_init(&job->sync_mutex, NULL);
 	pthread_cond_init(&job->sync_cond, NULL);
 
@@ -66,11 +68,16 @@ void starpu_wait_job(job_t j)
 	STARPU_ASSERT(!j->task->detach);
 
 	pthread_mutex_lock(&j->sync_mutex);
+
 	if (!j->terminated)
 		pthread_cond_wait(&j->sync_cond, &j->sync_mutex);
+
+	/* reset the job state so that it can be reused again */
+	j->terminated = 0;
+
 	pthread_mutex_unlock(&j->sync_mutex);
 
-	job_delete(j);
+	//job_delete(j);
 }
 
 void _starpu_handle_job_termination(job_t j)
@@ -117,11 +124,14 @@ void _starpu_handle_job_termination(job_t j)
 	else {
 		/* no one is going to synchronize with that task so we release
  		 * the data structures now */
-		if (detach && !regenerate)
-			job_delete(j);
+		if (!regenerate)
+			task->starpu_private = NULL;
 
 		if (destroy)
+		{
+			job_delete(j);
 			free(task);
+		}
 	}
 
 	_starpu_decrement_nsubmitted_tasks();
@@ -137,8 +147,8 @@ void _starpu_handle_job_termination(job_t j)
 }
 
 /* This function is called when a new task is submitted to StarPU 
- * it returns 1 if the task deps are not fulfilled, 0 otherwise */
-static unsigned _starpu_not_all_task_deps_are_fulfilled(job_t j)
+ * it returns 1 if the tag deps are not fulfilled, 0 otherwise */
+static unsigned _starpu_not_all_tag_deps_are_fulfilled(job_t j)
 {
 	unsigned ret;
 
@@ -171,7 +181,56 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(job_t j)
 	return ret;
 }
 
+static unsigned _starpu_not_all_task_deps_are_fulfilled(job_t j)
+{
+	unsigned ret;
+
+	struct cg_list_s *job_successors = &j->job_successors;
+
+#warning TODO use locks !
+	if (job_successors->ndeps != job_successors->ndeps_completed)
+	{
+		ret = 1;
+	}
+	else {
+		/* existing deps (if any) are fulfilled */
+		/* already prepare for next run */
+		job_successors->ndeps_completed = 0;
+		ret = 0;
+	}
+
+	return ret;
+}
+
+
+
+/*
+ *	In order, we enforce tag, task and data dependencies. The task is
+ *	passed to the scheduler only once all these constraints are fulfilled.
+ */
 unsigned _starpu_enforce_deps_and_schedule(job_t j)
+{
+	unsigned ret;
+
+	/* enfore tag dependencies */
+	if (_starpu_not_all_tag_deps_are_fulfilled(j))
+		return 0;
+
+	/* enfore task dependencies */
+	if (_starpu_not_all_task_deps_are_fulfilled(j))
+		return 0;
+
+	/* enforce data dependencies */
+	if (_starpu_submit_job_enforce_data_deps(j))
+		return 0;
+
+	ret = push_task(j);
+
+	return ret;
+}
+
+/* Tag deps are already fulfilled */
+unsigned _starpu_enforce_deps_starting_from_task(job_t j)
 {
 	unsigned ret;
 
@@ -187,6 +246,23 @@ unsigned _starpu_enforce_deps_and_schedule(job_t j)
 
 	return ret;
 }
+
+/* Tag and task deps are already fulfilled */
+unsigned _starpu_enforce_deps_starting_from_data(job_t j)
+{
+	unsigned ret;
+
+	/* enforce data dependencies */
+	if (_starpu_submit_job_enforce_data_deps(j))
+		return 0;
+
+	ret = push_task(j);
+
+	return ret;
+}
+
+
+
 
 struct job_s *_starpu_pop_local_task(struct worker_s *worker)
 {
