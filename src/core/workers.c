@@ -126,7 +126,7 @@ static void _starpu_init_workers(struct machine_config_s *config)
 		_starpu_init_worker_queue(workerarg);
 
 		switch (workerarg->arch) {
-#ifdef STARPU_USE_CPUS
+#ifdef STARPU_USE_CPU
 			case STARPU_CPU_WORKER:
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;

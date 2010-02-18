@@ -258,7 +258,7 @@ static int _starpu_init_machine_config(struct machine_config_s *config,
 
 /* we put the CPU section after the accelerator : in case there was an
  * accelerator found, we devote one cpu */
-#ifdef STARPU_USE_CPUS
+#ifdef STARPU_USE_CPU
 	if (user_conf && (user_conf->ncpus != -1)) {
 		explicitval = user_conf->ncpus;
 	}

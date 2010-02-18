@@ -131,7 +131,7 @@ AC_SUBST(STARPU_USE_CPU, $enable_cpu)
 AM_CONDITIONAL(STARPU_USE_CPU, test x$enable_cpu = xyes)
 
 if test x$enable_cpu = xyes; then
-	AC_DEFINE(STARPU_USE_CPUS, [1], [CPU driver is activated])
+	AC_DEFINE(STARPU_USE_CPU, [1], [CPU driver is activated])
 
 	# This value is set quite randomly, but StarPU should not take more
 	# core than there are in the system
