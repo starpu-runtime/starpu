@@ -9,7 +9,7 @@
 #undef STARPU_GOTO
 #undef STARPU_SYSTEM_BLAS
 
-#undef STARPUDIR
+#undef STARPU_DIR
 
 #undef STARPU_OPENGL_RENDER
 

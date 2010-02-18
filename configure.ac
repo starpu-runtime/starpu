@@ -52,8 +52,8 @@ esac
 
 # This will be useful for program which use CUDA (and .cubin files) which need
 # some path to the CUDA code at runtime.
-AC_DEFINE_UNQUOTED(STARPUDIR, "$PWD", [location of StarPU sources])
-AC_SUBST(STARPUDIR, $PWD)
+AC_DEFINE_UNQUOTED(STARPU_DIR, "$PWD", [location of StarPU sources])
+AC_SUBST(STARPU_DIR, $PWD)
 
 AC_CHECK_LIB([pthread], [pthread_create])
 case "$target" in
