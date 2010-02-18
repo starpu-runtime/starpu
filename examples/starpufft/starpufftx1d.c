@@ -130,7 +130,7 @@ STARPUFFT(twist1_1d_kernel_cpu)(void *descr[], void *_args)
 		twisted1[j] = in[i+j*n1];
 }
 
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 /* Perform an n2 fft */
 static void
 STARPUFFT(fft1_1d_kernel_cpu)(void *descr[], void *_args)
@@ -182,7 +182,7 @@ STARPUFFT(twist2_1d_kernel_cpu)(void *descr[], void *_args)
 	}
 }
 
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 /* Perform n2/DIV_1D (n1) ffts */
 static void
 STARPUFFT(fft2_1d_kernel_cpu)(void *descr[], void *_args)
@@ -275,14 +275,14 @@ static starpu_codelet STARPUFFT(fft1_1d_codelet) = {
 #ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
 #endif
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 		STARPU_CPU|
 #endif
 		0,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = STARPUFFT(fft1_1d_kernel_gpu),
 #endif
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 	.cpu_func = STARPUFFT(fft1_1d_kernel_cpu),
 #endif
 	.model = &STARPUFFT(fft1_1d_model),
@@ -301,14 +301,14 @@ static starpu_codelet STARPUFFT(fft2_1d_codelet) = {
 #ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
 #endif
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 		STARPU_CPU|
 #endif
 		0,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = STARPUFFT(fft2_1d_kernel_gpu),
 #endif
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 	.cpu_func = STARPUFFT(fft2_1d_kernel_cpu),
 #endif
 	.model = &STARPUFFT(fft2_1d_model),
@@ -392,7 +392,7 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 	for (workerid = 0; workerid < starpu_get_worker_count(); workerid++) {
 		switch (starpu_get_worker_type(workerid)) {
 		case STARPU_CPU_WORKER:
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 			/* first fft plan: one n2 fft */
 			plan->plans[workerid].in1 = _FFTW(malloc)(plan->totsize2 * sizeof(_fftw_complex));
 			memset(plan->plans[workerid].in1, 0, plan->totsize2 * sizeof(_fftw_complex));

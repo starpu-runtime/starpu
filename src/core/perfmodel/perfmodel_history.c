@@ -220,7 +220,7 @@ void register_model(struct starpu_perfmodel_t *model)
 	node->next = registered_models;
 	registered_models = node;
 
-#ifdef MODEL_DEBUG
+#ifdef STARPU_MODEL_DEBUG
 	create_sampling_directory_if_needed();
 
 	unsigned arch;
@@ -612,7 +612,7 @@ void _starpu_update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, u
 			pthread_rwlock_unlock(&model->model_rwlock);
 		}
 
-#ifdef MODEL_DEBUG
+#ifdef STARPU_MODEL_DEBUG
 		FILE * debug_file = per_arch_model->debug_file;
 
 		pthread_rwlock_wrlock(&model->model_rwlock);

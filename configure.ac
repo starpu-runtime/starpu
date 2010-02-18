@@ -113,7 +113,7 @@ AC_SEARCH_LIBS([set_mempolicy],[numa],[enable_libnuma=yes],[enable_libnuma=no])
 AC_MSG_CHECKING(whether libnuma is available)
 AC_MSG_RESULT($enable_libnuma)
 if test x$enable_libnuma = xyes; then
-	AC_DEFINE(HAVE_LIBNUMA,[],[libnuma is available])
+	AC_DEFINE(STARPU_HAVE_LIBNUMA,[],[libnuma is available])
 fi
 
 ###############################################################################
@@ -395,7 +395,7 @@ AC_ARG_ENABLE(model-debug, [AS_HELP_STRING([--enable-model-debug],
 			enable_model_debug=$enableval, enable_model_debug=no)
 AC_MSG_RESULT($enable_model_debug)
 if  test x$enable_model_debug = xyes; then
-	AC_DEFINE(MODEL_DEBUG, [1], [enable performance model debug])
+	AC_DEFINE(STARPU_MODEL_DEBUG, [1], [enable performance model debug])
 fi
 
 AC_MSG_CHECKING(whether statistics should be generated)
@@ -664,25 +664,25 @@ have_fftwf=no
 have_fftwl=no
 
 PKG_CHECK_MODULES([FFTW],  [fftw3],  [
-  AC_DEFINE([HAVE_FFTW], [1], [Define to 1 if you have the libfftw3 library.])
-  AC_SUBST([HAVE_FFTW], [1])
+  AC_DEFINE([STARPU_HAVE_FFTW], [1], [Define to 1 if you have the libfftw3 library.])
+  AC_SUBST([STARPU_HAVE_FFTW], [1])
   have_fftw=yes  
 ], [:])
-AM_CONDITIONAL(HAVE_FFTW, [test x$have_fftw = xyes])
+AM_CONDITIONAL(STARPU_HAVE_FFTW, [test x$have_fftw = xyes])
 
 PKG_CHECK_MODULES([FFTWF], [fftw3f], [
-  AC_DEFINE([HAVE_FFTWF], [1], [Define to 1 if you have the libfftw3f library.])
-  AC_SUBST([HAVE_FFTWF], [1])
+  AC_DEFINE([STARPU_HAVE_FFTWF], [1], [Define to 1 if you have the libfftw3f library.])
+  AC_SUBST([STARPU_HAVE_FFTWF], [1])
   have_fftwf=yes  
 ], [:])
-AM_CONDITIONAL(HAVE_FFTWF, [test x$have_fftwf = xyes])
+AM_CONDITIONAL(STARPU_HAVE_FFTWF, [test x$have_fftwf = xyes])
 
 PKG_CHECK_MODULES([FFTWL], [fftw3l], [
-  AC_DEFINE([HAVE_FFTWL], [1], [Define to 1 if you have the libfftw3l library.])
+  AC_DEFINE([STARPU_HAVE_FFTWL], [1], [Define to 1 if you have the libfftw3l library.])
   AC_SUBST([HAVE_FFTWFL], [1])
   have_fftwl=yes  
 ], [:])
-AM_CONDITIONAL(HAVE_FFTWL, [test x$have_fftwl = xyes])
+AM_CONDITIONAL(STARPU_HAVE_FFTWL, [test x$have_fftwl = xyes])
 
 PKG_CHECK_MODULES([HWLOC], [hwloc], [
   AC_DEFINE([HAVE_HWLOC], [1], [Define to 1 if you have the hwloc library.])

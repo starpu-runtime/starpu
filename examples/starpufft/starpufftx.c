@@ -85,14 +85,14 @@ struct STARPUFFT(plan) {
 		cudaStream_t stream;
 		int stream_is_initialized;
 #endif
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 		_fftw_plan plan1_cpu, plan2_cpu;
 		_fftw_complex *in1, *out1;
 		_fftw_complex *in2, *out2;
 #endif
 	} plans[STARPU_NMAXWORKERS];
 
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 	_fftw_plan plan_gather;
 #endif
 
@@ -235,7 +235,7 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 	for (workerid = 0; workerid < starpu_get_worker_count(); workerid++) {
 		switch (starpu_get_worker_type(workerid)) {
 		case STARPU_CPU_WORKER:
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 			_FFTW(free)(plan->plans[workerid].in1);
 			_FFTW(free)(plan->plans[workerid].out1);
 			_FFTW(destroy_plan)(plan->plans[workerid].plan1_cpu);
@@ -310,7 +310,7 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 	STARPUFFT(free)(plan->fft1);
 	STARPUFFT(free)(plan->twisted2);
 	STARPUFFT(free)(plan->fft2);
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 	_FFTW(destroy_plan)(plan->plan_gather);
 #endif
 	free(plan);
@@ -324,7 +324,7 @@ STARPUFFT(malloc)(size_t n)
 	starpu_malloc_pinned_if_possible(&res, n);
 	return res;
 #else
-#  ifdef HAVE_FFTW
+#  ifdef STARPU_HAVE_FFTW
 	return _FFTW(malloc)(n);
 #  else
 	return malloc(n);
@@ -338,7 +338,7 @@ STARPUFFT(free)(void *p)
 #ifdef STARPU_USE_CUDA
 	// TODO: FIXME
 #else
-#  ifdef HAVE_FFTW
+#  ifdef STARPU_HAVE_FFTW
 	_FFTW(free)(p);
 #  else
 	free(p);

@@ -73,7 +73,7 @@ struct starpu_per_arch_perfmodel_t {
 	struct starpu_htbl32_node_s *history;
 	struct starpu_history_list_t *list;
 	struct starpu_regression_model_t regression;
-#ifdef MODEL_DEBUG
+#ifdef STARPU_MODEL_DEBUG
 	FILE *debug_file;
 #endif
 };

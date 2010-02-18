@@ -45,7 +45,7 @@ static double self_add_sub_cost(starpu_buffer_descr *descr)
 
 	double cost = (n*n)/10.0f/4.0f/7.75f;
 
-#ifdef MODEL_DEBUG
+#ifdef STARPU_MODEL_DEBUG
 	printf("self add sub cost %e n = %d\n", cost, n);
 #endif
 
@@ -60,7 +60,7 @@ static double cuda_self_add_sub_cost(starpu_buffer_descr *descr)
 
 	double cost = (n*n)/10.0f/4.0f;
 
-#ifdef MODEL_DEBUG
+#ifdef STARPU_MODEL_DEBUG
 	printf("self add sub cost %e n = %d\n", cost, n);
 #endif
 
@@ -75,7 +75,7 @@ static double add_sub_cost(starpu_buffer_descr *descr)
 
 	double cost = (1.45f*n*n)/10.0f/2.0f;
 
-#ifdef MODEL_DEBUG
+#ifdef STARPU_MODEL_DEBUG
 	printf("add sub cost %e n = %d\n", cost, n);
 #endif
 
@@ -90,7 +90,7 @@ static double cuda_add_sub_cost(starpu_buffer_descr *descr)
 
 	double cost = (1.45f*n*n)/10.0f/2.0f;
 
-#ifdef MODEL_DEBUG
+#ifdef STARPU_MODEL_DEBUG
 	printf("add sub cost %e n = %d\n", cost, n);
 #endif
 
@@ -106,7 +106,7 @@ static double mult_cost(starpu_buffer_descr *descr)
 
 	double cost = (((double)(n)*n*n)/1000.0f/4.11f/0.2588);
 
-#ifdef MODEL_DEBUG
+#ifdef STARPU_MODEL_DEBUG
 	printf("mult cost %e n = %d \n", cost, n);
 #endif
 
@@ -121,7 +121,7 @@ static double cuda_mult_cost(starpu_buffer_descr *descr)
 
 	double cost = (((double)(n)*n*n)/1000.0f/4.11f);
 
-#ifdef MODEL_DEBUG
+#ifdef STARPU_MODEL_DEBUG
 	printf("mult cost %e n = %d \n", cost, n);
 #endif
 

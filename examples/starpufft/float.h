@@ -17,7 +17,7 @@
 #include <complex.h>
 #include <starpu_config.h>
 
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 #include <fftw3.h>
 #endif
 
@@ -26,7 +26,7 @@
 #endif
 
 typedef float real;
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 typedef fftwf_complex _fftw_complex;
 typedef fftwf_plan _fftw_plan;
 #endif

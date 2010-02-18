@@ -28,7 +28,7 @@
 
 #undef STARPU_USE_CUDA
 
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 #include <fftw3.h>
 #endif
 #ifdef STARPU_USE_CUDA
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
 	size_t bytes;
 	int n = 0, m = 0;
 	STARPUFFT(plan) plan;
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 	_FFTW(plan) fftw_plan;
 #endif
 #ifdef STARPU_USE_CUDA
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
 
 	STARPUFFT(complex) *out = STARPUFFT(malloc)(size * sizeof(*out));
 
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 	STARPUFFT(complex) *out_fftw = STARPUFFT(malloc)(size * sizeof(*out_fftw));
 #endif
 
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
 
 	if (argc == 2) {
 		plan = STARPUFFT(plan_dft_1d)(n, SIGN, 0);
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 		fftw_plan = _FFTW(plan_dft_1d)(n, in, out_fftw, SIGN, FFTW_ESTIMATE);
 #endif
 #ifdef STARPU_USE_CUDA
@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
 
 	} else if (argc == 3) {
 		plan = STARPUFFT(plan_dft_2d)(n, m, SIGN, 0);
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 		fftw_plan = _FFTW(plan_dft_2d)(n, m, in, out_fftw, SIGN, FFTW_ESTIMATE);
 #endif
 #ifdef STARPU_USE_CUDA
@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
 		assert(0);
 	}
 
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 	gettimeofday(&begin, NULL);
 	_FFTW(execute)(fftw_plan);
 	gettimeofday(&end, NULL);
@@ -150,14 +150,14 @@ int main(int argc, char *argv[]) {
 	for (i = 0; i < 16; i++)
 		printf("(%f,%f) ", cimag(out[i]), creal(out[i]));
 	printf("\n\n");
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 	for (i = 0; i < 16; i++)
 		printf("(%f,%f) ", cimag(out_fftw[i]), creal(out_fftw[i]));
 	printf("\n\n");
 #endif
 #endif
 
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 {
 	double max = 0., tot = 0., norm = 0., normdiff = 0.;
 	for (i = 0; i < size; i++) {
@@ -216,7 +216,7 @@ int main(int argc, char *argv[]) {
 	STARPUFFT(free)(in);
 	STARPUFFT(free)(out);
 
-#ifdef HAVE_FFTW
+#ifdef STARPU_HAVE_FFTW
 	STARPUFFT(free)(out_fftw);
 #endif
 

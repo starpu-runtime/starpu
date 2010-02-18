@@ -19,8 +19,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddi
 
 TESTS = $(check_PROGRAMS)
 
-if HAVE_FFTW
-if HAVE_FFTWL
+if STARPU_HAVE_FFTW
+if STARPU_HAVE_FFTWL
 SUBDIRS = starpufft
 endif
 endif

@@ -24,7 +24,7 @@
 #include "pxlu.h"
 //#include "pxlu_kernels.h"
 
-#ifdef HAVE_LIBNUMA
+#ifdef STARPU_HAVE_LIBNUMA
 #include <numaif.h>
 #endif
 
@@ -86,7 +86,7 @@ static void parse_args(int argc, char **argv, int rank)
 		}
 
 		if (strcmp(argv[i], "-numa") == 0) {
-#ifdef HAVE_LIBNUMA
+#ifdef STARPU_HAVE_LIBNUMA
 			numa = 1;
 #else
 			if (rank == 0)
@@ -188,7 +188,7 @@ static unsigned tmp_21_block_is_needed(int rank, unsigned nblocks, unsigned i)
 
 static void init_matrix(int rank)
 {
-#ifdef HAVE_LIBNUMA
+#ifdef STARPU_HAVE_LIBNUMA
 	if (numa)
 	{
 		fprintf(stderr, "Using INTERLEAVE policy\n");

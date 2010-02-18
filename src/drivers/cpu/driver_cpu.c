@@ -69,7 +69,7 @@ static int execute_job_on_cpu(job_t j, struct worker_s *cpu_args)
 
 	push_task_output(task, 0);
 
-//#ifdef MODEL_DEBUG
+//#ifdef STARPU_MODEL_DEBUG
 	if (calibrate_model || BENCHMARK_COMM)
 	{
 		double measured = timing_delay(&codelet_start, &codelet_end);
