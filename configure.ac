@@ -685,8 +685,8 @@ PKG_CHECK_MODULES([FFTWL], [fftw3l], [
 AM_CONDITIONAL(STARPU_HAVE_FFTWL, [test x$have_fftwl = xyes])
 
 PKG_CHECK_MODULES([HWLOC], [hwloc], [
-  AC_DEFINE([HAVE_HWLOC], [1], [Define to 1 if you have the hwloc library.])
-  AC_SUBST([HAVE_HWLOC], [1])
+  AC_DEFINE([STARPU_HAVE_HWLOC], [1], [Define to 1 if you have the hwloc library.])
+  AC_SUBST([STARPU_HAVE_HWLOC], [1])
 ], [:])
 
 AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h)

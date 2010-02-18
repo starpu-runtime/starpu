@@ -34,7 +34,7 @@
 
 #include <starpu.h>
 
-#ifdef HAVE_HWLOC
+#ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 #endif
 
@@ -99,7 +99,7 @@ struct worker_set_s {
 struct machine_config_s {
 	unsigned nworkers;
 
-#ifdef HAVE_HWLOC
+#ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_t hwtopology;
 	int cpu_depth;
 #endif

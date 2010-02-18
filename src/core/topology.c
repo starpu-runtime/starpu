@@ -22,7 +22,7 @@
 #include <core/topology.h>
 #include <drivers/cuda/driver_cuda.h>
 
-#ifdef HAVE_HWLOC
+#ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 #endif
 
@@ -125,7 +125,7 @@ static void _starpu_init_topology(struct machine_config_s *config)
 {
 	if (!topology_is_initialized)
 	{
-#ifdef HAVE_HWLOC
+#ifdef STARPU_HAVE_HWLOC
 		hwloc_topology_init(&config->hwtopology);
 		hwloc_topology_load(config->hwtopology);
 
@@ -415,7 +415,7 @@ static inline int _starpu_get_next_bindid(struct machine_config_s *config,
 
 void _starpu_bind_thread_on_cpu(struct machine_config_s *config __attribute__((unused)), unsigned cpuid)
 {
-#ifdef HAVE_HWLOC
+#ifdef STARPU_HAVE_HWLOC
 	int ret;
 	_starpu_init_topology(config);
 
@@ -546,7 +546,7 @@ void starpu_destroy_topology(struct machine_config_s *config __attribute__ ((unu
 	/* cleanup StarPU internal data structures */
 	deinit_memory_nodes();
 
-#ifdef HAVE_HWLOC
+#ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_destroy(config->hwtopology);
 #endif
 
