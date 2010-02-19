@@ -35,10 +35,10 @@ struct gordon_task_wrapper_s {
 	/* who has executed that ? */
 	struct worker_s *worker;
 
-	struct job_list_s *list;	/* StarPU */
+	struct starpu_job_list_s *list;	/* StarPU */
 	struct gordon_ppu_job_s *gordon_job; /* gordon*/
 
-	struct job_s *j; /* if there is a single task */
+	struct starpu_job_s *j; /* if there is a single task */
 
 	/* debug */
 	unsigned terminated;
@@ -75,7 +75,7 @@ void *gordon_worker_progress(void *arg)
 	return NULL;
 }
 
-static void starpu_to_gordon_buffers(job_t j, struct gordon_ppu_job_s *gordon_job, uint32_t memory_node)
+static void starpu_to_gordon_buffers(starpu_job_t j, struct gordon_ppu_job_s *gordon_job, uint32_t memory_node)
 {
 	unsigned buffer;
 	unsigned nin = 0, ninout = 0, nout = 0;
@@ -149,7 +149,7 @@ static void starpu_to_gordon_buffers(job_t j, struct gordon_ppu_job_s *gordon_jo
 
 /* we assume the data are already available so that the data interface fields are 
  * already filled */
-static struct gordon_task_wrapper_s *starpu_to_gordon_job(job_t j)
+static struct gordon_task_wrapper_s *starpu_to_gordon_job(starpu_job_t j)
 {
 	struct gordon_ppu_job_s *gordon_job = gordon_alloc_jobs(1, 0);
 	struct gordon_task_wrapper_s *task_wrapper =
@@ -168,7 +168,7 @@ static struct gordon_task_wrapper_s *starpu_to_gordon_job(job_t j)
 	return task_wrapper;
 }
 
-static void handle_terminated_job(job_t j)
+static void handle_terminated_job(starpu_job_t j)
 {
 	starpu_push_task_output(j->task, 0);
 	_starpu_handle_job_termination(j);
@@ -178,7 +178,7 @@ static void handle_terminated_job(job_t j)
 static void gordon_callback_list_func(void *arg)
 {
 	struct gordon_task_wrapper_s *task_wrapper = arg; 
-	struct job_list_s *wrapper_list; 
+	struct starpu_job_list_s *wrapper_list; 
 
 	/* we don't know who will execute that codelet : so we actually defer the
  	 * execution of the StarPU codelet and the job termination later */
@@ -194,9 +194,9 @@ static void gordon_callback_list_func(void *arg)
 	unsigned task_cnt = 0;
 
 	/* XXX 0 was hardcoded */
-	while (!job_list_empty(wrapper_list))
+	while (!starpu_job_list_empty(wrapper_list))
 	{
-		job_t j = job_list_pop_back(wrapper_list);
+		starpu_job_t j = starpu_job_list_pop_back(wrapper_list);
 
 		struct gordon_ppu_job_s * gordon_task = &task_wrapper->gordon_job[task_cnt];
 		struct starpu_perfmodel_t *model = j->task->cl->model;
@@ -216,7 +216,7 @@ static void gordon_callback_list_func(void *arg)
 	}
 
 	/* the job list was allocated by the gordon driver itself */
-	job_list_delete(wrapper_list);
+	starpu_job_list_delete(wrapper_list);
 
 	starpu_wake_all_blocked_workers();
 	free(task_wrapper->gordon_job);
@@ -243,7 +243,7 @@ static void gordon_callback_func(void *arg)
 	free(task_wrapper);
 }
 
-int inject_task(job_t j, struct worker_s *worker)
+int inject_task(starpu_job_t j, struct worker_s *worker)
 {
 	struct starpu_task *task = j->task;
 	int ret = _starpu_fetch_task_input(task, 0);
@@ -263,16 +263,16 @@ int inject_task(job_t j, struct worker_s *worker)
 	return 0;
 }
 
-int inject_task_list(struct job_list_s *list, struct worker_s *worker)
+int inject_task_list(struct starpu_job_list_s *list, struct worker_s *worker)
 {
 	/* first put back all tasks that can not be performed by Gordon */
 	unsigned nvalids = 0;
 	unsigned ninvalids = 0;
-	job_t j;
+	starpu_job_t j;
 
 	// TODO !
 //	
-//	for (j = job_list_begin(list); j != job_list_end(list); j = job_list_next(j) )
+//	for (j = starpu_job_list_begin(list); j != starpu_job_list_end(list); j = starpu_job_list_next(j) )
 //	{
 //		if (!STARPU_GORDON_MAY_PERFORM(j)) {
 //			// XXX TODO
@@ -299,7 +299,7 @@ int inject_task_list(struct job_list_s *list, struct worker_s *worker)
 	task_wrapper->worker = worker;
 	
 	unsigned index;
-	for (j = job_list_begin(list), index = 0; j != job_list_end(list); j = job_list_next(j), index++)
+	for (j = starpu_job_list_begin(list), index = 0; j != starpu_job_list_end(list); j = starpu_job_list_next(j), index++)
 	{
 		int ret;
 
@@ -337,7 +337,7 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 			int ret = 0;
 #warning we should look into the local job list here !
 
-			struct job_list_s *list = pop_every_task(STARPU_GORDON);
+			struct starpu_job_list_s *list = pop_every_task(STARPU_GORDON);
 			/* XXX 0 is hardcoded */
 			if (list)
 			{
@@ -352,20 +352,20 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 				unsigned chunk;
 				for (chunk = 0; chunk < nchunks; chunk++)
 				{
-					struct job_list_s *chunk_list;
+					struct starpu_job_list_s *chunk_list;
 					if (chunk != (nchunks -1))
 					{
 						/* split the list in 2 parts : list = chunk_list | tail */
-						chunk_list = job_list_new();
+						chunk_list = starpu_job_list_new();
 
 						/* find the end */
 						chunk_list->_head = list->_head;
 
-						job_itor_t it_j = job_list_begin(list);
+						starpu_job_itor_t it_j = starpu_job_list_begin(list);
 						unsigned ind;
 						for (ind = 0; ind < chunksize; ind++)
 						{
-							it_j = job_list_next(it_j);
+							it_j = starpu_job_list_next(it_j);
 						}
 
 						/* it_j should be the first element of the new list (tail) */
@@ -387,7 +387,7 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 			}
 #else
 			/* gordon should accept a little more work */
-			job_t j;
+			starpu_job_t j;
 			j =  pop_task();
 	//		fprintf(stderr, "pop task %p\n", j);
 			if (j) {

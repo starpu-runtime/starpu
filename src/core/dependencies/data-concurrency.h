@@ -19,7 +19,7 @@
 
 #include <core/jobs.h>
 
-unsigned _starpu_submit_job_enforce_data_deps(job_t j);
+unsigned _starpu_submit_job_enforce_data_deps(starpu_job_t j);
 
 void notify_data_dependencies(starpu_data_handle handle);
 

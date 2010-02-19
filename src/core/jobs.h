@@ -51,7 +51,7 @@ typedef void (*callback)(void *);
 #define STARPU_GORDON_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_GORDON)
 
 /* a job is the internal representation of a task */
-LIST_TYPE(job,
+LIST_TYPE(starpu_job,
 	struct starpu_task *task;
 
 	pthread_mutex_t sync_mutex;
@@ -69,21 +69,21 @@ LIST_TYPE(job,
 	unsigned terminated;
 );
 
-job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task);
-void starpu_wait_job(job_t j);
+starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task);
+void starpu_wait_job(starpu_job_t j);
 
 /* try to submit job j, enqueue it if it's not schedulable yet */
-unsigned _starpu_enforce_deps_and_schedule(job_t j);
-unsigned _starpu_enforce_deps_starting_from_task(job_t j);
-unsigned _starpu_enforce_deps_starting_from_data(job_t j);
+unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j);
+unsigned _starpu_enforce_deps_starting_from_task(starpu_job_t j);
+unsigned _starpu_enforce_deps_starting_from_data(starpu_job_t j);
 
 
 //#warning this must not be exported anymore ... 
-//job_t _starpu_job_create(struct starpu_task *task);
-void _starpu_handle_job_termination(job_t j);
-size_t _starpu_job_get_data_size(job_t j);
+//starpu_job_t _starpu_job_create(struct starpu_task *task);
+void _starpu_handle_job_termination(starpu_job_t j);
+size_t _starpu_job_get_data_size(starpu_job_t j);
 
-job_t _starpu_pop_local_task(struct worker_s *worker);
-int _starpu_push_local_task(struct worker_s *worker, job_t j);
+starpu_job_t _starpu_pop_local_task(struct worker_s *worker);
+int _starpu_push_local_task(struct worker_s *worker, starpu_job_t j);
 
 #endif // __JOBS_H__

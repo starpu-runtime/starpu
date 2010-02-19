@@ -20,16 +20,16 @@
 static unsigned nworkers;
 static struct jobq_s *queue_array[32];
 
-static job_t random_pop_task(struct jobq_s *q)
+static starpu_job_t random_pop_task(struct jobq_s *q)
 {
-	struct job_s *j;
+	struct starpu_job_s *j;
 
 	j = fifo_pop_task(q);
 
 	return j;
 }
 
-static int _random_push_task(struct jobq_s *q __attribute__ ((unused)), job_t task, unsigned prio)
+static int _random_push_task(struct jobq_s *q __attribute__ ((unused)), starpu_job_t task, unsigned prio)
 {
 	/* find the queue */
 	struct fifo_jobq_s *fifo;
@@ -69,12 +69,12 @@ static int _random_push_task(struct jobq_s *q __attribute__ ((unused)), job_t ta
 	}
 }
 
-static int random_push_prio_task(struct jobq_s *q, job_t task)
+static int random_push_prio_task(struct jobq_s *q, starpu_job_t task)
 {
 	return _random_push_task(q, task, 1);
 }
 
-static int random_push_task(struct jobq_s *q, job_t task)
+static int random_push_task(struct jobq_s *q, starpu_job_t task)
 {
 	return _random_push_task(q, task, 0);
 }

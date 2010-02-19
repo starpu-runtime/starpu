@@ -48,7 +48,7 @@ struct jobq_s *create_stack(void)
 	pthread_cond_init(&jobq->activity_cond, NULL);
 
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
-	stack->jobq = job_list_new();
+	stack->jobq = starpu_job_list_new();
 	stack->njobs = 0;
 	stack->nprocessed = 0;
 
@@ -84,7 +84,7 @@ unsigned get_stack_nprocessed(struct jobq_s *q)
 	return stack_queue->nprocessed;
 }
 
-void stack_push_prio_task(struct jobq_s *q, job_t task)
+void stack_push_prio_task(struct jobq_s *q, starpu_job_t task)
 {
 #ifndef STARPU_NO_PRIO
 	STARPU_ASSERT(q);
@@ -100,7 +100,7 @@ void stack_push_prio_task(struct jobq_s *q, job_t task)
 	pthread_mutex_lock(&q->activity_mutex);
 
 	TRACE_JOB_PUSH(task, 0);
-	job_list_push_back(stack_queue->jobq, task);
+	starpu_job_list_push_back(stack_queue->jobq, task);
 	deque_queue->njobs++;
 	deque_queue->nprocessed++;
 
@@ -111,7 +111,7 @@ void stack_push_prio_task(struct jobq_s *q, job_t task)
 #endif
 }
 
-void stack_push_task(struct jobq_s *q, job_t task)
+void stack_push_task(struct jobq_s *q, starpu_job_t task)
 {
 	STARPU_ASSERT(q);
 	struct stack_jobq_s *stack_queue = q->queue;
@@ -126,7 +126,7 @@ void stack_push_task(struct jobq_s *q, job_t task)
 	pthread_mutex_lock(&q->activity_mutex);
 
 	TRACE_JOB_PUSH(task, 0);
-	job_list_push_front(stack_queue->jobq, task);
+	starpu_job_list_push_front(stack_queue->jobq, task);
 	deque_queue->njobs++;
 	deque_queue->nprocessed++;
 
@@ -134,9 +134,9 @@ void stack_push_task(struct jobq_s *q, job_t task)
 	pthread_mutex_unlock(&q->activity_mutex);
 }
 
-job_t stack_pop_task(struct jobq_s *q)
+starpu_job_t stack_pop_task(struct jobq_s *q)
 {
-	job_t j = NULL;
+	starpu_job_t j = NULL;
 
 	STARPU_ASSERT(q);
 	struct stack_jobq_s *stack_queue = q->queue;
@@ -147,7 +147,7 @@ job_t stack_pop_task(struct jobq_s *q)
 	if (stack_queue->njobs > 0) 
 	{
 		/* there is a task */
-		j = job_list_pop_back(stack_queue->jobq);
+		j = starpu_job_list_pop_back(stack_queue->jobq);
 	
 		STARPU_ASSERT(j);
 		stack_queue->njobs--;

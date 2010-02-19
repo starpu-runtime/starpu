@@ -226,7 +226,7 @@ void STARPU_DECLARE_WORK_BLOCKS(float *maxbloktab1, float *maxbloktab2, unsigned
 	starpu_register_vector_data(&work_block_2, 0 /* home */, (uintptr_t)maxbloktab2, solv_coefmax, sizeof(float));
 
 	starpu_codelet cl;
-	job_t j;
+	starpu_job_t j;
 	sem_t sem;
 
 	/* initialize codelet */
@@ -314,7 +314,7 @@ void STARPU_CBLK_STRSM(unsigned col)
 {
 	/* perform a strsm on the block column */
 	starpu_codelet cl;
-	job_t j;
+	starpu_job_t j;
 	sem_t sem;
 
 	/* initialize codelet */
@@ -454,7 +454,7 @@ void STARPU_COMPUTE_CONTRIB_COMPACT(unsigned col, int dimi, int dimj, int dima, 
 		args.dima = dima;
 
 	starpu_codelet cl;
-	job_t j;
+	starpu_job_t j;
 	sem_t sem;
 
 	/* initialize codelet */
@@ -574,7 +574,7 @@ void STARPU_SGEMM (const char *transa, const char *transb, const int m,
 	data_state C_state;
 
 	starpu_codelet cl;
-	job_t j;
+	starpu_job_t j;
 	sem_t sem;
 
 //	fprintf(stderr, "STARPU - SGEMM - TRANSA %c TRANSB %c m %d n %d k %d lda %d ldb %d ldc %d \n", *transa, *transb, m, n, k, lda, ldb, ldc);

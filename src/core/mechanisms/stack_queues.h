@@ -21,7 +21,7 @@
 
 struct stack_jobq_s {
 	/* the actual list */
-	job_list_t jobq;
+	starpu_job_list_t jobq;
 
 	/* the number of tasks currently in the queue */
 	unsigned njobs;
@@ -37,11 +37,11 @@ struct stack_jobq_s {
 
 struct jobq_s *create_stack(void);
 
-void stack_push_task(struct jobq_s *q, job_t task);
+void stack_push_task(struct jobq_s *q, starpu_job_t task);
 
-void stack_push_prio_task(struct jobq_s *q, job_t task);
+void stack_push_prio_task(struct jobq_s *q, starpu_job_t task);
 
-job_t stack_pop_task(struct jobq_s *q);
+starpu_job_t stack_pop_task(struct jobq_s *q);
 
 void init_stack_queues_mechanisms(void);
 

@@ -169,7 +169,7 @@ do {									\
 
 #define TRACE_TASK_DONE(tag)							\
 do {										\
-	struct job_s *job = (tag)->job;						\
+	struct starpu_job_s *job = (tag)->job;						\
 	if (job && job->task 							\
 		&& job->task->cl						\
 		&& job->task->cl->model						\

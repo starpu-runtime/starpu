@@ -59,7 +59,7 @@ typedef struct cg_s {
 		struct tag_s *tag;
 
 		/* CG_TASK */
-		struct job_s *job;
+		struct starpu_job_s *job;
 
 		/* CG_APPS */
 		/* in case this completion group is related to an application,
@@ -77,6 +77,6 @@ void _starpu_cg_list_init(struct cg_list_s *list);
 void _starpu_add_successor_to_cg_list(struct cg_list_s *successors, cg_t *cg);
 void _starpu_notify_cg(cg_t *cg);
 void _starpu_notify_cg_list(struct cg_list_s *successors);
-void _starpu_notify_task_dependencies(struct job_s *j);
+void _starpu_notify_task_dependencies(struct starpu_job_s *j);
 
 #endif // __CG_H__

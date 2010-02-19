@@ -24,9 +24,9 @@ static int use_prefetch = 0;
 static double alpha = 1.0;
 static double beta = 1.0;
 
-static job_t dmda_pop_task(struct jobq_s *q)
+static starpu_job_t dmda_pop_task(struct jobq_s *q)
 {
-	struct job_s *j;
+	struct starpu_job_s *j;
 
 	j = fifo_pop_task(q);
 	if (j) {
@@ -55,7 +55,7 @@ static void update_data_requests(struct jobq_s *q, struct starpu_task *task)
 	}
 }
 
-static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t j, unsigned prio)
+static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , starpu_job_t j, unsigned prio)
 {
 	/* find the queue */
 	struct fifo_jobq_s *fifo;
@@ -178,12 +178,12 @@ static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , job_t j, 
 	}
 }
 
-static int dmda_push_prio_task(struct jobq_s *q, job_t j)
+static int dmda_push_prio_task(struct jobq_s *q, starpu_job_t j)
 {
 	return _dmda_push_task(q, j, 1);
 }
 
-static int dmda_push_task(struct jobq_s *q, job_t j)
+static int dmda_push_task(struct jobq_s *q, starpu_job_t j)
 {
 	if (j->task->priority == STARPU_MAX_PRIO)
 		return _dmda_push_task(q, j, 1);

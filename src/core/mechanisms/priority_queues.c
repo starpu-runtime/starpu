@@ -56,14 +56,14 @@ struct jobq_s *create_priority_jobq(void)
 	unsigned prio;
 	for (prio = 0; prio < NPRIO_LEVELS; prio++)
 	{
-		central_queue->jobq[prio] = job_list_new();
+		central_queue->jobq[prio] = starpu_job_list_new();
 		central_queue->njobs[prio] = 0;
 	}
 
 	return q;
 }
 
-int priority_push_task(struct jobq_s *q, job_t j)
+int priority_push_task(struct jobq_s *q, starpu_job_t j)
 {
 	STARPU_ASSERT(q);
 	struct priority_jobq_s *queue = q->queue;
@@ -80,7 +80,7 @@ int priority_push_task(struct jobq_s *q, job_t j)
 	
 	unsigned priolevel = j->task->priority - STARPU_MIN_PRIO;
 
-	job_list_push_front(queue->jobq[priolevel], j);
+	starpu_job_list_push_front(queue->jobq[priolevel], j);
 	queue->njobs[priolevel]++;
 	queue->total_njobs++;
 
@@ -90,9 +90,9 @@ int priority_push_task(struct jobq_s *q, job_t j)
 	return 0;
 }
 
-job_t priority_pop_task(struct jobq_s *q)
+starpu_job_t priority_pop_task(struct jobq_s *q)
 {
-	job_t j = NULL;
+	starpu_job_t j = NULL;
 
 	STARPU_ASSERT(q);
 	struct priority_jobq_s *queue = q->queue;
@@ -115,7 +115,7 @@ job_t priority_pop_task(struct jobq_s *q)
 		do {
 			if (queue->njobs[priolevel] > 0) {
 				/* there is some task that we can grab */
-				j = job_list_pop_back(queue->jobq[priolevel]);
+				j = starpu_job_list_pop_back(queue->jobq[priolevel]);
 				queue->njobs[priolevel]--;
 				queue->total_njobs--;
 				TRACE_JOB_POP(j, 0);

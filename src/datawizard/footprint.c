@@ -17,7 +17,7 @@
 #include <datawizard/footprint.h>
 #include <common/hash.h>
 
-void compute_buffers_footprint(job_t j)
+void compute_buffers_footprint(starpu_job_t j)
 {
 	uint32_t footprint = 0;
 	unsigned buffer;

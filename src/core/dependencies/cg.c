@@ -67,7 +67,7 @@ void _starpu_notify_cg(cg_t *cg)
 
 		struct tag_s *tag;
 		struct cg_list_s *tag_successors, *job_successors;
-		job_t j;
+		starpu_job_t j;
 
 		/* the group is now completed */
 		switch (cg->cg_type) {

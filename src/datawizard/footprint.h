@@ -19,9 +19,9 @@
 
 #include <core/jobs.h>
 
-struct job_s;
+struct starpu_job_s;
 
-void compute_buffers_footprint(struct job_s *j);
+void compute_buffers_footprint(struct starpu_job_s *j);
 inline uint32_t compute_data_footprint(starpu_data_handle handle);
 
 #endif // __FOOTPRINT_H__

@@ -72,7 +72,7 @@ LIST_TYPE(starpu_data_requester,
 	unsigned is_requested_by_codelet;
 
 	/* in case this is a codelet that will do the access */
-	struct job_s *j;
+	struct starpu_job_s *j;
 	unsigned buffer_index;
 
 	/* if this is more complicated ... (eg. application request) 

@@ -131,9 +131,9 @@ static struct jobq_s *select_workerq(void)
 
 #endif
 
-static job_t ws_pop_task(struct jobq_s *q)
+static starpu_job_t ws_pop_task(struct jobq_s *q)
 {
-	job_t j;
+	starpu_job_t j;
 
 	j = deque_pop_task(q);
 	if (j) {

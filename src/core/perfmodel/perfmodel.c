@@ -86,7 +86,7 @@ static double common_task_expected_length(struct starpu_perfmodel_t *model, uint
 	return -1.0;
 }
 
-double job_expected_length(uint32_t who, struct job_s *j, enum starpu_perf_archtype arch)
+double job_expected_length(uint32_t who, struct starpu_job_s *j, enum starpu_perf_archtype arch)
 {
 	struct starpu_task *task = j->task;
 	struct starpu_perfmodel_t *model = task->cl->model;

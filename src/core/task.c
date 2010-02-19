@@ -96,7 +96,7 @@ int starpu_wait_task(struct starpu_task *task)
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
-	job_t j = (struct job_s *)task->starpu_private;
+	starpu_job_t j = (struct starpu_job_s *)task->starpu_private;
 
 	starpu_wait_job(j);
 
@@ -108,20 +108,20 @@ int starpu_wait_task(struct starpu_task *task)
 	return 0;
 }
 
-job_t _starpu_get_job_associated_to_task(struct starpu_task *task)
+starpu_job_t _starpu_get_job_associated_to_task(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
 
 	if (!task->starpu_private)
 	{
-		job_t j = _starpu_job_create(task);
+		starpu_job_t j = _starpu_job_create(task);
 		task->starpu_private = j;
 	}
 
-	return (struct job_s *)task->starpu_private;
+	return (struct starpu_job_s *)task->starpu_private;
 }
 
-int _starpu_submit_job(job_t j)
+int _starpu_submit_job(starpu_job_t j)
 {
 	_starpu_increment_nsubmitted_tasks();
 
@@ -161,10 +161,10 @@ int starpu_submit_task(struct starpu_task *task)
 	}
 
 
-	/* internally, StarPU manipulates a job_t which is a wrapper around a
+	/* internally, StarPU manipulates a starpu_job_t which is a wrapper around a
 	* task structure, it is possible that this job structure was already
 	* allocated, for instance to enforce task depenencies. */
-	job_t j;
+	starpu_job_t j;
 
 	if (!task->starpu_private)
 	{
@@ -172,7 +172,7 @@ int starpu_submit_task(struct starpu_task *task)
 		task->starpu_private = j;
 	}
 	else {
-		j = (struct job_s *)task->starpu_private;
+		j = (struct starpu_job_s *)task->starpu_private;
 	}
 
 	ret = _starpu_submit_job(j);

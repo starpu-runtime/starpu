@@ -22,9 +22,9 @@ static unsigned nworkers;
 static struct jobq_s *queue_array[STARPU_NMAXWORKERS];
 static int use_prefetch = 0;
 
-static job_t dm_pop_task(struct jobq_s *q)
+static starpu_job_t dm_pop_task(struct jobq_s *q)
 {
-	struct job_s *j;
+	struct starpu_job_s *j;
 
 	j = fifo_pop_task(q);
 	if (j) {
@@ -39,16 +39,16 @@ static job_t dm_pop_task(struct jobq_s *q)
 	return j;
 }
 
-static struct job_list_s *dm_pop_every_task(struct jobq_s *q, uint32_t where)
+static struct starpu_job_list_s *dm_pop_every_task(struct jobq_s *q, uint32_t where)
 {
-	struct job_list_s *new_list;
+	struct starpu_job_list_s *new_list;
 
 	new_list = fifo_pop_every_task(q, where);
 	if (new_list) {
-		job_itor_t i;
-		for(i = job_list_begin(new_list);
-			i != job_list_end(new_list);
-			i = job_list_next(i))
+		starpu_job_itor_t i;
+		for(i = starpu_job_list_begin(new_list);
+			i != starpu_job_list_end(new_list);
+			i = starpu_job_list_next(i))
 		{
 			struct fifo_jobq_s *fifo = q->queue;
 			double model = i->predicted;
@@ -64,7 +64,7 @@ static struct job_list_s *dm_pop_every_task(struct jobq_s *q, uint32_t where)
 
 
 
-static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)), job_t j, unsigned prio)
+static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)), starpu_job_t j, unsigned prio)
 {
 	/* find the queue */
 	struct fifo_jobq_s *fifo;
@@ -139,12 +139,12 @@ static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)), job_t j, uns
 	}
 }
 
-static int dm_push_prio_task(struct jobq_s *q, job_t j)
+static int dm_push_prio_task(struct jobq_s *q, starpu_job_t j)
 {
 	return _dm_push_task(q, j, 1);
 }
 
-static int dm_push_task(struct jobq_s *q, job_t j)
+static int dm_push_task(struct jobq_s *q, starpu_job_t j)
 {
 	if (j->task->priority == STARPU_MAX_PRIO)
 		return _dm_push_task(q, j, 1);

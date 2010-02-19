@@ -19,11 +19,11 @@
 #include <core/policies/sched_policy.h>
 #include <common/starpu-spinlock.h>
 
-static unsigned _submit_job_enforce_data_deps(job_t j, unsigned start_buffer_index);
+static unsigned _submit_job_enforce_data_deps(starpu_job_t j, unsigned start_buffer_index);
 
 static unsigned unlock_one_requester(starpu_data_requester_t r)
 {
-	job_t j = r->j;
+	starpu_job_t j = r->j;
 	unsigned nbuffers = j->task->cl->nbuffers;
 	unsigned buffer_index = r->buffer_index;
 
@@ -110,7 +110,7 @@ unsigned attempt_to_submit_data_request_from_apps(starpu_data_handle handle, sta
 	return ret;
 }
 
-static unsigned attempt_to_submit_data_request_from_job(job_t j, unsigned buffer_index)
+static unsigned attempt_to_submit_data_request_from_job(starpu_job_t j, unsigned buffer_index)
 {
 	unsigned ret;
 
@@ -162,7 +162,7 @@ static unsigned attempt_to_submit_data_request_from_job(job_t j, unsigned buffer
 	return ret;
 }
 
-static unsigned _submit_job_enforce_data_deps(job_t j, unsigned start_buffer_index)
+static unsigned _submit_job_enforce_data_deps(starpu_job_t j, unsigned start_buffer_index)
 {
 	unsigned buf;
 
@@ -182,7 +182,7 @@ static unsigned _submit_job_enforce_data_deps(job_t j, unsigned start_buffer_ind
    with concurrent data-access at the same time in the scheduling engine (eg.
    there can be 2 tasks reading a piece of data, but there cannot be one
    reading and another writing) */
-unsigned _starpu_submit_job_enforce_data_deps(job_t j)
+unsigned _starpu_submit_job_enforce_data_deps(starpu_job_t j)
 {
 	if ((j->task->cl == NULL) || (j->task->cl->nbuffers == 0))
 		return 0;

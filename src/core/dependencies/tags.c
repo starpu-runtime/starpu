@@ -144,7 +144,7 @@ void _starpu_tag_set_ready(struct tag_s *tag)
 	/* mark this tag as ready to run */
 	tag->state = READY;
 	/* declare it to the scheduler ! */
-	struct job_s *j = tag->job;
+	struct starpu_job_s *j = tag->job;
 
 	/* In case the task job is going to be scheduled immediately, and if
 	 * the task is "empty", calling push_task would directly try to enforce
@@ -183,7 +183,7 @@ static void _starpu_notify_tag_dependencies(struct tag_s *tag)
 	starpu_spin_unlock(&tag->lock);
 }
 
-void _starpu_notify_dependencies(struct job_s *j)
+void _starpu_notify_dependencies(struct starpu_job_s *j)
 {
 	STARPU_ASSERT(j);
 	STARPU_ASSERT(j->task);
@@ -203,7 +203,7 @@ void starpu_tag_notify_from_apps(starpu_tag_t id)
 	_starpu_notify_tag_dependencies(tag);
 }
 
-void _starpu_tag_declare(starpu_tag_t id, struct job_s *job)
+void _starpu_tag_declare(starpu_tag_t id, struct starpu_job_s *job)
 {
 	TRACE_CODELET_TAG(id, job);
 	job->task->use_tag = 1;

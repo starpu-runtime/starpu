@@ -23,7 +23,7 @@
 #include <core/policies/sched_policy.h>
 #include <core/dependencies/data-concurrency.h>
 
-static cg_t *create_cg_task(unsigned ntags, job_t j)
+static cg_t *create_cg_task(unsigned ntags, starpu_job_t j)
 {
 	cg_t *cg = malloc(sizeof(cg_t));
 	STARPU_ASSERT(cg);
@@ -39,7 +39,7 @@ static cg_t *create_cg_task(unsigned ntags, job_t j)
 }
 
 /* the job lock must be taken */
-static void _starpu_task_add_succ(job_t j, cg_t *cg)
+static void _starpu_task_add_succ(starpu_job_t j, cg_t *cg)
 {
 	STARPU_ASSERT(j);
 
@@ -51,7 +51,7 @@ static void _starpu_task_add_succ(job_t j, cg_t *cg)
 	}
 }
 
-void _starpu_notify_task_dependencies(job_t j)
+void _starpu_notify_task_dependencies(starpu_job_t j)
 {
 	_starpu_notify_cg_list(&j->job_successors);
 }
@@ -61,7 +61,7 @@ void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, st
 {
 	unsigned i;
 
-	job_t job;
+	starpu_job_t job;
 
 	job = _starpu_get_job_associated_to_task(task);
 	cg_t *cg = create_cg_task(ndeps, job);

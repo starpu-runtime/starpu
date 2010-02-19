@@ -20,7 +20,7 @@
 #include "driver_cpu.h"
 #include <core/policies/sched_policy.h>
 
-static int execute_job_on_cpu(job_t j, struct worker_s *cpu_args)
+static int execute_job_on_cpu(starpu_job_t j, struct worker_s *cpu_args)
 {
 	int ret;
 	tick_t codelet_start, codelet_end;
@@ -136,7 +136,7 @@ void *_starpu_cpu_worker(void *arg)
 	pthread_cond_signal(&cpu_arg->ready_cond);
 	pthread_mutex_unlock(&cpu_arg->mutex);
 
-        job_t j;
+        starpu_job_t j;
 	int res;
 
 	struct sched_policy_s *policy = get_sched_policy();

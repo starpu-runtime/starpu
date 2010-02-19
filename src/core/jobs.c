@@ -20,7 +20,7 @@
 #include <core/dependencies/data-concurrency.h>
 #include <common/config.h>
 
-size_t _starpu_job_get_data_size(job_t j)
+size_t _starpu_job_get_data_size(starpu_job_t j)
 {
 	size_t size = 0;
 
@@ -38,12 +38,12 @@ size_t _starpu_job_get_data_size(job_t j)
 	return size;
 }
 
-/* create an internal job_t structure to encapsulate the task */
-job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task)
+/* create an internal starpu_job_t structure to encapsulate the task */
+starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task)
 {
-	job_t job;
+	starpu_job_t job;
 
-	job = job_new();
+	job = starpu_job_new();
 
 	job->task = task;
 
@@ -62,7 +62,7 @@ job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task)
 	return job;
 }
 
-void starpu_wait_job(job_t j)
+void starpu_wait_job(starpu_job_t j)
 {
 	STARPU_ASSERT(j->task);
 	STARPU_ASSERT(!j->task->detach);
@@ -77,10 +77,10 @@ void starpu_wait_job(job_t j)
 
 	pthread_mutex_unlock(&j->sync_mutex);
 
-	//job_delete(j);
+	//starpu_job_delete(j);
 }
 
-void _starpu_handle_job_termination(job_t j)
+void _starpu_handle_job_termination(starpu_job_t j)
 {
 	struct starpu_task *task = j->task;
 
@@ -129,7 +129,7 @@ void _starpu_handle_job_termination(job_t j)
 
 		if (destroy)
 		{
-			job_delete(j);
+			starpu_job_delete(j);
 			free(task);
 		}
 	}
@@ -148,7 +148,7 @@ void _starpu_handle_job_termination(job_t j)
 
 /* This function is called when a new task is submitted to StarPU 
  * it returns 1 if the tag deps are not fulfilled, 0 otherwise */
-static unsigned _starpu_not_all_tag_deps_are_fulfilled(job_t j)
+static unsigned _starpu_not_all_tag_deps_are_fulfilled(starpu_job_t j)
 {
 	unsigned ret;
 
@@ -181,7 +181,7 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(job_t j)
 	return ret;
 }
 
-static unsigned _starpu_not_all_task_deps_are_fulfilled(job_t j)
+static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j)
 {
 	unsigned ret;
 
@@ -208,7 +208,7 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(job_t j)
  *	In order, we enforce tag, task and data dependencies. The task is
  *	passed to the scheduler only once all these constraints are fulfilled.
  */
-unsigned _starpu_enforce_deps_and_schedule(job_t j)
+unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j)
 {
 	unsigned ret;
 
@@ -230,7 +230,7 @@ unsigned _starpu_enforce_deps_and_schedule(job_t j)
 }
 
 /* Tag deps are already fulfilled */
-unsigned _starpu_enforce_deps_starting_from_task(job_t j)
+unsigned _starpu_enforce_deps_starting_from_task(starpu_job_t j)
 {
 	unsigned ret;
 
@@ -248,7 +248,7 @@ unsigned _starpu_enforce_deps_starting_from_task(job_t j)
 }
 
 /* Tag and task deps are already fulfilled */
-unsigned _starpu_enforce_deps_starting_from_data(job_t j)
+unsigned _starpu_enforce_deps_starting_from_data(starpu_job_t j)
 {
 	unsigned ret;
 
@@ -264,27 +264,27 @@ unsigned _starpu_enforce_deps_starting_from_data(job_t j)
 
 
 
-struct job_s *_starpu_pop_local_task(struct worker_s *worker)
+struct starpu_job_s *_starpu_pop_local_task(struct worker_s *worker)
 {
-	struct job_s *j = NULL;
+	struct starpu_job_s *j = NULL;
 
 	pthread_mutex_lock(&worker->local_jobs_mutex);
 
-	if (!job_list_empty(worker->local_jobs))
-		j = job_list_pop_back(worker->local_jobs);
+	if (!starpu_job_list_empty(worker->local_jobs))
+		j = starpu_job_list_pop_back(worker->local_jobs);
 
 	pthread_mutex_unlock(&worker->local_jobs_mutex);
 
 	return j;
 }
 
-int _starpu_push_local_task(struct worker_s *worker, struct job_s *j)
+int _starpu_push_local_task(struct worker_s *worker, struct starpu_job_s *j)
 {
 	/* TODO check that the worker is able to execute the task ! */
 
 	pthread_mutex_lock(&worker->local_jobs_mutex);
 
-	job_list_push_front(worker->local_jobs, j);
+	starpu_job_list_push_front(worker->local_jobs, j);
 
 	pthread_mutex_unlock(&worker->local_jobs_mutex);
 

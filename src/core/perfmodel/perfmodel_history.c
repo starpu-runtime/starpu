@@ -482,7 +482,7 @@ void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model,
 	get_model_debug_path(model, archname, path, maxlen);
 }
 
-double regression_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct job_s *j)
+double regression_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j)
 {
 	double exp = -1.0;
 	size_t size = _starpu_job_get_data_size(j);
@@ -499,7 +499,7 @@ double regression_based_job_expected_length(struct starpu_perfmodel_t *model, en
 	return exp;
 }
 
-double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct job_s *j)
+double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j)
 {
 	double exp;
 	struct starpu_per_arch_perfmodel_t *per_arch_model;
@@ -529,7 +529,7 @@ double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum 
 	return exp;
 }
 
-void _starpu_update_perfmodel_history(job_t j, enum starpu_perf_archtype arch, unsigned cpuid __attribute__((unused)), double measured)
+void _starpu_update_perfmodel_history(starpu_job_t j, enum starpu_perf_archtype arch, unsigned cpuid __attribute__((unused)), double measured)
 {
 	struct starpu_perfmodel_t *model = j->task->cl->model;
 

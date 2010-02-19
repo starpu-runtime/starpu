@@ -41,7 +41,7 @@ typedef enum {
 	DONE
 } tag_state;
 
-struct job_s;
+struct starpu_job_s;
 
 struct tag_s {
 	starpu_spinlock_t lock;
@@ -50,7 +50,7 @@ struct tag_s {
 
 	struct cg_list_s tag_successors;
 
-	struct job_s *job; /* which job is associated to the tag if any ? */
+	struct starpu_job_s *job; /* which job is associated to the tag if any ? */
 
 	unsigned is_assigned;
 	unsigned is_submitted;
@@ -58,10 +58,10 @@ struct tag_s {
 
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 
-void _starpu_notify_dependencies(struct job_s *j);
-void _starpu_tag_declare(starpu_tag_t id, struct job_s *job);
+void _starpu_notify_dependencies(struct starpu_job_s *j);
+void _starpu_tag_declare(starpu_tag_t id, struct starpu_job_s *job);
 void _starpu_tag_set_ready(struct tag_s *tag);
 
-unsigned submit_job_enforce_task_deps(struct job_s *j);
+unsigned submit_job_enforce_task_deps(struct starpu_job_s *j);
 
 #endif // __TAGS_H__

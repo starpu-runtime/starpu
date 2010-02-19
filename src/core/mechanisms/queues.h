@@ -29,9 +29,9 @@ struct jobq_s {
 	void *queue; 
 
 	/* some methods to manipulate the previous queue */
-	int (*push_task)(struct jobq_s *, job_t);
-	int (*push_prio_task)(struct jobq_s *, job_t);
-	struct job_s* (*pop_task)(struct jobq_s *);
+	int (*push_task)(struct jobq_s *, starpu_job_t);
+	int (*push_prio_task)(struct jobq_s *, starpu_job_t);
+	struct starpu_job_s* (*pop_task)(struct jobq_s *);
 
 	/* returns the number of tasks that were retrieved 
  	 * the function is reponsible for allocating the output but the driver
@@ -39,7 +39,7 @@ struct jobq_s {
  	 *
  	 * NB : this function is non blocking
  	 * */
-	struct job_list_s *(*pop_every_task)(struct jobq_s *, uint32_t);
+	struct starpu_job_list_s *(*pop_every_task)(struct jobq_s *, uint32_t);
 
 	/* what are the driver that may pop job from that queue ? */
 	uint32_t who;

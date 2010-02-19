@@ -21,7 +21,7 @@
 
 struct fifo_jobq_s {
 	/* the actual list */
-	job_list_t jobq;
+	starpu_job_list_t jobq;
 
 	/* the number of tasks currently in the queue */
 	unsigned njobs;
@@ -37,11 +37,11 @@ struct fifo_jobq_s {
 
 struct jobq_s *create_fifo(void);
 
-int fifo_push_task(struct jobq_s *q, job_t task);
-int fifo_push_prio_task(struct jobq_s *q, job_t task);
+int fifo_push_task(struct jobq_s *q, starpu_job_t task);
+int fifo_push_prio_task(struct jobq_s *q, starpu_job_t task);
 
-job_t fifo_pop_task(struct jobq_s *q);
-struct job_list_s * fifo_pop_every_task(struct jobq_s *q, uint32_t where);
+starpu_job_t fifo_pop_task(struct jobq_s *q);
+struct starpu_job_list_s * fifo_pop_every_task(struct jobq_s *q, uint32_t where);
 
 void init_fifo_queues_mechanisms(void);
 

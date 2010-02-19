@@ -183,7 +183,7 @@ void deinit_sched_policy(struct machine_config_s *config)
 }
 
 /* the generic interface that call the proper underlying implementation */
-int push_task(job_t j)
+int push_task(starpu_job_t j)
 {
 	struct jobq_s *queue = policy.get_local_queue(&policy);
 
@@ -217,33 +217,33 @@ int push_task(job_t j)
 	}
 }
 
-struct job_s * pop_task_from_queue(struct jobq_s *queue)
+struct starpu_job_s * pop_task_from_queue(struct jobq_s *queue)
 {
 	STARPU_ASSERT(queue->pop_task);
 
-	struct job_s *j = queue->pop_task(queue);
+	struct starpu_job_s *j = queue->pop_task(queue);
 
 	return j;
 }
 
-struct job_s * pop_task(void)
+struct starpu_job_s * pop_task(void)
 {
 	struct jobq_s *queue = policy.get_local_queue(&policy);
 
 	return pop_task_from_queue(queue);
 }
 
-struct job_list_s * pop_every_task_from_queue(struct jobq_s *queue, uint32_t where)
+struct starpu_job_list_s * pop_every_task_from_queue(struct jobq_s *queue, uint32_t where)
 {
 	STARPU_ASSERT(queue->pop_every_task);
 
-	struct job_list_s *list = queue->pop_every_task(queue, where);
+	struct starpu_job_list_s *list = queue->pop_every_task(queue, where);
 
 	return list;
 }
 
 /* pop every task that can be executed on "where" (eg. GORDON) */
-struct job_list_s *pop_every_task(uint32_t where)
+struct starpu_job_list_s *pop_every_task(uint32_t where)
 {
 	struct jobq_s *queue = policy.get_local_queue(&policy);
 

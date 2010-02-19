@@ -77,7 +77,7 @@ void _starpu_init_cuda(void)
 	assert(ncudagpus <= STARPU_MAXCUDADEVS);
 }
 
-static int execute_job_on_cuda(job_t j, struct worker_s *args)
+static int execute_job_on_cuda(starpu_job_t j, struct worker_s *args)
 {
 	int ret;
 //	uint32_t mask = (1<<0);
@@ -218,7 +218,7 @@ void *_starpu_cuda_worker(void *arg)
 	pthread_cond_signal(&args->ready_cond);
 	pthread_mutex_unlock(&args->mutex);
 
-	struct job_s * j;
+	struct starpu_job_s * j;
 	int res;
 
 	struct sched_policy_s *policy = get_sched_policy();

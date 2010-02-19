@@ -28,7 +28,7 @@
 
 struct starpu_buffer_descr_t;
 struct jobq_s;
-struct job_s;
+struct starpu_job_s;
 enum starpu_perf_archtype;
 
 struct starpu_history_entry_t {
@@ -86,14 +86,14 @@ void _starpu_get_perf_model_dir_codelets(char *path, size_t maxlen);
 void _starpu_get_perf_model_dir_bus(char *path, size_t maxlen);
 void _starpu_get_perf_model_dir_debug(char *path, size_t maxlen);
 
-double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct job_s *j);
+double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j);
 void register_model(struct starpu_perfmodel_t *model);
 void dump_registered_models(void);
 
-double job_expected_length(uint32_t who, struct job_s *j, enum starpu_perf_archtype arch);
+double job_expected_length(uint32_t who, struct starpu_job_s *j, enum starpu_perf_archtype arch);
 double regression_based_job_expected_length(struct starpu_perfmodel_t *model,
-		uint32_t who, struct job_s *j);
-void _starpu_update_perfmodel_history(struct job_s *j, enum starpu_perf_archtype arch,
+		uint32_t who, struct starpu_job_s *j);
+void _starpu_update_perfmodel_history(struct starpu_job_s *j, enum starpu_perf_archtype arch,
 				unsigned cpuid, double measured);
 
 double data_expected_penalty(struct jobq_s *q, struct starpu_task *task);
