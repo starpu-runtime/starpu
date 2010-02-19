@@ -39,16 +39,16 @@ void write_through_data(starpu_data_handle handle, uint32_t requesting_node,
 				uint32_t handling_node =
 					starpu_select_node_to_handle_request(requesting_node, node);
 
-				data_request_t r;
+				starpu_data_request_t r;
 
 				/* check that there is not already a similar
 				 * request that we should reuse */
-				r = search_existing_data_request(handle, node, 1, 0);
+				r = starpu_search_existing_data_request(handle, node, 1, 0);
 				if (!r) {
 					/* there was no existing request so we create one now */
-					r = create_data_request(handle, requesting_node,
+					r = starpu_create_data_request(handle, requesting_node,
 							node, handling_node, 1, 0, 1);
-					post_data_request(r, handling_node);
+					starpu_post_data_request(r, handling_node);
 				}
 				else {
 					/* if there is already a similar request, it is

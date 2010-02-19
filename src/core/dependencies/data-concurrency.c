@@ -21,7 +21,7 @@
 
 static unsigned _submit_job_enforce_data_deps(job_t j, unsigned start_buffer_index);
 
-static unsigned unlock_one_requester(data_requester_t r)
+static unsigned unlock_one_requester(starpu_data_requester_t r)
 {
 	job_t j = r->j;
 	unsigned nbuffers = j->task->cl->nbuffers;
@@ -40,7 +40,7 @@ static unsigned unlock_one_requester(data_requester_t r)
 static unsigned may_unlock_data_req_list_head(starpu_data_handle handle)
 {
 	/* if there is no one to unlock ... */
-	if (data_requester_list_empty(handle->req_list))
+	if (starpu_data_requester_list_empty(handle->req_list))
 		return 0;
 
 	/* if there is no reference to the data anymore, we can use it */
@@ -55,7 +55,7 @@ static unsigned may_unlock_data_req_list_head(starpu_data_handle handle)
 		return 0;
 
 	/* data->current_mode == STARPU_R, so we can process more readers */
-	data_requester_t r = data_requester_list_front(handle->req_list);
+	starpu_data_requester_t r = starpu_data_requester_list_front(handle->req_list);
 	
 	return (r->mode == STARPU_R);
 }
@@ -93,13 +93,13 @@ unsigned attempt_to_submit_data_request_from_apps(starpu_data_handle handle, sta
 			 * while the data is in read mode */
 			
 			/* enqueue the request */
-			data_requester_t r = data_requester_new();
+			starpu_data_requester_t r = starpu_data_requester_new();
 				r->mode = mode;
 				r->is_requested_by_codelet = 0;
 				r->ready_data_callback = callback;
 				r->argcb = argcb;
 
-			data_requester_list_push_back(handle->req_list, r);
+			starpu_data_requester_list_push_back(handle->req_list, r);
 
 			/* failed */
 			ret = 1;
@@ -145,13 +145,13 @@ static unsigned attempt_to_submit_data_request_from_job(job_t j, unsigned buffer
 			 * while the data is in read mode */
 			
 			/* enqueue the request */
-			data_requester_t r = data_requester_new();
+			starpu_data_requester_t r = starpu_data_requester_new();
 				r->mode = mode;
 				r->is_requested_by_codelet = 1;
 				r->j = j;
 				r->buffer_index = buffer_index;
 
-			data_requester_list_push_back(handle->req_list, r);
+			starpu_data_requester_list_push_back(handle->req_list, r);
 
 			/* failed */
 			ret = 1;
@@ -199,7 +199,7 @@ void notify_data_dependencies(starpu_data_handle handle)
 	while (may_unlock_data_req_list_head(handle))
 	{
 		/* unlock the head of the requester list */
-		data_requester_t r = data_requester_list_pop_front(handle->req_list);
+		starpu_data_requester_t r = starpu_data_requester_list_pop_front(handle->req_list);
 
 		handle->refcnt++;
 	
@@ -221,7 +221,7 @@ void notify_data_dependencies(starpu_data_handle handle)
 			r->ready_data_callback(r->argcb);
 		}
 
-		data_requester_delete(r);
+		starpu_data_requester_delete(r);
 		
 		starpu_spin_lock(&handle->header_lock);
 	}

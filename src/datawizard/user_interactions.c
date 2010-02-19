@@ -22,16 +22,16 @@
 
 int starpu_request_data_allocation(starpu_data_handle handle, uint32_t node)
 {
-	data_request_t r;
+	starpu_data_request_t r;
 
 	STARPU_ASSERT(handle);
 
-	r = create_data_request(handle, 0, node, node, 0, 0, 1);
+	r = starpu_create_data_request(handle, 0, node, node, 0, 0, 1);
 
 	/* we do not increase the refcnt associated to the request since we are
 	 * not waiting for its termination */
 
-	post_data_request(r, node);
+	starpu_post_data_request(r, node);
 
 	return 0;
 }

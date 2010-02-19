@@ -38,7 +38,7 @@ void init_memory_nodes(void)
 		descr.nodes[i] = UNUSED; 
 
 	_starpu_init_mem_chunk_lists();
-	init_data_request_lists();
+	starpu_init_data_request_lists();
 
 	pthread_rwlock_init(&descr.attached_queues_rwlock, NULL);
 	descr.total_queues_count = 0;
@@ -46,7 +46,7 @@ void init_memory_nodes(void)
 
 void deinit_memory_nodes(void)
 {
-	deinit_data_request_lists();
+	starpu_deinit_data_request_lists();
 	_starpu_deinit_mem_chunk_lists();
 
 	pthread_key_delete(memory_node_key);

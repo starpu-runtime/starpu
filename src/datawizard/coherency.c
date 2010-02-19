@@ -163,11 +163,11 @@ int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_nod
 
 	msi_cache_miss(requesting_node);
 
-	data_request_t r;
+	starpu_data_request_t r;
 
 	/* is there already a pending request ? */
-	r = search_existing_data_request(handle, requesting_node, read, write);
-	/* at the exit of search_existing_data_request the lock is taken is the request existed ! */
+	r = starpu_search_existing_data_request(handle, requesting_node, read, write);
+	/* at the exit of starpu_search_existing_data_request the lock is taken is the request existed ! */
 
 	if (!r) {
 		//fprintf(stderr, "no request matched that one so we post a request %s\n", is_prefetch?"STARPU_PREFETCH":"");
@@ -187,20 +187,20 @@ int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_nod
 		/* we have to perform 2 successive requests for GPU->GPU transfers */
 		if (read && (src_is_a_gpu && dst_is_a_gpu)) {
 			unsigned reuse_r_src_to_ram;
-			data_request_t r_src_to_ram;
-			data_request_t r_ram_to_dst;
+			starpu_data_request_t r_src_to_ram;
+			starpu_data_request_t r_ram_to_dst;
 
 			/* XXX we hardcore 0 as the RAM node ... */
-			r_ram_to_dst = create_data_request(handle, 0, requesting_node, requesting_node, read, write, is_prefetch);
+			r_ram_to_dst = starpu_create_data_request(handle, 0, requesting_node, requesting_node, read, write, is_prefetch);
 
 			if (!is_prefetch)
 				r_ram_to_dst->refcnt++;
 
-			r_src_to_ram = search_existing_data_request(handle, 0, read, write);
+			r_src_to_ram = starpu_search_existing_data_request(handle, 0, read, write);
 			if (!r_src_to_ram)
 			{
 				reuse_r_src_to_ram = 0;
-				r_src_to_ram = create_data_request(handle, src_node, 0, src_node, read, write, is_prefetch);
+				r_src_to_ram = starpu_create_data_request(handle, src_node, 0, src_node, read, write, is_prefetch);
 			}
 			else {
 				reuse_r_src_to_ram = 1;
@@ -216,7 +216,7 @@ int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_nod
 
 			/* we only submit the first request, the remaining will be automatically submitted afterward */
 			if (!reuse_r_src_to_ram)
-				post_data_request(r_src_to_ram, src_node);
+				starpu_post_data_request(r_src_to_ram, src_node);
 
 			/* the application only waits for the termination of the last request */
 			r = r_ram_to_dst;
@@ -226,18 +226,18 @@ int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_nod
 			uint32_t handling_node =
 				starpu_select_node_to_handle_request(src_node, requesting_node);
 
-			r = create_data_request(handle, src_node, requesting_node, handling_node, read, write, is_prefetch);
+			r = starpu_create_data_request(handle, src_node, requesting_node, handling_node, read, write, is_prefetch);
 
 			if (!is_prefetch)
 				r->refcnt++;
 
 			starpu_spin_unlock(&handle->header_lock);
 
-			post_data_request(r, handling_node);
+			starpu_post_data_request(r, handling_node);
 		}
 	}
 	else {
-		/* the lock was taken by search_existing_data_request */
+		/* the lock was taken by starpu_search_existing_data_request */
 
 		/* there is already a similar request */
 		if (is_prefetch)
@@ -266,7 +266,7 @@ int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_nod
 		starpu_spin_unlock(&handle->header_lock);
 	}
 
-	return (is_prefetch?0:wait_data_request_completion(r, 1));
+	return (is_prefetch?0:starpu_wait_data_request_completion(r, 1));
 }
 
 static int prefetch_data_on_node(starpu_data_handle handle, uint8_t read, uint8_t write, uint32_t node)

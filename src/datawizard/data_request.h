@@ -26,7 +26,7 @@
 #define DATA_REQ_ALLOCATE	(1<<0)
 #define DATA_REQ_COPY		(1<<1)
 
-LIST_TYPE(data_request,
+LIST_TYPE(starpu_data_request,
 	starpu_spinlock_t lock;
 	unsigned refcnt;
 
@@ -64,7 +64,7 @@ LIST_TYPE(data_request,
 
 /* Everyone that wants to access some piece of data will post a request.
  * Not only StarPU internals, but also the application may put such requests */
-LIST_TYPE(data_requester,
+LIST_TYPE(starpu_data_requester,
 	/* what kind of access is requested ? */
 	starpu_access_mode mode;
 
@@ -82,18 +82,18 @@ LIST_TYPE(data_requester,
 	void *argcb;
 );
 
-void init_data_request_lists(void);
-void deinit_data_request_lists(void);
-void post_data_request(data_request_t r, uint32_t handling_node);
-void handle_node_data_requests(uint32_t src_node, unsigned may_alloc);
+void starpu_init_data_request_lists(void);
+void starpu_deinit_data_request_lists(void);
+void starpu_post_data_request(starpu_data_request_t r, uint32_t handling_node);
+void starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc);
 
-void handle_pending_node_data_requests(uint32_t src_node);
-void handle_all_pending_node_data_requests(uint32_t src_node);
+void starpu_handle_pending_node_data_requests(uint32_t src_node);
+void starpu_handle_all_pending_node_data_requests(uint32_t src_node);
 
-int check_that_no_data_request_exists(uint32_t node);
+int starpu_check_that_no_data_request_exists(uint32_t node);
 
-data_request_t create_data_request(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, uint8_t read, uint8_t write, unsigned is_prefetch);
-data_request_t search_existing_data_request(starpu_data_handle handle, uint32_t dst_node, uint8_t read, uint8_t write);
-int wait_data_request_completion(data_request_t r, unsigned may_alloc);
+starpu_data_request_t starpu_create_data_request(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, uint8_t read, uint8_t write, unsigned is_prefetch);
+starpu_data_request_t starpu_search_existing_data_request(starpu_data_handle handle, uint32_t dst_node, uint8_t read, uint8_t write);
+int starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_alloc);
 
 #endif // __DATA_REQUEST_H__

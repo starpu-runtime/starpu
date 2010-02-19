@@ -312,7 +312,7 @@ unsigned _starpu_worker_can_block(unsigned memnode)
 {
 	unsigned can_block = 1;
 
-	if (!check_that_no_data_request_exists(memnode))
+	if (!starpu_check_that_no_data_request_exists(memnode))
 		can_block = 0;
 
 	if (!_starpu_machine_is_running())

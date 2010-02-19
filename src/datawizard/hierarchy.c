@@ -43,7 +43,7 @@ void starpu_delete_data(starpu_data_handle handle)
 		}
 	}
 
-	data_requester_list_delete(handle->req_list);
+	starpu_data_requester_list_delete(handle->req_list);
 
 	starpu_data_liberate_interfaces(handle);
 
@@ -55,7 +55,7 @@ void register_new_data(starpu_data_handle handle, uint32_t home_node, uint32_t w
 	STARPU_ASSERT(handle);
 
 	/* initialize the new lock */
-	handle->req_list = data_requester_list_new();
+	handle->req_list = starpu_data_requester_list_new();
 	handle->refcnt = 0;
 	starpu_spin_init(&handle->header_lock);
 
@@ -202,7 +202,7 @@ void starpu_partition_data(starpu_data_handle initial_handle, starpu_filter *f)
 		children->wb_mask = initial_handle->wb_mask;
 
 		/* initialize the chunk lock */
-		children->req_list = data_requester_list_new();
+		children->req_list = starpu_data_requester_list_new();
 		children->refcnt = 0;
 		starpu_spin_init(&children->header_lock);
 
