@@ -176,7 +176,7 @@ size_t starpu_get_bcsr_elemsize(starpu_data_handle handle)
 uintptr_t starpu_get_bcsr_local_nzval(starpu_data_handle handle)
 {
 	unsigned node;
-	node = get_local_memory_node();
+	node = starpu_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
 
@@ -241,10 +241,10 @@ static size_t allocate_bcsr_buffer_on_node(starpu_data_handle handle, uint32_t d
 	uint32_t r = interface->r;
 	uint32_t c = interface->c;
 
-	node_kind kind = get_node_kind(dst_node);
+	starpu_node_kind kind = starpu_get_node_kind(dst_node);
 
 	switch(kind) {
-		case RAM:
+		case STARPU_RAM:
 			addr_nzval = (uintptr_t)malloc(nnz*r*c*elemsize);
 			if (!addr_nzval)
 				goto fail_nzval;
@@ -259,7 +259,7 @@ static size_t allocate_bcsr_buffer_on_node(starpu_data_handle handle, uint32_t d
 
 			break;
 #ifdef STARPU_USE_CUDA
-		case CUDA_RAM:
+		case STARPU_CUDA_RAM:
 			cudaMalloc((void **)&addr_nzval, nnz*r*c*elemsize);
 			if (!addr_nzval)
 				goto fail_nzval;
@@ -291,10 +291,10 @@ static size_t allocate_bcsr_buffer_on_node(starpu_data_handle handle, uint32_t d
 
 fail_rowptr:
 	switch(kind) {
-		case RAM:
+		case STARPU_RAM:
 			free((void *)addr_colind);
 #ifdef STARPU_USE_CUDA
-		case CUDA_RAM:
+		case STARPU_CUDA_RAM:
 			cudaFree((void*)addr_colind);
 			break;
 #endif
@@ -304,10 +304,10 @@ fail_rowptr:
 
 fail_colind:
 	switch(kind) {
-		case RAM:
+		case STARPU_RAM:
 			free((void *)addr_nzval);
 #ifdef STARPU_USE_CUDA
-		case CUDA_RAM:
+		case STARPU_CUDA_RAM:
 			cudaFree((void*)addr_nzval);
 			break;
 #endif
@@ -327,15 +327,15 @@ static void liberate_bcsr_buffer_on_node(void *interface, uint32_t node)
 {
 	starpu_bcsr_interface_t *bcsr_interface = interface;	
 
-	node_kind kind = get_node_kind(node);
+	starpu_node_kind kind = starpu_get_node_kind(node);
 	switch(kind) {
-		case RAM:
+		case STARPU_RAM:
 			free((void*)bcsr_interface->nzval);
 			free((void*)bcsr_interface->colind);
 			free((void*)bcsr_interface->rowptr);
 			break;
 #ifdef STARPU_USE_CUDA
-		case CUDA_RAM:
+		case STARPU_CUDA_RAM:
 			cudaFree((void*)bcsr_interface->nzval);
 			cudaFree((void*)bcsr_interface->colind);
 			cudaFree((void*)bcsr_interface->rowptr);

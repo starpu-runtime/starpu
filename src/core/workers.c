@@ -89,7 +89,7 @@ static void _starpu_init_worker_queue(struct worker_s *workerarg)
 			STARPU_ABORT();
 	}
 		
-	memory_node_attach_queue(jobq, workerarg->memory_node);
+	starpu_memory_node_attach_queue(jobq, workerarg->memory_node);
 }
 
 static void _starpu_init_workers(struct machine_config_s *config)
@@ -335,7 +335,7 @@ static void _starpu_operate_on_all_queues_attached_to_node(unsigned nodeid, queu
 	unsigned q_id;
 	struct jobq_s *q;
 
-	mem_node_descr * const descr = get_memory_node_description();
+	starpu_mem_node_descr * const descr = starpu_get_memory_node_description();
 
 	pthread_rwlock_rdlock(&descr->attached_queues_rwlock);
 
@@ -380,7 +380,7 @@ static void _starpu_operate_on_all_queues(queue_op op)
 	unsigned q_id;
 	struct jobq_s *q;
 
-	mem_node_descr * const descr = get_memory_node_description();
+	starpu_mem_node_descr * const descr = starpu_get_memory_node_description();
 
 	pthread_rwlock_rdlock(&descr->attached_queues_rwlock);
 

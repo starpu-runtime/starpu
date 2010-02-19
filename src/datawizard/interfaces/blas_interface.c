@@ -179,7 +179,7 @@ uint32_t starpu_get_blas_ny(starpu_data_handle handle)
 uint32_t starpu_get_blas_local_ld(starpu_data_handle handle)
 {
 	unsigned node;
-	node = get_local_memory_node();
+	node = starpu_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
 
@@ -192,7 +192,7 @@ uint32_t starpu_get_blas_local_ld(starpu_data_handle handle)
 uintptr_t starpu_get_blas_local_ptr(starpu_data_handle handle)
 {
 	unsigned node;
-	node = get_local_memory_node();
+	node = starpu_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
 
@@ -232,17 +232,17 @@ static size_t allocate_blas_buffer_on_node(starpu_data_handle handle, uint32_t d
 	uint32_t ld = nx; // by default
 	size_t elemsize = interface->elemsize;
 
-	node_kind kind = get_node_kind(dst_node);
+	starpu_node_kind kind = starpu_get_node_kind(dst_node);
 
 	switch(kind) {
-		case RAM:
+		case STARPU_RAM:
 			addr = (uintptr_t)malloc((size_t)nx*ny*elemsize);
 			if (!addr) 
 				fail = 1;
 
 			break;
 #ifdef STARPU_USE_CUDA
-		case CUDA_RAM:
+		case STARPU_CUDA_RAM:
 			status = cudaMallocPitch((void **)&addr, &pitch, (size_t)nx*elemsize, (size_t)ny);
 			if (!addr || status != cudaSuccess)
 			{
@@ -283,13 +283,13 @@ static void liberate_blas_buffer_on_node(void *interface, uint32_t node)
 	cudaError_t status;
 #endif
 
-	node_kind kind = get_node_kind(node);
+	starpu_node_kind kind = starpu_get_node_kind(node);
 	switch(kind) {
-		case RAM:
+		case STARPU_RAM:
 			free((void*)blas_interface->ptr);
 			break;
 #ifdef STARPU_USE_CUDA
-		case CUDA_RAM:
+		case STARPU_CUDA_RAM:
 			status = cudaFree((void*)blas_interface->ptr);			
 			if (STARPU_UNLIKELY(status))
 				STARPU_CUDA_REPORT_ERROR(status);

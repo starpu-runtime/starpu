@@ -256,7 +256,7 @@ void wait_on_sched_event(void)
 
 	pthread_mutex_lock(&q->activity_mutex);
 
-	starpu_handle_all_pending_node_data_requests(get_local_memory_node());
+	starpu_handle_all_pending_node_data_requests(starpu_get_local_memory_node());
 
 	if (_starpu_machine_is_running())
 	{

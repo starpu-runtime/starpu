@@ -25,37 +25,37 @@
 #endif
 
 typedef enum {
-	UNUSED,
-	SPU_LS,
-	RAM,
-	CUDA_RAM
-} node_kind;
+	STARPU_UNUSED,
+	STARPU_SPU_LS,
+	STARPU_RAM,
+	STARPU_CUDA_RAM
+} starpu_node_kind;
 
 typedef struct {
 	unsigned nnodes;
-	node_kind nodes[STARPU_MAXNODES];
+	starpu_node_kind nodes[STARPU_MAXNODES];
 
 	/* the list of queues that are attached to a given node */
 	// XXX 32 is set randomly !
-	// TODO move this 2 lists outside mem_node_descr
+	// TODO move this 2 lists outside starpu_mem_node_descr
 	pthread_rwlock_t attached_queues_rwlock;
 	struct jobq_s *attached_queues_per_node[STARPU_MAXNODES][32];
 	struct jobq_s *attached_queues_all[STARPU_MAXNODES*32];
 	/* the number of queues attached to each node */
 	unsigned total_queues_count;
 	unsigned queues_count[STARPU_MAXNODES];
-} mem_node_descr;
+} starpu_mem_node_descr;
 
-void init_memory_nodes(void);
-void deinit_memory_nodes(void);
-void set_local_memory_node_key(unsigned *node);
-unsigned get_local_memory_node(void);
-unsigned _starpu_register_memory_node(node_kind kind);
-void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid);
+void starpu_init_memory_nodes(void);
+void starpu_deinit_memory_nodes(void);
+void starpu_set_local_memory_node_key(unsigned *node);
+unsigned starpu_get_local_memory_node(void);
+unsigned _starpu_register_memory_node(starpu_node_kind kind);
+void starpu_memory_node_attach_queue(struct jobq_s *q, unsigned nodeid);
 
-node_kind get_node_kind(uint32_t node);
-unsigned get_memory_nodes_count(void);
+starpu_node_kind starpu_get_node_kind(uint32_t node);
+unsigned starpu_get_memory_nodes_count(void);
 
-inline mem_node_descr *get_memory_node_description(void);
+inline starpu_mem_node_descr *starpu_get_memory_node_description(void);
 
 #endif // __MEMORY_NODES_H__

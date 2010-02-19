@@ -22,10 +22,10 @@
 #include "copy-driver.h"
 #include "memalloc.h"
 
-static mem_node_descr descr;
+static starpu_mem_node_descr descr;
 static pthread_key_t memory_node_key;
 
-void init_memory_nodes(void)
+void starpu_init_memory_nodes(void)
 {
 	/* there is no node yet, subsequent nodes will be 
 	 * added using _starpu_register_memory_node */
@@ -35,7 +35,7 @@ void init_memory_nodes(void)
 
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++) 
-		descr.nodes[i] = UNUSED; 
+		descr.nodes[i] = STARPU_UNUSED; 
 
 	_starpu_init_mem_chunk_lists();
 	starpu_init_data_request_lists();
@@ -44,7 +44,7 @@ void init_memory_nodes(void)
 	descr.total_queues_count = 0;
 }
 
-void deinit_memory_nodes(void)
+void starpu_deinit_memory_nodes(void)
 {
 	starpu_deinit_data_request_lists();
 	_starpu_deinit_mem_chunk_lists();
@@ -52,17 +52,17 @@ void deinit_memory_nodes(void)
 	pthread_key_delete(memory_node_key);
 }
 
-void set_local_memory_node_key(unsigned *node)
+void starpu_set_local_memory_node_key(unsigned *node)
 {
 	pthread_setspecific(memory_node_key, node);
 }
 
-unsigned get_local_memory_node(void)
+unsigned starpu_get_local_memory_node(void)
 {
 	unsigned *memory_node;
 	memory_node = pthread_getspecific(memory_node_key);
 	
-	/* in case this is called by the programmer, we assume the RAM node 
+	/* in case this is called by the programmer, we assume the STARPU_RAM node 
 	   is the appropriate memory node ... so we return 0 XXX */
 	if (STARPU_UNLIKELY(!memory_node))
 		return 0;
@@ -70,22 +70,22 @@ unsigned get_local_memory_node(void)
 	return *memory_node;
 }
 
-inline mem_node_descr *get_memory_node_description(void)
+inline starpu_mem_node_descr *starpu_get_memory_node_description(void)
 {
 	return &descr;
 }
 
-inline node_kind get_node_kind(uint32_t node)
+inline starpu_node_kind starpu_get_node_kind(uint32_t node)
 {
 	return descr.nodes[node];
 }
 
-unsigned get_memory_nodes_count(void)
+unsigned starpu_get_memory_nodes_count(void)
 {
 	return descr.nnodes;
 }
 
-unsigned _starpu_register_memory_node(node_kind kind)
+unsigned _starpu_register_memory_node(starpu_node_kind kind)
 {
 	unsigned nnodes;
 	/* ATOMIC_ADD returns the new value ... */
@@ -102,7 +102,7 @@ unsigned _starpu_register_memory_node(node_kind kind)
 
 /* TODO move in a more appropriate file  !! */
 /* attach a queue to a memory node (if it's not already attached) */
-void memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
+void starpu_memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
 {
 	unsigned queue;
 	unsigned nqueues_total, nqueues;

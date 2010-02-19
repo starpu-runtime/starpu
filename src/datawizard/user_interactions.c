@@ -49,7 +49,7 @@ struct state_and_node {
 	void *callback_arg;
 };
 
-/* put the current value of the data into RAM */
+/* put the current value of the data into STARPU_RAM */
 static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 {
 	int ret;

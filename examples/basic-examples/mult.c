@@ -103,7 +103,7 @@ static void callback_func(void *arg)
 
 /*
  * The codelet is passed 3 matrices, the "descr" union-type field gives a
- * description of the layout of those 3 matrices in the local memory (ie. RAM
+ * description of the layout of those 3 matrices in the local memory (ie. STARPU_RAM
  * in the case of CPU, GPU frame buffer in the case of GPU etc.). Since we have
  * registered data with the "blas" data interface, we manipulate the .blas
  * field of the descr[x] elements which are union types.
@@ -392,7 +392,7 @@ int main(__attribute__ ((unused)) int argc,
  	 * it's not possible to manipulate a subset of C using get_sub_data until
 	 * starpu_map_filters is called again on C_handle.
 	 * The second argument is the memory node where the different subsets
-	 * should be reassembled, 0 = main memory (RAM) */
+	 * should be reassembled, 0 = main memory (STARPU_RAM) */
 	starpu_unpartition_data(C_handle, 0);
 
 	/* stop monitoring matrix C : after this, it is not possible to pass C 

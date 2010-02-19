@@ -177,7 +177,7 @@ void *_starpu_cuda_worker(void *arg)
 
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
-	set_local_memory_node_key(&(args->memory_node));
+	starpu_set_local_memory_node_key(&(args->memory_node));
 
 	set_local_queue(args->jobq);
 

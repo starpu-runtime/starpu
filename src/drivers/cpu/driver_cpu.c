@@ -109,7 +109,7 @@ void *_starpu_cpu_worker(void *arg)
         fprintf(stderr, "cpu worker %d is ready on logical cpu %d\n", cpu_arg->id, cpu_arg->bindid);
 #endif
 
-	set_local_memory_node_key(&cpu_arg->memory_node);
+	starpu_set_local_memory_node_key(&cpu_arg->memory_node);
 
 	set_local_queue(cpu_arg->jobq);
 

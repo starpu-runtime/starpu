@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 	 *  - the second argument is the memory node where the data (ie. "tab")
 	 *    resides initially: 0 stands for an address in main memory, as
 	 *    opposed to an adress on a GPU for instance.
-	 *  - the third argument is the adress of the vector in RAM
+	 *  - the third argument is the adress of the vector in STARPU_RAM
 	 *  - the fourth argument is the number of elements in the vector
 	 *  - the fifth argument is the size of each element.
 	 */

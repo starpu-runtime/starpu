@@ -464,9 +464,9 @@ static void _starpu_init_workers_binding(struct machine_config_s *config)
 	/* a single cpu is dedicated for the accelerators */
 	int accelerator_bindid = -1;
 
-	/* note that even if the CPU cpu are not used, we always have a RAM node */
+	/* note that even if the CPU cpu are not used, we always have a STARPU_RAM node */
 	/* TODO : support NUMA  ;) */
-	ram_memory_node = _starpu_register_memory_node(RAM);
+	ram_memory_node = _starpu_register_memory_node(STARPU_RAM);
 
 	unsigned worker;
 	for (worker = 0; worker < config->nworkers; worker++)
@@ -501,7 +501,7 @@ static void _starpu_init_workers_binding(struct machine_config_s *config)
 					npreferred = config->nhwcpus;
 				}
 				is_a_set_of_accelerators = 0;
-				memory_node = _starpu_register_memory_node(CUDA_RAM);
+				memory_node = _starpu_register_memory_node(STARPU_CUDA_RAM);
 				break;
 #endif
 			default:
@@ -534,7 +534,7 @@ int starpu_build_topology(struct machine_config_s *config)
 		return ret;
 
 	/* for the data management library */
-	init_memory_nodes();
+	starpu_init_memory_nodes();
 
 	_starpu_init_workers_binding(config);
 
@@ -544,7 +544,7 @@ int starpu_build_topology(struct machine_config_s *config)
 void starpu_destroy_topology(struct machine_config_s *config __attribute__ ((unused)))
 {
 	/* cleanup StarPU internal data structures */
-	deinit_memory_nodes();
+	starpu_deinit_memory_nodes();
 
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_destroy(config->hwtopology);

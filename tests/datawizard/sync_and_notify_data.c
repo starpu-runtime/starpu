@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 				goto enodev;
 		}
 
-		/* synchronize v in RAM */
+		/* synchronize v in STARPU_RAM */
 		starpu_sync_data_with_mem(v_handle, STARPU_RW);
 
 		/* increment b */

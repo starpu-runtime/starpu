@@ -25,8 +25,8 @@ uint32_t starpu_select_node_to_handle_request(uint32_t src_node, uint32_t dst_no
 	/* in case one of the node is a GPU, it needs to perform the transfer,
 	 * if both of them are GPU, it's a bit more complicated (TODO !) */
 
-	unsigned src_is_a_gpu = (get_node_kind(src_node) == CUDA_RAM);
-	unsigned dst_is_a_gpu = (get_node_kind(dst_node) == CUDA_RAM);
+	unsigned src_is_a_gpu = (starpu_get_node_kind(src_node) == STARPU_CUDA_RAM);
+	unsigned dst_is_a_gpu = (starpu_get_node_kind(dst_node) == STARPU_CUDA_RAM);
 
 	/* we do not handle GPU->GPU transfers yet ! */
 	STARPU_ASSERT( !(src_is_a_gpu && dst_is_a_gpu) );
@@ -40,7 +40,7 @@ uint32_t starpu_select_node_to_handle_request(uint32_t src_node, uint32_t dst_no
 	/* otherwise perform it locally, since we should be on a "sane" arch
 	 * where anyone can do the transfer. NB: in StarPU this should actually never
 	 * happen */
-	return get_local_memory_node();
+	return starpu_get_local_memory_node();
 }
 
 uint32_t starpu_select_src_node(starpu_data_handle handle)
@@ -48,7 +48,7 @@ uint32_t starpu_select_src_node(starpu_data_handle handle)
 	unsigned src_node = 0;
 	unsigned i;
 
-	unsigned nnodes = get_memory_nodes_count();
+	unsigned nnodes = starpu_get_memory_nodes_count();
 
 	/* first find a valid copy, either a STARPU_OWNER or a STARPU_SHARED */
 	uint32_t node;
@@ -75,7 +75,7 @@ uint32_t starpu_select_src_node(starpu_data_handle handle)
 
 			/* however GPU are expensive sources, really !
 			 * 	other should be ok */
-			if (get_node_kind(i) != CUDA_RAM)
+			if (starpu_get_node_kind(i) != STARPU_CUDA_RAM)
 				break;
 
 			/* XXX do a better algorithm to distribute the memory copies */
@@ -89,7 +89,7 @@ uint32_t starpu_select_src_node(starpu_data_handle handle)
 /* this may be called once the data is fetched with header and STARPU_RW-lock hold */
 void starpu_update_data_state(starpu_data_handle handle, uint32_t requesting_node, uint8_t write)
 {
-	unsigned nnodes = get_memory_nodes_count();
+	unsigned nnodes = starpu_get_memory_nodes_count();
 
 	/* the data is present now */
 	handle->per_node[requesting_node].requested = 0;
@@ -141,7 +141,7 @@ void starpu_update_data_state(starpu_data_handle handle, uint32_t requesting_nod
 int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_node,
 			uint8_t read, uint8_t write, unsigned is_prefetch)
 {
-	uint32_t local_node = get_local_memory_node();
+	uint32_t local_node = starpu_get_local_memory_node();
 
 	while (starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(local_node, 1);
@@ -181,8 +181,8 @@ int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_nod
 			STARPU_ASSERT(src_node != requesting_node);
 		}
 	
-		unsigned src_is_a_gpu = (get_node_kind(src_node) == CUDA_RAM);
-		unsigned dst_is_a_gpu = (get_node_kind(requesting_node) == CUDA_RAM);
+		unsigned src_is_a_gpu = (starpu_get_node_kind(src_node) == STARPU_CUDA_RAM);
+		unsigned dst_is_a_gpu = (starpu_get_node_kind(requesting_node) == STARPU_CUDA_RAM);
 
 		/* we have to perform 2 successive requests for GPU->GPU transfers */
 		if (read && (src_is_a_gpu && dst_is_a_gpu)) {
@@ -190,7 +190,7 @@ int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_nod
 			starpu_data_request_t r_src_to_ram;
 			starpu_data_request_t r_ram_to_dst;
 
-			/* XXX we hardcore 0 as the RAM node ... */
+			/* XXX we hardcore 0 as the STARPU_RAM node ... */
 			r_ram_to_dst = starpu_create_data_request(handle, 0, requesting_node, requesting_node, read, write, is_prefetch);
 
 			if (!is_prefetch)
@@ -276,7 +276,7 @@ static int prefetch_data_on_node(starpu_data_handle handle, uint8_t read, uint8_
 
 static int fetch_data(starpu_data_handle handle, starpu_access_mode mode)
 {
-	uint32_t requesting_node = get_local_memory_node(); 
+	uint32_t requesting_node = starpu_get_local_memory_node(); 
 
 	uint8_t read, write;
 	read = (mode != STARPU_W); /* then R or STARPU_RW */
@@ -306,7 +306,7 @@ void starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wb_
 		write_through_data(handle, memory_node, wb_mask);
 	}
 
-	uint32_t local_node = get_local_memory_node();
+	uint32_t local_node = starpu_get_local_memory_node();
 	while (starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(local_node, 1);
 
@@ -350,7 +350,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 
 //	fprintf(stderr, "_starpu_fetch_task_input\n");
 
-	uint32_t local_memory_node = get_local_memory_node();
+	uint32_t local_memory_node = starpu_get_local_memory_node();
 
 	starpu_buffer_descr *descrs = task->buffers;
 	unsigned nbuffers = task->cl->nbuffers;
@@ -396,7 +396,7 @@ void starpu_push_task_output(struct starpu_task *task, uint32_t mask)
         starpu_buffer_descr *descrs = task->buffers;
         unsigned nbuffers = task->cl->nbuffers;
 
-	uint32_t local_node = get_local_memory_node();
+	uint32_t local_node = starpu_get_local_memory_node();
 
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)

@@ -27,7 +27,7 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 	/* wake up all queues on that node */
 	unsigned q_id;
 
-	mem_node_descr * const descr = get_memory_node_description();
+	starpu_mem_node_descr * const descr = starpu_get_memory_node_description();
 
 	pthread_rwlock_rdlock(&descr->attached_queues_rwlock);
 
@@ -59,7 +59,7 @@ void starpu_wake_all_blocked_workers(void)
 
 	/* workers may be blocked on the various queues' conditions */
 	unsigned node;
-	unsigned nnodes = get_memory_nodes_count();
+	unsigned nnodes = starpu_get_memory_nodes_count();
 	for (node = 0; node < nnodes; node++)
 	{
 		_starpu_wake_all_blocked_workers_on_node(node);
@@ -81,8 +81,8 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, uint32_t src_node
 
 	const struct starpu_copy_data_methods_s *copy_methods = handle->ops->copy_methods;
 
-	node_kind src_kind = get_node_kind(src_node);
-	node_kind dst_kind = get_node_kind(dst_node);
+	starpu_node_kind src_kind = starpu_get_node_kind(src_node);
+	starpu_node_kind dst_kind = starpu_get_node_kind(dst_node);
 
 	STARPU_ASSERT(handle->per_node[src_node].refcnt);
 	STARPU_ASSERT(handle->per_node[dst_node].refcnt);
@@ -96,18 +96,18 @@ cudaStream_t *stream;
 #endif
 
 	switch (dst_kind) {
-	case RAM:
+	case STARPU_RAM:
 		switch (src_kind) {
-			case RAM:
-				/* RAM -> RAM */
+			case STARPU_RAM:
+				/* STARPU_RAM -> STARPU_RAM */
 				STARPU_ASSERT(copy_methods->ram_to_ram);
 				copy_methods->ram_to_ram(handle, src_node, dst_node);
 				break;
 #ifdef STARPU_USE_CUDA
-			case CUDA_RAM:
-				/* CUBLAS_RAM -> RAM */
+			case STARPU_CUDA_RAM:
+				/* CUBLAS_RAM -> STARPU_RAM */
 				/* only the proper CUBLAS thread can initiate this ! */
-				if (get_local_memory_node() == src_node)
+				if (starpu_get_local_memory_node() == src_node)
 				{
 					/* only the proper CUBLAS thread can initiate this directly ! */
 					STARPU_ASSERT(copy_methods->cuda_to_ram);
@@ -134,23 +134,23 @@ cudaStream_t *stream;
 				}
 				break;
 #endif
-			case SPU_LS:
+			case STARPU_SPU_LS:
 				STARPU_ABORT(); // TODO
 				break;
-			case UNUSED:
-				printf("error node %u UNUSED\n", src_node);
+			case STARPU_UNUSED:
+				printf("error node %u STARPU_UNUSED\n", src_node);
 			default:
 				assert(0);
 				break;
 		}
 		break;
 #ifdef STARPU_USE_CUDA
-	case CUDA_RAM:
+	case STARPU_CUDA_RAM:
 		switch (src_kind) {
-			case RAM:
-				/* RAM -> CUBLAS_RAM */
+			case STARPU_RAM:
+				/* STARPU_RAM -> CUBLAS_RAM */
 				/* only the proper CUBLAS thread can initiate this ! */
-				STARPU_ASSERT(get_local_memory_node() == dst_node);
+				STARPU_ASSERT(starpu_get_local_memory_node() == dst_node);
 				STARPU_ASSERT(copy_methods->ram_to_cuda);
 				if (!req || !copy_methods->ram_to_cuda_async)
 				{
@@ -168,21 +168,21 @@ cudaStream_t *stream;
 					STARPU_ASSERT(cures == cudaSuccess);
 				}
 				break;
-			case CUDA_RAM:
-			case SPU_LS:
+			case STARPU_CUDA_RAM:
+			case STARPU_SPU_LS:
 				STARPU_ABORT(); // TODO 
 				break;
-			case UNUSED:
+			case STARPU_UNUSED:
 			default:
 				STARPU_ABORT();
 				break;
 		}
 		break;
 #endif
-	case SPU_LS:
+	case STARPU_SPU_LS:
 		STARPU_ABORT(); // TODO
 		break;
-	case UNUSED:
+	case STARPU_UNUSED:
 	default:
 		assert(0);
 		break;
@@ -253,7 +253,7 @@ nomem:
 void starpu_driver_wait_request_completion(starpu_async_channel *async_channel __attribute__ ((unused)),
 					unsigned handling_node)
 {
-	node_kind kind = get_node_kind(handling_node);
+	starpu_node_kind kind = starpu_get_node_kind(handling_node);
 #ifdef STARPU_USE_CUDA
 	cudaEvent_t event;
 	cudaError_t cures;
@@ -261,7 +261,7 @@ void starpu_driver_wait_request_completion(starpu_async_channel *async_channel _
 
 	switch (kind) {
 #ifdef STARPU_USE_CUDA
-		case CUDA_RAM:
+		case STARPU_CUDA_RAM:
 			event = (*async_channel).cuda_event;
 
 			cures = cudaEventSynchronize(event);
@@ -274,7 +274,7 @@ void starpu_driver_wait_request_completion(starpu_async_channel *async_channel _
 
 			break;
 #endif
-		case RAM:
+		case STARPU_RAM:
 		default:
 			STARPU_ABORT();
 	}
@@ -283,7 +283,7 @@ void starpu_driver_wait_request_completion(starpu_async_channel *async_channel _
 unsigned starpu_driver_test_request_completion(starpu_async_channel *async_channel __attribute__ ((unused)),
 					unsigned handling_node)
 {
-	node_kind kind = get_node_kind(handling_node);
+	starpu_node_kind kind = starpu_get_node_kind(handling_node);
 	unsigned success;
 #ifdef STARPU_USE_CUDA
 	cudaEvent_t event;
@@ -291,7 +291,7 @@ unsigned starpu_driver_test_request_completion(starpu_async_channel *async_chann
 
 	switch (kind) {
 #ifdef STARPU_USE_CUDA
-		case CUDA_RAM:
+		case STARPU_CUDA_RAM:
 			event = (*async_channel).cuda_event;
 
 			success = (cudaEventQuery(event) == cudaSuccess);
@@ -300,7 +300,7 @@ unsigned starpu_driver_test_request_completion(starpu_async_channel *async_chann
 
 			break;
 #endif
-		case RAM:
+		case STARPU_RAM:
 		default:
 			STARPU_ABORT();
 			success = 0;

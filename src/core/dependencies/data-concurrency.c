@@ -118,7 +118,7 @@ static unsigned attempt_to_submit_data_request_from_job(starpu_job_t j, unsigned
 	starpu_access_mode mode = j->task->buffers[buffer_index].mode;
 
 	while (starpu_spin_trylock(&handle->header_lock))
-		_starpu_datawizard_progress(get_local_memory_node(), 0);
+		_starpu_datawizard_progress(starpu_get_local_memory_node(), 0);
 
 	if (handle->refcnt == 0)
 	{

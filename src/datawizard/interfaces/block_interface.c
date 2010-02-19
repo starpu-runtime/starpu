@@ -188,7 +188,7 @@ uint32_t starpu_get_block_nz(starpu_data_handle handle)
 uint32_t starpu_get_block_local_ldy(starpu_data_handle handle)
 {
 	unsigned node;
-	node = get_local_memory_node();
+	node = starpu_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
 	
@@ -201,7 +201,7 @@ uint32_t starpu_get_block_local_ldy(starpu_data_handle handle)
 uint32_t starpu_get_block_local_ldz(starpu_data_handle handle)
 {
 	unsigned node;
-	node = get_local_memory_node();
+	node = starpu_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
 
@@ -214,7 +214,7 @@ uint32_t starpu_get_block_local_ldz(starpu_data_handle handle)
 uintptr_t starpu_get_block_local_ptr(starpu_data_handle handle)
 {
 	unsigned node;
-	node = get_local_memory_node();
+	node = starpu_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
 
@@ -253,17 +253,17 @@ static size_t allocate_block_buffer_on_node(starpu_data_handle handle, uint32_t 
 	uint32_t nz = dst_block->nz;
 	size_t elemsize = dst_block->elemsize;
 
-	node_kind kind = get_node_kind(dst_node);
+	starpu_node_kind kind = starpu_get_node_kind(dst_node);
 
 	switch(kind) {
-		case RAM:
+		case STARPU_RAM:
 			addr = (uintptr_t)malloc(nx*ny*nz*elemsize);
 			if (!addr) 
 				fail = 1;
 
 			break;
 #ifdef STARPU_USE_CUDA
-		case CUDA_RAM:
+		case STARPU_CUDA_RAM:
 			status = cudaMalloc((void **)&addr, nx*ny*nz*elemsize);
 
 			//fprintf(stderr, "cudaMalloc -> addr %p\n", addr);
@@ -306,13 +306,13 @@ static void liberate_block_buffer_on_node(void *interface, uint32_t node)
 	cudaError_t status;
 #endif
 
-	node_kind kind = get_node_kind(node);
+	starpu_node_kind kind = starpu_get_node_kind(node);
 	switch(kind) {
-		case RAM:
+		case STARPU_RAM:
 			free((void*)block_interface->ptr);
 			break;
 #ifdef STARPU_USE_CUDA
-		case CUDA_RAM:
+		case STARPU_CUDA_RAM:
 			status = cudaFree((void*)block_interface->ptr);
 			if (STARPU_UNLIKELY(status))
 				STARPU_CUDA_REPORT_ERROR(status);

@@ -240,7 +240,7 @@ void starpu_unpartition_data(starpu_data_handle root_handle, uint32_t gathering_
 
 		int ret;
 		ret = starpu_fetch_data_on_node(&root_handle->children[child], gathering_node, 1, 0, 0);
-		/* for now we pretend that the RAM is almost unlimited and that gathering 
+		/* for now we pretend that the STARPU_RAM is almost unlimited and that gathering 
 		 * data should be possible from the node that does the unpartionning ... we
 		 * don't want to have the programming deal with memory shortage at that time,
 		 * really */

@@ -141,7 +141,7 @@ int starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_al
 	int retval;
 	int do_delete = 0;
 
-	uint32_t local_node = get_local_memory_node();
+	uint32_t local_node = starpu_get_local_memory_node();
 
 	do {
 		starpu_spin_lock(&r->lock);
