@@ -28,7 +28,7 @@
 static pthread_cond_t *sched_cond;
 static pthread_mutex_t *sched_mutex;
 
-void init_priority_queues_mechanisms(void)
+void _starpu_init_priority_queues_mechanisms(void)
 {
 	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
 
@@ -37,15 +37,15 @@ void init_priority_queues_mechanisms(void)
 	sched_mutex = &sched->sched_activity_mutex;
 }
 
-struct jobq_s *create_priority_jobq(void)
+struct jobq_s *_starpu_create_priority_jobq(void)
 {
 	struct jobq_s *q;
 
 	q = malloc(sizeof(struct jobq_s));
 
-	struct priority_jobq_s *central_queue;
+	struct starpu_priority_jobq_s *central_queue;
 	
-	central_queue = malloc(sizeof(struct priority_jobq_s));
+	central_queue = malloc(sizeof(struct starpu_priority_jobq_s));
 	q->queue = central_queue;
 
 	pthread_mutex_init(&q->activity_mutex, NULL);
@@ -63,10 +63,10 @@ struct jobq_s *create_priority_jobq(void)
 	return q;
 }
 
-int priority_push_task(struct jobq_s *q, starpu_job_t j)
+int _starpu_priority_push_task(struct jobq_s *q, starpu_job_t j)
 {
 	STARPU_ASSERT(q);
-	struct priority_jobq_s *queue = q->queue;
+	struct starpu_priority_jobq_s *queue = q->queue;
 
 	/* if anyone is blocked on the entire machine, wake it up */
 	pthread_mutex_lock(sched_mutex);
@@ -90,12 +90,12 @@ int priority_push_task(struct jobq_s *q, starpu_job_t j)
 	return 0;
 }
 
-starpu_job_t priority_pop_task(struct jobq_s *q)
+starpu_job_t _starpu_priority_pop_task(struct jobq_s *q)
 {
 	starpu_job_t j = NULL;
 
 	STARPU_ASSERT(q);
-	struct priority_jobq_s *queue = q->queue;
+	struct starpu_priority_jobq_s *queue = q->queue;
 
 	/* block until some event happens */
 	pthread_mutex_lock(&q->activity_mutex);

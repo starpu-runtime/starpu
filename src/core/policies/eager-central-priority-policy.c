@@ -22,14 +22,14 @@ static struct jobq_s *jobq;
 static void init_priority_queue_design(void)
 {
 	/* only a single queue (even though there are several internaly) */
-	jobq = create_priority_jobq();
+	jobq = _starpu_create_priority_jobq();
 
-	init_priority_queues_mechanisms();
+	_starpu_init_priority_queues_mechanisms();
 
 	/* we always use priorities in that policy */
-	jobq->_starpu_push_task = priority_push_task;
-	jobq->push_prio_task = priority_push_task;
-	jobq->_starpu_pop_task = priority_pop_task;
+	jobq->_starpu_push_task = _starpu_priority_push_task;
+	jobq->push_prio_task = _starpu_priority_push_task;
+	jobq->_starpu_pop_task = _starpu_priority_pop_task;
 }
 
 static struct jobq_s *func_init_priority_queue(void)

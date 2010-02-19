@@ -23,7 +23,7 @@
 
 #define NPRIO_LEVELS	((STARPU_MAX_PRIO) - (STARPU_MIN_PRIO) + 1)
 
-struct priority_jobq_s {
+struct starpu_priority_jobq_s {
 	/* the actual lists 
 	 *	jobq[p] is for priority [p - STARPU_MIN_PRIO] */
 	starpu_job_list_t jobq[NPRIO_LEVELS];
@@ -32,11 +32,11 @@ struct priority_jobq_s {
 	unsigned total_njobs;
 };
 
-struct jobq_s *create_priority_jobq(void);
-void init_priority_queues_mechanisms(void);
+struct jobq_s *_starpu_create_priority_jobq(void);
+void _starpu_init_priority_queues_mechanisms(void);
 
-int priority_push_task(struct jobq_s *q, starpu_job_t task);
+int _starpu_priority_push_task(struct jobq_s *q, starpu_job_t task);
 
-starpu_job_t priority_pop_task(struct jobq_s *q);
+starpu_job_t _starpu_priority_pop_task(struct jobq_s *q);
 
 #endif // __PRIORITY_QUEUES_H__
