@@ -27,16 +27,16 @@
 #include <assert.h>
 #include <core/dependencies/tags.h>
 
-#define HTBL_NODE_SIZE	16
+#define STARPU_HTBL_NODE_SIZE	16
 
-typedef struct _htbl_node_t {
+typedef struct starpu_htbl_node_s {
 	unsigned nentries;
-	struct _htbl_node_t *children[1<<HTBL_NODE_SIZE];
-} htbl_node_t;
+	struct starpu_htbl_node_s *children[1<<STARPU_HTBL_NODE_SIZE];
+} starpu_htbl_node_t;
 
-void *htbl_search_tag(htbl_node_t *htbl, starpu_tag_t tag);
-void *htbl_insert_tag(htbl_node_t **htbl, starpu_tag_t tag, void *entry);
-void *htbl_remove_tag(htbl_node_t *htbl, starpu_tag_t tag);
+void *_starpu_htbl_search_tag(starpu_htbl_node_t *htbl, starpu_tag_t tag);
+void *_starpu_htbl_insert_tag(starpu_htbl_node_t **htbl, starpu_tag_t tag, void *entry);
+void *_starpu_htbl_remove_tag(starpu_htbl_node_t *htbl, starpu_tag_t tag);
 
 
 #endif

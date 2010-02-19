@@ -17,15 +17,15 @@
 #include <core/dependencies/htable.h>
 #include <string.h>
 
-void *htbl_search_tag(htbl_node_t *htbl, starpu_tag_t tag)
+void *_starpu_htbl_search_tag(starpu_htbl_node_t *htbl, starpu_tag_t tag)
 {
 	unsigned currentbit;
-	htbl_node_t *current_htbl = htbl;
+	starpu_htbl_node_t *current_htbl = htbl;
 
-	/* 000000000001111 with HTBL_NODE_SIZE 1's */
-	starpu_tag_t mask = (1<<HTBL_NODE_SIZE)-1;
+	/* 000000000001111 with STARPU_HTBL_NODE_SIZE 1's */
+	starpu_tag_t mask = (1<<STARPU_HTBL_NODE_SIZE)-1;
 
-	for(currentbit = 0; currentbit < TAG_SIZE; currentbit+=HTBL_NODE_SIZE)
+	for(currentbit = 0; currentbit < TAG_SIZE; currentbit+=STARPU_HTBL_NODE_SIZE)
 	{
 	
 	//	printf("search : current bit = %d \n", currentbit);
@@ -39,7 +39,7 @@ void *htbl_search_tag(htbl_node_t *htbl, starpu_tag_t tag)
 		 * */
 
 		unsigned last_currentbit = 
-			TAG_SIZE - (currentbit + HTBL_NODE_SIZE);
+			TAG_SIZE - (currentbit + STARPU_HTBL_NODE_SIZE);
 		starpu_tag_t offloaded_mask = mask << last_currentbit;
 		unsigned current_index = 
 			(tag & (offloaded_mask)) >> (last_currentbit);
@@ -54,21 +54,21 @@ void *htbl_search_tag(htbl_node_t *htbl, starpu_tag_t tag)
  * returns the previous value of the tag, or NULL else
  */
 
-void *htbl_insert_tag(htbl_node_t **htbl, starpu_tag_t tag, void *entry)
+void *_starpu_htbl_insert_tag(starpu_htbl_node_t **htbl, starpu_tag_t tag, void *entry)
 {
 
 	unsigned currentbit;
-	htbl_node_t **current_htbl_ptr = htbl;
-	htbl_node_t *previous_htbl_ptr = NULL;
+	starpu_htbl_node_t **current_htbl_ptr = htbl;
+	starpu_htbl_node_t *previous_htbl_ptr = NULL;
 
-	/* 000000000001111 with HTBL_NODE_SIZE 1's */
-	starpu_tag_t mask = (1<<HTBL_NODE_SIZE)-1;
+	/* 000000000001111 with STARPU_HTBL_NODE_SIZE 1's */
+	starpu_tag_t mask = (1<<STARPU_HTBL_NODE_SIZE)-1;
 
-	for(currentbit = 0; currentbit < TAG_SIZE; currentbit+=HTBL_NODE_SIZE)
+	for(currentbit = 0; currentbit < TAG_SIZE; currentbit+=STARPU_HTBL_NODE_SIZE)
 	{
 		if (*current_htbl_ptr == NULL) {
 			/* TODO pad to change that 1 into 16 ? */
-			*current_htbl_ptr = calloc(1, sizeof(htbl_node_t));
+			*current_htbl_ptr = calloc(1, sizeof(starpu_htbl_node_t));
 			assert(*current_htbl_ptr);
 
 			if (previous_htbl_ptr)
@@ -82,7 +82,7 @@ void *htbl_insert_tag(htbl_node_t **htbl, starpu_tag_t tag, void *entry)
 		 * */
 
 		unsigned last_currentbit = 
-			TAG_SIZE - (currentbit + HTBL_NODE_SIZE);
+			TAG_SIZE - (currentbit + STARPU_HTBL_NODE_SIZE);
 		starpu_tag_t offloaded_mask = mask << last_currentbit;
 		unsigned current_index = 
 			(tag & (offloaded_mask)) >> (last_currentbit);
@@ -105,21 +105,21 @@ void *htbl_insert_tag(htbl_node_t **htbl, starpu_tag_t tag, void *entry)
 }
 
 /* returns the entry corresponding to the tag and remove it from the htbl */
-void *htbl_remove_tag(htbl_node_t *htbl, starpu_tag_t tag)
+void *_starpu_htbl_remove_tag(starpu_htbl_node_t *htbl, starpu_tag_t tag)
 {
 	/* NB : if the entry is "NULL", we assume this means it is not present XXX */
 	unsigned currentbit;
-	htbl_node_t *current_htbl_ptr = htbl;
+	starpu_htbl_node_t *current_htbl_ptr = htbl;
 
 	/* remember the path to the tag */
-	htbl_node_t *path[(TAG_SIZE + HTBL_NODE_SIZE - 1)/(HTBL_NODE_SIZE)];
+	starpu_htbl_node_t *path[(TAG_SIZE + STARPU_HTBL_NODE_SIZE - 1)/(STARPU_HTBL_NODE_SIZE)];
 
-	/* 000000000001111 with HTBL_NODE_SIZE 1's */
-	starpu_tag_t mask = (1<<HTBL_NODE_SIZE)-1;
+	/* 000000000001111 with STARPU_HTBL_NODE_SIZE 1's */
+	starpu_tag_t mask = (1<<STARPU_HTBL_NODE_SIZE)-1;
 	int level, maxlevel;
 	unsigned tag_is_present = 1;
 
-	for(currentbit = 0, level = 0; currentbit < TAG_SIZE; currentbit+=HTBL_NODE_SIZE, level++)
+	for(currentbit = 0, level = 0; currentbit < TAG_SIZE; currentbit+=STARPU_HTBL_NODE_SIZE, level++)
 	{
 		path[level] = current_htbl_ptr;
 
@@ -135,7 +135,7 @@ void *htbl_remove_tag(htbl_node_t *htbl, starpu_tag_t tag)
 		 * */
 
 		unsigned last_currentbit = 
-			TAG_SIZE - (currentbit + HTBL_NODE_SIZE);
+			TAG_SIZE - (currentbit + STARPU_HTBL_NODE_SIZE);
 		starpu_tag_t offloaded_mask = mask << last_currentbit;
 		unsigned current_index = 
 			(tag & (offloaded_mask)) >> (last_currentbit);

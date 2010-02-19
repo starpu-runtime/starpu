@@ -22,7 +22,7 @@
 #include <core/policies/sched_policy.h>
 #include <core/dependencies/data-concurrency.h>
 
-static htbl_node_t *tag_htbl = NULL;
+static starpu_htbl_node_t *tag_htbl = NULL;
 static pthread_rwlock_t tag_global_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
 static starpu_cg_t *create_cg_apps(unsigned ntags)
@@ -83,7 +83,7 @@ void starpu_tag_remove(starpu_tag_t id)
 
 	pthread_rwlock_wrlock(&tag_global_rwlock);
 
-	tag = htbl_remove_tag(tag_htbl, id);
+	tag = _starpu_htbl_remove_tag(tag_htbl, id);
 
 	pthread_rwlock_unlock(&tag_global_rwlock);
 
@@ -121,14 +121,14 @@ static struct tag_s *gettag_struct(starpu_tag_t id)
 
 	/* search if the tag is already declared or not */
 	struct tag_s *tag;
-	tag = htbl_search_tag(tag_htbl, id);
+	tag = _starpu_htbl_search_tag(tag_htbl, id);
 
 	if (tag == NULL) {
 		/* the tag does not exist yet : create an entry */
 		tag = _starpu_tag_init(id);
 
 		void *old;
-		old = htbl_insert_tag(&tag_htbl, id, tag);
+		old = _starpu_htbl_insert_tag(&tag_htbl, id, tag);
 		/* there was no such tag before */
 		STARPU_ASSERT(old == NULL);
 	}
