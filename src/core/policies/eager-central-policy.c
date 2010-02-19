@@ -31,11 +31,11 @@ static void init_central_queue_design(void)
 
 	init_fifo_queues_mechanisms();
 
-	jobq->push_task = fifo_push_task;
+	jobq->_starpu_push_task = fifo_push_task;
 	jobq->push_prio_task = fifo_push_prio_task;
-	jobq->pop_task = fifo_pop_task;
+	jobq->_starpu_pop_task = fifo_pop_task;
 
-	jobq->pop_every_task = fifo_pop_every_task;
+	jobq->_starpu_pop_every_task = fifo_pop_every_task;
 }
 
 static struct jobq_s *func_init_central_queue(void)
@@ -45,19 +45,19 @@ static struct jobq_s *func_init_central_queue(void)
 }
 
 static void initialize_eager_center_policy(struct starpu_machine_config_s *config, 
-		   __attribute__ ((unused)) struct sched_policy_s *_policy) 
+		   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
 	setup_queues(init_central_queue_design, func_init_central_queue, config);
 }
 
-static struct jobq_s *get_local_queue_eager(struct sched_policy_s *policy 
+static struct jobq_s *get_local_queue_eager(struct starpu_sched_policy_s *policy 
 						__attribute__ ((unused)))
 {
 	/* this is trivial for that strategy :) */
 	return jobq;
 }
 
-struct sched_policy_s sched_eager_policy = {
+struct starpu_sched_policy_s sched_eager_policy = {
 	.init_sched = initialize_eager_center_policy,
 	.deinit_sched = NULL,
 	.get_local_queue = get_local_queue_eager,

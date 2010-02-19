@@ -49,7 +49,7 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 void starpu_wake_all_blocked_workers(void)
 {
 	/* workers may be blocked on the policy's global condition */
-	struct sched_policy_s *sched = get_sched_policy();
+	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
 	pthread_cond_t *sched_cond = &sched->sched_activity_cond;
 	pthread_mutex_t *sched_mutex = &sched->sched_activity_mutex;
 

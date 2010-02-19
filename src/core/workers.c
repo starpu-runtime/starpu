@@ -244,7 +244,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	/* initialize the scheduler */
 
 	/* initialize the queue containing the jobs */
-	init_sched_policy(&config);
+	_starpu_init_sched_policy(&config);
 
 	_starpu_init_workers(&config);
 
@@ -412,7 +412,7 @@ static void _starpu_kill_all_workers(struct starpu_machine_config_s *config)
 	/* WARNING: here we make the asumption that a queue is not attached to
  	 * different memory nodes ! */
 
-	struct sched_policy_s *sched = get_sched_policy();
+	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
 
 	_starpu_operate_on_all_queues(LOCK);
 	pthread_mutex_lock(&sched->sched_activity_mutex);
@@ -445,7 +445,7 @@ void starpu_shutdown(void)
 	/* wait for their termination */
 	_starpu_terminate_workers(&config);
 
-	deinit_sched_policy(&config);
+	_starpu_deinit_sched_policy(&config);
 
 	_starpu_destroy_topology(&config);
 

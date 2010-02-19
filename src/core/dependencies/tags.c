@@ -147,7 +147,7 @@ void _starpu_tag_set_ready(struct tag_s *tag)
 	struct starpu_job_s *j = tag->job;
 
 	/* In case the task job is going to be scheduled immediately, and if
-	 * the task is "empty", calling push_task would directly try to enforce
+	 * the task is "empty", calling _starpu_push_task would directly try to enforce
 	 * the dependencies of the task, and therefore it would try to grab the
 	 * lock again, resulting in a deadlock. */
 	starpu_spin_unlock(&tag->lock);

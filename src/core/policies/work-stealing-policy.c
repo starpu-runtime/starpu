@@ -164,9 +164,9 @@ static struct jobq_s *init_ws_deque(void)
 
 	q = create_deque();
 
-	q->push_task = deque_push_task; 
+	q->_starpu_push_task = deque_push_task; 
 	q->push_prio_task = deque_push_prio_task; 
-	q->pop_task = ws_pop_task;
+	q->_starpu_pop_task = ws_pop_task;
 	q->who = 0;
 
 	queue_array[nworkers++] = q;
@@ -175,7 +175,7 @@ static struct jobq_s *init_ws_deque(void)
 }
 
 static void initialize_ws_policy(struct starpu_machine_config_s *config, 
-				__attribute__ ((unused)) struct sched_policy_s *_policy) 
+				__attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
 	nworkers = 0;
 	rr_worker = 0;
@@ -185,7 +185,7 @@ static void initialize_ws_policy(struct starpu_machine_config_s *config,
 	setup_queues(init_deque_queues_mechanisms, init_ws_deque, config);
 }
 
-static struct jobq_s *get_local_queue_ws(struct sched_policy_s *policy __attribute__ ((unused)))
+static struct jobq_s *get_local_queue_ws(struct starpu_sched_policy_s *policy __attribute__ ((unused)))
 {
 	struct jobq_s *queue;
 	queue = pthread_getspecific(policy->local_queue_key);
@@ -199,7 +199,7 @@ static struct jobq_s *get_local_queue_ws(struct sched_policy_s *policy __attribu
 	return queue;
 }
 
-struct sched_policy_s sched_ws_policy = {
+struct starpu_sched_policy_s sched_ws_policy = {
 	.init_sched = initialize_ws_policy,
 	.deinit_sched = NULL,
 	.get_local_queue = get_local_queue_ws,

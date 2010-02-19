@@ -139,7 +139,7 @@ void *_starpu_cpu_worker(void *arg)
         starpu_job_t j;
 	int res;
 
-	struct sched_policy_s *policy = get_sched_policy();
+	struct starpu_sched_policy_s *policy = _starpu_get_sched_policy();
 	struct jobq_s *queue = policy->get_local_queue(policy);
 	unsigned memnode = cpu_arg->memory_node;
 
@@ -158,7 +158,7 @@ void *_starpu_cpu_worker(void *arg)
 
 		/* otherwise ask a task to the scheduler */
 		if (!j)
-			j = pop_task();
+			j = _starpu_pop_task();
 
                 if (j == NULL) {
 			if (_starpu_worker_can_block(memnode))
@@ -173,7 +173,7 @@ void *_starpu_cpu_worker(void *arg)
 		if (!STARPU_CPU_MAY_PERFORM(j)) 
 		{
 			/* put it and the end of the queue ... XXX */
-			push_task(j);
+			_starpu_push_task(j);
 			continue;
 		}
 
@@ -181,7 +181,7 @@ void *_starpu_cpu_worker(void *arg)
 		if (res) {
 			switch (res) {
 				case -EAGAIN:
-					push_task(j);
+					_starpu_push_task(j);
 					continue;
 				default: 
 					assert(0);

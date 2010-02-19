@@ -85,9 +85,9 @@ static struct jobq_s *init_random_fifo(void)
 
 	q = create_fifo();
 
-	q->push_task = random_push_task; 
+	q->_starpu_push_task = random_push_task; 
 	q->push_prio_task = random_push_prio_task; 
-	q->pop_task = random_pop_task;
+	q->_starpu_pop_task = random_pop_task;
 	q->who = 0;
 
 	queue_array[nworkers++] = q;
@@ -96,7 +96,7 @@ static struct jobq_s *init_random_fifo(void)
 }
 
 static void initialize_random_policy(struct starpu_machine_config_s *config, 
-	 __attribute__ ((unused)) struct sched_policy_s *_policy) 
+	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
 	nworkers = 0;
 
@@ -105,7 +105,7 @@ static void initialize_random_policy(struct starpu_machine_config_s *config,
 	setup_queues(init_fifo_queues_mechanisms, init_random_fifo, config);
 }
 
-static struct jobq_s *get_local_queue_random(struct sched_policy_s *policy __attribute__ ((unused)))
+static struct jobq_s *get_local_queue_random(struct starpu_sched_policy_s *policy __attribute__ ((unused)))
 {
 	struct jobq_s *queue;
 	queue = pthread_getspecific(policy->local_queue_key);
@@ -119,7 +119,7 @@ static struct jobq_s *get_local_queue_random(struct sched_policy_s *policy __att
 	return queue;
 }
 
-struct sched_policy_s sched_random_policy = {
+struct starpu_sched_policy_s sched_random_policy = {
 	.init_sched = initialize_random_policy,
 	.deinit_sched = NULL,
 	.get_local_queue = get_local_queue_random,

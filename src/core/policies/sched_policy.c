@@ -28,7 +28,7 @@
 #include <core/policies/random-policy.h>
 #include <core/policies/deque-modeling-policy-data-aware.h>
 
-static struct sched_policy_s policy;
+static struct starpu_sched_policy_s policy;
 
 static int use_prefetch = 0;
 
@@ -38,7 +38,7 @@ static int use_prefetch = 0;
 
 #define NPREDEFINED_POLICIES	7
 
-struct sched_policy_s *predefined_policies[NPREDEFINED_POLICIES] = {
+struct starpu_sched_policy_s *predefined_policies[NPREDEFINED_POLICIES] = {
 	&sched_ws_policy,
 	&sched_prio_policy,
 	&sched_no_prio_policy,
@@ -48,7 +48,7 @@ struct sched_policy_s *predefined_policies[NPREDEFINED_POLICIES] = {
 	&sched_eager_policy
 };
 
-struct sched_policy_s *get_sched_policy(void)
+struct starpu_sched_policy_s *_starpu_get_sched_policy(void)
 {
 	return &policy;
 }
@@ -57,7 +57,7 @@ struct sched_policy_s *get_sched_policy(void)
  *	Methods to initialize the scheduling policy
  */
 
-static void load_sched_policy(struct sched_policy_s *sched_policy)
+static void load_sched_policy(struct starpu_sched_policy_s *sched_policy)
 {
 	STARPU_ASSERT(sched_policy);
 
@@ -84,7 +84,7 @@ static void load_sched_policy(struct sched_policy_s *sched_policy)
 	pthread_key_create(&policy.local_queue_key, NULL);
 }
 
-static struct sched_policy_s *find_sched_policy_from_name(const char *policy_name)
+static struct starpu_sched_policy_s *find_sched_policy_from_name(const char *policy_name)
 {
 
 	if (!policy_name)
@@ -93,7 +93,7 @@ static struct sched_policy_s *find_sched_policy_from_name(const char *policy_nam
 	unsigned i;
 	for (i = 0; i < NPREDEFINED_POLICIES; i++)
 	{
-		struct sched_policy_s *p;
+		struct starpu_sched_policy_s *p;
 		p = predefined_policies[i];
 		if (p->policy_name)
 		{
@@ -118,16 +118,16 @@ static void display_sched_help_message(void)
 		unsigned i;
 		for (i = 0; i < NPREDEFINED_POLICIES; i++)
 		{
-			struct sched_policy_s *p;
+			struct starpu_sched_policy_s *p;
 			p = predefined_policies[i];
 			fprintf(stderr, "%s\t-> %s\n", p->policy_name, p->policy_description);
 		}
 	 }
 }
 
-static struct sched_policy_s *select_sched_policy(struct starpu_machine_config_s *config)
+static struct starpu_sched_policy_s *select_sched_policy(struct starpu_machine_config_s *config)
 {
-	struct sched_policy_s *selected_policy = NULL;
+	struct starpu_sched_policy_s *selected_policy = NULL;
 	struct starpu_conf *user_conf = config->user_conf;
 
 	/* First, we check whether the application explicitely gave a scheduling policy or not */
@@ -155,7 +155,7 @@ static struct sched_policy_s *select_sched_policy(struct starpu_machine_config_s
 	return &sched_eager_policy;
 }
 
-void init_sched_policy(struct starpu_machine_config_s *config)
+void _starpu_init_sched_policy(struct starpu_machine_config_s *config)
 {
 	/* Perhaps we have to display some help */
 	display_sched_help_message();
@@ -164,7 +164,7 @@ void init_sched_policy(struct starpu_machine_config_s *config)
 	if (use_prefetch == -1)
 		use_prefetch = 0;
 
-	struct sched_policy_s *selected_policy;
+	struct starpu_sched_policy_s *selected_policy;
 	selected_policy = select_sched_policy(config);
 
 	load_sched_policy(selected_policy);
@@ -172,7 +172,7 @@ void init_sched_policy(struct starpu_machine_config_s *config)
 	policy.init_sched(config, &policy);
 }
 
-void deinit_sched_policy(struct starpu_machine_config_s *config)
+void _starpu_deinit_sched_policy(struct starpu_machine_config_s *config)
 {
 	if (policy.deinit_sched)
 		policy.deinit_sched(config, &policy);
@@ -183,7 +183,7 @@ void deinit_sched_policy(struct starpu_machine_config_s *config)
 }
 
 /* the generic interface that call the proper underlying implementation */
-int push_task(starpu_job_t j)
+int _starpu_push_task(starpu_job_t j)
 {
 	struct jobq_s *queue = policy.get_local_queue(&policy);
 
@@ -211,46 +211,46 @@ int push_task(starpu_job_t j)
 		return _starpu_push_local_task(worker, j);
 	}
 	else {
-		STARPU_ASSERT(queue->push_task);
+		STARPU_ASSERT(queue->_starpu_push_task);
 
-		return queue->push_task(queue, j);
+		return queue->_starpu_push_task(queue, j);
 	}
 }
 
-struct starpu_job_s * pop_task_from_queue(struct jobq_s *queue)
+struct starpu_job_s * _starpu_pop_task_from_queue(struct jobq_s *queue)
 {
-	STARPU_ASSERT(queue->pop_task);
+	STARPU_ASSERT(queue->_starpu_pop_task);
 
-	struct starpu_job_s *j = queue->pop_task(queue);
+	struct starpu_job_s *j = queue->_starpu_pop_task(queue);
 
 	return j;
 }
 
-struct starpu_job_s * pop_task(void)
+struct starpu_job_s * _starpu_pop_task(void)
 {
 	struct jobq_s *queue = policy.get_local_queue(&policy);
 
-	return pop_task_from_queue(queue);
+	return _starpu_pop_task_from_queue(queue);
 }
 
-struct starpu_job_list_s * pop_every_task_from_queue(struct jobq_s *queue, uint32_t where)
+struct starpu_job_list_s * _starpu_pop_every_task_from_queue(struct jobq_s *queue, uint32_t where)
 {
-	STARPU_ASSERT(queue->pop_every_task);
+	STARPU_ASSERT(queue->_starpu_pop_every_task);
 
-	struct starpu_job_list_s *list = queue->pop_every_task(queue, where);
+	struct starpu_job_list_s *list = queue->_starpu_pop_every_task(queue, where);
 
 	return list;
 }
 
 /* pop every task that can be executed on "where" (eg. GORDON) */
-struct starpu_job_list_s *pop_every_task(uint32_t where)
+struct starpu_job_list_s *_starpu_pop_every_task(uint32_t where)
 {
 	struct jobq_s *queue = policy.get_local_queue(&policy);
 
-	return pop_every_task_from_queue(queue, where);
+	return _starpu_pop_every_task_from_queue(queue, where);
 }
 
-void wait_on_sched_event(void)
+void _starpu_wait_on_sched_event(void)
 {
 	struct jobq_s *q = policy.get_local_queue(&policy);
 

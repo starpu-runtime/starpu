@@ -20,6 +20,6 @@
 #include <core/workers.h>
 #include <core/mechanisms/deque_queues.h>
 
-extern struct sched_policy_s sched_ws_policy;
+extern struct starpu_sched_policy_s sched_ws_policy;
 
 #endif // __WORK_STEALING_POLICY_H__

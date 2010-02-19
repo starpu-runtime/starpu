@@ -330,14 +330,14 @@ void *gordon_worker_inject(struct starpu_worker_set_s *arg)
 	while(_starpu_machine_is_running()) {
 		if (gordon_busy_enough()) {
 			/* gordon already has enough work, wait a little TODO */
-			wait_on_sched_event();
+			_starpu_wait_on_sched_event();
 		}
 		else {
 #ifndef NOCHAIN
 			int ret = 0;
 #warning we should look into the local job list here !
 
-			struct starpu_job_list_s *list = pop_every_task(STARPU_GORDON);
+			struct starpu_job_list_s *list = _starpu_pop_every_task(STARPU_GORDON);
 			/* XXX 0 is hardcoded */
 			if (list)
 			{
@@ -383,12 +383,12 @@ void *gordon_worker_inject(struct starpu_worker_set_s *arg)
 				}
 			}
 			else {
-				wait_on_sched_event();
+				_starpu_wait_on_sched_event();
 			}
 #else
 			/* gordon should accept a little more work */
 			starpu_job_t j;
-			j =  pop_task();
+			j =  _starpu_pop_task();
 	//		fprintf(stderr, "pop task %p\n", j);
 			if (j) {
 				if (STARPU_GORDON_MAY_PERFORM(j)) {
@@ -397,7 +397,7 @@ void *gordon_worker_inject(struct starpu_worker_set_s *arg)
 					inject_task(j, &arg->workers[0]);
 				}
 				else {
-					push_task(j);
+					_starpu_push_task(j);
 				}
 			}
 #endif

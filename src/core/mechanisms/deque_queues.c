@@ -29,7 +29,7 @@ void init_deque_queues_mechanisms(void)
 {
 	total_number_of_jobs = 0;
 
-	struct sched_policy_s *sched = get_sched_policy();
+	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
 
 	/* to access them more easily, we keep their address in local variables */
 	sched_cond = &sched->sched_activity_cond;

@@ -224,7 +224,7 @@ unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j)
 	if (_starpu_submit_job_enforce_data_deps(j))
 		return 0;
 
-	ret = push_task(j);
+	ret = _starpu_push_task(j);
 
 	return ret;
 }
@@ -242,7 +242,7 @@ unsigned _starpu_enforce_deps_starting_from_task(starpu_job_t j)
 	if (_starpu_submit_job_enforce_data_deps(j))
 		return 0;
 
-	ret = push_task(j);
+	ret = _starpu_push_task(j);
 
 	return ret;
 }
@@ -256,7 +256,7 @@ unsigned _starpu_enforce_deps_starting_from_data(starpu_job_t j)
 	if (_starpu_submit_job_enforce_data_deps(j))
 		return 0;
 
-	ret = push_task(j);
+	ret = _starpu_push_task(j);
 
 	return ret;
 }

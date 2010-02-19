@@ -21,6 +21,6 @@
 #include <core/mechanisms/queues.h>
 #include <core/mechanisms/fifo_queues.h>
 
-extern struct sched_policy_s sched_random_policy;
+extern struct starpu_sched_policy_s sched_random_policy;
 
 #endif // __RANDOM_POLICY_H__

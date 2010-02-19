@@ -42,7 +42,7 @@ void setup_queues(void (*init_queue_design)(void),
 /* this may return NULL for an "anonymous thread" */
 struct jobq_s *get_local_queue(void)
 {
-	struct sched_policy_s *policy = get_sched_policy();
+	struct starpu_sched_policy_s *policy = _starpu_get_sched_policy();
 
 	return pthread_getspecific(policy->local_queue_key);
 }
@@ -50,7 +50,7 @@ struct jobq_s *get_local_queue(void)
 /* XXX how to retrieve policy ? that may be given in the machine config ? */
 void set_local_queue(struct jobq_s *jobq)
 {
-	struct sched_policy_s *policy = get_sched_policy();
+	struct starpu_sched_policy_s *policy = _starpu_get_sched_policy();
 
 	pthread_setspecific(policy->local_queue_key, jobq);
 }

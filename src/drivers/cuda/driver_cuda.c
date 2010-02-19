@@ -221,7 +221,7 @@ void *_starpu_cuda_worker(void *arg)
 	struct starpu_job_s * j;
 	int res;
 
-	struct sched_policy_s *policy = get_sched_policy();
+	struct starpu_sched_policy_s *policy = _starpu_get_sched_policy();
 	struct jobq_s *queue = policy->get_local_queue(policy);
 	unsigned memnode = args->memory_node;
 	
@@ -240,7 +240,7 @@ void *_starpu_cuda_worker(void *arg)
 
 		/* otherwise ask a task to the scheduler */
 		if (!j)
-			j = pop_task();
+			j = _starpu_pop_task();
 
 		if (j == NULL) {
 			if (_starpu_worker_can_block(memnode))
@@ -255,7 +255,7 @@ void *_starpu_cuda_worker(void *arg)
 		if (!STARPU_CUDA_MAY_PERFORM(j))
 		{
 			/* this is neither a cuda or a cublas task */
-			push_task(j);
+			_starpu_push_task(j);
 			continue;
 		}
 
@@ -265,7 +265,7 @@ void *_starpu_cuda_worker(void *arg)
 			switch (res) {
 				case -EAGAIN:
 					fprintf(stderr, "ouch, put the codelet %p back ... \n", j);
-					push_task(j);
+					_starpu_push_task(j);
 					STARPU_ABORT();
 					continue;
 				default:

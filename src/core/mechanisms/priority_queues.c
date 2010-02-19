@@ -30,7 +30,7 @@ static pthread_mutex_t *sched_mutex;
 
 void init_priority_queues_mechanisms(void)
 {
-	struct sched_policy_s *sched = get_sched_policy();
+	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
 
 	/* to access them more easily, we keep their address in local variables */
 	sched_cond = &sched->sched_activity_cond;
