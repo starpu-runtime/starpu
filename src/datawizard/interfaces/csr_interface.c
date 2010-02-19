@@ -103,7 +103,7 @@ void starpu_register_csr_data(starpu_data_handle *handleptr, uint32_t home_node,
 		.elemsize = elemsize
 	};
 
-	starpu_register_data_handle(handleptr, home_node, &interface, &interface_csr_ops);
+	_starpu_register_data_handle(handleptr, home_node, &interface, &interface_csr_ops);
 }
 
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle handle)
@@ -147,7 +147,7 @@ size_t starpu_get_csr_elemsize(starpu_data_handle handle)
 uintptr_t starpu_get_csr_local_nzval(starpu_data_handle handle)
 {
 	unsigned node;
-	node = starpu_get_local_memory_node();
+	node = _starpu_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
 
@@ -160,7 +160,7 @@ uintptr_t starpu_get_csr_local_nzval(starpu_data_handle handle)
 uint32_t *starpu_get_csr_local_colind(starpu_data_handle handle)
 {
 	unsigned node;
-	node = starpu_get_local_memory_node();
+	node = _starpu_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
 
@@ -173,7 +173,7 @@ uint32_t *starpu_get_csr_local_colind(starpu_data_handle handle)
 uint32_t *starpu_get_csr_local_rowptr(starpu_data_handle handle)
 {
 	unsigned node;
-	node = starpu_get_local_memory_node();
+	node = _starpu_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
 
@@ -213,7 +213,7 @@ static size_t allocate_csr_buffer_on_node(starpu_data_handle handle, uint32_t ds
 	uint32_t nrow = interface->nrow;
 	size_t elemsize = interface->elemsize;
 
-	starpu_node_kind kind = starpu_get_node_kind(dst_node);
+	starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 
 	switch(kind) {
 		case STARPU_RAM:
@@ -299,7 +299,7 @@ static void liberate_csr_buffer_on_node(void *interface, uint32_t node)
 {
 	starpu_csr_interface_t *csr_interface = interface;	
 
-	starpu_node_kind kind = starpu_get_node_kind(node);
+	starpu_node_kind kind = _starpu_get_node_kind(node);
 	switch(kind) {
 		case STARPU_RAM:
 			free((void*)csr_interface->nzval);

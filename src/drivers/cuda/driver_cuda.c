@@ -59,7 +59,7 @@ static void deinit_context(int workerid)
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
 
-unsigned starpu_get_cuda_device_count(void)
+unsigned _starpu_get_cuda_device_count(void)
 {
 	int cnt;
 
@@ -73,7 +73,7 @@ unsigned starpu_get_cuda_device_count(void)
 
 void _starpu_init_cuda(void)
 {
-	ncudagpus = starpu_get_cuda_device_count();
+	ncudagpus = _starpu_get_cuda_device_count();
 	assert(ncudagpus <= STARPU_MAXCUDADEVS);
 }
 
@@ -158,7 +158,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct worker_s *args)
 
 	args->jobq->total_job_performed++;
 
-	starpu_push_task_output(task, mask);
+	_starpu_push_task_output(task, mask);
 
 	return 0;
 }
@@ -177,7 +177,7 @@ void *_starpu_cuda_worker(void *arg)
 
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
-	starpu_set_local_memory_node_key(&(args->memory_node));
+	_starpu_set_local_memory_node_key(&(args->memory_node));
 
 	set_local_queue(args->jobq);
 

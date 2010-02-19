@@ -17,7 +17,7 @@
 #include <datawizard/write_back.h>
 #include <datawizard/coherency.h>
 
-void starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_node, 
+void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_node, 
 					   uint32_t write_through_mask)
 {
 	if ((write_through_mask & ~(1<<requesting_node)) == 0) {
@@ -37,18 +37,18 @@ void starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_no
 			if (node != requesting_node) 
 			{
 				uint32_t handling_node =
-					starpu_select_node_to_handle_request(requesting_node, node);
+					_starpu_select_node_to_handle_request(requesting_node, node);
 
 				starpu_data_request_t r;
 
 				/* check that there is not already a similar
 				 * request that we should reuse */
-				r = starpu_search_existing_data_request(handle, node, 1, 0);
+				r = _starpu_search_existing_data_request(handle, node, 1, 0);
 				if (!r) {
 					/* there was no existing request so we create one now */
-					r = starpu_create_data_request(handle, requesting_node,
+					r = _starpu_create_data_request(handle, requesting_node,
 							node, handling_node, 1, 0, 1);
-					starpu_post_data_request(r, handling_node);
+					_starpu_post_data_request(r, handling_node);
 				}
 				else {
 					/* if there is already a similar request, it is

@@ -193,7 +193,7 @@ static int _starpu_init_machine_config(struct machine_config_s *config,
 
 		if (explicitval < 0) {
 			config->ncudagpus =
-				STARPU_MIN(starpu_get_cuda_device_count(), STARPU_MAXCUDADEVS);
+				STARPU_MIN(_starpu_get_cuda_device_count(), STARPU_MAXCUDADEVS);
 		} else {
 			/* use the specified value */
 			config->ncudagpus = (unsigned)explicitval;
@@ -534,7 +534,7 @@ int starpu_build_topology(struct machine_config_s *config)
 		return ret;
 
 	/* for the data management library */
-	starpu_init_memory_nodes();
+	_starpu_init_memory_nodes();
 
 	_starpu_init_workers_binding(config);
 
@@ -544,7 +544,7 @@ int starpu_build_topology(struct machine_config_s *config)
 void starpu_destroy_topology(struct machine_config_s *config __attribute__ ((unused)))
 {
 	/* cleanup StarPU internal data structures */
-	starpu_deinit_memory_nodes();
+	_starpu_deinit_memory_nodes();
 
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_destroy(config->hwtopology);

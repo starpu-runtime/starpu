@@ -89,7 +89,7 @@ static void _starpu_init_worker_queue(struct worker_s *workerarg)
 			STARPU_ABORT();
 	}
 		
-	starpu_memory_node_attach_queue(jobq, workerarg->memory_node);
+	_starpu_memory_node_attach_queue(jobq, workerarg->memory_node);
 }
 
 static void _starpu_init_workers(struct machine_config_s *config)
@@ -155,7 +155,7 @@ static void _starpu_init_workers(struct machine_config_s *config)
 					gordon_worker_set.set_is_initialized = 0;
 
 					pthread_create(&gordon_worker_set.worker_thread, NULL, 
-							starpu_gordon_worker, &gordon_worker_set);
+							_starpu_gordon_worker, &gordon_worker_set);
 
 					pthread_mutex_lock(&gordon_worker_set.mutex);
 					if (!gordon_worker_set.set_is_initialized)
@@ -312,7 +312,7 @@ unsigned _starpu_worker_can_block(unsigned memnode)
 {
 	unsigned can_block = 1;
 
-	if (!starpu_check_that_no_data_request_exists(memnode))
+	if (!_starpu_check_that_no_data_request_exists(memnode))
 		can_block = 0;
 
 	if (!_starpu_machine_is_running())
@@ -335,7 +335,7 @@ static void _starpu_operate_on_all_queues_attached_to_node(unsigned nodeid, queu
 	unsigned q_id;
 	struct jobq_s *q;
 
-	starpu_mem_node_descr * const descr = starpu_get_memory_node_description();
+	starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
 
 	pthread_rwlock_rdlock(&descr->attached_queues_rwlock);
 
@@ -380,7 +380,7 @@ static void _starpu_operate_on_all_queues(queue_op op)
 	unsigned q_id;
 	struct jobq_s *q;
 
-	starpu_mem_node_descr * const descr = starpu_get_memory_node_description();
+	starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
 
 	pthread_rwlock_rdlock(&descr->attached_queues_rwlock);
 
@@ -429,14 +429,14 @@ static void _starpu_kill_all_workers(struct machine_config_s *config)
 
 void starpu_shutdown(void)
 {
-	starpu_display_msi_stats();
-	starpu_display_alloc_cache_stats();
+	_starpu_display_msi_stats();
+	_starpu_display_alloc_cache_stats();
 
 	/* tell all workers to shutdown */
 	_starpu_kill_all_workers(&config);
 
 #ifdef STARPU_DATA_STATS
-	starpu_display_comm_amounts();
+	_starpu_display_comm_amounts();
 #endif
 
 	if (starpu_get_env_number("STARPU_CALIBRATE") != -1)

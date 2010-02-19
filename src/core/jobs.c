@@ -62,7 +62,7 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 	return job;
 }
 
-void starpu_wait_job(starpu_job_t j)
+void _starpu_wait_job(starpu_job_t j)
 {
 	STARPU_ASSERT(j->task);
 	STARPU_ASSERT(!j->task->detach);

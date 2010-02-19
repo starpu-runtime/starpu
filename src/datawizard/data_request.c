@@ -28,7 +28,7 @@ static starpu_data_request_list_t data_requests_pending[STARPU_MAXNODES];
 static pthread_cond_t data_requests_pending_list_cond[STARPU_MAXNODES];
 static pthread_mutex_t data_requests_pending_list_mutex[STARPU_MAXNODES];
 
-void starpu_init_data_request_lists(void)
+void _starpu_init_data_request_lists(void)
 {
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
@@ -43,7 +43,7 @@ void starpu_init_data_request_lists(void)
 	}
 }
 
-void starpu_deinit_data_request_lists(void)
+void _starpu_deinit_data_request_lists(void)
 {
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
@@ -67,7 +67,7 @@ static void starpu_data_request_destroy(starpu_data_request_t r)
 }
 
 /* handle->lock should already be taken !  */
-starpu_data_request_t starpu_create_data_request(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, uint8_t read, uint8_t write, unsigned is_prefetch)
+starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, uint8_t read, uint8_t write, unsigned is_prefetch)
 {
 	starpu_data_request_t r = starpu_data_request_new();
 
@@ -109,7 +109,7 @@ starpu_data_request_t starpu_create_data_request(starpu_data_handle handle, uint
 }
 
 /* handle->lock should be taken */
-starpu_data_request_t starpu_search_existing_data_request(starpu_data_handle handle, uint32_t dst_node, uint8_t read, uint8_t write)
+starpu_data_request_t _starpu_search_existing_data_request(starpu_data_handle handle, uint32_t dst_node, uint8_t read, uint8_t write)
 {
 	starpu_data_request_t r = handle->per_node[dst_node].request;
 
@@ -136,12 +136,12 @@ starpu_data_request_t starpu_search_existing_data_request(starpu_data_handle han
 	return r;
 }
 
-int starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_alloc)
+int _starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_alloc)
 {
 	int retval;
 	int do_delete = 0;
 
-	uint32_t local_node = starpu_get_local_memory_node();
+	uint32_t local_node = _starpu_get_local_memory_node();
 
 	do {
 		starpu_spin_lock(&r->lock);
@@ -178,7 +178,7 @@ int starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_al
 }
 
 /* this is non blocking */
-void starpu_post_data_request(starpu_data_request_t r, uint32_t handling_node)
+void _starpu_post_data_request(starpu_data_request_t r, uint32_t handling_node)
 {
 	int res;
 //	fprintf(stderr, "POST REQUEST\n");
@@ -209,7 +209,7 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 	uint32_t src_node = r->src_node;
 	uint32_t dst_node = r->dst_node;
 
-	starpu_update_data_state(handle, dst_node, r->write);
+	_starpu_update_data_state(handle, dst_node, r->write);
 
 #ifdef STARPU_USE_FXT
 	size_t size = handle->ops->get_size(handle);
@@ -219,7 +219,7 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 	unsigned chained_req;
 	for (chained_req = 0; chained_req < r->next_req_count; chained_req++)
 	{
-		starpu_post_data_request(r->next_req[chained_req], r->next_req[chained_req]->handling_node);
+		_starpu_post_data_request(r->next_req[chained_req], r->next_req[chained_req]->handling_node);
 	}
 
 	r->completed = 1;
@@ -262,7 +262,7 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 
 	/* perform the transfer */
 	/* the header of the data must be locked by the worker that submitted the request */
-	r->retval = starpu_driver_copy_data_1_to_1(handle, r->src_node, r->dst_node, !r->read, r, may_alloc);
+	r->retval = _starpu_driver_copy_data_1_to_1(handle, r->src_node, r->dst_node, !r->read, r, may_alloc);
 
 	if (r->retval == ENOMEM)
 	{
@@ -291,7 +291,7 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 	return 0;
 }
 
-void starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc)
+void _starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc)
 {
 	int res;
 
@@ -345,7 +345,7 @@ void starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc)
 static void _handle_pending_node_data_requests(uint32_t src_node, unsigned force)
 {
 	int res;
-//	fprintf(stderr, "starpu_handle_pending_node_data_requests ...\n");
+//	fprintf(stderr, "_starpu_handle_pending_node_data_requests ...\n");
 
 	res = pthread_mutex_lock(&data_requests_pending_list_mutex[src_node]);
 	STARPU_ASSERT(!res);
@@ -371,11 +371,11 @@ static void _handle_pending_node_data_requests(uint32_t src_node, unsigned force
 		/* wait until the transfer is terminated */
 		if (force)
 		{
-			starpu_driver_wait_request_completion(&r->async_channel, src_node);
+			_starpu_driver_wait_request_completion(&r->async_channel, src_node);
 			starpu_handle_data_request_completion(r);
 		}
 		else {
-			if (starpu_driver_test_request_completion(&r->async_channel, src_node))
+			if (_starpu_driver_test_request_completion(&r->async_channel, src_node))
 			{
 				
 				starpu_handle_data_request_completion(r);
@@ -395,17 +395,17 @@ static void _handle_pending_node_data_requests(uint32_t src_node, unsigned force
 	starpu_data_request_list_delete(local_list);
 }
 
-void starpu_handle_pending_node_data_requests(uint32_t src_node)
+void _starpu_handle_pending_node_data_requests(uint32_t src_node)
 {
 	_handle_pending_node_data_requests(src_node, 0);
 }
 
-void starpu_handle_all_pending_node_data_requests(uint32_t src_node)
+void _starpu_handle_all_pending_node_data_requests(uint32_t src_node)
 {
 	_handle_pending_node_data_requests(src_node, 1);
 }
 
-int starpu_check_that_no_data_request_exists(uint32_t node)
+int _starpu_check_that_no_data_request_exists(uint32_t node)
 {
 	/* XXX lock that !!! that's a quick'n'dirty test */
 	int no_request = starpu_data_request_list_empty(data_requests[node]);

@@ -26,12 +26,12 @@ int starpu_request_data_allocation(starpu_data_handle handle, uint32_t node)
 
 	STARPU_ASSERT(handle);
 
-	r = starpu_create_data_request(handle, 0, node, node, 0, 0, 1);
+	r = _starpu_create_data_request(handle, 0, node, node, 0, 0, 1);
 
 	/* we do not increase the refcnt associated to the request since we are
 	 * not waiting for its termination */
 
-	starpu_post_data_request(r, node);
+	_starpu_post_data_request(r, node);
 
 	return 0;
 }
@@ -62,7 +62,7 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 	unsigned r = (statenode->mode != STARPU_W);
 	unsigned w = (statenode->mode != STARPU_R);
 
-	ret = starpu_fetch_data_on_node(handle, 0, r, w, 0);
+	ret = _starpu_fetch_data_on_node(handle, 0, r, w, 0);
 	STARPU_ASSERT(!ret);
 	
 	if (statenode->non_blocking)
@@ -160,7 +160,7 @@ void starpu_release_data_from_mem(starpu_data_handle handle)
 	STARPU_ASSERT(handle);
 
 	/* The application can now release the rw-lock */
-	starpu_release_data_on_node(handle, 0, 0);
+	_starpu_release_data_on_node(handle, 0, 0);
 }
 
 
@@ -169,7 +169,7 @@ static void _prefetch_data_on_node(void *arg)
 {
 	struct state_and_node *statenode = arg;
 
-	starpu_fetch_data_on_node(statenode->state, statenode->node, 1, 0, statenode->async);
+	_starpu_fetch_data_on_node(statenode->state, statenode->node, 1, 0, statenode->async);
 
 	pthread_mutex_lock(&statenode->lock);
 	statenode->finished = 1;
@@ -208,7 +208,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 		/* we can immediately proceed */
 		uint8_t read = (mode != STARPU_W);
 		uint8_t write = (mode != STARPU_R);
-		starpu_fetch_data_on_node(handle, node, read, write, async);
+		_starpu_fetch_data_on_node(handle, node, read, write, async);
 
 		/* remove the "lock"/reference */
 		if (!async)

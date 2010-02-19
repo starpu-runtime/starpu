@@ -46,16 +46,16 @@ typedef struct {
 	unsigned queues_count[STARPU_MAXNODES];
 } starpu_mem_node_descr;
 
-void starpu_init_memory_nodes(void);
-void starpu_deinit_memory_nodes(void);
-void starpu_set_local_memory_node_key(unsigned *node);
-unsigned starpu_get_local_memory_node(void);
+void _starpu_init_memory_nodes(void);
+void _starpu_deinit_memory_nodes(void);
+void _starpu_set_local_memory_node_key(unsigned *node);
+unsigned _starpu_get_local_memory_node(void);
 unsigned _starpu_register_memory_node(starpu_node_kind kind);
-void starpu_memory_node_attach_queue(struct jobq_s *q, unsigned nodeid);
+void _starpu_memory_node_attach_queue(struct jobq_s *q, unsigned nodeid);
 
-starpu_node_kind starpu_get_node_kind(uint32_t node);
-unsigned starpu_get_memory_nodes_count(void);
+starpu_node_kind _starpu_get_node_kind(uint32_t node);
+unsigned _starpu_get_memory_nodes_count(void);
 
-inline starpu_mem_node_descr *starpu_get_memory_node_description(void);
+inline starpu_mem_node_descr *_starpu_get_memory_node_description(void);
 
 #endif // __MEMORY_NODES_H__

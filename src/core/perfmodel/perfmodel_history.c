@@ -510,7 +510,7 @@ double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum 
 		load_history_based_model(model, 1);
 
 	if (STARPU_UNLIKELY(!j->footprint_is_computed))
-		starpu_compute_buffers_footprint(j);
+		_starpu_compute_buffers_footprint(j);
 		
 	uint32_t key = j->footprint;
 

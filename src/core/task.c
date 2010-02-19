@@ -98,7 +98,7 @@ int starpu_wait_task(struct starpu_task *task)
 
 	starpu_job_t j = (struct starpu_job_s *)task->starpu_private;
 
-	starpu_wait_job(j);
+	_starpu_wait_job(j);
 
 	/* as this is a synchronous task, the liberation of the job
 	   structure was deferred */
@@ -179,7 +179,7 @@ int starpu_submit_task(struct starpu_task *task)
 
 	/* XXX modify when we'll have starpu_wait_task */
 	if (is_sync)
-		starpu_wait_job(j);
+		_starpu_wait_job(j);
 
 	return ret;
 }

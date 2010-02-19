@@ -108,28 +108,28 @@ struct starpu_data_state_t {
 	unsigned is_not_important;
 };
 
-void starpu_display_msi_stats(void);
+void _starpu_display_msi_stats(void);
 
 __attribute__((warn_unused_result))
-int starpu_fetch_data_on_node(struct starpu_data_state_t *state, uint32_t requesting_node, uint8_t read, uint8_t write, unsigned is_prefetch);
-void starpu_release_data_on_node(struct starpu_data_state_t *state, uint32_t default_wb_mask, unsigned memory_node);
+int _starpu_fetch_data_on_node(struct starpu_data_state_t *state, uint32_t requesting_node, uint8_t read, uint8_t write, unsigned is_prefetch);
+void _starpu_release_data_on_node(struct starpu_data_state_t *state, uint32_t default_wb_mask, unsigned memory_node);
 
-void starpu_update_data_state(struct starpu_data_state_t *state, uint32_t requesting_node, uint8_t write);
+void _starpu_update_data_state(struct starpu_data_state_t *state, uint32_t requesting_node, uint8_t write);
 
-uint32_t starpu_get_data_refcnt(struct starpu_data_state_t *state, uint32_t node);
+uint32_t _starpu_get_data_refcnt(struct starpu_data_state_t *state, uint32_t node);
 
-void starpu_push_task_output(struct starpu_task *task, uint32_t mask);
+void _starpu_push_task_output(struct starpu_task *task, uint32_t mask);
 
 __attribute__((warn_unused_result))
 int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask);
 
-unsigned starpu_is_data_present_or_requested(struct starpu_data_state_t *state, uint32_t node);
+unsigned _starpu_is_data_present_or_requested(struct starpu_data_state_t *state, uint32_t node);
 
-inline void starpu_set_data_requested_flag_if_needed(struct starpu_data_state_t *state, uint32_t node);
+inline void _starpu_set_data_requested_flag_if_needed(struct starpu_data_state_t *state, uint32_t node);
 
-int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node);
+int _starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node);
 
-uint32_t starpu_select_node_to_handle_request(uint32_t src_node, uint32_t dst_node);
-uint32_t starpu_select_src_node(struct starpu_data_state_t *state);
+uint32_t _starpu_select_node_to_handle_request(uint32_t src_node, uint32_t dst_node);
+uint32_t _starpu_select_src_node(struct starpu_data_state_t *state);
 
 #endif // __COHERENCY__H__

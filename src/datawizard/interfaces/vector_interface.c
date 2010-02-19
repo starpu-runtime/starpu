@@ -119,7 +119,7 @@ void starpu_register_vector_data(starpu_data_handle *handleptr, uint32_t home_no
 		.elemsize = elemsize
 	};	
 
-	starpu_register_data_handle(handleptr, home_node, &vector, &interface_vector_ops); 
+	_starpu_register_data_handle(handleptr, home_node, &vector, &interface_vector_ops); 
 }
 
 
@@ -159,7 +159,7 @@ uint32_t starpu_get_vector_nx(starpu_data_handle handle)
 uintptr_t starpu_get_vector_local_ptr(starpu_data_handle handle)
 {
 	unsigned node;
-	node = starpu_get_local_memory_node();
+	node = _starpu_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
 
@@ -192,7 +192,7 @@ static size_t allocate_vector_buffer_on_node(starpu_data_handle handle, uint32_t
 	uint32_t nx = interface->nx;
 	size_t elemsize = interface->elemsize;
 
-	starpu_node_kind kind = starpu_get_node_kind(dst_node);
+	starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 
 #ifdef STARPU_USE_CUDA
 	cudaError_t status;
@@ -236,7 +236,7 @@ static void liberate_vector_buffer_on_node(void *interface, uint32_t node)
 {
 	starpu_vector_interface_t *vector_interface = interface;
 
-	starpu_node_kind kind = starpu_get_node_kind(node);
+	starpu_node_kind kind = _starpu_get_node_kind(node);
 	switch(kind) {
 		case STARPU_RAM:
 			free((void*)vector_interface->ptr);

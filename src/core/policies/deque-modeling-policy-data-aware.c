@@ -51,7 +51,7 @@ static void update_data_requests(struct jobq_s *q, struct starpu_task *task)
 	{
 		starpu_data_handle handle = task->buffers[buffer].handle;
 
-		starpu_set_data_requested_flag_if_needed(handle, memory_node);
+		_starpu_set_data_requested_flag_if_needed(handle, memory_node);
 	}
 }
 
@@ -169,7 +169,7 @@ static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , starpu_jo
 	update_data_requests(queue_array[best], task);
 	
 	if (use_prefetch)
-		starpu_prefetch_task_input_on_node(task, queue_array[best]->memory_node);
+		_starpu_prefetch_task_input_on_node(task, queue_array[best]->memory_node);
 
 	if (prio) {
 		return fifo_push_prio_task(queue_array[best], j);

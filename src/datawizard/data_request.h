@@ -82,18 +82,18 @@ LIST_TYPE(starpu_data_requester,
 	void *argcb;
 );
 
-void starpu_init_data_request_lists(void);
-void starpu_deinit_data_request_lists(void);
-void starpu_post_data_request(starpu_data_request_t r, uint32_t handling_node);
-void starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc);
+void _starpu_init_data_request_lists(void);
+void _starpu_deinit_data_request_lists(void);
+void _starpu_post_data_request(starpu_data_request_t r, uint32_t handling_node);
+void _starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc);
 
-void starpu_handle_pending_node_data_requests(uint32_t src_node);
-void starpu_handle_all_pending_node_data_requests(uint32_t src_node);
+void _starpu_handle_pending_node_data_requests(uint32_t src_node);
+void _starpu_handle_all_pending_node_data_requests(uint32_t src_node);
 
-int starpu_check_that_no_data_request_exists(uint32_t node);
+int _starpu_check_that_no_data_request_exists(uint32_t node);
 
-starpu_data_request_t starpu_create_data_request(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, uint8_t read, uint8_t write, unsigned is_prefetch);
-starpu_data_request_t starpu_search_existing_data_request(starpu_data_handle handle, uint32_t dst_node, uint8_t read, uint8_t write);
-int starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_alloc);
+starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, uint8_t read, uint8_t write, unsigned is_prefetch);
+starpu_data_request_t _starpu_search_existing_data_request(starpu_data_handle handle, uint32_t dst_node, uint8_t read, uint8_t write);
+int _starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_alloc);
 
 #endif // __DATA_REQUEST_H__

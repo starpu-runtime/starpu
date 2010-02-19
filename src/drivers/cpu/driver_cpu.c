@@ -67,7 +67,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct worker_s *cpu_args)
 	TRACE_END_CODELET_BODY(j);
 	cpu_args->status = STATUS_UNKNOWN;
 
-	starpu_push_task_output(task, 0);
+	_starpu_push_task_output(task, 0);
 
 //#ifdef STARPU_MODEL_DEBUG
 	if (calibrate_model || BENCHMARK_COMM)
@@ -109,7 +109,7 @@ void *_starpu_cpu_worker(void *arg)
         fprintf(stderr, "cpu worker %d is ready on logical cpu %d\n", cpu_arg->id, cpu_arg->bindid);
 #endif
 
-	starpu_set_local_memory_node_key(&cpu_arg->memory_node);
+	_starpu_set_local_memory_node_key(&cpu_arg->memory_node);
 
 	set_local_queue(cpu_arg->jobq);
 

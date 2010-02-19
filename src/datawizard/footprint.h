@@ -21,7 +21,7 @@
 
 struct starpu_job_s;
 
-void starpu_compute_buffers_footprint(struct starpu_job_s *j);
-inline uint32_t starpu_compute_data_footprint(starpu_data_handle handle);
+void _starpu_compute_buffers_footprint(struct starpu_job_s *j);
+inline uint32_t _starpu_compute_data_footprint(starpu_data_handle handle);
 
 #endif // __FOOTPRINT_H__

@@ -20,13 +20,13 @@
 #include <datawizard/write_back.h>
 #include <core/dependencies/data-concurrency.h>
 
-uint32_t starpu_select_node_to_handle_request(uint32_t src_node, uint32_t dst_node) 
+uint32_t _starpu_select_node_to_handle_request(uint32_t src_node, uint32_t dst_node) 
 {
 	/* in case one of the node is a GPU, it needs to perform the transfer,
 	 * if both of them are GPU, it's a bit more complicated (TODO !) */
 
-	unsigned src_is_a_gpu = (starpu_get_node_kind(src_node) == STARPU_CUDA_RAM);
-	unsigned dst_is_a_gpu = (starpu_get_node_kind(dst_node) == STARPU_CUDA_RAM);
+	unsigned src_is_a_gpu = (_starpu_get_node_kind(src_node) == STARPU_CUDA_RAM);
+	unsigned dst_is_a_gpu = (_starpu_get_node_kind(dst_node) == STARPU_CUDA_RAM);
 
 	/* we do not handle GPU->GPU transfers yet ! */
 	STARPU_ASSERT( !(src_is_a_gpu && dst_is_a_gpu) );
@@ -40,15 +40,15 @@ uint32_t starpu_select_node_to_handle_request(uint32_t src_node, uint32_t dst_no
 	/* otherwise perform it locally, since we should be on a "sane" arch
 	 * where anyone can do the transfer. NB: in StarPU this should actually never
 	 * happen */
-	return starpu_get_local_memory_node();
+	return _starpu_get_local_memory_node();
 }
 
-uint32_t starpu_select_src_node(starpu_data_handle handle)
+uint32_t _starpu_select_src_node(starpu_data_handle handle)
 {
 	unsigned src_node = 0;
 	unsigned i;
 
-	unsigned nnodes = starpu_get_memory_nodes_count();
+	unsigned nnodes = _starpu_get_memory_nodes_count();
 
 	/* first find a valid copy, either a STARPU_OWNER or a STARPU_SHARED */
 	uint32_t node;
@@ -75,7 +75,7 @@ uint32_t starpu_select_src_node(starpu_data_handle handle)
 
 			/* however GPU are expensive sources, really !
 			 * 	other should be ok */
-			if (starpu_get_node_kind(i) != STARPU_CUDA_RAM)
+			if (_starpu_get_node_kind(i) != STARPU_CUDA_RAM)
 				break;
 
 			/* XXX do a better algorithm to distribute the memory copies */
@@ -87,9 +87,9 @@ uint32_t starpu_select_src_node(starpu_data_handle handle)
 }
 
 /* this may be called once the data is fetched with header and STARPU_RW-lock hold */
-void starpu_update_data_state(starpu_data_handle handle, uint32_t requesting_node, uint8_t write)
+void _starpu_update_data_state(starpu_data_handle handle, uint32_t requesting_node, uint8_t write)
 {
-	unsigned nnodes = starpu_get_memory_nodes_count();
+	unsigned nnodes = _starpu_get_memory_nodes_count();
 
 	/* the data is present now */
 	handle->per_node[requesting_node].requested = 0;
@@ -138,10 +138,10 @@ void starpu_update_data_state(starpu_data_handle handle, uint32_t requesting_nod
  * 		    else (invalid,owner->shared)
  */
 
-int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_node,
+int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_node,
 			uint8_t read, uint8_t write, unsigned is_prefetch)
 {
-	uint32_t local_node = starpu_get_local_memory_node();
+	uint32_t local_node = _starpu_get_local_memory_node();
 
 	while (starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(local_node, 1);
@@ -152,8 +152,8 @@ int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_nod
 	if (handle->per_node[requesting_node].state != STARPU_INVALID)
 	{
 		/* the data is already available so we can stop */
-		starpu_update_data_state(handle, requesting_node, write);
-		starpu_msi_cache_hit(requesting_node);
+		_starpu_update_data_state(handle, requesting_node, write);
+		_starpu_msi_cache_hit(requesting_node);
 		starpu_spin_unlock(&handle->header_lock);
 		return 0;
 	}
@@ -161,13 +161,13 @@ int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_nod
 	/* the only remaining situation is that the local copy was invalid */
 	STARPU_ASSERT(handle->per_node[requesting_node].state == STARPU_INVALID);
 
-	starpu_msi_cache_miss(requesting_node);
+	_starpu_msi_cache_miss(requesting_node);
 
 	starpu_data_request_t r;
 
 	/* is there already a pending request ? */
-	r = starpu_search_existing_data_request(handle, requesting_node, read, write);
-	/* at the exit of starpu_search_existing_data_request the lock is taken is the request existed ! */
+	r = _starpu_search_existing_data_request(handle, requesting_node, read, write);
+	/* at the exit of _starpu_search_existing_data_request the lock is taken is the request existed ! */
 
 	if (!r) {
 		//fprintf(stderr, "no request matched that one so we post a request %s\n", is_prefetch?"STARPU_PREFETCH":"");
@@ -177,12 +177,12 @@ int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_nod
 		/* if the data is in read only mode, there is no need for a source */
 		if (read)
 		{
-			src_node = starpu_select_src_node(handle);
+			src_node = _starpu_select_src_node(handle);
 			STARPU_ASSERT(src_node != requesting_node);
 		}
 	
-		unsigned src_is_a_gpu = (starpu_get_node_kind(src_node) == STARPU_CUDA_RAM);
-		unsigned dst_is_a_gpu = (starpu_get_node_kind(requesting_node) == STARPU_CUDA_RAM);
+		unsigned src_is_a_gpu = (_starpu_get_node_kind(src_node) == STARPU_CUDA_RAM);
+		unsigned dst_is_a_gpu = (_starpu_get_node_kind(requesting_node) == STARPU_CUDA_RAM);
 
 		/* we have to perform 2 successive requests for GPU->GPU transfers */
 		if (read && (src_is_a_gpu && dst_is_a_gpu)) {
@@ -191,16 +191,16 @@ int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_nod
 			starpu_data_request_t r_ram_to_dst;
 
 			/* XXX we hardcore 0 as the STARPU_RAM node ... */
-			r_ram_to_dst = starpu_create_data_request(handle, 0, requesting_node, requesting_node, read, write, is_prefetch);
+			r_ram_to_dst = _starpu_create_data_request(handle, 0, requesting_node, requesting_node, read, write, is_prefetch);
 
 			if (!is_prefetch)
 				r_ram_to_dst->refcnt++;
 
-			r_src_to_ram = starpu_search_existing_data_request(handle, 0, read, write);
+			r_src_to_ram = _starpu_search_existing_data_request(handle, 0, read, write);
 			if (!r_src_to_ram)
 			{
 				reuse_r_src_to_ram = 0;
-				r_src_to_ram = starpu_create_data_request(handle, src_node, 0, src_node, read, write, is_prefetch);
+				r_src_to_ram = _starpu_create_data_request(handle, src_node, 0, src_node, read, write, is_prefetch);
 			}
 			else {
 				reuse_r_src_to_ram = 1;
@@ -216,7 +216,7 @@ int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_nod
 
 			/* we only submit the first request, the remaining will be automatically submitted afterward */
 			if (!reuse_r_src_to_ram)
-				starpu_post_data_request(r_src_to_ram, src_node);
+				_starpu_post_data_request(r_src_to_ram, src_node);
 
 			/* the application only waits for the termination of the last request */
 			r = r_ram_to_dst;
@@ -224,20 +224,20 @@ int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_nod
 		else {
 			/* who will perform that request ? */
 			uint32_t handling_node =
-				starpu_select_node_to_handle_request(src_node, requesting_node);
+				_starpu_select_node_to_handle_request(src_node, requesting_node);
 
-			r = starpu_create_data_request(handle, src_node, requesting_node, handling_node, read, write, is_prefetch);
+			r = _starpu_create_data_request(handle, src_node, requesting_node, handling_node, read, write, is_prefetch);
 
 			if (!is_prefetch)
 				r->refcnt++;
 
 			starpu_spin_unlock(&handle->header_lock);
 
-			starpu_post_data_request(r, handling_node);
+			_starpu_post_data_request(r, handling_node);
 		}
 	}
 	else {
-		/* the lock was taken by starpu_search_existing_data_request */
+		/* the lock was taken by _starpu_search_existing_data_request */
 
 		/* there is already a similar request */
 		if (is_prefetch)
@@ -266,33 +266,33 @@ int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_nod
 		starpu_spin_unlock(&handle->header_lock);
 	}
 
-	return (is_prefetch?0:starpu_wait_data_request_completion(r, 1));
+	return (is_prefetch?0:_starpu_wait_data_request_completion(r, 1));
 }
 
 static int prefetch_data_on_node(starpu_data_handle handle, uint8_t read, uint8_t write, uint32_t node)
 {
-	return starpu_fetch_data_on_node(handle, node, read, write, 1);
+	return _starpu_fetch_data_on_node(handle, node, read, write, 1);
 }
 
 static int fetch_data(starpu_data_handle handle, starpu_access_mode mode)
 {
-	uint32_t requesting_node = starpu_get_local_memory_node(); 
+	uint32_t requesting_node = _starpu_get_local_memory_node(); 
 
 	uint8_t read, write;
 	read = (mode != STARPU_W); /* then R or STARPU_RW */
 	write = (mode != STARPU_R); /* then STARPU_W or STARPU_RW */
 
-	return starpu_fetch_data_on_node(handle, requesting_node, read, write, 0);
+	return _starpu_fetch_data_on_node(handle, requesting_node, read, write, 0);
 }
 
-inline uint32_t starpu_get_data_refcnt(starpu_data_handle handle, uint32_t node)
+inline uint32_t _starpu_get_data_refcnt(starpu_data_handle handle, uint32_t node)
 {
 	return handle->per_node[node].refcnt;
 }
 
 /* in case the data was accessed on a write mode, do not forget to 
  * make it accessible again once it is possible ! */
-void starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wb_mask, uint32_t memory_node)
+void _starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wb_mask, uint32_t memory_node)
 {
 	uint32_t wb_mask;
 
@@ -303,10 +303,10 @@ void starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wb_
 
 	/* are we doing write-through or just some normal write-back ? */
 	if (wb_mask & ~(1<<memory_node)) {
-		starpu_write_through_data(handle, memory_node, wb_mask);
+		_starpu_write_through_data(handle, memory_node, wb_mask);
 	}
 
-	uint32_t local_node = starpu_get_local_memory_node();
+	uint32_t local_node = _starpu_get_local_memory_node();
 	while (starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(local_node, 1);
 
@@ -317,7 +317,7 @@ void starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wb_
 	starpu_spin_unlock(&handle->header_lock);
 }
 
-int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
+int _starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 {
 	starpu_buffer_descr *descrs = task->buffers;
 	unsigned nbuffers = task->cl->nbuffers;
@@ -350,7 +350,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 
 //	fprintf(stderr, "_starpu_fetch_task_input\n");
 
-	uint32_t local_memory_node = starpu_get_local_memory_node();
+	uint32_t local_memory_node = _starpu_get_local_memory_node();
 
 	starpu_buffer_descr *descrs = task->buffers;
 	unsigned nbuffers = task->cl->nbuffers;
@@ -383,25 +383,25 @@ enomem:
 	/* XXX broken ... */
 	fprintf(stderr, "something went wrong with buffer %u\n", index);
 	//push_codelet_output(task, index, mask);
-	starpu_push_task_output(task, mask);
+	_starpu_push_task_output(task, mask);
 	return -1;
 }
 
-void starpu_push_task_output(struct starpu_task *task, uint32_t mask)
+void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 {
 	TRACE_START_PUSH_OUTPUT(NULL);
 
-	//fprintf(stderr, "starpu_push_task_output\n");
+	//fprintf(stderr, "_starpu_push_task_output\n");
 
         starpu_buffer_descr *descrs = task->buffers;
         unsigned nbuffers = task->cl->nbuffers;
 
-	uint32_t local_node = starpu_get_local_memory_node();
+	uint32_t local_node = _starpu_get_local_memory_node();
 
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
-		starpu_release_data_on_node(descrs[index].handle, mask, local_node);
+		_starpu_release_data_on_node(descrs[index].handle, mask, local_node);
 	}
 
 	TRACE_END_PUSH_OUTPUT(NULL);
@@ -409,7 +409,7 @@ void starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 
 /* NB : this value can only be an indication of the status of a data
 	at some point, but there is no strong garantee ! */
-unsigned starpu_is_data_present_or_requested(starpu_data_handle handle, uint32_t node)
+unsigned _starpu_is_data_present_or_requested(starpu_data_handle handle, uint32_t node)
 {
 	unsigned ret = 0;
 
@@ -425,7 +425,7 @@ unsigned starpu_is_data_present_or_requested(starpu_data_handle handle, uint32_t
 	return ret;
 }
 
-inline void starpu_set_data_requested_flag_if_needed(starpu_data_handle handle, uint32_t node)
+inline void _starpu_set_data_requested_flag_if_needed(starpu_data_handle handle, uint32_t node)
 {
 // XXX : this is just a hint, so we don't take the lock ...
 //	pthread_spin_lock(&handle->header_lock);

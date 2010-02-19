@@ -25,7 +25,7 @@
 static starpu_mem_node_descr descr;
 static pthread_key_t memory_node_key;
 
-void starpu_init_memory_nodes(void)
+void _starpu_init_memory_nodes(void)
 {
 	/* there is no node yet, subsequent nodes will be 
 	 * added using _starpu_register_memory_node */
@@ -38,26 +38,26 @@ void starpu_init_memory_nodes(void)
 		descr.nodes[i] = STARPU_UNUSED; 
 
 	_starpu_init_mem_chunk_lists();
-	starpu_init_data_request_lists();
+	_starpu_init_data_request_lists();
 
 	pthread_rwlock_init(&descr.attached_queues_rwlock, NULL);
 	descr.total_queues_count = 0;
 }
 
-void starpu_deinit_memory_nodes(void)
+void _starpu_deinit_memory_nodes(void)
 {
-	starpu_deinit_data_request_lists();
+	_starpu_deinit_data_request_lists();
 	_starpu_deinit_mem_chunk_lists();
 
 	pthread_key_delete(memory_node_key);
 }
 
-void starpu_set_local_memory_node_key(unsigned *node)
+void _starpu_set_local_memory_node_key(unsigned *node)
 {
 	pthread_setspecific(memory_node_key, node);
 }
 
-unsigned starpu_get_local_memory_node(void)
+unsigned _starpu_get_local_memory_node(void)
 {
 	unsigned *memory_node;
 	memory_node = pthread_getspecific(memory_node_key);
@@ -70,17 +70,17 @@ unsigned starpu_get_local_memory_node(void)
 	return *memory_node;
 }
 
-inline starpu_mem_node_descr *starpu_get_memory_node_description(void)
+inline starpu_mem_node_descr *_starpu_get_memory_node_description(void)
 {
 	return &descr;
 }
 
-inline starpu_node_kind starpu_get_node_kind(uint32_t node)
+inline starpu_node_kind _starpu_get_node_kind(uint32_t node)
 {
 	return descr.nodes[node];
 }
 
-unsigned starpu_get_memory_nodes_count(void)
+unsigned _starpu_get_memory_nodes_count(void)
 {
 	return descr.nnodes;
 }
@@ -102,7 +102,7 @@ unsigned _starpu_register_memory_node(starpu_node_kind kind)
 
 /* TODO move in a more appropriate file  !! */
 /* attach a queue to a memory node (if it's not already attached) */
-void starpu_memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
+void _starpu_memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
 {
 	unsigned queue;
 	unsigned nqueues_total, nqueues;

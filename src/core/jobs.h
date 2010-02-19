@@ -70,7 +70,7 @@ LIST_TYPE(starpu_job,
 );
 
 starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task);
-void starpu_wait_job(starpu_job_t j);
+void _starpu_wait_job(starpu_job_t j);
 
 /* try to submit job j, enqueue it if it's not schedulable yet */
 unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j);

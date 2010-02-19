@@ -125,7 +125,7 @@ void starpu_register_block_data(starpu_data_handle *handleptr, uint32_t home_nod
 		.elemsize = elemsize
 	};
 
-	starpu_register_data_handle(handleptr, home_node, &interface, &interface_block_ops);
+	_starpu_register_data_handle(handleptr, home_node, &interface, &interface_block_ops);
 }
 
 static uint32_t footprint_block_interface_crc32(starpu_data_handle handle)
@@ -188,7 +188,7 @@ uint32_t starpu_get_block_nz(starpu_data_handle handle)
 uint32_t starpu_get_block_local_ldy(starpu_data_handle handle)
 {
 	unsigned node;
-	node = starpu_get_local_memory_node();
+	node = _starpu_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
 	
@@ -201,7 +201,7 @@ uint32_t starpu_get_block_local_ldy(starpu_data_handle handle)
 uint32_t starpu_get_block_local_ldz(starpu_data_handle handle)
 {
 	unsigned node;
-	node = starpu_get_local_memory_node();
+	node = _starpu_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
 
@@ -214,7 +214,7 @@ uint32_t starpu_get_block_local_ldz(starpu_data_handle handle)
 uintptr_t starpu_get_block_local_ptr(starpu_data_handle handle)
 {
 	unsigned node;
-	node = starpu_get_local_memory_node();
+	node = _starpu_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
 
@@ -253,7 +253,7 @@ static size_t allocate_block_buffer_on_node(starpu_data_handle handle, uint32_t 
 	uint32_t nz = dst_block->nz;
 	size_t elemsize = dst_block->elemsize;
 
-	starpu_node_kind kind = starpu_get_node_kind(dst_node);
+	starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 
 	switch(kind) {
 		case STARPU_RAM:
@@ -306,7 +306,7 @@ static void liberate_block_buffer_on_node(void *interface, uint32_t node)
 	cudaError_t status;
 #endif
 
-	starpu_node_kind kind = starpu_get_node_kind(node);
+	starpu_node_kind kind = _starpu_get_node_kind(node);
 	switch(kind) {
 		case STARPU_RAM:
 			free((void*)block_interface->ptr);

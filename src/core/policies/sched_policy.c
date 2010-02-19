@@ -205,7 +205,7 @@ int push_task(starpu_job_t j)
 		if (use_prefetch)
 		{
 			uint32_t memory_node = starpu_get_worker_memory_node(workerid); 
-			starpu_prefetch_task_input_on_node(task, memory_node);
+			_starpu_prefetch_task_input_on_node(task, memory_node);
 		}
 
 		return _starpu_push_local_task(worker, j);
@@ -256,7 +256,7 @@ void wait_on_sched_event(void)
 
 	pthread_mutex_lock(&q->activity_mutex);
 
-	starpu_handle_all_pending_node_data_requests(starpu_get_local_memory_node());
+	_starpu_handle_all_pending_node_data_requests(_starpu_get_local_memory_node());
 
 	if (_starpu_machine_is_running())
 	{

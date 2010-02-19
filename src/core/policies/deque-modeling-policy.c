@@ -130,7 +130,7 @@ static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)), starpu_job_t
 	j->predicted = model_best;
 
 	if (use_prefetch)
-		starpu_prefetch_task_input_on_node(task, queue_array[best]->memory_node);
+		_starpu_prefetch_task_input_on_node(task, queue_array[best]->memory_node);
 
 	if (prio) {
 		return fifo_push_prio_task(queue_array[best], j);

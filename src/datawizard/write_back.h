@@ -20,7 +20,7 @@
 #include <starpu.h>
 #include <datawizard/coherency.h>
 
-void starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_node, 
+void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_node, 
 					   uint32_t write_through_mask);
 
 #endif // __DW_WRITE_BACK_H__

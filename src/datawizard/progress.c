@@ -22,8 +22,8 @@
 void _starpu_datawizard_progress(uint32_t memory_node, unsigned may_alloc)
 {
 	/* in case some other driver requested data */
-	starpu_handle_pending_node_data_requests(memory_node);
-	starpu_handle_node_data_requests(memory_node, may_alloc);
+	_starpu_handle_pending_node_data_requests(memory_node);
+	_starpu_handle_node_data_requests(memory_node, may_alloc);
 
 	_starpu_execute_registered_progression_hooks();
 }

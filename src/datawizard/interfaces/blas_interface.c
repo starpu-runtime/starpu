@@ -132,7 +132,7 @@ void starpu_register_blas_data(starpu_data_handle *handleptr, uint32_t home_node
 		.elemsize = elemsize
 	};
 
-	starpu_register_data_handle(handleptr, home_node, &interface, &interface_blas_ops);
+	_starpu_register_data_handle(handleptr, home_node, &interface, &interface_blas_ops);
 }
 
 static uint32_t footprint_blas_interface_crc32(starpu_data_handle handle)
@@ -179,7 +179,7 @@ uint32_t starpu_get_blas_ny(starpu_data_handle handle)
 uint32_t starpu_get_blas_local_ld(starpu_data_handle handle)
 {
 	unsigned node;
-	node = starpu_get_local_memory_node();
+	node = _starpu_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
 
@@ -192,7 +192,7 @@ uint32_t starpu_get_blas_local_ld(starpu_data_handle handle)
 uintptr_t starpu_get_blas_local_ptr(starpu_data_handle handle)
 {
 	unsigned node;
-	node = starpu_get_local_memory_node();
+	node = _starpu_get_local_memory_node();
 
 	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
 
@@ -232,7 +232,7 @@ static size_t allocate_blas_buffer_on_node(starpu_data_handle handle, uint32_t d
 	uint32_t ld = nx; // by default
 	size_t elemsize = interface->elemsize;
 
-	starpu_node_kind kind = starpu_get_node_kind(dst_node);
+	starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 
 	switch(kind) {
 		case STARPU_RAM:
@@ -283,7 +283,7 @@ static void liberate_blas_buffer_on_node(void *interface, uint32_t node)
 	cudaError_t status;
 #endif
 
-	starpu_node_kind kind = starpu_get_node_kind(node);
+	starpu_node_kind kind = _starpu_get_node_kind(node);
 	switch(kind) {
 		case STARPU_RAM:
 			free((void*)blas_interface->ptr);

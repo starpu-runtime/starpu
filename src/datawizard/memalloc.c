@@ -50,7 +50,7 @@ static void lock_all_subtree(starpu_data_handle handle)
 	{
 		/* this is a leaf */
 		while (starpu_spin_trylock(&handle->header_lock))
-			_starpu_datawizard_progress(starpu_get_local_memory_node(), 0);
+			_starpu_datawizard_progress(_starpu_get_local_memory_node(), 0);
 	}
 	else {
 		/* lock all sub-subtrees children */
@@ -85,7 +85,7 @@ static void unlock_all_subtree(starpu_data_handle handle)
 static unsigned may_free_subtree(starpu_data_handle handle, unsigned node)
 {
 	/* we only free if no one refers to the leaf */
-	uint32_t refcnt = starpu_get_data_refcnt(handle, node);
+	uint32_t refcnt = _starpu_get_data_refcnt(handle, node);
 	if (refcnt)
 		return 0;
 	
@@ -144,7 +144,7 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 			handle->per_node[src_node].refcnt++;
 			handle->per_node[dst_node].refcnt++;
 
-			ret = starpu_driver_copy_data_1_to_1(handle, src_node, dst_node, 0, NULL, 1);
+			ret = _starpu_driver_copy_data_1_to_1(handle, src_node, dst_node, 0, NULL, 1);
 			STARPU_ASSERT(ret == 0);
 
 			handle->per_node[src_node].refcnt--;
@@ -426,7 +426,7 @@ static void register_mem_chunk(starpu_data_handle handle, uint32_t dst_node, siz
 
 	mc->data = handle;
 	mc->size = size;
-	mc->footprint = starpu_compute_data_footprint(handle);
+	mc->footprint = _starpu_compute_data_footprint(handle);
 	mc->ops = handle->ops;
 	mc->data_was_deleted = 0;
 	mc->automatically_allocated = automatically_allocated;
@@ -494,7 +494,7 @@ static size_t liberate_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
 	starpu_data_handle handle = mc->data;
 
 //	while (starpu_spin_trylock(&handle->header_lock))
-//		_starpu_datawizard_progress(starpu_get_local_memory_node());
+//		_starpu_datawizard_progress(_starpu_get_local_memory_node());
 
 #warning can we block here ?
 //	starpu_spin_lock(&handle->header_lock);
@@ -548,16 +548,16 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node
 	if (!may_alloc)
 		return ENOMEM;
 
-	starpu_data_allocation_inc_stats(dst_node);
+	_starpu_data_allocation_inc_stats(dst_node);
 
 #ifdef STARPU_USE_ALLOCATION_CACHE
 	/* perhaps we can directly reuse a buffer in the free-list */
-	uint32_t footprint = starpu_compute_data_footprint(handle);
+	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
 	TRACE_START_ALLOC_REUSE(dst_node);
 	if (try_to_find_reusable_mem_chunk(dst_node, handle, footprint))
 	{
-		starpu_allocation_cache_hit(dst_node);
+		_starpu_allocation_cache_hit(dst_node);
 		return 0;
 	}
 	TRACE_END_ALLOC_REUSE(dst_node);

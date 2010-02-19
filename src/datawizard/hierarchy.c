@@ -50,7 +50,7 @@ void starpu_delete_data(starpu_data_handle handle)
 	free(handle);
 }
 
-void starpu_register_new_data(starpu_data_handle handle, uint32_t home_node, uint32_t wb_mask)
+void _starpu_register_new_data(starpu_data_handle handle, uint32_t home_node, uint32_t wb_mask)
 {
 	STARPU_ASSERT(handle);
 
@@ -239,7 +239,7 @@ void starpu_unpartition_data(starpu_data_handle root_handle, uint32_t gathering_
 			starpu_unpartition_data(&root_handle->children[child], gathering_node);
 
 		int ret;
-		ret = starpu_fetch_data_on_node(&root_handle->children[child], gathering_node, 1, 0, 0);
+		ret = _starpu_fetch_data_on_node(&root_handle->children[child], gathering_node, 1, 0, 0);
 		/* for now we pretend that the STARPU_RAM is almost unlimited and that gathering 
 		 * data should be possible from the node that does the unpartionning ... we
 		 * don't want to have the programming deal with memory shortage at that time,
