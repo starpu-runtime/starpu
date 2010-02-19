@@ -17,7 +17,7 @@
 #include <datawizard/footprint.h>
 #include <common/hash.h>
 
-void compute_buffers_footprint(starpu_job_t j)
+void starpu_compute_buffers_footprint(starpu_job_t j)
 {
 	uint32_t footprint = 0;
 	unsigned buffer;
@@ -40,7 +40,7 @@ void compute_buffers_footprint(starpu_job_t j)
 	j->footprint_is_computed = 1;
 }
 
-inline uint32_t compute_data_footprint(starpu_data_handle handle)
+inline uint32_t starpu_compute_data_footprint(starpu_data_handle handle)
 {
 	uint32_t interfaceid = (uint32_t)starpu_get_handle_interface_id(handle);
 

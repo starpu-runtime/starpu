@@ -426,7 +426,7 @@ static void register_mem_chunk(starpu_data_handle handle, uint32_t dst_node, siz
 
 	mc->data = handle;
 	mc->size = size;
-	mc->footprint = compute_data_footprint(handle);
+	mc->footprint = starpu_compute_data_footprint(handle);
 	mc->ops = handle->ops;
 	mc->data_was_deleted = 0;
 	mc->automatically_allocated = automatically_allocated;
@@ -552,7 +552,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node
 
 #ifdef STARPU_USE_ALLOCATION_CACHE
 	/* perhaps we can directly reuse a buffer in the free-list */
-	uint32_t footprint = compute_data_footprint(handle);
+	uint32_t footprint = starpu_compute_data_footprint(handle);
 
 	TRACE_START_ALLOC_REUSE(dst_node);
 	if (try_to_find_reusable_mem_chunk(dst_node, handle, footprint))
