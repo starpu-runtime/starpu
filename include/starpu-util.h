@@ -125,7 +125,7 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 
 #ifdef STARPU_USE_CUDA
 
-#define CUBLAS_REPORT_ERROR(status) 					\
+#define STARPU_CUBLAS_REPORT_ERROR(status) 					\
 	do {								\
 		char *errormsg;						\
 		switch (status) {					\
@@ -160,7 +160,7 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 
 
 
-#define CUDA_REPORT_ERROR(status) 					\
+#define STARPU_CUDA_REPORT_ERROR(status) 					\
 	do {								\
 		char *errormsg;						\
 		switch (status) {					\

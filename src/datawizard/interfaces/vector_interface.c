@@ -210,7 +210,7 @@ static size_t allocate_vector_buffer_on_node(starpu_data_handle handle, uint32_t
 			if (!addr || (status != cudaSuccess))
 			{
 				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
-					CUDA_REPORT_ERROR(status);
+					STARPU_CUDA_REPORT_ERROR(status);
 
 				fail = 1;
 			}
@@ -265,7 +265,7 @@ static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32
 	cudaThreadSynchronize();
 
 	if (STARPU_UNLIKELY(cures))
-		CUDA_REPORT_ERROR(cures);
+		STARPU_CUDA_REPORT_ERROR(cures);
 
 	TRACE_DATA_COPY(src_node, dst_node, src_vector->nx*src_vector->elemsize);
 
@@ -285,7 +285,7 @@ static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32
 	cudaThreadSynchronize();
 
 	if (STARPU_UNLIKELY(cures))
-		CUDA_REPORT_ERROR(cures);
+		STARPU_CUDA_REPORT_ERROR(cures);
 
 	TRACE_DATA_COPY(src_node, dst_node, src_vector->nx*src_vector->elemsize);
 
@@ -309,7 +309,7 @@ static int copy_cuda_to_ram_async(starpu_data_handle handle, uint32_t src_node, 
 		cudaThreadSynchronize();
 
 		if (STARPU_UNLIKELY(cures))
-			CUDA_REPORT_ERROR(cures);
+			STARPU_CUDA_REPORT_ERROR(cures);
 
 		return 0;
 	}
@@ -337,7 +337,7 @@ static int copy_ram_to_cuda_async(starpu_data_handle handle, uint32_t src_node, 
 		cudaThreadSynchronize();
 
 		if (STARPU_UNLIKELY(cures))
-			CUDA_REPORT_ERROR(cures);
+			STARPU_CUDA_REPORT_ERROR(cures);
 
 		return 0;
 	}

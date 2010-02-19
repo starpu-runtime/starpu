@@ -266,11 +266,11 @@ void driver_wait_request_completion(starpu_async_channel *async_channel __attrib
 
 			cures = cudaEventSynchronize(event);
 			if (STARPU_UNLIKELY(cures))
-				CUDA_REPORT_ERROR(cures);
+				STARPU_CUDA_REPORT_ERROR(cures);
 
 			cures = cudaEventDestroy(event);
 			if (STARPU_UNLIKELY(cures))
-				CUDA_REPORT_ERROR(cures);
+				STARPU_CUDA_REPORT_ERROR(cures);
 
 			break;
 #endif

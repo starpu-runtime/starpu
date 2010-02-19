@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
 	if (cufftExecC2C(cuda_plan, (cufftComplex*) in, (cufftComplex*) out_cuda, CUFFT_FORWARD) != CUFFT_SUCCESS)
 		printf("erf2\n");
 	if ((cures = cudaThreadSynchronize()) != cudaSuccess)
-		CUDA_REPORT_ERROR(cures);
+		STARPU_CUDA_REPORT_ERROR(cures);
 	gettimeofday(&end, NULL);
 	cufftDestroy(cuda_plan);
 	timing = (double)((end.tv_sec - begin.tv_sec)*1000000 + (end.tv_usec - begin.tv_usec));

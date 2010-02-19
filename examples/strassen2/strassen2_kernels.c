@@ -81,7 +81,7 @@ static void mult_common_codelet(void *descr[], int s, __attribute__((unused))  v
 			cublasSgemm('n', 'n', n, n, n, 1.0f, right, ld12, left, ld21, 0.0f, center, ld22);
 			cublasres = cublasGetError();
 			if (STARPU_UNLIKELY(cublasres))
-				CUBLAS_REPORT_ERROR(cublasres);
+				STARPU_CUBLAS_REPORT_ERROR(cublasres);
 			break;
 #endif
 		default:
@@ -145,12 +145,12 @@ static void add_sub_common_codelet(void *descr[], int s, __attribute__((unused))
 				cublasSaxpy(n, 1.0f, &A[line*ldA], 1, &C[line*ldC], 1);
 				cublasres = cublasGetError();
 				if (STARPU_UNLIKELY(cublasres))
-					CUBLAS_REPORT_ERROR(cublasres);
+					STARPU_CUBLAS_REPORT_ERROR(cublasres);
 				/* add line B to C = A */
 				cublasSaxpy(n, alpha, &B[line*ldB], 1, &C[line*ldC], 1);
 				cublasres = cublasGetError();
 				if (STARPU_UNLIKELY(cublasres))
-					CUBLAS_REPORT_ERROR(cublasres);
+					STARPU_CUBLAS_REPORT_ERROR(cublasres);
 			}
 
 			break;
@@ -224,7 +224,7 @@ static void self_add_sub_common_codelet(void *descr[], int s, __attribute__((unu
 				cublasSaxpy(n, alpha, &A[line*ldA], 1, &C[line*ldC], 1);
 				cublasres = cublasGetError();
 				if (STARPU_UNLIKELY(cublasres))
-					CUBLAS_REPORT_ERROR(cublasres);
+					STARPU_CUBLAS_REPORT_ERROR(cublasres);
 			}
 			break;
 #endif

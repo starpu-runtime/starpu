@@ -59,7 +59,7 @@ static inline void STARPU_LU(common_u22)(void *descr[],
 				STARPU_ABORT();
 
 			if (STARPU_UNLIKELY((cures = cudaThreadSynchronize()) != cudaSuccess))
-				CUDA_REPORT_ERROR(cures);
+				STARPU_CUDA_REPORT_ERROR(cures);
 
 			break;
 #endif
@@ -121,7 +121,7 @@ static inline void STARPU_LU(common_u12)(void *descr[],
 				STARPU_ABORT();
 
 			if (STARPU_UNLIKELY((cures = cudaThreadSynchronize()) != cudaSuccess))
-				CUDA_REPORT_ERROR(cures);
+				STARPU_CUDA_REPORT_ERROR(cures);
 
 			break;
 #endif

@@ -247,7 +247,7 @@ static size_t allocate_blas_buffer_on_node(starpu_data_handle handle, uint32_t d
 			if (!addr || status != cudaSuccess)
 			{
 				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
-					 CUDA_REPORT_ERROR(status);
+					 STARPU_CUDA_REPORT_ERROR(status);
 					
 				fail = 1;
 			}
@@ -292,7 +292,7 @@ static void liberate_blas_buffer_on_node(void *interface, uint32_t node)
 		case CUDA_RAM:
 			status = cudaFree((void*)blas_interface->ptr);			
 			if (STARPU_UNLIKELY(status))
-				CUDA_REPORT_ERROR(status);
+				STARPU_CUDA_REPORT_ERROR(status);
 
 			break;
 #endif
@@ -317,7 +317,7 @@ static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32
 			(char *)src_blas->ptr, src_blas->ld*elemsize,
 			src_blas->nx*elemsize, src_blas->ny, cudaMemcpyDeviceToHost);
 	if (STARPU_UNLIKELY(cures))
-		CUDA_REPORT_ERROR(cures);
+		STARPU_CUDA_REPORT_ERROR(cures);
 
 	TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
 
@@ -339,11 +339,11 @@ static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32
 			(char *)src_blas->ptr, src_blas->ld*elemsize,
 			src_blas->nx*elemsize, src_blas->ny, cudaMemcpyHostToDevice);
 	if (STARPU_UNLIKELY(cures))
-		CUDA_REPORT_ERROR(cures);
+		STARPU_CUDA_REPORT_ERROR(cures);
 		
 	cures = cudaThreadSynchronize();
 	if (STARPU_UNLIKELY(cures))
-		CUDA_REPORT_ERROR(cures);
+		STARPU_CUDA_REPORT_ERROR(cures);
 		
 	TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
 
@@ -373,11 +373,11 @@ static int copy_cuda_to_ram_async(starpu_data_handle handle, uint32_t src_node, 
 			cudaMemcpyDeviceToHost);
 
 		if (STARPU_UNLIKELY(cures))
-			CUDA_REPORT_ERROR(cures);
+			STARPU_CUDA_REPORT_ERROR(cures);
 
 		cures = cudaThreadSynchronize();
 		if (STARPU_UNLIKELY(cures))
-			CUDA_REPORT_ERROR(cures);
+			STARPU_CUDA_REPORT_ERROR(cures);
 		
 
 		return 0;
@@ -411,7 +411,7 @@ static int copy_ram_to_cuda_async(starpu_data_handle handle, uint32_t src_node, 
 		cudaThreadSynchronize();
 
 		if (STARPU_UNLIKELY(cures))
-			CUDA_REPORT_ERROR(cures);
+			STARPU_CUDA_REPORT_ERROR(cures);
 
 		return 0;
 	}

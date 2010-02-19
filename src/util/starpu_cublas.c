@@ -22,7 +22,7 @@ static void init_cublas_func(void *args __attribute__((unused)))
 {
 	cublasStatus cublasst = cublasInit();
 	if (STARPU_UNLIKELY(cublasst))
-		CUBLAS_REPORT_ERROR(cublasst);
+		STARPU_CUBLAS_REPORT_ERROR(cublasst);
 }
 
 static void shutdown_cublas_func(void *args __attribute__((unused)))

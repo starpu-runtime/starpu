@@ -271,7 +271,7 @@ static size_t allocate_block_buffer_on_node(starpu_data_handle handle, uint32_t 
 			if (!addr || status != cudaSuccess)
 			{
 				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
-					CUDA_REPORT_ERROR(status);
+					STARPU_CUDA_REPORT_ERROR(status);
 
 				fail = 1;
 			}
@@ -315,7 +315,7 @@ static void liberate_block_buffer_on_node(void *interface, uint32_t node)
 		case CUDA_RAM:
 			status = cudaFree((void*)block_interface->ptr);
 			if (STARPU_UNLIKELY(status))
-				CUDA_REPORT_ERROR(status);
+				STARPU_CUDA_REPORT_ERROR(status);
 
 			break;
 #endif
@@ -346,7 +346,7 @@ static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32
 		cures = cudaMemcpy((char *)dst_block->ptr, (char *)src_block->ptr,
 					nx*ny*nz*elemsize, cudaMemcpyDeviceToHost);
 		if (STARPU_UNLIKELY(cures))
-			CUDA_REPORT_ERROR(cures);
+			STARPU_CUDA_REPORT_ERROR(cures);
 	}
 	else {
 		unsigned layer;
@@ -362,7 +362,7 @@ static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32
 				nx*elemsize, ny, cudaMemcpyDeviceToHost);
 
 			if (STARPU_UNLIKELY(cures))
-				CUDA_REPORT_ERROR(cures);
+				STARPU_CUDA_REPORT_ERROR(cures);
 		}
 	}
 	
@@ -404,7 +404,7 @@ static int copy_cuda_to_ram_async(starpu_data_handle handle, uint32_t src_node, 
 				cures = cudaMemcpy((char *)dst_block->ptr, (char *)src_block->ptr,
 					nx*ny*nz*elemsize, cudaMemcpyDeviceToHost);
 				if (STARPU_UNLIKELY(cures))
-					CUDA_REPORT_ERROR(cures);
+					STARPU_CUDA_REPORT_ERROR(cures);
 				cudaThreadSynchronize();
 
 				ret = 0;
@@ -425,7 +425,7 @@ static int copy_cuda_to_ram_async(starpu_data_handle handle, uint32_t src_node, 
 						(char *)src_block->ptr, src_block->ldz*elemsize,
 						nx*ny*elemsize, nz, cudaMemcpyDeviceToHost);
 				if (STARPU_UNLIKELY(cures))
-					CUDA_REPORT_ERROR(cures);
+					STARPU_CUDA_REPORT_ERROR(cures);
 				cudaThreadSynchronize();
 
 				ret = 0;
@@ -481,7 +481,7 @@ no_async_default:
 				nx*elemsize, ny, cudaMemcpyDeviceToHost);
 
 		if (STARPU_UNLIKELY(cures))
-			CUDA_REPORT_ERROR(cures);
+			STARPU_CUDA_REPORT_ERROR(cures);
 		
 	}
 	cudaThreadSynchronize();
@@ -524,7 +524,7 @@ static int copy_ram_to_cuda_async(starpu_data_handle handle, uint32_t src_node, 
 				cures = cudaMemcpy((char *)dst_block->ptr, (char *)src_block->ptr,
 					nx*ny*nz*elemsize, cudaMemcpyHostToDevice);
 				if (STARPU_UNLIKELY(cures))
-					CUDA_REPORT_ERROR(cures);
+					STARPU_CUDA_REPORT_ERROR(cures);
 				cudaThreadSynchronize();
 
 				ret = 0;
@@ -545,7 +545,7 @@ static int copy_ram_to_cuda_async(starpu_data_handle handle, uint32_t src_node, 
 						(char *)src_block->ptr, src_block->ldz*elemsize,
 						nx*ny*elemsize, nz, cudaMemcpyHostToDevice);
 				if (STARPU_UNLIKELY(cures))
-					CUDA_REPORT_ERROR(cures);
+					STARPU_CUDA_REPORT_ERROR(cures);
 				cudaThreadSynchronize();
 
 				ret = 0;
@@ -601,7 +601,7 @@ no_async_default:
 				nx*elemsize, ny, cudaMemcpyHostToDevice);
 
 		if (STARPU_UNLIKELY(cures))
-			CUDA_REPORT_ERROR(cures);
+			STARPU_CUDA_REPORT_ERROR(cures);
 		
 	}
 	cudaThreadSynchronize();
@@ -632,7 +632,7 @@ static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32
 		cures = cudaMemcpy((char *)dst_block->ptr, (char *)src_block->ptr,
 						nx*ny*nz*elemsize, cudaMemcpyHostToDevice);
 		if (STARPU_UNLIKELY(cures))
-			CUDA_REPORT_ERROR(cures);
+			STARPU_CUDA_REPORT_ERROR(cures);
 	}
 	else {
 		unsigned layer;
@@ -648,7 +648,7 @@ static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32
 				nx*elemsize, ny, cudaMemcpyHostToDevice);
 
 			if (STARPU_UNLIKELY(cures))
-				CUDA_REPORT_ERROR(cures);
+				STARPU_CUDA_REPORT_ERROR(cures);
 		}
 	}
 

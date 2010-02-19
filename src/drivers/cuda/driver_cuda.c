@@ -37,14 +37,14 @@ static void init_context(int devid)
 
 	cures = cudaSetDevice(devid);
 	if (STARPU_UNLIKELY(cures))
-		CUDA_REPORT_ERROR(cures);
+		STARPU_CUDA_REPORT_ERROR(cures);
 
 	/* force CUDA to initialize the context for real */
 	cudaFree(0);
 
 	cures = cudaStreamCreate(starpu_get_local_cuda_stream());
 	if (STARPU_UNLIKELY(cures))
-		CUDA_REPORT_ERROR(cures);
+		STARPU_CUDA_REPORT_ERROR(cures);
 }
 
 static void deinit_context(int workerid)
@@ -56,7 +56,7 @@ static void deinit_context(int workerid)
 	/* cleanup the runtime API internal stuffs (which CUBLAS is using) */
 	cures = cudaThreadExit();
 	if (cures)
-		CUDA_REPORT_ERROR(cures);
+		STARPU_CUDA_REPORT_ERROR(cures);
 }
 
 unsigned get_cuda_device_count(void)
@@ -66,7 +66,7 @@ unsigned get_cuda_device_count(void)
 	cudaError_t cures;
 	cures = cudaGetDeviceCount(&cnt);
 	if (STARPU_UNLIKELY(cures))
-		 CUDA_REPORT_ERROR(cures);
+		 STARPU_CUDA_REPORT_ERROR(cures);
 	
 	return (unsigned)cnt;
 }
@@ -104,7 +104,7 @@ static int execute_job_on_cuda(job_t j, struct worker_s *args)
 	{
 		cures = cudaThreadSynchronize();
 		if (STARPU_UNLIKELY(cures))
-			CUDA_REPORT_ERROR(cures);
+			STARPU_CUDA_REPORT_ERROR(cures);
 		GET_TICK(codelet_start_comm);
 	}
 
@@ -120,7 +120,7 @@ static int execute_job_on_cuda(job_t j, struct worker_s *args)
 	{
 		cures = cudaThreadSynchronize();
 		if (STARPU_UNLIKELY(cures))
-			CUDA_REPORT_ERROR(cures);
+			STARPU_CUDA_REPORT_ERROR(cures);
 		GET_TICK(codelet_end_comm);
 	}
 

@@ -366,15 +366,15 @@ static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32
 
 	cures = cudaMemcpy((char *)dst_bcsr->nzval, (char *)src_bcsr->nzval, nnz*r*c*elemsize, cudaMemcpyDeviceToHost);
 	if (STARPU_UNLIKELY(cures))
-		CUDA_REPORT_ERROR(cures);
+		STARPU_CUDA_REPORT_ERROR(cures);
 
 	cures = cudaMemcpy((char *)dst_bcsr->colind, (char *)src_bcsr->colind, nnz*sizeof(uint32_t), cudaMemcpyDeviceToHost);
 	if (STARPU_UNLIKELY(cures))
-		CUDA_REPORT_ERROR(cures);
+		STARPU_CUDA_REPORT_ERROR(cures);
 
 	cures = cudaMemcpy((char *)dst_bcsr->rowptr, (char *)src_bcsr->rowptr, (nrow+1)*sizeof(uint32_t), cudaMemcpyDeviceToHost);
 	if (STARPU_UNLIKELY(cures))
-		CUDA_REPORT_ERROR(cures);
+		STARPU_CUDA_REPORT_ERROR(cures);
 
 	cudaThreadSynchronize();
 
@@ -402,15 +402,15 @@ static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32
 
 	cures = cudaMemcpy((char *)dst_bcsr->nzval, (char *)src_bcsr->nzval, nnz*r*c*elemsize, cudaMemcpyHostToDevice);
 	if (STARPU_UNLIKELY(cures))
-		CUDA_REPORT_ERROR(cures);
+		STARPU_CUDA_REPORT_ERROR(cures);
 
 	cures = cudaMemcpy((char *)dst_bcsr->colind, (char *)src_bcsr->colind, nnz*sizeof(uint32_t), cudaMemcpyHostToDevice);
 	if (STARPU_UNLIKELY(cures))
-		CUDA_REPORT_ERROR(cures);
+		STARPU_CUDA_REPORT_ERROR(cures);
 
 	cures = cudaMemcpy((char *)dst_bcsr->rowptr, (char *)src_bcsr->rowptr, (nrow+1)*sizeof(uint32_t), cudaMemcpyHostToDevice);
 	if (STARPU_UNLIKELY(cures))
-		CUDA_REPORT_ERROR(cures);
+		STARPU_CUDA_REPORT_ERROR(cures);
 
 	cudaThreadSynchronize();
 

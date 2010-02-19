@@ -37,7 +37,7 @@ static void malloc_pinned_codelet(void *buffers[] __attribute__((unused)), void 
 	cudaError_t cures;
 	cures = cudaHostAlloc((void **)(s->ptr), s->dim, cudaHostAllocPortable);
 	if (STARPU_UNLIKELY(cures))
-		CUDA_REPORT_ERROR(cures);
+		STARPU_CUDA_REPORT_ERROR(cures);
 }
 
 static starpu_codelet malloc_pinned_cl = {
@@ -91,7 +91,7 @@ static void free_pinned_codelet(void *buffers[] __attribute__((unused)), void *a
 	cudaError_t cures;
 	cures = cudaFreeHost(arg);
 	if (STARPU_UNLIKELY(cures))
-		CUDA_REPORT_ERROR(cures);
+		STARPU_CUDA_REPORT_ERROR(cures);
 }
 
 static starpu_codelet free_pinned_cl = {
