@@ -25,7 +25,7 @@ static unsigned total_number_of_jobs;
 static pthread_cond_t *sched_cond;
 static pthread_mutex_t *sched_mutex;
 
-void init_stack_queues_mechanisms(void)
+void _starpu_init_stack_queues_mechanisms(void)
 {
 	total_number_of_jobs = 0;
 
@@ -36,13 +36,13 @@ void init_stack_queues_mechanisms(void)
 	sched_mutex = &sched->sched_activity_mutex;
 }
 
-struct starpu_jobq_s *create_stack(void)
+struct starpu_jobq_s *_starpu_create_stack(void)
 {
 	struct starpu_jobq_s *jobq;
 	jobq = malloc(sizeof(struct starpu_jobq_s));
 
-	struct stack_jobq_s *stack;
-	stack = malloc(sizeof(struct stack_jobq_s));
+	struct starpu_stack_jobq_s *stack;
+	stack = malloc(sizeof(struct starpu_stack_jobq_s));
 
 	pthread_mutex_init(&jobq->activity_mutex, NULL);
 	pthread_cond_init(&jobq->activity_cond, NULL);
@@ -66,29 +66,29 @@ unsigned get_total_njobs_stacks(void)
 	return total_number_of_jobs;
 }
 
-unsigned get_stack_njobs(struct starpu_jobq_s *q)
+unsigned _starpu_get_stack_njobs(struct starpu_jobq_s *q)
 {
 	STARPU_ASSERT(q);
 
-	struct stack_jobq_s *stack_queue = q->queue;
+	struct starpu_stack_jobq_s *stack_queue = q->queue;
 
 	return stack_queue->njobs;
 }
 
-unsigned get_stack_nprocessed(struct starpu_jobq_s *q)
+unsigned _starpu_get_stack_nprocessed(struct starpu_jobq_s *q)
 {
 	STARPU_ASSERT(q);
 
-	struct stack_jobq_s *stack_queue = q->queue;
+	struct starpu_stack_jobq_s *stack_queue = q->queue;
 
 	return stack_queue->nprocessed;
 }
 
-void stack_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
+void _starpu_stack_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
 {
 #ifndef STARPU_NO_PRIO
 	STARPU_ASSERT(q);
-	struct stack_jobq_s *stack_queue = q->queue;
+	struct starpu_stack_jobq_s *stack_queue = q->queue;
 
 	/* if anyone is blocked on the entire machine, wake it up */
 	pthread_mutex_lock(sched_mutex);
@@ -107,14 +107,14 @@ void stack_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
 	pthread_cond_signal(&q->activity_cond);
 	pthread_mutex_unlock(&q->activity_mutex);
 #else
-	stack_push_task(q, task);
+	_starpu_stack_push_task(q, task);
 #endif
 }
 
-void stack_push_task(struct starpu_jobq_s *q, starpu_job_t task)
+void _starpu_stack_push_task(struct starpu_jobq_s *q, starpu_job_t task)
 {
 	STARPU_ASSERT(q);
-	struct stack_jobq_s *stack_queue = q->queue;
+	struct starpu_stack_jobq_s *stack_queue = q->queue;
 
 	/* if anyone is blocked on the entire machine, wake it up */
 	pthread_mutex_lock(sched_mutex);
@@ -134,12 +134,12 @@ void stack_push_task(struct starpu_jobq_s *q, starpu_job_t task)
 	pthread_mutex_unlock(&q->activity_mutex);
 }
 
-starpu_job_t stack_pop_task(struct starpu_jobq_s *q)
+starpu_job_t _starpu_stack_pop_task(struct starpu_jobq_s *q)
 {
 	starpu_job_t j = NULL;
 
 	STARPU_ASSERT(q);
-	struct stack_jobq_s *stack_queue = q->queue;
+	struct starpu_stack_jobq_s *stack_queue = q->queue;
 
 	if (stack_queue->njobs == 0)
 		return NULL;
