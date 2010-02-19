@@ -16,7 +16,7 @@
 
 #include <starpu.h>
 
-static unsigned niter = 128;
+static unsigned niter = 16384;
 
 /*
  *
@@ -30,7 +30,7 @@ static unsigned niter = 128;
  *
  *	- {B, C} depend on A
  *	- D depends on {B, C}
- *	- A is resubmitted at the end of the loop (or not)
+ *	- A, B, C and D are resubmitted at the end of the loop (or not)
  */
 
 static struct starpu_task taskA, taskB, taskC, taskD;
@@ -41,7 +41,6 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
-	fprintf(stderr, "PIF\n");
 }
 
 static starpu_codelet dummy_codelet = 
@@ -67,6 +66,9 @@ static void callback_task_D(void *arg __attribute__((unused)))
 	else {
 		/* Let's go for another iteration */
 		starpu_submit_task(&taskA);
+		starpu_submit_task(&taskB);
+		starpu_submit_task(&taskC);
+		starpu_submit_task(&taskD);
 	}
 }
 
@@ -81,19 +83,19 @@ int main(int argc, char **argv)
 
 	starpu_task_init(&taskA);
 	taskA.cl = &dummy_codelet;
-	taskA.regenerate = 0; /* this must be submitted again */
+	taskA.cl_arg = &taskA;
 
 	starpu_task_init(&taskB);
 	taskB.cl = &dummy_codelet;
-	taskB.regenerate = 1;
+	taskB.cl_arg = &taskB;
 
 	starpu_task_init(&taskC);
 	taskC.cl = &dummy_codelet;
-	taskC.regenerate = 1;
+	taskC.cl_arg = &taskC;
 
 	starpu_task_init(&taskD);
 	taskD.cl = &dummy_codelet;
-	taskD.regenerate = 1;
+	taskD.cl_arg = &taskD;
 	taskD.callback_func = callback_task_D;
 
 	struct starpu_task *depsBC_array[1] = {&taskA};
