@@ -106,7 +106,7 @@ int starpu_sync_data_with_mem(starpu_data_handle handle, starpu_access_mode mode
 	/* we try to get the data, if we do not succeed immediately, we set a
  	* callback function that will be executed automatically when the data is
  	* available again, otherwise we fetch the data directly */
-	if (!attempt_to_submit_data_request_from_apps(handle, mode,
+	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode,
 			_starpu_sync_data_with_mem_continuation, &statenode))
 	{
 		/* no one has locked this data yet, so we proceed immediately */
@@ -143,7 +143,7 @@ int starpu_sync_data_with_mem_non_blocking(starpu_data_handle handle,
 	/* we try to get the data, if we do not succeed immediately, we set a
  	* callback function that will be executed automatically when the data is
  	* available again, otherwise we fetch the data directly */
-	if (!attempt_to_submit_data_request_from_apps(handle, mode,
+	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode,
 			_starpu_sync_data_with_mem_continuation, statenode))
 	{
 		/* no one has locked this data yet, so we proceed immediately */
@@ -179,7 +179,7 @@ static void _prefetch_data_on_node(void *arg)
 	if (!statenode->async)
 	{
 		starpu_spin_lock(&statenode->state->header_lock);
-		notify_data_dependencies(statenode->state);
+		_starpu_notify_data_dependencies(statenode->state);
 		starpu_spin_unlock(&statenode->state->header_lock);
 	}
 
@@ -203,7 +203,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 		.finished = 0
 	};
 
-	if (!attempt_to_submit_data_request_from_apps(handle, mode, _prefetch_data_on_node, &statenode))
+	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _prefetch_data_on_node, &statenode))
 	{
 		/* we can immediately proceed */
 		uint8_t read = (mode != STARPU_W);
@@ -214,7 +214,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 		if (!async)
 		{
 			starpu_spin_lock(&handle->header_lock);
-			notify_data_dependencies(handle);
+			_starpu_notify_data_dependencies(handle);
 			starpu_spin_unlock(&handle->header_lock);
 		}
 	}
