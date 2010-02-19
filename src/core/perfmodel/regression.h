@@ -23,6 +23,6 @@
 #include <core/perfmodel/perfmodel.h>
 #include <starpu.h>
 
-int regression_non_linear_power(struct starpu_history_list_t *ptr, double *a, double *b, double *c);
+int _starpu_regression_non_linear_power(struct starpu_history_list_t *ptr, double *a, double *b, double *c);
 
 #endif // __REGRESSION_H__ 

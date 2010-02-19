@@ -158,7 +158,7 @@ static void dump_list(unsigned *x, double *y, struct starpu_history_list_t *list
  * 	return 0 if success, -1 otherwise
  * 	if success, a, b and c are modified
  * */
-int regression_non_linear_power(struct starpu_history_list_t *ptr, double *a, double *b, double *c)
+int _starpu_regression_non_linear_power(struct starpu_history_list_t *ptr, double *a, double *b, double *c)
 {
 	unsigned n = find_list_size(ptr);
 

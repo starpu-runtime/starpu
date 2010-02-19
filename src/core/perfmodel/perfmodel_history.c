@@ -148,7 +148,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_t
 	dump_reg_model(f, &per_arch_model->regression);
 
 	double a,b,c;
-	regression_non_linear_power(per_arch_model->list, &a, &b, &c);
+	_starpu_regression_non_linear_power(per_arch_model->list, &a, &b, &c);
 	fprintf(f, "# a\t\tb\t\tc\n");
 	fprintf(f, "%-15le\t%-15le\t%-15le\n", a, b, c);
 
