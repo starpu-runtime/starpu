@@ -59,7 +59,7 @@ static void deinit_context(int workerid)
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
 
-unsigned get_cuda_device_count(void)
+unsigned starpu_get_cuda_device_count(void)
 {
 	int cnt;
 
@@ -73,7 +73,7 @@ unsigned get_cuda_device_count(void)
 
 void _starpu_init_cuda(void)
 {
-	ncudagpus = get_cuda_device_count();
+	ncudagpus = starpu_get_cuda_device_count();
 	assert(ncudagpus <= STARPU_MAXCUDADEVS);
 }
 

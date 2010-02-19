@@ -39,6 +39,6 @@
 
 #define NMAXGORDONSPUS	8
 
-void *gordon_worker(void *);
+void *starpu_gordon_worker(void *);
 
 #endif // __DRIVER_GORDON_H__

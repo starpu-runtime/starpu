@@ -408,7 +408,7 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 	return NULL;
 }
 
-void *gordon_worker(void *arg)
+void *starpu_gordon_worker(void *arg)
 {
 	struct worker_set_s *gordon_set_arg = arg;
 

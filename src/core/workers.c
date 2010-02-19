@@ -155,7 +155,7 @@ static void _starpu_init_workers(struct machine_config_s *config)
 					gordon_worker_set.set_is_initialized = 0;
 
 					pthread_create(&gordon_worker_set.worker_thread, NULL, 
-							gordon_worker, &gordon_worker_set);
+							starpu_gordon_worker, &gordon_worker_set);
 
 					pthread_mutex_lock(&gordon_worker_set.mutex);
 					if (!gordon_worker_set.set_is_initialized)

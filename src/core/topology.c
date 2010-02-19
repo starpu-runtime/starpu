@@ -193,7 +193,7 @@ static int _starpu_init_machine_config(struct machine_config_s *config,
 
 		if (explicitval < 0) {
 			config->ncudagpus =
-				STARPU_MIN(get_cuda_device_count(), STARPU_MAXCUDADEVS);
+				STARPU_MIN(starpu_get_cuda_device_count(), STARPU_MAXCUDADEVS);
 		} else {
 			/* use the specified value */
 			config->ncudagpus = (unsigned)explicitval;

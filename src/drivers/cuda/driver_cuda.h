@@ -36,7 +36,7 @@
 
 #include <common/fxt.h>
 
-unsigned get_cuda_device_count(void);
+unsigned starpu_get_cuda_device_count(void);
 
 #ifdef STARPU_USE_CUDA
 void _starpu_init_cuda(void);
