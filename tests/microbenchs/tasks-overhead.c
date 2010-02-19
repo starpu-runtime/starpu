@@ -121,7 +121,7 @@ int main(int argc, char **argv)
 	gettimeofday(&start_submit, NULL);
 	for (i = 1; i < ntasks; i++)
 	{
-		starpu_tag_declare_deps((starpu_tag_t)i, 1, (starpu_tag_t)(i-1));
+		_starpu_tag_declare_deps((starpu_tag_t)i, 1, (starpu_tag_t)(i-1));
 
 		starpu_submit_task(&tasks[i]);
 	}

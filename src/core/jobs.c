@@ -158,7 +158,7 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(starpu_job_t j)
 		return 0;
 	}
 
-	struct tag_s *tag = j->tag;
+	struct starpu_tag_s *tag = j->tag;
 
 	struct starpu_cg_list_s *tag_successors = &tag->tag_successors;
 
@@ -166,12 +166,12 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(starpu_job_t j)
 
 	if (tag_successors->ndeps != tag_successors->ndeps_completed)
 	{
-		tag->state = BLOCKED;
+		tag->state = STARPU_BLOCKED;
 		ret = 1;
 	}
 	else {
 		/* existing deps (if any) are fulfilled */
-		tag->state = READY;
+		tag->state = STARPU_READY;
 		/* already prepare for next run */
 		tag_successors->ndeps_completed = 0;
 		ret = 0;

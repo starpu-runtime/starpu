@@ -786,7 +786,7 @@ This function blocks until all the tasks that were submitted are terminated.
 
 @menu
 * starpu_tag_t::                   Task identifier
-* starpu_tag_declare_deps::        Declare the Dependencies of a Tag
+* _starpu_tag_declare_deps::        Declare the Dependencies of a Tag
 * starpu_tag_declare_deps_array::  Declare the Dependencies of a Tag
 * starpu_tag_wait::                Block until a Tag is terminated
 * starpu_tag_wait_array::          Block until a set of Tags is terminated
@@ -804,13 +804,13 @@ dependencies between tasks by the means of those tags. To do so, fill the
 @code{tag_id} field of the @code{starpu_task} structure with a tag number (can
 be arbitrary) and set the @code{use_tag} field to 1.
 
-If @code{starpu_tag_declare_deps} is called with that tag number, the task will
+If @code{_starpu_tag_declare_deps} is called with that tag number, the task will
 not be started until the task which wears the declared dependency tags are
 complete.
 @end table
 
-@node starpu_tag_declare_deps
-@subsection @code{starpu_tag_declare_deps} -- Declare the Dependencies of a Tag
+@node _starpu_tag_declare_deps
+@subsection @code{_starpu_tag_declare_deps} -- Declare the Dependencies of a Tag
 @table @asis
 @item @emph{Description}:
 Specify the dependencies of the task identified by tag @code{id}. The first
@@ -822,19 +822,19 @@ This function must be called before the associated task is submitted to StarPU
 with @code{starpu_submit_task}.
 
 @item @emph{Remark}
-Because of the variable arity of @code{starpu_tag_declare_deps}, note that the
+Because of the variable arity of @code{_starpu_tag_declare_deps}, note that the
 last arguments @emph{must} be of type @code{starpu_tag_t}: constant values
 typically need to be explicitely casted. Using the
 @code{starpu_tag_declare_deps_array} function avoids this hazard.
 
 @item @emph{Prototype}:
-@code{void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);}
+@code{void _starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);}
 
 @item @emph{Example}:
 @example
 @c @cartouche
 /*  Tag 0x1 depends on tags 0x32 and 0x52 */
-starpu_tag_declare_deps((starpu_tag_t)0x1,
+_starpu_tag_declare_deps((starpu_tag_t)0x1,
         2, (starpu_tag_t)0x32, (starpu_tag_t)0x52);
 
 @c @end cartouche
@@ -847,7 +847,7 @@ starpu_tag_declare_deps((starpu_tag_t)0x1,
 @subsection @code{starpu_tag_declare_deps_array} -- Declare the Dependencies of a Tag
 @table @asis
 @item @emph{Description}:
-This function is similar to @code{starpu_tag_declare_deps}, except that its
+This function is similar to @code{_starpu_tag_declare_deps}, except that its
 does not take a variable number of arguments but an array of tags of size
 @code{ndeps}.
 @item @emph{Prototype}:
@@ -857,7 +857,7 @@ does not take a variable number of arguments but an array of tags of size
 @c @cartouche
 /*  Tag 0x1 depends on tags 0x32 and 0x52 */
 starpu_tag_t tag_array[2] = @{0x32, 0x52@};
-starpu_tag_declare_deps((starpu_tag_t)0x1, 2, tag_array);
+_starpu_tag_declare_deps((starpu_tag_t)0x1, 2, tag_array);
 
 @c @end cartouche
 @end example

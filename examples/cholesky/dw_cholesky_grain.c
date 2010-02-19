@@ -63,7 +63,7 @@ static struct starpu_task * create_task_11(starpu_data_handle dataA, unsigned k,
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		starpu_tag_declare_deps(TAG11_AUX(k, reclevel), 1, TAG22_AUX(k-1, k, k, reclevel));
+		_starpu_tag_declare_deps(TAG11_AUX(k, reclevel), 1, TAG22_AUX(k-1, k, k, reclevel));
 	}
 
 	return task;
@@ -98,10 +98,10 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j, uns
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		starpu_tag_declare_deps(TAG21_AUX(k, j, reclevel), 2, TAG11_AUX(k, reclevel), TAG22_AUX(k-1, k, j, reclevel));
+		_starpu_tag_declare_deps(TAG21_AUX(k, j, reclevel), 2, TAG11_AUX(k, reclevel), TAG22_AUX(k-1, k, j, reclevel));
 	}
 	else {
-		starpu_tag_declare_deps(TAG21_AUX(k, j, reclevel), 1, TAG11_AUX(k, reclevel));
+		_starpu_tag_declare_deps(TAG21_AUX(k, j, reclevel), 1, TAG11_AUX(k, reclevel));
 	}
 
 	starpu_submit_task(task);
@@ -140,10 +140,10 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		starpu_tag_declare_deps(TAG22_AUX(k, i, j, reclevel), 3, TAG22_AUX(k-1, i, j, reclevel), TAG21_AUX(k, i, reclevel), TAG21_AUX(k, j, reclevel));
+		_starpu_tag_declare_deps(TAG22_AUX(k, i, j, reclevel), 3, TAG22_AUX(k-1, i, j, reclevel), TAG21_AUX(k, i, reclevel), TAG21_AUX(k, j, reclevel));
 	}
 	else {
-		starpu_tag_declare_deps(TAG22_AUX(k, i, j, reclevel), 2, TAG21_AUX(k, i, reclevel), TAG21_AUX(k, j, reclevel));
+		_starpu_tag_declare_deps(TAG22_AUX(k, i, j, reclevel), 2, TAG21_AUX(k, i, reclevel), TAG21_AUX(k, j, reclevel));
 	}
 
 	starpu_submit_task(task);

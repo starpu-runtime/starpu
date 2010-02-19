@@ -56,7 +56,7 @@ typedef struct starpu_cg_s {
 
 	union {
 		/* STARPU_CG_TAG */
-		struct tag_s *tag;
+		struct starpu_tag_s *tag;
 
 		/* STARPU_CG_TASK */
 		struct starpu_job_s *job;

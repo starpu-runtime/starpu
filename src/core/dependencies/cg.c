@@ -65,7 +65,7 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 	if (remaining == 0) {
 		cg->remaining = cg->ntags;
 
-		struct tag_s *tag;
+		struct starpu_tag_s *tag;
 		struct starpu_cg_list_s *tag_successors, *job_successors;
 		starpu_job_t j;
 
@@ -86,7 +86,7 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 	
 				tag_successors->ndeps_completed++;
 	
-				if ((tag->state == BLOCKED) &&
+				if ((tag->state == STARPU_BLOCKED) &&
 					(tag_successors->ndeps == tag_successors->ndeps_completed)) {
 					/* reset the counter so that we can reuse the completion group */
 					tag_successors->ndeps_completed = 0;
@@ -128,7 +128,7 @@ void _starpu_notify_cg_list(struct starpu_cg_list_s *successors)
 	for (succ = 0; succ < nsuccs; succ++)
 	{
 		struct starpu_cg_s *cg = successors->succ[succ];
-		struct tag_s *cgtag = cg->succ.tag;
+		struct starpu_tag_s *cgtag = cg->succ.tag;
 
 		unsigned cg_type = cg->cg_type;
 

@@ -193,7 +193,7 @@ void launch_spmv_codelets(void)
 				if (index != rowptr[row & ~0x3])
 				{
 					/* this is not the first task in the row */
-					starpu_tag_declare_deps((starpu_tag_t)taskid, 1, (starpu_tag_t)(taskid-1));
+					_starpu_tag_declare_deps((starpu_tag_t)taskid, 1, (starpu_tag_t)(taskid-1));
 
 					is_entry_tab[taskid] = 0;
 				}

@@ -57,7 +57,7 @@ LIST_TYPE(starpu_job,
 	pthread_mutex_t sync_mutex;
 	pthread_cond_t sync_cond;
 
-	struct tag_s *tag;
+	struct starpu_tag_s *tag;
 	struct starpu_cg_list_s job_successors;
 
 	double predicted;

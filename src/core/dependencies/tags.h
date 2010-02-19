@@ -22,31 +22,31 @@
 #include <common/starpu-spinlock.h>
 #include <core/dependencies/cg.h>
 
-#define TAG_SIZE        (sizeof(starpu_tag_t)*8)
+#define STARPU_TAG_SIZE        (sizeof(starpu_tag_t)*8)
 
 typedef enum {
 	/* this tag is not declared by any task */
-	INVALID_STATE,
+	STARPU_INVALID_STATE,
 	/* _starpu_tag_declare was called to associate the tag to a task */
-	ASSOCIATED,
+	STARPU_ASSOCIATED,
 	/* some task dependencies are not fulfilled yet */
-	BLOCKED,
+	STARPU_BLOCKED,
 	/* the task can be (or has been) submitted to the scheduler (all deps
  	 * fulfilled) */
-	READY,
+	STARPU_READY,
 // useless ...
 //	/* the task has been submitted to the scheduler */
-//	SCHEDULED,
+//	STARPU_SCHEDULED,
 	/* the task has been performed */
-	DONE
-} tag_state;
+	STARPU_DONE
+} starpu_tag_state;
 
 struct starpu_job_s;
 
-struct tag_s {
+struct starpu_tag_s {
 	starpu_spinlock_t lock;
 	starpu_tag_t id; /* an identifier for the task */
-	tag_state state;
+	starpu_tag_state state;
 
 	struct starpu_cg_list_s tag_successors;
 
@@ -56,12 +56,12 @@ struct tag_s {
 	unsigned is_submitted;
 };
 
-void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
+void _starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 
 void _starpu_notify_dependencies(struct starpu_job_s *j);
 void _starpu_tag_declare(starpu_tag_t id, struct starpu_job_s *job);
-void _starpu_tag_set_ready(struct tag_s *tag);
+void _starpu_tag_set_ready(struct starpu_tag_s *tag);
 
-unsigned submit_job_enforce_task_deps(struct starpu_job_s *j);
+unsigned _starpu_submit_job_enforce_task_deps(struct starpu_job_s *j);
 
 #endif // __TAGS_H__

@@ -87,7 +87,7 @@ static void create_task_grid(unsigned iter)
 		task->destroy = 0;
 
 		if (i != 0)
-			starpu_tag_declare_deps(TAG(i,iter), 1, TAG(i-1,iter));
+			_starpu_tag_declare_deps(TAG(i,iter), 1, TAG(i-1,iter));
 	}
 
 }

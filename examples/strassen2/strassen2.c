@@ -627,39 +627,39 @@ void strassen_mult(struct strassen_iter *iter)
 
 	if (iter->reclevel == 1)
 	{
-		starpu_tag_declare_deps(tag_c11_a, 1, tag_m1[0]);
-		starpu_tag_declare_deps(tag_c11_b, 2, tag_m4[0], tag_c11_a);
-		starpu_tag_declare_deps(tag_c11_c, 2, tag_m5[0], tag_c11_b);
-		starpu_tag_declare_deps(tag_c11_d, 2, tag_m7[0], tag_c11_c);
+		_starpu_tag_declare_deps(tag_c11_a, 1, tag_m1[0]);
+		_starpu_tag_declare_deps(tag_c11_b, 2, tag_m4[0], tag_c11_a);
+		_starpu_tag_declare_deps(tag_c11_c, 2, tag_m5[0], tag_c11_b);
+		_starpu_tag_declare_deps(tag_c11_d, 2, tag_m7[0], tag_c11_c);
 	
-		starpu_tag_declare_deps(tag_c12_a, 1, tag_m3[0]);
-		starpu_tag_declare_deps(tag_c12_b, 2, tag_m5[0], tag_c12_a);
+		_starpu_tag_declare_deps(tag_c12_a, 1, tag_m3[0]);
+		_starpu_tag_declare_deps(tag_c12_b, 2, tag_m5[0], tag_c12_a);
 
-		starpu_tag_declare_deps(tag_c21_a, 1, tag_m2[0]);
-		starpu_tag_declare_deps(tag_c21_b, 2, tag_m4[0], tag_c21_a);
+		_starpu_tag_declare_deps(tag_c21_a, 1, tag_m2[0]);
+		_starpu_tag_declare_deps(tag_c21_b, 2, tag_m4[0], tag_c21_a);
 	
-		starpu_tag_declare_deps(tag_c22_a, 1, tag_m1[0]);
-		starpu_tag_declare_deps(tag_c22_b, 2, tag_m2[0], tag_c22_a);
-		starpu_tag_declare_deps(tag_c22_c, 2, tag_m3[0], tag_c22_b);
-		starpu_tag_declare_deps(tag_c22_d, 2, tag_m6[0], tag_c22_c);
+		_starpu_tag_declare_deps(tag_c22_a, 1, tag_m1[0]);
+		_starpu_tag_declare_deps(tag_c22_b, 2, tag_m2[0], tag_c22_a);
+		_starpu_tag_declare_deps(tag_c22_c, 2, tag_m3[0], tag_c22_b);
+		_starpu_tag_declare_deps(tag_c22_d, 2, tag_m6[0], tag_c22_c);
 	}
 	else
 	{
-		starpu_tag_declare_deps(tag_c11_a, 4, tag_m1[0], tag_m1[1], tag_m1[2], tag_m1[3]);
-		starpu_tag_declare_deps(tag_c11_b, 5, tag_m4[0], tag_m4[1], tag_m4[2], tag_m4[3], tag_c11_a);
-		starpu_tag_declare_deps(tag_c11_c, 5, tag_m5[0], tag_m5[1], tag_m5[2], tag_m5[3], tag_c11_b);
-		starpu_tag_declare_deps(tag_c11_d, 5, tag_m7[0], tag_m7[1], tag_m7[2], tag_m7[3], tag_c11_c);
+		_starpu_tag_declare_deps(tag_c11_a, 4, tag_m1[0], tag_m1[1], tag_m1[2], tag_m1[3]);
+		_starpu_tag_declare_deps(tag_c11_b, 5, tag_m4[0], tag_m4[1], tag_m4[2], tag_m4[3], tag_c11_a);
+		_starpu_tag_declare_deps(tag_c11_c, 5, tag_m5[0], tag_m5[1], tag_m5[2], tag_m5[3], tag_c11_b);
+		_starpu_tag_declare_deps(tag_c11_d, 5, tag_m7[0], tag_m7[1], tag_m7[2], tag_m7[3], tag_c11_c);
 
-		starpu_tag_declare_deps(tag_c12_a, 4, tag_m3[0], tag_m3[1], tag_m3[2], tag_m3[3]);
-		starpu_tag_declare_deps(tag_c12_b, 5, tag_m5[0], tag_m5[1], tag_m5[2], tag_m5[3], tag_c12_a);
+		_starpu_tag_declare_deps(tag_c12_a, 4, tag_m3[0], tag_m3[1], tag_m3[2], tag_m3[3]);
+		_starpu_tag_declare_deps(tag_c12_b, 5, tag_m5[0], tag_m5[1], tag_m5[2], tag_m5[3], tag_c12_a);
 
-		starpu_tag_declare_deps(tag_c21_a, 4, tag_m2[0], tag_m2[1], tag_m2[2], tag_m2[3]);
-		starpu_tag_declare_deps(tag_c21_b, 5, tag_m4[0], tag_m4[1], tag_m4[2], tag_m4[3], tag_c21_a);
+		_starpu_tag_declare_deps(tag_c21_a, 4, tag_m2[0], tag_m2[1], tag_m2[2], tag_m2[3]);
+		_starpu_tag_declare_deps(tag_c21_b, 5, tag_m4[0], tag_m4[1], tag_m4[2], tag_m4[3], tag_c21_a);
 
-		starpu_tag_declare_deps(tag_c22_a, 4, tag_m1[0], tag_m1[1], tag_m1[2], tag_m1[3]);
-		starpu_tag_declare_deps(tag_c22_b, 5, tag_m2[0], tag_m2[1], tag_m2[2], tag_m2[3], tag_c22_a);
-		starpu_tag_declare_deps(tag_c22_c, 5, tag_m3[0], tag_m3[1], tag_m3[2], tag_m3[3], tag_c22_b);
-		starpu_tag_declare_deps(tag_c22_d, 5, tag_m6[0], tag_m6[1], tag_m6[2], tag_m6[3], tag_c22_c);
+		_starpu_tag_declare_deps(tag_c22_a, 4, tag_m1[0], tag_m1[1], tag_m1[2], tag_m1[3]);
+		_starpu_tag_declare_deps(tag_c22_b, 5, tag_m2[0], tag_m2[1], tag_m2[2], tag_m2[3], tag_c22_a);
+		_starpu_tag_declare_deps(tag_c22_c, 5, tag_m3[0], tag_m3[1], tag_m3[2], tag_m3[3], tag_c22_b);
+		_starpu_tag_declare_deps(tag_c22_d, 5, tag_m6[0], tag_m6[1], tag_m6[2], tag_m6[3], tag_c22_c);
 	}
 
 	starpu_submit_task(task_c11_a);

@@ -329,7 +329,7 @@ static void submit_new_iter(unsigned x, unsigned y, unsigned iter)
 		task = construct_task(x, y, z, iter);
 		
 		if (z != 0) {
-			starpu_tag_declare_deps(TAG(z, y, x, iter), 1, TAG(z-1, y, x, iter));
+			_starpu_tag_declare_deps(TAG(z, y, x, iter), 1, TAG(z-1, y, x, iter));
 		}
 
 		if (z == nslicesz - 1) {

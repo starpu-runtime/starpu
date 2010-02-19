@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	taskB = create_dummy_task(tagB);
 
 	/* B depends on A */
-	starpu_tag_declare_deps(tagB, 1, tagA);
+	_starpu_tag_declare_deps(tagB, 1, tagA);
 
 	starpu_submit_task(taskB);
 	starpu_submit_task(taskA);
@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 	taskG = create_dummy_task(tagG);
 
 	/* NB: we could have used starpu_tag_declare_deps_array instead */
-	starpu_tag_declare_deps(tagG, 4, tagC, tagD, tagE, tagF);
+	_starpu_tag_declare_deps(tagG, 4, tagC, tagD, tagE, tagF);
 
 	starpu_submit_task(taskC);
 	starpu_submit_task(taskD);
@@ -121,9 +121,9 @@ int main(int argc, char **argv)
 	taskK = create_dummy_task(tagK);
 	taskL = create_dummy_task(tagL);
 
-	starpu_tag_declare_deps(tagJ, 2, tagH, tagI);
-	starpu_tag_declare_deps(tagK, 2, tagH, tagI);
-	starpu_tag_declare_deps(tagL, 2, tagH, tagI);
+	_starpu_tag_declare_deps(tagJ, 2, tagH, tagI);
+	_starpu_tag_declare_deps(tagK, 2, tagH, tagI);
+	_starpu_tag_declare_deps(tagL, 2, tagH, tagI);
 
 	starpu_tag_t tagJKL[3] = {tagJ, tagK, tagL};
 

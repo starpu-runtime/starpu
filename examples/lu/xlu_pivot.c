@@ -91,12 +91,12 @@ static void create_task_pivot(starpu_data_handle *dataAp, unsigned nblocks,
 
 	/* enforce dependencies ... */
 	if (k == 0) {
-		starpu_tag_declare_deps(PIVOT(k, i), 1, TAG11(k));
+		_starpu_tag_declare_deps(PIVOT(k, i), 1, TAG11(k));
 	}
 	else 
 	{
 		if (i > k) {
-			starpu_tag_declare_deps(PIVOT(k, i), 2, TAG11(k), TAG22(k-1, i, k));
+			_starpu_tag_declare_deps(PIVOT(k, i), 2, TAG11(k), TAG22(k-1, i, k));
 		}
 		else {
 			starpu_tag_t *tags = malloc((nblocks - k)*sizeof(starpu_tag_t));
@@ -157,7 +157,7 @@ static struct starpu_task *create_task_11_pivot(starpu_data_handle *dataAp, unsi
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
+		_starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
 	}
 
 	return task;
@@ -207,13 +207,13 @@ static void create_task_12(starpu_data_handle *dataAp, unsigned nblocks, unsigne
 
 	/* enforce dependencies ... */
 #if 0
-	starpu_tag_declare_deps(TAG12(k, i), 1, PIVOT(k, i));
+	_starpu_tag_declare_deps(TAG12(k, i), 1, PIVOT(k, i));
 #endif
 	if (k > 0) {
-		starpu_tag_declare_deps(TAG12(k, j), 2, TAG11(k), TAG22(k-1, k, j));
+		_starpu_tag_declare_deps(TAG12(k, j), 2, TAG11(k), TAG22(k-1, k, j));
 	}
 	else {
-		starpu_tag_declare_deps(TAG12(k, j), 1, TAG11(k));
+		_starpu_tag_declare_deps(TAG12(k, j), 1, TAG11(k));
 	}
 
 	starpu_submit_task(task);
@@ -260,13 +260,13 @@ static void create_task_21(starpu_data_handle *dataAp, unsigned nblocks, unsigne
 	task->cl_arg = (void *)(task->tag_id);
 
 	/* enforce dependencies ... */
-	starpu_tag_declare_deps(TAG21(k, i), 1, PIVOT(k, i));
+	_starpu_tag_declare_deps(TAG21(k, i), 1, PIVOT(k, i));
 #if 0
 	if (k > 0) {
-		starpu_tag_declare_deps(TAG21(k, i), 3, TAG11(k), TAG22(k-1, k, i), PIVOT(k, i));
+		_starpu_tag_declare_deps(TAG21(k, i), 3, TAG11(k), TAG22(k-1, k, i), PIVOT(k, i));
 	}
 	else {
-		starpu_tag_declare_deps(TAG21(k, i), 2, TAG11(k), PIVOT(k, i));
+		_starpu_tag_declare_deps(TAG21(k, i), 2, TAG11(k), PIVOT(k, i));
 	}
 #endif
 
@@ -319,10 +319,10 @@ static void create_task_22(starpu_data_handle *dataAp, unsigned nblocks, unsigne
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), TAG12(k, j), TAG21(k, i));
+		_starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), TAG12(k, j), TAG21(k, i));
 	}
 	else {
-		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG12(k, j), TAG21(k, i));
+		_starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG12(k, j), TAG21(k, i));
 	}
 
 	starpu_submit_task(task);
