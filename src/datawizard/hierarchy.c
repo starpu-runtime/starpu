@@ -50,7 +50,7 @@ void starpu_delete_data(starpu_data_handle handle)
 	free(handle);
 }
 
-void register_new_data(starpu_data_handle handle, uint32_t home_node, uint32_t wb_mask)
+void starpu_register_new_data(starpu_data_handle handle, uint32_t home_node, uint32_t wb_mask)
 {
 	STARPU_ASSERT(handle);
 
