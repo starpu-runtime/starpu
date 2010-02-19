@@ -58,7 +58,7 @@ LIST_TYPE(starpu_job,
 	pthread_cond_t sync_cond;
 
 	struct tag_s *tag;
-	struct cg_list_s job_successors;
+	struct starpu_cg_list_s job_successors;
 
 	double predicted;
 	double penality;

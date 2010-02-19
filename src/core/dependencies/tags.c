@@ -25,14 +25,14 @@
 static htbl_node_t *tag_htbl = NULL;
 static pthread_rwlock_t tag_global_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
-static cg_t *create_cg_apps(unsigned ntags)
+static starpu_cg_t *create_cg_apps(unsigned ntags)
 {
-	cg_t *cg = malloc(sizeof(cg_t));
+	starpu_cg_t *cg = malloc(sizeof(starpu_cg_t));
 	STARPU_ASSERT(cg);
 
 	cg->ntags = ntags;
 	cg->remaining = ntags;
-	cg->cg_type = CG_APPS;
+	cg->cg_type = STARPU_CG_APPS;
 
 	cg->succ.succ_apps.completed = 0;
 	pthread_mutex_init(&cg->succ.succ_apps.cg_mutex, NULL);
@@ -42,14 +42,14 @@ static cg_t *create_cg_apps(unsigned ntags)
 }
 
 
-static cg_t *create_cg_tag(unsigned ntags, struct tag_s *tag)
+static starpu_cg_t *create_cg_tag(unsigned ntags, struct tag_s *tag)
 {
-	cg_t *cg = malloc(sizeof(cg_t));
+	starpu_cg_t *cg = malloc(sizeof(starpu_cg_t));
 	STARPU_ASSERT(cg);
 
 	cg->ntags = ntags;
 	cg->remaining = ntags;
-	cg->cg_type = CG_TAG;
+	cg->cg_type = STARPU_CG_TAG;
 
 	cg->succ.tag = tag;
 	tag->tag_successors.ndeps++;
@@ -95,17 +95,17 @@ void starpu_tag_remove(starpu_tag_t id)
 
 		for (succ = 0; succ < nsuccs; succ++)
 		{
-			struct cg_s *cg = tag->tag_successors.succ[succ];
+			struct starpu_cg_s *cg = tag->tag_successors.succ[succ];
 
 			unsigned ntags = STARPU_ATOMIC_ADD(&cg->ntags, -1);
 			unsigned remaining __attribute__ ((unused)) = STARPU_ATOMIC_ADD(&cg->remaining, -1);
 
-			if (!ntags && (cg->cg_type == CG_TAG))
+			if (!ntags && (cg->cg_type == STARPU_CG_TAG))
 				/* Last tag this cg depends on, cg becomes unreferenced */
 				free(cg);
 		}
 
-#ifdef DYNAMIC_DEPS_SIZE
+#ifdef STARPU_DYNAMIC_DEPS_SIZE
 		free(tag->tag_successors.succ);
 #endif
 
@@ -159,7 +159,7 @@ void _starpu_tag_set_ready(struct tag_s *tag)
 }
 
 /* the lock must be taken ! */
-static void _starpu_tag_add_succ(struct tag_s *tag, cg_t *cg)
+static void _starpu_tag_add_succ(struct tag_s *tag, starpu_cg_t *cg)
 {
 	STARPU_ASSERT(tag);
 
@@ -229,7 +229,7 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 
 	starpu_spin_lock(&tag_child->lock);
 
-	cg_t *cg = create_cg_tag(ndeps, tag_child);
+	starpu_cg_t *cg = create_cg_tag(ndeps, tag_child);
 
 	STARPU_ASSERT(ndeps != 0);
 	
@@ -258,7 +258,7 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 
 	starpu_spin_lock(&tag_child->lock);
 
-	cg_t *cg = create_cg_tag(ndeps, tag_child);
+	starpu_cg_t *cg = create_cg_tag(ndeps, tag_child);
 
 	STARPU_ASSERT(ndeps != 0);
 	
@@ -320,7 +320,7 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 	}
 	
 	/* there is at least one task that is not finished */
-	cg_t *cg = create_cg_apps(current);
+	starpu_cg_t *cg = create_cg_apps(current);
 
 	for (i = 0; i < current; i++)
 	{

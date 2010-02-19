@@ -48,7 +48,7 @@ struct tag_s {
 	starpu_tag_t id; /* an identifier for the task */
 	tag_state state;
 
-	struct cg_list_s tag_successors;
+	struct starpu_cg_list_s tag_successors;
 
 	struct starpu_job_s *job; /* which job is associated to the tag if any ? */
 
