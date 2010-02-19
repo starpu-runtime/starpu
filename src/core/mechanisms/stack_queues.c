@@ -36,10 +36,10 @@ void init_stack_queues_mechanisms(void)
 	sched_mutex = &sched->sched_activity_mutex;
 }
 
-struct jobq_s *create_stack(void)
+struct starpu_jobq_s *create_stack(void)
 {
-	struct jobq_s *jobq;
-	jobq = malloc(sizeof(struct jobq_s));
+	struct starpu_jobq_s *jobq;
+	jobq = malloc(sizeof(struct starpu_jobq_s));
 
 	struct stack_jobq_s *stack;
 	stack = malloc(sizeof(struct stack_jobq_s));
@@ -66,7 +66,7 @@ unsigned get_total_njobs_stacks(void)
 	return total_number_of_jobs;
 }
 
-unsigned get_stack_njobs(struct jobq_s *q)
+unsigned get_stack_njobs(struct starpu_jobq_s *q)
 {
 	STARPU_ASSERT(q);
 
@@ -75,7 +75,7 @@ unsigned get_stack_njobs(struct jobq_s *q)
 	return stack_queue->njobs;
 }
 
-unsigned get_stack_nprocessed(struct jobq_s *q)
+unsigned get_stack_nprocessed(struct starpu_jobq_s *q)
 {
 	STARPU_ASSERT(q);
 
@@ -84,7 +84,7 @@ unsigned get_stack_nprocessed(struct jobq_s *q)
 	return stack_queue->nprocessed;
 }
 
-void stack_push_prio_task(struct jobq_s *q, starpu_job_t task)
+void stack_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
 {
 #ifndef STARPU_NO_PRIO
 	STARPU_ASSERT(q);
@@ -111,7 +111,7 @@ void stack_push_prio_task(struct jobq_s *q, starpu_job_t task)
 #endif
 }
 
-void stack_push_task(struct jobq_s *q, starpu_job_t task)
+void stack_push_task(struct starpu_jobq_s *q, starpu_job_t task)
 {
 	STARPU_ASSERT(q);
 	struct stack_jobq_s *stack_queue = q->queue;
@@ -134,7 +134,7 @@ void stack_push_task(struct jobq_s *q, starpu_job_t task)
 	pthread_mutex_unlock(&q->activity_mutex);
 }
 
-starpu_job_t stack_pop_task(struct jobq_s *q)
+starpu_job_t stack_pop_task(struct starpu_jobq_s *q)
 {
 	starpu_job_t j = NULL;
 

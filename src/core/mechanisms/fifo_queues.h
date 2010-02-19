@@ -35,13 +35,13 @@ struct starpu_fifo_jobq_s {
 	double exp_len;
 };
 
-struct jobq_s *_starpu_create_fifo(void);
+struct starpu_jobq_s *_starpu_create_fifo(void);
 
-int _starpu_fifo_push_task(struct jobq_s *q, starpu_job_t task);
-int _starpu_fifo_push_prio_task(struct jobq_s *q, starpu_job_t task);
+int _starpu_fifo_push_task(struct starpu_jobq_s *q, starpu_job_t task);
+int _starpu_fifo_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task);
 
-starpu_job_t _starpu_fifo_pop_task(struct jobq_s *q);
-struct starpu_job_list_s * _starpu_fifo_pop_every_task(struct jobq_s *q, uint32_t where);
+starpu_job_t _starpu_fifo_pop_task(struct starpu_jobq_s *q);
+struct starpu_job_list_s * _starpu_fifo_pop_every_task(struct starpu_jobq_s *q, uint32_t where);
 
 void _starpu_init_fifo_queues_mechanisms(void);
 

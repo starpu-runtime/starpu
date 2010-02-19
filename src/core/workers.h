@@ -72,7 +72,7 @@ struct starpu_worker_s {
 	int workerid; /* uniquely identify the worker among all processing units types */
         pthread_cond_t ready_cond; /* indicate when the worker is ready */
 	unsigned memory_node; /* which memory node is associated that worker to ? */
-	struct jobq_s *jobq; /* in which queue will that worker get/put tasks ? */
+	struct starpu_jobq_s *jobq; /* in which queue will that worker get/put tasks ? */
 	struct starpu_job_list_s *local_jobs; /* this queue contains tasks that have been explicitely submitted to that queue */
 	pthread_mutex_t local_jobs_mutex; /* protect the local_jobs list */
 	struct starpu_worker_set_s *set; /* in case this worker belongs to a set */

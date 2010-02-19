@@ -22,7 +22,7 @@
  */
 
 /* the former is the actual queue, the latter some container */
-static struct jobq_s *jobq;
+static struct starpu_jobq_s *jobq;
 
 static void init_no_prio_design(void)
 {
@@ -37,7 +37,7 @@ static void init_no_prio_design(void)
 	jobq->_starpu_pop_task = _starpu_fifo_pop_task;
 }
 
-static struct jobq_s *func_init_central_queue(void)
+static struct starpu_jobq_s *func_init_central_queue(void)
 {
 	/* once again, this is trivial */
 	return jobq;
@@ -46,10 +46,10 @@ static struct jobq_s *func_init_central_queue(void)
 void initialize_no_prio_policy(struct starpu_machine_config_s *config, 
 	   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
-	setup_queues(init_no_prio_design, func_init_central_queue, config);
+	_starpu_setup_queues(init_no_prio_design, func_init_central_queue, config);
 }
 
-struct jobq_s *get_local_queue_no_prio(struct starpu_sched_policy_s *policy 
+struct starpu_jobq_s *get_local_queue_no_prio(struct starpu_sched_policy_s *policy 
 					__attribute__ ((unused)))
 {
 	/* this is trivial for that strategy :) */
@@ -59,7 +59,7 @@ struct jobq_s *get_local_queue_no_prio(struct starpu_sched_policy_s *policy
 struct starpu_sched_policy_s sched_no_prio_policy = {
 	.init_sched = initialize_no_prio_policy,
 	.deinit_sched = NULL,
-	.get_local_queue = get_local_queue_no_prio,
+	._starpu_get_local_queue = get_local_queue_no_prio,
 	.policy_name = "no-prio",
 	.policy_description = "eager without priority"
 };

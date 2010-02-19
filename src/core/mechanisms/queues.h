@@ -24,14 +24,14 @@
 
 enum starpu_perf_archtype;
 
-struct jobq_s {
+struct starpu_jobq_s {
 	/* a pointer to some queue structure */
 	void *queue; 
 
 	/* some methods to manipulate the previous queue */
-	int (*_starpu_push_task)(struct jobq_s *, starpu_job_t);
-	int (*push_prio_task)(struct jobq_s *, starpu_job_t);
-	struct starpu_job_s* (*_starpu_pop_task)(struct jobq_s *);
+	int (*_starpu_push_task)(struct starpu_jobq_s *, starpu_job_t);
+	int (*push_prio_task)(struct starpu_jobq_s *, starpu_job_t);
+	struct starpu_job_s* (*_starpu_pop_task)(struct starpu_jobq_s *);
 
 	/* returns the number of tasks that were retrieved 
  	 * the function is reponsible for allocating the output but the driver
@@ -39,7 +39,7 @@ struct jobq_s {
  	 *
  	 * NB : this function is non blocking
  	 * */
-	struct starpu_job_list_s *(*_starpu_pop_every_task)(struct jobq_s *, uint32_t);
+	struct starpu_job_list_s *(*_starpu_pop_every_task)(struct starpu_jobq_s *, uint32_t);
 
 	/* what are the driver that may pop job from that queue ? */
 	uint32_t who;
@@ -63,15 +63,15 @@ struct jobq_s {
 
 struct starpu_machine_config_s;
 
-void setup_queues(void (*init_queue_design)(void),
-                  struct jobq_s *(*func_init_queue)(void),
+void _starpu_setup_queues(void (*init_queue_design)(void),
+                  struct starpu_jobq_s *(*func_init_queue)(void),
                   struct starpu_machine_config_s *config);
 
-struct jobq_s *get_local_queue(void);
-void set_local_queue(struct jobq_s *jobq);
+struct starpu_jobq_s *_starpu_get_local_queue(void);
+void _starpu_set_local_queue(struct starpu_jobq_s *jobq);
 
-void jobq_lock(struct jobq_s *jobq);
-void jobq_unlock(struct jobq_s *jobq);
-int jobq_trylock(struct jobq_s *jobq);
+void _starpu_jobq_lock(struct starpu_jobq_s *jobq);
+void _starpu_jobq_unlock(struct starpu_jobq_s *jobq);
+int _starpu_jobq_trylock(struct starpu_jobq_s *jobq);
 
 #endif // __QUEUES_H__

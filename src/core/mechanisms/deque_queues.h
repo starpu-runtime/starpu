@@ -35,19 +35,19 @@ struct starpu_deque_jobq_s {
 	double exp_len;
 };
 
-struct jobq_s *_starpu_create_deque(void);
+struct starpu_jobq_s *_starpu_create_deque(void);
 
-int _starpu_deque_push_task(struct jobq_s *q, starpu_job_t task);
-int _starpu_deque_push_prio_task(struct jobq_s *q, starpu_job_t task);
+int _starpu_deque_push_task(struct starpu_jobq_s *q, starpu_job_t task);
+int _starpu_deque_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task);
 
-starpu_job_t _starpu_deque_pop_task(struct jobq_s *q);
+starpu_job_t _starpu_deque_pop_task(struct starpu_jobq_s *q);
 
 void _starpu_init_deque_queues_mechanisms(void);
 
 unsigned _starpu_get_total_njobs_deques(void);
 
-unsigned _starpu_get_deque_njobs(struct jobq_s *q);
-unsigned _starpu_get_deque_nprocessed(struct jobq_s *q);
+unsigned _starpu_get_deque_njobs(struct starpu_jobq_s *q);
+unsigned _starpu_get_deque_nprocessed(struct starpu_jobq_s *q);
 
 
 #endif // __DEQUE_QUEUES_H__

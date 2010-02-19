@@ -67,7 +67,7 @@ static struct starpu_worker_set_s gordon_worker_set;
 
 static void _starpu_init_worker_queue(struct starpu_worker_s *workerarg)
 {
-	struct jobq_s *jobq = workerarg->jobq;
+	struct starpu_jobq_s *jobq = workerarg->jobq;
 
 	/* warning : in case there are multiple workers on the same
 	  queue, we overwrite this value so that it is meaningless */
@@ -333,7 +333,7 @@ typedef enum {
 static void _starpu_operate_on_all_queues_attached_to_node(unsigned nodeid, queue_op op)
 {
 	unsigned q_id;
-	struct jobq_s *q;
+	struct starpu_jobq_s *q;
 
 	starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
 
@@ -378,7 +378,7 @@ inline void _starpu_broadcast_all_queues_attached_to_node(unsigned node)
 static void _starpu_operate_on_all_queues(queue_op op)
 {
 	unsigned q_id;
-	struct jobq_s *q;
+	struct starpu_jobq_s *q;
 
 	starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
 

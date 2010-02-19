@@ -102,7 +102,7 @@ unsigned _starpu_register_memory_node(starpu_node_kind kind)
 
 /* TODO move in a more appropriate file  !! */
 /* attach a queue to a memory node (if it's not already attached) */
-void _starpu_memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
+void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid)
 {
 	unsigned queue;
 	unsigned nqueues_total, nqueues;

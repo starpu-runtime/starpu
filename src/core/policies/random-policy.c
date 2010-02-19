@@ -18,9 +18,9 @@
 
 /* XXX 32 is set randomly */
 static unsigned nworkers;
-static struct jobq_s *queue_array[32];
+static struct starpu_jobq_s *queue_array[32];
 
-static starpu_job_t random_pop_task(struct jobq_s *q)
+static starpu_job_t random_pop_task(struct starpu_jobq_s *q)
 {
 	struct starpu_job_s *j;
 
@@ -29,7 +29,7 @@ static starpu_job_t random_pop_task(struct jobq_s *q)
 	return j;
 }
 
-static int _random_push_task(struct jobq_s *q __attribute__ ((unused)), starpu_job_t task, unsigned prio)
+static int _random_push_task(struct starpu_jobq_s *q __attribute__ ((unused)), starpu_job_t task, unsigned prio)
 {
 	/* find the queue */
 	struct starpu_fifo_jobq_s *fifo;
@@ -69,19 +69,19 @@ static int _random_push_task(struct jobq_s *q __attribute__ ((unused)), starpu_j
 	}
 }
 
-static int random_push_prio_task(struct jobq_s *q, starpu_job_t task)
+static int random_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
 {
 	return _random_push_task(q, task, 1);
 }
 
-static int random_push_task(struct jobq_s *q, starpu_job_t task)
+static int random_push_task(struct starpu_jobq_s *q, starpu_job_t task)
 {
 	return _random_push_task(q, task, 0);
 }
 
-static struct jobq_s *init_random_fifo(void)
+static struct starpu_jobq_s *init_random_fifo(void)
 {
-	struct jobq_s *q;
+	struct starpu_jobq_s *q;
 
 	q = _starpu_create_fifo();
 
@@ -102,12 +102,12 @@ static void initialize_random_policy(struct starpu_machine_config_s *config,
 
 	starpu_srand48(time(NULL));
 
-	setup_queues(_starpu_init_fifo_queues_mechanisms, init_random_fifo, config);
+	_starpu_setup_queues(_starpu_init_fifo_queues_mechanisms, init_random_fifo, config);
 }
 
-static struct jobq_s *get_local_queue_random(struct starpu_sched_policy_s *policy __attribute__ ((unused)))
+static struct starpu_jobq_s *get_local_queue_random(struct starpu_sched_policy_s *policy __attribute__ ((unused)))
 {
-	struct jobq_s *queue;
+	struct starpu_jobq_s *queue;
 	queue = pthread_getspecific(policy->local_queue_key);
 
 	if (!queue)
@@ -122,7 +122,7 @@ static struct jobq_s *get_local_queue_random(struct starpu_sched_policy_s *polic
 struct starpu_sched_policy_s sched_random_policy = {
 	.init_sched = initialize_random_policy,
 	.deinit_sched = NULL,
-	.get_local_queue = get_local_queue_random,
+	._starpu_get_local_queue = get_local_queue_random,
 	.policy_name = "random",
 	.policy_description = "weighted random"
 };

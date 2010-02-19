@@ -19,10 +19,10 @@
 #include <core/perfmodel/perfmodel.h>
 
 static unsigned nworkers;
-static struct jobq_s *queue_array[STARPU_NMAXWORKERS];
+static struct starpu_jobq_s *queue_array[STARPU_NMAXWORKERS];
 static int use_prefetch = 0;
 
-static starpu_job_t dm_pop_task(struct jobq_s *q)
+static starpu_job_t dm_pop_task(struct starpu_jobq_s *q)
 {
 	struct starpu_job_s *j;
 
@@ -39,7 +39,7 @@ static starpu_job_t dm_pop_task(struct jobq_s *q)
 	return j;
 }
 
-static struct starpu_job_list_s *dm_pop_every_task(struct jobq_s *q, uint32_t where)
+static struct starpu_job_list_s *dm_pop_every_task(struct starpu_jobq_s *q, uint32_t where)
 {
 	struct starpu_job_list_s *new_list;
 
@@ -64,7 +64,7 @@ static struct starpu_job_list_s *dm_pop_every_task(struct jobq_s *q, uint32_t wh
 
 
 
-static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)), starpu_job_t j, unsigned prio)
+static int _dm_push_task(struct starpu_jobq_s *q __attribute__ ((unused)), starpu_job_t j, unsigned prio)
 {
 	/* find the queue */
 	struct starpu_fifo_jobq_s *fifo;
@@ -139,12 +139,12 @@ static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)), starpu_job_t
 	}
 }
 
-static int dm_push_prio_task(struct jobq_s *q, starpu_job_t j)
+static int dm_push_prio_task(struct starpu_jobq_s *q, starpu_job_t j)
 {
 	return _dm_push_task(q, j, 1);
 }
 
-static int dm_push_task(struct jobq_s *q, starpu_job_t j)
+static int dm_push_task(struct starpu_jobq_s *q, starpu_job_t j)
 {
 	if (j->task->priority == STARPU_MAX_PRIO)
 		return _dm_push_task(q, j, 1);
@@ -152,9 +152,9 @@ static int dm_push_task(struct jobq_s *q, starpu_job_t j)
 	return _dm_push_task(q, j, 0);
 }
 
-static struct jobq_s *init_dm_fifo(void)
+static struct starpu_jobq_s *init_dm_fifo(void)
 {
-	struct jobq_s *q;
+	struct starpu_jobq_s *q;
 
 	q = _starpu_create_fifo();
 
@@ -182,12 +182,12 @@ static void initialize_dm_policy(struct starpu_machine_config_s *config,
 	fprintf(stderr, "Using prefetch ? %s\n", use_prefetch?"yes":"no");
 #endif
 
-	setup_queues(_starpu_init_fifo_queues_mechanisms, init_dm_fifo, config);
+	_starpu_setup_queues(_starpu_init_fifo_queues_mechanisms, init_dm_fifo, config);
 }
 
-static struct jobq_s *get_local_queue_dm(struct starpu_sched_policy_s *policy __attribute__ ((unused)))
+static struct starpu_jobq_s *get_local_queue_dm(struct starpu_sched_policy_s *policy __attribute__ ((unused)))
 {
-	struct jobq_s *queue;
+	struct starpu_jobq_s *queue;
 	queue = pthread_getspecific(policy->local_queue_key);
 
 	if (!queue)
@@ -202,7 +202,7 @@ static struct jobq_s *get_local_queue_dm(struct starpu_sched_policy_s *policy __
 struct starpu_sched_policy_s sched_dm_policy = {
 	.init_sched = initialize_dm_policy,
 	.deinit_sched = NULL,
-	.get_local_queue = get_local_queue_dm,
+	._starpu_get_local_queue = get_local_queue_dm,
 	.policy_name = "dm",
 	.policy_description = "performance model"
 };

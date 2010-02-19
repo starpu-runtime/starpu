@@ -111,7 +111,7 @@ void *_starpu_cpu_worker(void *arg)
 
 	_starpu_set_local_memory_node_key(&cpu_arg->memory_node);
 
-	set_local_queue(cpu_arg->jobq);
+	_starpu_set_local_queue(cpu_arg->jobq);
 
 	_starpu_set_local_worker_key(cpu_arg);
 
@@ -140,7 +140,7 @@ void *_starpu_cpu_worker(void *arg)
 	int res;
 
 	struct starpu_sched_policy_s *policy = _starpu_get_sched_policy();
-	struct jobq_s *queue = policy->get_local_queue(policy);
+	struct starpu_jobq_s *queue = policy->_starpu_get_local_queue(policy);
 	unsigned memnode = cpu_arg->memory_node;
 
 	while (_starpu_machine_is_running())
@@ -151,7 +151,7 @@ void *_starpu_cpu_worker(void *arg)
 
 		_starpu_execute_registered_progression_hooks();
 
-		jobq_lock(queue);
+		_starpu_jobq_lock(queue);
 
 		/* perhaps there is some local task to be executed first */
 		j = _starpu_pop_local_task(cpu_arg);
@@ -163,11 +163,11 @@ void *_starpu_cpu_worker(void *arg)
                 if (j == NULL) {
 			if (_starpu_worker_can_block(memnode))
 				pthread_cond_wait(&queue->activity_cond, &queue->activity_mutex);
-			jobq_unlock(queue);
+			_starpu_jobq_unlock(queue);
  			continue;
 		};
 		
-		jobq_unlock(queue);
+		_starpu_jobq_unlock(queue);
 
 		/* can a cpu perform that task ? */
 		if (!STARPU_CPU_MAY_PERFORM(j)) 

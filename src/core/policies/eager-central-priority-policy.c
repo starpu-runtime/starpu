@@ -17,7 +17,7 @@
 #include <core/policies/eager-central-priority-policy.h>
 
 /* the former is the actual queue, the latter some container */
-static struct jobq_s *jobq;
+static struct starpu_jobq_s *jobq;
 
 static void init_priority_queue_design(void)
 {
@@ -32,7 +32,7 @@ static void init_priority_queue_design(void)
 	jobq->_starpu_pop_task = _starpu_priority_pop_task;
 }
 
-static struct jobq_s *func_init_priority_queue(void)
+static struct starpu_jobq_s *func_init_priority_queue(void)
 {
 	return jobq;
 }
@@ -40,10 +40,10 @@ static struct jobq_s *func_init_priority_queue(void)
 static void initialize_eager_center_priority_policy(struct starpu_machine_config_s *config, 
 			__attribute__ ((unused))	struct starpu_sched_policy_s *_policy) 
 {
-	setup_queues(init_priority_queue_design, func_init_priority_queue, config);
+	_starpu_setup_queues(init_priority_queue_design, func_init_priority_queue, config);
 }
 
-static struct jobq_s *get_local_queue_eager_priority(struct starpu_sched_policy_s *policy __attribute__ ((unused)))
+static struct starpu_jobq_s *get_local_queue_eager_priority(struct starpu_sched_policy_s *policy __attribute__ ((unused)))
 {
 	/* this is trivial for that strategy */
 	return jobq;
@@ -52,7 +52,7 @@ static struct jobq_s *get_local_queue_eager_priority(struct starpu_sched_policy_
 struct starpu_sched_policy_s sched_prio_policy = {
 	.init_sched = initialize_eager_center_priority_policy,
 	.deinit_sched = NULL,
-	.get_local_queue = get_local_queue_eager_priority,
+	._starpu_get_local_queue = get_local_queue_eager_priority,
 	.policy_name = "prio",
 	.policy_description = "eager (with priorities)"
 };

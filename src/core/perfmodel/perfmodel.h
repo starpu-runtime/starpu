@@ -27,7 +27,7 @@
 #include <stdio.h>
 
 struct starpu_buffer_descr_t;
-struct jobq_s;
+struct starpu_jobq_s;
 struct starpu_job_s;
 enum starpu_perf_archtype;
 
@@ -96,7 +96,7 @@ double _starpu_regression_based_job_expected_length(struct starpu_perfmodel_t *m
 void _starpu_update_perfmodel_history(struct starpu_job_s *j, enum starpu_perf_archtype arch,
 				unsigned cpuid, double measured);
 
-double _starpu_data_expected_penalty(struct jobq_s *q, struct starpu_task *task);
+double _starpu_data_expected_penalty(struct starpu_jobq_s *q, struct starpu_task *task);
 
 void _starpu_create_sampling_directory_if_needed(void);
 

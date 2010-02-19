@@ -37,11 +37,11 @@ void _starpu_init_priority_queues_mechanisms(void)
 	sched_mutex = &sched->sched_activity_mutex;
 }
 
-struct jobq_s *_starpu_create_priority_jobq(void)
+struct starpu_jobq_s *_starpu_create_priority_jobq(void)
 {
-	struct jobq_s *q;
+	struct starpu_jobq_s *q;
 
-	q = malloc(sizeof(struct jobq_s));
+	q = malloc(sizeof(struct starpu_jobq_s));
 
 	struct starpu_priority_jobq_s *central_queue;
 	
@@ -63,7 +63,7 @@ struct jobq_s *_starpu_create_priority_jobq(void)
 	return q;
 }
 
-int _starpu_priority_push_task(struct jobq_s *q, starpu_job_t j)
+int _starpu_priority_push_task(struct starpu_jobq_s *q, starpu_job_t j)
 {
 	STARPU_ASSERT(q);
 	struct starpu_priority_jobq_s *queue = q->queue;
@@ -90,7 +90,7 @@ int _starpu_priority_push_task(struct jobq_s *q, starpu_job_t j)
 	return 0;
 }
 
-starpu_job_t _starpu_priority_pop_task(struct jobq_s *q)
+starpu_job_t _starpu_priority_pop_task(struct starpu_jobq_s *q)
 {
 	starpu_job_t j = NULL;
 

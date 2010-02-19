@@ -32,11 +32,11 @@ struct starpu_priority_jobq_s {
 	unsigned total_njobs;
 };
 
-struct jobq_s *_starpu_create_priority_jobq(void);
+struct starpu_jobq_s *_starpu_create_priority_jobq(void);
 void _starpu_init_priority_queues_mechanisms(void);
 
-int _starpu_priority_push_task(struct jobq_s *q, starpu_job_t task);
+int _starpu_priority_push_task(struct starpu_jobq_s *q, starpu_job_t task);
 
-starpu_job_t _starpu_priority_pop_task(struct jobq_s *q);
+starpu_job_t _starpu_priority_pop_task(struct starpu_jobq_s *q);
 
 #endif // __PRIORITY_QUEUES_H__

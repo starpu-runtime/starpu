@@ -21,7 +21,7 @@
 
 static unsigned nworkers;
 static unsigned rr_worker;
-static struct jobq_s *queue_array[STARPU_NMAXWORKERS];
+static struct starpu_jobq_s *queue_array[STARPU_NMAXWORKERS];
 
 /* keep track of the work performed from the beginning of the algorithm to make
  * better decisions about which queue to select when stealing or deferring work
@@ -49,9 +49,9 @@ static float overload_metric(unsigned id)
 }
 
 /* who to steal work to ? */
-static struct jobq_s *select_victimq(void)
+static struct starpu_jobq_s *select_victimq(void)
 {
-	struct jobq_s *q;
+	struct starpu_jobq_s *q;
 
 	unsigned attempts = nworkers;
 
@@ -74,9 +74,9 @@ static struct jobq_s *select_victimq(void)
 	return q;
 }
 
-static struct jobq_s *select_workerq(void)
+static struct starpu_jobq_s *select_workerq(void)
 {
-	struct jobq_s *q;
+	struct starpu_jobq_s *q;
 
 	unsigned attempts = nworkers;
 
@@ -102,10 +102,10 @@ static struct jobq_s *select_workerq(void)
 #else
 
 /* who to steal work to ? */
-static struct jobq_s *select_victimq(void)
+static struct starpu_jobq_s *select_victimq(void)
 {
 
-	struct jobq_s *q;
+	struct starpu_jobq_s *q;
 
 	q = queue_array[rr_worker];
 
@@ -117,10 +117,10 @@ static struct jobq_s *select_victimq(void)
 
 /* when anonymous threads submit tasks, 
  * we need to select a queue where to dispose them */
-static struct jobq_s *select_workerq(void)
+static struct starpu_jobq_s *select_workerq(void)
 {
 
-	struct jobq_s *q;
+	struct starpu_jobq_s *q;
 
 	q = queue_array[rr_worker];
 
@@ -131,7 +131,7 @@ static struct jobq_s *select_workerq(void)
 
 #endif
 
-static starpu_job_t ws_pop_task(struct jobq_s *q)
+static starpu_job_t ws_pop_task(struct starpu_jobq_s *q)
 {
 	starpu_job_t j;
 
@@ -143,13 +143,13 @@ static starpu_job_t ws_pop_task(struct jobq_s *q)
 	}
 	
 	/* we need to steal someone's job */
-	struct jobq_s *victimq;
+	struct starpu_jobq_s *victimq;
 	victimq = select_victimq();
 
-	if (!jobq_trylock(victimq))
+	if (!_starpu_jobq_trylock(victimq))
 	{
 		j = _starpu_deque_pop_task(victimq);
-		jobq_unlock(victimq);
+		_starpu_jobq_unlock(victimq);
 
 		TRACE_WORK_STEALING(q, j);
 		performed_total++;
@@ -158,9 +158,9 @@ static starpu_job_t ws_pop_task(struct jobq_s *q)
 	return j;
 }
 
-static struct jobq_s *init_ws_deque(void)
+static struct starpu_jobq_s *init_ws_deque(void)
 {
-	struct jobq_s *q;
+	struct starpu_jobq_s *q;
 
 	q = _starpu_create_deque();
 
@@ -182,12 +182,12 @@ static void initialize_ws_policy(struct starpu_machine_config_s *config,
 
 	//machineconfig = config;
 
-	setup_queues(_starpu_init_deque_queues_mechanisms, init_ws_deque, config);
+	_starpu_setup_queues(_starpu_init_deque_queues_mechanisms, init_ws_deque, config);
 }
 
-static struct jobq_s *get_local_queue_ws(struct starpu_sched_policy_s *policy __attribute__ ((unused)))
+static struct starpu_jobq_s *get_local_queue_ws(struct starpu_sched_policy_s *policy __attribute__ ((unused)))
 {
-	struct jobq_s *queue;
+	struct starpu_jobq_s *queue;
 	queue = pthread_getspecific(policy->local_queue_key);
 
 	if (!queue) {
@@ -202,7 +202,7 @@ static struct jobq_s *get_local_queue_ws(struct starpu_sched_policy_s *policy __
 struct starpu_sched_policy_s sched_ws_policy = {
 	.init_sched = initialize_ws_policy,
 	.deinit_sched = NULL,
-	.get_local_queue = get_local_queue_ws,
+	._starpu_get_local_queue = get_local_queue_ws,
 	.policy_name = "ws",
 	.policy_description = "work stealing"
 };

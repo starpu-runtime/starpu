@@ -36,10 +36,10 @@ void _starpu_init_deque_queues_mechanisms(void)
 	sched_mutex = &sched->sched_activity_mutex;
 }
 
-struct jobq_s *_starpu_create_deque(void)
+struct starpu_jobq_s *_starpu_create_deque(void)
 {
-	struct jobq_s *jobq;
-	jobq = malloc(sizeof(struct jobq_s));
+	struct starpu_jobq_s *jobq;
+	jobq = malloc(sizeof(struct starpu_jobq_s));
 
 	pthread_mutex_init(&jobq->activity_mutex, NULL);
 	pthread_cond_init(&jobq->activity_cond, NULL);
@@ -66,7 +66,7 @@ unsigned _starpu_get_total_njobs_deques(void)
 	return total_number_of_jobs;
 }
 
-unsigned _starpu_get_deque_njobs(struct jobq_s *q)
+unsigned _starpu_get_deque_njobs(struct starpu_jobq_s *q)
 {
 	STARPU_ASSERT(q);
 
@@ -75,7 +75,7 @@ unsigned _starpu_get_deque_njobs(struct jobq_s *q)
 	return deque_queue->njobs;
 }
 
-unsigned _starpu_get_deque_nprocessed(struct jobq_s *q)
+unsigned _starpu_get_deque_nprocessed(struct starpu_jobq_s *q)
 {
 	STARPU_ASSERT(q);
 
@@ -84,12 +84,12 @@ unsigned _starpu_get_deque_nprocessed(struct jobq_s *q)
 	return deque_queue->nprocessed;
 }
 
-int _starpu_deque_push_prio_task(struct jobq_s *q, starpu_job_t task)
+int _starpu_deque_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
 {
 	return _starpu_deque_push_task(q, task);
 }
 
-int _starpu_deque_push_task(struct jobq_s *q, starpu_job_t task)
+int _starpu_deque_push_task(struct starpu_jobq_s *q, starpu_job_t task)
 {
 	STARPU_ASSERT(q);
 	struct starpu_deque_jobq_s *deque_queue = q->queue;
@@ -114,7 +114,7 @@ int _starpu_deque_push_task(struct jobq_s *q, starpu_job_t task)
 	return 0;
 }
 
-starpu_job_t _starpu_deque_pop_task(struct jobq_s *q)
+starpu_job_t _starpu_deque_pop_task(struct starpu_jobq_s *q)
 {
 	starpu_job_t j = NULL;
 
@@ -146,7 +146,7 @@ starpu_job_t _starpu_deque_pop_task(struct jobq_s *q)
 	return j;
 }
 
-struct starpu_job_list_s * deque_pop_every_task(struct jobq_s *q, uint32_t where)
+struct starpu_job_list_s * deque_pop_every_task(struct starpu_jobq_s *q, uint32_t where)
 {
 	struct starpu_job_list_s *new_list, *old_list;
 

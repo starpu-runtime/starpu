@@ -39,8 +39,8 @@ typedef struct {
 	// XXX 32 is set randomly !
 	// TODO move this 2 lists outside starpu_mem_node_descr
 	pthread_rwlock_t attached_queues_rwlock;
-	struct jobq_s *attached_queues_per_node[STARPU_MAXNODES][32];
-	struct jobq_s *attached_queues_all[STARPU_MAXNODES*32];
+	struct starpu_jobq_s *attached_queues_per_node[STARPU_MAXNODES][32];
+	struct starpu_jobq_s *attached_queues_all[STARPU_MAXNODES*32];
 	/* the number of queues attached to each node */
 	unsigned total_queues_count;
 	unsigned queues_count[STARPU_MAXNODES];
@@ -51,7 +51,7 @@ void _starpu_deinit_memory_nodes(void);
 void _starpu_set_local_memory_node_key(unsigned *node);
 unsigned _starpu_get_local_memory_node(void);
 unsigned _starpu_register_memory_node(starpu_node_kind kind);
-void _starpu_memory_node_attach_queue(struct jobq_s *q, unsigned nodeid);
+void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
 
 starpu_node_kind _starpu_get_node_kind(uint32_t node);
 unsigned _starpu_get_memory_nodes_count(void);

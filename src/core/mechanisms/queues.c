@@ -23,8 +23,8 @@
  * 	- hierarchical (marcel-like)
  */
 
-void setup_queues(void (*init_queue_design)(void),
-		  struct jobq_s *(*func_init_queue)(void), 
+void _starpu_setup_queues(void (*init_queue_design)(void),
+		  struct starpu_jobq_s *(*func_init_queue)(void), 
 		  struct starpu_machine_config_s *config) 
 {
 	unsigned worker;
@@ -40,7 +40,7 @@ void setup_queues(void (*init_queue_design)(void),
 }
 
 /* this may return NULL for an "anonymous thread" */
-struct jobq_s *get_local_queue(void)
+struct starpu_jobq_s *_starpu_get_local_queue(void)
 {
 	struct starpu_sched_policy_s *policy = _starpu_get_sched_policy();
 
@@ -48,24 +48,24 @@ struct jobq_s *get_local_queue(void)
 }
 
 /* XXX how to retrieve policy ? that may be given in the machine config ? */
-void set_local_queue(struct jobq_s *jobq)
+void _starpu_set_local_queue(struct starpu_jobq_s *jobq)
 {
 	struct starpu_sched_policy_s *policy = _starpu_get_sched_policy();
 
 	pthread_setspecific(policy->local_queue_key, jobq);
 }
 
-void jobq_lock(struct jobq_s *jobq)
+void _starpu_jobq_lock(struct starpu_jobq_s *jobq)
 {
 	pthread_mutex_lock(&jobq->activity_mutex);	
 }
 
-void jobq_unlock(struct jobq_s *jobq)
+void _starpu_jobq_unlock(struct starpu_jobq_s *jobq)
 {
 	pthread_mutex_unlock(&jobq->activity_mutex);	
 }
 
-int jobq_trylock(struct jobq_s *jobq)
+int _starpu_jobq_trylock(struct starpu_jobq_s *jobq)
 {
 	return pthread_mutex_trylock(&jobq->activity_mutex);	
 }

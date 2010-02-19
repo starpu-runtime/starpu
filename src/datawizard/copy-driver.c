@@ -34,7 +34,7 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 	unsigned nqueues = descr->queues_count[nodeid];
 	for (q_id = 0; q_id < nqueues; q_id++)
 	{
-		struct jobq_s *q;
+		struct starpu_jobq_s *q;
 		q  = descr->attached_queues_per_node[nodeid][q_id];
 
 		/* wake anybody waiting on that queue */

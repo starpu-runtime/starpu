@@ -35,19 +35,19 @@ struct stack_jobq_s {
 	double exp_len;
 };
 
-struct jobq_s *create_stack(void);
+struct starpu_jobq_s *create_stack(void);
 
-void stack_push_task(struct jobq_s *q, starpu_job_t task);
+void stack_push_task(struct starpu_jobq_s *q, starpu_job_t task);
 
-void stack_push_prio_task(struct jobq_s *q, starpu_job_t task);
+void stack_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task);
 
-starpu_job_t stack_pop_task(struct jobq_s *q);
+starpu_job_t stack_pop_task(struct starpu_jobq_s *q);
 
 void init_stack_queues_mechanisms(void);
 
 
-unsigned get_stack_njobs(struct jobq_s *q);
-unsigned get_stack_nprocessed(struct jobq_s *q);
+unsigned get_stack_njobs(struct starpu_jobq_s *q);
+unsigned get_stack_nprocessed(struct starpu_jobq_s *q);
 
 
 #endif // __STACK_QUEUES_H__
