@@ -79,7 +79,7 @@ struct worker_s {
 	struct starpu_job_list_s *terminated_jobs; /* list of pending jobs which were executed */
 	unsigned worker_is_running;
 	unsigned worker_is_initialized;
-	worker_status status; /* what is the worker doing now ? (eg. CALLBACK) */
+	starpu_worker_status status; /* what is the worker doing now ? (eg. CALLBACK) */
 	char name[32];
 };
 

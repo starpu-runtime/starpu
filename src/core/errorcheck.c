@@ -17,7 +17,7 @@
 #include <core/errorcheck.h>
 #include <core/workers.h>
 
-void _starpu_set_local_worker_status(worker_status st)
+void _starpu_set_local_worker_status(starpu_worker_status st)
 {
 	struct worker_s *worker = _starpu_get_local_worker_key();
 
@@ -28,7 +28,7 @@ void _starpu_set_local_worker_status(worker_status st)
 		worker->status = st;
 }
 
-worker_status _starpu_get_local_worker_status(void)
+starpu_worker_status _starpu_get_local_worker_status(void)
 {
 	struct worker_s *worker = _starpu_get_local_worker_key();
 	if (STARPU_UNLIKELY(!worker))
@@ -41,7 +41,7 @@ worker_status _starpu_get_local_worker_status(void)
  * execution of a task. */
 unsigned _starpu_worker_may_perform_blocking_calls(void)
 {
-	worker_status st = _starpu_get_local_worker_status();
+	starpu_worker_status st = _starpu_get_local_worker_status();
 
 	return ( !(st == STATUS_CALLBACK) && !(st == STATUS_EXECUTING));
 }

@@ -31,10 +31,10 @@ typedef enum {
 	STATUS_EXECUTING,
 	/* during the execution of the callback */
 	STATUS_CALLBACK
-} worker_status;
+} starpu_worker_status;
 
-void _starpu_set_local_worker_status(worker_status st);
-worker_status _starpu_get_local_worker_status(void);
+void _starpu_set_local_worker_status(starpu_worker_status st);
+starpu_worker_status _starpu_get_local_worker_status(void);
 
 unsigned _starpu_worker_may_perform_blocking_calls(void);
 
