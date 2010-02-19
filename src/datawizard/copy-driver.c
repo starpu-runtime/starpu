@@ -219,7 +219,7 @@ int __attribute__((warn_unused_result)) starpu_driver_copy_data_1_to_1(starpu_da
 
 #ifdef STARPU_DATA_STATS
 		size_t size = handle->ops->get_size(handle);
-		update_comm_ammount(src_node, dst_node, size);
+		starpu_update_comm_amount(src_node, dst_node, size);
 #endif
 		
 #ifdef STARPU_USE_FXT

@@ -26,14 +26,14 @@ static unsigned hit_cnt[STARPU_MAXNODES];
 static unsigned miss_cnt[STARPU_MAXNODES];
 #endif
 
-inline void msi_cache_hit(unsigned node __attribute__ ((unused)))
+inline void starpu_msi_cache_hit(unsigned node __attribute__ ((unused)))
 {
 #ifdef STARPU_DATA_STATS
 	hit_cnt[node]++;
 #endif
 }
 
-inline void msi_cache_miss(unsigned node __attribute__ ((unused)))
+inline void starpu_msi_cache_miss(unsigned node __attribute__ ((unused)))
 {
 #ifdef STARPU_DATA_STATS
 	miss_cnt[node]++;
@@ -76,21 +76,21 @@ static unsigned alloc_cnt[STARPU_MAXNODES];
 static unsigned alloc_cache_hit_cnt[STARPU_MAXNODES];
 #endif
 
-inline void allocation_cache_hit(unsigned node __attribute__ ((unused)))
+inline void starpu_allocation_cache_hit(unsigned node __attribute__ ((unused)))
 {
 #ifdef STARPU_DATA_STATS
 	alloc_cache_hit_cnt[node]++;
 #endif
 }
 
-inline void data_allocation_inc_stats(unsigned node __attribute__ ((unused)))
+inline void starpu_data_allocation_inc_stats(unsigned node __attribute__ ((unused)))
 {
 #ifdef STARPU_DATA_STATS
 	alloc_cnt[node]++;
 #endif
 }
 
-void display_alloc_cache_stats(void)
+void starpu_display_alloc_cache_stats(void)
 {
 #ifdef STARPU_DATA_STATS
 	fprintf(stderr, "Allocation cache stats:\n");
@@ -113,7 +113,7 @@ void display_alloc_cache_stats(void)
 
 static size_t comm_ammount[STARPU_MAXNODES][STARPU_MAXNODES];
 
-void display_comm_ammounts(void)
+void starpu_display_comm_amounts(void)
 {
 	unsigned src, dst;
 
@@ -138,14 +138,14 @@ void display_comm_ammounts(void)
 	}
 }
 
-inline void update_comm_ammount(uint32_t src_node, uint32_t dst_node, size_t size)
+inline void starpu_update_comm_amount(uint32_t src_node, uint32_t dst_node, size_t size)
 {
 	comm_ammount[src_node][dst_node] += size;
 }
 
 #else
 
-inline void display_comm_ammounts(void)
+inline void starpu_display_comm_amounts(void)
 {
 }
 

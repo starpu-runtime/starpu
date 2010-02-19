@@ -153,7 +153,7 @@ int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_nod
 	{
 		/* the data is already available so we can stop */
 		starpu_update_data_state(handle, requesting_node, write);
-		msi_cache_hit(requesting_node);
+		starpu_msi_cache_hit(requesting_node);
 		starpu_spin_unlock(&handle->header_lock);
 		return 0;
 	}
@@ -161,7 +161,7 @@ int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_nod
 	/* the only remaining situation is that the local copy was invalid */
 	STARPU_ASSERT(handle->per_node[requesting_node].state == STARPU_INVALID);
 
-	msi_cache_miss(requesting_node);
+	starpu_msi_cache_miss(requesting_node);
 
 	starpu_data_request_t r;
 

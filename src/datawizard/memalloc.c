@@ -548,7 +548,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node
 	if (!may_alloc)
 		return ENOMEM;
 
-	data_allocation_inc_stats(dst_node);
+	starpu_data_allocation_inc_stats(dst_node);
 
 #ifdef STARPU_USE_ALLOCATION_CACHE
 	/* perhaps we can directly reuse a buffer in the free-list */
@@ -557,7 +557,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node
 	TRACE_START_ALLOC_REUSE(dst_node);
 	if (try_to_find_reusable_mem_chunk(dst_node, handle, footprint))
 	{
-		allocation_cache_hit(dst_node);
+		starpu_allocation_cache_hit(dst_node);
 		return 0;
 	}
 	TRACE_END_ALLOC_REUSE(dst_node);
