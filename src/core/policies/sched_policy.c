@@ -205,7 +205,7 @@ int push_task(job_t j)
 		if (use_prefetch)
 		{
 			uint32_t memory_node = starpu_get_worker_memory_node(workerid); 
-			prefetch_task_input_on_node(task, memory_node);
+			starpu_prefetch_task_input_on_node(task, memory_node);
 		}
 
 		return _starpu_push_local_task(worker, j);

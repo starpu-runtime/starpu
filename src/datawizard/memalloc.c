@@ -85,7 +85,7 @@ static void unlock_all_subtree(starpu_data_handle handle)
 static unsigned may_free_subtree(starpu_data_handle handle, unsigned node)
 {
 	/* we only free if no one refers to the leaf */
-	uint32_t refcnt = get_data_refcnt(handle, node);
+	uint32_t refcnt = starpu_get_data_refcnt(handle, node);
 	if (refcnt)
 		return 0;
 	
@@ -133,11 +133,11 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 	{
 		/* this is a leaf */
 		switch(handle->per_node[src_node].state) {
-		case OWNER:
+		case STARPU_OWNER:
 			/* the local node has the only copy */
 			/* the owner is now the destination_node */
-			handle->per_node[src_node].state = INVALID;
-			handle->per_node[dst_node].state = OWNER;
+			handle->per_node[src_node].state = STARPU_INVALID;
+			handle->per_node[dst_node].state = STARPU_OWNER;
 
 #warning we should use requests during memory reclaim
 			/* TODO use request !! */
@@ -151,25 +151,25 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 			handle->per_node[dst_node].refcnt--;
 
 			break;
-		case SHARED:
+		case STARPU_SHARED:
 			/* some other node may have the copy */
-			handle->per_node[src_node].state = INVALID;
+			handle->per_node[src_node].state = STARPU_INVALID;
 
 			/* count the number of copies */
 			cnt = 0;
 			for (i = 0; i < STARPU_MAXNODES; i++)
 			{
-				if (handle->per_node[i].state == SHARED) {
+				if (handle->per_node[i].state == STARPU_SHARED) {
 					cnt++; 
 					last = i;
 				}
 			}
 
 			if (cnt == 1)
-				handle->per_node[last].state = OWNER;
+				handle->per_node[last].state = STARPU_OWNER;
 
 			break;
-		case INVALID:
+		case STARPU_INVALID:
 			/* nothing to be done */
 			break;
 		default:

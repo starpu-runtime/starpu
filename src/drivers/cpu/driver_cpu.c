@@ -67,7 +67,7 @@ static int execute_job_on_cpu(job_t j, struct worker_s *cpu_args)
 	TRACE_END_CODELET_BODY(j);
 	cpu_args->status = STATUS_UNKNOWN;
 
-	push_task_output(task, 0);
+	starpu_push_task_output(task, 0);
 
 //#ifdef STARPU_MODEL_DEBUG
 	if (calibrate_model || BENCHMARK_COMM)

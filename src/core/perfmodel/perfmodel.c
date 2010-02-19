@@ -130,11 +130,11 @@ double data_expected_penalty(struct jobq_s *q, struct starpu_task *task)
 		if (task->buffers[buffer].mode == STARPU_W)
 			continue;
 
-		if (!is_data_present_or_requested(handle, memory_node))
+		if (!starpu_is_data_present_or_requested(handle, memory_node))
 		{
 			size_t size = handle->ops->get_size(handle);
 
-			uint32_t src_node = select_src_node(handle);
+			uint32_t src_node = starpu_select_src_node(handle);
 
 			penalty += predict_transfer_time(src_node, memory_node, size);
 		}

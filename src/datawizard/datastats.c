@@ -40,7 +40,7 @@ inline void msi_cache_miss(unsigned node __attribute__ ((unused)))
 #endif
 }
 
-void display_msi_stats(void)
+void starpu_display_msi_stats(void)
 {
 #ifdef STARPU_DATA_STATS
 	unsigned node;

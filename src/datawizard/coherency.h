@@ -40,15 +40,15 @@
 #include <datawizard/datastats.h>
 
 typedef enum {
-	OWNER,
-	SHARED,
-	INVALID
-} cache_state;
+	STARPU_OWNER,
+	STARPU_SHARED,
+	STARPU_INVALID
+} starpu_cache_state;
 
 /* this should contain the information relative to a given node */
-typedef struct local_data_state_t {
+typedef struct starpu_local_data_state_t {
 	/* describes the state of the local data in term of coherency */
-	cache_state	state; 
+	starpu_cache_state	state; 
 
 	uint32_t refcnt;
 
@@ -69,12 +69,12 @@ typedef struct local_data_state_t {
 	 */
 	uint8_t requested;
 	struct data_request_s *request;
-} local_data_state;
+} starpu_local_data_state;
 
-struct data_requester_list_s;
+struct starpu_data_requester_list_s;
 
 struct starpu_data_state_t {
-	struct data_requester_list_s *req_list;
+	struct starpu_data_requester_list_s *req_list;
 	/* the number of requests currently in the scheduling engine
 	 * (not in the req_list anymore) */
 	unsigned refcnt;
@@ -87,7 +87,7 @@ struct starpu_data_state_t {
 	unsigned nchildren;
 
 	/* describe the state of the data in term of coherency */
-	local_data_state per_node[STARPU_MAXNODES];
+	starpu_local_data_state per_node[STARPU_MAXNODES];
 
 	/* describe the actual data layout */
 	void *interface[STARPU_MAXNODES];
@@ -108,28 +108,28 @@ struct starpu_data_state_t {
 	unsigned is_not_important;
 };
 
-void display_msi_stats(void);
+void starpu_display_msi_stats(void);
 
 __attribute__((warn_unused_result))
-int fetch_data_on_node(struct starpu_data_state_t *state, uint32_t requesting_node, uint8_t read, uint8_t write, unsigned is_prefetch);
-void release_data_on_node(struct starpu_data_state_t *state, uint32_t default_wb_mask, unsigned memory_node);
+int starpu_fetch_data_on_node(struct starpu_data_state_t *state, uint32_t requesting_node, uint8_t read, uint8_t write, unsigned is_prefetch);
+void starpu_release_data_on_node(struct starpu_data_state_t *state, uint32_t default_wb_mask, unsigned memory_node);
 
-void update_data_state(struct starpu_data_state_t *state, uint32_t requesting_node, uint8_t write);
+void starpu_update_data_state(struct starpu_data_state_t *state, uint32_t requesting_node, uint8_t write);
 
-uint32_t get_data_refcnt(struct starpu_data_state_t *state, uint32_t node);
+uint32_t starpu_get_data_refcnt(struct starpu_data_state_t *state, uint32_t node);
 
-void push_task_output(struct starpu_task *task, uint32_t mask);
+void starpu_push_task_output(struct starpu_task *task, uint32_t mask);
 
 __attribute__((warn_unused_result))
 int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask);
 
-unsigned is_data_present_or_requested(struct starpu_data_state_t *state, uint32_t node);
+unsigned starpu_is_data_present_or_requested(struct starpu_data_state_t *state, uint32_t node);
 
-inline void set_data_requested_flag_if_needed(struct starpu_data_state_t *state, uint32_t node);
+inline void starpu_set_data_requested_flag_if_needed(struct starpu_data_state_t *state, uint32_t node);
 
-int prefetch_task_input_on_node(struct starpu_task *task, uint32_t node);
+int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node);
 
-uint32_t select_node_to_handle_request(uint32_t src_node, uint32_t dst_node);
-uint32_t select_src_node(struct starpu_data_state_t *state);
+uint32_t starpu_select_node_to_handle_request(uint32_t src_node, uint32_t dst_node);
+uint32_t starpu_select_src_node(struct starpu_data_state_t *state);
 
 #endif // __COHERENCY__H__

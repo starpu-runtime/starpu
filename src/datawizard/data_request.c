@@ -209,7 +209,7 @@ static void handle_data_request_completion(data_request_t r)
 	uint32_t src_node = r->src_node;
 	uint32_t dst_node = r->dst_node;
 
-	update_data_state(handle, dst_node, r->write);
+	starpu_update_data_state(handle, dst_node, r->write);
 
 #ifdef STARPU_USE_FXT
 	size_t size = handle->ops->get_size(handle);

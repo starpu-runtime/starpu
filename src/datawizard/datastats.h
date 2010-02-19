@@ -24,7 +24,7 @@
 inline void msi_cache_hit(unsigned node);
 inline void msi_cache_miss(unsigned node);
 
-void display_msi_stats(void);
+void starpu_display_msi_stats(void);
 
 inline void allocation_cache_hit(unsigned node __attribute__ ((unused)));
 inline void data_allocation_inc_stats(unsigned node __attribute__ ((unused)));

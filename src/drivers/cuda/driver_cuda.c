@@ -158,7 +158,7 @@ static int execute_job_on_cuda(job_t j, struct worker_s *args)
 
 	args->jobq->total_job_performed++;
 
-	push_task_output(task, mask);
+	starpu_push_task_output(task, mask);
 
 	return 0;
 }

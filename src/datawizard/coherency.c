@@ -20,7 +20,7 @@
 #include <datawizard/write_back.h>
 #include <core/dependencies/data-concurrency.h>
 
-uint32_t select_node_to_handle_request(uint32_t src_node, uint32_t dst_node) 
+uint32_t starpu_select_node_to_handle_request(uint32_t src_node, uint32_t dst_node) 
 {
 	/* in case one of the node is a GPU, it needs to perform the transfer,
 	 * if both of them are GPU, it's a bit more complicated (TODO !) */
@@ -43,20 +43,20 @@ uint32_t select_node_to_handle_request(uint32_t src_node, uint32_t dst_node)
 	return get_local_memory_node();
 }
 
-uint32_t select_src_node(starpu_data_handle handle)
+uint32_t starpu_select_src_node(starpu_data_handle handle)
 {
 	unsigned src_node = 0;
 	unsigned i;
 
 	unsigned nnodes = get_memory_nodes_count();
 
-	/* first find a valid copy, either a OWNER or a SHARED */
+	/* first find a valid copy, either a STARPU_OWNER or a STARPU_SHARED */
 	uint32_t node;
 
 	uint32_t src_node_mask = 0;
 	for (node = 0; node < nnodes; node++)
 	{
-		if (handle->per_node[node].state != INVALID) {
+		if (handle->per_node[node].state != STARPU_INVALID) {
 			/* we found a copy ! */
 			src_node_mask |= (1<<node);
 		}
@@ -87,7 +87,7 @@ uint32_t select_src_node(starpu_data_handle handle)
 }
 
 /* this may be called once the data is fetched with header and STARPU_RW-lock hold */
-void update_data_state(starpu_data_handle handle, uint32_t requesting_node, uint8_t write)
+void starpu_update_data_state(starpu_data_handle handle, uint32_t requesting_node, uint8_t write)
 {
 	unsigned nnodes = get_memory_nodes_count();
 
@@ -98,21 +98,21 @@ void update_data_state(starpu_data_handle handle, uint32_t requesting_node, uint
 		/* the requesting node now has the only valid copy */
 		uint32_t node;
 		for (node = 0; node < nnodes; node++)
-			handle->per_node[node].state = INVALID;
+			handle->per_node[node].state = STARPU_INVALID;
 
-		handle->per_node[requesting_node].state = OWNER;
+		handle->per_node[requesting_node].state = STARPU_OWNER;
 	}
 	else { /* read only */
-		if (handle->per_node[requesting_node].state != OWNER)
+		if (handle->per_node[requesting_node].state != STARPU_OWNER)
 		{
 			/* there was at least another copy of the data */
 			uint32_t node;
 			for (node = 0; node < nnodes; node++)
 			{
-				if (handle->per_node[node].state != INVALID)
-					handle->per_node[node].state = SHARED;
+				if (handle->per_node[node].state != STARPU_INVALID)
+					handle->per_node[node].state = STARPU_SHARED;
 			}
-			handle->per_node[requesting_node].state = SHARED;
+			handle->per_node[requesting_node].state = STARPU_SHARED;
 		}
 	}
 }
@@ -138,7 +138,7 @@ void update_data_state(starpu_data_handle handle, uint32_t requesting_node, uint
  * 		    else (invalid,owner->shared)
  */
 
-int fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_node,
+int starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_node,
 			uint8_t read, uint8_t write, unsigned is_prefetch)
 {
 	uint32_t local_node = get_local_memory_node();
@@ -149,17 +149,17 @@ int fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_node,
 	if (!is_prefetch)
 		handle->per_node[requesting_node].refcnt++;
 
-	if (handle->per_node[requesting_node].state != INVALID)
+	if (handle->per_node[requesting_node].state != STARPU_INVALID)
 	{
 		/* the data is already available so we can stop */
-		update_data_state(handle, requesting_node, write);
+		starpu_update_data_state(handle, requesting_node, write);
 		msi_cache_hit(requesting_node);
 		starpu_spin_unlock(&handle->header_lock);
 		return 0;
 	}
 
 	/* the only remaining situation is that the local copy was invalid */
-	STARPU_ASSERT(handle->per_node[requesting_node].state == INVALID);
+	STARPU_ASSERT(handle->per_node[requesting_node].state == STARPU_INVALID);
 
 	msi_cache_miss(requesting_node);
 
@@ -177,7 +177,7 @@ int fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_node,
 		/* if the data is in read only mode, there is no need for a source */
 		if (read)
 		{
-			src_node = select_src_node(handle);
+			src_node = starpu_select_src_node(handle);
 			STARPU_ASSERT(src_node != requesting_node);
 		}
 	
@@ -224,7 +224,7 @@ int fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_node,
 		else {
 			/* who will perform that request ? */
 			uint32_t handling_node =
-				select_node_to_handle_request(src_node, requesting_node);
+				starpu_select_node_to_handle_request(src_node, requesting_node);
 
 			r = create_data_request(handle, src_node, requesting_node, handling_node, read, write, is_prefetch);
 
@@ -271,7 +271,7 @@ int fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_node,
 
 static int prefetch_data_on_node(starpu_data_handle handle, uint8_t read, uint8_t write, uint32_t node)
 {
-	return fetch_data_on_node(handle, node, read, write, 1);
+	return starpu_fetch_data_on_node(handle, node, read, write, 1);
 }
 
 static int fetch_data(starpu_data_handle handle, starpu_access_mode mode)
@@ -282,22 +282,22 @@ static int fetch_data(starpu_data_handle handle, starpu_access_mode mode)
 	read = (mode != STARPU_W); /* then R or STARPU_RW */
 	write = (mode != STARPU_R); /* then STARPU_W or STARPU_RW */
 
-	return fetch_data_on_node(handle, requesting_node, read, write, 0);
+	return starpu_fetch_data_on_node(handle, requesting_node, read, write, 0);
 }
 
-inline uint32_t get_data_refcnt(starpu_data_handle handle, uint32_t node)
+inline uint32_t starpu_get_data_refcnt(starpu_data_handle handle, uint32_t node)
 {
 	return handle->per_node[node].refcnt;
 }
 
 /* in case the data was accessed on a write mode, do not forget to 
  * make it accessible again once it is possible ! */
-void release_data_on_node(starpu_data_handle handle, uint32_t default_wb_mask, uint32_t memory_node)
+void starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wb_mask, uint32_t memory_node)
 {
 	uint32_t wb_mask;
 
 	/* normally, the requesting node should have the data in an exclusive manner */
-	STARPU_ASSERT(handle->per_node[memory_node].state != INVALID);
+	STARPU_ASSERT(handle->per_node[memory_node].state != STARPU_INVALID);
 
 	wb_mask = default_wb_mask | handle->wb_mask;
 
@@ -317,7 +317,7 @@ void release_data_on_node(starpu_data_handle handle, uint32_t default_wb_mask, u
 	starpu_spin_unlock(&handle->header_lock);
 }
 
-int prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
+int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 {
 	starpu_buffer_descr *descrs = task->buffers;
 	unsigned nbuffers = task->cl->nbuffers;
@@ -383,15 +383,15 @@ enomem:
 	/* XXX broken ... */
 	fprintf(stderr, "something went wrong with buffer %u\n", index);
 	//push_codelet_output(task, index, mask);
-	push_task_output(task, mask);
+	starpu_push_task_output(task, mask);
 	return -1;
 }
 
-void push_task_output(struct starpu_task *task, uint32_t mask)
+void starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 {
 	TRACE_START_PUSH_OUTPUT(NULL);
 
-	//fprintf(stderr, "push_task_output\n");
+	//fprintf(stderr, "starpu_push_task_output\n");
 
         starpu_buffer_descr *descrs = task->buffers;
         unsigned nbuffers = task->cl->nbuffers;
@@ -401,7 +401,7 @@ void push_task_output(struct starpu_task *task, uint32_t mask)
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
-		release_data_on_node(descrs[index].handle, mask, local_node);
+		starpu_release_data_on_node(descrs[index].handle, mask, local_node);
 	}
 
 	TRACE_END_PUSH_OUTPUT(NULL);
@@ -409,14 +409,14 @@ void push_task_output(struct starpu_task *task, uint32_t mask)
 
 /* NB : this value can only be an indication of the status of a data
 	at some point, but there is no strong garantee ! */
-unsigned is_data_present_or_requested(starpu_data_handle handle, uint32_t node)
+unsigned starpu_is_data_present_or_requested(starpu_data_handle handle, uint32_t node)
 {
 	unsigned ret = 0;
 
 // XXX : this is just a hint, so we don't take the lock ...
 //	pthread_spin_lock(&handle->header_lock);
 
-	if (handle->per_node[node].state != INVALID 
+	if (handle->per_node[node].state != STARPU_INVALID 
 		|| handle->per_node[node].requested || handle->per_node[node].request)
 		ret = 1;
 
@@ -425,12 +425,12 @@ unsigned is_data_present_or_requested(starpu_data_handle handle, uint32_t node)
 	return ret;
 }
 
-inline void set_data_requested_flag_if_needed(starpu_data_handle handle, uint32_t node)
+inline void starpu_set_data_requested_flag_if_needed(starpu_data_handle handle, uint32_t node)
 {
 // XXX : this is just a hint, so we don't take the lock ...
 //	pthread_spin_lock(&handle->header_lock);
 
-	if (handle->per_node[node].state == INVALID) 
+	if (handle->per_node[node].state == STARPU_INVALID) 
 		handle->per_node[node].requested = 1;
 
 //	pthread_spin_unlock(&handle->header_lock);

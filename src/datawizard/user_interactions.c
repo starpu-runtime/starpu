@@ -62,7 +62,7 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 	unsigned r = (statenode->mode != STARPU_W);
 	unsigned w = (statenode->mode != STARPU_R);
 
-	ret = fetch_data_on_node(handle, 0, r, w, 0);
+	ret = starpu_fetch_data_on_node(handle, 0, r, w, 0);
 	STARPU_ASSERT(!ret);
 	
 	if (statenode->non_blocking)
@@ -160,7 +160,7 @@ void starpu_release_data_from_mem(starpu_data_handle handle)
 	STARPU_ASSERT(handle);
 
 	/* The application can now release the rw-lock */
-	release_data_on_node(handle, 0, 0);
+	starpu_release_data_on_node(handle, 0, 0);
 }
 
 
@@ -169,7 +169,7 @@ static void _prefetch_data_on_node(void *arg)
 {
 	struct state_and_node *statenode = arg;
 
-	fetch_data_on_node(statenode->state, statenode->node, 1, 0, statenode->async);
+	starpu_fetch_data_on_node(statenode->state, statenode->node, 1, 0, statenode->async);
 
 	pthread_mutex_lock(&statenode->lock);
 	statenode->finished = 1;
@@ -208,7 +208,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 		/* we can immediately proceed */
 		uint8_t read = (mode != STARPU_W);
 		uint8_t write = (mode != STARPU_R);
-		fetch_data_on_node(handle, node, read, write, async);
+		starpu_fetch_data_on_node(handle, node, read, write, async);
 
 		/* remove the "lock"/reference */
 		if (!async)

@@ -101,7 +101,7 @@ static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_per
 		/* no specific parameter was requested, so we display everything */
 		fprintf(stderr, "\tRegression : #sample = %d (%s)\n",
 			arch_model->regression.nsample,
-			arch_model->regression.valid?"VALID":"INVALID");
+			arch_model->regression.valid?"VALID":"STARPU_INVALID");
 	
 		/* Only display the regression model if we could actually build a model */
 		if (arch_model->regression.valid)

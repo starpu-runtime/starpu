@@ -429,7 +429,7 @@ static void _starpu_kill_all_workers(struct machine_config_s *config)
 
 void starpu_shutdown(void)
 {
-	display_msi_stats();
+	starpu_display_msi_stats();
 	display_alloc_cache_stats();
 
 	/* tell all workers to shutdown */

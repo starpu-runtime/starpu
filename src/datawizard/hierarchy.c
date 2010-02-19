@@ -35,7 +35,7 @@ void starpu_delete_data(starpu_data_handle handle)
 	STARPU_ASSERT(handle);
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		local_data_state *local = &handle->per_node[node];
+		starpu_local_data_state *local = &handle->per_node[node];
 
 		if (local->allocated && local->automatically_allocated){
 			/* free the data copy in a lazy fashion */
@@ -79,14 +79,14 @@ void register_new_data(starpu_data_handle handle, uint32_t home_node, uint32_t w
 	{
 		if (node == home_node) {
 			/* this is the home node with the only valid copy */
-			handle->per_node[node].state = OWNER;
+			handle->per_node[node].state = STARPU_OWNER;
 			handle->per_node[node].allocated = 1;
 			handle->per_node[node].automatically_allocated = 0;
 			handle->per_node[node].refcnt = 0;
 		}
 		else {
 			/* the value is not available here yet */
-			handle->per_node[node].state = INVALID;
+			handle->per_node[node].state = STARPU_INVALID;
 			handle->per_node[node].allocated = 0;
 			handle->per_node[node].refcnt = 0;
 		}
@@ -239,7 +239,7 @@ void starpu_unpartition_data(starpu_data_handle root_handle, uint32_t gathering_
 			starpu_unpartition_data(&root_handle->children[child], gathering_node);
 
 		int ret;
-		ret = fetch_data_on_node(&root_handle->children[child], gathering_node, 1, 0, 0);
+		ret = starpu_fetch_data_on_node(&root_handle->children[child], gathering_node, 1, 0, 0);
 		/* for now we pretend that the RAM is almost unlimited and that gathering 
 		 * data should be possible from the node that does the unpartionning ... we
 		 * don't want to have the programming deal with memory shortage at that time,
@@ -258,8 +258,8 @@ void starpu_unpartition_data(starpu_data_handle root_handle, uint32_t gathering_
 	unsigned still_valid[STARPU_MAXNODES];
 
 	/* we do 2 passes : the first pass determines wether the data is still
-	 * valid or not, the second pass is needed to choose between SHARED and
-	 * OWNER */
+	 * valid or not, the second pass is needed to choose between STARPU_SHARED and
+	 * STARPU_OWNER */
 
 	unsigned nvalids = 0;
 
@@ -271,9 +271,9 @@ void starpu_unpartition_data(starpu_data_handle root_handle, uint32_t gathering_
 
 		for (child = 0; child < root_handle->nchildren; child++)
 		{
-			local_data_state *local = &root_handle->children[child].per_node[node];
+			starpu_local_data_state *local = &root_handle->children[child].per_node[node];
 
-			if (local->state == INVALID) {
+			if (local->state == STARPU_INVALID) {
 				isvalid = 0; 
 			}
 	
@@ -292,12 +292,12 @@ void starpu_unpartition_data(starpu_data_handle root_handle, uint32_t gathering_
 	/* either shared or owned */
 	STARPU_ASSERT(nvalids > 0);
 
-	cache_state newstate = (nvalids == 1)?OWNER:SHARED;
+	starpu_cache_state newstate = (nvalids == 1)?STARPU_OWNER:STARPU_SHARED;
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		root_handle->per_node[node].state = 
-			still_valid[node]?newstate:INVALID;
+			still_valid[node]?newstate:STARPU_INVALID;
 	}
 
 	/* there is no child anymore */

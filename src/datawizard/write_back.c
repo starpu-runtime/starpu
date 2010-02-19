@@ -37,7 +37,7 @@ void write_through_data(starpu_data_handle handle, uint32_t requesting_node,
 			if (node != requesting_node) 
 			{
 				uint32_t handling_node =
-					select_node_to_handle_request(requesting_node, node);
+					starpu_select_node_to_handle_request(requesting_node, node);
 
 				data_request_t r;
 
