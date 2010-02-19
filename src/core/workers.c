@@ -237,7 +237,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	 * initialization */
 	config.user_conf = user_conf;
 
-	ret = starpu_build_topology(&config);
+	ret = _starpu_build_topology(&config);
 	if (ret)
 		return ret;
 
@@ -447,7 +447,7 @@ void starpu_shutdown(void)
 
 	deinit_sched_policy(&config);
 
-	starpu_destroy_topology(&config);
+	_starpu_destroy_topology(&config);
 
 #ifdef STARPU_USE_FXT
 	stop_fxt_profiling();

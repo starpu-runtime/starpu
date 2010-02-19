@@ -523,7 +523,7 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 }
 
 
-int starpu_build_topology(struct starpu_machine_config_s *config)
+int _starpu_build_topology(struct starpu_machine_config_s *config)
 {
 	int ret;
 
@@ -541,7 +541,7 @@ int starpu_build_topology(struct starpu_machine_config_s *config)
 	return 0;
 }
 
-void starpu_destroy_topology(struct starpu_machine_config_s *config __attribute__ ((unused)))
+void _starpu_destroy_topology(struct starpu_machine_config_s *config __attribute__ ((unused)))
 {
 	/* cleanup StarPU internal data structures */
 	_starpu_deinit_memory_nodes();

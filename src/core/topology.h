@@ -62,9 +62,9 @@ struct starpu_topo_obj_t {
 	struct starpu_worker_s *worker; /* (ignored if !is_a_worker) */
 };
 
-int starpu_build_topology(struct starpu_machine_config_s *config);
+int _starpu_build_topology(struct starpu_machine_config_s *config);
 
-void starpu_destroy_topology(struct starpu_machine_config_s *config);
+void _starpu_destroy_topology(struct starpu_machine_config_s *config);
 
 /* returns the number of physical cpus */
 unsigned _starpu_topology_get_nhwcpu(struct starpu_machine_config_s *config);
