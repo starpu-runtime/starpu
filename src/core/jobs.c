@@ -184,7 +184,8 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j)
 
 	struct starpu_cg_list_s *job_successors = &j->job_successors;
 
-#warning TODO use locks !
+	pthread_mutex_lock(&j->sync_mutex);	
+
 	if (!j->submitted || (job_successors->ndeps != job_successors->ndeps_completed))
 	{
 		ret = 1;
@@ -195,6 +196,8 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j)
 		job_successors->ndeps_completed = 0;
 		ret = 0;
 	}
+
+	pthread_mutex_unlock(&j->sync_mutex);
 
 	return ret;
 }
