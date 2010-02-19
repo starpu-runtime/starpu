@@ -68,7 +68,7 @@ typedef struct starpu_local_data_state_t {
 	   use this hint can simply ignore it.
 	 */
 	uint8_t requested;
-	struct data_request_s *request;
+	struct starpu_data_request_s *request;
 } starpu_local_data_state;
 
 struct starpu_data_requester_list_s;

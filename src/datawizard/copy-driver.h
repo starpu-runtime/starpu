@@ -28,7 +28,7 @@
 #include <cublas.h>
 #endif
 
-struct data_request_s;
+struct starpu_data_request_s;
 
 /* this is a structure that can be queried to see whether an asynchronous
  * transfer has terminated or not */
@@ -39,7 +39,7 @@ typedef union {
 #endif
 } starpu_async_channel;
 
-struct copy_data_methods_s {
+struct starpu_copy_data_methods_s {
 	/* src type is ram */
 	int (*ram_to_ram)(starpu_data_handle handle, uint32_t src, uint32_t dst);
 	int (*ram_to_cuda)(starpu_data_handle handle, uint32_t src, uint32_t dst);
@@ -69,9 +69,9 @@ struct copy_data_methods_s {
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid);
 
 __attribute__((warn_unused_result))
-int driver_copy_data_1_to_1(starpu_data_handle handle, uint32_t node, 
-		uint32_t requesting_node, unsigned donotread, struct data_request_s *req, unsigned may_allloc);
+int starpu_driver_copy_data_1_to_1(starpu_data_handle handle, uint32_t node, 
+		uint32_t requesting_node, unsigned donotread, struct starpu_data_request_s *req, unsigned may_allloc);
 
-unsigned driver_test_request_completion(starpu_async_channel *async_channel, unsigned handling_node);
-void driver_wait_request_completion(starpu_async_channel *async_channel, unsigned handling_node);
+unsigned starpu_driver_test_request_completion(starpu_async_channel *async_channel, unsigned handling_node);
+void starpu_driver_wait_request_completion(starpu_async_channel *async_channel, unsigned handling_node);
 #endif // __COPY_DRIVER_H__

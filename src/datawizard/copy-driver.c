@@ -73,13 +73,13 @@ void starpu_wake_all_blocked_workers(void)
 static unsigned communication_cnt = 0;
 #endif
 
-static int copy_data_1_to_1_generic(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, struct data_request_s *req __attribute__((unused)))
+static int copy_data_1_to_1_generic(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, struct starpu_data_request_s *req __attribute__((unused)))
 {
 	int ret = 0;
 
 	//ret = handle->ops->copy_data_1_to_1(handle, src_node, dst_node);
 
-	const struct copy_data_methods_s *copy_methods = handle->ops->copy_methods;
+	const struct starpu_copy_data_methods_s *copy_methods = handle->ops->copy_methods;
 
 	node_kind src_kind = get_node_kind(src_node);
 	node_kind dst_kind = get_node_kind(dst_node);
@@ -191,8 +191,8 @@ cudaStream_t *stream;
 	return ret;
 }
 
-int __attribute__((warn_unused_result)) driver_copy_data_1_to_1(starpu_data_handle handle, uint32_t src_node, 
-		uint32_t dst_node, unsigned donotread, struct data_request_s *req, unsigned may_alloc)
+int __attribute__((warn_unused_result)) starpu_driver_copy_data_1_to_1(starpu_data_handle handle, uint32_t src_node, 
+		uint32_t dst_node, unsigned donotread, struct starpu_data_request_s *req, unsigned may_alloc)
 {
 	if (!donotread)
 	{
@@ -250,7 +250,7 @@ nomem:
 	return ENOMEM;
 }
 
-void driver_wait_request_completion(starpu_async_channel *async_channel __attribute__ ((unused)),
+void starpu_driver_wait_request_completion(starpu_async_channel *async_channel __attribute__ ((unused)),
 					unsigned handling_node)
 {
 	node_kind kind = get_node_kind(handling_node);
@@ -280,7 +280,7 @@ void driver_wait_request_completion(starpu_async_channel *async_channel __attrib
 	}
 }
 
-unsigned driver_test_request_completion(starpu_async_channel *async_channel __attribute__ ((unused)),
+unsigned starpu_driver_test_request_completion(starpu_async_channel *async_channel __attribute__ ((unused)),
 					unsigned handling_node)
 {
 	node_kind kind = get_node_kind(handling_node);

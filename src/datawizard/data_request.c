@@ -262,7 +262,7 @@ static int handle_data_request(data_request_t r, unsigned may_alloc)
 
 	/* perform the transfer */
 	/* the header of the data must be locked by the worker that submitted the request */
-	r->retval = driver_copy_data_1_to_1(handle, r->src_node, r->dst_node, !r->read, r, may_alloc);
+	r->retval = starpu_driver_copy_data_1_to_1(handle, r->src_node, r->dst_node, !r->read, r, may_alloc);
 
 	if (r->retval == ENOMEM)
 	{
@@ -371,11 +371,11 @@ static void _handle_pending_node_data_requests(uint32_t src_node, unsigned force
 		/* wait until the transfer is terminated */
 		if (force)
 		{
-			driver_wait_request_completion(&r->async_channel, src_node);
+			starpu_driver_wait_request_completion(&r->async_channel, src_node);
 			handle_data_request_completion(r);
 		}
 		else {
-			if (driver_test_request_completion(&r->async_channel, src_node))
+			if (starpu_driver_test_request_completion(&r->async_channel, src_node))
 			{
 				
 				handle_data_request_completion(r);
