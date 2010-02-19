@@ -110,7 +110,7 @@ void starpu_register_bcsr_data(starpu_data_handle *handleptr, uint32_t home_node
 		.elemsize = elemsize
 	};
 
-	register_data_handle(handleptr, home_node, &interface, &interface_bcsr_ops);
+	starpu_register_data_handle(handleptr, home_node, &interface, &interface_bcsr_ops);
 }
 
 static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle handle)

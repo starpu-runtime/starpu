@@ -42,7 +42,7 @@ struct starpu_data_interface_ops_t {
 	size_t interface_size;
 };
 
-void register_data_handle(starpu_data_handle *handleptr, uint32_t home_node,
+void starpu_register_data_handle(starpu_data_handle *handleptr, uint32_t home_node,
 				void *interface,
 				struct starpu_data_interface_ops_t *ops);
 

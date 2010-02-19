@@ -132,7 +132,7 @@ void starpu_register_blas_data(starpu_data_handle *handleptr, uint32_t home_node
 		.elemsize = elemsize
 	};
 
-	register_data_handle(handleptr, home_node, &interface, &interface_blas_ops);
+	starpu_register_data_handle(handleptr, home_node, &interface, &interface_blas_ops);
 }
 
 static uint32_t footprint_blas_interface_crc32(starpu_data_handle handle)

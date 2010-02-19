@@ -125,7 +125,7 @@ void starpu_register_block_data(starpu_data_handle *handleptr, uint32_t home_nod
 		.elemsize = elemsize
 	};
 
-	register_data_handle(handleptr, home_node, &interface, &interface_block_ops);
+	starpu_register_data_handle(handleptr, home_node, &interface, &interface_block_ops);
 }
 
 static uint32_t footprint_block_interface_crc32(starpu_data_handle handle)

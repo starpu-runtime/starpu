@@ -26,7 +26,7 @@ void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memo
 	return handle->interface[memory_node];
 }
 
-void register_data_handle(starpu_data_handle *handleptr, uint32_t home_node,
+void starpu_register_data_handle(starpu_data_handle *handleptr, uint32_t home_node,
 				void *interface,
 				struct starpu_data_interface_ops_t *ops)
 {

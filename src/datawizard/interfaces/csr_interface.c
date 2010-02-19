@@ -103,7 +103,7 @@ void starpu_register_csr_data(starpu_data_handle *handleptr, uint32_t home_node,
 		.elemsize = elemsize
 	};
 
-	register_data_handle(handleptr, home_node, &interface, &interface_csr_ops);
+	starpu_register_data_handle(handleptr, home_node, &interface, &interface_csr_ops);
 }
 
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle handle)

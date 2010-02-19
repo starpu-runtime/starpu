@@ -119,7 +119,7 @@ void starpu_register_vector_data(starpu_data_handle *handleptr, uint32_t home_no
 		.elemsize = elemsize
 	};	
 
-	register_data_handle(handleptr, home_node, &vector, &interface_vector_ops); 
+	starpu_register_data_handle(handleptr, home_node, &vector, &interface_vector_ops); 
 }
 
 
