@@ -26,7 +26,7 @@
 #include <datawizard/copy-driver.h>
 #include <datawizard/progress.h>
 
-LIST_TYPE(mem_chunk,
+LIST_TYPE(starpu_mem_chunk,
 	starpu_data_handle data;
 	size_t size;
 

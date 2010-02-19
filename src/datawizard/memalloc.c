@@ -18,10 +18,10 @@
 #include <datawizard/footprint.h>
 
 static pthread_rwlock_t mc_rwlock[STARPU_MAXNODES]; 
-static mem_chunk_list_t mc_list[STARPU_MAXNODES];
-static mem_chunk_list_t mc_list_to_free[STARPU_MAXNODES];
+static starpu_mem_chunk_list_t mc_list[STARPU_MAXNODES];
+static starpu_mem_chunk_list_t mc_list_to_free[STARPU_MAXNODES];
 
-static size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node);
+static size_t liberate_memory_on_node(starpu_mem_chunk_t mc, uint32_t node);
 
 void _starpu_init_mem_chunk_lists(void)
 {
@@ -29,8 +29,8 @@ void _starpu_init_mem_chunk_lists(void)
 	for (i = 0; i < STARPU_MAXNODES; i++)
 	{
 		pthread_rwlock_init(&mc_rwlock[i], NULL);
-		mc_list[i] = mem_chunk_list_new();
-		mc_list_to_free[i] = mem_chunk_list_new();
+		mc_list[i] = starpu_mem_chunk_list_new();
+		mc_list_to_free[i] = starpu_mem_chunk_list_new();
 	}
 }
 
@@ -39,8 +39,8 @@ void _starpu_deinit_mem_chunk_lists(void)
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
 	{
-		mem_chunk_list_delete(mc_list[i]);
-		mem_chunk_list_delete(mc_list_to_free[i]);
+		starpu_mem_chunk_list_delete(mc_list[i]);
+		starpu_mem_chunk_list_delete(mc_list_to_free[i]);
 	}
 }
 
@@ -105,7 +105,7 @@ static unsigned may_free_subtree(starpu_data_handle handle, unsigned node)
 	return 1;
 }
 
-static size_t do_free_mem_chunk(mem_chunk_t mc, unsigned node)
+static size_t do_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node)
 {
 	size_t size;
 
@@ -113,10 +113,10 @@ static size_t do_free_mem_chunk(mem_chunk_t mc, unsigned node)
 	size = liberate_memory_on_node(mc, node);
 
 	/* remove the mem_chunk from the list */
-	mem_chunk_list_erase(mc_list[node], mc);
+	starpu_mem_chunk_list_erase(mc_list[node], mc);
 
 	free(mc->interface);
-	mem_chunk_delete(mc);
+	starpu_mem_chunk_delete(mc);
 
 	return size; 
 }
@@ -189,7 +189,7 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 }
 
 
-static size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node, unsigned attempts)
+static size_t try_to_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node, unsigned attempts)
 {
 	size_t liberated = 0;
 
@@ -232,7 +232,7 @@ static size_t try_to_free_mem_chunk(mem_chunk_t mc, unsigned node, unsigned atte
 
 #ifdef STARPU_USE_ALLOCATION_CACHE
 /* we assume that mc_rwlock[node] is taken */
-static void reuse_mem_chunk(unsigned node, starpu_data_handle new_data, mem_chunk_t mc, unsigned is_already_in_mc_list)
+static void reuse_mem_chunk(unsigned node, starpu_data_handle new_data, starpu_mem_chunk_t mc, unsigned is_already_in_mc_list)
 {
 	starpu_data_handle old_data;
 	old_data = mc->data;
@@ -243,7 +243,7 @@ static void reuse_mem_chunk(unsigned node, starpu_data_handle new_data, mem_chun
 
 	if (!is_already_in_mc_list)
 	{
-		mem_chunk_list_erase(mc_list_to_free[node], mc);
+		starpu_mem_chunk_list_erase(mc_list_to_free[node], mc);
 	}
 
 	if (!mc->data_was_deleted)
@@ -265,11 +265,11 @@ static void reuse_mem_chunk(unsigned node, starpu_data_handle new_data, mem_chun
 	/* reinsert the mem chunk in the list of active memory chunks */
 	if (!is_already_in_mc_list)
 	{
-		mem_chunk_list_push_front(mc_list[node], mc);
+		starpu_mem_chunk_list_push_front(mc_list[node], mc);
 	}
 }
 
-static unsigned try_to_reuse_mem_chunk(mem_chunk_t mc, unsigned node, starpu_data_handle new_data, unsigned is_already_in_mc_list)
+static unsigned try_to_reuse_mem_chunk(starpu_mem_chunk_t mc, unsigned node, starpu_data_handle new_data, unsigned is_already_in_mc_list)
 {
 	unsigned success = 0;
 
@@ -308,12 +308,12 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 	pthread_rwlock_wrlock(&mc_rwlock[node]);
 
 	/* go through all buffers for which there was a removal request */
-	mem_chunk_t mc, next_mc;
-	for (mc = mem_chunk_list_begin(mc_list_to_free[node]);
-	     mc != mem_chunk_list_end(mc_list_to_free[node]);
+	starpu_mem_chunk_t mc, next_mc;
+	for (mc = starpu_mem_chunk_list_begin(mc_list_to_free[node]);
+	     mc != starpu_mem_chunk_list_end(mc_list_to_free[node]);
 	     mc = next_mc)
 	{
-		next_mc = mem_chunk_list_next(mc);
+		next_mc = starpu_mem_chunk_list_next(mc);
 
 		if (mc->footprint == footprint)
 		{
@@ -334,14 +334,14 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 	}
 
 	/* now look for some non essential data in the active list */
-	for (mc = mem_chunk_list_begin(mc_list[node]);
-	     mc != mem_chunk_list_end(mc_list[node]);
+	for (mc = starpu_mem_chunk_list_begin(mc_list[node]);
+	     mc != starpu_mem_chunk_list_end(mc_list[node]);
 	     mc = next_mc)
 	{
 		/* there is a risk that the memory chunk is liberated 
 		   before next iteration starts: so we compute the next
 		   element of the list now */
-		next_mc = mem_chunk_list_next(mc);
+		next_mc = starpu_mem_chunk_list_next(mc);
 
 		if (mc->data->is_not_important && (mc->footprint == footprint))
 		{
@@ -375,30 +375,30 @@ static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unu
 	STARPU_ASSERT(!res);
 
 	/* remove all buffers for which there was a removal request */
-	mem_chunk_t mc, next_mc;
-	for (mc = mem_chunk_list_begin(mc_list_to_free[node]);
-	     mc != mem_chunk_list_end(mc_list_to_free[node]);
+	starpu_mem_chunk_t mc, next_mc;
+	for (mc = starpu_mem_chunk_list_begin(mc_list_to_free[node]);
+	     mc != starpu_mem_chunk_list_end(mc_list_to_free[node]);
 	     mc = next_mc)
 	{
-		next_mc = mem_chunk_list_next(mc);
+		next_mc = starpu_mem_chunk_list_next(mc);
 
 		liberated += liberate_memory_on_node(mc, node);
 
-		mem_chunk_list_erase(mc_list_to_free[node], mc);
+		starpu_mem_chunk_list_erase(mc_list_to_free[node], mc);
 
 		free(mc->interface);
-		mem_chunk_delete(mc);
+		starpu_mem_chunk_delete(mc);
 	}
 
 	/* try to free all allocated data potentially in use .. XXX */
-	for (mc = mem_chunk_list_begin(mc_list[node]);
-	     mc != mem_chunk_list_end(mc_list[node]);
+	for (mc = starpu_mem_chunk_list_begin(mc_list[node]);
+	     mc != starpu_mem_chunk_list_end(mc_list[node]);
 	     mc = next_mc)
 	{
 		/* there is a risk that the memory chunk is liberated 
 		   before next iteration starts: so we compute the next
 		   element of the list now */
-		next_mc = mem_chunk_list_next(mc);
+		next_mc = starpu_mem_chunk_list_next(mc);
 
 		liberated += try_to_free_mem_chunk(mc, node, attempts);
 		#if 0
@@ -419,7 +419,7 @@ static void register_mem_chunk(starpu_data_handle handle, uint32_t dst_node, siz
 {
 	int res;
 
-	mem_chunk_t mc = mem_chunk_new();
+	starpu_mem_chunk_t mc = starpu_mem_chunk_new();
 
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT(handle->ops);
@@ -442,7 +442,7 @@ static void register_mem_chunk(starpu_data_handle handle, uint32_t dst_node, siz
 	res = pthread_rwlock_wrlock(&mc_rwlock[dst_node]);
 	STARPU_ASSERT(!res);
 
-	mem_chunk_list_push_front(mc_list[dst_node], mc);
+	starpu_mem_chunk_list_push_front(mc_list[dst_node], mc);
 
 	res = pthread_rwlock_unlock(&mc_rwlock[dst_node]);
 	STARPU_ASSERT(!res);
@@ -455,22 +455,22 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle handle, unsigned node)
 	STARPU_ASSERT(!res);
 
 	/* iterate over the list of memory chunks and remove the entry */
-	mem_chunk_t mc, next_mc;
-	for (mc = mem_chunk_list_begin(mc_list[node]);
-	     mc != mem_chunk_list_end(mc_list[node]);
+	starpu_mem_chunk_t mc, next_mc;
+	for (mc = starpu_mem_chunk_list_begin(mc_list[node]);
+	     mc != starpu_mem_chunk_list_end(mc_list[node]);
 	     mc = next_mc)
 	{
-		next_mc = mem_chunk_list_next(mc);
+		next_mc = starpu_mem_chunk_list_next(mc);
 
 		if (mc->data == handle) {
 			/* we found the data */
 			mc->data_was_deleted = 1;
 
 			/* remove it from the main list */
-			mem_chunk_list_erase(mc_list[node], mc);
+			starpu_mem_chunk_list_erase(mc_list[node], mc);
 
 			/* put it in the list of buffers to be removed */
-			mem_chunk_list_push_front(mc_list_to_free[node], mc);
+			starpu_mem_chunk_list_push_front(mc_list_to_free[node], mc);
 
 			res = pthread_rwlock_unlock(&mc_rwlock[node]);
 			STARPU_ASSERT(!res);
@@ -484,7 +484,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle handle, unsigned node)
 	STARPU_ASSERT(!res);
 }
 
-static size_t liberate_memory_on_node(mem_chunk_t mc, uint32_t node)
+static size_t liberate_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
 {
 	size_t liberated = 0;
 
