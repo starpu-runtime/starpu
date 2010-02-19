@@ -55,13 +55,13 @@
 #define STARPU_GORDON_ALPHA	6.0f /* XXX this is a random value ... */
 
 #ifdef STARPU_DATA_STATS
-#define BENCHMARK_COMM	1
+#define STARPU_BENCHMARK_COMM	1
 #else
-#define BENCHMARK_COMM	0
+#define STARPU_BENCHMARK_COMM	0
 #endif
 
-struct worker_s {
-	struct machine_config_s *config;
+struct starpu_worker_s {
+	struct starpu_machine_config_s *config;
         pthread_mutex_t mutex;
 	enum starpu_archtype arch; /* what is the type of worker ? */
 	uint32_t worker_mask; /* what is the type of worker ? */
@@ -75,7 +75,7 @@ struct worker_s {
 	struct jobq_s *jobq; /* in which queue will that worker get/put tasks ? */
 	struct starpu_job_list_s *local_jobs; /* this queue contains tasks that have been explicitely submitted to that queue */
 	pthread_mutex_t local_jobs_mutex; /* protect the local_jobs list */
-	struct worker_set_s *set; /* in case this worker belongs to a set */
+	struct starpu_worker_set_s *set; /* in case this worker belongs to a set */
 	struct starpu_job_list_s *terminated_jobs; /* list of pending jobs which were executed */
 	unsigned worker_is_running;
 	unsigned worker_is_initialized;
@@ -85,18 +85,18 @@ struct worker_s {
 
 /* in case a single CPU worker may control multiple 
  * accelerators (eg. Gordon for n SPUs) */
-struct worker_set_s {
+struct starpu_worker_set_s {
         pthread_mutex_t mutex;
 	pthread_t worker_thread; /* the thread which runs the worker */
 	unsigned nworkers;
 	unsigned joined; /* only one thread may call pthread_join*/
 	void *retval;
-	struct worker_s *workers;
+	struct starpu_worker_s *workers;
         pthread_cond_t ready_cond; /* indicate when the set is ready */
 	unsigned set_is_initialized;
 };
 
-struct machine_config_s {
+struct starpu_machine_config_s {
 	unsigned nworkers;
 
 #ifdef STARPU_HAVE_HWLOC
@@ -118,7 +118,7 @@ struct machine_config_s {
 	int current_gpuid;
 	unsigned workers_gpuid[STARPU_NMAXWORKERS];
 	
-	struct worker_s workers[STARPU_NMAXWORKERS];
+	struct starpu_worker_s workers[STARPU_NMAXWORKERS];
 	uint32_t worker_mask;
 
 	struct starpu_topo_obj_t *topology;
@@ -131,13 +131,13 @@ struct machine_config_s {
 	unsigned running;
 };
 
-void display_general_stats(void);
+void _starpu_display_general_stats(void);
 
 unsigned _starpu_machine_is_running(void);
 
 inline uint32_t _starpu_worker_exists(uint32_t task_mask);
-inline uint32_t may_submit_cuda_task(void);
-inline uint32_t may_submit_cpu_task(void);
+inline uint32_t _starpu_may_submit_cuda_task(void);
+inline uint32_t _starpu_may_submit_cpu_task(void);
 inline uint32_t _starpu_worker_may_execute_task(unsigned workerid, uint32_t where);
 unsigned _starpu_worker_can_block(unsigned memnode);
 
@@ -145,12 +145,12 @@ inline void _starpu_lock_all_queues_attached_to_node(unsigned node);
 inline void _starpu_unlock_all_queues_attached_to_node(unsigned node);
 inline void _starpu_broadcast_all_queues_attached_to_node(unsigned node);
 
-void _starpu_set_local_worker_key(struct worker_s *worker);
-struct worker_s *_starpu_get_local_worker_key(void);
+void _starpu_set_local_worker_key(struct starpu_worker_s *worker);
+struct starpu_worker_s *_starpu_get_local_worker_key(void);
 
-struct worker_s *_starpu_get_worker_struct(unsigned id);
+struct starpu_worker_s *_starpu_get_worker_struct(unsigned id);
 
-struct machine_config_s *_starpu_get_machine_config(void);
+struct starpu_machine_config_s *_starpu_get_machine_config(void);
 
 /* TODO move */
 unsigned _starpu_execute_registered_progression_hooks(void);

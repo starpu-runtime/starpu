@@ -19,7 +19,7 @@
 
 void _starpu_set_local_worker_status(starpu_worker_status st)
 {
-	struct worker_s *worker = _starpu_get_local_worker_key();
+	struct starpu_worker_s *worker = _starpu_get_local_worker_key();
 
 	/* It is possible that we call this function from the application (and
 	 * thereforce outside a worker), for instance if we are executing the
@@ -30,7 +30,7 @@ void _starpu_set_local_worker_status(starpu_worker_status st)
 
 starpu_worker_status _starpu_get_local_worker_status(void)
 {
-	struct worker_s *worker = _starpu_get_local_worker_key();
+	struct starpu_worker_s *worker = _starpu_get_local_worker_key();
 	if (STARPU_UNLIKELY(!worker))
 		return STATUS_INVALID;
 

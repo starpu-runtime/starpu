@@ -125,7 +125,7 @@ static void display_sched_help_message(void)
 	 }
 }
 
-static struct sched_policy_s *select_sched_policy(struct machine_config_s *config)
+static struct sched_policy_s *select_sched_policy(struct starpu_machine_config_s *config)
 {
 	struct sched_policy_s *selected_policy = NULL;
 	struct starpu_conf *user_conf = config->user_conf;
@@ -155,7 +155,7 @@ static struct sched_policy_s *select_sched_policy(struct machine_config_s *confi
 	return &sched_eager_policy;
 }
 
-void init_sched_policy(struct machine_config_s *config)
+void init_sched_policy(struct starpu_machine_config_s *config)
 {
 	/* Perhaps we have to display some help */
 	display_sched_help_message();
@@ -172,7 +172,7 @@ void init_sched_policy(struct machine_config_s *config)
 	policy.init_sched(config, &policy);
 }
 
-void deinit_sched_policy(struct machine_config_s *config)
+void deinit_sched_policy(struct starpu_machine_config_s *config)
 {
 	if (policy.deinit_sched)
 		policy.deinit_sched(config, &policy);
@@ -200,7 +200,7 @@ int push_task(starpu_job_t j)
 	{
 		struct starpu_task *task = j->task;
 		unsigned workerid = task->workerid;
-		struct worker_s *worker = _starpu_get_worker_struct(workerid);
+		struct starpu_worker_s *worker = _starpu_get_worker_struct(workerid);
 		
 		if (use_prefetch)
 		{

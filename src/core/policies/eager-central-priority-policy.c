@@ -37,7 +37,7 @@ static struct jobq_s *func_init_priority_queue(void)
 	return jobq;
 }
 
-static void initialize_eager_center_priority_policy(struct machine_config_s *config, 
+static void initialize_eager_center_priority_policy(struct starpu_machine_config_s *config, 
 			__attribute__ ((unused))	struct sched_policy_s *_policy) 
 {
 	setup_queues(init_priority_queue_design, func_init_priority_queue, config);

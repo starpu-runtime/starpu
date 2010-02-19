@@ -43,7 +43,7 @@ static struct jobq_s *func_init_central_queue(void)
 	return jobq;
 }
 
-void initialize_no_prio_policy(struct machine_config_s *config, 
+void initialize_no_prio_policy(struct starpu_machine_config_s *config, 
 	   __attribute__ ((unused)) struct sched_policy_s *_policy) 
 {
 	setup_queues(init_no_prio_design, func_init_central_queue, config);

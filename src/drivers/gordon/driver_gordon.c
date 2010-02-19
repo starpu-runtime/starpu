@@ -33,7 +33,7 @@ pthread_mutex_t progress_mutex;
 
 struct gordon_task_wrapper_s {
 	/* who has executed that ? */
-	struct worker_s *worker;
+	struct starpu_worker_s *worker;
 
 	struct starpu_job_list_s *list;	/* StarPU */
 	struct gordon_ppu_job_s *gordon_job; /* gordon*/
@@ -49,7 +49,7 @@ void *gordon_worker_progress(void *arg)
 	fprintf(stderr, "gordon_worker_progress\n");
 
 	/* fix the thread on the correct cpu */
-	struct worker_set_s *gordon_set_arg = arg;
+	struct starpu_worker_set_s *gordon_set_arg = arg;
 	unsigned prog_thread_bind_id = 
 		(gordon_set_arg->workers[0].bindid + 1)%(gordon_set_arg->config->nhwcores);
 	_starpu_bind_thread_on_cpu(gordon_set_arg->config, prog_thread_bind_id);
@@ -182,7 +182,7 @@ static void gordon_callback_list_func(void *arg)
 
 	/* we don't know who will execute that codelet : so we actually defer the
  	 * execution of the StarPU codelet and the job termination later */
-	struct worker_s *worker = task_wrapper->worker;
+	struct starpu_worker_s *worker = task_wrapper->worker;
 	STARPU_ASSERT(worker);
 
 	wrapper_list = task_wrapper->list;
@@ -230,7 +230,7 @@ static void gordon_callback_func(void *arg)
 
 	/* we don't know who will execute that codelet : so we actually defer the
  	 * execution of the StarPU codelet and the job termination later */
-	struct worker_s *worker = task_wrapper->worker;
+	struct starpu_worker_s *worker = task_wrapper->worker;
 	STARPU_ASSERT(worker);
 
 	task_wrapper->terminated = 1;
@@ -243,7 +243,7 @@ static void gordon_callback_func(void *arg)
 	free(task_wrapper);
 }
 
-int inject_task(starpu_job_t j, struct worker_s *worker)
+int inject_task(starpu_job_t j, struct starpu_worker_s *worker)
 {
 	struct starpu_task *task = j->task;
 	int ret = _starpu_fetch_task_input(task, 0);
@@ -263,7 +263,7 @@ int inject_task(starpu_job_t j, struct worker_s *worker)
 	return 0;
 }
 
-int inject_task_list(struct starpu_job_list_s *list, struct worker_s *worker)
+int inject_task_list(struct starpu_job_list_s *list, struct starpu_worker_s *worker)
 {
 	/* first put back all tasks that can not be performed by Gordon */
 	unsigned nvalids = 0;
@@ -324,7 +324,7 @@ int inject_task_list(struct starpu_job_list_s *list, struct worker_s *worker)
 	return 0;
 }
 
-void *gordon_worker_inject(struct worker_set_s *arg)
+void *gordon_worker_inject(struct starpu_worker_set_s *arg)
 {
 
 	while(_starpu_machine_is_running()) {
@@ -410,7 +410,7 @@ void *gordon_worker_inject(struct worker_set_s *arg)
 
 void *_starpu_gordon_worker(void *arg)
 {
-	struct worker_set_s *gordon_set_arg = arg;
+	struct starpu_worker_set_s *gordon_set_arg = arg;
 
 	_starpu_bind_thread_on_cpu(gordon_set_arg->config, gordon_set_arg->workers[0].bindid);
 
@@ -426,7 +426,7 @@ void *_starpu_gordon_worker(void *arg)
 	unsigned spu;
 	for (spu = 0; spu < gordon_set_arg->nworkers; spu++)
 	{
-		struct worker_s *worker = &gordon_set_arg->workers[spu];
+		struct starpu_worker_s *worker = &gordon_set_arg->workers[spu];
 		snprintf(worker->name, 32, "SPU %d", worker->id);
 	}
 

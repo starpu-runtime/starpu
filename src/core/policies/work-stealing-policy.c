@@ -17,7 +17,7 @@
 #include <core/policies/work-stealing-policy.h>
 
 /* save the general machine configuration */
-//static struct machine_config_s *machineconfig;
+//static struct starpu_machine_config_s *machineconfig;
 
 static unsigned nworkers;
 static unsigned rr_worker;
@@ -174,7 +174,7 @@ static struct jobq_s *init_ws_deque(void)
 	return q;
 }
 
-static void initialize_ws_policy(struct machine_config_s *config, 
+static void initialize_ws_policy(struct starpu_machine_config_s *config, 
 				__attribute__ ((unused)) struct sched_policy_s *_policy) 
 {
 	nworkers = 0;

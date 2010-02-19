@@ -146,7 +146,7 @@ void _starpu_memory_node_attach_queue(struct jobq_s *q, unsigned nodeid)
 
 unsigned starpu_get_worker_memory_node(unsigned workerid)
 {
-	struct worker_s *worker = _starpu_get_worker_struct(workerid);
+	struct starpu_worker_s *worker = _starpu_get_worker_struct(workerid);
 
 	return worker->memory_node;
 }

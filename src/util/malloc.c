@@ -55,7 +55,7 @@ int starpu_malloc_pinned_if_possible(void **A, size_t dim)
 
 	STARPU_ASSERT(A);
 
-	if (may_submit_cuda_task())
+	if (_starpu_may_submit_cuda_task())
 	{
 #ifdef STARPU_USE_CUDA
 		int push_res;
@@ -107,7 +107,7 @@ int starpu_free_pinned_if_possible(void *A)
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
-	if (may_submit_cuda_task())
+	if (_starpu_may_submit_cuda_task())
 	{
 #ifdef STARPU_USE_CUDA
 		int push_res;

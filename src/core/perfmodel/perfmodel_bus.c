@@ -57,7 +57,7 @@ static struct cudadev_timing cudadev_timing_per_cpu[STARPU_MAXNODES][MAXCPUS];
 
 static void measure_bandwith_between_host_and_dev_on_cpu(int dev, int cpu)
 {
-	struct machine_config_s *config = _starpu_get_machine_config();
+	struct starpu_machine_config_s *config = _starpu_get_machine_config();
 	_starpu_bind_thread_on_cpu(config, cpu);
 
 	/* Initiliaze CUDA context on the device */
@@ -212,7 +212,7 @@ static void benchmark_all_cuda_devices(void)
 		STARPU_ABORT();
 	}
 
-	struct machine_config_s *config = _starpu_get_machine_config();
+	struct starpu_machine_config_s *config = _starpu_get_machine_config();
 	unsigned ncpus = _starpu_topology_get_nhwcpu(config);
 
         cudaGetDeviceCount(&ncuda);
@@ -271,7 +271,7 @@ static void load_bus_affinity_file_content(void)
 	STARPU_ASSERT(f);
 
 #ifdef STARPU_USE_CUDA
-	struct machine_config_s *config = _starpu_get_machine_config();
+	struct starpu_machine_config_s *config = _starpu_get_machine_config();
 	unsigned ncpus = _starpu_topology_get_nhwcpu(config);
 
         cudaGetDeviceCount(&ncuda);
@@ -321,7 +321,7 @@ static void write_bus_affinity_file_content(void)
 	}
 
 #ifdef STARPU_USE_CUDA
-	struct machine_config_s *config = _starpu_get_machine_config();
+	struct starpu_machine_config_s *config = _starpu_get_machine_config();
 	unsigned ncpus = _starpu_topology_get_nhwcpu(config);
 	unsigned cpu;
 

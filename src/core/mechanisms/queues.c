@@ -25,7 +25,7 @@
 
 void setup_queues(void (*init_queue_design)(void),
 		  struct jobq_s *(*func_init_queue)(void), 
-		  struct machine_config_s *config) 
+		  struct starpu_machine_config_s *config) 
 {
 	unsigned worker;
 
@@ -33,7 +33,7 @@ void setup_queues(void (*init_queue_design)(void),
 
 	for (worker = 0; worker < config->nworkers; worker++)
 	{
-		struct  worker_s *workerarg = &config->workers[worker];
+		struct  starpu_worker_s *workerarg = &config->workers[worker];
 		
 		workerarg->jobq = func_init_queue();
 	}

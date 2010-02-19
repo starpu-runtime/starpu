@@ -39,7 +39,7 @@
 #include <cuda.h>
 #endif
 
-struct worker_s;
+struct starpu_worker_s;
 
 /* codelet function */
 typedef void (*cl_func)(void **, void *);
@@ -83,7 +83,7 @@ unsigned _starpu_enforce_deps_starting_from_data(starpu_job_t j);
 void _starpu_handle_job_termination(starpu_job_t j);
 size_t _starpu_job_get_data_size(starpu_job_t j);
 
-starpu_job_t _starpu_pop_local_task(struct worker_s *worker);
-int _starpu_push_local_task(struct worker_s *worker, starpu_job_t j);
+starpu_job_t _starpu_pop_local_task(struct starpu_worker_s *worker);
+int _starpu_push_local_task(struct starpu_worker_s *worker, starpu_job_t j);
 
 #endif // __JOBS_H__

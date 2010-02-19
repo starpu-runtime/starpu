@@ -32,10 +32,10 @@
 		
 static unsigned topology_is_initialized = 0;
 
-static void _starpu_initialize_workers_bindid(struct machine_config_s *config);
+static void _starpu_initialize_workers_bindid(struct starpu_machine_config_s *config);
 
 #ifdef STARPU_USE_CUDA
-static void _starpu_initialize_workers_gpuid(struct machine_config_s *config);
+static void _starpu_initialize_workers_gpuid(struct starpu_machine_config_s *config);
 static unsigned may_bind_automatically = 0;
 #endif
 
@@ -44,7 +44,7 @@ static unsigned may_bind_automatically = 0;
  */
 
 #ifdef STARPU_USE_CUDA
-static void _starpu_initialize_workers_gpuid(struct machine_config_s *config)
+static void _starpu_initialize_workers_gpuid(struct starpu_machine_config_s *config)
 {
 	char *strval;
 	unsigned i;
@@ -114,14 +114,14 @@ static void _starpu_initialize_workers_gpuid(struct machine_config_s *config)
 }
 #endif
 
-static inline int _starpu_get_next_gpuid(struct machine_config_s *config)
+static inline int _starpu_get_next_gpuid(struct starpu_machine_config_s *config)
 {
 	unsigned i = ((config->current_gpuid++) % config->ncudagpus);
 
 	return (int)config->workers_gpuid[i];
 }
 
-static void _starpu_init_topology(struct machine_config_s *config)
+static void _starpu_init_topology(struct starpu_machine_config_s *config)
 {
 	if (!topology_is_initialized)
 	{
@@ -154,14 +154,14 @@ static void _starpu_init_topology(struct machine_config_s *config)
 	}
 }
 
-unsigned _starpu_topology_get_nhwcpu(struct machine_config_s *config)
+unsigned _starpu_topology_get_nhwcpu(struct starpu_machine_config_s *config)
 {
 	_starpu_init_topology(config);
 	
 	return config->nhwcpus;
 }
 
-static int _starpu_init_machine_config(struct machine_config_s *config,
+static int _starpu_init_machine_config(struct starpu_machine_config_s *config,
 				struct starpu_conf *user_conf)
 {
 	int explicitval __attribute__((unused));
@@ -304,7 +304,7 @@ static int _starpu_init_machine_config(struct machine_config_s *config,
 /*
  * Bind workers on the different processors
  */
-static void _starpu_initialize_workers_bindid(struct machine_config_s *config)
+static void _starpu_initialize_workers_bindid(struct starpu_machine_config_s *config)
 {
 	char *strval;
 	unsigned i;
@@ -374,7 +374,7 @@ static void _starpu_initialize_workers_bindid(struct machine_config_s *config)
  * worker. In case a list of preferred cpus was specified, we look for a an
  * available cpu among the list if possible, otherwise a round-robin policy is
  * used. */
-static inline int _starpu_get_next_bindid(struct machine_config_s *config,
+static inline int _starpu_get_next_bindid(struct starpu_machine_config_s *config,
 				int *preferred_binding, int npreferred)
 {
 	unsigned found = 0;
@@ -413,7 +413,7 @@ static inline int _starpu_get_next_bindid(struct machine_config_s *config,
 	return (int)config->workers_bindid[i];
 }
 
-void _starpu_bind_thread_on_cpu(struct machine_config_s *config __attribute__((unused)), unsigned cpuid)
+void _starpu_bind_thread_on_cpu(struct starpu_machine_config_s *config __attribute__((unused)), unsigned cpuid)
 {
 #ifdef STARPU_HAVE_HWLOC
 	int ret;
@@ -456,7 +456,7 @@ void _starpu_bind_thread_on_cpu(struct machine_config_s *config __attribute__((u
 #endif
 }
 
-static void _starpu_init_workers_binding(struct machine_config_s *config)
+static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 {
 	/* launch one thread per CPU */
 	unsigned ram_memory_node;
@@ -473,7 +473,7 @@ static void _starpu_init_workers_binding(struct machine_config_s *config)
 	{
 		unsigned memory_node = -1;
 		unsigned is_a_set_of_accelerators = 0;
-		struct worker_s *workerarg = &config->workers[worker];
+		struct starpu_worker_s *workerarg = &config->workers[worker];
 
 		/* Perhaps the worker has some "favourite" bindings  */
 		int *preferred_binding = NULL;
@@ -523,7 +523,7 @@ static void _starpu_init_workers_binding(struct machine_config_s *config)
 }
 
 
-int starpu_build_topology(struct machine_config_s *config)
+int starpu_build_topology(struct starpu_machine_config_s *config)
 {
 	int ret;
 
@@ -541,7 +541,7 @@ int starpu_build_topology(struct machine_config_s *config)
 	return 0;
 }
 
-void starpu_destroy_topology(struct machine_config_s *config __attribute__ ((unused)))
+void starpu_destroy_topology(struct starpu_machine_config_s *config __attribute__ ((unused)))
 {
 	/* cleanup StarPU internal data structures */
 	_starpu_deinit_memory_nodes();

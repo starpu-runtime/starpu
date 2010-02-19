@@ -264,7 +264,7 @@ unsigned _starpu_enforce_deps_starting_from_data(starpu_job_t j)
 
 
 
-struct starpu_job_s *_starpu_pop_local_task(struct worker_s *worker)
+struct starpu_job_s *_starpu_pop_local_task(struct starpu_worker_s *worker)
 {
 	struct starpu_job_s *j = NULL;
 
@@ -278,7 +278,7 @@ struct starpu_job_s *_starpu_pop_local_task(struct worker_s *worker)
 	return j;
 }
 
-int _starpu_push_local_task(struct worker_s *worker, struct starpu_job_s *j)
+int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_job_s *j)
 {
 	/* TODO check that the worker is able to execute the task ! */
 

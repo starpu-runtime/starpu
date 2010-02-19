@@ -77,7 +77,7 @@ void _starpu_init_cuda(void)
 	assert(ncudagpus <= STARPU_MAXCUDADEVS);
 }
 
-static int execute_job_on_cuda(starpu_job_t j, struct worker_s *args)
+static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 {
 	int ret;
 //	uint32_t mask = (1<<0);
@@ -100,7 +100,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct worker_s *args)
 		calibrate_model = 1;
 
 	/* we do not take communication into account when modeling the performance */
-	if (BENCHMARK_COMM)
+	if (STARPU_BENCHMARK_COMM)
 	{
 		cures = cudaThreadSynchronize();
 		if (STARPU_UNLIKELY(cures))
@@ -116,7 +116,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct worker_s *args)
 		return -EAGAIN;
 	}
 
-	if (calibrate_model || BENCHMARK_COMM)
+	if (calibrate_model || STARPU_BENCHMARK_COMM)
 	{
 		cures = cudaThreadSynchronize();
 		if (STARPU_UNLIKELY(cures))
@@ -140,7 +140,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct worker_s *args)
 
 	TRACE_END_CODELET_BODY(j);	
 
-	if (calibrate_model || BENCHMARK_COMM)
+	if (calibrate_model || STARPU_BENCHMARK_COMM)
 	{
 		double measured = timing_delay(&codelet_start, &codelet_end);
 		double measured_comm = timing_delay(&codelet_start_comm, &codelet_end_comm);
@@ -165,7 +165,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct worker_s *args)
 
 void *_starpu_cuda_worker(void *arg)
 {
-	struct worker_s* args = arg;
+	struct starpu_worker_s* args = arg;
 
 	int devid = args->id;
 	unsigned memory_node = args->memory_node;

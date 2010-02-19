@@ -20,7 +20,7 @@
 #include "driver_cpu.h"
 #include <core/policies/sched_policy.h>
 
-static int execute_job_on_cpu(starpu_job_t j, struct worker_s *cpu_args)
+static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 {
 	int ret;
 	tick_t codelet_start, codelet_end;
@@ -36,12 +36,12 @@ static int execute_job_on_cpu(starpu_job_t j, struct worker_s *cpu_args)
 	if (cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
 
-	if (calibrate_model || BENCHMARK_COMM)
+	if (calibrate_model || STARPU_BENCHMARK_COMM)
 		GET_TICK(codelet_start_comm);
 
 	ret = _starpu_fetch_task_input(task, 0);
 
-	if (calibrate_model || BENCHMARK_COMM)
+	if (calibrate_model || STARPU_BENCHMARK_COMM)
 		GET_TICK(codelet_end_comm);
 
 	if (ret != 0) {
@@ -52,7 +52,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct worker_s *cpu_args)
 
 	TRACE_START_CODELET_BODY(j);
 
-	if (calibrate_model || BENCHMARK_COMM)
+	if (calibrate_model || STARPU_BENCHMARK_COMM)
 		GET_TICK(codelet_start);
 
 	cpu_args->status = STATUS_EXECUTING;
@@ -61,7 +61,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct worker_s *cpu_args)
 
 	cl->per_worker_stats[cpu_args->workerid]++;
 	
-	if (calibrate_model || BENCHMARK_COMM)
+	if (calibrate_model || STARPU_BENCHMARK_COMM)
 		GET_TICK(codelet_end);
 
 	TRACE_END_CODELET_BODY(j);
@@ -70,7 +70,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct worker_s *cpu_args)
 	_starpu_push_task_output(task, 0);
 
 //#ifdef STARPU_MODEL_DEBUG
-	if (calibrate_model || BENCHMARK_COMM)
+	if (calibrate_model || STARPU_BENCHMARK_COMM)
 	{
 		double measured = timing_delay(&codelet_start, &codelet_end);
 		double measured_comm = timing_delay(&codelet_start_comm, &codelet_end_comm);
@@ -96,7 +96,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct worker_s *cpu_args)
 
 void *_starpu_cpu_worker(void *arg)
 {
-	struct worker_s *cpu_arg = arg;
+	struct starpu_worker_s *cpu_arg = arg;
 
 #ifdef STARPU_USE_FXT
 	fxt_register_thread(cpu_arg->bindid);

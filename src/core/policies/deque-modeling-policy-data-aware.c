@@ -207,7 +207,7 @@ static struct jobq_s *init_dmda_fifo(void)
 	return q;
 }
 
-static void initialize_dmda_policy(struct machine_config_s *config, 
+static void initialize_dmda_policy(struct starpu_machine_config_s *config, 
 	 __attribute__ ((unused)) struct sched_policy_s *_policy) 
 {
 	nworkers = 0;

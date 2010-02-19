@@ -61,11 +61,11 @@ struct jobq_s {
 	pthread_mutex_t activity_mutex;
 };
 
-struct machine_config_s;
+struct starpu_machine_config_s;
 
 void setup_queues(void (*init_queue_design)(void),
                   struct jobq_s *(*func_init_queue)(void),
-                  struct machine_config_s *config);
+                  struct starpu_machine_config_s *config);
 
 struct jobq_s *get_local_queue(void);
 void set_local_queue(struct jobq_s *jobq);
