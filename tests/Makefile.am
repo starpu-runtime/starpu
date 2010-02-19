@@ -80,6 +80,7 @@ check_PROGRAMS += 				\
 	core/static_restartable_tag		\
 	core/regenerate				\
 	core/subgraph_repeat			\
+	core/subgraph_repeat_regenerate		\
 	core/empty_task				\
 	core/empty_task_sync_point		\
 	core/tag-wait-api			\
@@ -136,6 +137,8 @@ core_regenerate_SOURCES =			\
 core_subgraph_repeat_SOURCES =			\
 	core/subgraph_repeat.c
 
+core_subgraph_repeat_regenerate_SOURCES =	\
+	core/subgraph_repeat_regenerate.c
 
 core_empty_task_SOURCES =			\
 	core/empty_task.c

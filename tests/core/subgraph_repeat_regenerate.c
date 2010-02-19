@@ -68,9 +68,6 @@ static void callback_task_D(void *arg __attribute__((unused)))
 	else {
 		/* Let's go for another iteration */
 		starpu_submit_task(&taskA);
-		starpu_submit_task(&taskB);
-		starpu_submit_task(&taskC);
-		starpu_submit_task(&taskD);
 	}
 }
 
@@ -86,19 +83,23 @@ int main(int argc, char **argv)
 	starpu_task_init(&taskA);
 	taskA.cl = &dummy_codelet;
 	taskA.cl_arg = &taskA;
+	taskA.regenerate = 0; /* this task will be explicitely resubmitted if needed */
 
 	starpu_task_init(&taskB);
 	taskB.cl = &dummy_codelet;
 	taskB.cl_arg = &taskB;
+	taskB.regenerate = 1;
 
 	starpu_task_init(&taskC);
 	taskC.cl = &dummy_codelet;
 	taskC.cl_arg = &taskC;
+	taskC.regenerate = 1;
 
 	starpu_task_init(&taskD);
 	taskD.cl = &dummy_codelet;
 	taskD.cl_arg = &taskD;
 	taskD.callback_func = callback_task_D;
+	taskD.regenerate = 1;
 
 	struct starpu_task *depsBC_array[1] = {&taskA};
 	starpu_task_declare_deps_array(&taskB, 1, depsBC_array);
