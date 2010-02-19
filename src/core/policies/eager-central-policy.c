@@ -27,15 +27,15 @@ static struct jobq_s *jobq;
 static void init_central_queue_design(void)
 {
 	/* there is only a single queue in that trivial design */
-	jobq = create_fifo();
+	jobq = _starpu_create_fifo();
 
-	init_fifo_queues_mechanisms();
+	_starpu_init_fifo_queues_mechanisms();
 
-	jobq->_starpu_push_task = fifo_push_task;
-	jobq->push_prio_task = fifo_push_prio_task;
-	jobq->_starpu_pop_task = fifo_pop_task;
+	jobq->_starpu_push_task = _starpu_fifo_push_task;
+	jobq->push_prio_task = _starpu_fifo_push_prio_task;
+	jobq->_starpu_pop_task = _starpu_fifo_pop_task;
 
-	jobq->_starpu_pop_every_task = fifo_pop_every_task;
+	jobq->_starpu_pop_every_task = _starpu_fifo_pop_every_task;
 }
 
 static struct jobq_s *func_init_central_queue(void)

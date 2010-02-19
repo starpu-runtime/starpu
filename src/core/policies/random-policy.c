@@ -24,7 +24,7 @@ static starpu_job_t random_pop_task(struct jobq_s *q)
 {
 	struct starpu_job_s *j;
 
-	j = fifo_pop_task(q);
+	j = _starpu_fifo_pop_task(q);
 
 	return j;
 }
@@ -32,7 +32,7 @@ static starpu_job_t random_pop_task(struct jobq_s *q)
 static int _random_push_task(struct jobq_s *q __attribute__ ((unused)), starpu_job_t task, unsigned prio)
 {
 	/* find the queue */
-	struct fifo_jobq_s *fifo;
+	struct starpu_fifo_jobq_s *fifo;
 	unsigned worker;
 
 	unsigned selected = 0;
@@ -63,9 +63,9 @@ static int _random_push_task(struct jobq_s *q __attribute__ ((unused)), starpu_j
 	fifo = queue_array[selected]->queue;
 
 	if (prio) {
-		return fifo_push_prio_task(queue_array[selected], task);
+		return _starpu_fifo_push_prio_task(queue_array[selected], task);
 	} else {
-		return fifo_push_task(queue_array[selected], task);
+		return _starpu_fifo_push_task(queue_array[selected], task);
 	}
 }
 
@@ -83,7 +83,7 @@ static struct jobq_s *init_random_fifo(void)
 {
 	struct jobq_s *q;
 
-	q = create_fifo();
+	q = _starpu_create_fifo();
 
 	q->_starpu_push_task = random_push_task; 
 	q->push_prio_task = random_push_prio_task; 
@@ -102,7 +102,7 @@ static void initialize_random_policy(struct starpu_machine_config_s *config,
 
 	starpu_srand48(time(NULL));
 
-	setup_queues(init_fifo_queues_mechanisms, init_random_fifo, config);
+	setup_queues(_starpu_init_fifo_queues_mechanisms, init_random_fifo, config);
 }
 
 static struct jobq_s *get_local_queue_random(struct starpu_sched_policy_s *policy __attribute__ ((unused)))

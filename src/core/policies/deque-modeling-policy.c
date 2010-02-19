@@ -26,9 +26,9 @@ static starpu_job_t dm_pop_task(struct jobq_s *q)
 {
 	struct starpu_job_s *j;
 
-	j = fifo_pop_task(q);
+	j = _starpu_fifo_pop_task(q);
 	if (j) {
-		struct fifo_jobq_s *fifo = q->queue;
+		struct starpu_fifo_jobq_s *fifo = q->queue;
 		double model = j->predicted;
 	
 		fifo->exp_len -= model;
@@ -43,14 +43,14 @@ static struct starpu_job_list_s *dm_pop_every_task(struct jobq_s *q, uint32_t wh
 {
 	struct starpu_job_list_s *new_list;
 
-	new_list = fifo_pop_every_task(q, where);
+	new_list = _starpu_fifo_pop_every_task(q, where);
 	if (new_list) {
 		starpu_job_itor_t i;
 		for(i = starpu_job_list_begin(new_list);
 			i != starpu_job_list_end(new_list);
 			i = starpu_job_list_next(i))
 		{
-			struct fifo_jobq_s *fifo = q->queue;
+			struct starpu_fifo_jobq_s *fifo = q->queue;
 			double model = i->predicted;
 	
 			fifo->exp_len -= model;
@@ -67,7 +67,7 @@ static struct starpu_job_list_s *dm_pop_every_task(struct jobq_s *q, uint32_t wh
 static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)), starpu_job_t j, unsigned prio)
 {
 	/* find the queue */
-	struct fifo_jobq_s *fifo;
+	struct starpu_fifo_jobq_s *fifo;
 	unsigned worker;
 	int best = -1;
 
@@ -133,9 +133,9 @@ static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)), starpu_job_t
 		_starpu_prefetch_task_input_on_node(task, queue_array[best]->memory_node);
 
 	if (prio) {
-		return fifo_push_prio_task(queue_array[best], j);
+		return _starpu_fifo_push_prio_task(queue_array[best], j);
 	} else {
-		return fifo_push_task(queue_array[best], j);
+		return _starpu_fifo_push_task(queue_array[best], j);
 	}
 }
 
@@ -156,7 +156,7 @@ static struct jobq_s *init_dm_fifo(void)
 {
 	struct jobq_s *q;
 
-	q = create_fifo();
+	q = _starpu_create_fifo();
 
 	q->_starpu_push_task = dm_push_task; 
 	q->push_prio_task = dm_push_prio_task; 
@@ -182,7 +182,7 @@ static void initialize_dm_policy(struct starpu_machine_config_s *config,
 	fprintf(stderr, "Using prefetch ? %s\n", use_prefetch?"yes":"no");
 #endif
 
-	setup_queues(init_fifo_queues_mechanisms, init_dm_fifo, config);
+	setup_queues(_starpu_init_fifo_queues_mechanisms, init_dm_fifo, config);
 }
 
 static struct jobq_s *get_local_queue_dm(struct starpu_sched_policy_s *policy __attribute__ ((unused)))

@@ -28,9 +28,9 @@ static starpu_job_t dmda_pop_task(struct jobq_s *q)
 {
 	struct starpu_job_s *j;
 
-	j = fifo_pop_task(q);
+	j = _starpu_fifo_pop_task(q);
 	if (j) {
-		struct fifo_jobq_s *fifo = q->queue;
+		struct starpu_fifo_jobq_s *fifo = q->queue;
 		double model = j->predicted;
 	
 		fifo->exp_len -= model;
@@ -58,7 +58,7 @@ static void update_data_requests(struct jobq_s *q, struct starpu_task *task)
 static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , starpu_job_t j, unsigned prio)
 {
 	/* find the queue */
-	struct fifo_jobq_s *fifo;
+	struct starpu_fifo_jobq_s *fifo;
 	unsigned worker;
 	int best = -1;
 	
@@ -172,9 +172,9 @@ static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , starpu_jo
 		_starpu_prefetch_task_input_on_node(task, queue_array[best]->memory_node);
 
 	if (prio) {
-		return fifo_push_prio_task(queue_array[best], j);
+		return _starpu_fifo_push_prio_task(queue_array[best], j);
 	} else {
-		return fifo_push_task(queue_array[best], j);
+		return _starpu_fifo_push_task(queue_array[best], j);
 	}
 }
 
@@ -195,7 +195,7 @@ static struct jobq_s *init_dmda_fifo(void)
 {
 	struct jobq_s *q;
 
-	q = create_fifo();
+	q = _starpu_create_fifo();
 
 	q->_starpu_push_task = dmda_push_task; 
 	q->push_prio_task = dmda_push_prio_task; 
@@ -224,7 +224,7 @@ static void initialize_dmda_policy(struct starpu_machine_config_s *config,
 	if (strval_beta)
 		beta = atof(strval_beta);
 
-	setup_queues(init_fifo_queues_mechanisms, init_dmda_fifo, config);
+	setup_queues(_starpu_init_fifo_queues_mechanisms, init_dmda_fifo, config);
 }
 
 static struct jobq_s *get_local_queue_dmda(struct starpu_sched_policy_s *policy __attribute__ ((unused)))

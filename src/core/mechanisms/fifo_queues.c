@@ -25,7 +25,7 @@ static unsigned total_number_of_jobs;
 static pthread_cond_t *sched_cond;
 static pthread_mutex_t *sched_mutex;
 
-void init_fifo_queues_mechanisms(void)
+void _starpu_init_fifo_queues_mechanisms(void)
 {
 	total_number_of_jobs = 0;
 
@@ -36,7 +36,7 @@ void init_fifo_queues_mechanisms(void)
 	sched_mutex = &sched->sched_activity_mutex;
 }
 
-struct jobq_s *create_fifo(void)
+struct jobq_s *_starpu_create_fifo(void)
 {
 	struct jobq_s *jobq;
 	jobq = malloc(sizeof(struct jobq_s));
@@ -44,8 +44,8 @@ struct jobq_s *create_fifo(void)
 	pthread_mutex_init(&jobq->activity_mutex, NULL);
 	pthread_cond_init(&jobq->activity_cond, NULL);
 
-	struct fifo_jobq_s *fifo;
-	fifo = malloc(sizeof(struct fifo_jobq_s));
+	struct starpu_fifo_jobq_s *fifo;
+	fifo = malloc(sizeof(struct starpu_fifo_jobq_s));
 
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
 	fifo->jobq = starpu_job_list_new();
@@ -61,11 +61,11 @@ struct jobq_s *create_fifo(void)
 	return jobq;
 }
 
-int fifo_push_prio_task(struct jobq_s *q, starpu_job_t task)
+int _starpu_fifo_push_prio_task(struct jobq_s *q, starpu_job_t task)
 {
 #ifndef STARPU_NO_PRIO
 	STARPU_ASSERT(q);
-	struct fifo_jobq_s *fifo_queue = q->queue;
+	struct starpu_fifo_jobq_s *fifo_queue = q->queue;
 
 	/* if anyone is blocked on the entire machine, wake it up */
 	pthread_mutex_lock(sched_mutex);
@@ -86,14 +86,14 @@ int fifo_push_prio_task(struct jobq_s *q, starpu_job_t task)
 
 	return 0;
 #else
-	return fifo_push_task(q, task);
+	return _starpu_fifo_push_task(q, task);
 #endif
 }
 
-int fifo_push_task(struct jobq_s *q, starpu_job_t task)
+int _starpu_fifo_push_task(struct jobq_s *q, starpu_job_t task)
 {
 	STARPU_ASSERT(q);
-	struct fifo_jobq_s *fifo_queue = q->queue;
+	struct starpu_fifo_jobq_s *fifo_queue = q->queue;
 
 	/* if anyone is blocked on the entire machine, wake it up */
 	pthread_mutex_lock(sched_mutex);
@@ -115,12 +115,12 @@ int fifo_push_task(struct jobq_s *q, starpu_job_t task)
 	return 0;
 }
 
-starpu_job_t fifo_pop_task(struct jobq_s *q)
+starpu_job_t _starpu_fifo_pop_task(struct jobq_s *q)
 {
 	starpu_job_t j = NULL;
 
 	STARPU_ASSERT(q);
-	struct fifo_jobq_s *fifo_queue = q->queue;
+	struct starpu_fifo_jobq_s *fifo_queue = q->queue;
 
 	if (fifo_queue->njobs == 0)
 		return NULL;
@@ -146,13 +146,13 @@ starpu_job_t fifo_pop_task(struct jobq_s *q)
 }
 
 /* pop every task that can be executed on the calling driver */
-struct starpu_job_list_s * fifo_pop_every_task(struct jobq_s *q, uint32_t where)
+struct starpu_job_list_s * _starpu_fifo_pop_every_task(struct jobq_s *q, uint32_t where)
 {
 	struct starpu_job_list_s *new_list, *old_list;
 	unsigned size;
 	
 	STARPU_ASSERT(q);
-	struct fifo_jobq_s *fifo_queue = q->queue;
+	struct starpu_fifo_jobq_s *fifo_queue = q->queue;
 
 	pthread_mutex_lock(&q->activity_mutex);
 
