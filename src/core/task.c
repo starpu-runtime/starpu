@@ -125,6 +125,8 @@ int _starpu_submit_job(starpu_job_t j)
 {
 	_starpu_increment_nsubmitted_tasks();
 
+	j->submitted = 1;
+
 	return _starpu_enforce_deps_and_schedule(j);
 }
 

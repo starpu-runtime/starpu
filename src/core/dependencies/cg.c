@@ -62,6 +62,7 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 {
 	STARPU_ASSERT(cg);
 	unsigned remaining = STARPU_ATOMIC_ADD(&cg->remaining, -1);
+
 	if (remaining == 0) {
 		cg->remaining = cg->ntags;
 
@@ -85,7 +86,7 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 				tag_successors = &tag->tag_successors;
 	
 				tag_successors->ndeps_completed++;
-	
+
 				if ((tag->state == STARPU_BLOCKED) &&
 					(tag_successors->ndeps == tag_successors->ndeps_completed)) {
 					/* reset the counter so that we can reuse the completion group */
@@ -95,7 +96,6 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 				break;
 
 			case STARPU_CG_TASK:
-				/* TODO */
 				j = cg->succ.job;
 
 				job_successors = &j->job_successors;
@@ -105,9 +105,10 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 
 				if (job_successors->ndeps == ndeps_completed)
 				{
-					/* reset the counter so that we can reuse the completion group */
-					job_successors->ndeps_completed = 0;
-					_starpu_enforce_deps_starting_from_data(j);
+					/* Note that this also ensures that tag deps are
+					 * fulfilled. This counter is reseted only when the
+					 * dependencies are are all fulfilled) */
+					_starpu_enforce_deps_and_schedule(j);
 				}
 
 				break;

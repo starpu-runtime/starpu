@@ -66,6 +66,7 @@ LIST_TYPE(starpu_job,
 	unsigned footprint_is_computed;
 	uint32_t footprint;
 
+	unsigned submitted;
 	unsigned terminated;
 );
 

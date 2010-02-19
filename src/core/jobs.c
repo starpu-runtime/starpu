@@ -49,6 +49,7 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 
 	job->predicted = 0.0;
 	job->footprint_is_computed = 0;
+	job->submitted = 0;
 	job->terminated = 0;
 
 	_starpu_cg_list_init(&job->job_successors);
@@ -76,8 +77,6 @@ void _starpu_wait_job(starpu_job_t j)
 	j->terminated = 0;
 
 	pthread_mutex_unlock(&j->sync_mutex);
-
-	//starpu_job_delete(j);
 }
 
 void _starpu_handle_job_termination(starpu_job_t j)
@@ -88,6 +87,7 @@ void _starpu_handle_job_termination(starpu_job_t j)
 		fprintf(stderr, "OOPS ... job %p was already terminated !!\n", j);
 
 	/* in case there are dependencies, wake up the proper tasks */
+	j->submitted = 0;
 	_starpu_notify_dependencies(j);
 
 	/* the callback is executed after the dependencies so that we may remove the tag 
@@ -124,9 +124,6 @@ void _starpu_handle_job_termination(starpu_job_t j)
 	else {
 		/* no one is going to synchronize with that task so we release
  		 * the data structures now */
-		if (!regenerate)
-			task->starpu_private = NULL;
-
 		if (destroy)
 		{
 			starpu_job_delete(j);
@@ -188,7 +185,7 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j)
 	struct starpu_cg_list_s *job_successors = &j->job_successors;
 
 #warning TODO use locks !
-	if (job_successors->ndeps != job_successors->ndeps_completed)
+	if (!j->submitted || (job_successors->ndeps != job_successors->ndeps_completed))
 	{
 		ret = 1;
 	}
