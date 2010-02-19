@@ -25,7 +25,7 @@ static unsigned total_number_of_jobs;
 static pthread_cond_t *sched_cond;
 static pthread_mutex_t *sched_mutex;
 
-void init_deque_queues_mechanisms(void)
+void _starpu_init_deque_queues_mechanisms(void)
 {
 	total_number_of_jobs = 0;
 
@@ -36,7 +36,7 @@ void init_deque_queues_mechanisms(void)
 	sched_mutex = &sched->sched_activity_mutex;
 }
 
-struct jobq_s *create_deque(void)
+struct jobq_s *_starpu_create_deque(void)
 {
 	struct jobq_s *jobq;
 	jobq = malloc(sizeof(struct jobq_s));
@@ -44,8 +44,8 @@ struct jobq_s *create_deque(void)
 	pthread_mutex_init(&jobq->activity_mutex, NULL);
 	pthread_cond_init(&jobq->activity_cond, NULL);
 
-	struct deque_jobq_s *deque;
-	deque = malloc(sizeof(struct deque_jobq_s));
+	struct starpu_deque_jobq_s *deque;
+	deque = malloc(sizeof(struct starpu_deque_jobq_s));
 
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
 	deque->jobq = starpu_job_list_new();
@@ -61,38 +61,38 @@ struct jobq_s *create_deque(void)
 	return jobq;
 }
 
-unsigned get_total_njobs_deques(void)
+unsigned _starpu_get_total_njobs_deques(void)
 {
 	return total_number_of_jobs;
 }
 
-unsigned get_deque_njobs(struct jobq_s *q)
+unsigned _starpu_get_deque_njobs(struct jobq_s *q)
 {
 	STARPU_ASSERT(q);
 
-	struct deque_jobq_s *deque_queue = q->queue;
+	struct starpu_deque_jobq_s *deque_queue = q->queue;
 
 	return deque_queue->njobs;
 }
 
-unsigned get_deque_nprocessed(struct jobq_s *q)
+unsigned _starpu_get_deque_nprocessed(struct jobq_s *q)
 {
 	STARPU_ASSERT(q);
 
-	struct deque_jobq_s *deque_queue = q->queue;
+	struct starpu_deque_jobq_s *deque_queue = q->queue;
 
 	return deque_queue->nprocessed;
 }
 
-int deque_push_prio_task(struct jobq_s *q, starpu_job_t task)
+int _starpu_deque_push_prio_task(struct jobq_s *q, starpu_job_t task)
 {
-	return deque_push_task(q, task);
+	return _starpu_deque_push_task(q, task);
 }
 
-int deque_push_task(struct jobq_s *q, starpu_job_t task)
+int _starpu_deque_push_task(struct jobq_s *q, starpu_job_t task)
 {
 	STARPU_ASSERT(q);
-	struct deque_jobq_s *deque_queue = q->queue;
+	struct starpu_deque_jobq_s *deque_queue = q->queue;
 
 	/* if anyone is blocked on the entire machine, wake it up */
 	pthread_mutex_lock(sched_mutex);
@@ -114,12 +114,12 @@ int deque_push_task(struct jobq_s *q, starpu_job_t task)
 	return 0;
 }
 
-starpu_job_t deque_pop_task(struct jobq_s *q)
+starpu_job_t _starpu_deque_pop_task(struct jobq_s *q)
 {
 	starpu_job_t j = NULL;
 
 	STARPU_ASSERT(q);
-	struct deque_jobq_s *deque_queue = q->queue;
+	struct starpu_deque_jobq_s *deque_queue = q->queue;
 
 	if ((deque_queue->njobs == 0) && _starpu_machine_is_running())
 	{
@@ -151,7 +151,7 @@ struct starpu_job_list_s * deque_pop_every_task(struct jobq_s *q, uint32_t where
 	struct starpu_job_list_s *new_list, *old_list;
 
 	STARPU_ASSERT(q);
-	struct deque_jobq_s *deque_queue = q->queue;
+	struct starpu_deque_jobq_s *deque_queue = q->queue;
 
 	/* block until some task is available in that queue */
 	pthread_mutex_lock(&q->activity_mutex);

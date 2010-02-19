@@ -34,15 +34,15 @@ static float overload_metric(unsigned id)
 {
 	float execution_ratio = 0.0f;
 	if (performed_total > 0) {
-		execution_ratio = get_deque_nprocessed(queue_array[id])/performed_total;
+		execution_ratio = _starpu_get_deque_nprocessed(queue_array[id])/performed_total;
 	}
 
 	unsigned performed_queue;
-	performed_queue = get_deque_nprocessed(queue_array[id]);
+	performed_queue = _starpu_get_deque_nprocessed(queue_array[id]);
 
 	float current_ratio = 0.0f;
 	if (performed_queue > 0) {
-		current_ratio = get_deque_njobs(queue_array[id])/performed_queue;
+		current_ratio = _starpu_get_deque_njobs(queue_array[id])/performed_queue;
 	}
 	
 	return (current_ratio - execution_ratio);
@@ -135,7 +135,7 @@ static starpu_job_t ws_pop_task(struct jobq_s *q)
 {
 	starpu_job_t j;
 
-	j = deque_pop_task(q);
+	j = _starpu_deque_pop_task(q);
 	if (j) {
 		/* there was a local task */
 		performed_total++;
@@ -148,7 +148,7 @@ static starpu_job_t ws_pop_task(struct jobq_s *q)
 
 	if (!jobq_trylock(victimq))
 	{
-		j = deque_pop_task(victimq);
+		j = _starpu_deque_pop_task(victimq);
 		jobq_unlock(victimq);
 
 		TRACE_WORK_STEALING(q, j);
@@ -162,10 +162,10 @@ static struct jobq_s *init_ws_deque(void)
 {
 	struct jobq_s *q;
 
-	q = create_deque();
+	q = _starpu_create_deque();
 
-	q->_starpu_push_task = deque_push_task; 
-	q->push_prio_task = deque_push_prio_task; 
+	q->_starpu_push_task = _starpu_deque_push_task; 
+	q->push_prio_task = _starpu_deque_push_prio_task; 
 	q->_starpu_pop_task = ws_pop_task;
 	q->who = 0;
 
@@ -182,7 +182,7 @@ static void initialize_ws_policy(struct starpu_machine_config_s *config,
 
 	//machineconfig = config;
 
-	setup_queues(init_deque_queues_mechanisms, init_ws_deque, config);
+	setup_queues(_starpu_init_deque_queues_mechanisms, init_ws_deque, config);
 }
 
 static struct jobq_s *get_local_queue_ws(struct starpu_sched_policy_s *policy __attribute__ ((unused)))
