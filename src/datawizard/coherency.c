@@ -303,7 +303,7 @@ void starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wb_
 
 	/* are we doing write-through or just some normal write-back ? */
 	if (wb_mask & ~(1<<memory_node)) {
-		write_through_data(handle, memory_node, wb_mask);
+		starpu_write_through_data(handle, memory_node, wb_mask);
 	}
 
 	uint32_t local_node = starpu_get_local_memory_node();
