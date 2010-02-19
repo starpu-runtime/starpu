@@ -91,7 +91,7 @@ static int _dm_push_task(struct jobq_s *q __attribute__ ((unused)), starpu_job_t
 			continue;
 		}
 
-		double local_length = job_expected_length(queue_array[worker]->who, j, queue_array[worker]->arch);
+		double local_length = _starpu_job_expected_length(queue_array[worker]->who, j, queue_array[worker]->arch);
 
 		if (local_length == -1.0) 
 		{

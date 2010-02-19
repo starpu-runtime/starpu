@@ -372,7 +372,7 @@ static void load_bus_affinity_file(void)
 	load_bus_affinity_file_content();
 }
 
-int *get_gpu_affinity_vector(unsigned gpuid)
+int *_starpu_get_gpu_affinity_vector(unsigned gpuid)
 {
 	return affinity_matrix[gpuid];
 }
@@ -623,23 +623,23 @@ static void load_bus_bandwith_file(void)
 
 void starpu_force_bus_sampling(void)
 {
-	create_sampling_directory_if_needed();
+	_starpu_create_sampling_directory_if_needed();
 
 	generate_bus_affinity_file();
 	generate_bus_latency_file();
 	generate_bus_bandwith_file();
 }
 
-void load_bus_performance_files(void)
+void _starpu_load_bus_performance_files(void)
 {
-	create_sampling_directory_if_needed();
+	_starpu_create_sampling_directory_if_needed();
 
 	load_bus_affinity_file();
 	load_bus_latency_file();
 	load_bus_bandwith_file();
 }
 
-double predict_transfer_time(unsigned src_node, unsigned dst_node, size_t size)
+double _starpu_predict_transfer_time(unsigned src_node, unsigned dst_node, size_t size)
 {
 	double bandwith = bandwith_matrix[src_node][dst_node];
 	double latency = latency_matrix[src_node][dst_node];

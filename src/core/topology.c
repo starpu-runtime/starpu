@@ -497,7 +497,7 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 				if (may_bind_automatically)
 				{
 					/* StarPU is allowed to bind threads automatically */
-					preferred_binding = get_gpu_affinity_vector(workerarg->id);
+					preferred_binding = _starpu_get_gpu_affinity_vector(workerarg->id);
 					npreferred = config->nhwcpus;
 				}
 				is_a_set_of_accelerators = 0;

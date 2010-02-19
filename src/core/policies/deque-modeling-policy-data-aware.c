@@ -91,11 +91,11 @@ static int _dmda_push_task(struct jobq_s *q __attribute__ ((unused)) , starpu_jo
 			continue;
 		}
 
-		local_task_length[worker] = job_expected_length(queue_array[worker]->who,
+		local_task_length[worker] = _starpu_job_expected_length(queue_array[worker]->who,
 							j, queue_array[worker]->arch);
 
 		//local_data_penalty[worker] = 0;
-		local_data_penalty[worker] = data_expected_penalty(queue_array[worker], task);
+		local_data_penalty[worker] = _starpu_data_expected_penalty(queue_array[worker], task);
 
 		if (local_task_length[worker] == -1.0)
 		{

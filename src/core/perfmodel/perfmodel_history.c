@@ -208,7 +208,7 @@ static void get_model_debug_path(struct starpu_perfmodel_t *model, const char *a
 	strncat(path, ".debug", maxlen);
 }
 
-void register_model(struct starpu_perfmodel_t *model)
+void _starpu_register_model(struct starpu_perfmodel_t *model)
 {
 	/* add the model to a linked list */
 	struct starpu_model_list_t *node = malloc(sizeof(struct starpu_model_list_t));
@@ -221,7 +221,7 @@ void register_model(struct starpu_perfmodel_t *model)
 	registered_models = node;
 
 #ifdef STARPU_MODEL_DEBUG
-	create_sampling_directory_if_needed();
+	_starpu_create_sampling_directory_if_needed();
 
 	unsigned arch;
 	for (arch = 0; arch < NARCH_VARIATIONS; arch++)
@@ -278,7 +278,7 @@ static void save_history_based_model(struct starpu_perfmodel_t *model)
 #endif
 }
 
-void dump_registered_models(void)
+void _starpu_dump_registered_models(void)
 {
 	struct starpu_model_list_t *node;
 	node = registered_models;
@@ -331,13 +331,13 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
 	}
 
 	/* make sure the performance model directory exists (or create it) */
-	create_sampling_directory_if_needed();
+	_starpu_create_sampling_directory_if_needed();
 
 	/*
 	 * We need to keep track of all the model that were opened so that we can 
 	 * possibly update them at runtime termination ...
 	 */
-	register_model(model);
+	_starpu_register_model(model);
 
 	char path[256];
 	get_model_path(model, path, 256);
@@ -482,7 +482,7 @@ void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model,
 	get_model_debug_path(model, archname, path, maxlen);
 }
 
-double regression_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j)
+double _starpu_regression_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j)
 {
 	double exp = -1.0;
 	size_t size = _starpu_job_get_data_size(j);
@@ -499,7 +499,7 @@ double regression_based_job_expected_length(struct starpu_perfmodel_t *model, en
 	return exp;
 }
 
-double history_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j)
+double _starpu_history_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j)
 {
 	double exp;
 	struct starpu_per_arch_perfmodel_t *per_arch_model;

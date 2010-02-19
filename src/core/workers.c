@@ -231,7 +231,7 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	timing_init();
 
-	load_bus_performance_files();
+	_starpu_load_bus_performance_files();
 
 	/* store the pointer to the user explicit configuration during the
 	 * initialization */
@@ -440,7 +440,7 @@ void starpu_shutdown(void)
 #endif
 
 	if (starpu_get_env_number("STARPU_CALIBRATE") != -1)
-		dump_registered_models();
+		_starpu_dump_registered_models();
 
 	/* wait for their termination */
 	_starpu_terminate_workers(&config);

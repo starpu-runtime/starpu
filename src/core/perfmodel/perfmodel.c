@@ -42,7 +42,7 @@ static double per_arch_task_expected_length(struct starpu_perfmodel_t *model, en
 			model->benchmarking = 0;
 		}
 		
-		register_model(model);
+		_starpu_register_model(model);
 		model->is_loaded = 1;
 	}
 
@@ -86,7 +86,7 @@ static double common_task_expected_length(struct starpu_perfmodel_t *model, uint
 	return -1.0;
 }
 
-double job_expected_length(uint32_t who, struct starpu_job_s *j, enum starpu_perf_archtype arch)
+double _starpu_job_expected_length(uint32_t who, struct starpu_job_s *j, enum starpu_perf_archtype arch)
 {
 	struct starpu_task *task = j->task;
 	struct starpu_perfmodel_t *model = task->cl->model;
@@ -100,10 +100,10 @@ double job_expected_length(uint32_t who, struct starpu_job_s *j, enum starpu_per
 				return common_task_expected_length(model, who, task);
 
 			case STARPU_HISTORY_BASED:
-				return history_based_job_expected_length(model, arch, j);
+				return _starpu_history_based_job_expected_length(model, arch, j);
 
 			case STARPU_REGRESSION_BASED:
-				return regression_based_job_expected_length(model, arch, j);
+				return _starpu_regression_based_job_expected_length(model, arch, j);
 
 			default:
 				STARPU_ABORT();
@@ -115,7 +115,7 @@ double job_expected_length(uint32_t who, struct starpu_job_s *j, enum starpu_per
 }
 
 /* Data transfer performance modeling */
-double data_expected_penalty(struct jobq_s *q, struct starpu_task *task)
+double _starpu_data_expected_penalty(struct jobq_s *q, struct starpu_task *task)
 {
 	uint32_t memory_node = q->memory_node;
 	unsigned nbuffers = task->cl->nbuffers;
@@ -136,7 +136,7 @@ double data_expected_penalty(struct jobq_s *q, struct starpu_task *task)
 
 			uint32_t src_node = _starpu_select_src_node(handle);
 
-			penalty += predict_transfer_time(src_node, memory_node, size);
+			penalty += _starpu_predict_transfer_time(src_node, memory_node, size);
 		}
 	}
 
@@ -181,7 +181,7 @@ void _starpu_get_perf_model_dir_debug(char *path, size_t maxlen)
 	strncat(path, "debug/", maxlen);
 }
 
-void create_sampling_directory_if_needed(void)
+void _starpu_create_sampling_directory_if_needed(void)
 {
 	if (!directory_existence_was_tested)
 	{
