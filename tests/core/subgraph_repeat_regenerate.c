@@ -120,6 +120,12 @@ int main(int argc, char **argv)
 	pthread_mutex_unlock(&mutex);
 
 	STARPU_ASSERT(check_cnt == (4*loop_cnt));
+	
+	/* Cleanup the statically allocated tasks */
+	starpu_task_deinit(&taskA);
+	starpu_task_deinit(&taskB);
+	starpu_task_deinit(&taskC);
+	starpu_task_deinit(&taskD);
 
 	starpu_shutdown();
 

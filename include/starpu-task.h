@@ -180,6 +180,12 @@ void starpu_tag_remove(starpu_tag_t id);
 /* Initialize a task structure with default values. */
 void starpu_task_init(struct starpu_task *task);
 
+/* Release all the structures automatically allocated to execute the task. This
+ * is called implicitely by starpu_task_destroy, but the task structure itself
+ * is not liberated. This should be used for statically allocated tasks for
+ * instance. */
+void starpu_task_deinit(struct starpu_task *task);
+
 /* Allocate a task structure and initialize it with default values. Tasks
  * allocated dynamically with starpu_task_create are automatically liberated
  * when the task is terminated. If the destroy flag is explicitely unset, the
@@ -187,11 +193,11 @@ void starpu_task_init(struct starpu_task *task);
  * */
 struct starpu_task *starpu_task_create(void);
 
-/* Liberate the ressource allocated during starpu_task_create. This function
- * can be called automatically after the execution of a task by setting the
- * "destroy" flag of the starpu_task structure (default behaviour). Calling
- * this function on a statically allocated task results in an undefined
- * behaviour. */
+/* Liberate the ressource allocated during the execution of the task and
+ * deallocate the task structure itself. This function can be called
+ * automatically after the execution of a task by setting the "destroy" flag of
+ * the starpu_task structure (default behaviour). Calling this function on a
+ * statically allocated task results in an undefined behaviour. */
 void starpu_task_destroy(struct starpu_task *task);
 int starpu_submit_task(struct starpu_task *task);
 

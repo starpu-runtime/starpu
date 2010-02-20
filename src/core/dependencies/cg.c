@@ -34,6 +34,11 @@ void _starpu_cg_list_init(struct starpu_cg_list_s *list)
 #endif
 }
 
+void _starpu_cg_list_deinit(struct starpu_cg_list_s *list)
+{
+	free(list->succ);
+}
+
 void _starpu_add_successor_to_cg_list(struct starpu_cg_list_s *successors, starpu_cg_t *cg)
 {
 	/* where should that cg should be put in the array ? */

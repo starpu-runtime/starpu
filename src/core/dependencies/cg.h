@@ -74,6 +74,7 @@ typedef struct starpu_cg_s {
 } starpu_cg_t;
 
 void _starpu_cg_list_init(struct starpu_cg_list_s *list);
+void _starpu_cg_list_deinit(struct starpu_cg_list_s *list);
 void _starpu_add_successor_to_cg_list(struct starpu_cg_list_s *successors, starpu_cg_t *cg);
 void _starpu_notify_cg(starpu_cg_t *cg);
 void _starpu_notify_cg_list(struct starpu_cg_list_s *successors);

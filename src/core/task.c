@@ -56,6 +56,18 @@ void starpu_task_init(struct starpu_task *task)
 	task->starpu_private = NULL;
 }
 
+/* Liberate all the ressources allocated for a task, without deallocating the
+ * task structure itself (this is required for statically allocated tasks). */
+void starpu_task_deinit(struct starpu_task *task)
+{
+	STARPU_ASSERT(task);
+
+	starpu_job_t j = (struct starpu_job_s *)task->starpu_private;
+
+	if (j)
+		_starpu_job_destroy(j);
+}
+
 struct starpu_task * __attribute__((malloc)) starpu_task_create(void)
 {
 	struct starpu_task *task;
@@ -79,6 +91,8 @@ struct starpu_task * __attribute__((malloc)) starpu_task_create(void)
 void starpu_task_destroy(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
+
+	starpu_task_deinit(task);
 
 	/* TODO handle the case of task with detach = 1 and destroy = 1 */
 	/* TODO handle the case of non terminated tasks -> return -EINVAL */
