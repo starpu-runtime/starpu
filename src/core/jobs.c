@@ -69,6 +69,8 @@ void _starpu_job_destroy(starpu_job_t j)
 	pthread_mutex_destroy(&j->sync_mutex);
 
 	_starpu_cg_list_deinit(&j->job_successors);
+
+	starpu_job_delete(j);
 }
 
 void _starpu_wait_job(starpu_job_t j)
@@ -133,10 +135,7 @@ void _starpu_handle_job_termination(starpu_job_t j)
 		/* no one is going to synchronize with that task so we release
  		 * the data structures now */
 		if (destroy)
-		{
-			starpu_job_delete(j);
-			free(task);
-		}
+			starpu_task_destroy(task);
 	}
 
 	_starpu_decrement_nsubmitted_tasks();

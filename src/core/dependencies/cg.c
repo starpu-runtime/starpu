@@ -36,7 +36,21 @@ void _starpu_cg_list_init(struct starpu_cg_list_s *list)
 
 void _starpu_cg_list_deinit(struct starpu_cg_list_s *list)
 {
+	unsigned id;
+	for (id = 0; id < list->nsuccs; id++)
+	{
+		starpu_cg_t *cg = list->succ[id];
+
+		/* We remove the reference on the completion group, and
+		 * liberate it if there is no more reference. */		
+		unsigned ntags = STARPU_ATOMIC_ADD(&cg->ntags, -1);
+		if (ntags == 0)
+			free(list->succ[id]);
+	}
+
+#ifdef STARPU_DYNAMIC_DEPS_SIZE
 	free(list->succ);
+#endif
 }
 
 void _starpu_add_successor_to_cg_list(struct starpu_cg_list_s *successors, starpu_cg_t *cg)
