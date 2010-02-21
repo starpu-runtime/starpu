@@ -29,15 +29,37 @@ void _starpu_setup_queues(void (*init_queue_design)(void),
 {
 	unsigned worker;
 
-	init_queue_design();
+	if (init_queue_design)
+		init_queue_design();
 
 	for (worker = 0; worker < config->nworkers; worker++)
 	{
 		struct  starpu_worker_s *workerarg = &config->workers[worker];
 		
-		workerarg->jobq = func_init_queue();
+		if (func_init_queue)
+			workerarg->jobq = func_init_queue();
 	}
 }
+
+void _starpu_deinit_queues(void (*deinit_queue_design)(void),
+		  void (*func_deinit_queue)(struct starpu_jobq_s *q), 
+		  struct starpu_machine_config_s *config)
+{
+	unsigned worker;
+
+	for (worker = 0; worker < config->nworkers; worker++)
+	{
+		struct  starpu_worker_s *workerarg = &config->workers[worker];
+		
+		if (func_deinit_queue)
+			func_deinit_queue(workerarg->jobq);
+	}
+
+	if (deinit_queue_design)
+		deinit_queue_design();
+}
+
+
 
 /* this may return NULL for an "anonymous thread" */
 struct starpu_jobq_s *_starpu_get_local_queue(void)

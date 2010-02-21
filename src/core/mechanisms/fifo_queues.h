@@ -36,6 +36,7 @@ struct starpu_fifo_jobq_s {
 };
 
 struct starpu_jobq_s *_starpu_create_fifo(void);
+void _starpu_destroy_fifo(struct starpu_jobq_s *jobq);
 
 int _starpu_fifo_push_task(struct starpu_jobq_s *q, starpu_job_t task);
 int _starpu_fifo_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task);

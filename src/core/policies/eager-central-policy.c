@@ -38,6 +38,14 @@ static void init_central_queue_design(void)
 	jobq->_starpu_pop_every_task = _starpu_fifo_pop_every_task;
 }
 
+static void deinit_central_queue_design(void)
+{
+	/* TODO check that there is no task left in the queue */
+
+	/* deallocate the job queue */
+	_starpu_destroy_fifo(jobq);
+}
+
 static struct starpu_jobq_s *func_init_central_queue(void)
 {
 	/* once again, this is trivial */
@@ -50,6 +58,12 @@ static void initialize_eager_center_policy(struct starpu_machine_config_s *confi
 	_starpu_setup_queues(init_central_queue_design, func_init_central_queue, config);
 }
 
+static void deinitialize_eager_center_policy(struct starpu_machine_config_s *config, 
+		   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
+{
+	_starpu_deinit_queues(deinit_central_queue_design, NULL, config);
+}
+
 static struct starpu_jobq_s *get_local_queue_eager(struct starpu_sched_policy_s *policy 
 						__attribute__ ((unused)))
 {
@@ -59,7 +73,7 @@ static struct starpu_jobq_s *get_local_queue_eager(struct starpu_sched_policy_s 
 
 struct starpu_sched_policy_s sched_eager_policy = {
 	.init_sched = initialize_eager_center_policy,
-	.deinit_sched = NULL,
+	.deinit_sched = deinitialize_eager_center_policy,
 	._starpu_get_local_queue = get_local_queue_eager,
 	.policy_name = "eager",
 	.policy_description = "greedy policy"

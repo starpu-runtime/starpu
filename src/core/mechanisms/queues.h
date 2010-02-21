@@ -66,6 +66,10 @@ struct starpu_machine_config_s;
 void _starpu_setup_queues(void (*init_queue_design)(void),
                   struct starpu_jobq_s *(*func_init_queue)(void),
                   struct starpu_machine_config_s *config);
+void _starpu_deinit_queues(void (*deinit_queue_design)(void),
+		  void (*func_deinit_queue)(struct starpu_jobq_s *q), 
+		  struct starpu_machine_config_s *config);
+
 
 struct starpu_jobq_s *_starpu_get_local_queue(void);
 void _starpu_set_local_queue(struct starpu_jobq_s *jobq);

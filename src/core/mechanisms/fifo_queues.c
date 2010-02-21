@@ -61,6 +61,23 @@ struct starpu_jobq_s *_starpu_create_fifo(void)
 	return jobq;
 }
 
+void _starpu_destroy_fifo(struct starpu_jobq_s *jobq)
+{
+	STARPU_ASSERT(jobq);
+
+	/* We first liberate the FIFO-specific data structure */
+	struct starpu_fifo_jobq_s *fifo = jobq->queue;
+
+	starpu_job_list_delete(fifo->jobq);
+	free(fifo);
+
+	/* Then we liberate the generic resources associated to a jobq */
+	pthread_mutex_destroy(&jobq->activity_mutex);
+	pthread_cond_destroy(&jobq->activity_cond);
+
+	free(jobq);
+}
+
 int _starpu_fifo_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
 {
 #ifndef STARPU_NO_PRIO
