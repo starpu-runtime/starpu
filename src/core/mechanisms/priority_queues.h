@@ -33,7 +33,10 @@ struct starpu_priority_jobq_s {
 };
 
 struct starpu_jobq_s *_starpu_create_priority_jobq(void);
+void _starpu_destroy_priority_jobq(struct starpu_jobq_s *jobq);
+
 void _starpu_init_priority_queues_mechanisms(void);
+void _starpu_deinit_priority_queues_mechanisms(void);
 
 int _starpu_priority_push_task(struct starpu_jobq_s *q, starpu_job_t task);
 

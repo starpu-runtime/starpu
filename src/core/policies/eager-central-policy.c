@@ -41,6 +41,7 @@ static void init_central_queue_design(void)
 static void deinit_central_queue_design(void)
 {
 	/* TODO check that there is no task left in the queue */
+	_starpu_deinit_fifo_queues_mechanisms();
 
 	/* deallocate the job queue */
 	_starpu_destroy_fifo(jobq);

@@ -32,6 +32,15 @@ static void init_priority_queue_design(void)
 	jobq->_starpu_pop_task = _starpu_priority_pop_task;
 }
 
+static void deinit_priority_queue_design(void)
+{
+	/* TODO check that there is no task left in the queue */
+	_starpu_deinit_priority_queues_mechanisms();
+
+	/* deallocate the job queue */
+	_starpu_destroy_priority_jobq(jobq);
+}
+
 static struct starpu_jobq_s *func_init_priority_queue(void)
 {
 	return jobq;
@@ -43,6 +52,12 @@ static void initialize_eager_center_priority_policy(struct starpu_machine_config
 	_starpu_setup_queues(init_priority_queue_design, func_init_priority_queue, config);
 }
 
+static void deinitialize_eager_center_priority_policy(struct starpu_machine_config_s *config, 
+		   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
+{
+	_starpu_deinit_queues(deinit_priority_queue_design, NULL, config);
+}
+
 static struct starpu_jobq_s *get_local_queue_eager_priority(struct starpu_sched_policy_s *policy __attribute__ ((unused)))
 {
 	/* this is trivial for that strategy */
@@ -51,7 +66,7 @@ static struct starpu_jobq_s *get_local_queue_eager_priority(struct starpu_sched_
 
 struct starpu_sched_policy_s sched_prio_policy = {
 	.init_sched = initialize_eager_center_priority_policy,
-	.deinit_sched = NULL,
+	.deinit_sched = deinitialize_eager_center_priority_policy,
 	._starpu_get_local_queue = get_local_queue_eager_priority,
 	.policy_name = "prio",
 	.policy_description = "eager (with priorities)"

@@ -45,5 +45,6 @@ starpu_job_t _starpu_fifo_pop_task(struct starpu_jobq_s *q);
 struct starpu_job_list_s * _starpu_fifo_pop_every_task(struct starpu_jobq_s *q, uint32_t where);
 
 void _starpu_init_fifo_queues_mechanisms(void);
+void _starpu_deinit_fifo_queues_mechanisms(void);
 
 #endif // __FIFO_QUEUES_H__

@@ -36,6 +36,14 @@ void _starpu_init_deque_queues_mechanisms(void)
 	sched_mutex = &sched->sched_activity_mutex;
 }
 
+void _starpu_deinit_deque_queues_mechanisms(void)
+{
+	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
+
+	pthread_mutex_destroy(&sched->sched_activity_mutex);
+	pthread_cond_destroy(&sched->sched_activity_cond);
+}
+
 struct starpu_jobq_s *_starpu_create_deque(void)
 {
 	struct starpu_jobq_s *jobq;
@@ -59,6 +67,18 @@ struct starpu_jobq_s *_starpu_create_deque(void)
 	jobq->queue = deque;
 
 	return jobq;
+}
+
+void _starpu_destroy_deque(struct starpu_jobq_s *jobq)
+{
+	struct starpu_deque_jobq_s *deque;
+
+	deque = jobq->queue;
+
+	starpu_job_list_delete(deque->jobq);
+	free(deque);
+
+	free(jobq);
 }
 
 unsigned _starpu_get_total_njobs_deques(void)

@@ -36,6 +36,10 @@ void _starpu_init_fifo_queues_mechanisms(void)
 	sched_mutex = &sched->sched_activity_mutex;
 }
 
+void _starpu_deinit_fifo_queues_mechanisms(void)
+{
+}
+
 struct starpu_jobq_s *_starpu_create_fifo(void)
 {
 	struct starpu_jobq_s *jobq;
@@ -70,10 +74,6 @@ void _starpu_destroy_fifo(struct starpu_jobq_s *jobq)
 
 	starpu_job_list_delete(fifo->jobq);
 	free(fifo);
-
-	/* Then we liberate the generic resources associated to a jobq */
-	pthread_mutex_destroy(&jobq->activity_mutex);
-	pthread_cond_destroy(&jobq->activity_cond);
 
 	free(jobq);
 }

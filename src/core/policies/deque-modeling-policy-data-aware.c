@@ -227,6 +227,14 @@ static void initialize_dmda_policy(struct starpu_machine_config_s *config,
 	_starpu_setup_queues(_starpu_init_fifo_queues_mechanisms, init_dmda_fifo, config);
 }
 
+static void deinitialize_dmda_policy(struct starpu_machine_config_s *config, 
+	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
+{
+	_starpu_deinit_queues(NULL, _starpu_destroy_fifo, config);
+}
+
+
+
 static struct starpu_jobq_s *get_local_queue_dmda(struct starpu_sched_policy_s *policy __attribute__ ((unused)))
 {
 	struct starpu_jobq_s *queue;
@@ -243,7 +251,7 @@ static struct starpu_jobq_s *get_local_queue_dmda(struct starpu_sched_policy_s *
 
 struct starpu_sched_policy_s sched_dmda_policy = {
 	.init_sched = initialize_dmda_policy,
-	.deinit_sched = NULL,
+	.deinit_sched = deinitialize_dmda_policy,
 	._starpu_get_local_queue = get_local_queue_dmda,
 	.policy_name = "dmda",
 	.policy_description = "data-aware performance model"

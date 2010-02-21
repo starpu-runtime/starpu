@@ -37,6 +37,10 @@ void _starpu_init_priority_queues_mechanisms(void)
 	sched_mutex = &sched->sched_activity_mutex;
 }
 
+void _starpu_deinit_priority_queues_mechanisms(void)
+{
+}
+
 struct starpu_jobq_s *_starpu_create_priority_jobq(void)
 {
 	struct starpu_jobq_s *q;
@@ -61,6 +65,21 @@ struct starpu_jobq_s *_starpu_create_priority_jobq(void)
 	}
 
 	return q;
+}
+
+void _starpu_destroy_priority_jobq(struct starpu_jobq_s *jobq)
+{
+	struct starpu_priority_jobq_s *central_queue;
+
+	central_queue = jobq->queue;
+
+	unsigned prio;
+	for (prio = 0; prio < NPRIO_LEVELS; prio++)
+		starpu_job_list_delete(central_queue->jobq[prio]);
+
+	free(central_queue);
+
+	free(jobq);
 }
 
 int _starpu_priority_push_task(struct starpu_jobq_s *q, starpu_job_t j)
