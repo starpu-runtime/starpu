@@ -137,7 +137,7 @@ void starpu_register_blas_data(starpu_data_handle *handleptr, uint32_t home_node
 
 static uint32_t footprint_blas_interface_crc32(starpu_data_handle handle)
 {
-	return crc32_be(starpu_get_blas_nx(handle), starpu_get_blas_ny(handle));
+	return _starpu_crc32_be(starpu_get_blas_nx(handle), starpu_get_blas_ny(handle));
 }
 
 static void display_blas_interface(starpu_data_handle handle, FILE *f)

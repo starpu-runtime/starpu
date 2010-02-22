@@ -32,7 +32,7 @@ static inline uint32_t __attribute__ ((pure)) crc32_be_8(uint8_t inputbyte, uint
 	return crc;
 }
 
-uint32_t crc32_be(uint32_t input, uint32_t inputcrc)
+uint32_t _starpu_crc32_be(uint32_t input, uint32_t inputcrc)
 {
 	uint8_t *p = (uint8_t *)&input;
 
@@ -46,7 +46,7 @@ uint32_t crc32_be(uint32_t input, uint32_t inputcrc)
 	return crc;
 }
 
-uint32_t crc32_string(char *str, uint32_t inputcrc)
+uint32_t _starpu_crc32_string(char *str, uint32_t inputcrc)
 {
 	uint32_t hash = inputcrc;
 

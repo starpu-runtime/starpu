@@ -125,7 +125,7 @@ void starpu_register_vector_data(starpu_data_handle *handleptr, uint32_t home_no
 
 static uint32_t footprint_vector_interface_crc32(starpu_data_handle handle)
 {
-	return crc32_be(starpu_get_vector_nx(handle), 0);
+	return _starpu_crc32_be(starpu_get_vector_nx(handle), 0);
 }
 
 static void display_vector_interface(starpu_data_handle handle, FILE *f)

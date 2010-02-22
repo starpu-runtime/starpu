@@ -108,7 +108,7 @@ void starpu_register_csr_data(starpu_data_handle *handleptr, uint32_t home_node,
 
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle handle)
 {
-	return crc32_be(starpu_get_csr_nnz(handle), 0);
+	return _starpu_crc32_be(starpu_get_csr_nnz(handle), 0);
 }
 
 /* offer an access to the data parameters */

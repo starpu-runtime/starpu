@@ -33,7 +33,7 @@ void _starpu_compute_buffers_footprint(starpu_job_t j)
 
 		uint32_t handle_footprint = handle->ops->footprint(handle);
 
-		footprint = crc32_be(handle_footprint, footprint);
+		footprint = _starpu_crc32_be(handle_footprint, footprint);
 	}
 
 	j->footprint = footprint;
@@ -46,5 +46,5 @@ inline uint32_t _starpu_compute_data_footprint(starpu_data_handle handle)
 
 	uint32_t handle_footprint = handle->ops->footprint(handle);
 
-	return crc32_be(handle_footprint, interfaceid);
+	return _starpu_crc32_be(handle_footprint, interfaceid);
 }

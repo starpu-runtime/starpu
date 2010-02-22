@@ -117,9 +117,9 @@ static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle handle)
 {
 	uint32_t hash;
 
-	hash = crc32_be(starpu_get_bcsr_nnz(handle), 0);
-	hash = crc32_be(starpu_get_bcsr_c(handle), hash);
-	hash = crc32_be(starpu_get_bcsr_r(handle), hash);
+	hash = _starpu_crc32_be(starpu_get_bcsr_nnz(handle), 0);
+	hash = _starpu_crc32_be(starpu_get_bcsr_c(handle), hash);
+	hash = _starpu_crc32_be(starpu_get_bcsr_r(handle), hash);
 
 	return hash;
 }

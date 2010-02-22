@@ -48,22 +48,22 @@ const char *get_worker_color(int workerid)
 unsigned get_colour_symbol_red(char *name)
 {
 	/* choose some colour ... that's disguting yes */
-	uint32_t hash_symbol = crc32_string(name, 0);
-	return (unsigned)crc32_string("red", hash_symbol) % 1024;
+	uint32_t hash_symbol = _starpu_crc32_string(name, 0);
+	return (unsigned)_starpu_crc32_string("red", hash_symbol) % 1024;
 }
 
 unsigned get_colour_symbol_green(char *name)
 {
 	/* choose some colour ... that's disguting yes */
-	uint32_t hash_symbol = crc32_string(name, 0);
-	return (unsigned)crc32_string("green", hash_symbol) % 1024;
+	uint32_t hash_symbol = _starpu_crc32_string(name, 0);
+	return (unsigned)_starpu_crc32_string("green", hash_symbol) % 1024;
 }
 
 unsigned get_colour_symbol_blue(char *name)
 {
 	/* choose some colour ... that's disguting yes */
-	uint32_t hash_symbol = crc32_string(name, 0);
-	return (unsigned)crc32_string("blue", hash_symbol) % 1024;
+	uint32_t hash_symbol = _starpu_crc32_string(name, 0);
+	return (unsigned)_starpu_crc32_string("blue", hash_symbol) % 1024;
 }
 
 
