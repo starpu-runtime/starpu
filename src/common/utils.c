@@ -27,7 +27,7 @@
 /* Function with behaviour like `mkdir -p'. This function was adapted from
  * http://niallohiggins.com/2009/01/08/mkpath-mkdir-p-alike-in-c-for-unix/ */
 
-int starpu_mkpath(const char *s, mode_t mode)
+int _starpu_mkpath(const char *s, mode_t mode)
 {
 	char *q, *r = NULL, *path = NULL, *up = NULL;
 	int rv;
@@ -52,7 +52,7 @@ int starpu_mkpath(const char *s, mode_t mode)
 	if ((up = strdup(r)) == NULL)
 		STARPU_ABORT();
 
-	if ((starpu_mkpath(up, mode) == -1) && (errno != EEXIST))
+	if ((_starpu_mkpath(up, mode) == -1) && (errno != EEXIST))
 		goto out;
 
 	if ((mkdir(path, mode) == -1) && (errno != EEXIST))

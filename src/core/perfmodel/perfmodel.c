@@ -197,7 +197,7 @@ void _starpu_create_sampling_directory_if_needed(void)
 		   changed in between. Instead, we create it and check if
 		   it already existed before */
 		int ret;
-		ret = starpu_mkpath(perf_model_dir, S_IRWXU);
+		ret = _starpu_mkpath(perf_model_dir, S_IRWXU);
 
 		if (ret == -1)
 		{
@@ -213,7 +213,7 @@ void _starpu_create_sampling_directory_if_needed(void)
 		char perf_model_dir_codelets[256];
 		_starpu_get_perf_model_dir_codelets(perf_model_dir_codelets, 256);
 
-		ret = starpu_mkpath(perf_model_dir_codelets, S_IRWXU);
+		ret = _starpu_mkpath(perf_model_dir_codelets, S_IRWXU);
 		if (ret == -1)
 		{
 			STARPU_ASSERT(errno == EEXIST);
@@ -228,7 +228,7 @@ void _starpu_create_sampling_directory_if_needed(void)
 		char perf_model_dir_bus[256];
 		_starpu_get_perf_model_dir_bus(perf_model_dir_bus, 256);
 
-		ret = starpu_mkpath(perf_model_dir_bus, S_IRWXU);
+		ret = _starpu_mkpath(perf_model_dir_bus, S_IRWXU);
 		if (ret == -1)
 		{
 			STARPU_ASSERT(errno == EEXIST);
@@ -243,7 +243,7 @@ void _starpu_create_sampling_directory_if_needed(void)
 		char perf_model_dir_debug[256];
 		_starpu_get_perf_model_dir_debug(perf_model_dir_debug, 256);
 
-		ret = starpu_mkpath(perf_model_dir_debug, S_IRWXU);
+		ret = _starpu_mkpath(perf_model_dir_debug, S_IRWXU);
 		if (ret == -1)
 		{
 			STARPU_ASSERT(errno == EEXIST);

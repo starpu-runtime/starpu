@@ -21,6 +21,6 @@
 #include <common/config.h>
 #include <sys/stat.h>
 
-int starpu_mkpath(const char *s, mode_t mode);
+int _starpu_mkpath(const char *s, mode_t mode);
 
 #endif // __COMMON_UTILS_H__
