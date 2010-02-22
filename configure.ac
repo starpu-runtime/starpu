@@ -361,7 +361,7 @@ AM_CONDITIONAL(STARPU_USE_FXT, test x$use_fxt = xyes)
 
 if test x$use_fxt = xyes; then
 	AC_DEFINE(STARPU_USE_FXT, [1], [enable FxT traces])
-	AC_DEFINE(STARPU_CONFIG_FUT, [1], [enable FUT traces])
+	AC_DEFINE(CONFIG_FUT, [1], [enable FUT traces])
 
 	AC_SUBST(USE_FXTDIR_FROM_USER,$use_fxt_from_system)
 	if test x$use_fxt_from_system = xno; then
