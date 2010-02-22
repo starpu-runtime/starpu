@@ -48,7 +48,7 @@ static void profile_set_tracefile(char *fmt, ...)
 	strcat(PROF_FILE_USER, suffix);
 }
 
-void start_fxt_profiling(void)
+void _starpu_start_fxt_profiling(void)
 {
 	unsigned threadid;
 
@@ -64,7 +64,7 @@ void start_fxt_profiling(void)
 
 	threadid = syscall(SYS_gettid);
 
-	atexit(stop_fxt_profiling);
+	atexit(_starpu_stop_fxt_profiling);
 
 	if(fut_setup(PROF_BUFFER_SIZE, FUT_KEYMASKALL, threadid) < 0) {
 		perror("fut_setup");
@@ -76,7 +76,7 @@ void start_fxt_profiling(void)
 	return;
 }
 
-void stop_fxt_profiling(void)
+void _starpu_stop_fxt_profiling(void)
 {
 	if (!written)
 	{
@@ -90,7 +90,7 @@ void stop_fxt_profiling(void)
 	}
 }
 
-void fxt_register_thread(unsigned cpuid)
+void _starpu_fxt_register_thread(unsigned cpuid)
 {
 	FUT_DO_PROBE2(FUT_NEW_LWP_CODE, cpuid, syscall(SYS_gettid));
 }

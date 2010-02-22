@@ -114,7 +114,7 @@ void init_problem(void)
 	unsigned i,j;
 
 #ifdef STARPU_USE_FXT
-	fxt_register_thread(0);
+	_starpu_fxt_register_thread(0);
 #endif
 
 	A = malloc(dim*dim*sizeof(float));

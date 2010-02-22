@@ -348,7 +348,7 @@ static void submit_new_iter(unsigned x, unsigned y, unsigned iter)
 static void launch_codelets(void)
 {
 #ifdef STARPU_USE_FXT
-	fxt_register_thread(0);
+	_starpu_fxt_register_thread(0);
 #endif
 	/* partition the work into slices */
 	unsigned taskx, tasky;

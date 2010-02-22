@@ -224,7 +224,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	srand(2008);
 	
 #ifdef STARPU_USE_FXT
-	start_fxt_profiling();
+	_starpu_start_fxt_profiling();
 #endif
 	
 	_starpu_open_debug_logfile();
@@ -450,7 +450,7 @@ void starpu_shutdown(void)
 	_starpu_destroy_topology(&config);
 
 #ifdef STARPU_USE_FXT
-	stop_fxt_profiling();
+	_starpu_stop_fxt_profiling();
 #endif
 
 	_starpu_close_debug_logfile();

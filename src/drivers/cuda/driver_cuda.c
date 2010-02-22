@@ -171,7 +171,7 @@ void *_starpu_cuda_worker(void *arg)
 	unsigned memory_node = args->memory_node;
 
 #ifdef STARPU_USE_FXT
-	fxt_register_thread(args->bindid);
+	_starpu_fxt_register_thread(args->bindid);
 #endif
 	TRACE_WORKER_INIT_START(STARPU_FUT_CUDA_KEY, memory_node);
 

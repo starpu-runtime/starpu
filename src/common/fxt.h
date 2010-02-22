@@ -90,9 +90,9 @@
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
 
-void start_fxt_profiling(void);
-void stop_fxt_profiling(void);
-void fxt_register_thread(unsigned);
+void _starpu_start_fxt_profiling(void);
+void _starpu_stop_fxt_profiling(void);
+void _starpu_fxt_register_thread(unsigned);
 
 /* sometimes we need something a little more specific than the wrappers from
  * FxT */

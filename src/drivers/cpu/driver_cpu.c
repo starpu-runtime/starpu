@@ -99,7 +99,7 @@ void *_starpu_cpu_worker(void *arg)
 	struct starpu_worker_s *cpu_arg = arg;
 
 #ifdef STARPU_USE_FXT
-	fxt_register_thread(cpu_arg->bindid);
+	_starpu_fxt_register_thread(cpu_arg->bindid);
 #endif
 	TRACE_WORKER_INIT_START(STARPU_FUT_CPU_KEY, cpu_arg->memory_node);
 
