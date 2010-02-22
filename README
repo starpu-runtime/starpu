@@ -43,8 +43,8 @@ advantage of their specificities in a portable fashion.
  * make
  * gcc (version >= 4.1)
  * if CUDA support is enabled
-   * CUDA (version >= 2.0)
-   * CUBLAS (version >= 2.0)
+   * CUDA (version >= 2.2)
+   * CUBLAS (version >= 2.2)
  * extra requirements for the svn version
    * autoconf (version >= 2.60)
    * automake
