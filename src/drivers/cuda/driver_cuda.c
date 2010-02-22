@@ -173,7 +173,7 @@ void *_starpu_cuda_worker(void *arg)
 #ifdef STARPU_USE_FXT
 	fxt_register_thread(args->bindid);
 #endif
-	TRACE_WORKER_INIT_START(FUT_CUDA_KEY, memory_node);
+	TRACE_WORKER_INIT_START(STARPU_FUT_CUDA_KEY, memory_node);
 
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
@@ -295,7 +295,7 @@ void *_starpu_cuda_worker(void *arg)
 	_starpu_print_to_logfile("MODEL ERROR: CUDA %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", args->id, args->jobq->total_computation_time_error, args->jobq->total_computation_time, ratio, args->jobq->total_job_performed);
 #endif
 
-	TRACE_WORKER_DEINIT_END(FUT_CUDA_KEY);
+	TRACE_WORKER_DEINIT_END(STARPU_FUT_CUDA_KEY);
 
 	pthread_exit(NULL);
 

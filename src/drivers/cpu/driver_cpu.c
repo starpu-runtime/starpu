@@ -101,7 +101,7 @@ void *_starpu_cpu_worker(void *arg)
 #ifdef STARPU_USE_FXT
 	fxt_register_thread(cpu_arg->bindid);
 #endif
-	TRACE_WORKER_INIT_START(FUT_CPU_KEY, cpu_arg->memory_node);
+	TRACE_WORKER_INIT_START(STARPU_FUT_CPU_KEY, cpu_arg->memory_node);
 
 	_starpu_bind_thread_on_cpu(cpu_arg->config, cpu_arg->bindid);
 
@@ -207,7 +207,7 @@ void *_starpu_cpu_worker(void *arg)
 	_starpu_print_to_logfile("MODEL ERROR: CPU %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", cpu_arg->id, cpu_arg->jobq->total_computation_time_error, cpu_arg->jobq->total_computation_time, ratio, cpu_arg->jobq->total_job_performed);
 #endif
 
-	TRACE_WORKER_DEINIT_END(FUT_CPU_KEY);
+	TRACE_WORKER_DEINIT_END(STARPU_FUT_CPU_KEY);
 
 	pthread_exit(NULL);
 }

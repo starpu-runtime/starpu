@@ -181,13 +181,13 @@ static void handle_worker_init_start(void)
 	int workerid = register_worker_id(ev.param[2]);
 
 	switch (ev.param[0]) {
-		case FUT_APPS_KEY:
+		case STARPU_FUT_APPS_KEY:
 			set_next_other_worker_color(workerid);
 			break;
-		case FUT_CPU_KEY:
+		case STARPU_FUT_CPU_KEY:
 			set_next_cpu_worker_color(workerid);
 			break;
-		case FUT_CUDA_KEY:
+		case STARPU_FUT_CUDA_KEY:
 			set_next_cuda_worker_color(workerid);
 			break;
 		default:
@@ -650,123 +650,123 @@ void parse_new_file(char *filename_in, char *file_prefix, uint64_t file_offset)
 		}
 
 		switch (ev.code) {
-			case FUT_WORKER_INIT_START:
+			case STARPU_FUT_WORKER_INIT_START:
 				handle_worker_init_start();
 				break;
 
-			case FUT_WORKER_INIT_END:
+			case STARPU_FUT_WORKER_INIT_END:
 				handle_worker_init_end();
 				break;
 
-			case FUT_NEW_MEM_NODE:
+			case STARPU_FUT_NEW_MEM_NODE:
 				handle_new_mem_node();
 				break;
 
 			/* detect when the workers were idling or not */
-			case FUT_START_CODELET_BODY:
+			case STARPU_FUT_START_CODELET_BODY:
 				handle_start_codelet_body();
 				break;
-			case FUT_END_CODELET_BODY:
+			case STARPU_FUT_END_CODELET_BODY:
 				handle_end_codelet_body();
 				break;
 
-			case FUT_START_CALLBACK:
+			case STARPU_FUT_START_CALLBACK:
 				handle_start_callback();
 				break;
-			case FUT_END_CALLBACK:
+			case STARPU_FUT_END_CALLBACK:
 				handle_end_callback();
 				break;
 
 			/* monitor stack size */
-			case FUT_JOB_PUSH:
+			case STARPU_FUT_JOB_PUSH:
 				if (!no_counter)
 				handle_job_push();
 				break;
-			case FUT_JOB_POP:
+			case STARPU_FUT_JOB_POP:
 				if (!no_counter)
 				handle_job_pop();
 				break;
 
 			/* check the memory transfer overhead */
-			case FUT_START_FETCH_INPUT:
+			case STARPU_FUT_START_FETCH_INPUT:
 				handle_worker_status("Fi");
 				break;
 
-			case FUT_START_PUSH_OUTPUT:
+			case STARPU_FUT_START_PUSH_OUTPUT:
 				handle_worker_status("Po");
 				break;
 
-			case FUT_START_PROGRESS:
+			case STARPU_FUT_START_PROGRESS:
 				handle_worker_status("P");
 				break;
 
-			case FUT_END_FETCH_INPUT:
-			case FUT_END_PROGRESS:
-			case FUT_END_PUSH_OUTPUT:
+			case STARPU_FUT_END_FETCH_INPUT:
+			case STARPU_FUT_END_PROGRESS:
+			case STARPU_FUT_END_PUSH_OUTPUT:
 				handle_worker_status("B");
 				break;
 
-			case FUT_CODELET_TAG:
+			case STARPU_FUT_CODELET_TAG:
 				/* XXX */
 				break;
 
-			case FUT_CODELET_TAG_DEPS:
+			case STARPU_FUT_CODELET_TAG_DEPS:
 				handle_codelet_tag_deps();
 				break;
 
-			case FUT_TASK_DONE:
+			case STARPU_FUT_TASK_DONE:
 				handle_task_done();
 				break;
 
-			case FUT_DATA_COPY:
+			case STARPU_FUT_DATA_COPY:
 				if (!no_bus)
 				handle_data_copy();
 				break;
 
-			case FUT_START_DRIVER_COPY:
+			case STARPU_FUT_START_DRIVER_COPY:
 				if (!no_bus)
 				handle_start_driver_copy();
 				break;
 
-			case FUT_END_DRIVER_COPY:
+			case STARPU_FUT_END_DRIVER_COPY:
 				if (!no_bus)
 				handle_end_driver_copy();
 				break;
 
-			case FUT_WORK_STEALING:
+			case STARPU_FUT_WORK_STEALING:
 				/* XXX */
 				break;
 
-			case FUT_WORKER_DEINIT_START:
+			case STARPU_FUT_WORKER_DEINIT_START:
 				handle_worker_deinit_start();
 				break;
 
-			case FUT_WORKER_DEINIT_END:
+			case STARPU_FUT_WORKER_DEINIT_END:
 				handle_worker_deinit_end();
 				break;
 
-			case FUT_START_ALLOC:
+			case STARPU_FUT_START_ALLOC:
 				if (!no_bus)
 				handle_memnode_event("A");
 				break;
 
-			case FUT_START_ALLOC_REUSE:
+			case STARPU_FUT_START_ALLOC_REUSE:
 				if (!no_bus)
 				handle_memnode_event("Ar");
 				break;
 
-			case FUT_START_MEMRECLAIM:
+			case STARPU_FUT_START_MEMRECLAIM:
 				handle_memnode_event("R");
 				break;
 
-			case FUT_END_ALLOC:
-			case FUT_END_ALLOC_REUSE:
-			case FUT_END_MEMRECLAIM:
+			case STARPU_FUT_END_ALLOC:
+			case STARPU_FUT_END_ALLOC_REUSE:
+			case STARPU_FUT_END_MEMRECLAIM:
 				if (!no_bus)
 				handle_memnode_event("No");
 				break;
 
-			case FUT_USER_EVENT:
+			case STARPU_FUT_USER_EVENT:
 				handle_user_event();
 				break;
 

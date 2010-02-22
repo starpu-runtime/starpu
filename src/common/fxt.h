@@ -31,59 +31,59 @@
 #include <starpu.h>
 
 /* some key to identify the worker kind */
-#define FUT_APPS_KEY	0x100
-#define FUT_CPU_KEY	0x101
-#define FUT_CUDA_KEY	0x102
+#define STARPU_FUT_APPS_KEY	0x100
+#define STARPU_FUT_CPU_KEY	0x101
+#define STARPU_FUT_CUDA_KEY	0x102
 
-#define FUT_WORKER_INIT_START	0x5133
-#define FUT_WORKER_INIT_END	0x5134
+#define STARPU_FUT_WORKER_INIT_START	0x5133
+#define STARPU_FUT_WORKER_INIT_END	0x5134
 
-#define	FUT_START_CODELET_BODY	0x5103
-#define	FUT_END_CODELET_BODY	0x5104
+#define	STARPU_FUT_START_CODELET_BODY	0x5103
+#define	STARPU_FUT_END_CODELET_BODY	0x5104
 
-#define FUT_JOB_PUSH		0x5105
-#define FUT_JOB_POP		0x5106
+#define STARPU_FUT_JOB_PUSH		0x5105
+#define STARPU_FUT_JOB_POP		0x5106
 
-#define FUT_START_FETCH_INPUT	0x5107
-#define FUT_END_FETCH_INPUT	0x5108
-#define FUT_START_PUSH_OUTPUT	0x5109
-#define FUT_END_PUSH_OUTPUT	0x5110
+#define STARPU_FUT_START_FETCH_INPUT	0x5107
+#define STARPU_FUT_END_FETCH_INPUT	0x5108
+#define STARPU_FUT_START_PUSH_OUTPUT	0x5109
+#define STARPU_FUT_END_PUSH_OUTPUT	0x5110
 
-#define FUT_CODELET_TAG		0x5111
-#define FUT_CODELET_TAG_DEPS	0x5112
+#define STARPU_FUT_CODELET_TAG		0x5111
+#define STARPU_FUT_CODELET_TAG_DEPS	0x5112
 
-#define FUT_DATA_COPY		0x5113
-#define FUT_WORK_STEALING	0x5114
+#define STARPU_FUT_DATA_COPY		0x5113
+#define STARPU_FUT_WORK_STEALING	0x5114
 
-#define FUT_WORKER_DEINIT_START	0x5135
-#define FUT_WORKER_DEINIT_END	0x5136
+#define STARPU_FUT_WORKER_DEINIT_START	0x5135
+#define STARPU_FUT_WORKER_DEINIT_END	0x5136
 
-#define FUT_USER_DEFINED_START	0x5116
-#define FUT_USER_DEFINED_END	0x5117
+#define STARPU_FUT_USER_DEFINED_START	0x5116
+#define STARPU_FUT_USER_DEFINED_END	0x5117
 
-#define	FUT_NEW_MEM_NODE	0x5118
+#define	STARPU_FUT_NEW_MEM_NODE	0x5118
 
-#define	FUT_START_CALLBACK	0x5119
-#define	FUT_END_CALLBACK	0x5120
+#define	STARPU_FUT_START_CALLBACK	0x5119
+#define	STARPU_FUT_END_CALLBACK	0x5120
 
-#define	FUT_TASK_DONE		0x5121
+#define	STARPU_FUT_TASK_DONE		0x5121
 
-#define	FUT_START_ALLOC		0x5122
-#define	FUT_END_ALLOC		0x5123
+#define	STARPU_FUT_START_ALLOC		0x5122
+#define	STARPU_FUT_END_ALLOC		0x5123
 
-#define	FUT_START_ALLOC_REUSE	0x5128
-#define	FUT_END_ALLOC_REUSE	0x5129
+#define	STARPU_FUT_START_ALLOC_REUSE	0x5128
+#define	STARPU_FUT_END_ALLOC_REUSE	0x5129
 
-#define	FUT_START_MEMRECLAIM	0x5124
-#define	FUT_END_MEMRECLAIM	0x5125
+#define	STARPU_FUT_START_MEMRECLAIM	0x5124
+#define	STARPU_FUT_END_MEMRECLAIM	0x5125
 
-#define	FUT_START_DRIVER_COPY	0x5126
-#define	FUT_END_DRIVER_COPY	0x5127
+#define	STARPU_FUT_START_DRIVER_COPY	0x5126
+#define	STARPU_FUT_END_DRIVER_COPY	0x5127
 
-#define	FUT_START_PROGRESS	0x5130
-#define	FUT_END_PROGRESS	0x5131
+#define	STARPU_FUT_START_PROGRESS	0x5130
+#define	STARPU_FUT_END_PROGRESS	0x5131
 
-#define FUT_USER_EVENT		0x5132
+#define STARPU_FUT_USER_EVENT		0x5132
 
 #ifdef STARPU_USE_FXT
 #include <sys/syscall.h> /* pour les définitions de SYS_xxx */
@@ -110,15 +110,15 @@ do {									\
 	sprintf((char *)args, "%s", str);				\
 } while (0);
 
-/* workerkind = FUT_CPU_KEY for instance */
+/* workerkind = STARPU_FUT_CPU_KEY for instance */
 #define TRACE_NEW_MEM_NODE(nodeid)			\
-	FUT_DO_PROBE2(FUT_NEW_MEM_NODE, nodeid, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_NEW_MEM_NODE, nodeid, syscall(SYS_gettid));
 
 #define TRACE_WORKER_INIT_START(workerkind,memnode)	\
-	FUT_DO_PROBE3(FUT_WORKER_INIT_START, workerkind, memnode, syscall(SYS_gettid));
+	FUT_DO_PROBE3(STARPU_FUT_WORKER_INIT_START, workerkind, memnode, syscall(SYS_gettid));
 
 #define TRACE_WORKER_INIT_END				\
-	FUT_DO_PROBE1(FUT_WORKER_INIT_END, syscall(SYS_gettid));
+	FUT_DO_PROBE1(STARPU_FUT_WORKER_INIT_END, syscall(SYS_gettid));
 
 #define TRACE_START_CODELET_BODY(job)					\
 do {									\
@@ -126,46 +126,46 @@ do {									\
 	if (model && model->symbol)					\
 	{								\
 		/* we include the symbol name */			\
-		FUT_DO_PROBE3STR(FUT_START_CODELET_BODY, job, syscall(SYS_gettid), 1, model->symbol);\
+		FUT_DO_PROBE3STR(STARPU_FUT_START_CODELET_BODY, job, syscall(SYS_gettid), 1, model->symbol);\
 	}								\
 	else {								\
-		FUT_DO_PROBE3(FUT_START_CODELET_BODY, job, syscall(SYS_gettid), 0);\
+		FUT_DO_PROBE3(STARPU_FUT_START_CODELET_BODY, job, syscall(SYS_gettid), 0);\
 	}								\
 } while(0);
 
 
 #define TRACE_END_CODELET_BODY(job)	\
-	FUT_DO_PROBE2(FUT_END_CODELET_BODY, job, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_END_CODELET_BODY, job, syscall(SYS_gettid));
 
 #define TRACE_START_CALLBACK(job)	\
-	FUT_DO_PROBE2(FUT_START_CALLBACK, job, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_START_CALLBACK, job, syscall(SYS_gettid));
 
 #define TRACE_END_CALLBACK(job)	\
-	FUT_DO_PROBE2(FUT_END_CALLBACK, job, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_END_CALLBACK, job, syscall(SYS_gettid));
 
 #define TRACE_JOB_PUSH(task, prio)	\
-	FUT_DO_PROBE3(FUT_JOB_PUSH, task, prio, syscall(SYS_gettid));
+	FUT_DO_PROBE3(STARPU_FUT_JOB_PUSH, task, prio, syscall(SYS_gettid));
 
 #define TRACE_JOB_POP(task, prio)	\
-	FUT_DO_PROBE3(FUT_JOB_POP, task, prio, syscall(SYS_gettid));
+	FUT_DO_PROBE3(STARPU_FUT_JOB_POP, task, prio, syscall(SYS_gettid));
 
 #define TRACE_START_FETCH_INPUT(job)	\
-	FUT_DO_PROBE2(FUT_START_FETCH_INPUT, job, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_START_FETCH_INPUT, job, syscall(SYS_gettid));
 
 #define TRACE_END_FETCH_INPUT(job)	\
-	FUT_DO_PROBE2(FUT_END_FETCH_INPUT, job, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_END_FETCH_INPUT, job, syscall(SYS_gettid));
 
 #define TRACE_START_PUSH_OUTPUT(job)	\
-	FUT_DO_PROBE2(FUT_START_PUSH_OUTPUT, job, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_START_PUSH_OUTPUT, job, syscall(SYS_gettid));
 
 #define TRACE_END_PUSH_OUTPUT(job)	\
-	FUT_DO_PROBE2(FUT_END_PUSH_OUTPUT, job, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_END_PUSH_OUTPUT, job, syscall(SYS_gettid));
 
 #define TRACE_CODELET_TAG(tag, job)	\
-	FUT_DO_PROBE2(FUT_CODELET_TAG, tag, job)
+	FUT_DO_PROBE2(STARPU_FUT_CODELET_TAG, tag, job)
 
 #define TRACE_CODELET_TAG_DEPS(tag_child, tag_father)	\
-	FUT_DO_PROBE2(FUT_CODELET_TAG_DEPS, tag_child, tag_father)
+	FUT_DO_PROBE2(STARPU_FUT_CODELET_TAG_DEPS, tag_child, tag_father)
 
 #define TRACE_TASK_DONE(tag)							\
 do {										\
@@ -176,63 +176,63 @@ do {										\
 		&& job->task->cl->model->symbol)				\
 	{									\
 		char *symbol = job->task->cl->model->symbol;			\
-		FUT_DO_PROBE3STR(FUT_TASK_DONE, tag->id, syscall(SYS_gettid), 1, symbol);\
+		FUT_DO_PROBE3STR(STARPU_FUT_TASK_DONE, tag->id, syscall(SYS_gettid), 1, symbol);\
 	}									\
 	else {									\
-		FUT_DO_PROBE3(FUT_TASK_DONE, tag->id, syscall(SYS_gettid), 0);	\
+		FUT_DO_PROBE3(STARPU_FUT_TASK_DONE, tag->id, syscall(SYS_gettid), 0);	\
 	}									\
 } while(0);
 
 #define TRACE_DATA_COPY(src_node, dst_node, size)	\
-	FUT_DO_PROBE3(FUT_DATA_COPY, src_node, dst_node, size)
+	FUT_DO_PROBE3(STARPU_FUT_DATA_COPY, src_node, dst_node, size)
 
 #define TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id)	\
-	FUT_DO_PROBE4(FUT_START_DRIVER_COPY, src_node, dst_node, size, com_id)
+	FUT_DO_PROBE4(STARPU_FUT_START_DRIVER_COPY, src_node, dst_node, size, com_id)
 
 #define TRACE_END_DRIVER_COPY(src_node, dst_node, size, com_id)	\
-	FUT_DO_PROBE4(FUT_END_DRIVER_COPY, src_node, dst_node, size, com_id)
+	FUT_DO_PROBE4(STARPU_FUT_END_DRIVER_COPY, src_node, dst_node, size, com_id)
 
 #define TRACE_WORK_STEALING(empty_q, victim_q)		\
-	FUT_DO_PROBE2(FUT_WORK_STEALING, empty_q, victim_q)
+	FUT_DO_PROBE2(STARPU_FUT_WORK_STEALING, empty_q, victim_q)
 
 #define TRACE_WORKER_DEINIT_START			\
-	FUT_DO_PROBE1(FUT_WORKER_DEINIT_START, syscall(SYS_gettid));
+	FUT_DO_PROBE1(STARPU_FUT_WORKER_DEINIT_START, syscall(SYS_gettid));
 
 #define TRACE_WORKER_DEINIT_END(workerkind)		\
-	FUT_DO_PROBE2(FUT_WORKER_DEINIT_END, workerkind, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_WORKER_DEINIT_END, workerkind, syscall(SYS_gettid));
 
 #define TRACE_USER_DEFINED_START	\
-	FUT_DO_PROBE1(FUT_USER_DEFINED_START, syscall(SYS_gettid));
+	FUT_DO_PROBE1(STARPU_FUT_USER_DEFINED_START, syscall(SYS_gettid));
 
 #define TRACE_USER_DEFINED_END		\
-	FUT_DO_PROBE1(FUT_USER_DEFINED_END, syscall(SYS_gettid));
+	FUT_DO_PROBE1(STARPU_FUT_USER_DEFINED_END, syscall(SYS_gettid));
 
 #define TRACE_START_ALLOC(memnode)		\
-	FUT_DO_PROBE2(FUT_START_ALLOC, memnode, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_START_ALLOC, memnode, syscall(SYS_gettid));
 	
 #define TRACE_END_ALLOC(memnode)		\
-	FUT_DO_PROBE2(FUT_END_ALLOC, memnode, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_END_ALLOC, memnode, syscall(SYS_gettid));
 
 #define TRACE_START_ALLOC_REUSE(memnode)		\
-	FUT_DO_PROBE2(FUT_START_ALLOC_REUSE, memnode, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_START_ALLOC_REUSE, memnode, syscall(SYS_gettid));
 	
 #define TRACE_END_ALLOC_REUSE(memnode)		\
-	FUT_DO_PROBE2(FUT_END_ALLOC_REUSE, memnode, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_END_ALLOC_REUSE, memnode, syscall(SYS_gettid));
 	
 #define TRACE_START_MEMRECLAIM(memnode)		\
-	FUT_DO_PROBE2(FUT_START_MEMRECLAIM, memnode, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_START_MEMRECLAIM, memnode, syscall(SYS_gettid));
 	
 #define TRACE_END_MEMRECLAIM(memnode)		\
-	FUT_DO_PROBE2(FUT_END_MEMRECLAIM, memnode, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_END_MEMRECLAIM, memnode, syscall(SYS_gettid));
 	
 #define TRACE_START_PROGRESS(memnode)		\
-	FUT_DO_PROBE2(FUT_START_PROGRESS, memnode, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_START_PROGRESS, memnode, syscall(SYS_gettid));
 
 #define TRACE_END_PROGRESS(memnode)		\
-	FUT_DO_PROBE2(FUT_END_PROGRESS, memnode, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_END_PROGRESS, memnode, syscall(SYS_gettid));
 	
 #define TRACE_USER_EVENT(code)			\
-	FUT_DO_PROBE2(FUT_USER_EVENT, code, syscall(SYS_gettid));
+	FUT_DO_PROBE2(STARPU_FUT_USER_EVENT, code, syscall(SYS_gettid));
 
 #else // !STARPU_USE_FXT
 

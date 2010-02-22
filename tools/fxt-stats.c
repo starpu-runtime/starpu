@@ -83,13 +83,13 @@ int main(int argc, char **argv)
 		__attribute__ ((unused)) int nbparam = ev.nb_params;
 
 		switch (ev.code) {
-			case FUT_DATA_COPY:
+			case STARPU_FUT_DATA_COPY:
 				handle_data_copy();
 				break;
-			case FUT_JOB_POP:
+			case STARPU_FUT_JOB_POP:
 				njob++;
 				break;
-			case FUT_WORK_STEALING:
+			case STARPU_FUT_WORK_STEALING:
 				nws++;
 				break;
 			default:
