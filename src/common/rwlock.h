@@ -20,21 +20,21 @@
 #include <stdint.h>
 #include <starpu.h>
 
-typedef struct rw_lock_t {
+typedef struct starpu_rw_lock_s {
 	uint32_t busy;
 	uint8_t writer;
 	uint16_t readercnt;
-} rw_lock;
+} starpu_rw_lock_t;
 
-void init_rw_lock(rw_lock *lock);
-void take_rw_lock_write(rw_lock *lock);
-void take_rw_lock_read(rw_lock *lock);
-int take_rw_lock_write_try(rw_lock *lock);
-int take_rw_lock_read_try(rw_lock *lock);
-void release_rw_lock(rw_lock *lock);
+void _starpu_init_rw_lock(starpu_rw_lock_t *lock);
+void _starpu_take_rw_lock_write(starpu_rw_lock_t *lock);
+void _starpu_take_rw_lock_read(starpu_rw_lock_t *lock);
+int _starpu_take_rw_lock_write_try(starpu_rw_lock_t *lock);
+int _starpu_take_rw_lock_read_try(starpu_rw_lock_t *lock);
+void _starpu_release_rw_lock(starpu_rw_lock_t *lock);
 
 ///* make sure to have the lock before using that function */
-//inline uint8_t rw_lock_is_writer(rw_lock *lock);
-//unsigned is_rw_lock_referenced(rw_lock *lock);
+//inline uint8_t _starpu_rw_lock_is_writer(starpu_rw_lock_t *lock);
+//unsigned _starpu_is_rw_lock_referenced(starpu_rw_lock_t *lock);
 
 #endif

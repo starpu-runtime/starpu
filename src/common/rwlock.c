@@ -20,7 +20,7 @@
 
 #include "rwlock.h"
 
-static void _take_busy_lock(rw_lock *lock)
+static void _take_busy_lock(starpu_rw_lock_t *lock)
 {
 	uint32_t prev;
 	do {
@@ -28,12 +28,12 @@ static void _take_busy_lock(rw_lock *lock)
 	} while (prev);
 }
 
-static void _release_busy_lock(rw_lock *lock)
+static void _release_busy_lock(starpu_rw_lock_t *lock)
 {
 	STARPU_RELEASE(&lock->busy);
 }
 
-void init_rw_lock(rw_lock *lock)
+void _starpu_init_rw_lock(starpu_rw_lock_t *lock)
 {
 	STARPU_ASSERT(lock);
 
@@ -43,7 +43,7 @@ void init_rw_lock(rw_lock *lock)
 }
 
 
-int take_rw_lock_write_try(rw_lock *lock)
+int _starpu_take_rw_lock_write_try(starpu_rw_lock_t *lock)
 {
 	_take_busy_lock(lock);
 	
@@ -64,7 +64,7 @@ int take_rw_lock_write_try(rw_lock *lock)
 	}
 }
 
-int take_rw_lock_read_try(rw_lock *lock)
+int _starpu_take_rw_lock_read_try(starpu_rw_lock_t *lock)
 {
 	_take_busy_lock(lock);
 
@@ -88,7 +88,7 @@ int take_rw_lock_read_try(rw_lock *lock)
 
 
 
-void take_rw_lock_write(rw_lock *lock)
+void _starpu_take_rw_lock_write(starpu_rw_lock_t *lock)
 {
 	do {
 		_take_busy_lock(lock);
@@ -110,7 +110,7 @@ void take_rw_lock_write(rw_lock *lock)
 	} while (1);
 }
 
-void take_rw_lock_read(rw_lock *lock)
+void _starpu_take_rw_lock_read(starpu_rw_lock_t *lock)
 {
 	do {
 		_take_busy_lock(lock);
@@ -133,7 +133,7 @@ void take_rw_lock_read(rw_lock *lock)
 	} while (1);
 }
 
-void release_rw_lock(rw_lock *lock)
+void _starpu_release_rw_lock(starpu_rw_lock_t *lock)
 {
 	_take_busy_lock(lock);
 	/* either writer or reader (exactly one !) */
