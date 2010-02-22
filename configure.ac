@@ -186,7 +186,7 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 		AC_SEARCH_LIBS([cuInit],[cuda],[found_cudalib=yes],[found_cudalib=no])
 	fi
 
-	if test x$found_cudalib=xno -o -d "$cuda_dir/lib64/"; then
+	if test x$found_cudalib=xno -a -d "$cuda_dir/lib64/"; then
 		LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib64/ "
 	fi
 
