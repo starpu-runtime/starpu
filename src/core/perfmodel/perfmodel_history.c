@@ -42,7 +42,7 @@ static void insert_history_entry(struct starpu_history_entry_t *entry, struct st
 	link->entry = entry;
 	*list = link;
 
-	old = htbl_insert_32(history_ptr, entry->footprint, entry);
+	old = _starpu_htbl_insert_32(history_ptr, entry->footprint, entry);
 	/* that may fail in case there is some concurrency issue */
 	STARPU_ASSERT(old == NULL);
 }
@@ -521,7 +521,7 @@ double _starpu_history_based_job_expected_length(struct starpu_perfmodel_t *mode
 		return -1.0;
 
 	pthread_rwlock_rdlock(&model->model_rwlock);
-	entry = htbl_search_32(history, key);
+	entry = _starpu_htbl_search_32(history, key);
 	pthread_rwlock_unlock(&model->model_rwlock);
 
 	exp = entry?entry->mean:-1.0;
@@ -556,7 +556,7 @@ void _starpu_update_perfmodel_history(starpu_job_t j, enum starpu_perf_archtype 
 
 			pthread_rwlock_wrlock(&model->model_rwlock);
 	
-				entry = htbl_search_32(history, key);
+				entry = _starpu_htbl_search_32(history, key);
 	
 				if (!entry)
 				{

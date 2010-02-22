@@ -20,17 +20,17 @@
 #include <stdint.h>
 #include <string.h>
 
-void *htbl_search_32(struct starpu_htbl32_node_s *htbl, uint32_t key)
+void *_starpu_htbl_search_32(struct starpu_htbl32_node_s *htbl, uint32_t key)
 {
 	unsigned currentbit;
 	unsigned keysize = 32;
 
-	htbl32_node_t *current_htbl = htbl;
+	starpu_htbl32_node_t *current_htbl = htbl;
 
 	/* 000000000001111 with HTBL_NODE_SIZE 1's */
-	uint32_t mask = (1<<HTBL32_NODE_SIZE)-1;
+	uint32_t mask = (1<<STARPU_HTBL32_NODE_SIZE)-1;
 
-	for(currentbit = 0; currentbit < keysize; currentbit+=HTBL32_NODE_SIZE)
+	for(currentbit = 0; currentbit < keysize; currentbit+=STARPU_HTBL32_NODE_SIZE)
 	{
 	
 	//	printf("search : current bit = %d \n", currentbit);
@@ -44,7 +44,7 @@ void *htbl_search_32(struct starpu_htbl32_node_s *htbl, uint32_t key)
 		 * */
 
 		unsigned last_currentbit = 
-			keysize - (currentbit + HTBL32_NODE_SIZE);
+			keysize - (currentbit + STARPU_HTBL32_NODE_SIZE);
 		uint32_t offloaded_mask = mask << last_currentbit;
 		unsigned current_index = 
 			(key & (offloaded_mask)) >> (last_currentbit);
@@ -59,22 +59,22 @@ void *htbl_search_32(struct starpu_htbl32_node_s *htbl, uint32_t key)
  * returns the previous value of the tag, or NULL else
  */
 
-void *htbl_insert_32(struct starpu_htbl32_node_s **htbl, uint32_t key, void *entry)
+void *_starpu_htbl_insert_32(struct starpu_htbl32_node_s **htbl, uint32_t key, void *entry)
 {
 	unsigned currentbit;
 	unsigned keysize = 32;
 
-	htbl32_node_t **current_htbl_ptr = htbl;
+	starpu_htbl32_node_t **current_htbl_ptr = htbl;
 
 	/* 000000000001111 with HTBL_NODE_SIZE 1's */
-	uint32_t mask = (1<<HTBL32_NODE_SIZE)-1;
+	uint32_t mask = (1<<STARPU_HTBL32_NODE_SIZE)-1;
 
-	for(currentbit = 0; currentbit < keysize; currentbit+=HTBL32_NODE_SIZE)
+	for(currentbit = 0; currentbit < keysize; currentbit+=STARPU_HTBL32_NODE_SIZE)
 	{
 		//printf("insert : current bit = %d \n", currentbit);
 		if (*current_htbl_ptr == NULL) {
 			/* TODO pad to change that 1 into 16 ? */
-			*current_htbl_ptr = calloc(sizeof(htbl32_node_t), 1);
+			*current_htbl_ptr = calloc(sizeof(starpu_htbl32_node_t), 1);
 			assert(*current_htbl_ptr);
 		}
 
@@ -85,7 +85,7 @@ void *htbl_insert_32(struct starpu_htbl32_node_s **htbl, uint32_t key, void *ent
 		 * */
 
 		unsigned last_currentbit = 
-			keysize - (currentbit + HTBL32_NODE_SIZE);
+			keysize - (currentbit + STARPU_HTBL32_NODE_SIZE);
 		uint32_t offloaded_mask = mask << last_currentbit;
 		unsigned current_index = 
 			(key & (offloaded_mask)) >> (last_currentbit);
