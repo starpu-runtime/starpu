@@ -554,22 +554,22 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node
 	/* perhaps we can directly reuse a buffer in the free-list */
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
-	TRACE_START_ALLOC_REUSE(dst_node);
+	STARPU_TRACE_START_ALLOC_REUSE(dst_node);
 	if (try_to_find_reusable_mem_chunk(dst_node, handle, footprint))
 	{
 		_starpu_allocation_cache_hit(dst_node);
 		return 0;
 	}
-	TRACE_END_ALLOC_REUSE(dst_node);
+	STARPU_TRACE_END_ALLOC_REUSE(dst_node);
 #endif
 
 	do {
 		STARPU_ASSERT(handle->ops);
 		STARPU_ASSERT(handle->ops->allocate_data_on_node);
 
-		TRACE_START_ALLOC(dst_node);
+		STARPU_TRACE_START_ALLOC(dst_node);
 		allocated_memory = handle->ops->allocate_data_on_node(handle, dst_node);
-		TRACE_END_ALLOC(dst_node);
+		STARPU_TRACE_END_ALLOC(dst_node);
 
 		if (!allocated_memory) {
 			/* XXX perhaps we should find the proper granularity 
@@ -577,9 +577,9 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node
 			STARPU_ASSERT(handle->ops->get_size);
 			size_t data_size = handle->ops->get_size(handle);
 
-			TRACE_START_MEMRECLAIM(dst_node);
+			STARPU_TRACE_START_MEMRECLAIM(dst_node);
 			reclaim_memory(dst_node, 2*data_size, attempts);
-			TRACE_END_MEMRECLAIM(dst_node);
+			STARPU_TRACE_END_MEMRECLAIM(dst_node);
 		}
 		
 	} while(!allocated_memory && attempts++ < 2);

@@ -378,7 +378,7 @@ static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32
 
 	cudaThreadSynchronize();
 
-	TRACE_DATA_COPY(src_node, dst_node, nnz*r*c*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
+	STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*r*c*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
 
 	return 0;
 }
@@ -414,7 +414,7 @@ static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32
 
 	cudaThreadSynchronize();
 
-	TRACE_DATA_COPY(src_node, dst_node, nnz*r*c*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
+	STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*r*c*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
 
 	return 0;
 }
@@ -442,7 +442,7 @@ static int dummy_copy_ram_to_ram(starpu_data_handle handle, uint32_t src_node, u
 
 	memcpy((void *)dst_bcsr->rowptr, (void *)src_bcsr->rowptr, (nrow+1)*sizeof(uint32_t));
 
-	TRACE_DATA_COPY(src_node, dst_node, nnz*elemsize*r*c + (nnz+nrow+1)*sizeof(uint32_t));
+	STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*elemsize*r*c + (nnz+nrow+1)*sizeof(uint32_t));
 
 	return 0;
 }

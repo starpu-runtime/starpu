@@ -346,7 +346,7 @@ int _starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 
 int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 {
-	TRACE_START_FETCH_INPUT(NULL);
+	STARPU_TRACE_START_FETCH_INPUT(NULL);
 
 //	fprintf(stderr, "_starpu_fetch_task_input\n");
 
@@ -374,7 +374,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 		task->interface[index] = src_interface;
 	}
 
-	TRACE_END_FETCH_INPUT(NULL);
+	STARPU_TRACE_END_FETCH_INPUT(NULL);
 
 	return 0;
 
@@ -389,7 +389,7 @@ enomem:
 
 void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 {
-	TRACE_START_PUSH_OUTPUT(NULL);
+	STARPU_TRACE_START_PUSH_OUTPUT(NULL);
 
 	//fprintf(stderr, "_starpu_push_task_output\n");
 
@@ -404,7 +404,7 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 		_starpu_release_data_on_node(descrs[index].handle, mask, local_node);
 	}
 
-	TRACE_END_PUSH_OUTPUT(NULL);
+	STARPU_TRACE_END_PUSH_OUTPUT(NULL);
 }
 
 /* NB : this value can only be an indication of the status of a data

@@ -108,9 +108,9 @@ void _starpu_handle_job_termination(starpu_job_t j)
 		 * within the callback */
 		_starpu_set_local_worker_status(STATUS_CALLBACK);
 
-		TRACE_START_CALLBACK(j);
+		STARPU_TRACE_START_CALLBACK(j);
 		task->callback_func(task->callback_arg);
-		TRACE_END_CALLBACK(j);
+		STARPU_TRACE_END_CALLBACK(j);
 
 		_starpu_set_local_worker_status(STATUS_UNKNOWN);
 	}

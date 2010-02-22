@@ -123,7 +123,7 @@ int _starpu_deque_push_task(struct starpu_jobq_s *q, starpu_job_t task)
 	/* wake people waiting locally */
 	pthread_mutex_lock(&q->activity_mutex);
 
-	TRACE_JOB_PUSH(task, 0);
+	STARPU_TRACE_JOB_PUSH(task, 0);
 	starpu_job_list_push_front(deque_queue->jobq, task);
 	deque_queue->njobs++;
 	deque_queue->nprocessed++;
@@ -154,7 +154,7 @@ starpu_job_t _starpu_deque_pop_task(struct starpu_jobq_s *q)
 		STARPU_ASSERT(j);
 		deque_queue->njobs--;
 		
-		TRACE_JOB_POP(j, 0);
+		STARPU_TRACE_JOB_POP(j, 0);
 
 		/* we are sure that we got it now, so at worst, some people thought 
 		 * there remained some work and will soon discover it is not true */

@@ -124,7 +124,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 		STARPU_GET_TICK(codelet_end_comm);
 	}
 
-	TRACE_START_CODELET_BODY(j);
+	STARPU_TRACE_START_CODELET_BODY(j);
 
 	args->status = STATUS_EXECUTING;
 	cl_func func = cl->cuda_func;
@@ -138,7 +138,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 
 	args->status = STATUS_UNKNOWN;
 
-	TRACE_END_CODELET_BODY(j);	
+	STARPU_TRACE_END_CODELET_BODY(j);	
 
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
 	{
@@ -173,7 +173,7 @@ void *_starpu_cuda_worker(void *arg)
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_register_thread(args->bindid);
 #endif
-	TRACE_WORKER_INIT_START(STARPU_FUT_CUDA_KEY, memory_node);
+	STARPU_TRACE_WORKER_INIT_START(STARPU_FUT_CUDA_KEY, memory_node);
 
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
@@ -210,7 +210,7 @@ void *_starpu_cuda_worker(void *arg)
 	fprintf(stderr, "cuda (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 #endif
 
-	TRACE_WORKER_INIT_END
+	STARPU_TRACE_WORKER_INIT_END
 
 	/* tell the main thread that this one is ready */
 	pthread_mutex_lock(&args->mutex);
@@ -227,9 +227,9 @@ void *_starpu_cuda_worker(void *arg)
 	
 	while (_starpu_machine_is_running())
 	{
-		TRACE_START_PROGRESS(memnode);
+		STARPU_TRACE_START_PROGRESS(memnode);
 		_starpu_datawizard_progress(memnode, 1);
-		TRACE_END_PROGRESS(memnode);
+		STARPU_TRACE_END_PROGRESS(memnode);
 
 		_starpu_execute_registered_progression_hooks();
 	
@@ -276,7 +276,7 @@ void *_starpu_cuda_worker(void *arg)
 		_starpu_handle_job_termination(j);
 	}
 
-	TRACE_WORKER_DEINIT_START
+	STARPU_TRACE_WORKER_DEINIT_START
 
 	deinit_context(args->workerid);
 
@@ -295,7 +295,7 @@ void *_starpu_cuda_worker(void *arg)
 	_starpu_print_to_logfile("MODEL ERROR: CUDA %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", args->id, args->jobq->total_computation_time_error, args->jobq->total_computation_time, ratio, args->jobq->total_job_performed);
 #endif
 
-	TRACE_WORKER_DEINIT_END(STARPU_FUT_CUDA_KEY);
+	STARPU_TRACE_WORKER_DEINIT_END(STARPU_FUT_CUDA_KEY);
 
 	pthread_exit(NULL);
 

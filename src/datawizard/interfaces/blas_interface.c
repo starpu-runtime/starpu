@@ -319,7 +319,7 @@ static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
-	TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
+	STARPU_TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
 
 	return 0;
 }
@@ -345,7 +345,7 @@ static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 		
-	TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
+	STARPU_TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
 
 	return 0;
 }
@@ -383,7 +383,7 @@ static int copy_cuda_to_ram_async(starpu_data_handle handle, uint32_t src_node, 
 		return 0;
 	}
 
-	TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
+	STARPU_TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
 
 	return EAGAIN;
 }
@@ -416,7 +416,7 @@ static int copy_ram_to_cuda_async(starpu_data_handle handle, uint32_t src_node, 
 		return 0;
 	}
 
-	TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
+	STARPU_TRACE_DATA_COPY(src_node, dst_node, (size_t)src_blas->nx*src_blas->ny*src_blas->elemsize);
 
 	return EAGAIN;
 }
@@ -453,7 +453,7 @@ static int dummy_copy_ram_to_ram(starpu_data_handle handle, uint32_t src_node, u
 			(void *)(ptr_src + src_offset), nx*elemsize);
 	}
 
-	TRACE_DATA_COPY(src_node, dst_node, (size_t)nx*ny*elemsize);
+	STARPU_TRACE_DATA_COPY(src_node, dst_node, (size_t)nx*ny*elemsize);
 
 	return 0;
 }

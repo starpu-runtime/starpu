@@ -230,14 +230,14 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 #endif
 
 		/* for now we set the size to 0 in the FxT trace XXX */
-		TRACE_START_DRIVER_COPY(src_node, dst_node, 0, com_id);
+		STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, 0, com_id);
 		ret_copy = copy_data_1_to_1_generic(handle, src_node, dst_node, req);
 
 #ifdef STARPU_USE_FXT
 		if (ret_copy != EAGAIN)
 		{
 			size_t size = handle->ops->get_size(handle);
-			TRACE_END_DRIVER_COPY(src_node, dst_node, size, com_id);
+			STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, com_id);
 		}
 #endif
 

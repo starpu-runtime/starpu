@@ -93,7 +93,7 @@ int _starpu_fifo_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
 	/* wake people waiting locally */
 	pthread_mutex_lock(&q->activity_mutex);
 
-	TRACE_JOB_PUSH(task, 0);
+	STARPU_TRACE_JOB_PUSH(task, 0);
 	starpu_job_list_push_back(fifo_queue->jobq, task);
 	fifo_queue->njobs++;
 	fifo_queue->nprocessed++;
@@ -121,7 +121,7 @@ int _starpu_fifo_push_task(struct starpu_jobq_s *q, starpu_job_t task)
 	/* wake people waiting locally */
 	pthread_mutex_lock(&q->activity_mutex);
 
-	TRACE_JOB_PUSH(task, 0);
+	STARPU_TRACE_JOB_PUSH(task, 0);
 	starpu_job_list_push_front(fifo_queue->jobq, task);
 	fifo_queue->njobs++;
 	fifo_queue->nprocessed++;
@@ -150,7 +150,7 @@ starpu_job_t _starpu_fifo_pop_task(struct starpu_jobq_s *q)
 		STARPU_ASSERT(j);
 		fifo_queue->njobs--;
 		
-		TRACE_JOB_POP(j, 0);
+		STARPU_TRACE_JOB_POP(j, 0);
 
 		/* we are sure that we got it now, so at worst, some people thought 
 		 * there remained some work and will soon discover it is not true */

@@ -100,6 +100,6 @@ void _starpu_fxt_register_thread(unsigned cpuid)
 void starpu_trace_user_event(unsigned code __attribute__((unused)))
 {
 #ifdef STARPU_USE_FXT
-	TRACE_USER_EVENT(code);
+	STARPU_TRACE_USER_EVENT(code);
 #endif
 }

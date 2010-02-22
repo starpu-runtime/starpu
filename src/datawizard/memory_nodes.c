@@ -92,7 +92,7 @@ unsigned _starpu_register_memory_node(starpu_node_kind kind)
 	nnodes = STARPU_ATOMIC_ADD(&descr.nnodes, 1);
 
 	descr.nodes[nnodes-1] = kind;
-	TRACE_NEW_MEM_NODE(nnodes-1);
+	STARPU_TRACE_NEW_MEM_NODE(nnodes-1);
 
 	/* for now, there is no queue related to that newly created node */
 	descr.queues_count[nnodes-1] = 0;

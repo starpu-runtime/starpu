@@ -151,7 +151,7 @@ static starpu_job_t ws_pop_task(struct starpu_jobq_s *q)
 		j = _starpu_deque_pop_task(victimq);
 		_starpu_jobq_unlock(victimq);
 
-		TRACE_WORK_STEALING(q, j);
+		STARPU_TRACE_WORK_STEALING(q, j);
 		performed_total++;
 	}
 

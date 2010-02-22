@@ -95,7 +95,7 @@ int _starpu_priority_push_task(struct starpu_jobq_s *q, starpu_job_t j)
 	/* wake people waiting locally */
 	pthread_mutex_lock(&q->activity_mutex);
 
-	TRACE_JOB_PUSH(j, 1);
+	STARPU_TRACE_JOB_PUSH(j, 1);
 	
 	unsigned priolevel = j->task->priority - STARPU_MIN_PRIO;
 
@@ -137,7 +137,7 @@ starpu_job_t _starpu_priority_pop_task(struct starpu_jobq_s *q)
 				j = starpu_job_list_pop_back(queue->jobq[priolevel]);
 				queue->njobs[priolevel]--;
 				queue->total_njobs--;
-				TRACE_JOB_POP(j, 0);
+				STARPU_TRACE_JOB_POP(j, 0);
 			}
 		} while (!j && priolevel-- > 0);
 	}

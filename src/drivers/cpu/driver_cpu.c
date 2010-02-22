@@ -50,7 +50,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 		return -EAGAIN;
 	}
 
-	TRACE_START_CODELET_BODY(j);
+	STARPU_TRACE_START_CODELET_BODY(j);
 
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
 		STARPU_GET_TICK(codelet_start);
@@ -64,7 +64,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
 		STARPU_GET_TICK(codelet_end);
 
-	TRACE_END_CODELET_BODY(j);
+	STARPU_TRACE_END_CODELET_BODY(j);
 	cpu_args->status = STATUS_UNKNOWN;
 
 	_starpu_push_task_output(task, 0);
@@ -101,7 +101,7 @@ void *_starpu_cpu_worker(void *arg)
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_register_thread(cpu_arg->bindid);
 #endif
-	TRACE_WORKER_INIT_START(STARPU_FUT_CPU_KEY, cpu_arg->memory_node);
+	STARPU_TRACE_WORKER_INIT_START(STARPU_FUT_CPU_KEY, cpu_arg->memory_node);
 
 	_starpu_bind_thread_on_cpu(cpu_arg->config, cpu_arg->bindid);
 
@@ -128,7 +128,7 @@ void *_starpu_cpu_worker(void *arg)
 
 	cpu_arg->status = STATUS_UNKNOWN;
 	
-	TRACE_WORKER_INIT_END
+	STARPU_TRACE_WORKER_INIT_END
 
         /* tell the main thread that we are ready */
 	pthread_mutex_lock(&cpu_arg->mutex);
@@ -145,9 +145,9 @@ void *_starpu_cpu_worker(void *arg)
 
 	while (_starpu_machine_is_running())
 	{
-		TRACE_START_PROGRESS(memnode);
+		STARPU_TRACE_START_PROGRESS(memnode);
 		_starpu_datawizard_progress(memnode, 1);
-		TRACE_END_PROGRESS(memnode);
+		STARPU_TRACE_END_PROGRESS(memnode);
 
 		_starpu_execute_registered_progression_hooks();
 
@@ -191,7 +191,7 @@ void *_starpu_cpu_worker(void *arg)
 		_starpu_handle_job_termination(j);
         }
 
-	TRACE_WORKER_DEINIT_START
+	STARPU_TRACE_WORKER_DEINIT_START
 
 #ifdef STARPU_DATA_STATS
 	fprintf(stderr, "CPU #%d computation %le comm %le (%lf \%%)\n", cpu_arg->id, cpu_arg->jobq->total_computation_time, cpu_arg->jobq->total_communication_time,  cpu_arg->jobq->total_communication_time*100.0/cpu_arg->jobq->total_computation_time);
@@ -207,7 +207,7 @@ void *_starpu_cpu_worker(void *arg)
 	_starpu_print_to_logfile("MODEL ERROR: CPU %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", cpu_arg->id, cpu_arg->jobq->total_computation_time_error, cpu_arg->jobq->total_computation_time, ratio, cpu_arg->jobq->total_job_performed);
 #endif
 
-	TRACE_WORKER_DEINIT_END(STARPU_FUT_CPU_KEY);
+	STARPU_TRACE_WORKER_DEINIT_END(STARPU_FUT_CPU_KEY);
 
 	pthread_exit(NULL);
 }
