@@ -69,3 +69,20 @@ out:
 	return rv;
 }
 
+int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex)
+{
+	int ret;
+	ret = pthread_mutex_trylock(mutex);
+	if (!ret)
+	{
+		pthread_mutex_unlock(mutex);
+		return 0;
+	}
+
+	if (ret == EBUSY)
+		return 0;
+
+	STARPU_ASSERT (ret != EDEADLK);
+
+	return 1;
+}
