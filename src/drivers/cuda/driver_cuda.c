@@ -87,8 +87,8 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 	struct starpu_task *task = j->task;
 
 	cudaError_t cures;
-	tick_t codelet_start, codelet_end;
-	tick_t codelet_start_comm, codelet_end_comm;
+	starpu_tick_t codelet_start, codelet_end;
+	starpu_tick_t codelet_start_comm, codelet_end_comm;
 	
 	unsigned calibrate_model = 0;
 
@@ -105,7 +105,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 		cures = cudaThreadSynchronize();
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
-		GET_TICK(codelet_start_comm);
+		STARPU_GET_TICK(codelet_start_comm);
 	}
 
 	ret = _starpu_fetch_task_input(task, mask);
@@ -121,7 +121,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 		cures = cudaThreadSynchronize();
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
-		GET_TICK(codelet_end_comm);
+		STARPU_GET_TICK(codelet_end_comm);
 	}
 
 	TRACE_START_CODELET_BODY(j);
@@ -129,12 +129,12 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 	args->status = STATUS_EXECUTING;
 	cl_func func = cl->cuda_func;
 	STARPU_ASSERT(func);
-	GET_TICK(codelet_start);
+	STARPU_GET_TICK(codelet_start);
 	func(task->interface, task->cl_arg);
 
 	cl->per_worker_stats[args->workerid]++;
 
-	GET_TICK(codelet_end);
+	STARPU_GET_TICK(codelet_end);
 
 	args->status = STATUS_UNKNOWN;
 
@@ -142,8 +142,8 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
 	{
-		double measured = timing_delay(&codelet_start, &codelet_end);
-		double measured_comm = timing_delay(&codelet_start_comm, &codelet_end_comm);
+		double measured = _starpu_timing_delay(&codelet_start, &codelet_end);
+		double measured_comm = _starpu_timing_delay(&codelet_start_comm, &codelet_end_comm);
 
 		args->jobq->total_computation_time += measured;
 		args->jobq->total_communication_time += measured_comm;

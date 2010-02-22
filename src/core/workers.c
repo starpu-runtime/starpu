@@ -229,7 +229,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	
 	_starpu_open_debug_logfile();
 
-	timing_init();
+	_starpu_timing_init();
 
 	_starpu_load_bus_performance_files();
 

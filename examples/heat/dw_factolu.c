@@ -691,7 +691,7 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 {
 	starpu_init(NULL);
 
-	timing_init();
+	_starpu_timing_init();
 
 	starpu_helper_init_cublas();
 

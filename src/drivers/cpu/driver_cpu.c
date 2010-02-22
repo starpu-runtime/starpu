@@ -23,8 +23,8 @@
 static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 {
 	int ret;
-	tick_t codelet_start, codelet_end;
-	tick_t codelet_start_comm, codelet_end_comm;
+	starpu_tick_t codelet_start, codelet_end;
+	starpu_tick_t codelet_start_comm, codelet_end_comm;
 
 	unsigned calibrate_model = 0;
 	struct starpu_task *task = j->task;
@@ -37,12 +37,12 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 		calibrate_model = 1;
 
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
-		GET_TICK(codelet_start_comm);
+		STARPU_GET_TICK(codelet_start_comm);
 
 	ret = _starpu_fetch_task_input(task, 0);
 
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
-		GET_TICK(codelet_end_comm);
+		STARPU_GET_TICK(codelet_end_comm);
 
 	if (ret != 0) {
 		/* there was not enough memory so the codelet cannot be executed right now ... */
@@ -53,7 +53,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 	TRACE_START_CODELET_BODY(j);
 
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
-		GET_TICK(codelet_start);
+		STARPU_GET_TICK(codelet_start);
 
 	cpu_args->status = STATUS_EXECUTING;
 	cl_func func = cl->cpu_func;
@@ -62,7 +62,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 	cl->per_worker_stats[cpu_args->workerid]++;
 	
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
-		GET_TICK(codelet_end);
+		STARPU_GET_TICK(codelet_end);
 
 	TRACE_END_CODELET_BODY(j);
 	cpu_args->status = STATUS_UNKNOWN;
@@ -72,8 +72,8 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 //#ifdef STARPU_MODEL_DEBUG
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
 	{
-		double measured = timing_delay(&codelet_start, &codelet_end);
-		double measured_comm = timing_delay(&codelet_start_comm, &codelet_end_comm);
+		double measured = _starpu_timing_delay(&codelet_start, &codelet_end);
+		double measured_comm = _starpu_timing_delay(&codelet_start_comm, &codelet_end_comm);
 
 //		fprintf(stderr, "%d\t%d\n", (int)j->penality, (int)measured_comm);
 		cpu_args->jobq->total_computation_time += measured;

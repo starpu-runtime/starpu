@@ -18,10 +18,10 @@
 #define TIMING_H
 
 /*
- * -- Initialiser la bibliothèque avec timing_init();
+ * -- Initialiser la bibliothèque avec _starpu_timing_init();
  * -- Mémoriser un timestamp :
- *  tick_t t;
- *  GET_TICK(t);
+ *  starpu_tick_t t;
+ *  STARPU_GET_TICK(t);
  * -- Calculer un intervalle en microsecondes :
  *  TIMING_DELAY(t1, t2);
  */
@@ -40,15 +40,15 @@
 #endif
 
 /* we use the usual gettimeofday method */
-typedef struct tick_s
+typedef struct starpu_tick_s
 {
 	struct timespec ts;
-} tick_t;
-#define GET_TICK(t) clock_gettime(CLOCK_MONOTONIC, &((t).ts))
+} starpu_tick_t;
+#define STARPU_GET_TICK(t) clock_gettime(CLOCK_MONOTONIC, &((t).ts))
 
 #else // !STARPU_HAVE_CLOCK_GETTIME
 
-typedef union u_tick
+typedef union starpu_u_tick
 {
   uint64_t tick;
 
@@ -58,24 +58,24 @@ typedef union u_tick
     uint32_t high;
   }
   sub;
-} tick_t;
+} starpu_tick_t;
 
 #if defined(__i386__) || defined(__pentium__) || defined(__pentiumpro__) || defined(__i586__) || defined(__i686__) || defined(__k6__) || defined(__k7__) || defined(__x86_64__)
-#  define GET_TICK(t) __asm__ volatile("rdtsc" : "=a" ((t).sub.low), "=d" ((t).sub.high))
+#  define STARPU_GET_TICK(t) __asm__ volatile("rdtsc" : "=a" ((t).sub.low), "=d" ((t).sub.high))
 #else
 //#  error "Processeur non-supporté par timing.h"
 /* XXX */
-//#warning "unsupported processor GET_TICK returns 0"
-#  define GET_TICK(t) do {} while(0);
+//#warning "unsupported processor STARPU_GET_TICK returns 0"
+#  define STARPU_GET_TICK(t) do {} while(0);
 #endif
 
 #endif // STARPU_HAVE_CLOCK_GETTIME
 
-void __attribute__ ((unused)) timing_init(void);
+void __attribute__ ((unused)) _starpu_timing_init(void);
 inline double __attribute__ ((unused)) _starpu_tick2usec(long long t);
-inline double __attribute__ ((unused)) timing_delay(tick_t *t1, tick_t *t2);
+inline double __attribute__ ((unused)) _starpu_timing_delay(starpu_tick_t *t1, starpu_tick_t *t2);
 
-inline double __attribute__ ((unused)) timing_now(void);
+inline double __attribute__ ((unused)) _starpu_timing_now(void);
 
 #endif /* TIMING_H */
 

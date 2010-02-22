@@ -56,7 +56,7 @@ struct starpu_jobq_s *_starpu_create_fifo(void)
 	fifo->njobs = 0;
 	fifo->nprocessed = 0;
 
-	fifo->exp_start = timing_now();
+	fifo->exp_start = _starpu_timing_now();
 	fifo->exp_len = 0.0;
 	fifo->exp_end = fifo->exp_start;
 

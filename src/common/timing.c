@@ -22,7 +22,7 @@
 				- (long long)((t1).ts.tv_sec*1e9) + (long long)(t1).ts.tv_nsec)
 #define TIMING_DELAY(t1, t2) _starpu_tick2usec(TICK_DIFF((t1), (t2)))
 
-void timing_init(void)
+void _starpu_timing_init(void)
 {
 }
 
@@ -31,7 +31,7 @@ inline double _starpu_tick2usec(long long t)
   return (double)(t)/1000;
 }
 
-inline double timing_delay(tick_t *t1, tick_t *t2)
+inline double _starpu_timing_delay(starpu_tick_t *t1, starpu_tick_t *t2)
 {
 	double d1, d2;
 
@@ -42,10 +42,10 @@ inline double timing_delay(tick_t *t1, tick_t *t2)
 }
 
 /* returns the current time in us */
-inline double timing_now(void)
+inline double _starpu_timing_now(void)
 {
-	tick_t tick_now;
-	GET_TICK(tick_now);
+	starpu_tick_t tick_now;
+	STARPU_GET_TICK(tick_now);
 
 	return _starpu_tick2usec(((tick_now).ts.tv_sec*1e9) + (tick_now).ts.tv_nsec);
 }
@@ -63,9 +63,9 @@ static unsigned long long residual = 0;
 
 static int inited = 0;
 
-void timing_init(void)
+void _starpu_timing_init(void)
 {
-  static tick_t t1, t2;
+  static starpu_tick_t t1, t2;
   int i;
 
   if (inited) return;
@@ -74,18 +74,18 @@ void timing_init(void)
   
   for(i = 0; i < 20; i++)
     {
-      GET_TICK(t1);
-      GET_TICK(t2);
+      STARPU_GET_TICK(t1);
+      STARPU_GET_TICK(t2);
       residual = STARPU_MIN(residual, TICK_RAW_DIFF(t1, t2));
     }
   
   {
     struct timeval tv1,tv2;
     
-    GET_TICK(t1);
+    STARPU_GET_TICK(t1);
     gettimeofday(&tv1,0);
     usleep(500000);
-    GET_TICK(t2);
+    STARPU_GET_TICK(t2);
     gettimeofday(&tv2,0);
     scale = ((tv2.tv_sec*1e6 + tv2.tv_usec) -
 	     (tv1.tv_sec*1e6 + tv1.tv_usec)) / 
@@ -100,15 +100,15 @@ inline double _starpu_tick2usec(long long t)
   return (double)(t)*scale;
 }
 
-inline double timing_delay(tick_t *t1, tick_t *t2)
+inline double _starpu_timing_delay(starpu_tick_t *t1, starpu_tick_t *t2)
 {
 	return TIMING_DELAY(*t1, *t2);
 }
 
-inline double timing_now(void)
+inline double _starpu_timing_now(void)
 {
-	tick_t tick_now;
-	GET_TICK(tick_now);
+	starpu_tick_t tick_now;
+	STARPU_GET_TICK(tick_now);
 
 	return _starpu_tick2usec(tick_now.tick);
 }

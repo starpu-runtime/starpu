@@ -223,7 +223,7 @@ void initialize_system(float **A, unsigned dim, unsigned pinned)
 	
 	starpu_helper_init_cublas();
 
-	timing_init();
+	_starpu_timing_init();
 
 	if (pinned)
 	{

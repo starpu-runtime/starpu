@@ -60,7 +60,7 @@ struct starpu_jobq_s *_starpu_create_deque(void)
 	deque->njobs = 0;
 	deque->nprocessed = 0;
 
-	deque->exp_start = timing_now();
+	deque->exp_start = _starpu_timing_now();
 	deque->exp_len = 0.0;
 	deque->exp_end = deque->exp_start;
 
