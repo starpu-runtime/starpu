@@ -49,7 +49,7 @@ static void lock_all_subtree(starpu_data_handle handle)
 	if (handle->nchildren == 0)
 	{
 		/* this is a leaf */
-		while (starpu_spin_trylock(&handle->header_lock))
+		while (_starpu_spin_trylock(&handle->header_lock))
 			_starpu_datawizard_progress(_starpu_get_local_memory_node(), 0);
 	}
 	else {
@@ -67,7 +67,7 @@ static void unlock_all_subtree(starpu_data_handle handle)
 	if (handle->nchildren == 0)
 	{
 		/* this is a leaf */	
-		starpu_spin_unlock(&handle->header_lock);
+		_starpu_spin_unlock(&handle->header_lock);
 	}
 	else {
 		/* lock all sub-subtrees children 
@@ -493,11 +493,11 @@ static size_t liberate_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
 
 	starpu_data_handle handle = mc->data;
 
-//	while (starpu_spin_trylock(&handle->header_lock))
+//	while (_starpu_spin_trylock(&handle->header_lock))
 //		_starpu_datawizard_progress(_starpu_get_local_memory_node());
 
 #warning can we block here ?
-//	starpu_spin_lock(&handle->header_lock);
+//	_starpu_spin_lock(&handle->header_lock);
 
 	if (mc->automatically_allocated && (handle->per_node[node].refcnt == 0))
 	{
@@ -518,7 +518,7 @@ static size_t liberate_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
 		STARPU_ASSERT(handle->per_node[node].refcnt == 0);
 	}
 
-//	starpu_spin_unlock(&handle->header_lock);
+//	_starpu_spin_unlock(&handle->header_lock);
 
 	return liberated;
 }

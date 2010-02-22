@@ -153,7 +153,7 @@ void _starpu_notify_cg_list(struct starpu_cg_list_s *successors)
 		unsigned cg_type = cg->cg_type;
 
 		if (cg_type == STARPU_CG_TAG)
-			starpu_spin_lock(&cgtag->lock);
+			_starpu_spin_lock(&cgtag->lock);
 
 		_starpu_notify_cg(cg);
 		if (cg_type == STARPU_CG_APPS) {
@@ -165,6 +165,6 @@ void _starpu_notify_cg_list(struct starpu_cg_list_s *successors)
 		}
 
 		if (cg_type == STARPU_CG_TAG)
-			starpu_spin_unlock(&cgtag->lock);
+			_starpu_spin_unlock(&cgtag->lock);
 	}
 }

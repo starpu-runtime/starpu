@@ -66,7 +66,7 @@ unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle han
 {
 	unsigned ret;
 
-	starpu_spin_lock(&handle->header_lock);
+	_starpu_spin_lock(&handle->header_lock);
 
 	if (handle->refcnt == 0)
 	{
@@ -106,7 +106,7 @@ unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle han
 		}
 	}
 
-	starpu_spin_unlock(&handle->header_lock);
+	_starpu_spin_unlock(&handle->header_lock);
 	return ret;
 }
 
@@ -117,7 +117,7 @@ static unsigned attempt_to_submit_data_request_from_job(starpu_job_t j, unsigned
 	starpu_data_handle handle = j->task->buffers[buffer_index].handle;
 	starpu_access_mode mode = j->task->buffers[buffer_index].mode;
 
-	while (starpu_spin_trylock(&handle->header_lock))
+	while (_starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(_starpu_get_local_memory_node(), 0);
 
 	if (handle->refcnt == 0)
@@ -158,7 +158,7 @@ static unsigned attempt_to_submit_data_request_from_job(starpu_job_t j, unsigned
 		}
 	}
 
-	starpu_spin_unlock(&handle->header_lock);
+	_starpu_spin_unlock(&handle->header_lock);
 	return ret;
 }
 
@@ -206,7 +206,7 @@ void _starpu_notify_data_dependencies(starpu_data_handle handle)
 		/* the data is now attributed to that request */
 		handle->current_mode = (r->mode==STARPU_R)?STARPU_R:STARPU_W;
 
-		starpu_spin_unlock(&handle->header_lock);
+		_starpu_spin_unlock(&handle->header_lock);
 
 		if (r->is_requested_by_codelet)
 		{
@@ -223,6 +223,6 @@ void _starpu_notify_data_dependencies(starpu_data_handle handle)
 
 		starpu_data_requester_delete(r);
 		
-		starpu_spin_lock(&handle->header_lock);
+		_starpu_spin_lock(&handle->header_lock);
 	}
 }

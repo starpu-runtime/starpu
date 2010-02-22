@@ -25,7 +25,7 @@ void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_n
 		return;
 	}
 
-	while (starpu_spin_trylock(&handle->header_lock))
+	while (_starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(requesting_node, 1);
 
 	/* first commit all changes onto the nodes specified by the mask */
@@ -53,13 +53,13 @@ void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_n
 				else {
 					/* if there is already a similar request, it is
 					 * useless to post another one */
-					starpu_spin_unlock(&r->lock);
+					_starpu_spin_unlock(&r->lock);
 				}
 			}
 		}
 	}
 
-	starpu_spin_unlock(&handle->header_lock);
+	_starpu_spin_unlock(&handle->header_lock);
 }
 
 void starpu_data_set_wb_mask(starpu_data_handle handle, uint32_t wb_mask)

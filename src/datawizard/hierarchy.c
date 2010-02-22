@@ -57,10 +57,10 @@ void _starpu_register_new_data(starpu_data_handle handle, uint32_t home_node, ui
 	/* initialize the new lock */
 	handle->req_list = starpu_data_requester_list_new();
 	handle->refcnt = 0;
-	starpu_spin_init(&handle->header_lock);
+	_starpu_spin_init(&handle->header_lock);
 
 	/* first take care to properly lock the data */
-	starpu_spin_lock(&handle->header_lock);
+	_starpu_spin_lock(&handle->header_lock);
 
 	/* we assume that all nodes may use that data */
 	handle->nnodes = STARPU_MAXNODES;
@@ -93,7 +93,7 @@ void _starpu_register_new_data(starpu_data_handle handle, uint32_t home_node, ui
 	}
 
 	/* now the data is available ! */
-	starpu_spin_unlock(&handle->header_lock);
+	_starpu_spin_unlock(&handle->header_lock);
 }
 
 /*
@@ -177,7 +177,7 @@ void starpu_partition_data(starpu_data_handle initial_handle, starpu_filter *f)
 	int i;
 
 	/* first take care to properly lock the data header */
-	starpu_spin_lock(&initial_handle->header_lock);
+	_starpu_spin_lock(&initial_handle->header_lock);
 
 	/* there should not be mutiple filters applied on the same data */
 	STARPU_ASSERT(initial_handle->nchildren == 0);
@@ -204,7 +204,7 @@ void starpu_partition_data(starpu_data_handle initial_handle, starpu_filter *f)
 		/* initialize the chunk lock */
 		children->req_list = starpu_data_requester_list_new();
 		children->refcnt = 0;
-		starpu_spin_init(&children->header_lock);
+		_starpu_spin_init(&children->header_lock);
 
 		unsigned node;
 		for (node = 0; node < STARPU_MAXNODES; node++)
@@ -219,7 +219,7 @@ void starpu_partition_data(starpu_data_handle initial_handle, starpu_filter *f)
 	}
 
 	/* now let the header */
-	starpu_spin_unlock(&initial_handle->header_lock);
+	_starpu_spin_unlock(&initial_handle->header_lock);
 }
 
 void starpu_unpartition_data(starpu_data_handle root_handle, uint32_t gathering_node)
@@ -227,7 +227,7 @@ void starpu_unpartition_data(starpu_data_handle root_handle, uint32_t gathering_
 	unsigned child;
 	unsigned node;
 
-	starpu_spin_lock(&root_handle->header_lock);
+	_starpu_spin_lock(&root_handle->header_lock);
 
 #warning starpu_unpartition_data is not supported with NO_DATA_RW_LOCK yet ...
 
@@ -304,13 +304,13 @@ void starpu_unpartition_data(starpu_data_handle root_handle, uint32_t gathering_
 	root_handle->nchildren = 0;
 
 	/* now the parent may be used again so we release the lock */
-	starpu_spin_unlock(&root_handle->header_lock);
+	_starpu_spin_unlock(&root_handle->header_lock);
 }
 
 /* TODO move ! */
 void starpu_advise_if_data_is_important(starpu_data_handle handle, unsigned is_important)
 {
-	starpu_spin_lock(&handle->header_lock);
+	_starpu_spin_lock(&handle->header_lock);
 
 	/* first take all the children lock (in order !) */
 	unsigned child;
@@ -324,7 +324,7 @@ void starpu_advise_if_data_is_important(starpu_data_handle handle, unsigned is_i
 	handle->is_not_important = !is_important;
 
 	/* now the parent may be used again so we release the lock */
-	starpu_spin_unlock(&handle->header_lock);
+	_starpu_spin_unlock(&handle->header_lock);
 
 }
 

@@ -30,11 +30,11 @@ typedef struct starpu_spinlock_s {
 #endif
 } starpu_spinlock_t;
 
-int starpu_spin_init(starpu_spinlock_t *lock);
-int starpu_spin_destroy(starpu_spinlock_t *lock);
+int _starpu_spin_init(starpu_spinlock_t *lock);
+int _starpu_spin_destroy(starpu_spinlock_t *lock);
 
-int starpu_spin_lock(starpu_spinlock_t *lock);
-int starpu_spin_trylock(starpu_spinlock_t *lock);
-int starpu_spin_unlock(starpu_spinlock_t *lock);
+int _starpu_spin_lock(starpu_spinlock_t *lock);
+int _starpu_spin_trylock(starpu_spinlock_t *lock);
+int _starpu_spin_unlock(starpu_spinlock_t *lock);
 
 #endif // __STARPU_SPINLOCK_H__

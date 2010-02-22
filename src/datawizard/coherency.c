@@ -143,7 +143,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 {
 	uint32_t local_node = _starpu_get_local_memory_node();
 
-	while (starpu_spin_trylock(&handle->header_lock))
+	while (_starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(local_node, 1);
 
 	if (!is_prefetch)
@@ -154,7 +154,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 		/* the data is already available so we can stop */
 		_starpu_update_data_state(handle, requesting_node, write);
 		_starpu_msi_cache_hit(requesting_node);
-		starpu_spin_unlock(&handle->header_lock);
+		_starpu_spin_unlock(&handle->header_lock);
 		return 0;
 	}
 
@@ -210,9 +210,9 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 			r_src_to_ram->next_req[r_src_to_ram->next_req_count++]= r_ram_to_dst;
 
 			if (reuse_r_src_to_ram)
-				starpu_spin_unlock(&r_src_to_ram->lock);
+				_starpu_spin_unlock(&r_src_to_ram->lock);
 
-			starpu_spin_unlock(&handle->header_lock);
+			_starpu_spin_unlock(&handle->header_lock);
 
 			/* we only submit the first request, the remaining will be automatically submitted afterward */
 			if (!reuse_r_src_to_ram)
@@ -231,7 +231,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 			if (!is_prefetch)
 				r->refcnt++;
 
-			starpu_spin_unlock(&handle->header_lock);
+			_starpu_spin_unlock(&handle->header_lock);
 
 			_starpu_post_data_request(r, handling_node);
 		}
@@ -242,15 +242,15 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 		/* there is already a similar request */
 		if (is_prefetch)
 		{
-			starpu_spin_unlock(&r->lock);
+			_starpu_spin_unlock(&r->lock);
 
-			starpu_spin_unlock(&handle->header_lock);
+			_starpu_spin_unlock(&handle->header_lock);
 			return 0;
 		}
 
 		r->refcnt++;
 
-		//starpu_spin_lock(&r->lock);
+		//_starpu_spin_lock(&r->lock);
 		if (r->is_a_prefetch_request)
 		{
 			/* transform that prefetch request into a "normal" request */
@@ -262,8 +262,8 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 		}
 
 		//fprintf(stderr, "found a similar request : refcnt (req) %d\n", r->refcnt);
-		starpu_spin_unlock(&r->lock);
-		starpu_spin_unlock(&handle->header_lock);
+		_starpu_spin_unlock(&r->lock);
+		_starpu_spin_unlock(&handle->header_lock);
 	}
 
 	return (is_prefetch?0:_starpu_wait_data_request_completion(r, 1));
@@ -307,14 +307,14 @@ void _starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wb
 	}
 
 	uint32_t local_node = _starpu_get_local_memory_node();
-	while (starpu_spin_trylock(&handle->header_lock))
+	while (_starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(local_node, 1);
 
 	handle->per_node[memory_node].refcnt--;
 
 	_starpu_notify_data_dependencies(handle);
 
-	starpu_spin_unlock(&handle->header_lock);
+	_starpu_spin_unlock(&handle->header_lock);
 }
 
 int _starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)

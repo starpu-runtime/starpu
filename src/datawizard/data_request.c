@@ -71,7 +71,7 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uin
 {
 	starpu_data_request_t r = starpu_data_request_new();
 
-	starpu_spin_init(&r->lock);
+	_starpu_spin_init(&r->lock);
 
 	r->handle = handle;
 	r->src_node = src_node;
@@ -92,7 +92,7 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uin
 	/* associate that request with the handle so that further similar
 	 * requests will reuse that one  */
 
-	starpu_spin_lock(&r->lock);
+	_starpu_spin_lock(&r->lock);
 
 	handle->per_node[dst_node].request = r;
 
@@ -103,7 +103,7 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uin
 
 	r->refcnt = 1;
 
-	starpu_spin_unlock(&r->lock);
+	_starpu_spin_unlock(&r->lock);
 
 	return r;
 }
@@ -130,7 +130,7 @@ starpu_data_request_t _starpu_search_existing_data_request(starpu_data_handle ha
 		if (write)
 			r->write = 1;
 
-		starpu_spin_lock(&r->lock);
+		_starpu_spin_lock(&r->lock);
 	}
 
 	return r;
@@ -144,12 +144,12 @@ int _starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_a
 	uint32_t local_node = _starpu_get_local_memory_node();
 
 	do {
-		starpu_spin_lock(&r->lock);
+		_starpu_spin_lock(&r->lock);
 
 		if (r->completed)
 			break;
 
-		starpu_spin_unlock(&r->lock);
+		_starpu_spin_unlock(&r->lock);
 
 		_starpu_wake_all_blocked_workers_on_node(r->handling_node);
 
@@ -169,7 +169,7 @@ int _starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_a
 	if (r->refcnt == 0)
 		do_delete = 1;
 
-	starpu_spin_unlock(&r->lock);
+	_starpu_spin_unlock(&r->lock);
 	
 	if (do_delete)
 		starpu_data_request_destroy(r);
@@ -237,12 +237,12 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 	
 	r->retval = 0;
 
-	starpu_spin_unlock(&r->lock);
+	_starpu_spin_unlock(&r->lock);
 
 	if (do_delete)
 		starpu_data_request_destroy(r);
 
-	starpu_spin_unlock(&handle->header_lock);
+	_starpu_spin_unlock(&handle->header_lock);
 }
 
 /* TODO : accounting to see how much time was spent working for other people ... */
@@ -250,9 +250,9 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 {
 	starpu_data_handle handle = r->handle;
 
-	starpu_spin_lock(&handle->header_lock);
+	_starpu_spin_lock(&handle->header_lock);
 
-	starpu_spin_lock(&r->lock);
+	_starpu_spin_lock(&r->lock);
 
 	if (r->read)
 	{
@@ -266,16 +266,16 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 
 	if (r->retval == ENOMEM)
 	{
-		starpu_spin_unlock(&r->lock);
-		starpu_spin_unlock(&handle->header_lock);
+		_starpu_spin_unlock(&r->lock);
+		_starpu_spin_unlock(&handle->header_lock);
 
 		return ENOMEM;
 	}
 
 	if (r->retval == EAGAIN)
 	{
-		starpu_spin_unlock(&r->lock);
-		starpu_spin_unlock(&handle->header_lock);
+		_starpu_spin_unlock(&r->lock);
+		_starpu_spin_unlock(&handle->header_lock);
 
 		/* the request is pending and we put it in the corresponding queue  */
 		pthread_mutex_lock(&data_requests_pending_list_mutex[r->handling_node]);
@@ -364,9 +364,9 @@ static void _handle_pending_node_data_requests(uint32_t src_node, unsigned force
 
 		starpu_data_handle handle = r->handle;
 		
-		starpu_spin_lock(&handle->header_lock);
+		_starpu_spin_lock(&handle->header_lock);
 	
-		starpu_spin_lock(&r->lock);
+		_starpu_spin_lock(&r->lock);
 	
 		/* wait until the transfer is terminated */
 		if (force)
@@ -381,8 +381,8 @@ static void _handle_pending_node_data_requests(uint32_t src_node, unsigned force
 				starpu_handle_data_request_completion(r);
 			}
 			else {
-				starpu_spin_unlock(&r->lock);
-				starpu_spin_unlock(&handle->header_lock);
+				_starpu_spin_unlock(&r->lock);
+				_starpu_spin_unlock(&handle->header_lock);
 
 				/* wake the requesting worker up */
 				pthread_mutex_lock(&data_requests_pending_list_mutex[src_node]);

@@ -178,9 +178,9 @@ static void _prefetch_data_on_node(void *arg)
 
 	if (!statenode->async)
 	{
-		starpu_spin_lock(&statenode->state->header_lock);
+		_starpu_spin_lock(&statenode->state->header_lock);
 		_starpu_notify_data_dependencies(statenode->state);
-		starpu_spin_unlock(&statenode->state->header_lock);
+		_starpu_spin_unlock(&statenode->state->header_lock);
 	}
 
 }
@@ -213,9 +213,9 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 		/* remove the "lock"/reference */
 		if (!async)
 		{
-			starpu_spin_lock(&handle->header_lock);
+			_starpu_spin_lock(&handle->header_lock);
 			_starpu_notify_data_dependencies(handle);
-			starpu_spin_unlock(&handle->header_lock);
+			_starpu_spin_unlock(&handle->header_lock);
 		}
 	}
 	else {

@@ -18,7 +18,7 @@
 #include <common/config.h>
 #include <starpu-util.h>
 
-int starpu_spin_init(starpu_spinlock_t *lock)
+int _starpu_spin_init(starpu_spinlock_t *lock)
 {
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 	return pthread_spin_init(&lock->lock, 0);
@@ -28,7 +28,7 @@ int starpu_spin_init(starpu_spinlock_t *lock)
 #endif
 }
 
-int starpu_spin_destroy(starpu_spinlock_t *lock)
+int _starpu_spin_destroy(starpu_spinlock_t *lock)
 {
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 	return pthread_spin_destroy(&lock->lock);
@@ -38,7 +38,7 @@ int starpu_spin_destroy(starpu_spinlock_t *lock)
 #endif
 }
 
-int starpu_spin_lock(starpu_spinlock_t *lock)
+int _starpu_spin_lock(starpu_spinlock_t *lock)
 {
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 	return pthread_spin_lock(&lock->lock);
@@ -51,7 +51,7 @@ int starpu_spin_lock(starpu_spinlock_t *lock)
 #endif
 }
 
-int starpu_spin_trylock(starpu_spinlock_t *lock)
+int _starpu_spin_trylock(starpu_spinlock_t *lock)
 {
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 	return pthread_spin_trylock(&lock->lock);
@@ -62,7 +62,7 @@ int starpu_spin_trylock(starpu_spinlock_t *lock)
 #endif
 }
 
-int starpu_spin_unlock(starpu_spinlock_t *lock)
+int _starpu_spin_unlock(starpu_spinlock_t *lock)
 {
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 	return pthread_spin_unlock(&lock->lock);

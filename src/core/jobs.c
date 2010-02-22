@@ -166,7 +166,7 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(starpu_job_t j)
 
 	struct starpu_cg_list_s *tag_successors = &tag->tag_successors;
 
-	starpu_spin_lock(&tag->lock);
+	_starpu_spin_lock(&tag->lock);
 
 	if (tag_successors->ndeps != tag_successors->ndeps_completed)
 	{
@@ -181,7 +181,7 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(starpu_job_t j)
 		ret = 0;
 	}
 
-	starpu_spin_unlock(&tag->lock);
+	_starpu_spin_unlock(&tag->lock);
 	return ret;
 }
 
