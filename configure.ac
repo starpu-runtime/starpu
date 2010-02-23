@@ -192,6 +192,9 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 
 	AC_SEARCH_LIBS([cuInit],[cuda],[],[have_valid_cuda=no])
 
+	# To detect if we have a recent enough CUDA lib
+	AC_SEARCH_LIBS([cudaHostAlloc],[cudart],[],[have_valid_cuda=no])
+
 	# we also check that CUBLAS is available
 	AC_SEARCH_LIBS([cublasInit],[cublas],,[have_valid_cuda=no])
 
@@ -217,6 +220,16 @@ if test x$enable_cuda = xyes; then
 		NVCCFLAGS="${NVCCFLAGS} -m64"
 		AC_SUBST(NVCCFLAGS)
 	fi
+
+fi
+
+# cufftDoubleComplex may not be available on an old CUDA setup
+AC_CHECK_TYPE(cufftDoubleComplex,
+	[have_cufftdoublecomplex=yes],
+	[have_cufftdoublecomplex=no], [#include <cufft.h>])
+AM_CONDITIONAL(STARPU_HAVE_CUFFTDOUBLECOMPLEX, test x$have_cufftdoublecomplex = xyes)
+if test x$have_cufftdoublecomplex = xyes; then
+	AC_DEFINE(STARPU_HAVE_CUFFTDOUBLECOMPLEX, [1], [cufftDoubleComplex is available])
 fi
 
 ###############################################################################

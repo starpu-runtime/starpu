@@ -32,7 +32,6 @@ EXTRA_DIST =			\
 	testx.c			\
 	testx_threads.c	
 
-
 libstarpufft_la_SOURCES = starpufft.c starpufftf.c starpufft-common.c
 libstarpufft_la_LIBADD = $(top_builddir)/src/libstarpu.la $(FFTW_LIBS) $(FFTWF_LIBS)
 libstarpufft_la_CFLAGS = $(FFTWF_CFLAGS)
@@ -42,19 +41,40 @@ if STARPU_USE_CUDA
 NVCC ?= nvcc
 NVCCFLAGS += -Xcompiler -fPIC -Xlinker -fPIC
 
-cuda_kernels.o: cuda_kernels.cu
-	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir} -arch sm_13 
-
 cudaf_kernels.o: cudaf_kernels.cu
 	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
 
-libstarpufft_la_SOURCES += cuda_kernels.cu cudaf_kernels.cu
-am_libstarpufft_la_OBJECTS = cuda_kernels.o cudaf_kernels.o starpufft.lo starpufftf.lo starpufft-common.lo
+libstarpufft_la_SOURCES += cudaf_kernels.cu
+am_libstarpufft_la_OBJECTS = cudaf_kernels.o starpufftf.lo starpufft-common.lo
+
+if STARPU_HAVE_CUFFTDOUBLECOMPLEX
+cuda_kernels.o: cuda_kernels.cu
+	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir} -arch sm_13 
+
+libstarpufft_la_SOURCES += cuda_kernels.cu
+am_libstarpufft_la_OBJECTS += cuda_kernels.o starpufft.lo 
+endif
+
 libstarpufft_la_LIBADD += -lcufft
 endif
 
-check_PROGRAMS = test testf
-test_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la $(FFTW_LIBS)
+check_PROGRAMS = testf
 testf_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la $(FFTWF_LIBS)
+
+# If we don't have CUDA, we assume that we have fftw available in double
+# precision anyway, we just want to make sure that if CUFFT is used, it also
+# supports double precision. 
+if !STARPU_USE_CUDA
+check_PROGRAMS += test
+test_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la $(FFTW_LIBS)
+else
+if STARPU_HAVE_CUFFTDOUBLECOMPLEX
+check_PROGRAMS += test
+test_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la $(FFTW_LIBS)
+endif
+endif
+
+
+
 #test_threads_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la -lfftw3_threads
 #testf_threads_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la -lfftw3f_threads
