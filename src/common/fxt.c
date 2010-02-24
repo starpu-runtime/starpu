@@ -86,6 +86,15 @@ void _starpu_stop_fxt_profiling(void)
 		fprintf(stderr, "Writing FxT traces into file %s:%s\n", hostname, PROF_FILE_USER);
 #endif
 		fut_endup(PROF_FILE_USER);
+
+		int ret = fut_done();
+		if (ret < 0)
+		{
+			/* Something went wrong with the FxT trace (eg. there
+			 * was too many events) */
+			fprintf(stderr, "Warning: the FxT trace could not be generated properly\n");
+		}
+
 		written = 1;
 	}
 }
