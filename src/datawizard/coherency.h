@@ -83,6 +83,13 @@ struct starpu_data_state_t {
 	starpu_spinlock_t header_lock;
 
 	uint32_t nnodes; /* the number of memory nodes that may use it */
+
+	/* In case we user filters, the handle may describe a sub-data */
+	struct starpu_data_state_t *root_handle; /* root of the tree */
+	struct starpu_data_state_t *father_handle; /* father of the node, NULL if the current node is the root */
+	unsigned sibling_index; /* indicate which child this node is from the father's perpsective (if any) */
+	unsigned depth; /* what's the depth of the tree ? */
+
 	struct starpu_data_state_t *children;
 	unsigned nchildren;
 

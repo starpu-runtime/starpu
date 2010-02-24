@@ -62,6 +62,7 @@ noinst_HEADERS = 						\
 	datawizard/memalloc.h					\
 	datawizard/copy-driver.h				\
 	datawizard/coherency.h					\
+	datawizard/sort_data_handles.h				\
 	datawizard/memory_nodes.h				\
 	datawizard/interfaces/data_interface.h			\
 	common/hash.h						\
@@ -120,6 +121,7 @@ libstarpu_la_SOURCES = 						\
 	datawizard/progress.c					\
 	datawizard/copy-driver.c				\
 	datawizard/hierarchy.c					\
+	datawizard/sort_data_handles.c				\
 	datawizard/memalloc.c					\
 	datawizard/footprint.c					\
 	datawizard/datastats.c					\

@@ -67,6 +67,10 @@ void _starpu_register_new_data(starpu_data_handle handle, uint32_t home_node, ui
 
 	/* there is no hierarchy yet */
 	handle->nchildren = 0;
+	handle->root_handle = handle;
+	handle->father_handle = NULL;
+	handle->sibling_index = 0; /* could be anything for the root */
+	handle->depth = 1; /* the tree is just a node yet */
 
 	handle->is_not_important = 0;
 
@@ -196,6 +200,10 @@ void starpu_partition_data(starpu_data_handle initial_handle, starpu_filter *f)
 		STARPU_ASSERT(children);
 
 		children->nchildren = 0;
+		children->root_handle = initial_handle->root_handle;
+		children->father_handle = initial_handle;
+		children->sibling_index = i;
+		children->depth = initial_handle->depth + 1;
 
 		children->is_not_important = initial_handle->is_not_important;
 

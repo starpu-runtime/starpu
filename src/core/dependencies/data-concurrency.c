@@ -18,6 +18,7 @@
 #include <datawizard/coherency.h>
 #include <core/policies/sched_policy.h>
 #include <common/starpu-spinlock.h>
+#include <datawizard/sort_data_handles.h>
 
 static unsigned _submit_job_enforce_data_deps(starpu_job_t j, unsigned start_buffer_index);
 
@@ -114,8 +115,10 @@ static unsigned attempt_to_submit_data_request_from_job(starpu_job_t j, unsigned
 {
 	unsigned ret;
 
-	starpu_data_handle handle = j->task->buffers[buffer_index].handle;
-	starpu_access_mode mode = j->task->buffers[buffer_index].mode;
+	/* Note that we do not access j->task->buffers, but j->ordered_buffers
+	 * which is a sorted copy of it. */
+	starpu_data_handle handle = j->ordered_buffers[buffer_index].handle;
+	starpu_access_mode mode = j->ordered_buffers[buffer_index].mode;
 
 	while (_starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(_starpu_get_local_memory_node(), 0);
@@ -166,8 +169,6 @@ static unsigned _submit_job_enforce_data_deps(starpu_job_t j, unsigned start_buf
 {
 	unsigned buf;
 
-	/* TODO compute an ordered list of the data */
-
 	unsigned nbuffers = j->task->cl->nbuffers;
 	for (buf = start_buffer_index; buf < nbuffers; buf++)
 	{
@@ -184,8 +185,16 @@ static unsigned _submit_job_enforce_data_deps(starpu_job_t j, unsigned start_buf
    reading and another writing) */
 unsigned _starpu_submit_job_enforce_data_deps(starpu_job_t j)
 {
-	if ((j->task->cl == NULL) || (j->task->cl->nbuffers == 0))
+	struct starpu_codelet_t *cl = j->task->cl;
+
+	if ((cl == NULL) || (cl->nbuffers == 0))
 		return 0;
+
+	/* Compute an ordered list of the different pieces of data so that we
+	 * grab then according to a total order, thus avoiding a deadlock
+	 * condition */
+	memcpy(j->ordered_buffers, j->task->buffers, cl->nbuffers*sizeof(starpu_buffer_descr));
+	_starpu_sort_task_handles(j->ordered_buffers, cl->nbuffers);
 
 	return _submit_job_enforce_data_deps(j, 0);
 }
