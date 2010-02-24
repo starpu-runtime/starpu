@@ -79,12 +79,26 @@ void _starpu_set_local_queue(struct starpu_jobq_s *jobq)
 
 void _starpu_jobq_lock(struct starpu_jobq_s *jobq)
 {
-	pthread_mutex_lock(&jobq->activity_mutex);	
+//	_starpu_check_mutex_deadlock(&jobq->activity_mutex);
+
+	int ret;
+	ret = pthread_mutex_lock(&jobq->activity_mutex);	
+	if (STARPU_UNLIKELY(ret))
+	{
+		perror("pthread_mutex_lock");
+		STARPU_ABORT();
+	}
 }
 
 void _starpu_jobq_unlock(struct starpu_jobq_s *jobq)
 {
-	pthread_mutex_unlock(&jobq->activity_mutex);	
+	int ret;
+	ret = pthread_mutex_unlock(&jobq->activity_mutex);	
+	if (STARPU_UNLIKELY(ret))
+	{
+		perror("pthread_mutex_lock");
+		STARPU_ABORT();
+	}
 }
 
 int _starpu_jobq_trylock(struct starpu_jobq_s *jobq)
