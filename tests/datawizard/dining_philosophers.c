@@ -42,16 +42,6 @@ void submit_one_task(unsigned p)
 	unsigned left = p;
 	unsigned right = (p+1)%N;
 
-	/* TODO we should not have to order these ressources ! */
-	/* the last philosopher is left-handed ;) */
-	if (p == (N - 1))
-	{
-		unsigned tmp;
-		tmp = right;
-		right = left;
-		left = tmp;
-	}
-
 	task->buffers[0].handle = fork_handles[left];
 	task->buffers[0].mode = STARPU_RW;
 	task->buffers[1].handle = fork_handles[right];
