@@ -139,7 +139,7 @@ static void measure_bandwith_between_host_and_dev_on_cpu(int dev, int cpu)
 }
 
 /* NB: we want to sort the bandwith by DECREASING order */
-int compar_cudadev_timing(const void *left_cudadev_timing, const void *right_cudadev_timing)
+static int compar_cudadev_timing(const void *left_cudadev_timing, const void *right_cudadev_timing)
 {
 	const struct cudadev_timing *left = left_cudadev_timing;
 	const struct cudadev_timing *right = right_cudadev_timing;
