@@ -200,18 +200,6 @@ int starpu_submit_task(struct starpu_task *task)
 	return ret;
 }
 
-/* This function is supplied for convenience only, it is equivalent to setting
- * the proper flag and submitting the task with submit_task.
- * Note that this call is blocking, and will not make StarPU progress,
- * so it must only be called from the programmer thread, not by StarPU.
- * NB: This also means that it cannot be submitted within a callback ! */
-int submit_sync_task(struct starpu_task *task)
-{
-	task->synchronous = 1;
-
-	return starpu_submit_task(task);
-}
-
 void starpu_display_codelet_stats(struct starpu_codelet_t *cl)
 {
 	unsigned worker;
