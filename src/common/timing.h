@@ -44,7 +44,16 @@ typedef struct starpu_tick_s
 {
 	struct timespec ts;
 } starpu_tick_t;
+
+/* Modern CPUs' clocks are usually not synchronized so we use a monotonic clock
+ * to have consistent timing measurements. The CLOCK_MONOTONIC_RAW clock is not
+ * subject to NTP adjustments, but is not available on all systems (in that
+ * case we use the CLOCK_MONOTONIC clock instead). */
+#ifndef CLOCK_MONOTONIC_RAW
+#define STARPU_GET_TICK(t) clock_gettime(CLOCK_MONOTONIC_RAW, &((t).ts))
+#else
 #define STARPU_GET_TICK(t) clock_gettime(CLOCK_MONOTONIC, &((t).ts))
+#endif
 
 #else // !STARPU_HAVE_CLOCK_GETTIME
 
