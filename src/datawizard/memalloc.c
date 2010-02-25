@@ -188,8 +188,7 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 	}
 }
 
-
-static size_t try_to_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node, unsigned attempts)
+static size_t try_to_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node)
 {
 	size_t liberated = 0;
 
@@ -198,13 +197,6 @@ static size_t try_to_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node, unsign
 	handle = mc->data;
 
 	STARPU_ASSERT(handle);
-
-	if (attempts == 0)
-	{
-		/* this is the first attempt to free memory
-		   so we avoid to drop requested memory */
-		/* TODO */
-	}
 
 	/* try to lock all the leafs of the subtree */
 	lock_all_subtree(handle);
@@ -360,22 +352,16 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 }
 #endif
 
-/* 
- * Try to free some memory on the specified node
- * 	returns 0 if no memory was released, 1 else
+/*
+ * Liberate the memory chuncks that are explicitely tagged to be liberated. The
+ * mc_rwlock[node] rw-lock should be taken prior to calling this function.
  */
-static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unused)), unsigned attempts)
+static size_t perform_mc_removal_requests(uint32_t node)
 {
-//	fprintf(stderr, "reclaim memory...\n");
-
-	int res;
+	starpu_mem_chunk_t mc, next_mc;
+	
 	size_t liberated = 0;
 
-	res = pthread_rwlock_wrlock(&mc_rwlock[node]);
-	STARPU_ASSERT(!res);
-
-	/* remove all buffers for which there was a removal request */
-	starpu_mem_chunk_t mc, next_mc;
 	for (mc = starpu_mem_chunk_list_begin(mc_list_to_free[node]);
 	     mc != starpu_mem_chunk_list_end(mc_list_to_free[node]);
 	     mc = next_mc)
@@ -390,7 +376,21 @@ static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unu
 		starpu_mem_chunk_delete(mc);
 	}
 
-	/* try to free all allocated data potentially in use .. XXX */
+	return liberated;
+}
+
+/*
+ * Try to liberate the buffers currently in use on the memory node. If the
+ * force flag is set, the memory is liberated regardless of coherency concerns
+ * (this should only be used at the termination of StarPU for instance). The
+ * mc_rwlock[node] rw-lock should be taken prior to calling this function.
+ */
+static size_t liberate_potentially_in_use_mc(uint32_t node, unsigned force)
+{
+	size_t liberated = 0;
+
+	starpu_mem_chunk_t mc, next_mc;
+
 	for (mc = starpu_mem_chunk_list_begin(mc_list[node]);
 	     mc != starpu_mem_chunk_list_end(mc_list[node]);
 	     mc = next_mc)
@@ -400,20 +400,71 @@ static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unu
 		   element of the list now */
 		next_mc = starpu_mem_chunk_list_next(mc);
 
-		liberated += try_to_free_mem_chunk(mc, node, attempts);
-		#if 0
-		if (liberated > toreclaim)
-			break;
-		#endif
+		if (!force)
+		{
+			liberated += try_to_free_mem_chunk(mc, node);
+			#if 0
+			if (liberated > toreclaim)
+				break;
+			#endif
+		}
+		else {
+			/* We must liberate the memory now: note that data
+			 * coherency is not maintained in that case ! */
+			liberated += do_free_mem_chunk(mc, node);
+		}
 	}
+}
 
-//	fprintf(stderr, "got %d MB back\n", (int)liberated/(1024*1024));
+/* 
+ * Try to free some memory on the specified node
+ * 	returns 0 if no memory was released, 1 else
+ */
+
+static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unused)))
+{
+	int res;
+	size_t liberated = 0;
+
+	res = pthread_rwlock_wrlock(&mc_rwlock[node]);
+	STARPU_ASSERT(!res);
+
+	/* remove all buffers for which there was a removal request */
+	liberated += perform_mc_removal_requests(node);
+
+	/* try to free all allocated data potentially in use */
+	liberated += liberate_potentially_in_use_mc(node, 0);
 
 	res = pthread_rwlock_unlock(&mc_rwlock[node]);
 	STARPU_ASSERT(!res);
 
 	return liberated;
 }
+
+/*
+ * This function liberates all the memory that was implicitely allocated by
+ * StarPU (for the data replicates). This is not ensuring data coherency, and
+ * should only be called while StarPU is getting shut down.
+ */
+size_t _starpu_liberate_all_automatically_allocated_buffers(uint32_t node)
+{
+	int res;
+
+	size_t liberated = 0;
+
+	res = pthread_rwlock_wrlock(&mc_rwlock[node]);
+	STARPU_ASSERT(!res);
+
+	liberated += perform_mc_removal_requests(node);
+	liberated += liberate_potentially_in_use_mc(node, 1);
+
+	res = pthread_rwlock_unlock(&mc_rwlock[node]);
+	STARPU_ASSERT(!res);
+
+	return liberated;
+}
+
+
 
 static void register_mem_chunk(starpu_data_handle handle, uint32_t dst_node, size_t size, unsigned automatically_allocated)
 {
@@ -578,7 +629,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node
 			size_t data_size = handle->ops->get_size(handle);
 
 			STARPU_TRACE_START_MEMRECLAIM(dst_node);
-			reclaim_memory(dst_node, 2*data_size, attempts);
+			reclaim_memory(dst_node, 2*data_size);
 			STARPU_TRACE_END_MEMRECLAIM(dst_node);
 		}
 		

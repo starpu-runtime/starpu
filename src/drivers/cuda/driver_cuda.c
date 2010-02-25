@@ -278,6 +278,11 @@ void *_starpu_cuda_worker(void *arg)
 
 	STARPU_TRACE_WORKER_DEINIT_START
 
+	/* In case there remains some memory that was automatically
+	 * allocated by StarPU, we release it now. Note that data
+	 * coherency is not maintained anymore at that point ! */
+	_starpu_liberate_all_automatically_allocated_buffers(memnode);
+
 	deinit_context(args->workerid);
 
 #ifdef STARPU_DATA_STATS
