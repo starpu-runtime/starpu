@@ -40,7 +40,7 @@
 
 #include "starpu-blas-wrapper.h"
 
-extern struct starpu_data_interface_ops_t interface_blas_ops;
+extern struct starpu_data_interface_ops_t _starpu_interface_blas_ops;
 
 static int cpu_sgemm = 0;
 static int cublas_sgemm = 0;
@@ -146,7 +146,7 @@ void divide_vector_in_blas_filter(starpu_filter *f, starpu_data_handle root_data
 		}
 
 		struct starpu_data_state_t *state = &root_data->children[child];
-		state->ops = &interface_blas_ops;
+		state->ops = &_starpu_interface_blas_ops;
 	}
 
 	child++;

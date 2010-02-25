@@ -18,8 +18,6 @@
 #include <common/config.h>
 #include <datawizard/hierarchy.h>
 
-extern struct starpu_data_interface_ops_t interface_blas_ops;
-
 void starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unused)), starpu_data_handle root_handle)
 {
 	unsigned nchunks;
@@ -40,7 +38,7 @@ void starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unused))
 	nchunks = nnz;
 	
 	/* first allocate the children : it's a set of BLAS !*/
-	starpu_data_create_children(root_handle, nchunks, &interface_blas_ops);
+	starpu_data_create_children(root_handle, nchunks, &_starpu_interface_blas_ops);
 
 	/* actually create all the chunks */
 

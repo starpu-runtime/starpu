@@ -166,7 +166,7 @@ starpu_job_t _starpu_deque_pop_task(struct starpu_jobq_s *q)
 	return j;
 }
 
-struct starpu_job_list_s * deque_pop_every_task(struct starpu_jobq_s *q, uint32_t where)
+struct starpu_job_list_s * _starpu_deque_pop_every_task(struct starpu_jobq_s *q, uint32_t where)
 {
 	struct starpu_job_list_s *new_list, *old_list;
 

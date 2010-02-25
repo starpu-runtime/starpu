@@ -43,20 +43,20 @@ static struct starpu_jobq_s *func_init_central_queue(void)
 	return jobq;
 }
 
-void initialize_no_prio_policy(struct starpu_machine_config_s *config, 
+static void initialize_no_prio_policy(struct starpu_machine_config_s *config, 
 	   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
 	_starpu_setup_queues(init_no_prio_design, func_init_central_queue, config);
 }
 
-struct starpu_jobq_s *get_local_queue_no_prio(struct starpu_sched_policy_s *policy 
+static struct starpu_jobq_s *get_local_queue_no_prio(struct starpu_sched_policy_s *policy 
 					__attribute__ ((unused)))
 {
 	/* this is trivial for that strategy :) */
 	return jobq;
 }
 
-struct starpu_sched_policy_s sched_no_prio_policy = {
+struct starpu_sched_policy_s _starpu_sched_no_prio_policy = {
 	.init_sched = initialize_no_prio_policy,
 	.deinit_sched = NULL,
 	._starpu_get_local_queue = get_local_queue_no_prio,

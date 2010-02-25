@@ -38,14 +38,14 @@ static int use_prefetch = 0;
 
 #define NPREDEFINED_POLICIES	7
 
-struct starpu_sched_policy_s *predefined_policies[NPREDEFINED_POLICIES] = {
-	&sched_ws_policy,
-	&sched_prio_policy,
-	&sched_no_prio_policy,
-	&sched_dm_policy,
-	&sched_dmda_policy,
-	&sched_random_policy,
-	&sched_eager_policy
+static struct starpu_sched_policy_s *predefined_policies[NPREDEFINED_POLICIES] = {
+	&_starpu_sched_ws_policy,
+	&_starpu_sched_prio_policy,
+	&_starpu_sched_no_prio_policy,
+	&_starpu_sched_dm_policy,
+	&_starpu_sched_dmda_policy,
+	&_starpu_sched_random_policy,
+	&_starpu_sched_eager_policy
 };
 
 struct starpu_sched_policy_s *_starpu_get_sched_policy(void)
@@ -152,7 +152,7 @@ static struct starpu_sched_policy_s *select_sched_policy(struct starpu_machine_c
 		return selected_policy;
 
 	/* If no policy was specified, we use the greedy policy as a default */
-	return &sched_eager_policy;
+	return &_starpu_sched_eager_policy;
 }
 
 void _starpu_init_sched_policy(struct starpu_machine_config_s *config)

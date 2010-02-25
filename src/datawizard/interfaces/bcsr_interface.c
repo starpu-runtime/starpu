@@ -52,7 +52,7 @@ static void liberate_bcsr_buffer_on_node(void *interface, uint32_t node);
 static size_t bcsr_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle handle);
 
-struct starpu_data_interface_ops_t interface_bcsr_ops = {
+static struct starpu_data_interface_ops_t interface_bcsr_ops = {
 	.register_data_handle = register_bcsr_handle,
 	.allocate_data_on_node = allocate_bcsr_buffer_on_node,
 	.liberate_data_on_node = liberate_bcsr_buffer_on_node,

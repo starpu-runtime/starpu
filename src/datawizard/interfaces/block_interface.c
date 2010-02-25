@@ -57,7 +57,7 @@ static void display_block_interface(starpu_data_handle handle, FILE *f);
 static int convert_block_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss);
 #endif
 
-struct starpu_data_interface_ops_t interface_block_ops = {
+static struct starpu_data_interface_ops_t interface_block_ops = {
 	.register_data_handle = register_block_handle,
 	.allocate_data_on_node = allocate_block_buffer_on_node,
 	.liberate_data_on_node = liberate_block_buffer_on_node,

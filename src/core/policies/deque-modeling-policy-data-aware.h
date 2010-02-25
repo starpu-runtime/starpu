@@ -21,6 +21,6 @@
 #include <core/mechanisms/queues.h>
 #include <core/mechanisms/fifo_queues.h>
 
-extern struct starpu_sched_policy_s sched_dmda_policy;
+extern struct starpu_sched_policy_s _starpu_sched_dmda_policy;
 
 #endif // __DEQUE_MODELING_POLICY_DATA_AWARE_H__

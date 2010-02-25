@@ -61,7 +61,7 @@ static void display_blas_interface(starpu_data_handle handle, FILE *f);
 static int convert_blas_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 
-struct starpu_data_interface_ops_t interface_blas_ops = {
+struct starpu_data_interface_ops_t _starpu_interface_blas_ops = {
 	.register_data_handle = register_blas_handle,
 	.allocate_data_on_node = allocate_blas_buffer_on_node,
 	.liberate_data_on_node = liberate_blas_buffer_on_node,
@@ -132,7 +132,7 @@ void starpu_register_blas_data(starpu_data_handle *handleptr, uint32_t home_node
 		.elemsize = elemsize
 	};
 
-	_starpu_register_data_handle(handleptr, home_node, &interface, &interface_blas_ops);
+	_starpu_register_data_handle(handleptr, home_node, &interface, &_starpu_interface_blas_ops);
 }
 
 static uint32_t footprint_blas_interface_crc32(starpu_data_handle handle)

@@ -64,7 +64,7 @@ static struct starpu_jobq_s *get_local_queue_eager_priority(struct starpu_sched_
 	return jobq;
 }
 
-struct starpu_sched_policy_s sched_prio_policy = {
+struct starpu_sched_policy_s _starpu_sched_prio_policy = {
 	.init_sched = initialize_eager_center_priority_policy,
 	.deinit_sched = deinitialize_eager_center_priority_policy,
 	._starpu_get_local_queue = get_local_queue_eager_priority,

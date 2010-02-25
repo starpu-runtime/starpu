@@ -20,6 +20,6 @@
 #include <core/workers.h>
 #include <core/mechanisms/fifo_queues.h>
 
-extern struct starpu_sched_policy_s sched_eager_policy;
+extern struct starpu_sched_policy_s _starpu_sched_eager_policy;
 
 #endif // __EAGER_CENTRAL_POLICY_H__

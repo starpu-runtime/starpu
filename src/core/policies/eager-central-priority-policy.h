@@ -21,6 +21,6 @@
 #include <core/mechanisms/queues.h>
 #include <core/mechanisms/priority_queues.h>
 
-extern struct starpu_sched_policy_s sched_prio_policy;
+extern struct starpu_sched_policy_s _starpu_sched_prio_policy;
 
 #endif // __EAGER_CENTRAL_PRIORITY_POLICY_H__

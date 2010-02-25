@@ -49,7 +49,7 @@ static void liberate_csr_buffer_on_node(void *interface, uint32_t node);
 static size_t csr_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle handle);
 
-struct starpu_data_interface_ops_t interface_csr_ops = {
+static struct starpu_data_interface_ops_t interface_csr_ops = {
 	.register_data_handle = register_csr_handle,
 	.allocate_data_on_node = allocate_csr_buffer_on_node,
 	.liberate_data_on_node = liberate_csr_buffer_on_node,

@@ -20,6 +20,6 @@
 #include <core/workers.h>
 #include <core/mechanisms/fifo_queues.h>
 
-extern struct starpu_sched_policy_s sched_no_prio_policy;
+extern struct starpu_sched_policy_s _starpu_sched_no_prio_policy;
 
 #endif // __NO_PRIO_POLICY_H__
