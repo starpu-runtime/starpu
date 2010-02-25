@@ -414,6 +414,8 @@ static size_t liberate_potentially_in_use_mc(uint32_t node, unsigned force)
 			liberated += do_free_mem_chunk(mc, node);
 		}
 	}
+
+	return liberated;
 }
 
 /* 
