@@ -20,7 +20,7 @@ maxiter=5
 ROOTDIR=../../
 TIMINGDIR=$PWD/timing/
 
-export STARPU_WORKERS_GPUID="1"
+export STARPU_WORKERS_CUDAID="1"
 
 trace_sched()
 {

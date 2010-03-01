@@ -66,16 +66,16 @@ static void _starpu_initialize_workers_gpuid(struct starpu_machine_config_s *con
 			config->user_conf->workers_gpuid,
 			STARPU_NMAXWORKERS*sizeof(unsigned));
 	}
-	else if ((strval = getenv("STARPU_WORKERS_GPUID")))
+	else if ((strval = getenv("STARPU_WORKERS_CUDAID")))
 	{
-		/* STARPU_WORKERS_GPUID certainly contains less entries than
+		/* STARPU_WORKERS_CUDAID certainly contains less entries than
 		 * STARPU_NMAXWORKERS, so we reuse its entries in a round robin
 		 * fashion: "1 2" is equivalent to "1 2 1 2 1 2 .... 1 2". */
 		unsigned wrap = 0;
 		unsigned number_of_entries = 0;
 
 		char *endptr;
-		/* we use the content of the STARPU_WORKERS_GPUID env. variable */
+		/* we use the content of the STARPU_WORKERS_CUDAID env. variable */
 		for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		{
 			if (!wrap) {
@@ -335,7 +335,7 @@ static void _starpu_initialize_workers_bindid(struct starpu_machine_config_s *co
 		unsigned number_of_entries = 0;
 
 		char *endptr;
-		/* we use the content of the STARPU_WORKERS_GPUID env. variable */
+		/* we use the content of the STARPU_WORKERS_CUDAID env. variable */
 		for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		{
 			if (!wrap) {

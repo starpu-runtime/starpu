@@ -237,7 +237,7 @@ TODO, explicit configuration (passed to starpu_init) overrides env variables.
 * STARPU_NCUDA     :: Number of CUDA workers
 * STARPU_NGORDON   :: Number of SPU workers (Cell)
 * STARPU_WORKERS_CPUID  :: Bind workers to specific CPUs
-* STARPU_WORKERS_GPUID  :: Select specific CUDA devices
+* STARPU_WORKERS_CUDAID  :: Select specific CUDA devices
 @end menu
 
 @node STARPU_NCPUS
@@ -277,8 +277,8 @@ TODO
 
 @end table
 
-@node STARPU_WORKERS_GPUID
-@subsection @code{STARPU_WORKERS_GPUID} -- Select specific CUDA devices
+@node STARPU_WORKERS_CUDAID
+@subsection @code{STARPU_WORKERS_CUDAID} -- Select specific CUDA devices
 @table @asis
 
 @item @emph{Description}:
