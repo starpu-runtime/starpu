@@ -65,19 +65,19 @@ int main(int argc, char **argv)
 	taskD->cl = NULL;
 	taskD->use_tag = 1;
 	taskD->tag_id = tagD;
-	_starpu_tag_declare_deps(tagD, 3, tagA, tagB, tagC);
+	starpu_tag_declare_deps(tagD, 3, tagA, tagB, tagC);
 
 	struct starpu_task *taskE = starpu_task_create();
 	taskE->cl = &dummy_codelet;
 	taskE->use_tag = 1;
 	taskE->tag_id = tagE;
-	_starpu_tag_declare_deps(tagE, 1, tagD);
+	starpu_tag_declare_deps(tagE, 1, tagD);
 
 	struct starpu_task *taskF = starpu_task_create();
 	taskF->cl = &dummy_codelet;
 	taskF->use_tag = 1;
 	taskF->tag_id = tagF;
-	_starpu_tag_declare_deps(tagF, 1, tagD);
+	starpu_tag_declare_deps(tagF, 1, tagD);
 
 	starpu_submit_task(taskA);
 	starpu_submit_task(taskB);

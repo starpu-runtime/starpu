@@ -249,7 +249,7 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 	_starpu_spin_unlock(&tag_child->lock);
 }
 
-void _starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
+void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 {
 	unsigned i;
 	

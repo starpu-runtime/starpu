@@ -480,7 +480,7 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 		task->destroy = 0;
 
 		/* Tell that fft1 depends on twisted1 */
-		_starpu_tag_declare_deps(STEP_TAG(FFT1),
+		starpu_tag_declare_deps(STEP_TAG(FFT1),
 				1, STEP_TAG(TWIST1));
 
 		/* Create FFT1 task */
@@ -500,7 +500,7 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 
 		/* Tell that to be done with first step we need to have
 		 * finished this fft1 */
-		_starpu_tag_declare_deps(STEP_TAG_1D(plan, JOIN, 0),
+		starpu_tag_declare_deps(STEP_TAG_1D(plan, JOIN, 0),
 				1, STEP_TAG(FFT1));
 #undef STEP_TAG
 	}
@@ -530,7 +530,7 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 
 		/* Tell that twisted2 depends on the whole first step to be
 		 * done */
-		_starpu_tag_declare_deps(STEP_TAG(TWIST2),
+		starpu_tag_declare_deps(STEP_TAG(TWIST2),
 				1, STEP_TAG_1D(plan, JOIN, 0));
 
 		/* Create twist2 task */
@@ -545,7 +545,7 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 		task->destroy = 0;
 
 		/* Tell that fft2 depends on twisted2 */
-		_starpu_tag_declare_deps(STEP_TAG(FFT2),
+		starpu_tag_declare_deps(STEP_TAG(FFT2),
 				1, STEP_TAG(TWIST2));
 
 		/* Create FFT2 task */
@@ -562,7 +562,7 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 		task->destroy = 0;
 
 		/* Tell that twist3 depends on fft2 */
-		_starpu_tag_declare_deps(STEP_TAG(TWIST3),
+		starpu_tag_declare_deps(STEP_TAG(TWIST3),
 				1, STEP_TAG(FFT2));
 
 		/* Create twist3 tasks */
@@ -577,7 +577,7 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 		task->destroy = 0;
 
 		/* Tell that to be completely finished we need to have finished this twisted3 */
-		_starpu_tag_declare_deps(STEP_TAG_1D(plan, END, 0),
+		starpu_tag_declare_deps(STEP_TAG_1D(plan, END, 0),
 				1, STEP_TAG(TWIST3));
 #undef STEP_TAG
 	}

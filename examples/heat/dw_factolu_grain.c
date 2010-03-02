@@ -67,7 +67,7 @@ static struct starpu_task *create_task_11(starpu_data_handle dataA, unsigned k, 
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		_starpu_tag_declare_deps(TAG11(k, tag_prefix), 1, TAG22(k-1, k, k, tag_prefix));
+		starpu_tag_declare_deps(TAG11(k, tag_prefix), 1, TAG22(k-1, k, k, tag_prefix));
 	}
 
 	return task;
@@ -103,10 +103,10 @@ static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned i, uns
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		_starpu_tag_declare_deps(TAG12(k, i, tag_prefix), 2, TAG11(k, tag_prefix), TAG22(k-1, i, k, tag_prefix));
+		starpu_tag_declare_deps(TAG12(k, i, tag_prefix), 2, TAG11(k, tag_prefix), TAG22(k-1, i, k, tag_prefix));
 	}
 	else {
-		_starpu_tag_declare_deps(TAG12(k, i, tag_prefix), 1, TAG11(k, tag_prefix));
+		starpu_tag_declare_deps(TAG12(k, i, tag_prefix), 1, TAG11(k, tag_prefix));
 	}
 
 	starpu_submit_task(task);
@@ -140,10 +140,10 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j, uns
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		_starpu_tag_declare_deps(TAG21(k, j, tag_prefix), 2, TAG11(k, tag_prefix), TAG22(k-1, k, j, tag_prefix));
+		starpu_tag_declare_deps(TAG21(k, j, tag_prefix), 2, TAG11(k, tag_prefix), TAG22(k-1, k, j, tag_prefix));
 	}
 	else {
-		_starpu_tag_declare_deps(TAG21(k, j, tag_prefix), 1, TAG11(k, tag_prefix));
+		starpu_tag_declare_deps(TAG21(k, j, tag_prefix), 1, TAG11(k, tag_prefix));
 	}
 
 	starpu_submit_task(task);
@@ -181,10 +181,10 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		_starpu_tag_declare_deps(TAG22(k, i, j, tag_prefix), 3, TAG22(k-1, i, j, tag_prefix), TAG12(k, i, tag_prefix), TAG21(k, j, tag_prefix));
+		starpu_tag_declare_deps(TAG22(k, i, j, tag_prefix), 3, TAG22(k-1, i, j, tag_prefix), TAG12(k, i, tag_prefix), TAG21(k, j, tag_prefix));
 	}
 	else {
-		_starpu_tag_declare_deps(TAG22(k, i, j, tag_prefix), 2, TAG12(k, i, tag_prefix), TAG21(k, j, tag_prefix));
+		starpu_tag_declare_deps(TAG22(k, i, j, tag_prefix), 2, TAG12(k, i, tag_prefix), TAG21(k, j, tag_prefix));
 	}
 
 	starpu_submit_task(task);

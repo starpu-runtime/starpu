@@ -56,7 +56,7 @@ struct starpu_tag_s {
 	unsigned is_submitted;
 };
 
-void _starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
+void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 
 void _starpu_notify_dependencies(struct starpu_job_s *j);
 void _starpu_tag_declare(starpu_tag_t id, struct starpu_job_s *job);

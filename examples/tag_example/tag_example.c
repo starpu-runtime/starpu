@@ -163,12 +163,12 @@ static void express_deps(unsigned i, unsigned j, unsigned iter)
 		if (j < nj - 1)
 		{
 			/* (i,j+1) exists */
-			_starpu_tag_declare_deps(TAG(i,j,iter), 2, TAG(i-1,j-1,iter), TAG(i-1,j+1,iter));
+			starpu_tag_declare_deps(TAG(i,j,iter), 2, TAG(i-1,j-1,iter), TAG(i-1,j+1,iter));
 		}
 		else 
 		{
 			/* (i,j+1) does not exist */
-			_starpu_tag_declare_deps(TAG(i,j,iter), 1, TAG(i-1,j-1,iter));
+			starpu_tag_declare_deps(TAG(i,j,iter), 1, TAG(i-1,j-1,iter));
 		}
 	}
 	else {
@@ -176,7 +176,7 @@ static void express_deps(unsigned i, unsigned j, unsigned iter)
 		if (j < nj - 1)
 		{
 			/* (i,j+1) exists */
-			_starpu_tag_declare_deps(TAG(i,j,iter), 1, TAG(i-1,j+1,iter));
+			starpu_tag_declare_deps(TAG(i,j,iter), 1, TAG(i-1,j+1,iter));
 		}
 		else 
 		{

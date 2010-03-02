@@ -80,7 +80,7 @@ static struct starpu_task * create_task_11(unsigned k, unsigned nblocks, sem_t *
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		_starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
+		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
 	}
 
 	/* the very last task must be notified */
@@ -128,10 +128,10 @@ static void create_task_21(unsigned k, unsigned j)
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		_starpu_tag_declare_deps(TAG21(k, j), 2, TAG11(k), TAG22(k-1, k, j));
+		starpu_tag_declare_deps(TAG21(k, j), 2, TAG11(k), TAG22(k-1, k, j));
 	}
 	else {
-		_starpu_tag_declare_deps(TAG21(k, j), 1, TAG11(k));
+		starpu_tag_declare_deps(TAG21(k, j), 1, TAG11(k));
 	}
 
 	starpu_submit_task(task);
@@ -177,10 +177,10 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
 
 	/* enforce dependencies ... */
 	if (k > 0) {
-		_starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), TAG21(k, i), TAG21(k, j));
+		starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), TAG21(k, i), TAG21(k, j));
 	}
 	else {
-		_starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG21(k, i), TAG21(k, j));
+		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG21(k, i), TAG21(k, j));
 	}
 
 	starpu_submit_task(task);

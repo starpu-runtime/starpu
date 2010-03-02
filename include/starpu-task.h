@@ -147,22 +147,22 @@ struct starpu_task {
  * To do so, fill the tag_id field with a tag number (can be arbitrary) and set
  * use_tag to 1.
  *
- * If _starpu_tag_declare_deps is called with that tag number, the task will not
+ * If starpu_tag_declare_deps is called with that tag number, the task will not
  * be started until the task which wears the declared dependency tags are
  * complete.
  */
 
 /*
  * WARNING ! use with caution ...
- *  In case _starpu_tag_declare_deps is passed constant arguments, the caller
+ *  In case starpu_tag_declare_deps is passed constant arguments, the caller
  *  must make sure that the constants are casted to starpu_tag_t. Otherwise,
  *  due to integer sizes and argument passing on the stack, the C compiler
  *  might consider the tag *  0x200000003 instead of 0x2 and 0x3 when calling:
- *      "_starpu_tag_declare_deps(0x1, 2, 0x2, 0x3)"
+ *      "starpu_tag_declare_deps(0x1, 2, 0x2, 0x3)"
  *  Using starpu_tag_declare_deps_array is a way to avoid this problem.
  */
 /* make id depend on the list of ids */
-void _starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
+void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);
 
 /* task depends on the tasks in task array */
