@@ -425,7 +425,7 @@ void STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	starpu_register_blas_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(TYPE));
+	starpu_register_matrix_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(TYPE));
 
 	starpu_filter f;
 		f.filter_func = starpu_vertical_block_filter_func;
@@ -465,7 +465,7 @@ void STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size
 	fprintf(stderr, "Computation took (in ms)\n");
 	fprintf(stderr, "%2.2f\n", timing/1000);
 
-	unsigned n = starpu_get_blas_nx(dataA);
+	unsigned n = starpu_get_matrix_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 
@@ -490,7 +490,7 @@ void STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, un
 	for (bj = 0; bj < nblocks; bj++)
 	for (bi = 0; bi < nblocks; bi++)
 	{
-		starpu_register_blas_data(&dataAp[bi+nblocks*bj], 0,
+		starpu_register_matrix_data(&dataAp[bi+nblocks*bj], 0,
 			(uintptr_t)matA[bi+nblocks*bj], size/nblocks,
 			size/nblocks, size/nblocks, sizeof(TYPE));
 	}
@@ -514,7 +514,7 @@ void STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, un
 	fprintf(stderr, "Computation took (in ms)\n");
 	fprintf(stderr, "%2.2f\n", timing/1000);
 
-	unsigned n = starpu_get_blas_nx(dataAp[0])*nblocks;
+	unsigned n = starpu_get_matrix_nx(dataAp[0])*nblocks;
 	double flop = (2.0f*n*n*n)/3.0f;
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 

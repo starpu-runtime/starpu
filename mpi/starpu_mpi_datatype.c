@@ -32,8 +32,8 @@ static int handle_to_datatype_blas(starpu_data_handle data_handle, MPI_Datatype 
 {
 	int ret;
 
-	unsigned nx = starpu_get_blas_nx(data_handle);
-	unsigned ny = starpu_get_blas_ny(data_handle);
+	unsigned nx = starpu_get_matrix_nx(data_handle);
+	unsigned ny = starpu_get_matrix_ny(data_handle);
 	unsigned ld = starpu_get_blas_local_ld(data_handle);
 	size_t elemsize = starpu_get_blas_elemsize(data_handle);
 

@@ -190,7 +190,7 @@ static starpu_data_handle allocate_tmp_matrix(unsigned size, unsigned reclevel)
 
 	buffer = allocate_tmp_matrix_wrapper(size*size*sizeof(float));
 
-	starpu_register_blas_data(data, 0, (uintptr_t)buffer, size, size, size, sizeof(float));
+	starpu_register_matrix_data(data, 0, (uintptr_t)buffer, size, size, size, sizeof(float));
 
 	/* we construct a starpu_filter tree of depth reclevel */
 	unsigned rec;
@@ -417,7 +417,7 @@ void strassen_mult(struct strassen_iter *iter)
         starpu_data_handle C21 = starpu_get_sub_data(iter->C, 2, 0, 1);
         starpu_data_handle C22 = starpu_get_sub_data(iter->C, 2, 1, 1);
 
-	unsigned size = starpu_get_blas_nx(A11);
+	unsigned size = starpu_get_matrix_nx(A11);
 
 	/* M1a = (A11 + A22) */
 	iter->Mia_data[0] = allocate_tmp_matrix(size, iter->reclevel);
@@ -804,9 +804,9 @@ int main(int argc, char **argv)
 	B = allocate_tmp_matrix_wrapper(size*size*sizeof(float));
 	C = allocate_tmp_matrix_wrapper(size*size*sizeof(float));
 
-	starpu_register_blas_data(&data_A, 0, (uintptr_t)A, size, size, size, sizeof(float));
-	starpu_register_blas_data(&data_B, 0, (uintptr_t)B, size, size, size, sizeof(float));
-	starpu_register_blas_data(&data_C, 0, (uintptr_t)C, size, size, size, sizeof(float));
+	starpu_register_matrix_data(&data_A, 0, (uintptr_t)A, size, size, size, sizeof(float));
+	starpu_register_matrix_data(&data_B, 0, (uintptr_t)B, size, size, size, sizeof(float));
+	starpu_register_matrix_data(&data_C, 0, (uintptr_t)C, size, size, size, sizeof(float));
 
 	unsigned rec;
 	for (rec = 0; rec < reclevel; rec++)

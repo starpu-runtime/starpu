@@ -168,7 +168,7 @@ static void _dw_cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	starpu_register_blas_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
+	starpu_register_matrix_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	starpu_filter f;
 		f.filter_func = starpu_vertical_block_filter_func;

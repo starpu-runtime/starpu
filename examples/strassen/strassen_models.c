@@ -41,7 +41,7 @@ static double self_add_sub_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = starpu_get_blas_nx(descr[0].handle);
+	n = starpu_get_matrix_nx(descr[0].handle);
 
 	double cost = (n*n)/10.0f/4.0f/7.75f;
 
@@ -56,7 +56,7 @@ static double cuda_self_add_sub_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = starpu_get_blas_nx(descr[0].handle);
+	n = starpu_get_matrix_nx(descr[0].handle);
 
 	double cost = (n*n)/10.0f/4.0f;
 
@@ -71,7 +71,7 @@ static double add_sub_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = starpu_get_blas_nx(descr[0].handle);
+	n = starpu_get_matrix_nx(descr[0].handle);
 
 	double cost = (1.45f*n*n)/10.0f/2.0f;
 
@@ -86,7 +86,7 @@ static double cuda_add_sub_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = starpu_get_blas_nx(descr[0].handle);
+	n = starpu_get_matrix_nx(descr[0].handle);
 
 	double cost = (1.45f*n*n)/10.0f/2.0f;
 
@@ -102,7 +102,7 @@ static double mult_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = starpu_get_blas_nx(descr[0].handle);
+	n = starpu_get_matrix_nx(descr[0].handle);
 
 	double cost = (((double)(n)*n*n)/1000.0f/4.11f/0.2588);
 
@@ -117,7 +117,7 @@ static double cuda_mult_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = starpu_get_blas_nx(descr[0].handle);
+	n = starpu_get_matrix_nx(descr[0].handle);
 
 	double cost = (((double)(n)*n*n)/1000.0f/4.11f);
 

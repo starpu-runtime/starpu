@@ -23,15 +23,15 @@ static starpu_data_handle create_tmp_matrix(starpu_data_handle M)
 	starpu_data_handle state = malloc(sizeof(starpu_data_handle));
 
 	/* create a matrix with the same dimensions as M */
-	uint32_t nx = starpu_get_blas_nx(M);
-	uint32_t ny = starpu_get_blas_nx(M);
+	uint32_t nx = starpu_get_matrix_nx(M);
+	uint32_t ny = starpu_get_matrix_nx(M);
 
 	STARPU_ASSERT(state);
 
 	data = malloc(nx*ny*sizeof(float));
 	STARPU_ASSERT(data);
 
-	starpu_register_blas_data(&state, 0, (uintptr_t)data, nx, nx, ny, sizeof(float));
+	starpu_register_matrix_data(&state, 0, (uintptr_t)data, nx, nx, ny, sizeof(float));
 	
 	return state;
 }

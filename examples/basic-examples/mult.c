@@ -18,7 +18,7 @@
  * This example shows a simple implementation of a blocked matrix
  * multiplication. Note that this is NOT intended to be an efficient
  * implementation of sgemm! In this example, we show:
- *  - how to declare dense matrices (starpu_register_blas_data)
+ *  - how to declare dense matrices (starpu_register_matrix_data)
  *  - how to manipulate matrices within codelets (eg. descr[0].blas.ld)
  *  - how to use filters to partition the matrices into blocks
  *    (starpu_partition_data and starpu_map_filters)
@@ -116,9 +116,9 @@ static void cpu_mult(void *descr[], __attribute__((unused))  void *arg)
 	uint32_t ldA, ldB, ldC;
 
 	/* .blas.ptr gives a pointer to the first element of the local copy */
-	subA = (float *)STARPU_GET_BLAS_PTR(descr[0]);
-	subB = (float *)STARPU_GET_BLAS_PTR(descr[1]);
-	subC = (float *)STARPU_GET_BLAS_PTR(descr[2]);
+	subA = (float *)STARPU_GET_MATRIX_PTR(descr[0]);
+	subB = (float *)STARPU_GET_MATRIX_PTR(descr[1]);
+	subC = (float *)STARPU_GET_MATRIX_PTR(descr[2]);
 
 	/* .blas.nx is the number of rows (consecutive elements) and .blas.ny
 	 * is the number of lines that are separated by .blas.ld elements (ld
@@ -126,13 +126,13 @@ static void cpu_mult(void *descr[], __attribute__((unused))  void *arg)
 	 * NB: in case some filters were used, the leading dimension is not
 	 * guaranteed to be the same in main memory (on the original matrix)
 	 * and on the accelerator! */
-	nxC = STARPU_GET_BLAS_NX(descr[2]);
-	nyC = STARPU_GET_BLAS_NY(descr[2]);
-	nyA = STARPU_GET_BLAS_NY(descr[0]);
+	nxC = STARPU_GET_MATRIX_NX(descr[2]);
+	nyC = STARPU_GET_MATRIX_NY(descr[2]);
+	nyA = STARPU_GET_MATRIX_NY(descr[0]);
 
-	ldA = STARPU_GET_BLAS_LD(descr[0]);
-	ldB = STARPU_GET_BLAS_LD(descr[1]);
-	ldC = STARPU_GET_BLAS_LD(descr[2]);
+	ldA = STARPU_GET_MATRIX_LD(descr[0]);
+	ldB = STARPU_GET_MATRIX_LD(descr[1]);
+	ldC = STARPU_GET_MATRIX_LD(descr[2]);
 
 	/* we assume a FORTRAN-ordering! */
 	unsigned i,j,k;
@@ -199,11 +199,11 @@ static void partition_mult_data(void)
 	 * node in which resides the matrix: 0 means that the 3rd argument is
 	 * an adress in main memory.
 	 */
-	starpu_register_blas_data(&A_handle, 0, (uintptr_t)A, 
+	starpu_register_matrix_data(&A_handle, 0, (uintptr_t)A, 
 		ydim, ydim, zdim, sizeof(float));
-	starpu_register_blas_data(&B_handle, 0, (uintptr_t)B, 
+	starpu_register_matrix_data(&B_handle, 0, (uintptr_t)B, 
 		zdim, zdim, xdim, sizeof(float));
-	starpu_register_blas_data(&C_handle, 0, (uintptr_t)C, 
+	starpu_register_matrix_data(&C_handle, 0, (uintptr_t)C, 
 		ydim, ydim, xdim, sizeof(float));
 
 	/* A filter is a method to partition a data into disjoint chunks, it is

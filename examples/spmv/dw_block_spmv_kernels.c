@@ -23,14 +23,14 @@
 static inline void common_block_spmv(void *descr[], int s, __attribute__((unused)) void *_args)
 {
 	//printf("22\n");
-	float *block 	= (float *)STARPU_GET_BLAS_PTR(descr[0]);
+	float *block 	= (float *)STARPU_GET_MATRIX_PTR(descr[0]);
 	float *in 	= (float *)STARPU_GET_VECTOR_PTR(descr[1]);
 	float *out 	= (float *)STARPU_GET_VECTOR_PTR(descr[2]);
 
-	unsigned dx = STARPU_GET_BLAS_NX(descr[0]);
-	unsigned dy = STARPU_GET_BLAS_NY(descr[0]);
+	unsigned dx = STARPU_GET_MATRIX_NX(descr[0]);
+	unsigned dy = STARPU_GET_MATRIX_NY(descr[0]);
 
-	unsigned ld = STARPU_GET_BLAS_LD(descr[0]);
+	unsigned ld = STARPU_GET_MATRIX_LD(descr[0]);
 
 	switch (s) {
 		case 0:

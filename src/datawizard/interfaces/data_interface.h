@@ -47,6 +47,6 @@ void _starpu_register_data_handle(starpu_data_handle *handleptr, uint32_t home_n
 				struct starpu_data_interface_ops_t *ops);
 
 /* Some data interfaces or filters use this interface internally */
-extern struct starpu_data_interface_ops_t _starpu_interface_blas_ops;
+extern struct starpu_data_interface_ops_t _starpu_interface_matrix_ops;
 
 #endif // __DATA_INTERFACE_H__

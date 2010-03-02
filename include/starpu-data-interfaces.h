@@ -26,30 +26,30 @@ extern "C" {
 
 void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node);
 
-/* BLAS interface for dense matrices */
-typedef struct starpu_blas_interface_s {
+/* Matrix interface for dense matrices */
+typedef struct starpu_matrix_interface_s {
 	uintptr_t ptr;
 	uint32_t nx;
 	uint32_t ny;
 	uint32_t ld;
 	size_t elemsize;
-} starpu_blas_interface_t;
+} starpu_matrix_interface_t;
 
-void starpu_register_blas_data(starpu_data_handle *handle, uint32_t home_node,
+void starpu_register_matrix_data(starpu_data_handle *handle, uint32_t home_node,
                         uintptr_t ptr, uint32_t ld, uint32_t nx,
                         uint32_t ny, size_t elemsize);
-uint32_t starpu_get_blas_nx(starpu_data_handle handle);
-uint32_t starpu_get_blas_ny(starpu_data_handle handle);
-uint32_t starpu_get_blas_local_ld(starpu_data_handle handle);
-uintptr_t starpu_get_blas_local_ptr(starpu_data_handle handle);
-size_t starpu_get_blas_elemsize(starpu_data_handle handle);
+uint32_t starpu_get_matrix_nx(starpu_data_handle handle);
+uint32_t starpu_get_matrix_ny(starpu_data_handle handle);
+uint32_t starpu_get_matrix_local_ld(starpu_data_handle handle);
+uintptr_t starpu_get_matrix_local_ptr(starpu_data_handle handle);
+size_t starpu_get_matrix_elemsize(starpu_data_handle handle);
 
 /* helper methods */
-#define STARPU_GET_BLAS_PTR(interface)	(((starpu_blas_interface_t *)(interface))->ptr)
-#define STARPU_GET_BLAS_NX(interface)	(((starpu_blas_interface_t *)(interface))->nx)
-#define STARPU_GET_BLAS_NY(interface)	(((starpu_blas_interface_t *)(interface))->ny)
-#define STARPU_GET_BLAS_LD(interface)	(((starpu_blas_interface_t *)(interface))->ld)
-#define STARPU_GET_BLAS_ELEMSIZE(interface)	(((starpu_blas_interface_t *)(interface))->elemsize)
+#define STARPU_GET_MATRIX_PTR(interface)	(((starpu_matrix_interface_t *)(interface))->ptr)
+#define STARPU_GET_MATRIX_NX(interface)	(((starpu_matrix_interface_t *)(interface))->nx)
+#define STARPU_GET_MATRIX_NY(interface)	(((starpu_matrix_interface_t *)(interface))->ny)
+#define STARPU_GET_MATRIX_LD(interface)	(((starpu_matrix_interface_t *)(interface))->ld)
+#define STARPU_GET_MATRIX_ELEMSIZE(interface)	(((starpu_matrix_interface_t *)(interface))->elemsize)
 
 
 /* BLOCK interface for 3D dense blocks */

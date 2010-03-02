@@ -25,17 +25,17 @@
 	float *subB;			\
 	float *subC;			\
 					\
-	subA = (float *)STARPU_GET_BLAS_PTR(descr[0]);	\
-	subB = (float *)STARPU_GET_BLAS_PTR(descr[1]);	\
-	subC = (float *)STARPU_GET_BLAS_PTR(descr[2]);	\
+	subA = (float *)STARPU_GET_MATRIX_PTR(descr[0]);	\
+	subB = (float *)STARPU_GET_MATRIX_PTR(descr[1]);	\
+	subC = (float *)STARPU_GET_MATRIX_PTR(descr[2]);	\
 					\
-	nxC = STARPU_GET_BLAS_NX(descr[2]);		\
-	nyC = STARPU_GET_BLAS_NY(descr[2]);		\
-	nyA = STARPU_GET_BLAS_NY(descr[0]);		\
+	nxC = STARPU_GET_MATRIX_NX(descr[2]);		\
+	nyC = STARPU_GET_MATRIX_NY(descr[2]);		\
+	nyA = STARPU_GET_MATRIX_NY(descr[0]);		\
 					\
-	ldA = STARPU_GET_BLAS_LD(descr[0]);		\
-	ldB = STARPU_GET_BLAS_LD(descr[1]);		\
-	ldC = STARPU_GET_BLAS_LD(descr[2]);
+	ldA = STARPU_GET_MATRIX_LD(descr[0]);		\
+	ldB = STARPU_GET_MATRIX_LD(descr[1]);		\
+	ldC = STARPU_GET_MATRIX_LD(descr[2]);
 
 
 

@@ -302,7 +302,7 @@ static void dw_codelet_facto_v3(starpu_data_handle dataA, unsigned nblocks)
 	fprintf(stderr, "Computation took (in ms)\n");
 	printf("%2.2f\n", timing/1000);
 
-	unsigned n = starpu_get_blas_nx(dataA);
+	unsigned n = starpu_get_matrix_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
@@ -313,7 +313,7 @@ void STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigne
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	starpu_register_blas_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(TYPE));
+	starpu_register_matrix_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(TYPE));
 
 	starpu_filter f;
 		f.filter_func = starpu_vertical_block_filter_func;

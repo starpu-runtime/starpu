@@ -68,14 +68,14 @@ static void ds_callback(void *arg)
 
 static void ds_kernel_cpu(void *descr[], __attribute__((unused)) void *arg)
 {
-	uint8_t *input = (uint8_t *)STARPU_GET_BLAS_PTR(descr[0]);
-	unsigned input_ld = STARPU_GET_BLAS_LD(descr[0]);
+	uint8_t *input = (uint8_t *)STARPU_GET_MATRIX_PTR(descr[0]);
+	unsigned input_ld = STARPU_GET_MATRIX_LD(descr[0]);
 
-	uint8_t *output = (uint8_t *)STARPU_GET_BLAS_PTR(descr[1]);
-	unsigned output_ld = STARPU_GET_BLAS_LD(descr[1]);
+	uint8_t *output = (uint8_t *)STARPU_GET_MATRIX_PTR(descr[1]);
+	unsigned output_ld = STARPU_GET_MATRIX_LD(descr[1]);
 
-	unsigned ncols = STARPU_GET_BLAS_NX(descr[0]);
-	unsigned nlines = STARPU_GET_BLAS_NY(descr[0]);
+	unsigned ncols = STARPU_GET_MATRIX_NX(descr[0]);
+	unsigned nlines = STARPU_GET_MATRIX_NY(descr[0]);
 
 	unsigned line, col;
 	for (line = 0; line < nlines; line+=FACTOR)
@@ -169,39 +169,39 @@ int main(int argc, char **argv)
 	for (frame = 0; frame < nframes; frame++)
 	{
 		/* register Y layer */
-		starpu_register_blas_data(&frame_y_handle[frame], 0,
+		starpu_register_matrix_data(&frame_y_handle[frame], 0,
 			(uintptr_t)&yuv_in_buffer[frame].y,
 			WIDTH, WIDTH, HEIGHT, sizeof(uint8_t));
 
 		starpu_partition_data(frame_y_handle[frame], &filter_y);
 
-		starpu_register_blas_data(&new_frame_y_handle[frame], 0,
+		starpu_register_matrix_data(&new_frame_y_handle[frame], 0,
 			(uintptr_t)&yuv_out_buffer[frame].y,
 			NEW_WIDTH, NEW_WIDTH, NEW_HEIGHT, sizeof(uint8_t));
 
 		starpu_partition_data(new_frame_y_handle[frame], &filter_y);
 
 		/* register U layer */
-		starpu_register_blas_data(&frame_u_handle[frame], 0,
+		starpu_register_matrix_data(&frame_u_handle[frame], 0,
 			(uintptr_t)&yuv_in_buffer[frame].u,
 			WIDTH/2, WIDTH/2, HEIGHT/2, sizeof(uint8_t));
 
 		starpu_partition_data(frame_u_handle[frame], &filter_u);
 
-		starpu_register_blas_data(&new_frame_u_handle[frame], 0,
+		starpu_register_matrix_data(&new_frame_u_handle[frame], 0,
 			(uintptr_t)&yuv_out_buffer[frame].u,
 			NEW_WIDTH/2, NEW_WIDTH/2, NEW_HEIGHT/2, sizeof(uint8_t));
 
 		starpu_partition_data(new_frame_u_handle[frame], &filter_u);
 
 		/* register V layer */
-		starpu_register_blas_data(&frame_v_handle[frame], 0,
+		starpu_register_matrix_data(&frame_v_handle[frame], 0,
 			(uintptr_t)&yuv_in_buffer[frame].v,
 			WIDTH/2, WIDTH/2, HEIGHT/2, sizeof(uint8_t));
 
 		starpu_partition_data(frame_v_handle[frame], &filter_v);
 
-		starpu_register_blas_data(&new_frame_v_handle[frame], 0,
+		starpu_register_matrix_data(&new_frame_v_handle[frame], 0,
 			(uintptr_t)&yuv_out_buffer[frame].v,
 			NEW_WIDTH/2, NEW_WIDTH/2, NEW_HEIGHT/2, sizeof(uint8_t));
 

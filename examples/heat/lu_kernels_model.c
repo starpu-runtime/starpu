@@ -44,7 +44,7 @@ double task_11_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = starpu_get_blas_nx(descr[0].handle);
+	n = starpu_get_matrix_nx(descr[0].handle);
 
 	double cost = ((n*n*n)/537.5);
 
@@ -55,7 +55,7 @@ double task_12_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = starpu_get_blas_nx(descr[0].handle);
+	n = starpu_get_matrix_nx(descr[0].handle);
 
 //	double cost = ((n*n*n)/1744.695);
 	double cost = ((n*n*n)/3210.80);
@@ -69,7 +69,7 @@ double task_21_cost(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = starpu_get_blas_nx(descr[0].handle);
+	n = starpu_get_matrix_nx(descr[0].handle);
 
 //	double cost = ((n*n*n)/1744.695);
 	double cost = ((n*n*n)/3691.53);
@@ -84,9 +84,9 @@ double task_22_cost(starpu_buffer_descr *descr)
 {
 	uint32_t nx, ny, nz;
 
-	nx = starpu_get_blas_nx(descr[2].handle);
-	ny = starpu_get_blas_ny(descr[2].handle);
-	nz = starpu_get_blas_ny(descr[0].handle);
+	nx = starpu_get_matrix_nx(descr[2].handle);
+	ny = starpu_get_matrix_ny(descr[2].handle);
+	nz = starpu_get_matrix_ny(descr[0].handle);
 
 	double cost = ((nx*ny*nz)/4110.0);
 
@@ -104,7 +104,7 @@ double task_11_cost_cuda(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = starpu_get_blas_nx(descr[0].handle);
+	n = starpu_get_matrix_nx(descr[0].handle);
 
 	double cost = ((n*n*n)/1853.7806);
 
@@ -116,7 +116,7 @@ double task_12_cost_cuda(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = starpu_get_blas_nx(descr[0].handle);
+	n = starpu_get_matrix_nx(descr[0].handle);
 
 	double cost = ((n*n*n)/42838.5718);
 
@@ -129,7 +129,7 @@ double task_21_cost_cuda(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = starpu_get_blas_nx(descr[0].handle);
+	n = starpu_get_matrix_nx(descr[0].handle);
 
 	double cost = ((n*n*n)/49208.667);
 
@@ -143,9 +143,9 @@ double task_22_cost_cuda(starpu_buffer_descr *descr)
 {
 	uint32_t nx, ny, nz;
 
-	nx = starpu_get_blas_nx(descr[2].handle);
-	ny = starpu_get_blas_ny(descr[2].handle);
-	nz = starpu_get_blas_ny(descr[0].handle);
+	nx = starpu_get_matrix_nx(descr[2].handle);
+	ny = starpu_get_matrix_ny(descr[2].handle);
+	nz = starpu_get_matrix_ny(descr[0].handle);
 
 	double cost = ((nx*ny*nz)/57523.560);
 
@@ -163,7 +163,7 @@ double task_11_cost_cpu(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = starpu_get_blas_nx(descr[0].handle);
+	n = starpu_get_matrix_nx(descr[0].handle);
 
 	double cost = ((n*n*n)/537.5);
 
@@ -175,7 +175,7 @@ double task_12_cost_cpu(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = starpu_get_blas_nx(descr[0].handle);
+	n = starpu_get_matrix_nx(descr[0].handle);
 
 	double cost = ((n*n*n)/6668.224);
 
@@ -188,7 +188,7 @@ double task_21_cost_cpu(starpu_buffer_descr *descr)
 {
 	uint32_t n;
 
-	n = starpu_get_blas_nx(descr[0].handle);
+	n = starpu_get_matrix_nx(descr[0].handle);
 
 	double cost = ((n*n*n)/6793.8423);
 
@@ -202,9 +202,9 @@ double task_22_cost_cpu(starpu_buffer_descr *descr)
 {
 	uint32_t nx, ny, nz;
 
-	nx = starpu_get_blas_nx(descr[2].handle);
-	ny = starpu_get_blas_ny(descr[2].handle);
-	nz = starpu_get_blas_ny(descr[0].handle);
+	nx = starpu_get_matrix_nx(descr[2].handle);
+	ny = starpu_get_matrix_ny(descr[2].handle);
+	nz = starpu_get_matrix_ny(descr[0].handle);
 
 	double cost = ((nx*ny*nz)/4203.0175);
 

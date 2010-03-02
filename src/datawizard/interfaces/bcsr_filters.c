@@ -38,7 +38,7 @@ void starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unused))
 	nchunks = nnz;
 	
 	/* first allocate the children : it's a set of BLAS !*/
-	starpu_data_create_children(root_handle, nchunks, &_starpu_interface_blas_ops);
+	starpu_data_create_children(root_handle, nchunks, &_starpu_interface_matrix_ops);
 
 	/* actually create all the chunks */
 
@@ -54,7 +54,7 @@ void starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unused))
 		unsigned node;
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
-			starpu_blas_interface_t *local =
+			starpu_matrix_interface_t *local =
 				starpu_data_get_interface_on_node(sub_handle, node);
 
 			local->nx = c;

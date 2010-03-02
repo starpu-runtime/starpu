@@ -197,7 +197,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 	 * (re)partition data
 	 */
 	starpu_data_handle dataA;
-	starpu_register_blas_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
+	starpu_register_matrix_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	STARPU_ASSERT((size % blocksize) == 0);
 	STARPU_ASSERT((inner_size % blocksize) == 0);

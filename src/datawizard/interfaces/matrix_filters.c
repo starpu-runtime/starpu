@@ -26,18 +26,18 @@ void starpu_block_filter_func(starpu_filter *f, starpu_data_handle root_handle)
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
 
-	starpu_blas_interface_t *blas_root =
+	starpu_matrix_interface_t *matrix_root =
 		starpu_data_get_interface_on_node(root_handle, 0);
 
-	uint32_t nx = blas_root->nx;
-	uint32_t ny = blas_root->ny;
-	size_t elemsize = blas_root->elemsize;
+	uint32_t nx = matrix_root->nx;
+	uint32_t ny = matrix_root->ny;
+	size_t elemsize = matrix_root->elemsize;
 
 	/* we will have arg chunks */
 	nchunks = STARPU_MIN(nx, arg);
 
 	/* first allocate the children, they have the same interface type as
-	 * the root (blas) */
+	 * the root (matrix) */
 	starpu_data_create_children(root_handle, nchunks, root_handle->ops);
 
 	/* actually create all the chunks */
@@ -56,7 +56,7 @@ void starpu_block_filter_func(starpu_filter *f, starpu_data_handle root_handle)
 		unsigned node;
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
-			starpu_blas_interface_t *local = 
+			starpu_matrix_interface_t *local = 
 				starpu_data_get_interface_on_node(chunk_handle, node);
 
 			local->nx = child_nx;
@@ -64,7 +64,7 @@ void starpu_block_filter_func(starpu_filter *f, starpu_data_handle root_handle)
 			local->elemsize = elemsize;
 
 			if (starpu_test_if_data_is_allocated_on_node(root_handle, node)) {
-				starpu_blas_interface_t *local_root =
+				starpu_matrix_interface_t *local_root =
 					starpu_data_get_interface_on_node(root_handle, node);
 
 				local->ptr = local_root->ptr + offset;
@@ -79,7 +79,7 @@ void starpu_vertical_block_filter_func(starpu_filter *f, starpu_data_handle root
 	unsigned nchunks;
 	uint32_t arg = f->filter_arg;
 
-	starpu_blas_interface_t *interface =
+	starpu_matrix_interface_t *interface =
 		starpu_data_get_interface_on_node(root_handle, 0);
 
 	uint32_t nx = interface->nx;
@@ -107,7 +107,7 @@ void starpu_vertical_block_filter_func(starpu_filter *f, starpu_data_handle root
 		unsigned node;
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
-			starpu_blas_interface_t *local =
+			starpu_matrix_interface_t *local =
 				starpu_data_get_interface_on_node(chunk_handle, node);
 
 			local->nx = nx;
@@ -115,7 +115,7 @@ void starpu_vertical_block_filter_func(starpu_filter *f, starpu_data_handle root
 			local->elemsize = elemsize;
 
 			if (starpu_test_if_data_is_allocated_on_node(root_handle, node)) {
-				starpu_blas_interface_t *local_root =
+				starpu_matrix_interface_t *local_root =
 					starpu_data_get_interface_on_node(root_handle, node);
 
 				size_t offset = 

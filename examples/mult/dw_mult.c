@@ -153,11 +153,11 @@ static void partition_mult_data(void)
 {
 	gettimeofday(&start, NULL);
 
-	starpu_register_blas_data(&A_handle, 0, (uintptr_t)A, 
+	starpu_register_matrix_data(&A_handle, 0, (uintptr_t)A, 
 		ydim, ydim, zdim, sizeof(float));
-	starpu_register_blas_data(&B_handle, 0, (uintptr_t)B, 
+	starpu_register_matrix_data(&B_handle, 0, (uintptr_t)B, 
 		zdim, zdim, xdim, sizeof(float));
-	starpu_register_blas_data(&C_handle, 0, (uintptr_t)C, 
+	starpu_register_matrix_data(&C_handle, 0, (uintptr_t)C, 
 		ydim, ydim, xdim, sizeof(float));
 
 	starpu_data_set_wb_mask(C_handle, 1<<0);

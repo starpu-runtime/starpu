@@ -19,17 +19,17 @@
 
 static void mult_common_codelet(void *descr[], int s, __attribute__((unused))  void *arg)
 {
-	float *center 	= (float *)STARPU_GET_BLAS_PTR(descr[0]);
-	float *left 	= (float *)STARPU_GET_BLAS_PTR(descr[1]);
-	float *right 	= (float *)STARPU_GET_BLAS_PTR(descr[2]);
+	float *center 	= (float *)STARPU_GET_MATRIX_PTR(descr[0]);
+	float *left 	= (float *)STARPU_GET_MATRIX_PTR(descr[1]);
+	float *right 	= (float *)STARPU_GET_MATRIX_PTR(descr[2]);
 
-	unsigned dx = STARPU_GET_BLAS_NX(descr[0]);
-	unsigned dy = STARPU_GET_BLAS_NY(descr[0]);
-	unsigned dz = STARPU_GET_BLAS_NX(descr[1]);
+	unsigned dx = STARPU_GET_MATRIX_NX(descr[0]);
+	unsigned dy = STARPU_GET_MATRIX_NY(descr[0]);
+	unsigned dz = STARPU_GET_MATRIX_NX(descr[1]);
 
-	unsigned ld21 = STARPU_GET_BLAS_LD(descr[1]);
-	unsigned ld12 = STARPU_GET_BLAS_LD(descr[2]);
-	unsigned ld22 = STARPU_GET_BLAS_LD(descr[0]);
+	unsigned ld21 = STARPU_GET_MATRIX_LD(descr[1]);
+	unsigned ld12 = STARPU_GET_MATRIX_LD(descr[2]);
+	unsigned ld22 = STARPU_GET_MATRIX_LD(descr[0]);
 
 	switch (s) {
 		case 0:
@@ -67,16 +67,16 @@ static void add_sub_common_codelet(void *descr[], int s, __attribute__((unused))
 {
 	/* C = A op B */
 
-	float *C 	= (float *)STARPU_GET_BLAS_PTR(descr[0]);
-	float *A 	= (float *)STARPU_GET_BLAS_PTR(descr[1]);
-	float *B 	= (float *)STARPU_GET_BLAS_PTR(descr[2]);
+	float *C 	= (float *)STARPU_GET_MATRIX_PTR(descr[0]);
+	float *A 	= (float *)STARPU_GET_MATRIX_PTR(descr[1]);
+	float *B 	= (float *)STARPU_GET_MATRIX_PTR(descr[2]);
 
-	unsigned dx = STARPU_GET_BLAS_NX(descr[0]);
-	unsigned dy = STARPU_GET_BLAS_NY(descr[0]);
+	unsigned dx = STARPU_GET_MATRIX_NX(descr[0]);
+	unsigned dy = STARPU_GET_MATRIX_NY(descr[0]);
 
-	unsigned ldA = STARPU_GET_BLAS_LD(descr[1]);
-	unsigned ldB = STARPU_GET_BLAS_LD(descr[2]);
-	unsigned ldC = STARPU_GET_BLAS_LD(descr[0]);
+	unsigned ldA = STARPU_GET_MATRIX_LD(descr[1]);
+	unsigned ldB = STARPU_GET_MATRIX_LD(descr[2]);
+	unsigned ldC = STARPU_GET_MATRIX_LD(descr[0]);
 
 	// TODO check dim ...
 
@@ -139,14 +139,14 @@ static void self_add_sub_common_codelet(void *descr[], int s, __attribute__((unu
 {
 	/* C +=/-= A */
 
-	float *C 	= (float *)STARPU_GET_BLAS_PTR(descr[0]);
-	float *A 	= (float *)STARPU_GET_BLAS_PTR(descr[1]);
+	float *C 	= (float *)STARPU_GET_MATRIX_PTR(descr[0]);
+	float *A 	= (float *)STARPU_GET_MATRIX_PTR(descr[1]);
 
-	unsigned dx = STARPU_GET_BLAS_NX(descr[0]);
-	unsigned dy = STARPU_GET_BLAS_NY(descr[0]);
+	unsigned dx = STARPU_GET_MATRIX_NX(descr[0]);
+	unsigned dy = STARPU_GET_MATRIX_NY(descr[0]);
 
-	unsigned ldA = STARPU_GET_BLAS_LD(descr[1]);
-	unsigned ldC = STARPU_GET_BLAS_LD(descr[0]);
+	unsigned ldA = STARPU_GET_MATRIX_LD(descr[1]);
+	unsigned ldC = STARPU_GET_MATRIX_LD(descr[0]);
 
 	// TODO check dim ...
 	
