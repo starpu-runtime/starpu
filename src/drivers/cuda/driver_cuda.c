@@ -153,7 +153,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 		args->jobq->total_computation_time_error += error;
 
 		if (calibrate_model)
-			_starpu_update_perfmodel_history(j, args->perf_arch, (unsigned)args->id, measured);
+			_starpu_update_perfmodel_history(j, args->perf_arch, (unsigned)args->devid, measured);
 	}
 
 	args->jobq->total_job_performed++;
@@ -167,7 +167,7 @@ void *_starpu_cuda_worker(void *arg)
 {
 	struct starpu_worker_s* args = arg;
 
-	int devid = args->id;
+	int devid = args->devid;
 	unsigned memory_node = args->memory_node;
 
 #ifdef STARPU_USE_FXT
@@ -204,7 +204,7 @@ void *_starpu_cuda_worker(void *arg)
 	struct cudaDeviceProp prop;
 	cudaGetDeviceProperties(&prop, devid);
 	strncpy(devname, prop.name, 128);
-	snprintf(args->name, 32, "CUDA %d (%s)", args->id, devname);
+	snprintf(args->name, 32, "CUDA %d (%s)", args->devid, devname);
 
 #ifdef STARPU_VERBOSE
 	fprintf(stderr, "cuda (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
@@ -297,7 +297,7 @@ void *_starpu_cuda_worker(void *arg)
 	}
 
 
-	_starpu_print_to_logfile("MODEL ERROR: CUDA %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", args->id, args->jobq->total_computation_time_error, args->jobq->total_computation_time, ratio, args->jobq->total_job_performed);
+	_starpu_print_to_logfile("MODEL ERROR: CUDA %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", args->devid, args->jobq->total_computation_time_error, args->jobq->total_computation_time, ratio, args->jobq->total_job_performed);
 #endif
 
 	STARPU_TRACE_WORKER_DEINIT_END(STARPU_FUT_CUDA_KEY);

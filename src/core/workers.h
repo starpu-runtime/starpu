@@ -67,7 +67,7 @@ struct starpu_worker_s {
 	uint32_t worker_mask; /* what is the type of worker ? */
 	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
 	pthread_t worker_thread; /* the thread which runs the worker */
-	int id; /* which cpu/gpu/etc is controlled by the workker ? */
+	int devid; /* which cpu/gpu/etc is controlled by the workker ? */
 	int bindid; /* which cpu is the driver bound to ? */
 	int workerid; /* uniquely identify the worker among all processing units types */
         pthread_cond_t ready_cond; /* indicate when the worker is ready */

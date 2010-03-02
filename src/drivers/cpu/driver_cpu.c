@@ -85,7 +85,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 		cpu_args->jobq->total_computation_time_error += error;
 
 		if (calibrate_model)
-			_starpu_update_perfmodel_history(j, cpu_args->arch, cpu_args->id, measured);
+			_starpu_update_perfmodel_history(j, cpu_args->arch, cpu_args->devid, measured);
 	}
 //#endif
 
@@ -106,7 +106,7 @@ void *_starpu_cpu_worker(void *arg)
 	_starpu_bind_thread_on_cpu(cpu_arg->config, cpu_arg->bindid);
 
 #ifdef STARPU_VERBOSE
-        fprintf(stderr, "cpu worker %d is ready on logical cpu %d\n", cpu_arg->id, cpu_arg->bindid);
+        fprintf(stderr, "cpu worker %d is ready on logical cpu %d\n", cpu_arg->devid, cpu_arg->bindid);
 #endif
 
 	_starpu_set_local_memory_node_key(&cpu_arg->memory_node);
@@ -115,7 +115,7 @@ void *_starpu_cpu_worker(void *arg)
 
 	_starpu_set_local_worker_key(cpu_arg);
 
-	snprintf(cpu_arg->name, 32, "CPU %d", cpu_arg->id);
+	snprintf(cpu_arg->name, 32, "CPU %d", cpu_arg->devid);
 
 	/* this is only useful (and meaningful) is there is a single
 	   memory node "related" to that queue */
@@ -209,7 +209,7 @@ void *_starpu_cpu_worker(void *arg)
 		ratio = cpu_arg->jobq->total_computation_time_error/cpu_arg->jobq->total_computation_time;
 	}
 
-	_starpu_print_to_logfile("MODEL ERROR: CPU %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", cpu_arg->id, cpu_arg->jobq->total_computation_time_error, cpu_arg->jobq->total_computation_time, ratio, cpu_arg->jobq->total_job_performed);
+	_starpu_print_to_logfile("MODEL ERROR: CPU %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", cpu_arg->devid, cpu_arg->jobq->total_computation_time_error, cpu_arg->jobq->total_computation_time, ratio, cpu_arg->jobq->total_job_performed);
 #endif
 
 	STARPU_TRACE_WORKER_DEINIT_END(STARPU_FUT_CPU_KEY);

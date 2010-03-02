@@ -213,7 +213,7 @@ static int _starpu_init_machine_config(struct starpu_machine_config_s *config,
 		config->workers[config->nworkers + cudagpu].arch = STARPU_CUDA_WORKER;
 		int devid = _starpu_get_next_gpuid(config);
 		enum starpu_perf_archtype arch = STARPU_CUDA_DEFAULT + devid;
-		config->workers[config->nworkers + cudagpu].id = devid;
+		config->workers[config->nworkers + cudagpu].devid = devid;
 		config->workers[config->nworkers + cudagpu].perf_arch = arch; 
 		config->workers[config->nworkers + cudagpu].worker_mask = STARPU_CUDA;
 		config->worker_mask |= STARPU_CUDA;
@@ -282,7 +282,7 @@ static int _starpu_init_machine_config(struct starpu_machine_config_s *config,
 	{
 		config->workers[config->nworkers + cpu].arch = STARPU_CPU_WORKER;
 		config->workers[config->nworkers + cpu].perf_arch = STARPU_CPU_DEFAULT;
-		config->workers[config->nworkers + cpu].id = cpu;
+		config->workers[config->nworkers + cpu].devid = cpu;
 		config->workers[config->nworkers + cpu].worker_mask = STARPU_CPU;
 		config->worker_mask |= STARPU_CPU;
 	}
@@ -497,7 +497,7 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 				if (may_bind_automatically)
 				{
 					/* StarPU is allowed to bind threads automatically */
-					preferred_binding = _starpu_get_gpu_affinity_vector(workerarg->id);
+					preferred_binding = _starpu_get_gpu_affinity_vector(workerarg->devid);
 					npreferred = config->nhwcpus;
 				}
 				is_a_set_of_accelerators = 0;
