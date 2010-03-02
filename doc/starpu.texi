@@ -235,9 +235,11 @@ TODO, explicit configuration (passed to starpu_init) overrides env variables.
 @menu
 * STARPU_NCPUS     :: Number of CPU workers
 * STARPU_NCUDA     :: Number of CUDA workers
+* STARPU_NOPENCL   :: Number of OpenCL workers
 * STARPU_NGORDON   :: Number of SPU workers (Cell)
-* STARPU_WORKERS_CPUID  :: Bind workers to specific CPUs
-* STARPU_WORKERS_CUDAID  :: Select specific CUDA devices
+* STARPU_WORKERS_CPUID    :: Bind workers to specific CPUs
+* STARPU_WORKERS_CUDAID   :: Select specific CUDA devices
+* STARPU_WORKERS_OPENCLID :: Select specific OpenCL devices
 @end menu
 
 @node STARPU_NCPUS
@@ -245,7 +247,9 @@ TODO, explicit configuration (passed to starpu_init) overrides env variables.
 @table @asis
 
 @item @emph{Description}:
-TODO
+Specify the maximum number of CPU workers. Note that StarPU will not allocate
+more CPUs than there are physical CPUs, and that some CPUs are used to control
+the accelerators.
 
 @end table
 
@@ -254,8 +258,19 @@ TODO
 @table @asis
 
 @item @emph{Description}:
-TODO
+Specify the maximum number of CUDA devices that StarPU can use. In case there
+@code{STARPU_NCUDA} is lower than the number of physical devices, it is
+possible to select which CUDA devices should be used by the means of the
+@code{STARPU_WORKERS_CUDAID} environment variable.
 
+@end table
+
+@node STARPU_NOPENCL
+@subsection @code{STARPU_NOPENCL} -- Number of OpenCL workers
+@table @asis
+
+@item @emph{Description}:
+OpenCL equivalent of the @code{STARPU_NCUDA} environment variable.
 @end table
 
 @node STARPU_NGORDON
@@ -263,8 +278,7 @@ TODO
 @table @asis
 
 @item @emph{Description}:
-TODO
-
+Specify the maximum number of SPUs that StarPU can use.
 @end table
 
 
@@ -273,7 +287,25 @@ TODO
 @table @asis
 
 @item @emph{Description}:
-TODO
+Passing an array of integer (starting from 0) in @code{STARPU_WORKERS_CPUID}
+specifies on which logical cpu identifier the different workers should be
+bound. For instance, if @code{STARPU_WORKERS_CPUID = "1 3 0 2"}, the first
+worker will be bound to logical CPU #1, the second CPU worker will be bound to
+logical CPU #3 and so on.  Note that the logical ordering of the CPUs is either
+determined by the OS, or provided by the @code{hwloc}  library in case it is
+available.
+
+Note that the first workers correspond to the CUDA workers, then comes the
+OpenCL workers and the SPU workers, and finally the CPU workers. For example if
+we have @code{STARPU_NCUDA=1}, @code{STARPU_NOPENCL=1}, @code{STARPU_NCPUS=2}
+and @code{STARPU_WORKERS_CPUID = "0 2 1 3"}, the CUDA device will be controlled
+by logical CPU #0, the OpenCL device will be controlled by logical CPU #2, and
+the logical CPUs #1 and #3 will be used by the CPU workers.
+
+If the number of workers is larger than the array given in
+@code{STARPU_WORKERS_CPUID}, the workers are bound to the logical CPUs in a
+round-robin fashion: if @code{STARPU_WORKERS_CPUID = "0 1"}, the first and the
+third (resp. second and fourth) workers will be put on CPU #0 (resp. CPU #1).
 
 @end table
 
@@ -282,8 +314,20 @@ TODO
 @table @asis
 
 @item @emph{Description}:
-TODO
+Similarly to the @code{STARPU_WORKERS_CPUID} environment variable, it is
+possible to select which CUDA devices should be used by StarPU. On a machine
+equipped with 4 GPUs, setting @code{STARPU_WORKERS_CUDAID = "1 3"} and
+@code{STARPU_NCUDA=2} specifies that 2 CUDA workers should be created, and that
+they should use CUDA devices #1 and #3 (the logical ordering of the devices is
+the one reported by CUDA).
+@end table
 
+@node STARPU_WORKERS_OPENCLID
+@subsection @code{STARPU_WORKERS_OPENCLID} -- Select specific OpenCL devices
+@table @asis
+
+@item @emph{Description}:
+OpenCL equivalent of the @code{STARPU_WORKERS_CUDAID} environment variable.
 @end table
 
 @node Scheduling
