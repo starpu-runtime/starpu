@@ -593,6 +593,7 @@ function on an invalid identifier results in an unspecified behaviour.
 * struct starpu_task::            StarPU task structure
 * starpu_task_init::              Initialize a Task
 * starpu_task_create::            Allocate and Initialize a Task
+* starpu_task_deinit::            Release all the resources used by a Task
 * starpu_task_destroy::           Destroy a dynamically allocated Task
 * starpu_submit_task::            Submit a Task
 * starpu_wait_task::              Wait for the termination of a Task
@@ -741,7 +742,10 @@ result in undefined behaviour.
 @subsection @code{starpu_task_init} -- Initialize a Task
 @table @asis
 @item @emph{Description}:
-TODO
+Initialize a task structure with default values. This function is implicitely
+called by @code{starpu_task_create}. By default, tasks initialized with
+@code{starpu_task_init} must be deinitialized explicitely with
+@code{starpu_task_deinit}.
 @item @emph{Prototype}:
 @code{void starpu_task_init(struct starpu_task *task);}
 @end table
@@ -750,11 +754,29 @@ TODO
 @subsection @code{starpu_task_create} -- Allocate and Initialize a Task
 @table @asis
 @item @emph{Description}:
-TODO
-(Describe the different default fields ...)
+Allocate a task structure and initialize it with default values. Tasks
+allocated dynamically with starpu_task_create are automatically liberated when
+the task is terminated. If the destroy flag is explicitely unset, the
+ressources used by the task are liberated by calling
+@code{starpu_task_destroy}.
+
 @item @emph{Prototype}:
 @code{struct starpu_task *starpu_task_create(void);}
 @end table
+
+@node starpu_task_deinit
+@subsection @code{starpu_task_deinit} -- Release all the resources used by a Task
+@table @asis
+@item @emph{Description}:
+Release all the structures automatically allocated to execute the task. This is
+called implicitely by starpu_task_destroy, but the task structure itself is not
+liberated. This should be used for statically allocated tasks for instance.
+Note that this function is automatically called by @code{starpu_task_destroy}.
+@item @emph{Prototype}:
+@code{void starpu_task_deinit(struct starpu_task *task);}
+@end table
+
+
 
 @node starpu_task_destroy
 @subsection @code{starpu_task_destroy} -- Destroy a dynamically allocated Task
