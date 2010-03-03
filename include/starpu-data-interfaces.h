@@ -183,7 +183,7 @@ uint32_t starpu_get_bcsr_r(starpu_data_handle);
 uint32_t starpu_get_bcsr_c(starpu_data_handle);
 size_t starpu_get_bcsr_elemsize(starpu_data_handle);
 
-#define STARPU_BLAS_INTERFACE_ID	0
+#define STARPU_MATRIX_INTERFACE_ID	0
 #define STARPU_BLOCK_INTERFACE_ID	1
 #define STARPU_VECTOR_INTERFACE_ID	2
 #define STARPU_CSR_INTERFACE_ID		3

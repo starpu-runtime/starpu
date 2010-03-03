@@ -117,7 +117,7 @@ static void *handle_to_ptr_vector(starpu_data_handle data_handle)
  */
 
 static handle_to_datatype_func handle_to_datatype_funcs[STARPU_NINTERFACES_ID] = {
-	[STARPU_BLAS_INTERFACE_ID]	= handle_to_datatype_blas,
+	[STARPU_MATRIX_INTERFACE_ID]	= handle_to_datatype_blas,
 	[STARPU_BLOCK_INTERFACE_ID]	= handle_to_datatype_block,
 	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_datatype_vector,
 	[STARPU_CSR_INTERFACE_ID]	= NULL,
@@ -126,7 +126,7 @@ static handle_to_datatype_func handle_to_datatype_funcs[STARPU_NINTERFACES_ID] =
 };
 
 static handle_to_ptr_func handle_to_ptr_funcs[STARPU_NINTERFACES_ID] = {
-	[STARPU_BLAS_INTERFACE_ID]	= handle_to_ptr_blas,
+	[STARPU_MATRIX_INTERFACE_ID]	= handle_to_ptr_blas,
 	[STARPU_BLOCK_INTERFACE_ID]	= handle_to_ptr_block,
 	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_ptr_vector,
 	[STARPU_CSR_INTERFACE_ID]	= NULL,

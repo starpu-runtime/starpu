@@ -71,7 +71,7 @@ struct starpu_data_interface_ops_t _starpu_interface_matrix_ops = {
 #ifdef STARPU_USE_GORDON
 	.convert_to_gordon = convert_matrix_to_gordon,
 #endif
-	.interfaceid = STARPU_BLAS_INTERFACE_ID, 
+	.interfaceid = STARPU_MATRIX_INTERFACE_ID, 
 	.interface_size = sizeof(starpu_matrix_interface_t),
 	.display = display_matrix_interface
 };
