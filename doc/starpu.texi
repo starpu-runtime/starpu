@@ -357,9 +357,10 @@ Use @code{STARPU_SCHED=help} to get the list of available schedulers
 @table @asis
 
 @item @emph{Description}:
-TODO
+If this variable is set, the performance models are calibrated during the execution.
 
-Note: only applies to dm and dmda scheduling policies.
+TODO
+Note: this currently only applies to dm and dmda scheduling policies.
 
 @end table
 
@@ -598,10 +599,6 @@ function on an invalid identifier results in an unspecified behaviour.
 * starpu_wait_all_tasks::	  Wait for the termination of all Tasks
 @end menu
 
-
-@c struct starpu_task
-@c struct starpu_codelet
-
 @node struct starpu_codelet
 @subsection @code{struct starpu_codelet} -- StarPU codelet structure
 @table @asis 
@@ -612,23 +609,23 @@ various targets.
 @table @asis
 @item @code{where}: 
 Indicates which types of processing units are able to execute that codelet.
-@code{CPU|CUDA} for instance indicates that the codelet is implemented for
-both CPU cores and CUDA devices while @code{GORDON} indicates that it is only
-available on Cell SPUs.
+@code{STARPU_CPU|STARPU_CUDA} for instance indicates that the codelet is
+implemented for both CPU cores and CUDA devices while @code{STARPU_GORDON}
+indicates that it is only available on Cell SPUs.
 
 @item @code{cpu_func} (optionnal):
 Is a function pointer to the CPU implementation of the codelet. Its prototype
-must be: @code{void cpu_func(starpu_data_interface_t *descr, void *arg)}. The
+must be: @code{void cpu_func(void *buffers[], void *cl_arg)}. The
 first argument being the array of data managed by the data management library,
 and the second argument is a pointer to the argument (possibly a copy of it)
 passed from the @code{.cl_arg} field of the @code{starpu_task} structure. This
-pointer is ignored if @code{CPU} does not appear in the @code{.where} field,
+pointer is ignored if @code{STARPU_CPU} does not appear in the @code{.where} field,
 it must be non-null otherwise.
 
 @item @code{cuda_func} (optionnal):
 Is a function pointer to the CUDA implementation of the codelet. @emph{This
 must be a host-function written in the CUDA runtime API}. Its prototype must
-be: @code{void cuda_func(starpu_data_interface_t *descr, void *arg);}. This
+be: @code{void cuda_func(void *buffers[], void *cl_arg);}. This
 pointer is ignored if @code{CUDA} does not appear in the @code{.where} field,
 it must be non-null otherwise.
 
@@ -638,7 +635,7 @@ TODO
 
 @item @code{nbuffers}:
 Specifies the number of arguments taken by the codelet. These arguments are
-managed by the DSM and are accessed from the @code{starpu_data_interface_t *}
+managed by the DSM and are accessed from the @code{void *buffers[]}
 array. The constant argument passed with the @code{.cl_arg} field of the
 @code{starpu_task} structure is not counted in this number.  This value should
 not be above @code{STARPU_NMAXBUFS}.
@@ -1021,16 +1018,16 @@ The @code{starpu.h} header should be included in any code using StarPU.
 
 @example
 @c @cartouche
-void cpu_func(starpu_data_interface_t *buffers, void *func_arg)
+void cpu_func(void *buffers[], void *cl_arg)
 @{
-    float *array = func_arg;
+    float *array = cl_arg;
 
     printf("Hello world (array = @{%f, %f@} )\n", array[0], array[1]);
 @}
 
 starpu_codelet cl =
 @{
-    .where = CPU,
+    .where = STARPU_CPU,
     .cpu_func = cpu_func,
     .nbuffers = 0
 @};
@@ -1051,18 +1048,21 @@ management library.
 @c TODO need a crossref to the proper description of "where" see bla for more ...
 We create a codelet which may only be executed on the CPUs. The ''@code{.where}''
 field is a bitmask that defines where the codelet may be executed. Here, the
-@code{CPU} value means that only CPUs can execute this codelet
+@code{STARPU_CPU} value means that only CPUs can execute this codelet
 (@pxref{Codelets and Tasks} for more details on that field).
 When a CPU core executes a codelet, it calls the @code{.cpu_func} function,
 which @emph{must} have the following prototype:
 
-@code{void (*cpu_func)(starpu_data_interface_t *, void *)}
+@code{void (*cpu_func)(void *buffers[], void *cl_arg)}
 
 In this example, we can ignore the first argument of this function which gives a
 description of the input and output buffers (eg. the size and the location of
 the matrices). The second argument is a pointer to a buffer passed as an
 argument to the codelet by the means of the ''@code{.cl_arg}'' field of the
-@code{starpu_task} structure. Be aware that this may be a pointer to a
+@code{starpu_task} structure.
+
+@c TODO rewrite so that it is a little clearer ?
+Be aware that this may be a pointer to a
 @emph{copy} of the actual buffer, and not the pointer given by the programmer:
 if the codelet modifies this buffer, there is no garantee that the initial
 buffer will be modified as well: this for instance implies that the buffer
@@ -1086,7 +1086,7 @@ int main(int argc, char **argv)
 
     task->cl = &cl;
     
-    float array[2] = @{1.0f, -1.0f@};
+    float *array[2] = @{1.0f, -1.0f@};
     task->cl_arg = &array;
     task->cl_arg_size = 2*sizeof(float);
 
@@ -1203,22 +1203,24 @@ write-only and @code{STARPU_RW} for read and write access).
 The definition of the codelet can be written as follows:
 
 @example
-void scal_func(starpu_data_interface_t *buffers, void *arg)
+void scal_func(void *buffers[], void *cl_arg)
 @{
     unsigned i;
-    float *factor = arg;
+    float *factor = cl_arg;
+
+    struct starpu_vector_interface_s *vector = buffers[0];
 
     /* length of the vector */
-    unsigned n = buffers[0].vector.nx;
+    unsigned n = vector->nx;
     /* local copy of the vector pointer */
-    float *val = (float *)buffers[0].vector.ptr;
+    float *val = (float *)vector->ptr;
 
     for (i = 0; i < n; i++)
         val[i] *= *factor;
 @}
 
 starpu_codelet cl = @{
-    .where = CPU,
+    .where = STARPU_CPU,
     .cpu_func = scal_func,
     .nbuffers = 1
 @};
@@ -1228,12 +1230,14 @@ starpu_codelet cl = @{
 The second argument of the @code{scal_func} function contains a pointer to the
 parameters of the codelet (given in @code{task->cl_arg}), so that we read the
 constant factor from this pointer. The first argument is an array that gives
-a description of every buffers passed in the @code{task->buffers}@ array, the
-number of which is given by the @code{.nbuffers} field of the codelet structure.
-In the @b{vector interface}, the location of the vector (resp. its length)
-is accessible in the @code{.vector.ptr} (resp. @code{.vector.nx}) of this
-array. Since the vector is accessed in a read-write fashion, any modification
-will automatically affect future accesses to that vector made by other tasks.
+a description of every buffers passed in the @code{task->buffers}@ array. The
+size of this array is given by the @code{.nbuffers} field of the codelet
+structure. For the sake of generality, this array contains pointers to the
+different interfaces describing each buffer.  In the case of the @b{vector
+interface}, the location of the vector (resp. its length) is accessible in the
+@code{ptr} (resp. @code{nx}) of this array. Since the vector is accessed in a
+read-write fashion, any modification will automatically affect future accesses
+to that vector made by other tasks.
 
 @node Scaling a Vector (hybrid)
 @section Vector Scaling on an Hybrid CPU/GPU Machine
