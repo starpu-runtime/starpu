@@ -30,21 +30,20 @@
 #define	N	2048
 
 /* This kernel takes a buffer and scales it by a constant factor */
-static void scal_func(void *buffers[], void *arg)
+static void scal_func(void *buffers[], void *cl_arg)
 {
 	unsigned i;
-	float *factor = arg;
+	float *factor = cl_arg;
 
-#warning TODO update
 	/* 
-	 * The "buffers" array matches the task->buffers one: for instance
+	 * The "buffers" array matches the task->buffers array: for instance
 	 * task->buffers[0].handle is a handle that corresponds to a data with
-	 * vector "interface". The starpu_data_interface_t is a union type with
-	 * a field for each defined interface. Here, we manipulate the
-	 * buffers[0].vector field: vector.nx gives the number of elements in
-	 * the array, vector.ptr gives the location of the array (that was
-	 * possibly migrated/replicated), and vector.elemsize gives the size of
-	 * each elements.
+	 * vector "interface", so that the first entry of the array in the
+	 * codelet  is a pointer to a structure describing such a vector (ie.
+	 * struct starpu_vector_interface_s *). Here, we therefore manipulate
+	 * the buffers[0] element as a vector: nx gives the number of elements
+	 * in the array, ptr gives the location of the array (that was possibly
+	 * migrated/replicated), and elemsize gives the size of each elements.
 	 */
 
 	starpu_vector_interface_t *vector = buffers[0];
