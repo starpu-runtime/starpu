@@ -627,8 +627,8 @@ it must be non-null otherwise.
 Is a function pointer to the CUDA implementation of the codelet. @emph{This
 must be a host-function written in the CUDA runtime API}. Its prototype must
 be: @code{void cuda_func(void *buffers[], void *cl_arg);}. This
-pointer is ignored if @code{CUDA} does not appear in the @code{.where} field,
-it must be non-null otherwise.
+pointer is ignored if @code{STARPU_CUDA} does not appear in the @code{.where}
+field, it must be non-null otherwise.
 
 @item @code{gordon_func} (optionnal):
 This is the index of the Cell SPU implementation within the Gordon library.
