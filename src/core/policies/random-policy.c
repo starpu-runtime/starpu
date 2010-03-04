@@ -122,7 +122,7 @@ static struct starpu_jobq_s *get_local_queue_random(struct starpu_sched_policy_s
 struct starpu_sched_policy_s _starpu_sched_random_policy = {
 	.init_sched = initialize_random_policy,
 	.deinit_sched = NULL,
-	._starpu_get_local_queue = get_local_queue_random,
+	.starpu_get_local_queue = get_local_queue_random,
 	.policy_name = "random",
 	.policy_description = "weighted random"
 };

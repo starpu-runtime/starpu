@@ -35,7 +35,7 @@ struct starpu_sched_policy_s {
 	void (*deinit_sched)(struct starpu_machine_config_s *, struct starpu_sched_policy_s *);
 
 	/* anyone can request which queue it is associated to */
-	struct starpu_jobq_s *(*_starpu_get_local_queue)(struct starpu_sched_policy_s *);
+	struct starpu_jobq_s *(*starpu_get_local_queue)(struct starpu_sched_policy_s *);
 
 	/* name of the policy (optionnal) */
 	const char *policy_name;

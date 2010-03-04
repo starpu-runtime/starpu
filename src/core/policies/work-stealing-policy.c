@@ -202,7 +202,7 @@ static struct starpu_jobq_s *get_local_queue_ws(struct starpu_sched_policy_s *po
 struct starpu_sched_policy_s _starpu_sched_ws_policy = {
 	.init_sched = initialize_ws_policy,
 	.deinit_sched = NULL,
-	._starpu_get_local_queue = get_local_queue_ws,
+	.starpu_get_local_queue = get_local_queue_ws,
 	.policy_name = "ws",
 	.policy_description = "work stealing"
 };

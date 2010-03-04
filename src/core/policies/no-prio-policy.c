@@ -59,7 +59,7 @@ static struct starpu_jobq_s *get_local_queue_no_prio(struct starpu_sched_policy_
 struct starpu_sched_policy_s _starpu_sched_no_prio_policy = {
 	.init_sched = initialize_no_prio_policy,
 	.deinit_sched = NULL,
-	._starpu_get_local_queue = get_local_queue_no_prio,
+	.starpu_get_local_queue = get_local_queue_no_prio,
 	.policy_name = "no-prio",
 	.policy_description = "eager without priority"
 };

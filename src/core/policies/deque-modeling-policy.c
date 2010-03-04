@@ -208,7 +208,7 @@ static struct starpu_jobq_s *get_local_queue_dm(struct starpu_sched_policy_s *po
 struct starpu_sched_policy_s _starpu_sched_dm_policy = {
 	.init_sched = initialize_dm_policy,
 	.deinit_sched = deinitialize_dm_policy,
-	._starpu_get_local_queue = get_local_queue_dm,
+	.starpu_get_local_queue = get_local_queue_dm,
 	.policy_name = "dm",
 	.policy_description = "performance model"
 };

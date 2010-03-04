@@ -252,7 +252,7 @@ static struct starpu_jobq_s *get_local_queue_dmda(struct starpu_sched_policy_s *
 struct starpu_sched_policy_s _starpu_sched_dmda_policy = {
 	.init_sched = initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,
-	._starpu_get_local_queue = get_local_queue_dmda,
+	.starpu_get_local_queue = get_local_queue_dmda,
 	.policy_name = "dmda",
 	.policy_description = "data-aware performance model"
 };

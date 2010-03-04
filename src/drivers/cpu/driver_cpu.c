@@ -140,7 +140,7 @@ void *_starpu_cpu_worker(void *arg)
 	int res;
 
 	struct starpu_sched_policy_s *policy = _starpu_get_sched_policy();
-	struct starpu_jobq_s *queue = policy->_starpu_get_local_queue(policy);
+	struct starpu_jobq_s *queue = policy->starpu_get_local_queue(policy);
 	unsigned memnode = cpu_arg->memory_node;
 
 	while (_starpu_machine_is_running())
