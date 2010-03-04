@@ -420,6 +420,8 @@ TODO
 * Data Library::                         Methods to manipulate data
 * Codelets and Tasks::                   Methods to construct tasks
 * Tags::                                 Task dependencies
+* CUDA extensions::        CUDA extensions
+* Cell extensions::        Cell extensions
 @end menu
 
 @node Initialization and Termination
@@ -982,18 +984,8 @@ DAG before actually giving StarPU the opportunity to execute the tasks.
 @code{void starpu_tag_notify_from_apps(starpu_tag_t id);}
 @end table
 
-
-
-
-@section Extensions
-
-@menu
-* CUDA extensions::        CUDA extensions
-* Cell extensions::        Cell extensions
-@end menu
-
 @node CUDA extensions
-@subsection CUDA extensions
+@section CUDA extensions
 
 @c void starpu_malloc_pinned_if_possible(float **A, size_t dim);
 
@@ -1001,8 +993,14 @@ DAG before actually giving StarPU the opportunity to execute the tasks.
 
 @c starpu_helper_shutdown_cublas TODO
 
+@menu
+* starpu_get_local_cuda_stream::   Get current worker's CUDA stream
+* starpu_helper_init_cublas::      Initialize CUBLAS on every CUDA device
+* starpu_helper_shutdown_cublas::  Deiitialize CUBLAS on every CUDA device
+@end menu
+
 @node starpu_get_local_cuda_stream
-@subsubsection @code{starpu_get_local_cuda_stream} -- Get current worker's CUDA stream
+@subsection @code{starpu_get_local_cuda_stream} -- Get current worker's CUDA stream
 @table @asis
 @item @emph{Description}:
 StarPU provides a stream for every CUDA device controlled by StarPU. This
@@ -1016,7 +1014,7 @@ hand. Note that the application is not forced to use the stream provided by
 @end table
 
 @node starpu_helper_init_cublas
-@subsubsection @code{starpu_helper_init_cublas} -- Initialize CUBLAS on every CUDA device
+@subsection @code{starpu_helper_init_cublas} -- Initialize CUBLAS on every CUDA device
 @table @asis
 @item @emph{Description}:
 The CUBLAS library must be initialized prior to any CUBLAS call. Calling
@@ -1029,7 +1027,7 @@ initialized on every device.
 @end table
 
 @node starpu_helper_shutdown_cublas
-@subsubsection @code{starpu_helper_shutdown_cublas} -- Deinitialize CUBLAS on every CUDA device
+@subsection @code{starpu_helper_shutdown_cublas} -- Deinitialize CUBLAS on every CUDA device
 @table @asis
 @item @emph{Description}:
 This function synchronously deinitializes the CUBLAS library on every CUDA device.
@@ -1039,7 +1037,7 @@ This function synchronously deinitializes the CUBLAS library on every CUDA devic
 @end table
 
 @node Cell extensions
-@subsection Cell extensions
+@section Cell extensions
 
 @c ---------------------------------------------------------------------
 @c Basic Examples
