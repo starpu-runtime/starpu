@@ -2,8 +2,8 @@
 || I. Introduction ||
 ++=================++
 
-+----------------------
-| I.a. What is StarPU ?
++---------------------
+| I.a. What is StarPU?
 
 StarPU is a runtime system that offers support for heterogeneous multicore
 machines. While many efforts are devoted to design efficient computation kernels
@@ -69,8 +69,8 @@ or via http (DAV):
 
   $ ./autogen.sh
 
-+------------------------
-| IV.b. For all versions:
++-----------------------
+| IV.b. For all versions
 
   $ ./configure
   $ make
@@ -80,5 +80,5 @@ or via http (DAV):
 || V. Contact ||
 ++============++
 
-For any questions regarding StarPU, please contact Cédric Augonnet
-(cedric.augonnet@inria.fr).
+For any questions regarding StarPU, please contact the starpu-devel
+mailing-list at starpu-devel@lists.gforge.inria.fr .
