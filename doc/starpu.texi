@@ -508,10 +508,14 @@ garanteed to be available until this method has been called.
 @section Workers' Properties
 
 @menu
-* starpu_get_worker_count:: Get the number of processing units
-* starpu_get_worker_id::    Get the identifier of the current worker
-* starpu_get_worker_type::  Get the type of processing unit associated to a worker
-* starpu_get_worker_name::  Get the name of a worker
+* starpu_get_worker_count::        Get the number of processing units
+* starpu_get_cpu_worker_count::    Get the number of CPU controlled by StarPU
+* starpu_get_cuda_worker_count::   Get the number of CUDA devices controlled by StarPU
+* starpu_get_opencl_worker_count:: Get the number of OpenCL devices controlled by StarPU
+* starpu_get_spu_worker_count::    Get the number of Cell SPUs controlled by StarPU
+* starpu_get_worker_id::           Get the identifier of the current worker
+* starpu_get_worker_type::         Get the type of processing unit associated to a worker
+* starpu_get_worker_name::         Get the name of a worker
 @end menu
 
 @node starpu_get_worker_count
@@ -524,7 +528,53 @@ StarPU tasks). The returned value should be at most @code{STARPU_NMAXWORKERS}.
 
 @item @emph{Prototype}:
 @code{unsigned starpu_get_worker_count(void);}
+@end table
 
+@node starpu_get_cpu_worker_count
+@subsection @code{starpu_get_cpu_worker_count} -- Get the number of CPU controlled by StarPU
+@table @asis
+
+@item @emph{Description}:
+This function returns the number of CPUs controlled by StarPU. The returned
+value should be at most @code{STARPU_NMAXCPUS}.
+
+@item @emph{Prototype}:
+@code{unsigned starpu_get_cpu_worker_count(void);}
+@end table
+
+@node starpu_get_cuda_worker_count
+@subsection @code{starpu_get_cuda_worker_count} -- Get the number of CUDA devices controlled by StarPU
+@table @asis
+
+@item @emph{Description}:
+This function returns the number of CUDA devices controlled by StarPU. The returned
+value should be at most @code{STARPU_MAXCUDADEVS}.
+
+@item @emph{Prototype}:
+@code{unsigned starpu_get_cuda_worker_count(void);}
+@end table
+
+@node starpu_get_opencl_worker_count
+@subsection @code{starpu_get_opencl_worker_count} -- Get the number of OpenCL devices controlled by StarPU
+@table @asis
+
+@item @emph{Description}:
+This function returns the number of OpenCL devices controlled by StarPU. The returned
+value should be at most @code{STARPU_MAXOPENCLDEVS}.
+
+@item @emph{Prototype}:
+@code{unsigned starpu_get_opencl_worker_count(void);}
+@end table
+
+@node starpu_get_spu_worker_count
+@subsection @code{starpu_get_spu_worker_count} -- Get the number of Cell SPUs controlled by StarPU
+@table @asis
+
+@item @emph{Description}:
+This function returns the number of Cell SPUs controlled by StarPU.
+
+@item @emph{Prototype}:
+@code{unsigned starpu_get_opencl_worker_count(void);}
 @end table
 
 
@@ -540,7 +590,6 @@ an integer between 0 and @code{starpu_get_worker_count() - 1}.
 
 @item @emph{Prototype}:
 @code{int starpu_get_worker_count(void);}
-
 @end table
 
 @node starpu_get_worker_type
