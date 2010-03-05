@@ -579,9 +579,43 @@ function on an invalid identifier results in an unspecified behaviour.
 @node Data Library
 @section Data Library
 
-@c data_handle_t 
+This section describes the data management facilities provided by StarPU.
+
+TODO: We show how to use existing data interfaces in [ref], but developers can
+design their own data interfaces if required.
+
+@menu
+* starpu_data_handle::  StarPU opaque data handle
+* void *interface::     StarPU data interface
+@end menu
+
+@node starpu_data_handle
+@subsection @code{starpu_data_handle} -- StarPU opaque data handle
+@table @asis 
+@item @emph{Description}:
+StarPU uses @code{starpu_data_handle} as an opaque handle to manage a piece of
+data. Once a piece of data has been registered to StarPU, it is associated to a
+@code{starpu_data_handle} which keeps track of the state of the piece of data
+over the entire machine, so that we can maintain data consistency and locate
+data replicates for instance.
+@end table
+
+@node void *interface
+@subsection @code{void *interface} -- StarPU data interface
+@table @asis 
+@item @emph{Description}:
+Data management is done at a high-level in StarPU: rather than accessing a mere
+list of contiguous buffers, the tasks may manipulate data that are described by
+a high-level construct which we call data interface.
+
+TODO
+@end table
+
 
 @c void starpu_delete_data(struct starpu_data_state_t *state);
+
+@c starpu_get_worker_memory_node TODO
+@c 
 
 @c user interaction with the DSM
 @c   void starpu_sync_data_with_mem(struct starpu_data_state_t *state);
@@ -618,18 +652,18 @@ indicates that it is only available on Cell SPUs.
 
 @item @code{cpu_func} (optionnal):
 Is a function pointer to the CPU implementation of the codelet. Its prototype
-must be: @code{void cpu_func(void *buffers[], void *cl_arg)}. The
-first argument being the array of data managed by the data management library,
-and the second argument is a pointer to the argument (possibly a copy of it)
-passed from the @code{.cl_arg} field of the @code{starpu_task} structure. This
-pointer is ignored if @code{STARPU_CPU} does not appear in the @code{.where} field,
-it must be non-null otherwise.
+must be: @code{void cpu_func(void *buffers[], void *cl_arg)}. The first
+argument being the array of data managed by the data management library, and
+the second argument is a pointer to the argument passed from the @code{.cl_arg}
+field of the @code{starpu_task} structure.
+The @code{cpu_func} field is ignored if @code{STARPU_CPU} does not appear in
+the @code{.where} field, it must be non-null otherwise.
 
 @item @code{cuda_func} (optionnal):
 Is a function pointer to the CUDA implementation of the codelet. @emph{This
 must be a host-function written in the CUDA runtime API}. Its prototype must
-be: @code{void cuda_func(void *buffers[], void *cl_arg);}. This
-pointer is ignored if @code{STARPU_CUDA} does not appear in the @code{.where}
+be: @code{void cuda_func(void *buffers[], void *cl_arg);}. The @code{cuda_func}
+field is ignored if @code{STARPU_CUDA} does not appear in the @code{.where}
 field, it must be non-null otherwise.
 
 @item @code{gordon_func} (optionnal):
@@ -674,11 +708,18 @@ such empty tasks can be useful for synchronization purposes.
 TODO
 
 @item @code{cl_arg} (optional) (default = NULL):
-TODO
+This pointer is passed to the codelet through the second argument
+of the codelet implementation (eg. @code{cpu_func} or @code{cuda_func}).
+In the specific case of the Cell processor, see the @code{.cl_arg_size}
+argument.
 
-@item @code{cl_arg_size} (optional):
-TODO
-@c ignored if only executable on CPUs or CUDA ...
+@item @code{cl_arg_size} (optional, Cell specific):
+In the case of the Cell processor, the @code{.cl_arg} pointer is not directly
+given to the SPU function. A buffer of size @code{cl_arg_size} is allocated on
+the SPU. This buffer is then filled with the @code{cl_arg_size} bytes starting
+at address @code{cl_arg}. In that case, the argument given to the SPU codelet
+is therefore not the @code{.cl_arg} pointer, but the address of the buffer in
+local store (LS) instead. 
 
 @item @code{callback_func} (optional) (default = @code{NULL}):
 This is a function pointer of prototype @code{void (*f)(void *)} which
@@ -705,13 +746,13 @@ If this flag is set, the @code{starpu_submit_task} function is blocking and
 returns only when the task has been executed (or if no worker is able to
 process the task). Otherwise, @code{starpu_submit_task} returns immediately.
 
-@item @code{priority} (optionnal) (default = @code{DEFAULT_PRIO}):
+@item @code{priority} (optionnal) (default = @code{STARPU_DEFAULT_PRIO}):
 This field indicates a level of priority for the task. This is an integer value
-that must be selected between @code{MIN_PRIO} (for the least important tasks)
-and @code{MAX_PRIO} (for the most important tasks) included. Default priority
-is @code{DEFAULT_PRIO}.  Scheduling strategies that take priorities into
-account can use this parameter to take better scheduling decisions, but the
-scheduling policy may also ignore it.
+that must be selected between @code{STARPU_MIN_PRIO} (for the least important
+tasks) and @code{STARPU_MAX_PRIO} (for the most important tasks) included.
+Default priority is @code{STARPU_DEFAULT_PRIO}.  Scheduling strategies that
+take priorities into account can use this parameter to take better scheduling
+decisions, but the scheduling policy may also ignore it.
 
 @item @code{execute_on_a_specific_worker} (default = 0):
 If this flag is set, StarPU will bypass the scheduler and directly affect this
@@ -958,7 +999,6 @@ terminated.
 @item @emph{Prototype}:
 @code{void starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id);}
 @end table
-
 
 @node starpu_tag_remove
 @subsection @code{starpu_tag_remove} -- Destroy a Tag
