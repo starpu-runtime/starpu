@@ -719,7 +719,8 @@ given to the SPU function. A buffer of size @code{cl_arg_size} is allocated on
 the SPU. This buffer is then filled with the @code{cl_arg_size} bytes starting
 at address @code{cl_arg}. In that case, the argument given to the SPU codelet
 is therefore not the @code{.cl_arg} pointer, but the address of the buffer in
-local store (LS) instead. 
+local store (LS) instead. This field is ignored for CPUs, CUDA and OpenCL
+codelets. 
 
 @item @code{callback_func} (optional) (default = @code{NULL}):
 This is a function pointer of prototype @code{void (*f)(void *)} which
