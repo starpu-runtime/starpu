@@ -30,7 +30,9 @@ EXTRA_DIST =			\
 	cudaf_kernels.cu	\
 	cudax_kernels.cu	\
 	testx.c			\
-	testx_threads.c	
+	testx_threads.c		\
+	testf_threads.c		\
+	test_threads.c
 
 libstarpufft_la_SOURCES = starpufft.c starpufftf.c starpufft-common.c
 libstarpufft_la_LIBADD = $(top_builddir)/src/libstarpu.la $(FFTW_LIBS) $(FFTWF_LIBS)
@@ -76,5 +78,6 @@ endif
 
 
 
+#check_PROGRAMS += test_threads testf_threads
 #test_threads_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la -lfftw3_threads
 #testf_threads_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la -lfftw3f_threads
