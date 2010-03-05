@@ -415,13 +415,14 @@ TODO
 @chapter StarPU API
 
 @menu
-* Initialization and Termination::       Initialization and Termination methods
-* Workers' Properties::                  Methods to enumerate workers' properties
-* Data Library::                         Methods to manipulate data
-* Codelets and Tasks::                   Methods to construct tasks
-* Tags::                                 Task dependencies
-* CUDA extensions::        CUDA extensions
-* Cell extensions::        Cell extensions
+* Initialization and Termination::   Initialization and Termination methods
+* Workers' Properties::              Methods to enumerate workers' properties
+* Data Library::                     Methods to manipulate data
+* Codelets and Tasks::               Methods to construct tasks
+* Tags::                             Task dependencies
+* CUDA extensions::                  CUDA extensions
+* Cell extensions::                  Cell extensions
+* Miscellaneous::                    Miscellaneous helpers
 @end menu
 
 @node Initialization and Termination
@@ -719,7 +720,7 @@ given to the SPU function. A buffer of size @code{cl_arg_size} is allocated on
 the SPU. This buffer is then filled with the @code{cl_arg_size} bytes starting
 at address @code{cl_arg}. In that case, the argument given to the SPU codelet
 is therefore not the @code{.cl_arg} pointer, but the address of the buffer in
-local store (LS) instead. This field is ignored for CPUs, CUDA and OpenCL
+local store (LS) instead. This field is ignored for CPU, CUDA and OpenCL
 codelets. 
 
 @item @code{callback_func} (optional) (default = @code{NULL}):
@@ -1079,6 +1080,36 @@ This function synchronously deinitializes the CUBLAS library on every CUDA devic
 
 @node Cell extensions
 @section Cell extensions
+
+nothing yet.
+
+@node Miscellaneous
+@section Miscellaneous helpers
+
+@menu
+* starpu_execute_on_each_worker::   Execute a function on a subset of workers
+@end menu
+
+@node starpu_execute_on_each_worker
+@subsection @code{starpu_execute_on_each_worker} -- Execute a function on a subset of workers
+@table @asis
+@item @emph{Description}:
+When calling this method, the offloaded function specified by the first argument is
+executed by every StarPU worker that may execute the function.
+The second argument is passed to the offloaded function.
+The last argument specifies on which types of processing units the function
+should be executed. Similarly to the @code{.where} field of the
+@code{starpu_codelet} structure, it is possible to specify that the function
+should be executed on every CUDA device and every CPU by passing
+@code{STARPU_CPU|STARPU_CUDA}.
+This function blocks until the function has been executed on every appropriate
+processing units, so that it may not be called from a callback function for
+instance.
+
+@item @emph{Prototype}:
+@code{void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where);}
+@end table
+
 
 @c ---------------------------------------------------------------------
 @c Basic Examples
