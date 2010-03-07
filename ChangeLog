@@ -15,7 +15,7 @@ The asynchronous heterogeneous multi-accelerator release
     - All data transfers use data requests now
     - Implement asynchronous data transfers
     - Implement prefetch mechanism
-    - Chain data requests to support GPU->STARPU_RAM->GPU transfers 
+    - Chain data requests to support GPU->RAM->GPU transfers 
   * Make it possible to bypass the scheduler and to assign a task to a specific
     worker
   * Support restartable tasks to reinstanciate dependencies task graphs

@@ -190,7 +190,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 			starpu_data_request_t r_src_to_ram;
 			starpu_data_request_t r_ram_to_dst;
 
-			/* XXX we hardcore 0 as the STARPU_RAM node ... */
+			/* XXX we hardcore 0 as the RAM node ... */
 			r_ram_to_dst = _starpu_create_data_request(handle, 0, requesting_node, requesting_node, read, write, is_prefetch);
 
 			if (!is_prefetch)

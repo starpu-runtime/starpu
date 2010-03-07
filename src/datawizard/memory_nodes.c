@@ -62,7 +62,7 @@ unsigned _starpu_get_local_memory_node(void)
 	unsigned *memory_node;
 	memory_node = pthread_getspecific(memory_node_key);
 	
-	/* in case this is called by the programmer, we assume the STARPU_RAM node 
+	/* in case this is called by the programmer, we assume the RAM node 
 	   is the appropriate memory node ... so we return 0 XXX */
 	if (STARPU_UNLIKELY(!memory_node))
 		return 0;

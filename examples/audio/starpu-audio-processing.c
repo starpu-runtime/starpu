@@ -433,7 +433,7 @@ int main(int argc, char **argv)
 	if (outputfilename)
 		fprintf(stderr, "Writing output data\n");
 
-	/* make sure that the output is in STARPU_RAM before quitting StarPU */
+	/* make sure that the output is in RAM before quitting StarPU */
 	starpu_unpartition_data(A_handle, 0);
 	starpu_delete_data(A_handle);
 

@@ -25,7 +25,7 @@ static void wrong_func(void *descr[], void *arg)
 {
 	int ret;
 
-	/* try to fetch data in the STARPU_RAM while we are in a codelet, such a
+	/* try to fetch data in the RAM while we are in a codelet, such a
 	 * blocking call is forbidden */
 	ret = starpu_sync_data_with_mem(handle, STARPU_RW);
 	if (ret != -EDEADLK)

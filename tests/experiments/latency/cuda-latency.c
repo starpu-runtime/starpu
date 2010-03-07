@@ -52,7 +52,7 @@ void send_data(unsigned src, unsigned dst)
 {
 	cudaError_t cures;
 
-	/* Copy data from GPU to STARPU_RAM */
+	/* Copy data from GPU to RAM */
 #ifdef DO_TRANSFER_GPU_TO_RAM
 #ifdef ASYNC
 	cures = cudaMemcpyAsync(cpu_buffer, gpu_buffer[src], buffer_size, cudaMemcpyDeviceToHost, stream[src]);
@@ -69,7 +69,7 @@ void send_data(unsigned src, unsigned dst)
 #endif
 #endif
 
-	/* Tell the other GPU that data is in STARPU_RAM */
+	/* Tell the other GPU that data is in RAM */
 	pthread_mutex_lock(&mutex_gpu);
 	data_is_available[src] = 0;
 	data_is_available[dst] = 1;
@@ -82,7 +82,7 @@ void recv_data(unsigned src, unsigned dst)
 {
 	cudaError_t cures;
 
-	/* Wait for the data to be in STARPU_RAM */
+	/* Wait for the data to be in RAM */
 	pthread_mutex_lock(&mutex_gpu);
 	while (!data_is_available[dst])
 	{
