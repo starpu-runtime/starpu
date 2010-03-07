@@ -28,8 +28,4 @@
 
 void *_starpu_cpu_worker(void *);
 
-#ifndef STARPU_NMAXCPUS
-#define STARPU_NMAXCPUS       4
-#endif
-
 #endif //  __DRIVER_CPU_H__
