@@ -101,6 +101,21 @@ uintptr_t starpu_get_vector_local_ptr(starpu_data_handle handle);
 #define STARPU_GET_VECTOR_NX(interface)	(((starpu_vector_interface_t *)(interface))->nx)
 #define STARPU_GET_VECTOR_ELEMSIZE(interface)	(((starpu_vector_interface_t *)(interface))->elemsize)
 
+/* variable interface for a single data (not a vector, a matrix, a list, ...) */
+typedef struct starpu_variable_interface_s {
+	uintptr_t ptr;
+	size_t elemsize;
+} starpu_variable_interface_t;
+
+void starpu_register_variable_data(starpu_data_handle *handle, uint32_t home_node,
+                        uintptr_t ptr, size_t elemsize);
+size_t starpu_get_variable_elemsize(starpu_data_handle handle);
+uintptr_t starpu_get_variable_local_ptr(starpu_data_handle handle);
+
+/* helper methods */
+#define STARPU_GET_VARIABLE_PTR(interface)	(((starpu_variable_interface_t *)(interface))->ptr)
+#define STARPU_GET_VARIABLE_ELEMSIZE(interface)	(((starpu_variable_interface_t *)(interface))->elemsize)
+
 /* CSR interface for sparse matrices (compressed sparse row representation) */
 typedef struct starpu_csr_interface_s {
 	uint32_t nnz; /* number of non-zero entries */
@@ -189,7 +204,8 @@ size_t starpu_get_bcsr_elemsize(starpu_data_handle);
 #define STARPU_CSR_INTERFACE_ID		3
 #define STARPU_CSC_INTERFACE_ID		4
 #define STARPU_BCSCR_INTERFACE_ID	5
-#define STARPU_NINTERFACES_ID		6 /* number of data interfaces */
+#define STARPU_VARIABLE_INTERFACE_ID	6
+#define STARPU_NINTERFACES_ID		7 /* number of data interfaces */
 
 unsigned starpu_get_handle_interface_id(starpu_data_handle);
 
