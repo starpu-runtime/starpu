@@ -27,7 +27,7 @@ echo "H -> D"
 for log in `seq 1 13`
 do
 	size=$((2**$log))
-	echo "$size	`./cuda-bandwith -pin -HtoD -size $size -cpu-ld $size -gpu-ld $size -iter 50`" >> .results/htod-pin.data 
+	echo "$size	`./cuda-bandwidth -pin -HtoD -size $size -cpu-ld $size -gpu-ld $size -iter 50`" >> .results/htod-pin.data 
 done
 
 echo "D -> H"
@@ -35,10 +35,10 @@ echo "D -> H"
 for log in `seq 1 13`
 do
 	size=$((2**$log))
-	echo "$size	`./cuda-bandwith -pin -size $size -cpu-ld $size -gpu-ld $size -iter 50`" >> .results/dtoh-pin.data 
+	echo "$size	`./cuda-bandwidth -pin -size $size -cpu-ld $size -gpu-ld $size -iter 50`" >> .results/dtoh-pin.data 
 done
 
-./bench-bandwith.gp
+./bench-bandwidth.gp
 
 echo "STRIDED H -> D"
 
@@ -50,7 +50,7 @@ do
 	for log in `seq 1 $stridelog`
 	do
 		size=$((2**$log))
-		echo "$size	`./cuda-bandwith -pin -HtoD -size $size -cpu-ld $stridesize -gpu-ld $stridesize -iter 50`" >> .results/htod-pin.$stridesize.data 
+		echo "$size	`./cuda-bandwidth -pin -HtoD -size $size -cpu-ld $stridesize -gpu-ld $stridesize -iter 50`" >> .results/htod-pin.$stridesize.data 
 	done
 done
 
@@ -64,6 +64,6 @@ do
 	for log in `seq 1 $stridelog`
 	do
 		size=$((2**$log))
-		echo "$size	`./cuda-bandwith -pin -size $size -cpu-ld $stridesize -gpu-ld $stridesize -iter 50`" >> .results/dtoh-pin.$stridesize.data 
+		echo "$size	`./cuda-bandwidth -pin -size $size -cpu-ld $stridesize -gpu-ld $stridesize -iter 50`" >> .results/dtoh-pin.$stridesize.data 
 	done
 done

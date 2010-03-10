@@ -52,7 +52,7 @@ static symbol_name_list_t symbol_list;
 LIST_TYPE(communication,
 	unsigned comid;
 	float comm_start;	
-	float bandwith;
+	float bandwidth;
 	unsigned node;
 );
 
@@ -85,7 +85,7 @@ static void paje_output_file_init(void)
 	3       S       T       \"Thread State\"                        \n \
 	3       MS       Mn       \"Memory Node State\"                        \n \
 	4       ntask    Sc       \"Number of tasks\"                        \n \
-	4       bw      Mn       \"Bandwith\"                        \n \
+	4       bw      Mn       \"Bandwidth\"                        \n \
 	6       I       S      Initializing       \"0.0 .7 1.0\"            \n \
 	6       D       S      Deinitializing       \"0.0 .1 .7\"            \n \
 	6       Fi       S      FetchingInput       \"1.0 .1 1.0\"            \n \
@@ -403,14 +403,14 @@ static void handle_end_driver_copy(void)
 			if (itor->comid == comid)
 			{
 				float comm_end = get_event_time_stamp();
-				float bandwith = (float)((0.001*size)/(comm_end - itor->comm_start));
+				float bandwidth = (float)((0.001*size)/(comm_end - itor->comm_start));
 
-				itor->bandwith = bandwith;
+				itor->bandwidth = bandwidth;
 
 				communication_t com = communication_new();
 				com->comid = comid;
 				com->comm_start = get_event_time_stamp();
-				com->bandwith = -bandwith;
+				com->bandwidth = -bandwidth;
 
 				com->node = itor->node;
 
@@ -422,23 +422,23 @@ static void handle_end_driver_copy(void)
 	}
 }
 
-static void display_bandwith_evolution(void)
+static void display_bandwidth_evolution(void)
 {
-	float current_bandwith = 0.0;
-	float current_bandwith_per_node[32] = {0.0};
+	float current_bandwidth = 0.0;
+	float current_bandwidth_per_node[32] = {0.0};
 
 	communication_itor_t itor;
 	for (itor = communication_list_begin(communication_list);
 		itor != communication_list_end(communication_list);
 		itor = communication_list_next(itor))
 	{
-		current_bandwith += itor->bandwith;
+		current_bandwidth += itor->bandwidth;
 		fprintf(out_paje_file, "13  %f bw %sMEMNODE0 %f\n",
-				itor->comm_start, prefix, current_bandwith);
+				itor->comm_start, prefix, current_bandwidth);
 
-		current_bandwith_per_node[itor->node] +=  itor->bandwith;
+		current_bandwidth_per_node[itor->node] +=  itor->bandwidth;
 		fprintf(out_paje_file, "13  %f bw %sMEMNODE%d %f\n",
-				itor->comm_start, prefix, itor->node, current_bandwith_per_node[itor->node]);
+				itor->comm_start, prefix, itor->node, current_bandwidth_per_node[itor->node]);
 	}
 }
 
@@ -925,7 +925,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	display_bandwith_evolution();
+	display_bandwidth_evolution();
 
 	/* close the different files */
 	fclose(out_paje_file);

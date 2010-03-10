@@ -40,7 +40,7 @@ struct cudadev_timing {
 	double timing_dtoh;
 };
 
-static double bandwith_matrix[STARPU_MAXNODES][STARPU_MAXNODES] = {{-1.0}};
+static double bandwidth_matrix[STARPU_MAXNODES][STARPU_MAXNODES] = {{-1.0}};
 static double latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES] = {{ -1.0}};
 static unsigned was_benchmarked = 0;
 static int ncuda = 0;
@@ -55,7 +55,7 @@ static double cudadev_timing_dtoh[STARPU_MAXNODES] = {0.0};
 
 static struct cudadev_timing cudadev_timing_per_cpu[STARPU_MAXNODES][MAXCPUS];
 
-static void measure_bandwith_between_host_and_dev_on_cpu(int dev, int cpu)
+static void measure_bandwidth_between_host_and_dev_on_cpu(int dev, int cpu)
 {
 	struct starpu_machine_config_s *config = _starpu_get_machine_config();
 	_starpu_bind_thread_on_cpu(config, cpu);
@@ -106,7 +106,7 @@ static void measure_bandwith_between_host_and_dev_on_cpu(int dev, int cpu)
 
 	cudadev_timing_per_cpu[dev+1][cpu].cpu_id = cpu;
 
-	/* Measure upload bandwith */
+	/* Measure upload bandwidth */
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; iter++)
 	{
@@ -118,7 +118,7 @@ static void measure_bandwith_between_host_and_dev_on_cpu(int dev, int cpu)
 
 	cudadev_timing_per_cpu[dev+1][cpu].timing_htod = timing/NITER;
 
-	/* Measure download bandwith */
+	/* Measure download bandwidth */
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; iter++)
 	{
@@ -138,7 +138,7 @@ static void measure_bandwith_between_host_and_dev_on_cpu(int dev, int cpu)
 
 }
 
-/* NB: we want to sort the bandwith by DECREASING order */
+/* NB: we want to sort the bandwidth by DECREASING order */
 static int compar_cudadev_timing(const void *left_cudadev_timing, const void *right_cudadev_timing)
 {
 	const struct cudadev_timing *left = left_cudadev_timing;
@@ -149,19 +149,19 @@ static int compar_cudadev_timing(const void *left_cudadev_timing, const void *ri
 	double right_dtoh = right->timing_dtoh;
 	double right_htod = right->timing_htod;
 	
-	double bandwith_sum2_left = left_dtoh*left_dtoh + left_htod*left_htod;
-	double bandwith_sum2_right = right_dtoh*right_dtoh + right_htod*right_htod;
+	double bandwidth_sum2_left = left_dtoh*left_dtoh + left_htod*left_htod;
+	double bandwidth_sum2_right = right_dtoh*right_dtoh + right_htod*right_htod;
 
 	/* it's for a decreasing sorting */
-	return (bandwith_sum2_left < bandwith_sum2_right);
+	return (bandwidth_sum2_left < bandwidth_sum2_right);
 }
 
-static void measure_bandwith_between_host_and_dev(int dev, unsigned ncpus)
+static void measure_bandwidth_between_host_and_dev(int dev, unsigned ncpus)
 {
 	unsigned cpu;
 	for (cpu = 0; cpu < ncpus; cpu++)
 	{
-		measure_bandwith_between_host_and_dev_on_cpu(dev, cpu);
+		measure_bandwidth_between_host_and_dev_on_cpu(dev, cpu);
 	}
 
 	/* sort the results */
@@ -173,17 +173,17 @@ static void measure_bandwith_between_host_and_dev(int dev, unsigned ncpus)
 	for (cpu = 0; cpu < ncpus; cpu++)
 	{
 		unsigned current_cpu = cudadev_timing_per_cpu[dev+1][cpu].cpu_id;
-		double bandwith_dtoh = cudadev_timing_per_cpu[dev+1][cpu].timing_dtoh;
-		double bandwith_htod = cudadev_timing_per_cpu[dev+1][cpu].timing_htod;
+		double bandwidth_dtoh = cudadev_timing_per_cpu[dev+1][cpu].timing_dtoh;
+		double bandwidth_htod = cudadev_timing_per_cpu[dev+1][cpu].timing_htod;
 
-		double bandwith_sum2 = bandwith_dtoh*bandwith_dtoh + bandwith_htod*bandwith_htod;
+		double bandwidth_sum2 = bandwidth_dtoh*bandwidth_dtoh + bandwidth_htod*bandwidth_htod;
 
-		fprintf(stderr, "BANDWITH GPU %d CPU %d - htod %lf - dtoh %lf - %lf\n", dev, current_cpu, bandwith_htod, bandwith_dtoh, sqrt(bandwith_sum2));
+		fprintf(stderr, "BANDWIDTH GPU %d CPU %d - htod %lf - dtoh %lf - %lf\n", dev, current_cpu, bandwidth_htod, bandwidth_dtoh, sqrt(bandwidth_sum2));
 	}
 
 	unsigned best_cpu = cudadev_timing_per_cpu[dev+1][0].cpu_id;
 
-	fprintf(stderr, "BANDWITH GPU %d BEST CPU %d\n", dev, best_cpu);
+	fprintf(stderr, "BANDWIDTH GPU %d BEST CPU %d\n", dev, best_cpu);
 #endif
 
 	/* The results are sorted in a decreasing order, so that the best
@@ -219,8 +219,8 @@ static void benchmark_all_cuda_devices(void)
 	int i;
 	for (i = 0; i < ncuda; i++)
 	{
-		/* measure bandwith between Host and Device i */
-		measure_bandwith_between_host_and_dev(i, ncpus);
+		/* measure bandwidth between Host and Device i */
+		measure_bandwidth_between_host_and_dev(i, ncpus);
 	}
 
 	/* FIXME: use hwloc */
@@ -495,21 +495,21 @@ static void load_bus_latency_file(void)
 
 
 /* 
- *	Bandwith
+ *	Bandwidth
  */
-static void get_bandwith_path(char *path, size_t maxlen)
+static void get_bandwidth_path(char *path, size_t maxlen)
 {
-	get_bus_path("bandwith", path, maxlen);
+	get_bus_path("bandwidth", path, maxlen);
 }
 
-static void load_bus_bandwith_file_content(void)
+static void load_bus_bandwidth_file_content(void)
 {
 	int n;
 	unsigned src, dst;
 	FILE *f;
 
 	char path[256];
-	get_bandwith_path(path, 256);
+	get_bandwidth_path(path, 256);
 
 	f = fopen(path, "r");
 	if (!f)
@@ -523,12 +523,12 @@ static void load_bus_bandwith_file_content(void)
 		starpu_drop_comments(f);
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		{
-			double bandwith;
+			double bandwidth;
 
-			n = fscanf(f, "%lf\t", &bandwith);
+			n = fscanf(f, "%lf\t", &bandwidth);
 			STARPU_ASSERT(n == 1);
 
-			bandwith_matrix[src][dst] = bandwith;
+			bandwidth_matrix[src][dst] = bandwidth;
 		}
 
 		n = fscanf(f, "\n");
@@ -538,7 +538,7 @@ static void load_bus_bandwith_file_content(void)
 	fclose(f);
 }
 
-static void write_bus_bandwith_file_content(void)
+static void write_bus_bandwidth_file_content(void)
 {
 	int src, dst;
 	FILE *f;
@@ -546,7 +546,7 @@ static void write_bus_bandwith_file_content(void)
 	STARPU_ASSERT(was_benchmarked);
 
 	char path[256];
-	get_bandwith_path(path, 256);
+	get_bandwidth_path(path, 256);
 
 	f = fopen(path, "w+");
 	STARPU_ASSERT(f);
@@ -560,30 +560,30 @@ static void write_bus_bandwith_file_content(void)
 	{
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		{
-			double bandwith;
+			double bandwidth;
 			
 			if ((src > ncuda) || (dst > ncuda))
 			{
-				bandwith = -1.0;
+				bandwidth = -1.0;
 			}
 #ifdef STARPU_USE_CUDA
 			else if (src != dst)
 			{
-			/* Bandwith = (SIZE)/(time i -> ram + time ram -> j)*/
+			/* Bandwidth = (SIZE)/(time i -> ram + time ram -> j)*/
 				double time_src_to_ram = (src==0)?0.0:cudadev_timing_dtoh[src];
 				double time_ram_to_dst = (dst==0)?0.0:cudadev_timing_htod[dst];
 				
 				double timing =time_src_to_ram + time_ram_to_dst;
 				
-				bandwith = 1.0*SIZE/timing;
+				bandwidth = 1.0*SIZE/timing;
 			}
 #endif
 			else {
 			        /* convention */
-			        bandwith = 0.0;
+			        bandwidth = 0.0;
 			}
 			
-			fprintf(f, "%lf\t", bandwith);
+			fprintf(f, "%lf\t", bandwidth);
 		}
 
 		fprintf(f, "\n");
@@ -592,29 +592,29 @@ static void write_bus_bandwith_file_content(void)
 	fclose(f);
 }
 
-static void generate_bus_bandwith_file(void)
+static void generate_bus_bandwidth_file(void)
 {
 	if (!was_benchmarked)
 		benchmark_all_cuda_devices();
 
-	write_bus_bandwith_file_content();
+	write_bus_bandwidth_file_content();
 }
 
-static void load_bus_bandwith_file(void)
+static void load_bus_bandwidth_file(void)
 {
 	int res;
 
 	char path[256];
-	get_bandwith_path(path, 256);
+	get_bandwidth_path(path, 256);
 
 	res = access(path, F_OK);
 	if (res)
 	{
 		/* File does not exist yet */
-		generate_bus_bandwith_file();
+		generate_bus_bandwidth_file();
 	}
 
-	load_bus_bandwith_file_content();
+	load_bus_bandwidth_file_content();
 }
 
 /*
@@ -627,7 +627,7 @@ void starpu_force_bus_sampling(void)
 
 	generate_bus_affinity_file();
 	generate_bus_latency_file();
-	generate_bus_bandwith_file();
+	generate_bus_bandwidth_file();
 }
 
 void _starpu_load_bus_performance_files(void)
@@ -636,13 +636,13 @@ void _starpu_load_bus_performance_files(void)
 
 	load_bus_affinity_file();
 	load_bus_latency_file();
-	load_bus_bandwith_file();
+	load_bus_bandwidth_file();
 }
 
 double _starpu_predict_transfer_time(unsigned src_node, unsigned dst_node, size_t size)
 {
-	double bandwith = bandwith_matrix[src_node][dst_node];
+	double bandwidth = bandwidth_matrix[src_node][dst_node];
 	double latency = latency_matrix[src_node][dst_node];
 
-	return latency + size/bandwith;
+	return latency + size/bandwidth;
 }

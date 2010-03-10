@@ -18,11 +18,11 @@
 
 
 set term postscript eps enhanced color
-set output "bench-bandwith.eps"
-set title "CUDA Bandwith"
+set output "bench-bandwidth.eps"
+set title "CUDA Bandwidth"
 set logscale x
 set xlabel "Size (Bytes)"
-set ylabel "Bandwith (MB/s)"
+set ylabel "Bandwidth (MB/s)"
 
 plot ".results/htod-pin.data" with linespoint	title "Host to Device (pinned)",\
      ".results/dtoh-pin.data" with linespoint   title "Device to Host (pinned)"
