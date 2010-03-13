@@ -589,7 +589,7 @@ worker (ie. when called from the application outside a task or a callback), or
 an integer between 0 and @code{starpu_get_worker_count() - 1}.
 
 @item @emph{Prototype}:
-@code{int starpu_get_worker_count(void);}
+@code{int starpu_get_worker_id(void);}
 @end table
 
 @node starpu_get_worker_type
@@ -1011,12 +1011,9 @@ does not take a variable number of arguments but an array of tags of size
 @code{void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);}
 @item @emph{Example}:
 @example
-@c @cartouche
 /*  Tag 0x1 depends on tags 0x32 and 0x52 */
 starpu_tag_t tag_array[2] = @{0x32, 0x52@};
-starpu_tag_declare_deps((starpu_tag_t)0x1, 2, tag_array);
-
-@c @end cartouche
+starpu_tag_declare_deps_array((starpu_tag_t)0x1, 2, tag_array);
 @end example
 
 
