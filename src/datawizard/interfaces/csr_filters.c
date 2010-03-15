@@ -70,8 +70,8 @@ void starpu_vertical_block_filter_func_csr(starpu_filter *f, starpu_data_handle 
 			if (starpu_test_if_data_is_allocated_on_node(root_handle, node)) {
 				local->rowptr = &local->rowptr[first_index];
 				local->colind = &local->colind[local_firstentry];
-				float *nzval = (float *)(local->nzval);
-				local->nzval = (uintptr_t)&nzval[local_firstentry];
+				char *nzval = (char *)(local->nzval);
+				local->nzval = (uintptr_t)&nzval[local_firstentry * elemsize];
 			}
 		}
 	}
