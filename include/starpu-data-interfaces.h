@@ -24,6 +24,13 @@
 extern "C" {
 #endif
 
+/* "node" means memory node: 0 for main RAM, then 1, 2, etc. for various GPUs,
+ * etc.
+ *
+ * On registration, the source of data is usually a pointer in RAM, in which
+ * case 0 should be passed.
+ */
+
 void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node);
 
 /* Matrix interface for dense matrices */
