@@ -1,8 +1,19 @@
-- Configure StarPU to use FxT
+Step 1 - Install FxT
+
+Get the sources from the cvs repository
+	cvs -d :pserver:anonymous@cvs.sv.gnu.org:/sources/fkt co FxT
+
+Configure and compile FxT:
+	./bootstrap
+	./configure --enable-sync-clock --prefix=$FXTDIR
+	make
+	make install 
+
+Step 2 - Configure StarPU to use FxT
 
 	./configure --with-fxt=/home/gonnet/hannibal/Libs/FxT/FxT/target/
 
-- Execute applications as usual
+Step 3 - Execute applications as usual
 
 - If the application was properly terminated (ie. starpu_shutdown was called),
   there should be a file named "/tmp/prof_file_user_".
