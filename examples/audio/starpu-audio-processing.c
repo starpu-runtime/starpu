@@ -294,7 +294,7 @@ void create_starpu_task(unsigned iter)
 
 	task->cl = &band_filter_cl;
 
-	task->buffers[0].handle = get_sub_data(A_handle, 1, iter);
+	task->buffers[0].handle = starpu_get_sub_data(A_handle, 1, iter);
 	task->buffers[0].mode = STARPU_RW;
 
 	task->callback_func = callback;
@@ -400,7 +400,7 @@ int main(int argc, char **argv)
 	starpu_partition_data(A_handle, &f);
 
 	for (iter = 0; iter < niter; iter++)
-		starpu_data_set_wb_mask(get_sub_data(A_handle, 1, iter), 1<<0);
+		starpu_data_set_wb_mask(starpu_get_sub_data(A_handle, 1, iter), 1<<0);
 
 	gettimeofday(&start, NULL);
 
