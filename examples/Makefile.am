@@ -362,8 +362,12 @@ examplebin_PROGRAMS += 				\
 	spmv/dw_block_spmv
 
 spmv_dw_spmv_SOURCES = 				\
-	spmv/dw_spmv.c				\
+	spmv/dw_spmv.c
+
+if STARPU_USE_CUDA
+spmv_dw_spmv_SOURCES +=				\
 	spmv/spmv_cuda.cu
+endif
 
 spmv_dw_block_spmv_SOURCES =			\
 	spmv/dw_block_spmv.c			\
