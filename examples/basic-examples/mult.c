@@ -24,7 +24,7 @@
  *    (starpu_partition_data and starpu_map_filters)
  *  - how to unpartition data (starpu_unpartition_data) and how to stop
  *    monitoring data (starpu_delete_data)
- *  - how to manipulate subsets of data (get_sub_data)
+ *  - how to manipulate subsets of data (starpu_get_sub_data)
  *  - how to construct an autocalibrated performance model (starpu_perfmodel_t)
  *  - how to submit asynchronous tasks and how to use callback to handle task
  *    termination
@@ -228,17 +228,17 @@ static void partition_mult_data(void)
 		
 /*
  *	Illustration with nslicex = 4 and nslicey = 2, it is possible to access
- *	sub-data by using the "get_sub_data" method, which takes a data handle,
+ *	sub-data by using the "starpu_get_sub_data" method, which takes a data handle,
  *	the number of filters to apply, and the indexes for each filters, for
  *	instance:
  *
- *		A' handle is get_sub_data(A_handle, 1, 1); 
- *		B' handle is get_sub_data(B_handle, 1, 2); 
- *		C' handle is get_sub_data(C_handle, 2, 2, 1); 
+ *		A' handle is starpu_get_sub_data(A_handle, 1, 1); 
+ *		B' handle is starpu_get_sub_data(B_handle, 1, 2); 
+ *		C' handle is starpu_get_sub_data(C_handle, 2, 2, 1); 
  *
  *	Note that here we applied 2 filters recursively onto C.
  *
- *	"get_sub_data(C_handle, 1, 3)" would return a handle to the 4th column
+ *	"starpu_get_sub_data(C_handle, 1, 3)" would return a handle to the 4th column
  *	of blocked matrix C for example.
  *
  *		              |---|---|---|---|
@@ -338,21 +338,21 @@ static void launch_tasks(void)
 			 * (respectively B) so we grab the handle to the chunk
 			 * identified by "tasky" (respectively "taskx). The "1"
 			 * tells StarPU that there is a single argument to the
-			 * variable-arity function get_sub_data */
+			 * variable-arity function starpu_get_sub_data */
 			task->buffers[0].handle = starpu_get_sub_data(A_handle, 1, tasky);
 			task->buffers[0].mode = STARPU_R;
 			task->buffers[1].handle = starpu_get_sub_data(B_handle, 1, taskx);
 			task->buffers[1].mode = STARPU_R;
 
 			/* 2 filters were applied on matrix C, so we give
-			 * get_sub_data 2 arguments. The order of the arguments
+			 * starpu_get_sub_data 2 arguments. The order of the arguments
 			 * must match the order in which the filters were
 			 * applied.
-			 * NB: get_sub_data(C_handle, 1, k) would have returned
+			 * NB: starpu_get_sub_data(C_handle, 1, k) would have returned
 			 * a handle to the column number k of matrix C.
-			 * NB2: get_sub_data(C_handle, 2, taskx, tasky) is
+			 * NB2: starpu_get_sub_data(C_handle, 2, taskx, tasky) is
 			 * equivalent to
-			 * get_sub_data(get_sub_data(C_handle, 1, taskx), 1, tasky)*/
+			 * starpu_get_sub_data(starpu_get_sub_data(C_handle, 1, taskx), 1, tasky)*/
 			task->buffers[2].handle = starpu_get_sub_data(C_handle, 2, taskx, tasky);
 			task->buffers[2].mode = STARPU_W;
 
@@ -389,7 +389,7 @@ int main(__attribute__ ((unused)) int argc,
 	pthread_mutex_unlock(&mutex);
 
 	/* remove the filters applied by the means of starpu_map_filters; now
- 	 * it's not possible to manipulate a subset of C using get_sub_data until
+ 	 * it's not possible to manipulate a subset of C using starpu_get_sub_data until
 	 * starpu_map_filters is called again on C_handle.
 	 * The second argument is the memory node where the different subsets
 	 * should be reassembled, 0 = main memory (RAM) */

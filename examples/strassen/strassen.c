@@ -62,20 +62,20 @@ static void partition_matrices(strassen_iter_state_t *iter)
 	starpu_map_filters(B, 2, &f, &f2);
 	starpu_map_filters(C, 2, &f, &f2);
 
-	iter->A11 = get_sub_data(A, 2, 0, 0);
-	iter->A12 = get_sub_data(A, 2, 1, 0);
-	iter->A21 = get_sub_data(A, 2, 0, 1);
-	iter->A22 = get_sub_data(A, 2, 1, 1);
+	iter->A11 = starpu_get_sub_data(A, 2, 0, 0);
+	iter->A12 = starpu_get_sub_data(A, 2, 1, 0);
+	iter->A21 = starpu_get_sub_data(A, 2, 0, 1);
+	iter->A22 = starpu_get_sub_data(A, 2, 1, 1);
 
-	iter->B11 = get_sub_data(B, 2, 0, 0);
-	iter->B12 = get_sub_data(B, 2, 1, 0);
-	iter->B21 = get_sub_data(B, 2, 0, 1);
-	iter->B22 = get_sub_data(B, 2, 1, 1);
+	iter->B11 = starpu_get_sub_data(B, 2, 0, 0);
+	iter->B12 = starpu_get_sub_data(B, 2, 1, 0);
+	iter->B21 = starpu_get_sub_data(B, 2, 0, 1);
+	iter->B22 = starpu_get_sub_data(B, 2, 1, 1);
 
-	iter->C11 = get_sub_data(C, 2, 0, 0);
-	iter->C12 = get_sub_data(C, 2, 1, 0);
-	iter->C21 = get_sub_data(C, 2, 0, 1);
-	iter->C22 = get_sub_data(C, 2, 1, 1);
+	iter->C11 = starpu_get_sub_data(C, 2, 0, 0);
+	iter->C12 = starpu_get_sub_data(C, 2, 1, 0);
+	iter->C21 = starpu_get_sub_data(C, 2, 0, 1);
+	iter->C22 = starpu_get_sub_data(C, 2, 1, 1);
 
 	/* TODO check that all sub-matrices have the same size */
 }

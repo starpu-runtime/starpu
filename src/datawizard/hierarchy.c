@@ -139,7 +139,7 @@ void starpu_map_filters(starpu_data_handle root_handle, unsigned nfilters, ...)
 }
 
 /*
- * example get_sub_data(starpu_data_handle root_handle, 3, 42, 0, 1);
+ * example starpu_get_sub_data(starpu_data_handle root_handle, 3, 42, 0, 1);
  */
 starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i)
 {
