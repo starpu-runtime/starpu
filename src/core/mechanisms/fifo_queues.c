@@ -18,17 +18,11 @@
 #include <core/mechanisms/fifo_queues.h>
 #include <errno.h>
 
-/* keep track of the total number of jobs to be scheduled to avoid infinite 
- * polling when there are really few jobs in the overall queue */
-static unsigned total_number_of_jobs;
-
 static pthread_cond_t *sched_cond;
 static pthread_mutex_t *sched_mutex;
 
 void _starpu_init_fifo_queues_mechanisms(void)
 {
-	total_number_of_jobs = 0;
-
 	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
 
 	/* to access them more easily, we keep their address in local variables */
@@ -86,7 +80,6 @@ int _starpu_fifo_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
 
 	/* if anyone is blocked on the entire machine, wake it up */
 	pthread_mutex_lock(sched_mutex);
-	total_number_of_jobs++;
 	pthread_cond_signal(sched_cond);
 	pthread_mutex_unlock(sched_mutex);
 	
@@ -114,7 +107,6 @@ int _starpu_fifo_push_task(struct starpu_jobq_s *q, starpu_job_t task)
 
 	/* if anyone is blocked on the entire machine, wake it up */
 	pthread_mutex_lock(sched_mutex);
-	total_number_of_jobs++;
 	pthread_cond_signal(sched_cond);
 	pthread_mutex_unlock(sched_mutex);
 	
@@ -151,12 +143,6 @@ starpu_job_t _starpu_fifo_pop_task(struct starpu_jobq_s *q)
 		fifo_queue->njobs--;
 		
 		STARPU_TRACE_JOB_POP(j, 0);
-
-		/* we are sure that we got it now, so at worst, some people thought 
-		 * there remained some work and will soon discover it is not true */
-		pthread_mutex_lock(sched_mutex);
-		total_number_of_jobs--;
-		pthread_mutex_unlock(sched_mutex);
 	}
 	
 	return j;
@@ -213,12 +199,6 @@ struct starpu_job_list_s * _starpu_fifo_pop_every_task(struct starpu_jobq_s *q, 
 		else
 		{
 			fifo_queue->njobs -= new_list_size;
-	
-			/* we are sure that we got it now, so at worst, some people thought
-			 * there remained some work and will soon discover it is not true */
-			pthread_mutex_lock(sched_mutex);
-			total_number_of_jobs -= new_list_size;
-			pthread_mutex_unlock(sched_mutex);
 		}
 	}
 
