@@ -155,6 +155,15 @@ examplebin_PROGRAMS +=				\
 ppm_downscaler_yuv_downscaler_SOURCES =		\
 	ppm-downscaler/yuv-downscaler.c
 
+######
+# Pi #
+######
+
+examplebin_PROGRAMS +=				\
+	pi/pi
+
+pi_pi_SOURCES =					\
+	pi/pi.c
 
 ################
 # AXPY example #
