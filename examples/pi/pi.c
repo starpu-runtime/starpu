@@ -93,7 +93,9 @@ int main(int argc, char **argv)
 	struct starpu_codelet_t cl = {
 		.where = STARPU_CPU|STARPU_CUDA,
 		.cpu_func = cpu_kernel,
+#ifdef STARPU_USE_CUDA
 		.cuda_func = cuda_kernel,
+#endif
 		.nbuffers = 3,
 		.model = NULL /* TODO */
 	};
