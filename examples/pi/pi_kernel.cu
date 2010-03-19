@@ -40,16 +40,19 @@ static __global__ void monte_carlo(TYPE *random_numbers_x, TYPE *random_numbers_
 
 	__syncthreads();
 
-	/* XXX that's totally unoptimized : we should do a reduction ! */
-	if (threadIdx.x == 0)
+	/* Perform a reduction to compute the sum on each thread within that block */
+	unsigned s;
+	for (s = blockDim.x/2; s!=0; s>>=1)
 	{
-		unsigned total_cnt = 0;
-		unsigned i;
-		for (i = 0; i < BLOCK_SIZE; i++)
-			total_cnt += scnt[i];
+		if (threadIdx.x < s)
+			scnt[threadIdx.x] += scnt[threadIdx.x + s];
 
-		output_cnt[blockIdx.x] = total_cnt;
+		__syncthreads();
 	}
+
+	/* report the number of successful shots in the block */
+	if (threadIdx.x == 0)
+		output_cnt[blockIdx.x] = scnt[0];
 }
 
 static __global__ void sum_per_block_cnt(unsigned previous_nblocks,
@@ -79,9 +82,15 @@ extern "C" void cuda_kernel(void *descr[], void *cl_arg)
 	unsigned *per_block_cnt;
 	cudaMalloc((void **)&per_block_cnt, (nx/BLOCK_SIZE)*sizeof(unsigned));
 
+	assert((nx % BLOCK_SIZE) == 0);
+
+	/* each entry of per_block_cnt contains the number of successful shots
+	 * in the corresponding block. */
 	monte_carlo<<<nx/BLOCK_SIZE, BLOCK_SIZE>>>(random_numbers_x, random_numbers_y, nx, per_block_cnt);
 	cudaThreadSynchronize();
 
+	/* compute the total number of successful shots by adding the elements
+	 * of the per_block_cnt array */
 	sum_per_block_cnt<<<1, 32>>>(nx/BLOCK_SIZE, per_block_cnt, cnt);
 	cudaThreadSynchronize();
 
