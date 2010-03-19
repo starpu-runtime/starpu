@@ -14,15 +14,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu.h>
-#include <stdio.h>
+#include "pi.h"
 
-#define NTASKS	(32*1024)
-#define NSHOT_PER_TASK	1024
-
-#define SIZE	(NTASKS*NSHOT_PER_TASK)
-
-#define TYPE	float
+#ifdef STARPU_USE_CUDA
+void cuda_kernel(void **descr, void *cl_arg);
+#endif
 
 static void cpu_kernel(void *descr[], void *cl_arg)
 {
@@ -95,9 +91,9 @@ int main(int argc, char **argv)
 	starpu_partition_data(cnt_array_handle, &f);
 
 	struct starpu_codelet_t cl = {
-		.where = STARPU_CPU,
+		.where = STARPU_CPU|STARPU_CUDA,
 		.cpu_func = cpu_kernel,
-		.cuda_func = NULL, /* TODO */
+		.cuda_func = cuda_kernel,
 		.nbuffers = 3,
 		.model = NULL /* TODO */
 	};

@@ -165,6 +165,12 @@ examplebin_PROGRAMS +=				\
 pi_pi_SOURCES =					\
 	pi/pi.c
 
+if STARPU_USE_CUDA
+pi_pi_SOURCES +=				\
+	pi/pi_kernel.cu
+endif
+
+
 ################
 # AXPY example #
 ################
