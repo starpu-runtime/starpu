@@ -16,31 +16,42 @@
 
 #include "pi.h"
 
-#define BLOCK_SIZE	256
+#define MAXNBLOCKS	128
+#define MAXTHREADSPERBLOCK	256
 
 static __global__ void monte_carlo(TYPE *random_numbers_x, TYPE *random_numbers_y,
 						unsigned n, unsigned *output_cnt)
 {
-	__shared__ unsigned scnt[BLOCK_SIZE];
+	__shared__ unsigned scnt[MAXTHREADSPERBLOCK];
 
+	/* Do we have a successful shot ? */
 	const int tid = threadIdx.x + blockIdx.x*blockDim.x;
 
+	const int nthreads = gridDim.x * blockDim.x;
+
 	/* Blank the shared mem buffer */
-	if (threadIdx.x < 32)
+	if (threadIdx.x < MAXTHREADSPERBLOCK)
 		scnt[threadIdx.x] = 0;
 
 	__syncthreads();
+	int ind;
+	for (ind = tid; ind < n; ind += nthreads)
+	{ 
+		TYPE x = random_numbers_x[ind];
+		TYPE y = random_numbers_y[ind];
+		TYPE dist = (x*x + y*y);
 
-	/* Do we have a successful shot ? */
-	TYPE x = random_numbers_x[tid];
-	TYPE y = random_numbers_y[tid];
-	TYPE dist = (x*x + y*y);
+		unsigned success = (dist <= 1.0f)?1:0;
 
-	scnt[threadIdx.x] = (dist <= 1.0f);
+		scnt[threadIdx.x] += success;
+
+	}
 
 	__syncthreads();
 
 	/* Perform a reduction to compute the sum on each thread within that block */
+
+	/* NB: We assume that the number of threads per block is a power of 2 ! */
 	unsigned s;
 	for (s = blockDim.x/2; s!=0; s>>=1)
 	{
@@ -53,46 +64,73 @@ static __global__ void monte_carlo(TYPE *random_numbers_x, TYPE *random_numbers_
 	/* report the number of successful shots in the block */
 	if (threadIdx.x == 0)
 		output_cnt[blockIdx.x] = scnt[0];
+
+	__syncthreads();
 }
 
-static __global__ void sum_per_block_cnt(unsigned previous_nblocks,
-						unsigned *output_cnt,
-						unsigned *cnt)
+static __global__ void sum_per_block_cnt(unsigned *output_cnt, unsigned *cnt)
 {
-	/* XXX that's totally unoptimized yet : we should do a reduction ! */
-	if (threadIdx.x == 0)
-	{
-		unsigned total_cnt = 0;
-		unsigned i;
-		for (i = 0; i < previous_nblocks; i++)
-			total_cnt += output_cnt[i];
+	__shared__ unsigned accumulator[MAXNBLOCKS];
 
-		*cnt = total_cnt;
+	unsigned i;
+
+	/* Load the values from global mem */
+	for (i = 0; i < blockDim.x; i++)
+		accumulator[i] = output_cnt[i];
+
+	__syncthreads();
+
+	/* Perform a reduction in shared memory */
+	unsigned s;
+	for (s = blockDim.x/2; s!=0; s>>=1)
+	{
+		if (threadIdx.x < s)
+			accumulator[threadIdx.x] += accumulator[threadIdx.x + s];
+
+		__syncthreads();
 	}
+
+	/* Save the result in global memory */
+	if (threadIdx.x == 0)
+		*cnt = accumulator[0];
 }
 
 extern "C" void cuda_kernel(void *descr[], void *cl_arg)
 {
+	cudaError_t cures;
+
 	TYPE *random_numbers_x = (TYPE *)STARPU_GET_VECTOR_PTR(descr[0]);
 	TYPE *random_numbers_y = (TYPE *)STARPU_GET_VECTOR_PTR(descr[1]);
 	unsigned nx = STARPU_GET_VECTOR_NX(descr[0]);
 
 	unsigned *cnt = (unsigned *)STARPU_GET_VECTOR_PTR(descr[2]);
+
+	/* How many blocks do we use ? */ 
+	unsigned nblocks = 128; // TODO
+
+	STARPU_ASSERT(nblocks <= MAXNBLOCKS);
 	
 	unsigned *per_block_cnt;
-	cudaMalloc((void **)&per_block_cnt, (nx/BLOCK_SIZE)*sizeof(unsigned));
+	cudaMalloc((void **)&per_block_cnt, nblocks*sizeof(unsigned));
 
-	assert((nx % BLOCK_SIZE) == 0);
+	assert((nx % nblocks) == 0);
+
+	/* How many threads per block ? At most 256, but no more threads than
+	 * there are entries to process per block. */
+	unsigned nthread_per_block = STARPU_MIN(MAXTHREADSPERBLOCK, (nx / nblocks));
 
 	/* each entry of per_block_cnt contains the number of successful shots
 	 * in the corresponding block. */
-	monte_carlo<<<nx/BLOCK_SIZE, BLOCK_SIZE>>>(random_numbers_x, random_numbers_y, nx, per_block_cnt);
-	cudaThreadSynchronize();
+	monte_carlo<<<nblocks, nthread_per_block>>>(random_numbers_x, random_numbers_y, nx, per_block_cnt);
+
+	/* Note that we do not synchronize between kernel calls because there is an implicit serialization */
 
 	/* compute the total number of successful shots by adding the elements
 	 * of the per_block_cnt array */
-	sum_per_block_cnt<<<1, 32>>>(nx/BLOCK_SIZE, per_block_cnt, cnt);
-	cudaThreadSynchronize();
+	sum_per_block_cnt<<<1, nblocks>>>(per_block_cnt, cnt);
+	cures = cudaThreadSynchronize();
+	if (cures)
+		STARPU_CUDA_REPORT_ERROR(cures);
 
 	cudaFree(per_block_cnt);
 }
