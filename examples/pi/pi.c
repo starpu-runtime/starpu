@@ -90,6 +90,11 @@ int main(int argc, char **argv)
 	starpu_partition_data(random_array_handle_y, &f);
 	starpu_partition_data(cnt_array_handle, &f);
 
+	static struct starpu_perfmodel_t model = {
+		.type = STARPU_HISTORY_BASED,
+		.symbol = "monte_carlo_pi"
+	};
+
 	struct starpu_codelet_t cl = {
 		.where = STARPU_CPU|STARPU_CUDA,
 		.cpu_func = cpu_kernel,
@@ -97,7 +102,7 @@ int main(int argc, char **argv)
 		.cuda_func = cuda_kernel,
 #endif
 		.nbuffers = 3,
-		.model = NULL /* TODO */
+		.model = &model
 	};
 
 	for (i = 0; i < NTASKS; i++)
