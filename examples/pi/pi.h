@@ -20,7 +20,7 @@
 #include <starpu.h>
 #include <stdio.h>
 
-#define NTASKS	(16384ULL)
+#define NTASKS	(256ULL)
 #define NSHOT_PER_TASK	(16*1024*1024ULL)
 
 #define SIZE	(NTASKS*NSHOT_PER_TASK)

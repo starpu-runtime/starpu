@@ -76,17 +76,16 @@ int main(int argc, char **argv)
 	starpu_data_handle cnt_array_handle;
 	starpu_register_vector_data(&cnt_array_handle, 0, (uintptr_t)cnt_array, NTASKS, sizeof(unsigned));
 
-	/* TODO use a write-back mechanism */
+	/* Use a write-back policy : when the data is modified on an
+	 * accelerator, we know that it will only be modified once and be
+	 * accessed by the CPU later on */
+	starpu_data_set_wb_mask(cnt_array_handle, (1<<0));
 
 	struct starpu_filter_t f = {
 		.filter_func = starpu_block_filter_func_vector,
 		.filter_arg = NTASKS
 	};
 	
-#if 0
-	starpu_partition_data(random_array_handle_x, &f);
-	starpu_partition_data(random_array_handle_y, &f);
-#endif
 	starpu_partition_data(cnt_array_handle, &f);
 
 	static struct starpu_perfmodel_t model = {
@@ -103,6 +102,11 @@ int main(int argc, char **argv)
 		.nbuffers = 2,
 		.model = &model
 	};
+
+	struct timeval start;
+	struct timeval end;
+
+	gettimeofday(&start, NULL);
 
 	for (i = 0; i < NTASKS; i++)
 	{
@@ -132,13 +136,18 @@ int main(int argc, char **argv)
 	for (i = 0; i < NTASKS; i++)
 		total_cnt += cnt_array[i];
 
+	gettimeofday(&end, NULL);
+
+	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+
+	/* Total surface : Pi * r^ 2 = Pi*1^2, total square surface : 2^2 = 4, probability to impact the disk: pi/4 */
+	fprintf(stderr, "Pi approximation : %f (%ld / %ld)\n", ((TYPE)total_cnt*4)/(SIZE), total_cnt, SIZE);
+	fprintf(stderr, "Total time : %f ms\n", timing/1000.0);
+	fprintf(stderr, "Speed : %f GShot/s\n", (SIZE)/(10e3*timing));
+
 	starpu_release_data_from_mem(cnt_array_handle);
 
 	starpu_shutdown();
-
-	/* Total surface : Pi * r^ 2 = Pi*1^2, total square surface : 2^2 = 4, probability to impact the disk: pi/4 */
-
-	fprintf(stderr, "Pi approximation : %f (%ld / %ld)\n", ((TYPE)total_cnt*4)/(SIZE), total_cnt, SIZE);
 
 	return 0;
 }
