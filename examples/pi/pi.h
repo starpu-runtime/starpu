@@ -20,7 +20,7 @@
 #include <starpu.h>
 #include <stdio.h>
 
-#define NTASKS	(64ULL)
+#define NTASKS	(16384ULL)
 #define NSHOT_PER_TASK	(16*1024*1024ULL)
 
 #define SIZE	(NTASKS*NSHOT_PER_TASK)
@@ -28,5 +28,7 @@
 #define TYPE	float
 
 //extern "C" void cuda_kernel(void *descr[], void *cl_arg);
+
+static int n_dimensions = 100;
 
 #endif // __PI_H__

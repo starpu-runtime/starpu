@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include "SobolQRNG/sobol_gpu.h"
 #include "pi.h"
 
 #define MAXNBLOCKS	128
@@ -99,11 +100,21 @@ extern "C" void cuda_kernel(void *descr[], void *cl_arg)
 {
 	cudaError_t cures;
 
-	TYPE *random_numbers_x = (TYPE *)STARPU_GET_VECTOR_PTR(descr[0]);
-	TYPE *random_numbers_y = (TYPE *)STARPU_GET_VECTOR_PTR(descr[1]);
-	unsigned nx = STARPU_GET_VECTOR_NX(descr[0]);
+	unsigned *directions = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
+	unsigned nx = NSHOT_PER_TASK;
 
-	unsigned *cnt = (unsigned *)STARPU_GET_VECTOR_PTR(descr[2]);
+	/* Generate Random numbers */
+	float *random_numbers;
+	cudaMalloc((void **)&random_numbers, 2*nx*sizeof(float));
+	STARPU_ASSERT(random_numbers);
+	
+	sobolGPU(2*nx/n_dimensions, n_dimensions, directions, random_numbers);
+	cudaThreadSynchronize();
+
+	TYPE *random_numbers_x = &random_numbers[0];
+	TYPE *random_numbers_y = &random_numbers[nx];
+
+	unsigned *cnt = (unsigned *)STARPU_GET_VECTOR_PTR(descr[1]);
 
 	/* How many blocks do we use ? */ 
 	unsigned nblocks = 128; // TODO
@@ -133,4 +144,5 @@ extern "C" void cuda_kernel(void *descr[], void *cl_arg)
 		STARPU_CUDA_REPORT_ERROR(cures);
 
 	cudaFree(per_block_cnt);
+	cudaFree(random_numbers);
 }

@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include "SobolQRNG/sobol.h"
 #include "pi.h"
 
 #ifdef STARPU_USE_CUDA
@@ -22,9 +23,14 @@ void cuda_kernel(void **descr, void *cl_arg);
 
 static void cpu_kernel(void *descr[], void *cl_arg)
 {
-	TYPE *random_numbers_x = (TYPE *)STARPU_GET_VECTOR_PTR(descr[0]);
-	TYPE *random_numbers_y = (TYPE *)STARPU_GET_VECTOR_PTR(descr[1]);
-	unsigned nx = STARPU_GET_VECTOR_NX(descr[0]);
+	unsigned *directions = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
+	unsigned nx = NSHOT_PER_TASK;
+
+	TYPE *random_numbers = malloc(2*nx*sizeof(TYPE));
+	sobolCPU(2*nx/n_dimensions, n_dimensions, directions, random_numbers);
+
+	TYPE *random_numbers_x = &random_numbers[0];
+	TYPE *random_numbers_y = &random_numbers[nx];
 
 	unsigned current_cnt = 0;
 
@@ -40,9 +46,13 @@ static void cpu_kernel(void *descr[], void *cl_arg)
 		current_cnt += success;
 	}
 
-	unsigned *cnt = (unsigned *)STARPU_GET_VECTOR_PTR(descr[2]);
+	unsigned *cnt = (unsigned *)STARPU_GET_VECTOR_PTR(descr[1]);
 	*cnt = current_cnt;
+
+	free(random_numbers);
 }
+
+
 
 int main(int argc, char **argv)
 {
@@ -50,32 +60,19 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
-	TYPE *random_array_x;
-	starpu_malloc_pinned_if_possible((void **)&random_array_x, SIZE*sizeof(TYPE));
-	STARPU_ASSERT(random_array_x);
+	/* Initialize the random number generator */
+	unsigned *sobol_qrng_directions = malloc(n_dimensions*n_directions*sizeof(unsigned));
+	STARPU_ASSERT(sobol_qrng_directions);
 
-	TYPE *random_array_y;
-	starpu_malloc_pinned_if_possible((void **)&random_array_y, SIZE*sizeof(TYPE));
-	STARPU_ASSERT(random_array_y);
+	initSobolDirectionVectors(n_dimensions, sobol_qrng_directions);
 
-	unsigned *cnt_array;
-	starpu_malloc_pinned_if_possible((void **)&cnt_array, NTASKS*sizeof(unsigned));
+	/* Any worker may use that array now */
+	starpu_data_handle sobol_qrng_direction_handle;
+	starpu_register_vector_data(&sobol_qrng_direction_handle, 0,
+		(uintptr_t)sobol_qrng_directions, n_dimensions*n_directions, sizeof(unsigned));
+
+	unsigned *cnt_array = malloc(NTASKS*sizeof(unsigned));
 	STARPU_ASSERT(cnt_array);
-
-	/* First generate an array of random numbers */
-	for (i = 0; i < SIZE; i++)
-	{
-		random_array_x[i] = (((TYPE)rand()/(TYPE)RAND_MAX)*2.0 - 1.0);
-		random_array_y[i] = (((TYPE)rand()/(TYPE)RAND_MAX)*2.0 - 1.0);
-	}
-
-	/* Register the entire array */
-	starpu_data_handle random_array_handle_x;
-	starpu_register_vector_data(&random_array_handle_x, 0, (uintptr_t)random_array_x, SIZE, sizeof(TYPE));
-
-	starpu_data_handle random_array_handle_y;
-	starpu_register_vector_data(&random_array_handle_y, 0, (uintptr_t)random_array_y, SIZE, sizeof(TYPE));
-
 	starpu_data_handle cnt_array_handle;
 	starpu_register_vector_data(&cnt_array_handle, 0, (uintptr_t)cnt_array, NTASKS, sizeof(unsigned));
 
@@ -86,8 +83,10 @@ int main(int argc, char **argv)
 		.filter_arg = NTASKS
 	};
 	
+#if 0
 	starpu_partition_data(random_array_handle_x, &f);
 	starpu_partition_data(random_array_handle_y, &f);
+#endif
 	starpu_partition_data(cnt_array_handle, &f);
 
 	static struct starpu_perfmodel_t model = {
@@ -101,7 +100,7 @@ int main(int argc, char **argv)
 #ifdef STARPU_USE_CUDA
 		.cuda_func = cuda_kernel,
 #endif
-		.nbuffers = 3,
+		.nbuffers = 2,
 		.model = &model
 	};
 
@@ -111,12 +110,12 @@ int main(int argc, char **argv)
 
 		task->cl = &cl;
 
-		task->buffers[0].handle = starpu_get_sub_data(random_array_handle_x, 1, i);
+		STARPU_ASSERT(starpu_get_sub_data(cnt_array_handle, 1, i));
+
+		task->buffers[0].handle = sobol_qrng_direction_handle;
 		task->buffers[0].mode   = STARPU_R;
-		task->buffers[1].handle = starpu_get_sub_data(random_array_handle_y, 1, i);
-		task->buffers[1].mode   = STARPU_R;
-		task->buffers[2].handle = starpu_get_sub_data(cnt_array_handle, 1, i);
-		task->buffers[2].mode   = STARPU_W;
+		task->buffers[1].handle = starpu_get_sub_data(cnt_array_handle, 1, i);
+		task->buffers[1].mode   = STARPU_W;
 
 		int ret = starpu_submit_task(task);
 		STARPU_ASSERT(!ret);
@@ -129,7 +128,7 @@ int main(int argc, char **argv)
 	starpu_sync_data_with_mem(cnt_array_handle, STARPU_RW);
 
 	/* Count the total number of entries */
-	unsigned total_cnt = 0;
+	unsigned long total_cnt = 0;
 	for (i = 0; i < NTASKS; i++)
 		total_cnt += cnt_array[i];
 
@@ -139,7 +138,7 @@ int main(int argc, char **argv)
 
 	/* Total surface : Pi * r^ 2 = Pi*1^2, total square surface : 2^2 = 4, probability to impact the disk: pi/4 */
 
-	fprintf(stderr, "Pi approximation : %f (%d / %d)\n", ((TYPE)total_cnt*4)/(SIZE), total_cnt, SIZE);
+	fprintf(stderr, "Pi approximation : %f (%ld / %ld)\n", ((TYPE)total_cnt*4)/(SIZE), total_cnt, SIZE);
 
 	return 0;
 }
