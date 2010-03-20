@@ -839,7 +839,8 @@ result in undefined behaviour.
 Initialize a task structure with default values. This function is implicitely
 called by @code{starpu_task_create}. By default, tasks initialized with
 @code{starpu_task_init} must be deinitialized explicitely with
-@code{starpu_task_deinit}.
+@code{starpu_task_deinit}. Tasks can also be initialized statically, using the
+constant @code{STARPU_TASK_INITIALIZER}.
 @item @emph{Prototype}:
 @code{void starpu_task_init(struct starpu_task *task);}
 @end table
