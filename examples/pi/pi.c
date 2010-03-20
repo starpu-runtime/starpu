@@ -147,6 +147,8 @@ int main(int argc, char **argv)
 
 	starpu_release_data_from_mem(cnt_array_handle);
 
+	starpu_display_codelet_stats(&cl);
+
 	starpu_shutdown();
 
 	return 0;
