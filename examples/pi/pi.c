@@ -21,6 +21,9 @@
 void cuda_kernel(void **descr, void *cl_arg);
 #endif
 
+/* default value */
+static unsigned ntasks = 1024;
+
 static void cpu_kernel(void *descr[], void *cl_arg)
 {
 	unsigned *directions = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
@@ -52,11 +55,22 @@ static void cpu_kernel(void *descr[], void *cl_arg)
 	free(random_numbers);
 }
 
-
+static void parse_args(int argc, char **argv)
+{
+	int i;
+	for (i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "-ntasks") == 0) {
+			char *argptr;
+			ntasks = strtol(argv[++i], &argptr, 10);
+		}
+	}
+}
 
 int main(int argc, char **argv)
 {
 	unsigned i;
+
+	parse_args(argc, argv);
 
 	starpu_init(NULL);
 
@@ -71,10 +85,10 @@ int main(int argc, char **argv)
 	starpu_register_vector_data(&sobol_qrng_direction_handle, 0,
 		(uintptr_t)sobol_qrng_directions, n_dimensions*n_directions, sizeof(unsigned));
 
-	unsigned *cnt_array = malloc(NTASKS*sizeof(unsigned));
+	unsigned *cnt_array = malloc(ntasks*sizeof(unsigned));
 	STARPU_ASSERT(cnt_array);
 	starpu_data_handle cnt_array_handle;
-	starpu_register_vector_data(&cnt_array_handle, 0, (uintptr_t)cnt_array, NTASKS, sizeof(unsigned));
+	starpu_register_vector_data(&cnt_array_handle, 0, (uintptr_t)cnt_array, ntasks, sizeof(unsigned));
 
 	/* Use a write-back policy : when the data is modified on an
 	 * accelerator, we know that it will only be modified once and be
@@ -83,7 +97,7 @@ int main(int argc, char **argv)
 
 	struct starpu_filter_t f = {
 		.filter_func = starpu_block_filter_func_vector,
-		.filter_arg = NTASKS
+		.filter_arg = ntasks
 	};
 	
 	starpu_partition_data(cnt_array_handle, &f);
@@ -108,7 +122,7 @@ int main(int argc, char **argv)
 
 	gettimeofday(&start, NULL);
 
-	for (i = 0; i < NTASKS; i++)
+	for (i = 0; i < ntasks; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
 
@@ -133,17 +147,19 @@ int main(int argc, char **argv)
 
 	/* Count the total number of entries */
 	unsigned long total_cnt = 0;
-	for (i = 0; i < NTASKS; i++)
+	for (i = 0; i < ntasks; i++)
 		total_cnt += cnt_array[i];
 
 	gettimeofday(&end, NULL);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
+	unsigned long total_shot_cnt = ntasks * NSHOT_PER_TASK;
+
 	/* Total surface : Pi * r^ 2 = Pi*1^2, total square surface : 2^2 = 4, probability to impact the disk: pi/4 */
-	fprintf(stderr, "Pi approximation : %f (%ld / %ld)\n", ((TYPE)total_cnt*4)/(SIZE), total_cnt, SIZE);
+	fprintf(stderr, "Pi approximation : %f (%ld / %ld)\n", ((TYPE)total_cnt*4)/(total_shot_cnt), total_cnt, total_shot_cnt);
 	fprintf(stderr, "Total time : %f ms\n", timing/1000.0);
-	fprintf(stderr, "Speed : %f GShot/s\n", (SIZE)/(10e3*timing));
+	fprintf(stderr, "Speed : %f GShot/s\n", total_shot_cnt/(10e3*timing));
 
 	starpu_release_data_from_mem(cnt_array_handle);
 
