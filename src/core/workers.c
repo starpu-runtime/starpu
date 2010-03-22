@@ -24,6 +24,12 @@
 #include <windows.h>
 #endif
 
+/* acquire/release semantic for concurrent initialization/de-initialization */
+static pthread_mutex_t init_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t init_cond = PTHREAD_COND_INITIALIZER;
+static int init_count;
+static enum { UNINITIALIZED, CHANGING, INITIALIZED } initialized = UNINITIALIZED;
+
 static pthread_key_t worker_key;
 
 static struct starpu_machine_config_s config;
@@ -216,6 +222,18 @@ int starpu_init(struct starpu_conf *user_conf)
 {
 	int ret;
 
+	pthread_mutex_lock(&init_mutex);
+	while (initialized == CHANGING)
+		/* Wait for the other one changing it */
+		pthread_cond_wait(&init_cond, &init_mutex);
+	init_count++;
+	if (initialized == INITIALIZED)
+		/* He initialized it, don't do it again */
+		return 0;
+	/* initialized == UNINITIALIZED */
+	initialized = CHANGING;
+	pthread_mutex_unlock(&init_mutex);
+
 #ifdef __MINGW32__
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(1,0), &wsadata);
@@ -238,8 +256,15 @@ int starpu_init(struct starpu_conf *user_conf)
 	config.user_conf = user_conf;
 
 	ret = _starpu_build_topology(&config);
-	if (ret)
+	if (ret) {
+		pthread_mutex_lock(&init_mutex);
+		init_count--;
+		initialized = UNINITIALIZED;
+		/* Let somebody else try to do it */
+		pthread_cond_signal(&init_cond);
+		pthread_mutex_unlock(&init_mutex);
 		return ret;
+	}
 
 	/* initialize the scheduler */
 
@@ -247,6 +272,12 @@ int starpu_init(struct starpu_conf *user_conf)
 	_starpu_init_sched_policy(&config);
 
 	_starpu_init_workers(&config);
+
+	pthread_mutex_lock(&init_mutex);
+	initialized = INITIALIZED;
+	/* Tell everybody that we initialized */
+	pthread_cond_broadcast(&init_cond);
+	pthread_mutex_unlock(&init_mutex);
 
 	return 0;
 }
@@ -429,6 +460,15 @@ static void _starpu_kill_all_workers(struct starpu_machine_config_s *config)
 
 void starpu_shutdown(void)
 {
+	pthread_mutex_lock(&init_mutex);
+	init_count--;
+	if (init_count)
+		/* Still somebody needing StarPU, don't deinitialize */
+		return;
+	/* We're last */
+	initialized = CHANGING;
+	pthread_mutex_unlock(&init_mutex);
+
 	_starpu_display_msi_stats();
 	_starpu_display_alloc_cache_stats();
 
@@ -454,6 +494,12 @@ void starpu_shutdown(void)
 #endif
 
 	_starpu_close_debug_logfile();
+
+	pthread_mutex_lock(&init_mutex);
+	initialized = UNINITIALIZED;
+	/* Let someone else that wants to initialize it again do it */
+	pthread_cond_signal(&init_cond);
+	pthread_mutex_unlock(&init_mutex);
 }
 
 unsigned starpu_get_worker_count(void)
