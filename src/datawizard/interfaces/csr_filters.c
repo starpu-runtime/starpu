@@ -62,16 +62,18 @@ void starpu_vertical_block_filter_func_csr(starpu_filter *f, starpu_data_handle 
 			starpu_csr_interface_t *local = 
 				starpu_data_get_interface_on_node(chunk_handle, node);
 
+			starpu_csr_interface_t *root_local = 
+				starpu_data_get_interface_on_node(root_handle, node);
+
 			local->nnz = local_nnz;
 			local->nrow = child_nrow;
 			local->firstentry = local_firstentry;
 			local->elemsize = elemsize;
 
 			if (starpu_test_if_data_is_allocated_on_node(root_handle, node)) {
-				local->rowptr = &local->rowptr[first_index];
-				local->colind = &local->colind[local_firstentry];
-				char *nzval = (char *)(local->nzval);
-				local->nzval = (uintptr_t)&nzval[local_firstentry * elemsize];
+				local->rowptr = &root_local->rowptr[first_index];
+				local->colind = &root_local->colind[local_firstentry];
+				local->nzval = root_local->nzval + local_firstentry * elemsize;
 			}
 		}
 	}

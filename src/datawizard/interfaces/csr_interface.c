@@ -103,6 +103,8 @@ void starpu_register_csr_data(starpu_data_handle *handleptr, uint32_t home_node,
 		.elemsize = elemsize
 	};
 
+	fprintf(stderr, "ROWPTR: %p NZVAL %p\n", rowptr, nzval);
+
 	_starpu_register_data_handle(handleptr, home_node, &interface, &interface_csr_ops);
 }
 
