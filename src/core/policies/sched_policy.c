@@ -164,6 +164,19 @@ void _starpu_init_sched_policy(struct starpu_machine_config_s *config)
 	if (use_prefetch == -1)
 		use_prefetch = 0;
 
+	/* By default, we don't calibrate */
+	unsigned do_calibrate = 0;
+	if (config->user_conf)
+	{
+		do_calibrate = config->user_conf->calibrate;
+	}
+	else {
+		int res = starpu_get_env_number("STARPU_CALIBRATE");
+		do_calibrate =  (res < 0)?0:(unsigned)res;
+	}
+
+	_starpu_set_calibrate_flag(do_calibrate);
+
 	struct starpu_sched_policy_s *selected_policy;
 	selected_policy = select_sched_policy(config);
 

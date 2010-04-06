@@ -345,37 +345,43 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
 #ifdef STARPU_VERBOSE
 	fprintf(stderr, "Opening performance model file %s for model %s ... ", path, model->symbol);
 #endif
+	unsigned calibrate_flag = _starpu_get_calibrate_flag();
+	model->benchmarking = calibrate_flag; 
 	
 	/* try to open an existing file and load it */
 	res = access(path, F_OK); 
 	if (res == 0) {
+		if (calibrate_flag == 2)
+		{
+			/* The user specified that the performance model should
+			 * be overwritten, so we don't load the existing file !
+			 * */
 #ifdef STARPU_VERBOSE
-		fprintf(stderr, "File exists !\n");
+			fprintf(stderr, "Overwrite existing file\n");
 #endif
-
-		FILE *f;
-		f = fopen(path, "r");
-		STARPU_ASSERT(f);
-
-		parse_model_file(f, model, scan_history);
-
-		fclose(f);
+	
+			initialize_model(model);
+		}
+		else {
+			/* We load the available file */
+#ifdef STARPU_VERBOSE
+			fprintf(stderr, "File exists\n");
+#endif
+	
+			FILE *f;
+			f = fopen(path, "r");
+			STARPU_ASSERT(f);
+	
+			parse_model_file(f, model, scan_history);
+	
+			fclose(f);
+		}
 	}
 	else {
 #ifdef STARPU_VERBOSE
-		fprintf(stderr, "File does not exists !\n");
+		fprintf(stderr, "File does not exists\n");
 #endif
 		initialize_model(model);
-	}
-
-
-	if (starpu_get_env_number("STARPU_CALIBRATE") != -1)
-	{
-		fprintf(stderr, "STARPU_CALIBRATE model %s\n", model->symbol);
-		model->benchmarking = 1;
-	}
-	else {
-		model->benchmarking = 0;
 	}
 
 	model->is_loaded = STARPU_PERFMODEL_LOADED;

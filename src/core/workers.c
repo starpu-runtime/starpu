@@ -479,7 +479,7 @@ void starpu_shutdown(void)
 	_starpu_display_comm_amounts();
 #endif
 
-	if (starpu_get_env_number("STARPU_CALIBRATE") != -1)
+	if (_starpu_get_calibrate_flag())
 		_starpu_dump_registered_models();
 
 	/* wait for their termination */

@@ -103,6 +103,9 @@ void _starpu_create_sampling_directory_if_needed(void);
 void _starpu_load_bus_performance_files(void);
 double _starpu_predict_transfer_time(unsigned src_node, unsigned dst_node, size_t size);
 
+void _starpu_set_calibrate_flag(unsigned val);
+unsigned _starpu_get_calibrate_flag(void);
+
 #ifdef STARPU_USE_CUDA
 int *_starpu_get_gpu_affinity_vector(unsigned gpuid);
 #endif

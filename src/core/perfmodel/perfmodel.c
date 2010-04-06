@@ -22,6 +22,23 @@
 #include <core/workers.h>
 #include <datawizard/datawizard.h>
 
+/* This flag indicates whether performance models should be calibrated or not.
+ *	0: models need not be calibrated
+ *	1: models must be calibrated
+ *	2: models must be calibrated, existing models are overwritten.
+ */
+static unsigned calibrate_flag = 0;
+
+void _starpu_set_calibrate_flag(unsigned val)
+{
+	calibrate_flag = val;
+}
+
+unsigned _starpu_get_calibrate_flag(void)
+{
+	return calibrate_flag;
+}
+
 /*
  * PER ARCH model
  */
@@ -33,14 +50,7 @@ static double per_arch_task_expected_length(struct starpu_perfmodel_t *model, en
 	
 	if (!model->is_loaded)
 	{
-		if (starpu_get_env_number("STARPU_CALIBRATE") != -1)
-		{
-			fprintf(stderr, "STARPU_CALIBRATE model %s\n", model->symbol);
-			model->benchmarking = 1;
-		}
-		else {
-			model->benchmarking = 0;
-		}
+		model->benchmarking = _starpu_get_calibrate_flag();
 		
 		_starpu_register_model(model);
 		model->is_loaded = 1;
