@@ -95,6 +95,7 @@ check_PROGRAMS += 				\
 	datawizard/sync_with_data_with_mem_non_blocking\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
+	errorcheck/invalid_tasks		\
 	helper/cublas_init			\
 	helper/pinned_memory			\
 	helper/execute_on_all			\
@@ -178,6 +179,9 @@ errorcheck_starpu_init_noworker_SOURCES =	\
 
 errorcheck_invalid_blocking_calls_SOURCES =	\
 	errorcheck/invalid_blocking_calls.c
+
+errorcheck_invalid_tasks_SOURCES =		\
+	errorcheck/invalid_tasks.c
 
 helper_cublas_init_SOURCES =			\
 	helper/cublas_init.c

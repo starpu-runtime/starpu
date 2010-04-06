@@ -287,7 +287,10 @@ struct starpu_job_s *_starpu_pop_local_task(struct starpu_worker_s *worker)
 
 int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_job_s *j)
 {
-	/* TODO check that the worker is able to execute the task ! */
+	/* Check that the worker is able to execute the task ! */
+	STARPU_ASSERT(j->task && j->task->cl);
+	if (STARPU_UNLIKELY(!(worker->worker_mask & j->task->cl->where)))
+		return -ENODEV;
 
 	pthread_mutex_lock(&worker->local_jobs_mutex);
 
