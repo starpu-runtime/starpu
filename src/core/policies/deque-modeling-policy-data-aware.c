@@ -19,7 +19,6 @@
 
 static unsigned nworkers;
 static struct starpu_jobq_s *queue_array[STARPU_NMAXWORKERS];
-static int use_prefetch = 0;
 
 static double alpha = 1.0;
 static double beta = 1.0;
@@ -168,7 +167,7 @@ static int _dmda_push_task(struct starpu_jobq_s *q __attribute__ ((unused)) , st
 
 	update_data_requests(queue_array[best], task);
 	
-	if (use_prefetch)
+	if (_starpu_get_prefetch_flag())
 		_starpu_prefetch_task_input_on_node(task, queue_array[best]->memory_node);
 
 	if (prio) {
@@ -211,10 +210,6 @@ static void initialize_dmda_policy(struct starpu_machine_config_s *config,
 	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
 	nworkers = 0;
-
-	use_prefetch = starpu_get_env_number("STARPU_PREFETCH");
-	if (use_prefetch == -1)
-		use_prefetch = 0;
 
 	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
 	if (strval_alpha)

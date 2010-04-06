@@ -20,7 +20,6 @@
 
 static unsigned nworkers;
 static struct starpu_jobq_s *queue_array[STARPU_NMAXWORKERS];
-static int use_prefetch = 0;
 
 static starpu_job_t dm_pop_task(struct starpu_jobq_s *q)
 {
@@ -129,7 +128,7 @@ static int _dm_push_task(struct starpu_jobq_s *q __attribute__ ((unused)), starp
 
 	j->predicted = model_best;
 
-	if (use_prefetch)
+	if (_starpu_get_prefetch_flag())
 		_starpu_prefetch_task_input_on_node(task, queue_array[best]->memory_node);
 
 	if (prio) {
@@ -173,14 +172,6 @@ static void initialize_dm_policy(struct starpu_machine_config_s *config,
 	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
 	nworkers = 0;
-
-	use_prefetch = starpu_get_env_number("STARPU_PREFETCH");
-	if (use_prefetch == -1)
-		use_prefetch = 0;
-
-#ifdef STARPU_VERBOSE
-	fprintf(stderr, "Using prefetch ? %s\n", use_prefetch?"yes":"no");
-#endif
 
 	_starpu_setup_queues(_starpu_init_fifo_queues_mechanisms, init_dm_fifo, config);
 }

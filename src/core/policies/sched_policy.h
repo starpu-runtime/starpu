@@ -56,6 +56,8 @@ void _starpu_init_sched_policy(struct starpu_machine_config_s *config);
 void _starpu_deinit_sched_policy(struct starpu_machine_config_s *config);
 //void _starpu_set_local_queue(struct starpu_jobq_s *jobq);
 
+int _starpu_get_prefetch_flag(void);
+
 int _starpu_push_task(starpu_job_t task);
 struct starpu_job_s *_starpu_pop_task(void);
 struct starpu_job_s *_starpu_pop_task_from_queue(struct starpu_jobq_s *queue);
