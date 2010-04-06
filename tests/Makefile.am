@@ -79,12 +79,14 @@ check_PROGRAMS += 				\
 	core/static_restartable_using_initializer\
 	core/static_restartable_tag		\
 	core/regenerate				\
+	core/wait_all_regenerable_tasks		\
 	core/subgraph_repeat			\
 	core/subgraph_repeat_regenerate		\
 	core/empty_task				\
 	core/empty_task_sync_point		\
 	core/tag-wait-api			\
 	core/task-wait-api			\
+	core/get_current_task			\
 	datawizard/sync_and_notify_data		\
 	datawizard/dsm_stress			\
 	datawizard/write_only_tmp_buffer	\
@@ -135,6 +137,9 @@ core_static_restartable_tag_SOURCES =		\
 core_regenerate_SOURCES =			\
 	core/regenerate.c
 
+core_wait_all_regenerable_tasks_SOURCES =	\
+	core/wait_all_regenerable_tasks.c
+
 core_subgraph_repeat_SOURCES =			\
 	core/subgraph_repeat.c
 
@@ -152,6 +157,9 @@ core_tag_wait_api_SOURCES =			\
 
 core_task_wait_api_SOURCES =			\
 	core/task-wait-api.c
+
+core_get_current_task_SOURCES =			\
+	core/get_current_task.c
 
 datawizard_dsm_stress_SOURCES =			\
 	datawizard/dsm_stress.c

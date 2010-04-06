@@ -20,29 +20,18 @@
 #include <pthread.h>
 #include <starpu.h>
 
-static unsigned ntasks = 65536;
-static unsigned cnt = 0;
+static unsigned ntasks = 1024;
 
-static unsigned completed = 0;
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-
-static void callback(void *arg __attribute__ ((unused)))
+static void callback(void *arg)
 {
 	struct starpu_task *task = starpu_get_current_task();
 
-	cnt++;
+	unsigned *cnt = arg;
 
-	if (cnt == ntasks)
-	{
+	(*cnt)++;
+
+	if (*cnt == ntasks)
 		task->regenerate = 0;
-		fprintf(stderr, "Stop !\n");
-
-		pthread_mutex_lock(&mutex);
-		completed = 1;
-		pthread_cond_signal(&cond);
-		pthread_mutex_unlock(&mutex);
-	}
 }
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
@@ -69,9 +58,10 @@ static void parse_args(int argc, char **argv)
 	}
 }
 
+#define K	128
+
 int main(int argc, char **argv)
 {
-	unsigned i;
 	double timing;
 	struct timeval start;
 	struct timeval end;
@@ -80,34 +70,46 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
-	struct starpu_task task;
+	struct starpu_task task[K];
+	unsigned cnt[K];;
 
-	starpu_task_init(&task);
+	int i;
+	for (i = 0; i < K; i++)
+	{
+		starpu_task_init(&task[i]);
+		cnt[i] = 0;
 
-	task.cl = &dummy_codelet;
-	task.regenerate = 1;
-	task.detach = 1;
+		task[i].cl = &dummy_codelet;
+		task[i].regenerate = 1;
+		task[i].detach = 1;
 
-	task.callback_func = callback;
+		task[i].callback_func = callback;
+		task[i].callback_arg = &cnt[i];
+	}
 
-	fprintf(stderr, "#tasks : %d\n", ntasks);
+	fprintf(stderr, "#tasks : %d x %d tasks\n", K, ntasks);
 
 	gettimeofday(&start, NULL);
+	
+	for (i = 0; i < K; i++)
+		starpu_submit_task(&task[i]);
 
-	starpu_submit_task(&task);
-
-	pthread_mutex_lock(&mutex);
-	if (!completed)
-		pthread_cond_wait(&cond, &mutex);
-	pthread_mutex_unlock(&mutex);
+	starpu_wait_all_tasks();
 
 	gettimeofday(&end, NULL);
+
+	/* Check that all the tasks have been properly executed */
+	unsigned total_cnt = 0;
+	for (i = 0; i < K; i++)
+		total_cnt += cnt[i];
+
+	STARPU_ASSERT(total_cnt == K*ntasks);
 
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000
 				+ (end.tv_usec - start.tv_usec));
 
 	fprintf(stderr, "Total: %lf secs\n", timing/1000000);
-	fprintf(stderr, "Per task: %lf usecs\n", timing/ntasks);
+	fprintf(stderr, "Per task: %lf usecs\n", timing/(K*ntasks));
 
 	starpu_shutdown();
 

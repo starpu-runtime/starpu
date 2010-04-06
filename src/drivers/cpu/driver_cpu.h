@@ -19,6 +19,7 @@
 
 #include <common/config.h>
 #include <core/jobs.h>
+#include <core/task.h>
 
 #include <core/perfmodel/perfmodel.h>
 #include <common/fxt.h>

@@ -19,6 +19,7 @@
 #include <common/config.h>
 #include <core/workers.h>
 #include <core/debug.h>
+#include <core/task.h>
 
 #ifdef __MINGW32__
 #include <windows.h>
@@ -265,6 +266,10 @@ int starpu_init(struct starpu_conf *user_conf)
 		pthread_mutex_unlock(&init_mutex);
 		return ret;
 	}
+
+	/* We need to store the current task handled by the different
+	 * threads */
+	_starpu_initialize_current_task_key();	
 
 	/* initialize the scheduler */
 

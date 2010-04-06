@@ -27,6 +27,14 @@ static pthread_cond_t submitted_cond = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t submitted_mutex = PTHREAD_MUTEX_INITIALIZER;
 static long int nsubmitted = 0;
 
+static void _starpu_increment_nsubmitted_tasks(void);
+
+/* This key stores the task currently handled by the thread, note that we
+ * cannot use the worker structure to store that information because it is
+ * possible that we have a task with a NULL codelet, which means its callback
+ * could be executed by a user thread as well. */
+static pthread_key_t current_task_key;
+
 void starpu_task_init(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
@@ -135,9 +143,12 @@ starpu_job_t _starpu_get_job_associated_to_task(struct starpu_task *task)
 	return (struct starpu_job_s *)task->starpu_private;
 }
 
-int _starpu_submit_job(starpu_job_t j)
+/* NB in case we have a regenerable task, it is possible that the job was
+ * already counted. */
+int _starpu_submit_job(starpu_job_t j, unsigned do_not_increment_nsubmitted)
 {
-	_starpu_increment_nsubmitted_tasks();
+	if (!do_not_increment_nsubmitted)
+		_starpu_increment_nsubmitted_tasks();
 
 	j->submitted = 1;
 
@@ -191,9 +202,8 @@ int starpu_submit_task(struct starpu_task *task)
 		j = (struct starpu_job_s *)task->starpu_private;
 	}
 
-	ret = _starpu_submit_job(j);
+	ret = _starpu_submit_job(j, 0);
 
-	/* XXX modify when we'll have starpu_wait_task */
 	if (is_sync)
 		_starpu_wait_job(j);
 
@@ -222,13 +232,17 @@ void starpu_display_codelet_stats(struct starpu_codelet_t *cl)
 	}
 }
 
+/*
+ * We wait for all the tasks that have already been submitted. Note that a
+ * regenerable is not considered finished until it was explicitely set as
+ * non-regenerale anymore (eg. from a callback).
+ */
 int starpu_wait_all_tasks(void)
 {
 	int res;
 
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
-
 
 	pthread_mutex_lock(&submitted_mutex);
 
@@ -257,9 +271,30 @@ void _starpu_decrement_nsubmitted_tasks(void)
 
 }
 
-void _starpu_increment_nsubmitted_tasks(void)
+static void _starpu_increment_nsubmitted_tasks(void)
 {
 	pthread_mutex_lock(&submitted_mutex);
 	nsubmitted++;
 	pthread_mutex_unlock(&submitted_mutex);
+}
+
+void _starpu_initialize_current_task_key(void)
+{
+	pthread_key_create(&current_task_key, NULL);
+}
+
+/* Return the task currently executed by the worker, or NULL if this is called
+ * either from a thread that is not a task or simply because there is no task
+ * being executed at the moment. */
+struct starpu_task *starpu_get_current_task(void)
+{
+	return pthread_getspecific(current_task_key);
+}
+
+void _starpu_set_current_task(struct starpu_task *task)
+{
+	if (task)
+		STARPU_ASSERT(pthread_getspecific(current_task_key) == NULL);
+
+	pthread_setspecific(current_task_key, task);
 }

@@ -177,7 +177,12 @@ void *_starpu_cpu_worker(void *arg)
 			continue;
 		}
 
+		_starpu_set_current_task(j->task);
+
                 res = execute_job_on_cpu(j, cpu_arg);
+
+		_starpu_set_current_task(NULL);
+
 		if (res) {
 			switch (res) {
 				case -EAGAIN:

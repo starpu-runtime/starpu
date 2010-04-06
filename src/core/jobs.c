@@ -107,10 +107,14 @@ void _starpu_handle_job_termination(starpu_job_t j)
 		/* so that we can check whether we are doing blocking calls
 		 * within the callback */
 		_starpu_set_local_worker_status(STATUS_CALLBACK);
+		
+		_starpu_set_current_task(task);
 
 		STARPU_TRACE_START_CALLBACK(j);
 		task->callback_func(task->callback_arg);
 		STARPU_TRACE_END_CALLBACK(j);
+		
+		_starpu_set_current_task(NULL);
 
 		_starpu_set_local_worker_status(STATUS_UNKNOWN);
 	}
@@ -122,7 +126,7 @@ void _starpu_handle_job_termination(starpu_job_t j)
 	int detach = task->detach;
 	int regenerate = task->regenerate;
 
-	if (!task->detach)
+	if (!detach)
 	{
 		/* we do not desallocate the job structure if some is going to
 		 * wait after the task */
@@ -138,16 +142,17 @@ void _starpu_handle_job_termination(starpu_job_t j)
 			starpu_task_destroy(task);
 	}
 
-	_starpu_decrement_nsubmitted_tasks();
-
 	if (regenerate)
 	{
 		STARPU_ASSERT(detach && !destroy && !task->synchronous);
 
 		/* We reuse the same job structure */
-		int ret = _starpu_submit_job(j);
+		int ret = _starpu_submit_job(j, 1);
 		STARPU_ASSERT(!ret);
 	}	
+	else {
+		_starpu_decrement_nsubmitted_tasks();
+	}
 }
 
 /* This function is called when a new task is submitted to StarPU 

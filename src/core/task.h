@@ -22,10 +22,14 @@
 
 /* In order to implement starpu_wait_all_tasks, we keep track of the number of
  * task currently submitted */
-void _starpu_increment_nsubmitted_tasks(void);
 void _starpu_decrement_nsubmitted_tasks(void);
 
-int _starpu_submit_job(starpu_job_t j);
+void _starpu_initialize_current_task_key(void);
+void _starpu_set_current_task(struct starpu_task *task);
+
+/* NB the second argument makes it possible to count regenerable tasks only
+ * once. */
+int _starpu_submit_job(starpu_job_t j, unsigned do_not_increment_nsubmitted);
 starpu_job_t _starpu_get_job_associated_to_task(struct starpu_task *task);
 
 #endif // __CORE_TASK_H__
