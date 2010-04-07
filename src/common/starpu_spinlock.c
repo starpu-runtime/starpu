@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <common/starpu-spinlock.h>
+#include <common/starpu_spinlock.h>
 #include <common/config.h>
 #include <starpu_util.h>
 

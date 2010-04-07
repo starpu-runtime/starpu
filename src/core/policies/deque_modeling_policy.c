@@ -15,7 +15,7 @@
  */
 
 #include <common/config.h>
-#include <core/policies/deque-modeling-policy.h>
+#include <core/policies/deque_modeling_policy.h>
 #include <core/perfmodel/perfmodel.h>
 
 static unsigned nworkers;

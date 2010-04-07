@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <core/policies/no-prio-policy.h>
+#include <core/policies/no_prio_policy.h>
 
 /*
  *	This is just the trivial policy where every worker use the same

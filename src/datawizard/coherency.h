@@ -27,7 +27,7 @@
 #include <starpu.h>
 
 #include <pthread.h>
-#include <common/starpu-spinlock.h>
+#include <common/starpu_spinlock.h>
 #include <common/rwlock.h>
 #include <common/timing.h>
 #include <common/fxt.h>

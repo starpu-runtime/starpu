@@ -19,7 +19,7 @@
 
 #include <datawizard/coherency.h>
 #include <datawizard/hierarchy.h>
-#include <datawizard/copy-driver.h>
+#include <datawizard/copy_driver.h>
 #include <datawizard/footprint.h>
 
 #include <datawizard/progress.h>

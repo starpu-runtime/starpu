@@ -20,7 +20,7 @@
 #include <core/dependencies/htable.h>
 #include <core/jobs.h>
 #include <core/policies/sched_policy.h>
-#include <core/dependencies/data-concurrency.h>
+#include <core/dependencies/data_concurrency.h>
 
 static starpu_htbl_node_t *tag_htbl = NULL;
 static pthread_rwlock_t tag_global_rwlock = PTHREAD_RWLOCK_INITIALIZER;

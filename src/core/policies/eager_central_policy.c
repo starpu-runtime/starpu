@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <core/policies/eager-central-policy.h>
+#include <core/policies/eager_central_policy.h>
 
 /*
  *	This is just the trivial policy where every worker use the same

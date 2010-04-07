@@ -17,7 +17,7 @@
 #include <core/jobs.h>
 #include <core/task.h>
 #include <core/workers.h>
-#include <core/dependencies/data-concurrency.h>
+#include <core/dependencies/data_concurrency.h>
 #include <common/config.h>
 
 size_t _starpu_job_get_data_size(starpu_job_t j)

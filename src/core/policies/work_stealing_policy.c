@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <core/policies/work-stealing-policy.h>
+#include <core/policies/work_stealing_policy.h>
 
 /* save the general machine configuration */
 //static struct starpu_machine_config_s *machineconfig;

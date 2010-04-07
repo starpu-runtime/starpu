@@ -16,9 +16,9 @@
 
 #include <common/config.h>
 #include <datawizard/coherency.h>
-#include <datawizard/copy-driver.h>
+#include <datawizard/copy_driver.h>
 #include <datawizard/write_back.h>
-#include <core/dependencies/data-concurrency.h>
+#include <core/dependencies/data_concurrency.h>
 
 uint32_t _starpu_select_node_to_handle_request(uint32_t src_node, uint32_t dst_node) 
 {

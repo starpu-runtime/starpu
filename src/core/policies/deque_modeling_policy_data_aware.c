@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <core/policies/deque-modeling-policy-data-aware.h>
+#include <core/policies/deque_modeling_policy_data_aware.h>
 #include <core/perfmodel/perfmodel.h>
 
 static unsigned nworkers;

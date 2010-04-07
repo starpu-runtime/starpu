@@ -23,7 +23,7 @@
 #include <common/list.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/coherency.h>
-#include <datawizard/copy-driver.h>
+#include <datawizard/copy_driver.h>
 #include <datawizard/progress.h>
 
 LIST_TYPE(starpu_mem_chunk,

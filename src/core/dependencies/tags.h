@@ -19,7 +19,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
-#include <common/starpu-spinlock.h>
+#include <common/starpu_spinlock.h>
 #include <core/dependencies/cg.h>
 
 #define STARPU_TAG_SIZE        (sizeof(starpu_tag_t)*8)

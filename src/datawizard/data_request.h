@@ -19,9 +19,9 @@
 
 #include <semaphore.h>
 #include <datawizard/coherency.h>
-#include <datawizard/copy-driver.h>
+#include <datawizard/copy_driver.h>
 #include <common/list.h>
-#include <common/starpu-spinlock.h>
+#include <common/starpu_spinlock.h>
 
 #define DATA_REQ_ALLOCATE	(1<<0)
 #define DATA_REQ_COPY		(1<<1)

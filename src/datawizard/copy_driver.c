@@ -19,7 +19,7 @@
 #include <core/policies/sched_policy.h>
 #include <datawizard/datastats.h>
 #include <common/fxt.h>
-#include "copy-driver.h"
+#include "copy_driver.h"
 #include "memalloc.h"
 
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)

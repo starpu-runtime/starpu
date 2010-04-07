@@ -20,13 +20,13 @@
 #include <common/config.h>
 #include <core/mechanisms/queues.h>
 #include <core/policies/sched_policy.h>
-#include <core/policies/no-prio-policy.h>
-#include <core/policies/eager-central-policy.h>
-#include <core/policies/eager-central-priority-policy.h>
-#include <core/policies/work-stealing-policy.h>
-#include <core/policies/deque-modeling-policy.h>
-#include <core/policies/random-policy.h>
-#include <core/policies/deque-modeling-policy-data-aware.h>
+#include <core/policies/no_prio_policy.h>
+#include <core/policies/eager_central_policy.h>
+#include <core/policies/eager_central_priority_policy.h>
+#include <core/policies/work_stealing_policy.h>
+#include <core/policies/deque_modeling_policy.h>
+#include <core/policies/random_policy.h>
+#include <core/policies/deque_modeling_policy_data_aware.h>
 
 static struct starpu_sched_policy_s policy;
 

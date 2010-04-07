@@ -27,18 +27,18 @@ libstarpu_la_LIBADD = -lm $(HWLOC_LIBS)
 libstarpu_la_LDFLAGS = --no-undefined
 
 noinst_HEADERS = 						\
-	core/dependencies/data-concurrency.h			\
+	core/dependencies/data_concurrency.h			\
 	core/dependencies/cg.h					\
 	core/dependencies/tags.h				\
 	core/dependencies/htable.h				\
-	core/policies/eager-central-priority-policy.h		\
+	core/policies/eager_central_priority_policy.h		\
 	core/policies/sched_policy.h				\
-	core/policies/random-policy.h				\
-	core/policies/eager-central-policy.h			\
-	core/policies/deque-modeling-policy.h			\
-	core/policies/no-prio-policy.h				\
-	core/policies/deque-modeling-policy-data-aware.h	\
-	core/policies/work-stealing-policy.h			\
+	core/policies/random_policy.h				\
+	core/policies/eager_central_policy.h			\
+	core/policies/deque_modeling_policy.h			\
+	core/policies/no_prio_policy.h				\
+	core/policies/deque_modeling_policy_data_aware.h	\
+	core/policies/work_stealing_policy.h			\
 	core/mechanisms/priority_queues.h			\
 	core/mechanisms/fifo_queues.h				\
 	core/mechanisms/deque_queues.h				\
@@ -60,7 +60,7 @@ noinst_HEADERS = 						\
 	datawizard/write_back.h					\
 	datawizard/datastats.h					\
 	datawizard/memalloc.h					\
-	datawizard/copy-driver.h				\
+	datawizard/copy_driver.h				\
 	datawizard/coherency.h					\
 	datawizard/sort_data_handles.h				\
 	datawizard/memory_nodes.h				\
@@ -70,7 +70,7 @@ noinst_HEADERS = 						\
 	common/htable32.h					\
 	common/list.h						\
 	common/rwlock.h						\
-	common/starpu-spinlock.h				\
+	common/starpu_spinlock.h				\
 	common/fxt.h						\
 	common/utils.h						\
 	drivers/cpu/driver_cpu.h				\
@@ -82,7 +82,7 @@ libstarpu_la_SOURCES = 						\
 	common/hash.c 						\
 	common/htable32.c					\
 	common/rwlock.c						\
-	common/starpu-spinlock.c				\
+	common/starpu_spinlock.c				\
 	common/timing.c						\
 	common/fxt.c						\
 	common/utils.c						\
@@ -95,9 +95,9 @@ libstarpu_la_SOURCES = 						\
 	core/progress_hook.c					\
 	core/dependencies/cg.c					\
 	core/dependencies/tags.c				\
-	core/dependencies/task-deps.c				\
+	core/dependencies/task_deps.c				\
 	core/dependencies/htable.c				\
-	core/dependencies/data-concurrency.c			\
+	core/dependencies/data_concurrency.c			\
 	core/mechanisms/queues.c				\
 	core/mechanisms/deque_queues.c				\
 	core/mechanisms/priority_queues.c			\
@@ -106,20 +106,20 @@ libstarpu_la_SOURCES = 						\
 	core/perfmodel/perfmodel_bus.c				\
 	core/perfmodel/perfmodel.c				\
 	core/perfmodel/regression.c				\
-	core/policies/no-prio-policy.c				\
-	core/policies/eager-central-policy.c			\
-	core/policies/eager-central-priority-policy.c		\
-	core/policies/work-stealing-policy.c			\
+	core/policies/no_prio_policy.c				\
+	core/policies/eager_central_policy.c			\
+	core/policies/eager_central_priority_policy.c		\
+	core/policies/work_stealing_policy.c			\
 	core/policies/sched_policy.c				\
-	core/policies/deque-modeling-policy.c			\
-	core/policies/random-policy.c				\
-	core/policies/deque-modeling-policy-data-aware.c	\
+	core/policies/deque_modeling_policy.c			\
+	core/policies/random_policy.c				\
+	core/policies/deque_modeling_policy_data_aware.c	\
 	datawizard/memory_nodes.c				\
 	datawizard/write_back.c					\
 	datawizard/coherency.c					\
 	datawizard/data_request.c				\
 	datawizard/progress.c					\
-	datawizard/copy-driver.c				\
+	datawizard/copy_driver.c				\
 	datawizard/hierarchy.c					\
 	datawizard/sort_data_handles.c				\
 	datawizard/memalloc.c					\

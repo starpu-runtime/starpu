@@ -19,7 +19,7 @@
 #include <core/policies/sched_policy.h>
 #include <datawizard/datastats.h>
 #include <common/fxt.h>
-#include "copy-driver.h"
+#include "copy_driver.h"
 #include "memalloc.h"
 
 static starpu_mem_node_descr descr;

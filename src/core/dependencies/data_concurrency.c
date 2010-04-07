@@ -14,10 +14,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <core/dependencies/data-concurrency.h>
+#include <core/dependencies/data_concurrency.h>
 #include <datawizard/coherency.h>
 #include <core/policies/sched_policy.h>
-#include <common/starpu-spinlock.h>
+#include <common/starpu_spinlock.h>
 #include <datawizard/sort_data_handles.h>
 
 static unsigned _submit_job_enforce_data_deps(starpu_job_t j, unsigned start_buffer_index);

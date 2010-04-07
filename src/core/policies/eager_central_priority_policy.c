@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <core/policies/eager-central-priority-policy.h>
+#include <core/policies/eager_central_priority_policy.h>
 
 /* the former is the actual queue, the latter some container */
 static struct starpu_jobq_s *jobq;

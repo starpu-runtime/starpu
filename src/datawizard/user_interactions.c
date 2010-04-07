@@ -16,9 +16,9 @@
 
 #include <common/config.h>
 #include <datawizard/coherency.h>
-#include <datawizard/copy-driver.h>
+#include <datawizard/copy_driver.h>
 #include <datawizard/write_back.h>
-#include <core/dependencies/data-concurrency.h>
+#include <core/dependencies/data_concurrency.h>
 
 int starpu_request_data_allocation(starpu_data_handle handle, uint32_t node)
 {
