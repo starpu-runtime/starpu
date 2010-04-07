@@ -25,7 +25,7 @@
 #include <cuda.h>
 #endif
 
-#include <starpu-data.h>
+#include <starpu_data.h>
 
 #define STARPU_CPU	((1ULL)<<1)
 #define STARPU_CUDA	((1ULL)<<3)

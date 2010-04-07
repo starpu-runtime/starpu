@@ -22,7 +22,7 @@
 #include <string.h>
 #include <assert.h>
 #include <starpu_config.h>
-#include <starpu-task.h>
+#include <starpu_task.h>
 
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>

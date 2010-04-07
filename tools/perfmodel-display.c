@@ -19,7 +19,7 @@
 #include <stdio.h>
 
 #include <starpu.h>
-#include <starpu-perfmodel.h>
+#include <starpu_perfmodel.h>
 
 static struct starpu_perfmodel_t model;
 

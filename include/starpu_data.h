@@ -23,8 +23,8 @@
 struct starpu_data_state_t;
 typedef struct starpu_data_state_t * starpu_data_handle;
 
-#include <starpu-data-interfaces.h>
-#include <starpu-data-filters.h>
+#include <starpu_data_interfaces.h>
+#include <starpu_data_filters.h>
 
 #ifdef __cplusplus
 extern "C" {

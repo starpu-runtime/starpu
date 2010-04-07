@@ -19,7 +19,7 @@
 
 #include <common/config.h>
 #include <starpu.h>
-#include <starpu-perfmodel.h>
+#include <starpu_perfmodel.h>
 //#include <core/jobs.h>
 #include <common/htable32.h>
 //#include <core/workers.h>

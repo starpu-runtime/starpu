@@ -28,10 +28,10 @@ pkgconfig_DATA = libstarpu.pc
 include_HEADERS = 				\
 	include/starpu.h			\
 	include/starpu_config.h			\
-	include/starpu-data-filters.h		\
-	include/starpu-data-interfaces.h	\
-	include/starpu-task.h			\
-	include/starpu-data.h			\
-	include/starpu-perfmodel.h		\
-	include/starpu-util.h			\
-	include/starpu-expert.h
+	include/starpu_data_filters.h		\
+	include/starpu_data_interfaces.h	\
+	include/starpu_task.h			\
+	include/starpu_data.h			\
+	include/starpu_perfmodel.h		\
+	include/starpu_util.h			\
+	include/starpu_expert.h

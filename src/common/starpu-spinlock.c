@@ -16,7 +16,7 @@
 
 #include <common/starpu-spinlock.h>
 #include <common/config.h>
-#include <starpu-util.h>
+#include <starpu_util.h>
 
 int _starpu_spin_init(starpu_spinlock_t *lock)
 {
