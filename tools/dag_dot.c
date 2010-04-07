@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "fxt-tool.h"
+#include "fxt_tool.h"
 
 static char *out_path = "dag.dot";
 static FILE *out_file;

@@ -68,7 +68,7 @@ EOF
 
 }
 
-PERFMODELDISPLAY=./perfmodel-display
+PERFMODELDISPLAY=./perfmodel_display
 
 function gnuplot_symbol()
 {
@@ -76,7 +76,7 @@ symbol=$1
 
 echo "Display symbol $symbol"
 
-# TODO check return value $? of perfmodel-display to ensure we have valid data
+# TODO check return value $? of perfmodel_display to ensure we have valid data
 cuda_a=`$PERFMODELDISPLAY -s $symbol -a cuda -p a`
 cuda_b=`$PERFMODELDISPLAY -s $symbol -a cuda -p b`
 cuda_c=`$PERFMODELDISPLAY -s $symbol -a cuda -p c`

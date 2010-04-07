@@ -18,7 +18,7 @@
 
 
 # generate the input data
-./fxt-tool $1
+./fxt_tool $1
 
 # generate the gnuplot script 
 echo "#!/usr/bin/gnuplot -persist" 			> histo.gp

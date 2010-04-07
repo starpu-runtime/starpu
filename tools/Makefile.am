@@ -28,15 +28,15 @@ bin_PROGRAMS += calibrate_bus
 calibrate_bus_SOURCES = calibrate_bus.c
 
 if STARPU_USE_FXT
-bin_PROGRAMS += fxt-tool fxt-stats
+bin_PROGRAMS += fxt_tool fxt_stats
 
-fxt_tool_SOURCES = fxt-tool.c fxt-tool-common.c fxt-tool-mpi.c dag-dot.c histo-paje.c
+fxt_tool_SOURCES = fxt_tool.c fxt_tool_common.c fxt_tool_mpi.c dag_dot.c histo_paje.c
 fxt_tool_CFLAGS = -I$(top_srcdir)/src/
 fxt_tool_LDADD = 
 
-fxt_stats_SOURCES = fxt-stats.c
+fxt_stats_SOURCES = fxt_stats.c
 fxt_stats_CFLAGS = -I$(top_srcdir)/src/
 endif
 
-bin_PROGRAMS +=	perfmodel-display
-perfmodel_display_SOURCES = perfmodel-display.c
+bin_PROGRAMS +=	perfmodel_display
+perfmodel_display_SOURCES = perfmodel_display.c

@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "fxt-tool.h"
+#include "fxt_tool.h"
 
 /*
  *	Default user options
@@ -534,7 +534,7 @@ static void handle_mpi_irecv_end(void)
 
 static void parse_args(int argc, char **argv)
 {
-	/* We want to support arguments such as "fxt-tool -i trace_*" */
+	/* We want to support arguments such as "fxt_tool -i trace_*" */
 	unsigned reading_input_filenames = 0;
 
 	int i;

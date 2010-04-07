@@ -30,7 +30,7 @@
 #include <common/list.h>
 #include <starpu_mpi_fxt.h>
 
-#include "histo-paje.h"
+#include "histo_paje.h"
 
 #define MAXWORKERS      32
 #define FACTOR  100

@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "fxt-tool.h"
+#include "fxt_tool.h"
 
 static fxt_t fut;
 struct fxt_ev_64 ev;
