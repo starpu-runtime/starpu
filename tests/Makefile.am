@@ -86,6 +86,7 @@ check_PROGRAMS += 				\
 	core/empty_task_sync_point		\
 	core/tag-wait-api			\
 	core/task-wait-api			\
+	core/late_task_deps			\
 	core/get_current_task			\
 	datawizard/sync_and_notify_data		\
 	datawizard/dsm_stress			\
@@ -157,6 +158,9 @@ core_tag_wait_api_SOURCES =			\
 
 core_task_wait_api_SOURCES =			\
 	core/task-wait-api.c
+
+core_late_task_deps_SOURCES =			\
+	core/late_task_deps.c
 
 core_get_current_task_SOURCES =			\
 	core/get_current_task.c
