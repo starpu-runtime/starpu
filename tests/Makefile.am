@@ -84,8 +84,8 @@ check_PROGRAMS += 				\
 	core/subgraph_repeat_regenerate		\
 	core/empty_task				\
 	core/empty_task_sync_point		\
-	core/tag-wait-api			\
-	core/task-wait-api			\
+	core/tag_wait_api			\
+	core/task_wait_api			\
 	core/late_task_deps			\
 	core/get_current_task			\
 	datawizard/sync_and_notify_data		\
@@ -103,9 +103,9 @@ check_PROGRAMS += 				\
 	helper/pinned_memory			\
 	helper/execute_on_all			\
 	helper/starpu_create_sync_task		\
-	microbenchs/async-tasks-overhead	\
-	microbenchs/sync-tasks-overhead		\
-	microbenchs/tasks-overhead		\
+	microbenchs/async_tasks_overhead	\
+	microbenchs/sync_tasks_overhead		\
+	microbenchs/tasks_overhead		\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
 	microbenchs/local_pingpong		\
@@ -154,10 +154,10 @@ core_empty_task_sync_point_SOURCES =		\
 	core/empty_task_sync_point.c
 
 core_tag_wait_api_SOURCES =			\
-	core/tag-wait-api.c
+	core/tag_wait_api.c
 
 core_task_wait_api_SOURCES =			\
-	core/task-wait-api.c
+	core/task_wait_api.c
 
 core_late_task_deps_SOURCES =			\
 	core/late_task_deps.c
@@ -208,13 +208,13 @@ helper_starpu_create_sync_task_SOURCES =	\
 	helper/starpu_create_sync_task.c
 
 microbenchs_async_tasks_overhead_SOURCES =	\
-	microbenchs/async-tasks-overhead.c
+	microbenchs/async_tasks_overhead.c
 
 microbenchs_sync_tasks_overhead_SOURCES =	\
-	microbenchs/sync-tasks-overhead.c
+	microbenchs/sync_tasks_overhead.c
 
 microbenchs_tasks_overhead_SOURCES =		\
-	microbenchs/tasks-overhead.c
+	microbenchs/tasks_overhead.c
 
 microbenchs_prefetch_data_on_node_SOURCES =	\
 	microbenchs/prefetch_data_on_node.c

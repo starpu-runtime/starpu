@@ -12,10 +12,10 @@ gflops <- function (x, size)
 
 parse <- function (size, sched)
 {
-	filename = paste("timings-sched/sched", sched, size, sep=".");
+	filename = paste("timings_sched/sched", sched, size, sep=".");
 
 	if (file.exists(filename))
-	{	ret <- scan(paste("timings-sched/sched", sched, size, sep="."));
+	{	ret <- scan(paste("timings_sched/sched", sched, size, sep="."));
 		return(ret);
 	};
 

@@ -87,7 +87,7 @@ trace_sched()
 
 DIR=$PWD
 ROOTDIR=$DIR/../..
-TIMINGDIR=$DIR/timings-sched/
+TIMINGDIR=$DIR/timings_sched/
 SAMPLINGDIR=$DIR/sampling/
 export STARPU_PERF_MODEL_DIR=$SAMPLINGDIR
 

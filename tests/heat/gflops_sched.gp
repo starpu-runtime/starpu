@@ -18,7 +18,7 @@
 
 
 set term postscript eps enhanced color
-set output "gflops-sched.eps"
+set output "gflops_sched.eps"
 set title "LU Decomposition : scheduling strategies"
 set grid y
 set key box
@@ -32,7 +32,7 @@ plot "timings/gflops.merged.data" usi 1:(2*$1*$1*$1 / (3*$2* 1000000)) with line
      "timings/gflops.merged.data" usi 1:(2*$1*$1*$1 / (3*$4* 1000000)) with linespoint title "prio" 	    ,\
      "timings/gflops.merged.data" usi 1:(2*$1*$1*$1 / (3*$6* 1000000)) with linespoint title "ws" 
 
-set output "gflops-sched-gain.eps"
+set output "gflops_sched_gain.eps"
 set title "LU Decomposition : scheduling strategies : gain"
 set grid y
 set key box

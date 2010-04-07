@@ -19,7 +19,7 @@
 prefix=sched
 outputfile=$prefix.data
 
-find timings-sched/* -name "$prefix.*" > filelist
+find timings_sched/* -name "$prefix.*" > filelist
 
 grainlist=`sed -e "s/.*$prefix\.\(.*\)\.\(.*\)$/\1/" filelist |sort -n|uniq|xargs`
 sizelist=`sed -e "s/.*$prefix\.\(.*\)\.\(.*\)$/\2/" filelist |sort -n|uniq`
@@ -42,9 +42,9 @@ do
 	do
 		# Compute Average value ...
 
-		if test -f timings-sched/$prefix.$sched.$size; then
+		if test -f timings_sched/$prefix.$sched.$size; then
 			# file does exists 
-			filename=timings-sched/$prefix.$sched.$size
+			filename=timings_sched/$prefix.$sched.$size
 
 			# how many samples do we have ?
 			nsample=`cat $filename | wc -w`

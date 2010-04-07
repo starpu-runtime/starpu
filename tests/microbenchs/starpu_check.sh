@@ -68,7 +68,7 @@ echo "TEST synchronous tasks"
 echo "**********************"
 echo
 
-test_with_timeout 10 "./sync-tasks-overhead -i 10000" 2> /dev/null 
+test_with_timeout 10 "./sync_tasks_overhead -i 10000" 2> /dev/null 
 
 echo
 echo "***********************"
@@ -76,7 +76,7 @@ echo "TEST asynchronous tasks"
 echo "***********************"
 echo
 
-test_with_timeout 10 "./async-tasks-overhead -i 20000" 2> /dev/null 
+test_with_timeout 10 "./async_tasks_overhead -i 20000" 2> /dev/null 
 
 echo
 echo "**************"

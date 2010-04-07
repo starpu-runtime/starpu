@@ -63,7 +63,7 @@ trace_perturbation()
 
 DIR=$PWD
 ROOTDIR=$DIR/../..
-TIMINGDIR=$DIR/timing-perturbate/
+TIMINGDIR=$DIR/timing_perturbate/
 mkdir -p $TIMINGDIR
 
 for ampl in $ampllist

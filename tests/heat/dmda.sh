@@ -45,7 +45,7 @@ calibrate_point()
 
 DIR=$PWD
 ROOTDIR=$DIR/../..
-TIMINGDIR=$DIR/timings-dmda/
+TIMINGDIR=$DIR/timings_dmda/
 SAMPLINGDIR=$DIR/sampling/
 export STARPU_PERF_MODEL_DIR=$SAMPLINGDIR
 

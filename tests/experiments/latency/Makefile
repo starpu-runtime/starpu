@@ -24,10 +24,10 @@ LDFLAGS += -lpthread
 CFLAGS+= -g #-pg
 #LDFLAGS+= -pg
 
-all:  cuda-latency
+all:  cuda_latency
 
-cuda-latency:  cuda-latency.c
+cuda_latency:  cuda_latency.c
 
 clean:
-	rm -f cuda-latency
+	rm -f cuda_latency
 	rm -f *.o
