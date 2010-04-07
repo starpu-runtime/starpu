@@ -16,7 +16,7 @@
 
 AC_INIT([StarPU],0.2.901, [http://runtime.bordeaux.inria.fr/StarPU/], starpu)
 AC_CONFIG_SRCDIR(include/starpu.h)
-AC_CONFIG_AUX_DIR([build-aux])
+AC_CONFIG_AUX_DIR([build_aux])
 AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE([-Wall -Werror foreign color-tests])
 
