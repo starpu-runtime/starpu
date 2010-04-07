@@ -6,15 +6,15 @@ CFLAGS+=$$(pkg-config --cflags libstarpu)
 LIBS+=$$(pkg-config --libs fftw3f)
 CFLAGS+=$$(pkg-config --cflags fftw3f)
 
-all: starpu-audio-processing
+all: starpu_audio_processing
 
-starpu-audio-processing.o: starpu-audio-processing.c
+starpu_audio_processing.o: starpu_audio_processing.c
 
-starpu-audio-processing: starpu-audio-processing.o
-	$(CC) $(LDFLAGS) starpu-audio-processing.o -o starpu-audio-processing $(LIBS)
+starpu_audio_processing: starpu_audio_processing.o
+	$(CC) $(LDFLAGS) starpu_audio_processing.o -o starpu_audio_processing $(LIBS)
 
 clean:
 	rm -f *.o
-	rm -f starpu-audio-processing
+	rm -f starpu_audio_processing
 	rm -f input.dat input.raw
 	rm -f output.dat output.wav output.raw

@@ -111,13 +111,13 @@ noinst_HEADERS = 				\
 	mult/gordon/func_sgemm_ibm.h		\
 	cuda/incrementer_cuda.h			\
 	gordon/null.h				\
-	fortran/bindings/StarPU-fortran.h	\
-	ppm-downscaler/ppm-downscaler.h		\
-	ppm-downscaler/yuv-downscaler.h		\
+	fortran/bindings/StarPU_fortran.h	\
+	ppm_downscaler/ppm_downscaler.h		\
+	ppm_downscaler/yuv_downscaler.h		\
 	strassen/strassen.h			\
 	strassen/strassen_models.h		\
-	spmv/matrix-market/mmio.h		\
-	spmv/matrix-market/mm_to_bcsr.h		\
+	spmv/matrix_market/mmio.h		\
+	spmv/matrix_market/mm_to_bcsr.h		\
 	spmv/dw_spmv.h				\
 	spmv/dw_block_spmv.h
 
@@ -127,38 +127,38 @@ noinst_HEADERS = 				\
 ##################
 
 examplebin_PROGRAMS +=				\
-	basic-examples/hello-world
+	basic_examples/hello_world
 
 basic_examples_hello_world_SOURCES =		\
-	basic-examples/hello-world.c
+	basic_examples/hello_world.c
 
 examplebin_PROGRAMS +=				\
-	basic-examples/vector-scal
+	basic_examples/vector_scal
 
 basic_examples_vector_scal_SOURCES =		\
-	basic-examples/vector-scal.c
+	basic_examples/vector_scal.c
 
 examplebin_PROGRAMS +=				\
-	basic-examples/mult
+	basic_examples/mult
 
 basic_examples_mult_SOURCES =			\
-	basic-examples/mult.c
+	basic_examples/mult.c
 
 ###################
 # PPM downscaling #
 ###################
 
 examplebin_PROGRAMS +=				\
-	ppm-downscaler/ppm-downscaler
+	ppm_downscaler/ppm_downscaler
 
 ppm_downscaler_ppm_downscaler_SOURCES =		\
-	ppm-downscaler/ppm-downscaler.c
+	ppm_downscaler/ppm_downscaler.c
 
 examplebin_PROGRAMS +=				\
-	ppm-downscaler/yuv-downscaler
+	ppm_downscaler/yuv_downscaler
 
 ppm_downscaler_yuv_downscaler_SOURCES =		\
-	ppm-downscaler/yuv-downscaler.c
+	ppm_downscaler/yuv_downscaler.c
 
 ######
 # Pi #
@@ -395,8 +395,8 @@ endif
 spmv_dw_block_spmv_SOURCES =			\
 	spmv/dw_block_spmv.c			\
 	spmv/dw_block_spmv_kernels.c		\
-	spmv/matrix-market/mm_to_bcsr.c		\
-	spmv/matrix-market/mmio.c
+	spmv/matrix_market/mm_to_bcsr.c		\
+	spmv/matrix_market/mmio.c
 
 endif
 

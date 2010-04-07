@@ -14,7 +14,7 @@ C
 C See the GNU Lesser General Public License in COPYING.LGPL for more details.
 C
 
-#include "StarPU-fortran.h"
+#include "StarPU_fortran.h"
       
       SUBROUTINE HELLOSUB(X)
           INTEGER :: X

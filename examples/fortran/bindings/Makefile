@@ -20,9 +20,9 @@ FFLAGS+= -g -Wall
 
 all: hello
 
-hello.F: StarPU-fortran.h
+hello.F: StarPU_fortran.h
 
-hello: hello.F hello-c.o
+hello: hello.F hello_c.o
 
 clean:
 	rm -f *.o *.mod hello

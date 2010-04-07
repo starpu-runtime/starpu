@@ -34,7 +34,7 @@ EXTRA_DIST =			\
 	testf_threads.c		\
 	test_threads.c
 
-libstarpufft_la_SOURCES = starpufft.c starpufftf.c starpufft-common.c
+libstarpufft_la_SOURCES = starpufft.c starpufftf.c starpufft_common.c
 libstarpufft_la_LIBADD = $(top_builddir)/src/libstarpu.la $(FFTW_LIBS) $(FFTWF_LIBS)
 libstarpufft_la_CFLAGS = $(FFTWF_CFLAGS)
 
@@ -47,7 +47,7 @@ cudaf_kernels.o: cudaf_kernels.cu
 	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
 
 libstarpufft_la_SOURCES += cudaf_kernels.cu
-am_libstarpufft_la_OBJECTS = cudaf_kernels.o starpufftf.lo starpufft-common.lo
+am_libstarpufft_la_OBJECTS = cudaf_kernels.o starpufftf.lo starpufft_common.lo
 
 if STARPU_HAVE_CUFFTDOUBLECOMPLEX
 cuda_kernels.o: cuda_kernels.cu
