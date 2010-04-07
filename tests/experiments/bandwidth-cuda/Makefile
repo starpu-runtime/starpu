@@ -28,11 +28,11 @@ LDFLAGS+= $(ATLASDIR)/lib/$(BLASARCH)/libatlas.a
 CFLAGS+= -g #-pg
 #LDFLAGS+= -pg
 
-all:  cuda-bandwidth
+all:  cuda_bandwidth
 
-cuda-bandwidth:  cuda-bandwidth.o
-	$(CC)  cuda-bandwidth.o -o  cuda-bandwidth $(LDFLAGS)
+cuda_bandwidth:  cuda_bandwidth.o
+	$(CC)  cuda_bandwidth.o -o  cuda_bandwidth $(LDFLAGS)
 
 clean:
-	rm -f cuda-bandwidth
+	rm -f cuda_bandwidth
 	rm -f *.o

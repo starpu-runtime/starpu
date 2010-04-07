@@ -18,7 +18,7 @@
 
 
 set term postscript eps enhanced color
-set output "bench-bandwidth-strided.eps"
+set output "bench_bandwidth_strided.eps"
 set title "CUDA Bandwidth"
 set logscale x
 set xlabel "Size (Bytes/4)"

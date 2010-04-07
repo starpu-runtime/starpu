@@ -105,4 +105,4 @@ do
 	echo "$cpu_ntasks $avgcpu $gpu_ntasks $avgcuda $avggflops" >> gnuplot.data
 done
 
-./error-model.gp
+./error_model.gp
