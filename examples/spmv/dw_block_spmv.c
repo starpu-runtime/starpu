@@ -15,7 +15,7 @@
  */
 
 #include "dw_block_spmv.h"
-#include "matrix-market/mm_to_bcsr.h"
+#include "matrix_market/mm_to_bcsr.h"
 
 struct timeval start;
 struct timeval end;
