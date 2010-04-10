@@ -20,38 +20,14 @@
 
 #include "dw_spmv.h"
 
+#ifdef STARPU_USE_CUDA
+extern void spmv_kernel_cuda(void *descr[], void *args);
+#endif
+
 struct timeval start;
 struct timeval end;
 
-unsigned nblocks = 1;
-
-#ifdef STARPU_USE_CUDA
-
-extern void spmv_kernel_cpu_wrapper(uint32_t nnz, uint32_t nrow, float *nzval,
-			uint32_t *colind, uint32_t *rowptr, uint32_t firstentry,
-			float *vecin, uint32_t nx_in,
-			float * vecout, uint32_t nx_out);
-
-void spmv_kernel_cuda(void *descr[], void *args)
-{
-	uint32_t nnz = STARPU_GET_CSR_NNZ(descr[0]);
-	uint32_t nrow = STARPU_GET_CSR_NROW(descr[0]);
-	float *nzval = (float *)STARPU_GET_CSR_NZVAL(descr[0]);
-	uint32_t *colind = STARPU_GET_CSR_COLIND(descr[0]);
-	uint32_t *rowptr = STARPU_GET_CSR_ROWPTR(descr[0]);
-	uint32_t firstentry = STARPU_GET_CSR_FIRSTENTRY(descr[0]);
-
-	float *vecin = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
-	uint32_t nx_in = STARPU_GET_VECTOR_NX(descr[1]);
-
-	float *vecout = (float *)STARPU_GET_VECTOR_PTR(descr[2]);
-	uint32_t nx_out = STARPU_GET_VECTOR_NX(descr[2]);
-
-	spmv_kernel_cpu_wrapper(nnz, nrow, nzval, colind, rowptr, firstentry, vecin, nx_in, vecout, nx_out);
-}
-
-#endif // STARPU_USE_CUDA
-
+unsigned nblocks = 2;
 uint32_t size = 4194304;
 
 starpu_data_handle sparse_matrix;
@@ -64,10 +40,7 @@ uint32_t *sparse_matrix_rowptr;
 float *vector_in_ptr;
 float *vector_out_ptr;
 
-unsigned usecpu = 0;
-
-
-void parse_args(int argc, char **argv)
+static void parse_args(int argc, char **argv)
 {
 	int i;
 	for (i = 1; i < argc; i++) {
@@ -80,15 +53,10 @@ void parse_args(int argc, char **argv)
 			char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
-
-
-		if (strcmp(argv[i], "-cpu") == 0) {
-			usecpu = 1;
-		}
 	}
 }
 
-void cpu_spmv(void *descr[], __attribute__((unused))  void *arg)
+static void cpu_spmv(void *descr[], __attribute__((unused))  void *arg)
 {
 	float *nzval = (float *)STARPU_GET_CSR_NZVAL(descr[0]);
 	uint32_t *colind = STARPU_GET_CSR_COLIND(descr[0]);
@@ -130,7 +98,7 @@ void cpu_spmv(void *descr[], __attribute__((unused))  void *arg)
 
 }
 
-void create_data(void)
+static void create_data(void)
 {
 	/* we need a sparse symetric (definite positive ?) matrix and a "dense" vector */
 	
@@ -211,8 +179,6 @@ void create_data(void)
 void call_spmv_codelet_filters(void)
 {
 
-	starpu_codelet *cl = calloc(1, sizeof(starpu_codelet));
-
 	/* partition the data along a block distribution */
 	starpu_filter csr_f, vector_f;
 	csr_f.filter_func    = starpu_vertical_block_filter_func_csr;
@@ -223,13 +189,16 @@ void call_spmv_codelet_filters(void)
 	starpu_partition_data(sparse_matrix, &csr_f);
 	starpu_partition_data(vector_out, &vector_f);
 
-	cl->where = STARPU_CPU|STARPU_CUDA;
-	cl->cpu_func =  cpu_spmv;
+	starpu_codelet cl;
+	memset(&cl, 0, sizeof(starpu_codelet));
+
+	cl.where = STARPU_CPU|STARPU_CUDA;
+	cl.cpu_func =  cpu_spmv;
 #ifdef STARPU_USE_CUDA
-	cl->cuda_func = spmv_kernel_cuda;
+	cl.cuda_func = spmv_kernel_cuda;
 #endif
-	cl->nbuffers = 3;
-	cl->model = NULL;
+	cl.nbuffers = 3;
+	cl.model = NULL;
 
 	gettimeofday(&start, NULL);
 
@@ -240,7 +209,7 @@ void call_spmv_codelet_filters(void)
 
 		task->callback_func = NULL;
 
-		task->cl = cl;
+		task->cl = &cl;
 		task->cl_arg = NULL;
 	
 		task->buffers[0].handle = starpu_get_sub_data(sparse_matrix, 1, part);
@@ -261,16 +230,7 @@ void call_spmv_codelet_filters(void)
 	starpu_unpartition_data(vector_out, 0);
 }
 
-void init_problem(void)
-{
-	/* create the sparse input matrix */
-	create_data();
-
-	/* create a new codelet that will perform a SpMV on it */
-	call_spmv_codelet_filters();
-}
-
-void print_results(void)
+static void print_results(void)
 {
 	unsigned row;
 
@@ -288,7 +248,13 @@ int main(__attribute__ ((unused)) int argc,
 	/* start the runtime */
 	starpu_init(NULL);
 
-	init_problem();
+	/* create the sparse input matrix */
+	create_data();
+
+	/* create a new codelet that will perform a SpMV on it */
+	call_spmv_codelet_filters();
+
+	starpu_shutdown();
 
 	print_results();
 
