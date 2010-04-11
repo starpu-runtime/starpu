@@ -93,12 +93,16 @@ void _starpu_handle_job_termination(starpu_job_t j)
 {
 	struct starpu_task *task = j->task;
 
-	if (STARPU_UNLIKELY(j->terminated))
-		fprintf(stderr, "OOPS ... job %p was already terminated !!\n", j);
-
 	/* in case there are dependencies, wake up the proper tasks */
 	j->submitted = 0;
 	_starpu_notify_dependencies(j);
+
+	/* We must have set the j->terminated flag early, so that it is
+	 * possible to express task dependencies within the callback
+	 * function. */
+	pthread_mutex_lock(&j->sync_mutex);
+	j->terminated = 1;
+	pthread_mutex_unlock(&j->sync_mutex);
 
 	/* the callback is executed after the dependencies so that we may remove the tag 
  	 * of the task itself */
@@ -131,7 +135,6 @@ void _starpu_handle_job_termination(starpu_job_t j)
 		/* we do not desallocate the job structure if some is going to
 		 * wait after the task */
 		pthread_mutex_lock(&j->sync_mutex);
-		j->terminated = 1;
 		pthread_cond_broadcast(&j->sync_cond);
 		pthread_mutex_unlock(&j->sync_mutex);
 	}
