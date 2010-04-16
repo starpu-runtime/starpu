@@ -620,7 +620,7 @@ AC_ARG_WITH(goto-dir, [AS_HELP_STRING([--with-goto-dir=<dir>], [specify STARPU_G
 	)
 
 if test x$blas_lib = xgoto; then
-# test whether STARPU_ATLAS is actually available
+AC_CHECK_LIB(gfortran, main,,)
 AC_CHECK_LIB(goto, sgemm_,,AC_MSG_ERROR([cannot find goto lib]))
 AC_DEFINE(STARPU_GOTO, [1], [use STARPU_GOTO library])
 fi
