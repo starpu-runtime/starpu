@@ -15,6 +15,7 @@
  */
 
 #include "queues.h"
+#include <common/utils.h>
 
 /*
  * There can be various queue designs
@@ -81,24 +82,12 @@ void _starpu_jobq_lock(struct starpu_jobq_s *jobq)
 {
 //	_starpu_check_mutex_deadlock(&jobq->activity_mutex);
 
-	int ret;
-	ret = pthread_mutex_lock(&jobq->activity_mutex);	
-	if (STARPU_UNLIKELY(ret))
-	{
-		perror("pthread_mutex_lock");
-		STARPU_ABORT();
-	}
+        PTHREAD_MUTEX_LOCK(&jobq->activity_mutex);
 }
 
 void _starpu_jobq_unlock(struct starpu_jobq_s *jobq)
 {
-	int ret;
-	ret = pthread_mutex_unlock(&jobq->activity_mutex);	
-	if (STARPU_UNLIKELY(ret))
-	{
-		perror("pthread_mutex_lock");
-		STARPU_ABORT();
-	}
+	PTHREAD_MUTEX_UNLOCK(&jobq->activity_mutex);
 }
 
 int _starpu_jobq_trylock(struct starpu_jobq_s *jobq)

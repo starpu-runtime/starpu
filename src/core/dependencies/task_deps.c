@@ -16,6 +16,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
+#include <common/utils.h>
 #include <core/dependencies/tags.h>
 #include <core/dependencies/htable.h>
 #include <core/jobs.h>
@@ -74,8 +75,8 @@ void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, st
 
 		job = _starpu_get_job_associated_to_task(dep_task);
 
-		pthread_mutex_lock(&job->sync_mutex);
+		PTHREAD_MUTEX_LOCK(&job->sync_mutex);
 		_starpu_task_add_succ(job, cg);
-		pthread_mutex_unlock(&job->sync_mutex);
+		PTHREAD_MUTEX_UNLOCK(&job->sync_mutex);
 	}
 }

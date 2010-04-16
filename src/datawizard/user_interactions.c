@@ -15,6 +15,7 @@
  */
 
 #include <common/config.h>
+#include <common/utils.h>
 #include <datawizard/coherency.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/write_back.h>
@@ -76,10 +77,10 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 	}
 	else {
 		/* continuation of starpu_sync_data_with_mem */
-		pthread_mutex_lock(&statenode->lock);
+		PTHREAD_MUTEX_LOCK(&statenode->lock);
 		statenode->finished = 1;
 		pthread_cond_signal(&statenode->cond);
-		pthread_mutex_unlock(&statenode->lock);
+		PTHREAD_MUTEX_UNLOCK(&statenode->lock);
 	}
 }
 
@@ -113,10 +114,10 @@ int starpu_sync_data_with_mem(starpu_data_handle handle, starpu_access_mode mode
 		_starpu_sync_data_with_mem_continuation(&statenode);
 	}
 	else {
-		pthread_mutex_lock(&statenode.lock);
+		PTHREAD_MUTEX_LOCK(&statenode.lock);
 		if (!statenode.finished)
 			pthread_cond_wait(&statenode.cond, &statenode.lock);
-		pthread_mutex_unlock(&statenode.lock);
+		PTHREAD_MUTEX_UNLOCK(&statenode.lock);
 	}
 
 	return 0;
@@ -171,10 +172,10 @@ static void _prefetch_data_on_node(void *arg)
 
 	_starpu_fetch_data_on_node(statenode->state, statenode->node, 1, 0, statenode->async);
 
-	pthread_mutex_lock(&statenode->lock);
+	PTHREAD_MUTEX_LOCK(&statenode->lock);
 	statenode->finished = 1;
 	pthread_cond_signal(&statenode->cond);
-	pthread_mutex_unlock(&statenode->lock);
+	PTHREAD_MUTEX_UNLOCK(&statenode->lock);
 
 	if (!statenode->async)
 	{
@@ -219,10 +220,10 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 		}
 	}
 	else {
-		pthread_mutex_lock(&statenode.lock);
+		PTHREAD_MUTEX_LOCK(&statenode.lock);
 		if (!statenode.finished)
 			pthread_cond_wait(&statenode.cond, &statenode.lock);
-		pthread_mutex_unlock(&statenode.lock);
+		PTHREAD_MUTEX_UNLOCK(&statenode.lock);
 	}
 
 	return 0;

@@ -17,6 +17,7 @@
 #include <common/config.h>
 #include <datawizard/data_request.h>
 #include <pthread.h>
+#include <common/utils.h>
 
 /* requests that have not been treated at all */
 static starpu_data_request_list_t data_requests[STARPU_MAXNODES];
@@ -180,7 +181,6 @@ int _starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_a
 /* this is non blocking */
 void _starpu_post_data_request(starpu_data_request_t r, uint32_t handling_node)
 {
-	int res;
 //	fprintf(stderr, "POST REQUEST\n");
 
 	if (r->read)
@@ -190,13 +190,11 @@ void _starpu_post_data_request(starpu_data_request_t r, uint32_t handling_node)
 	}
 
 	/* insert the request in the proper list */
-	res = pthread_mutex_lock(&data_requests_list_mutex[handling_node]);
-	STARPU_ASSERT(!res);
+	PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[handling_node]);
 
 	starpu_data_request_list_push_front(data_requests[handling_node], r);
 
-	res = pthread_mutex_unlock(&data_requests_list_mutex[handling_node]);
-	STARPU_ASSERT(!res);
+	PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[handling_node]);
 
 	_starpu_wake_all_blocked_workers_on_node(handling_node);
 }
@@ -278,9 +276,9 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 		_starpu_spin_unlock(&handle->header_lock);
 
 		/* the request is pending and we put it in the corresponding queue  */
-		pthread_mutex_lock(&data_requests_pending_list_mutex[r->handling_node]);
+		PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[r->handling_node]);
 		starpu_data_request_list_push_front(data_requests_pending[r->handling_node], r);
-		pthread_mutex_unlock(&data_requests_pending_list_mutex[r->handling_node]);
+		PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[r->handling_node]);
 
 		return EAGAIN;
 	}
@@ -293,45 +291,40 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 
 void _starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc)
 {
-	int res;
-
 	/* for all entries of the list */
 	starpu_data_request_t r;
 
 	/* take all the entries from the request list */
-	res = pthread_mutex_lock(&data_requests_list_mutex[src_node]);
-	STARPU_ASSERT(!res);
+        PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
 
 	starpu_data_request_list_t local_list = data_requests[src_node];
 
 	if (starpu_data_request_list_empty(local_list))
 	{
 		/* there is no request */
-		res = pthread_mutex_unlock(&data_requests_list_mutex[src_node]);
-		STARPU_ASSERT(!res);
+                PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
 
 		return;
 	}
 
 	data_requests[src_node] = starpu_data_request_list_new();
 
-	res = pthread_mutex_unlock(&data_requests_list_mutex[src_node]);
-	STARPU_ASSERT(!res);
+	PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
 
 	while (!starpu_data_request_list_empty(local_list))
 	{
+                int res;
+
 		r = starpu_data_request_list_pop_back(local_list);
 
 		res = starpu_handle_data_request(r, may_alloc);
 		if (res == ENOMEM)
 		{
-			res = pthread_mutex_lock(&data_requests_list_mutex[src_node]);
-			STARPU_ASSERT(!res);
+                        PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
 
 			starpu_data_request_list_push_front(data_requests[src_node], r);
 
-			res = pthread_mutex_unlock(&data_requests_list_mutex[src_node]);
-			STARPU_ASSERT(!res);
+			PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
 		}
 
 		/* wake the requesting worker up */
@@ -344,18 +337,15 @@ void _starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc)
 
 static void _handle_pending_node_data_requests(uint32_t src_node, unsigned force)
 {
-	int res;
 //	fprintf(stderr, "_starpu_handle_pending_node_data_requests ...\n");
 
-	res = pthread_mutex_lock(&data_requests_pending_list_mutex[src_node]);
-	STARPU_ASSERT(!res);
+	PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[src_node]);
 
 	/* for all entries of the list */
 	starpu_data_request_list_t local_list = data_requests_pending[src_node];
 	data_requests_pending[src_node] = starpu_data_request_list_new();
 
-	res = pthread_mutex_unlock(&data_requests_pending_list_mutex[src_node]);
-	STARPU_ASSERT(!res);
+	PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[src_node]);
 
 	while (!starpu_data_request_list_empty(local_list))
 	{
@@ -385,9 +375,9 @@ static void _handle_pending_node_data_requests(uint32_t src_node, unsigned force
 				_starpu_spin_unlock(&handle->header_lock);
 
 				/* wake the requesting worker up */
-				pthread_mutex_lock(&data_requests_pending_list_mutex[src_node]);
+				PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[src_node]);
 				starpu_data_request_list_push_front(data_requests_pending[src_node], r);
-				pthread_mutex_unlock(&data_requests_pending_list_mutex[src_node]);
+				PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[src_node]);
 			}
 		}
 	}

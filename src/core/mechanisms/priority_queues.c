@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <core/mechanisms/priority_queues.h>
+#include <common/utils.h>
 
 /*
  * Centralized queue with priorities 
@@ -88,12 +89,12 @@ int _starpu_priority_push_task(struct starpu_jobq_s *q, starpu_job_t j)
 	struct starpu_priority_jobq_s *queue = q->queue;
 
 	/* if anyone is blocked on the entire machine, wake it up */
-	pthread_mutex_lock(sched_mutex);
+	PTHREAD_MUTEX_LOCK(sched_mutex);
 	pthread_cond_signal(sched_cond);
-	pthread_mutex_unlock(sched_mutex);
+	PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	/* wake people waiting locally */
-	pthread_mutex_lock(&q->activity_mutex);
+	PTHREAD_MUTEX_LOCK(&q->activity_mutex);
 
 	STARPU_TRACE_JOB_PUSH(j, 1);
 	
@@ -104,7 +105,7 @@ int _starpu_priority_push_task(struct starpu_jobq_s *q, starpu_job_t j)
 	queue->total_njobs++;
 
 	pthread_cond_signal(&q->activity_cond);
-	pthread_mutex_unlock(&q->activity_mutex);
+	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
 
 	return 0;
 }
@@ -117,7 +118,7 @@ starpu_job_t _starpu_priority_pop_task(struct starpu_jobq_s *q)
 	struct starpu_priority_jobq_s *queue = q->queue;
 
 	/* block until some event happens */
-	pthread_mutex_lock(&q->activity_mutex);
+	PTHREAD_MUTEX_LOCK(&q->activity_mutex);
 
 	if ((queue->total_njobs == 0) && _starpu_machine_is_running())
 	{
@@ -142,7 +143,7 @@ starpu_job_t _starpu_priority_pop_task(struct starpu_jobq_s *q)
 		} while (!j && priolevel-- > 0);
 	}
 
-	pthread_mutex_unlock(&q->activity_mutex);
+	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
 
 	return j;
 }

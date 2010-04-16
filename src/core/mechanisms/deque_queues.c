@@ -17,6 +17,7 @@
 #include <pthread.h>
 #include <core/mechanisms/deque_queues.h>
 #include <errno.h>
+#include <common/utils.h>
 
 /* keep track of the total number of jobs to be scheduled to avoid infinite 
  * polling when there are really few jobs in the overall queue */
@@ -115,13 +116,13 @@ int _starpu_deque_push_task(struct starpu_jobq_s *q, starpu_job_t task)
 	struct starpu_deque_jobq_s *deque_queue = q->queue;
 
 	/* if anyone is blocked on the entire machine, wake it up */
-	pthread_mutex_lock(sched_mutex);
+	PTHREAD_MUTEX_LOCK(sched_mutex);
 	total_number_of_jobs++;
 	pthread_cond_signal(sched_cond);
-	pthread_mutex_unlock(sched_mutex);
+	PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	/* wake people waiting locally */
-	pthread_mutex_lock(&q->activity_mutex);
+	PTHREAD_MUTEX_LOCK(&q->activity_mutex);
 
 	STARPU_TRACE_JOB_PUSH(task, 0);
 	starpu_job_list_push_front(deque_queue->jobq, task);
@@ -129,7 +130,7 @@ int _starpu_deque_push_task(struct starpu_jobq_s *q, starpu_job_t task)
 	deque_queue->nprocessed++;
 
 	pthread_cond_signal(&q->activity_cond);
-	pthread_mutex_unlock(&q->activity_mutex);
+	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
 
 	return 0;
 }
@@ -158,9 +159,9 @@ starpu_job_t _starpu_deque_pop_task(struct starpu_jobq_s *q)
 
 		/* we are sure that we got it now, so at worst, some people thought 
 		 * there remained some work and will soon discover it is not true */
-		pthread_mutex_lock(sched_mutex);
+		PTHREAD_MUTEX_LOCK(sched_mutex);
 		total_number_of_jobs--;
-		pthread_mutex_unlock(sched_mutex);
+		PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
 	
 	return j;
@@ -174,7 +175,7 @@ struct starpu_job_list_s * _starpu_deque_pop_every_task(struct starpu_jobq_s *q,
 	struct starpu_deque_jobq_s *deque_queue = q->queue;
 
 	/* block until some task is available in that queue */
-	pthread_mutex_lock(&q->activity_mutex);
+	PTHREAD_MUTEX_LOCK(&q->activity_mutex);
 
 	if (deque_queue->njobs == 0)
 	{
@@ -219,13 +220,13 @@ struct starpu_job_list_s * _starpu_deque_pop_every_task(struct starpu_jobq_s *q,
 	
 			/* we are sure that we got it now, so at worst, some people thought
 			 * there remained some work and will soon discover it is not true */
-			pthread_mutex_lock(sched_mutex);
+			PTHREAD_MUTEX_LOCK(sched_mutex);
 			total_number_of_jobs -= new_list_size;
-			pthread_mutex_unlock(sched_mutex);
+			PTHREAD_MUTEX_UNLOCK(sched_mutex);
 		}
 	}
 	
-	pthread_mutex_unlock(&q->activity_mutex);
+	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
 
 	return new_list;
 }

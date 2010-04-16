@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <common/utils.h>
 #include <common/config.h>
 #include <core/debug.h>
 #include "driver_cuda.h"
@@ -213,10 +214,10 @@ void *_starpu_cuda_worker(void *arg)
 	STARPU_TRACE_WORKER_INIT_END
 
 	/* tell the main thread that this one is ready */
-	pthread_mutex_lock(&args->mutex);
+	PTHREAD_MUTEX_LOCK(&args->mutex);
 	args->worker_is_initialized = 1;
 	pthread_cond_signal(&args->ready_cond);
-	pthread_mutex_unlock(&args->mutex);
+	PTHREAD_MUTEX_UNLOCK(&args->mutex);
 
 	struct starpu_job_s * j;
 	int res;

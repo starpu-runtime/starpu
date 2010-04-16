@@ -16,6 +16,7 @@
 
 #include <pthread.h>
 #include <common/config.h>
+#include <common/utils.h>
 #include <core/policies/sched_policy.h>
 #include <datawizard/datastats.h>
 #include <common/fxt.h>
@@ -38,9 +39,9 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 		q  = descr->attached_queues_per_node[nodeid][q_id];
 
 		/* wake anybody waiting on that queue */
-		pthread_mutex_lock(&q->activity_mutex);
+		PTHREAD_MUTEX_LOCK(&q->activity_mutex);
 		pthread_cond_broadcast(&q->activity_cond);
-		pthread_mutex_unlock(&q->activity_mutex);
+		PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
 	}
 
 	pthread_rwlock_unlock(&descr->attached_queues_rwlock);
@@ -53,9 +54,9 @@ void starpu_wake_all_blocked_workers(void)
 	pthread_cond_t *sched_cond = &sched->sched_activity_cond;
 	pthread_mutex_t *sched_mutex = &sched->sched_activity_mutex;
 
-	pthread_mutex_lock(sched_mutex);
+	PTHREAD_MUTEX_LOCK(sched_mutex);
 	pthread_cond_broadcast(sched_cond);
-	pthread_mutex_unlock(sched_mutex);
+	PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	/* workers may be blocked on the various queues' conditions */
 	unsigned node;

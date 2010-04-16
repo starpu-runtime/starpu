@@ -16,6 +16,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
+#include <common/utils.h>
 #include <core/dependencies/tags.h>
 #include <core/dependencies/htable.h>
 #include <core/jobs.h>
@@ -328,12 +329,12 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 		_starpu_spin_unlock(&tag_array[i]->lock);
 	}
 
-	pthread_mutex_lock(&cg->succ.succ_apps.cg_mutex);
+	PTHREAD_MUTEX_LOCK(&cg->succ.succ_apps.cg_mutex);
 
 	if (!cg->succ.succ_apps.completed)
 		pthread_cond_wait(&cg->succ.succ_apps.cg_cond, &cg->succ.succ_apps.cg_mutex);
 
-	pthread_mutex_unlock(&cg->succ.succ_apps.cg_mutex);
+	PTHREAD_MUTEX_UNLOCK(&cg->succ.succ_apps.cg_mutex);
 
 	pthread_mutex_destroy(&cg->succ.succ_apps.cg_mutex);
 	pthread_cond_destroy(&cg->succ.succ_apps.cg_cond);

@@ -18,6 +18,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
+#include <common/utils.h>
 #include <core/mechanisms/queues.h>
 #include <core/policies/sched_policy.h>
 #include <core/policies/no_prio_policy.h>
@@ -272,7 +273,7 @@ void _starpu_wait_on_sched_event(void)
 {
 	struct starpu_jobq_s *q = policy.starpu_get_local_queue(&policy);
 
-	pthread_mutex_lock(&q->activity_mutex);
+	PTHREAD_MUTEX_LOCK(&q->activity_mutex);
 
 	_starpu_handle_all_pending_node_data_requests(_starpu_get_local_memory_node());
 
@@ -283,5 +284,5 @@ void _starpu_wait_on_sched_event(void)
 #endif
 	}
 
-	pthread_mutex_unlock(&q->activity_mutex);
+	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
 }

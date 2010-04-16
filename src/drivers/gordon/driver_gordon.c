@@ -20,6 +20,7 @@
 #include <sched.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <common/utils.h>
 #include "driver_gordon.h"
 #include "gordon_interface.h"
 #include <core/policies/sched_policy.h>
@@ -54,10 +55,10 @@ void *gordon_worker_progress(void *arg)
 		(gordon_set_arg->workers[0].bindid + 1)%(gordon_set_arg->config->nhwcores);
 	_starpu_bind_thread_on_cpu(gordon_set_arg->config, prog_thread_bind_id);
 
-	pthread_mutex_lock(&progress_mutex);
+	PTHREAD_MUTEX_LOCK(&progress_mutex);
 	progress_thread_is_inited = 1;
 	pthread_cond_signal(&progress_cond);
-	pthread_mutex_unlock(&progress_mutex);
+	PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
 	while (1) {
 		/* the Gordon runtime needs to make sure that we poll it 
@@ -443,18 +444,18 @@ void *_starpu_gordon_worker(void *arg)
 	pthread_create(&progress_thread, NULL, gordon_worker_progress, gordon_set_arg);
 
 	/* wait for the progression thread to be ready */
-	pthread_mutex_lock(&progress_mutex);
+	PTHREAD_MUTEX_LOCK(&progress_mutex);
 	if (!progress_thread_is_inited)
 		pthread_cond_wait(&progress_cond, &progress_mutex);
-	pthread_mutex_unlock(&progress_mutex);
+	PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
 	fprintf(stderr, "progress thread is running ... \n");
 	
 	/* tell the core that gordon is ready */
-	pthread_mutex_lock(&gordon_set_arg->mutex);
+	PTHREAD_MUTEX_LOCK(&gordon_set_arg->mutex);
 	gordon_set_arg->set_is_initialized = 1;
 	pthread_cond_signal(&gordon_set_arg->ready_cond);
-	pthread_mutex_unlock(&gordon_set_arg->mutex);
+	PTHREAD_MUTEX_UNLOCK(&gordon_set_arg->mutex);
 
 	gordon_worker_inject(gordon_set_arg);
 

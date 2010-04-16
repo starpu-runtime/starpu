@@ -19,6 +19,7 @@
 #include <core/jobs.h>
 #include <core/task.h>
 #include <common/config.h>
+#include <common/utils.h>
 
 /* XXX this should be reinitialized when StarPU is shutdown (or we should make
  * sure that no task remains !) */
@@ -244,7 +245,7 @@ int starpu_wait_all_tasks(void)
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
-	pthread_mutex_lock(&submitted_mutex);
+	PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
 	if (nsubmitted > 0)
 	{
@@ -252,14 +253,14 @@ int starpu_wait_all_tasks(void)
 		STARPU_ASSERT(!res);
 	}
 	
-	pthread_mutex_unlock(&submitted_mutex);
+	PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
 	return 0;
 }
 
 void _starpu_decrement_nsubmitted_tasks(void)
 {
-	pthread_mutex_lock(&submitted_mutex);
+	PTHREAD_MUTEX_LOCK(&submitted_mutex);
 	if (--nsubmitted == 0)
 	{
 		int broadcast_res;
@@ -267,15 +268,15 @@ void _starpu_decrement_nsubmitted_tasks(void)
 		STARPU_ASSERT(!broadcast_res);
 
 	}
-	pthread_mutex_unlock(&submitted_mutex);
+	PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
 }
 
 static void _starpu_increment_nsubmitted_tasks(void)
 {
-	pthread_mutex_lock(&submitted_mutex);
+	PTHREAD_MUTEX_LOCK(&submitted_mutex);
 	nsubmitted++;
-	pthread_mutex_unlock(&submitted_mutex);
+	PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 }
 
 void _starpu_initialize_current_task_key(void)

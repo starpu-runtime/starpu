@@ -16,6 +16,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
+#include <common/utils.h>
 #include <core/jobs.h>
 #include <core/dependencies/cg.h>
 #include <core/dependencies/tags.h>
@@ -94,10 +95,10 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 			case STARPU_CG_APPS:
 				/* this is a cg for an application waiting on a set of
 	 			 * tags, wake the thread */
-				pthread_mutex_lock(&cg->succ.succ_apps.cg_mutex);
+				PTHREAD_MUTEX_LOCK(&cg->succ.succ_apps.cg_mutex);
 				cg->succ.succ_apps.completed = 1;
 				pthread_cond_signal(&cg->succ.succ_apps.cg_cond);
-				pthread_mutex_unlock(&cg->succ.succ_apps.cg_mutex);
+				PTHREAD_MUTEX_UNLOCK(&cg->succ.succ_apps.cg_mutex);
 				break;
 
 			case STARPU_CG_TAG:

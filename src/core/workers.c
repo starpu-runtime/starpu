@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <common/config.h>
+#include <common/utils.h>
 #include <core/workers.h>
 #include <core/debug.h>
 #include <core/task.h>
@@ -164,11 +165,11 @@ static void _starpu_init_workers(struct starpu_machine_config_s *config)
 					pthread_create(&gordon_worker_set.worker_thread, NULL, 
 							_starpu_gordon_worker, &gordon_worker_set);
 
-					pthread_mutex_lock(&gordon_worker_set.mutex);
+					PTHREAD_MUTEX_LOCK(&gordon_worker_set.mutex);
 					if (!gordon_worker_set.set_is_initialized)
 						pthread_cond_wait(&gordon_worker_set.ready_cond,
 									&gordon_worker_set.mutex);
-					pthread_mutex_unlock(&gordon_worker_set.mutex);
+					PTHREAD_MUTEX_UNLOCK(&gordon_worker_set.mutex);
 
 					gordon_inited = 1;
 				}
@@ -191,10 +192,10 @@ static void _starpu_init_workers(struct starpu_machine_config_s *config)
 		switch (workerarg->arch) {
 			case STARPU_CPU_WORKER:
 			case STARPU_CUDA_WORKER:
-				pthread_mutex_lock(&workerarg->mutex);
+				PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 				if (!workerarg->worker_is_initialized)
 					pthread_cond_wait(&workerarg->ready_cond, &workerarg->mutex);
-				pthread_mutex_unlock(&workerarg->mutex);
+				PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 				break;
 #ifdef STARPU_USE_GORDON
 			case STARPU_GORDON_WORKER:
@@ -223,7 +224,7 @@ int starpu_init(struct starpu_conf *user_conf)
 {
 	int ret;
 
-	pthread_mutex_lock(&init_mutex);
+	PTHREAD_MUTEX_LOCK(&init_mutex);
 	while (initialized == CHANGING)
 		/* Wait for the other one changing it */
 		pthread_cond_wait(&init_cond, &init_mutex);
@@ -233,7 +234,7 @@ int starpu_init(struct starpu_conf *user_conf)
 		return 0;
 	/* initialized == UNINITIALIZED */
 	initialized = CHANGING;
-	pthread_mutex_unlock(&init_mutex);
+	PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
 #ifdef __MINGW32__
 	WSADATA wsadata;
@@ -258,12 +259,12 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	ret = _starpu_build_topology(&config);
 	if (ret) {
-		pthread_mutex_lock(&init_mutex);
+		PTHREAD_MUTEX_LOCK(&init_mutex);
 		init_count--;
 		initialized = UNINITIALIZED;
 		/* Let somebody else try to do it */
 		pthread_cond_signal(&init_cond);
-		pthread_mutex_unlock(&init_mutex);
+		PTHREAD_MUTEX_UNLOCK(&init_mutex);
 		return ret;
 	}
 
@@ -278,11 +279,11 @@ int starpu_init(struct starpu_conf *user_conf)
 
 	_starpu_init_workers(&config);
 
-	pthread_mutex_lock(&init_mutex);
+	PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = INITIALIZED;
 	/* Tell everybody that we initialized */
 	pthread_cond_broadcast(&init_cond);
-	pthread_mutex_unlock(&init_mutex);
+	PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
 	return 0;
 }
@@ -385,10 +386,10 @@ static void _starpu_operate_on_all_queues_attached_to_node(unsigned nodeid, queu
 				pthread_cond_broadcast(&q->activity_cond);
 				break;
 			case LOCK:
-				pthread_mutex_lock(&q->activity_mutex);
+				PTHREAD_MUTEX_LOCK(&q->activity_mutex);
 				break;
 			case UNLOCK:
-				pthread_mutex_unlock(&q->activity_mutex);
+				PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
 				break;
 		}
 	}
@@ -430,10 +431,10 @@ static void _starpu_operate_on_all_queues(queue_op op)
 				pthread_cond_broadcast(&q->activity_cond);
 				break;
 			case LOCK:
-				pthread_mutex_lock(&q->activity_mutex);
+				PTHREAD_MUTEX_LOCK(&q->activity_mutex);
 				break;
 			case UNLOCK:
-				pthread_mutex_unlock(&q->activity_mutex);
+				PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
 				break;
 		}
 	}
@@ -451,7 +452,7 @@ static void _starpu_kill_all_workers(struct starpu_machine_config_s *config)
 	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
 
 	_starpu_operate_on_all_queues(LOCK);
-	pthread_mutex_lock(&sched->sched_activity_mutex);
+	PTHREAD_MUTEX_LOCK(&sched->sched_activity_mutex);
 	
 	/* set the flag which will tell workers to stop */
 	config->running = 0;
@@ -459,20 +460,20 @@ static void _starpu_kill_all_workers(struct starpu_machine_config_s *config)
 	_starpu_operate_on_all_queues(BROADCAST);
 	pthread_cond_broadcast(&sched->sched_activity_cond);
 
-	pthread_mutex_unlock(&sched->sched_activity_mutex);
+	PTHREAD_MUTEX_UNLOCK(&sched->sched_activity_mutex);
 	_starpu_operate_on_all_queues(UNLOCK);
 }
 
 void starpu_shutdown(void)
 {
-	pthread_mutex_lock(&init_mutex);
+	PTHREAD_MUTEX_LOCK(&init_mutex);
 	init_count--;
 	if (init_count)
 		/* Still somebody needing StarPU, don't deinitialize */
 		return;
 	/* We're last */
 	initialized = CHANGING;
-	pthread_mutex_unlock(&init_mutex);
+	PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
 	_starpu_display_msi_stats();
 	_starpu_display_alloc_cache_stats();
@@ -500,11 +501,11 @@ void starpu_shutdown(void)
 
 	_starpu_close_debug_logfile();
 
-	pthread_mutex_lock(&init_mutex);
+	PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = UNINITIALIZED;
 	/* Let someone else that wants to initialize it again do it */
 	pthread_cond_signal(&init_cond);
-	pthread_mutex_unlock(&init_mutex);
+	PTHREAD_MUTEX_UNLOCK(&init_mutex);
 }
 
 unsigned starpu_get_worker_count(void)

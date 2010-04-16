@@ -16,6 +16,7 @@
 
 #include <math.h>
 
+#include <common/utils.h>
 #include <core/debug.h>
 #include "driver_cpu.h"
 #include <core/policies/sched_policy.h>
@@ -131,10 +132,10 @@ void *_starpu_cpu_worker(void *arg)
 	STARPU_TRACE_WORKER_INIT_END
 
         /* tell the main thread that we are ready */
-	pthread_mutex_lock(&cpu_arg->mutex);
+	PTHREAD_MUTEX_LOCK(&cpu_arg->mutex);
 	cpu_arg->worker_is_initialized = 1;
 	pthread_cond_signal(&cpu_arg->ready_cond);
-	pthread_mutex_unlock(&cpu_arg->mutex);
+	PTHREAD_MUTEX_UNLOCK(&cpu_arg->mutex);
 
         starpu_job_t j;
 	int res;

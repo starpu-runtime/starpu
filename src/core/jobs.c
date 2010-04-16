@@ -19,6 +19,7 @@
 #include <core/workers.h>
 #include <core/dependencies/data_concurrency.h>
 #include <common/config.h>
+#include <common/utils.h>
 
 size_t _starpu_job_get_data_size(starpu_job_t j)
 {
@@ -78,7 +79,7 @@ void _starpu_wait_job(starpu_job_t j)
 	STARPU_ASSERT(j->task);
 	STARPU_ASSERT(!j->task->detach);
 
-	pthread_mutex_lock(&j->sync_mutex);
+	PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	if (!j->terminated)
 		pthread_cond_wait(&j->sync_cond, &j->sync_mutex);
@@ -86,7 +87,7 @@ void _starpu_wait_job(starpu_job_t j)
 	/* reset the job state so that it can be reused again */
 	j->terminated = 0;
 
-	pthread_mutex_unlock(&j->sync_mutex);
+	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 }
 
 void _starpu_handle_job_termination(starpu_job_t j)
@@ -100,9 +101,9 @@ void _starpu_handle_job_termination(starpu_job_t j)
 	/* We must have set the j->terminated flag early, so that it is
 	 * possible to express task dependencies within the callback
 	 * function. */
-	pthread_mutex_lock(&j->sync_mutex);
+	PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	j->terminated = 1;
-	pthread_mutex_unlock(&j->sync_mutex);
+	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	/* the callback is executed after the dependencies so that we may remove the tag 
  	 * of the task itself */
@@ -134,9 +135,9 @@ void _starpu_handle_job_termination(starpu_job_t j)
 	{
 		/* we do not desallocate the job structure if some is going to
 		 * wait after the task */
-		pthread_mutex_lock(&j->sync_mutex);
+		PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 		pthread_cond_broadcast(&j->sync_cond);
-		pthread_mutex_unlock(&j->sync_mutex);
+		PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 	}
 	else {
 		/* no one is going to synchronize with that task so we release
@@ -199,7 +200,7 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j)
 
 	struct starpu_cg_list_s *job_successors = &j->job_successors;
 
-	pthread_mutex_lock(&j->sync_mutex);	
+	PTHREAD_MUTEX_LOCK(&j->sync_mutex);	
 
 	if (!j->submitted || (job_successors->ndeps != job_successors->ndeps_completed))
 	{
@@ -212,7 +213,7 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j)
 		ret = 0;
 	}
 
-	pthread_mutex_unlock(&j->sync_mutex);
+	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	return ret;
 }
@@ -283,12 +284,12 @@ struct starpu_job_s *_starpu_pop_local_task(struct starpu_worker_s *worker)
 {
 	struct starpu_job_s *j = NULL;
 
-	pthread_mutex_lock(&worker->local_jobs_mutex);
+	PTHREAD_MUTEX_LOCK(&worker->local_jobs_mutex);
 
 	if (!starpu_job_list_empty(worker->local_jobs))
 		j = starpu_job_list_pop_back(worker->local_jobs);
 
-	pthread_mutex_unlock(&worker->local_jobs_mutex);
+	PTHREAD_MUTEX_UNLOCK(&worker->local_jobs_mutex);
 
 	return j;
 }
@@ -300,11 +301,11 @@ int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_job_s 
 	if (STARPU_UNLIKELY(!(worker->worker_mask & j->task->cl->where)))
 		return -ENODEV;
 
-	pthread_mutex_lock(&worker->local_jobs_mutex);
+	PTHREAD_MUTEX_LOCK(&worker->local_jobs_mutex);
 
 	starpu_job_list_push_front(worker->local_jobs, j);
 
-	pthread_mutex_unlock(&worker->local_jobs_mutex);
+	PTHREAD_MUTEX_UNLOCK(&worker->local_jobs_mutex);
 
 	/* XXX that's a bit excessive ... */
 	_starpu_wake_all_blocked_workers_on_node(worker->memory_node);

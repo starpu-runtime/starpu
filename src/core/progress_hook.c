@@ -16,6 +16,7 @@
 
 #include <pthread.h>
 #include <core/workers.h>
+#include <common/utils.h>
 
 #define NMAXHOOKS	16
 
@@ -32,7 +33,7 @@ static struct progression_hook hooks[NMAXHOOKS] = {{NULL, NULL, 0}};
 int starpu_register_progression_hook(unsigned (*func)(void *arg), void *arg)
 {
 	int hook;
-	pthread_mutex_lock(&progression_hook_mutex);
+	PTHREAD_MUTEX_LOCK(&progression_hook_mutex);
 	for (hook = 0; hook < NMAXHOOKS; hook++)
 	{
 		if (!hooks[hook].active)
@@ -42,13 +43,13 @@ int starpu_register_progression_hook(unsigned (*func)(void *arg), void *arg)
 			hooks[hook].arg = arg;
 			hooks[hook].active = 1;
 
-			pthread_mutex_unlock(&progression_hook_mutex);
+			PTHREAD_MUTEX_UNLOCK(&progression_hook_mutex);
 			
 			return hook;
 		}
 	}
 
-	pthread_mutex_unlock(&progression_hook_mutex);
+	PTHREAD_MUTEX_UNLOCK(&progression_hook_mutex);
 
 	starpu_wake_all_blocked_workers();
 
@@ -58,9 +59,9 @@ int starpu_register_progression_hook(unsigned (*func)(void *arg), void *arg)
 
 void starpu_deregister_progression_hook(int hook_id)
 {
-	pthread_mutex_lock(&progression_hook_mutex);
+	PTHREAD_MUTEX_LOCK(&progression_hook_mutex);
 	hooks[hook_id].active = 0;
-	pthread_mutex_unlock(&progression_hook_mutex);
+	PTHREAD_MUTEX_UNLOCK(&progression_hook_mutex);
 }
 
 unsigned _starpu_execute_registered_progression_hooks(void)
@@ -74,9 +75,9 @@ unsigned _starpu_execute_registered_progression_hooks(void)
 	{
 		unsigned active;
 
-		pthread_mutex_lock(&progression_hook_mutex);
+		PTHREAD_MUTEX_LOCK(&progression_hook_mutex);
 		active = hooks[hook].active;
-		pthread_mutex_unlock(&progression_hook_mutex);
+		PTHREAD_MUTEX_UNLOCK(&progression_hook_mutex);
 
 		unsigned may_block_hook = 1;
 
