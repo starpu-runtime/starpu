@@ -148,6 +148,8 @@ starpu_job_t _starpu_get_job_associated_to_task(struct starpu_task *task)
  * already counted. */
 int _starpu_submit_job(starpu_job_t j, unsigned do_not_increment_nsubmitted)
 {
+	j->terminated = 0;
+
 	if (!do_not_increment_nsubmitted)
 		_starpu_increment_nsubmitted_tasks();
 

@@ -84,9 +84,6 @@ void _starpu_wait_job(starpu_job_t j)
 	while (!j->terminated)
 		pthread_cond_wait(&j->sync_cond, &j->sync_mutex);
 
-	/* reset the job state so that it can be reused again */
-	j->terminated = 0;
-
 	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 }
 
