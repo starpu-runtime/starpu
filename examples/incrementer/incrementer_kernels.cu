@@ -18,8 +18,8 @@
 
 static __global__ void cuda_incrementer(float * tab)
 {
-	tab[0] = tab[0] + 1.0;
-	tab[2] = tab[2] + 1.0;
+	tab[0] = tab[0] + 1.0f;
+	tab[2] = tab[2] + 1.0f;
 	
 	return;
 }
