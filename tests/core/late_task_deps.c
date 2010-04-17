@@ -74,18 +74,53 @@ int main(int argc, char **argv)
 		 * termination, we cannot declare a dependency on something
 		 * that does not exist anymore. */
 		taskA->destroy = 0;
+		taskA->detach = 0;
 
-#warning FIXME we should be able to use a synchronous task here !
+		/* we wait for the tasks explicitly */
+		taskB->detach = 0;
 
 		ret = starpu_submit_task(taskA);
 		STARPU_ASSERT(!ret);
 
 		starpu_task_declare_deps_array(taskB, 1, &taskA);
+
 		ret = starpu_submit_task(taskB);
 		STARPU_ASSERT(!ret);
 
-		starpu_wait_task(taskB);
+		ret = starpu_wait_task(taskB);
+		STARPU_ASSERT(!ret);
+
+		ret = starpu_wait_task(taskA);
+		STARPU_ASSERT(!ret);
 	}
+
+	starpu_wait_all_tasks();
+
+	for (loop = 0; loop < NLOOPS; loop++)
+	{
+		taskA = create_dummy_task();
+		taskB = create_dummy_task();
+
+		/* By default, dynamically allocated tasks are destroyed at
+		 * termination, we cannot declare a dependency on something
+		 * that does not exist anymore. */
+		taskA->destroy = 0;
+		taskA->synchronous = 1;
+
+		ret = starpu_submit_task(taskA);
+		STARPU_ASSERT(!ret);
+
+		starpu_task_declare_deps_array(taskB, 1, &taskA);
+
+		taskB->synchronous = 1;
+
+		ret = starpu_submit_task(taskB);
+		STARPU_ASSERT(!ret);
+
+		starpu_task_destroy(taskA);
+	}
+
+	starpu_wait_all_tasks();
 
 	for (loop = 0; loop < NLOOPS; loop++)
 	{
