@@ -1,6 +1,6 @@
 #
 # StarPU
-# Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+# Copyright (C) INRIA 2008-2010 (see AUTHORS file)
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -378,11 +378,8 @@ endif
 # SpMV example #
 ################
 
-if ATLAS_BLAS_LIB
-
 examplebin_PROGRAMS += 				\
-	spmv/dw_spmv				\
-	spmv/dw_block_spmv
+	spmv/dw_spmv
 
 spmv_dw_spmv_SOURCES = 				\
 	spmv/dw_spmv.c
@@ -392,12 +389,15 @@ spmv_dw_spmv_SOURCES +=				\
 	spmv/spmv_cuda.cu
 endif
 
+if ATLAS_BLAS_LIB
+examplebin_PROGRAMS += 				\
+	spmv/dw_block_spmv
+
 spmv_dw_block_spmv_SOURCES =			\
 	spmv/dw_block_spmv.c			\
 	spmv/dw_block_spmv_kernels.c		\
 	spmv/matrix_market/mm_to_bcsr.c		\
 	spmv/matrix_market/mmio.c
-
 endif
 
 #######################
