@@ -82,7 +82,7 @@ void _starpu_wait_job(starpu_job_t j)
 	PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	while (!j->terminated)
-		pthread_cond_wait(&j->sync_cond, &j->sync_mutex);
+		PTHREAD_COND_WAIT(&j->sync_cond, &j->sync_mutex);
 
 	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 }

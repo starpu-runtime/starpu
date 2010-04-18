@@ -115,8 +115,8 @@ int starpu_sync_data_with_mem(starpu_data_handle handle, starpu_access_mode mode
 	}
 	else {
 		PTHREAD_MUTEX_LOCK(&statenode.lock);
-		if (!statenode.finished)
-			pthread_cond_wait(&statenode.cond, &statenode.lock);
+		while (!statenode.finished)
+			PTHREAD_COND_WAIT(&statenode.cond, &statenode.lock);
 		PTHREAD_MUTEX_UNLOCK(&statenode.lock);
 	}
 
@@ -221,8 +221,8 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 	}
 	else {
 		PTHREAD_MUTEX_LOCK(&statenode.lock);
-		if (!statenode.finished)
-			pthread_cond_wait(&statenode.cond, &statenode.lock);
+		while (!statenode.finished)
+			PTHREAD_COND_WAIT(&statenode.cond, &statenode.lock);
 		PTHREAD_MUTEX_UNLOCK(&statenode.lock);
 	}
 

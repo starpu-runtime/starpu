@@ -445,8 +445,8 @@ void *_starpu_gordon_worker(void *arg)
 
 	/* wait for the progression thread to be ready */
 	PTHREAD_MUTEX_LOCK(&progress_mutex);
-	if (!progress_thread_is_inited)
-		pthread_cond_wait(&progress_cond, &progress_mutex);
+	while (!progress_thread_is_inited)
+		PTHREAD_COND_WAIT(&progress_cond, &progress_mutex);
 	PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
 	fprintf(stderr, "progress thread is running ... \n");
