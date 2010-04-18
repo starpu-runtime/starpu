@@ -55,8 +55,8 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 
 	_starpu_cg_list_init(&job->job_successors);
 
-	pthread_mutex_init(&job->sync_mutex, NULL);
-	pthread_cond_init(&job->sync_cond, NULL);
+	PTHREAD_MUTEX_INIT(&job->sync_mutex, NULL);
+	PTHREAD_COND_INIT(&job->sync_cond, NULL);
 
 	if (task->use_tag)
 		_starpu_tag_declare(task->tag_id, job);
@@ -66,8 +66,8 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 
 void _starpu_job_destroy(starpu_job_t j)
 {
-	pthread_cond_destroy(&j->sync_cond);
-	pthread_mutex_destroy(&j->sync_mutex);
+	PTHREAD_COND_DESTROY(&j->sync_cond);
+	PTHREAD_MUTEX_DESTROY(&j->sync_mutex);
 
 	_starpu_cg_list_deinit(&j->job_successors);
 
@@ -133,7 +133,7 @@ void _starpu_handle_job_termination(starpu_job_t j)
 		/* we do not desallocate the job structure if some is going to
 		 * wait after the task */
 		PTHREAD_MUTEX_LOCK(&j->sync_mutex);
-		pthread_cond_broadcast(&j->sync_cond);
+		PTHREAD_COND_BROADCAST(&j->sync_cond);
 		PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 	}
 	else {

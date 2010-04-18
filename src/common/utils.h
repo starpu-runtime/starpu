@@ -20,12 +20,19 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <sys/stat.h>
+#include <string.h>
 
 int _starpu_mkpath(const char *s, mode_t mode);
 int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex);
 
-#define PTHREAD_MUTEX_LOCK(mutex) { int ret = pthread_mutex_lock(mutex); if (STARPU_UNLIKELY(ret)) { perror("pthread_mutex_lock"); STARPU_ABORT(); }}
-#define PTHREAD_MUTEX_UNLOCK(mutex) { int ret = pthread_mutex_unlock(mutex); if (STARPU_UNLIKELY(ret)) { perror("pthread_mutex_unlock"); STARPU_ABORT(); }}
-#define PTHREAD_COND_WAIT(cond, mutex) { int ret = pthread_cond_wait((cond), (mutex)); if (STARPU_UNLIKELY(ret)) { perror("pthread_cond_wait"); STARPU_ABORT();}}
+#define PTHREAD_MUTEX_INIT(mutex, attr) { int ret = pthread_mutex_init((mutex), (attr)); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_mutex_init: %s\n", strerror(ret)); STARPU_ABORT(); }}
+#define PTHREAD_MUTEX_DESTROY(mutex) { int ret = pthread_mutex_destroy(mutex); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_mutex_destroy: %s\n", strerror(ret)); STARPU_ABORT(); }}
+#define PTHREAD_MUTEX_LOCK(mutex) { int ret = pthread_mutex_lock(mutex); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_mutex_lock : %s", strerror(ret)); STARPU_ABORT(); }}
+#define PTHREAD_MUTEX_UNLOCK(mutex) { int ret = pthread_mutex_unlock(mutex); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_mutex_unlock : %s", strerror(ret)); STARPU_ABORT(); }}
+
+#define PTHREAD_COND_INIT(cond, attr) { int ret = pthread_cond_init((cond), (attr)); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_cond_init : %s", strerror(ret)); STARPU_ABORT(); }}
+#define PTHREAD_COND_DESTROY(cond) { int ret = pthread_cond_destroy(cond); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_cond_destroy : %s", strerror(ret)); STARPU_ABORT();}}
+#define PTHREAD_COND_BROADCAST(cond) { int ret = pthread_cond_broadcast(cond); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_cond_broadcast : %s", strerror(ret)); STARPU_ABORT();}}
+#define PTHREAD_COND_WAIT(cond, mutex) { int ret = pthread_cond_wait((cond), (mutex)); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_cond_wait : %s", strerror(ret)); STARPU_ABORT();}}
 
 #endif // __COMMON_UTILS_H__
