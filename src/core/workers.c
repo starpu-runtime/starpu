@@ -166,8 +166,8 @@ static void _starpu_init_workers(struct starpu_machine_config_s *config)
 							_starpu_gordon_worker, &gordon_worker_set);
 
 					PTHREAD_MUTEX_LOCK(&gordon_worker_set.mutex);
-					if (!gordon_worker_set.set_is_initialized)
-						pthread_cond_wait(&gordon_worker_set.ready_cond,
+					while (!gordon_worker_set.set_is_initialized)
+						PTHREAD_COND_WAIT(&gordon_worker_set.ready_cond,
 									&gordon_worker_set.mutex);
 					PTHREAD_MUTEX_UNLOCK(&gordon_worker_set.mutex);
 
@@ -193,8 +193,8 @@ static void _starpu_init_workers(struct starpu_machine_config_s *config)
 			case STARPU_CPU_WORKER:
 			case STARPU_CUDA_WORKER:
 				PTHREAD_MUTEX_LOCK(&workerarg->mutex);
-				if (!workerarg->worker_is_initialized)
-					pthread_cond_wait(&workerarg->ready_cond, &workerarg->mutex);
+				while (!workerarg->worker_is_initialized)
+					PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
 				PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 				break;
 #ifdef STARPU_USE_GORDON
@@ -227,7 +227,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	PTHREAD_MUTEX_LOCK(&init_mutex);
 	while (initialized == CHANGING)
 		/* Wait for the other one changing it */
-		pthread_cond_wait(&init_cond, &init_mutex);
+		PTHREAD_COND_WAIT(&init_cond, &init_mutex);
 	init_count++;
 	if (initialized == INITIALIZED)
 		/* He initialized it, don't do it again */

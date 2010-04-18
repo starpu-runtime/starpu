@@ -26,5 +26,6 @@ int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex);
 
 #define PTHREAD_MUTEX_LOCK(mutex) { int ret = pthread_mutex_lock(mutex); if (STARPU_UNLIKELY(ret)) { perror("pthread_mutex_lock"); STARPU_ABORT(); }}
 #define PTHREAD_MUTEX_UNLOCK(mutex) { int ret = pthread_mutex_unlock(mutex); if (STARPU_UNLIKELY(ret)) { perror("pthread_mutex_unlock"); STARPU_ABORT(); }}
+#define PTHREAD_COND_WAIT(cond, mutex) { int ret = pthread_cond_wait((cond), (mutex)); if (STARPU_UNLIKELY(ret)) { perror("pthread_cond_wait"); STARPU_ABORT();}}
 
 #endif // __COMMON_UTILS_H__
