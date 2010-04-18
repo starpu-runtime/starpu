@@ -81,7 +81,12 @@ void _starpu_wait_job(starpu_job_t j)
 
 	PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
-	while (!j->terminated)
+	/* We wait for the flag to have a value of 2 which means that both the
+	 * codelet's implementation and its callback have been executed. That
+	 * way, _starpu_wait_job won't return until the entire task was really
+	 * executed (so that we cannot destroy the task while it is still being
+	 * manipulated by the driver). */
+	while (j->terminated != 2)
 		PTHREAD_COND_WAIT(&j->sync_cond, &j->sync_mutex);
 
 	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
@@ -97,7 +102,8 @@ void _starpu_handle_job_termination(starpu_job_t j)
 
 	/* We must have set the j->terminated flag early, so that it is
 	 * possible to express task dependencies within the callback
-	 * function. */
+	 * function. A value of 1 means that the codelet was executed but that
+	 * the callback is not done yet. */
 	PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	j->terminated = 1;
 	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
@@ -133,6 +139,9 @@ void _starpu_handle_job_termination(starpu_job_t j)
 		/* we do not desallocate the job structure if some is going to
 		 * wait after the task */
 		PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+		/* A value of 2 is put to specify that not only the codelet but
+		 * also the callback were executed. */
+		j->terminated = 2;
 		PTHREAD_COND_BROADCAST(&j->sync_cond);
 		PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 	}
