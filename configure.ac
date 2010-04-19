@@ -285,7 +285,7 @@ fi
 
 AC_MSG_CHECKING(whether MAGMA should be used)
 AC_MSG_RESULT($enable_magma)
-if test x$enable_magma; then
+if test x$enable_magma = xyes; then
 	AC_DEFINE(STARPU_HAVE_MAGMA, [1], [use MAGMA library])
 fi
 
