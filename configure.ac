@@ -285,7 +285,9 @@ fi
 
 AC_MSG_CHECKING(whether MAGMA should be used)
 AC_MSG_RESULT($enable_magma)
-AC_DEFINE(STARPU_HAVE_MAGMA, [1], [use MAGMA library])
+if test x$enable_magma; then
+	AC_DEFINE(STARPU_HAVE_MAGMA, [1], [use MAGMA library])
+fi
 
 # cufftDoubleComplex may not be available on an old CUDA setup
 AC_CHECK_TYPE(cufftDoubleComplex,
