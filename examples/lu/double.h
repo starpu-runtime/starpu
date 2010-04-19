@@ -18,8 +18,14 @@
 
 #define STARPU_LU(name)       starpu_dlu_##name
 
+#ifdef STARPU_HAVE_MAGMA
+#include <magmablas.h>
+#define CUBLAS_GEMM	magmablas_dgemm
+#define CUBLAS_TRSM	magmablas_dtrsm
+#else
 #define CUBLAS_GEMM	cublasDgemm
 #define CUBLAS_TRSM	cublasDtrsm
+#endif
 #define CUBLAS_SCAL	cublasDscal
 #define CUBLAS_GER	cublasDger
 #define CUBLAS_SWAP	cublasDswap

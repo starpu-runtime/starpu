@@ -40,13 +40,20 @@
 
 
 #ifdef STARPU_USE_CUDA
+
+#ifdef STARPU_HAVE_MAGMA
+#define GPU_SGEMM magmablas_sgemm
+#else
+#define GPU_SGEMM cublasSgemm
+#endif
+
 void cublas_mult(void *descr[], __attribute__((unused)) void *arg)
 {
 	COMMON_CODE
 
 	starpu_trace_user_event(0x42);
 
-	cublasSgemm('n', 'n', nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 
+	GPU_SGEMM('n', 'n', nxC, nyC, nyA, 1.0f, subA, ldA, subB, ldB, 
 					     0.0f, subC, ldC);
 	cublasStatus st;
 	st = cublasGetError();
