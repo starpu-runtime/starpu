@@ -216,7 +216,7 @@ void *_starpu_cuda_worker(void *arg)
 	/* tell the main thread that this one is ready */
 	PTHREAD_MUTEX_LOCK(&args->mutex);
 	args->worker_is_initialized = 1;
-	pthread_cond_signal(&args->ready_cond);
+	PTHREAD_COND_SIGNAL(&args->ready_cond);
 	PTHREAD_MUTEX_UNLOCK(&args->mutex);
 
 	struct starpu_job_s * j;

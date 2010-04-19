@@ -263,7 +263,7 @@ int starpu_init(struct starpu_conf *user_conf)
 		init_count--;
 		initialized = UNINITIALIZED;
 		/* Let somebody else try to do it */
-		pthread_cond_signal(&init_cond);
+		PTHREAD_COND_SIGNAL(&init_cond);
 		PTHREAD_MUTEX_UNLOCK(&init_mutex);
 		return ret;
 	}
@@ -282,7 +282,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = INITIALIZED;
 	/* Tell everybody that we initialized */
-	pthread_cond_broadcast(&init_cond);
+	PTHREAD_COND_BROADCAST(&init_cond);
 	PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
 	return 0;
@@ -383,7 +383,7 @@ static void _starpu_operate_on_all_queues_attached_to_node(unsigned nodeid, queu
 		q  = descr->attached_queues_per_node[nodeid][q_id];
 		switch (op) {
 			case BROADCAST:
-				pthread_cond_broadcast(&q->activity_cond);
+				PTHREAD_COND_BROADCAST(&q->activity_cond);
 				break;
 			case LOCK:
 				PTHREAD_MUTEX_LOCK(&q->activity_mutex);
@@ -428,7 +428,7 @@ static void _starpu_operate_on_all_queues(queue_op op)
 		q  = descr->attached_queues_all[q_id];
 		switch (op) {
 			case BROADCAST:
-				pthread_cond_broadcast(&q->activity_cond);
+				PTHREAD_COND_BROADCAST(&q->activity_cond);
 				break;
 			case LOCK:
 				PTHREAD_MUTEX_LOCK(&q->activity_mutex);

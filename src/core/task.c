@@ -242,18 +242,13 @@ void starpu_display_codelet_stats(struct starpu_codelet_t *cl)
  */
 int starpu_wait_all_tasks(void)
 {
-	int res;
-
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
 	PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
-	if (nsubmitted > 0)
-	{
-		res = pthread_cond_wait(&submitted_cond, &submitted_mutex);
-		STARPU_ASSERT(!res);
-	}
+	while (nsubmitted > 0)
+		PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
 	
 	PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
@@ -263,13 +258,10 @@ int starpu_wait_all_tasks(void)
 void _starpu_decrement_nsubmitted_tasks(void)
 {
 	PTHREAD_MUTEX_LOCK(&submitted_mutex);
-	if (--nsubmitted == 0)
-	{
-		int broadcast_res;
-		broadcast_res = pthread_cond_broadcast(&submitted_cond);
-		STARPU_ASSERT(!broadcast_res);
 
-	}
+	if (--nsubmitted == 0)
+		PTHREAD_COND_BROADCAST(&submitted_cond);
+
 	PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
 }

@@ -57,7 +57,7 @@ void *gordon_worker_progress(void *arg)
 
 	PTHREAD_MUTEX_LOCK(&progress_mutex);
 	progress_thread_is_inited = 1;
-	pthread_cond_signal(&progress_cond);
+	PTHREAD_COND_SIGNAL(&progress_cond);
 	PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
 	while (1) {
@@ -454,7 +454,7 @@ void *_starpu_gordon_worker(void *arg)
 	/* tell the core that gordon is ready */
 	PTHREAD_MUTEX_LOCK(&gordon_set_arg->mutex);
 	gordon_set_arg->set_is_initialized = 1;
-	pthread_cond_signal(&gordon_set_arg->ready_cond);
+	PTHREAD_COND_SIGNAL(&gordon_set_arg->ready_cond);
 	PTHREAD_MUTEX_UNLOCK(&gordon_set_arg->mutex);
 
 	gordon_worker_inject(gordon_set_arg);

@@ -79,7 +79,7 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 		/* continuation of starpu_sync_data_with_mem */
 		PTHREAD_MUTEX_LOCK(&statenode->lock);
 		statenode->finished = 1;
-		pthread_cond_signal(&statenode->cond);
+		PTHREAD_COND_SIGNAL(&statenode->cond);
 		PTHREAD_MUTEX_UNLOCK(&statenode->lock);
 	}
 }
@@ -174,7 +174,7 @@ static void _prefetch_data_on_node(void *arg)
 
 	PTHREAD_MUTEX_LOCK(&statenode->lock);
 	statenode->finished = 1;
-	pthread_cond_signal(&statenode->cond);
+	PTHREAD_COND_SIGNAL(&statenode->cond);
 	PTHREAD_MUTEX_UNLOCK(&statenode->lock);
 
 	if (!statenode->async)

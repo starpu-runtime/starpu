@@ -32,6 +32,7 @@ int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex);
 
 #define PTHREAD_COND_INIT(cond, attr) { int ret = pthread_cond_init((cond), (attr)); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_cond_init : %s", strerror(ret)); STARPU_ABORT(); }}
 #define PTHREAD_COND_DESTROY(cond) { int ret = pthread_cond_destroy(cond); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_cond_destroy : %s", strerror(ret)); STARPU_ABORT();}}
+#define PTHREAD_COND_SIGNAL(cond) { int ret = pthread_cond_signal(cond); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_cond_signal : %s", strerror(ret)); STARPU_ABORT();}}
 #define PTHREAD_COND_BROADCAST(cond) { int ret = pthread_cond_broadcast(cond); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_cond_broadcast : %s", strerror(ret)); STARPU_ABORT();}}
 #define PTHREAD_COND_WAIT(cond, mutex) { int ret = pthread_cond_wait((cond), (mutex)); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_cond_wait : %s", strerror(ret)); STARPU_ABORT();}}
 
