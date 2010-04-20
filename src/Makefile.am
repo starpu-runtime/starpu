@@ -55,7 +55,7 @@ noinst_HEADERS = 						\
 	datawizard/footprint.h					\
 	datawizard/datawizard.h					\
 	datawizard/data_request.h				\
-	datawizard/hierarchy.h					\
+	datawizard/filters.h					\
 	datawizard/progress.h					\
 	datawizard/write_back.h					\
 	datawizard/datastats.h					\
@@ -120,7 +120,7 @@ libstarpu_la_SOURCES = 						\
 	datawizard/data_request.c				\
 	datawizard/progress.c					\
 	datawizard/copy_driver.c				\
-	datawizard/hierarchy.c					\
+	datawizard/filters.c					\
 	datawizard/sort_data_handles.c				\
 	datawizard/memalloc.c					\
 	datawizard/footprint.c					\

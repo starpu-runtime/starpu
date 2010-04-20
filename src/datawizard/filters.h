@@ -14,14 +14,15 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __HIERARCHY_H__
-#define __HIERARCHY_H__
+#ifndef __FILTERS_H__
+#define __FILTERS_H__
 
 #include <stdarg.h>
 #include <datawizard/coherency.h>
 #include <datawizard/memalloc.h>
 
 #include <starpu.h>
+#include <common/config.h>
 
 void _starpu_register_new_data(starpu_data_handle handle, uint32_t home_node, uint32_t wb_mask);
 

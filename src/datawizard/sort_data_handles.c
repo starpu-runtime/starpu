@@ -17,7 +17,7 @@
 #include <starpu.h>
 #include <common/config.h>
 
-#include "hierarchy.h"
+#include <datawizard/filters.h>
 
 /* To avoid deadlocks in case we have multiple tasks accessing the same piece
  * of data  (eg. task T1 needs A and B, and T2 needs B and A), we need to lock

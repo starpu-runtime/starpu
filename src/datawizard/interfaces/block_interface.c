@@ -18,7 +18,7 @@
 #include <common/config.h>
 #include <datawizard/coherency.h>
 #include <datawizard/copy_driver.h>
-#include <datawizard/hierarchy.h>
+#include <datawizard/filters.h>
 
 #include <common/hash.h>
 

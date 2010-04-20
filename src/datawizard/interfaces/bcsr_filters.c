@@ -16,7 +16,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
-#include <datawizard/hierarchy.h>
+#include <datawizard/filters.h>
 
 void starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unused)), starpu_data_handle root_handle)
 {

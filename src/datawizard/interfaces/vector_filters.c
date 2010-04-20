@@ -16,7 +16,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
-#include <datawizard/hierarchy.h>
+#include <datawizard/filters.h>
 
 void starpu_block_filter_func_vector(starpu_filter *f, starpu_data_handle root_handle)
 {
