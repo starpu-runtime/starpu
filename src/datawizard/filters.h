@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,7 +23,5 @@
 
 #include <starpu.h>
 #include <common/config.h>
-
-void _starpu_register_new_data(starpu_data_handle handle, uint32_t home_node, uint32_t wb_mask);
 
 #endif

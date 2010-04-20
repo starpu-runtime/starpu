@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,14 +16,59 @@
 
 #include <datawizard/datawizard.h>
 
-unsigned starpu_get_handle_interface_id(starpu_data_handle handle)
-{
-	return handle->ops->interfaceid;
-}
+/* 
+ * Start monitoring a piece of data
+ */
 
-void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node)
+static void _starpu_register_new_data(starpu_data_handle handle,
+					uint32_t home_node, uint32_t wb_mask)
 {
-	return handle->interface[memory_node];
+	STARPU_ASSERT(handle);
+
+	/* initialize the new lock */
+	handle->req_list = starpu_data_requester_list_new();
+	handle->refcnt = 0;
+	_starpu_spin_init(&handle->header_lock);
+
+	/* first take care to properly lock the data */
+	_starpu_spin_lock(&handle->header_lock);
+
+	/* we assume that all nodes may use that data */
+	handle->nnodes = STARPU_MAXNODES;
+
+	/* there is no hierarchy yet */
+	handle->nchildren = 0;
+	handle->root_handle = handle;
+	handle->father_handle = NULL;
+	handle->sibling_index = 0; /* could be anything for the root */
+	handle->depth = 1; /* the tree is just a node yet */
+
+	handle->is_not_important = 0;
+
+	handle->wb_mask = wb_mask;
+
+	/* that new data is invalid from all nodes perpective except for the
+	 * home node */
+	unsigned node;
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		if (node == home_node) {
+			/* this is the home node with the only valid copy */
+			handle->per_node[node].state = STARPU_OWNER;
+			handle->per_node[node].allocated = 1;
+			handle->per_node[node].automatically_allocated = 0;
+			handle->per_node[node].refcnt = 0;
+		}
+		else {
+			/* the value is not available here yet */
+			handle->per_node[node].state = STARPU_INVALID;
+			handle->per_node[node].allocated = 0;
+			handle->per_node[node].refcnt = 0;
+		}
+	}
+
+	/* now the data is available ! */
+	_starpu_spin_unlock(&handle->header_lock);
 }
 
 static starpu_data_handle _starpu_data_handle_allocate(struct starpu_data_interface_ops_t *interface_ops)
@@ -62,4 +107,46 @@ void _starpu_register_data_handle(starpu_data_handle *handleptr, uint32_t home_n
 
 	_starpu_register_new_data(handle, home_node, 0);
 }
-/* register data interface ? (do we need to register ?) descr =  type enum, required to get an id !  */
+
+/* 
+ * Stop monitoring a piece of data
+ */
+
+void starpu_data_liberate_interfaces(starpu_data_handle handle)
+{
+	unsigned node;
+	for (node = 0; node < STARPU_MAXNODES; node++)
+		free(handle->interface[node]);
+}
+
+void starpu_delete_data(starpu_data_handle handle)
+{
+	unsigned node;
+
+	STARPU_ASSERT(handle);
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		starpu_local_data_state *local = &handle->per_node[node];
+
+		if (local->allocated && local->automatically_allocated){
+			/* free the data copy in a lazy fashion */
+			_starpu_request_mem_chunk_removal(handle, node);
+		}
+	}
+
+	starpu_data_requester_list_delete(handle->req_list);
+
+	starpu_data_liberate_interfaces(handle);
+
+	free(handle);
+}
+
+unsigned starpu_get_handle_interface_id(starpu_data_handle handle)
+{
+	return handle->ops->interfaceid;
+}
+
+void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node)
+{
+	return handle->interface[memory_node];
+}
