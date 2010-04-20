@@ -24,6 +24,9 @@
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
+#ifndef HWLOC_API_VERSION
+#define HWLOC_OBJ_PU HWLOC_OBJ_PROC
+#endif
 #endif
 
 #if defined(__MINGW32__) || defined(__CYGWIN__)
@@ -136,7 +139,7 @@ static void _starpu_init_topology(struct starpu_machine_config_s *config)
 
 		if (config->cpu_depth == HWLOC_TYPE_DEPTH_UNKNOWN)
 			/* unknown, using logical procesors as fallback */
-			config->cpu_depth = hwloc_get_type_depth(config->hwtopology, HWLOC_OBJ_PROC);
+			config->cpu_depth = hwloc_get_type_depth(config->hwtopology, HWLOC_OBJ_PU);
 
 		config->nhwcpus = hwloc_get_nbobjs_by_depth(config->hwtopology, config->cpu_depth);
 #elif defined(__MINGW32__) || defined(__CYGWIN__)
