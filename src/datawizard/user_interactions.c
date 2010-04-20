@@ -233,3 +233,29 @@ int starpu_prefetch_data_on_node(starpu_data_handle handle, unsigned node, unsig
 {
 	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R);
 }
+
+/*
+ *	It is possible to specify that a piece of data can be discarded without
+ *	impacting the application.
+ */
+void starpu_advise_if_data_is_important(starpu_data_handle handle, unsigned is_important)
+{
+	_starpu_spin_lock(&handle->header_lock);
+
+	/* first take all the children lock (in order !) */
+	unsigned child;
+	for (child = 0; child < handle->nchildren; child++)
+	{
+		/* make sure the intermediate children is advised as well */
+		if (handle->children[child].nchildren > 0)
+			starpu_advise_if_data_is_important(&handle->children[child], is_important);
+	}
+
+	handle->is_not_important = !is_important;
+
+	/* now the parent may be used again so we release the lock */
+	_starpu_spin_unlock(&handle->header_lock);
+
+}
+
+

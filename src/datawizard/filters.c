@@ -231,27 +231,6 @@ void starpu_unpartition_data(starpu_data_handle root_handle, uint32_t gathering_
 	_starpu_spin_unlock(&root_handle->header_lock);
 }
 
-/* TODO move ! */
-void starpu_advise_if_data_is_important(starpu_data_handle handle, unsigned is_important)
-{
-	_starpu_spin_lock(&handle->header_lock);
-
-	/* first take all the children lock (in order !) */
-	unsigned child;
-	for (child = 0; child < handle->nchildren; child++)
-	{
-		/* make sure the intermediate children is advised as well */
-		if (handle->children[child].nchildren > 0)
-			starpu_advise_if_data_is_important(&handle->children[child], is_important);
-	}
-
-	handle->is_not_important = !is_important;
-
-	/* now the parent may be used again so we release the lock */
-	_starpu_spin_unlock(&handle->header_lock);
-
-}
-
 /* TODO create an alternative version of that function which takes an array of
  * data interface ops in case each child may have its own interface type */
 void starpu_data_create_children(starpu_data_handle handle,
