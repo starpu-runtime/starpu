@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "hierarchy.h"
+#include <datawizard/hierarchy.h>
 
 /* 
  * Stop monitoring a data
@@ -334,27 +334,6 @@ void starpu_advise_if_data_is_important(starpu_data_handle handle, unsigned is_i
 	/* now the parent may be used again so we release the lock */
 	_starpu_spin_unlock(&handle->header_lock);
 
-}
-
-starpu_data_handle starpu_data_state_create(struct starpu_data_interface_ops_t *interface_ops)
-{
-	starpu_data_handle handle =
-		calloc(1, sizeof(struct starpu_data_state_t));
-
-	STARPU_ASSERT(handle);
-
-	handle->ops = interface_ops;
-
-	size_t interfacesize = interface_ops->interface_size;
-
-	unsigned node;
-	for (node = 0; node < STARPU_MAXNODES; node++)
-	{
-		handle->interface[node] = calloc(1, interfacesize);
-		STARPU_ASSERT(handle->interface[node]);
-	}
-
-	return handle;
 }
 
 /* TODO create an alternative version of that function which takes an array of

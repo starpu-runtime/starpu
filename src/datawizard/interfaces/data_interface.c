@@ -26,12 +26,33 @@ void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memo
 	return handle->interface[memory_node];
 }
 
+static starpu_data_handle _starpu_data_handle_allocate(struct starpu_data_interface_ops_t *interface_ops)
+{
+	starpu_data_handle handle =
+		calloc(1, sizeof(struct starpu_data_state_t));
+
+	STARPU_ASSERT(handle);
+
+	handle->ops = interface_ops;
+
+	size_t interfacesize = interface_ops->interface_size;
+
+	unsigned node;
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		handle->interface[node] = calloc(1, interfacesize);
+		STARPU_ASSERT(handle->interface[node]);
+	}
+
+	return handle;
+}
+
 void _starpu_register_data_handle(starpu_data_handle *handleptr, uint32_t home_node,
 				void *interface,
 				struct starpu_data_interface_ops_t *ops)
 {
 	starpu_data_handle handle =
-		starpu_data_state_create(ops);
+		_starpu_data_handle_allocate(ops);
 
 	STARPU_ASSERT(handleptr);
 	*handleptr = handle;

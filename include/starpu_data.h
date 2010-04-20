@@ -41,7 +41,6 @@ typedef struct starpu_buffer_descr_t {
 } starpu_buffer_descr;
 
 struct starpu_data_interface_ops_t;
-starpu_data_handle starpu_data_state_create(struct starpu_data_interface_ops_t *interface_ops);
 
 void starpu_unpartition_data(starpu_data_handle root_data, uint32_t gathering_node);
 void starpu_delete_data(starpu_data_handle state);
