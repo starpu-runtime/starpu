@@ -147,7 +147,7 @@ int main(int argc, char **argv)
 	}
 
 	pthread_mutex_lock(&mutex);
-	if (!finished)
+	while (!finished)
 		pthread_cond_wait(&cond, &mutex);
 	pthread_mutex_unlock(&mutex);
 
