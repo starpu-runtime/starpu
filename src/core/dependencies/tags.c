@@ -36,8 +36,8 @@ static starpu_cg_t *create_cg_apps(unsigned ntags)
 	cg->cg_type = STARPU_CG_APPS;
 
 	cg->succ.succ_apps.completed = 0;
-	pthread_mutex_init(&cg->succ.succ_apps.cg_mutex, NULL);
-	pthread_cond_init(&cg->succ.succ_apps.cg_cond, NULL);
+	PTHREAD_MUTEX_INIT(&cg->succ.succ_apps.cg_mutex, NULL);
+	PTHREAD_COND_INIT(&cg->succ.succ_apps.cg_cond, NULL);
 
 	return cg;
 }
@@ -336,8 +336,8 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 
 	PTHREAD_MUTEX_UNLOCK(&cg->succ.succ_apps.cg_mutex);
 
-	pthread_mutex_destroy(&cg->succ.succ_apps.cg_mutex);
-	pthread_cond_destroy(&cg->succ.succ_apps.cg_cond);
+	PTHREAD_MUTEX_DESTROY(&cg->succ.succ_apps.cg_mutex);
+	PTHREAD_COND_DESTROY(&cg->succ.succ_apps.cg_cond);
 
 	free(cg);
 

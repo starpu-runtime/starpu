@@ -114,8 +114,8 @@ static void _starpu_init_workers(struct starpu_machine_config_s *config)
 
 		workerarg->config = config;
 
-		pthread_mutex_init(&workerarg->mutex, NULL);
-		pthread_cond_init(&workerarg->ready_cond, NULL);
+		PTHREAD_MUTEX_INIT(&workerarg->mutex, NULL);
+		PTHREAD_COND_INIT(&workerarg->ready_cond, NULL);
 
 		workerarg->workerid = (int)worker;
 
@@ -127,7 +127,7 @@ static void _starpu_init_workers(struct starpu_machine_config_s *config)
 		workerarg->terminated_jobs = starpu_job_list_new();
 
 		workerarg->local_jobs = starpu_job_list_new();
-		pthread_mutex_init(&workerarg->local_jobs_mutex, NULL);
+		PTHREAD_MUTEX_INIT(&workerarg->local_jobs_mutex, NULL);
 	
 		workerarg->status = STATUS_INITIALIZING;
 
@@ -458,7 +458,7 @@ static void _starpu_kill_all_workers(struct starpu_machine_config_s *config)
 	config->running = 0;
 
 	_starpu_operate_on_all_queues(BROADCAST);
-	pthread_cond_broadcast(&sched->sched_activity_cond);
+	PTHREAD_COND_BROADCAST(&sched->sched_activity_cond);
 
 	PTHREAD_MUTEX_UNLOCK(&sched->sched_activity_mutex);
 	_starpu_operate_on_all_queues(UNLOCK);

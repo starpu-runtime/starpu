@@ -85,8 +85,8 @@ static void load_sched_policy(struct starpu_sched_policy_s *sched_policy)
 	policy.deinit_sched = sched_policy->deinit_sched;
 	policy.starpu_get_local_queue = sched_policy->starpu_get_local_queue;
 
-	pthread_cond_init(&policy.sched_activity_cond, NULL);
-	pthread_mutex_init(&policy.sched_activity_mutex, NULL);
+	PTHREAD_COND_INIT(&policy.sched_activity_cond, NULL);
+	PTHREAD_MUTEX_INIT(&policy.sched_activity_mutex, NULL);
 	pthread_key_create(&policy.local_queue_key, NULL);
 }
 
@@ -197,8 +197,8 @@ void _starpu_deinit_sched_policy(struct starpu_machine_config_s *config)
 		policy.deinit_sched(config, &policy);
 
 	pthread_key_delete(policy.local_queue_key);
-	pthread_mutex_destroy(&policy.sched_activity_mutex);
-	pthread_cond_destroy(&policy.sched_activity_cond);
+	PTHREAD_MUTEX_DESTROY(&policy.sched_activity_mutex);
+	PTHREAD_COND_DESTROY(&policy.sched_activity_cond);
 }
 
 /* the generic interface that call the proper underlying implementation */

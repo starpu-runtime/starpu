@@ -40,7 +40,7 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 
 		/* wake anybody waiting on that queue */
 		PTHREAD_MUTEX_LOCK(&q->activity_mutex);
-		pthread_cond_broadcast(&q->activity_cond);
+		PTHREAD_COND_BROADCAST(&q->activity_cond);
 		PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
 	}
 
@@ -55,7 +55,7 @@ void starpu_wake_all_blocked_workers(void)
 	pthread_mutex_t *sched_mutex = &sched->sched_activity_mutex;
 
 	PTHREAD_MUTEX_LOCK(sched_mutex);
-	pthread_cond_broadcast(sched_cond);
+	PTHREAD_COND_BROADCAST(sched_cond);
 	PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	/* workers may be blocked on the various queues' conditions */

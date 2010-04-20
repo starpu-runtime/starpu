@@ -134,7 +134,7 @@ void *_starpu_cpu_worker(void *arg)
         /* tell the main thread that we are ready */
 	PTHREAD_MUTEX_LOCK(&cpu_arg->mutex);
 	cpu_arg->worker_is_initialized = 1;
-	pthread_cond_signal(&cpu_arg->ready_cond);
+	PTHREAD_COND_SIGNAL(&cpu_arg->ready_cond);
 	PTHREAD_MUTEX_UNLOCK(&cpu_arg->mutex);
 
         starpu_job_t j;

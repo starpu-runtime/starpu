@@ -53,8 +53,8 @@ struct starpu_jobq_s *_starpu_create_priority_jobq(void)
 	central_queue = malloc(sizeof(struct starpu_priority_jobq_s));
 	q->queue = central_queue;
 
-	pthread_mutex_init(&q->activity_mutex, NULL);
-	pthread_cond_init(&q->activity_cond, NULL);
+	PTHREAD_MUTEX_INIT(&q->activity_mutex, NULL);
+	PTHREAD_COND_INIT(&q->activity_cond, NULL);
 
 	central_queue->total_njobs = 0;
 
@@ -90,7 +90,7 @@ int _starpu_priority_push_task(struct starpu_jobq_s *q, starpu_job_t j)
 
 	/* if anyone is blocked on the entire machine, wake it up */
 	PTHREAD_MUTEX_LOCK(sched_mutex);
-	pthread_cond_signal(sched_cond);
+	PTHREAD_COND_SIGNAL(sched_cond);
 	PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	/* wake people waiting locally */
@@ -104,7 +104,7 @@ int _starpu_priority_push_task(struct starpu_jobq_s *q, starpu_job_t j)
 	queue->njobs[priolevel]++;
 	queue->total_njobs++;
 
-	pthread_cond_signal(&q->activity_cond);
+	PTHREAD_COND_SIGNAL(&q->activity_cond);
 	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
 
 	return 0;
@@ -125,7 +125,7 @@ starpu_job_t _starpu_priority_pop_task(struct starpu_jobq_s *q)
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 		_starpu_datawizard_progress(q->memory_node, 1);
 #else
-		pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
+		PTHREAD_COND_WAIT(&q->activity_cond, &q->activity_mutex);
 #endif
 	}
 

@@ -41,8 +41,8 @@ void _starpu_deinit_deque_queues_mechanisms(void)
 {
 	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
 
-	pthread_mutex_destroy(&sched->sched_activity_mutex);
-	pthread_cond_destroy(&sched->sched_activity_cond);
+	PTHREAD_MUTEX_DESTROY(&sched->sched_activity_mutex);
+	PTHREAD_COND_DESTROY(&sched->sched_activity_cond);
 }
 
 struct starpu_jobq_s *_starpu_create_deque(void)
@@ -50,8 +50,8 @@ struct starpu_jobq_s *_starpu_create_deque(void)
 	struct starpu_jobq_s *jobq;
 	jobq = malloc(sizeof(struct starpu_jobq_s));
 
-	pthread_mutex_init(&jobq->activity_mutex, NULL);
-	pthread_cond_init(&jobq->activity_cond, NULL);
+	PTHREAD_MUTEX_INIT(&jobq->activity_mutex, NULL);
+	PTHREAD_COND_INIT(&jobq->activity_cond, NULL);
 
 	struct starpu_deque_jobq_s *deque;
 	deque = malloc(sizeof(struct starpu_deque_jobq_s));
@@ -118,7 +118,7 @@ int _starpu_deque_push_task(struct starpu_jobq_s *q, starpu_job_t task)
 	/* if anyone is blocked on the entire machine, wake it up */
 	PTHREAD_MUTEX_LOCK(sched_mutex);
 	total_number_of_jobs++;
-	pthread_cond_signal(sched_cond);
+	PTHREAD_COND_SIGNAL(sched_cond);
 	PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	/* wake people waiting locally */
@@ -129,7 +129,7 @@ int _starpu_deque_push_task(struct starpu_jobq_s *q, starpu_job_t task)
 	deque_queue->njobs++;
 	deque_queue->nprocessed++;
 
-	pthread_cond_signal(&q->activity_cond);
+	PTHREAD_COND_SIGNAL(&q->activity_cond);
 	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
 
 	return 0;

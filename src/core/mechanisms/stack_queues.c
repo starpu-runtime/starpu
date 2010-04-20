@@ -45,8 +45,8 @@ struct starpu_jobq_s *_starpu_create_stack(void)
 	struct starpu_stack_jobq_s *stack;
 	stack = malloc(sizeof(struct starpu_stack_jobq_s));
 
-	pthread_mutex_init(&jobq->activity_mutex, NULL);
-	pthread_cond_init(&jobq->activity_cond, NULL);
+	PTHREAD_MUTEX_INIT(&jobq->activity_mutex, NULL);
+	PTHREAD_COND_INIT(&jobq->activity_cond, NULL);
 
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
 	stack->jobq = starpu_job_list_new();
@@ -94,7 +94,7 @@ void _starpu_stack_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
 	/* if anyone is blocked on the entire machine, wake it up */
 	PTHREAD_MUTEX_LOCK(sched_mutex);
 	total_number_of_jobs++;
-	pthread_cond_signal(sched_cond);
+	PTHREAD_COND_SIGNAL(sched_cond);
 	PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	/* wake people waiting locally */
@@ -105,7 +105,7 @@ void _starpu_stack_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
 	deque_queue->njobs++;
 	deque_queue->nprocessed++;
 
-	pthread_cond_signal(&q->activity_cond);
+	PTHREAD_COND_SIGNAL(&q->activity_cond);
 	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
 #else
 	_starpu_stack_push_task(q, task);
@@ -120,7 +120,7 @@ void _starpu_stack_push_task(struct starpu_jobq_s *q, starpu_job_t task)
 	/* if anyone is blocked on the entire machine, wake it up */
 	PTHREAD_MUTEX_LOCK(sched_mutex);
 	total_number_of_jobs++;
-	pthread_cond_signal(sched_cond);
+	PTHREAD_COND_SIGNAL(sched_cond);
 	PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	/* wake people waiting locally */
@@ -131,7 +131,7 @@ void _starpu_stack_push_task(struct starpu_jobq_s *q, starpu_job_t task)
 	deque_queue->njobs++;
 	deque_queue->nprocessed++;
 
-	pthread_cond_signal(&q->activity_cond);
+	PTHREAD_COND_SIGNAL(&q->activity_cond);
 	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
 }
 

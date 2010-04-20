@@ -35,12 +35,12 @@ void _starpu_init_data_request_lists(void)
 	for (i = 0; i < STARPU_MAXNODES; i++)
 	{
 		data_requests[i] = starpu_data_request_list_new();
-		pthread_mutex_init(&data_requests_list_mutex[i], NULL);
-		pthread_cond_init(&data_requests_list_cond[i], NULL);
+		PTHREAD_MUTEX_INIT(&data_requests_list_mutex[i], NULL);
+		PTHREAD_COND_INIT(&data_requests_list_cond[i], NULL);
 
 		data_requests_pending[i] = starpu_data_request_list_new();
-		pthread_mutex_init(&data_requests_pending_list_mutex[i], NULL);
-		pthread_cond_init(&data_requests_pending_list_cond[i], NULL);
+		PTHREAD_MUTEX_INIT(&data_requests_pending_list_mutex[i], NULL);
+		PTHREAD_COND_INIT(&data_requests_pending_list_cond[i], NULL);
 	}
 }
 
@@ -49,12 +49,12 @@ void _starpu_deinit_data_request_lists(void)
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
 	{
-		pthread_cond_destroy(&data_requests_pending_list_cond[i]);
-		pthread_mutex_destroy(&data_requests_pending_list_mutex[i]);
+		PTHREAD_COND_DESTROY(&data_requests_pending_list_cond[i]);
+		PTHREAD_MUTEX_DESTROY(&data_requests_pending_list_mutex[i]);
 		starpu_data_request_list_delete(data_requests_pending[i]);
 
-		pthread_cond_destroy(&data_requests_list_cond[i]);
-		pthread_mutex_destroy(&data_requests_list_mutex[i]);
+		PTHREAD_COND_DESTROY(&data_requests_list_cond[i]);
+		PTHREAD_MUTEX_DESTROY(&data_requests_list_mutex[i]);
 		starpu_data_request_list_delete(data_requests[i]);
 	}
 }

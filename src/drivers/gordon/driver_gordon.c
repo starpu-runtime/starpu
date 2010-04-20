@@ -438,8 +438,8 @@ void *_starpu_gordon_worker(void *arg)
 	 */
 
 	/* launch the progression thread */
-	pthread_mutex_init(&progress_mutex, NULL);
-	pthread_cond_init(&progress_cond, NULL);
+	PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
+	PTHREAD_COND_INIT(&progress_cond, NULL);
 	
 	pthread_create(&progress_thread, NULL, gordon_worker_progress, gordon_set_arg);
 

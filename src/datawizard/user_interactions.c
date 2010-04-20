@@ -137,8 +137,8 @@ int starpu_sync_data_with_mem_non_blocking(starpu_data_handle handle,
 	statenode->non_blocking = 1;
 	statenode->callback = callback;
 	statenode->callback_arg = arg;
-	pthread_cond_init(&statenode->cond, NULL);
-	pthread_mutex_init(&statenode->lock, NULL);
+	PTHREAD_COND_INIT(&statenode->cond, NULL);
+	PTHREAD_MUTEX_INIT(&statenode->lock, NULL);
 	statenode->finished = 0;
 
 	/* we try to get the data, if we do not succeed immediately, we set a

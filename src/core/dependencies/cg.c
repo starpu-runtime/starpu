@@ -56,6 +56,8 @@ void _starpu_cg_list_deinit(struct starpu_cg_list_s *list)
 
 void _starpu_add_successor_to_cg_list(struct starpu_cg_list_s *successors, starpu_cg_t *cg)
 {
+	STARPU_ASSERT(cg);
+
 	/* where should that cg should be put in the array ? */
 	unsigned index = STARPU_ATOMIC_ADD(&successors->nsuccs, 1) - 1;
 
@@ -97,7 +99,7 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 	 			 * tags, wake the thread */
 				PTHREAD_MUTEX_LOCK(&cg->succ.succ_apps.cg_mutex);
 				cg->succ.succ_apps.completed = 1;
-				pthread_cond_signal(&cg->succ.succ_apps.cg_cond);
+				PTHREAD_COND_SIGNAL(&cg->succ.succ_apps.cg_cond);
 				PTHREAD_MUTEX_UNLOCK(&cg->succ.succ_apps.cg_mutex);
 				break;
 
@@ -149,12 +151,18 @@ void _starpu_notify_cg_list(struct starpu_cg_list_s *successors)
 	for (succ = 0; succ < nsuccs; succ++)
 	{
 		struct starpu_cg_s *cg = successors->succ[succ];
-		struct starpu_tag_s *cgtag = cg->succ.tag;
+		STARPU_ASSERT(cg);
+
+		struct starpu_tag_s *cgtag;
 
 		unsigned cg_type = cg->cg_type;
 
 		if (cg_type == STARPU_CG_TAG)
+		{
+			cgtag = cg->succ.tag;
+			STARPU_ASSERT(cgtag);
 			_starpu_spin_lock(&cgtag->lock);
+		}
 
 		_starpu_notify_cg(cg);
 		if (cg_type == STARPU_CG_APPS) {

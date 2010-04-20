@@ -40,8 +40,8 @@ struct starpu_jobq_s *_starpu_create_fifo(void)
 	struct starpu_jobq_s *jobq;
 	jobq = malloc(sizeof(struct starpu_jobq_s));
 
-	pthread_mutex_init(&jobq->activity_mutex, NULL);
-	pthread_cond_init(&jobq->activity_cond, NULL);
+	PTHREAD_MUTEX_INIT(&jobq->activity_mutex, NULL);
+	PTHREAD_COND_INIT(&jobq->activity_cond, NULL);
 
 	struct starpu_fifo_jobq_s *fifo;
 	fifo = malloc(sizeof(struct starpu_fifo_jobq_s));
