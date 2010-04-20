@@ -22,7 +22,7 @@
 
 static size_t vector_size = 1;
 
-static niter = 10000;
+static niter = 1000;
 static unsigned cnt;
 
 static unsigned finished = 0;
@@ -81,21 +81,11 @@ int main(int argc, char **argv)
 
 	/* warm up */
 	unsigned nwarmupiter = 128;
-	for (iter = 0; iter < nwarmupiter; iter++)
-	{
-		 _starpu_prefetch_data_on_node_with_mode(v_handle, memory_node_0, 0, STARPU_RW);
-		 _starpu_prefetch_data_on_node_with_mode(v_handle, memory_node_1, 0, STARPU_RW);
-	}
+	_starpu_benchmark_ping_pong(v_handle, memory_node_0, memory_node_1, 128);
 
 	gettimeofday(&start, NULL);
 
-	for (iter = 0; iter < niter; iter++)
-	{
-		starpu_trace_user_event(0x42);
-		 _starpu_prefetch_data_on_node_with_mode(v_handle, memory_node_0, 0, STARPU_RW);
-		starpu_trace_user_event(0x43);
-		 _starpu_prefetch_data_on_node_with_mode(v_handle, memory_node_1, 0, STARPU_RW);
-	}
+	_starpu_benchmark_ping_pong(v_handle, memory_node_0, memory_node_1, niter);
 
 	gettimeofday(&end, NULL);
 

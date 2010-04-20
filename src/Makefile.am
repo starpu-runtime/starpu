@@ -141,7 +141,8 @@ libstarpu_la_SOURCES = 						\
 	util/execute_on_all.c					\
 	util/starpu_create_sync_task.c				\
 	util/starpu_cublas.c					\
-	util/file.c
+	util/file.c						\
+	debug/latency.c
 
 if STARPU_USE_CPU
 libstarpu_la_SOURCES += drivers/cpu/driver_cpu.c
