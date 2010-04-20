@@ -654,8 +654,8 @@ blas_lib=maybe
 AC_ARG_ENABLE(blas-lib,
  [  --enable-blas-lib[=blaslibname]:
                       none [default]: no BLAS lib is used
-                      atlas: use STARPU_ATLAS library
-                      goto: use STARPU_GOTO library],
+                      atlas: use ATLAS library
+                      goto: use GotoBLAS library],
  [ 
      if   test "x$enableval" = "xatlas" ; then
         blas_lib=atlas
@@ -674,7 +674,7 @@ AC_ARG_ENABLE(blas-lib,
  ])
 
 if test x$blas_lib = xmaybe -o x$blas_lib = xgoto; then
-AC_ARG_WITH(goto-dir, [AS_HELP_STRING([--with-goto-dir=<dir>], [specify STARPU_GOTO lib location])],
+AC_ARG_WITH(goto-dir, [AS_HELP_STRING([--with-goto-dir=<dir>], [specify GotoBLAS lib location])],
 	[
 		blas_lib=goto
 		gotodir=$withval
@@ -694,7 +694,7 @@ fi
 fi
      
 if test x$blas_lib = xmaybe -o x$blas_lib = xatlas; then
-AC_ARG_WITH(atlas-dir, [AS_HELP_STRING([--with-atlas-dir=<dir>], [specify STARPU_ATLAS lib location])],
+AC_ARG_WITH(atlas-dir, [AS_HELP_STRING([--with-atlas-dir=<dir>], [specify ATLAS lib location])],
 	[
 		AC_MSG_CHECKING(STARPU_ATLAS location)
 		blas_lib=atlas
