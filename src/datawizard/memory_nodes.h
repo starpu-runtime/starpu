@@ -17,12 +17,10 @@
 #ifndef __MEMORY_NODES_H__
 #define __MEMORY_NODES_H__
 
-#include "coherency.h"
-#include "memalloc.h"
-
-#ifdef STARPU_USE_CUDA
-#include <cublas.h>
-#endif
+#include <starpu.h>
+#include <common/config.h>
+#include <datawizard/coherency.h>
+#include <datawizard/memalloc.h>
 
 typedef enum {
 	STARPU_UNUSED,

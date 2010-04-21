@@ -17,14 +17,19 @@
 #ifndef __DATAWIZARD_H__
 #define __DATAWIZARD_H__
 
+#include <starpu.h>
+#include <common/config.h>
+
+#include <common/utils.h>
+
 #include <datawizard/coherency.h>
 #include <datawizard/filters.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/footprint.h>
 
-#include <datawizard/progress.h>
 #include <datawizard/data_request.h>
-
 #include <datawizard/interfaces/data_interface.h>
+
+void _starpu_datawizard_progress(uint32_t memory_node, unsigned may_alloc);
 
 #endif // __DATAWIZARD_H__

@@ -14,8 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <datawizard/write_back.h>
-#include <datawizard/coherency.h>
+#include <datawizard/datawizard.h>
 
 void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_node, 
 					   uint32_t write_through_mask)

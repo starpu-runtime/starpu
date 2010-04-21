@@ -24,7 +24,6 @@
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/coherency.h>
 #include <datawizard/copy_driver.h>
-#include <datawizard/progress.h>
 
 LIST_TYPE(starpu_mem_chunk,
 	starpu_data_handle data;

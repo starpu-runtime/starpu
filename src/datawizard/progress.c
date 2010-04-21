@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,10 +14,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <pthread.h>
+#include <starpu.h>
+#include <common/config.h>
+#include <datawizard/datawizard.h>
 #include <core/workers.h>
-#include <datawizard/progress.h>
-#include <datawizard/data_request.h>
 
 void _starpu_datawizard_progress(uint32_t memory_node, unsigned may_alloc)
 {

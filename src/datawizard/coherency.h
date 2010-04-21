@@ -17,26 +17,17 @@
 #ifndef __COHERENCY__H__
 #define __COHERENCY__H__
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <assert.h>
-#include <errno.h>
-
 #include <starpu.h>
+#include <common/config.h>
 
-#include <pthread.h>
 #include <common/starpu_spinlock.h>
 #include <common/rwlock.h>
 #include <common/timing.h>
 #include <common/fxt.h>
 #include <common/list.h>
-#include <common/config.h>
 
 #include <datawizard/data_request.h>
 #include <datawizard/interfaces/data_interface.h>
-#include <datawizard/progress.h>
 #include <datawizard/datastats.h>
 
 typedef enum {

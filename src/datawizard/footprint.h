@@ -17,9 +17,9 @@
 #ifndef __FOOTPRINT_H__
 #define __FOOTPRINT_H__
 
+#include <starpu.h>
+#include <common/config.h>
 #include <core/jobs.h>
-
-struct starpu_job_s;
 
 void _starpu_compute_buffers_footprint(struct starpu_job_s *j);
 inline uint32_t _starpu_compute_data_footprint(starpu_data_handle handle);

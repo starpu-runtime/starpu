@@ -14,10 +14,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
 #include <common/config.h>
-#include <datawizard/data_request.h>
-#include <pthread.h>
-#include <common/utils.h>
+#include <datawizard/datawizard.h>
 
 /* requests that have not been treated at all */
 static starpu_data_request_list_t data_requests[STARPU_MAXNODES];

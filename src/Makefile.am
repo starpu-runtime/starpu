@@ -56,7 +56,6 @@ noinst_HEADERS = 						\
 	datawizard/datawizard.h					\
 	datawizard/data_request.h				\
 	datawizard/filters.h					\
-	datawizard/progress.h					\
 	datawizard/write_back.h					\
 	datawizard/datastats.h					\
 	datawizard/memalloc.h					\
