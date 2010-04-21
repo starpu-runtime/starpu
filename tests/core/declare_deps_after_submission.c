@@ -22,17 +22,6 @@
 
 #define NLOOPS	128
 
-static void callback(void *arg)
-{
-	struct starpu_task *taskA, *taskB;
-
-	taskA = starpu_get_current_task();
-	taskB = arg;
-
-	starpu_task_declare_deps_array(taskB, 1, &taskA);
-	starpu_submit_task(taskB);
-}
-
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
 }
@@ -59,12 +48,12 @@ static struct starpu_task *create_dummy_task(void)
 int main(int argc, char **argv)
 {
 	int ret;
+	unsigned loop;
 
 	starpu_init(NULL);
 
 	struct starpu_task *taskA, *taskB;
-	
-	unsigned loop;
+
 	for (loop = 0; loop < NLOOPS; loop++)
 	{
 		taskA = create_dummy_task();
@@ -92,45 +81,6 @@ int main(int argc, char **argv)
 
 		ret = starpu_wait_task(taskA);
 		STARPU_ASSERT(!ret);
-	}
-
-	starpu_wait_all_tasks();
-
-	for (loop = 0; loop < NLOOPS; loop++)
-	{
-		taskA = create_dummy_task();
-		taskB = create_dummy_task();
-
-		/* By default, dynamically allocated tasks are destroyed at
-		 * termination, we cannot declare a dependency on something
-		 * that does not exist anymore. */
-		taskA->destroy = 0;
-		taskA->synchronous = 1;
-
-		ret = starpu_submit_task(taskA);
-		STARPU_ASSERT(!ret);
-
-		starpu_task_declare_deps_array(taskB, 1, &taskA);
-
-		taskB->synchronous = 1;
-
-		ret = starpu_submit_task(taskB);
-		STARPU_ASSERT(!ret);
-
-		starpu_task_destroy(taskA);
-	}
-
-	starpu_wait_all_tasks();
-
-	for (loop = 0; loop < NLOOPS; loop++)
-	{
-		taskA = create_dummy_task();
-		taskB = create_dummy_task();
-
-		taskA->callback_func = callback;
-		taskA->callback_arg = taskB;
-
-		starpu_submit_task(taskA);
 	}
 
 	starpu_wait_all_tasks();

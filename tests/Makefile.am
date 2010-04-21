@@ -86,7 +86,9 @@ check_PROGRAMS += 				\
 	core/empty_task_sync_point		\
 	core/tag_wait_api			\
 	core/task_wait_api			\
-	core/late_task_deps			\
+	core/declare_deps_in_callback		\
+	core/declare_deps_after_submission	\
+	core/declare_deps_after_submission_synchronous	\
 	core/get_current_task			\
 	datawizard/sync_and_notify_data		\
 	datawizard/dsm_stress			\
@@ -159,8 +161,14 @@ core_tag_wait_api_SOURCES =			\
 core_task_wait_api_SOURCES =			\
 	core/task_wait_api.c
 
-core_late_task_deps_SOURCES =			\
-	core/late_task_deps.c
+core_declare_deps_in_callback_SOURCES =		\
+	core/declare_deps_in_callback.c
+
+core_declare_deps_after_submission_SOURCES =	\
+	core/declare_deps_after_submission.c
+
+core_declare_deps_after_submission_synchronous_SOURCES =	\
+	core/declare_deps_after_submission_synchronous.c
 
 core_get_current_task_SOURCES =			\
 	core/get_current_task.c
