@@ -260,7 +260,6 @@ void *_starpu_cuda_worker(void *arg)
 			continue;
 		}
 
-#warning TODO adapt to OpenCL !
 		_starpu_set_current_task(j->task);
 
 		res = execute_job_on_cuda(j, args);
