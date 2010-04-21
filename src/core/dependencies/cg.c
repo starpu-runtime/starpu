@@ -130,7 +130,7 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 					/* Note that this also ensures that tag deps are
 					 * fulfilled. This counter is reseted only when the
 					 * dependencies are are all fulfilled) */
-					_starpu_enforce_deps_and_schedule(j);
+					_starpu_enforce_deps_and_schedule(j, 1);
 				}
 
 				break;
@@ -164,7 +164,20 @@ void _starpu_notify_cg_list(struct starpu_cg_list_s *successors)
 			_starpu_spin_lock(&cgtag->lock);
 		}
 
+		if (cg_type == STARPU_CG_TASK)
+		{
+			starpu_job_t j = cg->succ.job;
+			PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+		}			
+
 		_starpu_notify_cg(cg);
+
+		if (cg_type == STARPU_CG_TASK)
+		{
+			starpu_job_t j = cg->succ.job;
+			PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+		}			
+
 		if (cg_type == STARPU_CG_APPS) {
 			/* Remove the temporary ref to the cg */
 			memmove(&successors->succ[succ], &successors->succ[succ+1], (nsuccs-(succ+1)) * sizeof(successors->succ[succ]));

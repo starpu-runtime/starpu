@@ -77,7 +77,7 @@ void _starpu_job_destroy(starpu_job_t j);
 void _starpu_wait_job(starpu_job_t j);
 
 /* try to submit job j, enqueue it if it's not schedulable yet */
-unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j);
+unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j, unsigned job_is_already_locked);
 unsigned _starpu_enforce_deps_starting_from_task(starpu_job_t j);
 unsigned _starpu_enforce_deps_starting_from_data(starpu_job_t j);
 

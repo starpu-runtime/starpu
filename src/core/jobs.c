@@ -97,6 +97,7 @@ void _starpu_handle_job_termination(starpu_job_t j)
 	struct starpu_task *task = j->task;
 
 	/* in case there are dependencies, wake up the proper tasks */
+	PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	j->submitted = 0;
 	_starpu_notify_dependencies(j);
 
@@ -104,7 +105,6 @@ void _starpu_handle_job_termination(starpu_job_t j)
 	 * possible to express task dependencies within the callback
 	 * function. A value of 1 means that the codelet was executed but that
 	 * the callback is not done yet. */
-	PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	j->terminated = 1;
 	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
@@ -200,13 +200,14 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(starpu_job_t j)
 	return ret;
 }
 
-static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j)
+static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j, unsigned job_is_already_locked)
 {
 	unsigned ret;
 
 	struct starpu_cg_list_s *job_successors = &j->job_successors;
 
-	PTHREAD_MUTEX_LOCK(&j->sync_mutex);	
+	if (!job_is_already_locked)
+		PTHREAD_MUTEX_LOCK(&j->sync_mutex);	
 
 	if (!j->submitted || (job_successors->ndeps != job_successors->ndeps_completed))
 	{
@@ -219,7 +220,8 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j)
 		ret = 0;
 	}
 
-	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+	if (!job_is_already_locked)
+		PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	return ret;
 }
@@ -230,7 +232,7 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j)
  *	In order, we enforce tag, task and data dependencies. The task is
  *	passed to the scheduler only once all these constraints are fulfilled.
  */
-unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j)
+unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j, unsigned job_is_already_locked)
 {
 	unsigned ret;
 
@@ -239,7 +241,7 @@ unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j)
 		return 0;
 
 	/* enfore task dependencies */
-	if (_starpu_not_all_task_deps_are_fulfilled(j))
+	if (_starpu_not_all_task_deps_are_fulfilled(j, job_is_already_locked))
 		return 0;
 
 	/* enforce data dependencies */
@@ -257,7 +259,7 @@ unsigned _starpu_enforce_deps_starting_from_task(starpu_job_t j)
 	unsigned ret;
 
 	/* enfore task dependencies */
-	if (_starpu_not_all_task_deps_are_fulfilled(j))
+	if (_starpu_not_all_task_deps_are_fulfilled(j, 0))
 		return 0;
 
 	/* enforce data dependencies */

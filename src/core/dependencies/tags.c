@@ -172,7 +172,7 @@ static void _starpu_tag_add_succ(struct starpu_tag_s *tag, starpu_cg_t *cg)
 	}
 }
 
-static void _starpu_notify_tag_dependencies(struct starpu_tag_s *tag)
+void _starpu_notify_tag_dependencies(struct starpu_tag_s *tag)
 {
 	_starpu_spin_lock(&tag->lock);
 
@@ -182,19 +182,6 @@ static void _starpu_notify_tag_dependencies(struct starpu_tag_s *tag)
 	_starpu_notify_cg_list(&tag->tag_successors);
 
 	_starpu_spin_unlock(&tag->lock);
-}
-
-void _starpu_notify_dependencies(struct starpu_job_s *j)
-{
-	STARPU_ASSERT(j);
-	STARPU_ASSERT(j->task);
-
-	/* unlock tasks depending on that task */
-	_starpu_notify_task_dependencies(j);
-	
-	/* unlock tags depending on that task */
-	if (j->task->use_tag)
-		_starpu_notify_tag_dependencies(j->tag);
 }
 
 void starpu_tag_notify_from_apps(starpu_tag_t id)

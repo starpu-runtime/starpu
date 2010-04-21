@@ -155,7 +155,7 @@ int _starpu_submit_job(starpu_job_t j, unsigned do_not_increment_nsubmitted)
 
 	j->submitted = 1;
 
-	return _starpu_enforce_deps_and_schedule(j);
+	return _starpu_enforce_deps_and_schedule(j, 0);
 }
 
 /* application should submit new tasks to StarPU through this function */

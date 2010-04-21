@@ -93,6 +93,7 @@ libstarpu_la_SOURCES = 						\
 	core/errorcheck.c					\
 	core/progress_hook.c					\
 	core/dependencies/cg.c					\
+	core/dependencies/dependencies.c			\
 	core/dependencies/tags.c				\
 	core/dependencies/task_deps.c				\
 	core/dependencies/htable.c				\
