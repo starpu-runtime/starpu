@@ -130,6 +130,8 @@ void starpu_partition_data(starpu_data_handle initial_handle, starpu_filter *f)
 		children->refcnt = 0;
 		_starpu_spin_init(&children->header_lock);
 
+		children->sequential_consistency = initial_handle->sequential_consistency;
+
 		unsigned node;
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
