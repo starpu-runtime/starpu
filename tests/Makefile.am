@@ -90,6 +90,7 @@ check_PROGRAMS += 				\
 	core/declare_deps_after_submission	\
 	core/declare_deps_after_submission_synchronous	\
 	core/get_current_task			\
+	datawizard/data_implicit_deps		\
 	datawizard/sync_and_notify_data		\
 	datawizard/dsm_stress			\
 	datawizard/write_only_tmp_buffer	\
@@ -172,6 +173,10 @@ core_declare_deps_after_submission_synchronous_SOURCES =	\
 
 core_get_current_task_SOURCES =			\
 	core/get_current_task.c
+
+
+datawizard_data_implicit_deps_SOURCES =		\
+	datawizard/data_implicit_deps.c
 
 datawizard_dsm_stress_SOURCES =			\
 	datawizard/dsm_stress.c
