@@ -64,6 +64,11 @@ typedef struct starpu_local_data_state_t {
 
 struct starpu_data_requester_list_s;
 
+struct starpu_task_list {
+	struct starpu_task *task;
+	struct starpu_task_list *next;
+};
+
 struct starpu_data_state_t {
 	struct starpu_data_requester_list_s *req_list;
 	/* the number of requests currently in the scheduling engine
@@ -104,6 +109,32 @@ struct starpu_data_state_t {
 	/* in some case, the application may explicitly tell StarPU that a
  	 * piece of data is not likely to be used soon again */
 	unsigned is_not_important;
+
+	/* Does StarPU have to enforce some implicit data-dependencies ? */
+	unsigned sequential_consistency;
+
+	/* This lock should protect any operation to enforce
+	 * sequential_consistency */
+	pthread_mutex_t sequential_consistency_mutex;
+	
+	/* The last submitted task (or application data request) that declared
+	 * it would modify the piece of data ? Any task accessing the data in a
+	 * read-only mode should depend on that task implicitely if the
+	 * sequential_consistency flag is enabled. */
+	starpu_access_mode last_submitted_mode;
+	struct starpu_task *last_submitted_writer;
+	
+	struct starpu_task_list *last_submitted_readers;
+	
+	/* to synchronize with the latest for sync_data_with_mem* call. When
+	 * releasing a piece of data, we notify this cg, which unlocks
+	 * last_submitted_sync_task_apps */
+	struct starpu_cg_s *last_submitted_cg_apps; 
+	struct starpu_cg_s *current_cg_apps;
+
+	/* To synchronize with the last call(s) to sync_data_with_mem*,
+	 * synchronize with that (empty) task. */
+	struct starpu_task *last_submitted_sync_task_apps;
 };
 
 void _starpu_display_msi_stats(void);

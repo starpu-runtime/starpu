@@ -401,7 +401,51 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
-		_starpu_release_data_on_node(descrs[index].handle, mask, local_node);
+		starpu_data_handle handle = descrs[index].handle;
+
+		_starpu_release_data_on_node(handle, mask, local_node);
+
+		PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+
+		if (handle->sequential_consistency)
+		{
+			/* If this is the last writer, there is no point in adding
+			 * extra deps to that tasks that does not exists anymore */
+			if (task == handle->last_submitted_writer)
+				handle->last_submitted_writer = NULL;
+
+			/* Same if this is one of the readers: we go through the list
+			 * of readers and remove the task if it is found. */
+			struct starpu_task_list *l;
+			l = handle->last_submitted_readers;
+			struct starpu_task_list *prev = NULL;
+			while (l)
+			{
+				struct starpu_task_list *next = l->next;
+
+				if (l->task == task)
+				{
+					/* If we found the task in the reader list */
+					free(l);
+
+					if (prev)
+					{
+						prev->next = next;
+					}
+					else {
+						/* This is the first element of the list */
+						handle->last_submitted_readers = next;
+					}
+				}
+				else {
+					prev = l;
+				}
+
+				l = next;
+			}
+		}
+
+		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 	}
 
 	STARPU_TRACE_END_PUSH_OUTPUT(NULL);

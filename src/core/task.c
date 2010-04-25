@@ -190,6 +190,7 @@ int starpu_submit_task(struct starpu_task *task)
 			return -ENODEV;
 	}
 
+	_starpu_detect_implicit_data_deps(task);
 
 	/* internally, StarPU manipulates a starpu_job_t which is a wrapper around a
 	* task structure, it is possible that this job structure was already

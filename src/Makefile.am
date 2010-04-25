@@ -31,6 +31,7 @@ noinst_HEADERS = 						\
 	core/dependencies/cg.h					\
 	core/dependencies/tags.h				\
 	core/dependencies/htable.h				\
+	core/dependencies/implicit_data_deps.h			\
 	core/policies/eager_central_priority_policy.h		\
 	core/policies/sched_policy.h				\
 	core/policies/random_policy.h				\
@@ -94,6 +95,7 @@ libstarpu_la_SOURCES = 						\
 	core/progress_hook.c					\
 	core/dependencies/cg.c					\
 	core/dependencies/dependencies.c			\
+	core/dependencies/implicit_data_deps.c			\
 	core/dependencies/tags.c				\
 	core/dependencies/task_deps.c				\
 	core/dependencies/htable.c				\

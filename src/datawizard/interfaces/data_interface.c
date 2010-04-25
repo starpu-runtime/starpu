@@ -45,6 +45,16 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 
 	handle->is_not_important = 0;
 
+	handle->sequential_consistency = 1; /* enabled by default */
+
+	PTHREAD_MUTEX_INIT(&handle->sequential_consistency_mutex, NULL);
+	handle->last_submitted_mode = STARPU_R;
+	handle->last_submitted_writer = NULL;
+	handle->last_submitted_readers = NULL;
+	handle->last_submitted_cg_apps = NULL;
+	handle->current_cg_apps = NULL;
+	handle->last_submitted_sync_task_apps = NULL;
+
 	handle->wb_mask = wb_mask;
 
 	/* that new data is invalid from all nodes perpective except for the

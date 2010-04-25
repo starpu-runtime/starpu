@@ -247,8 +247,9 @@ void starpu_advise_if_data_is_important(starpu_data_handle handle, unsigned is_i
 	for (child = 0; child < handle->nchildren; child++)
 	{
 		/* make sure the intermediate children is advised as well */
-		if (handle->children[child].nchildren > 0)
-			starpu_advise_if_data_is_important(&handle->children[child], is_important);
+		struct starpu_data_state_t *child_handle = &handle->children[child];
+		if (child_handle->nchildren > 0)
+			starpu_advise_if_data_is_important(child_handle, is_important);
 	}
 
 	handle->is_not_important = !is_important;
@@ -258,4 +259,22 @@ void starpu_advise_if_data_is_important(starpu_data_handle handle, unsigned is_i
 
 }
 
+void starpu_data_set_sequential_consistency_flag(starpu_data_handle handle, unsigned flag)
+{
+	_starpu_spin_lock(&handle->header_lock);
 
+	unsigned child;
+	for (child = 0; child < handle->nchildren; child++)
+	{
+		/* make sure that the flags are applied to the children as well */
+		struct starpu_data_state_t *child_handle = &handle->children[child];
+		if (child_handle->nchildren > 0)
+			starpu_data_set_sequential_consistency_flag(child_handle, flag);
+	}
+
+	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+	handle->sequential_consistency = flag;
+	PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+
+	_starpu_spin_unlock(&handle->header_lock);
+}
