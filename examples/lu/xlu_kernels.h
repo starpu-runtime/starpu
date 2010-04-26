@@ -19,10 +19,6 @@
 
 #include <starpu.h>
 
-#define str(s) #s
-#define xstr(s)        str(s)
-#define STARPU_LU_STR(name)  xstr(STARPU_LU(name))
-
 void STARPU_LU(cpu_pivot)(void *descr[], void *_args);
 void STARPU_LU(cpu_u11_pivot)(void *descr[], void *_args);
 void STARPU_LU(cpu_u11)(void *descr[], void *_args);
@@ -38,5 +34,12 @@ void STARPU_LU(cublas_u12)(void *descr[], void *_args);
 void STARPU_LU(cublas_u21)(void *descr[], void *_args);
 void STARPU_LU(cublas_u22)(void *descr[], void *_args);
 #endif
+
+extern starpu_codelet cl11;
+extern starpu_codelet cl11_pivot;
+extern starpu_codelet cl12;
+extern starpu_codelet cl21;
+extern starpu_codelet cl22;
+extern starpu_codelet cl_pivot;
 
 #endif // __XLU_KERNELS_H__

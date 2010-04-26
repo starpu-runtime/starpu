@@ -285,6 +285,26 @@ lu_lu_example_double_SOURCES =			\
 	lu/dlu_kernels.c			\
 	common/blas.c
 
+examplebin_PROGRAMS += 				\
+	lu/lu_implicit_example_float		\
+	lu/lu_implicit_example_double
+
+lu_lu_implicit_example_float_SOURCES =		\
+	lu/lu_example_float.c			\
+	lu/slu_implicit.c			\
+	lu/slu_implicit_pivot.c			\
+	lu/slu_kernels.c			\
+	common/blas.c
+
+lu_lu_implicit_example_double_SOURCES =		\
+	lu/lu_example_double.c			\
+	lu/dlu_implicit.c			\
+	lu/dlu_implicit_pivot.c			\
+	lu/dlu_kernels.c			\
+	common/blas.c
+
+
+
 endif
 
 
