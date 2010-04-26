@@ -73,17 +73,14 @@ static void create_task_12(starpu_data_handle *dataAp, unsigned nblocks, unsigne
 	
 	task->cl = &cl12;
 
-	task->cl_arg = (void *)(task->tag_id);
-
 	/* which sub-data is manipulated ? */
 	task->buffers[0].handle = get_block(dataAp, nblocks, k, k);
 	task->buffers[0].mode = STARPU_R;
 	task->buffers[1].handle = get_block(dataAp, nblocks, j, k);
 	task->buffers[1].mode = STARPU_RW;
 
-	if (!no_prio && (j == k+1)) {
+	if (!no_prio && (j == k+1))
 		task->priority = STARPU_MAX_PRIO;
-	}
 
 	starpu_submit_task(task);
 }
@@ -101,11 +98,8 @@ static void create_task_21(starpu_data_handle *dataAp, unsigned nblocks, unsigne
 	task->buffers[1].handle = get_block(dataAp, nblocks, k, i); 
 	task->buffers[1].mode = STARPU_RW;
 
-	if (!no_prio && (i == k+1)) {
+	if (!no_prio && (i == k+1))
 		task->priority = STARPU_MAX_PRIO;
-	}
-
-	task->cl_arg = (void *)(task->tag_id);
 
 	starpu_submit_task(task);
 }
@@ -117,8 +111,6 @@ static void create_task_22(starpu_data_handle *dataAp, unsigned nblocks, unsigne
 
 	task->cl = &cl22;
 
-	task->cl_arg = (void *)(task->tag_id);
-
 	/* which sub-data is manipulated ? */
 	task->buffers[0].handle = get_block(dataAp, nblocks, k, i);
 	task->buffers[0].mode = STARPU_R;
@@ -127,9 +119,8 @@ static void create_task_22(starpu_data_handle *dataAp, unsigned nblocks, unsigne
 	task->buffers[2].handle = get_block(dataAp, nblocks, j, i);
 	task->buffers[2].mode = STARPU_RW;
 
-	if (!no_prio &&  (i == k + 1) && (j == k +1) ) {
+	if (!no_prio &&  (i == k + 1) && (j == k +1) )
 		task->priority = STARPU_MAX_PRIO;
-	}
 
 	starpu_submit_task(task);
 }
@@ -169,12 +160,8 @@ static double dw_codelet_facto_pivot(starpu_data_handle *dataAp,
 		}
 
 		for (i = k+1; i<nblocks; i++)
-		{
-			for (j = k+1; j<nblocks; j++)
-			{
-				create_task_22(dataAp, nblocks, k, i, j, get_block);
-			}
-		}
+		for (j = k+1; j<nblocks; j++)
+			create_task_22(dataAp, nblocks, k, i, j, get_block);
 	}
 
 	/* stall the application until the end of computations */

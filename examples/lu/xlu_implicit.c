@@ -99,8 +99,6 @@ static void dw_codelet_facto_v3(starpu_data_handle dataA, unsigned nblocks)
 	struct timeval start;
 	struct timeval end;
 
-	struct starpu_task *entry_task = NULL;
-
 	/* create all the DAG nodes */
 	unsigned i,j,k;
 
@@ -117,12 +115,8 @@ static void dw_codelet_facto_v3(starpu_data_handle dataA, unsigned nblocks)
 		}
 
 		for (i = k+1; i<nblocks; i++)
-		{
-			for (j = k+1; j<nblocks; j++)
-			{
+		for (j = k+1; j<nblocks; j++)
 				create_task_22(dataA, k, i, j);
-			}
-		}
 	}
 
 	/* stall the application until the end of computations */
