@@ -24,7 +24,7 @@
 #include "xlu.h"
 #include "xlu_kernels.h"
 
-static unsigned long size = 16384;
+static unsigned long size = 4096;
 static unsigned nblocks = 16;
 static unsigned check = 0;
 static unsigned pivot = 0;

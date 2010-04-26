@@ -267,6 +267,10 @@ endif
 
 if !NO_BLAS_LIB
 
+check_PROGRAMS +=				\
+	lu/lu_example_float			\
+	lu/lu_implicit_example_float
+
 examplebin_PROGRAMS += 				\
 	lu/lu_example_float			\
 	lu/lu_example_double
@@ -303,8 +307,6 @@ lu_lu_implicit_example_double_SOURCES =		\
 	lu/dlu_kernels.c			\
 	common/blas.c
 
-
-
 endif
 
 
@@ -313,8 +315,6 @@ endif
 ################
 
 if !NO_BLAS_LIB
-
-check_PROGRAMS += heat/heat
 
 examplebin_PROGRAMS += heat/heat
 
