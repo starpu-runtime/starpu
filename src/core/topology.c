@@ -21,6 +21,7 @@
 #include <core/debug.h>
 #include <core/topology.h>
 #include <drivers/cuda/driver_cuda.h>
+#include <common/hash.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -37,8 +38,16 @@ static unsigned topology_is_initialized = 0;
 
 static void _starpu_initialize_workers_bindid(struct starpu_machine_config_s *config);
 
-#ifdef STARPU_USE_CUDA
-static void _starpu_initialize_workers_gpuid(struct starpu_machine_config_s *config);
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+#  ifdef STARPU_USE_CUDA
+static void _starpu_initialize_workers_cuda_gpuid(struct starpu_machine_config_s *config);
+static struct starpu_htbl32_node_s *devices_using_cuda = NULL;
+#  endif
+#  ifdef STARPU_USE_OPENCL
+static void _starpu_initialize_workers_opencl_gpuid(struct starpu_machine_config_s *config);
+#  endif
+static void _starpu_initialize_workers_gpuid(int use_explicit_workers_gpuid, int *explicit_workers_gpuid,
+                                             int *current, int *workers_gpuid, const char *varname, unsigned nhwgpus);
 static unsigned may_bind_automatically = 0;
 #endif
 
@@ -47,12 +56,70 @@ static unsigned may_bind_automatically = 0;
  */
 
 #ifdef STARPU_USE_CUDA
-static void _starpu_initialize_workers_gpuid(struct starpu_machine_config_s *config)
+static void _starpu_initialize_workers_cuda_gpuid(struct starpu_machine_config_s *config)
+{
+        _starpu_initialize_workers_gpuid(config->user_conf==NULL?0:config->user_conf->use_explicit_workers_cuda_gpuid,
+                                         config->user_conf==NULL?NULL:(int *)config->user_conf->workers_cuda_gpuid,
+                                         &(config->current_cuda_gpuid), (int *)config->workers_cuda_gpuid, "STARPU_WORKERS_CUDAID",
+                                         config->nhwcudagpus);
+}
+#endif
+
+#ifdef STARPU_USE_OPENCL
+static void _starpu_initialize_workers_opencl_gpuid(struct starpu_machine_config_s *config)
+{
+        _starpu_initialize_workers_gpuid(config->user_conf==NULL?0:config->user_conf->use_explicit_workers_opencl_gpuid,
+                                         config->user_conf==NULL?NULL:(int *)config->user_conf->workers_opencl_gpuid,
+                                         &(config->current_opencl_gpuid), (int *)config->workers_opencl_gpuid, "STARPU_WORKERS_OPENCLID",
+                                         config->nhwopenclgpus);
+
+#ifdef STARPU_USE_CUDA
+        // Detect devices which are already used with CUDA
+        {
+                unsigned tmp[STARPU_NMAXWORKERS];
+                unsigned nb=0;
+                int i;
+                for(i=0 ; i<STARPU_NMAXWORKERS ; i++) {
+                        uint32_t key = _starpu_crc32_be(config->workers_opencl_gpuid[i], 0);
+                        if (_starpu_htbl_search_32(devices_using_cuda, key) == NULL) {
+                                tmp[nb] = config->workers_opencl_gpuid[i];
+                                nb++;
+                        }
+                }
+                for(i=nb ; i<STARPU_NMAXWORKERS ; i++) tmp[i] = -1;
+                memcpy(config->workers_opencl_gpuid, tmp, sizeof(unsigned)*STARPU_NMAXWORKERS);
+        }
+#endif /* STARPU_USE_CUDA */
+        {
+                // Detect identical devices
+                struct starpu_htbl32_node_s *devices_already_used = NULL;
+                unsigned tmp[STARPU_NMAXWORKERS];
+                unsigned nb=0;
+                int i;
+
+                for(i=0 ; i<STARPU_NMAXWORKERS ; i++) {
+                        uint32_t key = _starpu_crc32_be(config->workers_opencl_gpuid[i], 0);
+                        if (_starpu_htbl_search_32(devices_already_used, key) == NULL) {
+                                _starpu_htbl_insert_32(&devices_already_used, key, config);
+                                tmp[nb] = config->workers_opencl_gpuid[i];
+                                nb ++;
+                        }
+                }
+                for(i=nb ; i<STARPU_NMAXWORKERS ; i++) tmp[i] = -1;
+                memcpy(config->workers_opencl_gpuid, tmp, sizeof(unsigned)*STARPU_NMAXWORKERS);
+        }
+}
+#endif
+
+
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+static void _starpu_initialize_workers_gpuid(int use_explicit_workers_gpuid, int *explicit_workers_gpuid,
+                                             int *current, int *workers_gpuid, const char *varname, unsigned nhwgpus)
 {
 	char *strval;
 	unsigned i;
 
-	config->current_gpuid = 0;
+	*current = 0;
 
 	/* conf->workers_bindid indicates the successive cpu identifier that
 	 * should be used to bind the workers. It should be either filled
@@ -62,14 +129,14 @@ static void _starpu_initialize_workers_gpuid(struct starpu_machine_config_s *con
 	 * cpus. */
 
 	/* what do we use, explicit value, env. variable, or round-robin ? */
-	if (config->user_conf && config->user_conf->use_explicit_workers_gpuid)
+	if (use_explicit_workers_gpuid)
 	{
 		/* we use the explicit value from the user */
-		memcpy(config->workers_gpuid,
-			config->user_conf->workers_gpuid,
-			STARPU_NMAXWORKERS*sizeof(unsigned));
+		memcpy(workers_gpuid,
+                       explicit_workers_gpuid,
+                       STARPU_NMAXWORKERS*sizeof(unsigned));
 	}
-	else if ((strval = getenv("STARPU_WORKERS_CUDAID")))
+	else if ((strval = getenv(varname)))
 	{
 		/* STARPU_WORKERS_CUDAID certainly contains less entries than
 		 * STARPU_NMAXWORKERS, so we reuse its entries in a round robin
@@ -86,7 +153,7 @@ static void _starpu_initialize_workers_gpuid(struct starpu_machine_config_s *con
 				val = strtol(strval, &endptr, 10);
 				if (endptr != strval)
 				{
-					config->workers_gpuid[i] = (unsigned)val;
+					workers_gpuid[i] = (unsigned)val;
 					strval = endptr;
 				}
 				else {
@@ -97,11 +164,11 @@ static void _starpu_initialize_workers_gpuid(struct starpu_machine_config_s *con
 					/* there is no more values in the string */
 					wrap = 1;
 
-					config->workers_gpuid[i] = config->workers_gpuid[0];
+					workers_gpuid[i] = workers_gpuid[0];
 				}
 			}
 			else {
-				config->workers_gpuid[i] = config->workers_gpuid[i % number_of_entries];
+				workers_gpuid[i] = workers_gpuid[i % number_of_entries];
 			}
 		}
 	}
@@ -109,7 +176,7 @@ static void _starpu_initialize_workers_gpuid(struct starpu_machine_config_s *con
 	{
 		/* by default, we take a round robin policy */
 		for (i = 0; i < STARPU_NMAXWORKERS; i++)
-			config->workers_gpuid[i] = (unsigned)i;
+			workers_gpuid[i] = (unsigned)(i % nhwgpus);
 
 		/* StarPU can use sampling techniques to bind threads correctly */
 		may_bind_automatically = 1;
@@ -117,11 +184,18 @@ static void _starpu_initialize_workers_gpuid(struct starpu_machine_config_s *con
 }
 #endif
 
-static inline int _starpu_get_next_gpuid(struct starpu_machine_config_s *config)
+static inline int _starpu_get_next_cuda_gpuid(struct starpu_machine_config_s *config)
 {
-	unsigned i = ((config->current_gpuid++) % config->ncudagpus);
+	unsigned i = ((config->current_cuda_gpuid++) % config->ncudagpus);
 
-	return (int)config->workers_gpuid[i];
+	return (int)config->workers_cuda_gpuid[i];
+}
+
+static inline int _starpu_get_next_opencl_gpuid(struct starpu_machine_config_s *config)
+{
+	unsigned i = ((config->current_opencl_gpuid++) % config->nopenclgpus);
+
+	return (int)config->workers_opencl_gpuid[i];
 }
 
 static void _starpu_init_topology(struct starpu_machine_config_s *config)
@@ -152,7 +226,14 @@ static void _starpu_init_topology(struct starpu_machine_config_s *config)
 #warning no way to know number of cores, assuming 1
 		config->nhwcpus = 1;
 #endif
-	
+
+#ifdef STARPU_USE_CUDA
+                config->nhwcudagpus = _starpu_get_cuda_device_count();
+#endif
+#ifdef STARPU_USE_OPENCL
+                config->nhwopenclgpus = _starpu_opencl_get_device_count();
+#endif
+
 		topology_is_initialized = 1;
 	}
 }
@@ -208,21 +289,78 @@ static int _starpu_init_machine_config(struct starpu_machine_config_s *config,
 	if (config->ncudagpus > 0)
 		use_accelerator = 1;
 
-	_starpu_initialize_workers_gpuid(config);
+	_starpu_initialize_workers_cuda_gpuid(config);
 
 	unsigned cudagpu;
 	for (cudagpu = 0; cudagpu < config->ncudagpus; cudagpu++)
 	{
 		config->workers[config->nworkers + cudagpu].arch = STARPU_CUDA_WORKER;
-		int devid = _starpu_get_next_gpuid(config);
+		int devid = _starpu_get_next_cuda_gpuid(config);
 		enum starpu_perf_archtype arch = STARPU_CUDA_DEFAULT + devid;
 		config->workers[config->nworkers + cudagpu].devid = devid;
 		config->workers[config->nworkers + cudagpu].perf_arch = arch; 
 		config->workers[config->nworkers + cudagpu].worker_mask = STARPU_CUDA;
 		config->worker_mask |= STARPU_CUDA;
-	}
+
+                uint32_t key = _starpu_crc32_be(devid, 0);
+                _starpu_htbl_insert_32(&devices_using_cuda, key, config);
+        }
 
 	config->nworkers += config->ncudagpus;
+#endif
+
+#ifdef STARPU_USE_OPENCL
+	if (user_conf && (user_conf->nopencl == 0))
+	{
+		/* the user explicitely disabled OpenCL */
+		config->nopenclgpus = 0;
+	}
+	else {
+		/* we need to initialize OpenCL early to count the number of devices */
+		_starpu_opencl_init();
+
+		if (user_conf && (user_conf->nopencl != -1))
+		{
+			explicitval = user_conf->nopencl;
+		}
+		else {
+			explicitval = starpu_get_env_number("STARPU_NOPENCL");
+		}
+
+		if (explicitval < 0) {
+			config->nopenclgpus =
+				STARPU_MIN(_starpu_opencl_get_device_count(), STARPU_MAXOPENCLDEVS);
+		} else {
+			/* use the specified value */
+			config->nopenclgpus = (unsigned)explicitval;
+			STARPU_ASSERT(config->nopenclgpus <= STARPU_MAXOPENCLDEVS);
+		}
+		STARPU_ASSERT(config->nopenclgpus + config->nworkers <= STARPU_NMAXWORKERS);
+	}
+
+	if (config->nopenclgpus > 0)
+		use_accelerator = 1;
+	// TODO: use_accelerator pour les OpenCL?
+
+	_starpu_initialize_workers_opencl_gpuid(config);
+
+	unsigned openclgpu;
+	for (openclgpu = 0; openclgpu < config->nopenclgpus; openclgpu++)
+	{
+		int devid = _starpu_get_next_opencl_gpuid(config);
+                if (devid == -1) { // There is no more devices left
+                  config->nopenclgpus = openclgpu;
+                  break;
+                }
+		config->workers[config->nworkers + openclgpu].arch = STARPU_OPENCL_WORKER;
+		enum starpu_perf_archtype arch = STARPU_OPENCL_DEFAULT + devid;
+		config->workers[config->nworkers + openclgpu].devid = devid;
+		config->workers[config->nworkers + openclgpu].perf_arch = arch; 
+		config->workers[config->nworkers + openclgpu].worker_mask = STARPU_OPENCL;
+		config->worker_mask |= STARPU_OPENCL;
+	}
+
+	config->nworkers += config->nopenclgpus;
 #endif
 	
 #ifdef STARPU_USE_GORDON
@@ -500,13 +638,27 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 				if (may_bind_automatically)
 				{
 					/* StarPU is allowed to bind threads automatically */
-					preferred_binding = _starpu_get_gpu_affinity_vector(workerarg->devid);
+					preferred_binding = _starpu_get_cuda_affinity_vector(workerarg->devid);
 					npreferred = config->nhwcpus;
 				}
 				is_a_set_of_accelerators = 0;
 				memory_node = _starpu_register_memory_node(STARPU_CUDA_RAM);
 				break;
 #endif
+
+#ifdef STARPU_USE_OPENCL
+		        case STARPU_OPENCL_WORKER:
+				if (may_bind_automatically)
+				{
+					/* StarPU is allowed to bind threads automatically */
+					preferred_binding = _starpu_get_opencl_affinity_vector(workerarg->devid);
+					npreferred = config->nhwcpus;
+				}
+				is_a_set_of_accelerators = 0;
+				memory_node = _starpu_register_memory_node(STARPU_OPENCL_RAM);
+				break;
+#endif
+
 			default:
 				STARPU_ABORT();
 		}

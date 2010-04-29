@@ -82,6 +82,9 @@ static double common_task_expected_length(struct starpu_perfmodel_t *model, uint
 			case STARPU_CUDA:
 				alpha = STARPU_CUDA_ALPHA;
 				break;
+  		        case STARPU_OPENCL:
+	                        alpha = STARPU_OPENCL_ALPHA;
+                                break;
 			default:
 				/* perhaps there are various worker types on that queue */
 				alpha = 1.0; // this value is not significant ...

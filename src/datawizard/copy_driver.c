@@ -135,6 +135,28 @@ cudaStream_t *stream;
 				}
 				break;
 #endif
+#ifdef STARPU_USE_OPENCL
+    		        case STARPU_OPENCL_RAM:
+				/* OpenCL -> RAM */
+				if (_starpu_get_local_memory_node() == src_node)
+				{
+					STARPU_ASSERT(copy_methods->opencl_to_ram);
+					if (!req || !copy_methods->opencl_to_ram_async)
+					{
+						/* this is not associated to a request so it's synchronous */
+                                                copy_methods->opencl_to_ram(handle, src_node, dst_node);
+                                        }
+                                        else {
+                                                ret = copy_methods->opencl_to_ram_async(handle, src_node, dst_node, &(req->async_channel.opencl_event));
+                                        }
+				}
+				else
+				{
+					/* we should not have a blocking call ! */
+					STARPU_ABORT();
+				}
+				break;
+#endif
 			case STARPU_SPU_LS:
 				STARPU_ABORT(); // TODO
 				break;
@@ -170,6 +192,34 @@ cudaStream_t *stream;
 				}
 				break;
 			case STARPU_CUDA_RAM:
+			case STARPU_SPU_LS:
+				STARPU_ABORT(); // TODO 
+				break;
+			case STARPU_UNUSED:
+			default:
+				STARPU_ABORT();
+				break;
+		}
+		break;
+#endif
+#ifdef STARPU_USE_OPENCL
+	case STARPU_OPENCL_RAM:
+		switch (src_kind) {
+		        case STARPU_RAM:
+				/* STARPU_RAM -> STARPU_OPENCL_RAM */
+				STARPU_ASSERT(_starpu_get_local_memory_node() == dst_node);
+				STARPU_ASSERT(copy_methods->ram_to_opencl);
+				if (!req || !copy_methods->ram_to_opencl_async)
+				{
+					/* this is not associated to a request so it's synchronous */
+					copy_methods->ram_to_opencl(handle, src_node, dst_node);
+				}
+				else {
+                                        ret = copy_methods->ram_to_opencl_async(handle, src_node, dst_node, &(req->async_channel.opencl_event));
+				}
+				break;
+			case STARPU_CUDA_RAM:
+			case STARPU_OPENCL_RAM:
 			case STARPU_SPU_LS:
 				STARPU_ABORT(); // TODO 
 				break;
@@ -275,6 +325,12 @@ void _starpu_driver_wait_request_completion(starpu_async_channel *async_channel 
 
 			break;
 #endif
+#ifdef STARPU_USE_OPENCL
+                case STARPU_OPENCL_RAM:
+                        fprintf(stderr, "not implemented yet\n");
+			STARPU_ABORT();
+                        break;
+#endif
 		case STARPU_RAM:
 		default:
 			STARPU_ABORT();
@@ -300,6 +356,17 @@ unsigned _starpu_driver_test_request_completion(starpu_async_channel *async_chan
 				cudaEventDestroy(event);
 
 			break;
+#endif
+#ifdef STARPU_USE_OPENCL
+                case STARPU_OPENCL_RAM:
+                        {
+                                cl_int event_status;
+                                cl_event opencl_event = (*async_channel).opencl_event;
+                                if (opencl_event == NULL) STARPU_ABORT();
+                                clGetEventInfo(opencl_event, CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(event_status), &event_status, NULL);
+                                success = (event_status == CL_COMPLETE);
+                                break;
+                        }
 #endif
 		case STARPU_RAM:
 		default:

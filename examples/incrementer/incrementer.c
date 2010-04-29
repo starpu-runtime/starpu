@@ -23,6 +23,10 @@ static unsigned niter = 50000;
 extern void cuda_codelet(void *descr[], __attribute__ ((unused)) void *_args);
 #endif
 
+#ifdef STARPU_USE_OPENCL
+extern void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args);
+#endif
+
 extern void cuda_codelet_host(float *tab);
 
 void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
@@ -39,19 +43,26 @@ int main(int argc, char **argv)
 	if (argc == 2)
 		niter = atoi(argv[1]);
 
-	float float_array[3] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f}; 
+	float float_array[4] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f, 0.0f};
 
 	starpu_data_handle float_array_handle;
 	starpu_register_vector_data(&float_array_handle, 0 /* home node */,
-			(uintptr_t)&float_array, 3, sizeof(float));
+			(uintptr_t)&float_array, 4, sizeof(float));
+
+#ifdef STARPU_USE_OPENCL
+        _starpu_opencl_compile_source_to_opencl("examples/incrementer/incrementer_kernels_opencl_codelet.cl");
+#endif
 
 	starpu_codelet cl =
 	{
 		/* CUBLAS stands for CUDA kernels controlled from the host */
-		.where = STARPU_CPU|STARPU_CUDA,
+		.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 		.cpu_func = cpu_codelet,
 #ifdef STARPU_USE_CUDA
 		.cuda_func = cuda_codelet,
+#endif
+#ifdef STARPU_USE_OPENCL
+		.opencl_func = opencl_codelet,
 #endif
 		.nbuffers = 1
 	};
@@ -67,7 +78,7 @@ int main(int argc, char **argv)
 		struct starpu_task *task = starpu_task_create();
 
 		task->cl = &cl;
-		
+
 		task->callback_func = NULL;
 
 		task->buffers[0].handle = float_array_handle;
@@ -85,15 +96,17 @@ int main(int argc, char **argv)
 
 	/* update the array in RAM */
 	starpu_sync_data_with_mem(float_array_handle, STARPU_R);
-	
+
 	gettimeofday(&end, NULL);
 
-	fprintf(stderr, "array -> %f, %f, %f\n", float_array[0], 
-			float_array[1], float_array[2]);
-	
-	if (float_array[0] != float_array[1] + float_array[2])
+	fprintf(stderr, "array -> %f, %f, %f, %f\n", float_array[0],
+                float_array[1], float_array[2], float_array[3]);
+
+	if (float_array[0] != float_array[1] + float_array[2] + float_array[3]) {
+		fprintf(stderr, "Incorrect result\n");
 		return 1;
-	
+	}
+
 	starpu_release_data_from_mem(float_array_handle);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 +

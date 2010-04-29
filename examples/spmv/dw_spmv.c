@@ -27,6 +27,60 @@ extern void spmv_kernel_cuda(void *descr[], void *args);
 struct timeval start;
 struct timeval end;
 
+#ifdef STARPU_USE_OPENCL
+#include "starpu_opencl.h"
+void spmv_kernel_opencl(void *descr[], void *args)
+{
+	cl_kernel kernel;
+	cl_command_queue queue;
+	int id, devid, err, n;
+
+	uint32_t nnz = STARPU_GET_CSR_NNZ(descr[0]);
+	uint32_t nrow = STARPU_GET_CSR_NROW(descr[0]);
+	float *nzval = (float *)STARPU_GET_CSR_NZVAL(descr[0]);
+	uint32_t *colind = STARPU_GET_CSR_COLIND(descr[0]);
+	uint32_t *rowptr = STARPU_GET_CSR_ROWPTR(descr[0]);
+	uint32_t firstentry = STARPU_GET_CSR_FIRSTENTRY(descr[0]);
+
+	float *vecin = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
+	uint32_t nx_in = STARPU_GET_VECTOR_NX(descr[1]);
+
+	float *vecout = (float *)STARPU_GET_VECTOR_PTR(descr[2]);
+	uint32_t nx_out = STARPU_GET_VECTOR_NX(descr[2]);
+
+        id = starpu_get_worker_id();
+        devid = starpu_get_worker_devid(id);
+
+        err = starpu_opencl_load_kernel(&kernel, &queue,
+                                        "examples/spmv/spmv_opencl.cl", "spvm", devid);
+        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+
+	err = 0;
+        n=0;
+	err = clSetKernelArg(kernel, n++, sizeof(uint32_t), &nnz);
+	err = clSetKernelArg(kernel, n++, sizeof(uint32_t), &nrow);
+	err = clSetKernelArg(kernel, n++, sizeof(cl_mem), &nzval);
+	err = clSetKernelArg(kernel, n++, sizeof(cl_mem), &colind);
+	err = clSetKernelArg(kernel, n++, sizeof(cl_mem), &rowptr);
+	err = clSetKernelArg(kernel, n++, sizeof(uint32_t), &firstentry);
+	err = clSetKernelArg(kernel, n++, sizeof(cl_mem), &vecin);
+	err = clSetKernelArg(kernel, n++, sizeof(uint32_t), &nx_in);
+	err = clSetKernelArg(kernel, n++, sizeof(cl_mem), &vecout);
+	err = clSetKernelArg(kernel, n++, sizeof(uint32_t), &nx_out);
+        if (err) STARPU_OPENCL_REPORT_ERROR(err);
+
+	{
+                size_t global=1024;
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, NULL, 0, NULL, NULL);
+		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	}
+
+	clFinish(queue);
+
+        starpu_opencl_release(kernel);
+}
+#endif
+
 unsigned nblocks = 2;
 uint32_t size = 4194304;
 
@@ -189,13 +243,27 @@ void call_spmv_codelet_filters(void)
 	starpu_partition_data(sparse_matrix, &csr_f);
 	starpu_partition_data(vector_out, &vector_f);
 
+#ifdef STARPU_USE_OPENCL
+        {
+                int ret = _starpu_opencl_compile_source_to_opencl("examples/spmv/spmv_opencl.cl");
+                if (ret)
+		{
+			fprintf(stderr, "Failed to compile OpenCL codelet\n");
+			exit(ret);
+		}
+        }
+#endif
+
 	starpu_codelet cl;
 	memset(&cl, 0, sizeof(starpu_codelet));
 
-	cl.where = STARPU_CPU|STARPU_CUDA;
+	cl.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL;
 	cl.cpu_func =  cpu_spmv;
 #ifdef STARPU_USE_CUDA
 	cl.cuda_func = spmv_kernel_cuda;
+#endif
+#ifdef STARPU_USE_OPENCL
+        cl.opencl_func = spmv_kernel_opencl;
 #endif
 	cl.nbuffers = 3;
 	cl.model = NULL;
@@ -206,6 +274,7 @@ void call_spmv_codelet_filters(void)
 	for (part = 0; part < nblocks; part++)
 	{
 		struct starpu_task *task = starpu_task_create();
+                int ret;
 
 		task->callback_func = NULL;
 
@@ -219,7 +288,12 @@ void call_spmv_codelet_filters(void)
 		task->buffers[2].handle = starpu_get_sub_data(vector_out, 1, part);
 		task->buffers[2].mode = STARPU_W;
 	
-		starpu_submit_task(task);
+		ret = starpu_submit_task(task);
+		if (STARPU_UNLIKELY(ret == -ENODEV))
+		{
+			fprintf(stderr, "No worker may execute this task\n");
+			exit(0);
+		}
 	}
 
 	starpu_wait_all_tasks();

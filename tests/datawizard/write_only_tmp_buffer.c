@@ -24,6 +24,21 @@
 
 starpu_data_handle v_handle;
 
+#ifdef STARPU_USE_OPENCL
+#include <CL/cl.h>
+static void opencl_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
+{
+	cl_mem buf = (cl_mem)STARPU_GET_VECTOR_PTR(descr[0]);
+        char ptr = 42;
+        cl_command_queue queue;
+        int id = starpu_get_worker_id();
+        int devid = starpu_get_worker_devid(id);
+
+        starpu_opencl_get_queue(devid, &queue);
+        clEnqueueWriteBuffer(queue, buf, CL_TRUE, 0, sizeof(char), &ptr, 0, NULL, NULL);
+}
+#endif
+
 #ifdef STARPU_USE_CUDA
 static void cuda_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
@@ -51,10 +66,13 @@ static void display_var(void *descr[], __attribute__ ((unused)) void *_args)
 }
 
 static starpu_codelet cl = {
-	.where = STARPU_CPU|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = cpu_codelet_null,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = cuda_codelet_null,
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_func = opencl_codelet_null,
 #endif
 	.nbuffers = 1
 };

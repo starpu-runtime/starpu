@@ -46,14 +46,19 @@ struct starpu_conf {
 	int ncpus;
 	/* maximum number of CUDA GPUs (-1 for default) */
 	int ncuda;
+	/* maximum number of OpenCL GPUs (-1 for default) */
+	int nopencl;
 	/* maximum number of Cell's SPUs (-1 for default) */
 	int nspus;
 
 	unsigned use_explicit_workers_bindid;
 	unsigned workers_bindid[STARPU_NMAXWORKERS];
 
-	unsigned use_explicit_workers_gpuid;
-	unsigned workers_gpuid[STARPU_NMAXWORKERS];
+	unsigned use_explicit_workers_cuda_gpuid;
+	unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS];
+
+	unsigned use_explicit_workers_opencl_gpuid;
+	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
 
 	/* calibrate performance models, if any */
 	unsigned calibrate;
@@ -75,6 +80,7 @@ unsigned starpu_get_worker_count(void);
 unsigned starpu_get_cpu_worker_count(void);
 unsigned starpu_get_cuda_worker_count(void);
 unsigned starpu_get_spu_worker_count(void);
+unsigned starpu_get_opencl_worker_count(void);
 
 /* Return the identifier of the thread in case this is associated to a worker.
  * This will return -1 if this function is called directly from the application
@@ -84,6 +90,7 @@ int starpu_get_worker_id(void);
 enum starpu_archtype {
 	STARPU_CPU_WORKER, /* CPU core */
 	STARPU_CUDA_WORKER, /* NVIDIA CUDA device */
+	STARPU_OPENCL_WORKER, /* OpenCL CUDA device */
 	STARPU_GORDON_WORKER /* Cell SPU */
 };
 
@@ -102,6 +109,11 @@ enum starpu_archtype starpu_get_worker_type(int id);
  * Calling this function on an invalid identifier results in an unspecified
  * behaviour. */
 void starpu_get_worker_name(int id, char *dst, size_t maxlen);
+
+/* This functions returns the device id of the worker associated to an
+ *  identifier (as returned by the starpu_get_worker_id() function)
+ */
+int starpu_get_worker_devid(int id);
 
 #ifdef __cplusplus
 }

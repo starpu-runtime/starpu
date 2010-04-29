@@ -29,9 +29,11 @@ int main(int argc, char **argv)
 		.sched_policy_name = NULL, /* default */
 		.ncpus = 0,
 		.ncuda = 0,
+                .nopencl = 0,
 		.nspus = 0,
 		.use_explicit_workers_bindid = 0,
-		.use_explicit_workers_gpuid = 0,
+		.use_explicit_workers_cuda_gpuid = 0,
+		.use_explicit_workers_opencl_gpuid = 0,
 		.calibrate = 0
 	};
 

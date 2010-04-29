@@ -476,6 +476,10 @@ specified with the @code{STARPU_NCPUS} environment variable.
 This is the maximum number of CUDA devices that StarPU can use. This can also be
 specified with the @code{STARPU_NCUDA} environment variable.
 
+@item @code{nopencl} (default = -1):
+This is the maximum number of OpenCL devices that StarPU can use. This can also be
+specified with the @code{STARPU_NOPENCL} environment variable.
+
 @item @code{nspus} (default = -1):
 This is the maximum number of Cell SPUs that StarPU can use. This can also be
 specified with the @code{STARPU_NGORDON} environment variable.
@@ -600,7 +604,8 @@ an integer between 0 and @code{starpu_get_worker_count() - 1}.
 This function returns the type of worker associated to an identifier (as
 returned by the @code{starpu_get_worker_id} function). The returned value
 indicates the architecture of the worker: @code{STARPU_CPU_WORKER} for a CPU
-core, @code{STARPU_CUDA_WORKER} for a CUDA device, and
+core, @code{STARPU_CUDA_WORKER} for a CUDA device,
+@code{STARPU_OPENCL_WORKER} for a OpenCL device, and
 @code{STARPU_GORDON_WORKER} for a Cell SPU. The value returned for an invalid
 identifier is unspecified.
 
@@ -715,6 +720,13 @@ must be a host-function written in the CUDA runtime API}. Its prototype must
 be: @code{void cuda_func(void *buffers[], void *cl_arg);}. The @code{cuda_func}
 field is ignored if @code{STARPU_CUDA} does not appear in the @code{.where}
 field, it must be non-null otherwise.
+
+@item @code{opencl_func} (optionnal):
+Is a function pointer to the OpenCL implementation of the codelet. Its
+prototype must be:
+@code{void opencl_func(starpu_data_interface_t *descr, void *arg);}.
+This pointer is ignored if @code{OPENCL} does not appear in the
+@code{.where} field, it must be non-null otherwise.
 
 @item @code{gordon_func} (optionnal):
 This is the index of the Cell SPU implementation within the Gordon library.

@@ -31,6 +31,7 @@
 #define STARPU_CUDA	((1ULL)<<3)
 #define STARPU_SPU	((1ULL)<<4)
 #define STARPU_GORDON	((1ULL)<<5)
+#define STARPU_OPENCL	((1ULL)<<6)
 
 #define STARPU_MIN_PRIO        (-4)
 #define STARPU_MAX_PRIO        5
@@ -53,6 +54,7 @@ typedef struct starpu_codelet_t {
 	/* the different implementations of the codelet */
 	void (*cuda_func)(void **, void *);
 	void (*cpu_func)(void **, void *);
+	void (*opencl_func)(void **, void *);
 	uint8_t gordon_func;
 
 	/* how many buffers do the codelet takes as argument ? */

@@ -52,8 +52,10 @@ esac
 
 # This will be useful for program which use CUDA (and .cubin files) which need
 # some path to the CUDA code at runtime.
-AC_DEFINE_UNQUOTED(STARPU_DIR, "$PWD", [location of StarPU sources])
-AC_SUBST(STARPU_DIR, $PWD)
+AC_DEFINE_UNQUOTED(STARPU_BUILD_DIR, "$PWD", [location of StarPU build directory])
+AC_SUBST(STARPU_BUILD_DIR, $PWD)
+AC_DEFINE_UNQUOTED(STARPU_SRC_DIR, "$(eval echo $PWD/${srcdir})", [location of StarPU sources])
+AC_SUBST(STARPU_SRC_DIR, "$(eval echo $PWD/${srcdir})")
 
 AC_CHECK_LIB([pthread], [pthread_create])
 case "$target" in
@@ -300,6 +302,71 @@ fi
 
 ###############################################################################
 #                                                                             #
+#                                 OpenCL settings                             #
+#                                                                             #
+###############################################################################
+
+AC_MSG_CHECKING(maximum number of OpenCL devices)
+AC_ARG_ENABLE(maxopencldev, [AS_HELP_STRING([--enable-maxopencldev=<number>],
+			[maximum number of OPENCL devices])],
+			nmaxopencldev=$enableval, nmaxopencldev=8)
+AC_MSG_RESULT($nmaxopencldev)
+AC_DEFINE_UNQUOTED(STARPU_MAXOPENCLDEVS, [$nmaxopencldev], 
+		[maximum number of OPENCL devices])
+AC_ARG_ENABLE(opencl, [AS_HELP_STRING([--disable-opencl],
+		[do not use OpenCL device(s)])],, [enable_opencl=maybe])
+
+if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
+	#AC_MSG_CHECKING(whether OpenCL is available)
+	AC_ARG_WITH(opencl-dir, 
+		[AS_HELP_STRING([--with-opencl-dir=<path>],
+		[specify OpenCL installation directory (default is /usr/)])],
+		[
+			opencl_dir=$withval
+			# in case this was not explicit yet
+			enable_opencl=yes
+		], opencl_dir=/usr/)
+	
+	if test -d "$opencl_dir/include/"; then
+		CPPFLAGS="${CPPFLAGS} -I$opencl_dir/include/ "
+	fi
+
+	# do we have a valid OpenCL setup ?
+	have_valid_opencl=yes
+	AC_CHECK_HEADER([CL/cl.h],,[have_valid_opencl=no])
+
+	# we are looking for the proper option in LDFLAGS, so we save the
+	# current value of LDFLAGS so that we can add new things in it and
+	# restore it in case it's not working.
+	SAVED_LDFLAGS="${LDFLAGS}"
+
+	found_opencllib=no
+	if test -d "$opencl_dir/lib/"; then
+		LDFLAGS="${SAVED_LDFLAGS} -L$opencl_dir/lib/ "
+		AC_SEARCH_LIBS([clCreateKernel],[OpenCL],[found_opencllib=yes],[found_opencllib=no])
+	fi
+
+	# in case OpenCL was explicitely required, but is not available, this is an error
+	if test x$enable_opencl = xyes -a x$have_valid_opencl = no; then
+		AC_MSG_ERROR([cannot find OpenCL])
+	fi
+
+	# now we enable OpenCL if and only if a proper setup is available
+	enable_opencl=$have_valid_opencl
+fi
+
+AC_MSG_CHECKING(whether OpenCL should be used)
+AC_MSG_RESULT($enable_opencl)
+AC_SUBST(STARPU_USE_OPENCL, $enable_opencl)
+AM_CONDITIONAL(STARPU_USE_OPENCL, test x$enable_opencl = xyes)
+if test x$enable_opencl = xyes; then
+	AC_DEFINE(STARPU_USE_OPENCL, [1], [OpenCL support is activated])
+        AC_DEFINE_UNQUOTED(STARPU_OPENCL_DATADIR, "$(eval echo ${datarootdir}/starpu/opencl)", [Path to OpenCL codelets])
+        AC_SUBST(STARPU_OPENCL_DATAdir, "$(eval echo ${datarootdir}/starpu/opencl/examples)")
+fi
+
+###############################################################################
+#                                                                             #
 #                                 Cell settings                               #
 #                                                                             #
 ###############################################################################
@@ -506,13 +573,19 @@ AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers],
 
 # We have one memory node shared by all CPU workers, one node per GPU, and
 # currently the Cell driver is using the same memory node as the CPU.
-if test x$enable_cuda = xyes; then
+maxnodes=1
+if test x$enable_cuda = xyes ; then
 	# we could have used nmaxcudadev + 1, but this would certainly give an
 	# odd number.
-	maxnodes=`expr 2 \* $nmaxcudadev`
-else
-	maxnodes=1	
+	maxnodes=`expr $maxnodes + $nmaxcudadev`
 fi
+if test x$enable_opencl = xyes ; then
+	# we could have used nmaxcudadev + 1, but this would certainly give an
+	# odd number.
+	maxnodes=`expr $maxnodes + $nmaxopencldev`
+fi
+# todo: set maxnodes to the next power of 2 greater than maxnodes
+
 AC_MSG_CHECKING(maximum number of memory nodes)
 AC_MSG_RESULT($maxnodes)
 AC_DEFINE_UNQUOTED(STARPU_MAXNODES, [$maxnodes],

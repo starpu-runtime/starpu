@@ -26,7 +26,8 @@ typedef enum {
 	STARPU_UNUSED,
 	STARPU_SPU_LS,
 	STARPU_RAM,
-	STARPU_CUDA_RAM
+	STARPU_CUDA_RAM,
+        STARPU_OPENCL_RAM,
 } starpu_node_kind;
 
 typedef struct {

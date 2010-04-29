@@ -21,6 +21,7 @@
 #include <pthread.h>
 #include <starpu.h>
 #include <starpu_config.h>
+#include <starpu_task.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,8 +40,9 @@ struct starpu_buffer_descr_t;
 enum starpu_perf_archtype {
 	STARPU_CPU_DEFAULT = 0,
 	STARPU_CUDA_DEFAULT = 1,
-	/* STARPU_CUDA_DEFAULT + devid */
-	STARPU_GORDON_DEFAULT = STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS
+	STARPU_OPENCL_DEFAULT = STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS,
+	/* STARPU_OPENCL_DEFAULT + devid */
+	STARPU_GORDON_DEFAULT = STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS
 };
 
 #define STARPU_NARCH_VARIATIONS	(STARPU_GORDON_DEFAULT+1)

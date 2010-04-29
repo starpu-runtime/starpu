@@ -62,6 +62,8 @@ void starpu_block_filter_func_vector(starpu_filter *f, starpu_data_handle root_h
 					starpu_data_get_interface_on_node(root_handle, node);
 
 				local->ptr = local_root->ptr + offset;
+                                local->dev_handle = local_root->dev_handle;
+                                local->offset = local_root->offset + offset;
 			}
 		}
 	}
@@ -100,6 +102,8 @@ void starpu_divide_in_2_filter_func_vector(starpu_filter *f, starpu_data_handle 
 				starpu_data_get_interface_on_node(root_handle, node);
 
 			local->ptr = local_root->ptr;
+                        local->offset = local_root->offset;
+                        local->dev_handle = local_root->dev_handle;
 		}
 	}
 
@@ -119,6 +123,8 @@ void starpu_divide_in_2_filter_func_vector(starpu_filter *f, starpu_data_handle 
 				starpu_data_get_interface_on_node(root_handle, node);
 
 			local->ptr = local_root->ptr + length_first*elemsize;
+                        local->offset = local_root->offset + length_first*elemsize;
+                        local->dev_handle = local_root->dev_handle;
 		}
 	}
 }
@@ -161,6 +167,8 @@ void starpu_list_filter_func_vector(starpu_filter *f, starpu_data_handle root_ha
 					starpu_data_get_interface_on_node(root_handle, node);
 
 				local->ptr = local_root->ptr + current_pos*elemsize;
+                                local->offset = local_root->offset + current_pos*elemsize;
+                                local->dev_handle = local_root->dev_handle;
 			}
 		}
 

@@ -431,11 +431,97 @@ check_PROGRAMS +=				\
 examplebin_PROGRAMS +=				\
 	incrementer/incrementer
 
-if STARPU_USE_CUDA
-incrementer_incrementer_SOURCES =	\
-	incrementer/incrementer.c	\
-	incrementer/incrementer_kernels.cu
-else
 incrementer_incrementer_SOURCES =	\
 	incrementer/incrementer.c
+if STARPU_USE_CUDA
+incrementer_incrementer_SOURCES +=	\
+	incrementer/incrementer_kernels.cu
+endif
+if STARPU_USE_OPENCL
+incrementer_incrementer_SOURCES +=	\
+	incrementer/incrementer_kernels_opencl.c
+endif
+
+nobase_STARPU_OPENCL_DATA_DATA = \
+	incrementer/incrementer_kernels_opencl_codelet.cl
+
+###################
+# Stencil example #
+###################
+
+if STARPU_USE_OPENCL
+check_PROGRAMS +=		\
+	stencil/stencil
+examplebin_PROGRAMS +=		\
+	stencil/stencil
+stencil_stencil_SOURCES =	\
+	stencil/stencil.c       \
+	stencil/stencil_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	stencil/stencil_opencl_codelet.cl \
+	stencil/stencil.h
+endif
+
+####################
+# Variable example #
+####################
+
+check_PROGRAMS +=				\
+	variable/variable
+
+examplebin_PROGRAMS +=				\
+	variable/variable
+
+variable_variable_SOURCES =	\
+	variable/variable.c
+if STARPU_USE_CUDA
+variable_variable_SOURCES +=	\
+	variable/variable_kernels.cu
+endif
+if STARPU_USE_OPENCL
+variable_variable_SOURCES +=	\
+	variable/variable_kernels_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	variable/variable_kernels_opencl_codelet.cl
+endif
+
+######################
+# matVecMult example #
+######################
+
+check_PROGRAMS +=				\
+	matvecmult/matvecmult
+
+examplebin_PROGRAMS +=				\
+	matvecmult/matvecmult
+
+matvecmult_matvecmult_SOURCES =	\
+	matvecmult/matvecmult.c
+
+if STARPU_USE_OPENCL
+nobase_STARPU_OPENCL_DATA_DATA += \
+	matvecmult/matvecmult_kernel.cl
+endif
+
+#################
+# block example #
+#################
+
+check_PROGRAMS +=				\
+	block/block
+
+examplebin_PROGRAMS +=				\
+	block/block
+
+block_block_SOURCES =	\
+	block/block.c
+
+if STARPU_USE_CUDA
+block_block_SOURCES +=				\
+	block/block_cuda.cu
+endif
+
+if STARPU_USE_OPENCL
+nobase_STARPU_OPENCL_DATA_DATA += \
+	block/block_kernel.cl
 endif

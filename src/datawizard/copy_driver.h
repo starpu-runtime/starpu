@@ -28,6 +28,10 @@
 #include <cublas.h>
 #endif
 
+#ifdef STARPU_USE_OPENCL
+#include <CL/cl.h>
+#endif
+
 struct starpu_data_request_s;
 
 /* this is a structure that can be queried to see whether an asynchronous
@@ -37,23 +41,35 @@ typedef union {
 #ifdef STARPU_USE_CUDA
 	cudaEvent_t cuda_event;
 #endif
+#ifdef STARPU_USE_OPENCL
+        cl_event opencl_event;
+#endif
 } starpu_async_channel;
 
 struct starpu_copy_data_methods_s {
 	/* src type is ram */
 	int (*ram_to_ram)(starpu_data_handle handle, uint32_t src, uint32_t dst);
 	int (*ram_to_cuda)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*ram_to_opencl)(starpu_data_handle handle, uint32_t src, uint32_t dst);
 	int (*ram_to_spu)(starpu_data_handle handle, uint32_t src, uint32_t dst);
 
 	/* src type is cuda */
 	int (*cuda_to_ram)(starpu_data_handle handle, uint32_t src, uint32_t dst);
 	int (*cuda_to_cuda)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*cuda_to_opencl)(starpu_data_handle handle, uint32_t src, uint32_t dst);
 	int (*cuda_to_spu)(starpu_data_handle handle, uint32_t src, uint32_t dst);
 
 	/* src type is spu */
 	int (*spu_to_ram)(starpu_data_handle handle, uint32_t src, uint32_t dst);
 	int (*spu_to_cuda)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*spu_to_opencl)(starpu_data_handle handle, uint32_t src, uint32_t dst);
 	int (*spu_to_spu)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+
+	/* src type is opencl */
+	int (*opencl_to_ram)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*opencl_to_cuda)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*opencl_to_opencl)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*opencl_to_spu)(starpu_data_handle handle, uint32_t src, uint32_t dst);
 
 #ifdef STARPU_USE_CUDA
 	/* for asynchronous CUDA transfers */
@@ -63,6 +79,13 @@ struct starpu_copy_data_methods_s {
 					uint32_t dst, cudaStream_t *stream);
 	int (*cuda_to_cuda_async)(starpu_data_handle handle, uint32_t src,
 					uint32_t dst, cudaStream_t *stream);
+#endif
+
+#ifdef STARPU_USE_OPENCL
+	/* for asynchronous OpenCL transfers */
+        int (*ram_to_opencl_async)(starpu_data_handle handle, uint32_t src, uint32_t dst, cl_event *event);
+	int (*opencl_to_ram_async)(starpu_data_handle handle, uint32_t src, uint32_t dst, cl_event *event);
+	int (*opencl_to_opencl_async)(starpu_data_handle handle, uint32_t src, uint32_t dst, cl_event *event);
 #endif
 };
 

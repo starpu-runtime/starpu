@@ -29,9 +29,10 @@ static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attri
 
 static starpu_codelet dummy_codelet = 
 {
-	.where = STARPU_CPU|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = dummy_func,
 	.cuda_func = dummy_func,
+	.opencl_func = dummy_func,
 	.model = NULL,
 	.nbuffers = 0
 };
@@ -86,7 +87,8 @@ int main(int argc, char **argv)
 		int ret = starpu_submit_task(task);
 		STARPU_ASSERT(!ret);
 
-		starpu_wait_task(task);
+		ret = starpu_wait_task(task);
+		STARPU_ASSERT(!ret);
 
 		starpu_task_destroy(task);
 	}

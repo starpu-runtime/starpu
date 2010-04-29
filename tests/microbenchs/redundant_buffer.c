@@ -27,6 +27,10 @@
 starpu_data_handle v_handle;
 static unsigned *v;
 
+static void opencl_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
+{
+}
+
 static void cuda_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
 }
@@ -36,10 +40,11 @@ static void cpu_codelet_null(void *descr[], __attribute__ ((unused)) void *_args
 }
 
 static starpu_codelet cl = {
-	.where = STARPU_CPU|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = cpu_codelet_null,
 	.cuda_func = cuda_codelet_null,
-	.nbuffers = 2
+	.opencl_func = opencl_codelet_null,
+        .nbuffers = 2
 };
 
 

@@ -26,6 +26,10 @@
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #endif
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#include <drivers/opencl/driver_opencl.h>
+#endif
 
 static int dummy_copy_ram_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
 #ifdef STARPU_USE_CUDA
@@ -33,6 +37,12 @@ static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32
 static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
 static int copy_ram_to_cuda_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
 static int copy_cuda_to_ram_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cudaStream_t *stream);
+#endif
+#ifdef STARPU_USE_OPENCL
+static int copy_ram_to_opencl(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
+static int copy_opencl_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
+static int copy_ram_to_opencl_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cl_event *event);
+static int copy_opencl_to_ram_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cl_event *event);
 #endif
 
 static const struct starpu_copy_data_methods_s variable_copy_data_methods_s = {
@@ -43,6 +53,12 @@ static const struct starpu_copy_data_methods_s variable_copy_data_methods_s = {
 	.cuda_to_ram = copy_cuda_to_ram,
 	.ram_to_cuda_async = copy_ram_to_cuda_async,
 	.cuda_to_ram_async = copy_cuda_to_ram_async,
+#endif
+#ifdef STARPU_USE_OPENCL
+	.ram_to_opencl = copy_ram_to_opencl,
+	.opencl_to_ram = copy_opencl_to_ram,
+        .ram_to_opencl_async = copy_ram_to_opencl_async,
+	.opencl_to_ram_async = copy_opencl_to_ram_async,
 #endif
 	.cuda_to_cuda = NULL,
 	.cuda_to_spu = NULL,
@@ -192,6 +208,19 @@ static size_t allocate_variable_buffer_on_node(starpu_data_handle handle, uint32
 			}
 			break;
 #endif
+#ifdef STARPU_USE_OPENCL
+	        case STARPU_OPENCL_RAM:
+			{
+                                int ret;
+                                void *ptr;
+                                ret = _starpu_opencl_allocate_memory(&ptr, elemsize, CL_MEM_READ_WRITE);
+                                addr = (uintptr_t)ptr;
+				if (ret) {
+					fail = 1;
+				}
+				break;
+			}
+#endif
 		default:
 			assert(0);
 	}
@@ -219,6 +248,11 @@ static void liberate_variable_buffer_on_node(void *interface, uint32_t node)
 		case STARPU_CUDA_RAM:
 			cudaFree((void*)STARPU_GET_VARIABLE_PTR(interface));
 			break;
+#endif
+#ifdef STARPU_USE_OPENCL
+                case STARPU_OPENCL_RAM:
+                        clReleaseMemObject((void*)STARPU_GET_VARIABLE_PTR(interface));
+                        break;
 #endif
 		default:
 			assert(0);
@@ -323,6 +357,81 @@ static int copy_ram_to_cuda_async(starpu_data_handle handle, uint32_t src_node, 
 
 
 #endif // STARPU_USE_CUDA
+
+#ifdef STARPU_USE_OPENCL
+static int copy_ram_to_opencl_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cl_event *event) {
+	starpu_variable_interface_t *src_variable;
+	starpu_variable_interface_t *dst_variable;
+
+	src_variable = starpu_data_get_interface_on_node(handle, src_node);
+	dst_variable = starpu_data_get_interface_on_node(handle, dst_node);
+
+	int err = _starpu_opencl_copy_to_opencl((void*)src_variable->ptr, (cl_mem)dst_variable->ptr, src_variable->elemsize,
+                                                0, event);
+
+	if (STARPU_UNLIKELY(err))
+                STARPU_OPENCL_REPORT_ERROR(err);
+
+	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_variable->elemsize);
+
+	return EAGAIN;
+}
+
+static int copy_opencl_to_ram_async(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, cl_event *event) {
+	starpu_variable_interface_t *src_variable;
+	starpu_variable_interface_t *dst_variable;
+
+	src_variable = starpu_data_get_interface_on_node(handle, src_node);
+	dst_variable = starpu_data_get_interface_on_node(handle, dst_node);
+
+	int err = _starpu_opencl_copy_from_opencl((cl_mem)src_variable->ptr, (void*)dst_variable->ptr, src_variable->elemsize,
+                                                  0, event);
+
+	if (STARPU_UNLIKELY(err))
+                STARPU_OPENCL_REPORT_ERROR(err);
+
+	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_variable->elemsize);
+
+	return EAGAIN;
+}
+
+static int copy_ram_to_opencl(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node) {
+	starpu_variable_interface_t *src_variable;
+	starpu_variable_interface_t *dst_variable;
+
+	src_variable = starpu_data_get_interface_on_node(handle, src_node);
+	dst_variable = starpu_data_get_interface_on_node(handle, dst_node);
+
+	int err = _starpu_opencl_copy_to_opencl((void*)src_variable->ptr, (cl_mem)dst_variable->ptr, src_variable->elemsize,
+                                                0, NULL);
+
+	if (STARPU_UNLIKELY(err))
+                STARPU_OPENCL_REPORT_ERROR(err);
+
+	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_variable->elemsize);
+
+	return 0;
+}
+
+static int copy_opencl_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node) {
+	starpu_variable_interface_t *src_variable;
+	starpu_variable_interface_t *dst_variable;
+
+	src_variable = starpu_data_get_interface_on_node(handle, src_node);
+	dst_variable = starpu_data_get_interface_on_node(handle, dst_node);
+
+	int err = _starpu_opencl_copy_from_opencl((cl_mem)src_variable->ptr, (void*)dst_variable->ptr, src_variable->elemsize,
+                                                  0, NULL);
+
+        if (STARPU_UNLIKELY(err))
+                STARPU_OPENCL_REPORT_ERROR(err);
+
+	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_variable->elemsize);
+
+	return 0;
+}
+
+#endif
 
 static int dummy_copy_ram_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
 {

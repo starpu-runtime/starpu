@@ -42,6 +42,10 @@
 #include <drivers/cuda/driver_cuda.h>
 #endif
 
+#ifdef STARPU_USE_OPENCL
+#include <drivers/opencl/driver_opencl.h>
+#endif
+
 #ifdef STARPU_USE_GORDON
 #include <drivers/gordon/driver_gordon.h>
 #endif
@@ -52,6 +56,7 @@
 
 #define STARPU_CPU_ALPHA	1.0f
 #define STARPU_CUDA_ALPHA	13.33f
+#define STARPU_OPENCL_ALPHA	12.22f
 #define STARPU_GORDON_ALPHA	6.0f /* XXX this is a random value ... */
 
 #ifdef STARPU_DATA_STATS
@@ -105,18 +110,25 @@ struct starpu_machine_config_s {
 #endif
 
 	unsigned nhwcpus;
+        unsigned nhwcudagpus;
+        unsigned nhwopenclgpus;
 
 	unsigned ncpus;
 	unsigned ncudagpus;
+	unsigned nopenclgpus;
 	unsigned ngordon_spus;
 
 	/* Where to bind workers ? */
 	int current_bindid;
 	unsigned workers_bindid[STARPU_NMAXWORKERS];
 	
-	/* Which GPU(s) do we use ? */
-	int current_gpuid;
-	unsigned workers_gpuid[STARPU_NMAXWORKERS];
+	/* Which GPU(s) do we use for CUDA ? */
+	int current_cuda_gpuid;
+	unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS];
+
+	/* Which GPU(s) do we use for OpenCL ? */
+	int current_opencl_gpuid;
+	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
 	
 	struct starpu_worker_s workers[STARPU_NMAXWORKERS];
 	uint32_t worker_mask;
@@ -138,6 +150,7 @@ unsigned _starpu_machine_is_running(void);
 inline uint32_t _starpu_worker_exists(uint32_t task_mask);
 inline uint32_t _starpu_may_submit_cuda_task(void);
 inline uint32_t _starpu_may_submit_cpu_task(void);
+inline uint32_t _starpu_may_submit_opencl_task(void);
 inline uint32_t _starpu_worker_may_execute_task(unsigned workerid, uint32_t where);
 unsigned _starpu_worker_can_block(unsigned memnode);
 

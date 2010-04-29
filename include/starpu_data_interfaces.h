@@ -36,6 +36,8 @@ void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memo
 /* Matrix interface for dense matrices */
 typedef struct starpu_matrix_interface_s {
 	uintptr_t ptr;
+        uintptr_t dev_handle;
+        size_t offset;
 	uint32_t nx;
 	uint32_t ny;
 	uint32_t ld;
@@ -62,6 +64,8 @@ size_t starpu_get_matrix_elemsize(starpu_data_handle handle);
 /* BLOCK interface for 3D dense blocks */
 typedef struct starpu_block_interface_s {
 	uintptr_t ptr;
+        uintptr_t dev_handle;
+        size_t offset;
 	uint32_t nx;
 	uint32_t ny;
 	uint32_t nz;
@@ -93,6 +97,8 @@ size_t starpu_get_block_elemsize(starpu_data_handle handle);
 /* vector interface for contiguous (non-strided) buffers */
 typedef struct starpu_vector_interface_s {
 	uintptr_t ptr;
+        uintptr_t dev_handle;
+        size_t offset;
 	uint32_t nx;
 	size_t elemsize;
 } starpu_vector_interface_t;

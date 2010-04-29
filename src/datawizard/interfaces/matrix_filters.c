@@ -69,6 +69,8 @@ void starpu_block_filter_func(starpu_filter *f, starpu_data_handle root_handle)
 
 				local->ptr = local_root->ptr + offset;
 				local->ld = local_root->ld;
+                                local->dev_handle = local_root->dev_handle;
+                                local->offset = local_root->offset + offset;
 			}
 		}
 	}
@@ -122,6 +124,8 @@ void starpu_vertical_block_filter_func(starpu_filter *f, starpu_data_handle root
 					(size_t)chunk*chunk_size*local_root->ld*elemsize;
 				local->ptr = local_root->ptr + offset;
 				local->ld = local_root->ld;
+                                local->dev_handle = local_root->dev_handle;
+                                local->offset = local_root->offset + offset;
 			}
 		}
 	}

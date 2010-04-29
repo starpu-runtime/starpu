@@ -106,8 +106,11 @@ double _starpu_predict_transfer_time(unsigned src_node, unsigned dst_node, size_
 void _starpu_set_calibrate_flag(unsigned val);
 unsigned _starpu_get_calibrate_flag(void);
 
-#ifdef STARPU_USE_CUDA
-int *_starpu_get_gpu_affinity_vector(unsigned gpuid);
+#if defined(STARPU_USE_CUDA)
+int *_starpu_get_cuda_affinity_vector(unsigned gpuid);
 #endif
- 
+#if defined(STARPU_USE_OPENCL)
+int *_starpu_get_opencl_affinity_vector(unsigned gpuid);
+#endif
+
 #endif // __PERFMODEL_H__

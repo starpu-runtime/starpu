@@ -25,8 +25,8 @@ uint32_t _starpu_select_node_to_handle_request(uint32_t src_node, uint32_t dst_n
 	/* in case one of the node is a GPU, it needs to perform the transfer,
 	 * if both of them are GPU, it's a bit more complicated (TODO !) */
 
-	unsigned src_is_a_gpu = (_starpu_get_node_kind(src_node) == STARPU_CUDA_RAM);
-	unsigned dst_is_a_gpu = (_starpu_get_node_kind(dst_node) == STARPU_CUDA_RAM);
+	unsigned src_is_a_gpu = (_starpu_get_node_kind(src_node) == STARPU_CUDA_RAM || _starpu_get_node_kind(src_node) == STARPU_OPENCL_RAM);
+	unsigned dst_is_a_gpu = (_starpu_get_node_kind(dst_node) == STARPU_CUDA_RAM || _starpu_get_node_kind(dst_node) == STARPU_OPENCL_RAM);
 
 	/* we do not handle GPU->GPU transfers yet ! */
 	STARPU_ASSERT( !(src_is_a_gpu && dst_is_a_gpu) );
@@ -76,6 +76,8 @@ uint32_t _starpu_select_src_node(starpu_data_handle handle)
 			/* however GPU are expensive sources, really !
 			 * 	other should be ok */
 			if (_starpu_get_node_kind(i) != STARPU_CUDA_RAM)
+				break;
+			if (_starpu_get_node_kind(i) != STARPU_OPENCL_RAM)
 				break;
 
 			/* XXX do a better algorithm to distribute the memory copies */
@@ -181,8 +183,8 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 			STARPU_ASSERT(src_node != requesting_node);
 		}
 	
-		unsigned src_is_a_gpu = (_starpu_get_node_kind(src_node) == STARPU_CUDA_RAM);
-		unsigned dst_is_a_gpu = (_starpu_get_node_kind(requesting_node) == STARPU_CUDA_RAM);
+		unsigned src_is_a_gpu = (_starpu_get_node_kind(src_node) == STARPU_CUDA_RAM || _starpu_get_node_kind(src_node) == STARPU_OPENCL_RAM);
+		unsigned dst_is_a_gpu = (_starpu_get_node_kind(requesting_node) == STARPU_CUDA_RAM || _starpu_get_node_kind(requesting_node) == STARPU_OPENCL_RAM);
 
 		/* we have to perform 2 successive requests for GPU->GPU transfers */
 		if (read && (src_is_a_gpu && dst_is_a_gpu)) {

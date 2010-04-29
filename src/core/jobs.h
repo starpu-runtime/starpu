@@ -49,6 +49,7 @@ typedef void (*callback)(void *);
 #define STARPU_CUDA_MAY_PERFORM(j)      ((j)->task->cl->where & STARPU_CUDA)
 #define STARPU_SPU_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_SPU)
 #define STARPU_GORDON_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_GORDON)
+#define STARPU_OPENCL_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_OPENCL)
 
 /* a job is the internal representation of a task */
 LIST_TYPE(starpu_job,

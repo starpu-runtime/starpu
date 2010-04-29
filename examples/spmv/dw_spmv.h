@@ -24,7 +24,6 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include <signal.h>
-#include <cblas.h>
 
 #include <starpu.h>
 

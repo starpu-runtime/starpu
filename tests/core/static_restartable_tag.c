@@ -29,9 +29,10 @@ static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attri
 
 static starpu_codelet dummy_codelet = 
 {
-	.where = STARPU_CPU|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = dummy_func,
 	.cuda_func = dummy_func,
+	.opencl_func = dummy_func,
 	.model = NULL,
 	.nbuffers = 0
 };

@@ -39,6 +39,7 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 		.where = where,
 		.cuda_func = wrapper_func,
 		.cpu_func = wrapper_func,
+		.opencl_func = wrapper_func,
 		/* XXX we do not handle Cell .. */
 		.nbuffers = 0,
 		.model = NULL

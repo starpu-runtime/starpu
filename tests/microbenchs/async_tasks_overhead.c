@@ -35,9 +35,10 @@ static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attri
 
 static starpu_codelet dummy_codelet = 
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL|STARPU_GORDON,
 	.cpu_func = dummy_func,
 	.cuda_func = dummy_func,
+        .opencl_func = dummy_func,
 #ifdef STARPU_USE_GORDON
 	.gordon_func = 0, /* this will be defined later */
 #endif
@@ -91,9 +92,11 @@ static struct starpu_conf conf = {
 	.sched_policy_name = NULL,
 	.ncpus = -1,
 	.ncuda = -1,
+        .nopencl = -1,
 	.nspus = -1,
 	.use_explicit_workers_bindid = 0,
-	.use_explicit_workers_gpuid = 0,
+	.use_explicit_workers_cuda_gpuid = 0,
+	.use_explicit_workers_opencl_gpuid = 0,
 	.calibrate = 0
 };
 

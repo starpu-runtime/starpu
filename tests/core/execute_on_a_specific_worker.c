@@ -71,9 +71,10 @@ static starpu_access_mode select_random_mode(void)
 
 
 static starpu_codelet cl = {
-	.where = STARPU_CPU|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = codelet_null,
 	.cuda_func = codelet_null,
+        .opencl_func = codelet_null,
 	.nbuffers = 1
 };
 

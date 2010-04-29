@@ -46,6 +46,11 @@ void cuda_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args);
 void cuda_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args);
 #endif
 
+#ifdef STARPU_USE_OPENCL
+void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args);
+void opencl_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args);
+#endif
+
 #define VECTORSIZE	16
 
 starpu_data_handle v_handle;
@@ -79,8 +84,12 @@ int main(int argc, char **argv)
 
 	fprintf(stderr, "kernel incA %d incC %d elf %d\n", kernel_incA_id, kernel_incC_id, elf_id);
 #endif
-	
-	starpu_register_vector_data(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
+
+#ifdef STARPU_USE_OPENCL
+        _starpu_opencl_compile_source_to_opencl("tests/datawizard/sync_and_notify_data_opencl_codelet.cl");
+#endif
+
+        starpu_register_vector_data(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 
 	unsigned iter;
 	for (iter = 0; iter < K; iter++)
@@ -91,10 +100,13 @@ int main(int argc, char **argv)
 		{
 			/* increment a = v[0] */
 			starpu_codelet cl_inc_a = {
-				.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
+				.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL|STARPU_GORDON,
 				.cpu_func = cpu_codelet_incA,
 #ifdef STARPU_USE_CUDA
 				.cuda_func = cuda_codelet_incA,
+#endif
+#ifdef STARPU_USE_OPENCL
+				.opencl_func = opencl_codelet_incA,
 #endif
 #ifdef STARPU_USE_GORDON
 				.gordon_func = kernel_incA_id,
@@ -127,10 +139,13 @@ int main(int argc, char **argv)
 		{
 			/* increment c = v[2] */
 			starpu_codelet cl_inc_c = {
-				.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON,
+				.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL|STARPU_GORDON,
 				.cpu_func = cpu_codelet_incC,
 #ifdef STARPU_USE_CUDA
 				.cuda_func = cuda_codelet_incC,
+#endif
+#ifdef STARPU_USE_OPENCL
+				.opencl_func = opencl_codelet_incC,
 #endif
 #ifdef STARPU_USE_GORDON
 				.gordon_func = kernel_incC_id,

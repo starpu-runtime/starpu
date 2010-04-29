@@ -59,6 +59,11 @@ inline uint32_t _starpu_may_submit_cpu_task(void)
 	return (STARPU_CPU & config.worker_mask);
 }
 
+inline uint32_t _starpu_may_submit_opencl_task(void)
+{
+	return (STARPU_OPENCL & config.worker_mask);
+}
+
 inline uint32_t _starpu_worker_may_execute_task(unsigned workerid, uint32_t where)
 {
 	return (where & config.workers[workerid].worker_mask);
@@ -89,6 +94,9 @@ static void _starpu_init_worker_queue(struct starpu_worker_s *workerarg)
 			break;
 		case STARPU_CUDA_WORKER:
 			jobq->alpha = STARPU_CUDA_ALPHA;
+			break;
+		case STARPU_OPENCL_WORKER:
+			jobq->alpha = STARPU_OPENCL_ALPHA;
 			break;
 		case STARPU_GORDON_WORKER:
 			jobq->alpha = STARPU_GORDON_ALPHA;
@@ -151,6 +159,15 @@ static void _starpu_init_workers(struct starpu_machine_config_s *config)
 
 				break;
 #endif
+#ifdef STARPU_USE_OPENCL
+			case STARPU_OPENCL_WORKER:
+				workerarg->set = NULL;
+				workerarg->worker_is_initialized = 0;
+				pthread_create(&workerarg->worker_thread, 
+						NULL, _starpu_opencl_worker, workerarg);
+
+				break;
+#endif
 #ifdef STARPU_USE_GORDON
 			case STARPU_GORDON_WORKER:
 				/* we will only launch gordon once, but it will handle 
@@ -192,6 +209,7 @@ static void _starpu_init_workers(struct starpu_machine_config_s *config)
 		switch (workerarg->arch) {
 			case STARPU_CPU_WORKER:
 			case STARPU_CUDA_WORKER:
+			case STARPU_OPENCL_WORKER:			  
 				PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 				while (!workerarg->worker_is_initialized)
 					PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
@@ -523,6 +541,11 @@ unsigned starpu_get_cuda_worker_count(void)
 	return config.ncudagpus;
 }
 
+unsigned starpu_get_opencl_worker_count(void)
+{
+	return config.nopenclgpus;
+}
+
 unsigned starpu_get_spu_worker_count(void)
 {
 	return config.ngordon_spus;
@@ -547,6 +570,11 @@ int starpu_get_worker_id(void)
 		 * a thread from the application or this is some SPU worker */
 		return -1;
 	}
+}
+
+int starpu_get_worker_devid(int id)
+{
+	return config.workers[id].devid;
 }
 
 struct starpu_worker_s *_starpu_get_worker_struct(unsigned id)

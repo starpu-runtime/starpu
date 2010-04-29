@@ -40,8 +40,8 @@ void parse_args(int argc, char **argv)
 		strcpy(filename_out, argv[2]);
 	}
 	else {
-		sprintf(filename_in, "%s/examples/ppm_downscaler/%s", STARPU_DIR, filename_in_default);
-		sprintf(filename_out, "%s/examples/ppm_downscaler/%s", STARPU_DIR, filename_out_default);
+		sprintf(filename_in, "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_in_default);
+		sprintf(filename_out, "%s/examples/ppm_downscaler/%s", STARPU_BUILD_DIR, filename_out_default);
 	}
 }
 

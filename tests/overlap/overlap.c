@@ -59,9 +59,10 @@ static struct starpu_perfmodel_t model = {
 };
 
 static starpu_codelet cl = {
-	.where = STARPU_CPU|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = codelet_sleep,
 	.cuda_func = codelet_sleep,
+        .opencl_func = codelet_sleep,
 	.nbuffers = 1,
 	.model =  &model
 };

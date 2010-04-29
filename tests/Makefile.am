@@ -33,7 +33,7 @@ if STARPU_USE_CUDA
 # TODO define NVCCFLAGS
 NVCC ?= nvcc
 
-NVCCFLAGS += -I$(top_srcdir)/include/
+NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_builddir)/include
 
 .cu.cubin:
 	$(MKDIR_P) `dirname $@`
@@ -244,6 +244,11 @@ microbenchs_local_pingpong_SOURCES =		\
 if STARPU_USE_CUDA
 datawizard_sync_and_notify_data_SOURCES +=	\
 	datawizard/sync_and_notify_data_kernels.cu
+endif
+
+if STARPU_USE_OPENCL
+datawizard_sync_and_notify_data_SOURCES +=	\
+	datawizard/sync_and_notify_data_opencl.c
 endif
 
 if STARPU_USE_GORDON

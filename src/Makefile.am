@@ -157,3 +157,8 @@ endif
 if STARPU_USE_GORDON
 libstarpu_la_SOURCES += drivers/gordon/driver_gordon.c
 endif
+
+if STARPU_USE_OPENCL
+libstarpu_la_SOURCES += drivers/opencl/driver_opencl.c
+libstarpu_la_SOURCES += drivers/opencl/driver_opencl_utils.c
+endif
