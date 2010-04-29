@@ -76,7 +76,9 @@ noinst_HEADERS = 						\
 	drivers/cpu/driver_cpu.h				\
 	drivers/gordon/driver_gordon.h				\
 	drivers/gordon/gordon_interface.h			\
-	drivers/cuda/driver_cuda.h
+	drivers/cuda/driver_cuda.h				\
+	drivers/opencl/driver_opencl.h				\
+	drivers/opencl/driver_opencl_utils.h
 
 libstarpu_la_SOURCES = 						\
 	common/hash.c 						\

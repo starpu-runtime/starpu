@@ -38,6 +38,8 @@ EXTRA_DIST = 					\
 	mult/gordon/func_sgemm_ibm.c		\
 	lu/xlu.c				\
 	lu/xlu_pivot.c				\
+	lu/xlu_implicit.c			\
+	lu/xlu_implicit_pivot.c			\
 	lu/xlu_kernels.c			\
 	lu/lu_example.c
 
