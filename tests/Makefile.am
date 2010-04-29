@@ -19,7 +19,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/
 
 EXTRA_DIST =					\
 	microbenchs/null_kernel_gordon.c	\
-	datawizard/sync_and_notify_data_gordon_kernels.c
+	datawizard/sync_and_notify_data_gordon_kernels.c \
+	datawizard/sync_and_notify_data_opencl_codelet.cl
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo		\
@@ -234,6 +235,9 @@ microbenchs_prefetch_data_on_node_SOURCES =	\
 
 datawizard_sync_and_notify_data_SOURCES =	\
 	datawizard/sync_and_notify_data.c
+
+nobase_STARPU_OPENCL_DATA_DATA = \
+	datawizard/sync_and_notify_data_opencl_codelet.cl
 
 microbenchs_redundant_buffer_SOURCES =		\
 	microbenchs/redundant_buffer.c
