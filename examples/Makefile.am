@@ -445,23 +445,6 @@ endif
 nobase_STARPU_OPENCL_DATA_DATA = \
 	incrementer/incrementer_kernels_opencl_codelet.cl
 
-###################
-# Stencil example #
-###################
-
-#if STARPU_USE_OPENCL
-#check_PROGRAMS +=		\
-#	stencil/stencil
-#examplebin_PROGRAMS +=		\
-#	stencil/stencil
-#stencil_stencil_SOURCES =	\
-#	stencil/stencil.c       \
-#	stencil/stencil_opencl.c
-#nobase_STARPU_OPENCL_DATA_DATA += \
-#	stencil/stencil_opencl_codelet.cl \
-#	stencil/stencil.h
-#endif
-
 ####################
 # Variable example #
 ####################
