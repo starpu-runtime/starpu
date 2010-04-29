@@ -297,7 +297,6 @@ examplebin_PROGRAMS += 				\
 
 lu_lu_implicit_example_float_SOURCES =		\
 	lu/lu_example_float.c			\
-	lu/xlu_implicit.c			\
 	lu/slu_implicit.c			\
 	lu/slu_implicit_pivot.c			\
 	lu/slu_kernels.c			\
