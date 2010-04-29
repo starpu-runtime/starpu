@@ -43,6 +43,14 @@ EXTRA_DIST = 					\
 	lu/xlu_kernels.c			\
 	lu/lu_example.c
 
+if STARPU_USE_OPENCL
+EXTRA_DIST += 					\
+	incrementer/incrementer_kernels_opencl_codelet.cl 	\
+	variable/variable_kernels_opencl_codelet.cl		\
+	matvecmult/matvecmult_kernel.cl				\
+	block/block_kernel.cl
+endif
+
 CLEANFILES = 					\
 	gordon/null_kernel_gordon.spuelf	\
 	mult/gordon/func_sgemm_ibm.spuelf
