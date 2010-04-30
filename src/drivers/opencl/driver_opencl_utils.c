@@ -124,6 +124,18 @@ unsigned char *_starpu_opencl_load_program_binary(char *filename, size_t *len)
 }
 
 static
+char *_starpu_basename(const char *name)
+{
+        const char *base = name;
+        while (*name) {
+                if (*name++ == '/') {
+                        base = name;
+                }
+        }
+        return (char *) base;
+}
+
+static
 cl_int _starpu_opencl_load_program(cl_context context, char *program_name, cl_device_id device, cl_program *program)
 {
         //	cl_program     program;
@@ -134,12 +146,9 @@ cl_int _starpu_opencl_load_program(cl_context context, char *program_name, cl_de
         cl_device_type type;
 
 	cl_uint uniqueid;
-	char     located_program_name[1024];
 	char     binary_file_name[1024];
 	char    *p;
-
-        // locate file
-        _starpu_opencl_locate_file(program_name, located_program_name);
+        char    *basename;
 
         // Get type of device
         err = clGetDeviceInfo(device, CL_DEVICE_TYPE, sizeof(cl_device_type), &type, NULL);
@@ -150,7 +159,9 @@ cl_int _starpu_opencl_load_program(cl_context context, char *program_name, cl_de
 
         // Get the name of the binary file
 	uniqueid = _starpu_opencl_device_uniqueid(device);
-	strcpy(binary_file_name, located_program_name);
+        strcpy(binary_file_name, "/tmp/");
+        basename = _starpu_basename(program_name);
+        strcat(binary_file_name, basename);
 	p = strstr(binary_file_name, ".cl");
 	if(p == NULL) OPENCL_ERROR("Program file name doesn't have the '.cl' extension!\n");
         strcpy(p, (type == CL_DEVICE_TYPE_GPU) ? ".gpu." : ".cpu.");
@@ -296,15 +307,17 @@ int _starpu_opencl_compile_source_to_opencl(char *source_file_name)
         char             located_file_name[1024];
         cl_platform_id   platform_ids[STARPU_OPENCL_PLATFORM_MAX];
         cl_uint          platform, nb_platforms;
+        char             *basename;
 
         // Locate source file
         _starpu_opencl_locate_file(source_file_name, located_file_name);
         _STARPU_OPENCL_DEBUG("Source file name : <%s>\n", located_file_name);
+        basename = _starpu_basename(located_file_name);
 
         // Prepare preprocessor temporary filename
         {
                 char *p;
-                strcpy(preproc_file_name, located_file_name);
+                strcpy(preproc_file_name, basename);
                 p = strstr(preproc_file_name, ".cl");
                 if(p == NULL)
                         OPENCL_ERROR("Kernel file name doesn't have the '.cl' extension!\n");
@@ -373,6 +386,9 @@ int _starpu_opencl_compile_source_to_opencl(char *source_file_name)
                         if(!source)
                                 OPENCL_ERROR("Failed to load compute program from file <%s>!\n", preproc_file_name);
 
+                        // Delete preprocessed file
+                        unlink(preproc_file_name);
+
                         // Create the compute program from the source buffer
                         program = clCreateProgramWithSource(context, 1, (const char **) & source, NULL, &err);
                         if (!program || err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
@@ -397,7 +413,8 @@ int _starpu_opencl_compile_source_to_opencl(char *source_file_name)
                                 size_t   binary_len;
                                 char    *p;
 
-                                strcpy(binary_file_name, located_file_name);
+                                strcpy(binary_file_name, "/tmp/");
+                                strcat(binary_file_name, basename);
                                 p = strstr(binary_file_name, ".cl");
                                 if(p == NULL)
                                         OPENCL_ERROR("Input file name doesn't have the '.cl' extension!\n");
