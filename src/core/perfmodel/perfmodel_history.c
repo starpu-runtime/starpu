@@ -467,6 +467,12 @@ void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archna
 		int devid = arch - STARPU_CUDA_DEFAULT;
 		snprintf(archname, maxlen, "cuda_%d", devid);
 	}
+	else if ((STARPU_OPENCL_DEFAULT <= arch)
+		&& (arch < STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS))
+	{
+		int devid = arch - STARPU_OPENCL_DEFAULT;
+		snprintf(archname, maxlen, "opencl_%d", devid);
+	}
 	else if (arch == STARPU_GORDON_DEFAULT)
 	{
 		snprintf(archname, maxlen, "gordon");
