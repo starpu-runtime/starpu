@@ -59,14 +59,14 @@ This manual documents the usage of StarPU
 The use of specialized hardware such as accelerators or coprocessors offers an
 interesting approach to overcome the physical limits encountered by processor
 architects. As a result, many machines are now equipped with one or several
-accelerators (eg. a GPU), in addition to the usual processor(s). While a lot of
+accelerators (e.g. a GPU), in addition to the usual processor(s). While a lot of
 efforts have been devoted to offload computation onto such accelerators, very
 little attention as been paid to portability concerns on the one hand, and to the
 possibility of having heterogeneous accelerators and processors to interact on the other hand.
 
 StarPU is a runtime system that offers support for heterogeneous multicore
 architectures, it not only offers a unified view of the computational resources
-(ie. CPUs and accelerators at the same time), but it also takes care to
+(i.e. CPUs and accelerators at the same time), but it also takes care to
 efficiently map and execute tasks onto an heterogeneous machine while
 transparently handling low-level issues in a portable fashion.
 
@@ -88,7 +88,7 @@ takes particular care of scheduling those tasks efficiently and allows
 scheduling experts to implement custom scheduling policies in a portable
 fashion.
 
-@c explain the notion of codelet and task (ie. g(A, B)
+@c explain the notion of codelet and task (i.e. g(A, B)
 @subsection Codelet and Tasks
 One of StarPU primary data structure is the @b{codelet}. A codelet describes a
 computational kernel that can possibly be implemented on multiple architectures
@@ -440,7 +440,7 @@ TODO
 
 @item @emph{Description}:
 This is StarPU initialization method, which must be called prior to any other
-StarPU call.  It is possible to specify StarPU's configuration (eg. scheduling
+StarPU call.  It is possible to specify StarPU's configuration (e.g. scheduling
 policy, number of cores, ...) by passing a non-null argument. Default
 configuration is used if the passed argument is @code{NULL}.
 @item @emph{Return value}:
@@ -460,7 +460,7 @@ indicates that no worker was available (so that StarPU was not be initialized).
 This structure is passed to the @code{starpu_init} function in order configure
 StarPU. When the default value is used, StarPU automatically select the number
 of processing units and takes the default scheduling policy. This parameters
-overwrite the equivalent environnement variables. 
+overwrite the equivalent environment variables. 
 
 @item @emph{Fields}:
 @table @asis 
@@ -501,7 +501,7 @@ environment variable.
 @item @emph{Description}:
 This is StarPU termination method. It must be called at the end of the
 application: statistics and other post-mortem debugging information are not
-garanteed to be available until this method has been called.
+guaranteed to be available until this method has been called.
 
 @item @emph{Prototype}:
 @code{void starpu_shutdown(void);}
@@ -527,7 +527,7 @@ garanteed to be available until this method has been called.
 @table @asis
 
 @item @emph{Description}:
-This function returns the number of workers (ie. processing units executing
+This function returns the number of workers (i.e. processing units executing
 StarPU tasks). The returned value should be at most @code{STARPU_NMAXWORKERS}. 
 
 @item @emph{Prototype}:
@@ -589,7 +589,7 @@ This function returns the number of Cell SPUs controlled by StarPU.
 @item @emph{Description}:
 This function returns the identifier of the worker associated to the calling
 thread. The returned value is either -1 if the current context is not a StarPU
-worker (ie. when called from the application outside a task or a callback), or
+worker (i.e. when called from the application outside a task or a callback), or
 an integer between 0 and @code{starpu_get_worker_count() - 1}.
 
 @item @emph{Prototype}:
@@ -705,7 +705,7 @@ Indicates which types of processing units are able to execute that codelet.
 implemented for both CPU cores and CUDA devices while @code{STARPU_GORDON}
 indicates that it is only available on Cell SPUs.
 
-@item @code{cpu_func} (optionnal):
+@item @code{cpu_func} (optional):
 Is a function pointer to the CPU implementation of the codelet. Its prototype
 must be: @code{void cpu_func(void *buffers[], void *cl_arg)}. The first
 argument being the array of data managed by the data management library, and
@@ -714,21 +714,21 @@ field of the @code{starpu_task} structure.
 The @code{cpu_func} field is ignored if @code{STARPU_CPU} does not appear in
 the @code{.where} field, it must be non-null otherwise.
 
-@item @code{cuda_func} (optionnal):
+@item @code{cuda_func} (optional):
 Is a function pointer to the CUDA implementation of the codelet. @emph{This
 must be a host-function written in the CUDA runtime API}. Its prototype must
 be: @code{void cuda_func(void *buffers[], void *cl_arg);}. The @code{cuda_func}
 field is ignored if @code{STARPU_CUDA} does not appear in the @code{.where}
 field, it must be non-null otherwise.
 
-@item @code{opencl_func} (optionnal):
+@item @code{opencl_func} (optional):
 Is a function pointer to the OpenCL implementation of the codelet. Its
 prototype must be:
 @code{void opencl_func(starpu_data_interface_t *descr, void *arg);}.
 This pointer is ignored if @code{OPENCL} does not appear in the
 @code{.where} field, it must be non-null otherwise.
 
-@item @code{gordon_func} (optionnal):
+@item @code{gordon_func} (optional):
 This is the index of the Cell SPU implementation within the Gordon library.
 TODO
 
@@ -739,9 +739,9 @@ array. The constant argument passed with the @code{.cl_arg} field of the
 @code{starpu_task} structure is not counted in this number.  This value should
 not be above @code{STARPU_NMAXBUFS}.
 
-@item @code{model} (optionnal):
+@item @code{model} (optional):
 This is a pointer to the performance model associated to this codelet. This
-optionnal field is ignored when null. TODO
+optional field is ignored when null. TODO
 
 @end table
 @end table
@@ -751,7 +751,7 @@ optionnal field is ignored when null. TODO
 @table @asis
 @item @emph{Description}:
 The starpu_task structure describes a task that can be offloaded on the various
-processing units managed by StarPU. It instanciates a codelet. It can either be
+processing units managed by StarPU. It instantiates a codelet. It can either be
 allocated dynamically with the @code{starpu_task_create} method, or declared
 statically. In the latter case, the programmer has to zero the
 @code{starpu_task} structure and to fill the different fields properly. The
@@ -771,7 +771,7 @@ TODO
 
 @item @code{cl_arg} (optional) (default = NULL):
 This pointer is passed to the codelet through the second argument
-of the codelet implementation (eg. @code{cpu_func} or @code{cuda_func}).
+of the codelet implementation (e.g. @code{cpu_func} or @code{cuda_func}).
 In the specific case of the Cell processor, see the @code{.cl_arg_size}
 argument.
 
@@ -797,7 +797,7 @@ the @code{callback_func} is null.
 
 @item @code{use_tag} (optional) (default = 0):
 If set, this flag indicates that the task should be associated with the tag
-conained in the @code{tag_id} field. Tag allow the application to synchronize
+contained in the @code{tag_id} field. Tag allow the application to synchronize
 with the task and to express task dependencies easily.
 
 @item @code{tag_id}:
@@ -809,7 +809,7 @@ If this flag is set, the @code{starpu_submit_task} function is blocking and
 returns only when the task has been executed (or if no worker is able to
 process the task). Otherwise, @code{starpu_submit_task} returns immediately.
 
-@item @code{priority} (optionnal) (default = @code{STARPU_DEFAULT_PRIO}):
+@item @code{priority} (optional) (default = @code{STARPU_DEFAULT_PRIO}):
 This field indicates a level of priority for the task. This is an integer value
 that must be selected between @code{STARPU_MIN_PRIO} (for the least important
 tasks) and @code{STARPU_MAX_PRIO} (for the most important tasks) included.
@@ -830,7 +830,7 @@ returned by @code{starpu_get_worker_id}). This field is ignored if
 @item @code{detach} (optional) (default = 1):
 If this flag is set, it is not possible to synchronize with the task
 by the means of @code{starpu_wait_task} later on. Internal data structures
-are only garanteed to be liberated once @code{starpu_wait_task} is called
+are only guaranteed to be liberated once @code{starpu_wait_task} is called
 if that flag is not set.
 
 @item @code{destroy} (optional) (default = 1):
@@ -838,7 +838,7 @@ If that flag is set, the task structure will automatically be liberated, either
 after the execution of the callback if the task is detached, or during
 @code{starpu_task_wait} otherwise. If this flag is not set, dynamically allocated data
 structures will not be liberated until @code{starpu_task_destroy} is called
-explicitely. Setting this flag for a statically allocated task structure will
+explicitly. Setting this flag for a statically allocated task structure will
 result in undefined behaviour.
 
 @end table
@@ -848,9 +848,9 @@ result in undefined behaviour.
 @subsection @code{starpu_task_init} -- Initialize a Task
 @table @asis
 @item @emph{Description}:
-Initialize a task structure with default values. This function is implicitely
+Initialize a task structure with default values. This function is implicitly
 called by @code{starpu_task_create}. By default, tasks initialized with
-@code{starpu_task_init} must be deinitialized explicitely with
+@code{starpu_task_init} must be deinitialized explicitly with
 @code{starpu_task_deinit}. Tasks can also be initialized statically, using the
 constant @code{STARPU_TASK_INITIALIZER}.
 @item @emph{Prototype}:
@@ -863,8 +863,8 @@ constant @code{STARPU_TASK_INITIALIZER}.
 @item @emph{Description}:
 Allocate a task structure and initialize it with default values. Tasks
 allocated dynamically with starpu_task_create are automatically liberated when
-the task is terminated. If the destroy flag is explicitely unset, the
-ressources used by the task are liberated by calling
+the task is terminated. If the destroy flag is explicitly unset, the
+resources used by the task are liberated by calling
 @code{starpu_task_destroy}.
 
 @item @emph{Prototype}:
@@ -876,7 +876,7 @@ ressources used by the task are liberated by calling
 @table @asis
 @item @emph{Description}:
 Release all the structures automatically allocated to execute the task. This is
-called implicitely by starpu_task_destroy, but the task structure itself is not
+called implicitly by starpu_task_destroy, but the task structure itself is not
 liberated. This should be used for statically allocated tasks for instance.
 Note that this function is automatically called by @code{starpu_task_destroy}.
 @item @emph{Prototype}:
@@ -889,7 +889,7 @@ Note that this function is automatically called by @code{starpu_task_destroy}.
 @subsection @code{starpu_task_destroy} -- Destroy a dynamically allocated Task
 @table @asis
 @item @emph{Description}:
-Liberate the ressource allocated during starpu_task_create. This function can
+Liberate the resource allocated during starpu_task_create. This function can
 be called automatically after the execution of a task by setting the
 @code{.destroy} flag of the @code{starpu_task} structure (default behaviour).
 Calling this function on a statically allocated task results in an undefined
@@ -920,7 +920,7 @@ indicates that the waited task was either synchronous or detached.
 @table @asis
 @item @emph{Description}:
 This function submits task @code{task} to StarPU. Calling this function does
-not mean that the task will be executed immediatly as there can be data or task
+not mean that the task will be executed immediately as there can be data or task
 (tag) dependencies that are not fulfilled yet: StarPU will take care to
 schedule this task with respect to such dependencies.
 This function returns immediately if the @code{synchronous} field of the
@@ -930,7 +930,7 @@ asynchronous tasks by the means of tags, using the @code{starpu_tag_wait}
 function for instance. 
 
 In case of success, this function returns 0, a return value of @code{-ENODEV}
-means that there is no worker able to process that task (eg. there is no GPU
+means that there is no worker able to process that task (e.g. there is no GPU
 available and this task is only implemented on top of CUDA).
 @item @emph{Prototype}:
 @code{int starpu_submit_task(struct starpu_task *task);}
@@ -961,7 +961,7 @@ This function blocks until all the tasks that were submitted are terminated.
 * starpu_tag_wait::                Block until a Tag is terminated
 * starpu_tag_wait_array::          Block until a set of Tags is terminated
 * starpu_tag_remove::              Destroy a Tag
-* starpu_tag_notify_from_apps::    Feed a tag explicitely
+* starpu_tag_notify_from_apps::    Feed a tag explicitly
 @end menu
 
 
@@ -994,7 +994,7 @@ with @code{starpu_submit_task}.
 @item @emph{Remark}
 Because of the variable arity of @code{starpu_tag_declare_deps}, note that the
 last arguments @emph{must} be of type @code{starpu_tag_t}: constant values
-typically need to be explicitely casted. Using the
+typically need to be explicitly casted. Using the
 @code{starpu_tag_declare_deps_array} function avoids this hazard.
 
 @item @emph{Prototype}:
@@ -1042,8 +1042,8 @@ executed. This is a blocking call which must therefore not be called within
 tasks or callbacks, but only from the application directly.  It is possible to
 synchronize with the same tag multiple times, as long as the
 @code{starpu_tag_remove} function is not called.  Note that it is still
-possible to synchronize wih a tag associated to a task which @code{starpu_task}
-data structure was liberated (eg. if the @code{destroy} flag of the
+possible to synchronize with a tag associated to a task which @code{starpu_task}
+data structure was liberated (e.g. if the @code{destroy} flag of the
 @code{starpu_task} was enabled).
 
 @item @emph{Prototype}:
@@ -1073,12 +1073,12 @@ that depend on that one anymore.
 @end table
 
 @node starpu_tag_notify_from_apps
-@subsection @code{starpu_tag_notify_from_apps} -- Feed a Tag explicitely
+@subsection @code{starpu_tag_notify_from_apps} -- Feed a Tag explicitly
 @table @asis
 @item @emph{Description}:
-This function explicitely unlocks tag @code{id}. It may be useful in the
+This function explicitly unlocks tag @code{id}. It may be useful in the
 case of applications which execute part of their computation outside StarPU
-tasks (eg. third-party libraries).  It is also provided as a
+tasks (e.g. third-party libraries).  It is also provided as a
 convenient tool for the programmer, for instance to entirely construct the task
 DAG before actually giving StarPU the opportunity to execute the tasks.
 @item @emph{Prototype}:
@@ -1235,7 +1235,7 @@ starpu_codelet cl =
 
 A codelet is a structure that represents a computational kernel. Such a codelet
 may contain an implementation of the same kernel on different architectures
-(eg. CUDA, Cell's SPU, x86, ...).
+(e.g. CUDA, Cell's SPU, x86, ...).
 
 The ''@code{.nbuffers}'' field specifies the number of data buffers that are
 manipulated by the codelet: here the codelet does not access or modify any data
@@ -1255,7 +1255,7 @@ which @emph{must} have the following prototype:
 @code{void (*cpu_func)(void *buffers[], void *cl_arg)}
 
 In this example, we can ignore the first argument of this function which gives a
-description of the input and output buffers (eg. the size and the location of
+description of the input and output buffers (e.g. the size and the location of
 the matrices). The second argument is a pointer to a buffer passed as an
 argument to the codelet by the means of the ''@code{.cl_arg}'' field of the
 @code{starpu_task} structure.
@@ -1263,7 +1263,7 @@ argument to the codelet by the means of the ''@code{.cl_arg}'' field of the
 @c TODO rewrite so that it is a little clearer ?
 Be aware that this may be a pointer to a
 @emph{copy} of the actual buffer, and not the pointer given by the programmer:
-if the codelet modifies this buffer, there is no garantee that the initial
+if the codelet modifies this buffer, there is no guarantee that the initial
 buffer will be modified as well: this for instance implies that the buffer
 cannot be used as a synchronization medium.
 
@@ -1350,11 +1350,11 @@ The previous example has shown how to submit tasks. In this section we show how
 StarPU tasks can manipulate data.
 
 Programmers can describe the data layout of their application so that StarPU is
-responsible for enforcing data coherency and availability accross the machine.
+responsible for enforcing data coherency and availability across the machine.
 Instead of handling complex (and non-portable) mechanisms to perform data
 movements, programmers only declare which piece of data is accessed and/or
 modified by a task, and StarPU makes sure that when a computational kernel
-starts somewhere (eg. on a GPU), its data are available locally.
+starts somewhere (e.g. on a GPU), its data are available locally.
 
 Before submitting those tasks, the programmer first needs to declare the
 different pieces of data to StarPU using the @code{starpu_register_*_data}
