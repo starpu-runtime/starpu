@@ -20,6 +20,7 @@
 
 #include <starpu.h>
 #include <starpu_perfmodel.h>
+#include <core/perfmodel/perfmodel.h> // we need to browse the list associated to history-based models
 
 static struct starpu_perfmodel_t model;
 
@@ -31,18 +32,21 @@ static char *symbol = NULL;
 static char *parameter = NULL;
 /* which architecture ? (NULL = all)*/
 static char *arch = NULL;
+/* should we display a specific footprint ? */
+unsigned display_specific_footprint;
+uint32_t specific_footprint;
 
 static void usage(char **argv)
 {
-	/* TODO */
 	fprintf(stderr, "Usage: %s [ options ]\n", argv[0]);
         fprintf(stderr, "\n");
         fprintf(stderr, "One must specify either -l or -s\n");
         fprintf(stderr, "Options:\n");
         fprintf(stderr, "   -l                  display all available models\n");
         fprintf(stderr, "   -s <symbol>         specify the symbol\n");
-        fprintf(stderr, "   -p <parameter>      specify the parameter (e.g. a, b, c)\n");
+        fprintf(stderr, "   -p <parameter>      specify the parameter (e.g. a, b, c, mean, stddev)\n");
         fprintf(stderr, "   -a <arch>           specify the architecture (e.g. cpu, cuda, gordon)\n");
+	fprintf(stderr, "   -f <footprint>      display the history-based model for the specified footprint\n");
         fprintf(stderr, "\n");
 
         exit(-1);
@@ -52,7 +56,7 @@ static void parse_args(int argc, char **argv)
 {
 	int c;
 
-	while ((c = getopt(argc, argv, "ls:p:a:h")) != -1) {
+	while ((c = getopt(argc, argv, "ls:p:a:f:h")) != -1) {
 	switch (c) {
                 case 'l':
                         /* list all models */
@@ -65,13 +69,19 @@ static void parse_args(int argc, char **argv)
 			break;
 
 		case 'p':
-			/* parameter (eg. a, b, c .. ) */
+			/* parameter (eg. a, b, c, mean, stddev) */
 			parameter = optarg;
 			break;
 
 		case 'a':
 			/* architecture (cpu, cuda, gordon) */
 			arch = optarg;
+			break;
+
+		case 'f':
+			/* footprint */
+			display_specific_footprint = 1;
+			sscanf(optarg, "%08x", &specific_footprint);
 			break;
 
 		case 'h':
@@ -89,6 +99,41 @@ static void parse_args(int argc, char **argv)
 		fprintf(stderr, "Incorrect usage, aborting\n");
                 usage(argv);
 		exit(-1);
+	}
+}
+
+static void display_history_based_perf_model(struct starpu_per_arch_perfmodel_t *per_arch_model)
+{
+	struct starpu_history_list_t *ptr;
+
+	if (!parameter)
+		fprintf(stderr, "# hash\t\tsize\t\tmean\t\tdev\t\tn\n");
+
+	ptr = per_arch_model->list;
+	while (ptr) {
+		struct starpu_history_entry_t *entry = ptr->entry;
+		if (!display_specific_footprint || (entry->footprint == specific_footprint))
+		{
+			if (!parameter)
+			{	
+				/* There isn't a parameter that is explicitely requested, so we display all parameters */
+				printf("%08x\t%-15lu\t%-15le\t%-15le\t%u\n", entry->footprint,
+					(unsigned long) entry->size, entry->mean, entry->deviation, entry->nsample);
+			}
+			else {
+				/* only display the parameter that was specifically requested */
+				if (strcmp(parameter, "mean") == 0) {
+					printf("%-15le\n", entry->mean);
+				}
+		
+				if (strcmp(parameter, "stddev") == 0) {
+					printf("%-15le\n", entry->deviation);
+					return;
+				}
+			}
+		}
+
+		ptr = ptr->next;
 	}
 }
 
@@ -115,6 +160,8 @@ static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_per
 			fprintf(stderr, "\t\tb = %le\n", arch_model->regression.b);
 			fprintf(stderr, "\t\tc = %le\n", arch_model->regression.c);
 		}
+
+		display_history_based_perf_model(arch_model);
 
 		char debugname[1024];
 		starpu_perfmodel_debugfilepath(model, arch, debugname, 1024);
@@ -154,6 +201,11 @@ static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_per
 			return;
 		}
 
+		if ((strcmp(parameter, "mean") == 0) || (strcmp(parameter, "stddev"))) {
+			display_history_based_perf_model(arch_model);
+			return;
+		}
+
 		/* TODO display if it's valid ? */
 
 		fprintf(stderr, "Unknown parameter requested, aborting.\n");
@@ -190,6 +242,17 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 				fprintf(stderr, "performance model for %s\n", archname);
 				display_perf_model(model, archid);
 			}
+			return;
+		}
+
+		/* There must be a cleaner way ! */
+		int gpuid;
+		int nmatched;
+		nmatched = sscanf(arch, "cuda_%d", &gpuid);
+		if (nmatched == 1)
+		{
+			unsigned archid = STARPU_CUDA_DEFAULT+ gpuid;
+			display_perf_model(model, archid);
 			return;
 		}
 
