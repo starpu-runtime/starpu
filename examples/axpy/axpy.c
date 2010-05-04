@@ -139,7 +139,7 @@ int main(int argc, char **argv)
 		task->buffers[1].handle = starpu_get_sub_data(handle_y, 1, b);
 		task->buffers[1].mode = STARPU_RW;
 		
-		starpu_submit_task(task);
+		starpu_task_submit(task);
 	}
 
 	starpu_wait_all_tasks();

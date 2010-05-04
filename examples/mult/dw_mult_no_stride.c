@@ -341,7 +341,7 @@ static void submit_new_iter(unsigned x, unsigned y, unsigned iter)
 			task->callback_arg = cb2;
 		}
 
-		starpu_submit_task(task);
+		starpu_task_submit(task);
 	}
 }
 

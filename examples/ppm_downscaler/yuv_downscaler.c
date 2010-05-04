@@ -236,7 +236,7 @@ int main(int argc, char **argv)
 				task->buffers[1].handle = starpu_get_sub_data(new_frame_y_handle[frame], 1, blocky);
 				task->buffers[1].mode = STARPU_W;
 
-			starpu_submit_task(task);
+			starpu_task_submit(task);
 		}
 
 		unsigned blocku;
@@ -254,7 +254,7 @@ int main(int argc, char **argv)
 				task->buffers[1].handle = starpu_get_sub_data(new_frame_u_handle[frame], 1, blocku);
 				task->buffers[1].mode = STARPU_W;
 
-			starpu_submit_task(task);
+			starpu_task_submit(task);
 		}
 
 		unsigned blockv;
@@ -272,7 +272,7 @@ int main(int argc, char **argv)
 				task->buffers[1].handle = starpu_get_sub_data(new_frame_v_handle[frame], 1, blockv);
 				task->buffers[1].mode = STARPU_W;
 
-			starpu_submit_task(task);
+			starpu_task_submit(task);
 		}
 	}
 

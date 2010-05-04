@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 	task_f->buffers[0].mode = STARPU_R;
 	task_f->buffers[1].handle = B_handle;
 	task_f->buffers[1].mode = STARPU_RW;
-	starpu_submit_task(task_f);
+	starpu_task_submit(task_f);
 
 	struct starpu_task *task_g = starpu_task_create();
 	task_g->cl = &cl_g;
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 	task_g->buffers[0].mode = STARPU_R;
 	task_g->buffers[1].handle = C_handle;
 	task_g->buffers[1].mode = STARPU_RW;
-	starpu_submit_task(task_g);
+	starpu_task_submit(task_g);
 
 	struct starpu_task *task_h = starpu_task_create();
 	task_h->cl = &cl_h;
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 	task_h->buffers[0].mode = STARPU_R;
 	task_h->buffers[1].handle = D_handle;
 	task_h->buffers[1].mode = STARPU_RW;
-	starpu_submit_task(task_h);
+	starpu_task_submit(task_h);
 
 	starpu_wait_all_tasks();
 

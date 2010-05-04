@@ -102,7 +102,7 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
         task->buffers[1].handle = multiplier_handle;
         task->buffers[1].mode = STARPU_RW;
 
-        int ret = starpu_submit_task(task);
+        int ret = starpu_task_submit(task);
         if (STARPU_UNLIKELY(ret == -ENODEV)) {
                 fprintf(stderr, "No worker may execute this task\n");
                 return 1;

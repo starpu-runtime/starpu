@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 	task->cl = &cuda_only_cl;
 
 	/* Only a CUDA device could execute that task ! */
-	ret = starpu_submit_task(task);
+	ret = starpu_task_submit(task);
 	STARPU_ASSERT(ret == -ENODEV);
 
 	struct starpu_task *task_specific = starpu_task_create();
@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 	task_specific->workerid = 0;
 
 	/* Only a CUDA device could execute that task ! */
-	ret = starpu_submit_task(task_specific);
+	ret = starpu_task_submit(task_specific);
 	STARPU_ASSERT(ret == -ENODEV);
 
 	starpu_shutdown();

@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 		task->detach = 0;
 		task->destroy = 0;
 		
-		int ret = starpu_submit_task(task);
+		int ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);
 
 		ret = starpu_task_wait(task);

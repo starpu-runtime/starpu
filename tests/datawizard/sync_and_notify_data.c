@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 
 			task->synchronous = 1;
 
-			ret = starpu_submit_task(task);
+			ret = starpu_task_submit(task);
 			if (ret == -ENODEV)
 				goto enodev;
 		}
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
 
 			task->synchronous = 1;
 
-			ret = starpu_submit_task(task);
+			ret = starpu_task_submit(task);
 			if (ret == -ENODEV)
 				goto enodev;
 		}

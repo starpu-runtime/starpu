@@ -52,7 +52,7 @@ void inject_one_task(void)
 	task->callback_func = NULL;
 	task->synchronous = 1;
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 static void parse_args(int argc, char **argv)
@@ -124,11 +124,11 @@ int main(int argc, char **argv)
 	{
 		starpu_tag_declare_deps((starpu_tag_t)i, 1, (starpu_tag_t)(i-1));
 
-		starpu_submit_task(&tasks[i]);
+		starpu_task_submit(&tasks[i]);
 	}
 
 	/* submit the first task */
-	starpu_submit_task(&tasks[0]);
+	starpu_task_submit(&tasks[0]);
 
 	gettimeofday(&end_submit, NULL);
 

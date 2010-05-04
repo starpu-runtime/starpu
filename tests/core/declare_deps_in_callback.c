@@ -30,7 +30,7 @@ static void callback(void *arg)
 	taskB = arg;
 
 	starpu_task_declare_deps_array(taskB, 1, &taskA);
-	starpu_submit_task(taskB);
+	starpu_task_submit(taskB);
 }
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 		taskA->callback_func = callback;
 		taskA->callback_arg = taskB;
 
-		starpu_submit_task(taskA);
+		starpu_task_submit(taskA);
 	}
 
 	starpu_wait_all_tasks();

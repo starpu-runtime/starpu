@@ -686,7 +686,7 @@ TODO
 * starpu_task_create::            Allocate and Initialize a Task
 * starpu_task_deinit::            Release all the resources used by a Task
 * starpu_task_destroy::           Destroy a dynamically allocated Task
-* starpu_submit_task::            Submit a Task
+* starpu_task_submit::            Submit a Task
 * starpu_task_wait::              Wait for the termination of a Task
 * starpu_wait_all_tasks::	  Wait for the termination of all Tasks
 @end menu
@@ -805,9 +805,9 @@ This fields contains the tag associated to the tag if the @code{use_tag} field
 was set, it is ignored otherwise.
 
 @item @code{synchronous}:
-If this flag is set, the @code{starpu_submit_task} function is blocking and
+If this flag is set, the @code{starpu_task_submit} function is blocking and
 returns only when the task has been executed (or if no worker is able to
-process the task). Otherwise, @code{starpu_submit_task} returns immediately.
+process the task). Otherwise, @code{starpu_task_submit} returns immediately.
 
 @item @code{priority} (optional) (default = @code{STARPU_DEFAULT_PRIO}):
 This field indicates a level of priority for the task. This is an integer value
@@ -915,8 +915,8 @@ indicates that the waited task was either synchronous or detached.
 
 
 
-@node starpu_submit_task
-@subsection @code{starpu_submit_task} -- Submit a Task
+@node starpu_task_submit
+@subsection @code{starpu_task_submit} -- Submit a Task
 @table @asis
 @item @emph{Description}:
 This function submits task @code{task} to StarPU. Calling this function does
@@ -933,7 +933,7 @@ In case of success, this function returns 0, a return value of @code{-ENODEV}
 means that there is no worker able to process that task (e.g. there is no GPU
 available and this task is only implemented on top of CUDA).
 @item @emph{Prototype}:
-@code{int starpu_submit_task(struct starpu_task *task);}
+@code{int starpu_task_submit(struct starpu_task *task);}
 @end table
 
 @node starpu_wait_all_tasks
@@ -989,7 +989,7 @@ number of tag(s) on which @code{id} depends. The following arguments are the
 tags which have to terminated to unlock the task.
 
 This function must be called before the associated task is submitted to StarPU
-with @code{starpu_submit_task}.
+with @code{starpu_task_submit}.
 
 @item @emph{Remark}
 Because of the variable arity of @code{starpu_tag_declare_deps}, note that the
@@ -1292,11 +1292,11 @@ int main(int argc, char **argv)
     task->callback_func = callback_func;
     task->callback_arg = 0x42;
 
-    /* starpu_submit_task will be a blocking call */
+    /* starpu_task_submit will be a blocking call */
     task->synchronous = 1;
 
     /* submit the task to StarPU */
-    starpu_submit_task(task);
+    starpu_task_submit(task);
 
     /* terminate StarPU */
     starpu_shutdown();
@@ -1339,7 +1339,7 @@ void (*callback_function)(void *);
 @end example
 
 If the @code{.synchronous} field is non-null, task submission will be
-synchronous: the @code{starpu_submit_task} function will not return until the
+synchronous: the @code{starpu_task_submit} function will not return until the
 task was executed. Note that the @code{starpu_shutdown} method does not
 guarantee that asynchronous tasks have been executed before it returns.
 

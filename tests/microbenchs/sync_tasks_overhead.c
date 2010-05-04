@@ -65,7 +65,7 @@ void inject_one_task(void)
 	task->callback_func = NULL;
 	task->synchronous = 1;
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 static void parse_args(int argc, char **argv)

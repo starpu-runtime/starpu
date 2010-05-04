@@ -51,7 +51,7 @@ void increment_token(void)
 
 	task->synchronous = 1;
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 int main(int argc, char **argv)

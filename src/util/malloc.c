@@ -94,7 +94,7 @@ int starpu_malloc_pinned_if_possible(void **A, size_t dim)
 
 		task->synchronous = 1;
 
-		push_res = starpu_submit_task(task);
+		push_res = starpu_task_submit(task);
 		STARPU_ASSERT(push_res != -ENODEV);
 #endif
 	}
@@ -116,7 +116,7 @@ int starpu_malloc_pinned_if_possible(void **A, size_t dim)
 //
 //		task->synchronous = 1;
 //
-//		push_res = starpu_submit_task(task);
+//		push_res = starpu_task_submit(task);
 //		STARPU_ASSERT(push_res != -ENODEV);
 //#endif
 //        }
@@ -179,7 +179,7 @@ int starpu_free_pinned_if_possible(void *A)
 
 		task->synchronous = 1;
 
-		push_res = starpu_submit_task(task);
+		push_res = starpu_task_submit(task);
 		STARPU_ASSERT(push_res != -ENODEV);
 #endif
 	}
@@ -196,7 +196,7 @@ int starpu_free_pinned_if_possible(void *A)
 //
 //		task->synchronous = 1;
 //
-//		push_res = starpu_submit_task(task);
+//		push_res = starpu_task_submit(task);
 //		STARPU_ASSERT(push_res != -ENODEV);
 //#endif
 //	}

@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 
 	float factor = 3.14;
 
-	/* create a synchronous task: any call to starpu_submit_task will block
+	/* create a synchronous task: any call to starpu_task_submit will block
  	 * until it is terminated */
 	struct starpu_task *task = starpu_task_create();
 	task->synchronous = 1;
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 	task->cl_arg_size = sizeof(float);
 
 	/* execute the task on any eligible computational ressource */
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 
 	/* StarPU does not need to manipulate the array anymore so we can stop
  	 * monitoring it */

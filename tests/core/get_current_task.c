@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 		task->callback_func = check_task_callback;
 		task->callback_arg = task;
 
-		int ret = starpu_submit_task(task);
+		int ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);
 	}
 
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 		task->callback_func = check_task_callback;
 		task->callback_arg = task;
 
-		int ret = starpu_submit_task(task);
+		int ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);
 	}
 

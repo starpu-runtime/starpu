@@ -188,7 +188,7 @@ static void compute_add_sub_op(starpu_data_handle A1, operation op,
 			STARPU_ABORT();
 	}
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 /* Cij +=/-= Ek is done */

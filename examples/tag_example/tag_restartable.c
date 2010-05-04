@@ -99,7 +99,7 @@ static void start_task_grid(unsigned iter)
 	//fprintf(stderr, "start grid %d ni %d...\n", iter, ni);
 
 	for (i = 0; i < ni; i++)
-		starpu_submit_task(tasks[iter][i]);
+		starpu_task_submit(tasks[iter][i]);
 }
 
 void cpu_codelet(void *descr[], void *_args __attribute__((unused)))

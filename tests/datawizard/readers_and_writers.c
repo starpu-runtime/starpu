@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 		task->buffers[0].mode = ((rand() % 10)==0)?STARPU_W:STARPU_R;
 		task->buffers[0].handle = book_handle;
 
-		int ret = starpu_submit_task(task);
+		int ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);
 	}
 

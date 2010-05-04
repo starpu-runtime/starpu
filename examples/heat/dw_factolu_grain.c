@@ -109,7 +109,7 @@ static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned i, uns
 		starpu_tag_declare_deps(TAG12(k, i, tag_prefix), 1, TAG11(k, tag_prefix));
 	}
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 static starpu_codelet cl21 = {
@@ -146,7 +146,7 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j, uns
 		starpu_tag_declare_deps(TAG21(k, j, tag_prefix), 1, TAG11(k, tag_prefix));
 	}
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 static starpu_codelet cl22 = {
@@ -187,7 +187,7 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 		starpu_tag_declare_deps(TAG22(k, i, j, tag_prefix), 2, TAG12(k, i, tag_prefix), TAG21(k, j, tag_prefix));
 	}
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_size,
@@ -235,7 +235,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 			entry_task = task;
 		}
 		else {
-			starpu_submit_task(task);
+			starpu_task_submit(task);
 		}
 		
 		for (i = k+1; i<nblocks; i++)
@@ -253,7 +253,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 		}
 	}
 
-	int ret = starpu_submit_task(entry_task);
+	int ret = starpu_task_submit(entry_task);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
 		fprintf(stderr, "No worker may execute this task\n");

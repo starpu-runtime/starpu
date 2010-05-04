@@ -40,7 +40,7 @@ static create_dummy_task(starpu_tag_t tag)
 	task->tag_id = tag;
 	task->cl = &dummy_codelet;
 	
-	int ret = starpu_submit_task(task);
+	int ret = starpu_task_submit(task);
 	if (ret)
 	{
 		fprintf(stderr, "Warning, no worker can execute the tasks\n");

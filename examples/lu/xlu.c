@@ -96,7 +96,7 @@ static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned j)
 		starpu_tag_declare_deps(TAG12(k, j), 1, TAG11(k));
 	}
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned i)
@@ -123,7 +123,7 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned i)
 		starpu_tag_declare_deps(TAG21(k, i), 1, TAG11(k));
 	}
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, unsigned j)
@@ -154,7 +154,7 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG12(k, j), TAG21(k, i));
 	}
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 /*
@@ -180,7 +180,7 @@ static void dw_codelet_facto_v3(starpu_data_handle dataA, unsigned nblocks)
 			entry_task = task;
 		}
 		else {
-			starpu_submit_task(task);
+			starpu_task_submit(task);
 		}
 		
 		for (i = k+1; i<nblocks; i++)
@@ -200,7 +200,7 @@ static void dw_codelet_facto_v3(starpu_data_handle dataA, unsigned nblocks)
 
 	/* schedule the codelet */
 	gettimeofday(&start, NULL);
-	int ret = starpu_submit_task(entry_task);
+	int ret = starpu_task_submit(entry_task);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
 		fprintf(stderr, "No worker may execute this task\n");

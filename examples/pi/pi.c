@@ -135,7 +135,7 @@ int main(int argc, char **argv)
 		task->buffers[1].handle = starpu_get_sub_data(cnt_array_handle, 1, i);
 		task->buffers[1].mode   = STARPU_W;
 
-		int ret = starpu_submit_task(task);
+		int ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);
 	}
 

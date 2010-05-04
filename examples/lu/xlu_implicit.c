@@ -32,7 +32,7 @@ static void create_task_11(starpu_data_handle dataA, unsigned k)
 	if (!no_prio)
 		task->priority = STARPU_MAX_PRIO;
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned j)
@@ -49,7 +49,7 @@ static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned j)
 	if (!no_prio && (j == k+1))
 		task->priority = STARPU_MAX_PRIO;
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned i)
@@ -67,7 +67,7 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned i)
 	if (!no_prio && (i == k+1))
 		task->priority = STARPU_MAX_PRIO;
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, unsigned j)
@@ -87,7 +87,7 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 	if (!no_prio &&  (i == k + 1) && (j == k +1) )
 		task->priority = STARPU_MAX_PRIO;
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 /*

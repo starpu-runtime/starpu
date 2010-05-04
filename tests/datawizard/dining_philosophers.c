@@ -48,7 +48,7 @@ void submit_one_task(unsigned p)
 	task->buffers[1].handle = fork_handles[right];
 	task->buffers[1].mode = STARPU_RW;
 
-	int ret = starpu_submit_task(task);
+	int ret = starpu_task_submit(task);
 	STARPU_ASSERT(!ret);
 }
 

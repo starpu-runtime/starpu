@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 
 	gettimeofday(&start, NULL);
 
-	starpu_submit_task(&task);
+	starpu_task_submit(&task);
 
 	pthread_mutex_lock(&mutex);
 	if (!completed)

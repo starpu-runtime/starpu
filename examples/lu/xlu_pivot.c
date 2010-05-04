@@ -88,7 +88,7 @@ static void create_task_pivot(starpu_data_handle *dataAp, unsigned nblocks,
 		}
 	}
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 static struct starpu_task *create_task_11_pivot(starpu_data_handle *dataAp, unsigned nblocks,
@@ -149,7 +149,7 @@ static void create_task_12(starpu_data_handle *dataAp, unsigned nblocks, unsigne
 		starpu_tag_declare_deps(TAG12(k, j), 1, TAG11(k));
 	}
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 static void create_task_21(starpu_data_handle *dataAp, unsigned nblocks, unsigned k, unsigned i,
@@ -174,7 +174,7 @@ static void create_task_21(starpu_data_handle *dataAp, unsigned nblocks, unsigne
 	/* enforce dependencies ... */
 	starpu_tag_declare_deps(TAG21(k, i), 1, PIVOT(k, i));
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 static void create_task_22(starpu_data_handle *dataAp, unsigned nblocks, unsigned k, unsigned i, unsigned j,
@@ -208,7 +208,7 @@ static void create_task_22(starpu_data_handle *dataAp, unsigned nblocks, unsigne
 		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG12(k, j), TAG21(k, i));
 	}
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 /*
@@ -237,7 +237,7 @@ static double dw_codelet_facto_pivot(starpu_data_handle *dataAp,
 			entry_task = task;
 		}
 		else {
-			starpu_submit_task(task);
+			starpu_task_submit(task);
 		}
 
 		for (i = 0; i < nblocks; i++)
@@ -277,7 +277,7 @@ static double dw_codelet_facto_pivot(starpu_data_handle *dataAp,
 
 	/* schedule the codelet */
 	gettimeofday(&start, NULL);
-	int ret = starpu_submit_task(entry_task);
+	int ret = starpu_task_submit(entry_task);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
 		fprintf(stderr, "No worker may execute this task\n");

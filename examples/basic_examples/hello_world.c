@@ -22,7 +22,7 @@
  *  - how to pass an argument to the codelet (task->cl_arg)
  *  - how to declare a callback function that is called once the task has been
  *    executed
- *  - how to specify if starpu_submit_task is a blocking or non-blocking
+ *  - how to specify if starpu_task_submit is a blocking or non-blocking
  *    operation (task->synchronous)
  */
 
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 	starpu_init(NULL);
 
 	/* create a new task that is non-blocking by default : the task is not
-	 * submitted to the scheduler until the starpu_submit_task function is
+	 * submitted to the scheduler until the starpu_task_submit function is
 	 * called */
 	struct starpu_task *task = starpu_task_create();
 
@@ -93,11 +93,11 @@ int main(int argc, char **argv)
 	task->callback_func = callback_func;
 	task->callback_arg = (void*) (uintptr_t) 0x42;
 
-	/* starpu_submit_task will be a blocking call */
+	/* starpu_task_submit will be a blocking call */
 	task->synchronous = 1;
 	
 	/* submit the task to StarPU */
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 	
 	/* terminate StarPU: statistics and other debug outputs are not
 	 * guaranteed to be generated unless this function is called. Once it

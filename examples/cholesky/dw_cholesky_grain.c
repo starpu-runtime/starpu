@@ -104,7 +104,7 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j, uns
 		starpu_tag_declare_deps(TAG21_AUX(k, j, reclevel), 1, TAG11_AUX(k, reclevel));
 	}
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 static starpu_codelet cl22 =
@@ -146,7 +146,7 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 		starpu_tag_declare_deps(TAG22_AUX(k, i, j, reclevel), 2, TAG21_AUX(k, i, reclevel), TAG21_AUX(k, j, reclevel));
 	}
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 
@@ -188,7 +188,7 @@ static void _dw_cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned
 			entry_task = task;
 		}
 		else {
-			starpu_submit_task(task);
+			starpu_task_submit(task);
 		}
 		
 		for (j = k+1; j<nblocks; j++)
@@ -204,7 +204,7 @@ static void _dw_cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned
 	}
 
 	/* schedule the codelet */
-	int ret = starpu_submit_task(entry_task);
+	int ret = starpu_task_submit(entry_task);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
 		fprintf(stderr, "No worker may execute this task\n");

@@ -162,7 +162,7 @@ int main(int argc, char **argv)
         task->buffers[2].handle = mult_handle;
         task->buffers[2].mode = STARPU_RW;
 
-        int ret = starpu_submit_task(task);
+        int ret = starpu_task_submit(task);
         if (STARPU_UNLIKELY(ret == -ENODEV)) {
                 fprintf(stderr, "No worker may execute this task\n");
                 exit(0);

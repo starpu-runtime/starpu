@@ -63,7 +63,7 @@ static void inject_one_task(void)
 	task->callback_func = NULL;
 	task->callback_arg = NULL;
 
-	int ret = starpu_submit_task(task);
+	int ret = starpu_task_submit(task);
 	STARPU_ASSERT(!ret);
 }
 

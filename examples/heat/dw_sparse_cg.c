@@ -176,9 +176,9 @@ void init_cg(struct cg_problem *problem)
 	starpu_tag_declare_deps((starpu_tag_t)3UL, 1, (starpu_tag_t)2UL);
 
 	/* launch the computation now */
-	starpu_submit_task(task1);
-	starpu_submit_task(task2);
-	starpu_submit_task(task3);
+	starpu_task_submit(task1);
+	starpu_task_submit(task2);
+	starpu_task_submit(task3);
 }
 
 /*
@@ -286,12 +286,12 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 	task9->callback_arg = problem;
 	
 	/* launch the computation now */
-	starpu_submit_task(task4);
-	starpu_submit_task(task5);
-	starpu_submit_task(task6);
-	starpu_submit_task(task7);
-	starpu_submit_task(task8);
-	starpu_submit_task(task9);
+	starpu_task_submit(task4);
+	starpu_task_submit(task5);
+	starpu_task_submit(task6);
+	starpu_task_submit(task7);
+	starpu_task_submit(task8);
+	starpu_task_submit(task9);
 }
 
 void iteration_cg(void *problem)

@@ -95,7 +95,7 @@ static void create_task_grid(unsigned iter)
 		if (i != 1)
 			starpu_tag_declare_deps(TAG(i,iter), 1, TAG(i-1,iter));
 
-		starpu_submit_task(task);
+		starpu_task_submit(task);
 	}
 
 }

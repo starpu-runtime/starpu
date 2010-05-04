@@ -65,7 +65,7 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 		tasks[worker]->detach = 0;
 		tasks[worker]->destroy = 0;
 
-		int ret = starpu_submit_task(tasks[worker]);
+		int ret = starpu_task_submit(tasks[worker]);
 		if (ret == -ENODEV)
 		{
 			/* if the worker is not able to execute this tasks, we

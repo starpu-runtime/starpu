@@ -357,7 +357,7 @@ static void launch_tasks(void)
 			task->buffers[2].mode = STARPU_W;
 
 			/* this is not a blocking call since task->synchronous = 0 */
-			starpu_submit_task(task);
+			starpu_task_submit(task);
 		}
 	}
 }

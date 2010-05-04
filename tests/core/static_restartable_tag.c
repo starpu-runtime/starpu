@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
 	for (i = 0; i < ntasks; i++)
 	{
-		starpu_submit_task(&task);
+		starpu_task_submit(&task);
 		starpu_tag_wait(tag);
 	}
 

@@ -369,7 +369,7 @@ void create_cleanup_task(struct cleanup_arg *cleanup_arg)
 
 	starpu_tag_declare_deps_array(j_tag, cleanup_arg->ndeps, cleanup_arg->tags);
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 void strassen_mult(struct strassen_iter *iter)
@@ -397,7 +397,7 @@ void strassen_mult(struct strassen_iter *iter)
 		iter->C_deps.ndeps = 1;
 		iter->C_deps.deps[0] = tag_mult;
 
-		starpu_submit_task(task_mult);
+		starpu_task_submit(task_mult);
 
 		return;
 	}
@@ -424,70 +424,70 @@ void strassen_mult(struct strassen_iter *iter)
 	struct starpu_task *task_1a = compute_add_sub_op(iter->Mia_data[0], ADD, A11, A22);
 	starpu_tag_t tag_1a = task_1a->tag_id;
 	starpu_tag_declare_deps_array(tag_1a, iter->A_deps.ndeps, iter->A_deps.deps);
-	starpu_submit_task(task_1a);
+	starpu_task_submit(task_1a);
 
 	/* M1b = (B11 + B22) */
 	iter->Mib_data[0] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_1b = compute_add_sub_op(iter->Mib_data[0], ADD, B11, B22);
 	starpu_tag_t tag_1b = task_1b->tag_id;
 	starpu_tag_declare_deps_array(tag_1b, iter->B_deps.ndeps, iter->B_deps.deps);
-	starpu_submit_task(task_1b);
+	starpu_task_submit(task_1b);
 
 	/* M2a = (A21 + A22) */
 	iter->Mia_data[1] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_2a = compute_add_sub_op(iter->Mia_data[1], ADD, A21, A22);
 	starpu_tag_t tag_2a = task_2a->tag_id;
 	starpu_tag_declare_deps_array(tag_2a, iter->A_deps.ndeps, iter->A_deps.deps);
-	starpu_submit_task(task_2a);
+	starpu_task_submit(task_2a);
 
 	/* M3b = (B12 - B22) */
 	iter->Mib_data[2] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_3b = compute_add_sub_op(iter->Mib_data[2], SUB, B12, B22);
 	starpu_tag_t tag_3b = task_3b->tag_id;
 	starpu_tag_declare_deps_array(tag_3b, iter->B_deps.ndeps, iter->B_deps.deps);
-	starpu_submit_task(task_3b);
+	starpu_task_submit(task_3b);
 	
 	/* M4b = (B21 - B11) */
 	iter->Mib_data[3] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_4b = compute_add_sub_op(iter->Mib_data[3], SUB, B21, B11);
 	starpu_tag_t tag_4b = task_4b->tag_id;
 	starpu_tag_declare_deps_array(tag_4b, iter->B_deps.ndeps, iter->B_deps.deps);
-	starpu_submit_task(task_4b);
+	starpu_task_submit(task_4b);
 	
 	/* M5a = (A11 + A12) */
 	iter->Mia_data[4] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_5a = compute_add_sub_op(iter->Mia_data[4], ADD, A11, A12);
 	starpu_tag_t tag_5a = task_5a->tag_id;
 	starpu_tag_declare_deps_array(tag_5a, iter->A_deps.ndeps, iter->A_deps.deps);
-	starpu_submit_task(task_5a);
+	starpu_task_submit(task_5a);
 
 	/* M6a = (A21 - A11) */
 	iter->Mia_data[5] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_6a = compute_add_sub_op(iter->Mia_data[5], SUB, A21, A11);
 	starpu_tag_t tag_6a = task_6a->tag_id;
 	starpu_tag_declare_deps_array(tag_6a, iter->A_deps.ndeps, iter->A_deps.deps);
-	starpu_submit_task(task_6a);
+	starpu_task_submit(task_6a);
 
 	/* M6b = (B11 + B12) */
 	iter->Mib_data[5] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_6b = compute_add_sub_op(iter->Mib_data[5], SUB, B11, B12);
 	starpu_tag_t tag_6b = task_6b->tag_id;
 	starpu_tag_declare_deps_array(tag_6b, iter->B_deps.ndeps, iter->B_deps.deps);
-	starpu_submit_task(task_6b);
+	starpu_task_submit(task_6b);
 
 	/* M7a = (A12 - A22) */
 	iter->Mia_data[6] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_7a = compute_add_sub_op(iter->Mia_data[6], SUB, A12, A22);
 	starpu_tag_t tag_7a = task_7a->tag_id;
 	starpu_tag_declare_deps_array(tag_7a, iter->A_deps.ndeps, iter->A_deps.deps);
-	starpu_submit_task(task_7a);
+	starpu_task_submit(task_7a);
 
 	/* M7b = (B21 + B22) */
 	iter->Mib_data[6] = allocate_tmp_matrix(size, iter->reclevel);
 	struct starpu_task *task_7b = compute_add_sub_op(iter->Mib_data[6], ADD, B21, B22);
 	starpu_tag_t tag_7b = task_7b->tag_id;
 	starpu_tag_declare_deps_array(tag_7b, iter->B_deps.ndeps, iter->B_deps.deps);
-	starpu_submit_task(task_7b);
+	starpu_task_submit(task_7b);
 
 	iter->Mi_data[0] = allocate_tmp_matrix(size, iter->reclevel);
 	iter->Mi_data[1] = allocate_tmp_matrix(size, iter->reclevel);
@@ -662,21 +662,21 @@ void strassen_mult(struct strassen_iter *iter)
 		starpu_tag_declare_deps(tag_c22_d, 5, tag_m6[0], tag_m6[1], tag_m6[2], tag_m6[3], tag_c22_c);
 	}
 
-	starpu_submit_task(task_c11_a);
-	starpu_submit_task(task_c11_b);
-	starpu_submit_task(task_c11_c);
-	starpu_submit_task(task_c11_d);
+	starpu_task_submit(task_c11_a);
+	starpu_task_submit(task_c11_b);
+	starpu_task_submit(task_c11_c);
+	starpu_task_submit(task_c11_d);
 
-	starpu_submit_task(task_c12_a);
-	starpu_submit_task(task_c12_b);
+	starpu_task_submit(task_c12_a);
+	starpu_task_submit(task_c12_b);
 
-	starpu_submit_task(task_c21_a);
-	starpu_submit_task(task_c21_b);
+	starpu_task_submit(task_c21_a);
+	starpu_task_submit(task_c21_b);
 
-	starpu_submit_task(task_c22_a);
-	starpu_submit_task(task_c22_b);
-	starpu_submit_task(task_c22_c);
-	starpu_submit_task(task_c22_d);
+	starpu_task_submit(task_c22_a);
+	starpu_task_submit(task_c22_b);
+	starpu_task_submit(task_c22_c);
+	starpu_task_submit(task_c22_d);
 
 	iter->C_deps.ndeps = 4;
 	iter->C_deps.deps[0] = tag_c11_d;
@@ -835,12 +835,12 @@ int main(int argc, char **argv)
 	struct starpu_task *task_start = dummy_task(42);
 
 	gettimeofday(&start, NULL);
-	starpu_submit_task(task_start);
+	starpu_task_submit(task_start);
 
 	struct starpu_task *task_end = dummy_task(10);
 	
 	task_end->synchronous = 1;
-	starpu_submit_task(task_end);
+	starpu_task_submit(task_end);
 
 	gettimeofday(&end, NULL);
 

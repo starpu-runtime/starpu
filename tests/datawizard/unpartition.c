@@ -54,7 +54,7 @@ int use_handle(starpu_data_handle handle)
 		task->buffers[0].mode = STARPU_RW;
 		task->detach = 0;
 
-	ret = starpu_submit_task(task);
+	ret = starpu_task_submit(task);
 
 	return ret;
 }

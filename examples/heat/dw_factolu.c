@@ -117,7 +117,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 		if (!no_prio)
 			task->priority = STARPU_MAX_PRIO;
 
-		starpu_submit_task(task);
+		starpu_task_submit(task);
 	}
 
 	/* 11k+1 + 22k,k+1,j => 21 k+1,j */
@@ -151,7 +151,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 						starpu_get_sub_data(args->dataA, 2, u21a->i, u21a->k);
 					task21->buffers[1].mode = STARPU_RW;
 		
-					starpu_submit_task(task21);
+					starpu_task_submit(task21);
 				}
 		}
 	}
@@ -184,7 +184,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 					task12->buffers[1].handle = starpu_get_sub_data(args->dataA, 2, u12a->k, u12a->i); 
 					task12->buffers[1].mode = STARPU_RW;
 					
-					starpu_submit_task(task12);
+					starpu_task_submit(task12);
 				}
 		}
 	}
@@ -244,7 +244,7 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 				if (!no_prio && (slicey == i+1))
 					task22->priority = STARPU_MAX_PRIO;
 
-				starpu_submit_task(task22);
+				starpu_task_submit(task22);
 			}
 		}
 	}
@@ -303,7 +303,7 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 				if (!no_prio && (slicex == i+1))
 					task22->priority = STARPU_MAX_PRIO;
 
-				starpu_submit_task(task22);
+				starpu_task_submit(task22);
 			}
 		}
 	}
@@ -370,7 +370,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					if (!no_prio && (slice == i +1))
 						task12->priority = STARPU_MAX_PRIO;
 
-					starpu_submit_task(task12);
+					starpu_task_submit(task12);
 				}
 			}
 
@@ -407,7 +407,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					if (!no_prio && (slice == i +1))
 						task21->priority = STARPU_MAX_PRIO;
 
-					starpu_submit_task(task21);
+					starpu_task_submit(task21);
 				}
 			}
 		}
@@ -492,8 +492,8 @@ void dw_callback_codelet_update_u11(void *argcb)
 				starpu_get_sub_data(args->dataA, 2, u21a->i, u21a->k);
 			task21->buffers[1].mode = STARPU_RW;
 		
-			starpu_submit_task(task12);
-			starpu_submit_task(task21);
+			starpu_task_submit(task12);
+			starpu_task_submit(task21);
 		}
 	}
 }
@@ -525,7 +525,7 @@ void dw_callback_codelet_update_u22(void *argcb)
 		u11arg->nblocks = args->nblocks;
 
 		/* schedule the codelet */
-		starpu_submit_task(task);
+		starpu_task_submit(task);
 	}
 
 	free(args);
@@ -576,7 +576,7 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 				task22->buffers[2].mode = STARPU_RW;
 				
 				/* schedule that codelet */
-				starpu_submit_task(task22);
+				starpu_task_submit(task22);
 			}
 		}
 	}
@@ -609,7 +609,7 @@ void dw_codelet_facto(starpu_data_handle dataA, unsigned nblocks)
 		task->buffers[0].mode = STARPU_RW;
 
 	/* schedule the codelet */
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 
 	/* stall the application until the end of computations */
 	pthread_mutex_lock(&mutex);
@@ -661,7 +661,7 @@ void dw_codelet_facto_v2(starpu_data_handle dataA, unsigned nblocks)
 		task->buffers[0].mode = STARPU_RW;
 
 	/* schedule the codelet */
-	int ret = starpu_submit_task(task);
+	int ret = starpu_task_submit(task);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
 		fprintf(stderr, "No worker may execute this task\n");

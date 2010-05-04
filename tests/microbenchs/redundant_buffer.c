@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 		task->buffers[1].handle = v_handle;
 		task->buffers[1].mode = STARPU_R;
 
-		int ret = starpu_submit_task(task);
+		int ret = starpu_task_submit(task);
 		if (ret == -ENODEV)
 			goto enodev;
 	}

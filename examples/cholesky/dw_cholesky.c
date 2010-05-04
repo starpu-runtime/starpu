@@ -105,7 +105,7 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j)
 		starpu_tag_declare_deps(TAG21(k, j), 1, TAG11(k));
 	}
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 static starpu_codelet cl22 =
@@ -147,7 +147,7 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG21(k, i), TAG21(k, j));
 	}
 
-	starpu_submit_task(task);
+	starpu_task_submit(task);
 }
 
 
@@ -181,7 +181,7 @@ static void _dw_cholesky(starpu_data_handle dataA, unsigned nblocks)
 			entry_task = task;
 		}
 		else {
-			starpu_submit_task(task);
+			starpu_task_submit(task);
 		}
 		
 		for (j = k+1; j<nblocks; j++)
@@ -197,7 +197,7 @@ static void _dw_cholesky(starpu_data_handle dataA, unsigned nblocks)
 	}
 
 	/* schedule the codelet */
-	starpu_submit_task(entry_task);
+	starpu_task_submit(entry_task);
 
 	/* stall the application until the end of computations */
 	starpu_tag_wait(TAG11(nblocks-1));

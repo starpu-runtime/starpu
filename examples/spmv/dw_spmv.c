@@ -288,7 +288,7 @@ void call_spmv_codelet_filters(void)
 		task->buffers[2].handle = starpu_get_sub_data(vector_out, 1, part);
 		task->buffers[2].mode = STARPU_W;
 	
-		ret = starpu_submit_task(task);
+		ret = starpu_task_submit(task);
 		if (STARPU_UNLIKELY(ret == -ENODEV))
 		{
 			fprintf(stderr, "No worker may execute this task\n");
