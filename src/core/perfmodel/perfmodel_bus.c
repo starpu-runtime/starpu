@@ -810,7 +810,9 @@ static void check_bus_config_file()
         get_config_path(path, 256);
         res = access(path, F_OK);
         if (res) {
-                starpu_force_bus_sampling();
+		fprintf(stderr, "No performance model for the bus, calibrating...");
+		starpu_force_bus_sampling();
+		fprintf(stderr, "done\n");
         }
         else {
                 FILE *f;
@@ -844,16 +846,19 @@ static void check_bus_config_file()
 
                 // Checking if both configurations match
                 if (read_cpus != ncpus) {
-                        fprintf(stderr, "Current configuration does not match the performance model (CPUS: %d != %d)\n", read_cpus, ncpus);
+			fprintf(stderr, "Current configuration does not match the performance model (CPUS: %d != %d), recalibrating...", read_cpus, ncpus);
                         starpu_force_bus_sampling();
+			fprintf(stderr, "done\n");
                 }
                 else if (read_cuda != ncuda) {
-                        fprintf(stderr, "Current configuration does not match the performance model (CUDA: %d != %d)\n", read_cuda, ncuda);
+                        fprintf(stderr, "Current configuration does not match the performance model (CUDA: %d != %d), recalibrating...", read_cuda, ncuda);
                         starpu_force_bus_sampling();
+			fprintf(stderr, "done\n");
                 }
                 else if (read_opencl != nopencl) {
-                        fprintf(stderr, "Current configuration does not match the performance model (OpenCL: %d != %d)\n", read_opencl, nopencl);
+                        fprintf(stderr, "Current configuration does not match the performance model (OpenCL: %d != %d), recalibrating...", read_opencl, nopencl);
                         starpu_force_bus_sampling();
+			fprintf(stderr, "done\n");
                 }
         }
 }
