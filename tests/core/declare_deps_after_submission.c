@@ -76,10 +76,10 @@ int main(int argc, char **argv)
 		ret = starpu_submit_task(taskB);
 		STARPU_ASSERT(!ret);
 
-		ret = starpu_wait_task(taskB);
+		ret = starpu_task_wait(taskB);
 		STARPU_ASSERT(!ret);
 
-		ret = starpu_wait_task(taskA);
+		ret = starpu_task_wait(taskA);
 		STARPU_ASSERT(!ret);
 	}
 

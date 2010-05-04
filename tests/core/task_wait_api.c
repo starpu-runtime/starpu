@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 	starpu_submit_task(taskB);
 	starpu_submit_task(taskA);
 
-	starpu_wait_task(taskB);
+	starpu_task_wait(taskB);
 
 	fprintf(stderr, "{ C, D, E, F } -> { G }\n");
 
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	starpu_submit_task(taskE);
 	starpu_submit_task(taskF);
 
-	starpu_wait_task(taskG);
+	starpu_task_wait(taskG);
 
 	fprintf(stderr, "{ H, I } -> { J, K, L }\n");
 	
@@ -107,9 +107,9 @@ int main(int argc, char **argv)
 	starpu_submit_task(taskK);
 	starpu_submit_task(taskL);
 
-	starpu_wait_task(taskJ);
-	starpu_wait_task(taskK);
-	starpu_wait_task(taskL);
+	starpu_task_wait(taskJ);
+	starpu_task_wait(taskK);
+	starpu_task_wait(taskL);
 
 	starpu_shutdown();
 

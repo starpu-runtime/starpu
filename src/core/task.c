@@ -109,7 +109,7 @@ void starpu_task_destroy(struct starpu_task *task)
 	free(task);
 }
 
-int starpu_wait_task(struct starpu_task *task)
+int starpu_task_wait(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
 

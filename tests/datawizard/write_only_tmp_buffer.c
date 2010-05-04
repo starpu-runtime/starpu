@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV)
 			goto enodev;
 
-	ret = starpu_wait_task(task);
+	ret = starpu_task_wait(task);
 	if (ret)
 		exit(-1);
 
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV)
 			goto enodev;
 
-	ret = starpu_wait_task(task);
+	ret = starpu_task_wait(task);
 	if (ret)
 		exit(-1);
 

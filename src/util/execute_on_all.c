@@ -80,7 +80,7 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 	{
 		if (tasks[worker])
 		{
-			starpu_wait_task(tasks[worker]);
+			starpu_task_wait(tasks[worker]);
 			starpu_task_destroy(tasks[worker]);
 		}
 	}

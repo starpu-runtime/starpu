@@ -687,7 +687,7 @@ TODO
 * starpu_task_deinit::            Release all the resources used by a Task
 * starpu_task_destroy::           Destroy a dynamically allocated Task
 * starpu_submit_task::            Submit a Task
-* starpu_wait_task::              Wait for the termination of a Task
+* starpu_task_wait::              Wait for the termination of a Task
 * starpu_wait_all_tasks::	  Wait for the termination of all Tasks
 @end menu
 
@@ -829,8 +829,8 @@ returned by @code{starpu_get_worker_id}). This field is ignored if
 
 @item @code{detach} (optional) (default = 1):
 If this flag is set, it is not possible to synchronize with the task
-by the means of @code{starpu_wait_task} later on. Internal data structures
-are only guaranteed to be liberated once @code{starpu_wait_task} is called
+by the means of @code{starpu_task_wait} later on. Internal data structures
+are only guaranteed to be liberated once @code{starpu_task_wait} is called
 if that flag is not set.
 
 @item @code{destroy} (optional) (default = 1):
@@ -899,8 +899,8 @@ behaviour.
 @code{void starpu_task_destroy(struct starpu_task *task);}
 @end table
 
-@node starpu_wait_task
-@subsection @code{starpu_wait_task} -- Wait for the termination of a Task
+@node starpu_task_wait
+@subsection @code{starpu_task_wait} -- Wait for the termination of a Task
 @table @asis
 @item @emph{Description}:
 This function blocks until the task was executed. It is not possible to
@@ -910,7 +910,7 @@ synchronous or detached tasks.
 Upon successful completion, this function returns 0. Otherwise, @code{-EINVAL}
 indicates that the waited task was either synchronous or detached.
 @item @emph{Prototype}:
-@code{int starpu_wait_task(struct starpu_task *task);}
+@code{int starpu_task_wait(struct starpu_task *task);}
 @end table
 
 

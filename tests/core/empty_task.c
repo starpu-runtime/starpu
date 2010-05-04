@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 		int ret = starpu_submit_task(task);
 		STARPU_ASSERT(!ret);
 
-		starpu_wait_task(task);
+		starpu_task_wait(task);
 	}
 
 	gettimeofday(&end, NULL);

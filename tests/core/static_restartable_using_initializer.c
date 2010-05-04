@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 	for (i = 0; i < ntasks; i++)
 	{
 		starpu_submit_task(&task);
-		starpu_wait_task(&task);
+		starpu_task_wait(&task);
 	}
 
 	gettimeofday(&end, NULL);

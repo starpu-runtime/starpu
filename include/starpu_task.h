@@ -97,8 +97,8 @@ struct starpu_task {
 	unsigned workerid;
 
 	/* If this flag is set, it is not possible to synchronize with the task
-	 * by the means of starpu_wait_task later on. Internal data structures
-	 * are only garanteed to be liberated once starpu_wait_task is called
+	 * by the means of starpu_task_wait later on. Internal data structures
+	 * are only garanteed to be liberated once starpu_task_wait is called
 	 * if that flag is not set. */
 	int detach;
 
@@ -208,7 +208,7 @@ int starpu_submit_task(struct starpu_task *task);
  * synchronous or detached tasks.
  * Upon successful completion, this function returns 0. Otherwise, -EINVAL
  * indicates that the waited task was either synchronous or detached. */
-int starpu_wait_task(struct starpu_task *task);
+int starpu_task_wait(struct starpu_task *task);
 
 /* This function waits until all the tasks that were already submitted have
  * been executed. */
