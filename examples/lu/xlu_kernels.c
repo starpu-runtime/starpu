@@ -562,6 +562,8 @@ void STARPU_LU(cublas_pivot)(void *descr[], void *_args)
 	STARPU_LU(common_pivot)(descr, 1, _args);
 }
 
+#endif// STARPU_USE_CUDA
+
 static struct starpu_perfmodel_t STARPU_LU(model_pivot) = {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
@@ -582,5 +584,3 @@ starpu_codelet cl_pivot = {
 	.nbuffers = 1,
 	.model = &STARPU_LU(model_pivot)
 };
-
-#endif// STARPU_USE_CUDA
