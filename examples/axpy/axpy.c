@@ -82,16 +82,16 @@ int main(int argc, char **argv)
 	/* Initialize StarPU */
 	starpu_init(NULL);
 
-	starpu_helper_init_cublas();
+	starpu_helper_cublas_init();
 
 	/* This is equivalent to 
 		vec_a = malloc(N*sizeof(TYPE));
 		vec_b = malloc(N*sizeof(TYPE));
 	*/
-	starpu_malloc_pinned_if_possible((void **)&vec_x, N*sizeof(TYPE));
+	starpu_data_malloc_pinned_if_possible((void **)&vec_x, N*sizeof(TYPE));
 	assert(vec_x);
 
-	starpu_malloc_pinned_if_possible((void **)&vec_y, N*sizeof(TYPE));
+	starpu_data_malloc_pinned_if_possible((void **)&vec_y, N*sizeof(TYPE));
 	assert(vec_y);
 
 	unsigned i;
@@ -105,8 +105,8 @@ int main(int argc, char **argv)
 	fprintf(stderr, "BEFORE y[0] = %2.2f\n", vec_y[0]);
 
 	/* Declare the data to StarPU */
-	starpu_register_vector_data(&handle_x, 0, (uintptr_t)vec_x, N, sizeof(TYPE));
-	starpu_register_vector_data(&handle_y, 0, (uintptr_t)vec_y, N, sizeof(TYPE));
+	starpu_vector_data_register(&handle_x, 0, (uintptr_t)vec_x, N, sizeof(TYPE));
+	starpu_vector_data_register(&handle_y, 0, (uintptr_t)vec_y, N, sizeof(TYPE));
 
 	/* Divide the vector into blocks */
 	starpu_filter block_filter = {
@@ -114,8 +114,8 @@ int main(int argc, char **argv)
 		.filter_arg = NBLOCKS
 	};
 
-	starpu_partition_data(handle_x, &block_filter);
-	starpu_partition_data(handle_y, &block_filter);
+	starpu_data_partition(handle_x, &block_filter);
+	starpu_data_partition(handle_y, &block_filter);
 
 	TYPE alpha = 3.41;
 
@@ -133,19 +133,19 @@ int main(int argc, char **argv)
 
 		task->cl_arg = &alpha;
 
-		task->buffers[0].handle = starpu_get_sub_data(handle_x, 1, b);
+		task->buffers[0].handle = starpu_data_get_sub_data(handle_x, 1, b);
 		task->buffers[0].mode = STARPU_R;
 		
-		task->buffers[1].handle = starpu_get_sub_data(handle_y, 1, b);
+		task->buffers[1].handle = starpu_data_get_sub_data(handle_y, 1, b);
 		task->buffers[1].mode = STARPU_RW;
 		
 		starpu_task_submit(task);
 	}
 
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
-	starpu_unpartition_data(handle_y, 0);
-	starpu_delete_data(handle_y);
+	starpu_data_unpartition(handle_y, 0);
+	starpu_data_unregister(handle_y);
 
 	gettimeofday(&end, NULL);
         double timing = (double)((end.tv_sec - start.tv_sec)*1000000 +

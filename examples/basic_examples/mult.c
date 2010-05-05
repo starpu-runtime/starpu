@@ -18,13 +18,13 @@
  * This example shows a simple implementation of a blocked matrix
  * multiplication. Note that this is NOT intended to be an efficient
  * implementation of sgemm! In this example, we show:
- *  - how to declare dense matrices (starpu_register_matrix_data)
+ *  - how to declare dense matrices (starpu_matrix_data_register)
  *  - how to manipulate matrices within codelets (eg. descr[0].blas.ld)
  *  - how to use filters to partition the matrices into blocks
- *    (starpu_partition_data and starpu_map_filters)
- *  - how to unpartition data (starpu_unpartition_data) and how to stop
- *    monitoring data (starpu_delete_data)
- *  - how to manipulate subsets of data (starpu_get_sub_data)
+ *    (starpu_data_partition and starpu_map_filters)
+ *  - how to unpartition data (starpu_data_unpartition) and how to stop
+ *    monitoring data (starpu_data_unregister)
+ *  - how to manipulate subsets of data (starpu_data_get_sub_data)
  *  - how to construct an autocalibrated performance model (starpu_perfmodel_t)
  *  - how to submit asynchronous tasks and how to use callback to handle task
  *    termination
@@ -88,7 +88,7 @@ static void callback_func(void *arg)
 	{
 		/* IMPORTANT : note that we CANNOT call blocking operations
 		 * within callbacks as it may lead to a deadlock of StarPU.
-		 * starpu_unpartition_data is for instance called by the main
+		 * starpu_data_unpartition is for instance called by the main
 		 * thread since it may cause /potentially/ blocking operations
 		 * such as memory transfers from a GPU to a CPU. */
 		
@@ -199,11 +199,11 @@ static void partition_mult_data(void)
 	 * node in which resides the matrix: 0 means that the 3rd argument is
 	 * an adress in main memory.
 	 */
-	starpu_register_matrix_data(&A_handle, 0, (uintptr_t)A, 
+	starpu_matrix_data_register(&A_handle, 0, (uintptr_t)A, 
 		ydim, ydim, zdim, sizeof(float));
-	starpu_register_matrix_data(&B_handle, 0, (uintptr_t)B, 
+	starpu_matrix_data_register(&B_handle, 0, (uintptr_t)B, 
 		zdim, zdim, xdim, sizeof(float));
-	starpu_register_matrix_data(&C_handle, 0, (uintptr_t)C, 
+	starpu_matrix_data_register(&C_handle, 0, (uintptr_t)C, 
 		ydim, ydim, xdim, sizeof(float));
 
 	/* A filter is a method to partition a data into disjoint chunks, it is
@@ -228,17 +228,17 @@ static void partition_mult_data(void)
 		
 /*
  *	Illustration with nslicex = 4 and nslicey = 2, it is possible to access
- *	sub-data by using the "starpu_get_sub_data" method, which takes a data handle,
+ *	sub-data by using the "starpu_data_get_sub_data" method, which takes a data handle,
  *	the number of filters to apply, and the indexes for each filters, for
  *	instance:
  *
- *		A' handle is starpu_get_sub_data(A_handle, 1, 1); 
- *		B' handle is starpu_get_sub_data(B_handle, 1, 2); 
- *		C' handle is starpu_get_sub_data(C_handle, 2, 2, 1); 
+ *		A' handle is starpu_data_get_sub_data(A_handle, 1, 1); 
+ *		B' handle is starpu_data_get_sub_data(B_handle, 1, 2); 
+ *		C' handle is starpu_data_get_sub_data(C_handle, 2, 2, 1); 
  *
  *	Note that here we applied 2 filters recursively onto C.
  *
- *	"starpu_get_sub_data(C_handle, 1, 3)" would return a handle to the 4th column
+ *	"starpu_data_get_sub_data(C_handle, 1, 3)" would return a handle to the 4th column
  *	of blocked matrix C for example.
  *
  *		              |---|---|---|---|
@@ -259,18 +259,18 @@ static void partition_mult_data(void)
  *	for each of the elements independantly. The tasks should therefore NOT
  *	access inner nodes (eg. one column of C or the whole C) but only the
  *	leafs of the tree (ie. blocks here). Manipulating inner nodes is only
- *	possible by disapplying the filters (using starpu_unpartition_data), to
+ *	possible by disapplying the filters (using starpu_data_unpartition), to
  *	enforce memory consistency.
  */
 
-	starpu_partition_data(B_handle, &f);
-	starpu_partition_data(A_handle, &f2);
+	starpu_data_partition(B_handle, &f);
+	starpu_data_partition(A_handle, &f2);
 
 	/* starpu_map_filters is a variable-arity function, the first argument
 	 * is the handle of the data to partition, the second argument is the
 	 * number of filters to apply recursively. Filters are applied in the
 	 * same order as the arguments.
-	 * This would be equivalent to starpu_partition_data(C_handle, &f) and
+	 * This would be equivalent to starpu_data_partition(C_handle, &f) and
 	 * then applying f2 on each sub-data (ie. each column of C)
 	 */
 	starpu_map_filters(C_handle, 2, &f, &f2);
@@ -338,22 +338,22 @@ static void launch_tasks(void)
 			 * (respectively B) so we grab the handle to the chunk
 			 * identified by "tasky" (respectively "taskx). The "1"
 			 * tells StarPU that there is a single argument to the
-			 * variable-arity function starpu_get_sub_data */
-			task->buffers[0].handle = starpu_get_sub_data(A_handle, 1, tasky);
+			 * variable-arity function starpu_data_get_sub_data */
+			task->buffers[0].handle = starpu_data_get_sub_data(A_handle, 1, tasky);
 			task->buffers[0].mode = STARPU_R;
-			task->buffers[1].handle = starpu_get_sub_data(B_handle, 1, taskx);
+			task->buffers[1].handle = starpu_data_get_sub_data(B_handle, 1, taskx);
 			task->buffers[1].mode = STARPU_R;
 
 			/* 2 filters were applied on matrix C, so we give
-			 * starpu_get_sub_data 2 arguments. The order of the arguments
+			 * starpu_data_get_sub_data 2 arguments. The order of the arguments
 			 * must match the order in which the filters were
 			 * applied.
-			 * NB: starpu_get_sub_data(C_handle, 1, k) would have returned
+			 * NB: starpu_data_get_sub_data(C_handle, 1, k) would have returned
 			 * a handle to the column number k of matrix C.
-			 * NB2: starpu_get_sub_data(C_handle, 2, taskx, tasky) is
+			 * NB2: starpu_data_get_sub_data(C_handle, 2, taskx, tasky) is
 			 * equivalent to
-			 * starpu_get_sub_data(starpu_get_sub_data(C_handle, 1, taskx), 1, tasky)*/
-			task->buffers[2].handle = starpu_get_sub_data(C_handle, 2, taskx, tasky);
+			 * starpu_data_get_sub_data(starpu_data_get_sub_data(C_handle, 1, taskx), 1, tasky)*/
+			task->buffers[2].handle = starpu_data_get_sub_data(C_handle, 2, taskx, tasky);
 			task->buffers[2].mode = STARPU_W;
 
 			/* this is not a blocking call since task->synchronous = 0 */
@@ -389,17 +389,17 @@ int main(__attribute__ ((unused)) int argc,
 	pthread_mutex_unlock(&mutex);
 
 	/* remove the filters applied by the means of starpu_map_filters; now
- 	 * it's not possible to manipulate a subset of C using starpu_get_sub_data until
+ 	 * it's not possible to manipulate a subset of C using starpu_data_get_sub_data until
 	 * starpu_map_filters is called again on C_handle.
 	 * The second argument is the memory node where the different subsets
 	 * should be reassembled, 0 = main memory (RAM) */
-	starpu_unpartition_data(C_handle, 0);
+	starpu_data_unpartition(C_handle, 0);
 
 	/* stop monitoring matrix C : after this, it is not possible to pass C 
 	 * (or any subset of C) as a codelet input/output. This also implements
 	 * a barrier so that the piece of data is put back into main memory in
 	 * case it was only available on a GPU for instance. */
-	starpu_delete_data(C_handle);
+	starpu_data_unregister(C_handle);
 	
 	starpu_shutdown();
 

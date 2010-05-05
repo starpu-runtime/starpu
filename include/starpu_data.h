@@ -42,24 +42,24 @@ typedef struct starpu_buffer_descr_t {
 
 struct starpu_data_interface_ops_t;
 
-void starpu_unpartition_data(starpu_data_handle root_data, uint32_t gathering_node);
-void starpu_delete_data(starpu_data_handle state);
+void starpu_data_unpartition(starpu_data_handle root_data, uint32_t gathering_node);
+void starpu_data_unregister(starpu_data_handle state);
 
-void starpu_advise_if_data_is_important(starpu_data_handle state, unsigned is_important);
+void starpu_data_advise_as_important(starpu_data_handle state, unsigned is_important);
 
-int starpu_sync_data_with_mem(starpu_data_handle state, starpu_access_mode mode);
-int starpu_sync_data_with_mem_non_blocking(starpu_data_handle handle,
+int starpu_data_sync_with_mem(starpu_data_handle state, starpu_access_mode mode);
+int starpu_data_sync_with_mem_non_blocking(starpu_data_handle handle,
 			starpu_access_mode mode, void (*callback)(void *), void *arg);
-void starpu_release_data_from_mem(starpu_data_handle state);
+void starpu_data_release_from_mem(starpu_data_handle state);
 
-int starpu_malloc_pinned_if_possible(void **A, size_t dim);
-int starpu_free_pinned_if_possible(void *A);
+int starpu_data_malloc_pinned_if_possible(void **A, size_t dim);
+int starpu_data_free_pinned_if_possible(void *A);
 
-int starpu_request_data_allocation(starpu_data_handle state, uint32_t node);
+int starpu_data_request_allocation(starpu_data_handle state, uint32_t node);
 
-int starpu_prefetch_data_on_node(starpu_data_handle state, unsigned node, unsigned async);
+int starpu_data_prefetch_on_node(starpu_data_handle state, unsigned node, unsigned async);
 
-unsigned starpu_get_worker_memory_node(unsigned workerid);
+unsigned starpu_worker_get_memory_node(unsigned workerid);
 
 /* It is possible to associate a mask to a piece of data (and its children) so
  * that when it is modified, it is automatically transfered into those memory
@@ -69,7 +69,7 @@ void starpu_data_set_wb_mask(starpu_data_handle state, uint32_t wb_mask);
 
 void starpu_data_set_sequential_consistency_flag(starpu_data_handle handle, unsigned flag);
 
-unsigned starpu_test_if_data_is_allocated_on_node(starpu_data_handle handle, uint32_t memory_node);
+unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle handle, uint32_t memory_node);
 
 #ifdef __cplusplus
 }

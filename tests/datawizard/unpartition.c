@@ -65,12 +65,12 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
-	starpu_malloc_pinned_if_possible((void **)&buffer, VECTORSIZE);
+	starpu_data_malloc_pinned_if_possible((void **)&buffer, VECTORSIZE);
 
-	starpu_register_vector_data(&v_handle, 0, (uintptr_t)buffer, VECTORSIZE, sizeof(char));
+	starpu_vector_data_register(&v_handle, 0, (uintptr_t)buffer, VECTORSIZE, sizeof(char));
 
 	starpu_filter f = {
-		.filter_func = starpu_divide_in_2_filter_func_vector,
+		.filter_func = starpu_vector_divide_in_2_filter_func,
 		.filter_arg = VECTORSIZE/2
 	};
 
@@ -79,26 +79,26 @@ int main(int argc, char **argv)
 	{
 		starpu_map_filters(v_handle, 1, &f);
 	
-		ret = use_handle(starpu_get_sub_data(v_handle, 1, 0));
+		ret = use_handle(starpu_data_get_sub_data(v_handle, 1, 0));
 		if (ret == -ENODEV)
 			goto enodev;
 	
-		ret = use_handle(starpu_get_sub_data(v_handle, 1, 1));
+		ret = use_handle(starpu_data_get_sub_data(v_handle, 1, 1));
 		if (ret == -ENODEV)
 			goto enodev;
 	
-		starpu_wait_all_tasks();
+		starpu_task_wait_for_all();
 	
-		starpu_unpartition_data(v_handle, 0);
+		starpu_data_unpartition(v_handle, 0);
 	
 		ret = use_handle(v_handle);
 		if (ret == -ENODEV)
 			goto enodev;
 	
-		starpu_wait_all_tasks();
+		starpu_task_wait_for_all();
 	}
 
-	starpu_delete_data(v_handle);
+	starpu_data_unregister(v_handle);
 
 	starpu_shutdown();
 

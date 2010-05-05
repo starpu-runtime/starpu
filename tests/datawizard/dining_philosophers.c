@@ -62,7 +62,7 @@ int main(int argc, int argv)
 	{
 		forks[f] = 0;
 
-		starpu_register_vector_data(&fork_handles[f], 0, (uintptr_t)&forks[f], 1, sizeof(unsigned));
+		starpu_vector_data_register(&fork_handles[f], 0, (uintptr_t)&forks[f], 1, sizeof(unsigned));
 	}
 
 	unsigned ntasks = 1024;
@@ -75,7 +75,7 @@ int main(int argc, int argv)
 		submit_one_task(philosopher);
 	}
 
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	starpu_shutdown();
 

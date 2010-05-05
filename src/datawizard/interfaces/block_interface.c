@@ -132,7 +132,7 @@ static void register_block_handle(starpu_data_handle handle, uint32_t home_node,
 }
 
 /* declare a new data with the BLAS interface */
-void starpu_register_block_data(starpu_data_handle *handleptr, uint32_t home_node,
+void starpu_block_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 			uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx,
 			uint32_t ny, uint32_t nz, size_t elemsize)
 {
@@ -155,9 +155,9 @@ static uint32_t footprint_block_interface_crc32(starpu_data_handle handle)
 {
 	uint32_t hash;
 
-	hash = _starpu_crc32_be(starpu_get_block_nx(handle), 0);
-	hash = _starpu_crc32_be(starpu_get_block_ny(handle), hash);
-	hash = _starpu_crc32_be(starpu_get_block_nz(handle), hash);
+	hash = _starpu_crc32_be(starpu_block_get_nx(handle), 0);
+	hash = _starpu_crc32_be(starpu_block_get_ny(handle), hash);
+	hash = _starpu_crc32_be(starpu_block_get_nz(handle), hash);
 
 	return hash;
 }
@@ -184,7 +184,7 @@ static size_t block_interface_get_size(starpu_data_handle handle)
 }
 
 /* offer an access to the data parameters */
-uint32_t starpu_get_block_nx(starpu_data_handle handle)
+uint32_t starpu_block_get_nx(starpu_data_handle handle)
 {
 	starpu_block_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, 0);
@@ -192,7 +192,7 @@ uint32_t starpu_get_block_nx(starpu_data_handle handle)
 	return interface->nx;
 }
 
-uint32_t starpu_get_block_ny(starpu_data_handle handle)
+uint32_t starpu_block_get_ny(starpu_data_handle handle)
 {
 	starpu_block_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, 0);
@@ -200,7 +200,7 @@ uint32_t starpu_get_block_ny(starpu_data_handle handle)
 	return interface->ny;
 }
 
-uint32_t starpu_get_block_nz(starpu_data_handle handle)
+uint32_t starpu_block_get_nz(starpu_data_handle handle)
 {
 	starpu_block_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, 0);
@@ -208,12 +208,12 @@ uint32_t starpu_get_block_nz(starpu_data_handle handle)
 	return interface->nz;
 }
 
-uint32_t starpu_get_block_local_ldy(starpu_data_handle handle)
+uint32_t starpu_block_get_local_ldy(starpu_data_handle handle)
 {
 	unsigned node;
 	node = _starpu_get_local_memory_node();
 
-	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 	
 	starpu_block_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, node);
@@ -221,12 +221,12 @@ uint32_t starpu_get_block_local_ldy(starpu_data_handle handle)
 	return interface->ldy;
 }
 
-uint32_t starpu_get_block_local_ldz(starpu_data_handle handle)
+uint32_t starpu_block_get_local_ldz(starpu_data_handle handle)
 {
 	unsigned node;
 	node = _starpu_get_local_memory_node();
 
-	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
 	starpu_block_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, node);
@@ -234,12 +234,12 @@ uint32_t starpu_get_block_local_ldz(starpu_data_handle handle)
 	return interface->ldz;
 }
 
-uintptr_t starpu_get_block_local_ptr(starpu_data_handle handle)
+uintptr_t starpu_block_get_local_ptr(starpu_data_handle handle)
 {
 	unsigned node;
 	node = _starpu_get_local_memory_node();
 
-	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
 	starpu_block_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, node);
@@ -247,7 +247,7 @@ uintptr_t starpu_get_block_local_ptr(starpu_data_handle handle)
 	return interface->ptr;
 }
 
-size_t starpu_get_block_elemsize(starpu_data_handle handle)
+size_t starpu_block_get_elemsize(starpu_data_handle handle)
 {
 	starpu_block_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, 0);

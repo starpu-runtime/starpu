@@ -51,7 +51,7 @@ static void callback(void *arg)
 
 static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
-//	int id = starpu_get_worker_id();
+//	int id = starpu_worker_get_id();
 //	fprintf(stderr, "worker #%d\n", id);
 }
 
@@ -83,10 +83,10 @@ int main(int argc, char **argv)
 {
 	starpu_init(NULL);
 
-	starpu_malloc_pinned_if_possible((void **)&v, VECTORSIZE*sizeof(unsigned));
-	starpu_register_vector_data(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
+	starpu_data_malloc_pinned_if_possible((void **)&v, VECTORSIZE*sizeof(unsigned));
+	starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 
-	unsigned nworker = starpu_get_worker_count();
+	unsigned nworker = starpu_worker_get_count();
 
 	cnt = nworker*N;
 

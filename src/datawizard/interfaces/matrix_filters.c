@@ -63,7 +63,7 @@ void starpu_block_filter_func(starpu_filter *f, starpu_data_handle root_handle)
 			local->ny = ny;
 			local->elemsize = elemsize;
 
-			if (starpu_test_if_data_is_allocated_on_node(root_handle, node)) {
+			if (starpu_data_test_if_allocated_on_node(root_handle, node)) {
 				starpu_matrix_interface_t *local_root =
 					starpu_data_get_interface_on_node(root_handle, node);
 
@@ -116,7 +116,7 @@ void starpu_vertical_block_filter_func(starpu_filter *f, starpu_data_handle root
 			local->ny = child_ny;
 			local->elemsize = elemsize;
 
-			if (starpu_test_if_data_is_allocated_on_node(root_handle, node)) {
+			if (starpu_data_test_if_allocated_on_node(root_handle, node)) {
 				starpu_matrix_interface_t *local_root =
 					starpu_data_get_interface_on_node(root_handle, node);
 

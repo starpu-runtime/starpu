@@ -39,7 +39,7 @@ void starpu_vertical_block_filter_func_csr(starpu_filter *f, starpu_data_handle 
 	/* actually create all the chunks */
 	uint32_t chunk_size = (nrow + nchunks - 1)/nchunks;
 
-	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(root_handle, 0));
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(root_handle, 0));
 	uint32_t *rowptr = root_interface->rowptr;
 
 	unsigned chunk;
@@ -70,7 +70,7 @@ void starpu_vertical_block_filter_func_csr(starpu_filter *f, starpu_data_handle 
 			local->firstentry = local_firstentry;
 			local->elemsize = elemsize;
 
-			if (starpu_test_if_data_is_allocated_on_node(root_handle, node)) {
+			if (starpu_data_test_if_allocated_on_node(root_handle, node)) {
 				local->rowptr = &root_local->rowptr[first_index];
 				local->colind = &root_local->colind[local_firstentry];
 				local->nzval = root_local->nzval + local_firstentry * elemsize;

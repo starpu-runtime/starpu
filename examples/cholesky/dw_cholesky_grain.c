@@ -55,7 +55,7 @@ static struct starpu_task * create_task_11(starpu_data_handle dataA, unsigned k,
 	task->cl = &cl11;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_get_sub_data(dataA, 2, k, k);
+	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k);
 	task->buffers[0].mode = STARPU_RW;
 
 	/* this is an important task */
@@ -87,9 +87,9 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j, uns
 	task->cl = &cl21;	
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_get_sub_data(dataA, 2, k, k); 
+	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k); 
 	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_get_sub_data(dataA, 2, k, j); 
+	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, j); 
 	task->buffers[1].mode = STARPU_RW;
 
 	if (j == k+1) {
@@ -127,11 +127,11 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 	task->cl = &cl22;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_get_sub_data(dataA, 2, k, i); 
+	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, i); 
 	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_get_sub_data(dataA, 2, k, j); 
+	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, j); 
 	task->buffers[1].mode = STARPU_R;
-	task->buffers[2].handle = starpu_get_sub_data(dataA, 2, i, j); 
+	task->buffers[2].handle = starpu_data_get_sub_data(dataA, 2, i, j); 
 	task->buffers[2].mode = STARPU_RW;
 
 	if ( (i == k + 1) && (j == k +1) ) {
@@ -168,7 +168,7 @@ static void _dw_cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	starpu_register_matrix_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
+	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	starpu_filter f;
 		f.filter_func = starpu_vertical_block_filter_func;
@@ -215,7 +215,7 @@ static void _dw_cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned
 	{
 		/* stall the application until the end of computations */
 		starpu_tag_wait(TAG11_AUX(nblocks-1, reclevel));
-		starpu_unpartition_data(dataA, 0);
+		starpu_data_unpartition(dataA, 0);
 		return;
 	}
 	else {
@@ -237,8 +237,8 @@ static void _dw_cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned
 
 		free(tag_array);
 
-		starpu_unpartition_data(dataA, 0);
-		starpu_delete_data(dataA);
+		starpu_data_unpartition(dataA, 0);
+		starpu_data_unregister(dataA);
 
 		float *newmatA = &matA[nbigblocks*(size/nblocks)*(ld+1)];
 
@@ -250,13 +250,13 @@ void initialize_system(float **A, unsigned dim, unsigned pinned)
 {
 	starpu_init(NULL);
 
-	starpu_helper_init_cublas();
+	starpu_helper_cublas_init();
 
 	_starpu_timing_init();
 
 	if (pinned)
 	{
-		starpu_malloc_pinned_if_possible((void **)A, dim*dim*sizeof(float));
+		starpu_data_malloc_pinned_if_possible((void **)A, dim*dim*sizeof(float));
 	} 
 	else {
 		*A = malloc(dim*dim*sizeof(float));
@@ -281,7 +281,7 @@ void dw_cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks
 	double flop = (1.0f*size*size*size)/3.0f;
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 
-	starpu_helper_shutdown_cublas();
+	starpu_helper_cublas_shutdown();
 
 	starpu_shutdown();
 }

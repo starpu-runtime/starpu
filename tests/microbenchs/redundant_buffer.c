@@ -52,9 +52,9 @@ int main(int argc, char **argv)
 {
 	starpu_init(NULL);
 
-	starpu_malloc_pinned_if_possible((void **)&v, VECTORSIZE*sizeof(unsigned));
+	starpu_data_malloc_pinned_if_possible((void **)&v, VECTORSIZE*sizeof(unsigned));
 
-	starpu_register_vector_data(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
+	starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 
 	unsigned iter;
 	for (iter = 0; iter < N; iter++)
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 			goto enodev;
 	}
 
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	starpu_shutdown();
 

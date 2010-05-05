@@ -30,7 +30,7 @@ struct progression_hook {
 static pthread_mutex_t progression_hook_mutex = PTHREAD_MUTEX_INITIALIZER;
 static struct progression_hook hooks[NMAXHOOKS] = {{NULL, NULL, 0}};
 
-int starpu_register_progression_hook(unsigned (*func)(void *arg), void *arg)
+int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg)
 {
 	int hook;
 	PTHREAD_MUTEX_LOCK(&progression_hook_mutex);
@@ -57,7 +57,7 @@ int starpu_register_progression_hook(unsigned (*func)(void *arg), void *arg)
 	return -1;
 }
 
-void starpu_deregister_progression_hook(int hook_id)
+void starpu_progression_hook_deregister(int hook_id)
 {
 	PTHREAD_MUTEX_LOCK(&progression_hook_mutex);
 	hooks[hook_id].active = 0;

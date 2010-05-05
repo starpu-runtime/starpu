@@ -155,7 +155,7 @@ static void init_problem_data(void)
 	{
 		for (z = 0; z < nslicesz; z++)
 		{
-			starpu_register_matrix_data(&A_state[y][z], 0, (uintptr_t)A[y][z], 
+			starpu_matrix_data_register(&A_state[y][z], 0, (uintptr_t)A[y][z], 
 				BLOCKSIZEY, BLOCKSIZEY, BLOCKSIZEZ, sizeof(float));
 		}
 	}
@@ -164,7 +164,7 @@ static void init_problem_data(void)
 	{
 		for (x = 0; x < nslicesx; x++)
 		{
-			starpu_register_matrix_data(&B_state[z][x], 0, (uintptr_t)B[z][x], 
+			starpu_matrix_data_register(&B_state[z][x], 0, (uintptr_t)B[z][x], 
 				BLOCKSIZEZ, BLOCKSIZEZ, BLOCKSIZEX, sizeof(float));
 		}
 	}
@@ -173,7 +173,7 @@ static void init_problem_data(void)
 	{
 		for (x = 0; x < nslicesx; x++)
 		{
-			starpu_register_matrix_data(&C_state[y][x], 0, (uintptr_t)C[y][x], 
+			starpu_matrix_data_register(&C_state[y][x], 0, (uintptr_t)C[y][x], 
 				BLOCKSIZEY, BLOCKSIZEY, BLOCKSIZEX, sizeof(float));
 		}
 	}
@@ -298,7 +298,7 @@ static void callback_func_2(void *arg)
 	free(cb2);
 
 	/* do some accounting */
-	int id = starpu_get_worker_id();
+	int id = starpu_worker_get_id();
 	flop_per_worker[id] += BLAS3_FLOP(BLOCKSIZEX, BLOCKSIZEY, BLOCKSIZEZ);
 	ls_per_worker[id] += BLAS3_LS(BLOCKSIZEX, BLOCKSIZEY, BLOCKSIZEZ);
 
@@ -373,7 +373,7 @@ int main(__attribute__ ((unused)) int argc,
 	/* start the runtime */
 	starpu_init(NULL);
 
-	starpu_helper_init_cublas();
+	starpu_helper_cublas_init();
 
 #ifdef STARPU_USE_GORDON
 	load_elf_sgemm();
@@ -383,7 +383,7 @@ int main(__attribute__ ((unused)) int argc,
 
 	launch_codelets();
 
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	gettimeofday(&end, NULL);
 
@@ -393,7 +393,7 @@ int main(__attribute__ ((unused)) int argc,
 
 	cleanup_problem();
 
-	starpu_helper_shutdown_cublas();
+	starpu_helper_cublas_shutdown();
 	starpu_shutdown();
 
 	return 0;

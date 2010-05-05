@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 		starpu_task_destroy(taskA);
 	}
 
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	starpu_shutdown();
 

@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 		inject_one_task();
 	}
 
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	gettimeofday(&end, NULL);
 

@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
 		buffers[buffer] = malloc(16*sizeof(float));
-		starpu_register_vector_data(&data_handles[buffer], 0, (uintptr_t)buffers[buffer], 16, sizeof(float));
+		starpu_vector_data_register(&data_handles[buffer], 0, (uintptr_t)buffers[buffer], 16, sizeof(float));
 	}
 
 	starpu_init(NULL);

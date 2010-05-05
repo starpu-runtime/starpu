@@ -121,7 +121,7 @@ cudaStream_t *stream;
 						cures = cudaEventCreate(&req->async_channel.cuda_event);
 						STARPU_ASSERT(cures == cudaSuccess);
 
-						stream = starpu_get_local_cuda_stream();
+						stream = starpu_cuda_get_local_stream();
 						ret = copy_methods->cuda_to_ram_async(handle, src_node, dst_node, stream);
 
 						cures = cudaEventRecord(req->async_channel.cuda_event, *stream);
@@ -184,7 +184,7 @@ cudaStream_t *stream;
 					cures = cudaEventCreate(&req->async_channel.cuda_event);
 					STARPU_ASSERT(cures == cudaSuccess);
 
-					stream = starpu_get_local_cuda_stream();
+					stream = starpu_cuda_get_local_stream();
 					ret = copy_methods->ram_to_cuda_async(handle, src_node, dst_node, stream);
 
 					cures = cudaEventRecord(req->async_channel.cuda_event, *stream);

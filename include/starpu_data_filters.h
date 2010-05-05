@@ -30,8 +30,8 @@ typedef struct starpu_filter_t {
 	void *filter_arg_ptr;
 } starpu_filter;
 
-void starpu_partition_data(starpu_data_handle initial_data, starpu_filter *f); 
-void starpu_unpartition_data(starpu_data_handle root_data, uint32_t gathering_node);
+void starpu_data_partition(starpu_data_handle initial_data, starpu_filter *f); 
+void starpu_data_unpartition(starpu_data_handle root_data, uint32_t gathering_node);
 
 struct starpu_data_interface_ops_t;
 void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren,
@@ -40,7 +40,7 @@ void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren,
 starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i);
 
 /* unsigned list */
-starpu_data_handle starpu_get_sub_data(starpu_data_handle root_data, unsigned depth, ... );
+starpu_data_handle starpu_data_get_sub_data(starpu_data_handle root_data, unsigned depth, ... );
 
 /* starpu_filter * list */
 void starpu_map_filters(starpu_data_handle root_data, unsigned nfilters, ...);
@@ -56,8 +56,8 @@ void starpu_vertical_block_filter_func(starpu_filter *f, starpu_data_handle root
 
 /* for vector */
 void starpu_block_filter_func_vector(starpu_filter *f, starpu_data_handle root_data);
-void starpu_list_filter_func_vector(starpu_filter *f, starpu_data_handle root_data);
-void starpu_divide_in_2_filter_func_vector(starpu_filter *f, starpu_data_handle root_data);
+void starpu_vector_list_filter_func(starpu_filter *f, starpu_data_handle root_data);
+void starpu_vector_divide_in_2_filter_func(starpu_filter *f, starpu_data_handle root_data);
 
 #ifdef __cplusplus
 }

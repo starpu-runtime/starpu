@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 	for (i = 0; i < K; i++)
 		starpu_task_submit(&task[i]);
 
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	gettimeofday(&end, NULL);
 

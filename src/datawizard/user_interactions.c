@@ -21,7 +21,7 @@
 #include <datawizard/write_back.h>
 #include <core/dependencies/data_concurrency.h>
 
-int starpu_request_data_allocation(starpu_data_handle handle, uint32_t node)
+int starpu_data_request_allocation(starpu_data_handle handle, uint32_t node)
 {
 	starpu_data_request_t r;
 
@@ -68,7 +68,7 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 	
 	if (statenode->non_blocking)
 	{
-		/* continuation of starpu_sync_data_with_mem_non_blocking: we
+		/* continuation of starpu_data_sync_with_mem_non_blocking: we
 		 * execute the callback if any  */
 		if (statenode->callback)
 			statenode->callback(statenode->callback_arg);
@@ -76,7 +76,7 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 		free(statenode);
 	}
 	else {
-		/* continuation of starpu_sync_data_with_mem */
+		/* continuation of starpu_data_sync_with_mem */
 		PTHREAD_MUTEX_LOCK(&statenode->lock);
 		statenode->finished = 1;
 		PTHREAD_COND_SIGNAL(&statenode->cond);
@@ -84,8 +84,8 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 	}
 }
 
-/* The data must be released by calling starpu_release_data_from_mem later on */
-int starpu_sync_data_with_mem(starpu_data_handle handle, starpu_access_mode mode)
+/* The data must be released by calling starpu_data_release_from_mem later on */
+int starpu_data_sync_with_mem(starpu_data_handle handle, starpu_access_mode mode)
 {
 	STARPU_ASSERT(handle);
 
@@ -123,8 +123,8 @@ int starpu_sync_data_with_mem(starpu_data_handle handle, starpu_access_mode mode
 	return 0;
 }
 
-/* The data must be released by calling starpu_release_data_from_mem later on */
-int starpu_sync_data_with_mem_non_blocking(starpu_data_handle handle,
+/* The data must be released by calling starpu_data_release_from_mem later on */
+int starpu_data_sync_with_mem_non_blocking(starpu_data_handle handle,
 		starpu_access_mode mode, void (*callback)(void *), void *arg)
 {
 	STARPU_ASSERT(handle);
@@ -154,9 +154,9 @@ int starpu_sync_data_with_mem_non_blocking(starpu_data_handle handle,
 	return 0;
 }
 
-/* This function must be called after starpu_sync_data_with_mem so that the
+/* This function must be called after starpu_data_sync_with_mem so that the
  * application release the data */
-void starpu_release_data_from_mem(starpu_data_handle handle)
+void starpu_data_release_from_mem(starpu_data_handle handle)
 {
 	STARPU_ASSERT(handle);
 
@@ -229,7 +229,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 	return 0;
 }
 
-int starpu_prefetch_data_on_node(starpu_data_handle handle, unsigned node, unsigned async)
+int starpu_data_prefetch_on_node(starpu_data_handle handle, unsigned node, unsigned async)
 {
 	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R);
 }
@@ -238,7 +238,7 @@ int starpu_prefetch_data_on_node(starpu_data_handle handle, unsigned node, unsig
  *	It is possible to specify that a piece of data can be discarded without
  *	impacting the application.
  */
-void starpu_advise_if_data_is_important(starpu_data_handle handle, unsigned is_important)
+void starpu_data_advise_as_important(starpu_data_handle handle, unsigned is_important)
 {
 	_starpu_spin_lock(&handle->header_lock);
 
@@ -249,7 +249,7 @@ void starpu_advise_if_data_is_important(starpu_data_handle handle, unsigned is_i
 		/* make sure the intermediate children is advised as well */
 		struct starpu_data_state_t *child_handle = &handle->children[child];
 		if (child_handle->nchildren > 0)
-			starpu_advise_if_data_is_important(child_handle, is_important);
+			starpu_data_advise_as_important(child_handle, is_important);
 	}
 
 	handle->is_not_important = !is_important;

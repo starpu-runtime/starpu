@@ -82,13 +82,13 @@ int main(int argc, char **argv)
 
 	/* Any worker may use that array now */
 	starpu_data_handle sobol_qrng_direction_handle;
-	starpu_register_vector_data(&sobol_qrng_direction_handle, 0,
+	starpu_vector_data_register(&sobol_qrng_direction_handle, 0,
 		(uintptr_t)sobol_qrng_directions, n_dimensions*n_directions, sizeof(unsigned));
 
 	unsigned *cnt_array = malloc(ntasks*sizeof(unsigned));
 	STARPU_ASSERT(cnt_array);
 	starpu_data_handle cnt_array_handle;
-	starpu_register_vector_data(&cnt_array_handle, 0, (uintptr_t)cnt_array, ntasks, sizeof(unsigned));
+	starpu_vector_data_register(&cnt_array_handle, 0, (uintptr_t)cnt_array, ntasks, sizeof(unsigned));
 
 	/* Use a write-back policy : when the data is modified on an
 	 * accelerator, we know that it will only be modified once and be
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 		.filter_arg = ntasks
 	};
 	
-	starpu_partition_data(cnt_array_handle, &f);
+	starpu_data_partition(cnt_array_handle, &f);
 
 	static struct starpu_perfmodel_t model = {
 		.type = STARPU_HISTORY_BASED,
@@ -128,22 +128,22 @@ int main(int argc, char **argv)
 
 		task->cl = &cl;
 
-		STARPU_ASSERT(starpu_get_sub_data(cnt_array_handle, 1, i));
+		STARPU_ASSERT(starpu_data_get_sub_data(cnt_array_handle, 1, i));
 
 		task->buffers[0].handle = sobol_qrng_direction_handle;
 		task->buffers[0].mode   = STARPU_R;
-		task->buffers[1].handle = starpu_get_sub_data(cnt_array_handle, 1, i);
+		task->buffers[1].handle = starpu_data_get_sub_data(cnt_array_handle, 1, i);
 		task->buffers[1].mode   = STARPU_W;
 
 		int ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);
 	}
 
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	/* Get the cnt_array back in main memory */
-	starpu_unpartition_data(cnt_array_handle, 0);
-	starpu_sync_data_with_mem(cnt_array_handle, STARPU_RW);
+	starpu_data_unpartition(cnt_array_handle, 0);
+	starpu_data_sync_with_mem(cnt_array_handle, STARPU_RW);
 
 	/* Count the total number of entries */
 	unsigned long total_cnt = 0;
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
 	fprintf(stderr, "Total time : %f ms\n", timing/1000.0);
 	fprintf(stderr, "Speed : %f GShot/s\n", total_shot_cnt/(10e3*timing));
 
-	starpu_release_data_from_mem(cnt_array_handle);
+	starpu_data_release_from_mem(cnt_array_handle);
 
 	starpu_display_codelet_stats(&cl);
 

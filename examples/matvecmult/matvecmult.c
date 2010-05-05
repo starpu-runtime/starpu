@@ -34,8 +34,8 @@ void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 	float *vector = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
 	float *mult = (float *)STARPU_GET_VECTOR_PTR(descr[2]);
 
-        id = starpu_get_worker_id();
-        devid = starpu_get_worker_devid(id);
+        id = starpu_worker_get_id();
+        devid = starpu_worker_get_devid(id);
 
         err = starpu_opencl_load_kernel(&kernel, &queue,
                                         "examples/matvecmult/matvecmult_kernel.cl", "matVecMult", devid);
@@ -141,9 +141,9 @@ int main(int argc, char **argv)
         fillArray(mult, height);
         matVecMult(matrix, vector, width, height, correctResult);
 
-	starpu_register_matrix_data(&matrix_handle, 0, (uintptr_t)matrix, width, width, height, sizeof(float));
-	starpu_register_vector_data(&vector_handle, 0, (uintptr_t)vector, width, sizeof(float));
-	starpu_register_vector_data(&mult_handle, 0, (uintptr_t)mult, height, sizeof(float));
+	starpu_matrix_data_register(&matrix_handle, 0, (uintptr_t)matrix, width, width, height, sizeof(float));
+	starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, width, sizeof(float));
+	starpu_vector_data_register(&mult_handle, 0, (uintptr_t)mult, height, sizeof(float));
 
         _starpu_opencl_compile_source_to_opencl("examples/matvecmult/matvecmult_kernel.cl");
 
@@ -168,12 +168,12 @@ int main(int argc, char **argv)
                 exit(0);
 	}
 
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	/* update the array in RAM */
-        starpu_sync_data_with_mem(matrix_handle, STARPU_R);
-        starpu_sync_data_with_mem(vector_handle, STARPU_R);
-        starpu_sync_data_with_mem(mult_handle, STARPU_R);
+        starpu_data_sync_with_mem(matrix_handle, STARPU_R);
+        starpu_data_sync_with_mem(vector_handle, STARPU_R);
+        starpu_data_sync_with_mem(mult_handle, STARPU_R);
 
         int res = compareL2fe(correctResult, mult, height, 1e-6f);
         printf("TEST %s\n\n", (res == 0) ? "PASSED" : "FAILED !!!");
@@ -182,9 +182,9 @@ int main(int argc, char **argv)
         printArray(vector, width);
         printArray(mult, height);
 #endif
-        starpu_release_data_from_mem(matrix_handle);
-        starpu_release_data_from_mem(vector_handle);
-        starpu_release_data_from_mem(mult_handle);
+        starpu_data_release_from_mem(matrix_handle);
+        starpu_data_release_from_mem(vector_handle);
+        starpu_data_release_from_mem(mult_handle);
 
         starpu_shutdown();
 #endif

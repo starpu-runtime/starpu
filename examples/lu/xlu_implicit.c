@@ -25,7 +25,7 @@ static void create_task_11(starpu_data_handle dataA, unsigned k)
 	task->cl = &cl11;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_get_sub_data(dataA, 2, k, k);
+	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k);
 	task->buffers[0].mode = STARPU_RW;
 
 	/* this is an important task */
@@ -41,9 +41,9 @@ static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned j)
 	task->cl = &cl12;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_get_sub_data(dataA, 2, k, k); 
+	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k); 
 	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_get_sub_data(dataA, 2, j, k); 
+	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, j, k); 
 	task->buffers[1].mode = STARPU_RW;
 
 	if (!no_prio && (j == k+1))
@@ -59,9 +59,9 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned i)
 	task->cl = &cl21;
 	
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_get_sub_data(dataA, 2, k, k); 
+	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k); 
 	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_get_sub_data(dataA, 2, k, i); 
+	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, i); 
 	task->buffers[1].mode = STARPU_RW;
 
 	if (!no_prio && (i == k+1))
@@ -77,11 +77,11 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 	task->cl = &cl22;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_get_sub_data(dataA, 2, k, i);
+	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, i);
 	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_get_sub_data(dataA, 2, j, k);
+	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, j, k);
 	task->buffers[1].mode = STARPU_R;
-	task->buffers[2].handle = starpu_get_sub_data(dataA, 2, j, i);
+	task->buffers[2].handle = starpu_data_get_sub_data(dataA, 2, j, i);
 	task->buffers[2].mode = STARPU_RW;
 
 	if (!no_prio &&  (i == k + 1) && (j == k +1) )
@@ -120,7 +120,7 @@ static void dw_codelet_facto_v3(starpu_data_handle dataA, unsigned nblocks)
 	}
 
 	/* stall the application until the end of computations */
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	gettimeofday(&end, NULL);
 
@@ -128,7 +128,7 @@ static void dw_codelet_facto_v3(starpu_data_handle dataA, unsigned nblocks)
 	fprintf(stderr, "Computation took (in ms)\n");
 	printf("%2.2f\n", timing/1000);
 
-	unsigned n = starpu_get_matrix_nx(dataA);
+	unsigned n = starpu_matrix_get_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
@@ -139,7 +139,7 @@ void STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigne
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	starpu_register_matrix_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(TYPE));
+	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(TYPE));
 
 	starpu_filter f;
 		f.filter_func = starpu_vertical_block_filter_func;
@@ -154,5 +154,5 @@ void STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigne
 	dw_codelet_facto_v3(dataA, nblocks);
 
 	/* gather all the data */
-	starpu_unpartition_data(dataA, 0);
+	starpu_data_unpartition(dataA, 0);
 }

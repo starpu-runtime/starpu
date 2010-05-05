@@ -97,7 +97,7 @@ int starpu_mpi_isend(starpu_data_handle data_handle, starpu_mpi_req *public_req,
 	/* Asynchronously request StarPU to fetch the data in main memory: when
 	 * it is available in main memory, submit_mpi_req(req) is called and
 	 * the request is actually submitted  */
-	starpu_sync_data_with_mem_non_blocking(data_handle, STARPU_R,
+	starpu_data_sync_with_mem_non_blocking(data_handle, STARPU_R,
 			submit_mpi_req, (void *)req);
 
 	return 0;
@@ -134,7 +134,7 @@ int starpu_mpi_isend_detached(starpu_data_handle data_handle,
 	/* Asynchronously request StarPU to fetch the data in main memory: when
 	 * it is available in main memory, submit_mpi_req(req) is called and
 	 * the request is actually submitted  */
-	starpu_sync_data_with_mem_non_blocking(data_handle, STARPU_R,
+	starpu_data_sync_with_mem_non_blocking(data_handle, STARPU_R,
 			submit_mpi_req, (void *)req);
 
 	return 0;
@@ -197,7 +197,7 @@ int starpu_mpi_irecv(starpu_data_handle data_handle, starpu_mpi_req *public_req,
 	/* Asynchronously request StarPU to fetch the data in main memory: when
 	 * it is available in main memory, submit_mpi_req(req) is called and
 	 * the request is actually submitted  */
-	starpu_sync_data_with_mem_non_blocking(data_handle, STARPU_W,
+	starpu_data_sync_with_mem_non_blocking(data_handle, STARPU_W,
 			submit_mpi_req, (void *)req);
 
 	return 0;
@@ -233,7 +233,7 @@ int starpu_mpi_irecv_detached(starpu_data_handle data_handle, int source, int mp
 	/* Asynchronously request StarPU to fetch the data in main memory: when
 	 * it is available in main memory, submit_mpi_req(req) is called and
 	 * the request is actually submitted  */
-	starpu_sync_data_with_mem_non_blocking(data_handle, STARPU_W,
+	starpu_data_sync_with_mem_non_blocking(data_handle, STARPU_W,
 			submit_mpi_req, (void *)req);
 
 	return 0;
@@ -410,7 +410,7 @@ int starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 static void handle_request_termination(struct starpu_mpi_req_s *req)
 {
 	MPI_Type_free(&req->datatype);
-	starpu_release_data_from_mem(req->data_handle);
+	starpu_data_release_from_mem(req->data_handle);
 
 #ifdef VERBOSE_STARPU_MPI
 	int rank;
@@ -660,7 +660,7 @@ int starpu_mpi_initialize(void)
 	PTHREAD_MUTEX_UNLOCK(&mutex);
 
 #ifdef USE_STARPU_ACTIVITY
-	hookid = starpu_register_progression_hook(progression_hook_func, NULL);
+	hookid = starpu_progression_hook_register(progression_hook_func, NULL);
 	STARPU_ASSERT(hookid >= 0);
 #endif
 
@@ -682,7 +682,7 @@ int starpu_mpi_shutdown(void)
 	pthread_join(progress_thread, &value);
 
 #ifdef USE_STARPU_ACTIVITY
-	starpu_deregister_progression_hook(hookid);
+	starpu_progression_hook_deregister(hookid);
 #endif 
 
 	/* liberate the request queues */

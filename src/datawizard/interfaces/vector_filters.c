@@ -57,7 +57,7 @@ void starpu_block_filter_func_vector(starpu_filter *f, starpu_data_handle root_h
 			local->nx = child_nx;
 			local->elemsize = elemsize;
 
-			if (starpu_test_if_data_is_allocated_on_node(root_handle, node)) {
+			if (starpu_data_test_if_allocated_on_node(root_handle, node)) {
 				starpu_vector_interface_t *local_root =
 					starpu_data_get_interface_on_node(root_handle, node);
 
@@ -70,7 +70,7 @@ void starpu_block_filter_func_vector(starpu_filter *f, starpu_data_handle root_h
 }
 
 
-void starpu_divide_in_2_filter_func_vector(starpu_filter *f, starpu_data_handle root_handle)
+void starpu_vector_divide_in_2_filter_func(starpu_filter *f, starpu_data_handle root_handle)
 {
 	uint32_t length_first = f->filter_arg;
 
@@ -97,7 +97,7 @@ void starpu_divide_in_2_filter_func_vector(starpu_filter *f, starpu_data_handle 
 		local->nx = length_first;
 		local->elemsize = elemsize;
 
-		if (starpu_test_if_data_is_allocated_on_node(root_handle, node)) {
+		if (starpu_data_test_if_allocated_on_node(root_handle, node)) {
 			starpu_vector_interface_t *local_root =
 				starpu_data_get_interface_on_node(root_handle, node);
 
@@ -118,7 +118,7 @@ void starpu_divide_in_2_filter_func_vector(starpu_filter *f, starpu_data_handle 
 		local->nx = nx - length_first;
 		local->elemsize = elemsize;
 
-		if (starpu_test_if_data_is_allocated_on_node(root_handle, node)) {
+		if (starpu_data_test_if_allocated_on_node(root_handle, node)) {
 			starpu_vector_interface_t *local_root =
 				starpu_data_get_interface_on_node(root_handle, node);
 
@@ -129,7 +129,7 @@ void starpu_divide_in_2_filter_func_vector(starpu_filter *f, starpu_data_handle 
 	}
 }
 
-void starpu_list_filter_func_vector(starpu_filter *f, starpu_data_handle root_handle)
+void starpu_vector_list_filter_func(starpu_filter *f, starpu_data_handle root_handle)
 {
 	uint32_t nchunks = f->filter_arg;
 	uint32_t *length_tab = f->filter_arg_ptr;
@@ -162,7 +162,7 @@ void starpu_list_filter_func_vector(starpu_filter *f, starpu_data_handle root_ha
 			local->nx = chunk_size;
 			local->elemsize = elemsize;
 
-			if (starpu_test_if_data_is_allocated_on_node(root_handle, node)) {
+			if (starpu_data_test_if_allocated_on_node(root_handle, node)) {
 				starpu_vector_interface_t *local_root =
 					starpu_data_get_interface_on_node(root_handle, node);
 

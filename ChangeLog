@@ -3,12 +3,12 @@ StarPU 0.2.901 aka 0.3-rc1 (svn revision 1236)
 The asynchronous heterogeneous multi-accelerator release
 
   * Many API changes and code cleanups
-    - Implement starpu_get_worker_id
-    - Implement starpu_get_worker_name
-    - Implement starpu_get_worker_type
-    - Implement starpu_get_worker_count
+    - Implement starpu_worker_get_id
+    - Implement starpu_worker_get_name
+    - Implement starpu_worker_get_type
+    - Implement starpu_worker_get_count
     - Implement starpu_display_codelet_stats
-    - Implement starpu_prefetch_data_on_node
+    - Implement starpu_data_prefetch_on_node
     - Expose the starpu_data_set_wb_mask function
   * Support nvidia (heterogeneous) multi-GPU
   * Add the data request mechanism

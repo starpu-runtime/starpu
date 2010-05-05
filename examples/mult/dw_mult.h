@@ -89,7 +89,7 @@ static struct block_conf conf __attribute__ ((aligned (128)));
 static void display_stats(double timing)
 {
 	unsigned worker;
-	unsigned nworkers = starpu_get_worker_count();
+	unsigned nworkers = starpu_worker_get_count();
 
 	fprintf(stderr, "Computation took (ms):\n");
 	printf("%2.2f\n", timing/1000);
@@ -102,7 +102,7 @@ static void display_stats(double timing)
 		ls_total += ls_per_worker[worker];
 
 		char name[32];
-		starpu_get_worker_name(worker, name, 32);
+		starpu_worker_get_name(worker, name, 32);
 
 		fprintf(stderr, "\t%s -> %2.2f GFlop\t%2.2f GFlop/s\n", name, (double)flop_per_worker[worker]/1000000000.0f, (double)flop_per_worker[worker]/(double)timing/1000);
 	}

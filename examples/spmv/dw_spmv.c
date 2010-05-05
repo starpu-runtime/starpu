@@ -48,8 +48,8 @@ void spmv_kernel_opencl(void *descr[], void *args)
 	float *vecout = (float *)STARPU_GET_VECTOR_PTR(descr[2]);
 	uint32_t nx_out = STARPU_GET_VECTOR_NX(descr[2]);
 
-        id = starpu_get_worker_id();
-        devid = starpu_get_worker_devid(id);
+        id = starpu_worker_get_id();
+        devid = starpu_worker_get_devid(id);
 
         err = starpu_opencl_load_kernel(&kernel, &queue,
                                         "examples/spmv/spmv_opencl.cl", "spvm", devid);
@@ -200,7 +200,7 @@ static void create_data(void)
 
 	rowptr[size] = nnz;
 	
-	starpu_register_csr_data(&sparse_matrix, 0, nnz, size, (uintptr_t)nzval, colind, rowptr, 0, sizeof(float));
+	starpu_csr_data_register(&sparse_matrix, 0, nnz, size, (uintptr_t)nzval, colind, rowptr, 0, sizeof(float));
 
 	sparse_matrix_nzval = nzval;
 	sparse_matrix_colind = colind;
@@ -222,8 +222,8 @@ static void create_data(void)
 		outvec[ind] = 0.0f;
 	}
 
-	starpu_register_vector_data(&vector_in, 0, (uintptr_t)invec, size, sizeof(float));
-	starpu_register_vector_data(&vector_out, 0, (uintptr_t)outvec, size, sizeof(float));
+	starpu_vector_data_register(&vector_in, 0, (uintptr_t)invec, size, sizeof(float));
+	starpu_vector_data_register(&vector_out, 0, (uintptr_t)outvec, size, sizeof(float));
 
 	vector_in_ptr = invec;
 	vector_out_ptr = outvec;
@@ -240,8 +240,8 @@ void call_spmv_codelet_filters(void)
 	vector_f.filter_func = starpu_block_filter_func_vector;
 	vector_f.filter_arg  = nblocks;
 
-	starpu_partition_data(sparse_matrix, &csr_f);
-	starpu_partition_data(vector_out, &vector_f);
+	starpu_data_partition(sparse_matrix, &csr_f);
+	starpu_data_partition(vector_out, &vector_f);
 
 #ifdef STARPU_USE_OPENCL
         {
@@ -281,11 +281,11 @@ void call_spmv_codelet_filters(void)
 		task->cl = &cl;
 		task->cl_arg = NULL;
 	
-		task->buffers[0].handle = starpu_get_sub_data(sparse_matrix, 1, part);
+		task->buffers[0].handle = starpu_data_get_sub_data(sparse_matrix, 1, part);
 		task->buffers[0].mode  = STARPU_R;
 		task->buffers[1].handle = vector_in;
 		task->buffers[1].mode = STARPU_R;
-		task->buffers[2].handle = starpu_get_sub_data(vector_out, 1, part);
+		task->buffers[2].handle = starpu_data_get_sub_data(vector_out, 1, part);
 		task->buffers[2].mode = STARPU_W;
 	
 		ret = starpu_task_submit(task);
@@ -296,12 +296,12 @@ void call_spmv_codelet_filters(void)
 		}
 	}
 
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	gettimeofday(&end, NULL);
 
-	starpu_unpartition_data(sparse_matrix, 0);
-	starpu_unpartition_data(vector_out, 0);
+	starpu_data_unpartition(sparse_matrix, 0);
+	starpu_data_unpartition(vector_out, 0);
 }
 
 static void print_results(void)

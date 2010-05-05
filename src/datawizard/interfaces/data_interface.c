@@ -129,7 +129,7 @@ void starpu_data_liberate_interfaces(starpu_data_handle handle)
 		free(handle->interface[node]);
 }
 
-void starpu_delete_data(starpu_data_handle handle)
+void starpu_data_unregister(starpu_data_handle handle)
 {
 	unsigned node;
 

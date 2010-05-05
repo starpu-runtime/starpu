@@ -20,7 +20,7 @@
 #include <starpu.h>
 #include <common/config.h>
 
-/* In order to implement starpu_wait_all_tasks, we keep track of the number of
+/* In order to implement starpu_task_wait_for_all, we keep track of the number of
  * task currently submitted */
 void _starpu_decrement_nsubmitted_tasks(void);
 

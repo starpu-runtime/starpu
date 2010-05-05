@@ -23,22 +23,22 @@ static starpu_data_handle create_tmp_matrix(starpu_data_handle M)
 	starpu_data_handle state = malloc(sizeof(starpu_data_handle));
 
 	/* create a matrix with the same dimensions as M */
-	uint32_t nx = starpu_get_matrix_nx(M);
-	uint32_t ny = starpu_get_matrix_nx(M);
+	uint32_t nx = starpu_matrix_get_nx(M);
+	uint32_t ny = starpu_matrix_get_nx(M);
 
 	STARPU_ASSERT(state);
 
 	data = malloc(nx*ny*sizeof(float));
 	STARPU_ASSERT(data);
 
-	starpu_register_matrix_data(&state, 0, (uintptr_t)data, nx, nx, ny, sizeof(float));
+	starpu_matrix_data_register(&state, 0, (uintptr_t)data, nx, nx, ny, sizeof(float));
 	
 	return state;
 }
 
 static void free_tmp_matrix(starpu_data_handle matrix)
 {
-	starpu_delete_data(matrix);
+	starpu_data_unregister(matrix);
 	free(matrix);
 }
 
@@ -62,20 +62,20 @@ static void partition_matrices(strassen_iter_state_t *iter)
 	starpu_map_filters(B, 2, &f, &f2);
 	starpu_map_filters(C, 2, &f, &f2);
 
-	iter->A11 = starpu_get_sub_data(A, 2, 0, 0);
-	iter->A12 = starpu_get_sub_data(A, 2, 1, 0);
-	iter->A21 = starpu_get_sub_data(A, 2, 0, 1);
-	iter->A22 = starpu_get_sub_data(A, 2, 1, 1);
+	iter->A11 = starpu_data_get_sub_data(A, 2, 0, 0);
+	iter->A12 = starpu_data_get_sub_data(A, 2, 1, 0);
+	iter->A21 = starpu_data_get_sub_data(A, 2, 0, 1);
+	iter->A22 = starpu_data_get_sub_data(A, 2, 1, 1);
 
-	iter->B11 = starpu_get_sub_data(B, 2, 0, 0);
-	iter->B12 = starpu_get_sub_data(B, 2, 1, 0);
-	iter->B21 = starpu_get_sub_data(B, 2, 0, 1);
-	iter->B22 = starpu_get_sub_data(B, 2, 1, 1);
+	iter->B11 = starpu_data_get_sub_data(B, 2, 0, 0);
+	iter->B12 = starpu_data_get_sub_data(B, 2, 1, 0);
+	iter->B21 = starpu_data_get_sub_data(B, 2, 0, 1);
+	iter->B22 = starpu_data_get_sub_data(B, 2, 1, 1);
 
-	iter->C11 = starpu_get_sub_data(C, 2, 0, 0);
-	iter->C12 = starpu_get_sub_data(C, 2, 1, 0);
-	iter->C21 = starpu_get_sub_data(C, 2, 0, 1);
-	iter->C22 = starpu_get_sub_data(C, 2, 1, 1);
+	iter->C11 = starpu_data_get_sub_data(C, 2, 0, 0);
+	iter->C12 = starpu_data_get_sub_data(C, 2, 1, 0);
+	iter->C21 = starpu_data_get_sub_data(C, 2, 0, 1);
+	iter->C22 = starpu_data_get_sub_data(C, 2, 1, 1);
 
 	/* TODO check that all sub-matrices have the same size */
 }
@@ -83,9 +83,9 @@ static void partition_matrices(strassen_iter_state_t *iter)
 static void unpartition_matrices(strassen_iter_state_t *iter)
 {
 	/* TODO there is no  need to actually gather those results ... */
-	starpu_unpartition_data(iter->A, 0);
-	starpu_unpartition_data(iter->B, 0);
-	starpu_unpartition_data(iter->C, 0);
+	starpu_data_unpartition(iter->A, 0);
+	starpu_data_unpartition(iter->B, 0);
+	starpu_data_unpartition(iter->C, 0);
 }
 
 static starpu_codelet cl_add = {

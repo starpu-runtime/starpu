@@ -29,18 +29,18 @@ int main(int argc, char **argv)
 {
 	starpu_init(NULL);
 
-	unsigned ngpus = starpu_get_cuda_worker_count();
+	unsigned ngpus = starpu_cuda_worker_get_count();
 
 	double init_timing;
 	double shutdown_timing;
 
 	gettimeofday(&start, NULL);
-	starpu_helper_init_cublas();
+	starpu_helper_cublas_init();
 	gettimeofday(&end, NULL);
 	init_timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
 	gettimeofday(&start, NULL);
-	starpu_helper_shutdown_cublas();
+	starpu_helper_cublas_shutdown();
 	gettimeofday(&end, NULL);
 	shutdown_timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 

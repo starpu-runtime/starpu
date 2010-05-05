@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 	starpu_init(NULL);
 	starpu_mpi_initialize();
 
-	starpu_register_vector_data(&token_handle, 0, (uintptr_t)&token, 1, sizeof(unsigned));
+	starpu_vector_data_register(&token_handle, 0, (uintptr_t)&token, 1, sizeof(unsigned));
 
 	unsigned nloops = NITER;
 	unsigned loop;
@@ -106,9 +106,9 @@ int main(int argc, char **argv)
 		}
 		else {
 
-			starpu_sync_data_with_mem(token_handle, STARPU_R);
+			starpu_data_sync_with_mem(token_handle, STARPU_R);
 			fprintf(stdout, "Finished : token value %d\n", token);
-			starpu_release_data_from_mem(token_handle);
+			starpu_data_release_from_mem(token_handle);
 		}
 	}
 

@@ -85,14 +85,14 @@ int main(int argc, char **argv)
 		}
 	}
 
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	/* update the array in RAM */
-	starpu_sync_data_with_mem(float_array_handle, STARPU_R);
+	starpu_data_sync_with_mem(float_array_handle, STARPU_R);
 
 	fprintf(stderr, "variable -> %f\n", foo);
 
-	starpu_release_data_from_mem(float_array_handle);
+	starpu_data_release_from_mem(float_array_handle);
 
 	starpu_shutdown();
 

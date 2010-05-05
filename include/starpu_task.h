@@ -212,7 +212,7 @@ int starpu_task_wait(struct starpu_task *task);
 
 /* This function waits until all the tasks that were already submitted have
  * been executed. */
-int starpu_wait_all_tasks(void);
+int starpu_task_wait_for_all(void);
 
 void starpu_display_codelet_stats(struct starpu_codelet_t *cl);
 

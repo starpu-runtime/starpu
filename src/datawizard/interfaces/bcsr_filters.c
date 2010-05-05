@@ -42,7 +42,7 @@ void starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unused))
 
 	/* actually create all the chunks */
 
-	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(root_handle, 0));
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(root_handle, 0));
 
 	/* each chunk becomes a small dense matrix */
 	unsigned chunk;
@@ -62,7 +62,7 @@ void starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unused))
 			local->ld = c;
 			local->elemsize = elemsize;
 
-			if (starpu_test_if_data_is_allocated_on_node(root_handle, node)) {
+			if (starpu_data_test_if_allocated_on_node(root_handle, node)) {
 				struct starpu_bcsr_interface_s *node_interface =
 					starpu_data_get_interface_on_node(root_handle, node);
 				uint8_t *nzval = (uint8_t *)(node_interface->nzval);

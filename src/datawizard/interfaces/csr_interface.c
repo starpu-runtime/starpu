@@ -102,7 +102,7 @@ static void register_csr_handle(starpu_data_handle handle, uint32_t home_node, v
 }
 
 /* declare a new data with the BLAS interface */
-void starpu_register_csr_data(starpu_data_handle *handleptr, uint32_t home_node,
+void starpu_csr_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize)
 {
 	starpu_csr_interface_t interface = {
@@ -120,11 +120,11 @@ void starpu_register_csr_data(starpu_data_handle *handleptr, uint32_t home_node,
 
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle handle)
 {
-	return _starpu_crc32_be(starpu_get_csr_nnz(handle), 0);
+	return _starpu_crc32_be(starpu_csr_get_nnz(handle), 0);
 }
 
 /* offer an access to the data parameters */
-uint32_t starpu_get_csr_nnz(starpu_data_handle handle)
+uint32_t starpu_csr_get_nnz(starpu_data_handle handle)
 {
 	starpu_csr_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, 0);
@@ -132,7 +132,7 @@ uint32_t starpu_get_csr_nnz(starpu_data_handle handle)
 	return interface->nnz;
 }
 
-uint32_t starpu_get_csr_nrow(starpu_data_handle handle)
+uint32_t starpu_csr_get_nrow(starpu_data_handle handle)
 {
 	starpu_csr_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, 0);
@@ -140,7 +140,7 @@ uint32_t starpu_get_csr_nrow(starpu_data_handle handle)
 	return interface->nrow;
 }
 
-uint32_t starpu_get_csr_firstentry(starpu_data_handle handle)
+uint32_t starpu_csr_get_firstentry(starpu_data_handle handle)
 {
 	starpu_csr_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, 0);
@@ -148,7 +148,7 @@ uint32_t starpu_get_csr_firstentry(starpu_data_handle handle)
 	return interface->firstentry;
 }
 
-size_t starpu_get_csr_elemsize(starpu_data_handle handle)
+size_t starpu_csr_get_elemsize(starpu_data_handle handle)
 {
 	starpu_csr_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, 0);
@@ -156,12 +156,12 @@ size_t starpu_get_csr_elemsize(starpu_data_handle handle)
 	return interface->elemsize;
 }
 
-uintptr_t starpu_get_csr_local_nzval(starpu_data_handle handle)
+uintptr_t starpu_csr_get_local_nzval(starpu_data_handle handle)
 {
 	unsigned node;
 	node = _starpu_get_local_memory_node();
 
-	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
 	starpu_csr_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, node);
@@ -169,12 +169,12 @@ uintptr_t starpu_get_csr_local_nzval(starpu_data_handle handle)
 	return interface->nzval;
 }
 
-uint32_t *starpu_get_csr_local_colind(starpu_data_handle handle)
+uint32_t *starpu_csr_get_local_colind(starpu_data_handle handle)
 {
 	unsigned node;
 	node = _starpu_get_local_memory_node();
 
-	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
 	starpu_csr_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, node);
@@ -182,12 +182,12 @@ uint32_t *starpu_get_csr_local_colind(starpu_data_handle handle)
 	return interface->colind;
 }
 
-uint32_t *starpu_get_csr_local_rowptr(starpu_data_handle handle)
+uint32_t *starpu_csr_get_local_rowptr(starpu_data_handle handle)
 {
 	unsigned node;
 	node = _starpu_get_local_memory_node();
 
-	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
 	starpu_csr_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, node);
@@ -199,9 +199,9 @@ static size_t csr_interface_get_size(starpu_data_handle handle)
 {
 	size_t size;
 
-	uint32_t nnz = starpu_get_csr_nnz(handle);
-	uint32_t nrow = starpu_get_csr_nrow(handle);
-	size_t elemsize = starpu_get_csr_elemsize(handle);
+	uint32_t nnz = starpu_csr_get_nnz(handle);
+	uint32_t nrow = starpu_csr_get_nrow(handle);
+	size_t elemsize = starpu_csr_get_elemsize(handle);
 
 	size = nnz*elemsize + nnz*sizeof(uint32_t) + (nrow+1)*sizeof(uint32_t);
 

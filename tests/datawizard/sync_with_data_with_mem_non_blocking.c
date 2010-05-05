@@ -88,8 +88,8 @@ int main(int argc, char **argv)
 	unsigned b;
 	for (b = 0; b < NBUFFERS; b++)
 	{
-		starpu_malloc_pinned_if_possible((void **)&buffer[b], VECTORSIZE);
-		starpu_register_vector_data(&v_handle[b], 0,
+		starpu_data_malloc_pinned_if_possible((void **)&buffer[b], VECTORSIZE);
+		starpu_vector_data_register(&v_handle[b], 0,
 				(uintptr_t)buffer[b], VECTORSIZE, sizeof(char));
 	}
 
@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 		for (b = 0; b < NBUFFERS; b++)
 			use_handle(v_handle[b]);
 	
-		starpu_wait_all_tasks();
+		starpu_task_wait_for_all();
 
 		pthread_mutex_lock(&mutex);
 		n_synced_buffers = 0;
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 		/* Grab the different pieces of data into main memory */
 		for (b = 0; b < NBUFFERS; b++)
 		{
-			starpu_sync_data_with_mem_non_blocking(v_handle[b], STARPU_RW,
+			starpu_data_sync_with_mem_non_blocking(v_handle[b], STARPU_RW,
 					callback_sync_data, NULL);
 		}
 
@@ -124,12 +124,12 @@ int main(int argc, char **argv)
 
 		/* Release them */
 		for (b = 0; b < NBUFFERS; b++)
-			starpu_release_data_from_mem(v_handle[b]);
+			starpu_data_release_from_mem(v_handle[b]);
 	}
 
 	/* do some cleanup */
 	for (b = 0; b < NBUFFERS; b++)
-		starpu_delete_data(v_handle[b]);
+		starpu_data_unregister(v_handle[b]);
 
 	starpu_shutdown();
 

@@ -752,7 +752,7 @@ int main(int argc, char **argv)
 		if (check)
 			solve_system(DIM, newsize, result, RefArray, Bformer, A, B);
 
-		starpu_helper_init_cublas();
+		starpu_helper_cublas_init();
 
 		starpu_shutdown();
 	}

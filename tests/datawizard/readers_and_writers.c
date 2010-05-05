@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 	starpu_init(NULL);
 
 	/* initialize the resource */
-	starpu_register_vector_data(&book_handle, 0, (uintptr_t)&book, 1, sizeof(unsigned));
+	starpu_vector_data_register(&book_handle, 0, (uintptr_t)&book, 1, sizeof(unsigned));
 
 	unsigned ntasks = 16*1024;
 
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 		STARPU_ASSERT(!ret);
 	}
 
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	starpu_shutdown();
 

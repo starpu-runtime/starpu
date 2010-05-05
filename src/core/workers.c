@@ -526,27 +526,27 @@ void starpu_shutdown(void)
 	PTHREAD_MUTEX_UNLOCK(&init_mutex);
 }
 
-unsigned starpu_get_worker_count(void)
+unsigned starpu_worker_get_count(void)
 {
 	return config.nworkers;
 }
 
-unsigned starpu_get_cpu_worker_count(void)
+unsigned starpu_cpu_worker_get_count(void)
 {
 	return config.ncpus;
 }
 
-unsigned starpu_get_cuda_worker_count(void)
+unsigned starpu_cuda_worker_get_count(void)
 {
 	return config.ncudagpus;
 }
 
-unsigned starpu_get_opencl_worker_count(void)
+unsigned starpu_opencl_worker_get_count(void)
 {
 	return config.nopenclgpus;
 }
 
-unsigned starpu_get_spu_worker_count(void)
+unsigned starpu_spu_worker_get_count(void)
 {
 	return config.ngordon_spus;
 }
@@ -555,8 +555,8 @@ unsigned starpu_get_spu_worker_count(void)
  * that actually performed the task. This function returns the id of the
  * processing unit actually executing it, therefore it makes no sense to use it
  * within the callbacks of SPU functions for instance. If called by some thread
- * that is not controlled by StarPU, starpu_get_worker_id returns -1. */
-int starpu_get_worker_id(void)
+ * that is not controlled by StarPU, starpu_worker_get_id returns -1. */
+int starpu_worker_get_id(void)
 {
 	struct starpu_worker_s * worker;
 
@@ -572,7 +572,7 @@ int starpu_get_worker_id(void)
 	}
 }
 
-int starpu_get_worker_devid(int id)
+int starpu_worker_get_devid(int id)
 {
 	return config.workers[id].devid;
 }
@@ -582,12 +582,12 @@ struct starpu_worker_s *_starpu_get_worker_struct(unsigned id)
 	return &config.workers[id];
 }
 
-enum starpu_archtype starpu_get_worker_type(int id)
+enum starpu_archtype starpu_worker_get_type(int id)
 {
 	return config.workers[id].arch;
 }
 
-void starpu_get_worker_name(int id, char *dst, size_t maxlen)
+void starpu_worker_get_name(int id, char *dst, size_t maxlen)
 {
 	char *name = config.workers[id].name;
 

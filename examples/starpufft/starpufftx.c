@@ -146,18 +146,18 @@ compute_roots(STARPUFFT(plan) plan)
 		plan->roots[dim] = malloc(plan->n[dim] * sizeof(**plan->roots));
 		for (k = 0; k < plan->n[dim]; k++)
 			plan->roots[dim][k] = cexp(exp*k);
-		starpu_register_vector_data(&plan->roots_handle[dim], 0, (uintptr_t) plan->roots[dim], plan->n[dim], sizeof(**plan->roots));
+		starpu_vector_data_register(&plan->roots_handle[dim], 0, (uintptr_t) plan->roots[dim], plan->n[dim], sizeof(**plan->roots));
 
 #ifdef STARPU_USE_CUDA
 		if (plan->n[dim] > 100000) {
 			/* prefetch the big root array on GPUs */
 			unsigned worker;
-			unsigned nworkers = starpu_get_worker_count();
+			unsigned nworkers = starpu_worker_get_count();
 			for (worker = 0; worker < nworkers; worker++)
 			{
-				unsigned node = starpu_get_worker_memory_node(worker);
-				if (starpu_get_worker_type(worker) == STARPU_CUDA_WORKER)
-					starpu_prefetch_data_on_node(plan->roots_handle[dim], node, 0);
+				unsigned node = starpu_worker_get_memory_node(worker);
+				if (starpu_worker_get_type(worker) == STARPU_CUDA_WORKER)
+					starpu_data_prefetch_on_node(plan->roots_handle[dim], node, 0);
 			}
 		}
 #endif
@@ -180,7 +180,7 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 		case 1: {
 			switch (plan->type) {
 			case C2C:
-				starpu_register_vector_data(&plan->in_handle, 0, (uintptr_t) plan->in, plan->totsize, sizeof(STARPUFFT(complex)));
+				starpu_vector_data_register(&plan->in_handle, 0, (uintptr_t) plan->in, plan->totsize, sizeof(STARPUFFT(complex)));
 				for (z = 0; z < plan->totsize1; z++)
 					plan->twist1_tasks[z]->buffers[0].handle = plan->in_handle;
 				tag = STARPUFFT(start1dC2C)(plan);
@@ -192,7 +192,7 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 			break;
 		}
 		case 2:
-			starpu_register_vector_data(&plan->in_handle, 0, (uintptr_t) plan->in, plan->totsize, sizeof(STARPUFFT(complex)));
+			starpu_vector_data_register(&plan->in_handle, 0, (uintptr_t) plan->in, plan->totsize, sizeof(STARPUFFT(complex)));
 			for (z = 0; z < plan->totsize1; z++)
 				plan->twist1_tasks[z]->buffers[0].handle = plan->in_handle;
 			tag = STARPUFFT(start2dC2C)(plan);
@@ -207,7 +207,7 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 void
 STARPUFFT(cleanup)(STARPUFFT(plan) plan)
 {
-	starpu_delete_data(plan->in_handle);
+	starpu_data_unregister(plan->in_handle);
 }
 
 void
@@ -232,8 +232,8 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 {
 	int workerid, dim, i;
 
-	for (workerid = 0; workerid < starpu_get_worker_count(); workerid++) {
-		switch (starpu_get_worker_type(workerid)) {
+	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++) {
+		switch (starpu_worker_get_type(workerid)) {
 		case STARPU_CPU_WORKER:
 #ifdef STARPU_HAVE_FFTW
 			_FFTW(free)(plan->plans[workerid].in1);
@@ -255,9 +255,9 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 		}
 	}
 	for (i = 0; i < plan->totsize1; i++) {
-		starpu_delete_data(plan->twisted1_handle[i]);
+		starpu_data_unregister(plan->twisted1_handle[i]);
 		free(plan->twist1_tasks[i]);
-		starpu_delete_data(plan->fft1_handle[i]);
+		starpu_data_unregister(plan->fft1_handle[i]);
 		free(plan->fft1_tasks[i]);
 	}
 
@@ -270,9 +270,9 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 	free(plan->join_task);
 
 	for (i = 0; i < plan->totsize3; i++) {
-		starpu_delete_data(plan->twisted2_handle[i]);
+		starpu_data_unregister(plan->twisted2_handle[i]);
 		free(plan->twist2_tasks[i]);
-		starpu_delete_data(plan->fft2_handle[i]);
+		starpu_data_unregister(plan->fft2_handle[i]);
 		free(plan->fft2_tasks[i]);
 		free(plan->twist3_tasks[i]);
 	}
@@ -287,7 +287,7 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 	free(plan->fft2_args);
 
 	for (dim = 0; dim < plan->dim; dim++) {
-		starpu_delete_data(plan->roots_handle[dim]);
+		starpu_data_unregister(plan->roots_handle[dim]);
 		free(plan->roots[dim]);
 	}
 
@@ -321,7 +321,7 @@ STARPUFFT(malloc)(size_t n)
 {
 #ifdef STARPU_USE_CUDA
 	void *res;
-	starpu_malloc_pinned_if_possible(&res, n);
+	starpu_data_malloc_pinned_if_possible(&res, n);
 	return res;
 #else
 #  ifdef STARPU_HAVE_FFTW
@@ -368,7 +368,7 @@ STARPUFFT(showstats)(FILE *out)
 		if (task_per_worker[worker])
 		{
 			char name[32];
-			starpu_get_worker_name(worker, name, 32);
+			starpu_worker_get_name(worker, name, 32);
 
 			unsigned long bytes = sizeof(STARPUFFT(complex))*samples_per_worker[worker];
 

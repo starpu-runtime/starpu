@@ -196,8 +196,8 @@ static inline int starpu_get_env_number(const char *str)
 void starpu_trace_user_event(unsigned code);
 
 /* Some helper functions for application using CUBLAS kernels */
-void starpu_helper_init_cublas(void);
-void starpu_helper_shutdown_cublas(void);
+void starpu_helper_cublas_init(void);
+void starpu_helper_cublas_shutdown(void);
 
 /* Call func(arg) on every worker matching the "where" mask (eg.
  * STARPU_CUDA|STARPU_CPU to execute the function on every CPU and every CUDA
@@ -212,7 +212,7 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 				void (*callback)(void *), void *callback_arg);
 
 #ifdef STARPU_USE_CUDA
-cudaStream_t *starpu_get_local_cuda_stream(void);
+cudaStream_t *starpu_cuda_get_local_stream(void);
 #endif
 
 /* If FILE is currently on a comment line, eat it.  */

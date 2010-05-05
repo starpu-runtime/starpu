@@ -144,7 +144,7 @@ void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid)
 	pthread_rwlock_unlock(&descr.attached_queues_rwlock);
 }
 
-unsigned starpu_get_worker_memory_node(unsigned workerid)
+unsigned starpu_worker_get_memory_node(unsigned workerid)
 {
 	struct starpu_worker_s *worker = _starpu_get_worker_struct(workerid);
 

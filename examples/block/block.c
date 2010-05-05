@@ -43,8 +43,8 @@ void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 	int nz = (int)STARPU_GET_BLOCK_NZ(descr[0]);
         float *multiplier = (float *)STARPU_GET_VARIABLE_PTR(descr[1]);
 
-        id = starpu_get_worker_id();
-        devid = starpu_get_worker_devid(id);
+        id = starpu_worker_get_id();
+        devid = starpu_worker_get_devid(id);
 
         err = starpu_opencl_load_kernel(&kernel, &queue,
                                         "examples/block/block_kernel.cl", "block", devid);
@@ -84,7 +84,7 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
         starpu_data_handle multiplier_handle;
         int i, j, k;
 
-	starpu_register_block_data(&block_handle, 0, (uintptr_t)block, pnx, pnx*pny, pnx, pny, pnz, sizeof(float));
+	starpu_block_data_register(&block_handle, 0, (uintptr_t)block, pnx, pnx*pny, pnx, pny, pnz, sizeof(float));
 	starpu_register_variable_data(&multiplier_handle, 0, (uintptr_t)&multiplier, sizeof(float));
 
 	cl.where = where;
@@ -108,17 +108,17 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
                 return 1;
 	}
 
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	/* update the array in RAM */
-        starpu_sync_data_with_mem(block_handle, STARPU_R);
+        starpu_data_sync_with_mem(block_handle, STARPU_R);
 
         for(i=0 ; i<pnx*pny*pnz; i++) {
           fprintf(stderr, "%f ", block[i]);
         }
         fprintf(stderr, "\n");
 
-        starpu_release_data_from_mem(block_handle);
+        starpu_data_release_from_mem(block_handle);
 
         return 0;
 }

@@ -25,7 +25,7 @@ static void map_filter(starpu_data_handle root_handle, starpu_filter *f)
 	if (root_handle->nchildren == 0)
 	{
 		/* this is a leaf */
-		starpu_partition_data(root_handle, f);
+		starpu_data_partition(root_handle, f);
 	}
 	else {
 		/* try to apply the starpu_filter recursively */
@@ -55,7 +55,7 @@ void starpu_map_filters(starpu_data_handle root_handle, unsigned nfilters, ...)
 }
 
 /*
- * example starpu_get_sub_data(starpu_data_handle root_handle, 3, 42, 0, 1);
+ * example starpu_data_get_sub_data(starpu_data_handle root_handle, 3, 42, 0, 1);
  */
 starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i)
 {
@@ -64,7 +64,7 @@ starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i)
 	return &handle->children[i];
 }
 
-starpu_data_handle starpu_get_sub_data(starpu_data_handle root_handle, unsigned depth, ... )
+starpu_data_handle starpu_data_get_sub_data(starpu_data_handle root_handle, unsigned depth, ... )
 {
 	STARPU_ASSERT(root_handle);
 	starpu_data_handle current_handle = root_handle;
@@ -91,7 +91,7 @@ starpu_data_handle starpu_get_sub_data(starpu_data_handle root_handle, unsigned 
  * For now, we assume that partitionned_data is already properly allocated;
  * at least by the starpu_filter function !
  */
-void starpu_partition_data(starpu_data_handle initial_handle, starpu_filter *f)
+void starpu_data_partition(starpu_data_handle initial_handle, starpu_filter *f)
 {
 	int nparts;
 	int i;
@@ -148,21 +148,21 @@ void starpu_partition_data(starpu_data_handle initial_handle, starpu_filter *f)
 	_starpu_spin_unlock(&initial_handle->header_lock);
 }
 
-void starpu_unpartition_data(starpu_data_handle root_handle, uint32_t gathering_node)
+void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_node)
 {
 	unsigned child;
 	unsigned node;
 
 	_starpu_spin_lock(&root_handle->header_lock);
 
-#warning starpu_unpartition_data is not supported with NO_DATA_RW_LOCK yet ...
+#warning starpu_data_unpartition is not supported with NO_DATA_RW_LOCK yet ...
 
 	/* first take all the children lock (in order !) */
 	for (child = 0; child < root_handle->nchildren; child++)
 	{
 		/* make sure the intermediate children is unpartitionned as well */
 		if (root_handle->children[child].nchildren > 0)
-			starpu_unpartition_data(&root_handle->children[child], gathering_node);
+			starpu_data_unpartition(&root_handle->children[child], gathering_node);
 
 		int ret;
 		ret = _starpu_fetch_data_on_node(&root_handle->children[child], gathering_node, 1, 0, 0);

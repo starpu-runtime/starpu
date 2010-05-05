@@ -25,8 +25,8 @@ void opencl_codelet(void *descr[], void *_args)
 	cl_command_queue queue;
 	int id, devid, err;
 
-        id = starpu_get_worker_id();
-        devid = starpu_get_worker_devid(id);
+        id = starpu_worker_get_id();
+        devid = starpu_worker_get_devid(id);
 
 	err = starpu_opencl_load_kernel(&kernel, &queue,
                                         "examples/incrementer/incrementer_kernels_opencl_codelet.cl", "incrementer", devid);

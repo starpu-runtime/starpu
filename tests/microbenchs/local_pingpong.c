@@ -43,31 +43,31 @@ int main(int argc, char **argv)
 	starpu_init(NULL);
 
 	/* Create a piece of data */
-	starpu_malloc_pinned_if_possible((void **)&v, vector_size);
-	starpu_register_vector_data(&v_handle, 0, (uintptr_t)v, vector_size, 1);
+	starpu_data_malloc_pinned_if_possible((void **)&v, vector_size);
+	starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, vector_size, 1);
 
 	/* Find a pair of memory nodes */
-	if (starpu_get_cuda_worker_count() > 1)
+	if (starpu_cuda_worker_get_count() > 1)
 	{
 		/* Take the two devices that come first */
-		int nworkers = (int)starpu_get_worker_count();
+		int nworkers = (int)starpu_worker_get_count();
 
 		unsigned found_node_0 = 0;
 
 		int w;
 		for (w = 0; w < nworkers; w++)
 		{
-			if (starpu_get_worker_type(w) == STARPU_CUDA_WORKER)
+			if (starpu_worker_get_type(w) == STARPU_CUDA_WORKER)
 			{
 				if (!found_node_0)
 				{
-					memory_node_0 = starpu_get_worker_memory_node(w);
-					starpu_get_worker_name(w, worker_0_name, 128);
+					memory_node_0 = starpu_worker_get_memory_node(w);
+					starpu_worker_get_name(w, worker_0_name, 128);
 					found_node_0 = 1;
 				}
 				else {
-					memory_node_1 = starpu_get_worker_memory_node(w);
-					starpu_get_worker_name(w, worker_1_name, 128);
+					memory_node_1 = starpu_worker_get_memory_node(w);
+					starpu_worker_get_name(w, worker_1_name, 128);
 					break;
 				}
 			}

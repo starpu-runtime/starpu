@@ -59,7 +59,7 @@ static struct starpu_task *create_task_11(starpu_data_handle dataA, unsigned k, 
 	task->cl = &cl11;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_get_sub_data(dataA, 2, k, k);
+	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k);
 	task->buffers[0].mode = STARPU_RW;
 
 	/* this is an important task */
@@ -92,9 +92,9 @@ static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned i, uns
 	task->cl = &cl12;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_get_sub_data(dataA, 2, k, k); 
+	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k); 
 	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_get_sub_data(dataA, 2, i, k); 
+	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, i, k); 
 	task->buffers[1].mode = STARPU_RW;
 
 	if (i == k+1) {
@@ -129,9 +129,9 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned j, uns
 	task->cl = &cl21;
 	
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_get_sub_data(dataA, 2, k, k); 
+	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, k, k); 
 	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_get_sub_data(dataA, 2, k, j); 
+	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, j); 
 	task->buffers[1].mode = STARPU_RW;
 
 	if (j == k+1) {
@@ -168,11 +168,11 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
 	task->cl = &cl22;
 
 	/* which sub-data is manipulated ? */
-	task->buffers[0].handle = starpu_get_sub_data(dataA, 2, i, k); 
+	task->buffers[0].handle = starpu_data_get_sub_data(dataA, 2, i, k); 
 	task->buffers[0].mode = STARPU_R;
-	task->buffers[1].handle = starpu_get_sub_data(dataA, 2, k, j); 
+	task->buffers[1].handle = starpu_data_get_sub_data(dataA, 2, k, j); 
 	task->buffers[1].mode = STARPU_R;
-	task->buffers[2].handle = starpu_get_sub_data(dataA, 2, i, j); 
+	task->buffers[2].handle = starpu_data_get_sub_data(dataA, 2, i, j); 
 	task->buffers[2].mode = STARPU_RW;
 
 	if ( (i == k + 1) && (j == k +1) ) {
@@ -197,7 +197,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 	 * (re)partition data
 	 */
 	starpu_data_handle dataA;
-	starpu_register_matrix_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
+	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	STARPU_ASSERT((size % blocksize) == 0);
 	STARPU_ASSERT((inner_size % blocksize) == 0);
@@ -265,7 +265,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 	{
 		/* we wait for the last task and we are done */
 		starpu_tag_wait(TAG11(nblocks-1, tag_prefix));
-		starpu_unpartition_data(dataA, 0);		
+		starpu_data_unpartition(dataA, 0);		
 		return;
 	}
 	else {
@@ -288,8 +288,8 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 
 		free(tag_array);
 
-		starpu_unpartition_data(dataA, 0);
-		starpu_delete_data(dataA);
+		starpu_data_unpartition(dataA, 0);
+		starpu_data_unregister(dataA);
 
 		float *newmatA = &matA[inner_size*(ld+1)];
 

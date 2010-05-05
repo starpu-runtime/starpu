@@ -32,10 +32,10 @@ static int handle_to_datatype_matrix(starpu_data_handle data_handle, MPI_Datatyp
 {
 	int ret;
 
-	unsigned nx = starpu_get_matrix_nx(data_handle);
-	unsigned ny = starpu_get_matrix_ny(data_handle);
-	unsigned ld = starpu_get_matrix_local_ld(data_handle);
-	size_t elemsize = starpu_get_matrix_elemsize(data_handle);
+	unsigned nx = starpu_matrix_get_nx(data_handle);
+	unsigned ny = starpu_matrix_get_ny(data_handle);
+	unsigned ld = starpu_matrix_get_local_ld(data_handle);
+	size_t elemsize = starpu_matrix_get_elemsize(data_handle);
 
 	ret = MPI_Type_vector(ny, nx*elemsize, ld*elemsize, MPI_BYTE, datatype);
 	STARPU_ASSERT(ret == MPI_SUCCESS);
@@ -48,7 +48,7 @@ static int handle_to_datatype_matrix(starpu_data_handle data_handle, MPI_Datatyp
 
 static void *handle_to_ptr_matrix(starpu_data_handle data_handle)
 {
-	return (void *)starpu_get_matrix_local_ptr(data_handle);
+	return (void *)starpu_matrix_get_local_ptr(data_handle);
 }
 
 /*
@@ -59,12 +59,12 @@ static int handle_to_datatype_block(starpu_data_handle data_handle, MPI_Datatype
 {
 	int ret;
 
-	unsigned nx = starpu_get_block_nx(data_handle);
-	unsigned ny = starpu_get_block_ny(data_handle);
-	unsigned nz = starpu_get_block_nz(data_handle);
-	unsigned ldy = starpu_get_block_local_ldy(data_handle);
-	unsigned ldz = starpu_get_block_local_ldz(data_handle);
-	size_t elemsize = starpu_get_block_elemsize(data_handle);
+	unsigned nx = starpu_block_get_nx(data_handle);
+	unsigned ny = starpu_block_get_ny(data_handle);
+	unsigned nz = starpu_block_get_nz(data_handle);
+	unsigned ldy = starpu_block_get_local_ldy(data_handle);
+	unsigned ldz = starpu_block_get_local_ldz(data_handle);
+	size_t elemsize = starpu_block_get_elemsize(data_handle);
 
 	MPI_Datatype datatype_2dlayer;
 	ret = MPI_Type_vector(ny, nx*elemsize, ldy*elemsize, MPI_BYTE, &datatype_2dlayer);
@@ -84,7 +84,7 @@ static int handle_to_datatype_block(starpu_data_handle data_handle, MPI_Datatype
 
 static void *handle_to_ptr_block(starpu_data_handle data_handle)
 {
-	return (void *)starpu_get_block_local_ptr(data_handle);
+	return (void *)starpu_block_get_local_ptr(data_handle);
 }
 
 /*
@@ -95,8 +95,8 @@ static int handle_to_datatype_vector(starpu_data_handle data_handle, MPI_Datatyp
 {
 	int ret;
 
-	unsigned nx = starpu_get_vector_nx(data_handle);
-	size_t elemsize = starpu_get_vector_elemsize(data_handle);
+	unsigned nx = starpu_vector_get_nx(data_handle);
+	size_t elemsize = starpu_vector_get_elemsize(data_handle);
 
 	ret = MPI_Type_contiguous(nx*elemsize, MPI_BYTE, datatype);
 	STARPU_ASSERT(ret == MPI_SUCCESS);
@@ -109,7 +109,7 @@ static int handle_to_datatype_vector(starpu_data_handle data_handle, MPI_Datatyp
 
 static void *handle_to_ptr_vector(starpu_data_handle data_handle)
 {
-	return (void *)starpu_get_vector_local_ptr(data_handle);
+	return (void *)starpu_vector_get_local_ptr(data_handle);
 }
 
 /*

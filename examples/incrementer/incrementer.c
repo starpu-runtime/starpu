@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 	float float_array[4] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f, 0.0f};
 
 	starpu_data_handle float_array_handle;
-	starpu_register_vector_data(&float_array_handle, 0 /* home node */,
+	starpu_vector_data_register(&float_array_handle, 0 /* home node */,
 			(uintptr_t)&float_array, 4, sizeof(float));
 
 #ifdef STARPU_USE_OPENCL
@@ -92,10 +92,10 @@ int main(int argc, char **argv)
 		}
 	}
 
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	/* update the array in RAM */
-	starpu_sync_data_with_mem(float_array_handle, STARPU_R);
+	starpu_data_sync_with_mem(float_array_handle, STARPU_R);
 
 	gettimeofday(&end, NULL);
 
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	starpu_release_data_from_mem(float_array_handle);
+	starpu_data_release_from_mem(float_array_handle);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 +
 					(end.tv_usec - start.tv_usec));

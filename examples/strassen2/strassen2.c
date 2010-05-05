@@ -190,7 +190,7 @@ static starpu_data_handle allocate_tmp_matrix(unsigned size, unsigned reclevel)
 
 	buffer = allocate_tmp_matrix_wrapper(size*size*sizeof(float));
 
-	starpu_register_matrix_data(data, 0, (uintptr_t)buffer, size, size, size, sizeof(float));
+	starpu_matrix_data_register(data, 0, (uintptr_t)buffer, size, size, size, sizeof(float));
 
 	/* we construct a starpu_filter tree of depth reclevel */
 	unsigned rec;
@@ -337,7 +337,7 @@ void cleanup_callback(void *_arg)
 
 	unsigned i;
 	for (i = 0; i < arg->ndata; i++)
-		starpu_advise_if_data_is_important(arg->data[i], 0);
+		starpu_data_advise_as_important(arg->data[i], 0);
 
 	free(arg);
 }
@@ -402,22 +402,22 @@ void strassen_mult(struct strassen_iter *iter)
 		return;
 	}
 
-        starpu_data_handle A11 = starpu_get_sub_data(iter->A, 2, 0, 0);
-        starpu_data_handle A12 = starpu_get_sub_data(iter->A, 2, 1, 0);
-        starpu_data_handle A21 = starpu_get_sub_data(iter->A, 2, 0, 1);
-        starpu_data_handle A22 = starpu_get_sub_data(iter->A, 2, 1, 1);
+        starpu_data_handle A11 = starpu_data_get_sub_data(iter->A, 2, 0, 0);
+        starpu_data_handle A12 = starpu_data_get_sub_data(iter->A, 2, 1, 0);
+        starpu_data_handle A21 = starpu_data_get_sub_data(iter->A, 2, 0, 1);
+        starpu_data_handle A22 = starpu_data_get_sub_data(iter->A, 2, 1, 1);
 
-        starpu_data_handle B11 = starpu_get_sub_data(iter->B, 2, 0, 0);
-        starpu_data_handle B12 = starpu_get_sub_data(iter->B, 2, 1, 0);
-        starpu_data_handle B21 = starpu_get_sub_data(iter->B, 2, 0, 1);
-        starpu_data_handle B22 = starpu_get_sub_data(iter->B, 2, 1, 1);
+        starpu_data_handle B11 = starpu_data_get_sub_data(iter->B, 2, 0, 0);
+        starpu_data_handle B12 = starpu_data_get_sub_data(iter->B, 2, 1, 0);
+        starpu_data_handle B21 = starpu_data_get_sub_data(iter->B, 2, 0, 1);
+        starpu_data_handle B22 = starpu_data_get_sub_data(iter->B, 2, 1, 1);
 
-        starpu_data_handle C11 = starpu_get_sub_data(iter->C, 2, 0, 0);
-        starpu_data_handle C12 = starpu_get_sub_data(iter->C, 2, 1, 0);
-        starpu_data_handle C21 = starpu_get_sub_data(iter->C, 2, 0, 1);
-        starpu_data_handle C22 = starpu_get_sub_data(iter->C, 2, 1, 1);
+        starpu_data_handle C11 = starpu_data_get_sub_data(iter->C, 2, 0, 0);
+        starpu_data_handle C12 = starpu_data_get_sub_data(iter->C, 2, 1, 0);
+        starpu_data_handle C21 = starpu_data_get_sub_data(iter->C, 2, 0, 1);
+        starpu_data_handle C22 = starpu_data_get_sub_data(iter->C, 2, 1, 1);
 
-	unsigned size = starpu_get_matrix_nx(A11);
+	unsigned size = starpu_matrix_get_nx(A11);
 
 	/* M1a = (A11 + A22) */
 	iter->Mia_data[0] = allocate_tmp_matrix(size, iter->reclevel);
@@ -785,11 +785,11 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
-	starpu_helper_init_cublas();
+	starpu_helper_cublas_init();
 
 #ifdef STARPU_USE_CUDA
         if (pin) {
-                starpu_malloc_pinned_if_possible((void **)&bigbuffer, used_mem_predicted);
+                starpu_data_malloc_pinned_if_possible((void **)&bigbuffer, used_mem_predicted);
         } else
 #endif
         {
@@ -804,9 +804,9 @@ int main(int argc, char **argv)
 	B = allocate_tmp_matrix_wrapper(size*size*sizeof(float));
 	C = allocate_tmp_matrix_wrapper(size*size*sizeof(float));
 
-	starpu_register_matrix_data(&data_A, 0, (uintptr_t)A, size, size, size, sizeof(float));
-	starpu_register_matrix_data(&data_B, 0, (uintptr_t)B, size, size, size, sizeof(float));
-	starpu_register_matrix_data(&data_C, 0, (uintptr_t)C, size, size, size, sizeof(float));
+	starpu_matrix_data_register(&data_A, 0, (uintptr_t)A, size, size, size, sizeof(float));
+	starpu_matrix_data_register(&data_B, 0, (uintptr_t)B, size, size, size, sizeof(float));
+	starpu_matrix_data_register(&data_C, 0, (uintptr_t)C, size, size, size, sizeof(float));
 
 	unsigned rec;
 	for (rec = 0; rec < reclevel; rec++)
@@ -844,7 +844,7 @@ int main(int argc, char **argv)
 
 	gettimeofday(&end, NULL);
 
-	starpu_helper_shutdown_cublas();
+	starpu_helper_cublas_shutdown();
 
 	starpu_shutdown();
 

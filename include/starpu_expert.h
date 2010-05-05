@@ -26,8 +26,8 @@ extern "C" {
 
 void starpu_wake_all_blocked_workers(void);
 
-int starpu_register_progression_hook(unsigned (*func)(void *arg), void *arg);
-void starpu_deregister_progression_hook(int hook_id);
+int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg);
+void starpu_progression_hook_deregister(int hook_id);
 
 #ifdef __cplusplus
 }

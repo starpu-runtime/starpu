@@ -286,7 +286,7 @@ static double dw_codelet_facto_pivot(starpu_data_handle *dataAp,
 
 	/* stall the application until the end of computations */
 	starpu_tag_wait_array(ndeps, tags);
-//	starpu_wait_all_tasks();
+//	starpu_task_wait_for_all();
 
 	gettimeofday(&end, NULL);
 
@@ -298,7 +298,7 @@ starpu_data_handle get_block_with_striding(starpu_data_handle *dataAp,
 			unsigned nblocks __attribute__((unused)), unsigned j, unsigned i)
 {
 	/* we use filters */
-	return starpu_get_sub_data(*dataAp, 2, j, i);
+	return starpu_data_get_sub_data(*dataAp, 2, j, i);
 }
 
 
@@ -308,7 +308,7 @@ void STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	starpu_register_matrix_data(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(TYPE));
+	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(TYPE));
 
 	/* We already enforce deps by hand */
 	starpu_data_set_sequential_consistency_flag(dataA, 0);
@@ -351,12 +351,12 @@ void STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size
 	fprintf(stderr, "Computation took (in ms)\n");
 	fprintf(stderr, "%2.2f\n", timing/1000);
 
-	unsigned n = starpu_get_matrix_nx(dataA);
+	unsigned n = starpu_matrix_get_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 
 	/* gather all the data */
-	starpu_unpartition_data(dataA, 0);
+	starpu_data_unpartition(dataA, 0);
 }
 
 
@@ -376,7 +376,7 @@ void STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, un
 	for (bj = 0; bj < nblocks; bj++)
 	for (bi = 0; bi < nblocks; bi++)
 	{
-		starpu_register_matrix_data(&dataAp[bi+nblocks*bj], 0,
+		starpu_matrix_data_register(&dataAp[bi+nblocks*bj], 0,
 			(uintptr_t)matA[bi+nblocks*bj], size/nblocks,
 			size/nblocks, size/nblocks, sizeof(TYPE));
 
@@ -403,13 +403,13 @@ void STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, un
 	fprintf(stderr, "Computation took (in ms)\n");
 	fprintf(stderr, "%2.2f\n", timing/1000);
 
-	unsigned n = starpu_get_matrix_nx(dataAp[0])*nblocks;
+	unsigned n = starpu_matrix_get_nx(dataAp[0])*nblocks;
 	double flop = (2.0f*n*n*n)/3.0f;
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 
 	for (bj = 0; bj < nblocks; bj++)
 	for (bi = 0; bi < nblocks; bi++)
 	{
-		starpu_delete_data(dataAp[bi+nblocks*bj]);
+		starpu_data_unregister(dataAp[bi+nblocks*bj]);
 	}
 }

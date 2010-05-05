@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
-		starpu_malloc_pinned_if_possible((void **)&block,
+		starpu_data_malloc_pinned_if_possible((void **)&block,
 				BIGSIZE*BIGSIZE*BIGSIZE*sizeof(float));
 		memset(block, 0, BIGSIZE*BIGSIZE*BIGSIZE*sizeof(float));
 
@@ -73,17 +73,17 @@ int main(int argc, char **argv)
 			block[i + j*BIGSIZE + k*BIGSIZE*BIGSIZE] = 1.0f;
 		}
 
-		starpu_register_block_data(&block_handle, 0,
+		starpu_block_data_register(&block_handle, 0,
 			(uintptr_t)block, BIGSIZE, BIGSIZE*BIGSIZE,
 			SIZE, SIZE, SIZE, sizeof(float));
 	}
 	else /* rank == 1 */
 	{
-		starpu_malloc_pinned_if_possible((void **)&block,
+		starpu_data_malloc_pinned_if_possible((void **)&block,
 			SIZE*SIZE*SIZE*sizeof(float));
 		memset(block, 0, SIZE*SIZE*SIZE*sizeof(float));
 
-		starpu_register_block_data(&block_handle, 0,
+		starpu_block_data_register(&block_handle, 0,
 			(uintptr_t)block, SIZE, SIZE*SIZE,
 			SIZE, SIZE, SIZE, sizeof(float));
 	}
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 		starpu_mpi_recv(block_handle, 1, 0x1337, MPI_COMM_WORLD, &status);
 
 		/* check the content of the block */
-		starpu_sync_data_with_mem(block_handle, STARPU_R);
+		starpu_data_sync_with_mem(block_handle, STARPU_R);
 		unsigned i, j, k;
 		for (k = 0; k < SIZE; k++)
 		for (j = 0; j < SIZE; j++)
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 		{
 			assert(block[i + j*BIGSIZE + k*BIGSIZE*BIGSIZE] == 33.0f);
 		}
-		starpu_release_data_from_mem(block_handle);
+		starpu_data_release_from_mem(block_handle);
 		
 	}
 	else /* rank == 1 */
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 		starpu_mpi_recv(block_handle, 0, 0x42, MPI_COMM_WORLD, &status);
 
 		/* check the content of the block and modify it */
-		starpu_sync_data_with_mem(block_handle, STARPU_RW);
+		starpu_data_sync_with_mem(block_handle, STARPU_RW);
 		unsigned i, j, k;
 		for (k = 0; k < SIZE; k++)
 		for (j = 0; j < SIZE; j++)
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 			assert(block[i + j*SIZE + k*SIZE*SIZE] == 1.0f);
 			block[i + j*SIZE + k*SIZE*SIZE] = 33.0f;
 		}
-		starpu_release_data_from_mem(block_handle);
+		starpu_data_release_from_mem(block_handle);
 
 		starpu_mpi_send(block_handle, 0, 0x1337, MPI_COMM_WORLD);
 	}

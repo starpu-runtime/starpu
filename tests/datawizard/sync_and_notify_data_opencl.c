@@ -25,8 +25,8 @@ void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
 	cl_command_queue queue;
 	int id, devid, err;
 
-	id = starpu_get_worker_id();
-	devid = starpu_get_worker_devid(id);
+	id = starpu_worker_get_id();
+	devid = starpu_worker_get_devid(id);
 
 	err = starpu_opencl_load_kernel(&kernel, &queue, "tests/datawizard/sync_and_notify_data_opencl_codelet.cl", "incA", devid);
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
@@ -54,8 +54,8 @@ void opencl_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
 	cl_command_queue queue;
 	int id, devid, err;
 
-	id = starpu_get_worker_id();
-	devid = starpu_get_worker_devid(id);
+	id = starpu_worker_get_id();
+	devid = starpu_worker_get_devid(id);
 
 	err = starpu_opencl_load_kernel(&kernel, &queue, "tests/datawizard/sync_and_notify_data_opencl_codelet.cl", "incC", devid);
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);

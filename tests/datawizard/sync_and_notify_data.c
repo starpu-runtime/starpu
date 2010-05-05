@@ -89,7 +89,7 @@ int main(int argc, char **argv)
         _starpu_opencl_compile_source_to_opencl("tests/datawizard/sync_and_notify_data_opencl_codelet.cl");
 #endif
 
-        starpu_register_vector_data(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
+        starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 
 	unsigned iter;
 	for (iter = 0; iter < K; iter++)
@@ -128,12 +128,12 @@ int main(int argc, char **argv)
 		}
 
 		/* synchronize v in RAM */
-		starpu_sync_data_with_mem(v_handle, STARPU_RW);
+		starpu_data_sync_with_mem(v_handle, STARPU_RW);
 
 		/* increment b */
 		v[1]++;
 
-		starpu_release_data_from_mem(v_handle);
+		starpu_data_release_from_mem(v_handle);
 
 		for (ind = 0; ind < N; ind++)
 		{
@@ -168,11 +168,11 @@ int main(int argc, char **argv)
 
 	}
 
-	starpu_sync_data_with_mem(v_handle, STARPU_RW);
+	starpu_data_sync_with_mem(v_handle, STARPU_RW);
 
 	fprintf(stderr, "V = { %d, %d, %d }\n", v[0], v[1], v[2]);
 
-	starpu_release_data_from_mem(v_handle);
+	starpu_data_release_from_mem(v_handle);
 
 	starpu_shutdown();
 

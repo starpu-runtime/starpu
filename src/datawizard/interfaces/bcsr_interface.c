@@ -106,7 +106,7 @@ static void register_bcsr_handle(starpu_data_handle handle, uint32_t home_node, 
 	}
 }
 
-void starpu_register_bcsr_data(starpu_data_handle *handleptr, uint32_t home_node,
+void starpu_bcsr_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind,
 		uint32_t *rowptr, uint32_t firstentry,
 		uint32_t r, uint32_t c, size_t elemsize)
@@ -130,15 +130,15 @@ static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle handle)
 {
 	uint32_t hash;
 
-	hash = _starpu_crc32_be(starpu_get_bcsr_nnz(handle), 0);
-	hash = _starpu_crc32_be(starpu_get_bcsr_c(handle), hash);
-	hash = _starpu_crc32_be(starpu_get_bcsr_r(handle), hash);
+	hash = _starpu_crc32_be(starpu_bcsr_get_nnz(handle), 0);
+	hash = _starpu_crc32_be(starpu_bcsr_get_c(handle), hash);
+	hash = _starpu_crc32_be(starpu_bcsr_get_r(handle), hash);
 
 	return hash;
 }
 
 /* offer an access to the data parameters */
-uint32_t starpu_get_bcsr_nnz(starpu_data_handle handle)
+uint32_t starpu_bcsr_get_nnz(starpu_data_handle handle)
 {
 	starpu_bcsr_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, 0);
@@ -146,7 +146,7 @@ uint32_t starpu_get_bcsr_nnz(starpu_data_handle handle)
 	return interface->nnz;
 }
 
-uint32_t starpu_get_bcsr_nrow(starpu_data_handle handle)
+uint32_t starpu_bcsr_get_nrow(starpu_data_handle handle)
 {
 	starpu_bcsr_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, 0);
@@ -154,7 +154,7 @@ uint32_t starpu_get_bcsr_nrow(starpu_data_handle handle)
 	return interface->nrow;
 }
 
-uint32_t starpu_get_bcsr_firstentry(starpu_data_handle handle)
+uint32_t starpu_bcsr_get_firstentry(starpu_data_handle handle)
 {
 	starpu_bcsr_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, 0);
@@ -162,7 +162,7 @@ uint32_t starpu_get_bcsr_firstentry(starpu_data_handle handle)
 	return interface->firstentry;
 }
 
-uint32_t starpu_get_bcsr_r(starpu_data_handle handle)
+uint32_t starpu_bcsr_get_r(starpu_data_handle handle)
 {
 	starpu_bcsr_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, 0);
@@ -170,7 +170,7 @@ uint32_t starpu_get_bcsr_r(starpu_data_handle handle)
 	return interface->r;
 }
 
-uint32_t starpu_get_bcsr_c(starpu_data_handle handle)
+uint32_t starpu_bcsr_get_c(starpu_data_handle handle)
 {
 	starpu_bcsr_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, 0);
@@ -178,7 +178,7 @@ uint32_t starpu_get_bcsr_c(starpu_data_handle handle)
 	return interface->c;
 }
 
-size_t starpu_get_bcsr_elemsize(starpu_data_handle handle)
+size_t starpu_bcsr_get_elemsize(starpu_data_handle handle)
 {
 	starpu_bcsr_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, 0);
@@ -186,12 +186,12 @@ size_t starpu_get_bcsr_elemsize(starpu_data_handle handle)
 	return interface->elemsize;
 }
 
-uintptr_t starpu_get_bcsr_local_nzval(starpu_data_handle handle)
+uintptr_t starpu_bcsr_get_local_nzval(starpu_data_handle handle)
 {
 	unsigned node;
 	node = _starpu_get_local_memory_node();
 
-	STARPU_ASSERT(starpu_test_if_data_is_allocated_on_node(handle, node));
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
 	starpu_bcsr_interface_t *interface =
 		starpu_data_get_interface_on_node(handle, node);
@@ -199,7 +199,7 @@ uintptr_t starpu_get_bcsr_local_nzval(starpu_data_handle handle)
 	return interface->nzval;
 }
 
-uint32_t *starpu_get_bcsr_local_colind(starpu_data_handle handle)
+uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle handle)
 {
 	/* XXX 0 */
 	starpu_bcsr_interface_t *interface =
@@ -208,7 +208,7 @@ uint32_t *starpu_get_bcsr_local_colind(starpu_data_handle handle)
 	return interface->colind;
 }
 
-uint32_t *starpu_get_bcsr_local_rowptr(starpu_data_handle handle)
+uint32_t *starpu_bcsr_get_local_rowptr(starpu_data_handle handle)
 {
 	/* XXX 0 */
 	starpu_bcsr_interface_t *interface =
@@ -222,11 +222,11 @@ static size_t bcsr_interface_get_size(starpu_data_handle handle)
 {
 	size_t size;
 
-	uint32_t nnz = starpu_get_bcsr_nnz(handle);
-	uint32_t nrow = starpu_get_bcsr_nrow(handle);
-	uint32_t r = starpu_get_bcsr_r(handle);
-	uint32_t c = starpu_get_bcsr_c(handle);
-	size_t elemsize = starpu_get_bcsr_elemsize(handle);
+	uint32_t nnz = starpu_bcsr_get_nnz(handle);
+	uint32_t nrow = starpu_bcsr_get_nrow(handle);
+	uint32_t r = starpu_bcsr_get_r(handle);
+	uint32_t c = starpu_bcsr_get_c(handle);
+	size_t elemsize = starpu_bcsr_get_elemsize(handle);
 
 	size = nnz*r*c*elemsize + nnz*sizeof(uint32_t) + (nrow+1)*sizeof(uint32_t); 
 

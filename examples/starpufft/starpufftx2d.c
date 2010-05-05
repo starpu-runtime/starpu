@@ -39,7 +39,7 @@ STARPUFFT(twist1_2d_kernel_gpu)(void *descr[], void *_args)
 	_cufftComplex * restrict in = (_cufftComplex *)STARPU_GET_VECTOR_PTR(descr[0]);
 	_cufftComplex * restrict twisted1 = (_cufftComplex *)STARPU_GET_VECTOR_PTR(descr[1]);
 
-	cudaStream_t stream = STARPUFFT(get_local_stream)(plan, starpu_get_worker_id());
+	cudaStream_t stream = STARPUFFT(get_local_stream)(plan, starpu_worker_get_id());
 
 	STARPUFFT(cuda_twist1_2d_host)(in, twisted1, i, j, n1, n2, m1, m2, stream);
 	cudaStreamSynchronize(stream);
@@ -62,7 +62,7 @@ STARPUFFT(fft1_2d_kernel_gpu)(void *descr[], void *_args)
 	const _cufftComplex * restrict roots0 = (_cufftComplex *)STARPU_GET_VECTOR_PTR(descr[2]);
 	const _cufftComplex * restrict roots1 = (_cufftComplex *)STARPU_GET_VECTOR_PTR(descr[3]);
 
-	int workerid = starpu_get_worker_id();
+	int workerid = starpu_worker_get_id();
 
 	cudaStream_t stream;
 
@@ -104,7 +104,7 @@ STARPUFFT(fft2_2d_kernel_gpu)(void *descr[], void *_args)
 	_cufftComplex * restrict in = (_cufftComplex *)STARPU_GET_VECTOR_PTR(descr[0]);
 	_cufftComplex * restrict out = (_cufftComplex *)STARPU_GET_VECTOR_PTR(descr[1]);
 
-	int workerid = starpu_get_worker_id();
+	int workerid = starpu_worker_get_id();
 
 	if (!plan->plans[workerid].initialized2) {
 		cures = cufftPlan2d(&plan->plans[workerid].plan2_cuda, n1, m1, _CUFFT_C2C);
@@ -162,7 +162,7 @@ STARPUFFT(fft1_2d_kernel_cpu)(void *descr[], void *_args)
 	int k, l;
 	int n2 = plan->n2[0];
 	int m2 = plan->n2[1];
-	int workerid = starpu_get_worker_id();
+	int workerid = starpu_worker_get_id();
 
 	const STARPUFFT(complex) *twisted1 = (STARPUFFT(complex) *)STARPU_GET_VECTOR_PTR(descr[0]);
 	STARPUFFT(complex) *fft1 = (STARPUFFT(complex) *)STARPU_GET_VECTOR_PTR(descr[1]);
@@ -221,7 +221,7 @@ STARPUFFT(fft2_2d_kernel_cpu)(void *descr[], void *_args)
 	STARPUFFT(plan) plan = args->plan;
 	//int kk = args->kk;
 	//int ll = args->ll;
-	int workerid = starpu_get_worker_id();
+	int workerid = starpu_worker_get_id();
 
 	const STARPUFFT(complex) *twisted2 = (STARPUFFT(complex) *)STARPU_GET_VECTOR_PTR(descr[0]);
 	STARPUFFT(complex) *fft2 = (STARPUFFT(complex) *)STARPU_GET_VECTOR_PTR(descr[1]);
@@ -448,8 +448,8 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 	compute_roots(plan);
 
 	/* Initialize per-worker working set */
-	for (workerid = 0; workerid < starpu_get_worker_count(); workerid++) {
-		switch (starpu_get_worker_type(workerid)) {
+	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++) {
+		switch (starpu_worker_get_type(workerid)) {
 		case STARPU_CPU_WORKER:
 #ifdef STARPU_HAVE_FFTW
 			/* first fft plan: one n2*m2 fft */
@@ -520,8 +520,8 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 		plan->fft1_args[z].j = j;
 
 		/* Register (n2,m2) chunks */
-		starpu_register_vector_data(&plan->twisted1_handle[z], 0, (uintptr_t) &plan->twisted1[z*plan->totsize2], plan->totsize2, sizeof(*plan->twisted1));
-		starpu_register_vector_data(&plan->fft1_handle[z], 0, (uintptr_t) &plan->fft1[z*plan->totsize2], plan->totsize2, sizeof(*plan->fft1));
+		starpu_vector_data_register(&plan->twisted1_handle[z], 0, (uintptr_t) &plan->twisted1[z*plan->totsize2], plan->totsize2, sizeof(*plan->twisted1));
+		starpu_vector_data_register(&plan->fft1_handle[z], 0, (uintptr_t) &plan->fft1[z*plan->totsize2], plan->totsize2, sizeof(*plan->fft1));
 
 		/* We'll need it on the CPU for the second twist anyway */
 		starpu_data_set_wb_mask(plan->fft1_handle[z], 1<<0);
@@ -585,8 +585,8 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 		plan->fft2_args[z].ll = ll;
 
 		/* Register n3*m3 (n1,m1) chunks */
-		starpu_register_vector_data(&plan->twisted2_handle[z], 0, (uintptr_t) &plan->twisted2[z*plan->totsize4], plan->totsize4, sizeof(*plan->twisted2));
-		starpu_register_vector_data(&plan->fft2_handle[z], 0, (uintptr_t) &plan->fft2[z*plan->totsize4], plan->totsize4, sizeof(*plan->fft2));
+		starpu_vector_data_register(&plan->twisted2_handle[z], 0, (uintptr_t) &plan->twisted2[z*plan->totsize4], plan->totsize4, sizeof(*plan->twisted2));
+		starpu_vector_data_register(&plan->fft2_handle[z], 0, (uintptr_t) &plan->fft2[z*plan->totsize4], plan->totsize4, sizeof(*plan->fft2));
 
 		/* We'll need it on the CPU for the last twist anyway */
 		starpu_data_set_wb_mask(plan->fft2_handle[z], 1<<0);

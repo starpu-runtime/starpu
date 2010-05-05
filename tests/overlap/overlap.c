@@ -76,10 +76,10 @@ int main(int argc, char **argv)
 	starpu_init(NULL);
 
 	/* create data */
-	starpu_malloc_pinned_if_possible((void **)&buffer, NTASKS*VECTORSIZE*sizeof(char));
+	starpu_data_malloc_pinned_if_possible((void **)&buffer, NTASKS*VECTORSIZE*sizeof(char));
 
 	/* declare data to StarPU */
-	starpu_register_vector_data(&handle, 0, (uintptr_t)buffer,
+	starpu_vector_data_register(&handle, 0, (uintptr_t)buffer,
 					NTASKS*VECTORSIZE, sizeof(char));
 
 	starpu_filter f =
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 		.filter_arg = NTASKS
 	};
 
-	starpu_partition_data(handle, &f);
+	starpu_data_partition(handle, &f);
 
 	snprintf(symbolname, 128, "overlap_sleep_%d_%d", VECTORSIZE, TASKDURATION);
 
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 		struct starpu_task *task = starpu_task_create();
 		task->cl = &cl;
 
-		task->buffers[0].handle = starpu_get_sub_data(handle, 1, iter);
+		task->buffers[0].handle = starpu_data_get_sub_data(handle, 1, iter);
 		task->buffers[0].mode = STARPU_R;
 
 		task->callback_func = callback;

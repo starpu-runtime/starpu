@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 
 	tab = malloc(SIZE*sizeof(float));
 
-	starpu_register_vector_data(&tab_handle, 0, (uintptr_t)tab, SIZE, sizeof(float));
+	starpu_vector_data_register(&tab_handle, 0, (uintptr_t)tab, SIZE, sizeof(float));
 
 	unsigned nloops = NITER;
 	unsigned loop;

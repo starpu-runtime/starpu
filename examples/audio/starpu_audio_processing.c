@@ -167,7 +167,7 @@ static void band_filter_kernel_gpu(void *descr[], __attribute__((unused)) void *
 	float *localA = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
 	cufftComplex *localout;
 
-	int workerid = starpu_get_worker_id();
+	int workerid = starpu_worker_get_id();
 	
 	/* initialize the plane only during the first iteration */
 	if (!plans[workerid].is_initialized)
@@ -214,7 +214,7 @@ static void band_filter_kernel_cpu(void *descr[], __attribute__((unused)) void *
 {
 	float *localA = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
 
-	int workerid = starpu_get_worker_id();
+	int workerid = starpu_worker_get_id();
 	
 	/* initialize the plane only during the first iteration */
 	if (!plans[workerid].is_initialized)
@@ -284,7 +284,7 @@ static starpu_codelet band_filter_cl = {
 void callback(void *arg)
 {
 	/* do some accounting */
-	int id = starpu_get_worker_id();
+	int id = starpu_worker_get_id();
 	task_per_worker[id]++;
 }
 
@@ -294,7 +294,7 @@ void create_starpu_task(unsigned iter)
 
 	task->cl = &band_filter_cl;
 
-	task->buffers[0].handle = starpu_get_sub_data(A_handle, 1, iter);
+	task->buffers[0].handle = starpu_data_get_sub_data(A_handle, 1, iter);
 	task->buffers[0].mode = STARPU_RW;
 
 	task->callback_func = callback;
@@ -326,14 +326,14 @@ static void init_problem(void)
 	/* allocate a buffer to store the content of input file */
 	if (use_pin)
 	{
-		starpu_malloc_pinned_if_possible((void **)&A, length_data*sizeof(float));
+		starpu_data_malloc_pinned_if_possible((void **)&A, length_data*sizeof(float));
 	}
 	else {
 		A = malloc(length_data*sizeof(float));
 	}
 
 	/* allocate working buffer (this could be done online, but we'll keep it simple) */
-	//starpu_malloc_pinned_if_possible((void **)&outdata, length_data*sizeof(fftwf_complex));
+	//starpu_data_malloc_pinned_if_possible((void **)&outdata, length_data*sizeof(fftwf_complex));
 
 	/* read input data into buffer "A" */
 	read_16bit_wav(infile, length_data, A, infile_raw);
@@ -389,7 +389,7 @@ int main(int argc, char **argv)
 	/* launch StarPU */
 	starpu_init(NULL);
 
-	starpu_register_vector_data(&A_handle, 0, (uintptr_t)A, niter*nsamples, sizeof(float));
+	starpu_vector_data_register(&A_handle, 0, (uintptr_t)A, niter*nsamples, sizeof(float));
 
 	starpu_filter f = 
 	{
@@ -397,10 +397,10 @@ int main(int argc, char **argv)
 		.filter_arg = niter
 	};
 
-	starpu_partition_data(A_handle, &f);
+	starpu_data_partition(A_handle, &f);
 
 	for (iter = 0; iter < niter; iter++)
-		starpu_data_set_wb_mask(starpu_get_sub_data(A_handle, 1, iter), 1<<0);
+		starpu_data_set_wb_mask(starpu_data_get_sub_data(A_handle, 1, iter), 1<<0);
 
 	gettimeofday(&start, NULL);
 
@@ -409,7 +409,7 @@ int main(int argc, char **argv)
 		create_starpu_task(iter);
 	}
 
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	gettimeofday(&end, NULL);
 
@@ -422,7 +422,7 @@ int main(int argc, char **argv)
 		if (task_per_worker[worker])
 		{
 			char name[32];
-			starpu_get_worker_name(worker, name, 32);
+			starpu_worker_get_name(worker, name, 32);
 
 			unsigned long bytes = nsamples*sizeof(float)*task_per_worker[worker];
 
@@ -434,8 +434,8 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Writing output data\n");
 
 	/* make sure that the output is in RAM before quitting StarPU */
-	starpu_unpartition_data(A_handle, 0);
-	starpu_delete_data(A_handle);
+	starpu_data_unpartition(A_handle, 0);
+	starpu_data_unregister(A_handle);
 
 	/* we are done ! */
 	starpu_shutdown();

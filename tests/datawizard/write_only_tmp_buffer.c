@@ -31,8 +31,8 @@ static void opencl_codelet_null(void *descr[], __attribute__ ((unused)) void *_a
 	cl_mem buf = (cl_mem)STARPU_GET_VECTOR_PTR(descr[0]);
         char ptr = 42;
         cl_command_queue queue;
-        int id = starpu_get_worker_id();
-        int devid = starpu_get_worker_devid(id);
+        int id = starpu_worker_get_id();
+        int devid = starpu_worker_get_devid(id);
 
         starpu_opencl_get_queue(devid, &queue);
         clEnqueueWriteBuffer(queue, buf, CL_TRUE, 0, sizeof(char), &ptr, 0, NULL, NULL);
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 	starpu_init(NULL);
 
 	/* The buffer should never be explicitely allocated */
-	starpu_register_vector_data(&v_handle, (uint32_t)-1, (uintptr_t)NULL, VECTORSIZE, sizeof(char));
+	starpu_vector_data_register(&v_handle, (uint32_t)-1, (uintptr_t)NULL, VECTORSIZE, sizeof(char));
 
 	struct starpu_task *task = starpu_task_create();
 		task->cl = &cl;
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 		exit(-1);
 
 	/* this should get rid of automatically allocated buffers */
-	starpu_delete_data(v_handle);
+	starpu_data_unregister(v_handle);
 
 	starpu_shutdown();
 

@@ -512,18 +512,18 @@ guaranteed to be available until this method has been called.
 @section Workers' Properties
 
 @menu
-* starpu_get_worker_count::        Get the number of processing units
-* starpu_get_cpu_worker_count::    Get the number of CPU controlled by StarPU
-* starpu_get_cuda_worker_count::   Get the number of CUDA devices controlled by StarPU
-* starpu_get_opencl_worker_count:: Get the number of OpenCL devices controlled by StarPU
-* starpu_get_spu_worker_count::    Get the number of Cell SPUs controlled by StarPU
-* starpu_get_worker_id::           Get the identifier of the current worker
-* starpu_get_worker_type::         Get the type of processing unit associated to a worker
-* starpu_get_worker_name::         Get the name of a worker
+* starpu_worker_get_count::        Get the number of processing units
+* starpu_cpu_worker_get_count::    Get the number of CPU controlled by StarPU
+* starpu_cuda_worker_get_count::   Get the number of CUDA devices controlled by StarPU
+* starpu_opencl_worker_get_count:: Get the number of OpenCL devices controlled by StarPU
+* starpu_spu_worker_get_count::    Get the number of Cell SPUs controlled by StarPU
+* starpu_worker_get_id::           Get the identifier of the current worker
+* starpu_worker_get_type::         Get the type of processing unit associated to a worker
+* starpu_worker_get_name::         Get the name of a worker
 @end menu
 
-@node starpu_get_worker_count
-@subsection @code{starpu_get_worker_count} -- Get the number of processing units
+@node starpu_worker_get_count
+@subsection @code{starpu_worker_get_count} -- Get the number of processing units
 @table @asis
 
 @item @emph{Description}:
@@ -531,11 +531,11 @@ This function returns the number of workers (i.e. processing units executing
 StarPU tasks). The returned value should be at most @code{STARPU_NMAXWORKERS}. 
 
 @item @emph{Prototype}:
-@code{unsigned starpu_get_worker_count(void);}
+@code{unsigned starpu_worker_get_count(void);}
 @end table
 
-@node starpu_get_cpu_worker_count
-@subsection @code{starpu_get_cpu_worker_count} -- Get the number of CPU controlled by StarPU
+@node starpu_cpu_worker_get_count
+@subsection @code{starpu_cpu_worker_get_count} -- Get the number of CPU controlled by StarPU
 @table @asis
 
 @item @emph{Description}:
@@ -543,11 +543,11 @@ This function returns the number of CPUs controlled by StarPU. The returned
 value should be at most @code{STARPU_NMAXCPUS}.
 
 @item @emph{Prototype}:
-@code{unsigned starpu_get_cpu_worker_count(void);}
+@code{unsigned starpu_cpu_worker_get_count(void);}
 @end table
 
-@node starpu_get_cuda_worker_count
-@subsection @code{starpu_get_cuda_worker_count} -- Get the number of CUDA devices controlled by StarPU
+@node starpu_cuda_worker_get_count
+@subsection @code{starpu_cuda_worker_get_count} -- Get the number of CUDA devices controlled by StarPU
 @table @asis
 
 @item @emph{Description}:
@@ -555,11 +555,11 @@ This function returns the number of CUDA devices controlled by StarPU. The retur
 value should be at most @code{STARPU_MAXCUDADEVS}.
 
 @item @emph{Prototype}:
-@code{unsigned starpu_get_cuda_worker_count(void);}
+@code{unsigned starpu_cuda_worker_get_count(void);}
 @end table
 
-@node starpu_get_opencl_worker_count
-@subsection @code{starpu_get_opencl_worker_count} -- Get the number of OpenCL devices controlled by StarPU
+@node starpu_opencl_worker_get_count
+@subsection @code{starpu_opencl_worker_get_count} -- Get the number of OpenCL devices controlled by StarPU
 @table @asis
 
 @item @emph{Description}:
@@ -567,42 +567,42 @@ This function returns the number of OpenCL devices controlled by StarPU. The ret
 value should be at most @code{STARPU_MAXOPENCLDEVS}.
 
 @item @emph{Prototype}:
-@code{unsigned starpu_get_opencl_worker_count(void);}
+@code{unsigned starpu_opencl_worker_get_count(void);}
 @end table
 
-@node starpu_get_spu_worker_count
-@subsection @code{starpu_get_spu_worker_count} -- Get the number of Cell SPUs controlled by StarPU
+@node starpu_spu_worker_get_count
+@subsection @code{starpu_spu_worker_get_count} -- Get the number of Cell SPUs controlled by StarPU
 @table @asis
 
 @item @emph{Description}:
 This function returns the number of Cell SPUs controlled by StarPU.
 
 @item @emph{Prototype}:
-@code{unsigned starpu_get_opencl_worker_count(void);}
+@code{unsigned starpu_opencl_worker_get_count(void);}
 @end table
 
 
-@node starpu_get_worker_id
-@subsection @code{starpu_get_worker_id} -- Get the identifier of the current worker
+@node starpu_worker_get_id
+@subsection @code{starpu_worker_get_id} -- Get the identifier of the current worker
 @table @asis
 
 @item @emph{Description}:
 This function returns the identifier of the worker associated to the calling
 thread. The returned value is either -1 if the current context is not a StarPU
 worker (i.e. when called from the application outside a task or a callback), or
-an integer between 0 and @code{starpu_get_worker_count() - 1}.
+an integer between 0 and @code{starpu_worker_get_count() - 1}.
 
 @item @emph{Prototype}:
-@code{int starpu_get_worker_id(void);}
+@code{int starpu_worker_get_id(void);}
 @end table
 
-@node starpu_get_worker_type
-@subsection @code{starpu_get_worker_type} -- Get the type of processing unit associated to a worker
+@node starpu_worker_get_type
+@subsection @code{starpu_worker_get_type} -- Get the type of processing unit associated to a worker
 @table @asis
 
 @item @emph{Description}:
 This function returns the type of worker associated to an identifier (as
-returned by the @code{starpu_get_worker_id} function). The returned value
+returned by the @code{starpu_worker_get_id} function). The returned value
 indicates the architecture of the worker: @code{STARPU_CPU_WORKER} for a CPU
 core, @code{STARPU_CUDA_WORKER} for a CUDA device,
 @code{STARPU_OPENCL_WORKER} for a OpenCL device, and
@@ -610,12 +610,12 @@ core, @code{STARPU_CUDA_WORKER} for a CUDA device,
 identifier is unspecified.
 
 @item @emph{Prototype}:
-@code{enum starpu_archtype starpu_get_worker_type(int id);}
+@code{enum starpu_archtype starpu_worker_get_type(int id);}
 
 @end table
 
-@node starpu_get_worker_name
-@subsection @code{starpu_get_worker_name} -- Get the name of a worker
+@node starpu_worker_get_name
+@subsection @code{starpu_worker_get_name} -- Get the name of a worker
 @table @asis
 
 @item @emph{Description}:
@@ -627,7 +627,7 @@ is a valid pointer to a buffer of @code{maxlen} bytes at least. Calling this
 function on an invalid identifier results in an unspecified behaviour.
 
 @item @emph{Prototype}:
-@code{void starpu_get_worker_name(int id, char *dst, size_t maxlen);}
+@code{void starpu_worker_get_name(int id, char *dst, size_t maxlen);}
 
 @end table
 
@@ -667,13 +667,13 @@ TODO
 @end table
 
 
-@c void starpu_delete_data(struct starpu_data_state_t *state);
+@c void starpu_data_unregister(struct starpu_data_state_t *state);
 
-@c starpu_get_worker_memory_node TODO
+@c starpu_worker_get_memory_node TODO
 @c 
 
 @c user interaction with the DSM
-@c   void starpu_sync_data_with_mem(struct starpu_data_state_t *state);
+@c   void starpu_data_sync_with_mem(struct starpu_data_state_t *state);
 @c   void starpu_notify_data_modification(struct starpu_data_state_t *state, uint32_t modifying_node);
 
 @node Codelets and Tasks
@@ -688,7 +688,7 @@ TODO
 * starpu_task_destroy::           Destroy a dynamically allocated Task
 * starpu_task_submit::            Submit a Task
 * starpu_task_wait::              Wait for the termination of a Task
-* starpu_wait_all_tasks::	  Wait for the termination of all Tasks
+* starpu_task_wait_for_all::	  Wait for the termination of all Tasks
 @end menu
 
 @node struct starpu_codelet
@@ -824,7 +824,7 @@ task to the worker specified by the @code{workerid} field.
 @item @code{workerid} (optional):
 If the @code{execute_on_a_specific_worker} field is set, this field indicates
 which is the identifier of the worker that should process this task (as
-returned by @code{starpu_get_worker_id}). This field is ignored if
+returned by @code{starpu_worker_get_id}). This field is ignored if
 @code{execute_on_a_specific_worker} field is set to 0.
 
 @item @code{detach} (optional) (default = 1):
@@ -936,14 +936,14 @@ available and this task is only implemented on top of CUDA).
 @code{int starpu_task_submit(struct starpu_task *task);}
 @end table
 
-@node starpu_wait_all_tasks
-@subsection @code{starpu_wait_all_tasks} -- Wait for the termination of all Tasks
+@node starpu_task_wait_for_all
+@subsection @code{starpu_task_wait_for_all} -- Wait for the termination of all Tasks
 @table @asis
 @item @emph{Description}:
 This function blocks until all the tasks that were submitted are terminated.
 
 @item @emph{Prototype}:
-@code{void starpu_wait_all_tasks(void);}
+@code{void starpu_task_wait_for_all(void);}
 @end table
 
 
@@ -1088,53 +1088,53 @@ DAG before actually giving StarPU the opportunity to execute the tasks.
 @node CUDA extensions
 @section CUDA extensions
 
-@c void starpu_malloc_pinned_if_possible(float **A, size_t dim);
+@c void starpu_data_malloc_pinned_if_possible(float **A, size_t dim);
 
-@c starpu_helper_init_cublas TODO
+@c starpu_helper_cublas_init TODO
 
-@c starpu_helper_shutdown_cublas TODO
+@c starpu_helper_cublas_shutdown TODO
 
 @menu
-* starpu_get_local_cuda_stream::   Get current worker's CUDA stream
-* starpu_helper_init_cublas::      Initialize CUBLAS on every CUDA device
-* starpu_helper_shutdown_cublas::  Deiitialize CUBLAS on every CUDA device
+* starpu_cuda_get_local_stream::   Get current worker's CUDA stream
+* starpu_helper_cublas_init::      Initialize CUBLAS on every CUDA device
+* starpu_helper_cublas_shutdown::  Deiitialize CUBLAS on every CUDA device
 @end menu
 
-@node starpu_get_local_cuda_stream
-@subsection @code{starpu_get_local_cuda_stream} -- Get current worker's CUDA stream
+@node starpu_cuda_get_local_stream
+@subsection @code{starpu_cuda_get_local_stream} -- Get current worker's CUDA stream
 @table @asis
 @item @emph{Description}:
 StarPU provides a stream for every CUDA device controlled by StarPU. This
 function is only provided for convenience so that programmers can easily use
 asynchronous operations within codelets without having to create a stream by
 hand. Note that the application is not forced to use the stream provided by
-@code{starpu_get_local_cuda_stream} and may also create its own streams.
+@code{starpu_cuda_get_local_stream} and may also create its own streams.
 
 @item @emph{Prototype}:
-@code{cudaStream_t *starpu_get_local_cuda_stream(void);}
+@code{cudaStream_t *starpu_cuda_get_local_stream(void);}
 @end table
 
-@node starpu_helper_init_cublas
-@subsection @code{starpu_helper_init_cublas} -- Initialize CUBLAS on every CUDA device
+@node starpu_helper_cublas_init
+@subsection @code{starpu_helper_cublas_init} -- Initialize CUBLAS on every CUDA device
 @table @asis
 @item @emph{Description}:
 The CUBLAS library must be initialized prior to any CUBLAS call. Calling
-@code{starpu_helper_init_cublas} will initialize CUBLAS on every CUDA device
+@code{starpu_helper_cublas_init} will initialize CUBLAS on every CUDA device
 controlled by StarPU. This call blocks until CUBLAS has been properly
 initialized on every device.
 
 @item @emph{Prototype}:
-@code{void starpu_helper_init_cublas(void);}
+@code{void starpu_helper_cublas_init(void);}
 @end table
 
-@node starpu_helper_shutdown_cublas
-@subsection @code{starpu_helper_shutdown_cublas} -- Deinitialize CUBLAS on every CUDA device
+@node starpu_helper_cublas_shutdown
+@subsection @code{starpu_helper_cublas_shutdown} -- Deinitialize CUBLAS on every CUDA device
 @table @asis
 @item @emph{Description}:
 This function synchronously deinitializes the CUBLAS library on every CUDA device.
 
 @item @emph{Prototype}:
-@code{void starpu_helper_shutdown_cublas(void);}
+@code{void starpu_helper_cublas_shutdown(void);}
 @end table
 
 @node Cell extensions
@@ -1369,7 +1369,7 @@ The following lines show how to declare an array of @code{n} elements of type
 float tab[n];
 
 starpu_data_handle tab_handle;
-starpu_register_vector_data(&tab_handle, 0, tab, n, sizeof(float));
+starpu_vector_data_register(&tab_handle, 0, tab, n, sizeof(float));
 @end example
 
 The first argument, called the @b{data handle}, is an opaque pointer which

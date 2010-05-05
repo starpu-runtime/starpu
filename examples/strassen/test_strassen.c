@@ -156,11 +156,11 @@ void init_problem(void)
 		}
 	}
 
-	starpu_register_matrix_data(&A_state, 0, (uintptr_t)A, 
+	starpu_matrix_data_register(&A_state, 0, (uintptr_t)A, 
 		dim, dim, dim, sizeof(float));
-	starpu_register_matrix_data(&B_state, 0, (uintptr_t)B, 
+	starpu_matrix_data_register(&B_state, 0, (uintptr_t)B, 
 		dim, dim, dim, sizeof(float));
-	starpu_register_matrix_data(&C_state, 0, (uintptr_t)C, 
+	starpu_matrix_data_register(&C_state, 0, (uintptr_t)C, 
 		dim, dim, dim, sizeof(float));
 
 	gettimeofday(&start, NULL);
@@ -176,7 +176,7 @@ int main(__attribute__ ((unused)) int argc,
 	/* start the runtime */
 	starpu_init(NULL);
 
-	starpu_helper_init_cublas();
+	starpu_helper_cublas_init();
 
 	sem_init(&sem, 0, 0U);
 
@@ -184,7 +184,7 @@ int main(__attribute__ ((unused)) int argc,
 	sem_wait(&sem);
 	sem_destroy(&sem);
 
-	starpu_helper_shutdown_cublas();
+	starpu_helper_cublas_shutdown();
 
 	starpu_shutdown();
 

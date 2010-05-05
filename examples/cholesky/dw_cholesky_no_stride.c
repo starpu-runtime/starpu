@@ -259,7 +259,7 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
-	starpu_helper_init_cublas();
+	starpu_helper_cublas_init();
 
 	_starpu_timing_init();
 
@@ -311,14 +311,14 @@ int main(int argc, char **argv)
 	for (x = 0; x < nblocks; x++)
 	{
 		if (x <= y) {
-			starpu_register_matrix_data(&A_state[y][x], 0, (uintptr_t)A[y][x], 
+			starpu_matrix_data_register(&A_state[y][x], 0, (uintptr_t)A[y][x], 
 				BLOCKSIZE, BLOCKSIZE, BLOCKSIZE, sizeof(float));
 		}
 	}
 
 	dw_cholesky_no_stride();
 
-	starpu_helper_shutdown_cublas();
+	starpu_helper_cublas_shutdown();
 
 	starpu_shutdown();
 	return 0;

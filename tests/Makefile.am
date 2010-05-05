@@ -74,7 +74,7 @@ check_PROGRAMS += 				\
 	core/restart				\
 	core/execute_on_a_specific_worker	\
 	core/multithreaded			\
-	core/starpu_wait_all_tasks		\
+	core/starpu_task_wait_for_all		\
 	core/starpu_task_wait			\
 	core/static_restartable			\
 	core/static_restartable_using_initializer\
@@ -124,8 +124,8 @@ core_execute_on_a_specific_worker_SOURCES = 	\
 core_multithreaded_SOURCES =			\
 	core/multithreaded.c
 
-core_starpu_wait_all_tasks_SOURCES =		\
-	core/starpu_wait_all_tasks.c
+core_starpu_task_wait_for_all_SOURCES =		\
+	core/starpu_task_wait_for_all.c
 
 core_starpu_task_wait_SOURCES =			\
 	core/starpu_task_wait.c

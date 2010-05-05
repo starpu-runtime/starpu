@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 		STARPU_ASSERT(!ret);
 	}
 
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	starpu_shutdown();
 

@@ -29,8 +29,8 @@ int main(int argc, char **argv)
 	unsigned iter;
 	for (iter = 0; iter < NITER; iter++)
 	{
-		starpu_malloc_pinned_if_possible((void **)&data, SIZE);
-		starpu_free_pinned_if_possible(data);
+		starpu_data_malloc_pinned_if_possible((void **)&data, SIZE);
+		starpu_data_free_pinned_if_possible(data);
 	}
 
 	starpu_shutdown();

@@ -57,7 +57,7 @@ void *thread_func(void *arg __attribute__((unused)))
 		STARPU_ASSERT(!ret);
 	}
 
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	return NULL;
 }

@@ -69,7 +69,7 @@ static starpu_codelet malloc_pinned_cl = {
 };
 #endif
 
-int starpu_malloc_pinned_if_possible(void **A, size_t dim)
+int starpu_data_malloc_pinned_if_possible(void **A, size_t dim)
 {
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
@@ -161,7 +161,7 @@ static starpu_codelet free_pinned_cl = {
 };
 #endif
 
-int starpu_free_pinned_if_possible(void *A)
+int starpu_data_free_pinned_if_possible(void *A)
 {
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;

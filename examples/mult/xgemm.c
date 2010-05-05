@@ -65,7 +65,7 @@ static void check_output(void)
 void callback_func(void *arg)
 {
 	/* do some accounting */
-	int id = starpu_get_worker_id();
+	int id = starpu_worker_get_id();
 	flop_per_worker[id] += BLAS3_FLOP(conf.m, conf.n, conf.k);
 	ls_per_worker[id] += BLAS3_LS(conf.m, conf.n, conf.k);
 }
@@ -76,9 +76,9 @@ static void init_problem_data(void)
 
 #ifdef STARPU_USE_CUDA
 	if (pin) {
-		starpu_malloc_pinned_if_possible((void **)&A, zdim*ydim*sizeof(TYPE));
-		starpu_malloc_pinned_if_possible((void **)&B, xdim*zdim*sizeof(TYPE));
-		starpu_malloc_pinned_if_possible((void **)&C, xdim*ydim*sizeof(TYPE));
+		starpu_data_malloc_pinned_if_possible((void **)&A, zdim*ydim*sizeof(TYPE));
+		starpu_data_malloc_pinned_if_possible((void **)&B, xdim*zdim*sizeof(TYPE));
+		starpu_data_malloc_pinned_if_possible((void **)&C, xdim*ydim*sizeof(TYPE));
 	} else
 #endif
 	{
@@ -137,11 +137,11 @@ static void init_problem_data(void)
 
 static void partition_mult_data(void)
 {
-	starpu_register_matrix_data(&A_handle, 0, (uintptr_t)A, 
+	starpu_matrix_data_register(&A_handle, 0, (uintptr_t)A, 
 		ydim, ydim, zdim, sizeof(TYPE));
-	starpu_register_matrix_data(&B_handle, 0, (uintptr_t)B, 
+	starpu_matrix_data_register(&B_handle, 0, (uintptr_t)B, 
 		zdim, zdim, xdim, sizeof(TYPE));
-	starpu_register_matrix_data(&C_handle, 0, (uintptr_t)C, 
+	starpu_matrix_data_register(&C_handle, 0, (uintptr_t)C, 
 		ydim, ydim, xdim, sizeof(TYPE));
 
 	starpu_data_set_wb_mask(C_handle, 1<<0);
@@ -158,17 +158,17 @@ static void partition_mult_data(void)
 	f2.filter_func = starpu_block_filter_func;
 	f2.filter_arg = nslicesy;
 		
-	starpu_partition_data(B_handle, &f);
-	starpu_partition_data(A_handle, &f2);
+	starpu_data_partition(B_handle, &f);
+	starpu_data_partition(A_handle, &f2);
 
 	starpu_map_filters(C_handle, 2, &f, &f2);
 }
 
 static void unpartition_mult_data(void)
 {
-	starpu_unpartition_data(C_handle, 0);
+	starpu_data_unpartition(C_handle, 0);
 
-	starpu_delete_data(C_handle);
+	starpu_data_unregister(C_handle);
 }
 
 static struct starpu_perfmodel_t gemm_model = {
@@ -212,11 +212,11 @@ static void launch_codelets(void)
 			task->callback_func = callback_func;
 			task->callback_arg = NULL;
 
-			task->buffers[0].handle = starpu_get_sub_data(A_handle, 1, tasky);
+			task->buffers[0].handle = starpu_data_get_sub_data(A_handle, 1, tasky);
 			task->buffers[0].mode = STARPU_R;
-			task->buffers[1].handle = starpu_get_sub_data(B_handle, 1, taskx);
+			task->buffers[1].handle = starpu_data_get_sub_data(B_handle, 1, taskx);
 			task->buffers[1].mode = STARPU_R;
-			task->buffers[2].handle = starpu_get_sub_data(C_handle, 2, taskx, tasky);
+			task->buffers[2].handle = starpu_data_get_sub_data(C_handle, 2, taskx, tasky);
 			task->buffers[2].mode = STARPU_RW;
 
 			starpu_task_submit(task);
@@ -232,7 +232,7 @@ int main(__attribute__ ((unused)) int argc,
 
 	/* start the runtime */
 	starpu_init(NULL);
-	starpu_helper_init_cublas();
+	starpu_helper_cublas_init();
 
 	init_problem_data();
 
@@ -241,7 +241,7 @@ int main(__attribute__ ((unused)) int argc,
 	partition_mult_data();
 
 	launch_codelets();
-	starpu_wait_all_tasks();
+	starpu_task_wait_for_all();
 
 	gettimeofday(&end, NULL);
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 +
@@ -253,7 +253,7 @@ int main(__attribute__ ((unused)) int argc,
 	if (check)
 		check_output();
 	
-	starpu_helper_shutdown_cublas();
+	starpu_helper_cublas_shutdown();
 	starpu_shutdown();
 
 	return 0;

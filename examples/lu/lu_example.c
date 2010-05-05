@@ -113,7 +113,7 @@ void copy_matrix_into_blocks(void)
 	for (bj = 0; bj < nblocks; bj++)
 	for (bi = 0; bi < nblocks; bi++)
 	{
-		starpu_malloc_pinned_if_possible((void **)&A_blocks[bi+nblocks*bj], (size_t)blocksize*blocksize*sizeof(TYPE));
+		starpu_data_malloc_pinned_if_possible((void **)&A_blocks[bi+nblocks*bj], (size_t)blocksize*blocksize*sizeof(TYPE));
 
 		for (j = 0; j < blocksize; j++)
 		for (i = 0; i < blocksize; i++)
@@ -127,7 +127,7 @@ void copy_matrix_into_blocks(void)
 static void init_matrix(void)
 {
 	/* allocate matrix */
-	starpu_malloc_pinned_if_possible((void **)&A, (size_t)size*size*sizeof(TYPE));
+	starpu_data_malloc_pinned_if_possible((void **)&A, (size_t)size*size*sizeof(TYPE));
 	STARPU_ASSERT(A);
 
 	starpu_srand48((long int)time(NULL));
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
-	starpu_helper_init_cublas();
+	starpu_helper_cublas_init();
 
 	init_matrix();
 
@@ -303,7 +303,7 @@ int main(int argc, char **argv)
 		check_result();
 	}
 
-	starpu_helper_shutdown_cublas();
+	starpu_helper_cublas_shutdown();
 
 	starpu_shutdown();
 

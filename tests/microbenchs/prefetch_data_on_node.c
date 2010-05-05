@@ -87,10 +87,10 @@ int main(int argc, char **argv)
 {
 	starpu_init(NULL);
 
-	starpu_malloc_pinned_if_possible((void **)&v, VECTORSIZE*sizeof(unsigned));
-	starpu_register_vector_data(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
+	starpu_data_malloc_pinned_if_possible((void **)&v, VECTORSIZE*sizeof(unsigned));
+	starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 
-	unsigned nworker = starpu_get_worker_count();
+	unsigned nworker = starpu_worker_get_count();
 
 	cnt = nworker*N;
 
@@ -100,8 +100,8 @@ int main(int argc, char **argv)
 		for (worker = 0; worker < nworker; worker++)
 		{
 			/* synchronous prefetch */
-			unsigned node = starpu_get_worker_memory_node(worker);
-			starpu_prefetch_data_on_node(v_handle, node, 0);
+			unsigned node = starpu_worker_get_memory_node(worker);
+			starpu_data_prefetch_on_node(v_handle, node, 0);
 
 			/* execute a task */
 			struct starpu_task *task = starpu_task_create();

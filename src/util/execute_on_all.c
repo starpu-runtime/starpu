@@ -32,7 +32,7 @@ static void wrapper_func(void *buffers[] __attribute__ ((unused)), void *_args)
 void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where)
 {
 	unsigned worker;
-	unsigned nworkers = starpu_get_worker_count();
+	unsigned nworkers = starpu_worker_get_count();
 
 	/* create a wrapper codelet */
 	struct starpu_codelet_t wrapper_cl = {

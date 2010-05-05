@@ -217,7 +217,7 @@ int starpu_task_submit(struct starpu_task *task)
 void starpu_display_codelet_stats(struct starpu_codelet_t *cl)
 {
 	unsigned worker;
-	unsigned nworkers = starpu_get_worker_count();
+	unsigned nworkers = starpu_worker_get_count();
 
 	if (cl->model && cl->model->symbol)
 		fprintf(stderr, "Statistics for codelet %s\n", cl->model->symbol);
@@ -230,7 +230,7 @@ void starpu_display_codelet_stats(struct starpu_codelet_t *cl)
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		char name[32];
-		starpu_get_worker_name(worker, name, 32);
+		starpu_worker_get_name(worker, name, 32);
 
 		fprintf(stderr, "\t%s -> %ld / %ld (%2.2f \%%)\n", name, cl->per_worker_stats[worker], total, (100.0f*cl->per_worker_stats[worker])/total);
 	}
@@ -241,7 +241,7 @@ void starpu_display_codelet_stats(struct starpu_codelet_t *cl)
  * regenerable is not considered finished until it was explicitely set as
  * non-regenerale anymore (eg. from a callback).
  */
-int starpu_wait_all_tasks(void)
+int starpu_task_wait_for_all(void)
 {
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
