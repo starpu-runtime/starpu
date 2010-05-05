@@ -39,8 +39,6 @@ libstarpufft_la_LIBADD = $(top_builddir)/src/libstarpu.la $(FFTW_LIBS) $(FFTWF_L
 libstarpufft_la_CFLAGS = $(FFTWF_CFLAGS)
 
 if STARPU_USE_CUDA
-# TODO define NVCCFLAGS
-NVCC ?= nvcc
 NVCCFLAGS += -Xcompiler -fPIC -Xlinker -fPIC
 
 cudaf_kernels.o: cudaf_kernels.cu

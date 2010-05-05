@@ -56,9 +56,6 @@ CLEANFILES += *.gcno *.gcda *.linkinfo
 
 if STARPU_USE_CUDA
 
-# TODO define NVCCFLAGS
-NVCC ?= nvcc
-
 .cu.cubin:
 	$(MKDIR_P) `dirname $@`
 	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
