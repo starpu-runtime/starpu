@@ -73,6 +73,11 @@ static void paje_output_file_init(void)
 {
 	/* create a new file */
 	out_paje_file = fopen(out_paje_path, "w+");
+	if (!out_paje_file)
+	{
+		perror("fopen");
+		STARPU_ABORT();
+	}
 
 	write_paje_header(out_paje_file);
 
