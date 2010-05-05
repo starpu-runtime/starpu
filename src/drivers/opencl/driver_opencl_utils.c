@@ -136,19 +136,14 @@ char *_starpu_basename(const char *name)
 }
 
 static
-cl_int _starpu_opencl_load_program(cl_context context, char *program_name, cl_device_id device, cl_program *program)
+int _starpu_opencl_get_binary_filename(char *program_name, cl_device_id device, char *binary_filename)
 {
-        //	cl_program     program;
-        const unsigned char *binary;
-	size_t         len;
-	cl_int         err;
-	cl_int         status;
-        cl_device_type type;
-
+        char *p;
+        char *basename;
 	cl_uint uniqueid;
-	char     binary_file_name[1024];
-	char    *p;
-        char    *basename;
+        cl_device_type type;
+        uid_t uid;
+        int err;
 
         // Get type of device
         err = clGetDeviceInfo(device, CL_DEVICE_TYPE, sizeof(cl_device_type), &type, NULL);
@@ -157,22 +152,44 @@ cl_int _starpu_opencl_load_program(cl_context context, char *program_name, cl_de
                 return err;
         }
 
-        // Get the name of the binary file
 	uniqueid = _starpu_opencl_device_uniqueid(device);
-        strcpy(binary_file_name, "/tmp/");
+        uid = getuid();
+
+        sprintf(binary_filename, "/tmp/%llu_", (long long unsigned int)uid);
         basename = _starpu_basename(program_name);
-        strcat(binary_file_name, basename);
-	p = strstr(binary_file_name, ".cl");
-	if(p == NULL) OPENCL_ERROR("Program file name doesn't have the '.cl' extension!\n");
+        strcat(binary_filename, basename);
+        p = strstr(binary_filename, ".cl");
+	if (p == NULL) {
+                OPENCL_ERROR("Program file name doesn't have the '.cl' extension!\n");
+                return EXIT_FAILURE;
+        }
+
         strcpy(p, (type == CL_DEVICE_TYPE_GPU) ? ".gpu." : ".cpu.");
 	sprintf(p + strlen(p), "%u", uniqueid);
 
-        // Load the binary file
-	binary = _starpu_opencl_load_program_binary(binary_file_name, &len);
-	if(binary == NULL)
-		OPENCL_ERROR("Cannot load binary file %s\n", binary_file_name);
+        return EXIT_SUCCESS;
+}
 
-	//_STARPU_OPENCL_DEBUG("[%s] binary file loaded.\n", binary_file_name);
+static
+cl_int _starpu_opencl_load_program(cl_context context, char *program_name, cl_device_id device, cl_program *program)
+{
+        //	cl_program     program;
+        const unsigned char *binary;
+	size_t         len;
+	cl_int         err;
+	cl_int         status;
+
+	char     binary_filename[1024];
+
+        // Get the name of the binary file
+        _starpu_opencl_get_binary_filename(program_name, device, binary_filename);
+
+        // Load the binary file
+	binary = _starpu_opencl_load_program_binary(binary_filename, &len);
+	if(binary == NULL)
+		OPENCL_ERROR("Cannot load binary file %s\n", binary_filename);
+
+	//_STARPU_OPENCL_DEBUG("[%s] binary file loaded.\n", binary_filename);
 	*program = clCreateProgramWithBinary(context, 1, &device, &len, &binary, &status, &err);
 	if (err != CL_SUCCESS) {
                 STARPU_OPENCL_REPORT_ERROR(err);
@@ -408,19 +425,12 @@ int _starpu_opencl_compile_source_to_opencl(char *source_file_name)
 
                         // Store program binary
                         {
-                                char     binary_file_name[1024];
+                                char     binary_filename[1024];
                                 char    *binary;
                                 size_t   binary_len;
-                                char    *p;
 
-                                strcpy(binary_file_name, "/tmp/");
-                                strcat(binary_file_name, basename);
-                                p = strstr(binary_file_name, ".cl");
-                                if(p == NULL)
-                                        OPENCL_ERROR("Input file name doesn't have the '.cl' extension!\n");
-
-                                strcpy(p, (type == CL_DEVICE_TYPE_GPU) ? ".gpu." : ".cpu.");
-                                sprintf(p + strlen(p), "%u", uniqueid);
+                                // Get the name of the binary file
+                                _starpu_opencl_get_binary_filename(located_file_name, devices[dev], binary_filename);
 
                                 err = clGetProgramInfo(program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &binary_len, NULL);
                                 if(err != CL_SUCCESS)
@@ -431,7 +441,7 @@ int _starpu_opencl_compile_source_to_opencl(char *source_file_name)
                                 err = clGetProgramInfo(program, CL_PROGRAM_BINARIES, sizeof(binary), &binary, NULL);
                                 if(err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-                                err = _starpu_opencl_store_program_binary(binary_file_name, binary, binary_len);
+                                err = _starpu_opencl_store_program_binary(binary_filename, binary, binary_len);
                                 if (err != EXIT_SUCCESS)
                                         OPENCL_ERROR("Cannot store program binary (err = %d)!\n", err);
 
