@@ -109,7 +109,7 @@ unsigned char *_starpu_opencl_load_program_binary(char *filename, size_t *len)
 
 	fh = fopen(filename, "r");
 	if (fh == 0)
-		return EXIT_SUCCESS;
+		return NULL;
 
 	stat(filename, &statbuf);
 
@@ -267,7 +267,7 @@ char *_starpu_opencl_load_program_source(const char *filename)
 
         fh = fopen(filename, "r");
         if (fh == 0)
-                return EXIT_SUCCESS;
+                return NULL;
 
         stat(filename, &statbuf);
         source = (char *) malloc(statbuf.st_size + 1);
@@ -431,7 +431,9 @@ int _starpu_opencl_compile_source_to_opencl(char *source_file_name)
                                 err = clGetProgramInfo(program, CL_PROGRAM_BINARIES, sizeof(binary), &binary, NULL);
                                 if(err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-                                _starpu_opencl_store_program_binary(binary_file_name, binary, binary_len);
+                                err = _starpu_opencl_store_program_binary(binary_file_name, binary, binary_len);
+                                if (err != EXIT_SUCCESS)
+                                        OPENCL_ERROR("Cannot store program binary (err = %d)!\n", err);
 
                                 free(binary);
 
