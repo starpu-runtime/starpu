@@ -445,7 +445,7 @@ CFLAGS+=" -gdwarf-2 -g3 "
 
 AC_MSG_CHECKING(whether extra checks should be performed)
 AC_ARG_ENABLE(fast, [AS_HELP_STRING([--enable-fast],
-			[enforce assertions])],
+			[do not enforce assertions])],
 			enable_fast=$enableval, enable_fast=no)
 AC_MSG_RESULT($enable_fast)
 if test x$enable_fast = xyes; then
