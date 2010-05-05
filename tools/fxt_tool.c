@@ -15,6 +15,7 @@
  */
 
 #include "fxt_tool.h"
+#include <inttypes.h>
 
 /*
  *	Default user options
@@ -162,10 +163,10 @@ static int find_worker_id(unsigned long tid)
 
 static void handle_new_mem_node(void)
 {
-	fprintf(out_paje_file, "7       %f	%ld      Mn      %sp	%sMEMNODE%ld\n", get_event_time_stamp(), ev.param[0], prefix, prefix, ev.param[0]);
+	fprintf(out_paje_file, "7       %f	%"PRIu64"      Mn      %sp	%sMEMNODE%"PRIu64"\n", get_event_time_stamp(), ev.param[0], prefix, prefix, ev.param[0]);
 
 	if (!no_bus)
-		fprintf(out_paje_file, "13       %f bw %sMEMNODE%d 0.0\n", 0.0f, prefix, ev.param[0]);
+		fprintf(out_paje_file, "13       %f bw %sMEMNODE%"PRIu64" 0.0\n", 0.0f, prefix, ev.param[0]);
 }
 
 static void handle_worker_init_start(void)
@@ -175,7 +176,7 @@ static void handle_worker_init_start(void)
 	   arg1 : memory node
 	   arg2 : thread id 
 	*/
-	fprintf(out_paje_file, "7       %f	%s%ld      T      %sMEMNODE%ld       %s%ld\n",
+	fprintf(out_paje_file, "7       %f	%s%"PRIu64"      T      %sMEMNODE%"PRIu64"       %s%"PRIu64"\n",
 		get_event_time_stamp(), prefix, ev.param[2], prefix, ev.param[1], prefix, ev.param[2]);
 
 	int workerid = register_worker_id(ev.param[2]);
@@ -195,25 +196,25 @@ static void handle_worker_init_start(void)
 	}
 
 	/* start initialization */
-	fprintf(out_paje_file, "10       %f     S      %s%ld      I\n",
+	fprintf(out_paje_file, "10       %f     S      %s%"PRIu64"      I\n",
 			get_event_time_stamp(), prefix, ev.param[2]);
 }
 
 static void handle_worker_init_end(void)
 {
-	fprintf(out_paje_file, "10       %f     S      %s%ld      B\n",
+	fprintf(out_paje_file, "10       %f     S      %s%"PRIu64"      B\n",
 			get_event_time_stamp(), prefix, ev.param[0]);
 }
 
 static void handle_worker_deinit_start(void)
 {
-	fprintf(out_paje_file, "10       %f     S      %s%ld      D\n",
+	fprintf(out_paje_file, "10       %f     S      %s%"PRIu64"      D\n",
 			get_event_time_stamp(), prefix, ev.param[0]);
 }
 
 static void handle_worker_deinit_end(void)
 {
-	fprintf(out_paje_file, "8       %f	%s%ld	T\n",
+	fprintf(out_paje_file, "8       %f	%s%"PRIu64"	T\n",
 			get_event_time_stamp(), prefix, ev.param[1]);
 }
 
@@ -252,7 +253,7 @@ static void create_paje_state_if_not_found(char *name)
 	float blue = (1.0f * hash_symbol_blue) / hash_sum;
 
 	/* create the Paje state */
-	fprintf(out_paje_file, "6       %s       S       %s \"%f %f %f\" \n", name, red, green, blue, name);
+	fprintf(out_paje_file, "6       %s       S       %s \"%f %f %f\" \n", name, name, red, green, blue);
 }
 
 static double last_codelet_start[MAXWORKERS];
@@ -281,10 +282,10 @@ static void handle_start_codelet_body(void)
 	{
 		create_paje_state_if_not_found(name);
 
-		fprintf(out_paje_file, "101       %f	S      %s%ld      E	%s\n", start_codelet_time, prefix, ev.param[1], name);
+		fprintf(out_paje_file, "101       %f	S      %s%"PRIu64"      E	%s\n", start_codelet_time, prefix, ev.param[1], name);
 	}
 	else {
-		fprintf(out_paje_file, "10       %f	S      %s%ld      E\n", start_codelet_time, prefix, ev.param[1]);
+		fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      E\n", start_codelet_time, prefix, ev.param[1]);
 	}
 
 	end_time = STARPU_MAX(end_time, ev.time);
@@ -298,12 +299,12 @@ static void handle_end_codelet_body(void)
 
 	float end_codelet_time = get_event_time_stamp();
 
-	fprintf(out_paje_file, "10       %f	S      %s%ld      B\n", end_codelet_time, prefix, ev.param[1]);
+	fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      B\n", end_codelet_time, prefix, ev.param[1]);
 
 	float codelet_length = (end_codelet_time - last_codelet_start[worker]);
 	
 	if (generate_distrib)
-	fprintf(distrib_time, "%s\t%s%d\t%lx\t%f\n", last_codelet_symbol[worker],
+	fprintf(distrib_time, "%s\t%s%d\t%"PRIx64"\t%f\n", last_codelet_symbol[worker],
 				prefix, worker, last_codelet_hash[worker], codelet_length);
 
 	end_time = STARPU_MAX(end_time, ev.time);
@@ -321,7 +322,7 @@ static void handle_user_event(void)
 		fprintf(out_paje_file, "9       %f     event      %sp      %d\n", get_event_time_stamp(), prefix, rank);
 	}
 	else {
-		fprintf(out_paje_file, "9       %f     event      %s%ld      %d\n", get_event_time_stamp(), prefix, ev.param[1], code);
+		fprintf(out_paje_file, "9       %f     event      %s%"PRIu64"      %d\n", get_event_time_stamp(), prefix, ev.param[1], code);
 	}
 
 }
@@ -331,7 +332,7 @@ static void handle_start_callback(void)
 	int worker;
 	worker = find_worker_id(ev.param[1]);
 	if (worker < 0) return;
-	fprintf(out_paje_file, "10       %f	S      %s%ld      C\n", get_event_time_stamp(), prefix, ev.param[1] );
+	fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      C\n", get_event_time_stamp(), prefix, ev.param[1] );
 }
 
 static void handle_end_callback(void)
@@ -339,7 +340,7 @@ static void handle_end_callback(void)
 	int worker;
 	worker = find_worker_id(ev.param[1]);
 	if (worker < 0) return;
-	fprintf(out_paje_file, "10       %f	S      %s%ld      B\n", get_event_time_stamp(), prefix, ev.param[1] );
+	fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      B\n", get_event_time_stamp(), prefix, ev.param[1] );
 }
 
 static void handle_worker_status(const char *newstatus)
@@ -348,7 +349,7 @@ static void handle_worker_status(const char *newstatus)
 	worker = find_worker_id(ev.param[1]);
 	if (worker < 0) return;
 
-	fprintf(out_paje_file, "10       %f	S      %s%ld      %s\n",
+	fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      %s\n",
 				get_event_time_stamp(), prefix, ev.param[1], newstatus);
 
 	end_time = STARPU_MAX(end_time, ev.time);
