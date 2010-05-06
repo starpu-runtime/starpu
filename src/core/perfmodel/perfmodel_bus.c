@@ -64,6 +64,10 @@ static double opencldev_timing_dtoh[STARPU_MAXNODES] = {0.0};
 static struct dev_timing opencldev_timing_per_cpu[STARPU_MAXNODES*MAXCPUS];
 #endif
 
+#ifdef STARPU_HAVE_HWLOC
+static hwloc_topology_t hwtopology;
+#endif
+
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 
 #ifdef STARPU_USE_CUDA
@@ -116,8 +120,6 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	struct timeval start;
 	struct timeval end;
 
-	dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].cpu_id = cpu;
-
 	/* Measure upload bandwidth */
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; iter++)
@@ -147,7 +149,6 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	cudaFree(d_buffer);
 
 	cudaThreadExit();
-
 }
 #endif
 
@@ -197,8 +198,6 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	double timing;
 	struct timeval start;
 	struct timeval end;
-
-	dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].cpu_id = cpu;
 
 	/* Measure upload bandwidth */
 	gettimeofday(&start, NULL);
@@ -251,12 +250,57 @@ static int compar_dev_timing(const void *left_dev_timing, const void *right_dev_
 	return (bandwidth_sum2_left < bandwidth_sum2_right);
 }
 
-static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_htod, double *dev_timing_dtoh,
-                                                   struct dev_timing *dev_timing_per_cpu, char type)
+static int find_numa_node(hwloc_obj_t obj)
 {
+	STARPU_ASSERT(obj);
+	hwloc_obj_t current = obj;
+
+	while (current->depth != HWLOC_OBJ_NODE)
+		current = current->parent;
+
+	STARPU_ASSERT(current->depth == HWLOC_OBJ_NODE);
+
+	return current->logical_index; 
+}
+
+static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *dev_timing_per_cpu, char type)
+{
+	/* Either we have hwloc and we measure the bandwith between each GPU
+	 * and each NUMA node, or we don't have such NUMA information and we
+	 * measure the bandwith for each pair of (CPU, GPU), which is slower.
+	 * */
+#ifdef STARPU_HAVE_HWLOC
+	int cpu_depth = hwloc_get_type_depth(hwtopology, HWLOC_OBJ_CORE);
+	int nnuma_nodes = hwloc_get_nbobjs_by_depth(hwtopology, HWLOC_OBJ_NODE);
+	
+	unsigned is_available_per_numa_node[nnuma_nodes];
+	double dev_timing_htod_per_numa_node[nnuma_nodes];
+	double dev_timing_dtoh_per_numa_node[nnuma_nodes];
+
+	memset(is_available_per_numa_node, 0, nnuma_nodes*sizeof(unsigned));
+#endif
+
 	unsigned cpu;
 	for (cpu = 0; cpu < ncpus; cpu++)
 	{
+		dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].cpu_id = cpu;
+
+#ifdef STARPU_HAVE_HWLOC
+		hwloc_obj_t obj = hwloc_get_obj_by_depth(hwtopology, cpu_depth, cpu);
+
+		int numa_id = find_numa_node(obj);
+
+		if (is_available_per_numa_node[numa_id])
+		{
+			/* We reuse the previous numbers for that NUMA node */
+			dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_htod =
+				dev_timing_htod_per_numa_node[numa_id];
+			dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_dtoh =
+				dev_timing_dtoh_per_numa_node[numa_id];
+			continue;
+		}
+#endif
+
 #ifdef STARPU_USE_CUDA
                 if (type == 'C')
                         measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(dev, cpu, dev_timing_per_cpu);
@@ -265,7 +309,26 @@ static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_h
                 if (type == 'O')
                         measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(dev, cpu, dev_timing_per_cpu);
 #endif
+
+#ifdef STARPU_HAVE_HWLOC
+		if (!is_available_per_numa_node[numa_id])
+		{
+			/* Save the results for that NUMA node */
+			dev_timing_htod_per_numa_node[numa_id] =
+				dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_htod;
+			dev_timing_dtoh_per_numa_node[numa_id] =
+				dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_dtoh;
+
+			is_available_per_numa_node[numa_id] = 1;
+		}
+#endif
         }
+}
+
+static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_htod, double *dev_timing_dtoh,
+                                                   struct dev_timing *dev_timing_per_cpu, char type)
+{
+	measure_bandwidth_between_cpus_and_dev(dev, dev_timing_per_cpu, type);
 
 	/* sort the results */
 	qsort(&(dev_timing_per_cpu[(dev+1)*MAXCPUS]), ncpus,
@@ -303,6 +366,11 @@ static void benchmark_all_gpu_devices(void)
 
 #ifdef STARPU_VERBOSE
 	fprintf(stderr, "Benchmarking the speed of the bus\n");
+#endif
+
+#ifdef STARPU_HAVE_HWLOC
+	hwloc_topology_init(&hwtopology);
+	hwloc_topology_load(hwtopology);
 #endif
 
 	/* TODO: use hwloc */
