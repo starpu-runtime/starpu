@@ -447,7 +447,7 @@ int _starpu_opencl_compile_source_to_opencl(char *source_file_name)
 
                                 free(binary);
 
-                                _STARPU_OPENCL_DEBUG("Binary file [%s] successfully built (%ld bytes).\n", binary_file_name, binary_len);
+                                _STARPU_OPENCL_DEBUG("Binary file [%s] successfully built (%ld bytes).\n", binary_filename, binary_len);
                         }
 
                         clReleaseProgram(program);
