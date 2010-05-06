@@ -412,6 +412,10 @@ static void benchmark_all_gpu_devices(void)
 		STARPU_ABORT();
 	}
 
+#ifdef STARPU_HAVE_HWLOC
+	hwloc_topology_destroy(hwtopology);
+#endif
+
 #ifdef STARPU_VERBOSE
 	fprintf(stderr, "Benchmarking the speed of the bus is done.\n");
 #endif
