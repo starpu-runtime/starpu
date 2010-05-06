@@ -98,83 +98,83 @@ int _starpu_opencl_allocate_memory(void **addr, size_t size, cl_mem_flags flags)
 
 int _starpu_opencl_copy_to_opencl(void *ptr, cl_mem buffer, size_t size, size_t offset, cl_event *event)
 {
-      int err;
-      struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+        int err;
+        struct starpu_worker_s *worker = _starpu_get_local_worker_key();
 
-      if (event == NULL) {
-              err = clEnqueueWriteBuffer(queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
-      }
-      else {
-              err = clEnqueueWriteBuffer(queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, event);
-      }
-      if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+        if (event == NULL) {
+                err = clEnqueueWriteBuffer(queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
+        }
+        else {
+                err = clEnqueueWriteBuffer(queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, event);
+        }
+        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
       return EXIT_SUCCESS;
 }
 
 int _starpu_opencl_copy_from_opencl(cl_mem buffer, void *ptr, size_t size, size_t offset, cl_event *event)
 {
-      int err;
-      struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+        int err;
+        struct starpu_worker_s *worker = _starpu_get_local_worker_key();
 
-      if (event == NULL) {
-              err = clEnqueueReadBuffer(queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
-      }
-      else {
-              err = clEnqueueReadBuffer(queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, event);
-      }
-      if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+        if (event == NULL) {
+                err = clEnqueueReadBuffer(queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
+        }
+        else {
+                err = clEnqueueReadBuffer(queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, event);
+        }
+        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-      return EXIT_SUCCESS;
+        return EXIT_SUCCESS;
 }
 
 void _starpu_opencl_init()
 {
-   if (!init_done) {
-           cl_platform_id platform_id[STARPU_OPENCL_PLATFORM_MAX];
-           cl_uint nb_platforms;
-           cl_device_type device_type = CL_DEVICE_TYPE_GPU;
-           cl_int err;
+        if (!init_done) {
+                cl_platform_id platform_id[STARPU_OPENCL_PLATFORM_MAX];
+                cl_uint nb_platforms;
+                cl_device_type device_type = CL_DEVICE_TYPE_GPU;
+                cl_int err;
 
-           _STARPU_OPENCL_DEBUG("Initialising OpenCL\n");
+                _STARPU_OPENCL_DEBUG("Initialising OpenCL\n");
 
-           // Get Platforms
-           err = clGetPlatformIDs(STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
-           if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-           _STARPU_OPENCL_DEBUG("Platforms detected: %d\n", nb_platforms);
+                // Get Platforms
+                err = clGetPlatformIDs(STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
+                if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+                _STARPU_OPENCL_DEBUG("Platforms detected: %d\n", nb_platforms);
 
-           // Get devices
-           nb_devices = 0;
-           {
-                   unsigned int i;
-                   for (i=0; i<nb_platforms; i++) {
-                           cl_uint num;
+                // Get devices
+                nb_devices = 0;
+                {
+                        unsigned int i;
+                        for (i=0; i<nb_platforms; i++) {
+                                cl_uint num;
 
 #ifdef STARPU_VERBOSE
-                           {
-                                   char name[1024], vendor[1024];
-                                   clGetPlatformInfo(platform_id[i], CL_PLATFORM_NAME, 1024, name, NULL);
-                                   clGetPlatformInfo(platform_id[i], CL_PLATFORM_VENDOR, 1024, vendor, NULL);
-                                   _STARPU_OPENCL_DEBUG("Platform: %s - %s\n", name, vendor);
-                           }
+                                {
+                                        char name[1024], vendor[1024];
+                                        clGetPlatformInfo(platform_id[i], CL_PLATFORM_NAME, 1024, name, NULL);
+                                        clGetPlatformInfo(platform_id[i], CL_PLATFORM_VENDOR, 1024, vendor, NULL);
+                                        _STARPU_OPENCL_DEBUG("Platform: %s - %s\n", name, vendor);
+                                }
 #endif
-                           err = clGetDeviceIDs(platform_id[i], device_type, STARPU_MAXOPENCLDEVS-nb_devices, &devices[nb_devices], &num);
-                           if (err == CL_DEVICE_NOT_FOUND) {
-                                   _STARPU_OPENCL_DEBUG("  No devices detected on this platform\n");
-                           }
-                           else {
-                                   if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-                                   _STARPU_OPENCL_DEBUG("  %d devices detected\n", num);
-                                   nb_devices += num;
-                           }
-         }
-      }
+                                err = clGetDeviceIDs(platform_id[i], device_type, STARPU_MAXOPENCLDEVS-nb_devices, &devices[nb_devices], &num);
+                                if (err == CL_DEVICE_NOT_FOUND) {
+                                        _STARPU_OPENCL_DEBUG("  No devices detected on this platform\n");
+                                }
+                                else {
+                                        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+                                        _STARPU_OPENCL_DEBUG("  %d devices detected\n", num);
+                                        nb_devices += num;
+                                }
+                        }
+                }
 
-      // Get location of OpenCl codelet source files
-      _starpu_opencl_codelet_dir = getenv("STARPU_OPENCL_CODELET_DIR");
+                // Get location of OpenCl codelet source files
+                _starpu_opencl_codelet_dir = getenv("STARPU_OPENCL_CODELET_DIR");
 
-      init_done=1;
-   }
+                init_done=1;
+        }
 }
 
 static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname);
