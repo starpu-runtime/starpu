@@ -54,8 +54,12 @@ esac
 # some path to the CUDA code at runtime.
 AC_DEFINE_UNQUOTED(STARPU_BUILD_DIR, "$PWD", [location of StarPU build directory])
 AC_SUBST(STARPU_BUILD_DIR, $PWD)
-AC_DEFINE_UNQUOTED(STARPU_SRC_DIR, "$(eval echo $PWD/${srcdir})", [location of StarPU sources])
-AC_SUBST(STARPU_SRC_DIR, "$(eval echo $PWD/${srcdir})")
+case "${srcdir}" in
+/*)  AC_DEFINE_UNQUOTED(STARPU_SRC_DIR, "$(eval echo ${srcdir})", [location of StarPU sources])
+     AC_SUBST(STARPU_SRC_DIR, "$(eval echo ${srcdir})") ;;
+*)   AC_DEFINE_UNQUOTED(STARPU_SRC_DIR, "$(eval echo $PWD/${srcdir})", [location of StarPU sources])
+     AC_SUBST(STARPU_SRC_DIR, "$(eval echo $PWD/${srcdir})") ;;
+esac
 
 AC_CHECK_LIB([pthread], [pthread_create])
 case "$target" in
