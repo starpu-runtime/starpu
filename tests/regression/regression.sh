@@ -32,11 +32,7 @@ check_exec()
         echo "PASS: Profile $PROFILE"
     else
 	echo "FAIL: Profile $PROFILE"
-        FAILED_PROFILES="${FAILED_PROFILES} ${PROFILE}"
 	if [ ${ABORT_ON_ERROR} -eq 1 ]; then
-            if [ -n "${FAILED_PROFILES}" ]; then
-                echo "Following profile(s) failed: ${FAILED_PROFILES}"
-            fi
             echo "Aborting ..."
 	    exit 1;
 	fi
@@ -134,8 +130,4 @@ if [ -n "${coverage}" ] ; then
     echo "The coverage report is located at : ${WORKDIR}/html"
 fi
 
-if [ -n "${FAILED_PROFILES}" ]; then
-    echo "Following profile(s) failed: ${FAILED_PROFILES}"
-    exit 1;
-fi
 echo "Tests done"
