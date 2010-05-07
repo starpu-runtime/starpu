@@ -64,11 +64,11 @@ static double opencldev_timing_dtoh[STARPU_MAXNODES] = {0.0};
 static struct dev_timing opencldev_timing_per_cpu[STARPU_MAXNODES*MAXCPUS];
 #endif
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+
 #ifdef STARPU_HAVE_HWLOC
 static hwloc_topology_t hwtopology;
 #endif
-
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 
 #ifdef STARPU_USE_CUDA
 static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int cpu, struct dev_timing *dev_timing_per_cpu)
