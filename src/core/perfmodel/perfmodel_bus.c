@@ -336,6 +336,7 @@ static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_h
 			compar_dev_timing);
 
 #ifdef STARPU_VERBOSE
+        unsigned cpu;
 	for (cpu = 0; cpu < ncpus; cpu++)
 	{
 		unsigned current_cpu = dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].cpu_id;
