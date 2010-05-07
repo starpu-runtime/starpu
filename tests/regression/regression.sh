@@ -130,8 +130,8 @@ echo $WORKDIR
 
 coverage=$(ls ${WORKDIR}/cov/*.lcov 2>/dev/null)
 if [ -n "${coverage}" ] ; then
-    genhtml --function-coverage --legend ${WORKDIR}/cov/*.lcov -o ${WORKDIR}/html -t "StarPU coverage test results"
-    echo "The report is located at : ${WORKDIR}/html"
+    genhtml --function-coverage --legend ${WORKDIR}/cov/*.lcov -o ${WORKDIR}/html -t "StarPU coverage test results" > ${WORKDIR}/logs/genhtml.log
+    echo "The coverage report is located at : ${WORKDIR}/html"
 fi
 
 if [ -n "${FAILED_PROFILES}" ]; then
