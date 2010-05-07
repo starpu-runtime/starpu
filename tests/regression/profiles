@@ -1,0 +1,22 @@
+# Build configuration
+--enable-coverage
+# Execution configuration
+""
+# Build configuration
+--enable-debug --enable-verbose
+# Execution configuration
+""
+# Build configuration
+""
+# Execution configuration
+STARPU_NCUDA=0
+# Execution configuration
+STARPU_NCUDA=1
+# Build configuration
+--disable-cuda
+# Execution configuration
+""
+# Build configuration
+--disable-opencl
+# Execution configuration
+""

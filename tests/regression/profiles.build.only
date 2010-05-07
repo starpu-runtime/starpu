@@ -1,0 +1,10 @@
+# Build configuration
+--enable-coverage
+# Build configuration
+--disable-opencl
+# Build configuration
+--disable-cuda
+# Build configuration
+--enable-debug --enable-opencl
+
+
