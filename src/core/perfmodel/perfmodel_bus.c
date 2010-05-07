@@ -256,7 +256,14 @@ static int find_numa_node(hwloc_obj_t obj)
 	hwloc_obj_t current = obj;
 
 	while (current->depth != HWLOC_OBJ_NODE)
+	{
 		current = current->parent;
+
+		/* If we don't find a "node" obj before the root, this means
+		 * hwloc does not know whether there are numa nodes or not, so
+		 * we should not use a per-node sampling in that case. */
+		STARPU_ASSERT(current);
+	}
 
 	STARPU_ASSERT(current->depth == HWLOC_OBJ_NODE);
 
@@ -272,6 +279,10 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 #ifdef STARPU_HAVE_HWLOC
 	int cpu_depth = hwloc_get_type_depth(hwtopology, HWLOC_OBJ_CORE);
 	int nnuma_nodes = hwloc_get_nbobjs_by_depth(hwtopology, HWLOC_OBJ_NODE);
+
+	/* If no NUMA node was found, we assume that we have a single memory
+	 * bank. */
+	const unsigned no_node_obj_was_found = (nnuma_nodes == 0);
 	
 	unsigned is_available_per_numa_node[nnuma_nodes];
 	double dev_timing_htod_per_numa_node[nnuma_nodes];
@@ -286,18 +297,21 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 		dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].cpu_id = cpu;
 
 #ifdef STARPU_HAVE_HWLOC
-		hwloc_obj_t obj = hwloc_get_obj_by_depth(hwtopology, cpu_depth, cpu);
-
-		int numa_id = find_numa_node(obj);
-
-		if (is_available_per_numa_node[numa_id])
+		if (!no_node_obj_was_found)
 		{
-			/* We reuse the previous numbers for that NUMA node */
-			dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_htod =
-				dev_timing_htod_per_numa_node[numa_id];
-			dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_dtoh =
-				dev_timing_dtoh_per_numa_node[numa_id];
-			continue;
+			hwloc_obj_t obj = hwloc_get_obj_by_depth(hwtopology, cpu_depth, cpu);
+	
+			int numa_id = find_numa_node(obj);
+	
+			if (is_available_per_numa_node[numa_id])
+			{
+				/* We reuse the previous numbers for that NUMA node */
+				dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_htod =
+					dev_timing_htod_per_numa_node[numa_id];
+				dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].timing_dtoh =
+					dev_timing_dtoh_per_numa_node[numa_id];
+				continue;
+			}
 		}
 #endif
 
@@ -311,7 +325,7 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 #endif
 
 #ifdef STARPU_HAVE_HWLOC
-		if (!is_available_per_numa_node[numa_id])
+		if (!no_node_obj_was_found && !is_available_per_numa_node[numa_id])
 		{
 			/* Save the results for that NUMA node */
 			dev_timing_htod_per_numa_node[numa_id] =
