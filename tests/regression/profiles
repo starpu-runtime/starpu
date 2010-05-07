@@ -7,7 +7,7 @@
 # Execution configuration
 ""
 # Build configuration
-""
+
 # Execution configuration
 STARPU_NCUDA=0
 # Execution configuration
