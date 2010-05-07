@@ -72,7 +72,7 @@ do_test()
     ${MAKE} -C ${WORKDIR}/build check > $WORKDIR/logs/profile.${PROFILE_NUM}.${SUBPROFILE_NUM} 2>&1
     check_exec $?
 
-    coverage=$(find . -name "*.gcda" 2>/dev/null)
+    coverage=$(find ${WORKDIR}/build -name "*.gcda" 2>/dev/null)
     if [ -n "$coverage" ] ; then
 	lcov -c -d ${WORKDIR}/build -o ${WORKDIR}/cov/profile_${PROFILE_NUM}.${SUBPROFILE_NUM}.lcov >> $WORKDIR/logs/profile.${PROFILE_NUM}.${SUBPROFILE_NUM} 2>&1
     fi
