@@ -66,7 +66,12 @@ do_test()
     echo ">>>> Execution configuration ${PROFILE_NUM}.${SUBPROFILE_NUM} : <$@>"
 
     ${MAKE} -C ${WORKDIR}/build check > $WORKDIR/logs/profile.${PROFILE_NUM}.${SUBPROFILE_NUM} 2>&1
-    check_exec $?
+    code_check=?
+    check_exec $code_check
+
+    if [ $code_check -ne 0 ] ; then
+        grep FAIL: $WORKDIR/logs/profile.${PROFILE_NUM}.${SUBPROFILE_NUM}
+    fi
 
     coverage=$(find ${WORKDIR}/build -name "*.gcda" 2>/dev/null)
     if [ -n "$coverage" ] ; then
