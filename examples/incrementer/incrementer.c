@@ -55,7 +55,6 @@ int main(int argc, char **argv)
 
 	starpu_codelet cl =
 	{
-		/* CUBLAS stands for CUDA kernels controlled from the host */
 		.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 		.cpu_func = cpu_codelet,
 #ifdef STARPU_USE_CUDA
