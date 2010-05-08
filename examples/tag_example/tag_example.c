@@ -14,7 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <semaphore.h>
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
@@ -29,7 +28,6 @@
 
 #define TAG(i, j, iter)	((starpu_tag_t) ( ((uint64_t)(iter)<<48) |  ((uint64_t)(j)<<24) | (i)) )
 
-sem_t sem;
 starpu_codelet cl;
 
 #define Ni	64
@@ -133,9 +131,7 @@ void callback_cpu(void *argcb __attribute__ ((unused)))
 
 	if (newcnt == 0)
 	{
-		
-		iter++;
-		if (iter < nk)
+		if (++iter < nk)
 		{
 			/* cleanup old grids ... */
 			if (iter > 2)
@@ -143,9 +139,6 @@ void callback_cpu(void *argcb __attribute__ ((unused)))
 
 			/* create a new iteration */
 			create_task_grid(iter);
-		}
-		else {
-			sem_post(&sem);
 		}
 	}
 }
@@ -207,11 +200,9 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 #endif
 	cl.nbuffers = 0;
 
-	sem_init(&sem, 0, 0);
-
 	create_task_grid(0);
 
-	sem_wait(&sem);
+	starpu_task_wait_for_all();
 
 	starpu_shutdown();
 

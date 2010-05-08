@@ -14,7 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <semaphore.h>
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
@@ -29,7 +28,6 @@
 
 #define TAG(i, iter)	((starpu_tag_t)  (((uint64_t)iter)<<32 | (i)) )
 
-sem_t sem;
 starpu_codelet cl;
 
 #define Ni	64
