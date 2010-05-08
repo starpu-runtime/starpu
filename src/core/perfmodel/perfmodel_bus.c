@@ -297,11 +297,13 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 		dev_timing_per_cpu[(dev+1)*MAXCPUS+cpu].cpu_id = cpu;
 
 #ifdef STARPU_HAVE_HWLOC
+		int numa_id = 0;
+
 		if (!no_node_obj_was_found)
 		{
 			hwloc_obj_t obj = hwloc_get_obj_by_depth(hwtopology, cpu_depth, cpu);
 	
-			int numa_id = find_numa_node(obj);
+			numa_id = find_numa_node(obj);
 	
 			if (is_available_per_numa_node[numa_id])
 			{
