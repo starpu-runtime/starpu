@@ -176,7 +176,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 		/* find someone who already has the data */
 		uint32_t src_node = 0;
 
-		/* if the data is in read only mode, there is no need for a source */
+		/* if the data is in write only mode, there is no need for a source */
 		if (read)
 		{
 			src_node = _starpu_select_src_node(handle);
