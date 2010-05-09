@@ -651,3 +651,8 @@ nomem:
 	STARPU_ASSERT(!allocated_memory);
 	return -ENOMEM;
 }
+
+unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle handle, uint32_t memory_node)
+{
+	return handle->per_node[memory_node].allocated;
+}

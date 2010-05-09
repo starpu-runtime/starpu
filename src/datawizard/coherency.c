@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -481,8 +481,3 @@ inline void _starpu_set_data_requested_flag_if_needed(starpu_data_handle handle,
 
 //	pthread_spin_unlock(&handle->header_lock);
 }
-
-unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle handle, uint32_t memory_node)
-{
-	return handle->per_node[memory_node].allocated;
-} 
