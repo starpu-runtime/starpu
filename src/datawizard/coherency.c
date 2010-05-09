@@ -281,8 +281,8 @@ static int fetch_data(starpu_data_handle handle, starpu_access_mode mode)
 	uint32_t requesting_node = _starpu_get_local_memory_node(); 
 
 	uint8_t read, write;
-	read = (mode != STARPU_W); /* then R or STARPU_RW */
-	write = (mode != STARPU_R); /* then STARPU_W or STARPU_RW */
+	read = (mode & STARPU_R); /* then R or STARPU_RW */
+	write = (mode & STARPU_W); /* then STARPU_W or STARPU_RW */
 
 	return _starpu_fetch_data_on_node(handle, requesting_node, read, write, 0);
 }
@@ -335,8 +335,8 @@ int _starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 		
 		uint32_t mode = task->buffers[index].mode;
 	
-		uint8_t read = (mode != STARPU_W);
-		uint8_t write = (mode != STARPU_R);
+		uint8_t read = (mode & STARPU_R);
+		uint8_t write = (mode & STARPU_W);
 
 		prefetch_data_on_node(handle, read, write, node);
 	}

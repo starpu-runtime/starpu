@@ -26,9 +26,9 @@ static void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *ta
 	{
 		starpu_access_mode previous_mode = handle->last_submitted_mode;
 	
-		if (mode != STARPU_R)
+		if (mode & STARPU_W)
 		{
-			if (previous_mode != STARPU_R)
+			if (previous_mode & STARPU_W)
 			{
 				/* (Read) Write */
 				/* This task depends on the previous writer */
