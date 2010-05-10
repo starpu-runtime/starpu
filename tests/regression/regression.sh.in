@@ -16,7 +16,7 @@
 #
 
 WORKDIR=`mktemp -d`
-SRCDIR=$PWD
+SRCDIR=@STARPU_SRC_DIR@
 MAKE="${MAKE:-make -j3}"
 
 ##################################################
