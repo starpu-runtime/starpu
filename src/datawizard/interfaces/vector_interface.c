@@ -67,7 +67,7 @@ static const struct starpu_copy_data_methods_s vector_copy_data_methods_s = {
 };
 
 static void register_vector_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
-static size_t allocate_vector_buffer_on_node(starpu_data_handle handle, uint32_t dst_node);
+static size_t allocate_vector_buffer_on_node(void *interface_, uint32_t dst_node);
 static void liberate_vector_buffer_on_node(void *interface, uint32_t node);
 static size_t vector_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_vector_interface_crc32(starpu_data_handle handle);
@@ -202,10 +202,9 @@ size_t starpu_vector_get_elemsize(starpu_data_handle handle)
 /* memory allocation/deallocation primitives for the vector interface */
 
 /* returns the size of the allocated area */
-static size_t allocate_vector_buffer_on_node(starpu_data_handle handle, uint32_t dst_node)
+static size_t allocate_vector_buffer_on_node(void *interface_, uint32_t dst_node)
 {
-	starpu_vector_interface_t *interface =
-		starpu_data_get_interface_on_node(handle, dst_node);
+	starpu_vector_interface_t *interface = interface_;
 
 	unsigned fail = 0;
 	uintptr_t addr = 0;

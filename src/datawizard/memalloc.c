@@ -587,19 +587,11 @@ static size_t liberate_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
  *	not referenced (or part of those).
  *
  */
-int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node, unsigned may_alloc)
+
+static size_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, uint32_t dst_node)
 {
 	unsigned attempts = 0;
 	size_t allocated_memory;
-
-	STARPU_ASSERT(handle);
-
-	/* A buffer is already allocated on the node */
-	if (handle->per_node[dst_node].allocated)
-		return 0;
-
-	if (!may_alloc)
-		return ENOMEM;
 
 	_starpu_data_allocation_inc_stats(dst_node);
 
@@ -621,7 +613,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node
 		STARPU_ASSERT(handle->ops->allocate_data_on_node);
 
 		STARPU_TRACE_START_ALLOC(dst_node);
-		allocated_memory = handle->ops->allocate_data_on_node(handle, dst_node);
+		allocated_memory = handle->ops->allocate_data_on_node(interface, dst_node);
 		STARPU_TRACE_END_ALLOC(dst_node);
 
 		if (!allocated_memory) {
@@ -638,18 +630,36 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node
 	} while(!allocated_memory && attempts++ < 2);
 
 	/* perhaps we could really not handle that capacity misses */
-	if (!allocated_memory)
-		goto nomem;
+	if (allocated_memory)
+		register_mem_chunk(handle, dst_node, allocated_memory, 1);
 
-	register_mem_chunk(handle, dst_node, allocated_memory, 1);
+	return allocated_memory;
+}
+
+int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node, unsigned may_alloc)
+{
+	size_t allocated_memory;
+
+	STARPU_ASSERT(handle);
+
+	/* A buffer is already allocated on the node */
+	if (handle->per_node[dst_node].allocated)
+		return 0;
+
+	if (!may_alloc)
+		return ENOMEM;
+
+	void *interface = starpu_data_get_interface_on_node(handle, dst_node);
+	allocated_memory = _starpu_allocate_interface(handle, interface, dst_node);
+
+	/* perhaps we could really not handle that capacity misses */
+	if (!allocated_memory)
+		return ENOMEM;
 
 	handle->per_node[dst_node].allocated = 1;
 	handle->per_node[dst_node].automatically_allocated = 1;
 
 	return 0;
-nomem:
-	STARPU_ASSERT(!allocated_memory);
-	return -ENOMEM;
 }
 
 unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle handle, uint32_t memory_node)

@@ -68,7 +68,7 @@ static const struct starpu_copy_data_methods_s matrix_copy_data_methods_s = {
 };
 
 static void register_matrix_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
-static size_t allocate_matrix_buffer_on_node(starpu_data_handle handle, uint32_t dst_node);
+static size_t allocate_matrix_buffer_on_node(void *interface_, uint32_t dst_node);
 static void liberate_matrix_buffer_on_node(void *interface, uint32_t node);
 static size_t matrix_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle handle);
@@ -95,7 +95,7 @@ struct starpu_data_interface_ops_t _starpu_interface_matrix_ops = {
 #ifdef STARPU_USE_GORDON
 static int convert_matrix_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
-	size_t elemsize = GET_BLAS_ELEMSIZE(interface);
+	size_t elemsize = GET_MATRIX_ELEMSIZE(interface);
 	uint32_t nx = STARPU_GET_MATRIX_NX(interface);
 	uint32_t ny = STARPU_GET_MATRIX_NY(interface);
 	uint32_t ld = STARPU_GET_MATRIX_LD(interface);
@@ -139,7 +139,7 @@ static void register_matrix_handle(starpu_data_handle handle, uint32_t home_node
 	}
 }
 
-/* declare a new data with the BLAS interface */
+/* declare a new data with the matrix interface */
 void starpu_matrix_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 			uintptr_t ptr, uint32_t ld, uint32_t nx,
 			uint32_t ny, size_t elemsize)
@@ -232,10 +232,10 @@ size_t starpu_matrix_get_elemsize(starpu_data_handle handle)
 	return interface->elemsize;
 }
 
-/* memory allocation/deallocation primitives for the BLAS interface */
+/* memory allocation/deallocation primitives for the matrix interface */
 
 /* returns the size of the allocated area */
-static size_t allocate_matrix_buffer_on_node(starpu_data_handle handle, uint32_t dst_node)
+static size_t allocate_matrix_buffer_on_node(void *interface_, uint32_t dst_node)
 {
 	uintptr_t addr = 0;
 	unsigned fail = 0;
@@ -246,8 +246,7 @@ static size_t allocate_matrix_buffer_on_node(starpu_data_handle handle, uint32_t
 	size_t pitch;
 #endif
 
-	starpu_matrix_interface_t *interface =
-		starpu_data_get_interface_on_node(handle, dst_node);
+	starpu_matrix_interface_t *interface = interface_;
 
 	uint32_t nx = interface->nx;
 	uint32_t ny = interface->ny;
@@ -542,7 +541,7 @@ static int copy_opencl_to_ram(starpu_data_handle handle, uint32_t src_node, uint
 
 #endif
 
-/* as not all platform easily have a BLAS lib installed ... */
+/* as not all platform easily have a  lib installed ... */
 static int dummy_copy_ram_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
 {
 	starpu_matrix_interface_t *src_matrix;
