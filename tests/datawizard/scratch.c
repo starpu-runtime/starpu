@@ -28,7 +28,7 @@ starpu_data_handle A_handle, B_handle;
 
 static unsigned var = 0;
 
-static void f(void *descr[], __attribute__ ((unused)) void *_args)
+static void cpu_f(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	unsigned *v = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
 	unsigned *tmp = (unsigned *)STARPU_GET_VECTOR_PTR(descr[1]);
@@ -46,9 +46,8 @@ static void f(void *descr[], __attribute__ ((unused)) void *_args)
 }
 
 static starpu_codelet cl_f = {
-	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = f,
-	.cuda_func = f,
+	.where = STARPU_CPU,
+	.cpu_func = cpu_f,
 	.nbuffers = 2
 };
 
@@ -70,13 +69,18 @@ int main(int argc, char **argv)
 		task_f->buffers[0].mode = STARPU_RW;
 		task_f->buffers[1].handle = B_handle;
 		task_f->buffers[1].mode = STARPU_SCRATCH;
-		starpu_task_submit(task_f);
+
+		int ret = starpu_task_submit(task_f);
+		if (ret == -ENODEV)
+			goto enodev;
 	}
 
 	starpu_task_wait_for_all();
 
+	/* Make sure that data A is in main memory */
 	starpu_data_sync_with_mem(A_handle, STARPU_R);	
 
+	/* Check result */
 	unsigned i;
 	for (i = 0; i < VECTORSIZE; i++)
 	{
@@ -87,5 +91,10 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
+	return 0;
+
+enodev:
+	/* No one can execute that task, this is not a bug, just an incomplete
+	 * test :) */
 	return 0;
 }
