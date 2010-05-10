@@ -20,6 +20,8 @@
 
 static void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *task, starpu_data_handle handle, starpu_access_mode mode)
 {
+	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
+
 	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 
 	if (handle->sequential_consistency)
@@ -114,6 +116,59 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 		starpu_data_handle handle = task->buffers[buffer].handle;
 		starpu_access_mode mode = task->buffers[buffer].mode;
 
+		/* Scratch memory does not introduce any deps */
+		if (mode & STARPU_SCRATCH)
+			continue;
+
 		_starpu_detect_implicit_data_deps_with_handle(task, handle, mode);
 	}
 }
+
+/* This function is called when a task has been executed so that we don't
+ * create dependencies to task that do not exist anymore. */
+void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *task, starpu_data_handle handle)
+{
+	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+
+	if (handle->sequential_consistency)
+	{
+		/* If this is the last writer, there is no point in adding
+		 * extra deps to that tasks that does not exists anymore */
+		if (task == handle->last_submitted_writer)
+			handle->last_submitted_writer = NULL;
+
+		/* Same if this is one of the readers: we go through the list
+		 * of readers and remove the task if it is found. */
+		struct starpu_task_list *l;
+		l = handle->last_submitted_readers;
+		struct starpu_task_list *prev = NULL;
+		while (l)
+		{
+			struct starpu_task_list *next = l->next;
+
+			if (l->task == task)
+			{
+				/* If we found the task in the reader list */
+				free(l);
+
+				if (prev)
+				{
+					prev->next = next;
+				}
+				else {
+					/* This is the first element of the list */
+					handle->last_submitted_readers = next;
+				}
+			}
+			else {
+				prev = l;
+			}
+
+			l = next;
+		}
+	}
+
+	PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+}
+
+

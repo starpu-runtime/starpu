@@ -120,6 +120,9 @@ static unsigned attempt_to_submit_data_request_from_job(starpu_job_t j, unsigned
 	starpu_data_handle handle = j->ordered_buffers[buffer_index].handle;
 	starpu_access_mode mode = j->ordered_buffers[buffer_index].mode;
 
+	if (mode & STARPU_SCRATCH)
+		return 0;
+
 	while (_starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(_starpu_get_local_memory_node(), 0);
 

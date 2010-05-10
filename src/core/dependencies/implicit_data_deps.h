@@ -21,6 +21,7 @@
 #include <common/config.h>
 
 void _starpu_detect_implicit_data_deps(struct starpu_task *task);
+void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *task, starpu_data_handle handle);
 
 #endif // __IMPLICIT_DATA_DEPS_H__
 

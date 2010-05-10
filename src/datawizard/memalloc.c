@@ -588,7 +588,7 @@ static size_t liberate_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
  *
  */
 
-static size_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, uint32_t dst_node)
+size_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, uint32_t dst_node)
 {
 	unsigned attempts = 0;
 	size_t allocated_memory;
@@ -629,10 +629,6 @@ static size_t _starpu_allocate_interface(starpu_data_handle handle, void *interf
 		
 	} while(!allocated_memory && attempts++ < 2);
 
-	/* perhaps we could really not handle that capacity misses */
-	if (allocated_memory)
-		register_mem_chunk(handle, dst_node, allocated_memory, 1);
-
 	return allocated_memory;
 }
 
@@ -655,6 +651,10 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node
 	/* perhaps we could really not handle that capacity misses */
 	if (!allocated_memory)
 		return ENOMEM;
+
+	/* perhaps we could really not handle that capacity misses */
+	if (allocated_memory)
+		register_mem_chunk(handle, dst_node, allocated_memory, 1);
 
 	handle->per_node[dst_node].allocated = 1;
 	handle->per_node[dst_node].automatically_allocated = 1;

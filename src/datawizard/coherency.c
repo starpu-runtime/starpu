@@ -284,6 +284,8 @@ static int fetch_data(starpu_data_handle handle, starpu_access_mode mode)
 	read = (mode & STARPU_R); /* then R or STARPU_RW */
 	write = (mode & STARPU_W); /* then STARPU_W or STARPU_RW */
 
+	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
+
 	return _starpu_fetch_data_on_node(handle, requesting_node, read, write, 0);
 }
 
@@ -334,6 +336,9 @@ int _starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 		handle = descr->handle;
 		
 		uint32_t mode = task->buffers[index].mode;
+
+		if (mode & STARPU_SCRATCH)
+			continue;
 	
 		uint8_t read = (mode & STARPU_R);
 		uint8_t write = (mode & STARPU_W);
@@ -344,13 +349,9 @@ int _starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 	return 0;
 }
 
-
-
 int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 {
 	STARPU_TRACE_START_FETCH_INPUT(NULL);
-
-//	fprintf(stderr, "_starpu_fetch_task_input\n");
 
 	uint32_t local_memory_node = _starpu_get_local_memory_node();
 
@@ -367,13 +368,34 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 		descr = &descrs[index];
 
 		handle = descr->handle;
-	
-		ret = fetch_data(handle, descr->mode);
-		if (STARPU_UNLIKELY(ret))
-			goto enomem;
+		starpu_access_mode mode = descr->mode;
 
-		void *src_interface = starpu_data_get_interface_on_node(handle, local_memory_node);
-		task->interface[index] = src_interface;
+		void *interface;
+
+		if (mode & STARPU_SCRATCH)
+		{
+			/* This is a scratch memory, so we duplicate (any of)
+			 * the interface which contains sufficient information
+			 * to allocate the buffer. */
+			size_t interface_size = handle->ops->interface_size;
+			void *src_interface = starpu_data_get_interface_on_node(handle, local_memory_node);
+			interface = malloc(interface_size);
+			STARPU_ASSERT(interface);
+			memcpy(interface, src_interface, interface_size);
+
+			/* Pass the interface to StarPU so that the buffer can be allocated */
+			_starpu_allocate_interface(handle, interface, local_memory_node);
+		}
+		else {
+			/* That's a "normal" buffer (R/W) */
+			ret = fetch_data(handle, mode);
+			if (STARPU_UNLIKELY(ret))
+				goto enomem;
+
+			interface = starpu_data_get_interface_on_node(handle, local_memory_node);
+		}
+		
+		task->interface[index] = interface;
 	}
 
 	STARPU_TRACE_END_FETCH_INPUT(NULL);
@@ -404,50 +426,22 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle handle = descrs[index].handle;
+		starpu_access_mode mode = descrs[index].mode;
 
-		_starpu_release_data_on_node(handle, mask, local_node);
-
-		PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
-
-		if (handle->sequential_consistency)
+		if (mode & STARPU_SCRATCH)
 		{
-			/* If this is the last writer, there is no point in adding
-			 * extra deps to that tasks that does not exists anymore */
-			if (task == handle->last_submitted_writer)
-				handle->last_submitted_writer = NULL;
+			void *interface = task->interface[index];
 
-			/* Same if this is one of the readers: we go through the list
-			 * of readers and remove the task if it is found. */
-			struct starpu_task_list *l;
-			l = handle->last_submitted_readers;
-			struct starpu_task_list *prev = NULL;
-			while (l)
-			{
-				struct starpu_task_list *next = l->next;
+//			fprintf(stderr, "liberate interface %p\n", interface);
 
-				if (l->task == task)
-				{
-					/* If we found the task in the reader list */
-					free(l);
+			handle->ops->liberate_data_on_node(interface, local_node);
 
-					if (prev)
-					{
-						prev->next = next;
-					}
-					else {
-						/* This is the first element of the list */
-						handle->last_submitted_readers = next;
-					}
-				}
-				else {
-					prev = l;
-				}
-
-				l = next;
-			}
+			free(interface);
 		}
-
-		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+		else {
+			_starpu_release_data_on_node(handle, mask, local_node);
+			_starpu_release_data_enforce_sequential_consistency(task, handle);
+		}
 	}
 
 	STARPU_TRACE_END_PUSH_OUTPUT(NULL);
