@@ -16,4 +16,5 @@
 
 #include "starpufft.h"
 
+/* Used as an identifier in starpu tags to let plans run concurrently */
 int starpufft_last_plan_number;

@@ -78,29 +78,39 @@ struct STARPUFFT(plan) {
 	STARPUFFT(complex) *roots[2];
 	starpu_data_handle roots_handle[2];
 
+	/* For each worker, we need some data */
 	struct {
 #ifdef STARPU_USE_CUDA
+		/* CUFFT plans */
 		cufftHandle plan1_cuda, plan2_cuda;
+		/* Whether the plans above are initialized */
 		int initialized1, initialized2;
+		/* The stream used on that GPU: FIXME: is this really still
+		 * needed? */
 		cudaStream_t stream;
+		/* Whether the stream above is initialized */
 		int stream_is_initialized;
 #endif
 #ifdef STARPU_HAVE_FFTW
+		/* FFTW plans */
 		_fftw_plan plan1_cpu, plan2_cpu;
+		/* Buffers used by the plans above */
 		_fftw_complex *in1, *out1;
 		_fftw_complex *in2, *out2;
 #endif
 	} plans[STARPU_NMAXWORKERS];
 
-#ifdef STARPU_HAVE_FFTW
-	_fftw_plan plan_gather;
-#endif
-
+	/* Buffers for codelets */
 	STARPUFFT(complex) *in, *twisted1, *fft1, *twisted2, *fft2, *out;
 
+	/* corresponding starpu DSM handles */
 	starpu_data_handle in_handle, *twisted1_handle, *fft1_handle, *twisted2_handle, *fft2_handle;
+
+	/* Tasks */
 	struct starpu_task **twist1_tasks, **fft1_tasks, **twist2_tasks, **fft2_tasks, **twist3_tasks;
 	struct starpu_task *join_task, *end_task;
+
+	/* Arguments for tasks */
 	struct STARPUFFT(args) *fft1_args, *fft2_args;
 };
 
@@ -227,6 +237,7 @@ STARPUFFT(execute)(STARPUFFT(plan) plan, void *in, void *out)
 	gettimeofday(&end, NULL);
 }
 
+/* Destroy FFTW plans, unregister and free buffers, and free tags */
 void
 STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 {
@@ -310,9 +321,6 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 	STARPUFFT(free)(plan->fft1);
 	STARPUFFT(free)(plan->twisted2);
 	STARPUFFT(free)(plan->fft2);
-#ifdef STARPU_HAVE_FFTW
-	_FFTW(destroy_plan)(plan->plan_gather);
-#endif
 	free(plan);
 }
 
