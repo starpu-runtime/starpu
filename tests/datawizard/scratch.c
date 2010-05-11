@@ -28,6 +28,10 @@ starpu_data_handle A_handle, B_handle;
 
 static unsigned var = 0;
 
+#ifdef STARPU_USE_CUDA
+extern void cuda_f(void *descr[], __attribute__ ((unused)) void *_args);
+#endif
+
 static void cpu_f(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	unsigned *v = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
@@ -46,8 +50,11 @@ static void cpu_f(void *descr[], __attribute__ ((unused)) void *_args)
 }
 
 static starpu_codelet cl_f = {
-	.where = STARPU_CPU,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = cpu_f,
+#ifdef STARPU_USE_CUDA
+	.cuda_func = cuda_f,
+#endif
 	.nbuffers = 2
 };
 

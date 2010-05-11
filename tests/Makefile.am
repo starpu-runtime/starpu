@@ -183,6 +183,11 @@ datawizard_data_implicit_deps_SOURCES =		\
 datawizard_scratch_SOURCES =			\
 	datawizard/scratch.c
 
+if STARPU_USE_CUDA
+datawizard_scratch_SOURCES +=		\
+	datawizard/scratch_cuda.cu
+endif
+
 datawizard_dsm_stress_SOURCES =			\
 	datawizard/dsm_stress.c
 
