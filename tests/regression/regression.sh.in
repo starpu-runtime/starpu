@@ -65,8 +65,11 @@ do_test()
     SUBPROFILE_NUM=`expr ${SUBPROFILE_NUM} + 1`
     echo ">>>> Execution configuration ${PROFILE_NUM}.${SUBPROFILE_NUM} : <$@>"
 
-    ${MAKE} -C ${WORKDIR}/build check > $WORKDIR/logs/profile.${PROFILE_NUM}.${SUBPROFILE_NUM} 2>&1
-    code_check=?
+    (
+        export $* ;
+        ${MAKE} -C ${WORKDIR}/build check
+    ) > $WORKDIR/logs/profile.${PROFILE_NUM}.${SUBPROFILE_NUM} 2>&1
+    code_check=$?
     check_exec $code_check
 
     if [ $code_check -ne 0 ] ; then
