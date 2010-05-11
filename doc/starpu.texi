@@ -830,16 +830,16 @@ returned by @code{starpu_worker_get_id}). This field is ignored if
 @item @code{detach} (optional) (default = 1):
 If this flag is set, it is not possible to synchronize with the task
 by the means of @code{starpu_task_wait} later on. Internal data structures
-are only guaranteed to be liberated once @code{starpu_task_wait} is called
-if that flag is not set.
+are only guaranteed to be freed once @code{starpu_task_wait} is called if that
+flag is not set.
 
 @item @code{destroy} (optional) (default = 1):
-If that flag is set, the task structure will automatically be liberated, either
+If that flag is set, the task structure will automatically be freed, either
 after the execution of the callback if the task is detached, or during
-@code{starpu_task_wait} otherwise. If this flag is not set, dynamically allocated data
-structures will not be liberated until @code{starpu_task_destroy} is called
-explicitly. Setting this flag for a statically allocated task structure will
-result in undefined behaviour.
+@code{starpu_task_wait} otherwise. If this flag is not set, dynamically
+allocated data structures will not be freed until @code{starpu_task_destroy} is
+called explicitly. Setting this flag for a statically allocated task structure
+will result in undefined behaviour.
 
 @end table
 @end table
@@ -862,9 +862,9 @@ constant @code{STARPU_TASK_INITIALIZER}.
 @table @asis
 @item @emph{Description}:
 Allocate a task structure and initialize it with default values. Tasks
-allocated dynamically with starpu_task_create are automatically liberated when
-the task is terminated. If the destroy flag is explicitly unset, the
-resources used by the task are liberated by calling
+allocated dynamically with starpu_task_create are automatically freed when the
+task is terminated. If the destroy flag is explicitly unset, the resources used
+by the task are freed by calling
 @code{starpu_task_destroy}.
 
 @item @emph{Prototype}:
@@ -877,7 +877,7 @@ resources used by the task are liberated by calling
 @item @emph{Description}:
 Release all the structures automatically allocated to execute the task. This is
 called implicitly by starpu_task_destroy, but the task structure itself is not
-liberated. This should be used for statically allocated tasks for instance.
+freed. This should be used for statically allocated tasks for instance.
 Note that this function is automatically called by @code{starpu_task_destroy}.
 @item @emph{Prototype}:
 @code{void starpu_task_deinit(struct starpu_task *task);}
@@ -889,8 +889,8 @@ Note that this function is automatically called by @code{starpu_task_destroy}.
 @subsection @code{starpu_task_destroy} -- Destroy a dynamically allocated Task
 @table @asis
 @item @emph{Description}:
-Liberate the resource allocated during starpu_task_create. This function can
-be called automatically after the execution of a task by setting the
+Free the resource allocated during starpu_task_create. This function can be
+called automatically after the execution of a task by setting the
 @code{.destroy} flag of the @code{starpu_task} structure (default behaviour).
 Calling this function on a statically allocated task results in an undefined
 behaviour.
@@ -1043,7 +1043,7 @@ tasks or callbacks, but only from the application directly.  It is possible to
 synchronize with the same tag multiple times, as long as the
 @code{starpu_tag_remove} function is not called.  Note that it is still
 possible to synchronize with a tag associated to a task which @code{starpu_task}
-data structure was liberated (e.g. if the @code{destroy} flag of the
+data structure was freed (e.g. if the @code{destroy} flag of the
 @code{starpu_task} was enabled).
 
 @item @emph{Prototype}:

@@ -68,7 +68,7 @@ static const struct starpu_copy_data_methods_s vector_copy_data_methods_s = {
 
 static void register_vector_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
 static size_t allocate_vector_buffer_on_node(void *interface_, uint32_t dst_node);
-static void liberate_vector_buffer_on_node(void *interface, uint32_t node);
+static void free_vector_buffer_on_node(void *interface, uint32_t node);
 static size_t vector_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_vector_interface_crc32(starpu_data_handle handle);
 static void display_vector_interface(starpu_data_handle handle, FILE *f);
@@ -79,7 +79,7 @@ static int convert_vector_to_gordon(void *interface, uint64_t *ptr, gordon_strid
 static struct starpu_data_interface_ops_t interface_vector_ops = {
 	.register_data_handle = register_vector_handle,
 	.allocate_data_on_node = allocate_vector_buffer_on_node,
-	.liberate_data_on_node = liberate_vector_buffer_on_node,
+	.free_data_on_node = free_vector_buffer_on_node,
 	.copy_methods = &vector_copy_data_methods_s,
 	.get_size = vector_interface_get_size,
 	.footprint = footprint_vector_interface_crc32,
@@ -268,7 +268,7 @@ static size_t allocate_vector_buffer_on_node(void *interface_, uint32_t dst_node
 	return allocated_memory;
 }
 
-static void liberate_vector_buffer_on_node(void *interface, uint32_t node)
+static void free_vector_buffer_on_node(void *interface, uint32_t node)
 {
 	starpu_vector_interface_t *vector_interface = interface;
 

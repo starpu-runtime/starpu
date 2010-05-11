@@ -389,9 +389,9 @@ int starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 
 		if (*testing_req.flag)
 		{
-			/* The request was completed so we liberate the
-			 * internal request structure which was automatically
-			 * allocated */
+			/* The request was completed so we free the internal
+			 * request structure which was automatically allocated
+			 * */
 			*public_req = NULL;
 			free(req);
 		}
@@ -685,7 +685,7 @@ int starpu_mpi_shutdown(void)
 	starpu_progression_hook_deregister(hookid);
 #endif 
 
-	/* liberate the request queues */
+	/* free the request queues */
 	starpu_mpi_req_list_delete(detached_requests);
 	starpu_mpi_req_list_delete(new_requests);
 

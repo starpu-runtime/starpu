@@ -21,7 +21,7 @@ static pthread_rwlock_t mc_rwlock[STARPU_MAXNODES];
 static starpu_mem_chunk_list_t mc_list[STARPU_MAXNODES];
 static starpu_mem_chunk_list_t mc_list_to_free[STARPU_MAXNODES];
 
-static size_t liberate_memory_on_node(starpu_mem_chunk_t mc, uint32_t node);
+static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node);
 
 void _starpu_init_mem_chunk_lists(void)
 {
@@ -110,7 +110,7 @@ static size_t do_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node)
 	size_t size;
 
 	/* free the actual buffer */
-	size = liberate_memory_on_node(mc, node);
+	size = free_memory_on_node(mc, node);
 
 	/* remove the mem_chunk from the list */
 	starpu_mem_chunk_list_erase(mc_list[node], mc);
@@ -190,7 +190,7 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 
 static size_t try_to_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node)
 {
-	size_t liberated = 0;
+	size_t freed = 0;
 
 	starpu_data_handle handle;
 
@@ -212,14 +212,14 @@ static size_t try_to_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node)
 
 		STARPU_ASSERT(handle->per_node[node].refcnt == 0);
 
-		/* now the actual buffer may be liberated */
-		liberated = do_free_mem_chunk(mc, node);
+		/* now the actual buffer may be freed */
+		freed = do_free_mem_chunk(mc, node);
 	}
 
 	/* unlock the leafs */
 	unlock_all_subtree(handle);
 
-	return liberated;
+	return freed;
 }
 
 #ifdef STARPU_USE_ALLOCATION_CACHE
@@ -294,7 +294,7 @@ static unsigned try_to_reuse_mem_chunk(starpu_mem_chunk_t mc, unsigned node, sta
 }
 
 /* this function looks for a memory chunk that matches a given footprint in the
- * list of mem chunk that need to be liberated */
+ * list of mem chunk that need to be freed */
 static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle data, uint32_t footprint)
 {
 	pthread_rwlock_wrlock(&mc_rwlock[node]);
@@ -330,9 +330,9 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 	     mc != starpu_mem_chunk_list_end(mc_list[node]);
 	     mc = next_mc)
 	{
-		/* there is a risk that the memory chunk is liberated 
-		   before next iteration starts: so we compute the next
-		   element of the list now */
+		/* there is a risk that the memory chunk is freed before next
+		 * iteration starts: so we compute the next element of the list
+		 * now */
 		next_mc = starpu_mem_chunk_list_next(mc);
 
 		if (mc->data->is_not_important && (mc->footprint == footprint))
@@ -353,14 +353,14 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 #endif
 
 /*
- * Liberate the memory chuncks that are explicitely tagged to be liberated. The
+ * Free the memory chuncks that are explicitely tagged to be freed. The
  * mc_rwlock[node] rw-lock should be taken prior to calling this function.
  */
 static size_t perform_mc_removal_requests(uint32_t node)
 {
 	starpu_mem_chunk_t mc, next_mc;
 	
-	size_t liberated = 0;
+	size_t freed = 0;
 
 	for (mc = starpu_mem_chunk_list_begin(mc_list_to_free[node]);
 	     mc != starpu_mem_chunk_list_end(mc_list_to_free[node]);
@@ -368,7 +368,7 @@ static size_t perform_mc_removal_requests(uint32_t node)
 	{
 		next_mc = starpu_mem_chunk_list_next(mc);
 
-		liberated += liberate_memory_on_node(mc, node);
+		freed += free_memory_on_node(mc, node);
 
 		starpu_mem_chunk_list_erase(mc_list_to_free[node], mc);
 
@@ -376,18 +376,18 @@ static size_t perform_mc_removal_requests(uint32_t node)
 		starpu_mem_chunk_delete(mc);
 	}
 
-	return liberated;
+	return freed;
 }
 
 /*
- * Try to liberate the buffers currently in use on the memory node. If the
- * force flag is set, the memory is liberated regardless of coherency concerns
- * (this should only be used at the termination of StarPU for instance). The
+ * Try to free the buffers currently in use on the memory node. If the force
+ * flag is set, the memory is freed regardless of coherency concerns (this
+ * should only be used at the termination of StarPU for instance). The
  * mc_rwlock[node] rw-lock should be taken prior to calling this function.
  */
-static size_t liberate_potentially_in_use_mc(uint32_t node, unsigned force)
+static size_t free_potentially_in_use_mc(uint32_t node, unsigned force)
 {
-	size_t liberated = 0;
+	size_t freed = 0;
 
 	starpu_mem_chunk_t mc, next_mc;
 
@@ -395,27 +395,27 @@ static size_t liberate_potentially_in_use_mc(uint32_t node, unsigned force)
 	     mc != starpu_mem_chunk_list_end(mc_list[node]);
 	     mc = next_mc)
 	{
-		/* there is a risk that the memory chunk is liberated 
+		/* there is a risk that the memory chunk is freed 
 		   before next iteration starts: so we compute the next
 		   element of the list now */
 		next_mc = starpu_mem_chunk_list_next(mc);
 
 		if (!force)
 		{
-			liberated += try_to_free_mem_chunk(mc, node);
+			freed += try_to_free_mem_chunk(mc, node);
 			#if 0
-			if (liberated > toreclaim)
+			if (freed > toreclaim)
 				break;
 			#endif
 		}
 		else {
-			/* We must liberate the memory now: note that data
+			/* We must free the memory now: note that data
 			 * coherency is not maintained in that case ! */
-			liberated += do_free_mem_chunk(mc, node);
+			freed += do_free_mem_chunk(mc, node);
 		}
 	}
 
-	return liberated;
+	return freed;
 }
 
 /* 
@@ -426,44 +426,44 @@ static size_t liberate_potentially_in_use_mc(uint32_t node, unsigned force)
 static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unused)))
 {
 	int res;
-	size_t liberated = 0;
+	size_t freed = 0;
 
 	res = pthread_rwlock_wrlock(&mc_rwlock[node]);
 	STARPU_ASSERT(!res);
 
 	/* remove all buffers for which there was a removal request */
-	liberated += perform_mc_removal_requests(node);
+	freed += perform_mc_removal_requests(node);
 
 	/* try to free all allocated data potentially in use */
-	liberated += liberate_potentially_in_use_mc(node, 0);
+	freed += free_potentially_in_use_mc(node, 0);
 
 	res = pthread_rwlock_unlock(&mc_rwlock[node]);
 	STARPU_ASSERT(!res);
 
-	return liberated;
+	return freed;
 }
 
 /*
- * This function liberates all the memory that was implicitely allocated by
- * StarPU (for the data replicates). This is not ensuring data coherency, and
- * should only be called while StarPU is getting shut down.
+ * This function frees all the memory that was implicitely allocated by StarPU
+ * (for the data replicates). This is not ensuring data coherency, and should
+ * only be called while StarPU is getting shut down.
  */
-size_t _starpu_liberate_all_automatically_allocated_buffers(uint32_t node)
+size_t _starpu_free_all_automatically_allocated_buffers(uint32_t node)
 {
 	int res;
 
-	size_t liberated = 0;
+	size_t freed = 0;
 
 	res = pthread_rwlock_wrlock(&mc_rwlock[node]);
 	STARPU_ASSERT(!res);
 
-	liberated += perform_mc_removal_requests(node);
-	liberated += liberate_potentially_in_use_mc(node, 1);
+	freed += perform_mc_removal_requests(node);
+	freed += free_potentially_in_use_mc(node, 1);
 
 	res = pthread_rwlock_unlock(&mc_rwlock[node]);
 	STARPU_ASSERT(!res);
 
-	return liberated;
+	return freed;
 }
 
 
@@ -537,12 +537,12 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle handle, unsigned node)
 	STARPU_ASSERT(!res);
 }
 
-static size_t liberate_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
+static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
 {
-	size_t liberated = 0;
+	size_t freed = 0;
 
 	STARPU_ASSERT(mc->ops);
-	STARPU_ASSERT(mc->ops->liberate_data_on_node);
+	STARPU_ASSERT(mc->ops->free_data_on_node);
 
 	starpu_data_handle handle = mc->data;
 
@@ -556,7 +556,7 @@ static size_t liberate_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
 	{
 		STARPU_ASSERT(handle->per_node[node].allocated);
 
-		mc->ops->liberate_data_on_node(mc->interface, node);
+		mc->ops->free_data_on_node(mc->interface, node);
 
 		if (!mc->data_was_deleted)
 		{
@@ -566,14 +566,14 @@ static size_t liberate_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
 			handle->per_node[node].automatically_allocated = 0;
 		}
 
-		liberated = mc->size;
+		freed = mc->size;
 
 		STARPU_ASSERT(handle->per_node[node].refcnt == 0);
 	}
 
 //	_starpu_spin_unlock(&handle->header_lock);
 
-	return liberated;
+	return freed;
 }
 
 /*

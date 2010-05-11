@@ -432,9 +432,7 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 		{
 			void *interface = task->interface[index];
 
-//			fprintf(stderr, "liberate interface %p\n", interface);
-
-			handle->ops->liberate_data_on_node(interface, local_node);
+			handle->ops->free_data_on_node(interface, local_node);
 
 			free(interface);
 		}

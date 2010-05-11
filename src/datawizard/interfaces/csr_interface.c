@@ -57,14 +57,14 @@ static const struct starpu_copy_data_methods_s csr_copy_data_methods_s = {
 
 static void register_csr_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
 static size_t allocate_csr_buffer_on_node(void *interface_, uint32_t dst_node);
-static void liberate_csr_buffer_on_node(void *interface, uint32_t node);
+static void free_csr_buffer_on_node(void *interface, uint32_t node);
 static size_t csr_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle handle);
 
 static struct starpu_data_interface_ops_t interface_csr_ops = {
 	.register_data_handle = register_csr_handle,
 	.allocate_data_on_node = allocate_csr_buffer_on_node,
-	.liberate_data_on_node = liberate_csr_buffer_on_node,
+	.free_data_on_node = free_csr_buffer_on_node,
 	.copy_methods = &csr_copy_data_methods_s,
 	.get_size = csr_interface_get_size,
 	.interfaceid = STARPU_CSR_INTERFACE_ID,
@@ -337,7 +337,7 @@ fail_nzval:
 	return allocated_memory;
 }
 
-static void liberate_csr_buffer_on_node(void *interface, uint32_t node)
+static void free_csr_buffer_on_node(void *interface, uint32_t node)
 {
 	starpu_csr_interface_t *csr_interface = interface;	
 

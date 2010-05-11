@@ -98,16 +98,16 @@ struct starpu_task {
 
 	/* If this flag is set, it is not possible to synchronize with the task
 	 * by the means of starpu_task_wait later on. Internal data structures
-	 * are only garanteed to be liberated once starpu_task_wait is called
-	 * if that flag is not set. */
+	 * are only garanteed to be freed once starpu_task_wait is called if
+	 * that flag is not set. */
 	int detach;
 
-	/* If that flag is set, the task structure will automatically be
-	 * liberated, either after the execution of the callback if the task is
-	 * detached, or during starpu_task_wait otherwise. If this flag is not
-	 * set, dynamically allocated data structures will not be liberated
-	 * until starpu_task_destroy is called explicitely. Setting this flag
-	 * for a statically allocated task structure will result in undefined
+	/* If that flag is set, the task structure will automatically be freed,
+	 * either after the execution of the callback if the task is detached,
+	 * or during starpu_task_wait otherwise. If this flag is not set,
+	 * dynamically allocated data structures will not be freed until
+	 * starpu_task_destroy is called explicitely. Setting this flag for a
+	 * statically allocated task structure will result in undefined
 	 * behaviour. */
 	int destroy;
 
@@ -184,22 +184,22 @@ void starpu_task_init(struct starpu_task *task);
 
 /* Release all the structures automatically allocated to execute the task. This
  * is called implicitely by starpu_task_destroy, but the task structure itself
- * is not liberated. This should be used for statically allocated tasks for
+ * is not freed. This should be used for statically allocated tasks for
  * instance. */
 void starpu_task_deinit(struct starpu_task *task);
 
 /* Allocate a task structure and initialize it with default values. Tasks
- * allocated dynamically with starpu_task_create are automatically liberated
- * when the task is terminated. If the destroy flag is explicitely unset, the
- * ressources used by the task are liberated by calling starpu_task_destroy.
+ * allocated dynamically with starpu_task_create are automatically freed when
+ * the task is terminated. If the destroy flag is explicitely unset, the
+ * ressources used by the task are freed by calling starpu_task_destroy.
  * */
 struct starpu_task *starpu_task_create(void);
 
-/* Liberate the ressource allocated during the execution of the task and
- * deallocate the task structure itself. This function can be called
- * automatically after the execution of a task by setting the "destroy" flag of
- * the starpu_task structure (default behaviour). Calling this function on a
- * statically allocated task results in an undefined behaviour. */
+/* Free the ressource allocated during the execution of the task and deallocate
+ * the task structure itself. This function can be called automatically after
+ * the execution of a task by setting the "destroy" flag of the starpu_task
+ * structure (default behaviour). Calling this function on a statically
+ * allocated task results in an undefined behaviour. */
 void starpu_task_destroy(struct starpu_task *task);
 int starpu_task_submit(struct starpu_task *task);
 

@@ -29,7 +29,7 @@ struct starpu_data_interface_ops_t {
 	void (*register_data_handle)(starpu_data_handle handle,
 					uint32_t home_node, void *interface);
 	size_t (*allocate_data_on_node)(void *interface, uint32_t node);
-	void (*liberate_data_on_node)(void *interface, uint32_t node);
+	void (*free_data_on_node)(void *interface, uint32_t node);
 	const struct starpu_copy_data_methods_s *copy_methods;
 	size_t (*get_size)(starpu_data_handle handle);
 	uint32_t (*footprint)(starpu_data_handle handle);
@@ -49,6 +49,6 @@ void _starpu_register_data_handle(starpu_data_handle *handleptr, uint32_t home_n
 /* Some data interfaces or filters use this interface internally */
 extern struct starpu_data_interface_ops_t _starpu_interface_matrix_ops;
 
-void starpu_data_liberate_interfaces(starpu_data_handle handle);
+void starpu_data_free_interfaces(starpu_data_handle handle);
 
 #endif // __DATA_INTERFACE_H__

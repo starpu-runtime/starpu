@@ -69,7 +69,7 @@ static const struct starpu_copy_data_methods_s variable_copy_data_methods_s = {
 
 static void register_variable_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
 static size_t allocate_variable_buffer_on_node(void *interface_, uint32_t dst_node);
-static void liberate_variable_buffer_on_node(void *interface, uint32_t node);
+static void free_variable_buffer_on_node(void *interface, uint32_t node);
 static size_t variable_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_variable_interface_crc32(starpu_data_handle handle);
 static void display_variable_interface(starpu_data_handle handle, FILE *f);
@@ -80,7 +80,7 @@ static int convert_variable_to_gordon(void *interface, uint64_t *ptr, gordon_str
 static struct starpu_data_interface_ops_t interface_variable_ops = {
 	.register_data_handle = register_variable_handle,
 	.allocate_data_on_node = allocate_variable_buffer_on_node,
-	.liberate_data_on_node = liberate_variable_buffer_on_node,
+	.free_data_on_node = free_variable_buffer_on_node,
 	.copy_methods = &variable_copy_data_methods_s,
 	.get_size = variable_interface_get_size,
 	.footprint = footprint_variable_interface_crc32,
@@ -236,7 +236,7 @@ static size_t allocate_variable_buffer_on_node(void *interface_, uint32_t dst_no
 	return allocated_memory;
 }
 
-static void liberate_variable_buffer_on_node(void *interface, uint32_t node)
+static void free_variable_buffer_on_node(void *interface, uint32_t node)
 {
 	starpu_node_kind kind = _starpu_get_node_kind(node);
 	switch(kind) {

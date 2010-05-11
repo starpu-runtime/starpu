@@ -202,7 +202,7 @@ void *_starpu_cpu_worker(void *arg)
 	/* In case there remains some memory that was automatically
 	 * allocated by StarPU, we release it now. Note that data
 	 * coherency is not maintained anymore at that point ! */
-	_starpu_liberate_all_automatically_allocated_buffers(memnode);
+	_starpu_free_all_automatically_allocated_buffers(memnode);
 
 #ifdef STARPU_DATA_STATS
 	fprintf(stderr, "CPU #%d computation %le comm %le (%lf \%%)\n", cpu_arg->devid, cpu_arg->jobq->total_computation_time, cpu_arg->jobq->total_communication_time,  cpu_arg->jobq->total_communication_time*100.0/cpu_arg->jobq->total_computation_time);

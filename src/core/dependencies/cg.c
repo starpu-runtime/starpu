@@ -42,8 +42,8 @@ void _starpu_cg_list_deinit(struct starpu_cg_list_s *list)
 	{
 		starpu_cg_t *cg = list->succ[id];
 
-		/* We remove the reference on the completion group, and
-		 * liberate it if there is no more reference. */		
+		/* We remove the reference on the completion group, and free it
+		 * if there is no more reference. */		
 		unsigned ntags = STARPU_ATOMIC_ADD(&cg->ntags, -1);
 		if (ntags == 0)
 			free(list->succ[id]);

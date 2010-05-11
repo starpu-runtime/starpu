@@ -61,14 +61,14 @@ static const struct starpu_copy_data_methods_s bcsr_copy_data_methods_s = {
 
 static void register_bcsr_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
 static size_t allocate_bcsr_buffer_on_node(void *interface, uint32_t dst_node);
-static void liberate_bcsr_buffer_on_node(void *interface, uint32_t node);
+static void free_bcsr_buffer_on_node(void *interface, uint32_t node);
 static size_t bcsr_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle handle);
 
 static struct starpu_data_interface_ops_t interface_bcsr_ops = {
 	.register_data_handle = register_bcsr_handle,
 	.allocate_data_on_node = allocate_bcsr_buffer_on_node,
-	.liberate_data_on_node = liberate_bcsr_buffer_on_node,
+	.free_data_on_node = free_bcsr_buffer_on_node,
 	.copy_methods = &bcsr_copy_data_methods_s,
 	.get_size = bcsr_interface_get_size,
 	.interfaceid = STARPU_BCSCR_INTERFACE_ID,
@@ -366,7 +366,7 @@ fail_nzval:
 	return allocated_memory;
 }
 
-static void liberate_bcsr_buffer_on_node(void *interface, uint32_t node)
+static void free_bcsr_buffer_on_node(void *interface, uint32_t node)
 {
 	starpu_bcsr_interface_t *bcsr_interface = interface;	
 

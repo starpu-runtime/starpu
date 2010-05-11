@@ -65,8 +65,8 @@ void starpu_task_init(struct starpu_task *task)
 	task->starpu_private = NULL;
 }
 
-/* Liberate all the ressources allocated for a task, without deallocating the
- * task structure itself (this is required for statically allocated tasks). */
+/* Free all the ressources allocated for a task, without deallocating the task
+ * structure itself (this is required for statically allocated tasks). */
 void starpu_task_deinit(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
@@ -92,11 +92,10 @@ struct starpu_task * __attribute__((malloc)) starpu_task_create(void)
 	return task;
 }
 
-/* Liberate the ressource allocated during starpu_task_create. This function
- * can be called automatically after the execution of a task by setting the
- * "destroy" flag of the starpu_task structure (default behaviour). Calling
- * this function on a statically allocated task results in an undefined
- * behaviour. */
+/* Free the ressource allocated during starpu_task_create. This function can be
+ * called automatically after the execution of a task by setting the "destroy"
+ * flag of the starpu_task structure (default behaviour). Calling this function
+ * on a statically allocated task results in an undefined behaviour. */
 void starpu_task_destroy(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);

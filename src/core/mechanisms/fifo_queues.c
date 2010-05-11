@@ -64,7 +64,7 @@ void _starpu_destroy_fifo(struct starpu_jobq_s *jobq)
 {
 	STARPU_ASSERT(jobq);
 
-	/* We first liberate the FIFO-specific data structure */
+	/* We first free the FIFO-specific data structure */
 	struct starpu_fifo_jobq_s *fifo = jobq->queue;
 
 	starpu_job_list_delete(fifo->jobq);

@@ -69,7 +69,7 @@ static const struct starpu_copy_data_methods_s matrix_copy_data_methods_s = {
 
 static void register_matrix_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
 static size_t allocate_matrix_buffer_on_node(void *interface_, uint32_t dst_node);
-static void liberate_matrix_buffer_on_node(void *interface, uint32_t node);
+static void free_matrix_buffer_on_node(void *interface, uint32_t node);
 static size_t matrix_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle handle);
 static void display_matrix_interface(starpu_data_handle handle, FILE *f);
@@ -80,7 +80,7 @@ static int convert_matrix_to_gordon(void *interface, uint64_t *ptr, gordon_strid
 struct starpu_data_interface_ops_t _starpu_interface_matrix_ops = {
 	.register_data_handle = register_matrix_handle,
 	.allocate_data_on_node = allocate_matrix_buffer_on_node,
-	.liberate_data_on_node = liberate_matrix_buffer_on_node,
+	.free_data_on_node = free_matrix_buffer_on_node,
 	.copy_methods = &matrix_copy_data_methods_s,
 	.get_size = matrix_interface_get_size,
 	.footprint = footprint_matrix_interface_crc32,
@@ -311,7 +311,7 @@ static size_t allocate_matrix_buffer_on_node(void *interface_, uint32_t dst_node
 	return allocated_memory;
 }
 
-static void liberate_matrix_buffer_on_node(void *interface, uint32_t node)
+static void free_matrix_buffer_on_node(void *interface, uint32_t node)
 {
 	starpu_matrix_interface_t *matrix_interface = interface;
 

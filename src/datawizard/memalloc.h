@@ -48,6 +48,6 @@ void _starpu_deinit_mem_chunk_lists(void);
 void _starpu_request_mem_chunk_removal(starpu_data_handle handle, unsigned node);
 size_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, uint32_t dst_node);
 int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node, unsigned may_alloc);
-size_t _starpu_liberate_all_automatically_allocated_buffers(uint32_t node);
+size_t _starpu_free_all_automatically_allocated_buffers(uint32_t node);
 
 #endif

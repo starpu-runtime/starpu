@@ -122,7 +122,7 @@ void _starpu_register_data_handle(starpu_data_handle *handleptr, uint32_t home_n
  * Stop monitoring a piece of data
  */
 
-void starpu_data_liberate_interfaces(starpu_data_handle handle)
+void starpu_data_free_interfaces(starpu_data_handle handle)
 {
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -146,7 +146,7 @@ void starpu_data_unregister(starpu_data_handle handle)
 
 	starpu_data_requester_list_delete(handle->req_list);
 
-	starpu_data_liberate_interfaces(handle);
+	starpu_data_free_interfaces(handle);
 
 	free(handle);
 }

@@ -172,7 +172,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 		 * really */
 		STARPU_ASSERT(ret == 0); 
 
-		starpu_data_liberate_interfaces(&root_handle->children[child]);
+		starpu_data_free_interfaces(&root_handle->children[child]);
 	}
 
 	/* the gathering_node should now have a valid copy of all the children.
