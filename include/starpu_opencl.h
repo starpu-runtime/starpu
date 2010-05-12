@@ -166,14 +166,11 @@ extern "C" {
 		case CL_INVALID_MIP_LEVEL:				\
 			errormsg = "Invalid MIP level";                 \
 			break;                                          \
-		case CL_INVALID_GLOBAL_WORK_SIZE:			\
-			errormsg = "Invalid global work size";          \
-			break;                                          \
 		default:						\
 			errormsg = "unknown error";			\
 			break;			                        \
 		}                                                       \
-		printf("oops in %s ... <%s> \n", __func__, errormsg);	\
+		printf("oops in %s ... <%s> (%d) \n", __func__, errormsg, status); \
 		assert(0);	                                        \
 	} while (0)
 
