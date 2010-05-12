@@ -29,7 +29,7 @@ if STARPU_HAVE_MS_LIB
 .libs/libstarpu.lib: libstarpu.la dolib
 	./dolib "$(STARPU_MS_LIB)" X86 .libs/libstarpu.def libstarpu-0 .libs/libstarpu.lib
 all-local: .libs/libstarpu.lib
-endif HWLOC_HAVE_MS_LIB
+endif STARPU_HAVE_MS_LIB
 
 install-exec-hook:
 	$(INSTALL) .libs/libstarpu.def $(DESTDIR)$(libdir)
