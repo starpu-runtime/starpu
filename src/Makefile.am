@@ -164,3 +164,11 @@ if STARPU_USE_OPENCL
 libstarpu_la_SOURCES += drivers/opencl/driver_opencl.c
 libstarpu_la_SOURCES += drivers/opencl/driver_opencl_utils.c
 endif
+
+EXTRA_DIST = dolib.c
+
+if STARPU_HAVE_MS_LIB
+.libs/libstarpu.lib: libstarpu.la dolib
+	./dolib "$(STARPU_MS_LIB)" X86 .libs/libstarpu.def libstarpu-$(STARPU_SOVERSION) .libs/libstarpu.lib
+all-local: .libs/libstarpu.lib
+endif HWLOC_HAVE_MS_LIB
