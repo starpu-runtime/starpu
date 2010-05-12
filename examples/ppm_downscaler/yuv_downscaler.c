@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <stdio.h>
+#include <pthread.h>
 
 #include "yuv_downscaler.h"
 
