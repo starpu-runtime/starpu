@@ -190,11 +190,11 @@ requires to use specific flags or libraries (for instance @code{CUDA} or
 If StarPU was not installed at some standard location, the path of StarPU's
 library must be specified in the @code{PKG_CONFIG_PATH} environment variable so
 that @code{pkg-config} can find it. So if StarPU was installed in
-@code{$(prefix_dir)}:
+@code{$prefix_dir}:
 
 @example
 @c TODO: heu, c'est vraiment du shell ça ? :)
-$ PKG_CONFIG_PATH = @{PKG_CONFIG_PATH@}:$(prefix_dir)/lib/
+$ PKG_CONFIG_PATH = $PKG_CONFIG_PATH:$prefix_dir/lib/pkgconfig
 @end example
 
 The flags required to compiled or linked against StarPU are then
