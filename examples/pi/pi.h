@@ -19,6 +19,7 @@
 
 #include <starpu.h>
 #include <stdio.h>
+#include <sys/time.h>
 
 #define NSHOT_PER_TASK	(16*1024*1024ULL)
 
