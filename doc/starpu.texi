@@ -153,7 +153,8 @@ $ autoreconf -vfi
 $ ./configure
 @end example
 
-@c TODO enumerate the list of interesting options: refer to a specific section
+Details about options that are useful to give to @code{./configure} are given in
+@ref{Configuration options}.
 
 @section Building and Installing StarPU
 
@@ -193,7 +194,6 @@ that @code{pkg-config} can find it. So if StarPU was installed in
 @code{$prefix_dir}:
 
 @example
-@c TODO: heu, c'est vraiment du shell ça ? :)
 $ PKG_CONFIG_PATH = $PKG_CONFIG_PATH:$prefix_dir/lib/pkgconfig
 @end example
 
@@ -212,7 +212,106 @@ $ pkg-config --libs libstarpu    # options for the linker
 @node Configuration options
 @chapter Configuration options
 
-TODO
+@table @asis
+@item @code{--disable-cpu}
+Disable the use of CPUs of the machine. Only GPUs etc. will be used.
+
+@item @code{--enable-maxcudadev=<number>}
+Defines the maximum number of CUDA devices that StarPU will support, then
+available as the STARPU_MAXCUDADEVS macro.
+
+@item @code{--disable-cuda}
+Disable the use of CUDA, even the SDK is detected.
+
+@item @code{--enable-maxopencldev=<number>}
+Defines the maximum number of OpenCL devices that StarPU will support, then
+available as the STARPU_MAXOPENCLDEVS macro.
+
+@item @code{--disable-opencl}
+Disable the use of OpenCL, even the SDK is detected.
+
+@item @code{--enable-gordon}
+Enable the use of the Gordon runtime for Cell SPUs.
+@c TODO: rather default to enabled when detected?
+
+@item @code{--enable-debug}
+Enable debugging messages.
+
+@item @code{--enable-fast}
+Do not enforce assertions, saves a lot of time spent to compute them otherwise.
+
+@item @code{--enable-verbose}
+Augment the verbosity of the debugging messages
+
+@item @code{--enable-coverage}
+Enable flags for the coverage tool.
+
+@item @code{--enable-perf-debug}
+enable performance debugging
+
+@item @code{--enable-model-debug}
+enable performance model debugging
+
+@item @code{--enable-stats}
+enable statistics
+
+@item @code{--enable-maxbuffers=<nbuffers>}
+Defines the maximum number of buffers that tasks will be able to take as parameter, then available as the STARPU_NMAXBUFS macro.
+
+@item @code{--disable-priority}
+Disable taking priorities into account in scheduling decisions. Mostly for
+comparison purposes.
+
+@item @code{--enable-allocation-cache}
+Enable the use of a data allocation cache to avoid the cost of it with
+CUDA. Still experimental.
+
+@item @code{--enable-opengl-render}
+Enable the use of OpenGL for the rendering of some examples.
+@c TODO: rather default to enabled when detected?
+
+@item @code{--enable-blas-lib=<name>}
+Choose the blas library to be used by the examples. Either atlas or goto can be
+used ATM.
+
+@item @code{--with-cuda-dir=<path>}
+Tell where the CUDA SDK resides. This directory should notably contain
+@code{include/cuda.h}.
+
+@item @code{--with-magma=<path>}
+Tell where magma is installed
+
+@item @code{--with-opencl-dir=<path>}
+Tell where the OpenCL SDK is installed. This directory should notably contain
+@code{include/CL/cl.h}.
+
+@item @code{--with-gordon-dir=<path>}
+Tell where the Gordon SDK is installed.
+
+@item @code{--with-fxt=<path>}
+Tell where FxT (for generating traces and rendering them using ViTE) is
+installed. This directory should notably contain @code{include/fxt/fxt.h}.
+
+@item @code{--with-perf-model-dir=<dir>}
+Specify where performance models should be stored (instead of defaulting to the
+current user's home).
+
+@item @code{--with-mpicc=<path to mpicc>}
+Tell the path to the @code{mpicc} compiler to be used for starpumpi.
+@c TODO: rather just use AC_PROG ?
+
+@item @code{--with-mpi}
+Enable building libstarpumpi
+@c TODO: rather just use the availability of mpicc instead of a second option?
+
+@item @code{--with-goto-dir=<dir>}
+Specify where GotoBLAS is installed.
+
+@item @code{--with-atlas-dir=<dir>}
+Specify where ATLAS is installed. This directory should notably contain
+@code{include/cblas.h}.
+
+@end table
 
 @c ---------------------------------------------------------------------
 @c Environment variables
