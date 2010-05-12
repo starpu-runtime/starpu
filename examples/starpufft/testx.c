@@ -140,8 +140,6 @@ int main(int argc, char *argv[]) {
 	STARPUFFT(showstats)(stdout);
 	STARPUFFT(destroy_plan)(plan);
 
-	starpu_shutdown();
-
 	printf("\n");
 #if 0
 	for (i = 0; i < 16; i++)
@@ -223,6 +221,8 @@ int main(int argc, char *argv[]) {
 #ifdef STARPU_USE_CUDA
 	free(out_cuda);
 #endif
+
+	starpu_shutdown();
 
 	return EXIT_SUCCESS;
 }
