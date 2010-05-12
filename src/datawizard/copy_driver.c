@@ -119,13 +119,13 @@ cudaStream_t *stream;
 					}
 					else {
 						cures = cudaEventCreate(&req->async_channel.cuda_event);
-						STARPU_ASSERT(cures == cudaSuccess);
+						if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
 						stream = starpu_cuda_get_local_stream();
 						ret = copy_methods->cuda_to_ram_async(handle, src_node, dst_node, stream);
 
 						cures = cudaEventRecord(req->async_channel.cuda_event, *stream);
-						STARPU_ASSERT(cures == cudaSuccess);
+						if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 					}
 				}
 				else
@@ -182,13 +182,13 @@ cudaStream_t *stream;
 				}
 				else {
 					cures = cudaEventCreate(&req->async_channel.cuda_event);
-					STARPU_ASSERT(cures == cudaSuccess);
+					if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
 					stream = starpu_cuda_get_local_stream();
 					ret = copy_methods->ram_to_cuda_async(handle, src_node, dst_node, stream);
 
 					cures = cudaEventRecord(req->async_channel.cuda_event, *stream);
-					STARPU_ASSERT(cures == cudaSuccess);
+					if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 				}
 				break;
 			case STARPU_CUDA_RAM:
