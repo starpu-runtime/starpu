@@ -20,6 +20,9 @@
 #include <stdio.h>
 #ifndef __MINGW32__
 #include <pthread.h>
+#else
+#include <windows.h>
+#undef interface
 #endif
 #include <starpu.h>
 #include <starpu_config.h>
