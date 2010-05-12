@@ -18,13 +18,35 @@ SUBDIRS =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
+EXTRA_DIST = dolib.c
+
+ldflags =
+
+if STARPU_HAVE_WINDOWS
+ldflags += -Xlinker --output-def .Xlinker .libs/libstarpu.def
+
+if STARPU_HAVE_MS_LIB
+.libs/libstarpu.lib: libstarpu.la dolib
+	./dolib "$(STARPU_MS_LIB)" X86 .libs/libstarpu.def libstarpu-0 .libs/libstarpu.lib
+all-local: .libs/libstarpu.lib
+endif HWLOC_HAVE_MS_LIB
+
+install-exec-hook:
+	$(INSTALL) .libs/libstarpu.def $(DESTDIR)$(libdir)
+if STARPU_HAVE_MS_LIB
+	$(INSTALL) .libs/libstarpu.lib $(DESTDIR)$(libdir)
+	$(INSTALL) .libs/libstarpu.exp $(DESTDIR)$(libdir)
+endif STARPU_HAVE_MS_LIB
+
+endif STARPU_HAVE_WINDOWS
+
 lib_LTLIBRARIES = libstarpu.la
 
 libstarpu_la_CPPFLAGS = -I$(top_srcdir)/include/
 
 libstarpu_la_CFLAGS = -W -Wall -Wextra $(HWLOC_CFLAGS)
 libstarpu_la_LIBADD = -lm $(HWLOC_LIBS)
-libstarpu_la_LDFLAGS = --no-undefined
+libstarpu_la_LDFLAGS = $(ldflags) -version-number 0:0:0 -no-undefined
 
 noinst_HEADERS = 						\
 	core/dependencies/data_concurrency.h			\
@@ -164,11 +186,3 @@ if STARPU_USE_OPENCL
 libstarpu_la_SOURCES += drivers/opencl/driver_opencl.c
 libstarpu_la_SOURCES += drivers/opencl/driver_opencl_utils.c
 endif
-
-EXTRA_DIST = dolib.c
-
-if STARPU_HAVE_MS_LIB
-.libs/libstarpu.lib: libstarpu.la dolib
-	./dolib "$(STARPU_MS_LIB)" X86 .libs/libstarpu.def libstarpu-$(STARPU_SOVERSION) .libs/libstarpu.lib
-all-local: .libs/libstarpu.lib
-endif HWLOC_HAVE_MS_LIB

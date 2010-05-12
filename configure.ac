@@ -44,6 +44,10 @@ AC_C_RESTRICT
 AC_PATH_PROGS([STARPU_MS_LIB], [lib])
 AC_ARG_VAR([STARPU_MS_LIB], [Path to Microsoft's Visual Studio `lib' tool])
 AM_CONDITIONAL([STARPU_HAVE_MS_LIB], [test "x$STARPU_MS_LIB" != "x"])
+case "$target" in
+*-*-mingw*|*-*-cygwin*) starpu_windows=yes ;;
+esac
+AM_CONDITIONAL([STARPU_HAVE_WINDOWS], [test "x$starpu_windows" = "xyes"])
 
 # on Darwin, GCC targets i386 by default, so we don't have atomic ops
 case "$target" in
