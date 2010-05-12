@@ -16,6 +16,7 @@
 
 #include <starpu.h>
 #include <pthread.h>
+#include <sys/time.h>
 
 static unsigned niter = 50000;
 
