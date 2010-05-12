@@ -250,6 +250,7 @@ static int compar_dev_timing(const void *left_dev_timing, const void *right_dev_
 	return (bandwidth_sum2_left < bandwidth_sum2_right);
 }
 
+#ifdef STARPU_HAVE_HWLOC
 static int find_numa_node(hwloc_obj_t obj)
 {
 	STARPU_ASSERT(obj);
@@ -269,6 +270,7 @@ static int find_numa_node(hwloc_obj_t obj)
 
 	return current->logical_index; 
 }
+#endif
 
 static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *dev_timing_per_cpu, char type)
 {
