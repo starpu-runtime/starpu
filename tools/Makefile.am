@@ -41,4 +41,6 @@ endif
 bin_PROGRAMS +=	perfmodel_display
 perfmodel_display_SOURCES = perfmodel_display.c
 
-noinst_HEADERS = fxt_tool.h
+noinst_HEADERS = \
+	fxt_tool.h	\
+	histo_paje.h
