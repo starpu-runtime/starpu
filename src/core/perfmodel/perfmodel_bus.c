@@ -447,7 +447,11 @@ static void get_bus_path(const char *type, char *path, size_t maxlen)
 	strncat(path, type, maxlen);
 
 	char hostname[32];
+#ifndef __MINGW32__
 	gethostname(hostname, 32);
+#else
+	snprintf(hostname, sizeof(hostname), "localhost");
+#endif
 	strncat(path, ".", maxlen);
 	strncat(path, hostname, maxlen);
 }

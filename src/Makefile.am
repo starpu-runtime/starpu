@@ -23,7 +23,7 @@ EXTRA_DIST = dolib.c
 ldflags =
 
 if STARPU_HAVE_WINDOWS
-ldflags += -Xlinker --output-def .Xlinker .libs/libstarpu.def
+ldflags += -Xlinker --output-def -Xlinker .libs/libstarpu.def
 
 if STARPU_HAVE_MS_LIB
 .libs/libstarpu.lib: libstarpu.la dolib
