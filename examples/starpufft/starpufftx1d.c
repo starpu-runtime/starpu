@@ -94,6 +94,8 @@ STARPUFFT(fft1_1d_kernel_gpu)(void *descr[], void *_args)
 
 	int workerid = starpu_worker_get_id();
 
+	task_per_worker[workerid]++;
+
 	cudaStream_t stream;
 
 	if (!plan->plans[workerid].initialized1) {
@@ -133,6 +135,8 @@ STARPUFFT(fft2_1d_kernel_gpu)(void *descr[], void *_args)
 	_cufftComplex * restrict out = (_cufftComplex *)STARPU_GET_VECTOR_PTR(descr[1]);
 
 	int workerid = starpu_worker_get_id();
+
+	task_per_worker[workerid]++;
 
 	if (!plan->plans[workerid].initialized2) {
 		cures = cufftPlan1d(&plan->plans[workerid].plan2_cuda, n1, _CUFFT_C2C, n3);
@@ -189,6 +193,8 @@ STARPUFFT(fft1_1d_kernel_cpu)(void *descr[], void *_args)
 	int n2 = plan->n2[0];
 	int workerid = starpu_worker_get_id();
 
+	task_per_worker[workerid]++;
+
 	const STARPUFFT(complex) * restrict twisted1 = (STARPUFFT(complex) *)STARPU_GET_VECTOR_PTR(descr[0]);
 	STARPUFFT(complex) * restrict fft1 = (STARPUFFT(complex) *)STARPU_GET_VECTOR_PTR(descr[1]);
 
@@ -244,6 +250,8 @@ STARPUFFT(fft2_1d_kernel_cpu)(void *descr[], void *_args)
 	STARPUFFT(plan) plan = args->plan;
 	//int jj = args->jj;
 	int workerid = starpu_worker_get_id();
+
+	task_per_worker[workerid]++;
 
 	const STARPUFFT(complex) * restrict twisted2 = (STARPUFFT(complex) *)STARPU_GET_VECTOR_PTR(descr[0]);
 	STARPUFFT(complex) * restrict fft2 = (STARPUFFT(complex) *)STARPU_GET_VECTOR_PTR(descr[1]);
