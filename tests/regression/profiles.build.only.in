@@ -12,3 +12,5 @@
 --enable-cuda --disable-opencl
 # Build configuration
 --disable-cuda --enable-opencl
+# Build configuration
+--with-fxt
