@@ -326,7 +326,8 @@ Specify where ATLAS is installed. This directory should notably contain
 * Misc::        Miscellaneous and debug
 @end menu
 
-TODO, explicit configuration (passed to starpu_init) overrides env variables.
+Note: the values given in @code{starpu_conf} structure passed to starpu_init
+will override the values of the environment variables.
 
 @node Workers
 @section Configuring workers
@@ -445,7 +446,9 @@ OpenCL equivalent of the @code{STARPU_WORKERS_CUDAID} environment variable.
 @table @asis
 
 @item @emph{Description}:
-TODO
+
+This chooses between the different scheduling policies proposed by StarPU: work
+random, stealing, greedy, with performance models, etc.
 
 Use @code{STARPU_SCHED=help} to get the list of available schedulers
 
@@ -456,9 +459,10 @@ Use @code{STARPU_SCHED=help} to get the list of available schedulers
 @table @asis
 
 @item @emph{Description}:
-If this variable is set, the performance models are calibrated during the execution.
+If this variable is set to 1, the performance models are calibrated during
+the execution. If it is set to 2, the previous values are dropped to restart
+calibration from scratch.
 
-TODO
 Note: this currently only applies to dm and dmda scheduling policies.
 
 @end table
@@ -468,7 +472,10 @@ Note: this currently only applies to dm and dmda scheduling policies.
 @table @asis
 
 @item @emph{Description}:
-TODO
+If this variable is set, data prefetching will be enable, that is when a task is
+scheduled to be executed e.g. on a GPU, StarPU will request an asynchronous
+transfer in advance, so that data is already present on the GPU when the task
+starts. As a result, computation and data transfers are overlapped.
 
 @end table
 
@@ -477,7 +484,9 @@ TODO
 @table @asis
 
 @item @emph{Description}:
-TODO
+To estimate the cost of a task StarPU takes into account the estimated
+computation time (obtained thanks to performance models). The alpha factor is
+the coefficient to be applied to it before adding it to the communication part.
 
 @end table
 
@@ -486,7 +495,9 @@ TODO
 @table @asis
 
 @item @emph{Description}:
-TODO
+To estimate the cost of a task StarPU takes into account the estimated
+data transfer time (obtained thanks to performance models). The beta factor is
+the coefficient to be applied to it before adding it to the computation part.
 
 @end table
 
@@ -502,7 +513,7 @@ TODO
 @table @asis
 
 @item @emph{Description}:
-TODO
+This variable tells to which file the debugging output should go.
 
 @end table
 
@@ -1473,8 +1484,10 @@ starpu_vector_data_register(&tab_handle, 0, tab, n, sizeof(float));
 
 The first argument, called the @b{data handle}, is an opaque pointer which
 designates the array in StarPU. This is also the structure which is used to
-describe which data is used by a task.
-@c TODO: what is 0 ?
+describe which data is used by a task. The second argument is the node number
+where the data currently resides. Here it is 0 since the @code{tab} array is in
+the main memory. Then comes the pointer @code{tab} where the data can be found,
+the number of elements in the vector and the size of each element.
 It is possible to construct a StarPU
 task that multiplies this vector by a constant factor:
 @example
