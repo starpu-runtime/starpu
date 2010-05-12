@@ -18,7 +18,9 @@
 #define __STARPU_PERFMODEL_H__
 
 #include <stdio.h>
+#ifndef __MINGW32__
 #include <pthread.h>
+#endif
 #include <starpu.h>
 #include <starpu_config.h>
 #include <starpu_task.h>
@@ -100,7 +102,11 @@ struct starpu_perfmodel_t {
 	} is_loaded;
 	unsigned benchmarking;
 
+#ifndef __MINGW32__
 	pthread_rwlock_t model_rwlock;
+#else
+	HANDLE model_rwlock;
+#endif
 };
 
 /* This function is intended to be used by external tools that should read the
