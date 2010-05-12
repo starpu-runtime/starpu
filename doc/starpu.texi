@@ -232,7 +232,7 @@ Disable the use of OpenCL, even the SDK is detected.
 
 @item @code{--enable-gordon}
 Enable the use of the Gordon runtime for Cell SPUs.
-@c TODO: rather default to enabled when detected?
+@c TODO: rather default to enabled when detected
 
 @item @code{--enable-debug}
 Enable debugging messages.
@@ -268,7 +268,7 @@ CUDA. Still experimental.
 
 @item @code{--enable-opengl-render}
 Enable the use of OpenGL for the rendering of some examples.
-@c TODO: rather default to enabled when detected?
+@c TODO: rather default to enabled when detected
 
 @item @code{--enable-blas-lib=<name>}
 Choose the blas library to be used by the examples. Either atlas or goto can be
@@ -298,11 +298,11 @@ current user's home).
 
 @item @code{--with-mpicc=<path to mpicc>}
 Tell the path to the @code{mpicc} compiler to be used for starpumpi.
-@c TODO: rather just use AC_PROG ?
+@c TODO: also just use AC_PROG
 
 @item @code{--with-mpi}
 Enable building libstarpumpi
-@c TODO: rather just use the availability of mpicc instead of a second option?
+@c TODO: rather just use the availability of mpicc instead of a second option
 
 @item @code{--with-goto-dir=<dir>}
 Specify where GotoBLAS is installed.
