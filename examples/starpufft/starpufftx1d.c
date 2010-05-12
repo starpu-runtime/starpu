@@ -69,11 +69,9 @@ STARPUFFT(twist1_1d_kernel_gpu)(void *descr[], void *_args)
 	_cufftComplex * restrict in = (_cufftComplex *)STARPU_GET_VECTOR_PTR(descr[0]);
 	_cufftComplex * restrict twisted1 = (_cufftComplex *)STARPU_GET_VECTOR_PTR(descr[1]);
 	
-	cudaStream_t stream = STARPUFFT(get_local_stream)(plan, starpu_worker_get_id());
+	STARPUFFT(cuda_twist1_1d_host)(in, twisted1, i, n1, n2);
 
-	STARPUFFT(cuda_twist1_1d_host)(in, twisted1, i, n1, n2, stream);
-
-	cudaStreamSynchronize(stream);
+	cudaThreadSynchronize();
 }
 
 /* fft1:
@@ -96,26 +94,19 @@ STARPUFFT(fft1_1d_kernel_gpu)(void *descr[], void *_args)
 
 	task_per_worker[workerid]++;
 
-	cudaStream_t stream;
-
 	if (!plan->plans[workerid].initialized1) {
 		cures = cufftPlan1d(&plan->plans[workerid].plan1_cuda, n2, _CUFFT_C2C, 1);
-
-		stream = STARPUFFT(get_local_stream)(plan, workerid);
-		cufftSetStream(plan->plans[workerid].plan1_cuda, stream);
 
 		STARPU_ASSERT(cures == CUFFT_SUCCESS);
 		plan->plans[workerid].initialized1 = 1;
 	}
 
-	stream = plan->plans[workerid].stream;
-
 	cures = _cufftExecC2C(plan->plans[workerid].plan1_cuda, in, out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
 
-	STARPUFFT(cuda_twiddle_1d_host)(out, roots, n2, i, stream);
+	STARPUFFT(cuda_twiddle_1d_host)(out, roots, n2, i);
 
-	cudaStreamSynchronize(plan->plans[workerid].stream);
+	cudaThreadSynchronize();
 }
 
 /* fft2:
@@ -141,9 +132,6 @@ STARPUFFT(fft2_1d_kernel_gpu)(void *descr[], void *_args)
 	if (!plan->plans[workerid].initialized2) {
 		cures = cufftPlan1d(&plan->plans[workerid].plan2_cuda, n1, _CUFFT_C2C, n3);
 
-		cudaStream_t stream = STARPUFFT(get_local_stream)(plan, workerid);
-		cufftSetStream(plan->plans[workerid].plan2_cuda, stream);
-
 		STARPU_ASSERT(cures == CUFFT_SUCCESS);
 		plan->plans[workerid].initialized2 = 1;
 	}
@@ -152,7 +140,7 @@ STARPUFFT(fft2_1d_kernel_gpu)(void *descr[], void *_args)
 	cures = _cufftExecC2C(plan->plans[workerid].plan2_cuda, in, out, plan->sign == -1 ? CUFFT_FORWARD : CUFFT_INVERSE);
 	STARPU_ASSERT(cures == CUFFT_SUCCESS);
 
-	cudaStreamSynchronize(plan->plans[workerid].stream);
+	cudaThreadSynchronize();
 }
 #endif
 

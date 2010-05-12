@@ -85,11 +85,6 @@ struct STARPUFFT(plan) {
 		cufftHandle plan1_cuda, plan2_cuda;
 		/* Whether the plans above are initialized */
 		int initialized1, initialized2;
-		/* The stream used on that GPU: FIXME: is this really still
-		 * needed? */
-		cudaStream_t stream;
-		/* Whether the stream above is initialized */
-		int stream_is_initialized;
 #endif
 #ifdef STARPU_HAVE_FFTW
 		/* FFTW plans */
@@ -118,21 +113,6 @@ struct STARPUFFT(args) {
 	struct STARPUFFT(plan) *plan;
 	int i, j, jj, kk, ll, *iv, *kkv;
 };
-
-#ifdef STARPU_USE_CUDA
-cudaStream_t
-STARPUFFT(get_local_stream)(STARPUFFT(plan) plan, int workerid)
-{
-	if (!plan->plans[workerid].stream_is_initialized)
-	{
-		cudaStreamCreate(&plan->plans[workerid].stream);
-
-		plan->plans[workerid].stream_is_initialized = 1;
-	}
-
-	return plan->plans[workerid].stream;
-}
-#endif
 
 static void
 check_dims(STARPUFFT(plan) plan)
