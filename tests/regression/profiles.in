@@ -5,7 +5,7 @@
 # Build configuration
 --enable-debug --enable-verbose
 # Execution configuration
-STARPU_LOGFILENAME=starpu_run.log
+STARPU_LOGFILENAME=/tmp/starpu_run.log
 #
 # Build configuration
 
