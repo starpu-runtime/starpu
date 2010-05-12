@@ -21,6 +21,7 @@
 #include <common/config.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <pthread.h>
 
 int _starpu_mkpath(const char *s, mode_t mode);
 int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex);
