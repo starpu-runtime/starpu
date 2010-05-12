@@ -7,4 +7,8 @@
 # Build configuration
 --disable-cuda
 # Build configuration
---enable-debug --enable-opencl
+--disable-cuda --disable-opencl
+# Build configuration
+--enable-cuda --disable-opencl
+# Build configuration
+--disable-cuda --enable-opencl
