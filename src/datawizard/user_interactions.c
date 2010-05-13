@@ -21,6 +21,8 @@
 #include <datawizard/write_back.h>
 #include <core/dependencies/data_concurrency.h>
 
+/* Explicitly ask StarPU to allocate room for a piece of data on the specified
+ * memory node. */
 int starpu_data_request_allocation(starpu_data_handle handle, uint32_t node)
 {
 	starpu_data_request_t r;
@@ -49,6 +51,9 @@ struct state_and_node {
 	void *callback_arg;
 };
 
+/*
+ *	Non Blocking data request from application
+ */
 /* put the current value of the data into RAM */
 static inline void _starpu_sync_data_with_mem_continuation_non_blocking(void *arg)
 {
@@ -72,6 +77,62 @@ static inline void _starpu_sync_data_with_mem_continuation_non_blocking(void *ar
 
 	free(statenode);
 }
+
+/* The data must be released by calling starpu_data_release_from_mem later on */
+int starpu_data_sync_with_mem_non_blocking(starpu_data_handle handle,
+		starpu_access_mode mode, void (*callback)(void *), void *arg)
+{
+	STARPU_ASSERT(handle);
+
+	struct state_and_node *statenode = malloc(sizeof(struct state_and_node));
+	STARPU_ASSERT(statenode);
+
+	statenode->state = handle;
+	statenode->mode = mode;
+	statenode->callback = callback;
+	statenode->callback_arg = arg;
+	PTHREAD_COND_INIT(&statenode->cond, NULL);
+	PTHREAD_MUTEX_INIT(&statenode->lock, NULL);
+	statenode->finished = 0;
+
+	/* we try to get the data, if we do not succeed immediately, we set a
+ 	* callback function that will be executed automatically when the data is
+ 	* available again, otherwise we fetch the data directly */
+	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode,
+			_starpu_sync_data_with_mem_continuation_non_blocking, statenode))
+	{
+		/* no one has locked this data yet, so we proceed immediately */
+		_starpu_sync_data_with_mem_continuation_non_blocking(statenode);
+	}
+
+	return 0;
+}
+
+/*
+ *	Block data request from application
+ */
+static inline void _starpu_sync_data_with_mem_continuation(void *arg)
+{
+	int ret;
+	struct state_and_node *statenode = arg;
+
+	starpu_data_handle handle = statenode->state;
+
+	STARPU_ASSERT(handle);
+
+	unsigned r = (statenode->mode & STARPU_R);
+	unsigned w = (statenode->mode & STARPU_W);
+
+	ret = _starpu_fetch_data_on_node(handle, 0, r, w, 0);
+	STARPU_ASSERT(!ret);
+	
+	/* continuation of starpu_data_sync_with_mem */
+	PTHREAD_MUTEX_LOCK(&statenode->lock);
+	statenode->finished = 1;
+	PTHREAD_COND_SIGNAL(&statenode->cond);
+	PTHREAD_MUTEX_UNLOCK(&statenode->lock);
+}
+
 
 /* The data must be released by calling starpu_data_release_from_mem later on */
 int starpu_data_sync_with_mem(starpu_data_handle handle, starpu_access_mode mode)
@@ -106,59 +167,6 @@ int starpu_data_sync_with_mem(starpu_data_handle handle, starpu_access_mode mode
 		while (!statenode.finished)
 			PTHREAD_COND_WAIT(&statenode.cond, &statenode.lock);
 		PTHREAD_MUTEX_UNLOCK(&statenode.lock);
-	}
-
-	return 0;
-}
-
-
-static inline void _starpu_sync_data_with_mem_continuation(void *arg)
-{
-	int ret;
-	struct state_and_node *statenode = arg;
-
-	starpu_data_handle handle = statenode->state;
-
-	STARPU_ASSERT(handle);
-
-	unsigned r = (statenode->mode & STARPU_R);
-	unsigned w = (statenode->mode & STARPU_W);
-
-	ret = _starpu_fetch_data_on_node(handle, 0, r, w, 0);
-	STARPU_ASSERT(!ret);
-	
-	/* continuation of starpu_data_sync_with_mem */
-	PTHREAD_MUTEX_LOCK(&statenode->lock);
-	statenode->finished = 1;
-	PTHREAD_COND_SIGNAL(&statenode->cond);
-	PTHREAD_MUTEX_UNLOCK(&statenode->lock);
-}
-
-/* The data must be released by calling starpu_data_release_from_mem later on */
-int starpu_data_sync_with_mem_non_blocking(starpu_data_handle handle,
-		starpu_access_mode mode, void (*callback)(void *), void *arg)
-{
-	STARPU_ASSERT(handle);
-
-	struct state_and_node *statenode = malloc(sizeof(struct state_and_node));
-	STARPU_ASSERT(statenode);
-
-	statenode->state = handle;
-	statenode->mode = mode;
-	statenode->callback = callback;
-	statenode->callback_arg = arg;
-	PTHREAD_COND_INIT(&statenode->cond, NULL);
-	PTHREAD_MUTEX_INIT(&statenode->lock, NULL);
-	statenode->finished = 0;
-
-	/* we try to get the data, if we do not succeed immediately, we set a
- 	* callback function that will be executed automatically when the data is
- 	* available again, otherwise we fetch the data directly */
-	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode,
-			_starpu_sync_data_with_mem_continuation_non_blocking, statenode))
-	{
-		/* no one has locked this data yet, so we proceed immediately */
-		_starpu_sync_data_with_mem_continuation_non_blocking(statenode);
 	}
 
 	return 0;
