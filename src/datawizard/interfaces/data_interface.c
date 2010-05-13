@@ -33,9 +33,6 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	/* first take care to properly lock the data */
 	_starpu_spin_lock(&handle->header_lock);
 
-	/* we assume that all nodes may use that data */
-	handle->nnodes = STARPU_MAXNODES;
-
 	/* there is no hierarchy yet */
 	handle->nchildren = 0;
 	handle->root_handle = handle;
