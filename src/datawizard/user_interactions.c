@@ -45,13 +45,12 @@ struct state_and_node {
 	pthread_mutex_t lock;
 	unsigned finished;
 	unsigned async;
-	unsigned non_blocking;
 	void (*callback)(void *);
 	void *callback_arg;
 };
 
 /* put the current value of the data into RAM */
-static inline void _starpu_sync_data_with_mem_continuation(void *arg)
+static inline void _starpu_sync_data_with_mem_continuation_non_blocking(void *arg)
 {
 	int ret;
 	struct state_and_node *statenode = arg;
@@ -66,22 +65,12 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 	ret = _starpu_fetch_data_on_node(handle, 0, r, w, 0);
 	STARPU_ASSERT(!ret);
 	
-	if (statenode->non_blocking)
-	{
-		/* continuation of starpu_data_sync_with_mem_non_blocking: we
-		 * execute the callback if any  */
-		if (statenode->callback)
-			statenode->callback(statenode->callback_arg);
+	/* continuation of starpu_data_sync_with_mem_non_blocking: we
+	 * execute the callback if any  */
+	if (statenode->callback)
+		statenode->callback(statenode->callback_arg);
 
-		free(statenode);
-	}
-	else {
-		/* continuation of starpu_data_sync_with_mem */
-		PTHREAD_MUTEX_LOCK(&statenode->lock);
-		statenode->finished = 1;
-		PTHREAD_COND_SIGNAL(&statenode->cond);
-		PTHREAD_MUTEX_UNLOCK(&statenode->lock);
-	}
+	free(statenode);
 }
 
 /* The data must be released by calling starpu_data_release_from_mem later on */
@@ -98,7 +87,6 @@ int starpu_data_sync_with_mem(starpu_data_handle handle, starpu_access_mode mode
 		.state = handle,
 		.mode = mode,
 		.node = 0, // unused
-		.non_blocking = 0,
 		.cond = PTHREAD_COND_INITIALIZER,
 		.lock = PTHREAD_MUTEX_INITIALIZER,
 		.finished = 0
@@ -123,6 +111,29 @@ int starpu_data_sync_with_mem(starpu_data_handle handle, starpu_access_mode mode
 	return 0;
 }
 
+
+static inline void _starpu_sync_data_with_mem_continuation(void *arg)
+{
+	int ret;
+	struct state_and_node *statenode = arg;
+
+	starpu_data_handle handle = statenode->state;
+
+	STARPU_ASSERT(handle);
+
+	unsigned r = (statenode->mode & STARPU_R);
+	unsigned w = (statenode->mode & STARPU_W);
+
+	ret = _starpu_fetch_data_on_node(handle, 0, r, w, 0);
+	STARPU_ASSERT(!ret);
+	
+	/* continuation of starpu_data_sync_with_mem */
+	PTHREAD_MUTEX_LOCK(&statenode->lock);
+	statenode->finished = 1;
+	PTHREAD_COND_SIGNAL(&statenode->cond);
+	PTHREAD_MUTEX_UNLOCK(&statenode->lock);
+}
+
 /* The data must be released by calling starpu_data_release_from_mem later on */
 int starpu_data_sync_with_mem_non_blocking(starpu_data_handle handle,
 		starpu_access_mode mode, void (*callback)(void *), void *arg)
@@ -134,7 +145,6 @@ int starpu_data_sync_with_mem_non_blocking(starpu_data_handle handle,
 
 	statenode->state = handle;
 	statenode->mode = mode;
-	statenode->non_blocking = 1;
 	statenode->callback = callback;
 	statenode->callback_arg = arg;
 	PTHREAD_COND_INIT(&statenode->cond, NULL);
@@ -145,10 +155,10 @@ int starpu_data_sync_with_mem_non_blocking(starpu_data_handle handle,
  	* callback function that will be executed automatically when the data is
  	* available again, otherwise we fetch the data directly */
 	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode,
-			_starpu_sync_data_with_mem_continuation, statenode))
+			_starpu_sync_data_with_mem_continuation_non_blocking, statenode))
 	{
 		/* no one has locked this data yet, so we proceed immediately */
-		_starpu_sync_data_with_mem_continuation(statenode);
+		_starpu_sync_data_with_mem_continuation_non_blocking(statenode);
 	}
 
 	return 0;
@@ -163,8 +173,6 @@ void starpu_data_release_from_mem(starpu_data_handle handle)
 	/* The application can now release the rw-lock */
 	_starpu_release_data_on_node(handle, 0, 0);
 }
-
-
 
 static void _prefetch_data_on_node(void *arg)
 {
