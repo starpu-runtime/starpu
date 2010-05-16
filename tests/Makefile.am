@@ -86,6 +86,7 @@ check_PROGRAMS += 				\
 	core/empty_task				\
 	core/empty_task_sync_point		\
 	core/empty_task_sync_point_tasks	\
+	core/empty_task_chain			\
 	core/tag_wait_api			\
 	core/task_wait_api			\
 	core/declare_deps_in_callback		\
@@ -161,6 +162,9 @@ core_empty_task_sync_point_SOURCES =		\
 
 core_empty_task_sync_point_tasks_SOURCES =	\
 	core/empty_task_sync_point_tasks.c
+
+core_empty_task_chain_SOURCES =			\
+	core/empty_task_chain.c
 
 core_tag_wait_api_SOURCES =			\
 	core/tag_wait_api.c
