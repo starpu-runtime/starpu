@@ -85,6 +85,7 @@ check_PROGRAMS += 				\
 	core/subgraph_repeat_regenerate		\
 	core/empty_task				\
 	core/empty_task_sync_point		\
+	core/empty_task_sync_point_tasks	\
 	core/tag_wait_api			\
 	core/task_wait_api			\
 	core/declare_deps_in_callback		\
@@ -157,6 +158,9 @@ core_empty_task_SOURCES =			\
 
 core_empty_task_sync_point_SOURCES =		\
 	core/empty_task_sync_point.c
+
+core_empty_task_sync_point_tasks_SOURCES =	\
+	core/empty_task_sync_point_tasks.c
 
 core_tag_wait_api_SOURCES =			\
 	core/tag_wait_api.c
