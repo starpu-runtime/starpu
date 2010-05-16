@@ -256,7 +256,7 @@ void *_starpu_cuda_worker(void *arg)
 		if (!STARPU_CUDA_MAY_PERFORM(j))
 		{
 			/* this is neither a cuda or a cublas task */
-			_starpu_push_task(j);
+			_starpu_push_task(j, 0);
 			continue;
 		}
 
@@ -270,7 +270,7 @@ void *_starpu_cuda_worker(void *arg)
 			switch (res) {
 				case -EAGAIN:
 					fprintf(stderr, "ouch, put the codelet %p back ... \n", j);
-					_starpu_push_task(j);
+					_starpu_push_task(j, 0);
 					STARPU_ABORT();
 					continue;
 				default:
@@ -278,7 +278,7 @@ void *_starpu_cuda_worker(void *arg)
 			}
 		}
 
-		_starpu_handle_job_termination(j);
+		_starpu_handle_job_termination(j, 0);
 	}
 
 	STARPU_TRACE_WORKER_DEINIT_START

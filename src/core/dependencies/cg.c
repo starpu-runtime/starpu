@@ -175,7 +175,21 @@ void _starpu_notify_cg_list(struct starpu_cg_list_s *successors)
 		if (cg_type == STARPU_CG_TASK)
 		{
 			starpu_job_t j = cg->succ.job;
+			
+			/* In case this task was immediately terminated, since
+			 * _starpu_notify_cg_list already hold the sync_mutex
+			 * lock, it is its reponsability to destroy the task if
+			 * needed. */
+			unsigned must_destroy_task = 0;
+			struct starpu_task *task = j->task;
+
+			if ((j->terminated > 0) && task->destroy && task->detach)
+				must_destroy_task = 1;
+
 			PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+
+			if (must_destroy_task)
+				starpu_task_destroy(task);
 		}			
 
 		if (cg_type == STARPU_CG_APPS) {

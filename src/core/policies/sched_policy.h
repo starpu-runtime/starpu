@@ -58,7 +58,7 @@ void _starpu_deinit_sched_policy(struct starpu_machine_config_s *config);
 
 int _starpu_get_prefetch_flag(void);
 
-int _starpu_push_task(starpu_job_t task);
+int _starpu_push_task(starpu_job_t task, unsigned job_is_already_locked);
 struct starpu_job_s *_starpu_pop_task(void);
 struct starpu_job_s *_starpu_pop_task_from_queue(struct starpu_jobq_s *queue);
 struct starpu_job_list_s *_starpu_pop_every_task(uint32_t where);

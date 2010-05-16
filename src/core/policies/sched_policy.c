@@ -202,7 +202,7 @@ void _starpu_deinit_sched_policy(struct starpu_machine_config_s *config)
 }
 
 /* the generic interface that call the proper underlying implementation */
-int _starpu_push_task(starpu_job_t j)
+int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 {
 	struct starpu_jobq_s *queue = policy.starpu_get_local_queue(&policy);
 
@@ -211,7 +211,7 @@ int _starpu_push_task(starpu_job_t j)
 	 * corresponding dependencies */
 	if (j->task->cl == NULL)
 	{
-		_starpu_handle_job_termination(j);
+		_starpu_handle_job_termination(j, job_is_already_locked);
 		return 0;
 	}
 

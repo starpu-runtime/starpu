@@ -79,13 +79,12 @@ void _starpu_wait_job(starpu_job_t j);
 
 /* try to submit job j, enqueue it if it's not schedulable yet */
 unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j, unsigned job_is_already_locked);
-unsigned _starpu_enforce_deps_starting_from_task(starpu_job_t j);
-unsigned _starpu_enforce_deps_starting_from_data(starpu_job_t j);
+unsigned _starpu_enforce_deps_starting_from_task(starpu_job_t j, unsigned job_is_already_locked);
 
 
 //#warning this must not be exported anymore ... 
 //starpu_job_t _starpu_job_create(struct starpu_task *task);
-void _starpu_handle_job_termination(starpu_job_t j);
+void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_locked);
 size_t _starpu_job_get_data_size(starpu_job_t j);
 
 starpu_job_t _starpu_pop_local_task(struct starpu_worker_s *worker);

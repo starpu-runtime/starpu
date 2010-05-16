@@ -172,7 +172,7 @@ static struct gordon_task_wrapper_s *starpu_to_gordon_job(starpu_job_t j)
 static void handle_terminated_job(starpu_job_t j)
 {
 	_starpu_push_task_output(j->task, 0);
-	_starpu_handle_job_termination(j);
+	_starpu_handle_job_termination(j, 0);
 	starpu_wake_all_blocked_workers();
 }
 
@@ -210,7 +210,7 @@ static void gordon_callback_list_func(void *arg)
 		}
 
 		_starpu_push_task_output(j->task, 0);
-		_starpu_handle_job_termination(j);
+		_starpu_handle_job_termination(j, 0);
 		//starpu_wake_all_blocked_workers();
 
 		task_cnt++;
@@ -398,7 +398,7 @@ void *gordon_worker_inject(struct starpu_worker_set_s *arg)
 					inject_task(j, &arg->workers[0]);
 				}
 				else {
-					_starpu_push_task(j);
+					_starpu_push_task(j, 0);
 				}
 			}
 #endif

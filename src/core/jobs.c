@@ -92,12 +92,14 @@ void _starpu_wait_job(starpu_job_t j)
 	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 }
 
-void _starpu_handle_job_termination(starpu_job_t j)
+void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_locked)
 {
 	struct starpu_task *task = j->task;
 
+	if (!job_is_already_locked)
+		PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+
 	/* in case there are dependencies, wake up the proper tasks */
-	PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	j->submitted = 0;
 	_starpu_notify_dependencies(j);
 
@@ -106,7 +108,9 @@ void _starpu_handle_job_termination(starpu_job_t j)
 	 * function. A value of 1 means that the codelet was executed but that
 	 * the callback is not done yet. */
 	j->terminated = 1;
-	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+
+	if (!job_is_already_locked)
+		PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	/* the callback is executed after the dependencies so that we may remove the tag 
  	 * of the task itself */
@@ -138,17 +142,22 @@ void _starpu_handle_job_termination(starpu_job_t j)
 	{
 		/* we do not desallocate the job structure if some is going to
 		 * wait after the task */
-		PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+		if (!job_is_already_locked)
+			PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 		/* A value of 2 is put to specify that not only the codelet but
 		 * also the callback were executed. */
 		j->terminated = 2;
 		PTHREAD_COND_BROADCAST(&j->sync_cond);
-		PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+
+		if (!job_is_already_locked)
+			PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 	}
 	else {
 		/* no one is going to synchronize with that task so we release
- 		 * the data structures now */
-		if (destroy)
+		 * the data structures now. In case the job was already locked
+		 * by the caller, it is its responsability to destroy the task.
+		 * */
+		if (!job_is_already_locked && destroy)
 			starpu_task_destroy(task);
 	}
 
@@ -248,13 +257,13 @@ unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j, unsigned job_is_alrea
 	if (_starpu_submit_job_enforce_data_deps(j))
 		return 0;
 
-	ret = _starpu_push_task(j);
+	ret = _starpu_push_task(j, job_is_already_locked);
 
 	return ret;
 }
 
 /* Tag deps are already fulfilled */
-unsigned _starpu_enforce_deps_starting_from_task(starpu_job_t j)
+unsigned _starpu_enforce_deps_starting_from_task(starpu_job_t j, unsigned job_is_already_locked)
 {
 	unsigned ret;
 
@@ -266,27 +275,10 @@ unsigned _starpu_enforce_deps_starting_from_task(starpu_job_t j)
 	if (_starpu_submit_job_enforce_data_deps(j))
 		return 0;
 
-	ret = _starpu_push_task(j);
+	ret = _starpu_push_task(j, job_is_already_locked);
 
 	return ret;
 }
-
-/* Tag and task deps are already fulfilled */
-unsigned _starpu_enforce_deps_starting_from_data(starpu_job_t j)
-{
-	unsigned ret;
-
-	/* enforce data dependencies */
-	if (_starpu_submit_job_enforce_data_deps(j))
-		return 0;
-
-	ret = _starpu_push_task(j);
-
-	return ret;
-}
-
-
-
 
 struct starpu_job_s *_starpu_pop_local_task(struct starpu_worker_s *worker)
 {

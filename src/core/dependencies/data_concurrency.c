@@ -223,7 +223,7 @@ void _starpu_notify_data_dependencies(starpu_data_handle handle)
 		if (r->is_requested_by_codelet)
 		{
 			if (!unlock_one_requester(r))
-				_starpu_push_task(r->j);
+				_starpu_push_task(r->j, 0);
 		}
 		else
 		{
