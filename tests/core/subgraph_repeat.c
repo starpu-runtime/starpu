@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <pthread.h>
 
 static unsigned niter = 16384;
 
