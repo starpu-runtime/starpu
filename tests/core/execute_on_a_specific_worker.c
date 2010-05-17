@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <starpu.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 #define N	1000
 
