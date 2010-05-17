@@ -404,12 +404,12 @@ if test x$enable_gordon = xyes -o x$enable_gordon = xmaybe; then
 	AC_CHECK_LIB(spe2, spe_context_create,,[have_valid_gordon=no])
 	AC_CHECK_FUNC(spe_in_mbox_write, [], [have_valid_gordon=no])
 
+	PKG_PROG_PKG_CONFIG
 	if test -d "$gordon_dir"; then
-		PKG_PROG_PKG_CONFIG
 		PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:$gordon_dir"
-		AC_SUBST(PKG_CONFIG_PATH)
-		PKG_CHECK_MODULES([GORDON], [libgordon], [], have_valid_gordon=no)
 	fi
+	AC_SUBST(PKG_CONFIG_PATH)
+	PKG_CHECK_MODULES([GORDON], [libgordon], [], have_valid_gordon=no)
 
 	CPPFLAGS="${CPPFLAGS} ${GORDON_CFLAGS}"
 	LIBS="${LIBS} ${GORDON_LIBS}"
