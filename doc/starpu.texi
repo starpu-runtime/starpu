@@ -392,7 +392,7 @@ specifies on which logical CPU the different workers should be
 bound. For instance, if @code{STARPU_WORKERS_CPUID = "1 3 0 2"}, the first
 worker will be bound to logical CPU #1, the second CPU worker will be bound to
 logical CPU #3 and so on.  Note that the logical ordering of the CPUs is either
-determined by the OS, or provided by the @code{hwloc}  library in case it is
+determined by the OS, or provided by the @code{hwloc} library in case it is
 available.
 
 Note that the first workers correspond to the CUDA workers, then come the
