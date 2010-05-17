@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <starpu.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 #define NTASKS	10000
 #define VECTORSIZE	1024
