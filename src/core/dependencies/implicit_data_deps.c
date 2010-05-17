@@ -18,11 +18,18 @@
 #include <common/config.h>
 #include <datawizard/datawizard.h>
 
-static void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *task, starpu_data_handle handle, starpu_access_mode mode)
+/* This function adds the implicit task dependencies introduced by data
+ * sequential consistency. Two tasks are provided: pre_sync and post_sync which
+ * respectively indicates which task is going to depend on the previous deps
+ * and on which task future deps should wait. In the case of a dependency
+ * introduced by a task submission, both tasks are just the submitted task, but
+ * in the case of user interactions with the DSM, these may be different tasks.
+ * */
+/* NB : handle->sequential_consistency_mutex must be hold by the caller */
+void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task,
+						starpu_data_handle handle, starpu_access_mode mode)
 {
 	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
-
-	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 
 	if (handle->sequential_consistency)
 	{
@@ -37,10 +44,10 @@ static void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *ta
 				if (handle->last_submitted_writer)
 				{
 					struct starpu_task *task_array[1] = {handle->last_submitted_writer};
-					starpu_task_declare_deps_array(task, 1, task_array);
+					starpu_task_declare_deps_array(pre_sync_task, 1, task_array);
 				}
 	
-				handle->last_submitted_writer = task;
+				handle->last_submitted_writer = post_sync_task;
 			}
 			else {
 				/* The task submitted previously were in read-only
@@ -71,19 +78,20 @@ static void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *ta
 				}
 	
 				handle->last_submitted_readers = NULL;
-				handle->last_submitted_writer = task;
+				handle->last_submitted_writer = post_sync_task;
 	
-				starpu_task_declare_deps_array(task, nreaders, task_array);
+				starpu_task_declare_deps_array(pre_sync_task, nreaders, task_array);
 			}
 	
 		}
 		else {
 			/* Add a reader */
-			STARPU_ASSERT(task);
+			STARPU_ASSERT(pre_sync_task);
+			STARPU_ASSERT(post_sync_task);
 	
 			/* Add this task to the list of readers */
 			struct starpu_task_list *link = malloc(sizeof(struct starpu_task_list));
-			link->task = task;
+			link->task = post_sync_task;
 			link->next = handle->last_submitted_readers;
 			handle->last_submitted_readers = link;
 
@@ -92,21 +100,18 @@ static void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *ta
 			if (handle->last_submitted_writer)
 			{
 				struct starpu_task *task_array[1] = {handle->last_submitted_writer};
-				starpu_task_declare_deps_array(task, 1, task_array);
+				starpu_task_declare_deps_array(pre_sync_task, 1, task_array);
 			}
 		}
 	
 		handle->last_submitted_mode = mode;
 	}
-
-	PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 }
 
 /* Create the implicit dependencies for a newly submitted task */
 void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 {
-	if (!task->cl)
-		return;
+	STARPU_ASSERT(task->cl);
 
 	unsigned nbuffers = task->cl->nbuffers;
 
@@ -120,7 +125,9 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 		if (mode & STARPU_SCRATCH)
 			continue;
 
-		_starpu_detect_implicit_data_deps_with_handle(task, handle, mode);
+		PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+		_starpu_detect_implicit_data_deps_with_handle(task, task, handle, mode);
+		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 	}
 }
 
@@ -171,4 +178,57 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 	PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 }
 
+void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data_handle handle)
+{
+	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 
+	if (handle->sequential_consistency)
+	{
+		handle->post_sync_tasks_cnt++;
+
+		struct starpu_task_list *link = malloc(sizeof(struct starpu_task_list));
+		link->task = post_sync_task;
+		link->next = handle->post_sync_tasks;
+		handle->post_sync_tasks = link;		
+	}
+
+	PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+}
+
+void _starpu_unlock_post_sync_tasks(starpu_data_handle handle)
+{
+	struct starpu_task_list *post_sync_tasks = NULL;
+	unsigned do_submit_tasks = 0;
+
+	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+
+	if (handle->sequential_consistency)
+	{
+		STARPU_ASSERT(handle->post_sync_tasks_cnt > 0);
+
+		if (--handle->post_sync_tasks_cnt == 0)
+		{
+			/* unlock all tasks : we need not hold the lock while unlocking all these tasks */
+			do_submit_tasks = 1;
+			post_sync_tasks = handle->post_sync_tasks;
+			handle->post_sync_tasks = NULL;
+		}
+
+	}
+
+	PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+
+	if (do_submit_tasks)
+	{
+		struct starpu_task_list *link = post_sync_tasks;
+
+		while (link) {
+			/* There is no need to depend on that task now, since it was already unlocked */
+			_starpu_release_data_enforce_sequential_consistency(link->task, handle);
+
+			int ret = starpu_task_submit(link->task);
+			STARPU_ASSERT(!ret);
+			link = link->next;
+		}
+	}
+}

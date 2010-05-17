@@ -187,9 +187,9 @@ int starpu_task_submit(struct starpu_task *task)
 		if (task->execute_on_a_specific_worker 
 			&& !_starpu_worker_may_execute_task(task->workerid, where))
 			return -ENODEV;
-	}
 
-	_starpu_detect_implicit_data_deps(task);
+		_starpu_detect_implicit_data_deps(task);
+	}
 
 	/* internally, StarPU manipulates a starpu_job_t which is a wrapper around a
 	* task structure, it is possible that this job structure was already

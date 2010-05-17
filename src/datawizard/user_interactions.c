@@ -49,6 +49,8 @@ struct state_and_node {
 	unsigned async;
 	void (*callback)(void *);
 	void *callback_arg;
+	struct starpu_task *pre_sync_task;
+	struct starpu_task *post_sync_task;
 };
 
 /*
@@ -105,6 +107,16 @@ int starpu_data_sync_with_mem_non_blocking(starpu_data_handle handle,
 		_starpu_sync_data_with_mem_continuation_non_blocking(statenode);
 	}
 
+#warning TODO fix sequential consistency !
+	/* XXX this is a temporary hack to have the starpu_sync_data_with_mem
+	 * function working properly. It should be fixed later on. */
+	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+	if (handle->sequential_consistency)
+	{
+		handle->post_sync_tasks_cnt++;
+	}
+	PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+
 	return 0;
 }
 
@@ -133,7 +145,6 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 	PTHREAD_MUTEX_UNLOCK(&statenode->lock);
 }
 
-
 /* The data must be released by calling starpu_data_release_from_mem later on */
 int starpu_data_sync_with_mem(starpu_data_handle handle, starpu_access_mode mode)
 {
@@ -153,6 +164,30 @@ int starpu_data_sync_with_mem(starpu_data_handle handle, starpu_access_mode mode
 		.finished = 0
 	};
 
+//	fprintf(stderr, "TAKE sequential_consistency_mutex starpu_data_sync_with_mem\n");
+	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+	int sequential_consistency = handle->sequential_consistency;
+	if (sequential_consistency)
+	{
+		statenode.pre_sync_task = starpu_task_create();
+		statenode.pre_sync_task->detach = 0;
+
+		statenode.post_sync_task = starpu_task_create();
+		statenode.post_sync_task->detach = 1;
+
+		_starpu_detect_implicit_data_deps_with_handle(statenode.pre_sync_task, statenode.post_sync_task, handle, mode);
+		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+
+		/* TODO detect if this is superflous */
+		statenode.pre_sync_task->synchronous = 1;
+		int ret = starpu_task_submit(statenode.pre_sync_task);
+		STARPU_ASSERT(!ret);
+		//starpu_task_wait(statenode.pre_sync_task);
+	}
+	else {
+		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+	}
+
 	/* we try to get the data, if we do not succeed immediately, we set a
  	* callback function that will be executed automatically when the data is
  	* available again, otherwise we fetch the data directly */
@@ -160,7 +195,11 @@ int starpu_data_sync_with_mem(starpu_data_handle handle, starpu_access_mode mode
 			_starpu_sync_data_with_mem_continuation, &statenode))
 	{
 		/* no one has locked this data yet, so we proceed immediately */
-		_starpu_sync_data_with_mem_continuation(&statenode);
+		unsigned r = (mode & STARPU_R);
+		unsigned w = (mode & STARPU_W);
+
+		int ret = _starpu_fetch_data_on_node(handle, 0, r, w, 0);
+		STARPU_ASSERT(!ret);
 	}
 	else {
 		PTHREAD_MUTEX_LOCK(&statenode.lock);
@@ -168,6 +207,12 @@ int starpu_data_sync_with_mem(starpu_data_handle handle, starpu_access_mode mode
 			PTHREAD_COND_WAIT(&statenode.cond, &statenode.lock);
 		PTHREAD_MUTEX_UNLOCK(&statenode.lock);
 	}
+
+	/* At that moment, the caller holds a reference to the piece of data.
+	 * We enqueue the "post" sync task in the list associated to the handle
+	 * so that it is submitted by the starpu_data_release_from_mem
+	 * function. */
+	_starpu_add_post_sync_tasks(statenode.post_sync_task, handle);
 
 	return 0;
 }
@@ -180,6 +225,9 @@ void starpu_data_release_from_mem(starpu_data_handle handle)
 
 	/* The application can now release the rw-lock */
 	_starpu_release_data_on_node(handle, 0, 0);
+
+	/* In case there are some implicit dependencies, unlock the "post sync" tasks */
+	_starpu_unlock_post_sync_tasks(handle);
 }
 
 static void _prefetch_data_on_node(void *arg)

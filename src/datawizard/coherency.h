@@ -121,18 +121,10 @@ struct starpu_data_state_t {
 	 * sequential_consistency flag is enabled. */
 	starpu_access_mode last_submitted_mode;
 	struct starpu_task *last_submitted_writer;
-	
 	struct starpu_task_list *last_submitted_readers;
 	
-	/* to synchronize with the latest for sync_data_with_mem* call. When
-	 * releasing a piece of data, we notify this cg, which unlocks
-	 * last_submitted_sync_task_apps */
-	struct starpu_cg_s *last_submitted_cg_apps; 
-	struct starpu_cg_s *current_cg_apps;
-
-	/* To synchronize with the last call(s) to sync_data_with_mem*,
-	 * synchronize with that (empty) task. */
-	struct starpu_task *last_submitted_sync_task_apps;
+	struct starpu_task_list *post_sync_tasks;
+	unsigned post_sync_tasks_cnt;
 };
 
 void _starpu_display_msi_stats(void);

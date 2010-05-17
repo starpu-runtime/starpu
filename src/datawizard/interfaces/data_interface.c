@@ -48,9 +48,8 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	handle->last_submitted_mode = STARPU_R;
 	handle->last_submitted_writer = NULL;
 	handle->last_submitted_readers = NULL;
-	handle->last_submitted_cg_apps = NULL;
-	handle->current_cg_apps = NULL;
-	handle->last_submitted_sync_task_apps = NULL;
+	handle->post_sync_tasks = NULL;
+	handle->post_sync_tasks_cnt = 0;
 
 	handle->wb_mask = wb_mask;
 
