@@ -22,7 +22,7 @@
 @top Preface
 @cindex Preface
 
-This manual documents the usage of StarPU
+This manual documents the usage of StarPU.
 
 
 @comment
@@ -31,13 +31,13 @@ This manual documents the usage of StarPU
 @comment  better formatting.
 @comment
 @menu
-* Introduction::          A basic introduction to using StarPU.
-* Installing StarPU::     How to configure, build and install StarPU.
+* Introduction::          A basic introduction to using StarPU
+* Installing StarPU::     How to configure, build and install StarPU
 * Configuration options:: Configurations options
-* Environment variables:: Environment variables used by StarPU.
-* StarPU API::            The API to use StarPU.
-* Basic Examples::        Basic examples of the use of StarPU.
-* Advanced Topics::       Advanced use of StarPU.
+* Environment variables:: Environment variables used by StarPU
+* StarPU API::            The API to use StarPU
+* Basic Examples::        Basic examples of the use of StarPU
+* Advanced Topics::       Advanced use of StarPU
 @end menu
 
 @c ---------------------------------------------------------------------
@@ -66,8 +66,8 @@ possibility of having heterogeneous accelerators and processors to interact on t
 
 StarPU is a runtime system that offers support for heterogeneous multicore
 architectures, it not only offers a unified view of the computational resources
-(i.e. CPUs and accelerators at the same time), but it also takes care to
-efficiently map and execute tasks onto an heterogeneous machine while
+(i.e. CPUs and accelerators at the same time), but it also takes care of
+efficiently mapping and executing tasks onto an heterogeneous machine while
 transparently handling low-level issues in a portable fashion.
 
 @c this leads to a complicated distributed memory design
@@ -82,7 +82,7 @@ transparently handling low-level issues in a portable fashion.
 
 From a programming point of view, StarPU is not a new language but a library
 that executes tasks explicitly submitted by the application.  The data that a
-task manipulate are automatically transferred onto the accelerator so that the
+task manipulates are automatically transferred onto the accelerator so that the
 programmer does not have to take care of complex data movements.  StarPU also
 takes particular care of scheduling those tasks efficiently and allows
 scheduling experts to implement custom scheduling policies in a portable
@@ -97,7 +97,7 @@ such as a CPU, a CUDA device or a Cell's SPU.
 @c TODO insert illustration f : f_spu, f_cpu, ...
 
 Another important data structure is the @b{task}. Executing a StarPU task
-consists in applying a codelet on a data set, on one of the architecture on
+consists in applying a codelet on a data set, on one of the architectures on
 which the codelet is implemented. In addition to the codelet that a task
 implements, it also describes which data are accessed, and how they are
 accessed during the computation (read and/or write).
@@ -107,7 +107,7 @@ called once StarPU has properly executed the task. It also contains optional
 fields that the application may use to give hints to the scheduler (such as
 priority levels).
 
-A task may be identified by a unique 64-bit number which we refer as a @b{tag}. 
+A task may be identified by a unique 64-bit number which we refer as a @b{tag}.
 Task dependencies can be enforced either by the means of callback functions, or
 by expressing dependencies between tags.
 
@@ -122,7 +122,7 @@ relieving the application programmer from explicit data transfers.
 Moreover, to avoid unnecessary transfers, StarPU keeps data
 where it was last needed, even if was modified there, and it
 allows multiple copies of the same data to reside at the same time on
-several processing units as long as it is not modified. 
+several processing units as long as it is not modified.
 
 @c ---------------------------------------------------------------------
 @c Installing StarPU
@@ -186,18 +186,18 @@ $ make install
 
 It is possible that compiling and linking an application against StarPU
 requires to use specific flags or libraries (for instance @code{CUDA} or
-@code{libspe2}). Therefore, it is possible to use the @code{pkg-config} tool.
+@code{libspe2}). To this end, it is possible to use the @code{pkg-config} tool.
 
 If StarPU was not installed at some standard location, the path of StarPU's
 library must be specified in the @code{PKG_CONFIG_PATH} environment variable so
-that @code{pkg-config} can find it. So if StarPU was installed in
+that @code{pkg-config} can find it. For example if StarPU was installed in
 @code{$prefix_dir}:
 
 @example
 $ PKG_CONFIG_PATH = $PKG_CONFIG_PATH:$prefix_dir/lib/pkgconfig
 @end example
 
-The flags required to compiled or linked against StarPU are then
+The flags required to compile or link against StarPU are then
 accessible with the following commands:
 
 @example
@@ -241,22 +241,22 @@ Enable debugging messages.
 Do not enforce assertions, saves a lot of time spent to compute them otherwise.
 
 @item @code{--enable-verbose}
-Augment the verbosity of the debugging messages
+Augment the verbosity of the debugging messages.
 
 @item @code{--enable-coverage}
 Enable flags for the coverage tool.
 
 @item @code{--enable-perf-debug}
-enable performance debugging
+Enable performance debugging.
 
 @item @code{--enable-model-debug}
-enable performance model debugging
+Enable performance model debugging.
 
 @item @code{--enable-stats}
-enable statistics
+Enable statistics.
 
 @item @code{--enable-maxbuffers=<nbuffers>}
-Defines the maximum number of buffers that tasks will be able to take as parameter, then available as the STARPU_NMAXBUFS macro.
+Define the maximum number of buffers that tasks will be able to take as parameters, then available as the STARPU_NMAXBUFS macro.
 
 @item @code{--disable-priority}
 Disable taking priorities into account in scheduling decisions. Mostly for
@@ -271,44 +271,45 @@ Enable the use of OpenGL for the rendering of some examples.
 @c TODO: rather default to enabled when detected
 
 @item @code{--enable-blas-lib=<name>}
-Choose the blas library to be used by the examples. Either atlas or goto can be
-used ATM.
+Specify the blas library to be used by some of the examples. The
+library has to be 'atlas' or 'goto'.
 
 @item @code{--with-cuda-dir=<path>}
-Tell where the CUDA SDK resides. This directory should notably contain
+Specify the location of the CUDA SDK resides. This directory should notably contain
 @code{include/cuda.h}.
 
 @item @code{--with-magma=<path>}
-Tell where magma is installed
+Specify where magma is installed.
 
 @item @code{--with-opencl-dir=<path>}
-Tell where the OpenCL SDK is installed. This directory should notably contain
+Specify the location of the OpenCL SDK. This directory should notably contain
 @code{include/CL/cl.h}.
 
 @item @code{--with-gordon-dir=<path>}
-Tell where the Gordon SDK is installed.
+Specify the location of the Gordon SDK.
 
 @item @code{--with-fxt=<path>}
-Tell where FxT (for generating traces and rendering them using ViTE) is
-installed. This directory should notably contain @code{include/fxt/fxt.h}.
+Specify the location of FxT (for generating traces and rendering them
+using ViTE). This directory should notably contain
+@code{include/fxt/fxt.h}.
 
 @item @code{--with-perf-model-dir=<dir>}
 Specify where performance models should be stored (instead of defaulting to the
 current user's home).
 
 @item @code{--with-mpicc=<path to mpicc>}
-Tell the path to the @code{mpicc} compiler to be used for starpumpi.
+Specify the location of the @code{mpicc} compiler to be used for starpumpi.
 @c TODO: also just use AC_PROG
 
 @item @code{--with-mpi}
-Enable building libstarpumpi
+Enable building libstarpumpi.
 @c TODO: rather just use the availability of mpicc instead of a second option
 
 @item @code{--with-goto-dir=<dir>}
-Specify where GotoBLAS is installed.
+Specify the location of GotoBLAS.
 
 @item @code{--with-atlas-dir=<dir>}
-Specify where ATLAS is installed. This directory should notably contain
+Specify the location of ATLAS. This directory should notably contain
 @code{include/cblas.h}.
 
 @end table
@@ -358,7 +359,7 @@ the accelerators.
 @table @asis
 
 @item @emph{Description}:
-Specify the maximum number of CUDA devices that StarPU can use. In case there
+Specify the maximum number of CUDA devices that StarPU can use. If
 @code{STARPU_NCUDA} is lower than the number of physical devices, it is
 possible to select which CUDA devices should be used by the means of the
 @code{STARPU_WORKERS_CUDAID} environment variable.
@@ -450,7 +451,7 @@ OpenCL equivalent of the @code{STARPU_WORKERS_CUDAID} environment variable.
 This chooses between the different scheduling policies proposed by StarPU: work
 random, stealing, greedy, with performance models, etc.
 
-Use @code{STARPU_SCHED=help} to get the list of available schedulers
+Use @code{STARPU_SCHED=help} to get the list of available schedulers.
 
 @end table
 
@@ -472,7 +473,7 @@ Note: this currently only applies to dm and dmda scheduling policies.
 @table @asis
 
 @item @emph{Description}:
-If this variable is set, data prefetching will be enable, that is when a task is
+If this variable is set, data prefetching will be enabled, that is when a task is
 scheduled to be executed e.g. on a GPU, StarPU will request an asynchronous
 transfer in advance, so that data is already present on the GPU when the task
 starts. As a result, computation and data transfers are overlapped.
@@ -513,7 +514,7 @@ the coefficient to be applied to it before adding it to the computation part.
 @table @asis
 
 @item @emph{Description}:
-This variable tells to which file the debugging output should go.
+This variable specify in which file the debugging output should be saved to.
 
 @end table
 
@@ -555,7 +556,7 @@ policy, number of cores, ...) by passing a non-null argument. Default
 configuration is used if the passed argument is @code{NULL}.
 @item @emph{Return value}:
 Upon successful completion, this function returns 0. Otherwise, @code{-ENODEV}
-indicates that no worker was available (so that StarPU was not be initialized).
+indicates that no worker was available (so that StarPU was not initialized).
 
 @item @emph{Prototype}:
 @code{int starpu_init(struct starpu_conf *conf);}
@@ -567,10 +568,11 @@ indicates that no worker was available (so that StarPU was not be initialized).
 
 @table @asis
 @item @emph{Description}:
-This structure is passed to the @code{starpu_init} function in order configure
-StarPU. When the default value is used, StarPU automatically select the number
-of processing units and takes the default scheduling policy. This parameters
-overwrite the equivalent environment variables. 
+This structure is passed to the @code{starpu_init} function in order
+to configure StarPU.
+When the default value is used, StarPU automatically selects the number
+of processing units and takes the default scheduling policy. This parameter
+overwrites the equivalent environment variables.
 
 @item @emph{Fields}:
 @table @asis 
@@ -638,7 +640,7 @@ guaranteed to be available until this method has been called.
 
 @item @emph{Description}:
 This function returns the number of workers (i.e. processing units executing
-StarPU tasks). The returned value should be at most @code{STARPU_NMAXWORKERS}. 
+StarPU tasks). The returned value should be at most @code{STARPU_NMAXWORKERS}.
 
 @item @emph{Prototype}:
 @code{unsigned starpu_worker_get_count(void);}
@@ -1175,7 +1177,7 @@ terminated.
 @subsection @code{starpu_tag_remove} -- Destroy a Tag
 @table @asis
 @item @emph{Description}:
-This function release the resources associated to tag @code{id}. It can be
+This function releases the resources associated to tag @code{id}. It can be
 called once the corresponding task has been executed and when there is no tag
 that depend on that one anymore.
 @item @emph{Prototype}:
@@ -1207,7 +1209,7 @@ DAG before actually giving StarPU the opportunity to execute the tasks.
 @menu
 * starpu_cuda_get_local_stream::   Get current worker's CUDA stream
 * starpu_helper_cublas_init::      Initialize CUBLAS on every CUDA device
-* starpu_helper_cublas_shutdown::  Deiitialize CUBLAS on every CUDA device
+* starpu_helper_cublas_shutdown::  Deinitialize CUBLAS on every CUDA device
 @end menu
 
 @node starpu_cuda_get_local_stream
