@@ -923,7 +923,7 @@ process the task). Otherwise, @code{starpu_task_submit} returns immediately.
 
 @item @code{priority} (optional) (default = @code{STARPU_DEFAULT_PRIO}):
 This field indicates a level of priority for the task. This is an integer value
-that must be selected between @code{STARPU_MIN_PRIO} (for the least important
+that must be set between @code{STARPU_MIN_PRIO} (for the least important
 tasks) and @code{STARPU_MAX_PRIO} (for the most important tasks) included.
 Default priority is @code{STARPU_DEFAULT_PRIO}.  Scheduling strategies that
 take priorities into account can use this parameter to take better scheduling
@@ -946,7 +946,7 @@ are only guaranteed to be freed once @code{starpu_task_wait} is called if that
 flag is not set.
 
 @item @code{destroy} (optional) (default = 1):
-If that flag is set, the task structure will automatically be freed, either
+If this flag is set, the task structure will automatically be freed, either
 after the execution of the callback if the task is detached, or during
 @code{starpu_task_wait} otherwise. If this flag is not set, dynamically
 allocated data structures will not be freed until @code{starpu_task_destroy} is
@@ -974,7 +974,7 @@ constant @code{STARPU_TASK_INITIALIZER}.
 @table @asis
 @item @emph{Description}:
 Allocate a task structure and initialize it with default values. Tasks
-allocated dynamically with starpu_task_create are automatically freed when the
+allocated dynamically with @code{starpu_task_create} are automatically freed when the
 task is terminated. If the destroy flag is explicitly unset, the resources used
 by the task are freed by calling
 @code{starpu_task_destroy}.
@@ -1001,7 +1001,7 @@ Note that this function is automatically called by @code{starpu_task_destroy}.
 @subsection @code{starpu_task_destroy} -- Destroy a dynamically allocated Task
 @table @asis
 @item @emph{Description}:
-Free the resource allocated during starpu_task_create. This function can be
+Free the resource allocated during @code{starpu_task_create}. This function can be
 called automatically after the execution of a task by setting the
 @code{.destroy} flag of the @code{starpu_task} structure (default behaviour).
 Calling this function on a statically allocated task results in an undefined
@@ -1015,12 +1015,12 @@ behaviour.
 @subsection @code{starpu_task_wait} -- Wait for the termination of a Task
 @table @asis
 @item @emph{Description}:
-This function blocks until the task was executed. It is not possible to
-synchronize with a task more than once. It is not possible to wait
+This function blocks until the task has been executed. It is not possible to
+synchronize with a task more than once. It is not possible to wait for
 synchronous or detached tasks.
 @item @emph{Return value}:
 Upon successful completion, this function returns 0. Otherwise, @code{-EINVAL}
-indicates that the waited task was either synchronous or detached.
+indicates that the specified task was either synchronous or detached.
 @item @emph{Prototype}:
 @code{int starpu_task_wait(struct starpu_task *task);}
 @end table
@@ -1033,17 +1033,17 @@ indicates that the waited task was either synchronous or detached.
 @item @emph{Description}:
 This function submits task @code{task} to StarPU. Calling this function does
 not mean that the task will be executed immediately as there can be data or task
-(tag) dependencies that are not fulfilled yet: StarPU will take care to
-schedule this task with respect to such dependencies.
+(tag) dependencies that are not fulfilled yet: StarPU will take care of
+scheduling this task with respect to such dependencies.
 This function returns immediately if the @code{synchronous} field of the
 @code{starpu_task} structure was set to 0, and block until the termination of
 the task otherwise. It is also possible to synchronize the application with
 asynchronous tasks by the means of tags, using the @code{starpu_tag_wait}
-function for instance. 
-
+function for instance.
+@item @emph{Return value}:
 In case of success, this function returns 0, a return value of @code{-ENODEV}
 means that there is no worker able to process that task (e.g. there is no GPU
-available and this task is only implemented on top of CUDA).
+available and this task is only implemented for CUDA devices).
 @item @emph{Prototype}:
 @code{int starpu_task_submit(struct starpu_task *task);}
 @end table
@@ -1053,7 +1053,6 @@ available and this task is only implemented on top of CUDA).
 @table @asis
 @item @emph{Description}:
 This function blocks until all the tasks that were submitted are terminated.
-
 @item @emph{Prototype}:
 @code{void starpu_task_wait_for_all(void);}
 @end table
@@ -1077,7 +1076,7 @@ This function blocks until all the tasks that were submitted are terminated.
 @end menu
 
 
-@node starpu_tag_t 
+@node starpu_tag_t
 @subsection @code{starpu_tag_t} -- Task identifier
 @table @asis
 @item @emph{Description}:
@@ -1087,8 +1086,8 @@ dependencies between tasks by the means of those tags. To do so, fill the
 be arbitrary) and set the @code{use_tag} field to 1.
 
 If @code{starpu_tag_declare_deps} is called with that tag number, the task will
-not be started until the task which wears the declared dependency tags are
-complete.
+not be started until the tasks which holds the declared dependency tags are
+completed.
 @end table
 
 @node starpu_tag_declare_deps
@@ -1098,7 +1097,7 @@ complete.
 Specify the dependencies of the task identified by tag @code{id}. The first
 argument specifies the tag which is configured, the second argument gives the
 number of tag(s) on which @code{id} depends. The following arguments are the
-tags which have to terminated to unlock the task.
+tags which have to be terminated to unlock the task.
 
 This function must be called before the associated task is submitted to StarPU
 with @code{starpu_task_submit}.
@@ -1469,11 +1468,11 @@ modified by a task, and StarPU makes sure that when a computational kernel
 starts somewhere (e.g. on a GPU), its data are available locally.
 
 Before submitting those tasks, the programmer first needs to declare the
-different pieces of data to StarPU using the @code{starpu_register_*_data}
+different pieces of data to StarPU using the @code{starpu_*_data_register}
 functions. To ease the development of applications for StarPU, it is possible
 to describe multiple types of data layout. A type of data layout is called an
 @b{interface}. By default, there are different interfaces available in StarPU:
-here we will consider the @b{vector interface}. 
+here we will consider the @b{vector interface}.
 
 The following lines show how to declare an array of @code{n} elements of type
 @code{float} using the vector interface:
