@@ -96,6 +96,7 @@ check_PROGRAMS += 				\
 	datawizard/data_implicit_deps		\
 	datawizard/scratch			\
 	datawizard/sync_and_notify_data		\
+	datawizard/sync_and_notify_data_implicit\
 	datawizard/dsm_stress			\
 	datawizard/write_only_tmp_buffer	\
 	datawizard/dining_philosophers		\
@@ -253,6 +254,9 @@ microbenchs_prefetch_data_on_node_SOURCES =	\
 datawizard_sync_and_notify_data_SOURCES =	\
 	datawizard/sync_and_notify_data.c
 
+datawizard_sync_and_notify_data_implicit_SOURCES =	\
+	datawizard/sync_and_notify_data_implicit.c
+
 nobase_STARPU_OPENCL_DATA_DATA = \
 	datawizard/sync_and_notify_data_opencl_codelet.cl
 
@@ -265,15 +269,24 @@ microbenchs_local_pingpong_SOURCES =		\
 if STARPU_USE_CUDA
 datawizard_sync_and_notify_data_SOURCES +=	\
 	datawizard/sync_and_notify_data_kernels.cu
+
+datawizard_sync_and_notify_data_implicit_SOURCES +=	\
+	datawizard/sync_and_notify_data_kernels.cu
 endif
 
 if STARPU_USE_OPENCL
 datawizard_sync_and_notify_data_SOURCES +=	\
 	datawizard/sync_and_notify_data_opencl.c
+
+datawizard_sync_and_notify_data_implicit_SOURCES +=	\
+	datawizard/sync_and_notify_data_opencl.c
 endif
 
 if STARPU_USE_GORDON
 datawizard_sync_and_notify_data_SOURCES +=	\
+	datawizard/sync_and_notify_data_gordon_kernels.c
+
+datawizard_sync_and_notify_data_implicit_SOURCES +=	\
 	datawizard/sync_and_notify_data_gordon_kernels.c
 
 BUILT_SOURCES += 						\
