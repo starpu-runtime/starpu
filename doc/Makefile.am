@@ -19,3 +19,5 @@ info_TEXINFOS = starpu.texi
 MAINTAINERCLEANFILES = starpu.pdf
 
 EXTRA_DIST = starpu.pdf
+
+AM_MAKEINFOHTMLFLAGS = --css-include=$(top_srcdir)/doc/starpu.css
