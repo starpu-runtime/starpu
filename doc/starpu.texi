@@ -221,14 +221,14 @@ Defines the maximum number of CUDA devices that StarPU will support, then
 available as the STARPU_MAXCUDADEVS macro.
 
 @item @code{--disable-cuda}
-Disable the use of CUDA, even the SDK is detected.
+Disable the use of CUDA, even if the SDK is detected.
 
 @item @code{--enable-maxopencldev=<number>}
 Defines the maximum number of OpenCL devices that StarPU will support, then
 available as the STARPU_MAXOPENCLDEVS macro.
 
 @item @code{--disable-opencl}
-Disable the use of OpenCL, even the SDK is detected.
+Disable the use of OpenCL, even if the SDK is detected.
 
 @item @code{--enable-gordon}
 Enable the use of the Gordon runtime for Cell SPUs.
