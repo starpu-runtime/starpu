@@ -200,11 +200,7 @@ static void get_model_debug_path(struct starpu_perfmodel_t *model, const char *a
 	strncat(path, model->symbol, maxlen);
 	
 	char hostname[32];
-#ifndef __MINGW32__
 	gethostname(hostname, 32);
-#else
-	snprintf(hostname, sizeof(hostname), "localhost");
-#endif
 	strncat(path, ".", maxlen);
 	strncat(path, hostname, maxlen);
 	strncat(path, ".", maxlen);
@@ -246,11 +242,7 @@ static void get_model_path(struct starpu_perfmodel_t *model, char *path, size_t 
 	strncat(path, model->symbol, maxlen);
 	
 	char hostname[32];
-#ifndef __MINGW32__
 	gethostname(hostname, 32);
-#else
-	snprintf(hostname, sizeof(hostname), "localhost");
-#endif
 	strncat(path, ".", maxlen);
 	strncat(path, hostname, maxlen);
 }

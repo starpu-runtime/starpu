@@ -23,6 +23,10 @@ EXTRA_DIST = dolib.c
 ldflags =
 
 if STARPU_HAVE_WINDOWS
+
+LC_MESSAGES=C
+export LC_MESSAGES
+
 ldflags += -Xlinker --output-def -Xlinker .libs/libstarpu.def
 
 if STARPU_HAVE_MS_LIB

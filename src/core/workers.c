@@ -254,7 +254,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	initialized = CHANGING;
 	PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
-#ifdef __MINGW32__DISABLED
+#ifdef __MINGW32__
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(1,0), &wsadata);
 #endif

@@ -76,7 +76,7 @@ AC_COMPILE_IFELSE(
   ]], [[ pthread_t t; pthread_create(&t, NULL, NULL, NULL); ]]),,
   AC_MSG_ERROR([pthread_create unavailable]))
 AC_SEARCH_LIBS([sqrt],[m],,AC_MSG_ERROR([math library unavailable]))
-#AC_HAVE_LIBRARY([wsock32])
+AC_HAVE_LIBRARY([wsock32])
 AC_CHECK_FUNCS([sysconf])
 
 AC_CHECK_FUNC([pthread_spin_lock], have_pthread_spin_lock=yes, have_pthread_spin_lock=no)
