@@ -182,6 +182,7 @@ configuration:
 $ make install
 @end example
 
+@node pkg-config configuration
 @subsection pkg-config configuration
 
 It is possible that compiling and linking an application against StarPU
@@ -1595,6 +1596,14 @@ to this vector made by other tasks.
 @node Scaling a Vector (hybrid)
 @section Vector Scaling on an Hybrid CPU/GPU Machine
 
+@menu
+* Source code::                  Source of the StarPU application
+* Compilation and execution::    Executing the StarPU application
+@end menu
+
+@node Source code
+@subsection Source code
+
 Contrary to the previous examples, the task submitted in this example may not
 only be executed by the CPUs, but also by a CUDA device.
 
@@ -1712,6 +1721,63 @@ int main(int argc, char **argv)
 
         return 0;
 @}
+@end example
+
+@node Compilation and execution
+@subsection Compilation and execution
+
+Let's suppose StarPU has been installed in the directory
+@code{$STARPU_DIR}. As explained in @ref{pkg-config configuration},
+the variable @code{PKG_CONFIG_PATH} needs to be set. It is also
+necessary to set the variable @code{LD_LIBRARY_PATH} to locate dynamic
+libraries at runtime.
+
+@example
+$ PKG_CONFIG_PATH=$STARPU_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
+$ LD_LIBRARY_PATH=$STARPU_DIR/lib:LD_LIBRARY_PATH
+@end example
+
+It is then possible the application using the following makefile:
+
+@example
+@cartouche
+CFLAGS	+=	$(shell pkg-config --cflags libstarpu)
+LDFLAGS	+=	$(shell pkg-config --libs libstarpu)
+CC	=	gcc
+
+vector: vector.o vector_cpu.o vector_cuda.o
+
+%.o: %.cu
+       nvcc $(CFLAGS) $< -c $@
+
+clean:
+       rm -f vector *.o
+@end cartouche
+@end example
+
+@example
+$ make
+@end example
+
+and to execute it, with the default configuration:
+
+@example
+$ ./vector
+0.000000 3.000000 6.000000 9.000000 12.000000 15.000000 18.000000 21.000000 24.000000 27.000000
+@end example
+
+or for example, by disabling CPU devices:
+
+@example
+$ STARPU_NCPUS=0 ./vector
+0.000000 3.000000 6.000000 9.000000 12.000000 15.000000 18.000000 21.000000 24.000000 27.000000
+@end example
+
+or CUDA devices:
+
+@example
+$ STARPU_NCUDA=0 ./vector
+0.000000 3.000000 6.000000 9.000000 12.000000 15.000000 18.000000 21.000000 24.000000 27.000000
 @end example
 
 
