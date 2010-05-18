@@ -85,6 +85,8 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uin
 
 	r->next_req_count = 0;
 
+	r->callbacks = NULL;
+
 	r->is_a_prefetch_request = is_prefetch;
 
 	/* associate that request with the handle so that further similar
@@ -196,6 +198,23 @@ void _starpu_post_data_request(starpu_data_request_t r, uint32_t handling_node)
 	_starpu_wake_all_blocked_workers_on_node(handling_node);
 }
 
+/* We assume that r->lock is taken by the caller */
+void _starpu_data_request_append_callback(starpu_data_request_t r, void (*callback_func)(void *), void *callback_arg)
+{
+	STARPU_ASSERT(r);
+
+	if (callback_func)
+	{
+		struct callback_list *link = malloc(sizeof(struct callback_list));
+		STARPU_ASSERT(link);
+
+		link->callback_func = callback_func;
+		link->callback_arg = callback_arg;
+		link->next = r->callbacks;
+		r->callbacks = link;
+	}
+}
+
 static void starpu_handle_data_request_completion(starpu_data_request_t r)
 {
 	unsigned do_delete = 0;
@@ -231,6 +250,17 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 		do_delete = 1;
 	
 	r->retval = 0;
+
+	/* In case there are one or multiple callbacks, we execute them now. */
+	struct callback_list *callbacks = r->callbacks;
+	while (callbacks)
+	{
+		callbacks->callback_func(callbacks->callback_arg);
+
+		struct callback_list *next = callbacks->next;
+		free(callbacks);
+		callbacks = next;
+	}
 
 	_starpu_spin_unlock(&r->lock);
 

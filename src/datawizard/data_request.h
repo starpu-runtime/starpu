@@ -23,6 +23,12 @@
 #include <common/list.h>
 #include <common/starpu_spinlock.h>
 
+struct callback_list {
+	void (*callback_func)(void *);
+	void *callback_arg;
+	struct callback_list *next;
+};
+
 LIST_TYPE(starpu_data_request,
 	starpu_spinlock_t lock;
 	unsigned refcnt;
@@ -44,6 +50,8 @@ LIST_TYPE(starpu_data_request,
 	struct starpu_data_request_s *next_req[STARPU_MAXNODES];
 	/* who should perform the next request ? */
 	unsigned next_req_count;
+
+	struct callback_list *callbacks;
 
 	unsigned is_a_prefetch_request;
 
@@ -85,5 +93,8 @@ int _starpu_check_that_no_data_request_exists(uint32_t node);
 starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, starpu_access_mode mode, unsigned is_prefetch);
 starpu_data_request_t _starpu_search_existing_data_request(starpu_data_handle handle, uint32_t dst_node, starpu_access_mode mode);
 int _starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_alloc);
+
+void _starpu_data_request_append_callback(starpu_data_request_t r,
+			void (*callback_func)(void *), void *callback_arg);
 
 #endif // __DATA_REQUEST_H__

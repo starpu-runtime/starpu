@@ -66,7 +66,7 @@ static inline void _starpu_sync_data_with_mem_continuation_non_blocking(void *ar
 
 	STARPU_ASSERT(handle);
 
-	ret = _starpu_fetch_data_on_node(handle, 0, statenode->mode, 0);
+	ret = _starpu_fetch_data_on_node(handle, 0, statenode->mode, 0, NULL, NULL);
 	STARPU_ASSERT(!ret);
 	
 	/* continuation of starpu_data_sync_with_mem_non_blocking: we
@@ -129,7 +129,7 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 
 	STARPU_ASSERT(handle);
 
-	ret = _starpu_fetch_data_on_node(handle, 0, statenode->mode, 0);
+	ret = _starpu_fetch_data_on_node(handle, 0, statenode->mode, 0, NULL, NULL);
 	STARPU_ASSERT(!ret);
 	
 	/* continuation of starpu_data_sync_with_mem */
@@ -189,7 +189,7 @@ int starpu_data_sync_with_mem(starpu_data_handle handle, starpu_access_mode mode
 			_starpu_sync_data_with_mem_continuation, &statenode))
 	{
 		/* no one has locked this data yet, so we proceed immediately */
-		int ret = _starpu_fetch_data_on_node(handle, 0, mode, 0);
+		int ret = _starpu_fetch_data_on_node(handle, 0, mode, 0, NULL, NULL);
 		STARPU_ASSERT(!ret);
 	}
 	else {
@@ -225,7 +225,7 @@ static void _prefetch_data_on_node(void *arg)
 {
 	struct state_and_node *statenode = arg;
 
-	_starpu_fetch_data_on_node(statenode->state, statenode->node, STARPU_R, statenode->async);
+	_starpu_fetch_data_on_node(statenode->state, statenode->node, STARPU_R, statenode->async, NULL, NULL);
 
 	PTHREAD_MUTEX_LOCK(&statenode->lock);
 	statenode->finished = 1;
@@ -262,7 +262,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _prefetch_data_on_node, &statenode))
 	{
 		/* we can immediately proceed */
-		_starpu_fetch_data_on_node(handle, node, mode, async);
+		_starpu_fetch_data_on_node(handle, node, mode, async, NULL, NULL);
 
 		/* remove the "lock"/reference */
 		if (!async)

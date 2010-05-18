@@ -141,7 +141,8 @@ void _starpu_update_data_state(starpu_data_handle handle, uint32_t requesting_no
  */
 
 int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_node,
-				starpu_access_mode mode, unsigned is_prefetch)
+				starpu_access_mode mode, unsigned is_prefetch,
+				void (*callback_func)(void *), void *callback_arg)
 {
 	uint32_t local_node = _starpu_get_local_memory_node();
 
@@ -157,6 +158,10 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 		_starpu_update_data_state(handle, requesting_node, mode);
 		_starpu_msi_cache_hit(requesting_node);
 		_starpu_spin_unlock(&handle->header_lock);
+
+		if (callback_func)
+			callback_func(callback_arg);
+
 		return 0;
 	}
 
@@ -210,6 +215,8 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 			/* we chain both requests */
 			r_src_to_ram->next_req[r_src_to_ram->next_req_count++]= r_ram_to_dst;
 
+			_starpu_data_request_append_callback(r_ram_to_dst, callback_func, callback_arg);
+
 			if (reuse_r_src_to_ram)
 				_starpu_spin_unlock(&r_src_to_ram->lock);
 
@@ -229,6 +236,8 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 
 			r = _starpu_create_data_request(handle, src_node, requesting_node, handling_node, mode, is_prefetch);
 
+			_starpu_data_request_append_callback(r, callback_func, callback_arg);
+
 			if (!is_prefetch)
 				r->refcnt++;
 
@@ -239,6 +248,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 	}
 	else {
 		/* the lock was taken by _starpu_search_existing_data_request */
+		_starpu_data_request_append_callback(r, callback_func, callback_arg);
 
 		/* there is already a similar request */
 		if (is_prefetch)
@@ -246,6 +256,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 			_starpu_spin_unlock(&r->lock);
 
 			_starpu_spin_unlock(&handle->header_lock);
+
 			return 0;
 		}
 
@@ -272,7 +283,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 
 static int prefetch_data_on_node(starpu_data_handle handle, starpu_access_mode mode, uint32_t node)
 {
-	return _starpu_fetch_data_on_node(handle, node, mode, 1);
+	return _starpu_fetch_data_on_node(handle, node, mode, 1, NULL, NULL);
 }
 
 static int fetch_data(starpu_data_handle handle, starpu_access_mode mode)
@@ -281,7 +292,7 @@ static int fetch_data(starpu_data_handle handle, starpu_access_mode mode)
 
 	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
 
-	return _starpu_fetch_data_on_node(handle, requesting_node, mode, 0);
+	return _starpu_fetch_data_on_node(handle, requesting_node, mode, 0, NULL, NULL);
 }
 
 inline uint32_t _starpu_get_data_refcnt(starpu_data_handle handle, uint32_t node)
