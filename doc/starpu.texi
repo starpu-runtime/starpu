@@ -1557,6 +1557,10 @@ to that vector made by other tasks.
 Contrary to the previous examples, the task submitted in this example may not
 only be executed by the CPUs, but also by a CUDA device.
 
+The CUDA implementation can be written as follows. It needs to be
+compiled with a CUDA compiler such as nvcc, the NVIDIA CUDA compiler
+driver.
+
 @example
 #include <starpu.h>
 
@@ -1576,6 +1580,7 @@ extern "C" void cuda_codelet(void *descr[], void *_args)
 @}
 @end example
 
+The CPU implementation can be as follows.
 @example
 #include <starpu.h>
 
@@ -1589,6 +1594,11 @@ void cpu_codelet(void *descr[], void *_args)
         for(i=0 ; i<nx ; i++) vector[i] *= *multiplier;
 @}
 @end example
+
+Here the source of the application. You can notice the value of the
+field @code{where} for the codelet. We specify
+@code{STARPU_CPU|STARPU_CUDA} to indicate to StarPU that the codelet
+can be executed either on a CPU or on a CUDA device.
 
 @example
 #include <starpu.h>
