@@ -1763,8 +1763,8 @@ $ LD_LIBRARY_PATH=$STARPU_DIR/lib:LD_LIBRARY_PATH
 
 It is then possible the application using the following makefile:
 
-@example
 @cartouche
+@example
 CFLAGS	+=	$(shell pkg-config --cflags libstarpu)
 LDFLAGS	+=	$(shell pkg-config --libs libstarpu)
 CC	=	gcc
@@ -1776,8 +1776,8 @@ vector: vector.o vector_cpu.o vector_cuda.o
 
 clean:
        rm -f vector *.o
-@end cartouche
 @end example
+@end cartouche
 
 @example
 $ make
