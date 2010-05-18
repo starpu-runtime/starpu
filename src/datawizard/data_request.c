@@ -115,6 +115,8 @@ starpu_data_request_t _starpu_search_existing_data_request(starpu_data_handle ha
 
 	if (r)
 	{
+		_starpu_spin_lock(&r->lock);
+
 		/* perhaps we need to "upgrade" the request */
 		if (mode & STARPU_R)
 		{
@@ -129,8 +131,6 @@ starpu_data_request_t _starpu_search_existing_data_request(starpu_data_handle ha
 
 		if (mode & STARPU_W)
 			r->mode |= STARPU_W;
-
-		_starpu_spin_lock(&r->lock);
 	}
 
 	return r;
