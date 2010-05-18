@@ -1758,7 +1758,7 @@ libraries at runtime.
 
 @example
 $ PKG_CONFIG_PATH=$STARPU_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
-$ LD_LIBRARY_PATH=$STARPU_DIR/lib:LD_LIBRARY_PATH
+$ LD_LIBRARY_PATH=$STARPU_DIR/lib:$LD_LIBRARY_PATH
 @end example
 
 It is then possible the application using the following makefile:
