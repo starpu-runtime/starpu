@@ -327,8 +327,9 @@ Specify the location of ATLAS. This directory should notably contain
 * Misc::        Miscellaneous and debug
 @end menu
 
-Note: the values given in @code{starpu_conf} structure passed to starpu_init
-will override the values of the environment variables.
+Note: the values given in @code{starpu_conf} structure passed when
+calling @code{starpu_init} will override the values of the environment
+variables.
 
 @node Workers
 @section Configuring workers
@@ -862,7 +863,7 @@ optional field is ignored when null. TODO
 @subsection @code{struct starpu_task} -- StarPU task structure
 @table @asis
 @item @emph{Description}:
-The starpu_task structure describes a task that can be offloaded on the various
+The @code{starpu_task} structure describes a task that can be offloaded on the various
 processing units managed by StarPU. It instantiates a codelet. It can either be
 allocated dynamically with the @code{starpu_task_create} method, or declared
 statically. In the latter case, the programmer has to zero the
@@ -988,7 +989,7 @@ by the task are freed by calling
 @table @asis
 @item @emph{Description}:
 Release all the structures automatically allocated to execute the task. This is
-called implicitly by starpu_task_destroy, but the task structure itself is not
+called implicitly by @code{starpu_task_destroy}, but the task structure itself is not
 freed. This should be used for statically allocated tasks for instance.
 Note that this function is automatically called by @code{starpu_task_destroy}.
 @item @emph{Prototype}:
@@ -1031,7 +1032,7 @@ indicates that the specified task was either synchronous or detached.
 @subsection @code{starpu_task_submit} -- Submit a Task
 @table @asis
 @item @emph{Description}:
-This function submits task @code{task} to StarPU. Calling this function does
+This function submits a task to StarPU. Calling this function does
 not mean that the task will be executed immediately as there can be data or task
 (tag) dependencies that are not fulfilled yet: StarPU will take care of
 scheduling this task with respect to such dependencies.
@@ -1080,7 +1081,7 @@ This function blocks until all the tasks that were submitted are terminated.
 @subsection @code{starpu_tag_t} -- Task identifier
 @table @asis
 @item @emph{Description}:
-It is possible to associate a task with a unique "tag" and to express
+It is possible to associate a task with a unique ``tag'' and to express
 dependencies between tasks by the means of those tags. To do so, fill the
 @code{tag_id} field of the @code{starpu_task} structure with a tag number (can
 be arbitrary) and set the @code{use_tag} field to 1.
@@ -1359,7 +1360,7 @@ management library.
 We create a codelet which may only be executed on the CPUs. The @code{where}
 field is a bitmask that defines where the codelet may be executed. Here, the
 @code{STARPU_CPU} value means that only CPUs can execute this codelet
-(@pxref{Codelets and Tasks} for more details on that field).
+(@pxref{Codelets and Tasks} for more details on this field).
 When a CPU core executes a codelet, it calls the @code{cpu_func} function,
 which @emph{must} have the following prototype:
 
@@ -1625,8 +1626,10 @@ int main(int argc, char **argv)
         for(i=0 ; i<NX ; i++) vector[i] = i;
 
         /* @b{Registering data within StarPU} */
-        starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX, sizeof(float));
-        starpu_register_variable_data(&multiplier_handle, 0, (uintptr_t)&multiplier, sizeof(float));
+        starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector,
+                                    NX, sizeof(float));
+        starpu_register_variable_data(&multiplier_handle, 0, (uintptr_t)&multiplier,
+                                      sizeof(float));
 
         /* @b{Definition of the codelet} */
         cl.where = STARPU_CPU|STARPU_CUDA; /* @b{It can be executed on a CPU or on CUDA device} */
