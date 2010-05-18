@@ -533,6 +533,7 @@ This variable specify in which file the debugging output should be saved to.
 * Codelets and Tasks::               Methods to construct tasks
 * Tags::                             Task dependencies
 * CUDA extensions::                  CUDA extensions
+* OpenCL extensions::                OpenCL extensions
 * Cell extensions::                  Cell extensions
 * Miscellaneous::                    Miscellaneous helpers
 @end menu
@@ -1248,6 +1249,45 @@ This function synchronously deinitializes the CUBLAS library on every CUDA devic
 @item @emph{Prototype}:
 @code{void starpu_helper_cublas_shutdown(void);}
 @end table
+
+@node OpenCL extensions
+@section OpenCL extensions
+
+@menu
+* Enabling OpenCL::                 Enabling OpenCL
+* Compiling OpenCL codelets::       Compiling OpenCL codelets
+@end menu
+
+@node Enabling OpenCL
+@subsection Enabling OpenCL
+
+On GPU devices which can run both CUDA and OpenCL, CUDA will be
+enabled by default. To enable OpenCL, you need either to disable CUDA
+when configuring StarPU:
+
+@example
+./configure --disable-cuda
+@end example
+
+or when running applications:
+
+@example
+STARPU_NCUDA=0 ./application
+@end example
+
+OpenCL will automatically be started on any device not yet used by
+CUDA. So on a machine running 4 GPUS, it is therefore possible to
+enable CUDA on 2 devices, and OpenCL on the 2 other devices by doing
+so:
+
+@example
+STARPU_NCUDA=2 ./application
+@end example
+
+@node Compiling OpenCL codelets
+@subsection Compiling OpenCL codelets
+
+TODO
 
 @node Cell extensions
 @section Cell extensions
