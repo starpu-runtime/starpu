@@ -1797,7 +1797,7 @@ $ STARPU_NCPUS=0 ./vector
 0.000000 3.000000 6.000000 9.000000 12.000000 15.000000 18.000000 21.000000 24.000000 27.000000
 @end example
 
-or CUDA devices:
+or by disabling CUDA devices:
 
 @example
 $ STARPU_NCUDA=0 ./vector
