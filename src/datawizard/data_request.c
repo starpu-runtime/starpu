@@ -67,7 +67,7 @@ static void starpu_data_request_destroy(starpu_data_request_t r)
 }
 
 /* handle->lock should already be taken !  */
-starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, uint8_t read, uint8_t write, unsigned is_prefetch)
+starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, starpu_access_mode mode, unsigned is_prefetch)
 {
 	starpu_data_request_t r = starpu_data_request_new();
 
@@ -76,8 +76,7 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uin
 	r->handle = handle;
 	r->src_node = src_node;
 	r->dst_node = dst_node;
-	r->read = read;
-	r->write = write;
+	r->mode = mode;
 
 	r->handling_node = handling_node;
 
@@ -86,7 +85,6 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uin
 
 	r->next_req_count = 0;
 
-	r->strictness = 1;
 	r->is_a_prefetch_request = is_prefetch;
 
 	/* associate that request with the handle so that further similar
@@ -98,7 +96,7 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uin
 
 	handle->per_node[dst_node].refcnt++;
 
-	if (read)
+	if (mode & STARPU_R)
 		handle->per_node[src_node].refcnt++;
 
 	r->refcnt = 1;
@@ -109,26 +107,26 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uin
 }
 
 /* handle->lock should be taken */
-starpu_data_request_t _starpu_search_existing_data_request(starpu_data_handle handle, uint32_t dst_node, uint8_t read, uint8_t write)
+starpu_data_request_t _starpu_search_existing_data_request(starpu_data_handle handle, uint32_t dst_node, starpu_access_mode mode)
 {
 	starpu_data_request_t r = handle->per_node[dst_node].request;
 
 	if (r)
 	{
 		/* perhaps we need to "upgrade" the request */
-		if (read)
+		if (mode & STARPU_R)
 		{
 			/* in case the exisiting request did not imply a memory
 			 * transfer yet, we have to increment the refcnt now
 			 * (so that the source remains valid) */
-			if (!r->read)
+			if (!(r->mode & STARPU_R))
 				handle->per_node[dst_node].refcnt++;
 
-			r->read = 1;
+			r->mode |= STARPU_R;
 		}
 
-		if (write)
-			r->write = 1;
+		if (mode & STARPU_W)
+			r->mode |= STARPU_W;
 
 		_starpu_spin_lock(&r->lock);
 	}
@@ -182,7 +180,7 @@ void _starpu_post_data_request(starpu_data_request_t r, uint32_t handling_node)
 {
 //	fprintf(stderr, "POST REQUEST\n");
 
-	if (r->read)
+	if (r->mode & STARPU_R)
 	{
 		STARPU_ASSERT(r->handle->per_node[r->src_node].allocated);
 		STARPU_ASSERT(r->handle->per_node[r->src_node].refcnt);
@@ -206,7 +204,7 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 	uint32_t src_node = r->src_node;
 	uint32_t dst_node = r->dst_node;
 
-	_starpu_update_data_state(handle, dst_node, r->write);
+	_starpu_update_data_state(handle, dst_node, r->mode);
 
 #ifdef STARPU_USE_FXT
 	size_t size = handle->ops->get_size(handle);
@@ -223,7 +221,7 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 	
 	handle->per_node[dst_node].refcnt--;
 
-	if (r->read)
+	if (r->mode & STARPU_R)
 		handle->per_node[src_node].refcnt--;
 
 	r->refcnt--;
@@ -251,7 +249,7 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 
 	_starpu_spin_lock(&r->lock);
 
-	if (r->read)
+	if (r->mode & STARPU_R)
 	{
 		STARPU_ASSERT(handle->per_node[r->src_node].allocated);
 		STARPU_ASSERT(handle->per_node[r->src_node].refcnt);
@@ -259,7 +257,7 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 
 	/* perform the transfer */
 	/* the header of the data must be locked by the worker that submitted the request */
-	r->retval = _starpu_driver_copy_data_1_to_1(handle, r->src_node, r->dst_node, !r->read, r, may_alloc);
+	r->retval = _starpu_driver_copy_data_1_to_1(handle, r->src_node, r->dst_node, !(r->mode & STARPU_R), r, may_alloc);
 
 	if (r->retval == ENOMEM)
 	{

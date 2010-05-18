@@ -130,10 +130,11 @@ struct starpu_data_state_t {
 void _starpu_display_msi_stats(void);
 
 __attribute__((warn_unused_result))
-int _starpu_fetch_data_on_node(struct starpu_data_state_t *state, uint32_t requesting_node, uint8_t read, uint8_t write, unsigned is_prefetch);
+int _starpu_fetch_data_on_node(struct starpu_data_state_t *state, uint32_t requesting_node,
+				starpu_access_mode mode, unsigned is_prefetch);
 void _starpu_release_data_on_node(struct starpu_data_state_t *state, uint32_t default_wb_mask, unsigned memory_node);
 
-void _starpu_update_data_state(struct starpu_data_state_t *state, uint32_t requesting_node, uint8_t write);
+void _starpu_update_data_state(struct starpu_data_state_t *state, uint32_t requesting_node, starpu_access_mode mode);
 
 uint32_t _starpu_get_data_refcnt(struct starpu_data_state_t *state, uint32_t node);
 

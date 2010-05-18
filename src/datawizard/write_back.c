@@ -42,11 +42,11 @@ void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_n
 
 				/* check that there is not already a similar
 				 * request that we should reuse */
-				r = _starpu_search_existing_data_request(handle, node, 1, 0);
+				r = _starpu_search_existing_data_request(handle, node, STARPU_R);
 				if (!r) {
 					/* there was no existing request so we create one now */
 					r = _starpu_create_data_request(handle, requesting_node,
-							node, handling_node, 1, 0, 1);
+							node, handling_node, STARPU_R, 1);
 					_starpu_post_data_request(r, handling_node);
 				}
 				else {

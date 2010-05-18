@@ -26,9 +26,9 @@ void _starpu_benchmark_ping_pong(starpu_data_handle handle,
 	for (iter = 0; iter < niter; iter++)
 	{
 		int ret;
-		ret = _starpu_fetch_data_on_node(handle, node0, 1, 1, 0);
+		ret = _starpu_fetch_data_on_node(handle, node0, STARPU_RW, 0);
 		STARPU_ASSERT(!ret);
-		ret = _starpu_fetch_data_on_node(handle, node1, 1, 1, 0);
+		ret = _starpu_fetch_data_on_node(handle, node1, STARPU_RW, 0);
 		STARPU_ASSERT(!ret);
 	}
 }

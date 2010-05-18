@@ -89,14 +89,14 @@ uint32_t _starpu_select_src_node(starpu_data_handle handle)
 }
 
 /* this may be called once the data is fetched with header and STARPU_RW-lock hold */
-void _starpu_update_data_state(starpu_data_handle handle, uint32_t requesting_node, uint8_t write)
+void _starpu_update_data_state(starpu_data_handle handle, uint32_t requesting_node, starpu_access_mode mode)
 {
 	unsigned nnodes = _starpu_get_memory_nodes_count();
 
 	/* the data is present now */
 	handle->per_node[requesting_node].requested = 0;
 
-	if (write) {
+	if (mode & STARPU_W) {
 		/* the requesting node now has the only valid copy */
 		uint32_t node;
 		for (node = 0; node < nnodes; node++)
@@ -141,7 +141,7 @@ void _starpu_update_data_state(starpu_data_handle handle, uint32_t requesting_no
  */
 
 int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_node,
-			uint8_t read, uint8_t write, unsigned is_prefetch)
+				starpu_access_mode mode, unsigned is_prefetch)
 {
 	uint32_t local_node = _starpu_get_local_memory_node();
 
@@ -154,7 +154,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 	if (handle->per_node[requesting_node].state != STARPU_INVALID)
 	{
 		/* the data is already available so we can stop */
-		_starpu_update_data_state(handle, requesting_node, write);
+		_starpu_update_data_state(handle, requesting_node, mode);
 		_starpu_msi_cache_hit(requesting_node);
 		_starpu_spin_unlock(&handle->header_lock);
 		return 0;
@@ -168,16 +168,15 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 	starpu_data_request_t r;
 
 	/* is there already a pending request ? */
-	r = _starpu_search_existing_data_request(handle, requesting_node, read, write);
+	r = _starpu_search_existing_data_request(handle, requesting_node, mode);
 	/* at the exit of _starpu_search_existing_data_request the lock is taken is the request existed ! */
 
 	if (!r) {
-		//fprintf(stderr, "no request matched that one so we post a request %s\n", is_prefetch?"STARPU_PREFETCH":"");
 		/* find someone who already has the data */
 		uint32_t src_node = 0;
 
 		/* if the data is in write only mode, there is no need for a source */
-		if (read)
+		if (mode & STARPU_R)
 		{
 			src_node = _starpu_select_src_node(handle);
 			STARPU_ASSERT(src_node != requesting_node);
@@ -187,22 +186,22 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 		unsigned dst_is_a_gpu = (_starpu_get_node_kind(requesting_node) == STARPU_CUDA_RAM || _starpu_get_node_kind(requesting_node) == STARPU_OPENCL_RAM);
 
 		/* we have to perform 2 successive requests for GPU->GPU transfers */
-		if (read && (src_is_a_gpu && dst_is_a_gpu)) {
+		if ((mode & STARPU_R) && (src_is_a_gpu && dst_is_a_gpu)) {
 			unsigned reuse_r_src_to_ram;
 			starpu_data_request_t r_src_to_ram;
 			starpu_data_request_t r_ram_to_dst;
 
 			/* XXX we hardcore 0 as the RAM node ... */
-			r_ram_to_dst = _starpu_create_data_request(handle, 0, requesting_node, requesting_node, read, write, is_prefetch);
+			r_ram_to_dst = _starpu_create_data_request(handle, 0, requesting_node, requesting_node, mode, is_prefetch);
 
 			if (!is_prefetch)
 				r_ram_to_dst->refcnt++;
 
-			r_src_to_ram = _starpu_search_existing_data_request(handle, 0, read, write);
+			r_src_to_ram = _starpu_search_existing_data_request(handle, 0, mode);
 			if (!r_src_to_ram)
 			{
 				reuse_r_src_to_ram = 0;
-				r_src_to_ram = _starpu_create_data_request(handle, src_node, 0, src_node, read, write, is_prefetch);
+				r_src_to_ram = _starpu_create_data_request(handle, src_node, 0, src_node, mode, is_prefetch);
 			}
 			else {
 				reuse_r_src_to_ram = 1;
@@ -228,7 +227,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 			uint32_t handling_node =
 				_starpu_select_node_to_handle_request(src_node, requesting_node);
 
-			r = _starpu_create_data_request(handle, src_node, requesting_node, handling_node, read, write, is_prefetch);
+			r = _starpu_create_data_request(handle, src_node, requesting_node, handling_node, mode, is_prefetch);
 
 			if (!is_prefetch)
 				r->refcnt++;
@@ -259,8 +258,8 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 			r->is_a_prefetch_request = 0;
 
 			/* transform that request into the proper access mode (prefetch could be read only) */
-			r->read = read;
-			r->write = write;
+#warning check that
+			r->mode = mode;
 		}
 
 		//fprintf(stderr, "found a similar request : refcnt (req) %d\n", r->refcnt);
@@ -271,22 +270,18 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 	return (is_prefetch?0:_starpu_wait_data_request_completion(r, 1));
 }
 
-static int prefetch_data_on_node(starpu_data_handle handle, uint8_t read, uint8_t write, uint32_t node)
+static int prefetch_data_on_node(starpu_data_handle handle, starpu_access_mode mode, uint32_t node)
 {
-	return _starpu_fetch_data_on_node(handle, node, read, write, 1);
+	return _starpu_fetch_data_on_node(handle, node, mode, 1);
 }
 
 static int fetch_data(starpu_data_handle handle, starpu_access_mode mode)
 {
 	uint32_t requesting_node = _starpu_get_local_memory_node(); 
 
-	uint8_t read, write;
-	read = (mode & STARPU_R); /* then R or STARPU_RW */
-	write = (mode & STARPU_W); /* then STARPU_W or STARPU_RW */
-
 	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
 
-	return _starpu_fetch_data_on_node(handle, requesting_node, read, write, 0);
+	return _starpu_fetch_data_on_node(handle, requesting_node, mode, 0);
 }
 
 inline uint32_t _starpu_get_data_refcnt(starpu_data_handle handle, uint32_t node)
@@ -335,15 +330,12 @@ int _starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 		descr = &descrs[index];
 		handle = descr->handle;
 		
-		uint32_t mode = task->buffers[index].mode;
+		starpu_access_mode mode = task->buffers[index].mode;
 
 		if (mode & STARPU_SCRATCH)
 			continue;
 	
-		uint8_t read = (mode & STARPU_R);
-		uint8_t write = (mode & STARPU_W);
-
-		prefetch_data_on_node(handle, read, write, node);
+		prefetch_data_on_node(handle, mode, node);
 	}
 
 	return 0;

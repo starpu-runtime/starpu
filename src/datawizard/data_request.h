@@ -23,15 +23,9 @@
 #include <common/list.h>
 #include <common/starpu_spinlock.h>
 
-#define DATA_REQ_ALLOCATE	(1<<0)
-#define DATA_REQ_COPY		(1<<1)
-
 LIST_TYPE(starpu_data_request,
 	starpu_spinlock_t lock;
 	unsigned refcnt;
-
-	/* parameters to define the type of request */
-	unsigned flags;
 
 	starpu_data_handle handle;
 	uint32_t src_node;
@@ -39,8 +33,7 @@ LIST_TYPE(starpu_data_request,
 
 	uint32_t handling_node;
 
-	uint8_t read;
-	uint8_t write;
+	starpu_access_mode mode;
 
 	starpu_async_channel async_channel;
 
@@ -52,9 +45,6 @@ LIST_TYPE(starpu_data_request,
 	/* who should perform the next request ? */
 	unsigned next_req_count;
 
-	/* is StarPU forced to honour that request ? (not really when
-	 * prefetching for instance) */
-	unsigned strictness;
 	unsigned is_a_prefetch_request;
 
 #ifdef STARPU_USE_FXT
@@ -92,8 +82,8 @@ void _starpu_handle_all_pending_node_data_requests(uint32_t src_node);
 
 int _starpu_check_that_no_data_request_exists(uint32_t node);
 
-starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, uint8_t read, uint8_t write, unsigned is_prefetch);
-starpu_data_request_t _starpu_search_existing_data_request(starpu_data_handle handle, uint32_t dst_node, uint8_t read, uint8_t write);
+starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, starpu_access_mode mode, unsigned is_prefetch);
+starpu_data_request_t _starpu_search_existing_data_request(starpu_data_handle handle, uint32_t dst_node, starpu_access_mode mode);
 int _starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_alloc);
 
 #endif // __DATA_REQUEST_H__
