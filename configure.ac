@@ -434,7 +434,9 @@ AM_CONDITIONAL(STARPU_USE_GORDON, test x$enable_gordon = xyes)
 if test x$enable_gordon = xyes; then
 	AC_DEFINE(STARPU_USE_GORDON, [1], [Cell support is enabled])
 	AC_DEFINE(STARPU_NON_BLOCKING_DRIVERS, [1], [drivers must progress])
+	GORDON_REQUIRES=gordon
 fi
+AC_SUBST(GORDON_REQUIRES)
 
 ###############################################################################
 #                                                                             #
@@ -849,8 +851,10 @@ AM_CONDITIONAL(STARPU_HAVE_FFTWL, [test x$have_fftwl = xyes])
 
 PKG_CHECK_MODULES([HWLOC], [hwloc], [
   AC_DEFINE([STARPU_HAVE_HWLOC], [1], [Define to 1 if you have the hwloc library.])
+  HWLOC_REQUIRES=hwloc
   AC_SUBST([STARPU_HAVE_HWLOC], [1])
 ], [:])
+AC_SUBST(HWLOC_REQUIRES)
 
 AC_CONFIG_COMMANDS([executable-scripts], [chmod +x ]tests/regression/regression.sh)
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
