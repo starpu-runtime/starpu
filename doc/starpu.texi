@@ -813,7 +813,7 @@ various targets.
 @item @emph{Fields}:
 @table @asis
 @item @code{where}: 
-Indicates which types of processing units are able to execute that codelet.
+Indicates which types of processing units are able to execute the codelet.
 @code{STARPU_CPU|STARPU_CUDA} for instance indicates that the codelet is
 implemented for both CPU cores and CUDA devices while @code{STARPU_GORDON}
 indicates that it is only available on Cell SPUs.
@@ -892,17 +892,17 @@ argument.
 In the case of the Cell processor, the @code{cl_arg} pointer is not directly
 given to the SPU function. A buffer of size @code{cl_arg_size} is allocated on
 the SPU. This buffer is then filled with the @code{cl_arg_size} bytes starting
-at address @code{cl_arg}. In that case, the argument given to the SPU codelet
+at address @code{cl_arg}. In this case, the argument given to the SPU codelet
 is therefore not the @code{cl_arg} pointer, but the address of the buffer in
 local store (LS) instead. This field is ignored for CPU, CUDA and OpenCL
 codelets. 
 
 @item @code{callback_func} (optional) (default = @code{NULL}):
 This is a function pointer of prototype @code{void (*f)(void *)} which
-specifies a possible callback. If that pointer is non-null, the callback
+specifies a possible callback. If this pointer is non-null, the callback
 function is executed @emph{on the host} after the execution of the task. The
 callback is passed the value contained in the @code{callback_arg} field. No
-callback is executed if that field is null.
+callback is executed if the field is null.
 
 @item @code{callback_arg} (optional) (default = @code{NULL}):
 This is the pointer passed to the callback function. This field is ignored if
@@ -943,7 +943,7 @@ returned by @code{starpu_worker_get_id}). This field is ignored if
 @item @code{detach} (optional) (default = 1):
 If this flag is set, it is not possible to synchronize with the task
 by the means of @code{starpu_task_wait} later on. Internal data structures
-are only guaranteed to be freed once @code{starpu_task_wait} is called if that
+are only guaranteed to be freed once @code{starpu_task_wait} is called if the
 flag is not set.
 
 @item @code{destroy} (optional) (default = 1):
@@ -1043,7 +1043,7 @@ asynchronous tasks by the means of tags, using the @code{starpu_tag_wait}
 function for instance.
 @item @emph{Return value}:
 In case of success, this function returns 0, a return value of @code{-ENODEV}
-means that there is no worker able to process that task (e.g. there is no GPU
+means that there is no worker able to process this task (e.g. there is no GPU
 available and this task is only implemented for CUDA devices).
 @item @emph{Prototype}:
 @code{int starpu_task_submit(struct starpu_task *task);}
@@ -1086,7 +1086,7 @@ dependencies between tasks by the means of those tags. To do so, fill the
 @code{tag_id} field of the @code{starpu_task} structure with a tag number (can
 be arbitrary) and set the @code{use_tag} field to 1.
 
-If @code{starpu_tag_declare_deps} is called with that tag number, the task will
+If @code{starpu_tag_declare_deps} is called with this tag number, the task will
 not be started until the tasks which holds the declared dependency tags are
 completed.
 @end table
@@ -1178,8 +1178,8 @@ terminated.
 @table @asis
 @item @emph{Description}:
 This function releases the resources associated to tag @code{id}. It can be
-called once the corresponding task has been executed and when there is no tag
-that depend on that one anymore.
+called once the corresponding task has been executed and when there is
+no other tag that depend on this tag anymore.
 @item @emph{Prototype}:
 @code{void starpu_tag_remove(starpu_tag_t id);}
 @end table
@@ -1550,7 +1550,7 @@ different interfaces describing each buffer.  In the case of the @b{vector
 interface}, the location of the vector (resp. its length) is accessible in the
 @code{ptr} (resp. @code{nx}) of this array. Since the vector is accessed in a
 read-write fashion, any modification will automatically affect future accesses
-to that vector made by other tasks.
+to this vector made by other tasks.
 
 @node Scaling a Vector (hybrid)
 @section Vector Scaling on an Hybrid CPU/GPU Machine
