@@ -3,7 +3,7 @@ body {
 /*	margin-top: 0px; */
 }
 
-div.menu {
+div.node {
 	text-align: center;
 	margin-top: 12px;
 	margin-bottom: 3px;
@@ -12,11 +12,11 @@ div.menu {
 /*	position: fixed;*/
 	width: 100%;
 }
-div.menu a {
+div.node a {
 	text-decoration: none;
 	color: #0020a0;
 }
-div.menu hr.menu {
+div.node hr.node {
 	height: 4px;
 	background: #fe0;
 	border: 0px;
@@ -74,7 +74,7 @@ p {
 	margin-right: 6px;
 }
 
-hr.main {
+hr {
 	height: 8px;
 	background: #fe0;
 	border: 0px;
