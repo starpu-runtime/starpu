@@ -131,12 +131,24 @@ several processing units as long as it is not modified.
 @node Installing StarPU
 @chapter Installing StarPU
 
+@menu
+* Configuration of StarPU::
+* Building and Installing StarPU::
+@end menu
+
 StarPU can be built and installed by the standard means of the GNU
 autotools. The following chapter is intended to briefly remind how these tools
 can be used to install StarPU.
 
-@section Configuring StarPU
+@node Configuration of StarPU
+@section Configuration of StarPU
 
+@menu
+* Generating Makefiles and configuration scripts::
+* Configuring StarPU::
+@end menu
+
+@node Generating Makefiles and configuration scripts
 @subsection Generating Makefiles and configuration scripts
 
 This step is not necessary when using the tarball releases of StarPU.  If you
@@ -147,6 +159,7 @@ the configure scripts and the Makefiles.
 $ autoreconf -vfi
 @end example
 
+@node Configuring StarPU
 @subsection Configuring StarPU
 
 @example
@@ -156,14 +169,24 @@ $ ./configure
 Details about options that are useful to give to @code{./configure} are given in
 @ref{Configuration options}.
 
+@node Building and Installing StarPU
 @section Building and Installing StarPU
 
+@menu
+* Building::
+* Sanity Checks::
+* Installing::
+* pkg-config configuration::
+@end menu
+
+@node Building
 @subsection Building
 
 @example
 $ make
 @end example
 
+@node Sanity Checks
 @subsection Sanity Checks
 
 In order to make sure that StarPU is working properly on the system, it is also
@@ -173,6 +196,7 @@ possible to run a test suite.
 $ make check
 @end example
 
+@node Installing
 @subsection Installing
 
 In order to install StarPU at the location that was specified during
