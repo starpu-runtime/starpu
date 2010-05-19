@@ -39,6 +39,21 @@ h1 a {
 	text-decoration: none;
 }
 
+h2 {
+	font: bold normal 2em sans-serif ;
+	margin: 0px;
+	color: #0020a0;
+}
+h2.sub {
+	font: bold normal 2em sans-serif ;
+	text-align: right ;
+	color: #0020a0;
+}
+h2 a {
+	color: #0020a0;
+	text-decoration: none;
+}
+
 h3 {
 	font: bold normal small-caps 1.5em sans-serif ;
 	color: #0020a0;
@@ -83,6 +98,14 @@ hr {
 }
 
 pre {
+	font-size: 12px;
+	background: #dddddd;
+	padding: 3px;
+	padding-left: 0px;
+	margin-left: 12px;
+}
+
+table.cartouche {
 	font-size: 12px;
 	background: #dddddd;
 	padding: 3px;
