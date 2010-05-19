@@ -1631,6 +1631,9 @@ to this vector made by other tasks.
 @node Scaling a Vector (hybrid)
 @section Vector Scaling on an Hybrid CPU/GPU Machine
 
+Contrary to the previous examples, the task submitted in this example may not
+only be executed by the CPUs, but also by a CUDA device.
+
 @menu
 * Source code::                  Source of the StarPU application
 * Compilation and execution::    Executing the StarPU application
@@ -1638,9 +1641,6 @@ to this vector made by other tasks.
 
 @node Source code
 @subsection Source code
-
-Contrary to the previous examples, the task submitted in this example may not
-only be executed by the CPUs, but also by a CUDA device.
 
 The CUDA implementation can be written as follows. It needs to be
 compiled with a CUDA compiler such as nvcc, the NVIDIA CUDA compiler
@@ -1691,10 +1691,11 @@ field @code{where} for the codelet. We specify
 @code{STARPU_CPU|STARPU_CUDA} to indicate to StarPU that the codelet
 can be executed either on a CPU or on a CUDA device.
 
+@cartouche
 @example
 #include <starpu.h>
 
-#define NX 10
+#define NX 5
 
 extern void cuda_codelet(void *descr[], void *_args);
 extern void cpu_codelet(void *descr[], void *_args);
@@ -1714,15 +1715,20 @@ int main(int argc, char **argv)
         vector = (float*)malloc(NX*sizeof(float));
         assert(vector);
         for(i=0 ; i<NX ; i++) vector[i] = i;
+@end example
+@end cartouche
 
+@cartouche
+@example
         /* @b{Registering data within StarPU} */
         starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector,
                                     NX, sizeof(float));
-        starpu_variable_data_register(&multiplier_handle, 0, (uintptr_t)&multiplier,
-                                      sizeof(float));
+        starpu_variable_data_register(&multiplier_handle, 0,
+                                      (uintptr_t)&multiplier, sizeof(float));
 
         /* @b{Definition of the codelet} */
-        cl.where = STARPU_CPU|STARPU_CUDA; /* @b{It can be executed on a CPU or on CUDA device} */
+        cl.where = STARPU_CPU|STARPU_CUDA; /* @b{It can be executed on a CPU} */
+                                           /* @b{or on a CUDA device} */
         cl.cuda_func = cuda_codelet;
         cl.cpu_func = cpu_codelet;
         cl.nbuffers = 2;
@@ -1736,7 +1742,11 @@ int main(int argc, char **argv)
         task->buffers[0].mode = STARPU_RW;
         task->buffers[1].handle = multiplier_handle;
         task->buffers[1].mode = STARPU_RW;
+@end example
+@end cartouche
 
+@cartouche
+@example
         /* @b{Submitting the task} */
         ret = starpu_task_submit(task);
         if (ret == -ENODEV) @{
@@ -1749,7 +1759,11 @@ int main(int argc, char **argv)
 
         /* @b{Update the vector in RAM} */
         starpu_data_sync_with_mem(vector_handle, STARPU_R);
+@end example
+@end cartouche
 
+@cartouche
+@example
         /* @b{Access the data} */
         for(i=0 ; i<NX; i++) @{
           fprintf(stderr, "%f ", vector[i]);
@@ -1763,6 +1777,7 @@ int main(int argc, char **argv)
         return 0;
 @}
 @end example
+@end cartouche
 
 @node Compilation and execution
 @subsection Compilation and execution
@@ -1805,21 +1820,21 @@ and to execute it, with the default configuration:
 
 @example
 $ ./vector
-0.000000 3.000000 6.000000 9.000000 12.000000 15.000000 18.000000 21.000000 24.000000 27.000000
+0.000000 3.000000 6.000000 9.000000 12.000000
 @end example
 
 or for example, by disabling CPU devices:
 
 @example
 $ STARPU_NCPUS=0 ./vector
-0.000000 3.000000 6.000000 9.000000 12.000000 15.000000 18.000000 21.000000 24.000000 27.000000
+0.000000 3.000000 6.000000 9.000000 12.000000
 @end example
 
 or by disabling CUDA devices:
 
 @example
 $ STARPU_NCUDA=0 ./vector
-0.000000 3.000000 6.000000 9.000000 12.000000 15.000000 18.000000 21.000000 24.000000 27.000000
+0.000000 3.000000 6.000000 9.000000 12.000000
 @end example
 
 
