@@ -270,7 +270,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 
 			/* transform that request into the proper access mode (prefetch could be read only) */
 #warning check that
-			r->mode = mode;
+			r->mode |= mode;
 		}
 
 		//fprintf(stderr, "found a similar request : refcnt (req) %d\n", r->refcnt);
