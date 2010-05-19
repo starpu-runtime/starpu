@@ -104,6 +104,7 @@ check_PROGRAMS += 				\
 	datawizard/unpartition			\
 	datawizard/sync_with_data_with_mem	\
 	datawizard/sync_with_data_with_mem_non_blocking\
+	datawizard/sync_with_data_with_mem_non_blocking_implicit\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
@@ -217,6 +218,9 @@ datawizard_sync_with_data_with_mem_SOURCES =	\
 
 datawizard_sync_with_data_with_mem_non_blocking_SOURCES = \
 	datawizard/sync_with_data_with_mem_non_blocking.c
+
+datawizard_sync_with_data_with_mem_non_blocking_implicit_SOURCES = \
+	datawizard/sync_with_data_with_mem_non_blocking_implicit.c
 
 errorcheck_starpu_init_noworker_SOURCES =	\
 	errorcheck/starpu_init_noworker.c

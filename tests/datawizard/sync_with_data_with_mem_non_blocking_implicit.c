@@ -92,7 +92,6 @@ int main(int argc, char **argv)
 		starpu_data_malloc_pinned_if_possible((void **)&buffer[b], VECTORSIZE);
 		starpu_vector_data_register(&v_handle[b], 0,
 				(uintptr_t)buffer[b], VECTORSIZE, sizeof(char));
-		starpu_data_set_sequential_consistency_flag(v_handle[b], 0);
 	}
 
 	unsigned iter;
@@ -103,8 +102,6 @@ int main(int argc, char **argv)
 		for (b = 0; b < NBUFFERS; b++)
 			use_handle(v_handle[b]);
 	
-		starpu_task_wait_for_all();
-
 		pthread_mutex_lock(&mutex);
 		n_synced_buffers = 0;
 		pthread_mutex_unlock(&mutex);
@@ -128,6 +125,8 @@ int main(int argc, char **argv)
 		for (b = 0; b < NBUFFERS; b++)
 			starpu_data_release_from_mem(v_handle[b]);
 	}
+
+	starpu_task_wait_for_all();
 
 	/* do some cleanup */
 	for (b = 0; b < NBUFFERS; b++)
