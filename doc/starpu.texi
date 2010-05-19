@@ -1718,7 +1718,7 @@ int main(int argc, char **argv)
         /* @b{Registering data within StarPU} */
         starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector,
                                     NX, sizeof(float));
-        starpu_register_variable_data(&multiplier_handle, 0, (uintptr_t)&multiplier,
+        starpu_variable_data_register(&multiplier_handle, 0, (uintptr_t)&multiplier,
                                       sizeof(float));
 
         /* @b{Definition of the codelet} */

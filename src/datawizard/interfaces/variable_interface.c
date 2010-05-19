@@ -122,7 +122,7 @@ int convert_variable_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize
 #endif
 
 /* declare a new data with the variable interface */
-void starpu_register_variable_data(starpu_data_handle *handleptr, uint32_t home_node,
+void starpu_variable_data_register(starpu_data_handle *handleptr, uint32_t home_node,
                         uintptr_t ptr, size_t elemsize)
 {
 	starpu_variable_interface_t variable = {
@@ -136,7 +136,7 @@ void starpu_register_variable_data(starpu_data_handle *handleptr, uint32_t home_
 
 static uint32_t footprint_variable_interface_crc32(starpu_data_handle handle)
 {
-	return _starpu_crc32_be(starpu_get_variable_elemsize(handle), 0);
+	return _starpu_crc32_be(starpu_variable_get_elemsize(handle), 0);
 }
 
 static void display_variable_interface(starpu_data_handle handle, FILE *f)
@@ -155,7 +155,7 @@ static size_t variable_interface_get_size(starpu_data_handle handle)
 	return interface->elemsize;
 }
 
-uintptr_t starpu_get_variable_local_ptr(starpu_data_handle handle)
+uintptr_t starpu_variable_get_local_ptr(starpu_data_handle handle)
 {
 	unsigned node;
 	node = _starpu_get_local_memory_node();
@@ -165,7 +165,7 @@ uintptr_t starpu_get_variable_local_ptr(starpu_data_handle handle)
 	return STARPU_GET_VARIABLE_PTR(starpu_data_get_interface_on_node(handle, node));
 }
 
-size_t starpu_get_variable_elemsize(starpu_data_handle handle)
+size_t starpu_variable_get_elemsize(starpu_data_handle handle)
 {
 	return STARPU_GET_VARIABLE_ELEMSIZE(starpu_data_get_interface_on_node(handle, 0));
 }

@@ -120,10 +120,10 @@ typedef struct starpu_variable_interface_s {
 	size_t elemsize;
 } starpu_variable_interface_t;
 
-void starpu_register_variable_data(starpu_data_handle *handle, uint32_t home_node,
+void starpu_variable_data_register(starpu_data_handle *handle, uint32_t home_node,
                         uintptr_t ptr, size_t elemsize);
-size_t starpu_get_variable_elemsize(starpu_data_handle handle);
-uintptr_t starpu_get_variable_local_ptr(starpu_data_handle handle);
+size_t starpu_variable_get_elemsize(starpu_data_handle handle);
+uintptr_t starpu_variable_get_local_ptr(starpu_data_handle handle);
 
 /* helper methods */
 #define STARPU_GET_VARIABLE_PTR(interface)	(((starpu_variable_interface_t *)(interface))->ptr)

@@ -85,7 +85,7 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
         int i, j, k;
 
 	starpu_block_data_register(&block_handle, 0, (uintptr_t)block, pnx, pnx*pny, pnx, pny, pnz, sizeof(float));
-	starpu_register_variable_data(&multiplier_handle, 0, (uintptr_t)&multiplier, sizeof(float));
+	starpu_variable_data_register(&multiplier_handle, 0, (uintptr_t)&multiplier, sizeof(float));
 
 	cl.where = where;
         cl.cuda_func = func;
