@@ -69,6 +69,8 @@ unsigned starpu_worker_get_memory_node(unsigned workerid);
 void starpu_data_set_wb_mask(starpu_data_handle state, uint32_t wb_mask);
 
 void starpu_data_set_sequential_consistency_flag(starpu_data_handle handle, unsigned flag);
+unsigned starpu_data_get_default_sequential_consistency_flag(void);
+void starpu_data_set_default_sequential_consistency_flag(unsigned flag);
 
 unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle handle, uint32_t memory_node);
 

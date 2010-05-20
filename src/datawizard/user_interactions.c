@@ -361,3 +361,16 @@ void starpu_data_set_sequential_consistency_flag(starpu_data_handle handle, unsi
 
 	_starpu_spin_unlock(&handle->header_lock);
 }
+
+/* By default, sequential consistency is enabled */
+static unsigned default_sequential_consistency_flag = 1;
+
+unsigned starpu_data_get_default_sequential_consistency_flag(void)
+{
+	return default_sequential_consistency_flag;
+}
+
+void starpu_data_set_default_sequential_consistency_flag(unsigned flag)
+{
+	default_sequential_consistency_flag = flag;
+}

@@ -419,6 +419,10 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(p*q == world_size);
 
 	starpu_init(NULL);
+
+	/* We disable sequential consistency in this example */
+	starpu_data_set_default_sequential_consistency_flag(0);
+
 	starpu_mpi_initialize();
 	starpu_helper_cublas_init();
 

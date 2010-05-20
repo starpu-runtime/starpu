@@ -42,7 +42,8 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 
 	handle->is_not_important = 0;
 
-	handle->sequential_consistency = 1; /* enabled by default */
+	handle->sequential_consistency =
+		starpu_data_get_default_sequential_consistency_flag();
 
 	PTHREAD_MUTEX_INIT(&handle->sequential_consistency_mutex, NULL);
 	handle->last_submitted_mode = STARPU_R;
