@@ -288,8 +288,5 @@ struct starpu_task *starpu_get_current_task(void)
 
 void _starpu_set_current_task(struct starpu_task *task)
 {
-	if (task)
-		STARPU_ASSERT(pthread_getspecific(current_task_key) == NULL);
-
 	pthread_setspecific(current_task_key, task);
 }

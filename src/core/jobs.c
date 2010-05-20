@@ -120,13 +120,18 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
 		 * within the callback */
 		_starpu_set_local_worker_status(STATUS_CALLBACK);
 		
+		/* Perhaps we have nested callbacks (eg. with chains of empty
+		 * tasks). So we store the current task and we will restore it
+		 * later. */
+		struct starpu_task *current_task = starpu_get_current_task();
+
 		_starpu_set_current_task(task);
 
 		STARPU_TRACE_START_CALLBACK(j);
 		task->callback_func(task->callback_arg);
 		STARPU_TRACE_END_CALLBACK(j);
 		
-		_starpu_set_current_task(NULL);
+		_starpu_set_current_task(current_task);
 
 		_starpu_set_local_worker_status(STATUS_UNKNOWN);
 	}
