@@ -1650,19 +1650,19 @@ driver.
 #include <starpu.h>
 
 static __global__ void vector_mult_cuda(float *vector, int nx,
-                                        float *multiplier)
+                                        float multiplier)
 @{
         int i;
-        for(i=0 ; i<nx ; i++) vector[i] *= *multiplier;
+        for(i=0 ; i<nx ; i++) vector[i] *= multiplier;
 @}
 
 extern "C" void cuda_codelet(void *descr[], void *_args)
 @{
         float *vector = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
         int nx = STARPU_GET_VECTOR_NX(descr[0]);
-        float *multiplier = (float *)STARPU_GET_VARIABLE_PTR(descr[1]);
+        float *multiplier = (float *)_args;
 
-        vector_mult_cuda<<<1,1>>>(vector, nx, multiplier);
+        vector_mult_cuda<<<1,1>>>(vector, nx, *multiplier);
 @}
 @end example
 @end cartouche
@@ -1677,7 +1677,7 @@ void cpu_codelet(void *descr[], void *_args)
 @{
         float *vector = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
         int nx = (int)STARPU_GET_VECTOR_NX(descr[0]);
-        float *multiplier = (float *)STARPU_GET_VARIABLE_PTR(descr[1]);
+        float *multiplier = (float *)_args;
         int i;
 
         for(i=0 ; i<nx ; i++) vector[i] *= *multiplier;
@@ -1707,7 +1707,6 @@ int main(int argc, char **argv)
         starpu_codelet cl;
         struct starpu_task *task;
         starpu_data_handle vector_handle;
-        starpu_data_handle multiplier_handle;
 
         starpu_init(NULL);                            /* @b{Initialising StarPU} */
 
@@ -1722,15 +1721,13 @@ int main(int argc, char **argv)
         /* @b{Registering data within StarPU} */
         starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector,
                                     NX, sizeof(float));
-        starpu_variable_data_register(&multiplier_handle, 0,
-                                      (uintptr_t)&multiplier, sizeof(float));
 
         /* @b{Definition of the codelet} */
         cl.where = STARPU_CPU|STARPU_CUDA; /* @b{It can be executed on a CPU} */
                                            /* @b{or on a CUDA device} */
         cl.cuda_func = cuda_codelet;
         cl.cpu_func = cpu_codelet;
-        cl.nbuffers = 2;
+        cl.nbuffers = 1;
         cl.model = NULL;
 
         /* @b{Definition of the task} */
@@ -1739,8 +1736,7 @@ int main(int argc, char **argv)
         task->callback_func = NULL;
         task->buffers[0].handle = vector_handle;
         task->buffers[0].mode = STARPU_RW;
-        task->buffers[1].handle = multiplier_handle;
-        task->buffers[1].mode = STARPU_RW;
+        task->cl_arg = &multiplier;
 @end example
 @end cartouche
 
