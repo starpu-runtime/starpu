@@ -1566,7 +1566,7 @@ task that multiplies this vector by a constant factor:
 
 @cartouche
 @example
-float factor;
+float factor = 3.0;
 struct starpu_task *task = starpu_task_create();
 
 task->cl = &cl;
@@ -1599,9 +1599,9 @@ void scal_func(void *buffers[], void *cl_arg)
     struct starpu_vector_interface_s *vector = buffers[0];
 
     /* length of the vector */
-    unsigned n = vector->nx;
+    unsigned n = STARPU_GET_VECTOR_NX(vector);
     /* local copy of the vector pointer */
-    float *val = (float *)vector->ptr;
+    float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
 
     for (i = 0; i < n; i++)
         val[i] *= *factor;
@@ -1649,20 +1649,26 @@ driver.
 @example
 #include <starpu.h>
 
-static __global__ void vector_mult_cuda(float *vector, int nx,
-                                        float multiplier)
+static __global__ void vector_mult_cuda(float *val, unsigned n,
+                                        float factor)
 @{
-        int i;
-        for(i=0 ; i<nx ; i++) vector[i] *= multiplier;
+        unsigned i;
+        for(i = 0 ; i < n ; i++)
+               val[i] *= factor;
 @}
 
-extern "C" void cuda_codelet(void *descr[], void *_args)
+extern "C" void cuda_codelet(void *buffers[], void *_args)
 @{
-        float *vector = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
-        int nx = STARPU_GET_VECTOR_NX(descr[0]);
-        float *multiplier = (float *)_args;
+        float *factor = (float *)_args;
+        struct starpu_vector_interface_s *vector = buffers[0];
 
-        vector_mult_cuda<<<1,1>>>(vector, nx, *multiplier);
+        /* length of the vector */
+        unsigned n = STARPU_GET_VECTOR_NX(vector);
+        /* local copy of the vector pointer */
+        float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
+
+        /* TODO: use more blocks and threads in blocks */
+        vector_mult_cuda<<<1,1>>>(val, n, *factor);
 @}
 @end example
 @end cartouche
@@ -1673,14 +1679,20 @@ The CPU implementation can be as follows.
 @example
 #include <starpu.h>
 
-void cpu_codelet(void *descr[], void *_args)
+void cpu_codelet(void *buffers[], void *_args)
 @{
-        float *vector = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
-        int nx = (int)STARPU_GET_VECTOR_NX(descr[0]);
-        float *multiplier = (float *)_args;
-        int i;
+        unsigned i;
+        float *factor = _args;
 
-        for(i=0 ; i<nx ; i++) vector[i] *= *multiplier;
+        struct starpu_vector_interface_s *vector = buffers[0];
+
+        /* length of the vector */
+        unsigned n = (unsigned)STARPU_GET_VECTOR_NX(vector);
+        /* local copy of the vector pointer */
+        float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
+
+        for(i = 0 ; i < n ; i++)
+                val[i] *= *factor;
 @}
 @end example
 @end cartouche
@@ -1696,14 +1708,14 @@ can be executed either on a CPU or on a CUDA device.
 
 #define NX 5
 
-extern void cuda_codelet(void *descr[], void *_args);
-extern void cpu_codelet(void *descr[], void *_args);
+extern void cuda_codelet(void *buffers[], void *_args);
+extern void cpu_codelet(void *buffers[], void *_args);
 
 int main(int argc, char **argv)
 @{
         float *vector;
         int i, ret;
-        float multiplier=3.0;
+        float factor=3.0;
         starpu_codelet cl;
         struct starpu_task *task;
         starpu_data_handle vector_handle;
@@ -1736,7 +1748,7 @@ int main(int argc, char **argv)
         task->callback_func = NULL;
         task->buffers[0].handle = vector_handle;
         task->buffers[0].mode = STARPU_RW;
-        task->cl_arg = &multiplier;
+        task->cl_arg = &factor;
 @end example
 @end cartouche
 
