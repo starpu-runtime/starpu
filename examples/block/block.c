@@ -19,20 +19,20 @@
 #include <pthread.h>
 #include <math.h>
 
-void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+void cpu_codelet(void *descr[], void *_args)
 {
 	float *block = (float *)STARPU_GET_BLOCK_PTR(descr[0]);
 	int nx = (int)STARPU_GET_BLOCK_NX(descr[0]);
 	int ny = (int)STARPU_GET_BLOCK_NY(descr[0]);
 	int nz = (int)STARPU_GET_BLOCK_NZ(descr[0]);
-        float *multiplier = (float *)STARPU_GET_VARIABLE_PTR(descr[1]);
+        float *multiplier = (float *)_args;
         int i;
 
         for(i=0 ; i<nx*ny*nz ; i++) block[i] *= *multiplier;
 }
 
 #ifdef STARPU_USE_OPENCL
-void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+void opencl_codelet(void *descr[], void *_args)
 {
 	cl_kernel kernel;
 	cl_command_queue queue;
@@ -41,7 +41,7 @@ void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 	int nx = (int)STARPU_GET_BLOCK_NX(descr[0]);
 	int ny = (int)STARPU_GET_BLOCK_NY(descr[0]);
 	int nz = (int)STARPU_GET_BLOCK_NZ(descr[0]);
-        float *multiplier = (float *)STARPU_GET_VARIABLE_PTR(descr[1]);
+        float *multiplier = (float *)_args;
 
         id = starpu_worker_get_id();
         devid = starpu_worker_get_devid(id);
@@ -56,7 +56,7 @@ void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 	err = clSetKernelArg(kernel, 1, sizeof(int), &nx);
 	err = clSetKernelArg(kernel, 2, sizeof(int), &ny);
 	err = clSetKernelArg(kernel, 3, sizeof(int), &nz);
-	err = clSetKernelArg(kernel, 4, sizeof(cl_mem), &multiplier);
+	err = clSetKernelArg(kernel, 4, sizeof(float), multiplier);
         if (err) STARPU_OPENCL_REPORT_ERROR(err);
 
 	{
@@ -72,7 +72,7 @@ void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 #endif
 
 #ifdef STARPU_USE_CUDA
-extern void cuda_codelet(void *descr[], __attribute__ ((unused)) void *_args);
+extern void cuda_codelet(void *descr[], void *_args);
 #endif
 
 typedef void (*device_func)(void **, void *);
@@ -81,17 +81,15 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
 {
 	starpu_codelet cl;
 	starpu_data_handle block_handle;
-        starpu_data_handle multiplier_handle;
         int i, j, k;
 
 	starpu_block_data_register(&block_handle, 0, (uintptr_t)block, pnx, pnx*pny, pnx, pny, pnz, sizeof(float));
-	starpu_variable_data_register(&multiplier_handle, 0, (uintptr_t)&multiplier, sizeof(float));
 
 	cl.where = where;
         cl.cuda_func = func;
         cl.cpu_func = func;
         cl.opencl_func = func;
-        cl.nbuffers = 2;
+        cl.nbuffers = 1;
         cl.model = NULL;
 
         struct starpu_task *task = starpu_task_create();
@@ -99,8 +97,7 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
         task->callback_func = NULL;
         task->buffers[0].handle = block_handle;
         task->buffers[0].mode = STARPU_RW;
-        task->buffers[1].handle = multiplier_handle;
-        task->buffers[1].mode = STARPU_RW;
+	task->cl_arg = &multiplier;
 
         int ret = starpu_task_submit(task);
         if (STARPU_UNLIKELY(ret == -ENODEV)) {

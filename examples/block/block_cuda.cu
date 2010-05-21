@@ -16,19 +16,19 @@
 
 #include <starpu.h>
 
-static __global__ void cuda_block(float *block, int nx, int ny, int nz, float *multiplier)
+static __global__ void cuda_block(float *block, int nx, int ny, int nz, float multiplier)
 {
         int i;
-        for(i=0 ; i<nx*ny*nz ; i++) block[i] *= *multiplier;
+        for(i=0 ; i<nx*ny*nz ; i++) block[i] *= multiplier;
 }
 
-extern "C" void cuda_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+extern "C" void cuda_codelet(void *descr[], void *_args)
 {
         float *block = (float *)STARPU_GET_BLOCK_PTR(descr[0]);
 	int nx = STARPU_GET_BLOCK_NX(descr[0]);
 	int ny = STARPU_GET_BLOCK_NY(descr[0]);
 	int nz = STARPU_GET_BLOCK_NZ(descr[0]);
-        float *multiplier = (float *)STARPU_GET_VARIABLE_PTR(descr[1]);
+        float *multiplier = (float *)_args;
 
-        cuda_block<<<1,1>>>(block, nx, ny, nz, multiplier);
+        cuda_block<<<1,1>>>(block, nx, ny, nz, *multiplier);
 }
