@@ -103,6 +103,7 @@ mpiexamplebin_PROGRAMS =				\
 	tests/mpi_detached_tag				\
 	tests/ring					\
 	tests/ring_async				\
+	tests/ring_async_implicit			\
 	tests/block_interface				\
 	tests/block_interface_pinned
 
@@ -160,6 +161,12 @@ tests_ring_async_LDADD =				\
 tests_ring_async_SOURCES =				\
 	tests/ring_async.c
 
+tests_ring_async_implicit_LDADD =			\
+	libstarpumpi.la
+
+tests_ring_async_implicit_SOURCES =			\
+	tests/ring_async_implicit.c
+
 tests_block_interface_LDADD =				\
 	libstarpumpi.la
 
@@ -175,4 +182,5 @@ tests_block_interface_pinned_SOURCES =			\
 if STARPU_USE_CUDA
 tests_ring_SOURCES += tests/ring_kernel.cu
 tests_ring_async_SOURCES += tests/ring_kernel.cu
+tests_ring_async_implicit_SOURCES += tests/ring_kernel.cu
 endif
