@@ -1015,9 +1015,8 @@ by the task are freed by calling
 @table @asis
 @item @emph{Description}:
 Release all the structures automatically allocated to execute the task. This is
-called implicitly by @code{starpu_task_destroy}, but the task structure itself is not
+called automatically by @code{starpu_task_destroy}, but the task structure itself is not
 freed. This should be used for statically allocated tasks for instance.
-Note that this function is automatically called by @code{starpu_task_destroy}.
 @item @emph{Prototype}:
 @code{void starpu_task_deinit(struct starpu_task *task);}
 @end table
