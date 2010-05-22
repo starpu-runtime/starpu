@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <errno.h>
 #include <pthread.h>
 
 #define NTHREADS	4
@@ -41,13 +42,39 @@ static struct thread_data problem_data[NTHREADS];
 /* We implement some ring transfer, every thread will try to receive a piece of
  * data from its neighbour and increment it before transmitting it to its
  * successor. */
+static void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute__((unused)))
+{
+	unsigned *val = (unsigned *)STARPU_GET_VARIABLE_PTR(descr[0]);
+	*val += 1;
+}
+
+static starpu_codelet increment_handle_cl = {
+	.where = STARPU_CPU,
+	.cpu_func = increment_handle_cpu_kernel,
+	.nbuffers = 1
+};
 
 static void increment_handle(struct thread_data *thread_data)
 {
-	starpu_data_sync_with_mem(thread_data->handle, STARPU_RW);
-	thread_data->val++;
-	starpu_data_release_from_mem(thread_data->handle);
+	struct starpu_task *task = starpu_task_create();
+	task->cl = &increment_handle_cl;
+
+	task->buffers[0].handle = thread_data->handle;
+	task->buffers[0].mode = STARPU_RW;
+
+	task->cl_arg = thread_data;
+
+	task->destroy = 1;
+	task->detach = 0;
+
+	int ret = starpu_task_submit(task);
+	STARPU_ASSERT(!ret);
+
+	ret = starpu_task_wait(task);
+	STARPU_ASSERT(!ret);
 }
+
+
 
 static void recv_handle(struct thread_data *thread_data)
 {
@@ -99,8 +126,6 @@ static void *thread_func(void *arg)
 	struct thread_data *thread_data = arg;
 	unsigned index = thread_data->index;
 
-//	fprintf(stderr, "Hello from thread %d\n", thread_data->index);
-
 	starpu_variable_data_register(&thread_data->handle, 0, (uintptr_t)&thread_data->val, sizeof(unsigned));
 
 	for (iter = 0; iter < NITER; iter++)
@@ -118,10 +143,6 @@ static void *thread_func(void *arg)
 			send_handle(thread_data);
 		}
 	}
-
-//	starpu_data_sync_with_mem(thread_data->handle, STARPU_R);
-//	fprintf(stderr, "Final value on thread %d: %d\n", thread_data->index, thread_data->val);
-//	starpu_data_release_from_mem(thread_data->handle);
 
 	return NULL;
 }
@@ -160,7 +181,10 @@ int main(int argc, char **argv)
 	starpu_data_handle last_handle = problem_data[NTHREADS - 1].handle;
 	starpu_data_sync_with_mem(last_handle, STARPU_R);
 	if (problem_data[NTHREADS - 1].val != (NTHREADS * NITER))
+	{
+		fprintf(stderr, "Final value : %d should be %d\n", problem_data[NTHREADS - 1].val, (NTHREADS * NITER));
 		STARPU_ABORT();
+	}
 	starpu_data_release_from_mem(last_handle);
 
 	starpu_shutdown();
