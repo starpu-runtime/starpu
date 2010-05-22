@@ -102,6 +102,7 @@ check_PROGRAMS += 				\
 	datawizard/dining_philosophers		\
 	datawizard/readers_and_writers		\
 	datawizard/unpartition			\
+	datawizard/user_interaction_implicit	\
 	datawizard/sync_with_data_with_mem	\
 	datawizard/sync_with_data_with_mem_non_blocking\
 	datawizard/sync_with_data_with_mem_non_blocking_implicit\
@@ -212,6 +213,9 @@ datawizard_readers_and_writers_SOURCES = 	\
 
 datawizard_unpartition_SOURCES =		\
 	datawizard/unpartition.c
+
+datawizard_user_interaction_implicit_SOURCES =	\
+	datawizard/user_interaction_implicit.c
 
 datawizard_sync_with_data_with_mem_SOURCES =	\
 	datawizard/sync_with_data_with_mem.c
