@@ -107,6 +107,7 @@ check_PROGRAMS += 				\
 	datawizard/sync_with_data_with_mem_non_blocking\
 	datawizard/sync_with_data_with_mem_non_blocking_implicit\
 	datawizard/mpi_like			\
+	datawizard/mpi_like_async		\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
@@ -229,6 +230,9 @@ datawizard_sync_with_data_with_mem_non_blocking_implicit_SOURCES = \
 
 datawizard_mpi_like_SOURCES =			\
 	datawizard/mpi_like.c
+
+datawizard_mpi_like_async_SOURCES =		\
+	datawizard/mpi_like_async.c
 
 errorcheck_starpu_init_noworker_SOURCES =	\
 	errorcheck/starpu_init_noworker.c
