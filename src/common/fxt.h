@@ -52,6 +52,8 @@
 #define STARPU_FUT_CODELET_TAG		0x5111
 #define STARPU_FUT_CODELET_TAG_DEPS	0x5112
 
+#define STARPU_FUT_TASK_DEPS		0x5137
+
 #define STARPU_FUT_DATA_COPY		0x5113
 #define STARPU_FUT_WORK_STEALING	0x5114
 
@@ -67,6 +69,7 @@
 #define	STARPU_FUT_END_CALLBACK	0x5120
 
 #define	STARPU_FUT_TASK_DONE		0x5121
+#define	STARPU_FUT_TAG_DONE		0x5138
 
 #define	STARPU_FUT_START_ALLOC		0x5122
 #define	STARPU_FUT_END_ALLOC		0x5123
@@ -109,6 +112,23 @@ do {									\
 	*(args++) = (unsigned long)(P3);				\
 	sprintf((char *)args, "%s", str);				\
 } while (0);
+
+#define STARPU_FUT_DO_PROBE4STR(CODE, P1, P2, P3, P4, str)		\
+do {									\
+	/* we add a \0 just in case ... */				\
+	size_t len = strlen((str)) + 1;					\
+	unsigned nbargs = 4 + (len + sizeof(unsigned long) - 1)/(sizeof(unsigned long));\
+	size_t total_len = FUT_SIZE(nbargs);				\
+	unsigned long *args =						\
+		fut_getstampedbuffer(FUT_CODE(CODE, nbargs), total_len);\
+	*(args++) = (unsigned long)(P1);				\
+	*(args++) = (unsigned long)(P2);				\
+	*(args++) = (unsigned long)(P3);				\
+	*(args++) = (unsigned long)(P4);				\
+	sprintf((char *)args, "%s", str);				\
+} while (0);
+
+
 
 /* workerkind = STARPU_FUT_CPU_KEY for instance */
 #define STARPU_TRACE_NEW_MEM_NODE(nodeid)			\
@@ -162,24 +182,43 @@ do {									\
 	FUT_DO_PROBE2(STARPU_FUT_END_PUSH_OUTPUT, job, syscall(SYS_gettid));
 
 #define STARPU_TRACE_CODELET_TAG(tag, job)	\
-	FUT_DO_PROBE2(STARPU_FUT_CODELET_TAG, tag, job)
+	FUT_DO_PROBE2(STARPU_FUT_CODELET_TAG, tag, (job)->job_id)
 
 #define STARPU_TRACE_CODELET_TAG_DEPS(tag_child, tag_father)	\
 	FUT_DO_PROBE2(STARPU_FUT_CODELET_TAG_DEPS, tag_child, tag_father)
 
-#define STARPU_TRACE_TASK_DONE(tag)							\
+#define STARPU_TRACE_TASK_DEPS(job_prev, job_succ)	\
+	FUT_DO_PROBE2(STARPU_FUT_TASK_DEPS, (job_prev)->job_id, (job_succ)->job_id)
+
+#define STARPU_TRACE_TASK_DONE(job)						\
 do {										\
-	struct starpu_job_s *job = (tag)->job;						\
+	struct starpu_task *task = (job)->task;					\
+	unsigned exclude_from_dag = (job)->exclude_from_dag;			\
+	if (task && task->cl 							\
+		&& task->cl->model						\
+		&& task->cl->model->symbol)					\
+	{									\
+		char *symbol = task->cl->model->symbol;				\
+		STARPU_FUT_DO_PROBE4STR(STARPU_FUT_TASK_DONE, (job)->job_id, syscall(SYS_gettid), (long unsigned)exclude_from_dag, 1, symbol);\
+	}									\
+	else {									\
+		FUT_DO_PROBE4(STARPU_FUT_TASK_DONE, (job)->job_id, syscall(SYS_gettid), (long unsigned)exclude_from_dag, 0);\
+	}									\
+} while(0);
+
+#define STARPU_TRACE_TAG_DONE(tag)						\
+do {										\
+	struct starpu_job_s *job = (tag)->job;					\
 	if (job && job->task 							\
 		&& job->task->cl						\
 		&& job->task->cl->model						\
 		&& job->task->cl->model->symbol)				\
 	{									\
 		char *symbol = job->task->cl->model->symbol;			\
-		STARPU_FUT_DO_PROBE3STR(STARPU_FUT_TASK_DONE, tag->id, syscall(SYS_gettid), 1, symbol);\
+		STARPU_FUT_DO_PROBE3STR(STARPU_FUT_TAG_DONE, (tag)->id, syscall(SYS_gettid), 1, symbol);\
 	}									\
 	else {									\
-		FUT_DO_PROBE3(STARPU_FUT_TASK_DONE, tag->id, syscall(SYS_gettid), 0);	\
+		FUT_DO_PROBE3(STARPU_FUT_TAG_DONE, (tag)->id, syscall(SYS_gettid), 0);\
 	}									\
 } while(0);
 
@@ -252,7 +291,9 @@ do {										\
 #define STARPU_TRACE_END_PUSH_OUTPUT(job)	do {} while(0);
 #define STARPU_TRACE_CODELET_TAG(tag, job)	do {} while(0);
 #define STARPU_TRACE_CODELET_TAG_DEPS(a, b)	do {} while(0);
-#define STARPU_TRACE_TASK_DONE(tag)		do {} while(0);
+#define STARPU_TRACE_TASK_DEPS(a, b)		do {} while(0);
+#define STARPU_TRACE_TASK_DONE(a)		do {} while(0);
+#define STARPU_TRACE_TAG_DONE(a)		do {} while(0);
 #define STARPU_TRACE_DATA_COPY(a, b, c)	do {} while(0);
 #define STARPU_TRACE_START_DRIVER_COPY(a,b,c,d)	do {} while(0);
 #define STARPU_TRACE_END_DRIVER_COPY(a,b,c,d)	do {} while(0);

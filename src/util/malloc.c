@@ -57,15 +57,18 @@ static void malloc_pinned_cuda_codelet(void *buffers[] __attribute__((unused)), 
 #endif
 
 #if defined(STARPU_USE_CUDA)// || defined(STARPU_USE_OPENCL)
+static struct starpu_perfmodel_t malloc_pinned_model = {
+	.type = STARPU_HISTORY_BASED,
+	.symbol = "malloc_pinned"
+};
+
 static starpu_codelet malloc_pinned_cl = {
-#ifdef STARPU_USE_CUDA
 	.cuda_func = malloc_pinned_cuda_codelet,
-#endif
 //#ifdef STARPU_USE_OPENCL
 //	.opencl_func = malloc_pinned_opencl_codelet,
 //#endif
-	.model = NULL,
-	.nbuffers = 0
+	.nbuffers = 0,
+	.model = &malloc_pinned_model
 };
 #endif
 
@@ -94,6 +97,10 @@ int starpu_data_malloc_pinned_if_possible(void **A, size_t dim)
 
 		task->synchronous = 1;
 
+#ifdef STARPU_USE_FXT
+		_starpu_exclude_task_from_dag(task);
+#endif
+
 		push_res = starpu_task_submit(task);
 		STARPU_ASSERT(push_res != -ENODEV);
 #endif
@@ -115,6 +122,10 @@ int starpu_data_malloc_pinned_if_possible(void **A, size_t dim)
 //			task->cl_arg = &s;
 //
 //		task->synchronous = 1;
+//
+//#ifdef STARPU_USE_FXT
+//		_starpu_exclude_task_from_dag(task);
+//#endif
 //
 //		push_res = starpu_task_submit(task);
 //		STARPU_ASSERT(push_res != -ENODEV);
@@ -149,15 +160,18 @@ static void free_pinned_cuda_codelet(void *buffers[] __attribute__((unused)), vo
 //#endif
 
 #if defined(STARPU_USE_CUDA) // || defined(STARPU_USE_OPENCL)
+static struct starpu_perfmodel_t free_pinned_model = {
+	.type = STARPU_HISTORY_BASED,
+	.symbol = "free_pinned"
+};
+
 static starpu_codelet free_pinned_cl = {
-#ifdef STARPU_USE_CUDA
 	.cuda_func = free_pinned_cuda_codelet,
-#endif
 //#ifdef STARPU_USE_OPENCL
 //	.opencl_func = free_pinned_opencl_codelet,
 //#endif
-	.model = NULL,
-	.nbuffers = 0
+	.nbuffers = 0,
+	.model = &free_pinned_model
 };
 #endif
 
@@ -179,6 +193,10 @@ int starpu_data_free_pinned_if_possible(void *A)
 
 		task->synchronous = 1;
 
+#ifdef STARPU_USE_FXT
+		_starpu_exclude_task_from_dag(task);
+#endif
+
 		push_res = starpu_task_submit(task);
 		STARPU_ASSERT(push_res != -ENODEV);
 #endif
@@ -195,6 +213,10 @@ int starpu_data_free_pinned_if_possible(void *A)
 //			task->cl_arg = A;
 //
 //		task->synchronous = 1;
+//
+//#ifdef STARPU_USE_FXT
+//		_starpu_exclude_task_from_dag(task);
+//#endif
 //
 //		push_res = starpu_task_submit(task);
 //		STARPU_ASSERT(push_res != -ENODEV);

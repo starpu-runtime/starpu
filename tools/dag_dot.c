@@ -41,13 +41,23 @@ void terminate_dat_dot(void)
 
 void add_deps(uint64_t child, uint64_t father)
 {
-	fprintf(out_file, "\t \"%llx\"->\"%llx\"\n", 
+	fprintf(out_file, "\t \"tag_%llx\"->\"tag_%llx\"\n", 
 		(unsigned long long)father, (unsigned long long)child);
 }
 
-void dot_set_tag_done(uint64_t tag, char *color)
+void add_task_deps(unsigned long dep_prev, unsigned long dep_succ)
+{
+	fprintf(out_file, "\t \"task_%lx\"->\"task_%lx\"\n", dep_prev, dep_succ);
+} 
+
+void dot_set_tag_done(uint64_t tag, const char *color)
 {
 
-	fprintf(out_file, "\t \"%llx\" \[ style=filled, label=\"\", color=\"%s\"]\n", 
+	fprintf(out_file, "\t \"tag_%llx\" \[ style=filled, label=\"\", color=\"%s\"]\n", 
 		(unsigned long long)tag, color);
+}
+
+void dot_set_task_done(unsigned long job_id, const char *label, const char *color)
+{
+	fprintf(out_file, "\t \"task_%lx\" \[ style=filled, label=\"%s\", color=\"%s\"]\n", job_id, label, color);
 }

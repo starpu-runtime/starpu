@@ -16,6 +16,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
+#include <core/jobs.h>
 
 struct wrapper_func_args {
 	void (*func)(void *);
@@ -28,11 +29,19 @@ static void wrapper_func(void *buffers[] __attribute__ ((unused)), void *_args)
 	args->func(args->arg);
 }
 
+static struct starpu_perfmodel_t wrapper_model = {
+	.type = STARPU_HISTORY_BASED,
+	.symbol = "_wrapper_model"
+};
+
+
 /* execute func(arg) on each worker that matches the "where" flag */
 void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where)
 {
+	int ret;
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();
+	struct starpu_task *tasks[STARPU_NMAXWORKERS];
 
 	/* create a wrapper codelet */
 	struct starpu_codelet_t wrapper_cl = {
@@ -42,10 +51,8 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 		.opencl_func = wrapper_func,
 		/* XXX we do not handle Cell .. */
 		.nbuffers = 0,
-		.model = NULL
+		.model = &wrapper_model
 	};
-
-	struct starpu_task *tasks[STARPU_NMAXWORKERS];
 
 	struct wrapper_func_args args = {
 		.func = func,
@@ -65,7 +72,11 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 		tasks[worker]->detach = 0;
 		tasks[worker]->destroy = 0;
 
-		int ret = starpu_task_submit(tasks[worker]);
+#ifdef STARPU_USE_FXT
+		_starpu_exclude_task_from_dag(tasks[worker]);
+#endif
+
+		ret = starpu_task_submit(tasks[worker]);
 		if (ret == -ENODEV)
 		{
 			/* if the worker is not able to execute this tasks, we
@@ -80,7 +91,8 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 	{
 		if (tasks[worker])
 		{
-			starpu_task_wait(tasks[worker]);
+			ret = starpu_task_wait(tasks[worker]);
+			STARPU_ASSERT(!ret);
 			starpu_task_destroy(tasks[worker]);
 		}
 	}

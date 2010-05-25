@@ -39,6 +39,18 @@ size_t _starpu_job_get_data_size(starpu_job_t j)
 	return size;
 }
 
+#ifdef STARPU_USE_FXT
+/* we need to identify each task to generate the DAG. */
+static unsigned long job_cnt = 0;
+
+void _starpu_exclude_task_from_dag(struct starpu_task *task)
+{
+	starpu_job_t j = _starpu_get_job_associated_to_task(task);
+
+	j->exclude_from_dag = 1;
+}
+#endif
+
 /* create an internal starpu_job_t structure to encapsulate the task */
 starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task)
 {
@@ -52,6 +64,12 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 	job->footprint_is_computed = 0;
 	job->submitted = 0;
 	job->terminated = 0;
+
+#ifdef STARPU_USE_FXT
+	job->job_id = STARPU_ATOMIC_ADD(&job_cnt, 1);
+	/* display all tasks by default */
+	job->exclude_from_dag = 0;
+#endif
 
 	_starpu_cg_list_init(&job->job_successors);
 
@@ -135,6 +153,8 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
 
 		_starpu_set_local_worker_status(STATUS_UNKNOWN);
 	}
+
+	STARPU_TRACE_TASK_DONE(j);
 
 	/* NB: we do not save those values before the callback, in case the
 	 * application changes some parameters eventually (eg. a task may not

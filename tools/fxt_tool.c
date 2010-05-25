@@ -484,7 +484,46 @@ static void handle_codelet_tag_deps(void)
 	add_deps(child, father);
 }
 
+static void handle_task_deps(void)
+{
+	unsigned long dep_prev = ev.param[0];
+	unsigned long dep_succ = ev.param[1];
+
+	/* There is a dependency between both job id : dep_prev -> dep_succ */
+	add_task_deps(dep_prev, dep_succ);
+}
+
 static void handle_task_done(void)
+{
+	unsigned long job_id;
+	job_id = ev.param[0];
+
+	unsigned long has_name = ev.param[3];
+	char *name = has_name?(char *)&ev.param[4]:"unknown";
+
+        int worker;
+        worker = find_worker_id(ev.param[1]);
+
+	const char *colour;
+	char buffer[32];
+	if (per_task_colour) {
+		snprintf(buffer, 32, "#%x%x%x",
+			get_colour_symbol_red(name)/4,
+			get_colour_symbol_green(name)/4,
+			get_colour_symbol_blue(name)/4);
+		colour = &buffer[0];
+	}
+	else {
+		colour= (worker < 0)?"#000000":get_worker_color(worker);
+	}
+
+	unsigned exclude_from_dag = ev.param[2];
+
+	if (!exclude_from_dag)
+		dot_set_task_done(job_id, name, colour);
+}
+
+static void handle_tag_done(void)
 {
 	uint64_t tag_id;
 	tag_id = ev.param[0];
@@ -495,7 +534,7 @@ static void handle_task_done(void)
         int worker;
         worker = find_worker_id(ev.param[1]);
 
-	char *colour;
+	const char *colour;
 	char buffer[32];
 	if (per_task_colour) {
 		snprintf(buffer, 32, "%.4f,%.4f,%.4f",
@@ -720,8 +759,16 @@ void parse_new_file(char *filename_in, char *file_prefix, uint64_t file_offset)
 				handle_codelet_tag_deps();
 				break;
 
+			case STARPU_FUT_TASK_DEPS:
+				handle_task_deps();
+				break;
+
 			case STARPU_FUT_TASK_DONE:
 				handle_task_done();
+				break;
+
+			case STARPU_FUT_TAG_DONE:
+				handle_tag_done();
 				break;
 
 			case STARPU_FUT_DATA_COPY:

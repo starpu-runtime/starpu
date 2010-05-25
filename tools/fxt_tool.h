@@ -38,7 +38,8 @@
 extern void init_dag_dot(void);
 extern void terminate_dat_dot(void);
 extern void add_deps(uint64_t child, uint64_t father);
-extern void dot_set_tag_done(uint64_t tag, char *color);
+extern void dot_set_tag_done(uint64_t tag, const char *color);
+extern void dot_set_task_done(unsigned long job_id, const char *label, const char *color);
 
 void set_next_other_worker_color(int workerid);
 void set_next_cpu_worker_color(int workerid);

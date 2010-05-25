@@ -133,6 +133,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 
 /* This function is called when a task has been executed so that we don't
  * create dependencies to task that do not exist anymore. */
+#warning TODO in order to generate a useful DAG with FXT, we may have to do something here to save the deps that are just implicit
 void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *task, starpu_data_handle handle)
 {
 	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);

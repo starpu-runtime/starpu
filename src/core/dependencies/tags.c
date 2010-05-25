@@ -177,7 +177,7 @@ void _starpu_notify_tag_dependencies(struct starpu_tag_s *tag)
 	_starpu_spin_lock(&tag->lock);
 
 	tag->state = STARPU_DONE;
-	STARPU_TRACE_TASK_DONE(tag);
+	STARPU_TRACE_TAG_DONE(tag);
 
 	_starpu_notify_cg_list(&tag->tag_successors);
 
