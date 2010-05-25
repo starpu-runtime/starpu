@@ -940,7 +940,7 @@ contained in the @code{tag_id} field. Tag allow the application to synchronize
 with the task and to express task dependencies easily.
 
 @item @code{tag_id}:
-This fields contains the tag associated to the tag if the @code{use_tag} field
+This fields contains the tag associated to the task if the @code{use_tag} field
 was set, it is ignored otherwise.
 
 @item @code{synchronous}:
