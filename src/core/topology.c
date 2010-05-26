@@ -175,6 +175,7 @@ static void _starpu_initialize_workers_gpuid(int use_explicit_workers_gpuid, int
 	else
 	{
 		/* by default, we take a round robin policy */
+		if (nhwgpus > 0)
 		for (i = 0; i < STARPU_NMAXWORKERS; i++)
 			workers_gpuid[i] = (unsigned)(i % nhwgpus);
 
