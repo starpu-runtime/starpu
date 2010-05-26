@@ -234,6 +234,14 @@ datawizard_mpi_like_SOURCES =			\
 datawizard_mpi_like_async_SOURCES =		\
 	datawizard/mpi_like_async.c
 
+if STARPU_USE_CUDA
+datawizard_mpi_like_SOURCES +=			\
+	datawizard/cuda_codelet_unsigned_inc.cu
+
+datawizard_mpi_like_async_SOURCES +=		\
+	datawizard/cuda_codelet_unsigned_inc.cu
+endif
+
 errorcheck_starpu_init_noworker_SOURCES =	\
 	errorcheck/starpu_init_noworker.c
 

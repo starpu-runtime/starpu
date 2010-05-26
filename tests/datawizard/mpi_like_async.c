@@ -42,6 +42,10 @@ static struct thread_data problem_data[NTHREADS];
  * data from its neighbour and increment it before transmitting it to its
  * successor. */
 
+#ifdef STARPU_USE_CUDA
+void cuda_codelet_unsigned_inc(void *descr[], __attribute__ ((unused)) void *cl_arg);
+#endif
+
 static void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute__((unused)))
 {
 	unsigned *val = (unsigned *)STARPU_GET_VARIABLE_PTR(descr[0]);
@@ -49,8 +53,11 @@ static void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute_
 }
 
 static starpu_codelet increment_handle_cl = {
-	.where = STARPU_CPU,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = increment_handle_cpu_kernel,
+#ifdef STARPU_USE_CUDA
+	.cuda_func = cuda_codelet_unsigned_inc,
+#endif
 	.nbuffers = 1
 };
 
