@@ -245,7 +245,7 @@ void *_starpu_cuda_worker(void *arg)
 
 		if (j == NULL) {
 			if (_starpu_worker_can_block(memnode))
-				pthread_cond_wait(&queue->activity_cond, &queue->activity_mutex);
+				PTHREAD_COND_WAIT(&queue->activity_cond, &queue->activity_mutex);
 			_starpu_jobq_unlock(queue);
 			continue;
 		}
