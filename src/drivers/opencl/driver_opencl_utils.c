@@ -76,6 +76,9 @@ cl_uint _starpu_opencl_device_uniqueid(cl_device_id id)
 
 char *_starpu_opencl_codelet_dir;
 
+#define _STARPU_STRINGIFY_(x) #x
+#define _STARPU_STRINGIFY(x) _STARPU_STRINGIFY_(x)
+
 static
 int _starpu_opencl_locate_file(char *source_file_name, char *located_file_name) {
         _STARPU_OPENCL_DEBUG("Trying to locate <%s>\n", source_file_name);
@@ -88,7 +91,7 @@ int _starpu_opencl_locate_file(char *source_file_name, char *located_file_name) 
                 _STARPU_OPENCL_DEBUG("Trying to locate <%s>\n", located_file_name);
                 if (access(located_file_name, R_OK) == 0) return EXIT_SUCCESS;
         }
-        sprintf(located_file_name, "%s/%s", STARPU_OPENCL_DATADIR, source_file_name);
+        sprintf(located_file_name, "%s/%s", _STARPU_STRINGIFY(STARPU_OPENCL_DATADIR), source_file_name);
         _STARPU_OPENCL_DEBUG("Trying to locate <%s>\n", located_file_name);
         if (access(located_file_name, R_OK) == 0) return EXIT_SUCCESS;
         sprintf(located_file_name, "%s/%s", STARPU_SRC_DIR, source_file_name);

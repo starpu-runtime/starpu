@@ -372,7 +372,7 @@ AC_SUBST(STARPU_USE_OPENCL, $enable_opencl)
 AM_CONDITIONAL(STARPU_USE_OPENCL, test x$enable_opencl = xyes)
 if test x$enable_opencl = xyes; then
 	AC_DEFINE(STARPU_USE_OPENCL, [1], [OpenCL support is activated])
-        AC_DEFINE_UNQUOTED(STARPU_OPENCL_DATADIR, "$(eval echo ${datarootdir}/starpu/opencl)", [Path to OpenCL codelets])
+	CPPFLAGS="${CPPFLAGS} -DSTARPU_OPENCL_DATADIR=${datarootdir}/starpu/opencl"
         AC_SUBST(STARPU_OPENCL_DATAdir, "$(eval echo ${datarootdir}/starpu/opencl/examples)")
 fi
 
@@ -875,3 +875,4 @@ AC_OUTPUT([
 	doc/Makefile
 	mpi/Makefile
 ])
+
