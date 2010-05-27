@@ -17,15 +17,15 @@
 #ifndef __STARPU_PERFMODEL_H__
 #define __STARPU_PERFMODEL_H__
 
+#include <starpu_config.h>
 #include <stdio.h>
-#ifndef __MINGW32__
+#ifndef STARPU_HAVE_WINDOWS
 #include <pthread.h>
 #else
 #include <windows.h>
 #undef interface
 #endif
 #include <starpu.h>
-#include <starpu_config.h>
 #include <starpu_task.h>
 
 #ifdef __cplusplus
@@ -105,7 +105,7 @@ struct starpu_perfmodel_t {
 	} is_loaded;
 	unsigned benchmarking;
 
-#ifndef __MINGW32__
+#ifndef STARPU_HAVE_WINDOWS
 	pthread_rwlock_t model_rwlock;
 #else
 	HANDLE model_rwlock;

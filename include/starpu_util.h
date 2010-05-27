@@ -42,13 +42,23 @@ extern "C" {
 #ifdef STARPU_NO_ASSERT
 #define STARPU_ASSERT(x)	do {} while(0);
 #else
-#define STARPU_ASSERT(x)	assert(x)
+#  if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
+#    define STARPU_ASSERT(x)	do { if (!(x)) *(int*)NULL = 0; } while(0)
+#  else
+#    define STARPU_ASSERT(x)	assert(x)
+#  endif
 #endif
 
 #define STARPU_ABORT()		abort()
 
 #define STARPU_UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
 #define STARPU_LIKELY(expr)            (__builtin_expect(!!(expr),1))
+
+#ifdef __GNUC__
+#  define STARPU_ATTRIBUTE_UNUSED                  __attribute__((unused))
+#else
+#  define STARPU_ATTRIBUTE_UNUSED                  
+#endif
 
 #if defined(__i386__) || defined(__x86_64__)
 static inline unsigned starpu_cmpxchg(unsigned *ptr, unsigned old, unsigned next) {
@@ -115,6 +125,18 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 
 #ifdef STARPU_USE_CUDA
 
+#if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
+#define STARPU_CUBLAS_OOPS() do { \
+		printf("oops  %s \n", errormsg); \
+		*(int*)NULL = 0; \
+	} while (0);
+#else
+#define STARPU_CUBLAS_OOPS() do { \
+		printf("oops  in %s ... %s \n", __func__, errormsg); \
+		assert(0);						\
+	} while (0);
+#endif
+
 #define STARPU_CUBLAS_REPORT_ERROR(status) 					\
 	do {								\
 		char *errormsg;						\
@@ -144,8 +166,7 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 				errormsg = "unknown error";		\
 				break;					\
 		}							\
-		printf("oops  in %s ... %s \n", __func__, errormsg);	\
-		assert(0);						\
+		STARPU_CUBLAS_OOPS();					\
 	} while (0)  
 
 
@@ -153,8 +174,7 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #define STARPU_CUDA_REPORT_ERROR(status) 				\
 	do {								\
 		const char *errormsg = cudaGetErrorString(status);	\
-		printf("oops  in %s ... %s \n", __func__, errormsg);	\
-		assert(0);						\
+		STARPU_CUBLAS_OOPS();					\
 	} while (0)  
 
 #endif // STARPU_USE_CUDA

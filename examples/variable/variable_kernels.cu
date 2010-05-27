@@ -22,7 +22,7 @@ static __global__ void cuda_variable(float * tab)
 	return;
 }
 
-extern "C" void cuda_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+extern "C" void cuda_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	float *val = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
 

@@ -124,7 +124,7 @@ extern "C" void cuda_kernel(void *descr[], void *cl_arg)
 	unsigned *per_block_cnt;
 	cudaMalloc((void **)&per_block_cnt, nblocks*sizeof(unsigned));
 
-	assert((nx % nblocks) == 0);
+	STARPU_ASSERT((nx % nblocks) == 0);
 
 	/* How many threads per block ? At most 256, but no more threads than
 	 * there are entries to process per block. */

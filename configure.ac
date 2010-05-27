@@ -45,7 +45,10 @@ AC_PATH_PROGS([STARPU_MS_LIB], [lib])
 AC_ARG_VAR([STARPU_MS_LIB], [Path to Microsoft's Visual Studio `lib' tool])
 AM_CONDITIONAL([STARPU_HAVE_MS_LIB], [test "x$STARPU_MS_LIB" != "x"])
 case "$target" in
-*-*-mingw*|*-*-cygwin*) starpu_windows=yes ;;
+*-*-mingw*|*-*-cygwin*)
+  starpu_windows=yes
+  AC_DEFINE(STARPU_HAVE_WINDOWS, [], [Define this on windows.])
+  ;;
 esac
 AM_CONDITIONAL([STARPU_HAVE_WINDOWS], [test "x$starpu_windows" = "xyes"])
 
@@ -334,6 +337,9 @@ AC_DEFINE_UNQUOTED(STARPU_MAXOPENCLDEVS, [$nmaxopencldev],
 AC_ARG_ENABLE(opencl, [AS_HELP_STRING([--disable-opencl],
 		[do not use OpenCL device(s)])],, [enable_opencl=maybe])
 
+case "$target" in
+*-*-mingw*|*-*-cygwin*) enable_opencl=no ;;
+esac
 if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
 	#AC_MSG_CHECKING(whether OpenCL is available)
 	AC_ARG_WITH(opencl-dir, 

@@ -21,7 +21,7 @@ static __global__ void _cuda_unsigned_inc(unsigned *val)
 	val[0]++;
 }
 
-extern "C" void cuda_codelet_unsigned_inc(void *descr[], __attribute__ ((unused)) void *cl_arg)
+extern "C" void cuda_codelet_unsigned_inc(void *descr[], STARPU_ATTRIBUTE_UNUSED void *cl_arg)
 {
 	unsigned *val = (unsigned *)STARPU_GET_VARIABLE_PTR(descr[0]);
 

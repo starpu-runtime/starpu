@@ -25,7 +25,7 @@ extern "C" __global__ void _cuda_incA(unsigned *v)
 	v[0]++;
 }
 
-extern "C" void cuda_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
+extern "C" void cuda_codelet_incA(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	unsigned *v = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
 
@@ -43,7 +43,7 @@ extern "C" __global__ void _cuda_incC(unsigned *v)
 	v[2]++;
 }
 
-extern "C" void cuda_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
+extern "C" void cuda_codelet_incC(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	unsigned *v = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
 

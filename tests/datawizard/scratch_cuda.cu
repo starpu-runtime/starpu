@@ -32,7 +32,7 @@ static __global__ void increment_vector(unsigned *v, unsigned *tmp, int nx)
 	}
 }
 
-extern "C" void cuda_f(void *descr[], __attribute__ ((unused)) void *_args)
+extern "C" void cuda_f(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	unsigned *v = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
 	unsigned *tmp = (unsigned *)STARPU_GET_VECTOR_PTR(descr[1]);

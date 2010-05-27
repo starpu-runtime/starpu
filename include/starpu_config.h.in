@@ -42,6 +42,8 @@
 
 #undef STARPU_HAVE_LIBNUMA
 
+#undef STARPU_HAVE_WINDOWS
+
 #undef starpu_drand48
 #undef starpu_srand48
 
