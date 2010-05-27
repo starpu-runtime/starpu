@@ -179,6 +179,8 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	
 	if test -d "$cuda_dir/include/"; then
 		CPPFLAGS="${CPPFLAGS} -I$cuda_dir/include/ "
+                STARPU_CUDA_CPPFLAGS="-I$cuda_dir/include/"
+                AC_SUBST(STARPU_CUDA_CPPFLAGS, $STARPU_CUDA_CPPFLAGS)
 		NVCCFLAGS="${NVCCFLAGS} -I$cuda_dir/include/ "
 	fi
 
@@ -194,11 +196,13 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	found_cudalib=no
 	if test -d "$cuda_dir/lib/"; then
 		LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib/ "
+                STARPU_CUDA_LDFLAGS="-L$cuda_dir/lib/"
 		AC_SEARCH_LIBS([cuInit],[cuda],[found_cudalib=yes],[found_cudalib=no])
 	fi
 
 	if test x$found_cudalib=xno -a -d "$cuda_dir/lib64/"; then
 		LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib64/ "
+                STARPU_CUDA_LDFLAGS="-L$cuda_dir/lib64/"
 	fi
 
 	AC_SEARCH_LIBS([cuInit],[cuda],[],[have_valid_cuda=no])
@@ -224,6 +228,8 @@ AC_SUBST(STARPU_USE_CUDA, $enable_cuda)
 AM_CONDITIONAL(STARPU_USE_CUDA, test x$enable_cuda = xyes)
 if test x$enable_cuda = xyes; then
 	AC_DEFINE(STARPU_USE_CUDA, [1], [CUDA support is activated])
+
+        AC_SUBST(STARPU_CUDA_LDFLAGS, "$STARPU_CUDA_LDFLAGS -lcuda")
 
 	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag
 	AC_CHECK_SIZEOF([void *])
