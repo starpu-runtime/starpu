@@ -6,7 +6,6 @@ includedir=@includedir@
 Name: starpu
 Description: offers support for heterogeneous multicore architecture
 Version: @PACKAGE_VERSION@
-Cflags: -I${includedir}
-Libs: -L${libdir} -lstarpu
-Libs.private: @LDFLAGS@ @LIBS@
+Cflags: -I${includedir} @CPPFLAGS@
+Libs: -L${libdir} @LDFLAGS@ @LIBS@ -lstarpu
 Requires.private: @HWLOC_REQUIRES@ @GORDON_REQUIRES@
