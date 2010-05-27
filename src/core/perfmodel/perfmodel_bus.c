@@ -393,6 +393,7 @@ static void benchmark_all_gpu_devices(void)
 #endif
 
 	/* TODO: use hwloc */
+#ifndef __MINGW32__
 	/* Save the current cpu binding */
 	cpu_set_t former_process_affinity;
 	ret = sched_getaffinity(0, sizeof(former_process_affinity), &former_process_affinity);
@@ -401,6 +402,7 @@ static void benchmark_all_gpu_devices(void)
 		perror("sched_getaffinity");
 		STARPU_ABORT();
 	}
+#endif
 
 	struct starpu_machine_config_s *config = _starpu_get_machine_config();
 	ncpus = _starpu_topology_get_nhwcpu(config);
@@ -423,6 +425,7 @@ static void benchmark_all_gpu_devices(void)
 #endif
 
 	/* FIXME: use hwloc */
+#ifndef __MINGW32__
 	/* Restore the former affinity */
 	ret = sched_setaffinity(0, sizeof(former_process_affinity), &former_process_affinity);
 	if (ret)
@@ -430,6 +433,7 @@ static void benchmark_all_gpu_devices(void)
 		perror("sched_setaffinity");
 		STARPU_ABORT();
 	}
+#endif
 
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_destroy(hwtopology);
