@@ -180,7 +180,6 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	if test -d "$cuda_dir/include/"; then
 		CPPFLAGS="${CPPFLAGS} -I$cuda_dir/include/ "
                 STARPU_CUDA_CPPFLAGS="-I$cuda_dir/include/"
-                AC_SUBST(STARPU_CUDA_CPPFLAGS, $STARPU_CUDA_CPPFLAGS)
 		NVCCFLAGS="${NVCCFLAGS} -I$cuda_dir/include/ "
 	fi
 
@@ -230,6 +229,7 @@ if test x$enable_cuda = xyes; then
 	AC_DEFINE(STARPU_USE_CUDA, [1], [CUDA support is activated])
 
         AC_SUBST(STARPU_CUDA_LDFLAGS, "$STARPU_CUDA_LDFLAGS -lcuda")
+        AC_SUBST(STARPU_CUDA_CPPFLAGS, $STARPU_CUDA_CPPFLAGS)
 
 	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag
 	AC_CHECK_SIZEOF([void *])
