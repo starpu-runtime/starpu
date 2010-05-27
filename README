@@ -60,10 +60,13 @@ advantage of their specificities in a portable fashion.
 
 StarPU is available on https://gforge.inria.fr/projects/starpu/.
 
-It is also possible to access the latest svn version:
-  $ svn checkout svn://scm.gforge.inria.fr/svn/starpu/trunk/
-or via http (DAV):  
-  $ svn checkout https://scm.gforge.inria.fr/svn/starpu/trunk/
+The project's SVN repository can be checked out through anonymous
+access with the following command(s).
+
+$ svn checkout svn://scm.gforge.inria.fr/svn/starpu/trunk
+$ svn checkout --username anonsvn https://scm.gforge.inria.fr/svn/starpu/trunk
+
+The password is 'anonsvn'
 
 ++=============================++
 || IV. Building and Installing ||
