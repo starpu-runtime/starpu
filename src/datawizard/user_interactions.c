@@ -254,10 +254,12 @@ void starpu_data_release_from_mem(starpu_data_handle handle)
 static void _prefetch_data_on_node(void *arg)
 {
 	struct state_and_node *statenode = arg;
+        int ret;
 
-	_starpu_fetch_data_on_node(statenode->state, statenode->node, STARPU_R, statenode->async, NULL, NULL);
+	ret = _starpu_fetch_data_on_node(statenode->state, statenode->node, STARPU_R, statenode->async, NULL, NULL);
+        STARPU_ASSERT(!ret);
 
-	PTHREAD_MUTEX_LOCK(&statenode->lock);
+        PTHREAD_MUTEX_LOCK(&statenode->lock);
 	statenode->finished = 1;
 	PTHREAD_COND_SIGNAL(&statenode->cond);
 	PTHREAD_MUTEX_UNLOCK(&statenode->lock);
@@ -291,8 +293,11 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 
 	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _prefetch_data_on_node, &statenode))
 	{
+                int ret;
+
 		/* we can immediately proceed */
-		_starpu_fetch_data_on_node(handle, node, mode, async, NULL, NULL);
+		ret = _starpu_fetch_data_on_node(handle, node, mode, async, NULL, NULL);
+		STARPU_ASSERT(!ret);
 
 		/* remove the "lock"/reference */
 		if (!async)
