@@ -80,8 +80,6 @@ static inline unsigned starpu_atomic_##name(unsigned *ptr, unsigned value) { \
 #elif defined(STARPU_HAVE_XCHG)
 STARPU_ATOMIC_SOMETHING(add, old + value)
 #define STARPU_ATOMIC_ADD(ptr, value) starpu_atomic_add(ptr, value)
-#else
-#error __sync_fetch_and_add is not available
 #endif
 
 #ifdef STARPU_HAVE_SYNC_FETCH_AND_OR
@@ -89,16 +87,12 @@ STARPU_ATOMIC_SOMETHING(add, old + value)
 #elif defined(STARPU_HAVE_XCHG)
 STARPU_ATOMIC_SOMETHING(or, old | value)
 #define STARPU_ATOMIC_OR(ptr, value) starpu_atomic_or(ptr, value)
-#else
-#error __sync_fetch_and_or is not available
 #endif
 
 #ifdef STARPU_HAVE_SYNC_BOOL_COMPARE_AND_SWAP
 #define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value)  (__sync_bool_compare_and_swap ((ptr), (old), (value)))
 #elif defined(STARPU_HAVE_XCHG)
 #define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value) (starpu_cmpxchg((ptr), (old), (value)) == (old))
-#else
-#error __sync_bool_compare_and_swap is not available
 #endif
 
 #ifdef STARPU_HAVE_SYNC_LOCK_TEST_AND_SET
@@ -107,8 +101,6 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #elif defined(STARPU_HAVE_XCHG)
 #define STARPU_TEST_AND_SET(ptr, value) (starpu_xchg((ptr), (value)))
 #define STARPU_RELEASE(ptr) (starpu_xchg((ptr), 0))
-#else
-#error __sync_lock_test_and_set is not available
 #endif
 
 #ifdef STARPU_HAVE_SYNC_SYNCHRONIZE
@@ -119,8 +111,6 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #define STARPU_SYNCHRONIZE() __asm__ __volatile__("mfence" ::: "memory")
 #elif defined(__ppc__) || defined(__ppc64__)
 #define STARPU_SYNCHRONIZE() __asm__ __volatile__("sync" ::: "memory")
-#else
-#error __sync_synchronize is not available
 #endif
 
 #ifdef STARPU_USE_CUDA
