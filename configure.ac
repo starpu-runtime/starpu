@@ -197,7 +197,7 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	if test -d "$cuda_dir/lib/"; then
 		LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib/ "
                 STARPU_CUDA_LDFLAGS="-L$cuda_dir/lib/"
-		AC_SEARCH_LIBS([cuInit],[cuda],[found_cudalib=yes],[found_cudalib=no])
+		AC_HAVE_LIBRARY([cuda],[found_cudalib=yes],[found_cudalib=no])
 	fi
 
 	if test x$found_cudalib=xno -a -d "$cuda_dir/lib64/"; then
@@ -205,13 +205,13 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
                 STARPU_CUDA_LDFLAGS="-L$cuda_dir/lib64/"
 	fi
 
-	AC_SEARCH_LIBS([cuInit],[cuda],[],[have_valid_cuda=no])
+	AC_HAVE_LIBRARY([cuda],[],[have_valid_cuda=no])
 
 	# To detect if we have a recent enough CUDA lib
-	AC_SEARCH_LIBS([cudaHostAlloc],[cudart],[],[have_valid_cuda=no])
+	AC_HAVE_LIBRARY([cudart],[],[have_valid_cuda=no])
 
 	# we also check that CUBLAS is available
-	AC_SEARCH_LIBS([cublasInit],[cublas],,[have_valid_cuda=no])
+	AC_HAVE_LIBRARY([cublas],,[have_valid_cuda=no])
 
 	# in case CUDA was explicitely required, but is not available, this is an error
 	if test x$enable_cuda = xyes -a x$have_valid_cuda = no; then
