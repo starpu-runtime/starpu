@@ -501,6 +501,8 @@ static void register_mem_chunk(starpu_data_handle handle, uint32_t dst_node, siz
 	STARPU_ASSERT(!res);
 }
 
+/* This function is called when the handle is destroyed (eg. when calling
+ * unregister or unpartition). */
 void _starpu_request_mem_chunk_removal(starpu_data_handle handle, unsigned node)
 {
 	int res;
@@ -546,19 +548,25 @@ static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
 
 	starpu_data_handle handle = mc->data;
 
+	/* Does this memory chunk refers to a handle that does not exist
+	 * anymore ? */
+	unsigned data_was_deleted = mc->data_was_deleted;
+
 //	while (_starpu_spin_trylock(&handle->header_lock))
 //		_starpu_datawizard_progress(_starpu_get_local_memory_node());
 
 #warning can we block here ?
 //	_starpu_spin_lock(&handle->header_lock);
 
-	if (mc->automatically_allocated && (handle->per_node[node].refcnt == 0))
+	if (mc->automatically_allocated && 
+		(data_was_deleted || handle->per_node[node].refcnt == 0))
 	{
-		STARPU_ASSERT(handle->per_node[node].allocated);
+		if (!data_was_deleted)
+			STARPU_ASSERT(handle->per_node[node].allocated);
 
 		mc->ops->free_data_on_node(mc->interface, node);
 
-		if (!mc->data_was_deleted)
+		if (!data_was_deleted)
 		{
 			handle->per_node[node].allocated = 0;
 
@@ -568,7 +576,8 @@ static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
 
 		freed = mc->size;
 
-		STARPU_ASSERT(handle->per_node[node].refcnt == 0);
+		if (!data_was_deleted)
+			STARPU_ASSERT(handle->per_node[node].refcnt == 0);
 	}
 
 //	_starpu_spin_unlock(&handle->header_lock);
