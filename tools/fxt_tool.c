@@ -514,7 +514,7 @@ static void handle_task_done(void)
 		colour = &buffer[0];
 	}
 	else {
-		colour= (worker < 0)?"#000000":get_worker_color(worker);
+		colour= (worker < 0)?"#aaaaaa":get_worker_color(worker);
 	}
 
 	unsigned exclude_from_dag = ev.param[2];
