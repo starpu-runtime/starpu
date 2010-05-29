@@ -90,7 +90,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 	}
 //#endif
 
-	cpu_args->jobq->total_job_performed++;
+	STARPU_ATOMIC_ADD(&cpu_args->jobq->total_job_performed, 1);
 
 	return 0;
 }

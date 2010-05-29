@@ -157,7 +157,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 			_starpu_update_perfmodel_history(j, args->perf_arch, (unsigned)args->devid, measured);
 	}
 
-	args->jobq->total_job_performed++;
+	STARPU_ATOMIC_ADD(&args->jobq->total_job_performed, 1);
 
 	_starpu_push_task_output(task, mask);
 
