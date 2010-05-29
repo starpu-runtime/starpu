@@ -5,7 +5,7 @@ Get the sources from the cvs repository
 
 Configure and compile FxT:
 	./bootstrap
-	./configure --enable-sync-clock --prefix=$FXTDIR
+	./configure --prefix=$FXTDIR
 	make
 	make install 
 
