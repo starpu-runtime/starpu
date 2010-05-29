@@ -54,7 +54,9 @@ int _starpu_spin_lock(starpu_spinlock_t *lock)
 int _starpu_spin_trylock(starpu_spinlock_t *lock)
 {
 #ifdef HAVE_PTHREAD_SPIN_LOCK
-	return pthread_spin_trylock(&lock->lock);
+	int ret =  pthread_spin_trylock(&lock->lock);
+	STARPU_ASSERT(!ret || (ret == EBUSY));
+	return ret;
 #else
 	uint32_t prev;
 	prev = STARPU_TEST_AND_SET(&lock->taken, 1);
