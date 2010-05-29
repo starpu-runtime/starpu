@@ -82,6 +82,8 @@ static void _starpu_init_worker_queue(struct starpu_worker_s *workerarg)
 {
 	struct starpu_jobq_s *jobq = workerarg->jobq;
 
+	PTHREAD_MUTEX_LOCK(&jobq->activity_mutex);
+
 	/* warning : in case there are multiple workers on the same
 	  queue, we overwrite this value so that it is meaningless */
 	jobq->arch = workerarg->perf_arch;
@@ -105,6 +107,8 @@ static void _starpu_init_worker_queue(struct starpu_worker_s *workerarg)
 			STARPU_ABORT();
 	}
 		
+	PTHREAD_MUTEX_UNLOCK(&jobq->activity_mutex);
+
 	_starpu_memory_node_attach_queue(jobq, workerarg->memory_node);
 }
 

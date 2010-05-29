@@ -167,6 +167,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 void *_starpu_cuda_worker(void *arg)
 {
 	struct starpu_worker_s* args = arg;
+	struct starpu_jobq_s *jobq = args->jobq;
 
 	int devid = args->devid;
 	unsigned memory_node = args->memory_node;
@@ -180,18 +181,22 @@ void *_starpu_cuda_worker(void *arg)
 
 	_starpu_set_local_memory_node_key(&(args->memory_node));
 
-	_starpu_set_local_queue(args->jobq);
+	_starpu_set_local_queue(jobq);
 
 	_starpu_set_local_worker_key(args);
 
+	PTHREAD_MUTEX_LOCK(&jobq->activity_mutex);
+
 	/* this is only useful (and meaningful) is there is a single
 	   memory node "related" to that queue */
-	args->jobq->memory_node = memory_node;
+	jobq->memory_node = memory_node;
 
-	args->jobq->total_computation_time = 0.0;
-	args->jobq->total_communication_time = 0.0;
-	args->jobq->total_computation_time_error = 0.0;
-	args->jobq->total_job_performed = 0;
+	jobq->total_computation_time = 0.0;
+	jobq->total_communication_time = 0.0;
+	jobq->total_computation_time_error = 0.0;
+	jobq->total_job_performed = 0;
+
+	PTHREAD_MUTEX_UNLOCK(&jobq->activity_mutex);
 
 	init_context(devid);
 
@@ -291,18 +296,18 @@ void *_starpu_cuda_worker(void *arg)
 	deinit_context(args->workerid);
 
 #ifdef STARPU_DATA_STATS
-	fprintf(stderr, "CUDA #%d computation %le comm %le (%lf \%%)\n", args->id, args->jobq->total_computation_time, args->jobq->total_communication_time, args->jobq->total_communication_time*100.0/args->jobq->total_computation_time);
+	fprintf(stderr, "CUDA #%d computation %le comm %le (%lf \%%)\n", args->id, jobq->total_computation_time, jobq->total_communication_time, jobq->total_communication_time*100.0/jobq->total_computation_time);
 #endif
 
 #ifdef STARPU_VERBOSE
 	double ratio = 0;
-	if (args->jobq->total_job_performed != 0)
+	if (jobq->total_job_performed != 0)
 	{
-		ratio = args->jobq->total_computation_time_error/args->jobq->total_computation_time;
+		ratio = jobq->total_computation_time_error/jobq->total_computation_time;
 	}
 
 
-	_starpu_print_to_logfile("MODEL ERROR: CUDA %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", args->devid, args->jobq->total_computation_time_error, args->jobq->total_computation_time, ratio, args->jobq->total_job_performed);
+	_starpu_print_to_logfile("MODEL ERROR: CUDA %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", args->devid, jobq->total_computation_time_error, jobq->total_computation_time, ratio, jobq->total_job_performed);
 #endif
 
 	STARPU_TRACE_WORKER_DEINIT_END(STARPU_FUT_CUDA_KEY);
