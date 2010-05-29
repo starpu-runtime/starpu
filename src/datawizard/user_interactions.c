@@ -81,10 +81,9 @@ static void _starpu_sync_data_with_mem_continuation_non_blocking(void *arg)
 
 	STARPU_ASSERT(handle);
 
-	ret = _starpu_fetch_data_on_node(handle, 0, statenode->mode, 0,
+	ret = _starpu_fetch_data_on_node(handle, 0, statenode->mode, 1,
 			_starpu_sync_data_with_mem_fetch_data_callback, statenode);
 	STARPU_ASSERT(!ret);
-
 }
 
 void starpu_data_sync_with_mem_non_blocking_pre_sync_callback(void *arg)
@@ -118,6 +117,11 @@ int starpu_data_sync_with_mem_non_blocking(starpu_data_handle handle,
 	PTHREAD_COND_INIT(&statenode->cond, NULL);
 	PTHREAD_MUTEX_INIT(&statenode->lock, NULL);
 	statenode->finished = 0;
+
+#warning TODO instead of having the is_prefetch argument, _starpu_fetch_data shoud consider two flags: async and detached
+	_starpu_spin_lock(&handle->header_lock);
+	handle->per_node[0].refcnt++;
+	_starpu_spin_unlock(&handle->header_lock);
 
 	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 	int sequential_consistency = handle->sequential_consistency;

@@ -322,6 +322,8 @@ void _starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wb
 
 	handle->per_node[memory_node].refcnt--;
 
+	STARPU_ASSERT(handle->per_node[memory_node].refcnt >= 0);
+
 	_starpu_notify_data_dependencies(handle);
 
 	_starpu_spin_unlock(&handle->header_lock);

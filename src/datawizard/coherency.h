@@ -41,7 +41,7 @@ typedef struct starpu_local_data_state_t {
 	/* describes the state of the local data in term of coherency */
 	starpu_cache_state	state; 
 
-	uint32_t refcnt;
+	int refcnt;
 
 	/* is the data locally allocated ? */
 	uint8_t allocated; 
