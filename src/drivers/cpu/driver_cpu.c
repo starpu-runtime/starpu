@@ -119,21 +119,8 @@ void *_starpu_cpu_worker(void *arg)
 
 	snprintf(cpu_arg->name, 32, "CPU %d", cpu_arg->devid);
 
-	PTHREAD_MUTEX_LOCK(&jobq->activity_mutex);
-
-	/* this is only useful (and meaningful) is there is a single
-	   memory node "related" to that queue */
-	jobq->memory_node = cpu_arg->memory_node;
-
-	jobq->total_computation_time = 0.0;
-	jobq->total_communication_time = 0.0;
-	jobq->total_computation_time_error = 0.0;
-	jobq->total_job_performed = 0;
-
 	cpu_arg->status = STATUS_UNKNOWN;
 
-	PTHREAD_MUTEX_UNLOCK(&jobq->activity_mutex);
-	
 	STARPU_TRACE_WORKER_INIT_END
 
         /* tell the main thread that we are ready */

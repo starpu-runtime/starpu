@@ -186,7 +186,6 @@ void *_starpu_opencl_worker(void *arg)
 	struct starpu_jobq_s *jobq = args->jobq;
 
 	int devid = args->devid;
-	unsigned memory_node = args->memory_node;
 
 #ifdef USE_FXT
 	fxt_register_thread(args->bindid);
@@ -199,19 +198,6 @@ void *_starpu_opencl_worker(void *arg)
 	_starpu_set_local_queue(jobq);
 
 	_starpu_set_local_worker_key(args);
-
-	PTHREAD_MUTEX_LOCK(&jobq->activity_mutex);
-
-	/* this is only useful (and meaningful) is there is a single
-	   memory node "related" to that queue */
-	jobq->memory_node = memory_node;
-
-	jobq->total_computation_time = 0.0;
-	jobq->total_communication_time = 0.0;
-	jobq->total_computation_time_error = 0.0;
-	jobq->total_job_performed = 0;
-
-	PTHREAD_MUTEX_UNLOCK(&jobq->activity_mutex);
 
 	_starpu_opencl_init_context(devid);
 

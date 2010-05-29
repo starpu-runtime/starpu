@@ -106,6 +106,15 @@ static void _starpu_init_worker_queue(struct starpu_worker_s *workerarg)
 		default:
 			STARPU_ABORT();
 	}
+
+	/* This is only useful (and meaningful) is there is a single memory
+	 * node "related" to that queue */
+	jobq->memory_node = workerarg->memory_node;
+
+	jobq->total_computation_time = 0.0;
+	jobq->total_communication_time = 0.0;
+	jobq->total_computation_time_error = 0.0;
+	jobq->total_job_performed = 0;
 		
 	PTHREAD_MUTEX_UNLOCK(&jobq->activity_mutex);
 
