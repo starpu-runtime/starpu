@@ -253,6 +253,16 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 
 	/* In case there are one or multiple callbacks, we execute them now. */
 	struct callback_list *callbacks = r->callbacks;
+	
+	_starpu_spin_unlock(&r->lock);
+
+	if (do_delete)
+		starpu_data_request_destroy(r);
+
+	_starpu_spin_unlock(&handle->header_lock);
+
+	/* We do the callback once the lock is released so that they can do
+	 * blocking operations with the handle (eg. release it) */
 	while (callbacks)
 	{
 		callbacks->callback_func(callbacks->callback_arg);
@@ -261,13 +271,6 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 		free(callbacks);
 		callbacks = next;
 	}
-
-	_starpu_spin_unlock(&r->lock);
-
-	if (do_delete)
-		starpu_data_request_destroy(r);
-
-	_starpu_spin_unlock(&handle->header_lock);
 }
 
 /* TODO : accounting to see how much time was spent working for other people ... */
