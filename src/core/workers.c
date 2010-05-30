@@ -308,6 +308,8 @@ int starpu_init(struct starpu_conf *user_conf)
 	/* initialize the queue containing the jobs */
 	_starpu_init_sched_policy(&config);
 
+	_starpu_initialize_registered_performance_models();
+
 	_starpu_init_workers(&config);
 
 	PTHREAD_MUTEX_LOCK(&init_mutex);
@@ -516,8 +518,7 @@ void starpu_shutdown(void)
 	_starpu_display_comm_amounts();
 #endif
 
-	if (_starpu_get_calibrate_flag())
-		_starpu_dump_registered_models();
+	_starpu_deinitialize_registered_performance_models();
 
 	/* wait for their termination */
 	_starpu_terminate_workers(&config);

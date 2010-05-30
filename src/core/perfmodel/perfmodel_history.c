@@ -27,6 +27,9 @@
 #include <core/perfmodel/regression.h>
 #include <common/config.h>
 
+static pthread_rwlock_t registered_models_rwlock;
+static struct starpu_model_list_t *registered_models = NULL;
+
 /*
  * History based model
  */
@@ -189,9 +192,6 @@ static void initialize_model(struct starpu_perfmodel_t *model)
 		initialize_per_arch_model(&model->per_arch[arch]);
 }
 
-static struct starpu_model_list_t *registered_models = NULL;
-//static unsigned debug_modelid = 0;
-
 static void get_model_debug_path(struct starpu_perfmodel_t *model, const char *arch, char *path, size_t maxlen)
 {
 	STARPU_ASSERT(path);
@@ -208,6 +208,8 @@ static void get_model_debug_path(struct starpu_perfmodel_t *model, const char *a
 	strncat(path, ".debug", maxlen);
 }
 
+/* registered_models_rwlock must be taken in write mode before calling this
+ * function */
 void _starpu_register_model(struct starpu_perfmodel_t *model)
 {
 	/* add the model to a linked list */
@@ -278,8 +280,10 @@ static void save_history_based_model(struct starpu_perfmodel_t *model)
 #endif
 }
 
-void _starpu_dump_registered_models(void)
+static void _starpu_dump_registered_models(void)
 {
+	PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
+
 	struct starpu_model_list_t *node;
 	node = registered_models;
 
@@ -293,25 +297,53 @@ void _starpu_dump_registered_models(void)
 
 		/* XXX free node */
 	}
+
+	PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 }
 
+void _starpu_initialize_registered_performance_models(void)
+{
+	registered_models = NULL;
 
+	PTHREAD_RWLOCK_INIT(&registered_models_rwlock, NULL);
+}
+
+void _starpu_deinitialize_registered_performance_models(void)
+{
+	if (_starpu_get_calibrate_flag())
+		_starpu_dump_registered_models();
+
+	PTHREAD_RWLOCK_DESTROY(&registered_models_rwlock);
+}
+
+/* We first try to grab the global lock in read mode to check whether the model
+ * was loaded or not (this is very likely to have been already loaded). If the
+ * model was not loaded yet, we take the lock in write mode, and if the model
+ * is still not loaded once we have the lock, we do load it.  */
 static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_history)
 {
+
 	STARPU_ASSERT(model);
 	STARPU_ASSERT(model->symbol);
+	
+	int already_loaded;
+ 
+	PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
+	already_loaded = model->is_loaded;
+	PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 
-	unsigned have_to_load;
-	have_to_load = STARPU_BOOL_COMPARE_AND_SWAP (&model->is_loaded, 
-				STARPU_PERFMODEL_NOT_LOADED,
-				STARPU_PERFMODEL_LOADING);
-	if (!have_to_load)
+	if (already_loaded)
+		return;
+
+	/* The model is still not loaded so we grab the lock in write mode, and
+	 * if it's not loaded once we have the lock, we do load it. */
+
+	PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
+
+	/* Was the model initialized since the previous test ? */
+	if (model->is_loaded)
 	{
-		/* someone is already loading the model, we wait until it's finished */
-		while (model->is_loaded != STARPU_PERFMODEL_LOADED)
-		{
-			STARPU_SYNCHRONIZE();
-		}
+		PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 		return;
 	}
 	
@@ -374,9 +406,11 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
 		initialize_model(model);
 	}
 
-	model->is_loaded = STARPU_PERFMODEL_LOADED;
+	model->is_loaded = 1;
 
 	PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
+
+	PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 }
 
 /* This function is intended to be used by external tools that should read
@@ -485,8 +519,7 @@ double _starpu_regression_based_job_expected_length(struct starpu_perfmodel_t *m
 	size_t size = _starpu_job_get_data_size(j);
 	struct starpu_regression_model_t *regmodel;
 
-	if (STARPU_UNLIKELY(model->is_loaded != STARPU_PERFMODEL_LOADED))
-		load_history_based_model(model, 0);
+	load_history_based_model(model, 0);
 
 	regmodel = &model->per_arch[arch].regression;
 
@@ -503,8 +536,7 @@ double _starpu_history_based_job_expected_length(struct starpu_perfmodel_t *mode
 	struct starpu_history_entry_t *entry;
 	struct starpu_htbl32_node_s *history;
 
-	if (STARPU_UNLIKELY(model->is_loaded != STARPU_PERFMODEL_LOADED))
-		load_history_based_model(model, 1);
+	load_history_based_model(model, 1);
 
 	if (STARPU_UNLIKELY(!j->footprint_is_computed))
 		_starpu_compute_buffers_footprint(j);

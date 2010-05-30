@@ -98,11 +98,7 @@ struct starpu_perfmodel_t {
 	struct starpu_per_arch_perfmodel_t per_arch[STARPU_NARCH_VARIATIONS];
 	
 	const char *symbol;
-	enum {
-		STARPU_PERFMODEL_NOT_LOADED,
-		STARPU_PERFMODEL_LOADING,
-		STARPU_PERFMODEL_LOADED
-	} is_loaded;
+	unsigned is_loaded;
 	unsigned benchmarking;
 
 #ifndef STARPU_HAVE_WINDOWS
