@@ -30,7 +30,7 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 
 	starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
 
-	pthread_rwlock_rdlock(&descr->attached_queues_rwlock);
+	PTHREAD_RWLOCK_RDLOCK(&descr->attached_queues_rwlock);
 
 	unsigned nqueues = descr->queues_count[nodeid];
 	for (q_id = 0; q_id < nqueues; q_id++)
@@ -44,7 +44,7 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 		PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
 	}
 
-	pthread_rwlock_unlock(&descr->attached_queues_rwlock);
+	PTHREAD_RWLOCK_UNLOCK(&descr->attached_queues_rwlock);
 }
 
 void starpu_wake_all_blocked_workers(void)

@@ -31,6 +31,12 @@ int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex);
 #define PTHREAD_MUTEX_LOCK(mutex) { int ret = pthread_mutex_lock(mutex); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_mutex_lock : %s", strerror(ret)); STARPU_ABORT(); }}
 #define PTHREAD_MUTEX_UNLOCK(mutex) { int ret = pthread_mutex_unlock(mutex); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_mutex_unlock : %s", strerror(ret)); STARPU_ABORT(); }}
 
+#define PTHREAD_RWLOCK_INIT(rwlock, attr) { int ret = pthread_rwlock_init((rwlock), (attr)); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_rwlock_init : %s", strerror(ret)); }}
+#define PTHREAD_RWLOCK_RDLOCK(rwlock) { int ret = pthread_rwlock_rdlock(rwlock); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_rwlock_rdlock : %s", strerror(ret)); }}
+#define PTHREAD_RWLOCK_WRLOCK(rwlock) { int ret = pthread_rwlock_wrlock(rwlock); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_rwlock_wrlock : %s", strerror(ret)); }}
+#define PTHREAD_RWLOCK_UNLOCK(rwlock) { int ret = pthread_rwlock_unlock(rwlock); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_rwlock_unlock : %s", strerror(ret)); }}
+#define PTHREAD_RWLOCK_DESTROY(rwlock) { int ret = pthread_rwlock_destroy(rwlock); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_rwlock_destroy : %s", strerror(ret)); }}
+
 #define PTHREAD_COND_INIT(cond, attr) { int ret = pthread_cond_init((cond), (attr)); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_cond_init : %s", strerror(ret)); STARPU_ABORT(); }}
 #define PTHREAD_COND_DESTROY(cond) { int ret = pthread_cond_destroy(cond); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_cond_destroy : %s", strerror(ret)); STARPU_ABORT();}}
 #define PTHREAD_COND_SIGNAL(cond) { int ret = pthread_cond_signal(cond); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_cond_signal : %s", strerror(ret)); STARPU_ABORT();}}

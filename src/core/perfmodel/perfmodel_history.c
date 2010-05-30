@@ -315,20 +315,9 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
 		return;
 	}
 	
-	int res;
-	res = pthread_rwlock_init(&model->model_rwlock, NULL);
-	if (STARPU_UNLIKELY(res))
-	{
-		perror("pthread_rwlock_init failed");
-		STARPU_ABORT();
-	}
+	PTHREAD_RWLOCK_INIT(&model->model_rwlock, NULL);
 
-	res = pthread_rwlock_wrlock(&model->model_rwlock);
-	if (STARPU_UNLIKELY(res))
-	{
-		perror("pthread_rwlock_wrlock failed");
-		STARPU_ABORT();
-	}
+	PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
 
 	/* make sure the performance model directory exists (or create it) */
 	_starpu_create_sampling_directory_if_needed();
@@ -349,6 +338,7 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
 	model->benchmarking = calibrate_flag; 
 	
 	/* try to open an existing file and load it */
+	int res;
 	res = access(path, F_OK); 
 	if (res == 0) {
 		if (calibrate_flag == 2)
@@ -386,12 +376,7 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
 
 	model->is_loaded = STARPU_PERFMODEL_LOADED;
 
-	res = pthread_rwlock_unlock(&model->model_rwlock);
-	if (STARPU_UNLIKELY(res))
-	{
-		perror("pthread_rwlock_unlock");
-		STARPU_ABORT();
-	}
+	PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 }
 
 /* This function is intended to be used by external tools that should read
@@ -532,9 +517,9 @@ double _starpu_history_based_job_expected_length(struct starpu_perfmodel_t *mode
 	if (!history)
 		return -1.0;
 
-	pthread_rwlock_rdlock(&model->model_rwlock);
+	PTHREAD_RWLOCK_RDLOCK(&model->model_rwlock);
 	entry = _starpu_htbl_search_32(history, key);
-	pthread_rwlock_unlock(&model->model_rwlock);
+	PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
 	exp = entry?entry->mean:-1.0;
 
@@ -566,7 +551,7 @@ void _starpu_update_perfmodel_history(starpu_job_t j, enum starpu_perf_archtype 
 			reg_model = &per_arch_model->regression;
 			list = &per_arch_model->list;
 
-			pthread_rwlock_wrlock(&model->model_rwlock);
+			PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
 	
 				entry = _starpu_htbl_search_32(history, key);
 	
@@ -621,13 +606,13 @@ void _starpu_update_perfmodel_history(starpu_job_t j, enum starpu_perf_archtype 
 			reg_model->beta = num/denom;
 			reg_model->alpha = exp((reg_model->sumlny - reg_model->beta*reg_model->sumlnx)/n);
 			
-			pthread_rwlock_unlock(&model->model_rwlock);
+			PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 		}
 
 #ifdef STARPU_MODEL_DEBUG
 		FILE * debug_file = per_arch_model->debug_file;
 
-		pthread_rwlock_wrlock(&model->model_rwlock);
+		PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
 
 		STARPU_ASSERT(j->footprint_is_computed);
 
@@ -645,7 +630,7 @@ void _starpu_update_perfmodel_history(starpu_job_t j, enum starpu_perf_archtype 
 		}
 		fprintf(debug_file, "\n");	
 
-		pthread_rwlock_unlock(&model->model_rwlock);
+		PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 #endif
 	}
 }

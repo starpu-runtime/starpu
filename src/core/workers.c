@@ -405,7 +405,7 @@ static void _starpu_operate_on_all_queues_attached_to_node(unsigned nodeid, queu
 
 	starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
 
-	pthread_rwlock_rdlock(&descr->attached_queues_rwlock);
+	PTHREAD_RWLOCK_RDLOCK(&descr->attached_queues_rwlock);
 
 	unsigned nqueues = descr->queues_count[nodeid];
 
@@ -425,7 +425,7 @@ static void _starpu_operate_on_all_queues_attached_to_node(unsigned nodeid, queu
 		}
 	}
 
-	pthread_rwlock_unlock(&descr->attached_queues_rwlock);
+	PTHREAD_RWLOCK_UNLOCK(&descr->attached_queues_rwlock);
 }
 
 inline void _starpu_lock_all_queues_attached_to_node(unsigned node)
@@ -450,7 +450,7 @@ static void _starpu_operate_on_all_queues(queue_op op)
 
 	starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
 
-	pthread_rwlock_rdlock(&descr->attached_queues_rwlock);
+	PTHREAD_RWLOCK_RDLOCK(&descr->attached_queues_rwlock);
 
 	unsigned nqueues = descr->total_queues_count;
 
@@ -470,7 +470,7 @@ static void _starpu_operate_on_all_queues(queue_op op)
 		}
 	}
 
-	pthread_rwlock_unlock(&descr->attached_queues_rwlock);
+	PTHREAD_RWLOCK_UNLOCK(&descr->attached_queues_rwlock);
 }
 
 static void _starpu_kill_all_workers(struct starpu_machine_config_s *config)
