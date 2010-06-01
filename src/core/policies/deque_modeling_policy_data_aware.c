@@ -196,9 +196,9 @@ static struct starpu_jobq_s *init_dmda_fifo(void)
 
 	q = _starpu_create_fifo();
 
-	q->_starpu_push_task = dmda_push_task; 
+	q->push_task = dmda_push_task; 
 	q->push_prio_task = dmda_push_prio_task; 
-	q->_starpu_pop_task = dmda_pop_task;
+	q->pop_task = dmda_pop_task;
 	q->who = 0;
 
 	queue_array[nworkers++] = q;

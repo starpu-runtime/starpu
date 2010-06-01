@@ -230,17 +230,17 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 		return _starpu_push_local_task(worker, j);
 	}
 	else {
-		STARPU_ASSERT(queue->_starpu_push_task);
+		STARPU_ASSERT(queue->push_task);
 
-		return queue->_starpu_push_task(queue, j);
+		return queue->push_task(queue, j);
 	}
 }
 
 struct starpu_job_s * _starpu_pop_task_from_queue(struct starpu_jobq_s *queue)
 {
-	STARPU_ASSERT(queue->_starpu_pop_task);
+	STARPU_ASSERT(queue->pop_task);
 
-	struct starpu_job_s *j = queue->_starpu_pop_task(queue);
+	struct starpu_job_s *j = queue->pop_task(queue);
 
 	return j;
 }
@@ -254,9 +254,9 @@ struct starpu_job_s * _starpu_pop_task(void)
 
 struct starpu_job_list_s * _starpu_pop_every_task_from_queue(struct starpu_jobq_s *queue, uint32_t where)
 {
-	STARPU_ASSERT(queue->_starpu_pop_every_task);
+	STARPU_ASSERT(queue->pop_every_task);
 
-	struct starpu_job_list_s *list = queue->_starpu_pop_every_task(queue, where);
+	struct starpu_job_list_s *list = queue->pop_every_task(queue, where);
 
 	return list;
 }

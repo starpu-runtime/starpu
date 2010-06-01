@@ -157,10 +157,10 @@ static struct starpu_jobq_s *init_dm_fifo(void)
 
 	q = _starpu_create_fifo();
 
-	q->_starpu_push_task = dm_push_task; 
+	q->push_task = dm_push_task; 
 	q->push_prio_task = dm_push_prio_task; 
-	q->_starpu_pop_task = dm_pop_task;
-	q->_starpu_pop_every_task = dm_pop_every_task;
+	q->pop_task = dm_pop_task;
+	q->pop_every_task = dm_pop_every_task;
 	q->who = 0;
 
 	queue_array[nworkers++] = q;

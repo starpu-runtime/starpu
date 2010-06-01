@@ -85,9 +85,9 @@ static struct starpu_jobq_s *init_random_fifo(void)
 
 	q = _starpu_create_fifo();
 
-	q->_starpu_push_task = random_push_task; 
+	q->push_task = random_push_task; 
 	q->push_prio_task = random_push_prio_task; 
-	q->_starpu_pop_task = random_pop_task;
+	q->pop_task = random_pop_task;
 	q->who = 0;
 
 	queue_array[nworkers++] = q;

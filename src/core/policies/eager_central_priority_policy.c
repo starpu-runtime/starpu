@@ -27,9 +27,9 @@ static void init_priority_queue_design(void)
 	_starpu_init_priority_queues_mechanisms();
 
 	/* we always use priorities in that policy */
-	jobq->_starpu_push_task = _starpu_priority_push_task;
+	jobq->push_task = _starpu_priority_push_task;
 	jobq->push_prio_task = _starpu_priority_push_task;
-	jobq->_starpu_pop_task = _starpu_priority_pop_task;
+	jobq->pop_task = _starpu_priority_pop_task;
 }
 
 static void deinit_priority_queue_design(void)

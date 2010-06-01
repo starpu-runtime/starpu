@@ -31,10 +31,10 @@ static void init_no_prio_design(void)
 
 	_starpu_init_fifo_queues_mechanisms();
 
-	jobq->_starpu_push_task = _starpu_fifo_push_task;
+	jobq->push_task = _starpu_fifo_push_task;
 	/* no priority in that policy, let's be stupid here */
 	jobq->push_prio_task = _starpu_fifo_push_task;
-	jobq->_starpu_pop_task = _starpu_fifo_pop_task;
+	jobq->pop_task = _starpu_fifo_pop_task;
 }
 
 static struct starpu_jobq_s *func_init_central_queue(void)

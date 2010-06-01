@@ -31,11 +31,11 @@ static void init_central_queue_design(void)
 
 	_starpu_init_fifo_queues_mechanisms();
 
-	jobq->_starpu_push_task = _starpu_fifo_push_task;
+	jobq->push_task = _starpu_fifo_push_task;
 	jobq->push_prio_task = _starpu_fifo_push_prio_task;
-	jobq->_starpu_pop_task = _starpu_fifo_pop_task;
+	jobq->pop_task = _starpu_fifo_pop_task;
 
-	jobq->_starpu_pop_every_task = _starpu_fifo_pop_every_task;
+	jobq->pop_every_task = _starpu_fifo_pop_every_task;
 }
 
 static void deinit_central_queue_design(void)
