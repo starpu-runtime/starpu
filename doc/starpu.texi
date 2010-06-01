@@ -1828,6 +1828,8 @@ $ STARPU_NCUDA=0 ./vector
 @end example
 
 
+@c TODO: Add performance model example (and update basic_examples)
+
 @c ---------------------------------------------------------------------
 @c Advanced Topics
 @c ---------------------------------------------------------------------
