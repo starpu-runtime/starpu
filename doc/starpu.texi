@@ -1576,6 +1576,9 @@ task->buffers[0].mode = STARPU_RW;
 
 task->cl_arg = &factor;
 task->cl_arg_size = sizeof(float);
+
+task->synchronous = 1;
+starpu_task_submit(task);
 @end example
 @end cartouche
 
@@ -1657,10 +1660,10 @@ static __global__ void vector_mult_cuda(float *val, unsigned n,
                val[i] *= factor;
 @}
 
-extern "C" void cuda_codelet(void *buffers[], void *_args)
+extern "C" void scal_cuda_func(void *buffers[], void *_args)
 @{
         float *factor = (float *)_args;
-        struct starpu_vector_interface_s *vector = buffers[0];
+        struct starpu_vector_interface_s *vector = (struct starpu_vector_interface_s *) buffers[0];
 
         /* length of the vector */
         unsigned n = STARPU_GET_VECTOR_NX(vector);
@@ -1669,35 +1672,15 @@ extern "C" void cuda_codelet(void *buffers[], void *_args)
 
         /* TODO: use more blocks and threads in blocks */
         vector_mult_cuda<<<1,1>>>(val, n, *factor);
+
+	cudaThreadSynchronize();
 @}
 @end example
 @end cartouche
 
-The CPU implementation can be as follows.
+The CPU implementation is the same as in the previous section.
 
-@cartouche
-@example
-#include <starpu.h>
-
-void cpu_codelet(void *buffers[], void *_args)
-@{
-        unsigned i;
-        float *factor = _args;
-
-        struct starpu_vector_interface_s *vector = buffers[0];
-
-        /* length of the vector */
-        unsigned n = (unsigned)STARPU_GET_VECTOR_NX(vector);
-        /* local copy of the vector pointer */
-        float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
-
-        for(i = 0 ; i < n ; i++)
-                val[i] *= *factor;
-@}
-@end example
-@end cartouche
-
-Here the source of the application. You can notice the value of the
+Here is the source of the main application. You can notice the value of the
 field @code{where} for the codelet. We specify
 @code{STARPU_CPU|STARPU_CUDA} to indicate to StarPU that the codelet
 can be executed either on a CPU or on a CUDA device.
@@ -1708,17 +1691,25 @@ can be executed either on a CPU or on a CUDA device.
 
 #define NX 5
 
-extern void cuda_codelet(void *buffers[], void *_args);
-extern void cpu_codelet(void *buffers[], void *_args);
+extern void scal_cuda_func(void *buffers[], void *_args);
+extern void scal_func(void *buffers[], void *_args);
+
+/* @b{Definition of the codelet} */
+static starpu_codelet cl = @{
+	.where = STARPU_CPU|STARPU_CUDA; /* @b{It can be executed on a CPU} */
+	                                 /* @b{or on a CUDA device} */
+	.cuda_func = scal_cuda_func;
+	.cpu_func = scal_func;
+	.nbuffers = 1;
+@}
 
 int main(int argc, char **argv)
 @{
         float *vector;
         int i, ret;
         float factor=3.0;
-        starpu_codelet cl;
         struct starpu_task *task;
-        starpu_data_handle vector_handle;
+        starpu_data_handle tab_handle;
 
         starpu_init(NULL);                            /* @b{Initialising StarPU} */
 
@@ -1731,22 +1722,14 @@ int main(int argc, char **argv)
 @cartouche
 @example
         /* @b{Registering data within StarPU} */
-        starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector,
+        starpu_vector_data_register(&tab_handle, 0, (uintptr_t)vector,
                                     NX, sizeof(float));
-
-        /* @b{Definition of the codelet} */
-        cl.where = STARPU_CPU|STARPU_CUDA; /* @b{It can be executed on a CPU} */
-                                           /* @b{or on a CUDA device} */
-        cl.cuda_func = cuda_codelet;
-        cl.cpu_func = cpu_codelet;
-        cl.nbuffers = 1;
-        cl.model = NULL;
 
         /* @b{Definition of the task} */
         task = starpu_task_create();
         task->cl = &cl;
         task->callback_func = NULL;
-        task->buffers[0].handle = vector_handle;
+        task->buffers[0].handle = tab_handle;
         task->buffers[0].mode = STARPU_RW;
         task->cl_arg = &factor;
 @end example
@@ -1765,7 +1748,7 @@ int main(int argc, char **argv)
         starpu_task_wait_for_all();
 
         /* @b{Update the vector in RAM} */
-        starpu_data_sync_with_mem(vector_handle, STARPU_R);
+        starpu_data_sync_with_mem(tab_handle, STARPU_R);
 @end example
 @end cartouche
 
@@ -1778,7 +1761,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "\n");
 
         /* @b{Release the data and shutdown StarPU} */
-        starpu_data_release_from_mem(vector_handle);
+        starpu_data_release_from_mem(tab_handle);
         starpu_shutdown();
 
         return 0;

@@ -49,17 +49,34 @@ static void scal_func(void *buffers[], void *cl_arg)
 	starpu_vector_interface_t *vector = buffers[0];
 
 	/* length of the vector */
-	unsigned n = vector->nx;
+	unsigned n = STARPU_GET_VECTOR_NX(vector);
 
 	/* get a pointer to the local copy of the vector : note that we have to
 	 * cast it in (float *) since a vector could contain any type of
 	 * elements so that the .ptr field is actually a uintptr_t */
-	float *val = (float *)vector->ptr;
+	float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
 
 	/* scale the vector */
 	for (i = 0; i < n; i++)
 		val[i] *= *factor;
 }
+
+extern void scal_cuda_func(void *buffers[], void *_args);
+
+static starpu_codelet cl = {
+	.where = STARPU_CPU
+#ifdef STARPU_USE_CUDA
+		| STARPU_CUDA
+#endif
+		,
+	/* CPU implementation of the codelet */
+	.cpu_func = scal_func,
+#ifdef STARPU_USE_CUDA
+	/* CUDA implementation of the codelet */
+	.cuda_func = scal_cuda_func,
+#endif
+	.nbuffers = 1
+};
 
 int main(int argc, char **argv)
 {
@@ -97,13 +114,6 @@ int main(int argc, char **argv)
  	 * until it is terminated */
 	struct starpu_task *task = starpu_task_create();
 	task->synchronous = 1;
-
-	starpu_codelet cl = {
-		.where = STARPU_CPU,
-		/* CPU implementation of the codelet */
-		.cpu_func = scal_func,
-		.nbuffers = 1
-	};
 
 	task->cl = &cl;
 

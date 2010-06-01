@@ -141,6 +141,11 @@ examplebin_PROGRAMS +=				\
 basic_examples_vector_scal_SOURCES =		\
 	basic_examples/vector_scal.c
 
+if STARPU_USE_CUDA
+basic_examples_vector_scal_SOURCES +=		\
+	basic_examples/vector_scal_cuda.cu
+endif
+
 examplebin_PROGRAMS +=				\
 	basic_examples/mult
 
