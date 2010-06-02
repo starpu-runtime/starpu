@@ -516,3 +516,16 @@ if STARPU_USE_OPENCL
 nobase_STARPU_OPENCL_DATA_DATA += \
 	block/block_kernel.cl
 endif
+
+#####################
+# profiling example #
+#####################
+
+check_PROGRAMS +=				\
+	profiling/profiling
+
+examplebin_PROGRAMS +=				\
+	profiling/profiling
+
+profiling_profiling_SOURCES =			\
+	profiling/profiling.c
