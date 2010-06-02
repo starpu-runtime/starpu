@@ -60,6 +60,7 @@ void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 
 	starpu_opencl_release(kernel);
 }
+#endif
 
 void fillArray(float* pfData, int iSize) {
     int i;
@@ -109,14 +110,19 @@ int compareL2fe(const float* reference, const float* data, const unsigned int le
 
     return error < epsilon ? 0 : 1;
 }
-#endif
 
 int main(int argc, char **argv)
 {
 	starpu_codelet cl;
-        starpu_init(NULL);
 
-#ifdef STARPU_USE_OPENCL
+	struct starpu_conf conf = {
+		.ncpus = 0,
+		.ncuda = 0,
+                .nopencl = 1,
+	};
+
+        starpu_init(&conf);
+
         float *matrix, *vector, *mult;
         float *correctResult;
         unsigned int mem_size_matrix, mem_size_vector, mem_size_mult;
@@ -145,10 +151,14 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, width, sizeof(float));
 	starpu_vector_data_register(&mult_handle, 0, (uintptr_t)mult, height, sizeof(float));
 
+#ifdef STARPU_USE_OPENCL
         _starpu_opencl_compile_source_to_opencl("examples/matvecmult/matvecmult_kernel.cl");
+#endif
 
 	cl.where = STARPU_OPENCL;
+#ifdef STARPU_USE_OPENCL
         cl.opencl_func = opencl_codelet;
+#endif
         cl.nbuffers = 3;
         cl.model = NULL;
 
@@ -187,7 +197,6 @@ int main(int argc, char **argv)
         starpu_data_release_from_mem(mult_handle);
 
         starpu_shutdown();
-#endif
 
 	return 0;
 }
