@@ -15,6 +15,8 @@
  */
 
 #include <math.h>
+#include <starpu.h>
+#include <starpu_profiling.h>
 #include <common/config.h>
 #include <common/utils.h>
 #include <core/debug.h>
@@ -375,6 +377,12 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 
 	STARPU_TRACE_START_CODELET_BODY(j);
 
+	struct starpu_task_profiling_info *profiling_info;
+	profiling_info = task->profiling_info;
+
+	if (profiling_info)
+		profiling_info->start_time = (int64_t)_starpu_timing_now();
+
 	args->status = STATUS_EXECUTING;
 	cl_func func = cl->opencl_func;
 	STARPU_ASSERT(func);
@@ -382,6 +390,12 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 	func(task->interface, task->cl_arg);
 
 	cl->per_worker_stats[args->workerid]++;
+
+	if (profiling_info)
+	{
+		profiling_info->end_time = (int64_t)_starpu_timing_now();
+		profiling_info->workerid = args->workerid;
+	}
 
 	STARPU_GET_TICK(codelet_end);
 

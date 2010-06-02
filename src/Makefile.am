@@ -104,7 +104,8 @@ noinst_HEADERS = 						\
 	drivers/gordon/gordon_interface.h			\
 	drivers/cuda/driver_cuda.h				\
 	drivers/opencl/driver_opencl.h				\
-	drivers/opencl/driver_opencl_utils.h
+	drivers/opencl/driver_opencl_utils.h			\
+	profiling/profiling.h
 
 libstarpu_la_SOURCES = 						\
 	common/hash.c 						\
@@ -172,7 +173,8 @@ libstarpu_la_SOURCES = 						\
 	util/starpu_create_sync_task.c				\
 	util/starpu_cublas.c					\
 	util/file.c						\
-	debug/latency.c
+	debug/latency.c						\
+	profiling/profiling.c
 
 if STARPU_USE_CPU
 libstarpu_la_SOURCES += drivers/cpu/driver_cpu.c

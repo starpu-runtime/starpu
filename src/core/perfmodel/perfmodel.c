@@ -14,6 +14,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
+#include <starpu_profiling.h>
+#include <common/config.h>
 #include <common/utils.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -32,6 +35,15 @@ static unsigned calibrate_flag = 0;
 void _starpu_set_calibrate_flag(unsigned val)
 {
 	calibrate_flag = val;
+
+	if (calibrate_flag > 0)
+	{
+		starpu_enable_profiling();
+	}
+	else
+	{
+		starpu_disable_profiling();
+	}
 }
 
 unsigned _starpu_get_calibrate_flag(void)

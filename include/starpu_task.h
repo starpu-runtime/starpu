@@ -116,6 +116,8 @@ struct starpu_task {
 	 * set too. */ 
 	int regenerate;
 
+	struct starpu_task_profiling_info *profiling_info;
+
 	/* this is private to StarPU, do not modify. If the task is allocated
 	 * by hand (without starpu_task_create), this field should be set to
 	 * NULL. */
@@ -139,6 +141,7 @@ struct starpu_task {
 	.detach = 1,					\
 	.destroy = 0,					\
 	.regenerate = 0,				\
+	.profiling_info = NULL,				\
 	.starpu_private = NULL				\
 };
 

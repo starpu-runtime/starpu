@@ -16,6 +16,8 @@
 
 #include "timing.h"
 
+static double reference_start_time;
+
 #ifdef STARPU_HAVE_CLOCK_GETTIME
 
 #define TICK_DIFF(t1, t2) ((long long)((t2).ts.tv_sec*1e9 + (t2).ts.tv_nsec) + \
@@ -24,6 +26,7 @@
 
 void _starpu_timing_init(void)
 {
+	reference_start_time = _starpu_timing_now();
 }
 
 inline double _starpu_tick2usec(long long t)
@@ -47,10 +50,10 @@ inline double _starpu_timing_now(void)
 	starpu_tick_t tick_now;
 	STARPU_GET_TICK(tick_now);
 
-	return _starpu_tick2usec(((tick_now).ts.tv_sec*1e9) + (tick_now).ts.tv_nsec);
+	double absolute_now = _starpu_tick2usec(((tick_now).ts.tv_sec*1e9) + (tick_now).ts.tv_nsec);
+
+	return (absolute_now - reference_start_time);
 }
-
-
 
 #else // STARPU_HAVE_CLOCK_GETTIME
 
@@ -92,6 +95,8 @@ void _starpu_timing_init(void)
       (double)(TICK_DIFF(t1, t2));
   }
 
+  reference_start_time = _starpu_timing_now();
+
   inited = 1;
 }
 
@@ -110,7 +115,10 @@ inline double _starpu_timing_now(void)
 	starpu_tick_t tick_now;
 	STARPU_GET_TICK(tick_now);
 
-	return _starpu_tick2usec(tick_now.tick);
+	double absolute_now =  _starpu_tick2usec(tick_now.tick);
+
+	return (absolute_now - reference_start_time);
+
 }
 
 #endif // STARPU_HAVE_CLOCK_GETTIME

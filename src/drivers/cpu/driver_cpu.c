@@ -15,6 +15,8 @@
  */
 
 #include <math.h>
+#include <starpu.h>
+#include <starpu_profiling.h>
 
 #include <common/utils.h>
 #include <core/debug.h>
@@ -56,6 +58,12 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
 		STARPU_GET_TICK(codelet_start);
 
+	struct starpu_task_profiling_info *profiling_info;
+	profiling_info = task->profiling_info;
+
+	if (profiling_info)
+		profiling_info->start_time = (int64_t)_starpu_timing_now();
+
 	cpu_args->status = STATUS_EXECUTING;
 	cl_func func = cl->cpu_func;
 	func(task->interface, task->cl_arg);
@@ -64,6 +72,12 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 	
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
 		STARPU_GET_TICK(codelet_end);
+
+	if (profiling_info)
+	{
+		profiling_info->end_time = (int64_t)_starpu_timing_now();
+		profiling_info->workerid = cpu_args->workerid;
+	}
 
 	STARPU_TRACE_END_CODELET_BODY(j);
 	cpu_args->status = STATUS_UNKNOWN;

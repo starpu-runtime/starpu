@@ -15,11 +15,13 @@
  */
 
 #include <starpu.h>
+#include <starpu_profiling.h>
 #include <core/workers.h>
 #include <core/jobs.h>
 #include <core/task.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <profiling/profiling.h>
 
 /* XXX this should be reinitialized when StarPU is shutdown (or we should make
  * sure that no task remains !) */
@@ -62,6 +64,8 @@ void starpu_task_init(struct starpu_task *task)
 
 	task->regenerate = 0;
 
+	task->profiling_info = NULL;
+
 	task->starpu_private = NULL;
 }
 
@@ -70,6 +74,13 @@ void starpu_task_init(struct starpu_task *task)
 void starpu_task_deinit(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
+
+	/* If a buffer was allocated to store the profiling info, we free it. */
+	if (task->profiling_info)
+	{
+		free(task->profiling_info);
+		task->profiling_info = NULL;
+	}
 
 	starpu_job_t j = (struct starpu_job_s *)task->starpu_private;
 
@@ -189,6 +200,19 @@ int starpu_task_submit(struct starpu_task *task)
 			return -ENODEV;
 
 		_starpu_detect_implicit_data_deps(task);
+	}
+
+	/* If profiling is activated, we allocate a structure to store the
+	 * appropriate info. */
+	struct starpu_task_profiling_info *info;
+	info = _starpu_allocate_profiling_info_if_needed();
+	task->profiling_info = info;
+	
+	if (info)
+	{
+		info->submit_time = (int64_t)_starpu_timing_now();
+		info->start_time = -ENOSYS;
+		info->end_time = -ENOSYS;
 	}
 
 	/* internally, StarPU manipulates a starpu_job_t which is a wrapper around a
