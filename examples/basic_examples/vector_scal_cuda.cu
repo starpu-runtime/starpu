@@ -14,6 +14,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * This example complements vector_scale.c: here we implement a CUDA version.
+ */
+
 #include <starpu.h>
 
 static __global__ void vector_mult_cuda(float *val, unsigned n,
