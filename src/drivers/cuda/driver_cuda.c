@@ -21,6 +21,7 @@
 #include <core/debug.h>
 #include "driver_cuda.h"
 #include <core/policies/sched_policy.h>
+#include <profiling/profiling.h>
 
 /* the number of CUDA devices */
 static int ncudagpus;
@@ -83,7 +84,6 @@ void _starpu_init_cuda(void)
 static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 {
 	int ret;
-//	uint32_t mask = (1<<0);
 	uint32_t mask = 0;
 
 	STARPU_ASSERT(j);
@@ -92,8 +92,11 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 	cudaError_t cures;
 	starpu_tick_t codelet_start, codelet_end;
 	starpu_tick_t codelet_start_comm, codelet_end_comm;
-	
+	int64_t start_time;
+	int64_t end_time;
+
 	unsigned calibrate_model = 0;
+	int workerid = args->workerid;
 
 	STARPU_ASSERT(task);
 	struct starpu_codelet_t *cl = task->cl;
@@ -129,11 +132,10 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 
 	STARPU_TRACE_START_CODELET_BODY(j);
 
-	struct starpu_task_profiling_info *profiling_info;
-	profiling_info = task->profiling_info;
+	int profiling_status = starpu_profiling_status_get();
 
-	if (profiling_info)
-		profiling_info->start_time = (int64_t)_starpu_timing_now();
+	if (profiling_status)
+		start_time = (int64_t)_starpu_timing_now();
 
 	args->status = STATUS_EXECUTING;
 	cl_func func = cl->cuda_func;
@@ -141,15 +143,27 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 	STARPU_GET_TICK(codelet_start);
 	func(task->interface, task->cl_arg);
 
-	cl->per_worker_stats[args->workerid]++;
+	cl->per_worker_stats[workerid]++;
+
+
+	if (profiling_status)
+		end_time = (int64_t)_starpu_timing_now();
+
+	struct starpu_task_profiling_info *profiling_info;
+	profiling_info = task->profiling_info;
 
 	if (profiling_info)
 	{
-		profiling_info->end_time = (int64_t)_starpu_timing_now();
-		profiling_info->workerid = args->workerid;
+		profiling_info->start_time = start_time;
+		profiling_info->end_time = end_time;
+		profiling_info->workerid = workerid;
 	}
 
-	STARPU_GET_TICK(codelet_end);
+	if (profiling_status)
+		_starpu_worker_update_profiling_info(workerid, end_time - start_time, 0, 1);
+
+	if (calibrate_model || STARPU_BENCHMARK_COMM)
+		STARPU_GET_TICK(codelet_end);
 
 	args->status = STATUS_UNKNOWN;
 
@@ -171,7 +185,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 			_starpu_update_perfmodel_history(j, args->perf_arch, (unsigned)args->devid, measured);
 	}
 
-	STARPU_ATOMIC_ADD(&args->jobq->total_job_performed, 1);
+	(void)STARPU_ATOMIC_ADD(&args->jobq->total_job_performed, 1);
 
 	_starpu_push_task_output(task, mask);
 

@@ -17,6 +17,7 @@
 #include <math.h>
 #include <starpu.h>
 #include <starpu_profiling.h>
+#include <profiling/profiling.h>
 
 #include <common/utils.h>
 #include <core/debug.h>
@@ -28,8 +29,11 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 	int ret;
 	starpu_tick_t codelet_start, codelet_end;
 	starpu_tick_t codelet_start_comm, codelet_end_comm;
+	int64_t start_time;
+	int64_t end_time;
 
 	unsigned calibrate_model = 0;
+	int workerid = cpu_args->workerid;
 	struct starpu_task *task = j->task;
 	struct starpu_codelet_t *cl = task->cl;
 
@@ -58,33 +62,41 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
 		STARPU_GET_TICK(codelet_start);
 
-	struct starpu_task_profiling_info *profiling_info;
-	profiling_info = task->profiling_info;
+	int profiling_status = starpu_profiling_status_get();
 
-	if (profiling_info)
-		profiling_info->start_time = (int64_t)_starpu_timing_now();
+	if (profiling_status)
+		start_time = (int64_t)_starpu_timing_now();
 
 	cpu_args->status = STATUS_EXECUTING;
 	cl_func func = cl->cpu_func;
 	func(task->interface, task->cl_arg);
 
-	cl->per_worker_stats[cpu_args->workerid]++;
+	cl->per_worker_stats[workerid]++;
 	
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
 		STARPU_GET_TICK(codelet_end);
 
+	if (profiling_status)
+		end_time = (int64_t)_starpu_timing_now();
+
+	struct starpu_task_profiling_info *profiling_info;
+	profiling_info = task->profiling_info;
+
 	if (profiling_info)
 	{
-		profiling_info->end_time = (int64_t)_starpu_timing_now();
-		profiling_info->workerid = cpu_args->workerid;
+		profiling_info->start_time = start_time;
+		profiling_info->end_time = end_time;
+		profiling_info->workerid = workerid;
 	}
+
+	if (profiling_status)
+		_starpu_worker_update_profiling_info(workerid, end_time - start_time, 0, 1);
 
 	STARPU_TRACE_END_CODELET_BODY(j);
 	cpu_args->status = STATUS_UNKNOWN;
 
 	_starpu_push_task_output(task, 0);
 
-//#ifdef STARPU_MODEL_DEBUG
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
 	{
 		double measured = _starpu_timing_delay(&codelet_start, &codelet_end);
@@ -102,9 +114,8 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 		if (calibrate_model)
 			_starpu_update_perfmodel_history(j, cpu_args->arch, cpu_args->devid, measured);
 	}
-//#endif
 
-	STARPU_ATOMIC_ADD(&cpu_args->jobq->total_job_performed, 1);
+	(void)STARPU_ATOMIC_ADD(&cpu_args->jobq->total_job_performed, 1);
 
 	return 0;
 }

@@ -24,6 +24,7 @@
 #include "driver_opencl.h"
 #include "driver_opencl_utils.h"
 #include <common/utils.h>
+#include <profiling/profiling.h>
 
 static cl_context contexts[STARPU_MAXOPENCLDEVS];
 static cl_device_id devices[STARPU_MAXOPENCLDEVS];
@@ -336,7 +337,6 @@ unsigned _starpu_opencl_get_device_count(void)
 static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *args)
 {
 	int ret;
-//	uint32_t mask = (1<<0);
 	uint32_t mask = 0;
 
 	STARPU_ASSERT(j);
@@ -344,8 +344,11 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 
 	starpu_tick_t codelet_start, codelet_end;
 	starpu_tick_t codelet_start_comm, codelet_end_comm;
+	int64_t start_time;
+	int64_t end_time;
 
 	unsigned calibrate_model = 0;
+	int workerid = args->workerid;
 
 	STARPU_ASSERT(task);
 	struct starpu_codelet_t *cl = task->cl;
@@ -377,11 +380,10 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 
 	STARPU_TRACE_START_CODELET_BODY(j);
 
-	struct starpu_task_profiling_info *profiling_info;
-	profiling_info = task->profiling_info;
+	int profiling_status = starpu_profiling_status_get();
 
-	if (profiling_info)
-		profiling_info->start_time = (int64_t)_starpu_timing_now();
+	if (profiling_status)
+		start_time = (int64_t)_starpu_timing_now();
 
 	args->status = STATUS_EXECUTING;
 	cl_func func = cl->opencl_func;
@@ -389,13 +391,23 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 	STARPU_GET_TICK(codelet_start);
 	func(task->interface, task->cl_arg);
 
-	cl->per_worker_stats[args->workerid]++;
+	cl->per_worker_stats[workerid]++;
+
+	if (profiling_status)
+		end_time = (int64_t)_starpu_timing_now();
+
+	struct starpu_task_profiling_info *profiling_info;
+	profiling_info = task->profiling_info;
 
 	if (profiling_info)
 	{
-		profiling_info->end_time = (int64_t)_starpu_timing_now();
-		profiling_info->workerid = args->workerid;
+		profiling_info->start_time = start_time;
+		profiling_info->end_time = end_time;
+		profiling_info->workerid = workerid;
 	}
+
+	if (profiling_status)
+		_starpu_worker_update_profiling_info(workerid, end_time - start_time, 0, 1);
 
 	STARPU_GET_TICK(codelet_end);
 
@@ -419,7 +431,7 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 			_starpu_update_perfmodel_history(j, args->perf_arch, (unsigned)args->devid, measured);
 	}
 
-	STARPU_ATOMIC_ADD(&args->jobq->total_job_performed, 1);
+	(void)STARPU_ATOMIC_ADD(&args->jobq->total_job_performed, 1);
 
 	_starpu_push_task_output(task, mask);
 

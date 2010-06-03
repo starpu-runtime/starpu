@@ -18,7 +18,7 @@
 #include <starpu_profiling.h>
 #include <assert.h>
 
-static unsigned niter = 50;
+static unsigned niter = 500;
 
 void sleep_codelet(__attribute__ ((unused)) void *descr[],
 			__attribute__ ((unused)) void *_args)
@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 	starpu_init(NULL);
 
 	/* Enable profiling */
-	starpu_enable_profiling();
+	starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
 
 	starpu_codelet cl =
 	{
@@ -95,6 +95,23 @@ int main(int argc, char **argv)
 
 	fprintf(stderr, "Avg. delay : %2.2f us\n", ((double)delay_sum)/niter);
 	fprintf(stderr, "Avg. length : %2.2f us\n", ((double)length_sum)/niter);
+
+	/* Display the occupancy of all workers during the test */
+	int worker;
+	for (worker = 0; worker < starpu_worker_get_count(); worker++)
+	{
+		struct starpu_worker_profiling_info worker_info;
+		starpu_worker_get_profiling_info(worker, &worker_info);
+
+		char workername[128];
+		starpu_worker_get_name(worker, workername, 128);
+		fprintf(stderr, "Worker %s:\n", workername);
+		fprintf(stderr, "\ttotal time : %ld us\n", worker_info.total_time);
+		fprintf(stderr, "\texec time  : %ld us\n", worker_info.executing_time);
+
+		float overhead = 100.0 - ((100.0*worker_info.executing_time)/worker_info.total_time);
+		fprintf(stderr, "\toverhead : %.2f %%\n", overhead);
+	}
 
 	starpu_shutdown();
 

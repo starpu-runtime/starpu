@@ -36,14 +36,7 @@ void _starpu_set_calibrate_flag(unsigned val)
 {
 	calibrate_flag = val;
 
-	if (calibrate_flag > 0)
-	{
-		starpu_enable_profiling();
-	}
-	else
-	{
-		starpu_disable_profiling();
-	}
+	starpu_profiling_status_set((calibrate_flag > 0)?STARPU_PROFILING_ENABLE:STARPU_PROFILING_DISABLE);
 }
 
 unsigned _starpu_get_calibrate_flag(void)
