@@ -388,6 +388,8 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 		start_time = (int64_t)_starpu_timing_now();
 
 	args->status = STATUS_EXECUTING;
+	task->status = STARPU_TASK_RUNNING;	
+
 	cl_func func = cl->opencl_func;
 	STARPU_ASSERT(func);
 	STARPU_GET_TICK(codelet_start);

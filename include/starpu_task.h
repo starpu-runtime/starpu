@@ -37,6 +37,13 @@
 #define STARPU_MAX_PRIO        5
 #define STARPU_DEFAULT_PRIO	0
 
+/* task status */
+#define STARPU_TASK_INVALID	0
+#define STARPU_TASK_BLOCKED	1
+#define STARPU_TASK_READY	2
+#define STARPU_TASK_RUNNING	3
+#define STARPU_TASK_FINISHED	4
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -116,6 +123,8 @@ struct starpu_task {
 	 * set too. */ 
 	int regenerate;
 
+	unsigned status;
+
 	struct starpu_task_profiling_info *profiling_info;
 
 	/* this is private to StarPU, do not modify. If the task is allocated
@@ -141,6 +150,7 @@ struct starpu_task {
 	.detach = 1,					\
 	.destroy = 0,					\
 	.regenerate = 0,				\
+	.status = STARPU_TASK_INVALID,			\
 	.profiling_info = NULL,				\
 	.starpu_private = NULL				\
 };

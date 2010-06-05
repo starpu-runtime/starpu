@@ -206,18 +206,21 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 {
 	struct starpu_jobq_s *queue = policy.starpu_get_local_queue(&policy);
 
+	struct starpu_task *task = j->task;
+
+	task->status = STARPU_TASK_READY;
+
 	/* in case there is no codelet associated to the task (that's a control
 	 * task), we directly execute its callback and enforce the
 	 * corresponding dependencies */
-	if (j->task->cl == NULL)
+	if (task->cl == NULL)
 	{
 		_starpu_handle_job_termination(j, job_is_already_locked);
 		return 0;
 	}
 
-	if (STARPU_UNLIKELY(j->task->execute_on_a_specific_worker))
+	if (STARPU_UNLIKELY(task->execute_on_a_specific_worker))
 	{
-		struct starpu_task *task = j->task;
 		unsigned workerid = task->workerid;
 		struct starpu_worker_s *worker = _starpu_get_worker_struct(workerid);
 		

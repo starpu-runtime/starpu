@@ -68,6 +68,8 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 		start_time = (int64_t)_starpu_timing_now();
 
 	cpu_args->status = STATUS_EXECUTING;
+	task->status = STARPU_TASK_RUNNING;	
+
 	cl_func func = cl->cpu_func;
 	func(task->interface, task->cl_arg);
 

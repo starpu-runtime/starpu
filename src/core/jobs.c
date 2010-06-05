@@ -117,6 +117,8 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
 	if (!job_is_already_locked)
 		PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
+	task->status = STARPU_TASK_FINISHED;
+
 	/* in case there are dependencies, wake up the proper tasks */
 	j->submitted = 0;
 	_starpu_notify_dependencies(j);

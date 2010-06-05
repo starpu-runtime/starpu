@@ -64,6 +64,8 @@ void starpu_task_init(struct starpu_task *task)
 
 	task->regenerate = 0;
 
+	task->status = STARPU_TASK_INVALID;
+
 	task->profiling_info = NULL;
 
 	task->starpu_private = NULL;
@@ -207,6 +209,10 @@ int starpu_task_submit(struct starpu_task *task)
 	struct starpu_task_profiling_info *info;
 	info = _starpu_allocate_profiling_info_if_needed();
 	task->profiling_info = info;
+
+	/* The task is considered as block until we are sure there remains not
+	 * dependency. */
+	task->status = STARPU_TASK_BLOCKED;
 	
 	if (info)
 		info->submit_time = (int64_t)_starpu_timing_now();
