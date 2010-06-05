@@ -124,11 +124,12 @@ void *_starpu_cpu_worker(void *arg)
 {
 	struct starpu_worker_s *cpu_arg = arg;
 	struct starpu_jobq_s *jobq = cpu_arg->jobq;
+	unsigned memnode = cpu_arg->memory_node;
 
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_register_thread(cpu_arg->bindid);
 #endif
-	STARPU_TRACE_WORKER_INIT_START(STARPU_FUT_CPU_KEY, cpu_arg->memory_node);
+	STARPU_TRACE_WORKER_INIT_START(STARPU_FUT_CPU_KEY, memnode);
 
 	_starpu_bind_thread_on_cpu(cpu_arg->config, cpu_arg->bindid);
 
@@ -136,7 +137,7 @@ void *_starpu_cpu_worker(void *arg)
         fprintf(stderr, "cpu worker %d is ready on logical cpu %d\n", cpu_arg->devid, cpu_arg->bindid);
 #endif
 
-	_starpu_set_local_memory_node_key(&cpu_arg->memory_node);
+	_starpu_set_local_memory_node_key(&memnode);
 
 	_starpu_set_local_queue(jobq);
 
@@ -159,7 +160,6 @@ void *_starpu_cpu_worker(void *arg)
 
 	struct starpu_sched_policy_s *policy = _starpu_get_sched_policy();
 	struct starpu_jobq_s *queue = policy->starpu_get_local_queue(policy);
-	unsigned memnode = cpu_arg->memory_node;
 
 	while (_starpu_machine_is_running())
 	{
