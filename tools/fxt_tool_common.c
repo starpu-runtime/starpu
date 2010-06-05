@@ -18,9 +18,11 @@
 
 static char *cpus_worker_colors[MAXWORKERS] = {"/greens9/7", "/greens9/6", "/greens9/5", "/greens9/4",  "/greens9/9", "/greens9/3",  "/greens9/2",  "/greens9/1"  };
 static char *cuda_worker_colors[MAXWORKERS] = {"/ylorrd9/9", "/ylorrd9/6", "/ylorrd9/3", "/ylorrd9/1", "/ylorrd9/8", "/ylorrd9/7", "/ylorrd9/4", "/ylorrd9/2",  "/ylorrd9/1"};
+static char *opencl_worker_colors[MAXWORKERS] = {"/blues9/9", "/blues9/6", "/blues9/3", "/blues9/1", "/blues9/8", "/blues9/7", "/blues9/4", "/blues9/2",  "/blues9/1"};
 static char *other_worker_colors[MAXWORKERS] = {"/greys9/9", "/greys9/8", "/greys9/7", "/greys9/6"};
 static char *worker_colors[MAXWORKERS];
 
+static unsigned opencl_index = 0;
 static unsigned cuda_index = 0;
 static unsigned cpus_index = 0;
 static unsigned other_index = 0;
@@ -38,6 +40,11 @@ void set_next_cpu_worker_color(int workerid)
 void set_next_cuda_worker_color(int workerid)
 {
 	worker_colors[workerid] = cuda_worker_colors[cuda_index++];
+}
+
+void set_next_opencl_worker_color(int workerid)
+{
+	worker_colors[workerid] = opencl_worker_colors[opencl_index++];
 }
 
 const char *get_worker_color(int workerid)

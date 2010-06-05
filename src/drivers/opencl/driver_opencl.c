@@ -194,9 +194,12 @@ void *_starpu_opencl_worker(void *arg)
 	fxt_register_thread(args->bindid);
 #endif
 
+	unsigned memnode = args->memory_node;
+	STARPU_TRACE_WORKER_INIT_START(STARPU_FUT_OPENCL_KEY, memnode);
+
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
-	_starpu_set_local_memory_node_key(&(args->memory_node));
+	_starpu_set_local_memory_node_key(&memnode);
 
 	_starpu_set_local_queue(jobq);
 
@@ -229,7 +232,6 @@ void *_starpu_opencl_worker(void *arg)
 
 	struct starpu_sched_policy_s *policy = _starpu_get_sched_policy();
 	struct starpu_jobq_s *queue = policy->starpu_get_local_queue(policy);
-	unsigned memnode = args->memory_node;
 
 	while (_starpu_machine_is_running())
 	{

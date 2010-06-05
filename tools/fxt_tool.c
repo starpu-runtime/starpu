@@ -196,6 +196,9 @@ static void handle_worker_init_start(void)
 		case STARPU_FUT_CUDA_KEY:
 			set_next_cuda_worker_color(workerid);
 			break;
+		case STARPU_FUT_OPENCL_KEY:
+			set_next_opencl_worker_color(workerid);
+			break;
 		default:
 			STARPU_ABORT();
 	}
