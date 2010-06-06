@@ -160,7 +160,7 @@ int main(int argc, char **argv)
 	/* Total surface : Pi * r^ 2 = Pi*1^2, total square surface : 2^2 = 4, probability to impact the disk: pi/4 */
 	fprintf(stderr, "Pi approximation : %f (%ld / %ld)\n", ((TYPE)total_cnt*4)/(total_shot_cnt), total_cnt, total_shot_cnt);
 	fprintf(stderr, "Total time : %f ms\n", timing/1000.0);
-	fprintf(stderr, "Speed : %f GShot/s\n", total_shot_cnt/(10e3*timing));
+	fprintf(stderr, "Speed : %f GShot/s\n", total_shot_cnt/(1e3*timing));
 
 	starpu_data_release_from_mem(cnt_array_handle);
 
