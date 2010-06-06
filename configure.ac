@@ -91,7 +91,8 @@ fi
 AC_CHECK_FUNCS(pthread_setaffinity_np)
 
 # There is no posix_memalign on Mac OS X, only memalign
-AC_CHECK_FUNCS([posix_memalign memalign])
+AC_CHECK_FUNCS([posix_memalign], [AC_DEFINE([STARPU_HAVE_POSIX_MEMALIGN], [1], [Define to 1 if you have the `posix_memalign' function.])])
+AC_CHECK_FUNCS([memalign], [AC_DEFINE([STARPU_HAVE_MEMALIGN], [1], [Define to 1 if you have the `memalign' function.])])
 
 # Some systems don't have drand48
 AC_CHECK_FUNCS([drand48],
@@ -101,7 +102,7 @@ AC_CHECK_FUNCS([drand48],
   AC_DEFINE([starpu_drand48()],[((double)(rand()) / RAND_MAX)],[drand48 equivalent function])
 )
 
-AC_CHECK_HEADERS([malloc.h])
+AC_CHECK_HEADERS([malloc.h], [AC_DEFINE([STARPU_HAVE_MALLOC_H], [1], [Define to 1 if you have the <malloc.h> header file.])])
 
 # This defines HAVE_SYNC_VAL_COMPARE_AND_SWAP
 STARPU_CHECK_SYNC_VAL_COMPARE_AND_SWAP
