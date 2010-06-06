@@ -32,7 +32,7 @@
 #include <common/config.h>
 #include <starpu.h>
 
-#ifdef STARPU_HAVE_CLOCK_GETTIME
+#ifdef HAVE_CLOCK_GETTIME
 #include <time.h>
 #ifndef _POSIX_C_SOURCE
 /* for clock_gettime */
@@ -45,17 +45,39 @@ typedef struct starpu_tick_s
 	struct timespec ts;
 } starpu_tick_t;
 
+#ifdef __linux__
+#ifndef CLOCK_MONOTONIC_RAW
+#define CLOCK_MONOTONIC_RAW 4
+#endif
+#endif
 /* Modern CPUs' clocks are usually not synchronized so we use a monotonic clock
  * to have consistent timing measurements. The CLOCK_MONOTONIC_RAW clock is not
  * subject to NTP adjustments, but is not available on all systems (in that
  * case we use the CLOCK_MONOTONIC clock instead). */
-#ifndef CLOCK_MONOTONIC_RAW
-#define STARPU_GET_TICK(t) clock_gettime(CLOCK_MONOTONIC_RAW, &((t).ts))
-#else
-#define STARPU_GET_TICK(t) clock_gettime(CLOCK_MONOTONIC, &((t).ts))
+static inline void starpu_get_tick(starpu_tick_t *t) {
+#ifdef CLOCK_MONOTONIC_RAW
+	static int raw_supported = 0;
+	switch (raw_supported) {
+	case -1:
+		break;
+	case 1:
+		clock_gettime(CLOCK_MONOTONIC_RAW, &t->ts);
+		return;
+	case 0:
+		if (clock_gettime(CLOCK_MONOTONIC_RAW, &t->ts)) {
+			raw_supported = -1;
+			break;
+		} else {
+			raw_supported = 1;
+			return;
+		}
+	}
 #endif
+	clock_gettime(CLOCK_MONOTONIC, &t->ts);
+}
+#define STARPU_GET_TICK(t) starpu_get_tick(&(t))
 
-#else // !STARPU_HAVE_CLOCK_GETTIME
+#else // !HAVE_CLOCK_GETTIME
 
 typedef union starpu_u_tick
 {
@@ -78,7 +100,7 @@ typedef union starpu_u_tick
 #  define STARPU_GET_TICK(t) do {} while(0);
 #endif
 
-#endif // STARPU_HAVE_CLOCK_GETTIME
+#endif // HAVE_CLOCK_GETTIME
 
 void __attribute__ ((unused)) _starpu_timing_init(void);
 inline double __attribute__ ((unused)) _starpu_tick2usec(long long t);

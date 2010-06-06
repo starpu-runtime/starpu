@@ -18,7 +18,7 @@
 
 static double reference_start_time;
 
-#ifdef STARPU_HAVE_CLOCK_GETTIME
+#ifdef HAVE_CLOCK_GETTIME
 
 #define TICK_DIFF(t1, t2) ((long long)((t2).ts.tv_sec*1e9 + (t2).ts.tv_nsec) + \
 				- (long long)((t1).ts.tv_sec*1e9) + (long long)(t1).ts.tv_nsec)
@@ -55,7 +55,7 @@ inline double _starpu_timing_now(void)
 	return (absolute_now - reference_start_time);
 }
 
-#else // STARPU_HAVE_CLOCK_GETTIME
+#else // HAVE_CLOCK_GETTIME
 
 #define TICK_RAW_DIFF(t1, t2) ((t2).tick - (t1).tick)
 #define TICK_DIFF(t1, t2) (TICK_RAW_DIFF(t1, t2) - residual)
@@ -121,4 +121,4 @@ inline double _starpu_timing_now(void)
 
 }
 
-#endif // STARPU_HAVE_CLOCK_GETTIME
+#endif // HAVE_CLOCK_GETTIME
