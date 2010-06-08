@@ -259,6 +259,9 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
+	/* Disable sequential consistency */
+	starpu_data_set_default_sequential_consistency_flag(0);
+
 	starpu_helper_cublas_init();
 
 	_starpu_timing_init();
