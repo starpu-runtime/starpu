@@ -113,12 +113,22 @@ void starpu_task_destroy(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
 
-	starpu_task_deinit(task);
+   /* If starpu_task_destroy is called in a callback, we just set the destroy
+      flag. The task will be destroyed after the callback returns */
+   if (task == starpu_get_current_task()
+       && _starpu_get_local_worker_status() == STATUS_CALLBACK) {
 
-	/* TODO handle the case of task with detach = 1 and destroy = 1 */
-	/* TODO handle the case of non terminated tasks -> return -EINVAL */
+      task->destroy = 1;
+
+   } else {
+
+      starpu_task_deinit(task);
+
+      /* TODO handle the case of task with detach = 1 and destroy = 1 */
+      /* TODO handle the case of non terminated tasks -> return -EINVAL */
 	
-	free(task);
+      free(task);
+   }
 }
 
 int starpu_task_wait(struct starpu_task *task)
