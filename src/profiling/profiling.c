@@ -35,18 +35,14 @@ static int profiling = 0;
 int starpu_profiling_status_set(int status)
 {
 	int prev_value = profiling;
+	profiling = status;
 
-	if (prev_value != status)
+	/* If we enable profiling, we reset the counters. */
+	if (status == STARPU_PROFILING_ENABLE)
 	{
-		/* If we enable profiling, we reset the counters. */
-		if (status == STARPU_PROFILING_ENABLE)
-		{
-			int worker;
-			for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
-				_starpu_worker_reset_profiling_info(worker);
-		}
-	
-		profiling = status;
+		int worker;
+		for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+			_starpu_worker_reset_profiling_info(worker);
 	}
 
 	return prev_value;

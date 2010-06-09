@@ -46,7 +46,7 @@ struct starpu_worker_profiling_info {
  * - enable with STARPU_PROFILING_ENABLE
  * - disable with STARPU_PROFILING_DISABLE 
  * Negative return values indicate an error, otherwise the previous status is
- * returned. */
+ * returned. Calling this function resets the profiling measurements. */
 int starpu_profiling_status_set(int status);
 
 /* Return the current profiling status or a negative value in case there was an
