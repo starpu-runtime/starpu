@@ -200,6 +200,7 @@ void *_starpu_cuda_worker(void *arg)
 	struct starpu_jobq_s *jobq = args->jobq;
 
 	int devid = args->devid;
+	int workerid = args->workerid;
 	unsigned memnode = args->memory_node;
 
 #ifdef STARPU_USE_FXT
@@ -247,9 +248,6 @@ void *_starpu_cuda_worker(void *arg)
 	struct starpu_sched_policy_s *policy = _starpu_get_sched_policy();
 	struct starpu_jobq_s *queue = policy->starpu_get_local_queue(policy);
 	
-	int profiling;
-	int64_t start_time, end_time;
-
 	while (_starpu_machine_is_running())
 	{
 		STARPU_TRACE_START_PROGRESS(memnode);
@@ -267,23 +265,15 @@ void *_starpu_cuda_worker(void *arg)
 		if (!j)
 			j = _starpu_pop_task();
 	       
-		profiling = starpu_profiling_status_get();
-	
                 if (j == NULL) 
-		  {
-		    if (_starpu_worker_can_block(memnode)) {
+		{
+			if (_starpu_worker_can_block(memnode))
+				_starpu_block_worker(workerid, &queue->activity_cond, &queue->activity_mutex);
 
-		      start_time = (int64_t)_starpu_timing_now();
-		      PTHREAD_COND_WAIT(&queue->activity_cond, &queue->activity_mutex);
-		      end_time = (int64_t)_starpu_timing_now();
+			_starpu_jobq_unlock(queue);
 
-		      if(profiling){		
-			_starpu_worker_update_profiling_info(args->workerid, 0, end_time - start_time, 0);
-		      }   
-		    }
-		    _starpu_jobq_unlock(queue);
-		    continue;
-		  };
+			continue;
+		};
 
 		_starpu_jobq_unlock(queue);
 

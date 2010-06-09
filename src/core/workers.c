@@ -21,6 +21,7 @@
 #include <core/workers.h>
 #include <core/debug.h>
 #include <core/task.h>
+#include <profiling/profiling.h>
 
 #ifdef __MINGW32__
 #include <windows.h>
@@ -606,4 +607,22 @@ void starpu_worker_get_name(int id, char *dst, size_t maxlen)
 	char *name = config.workers[id].name;
 
 	snprintf(dst, maxlen, "%s", name);
+}
+
+/* TODO move in some driver/common/ directory */
+/* Workers may block when there is no work to do at all. We assume that the
+ * mutex is hold when that function is called. */
+void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *mutex)
+{
+	int profiling;
+	
+	profiling = starpu_profiling_status_get();
+
+	int64_t start_time, end_time;
+	start_time = (int64_t)_starpu_timing_now();
+	PTHREAD_COND_WAIT(cond, mutex);
+	end_time = (int64_t)_starpu_timing_now();
+
+	if (profiling)
+		_starpu_worker_update_profiling_info(workerid, 0, end_time - start_time, 0);
 }

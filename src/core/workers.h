@@ -153,6 +153,7 @@ inline uint32_t _starpu_may_submit_cpu_task(void);
 inline uint32_t _starpu_may_submit_opencl_task(void);
 inline uint32_t _starpu_worker_may_execute_task(unsigned workerid, uint32_t where);
 unsigned _starpu_worker_can_block(unsigned memnode);
+void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *mutex);
 
 inline void _starpu_lock_all_queues_attached_to_node(unsigned node);
 inline void _starpu_unlock_all_queues_attached_to_node(unsigned node);
