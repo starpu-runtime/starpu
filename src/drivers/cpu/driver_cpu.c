@@ -163,6 +163,9 @@ void *_starpu_cpu_worker(void *arg)
 	struct starpu_sched_policy_s *policy = _starpu_get_sched_policy();
 	struct starpu_jobq_s *queue = policy->starpu_get_local_queue(policy);
 
+	int profiling;
+	int64_t start_time, end_time;
+
 	while (_starpu_machine_is_running())
 	{
 		STARPU_TRACE_START_PROGRESS(memnode);
@@ -179,16 +182,27 @@ void *_starpu_cpu_worker(void *arg)
 		/* otherwise ask a task to the scheduler */
 		if (!j)
 			j = _starpu_pop_task();
+		
+		profiling = starpu_profiling_status_get();
+		
+                if (j == NULL) 
+		  {
+		    if (_starpu_worker_can_block(memnode)) {
 
-                if (j == NULL) {
-			if (_starpu_worker_can_block(memnode))
-				PTHREAD_COND_WAIT(&queue->activity_cond, &queue->activity_mutex);
-			_starpu_jobq_unlock(queue);
- 			continue;
-		};
+		      start_time = (int64_t)_starpu_timing_now();
+		      PTHREAD_COND_WAIT(&queue->activity_cond, &queue->activity_mutex);
+		      end_time = (int64_t)_starpu_timing_now();
+
+		      if(profiling){		
+			_starpu_worker_update_profiling_info(cpu_arg->workerid, 0, end_time - start_time, 0);
+		      }   
+		    }
+		    _starpu_jobq_unlock(queue);
+		    continue;
+		  };
 		
 		_starpu_jobq_unlock(queue);
-
+		
 		/* can a cpu perform that task ? */
 		if (!STARPU_CPU_MAY_PERFORM(j)) 
 		{
