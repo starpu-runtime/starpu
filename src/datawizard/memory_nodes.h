@@ -23,12 +23,18 @@
 #include <datawizard/memalloc.h>
 
 typedef enum {
-	STARPU_UNUSED,
-	STARPU_SPU_LS,
-	STARPU_RAM,
-	STARPU_CUDA_RAM,
-        STARPU_OPENCL_RAM,
+   STARPU_UNUSED     = 0x00,
+	STARPU_CPU_RAM    = 0x01,
+	STARPU_CUDA_RAM   = 0x02,
+   STARPU_OPENCL_RAM = 0x03,
+	STARPU_SPU_LS     = 0x04
 } starpu_node_kind;
+
+typedef starpu_node_kind starpu_memory_node_tuple;
+
+#define MEMORY_NODE_TUPLE(node1,node2) (node1 | (node2 << 4))
+#define MEMORY_NODE_TUPLE_FIRST(tuple) (tuple & 0x0F)
+#define MEMORY_NODE_TUPLE_SECOND(tuple) (tuple & 0xF0)
 
 typedef struct {
 	unsigned nnodes;

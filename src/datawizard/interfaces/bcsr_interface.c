@@ -256,7 +256,7 @@ static size_t allocate_bcsr_buffer_on_node(void *interface_, uint32_t dst_node)
 	starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 
 	switch(kind) {
-		case STARPU_RAM:
+		case STARPU_CPU_RAM:
 			addr_nzval = (uintptr_t)malloc(nnz*r*c*elemsize);
 			if (!addr_nzval)
 				goto fail_nzval;
@@ -324,7 +324,7 @@ static size_t allocate_bcsr_buffer_on_node(void *interface_, uint32_t dst_node)
 
 fail_rowptr:
 	switch(kind) {
-		case STARPU_RAM:
+		case STARPU_CPU_RAM:
 			free((void *)addr_colind);
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
@@ -342,7 +342,7 @@ fail_rowptr:
 
 fail_colind:
 	switch(kind) {
-		case STARPU_RAM:
+		case STARPU_CPU_RAM:
 			free((void *)addr_nzval);
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
@@ -372,7 +372,7 @@ static void free_bcsr_buffer_on_node(void *interface, uint32_t node)
 
 	starpu_node_kind kind = _starpu_get_node_kind(node);
 	switch(kind) {
-		case STARPU_RAM:
+		case STARPU_CPU_RAM:
 			free((void*)bcsr_interface->nzval);
 			free((void*)bcsr_interface->colind);
 			free((void*)bcsr_interface->rowptr);

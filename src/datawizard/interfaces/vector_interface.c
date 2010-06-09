@@ -220,7 +220,7 @@ static size_t allocate_vector_buffer_on_node(void *interface_, uint32_t dst_node
 #endif
 
 	switch(kind) {
-		case STARPU_RAM:
+		case STARPU_CPU_RAM:
 			addr = (uintptr_t)malloc(nx*elemsize);
 			if (!addr)
 				fail = 1;
@@ -274,7 +274,7 @@ static void free_vector_buffer_on_node(void *interface, uint32_t node)
 
 	starpu_node_kind kind = _starpu_get_node_kind(node);
 	switch(kind) {
-		case STARPU_RAM:
+		case STARPU_CPU_RAM:
 			free((void*)vector_interface->ptr);
 			break;
 #ifdef STARPU_USE_CUDA

@@ -23,6 +23,11 @@
 
 #include <common/hash.h>
 
+
+
+
+
+
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #endif
@@ -190,7 +195,7 @@ static size_t allocate_variable_buffer_on_node(void *interface_, uint32_t dst_no
 #endif
 
 	switch(kind) {
-		case STARPU_RAM:
+		case STARPU_CPU_RAM:
 			addr = (uintptr_t)malloc(elemsize);
 			if (!addr)
 				fail = 1;
@@ -240,7 +245,7 @@ static void free_variable_buffer_on_node(void *interface, uint32_t node)
 {
 	starpu_node_kind kind = _starpu_get_node_kind(node);
 	switch(kind) {
-		case STARPU_RAM:
+		case STARPU_CPU_RAM:
 			free((void*)STARPU_GET_VARIABLE_PTR(interface));
 			break;
 #ifdef STARPU_USE_CUDA
