@@ -43,6 +43,12 @@ int starpu_profiling_status_set(int status)
 		int worker;
 		for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
 			_starpu_worker_reset_profiling_info(worker);
+
+		/* In case there are blocked workers, we wake them up so that
+		 * the sleeping is measured from the time we activate
+		 * profiling, and not when the worker is awoken for the first
+		 * time later on. */
+		starpu_wake_all_blocked_workers();
 	}
 
 	return prev_value;

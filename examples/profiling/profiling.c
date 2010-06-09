@@ -36,6 +36,10 @@ int main(int argc, char **argv)
 	/* Enable profiling */
 	starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
 
+	/* We should observe at least 500ms in the sleep time reported by every
+	 * worker. */
+	usleep(500000);
+
 	starpu_codelet cl =
 	{
 		.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
@@ -103,14 +107,15 @@ int main(int argc, char **argv)
 		struct starpu_worker_profiling_info worker_info;
 		starpu_worker_get_profiling_info(worker, &worker_info);
 
+		float executing_ratio = ((100.0*worker_info.executing_time)/worker_info.total_time);
+		float sleeping_ratio = ((100.0*worker_info.sleeping_time)/worker_info.total_time);
+
 		char workername[128];
 		starpu_worker_get_name(worker, workername, 128);
 		fprintf(stderr, "Worker %s:\n", workername);
 		fprintf(stderr, "\ttotal time : %ld us\n", worker_info.total_time);
-		fprintf(stderr, "\texec time  : %ld us\n", worker_info.executing_time);
-
-		float overhead = 100.0 - ((100.0*worker_info.executing_time)/worker_info.total_time);
-		fprintf(stderr, "\toverhead : %.2f %%\n", overhead);
+		fprintf(stderr, "\texec time  : %ld us (%.2f %%)\n", worker_info.executing_time, executing_ratio);
+		fprintf(stderr, "\tblocked time  : %ld us (%.2f %%)\n", worker_info.sleeping_time, sleeping_ratio);
 	}
 
 	starpu_shutdown();
