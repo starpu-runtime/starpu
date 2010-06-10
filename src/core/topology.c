@@ -608,7 +608,7 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 
 	/* note that even if the CPU cpu are not used, we always have a RAM node */
 	/* TODO : support NUMA  ;) */
-	ram_memory_node = _starpu_register_memory_node(STARPU_RAM);
+	ram_memory_node = _starpu_register_memory_node(STARPU_CPU_RAM);
 
 	unsigned worker;
 	for (worker = 0; worker < config->nworkers; worker++)
