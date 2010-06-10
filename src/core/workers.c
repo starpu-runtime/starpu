@@ -620,8 +620,13 @@ void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *m
 
 	int64_t start_time, end_time;
 	start_time = (int64_t)_starpu_timing_now();
+
+	STARPU_TRACE_WORKER_SLEEP_START
+
 	PTHREAD_COND_WAIT(cond, mutex);
 	end_time = (int64_t)_starpu_timing_now();
+
+	STARPU_TRACE_WORKER_SLEEP_END
 
 	if (profiling)
 		_starpu_worker_update_profiling_info(workerid, 0, end_time - start_time, 0);

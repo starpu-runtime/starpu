@@ -44,6 +44,19 @@ static int nworkers = 0;
 unsigned ninputfiles = 0;
 static char *filenames[64];
 
+static uint64_t last_codelet_hash[MAXWORKERS];
+static double last_codelet_start[MAXWORKERS];
+static char last_codelet_symbol[128][MAXWORKERS];
+
+/* If more than a period of time has elapsed, we flush the profiling info,
+ * otherwise they are accumulated everytime there is a new relevant event. */
+#define ACTIVITY_PERIOD	125.0
+static double last_activity_flush_timestamp[MAXWORKERS];
+static double accumulated_sleep_time[MAXWORKERS];
+static double accumulated_exec_time[MAXWORKERS];
+
+
+
 LIST_TYPE(symbol_name,
 	char *name;
 );
@@ -68,6 +81,9 @@ static FILE *out_paje_file;
 
 static char *distrib_time_path = "distrib.data";
 static FILE *distrib_time;
+
+static char *activity_path = "activity.data";
+static FILE *activity_file;
 
 static void paje_output_file_init(void)
 {
@@ -99,6 +115,7 @@ static void paje_output_file_init(void)
 	6       E       S       Executing       \".0 .6 .4\"            \n \
 	6       C       S       Callback       \".0 .3 .8\"            \n \
 	6       B       S       Blocked         \".9 .1 .0\"		\n \
+	6       Sl       S      Sleeping         \".9 .1 .0\"		\n \
 	6       P       S       Progressing         \".4 .1 .6\"		\n \
 	6       A       MS      Allocating         \".4 .1 .0\"		\n \
 	6       Ar       MS      AllocatingReuse       \".1 .1 .8\"		\n \
@@ -162,6 +179,25 @@ static int find_worker_id(unsigned long tid)
 	return id;
 }
 
+static void update_accumulated_time(int worker, double sleep_time, double exec_time, double current_timestamp, int forceflush)
+{
+	accumulated_sleep_time[worker] += sleep_time;
+	accumulated_exec_time[worker] += exec_time;
+
+	/* If sufficient time has elapsed since the last flush, we have a new
+	 * point in our graph */
+	double elapsed = current_timestamp - last_activity_flush_timestamp[worker];
+	if (forceflush || (elapsed > ACTIVITY_PERIOD))
+	{		
+		fprintf(activity_file, "%d\t%lf\t%lf\t%lf\t%lf\n", worker, current_timestamp, elapsed, accumulated_exec_time[worker], accumulated_sleep_time[worker]);
+
+		/* reset the accumulated times */
+		last_activity_flush_timestamp[worker] = current_timestamp;
+		accumulated_sleep_time[worker] = 0.0;
+		accumulated_exec_time[worker] = 0.0;
+	}
+}
+
 /*
  *	Initialization
  */
@@ -206,12 +242,20 @@ static void handle_worker_init_start(void)
 	/* start initialization */
 	fprintf(out_paje_file, "10       %f     S      %s%"PRIu64"      I\n",
 			get_event_time_stamp(), prefix, ev.param[2]);
+
+
 }
 
 static void handle_worker_init_end(void)
 {
 	fprintf(out_paje_file, "10       %f     S      %s%"PRIu64"      B\n",
 			get_event_time_stamp(), prefix, ev.param[0]);
+
+	/* Initilize the accumulated time counters */
+	int worker = find_worker_id(ev.param[0]);
+	last_activity_flush_timestamp[worker] = get_event_time_stamp();
+	accumulated_sleep_time[worker] = 0.0;
+	accumulated_exec_time[worker] = 0.0;
 }
 
 static void handle_worker_deinit_start(void)
@@ -264,9 +308,6 @@ static void create_paje_state_if_not_found(char *name)
 	fprintf(out_paje_file, "6       %s       S       %s \"%f %f %f\" \n", name, name, red, green, blue);
 }
 
-static double last_codelet_start[MAXWORKERS];
-static uint64_t last_codelet_hash[MAXWORKERS];
-static char last_codelet_symbol[128][MAXWORKERS];
 
 static void handle_start_codelet_body(void)
 {
@@ -310,6 +351,8 @@ static void handle_end_codelet_body(void)
 	fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      B\n", end_codelet_time, prefix, ev.param[1]);
 
 	float codelet_length = (end_codelet_time - last_codelet_start[worker]);
+
+	update_accumulated_time(worker, 0.0, codelet_length, end_codelet_time, 0);
 	
 	if (generate_distrib)
 	fprintf(distrib_time, "%s\t%s%d\t%"PRIx64"\t%f\n", last_codelet_symbol[worker],
@@ -362,6 +405,43 @@ static void handle_worker_status(const char *newstatus)
 
 	end_time = STARPU_MAX(end_time, ev.time);
 }
+
+static double last_sleep_start[MAXWORKERS];
+
+static void handle_start_sleep(void)
+{
+	int worker;
+	worker = find_worker_id(ev.param[0]);
+	if (worker < 0) return;
+
+	float start_sleep_time = get_event_time_stamp();
+	last_sleep_start[worker] = start_sleep_time;
+
+	fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      Sl\n",
+				get_event_time_stamp(), prefix, ev.param[0]);
+
+	end_time = STARPU_MAX(end_time, ev.time);
+}
+
+static void handle_end_sleep(void)
+{
+	int worker;
+	worker = find_worker_id(ev.param[0]);
+	if (worker < 0) return;
+
+	float end_sleep_timestamp = get_event_time_stamp();
+
+	fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      B\n",
+				end_sleep_timestamp, prefix, ev.param[0]);
+
+	double sleep_length = end_sleep_timestamp - last_sleep_start[worker];
+
+	update_accumulated_time(worker, sleep_length, 0.0, end_sleep_timestamp, 0);
+
+	end_time = STARPU_MAX(end_time, ev.time);
+}
+
+
 
 static void handle_data_copy(void)
 {
@@ -694,7 +774,6 @@ void parse_new_file(char *filename_in, char *file_prefix, uint64_t file_offset)
 		{
 			first_event = 0;
 			start_time = ev.time;
-
 		}
 
 		switch (ev.code) {
@@ -752,6 +831,14 @@ void parse_new_file(char *filename_in, char *file_prefix, uint64_t file_offset)
 			case STARPU_FUT_END_PROGRESS:
 			case STARPU_FUT_END_PUSH_OUTPUT:
 				handle_worker_status("B");
+				break;
+
+			case STARPU_FUT_WORKER_SLEEP_START:
+				handle_start_sleep();
+				break;
+
+			case STARPU_FUT_WORKER_SLEEP_END:
+				handle_end_sleep();
 				break;
 
 			case STARPU_FUT_CODELET_TAG:
@@ -869,6 +956,8 @@ int main(int argc, char **argv)
 	if (generate_distrib)
 		distrib_time = fopen(distrib_time_path, "w+");
 
+	activity_file = fopen(activity_path, "w+");
+
 	paje_output_file_init();
 
 	if (ninputfiles == 1)
@@ -985,6 +1074,8 @@ int main(int argc, char **argv)
 
 	/* close the different files */
 	fclose(out_paje_file);
+	
+	fclose(activity_file);
 
 	if (generate_distrib)
 		fclose(distrib_time);

@@ -61,6 +61,9 @@
 #define STARPU_FUT_WORKER_DEINIT_START	0x5135
 #define STARPU_FUT_WORKER_DEINIT_END	0x5136
 
+#define STARPU_FUT_WORKER_SLEEP_START	0x5139
+#define STARPU_FUT_WORKER_SLEEP_END	0x5140
+
 #define STARPU_FUT_USER_DEFINED_START	0x5116
 #define STARPU_FUT_USER_DEFINED_END	0x5117
 
@@ -241,6 +244,12 @@ do {										\
 #define STARPU_TRACE_WORKER_DEINIT_END(workerkind)		\
 	FUT_DO_PROBE2(STARPU_FUT_WORKER_DEINIT_END, workerkind, syscall(SYS_gettid));
 
+#define STARPU_TRACE_WORKER_SLEEP_START	\
+	FUT_DO_PROBE1(STARPU_FUT_WORKER_SLEEP_START, syscall(SYS_gettid));
+
+#define STARPU_TRACE_WORKER_SLEEP_END	\
+	FUT_DO_PROBE1(STARPU_FUT_WORKER_SLEEP_END, syscall(SYS_gettid));
+
 #define STARPU_TRACE_USER_DEFINED_START	\
 	FUT_DO_PROBE1(STARPU_FUT_USER_DEFINED_START, syscall(SYS_gettid));
 
@@ -277,7 +286,7 @@ do {										\
 #else // !STARPU_USE_FXT
 
 #define STARPU_TRACE_NEW_MEM_NODE(nodeid)	do {} while(0);
-#define TRACE_NEW_WORKER(a,b)		do {} while(0);
+#define TRACE_NEW_WORKER(a,b)			do {} while(0);
 #define STARPU_TRACE_WORKER_INIT_START(a,b)	do {} while(0);
 #define STARPU_TRACE_WORKER_INIT_END		do {} while(0);
 #define STARPU_TRACE_START_CODELET_BODY(job)	do {} while(0);
@@ -295,18 +304,20 @@ do {										\
 #define STARPU_TRACE_TASK_DEPS(a, b)		do {} while(0);
 #define STARPU_TRACE_TASK_DONE(a)		do {} while(0);
 #define STARPU_TRACE_TAG_DONE(a)		do {} while(0);
-#define STARPU_TRACE_DATA_COPY(a, b, c)	do {} while(0);
+#define STARPU_TRACE_DATA_COPY(a, b, c)		do {} while(0);
 #define STARPU_TRACE_START_DRIVER_COPY(a,b,c,d)	do {} while(0);
 #define STARPU_TRACE_END_DRIVER_COPY(a,b,c,d)	do {} while(0);
 #define STARPU_TRACE_WORK_STEALING(a, b)	do {} while(0);
 #define STARPU_TRACE_WORKER_DEINIT_START	do {} while(0);
 #define STARPU_TRACE_WORKER_DEINIT_END(a)	do {} while(0);
-#define STARPU_TRACE_USER_DEFINED_START	do {} while(0);
+#define STARPU_TRACE_WORKER_SLEEP_START		do {} while(0);
+#define STARPU_TRACE_WORKER_SLEEP_END		do {} while(0);
+#define STARPU_TRACE_USER_DEFINED_START		do {} while(0);
 #define STARPU_TRACE_USER_DEFINED_END		do {} while(0);
 #define STARPU_TRACE_START_ALLOC(memnode)	do {} while(0);
-#define STARPU_TRACE_END_ALLOC(memnode)	do {} while(0);
+#define STARPU_TRACE_END_ALLOC(memnode)		do {} while(0);
 #define STARPU_TRACE_START_ALLOC_REUSE(a)	do {} while(0);
-#define STARPU_TRACE_END_ALLOC_REUSE(a)	do {} while(0);
+#define STARPU_TRACE_END_ALLOC_REUSE(a)		do {} while(0);
 #define STARPU_TRACE_START_MEMRECLAIM(memnode)	do {} while(0);
 #define STARPU_TRACE_END_MEMRECLAIM(memnode)	do {} while(0);
 #define STARPU_TRACE_START_PROGRESS(memnode)	do {} while(0);
