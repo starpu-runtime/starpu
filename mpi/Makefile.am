@@ -24,6 +24,17 @@ BUILT_SOURCES =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
+EXTRA_DIST = 					\
+	examples/mpi_lu/float.h			\
+	examples/mpi_lu/double.h		\
+	examples/mpi_lu/plu_example.c		\
+	examples/mpi_lu/plu_solve.c		\
+	examples/mpi_lu/pxlu.h			\
+	examples/mpi_lu/pxlu.c			\
+	examples/mpi_lu/pxlu_kernels.h		\
+	examples/mpi_lu/pxlu_kernels.c
+	
+
 examplebindir = $(libdir)/starpu/mpi/examples/
 mpiexamplebindir=$(libdir)/starpu/mpi/
 
