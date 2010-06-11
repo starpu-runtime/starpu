@@ -546,14 +546,34 @@ static int curq_size = 0;
 
 static void handle_job_push(void)
 {
+	float current_timestamp = get_event_time_stamp();
+
 	curq_size++;
-	fprintf(out_paje_file, "13       %f ntask %ssched %f\n", get_event_time_stamp(), prefix, (float)curq_size);
+
+	if (!no_counter)
+		fprintf(out_paje_file, "13       %f ntask %ssched %f\n", current_timestamp, prefix, (float)curq_size);
+
+
+	fprintf(activity_file, "cnt_ready\t%lf\t%ld\n", current_timestamp, curq_size);
 }
 
 static void handle_job_pop(void)
 {
+	float current_timestamp = get_event_time_stamp();
+
 	curq_size--;
-	fprintf(out_paje_file, "13       %f ntask %ssched %f\n", get_event_time_stamp(), prefix, (float)curq_size);
+
+	if (!no_counter)
+		fprintf(out_paje_file, "13       %f ntask %ssched %f\n", current_timestamp, prefix, (float)curq_size);
+
+	fprintf(activity_file, "cnt_ready\t%lf\t%ld\n", current_timestamp, curq_size);
+}
+
+void handle_update_task_cnt(void)
+{
+	float current_timestamp = get_event_time_stamp();
+	unsigned long nsubmitted = ev.param[0]; 
+	fprintf(activity_file, "cnt_submitted\t%lf\t%ld\n", current_timestamp, nsubmitted);
 }
 
 static void handle_codelet_tag_deps(void)
@@ -804,13 +824,15 @@ void parse_new_file(char *filename_in, char *file_prefix, uint64_t file_offset)
 				handle_end_callback();
 				break;
 
+			case STARPU_FUT_UPDATE_TASK_CNT:
+				handle_update_task_cnt();
+				break;
+
 			/* monitor stack size */
 			case STARPU_FUT_JOB_PUSH:
-				if (!no_counter)
 				handle_job_push();
 				break;
 			case STARPU_FUT_JOB_POP:
-				if (!no_counter)
 				handle_job_pop();
 				break;
 

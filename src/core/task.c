@@ -298,6 +298,8 @@ void _starpu_decrement_nsubmitted_tasks(void)
 	if (--nsubmitted == 0)
 		PTHREAD_COND_BROADCAST(&submitted_cond);
 
+	STARPU_TRACE_UPDATE_TASK_CNT(nsubmitted);
+
 	PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
 }
@@ -305,7 +307,11 @@ void _starpu_decrement_nsubmitted_tasks(void)
 static void _starpu_increment_nsubmitted_tasks(void)
 {
 	PTHREAD_MUTEX_LOCK(&submitted_mutex);
+
 	nsubmitted++;
+
+	STARPU_TRACE_UPDATE_TASK_CNT(nsubmitted);
+
 	PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 }
 

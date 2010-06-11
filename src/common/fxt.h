@@ -45,6 +45,8 @@
 #define STARPU_FUT_JOB_PUSH		0x5105
 #define STARPU_FUT_JOB_POP		0x5106
 
+#define STARPU_FUT_UPDATE_TASK_CNT	0x5141
+
 #define STARPU_FUT_START_FETCH_INPUT	0x5107
 #define STARPU_FUT_END_FETCH_INPUT	0x5108
 #define STARPU_FUT_START_PUSH_OUTPUT	0x5109
@@ -173,6 +175,9 @@ do {									\
 #define STARPU_TRACE_JOB_POP(task, prio)	\
 	FUT_DO_PROBE3(STARPU_FUT_JOB_POP, task, prio, syscall(SYS_gettid));
 
+#define STARPU_TRACE_UPDATE_TASK_CNT(counter)	\
+	FUT_DO_PROBE2(STARPU_FUT_UPDATE_TASK_CNT, counter, syscall(SYS_gettid))
+
 #define STARPU_TRACE_START_FETCH_INPUT(job)	\
 	FUT_DO_PROBE2(STARPU_FUT_START_FETCH_INPUT, job, syscall(SYS_gettid));
 
@@ -295,6 +300,7 @@ do {										\
 #define STARPU_TRACE_END_CALLBACK(job)		do {} while(0);
 #define STARPU_TRACE_JOB_PUSH(task, prio)	do {} while(0);
 #define STARPU_TRACE_JOB_POP(task, prio)	do {} while(0);
+#define STARPU_TRACE_UPDATE_TASK_CNT(counter)	do {} while(0);
 #define STARPU_TRACE_START_FETCH_INPUT(job)	do {} while(0);
 #define STARPU_TRACE_END_FETCH_INPUT(job)	do {} while(0);
 #define STARPU_TRACE_START_PUSH_OUTPUT(job)	do {} while(0);
