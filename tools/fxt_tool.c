@@ -50,7 +50,7 @@ static char last_codelet_symbol[128][MAXWORKERS];
 
 /* If more than a period of time has elapsed, we flush the profiling info,
  * otherwise they are accumulated everytime there is a new relevant event. */
-#define ACTIVITY_PERIOD	125.0
+#define ACTIVITY_PERIOD	75.0
 static double last_activity_flush_timestamp[MAXWORKERS];
 static double accumulated_sleep_time[MAXWORKERS];
 static double accumulated_exec_time[MAXWORKERS];
@@ -218,22 +218,29 @@ static void handle_worker_init_start(void)
 	   arg2 : thread id 
 	*/
 	fprintf(out_paje_file, "7       %f	%s%"PRIu64"      T      %sMEMNODE%"PRIu64"       %s%"PRIu64"\n",
-		get_event_time_stamp(), prefix, ev.param[2], prefix, ev.param[1], prefix, ev.param[2]);
+		get_event_time_stamp(), prefix, ev.param[3], prefix, ev.param[1], prefix, ev.param[3]);
 
-	int workerid = register_worker_id(ev.param[2]);
+	int devid = ev.param[1];
+	int workerid = register_worker_id(ev.param[3]);
+
+	char *kindstr = "";
 
 	switch (ev.param[0]) {
 		case STARPU_FUT_APPS_KEY:
 			set_next_other_worker_color(workerid);
+			kindstr = "apps";
 			break;
 		case STARPU_FUT_CPU_KEY:
 			set_next_cpu_worker_color(workerid);
+			kindstr = "cpu";
 			break;
 		case STARPU_FUT_CUDA_KEY:
 			set_next_cuda_worker_color(workerid);
+			kindstr = "cuda";
 			break;
 		case STARPU_FUT_OPENCL_KEY:
 			set_next_opencl_worker_color(workerid);
+			kindstr = "opencl";
 			break;
 		default:
 			STARPU_ABORT();
@@ -243,7 +250,7 @@ static void handle_worker_init_start(void)
 	fprintf(out_paje_file, "10       %f     S      %s%"PRIu64"      I\n",
 			get_event_time_stamp(), prefix, ev.param[2]);
 
-
+	fprintf(activity_file, "name\t%d\t%s %d\n", workerid, kindstr, devid);
 }
 
 static void handle_worker_init_end(void)
@@ -680,6 +687,13 @@ static void handle_mpi_irecv_end(void)
 	add_mpi_recv_transfer(src, rank, mpi_tag, date);
 }
 
+static void handle_set_profiling(void)
+{
+	int status = ev.param[0];
+
+	fprintf(activity_file, "set_profiling\t%lf\t%d\n", get_event_time_stamp(), status);
+}
+
 static void parse_args(int argc, char **argv)
 {
 	/* We want to support arguments such as "fxt_tool -i trace_*" */
@@ -945,6 +959,10 @@ void parse_new_file(char *filename_in, char *file_prefix, uint64_t file_offset)
 
 			case FUT_MPI_IRECV_END:
 				handle_mpi_irecv_end();
+				break;
+
+			case STARPU_FUT_SET_PROFILING:
+				handle_set_profiling();
 				break;
 
 			default:

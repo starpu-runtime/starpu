@@ -94,6 +94,8 @@
 
 #define STARPU_FUT_USER_EVENT		0x5132
 
+#define STARPU_FUT_SET_PROFILING	0x5142
+
 #ifdef STARPU_USE_FXT
 #include <sys/syscall.h> /* pour les définitions de SYS_xxx */
 #include <fxt/fxt.h>
@@ -140,8 +142,8 @@ do {									\
 #define STARPU_TRACE_NEW_MEM_NODE(nodeid)			\
 	FUT_DO_PROBE2(STARPU_FUT_NEW_MEM_NODE, nodeid, syscall(SYS_gettid));
 
-#define STARPU_TRACE_WORKER_INIT_START(workerkind,memnode)	\
-	FUT_DO_PROBE3(STARPU_FUT_WORKER_INIT_START, workerkind, memnode, syscall(SYS_gettid));
+#define STARPU_TRACE_WORKER_INIT_START(workerkind, devid, memnode)	\
+	FUT_DO_PROBE4(STARPU_FUT_WORKER_INIT_START, workerkind, devid, memnode, syscall(SYS_gettid));
 
 #define STARPU_TRACE_WORKER_INIT_END				\
 	FUT_DO_PROBE1(STARPU_FUT_WORKER_INIT_END, syscall(SYS_gettid));
@@ -288,11 +290,14 @@ do {										\
 #define STARPU_TRACE_USER_EVENT(code)			\
 	FUT_DO_PROBE2(STARPU_FUT_USER_EVENT, code, syscall(SYS_gettid));
 
+#define STARPU_TRACE_SET_PROFILING(status)		\
+	FUT_DO_PROBE2(STARPU_FUT_SET_PROFILING, status, syscall(SYS_gettid));
+
 #else // !STARPU_USE_FXT
 
 #define STARPU_TRACE_NEW_MEM_NODE(nodeid)	do {} while(0);
 #define TRACE_NEW_WORKER(a,b)			do {} while(0);
-#define STARPU_TRACE_WORKER_INIT_START(a,b)	do {} while(0);
+#define STARPU_TRACE_WORKER_INIT_START(a,b,c)	do {} while(0);
 #define STARPU_TRACE_WORKER_INIT_END		do {} while(0);
 #define STARPU_TRACE_START_CODELET_BODY(job)	do {} while(0);
 #define STARPU_TRACE_END_CODELET_BODY(job)	do {} while(0);
@@ -329,6 +334,7 @@ do {										\
 #define STARPU_TRACE_START_PROGRESS(memnode)	do {} while(0);
 #define STARPU_TRACE_END_PROGRESS(memnode)	do {} while(0);
 #define STARPU_TRACE_USER_EVENT(code)		do {} while(0);
+#define STARPU_TRACE_SET_PROFILING(status)	do {} while(0);
 
 #endif // STARPU_USE_FXT
 

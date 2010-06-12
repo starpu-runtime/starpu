@@ -128,16 +128,17 @@ void *_starpu_cpu_worker(void *arg)
 	struct starpu_jobq_s *jobq = cpu_arg->jobq;
 	unsigned memnode = cpu_arg->memory_node;
 	int workerid = cpu_arg->workerid;
+	int devid = cpu_arg->devid;
 
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_register_thread(cpu_arg->bindid);
 #endif
-	STARPU_TRACE_WORKER_INIT_START(STARPU_FUT_CPU_KEY, memnode);
+	STARPU_TRACE_WORKER_INIT_START(STARPU_FUT_CPU_KEY, devid, memnode);
 
 	_starpu_bind_thread_on_cpu(cpu_arg->config, cpu_arg->bindid);
 
 #ifdef STARPU_VERBOSE
-        fprintf(stderr, "cpu worker %d is ready on logical cpu %d\n", cpu_arg->devid, cpu_arg->bindid);
+        fprintf(stderr, "cpu worker %d is ready on logical cpu %d\n", devid, cpu_arg->bindid);
 #endif
 
 	_starpu_set_local_memory_node_key(&memnode);
@@ -146,7 +147,7 @@ void *_starpu_cpu_worker(void *arg)
 
 	_starpu_set_local_worker_key(cpu_arg);
 
-	snprintf(cpu_arg->name, 32, "CPU %d", cpu_arg->devid);
+	snprintf(cpu_arg->name, 32, "CPU %d", devid);
 
 	cpu_arg->status = STATUS_UNKNOWN;
 
@@ -228,7 +229,7 @@ void *_starpu_cpu_worker(void *arg)
 	_starpu_free_all_automatically_allocated_buffers(memnode);
 
 #ifdef STARPU_DATA_STATS
-	fprintf(stderr, "CPU #%d computation %le comm %le (%lf \%%)\n", cpu_arg->devid, jobq->total_computation_time, jobq->total_communication_time,  jobq->total_communication_time*100.0/jobq->total_computation_time);
+	fprintf(stderr, "CPU #%d computation %le comm %le (%lf \%%)\n", devid, jobq->total_computation_time, jobq->total_communication_time,  jobq->total_communication_time*100.0/jobq->total_computation_time);
 #endif
 
 #ifdef STARPU_VERBOSE
@@ -238,7 +239,7 @@ void *_starpu_cpu_worker(void *arg)
 		ratio = jobq->total_computation_time_error/jobq->total_computation_time;
 	}
 
-	_starpu_print_to_logfile("MODEL ERROR: CPU %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", cpu_arg->devid, jobq->total_computation_time_error, jobq->total_computation_time, ratio, jobq->total_job_performed);
+	_starpu_print_to_logfile("MODEL ERROR: CPU %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", devid, jobq->total_computation_time_error, jobq->total_computation_time, ratio, jobq->total_job_performed);
 #endif
 
 	STARPU_TRACE_WORKER_DEINIT_END(STARPU_FUT_CPU_KEY);

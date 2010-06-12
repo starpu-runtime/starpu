@@ -206,7 +206,7 @@ void *_starpu_cuda_worker(void *arg)
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_register_thread(args->bindid);
 #endif
-	STARPU_TRACE_WORKER_INIT_START(STARPU_FUT_CUDA_KEY, memnode);
+	STARPU_TRACE_WORKER_INIT_START(STARPU_FUT_CUDA_KEY, devid, memnode);
 
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 

@@ -25,20 +25,27 @@ inputfile_with_counters=$1
 inputfile=.$inputfile_with_counters.activity
 inputfile_cnt_ready=.$1.cnt_ready
 inputfile_cnt_submitted=.$1.cnt_submitted
+set_profiling_list=.$1.set_profiling_list
+names=.$1.names
 
-grep -v "^cnt" $inputfile_with_counters > $inputfile
+grep "^set_profiling" $inputfile_with_counters > $set_profiling_list
+grep "0$" $set_profiling_list | cut -f 2 | sort -n > $set_profiling_list.disable
+grep "1$" $set_profiling_list | cut -f 2 | sort -n > $set_profiling_list.enable
+
+grep "^name" $inputfile_with_counters > $names
+
+grep -v "^cnt" $inputfile_with_counters | grep -v "^set_profiling" | grep -v "^name" > $inputfile
 grep "^cnt_ready" $inputfile_with_counters > $inputfile_cnt_ready
 grep "^cnt_submitted" $inputfile_with_counters > $inputfile_cnt_submitted
-
-max_cnt_submitted=`cut -f2 $inputfile_cnt_submitted |sort -n|tail -1`
 
 # Count the number of workers in the trace
 workers=`cut -f1 $inputfile | sort -n | uniq`
 nworkers=`cut -f1 $inputfile | sort -n | uniq|wc -l`
 
 # size of the entire graph
-width=2.5
-heigth=$(echo "0.5 + (0.5 * $nworkers)"|bc -l)
+width=1.5
+heigth=0.40
+total_heigth=$(echo "$heigth + ($heigth * $nworkers)"|bc -l)
 
 # In case 3 arguments are provided, the 2nd (resp. 3rd) indicates the start
 # (resp. the end) of the interval to be displayed.
@@ -46,23 +53,50 @@ if [ $# -ge 3 ]; then
 starttime=$2
 endtime=$3
 else
+#if profiling is explicitely enabled (resp. disabled) at some point, we set the
+# default start (rest. end) point when we enable (resp. disable) profiling for
+# the first time.
+profiling_enable_cnt=`wc -l $set_profiling_list.enable|sed -e "s/\(.*\) .*/\1/"`
+if [ $profiling_enable_cnt -ge 1 ]; then
+starttime=`head -1 $set_profiling_list.enable`
+else
 starttime=$(cut -f 2 $inputfile |sort -n|head -1)
+fi
+
+# TODO test if last disable > first enable
+
+profiling_disable_cnt=$(wc -l $set_profiling_list.disable|sed -e "s/\(.*\) .*/\1/")
+if [ $profiling_disable_cnt -ge 1 ]; then
+endtime=`tail -1 $set_profiling_list.disable`
+else
 endtime=$(cut -f 2 $inputfile |sort -n|tail -1)
 fi
+
+# The values in the file are in ms, we display seconds
+starttime=$(echo "$starttime * 0.001 "| bc -l)
+endtime=$(echo "$endtime * 0.001 "| bc -l)
+
+fi
+
+echo "START $starttime END $endtime"
 
 # Gnuplot header
 cat > gnuplotcmd << EOF
 set term postscript eps enhanced color
 set output "activity.eps"
 set xrange [$starttime:$endtime]
-set size $width,$heigth
+set size $width,$total_heigth
 set multiplot;
 
 set origin 0.0,0.0;
-set size $width,0.5;
+set size $width,$heigth;
 
-plot "$inputfile_cnt_submitted" using 2:3 with filledcurves lt rgb "#999999" title "submitted",\
-	"$inputfile_cnt_ready" using 2:3 with filledcurves lt rgb "#000000" title "ready"
+set logscale y
+
+plot "$inputfile_cnt_submitted" using (\$2/1000):3 with filledcurves lt rgb "#999999" title "submitted",\
+	"$inputfile_cnt_ready" using (\$2/1000):3 with filledcurves lt rgb "#000000" title "ready"
+
+set nologscale y
 
 EOF
 
@@ -71,18 +105,22 @@ for worker in $workers
 do
 	grep "^$worker" $inputfile > .tmp.$worker
 
-	starty=$(echo "0.5 + (0.5 * $cnt)"|bc -l)
+	starty=$(echo "$heigth + ($heigth * $cnt)"|bc -l)
 
 cat >> gnuplotcmd << EOF
 
 set origin 0.0,$starty;
-set size $width,0.5;
+set size $width,$heigth;
 
 set key off
 
-plot ".tmp.$worker" using 2:(100) with filledcurves y1=0.0 lt rgb "#000000" notitle,\
-	 ".tmp.$worker" using 2:((100*(\$4+\$5))/\$3) with filledcurves y1=0.0 lt rgb "#ff0000" notitle,\
-	 ".tmp.$worker" using 2:((100*\$4)/\$3) with filledcurves y1=0.0 lt rgb "#00ff00" notitle
+set yrange [0:100]
+
+set ylabel "$(cut -f2- $names |grep "^$worker" | cut -f2)"
+
+plot ".tmp.$worker" using (\$2/1000):(100) with filledcurves y1=0.0 lt rgb "#000000" notitle,\
+	 ".tmp.$worker" using (\$2/1000):((100*(\$4+\$5))/\$3) with filledcurves y1=0.0 lt rgb "#ff0000" notitle,\
+	 ".tmp.$worker" using (\$2/1000):((100*\$4)/\$3) with filledcurves y1=0.0 lt rgb "#00ff00" notitle
 EOF
 
 	cnt=$(($cnt+1))	
@@ -99,6 +137,12 @@ rm gnuplotcmd
 rm $inputfile
 rm $inputfile_cnt_ready
 rm $inputfile_cnt_submitted
+
+rm $set_profiling_list
+rm $set_profiling_list.enable
+rm $set_profiling_list.disable
+
+#rm $names
 
 for worker in $workers
 do
