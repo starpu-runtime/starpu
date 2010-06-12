@@ -272,12 +272,6 @@ static void save_history_based_model(struct starpu_perfmodel_t *model)
 	dump_model_file(f, model);
 
 	fclose(f);
-
-#ifdef DEBUG_MODEL
-	fclose(model->gordon_debug_file);
-	fclose(model->cuda_debug_file);
-	fclose(model->cpu_debug_file);
-#endif
 }
 
 static void _starpu_dump_registered_models(void)
