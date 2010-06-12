@@ -283,10 +283,6 @@ Enable statistics.
 @item @code{--enable-maxbuffers=<nbuffers>}
 Define the maximum number of buffers that tasks will be able to take as parameters, then available as the STARPU_NMAXBUFS macro.
 
-@item @code{--disable-priority}
-Disable taking priorities into account in scheduling decisions. Mostly for
-comparison purposes.
-
 @item @code{--enable-allocation-cache}
 Enable the use of a data allocation cache to avoid the cost of it with
 CUDA. Still experimental.

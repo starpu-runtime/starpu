@@ -619,15 +619,6 @@ AC_DEFINE_UNQUOTED(STARPU_MAXNODES, [$maxnodes],
 		[maximum number of memory nodes])
 
 
-AC_MSG_CHECKING(whether priorities should be enabled)
-AC_ARG_ENABLE(priority, [AS_HELP_STRING([--disable-priority],
-			[do not use priorities])],
-			enable_priority=$enableval, enable_priority=yes)
-AC_MSG_RESULT($enable_priority)
-if test x$enable_priority = xno; then
-	AC_DEFINE(STARPU_NO_PRIO, [1], [Disable priorities])
-fi
-
 AC_MSG_CHECKING(whether allocation cache should be used)
 AC_ARG_ENABLE(allocation-cache, [AS_HELP_STRING([--enable-allocation-cache],
 			[enable data allocation cache])],

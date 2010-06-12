@@ -75,7 +75,6 @@ void _starpu_destroy_fifo(struct starpu_jobq_s *jobq)
 
 int _starpu_fifo_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
 {
-#ifndef STARPU_NO_PRIO
 	STARPU_ASSERT(q);
 	struct starpu_fifo_jobq_s *fifo_queue = q->queue;
 
@@ -96,9 +95,6 @@ int _starpu_fifo_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
 	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
 
 	return 0;
-#else
-	return _starpu_fifo_push_task(q, task);
-#endif
 }
 
 int _starpu_fifo_push_task(struct starpu_jobq_s *q, starpu_job_t task)

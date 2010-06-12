@@ -87,7 +87,6 @@ unsigned _starpu_get_stack_nprocessed(struct starpu_jobq_s *q)
 
 void _starpu_stack_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
 {
-#ifndef STARPU_NO_PRIO
 	STARPU_ASSERT(q);
 	struct starpu_stack_jobq_s *stack_queue = q->queue;
 
@@ -107,9 +106,6 @@ void _starpu_stack_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
 
 	PTHREAD_COND_SIGNAL(&q->activity_cond);
 	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
-#else
-	_starpu_stack_push_task(q, task);
-#endif
 }
 
 void _starpu_stack_push_task(struct starpu_jobq_s *q, starpu_job_t task)
