@@ -27,8 +27,8 @@
 static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 {
 	int ret;
-	starpu_tick_t codelet_start, codelet_end;
-	starpu_tick_t codelet_start_comm, codelet_end_comm;
+	struct timespec codelet_start, codelet_end;
+	struct timespec codelet_start_comm, codelet_end_comm;
 	int64_t start_time;
 	int64_t end_time;
 
@@ -44,12 +44,12 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 		calibrate_model = 1;
 
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
-		STARPU_GET_TICK(codelet_start_comm);
+		starpu_clock_gettime(&codelet_start_comm);
 
 	ret = _starpu_fetch_task_input(task, 0);
 
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
-		STARPU_GET_TICK(codelet_end_comm);
+		starpu_clock_gettime(&codelet_end_comm);
 
 	if (ret != 0) {
 		/* there was not enough memory so the codelet cannot be executed right now ... */
@@ -60,7 +60,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 	STARPU_TRACE_START_CODELET_BODY(j);
 
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
-		STARPU_GET_TICK(codelet_start);
+		starpu_clock_gettime(&codelet_start);
 
 	int profiling_status = starpu_profiling_status_get();
 
@@ -76,7 +76,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 	cl->per_worker_stats[workerid]++;
 	
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
-		STARPU_GET_TICK(codelet_end);
+		starpu_clock_gettime(&codelet_end);
 
 	if (profiling_status)
 		end_time = (int64_t)_starpu_timing_now();
@@ -101,8 +101,8 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
 	{
-		double measured = _starpu_timing_delay(&codelet_start, &codelet_end);
-		double measured_comm = _starpu_timing_delay(&codelet_start_comm, &codelet_end_comm);
+		double measured = _starpu_timing_timespec_delay_us(&codelet_start, &codelet_end);
+		double measured_comm = _starpu_timing_timespec_delay_us(&codelet_start_comm, &codelet_end_comm);
 
 //		fprintf(stderr, "%d\t%d\n", (int)j->penality, (int)measured_comm);
 		cpu_args->jobq->total_computation_time += measured;

@@ -349,8 +349,8 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
 
-	starpu_tick_t codelet_start, codelet_end;
-	starpu_tick_t codelet_start_comm, codelet_end_comm;
+	struct timespec codelet_start, codelet_end;
+	struct timespec codelet_start_comm, codelet_end_comm;
 	int64_t start_time;
 	int64_t end_time;
 
@@ -368,7 +368,7 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 	if (STARPU_BENCHMARK_COMM)
 	{
                 //barrier(CLK_GLOBAL_MEM_FENCE);
-		STARPU_GET_TICK(codelet_start_comm);
+		starpu_clock_gettime(&codelet_start_comm);
 	}
 
 	ret = _starpu_fetch_task_input(task, mask);
@@ -382,7 +382,7 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
 	{
                 //barrier(CLK_GLOBAL_MEM_FENCE);
-		STARPU_GET_TICK(codelet_end_comm);
+		starpu_clock_gettime(&codelet_end_comm);
 	}
 
 	STARPU_TRACE_START_CODELET_BODY(j);
@@ -397,7 +397,7 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 
 	cl_func func = cl->opencl_func;
 	STARPU_ASSERT(func);
-	STARPU_GET_TICK(codelet_start);
+	starpu_clock_gettime(&codelet_start);
 	func(task->interface, task->cl_arg);
 
 	cl->per_worker_stats[workerid]++;
@@ -418,7 +418,7 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 	if (profiling_status)
 		_starpu_worker_update_profiling_info(workerid, end_time - start_time, 0, 1);
 
-	STARPU_GET_TICK(codelet_end);
+	starpu_clock_gettime(&codelet_end);
 
 	args->status = STATUS_UNKNOWN;
 
@@ -426,8 +426,8 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 
 	if (calibrate_model || STARPU_BENCHMARK_COMM)
 	{
-		double measured = _starpu_timing_delay(&codelet_start, &codelet_end);
-		double measured_comm = _starpu_timing_delay(&codelet_start_comm, &codelet_end_comm);
+		double measured = _starpu_timing_timespec_delay_us(&codelet_start, &codelet_end);
+		double measured_comm = _starpu_timing_timespec_delay_us(&codelet_start_comm, &codelet_end_comm);
 
 		args->jobq->total_computation_time += measured;
 		args->jobq->total_communication_time += measured_comm;
