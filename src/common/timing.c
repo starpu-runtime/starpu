@@ -16,6 +16,10 @@
 
 #include "timing.h"
 
+#include <starpu.h>
+#include <common/config.h>
+#include <profiling/profiling.h>
+
 #ifdef HAVE_CLOCK_GETTIME
 #include <time.h>
 #ifndef _POSIX_C_SOURCE
@@ -70,7 +74,7 @@ void starpu_clock_gettime(struct timespec *ts)
 	__starpu_clock_gettime(&absolute_ts);
 
 	/* Compute the relative time since initialization */
-	_starpu_timespec_sub(&absolute_ts, &reference_start_time_ts, ts);
+	starpu_timespec_sub(&absolute_ts, &reference_start_time_ts, ts);
 }
 
 #else // !HAVE_CLOCK_GETTIME
@@ -165,20 +169,20 @@ void starpu_clock_gettime(struct timespec *ts)
 #endif // HAVE_CLOCK_GETTIME
 
 /* Returns the time elapsed between start and end in microseconds */
-double _starpu_timing_timespec_delay_us(struct timespec *start, struct timespec *end)
+double starpu_timing_timespec_delay_us(struct timespec *start, struct timespec *end)
 {
 	struct timespec diff;
 	
-	_starpu_timespec_sub(end, start, &diff);
+	starpu_timespec_sub(end, start, &diff);
 
 	double us = (diff.tv_sec*1e6) + (diff.tv_nsec*1e-3);
 
 	return us;
 }
 
-double _starpu_timing_timespec_to_us(struct timespec *ts)
+double starpu_timing_timespec_to_us(struct timespec *ts)
 {
-	return (ts->tv_sec*1e6) + (ts->tv_nsec*1e-3);
+	return (1000000.0*ts->tv_sec) + (0.001*ts->tv_nsec);
 }
 
 double _starpu_timing_now(void)
@@ -186,5 +190,5 @@ double _starpu_timing_now(void)
 	struct timespec now;
 	starpu_clock_gettime(&now);
 
-	return _starpu_timing_timespec_to_us(&now);
+	return starpu_timing_timespec_to_us(&now);
 }

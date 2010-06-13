@@ -19,6 +19,7 @@
 #include <common/utils.h>
 #include <common/config.h>
 #include <core/debug.h>
+#include <drivers/driver_common/driver_common.h>
 #include "driver_cuda.h"
 #include <core/policies/sched_policy.h>
 #include <profiling/profiling.h>
@@ -92,8 +93,6 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 	cudaError_t cures;
 	struct timespec codelet_start, codelet_end;
 	struct timespec codelet_start_comm, codelet_end_comm;
-	int64_t start_time;
-	int64_t end_time;
 
 	unsigned calibrate_model = 0;
 	int workerid = args->workerid;
@@ -122,7 +121,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 		return -EAGAIN;
 	}
 
-	if (calibrate_model || STARPU_BENCHMARK_COMM)
+	if (STARPU_BENCHMARK_COMM)
 	{
 		cures = cudaThreadSynchronize();
 		if (STARPU_UNLIKELY(cures))
@@ -132,64 +131,36 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 
 	STARPU_TRACE_START_CODELET_BODY(j);
 
-	int profiling_status = starpu_profiling_status_get();
+	struct starpu_task_profiling_info *profiling_info;
+	profiling_info = task->profiling_info;
 
-	if (profiling_status)
-		start_time = (int64_t)_starpu_timing_now();
+	if (profiling_info || calibrate_model || STARPU_BENCHMARK_COMM)
+	{
+		starpu_clock_gettime(&codelet_start);
+		_starpu_worker_register_executing_start_date(workerid, &codelet_start);
+	}
 
 	args->status = STATUS_EXECUTING;
 	task->status = STARPU_TASK_RUNNING;	
 
 	cl_func func = cl->cuda_func;
 	STARPU_ASSERT(func);
-	starpu_clock_gettime(&codelet_start);
 	func(task->interface, task->cl_arg);
 
 	cl->per_worker_stats[workerid]++;
 
-
-	if (profiling_status)
-		end_time = (int64_t)_starpu_timing_now();
-
-	struct starpu_task_profiling_info *profiling_info;
-	profiling_info = task->profiling_info;
-
-	if (profiling_info)
-	{
-		profiling_info->start_time = start_time;
-		profiling_info->end_time = end_time;
-		profiling_info->workerid = workerid;
-	}
-
-	if (profiling_status)
-		_starpu_worker_update_profiling_info(workerid, end_time - start_time, 0, 1);
-
-	if (calibrate_model || STARPU_BENCHMARK_COMM)
+	if (profiling_info || calibrate_model || STARPU_BENCHMARK_COMM)
 		starpu_clock_gettime(&codelet_end);
 
+	STARPU_TRACE_END_CODELET_BODY(j);	
 	args->status = STATUS_UNKNOWN;
 
-	STARPU_TRACE_END_CODELET_BODY(j);	
+	_starpu_push_task_output(task, mask);
 
-	if (calibrate_model || STARPU_BENCHMARK_COMM)
-	{
-		double measured = _starpu_timing_timespec_delay_us(&codelet_start, &codelet_end);
-		double measured_comm = _starpu_timing_timespec_delay_us(&codelet_start_comm, &codelet_end_comm);
-
-		args->jobq->total_computation_time += measured;
-		args->jobq->total_communication_time += measured_comm;
-
-		double error;
-		error = fabs(STARPU_MAX(measured, 0.0) - STARPU_MAX(j->predicted, 0.0)); 
-		args->jobq->total_computation_time_error += error;
-
-		if (calibrate_model)
-			_starpu_update_perfmodel_history(j, args->perf_arch, (unsigned)args->devid, measured);
-	}
+	_starpu_driver_update_job_feedback(j, args, profiling_info, calibrate_model,
+			&codelet_start, &codelet_end, &codelet_start_comm, &codelet_end_comm);
 
 	(void)STARPU_ATOMIC_ADD(&args->jobq->total_job_performed, 1);
-
-	_starpu_push_task_output(task, mask);
 
 	return 0;
 }

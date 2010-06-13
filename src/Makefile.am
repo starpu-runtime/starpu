@@ -99,6 +99,7 @@ noinst_HEADERS = 						\
 	common/starpu_spinlock.h				\
 	common/fxt.h						\
 	common/utils.h						\
+	drivers/driver_common/driver_common.h			\
 	drivers/cpu/driver_cpu.h				\
 	drivers/gordon/driver_gordon.h				\
 	drivers/gordon/gordon_interface.h			\
@@ -145,6 +146,7 @@ libstarpu_la_SOURCES = 						\
 	core/policies/deque_modeling_policy.c			\
 	core/policies/random_policy.c				\
 	core/policies/deque_modeling_policy_data_aware.c	\
+	drivers/driver_common/driver_common.c			\
 	datawizard/memory_nodes.c				\
 	datawizard/write_back.c					\
 	datawizard/coherency.c					\

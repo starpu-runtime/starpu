@@ -18,6 +18,7 @@
 #define __STARPU_PROFILING_H__
 
 #include <errno.h>
+#include <sys/time.h>
 #include <starpu.h>
 
 #define STARPU_PROFILING_DISABLE	0
@@ -26,19 +27,19 @@
 /* -ENOSYS is returned in case the info is not available. Timing are shown in
  * microseconds. */
 struct starpu_task_profiling_info {
-	int64_t submit_time;
-	int64_t start_time;
-	int64_t end_time;
+	struct timespec submit_time;
+	struct timespec start_time;
+	struct timespec end_time;
 	/* TODO add expected length, expected start/end ? */
 	int workerid;
 };
 
 /* The timing is provided since the previous call to starpu_worker_get_profiling_info */
 struct starpu_worker_profiling_info {
-	int64_t start_time;
-	int64_t total_time;
-	int64_t executing_time;
-	int64_t sleeping_time;
+	struct timespec start_time;
+	struct timespec total_time;
+	struct timespec executing_time;
+	struct timespec sleeping_time;
 	int executed_tasks;
 };
 
@@ -56,5 +57,64 @@ int starpu_profiling_status_get(void);
 /* Get the profiling info associated to a worker, and reset the profiling
  * measurements. If worker_info is NULL, we only reset the counters. */
 int starpu_worker_get_profiling_info(int workerid, struct starpu_worker_profiling_info *worker_info);
+
+/* Some helper functions to manipulate profiling API output */
+/* Reset timespec */
+static inline void starpu_timespec_clear(struct timespec *tsp)
+{
+	tsp->tv_sec = 0;
+	tsp->tv_nsec = 0;
+}
+
+/* Computes result = a + b */
+static inline void starpu_timespec_add(struct timespec *a,
+					struct timespec *b,
+					struct timespec *result)
+{
+	result->tv_sec = a->tv_sec + b->tv_sec;
+	result->tv_nsec = a->tv_nsec + b->tv_nsec;
+
+	if (result->tv_nsec >= 1000000000)
+	{
+		++(result)->tv_sec;
+		result->tv_nsec -= 1000000000;
+	}
+}
+
+/* Computes res += b */
+static inline void starpu_timespec_accumulate(struct timespec *result,
+						struct timespec *a)
+{
+	result->tv_sec += a->tv_sec;
+	result->tv_nsec += a->tv_nsec;
+
+	if (result->tv_nsec >= 1000000000)
+	{
+		++(result)->tv_sec;
+		result->tv_nsec -= 1000000000;
+	}
+}
+
+/* Computes result = a - b */
+static inline void starpu_timespec_sub(struct timespec *a,
+					struct timespec *b,
+					struct timespec *result)
+{
+	result->tv_sec = a->tv_sec - b->tv_sec;
+	result->tv_nsec = a->tv_nsec - b->tv_nsec;
+
+	if ((result)->tv_nsec < 0)
+	{
+		--(result)->tv_sec;
+		result->tv_nsec += 1000000000;
+	}
+}
+
+#define starpu_timespec_cmp(a, b, CMP)                          \
+	(((a)->tv_sec == (b)->tv_sec) ? ((a)->tv_nsec CMP (b)->tv_nsec) : ((a)->tv_sec CMP (b)->tv_sec))
+
+/* Returns the time elapsed between start and end in microseconds */
+double starpu_timing_timespec_delay_us(struct timespec *start, struct timespec *end);
+double starpu_timing_timespec_to_us(struct timespec *ts);
 
 #endif // __STARPU_PROFILING_H__

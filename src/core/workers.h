@@ -166,6 +166,9 @@ struct starpu_worker_s *_starpu_get_worker_struct(unsigned id);
 
 struct starpu_machine_config_s *_starpu_get_machine_config(void);
 
+starpu_worker_status _starpu_worker_get_status(int workerid);
+void _starpu_worker_set_status(int workerid, starpu_worker_status status);
+
 /* TODO move */
 unsigned _starpu_execute_registered_progression_hooks(void);
 

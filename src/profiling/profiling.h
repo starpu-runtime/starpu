@@ -17,12 +17,16 @@
 #ifndef __PROFILING_H__
 #define __PROFILING_H__
 
+#include <sys/time.h>
 #include <starpu.h>
 #include <starpu_profiling.h>
 #include <common/config.h>
 
 struct starpu_task_profiling_info *_starpu_allocate_profiling_info_if_needed(void);
 void _starpu_worker_reset_profiling_info(int workerid);
-void _starpu_worker_update_profiling_info(int workerid, int64_t executing_time, int64_t sleeping_time, int executed_tasks);
+void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks);
+void _starpu_worker_update_profiling_info_sleeping(int workerid, struct timespec *sleeping_start, struct timespec *sleeping_end);
+void _starpu_worker_register_sleeping_start_date(int workerid, struct timespec *sleeping_start);
+void _starpu_worker_register_executing_start_date(int workerid, struct timespec *executing_start);
 
 #endif // __PROFILING_H__

@@ -225,7 +225,7 @@ int starpu_task_submit(struct starpu_task *task)
 	task->status = STARPU_TASK_BLOCKED;
 	
 	if (info)
-		info->submit_time = (int64_t)_starpu_timing_now();
+		starpu_clock_gettime(&info->submit_time);
 
 	/* internally, StarPU manipulates a starpu_job_t which is a wrapper around a
 	* task structure, it is possible that this job structure was already

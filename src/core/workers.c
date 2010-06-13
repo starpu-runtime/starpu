@@ -609,25 +609,40 @@ void starpu_worker_get_name(int id, char *dst, size_t maxlen)
 	snprintf(dst, maxlen, "%s", name);
 }
 
+starpu_worker_status _starpu_worker_get_status(int workerid)
+{
+	return config.workers[workerid].status;
+}
+
+void _starpu_worker_set_status(int workerid, starpu_worker_status status)
+{
+	config.workers[workerid].status = status;
+}
+
 /* TODO move in some driver/common/ directory */
 /* Workers may block when there is no work to do at all. We assume that the
  * mutex is hold when that function is called. */
 void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *mutex)
 {
-	int profiling;
-	
-	profiling = starpu_profiling_status_get();
-
-	int64_t start_time, end_time;
-	start_time = (int64_t)_starpu_timing_now();
+	struct timespec start_time, end_time;
 
 	STARPU_TRACE_WORKER_SLEEP_START
+	config.workers[workerid].status = STATUS_SLEEPING;
+
+	starpu_clock_gettime(&start_time);
+	_starpu_worker_register_sleeping_start_date(workerid, &start_time);
 
 	PTHREAD_COND_WAIT(cond, mutex);
-	end_time = (int64_t)_starpu_timing_now();
 
+	config.workers[workerid].status = STATUS_UNKNOWN;
 	STARPU_TRACE_WORKER_SLEEP_END
+	starpu_clock_gettime(&end_time);
 
+	int profiling = starpu_profiling_status_get();
 	if (profiling)
-		_starpu_worker_update_profiling_info(workerid, 0, end_time - start_time, 0);
+	{
+		struct timespec sleeping_time;
+		starpu_timespec_sub(&end_time, &start_time, &sleeping_time);
+		_starpu_worker_update_profiling_info_sleeping(workerid, &start_time, &end_time);
+	}
 }

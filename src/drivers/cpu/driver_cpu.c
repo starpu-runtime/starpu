@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,7 @@
 #include <starpu.h>
 #include <starpu_profiling.h>
 #include <profiling/profiling.h>
-
+#include <drivers/driver_common/driver_common.h>
 #include <common/utils.h>
 #include <core/debug.h>
 #include "driver_cpu.h"
@@ -29,8 +29,6 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 	int ret;
 	struct timespec codelet_start, codelet_end;
 	struct timespec codelet_start_comm, codelet_end_comm;
-	int64_t start_time;
-	int64_t end_time;
 
 	unsigned calibrate_model = 0;
 	int workerid = cpu_args->workerid;
@@ -43,12 +41,12 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 	if (cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
 
-	if (calibrate_model || STARPU_BENCHMARK_COMM)
+	if (STARPU_BENCHMARK_COMM)
 		starpu_clock_gettime(&codelet_start_comm);
 
 	ret = _starpu_fetch_task_input(task, 0);
 
-	if (calibrate_model || STARPU_BENCHMARK_COMM)
+	if (STARPU_BENCHMARK_COMM)
 		starpu_clock_gettime(&codelet_end_comm);
 
 	if (ret != 0) {
@@ -59,13 +57,14 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 
 	STARPU_TRACE_START_CODELET_BODY(j);
 
-	if (calibrate_model || STARPU_BENCHMARK_COMM)
+	struct starpu_task_profiling_info *profiling_info;
+	profiling_info = task->profiling_info;
+
+	if (profiling_info || calibrate_model || STARPU_BENCHMARK_COMM)
+	{
 		starpu_clock_gettime(&codelet_start);
-
-	int profiling_status = starpu_profiling_status_get();
-
-	if (profiling_status)
-		start_time = (int64_t)_starpu_timing_now();
+		_starpu_worker_register_executing_start_date(workerid, &codelet_start);
+	}
 
 	cpu_args->status = STATUS_EXECUTING;
 	task->status = STARPU_TASK_RUNNING;	
@@ -75,47 +74,16 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 
 	cl->per_worker_stats[workerid]++;
 	
-	if (calibrate_model || STARPU_BENCHMARK_COMM)
+	if (profiling_info || calibrate_model || STARPU_BENCHMARK_COMM)
 		starpu_clock_gettime(&codelet_end);
-
-	if (profiling_status)
-		end_time = (int64_t)_starpu_timing_now();
-
-	struct starpu_task_profiling_info *profiling_info;
-	profiling_info = task->profiling_info;
-
-	if (profiling_info)
-	{
-		profiling_info->start_time = start_time;
-		profiling_info->end_time = end_time;
-		profiling_info->workerid = workerid;
-	}
-
-	if (profiling_status)
-		_starpu_worker_update_profiling_info(workerid, end_time - start_time, 0, 1);
 
 	STARPU_TRACE_END_CODELET_BODY(j);
 	cpu_args->status = STATUS_UNKNOWN;
 
 	_starpu_push_task_output(task, 0);
 
-	if (calibrate_model || STARPU_BENCHMARK_COMM)
-	{
-		double measured = _starpu_timing_timespec_delay_us(&codelet_start, &codelet_end);
-		double measured_comm = _starpu_timing_timespec_delay_us(&codelet_start_comm, &codelet_end_comm);
-
-//		fprintf(stderr, "%d\t%d\n", (int)j->penality, (int)measured_comm);
-		cpu_args->jobq->total_computation_time += measured;
-		cpu_args->jobq->total_communication_time += measured_comm;
-
-		double error;
-		error = fabs(STARPU_MAX(measured, 0.0) - STARPU_MAX(j->predicted, 0.0)); 
-//		fprintf(stderr, "Error -> %le, predicted -> %le measured ->%le\n", error, j->predicted, measured);
-		cpu_args->jobq->total_computation_time_error += error;
-
-		if (calibrate_model)
-			_starpu_update_perfmodel_history(j, cpu_args->arch, cpu_args->devid, measured);
-	}
+	_starpu_driver_update_job_feedback(j, cpu_args, profiling_info, calibrate_model,
+			&codelet_start, &codelet_end, &codelet_start_comm, &codelet_end_comm);
 
 	(void)STARPU_ATOMIC_ADD(&cpu_args->jobq->total_job_performed, 1);
 

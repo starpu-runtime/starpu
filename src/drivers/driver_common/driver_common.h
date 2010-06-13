@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,25 +14,20 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef TIMING_H
-#define TIMING_H
-
-/*
- * _starpu_timing_init must be called prior to using any of these timing
- * functions.
- */
+#ifndef __DRIVER_COMMON_H__
+#define __DRIVER_COMMON_H__
 
 #include <sys/time.h>
-#include <unistd.h>
-#include <stdint.h>
-#include <common/config.h>
 #include <starpu.h>
+#include <starpu_profiling.h>
+#include <core/jobs.h>
+#include <profiling/profiling.h>
+#include <common/utils.h>
 
+void _starpu_driver_update_job_feedback(starpu_job_t j, struct starpu_worker_s *worker_args,
+		struct starpu_task_profiling_info *profiling_info,
+		unsigned calibrate_model,
+		struct timespec *codelet_start, struct timespec *codelet_end,
+		struct timespec *codelet_start_comm, struct timespec *codelet_end_comm);
 
-void _starpu_timing_init(void);
-void starpu_clock_gettime(struct timespec *ts);
-double _starpu_timing_now(void);
-
-#endif /* TIMING_H */
-
-
+#endif // __DRIVER_COMMON_H__

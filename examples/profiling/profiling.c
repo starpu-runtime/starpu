@@ -75,8 +75,8 @@ int main(int argc, char **argv)
 
 	starpu_task_wait_for_all();
 
-	int64_t delay_sum = 0;
-	int64_t length_sum = 0;
+	double delay_sum = 0.0;
+	double length_sum = 0.0;
 
 	for (i = 0; i < niter; i++)
 	{
@@ -84,12 +84,10 @@ int main(int argc, char **argv)
 		struct starpu_task_profiling_info *info = task->profiling_info;
 
 		/* How much time did it take before the task started ? */
-		int64_t delay = (info->start_time - info->submit_time);
-		delay_sum += delay;
+		delay_sum += starpu_timing_timespec_delay_us(&info->submit_time, &info->start_time);
 
 		/* How long was the task execution ? */
-		int64_t length = (info->end_time - info->start_time);
-		length_sum += length;
+		length_sum += starpu_timing_timespec_delay_us(&info->start_time, &info->end_time);
 
 		/* We don't need the task structure anymore */
 		starpu_task_destroy(task);
@@ -97,25 +95,30 @@ int main(int argc, char **argv)
 
 	free(tasks);
 
-	fprintf(stderr, "Avg. delay : %2.2f us\n", ((double)delay_sum)/niter);
-	fprintf(stderr, "Avg. length : %2.2f us\n", ((double)length_sum)/niter);
+	fprintf(stderr, "Avg. delay : %2.2lf us\n", (delay_sum)/niter);
+	fprintf(stderr, "Avg. length : %2.2lf us\n", (length_sum)/niter);
 
 	/* Display the occupancy of all workers during the test */
 	int worker;
 	for (worker = 0; worker < starpu_worker_get_count(); worker++)
 	{
 		struct starpu_worker_profiling_info worker_info;
-		starpu_worker_get_profiling_info(worker, &worker_info);
+		int ret = starpu_worker_get_profiling_info(worker, &worker_info);
+		STARPU_ASSERT(!ret);
 
-		float executing_ratio = ((100.0*worker_info.executing_time)/worker_info.total_time);
-		float sleeping_ratio = ((100.0*worker_info.sleeping_time)/worker_info.total_time);
+		double total_time = starpu_timing_timespec_to_us(&worker_info.total_time);
+		double executing_time = starpu_timing_timespec_to_us(&worker_info.executing_time);
+		double sleeping_time = starpu_timing_timespec_to_us(&worker_info.sleeping_time);
+
+		float executing_ratio = 100.0*executing_time/total_time;
+		float sleeping_ratio = 100.0*sleeping_time/total_time;
 
 		char workername[128];
 		starpu_worker_get_name(worker, workername, 128);
 		fprintf(stderr, "Worker %s:\n", workername);
-		fprintf(stderr, "\ttotal time : %ld us\n", worker_info.total_time);
-		fprintf(stderr, "\texec time  : %ld us (%.2f %%)\n", worker_info.executing_time, executing_ratio);
-		fprintf(stderr, "\tblocked time  : %ld us (%.2f %%)\n", worker_info.sleeping_time, sleeping_ratio);
+		fprintf(stderr, "\ttotal time : %.2lf ms\n", total_time*1e-3);
+		fprintf(stderr, "\texec time  : %.2lf ms (%.2f %%)\n", executing_time*1e-3, executing_ratio);
+		fprintf(stderr, "\tblocked time  : %.2lf ms (%.2f %%)\n", sleeping_time*1e-3, sleeping_ratio);
 	}
 
 	starpu_shutdown();

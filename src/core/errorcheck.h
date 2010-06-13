@@ -30,7 +30,9 @@ typedef enum {
 	/* during the execution of a codelet */
 	STATUS_EXECUTING,
 	/* during the execution of the callback */
-	STATUS_CALLBACK
+	STATUS_CALLBACK,
+	/* while sleeping because there is nothing to do */
+	STATUS_SLEEPING
 } starpu_worker_status;
 
 void _starpu_set_local_worker_status(starpu_worker_status st);
