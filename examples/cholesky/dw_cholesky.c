@@ -223,8 +223,6 @@ void initialize_system(float **A, unsigned dim, unsigned pinned)
 	
 	starpu_helper_cublas_init();
 
-	_starpu_timing_init();
-
 	if (pinned)
 	{
 		starpu_data_malloc_pinned_if_possible((void **)A, (size_t)dim*dim*sizeof(float));

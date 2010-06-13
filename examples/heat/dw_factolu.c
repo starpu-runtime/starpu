@@ -691,8 +691,6 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 {
 	starpu_init(NULL);
 
-	_starpu_timing_init();
-
 	starpu_helper_cublas_init();
 
 	if (pinned)

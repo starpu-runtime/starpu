@@ -264,8 +264,6 @@ int main(int argc, char **argv)
 
 	starpu_helper_cublas_init();
 
-	_starpu_timing_init();
-
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)
 	{
