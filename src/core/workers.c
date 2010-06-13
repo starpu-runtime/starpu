@@ -618,31 +618,3 @@ void _starpu_worker_set_status(int workerid, starpu_worker_status status)
 {
 	config.workers[workerid].status = status;
 }
-
-/* TODO move in some driver/common/ directory */
-/* Workers may block when there is no work to do at all. We assume that the
- * mutex is hold when that function is called. */
-void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *mutex)
-{
-	struct timespec start_time, end_time;
-
-	STARPU_TRACE_WORKER_SLEEP_START
-	config.workers[workerid].status = STATUS_SLEEPING;
-
-	starpu_clock_gettime(&start_time);
-	_starpu_worker_register_sleeping_start_date(workerid, &start_time);
-
-	PTHREAD_COND_WAIT(cond, mutex);
-
-	config.workers[workerid].status = STATUS_UNKNOWN;
-	STARPU_TRACE_WORKER_SLEEP_END
-	starpu_clock_gettime(&end_time);
-
-	int profiling = starpu_profiling_status_get();
-	if (profiling)
-	{
-		struct timespec sleeping_time;
-		starpu_timespec_sub(&end_time, &start_time, &sleeping_time);
-		_starpu_worker_update_profiling_info_sleeping(workerid, &start_time, &end_time);
-	}
-}
