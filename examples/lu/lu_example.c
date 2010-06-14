@@ -20,6 +20,7 @@
 #include <time.h>
 #include <math.h>
 #include <starpu.h>
+#include <starpu_profiling.h>
 
 #include "xlu.h"
 #include "xlu_kernels.h"
@@ -29,6 +30,7 @@ static unsigned nblocks = 16;
 static unsigned check = 0;
 static unsigned pivot = 0;
 static unsigned no_stride = 0;
+static unsigned profile = 0;
 
 TYPE *A, *A_saved;
 
@@ -61,6 +63,9 @@ static void parse_args(int argc, char **argv)
 			no_stride = 1;
 		}
 
+		if (strcmp(argv[i], "-profile") == 0) {
+			profile = 1;
+		}
 	}
 }
 
@@ -256,6 +261,9 @@ int main(int argc, char **argv)
 
 	display_matrix(A, size, size, "A");
 
+	if (profile)
+		starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
+
 	/* Factorize the matrix (in place) */
 	if (pivot)
 	{
@@ -293,6 +301,12 @@ int main(int argc, char **argv)
 	else
 	{
 		STARPU_LU(lu_decomposition)(A, size, size, nblocks);
+	}
+
+	if (profile)
+	{
+		starpu_profiling_status_set(STARPU_PROFILING_DISABLE);
+		starpu_bus_profiling_helper_display_summary();
 	}
 
 	if (check)
