@@ -14,14 +14,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <stdio.h>
+#include <starpu.h>
 #include <datawizard/datastats.h>
 #include <common/config.h>
-#include <starpu.h>
-
-/* measure the cache hit ratio for each node */
 
 #ifdef STARPU_DATA_STATS
+/* measure the cache hit ratio for each node */
 static unsigned hit_cnt[STARPU_MAXNODES];
 static unsigned miss_cnt[STARPU_MAXNODES];
 #endif
@@ -138,11 +136,6 @@ void _starpu_display_comm_amounts(void)
 	}
 }
 
-inline void _starpu_update_comm_amount(uint32_t src_node, uint32_t dst_node, size_t size)
-{
-	comm_ammount[src_node][dst_node] += size;
-}
-
 #else
 
 inline void _starpu_display_comm_amounts(void)
@@ -150,4 +143,3 @@ inline void _starpu_display_comm_amounts(void)
 }
 
 #endif
-

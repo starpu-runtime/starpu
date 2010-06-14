@@ -29,4 +29,8 @@ void _starpu_worker_update_profiling_info_sleeping(int workerid, struct timespec
 void _starpu_worker_register_sleeping_start_date(int workerid, struct timespec *sleeping_start);
 void _starpu_worker_register_executing_start_date(int workerid, struct timespec *executing_start);
 
+void _starpu_initialize_busid_matrix(void);
+int _starpu_register_bus(int src_node, int dst_node);
+void _starpu_bus_update_profiling_info(int src_node, int dst_node, size_t size);
+
 #endif // __PROFILING_H__

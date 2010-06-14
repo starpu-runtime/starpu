@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <pthread.h>
+#include <starpu.h>
 #include <common/config.h>
 #include <common/utils.h>
 #include <core/policies/sched_policy.h>
@@ -23,6 +23,7 @@
 #include "copy_driver.h"
 #include "memalloc.h"
 #include "starpu_opencl.h"
+#include <profiling/profiling.h>
 
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 {
@@ -216,10 +217,8 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 		STARPU_ASSERT(handle->ops);
 		//STARPU_ASSERT(handle->ops->copy_data_1_to_1);
 
-#ifdef STARPU_DATA_STATS
 		size_t size = handle->ops->get_size(handle);
-		_starpu_update_comm_amount(src_node, dst_node, size);
-#endif
+		_starpu_bus_update_profiling_info((int)src_node, (int)dst_node, size);
 		
 #ifdef STARPU_USE_FXT
 		com_id = STARPU_ATOMIC_ADD(&communication_cnt, 1);

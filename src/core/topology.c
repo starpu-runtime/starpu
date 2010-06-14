@@ -22,6 +22,7 @@
 #include <core/topology.h>
 #include <drivers/cuda/driver_cuda.h>
 #include <common/hash.h>
+#include <profiling/profiling.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -610,6 +611,10 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 	/* TODO : support NUMA  ;) */
 	ram_memory_node = _starpu_register_memory_node(STARPU_CPU_RAM);
 
+	/* We will store all the busid of the different (src, dst) combinations
+	 * in a matrix which we initialize here. */
+	_starpu_initialize_busid_matrix();
+
 	unsigned worker;
 	for (worker = 0; worker < config->nworkers; worker++)
 	{
@@ -644,6 +649,9 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 				}
 				is_a_set_of_accelerators = 0;
 				memory_node = _starpu_register_memory_node(STARPU_CUDA_RAM);
+
+				_starpu_register_bus(0, memory_node);
+				_starpu_register_bus(memory_node, 0);
 				break;
 #endif
 
@@ -657,6 +665,8 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 				}
 				is_a_set_of_accelerators = 0;
 				memory_node = _starpu_register_memory_node(STARPU_OPENCL_RAM);
+				_starpu_register_bus(0, memory_node);
+				_starpu_register_bus(memory_node, 0);
 				break;
 #endif
 

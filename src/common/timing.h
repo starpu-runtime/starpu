@@ -28,7 +28,6 @@
 #include <common/config.h>
 #include <starpu.h>
 
-
 void _starpu_timing_init(void);
 void starpu_clock_gettime(struct timespec *ts);
 double _starpu_timing_now(void);

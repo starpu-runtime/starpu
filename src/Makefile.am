@@ -176,7 +176,8 @@ libstarpu_la_SOURCES = 						\
 	util/starpu_cublas.c					\
 	util/file.c						\
 	debug/latency.c						\
-	profiling/profiling.c
+	profiling/profiling.c					\
+	profiling/bus_profiling_helpers.c
 
 if STARPU_USE_CPU
 libstarpu_la_SOURCES += drivers/cpu/driver_cpu.c

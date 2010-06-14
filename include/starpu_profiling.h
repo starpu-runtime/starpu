@@ -41,6 +41,13 @@ struct starpu_worker_profiling_info {
 	int executed_tasks;
 };
 
+struct starpu_bus_profiling_info {
+	struct timespec start_time;
+	struct timespec total_time;
+	int long long transferred_bytes;
+	int transfer_count;
+};
+
 /* This function sets the profiling status:
  * - enable with STARPU_PROFILING_ENABLE
  * - disable with STARPU_PROFILING_DISABLE 
@@ -55,6 +62,13 @@ int starpu_profiling_status_get(void);
 /* Get the profiling info associated to a worker, and reset the profiling
  * measurements. If worker_info is NULL, we only reset the counters. */
 int starpu_worker_get_profiling_info(int workerid, struct starpu_worker_profiling_info *worker_info);
+
+int starpu_bus_get_count(void);
+int starpu_bus_get_id(int src, int dst);
+int starpu_bus_get_src(int busid);
+int starpu_bus_get_dst(int busid);
+
+int starpu_bus_get_profiling_info(int busid, struct starpu_bus_profiling_info *bus_info);
 
 /* Some helper functions to manipulate profiling API output */
 /* Reset timespec */
@@ -114,5 +128,7 @@ static inline void starpu_timespec_sub(struct timespec *a,
 /* Returns the time elapsed between start and end in microseconds */
 double starpu_timing_timespec_delay_us(struct timespec *start, struct timespec *end);
 double starpu_timing_timespec_to_us(struct timespec *ts);
+
+void starpu_bus_profiling_helper_display_summary(void);
 
 #endif // __STARPU_PROFILING_H__
