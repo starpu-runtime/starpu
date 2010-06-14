@@ -208,7 +208,6 @@ cl_int _starpu_opencl_load_program(cl_context context, char *program_name, cl_de
 		fprintf(stderr, "Error: Failed to build program executable!\n");
 		clGetProgramBuildInfo(*program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
 		fprintf(stderr, "%s\n", buffer);
-                STARPU_OPENCL_REPORT_ERROR(err);
                 return err;
 	}
 
