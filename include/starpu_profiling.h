@@ -24,8 +24,6 @@
 #define STARPU_PROFILING_DISABLE	0
 #define STARPU_PROFILING_ENABLE		1
 
-/* -ENOSYS is returned in case the info is not available. Timing are shown in
- * microseconds. */
 struct starpu_task_profiling_info {
 	struct timespec submit_time;
 	struct timespec start_time;
