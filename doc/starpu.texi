@@ -206,12 +206,19 @@ configuration:
 $ make install
 @end example
 
-@node pkg-config configuration
-@subsection pkg-config configuration
+@c ---------------------------------------------------------------------
+@c Using StarPU
+@c ---------------------------------------------------------------------
 
-It is possible that compiling and linking an application against StarPU
-requires to use specific flags or libraries (for instance @code{CUDA} or
-@code{libspe2}). To this end, it is possible to use the @code{pkg-config} tool.
+@node Using StarPU
+@chapter Using StarPU
+
+@node Setting flags for compiling and linking applications
+@section Setting flags for compiling and linking applications
+
+Compiling and linking an application against StarPU may require to use
+specific flags or libraries (for instance @code{CUDA} or @code{libspe2}).
+To this end, it is possible to use the @code{pkg-config} tool.
 
 If StarPU was not installed at some standard location, the path of StarPU's
 library must be specified in the @code{PKG_CONFIG_PATH} environment variable so
@@ -219,7 +226,7 @@ that @code{pkg-config} can find it. For example if StarPU was installed in
 @code{$prefix_dir}:
 
 @example
-$ PKG_CONFIG_PATH = $PKG_CONFIG_PATH:$prefix_dir/lib/pkgconfig
+$ PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$prefix_dir/lib/pkgconfig
 @end example
 
 The flags required to compile or link against StarPU are then
@@ -229,6 +236,21 @@ accessible with the following commands:
 $ pkg-config --cflags libstarpu  # options for the compiler
 $ pkg-config --libs libstarpu    # options for the linker
 @end example
+
+@node Running a basic StarPU application
+@section Running a basic StarPU application
+
+Basic examples using StarPU have been built in the directory
+@code{$prefix_dir/lib/starpu/examples/}. You can for example run the
+@code{vector_scal}.
+
+@example
+$ $prefix_dir/lib/starpu/examples/vector_scal
+BEFORE : First element was 1.000000
+AFTER First element is 3.140000
+$
+@end example
+
 
 @c ---------------------------------------------------------------------
 @c Configuration options
@@ -1425,7 +1447,11 @@ field is a bitmask that defines where the codelet may be executed. Here, the
 When a CPU core executes a codelet, it calls the @code{cpu_func} function,
 which @emph{must} have the following prototype:
 
-@code{void (*cpu_func)(void *buffers[], void *cl_arg)}
+@cartouche
+@example
+void (*cpu_func)(void *buffers[], void *cl_arg);
+@end example
+@end cartouche
 
 In this example, we can ignore the first argument of this function which gives a
 description of the input and output buffers (e.g. the size and the location of
