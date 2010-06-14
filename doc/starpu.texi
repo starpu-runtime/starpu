@@ -635,25 +635,33 @@ overwrites the equivalent environment variables.
 
 @item @emph{Fields}:
 @table @asis 
-@item @code{sched_policy} (default = NULL):
+@item @code{sched_policy_name} (default = NULL):
 This is the name of the scheduling policy. This can also be specified with the
 @code{STARPU_SCHED} environment variable.
+@item @code{sched_policy} (default = NULL):
+This is the definition of the scheduling policy. This field is ignored
+if @code{sched_policy_name} is set.
 
 @item @code{ncpus} (default = -1):
 This is the maximum number of CPU cores that StarPU can use. This can also be
 specified with the @code{STARPU_NCPUS} environment variable.
-
 @item @code{ncuda} (default = -1):
 This is the maximum number of CUDA devices that StarPU can use. This can also be
 specified with the @code{STARPU_NCUDA} environment variable.
-
 @item @code{nopencl} (default = -1):
 This is the maximum number of OpenCL devices that StarPU can use. This can also be
 specified with the @code{STARPU_NOPENCL} environment variable.
-
 @item @code{nspus} (default = -1):
 This is the maximum number of Cell SPUs that StarPU can use. This can also be
 specified with the @code{STARPU_NGORDON} environment variable.
+
+@item @code{use_explicit_workers_bindid} (default = 0)
+@item @code{workers_bindid[STARPU_NMAXWORKERS]}
+@item @code{use_explicit_workers_cuda_gpuid} (default = 0)
+@item @code{workers_cuda_gpuid[STARPU_NMAXWORKERS]}
+@item @code{use_explicit_workers_opencl_gpuid} (default = 0)
+@item @code{workers_opencl_gpuid[STARPU_NMAXWORKERS]}:
+These fields are explained in @ref{STARPU_WORKERS_CPUID}.
 
 @item @code{calibrate} (default = 0):
 If this flag is set, StarPU will calibrate the performance models when
