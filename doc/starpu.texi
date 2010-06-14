@@ -156,14 +156,14 @@ are using the source code from the svn repository, you first need to generate
 the configure scripts and the Makefiles.
 
 @example
-$ autoreconf -vfi
+% autoreconf -vfi
 @end example
 
 @node Configuring StarPU
 @subsection Configuring StarPU
 
 @example
-$ ./configure
+% ./configure
 @end example
 
 Details about options that are useful to give to @code{./configure} are given in
@@ -183,7 +183,7 @@ Details about options that are useful to give to @code{./configure} are given in
 @subsection Building
 
 @example
-$ make
+% make
 @end example
 
 @node Sanity Checks
@@ -193,7 +193,7 @@ In order to make sure that StarPU is working properly on the system, it is also
 possible to run a test suite.
 
 @example
-$ make check
+% make check
 @end example
 
 @node Installing
@@ -203,7 +203,7 @@ In order to install StarPU at the location that was specified during
 configuration:
 
 @example
-$ make install
+% make install
 @end example
 
 @c ---------------------------------------------------------------------
@@ -226,15 +226,15 @@ that @code{pkg-config} can find it. For example if StarPU was installed in
 @code{$prefix_dir}:
 
 @example
-$ PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$prefix_dir/lib/pkgconfig
+% PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$prefix_dir/lib/pkgconfig
 @end example
 
 The flags required to compile or link against StarPU are then
 accessible with the following commands:
 
 @example
-$ pkg-config --cflags libstarpu  # options for the compiler
-$ pkg-config --libs libstarpu    # options for the linker
+% pkg-config --cflags libstarpu  # options for the compiler
+% pkg-config --libs libstarpu    # options for the linker
 @end example
 
 @node Running a basic StarPU application
@@ -245,10 +245,10 @@ Basic examples using StarPU have been built in the directory
 @code{vector_scal}.
 
 @example
-$ $prefix_dir/lib/starpu/examples/vector_scal
+% $prefix_dir/lib/starpu/examples/vector_scal
 BEFORE : First element was 1.000000
 AFTER First element is 3.140000
-$
+%
 @end example
 
 
@@ -1309,13 +1309,13 @@ enabled by default. To enable OpenCL, you need either to disable CUDA
 when configuring StarPU:
 
 @example
-$ ./configure --disable-cuda
+% ./configure --disable-cuda
 @end example
 
 or when running applications:
 
 @example
-$ STARPU_NCUDA=0 ./application
+% STARPU_NCUDA=0 ./application
 @end example
 
 OpenCL will automatically be started on any device not yet used by
@@ -1324,7 +1324,7 @@ enable CUDA on 2 devices, and OpenCL on the 2 other devices by doing
 so:
 
 @example
-$ STARPU_NCUDA=2 ./application
+% STARPU_NCUDA=2 ./application
 @end example
 
 @node Compiling OpenCL codelets
@@ -1801,8 +1801,8 @@ necessary to set the variable @code{LD_LIBRARY_PATH} to locate dynamic
 libraries at runtime.
 
 @example
-$ PKG_CONFIG_PATH=$STARPU_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
-$ LD_LIBRARY_PATH=$STARPU_DIR/lib:$LD_LIBRARY_PATH
+% PKG_CONFIG_PATH=$STARPU_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
+% LD_LIBRARY_PATH=$STARPU_DIR/lib:$LD_LIBRARY_PATH
 @end example
 
 It is then possible to compile the application using the following
@@ -1825,27 +1825,27 @@ clean:
 @end cartouche
 
 @example
-$ make
+% make
 @end example
 
 and to execute it, with the default configuration:
 
 @example
-$ ./vector
+% ./vector
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end example
 
 or for example, by disabling CPU devices:
 
 @example
-$ STARPU_NCPUS=0 ./vector
+% STARPU_NCPUS=0 ./vector
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end example
 
 or by disabling CUDA devices:
 
 @example
-$ STARPU_NCUDA=0 ./vector
+% STARPU_NCUDA=0 ./vector
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end example
 
