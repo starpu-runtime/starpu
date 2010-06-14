@@ -154,8 +154,8 @@ can be used to install StarPU.
 
 @menu
 * Generating Makefiles and configuration scripts::  
-* Configuring StarPU::          
-@end menu
+* Running the configuration::   
+@end menu 
 
 @node Generating Makefiles and configuration scripts
 @subsection Generating Makefiles and configuration scripts
@@ -168,8 +168,8 @@ the configure scripts and the Makefiles.
 % autoreconf -vfi
 @end example
 
-@node Configuring StarPU
-@subsection Configuring StarPU
+@node Running the configuration
+@subsection Running the configuration
 
 @example
 % ./configure
@@ -269,9 +269,46 @@ AFTER First element is 3.140000
 @c Configuration options
 @c ---------------------------------------------------------------------
 
-@node Configuration options
-@chapter Configuration options
+@node Configuring StarPU
+@chapter Configuring StarPU
 
+
+@menu
+* Compilation configuration::   
+* Execution configuration through environment variables::  
+@end menu
+
+@node Compilation configuration
+@section Compilation configuration
+
+The following arguments can be given to the @code{configure} script.
+
+@menu
+* Common configuration::        
+* Configuring workers::         
+* Advanced configuration::      
+@end menu
+
+@node Common configuration
+@subsection Common configuration
+
+@table @asis
+@item @code{--enable-debug}
+Enable debugging messages.
+
+@item @code{--enable-fast}
+Do not enforce assertions, saves a lot of time spent to compute them otherwise.
+
+@item @code{--enable-verbose}
+Augment the verbosity of the debugging messages.
+
+@item @code{--enable-coverage}
+Enable flags for the coverage tool.
+@end table
+     
+
+@node Configuring workers
+@subsection Configuring workers
 
 @table @asis
 @item @code{--disable-cpu}
@@ -295,18 +332,18 @@ Disable the use of OpenCL, even if the SDK is detected.
 Enable the use of the Gordon runtime for Cell SPUs.
 @c TODO: rather default to enabled when detected
 
-@item @code{--enable-debug}
-Enable debugging messages.
+@item @code{--with-cuda-dir=<path>}
+Specify the location of the CUDA SDK resides. This directory should notably contain
+@code{include/cuda.h}.
 
-@item @code{--enable-fast}
-Do not enforce assertions, saves a lot of time spent to compute them otherwise.
+@item @code{--with-gordon-dir=<path>}
+Specify the location of the Gordon SDK.
+@end table
 
-@item @code{--enable-verbose}
-Augment the verbosity of the debugging messages.
+@node Advanced configuration
+@subsection Advanced configuration
 
-@item @code{--enable-coverage}
-Enable flags for the coverage tool.
-
+@table @asis
 @item @code{--enable-perf-debug}
 Enable performance debugging.
 
@@ -331,19 +368,12 @@ Enable the use of OpenGL for the rendering of some examples.
 Specify the blas library to be used by some of the examples. The
 library has to be 'atlas' or 'goto'.
 
-@item @code{--with-cuda-dir=<path>}
-Specify the location of the CUDA SDK resides. This directory should notably contain
-@code{include/cuda.h}.
-
 @item @code{--with-magma=<path>}
 Specify where magma is installed.
 
 @item @code{--with-opencl-dir=<path>}
 Specify the location of the OpenCL SDK. This directory should notably contain
 @code{include/CL/cl.h}.
-
-@item @code{--with-gordon-dir=<path>}
-Specify the location of the Gordon SDK.
 
 @item @code{--with-fxt=<path>}
 Specify the location of FxT (for generating traces and rendering them
@@ -375,8 +405,8 @@ Specify the location of ATLAS. This directory should notably contain
 @c Environment variables
 @c ---------------------------------------------------------------------
 
-@node Environment variables
-@chapter Environment variables
+@node Execution configuration through environment variables
+@section Execution configuration through environment variables
 
 @menu
 * Workers::                     Configuring workers
@@ -389,7 +419,7 @@ calling @code{starpu_init} will override the values of the environment
 variables.
 
 @node Workers
-@section Configuring workers
+@subsection Configuring workers
 
 @menu
 * STARPU_NCPUS::                Number of CPU workers
@@ -402,7 +432,7 @@ variables.
 @end menu
 
 @node STARPU_NCPUS
-@subsection @code{STARPU_NCPUS} -- Number of CPU workers
+@subsubsection @code{STARPU_NCPUS} -- Number of CPU workers
 @table @asis
 
 @item @emph{Description}:
@@ -413,7 +443,7 @@ the accelerators.
 @end table
 
 @node STARPU_NCUDA
-@subsection @code{STARPU_NCUDA} -- Number of CUDA workers
+@subsubsection @code{STARPU_NCUDA} -- Number of CUDA workers
 @table @asis
 
 @item @emph{Description}:
@@ -425,7 +455,7 @@ possible to select which CUDA devices should be used by the means of the
 @end table
 
 @node STARPU_NOPENCL
-@subsection @code{STARPU_NOPENCL} -- Number of OpenCL workers
+@subsubsection @code{STARPU_NOPENCL} -- Number of OpenCL workers
 @table @asis
 
 @item @emph{Description}:
@@ -433,7 +463,7 @@ OpenCL equivalent of the @code{STARPU_NCUDA} environment variable.
 @end table
 
 @node STARPU_NGORDON
-@subsection @code{STARPU_NGORDON} -- Number of SPU workers (Cell)
+@subsubsection @code{STARPU_NGORDON} -- Number of SPU workers (Cell)
 @table @asis
 
 @item @emph{Description}:
@@ -442,7 +472,7 @@ Specify the maximum number of SPUs that StarPU can use.
 
 
 @node STARPU_WORKERS_CPUID
-@subsection @code{STARPU_WORKERS_CPUID} -- Bind workers to specific CPUs
+@subsubsection @code{STARPU_WORKERS_CPUID} -- Bind workers to specific CPUs
 @table @asis
 
 @item @emph{Description}:
@@ -469,7 +499,7 @@ third (resp. second and fourth) workers will be put on CPU #0 (resp. CPU #1).
 @end table
 
 @node STARPU_WORKERS_CUDAID
-@subsection @code{STARPU_WORKERS_CUDAID} -- Select specific CUDA devices
+@subsubsection @code{STARPU_WORKERS_CUDAID} -- Select specific CUDA devices
 @table @asis
 
 @item @emph{Description}:
@@ -482,7 +512,7 @@ the one reported by CUDA).
 @end table
 
 @node STARPU_WORKERS_OPENCLID
-@subsection @code{STARPU_WORKERS_OPENCLID} -- Select specific OpenCL devices
+@subsubsection @code{STARPU_WORKERS_OPENCLID} -- Select specific OpenCL devices
 @table @asis
 
 @item @emph{Description}:
@@ -490,7 +520,7 @@ OpenCL equivalent of the @code{STARPU_WORKERS_CUDAID} environment variable.
 @end table
 
 @node Scheduling
-@section Configuring the Scheduling engine
+@subsection Configuring the Scheduling engine
 
 @menu
 * STARPU_SCHED::                Scheduling policy
@@ -501,7 +531,7 @@ OpenCL equivalent of the @code{STARPU_WORKERS_CUDAID} environment variable.
 @end menu
 
 @node STARPU_SCHED
-@subsection @code{STARPU_SCHED} -- Scheduling policy
+@subsubsection @code{STARPU_SCHED} -- Scheduling policy
 @table @asis
 
 @item @emph{Description}:
@@ -514,7 +544,7 @@ Use @code{STARPU_SCHED=help} to get the list of available schedulers.
 @end table
 
 @node STARPU_CALIBRATE
-@subsection @code{STARPU_CALIBRATE} -- Calibrate performance models
+@subsubsection @code{STARPU_CALIBRATE} -- Calibrate performance models
 @table @asis
 
 @item @emph{Description}:
@@ -527,7 +557,7 @@ Note: this currently only applies to dm and dmda scheduling policies.
 @end table
 
 @node STARPU_PREFETCH
-@subsection @code{STARPU_PREFETCH} -- Use data prefetch
+@subsubsection @code{STARPU_PREFETCH} -- Use data prefetch
 @table @asis
 
 @item @emph{Description}:
@@ -539,7 +569,7 @@ starts. As a result, computation and data transfers are overlapped.
 @end table
 
 @node STARPU_SCHED_ALPHA
-@subsection @code{STARPU_SCHED_ALPHA} -- Computation factor
+@subsubsection @code{STARPU_SCHED_ALPHA} -- Computation factor
 @table @asis
 
 @item @emph{Description}:
@@ -550,7 +580,7 @@ the coefficient to be applied to it before adding it to the communication part.
 @end table
 
 @node STARPU_SCHED_BETA
-@subsection @code{STARPU_SCHED_BETA} -- Communication factor
+@subsubsection @code{STARPU_SCHED_BETA} -- Communication factor
 @table @asis
 
 @item @emph{Description}:
@@ -561,14 +591,14 @@ the coefficient to be applied to it before adding it to the computation part.
 @end table
 
 @node Misc
-@section Miscellaneous and debug
+@subsection Miscellaneous and debug
 
 @menu
 * STARPU_LOGFILENAME::          Select debug file name
 @end menu
 
 @node STARPU_LOGFILENAME
-@subsection @code{STARPU_LOGFILENAME} -- Select debug file name
+@subsubsection @code{STARPU_LOGFILENAME} -- Select debug file name
 @table @asis
 
 @item @emph{Description}:
