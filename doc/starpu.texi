@@ -31,13 +31,14 @@ This manual documents the usage of StarPU.
 @comment  better formatting.
 @comment
 @menu
-* Introduction::          A basic introduction to using StarPU
-* Installing StarPU::     How to configure, build and install StarPU
-* Configuration options:: Configurations options
-* Environment variables:: Environment variables used by StarPU
-* StarPU API::            The API to use StarPU
-* Basic Examples::        Basic examples of the use of StarPU
-* Advanced Topics::       Advanced use of StarPU
+* Introduction::                A basic introduction to using StarPU
+* Installing StarPU::           How to configure, build and install StarPU
+* Using StarPU::                How to run StarPU application
+* Configuration options::       Configurations options
+* Environment variables::       Environment variables used by StarPU
+* StarPU API::                  The API to use StarPU
+* Basic Examples::              Basic examples of the use of StarPU
+* Advanced Topics::             Advanced use of StarPU
 @end menu
 
 @c ---------------------------------------------------------------------
@@ -48,8 +49,8 @@ This manual documents the usage of StarPU.
 @chapter Introduction to StarPU
 
 @menu
-* Motivation::             Why StarPU ?
-* StarPU in a Nutshell::   The Fundamentals of StarPU
+* Motivation::                  Why StarPU ?
+* StarPU in a Nutshell::        The Fundamentals of StarPU
 @end menu
 
 @node Motivation
@@ -80,6 +81,11 @@ transparently handling low-level issues in a portable fashion.
 @node StarPU in a Nutshell
 @section StarPU in a Nutshell
 
+@menu
+* Codelet and Tasks::           
+* StarPU Data Management Library::  
+@end menu
+
 From a programming point of view, StarPU is not a new language but a library
 that executes tasks explicitly submitted by the application.  The data that a
 task manipulates are automatically transferred onto the accelerator so that the
@@ -89,7 +95,9 @@ scheduling experts to implement custom scheduling policies in a portable
 fashion.
 
 @c explain the notion of codelet and task (i.e. g(A, B)
+@node Codelet and Tasks
 @subsection Codelet and Tasks
+
 One of StarPU primary data structure is the @b{codelet}. A codelet describes a
 computational kernel that can possibly be implemented on multiple architectures
 such as a CPU, a CUDA device or a Cell's SPU.
@@ -114,6 +122,7 @@ by expressing dependencies between tags.
 @c TODO insert illustration f(Ar, Brw, Cr) + ..
 
 @c DSM
+@node StarPU Data Management Library
 @subsection StarPU Data Management Library
 
 Because StarPU schedules tasks at runtime, data transfers have to be
@@ -144,8 +153,8 @@ can be used to install StarPU.
 @section Configuration of StarPU
 
 @menu
-* Generating Makefiles and configuration scripts::
-* Configuring StarPU::
+* Generating Makefiles and configuration scripts::  
+* Configuring StarPU::          
 @end menu
 
 @node Generating Makefiles and configuration scripts
@@ -173,10 +182,9 @@ Details about options that are useful to give to @code{./configure} are given in
 @section Building and Installing StarPU
 
 @menu
-* Building::
-* Sanity Checks::
-* Installing::
-* pkg-config configuration::
+* Building::                    
+* Sanity Checks::               
+* Installing::                  
 @end menu
 
 @node Building
@@ -212,6 +220,11 @@ configuration:
 
 @node Using StarPU
 @chapter Using StarPU
+
+@menu
+* Setting flags for compiling and linking applications::  
+* Running a basic StarPU application::  
+@end menu
 
 @node Setting flags for compiling and linking applications
 @section Setting flags for compiling and linking applications
@@ -258,6 +271,7 @@ AFTER First element is 3.140000
 
 @node Configuration options
 @chapter Configuration options
+
 
 @table @asis
 @item @code{--disable-cpu}
@@ -365,9 +379,9 @@ Specify the location of ATLAS. This directory should notably contain
 @chapter Environment variables
 
 @menu
-* Workers::     Configuring workers
-* Scheduling::  Configuring the Scheduling engine
-* Misc::        Miscellaneous and debug
+* Workers::                     Configuring workers
+* Scheduling::                  Configuring the Scheduling engine
+* Misc::                        Miscellaneous and debug
 @end menu
 
 Note: the values given in @code{starpu_conf} structure passed when
@@ -378,13 +392,13 @@ variables.
 @section Configuring workers
 
 @menu
-* STARPU_NCPUS     :: Number of CPU workers
-* STARPU_NCUDA     :: Number of CUDA workers
-* STARPU_NOPENCL   :: Number of OpenCL workers
-* STARPU_NGORDON   :: Number of SPU workers (Cell)
-* STARPU_WORKERS_CPUID    :: Bind workers to specific CPUs
-* STARPU_WORKERS_CUDAID   :: Select specific CUDA devices
-* STARPU_WORKERS_OPENCLID :: Select specific OpenCL devices
+* STARPU_NCPUS::                Number of CPU workers
+* STARPU_NCUDA::                Number of CUDA workers
+* STARPU_NOPENCL::              Number of OpenCL workers
+* STARPU_NGORDON::              Number of SPU workers (Cell)
+* STARPU_WORKERS_CPUID::        Bind workers to specific CPUs
+* STARPU_WORKERS_CUDAID::       Select specific CUDA devices
+* STARPU_WORKERS_OPENCLID::     Select specific OpenCL devices
 @end menu
 
 @node STARPU_NCPUS
@@ -479,11 +493,11 @@ OpenCL equivalent of the @code{STARPU_WORKERS_CUDAID} environment variable.
 @section Configuring the Scheduling engine
 
 @menu
-* STARPU_SCHED     :: Scheduling policy
-* STARPU_CALIBRATE :: Calibrate performance models
-* STARPU_PREFETCH  :: Use data prefetch
-* STARPU_SCHED_ALPHA  :: Computation factor
-* STARPU_SCHED_BETA  :: Communication factor
+* STARPU_SCHED::                Scheduling policy
+* STARPU_CALIBRATE::            Calibrate performance models
+* STARPU_PREFETCH::             Use data prefetch
+* STARPU_SCHED_ALPHA::          Computation factor
+* STARPU_SCHED_BETA::           Communication factor
 @end menu
 
 @node STARPU_SCHED
@@ -550,7 +564,7 @@ the coefficient to be applied to it before adding it to the computation part.
 @section Miscellaneous and debug
 
 @menu
-* STARPU_LOGFILENAME  :: Select debug file name
+* STARPU_LOGFILENAME::          Select debug file name
 @end menu
 
 @node STARPU_LOGFILENAME
@@ -570,24 +584,24 @@ This variable specify in which file the debugging output should be saved to.
 @chapter StarPU API
 
 @menu
-* Initialization and Termination::   Initialization and Termination methods
-* Workers' Properties::              Methods to enumerate workers' properties
-* Data Library::                     Methods to manipulate data
-* Codelets and Tasks::               Methods to construct tasks
-* Tags::                             Task dependencies
-* CUDA extensions::                  CUDA extensions
-* OpenCL extensions::                OpenCL extensions
-* Cell extensions::                  Cell extensions
-* Miscellaneous::                    Miscellaneous helpers
+* Initialization and Termination::  Initialization and Termination methods
+* Workers' Properties::         Methods to enumerate workers' properties
+* Data Library::                Methods to manipulate data
+* Codelets and Tasks::          Methods to construct tasks
+* Tags::                        Task dependencies
+* CUDA extensions::             CUDA extensions
+* OpenCL extensions::           OpenCL extensions
+* Cell extensions::             Cell extensions
+* Miscellaneous::               Miscellaneous helpers
 @end menu
 
 @node Initialization and Termination
 @section Initialization and Termination
 
 @menu
-* starpu_init::            Initialize StarPU
-* struct starpu_conf::     StarPU runtime configuration
-* starpu_shutdown::        Terminate StarPU
+* starpu_init::                 Initialize StarPU
+* struct starpu_conf::          StarPU runtime configuration
+* starpu_shutdown::             Terminate StarPU
 @end menu
 
 @node starpu_init
@@ -669,14 +683,14 @@ guaranteed to be available until this method has been called.
 @section Workers' Properties
 
 @menu
-* starpu_worker_get_count::        Get the number of processing units
-* starpu_cpu_worker_get_count::    Get the number of CPU controlled by StarPU
-* starpu_cuda_worker_get_count::   Get the number of CUDA devices controlled by StarPU
-* starpu_opencl_worker_get_count:: Get the number of OpenCL devices controlled by StarPU
-* starpu_spu_worker_get_count::    Get the number of Cell SPUs controlled by StarPU
-* starpu_worker_get_id::           Get the identifier of the current worker
-* starpu_worker_get_type::         Get the type of processing unit associated to a worker
-* starpu_worker_get_name::         Get the name of a worker
+* starpu_worker_get_count::     Get the number of processing units
+* starpu_cpu_worker_get_count::  Get the number of CPU controlled by StarPU
+* starpu_cuda_worker_get_count::  Get the number of CUDA devices controlled by StarPU
+* starpu_opencl_worker_get_count::  Get the number of OpenCL devices controlled by StarPU
+* starpu_spu_worker_get_count::  Get the number of Cell SPUs controlled by StarPU
+* starpu_worker_get_id::        Get the identifier of the current worker
+* starpu_worker_get_type::      Get the type of processing unit associated to a worker
+* starpu_worker_get_name::      Get the name of a worker
 @end menu
 
 @node starpu_worker_get_count
@@ -797,8 +811,8 @@ TODO: We show how to use existing data interfaces in [ref], but developers can
 design their own data interfaces if required.
 
 @menu
-* starpu_data_handle::  StarPU opaque data handle
-* void *interface::     StarPU data interface
+* starpu_data_handle::          StarPU opaque data handle
+* void *interface::             StarPU data interface
 @end menu
 
 @node starpu_data_handle
@@ -837,15 +851,15 @@ TODO
 @section Codelets and Tasks
 
 @menu
-* struct starpu_codelet::         StarPU codelet structure
-* struct starpu_task::            StarPU task structure
-* starpu_task_init::              Initialize a Task
-* starpu_task_create::            Allocate and Initialize a Task
-* starpu_task_deinit::            Release all the resources used by a Task
-* starpu_task_destroy::           Destroy a dynamically allocated Task
-* starpu_task_submit::            Submit a Task
-* starpu_task_wait::              Wait for the termination of a Task
-* starpu_task_wait_for_all::	  Wait for the termination of all Tasks
+* struct starpu_codelet::       StarPU codelet structure
+* struct starpu_task::          StarPU task structure
+* starpu_task_init::            Initialize a Task
+* starpu_task_create::          Allocate and Initialize a Task
+* starpu_task_deinit::          Release all the resources used by a Task
+* starpu_task_destroy::         Destroy a dynamically allocated Task
+* starpu_task_wait::            Wait for the termination of a Task
+* starpu_task_submit::          Submit a Task
+* starpu_task_wait_for_all::    Wait for the termination of all Tasks
 @end menu
 
 @node struct starpu_codelet
@@ -1110,13 +1124,13 @@ This function blocks until all the tasks that were submitted are terminated.
 @section Tags
 
 @menu
-* starpu_tag_t::                   Task identifier
-* starpu_tag_declare_deps::        Declare the Dependencies of a Tag
+* starpu_tag_t::                Task identifier
+* starpu_tag_declare_deps::     Declare the Dependencies of a Tag
 * starpu_tag_declare_deps_array::  Declare the Dependencies of a Tag
-* starpu_tag_wait::                Block until a Tag is terminated
-* starpu_tag_wait_array::          Block until a set of Tags is terminated
-* starpu_tag_remove::              Destroy a Tag
-* starpu_tag_notify_from_apps::    Feed a tag explicitly
+* starpu_tag_wait::             Block until a Tag is terminated
+* starpu_tag_wait_array::       Block until a set of Tags is terminated
+* starpu_tag_remove::           Destroy a Tag
+* starpu_tag_notify_from_apps::  Feed a tag explicitly
 @end menu
 
 
@@ -1251,8 +1265,8 @@ DAG before actually giving StarPU the opportunity to execute the tasks.
 @c starpu_helper_cublas_shutdown TODO
 
 @menu
-* starpu_cuda_get_local_stream::   Get current worker's CUDA stream
-* starpu_helper_cublas_init::      Initialize CUBLAS on every CUDA device
+* starpu_cuda_get_local_stream::  Get current worker's CUDA stream
+* starpu_helper_cublas_init::   Initialize CUBLAS on every CUDA device
 * starpu_helper_cublas_shutdown::  Deinitialize CUBLAS on every CUDA device
 @end menu
 
@@ -1297,8 +1311,8 @@ This function synchronously deinitializes the CUBLAS library on every CUDA devic
 @section OpenCL extensions
 
 @menu
-* Enabling OpenCL::                 Enabling OpenCL
-* Compiling OpenCL codelets::       Compiling OpenCL codelets
+* Enabling OpenCL::             Enabling OpenCL
+* Compiling OpenCL codelets::   Compiling OpenCL codelets
 @end menu
 
 @node Enabling OpenCL
@@ -1337,11 +1351,11 @@ TODO
 
 nothing yet.
 
-@node Miscellaneous
+@node Miscellaneous helpers
 @section Miscellaneous helpers
 
 @menu
-* starpu_execute_on_each_worker::   Execute a function on a subset of workers
+* starpu_execute_on_each_worker::  Execute a function on a subset of workers
 @end menu
 
 @node starpu_execute_on_each_worker
@@ -1373,13 +1387,13 @@ instance.
 @chapter Basic Examples
 
 @menu
-* Compiling and linking::        Compiling and Linking Options
-* Hello World::                  Submitting Tasks
-* Scaling a Vector::             Manipulating Data
-* Scaling a Vector (hybrid)::    Handling Heterogeneous Architectures
+* Compiling and linking options::  
+* Hello World::                 Submitting Tasks
+* Manipulating Data: Scaling a Vector::  
+* Vector Scaling on an Hybrid CPU/GPU Machine::  Handling Heterogeneous Architectures
 @end menu
 
-@node Compiling and linking
+@node Compiling and linking options
 @section Compiling and linking options
 
 The Makefile could for instance contain the following lines to define which
@@ -1395,8 +1409,15 @@ LIBS+=$$(pkg-config --libs libstarpu)
 @node Hello World
 @section Hello World
 
+@menu
+* Required Headers::            
+* Defining a Codelet::          
+* Submitting a Task::           
+@end menu
+
 In this section, we show how to implement a simple program that submits a task to StarPU.
 
+@node Required Headers
 @subsection Required Headers
 
 The @code{starpu.h} header should be included in any code using StarPU.
@@ -1408,6 +1429,7 @@ The @code{starpu.h} header should be included in any code using StarPU.
 @end cartouche
 
 
+@node Defining a Codelet
 @subsection Defining a Codelet
 
 @cartouche
@@ -1466,6 +1488,7 @@ if the codelet modifies this buffer, there is no guarantee that the initial
 buffer will be modified as well: this for instance implies that the buffer
 cannot be used as a synchronization medium.
 
+@node Submitting a Task
 @subsection Submitting a Task
 
 @cartouche
@@ -1545,7 +1568,7 @@ synchronous: the @code{starpu_task_submit} function will not return until the
 task was executed. Note that the @code{starpu_shutdown} method does not
 guarantee that asynchronous tasks have been executed before it returns.
 
-@node Scaling a Vector
+@node Manipulating Data: Scaling a Vector
 @section Manipulating Data: Scaling a Vector
 
 The previous example has shown how to submit tasks. In this section we show how
@@ -1652,15 +1675,15 @@ interface}, the location of the vector (resp. its length) is accessible in the
 read-write fashion, any modification will automatically affect future accesses
 to this vector made by other tasks.
 
-@node Scaling a Vector (hybrid)
+@node Vector Scaling on an Hybrid CPU/GPU Machine
 @section Vector Scaling on an Hybrid CPU/GPU Machine
 
 Contrary to the previous examples, the task submitted in this example may not
 only be executed by the CPUs, but also by a CUDA device.
 
 @menu
-* Source code::                  Source of the StarPU application
-* Compilation and execution::    Executing the StarPU application
+* Source code::                 Source of the StarPU application
+* Compilation and execution::   Executing the StarPU application
 @end menu
 
 @node Source code
