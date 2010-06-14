@@ -55,7 +55,7 @@ void _starpu_driver_update_job_feedback(starpu_job_t j, struct starpu_worker_s *
 		}
 
 		if (calibrate_model)
-			_starpu_update_perfmodel_history(j, worker_args->arch, worker_args->devid, measured);
+			_starpu_update_perfmodel_history(j, worker_args->perf_arch, worker_args->devid, measured);
 	}
 
 	if (STARPU_BENCHMARK_COMM)
