@@ -255,7 +255,7 @@ accessible with the following commands:
 
 Basic examples using StarPU have been built in the directory
 @code{$prefix_dir/lib/starpu/examples/}. You can for example run the
-@code{vector_scal}.
+example @code{vector_scal}.
 
 @example
 % $prefix_dir/lib/starpu/examples/vector_scal
@@ -1818,7 +1818,7 @@ int main(int argc, char **argv)
 @subsection Compilation and execution
 
 Let's suppose StarPU has been installed in the directory
-@code{$STARPU_DIR}. As explained in @ref{pkg-config configuration},
+@code{$STARPU_DIR}. As explained in @ref{Setting flags for compiling and linking applications},
 the variable @code{PKG_CONFIG_PATH} needs to be set. It is also
 necessary to set the variable @code{LD_LIBRARY_PATH} to locate dynamic
 libraries at runtime.
