@@ -37,6 +37,7 @@ This manual documents the usage of StarPU.
 * Configuring StarPU::          How to configure StarPU
 * StarPU API::                  The API to use StarPU
 * Basic Examples::              Basic examples of the use of StarPU
+* Full source code for the 'Scaling a Vector' example::  
 @end menu
 
 @c ---------------------------------------------------------------------
@@ -1761,7 +1762,8 @@ Callback function (arg 42)
 @section Manipulating Data: Scaling a Vector
 
 The previous example has shown how to submit tasks. In this section,
-we show how StarPU tasks can manipulate data.
+we show how StarPU tasks can manipulate data. The full source code for
+this example is given in @xref{Full source code for the 'Scaling a Vector' example}.
 
 Programmers can describe the data layout of their application so that StarPU is
 responsible for enforcing data coherency and availability across the machine.
@@ -1777,15 +1779,15 @@ to describe multiple types of data layout. A type of data layout is called an
 @b{interface}. By default, there are different interfaces available in StarPU:
 here we will consider the @b{vector interface}.
 
-The following lines show how to declare an array of @code{n} elements of type
+The following lines show how to declare an array of @code{NX} elements of type
 @code{float} using the vector interface:
 
 @cartouche
 @example
-float tab[n];
+float tab[NX];
 
 starpu_data_handle tab_handle;
-starpu_vector_data_register(&tab_handle, 0, tab, n, sizeof(float));
+starpu_vector_data_register(&tab_handle, 0, tab, NX, sizeof(float));
 @end example
 @end cartouche
 
@@ -1889,25 +1891,25 @@ driver.
 static __global__ void vector_mult_cuda(float *val, unsigned n,
                                         float factor)
 @{
-        unsigned i;
-        for(i = 0 ; i < n ; i++)
-               val[i] *= factor;
+    unsigned i;
+    for(i = 0 ; i < n ; i++)
+        val[i] *= factor;
 @}
 
 extern "C" void scal_cuda_func(void *buffers[], void *_args)
 @{
-        float *factor = (float *)_args;
-        struct starpu_vector_interface_s *vector = (struct starpu_vector_interface_s *) buffers[0];
+    float *factor = (float *)_args;
+    struct starpu_vector_interface_s *vector = (struct starpu_vector_interface_s *) buffers[0];
 
-        /* length of the vector */
-        unsigned n = STARPU_GET_VECTOR_NX(vector);
-        /* local copy of the vector pointer */
-        float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
+    /* length of the vector */
+    unsigned n = STARPU_GET_VECTOR_NX(vector);
+    /* local copy of the vector pointer */
+    float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
 
-        /* TODO: use more blocks and threads in blocks */
-        vector_mult_cuda<<<1,1>>>(val, n, *factor);
+    /* TODO: use more blocks and threads in blocks */
+    vector_mult_cuda<<<1,1>>>(val, n, *factor);
 
-	cudaThreadSynchronize();
+    cudaThreadSynchronize();
 @}
 @end example
 @end cartouche
@@ -1930,75 +1932,75 @@ extern void scal_func(void *buffers[], void *_args);
 
 /* @b{Definition of the codelet} */
 static starpu_codelet cl = @{
-	.where = STARPU_CPU|STARPU_CUDA; /* @b{It can be executed on a CPU} */
-	                                 /* @b{or on a CUDA device} */
-	.cuda_func = scal_cuda_func;
-	.cpu_func = scal_func;
-	.nbuffers = 1;
+    .where = STARPU_CPU|STARPU_CUDA; /* @b{It can be executed on a CPU} */
+                                     /* @b{or on a CUDA device} */
+    .cuda_func = scal_cuda_func;
+    .cpu_func = scal_func;
+    .nbuffers = 1;
 @}
 
 int main(int argc, char **argv)
 @{
-        float *vector;
-        int i, ret;
-        float factor=3.0;
-        struct starpu_task *task;
-        starpu_data_handle tab_handle;
+    float *vector;
+    int i, ret;
+    float factor=3.0;
+    struct starpu_task *task;
+    starpu_data_handle tab_handle;
 
-        starpu_init(NULL);                            /* @b{Initialising StarPU} */
+    starpu_init(NULL);                            /* @b{Initialising StarPU} */
 
-        vector = (float*)malloc(NX*sizeof(float));
-        assert(vector);
-        for(i=0 ; i<NX ; i++) vector[i] = i;
+    vector = (float*)malloc(NX*sizeof(float));
+    assert(vector);
+    for(i=0 ; i<NX ; i++) vector[i] = i;
 @end example
 @end cartouche
 
 @cartouche
 @example
-        /* @b{Registering data within StarPU} */
-        starpu_vector_data_register(&tab_handle, 0, (uintptr_t)vector,
-                                    NX, sizeof(float));
+    /* @b{Registering data within StarPU} */
+    starpu_vector_data_register(&tab_handle, 0, (uintptr_t)vector,
+                                NX, sizeof(float));
 
-        /* @b{Definition of the task} */
-        task = starpu_task_create();
-        task->cl = &cl;
-        task->callback_func = NULL;
-        task->buffers[0].handle = tab_handle;
-        task->buffers[0].mode = STARPU_RW;
-        task->cl_arg = &factor;
+    /* @b{Definition of the task} */
+    task = starpu_task_create();
+    task->cl = &cl;
+    task->callback_func = NULL;
+    task->buffers[0].handle = tab_handle;
+    task->buffers[0].mode = STARPU_RW;
+    task->cl_arg = &factor;
 @end example
 @end cartouche
 
 @cartouche
 @example
-        /* @b{Submitting the task} */
-        ret = starpu_task_submit(task);
-        if (ret == -ENODEV) @{
-                fprintf(stderr, "No worker may execute this task\n");
-                return 1;
-        @}
+    /* @b{Submitting the task} */
+    ret = starpu_task_submit(task);
+    if (ret == -ENODEV) @{
+            fprintf(stderr, "No worker may execute this task\n");
+            return 1;
+    @}
 
-        /* @b{Waiting for its termination} */
-        starpu_task_wait_for_all();
+    /* @b{Waiting for its termination} */
+    starpu_task_wait_for_all();
 
-        /* @b{Update the vector in RAM} */
-        starpu_data_sync_with_mem(tab_handle, STARPU_R);
+    /* @b{Update the vector in RAM} */
+    starpu_data_sync_with_mem(tab_handle, STARPU_R);
 @end example
 @end cartouche
 
 @cartouche
 @example
-        /* @b{Access the data} */
-        for(i=0 ; i<NX; i++) @{
-          fprintf(stderr, "%f ", vector[i]);
-        @}
-        fprintf(stderr, "\n");
+    /* @b{Access the data} */
+    for(i=0 ; i<NX; i++) @{
+      fprintf(stderr, "%f ", vector[i]);
+    @}
+    fprintf(stderr, "\n");
 
-        /* @b{Release the data and shutdown StarPU} */
-        starpu_data_release_from_mem(tab_handle);
-        starpu_shutdown();
+    /* @b{Release the data and shutdown StarPU} */
+    starpu_data_release_from_mem(tab_handle);
+    starpu_shutdown();
 
-        return 0;
+    return 0;
 @}
 @end example
 @end cartouche
@@ -2059,5 +2061,64 @@ or by disabling CUDA devices:
 
 @c @node Advanced Topics
 @c @chapter Advanced Topics
+
+@c ---------------------------------------------------------------------
+@c Appendices
+@c ---------------------------------------------------------------------
+
+@c ---------------------------------------------------------------------
+@c Full source code for the 'Scaling a Vector' example
+@c ---------------------------------------------------------------------
+
+@node Full source code for the 'Scaling a Vector' example
+@appendix Full source code for the 'Scaling a Vector' example
+
+@example
+#include <starpu.h>
+
+void scal_func(void *buffers[], void *cl_arg)
+@{
+    unsigned i;
+    float *factor = cl_arg;
+    struct starpu_vector_interface_s *vector = buffers[0];
+    /* length of the vector */
+    unsigned n = STARPU_GET_VECTOR_NX(vector);
+    /* local copy of the vector pointer */
+    float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
+    for (i = 0; i < n; i++)
+        val[i] *= *factor;
+@}
+
+starpu_codelet cl = @{
+    .where = STARPU_CPU,
+    .cpu_func = scal_func,
+    .nbuffers = 1
+@};
+
+#define NX 10
+
+int main(int argc, char **argv)
+@{
+    float tab[NX];
+    starpu_data_handle tab_handle;
+    float factor = 3.0;
+
+    starpu_init(NULL);
+    starpu_vector_data_register(&tab_handle, 0, (uintptr_t)tab, NX, sizeof(float));
+
+    struct starpu_task *task = starpu_task_create();
+    task->cl = &cl;
+    task->buffers[0].handle = tab_handle;
+    task->buffers[0].mode = STARPU_RW;
+    task->cl_arg = &factor;
+    task->cl_arg_size = sizeof(float);
+    task->synchronous = 1;
+
+    starpu_task_submit(task);
+
+    starpu_shutdown();
+    return 0;
+@}
+@end example
 
 @bye
