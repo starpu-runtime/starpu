@@ -337,7 +337,7 @@ Enable flags for the coverage tool.
 * --with-cuda-dir::             
 * --enable-maxopencldev::       
 * --disable-opencl::            
-* with-opencl-dir::             
+* --with-opencl-dir::           
 * --enable-gordon::             
 * --with-gordon-dir::           
 @end menu
@@ -387,7 +387,7 @@ available as the @code{STARPU_MAXOPENCLDEVS} macro.
 Disable the use of OpenCL, even if the SDK is detected.
 @end table
 
-@node with-opencl-dir
+@node --with-opencl-dir
 @subsubsection @code{--with-opencl-dir=<path>}
 @table @asis
 @item @emph{Description}:
