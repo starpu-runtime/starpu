@@ -1599,7 +1599,7 @@ LDFLAGS         +=      $$(pkg-config --libs libstarpu)
 * Required Headers::            
 * Defining a Codelet::          
 * Submitting a Task::           
-* Execution::                   
+* Execution of Hello World::    
 @end menu
 
 In this section, we show how to implement a simple program that submits a task to StarPU.
@@ -1747,8 +1747,8 @@ synchronous: the @code{starpu_task_submit} function will not return until the
 task was executed. Note that the @code{starpu_shutdown} method does not
 guarantee that asynchronous tasks have been executed before it returns.
 
-@node Execution
-@subsection Execution
+@node Execution of Hello World
+@subsection Execution of Hello World
 
 @example
 % make helloWorld
@@ -1764,6 +1764,14 @@ Callback function (arg 42)
 The previous example has shown how to submit tasks. In this section,
 we show how StarPU tasks can manipulate data. The full source code for
 this example is given in @xref{Full source code for the 'Scaling a Vector' example}.
+
+@menu
+* Source code of Vector Scaling::  
+* Execution of Vector Scaling::  
+@end menu
+
+@node Source code of Vector Scaling
+@subsection Source code of Vector Scaling
 
 Programmers can describe the data layout of their application so that StarPU is
 responsible for enforcing data coherency and availability across the machine.
@@ -1784,10 +1792,10 @@ The following lines show how to declare an array of @code{NX} elements of type
 
 @cartouche
 @example
-float tab[NX];
+float vector[NX];
 
 starpu_data_handle tab_handle;
-starpu_vector_data_register(&tab_handle, 0, tab, NX, sizeof(float));
+starpu_vector_data_register(&tab_handle, 0, vector, NX, sizeof(float));
 @end example
 @end cartouche
 
@@ -1866,6 +1874,16 @@ interface}, the location of the vector (resp. its length) is accessible in the
 read-write fashion, any modification will automatically affect future accesses
 to this vector made by other tasks.
 
+@node Execution of Vector Scaling
+@subsection Execution of Vector Scaling
+
+@example
+% make vector
+cc $(pkg-config --cflags libstarpu)  $(pkg-config --libs libstarpu)  vector.c   -o vector
+% ./vector
+0.000000 3.000000 6.000000 9.000000 12.000000
+@end example
+
 @node Vector Scaling on an Hybrid CPU/GPU Machine
 @section Vector Scaling on an Hybrid CPU/GPU Machine
 
@@ -1873,12 +1891,12 @@ Contrary to the previous examples, the task submitted in this example may not
 only be executed by the CPUs, but also by a CUDA device.
 
 @menu
-* Source code::                 Source of the StarPU application
-* Compilation and execution::   Executing the StarPU application
+* Source code of Hybrid Vector Scaling::  
+* Compilation and execution of Hybrid Vector Scaling::  
 @end menu
 
-@node Source code
-@subsection Source code
+@node Source code of Hybrid Vector Scaling
+@subsection Source code of Hybrid Vector Scaling
 
 The CUDA implementation can be written as follows. It needs to be
 compiled with a CUDA compiler such as nvcc, the NVIDIA CUDA compiler
@@ -2005,8 +2023,8 @@ int main(int argc, char **argv)
 @end example
 @end cartouche
 
-@node Compilation and execution
-@subsection Compilation and execution
+@node Compilation and execution of Hybrid Vector Scaling
+@subsection Compilation and execution of Hybrid Vector Scaling
 
 The Makefile given at the beginning of the section must be extended to
 give the rules to compile the CUDA source code.
@@ -2095,16 +2113,18 @@ starpu_codelet cl = @{
     .nbuffers = 1
 @};
 
-#define NX 10
+#define NX 5
 
 int main(int argc, char **argv)
 @{
-    float tab[NX];
+    float vector[NX];
     starpu_data_handle tab_handle;
     float factor = 3.0;
+    int i;
 
     starpu_init(NULL);
-    starpu_vector_data_register(&tab_handle, 0, (uintptr_t)tab, NX, sizeof(float));
+    for(i=0 ; i<NX; i++) vector[i] = i;
+    starpu_vector_data_register(&tab_handle, 0, (uintptr_t)vector, NX, sizeof(float));
 
     struct starpu_task *task = starpu_task_create();
     task->cl = &cl;
@@ -2115,6 +2135,11 @@ int main(int argc, char **argv)
     task->synchronous = 1;
 
     starpu_task_submit(task);
+
+    for(i=0 ; i<NX ; i++) @{
+        fprintf(stderr, "%f ", vector[i]);
+    @}
+    fprintf(stderr, "\n");
 
     starpu_shutdown();
     return 0;
