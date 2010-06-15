@@ -34,8 +34,7 @@ This manual documents the usage of StarPU.
 * Introduction::                A basic introduction to using StarPU
 * Installing StarPU::           How to configure, build and install StarPU
 * Using StarPU::                How to run StarPU application
-* Configuration options::       Configurations options
-* Environment variables::       Environment variables used by StarPU
+* Configuring StarPU::          
 * StarPU API::                  The API to use StarPU
 * Basic Examples::              Basic examples of the use of StarPU
 * Advanced Topics::             Advanced use of StarPU
@@ -141,8 +140,8 @@ several processing units as long as it is not modified.
 @chapter Installing StarPU
 
 @menu
-* Configuration of StarPU::
-* Building and Installing StarPU::
+* Configuration of StarPU::     
+* Building and Installing StarPU::  
 @end menu
 
 StarPU can be built and installed by the standard means of the GNU
@@ -176,7 +175,7 @@ the configure scripts and the Makefiles.
 @end example
 
 Details about options that are useful to give to @code{./configure} are given in
-@ref{Configuration options}.
+@ref{Compilation configuration}.
 
 @node Building and Installing StarPU
 @section Building and Installing StarPU
@@ -622,8 +621,8 @@ This variable specify in which file the debugging output should be saved to.
 * CUDA extensions::             CUDA extensions
 * OpenCL extensions::           OpenCL extensions
 * Cell extensions::             Cell extensions
-* Miscellaneous::               Miscellaneous helpers
-@end menu
+* Miscellaneous helpers::       
+@end menu       
 
 @node Initialization and Termination
 @section Initialization and Termination
@@ -1427,7 +1426,7 @@ instance.
 @menu
 * Compiling and linking options::  
 * Hello World::                 Submitting Tasks
-* Manipulating Data: Scaling a Vector::  
+* Scaling a Vector::  Manipulating Data
 * Vector Scaling on an Hybrid CPU/GPU Machine::  Handling Heterogeneous Architectures
 @end menu
 
@@ -1606,7 +1605,7 @@ synchronous: the @code{starpu_task_submit} function will not return until the
 task was executed. Note that the @code{starpu_shutdown} method does not
 guarantee that asynchronous tasks have been executed before it returns.
 
-@node Manipulating Data: Scaling a Vector
+@node Scaling a Vector
 @section Manipulating Data: Scaling a Vector
 
 The previous example has shown how to submit tasks. In this section we show how
