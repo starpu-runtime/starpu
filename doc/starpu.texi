@@ -34,7 +34,7 @@ This manual documents the usage of StarPU.
 * Introduction::                A basic introduction to using StarPU
 * Installing StarPU::           How to configure, build and install StarPU
 * Using StarPU::                How to run StarPU application
-* Configuring StarPU::          
+* Configuring StarPU::          How to configure StarPU
 * StarPU API::                  The API to use StarPU
 * Basic Examples::              Basic examples of the use of StarPU
 * Advanced Topics::             Advanced use of StarPU
@@ -154,7 +154,7 @@ can be used to install StarPU.
 @menu
 * Generating Makefiles and configuration scripts::  
 * Running the configuration::   
-@end menu 
+@end menu
 
 @node Generating Makefiles and configuration scripts
 @subsection Generating Makefiles and configuration scripts
@@ -304,7 +304,6 @@ Augment the verbosity of the debugging messages.
 @item @code{--enable-coverage}
 Enable flags for the coverage tool.
 @end table
-     
 
 @node Configuring workers
 @subsection Configuring workers
@@ -315,28 +314,34 @@ Disable the use of CPUs of the machine. Only GPUs etc. will be used.
 
 @item @code{--enable-maxcudadev=<number>}
 Defines the maximum number of CUDA devices that StarPU will support, then
-available as the STARPU_MAXCUDADEVS macro.
+available as the @code{STARPU_MAXCUDADEVS} macro.
 
 @item @code{--disable-cuda}
 Disable the use of CUDA, even if the SDK is detected.
-
-@item @code{--enable-maxopencldev=<number>}
-Defines the maximum number of OpenCL devices that StarPU will support, then
-available as the STARPU_MAXOPENCLDEVS macro.
-
-@item @code{--disable-opencl}
-Disable the use of OpenCL, even if the SDK is detected.
-
-@item @code{--enable-gordon}
-Enable the use of the Gordon runtime for Cell SPUs.
-@c TODO: rather default to enabled when detected
 
 @item @code{--with-cuda-dir=<path>}
 Specify the location of the CUDA SDK resides. This directory should notably contain
 @code{include/cuda.h}.
 
+@item @code{--enable-maxopencldev=<number>}
+Defines the maximum number of OpenCL devices that StarPU will support, then
+available as the @code{STARPU_MAXOPENCLDEVS} macro.
+
+@item @code{--disable-opencl}
+Disable the use of OpenCL, even if the SDK is detected.
+
+@item @code{--with-opencl-dir=<path>}
+Specify the location of the OpenCL SDK. This directory should notably contain
+@code{include/CL/cl.h}.
+
+@item @code{--enable-gordon}
+Enable the use of the Gordon runtime for Cell SPUs.
+@c TODO: rather default to enabled when detected
+
 @item @code{--with-gordon-dir=<path>}
 Specify the location of the Gordon SDK.
+
+
 @end table
 
 @node Advanced configuration
@@ -353,7 +358,8 @@ Enable performance model debugging.
 Enable statistics.
 
 @item @code{--enable-maxbuffers=<nbuffers>}
-Define the maximum number of buffers that tasks will be able to take as parameters, then available as the STARPU_NMAXBUFS macro.
+Define the maximum number of buffers that tasks will be able to take
+as parameters, then available as the @code{STARPU_NMAXBUFS} macro.
 
 @item @code{--enable-allocation-cache}
 Enable the use of a data allocation cache to avoid the cost of it with
@@ -369,10 +375,6 @@ library has to be 'atlas' or 'goto'.
 
 @item @code{--with-magma=<path>}
 Specify where magma is installed.
-
-@item @code{--with-opencl-dir=<path>}
-Specify the location of the OpenCL SDK. This directory should notably contain
-@code{include/CL/cl.h}.
 
 @item @code{--with-fxt=<path>}
 Specify the location of FxT (for generating traces and rendering them
@@ -622,7 +624,7 @@ This variable specify in which file the debugging output should be saved to.
 * OpenCL extensions::           OpenCL extensions
 * Cell extensions::             Cell extensions
 * Miscellaneous helpers::       
-@end menu       
+@end menu
 
 @node Initialization and Termination
 @section Initialization and Termination
@@ -663,7 +665,7 @@ of processing units and takes the default scheduling policy. This parameter
 overwrites the equivalent environment variables.
 
 @item @emph{Fields}:
-@table @asis 
+@table @asis
 @item @code{sched_policy_name} (default = NULL):
 This is the name of the scheduling policy. This can also be specified with the
 @code{STARPU_SCHED} environment variable.
@@ -854,7 +856,7 @@ design their own data interfaces if required.
 
 @node starpu_data_handle
 @subsection @code{starpu_data_handle} -- StarPU opaque data handle
-@table @asis 
+@table @asis
 @item @emph{Description}:
 StarPU uses @code{starpu_data_handle} as an opaque handle to manage a piece of
 data. Once a piece of data has been registered to StarPU, it is associated to a
@@ -865,7 +867,7 @@ data replicates for instance.
 
 @node void *interface
 @subsection @code{void *interface} -- StarPU data interface
-@table @asis 
+@table @asis
 @item @emph{Description}:
 Data management is done at a high-level in StarPU: rather than accessing a mere
 list of contiguous buffers, the tasks may manipulate data that are described by
@@ -878,7 +880,7 @@ TODO
 @c void starpu_data_unregister(struct starpu_data_state_t *state);
 
 @c starpu_worker_get_memory_node TODO
-@c 
+@c
 
 @c user interaction with the DSM
 @c   void starpu_data_sync_with_mem(struct starpu_data_state_t *state);
@@ -901,13 +903,13 @@ TODO
 
 @node struct starpu_codelet
 @subsection @code{struct starpu_codelet} -- StarPU codelet structure
-@table @asis 
+@table @asis
 @item @emph{Description}:
 The codelet structure describes a kernel that is possibly implemented on
 various targets.
 @item @emph{Fields}:
 @table @asis
-@item @code{where}: 
+@item @code{where}:
 Indicates which types of processing units are able to execute the codelet.
 @code{STARPU_CPU|STARPU_CUDA} for instance indicates that the codelet is
 implemented for both CPU cores and CUDA devices while @code{STARPU_GORDON}
@@ -933,7 +935,7 @@ field, it must be non-null otherwise.
 Is a function pointer to the OpenCL implementation of the codelet. Its
 prototype must be:
 @code{void opencl_func(starpu_data_interface_t *descr, void *arg);}.
-This pointer is ignored if @code{OPENCL} does not appear in the
+This pointer is ignored if @code{STARPU_OPENCL} does not appear in the
 @code{where} field, it must be non-null otherwise.
 
 @item @code{gordon_func} (optional):
@@ -949,7 +951,7 @@ not be above @code{STARPU_NMAXBUFS}.
 
 @item @code{model} (optional):
 This is a pointer to the performance model associated to this codelet. This
-optional field is ignored when null. TODO
+optional field is ignored when set to @code{NULL}. TODO
 
 @end table
 @end table
@@ -972,7 +974,7 @@ with @code{starpu_task_create}.
 Is a pointer to the corresponding @code{starpu_codelet} data structure. This
 describes where the kernel should be executed, and supplies the appropriate
 implementations. When set to @code{NULL}, no code is executed during the tasks,
-such empty tasks can be useful for synchronization purposes. 
+such empty tasks can be useful for synchronization purposes.
 
 @item @code{buffers}:
 TODO
@@ -990,18 +992,18 @@ the SPU. This buffer is then filled with the @code{cl_arg_size} bytes starting
 at address @code{cl_arg}. In this case, the argument given to the SPU codelet
 is therefore not the @code{cl_arg} pointer, but the address of the buffer in
 local store (LS) instead. This field is ignored for CPU, CUDA and OpenCL
-codelets. 
+codelets.
 
 @item @code{callback_func} (optional) (default = @code{NULL}):
 This is a function pointer of prototype @code{void (*f)(void *)} which
 specifies a possible callback. If this pointer is non-null, the callback
 function is executed @emph{on the host} after the execution of the task. The
 callback is passed the value contained in the @code{callback_arg} field. No
-callback is executed if the field is null.
+callback is executed if the field is set to @code{NULL}.
 
 @item @code{callback_arg} (optional) (default = @code{NULL}):
 This is the pointer passed to the callback function. This field is ignored if
-the @code{callback_func} is null.
+the @code{callback_func} is set to @code{NULL}.
 
 @item @code{use_tag} (optional) (default = 0):
 If set, this flag indicates that the task should be associated with the tag
@@ -1496,7 +1498,7 @@ manipulated by the codelet: here the codelet does not access or modify any data
 that is controlled by our data management library. Note that the argument
 passed to the codelet (the @code{cl_arg} field of the @code{starpu_task}
 structure) does not count as a buffer since it is not managed by our data
-management library. 
+management library.
 
 @c TODO need a crossref to the proper description of "where" see bla for more ...
 We create a codelet which may only be executed on the CPUs. The @code{where}
