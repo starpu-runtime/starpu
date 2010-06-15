@@ -291,115 +291,249 @@ The following arguments can be given to the @code{configure} script.
 @node Common configuration
 @subsection Common configuration
 
+
+@menu
+* --enable-debug::              
+* --enable-fast::               
+* --enable-verbose::            
+* --enable-coverage::           
+@end menu
+
+@node --enable-debug
+@subsubsection @code{--enable-debug}
 @table @asis
-@item @code{--enable-debug}
+@item @emph{Description}:
 Enable debugging messages.
+@end table
 
-@item @code{--enable-fast}
+@node --enable-fast
+@subsubsection @code{--enable-fast}
+@table @asis
+@item @emph{Description}:
 Do not enforce assertions, saves a lot of time spent to compute them otherwise.
+@end table
 
-@item @code{--enable-verbose}
+@node --enable-verbose
+@subsubsection @code{--enable-verbose}
+@table @asis
+@item @emph{Description}:
 Augment the verbosity of the debugging messages.
+@end table
 
-@item @code{--enable-coverage}
+@node --enable-coverage
+@subsubsection @code{--enable-coverage}
+@table @asis
+@item @emph{Description}:
 Enable flags for the coverage tool.
 @end table
 
 @node Configuring workers
 @subsection Configuring workers
 
-@table @asis
-@item @code{--disable-cpu}
-Disable the use of CPUs of the machine. Only GPUs etc. will be used.
+@menu
+* --disable-cpu::               
+* --disable-cuda::              
+* --with-cuda-dir::             
+* --enable-maxopencldev::       
+* with-opencl-dir::             
+* --enable-gordon::             
+* --with-gordon-dir::           
+@end menu
 
-@item @code{--enable-maxcudadev=<number>}
+@node --disable-cpu
+@subsubsection @code{--disable-cpu}
+@table @asis
+@item @emph{Description}:
+Disable the use of CPUs of the machine. Only GPUs etc. will be used.
+@end table
+
+@node --enable-maxcudadev
+@subsubsection @code{--enable-maxcudadev=<number>}
+@table @asis
+@item @emph{Description}:
 Defines the maximum number of CUDA devices that StarPU will support, then
 available as the @code{STARPU_MAXCUDADEVS} macro.
+@end table
 
-@item @code{--disable-cuda}
+@node --disable-cuda
+@subsubsection @code{--disable-cuda}
+@table @asis
+@item @emph{Description}:
 Disable the use of CUDA, even if the SDK is detected.
+@end table
 
-@item @code{--with-cuda-dir=<path>}
+@node --with-cuda-dir
+@subsubsection @code{--with-cuda-dir=<path>}
+@table @asis
+@item @emph{Description}:
 Specify the location of the CUDA SDK resides. This directory should notably contain
 @code{include/cuda.h}.
+@end table
 
-@item @code{--enable-maxopencldev=<number>}
+@node --enable-maxopencldev
+@subsubsection @code{--enable-maxopencldev=<number>}
+@table @asis
+@item @emph{Description}:
 Defines the maximum number of OpenCL devices that StarPU will support, then
 available as the @code{STARPU_MAXOPENCLDEVS} macro.
+@end table
 
-@item @code{--disable-opencl}
+@node --disable-opencl
+@subsubsection @code{--disable-opencl}
+@table @asis
+@item @emph{Description}:
 Disable the use of OpenCL, even if the SDK is detected.
+@end table
 
-@item @code{--with-opencl-dir=<path>}
+@node with-opencl-dir
+@subsubsection @code{--with-opencl-dir=<path>}
+@table @asis
+@item @emph{Description}:
 Specify the location of the OpenCL SDK. This directory should notably contain
 @code{include/CL/cl.h}.
+@end table
 
-@item @code{--enable-gordon}
+@node --enable-gordon
+@subsubsection @code{--enable-gordon}
+@table @asis
+@item @emph{Description}:
 Enable the use of the Gordon runtime for Cell SPUs.
 @c TODO: rather default to enabled when detected
+@end table
 
-@item @code{--with-gordon-dir=<path>}
+@node --with-gordon-dir
+@subsubsection @code{--with-gordon-dir=<path>}
+@table @asis
+@item @emph{Description}:
 Specify the location of the Gordon SDK.
-
-
 @end table
 
 @node Advanced configuration
 @subsection Advanced configuration
 
+@menu
+* --enable-perf-debug::         
+* --enable-model-debug::        
+* --enable-stats::              
+* --enable-maxbuffers::         
+* --enable-allocation-cache::   
+* --enable-opengl-render::      
+* --enable-blas-lib::           
+* --with-magma::                
+* --with-fxt::                  
+* --with-perf-model-dir::       
+* --with-mpicc::                
+* --with-mpi::                  
+* --with-goto-dir::             
+* --with-atlas-dir::            
+@end menu
+
+@node --enable-perf-debug
+@subsubsection @code{--enable-perf-debug}
 @table @asis
-@item @code{--enable-perf-debug}
+@item @emph{Description}:
 Enable performance debugging.
+@end table
 
-@item @code{--enable-model-debug}
+@node --enable-model-debug
+@subsubsection @code{--enable-model-debug}
+@table @asis
+@item @emph{Description}:
 Enable performance model debugging.
+@end table
 
-@item @code{--enable-stats}
+@node --enable-stats
+@subsubsection @code{--enable-stats}
+@table @asis
+@item @emph{Description}:
 Enable statistics.
+@end table
 
-@item @code{--enable-maxbuffers=<nbuffers>}
+@node --enable-maxbuffers
+@subsubsection @code{--enable-maxbuffers=<nbuffers>}
+@table @asis
+@item @emph{Description}:
 Define the maximum number of buffers that tasks will be able to take
 as parameters, then available as the @code{STARPU_NMAXBUFS} macro.
+@end table
 
-@item @code{--enable-allocation-cache}
+@node --enable-allocation-cache
+@subsubsection @code{--enable-allocation-cache}
+@table @asis
+@item @emph{Description}:
 Enable the use of a data allocation cache to avoid the cost of it with
 CUDA. Still experimental.
+@end table
 
-@item @code{--enable-opengl-render}
+@node --enable-opengl-render
+@subsubsection @code{--enable-opengl-render}
+@table @asis
+@item @emph{Description}:
 Enable the use of OpenGL for the rendering of some examples.
 @c TODO: rather default to enabled when detected
+@end table
 
-@item @code{--enable-blas-lib=<name>}
+@node --enable-blas-lib
+@subsubsection @code{--enable-blas-lib=<name>}
+@table @asis
+@item @emph{Description}:
 Specify the blas library to be used by some of the examples. The
 library has to be 'atlas' or 'goto'.
+@end table
 
-@item @code{--with-magma=<path>}
+@node --with-magma
+@subsubsection @code{--with-magma=<path>}
+@table @asis
+@item @emph{Description}:
 Specify where magma is installed.
+@end table
 
-@item @code{--with-fxt=<path>}
+@node --with-fxt
+@subsubsection @code{--with-fxt=<path>}
+@table @asis
+@item @emph{Description}:
 Specify the location of FxT (for generating traces and rendering them
 using ViTE). This directory should notably contain
 @code{include/fxt/fxt.h}.
+@end table
 
-@item @code{--with-perf-model-dir=<dir>}
+@node --with-perf-model-dir
+@subsubsection @code{--with-perf-model-dir=<dir>}
+@table @asis
+@item @emph{Description}:
 Specify where performance models should be stored (instead of defaulting to the
 current user's home).
+@end table
 
-@item @code{--with-mpicc=<path to mpicc>}
+@node --with-mpicc
+@subsubsection @code{--with-mpicc=<path to mpicc>}
+@table @asis
+@item @emph{Description}:
 Specify the location of the @code{mpicc} compiler to be used for starpumpi.
 @c TODO: also just use AC_PROG
+@end table
 
-@item @code{--with-mpi}
+@node --with-mpi
+@subsubsection @code{--with-mpi}
+@table @asis
+@item @emph{Description}:
 Enable building libstarpumpi.
 @c TODO: rather just use the availability of mpicc instead of a second option
+@end table
 
-@item @code{--with-goto-dir=<dir>}
+@node --with-goto-dir
+@subsubsection @code{--with-goto-dir=<dir>}
+@table @asis
+@item @emph{Description}:
 Specify the location of GotoBLAS.
+@end table
 
-@item @code{--with-atlas-dir=<dir>}
+@node --with-atlas-dir
+@subsubsection @code{--with-atlas-dir=<dir>}
+@table @asis
+@item @emph{Description}:
 Specify the location of ATLAS. This directory should notably contain
 @code{include/cblas.h}.
-
 @end table
 
 @c ---------------------------------------------------------------------
