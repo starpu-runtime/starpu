@@ -332,9 +332,11 @@ Enable flags for the coverage tool.
 
 @menu
 * --disable-cpu::               
+* --enable-maxcudadev::         
 * --disable-cuda::              
 * --with-cuda-dir::             
 * --enable-maxopencldev::       
+* --disable-opencl::            
 * with-opencl-dir::             
 * --enable-gordon::             
 * --with-gordon-dir::           
