@@ -37,7 +37,6 @@ This manual documents the usage of StarPU.
 * Configuring StarPU::          How to configure StarPU
 * StarPU API::                  The API to use StarPU
 * Basic Examples::              Basic examples of the use of StarPU
-* Advanced Topics::             Advanced use of StarPU
 @end menu
 
 @c ---------------------------------------------------------------------
@@ -1571,13 +1570,24 @@ instance.
 @node Compiling and linking options
 @section Compiling and linking options
 
+Let's suppose StarPU has been installed in the directory
+@code{$STARPU_DIR}. As explained in @ref{Setting flags for compiling and linking applications},
+the variable @code{PKG_CONFIG_PATH} needs to be set. It is also
+necessary to set the variable @code{LD_LIBRARY_PATH} to locate dynamic
+libraries at runtime.
+
+@example
+% PKG_CONFIG_PATH=$STARPU_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
+% LD_LIBRARY_PATH=$STARPU_DIR/lib:$LD_LIBRARY_PATH
+@end example
+
 The Makefile could for instance contain the following lines to define which
 options must be given to the compiler and to the linker:
 
 @cartouche
 @example
-CFLAGS+=$$(pkg-config --cflags libstarpu)
-LIBS+=$$(pkg-config --libs libstarpu)
+CFLAGS          +=      $$(pkg-config --cflags libstarpu)
+LDFLAGS         +=      $$(pkg-config --libs libstarpu)
 @end example
 @end cartouche
 
@@ -1588,6 +1598,7 @@ LIBS+=$$(pkg-config --libs libstarpu)
 * Required Headers::            
 * Defining a Codelet::          
 * Submitting a Task::           
+* Execution::                   
 @end menu
 
 In this section, we show how to implement a simple program that submits a task to StarPU.
@@ -1644,11 +1655,7 @@ field is a bitmask that defines where the codelet may be executed. Here, the
 When a CPU core executes a codelet, it calls the @code{cpu_func} function,
 which @emph{must} have the following prototype:
 
-@cartouche
-@example
-void (*cpu_func)(void *buffers[], void *cl_arg);
-@end example
-@end cartouche
+@code{void (*cpu_func)(void *buffers[], void *cl_arg);}
 
 In this example, we can ignore the first argument of this function which gives a
 description of the input and output buffers (e.g. the size and the location of
@@ -1675,27 +1682,27 @@ void callback_func(void *callback_arg)
 
 int main(int argc, char **argv)
 @{
-    /* initialize StarPU */
+    /* @b{initialize StarPU} */
     starpu_init(NULL);
 
     struct starpu_task *task = starpu_task_create();
 
-    task->cl = &cl;
+    task->cl = &cl; /* @b{Pointer to the codelet defined above} */
 
-    float *array[2] = @{1.0f, -1.0f@};
+    float array[2] = @{1.0f, -1.0f@};
     task->cl_arg = &array;
     task->cl_arg_size = 2*sizeof(float);
 
     task->callback_func = callback_func;
     task->callback_arg = 0x42;
 
-    /* starpu_task_submit will be a blocking call */
+    /* @b{starpu_task_submit will be a blocking call} */
     task->synchronous = 1;
 
-    /* submit the task to StarPU */
+    /* @b{submit the task to StarPU} */
     starpu_task_submit(task);
 
-    /* terminate StarPU */
+    /* @b{terminate StarPU} */
     starpu_shutdown();
 
     return 0;
@@ -1732,22 +1739,29 @@ callback function is always executed on a CPU. The @code{callback_arg}
 pointer is passed as an argument of the callback. The prototype of a callback
 function must be:
 
-@cartouche
-@example
-void (*callback_function)(void *);
-@end example
-@end cartouche
+@code{void (*callback_function)(void *);}
 
 If the @code{synchronous} field is non-null, task submission will be
 synchronous: the @code{starpu_task_submit} function will not return until the
 task was executed. Note that the @code{starpu_shutdown} method does not
 guarantee that asynchronous tasks have been executed before it returns.
 
+@node Execution
+@subsection Execution
+
+@example
+% make helloWorld
+cc $(pkg-config --cflags libstarpu)  $(pkg-config --libs libstarpu) helloWorld.c -o helloWorld
+% ./helloWorld
+Hello world (array = @{1.000000, -1.000000@} )
+Callback function (arg 42)
+@end example
+
 @node Scaling a Vector
 @section Manipulating Data: Scaling a Vector
 
-The previous example has shown how to submit tasks. In this section we show how
-StarPU tasks can manipulate data.
+The previous example has shown how to submit tasks. In this section,
+we show how StarPU tasks can manipulate data.
 
 Programmers can describe the data layout of their application so that StarPU is
 responsible for enforcing data coherency and availability across the machine.
@@ -1992,19 +2006,8 @@ int main(int argc, char **argv)
 @node Compilation and execution
 @subsection Compilation and execution
 
-Let's suppose StarPU has been installed in the directory
-@code{$STARPU_DIR}. As explained in @ref{Setting flags for compiling and linking applications},
-the variable @code{PKG_CONFIG_PATH} needs to be set. It is also
-necessary to set the variable @code{LD_LIBRARY_PATH} to locate dynamic
-libraries at runtime.
-
-@example
-% PKG_CONFIG_PATH=$STARPU_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
-% LD_LIBRARY_PATH=$STARPU_DIR/lib:$LD_LIBRARY_PATH
-@end example
-
-It is then possible to compile the application using the following
-makefile:
+The Makefile given at the beginning of the section must be extended to
+give the rules to compile the CUDA source code.
 
 @cartouche
 @example
@@ -2054,7 +2057,7 @@ or by disabling CUDA devices:
 @c Advanced Topics
 @c ---------------------------------------------------------------------
 
-@node Advanced Topics
-@chapter Advanced Topics
+@c @node Advanced Topics
+@c @chapter Advanced Topics
 
 @bye
