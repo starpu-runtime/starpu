@@ -1822,11 +1822,10 @@ vector and a constant factor.
 
 @cartouche
 @example
-float factor = 3.0;
+float factor = 3.14;
 struct starpu_task *task = starpu_task_create();
 
 task->cl = &cl;                          /* @b{Pointer to the codelet defined below} */
-task->callback_func = NULL;
 task->buffers[0].handle = vector_handle; /* @b{First parameter of the codelet} */
 task->buffers[0].mode = STARPU_RW;
 task->cl_arg = &factor;
@@ -1904,6 +1903,7 @@ only be executed by the CPUs, but also by a CUDA device.
 @menu
 * Source code of Hybrid Vector Scaling::  
 * Compilation and execution of Hybrid Vector Scaling::  
+* Definition of the OpenCL Codelet::  
 @end menu
 
 @node Source code of Hybrid Vector Scaling
@@ -1993,7 +1993,6 @@ int main(int argc, char **argv)
     /* @b{Definition of the task} */
     task = starpu_task_create();
     task->cl = &cl;
-    task->callback_func = NULL;
     task->buffers[0].handle = vector_handle;
     task->buffers[0].mode = STARPU_RW;
     task->cl_arg = &factor;
@@ -2082,6 +2081,8 @@ or by disabling CUDA devices:
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end example
 
+@node Definition of the OpenCL Codelet
+@subsection Definition of the OpenCL Codelet
 
 @c TODO: Add performance model example (and update basic_examples)
 
@@ -2103,60 +2104,31 @@ or by disabling CUDA devices:
 @node Full source code for the 'Scaling a Vector' example
 @appendix Full source code for the 'Scaling a Vector' example
 
-@example
-#include <starpu.h>
+@menu
+* Main application::            
+* CUDA Codelet::                
+* OpenCL Codelet::              
+@end menu
 
-void scal_func(void *buffers[], void *cl_arg)
-@{
-    unsigned i;
-    float *factor = cl_arg;
-    struct starpu_vector_interface_s *vector = buffers[0];
-    /* length of the vector */
-    unsigned n = STARPU_GET_VECTOR_NX(vector);
-    /* local copy of the vector pointer */
-    float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
-    for (i = 0; i < n; i++)
-        val[i] *= *factor;
-@}
+@node Main application
+@section Main application
 
-starpu_codelet cl = @{
-    .where = STARPU_CPU,
-    .cpu_func = scal_func,
-    .nbuffers = 1
-@};
+@smallexample
+@include vector_scal_c.texi
+@end smallexample
 
-#define NX 5
+@node CUDA Codelet
+@section CUDA Codelet
 
-int main(int argc, char **argv)
-@{
-    float vector[NX];
-    starpu_data_handle vector_handle;
-    float factor = 3.0;
-    int i;
+@smallexample
+@include vector_scal_cuda.texi
+@end smallexample
 
-    starpu_init(NULL);
-    for(i=0 ; i<NX; i++) vector[i] = i;
-    starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX, sizeof(float));
+@node OpenCL Codelet
+@section OpenCL Codelet
 
-    struct starpu_task *task = starpu_task_create();
-    task->cl = &cl;
-    task->callback_func = NULL;
-    task->buffers[0].handle = vector_handle;
-    task->buffers[0].mode = STARPU_RW;
-    task->cl_arg = &factor;
-    task->cl_arg_size = sizeof(float);
-    task->synchronous = 1;
-
-    starpu_task_submit(task);
-
-    for(i=0 ; i<NX ; i++) @{
-        fprintf(stderr, "%f ", vector[i]);
-    @}
-    fprintf(stderr, "\n");
-
-    starpu_shutdown();
-    return 0;
-@}
-@end example
+@c @smallexample
+@c @include vector_scal_cuda.texi
+@c @end smallexample
 
 @bye
