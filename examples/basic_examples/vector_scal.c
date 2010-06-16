@@ -27,10 +27,10 @@
 #include <stdint.h>
 #include <starpu.h>
 
-#define	N	2048
+#define	NX	2048
 
 /* This kernel takes a buffer and scales it by a constant factor */
-static void scal_func(void *buffers[], void *cl_arg)
+static void scal_cpu_func(void *buffers[], void *cl_arg)
 {
 	unsigned i;
 	float *factor = cl_arg;
@@ -70,7 +70,7 @@ static starpu_codelet cl = {
 #endif
 		,
 	/* CPU implementation of the codelet */
-	.cpu_func = scal_func,
+	.cpu_func = scal_cpu_func,
 #ifdef STARPU_USE_CUDA
 	/* CUDA implementation of the codelet */
 	.cuda_func = scal_cuda_func,
@@ -82,31 +82,31 @@ int main(int argc, char **argv)
 {
 	/* We consider a vector of float that is initialized just as any of C
  	 * data */
-	float tab[N];
+	float vector[NX];
 	unsigned i;
-	for (i = 0; i < N; i++)
-		tab[i] = 1.0f;
+	for (i = 0; i < NX; i++)
+		vector[i] = 1.0f;
 
-	fprintf(stderr, "BEFORE : First element was %f\n", tab[0]);
+	fprintf(stderr, "BEFORE : First element was %f\n", vector[0]);
 
 	/* Initialize StarPU with default configuration */
 	starpu_init(NULL);
 
-	/* Tell StaPU to associate the "tab" vector with the "tab_handle"
+	/* Tell StaPU to associate the "vector" vector with the "vector_handle"
 	 * identifier. When a task needs to access a piece of data, it should
 	 * refer to the handle that is associated to it.
 	 * In the case of the "vector" data interface:
 	 *  - the first argument of the registration method is a pointer to the
 	 *    handle that should describe the data
-	 *  - the second argument is the memory node where the data (ie. "tab")
+	 *  - the second argument is the memory node where the data (ie. "vector")
 	 *    resides initially: 0 stands for an address in main memory, as
 	 *    opposed to an adress on a GPU for instance.
 	 *  - the third argument is the adress of the vector in RAM
 	 *  - the fourth argument is the number of elements in the vector
 	 *  - the fifth argument is the size of each element.
 	 */
-	starpu_data_handle tab_handle;
-	starpu_vector_data_register(&tab_handle, 0, (uintptr_t)tab, N, sizeof(float));
+	starpu_data_handle vector_handle;
+	starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX, sizeof(float));
 
 	float factor = 3.14;
 
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 	task->cl = &cl;
 
 	/* the codelet manipulates one buffer in RW mode */
-	task->buffers[0].handle = tab_handle;
+	task->buffers[0].handle = vector_handle;
 	task->buffers[0].mode = STARPU_RW;
 
 	/* an argument is passed to the codelet, beware that this is a
@@ -132,12 +132,12 @@ int main(int argc, char **argv)
 
 	/* StarPU does not need to manipulate the array anymore so we can stop
  	 * monitoring it */
-	starpu_data_unregister(tab_handle);
+	starpu_data_unregister(vector_handle);
 
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
 
-	fprintf(stderr, "AFTER First element is %f\n", tab[0]);
+	fprintf(stderr, "AFTER First element is %f\n", vector[0]);
 
 	return 0;
 }
