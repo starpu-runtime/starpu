@@ -21,3 +21,9 @@ MAINTAINERCLEANFILES = starpu.pdf
 EXTRA_DIST = starpu.pdf
 
 AM_MAKEINFOHTMLFLAGS = --css-include=$(top_srcdir)/doc/starpu.css --no-headers --no-split
+
+$(top_srcdir)/doc/starpu.texi: vector_scal_c.texi vector_scal_cuda.texi
+vector_scal_c.texi: $(top_srcdir)/examples/basic_examples/vector_scal.c
+	cat $< | sed 's/{/@{/g' | sed 's/}/@}/g' | sed 's/\t/    /' > $@
+vector_scal_cuda.texi: $(top_srcdir)/examples/basic_examples/vector_scal_cuda.cu
+	cat $< | sed 's/{/@{/g' | sed 's/}/@}/g' | sed 's/\t/    /' > $@
