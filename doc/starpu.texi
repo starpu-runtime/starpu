@@ -988,6 +988,8 @@ design their own data interfaces if required.
 @menu
 * starpu_data_handle::          StarPU opaque data handle
 * void *interface::             StarPU data interface
+* starpu_XXX_data_register::    
+* starpu_data_unregister::      
 @end menu
 
 @node starpu_data_handle
@@ -1012,9 +1014,18 @@ a high-level construct which we call data interface.
 TODO
 @end table
 
+@node starpu_XXX_data_register
+@subsection @code{starpu_XXX_data_register} -- Register data to StarPU
+@table @asis
+@end table
 
-@c void starpu_data_unregister(struct starpu_data_state_t *state);
-
+@node starpu_data_unregister
+@subsection @code{starpu_data_unregister} -- Unregister data from StarPU
+@table @asis
+@item @emph{Description}:
+@item @emph{Prototype}:
+@code{void starpu_data_unregister(starpu_data_handle handle);}
+@end table
 @c starpu_worker_get_memory_node TODO
 @c
 
@@ -1763,7 +1774,7 @@ Callback function (arg 42)
 
 The previous example has shown how to submit tasks. In this section,
 we show how StarPU tasks can manipulate data. The full source code for
-this example is given in @xref{Full source code for the 'Scaling a Vector' example}.
+this example is given in @ref{Full source code for the 'Scaling a Vector' example}.
 
 @menu
 * Source code of Vector Scaling::  
@@ -1794,34 +1805,34 @@ The following lines show how to declare an array of @code{NX} elements of type
 @example
 float vector[NX];
 
-starpu_data_handle tab_handle;
-starpu_vector_data_register(&tab_handle, 0, vector, NX, sizeof(float));
+starpu_data_handle vector_handle;
+starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX,
+                            sizeof(float));
 @end example
 @end cartouche
 
 The first argument, called the @b{data handle}, is an opaque pointer which
 designates the array in StarPU. This is also the structure which is used to
 describe which data is used by a task. The second argument is the node number
-where the data currently resides. Here it is 0 since the @code{tab} array is in
-the main memory. Then comes the pointer @code{tab} where the data can be found,
+where the data currently resides. Here it is 0 since the @code{vector} array is in
+the main memory. Then comes the pointer @code{vector} where the data can be found,
 the number of elements in the vector and the size of each element.
-It is possible to construct a StarPU
-task that multiplies this vector by a constant factor:
+It is possible to construct a StarPU task that will manipulate the
+vector and a constant factor.
 
 @cartouche
 @example
 float factor = 3.0;
 struct starpu_task *task = starpu_task_create();
 
-task->cl = &cl;
-
-task->buffers[0].handle = tab_handle;
+task->cl = &cl;                          /* @b{Pointer to the codelet defined below} */
+task->callback_func = NULL;
+task->buffers[0].handle = vector_handle; /* @b{First parameter of the codelet} */
 task->buffers[0].mode = STARPU_RW;
-
 task->cl_arg = &factor;
 task->cl_arg_size = sizeof(float);
-
 task->synchronous = 1;
+
 starpu_task_submit(task);
 @end example
 @end cartouche
@@ -1865,7 +1876,7 @@ starpu_codelet cl = @{
 The second argument of the @code{scal_func} function contains a pointer to the
 parameters of the codelet (given in @code{task->cl_arg}), so that we read the
 constant factor from this pointer. The first argument is an array that gives
-a description of every buffers passed in the @code{task->buffers}@ array. The
+a description of all the buffers passed in the @code{task->buffers}@ array. The
 size of this array is given by the @code{nbuffers} field of the codelet
 structure. For the sake of generality, this array contains pointers to the
 different interfaces describing each buffer.  In the case of the @b{vector
@@ -1963,7 +1974,7 @@ int main(int argc, char **argv)
     int i, ret;
     float factor=3.0;
     struct starpu_task *task;
-    starpu_data_handle tab_handle;
+    starpu_data_handle vector_handle;
 
     starpu_init(NULL);                            /* @b{Initialising StarPU} */
 
@@ -1976,16 +1987,17 @@ int main(int argc, char **argv)
 @cartouche
 @example
     /* @b{Registering data within StarPU} */
-    starpu_vector_data_register(&tab_handle, 0, (uintptr_t)vector,
+    starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector,
                                 NX, sizeof(float));
 
     /* @b{Definition of the task} */
     task = starpu_task_create();
     task->cl = &cl;
     task->callback_func = NULL;
-    task->buffers[0].handle = tab_handle;
+    task->buffers[0].handle = vector_handle;
     task->buffers[0].mode = STARPU_RW;
     task->cl_arg = &factor;
+    task->cl_arg_size = sizeof(float);
 @end example
 @end cartouche
 
@@ -2002,7 +2014,7 @@ int main(int argc, char **argv)
     starpu_task_wait_for_all();
 
     /* @b{Update the vector in RAM} */
-    starpu_data_sync_with_mem(tab_handle, STARPU_R);
+    starpu_data_sync_with_mem(vector_handle, STARPU_R);
 @end example
 @end cartouche
 
@@ -2015,7 +2027,7 @@ int main(int argc, char **argv)
     fprintf(stderr, "\n");
 
     /* @b{Release the data and shutdown StarPU} */
-    starpu_data_release_from_mem(tab_handle);
+    starpu_data_release_from_mem(vector_handle);
     starpu_shutdown();
 
     return 0;
@@ -2118,17 +2130,18 @@ starpu_codelet cl = @{
 int main(int argc, char **argv)
 @{
     float vector[NX];
-    starpu_data_handle tab_handle;
+    starpu_data_handle vector_handle;
     float factor = 3.0;
     int i;
 
     starpu_init(NULL);
     for(i=0 ; i<NX; i++) vector[i] = i;
-    starpu_vector_data_register(&tab_handle, 0, (uintptr_t)vector, NX, sizeof(float));
+    starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX, sizeof(float));
 
     struct starpu_task *task = starpu_task_create();
     task->cl = &cl;
-    task->buffers[0].handle = tab_handle;
+    task->callback_func = NULL;
+    task->buffers[0].handle = vector_handle;
     task->buffers[0].mode = STARPU_RW;
     task->cl_arg = &factor;
     task->cl_arg_size = sizeof(float);
