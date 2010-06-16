@@ -86,7 +86,7 @@ static void _starpu_sync_data_with_mem_continuation_non_blocking(void *arg)
 	STARPU_ASSERT(!ret);
 }
 
-void starpu_data_sync_with_mem_non_blocking_pre_sync_callback(void *arg)
+static void starpu_data_sync_with_mem_non_blocking_pre_sync_callback(void *arg)
 {
 	struct state_and_node *statenode = arg;
 

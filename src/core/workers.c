@@ -328,7 +328,7 @@ int starpu_init(struct starpu_conf *user_conf)
 
 static void _starpu_terminate_workers(struct starpu_machine_config_s *config)
 {
-	int status;
+	int status __attribute__((unused));
 	unsigned workerid;
 
 	for (workerid = 0; workerid < config->nworkers; workerid++)

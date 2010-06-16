@@ -32,7 +32,6 @@ static starpu_job_t random_pop_task(struct starpu_jobq_s *q)
 static int _random_push_task(struct starpu_jobq_s *q __attribute__ ((unused)), starpu_job_t task, unsigned prio)
 {
 	/* find the queue */
-	struct starpu_fifo_jobq_s *fifo;
 	unsigned worker;
 
 	unsigned selected = 0;
@@ -60,8 +59,6 @@ static int _random_push_task(struct starpu_jobq_s *q __attribute__ ((unused)), s
 	}
 
 	/* we should now have the best worker in variable "best" */
-	fifo = queue_array[selected]->queue;
-
 	if (prio) {
 		return _starpu_fifo_push_prio_task(queue_array[selected], task);
 	} else {
