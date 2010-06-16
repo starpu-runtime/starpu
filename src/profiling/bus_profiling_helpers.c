@@ -37,10 +37,10 @@ void starpu_bus_profiling_helper_display_summary(void)
 		starpu_bus_get_profiling_info(busid, &bus_info);
 
 		int long long transferred = bus_info.transferred_bytes;
-		int transfer_cnt =  bus_info.transfer_count;
+		int long long transfer_cnt =  bus_info.transfer_count;
 		double elapsed_time = starpu_timing_timespec_to_us(&bus_info.total_time);
 
-		fprintf(stderr, "\t%d -> %d\t%.2lf MB\t%.2lfMB/s\t(transfers : %d - avg %.2lf MB)\n", src, dst, (1.0*transferred)/(1024*1024), transferred/elapsed_time, transfer_cnt, (1.0*transferred)/(transfer_cnt*1024*1024));
+		fprintf(stderr, "\t%d -> %d\t%.2lf MB\t%.2lfMB/s\t(transfers : %lld - avg %.2lf MB)\n", src, dst, (1.0*transferred)/(1024*1024), transferred/elapsed_time, transfer_cnt, (1.0*transferred)/(transfer_cnt*1024*1024));
 
 		sum_transferred += transferred;
 	}
