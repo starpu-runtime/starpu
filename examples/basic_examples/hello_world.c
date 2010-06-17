@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 	 * argument (cl_arg) is NOT a valid synchronization medium! */
 	float array[2] = {1.0f, -1.0f};
 	task->cl_arg = &array;
-	task->cl_arg_size = 2*sizeof(float);
+	task->cl_arg_size = sizeof(array);
 		
 	/* once the task has been executed, callback_func(0x42)
 	 * will be called on a CPU */

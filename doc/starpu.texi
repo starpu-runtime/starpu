@@ -1703,7 +1703,7 @@ int main(int argc, char **argv)
 
     float array[2] = @{1.0f, -1.0f@};
     task->cl_arg = &array;
-    task->cl_arg_size = 2*sizeof(float);
+    task->cl_arg_size = sizeof(array);
 
     task->callback_func = callback_func;
     task->callback_arg = 0x42;
@@ -1829,7 +1829,7 @@ task->cl = &cl;                          /* @b{Pointer to the codelet defined be
 task->buffers[0].handle = vector_handle; /* @b{First parameter of the codelet} */
 task->buffers[0].mode = STARPU_RW;
 task->cl_arg = &factor;
-task->cl_arg_size = sizeof(float);
+task->cl_arg_size = sizeof(factor);
 task->synchronous = 1;
 
 starpu_task_submit(task);
@@ -2066,7 +2066,7 @@ int main(int argc, char **argv)
     task->buffers[0].handle = vector_handle;
     task->buffers[0].mode = STARPU_RW;
     task->cl_arg = &factor;
-    task->cl_arg_size = sizeof(float);
+    task->cl_arg_size = sizeof(factor);
 @end smallexample
 @end cartouche
 
