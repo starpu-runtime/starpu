@@ -1,16 +1,17 @@
 /*
- * Copyright 1993-2009 NVIDIA Corporation.  All rights reserved.
+ * StarPU
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
- * NVIDIA Corporation and its licensors retain all intellectual property and
- * proprietary rights in and to this software and related documentation.
- * Any use, reproduction, disclosure, or distribution of this software
- * and related documentation without an express license agreement from
- * NVIDIA Corporation is strictly prohibited.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
  *
- * Please refer to the applicable NVIDIA end user license agreement (EULA)
- * associated with this source code for terms and conditions that govern
- * your use of this NVIDIA software.
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
 __kernel void vectorScal(__global float* val, int nx, float factor)
