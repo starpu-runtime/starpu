@@ -323,7 +323,6 @@ int _starpu_opencl_compile_source_to_opencl(char *source_file_name)
         unsigned         max = STARPU_MAXOPENCLDEVS;
         unsigned         nb_devices = 0;
         cl_uint          history[STARPU_MAXOPENCLDEVS]; // To track similar devices
-        char             preproc_file_name[1024];
         char             located_file_name[1024];
         cl_platform_id   platform_ids[STARPU_OPENCL_PLATFORM_MAX];
         cl_uint          platform, nb_platforms;
@@ -333,16 +332,6 @@ int _starpu_opencl_compile_source_to_opencl(char *source_file_name)
         _starpu_opencl_locate_file(source_file_name, located_file_name);
         _STARPU_OPENCL_DEBUG("Source file name : <%s>\n", located_file_name);
         basename = _starpu_basename(located_file_name);
-
-        // Prepare preprocessor temporary filename
-        {
-                char *p;
-                strcpy(preproc_file_name, basename);
-                p = strstr(preproc_file_name, ".cl");
-                if(p == NULL)
-                        OPENCL_ERROR("Kernel file name doesn't have the '.cl' extension!\n");
-                strcpy(p, ".pre");
-        }
 
         // Get Platforms
         err = clGetPlatformIDs(STARPU_OPENCL_PLATFORM_MAX, platform_ids, &nb_platforms);
@@ -384,30 +373,10 @@ int _starpu_opencl_compile_source_to_opencl(char *source_file_name)
                         context = clCreateContext(0, 1, devices + dev, NULL, NULL, &err);
                         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-                        // Run C preprocessor
-                        {
-                                pid_t pid;
-                                pid = fork();
-                                if(pid == 0) {
-                                        execlp("cpp", "cpp", located_file_name, "-o", preproc_file_name, NULL);
-                                        perror("execlp");
-                                        exit(EXIT_FAILURE);
-                                }
-                                else {
-                                        int status;
-                                        waitpid(pid, &status, 0);
-                                        if (WEXITSTATUS(status) != EXIT_SUCCESS)
-                                                OPENCL_ERROR("Cannot preprocess file [%s]\n", located_file_name);
-                                }
-                        }
-
                         // Load the compute program from disk into a cstring buffer
-                        char *source = _starpu_opencl_load_program_source(preproc_file_name);
+                        char *source = _starpu_opencl_load_program_source(located_file_name);
                         if(!source)
-                                OPENCL_ERROR("Failed to load compute program from file <%s>!\n", preproc_file_name);
-
-                        // Delete preprocessed file
-                        unlink(preproc_file_name);
+                                OPENCL_ERROR("Failed to load compute program from file <%s>!\n", located_file_name);
 
                         // Create the compute program from the source buffer
                         program = clCreateProgramWithSource(context, 1, (const char **) & source, NULL, &err);
