@@ -30,6 +30,7 @@ check_PROGRAMS =
 BUILT_SOURCES =
 
 EXTRA_DIST = 					\
+	basic_examples/vector_scal_opencl_codelet.cl \
 	cuda/incrementer_cuda.cu		\
 	spmv/spmv_cuda.cu			\
 	gordon/null_kernel_gordon.c		\
@@ -145,6 +146,14 @@ if STARPU_USE_CUDA
 basic_examples_vector_scal_SOURCES +=		\
 	basic_examples/vector_scal_cuda.cu
 endif
+
+if STARPU_USE_OPENCL
+basic_examples_vector_scal_SOURCES +=		\
+	basic_examples/vector_scal_opencl.c
+endif
+
+nobase_STARPU_OPENCL_DATA_DATA = \
+	basic_examples/vector_scal_opencl_codelet.cl
 
 examplebin_PROGRAMS +=				\
 	basic_examples/mult
@@ -472,9 +481,11 @@ endif
 if STARPU_USE_OPENCL
 variable_variable_SOURCES +=	\
 	variable/variable_kernels_opencl.c
+endif
+
 nobase_STARPU_OPENCL_DATA_DATA += \
 	variable/variable_kernels_opencl_codelet.cl
-endif
+
 
 ######################
 # matVecMult example #
