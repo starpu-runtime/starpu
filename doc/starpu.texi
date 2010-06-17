@@ -1621,9 +1621,9 @@ In this section, we show how to implement a simple program that submits a task t
 The @code{starpu.h} header should be included in any code using StarPU.
 
 @cartouche
-@example
+@smallexample
 #include <starpu.h>
-@end example
+@end smallexample
 @end cartouche
 
 
@@ -1631,7 +1631,7 @@ The @code{starpu.h} header should be included in any code using StarPU.
 @subsection Defining a Codelet
 
 @cartouche
-@example
+@smallexample
 void cpu_func(void *buffers[], void *cl_arg)
 @{
     float *array = cl_arg;
@@ -1645,7 +1645,7 @@ starpu_codelet cl =
     .cpu_func = cpu_func,
     .nbuffers = 0
 @};
-@end example
+@end smallexample
 @end cartouche
 
 A codelet is a structure that represents a computational kernel. Such a codelet
@@ -1686,7 +1686,7 @@ cannot be used as a synchronization medium.
 @subsection Submitting a Task
 
 @cartouche
-@example
+@smallexample
 void callback_func(void *callback_arg)
 @{
     printf("Callback function (arg %x)\n", callback_arg);
@@ -1719,7 +1719,7 @@ int main(int argc, char **argv)
 
     return 0;
 @}
-@end example
+@end smallexample
 @end cartouche
 
 Before submitting any tasks to StarPU, @code{starpu_init} must be called. The
@@ -1761,13 +1761,13 @@ guarantee that asynchronous tasks have been executed before it returns.
 @node Execution of Hello World
 @subsection Execution of Hello World
 
-@example
+@smallexample
 % make helloWorld
 cc $(pkg-config --cflags libstarpu)  $(pkg-config --libs libstarpu) helloWorld.c -o helloWorld
 % ./helloWorld
 Hello world (array = @{1.000000, -1.000000@} )
 Callback function (arg 42)
-@end example
+@end smallexample
 
 @node Scaling a Vector
 @section Manipulating Data: Scaling a Vector
@@ -1802,13 +1802,13 @@ The following lines show how to declare an array of @code{NX} elements of type
 @code{float} using the vector interface:
 
 @cartouche
-@example
+@smallexample
 float vector[NX];
 
 starpu_data_handle vector_handle;
 starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX,
                             sizeof(float));
-@end example
+@end smallexample
 @end cartouche
 
 The first argument, called the @b{data handle}, is an opaque pointer which
@@ -1821,7 +1821,7 @@ It is possible to construct a StarPU task that will manipulate the
 vector and a constant factor.
 
 @cartouche
-@example
+@smallexample
 float factor = 3.14;
 struct starpu_task *task = starpu_task_create();
 
@@ -1833,7 +1833,7 @@ task->cl_arg_size = sizeof(float);
 task->synchronous = 1;
 
 starpu_task_submit(task);
-@end example
+@end smallexample
 @end cartouche
 
 Since the factor is constant, it does not need a preliminary declaration, and
@@ -1847,7 +1847,7 @@ write-only and @code{STARPU_RW} for read and write access).
 The definition of the codelet can be written as follows:
 
 @cartouche
-@example
+@smallexample
 void scal_func(void *buffers[], void *cl_arg)
 @{
     unsigned i;
@@ -1869,7 +1869,7 @@ starpu_codelet cl = @{
     .cpu_func = scal_func,
     .nbuffers = 1
 @};
-@end example
+@end smallexample
 @end cartouche
 
 The second argument of the @code{scal_func} function contains a pointer to the
@@ -1887,12 +1887,12 @@ to this vector made by other tasks.
 @node Execution of Vector Scaling
 @subsection Execution of Vector Scaling
 
-@example
+@smallexample
 % make vector
 cc $(pkg-config --cflags libstarpu)  $(pkg-config --libs libstarpu)  vector.c   -o vector
 % ./vector
 0.000000 3.000000 6.000000 9.000000 12.000000
-@end example
+@end smallexample
 
 @node Vector Scaling on an Hybrid CPU/GPU Machine
 @section Vector Scaling on an Hybrid CPU/GPU Machine
@@ -1901,20 +1901,21 @@ Contrary to the previous examples, the task submitted in this example may not
 only be executed by the CPUs, but also by a CUDA device.
 
 @menu
-* Source code of Hybrid Vector Scaling::  
-* Compilation and execution of Hybrid Vector Scaling::  
+* Definition of the CUDA Codelet::  
 * Definition of the OpenCL Codelet::  
+* Definition of the Main Code::  
+* Compilation and execution of Hybrid Vector Scaling::  
 @end menu
 
-@node Source code of Hybrid Vector Scaling
-@subsection Source code of Hybrid Vector Scaling
+@node Definition of the CUDA Codelet
+@subsection Definition of the CUDA Codelet
 
 The CUDA implementation can be written as follows. It needs to be
 compiled with a CUDA compiler such as nvcc, the NVIDIA CUDA compiler
 driver.
 
 @cartouche
-@example
+@smallexample
 #include <starpu.h>
 
 static __global__ void vector_mult_cuda(float *val, unsigned n,
@@ -1940,8 +1941,77 @@ extern "C" void scal_cuda_func(void *buffers[], void *_args)
 
     cudaThreadSynchronize();
 @}
-@end example
+@end smallexample
 @end cartouche
+
+@node Definition of the OpenCL Codelet
+@subsection Definition of the OpenCL Codelet
+
+The OpenCL implementation can be written as follows. StarPU provides
+tools to compile a OpenCL codelet stored in a file.
+
+@cartouche
+@smallexample
+__kernel void vector_mult_opencl(__global float* val, int nx, float factor)
+@{
+        const int i = get_global_id(0);
+        if (i < nx) @{
+                val[i] *= factor;
+        @}
+@}
+@end smallexample
+@end cartouche
+
+@cartouche
+@smallexample
+#include <starpu.h>
+#include <starpu_opencl.h>
+
+void scal_opencl_func(void *buffers[], void *_args)
+@{
+    float *factor = (float *)_args;
+    struct starpu_vector_interface_s *vector = (struct starpu_vector_interface_s *) buffers[0];
+    int id, devid, err;
+    cl_kernel kernel;
+    cl_command_queue queue;
+
+    /* length of the vector */
+    unsigned n = STARPU_GET_VECTOR_NX(vector);
+    /* local copy of the vector pointer */
+    float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
+
+    id = starpu_worker_get_id();
+    devid = starpu_worker_get_devid(id);
+
+    err = starpu_opencl_load_kernel(&kernel, &queue,
+                    "examples/basic_examples/vector_scal_opencl_codelet.cl",
+                    "vector_mult_opencl", devid);   /* @b{Name of the codelet defined above} */
+    if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+
+    err = 0;
+    err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &val);
+    err = clSetKernelArg(kernel, 1, sizeof(int), &n);
+    err |= clSetKernelArg(kernel, 2, sizeof(float), (void*)factor);
+    if (err) STARPU_OPENCL_REPORT_ERROR(err);
+
+    @{
+        size_t global=1;
+        size_t local=1;
+        err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+    @}
+
+    clFinish(queue);
+
+    starpu_opencl_release(kernel);
+@}
+@end smallexample
+@end cartouche
+
+
+@node Definition of the Main Code
+@subsection Definition of the Main Code
+
 
 The CPU implementation is the same as in the previous section.
 
@@ -1951,7 +2021,7 @@ field @code{where} for the codelet. We specify
 can be executed either on a CPU or on a CUDA device.
 
 @cartouche
-@example
+@smallexample
 #include <starpu.h>
 
 #define NX 5
@@ -1981,11 +2051,11 @@ int main(int argc, char **argv)
     vector = (float*)malloc(NX*sizeof(float));
     assert(vector);
     for(i=0 ; i<NX ; i++) vector[i] = i;
-@end example
+@end smallexample
 @end cartouche
 
 @cartouche
-@example
+@smallexample
     /* @b{Registering data within StarPU} */
     starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector,
                                 NX, sizeof(float));
@@ -1997,11 +2067,11 @@ int main(int argc, char **argv)
     task->buffers[0].mode = STARPU_RW;
     task->cl_arg = &factor;
     task->cl_arg_size = sizeof(float);
-@end example
+@end smallexample
 @end cartouche
 
 @cartouche
-@example
+@smallexample
     /* @b{Submitting the task} */
     ret = starpu_task_submit(task);
     if (ret == -ENODEV) @{
@@ -2014,11 +2084,11 @@ int main(int argc, char **argv)
 
     /* @b{Update the vector in RAM} */
     starpu_data_sync_with_mem(vector_handle, STARPU_R);
-@end example
+@end smallexample
 @end cartouche
 
 @cartouche
-@example
+@smallexample
     /* @b{Access the data} */
     for(i=0 ; i<NX; i++) @{
       fprintf(stderr, "%f ", vector[i]);
@@ -2031,7 +2101,7 @@ int main(int argc, char **argv)
 
     return 0;
 @}
-@end example
+@end smallexample
 @end cartouche
 
 @node Compilation and execution of Hybrid Vector Scaling
@@ -2041,7 +2111,7 @@ The Makefile given at the beginning of the section must be extended to
 give the rules to compile the CUDA source code.
 
 @cartouche
-@example
+@smallexample
 CFLAGS	+=	$(shell pkg-config --cflags libstarpu)
 LDFLAGS	+=	$(shell pkg-config --libs libstarpu)
 CC	=	gcc
@@ -2053,36 +2123,33 @@ vector: vector.o vector_cpu.o vector_cuda.o
 
 clean:
        rm -f vector *.o
-@end example
+@end smallexample
 @end cartouche
 
-@example
+@smallexample
 % make
-@end example
+@end smallexample
 
 and to execute it, with the default configuration:
 
-@example
+@smallexample
 % ./vector
 0.000000 3.000000 6.000000 9.000000 12.000000
-@end example
+@end smallexample
 
 or for example, by disabling CPU devices:
 
-@example
+@smallexample
 % STARPU_NCPUS=0 ./vector
 0.000000 3.000000 6.000000 9.000000 12.000000
-@end example
+@end smallexample
 
 or by disabling CUDA devices:
 
-@example
+@smallexample
 % STARPU_NCUDA=0 ./vector
 0.000000 3.000000 6.000000 9.000000 12.000000
-@end example
-
-@node Definition of the OpenCL Codelet
-@subsection Definition of the OpenCL Codelet
+@end smallexample
 
 @c TODO: Add performance model example (and update basic_examples)
 
