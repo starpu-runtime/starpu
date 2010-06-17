@@ -18,7 +18,12 @@ info_TEXINFOS = starpu.texi
 
 MAINTAINERCLEANFILES = starpu.pdf
 
-EXTRA_DIST = starpu.pdf
+EXTRA_DIST = starpu.pdf \
+	starpu.css \
+	vector_scal_c.texi \
+	vector_scal_cuda.texi \
+	vector_scal_opencl_codelet.texi \
+	vector_scal_opencl.texi
 
 AM_MAKEINFOHTMLFLAGS = --css-include=$(top_srcdir)/doc/starpu.css --no-headers --no-split
 
