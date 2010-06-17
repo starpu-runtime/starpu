@@ -2127,8 +2127,23 @@ or by disabling CUDA devices:
 @node OpenCL Codelet
 @section OpenCL Codelet
 
-@c @smallexample
-@c @include vector_scal_cuda.texi
-@c @end smallexample
+@menu
+* Invoking the kernel::         
+* Source of the kernel::        
+@end menu
+
+@node Invoking the kernel
+@subsection Invoking the kernel
+
+@smallexample
+@include vector_scal_opencl.texi
+@end smallexample
+
+@node Source of the kernel
+@subsection Source of the kernel
+
+@smallexample
+@include vector_scal_opencl_codelet.texi
+@end smallexample
 
 @bye

@@ -22,11 +22,15 @@ EXTRA_DIST = starpu.pdf
 
 AM_MAKEINFOHTMLFLAGS = --css-include=$(top_srcdir)/doc/starpu.css --no-headers --no-split
 
-#$(top_srcdir)/doc/starpu.texi: vector_scal_c.texi vector_scal_cuda.texi
+#$(top_srcdir)/doc/starpu.texi: vector_scal_c.texi vector_scal_cuda.texi vector_scal_opencl.texi vector_scal_opencl_codelet.texi
 #vector_scal_c.texi: $(top_srcdir)/examples/basic_examples/vector_scal.c
-#	cat $< | sed 's/{/@{/g' | sed 's/}/@}/g' | sed 's/\t/    /' > $@
+#	cat $< | sed 's/{/@{/g' | sed 's/}/@}/g' | sed 's/\t/    /g' > $@
 #vector_scal_cuda.texi: $(top_srcdir)/examples/basic_examples/vector_scal_cuda.cu
-#	cat $< | sed 's/{/@{/g' | sed 's/}/@}/g' | sed 's/\t/    /' > $@
+#	cat $< | sed 's/{/@{/g' | sed 's/}/@}/g' | sed 's/\t/    /g' > $@
+#vector_scal_opencl.texi: $(top_srcdir)/examples/basic_examples/vector_scal_opencl.c
+#	cat $< | sed 's/{/@{/g' | sed 's/}/@}/g' | sed 's/\t/    /g' > $@
+#vector_scal_opencl_codelet.texi: $(top_srcdir)/examples/basic_examples/vector_scal_opencl_codelet.cl
+#	cat $< | sed 's/{/@{/g' | sed 's/}/@}/g' | sed 's/\t/    /g' > $@
 #
 #CLEANFILES= \
-#	vector_scal_c.texi vector_scal_cuda.texi
+#	vector_scal_c.texi vector_scal_cuda.texi vector_scal_opencl.texi vector_scal_opencl_codelet.texi

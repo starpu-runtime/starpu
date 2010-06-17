@@ -62,11 +62,15 @@ static void scal_cpu_func(void *buffers[], void *cl_arg)
 @}
 
 extern void scal_cuda_func(void *buffers[], void *_args);
+extern void scal_opencl_func(void *buffers[], void *_args);
 
 static starpu_codelet cl = @{
     .where = STARPU_CPU
 #ifdef STARPU_USE_CUDA
     	| STARPU_CUDA
+#endif
+#ifdef STARPU_USE_OPENCL
+    	| STARPU_OPENCL
 #endif
     	,
     /* CPU implementation of the codelet */
@@ -74,6 +78,10 @@ static starpu_codelet cl = @{
 #ifdef STARPU_USE_CUDA
     /* CUDA implementation of the codelet */
     .cuda_func = scal_cuda_func,
+#endif
+#ifdef STARPU_USE_OPENCL
+    /* OpenCL implementation of the codelet */
+    .opencl_func = scal_opencl_func,
 #endif
     .nbuffers = 1
 @};
@@ -91,6 +99,10 @@ int main(int argc, char **argv)
 
     /* Initialize StarPU with default configuration */
     starpu_init(NULL);
+
+#ifdef STARPU_USE_OPENCL
+        _starpu_opencl_compile_source_to_opencl("examples/basic_examples/vector_scal_opencl_codelet.cl");
+#endif
 
     /* Tell StaPU to associate the "vector" vector with the "vector_handle"
      * identifier. When a task needs to access a piece of data, it should

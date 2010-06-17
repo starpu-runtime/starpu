@@ -23,31 +23,31 @@
 
 void scal_opencl_func(void *buffers[], void *_args)
 {
-        float *factor = (float *)_args;
-        struct starpu_vector_interface_s *vector = (struct starpu_vector_interface_s *) buffers[0];
+	float *factor = (float *)_args;
+	struct starpu_vector_interface_s *vector = (struct starpu_vector_interface_s *) buffers[0];
 	int id, devid, err;
 	cl_kernel kernel;
 	cl_command_queue queue;
 
-        /* length of the vector */
-        unsigned n = STARPU_GET_VECTOR_NX(vector);
-        /* local copy of the vector pointer */
-        float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
+	/* length of the vector */
+	unsigned n = STARPU_GET_VECTOR_NX(vector);
+	/* local copy of the vector pointer */
+	float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
 
-        id = starpu_worker_get_id();
-        devid = starpu_worker_get_devid(id);
+	id = starpu_worker_get_id();
+	devid = starpu_worker_get_devid(id);
 
 	err = starpu_opencl_load_kernel(&kernel, &queue,
-                                        "examples/basic_examples/vector_scal_opencl_codelet.cl", "vectorScal", devid);
+					"examples/basic_examples/vector_scal_opencl_codelet.cl",
+					"vectorScal", devid);
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = 0;
 	err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &val);
 	err = clSetKernelArg(kernel, 1, sizeof(int), &n);
-        err |= clSetKernelArg(kernel, 2, sizeof(float), (void*)factor);
+	err |= clSetKernelArg(kernel, 2, sizeof(float), (void*)factor);
 
 	if (err) STARPU_OPENCL_REPORT_ERROR(err);
-
 	{
 		size_t global=1;
 		size_t local=1;
@@ -58,5 +58,4 @@ void scal_opencl_func(void *buffers[], void *_args)
 	clFinish(queue);
 
 	starpu_opencl_release(kernel);
-
 }
