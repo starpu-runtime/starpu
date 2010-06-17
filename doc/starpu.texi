@@ -361,14 +361,14 @@ available as the @code{STARPU_MAXCUDADEVS} macro.
 @subsubsection @code{--disable-cuda}
 @table @asis
 @item @emph{Description}:
-Disable the use of CUDA, even if the SDK is detected.
+Disable the use of CUDA, even if a valid CUDA installation was detected.
 @end table
 
 @node --with-cuda-dir
 @subsubsection @code{--with-cuda-dir=<path>}
 @table @asis
 @item @emph{Description}:
-Specify the location of the CUDA SDK resides. This directory should notably contain
+Specify the directory where CUDA is installed. This directory should notably contain
 @code{include/cuda.h}.
 @end table
 
