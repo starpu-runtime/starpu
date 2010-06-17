@@ -459,7 +459,7 @@ incrementer_incrementer_SOURCES +=	\
 	incrementer/incrementer_kernels_opencl.c
 endif
 
-nobase_STARPU_OPENCL_DATA_DATA = \
+nobase_STARPU_OPENCL_DATA_DATA += \
 	incrementer/incrementer_kernels_opencl_codelet.cl
 
 ####################
