@@ -1963,7 +1963,7 @@ The definition of the codelet can be written as follows:
 
 @cartouche
 @smallexample
-void scal_func(void *buffers[], void *cl_arg)
+void scal_cpu_func(void *buffers[], void *cl_arg)
 @{
     unsigned i;
     float *factor = cl_arg;
@@ -1981,13 +1981,13 @@ void scal_func(void *buffers[], void *cl_arg)
 
 starpu_codelet cl = @{
     .where = STARPU_CPU,
-    .cpu_func = scal_func,
+    .cpu_func = scal_cpu_func,
     .nbuffers = 1
 @};
 @end smallexample
 @end cartouche
 
-The second argument of the @code{scal_func} function contains a pointer to the
+The second argument of the @code{scal_cpu_func} function contains a pointer to the
 parameters of the codelet (given in @code{task->cl_arg}), so that we read the
 constant factor from this pointer. The first argument is an array that gives
 a description of all the buffers passed in the @code{task->buffers}@ array. The
@@ -2052,9 +2052,9 @@ extern "C" void scal_cuda_func(void *buffers[], void *_args)
     float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
 
     /* TODO: use more blocks and threads in blocks */
-    vector_mult_cuda<<<1,1>>>(val, n, *factor);
+@i{    vector_mult_cuda<<<1,1>>>(val, n, *factor);}
 
-    cudaThreadSynchronize();
+@i{    cudaThreadSynchronize();}
 @}
 @end smallexample
 @end cartouche
@@ -2080,46 +2080,46 @@ __kernel void vector_mult_opencl(__global float* val, int nx, float factor)
 @cartouche
 @smallexample
 #include <starpu.h>
-#include <starpu_opencl.h>
+@i{#include <starpu_opencl.h>}
 
-extern struct starpu_opencl_codelet codelet;
+@i{extern struct starpu_opencl_codelet codelet;}
 
 void scal_opencl_func(void *buffers[], void *_args)
 @{
     float *factor = (float *)_args;
     struct starpu_vector_interface_s *vector = (struct starpu_vector_interface_s *) buffers[0];
-    int id, devid, err;
-    cl_kernel kernel;
-    cl_command_queue queue;
+@i{    int id, devid, err;}
+@i{    cl_kernel kernel;}
+@i{    cl_command_queue queue;}
 
     /* length of the vector */
     unsigned n = STARPU_GET_VECTOR_NX(vector);
     /* local copy of the vector pointer */
     float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
 
-    id = starpu_worker_get_id();
-    devid = starpu_worker_get_devid(id);
+@i{    id = starpu_worker_get_id();}
+@i{    devid = starpu_worker_get_devid(id);}
 
-    err = starpu_opencl_load_kernel(&kernel, &queue, &codelet,
-                    "vector_mult_opencl", devid);   /* @b{Name of the codelet defined above} */
-    if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+@i{    err = starpu_opencl_load_kernel(&kernel, &queue, &codelet,}
+@i{                    "vector_mult_opencl", devid);   /* @b{Name of the codelet defined above} */}
+@i{    if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);}
 
-    err = 0;
-    err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &val);
-    err = clSetKernelArg(kernel, 1, sizeof(int), &n);
-    err |= clSetKernelArg(kernel, 2, sizeof(float), (void*)factor);
-    if (err) STARPU_OPENCL_REPORT_ERROR(err);
+@i{    err = 0;}
+@i{    err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &val);}
+@i{    err = clSetKernelArg(kernel, 1, sizeof(int), &n);}
+@i{    err |= clSetKernelArg(kernel, 2, sizeof(float), (void*)factor);}
+@i{    if (err) STARPU_OPENCL_REPORT_ERROR(err);}
 
-    @{
-        size_t global=1;
-        size_t local=1;
-        err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-    @}
+@i{    @{}
+@i{        size_t global=1;}
+@i{        size_t local=1;}
+@i{        err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);}
+@i{        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);}
+@i{    @}}
 
-    clFinish(queue);
+@i{    clFinish(queue);}
 
-    starpu_opencl_release(kernel);
+@i{    starpu_opencl_release_kernel(kernel);}
 @}
 @end smallexample
 @end cartouche
@@ -2128,29 +2128,28 @@ void scal_opencl_func(void *buffers[], void *_args)
 @node Definition of the Main Code
 @subsection Definition of the Main Code
 
-
 The CPU implementation is the same as in the previous section.
 
 Here is the source of the main application. You can notice the value of the
 field @code{where} for the codelet. We specify
-@code{STARPU_CPU|STARPU_CUDA} to indicate to StarPU that the codelet
-can be executed either on a CPU or on a CUDA device.
+@code{STARPU_CPU|STARPU_CUDA|STARPU_OPENCL} to indicate to StarPU that the codelet
+can be executed either on a CPU or on a CUDA or an OpenCL device.
 
 @cartouche
 @smallexample
 #include <starpu.h>
 
-#define NX 5
+#define NX 2048
 
 extern void scal_cuda_func(void *buffers[], void *_args);
-extern void scal_func(void *buffers[], void *_args);
+extern void scal_cpu_func(void *buffers[], void *_args);
 
 /* @b{Definition of the codelet} */
 static starpu_codelet cl = @{
     .where = STARPU_CPU|STARPU_CUDA; /* @b{It can be executed on a CPU} */
                                      /* @b{or on a CUDA device} */
     .cuda_func = scal_cuda_func;
-    .cpu_func = scal_func;
+    .cpu_func = scal_cpu_func;
     .nbuffers = 1;
 @}
 
@@ -2289,6 +2288,7 @@ or by disabling CUDA devices:
 
 @menu
 * Main application::            
+* CPU Codelet::                 
 * CUDA Codelet::                
 * OpenCL Codelet::              
 @end menu
@@ -2298,6 +2298,13 @@ or by disabling CUDA devices:
 
 @smallexample
 @include vector_scal_c.texi
+@end smallexample
+
+@node CPU Codelet
+@section CPU Codelet
+
+@smallexample
+@include vector_scal_cpu.texi
 @end smallexample
 
 @node CUDA Codelet
