@@ -1448,20 +1448,57 @@ DAG before actually giving StarPU the opportunity to execute the tasks.
 @menu
 * starpu_profiling_status_set::           starpu_profiling_status_set
 * starpu_profiling_status_get::           starpu_profiling_status_get
-* struct starpu_worker_profiling_info::   worker profiling info
+* struct starpu_task_profiling_info::     task profiling information
+* struct starpu_worker_profiling_info::   worker profiling information
 * starpu_worker_get_profiling_info::      starpu_worker_get_profiling_info
-* struct starpu_bus_profiling_info::      bus profiling info
+* struct starpu_bus_profiling_info::      bus profiling information
 @end menu
 
 @node starpu_profiling_status_set
 @subsection @code{starpu_profiling_status_set} -- Set current profiling status
-
-TODO 
+@table @asis
+@item @emph{Description}:
+Thie function sets the profiling status. Profiling is activated by passing
+@code{STARPU_PROFILING_ENABLE} in @code{status}. Passing
+@code{STARPU_PROFILING_DISABLE} disables profiling. Calling this function
+resets all profiling measurements. When profiling is enabled, the
+@code{profiling_info} field of the @code{struct starpu_task} structure points
+to a valid @code{struct starpu_task_profiling_info} structure containing
+information about the execution of the task.
+@c TODO add link to the structure description subsection
+@item @emph{Return value}:
+Negative return values indicate an error, otherwise the previous status is
+returned.
+@item @emph{Prototype}:
+@code{int starpu_profiling_status_set(int status);}
+@end table
 
 @node starpu_profiling_status_get
 @subsection @code{starpu_profiling_status_get} -- Get current profiling status
+@table @asis
+@item @emph{Description}:
+Return the current profiling status or a negative value in case there was an error.
+@item @emph{Prototype}:
+@code{int starpu_profiling_status_get(void);}
+@end table
 
-TODO 
+@node struct starpu_task_profiling_info
+@subsection @code{struct starpu_task_profiling_info} -- Task profiling information
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Fields}:
+@table @asis
+@item @code{submit_time}:
+TODO
+@item @code{start_time}:
+TODO
+@item @code{end_time}:
+TODO
+@item @code{workerid}:
+TODO
+@end table
+@end table
 
 @node struct starpu_worker_profiling_info
 @subsection @code{struct starpu_worker_profiling_info} -- Worker profiling information
