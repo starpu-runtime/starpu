@@ -47,8 +47,10 @@ void cuda_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args);
 #endif
 
 #ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
 void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args);
 void opencl_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args);
+struct starpu_opencl_codelet opencl_code;
 #endif
 
 #define VECTORSIZE	16
@@ -86,7 +88,7 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef STARPU_USE_OPENCL
-        _starpu_opencl_compile_source_to_opencl("tests/datawizard/sync_and_notify_data_opencl_codelet.cl");
+        starpu_opencl_load_opencl_from_file("tests/datawizard/sync_and_notify_data_opencl_codelet.cl", &opencl_code);
 #endif
 
         starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));

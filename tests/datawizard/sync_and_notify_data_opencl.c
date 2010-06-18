@@ -18,6 +18,8 @@
 #include <starpu_opencl.h>
 #include <CL/cl.h>
 
+extern struct starpu_opencl_codelet opencl_code;
+
 void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
 {
         unsigned *val = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
@@ -28,7 +30,7 @@ void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
 	id = starpu_worker_get_id();
 	devid = starpu_worker_get_devid(id);
 
-	err = starpu_opencl_load_kernel(&kernel, &queue, "tests/datawizard/sync_and_notify_data_opencl_codelet.cl", "incA", devid);
+	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_code, "incA", devid);
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = 0;
@@ -44,7 +46,7 @@ void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
 
 	clFinish(queue);
 
-	starpu_opencl_release(kernel);
+	starpu_opencl_release_kernel(kernel);
 }
 
 void opencl_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
@@ -57,7 +59,7 @@ void opencl_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
 	id = starpu_worker_get_id();
 	devid = starpu_worker_get_devid(id);
 
-	err = starpu_opencl_load_kernel(&kernel, &queue, "tests/datawizard/sync_and_notify_data_opencl_codelet.cl", "incC", devid);
+	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_code, "incC", devid);
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = 0;
@@ -73,5 +75,5 @@ void opencl_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
 
 	clFinish(queue);
 
-	starpu_opencl_release(kernel);
+	starpu_opencl_release_kernel(kernel);
 }

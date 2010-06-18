@@ -32,6 +32,7 @@ void cpu_codelet(void *descr[], void *_args)
 }
 
 #ifdef STARPU_USE_OPENCL
+struct starpu_opencl_codelet opencl_code;
 void opencl_codelet(void *descr[], void *_args)
 {
 	cl_kernel kernel;
@@ -46,8 +47,7 @@ void opencl_codelet(void *descr[], void *_args)
         id = starpu_worker_get_id();
         devid = starpu_worker_get_devid(id);
 
-        err = starpu_opencl_load_kernel(&kernel, &queue,
-                                        "examples/block/block_kernel.cl", "block", devid);
+        err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_code, "block", devid);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = 0;
@@ -67,7 +67,7 @@ void opencl_codelet(void *descr[], void *_args)
 
 	clFinish(queue);
 
-        starpu_opencl_release(kernel);
+        starpu_opencl_release_kernel(kernel);
 }
 #endif
 
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
         ret = execute_on(STARPU_CPU, cpu_codelet, block, nx, ny, nz, 1.0);
         if (!ret) multiplier *= 1.0;
 #ifdef STARPU_USE_OPENCL
-        _starpu_opencl_compile_source_to_opencl("examples/block/block_kernel.cl");
+        starpu_opencl_load_opencl_from_file("examples/block/block_kernel.cl", &opencl_code);
         ret = execute_on(STARPU_OPENCL, opencl_codelet, block, nx, ny, nz, 2.0);
         if (!ret) multiplier *= 2.0;
 #endif

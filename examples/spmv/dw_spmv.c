@@ -29,6 +29,7 @@ struct timeval end;
 
 #ifdef STARPU_USE_OPENCL
 #include "starpu_opencl.h"
+struct starpu_opencl_codelet opencl_codelet;
 void spmv_kernel_opencl(void *descr[], void *args)
 {
 	cl_kernel kernel;
@@ -51,8 +52,7 @@ void spmv_kernel_opencl(void *descr[], void *args)
         id = starpu_worker_get_id();
         devid = starpu_worker_get_devid(id);
 
-        err = starpu_opencl_load_kernel(&kernel, &queue,
-                                        "examples/spmv/spmv_opencl.cl", "spvm", devid);
+        err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_codelet, "spvm", devid);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = 0;
@@ -77,7 +77,7 @@ void spmv_kernel_opencl(void *descr[], void *args)
 
 	clFinish(queue);
 
-        starpu_opencl_release(kernel);
+        starpu_opencl_release_kernel(kernel);
 }
 #endif
 
@@ -245,7 +245,7 @@ void call_spmv_codelet_filters(void)
 
 #ifdef STARPU_USE_OPENCL
         {
-                int ret = _starpu_opencl_compile_source_to_opencl("examples/spmv/spmv_opencl.cl");
+                int ret = starpu_opencl_load_opencl_from_file("examples/spmv/spmv_opencl.cl", &opencl_codelet);
                 if (ret)
 		{
 			fprintf(stderr, "Failed to compile OpenCL codelet\n");

@@ -25,6 +25,7 @@ static int width=20;
 static int height=4;
 
 #ifdef STARPU_USE_OPENCL
+struct starpu_opencl_codelet opencl_code;
 void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	cl_kernel kernel;
@@ -37,8 +38,7 @@ void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
         id = starpu_worker_get_id();
         devid = starpu_worker_get_devid(id);
 
-        err = starpu_opencl_load_kernel(&kernel, &queue,
-                                        "examples/matvecmult/matvecmult_kernel.cl", "matVecMult", devid);
+        err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_code, "matVecMult", devid);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = 0;
@@ -58,7 +58,7 @@ void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 
 	clFinish(queue);
 
-	starpu_opencl_release(kernel);
+	starpu_opencl_release_kernel(kernel);
 }
 #endif
 
@@ -152,7 +152,7 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&mult_handle, 0, (uintptr_t)mult, height, sizeof(float));
 
 #ifdef STARPU_USE_OPENCL
-        _starpu_opencl_compile_source_to_opencl("examples/matvecmult/matvecmult_kernel.cl");
+        starpu_opencl_load_opencl_from_file("examples/matvecmult/matvecmult_kernel.cl", &opencl_code);
 #endif
 
 	cl.where = STARPU_OPENCL;
