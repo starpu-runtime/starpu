@@ -106,7 +106,8 @@ int main(int argc, char **argv)
 	starpu_init(NULL);
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_load_opencl_from_file("examples/basic_examples/vector_scal_opencl_codelet.cl", &codelet);
+        starpu_opencl_load_opencl_from_file("examples/basic_examples/vector_scal_opencl_codelet.cl",
+					    &codelet);
 #endif
 
 	/* Tell StaPU to associate the "vector" vector with the "vector_handle"
