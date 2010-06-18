@@ -218,7 +218,7 @@ static void handle_worker_init_start(void)
 	   arg2 : thread id 
 	*/
 	fprintf(out_paje_file, "7       %f	%s%"PRIu64"      T      %sMEMNODE%"PRIu64"       %s%"PRIu64"\n",
-		get_event_time_stamp(), prefix, ev.param[3], prefix, ev.param[1], prefix, ev.param[3]);
+		get_event_time_stamp(), prefix, ev.param[3], prefix, ev.param[2], prefix, ev.param[3]);
 
 	int devid = ev.param[1];
 	int workerid = register_worker_id(ev.param[3]);
@@ -248,7 +248,7 @@ static void handle_worker_init_start(void)
 
 	/* start initialization */
 	fprintf(out_paje_file, "10       %f     S      %s%"PRIu64"      I\n",
-			get_event_time_stamp(), prefix, ev.param[2]);
+			get_event_time_stamp(), prefix, ev.param[3]);
 
 	fprintf(activity_file, "name\t%d\t%s %d\n", workerid, kindstr, devid);
 }
