@@ -66,8 +66,6 @@ int _starpu_opencl_init_context(int devid)
         queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], 0, &err);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-        _starpu_opencl_init_programs(devid);
-
 	return EXIT_SUCCESS;
 }
 
@@ -82,8 +80,6 @@ int _starpu_opencl_deinit_context(int devid)
 
         err = clReleaseCommandQueue(queues[devid]);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-
-        _starpu_opencl_release_programs(devid);
 
         return EXIT_SUCCESS;
 }
@@ -140,6 +136,7 @@ void _starpu_opencl_init(void)
                 cl_uint nb_platforms;
                 cl_device_type device_type = CL_DEVICE_TYPE_GPU;
                 cl_int err;
+                unsigned int i;
 
                 _STARPU_OPENCL_DEBUG("Initialising OpenCL\n");
 
@@ -151,7 +148,6 @@ void _starpu_opencl_init(void)
                 // Get devices
                 nb_devices = 0;
                 {
-                        unsigned int i;
                         for (i=0; i<nb_platforms; i++) {
                                 cl_uint num;
 
@@ -177,6 +173,12 @@ void _starpu_opencl_init(void)
 
                 // Get location of OpenCl codelet source files
                 _starpu_opencl_codelet_dir = getenv("STARPU_OPENCL_CODELET_DIR");
+
+                // initialise internal structures
+                for(i=0 ; i<nb_devices ; i++) {
+                        contexts[i] = NULL;
+                        queues[i] = NULL;
+                }
 
                 init_done=1;
         }
