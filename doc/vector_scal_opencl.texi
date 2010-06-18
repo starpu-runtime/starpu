@@ -21,6 +21,8 @@
 #include <starpu.h>
 #include <starpu_opencl.h>
 
+extern struct starpu_opencl_codelet codelet;
+
 void scal_opencl_func(void *buffers[], void *_args)
 @{
     float *factor = (float *)_args;
@@ -37,9 +39,7 @@ void scal_opencl_func(void *buffers[], void *_args)
     id = starpu_worker_get_id();
     devid = starpu_worker_get_devid(id);
 
-    err = starpu_opencl_load_kernel(&kernel, &queue,
-                    "examples/basic_examples/vector_scal_opencl_codelet.cl",
-                    "vector_mult_opencl", devid);
+    err = starpu_opencl_load_kernel(&kernel, &queue, &codelet, "vector_mult_opencl", devid);
     if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
     err = 0;
@@ -49,13 +49,13 @@ void scal_opencl_func(void *buffers[], void *_args)
     if (err) STARPU_OPENCL_REPORT_ERROR(err);
 
     @{
-        size_t global=1;
-        size_t local=1;
+        size_t global=n;
+        size_t local=n;
         err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
     @}
 
     clFinish(queue);
 
-    starpu_opencl_release(kernel);
+    starpu_opencl_release_kernel(kernel);
 @}

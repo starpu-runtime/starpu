@@ -1967,6 +1967,8 @@ __kernel void vector_mult_opencl(__global float* val, int nx, float factor)
 #include <starpu.h>
 #include <starpu_opencl.h>
 
+extern struct starpu_opencl_codelet codelet;
+
 void scal_opencl_func(void *buffers[], void *_args)
 @{
     float *factor = (float *)_args;
@@ -1983,8 +1985,7 @@ void scal_opencl_func(void *buffers[], void *_args)
     id = starpu_worker_get_id();
     devid = starpu_worker_get_devid(id);
 
-    err = starpu_opencl_load_kernel(&kernel, &queue,
-                    "examples/basic_examples/vector_scal_opencl_codelet.cl",
+    err = starpu_opencl_load_kernel(&kernel, &queue, &codelet,
                     "vector_mult_opencl", devid);   /* @b{Name of the codelet defined above} */
     if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
