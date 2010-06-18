@@ -756,6 +756,7 @@ This variable specify in which file the debugging output should be saved to.
 * Data Library::                Methods to manipulate data
 * Codelets and Tasks::          Methods to construct tasks
 * Tags::                        Task dependencies
+* Profiling API::               Profiling API
 * CUDA extensions::             CUDA extensions
 * OpenCL extensions::           OpenCL extensions
 * Cell extensions::             Cell extensions
@@ -1440,6 +1441,83 @@ DAG before actually giving StarPU the opportunity to execute the tasks.
 @item @emph{Prototype}:
 @code{void starpu_tag_notify_from_apps(starpu_tag_t id);}
 @end table
+
+@node Profiling API
+@section Profiling API
+
+@menu
+* starpu_profiling_status_set::           starpu_profiling_status_set
+* starpu_profiling_status_get::           starpu_profiling_status_get
+* struct starpu_worker_profiling_info::   worker profiling info
+* starpu_worker_get_profiling_info::      starpu_worker_get_profiling_info
+* struct starpu_bus_profiling_info::      bus profiling info
+@end menu
+
+@node starpu_profiling_status_set
+@subsection @code{starpu_profiling_status_set} -- Set current profiling status
+
+TODO 
+
+@node starpu_profiling_status_get
+@subsection @code{starpu_profiling_status_get} -- Get current profiling status
+
+TODO 
+
+@node struct starpu_worker_profiling_info
+@subsection @code{struct starpu_worker_profiling_info} -- Worker profiling information
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Fields}:
+@table @asis
+@item @code{start_time}:
+TODO
+@item @code{total_time}:
+TODO
+@item @code{executing_time}:
+TODO
+@item @code{sleeping_time}:
+TODO
+@item @code{executed_tasks}:
+TODO
+@end table
+@end table
+
+
+@node starpu_worker_get_profiling_info
+@subsection @code{starpu_worker_get_profiling_info} -- Get worker profiling info
+@table @asis
+
+@item @emph{Description}:
+Get the profiling info associated to the worker identified by @code{workerid},
+and reset the profiling measurements. If the @code{worker_info} argument is
+NULL, only reset the counters associated to worker @code{workerid}.
+@item @emph{Return value}:
+Upon successful completion, this function returns 0. Otherwise, a negative
+value is returned.
+
+@item @emph{Prototype}:
+@code{int starpu_worker_get_profiling_info(int workerid, struct starpu_worker_profiling_info *worker_info);}
+@end table
+
+@node struct starpu_bus_profiling_info
+@subsection @code{struct starpu_bus_profiling_info} -- Bus profiling information
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Fields}:
+@table @asis
+@item @code{start_time}:
+TODO
+@item @code{total_time}:
+TODO
+@item @code{transferred_bytes}:
+TODO
+@item @code{transfer_count}:
+TODO
+@end table
+@end table
+
 
 @node CUDA extensions
 @section CUDA extensions
