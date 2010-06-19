@@ -96,7 +96,7 @@ struct starpu_data_state_t {
 	struct starpu_data_interface_ops_t *ops;
 
 	/* where is the data home ? -1 if none yet */
-	int data_home;
+	int home_node;
 
 	/* what is the default write-back mask for that data ? */
 	uint32_t wb_mask;

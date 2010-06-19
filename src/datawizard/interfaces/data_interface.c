@@ -55,6 +55,8 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 
 	handle->wb_mask = wb_mask;
 
+	handle->home_node = home_node;
+
 	/* that new data is invalid from all nodes perpective except for the
 	 * home node */
 	unsigned node;
@@ -185,7 +187,7 @@ void starpu_data_unregister(starpu_data_handle handle)
 
 	/* Fetch data in the home of the data to ensure we have a valid copy
 	 * where we registered it */
-	int home_node = handle->data_home; 
+	int home_node = handle->home_node; 
 	if (home_node >= 0)
 	{
 		struct unregister_callback_arg arg;

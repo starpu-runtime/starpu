@@ -124,6 +124,7 @@ void starpu_data_partition(starpu_data_handle initial_handle, starpu_filter *f)
 		children->is_not_important = initial_handle->is_not_important;
 
 		children->wb_mask = initial_handle->wb_mask;
+		children->home_node = initial_handle->home_node;
 
 		/* initialize the chunk lock */
 		children->req_list = starpu_data_requester_list_new();
