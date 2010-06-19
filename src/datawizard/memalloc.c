@@ -628,8 +628,7 @@ size_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, ui
 		if (!allocated_memory) {
 			/* XXX perhaps we should find the proper granularity 
 			 * not to waste our cache all the time */
-			STARPU_ASSERT(handle->ops->get_size);
-			size_t data_size = handle->ops->get_size(handle);
+			size_t data_size = _starpu_data_get_size(handle);
 
 			STARPU_TRACE_START_MEMRECLAIM(dst_node);
 			reclaim_memory(dst_node, 2*data_size);

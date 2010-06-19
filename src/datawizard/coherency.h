@@ -95,6 +95,12 @@ struct starpu_data_state_t {
 
 	struct starpu_data_interface_ops_t *ops;
 
+	/* To avoid recomputing data size all the time, we store it directly. */
+	size_t data_size;
+
+	/* Footprint which identifies data layout */
+	uint32_t footprint;
+
 	/* where is the data home ? -1 if none yet */
 	int home_node;
 
@@ -137,6 +143,10 @@ void _starpu_release_data_on_node(struct starpu_data_state_t *state, uint32_t de
 void _starpu_update_data_state(struct starpu_data_state_t *state, uint32_t requesting_node, starpu_access_mode mode);
 
 uint32_t _starpu_get_data_refcnt(struct starpu_data_state_t *state, uint32_t node);
+
+size_t _starpu_data_get_size(starpu_data_handle handle);
+
+uint32_t _starpu_data_get_footprint(starpu_data_handle handle);
 
 void _starpu_push_task_output(struct starpu_task *task, uint32_t mask);
 

@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
 #include <core/jobs.h>
 #include <core/task.h>
 #include <core/workers.h>
@@ -33,7 +34,7 @@ size_t _starpu_job_get_data_size(starpu_job_t j)
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
 		starpu_data_handle handle = task->buffers[buffer].handle;
-		size += handle->ops->get_size(handle);
+		size += _starpu_data_get_size(handle);
 	}
 
 	return size;

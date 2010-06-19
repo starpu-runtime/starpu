@@ -55,6 +55,11 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 
 	handle->wb_mask = wb_mask;
 
+	/* Store some values directly in the handle not to recompute them all
+	 * the time. */
+	handle->data_size = handle->ops->get_size(handle);
+	handle->footprint = _starpu_compute_data_footprint(handle);
+
 	handle->home_node = home_node;
 
 	/* that new data is invalid from all nodes perpective except for the

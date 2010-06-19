@@ -150,7 +150,7 @@ double _starpu_data_expected_penalty(struct starpu_jobq_s *q, struct starpu_task
 
 		if (!_starpu_is_data_present_or_requested(handle, memory_node))
 		{
-			size_t size = handle->ops->get_size(handle);
+			size_t size = _starpu_data_get_size(handle);
 
 			uint32_t src_node = _starpu_select_src_node(handle);
 

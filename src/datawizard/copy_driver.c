@@ -217,7 +217,7 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 		STARPU_ASSERT(handle->ops);
 		//STARPU_ASSERT(handle->ops->copy_data_1_to_1);
 
-		size_t size = handle->ops->get_size(handle);
+		size_t size = _starpu_data_get_size(handle);
 		_starpu_bus_update_profiling_info((int)src_node, (int)dst_node, size);
 		
 #ifdef STARPU_USE_FXT
@@ -234,7 +234,7 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 #ifdef STARPU_USE_FXT
 		if (ret_copy != EAGAIN)
 		{
-			size_t size = handle->ops->get_size(handle);
+			size_t size = _starpu_data_get_size(handle);
 			STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, com_id);
 		}
 #endif

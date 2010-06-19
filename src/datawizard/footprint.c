@@ -28,10 +28,7 @@ void _starpu_compute_buffers_footprint(starpu_job_t j)
 	{
 		starpu_data_handle handle = task->buffers[buffer].handle;
 
-		STARPU_ASSERT(handle->ops);
-		STARPU_ASSERT(handle->ops->footprint);
-
-		uint32_t handle_footprint = handle->ops->footprint(handle);
+		uint32_t handle_footprint = _starpu_data_get_footprint(handle);
 
 		footprint = _starpu_crc32_be(handle_footprint, footprint);
 	}

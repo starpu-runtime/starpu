@@ -300,6 +300,16 @@ inline uint32_t _starpu_get_data_refcnt(starpu_data_handle handle, uint32_t node
 	return handle->per_node[node].refcnt;
 }
 
+size_t _starpu_data_get_size(starpu_data_handle handle)
+{
+	return handle->data_size;
+}
+
+uint32_t _starpu_data_get_footprint(starpu_data_handle handle)
+{
+	return handle->footprint;
+}
+
 /* in case the data was accessed on a write mode, do not forget to 
  * make it accessible again once it is possible ! */
 void _starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wb_mask, uint32_t memory_node)
