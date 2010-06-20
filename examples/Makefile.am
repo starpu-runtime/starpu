@@ -118,8 +118,6 @@ noinst_HEADERS = 				\
 	fortran/bindings/StarPU_fortran.h	\
 	ppm_downscaler/ppm_downscaler.h		\
 	ppm_downscaler/yuv_downscaler.h		\
-	strassen/strassen.h			\
-	strassen/strassen_models.h		\
 	spmv/matrix_market/mmio.h		\
 	spmv/matrix_market/mm_to_bcsr.h		\
 	spmv/dw_spmv.h				\
@@ -377,40 +375,6 @@ tag_example_tag_example3_SOURCES =		\
 
 tag_example_tag_restartable_SOURCES =		\
 	tag_example/tag_restartable.c
-
-####################
-# Strassen example #
-####################
-
-if ATLAS_BLAS_LIB
-
-examplebin_PROGRAMS += strassen/dw_strassen
-
-strassen_dw_strassen_SOURCES = 			\
-	strassen/strassen.c			\
-	strassen/strassen_kernels.c		\
-	strassen/test_strassen.c		\
-	strassen/strassen_models.c		\
-	common/blas.c
-
-endif
-
-#####################
-# Strassen2 example #
-#####################
-
-if !NO_BLAS_LIB
-
-check_PROGRAMS += strassen2/strassen
-
-examplebin_PROGRAMS += strassen2/strassen
-
-strassen2_strassen_SOURCES = 			\
-	strassen2/strassen2.c			\
-	strassen2/strassen2_kernels.c		\
-	common/blas.c
-
-endif
 
 ################
 # SpMV example #
