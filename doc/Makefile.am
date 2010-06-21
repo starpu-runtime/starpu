@@ -21,6 +21,7 @@ MAINTAINERCLEANFILES = starpu.pdf
 EXTRA_DIST = starpu.pdf \
 	starpu.css \
 	vector_scal_c.texi \
+	vector_scal_cpu.texi \
 	vector_scal_cuda.texi \
 	vector_scal_opencl_codelet.texi \
 	vector_scal_opencl.texi
