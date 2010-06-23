@@ -1,7 +1,3 @@
-/*
- * This example complements vector_scale.c: here we implement a OpenCL version.
- */
-
 #include <starpu.h>
 #include <starpu_opencl.h>
 
@@ -10,15 +6,14 @@ extern struct starpu_opencl_codelet codelet;
 void scal_opencl_func(void *buffers[], void *_args)
 @{
     float *factor = (float *)_args;
-    struct starpu_vector_interface_s *vector = (struct starpu_vector_interface_s *) buffers[0];
     int id, devid, err;
     cl_kernel kernel;
     cl_command_queue queue;
 
     /* length of the vector */
-    unsigned n = STARPU_GET_VECTOR_NX(vector);
+    unsigned n = STARPU_GET_VECTOR_NX(buffers[0]);
     /* local copy of the vector pointer */
-    float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
+    float *val = (float *)STARPU_GET_VECTOR_PTR(buffers[0]);
 
     id = starpu_worker_get_id();
     devid = starpu_worker_get_devid(id);
