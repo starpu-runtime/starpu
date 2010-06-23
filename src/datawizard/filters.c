@@ -111,42 +111,42 @@ void starpu_data_partition(starpu_data_handle initial_handle, starpu_filter *f)
 
 	for (i = 0; i < nparts; i++)
 	{
-		starpu_data_handle children =
+		starpu_data_handle child =
 			starpu_data_get_child(initial_handle, i);
 
-		STARPU_ASSERT(children);
+		STARPU_ASSERT(child);
 
-		children->nchildren = 0;
-		children->root_handle = initial_handle->root_handle;
-		children->father_handle = initial_handle;
-		children->sibling_index = i;
-		children->depth = initial_handle->depth + 1;
+		child->nchildren = 0;
+		child->root_handle = initial_handle->root_handle;
+		child->father_handle = initial_handle;
+		child->sibling_index = i;
+		child->depth = initial_handle->depth + 1;
 
-		children->is_not_important = initial_handle->is_not_important;
-		children->wb_mask = initial_handle->wb_mask;
-		children->home_node = initial_handle->home_node;
+		child->is_not_important = initial_handle->is_not_important;
+		child->wb_mask = initial_handle->wb_mask;
+		child->home_node = initial_handle->home_node;
 
 		/* We compute the size and the footprint of the child once and
 		 * store it in the handle */
-		children->data_size = children->ops->get_size(children);
-		children->footprint = _starpu_compute_data_footprint(children);
+		child->data_size = child->ops->get_size(child);
+		child->footprint = _starpu_compute_data_footprint(child);
 
 		/* initialize the chunk lock */
-		children->req_list = starpu_data_requester_list_new();
-		children->refcnt = 0;
-		_starpu_spin_init(&children->header_lock);
+		child->req_list = starpu_data_requester_list_new();
+		child->refcnt = 0;
+		_starpu_spin_init(&child->header_lock);
 
-		children->sequential_consistency = initial_handle->sequential_consistency;
+		child->sequential_consistency = initial_handle->sequential_consistency;
 
 		unsigned node;
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
-			children->per_node[node].state = 
+			child->per_node[node].state = 
 				initial_handle->per_node[node].state;
-			children->per_node[node].allocated = 
+			child->per_node[node].allocated = 
 				initial_handle->per_node[node].allocated;
-			children->per_node[node].automatically_allocated = initial_handle->per_node[node].automatically_allocated;
-			children->per_node[node].refcnt = 0;
+			child->per_node[node].automatically_allocated = initial_handle->per_node[node].automatically_allocated;
+			child->per_node[node].refcnt = 0;
 		}
 	}
 
