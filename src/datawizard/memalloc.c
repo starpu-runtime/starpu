@@ -352,9 +352,19 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 }
 #endif
 
+static int _starpu_data_interface_compare(void *interface_a, struct starpu_data_interface_ops_t *ops_a,
+						void *interface_b, struct starpu_data_interface_ops_t *ops_b)
+{
+	if (ops_a->interfaceid != ops_b->interfaceid)
+		return -1;
+
+	int ret = ops_a->compare(interface_a, interface_b);
+
+	return ret;
+}
+
 starpu_mem_chunk_t _starpu_memchunk_cache_lookup(uint32_t node, starpu_data_handle handle)
 {
-#warning This is not a sufficient criterium, we need a compare function in the interface structure ...
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
 	pthread_rwlock_wrlock(&mc_rwlock[node]);
@@ -367,6 +377,10 @@ starpu_mem_chunk_t _starpu_memchunk_cache_lookup(uint32_t node, starpu_data_hand
 	{
 		if (mc->footprint == footprint)
 		{
+			/* Is that a false hit ? (this is _very_ unlikely) */
+			if (_starpu_data_interface_compare(&handle->interface[node], handle->ops, mc->interface, mc->ops))
+				continue;
+
 			/* Cache hit */
 
 			/* Remove from the cache */
