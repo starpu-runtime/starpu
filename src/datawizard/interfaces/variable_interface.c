@@ -23,11 +23,6 @@
 
 #include <common/hash.h>
 
-
-
-
-
-
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #endif
@@ -77,6 +72,7 @@ static size_t allocate_variable_buffer_on_node(void *interface_, uint32_t dst_no
 static void free_variable_buffer_on_node(void *interface, uint32_t node);
 static size_t variable_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_variable_interface_crc32(starpu_data_handle handle);
+static int variable_compare(void *interface_a, void *interface_b);
 static void display_variable_interface(starpu_data_handle handle, FILE *f);
 #ifdef STARPU_USE_GORDON
 static int convert_variable_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
@@ -89,6 +85,7 @@ static struct starpu_data_interface_ops_t interface_variable_ops = {
 	.copy_methods = &variable_copy_data_methods_s,
 	.get_size = variable_interface_get_size,
 	.footprint = footprint_variable_interface_crc32,
+	.compare = variable_compare,
 #ifdef STARPU_USE_GORDON
 	.convert_to_gordon = convert_variable_to_gordon,
 #endif
@@ -143,6 +140,15 @@ static uint32_t footprint_variable_interface_crc32(starpu_data_handle handle)
 {
 	return _starpu_crc32_be(starpu_variable_get_elemsize(handle), 0);
 }
+
+static int variable_compare(void *interface_a, void *interface_b)
+{
+	starpu_variable_interface_t *variable_a = interface_a;
+	starpu_variable_interface_t *variable_b = interface_b;
+
+	/* Two variables are considered compatible if they have the same size */
+	return (variable_a->elemsize == variable_b->elemsize);
+} 
 
 static void display_variable_interface(starpu_data_handle handle, FILE *f)
 {

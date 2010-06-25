@@ -33,6 +33,7 @@ struct starpu_data_interface_ops_t {
 	const struct starpu_copy_data_methods_s *copy_methods;
 	size_t (*get_size)(starpu_data_handle handle);
 	uint32_t (*footprint)(starpu_data_handle handle);
+	int (*compare)(void *interface_a, void *interface_b);
 	void (*display)(starpu_data_handle handle, FILE *f);
 #ifdef STARPU_USE_GORDON
 	int (*convert_to_gordon)(void *interface, uint64_t *ptr, gordon_strideSize_t *ss); 

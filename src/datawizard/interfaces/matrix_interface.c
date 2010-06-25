@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -72,6 +72,7 @@ static size_t allocate_matrix_buffer_on_node(void *interface_, uint32_t dst_node
 static void free_matrix_buffer_on_node(void *interface, uint32_t node);
 static size_t matrix_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle handle);
+static int matrix_compare(void *interface_a, void *interface_b);
 static void display_matrix_interface(starpu_data_handle handle, FILE *f);
 #ifdef STARPU_USE_GORDON
 static int convert_matrix_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
@@ -84,6 +85,7 @@ struct starpu_data_interface_ops_t _starpu_interface_matrix_ops = {
 	.copy_methods = &matrix_copy_data_methods_s,
 	.get_size = matrix_interface_get_size,
 	.footprint = footprint_matrix_interface_crc32,
+	.compare = matrix_compare,
 #ifdef STARPU_USE_GORDON
 	.convert_to_gordon = convert_matrix_to_gordon,
 #endif
@@ -160,6 +162,17 @@ void starpu_matrix_data_register(starpu_data_handle *handleptr, uint32_t home_no
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle handle)
 {
 	return _starpu_crc32_be(starpu_matrix_get_nx(handle), starpu_matrix_get_ny(handle));
+}
+
+static int matrix_compare(void *interface_a, void *interface_b)
+{
+	starpu_matrix_interface_t *matrix_a = interface_a;
+	starpu_matrix_interface_t *matrix_b = interface_b;
+
+	/* Two matricess are considered compatible if they have the same size */
+	return ((matrix_a->nx == matrix_b->nx)
+			&& (matrix_a->ny == matrix_b->ny)
+			&& (matrix_a->elemsize == matrix_b->elemsize));
 }
 
 static void display_matrix_interface(starpu_data_handle handle, FILE *f)

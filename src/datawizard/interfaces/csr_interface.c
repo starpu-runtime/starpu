@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -59,6 +59,7 @@ static void register_csr_handle(starpu_data_handle handle, uint32_t home_node, v
 static size_t allocate_csr_buffer_on_node(void *interface_, uint32_t dst_node);
 static void free_csr_buffer_on_node(void *interface, uint32_t node);
 static size_t csr_interface_get_size(starpu_data_handle handle);
+static int csr_compare(void *interface_a, void *interface_b);
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle handle);
 
 static struct starpu_data_interface_ops_t interface_csr_ops = {
@@ -69,7 +70,8 @@ static struct starpu_data_interface_ops_t interface_csr_ops = {
 	.get_size = csr_interface_get_size,
 	.interfaceid = STARPU_CSR_INTERFACE_ID,
 	.interface_size = sizeof(starpu_csr_interface_t),
-	.footprint = footprint_csr_interface_crc32
+	.footprint = footprint_csr_interface_crc32,
+	.compare = csr_compare
 };
 
 static void register_csr_handle(starpu_data_handle handle, uint32_t home_node, void *interface)
@@ -121,6 +123,17 @@ void starpu_csr_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle handle)
 {
 	return _starpu_crc32_be(starpu_csr_get_nnz(handle), 0);
+}
+
+static int csr_compare(void *interface_a, void *interface_b)
+{
+	starpu_csr_interface_t *csr_a = interface_a;
+	starpu_csr_interface_t *csr_b = interface_b;
+
+	/* Two matricess are considered compatible if they have the same size */
+	return ((csr_a->nnz == csr_b->nnz)
+			&& (csr_a->nrow == csr_b->nrow)
+			&& (csr_a->elemsize == csr_b->elemsize));
 }
 
 /* offer an access to the data parameters */

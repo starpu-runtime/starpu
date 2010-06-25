@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -69,6 +69,7 @@ static size_t allocate_block_buffer_on_node(void *interface_, uint32_t dst_node)
 static void free_block_buffer_on_node(void *interface, uint32_t node);
 static size_t block_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_block_interface_crc32(starpu_data_handle handle);
+static int block_compare(void *interface_a, void *interface_b);
 static void display_block_interface(starpu_data_handle handle, FILE *f);
 #ifdef STARPU_USE_GORDON
 static int convert_block_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss);
@@ -81,6 +82,7 @@ static struct starpu_data_interface_ops_t interface_block_ops = {
 	.copy_methods = &block_copy_data_methods_s,
 	.get_size = block_interface_get_size,
 	.footprint = footprint_block_interface_crc32,
+	.compare = block_compare,
 #ifdef STARPU_USE_GORDON
 	.convert_to_gordon = convert_block_to_gordon,
 #endif
@@ -160,6 +162,18 @@ static uint32_t footprint_block_interface_crc32(starpu_data_handle handle)
 	hash = _starpu_crc32_be(starpu_block_get_nz(handle), hash);
 
 	return hash;
+}
+
+static int block_compare(void *interface_a, void *interface_b)
+{
+	starpu_block_interface_t *block_a = interface_a;
+	starpu_block_interface_t *block_b = interface_b;
+
+	/* Two matricess are considered compatible if they have the same size */
+	return ((block_a->nx == block_b->nx)
+			&& (block_a->ny == block_b->ny)
+			&& (block_a->nz == block_b->nz)
+			&& (block_a->elemsize == block_b->elemsize));
 }
 
 static void display_block_interface(starpu_data_handle handle, FILE *f)

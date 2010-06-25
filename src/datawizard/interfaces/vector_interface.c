@@ -71,6 +71,7 @@ static size_t allocate_vector_buffer_on_node(void *interface_, uint32_t dst_node
 static void free_vector_buffer_on_node(void *interface, uint32_t node);
 static size_t vector_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_vector_interface_crc32(starpu_data_handle handle);
+static int vector_compare(void *interface_a, void *interface_b);
 static void display_vector_interface(starpu_data_handle handle, FILE *f);
 #ifdef STARPU_USE_GORDON
 static int convert_vector_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
@@ -83,6 +84,7 @@ static struct starpu_data_interface_ops_t interface_vector_ops = {
 	.copy_methods = &vector_copy_data_methods_s,
 	.get_size = vector_interface_get_size,
 	.footprint = footprint_vector_interface_crc32,
+	.compare = vector_compare,
 #ifdef STARPU_USE_GORDON
 	.convert_to_gordon = convert_vector_to_gordon,
 #endif
@@ -148,6 +150,16 @@ void starpu_vector_data_register(starpu_data_handle *handleptr, uint32_t home_no
 static uint32_t footprint_vector_interface_crc32(starpu_data_handle handle)
 {
 	return _starpu_crc32_be(starpu_vector_get_nx(handle), 0);
+}
+
+static int vector_compare(void *interface_a, void *interface_b)
+{
+	starpu_vector_interface_t *vector_a = interface_a;
+	starpu_vector_interface_t *vector_b = interface_b;
+
+	/* Two vectors are considered compatible if they have the same size */
+	return ((vector_a->nx == vector_b->nx)
+			&& (vector_a->elemsize == vector_b->elemsize));
 }
 
 static void display_vector_interface(starpu_data_handle handle, FILE *f)
