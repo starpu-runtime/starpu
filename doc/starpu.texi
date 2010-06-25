@@ -824,7 +824,19 @@ This is the maximum number of Cell SPUs that StarPU can use. This can also be
 specified with the @code{STARPU_NGORDON} environment variable.
 
 @item @code{use_explicit_workers_bindid} (default = 0)
+If this flag is set, the @code{workers_bindid} array indicates where the
+different workers are bound, otherwise StarPU automatically selects where to
+bind the different workers unless the @code{STARPU_WORKERS_CPUID} environment
+variable is set. The @code{STARPU_WORKERS_CPUID} environment variable is
+ignored if the @code{use_explicit_workers_bindid} flag is set.
 @item @code{workers_bindid[STARPU_NMAXWORKERS]}
+If the @code{use_explicit_workers_bindid} flag is set, this array indicates
+where to bind the different workers. The i-th entry of the
+@code{workers_bindid} indicates the logical identifier of the processor which
+should execute the i-th worker. Note that the logical ordering of the CPUs is
+either determined by the OS, or provided by the @code{hwloc} library in case it
+is available.
+ 
 @item @code{use_explicit_workers_cuda_gpuid} (default = 0)
 @item @code{workers_cuda_gpuid[STARPU_NMAXWORKERS]}
 @item @code{use_explicit_workers_opencl_gpuid} (default = 0)
@@ -1088,7 +1100,8 @@ This pointer is ignored if @code{STARPU_OPENCL} does not appear in the
 
 @item @code{gordon_func} (optional):
 This is the index of the Cell SPU implementation within the Gordon library.
-TODO
+See Gordon documentation for more details on how to register a kernel and
+retrieve its index.
 
 @item @code{nbuffers}:
 Specifies the number of arguments taken by the codelet. These arguments are
@@ -1465,7 +1478,6 @@ resets all profiling measurements. When profiling is enabled, the
 @code{profiling_info} field of the @code{struct starpu_task} structure points
 to a valid @code{struct starpu_task_profiling_info} structure containing
 information about the execution of the task.
-@c TODO add link to the structure description subsection
 @item @emph{Return value}:
 Negative return values indicate an error, otherwise the previous status is
 returned.
@@ -2052,7 +2064,6 @@ extern "C" void scal_cuda_func(void *buffers[], void *_args)
     /* local copy of the vector pointer */
     float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
 
-    /* TODO: use more blocks and threads in blocks */
 @i{    vector_mult_cuda<<<1,1>>>(val, n, *factor);}
 
 @i{    cudaThreadSynchronize();}
