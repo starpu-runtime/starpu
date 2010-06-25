@@ -59,6 +59,8 @@ LIST_TYPE(starpu_job,
 	pthread_cond_t sync_cond;
 
 	struct starpu_buffer_descr_t ordered_buffers[STARPU_NMAXBUFS];
+	
+	starpu_mem_chunk_t scratch_memchunks[STARPU_NMAXBUFS];
 
 	struct starpu_tag_s *tag;
 	struct starpu_cg_list_s job_successors;

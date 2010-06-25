@@ -19,7 +19,7 @@
 
 static pthread_rwlock_t mc_rwlock[STARPU_MAXNODES]; 
 static starpu_mem_chunk_list_t mc_list[STARPU_MAXNODES];
-static starpu_mem_chunk_list_t mc_list_to_free[STARPU_MAXNODES];
+static starpu_mem_chunk_list_t memchunk_cache[STARPU_MAXNODES];
 
 static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node);
 
@@ -30,7 +30,7 @@ void _starpu_init_mem_chunk_lists(void)
 	{
 		pthread_rwlock_init(&mc_rwlock[i], NULL);
 		mc_list[i] = starpu_mem_chunk_list_new();
-		mc_list_to_free[i] = starpu_mem_chunk_list_new();
+		memchunk_cache[i] = starpu_mem_chunk_list_new();
 	}
 }
 
@@ -40,7 +40,7 @@ void _starpu_deinit_mem_chunk_lists(void)
 	for (i = 0; i < STARPU_MAXNODES; i++)
 	{
 		starpu_mem_chunk_list_delete(mc_list[i]);
-		starpu_mem_chunk_list_delete(mc_list_to_free[i]);
+		starpu_mem_chunk_list_delete(memchunk_cache[i]);
 	}
 }
 
@@ -235,7 +235,7 @@ static void reuse_mem_chunk(unsigned node, starpu_data_handle new_data, starpu_m
 
 	if (!is_already_in_mc_list)
 	{
-		starpu_mem_chunk_list_erase(mc_list_to_free[node], mc);
+		starpu_mem_chunk_list_erase(memchunk_cache[node], mc);
 	}
 
 	if (!mc->data_was_deleted)
@@ -247,7 +247,7 @@ static void reuse_mem_chunk(unsigned node, starpu_data_handle new_data, starpu_m
 	new_data->per_node[node].allocated = 1;
 	new_data->per_node[node].automatically_allocated = 1;
 
-	memcpy(&new_data->interface[node], mc->interface, old_data->interface_size);
+	memcpy(&new_data->interface[node], mc->interface, old_data->ops->interface_size);
 
 	mc->data = new_data;
 	mc->data_was_deleted = 0;
@@ -299,10 +299,10 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 {
 	pthread_rwlock_wrlock(&mc_rwlock[node]);
 
-	/* go through all buffers for which there was a removal request */
+	/* go through all buffers in the cache */
 	starpu_mem_chunk_t mc, next_mc;
-	for (mc = starpu_mem_chunk_list_begin(mc_list_to_free[node]);
-	     mc != starpu_mem_chunk_list_end(mc_list_to_free[node]);
+	for (mc = starpu_mem_chunk_list_begin(memchunk_cache[node]);
+	     mc != starpu_mem_chunk_list_end(memchunk_cache[node]);
 	     mc = next_mc)
 	{
 		next_mc = starpu_mem_chunk_list_next(mc);
@@ -352,25 +352,63 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 }
 #endif
 
+starpu_mem_chunk_t _starpu_memchunk_cache_lookup(uint32_t node, starpu_data_handle handle)
+{
+#warning This is not a sufficient criterium, we need a compare function in the interface structure ...
+	uint32_t footprint = _starpu_compute_data_footprint(handle);
+
+	pthread_rwlock_wrlock(&mc_rwlock[node]);
+
+	/* go through all buffers in the cache */
+	starpu_mem_chunk_t mc;
+	for (mc = starpu_mem_chunk_list_begin(memchunk_cache[node]);
+	     mc != starpu_mem_chunk_list_end(memchunk_cache[node]);
+	     mc = starpu_mem_chunk_list_next(mc))
+	{
+		if (mc->footprint == footprint)
+		{
+			/* Cache hit */
+
+			/* Remove from the cache */
+			starpu_mem_chunk_list_erase(memchunk_cache[node], mc);
+			pthread_rwlock_unlock(&mc_rwlock[node]);
+
+			return mc;
+		}
+	}
+
+	/* This is a cache miss */
+	pthread_rwlock_unlock(&mc_rwlock[node]);
+	return NULL;
+}
+
+void _starpu_memchunk_cache_insert(uint32_t node, starpu_mem_chunk_t mc)
+{
+	pthread_rwlock_wrlock(&mc_rwlock[node]);
+	mc->data = NULL;
+	starpu_mem_chunk_list_push_front(memchunk_cache[node], mc);
+	pthread_rwlock_unlock(&mc_rwlock[node]);
+}
+
 /*
  * Free the memory chuncks that are explicitely tagged to be freed. The
  * mc_rwlock[node] rw-lock should be taken prior to calling this function.
  */
-static size_t perform_mc_removal_requests(uint32_t node)
+static size_t flush_memchunk_cache(uint32_t node)
 {
 	starpu_mem_chunk_t mc, next_mc;
 	
 	size_t freed = 0;
 
-	for (mc = starpu_mem_chunk_list_begin(mc_list_to_free[node]);
-	     mc != starpu_mem_chunk_list_end(mc_list_to_free[node]);
+	for (mc = starpu_mem_chunk_list_begin(memchunk_cache[node]);
+	     mc != starpu_mem_chunk_list_end(memchunk_cache[node]);
 	     mc = next_mc)
 	{
 		next_mc = starpu_mem_chunk_list_next(mc);
 
 		freed += free_memory_on_node(mc, node);
 
-		starpu_mem_chunk_list_erase(mc_list_to_free[node], mc);
+		starpu_mem_chunk_list_erase(memchunk_cache[node], mc);
 
 		free(mc->interface);
 		starpu_mem_chunk_delete(mc);
@@ -432,7 +470,7 @@ static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unu
 	STARPU_ASSERT(!res);
 
 	/* remove all buffers for which there was a removal request */
-	freed += perform_mc_removal_requests(node);
+	freed += flush_memchunk_cache(node);
 
 	/* try to free all allocated data potentially in use */
 	freed += free_potentially_in_use_mc(node, 0);
@@ -457,7 +495,7 @@ size_t _starpu_free_all_automatically_allocated_buffers(uint32_t node)
 	res = pthread_rwlock_wrlock(&mc_rwlock[node]);
 	STARPU_ASSERT(!res);
 
-	freed += perform_mc_removal_requests(node);
+	freed += flush_memchunk_cache(node);
 	freed += free_potentially_in_use_mc(node, 1);
 
 	res = pthread_rwlock_unlock(&mc_rwlock[node]);
@@ -466,12 +504,8 @@ size_t _starpu_free_all_automatically_allocated_buffers(uint32_t node)
 	return freed;
 }
 
-
-
-static void register_mem_chunk(starpu_data_handle handle, uint32_t dst_node, size_t size, unsigned automatically_allocated)
+starpu_mem_chunk_t _starpu_memchunk_init(starpu_data_handle handle, size_t size, void *interface, size_t interface_size, unsigned automatically_allocated)
 {
-	int res;
-
 	starpu_mem_chunk_t mc = starpu_mem_chunk_new();
 
 	STARPU_ASSERT(handle);
@@ -484,13 +518,26 @@ static void register_mem_chunk(starpu_data_handle handle, uint32_t dst_node, siz
 	mc->data_was_deleted = 0;
 	mc->automatically_allocated = automatically_allocated;
 
+	/* Save a copy of the interface */
+	mc->interface = malloc(interface_size);
+	STARPU_ASSERT(mc->interface);
+	memcpy(mc->interface, interface, interface_size);
+
+	return mc;
+}
+
+static void register_mem_chunk(starpu_data_handle handle, uint32_t dst_node, size_t size, unsigned automatically_allocated)
+{
+	int res;
+
+	starpu_mem_chunk_t mc;
+
 	/* the interface was already filled by ops->allocate_data_on_node */
 	void *src_interface = starpu_data_get_interface_on_node(handle, dst_node);
+	size_t interface_size = handle->ops->interface_size;
 
-	mc->interface = malloc(handle->ops->interface_size);
-	STARPU_ASSERT(mc->interface);
-
-	memcpy(mc->interface, src_interface, handle->ops->interface_size);
+	/* Put this memchunk in the list of memchunk in use */
+	mc = _starpu_memchunk_init(handle, size, src_interface, interface_size, automatically_allocated); 
 
 	res = pthread_rwlock_wrlock(&mc_rwlock[dst_node]);
 	STARPU_ASSERT(!res);
@@ -525,7 +572,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle handle, unsigned node)
 			starpu_mem_chunk_list_erase(mc_list[node], mc);
 
 			/* put it in the list of buffers to be removed */
-			starpu_mem_chunk_list_push_front(mc_list_to_free[node], mc);
+			starpu_mem_chunk_list_push_front(memchunk_cache[node], mc);
 
 			res = pthread_rwlock_unlock(&mc_rwlock[node]);
 			STARPU_ASSERT(!res);
@@ -559,14 +606,14 @@ static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
 //	_starpu_spin_lock(&handle->header_lock);
 
 	if (mc->automatically_allocated && 
-		(data_was_deleted || handle->per_node[node].refcnt == 0))
+		(!handle || data_was_deleted || handle->per_node[node].refcnt == 0))
 	{
-		if (!data_was_deleted)
+		if (handle && !data_was_deleted)
 			STARPU_ASSERT(handle->per_node[node].allocated);
 
 		mc->ops->free_data_on_node(mc->interface, node);
 
-		if (!data_was_deleted)
+		if (handle && !data_was_deleted)
 		{
 			handle->per_node[node].allocated = 0;
 
@@ -576,7 +623,7 @@ static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
 
 		freed = mc->size;
 
-		if (!data_was_deleted)
+		if (handle && !data_was_deleted)
 			STARPU_ASSERT(handle->per_node[node].refcnt == 0);
 	}
 

@@ -50,4 +50,9 @@ size_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, ui
 int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node, unsigned may_alloc);
 size_t _starpu_free_all_automatically_allocated_buffers(uint32_t node);
 
+/* Memory chunk cache */
+void _starpu_memchunk_cache_insert(uint32_t node, starpu_mem_chunk_t);
+starpu_mem_chunk_t _starpu_memchunk_cache_lookup(uint32_t node, starpu_data_handle handle);
+starpu_mem_chunk_t _starpu_memchunk_init(starpu_data_handle handle, size_t size, void *interface,
+			size_t interface_size, unsigned automatically_allocated);
 #endif

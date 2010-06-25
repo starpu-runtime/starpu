@@ -373,6 +373,9 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 	starpu_buffer_descr *descrs = task->buffers;
 	unsigned nbuffers = task->cl->nbuffers;
 
+#warning TODO get that from the stack
+	starpu_job_t j = (struct starpu_job_s *)task->starpu_private;
+
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
@@ -389,17 +392,27 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 
 		if (mode & STARPU_SCRATCH)
 		{
-			/* This is a scratch memory, so we duplicate (any of)
-			 * the interface which contains sufficient information
-			 * to allocate the buffer. */
-			size_t interface_size = handle->ops->interface_size;
-			void *src_interface = starpu_data_get_interface_on_node(handle, local_memory_node);
-			interface = malloc(interface_size);
-			STARPU_ASSERT(interface);
-			memcpy(interface, src_interface, interface_size);
+			starpu_mem_chunk_t mc;
+			mc = _starpu_memchunk_cache_lookup(local_memory_node, handle);
+			if (!mc)
+			{
+				/* Cache miss */
 
-			/* Pass the interface to StarPU so that the buffer can be allocated */
-			_starpu_allocate_interface(handle, interface, local_memory_node);
+				/* This is a scratch memory, so we duplicate (any of)
+				 * the interface which contains sufficient information
+				 * to allocate the buffer. */
+				size_t interface_size = handle->ops->interface_size;
+				void *src_interface = starpu_data_get_interface_on_node(handle, local_memory_node);
+	
+				/* Pass the interface to StarPU so that the buffer can be allocated */
+				_starpu_allocate_interface(handle, src_interface, local_memory_node);
+
+				size_t size = _starpu_data_get_size(handle);
+				mc = _starpu_memchunk_init(handle, size, src_interface, interface_size, 1);
+			}
+
+			interface = mc->interface;
+			j->scratch_memchunks[index] = mc;
 		}
 		else {
 			/* That's a "normal" buffer (R/W) */
@@ -435,6 +448,8 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
         starpu_buffer_descr *descrs = task->buffers;
         unsigned nbuffers = task->cl->nbuffers;
 
+	starpu_job_t j = (struct starpu_job_s *)task->starpu_private;
+
 	uint32_t local_node = _starpu_get_local_memory_node();
 
 	unsigned index;
@@ -445,11 +460,7 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 
 		if (mode & STARPU_SCRATCH)
 		{
-			void *interface = task->interface[index];
-
-			handle->ops->free_data_on_node(interface, local_node);
-
-			free(interface);
+			_starpu_memchunk_cache_insert(local_node, j->scratch_memchunks[index]);
 		}
 		else {
 			_starpu_release_data_on_node(handle, mask, local_node);
