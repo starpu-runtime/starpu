@@ -1486,17 +1486,19 @@ Return the current profiling status or a negative value in case there was an err
 @subsection @code{struct starpu_task_profiling_info} -- Task profiling information
 @table @asis
 @item @emph{Description}:
-TODO
+This structure contains information about the execution of a task. It is
+accessible from the @code{.profiling_info} field of the @code{starpu_task}
+structure if profiling was enabled.
 @item @emph{Fields}:
 @table @asis
 @item @code{submit_time}:
-TODO
+Date of task submission (relative to the initialization of StarPU).
 @item @code{start_time}:
-TODO
+Date of task execution beginning (relative to the initialization of StarPU).
 @item @code{end_time}:
-TODO
+Date of task execution termination (relative to the initialization of StarPU).
 @item @code{workerid}:
-TODO
+Identifier of the worker which has executed the task.
 @end table
 @end table
 
@@ -1504,22 +1506,21 @@ TODO
 @subsection @code{struct starpu_worker_profiling_info} -- Worker profiling information
 @table @asis
 @item @emph{Description}:
-TODO
+This structure contains the profiling information associated to a worker.
 @item @emph{Fields}:
 @table @asis
 @item @code{start_time}:
-TODO
+Starting date for the reported profiling measurements.
 @item @code{total_time}:
-TODO
+Duration of the profiling measurement interval.
 @item @code{executing_time}:
-TODO
+Time spent by the worker to execute tasks during the profiling measurement interval.
 @item @code{sleeping_time}:
-TODO
+Time spent idling by the worker during the profiling measurement interval.
 @item @code{executed_tasks}:
-TODO
+Number of tasks executed by the worker during the profiling measurement interval.
 @end table
 @end table
-
 
 @node starpu_worker_get_profiling_info
 @subsection @code{starpu_worker_get_profiling_info} -- Get worker profiling info
