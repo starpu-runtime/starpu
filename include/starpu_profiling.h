@@ -21,6 +21,10 @@
 #include <sys/time.h>
 #include <starpu.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define STARPU_PROFILING_DISABLE	0
 #define STARPU_PROFILING_ENABLE		1
 
@@ -130,5 +134,9 @@ double starpu_timing_timespec_delay_us(struct timespec *start, struct timespec *
 double starpu_timing_timespec_to_us(struct timespec *ts);
 
 void starpu_bus_profiling_helper_display_summary(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __STARPU_PROFILING_H__
