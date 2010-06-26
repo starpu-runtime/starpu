@@ -648,11 +648,11 @@ void _starpu_update_perfmodel_history(starpu_job_t j, enum starpu_perf_archtype 
 		struct starpu_task *task = j->task;
 		for (i = 0; i < task->cl->nbuffers; i++)
 		{
-			struct starpu_data_state_t *state = task->buffers[i].handle;
+			struct starpu_data_handle_t *handle = task->buffers[i].handle;
 
-			STARPU_ASSERT(state->ops);
-			STARPU_ASSERT(state->ops->display);
-			state->ops->display(state, debug_file);
+			STARPU_ASSERT(handle->ops);
+			STARPU_ASSERT(handle->ops->display);
+			handle->ops->display(handle, debug_file);
 		}
 		fprintf(debug_file, "\n");	
 
