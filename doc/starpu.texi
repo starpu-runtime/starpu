@@ -880,6 +880,7 @@ guaranteed to be available until this method has been called.
 * starpu_worker_get_id::        Get the identifier of the current worker
 * starpu_worker_get_type::      Get the type of processing unit associated to a worker
 * starpu_worker_get_name::      Get the name of a worker
+* starpu_worker_get_memory_node:: Get the memory node of a worker 
 @end menu
 
 @node starpu_worker_get_count
@@ -991,6 +992,18 @@ function on an invalid identifier results in an unspecified behaviour.
 
 @end table
 
+@node starpu_worker_get_memory_node
+@subsection @code{starpu_worker_get_memory_node} -- Get the memory node of a worker
+@table @asis
+@item @emph{Description}:
+This function returns the identifier of the memory node associated to the worker identified by @code{workerid}.
+
+@item @emph{Prototype}:
+@code{unsigned starpu_worker_get_memory_node(unsigned workerid);}
+
+@end table
+
+
 @node Data Library
 @section Data Library
 
@@ -1058,7 +1071,20 @@ the data that is accessible from the current processing unit.
 @subsection @code{starpu_data_register} -- Register a piece of data to StarPU
 @table @asis
 @item @emph{Description}:
-TODO
+Register a piece of data into the handle located at the @code{handleptr}
+address. The @code{interface} buffer contains the initial description of the
+data in the home node. The @code{ops} argument is a pointer to a structure
+describing the different methods used to manipulate this type of interface. See
+@ref{struct starpu_data_interface_ops_t} for more details on this structure.
+
+If @code{home_node} is not a valid memory node, StarPU will automatically
+allocate the memory described by the interface the data handle is used for the
+first time in write-only mode. Once such data handle has been automatically
+allocated, it is possible to access it using any access mode.
+
+Note that StarPU supplies a set of predefined types of interface (eg. vector or
+matrix) which can be registered by the means of helper functions (eg.
+@code{starpu_vector_data_register} or @code{starpu_matrix_data_register}).
 @item @emph{Prototype}:
 @code{void starpu_data_register(starpu_data_handle *handleptr,
 				uint32_t home_node,
@@ -1070,10 +1096,15 @@ TODO
 @subsection @code{starpu_data_unregister} -- Unregister a piece of data from StarPU
 @table @asis
 @item @emph{Description}:
+This function unregisters a data handle from StarPU. If the data was
+automatically allocated by StarPU because the home node was not valid, all
+automatically allocated buffers are freed. Otherwise, a valid copy of the data
+is put back into the home node in the buffer that was initially registered.
+Using a data handle that has been unregistered from StarPU results in an
+undefined behaviour.
 @item @emph{Prototype}:
 @code{void starpu_data_unregister(starpu_data_handle handle);}
 @end table
-@c starpu_worker_get_memory_node TODO
 @c void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node); TODO
 @c user interaction with the DSM
 @c   void starpu_data_sync_with_mem(struct starpu_data_state_t *state);
