@@ -36,6 +36,7 @@ This manual documents the usage of StarPU.
 * Using StarPU::                How to run StarPU application
 * Configuring StarPU::          How to configure StarPU
 * StarPU API::                  The API to use StarPU
+* Advanced Topics::             Advanced use of StarPU
 * Basic Examples::              Basic examples of the use of StarPU
 * Full source code for the 'Scaling a Vector' example::  
 @end menu
@@ -999,11 +1000,28 @@ TODO: We show how to use existing data interfaces in [ref], but developers can
 design their own data interfaces if required.
 
 @menu
+* unsigned memory_node::        Memory node
 * starpu_data_handle::          StarPU opaque data handle
 * void *interface::             StarPU data interface
-* starpu_XXX_data_register::    
-* starpu_data_unregister::      
+* starpu_data_register::        Register a piece of data to StarPU
+* starpu_data_unregister::      Unregister a piece of data from StarPU
 @end menu
+
+@node unsigned memory_node
+@subsection @code{unsigned memory_node} -- Memory node
+@table @asis
+@item @emph{Description}:
+Every worker is associated to a memory node which is a logical abstraction of
+the address space from which the processing unit gets its data. For instance,
+the memory node associated to the different CPU workers represents main memory
+(RAM), the memory node associated to a GPU is DRAM embedded on the device.
+Every memory node is identified by a logical index which is accessible from the
+@code{starpu_worker_get_memory_node} function. When registering a piece of data
+to StarPU, the specified memory node indicates where the piece of data
+initially resides (we also call this memory node the home node of a piece of
+data).
+@end table
+
 
 @node starpu_data_handle
 @subsection @code{starpu_data_handle} -- StarPU opaque data handle
@@ -1024,27 +1042,43 @@ Data management is done at a high-level in StarPU: rather than accessing a mere
 list of contiguous buffers, the tasks may manipulate data that are described by
 a high-level construct which we call data interface.
 
-TODO
+An example of data interface is the "vector" interface which describes a
+contiguous data array on a spefic memory node. This interface is a simple
+structure containing the number of elements in the array, the size of the
+elements, and the address of the array in the appropriate address space (this
+address may be invalid if there is no valid copy of the array in the memory
+node).
+
+When a piece of data managed by StarPU is used by a task, the task
+implementation is given a pointer to an interface describing a valid copy of
+the data that is accessible from the current processing unit.
 @end table
 
-@node starpu_XXX_data_register
-@subsection @code{starpu_XXX_data_register} -- Register data to StarPU
+@node starpu_data_register
+@subsection @code{starpu_data_register} -- Register a piece of data to StarPU
 @table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{void starpu_data_register(starpu_data_handle *handleptr,
+				uint32_t home_node,
+				void *interface,
+				struct starpu_data_interface_ops_t *ops);}
 @end table
 
 @node starpu_data_unregister
-@subsection @code{starpu_data_unregister} -- Unregister data from StarPU
+@subsection @code{starpu_data_unregister} -- Unregister a piece of data from StarPU
 @table @asis
 @item @emph{Description}:
 @item @emph{Prototype}:
 @code{void starpu_data_unregister(starpu_data_handle handle);}
 @end table
 @c starpu_worker_get_memory_node TODO
-@c
-
+@c void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node); TODO
 @c user interaction with the DSM
 @c   void starpu_data_sync_with_mem(struct starpu_data_state_t *state);
 @c   void starpu_notify_data_modification(struct starpu_data_state_t *state, uint32_t modifying_node);
+@c   struct starpu_data_interface_ops_t *ops
 
 @node Codelets and Tasks
 @section Codelets and Tasks
@@ -1573,10 +1607,6 @@ TODO
 @section CUDA extensions
 
 @c void starpu_data_malloc_pinned_if_possible(float **A, size_t dim);
-
-@c starpu_helper_cublas_init TODO
-
-@c starpu_helper_cublas_shutdown TODO
 
 @menu
 * starpu_cuda_get_local_stream::  Get current worker's CUDA stream
@@ -2284,8 +2314,47 @@ or by disabling CUDA devices:
 @c Advanced Topics
 @c ---------------------------------------------------------------------
 
-@c @node Advanced Topics
-@c @chapter Advanced Topics
+@node Advanced Topics
+@chapter Advanced Topics
+
+@menu
+* Defining a new data interface::
+* Defining a new scheduling policy::
+@end menu
+
+@node Defining a new data interface
+@section Defining a new data interface
+
+@menu
+* struct starpu_data_interface_ops_t::  Per-interface methods
+* struct starpu_data_copy_methods::	Per-interface data transfer methods
+* An example of data interface::        An example of data interface
+@end menu
+
+@node struct starpu_data_interface_ops_t
+@subsection @code{struct starpu_data_interface_ops_t} -- Per-interface methods
+@table @asis
+@item @emph{Description}:
+TODO describe all the different fields
+@end table
+
+@node struct starpu_data_copy_methods
+@subsection @code{struct starpu_data_copy_methods} -- Per-interface data transfer methods
+@table @asis
+@item @emph{Description}:
+TODO describe all the different fields
+@end table
+
+@node An example of data interface
+@subsection An example of data interface
+@table @asis
+TODO
+@end table
+
+@node Defining a new scheduling policy
+@section Defining a new scheduling policy
+
+TODO
 
 @c ---------------------------------------------------------------------
 @c Appendices
