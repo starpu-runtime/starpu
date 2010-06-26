@@ -19,10 +19,16 @@
 
 #include <starpu.h>
 #include <starpu_data.h>
+#include <starpu_opencl.h>
 
 #ifdef STARPU_USE_GORDON
 /* to get the gordon_strideSize_t data structure from gordon */
 #include <gordon.h>
+#endif
+
+#ifdef STARPU_USE_CUDA
+/* to use CUDA streams */
+#include <cuda_runtime.h>
 #endif
 
 #ifdef __cplusplus
