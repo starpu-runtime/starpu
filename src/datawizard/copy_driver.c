@@ -80,8 +80,6 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, uint32_t src_node
 {
 	int ret = 0;
 
-	//ret = handle->ops->copy_data_1_to_1(handle, src_node, dst_node);
-
 	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
 
 	starpu_node_kind src_kind = _starpu_get_node_kind(src_node);
@@ -94,15 +92,18 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, uint32_t src_node
 	STARPU_ASSERT(handle->per_node[dst_node].allocated);
 
 #ifdef STARPU_USE_CUDA
-cudaError_t cures;
-cudaStream_t *stream;
+	cudaError_t cures;
+	cudaStream_t *stream;
 #endif
+
+	void *src_interface = starpu_data_get_interface_on_node(handle, src_node);
+	void *dst_interface = starpu_data_get_interface_on_node(handle, dst_node);
 
 	switch (MEMORY_NODE_TUPLE(src_kind,dst_kind)) {
       case MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CPU_RAM):
          /* STARPU_CPU_RAM -> STARPU_CPU_RAM */
          STARPU_ASSERT(copy_methods->ram_to_ram);
-         copy_methods->ram_to_ram(handle, src_node, dst_node);
+         copy_methods->ram_to_ram(src_interface, src_node, dst_interface, dst_node);
          break;
 #ifdef STARPU_USE_CUDA
       case MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CPU_RAM):
@@ -113,14 +114,14 @@ cudaStream_t *stream;
             STARPU_ASSERT(copy_methods->cuda_to_ram);
             if (!req || !copy_methods->cuda_to_ram_async) {
                /* this is not associated to a request so it's synchronous */
-               copy_methods->cuda_to_ram(handle, src_node, dst_node);
+               copy_methods->cuda_to_ram(src_interface, src_node, dst_interface, dst_node);
             }
             else {
                cures = cudaEventCreate(&req->async_channel.cuda_event);
                if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
                stream = starpu_cuda_get_local_stream();
-               ret = copy_methods->cuda_to_ram_async(handle, src_node, dst_node, stream);
+               ret = copy_methods->cuda_to_ram_async(src_interface, src_node, dst_interface, dst_node, stream);
 
                cures = cudaEventRecord(req->async_channel.cuda_event, *stream);
                if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
@@ -138,14 +139,14 @@ cudaStream_t *stream;
          STARPU_ASSERT(copy_methods->ram_to_cuda);
          if (!req || !copy_methods->ram_to_cuda_async) {
             /* this is not associated to a request so it's synchronous */
-            copy_methods->ram_to_cuda(handle, src_node, dst_node);
+            copy_methods->ram_to_cuda(src_interface, src_node, dst_interface, dst_node);
          }
          else {
             cures = cudaEventCreate(&req->async_channel.cuda_event);
             if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
             stream = starpu_cuda_get_local_stream();
-            ret = copy_methods->ram_to_cuda_async(handle, src_node, dst_node, stream);
+            ret = copy_methods->ram_to_cuda_async(src_interface, src_node, dst_interface, dst_node, stream);
 
             cures = cudaEventRecord(req->async_channel.cuda_event, *stream);
             if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
@@ -159,10 +160,10 @@ cudaStream_t *stream;
             STARPU_ASSERT(copy_methods->opencl_to_ram);
             if (!req || !copy_methods->opencl_to_ram_async) {
                /* this is not associated to a request so it's synchronous */
-               copy_methods->opencl_to_ram(handle, src_node, dst_node);
+               copy_methods->opencl_to_ram(src_interface, src_node, dst_interface, dst_node);
             }
             else {
-               ret = copy_methods->opencl_to_ram_async(handle, src_node, dst_node, &(req->async_channel.opencl_event));
+               ret = copy_methods->opencl_to_ram_async(src_interface, src_node, dst_interface, dst_node, &(req->async_channel.opencl_event));
             }
          }
          else {
@@ -176,10 +177,10 @@ cudaStream_t *stream;
          STARPU_ASSERT(copy_methods->ram_to_opencl);
          if (!req || !copy_methods->ram_to_opencl_async) {
             /* this is not associated to a request so it's synchronous */
-            copy_methods->ram_to_opencl(handle, src_node, dst_node);
+            copy_methods->ram_to_opencl(src_interface, src_node, dst_interface, dst_node);
          }
          else {
-            ret = copy_methods->ram_to_opencl_async(handle, src_node, dst_node, &(req->async_channel.opencl_event));
+            ret = copy_methods->ram_to_opencl_async(src_interface, src_node, dst_interface, dst_node, &(req->async_channel.opencl_event));
          }
          break;
 #endif

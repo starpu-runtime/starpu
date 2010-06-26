@@ -31,14 +31,14 @@
  * BCSR : blocked CSR, we use blocks of size (r x c)
  */
 
-static int dummy_copy_ram_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
+static int dummy_copy_ram_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 #ifdef STARPU_USE_CUDA
-static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
-static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
+static int copy_ram_to_cuda(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int copy_cuda_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 #endif
 #ifdef STARPU_USE_OPENCL
-static int copy_ram_to_opencl(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
-static int copy_opencl_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
+static int copy_ram_to_opencl(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int copy_opencl_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 #endif
 
 static const struct starpu_data_copy_methods bcsr_copy_data_methods_s = {
@@ -413,13 +413,10 @@ static void free_bcsr_buffer_on_node(void *interface, uint32_t node)
 }
 
 #ifdef STARPU_USE_CUDA
-static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
+static int copy_cuda_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 {
-	starpu_bcsr_interface_t *src_bcsr;
-	starpu_bcsr_interface_t *dst_bcsr;
-
-	src_bcsr = starpu_data_get_interface_on_node(handle, src_node);
-	dst_bcsr = starpu_data_get_interface_on_node(handle, dst_node);
+	starpu_bcsr_interface_t *src_bcsr = src_interface;
+	starpu_bcsr_interface_t *dst_bcsr = dst_interface;
 
 	uint32_t nnz = src_bcsr->nnz;
 	uint32_t nrow = src_bcsr->nrow;
@@ -449,13 +446,10 @@ static int copy_cuda_to_ram(starpu_data_handle handle, uint32_t src_node, uint32
 	return 0;
 }
 
-static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
+static int copy_ram_to_cuda(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 {
-	starpu_bcsr_interface_t *src_bcsr;
-	starpu_bcsr_interface_t *dst_bcsr;
-
-	src_bcsr = starpu_data_get_interface_on_node(handle, src_node);
-	dst_bcsr = starpu_data_get_interface_on_node(handle, dst_node);
+	starpu_bcsr_interface_t *src_bcsr = src_interface;
+	starpu_bcsr_interface_t *dst_bcsr = dst_interface;
 
 	uint32_t nnz = src_bcsr->nnz;
 	uint32_t nrow = src_bcsr->nrow;
@@ -487,13 +481,10 @@ static int copy_ram_to_cuda(starpu_data_handle handle, uint32_t src_node, uint32
 #endif // STARPU_USE_CUDA
 
 #ifdef STARPU_USE_OPENCL
-static int copy_opencl_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
+static int copy_opencl_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 {
-	starpu_bcsr_interface_t *src_bcsr;
-	starpu_bcsr_interface_t *dst_bcsr;
-
-	src_bcsr = starpu_data_get_interface_on_node(handle, src_node);
-	dst_bcsr = starpu_data_get_interface_on_node(handle, dst_node);
+	starpu_bcsr_interface_t *src_bcsr = src_interface;
+	starpu_bcsr_interface_t *dst_bcsr = dst_interface;
 
 	uint32_t nnz = src_bcsr->nnz;
 	uint32_t nrow = src_bcsr->nrow;
@@ -521,13 +512,10 @@ static int copy_opencl_to_ram(starpu_data_handle handle, uint32_t src_node, uint
 	return 0;
 }
 
-static int copy_ram_to_opencl(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
+static int copy_ram_to_opencl(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 {
-	starpu_bcsr_interface_t *src_bcsr;
-	starpu_bcsr_interface_t *dst_bcsr;
-
-	src_bcsr = starpu_data_get_interface_on_node(handle, src_node);
-	dst_bcsr = starpu_data_get_interface_on_node(handle, dst_node);
+	starpu_bcsr_interface_t *src_bcsr = src_interface;
+	starpu_bcsr_interface_t *dst_bcsr = dst_interface;
 
 	uint32_t nnz = src_bcsr->nnz;
 	uint32_t nrow = src_bcsr->nrow;
@@ -557,13 +545,10 @@ static int copy_ram_to_opencl(starpu_data_handle handle, uint32_t src_node, uint
 #endif // STARPU_USE_OPENCL
 
 /* as not all platform easily have a BLAS lib installed ... */
-static int dummy_copy_ram_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node)
+static int dummy_copy_ram_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
 {
-	starpu_bcsr_interface_t *src_bcsr;
-	starpu_bcsr_interface_t *dst_bcsr;
-
-	src_bcsr = starpu_data_get_interface_on_node(handle, src_node);
-	dst_bcsr = starpu_data_get_interface_on_node(handle, dst_node);
+	starpu_bcsr_interface_t *src_bcsr = src_interface;
+	starpu_bcsr_interface_t *dst_bcsr = dst_interface;
 
 	uint32_t nnz = src_bcsr->nnz;
 	uint32_t nrow = src_bcsr->nrow;

@@ -19,7 +19,6 @@
 
 #include <starpu.h>
 #include <starpu_data.h>
-#include <starpu_opencl.h>
 
 #ifdef STARPU_USE_GORDON
 /* to get the gordon_strideSize_t data structure from gordon */
@@ -41,44 +40,43 @@ extern "C" {
  * different types of memory nodes */
 struct starpu_data_copy_methods {
 	/* src type is ram */
-	int (*ram_to_ram)(starpu_data_handle handle, uint32_t src, uint32_t dst);
-	int (*ram_to_cuda)(starpu_data_handle handle, uint32_t src, uint32_t dst);
-	int (*ram_to_opencl)(starpu_data_handle handle, uint32_t src, uint32_t dst);
-	int (*ram_to_spu)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*ram_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*ram_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*ram_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*ram_to_spu)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 	/* src type is cuda */
-	int (*cuda_to_ram)(starpu_data_handle handle, uint32_t src, uint32_t dst);
-	int (*cuda_to_cuda)(starpu_data_handle handle, uint32_t src, uint32_t dst);
-	int (*cuda_to_opencl)(starpu_data_handle handle, uint32_t src, uint32_t dst);
-	int (*cuda_to_spu)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*cuda_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*cuda_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*cuda_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*cuda_to_spu)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 	/* src type is spu */
-	int (*spu_to_ram)(starpu_data_handle handle, uint32_t src, uint32_t dst);
-	int (*spu_to_cuda)(starpu_data_handle handle, uint32_t src, uint32_t dst);
-	int (*spu_to_opencl)(starpu_data_handle handle, uint32_t src, uint32_t dst);
-	int (*spu_to_spu)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*spu_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*spu_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*spu_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*spu_to_spu)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 	/* src type is opencl */
-	int (*opencl_to_ram)(starpu_data_handle handle, uint32_t src, uint32_t dst);
-	int (*opencl_to_cuda)(starpu_data_handle handle, uint32_t src, uint32_t dst);
-	int (*opencl_to_opencl)(starpu_data_handle handle, uint32_t src, uint32_t dst);
-	int (*opencl_to_spu)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*opencl_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*opencl_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*opencl_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*opencl_to_spu)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 #ifdef STARPU_USE_CUDA
 	/* for asynchronous CUDA transfers */
-	int (*ram_to_cuda_async)(starpu_data_handle handle, uint32_t src,
-					uint32_t dst, cudaStream_t *stream);
-	int (*cuda_to_ram_async)(starpu_data_handle handle, uint32_t src,
-					uint32_t dst, cudaStream_t *stream);
-	int (*cuda_to_cuda_async)(starpu_data_handle handle, uint32_t src,
-					uint32_t dst, cudaStream_t *stream);
+	int (*ram_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t *stream);
+	int (*cuda_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t *stream);
+	int (*cuda_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t *stream);
 #endif
 
 #ifdef STARPU_USE_OPENCL
 	/* for asynchronous OpenCL transfers */
-        int (*ram_to_opencl_async)(starpu_data_handle handle, uint32_t src, uint32_t dst, cl_event *event);
-	int (*opencl_to_ram_async)(starpu_data_handle handle, uint32_t src, uint32_t dst, cl_event *event);
-	int (*opencl_to_opencl_async)(starpu_data_handle handle, uint32_t src, uint32_t dst, cl_event *event);
+	/* XXX we do not use a cl_event *event type for the last argument
+	 * because nvcc does not like when we have to include OpenCL headers */
+        int (*ram_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event);
+	int (*opencl_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event);
+	int (*opencl_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event);
 #endif
 };
 
