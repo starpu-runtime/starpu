@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -43,22 +43,22 @@ typedef struct starpu_buffer_descr_t {
 
 struct starpu_data_interface_ops_t;
 
-void starpu_data_unpartition(starpu_data_handle root_data, uint32_t gathering_node);
-void starpu_data_unregister(starpu_data_handle state);
+void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_node);
+void starpu_data_unregister(starpu_data_handle handle);
 
-void starpu_data_advise_as_important(starpu_data_handle state, unsigned is_important);
+void starpu_data_advise_as_important(starpu_data_handle handle, unsigned is_important);
 
-int starpu_data_sync_with_mem(starpu_data_handle state, starpu_access_mode mode);
+int starpu_data_sync_with_mem(starpu_data_handle handle, starpu_access_mode mode);
 int starpu_data_sync_with_mem_non_blocking(starpu_data_handle handle,
 			starpu_access_mode mode, void (*callback)(void *), void *arg);
-void starpu_data_release_from_mem(starpu_data_handle state);
+void starpu_data_release_from_mem(starpu_data_handle handle);
 
 int starpu_data_malloc_pinned_if_possible(void **A, size_t dim);
 int starpu_data_free_pinned_if_possible(void *A);
 
-int starpu_data_request_allocation(starpu_data_handle state, uint32_t node);
+int starpu_data_request_allocation(starpu_data_handle handle, uint32_t node);
 
-int starpu_data_prefetch_on_node(starpu_data_handle state, unsigned node, unsigned async);
+int starpu_data_prefetch_on_node(starpu_data_handle handle, unsigned node, unsigned async);
 
 unsigned starpu_worker_get_memory_node(unsigned workerid);
 
@@ -66,7 +66,7 @@ unsigned starpu_worker_get_memory_node(unsigned workerid);
  * that when it is modified, it is automatically transfered into those memory
  * node. For instance a (1<<0) write-back mask means that the CUDA workers will
  * commit their changes in main memory (node 0). */
-void starpu_data_set_wb_mask(starpu_data_handle state, uint32_t wb_mask);
+void starpu_data_set_wb_mask(starpu_data_handle handle, uint32_t wb_mask);
 
 void starpu_data_set_sequential_consistency_flag(starpu_data_handle handle, unsigned flag);
 unsigned starpu_data_get_default_sequential_consistency_flag(void);
