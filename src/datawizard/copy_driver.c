@@ -82,7 +82,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, uint32_t src_node
 
 	//ret = handle->ops->copy_data_1_to_1(handle, src_node, dst_node);
 
-	const struct starpu_copy_data_methods_s *copy_methods = handle->ops->copy_methods;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
 
 	starpu_node_kind src_kind = _starpu_get_node_kind(src_node);
 	starpu_node_kind dst_kind = _starpu_get_node_kind(dst_node);

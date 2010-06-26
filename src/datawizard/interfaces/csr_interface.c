@@ -37,7 +37,7 @@ static int copy_ram_to_opencl(starpu_data_handle handle, uint32_t src_node, uint
 static int copy_opencl_to_ram(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node);
 #endif
 
-static const struct starpu_copy_data_methods_s csr_copy_data_methods_s = {
+static const struct starpu_data_copy_methods csr_copy_data_methods_s = {
 	.ram_to_ram = dummy_copy_ram_to_ram,
 	.ram_to_spu = NULL,
 #ifdef STARPU_USE_CUDA
@@ -117,7 +117,7 @@ void starpu_csr_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 		.elemsize = elemsize
 	};
 
-	_starpu_register_data_handle(handleptr, home_node, &interface, &interface_csr_ops);
+	starpu_data_register(handleptr, home_node, &interface, &interface_csr_ops);
 }
 
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle handle)

@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,9 +20,83 @@
 #include <starpu.h>
 #include <starpu_data.h>
 
+#ifdef STARPU_USE_GORDON
+/* to get the gordon_strideSize_t data structure from gordon */
+#include <gordon.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* The following structures are used to describe data interfaces */
+
+/* This structure contains the different methods to transfer data between the
+ * different types of memory nodes */
+struct starpu_data_copy_methods {
+	/* src type is ram */
+	int (*ram_to_ram)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*ram_to_cuda)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*ram_to_opencl)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*ram_to_spu)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+
+	/* src type is cuda */
+	int (*cuda_to_ram)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*cuda_to_cuda)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*cuda_to_opencl)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*cuda_to_spu)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+
+	/* src type is spu */
+	int (*spu_to_ram)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*spu_to_cuda)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*spu_to_opencl)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*spu_to_spu)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+
+	/* src type is opencl */
+	int (*opencl_to_ram)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*opencl_to_cuda)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*opencl_to_opencl)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+	int (*opencl_to_spu)(starpu_data_handle handle, uint32_t src, uint32_t dst);
+
+#ifdef STARPU_USE_CUDA
+	/* for asynchronous CUDA transfers */
+	int (*ram_to_cuda_async)(starpu_data_handle handle, uint32_t src,
+					uint32_t dst, cudaStream_t *stream);
+	int (*cuda_to_ram_async)(starpu_data_handle handle, uint32_t src,
+					uint32_t dst, cudaStream_t *stream);
+	int (*cuda_to_cuda_async)(starpu_data_handle handle, uint32_t src,
+					uint32_t dst, cudaStream_t *stream);
+#endif
+
+#ifdef STARPU_USE_OPENCL
+	/* for asynchronous OpenCL transfers */
+        int (*ram_to_opencl_async)(starpu_data_handle handle, uint32_t src, uint32_t dst, cl_event *event);
+	int (*opencl_to_ram_async)(starpu_data_handle handle, uint32_t src, uint32_t dst, cl_event *event);
+	int (*opencl_to_opencl_async)(starpu_data_handle handle, uint32_t src, uint32_t dst, cl_event *event);
+#endif
+};
+
+struct starpu_data_interface_ops_t {
+	void (*register_data_handle)(starpu_data_handle handle,
+					uint32_t home_node, void *interface);
+	size_t (*allocate_data_on_node)(void *interface, uint32_t node);
+	void (*free_data_on_node)(void *interface, uint32_t node);
+	const struct starpu_data_copy_methods *copy_methods;
+	size_t (*get_size)(starpu_data_handle handle);
+	uint32_t (*footprint)(starpu_data_handle handle);
+	int (*compare)(void *interface_a, void *interface_b);
+	void (*display)(starpu_data_handle handle, FILE *f);
+#ifdef STARPU_USE_GORDON
+	int (*convert_to_gordon)(void *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
+#endif
+	/* an identifier that is unique to each interface */
+	unsigned interfaceid;
+	size_t interface_size;
+};
+
+void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
+				void *interface,
+				struct starpu_data_interface_ops_t *ops);
 
 /* "node" means memory node: 0 for main RAM, then 1, 2, etc. for various GPUs,
  * etc.

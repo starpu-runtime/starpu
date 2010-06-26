@@ -107,7 +107,7 @@ static starpu_data_handle _starpu_data_handle_allocate(struct starpu_data_interf
 	return handle;
 }
 
-void _starpu_register_data_handle(starpu_data_handle *handleptr, uint32_t home_node,
+void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 				void *interface,
 				struct starpu_data_interface_ops_t *ops)
 {
@@ -127,7 +127,7 @@ void _starpu_register_data_handle(starpu_data_handle *handleptr, uint32_t home_n
  * Stop monitoring a piece of data
  */
 
-void starpu_data_free_interfaces(starpu_data_handle handle)
+void _starpu_data_free_interfaces(starpu_data_handle handle)
 {
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -231,7 +231,7 @@ void starpu_data_unregister(starpu_data_handle handle)
 
 	starpu_data_requester_list_delete(handle->req_list);
 
-	starpu_data_free_interfaces(handle);
+	_starpu_data_free_interfaces(handle);
 
 	free(handle);
 }

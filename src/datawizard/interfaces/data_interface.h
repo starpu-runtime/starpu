@@ -20,36 +20,8 @@
 #include <starpu.h>
 #include <common/config.h>
 
-#ifdef STARPU_USE_GORDON
-/* to get the gordon_strideSize_t data structure from gordon */
-#include <gordon.h>
-#endif
-
-struct starpu_data_interface_ops_t {
-	void (*register_data_handle)(starpu_data_handle handle,
-					uint32_t home_node, void *interface);
-	size_t (*allocate_data_on_node)(void *interface, uint32_t node);
-	void (*free_data_on_node)(void *interface, uint32_t node);
-	const struct starpu_copy_data_methods_s *copy_methods;
-	size_t (*get_size)(starpu_data_handle handle);
-	uint32_t (*footprint)(starpu_data_handle handle);
-	int (*compare)(void *interface_a, void *interface_b);
-	void (*display)(starpu_data_handle handle, FILE *f);
-#ifdef STARPU_USE_GORDON
-	int (*convert_to_gordon)(void *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
-#endif
-	/* an identifier that is unique to each interface */
-	unsigned interfaceid;
-	size_t interface_size;
-};
-
-void _starpu_register_data_handle(starpu_data_handle *handleptr, uint32_t home_node,
-				void *interface,
-				struct starpu_data_interface_ops_t *ops);
-
 /* Some data interfaces or filters use this interface internally */
 extern struct starpu_data_interface_ops_t _starpu_interface_matrix_ops;
-
-void starpu_data_free_interfaces(starpu_data_handle handle);
+void _starpu_data_free_interfaces(starpu_data_handle handle);
 
 #endif // __DATA_INTERFACE_H__
