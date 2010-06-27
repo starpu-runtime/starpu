@@ -757,7 +757,7 @@ This variable specify in which file the debugging output should be saved to.
 * Data Library::                Methods to manipulate data
 * Codelets and Tasks::          Methods to construct tasks
 * Explicit Dependencies::       Explicit Dependencies
-* Implicit Dependencies::       Implicit Dependencies
+* Implicit Data Dependencies::  Implicit Data Dependencies
 * Profiling API::               Profiling API
 * CUDA extensions::             CUDA extensions
 * OpenCL extensions::           OpenCL extensions
@@ -997,7 +997,8 @@ function on an invalid identifier results in an unspecified behaviour.
 @subsection @code{starpu_worker_get_memory_node} -- Get the memory node of a worker
 @table @asis
 @item @emph{Description}:
-This function returns the identifier of the memory node associated to the worker identified by @code{workerid}.
+This function returns the identifier of the memory node associated to the
+worker identified by @code{workerid}.
 
 @item @emph{Prototype}:
 @code{unsigned starpu_worker_get_memory_node(unsigned workerid);}
@@ -1541,8 +1542,8 @@ DAG before actually giving StarPU the opportunity to execute the tasks.
 @code{void starpu_tag_notify_from_apps(starpu_tag_t id);}
 @end table
 
-@node Implicit Dependencies
-@section Implicit Dependencies
+@node Implicit Data Dependencies
+@section Implicit Data Dependencies
 
 @menu
 * starpu_data_set_default_sequential_consistency_flag::        starpu_data_set_default_sequential_consistency_flag
@@ -1550,11 +1551,25 @@ DAG before actually giving StarPU the opportunity to execute the tasks.
 * starpu_data_set_sequential_consistency_flag::                starpu_data_set_sequential_consistency_flag
 @end menu
 
+In this section, we describe how StarPU makes it possible to insert implicit
+task dependencies in order to enforce sequential data consistency. When this
+data consistency is enabled on a specific data handle, any data access will
+appear as sequentially consistent from the application. For instance, if the
+application submits two tasks that access the same piece of data in read-only
+mode, and then a third task that access it in write mode, dependencies will be
+added between the two first tasks and the third one. Implicit data dependencies
+are also inserted in the case of data accesses from the application.
+
 @node starpu_data_set_default_sequential_consistency_flag
 @subsection @code{starpu_data_set_default_sequential_consistency_flag} -- Set default sequential consistency flag
 @table @asis
 @item @emph{Description}:
-TODO
+Set the default sequential consistency flag. If a non-null value is passed, a
+sequential data consistency will be enforced for all handles registered after
+this function call, otherwise it is disabled. By default, StarPU enables
+sequential data consistency. It is also possible to select the data consistency
+mode of a specific data handle with the
+@code{starpu_data_set_sequential_consistency_flag} function.
 @item @emph{Prototype}:
 @code{void starpu_data_set_default_sequential_consistency_flag(unsigned flag);}
 @end table
@@ -1563,7 +1578,7 @@ TODO
 @subsection @code{starpu_data_get_default_sequential_consistency_flag} -- Get current default sequential consistency flag
 @table @asis
 @item @emph{Description}:
-TODO
+This function returns the current default sequential consistency flag.
 @item @emph{Prototype}:
 @code{unsigned starpu_data_set_default_sequential_consistency_flag(void);}
 @end table
@@ -1572,7 +1587,9 @@ TODO
 @subsection @code{starpu_data_set_sequential_consistency_flag} -- Set data sequential consistency mode
 @table @asis
 @item @emph{Description}:
-TODO
+Select the data consistency mode associated to a data handle. The consistency
+mode set using this function has the priority over the default mode which can
+be set with @code{starpu_data_set_sequential_consistency_flag}.
 @item @emph{Prototype}:
 @code{void starpu_data_set_sequential_consistency_flag(starpu_data_handle handle, unsigned flag);}
 @end table
