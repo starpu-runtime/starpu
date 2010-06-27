@@ -879,6 +879,7 @@ guaranteed to be available until this method has been called.
 * starpu_opencl_worker_get_count::  Get the number of OpenCL devices controlled by StarPU
 * starpu_spu_worker_get_count::  Get the number of Cell SPUs controlled by StarPU
 * starpu_worker_get_id::        Get the identifier of the current worker
+* starpu_worker_get_devid::        Get the device identifier of a worker
 * starpu_worker_get_type::      Get the type of processing unit associated to a worker
 * starpu_worker_get_name::      Get the name of a worker
 * starpu_worker_get_memory_node:: Get the memory node of a worker 
@@ -956,6 +957,23 @@ an integer between 0 and @code{starpu_worker_get_count() - 1}.
 
 @item @emph{Prototype}:
 @code{int starpu_worker_get_id(void);}
+@end table
+
+@node starpu_worker_get_devid
+@subsection @code{starpu_worker_get_devid} -- Get the device identifier of a worker
+@table @asis
+
+@item @emph{Description}:
+This functions returns the device id of the worker associated to an identifier
+(as returned by the @code{starpu_worker_get_id} function). In the case of a
+CUDA worker, this device identifier is the logical device identifier exposed by
+CUDA (used by the @code{cudaGetDevice} function for instance). The device
+identifier of a CPU worker is the logical identifier of the core on which the
+worker was bound; this identifier is either provided by the OS or by the
+@code{hwloc} library in case it is available.
+
+@item @emph{Prototype}:
+@code{int starpu_worker_get_devid(int id);}
 @end table
 
 @node starpu_worker_get_type
