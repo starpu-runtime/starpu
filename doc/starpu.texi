@@ -756,7 +756,8 @@ This variable specify in which file the debugging output should be saved to.
 * Workers' Properties::         Methods to enumerate workers' properties
 * Data Library::                Methods to manipulate data
 * Codelets and Tasks::          Methods to construct tasks
-* Tags::                        Task dependencies
+* Explicit Dependencies::       Explicit Dependencies
+* Implicit Dependencies::       Implicit Dependencies
 * Profiling API::               Profiling API
 * CUDA extensions::             CUDA extensions
 * OpenCL extensions::           OpenCL extensions
@@ -1385,11 +1386,12 @@ This function blocks until all the tasks that were submitted are terminated.
 
 @c Callbacks : what can we put in callbacks ?
 
-@node Tags
-@section Tags
+@node Explicit Dependencies
+@section Explicit Dependencies
 
 @menu
-* starpu_tag_t::                Task identifier
+* starpu_task_declare_deps_array::        starpu_task_declare_deps_array
+* starpu_tag_t::                Task logical identifier
 * starpu_tag_declare_deps::     Declare the Dependencies of a Tag
 * starpu_tag_declare_deps_array::  Declare the Dependencies of a Tag
 * starpu_tag_wait::             Block until a Tag is terminated
@@ -1398,9 +1400,28 @@ This function blocks until all the tasks that were submitted are terminated.
 * starpu_tag_notify_from_apps::  Feed a tag explicitly
 @end menu
 
+@node starpu_task_declare_deps_array
+@subsection @code{starpu_task_declare_deps_array} -- Declare task dependencies
+@table @asis
+@item @emph{Description}:
+Declare task dependencies between a @code{task} and an array of tasks of length
+@code{ndeps}. This function must be called prior to the submission of the task,
+but it may called after the submission or the execution of the tasks in the
+array provided the tasks are still valid (ie. they were not automatically
+destroyed). Calling this function on a task that was already submitted or with
+an entry of @code{task_array} that is not a valid task anymore results in an
+undefined behaviour. If @code{ndeps} is null, no dependency is added. It is
+possible to call @code{starpu_task_declare_deps_array} multiple times on the
+same task, in this case, the dependencies are added. It is possible to have
+redundancy in the task dependencies.
+@item @emph{Prototype}:
+@code{void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);}
+@end table
+
+
 
 @node starpu_tag_t
-@subsection @code{starpu_tag_t} -- Task identifier
+@subsection @code{starpu_tag_t} -- Task logical identifier
 @table @asis
 @item @emph{Description}:
 It is possible to associate a task with a unique ``tag'' and to express
@@ -1518,6 +1539,42 @@ convenient tool for the programmer, for instance to entirely construct the task
 DAG before actually giving StarPU the opportunity to execute the tasks.
 @item @emph{Prototype}:
 @code{void starpu_tag_notify_from_apps(starpu_tag_t id);}
+@end table
+
+@node Implicit Dependencies
+@section Implicit Dependencies
+
+@menu
+* starpu_data_set_default_sequential_consistency_flag::        starpu_data_set_default_sequential_consistency_flag
+* starpu_data_get_default_sequential_consistency_flag::        starpu_data_get_default_sequential_consistency_flag
+* starpu_data_set_sequential_consistency_flag::                starpu_data_set_sequential_consistency_flag
+@end menu
+
+@node starpu_data_set_default_sequential_consistency_flag
+@subsection @code{starpu_data_set_default_sequential_consistency_flag} -- Set default sequential consistency flag
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{void starpu_data_set_default_sequential_consistency_flag(unsigned flag);}
+@end table
+
+@node starpu_data_get_default_sequential_consistency_flag
+@subsection @code{starpu_data_get_default_sequential_consistency_flag} -- Get current default sequential consistency flag
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{unsigned starpu_data_set_default_sequential_consistency_flag(void);}
+@end table
+
+@node starpu_data_set_sequential_consistency_flag
+@subsection @code{starpu_data_set_sequential_consistency_flag} -- Set data sequential consistency mode
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{void starpu_data_set_sequential_consistency_flag(starpu_data_handle handle, unsigned flag);}
 @end table
 
 @node Profiling API
