@@ -1015,12 +1015,25 @@ TODO: We show how to use existing data interfaces in [ref], but developers can
 design their own data interfaces if required.
 
 @menu
+* starpu_access_mode::          starpu_access_mode
 * unsigned memory_node::        Memory node
 * starpu_data_handle::          StarPU opaque data handle
 * void *interface::             StarPU data interface
 * starpu_data_register::        Register a piece of data to StarPU
 * starpu_data_unregister::      Unregister a piece of data from StarPU
 @end menu
+
+@node starpu_access_mode
+@subsection @code{starpu_access_mode} -- Data access mode
+This datatype describes a data access mode. The different available modes are:
+@table @asis
+@table @asis 
+@item @code{STARPU_R} read-only mode.
+@item @code{STARPU_W} write-only mode.
+@item @code{STARPU_RW} read-write mode. This is equivalent to @code{STARPU_R|STARPU_W}.
+@item @code{STARPU_SCRATCH} scratch memory. A temporary buffer is allocated for the task, but StarPU does not enforce data consistency.
+@end table
+@end table
 
 @node unsigned memory_node
 @subsection @code{unsigned memory_node} -- Memory node
