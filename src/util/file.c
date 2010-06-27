@@ -16,7 +16,7 @@
 
 #include <starpu.h>
 
-void starpu_drop_comments(FILE *f)
+void _starpu_drop_comments(FILE *f)
 {
 	while(1) {
 		int c = getc(f);

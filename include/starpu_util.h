@@ -225,9 +225,6 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 cudaStream_t *starpu_cuda_get_local_stream(void);
 #endif
 
-/* If FILE is currently on a comment line, eat it.  */
-void starpu_drop_comments(FILE *f);
-
 #ifdef __cplusplus
 }
 #endif

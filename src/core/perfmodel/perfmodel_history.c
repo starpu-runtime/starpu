@@ -61,7 +61,7 @@ static void scan_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
 {
 	int res;
 
-	starpu_drop_comments(f);
+	_starpu_drop_comments(f);
 
 	res = fscanf(f, "%le\t%le\t%le\t%le\t%le\t%le\t%u\n", &reg_model->sumlnx, &reg_model->sumlnx2, &reg_model->sumlny, &reg_model->sumlnxlny, &reg_model->alpha, &reg_model->beta, &reg_model->nsample);
 	STARPU_ASSERT(res == 7);
@@ -77,7 +77,7 @@ static void scan_history_entry(FILE *f, struct starpu_history_entry_t *entry)
 {
 	int res;
 
-	starpu_drop_comments(f);
+	_starpu_drop_comments(f);
 
 	res = fscanf(f, "%x\t%zu\t%le\t%le\t%le\t%le\t%u\n", &entry->footprint, &entry->size, &entry->mean, &entry->deviation, &entry->sum, &entry->sum2, &entry->nsample);
 	STARPU_ASSERT(res == 7);
@@ -87,14 +87,14 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_
 {
 	unsigned nentries;
 
-	starpu_drop_comments(f);
+	_starpu_drop_comments(f);
 
 	int res = fscanf(f, "%u\n", &nentries);
 	STARPU_ASSERT(res == 1);
 
 	scan_reg_model(f, &per_arch_model->regression);
 
-	starpu_drop_comments(f);
+	_starpu_drop_comments(f);
 
 	res = fscanf(f, "%le\t%le\t%le\n", 
 		&per_arch_model->regression.a,

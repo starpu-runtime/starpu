@@ -26,6 +26,9 @@
 int _starpu_mkpath(const char *s, mode_t mode);
 int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex);
 
+/* If FILE is currently on a comment line, eat it.  */
+void _starpu_drop_comments(FILE *f);
+
 #define PTHREAD_MUTEX_INIT(mutex, attr) { int ret = pthread_mutex_init((mutex), (attr)); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_mutex_init: %s\n", strerror(ret)); STARPU_ABORT(); }}
 #define PTHREAD_MUTEX_DESTROY(mutex) { int ret = pthread_mutex_destroy(mutex); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_mutex_destroy: %s\n", strerror(ret)); STARPU_ABORT(); }}
 #define PTHREAD_MUTEX_LOCK(mutex) { int ret = pthread_mutex_lock(mutex); if (STARPU_UNLIKELY(ret)) { fprintf(stderr, "pthread_mutex_lock : %s", strerror(ret)); STARPU_ABORT(); }}

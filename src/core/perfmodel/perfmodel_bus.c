@@ -490,7 +490,7 @@ static void load_bus_affinity_file_content(void)
 
 		int dummy;
 
-		starpu_drop_comments(f);
+		_starpu_drop_comments(f);
 		ret = fscanf(f, "%d\t", &dummy);
 		STARPU_ASSERT(ret == 1);
 
@@ -515,7 +515,7 @@ static void load_bus_affinity_file_content(void)
 
 		int dummy;
 
-		starpu_drop_comments(f);
+		_starpu_drop_comments(f);
 		ret = fscanf(f, "%d\t", &dummy);
 		STARPU_ASSERT(ret == 1);
 
@@ -655,7 +655,7 @@ static void load_bus_latency_file_content(void)
 
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
-		starpu_drop_comments(f);
+		_starpu_drop_comments(f);
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		{
 			double latency;
@@ -779,7 +779,7 @@ static void load_bus_bandwidth_file_content(void)
 
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
-		starpu_drop_comments(f);
+		_starpu_drop_comments(f);
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		{
 			double bandwidth;
@@ -918,16 +918,16 @@ static void check_bus_config_file()
                 // Loading configuration from file
                 f = fopen(path, "r");
                 STARPU_ASSERT(f);
-                starpu_drop_comments(f);
+                _starpu_drop_comments(f);
                 ret = fscanf(f, "%d\t", &read_cpus);
 		STARPU_ASSERT(ret == 1);
-                starpu_drop_comments(f);
+                _starpu_drop_comments(f);
 		ret = fscanf(f, "%d\t", &read_cuda);
 		STARPU_ASSERT(ret == 1);
-                starpu_drop_comments(f);
+                _starpu_drop_comments(f);
 		ret = fscanf(f, "%d\t", &read_opencl);
 		STARPU_ASSERT(ret == 1);
-                starpu_drop_comments(f);
+                _starpu_drop_comments(f);
                 fclose(f);
 
                 // Loading current configuration
