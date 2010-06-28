@@ -5,7 +5,7 @@ extern struct starpu_opencl_codelet codelet;
 
 void scal_opencl_func(void *buffers[], void *_args)
 @{
-    float *factor = (float *)_args;
+    float *factor = _args;
     int id, devid, err;
     cl_kernel kernel;
     cl_command_queue queue;
@@ -23,8 +23,8 @@ void scal_opencl_func(void *buffers[], void *_args)
 
     err = 0;
     err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &val);
-    err = clSetKernelArg(kernel, 1, sizeof(int), &n);
-    err |= clSetKernelArg(kernel, 2, sizeof(float), (void*)factor);
+    err = clSetKernelArg(kernel, 1, sizeof(n), &n);
+    err |= clSetKernelArg(kernel, 2, sizeof(*factor), factor);
     if (err) STARPU_OPENCL_REPORT_ERROR(err);
 
     @{
