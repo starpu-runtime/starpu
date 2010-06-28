@@ -2037,7 +2037,7 @@ The optional @code{cl_arg} field is a pointer to a buffer (of size
 @code{cl_arg_size}) with some parameters for the kernel
 described by the codelet. For instance, if a codelet implements a computational
 kernel that multiplies its input vector by a constant, the constant could be
-specified by the means of this buffer.
+specified by the means of this buffer, instead of registering it.
 
 Once a task has been executed, an optional callback function can be called.
 While the computational kernel could be offloaded on various architectures, the
@@ -2130,7 +2130,7 @@ starpu_task_submit(task);
 @end smallexample
 @end cartouche
 
-Since the factor is constant, it does not need a preliminary declaration, and
+Since the factor is a mere float value parameter, it does not need a preliminary registration, and
 can just be passed through the @code{cl_arg} pointer like in the previous
 example.  The vector parameter is described by its handle.
 There are two fields in each element of the @code{buffers} array.
