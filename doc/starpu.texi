@@ -2324,10 +2324,11 @@ extern void scal_cpu_func(void *buffers[], void *_args);
 
 /* @b{Definition of the codelet} */
 static starpu_codelet cl = @{
-    .where = STARPU_CPU|STARPU_CUDA; /* @b{It can be executed on a CPU} */
+    .where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL; /* @b{It can be executed on a CPU} */
                                      /* @b{or on a CUDA device} */
     .cuda_func = scal_cuda_func;
     .cpu_func = scal_cpu_func;
+    .opencl_func = scal_opencl_func;
     .nbuffers = 1;
 @}
 
