@@ -300,7 +300,7 @@ void *_starpu_opencl_worker(void *arg)
 
           _starpu_opencl_deinit_context(devid);
 
-#ifdef DATA_STATS
+#ifdef STARPU_DATA_STATS
 	fprintf(stderr, "OpenCL #%d computation %le comm %le (%lf \%%)\n", args->id, jobq->total_computation_time, jobq->total_communication_time, jobq->total_communication_time*100.0/jobq->total_computation_time);
 #endif
 
