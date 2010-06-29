@@ -31,12 +31,11 @@ static __global__ void vector_mult_cuda(float *val, unsigned n,
 extern "C" void scal_cuda_func(void *buffers[], void *_args)
 {
         float *factor = (float *)_args;
-        struct starpu_vector_interface_s *vector = (struct starpu_vector_interface_s *) buffers[0];
 
         /* length of the vector */
-        unsigned n = STARPU_GET_VECTOR_NX(vector);
+        unsigned n = STARPU_GET_VECTOR_NX(buffers[0]);
         /* local copy of the vector pointer */
-        float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
+        float *val = (float *)STARPU_GET_VECTOR_PTR(buffers[0]);
 
         /* TODO: use more blocks and threads in blocks */
         vector_mult_cuda<<<1,1>>>(val, n, *factor);

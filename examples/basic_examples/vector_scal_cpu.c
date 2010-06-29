@@ -26,7 +26,7 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
 	unsigned i;
 	float *factor = cl_arg;
 
-	/* 
+	/*
 	 * The "buffers" array matches the task->buffers array: for instance
 	 * task->buffers[0].handle is a handle that corresponds to a data with
 	 * vector "interface", so that the first entry of the array in the

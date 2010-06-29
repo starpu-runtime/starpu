@@ -25,16 +25,15 @@ extern struct starpu_opencl_codelet codelet;
 
 void scal_opencl_func(void *buffers[], void *_args)
 {
-	float *factor = (float *)_args;
-	struct starpu_vector_interface_s *vector = (struct starpu_vector_interface_s *) buffers[0];
+	float *factor = _args;
 	int id, devid, err;
 	cl_kernel kernel;
 	cl_command_queue queue;
 
 	/* length of the vector */
-	unsigned n = STARPU_GET_VECTOR_NX(vector);
+	unsigned n = STARPU_GET_VECTOR_NX(buffers[0]);
 	/* local copy of the vector pointer */
-	float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
+	float *val = (float *)STARPU_GET_VECTOR_PTR(buffers[0]);
 
 	id = starpu_worker_get_id();
 	devid = starpu_worker_get_devid(id);
@@ -44,8 +43,8 @@ void scal_opencl_func(void *buffers[], void *_args)
 
 	err = 0;
 	err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &val);
-	err = clSetKernelArg(kernel, 1, sizeof(int), &n);
-	err |= clSetKernelArg(kernel, 2, sizeof(float), (void*)factor);
+	err = clSetKernelArg(kernel, 1, sizeof(n), &n);
+	err |= clSetKernelArg(kernel, 2, sizeof(*factor), factor);
 	if (err) STARPU_OPENCL_REPORT_ERROR(err);
 
 	{

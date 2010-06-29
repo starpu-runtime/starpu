@@ -22,9 +22,6 @@
  *  3- how a kernel can manipulate the data (buffers[0].vector.ptr)
  */
 
-
-#include <stdio.h>
-#include <stdint.h>
 #include <starpu.h>
 #include <starpu_opencl.h>
 
@@ -35,14 +32,7 @@ extern void scal_cuda_func(void *buffers[], void *_args);
 extern void scal_opencl_func(void *buffers[], void *_args);
 
 static starpu_codelet cl = {
-	.where = STARPU_CPU
-#ifdef STARPU_USE_CUDA
-		| STARPU_CUDA
-#endif
-#ifdef STARPU_USE_OPENCL
-		| STARPU_OPENCL
-#endif
-		,
+	.where = STARPU_CPU | STARPU_CUDA | STARPU_OPENCL,
 	/* CPU implementation of the codelet */
 	.cpu_func = scal_cpu_func,
 #ifdef STARPU_USE_CUDA
@@ -93,7 +83,7 @@ int main(int argc, char **argv)
 	 *  - the fifth argument is the size of each element.
 	 */
 	starpu_data_handle vector_handle;
-	starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX, sizeof(float));
+	starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX, sizeof(vector[0]));
 
 	float factor = 3.14;
 
