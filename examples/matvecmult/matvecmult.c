@@ -25,7 +25,7 @@ static int width=20;
 static int height=4;
 
 #ifdef STARPU_USE_OPENCL
-struct starpu_opencl_codelet opencl_code;
+struct starpu_opencl_program opencl_code;
 void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	cl_kernel kernel;

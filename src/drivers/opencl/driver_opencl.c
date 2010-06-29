@@ -33,7 +33,7 @@ static cl_device_id devices[STARPU_MAXOPENCLDEVS];
 static cl_command_queue queues[STARPU_MAXOPENCLDEVS];
 static cl_uint nb_devices = -1;
 static int init_done = 0;
-extern char *_starpu_opencl_codelet_dir;
+extern char *_starpu_opencl_program_dir;
 
 void starpu_opencl_get_context(int devid, cl_context *context)
 {
@@ -172,7 +172,7 @@ void _starpu_opencl_init(void)
                 }
 
                 // Get location of OpenCl codelet source files
-                _starpu_opencl_codelet_dir = getenv("STARPU_OPENCL_CODELET_DIR");
+                _starpu_opencl_program_dir = getenv("STARPU_OPENCL_PROGRAM_DIR");
 
                 // initialise internal structures
                 for(i=0 ; i<nb_devices ; i++) {

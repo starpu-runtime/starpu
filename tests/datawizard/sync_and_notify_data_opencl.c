@@ -18,7 +18,7 @@
 #include <starpu_opencl.h>
 #include <CL/cl.h>
 
-extern struct starpu_opencl_codelet opencl_code;
+extern struct starpu_opencl_program opencl_code;
 
 void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
 {

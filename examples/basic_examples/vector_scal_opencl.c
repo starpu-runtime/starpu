@@ -21,7 +21,7 @@
 #include <starpu.h>
 #include <starpu_opencl.h>
 
-extern struct starpu_opencl_codelet codelet;
+extern struct starpu_opencl_program codelet;
 
 void scal_opencl_func(void *buffers[], void *_args)
 {

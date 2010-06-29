@@ -47,7 +47,7 @@ static starpu_codelet cl = {
 };
 
 #ifdef STARPU_USE_OPENCL
-struct starpu_opencl_codelet codelet;
+struct starpu_opencl_program codelet;
 #endif
 
 int main(int argc, char **argv)

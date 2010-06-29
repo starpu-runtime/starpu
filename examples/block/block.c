@@ -32,7 +32,7 @@ void cpu_codelet(void *descr[], void *_args)
 }
 
 #ifdef STARPU_USE_OPENCL
-struct starpu_opencl_codelet opencl_code;
+struct starpu_opencl_program opencl_code;
 void opencl_codelet(void *descr[], void *_args)
 {
 	cl_kernel kernel;

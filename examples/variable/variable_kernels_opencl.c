@@ -17,7 +17,7 @@
 #include <starpu.h>
 #include <starpu_opencl.h>
 
-extern struct starpu_opencl_codelet opencl_code;
+extern struct starpu_opencl_program opencl_code;
 void opencl_codelet(void *descr[], void *_args)
 {
 	float *val = (float *)STARPU_GET_VECTOR_PTR(descr[0]);

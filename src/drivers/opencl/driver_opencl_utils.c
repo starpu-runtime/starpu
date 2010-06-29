@@ -28,7 +28,7 @@
 #include "driver_opencl_utils.h"
 #include "driver_opencl.h"
 
-char *_starpu_opencl_codelet_dir;
+char *_starpu_opencl_program_dir;
 
 #define _STARPU_STRINGIFY_(x) #x
 #define _STARPU_STRINGIFY(x) _STARPU_STRINGIFY_(x)
@@ -40,8 +40,8 @@ int _starpu_opencl_locate_file(char *source_file_name, char *located_file_name) 
                 strcpy(located_file_name, source_file_name);
                 return EXIT_SUCCESS;
         }
-        if (_starpu_opencl_codelet_dir) {
-                sprintf(located_file_name, "%s/%s", _starpu_opencl_codelet_dir, source_file_name);
+        if (_starpu_opencl_program_dir) {
+                sprintf(located_file_name, "%s/%s", _starpu_opencl_program_dir, source_file_name);
                 _STARPU_OPENCL_DEBUG("Trying to locate <%s>\n", located_file_name);
                 if (access(located_file_name, R_OK) == 0) return EXIT_SUCCESS;
         }
@@ -57,7 +57,7 @@ int _starpu_opencl_locate_file(char *source_file_name, char *located_file_name) 
         return EXIT_FAILURE;
 }
 
-int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct starpu_opencl_codelet *codelet,
+int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct starpu_opencl_program *opencl_programs,
                               char *kernel_name, int devid)
 {
         int err;
@@ -69,7 +69,7 @@ int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct
         starpu_opencl_get_context(devid, &context);
         starpu_opencl_get_queue(devid, queue);
 
-        program = codelet->programs[devid];
+        program = opencl_programs->programs[devid];
         if (!program) {
                 fprintf(stderr, "Program not available\n");
                 return CL_INVALID_PROGRAM;
@@ -112,7 +112,7 @@ char *_starpu_opencl_load_program_source(const char *filename)
         return source;
 }
 
-int starpu_opencl_load_opencl_from_string(char *opencl_codelet_source, struct starpu_opencl_codelet *codelet)
+int starpu_opencl_load_opencl_from_string(char *opencl_program_source, struct starpu_opencl_program *opencl_programs)
 {
         unsigned int dev;
         unsigned int nb_devices;
@@ -127,12 +127,12 @@ int starpu_opencl_load_opencl_from_string(char *opencl_codelet_source, struct st
 
                 starpu_opencl_get_device(dev, &device);
                 starpu_opencl_get_context(dev, &context);
-                codelet->programs[dev] = NULL;
+                opencl_programs->programs[dev] = NULL;
 
                 if (context == NULL) continue;
 
                 // Create the compute program from the source buffer
-                program = clCreateProgramWithSource(context, 1, (const char **) &opencl_codelet_source, NULL, &err);
+                program = clCreateProgramWithSource(context, 1, (const char **) &opencl_program_source, NULL, &err);
                 if (!program || err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
                 // Build the program executable
@@ -149,12 +149,12 @@ int starpu_opencl_load_opencl_from_string(char *opencl_codelet_source, struct st
                 }
 
                 // Store program
-                codelet->programs[dev] = program;
+                opencl_programs->programs[dev] = program;
         }
         return EXIT_SUCCESS;
 }
 
-int starpu_opencl_load_opencl_from_file(char *source_file_name, struct starpu_opencl_codelet *codelet)
+int starpu_opencl_load_opencl_from_file(char *source_file_name, struct starpu_opencl_program *opencl_programs)
 {
         char located_file_name[1024];
 
@@ -163,14 +163,14 @@ int starpu_opencl_load_opencl_from_file(char *source_file_name, struct starpu_op
         _STARPU_OPENCL_DEBUG("Source file name : <%s>\n", located_file_name);
 
         // Load the compute program from disk into a cstring buffer
-        char *opencl_codelet_source = _starpu_opencl_load_program_source(located_file_name);
-        if(!opencl_codelet_source)
+        char *opencl_program_source = _starpu_opencl_load_program_source(located_file_name);
+        if(!opencl_program_source)
                 _STARPU_OPENCL_ERROR("Failed to load compute program from file <%s>!\n", located_file_name);
 
-        return starpu_opencl_load_opencl_from_string(opencl_codelet_source, codelet);
+        return starpu_opencl_load_opencl_from_string(opencl_program_source, opencl_programs);
 }
 
-int starpu_opencl_unload_opencl(struct starpu_opencl_codelet *codelet)
+int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs)
 {
         unsigned int dev;
         unsigned int nb_devices;
@@ -178,8 +178,8 @@ int starpu_opencl_unload_opencl(struct starpu_opencl_codelet *codelet)
         nb_devices = _starpu_opencl_get_device_count();
         // Iterate over each device
         for(dev = 0; dev < nb_devices; dev ++) {
-                if (codelet->programs[dev])
-                        clReleaseProgram(codelet->programs[dev]);
+                if (opencl_programs->programs[dev])
+                        clReleaseProgram(opencl_programs->programs[dev]);
         }
         return EXIT_SUCCESS;
 }

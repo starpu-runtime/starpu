@@ -50,7 +50,7 @@ void cuda_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args);
 #include <starpu_opencl.h>
 void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args);
 void opencl_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args);
-struct starpu_opencl_codelet opencl_code;
+struct starpu_opencl_program opencl_code;
 #endif
 
 #define VECTORSIZE	16

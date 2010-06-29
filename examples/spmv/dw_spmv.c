@@ -29,7 +29,7 @@ struct timeval end;
 
 #ifdef STARPU_USE_OPENCL
 #include "starpu_opencl.h"
-struct starpu_opencl_codelet opencl_codelet;
+struct starpu_opencl_program opencl_codelet;
 void spmv_kernel_opencl(void *descr[], void *args)
 {
 	cl_kernel kernel;
