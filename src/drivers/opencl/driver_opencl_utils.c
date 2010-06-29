@@ -53,7 +53,7 @@ int _starpu_opencl_locate_file(char *source_file_name, char *located_file_name) 
         if (access(located_file_name, R_OK) == 0) return EXIT_SUCCESS;
 
         strcpy(located_file_name, "");
-        OPENCL_ERROR("Cannot locate file <%s>\n", source_file_name);
+        _STARPU_OPENCL_ERROR("Cannot locate file <%s>\n", source_file_name);
         return EXIT_FAILURE;
 }
 
@@ -165,7 +165,7 @@ int starpu_opencl_load_opencl_from_file(char *source_file_name, struct starpu_op
         // Load the compute program from disk into a cstring buffer
         char *opencl_codelet_source = _starpu_opencl_load_program_source(located_file_name);
         if(!opencl_codelet_source)
-                OPENCL_ERROR("Failed to load compute program from file <%s>!\n", located_file_name);
+                _STARPU_OPENCL_ERROR("Failed to load compute program from file <%s>!\n", located_file_name);
 
         return starpu_opencl_load_opencl_from_string(opencl_codelet_source, codelet);
 }

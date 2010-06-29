@@ -27,15 +27,12 @@
 
 #define _STARPU_OPENCL_DISP(fmt, args ...) fprintf(stderr, "[starpu][%s] " fmt ,__func__ ,##args)
 
-#define OPENCL_ERROR(fmt, args ...)                                                   \
+#define _STARPU_OPENCL_ERROR(fmt, args ...)                                                   \
 	do {                                                                          \
                 fprintf(stderr, "[starpu][%s] Error: " fmt ,__func__ ,##args); \
 		assert(0);                                                            \
 	} while (0)
 
 #define STARPU_OPENCL_PLATFORM_MAX 4
-
-int _starpu_opencl_init_programs(int dev);
-int _starpu_opencl_release_programs(int dev);
 
 #endif /* __STARPU_OPENCL_UTILS_H__ */
