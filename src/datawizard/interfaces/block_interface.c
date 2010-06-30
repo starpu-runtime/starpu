@@ -712,6 +712,9 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node __att
 
 	cl_event *event = _event;
 
+	/* XXX non contiguous buffers are not properly supported yet. (TODO) */
+	STARPU_ASSERT((src_block->nx == src_block->ldy) && (src_block->ldy == dst_block->ldy));
+
 	int err = _starpu_opencl_copy_to_opencl((void*)src_block->ptr, (cl_mem)dst_block->dev_handle,
                                                 src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
                                                 dst_block->offset, event);
@@ -731,6 +734,9 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node __att
 
 	cl_event *event = _event;
 
+	/* XXX non contiguous buffers are not properly supported yet. (TODO) */
+	STARPU_ASSERT((src_block->nx == src_block->ldy) && (src_block->ldy == dst_block->ldy));
+
 	int err = _starpu_opencl_copy_from_opencl((cl_mem)src_block->dev_handle, (void*)dst_block->ptr,
                                                   src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
                                                   src_block->offset, event);
@@ -748,6 +754,9 @@ static int copy_ram_to_opencl(void *src_interface, unsigned src_node __attribute
 	starpu_block_interface_t *src_block = src_interface;
 	starpu_block_interface_t *dst_block = dst_interface;
 
+	/* XXX non contiguous buffers are not properly supported yet. (TODO) */
+	STARPU_ASSERT((src_block->nx == src_block->ldy) && (src_block->ldy == dst_block->ldy));
+
 	int err = _starpu_opencl_copy_to_opencl((void*)src_block->ptr, (cl_mem)dst_block->dev_handle,
                                                 src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
                                                 dst_block->offset, NULL);
@@ -764,6 +773,9 @@ static int copy_opencl_to_ram(void *src_interface, unsigned src_node __attribute
 {
 	starpu_block_interface_t *src_block = src_interface;
 	starpu_block_interface_t *dst_block = dst_interface;
+
+	/* XXX non contiguous buffers are not properly supported yet. (TODO) */
+	STARPU_ASSERT((src_block->nx == src_block->ldy) && (src_block->ldy == dst_block->ldy));
 
 	int err = _starpu_opencl_copy_from_opencl((cl_mem)src_block->dev_handle, (void*)dst_block->ptr,
                                                   src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
