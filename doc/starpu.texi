@@ -634,6 +634,9 @@ If the number of workers is larger than the array given in
 round-robin fashion: if @code{STARPU_WORKERS_CPUID = "0 1"}, the first and the
 third (resp. second and fourth) workers will be put on CPU #0 (resp. CPU #1).
 
+This variable is ignored if the @code{use_explicit_workers_bindid} flag of the
+@code{starpu_conf} structure passed to @code{starpu_init} is set.
+
 @end table
 
 @node STARPU_WORKERS_CUDAID
@@ -647,6 +650,9 @@ equipped with 4 GPUs, setting @code{STARPU_WORKERS_CUDAID = "1 3"} and
 @code{STARPU_NCUDA=2} specifies that 2 CUDA workers should be created, and that
 they should use CUDA devices #1 and #3 (the logical ordering of the devices is
 the one reported by CUDA).
+
+This variable is ignored if the @code{use_explicit_workers_cuda_gpuid} flag of
+the @code{starpu_conf} structure passed to @code{starpu_init} is set.
 @end table
 
 @node STARPU_WORKERS_OPENCLID
@@ -655,6 +661,9 @@ the one reported by CUDA).
 
 @item @emph{Description}:
 OpenCL equivalent of the @code{STARPU_WORKERS_CUDAID} environment variable.
+
+This variable is ignored if the @code{use_explicit_workers_opencl_gpuid} flag of
+the @code{starpu_conf} structure passed to @code{starpu_init} is set.
 @end table
 
 @node Scheduling
@@ -838,12 +847,23 @@ where to bind the different workers. The i-th entry of the
 should execute the i-th worker. Note that the logical ordering of the CPUs is
 either determined by the OS, or provided by the @code{hwloc} library in case it
 is available.
+When this flag is set, the @ref{STARPU_WORKERS_CPUID} environment variable is
+ignored.
  
 @item @code{use_explicit_workers_cuda_gpuid} (default = 0)
+If this flag is set, the CUDA workers will be attached to the CUDA devices
+specified in the @code{workers_cuda_gpuid} array. Otherwise, StarPU affects the
+CUDA devices in a round-robin fashion.
+When this flag is set, the @ref{STARPU_WORKERS_CUDAID} environment variable is
+ignored.
 @item @code{workers_cuda_gpuid[STARPU_NMAXWORKERS]}
+If the @code{use_explicit_workers_cuda_gpuid} flag is set, this array contains
+the logical identifiers of the CUDA devices (as used by  @code{cudaGetDevice}).
 @item @code{use_explicit_workers_opencl_gpuid} (default = 0)
+If this flag is set, the OpenCL workers will be attached to the OpenCL devices
+specified in the @code{workers_opencl_gpuid} array. Otherwise, StarPU affects the
+OpenCL devices in a round-robin fashion.
 @item @code{workers_opencl_gpuid[STARPU_NMAXWORKERS]}:
-These fields are explained in @ref{STARPU_WORKERS_CPUID}.
 
 @item @code{calibrate} (default = 0):
 If this flag is set, StarPU will calibrate the performance models when
@@ -1138,7 +1158,6 @@ undefined behaviour.
 @item @emph{Prototype}:
 @code{void starpu_data_unregister(starpu_data_handle handle);}
 @end table
-@c void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node); TODO
 @c user interaction with the DSM
 @c   void starpu_data_sync_with_mem(struct starpu_data_state_t *state);
 @c   void starpu_notify_data_modification(struct starpu_data_state_t *state, uint32_t modifying_node);
@@ -1236,7 +1255,15 @@ implementations. When set to @code{NULL}, no code is executed during the tasks,
 such empty tasks can be useful for synchronization purposes.
 
 @item @code{buffers}:
-TODO
+Is an array of @code{starpu_buffer_descr_t} structures. It describes the
+different pieces of data accessed by the task, and how they should be accessed.
+The @code{starpu_buffer_descr_t} structure is composed of two fields, the
+@code{handle} field specifies the handle of the piece of data, and the
+@code{mode} field is the required access mode (eg @code{STARPU_RW}). The number
+of entries in this array must be specified in the @code{nbuffers} field of the
+@code{starpu_codelet} structure, and should not excede @code{STARPU_NMAXBUFS}.
+If unsufficient, this value can be set with the @code{--enable-maxbuffers}
+option when configuring StarPU.
 
 @item @code{cl_arg} (optional) (default = NULL):
 This pointer is passed to the codelet through the second argument
@@ -1493,7 +1520,6 @@ typically need to be explicitly casted. Using the
 /*  Tag 0x1 depends on tags 0x32 and 0x52 */
 starpu_tag_declare_deps((starpu_tag_t)0x1,
         2, (starpu_tag_t)0x32, (starpu_tag_t)0x52);
-
 @end example
 @end cartouche
 
@@ -2463,6 +2489,8 @@ or by disabling CUDA devices:
 * struct starpu_data_copy_methods::	Per-interface data transfer methods
 * An example of data interface::        An example of data interface
 @end menu
+
+@c void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node); TODO
 
 @node struct starpu_data_interface_ops_t
 @subsection @code{struct starpu_data_interface_ops_t} -- Per-interface methods
