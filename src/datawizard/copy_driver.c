@@ -99,93 +99,93 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, uint32_t src_node
 	void *src_interface = starpu_data_get_interface_on_node(handle, src_node);
 	void *dst_interface = starpu_data_get_interface_on_node(handle, dst_node);
 
-	switch (MEMORY_NODE_TUPLE(src_kind,dst_kind)) {
-      case MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CPU_RAM):
-         /* STARPU_CPU_RAM -> STARPU_CPU_RAM */
-         STARPU_ASSERT(copy_methods->ram_to_ram);
-         copy_methods->ram_to_ram(src_interface, src_node, dst_interface, dst_node);
-         break;
+	switch (_STARPU_MEMORY_NODE_TUPLE(src_kind,dst_kind)) {
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CPU_RAM):
+		/* STARPU_CPU_RAM -> STARPU_CPU_RAM */
+		STARPU_ASSERT(copy_methods->ram_to_ram);
+		copy_methods->ram_to_ram(src_interface, src_node, dst_interface, dst_node);
+		break;
 #ifdef STARPU_USE_CUDA
-      case MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CPU_RAM):
-         /* CUBLAS_RAM -> STARPU_CPU_RAM */
-         /* only the proper CUBLAS thread can initiate this ! */
-         if (_starpu_get_local_memory_node() == src_node) {
-            /* only the proper CUBLAS thread can initiate this directly ! */
-            STARPU_ASSERT(copy_methods->cuda_to_ram);
-            if (!req || !copy_methods->cuda_to_ram_async) {
-               /* this is not associated to a request so it's synchronous */
-               copy_methods->cuda_to_ram(src_interface, src_node, dst_interface, dst_node);
-            }
-            else {
-               cures = cudaEventCreate(&req->async_channel.cuda_event);
-               if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CPU_RAM):
+		/* CUBLAS_RAM -> STARPU_CPU_RAM */
+		/* only the proper CUBLAS thread can initiate this ! */
+		if (_starpu_get_local_memory_node() == src_node) {
+			/* only the proper CUBLAS thread can initiate this directly ! */
+			STARPU_ASSERT(copy_methods->cuda_to_ram);
+			if (!req || !copy_methods->cuda_to_ram_async) {
+				/* this is not associated to a request so it's synchronous */
+				copy_methods->cuda_to_ram(src_interface, src_node, dst_interface, dst_node);
+			}
+			else {
+				cures = cudaEventCreate(&req->async_channel.cuda_event);
+				if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
-               stream = starpu_cuda_get_local_stream();
-               ret = copy_methods->cuda_to_ram_async(src_interface, src_node, dst_interface, dst_node, stream);
+				stream = starpu_cuda_get_local_stream();
+				ret = copy_methods->cuda_to_ram_async(src_interface, src_node, dst_interface, dst_node, stream);
 
-               cures = cudaEventRecord(req->async_channel.cuda_event, *stream);
-               if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
-            }
-         }
-         else {
-            /* we should not have a blocking call ! */
-            STARPU_ABORT();
-         }
-         break;
-      case MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
-         /* STARPU_CPU_RAM -> CUBLAS_RAM */
-         /* only the proper CUBLAS thread can initiate this ! */
-         STARPU_ASSERT(_starpu_get_local_memory_node() == dst_node);
-         STARPU_ASSERT(copy_methods->ram_to_cuda);
-         if (!req || !copy_methods->ram_to_cuda_async) {
-            /* this is not associated to a request so it's synchronous */
-            copy_methods->ram_to_cuda(src_interface, src_node, dst_interface, dst_node);
-         }
-         else {
-            cures = cudaEventCreate(&req->async_channel.cuda_event);
-            if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
+				cures = cudaEventRecord(req->async_channel.cuda_event, *stream);
+				if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
+			}
+		}
+		else {
+			/* we should not have a blocking call ! */
+			STARPU_ABORT();
+		}
+		break;
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
+		/* STARPU_CPU_RAM -> CUBLAS_RAM */
+		/* only the proper CUBLAS thread can initiate this ! */
+		STARPU_ASSERT(_starpu_get_local_memory_node() == dst_node);
+		STARPU_ASSERT(copy_methods->ram_to_cuda);
+		if (!req || !copy_methods->ram_to_cuda_async) {
+			/* this is not associated to a request so it's synchronous */
+			copy_methods->ram_to_cuda(src_interface, src_node, dst_interface, dst_node);
+		}
+		else {
+			cures = cudaEventCreate(&req->async_channel.cuda_event);
+			if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
-            stream = starpu_cuda_get_local_stream();
-            ret = copy_methods->ram_to_cuda_async(src_interface, src_node, dst_interface, dst_node, stream);
+			stream = starpu_cuda_get_local_stream();
+			ret = copy_methods->ram_to_cuda_async(src_interface, src_node, dst_interface, dst_node, stream);
 
-            cures = cudaEventRecord(req->async_channel.cuda_event, *stream);
-            if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
-         }
-         break;
+			cures = cudaEventRecord(req->async_channel.cuda_event, *stream);
+			if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
+		}
+		break;
 #endif
 #ifdef STARPU_USE_OPENCL
-      case MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_CPU_RAM):
-         /* OpenCL -> RAM */
-         if (_starpu_get_local_memory_node() == src_node) {
-            STARPU_ASSERT(copy_methods->opencl_to_ram);
-            if (!req || !copy_methods->opencl_to_ram_async) {
-               /* this is not associated to a request so it's synchronous */
-               copy_methods->opencl_to_ram(src_interface, src_node, dst_interface, dst_node);
-            }
-            else {
-               ret = copy_methods->opencl_to_ram_async(src_interface, src_node, dst_interface, dst_node, &(req->async_channel.opencl_event));
-            }
-         }
-         else {
-            /* we should not have a blocking call ! */
-            STARPU_ABORT();
-         }
-         break;
-      case MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
-         /* STARPU_CPU_RAM -> STARPU_OPENCL_RAM */
-         STARPU_ASSERT(_starpu_get_local_memory_node() == dst_node);
-         STARPU_ASSERT(copy_methods->ram_to_opencl);
-         if (!req || !copy_methods->ram_to_opencl_async) {
-            /* this is not associated to a request so it's synchronous */
-            copy_methods->ram_to_opencl(src_interface, src_node, dst_interface, dst_node);
-         }
-         else {
-            ret = copy_methods->ram_to_opencl_async(src_interface, src_node, dst_interface, dst_node, &(req->async_channel.opencl_event));
-         }
-         break;
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_CPU_RAM):
+		/* OpenCL -> RAM */
+		if (_starpu_get_local_memory_node() == src_node) {
+			STARPU_ASSERT(copy_methods->opencl_to_ram);
+			if (!req || !copy_methods->opencl_to_ram_async) {
+				/* this is not associated to a request so it's synchronous */
+				copy_methods->opencl_to_ram(src_interface, src_node, dst_interface, dst_node);
+			}
+			else {
+				ret = copy_methods->opencl_to_ram_async(src_interface, src_node, dst_interface, dst_node, &(req->async_channel.opencl_event));
+			}
+		}
+		else {
+			/* we should not have a blocking call ! */
+			STARPU_ABORT();
+		}
+		break;
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
+		/* STARPU_CPU_RAM -> STARPU_OPENCL_RAM */
+		STARPU_ASSERT(_starpu_get_local_memory_node() == dst_node);
+		STARPU_ASSERT(copy_methods->ram_to_opencl);
+		if (!req || !copy_methods->ram_to_opencl_async) {
+			/* this is not associated to a request so it's synchronous */
+			copy_methods->ram_to_opencl(src_interface, src_node, dst_interface, dst_node);
+		}
+		else {
+			ret = copy_methods->ram_to_opencl_async(src_interface, src_node, dst_interface, dst_node, &(req->async_channel.opencl_event));
+		}
+		break;
 #endif
 	default:
-      STARPU_ABORT();
+		STARPU_ABORT();
 		break;
 	}
 
