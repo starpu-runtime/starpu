@@ -2343,16 +2343,22 @@ can be executed either on a CPU or on a CUDA or an OpenCL device.
 
 extern void scal_cuda_func(void *buffers[], void *_args);
 extern void scal_cpu_func(void *buffers[], void *_args);
+extern void scal_opencl_func(void *buffers[], void *_args);
 
 /* @b{Definition of the codelet} */
 static starpu_codelet cl = @{
-    .where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL; /* @b{It can be executed on a CPU} */
-                                     /* @b{or on a CUDA device} */
+    .where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL; /* @b{It can be executed on a CPU,} */
+                                     /* @b{on a CUDA device, or on an OpenCL device} */
     .cuda_func = scal_cuda_func;
     .cpu_func = scal_cpu_func;
     .opencl_func = scal_opencl_func;
     .nbuffers = 1;
 @}
+
+#ifdef STARPU_USE_OPENCL
+/* @b{The compiled version of the OpenCL program} */
+struct starpu_opencl_program programs;
+#endif
 
 int main(int argc, char **argv)
 @{
@@ -2363,6 +2369,11 @@ int main(int argc, char **argv)
     starpu_data_handle vector_handle;
 
     starpu_init(NULL);                            /* @b{Initialising StarPU} */
+
+#ifdef STARPU_USE_OPENCL
+    starpu_opencl_load_opencl_from_file("examples/basic_examples/vector_scal_opencl_codelet.cl",
+                                        &programs);
+#endif
 
     vector = malloc(NX*sizeof(vector[0]));
     assert(vector);
