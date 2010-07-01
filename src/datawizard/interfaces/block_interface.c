@@ -383,8 +383,6 @@ static void free_block_buffer_on_node(void *interface, uint32_t node)
 #ifdef STARPU_USE_CUDA
 static int copy_cuda_to_ram(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
 {
-	cudaError_t cures;
-
 	starpu_block_interface_t *src_block = src_interface;
 	starpu_block_interface_t *dst_block = dst_interface;
 
@@ -393,15 +391,29 @@ static int copy_cuda_to_ram(void *src_interface, unsigned src_node __attribute__
 	uint32_t nz = src_block->nz;
 	size_t elemsize = src_block->elemsize;
 
-	if ((src_block->nx == src_block->ldy) && (src_block->ldy == dst_block->ldy))
+	cudaError_t cures;
+
+	if ((nx == src_block->ldy) && (src_block->ldy == dst_block->ldy))
 	{
-		/* we are lucky */
-		cures = cudaMemcpy((char *)dst_block->ptr, (char *)src_block->ptr,
-					nx*ny*nz*elemsize, cudaMemcpyDeviceToHost);
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
+		/* Is that a single contiguous buffer ? */
+		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
+		{
+                        cures = cudaMemcpy((char *)dst_block->ptr, (char *)src_block->ptr,
+                                           nx*ny*nz*elemsize, cudaMemcpyDeviceToHost);
+                        if (STARPU_UNLIKELY(cures))
+                                STARPU_CUDA_REPORT_ERROR(cures);
+                }
+		else {
+			/* Are all plans contiguous */
+                        cures = cudaMemcpy2D((char *)dst_block->ptr, dst_block->ldz*elemsize,
+                                             (char *)src_block->ptr, src_block->ldz*elemsize,
+                                             nx*ny*elemsize, nz, cudaMemcpyDeviceToHost);
+                        if (STARPU_UNLIKELY(cures))
+                                STARPU_CUDA_REPORT_ERROR(cures);
+                }
 	}
 	else {
+		/* Default case: we transfer all lines one by one: ny*nz transfers */
 		unsigned layer;
 		for (layer = 0; layer < src_block->nz; layer++)
 		{
@@ -418,7 +430,7 @@ static int copy_cuda_to_ram(void *src_interface, unsigned src_node __attribute__
 				STARPU_CUDA_REPORT_ERROR(cures);
 		}
 	}
-	
+
 	cudaThreadSynchronize();
 
 	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->elemsize*src_block->elemsize);
