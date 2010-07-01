@@ -470,43 +470,57 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node __att
 {
 	starpu_matrix_interface_t *src_matrix = src_interface;
 	starpu_matrix_interface_t *dst_matrix = dst_interface;
-
-	cl_event *event = _event;
+        int err,ret=EAGAIN;
 
 	/* XXX non contiguous matrices are not supported with OpenCL yet ! (TODO) */
 	STARPU_ASSERT((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx));
 
-	int err = _starpu_opencl_copy_to_opencl((void*)src_matrix->ptr, (cl_mem)dst_matrix->dev_handle, src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
-                                                dst_matrix->offset, event);
+	err = _starpu_opencl_copy_to_opencl((void*)src_matrix->ptr, (cl_mem)dst_matrix->dev_handle, src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
+                                            dst_matrix->offset, (cl_event*)_event);
 
-	if (STARPU_UNLIKELY(err))
-                STARPU_OPENCL_REPORT_ERROR(err);
+	if (STARPU_UNLIKELY(err)) {
+                if (_event) {
+                        err = _starpu_opencl_copy_to_opencl((void*)src_matrix->ptr, (cl_mem)dst_matrix->dev_handle,
+                                                            src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
+                                                            dst_matrix->offset, NULL);
+                        ret = 0;
+                }
+                if (STARPU_UNLIKELY(err))
+                        STARPU_OPENCL_REPORT_ERROR(err);
+        }
 
 	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_matrix->nx*src_matrix->ny*src_matrix->elemsize);
 
-	return EAGAIN;
+	return ret;
 }
 
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)), void *_event)
 {
 	starpu_matrix_interface_t *src_matrix = src_interface;
 	starpu_matrix_interface_t *dst_matrix = dst_interface;
-
-	cl_event *event = _event;
+        int err,ret=EAGAIN;
 
 	/* XXX non contiguous matrices are not supported with OpenCL yet ! (TODO) */
 	STARPU_ASSERT((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx));
 
-	int err = _starpu_opencl_copy_from_opencl((cl_mem)src_matrix->dev_handle, (void*)dst_matrix->ptr,
-                                                  src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
-                                                  src_matrix->offset, event);
+        err = _starpu_opencl_copy_from_opencl((cl_mem)src_matrix->dev_handle, (void*)dst_matrix->ptr,
+                                              src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
+                                              src_matrix->offset, (cl_event*)_event);
 
-	if (STARPU_UNLIKELY(err))
-                STARPU_OPENCL_REPORT_ERROR(err);
+	if (STARPU_UNLIKELY(err)) {
+                if (_event) {
+                        err = _starpu_opencl_copy_from_opencl((cl_mem)src_matrix->dev_handle, (void*)dst_matrix->ptr,
+                                                              src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
+                                                              src_matrix->offset, NULL);
+                        ret = 0;
+                }
+                if (STARPU_UNLIKELY(err))
+                        STARPU_OPENCL_REPORT_ERROR(err);
+        }
 
 	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_matrix->nx*src_matrix->ny*src_matrix->elemsize);
 
-	return EAGAIN;
+	return ret;
 }
 
 static int copy_ram_to_opencl(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))

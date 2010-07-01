@@ -391,46 +391,55 @@ static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node __attri
 
 	return EAGAIN;
 }
-
-
 #endif // STARPU_USE_CUDA
+
 #ifdef STARPU_USE_OPENCL
 static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node __attribute__((unused)),
                                     void *dst_interface, unsigned dst_node __attribute__((unused)), void *_event)
 {
 	starpu_vector_interface_t *src_vector = src_interface;
 	starpu_vector_interface_t *dst_vector = dst_interface;
+        int err, ret=EAGAIN;
 
-	cl_event *event = _event;
-
-	int err = _starpu_opencl_copy_to_opencl((void*)src_vector->ptr, (cl_mem)dst_vector->dev_handle, src_vector->nx*src_vector->elemsize,
-                                                dst_vector->offset, event);
-
-	if (STARPU_UNLIKELY(err))
-                STARPU_OPENCL_REPORT_ERROR(err);
+	err = _starpu_opencl_copy_to_opencl((void*)src_vector->ptr, (cl_mem)dst_vector->dev_handle, src_vector->nx*src_vector->elemsize,
+                                            dst_vector->offset, (cl_event*)_event);
+        if (STARPU_UNLIKELY(err)) {
+                if (_event) {
+                        err = _starpu_opencl_copy_to_opencl((void*)src_vector->ptr, (cl_mem)dst_vector->dev_handle, src_vector->nx*src_vector->elemsize,
+                                                            dst_vector->offset, NULL);
+                        ret = 0;
+                }
+                if (STARPU_UNLIKELY(err))
+                        STARPU_OPENCL_REPORT_ERROR(err);
+        }
 
 	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_vector->nx*src_vector->elemsize);
 
-	return EAGAIN;
+	return ret;
 }
 
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node __attribute__((unused)),
-					void *dst_interface, unsigned dst_node __attribute__((unused)), void *_event)
+                                    void *dst_interface, unsigned dst_node __attribute__((unused)), void *_event)
 {
 	starpu_vector_interface_t *src_vector = src_interface;
 	starpu_vector_interface_t *dst_vector = dst_interface;
+        int err, ret = EAGAIN;
 
-	cl_event *event = _event;
-
-	int err = _starpu_opencl_copy_from_opencl((cl_mem)src_vector->dev_handle, (void*)dst_vector->ptr, src_vector->nx*src_vector->elemsize,
-                                                  src_vector->offset, event);
-
-	if (STARPU_UNLIKELY(err))
-                STARPU_OPENCL_REPORT_ERROR(err);
+	err = _starpu_opencl_copy_from_opencl((cl_mem)src_vector->dev_handle, (void*)dst_vector->ptr, src_vector->nx*src_vector->elemsize,
+                                              src_vector->offset, (cl_event *)_event);
+	if (STARPU_UNLIKELY(err)) {
+                if (_event) {
+                        err = _starpu_opencl_copy_from_opencl((cl_mem)src_vector->dev_handle, (void*)dst_vector->ptr, src_vector->nx*src_vector->elemsize,
+                                                              src_vector->offset, NULL);
+                        ret = 0;
+                }
+                if (STARPU_UNLIKELY(err))
+                        STARPU_OPENCL_REPORT_ERROR(err);
+        }
 
 	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_vector->nx*src_vector->elemsize);
 
-	return EAGAIN;
+	return ret;
 }
 
 static int copy_ram_to_opencl(void *src_interface, unsigned src_node __attribute__((unused)),
@@ -446,8 +455,7 @@ static int copy_opencl_to_ram(void *src_interface, unsigned src_node __attribute
         copy_opencl_to_ram_async(src_interface, src_node, dst_interface, dst_node, NULL);
 	return 0;
 }
-
-#endif
+#endif // STARPU_USE_OPENCL
 
 static int dummy_copy_ram_to_ram(void *src_interface, unsigned src_node __attribute__((unused)),
 					void *dst_interface, unsigned dst_node __attribute__((unused)))
