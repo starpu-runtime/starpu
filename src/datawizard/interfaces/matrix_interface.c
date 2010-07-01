@@ -511,40 +511,13 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node __att
 
 static int copy_ram_to_opencl(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
 {
-	starpu_matrix_interface_t *src_matrix = src_interface;
-	starpu_matrix_interface_t *dst_matrix = dst_interface;
-
-	/* XXX non contiguous matrices are not supported with OpenCL yet ! (TODO) */
-	STARPU_ASSERT((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx));
-
-	int err = _starpu_opencl_copy_to_opencl((void*)src_matrix->ptr, (cl_mem)dst_matrix->dev_handle, src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
-                                                dst_matrix->offset, NULL);
-
-	if (STARPU_UNLIKELY(err))
-                STARPU_OPENCL_REPORT_ERROR(err);
-
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_matrix->nx*src_matrix->ny*src_matrix->elemsize);
-
+        copy_ram_to_opencl_async(src_interface, src_node, dst_interface, dst_node, NULL);
 	return 0;
 }
 
 static int copy_opencl_to_ram(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
 {
-	starpu_matrix_interface_t *src_matrix = src_interface;
-	starpu_matrix_interface_t *dst_matrix = dst_interface;
-
-	/* XXX non contiguous matrices are not supported with OpenCL yet ! (TODO) */
-	STARPU_ASSERT((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx));
-
-	int err = _starpu_opencl_copy_from_opencl((cl_mem)src_matrix->dev_handle, (void*)dst_matrix->ptr,
-                                                  src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
-                                                  src_matrix->offset, NULL);
-
-        if (STARPU_UNLIKELY(err))
-                STARPU_OPENCL_REPORT_ERROR(err);
-
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_matrix->nx*src_matrix->ny*src_matrix->elemsize);
-
+        copy_opencl_to_ram_async(src_interface, src_node, dst_interface, dst_node, NULL);
 	return 0;
 }
 

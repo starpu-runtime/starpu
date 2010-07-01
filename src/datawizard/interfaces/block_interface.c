@@ -751,41 +751,13 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node __att
 
 static int copy_ram_to_opencl(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
 {
-	starpu_block_interface_t *src_block = src_interface;
-	starpu_block_interface_t *dst_block = dst_interface;
-
-	/* XXX non contiguous buffers are not properly supported yet. (TODO) */
-	STARPU_ASSERT((src_block->nx == src_block->ldy) && (src_block->ldy == dst_block->ldy));
-
-	int err = _starpu_opencl_copy_to_opencl((void*)src_block->ptr, (cl_mem)dst_block->dev_handle,
-                                                src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
-                                                dst_block->offset, NULL);
-
-	if (STARPU_UNLIKELY(err))
-                STARPU_OPENCL_REPORT_ERROR(err);
-
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
-
+        copy_ram_to_opencl_async(src_interface, src_node, dst_interface, dst_node, NULL);
 	return 0;
 }
 
 static int copy_opencl_to_ram(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
 {
-	starpu_block_interface_t *src_block = src_interface;
-	starpu_block_interface_t *dst_block = dst_interface;
-
-	/* XXX non contiguous buffers are not properly supported yet. (TODO) */
-	STARPU_ASSERT((src_block->nx == src_block->ldy) && (src_block->ldy == dst_block->ldy));
-
-	int err = _starpu_opencl_copy_from_opencl((cl_mem)src_block->dev_handle, (void*)dst_block->ptr,
-                                                  src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
-                                                  src_block->offset, NULL);
-
-        if (STARPU_UNLIKELY(err))
-                STARPU_OPENCL_REPORT_ERROR(err);
-
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
-
+        copy_opencl_to_ram_async(src_interface, src_node, dst_interface, dst_node, NULL);
 	return 0;
 }
 
