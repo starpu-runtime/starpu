@@ -509,14 +509,12 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node __att
 
 static int copy_ram_to_opencl(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
 {
-        copy_ram_to_opencl_async(src_interface, src_node, dst_interface, dst_node, NULL);
-	return 0;
+        return copy_ram_to_opencl_async(src_interface, src_node, dst_interface, dst_node, NULL);
 }
 
 static int copy_opencl_to_ram(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
 {
-        copy_opencl_to_ram_async(src_interface, src_node, dst_interface, dst_node, NULL);
-	return 0;
+        return copy_opencl_to_ram_async(src_interface, src_node, dst_interface, dst_node, NULL);
 }
 
 #endif
