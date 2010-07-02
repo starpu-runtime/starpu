@@ -417,19 +417,12 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node __att
 {
 	starpu_vector_interface_t *src_vector = src_interface;
 	starpu_vector_interface_t *dst_vector = dst_interface;
-        int err, ret = EAGAIN;
+        int err, ret;
 
-	err = _starpu_opencl_copy_from_opencl((cl_mem)src_vector->dev_handle, (void*)dst_vector->ptr, src_vector->nx*src_vector->elemsize,
-                                              src_vector->offset, (cl_event *)_event);
-	if (STARPU_UNLIKELY(err)) {
-                if (_event) {
-                        err = _starpu_opencl_copy_from_opencl((cl_mem)src_vector->dev_handle, (void*)dst_vector->ptr, src_vector->nx*src_vector->elemsize,
-                                                              src_vector->offset, NULL);
-                        ret = 0;
-                }
-                if (STARPU_UNLIKELY(err))
-                        STARPU_OPENCL_REPORT_ERROR(err);
-        }
+	err = _starpu_opencl_copy_from_opencl_async_sync((cl_mem)src_vector->dev_handle, (void*)dst_vector->ptr, src_vector->nx*src_vector->elemsize,
+                                                         src_vector->offset, (cl_event *)_event, &ret);
+        if (STARPU_UNLIKELY(err))
+                STARPU_OPENCL_REPORT_ERROR(err);
 
 	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_vector->nx*src_vector->elemsize);
 

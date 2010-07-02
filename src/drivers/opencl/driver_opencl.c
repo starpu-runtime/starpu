@@ -141,6 +141,36 @@ int _starpu_opencl_copy_to_opencl(void *ptr, cl_mem buffer, size_t size, size_t 
         return EXIT_SUCCESS;
 }
 
+int _starpu_opencl_copy_from_opencl_async_sync(cl_mem buffer, void *ptr, size_t size, size_t offset, cl_event *event, int *ret)
+{
+        int err;
+        struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+
+        if (event == NULL) {
+                err = clEnqueueReadBuffer(queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
+        }
+        else {
+                err = clEnqueueReadBuffer(queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, event);
+                if (STARPU_LIKELY(err == CL_SUCCESS)) {
+                        *ret = EAGAIN;
+                        return EXIT_SUCCESS;
+                }
+                else {
+                        err = clEnqueueReadBuffer(queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
+                }
+        }
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) {
+                STARPU_OPENCL_REPORT_ERROR(err);
+                return err;
+        }
+        else {
+                *ret = 0;
+                return EXIT_SUCCESS;
+        }
+
+        return EXIT_SUCCESS;
+}
+
 int _starpu_opencl_copy_from_opencl(cl_mem buffer, void *ptr, size_t size, size_t offset, cl_event *event)
 {
         int err;

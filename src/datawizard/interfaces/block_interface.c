@@ -741,24 +741,16 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node __att
 {
 	starpu_block_interface_t *src_block = src_interface;
 	starpu_block_interface_t *dst_block = dst_interface;
-        int err,ret=EAGAIN;
+        int err, ret;
 
 	/* XXX non contiguous buffers are not properly supported yet. (TODO) */
 	STARPU_ASSERT((src_block->nx == src_block->ldy) && (src_block->ldy == dst_block->ldy));
 
-        err = _starpu_opencl_copy_from_opencl((cl_mem)src_block->dev_handle, (void*)dst_block->ptr,
-                                              src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
-                                              src_block->offset, (cl_event*)_event);
-	if (STARPU_UNLIKELY(err)) {
-                if (_event) {
-                        err = _starpu_opencl_copy_from_opencl((cl_mem)src_block->dev_handle, (void*)dst_block->ptr,
-                                                              src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
-                                                              src_block->offset, NULL);
-                        ret = 0;
-                }
-                if (STARPU_UNLIKELY(err))
-                        STARPU_OPENCL_REPORT_ERROR(err);
-        }
+        err = _starpu_opencl_copy_from_opencl_async_sync((cl_mem)src_block->dev_handle, (void*)dst_block->ptr,
+                                                         src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
+                                                         src_block->offset, (cl_event*)_event, &ret);
+        if (STARPU_UNLIKELY(err))
+                STARPU_OPENCL_REPORT_ERROR(err);
 
 	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
 

@@ -45,6 +45,9 @@ extern
 int _starpu_opencl_copy_to_opencl_async_sync(void *ptr, cl_mem buffer, size_t size, size_t offset, cl_event *event, int *ret);
 
 extern
+int _starpu_opencl_copy_from_opencl_async_sync(cl_mem buffer, void *ptr, size_t size, size_t offset, cl_event *event, int *ret);
+
+extern
 void _starpu_opencl_init(void);
 
 extern
