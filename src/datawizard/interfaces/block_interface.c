@@ -417,14 +417,12 @@ static int copy_cuda_to_ram(void *src_interface, unsigned src_node __attribute__
 		unsigned layer;
 		for (layer = 0; layer < src_block->nz; layer++)
 		{
-			uint8_t *src_ptr = ((uint8_t *)src_block->ptr) 
-						+ src_block->ldz*src_block->elemsize;
-			uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) 
-						+ dst_block->ldz*dst_block->elemsize;
+			uint8_t *src_ptr = ((uint8_t *)src_block->ptr) + layer*src_block->ldz*src_block->elemsize;
+			uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) + layer*dst_block->ldz*dst_block->elemsize;
 
 			cures = cudaMemcpy2D((char *)dst_ptr, dst_block->ldy*elemsize,
-				(char *)src_ptr, src_block->ldy*elemsize,
-				nx*elemsize, ny, cudaMemcpyDeviceToHost);
+                                             (char *)src_ptr, src_block->ldy*elemsize,
+                                             nx*elemsize, ny, cudaMemcpyDeviceToHost);
 
 			if (STARPU_UNLIKELY(cures))
 				STARPU_CUDA_REPORT_ERROR(cures);
@@ -502,14 +500,12 @@ static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node __attri
 		unsigned layer;
 		for (layer = 0; layer < src_block->nz; layer++)
 		{
-			uint8_t *src_ptr = ((uint8_t *)src_block->ptr) 
-						+ src_block->ldz*src_block->elemsize;
-			uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) 
-						+ dst_block->ldz*dst_block->elemsize;
+			uint8_t *src_ptr = ((uint8_t *)src_block->ptr) + layer*src_block->ldz*src_block->elemsize;
+			uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) + layer*dst_block->ldz*dst_block->elemsize;
 
 			cures = cudaMemcpy2DAsync((char *)dst_ptr, dst_block->ldy*elemsize,
-					(char *)src_ptr, src_block->ldy*elemsize,
-					nx*elemsize, ny, cudaMemcpyDeviceToHost, *stream);
+                                                  (char *)src_ptr, src_block->ldy*elemsize,
+                                                  nx*elemsize, ny, cudaMemcpyDeviceToHost, *stream);
 
 			if (STARPU_UNLIKELY(cures))
 			{
@@ -518,7 +514,7 @@ static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node __attri
 			}
 
 		}
-		
+
 		ret = EAGAIN;
 
 	}
@@ -533,18 +529,15 @@ no_async_default:
 	unsigned layer;
 	for (layer = 0; layer < src_block->nz; layer++)
 	{
-		uint8_t *src_ptr = ((uint8_t *)src_block->ptr) 
-					+ src_block->ldz*src_block->elemsize;
-		uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) 
-					+ dst_block->ldz*dst_block->elemsize;
+		uint8_t *src_ptr = ((uint8_t *)src_block->ptr) + layer*src_block->ldz*src_block->elemsize;
+		uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) + layer*dst_block->ldz*dst_block->elemsize;
 
 		cures = cudaMemcpy2D((char *)dst_ptr, dst_block->ldy*elemsize,
-				(char *)src_ptr, src_block->ldy*elemsize,
-				nx*elemsize, ny, cudaMemcpyDeviceToHost);
+                                     (char *)src_ptr, src_block->ldy*elemsize,
+                                     nx*elemsize, ny, cudaMemcpyDeviceToHost);
 
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
-		
 	}
 	cudaThreadSynchronize();
 
@@ -618,10 +611,8 @@ static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node __attri
 		unsigned layer;
 		for (layer = 0; layer < src_block->nz; layer++)
 		{
-			uint8_t *src_ptr = ((uint8_t *)src_block->ptr) 
-						+ src_block->ldz*src_block->elemsize;
-			uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) 
-						+ dst_block->ldz*dst_block->elemsize;
+			uint8_t *src_ptr = ((uint8_t *)src_block->ptr) + layer*src_block->ldz*src_block->elemsize;
+			uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) + layer*dst_block->ldz*dst_block->elemsize;
 
 			cures = cudaMemcpy2DAsync((char *)dst_ptr, dst_block->ldy*elemsize,
 					(char *)src_ptr, src_block->ldy*elemsize,
@@ -634,7 +625,7 @@ static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node __attri
 			}
 
 		}
-		
+
 		ret = EAGAIN;
 
 	}
@@ -649,18 +640,15 @@ no_async_default:
 	unsigned layer;
 	for (layer = 0; layer < src_block->nz; layer++)
 	{
-		uint8_t *src_ptr = ((uint8_t *)src_block->ptr) 
-					+ src_block->ldz*src_block->elemsize;
-		uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) 
-					+ dst_block->ldz*dst_block->elemsize;
+		uint8_t *src_ptr = ((uint8_t *)src_block->ptr) + layer*src_block->ldz*src_block->elemsize;
+		uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) + layer*dst_block->ldz*dst_block->elemsize;
 
 		cures = cudaMemcpy2D((char *)dst_ptr, dst_block->ldy*elemsize,
-				(char *)src_ptr, src_block->ldy*elemsize,
-				nx*elemsize, ny, cudaMemcpyHostToDevice);
+                                     (char *)src_ptr, src_block->ldy*elemsize,
+                                     nx*elemsize, ny, cudaMemcpyHostToDevice);
 
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
-		
 	}
 	cudaThreadSynchronize();
 
@@ -706,14 +694,12 @@ static int copy_ram_to_cuda(void *src_interface, unsigned src_node __attribute__
 		unsigned layer;
 		for (layer = 0; layer < src_block->nz; layer++)
 		{
-			uint8_t *src_ptr = ((uint8_t *)src_block->ptr) 
-						+ src_block->ldz*src_block->elemsize;
-			uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) 
-						+ dst_block->ldz*dst_block->elemsize;
+			uint8_t *src_ptr = ((uint8_t *)src_block->ptr) + layer*src_block->ldz*src_block->elemsize;
+			uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) + layer*dst_block->ldz*dst_block->elemsize;
 
 			cures = cudaMemcpy2D((char *)dst_ptr, dst_block->ldy*elemsize,
-				(char *)src_ptr, src_block->ldy*elemsize,
-				nx*elemsize, ny, cudaMemcpyHostToDevice);
+                                             (char *)src_ptr, src_block->ldy*elemsize,
+                                             nx*elemsize, ny, cudaMemcpyHostToDevice);
 
 			if (STARPU_UNLIKELY(cures))
 				STARPU_CUDA_REPORT_ERROR(cures);
