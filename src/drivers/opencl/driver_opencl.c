@@ -101,27 +101,26 @@ int _starpu_opencl_copy_to_opencl_async_sync(void *ptr, cl_mem buffer, size_t si
 {
         int err;
         struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+        cl_bool blocking;
 
-        if (event == NULL) {
-                err = clEnqueueWriteBuffer(queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
+        blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
+        err = clEnqueueWriteBuffer(queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
+        if (STARPU_LIKELY(err == CL_SUCCESS)) {
+                *ret = (event == NULL) ? 0 : EAGAIN;
+                return EXIT_SUCCESS;
         }
         else {
-                err = clEnqueueWriteBuffer(queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, event);
+                if (event != NULL)
+                        /* The asynchronous copy has failed, try to copy synchronously */
+                        err = clEnqueueWriteBuffer(queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
                 if (STARPU_LIKELY(err == CL_SUCCESS)) {
-                        *ret = EAGAIN;
+                        *ret = 0;
                         return EXIT_SUCCESS;
                 }
                 else {
-                        err = clEnqueueWriteBuffer(queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, NULL);
+                        STARPU_OPENCL_REPORT_ERROR(err);
+                        return err;
                 }
-        }
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) {
-                STARPU_OPENCL_REPORT_ERROR(err);
-                return err;
-        }
-        else {
-                *ret = 0;
-                return EXIT_SUCCESS;
         }
 }
 
@@ -129,13 +128,10 @@ int _starpu_opencl_copy_to_opencl(void *ptr, cl_mem buffer, size_t size, size_t 
 {
         int err;
         struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+        cl_bool blocking;
 
-        if (event == NULL) {
-                err = clEnqueueWriteBuffer(queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
-        }
-        else {
-                err = clEnqueueWriteBuffer(queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, event);
-        }
+        blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
+        err = clEnqueueWriteBuffer(queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         return EXIT_SUCCESS;
@@ -145,27 +141,26 @@ int _starpu_opencl_copy_from_opencl_async_sync(cl_mem buffer, void *ptr, size_t 
 {
         int err;
         struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+        cl_bool blocking;
 
-        if (event == NULL) {
-                err = clEnqueueReadBuffer(queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
+        blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
+        err = clEnqueueReadBuffer(queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
+        if (STARPU_LIKELY(err == CL_SUCCESS)) {
+                *ret = (event == NULL) ? 0 : EAGAIN;
+                return EXIT_SUCCESS;
         }
         else {
-                err = clEnqueueReadBuffer(queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, event);
+                if (event != NULL)
+                        /* The asynchronous copy has failed, try to copy synchronously */
+                        err = clEnqueueReadBuffer(queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
                 if (STARPU_LIKELY(err == CL_SUCCESS)) {
-                        *ret = EAGAIN;
+                        *ret = 0;
                         return EXIT_SUCCESS;
                 }
                 else {
-                        err = clEnqueueReadBuffer(queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
+                        STARPU_OPENCL_REPORT_ERROR(err);
+                        return err;
                 }
-        }
-        if (STARPU_UNLIKELY(err != CL_SUCCESS)) {
-                STARPU_OPENCL_REPORT_ERROR(err);
-                return err;
-        }
-        else {
-                *ret = 0;
-                return EXIT_SUCCESS;
         }
 
         return EXIT_SUCCESS;
@@ -175,13 +170,10 @@ int _starpu_opencl_copy_from_opencl(cl_mem buffer, void *ptr, size_t size, size_
 {
         int err;
         struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+        cl_bool blocking;
 
-        if (event == NULL) {
-                err = clEnqueueReadBuffer(queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
-        }
-        else {
-                err = clEnqueueReadBuffer(queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, event);
-        }
+        blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
+        err = clEnqueueReadBuffer(queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         return EXIT_SUCCESS;
