@@ -566,7 +566,6 @@ static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node __attri
 	size_t elemsize = src_block->elemsize;
 
 	cudaError_t cures;
-
 	int ret;
 
 	/* We may have a contiguous buffer for the entire block, or contiguous
@@ -672,8 +671,6 @@ no_async_default:
 
 static int copy_ram_to_cuda(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
 {
-	cudaError_t cures;
-
 	starpu_block_interface_t *src_block = src_interface;
 	starpu_block_interface_t *dst_block = dst_interface;
 
@@ -682,15 +679,30 @@ static int copy_ram_to_cuda(void *src_interface, unsigned src_node __attribute__
 	uint32_t nz = src_block->nz;
 	size_t elemsize = src_block->elemsize;
 
-	if ((src_block->nx == src_block->ldy) && (src_block->ldy == dst_block->ldy))
+	cudaError_t cures;
+        int ret;
+
+	/* We may have a contiguous buffer for the entire block, or contiguous
+	 * plans within the block, we can avoid many small transfers that way */
+	if ((nx == src_block->ldy) && (src_block->ldy == dst_block->ldy))
 	{
-		/* we are lucky */
-		cures = cudaMemcpy((char *)dst_block->ptr, (char *)src_block->ptr,
-						nx*ny*nz*elemsize, cudaMemcpyHostToDevice);
+		/* Is that a single contiguous buffer ? */
+		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
+		{
+			cures = cudaMemcpy((char *)dst_block->ptr, (char *)src_block->ptr,
+                                           nx*ny*nz*elemsize, cudaMemcpyHostToDevice, *stream);
+                }
+                else {
+			/* Are all plans contiguous */
+			cures = cudaMemcpy2D((char *)dst_block->ptr, dst_block->ldz*elemsize,
+                                             (char *)src_block->ptr, src_block->ldz*elemsize,
+                                             nx*ny*elemsize, nz, cudaMemcpyHostToDevice, *stream);
+                }
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}
 	else {
+		/* Default case: we transfer all lines one by one: ny*nz transfers */
 		unsigned layer;
 		for (layer = 0; layer < src_block->nz; layer++)
 		{
