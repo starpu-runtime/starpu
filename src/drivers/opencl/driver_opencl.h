@@ -53,11 +53,4 @@ void _starpu_opencl_init(void);
 extern
 void *_starpu_opencl_worker(void *);
 
-extern
-int _starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue,
-                               char *program_name, char *kernel_name, int dev);
-
-extern
-int _starpu_opencl_compile_source_to_opencl(char *source_file_name);
-
 #endif //  __DRIVER_OPENCL_H__
