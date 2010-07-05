@@ -362,8 +362,8 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node __att
 	starpu_variable_interface_t *dst_variable = dst_interface;
         int err,ret;
 
-        err = _starpu_opencl_copy_to_opencl_async_sync((void*)src_variable->ptr, (cl_mem)dst_variable->ptr, src_variable->elemsize,
-                                                       0, (cl_event*)_event, &ret);
+        err = _starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_variable->ptr, (cl_mem)dst_variable->ptr, src_variable->elemsize,
+                                                           0, (cl_event*)_event, &ret);
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -378,8 +378,8 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node __att
 	starpu_variable_interface_t *dst_variable = dst_interface;
         int err, ret;
 
-	err = _starpu_opencl_copy_from_opencl_async_sync((cl_mem)src_variable->ptr, (void*)dst_variable->ptr, src_variable->elemsize,
-                                                         0, (cl_event*)_event, &ret);
+	err = _starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_variable->ptr, (void*)dst_variable->ptr, src_variable->elemsize,
+                                                           0, (cl_event*)_event, &ret);
 
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);

@@ -36,16 +36,16 @@ extern
 int _starpu_opencl_allocate_memory(void **addr, size_t size, cl_mem_flags flags);
 
 extern
-int _starpu_opencl_copy_to_opencl(void *ptr, cl_mem buffer, size_t size, size_t offset, cl_event *event);
+int _starpu_opencl_copy_ram_to_opencl(void *ptr, cl_mem buffer, size_t size, size_t offset, cl_event *event);
 
 extern
-int _starpu_opencl_copy_from_opencl(cl_mem buffer, void *ptr, size_t size, size_t offset, cl_event *event);
+int _starpu_opencl_copy_opencl_to_ram(cl_mem buffer, void *ptr, size_t size, size_t offset, cl_event *event);
 
 extern
-int _starpu_opencl_copy_to_opencl_async_sync(void *ptr, cl_mem buffer, size_t size, size_t offset, cl_event *event, int *ret);
+int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, cl_mem buffer, size_t size, size_t offset, cl_event *event, int *ret);
 
 extern
-int _starpu_opencl_copy_from_opencl_async_sync(cl_mem buffer, void *ptr, size_t size, size_t offset, cl_event *event, int *ret);
+int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, void *ptr, size_t size, size_t offset, cl_event *event, int *ret);
 
 extern
 void _starpu_opencl_init(void);

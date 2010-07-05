@@ -495,15 +495,15 @@ static int copy_opencl_to_ram(void *src_interface, unsigned src_node __attribute
 
         int err;
 
-	err = _starpu_opencl_copy_from_opencl((cl_mem)src_bcsr->nzval, (void *)dst_bcsr->nzval, nnz*r*c*elemsize, 0, NULL);
+	err = _starpu_opencl_copy_opencl_to_ram((cl_mem)src_bcsr->nzval, (void *)dst_bcsr->nzval, nnz*r*c*elemsize, 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = _starpu_opencl_copy_from_opencl((cl_mem)src_bcsr->colind, (void *)dst_bcsr->colind, nnz*sizeof(uint32_t), 0, NULL);
+	err = _starpu_opencl_copy_opencl_to_ram((cl_mem)src_bcsr->colind, (void *)dst_bcsr->colind, nnz*sizeof(uint32_t), 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = _starpu_opencl_copy_from_opencl((cl_mem)src_bcsr->rowptr, (void *)dst_bcsr->rowptr, (nrow+1)*sizeof(uint32_t), 0, NULL);
+	err = _starpu_opencl_copy_opencl_to_ram((cl_mem)src_bcsr->rowptr, (void *)dst_bcsr->rowptr, (nrow+1)*sizeof(uint32_t), 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -526,15 +526,15 @@ static int copy_ram_to_opencl(void *src_interface, unsigned src_node __attribute
 
         int err;
 
-	err = _starpu_opencl_copy_to_opencl((void *)src_bcsr->nzval, (cl_mem)dst_bcsr->nzval, nnz*r*c*elemsize, 0, NULL);
+	err = _starpu_opencl_copy_ram_to_opencl((void *)src_bcsr->nzval, (cl_mem)dst_bcsr->nzval, nnz*r*c*elemsize, 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = _starpu_opencl_copy_to_opencl((void *)src_bcsr->colind, (cl_mem)dst_bcsr->colind, nnz*sizeof(uint32_t), 0, NULL);
+	err = _starpu_opencl_copy_ram_to_opencl((void *)src_bcsr->colind, (cl_mem)dst_bcsr->colind, nnz*sizeof(uint32_t), 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = _starpu_opencl_copy_to_opencl((void *)src_bcsr->rowptr, (cl_mem)dst_bcsr->rowptr, (nrow+1)*sizeof(uint32_t), 0, NULL);
+	err = _starpu_opencl_copy_ram_to_opencl((void *)src_bcsr->rowptr, (cl_mem)dst_bcsr->rowptr, (nrow+1)*sizeof(uint32_t), 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
