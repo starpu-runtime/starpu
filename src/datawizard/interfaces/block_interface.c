@@ -668,7 +668,6 @@ static int copy_ram_to_cuda(void *src_interface, unsigned src_node __attribute__
 	size_t elemsize = src_block->elemsize;
 
 	cudaError_t cures;
-        int ret;
 
 	/* We may have a contiguous buffer for the entire block, or contiguous
 	 * plans within the block, we can avoid many small transfers that way */
@@ -678,13 +677,13 @@ static int copy_ram_to_cuda(void *src_interface, unsigned src_node __attribute__
 		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
 		{
 			cures = cudaMemcpy((char *)dst_block->ptr, (char *)src_block->ptr,
-                                           nx*ny*nz*elemsize, cudaMemcpyHostToDevice, *stream);
+                                           nx*ny*nz*elemsize, cudaMemcpyHostToDevice);
                 }
                 else {
 			/* Are all plans contiguous */
 			cures = cudaMemcpy2D((char *)dst_block->ptr, dst_block->ldz*elemsize,
                                              (char *)src_block->ptr, src_block->ldz*elemsize,
-                                             nx*ny*elemsize, nz, cudaMemcpyHostToDevice, *stream);
+                                             nx*ny*elemsize, nz, cudaMemcpyHostToDevice);
                 }
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
