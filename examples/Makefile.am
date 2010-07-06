@@ -160,6 +160,16 @@ examplebin_PROGRAMS +=				\
 basic_examples_mult_SOURCES =			\
 	basic_examples/mult.c
 
+###########
+# Filters #
+###########
+
+examplebin_PROGRAMS +=				\
+	filters/filters
+
+filters_filters_SOURCES =			\
+	filters/filters.c
+
 ###################
 # PPM downscaling #
 ###################
