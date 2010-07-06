@@ -240,19 +240,6 @@ size_t starpu_csr_get_elemsize(starpu_data_handle handle);
 #define STARPU_GET_CSR_FIRSTENTRY(interface)	(((starpu_csr_interface_t *)(interface))->firstentry)
 #define STARPU_GET_CSR_ELEMSIZE(interface)	(((starpu_csr_interface_t *)(interface))->elemsize)
 
-/* CSC interface for sparse matrices (compressed sparse column representation) */
-typedef struct starpu_csc_interface_s {
-	int nnz; /* number of non-zero entries */
-	int nrow; /* number of rows */
-	float *nzval; /* non-zero values */
-	int *colind; /* position of non-zero entried on the row */
-	int *rowptr; /* index (in nzval) of the first entry of the row */
-
-	/* k for k-based indexing (0 or 1 usually) */
-	/* also useful when partitionning the matrix ... */
-	int firstentry; 
-} starpu_csc_interface_t;
-
 /* BCSR interface for sparse matrices (blocked compressed sparse row
  * representation) */
 typedef struct starpu_bcsr_interface_s {
@@ -293,10 +280,9 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle);
 #define STARPU_BLOCK_INTERFACE_ID	1
 #define STARPU_VECTOR_INTERFACE_ID	2
 #define STARPU_CSR_INTERFACE_ID		3
-#define STARPU_CSC_INTERFACE_ID		4
-#define STARPU_BCSCR_INTERFACE_ID	5
-#define STARPU_VARIABLE_INTERFACE_ID	6
-#define STARPU_NINTERFACES_ID		7 /* number of data interfaces */
+#define STARPU_BCSR_INTERFACE_ID	4
+#define STARPU_VARIABLE_INTERFACE_ID	5
+#define STARPU_NINTERFACES_ID		6 /* number of data interfaces */
 
 unsigned starpu_get_handle_interface_id(starpu_data_handle);
 
