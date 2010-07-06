@@ -765,6 +765,7 @@ This variable specify in which file the debugging output should be saved to.
 * Workers' Properties::         Methods to enumerate workers' properties
 * Data Library::                Methods to manipulate data
 * Data Interfaces::             
+* Data Partition::              
 * Codelets and Tasks::          Methods to construct tasks
 * Explicit Dependencies::       Explicit Dependencies
 * Implicit Data Dependencies::  Implicit Data Dependencies
@@ -1286,6 +1287,11 @@ starpu_block_data_register(&block_handle, 0, (uintptr_t)block,
 @end smallexample
 @end cartouche
 @end table
+
+@node Data Partition
+@section Data Partition
+
+TODO
 
 @node Codelets and Tasks
 @section Codelets and Tasks
