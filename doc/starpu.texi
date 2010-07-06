@@ -2027,6 +2027,7 @@ instance.
 * Hello World::                 Submitting Tasks
 * Scaling a Vector::  Manipulating Data
 * Vector Scaling on an Hybrid CPU/GPU Machine::  Handling Heterogeneous Architectures
+* Filtering data:: Partitionning data
 @end menu
 
 @node Compiling and linking options
@@ -2609,6 +2610,46 @@ or by disabling CUDA devices:
 @end smallexample
 
 @c TODO: Add performance model example (and update basic_examples)
+
+@node Filtering data
+@section Filtering data
+
+@cartouche
+@smallexample
+int vector[NX];
+starpu_data_handle handle;
+
+/* Declare data to StarPU */
+starpu_vector_data_register(&handle, 0, (uintptr_t)vector, NX, sizeof(vector[0]));
+
+/* Partition the vector in PARTS sub-vectors */
+starpu_filter f =
+@{
+    .filter_func = starpu_block_filter_func_vector,
+    .filter_arg = PARTS
+@};
+starpu_data_partition(handle, &f);
+@end smallexample
+@end cartouche
+
+@cartouche
+@smallexample
+/* Submit a task on each sub-vector */
+for (i=0; i<PARTS; i++) @{
+    starpu_data_handle sub_handle = starpu_data_get_sub_data(handle, 1, i);
+    struct starpu_task *task = starpu_task_create();
+
+    task->buffers[0].handle = sub_handle;
+    task->buffers[0].mode = STARPU_R;
+    task->cl = &cl;
+    task->synchronous = 1;
+    task->cl_arg = &factor;
+    task->cl_arg_size = sizeof(factor);
+
+    starpu_task_submit(task);
+@}
+@end smallexample
+@end cartouche
 
 @c ---------------------------------------------------------------------
 @c Advanced Topics
