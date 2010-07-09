@@ -30,6 +30,8 @@ void starpu_block_filter_func(void *father_interface, void *child_interface, __a
 	uint32_t ny = matrix_father->ny;
 	size_t elemsize = matrix_father->elemsize;
 
+	STARPU_ASSERT(nchunks <= nx);
+
 	size_t chunk_size = ((size_t)nx + nchunks - 1)/nchunks;
 	size_t offset = (size_t)id*chunk_size*elemsize;
 	
@@ -58,6 +60,8 @@ void starpu_vertical_block_filter_func(void *father_interface, void *child_inter
 	uint32_t nx = matrix_father->nx;
 	uint32_t ny = matrix_father->ny;
 	size_t elemsize = matrix_father->elemsize;
+
+	STARPU_ASSERT(nchunks <= ny);
 
 	size_t chunk_size = ((size_t)ny + nchunks - 1)/nchunks;
 	size_t child_ny = 

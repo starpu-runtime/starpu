@@ -102,7 +102,7 @@ void starpu_data_partition(starpu_data_handle initial_handle, starpu_filter *f)
 	if (f->get_nchildren)
 	  nparts = f->get_nchildren(f, initial_handle);
 	else
-	  nparts = f->filter_arg;
+	  nparts = f->nchildren;
 
 	STARPU_ASSERT(nparts > 0);
 

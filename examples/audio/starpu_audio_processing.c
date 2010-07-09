@@ -394,7 +394,7 @@ int main(int argc, char **argv)
 	starpu_filter f = 
 	{
 		.filter_func = starpu_block_filter_func_vector,
-		.filter_arg = niter,
+		.nchildren = niter,
 		.get_nchildren = NULL,
 		.get_child_ops = NULL
 	};

@@ -90,9 +90,9 @@ void init_problem_callback(void *arg)
 	}
 }
 
-unsigned get_bcsr_nchildren(starpu_filter *f, starpu_data_handle handle)
+unsigned get_bcsr_nchildren(__attribute__((unused)) starpu_filter *f, starpu_data_handle handle)
 {
-  return handle->ops->nnz;
+  return (unsigned)starpu_bcsr_get_nnz(handle);
 }
 
 struct starpu_data_interface_ops_t *get_bcsr_child_ops(__attribute__((unused)) starpu_filter *f, __attribute__((unused)) unsigned child) 

@@ -20,7 +20,6 @@
 
 void starpu_canonical_block_filter_bcsr(void *father_interface, void *child_interface, __attribute__((unused)) starpu_filter *f, unsigned id, __attribute__((unused)) unsigned nparts)
 {
-        unsigned nchunks;
 	struct starpu_bcsr_interface_s *bcsr_father = father_interface;
 	/* each chunk becomes a small dense matrix */
 	starpu_matrix_interface_t *matrix_child = child_interface;
@@ -33,9 +32,6 @@ void starpu_canonical_block_filter_bcsr(void *father_interface, void *child_inte
 	/* size of the tiles */
 	uint32_t r = bcsr_father->r;
 	uint32_t c = bcsr_father->c;
-
-	/* we create as many subdata as there are blocks ... */
-	nchunks = nnz;
 	
 	uint32_t ptr_offset = c*r*id*elemsize;
 

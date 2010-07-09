@@ -22,11 +22,12 @@ void starpu_block_filter_func_vector(void *father_interface, void *child_interfa
 {
         starpu_vector_interface_t *vector_father = father_interface;
         starpu_vector_interface_t *vector_child = child_interface;
-
-        uint32_t nx = vector_father->nx;
+	
+	uint32_t nx = vector_father->nx;
 	size_t elemsize = vector_father->elemsize;
 
-	/* actually create all the chunks */
+	STARPU_ASSERT(nchunks <= nx);
+
 	uint32_t chunk_size = (nx + nchunks - 1)/nchunks;
 	size_t offset = id*chunk_size*elemsize;
 

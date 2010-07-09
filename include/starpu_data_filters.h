@@ -31,6 +31,7 @@ typedef struct starpu_filter_t {
         unsigned (*get_nchildren)(struct starpu_filter_t *, starpu_data_handle initial_handle);
         struct starpu_data_interface_ops_t *(*get_child_ops)(struct starpu_filter_t *, unsigned id);
         unsigned filter_arg;
+        unsigned nchildren;
         void *filter_arg_ptr;
 } starpu_filter;
 

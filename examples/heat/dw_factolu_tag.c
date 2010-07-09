@@ -280,13 +280,13 @@ void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks, u
 
 	starpu_filter f;
 		f.filter_func = starpu_vertical_block_filter_func;
-		f.filter_arg = nblocks;
+		f.nchildren = nblocks;
 		f.get_nchildren = NULL;
 		f.get_child_ops = NULL;
 
 	starpu_filter f2;
 		f2.filter_func = starpu_block_filter_func;
-		f2.filter_arg = nblocks;
+		f2.nchildren = nblocks;
 		f2.get_nchildren = NULL;
 		f2.get_child_ops = NULL;
 

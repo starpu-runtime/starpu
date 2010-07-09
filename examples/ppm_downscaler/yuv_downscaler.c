@@ -108,21 +108,21 @@ static struct starpu_codelet_t ds_codelet = {
 /* each block contains BLOCK_HEIGHT consecutive lines */
 static starpu_filter filter_y = {
 	.filter_func = starpu_block_filter_func,
-	.filter_arg = HEIGHT/BLOCK_HEIGHT,
+	.nchildren= HEIGHT/BLOCK_HEIGHT,
 	.get_nchildren = NULL,
 	.get_child_ops = NULL
 };
 	
 static starpu_filter filter_u = {
 	.filter_func = starpu_block_filter_func,
-	.filter_arg = (HEIGHT/2)/BLOCK_HEIGHT,
+	.nchildren = (HEIGHT/2)/BLOCK_HEIGHT,
 	.get_nchildren = NULL,
 	.get_child_ops = NULL
 };
 
 static starpu_filter filter_v = {
 	.filter_func = starpu_block_filter_func,
-	.filter_arg = (HEIGHT/2)/BLOCK_HEIGHT,
+	.nchildren = (HEIGHT/2)/BLOCK_HEIGHT,
 	.get_nchildren = NULL,
 	.get_child_ops = NULL
 };

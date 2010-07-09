@@ -168,13 +168,13 @@ static void partition_mult_data(void)
 
 	starpu_filter f;
 	f.filter_func = starpu_vertical_block_filter_func;
-	f.filter_arg = nslicesx;
+	f.nchildren = nslicesx;
 	f.get_nchildren = NULL;
 	f.get_child_ops = NULL;
 		
 	starpu_filter f2;
 	f2.filter_func = starpu_block_filter_func;
-	f2.filter_arg = nslicesy;
+	f2.nchildren = nslicesy;
 	f2.get_nchildren = NULL;
 	f2.get_child_ops = NULL;
 		

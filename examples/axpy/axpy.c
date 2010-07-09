@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 	/* Divide the vector into blocks */
 	starpu_filter block_filter = {
 		.filter_func = starpu_block_filter_func_vector,
-		.filter_arg = NBLOCKS,
+		.nchildren = NBLOCKS,
 		.get_nchildren = NULL,
 		.get_child_ops = NULL
 	};
