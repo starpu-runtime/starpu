@@ -44,7 +44,7 @@ void starpu_vertical_block_filter_func_csr(void *father_interface, void *child_i
 	csr_child->firstentry = local_firstentry;
 	csr_child->elemsize = elemsize;
 	
-	if (csr_father->nzval != 0) {
+	if (csr_father->nzval) {
 	  csr_child->rowptr = &csr_father->rowptr[first_index];
 	  csr_child->colind = &csr_father->colind[local_firstentry];
 	  csr_child->nzval = csr_father->nzval + local_firstentry * elemsize;

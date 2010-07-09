@@ -37,11 +37,6 @@ void starpu_canonical_block_filter_bcsr(void *father_interface, void *child_inte
 	/* we create as many subdata as there are blocks ... */
 	nchunks = nnz;
 	
-	/* first allocate the children : it's a set of BLAS !*/
-	//starpu_data_create_children(root_handle, nchunks, &_starpu_interface_matrix_ops);
-
-	//STARPU_ASSERT(starpu_data_test_if_allocated_on_node(root_handle, 0));
-
 	uint32_t ptr_offset = c*r*id*elemsize;
 
 	matrix_child->nx = c;
@@ -49,7 +44,7 @@ void starpu_canonical_block_filter_bcsr(void *father_interface, void *child_inte
 	matrix_child->ld = c;
 	matrix_child->elemsize = elemsize;
 
-	if (bcsr_father->nzval != 0) {
+	if (bcsr_father->nzval) {
 	  uint8_t *nzval = (uint8_t *)(bcsr_father->nzval);
 	  matrix_child->ptr = (uintptr_t)&nzval[firstentry + ptr_offset];
 	}

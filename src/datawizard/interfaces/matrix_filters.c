@@ -42,7 +42,7 @@ void starpu_block_filter_func(void *father_interface, void *child_interface, __a
 	matrix_child->elemsize = elemsize;
 	
 	/* is the information on this node valid ? */
-	if (matrix_father->ptr != 0) {
+	if (matrix_father->ptr) {
 	  matrix_child->ptr = matrix_father->ptr + offset;
 	  matrix_child->ld = matrix_father->ld;
 	  matrix_child->dev_handle = matrix_father->dev_handle;
@@ -68,7 +68,7 @@ void starpu_vertical_block_filter_func(void *father_interface, void *child_inter
 	matrix_child->elemsize = elemsize;
 
 	/* is the information on this node valid ? */
-	if (matrix_father->ptr != 0) {
+	if (matrix_father->ptr) {
 	  size_t offset = 
 	    (size_t)id*chunk_size*matrix_father->ld*elemsize;
 	  matrix_child->ptr = matrix_father->ptr + offset;

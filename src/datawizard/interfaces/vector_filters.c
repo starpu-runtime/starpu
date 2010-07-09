@@ -36,7 +36,7 @@ void starpu_block_filter_func_vector(void *father_interface, void *child_interfa
 	vector_child->nx = child_nx;
 	vector_child->elemsize = elemsize;
 
-	if (vector_father->ptr != 0) {
+	if (vector_father->ptr) {
 	  vector_child->ptr = vector_father->ptr + offset;
 	  vector_child->dev_handle = vector_father->dev_handle;
 	  vector_child->offset = vector_father->offset + offset;
@@ -64,7 +64,7 @@ void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_i
 	  vector_child->nx = length_first;
 	  vector_child->elemsize = elemsize;
 
-	  if (vector_father->ptr != 0) {
+	  if (vector_father->ptr) {
 	    vector_child->ptr = vector_father->ptr;
 	    vector_child->offset = vector_father->offset;
 	    vector_child->dev_handle = vector_father->dev_handle;
@@ -76,7 +76,7 @@ void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_i
 	  vector_child->nx = nx - length_first;
 	  vector_child->elemsize = elemsize;
 
-	  if (vector_father->ptr != 0) {
+	  if (vector_father->ptr) {
 	    vector_child->ptr = vector_father->ptr + length_first*elemsize;
 	    vector_child->offset = vector_father->offset + length_first*elemsize;
 	    vector_child->dev_handle = vector_father->dev_handle;
@@ -101,7 +101,7 @@ void starpu_vector_list_filter_func(void *father_interface, void *child_interfac
 	vector_child->nx = chunk_size;
 	vector_child->elemsize = elemsize;
 	
-	if (vector_father->ptr != 0) {
+	if (vector_father->ptr) {
 	  /* compute the current position */
 	  unsigned i;
 	  for (i = 0; i <= id; i++) 
