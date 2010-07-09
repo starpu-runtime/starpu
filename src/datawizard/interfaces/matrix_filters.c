@@ -21,112 +21,59 @@
 /*
  * an example of a dummy partition function : blocks ...
  */
-void starpu_block_filter_func(starpu_filter *f, starpu_data_handle root_handle)
+void starpu_block_filter_func(void *father_interface, void *child_interface, __attribute__((unused)) starpu_filter *f, unsigned id, unsigned nchunks)
 {
-	unsigned nchunks;
-	uint32_t arg = f->filter_arg;
+       starpu_matrix_interface_t *matrix_father = father_interface;
+       starpu_matrix_interface_t *matrix_child = child_interface;
+  
+	uint32_t nx = matrix_father->nx;
+	uint32_t ny = matrix_father->ny;
+	size_t elemsize = matrix_father->elemsize;
 
-	starpu_matrix_interface_t *matrix_root =
-		starpu_data_get_interface_on_node(root_handle, 0);
-
-	uint32_t nx = matrix_root->nx;
-	uint32_t ny = matrix_root->ny;
-	size_t elemsize = matrix_root->elemsize;
-
-	/* we will have arg chunks */
-	nchunks = STARPU_MIN(nx, arg);
-
-	/* first allocate the children, they have the same interface type as
-	 * the root (matrix) */
-	starpu_data_create_children(root_handle, nchunks, root_handle->ops);
-
-	/* actually create all the chunks */
-	unsigned chunk;
-	for (chunk = 0; chunk < nchunks; chunk++)
-	{
-		size_t chunk_size = ((size_t)nx + nchunks - 1)/nchunks;
-		size_t offset = (size_t)chunk*chunk_size*elemsize;
-
-		uint32_t child_nx = 
-			STARPU_MIN(chunk_size, (size_t)nx - (size_t)chunk*chunk_size);
-
-		starpu_data_handle chunk_handle =
-			starpu_data_get_child(root_handle, chunk);
-
-		unsigned node;
-		for (node = 0; node < STARPU_MAXNODES; node++)
-		{
-			starpu_matrix_interface_t *local = 
-				starpu_data_get_interface_on_node(chunk_handle, node);
-
-			local->nx = child_nx;
-			local->ny = ny;
-			local->elemsize = elemsize;
-
-			if (starpu_data_test_if_allocated_on_node(root_handle, node)) {
-				starpu_matrix_interface_t *local_root =
-					starpu_data_get_interface_on_node(root_handle, node);
-
-				local->ptr = local_root->ptr + offset;
-				local->ld = local_root->ld;
-                                local->dev_handle = local_root->dev_handle;
-                                local->offset = local_root->offset + offset;
-			}
-		}
+	size_t chunk_size = ((size_t)nx + nchunks - 1)/nchunks;
+	size_t offset = (size_t)id*chunk_size*elemsize;
+	
+	uint32_t child_nx = 
+	  STARPU_MIN(chunk_size, (size_t)nx - (size_t)id*chunk_size);
+	
+	/* update the child's interface */
+	matrix_child->nx = child_nx;
+	matrix_child->ny = ny;
+	matrix_child->elemsize = elemsize;
+	
+	/* is the information on this node valid ? */
+	if (matrix_father->ptr != 0) {
+	  matrix_child->ptr = matrix_father->ptr + offset;
+	  matrix_child->ld = matrix_father->ld;
+	  matrix_child->dev_handle = matrix_father->dev_handle;
+	  matrix_child->offset = matrix_father->offset + offset;
 	}
 }
 
-void starpu_vertical_block_filter_func(starpu_filter *f, starpu_data_handle root_handle)
+void starpu_vertical_block_filter_func(void *father_interface, void *child_interface, __attribute__((unused)) starpu_filter *f, unsigned id, unsigned nchunks)
 {
-	unsigned nchunks;
-	uint32_t arg = f->filter_arg;
+        starpu_matrix_interface_t *matrix_father = father_interface;
+        starpu_matrix_interface_t *matrix_child = child_interface;
 
-	starpu_matrix_interface_t *interface =
-		starpu_data_get_interface_on_node(root_handle, 0);
+	uint32_t nx = matrix_father->nx;
+	uint32_t ny = matrix_father->ny;
+	size_t elemsize = matrix_father->elemsize;
 
-	uint32_t nx = interface->nx;
-	uint32_t ny = interface->ny;
-	size_t elemsize = interface->elemsize;
+	size_t chunk_size = ((size_t)ny + nchunks - 1)/nchunks;
+	size_t child_ny = 
+	  STARPU_MIN(chunk_size, (size_t)ny - (size_t)id*chunk_size);
 
-	/* we will have arg chunks */
-	nchunks = STARPU_MIN(ny, arg);
-	
-	/* first allocate the children: they also use a BLAS interface */
-	starpu_data_create_children(root_handle, nchunks, root_handle->ops);
+	matrix_child->nx = nx;
+	matrix_child->ny = child_ny;
+	matrix_child->elemsize = elemsize;
 
-	/* actually create all the chunks */
-	unsigned chunk;
-	for (chunk = 0; chunk < nchunks; chunk++)
-	{
-		size_t chunk_size = ((size_t)ny + nchunks - 1)/nchunks;
-
-		size_t child_ny = 
-			STARPU_MIN(chunk_size, (size_t)ny - (size_t)chunk*chunk_size);
-
-		starpu_data_handle chunk_handle =
-			starpu_data_get_child(root_handle, chunk);
-
-		unsigned node;
-		for (node = 0; node < STARPU_MAXNODES; node++)
-		{
-			starpu_matrix_interface_t *local =
-				starpu_data_get_interface_on_node(chunk_handle, node);
-
-			local->nx = nx;
-			local->ny = child_ny;
-			local->elemsize = elemsize;
-
-			if (starpu_data_test_if_allocated_on_node(root_handle, node)) {
-				starpu_matrix_interface_t *local_root =
-					starpu_data_get_interface_on_node(root_handle, node);
-
-				size_t offset = 
-					(size_t)chunk*chunk_size*local_root->ld*elemsize;
-				local->ptr = local_root->ptr + offset;
-				local->ld = local_root->ld;
-                                local->dev_handle = local_root->dev_handle;
-                                local->offset = local_root->offset + offset;
-			}
-		}
+	/* is the information on this node valid ? */
+	if (matrix_father->ptr != 0) {
+	  size_t offset = 
+	    (size_t)id*chunk_size*matrix_father->ld*elemsize;
+	  matrix_child->ptr = matrix_father->ptr + offset;
+	  matrix_child->ld = matrix_father->ld;
+	  matrix_child->dev_handle = matrix_father->dev_handle;
+	  matrix_child->offset = matrix_father->offset + offset;
 	}
 }

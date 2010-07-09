@@ -18,56 +18,39 @@
 #include <common/config.h>
 #include <datawizard/filters.h>
 
-void starpu_canonical_block_filter_bcsr(starpu_filter *f __attribute__((unused)), starpu_data_handle root_handle)
+void starpu_canonical_block_filter_bcsr(void *father_interface, void *child_interface, __attribute__((unused)) starpu_filter *f, unsigned id, __attribute__((unused)) unsigned nparts)
 {
-	unsigned nchunks;
+        unsigned nchunks;
+	struct starpu_bcsr_interface_s *bcsr_father = father_interface;
+	/* each chunk becomes a small dense matrix */
+	starpu_matrix_interface_t *matrix_child = child_interface;
+	
+	uint32_t nnz = bcsr_father->nnz;
 
-	struct starpu_bcsr_interface_s *interface =
-		starpu_data_get_interface_on_node(root_handle, 0);
-
-	uint32_t nnz = interface->nnz;
-
-	size_t elemsize = interface->elemsize;
-	uint32_t firstentry = interface->firstentry;
+	size_t elemsize = bcsr_father->elemsize;
+	uint32_t firstentry = bcsr_father->firstentry;
 
 	/* size of the tiles */
-	uint32_t r = interface->r;
-	uint32_t c = interface->c;
+	uint32_t r = bcsr_father->r;
+	uint32_t c = bcsr_father->c;
 
 	/* we create as many subdata as there are blocks ... */
 	nchunks = nnz;
 	
 	/* first allocate the children : it's a set of BLAS !*/
-	starpu_data_create_children(root_handle, nchunks, &_starpu_interface_matrix_ops);
+	//starpu_data_create_children(root_handle, nchunks, &_starpu_interface_matrix_ops);
 
-	/* actually create all the chunks */
+	//STARPU_ASSERT(starpu_data_test_if_allocated_on_node(root_handle, 0));
 
-	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(root_handle, 0));
+	uint32_t ptr_offset = c*r*id*elemsize;
 
-	/* each chunk becomes a small dense matrix */
-	unsigned chunk;
-	for (chunk = 0; chunk < nchunks; chunk++)
-	{
-		starpu_data_handle sub_handle = starpu_data_get_child(root_handle, chunk);
-		uint32_t ptr_offset = c*r*chunk*elemsize;
+	matrix_child->nx = c;
+	matrix_child->ny = r;
+	matrix_child->ld = c;
+	matrix_child->elemsize = elemsize;
 
-		unsigned node;
-		for (node = 0; node < STARPU_MAXNODES; node++)
-		{
-			starpu_matrix_interface_t *local =
-				starpu_data_get_interface_on_node(sub_handle, node);
-
-			local->nx = c;
-			local->ny = r;
-			local->ld = c;
-			local->elemsize = elemsize;
-
-			if (starpu_data_test_if_allocated_on_node(root_handle, node)) {
-				struct starpu_bcsr_interface_s *node_interface =
-					starpu_data_get_interface_on_node(root_handle, node);
-				uint8_t *nzval = (uint8_t *)(node_interface->nzval);
-				local->ptr = (uintptr_t)&nzval[firstentry + ptr_offset];
-			}
-		}
+	if (bcsr_father->nzval != 0) {
+	  uint8_t *nzval = (uint8_t *)(bcsr_father->nzval);
+	  matrix_child->ptr = (uintptr_t)&nzval[firstentry + ptr_offset];
 	}
 }

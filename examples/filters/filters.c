@@ -60,7 +60,9 @@ int main(int argc, char **argv)
 	starpu_filter f =
 	{
 		.filter_func = starpu_block_filter_func_vector,
-		.filter_arg = PARTS
+		.filter_arg = PARTS,
+		.get_nchildren = NULL,
+		.get_child_ops = NULL
 	};
 	starpu_data_partition(handle, &f);
 

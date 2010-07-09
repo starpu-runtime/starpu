@@ -90,6 +90,15 @@ void init_problem_callback(void *arg)
 	}
 }
 
+unsigned get_bcsr_nchildren(starpu_filter *f, starpu_data_handle handle)
+{
+  return handle->ops->nnz;
+}
+
+struct starpu_data_interface_ops_t *get_bcsr_child_ops(__attribute__((unused)) starpu_filter *f, __attribute__((unused)) unsigned child) 
+{
+  return &_starpu_interface_matrix_ops;
+}
 
 void call_filters(void)
 {
@@ -98,12 +107,19 @@ void call_filters(void)
 	starpu_filter vector_in_f, vector_out_f;
 
 	bcsr_f.filter_func    = starpu_canonical_block_filter_bcsr;
+	bcsr_f.get_nchildren = get_bcsr_nchildren;
+	/* the children use a matrix interface ! */
+	bcsr_f.get_child_ops = get_bcsr_child_ops;
 
 	vector_in_f.filter_func = starpu_block_filter_func_vector;
 	vector_in_f.filter_arg  = size/c;
+	vector_in_f.get_nchildren  = NULL;
+	vector_in_f.get_child_ops  = NULL;
 	
 	vector_out_f.filter_func = starpu_block_filter_func_vector;
 	vector_out_f.filter_arg  = size/r;
+	vector_out_f.get_nchildren  = NULL;
+	vector_out_f.get_child_ops  = NULL;
 
 	starpu_data_partition(sparse_matrix, &bcsr_f);
 

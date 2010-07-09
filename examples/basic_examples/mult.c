@@ -218,12 +218,16 @@ static void partition_mult_data(void)
 	 * name of the filters are a bit misleading */
 	starpu_filter f = {
 		.filter_func = starpu_vertical_block_filter_func,
-		.filter_arg = nslicesx
+		.filter_arg = nslicesx,
+		.get_nchildren = NULL,
+		.get_child_ops = NULL
 	};
 		
 	starpu_filter f2 = {
 		.filter_func = starpu_block_filter_func,
-		.filter_arg = nslicesy
+		.filter_arg = nslicesy,
+		.get_nchildren = NULL,
+		.get_child_ops = NULL
 	};
 		
 /*

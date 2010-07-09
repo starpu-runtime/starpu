@@ -230,6 +230,14 @@ static void create_data(void)
 
 }
 
+unsigned get_csr_nchildren(starpu_filter *f, starpu_data_handle initial_handle)
+{
+  uint32_t arg = f->filter_arg;
+  uint32_t nrow = starpu_csr_get_nrow(initial_handle);
+
+  return STARPU_MIN(nrow, arg);
+}
+
 void call_spmv_codelet_filters(void)
 {
 
@@ -237,8 +245,14 @@ void call_spmv_codelet_filters(void)
 	starpu_filter csr_f, vector_f;
 	csr_f.filter_func    = starpu_vertical_block_filter_func_csr;
 	csr_f.filter_arg     = nblocks;
+	csr_f.get_nchildren = get_csr_nchildren;
+	/* the children also use a csr interface */
+	csr_f.get_child_ops = NULL;
+
 	vector_f.filter_func = starpu_block_filter_func_vector;
 	vector_f.filter_arg  = nblocks;
+	vector_f.get_nchildren = NULL;
+	vector_f.get_child_ops = NULL;
 
 	starpu_data_partition(sparse_matrix, &csr_f);
 	starpu_data_partition(vector_out, &vector_f);

@@ -98,7 +98,9 @@ int main(int argc, char **argv)
 
 	struct starpu_filter_t f = {
 		.filter_func = starpu_block_filter_func_vector,
-		.filter_arg = ntasks
+		.filter_arg = ntasks,
+		.get_nchildren = NULL,
+		.get_child_ops = NULL
 	};
 	
 	starpu_data_partition(cnt_array_handle, &f);

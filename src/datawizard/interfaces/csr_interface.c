@@ -87,14 +87,13 @@ static void register_csr_handle(starpu_data_handle handle, uint32_t home_node, v
 		if (node == home_node) {
 			local_interface->nzval = csr_interface->nzval;
 			local_interface->colind = csr_interface->colind;
-			local_interface->rowptr = csr_interface->rowptr;
 		}
 		else {
 			local_interface->nzval = 0;
 			local_interface->colind = NULL;
-			local_interface->rowptr = NULL;
 		}
 
+		local_interface->rowptr = csr_interface->rowptr;
 		local_interface->nnz = csr_interface->nnz;
 		local_interface->nrow = csr_interface->nrow;
 		local_interface->firstentry = csr_interface->firstentry;

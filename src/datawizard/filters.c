@@ -37,7 +37,6 @@ static void map_filter(starpu_data_handle root_handle, starpu_filter *f)
 		}
 	}
 }
-
 void starpu_map_filters(starpu_data_handle root_handle, unsigned nfilters, ...)
 {
 	unsigned i;
@@ -88,14 +87,10 @@ starpu_data_handle starpu_data_get_sub_data(starpu_data_handle root_handle, unsi
 	return current_handle;
 }
 
-/*
- * For now, we assume that partitionned_data is already properly allocated;
- * at least by the starpu_filter function !
- */
 void starpu_data_partition(starpu_data_handle initial_handle, starpu_filter *f)
 {
-	int nparts;
-	int i;
+	unsigned nparts;
+	unsigned i;
 
 	/* first take care to properly lock the data header */
 	_starpu_spin_lock(&initial_handle->header_lock);
@@ -103,11 +98,16 @@ void starpu_data_partition(starpu_data_handle initial_handle, starpu_filter *f)
 	/* there should not be mutiple filters applied on the same data */
 	STARPU_ASSERT(initial_handle->nchildren == 0);
 
-	/* this should update the pointers and size of the chunk */
-	f->filter_func(f, initial_handle);
+	/* how many parts ? */
+	if (f->get_nchildren)
+	  nparts = f->get_nchildren(f, initial_handle);
+	else
+	  nparts = f->filter_arg;
 
-	nparts = initial_handle->nchildren;
 	STARPU_ASSERT(nparts > 0);
+
+	/* allocate the children */
+	starpu_data_create_children(initial_handle, nparts, f);
 
 	for (i = 0; i < nparts; i++)
 	{
@@ -147,9 +147,11 @@ void starpu_data_partition(starpu_data_handle initial_handle, starpu_filter *f)
 				initial_handle->per_node[node].allocated;
 			child->per_node[node].automatically_allocated = initial_handle->per_node[node].automatically_allocated;
 			child->per_node[node].refcnt = 0;
+			
+			/* update the interface */
+			f->filter_func(initial_handle->interface[node], child->interface[node], f, i, nparts);
 		}
 	}
-
 	/* now let the header */
 	_starpu_spin_unlock(&initial_handle->header_lock);
 }
@@ -239,10 +241,8 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 	_starpu_spin_unlock(&root_handle->header_lock);
 }
 
-/* TODO create an alternative version of that function which takes an array of
- * data interface ops in case each child may have its own interface type */
-void starpu_data_create_children(starpu_data_handle handle,
-		unsigned nchildren, struct starpu_data_interface_ops_t *children_interface_ops)
+/* each child may have his own interface type */
+void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren, starpu_filter *f)
 {
 	handle->children = calloc(nchildren, sizeof(struct starpu_data_state_t));
 	STARPU_ASSERT(handle->children);
@@ -253,10 +253,18 @@ void starpu_data_create_children(starpu_data_handle handle,
 	for (child = 0; child < nchildren; child++)
 	{
 		starpu_data_handle handle_child = &handle->children[child];
+		
+		struct starpu_data_interface_ops_t *ops;
+		
+		/* what's this child's interface ? */
+		if (f->get_child_ops)
+		  ops = f->get_child_ops(f, child);
+		else
+		  ops = handle->ops;
+		
+		handle_child->ops = ops;
 
-		handle_child->ops = children_interface_ops;
-
-		size_t interfacesize = children_interface_ops->interface_size;
+		size_t interfacesize = ops->interface_size;
 
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
@@ -264,6 +272,7 @@ void starpu_data_create_children(starpu_data_handle handle,
 			STARPU_ASSERT(handle->children->interface[node]);
 		}
 	}
-
+	
+	/* this handle now has children */
 	handle->nchildren = nchildren;
 }

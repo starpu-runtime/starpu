@@ -59,6 +59,12 @@ int use_handle(starpu_data_handle handle)
 	return ret;
 }
 
+/* there are 2 children */
+unsigned get_vector_nchildren(__attribute__((unused)) starpu_filter *f, __attribute__((unused)) starpu_data_handle initial_handle)
+{
+  return 2;
+}
+
 int main(int argc, char **argv)
 {
 	int ret;
@@ -71,7 +77,9 @@ int main(int argc, char **argv)
 
 	starpu_filter f = {
 		.filter_func = starpu_vector_divide_in_2_filter_func,
-		.filter_arg = VECTORSIZE/2
+		.filter_arg = VECTORSIZE/2,
+		.get_nchildren = get_vector_nchildren,
+		.get_child_ops = NULL
 	};
 
 	unsigned iter;

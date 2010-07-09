@@ -140,14 +140,18 @@ void STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigne
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
 	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(TYPE));
-
+	
 	starpu_filter f;
 		f.filter_func = starpu_vertical_block_filter_func;
 		f.filter_arg = nblocks;
+		f.get_nchildren = NULL;
+		f.get_child_ops = NULL;
 
 	starpu_filter f2;
 		f2.filter_func = starpu_block_filter_func;
 		f2.filter_arg = nblocks;
+		f2.get_nchildren = NULL;
+		f2.get_child_ops = NULL;
 
 	starpu_map_filters(dataA, 2, &f, &f2);
 
