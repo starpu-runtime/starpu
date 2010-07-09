@@ -17,6 +17,8 @@
 #include <datawizard/filters.h>
 #include <datawizard/footprint.h>
 
+static void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren, starpu_filter *f);
+
 /*
  * This function applies a starpu_filter on all the elements of a partition
  */
@@ -242,7 +244,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 }
 
 /* each child may have his own interface type */
-void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren, starpu_filter *f)
+static void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren, starpu_filter *f)
 {
 	handle->children = calloc(nchildren, sizeof(struct starpu_data_state_t));
 	STARPU_ASSERT(handle->children);
