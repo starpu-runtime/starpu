@@ -165,10 +165,14 @@ basic_examples_mult_SOURCES =			\
 ###########
 
 examplebin_PROGRAMS +=				\
-	filters/filters
+	filters/filters				\
+	filters/fmatrix
 
 filters_filters_SOURCES =			\
 	filters/filters.c
+
+filters_fmatrix_SOURCES =				\
+	filters/fmatrix.c
 
 ###################
 # PPM downscaling #
