@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 
 	starpu_vector_data_register(&v_handle, 0, (uintptr_t)buffer, VECTORSIZE, sizeof(char));
 
-	starpu_filter f = {
+	struct starpu_data_filter f = {
 		.filter_func = starpu_vector_divide_in_2_filter_func,
 		/* there are only 2 children */
 		.nchildren = 2,
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 	unsigned iter;
 	for (iter = 0; iter < NITER; iter++)
 	{
-		starpu_map_filters(v_handle, 1, &f);
+		starpu_data_map_filters(v_handle, 1, &f);
 	
 		ret = use_handle(starpu_data_get_sub_data(v_handle, 1, 0));
 		if (ret == -ENODEV)

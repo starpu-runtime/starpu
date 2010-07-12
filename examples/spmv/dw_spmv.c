@@ -234,7 +234,7 @@ void call_spmv_codelet_filters(void)
 {
 
 	/* partition the data along a block distribution */
-	starpu_filter csr_f, vector_f;
+	struct starpu_data_filter csr_f, vector_f;
 	csr_f.filter_func = starpu_vertical_block_filter_func_csr;
 	csr_f.nchildren = nblocks;
 	csr_f.get_nchildren = NULL;

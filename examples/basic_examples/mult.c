@@ -21,7 +21,7 @@
  *  - how to declare dense matrices (starpu_matrix_data_register)
  *  - how to manipulate matrices within codelets (eg. descr[0].blas.ld)
  *  - how to use filters to partition the matrices into blocks
- *    (starpu_data_partition and starpu_map_filters)
+ *    (starpu_data_partition and starpu_data_map_filters)
  *  - how to unpartition data (starpu_data_unpartition) and how to stop
  *    monitoring data (starpu_data_unregister)
  *  - how to manipulate subsets of data (starpu_data_get_sub_data)
@@ -207,7 +207,7 @@ static void partition_mult_data(void)
 		ydim, ydim, xdim, sizeof(float));
 
 	/* A filter is a method to partition a data into disjoint chunks, it is
-	 * described by the means of the "starpu_filter" structure that
+	 * described by the means of the "struct starpu_data_filter" structure that
 	 * contains a function that is applied on a data handle to partition it
 	 * into smaller chunks, and an argument that is passed to the function
 	 * (eg. the number of blocks to create here).
@@ -216,14 +216,14 @@ static void partition_mult_data(void)
 	/* StarPU supplies some basic filters such as the partition of a matrix
 	 * into blocks, note that we are using a FORTRAN ordering so that the
 	 * name of the filters are a bit misleading */
-	starpu_filter f = {
+	struct starpu_data_filter f = {
 		.filter_func = starpu_vertical_block_filter_func,
 		.nchildren = nslicesx,
 		.get_nchildren = NULL,
 		.get_child_ops = NULL
 	};
 		
-	starpu_filter f2 = {
+	struct starpu_data_filter f2 = {
 		.filter_func = starpu_block_filter_func,
 		.nchildren = nslicesy,
 		.get_nchildren = NULL,
@@ -270,14 +270,14 @@ static void partition_mult_data(void)
 	starpu_data_partition(B_handle, &f);
 	starpu_data_partition(A_handle, &f2);
 
-	/* starpu_map_filters is a variable-arity function, the first argument
+	/* starpu_data_map_filters is a variable-arity function, the first argument
 	 * is the handle of the data to partition, the second argument is the
 	 * number of filters to apply recursively. Filters are applied in the
 	 * same order as the arguments.
 	 * This would be equivalent to starpu_data_partition(C_handle, &f) and
 	 * then applying f2 on each sub-data (ie. each column of C)
 	 */
-	starpu_map_filters(C_handle, 2, &f, &f2);
+	starpu_data_map_filters(C_handle, 2, &f, &f2);
 }
 
 static struct starpu_perfmodel_t mult_perf_model = {
@@ -392,9 +392,9 @@ int main(__attribute__ ((unused)) int argc,
 		pthread_cond_wait(&cond, &mutex);
 	pthread_mutex_unlock(&mutex);
 
-	/* remove the filters applied by the means of starpu_map_filters; now
+	/* remove the filters applied by the means of starpu_data_map_filters; now
  	 * it's not possible to manipulate a subset of C using starpu_data_get_sub_data until
-	 * starpu_map_filters is called again on C_handle.
+	 * starpu_data_map_filters is called again on C_handle.
 	 * The second argument is the memory node where the different subsets
 	 * should be reassembled, 0 = main memory (RAM) */
 	starpu_data_unpartition(C_handle, 0);

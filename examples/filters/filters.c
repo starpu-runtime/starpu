@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&handle, 0, (uintptr_t)vector, NX, sizeof(vector[0]));
 
         /* Partition the vector in PARTS sub-vectors */
-	starpu_filter f =
+	struct starpu_data_filter f =
 	{
 		.filter_func = starpu_block_filter_func_vector,
 		.nchildren = PARTS,

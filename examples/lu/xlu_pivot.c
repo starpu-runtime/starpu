@@ -313,15 +313,15 @@ void STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size
 	/* We already enforce deps by hand */
 	starpu_data_set_sequential_consistency_flag(dataA, 0);
 
-	starpu_filter f;
+	struct starpu_data_filter f;
 		f.filter_func = starpu_vertical_block_filter_func;
 		f.filter_arg = nblocks;
 
-	starpu_filter f2;
+	struct starpu_data_filter f2;
 		f2.filter_func = starpu_block_filter_func;
 		f2.filter_arg = nblocks;
 
-	starpu_map_filters(dataA, 2, &f, &f2);
+	starpu_data_map_filters(dataA, 2, &f, &f2);
 
 	unsigned i;
 	for (i = 0; i < size; i++)

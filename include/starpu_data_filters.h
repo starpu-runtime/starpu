@@ -26,16 +26,16 @@ extern "C" {
 
 struct starpu_data_interface_ops_t;
 
-typedef struct starpu_filter_t {
-  void (*filter_func)(void *father_interface, void *child_interface, struct starpu_filter_t *, unsigned id, unsigned nparts);
-        unsigned (*get_nchildren)(struct starpu_filter_t *, starpu_data_handle initial_handle);
-        struct starpu_data_interface_ops_t *(*get_child_ops)(struct starpu_filter_t *, unsigned id);
+struct starpu_data_filter {
+	void (*filter_func)(void *father_interface, void *child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts);
+        unsigned (*get_nchildren)(struct starpu_data_filter *, starpu_data_handle initial_handle);
+        struct starpu_data_interface_ops_t *(*get_child_ops)(struct starpu_data_filter *, unsigned id);
         unsigned filter_arg;
         unsigned nchildren;
         void *filter_arg_ptr;
-} starpu_filter;
+};
 
-void starpu_data_partition(starpu_data_handle initial_handle, starpu_filter *f);
+void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data_filter *f);
 void starpu_data_unpartition(starpu_data_handle root_data, uint32_t gathering_node);
 
 starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i);
@@ -43,22 +43,22 @@ starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i);
 /* unsigned list */
 starpu_data_handle starpu_data_get_sub_data(starpu_data_handle root_data, unsigned depth, ... );
 
-/* starpu_filter * list */
-void starpu_map_filters(starpu_data_handle root_data, unsigned nfilters, ...);
+/* struct starpu_data_filter * list */
+void starpu_data_map_filters(starpu_data_handle root_data, unsigned nfilters, ...);
 
 /* a few examples of filters */
 
 /* for BCSR */
-void starpu_canonical_block_filter_bcsr(void *father_interface, void *child_interface, starpu_filter *f, unsigned id, unsigned nparts);
-void starpu_vertical_block_filter_func_csr(void *father_interface, void *child_interface, starpu_filter *f, unsigned id, unsigned nparts);
+void starpu_canonical_block_filter_bcsr(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_vertical_block_filter_func_csr(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 /* (filters for BLAS interface) */
-void starpu_block_filter_func(void *father_interface, void *child_interface, starpu_filter *f, unsigned id, unsigned nparts);
-void starpu_vertical_block_filter_func(void *father_interface, void *child_interface, starpu_filter *f, unsigned id, unsigned nparts);
+void starpu_block_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_vertical_block_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /* for vector */
-void starpu_block_filter_func_vector(void *father_interface, void *child_interface, starpu_filter *f, unsigned id, unsigned nparts);
-void starpu_vector_list_filter_func(void *father_interface, void *child_interface, starpu_filter *f, unsigned id, unsigned nparts);
-void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_interface, starpu_filter *f, unsigned id, unsigned nparts);
+void starpu_block_filter_func_vector(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_vector_list_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 #ifdef __cplusplus
 }

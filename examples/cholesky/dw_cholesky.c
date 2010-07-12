@@ -242,19 +242,19 @@ void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	starpu_data_set_sequential_consistency_flag(dataA, 0);
 
-	starpu_filter f;
+	struct starpu_data_filter f;
 		f.filter_func = starpu_vertical_block_filter_func;
 		f.nchildren = nblocks;
 		f.get_nchildren = NULL;
 		f.get_child_ops = NULL;
 
-	starpu_filter f2;
+	struct starpu_data_filter f2;
 		f2.filter_func = starpu_block_filter_func;
 		f2.nchildren = nblocks;
 		f2.get_nchildren = NULL;
 		f2.get_child_ops = NULL;
 
-	starpu_map_filters(dataA, 2, &f, &f2);
+	starpu_data_map_filters(dataA, 2, &f, &f2);
 
 	_dw_cholesky(dataA, nblocks);
 

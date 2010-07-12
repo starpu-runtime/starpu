@@ -90,12 +90,12 @@ void init_problem_callback(void *arg)
 	}
 }
 
-unsigned get_bcsr_nchildren(__attribute__((unused)) starpu_filter *f, starpu_data_handle handle)
+unsigned get_bcsr_nchildren(__attribute__((unused)) struct starpu_data_filter *f, starpu_data_handle handle)
 {
   return (unsigned)starpu_bcsr_get_nnz(handle);
 }
 
-struct starpu_data_interface_ops_t *get_bcsr_child_ops(__attribute__((unused)) starpu_filter *f, __attribute__((unused)) unsigned child) 
+struct starpu_data_interface_ops_t *get_bcsr_child_ops(__attribute__((unused)) struct starpu_data_filter *f, __attribute__((unused)) unsigned child) 
 {
   return &_starpu_interface_matrix_ops;
 }
@@ -103,8 +103,8 @@ struct starpu_data_interface_ops_t *get_bcsr_child_ops(__attribute__((unused)) s
 void call_filters(void)
 {
 
-	starpu_filter bcsr_f;
-	starpu_filter vector_in_f, vector_out_f;
+	struct starpu_data_filter bcsr_f;
+	struct starpu_data_filter vector_in_f, vector_out_f;
 
 	bcsr_f.filter_func    = starpu_canonical_block_filter_bcsr;
 	bcsr_f.get_nchildren = get_bcsr_nchildren;

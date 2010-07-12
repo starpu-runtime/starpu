@@ -166,13 +166,13 @@ static void partition_mult_data(void)
 	conf.m = ydim/nslicesy;
 	conf.n = xdim/nslicesx;
 
-	starpu_filter f;
+	struct starpu_data_filter f;
 	f.filter_func = starpu_vertical_block_filter_func;
 	f.nchildren = nslicesx;
 	f.get_nchildren = NULL;
 	f.get_child_ops = NULL;
 		
-	starpu_filter f2;
+	struct starpu_data_filter f2;
 	f2.filter_func = starpu_block_filter_func;
 	f2.nchildren = nslicesy;
 	f2.get_nchildren = NULL;
@@ -181,7 +181,7 @@ static void partition_mult_data(void)
 	starpu_data_partition(B_handle, &f);
 	starpu_data_partition(A_handle, &f2);
 
-	starpu_map_filters(C_handle, 2, &f, &f2);
+	starpu_data_map_filters(C_handle, 2, &f, &f2);
 }
 
 static starpu_codelet cl = {

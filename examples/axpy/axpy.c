@@ -109,7 +109,7 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&handle_y, 0, (uintptr_t)vec_y, N, sizeof(TYPE));
 
 	/* Divide the vector into blocks */
-	starpu_filter block_filter = {
+	struct starpu_data_filter block_filter = {
 		.filter_func = starpu_block_filter_func_vector,
 		.nchildren = NBLOCKS,
 		.get_nchildren = NULL,

@@ -21,7 +21,7 @@
 /*
  * an example of a dummy partition function : blocks ...
  */
-void starpu_block_filter_func(void *father_interface, void *child_interface, __attribute__((unused)) starpu_filter *f, unsigned id, unsigned nchunks)
+void starpu_block_filter_func(void *father_interface, void *child_interface, __attribute__((unused)) struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
        starpu_matrix_interface_t *matrix_father = father_interface;
        starpu_matrix_interface_t *matrix_child = child_interface;
@@ -52,7 +52,7 @@ void starpu_block_filter_func(void *father_interface, void *child_interface, __a
 	}
 }
 
-void starpu_vertical_block_filter_func(void *father_interface, void *child_interface, __attribute__((unused)) starpu_filter *f, unsigned id, unsigned nchunks)
+void starpu_vertical_block_filter_func(void *father_interface, void *child_interface, __attribute__((unused)) struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
         starpu_matrix_interface_t *matrix_father = father_interface;
         starpu_matrix_interface_t *matrix_child = child_interface;

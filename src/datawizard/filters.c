@@ -17,21 +17,21 @@
 #include <datawizard/filters.h>
 #include <datawizard/footprint.h>
 
-static void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren, starpu_filter *f);
+static void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren, struct starpu_data_filter *f);
 
 /*
- * This function applies a starpu_filter on all the elements of a partition
+ * This function applies a data filter on all the elements of a partition
  */
-static void map_filter(starpu_data_handle root_handle, starpu_filter *f)
+static void map_filter(starpu_data_handle root_handle, struct starpu_data_filter *f)
 {
-	/* we need to apply the starpu_filter on all leaf of the tree */
+	/* we need to apply the data filter on all leaf of the tree */
 	if (root_handle->nchildren == 0)
 	{
 		/* this is a leaf */
 		starpu_data_partition(root_handle, f);
 	}
 	else {
-		/* try to apply the starpu_filter recursively */
+		/* try to apply the data filter recursively */
 		unsigned child;
 		for (child = 0; child < root_handle->nchildren; child++)
 		{
@@ -39,15 +39,15 @@ static void map_filter(starpu_data_handle root_handle, starpu_filter *f)
 		}
 	}
 }
-void starpu_map_filters(starpu_data_handle root_handle, unsigned nfilters, ...)
+void starpu_data_map_filters(starpu_data_handle root_handle, unsigned nfilters, ...)
 {
 	unsigned i;
 	va_list pa;
 	va_start(pa, nfilters);
 	for (i = 0; i < nfilters; i++)
 	{
-		starpu_filter *next_filter;
-		next_filter = va_arg(pa, starpu_filter *);
+		struct starpu_data_filter *next_filter;
+		next_filter = va_arg(pa, struct starpu_data_filter *);
 
 		STARPU_ASSERT(next_filter);
 
@@ -89,7 +89,7 @@ starpu_data_handle starpu_data_get_sub_data(starpu_data_handle root_handle, unsi
 	return current_handle;
 }
 
-void starpu_data_partition(starpu_data_handle initial_handle, starpu_filter *f)
+void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data_filter *f)
 {
 	unsigned nparts;
 	unsigned i;
@@ -244,7 +244,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 }
 
 /* each child may have his own interface type */
-static void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren, starpu_filter *f)
+static void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren, struct starpu_data_filter *f)
 {
 	handle->children = calloc(nchildren, sizeof(struct starpu_data_state_t));
 	STARPU_ASSERT(handle->children);

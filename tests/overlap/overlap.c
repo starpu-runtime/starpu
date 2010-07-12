@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&handle, 0, (uintptr_t)buffer,
 					NTASKS*VECTORSIZE, sizeof(char));
 
-	starpu_filter f =
+	struct starpu_data_filter f =
 	{
 		.filter_func = starpu_block_filter_func_vector,
 		.nchildren = NTASKS,

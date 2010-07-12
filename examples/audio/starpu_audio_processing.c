@@ -391,7 +391,7 @@ int main(int argc, char **argv)
 
 	starpu_vector_data_register(&A_handle, 0, (uintptr_t)A, niter*nsamples, sizeof(float));
 
-	starpu_filter f = 
+	struct starpu_data_filter f = 
 	{
 		.filter_func = starpu_block_filter_func_vector,
 		.nchildren = niter,

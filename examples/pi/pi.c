@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 	 * accessed by the CPU later on */
 	starpu_data_set_wb_mask(cnt_array_handle, (1<<0));
 
-	struct starpu_filter_t f = {
+	struct starpu_data_filter f = {
 		.filter_func = starpu_block_filter_func_vector,
 		.nchildren = ntasks,
 		.get_nchildren = NULL,
