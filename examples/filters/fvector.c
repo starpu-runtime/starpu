@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 
                 factor *= 10;
 		task->buffers[0].handle = sub_handle;
-		task->buffers[0].mode = STARPU_R;
+		task->buffers[0].mode = STARPU_RW;
                 task->cl = &cl;
                 task->synchronous = 1;
                 task->cl_arg = &factor;
