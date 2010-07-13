@@ -18,7 +18,8 @@
 #include <common/config.h>
 #include <datawizard/filters.h>
 
-void starpu_block_filter_func_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
+void starpu_block_filter_func_block(void *father_interface, void *child_interface, __attribute__((unused)) struct starpu_data_filter *f,
+                                    unsigned id, unsigned nparts)
 {
         starpu_block_interface_t *block_father = father_interface;
         starpu_block_interface_t *block_child = child_interface;
