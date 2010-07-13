@@ -2626,7 +2626,9 @@ starpu_vector_data_register(&handle, 0, (uintptr_t)vector, NX, sizeof(vector[0])
 starpu_filter f =
 @{
     .filter_func = starpu_block_filter_func_vector,
-    .filter_arg = PARTS
+    .nchildren = PARTS,
+    .get_nchildren = NULL,
+    .get_child_ops = NULL
 @};
 starpu_data_partition(handle, &f);
 @end smallexample
