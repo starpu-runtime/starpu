@@ -56,9 +56,11 @@ void starpu_data_map_filters(starpu_data_handle root_handle, unsigned nfilters, 
 	va_end(pa);
 }
 
-/*
- * example starpu_data_get_sub_data(starpu_data_handle root_handle, 3, 42, 0, 1);
- */
+int starpu_data_get_nb_children(starpu_data_handle handle)
+{
+        return handle->nchildren;
+}
+
 starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i)
 {
 	STARPU_ASSERT(i < handle->nchildren);
@@ -66,6 +68,9 @@ starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i)
 	return &handle->children[i];
 }
 
+/*
+ * example starpu_data_get_sub_data(starpu_data_handle root_handle, 3, 42, 0, 1);
+ */
 starpu_data_handle starpu_data_get_sub_data(starpu_data_handle root_handle, unsigned depth, ... )
 {
 	STARPU_ASSERT(root_handle);

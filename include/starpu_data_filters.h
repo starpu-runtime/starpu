@@ -38,6 +38,7 @@ struct starpu_data_filter {
 void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data_filter *f);
 void starpu_data_unpartition(starpu_data_handle root_data, uint32_t gathering_node);
 
+int starpu_data_get_nb_children(starpu_data_handle handle);
 starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i);
 
 /* unsigned list */
@@ -59,6 +60,9 @@ void starpu_vertical_block_filter_func(void *father_interface, void *child_inter
 void starpu_block_filter_func_vector(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 void starpu_vector_list_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/* for block */
+void starpu_block_filter_func_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 #ifdef __cplusplus
 }
