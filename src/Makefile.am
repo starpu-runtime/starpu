@@ -164,6 +164,7 @@ libstarpu_la_SOURCES = 						\
 	datawizard/interfaces/csr_interface.c			\
 	datawizard/interfaces/matrix_filters.c			\
 	datawizard/interfaces/matrix_interface.c		\
+	datawizard/interfaces/block_filters.c			\
 	datawizard/interfaces/block_interface.c			\
 	datawizard/interfaces/vector_interface.c		\
 	datawizard/interfaces/bcsr_filters.c			\
