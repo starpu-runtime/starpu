@@ -166,10 +166,14 @@ basic_examples_mult_SOURCES =			\
 
 examplebin_PROGRAMS +=				\
 	filters/fvector				\
+	filters/fblock				\
 	filters/fmatrix
 
 filters_fvector_SOURCES =			\
 	filters/fvector.c
+
+filters_fblock_SOURCES =				\
+	filters/fblock.c
 
 filters_fmatrix_SOURCES =				\
 	filters/fmatrix.c
