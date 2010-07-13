@@ -42,14 +42,6 @@ int main(int argc, char **argv)
 {
 	unsigned i, j, n=1;
         int matrix[NX*NY];
-        starpu_data_handle handle;
-        int factor=1;
-
-        starpu_codelet cl = {
-                .where = STARPU_CPU,
-                .cpu_func = cpu_func,
-                .nbuffers = 1
-        };
 
         fprintf(stderr,"IN  Matrix: \n");
         for(j=0 ; j<NY ; j++) {
@@ -61,7 +53,13 @@ int main(int argc, char **argv)
         }
         fprintf(stderr,"\n");
 
-	starpu_init(NULL);
+        starpu_data_handle handle;
+        starpu_codelet cl = {
+                .where = STARPU_CPU,
+                .cpu_func = cpu_func,
+                .nbuffers = 1
+        };
+        starpu_init(NULL);
 
 	/* Declare data to StarPU */
 	starpu_matrix_data_register(&handle, 0, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0]));
@@ -80,22 +78,22 @@ int main(int argc, char **argv)
 	for (i=0; i<PARTS; i++)
 	{
                 struct starpu_task *task = starpu_task_create();
-
-                factor = i;//10;
+                int factor = i;
 		task->buffers[0].handle = starpu_data_get_sub_data(handle, 1, i);
 		task->buffers[0].mode = STARPU_RW;
                 task->cl = &cl;
                 task->synchronous = 1;
                 task->cl_arg = &factor;
                 task->cl_arg_size = sizeof(factor);
-
 		starpu_task_submit(task);
 	}
 
+        /* Unpartition the data, unregister it from StarPU and shutdown */
 	starpu_data_unpartition(handle, 0);
         starpu_data_unregister(handle);
 	starpu_shutdown();
 
+        /* Print result matrix */
         fprintf(stderr,"OUT Matrix: \n");
         for(j=0 ; j<NY ; j++) {
                 for(i=0 ; i<NX ; i++) {
