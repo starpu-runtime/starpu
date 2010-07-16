@@ -172,10 +172,15 @@ examplebin_PROGRAMS +=				\
 filters_fvector_SOURCES =			\
 	filters/fvector.c
 
-filters_fblock_SOURCES =				\
+filters_fblock_SOURCES =			\
 	filters/fblock.c
 
-filters_fmatrix_SOURCES =				\
+if STARPU_USE_CUDA
+filters_fblock_SOURCES +=			\
+	filters/fblock_cuda.cu
+endif
+
+filters_fmatrix_SOURCES =			\
 	filters/fmatrix.c
 
 ###################

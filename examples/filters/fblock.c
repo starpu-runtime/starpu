@@ -22,6 +22,13 @@
 #define NZ    3
 #define PARTS 2
 
+void opencl_func(void *buffers[], void *cl_arg)
+{
+        return;
+}
+
+extern void cuda_func(void *buffers[], void *cl_arg);
+
 void cpu_func(void *buffers[], void *cl_arg)
 {
         unsigned i, j, k;
@@ -42,6 +49,22 @@ void cpu_func(void *buffers[], void *cl_arg)
         }
 }
 
+void print_block(int *block, int nx, int ny, int nz)
+{
+        int i, j, k;
+
+        for(k=0 ; k<nz ; k++) {
+                for(j=0 ; j<ny ; j++) {
+                        for(i=0 ; i<nx ; i++) {
+                                fprintf(stderr, "%2d ", block[(k*nx*ny)+(j*nx)+i]);
+                        }
+                        fprintf(stderr,"\n");
+                }
+                fprintf(stderr,"\n");
+        }
+        fprintf(stderr,"\n");
+}
+
 int main(int argc, char **argv)
 {
         int *block,n=0;
@@ -49,30 +72,28 @@ int main(int argc, char **argv)
 
         block = (int*)malloc(NX*NY*NZ*sizeof(block[0]));
         assert(block);
-        fprintf(stderr, "IN  Block\n");
         for(k=0 ; k<NZ ; k++) {
                 for(j=0 ; j<NY ; j++) {
                         for(i=0 ; i<NX ; i++) {
-                                block[(k*NY)+(j*NX)+i] = n++;
-                                fprintf(stderr, "%2d ", block[(k*NY)+(j*NX)+i]);
+                                block[(k*NX*NY)+(j*NX)+i] = n++;
                         }
-                        fprintf(stderr,"\n");
                 }
-                fprintf(stderr,"\n");
         }
-        fprintf(stderr,"\n");
+        fprintf(stderr, "IN  Block\n");
+        print_block(block, NX, NY, NZ);
 
 	starpu_data_handle handle;
 	starpu_codelet cl =
 	{
-		.where = STARPU_CPU,
+		.where = STARPU_CPU|STARPU_CUDA,
                 .cpu_func = cpu_func,
+                .cuda_func = cuda_func,
 		.nbuffers = 1
 	};
         starpu_init(NULL);
 
-	/* Declare data to StarPU */
-	starpu_block_data_register(&handle, 0, (uintptr_t)block, NX, NX*NY, NX, NY, NZ, sizeof(int));
+        /* Declare data to StarPU */
+        starpu_block_data_register(&handle, 0, (uintptr_t)block, NX, NX*NY, NX, NY, NZ, sizeof(int));
 
         /* Partition the block in PARTS sub-blocks */
 	struct starpu_data_filter f =
@@ -82,14 +103,14 @@ int main(int argc, char **argv)
 		.get_nchildren = NULL,
 		.get_child_ops = NULL
 	};
-	starpu_data_partition(handle, &f);
+        starpu_data_partition(handle, &f);
 
         fprintf(stderr,"Nb of partitions : %d\n",starpu_data_get_nb_children(handle));
 
         /* Submit a task on each sub-block */
         for(i=0 ; i<starpu_data_get_nb_children(handle) ; i++)
         {
-                int multiplier=i;
+                int ret,multiplier=i;
                 struct starpu_task *task = starpu_task_create();
 
                 fprintf(stderr,"Dealing with sub-block %d\n", i);
@@ -100,24 +121,19 @@ int main(int argc, char **argv)
                 task->buffers[0].mode = STARPU_RW;
                 task->cl_arg = &multiplier;
 
-                starpu_task_submit(task);
+                ret = starpu_task_submit(task);
+                if (ret) {
+                        fprintf(stderr, "Error when submitting task\n");
+                        exit(ret);
+                }
         }
 
         /* Unpartition the data, unregister it from StarPU and shutdown */
-	starpu_data_unpartition(handle, 0);
+        starpu_data_unpartition(handle, 0);
         starpu_data_unregister(handle);
 	starpu_shutdown();
 
         /* Print result block */
         fprintf(stderr, "OUT Block\n");
-        for(k=0 ; k<NZ ; k++) {
-                for(j=0 ; j<NY ; j++) {
-                        for(i=0 ; i<NX ; i++) {
-                                fprintf(stderr, "%2d ", block[(k*NY)+(j*NX)+i]);
-                        }
-                        fprintf(stderr,"\n");
-                }
-                fprintf(stderr,"\n");
-        }
-        fprintf(stderr,"\n");
+        print_block(block, NX, NY, NZ);
 }

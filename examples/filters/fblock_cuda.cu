@@ -1,0 +1,48 @@
+/*
+ * StarPU
+ * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*
+ * This example complements vector_scale.c: here we implement a CUDA version.
+ */
+
+#include <starpu.h>
+
+static __global__ void fblock_cuda(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz, float factor)
+{
+        int i, j, k;
+        for(k=0; k<nz ; k++) {
+                for(j=0; j<ny ; j++) {
+                        for(i=0; i<nx ; i++)
+                                block[(k*ldz)+(j*ldy)+i] = factor;
+                }
+        }
+}
+
+extern "C" void cuda_func(void *buffers[], void *_args)
+{
+        int *factor = (int *)_args;
+	int *block = (int *)STARPU_GET_BLOCK_PTR(buffers[0]);
+	int nx = (int)STARPU_GET_BLOCK_NX(buffers[0]);
+	int ny = (int)STARPU_GET_BLOCK_NY(buffers[0]);
+	int nz = (int)STARPU_GET_BLOCK_NZ(buffers[0]);
+        unsigned ldy = STARPU_GET_BLOCK_LDY(buffers[0]);
+        unsigned ldz = STARPU_GET_BLOCK_LDZ(buffers[0]);
+
+        /* TODO: use more blocks and threads in blocks */
+        fblock_cuda<<<1,1>>>(block, nx, ny, nz, ldy, ldz, *factor);
+
+	cudaThreadSynchronize();
+}
