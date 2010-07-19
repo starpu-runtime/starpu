@@ -720,14 +720,61 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node __att
 	starpu_block_interface_t *dst_block = dst_interface;
         int err,ret;
 
-	/* XXX non contiguous buffers are not properly supported yet. (TODO) */
-	STARPU_ASSERT((src_block->nx == src_block->ldy) && (src_block->ldy == dst_block->ldy));
+	uint32_t nx = src_block->nx;
+	uint32_t ny = src_block->ny;
 
-	err = _starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_block->ptr, (cl_mem)dst_block->dev_handle,
-                                                           src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
-                                                           dst_block->offset, (cl_event*)_event, &ret);
-        if (STARPU_UNLIKELY(err))
-                STARPU_OPENCL_REPORT_ERROR(err);
+	/* We may have a contiguous buffer for the entire block, or contiguous
+	 * plans within the block, we can avoid many small transfers that way */
+	if ((nx == src_block->ldy) && (src_block->ldy == dst_block->ldy))
+	{
+		/* Is that a single contiguous buffer ? */
+		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
+		{
+                        err = _starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_block->ptr, (cl_mem)dst_block->dev_handle,
+                                                                           src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
+                                                                           dst_block->offset, (cl_event*)_event, &ret);
+                        if (STARPU_UNLIKELY(err))
+                                STARPU_OPENCL_REPORT_ERROR(err);
+                }
+		else {
+			/* Are all plans contiguous */
+                        /* XXX non contiguous buffers are not properly supported yet. (TODO) */
+                        STARPU_ASSERT(0);
+                }
+        }
+	else {
+		/* Default case: we transfer all lines one by one: ny*nz transfers */
+		unsigned layer;
+		for (layer = 0; layer < src_block->nz; layer++)
+		{
+                        unsigned j;
+                        for(j=0 ; j<src_block->ny ; j++) {
+                                void *ptr = (void*)src_block->ptr+(layer*src_block->ldz*src_block->elemsize)+(j*src_block->ldy*src_block->elemsize);
+                                err = _starpu_opencl_copy_ram_to_opencl(ptr, (cl_mem)dst_block->dev_handle,
+                                                                        src_block->nx*src_block->elemsize,
+                                                                        layer*dst_block->ldz*dst_block->elemsize + j*dst_block->ldy*dst_block->elemsize
+                                                                        + dst_block->offset, NULL);
+                                if (STARPU_UNLIKELY(err))
+                                        STARPU_OPENCL_REPORT_ERROR(err);
+                        }
+
+                        //                        int *foo = (int *)(src_block->ptr+(layer*src_block->ldz*src_block->elemsize));
+                        //                        fprintf(stderr, "layer %d --> value %d\n", layer, foo[1]);
+                        //                        const size_t buffer_origin[3] = {layer*src_block->ldz*src_block->elemsize, 0, 0};
+                        //                        //const size_t buffer_origin[3] = {0, 0, 0};
+                        //                        const size_t host_origin[3] = {layer*dst_block->ldz*dst_block->elemsize+dst_block->offset, 0, 0};
+                        //                        size_t region[3] = {src_block->nx*src_block->elemsize,src_block->ny, 1};
+                        //                        size_t buffer_row_pitch=region[0];
+                        //                        size_t buffer_slice_pitch=region[1] * buffer_row_pitch;
+                        //                        size_t host_row_pitch=region[0];
+                        //                        size_t host_slice_pitch=region[1] * host_row_pitch;
+                        //
+                        //                        _starpu_opencl_copy_rect_ram_to_opencl((void *)src_block->ptr, (cl_mem)dst_block->dev_handle,
+                        //                                                               buffer_origin, host_origin, region,
+                        //                                                               buffer_row_pitch, buffer_slice_pitch,
+                        //                                                               host_row_pitch, host_slice_pitch, NULL);
+                }
+        }
 
 	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
 
@@ -740,14 +787,53 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node __att
 	starpu_block_interface_t *dst_block = dst_interface;
         int err, ret;
 
-	/* XXX non contiguous buffers are not properly supported yet. (TODO) */
-	STARPU_ASSERT((src_block->nx == src_block->ldy) && (src_block->ldy == dst_block->ldy));
-
-        err = _starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_block->dev_handle, (void*)dst_block->ptr,
-                                                           src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
-                                                           src_block->offset, (cl_event*)_event, &ret);
-        if (STARPU_UNLIKELY(err))
-                STARPU_OPENCL_REPORT_ERROR(err);
+	/* We may have a contiguous buffer for the entire block, or contiguous
+	 * plans within the block, we can avoid many small transfers that way */
+	if ((src_block->nx == src_block->ldy) && (src_block->ldy == dst_block->ldy))
+	{
+		/* Is that a single contiguous buffer ? */
+		if (((src_block->nx*src_block->ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
+		{
+                        err = _starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_block->dev_handle, (void*)dst_block->ptr,
+                                                                           src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
+                                                                           src_block->offset, (cl_event*)_event, &ret);
+                        if (STARPU_UNLIKELY(err))
+                                STARPU_OPENCL_REPORT_ERROR(err);
+                }
+                else {
+			/* Are all plans contiguous */
+                        /* XXX non contiguous buffers are not properly supported yet. (TODO) */
+                        STARPU_ASSERT(0);
+                }
+        }
+	else {
+		/* Default case: we transfer all lines one by one: ny*nz transfers */
+                /* XXX non contiguous buffers are not properly supported yet. (TODO) */
+		unsigned layer;
+		for (layer = 0; layer < src_block->nz; layer++)
+		{
+                        unsigned j;
+                        for(j=0 ; j<src_block->ny ; j++) {
+                                void *ptr = (void *)dst_block->ptr+(layer*dst_block->ldz*dst_block->elemsize)+(j*dst_block->ldy*dst_block->elemsize);
+                                err = _starpu_opencl_copy_opencl_to_ram((void*)src_block->dev_handle, ptr,
+                                                                        src_block->nx*src_block->elemsize,
+                                                                        layer*src_block->ldz*src_block->elemsize+j*src_block->ldy*src_block->elemsize+
+                                                                        src_block->offset, NULL);
+                        }
+                        //                        const size_t buffer_origin[3] = {src_block->offset, 0, 0};
+                        //                        const size_t host_origin[3] = {layer*src_block->ldz*src_block->elemsize, 0, 0};
+                        //                        size_t region[3] = {src_block->nx*src_block->elemsize,src_block->ny, 1};
+                        //                        size_t buffer_row_pitch=region[0];
+                        //                        size_t buffer_slice_pitch=region[1] * buffer_row_pitch;
+                        //                        size_t host_row_pitch=region[0];
+                        //                        size_t host_slice_pitch=region[1] * host_row_pitch;
+                        //
+                        //                        _starpu_opencl_copy_rect_opencl_to_ram((cl_mem)src_block->dev_handle, (void *)dst_block->ptr,
+                        //                                                               buffer_origin, host_origin, region,
+                        //                                                               buffer_row_pitch, buffer_slice_pitch,
+                        //                                                               host_row_pitch, host_slice_pitch, NULL);
+                }
+        }
 
 	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
 
