@@ -179,6 +179,38 @@ int _starpu_opencl_copy_opencl_to_ram(cl_mem buffer, void *ptr, size_t size, siz
         return EXIT_SUCCESS;
 }
 
+int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, void *ptr, const size_t buffer_origin[3], const size_t host_origin[3],
+                                           const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
+                                           size_t host_row_pitch, size_t host_slice_pitch, cl_event *event)
+{
+        int err;
+        struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+        cl_bool blocking;
+
+        blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
+        err = clEnqueueReadBufferRect(queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
+                                      buffer_slice_pitch, host_row_pitch, host_slice_pitch, ptr, 0, NULL, event);
+        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+
+        return EXIT_SUCCESS;
+}
+
+int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, cl_mem buffer, const size_t buffer_origin[3], const size_t host_origin[3],
+                                           const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
+                                           size_t host_row_pitch, size_t host_slice_pitch, cl_event *event)
+{
+        int err;
+        struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+        cl_bool blocking;
+
+        blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
+        err = clEnqueueWriteBufferRect(queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
+                                       buffer_slice_pitch, host_row_pitch, host_slice_pitch, ptr, 0, NULL, event);
+        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+
+        return EXIT_SUCCESS;
+}
+
 void _starpu_opencl_init(void)
 {
         if (!init_done) {
