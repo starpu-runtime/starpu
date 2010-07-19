@@ -179,6 +179,13 @@ if STARPU_USE_CUDA
 filters_fblock_SOURCES +=			\
 	filters/fblock_cuda.cu
 endif
+if STARPU_USE_OPENCL
+filters_fblock_SOURCES +=			\
+	filters/fblock_opencl.c
+endif
+
+nobase_STARPU_OPENCL_DATA_DATA += \
+	filters/fblock_opencl_codelet.cl
 
 filters_fmatrix_SOURCES =			\
 	filters/fmatrix.c

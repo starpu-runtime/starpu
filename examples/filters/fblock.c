@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,18 +22,13 @@
 #define NZ    3
 #define PARTS 2
 
-void opencl_func(void *buffers[], void *cl_arg)
-{
-        return;
-}
-
 extern void cuda_func(void *buffers[], void *cl_arg);
+extern void opencl_func(void *buffers[], void *cl_arg);
 
 void cpu_func(void *buffers[], void *cl_arg)
 {
         unsigned i, j, k;
         int *factor = cl_arg;
-
 	int *block = (int *)STARPU_GET_BLOCK_PTR(buffers[0]);
 	int nx = (int)STARPU_GET_BLOCK_NX(buffers[0]);
 	int ny = (int)STARPU_GET_BLOCK_NY(buffers[0]);
@@ -49,14 +44,14 @@ void cpu_func(void *buffers[], void *cl_arg)
         }
 }
 
-void print_block(int *block, int nx, int ny, int nz)
+void print_block(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz)
 {
         int i, j, k;
-
+        fprintf(stderr, "block=%p nx=%d ny=%d nz=%d ldy=%d ldz=%d\n", block, nx, ny, nz, ldy, ldz);
         for(k=0 ; k<nz ; k++) {
                 for(j=0 ; j<ny ; j++) {
                         for(i=0 ; i<nx ; i++) {
-                                fprintf(stderr, "%2d ", block[(k*nx*ny)+(j*nx)+i]);
+                                fprintf(stderr, "%2d ", block[(k*ldz)+(j*ldy)+i]);
                         }
                         fprintf(stderr,"\n");
                 }
@@ -64,6 +59,22 @@ void print_block(int *block, int nx, int ny, int nz)
         }
         fprintf(stderr,"\n");
 }
+
+void print_data(starpu_data_handle block_handle)
+{
+	int *block = starpu_block_get_local_ptr(block_handle);
+	int nx = starpu_block_get_nx(block_handle);
+	int ny = starpu_block_get_ny(block_handle);
+	int nz = starpu_block_get_nz(block_handle);
+	unsigned ldy = starpu_block_get_local_ldy(block_handle);
+	unsigned ldz = starpu_block_get_local_ldz(block_handle);
+
+        print_block(block, nx, ny, nz, ldy, ldz);
+}
+
+#ifdef STARPU_USE_OPENCL
+struct starpu_opencl_program codelet;
+#endif
 
 int main(int argc, char **argv)
 {
@@ -79,21 +90,26 @@ int main(int argc, char **argv)
                         }
                 }
         }
-        fprintf(stderr, "IN  Block\n");
-        print_block(block, NX, NY, NZ);
 
 	starpu_data_handle handle;
 	starpu_codelet cl =
 	{
-		.where = STARPU_CPU|STARPU_CUDA,
+                .where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
                 .cpu_func = cpu_func,
                 .cuda_func = cuda_func,
+                .opencl_func = opencl_func,
 		.nbuffers = 1
 	};
         starpu_init(NULL);
 
+#ifdef STARPU_USE_OPENCL
+        starpu_opencl_load_opencl_from_file("examples/filters/fblock_opencl_codelet.cl", &codelet);
+#endif
+
         /* Declare data to StarPU */
         starpu_block_data_register(&handle, 0, (uintptr_t)block, NX, NX*NY, NX, NY, NZ, sizeof(int));
+        fprintf(stderr, "IN  Block\n");
+        print_data(handle);
 
         /* Partition the block in PARTS sub-blocks */
 	struct starpu_data_filter f =
@@ -106,6 +122,13 @@ int main(int argc, char **argv)
         starpu_data_partition(handle, &f);
 
         fprintf(stderr,"Nb of partitions : %d\n",starpu_data_get_nb_children(handle));
+
+        for(i=0 ; i<starpu_data_get_nb_children(handle) ; i++)
+        {
+                starpu_data_handle sblock = starpu_data_get_sub_data(handle, 1, i);
+                fprintf(stderr, "Sub block %d\n", i);
+                print_data(sblock);
+        }
 
         /* Submit a task on each sub-block */
         for(i=0 ; i<starpu_data_get_nb_children(handle) ; i++)
@@ -130,10 +153,12 @@ int main(int argc, char **argv)
 
         /* Unpartition the data, unregister it from StarPU and shutdown */
         starpu_data_unpartition(handle, 0);
+        print_data(handle);
         starpu_data_unregister(handle);
-	starpu_shutdown();
 
         /* Print result block */
         fprintf(stderr, "OUT Block\n");
-        print_block(block, NX, NY, NZ);
+        print_block(block, NX, NY, NZ, NX, NX*NY);
+
+	starpu_shutdown();
 }
