@@ -1291,7 +1291,75 @@ starpu_block_data_register(&block_handle, 0, (uintptr_t)block,
 @node Data Partition
 @section Data Partition
 
-TODO
+@menu
+* struct starpu_data_filter::   StarPU filter structure
+* starpu_data_partition::       Partition Data
+* starpu_data_unpartition::     Unpartition Data
+* starpu_data_get_nb_children:: 
+* starpu_data_get_sub_data::    
+@end menu
+
+@node struct starpu_data_filter
+@subsection @code{struct starpu_data_filter} -- StarPU filter structure
+@table @asis
+@item @emph{Description}:
+The filter structure describes a data partitioning function.
+@item @emph{Fields}:
+@table @asis
+@item @code{filter_func}:
+@code{void (*filter_func)(void *father_interface, void* child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts);}
+@item @code{get_nchildren}:
+@code{unsigned (*get_nchildren)(struct starpu_data_filter *, starpu_data_handle initial_handle);}
+@item @code{get_child_ops}:
+@code{struct starpu_data_interface_ops_t *(*get_child_ops)(struct starpu_data_filter *, unsigned id);}
+@item @code{filter_arg}:
+@item @code{nchildren}:
+@item @code{filter_arg_ptr}:
+@end table
+@end table
+
+@node starpu_data_partition
+@subsection starpu_data_partition -- Partition Data
+
+@table @asis
+@item @emph{Description}:
+@item @emph{Prototype}:
+@code{void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data_filter *f);}
+@end table
+
+@node starpu_data_unpartition
+@subsection starpu_data_unpartition -- Unpartition data
+
+@table @asis
+@item @emph{Description}:
+@item @emph{Prototype}:
+@code{void starpu_data_unpartition(starpu_data_handle root_data, uint32_t gathering_node);}
+@end table
+
+@node starpu_data_get_nb_children
+@subsection starpu_data_get_nb_children
+
+@table @asis
+@item @emph{Description}:
+@item @emph{Return value}:
+This function returns returns the number of children.
+@item @emph{Prototype}:
+@code{int starpu_data_get_nb_children(starpu_data_handle handle);}
+@end table
+
+@c starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i);
+
+@node starpu_data_get_sub_data
+@subsection starpu_data_get_sub_data
+
+@table @asis
+@item @emph{Description}:
+@item @emph{Return value}:
+Upon successful completion, this function returns ...
+@item @emph{Prototype}:
+@code{starpu_data_handle starpu_data_get_sub_data(starpu_data_handle root_data, unsigned depth, ... );}
+@end table
+
 
 @node Codelets and Tasks
 @section Codelets and Tasks
@@ -2637,12 +2705,12 @@ starpu_data_partition(handle, &f);
 @cartouche
 @smallexample
 /* Submit a task on each sub-vector */
-for (i=0; i<PARTS; i++) @{
+for (i=0; i<starpu_data_get_nb_children(handle); i++) @{
     starpu_data_handle sub_handle = starpu_data_get_sub_data(handle, 1, i);
     struct starpu_task *task = starpu_task_create();
 
     task->buffers[0].handle = sub_handle;
-    task->buffers[0].mode = STARPU_R;
+    task->buffers[0].mode = STARPU_RW;
     task->cl = &cl;
     task->synchronous = 1;
     task->cl_arg = &factor;
