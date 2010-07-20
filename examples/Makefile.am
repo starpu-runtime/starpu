@@ -46,7 +46,8 @@ EXTRA_DIST = 					\
 	incrementer/incrementer_kernels_opencl_codelet.cl 	\
 	variable/variable_kernels_opencl_codelet.cl		\
 	matvecmult/matvecmult_kernel.cl				\
-	block/block_kernel.cl
+	block/block_kernel.cl					\
+	filters/fblock_opencl_codelet.cl
 
 CLEANFILES = 					\
 	gordon/null_kernel_gordon.spuelf	\
