@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 	starpu_data_partition(handle, &f);
 
         /* Submit a task on each sub-vector */
-	for (i=0; i<PARTS; i++)
+	for (i=0; i<starpu_data_get_nb_children(handle); i++)
 	{
                 starpu_data_handle sub_handle = starpu_data_get_sub_data(handle, 1, i);
                 struct starpu_task *task = starpu_task_create();
@@ -83,6 +83,7 @@ int main(int argc, char **argv)
 		starpu_task_submit(task);
 	}
 
+	starpu_data_unpartition(handle, 0);
         starpu_data_unregister(handle);
 	starpu_shutdown();
 
