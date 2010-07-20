@@ -34,11 +34,11 @@ static __global__ void increment_vector(unsigned *v, unsigned *tmp, int nx)
 
 extern "C" void cuda_f(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
-	unsigned *v = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
-	unsigned *tmp = (unsigned *)STARPU_GET_VECTOR_PTR(descr[1]);
+	unsigned *v = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
+	unsigned *tmp = (unsigned *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	unsigned nx = STARPU_GET_VECTOR_NX(descr[0]);
-	size_t elemsize = STARPU_GET_VECTOR_ELEMSIZE(descr[0]);
+	unsigned nx = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(descr[0]);
 	
 	cudaMemcpy(tmp, v, nx*elemsize, cudaMemcpyDeviceToDevice);
 

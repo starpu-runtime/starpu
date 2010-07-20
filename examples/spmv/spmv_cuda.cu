@@ -80,18 +80,18 @@ void spmv_kernel_3(uint32_t nnz, uint32_t nrow, float *nzval, uint32_t *colind, 
 
 extern "C" void spmv_kernel_cuda(void *descr[], void *args)
 {
-	uint32_t nnz = STARPU_GET_CSR_NNZ(descr[0]);
-	uint32_t nrow = STARPU_GET_CSR_NROW(descr[0]);
-	float *nzval = (float *)STARPU_GET_CSR_NZVAL(descr[0]);
-	uint32_t *colind = STARPU_GET_CSR_COLIND(descr[0]);
-	uint32_t *rowptr = STARPU_GET_CSR_ROWPTR(descr[0]);
-	uint32_t firstentry = STARPU_GET_CSR_FIRSTENTRY(descr[0]);
+	uint32_t nnz = STARPU_CSR_GET_NNZ(descr[0]);
+	uint32_t nrow = STARPU_CSR_GET_NROW(descr[0]);
+	float *nzval = (float *)STARPU_CSR_GET_NZVAL(descr[0]);
+	uint32_t *colind = STARPU_CSR_GET_COLIND(descr[0]);
+	uint32_t *rowptr = STARPU_CSR_GET_ROWPTR(descr[0]);
+	uint32_t firstentry = STARPU_CSR_GET_FIRSTENTRY(descr[0]);
 
-	float *vecin = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
-	uint32_t nx_in = STARPU_GET_VECTOR_NX(descr[1]);
+	float *vecin = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
+	uint32_t nx_in = STARPU_VECTOR_GET_NX(descr[1]);
 
-	float *vecout = (float *)STARPU_GET_VECTOR_PTR(descr[2]);
-	uint32_t nx_out = STARPU_GET_VECTOR_NX(descr[2]);
+	float *vecout = (float *)STARPU_VECTOR_GET_PTR(descr[2]);
+	uint32_t nx_out = STARPU_VECTOR_GET_NX(descr[2]);
 
 	dim3 dimBlock(8, 1);
 	dim3 dimGrid(512, 1);

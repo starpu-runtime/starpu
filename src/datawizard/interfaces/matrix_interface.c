@@ -98,11 +98,11 @@ struct starpu_data_interface_ops_t _starpu_interface_matrix_ops = {
 static int convert_matrix_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
 	size_t elemsize = GET_MATRIX_ELEMSIZE(interface);
-	uint32_t nx = STARPU_GET_MATRIX_NX(interface);
-	uint32_t ny = STARPU_GET_MATRIX_NY(interface);
-	uint32_t ld = STARPU_GET_MATRIX_LD(interface);
+	uint32_t nx = STARPU_MATRIX_GET_NX(interface);
+	uint32_t ny = STARPU_MATRIX_GET_NY(interface);
+	uint32_t ld = STARPU_MATRIX_GET_LD(interface);
 
-	*ptr = STARPU_GET_MATRIX_PTR(interface);
+	*ptr = STARPU_MATRIX_GET_PTR(interface);
 
 	/* The gordon_stride_init function may use a contiguous buffer
  	 * in case nx = ld (in that case, (*ss).size = elemsize*nx*ny */

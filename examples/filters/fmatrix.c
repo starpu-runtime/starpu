@@ -26,11 +26,11 @@ void cpu_func(void *buffers[], void *cl_arg)
         int *factor = cl_arg;
 
         /* length of the matrix */
-        unsigned nx = STARPU_GET_MATRIX_NX(buffers[0]);
-        unsigned ny = STARPU_GET_MATRIX_NY(buffers[0]);
-        unsigned ld = STARPU_GET_MATRIX_LD(buffers[0]);
+        unsigned nx = STARPU_MATRIX_GET_NX(buffers[0]);
+        unsigned ny = STARPU_MATRIX_GET_NY(buffers[0]);
+        unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
         /* local copy of the matrix pointer */
-        int *val = (int *)STARPU_GET_MATRIX_PTR(buffers[0]);
+        int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
 
         for(j=0; j<ny ; j++) {
                 for(i=0; i<nx ; i++)

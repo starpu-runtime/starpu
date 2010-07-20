@@ -27,7 +27,7 @@ static unsigned ntasks = 1024;
 
 static void cpu_kernel(void *descr[], void *cl_arg)
 {
-	unsigned *directions = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
+	unsigned *directions = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned nx = NSHOT_PER_TASK;
 
 	TYPE *random_numbers = malloc(2*nx*sizeof(TYPE));
@@ -50,7 +50,7 @@ static void cpu_kernel(void *descr[], void *cl_arg)
 		current_cnt += success;
 	}
 
-	unsigned *cnt = (unsigned *)STARPU_GET_VECTOR_PTR(descr[1]);
+	unsigned *cnt = (unsigned *)STARPU_VECTOR_GET_PTR(descr[1]);
 	*cnt = current_cnt;
 
 	free(random_numbers);

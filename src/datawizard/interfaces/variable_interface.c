@@ -103,21 +103,21 @@ static void register_variable_handle(starpu_data_handle handle, uint32_t home_no
 			starpu_data_get_interface_on_node(handle, node);
 
 		if (node == home_node) {
-			local_interface->ptr = STARPU_GET_VARIABLE_PTR(interface);
+			local_interface->ptr = STARPU_VARIABLE_GET_PTR(interface);
 		}
 		else {
 			local_interface->ptr = 0;
 		}
 
-		local_interface->elemsize = STARPU_GET_VARIABLE_ELEMSIZE(interface);
+		local_interface->elemsize = STARPU_VARIABLE_GET_ELEMSIZE(interface);
 	}
 }
 
 #ifdef STARPU_USE_GORDON
 int convert_variable_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
-	*ptr = STARPU_GET_VARIABLE_PTR(interface);
-	(*ss).size = STARPU_GET_VARIABLE_ELEMSIZE(interface);
+	*ptr = STARPU_VARIABLE_GET_PTR(interface);
+	(*ss).size = STARPU_VARIABLE_GET_ELEMSIZE(interface);
 
 	return 0;
 }
@@ -173,12 +173,12 @@ uintptr_t starpu_variable_get_local_ptr(starpu_data_handle handle)
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
-	return STARPU_GET_VARIABLE_PTR(starpu_data_get_interface_on_node(handle, node));
+	return STARPU_VARIABLE_GET_PTR(starpu_data_get_interface_on_node(handle, node));
 }
 
 size_t starpu_variable_get_elemsize(starpu_data_handle handle)
 {
-	return STARPU_GET_VARIABLE_ELEMSIZE(starpu_data_get_interface_on_node(handle, 0));
+	return STARPU_VARIABLE_GET_ELEMSIZE(starpu_data_get_interface_on_node(handle, 0));
 }
 
 /* memory allocation/deallocation primitives for the variable interface */
@@ -252,16 +252,16 @@ static void free_variable_buffer_on_node(void *interface, uint32_t node)
 	starpu_node_kind kind = _starpu_get_node_kind(node);
 	switch(kind) {
 		case STARPU_CPU_RAM:
-			free((void*)STARPU_GET_VARIABLE_PTR(interface));
+			free((void*)STARPU_VARIABLE_GET_PTR(interface));
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
-			cudaFree((void*)STARPU_GET_VARIABLE_PTR(interface));
+			cudaFree((void*)STARPU_VARIABLE_GET_PTR(interface));
 			break;
 #endif
 #ifdef STARPU_USE_OPENCL
                 case STARPU_OPENCL_RAM:
-                        clReleaseMemObject((void*)STARPU_GET_VARIABLE_PTR(interface));
+                        clReleaseMemObject((void*)STARPU_VARIABLE_GET_PTR(interface));
                         break;
 #endif
 		default:

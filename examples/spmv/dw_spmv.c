@@ -36,18 +36,18 @@ void spmv_kernel_opencl(void *descr[], void *args)
 	cl_command_queue queue;
 	int id, devid, err, n;
 
-	uint32_t nnz = STARPU_GET_CSR_NNZ(descr[0]);
-	uint32_t nrow = STARPU_GET_CSR_NROW(descr[0]);
-	float *nzval = (float *)STARPU_GET_CSR_NZVAL(descr[0]);
-	uint32_t *colind = STARPU_GET_CSR_COLIND(descr[0]);
-	uint32_t *rowptr = STARPU_GET_CSR_ROWPTR(descr[0]);
-	uint32_t firstentry = STARPU_GET_CSR_FIRSTENTRY(descr[0]);
+	uint32_t nnz = STARPU_CSR_GET_NNZ(descr[0]);
+	uint32_t nrow = STARPU_CSR_GET_NROW(descr[0]);
+	float *nzval = (float *)STARPU_CSR_GET_NZVAL(descr[0]);
+	uint32_t *colind = STARPU_CSR_GET_COLIND(descr[0]);
+	uint32_t *rowptr = STARPU_CSR_GET_ROWPTR(descr[0]);
+	uint32_t firstentry = STARPU_CSR_GET_FIRSTENTRY(descr[0]);
 
-	float *vecin = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
-	uint32_t nx_in = STARPU_GET_VECTOR_NX(descr[1]);
+	float *vecin = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
+	uint32_t nx_in = STARPU_VECTOR_GET_NX(descr[1]);
 
-	float *vecout = (float *)STARPU_GET_VECTOR_PTR(descr[2]);
-	uint32_t nx_out = STARPU_GET_VECTOR_NX(descr[2]);
+	float *vecout = (float *)STARPU_VECTOR_GET_PTR(descr[2]);
+	uint32_t nx_out = STARPU_VECTOR_GET_NX(descr[2]);
 
         id = starpu_worker_get_id();
         devid = starpu_worker_get_devid(id);
@@ -112,23 +112,23 @@ static void parse_args(int argc, char **argv)
 
 static void cpu_spmv(void *descr[], __attribute__((unused))  void *arg)
 {
-	float *nzval = (float *)STARPU_GET_CSR_NZVAL(descr[0]);
-	uint32_t *colind = STARPU_GET_CSR_COLIND(descr[0]);
-	uint32_t *rowptr = STARPU_GET_CSR_ROWPTR(descr[0]);
+	float *nzval = (float *)STARPU_CSR_GET_NZVAL(descr[0]);
+	uint32_t *colind = STARPU_CSR_GET_COLIND(descr[0]);
+	uint32_t *rowptr = STARPU_CSR_GET_ROWPTR(descr[0]);
 
-	float *vecin = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
-	float *vecout = (float *)STARPU_GET_VECTOR_PTR(descr[2]);
+	float *vecin = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
+	float *vecout = (float *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-	uint32_t firstelem = STARPU_GET_CSR_FIRSTENTRY(descr[0]);
+	uint32_t firstelem = STARPU_CSR_GET_FIRSTENTRY(descr[0]);
 
 	uint32_t nnz;
 	uint32_t nrow;
 
-	nnz = STARPU_GET_CSR_NNZ(descr[0]);
-	nrow = STARPU_GET_CSR_NROW(descr[0]);
+	nnz = STARPU_CSR_GET_NNZ(descr[0]);
+	nrow = STARPU_CSR_GET_NROW(descr[0]);
 
-	//STARPU_ASSERT(nrow == STARPU_GET_VECTOR_NX(descr[1]));
-	STARPU_ASSERT(nrow == STARPU_GET_VECTOR_NX(descr[2]));
+	//STARPU_ASSERT(nrow == STARPU_VECTOR_GET_NX(descr[1]));
+	STARPU_ASSERT(nrow == STARPU_VECTOR_GET_NX(descr[2]));
 
 	unsigned row;
 	for (row = 0; row < nrow; row++)

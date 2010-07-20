@@ -21,7 +21,7 @@
 extern struct starpu_opencl_program opencl_code;
 void opencl_codelet(void *descr[], void *_args)
 {
-	float *val = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
+	float *val = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	cl_kernel kernel;
 	cl_command_queue queue;
 	int id, devid, err;

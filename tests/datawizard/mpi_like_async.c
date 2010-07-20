@@ -60,7 +60,7 @@ void cuda_codelet_unsigned_inc(void *descr[], __attribute__ ((unused)) void *cl_
 
 static void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute__((unused)))
 {
-	unsigned *val = (unsigned *)STARPU_GET_VARIABLE_PTR(descr[0]);
+	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*val += 1;
 
 //	fprintf(stderr, "VAL %d (&val = %p)\n", *val, val);

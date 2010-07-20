@@ -25,9 +25,9 @@ void cpu_func(void *buffers[], void *cl_arg)
         int *factor = cl_arg;
 
         /* length of the vector */
-        unsigned n = STARPU_GET_VECTOR_NX(buffers[0]);
+        unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
         /* local copy of the vector pointer */
-        int *val = (int *)STARPU_GET_VECTOR_PTR(buffers[0]);
+        int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
         for (i = 0; i < n; i++)
                 val[i] *= *factor;

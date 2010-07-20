@@ -31,9 +31,9 @@ void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 	cl_kernel kernel;
 	cl_command_queue queue;
 	int id, devid, err, n;
-	float *matrix = (float *)STARPU_GET_MATRIX_PTR(descr[0]);
-	float *vector = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
-	float *mult = (float *)STARPU_GET_VECTOR_PTR(descr[2]);
+	float *matrix = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
+	float *vector = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
+	float *mult = (float *)STARPU_VECTOR_GET_PTR(descr[2]);
 
         id = starpu_worker_get_id();
         devid = starpu_worker_get_devid(id);

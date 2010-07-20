@@ -23,7 +23,7 @@ static __global__ void cuda_incrementer(unsigned *token)
 
 extern "C" void increment_cuda(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	unsigned *tokenptr = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
+	unsigned *tokenptr = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 
 	cuda_incrementer<<<1,1>>>(tokenptr);
 }

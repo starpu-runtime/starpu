@@ -22,7 +22,7 @@ extern struct starpu_opencl_program opencl_code;
 
 void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
 {
-        unsigned *val = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
+        unsigned *val = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 	cl_kernel kernel;
 	cl_command_queue queue;
 	int id, devid, err;
@@ -51,7 +51,7 @@ void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
 
 void opencl_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	unsigned *val = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
+	unsigned *val = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 	cl_kernel kernel;
 	cl_command_queue queue;
 	int id, devid, err;

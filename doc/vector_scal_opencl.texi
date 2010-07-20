@@ -11,9 +11,9 @@ void scal_opencl_func(void *buffers[], void *_args)
     cl_command_queue queue;
 
     /* length of the vector */
-    unsigned n = STARPU_GET_VECTOR_NX(buffers[0]);
+    unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
     /* local copy of the vector pointer */
-    float *val = (float *)STARPU_GET_VECTOR_PTR(buffers[0]);
+    float *val = (float *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
     id = starpu_worker_get_id();
     devid = starpu_worker_get_devid(id);

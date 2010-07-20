@@ -40,12 +40,12 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
 	starpu_vector_interface_t *vector = buffers[0];
 
 	/* length of the vector */
-	unsigned n = STARPU_GET_VECTOR_NX(vector);
+	unsigned n = STARPU_VECTOR_GET_NX(vector);
 
 	/* get a pointer to the local copy of the vector : note that we have to
 	 * cast it in (float *) since a vector could contain any type of
 	 * elements so that the .ptr field is actually a uintptr_t */
-	float *val = (float *)STARPU_GET_VECTOR_PTR(vector);
+	float *val = (float *)STARPU_VECTOR_GET_PTR(vector);
 
 	/* scale the vector */
 	for (i = 0; i < n; i++)

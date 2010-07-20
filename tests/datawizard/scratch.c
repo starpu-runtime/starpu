@@ -34,11 +34,11 @@ extern void cuda_f(void *descr[], __attribute__ ((unused)) void *_args);
 
 static void cpu_f(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	unsigned *v = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
-	unsigned *tmp = (unsigned *)STARPU_GET_VECTOR_PTR(descr[1]);
+	unsigned *v = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
+	unsigned *tmp = (unsigned *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	unsigned nx = STARPU_GET_VECTOR_NX(descr[0]);
-	size_t elemsize = STARPU_GET_VECTOR_ELEMSIZE(descr[0]);
+	unsigned nx = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(descr[0]);
 	
 	memcpy(tmp, v, nx*elemsize);
 

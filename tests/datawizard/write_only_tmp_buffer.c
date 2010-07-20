@@ -28,7 +28,7 @@ starpu_data_handle v_handle;
 #include <CL/cl.h>
 static void opencl_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	cl_mem buf = (cl_mem)STARPU_GET_VECTOR_PTR(descr[0]);
+	cl_mem buf = (cl_mem)STARPU_VECTOR_GET_PTR(descr[0]);
         char ptr = 42;
         cl_command_queue queue;
         int id = starpu_worker_get_id();
@@ -42,7 +42,7 @@ static void opencl_codelet_null(void *descr[], __attribute__ ((unused)) void *_a
 #ifdef STARPU_USE_CUDA
 static void cuda_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	char *buf = (char *)STARPU_GET_VECTOR_PTR(descr[0]);
+	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 
 	cudaMemset(buf, 42, 1);
 }
@@ -50,14 +50,14 @@ static void cuda_codelet_null(void *descr[], __attribute__ ((unused)) void *_arg
 
 static void cpu_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	char *buf = (char *)STARPU_GET_VECTOR_PTR(descr[0]);
+	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 
 	*buf = 42;
 }
 
 static void display_var(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	char *buf = (char *)STARPU_GET_VECTOR_PTR(descr[0]);
+	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 	if (*buf != 42)
 	{
 		fprintf(stderr, "Value = %c (should be %c)\n", *buf, 42);

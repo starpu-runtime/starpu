@@ -2373,9 +2373,9 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
     float *factor = cl_arg;
 
     /* length of the vector */
-    unsigned n = STARPU_GET_VECTOR_NX(buffers[0]);
+    unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
     /* local copy of the vector pointer */
-    float *val = (float *)STARPU_GET_VECTOR_PTR(buffers[0]);
+    float *val = (float *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
     for (i = 0; i < n; i++)
         val[i] *= *factor;
@@ -2448,9 +2448,9 @@ extern "C" void scal_cuda_func(void *buffers[], void *_args)
     float *factor = (float *)_args;
 
     /* length of the vector */
-    unsigned n = STARPU_GET_VECTOR_NX(buffers[0]);
+    unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
     /* local copy of the vector pointer */
-    float *val = (float *)STARPU_GET_VECTOR_PTR(buffers[0]);
+    float *val = (float *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
 @i{    vector_mult_cuda<<<1,1>>>(val, n, *factor);}
 
@@ -2492,9 +2492,9 @@ void scal_opencl_func(void *buffers[], void *_args)
 @i{    cl_command_queue queue;}
 
     /* length of the vector */
-    unsigned n = STARPU_GET_VECTOR_NX(buffers[0]);
+    unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
     /* local copy of the vector pointer */
-    float *val = (float *)STARPU_GET_VECTOR_PTR(buffers[0]);
+    float *val = (float *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
 @i{    id = starpu_worker_get_id();}
 @i{    devid = starpu_worker_get_devid(id);}

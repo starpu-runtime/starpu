@@ -69,14 +69,14 @@ static void ds_callback(void *arg)
 
 static void ds_kernel_cpu(void *descr[], __attribute__((unused)) void *arg)
 {
-	uint8_t *input = (uint8_t *)STARPU_GET_MATRIX_PTR(descr[0]);
-	unsigned input_ld = STARPU_GET_MATRIX_LD(descr[0]);
+	uint8_t *input = (uint8_t *)STARPU_MATRIX_GET_PTR(descr[0]);
+	unsigned input_ld = STARPU_MATRIX_GET_LD(descr[0]);
 
-	uint8_t *output = (uint8_t *)STARPU_GET_MATRIX_PTR(descr[1]);
-	unsigned output_ld = STARPU_GET_MATRIX_LD(descr[1]);
+	uint8_t *output = (uint8_t *)STARPU_MATRIX_GET_PTR(descr[1]);
+	unsigned output_ld = STARPU_MATRIX_GET_LD(descr[1]);
 
-	unsigned ncols = STARPU_GET_MATRIX_NX(descr[0]);
-	unsigned nlines = STARPU_GET_MATRIX_NY(descr[0]);
+	unsigned ncols = STARPU_MATRIX_GET_NX(descr[0]);
+	unsigned nlines = STARPU_MATRIX_GET_NY(descr[0]);
 
 	unsigned line, col;
 	for (line = 0; line < nlines; line+=FACTOR)

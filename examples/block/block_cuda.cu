@@ -24,10 +24,10 @@ static __global__ void cuda_block(float *block, int nx, int ny, int nz, float mu
 
 extern "C" void cuda_codelet(void *descr[], void *_args)
 {
-        float *block = (float *)STARPU_GET_BLOCK_PTR(descr[0]);
-	int nx = STARPU_GET_BLOCK_NX(descr[0]);
-	int ny = STARPU_GET_BLOCK_NY(descr[0]);
-	int nz = STARPU_GET_BLOCK_NZ(descr[0]);
+        float *block = (float *)STARPU_BLOCK_GET_PTR(descr[0]);
+	int nx = STARPU_BLOCK_GET_NX(descr[0]);
+	int ny = STARPU_BLOCK_GET_NY(descr[0]);
+	int nz = STARPU_BLOCK_GET_NZ(descr[0]);
         float *multiplier = (float *)_args;
 
         cuda_block<<<1,1>>>(block, nx, ny, nz, *multiplier);

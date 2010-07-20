@@ -30,17 +30,17 @@
 static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, __attribute__((unused)) void *_args)
 {
 	//printf("22\n");
-	float *left 	= (float *)STARPU_GET_MATRIX_PTR(descr[0]);
-	float *right 	= (float *)STARPU_GET_MATRIX_PTR(descr[1]);
-	float *center 	= (float *)STARPU_GET_MATRIX_PTR(descr[2]);
+	float *left 	= (float *)STARPU_MATRIX_GET_PTR(descr[0]);
+	float *right 	= (float *)STARPU_MATRIX_GET_PTR(descr[1]);
+	float *center 	= (float *)STARPU_MATRIX_GET_PTR(descr[2]);
 
-	unsigned dx = STARPU_GET_MATRIX_NY(descr[2]);
-	unsigned dy = STARPU_GET_MATRIX_NX(descr[2]);
-	unsigned dz = STARPU_GET_MATRIX_NY(descr[0]);
+	unsigned dx = STARPU_MATRIX_GET_NY(descr[2]);
+	unsigned dy = STARPU_MATRIX_GET_NX(descr[2]);
+	unsigned dz = STARPU_MATRIX_GET_NY(descr[0]);
 
-	unsigned ld21 = STARPU_GET_MATRIX_LD(descr[0]);
-	unsigned ld12 = STARPU_GET_MATRIX_LD(descr[1]);
-	unsigned ld22 = STARPU_GET_MATRIX_LD(descr[2]);
+	unsigned ld21 = STARPU_MATRIX_GET_LD(descr[0]);
+	unsigned ld12 = STARPU_MATRIX_GET_LD(descr[1]);
+	unsigned ld22 = STARPU_MATRIX_GET_LD(descr[2]);
 
 #ifdef STARPU_USE_CUDA
 	cublasStatus st;
@@ -91,14 +91,14 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, __attrib
 	float *sub11;
 	float *sub21;
 
-	sub11 = (float *)STARPU_GET_MATRIX_PTR(descr[0]);
-	sub21 = (float *)STARPU_GET_MATRIX_PTR(descr[1]);
+	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
+	sub21 = (float *)STARPU_MATRIX_GET_PTR(descr[1]);
 
-	unsigned ld11 = STARPU_GET_MATRIX_LD(descr[0]);
-	unsigned ld21 = STARPU_GET_MATRIX_LD(descr[1]);
+	unsigned ld11 = STARPU_MATRIX_GET_LD(descr[0]);
+	unsigned ld21 = STARPU_MATRIX_GET_LD(descr[1]);
 
-	unsigned nx21 = STARPU_GET_MATRIX_NY(descr[1]);
-	unsigned ny21 = STARPU_GET_MATRIX_NX(descr[1]);
+	unsigned nx21 = STARPU_MATRIX_GET_NY(descr[1]);
+	unsigned ny21 = STARPU_MATRIX_GET_NX(descr[1]);
 
 	switch (s) {
 		case 0:
@@ -137,10 +137,10 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 //	printf("11\n");
 	float *sub11;
 
-	sub11 = (float *)STARPU_GET_MATRIX_PTR(descr[0]); 
+	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]); 
 
-	unsigned nx = STARPU_GET_MATRIX_NY(descr[0]);
-	unsigned ld = STARPU_GET_MATRIX_LD(descr[0]);
+	unsigned nx = STARPU_MATRIX_GET_NY(descr[0]);
+	unsigned ld = STARPU_MATRIX_GET_LD(descr[0]);
 
 	unsigned z;
 

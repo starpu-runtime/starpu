@@ -100,7 +100,7 @@ extern "C" void cuda_kernel(void *descr[], void *cl_arg)
 {
 	cudaError_t cures;
 
-	unsigned *directions = (unsigned *)STARPU_GET_VECTOR_PTR(descr[0]);
+	unsigned *directions = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned nx = NSHOT_PER_TASK;
 
 	/* Generate Random numbers */
@@ -114,7 +114,7 @@ extern "C" void cuda_kernel(void *descr[], void *cl_arg)
 	TYPE *random_numbers_x = &random_numbers[0];
 	TYPE *random_numbers_y = &random_numbers[nx];
 
-	unsigned *cnt = (unsigned *)STARPU_GET_VECTOR_PTR(descr[1]);
+	unsigned *cnt = (unsigned *)STARPU_VECTOR_GET_PTR(descr[1]);
 
 	/* How many blocks do we use ? */ 
 	unsigned nblocks = 128; // TODO

@@ -132,11 +132,11 @@ uintptr_t starpu_matrix_get_local_ptr(starpu_data_handle handle);
 size_t starpu_matrix_get_elemsize(starpu_data_handle handle);
 
 /* helper methods */
-#define STARPU_GET_MATRIX_PTR(interface)	(((starpu_matrix_interface_t *)(interface))->ptr)
-#define STARPU_GET_MATRIX_NX(interface)	(((starpu_matrix_interface_t *)(interface))->nx)
-#define STARPU_GET_MATRIX_NY(interface)	(((starpu_matrix_interface_t *)(interface))->ny)
-#define STARPU_GET_MATRIX_LD(interface)	(((starpu_matrix_interface_t *)(interface))->ld)
-#define STARPU_GET_MATRIX_ELEMSIZE(interface)	(((starpu_matrix_interface_t *)(interface))->elemsize)
+#define STARPU_MATRIX_GET_PTR(interface)	(((starpu_matrix_interface_t *)(interface))->ptr)
+#define STARPU_MATRIX_GET_NX(interface)	(((starpu_matrix_interface_t *)(interface))->nx)
+#define STARPU_MATRIX_GET_NY(interface)	(((starpu_matrix_interface_t *)(interface))->ny)
+#define STARPU_MATRIX_GET_LD(interface)	(((starpu_matrix_interface_t *)(interface))->ld)
+#define STARPU_MATRIX_GET_ELEMSIZE(interface)	(((starpu_matrix_interface_t *)(interface))->elemsize)
 
 
 /* BLOCK interface for 3D dense blocks */
@@ -164,13 +164,13 @@ uintptr_t starpu_block_get_local_ptr(starpu_data_handle handle);
 size_t starpu_block_get_elemsize(starpu_data_handle handle);
 
 /* helper methods */
-#define STARPU_GET_BLOCK_PTR(interface)	(((starpu_block_interface_t *)(interface))->ptr)
-#define STARPU_GET_BLOCK_NX(interface)	(((starpu_block_interface_t *)(interface))->nx)
-#define STARPU_GET_BLOCK_NY(interface)	(((starpu_block_interface_t *)(interface))->ny)
-#define STARPU_GET_BLOCK_NZ(interface)	(((starpu_block_interface_t *)(interface))->nz)
-#define STARPU_GET_BLOCK_LDY(interface)	(((starpu_block_interface_t *)(interface))->ldy)
-#define STARPU_GET_BLOCK_LDZ(interface)	(((starpu_block_interface_t *)(interface))->ldz)
-#define STARPU_GET_BLOCK_ELEMSIZE(interface)	(((starpu_block_interface_t *)(interface))->elemsize)
+#define STARPU_BLOCK_GET_PTR(interface)	(((starpu_block_interface_t *)(interface))->ptr)
+#define STARPU_BLOCK_GET_NX(interface)	(((starpu_block_interface_t *)(interface))->nx)
+#define STARPU_BLOCK_GET_NY(interface)	(((starpu_block_interface_t *)(interface))->ny)
+#define STARPU_BLOCK_GET_NZ(interface)	(((starpu_block_interface_t *)(interface))->nz)
+#define STARPU_BLOCK_GET_LDY(interface)	(((starpu_block_interface_t *)(interface))->ldy)
+#define STARPU_BLOCK_GET_LDZ(interface)	(((starpu_block_interface_t *)(interface))->ldz)
+#define STARPU_BLOCK_GET_ELEMSIZE(interface)	(((starpu_block_interface_t *)(interface))->elemsize)
 
 /* vector interface for contiguous (non-strided) buffers */
 typedef struct starpu_vector_interface_s {
@@ -188,9 +188,9 @@ size_t starpu_vector_get_elemsize(starpu_data_handle handle);
 uintptr_t starpu_vector_get_local_ptr(starpu_data_handle handle);
 
 /* helper methods */
-#define STARPU_GET_VECTOR_PTR(interface)	(((starpu_vector_interface_t *)(interface))->ptr)
-#define STARPU_GET_VECTOR_NX(interface)	(((starpu_vector_interface_t *)(interface))->nx)
-#define STARPU_GET_VECTOR_ELEMSIZE(interface)	(((starpu_vector_interface_t *)(interface))->elemsize)
+#define STARPU_VECTOR_GET_PTR(interface)	(((starpu_vector_interface_t *)(interface))->ptr)
+#define STARPU_VECTOR_GET_NX(interface)	(((starpu_vector_interface_t *)(interface))->nx)
+#define STARPU_VECTOR_GET_ELEMSIZE(interface)	(((starpu_vector_interface_t *)(interface))->elemsize)
 
 /* variable interface for a single data (not a vector, a matrix, a list, ...) */
 typedef struct starpu_variable_interface_s {
@@ -204,8 +204,8 @@ size_t starpu_variable_get_elemsize(starpu_data_handle handle);
 uintptr_t starpu_variable_get_local_ptr(starpu_data_handle handle);
 
 /* helper methods */
-#define STARPU_GET_VARIABLE_PTR(interface)	(((starpu_variable_interface_t *)(interface))->ptr)
-#define STARPU_GET_VARIABLE_ELEMSIZE(interface)	(((starpu_variable_interface_t *)(interface))->elemsize)
+#define STARPU_VARIABLE_GET_PTR(interface)	(((starpu_variable_interface_t *)(interface))->ptr)
+#define STARPU_VARIABLE_GET_ELEMSIZE(interface)	(((starpu_variable_interface_t *)(interface))->elemsize)
 
 /* CSR interface for sparse matrices (compressed sparse row representation) */
 typedef struct starpu_csr_interface_s {
@@ -232,13 +232,13 @@ uint32_t *starpu_csr_get_local_colind(starpu_data_handle handle);
 uint32_t *starpu_csr_get_local_rowptr(starpu_data_handle handle);
 size_t starpu_csr_get_elemsize(starpu_data_handle handle);
 
-#define STARPU_GET_CSR_NNZ(interface)	(((starpu_csr_interface_t *)(interface))->nnz)
-#define STARPU_GET_CSR_NROW(interface)	(((starpu_csr_interface_t *)(interface))->nrow)
-#define STARPU_GET_CSR_NZVAL(interface)	(((starpu_csr_interface_t *)(interface))->nzval)
-#define STARPU_GET_CSR_COLIND(interface)	(((starpu_csr_interface_t *)(interface))->colind)
-#define STARPU_GET_CSR_ROWPTR(interface)	(((starpu_csr_interface_t *)(interface))->rowptr)
-#define STARPU_GET_CSR_FIRSTENTRY(interface)	(((starpu_csr_interface_t *)(interface))->firstentry)
-#define STARPU_GET_CSR_ELEMSIZE(interface)	(((starpu_csr_interface_t *)(interface))->elemsize)
+#define STARPU_CSR_GET_NNZ(interface)	(((starpu_csr_interface_t *)(interface))->nnz)
+#define STARPU_CSR_GET_NROW(interface)	(((starpu_csr_interface_t *)(interface))->nrow)
+#define STARPU_CSR_GET_NZVAL(interface)	(((starpu_csr_interface_t *)(interface))->nzval)
+#define STARPU_CSR_GET_COLIND(interface)	(((starpu_csr_interface_t *)(interface))->colind)
+#define STARPU_CSR_GET_ROWPTR(interface)	(((starpu_csr_interface_t *)(interface))->rowptr)
+#define STARPU_CSR_GET_FIRSTENTRY(interface)	(((starpu_csr_interface_t *)(interface))->firstentry)
+#define STARPU_CSR_GET_ELEMSIZE(interface)	(((starpu_csr_interface_t *)(interface))->elemsize)
 
 /* BCSR interface for sparse matrices (blocked compressed sparse row
  * representation) */

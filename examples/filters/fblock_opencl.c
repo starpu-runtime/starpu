@@ -26,12 +26,12 @@ void opencl_func(void *buffers[], void *cl_arg)
 	cl_command_queue queue;
 
         int *factor = cl_arg;
-	int *block = (int *)STARPU_GET_BLOCK_PTR(buffers[0]);
-	int nx = (int)STARPU_GET_BLOCK_NX(buffers[0]);
-	int ny = (int)STARPU_GET_BLOCK_NY(buffers[0]);
-	int nz = (int)STARPU_GET_BLOCK_NZ(buffers[0]);
-        unsigned ldy = STARPU_GET_BLOCK_LDY(buffers[0]);
-        unsigned ldz = STARPU_GET_BLOCK_LDZ(buffers[0]);
+	int *block = (int *)STARPU_BLOCK_GET_PTR(buffers[0]);
+	int nx = (int)STARPU_BLOCK_GET_NX(buffers[0]);
+	int ny = (int)STARPU_BLOCK_GET_NY(buffers[0]);
+	int nz = (int)STARPU_BLOCK_GET_NZ(buffers[0]);
+        unsigned ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
+        unsigned ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
 
 	id = starpu_worker_get_id();
 	devid = starpu_worker_get_devid(id);

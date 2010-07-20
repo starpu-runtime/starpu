@@ -116,9 +116,9 @@ static void cpu_mult(void *descr[], __attribute__((unused))  void *arg)
 	uint32_t ldA, ldB, ldC;
 
 	/* .blas.ptr gives a pointer to the first element of the local copy */
-	subA = (float *)STARPU_GET_MATRIX_PTR(descr[0]);
-	subB = (float *)STARPU_GET_MATRIX_PTR(descr[1]);
-	subC = (float *)STARPU_GET_MATRIX_PTR(descr[2]);
+	subA = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
+	subB = (float *)STARPU_MATRIX_GET_PTR(descr[1]);
+	subC = (float *)STARPU_MATRIX_GET_PTR(descr[2]);
 
 	/* .blas.nx is the number of rows (consecutive elements) and .blas.ny
 	 * is the number of lines that are separated by .blas.ld elements (ld
@@ -126,13 +126,13 @@ static void cpu_mult(void *descr[], __attribute__((unused))  void *arg)
 	 * NB: in case some filters were used, the leading dimension is not
 	 * guaranteed to be the same in main memory (on the original matrix)
 	 * and on the accelerator! */
-	nxC = STARPU_GET_MATRIX_NX(descr[2]);
-	nyC = STARPU_GET_MATRIX_NY(descr[2]);
-	nyA = STARPU_GET_MATRIX_NY(descr[0]);
+	nxC = STARPU_MATRIX_GET_NX(descr[2]);
+	nyC = STARPU_MATRIX_GET_NY(descr[2]);
+	nyA = STARPU_MATRIX_GET_NY(descr[0]);
 
-	ldA = STARPU_GET_MATRIX_LD(descr[0]);
-	ldB = STARPU_GET_MATRIX_LD(descr[1]);
-	ldC = STARPU_GET_MATRIX_LD(descr[2]);
+	ldA = STARPU_MATRIX_GET_LD(descr[0]);
+	ldB = STARPU_MATRIX_GET_LD(descr[1]);
+	ldC = STARPU_MATRIX_GET_LD(descr[2]);
 
 	/* we assume a FORTRAN-ordering! */
 	unsigned i,j,k;

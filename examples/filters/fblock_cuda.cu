@@ -30,12 +30,12 @@ static __global__ void fblock_cuda(int *block, int nx, int ny, int nz, unsigned 
 extern "C" void cuda_func(void *buffers[], void *_args)
 {
         int *factor = (int *)_args;
-	int *block = (int *)STARPU_GET_BLOCK_PTR(buffers[0]);
-	int nx = (int)STARPU_GET_BLOCK_NX(buffers[0]);
-	int ny = (int)STARPU_GET_BLOCK_NY(buffers[0]);
-	int nz = (int)STARPU_GET_BLOCK_NZ(buffers[0]);
-        unsigned ldy = STARPU_GET_BLOCK_LDY(buffers[0]);
-        unsigned ldz = STARPU_GET_BLOCK_LDZ(buffers[0]);
+	int *block = (int *)STARPU_BLOCK_GET_PTR(buffers[0]);
+	int nx = (int)STARPU_BLOCK_GET_NX(buffers[0]);
+	int ny = (int)STARPU_BLOCK_GET_NY(buffers[0]);
+	int nz = (int)STARPU_BLOCK_GET_NZ(buffers[0]);
+        unsigned ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
+        unsigned ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
 
         /* TODO: use more blocks and threads in blocks */
         fblock_cuda<<<1,1>>>(block, nx, ny, nz, ldy, ldz, *factor);

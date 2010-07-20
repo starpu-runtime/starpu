@@ -52,22 +52,22 @@
 
 void cpu_codelet_func_1(void *descr[], __attribute__((unused)) void *arg)
 {
-	float *nzval = (float *)STARPU_GET_CSR_NZVAL(descr[0]);
-	uint32_t *colind = STARPU_GET_CSR_COLIND(descr[0]);
-	uint32_t *rowptr = STARPU_GET_CSR_ROWPTR(descr[0]);
+	float *nzval = (float *)STARPU_CSR_GET_NZVAL(descr[0]);
+	uint32_t *colind = STARPU_CSR_GET_COLIND(descr[0]);
+	uint32_t *rowptr = STARPU_CSR_GET_ROWPTR(descr[0]);
 
-	uint32_t firstentry = STARPU_GET_CSR_ELEMSIZE(descr[0]);
+	uint32_t firstentry = STARPU_CSR_GET_ELEMSIZE(descr[0]);
 
-	float *vecx = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
-	float *vecr = (float *)STARPU_GET_VECTOR_PTR(descr[2]);
-	float *vecb = (float *)STARPU_GET_VECTOR_PTR(descr[3]);
+	float *vecx = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
+	float *vecr = (float *)STARPU_VECTOR_GET_PTR(descr[2]);
+	float *vecb = (float *)STARPU_VECTOR_GET_PTR(descr[3]);
 
 
 	uint32_t nnz;
 	uint32_t nrow;
 
-	nnz = STARPU_GET_CSR_NNZ(descr[0]);
-	nrow = STARPU_GET_CSR_NROW(descr[0]);
+	nnz = STARPU_CSR_GET_NNZ(descr[0]);
+	nrow = STARPU_CSR_GET_NROW(descr[0]);
 
 	unsigned row;
 	for (row = 0; row < nrow; row++)
@@ -97,14 +97,14 @@ void cpu_codelet_func_1(void *descr[], __attribute__((unused)) void *arg)
 void cpu_codelet_func_2(void *descr[], __attribute__((unused)) void *arg)
 {
 	/* simply copy r into d */
-	uint32_t nx = STARPU_GET_VECTOR_NX(descr[0]);
-	size_t elemsize = STARPU_GET_VECTOR_ELEMSIZE(descr[0]);
+	uint32_t nx = STARPU_VECTOR_GET_NX(descr[0]);
+	size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(descr[0]);
 
-	STARPU_ASSERT(STARPU_GET_VECTOR_NX(descr[0]) == STARPU_GET_VECTOR_NX(descr[1]));
-	STARPU_ASSERT(STARPU_GET_VECTOR_ELEMSIZE(descr[0]) == STARPU_GET_VECTOR_ELEMSIZE(descr[1]));
+	STARPU_ASSERT(STARPU_VECTOR_GET_NX(descr[0]) == STARPU_VECTOR_GET_NX(descr[1]));
+	STARPU_ASSERT(STARPU_VECTOR_GET_ELEMSIZE(descr[0]) == STARPU_VECTOR_GET_ELEMSIZE(descr[1]));
 
-	float *src = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
-	float *dst = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
+	float *src = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
+	float *dst = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 
 	memcpy(dst, src, nx*elemsize);
 }
@@ -124,8 +124,8 @@ void cpu_codelet_func_3(void *descr[], void *arg)
 	int size;
 	
 	/* get the vector */
-	vec = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
-	size = (int)STARPU_GET_VECTOR_NX(descr[0]);
+	vec = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
+	size = (int)STARPU_VECTOR_GET_NX(descr[0]);
 
 	dot = SDOT(size, vec, 1, vec, 1);
 
@@ -144,8 +144,8 @@ void cublas_codelet_func_3(void *descr[], void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vec = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
-	size = STARPU_GET_VECTOR_NX(descr[0]);
+	vec = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
+	size = STARPU_VECTOR_GET_NX(descr[0]);
 
 	dot = cublasSdot (size, vec, 1, vec, 1);
 
@@ -163,20 +163,20 @@ void cublas_codelet_func_3(void *descr[], void *arg)
 
 void cpu_codelet_func_4(void *descr[], __attribute__((unused)) void *arg)
 {
-	float *nzval = (float *)STARPU_GET_CSR_NZVAL(descr[0]);
-	uint32_t *colind = STARPU_GET_CSR_COLIND(descr[0]);
-	uint32_t *rowptr = STARPU_GET_CSR_ROWPTR(descr[0]);
+	float *nzval = (float *)STARPU_CSR_GET_NZVAL(descr[0]);
+	uint32_t *colind = STARPU_CSR_GET_COLIND(descr[0]);
+	uint32_t *rowptr = STARPU_CSR_GET_ROWPTR(descr[0]);
 
-	uint32_t firstentry = STARPU_GET_CSR_FIRSTENTRY(descr[0]);
+	uint32_t firstentry = STARPU_CSR_GET_FIRSTENTRY(descr[0]);
 
-	float *vecd = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
-	float *vecq = (float *)STARPU_GET_VECTOR_PTR(descr[2]);
+	float *vecd = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
+	float *vecq = (float *)STARPU_VECTOR_GET_PTR(descr[2]);
 
 	uint32_t nnz;
 	uint32_t nrow;
 
-	nnz = STARPU_GET_CSR_NNZ(descr[0]);
-	nrow = STARPU_GET_CSR_NROW(descr[0]);
+	nnz = STARPU_CSR_GET_NNZ(descr[0]);
+	nrow = STARPU_CSR_GET_NROW(descr[0]);
 
 	unsigned row;
 	for (row = 0; row < nrow; row++)
@@ -215,11 +215,11 @@ void cpu_codelet_func_5(void *descr[], void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecd = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
-	vecq = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
+	vecd = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
+	vecq = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	STARPU_ASSERT(STARPU_GET_VECTOR_NX(descr[0]) == STARPU_GET_VECTOR_NX(descr[1]));
-	size = STARPU_GET_VECTOR_NX(descr[0]);
+	STARPU_ASSERT(STARPU_VECTOR_GET_NX(descr[0]) == STARPU_VECTOR_GET_NX(descr[1]));
+	size = STARPU_VECTOR_GET_NX(descr[0]);
 
 	dot = SDOT(size, vecd, 1, vecq, 1);
 
@@ -235,11 +235,11 @@ void cublas_codelet_func_5(void *descr[], void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecd = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
-	vecq = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
+	vecd = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
+	vecq = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	STARPU_ASSERT(STARPU_GET_VECTOR_NX(descr[0]) == STARPU_GET_VECTOR_NX(descr[1]));
-	size = STARPU_GET_VECTOR_NX(descr[0]);
+	STARPU_ASSERT(STARPU_VECTOR_GET_NX(descr[0]) == STARPU_VECTOR_GET_NX(descr[1]));
+	size = STARPU_VECTOR_GET_NX(descr[0]);
 
 	dot = cublasSdot (size, vecd, 1, vecq, 1);
 
@@ -263,10 +263,10 @@ void cpu_codelet_func_6(void *descr[], void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecx = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
-	vecd = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
+	vecx = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
+	vecd = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	size = STARPU_GET_VECTOR_NX(descr[0]);
+	size = STARPU_VECTOR_GET_NX(descr[0]);
 
 	SAXPY(size, pb->alpha, vecd, 1, vecx, 1);
 }
@@ -279,10 +279,10 @@ void cublas_codelet_func_6(void *descr[], void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecx = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
-	vecd = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
+	vecx = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
+	vecd = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	size = STARPU_GET_VECTOR_NX(descr[0]);
+	size = STARPU_VECTOR_GET_NX(descr[0]);
 
 	cublasSaxpy (size, pb->alpha, vecd, 1, vecx, 1);
 }
@@ -302,10 +302,10 @@ void cpu_codelet_func_7(void *descr[], void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecr = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
-	vecq = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
+	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
+	vecq = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	size = STARPU_GET_VECTOR_NX(descr[0]);
+	size = STARPU_VECTOR_GET_NX(descr[0]);
 
 	SAXPY(size, -pb->alpha, vecq, 1, vecr, 1);
 }
@@ -318,10 +318,10 @@ void cublas_codelet_func_7(void *descr[], void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecr = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
-	vecq = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
+	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
+	vecq = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	size = STARPU_GET_VECTOR_NX(descr[0]);
+	size = STARPU_VECTOR_GET_NX(descr[0]);
 
 	cublasSaxpy (size, -pb->alpha, vecq, 1, vecr, 1);
 }
@@ -344,8 +344,8 @@ void cpu_codelet_func_8(void *descr[], void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecr = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
-	size = STARPU_GET_VECTOR_NX(descr[0]);
+	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
+	size = STARPU_VECTOR_GET_NX(descr[0]);
 
 	dot = SDOT(size, vecr, 1, vecr, 1);
 
@@ -363,8 +363,8 @@ void cublas_codelet_func_8(void *descr[], void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecr = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
-	size = STARPU_GET_VECTOR_NX(descr[0]);
+	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
+	size = STARPU_VECTOR_GET_NX(descr[0]);
 
 	dot = cublasSdot (size, vecr, 1, vecr, 1);
 
@@ -389,10 +389,10 @@ void cpu_codelet_func_9(void *descr[], void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecd = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
-	vecr = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
+	vecd = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
+	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	size = STARPU_GET_VECTOR_NX(descr[0]);
+	size = STARPU_VECTOR_GET_NX(descr[0]);
 
 	/* d = beta d */
 	SSCAL(size, pb->beta, vecd, 1);
@@ -409,10 +409,10 @@ void cublas_codelet_func_9(void *descr[], void *arg)
 	uint32_t size;
 	
 	/* get the vector */
-	vecd = (float *)STARPU_GET_VECTOR_PTR(descr[0]);
-	vecr = (float *)STARPU_GET_VECTOR_PTR(descr[1]);
+	vecd = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
+	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	size = STARPU_GET_VECTOR_NX(descr[0]);
+	size = STARPU_VECTOR_GET_NX(descr[0]);
 
 	/* d = beta d */
 	cublasSscal(size, pb->beta, vecd, 1);
