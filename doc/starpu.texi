@@ -2503,9 +2503,8 @@ void scal_opencl_func(void *buffers[], void *_args)
 @i{                    "vector_mult_opencl", devid);   /* @b{Name of the codelet defined above} */}
 @i{    if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);}
 
-@i{    err = 0;}
 @i{    err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &val);}
-@i{    err = clSetKernelArg(kernel, 1, sizeof(n), &n);}
+@i{    err |= clSetKernelArg(kernel, 1, sizeof(n), &n);}
 @i{    err |= clSetKernelArg(kernel, 2, sizeof(*factor), factor);}
 @i{    if (err) STARPU_OPENCL_REPORT_ERROR(err);}
 

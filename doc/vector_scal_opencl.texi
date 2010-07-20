@@ -21,9 +21,8 @@ void scal_opencl_func(void *buffers[], void *_args)
     err = starpu_opencl_load_kernel(&kernel, &queue, &programs, "vector_mult_opencl", devid);
     if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-    err = 0;
     err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &val);
-    err = clSetKernelArg(kernel, 1, sizeof(n), &n);
+    err |= clSetKernelArg(kernel, 1, sizeof(n), &n);
     err |= clSetKernelArg(kernel, 2, sizeof(*factor), factor);
     if (err) STARPU_OPENCL_REPORT_ERROR(err);
 
