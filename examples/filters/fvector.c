@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 
         for(i=0 ; i<NX ; i++) vector[i] = i;
         fprintf(stderr,"IN  Vector: ");
-        for(i=0 ; i<NX ; i++) fprintf(stderr, "%d ", vector[i]);
+        for(i=0 ; i<NX ; i++) fprintf(stderr, "%5d ", vector[i]);
         fprintf(stderr,"\n");
 
 	starpu_init(NULL);
@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
         fprintf(stderr,"OUT Vector: ");
-        for(i=0 ; i<NX ; i++) fprintf(stderr, "%d ", vector[i]);
+        for(i=0 ; i<NX ; i++) fprintf(stderr, "%5d ", vector[i]);
         fprintf(stderr,"\n");
 
 	return 0;

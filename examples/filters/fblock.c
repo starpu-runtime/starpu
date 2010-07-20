@@ -22,8 +22,13 @@
 #define NZ    3
 #define PARTS 2
 
+#ifdef STARPU_USE_CUDA
 extern void cuda_func(void *buffers[], void *cl_arg);
+#endif
+
+#ifdef STARPU_USE_OPENCL
 extern void opencl_func(void *buffers[], void *cl_arg);
+#endif
 
 void cpu_func(void *buffers[], void *cl_arg)
 {
@@ -62,7 +67,7 @@ void print_block(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz)
 
 void print_data(starpu_data_handle block_handle)
 {
-	int *block = starpu_block_get_local_ptr(block_handle);
+	int *block = (int *)starpu_block_get_local_ptr(block_handle);
 	int nx = starpu_block_get_nx(block_handle);
 	int ny = starpu_block_get_ny(block_handle);
 	int nz = starpu_block_get_nz(block_handle);
@@ -96,8 +101,12 @@ int main(int argc, char **argv)
 	{
                 .where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
                 .cpu_func = cpu_func,
+#ifdef STARPU_USE_CUDA
                 .cuda_func = cuda_func,
+#endif
+#ifdef STARPU_USE_OPENCL
                 .opencl_func = opencl_func,
+#endif
 		.nbuffers = 1
 	};
         starpu_init(NULL);
