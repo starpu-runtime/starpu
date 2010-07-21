@@ -2171,6 +2171,7 @@ instance.
 * Scaling a Vector::  Manipulating Data
 * Vector Scaling on an Hybrid CPU/GPU Machine::  Handling Heterogeneous Architectures
 * Filtering data:: Partitionning data
+* More examples:: More examples shipped with StarPU
 @end menu
 
 @node Compiling and linking options
@@ -2794,6 +2795,37 @@ for (i=0; i<starpu_data_get_nb_children(handle); i++) @{
 @}
 @end smallexample
 @end cartouche
+
+@node More examples
+@section More examples
+
+More examples are available in the StarPU sources in the examples/
+directory. Simple examples include
+
+@table @asis
+@item @code{cuda} and @code{incrementer}:
+	Trivial incrementation test.
+@item @code{basic_examples}:
+        Simple documented Hello world, vector/scalar product, matrix product
+        examples.
+@item @code{matvecmult}:
+	OpenCL example from NVidia, adapted to StarPU.
+@item @code{axpy}:
+	AXPY CUBLAS operation adapted to StarPU.
+@item @code{block}:
+	Example using the blocked matrix data interface.
+@item @code{fortran}:
+	Example of Fortran bindings.
+@end table
+
+More advanced examples include
+
+@table @asis
+@item @code{filters}:
+	Examples using filters.
+@item @code{lu}:
+	LU matrix factorization.
+@end table
 
 @c ---------------------------------------------------------------------
 @c Advanced Topics
