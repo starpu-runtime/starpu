@@ -1307,14 +1307,20 @@ The filter structure describes a data partitioning function.
 @item @emph{Fields}:
 @table @asis
 @item @code{filter_func}:
+TODO
 @code{void (*filter_func)(void *father_interface, void* child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts);}
 @item @code{get_nchildren}:
+TODO
 @code{unsigned (*get_nchildren)(struct starpu_data_filter *, starpu_data_handle initial_handle);}
 @item @code{get_child_ops}:
+TODO
 @code{struct starpu_data_interface_ops_t *(*get_child_ops)(struct starpu_data_filter *, unsigned id);}
 @item @code{filter_arg}:
+TODO
 @item @code{nchildren}:
+TODO
 @item @code{filter_arg_ptr}:
+TODO
 @end table
 @end table
 
@@ -1323,6 +1329,7 @@ The filter structure describes a data partitioning function.
 
 @table @asis
 @item @emph{Description}:
+TODO
 @item @emph{Prototype}:
 @code{void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data_filter *f);}
 @end table
@@ -1332,6 +1339,7 @@ The filter structure describes a data partitioning function.
 
 @table @asis
 @item @emph{Description}:
+TODO
 @item @emph{Prototype}:
 @code{void starpu_data_unpartition(starpu_data_handle root_data, uint32_t gathering_node);}
 @end table
@@ -1341,6 +1349,7 @@ The filter structure describes a data partitioning function.
 
 @table @asis
 @item @emph{Description}:
+TODO
 @item @emph{Return value}:
 This function returns returns the number of children.
 @item @emph{Prototype}:
@@ -1354,8 +1363,9 @@ This function returns returns the number of children.
 
 @table @asis
 @item @emph{Description}:
+TODO
 @item @emph{Return value}:
-Upon successful completion, this function returns ...
+TODO
 @item @emph{Prototype}:
 @code{starpu_data_handle starpu_data_get_sub_data(starpu_data_handle root_data, unsigned depth, ... );}
 @end table
