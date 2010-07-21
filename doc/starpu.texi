@@ -2027,6 +2027,7 @@ This function synchronously deinitializes the CUBLAS library on every CUDA devic
 @menu
 * Enabling OpenCL::             Enabling OpenCL
 * Compiling OpenCL codelets::   Compiling OpenCL codelets
+* Loading OpenCL codelets::     Loading OpenCL codelets
 @end menu
 
 @node Enabling OpenCL
@@ -2058,7 +2059,71 @@ so:
 @node Compiling OpenCL codelets
 @subsection Compiling OpenCL codelets
 
+Source codes for OpenCL codelets can be stored in a file or in a
+string. StarPU provides functions to build the program executable for
+each available OpenCL device as a @code{cl_program} object. This
+program executable can then be loaded within a specific queue as
+explained in the next section.
+
+@menu
+* starpu_opencl_load_opencl_from_file::  Compiling OpenCL source code
+* starpu_opencl_load_opencl_from_string::  Compiling OpenCL source code
+* starpu_opencl_unload_opencl::  Releasing OpenCL code
+@end menu
+
+@node starpu_opencl_load_opencl_from_file
+@subsubsection @code{starpu_opencl_load_opencl_from_file} -- Compiling OpenCL source code
+@table @asis
+@item @emph{Description}:
 TODO
+@item @emph{Prototype}:
+@code{int starpu_opencl_load_opencl_from_file(char *source_file_name, struct starpu_opencl_program *opencl_programs);}
+@end table
+
+@node starpu_opencl_load_opencl_from_string
+@subsubsection @code{starpu_opencl_load_opencl_from_string} -- Compiling OpenCL source code
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{int starpu_opencl_load_opencl_from_string(char *opencl_program_source, struct starpu_opencl_program *opencl_programs);}
+@end table
+
+@node starpu_opencl_unload_opencl
+@subsubsection @code{starpu_opencl_unload_opencl} -- Releasing OpenCL code
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs);}
+@end table
+
+@node Loading OpenCL codelets
+@subsection Loading OpenCL codelets
+
+@menu
+* starpu_opencl_load_kernel::   Loading a kernel
+* starpu_opencl_relase_kernel::  Releasing a kernel
+@end menu
+
+@node starpu_opencl_load_kernel
+@subsubsection @code{starpu_opencl_load_kernel} -- Loading a kernel
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct starpu_opencl_program *opencl_programs, char *kernel_name, int devid)
+}
+@end table
+
+@node starpu_opencl_relase_kernel
+@subsubsection @code{starpu_opencl_release_kernel} -- Releasing a kernel
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{int starpu_opencl_release_kernel(cl_kernel kernel);}
+@end table
 
 @node Cell extensions
 @section Cell extensions
