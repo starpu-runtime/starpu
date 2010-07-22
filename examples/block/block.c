@@ -25,7 +25,7 @@ extern void cuda_codelet(void *descr[], void *_args);
 #endif
 #ifdef STARPU_USE_OPENCL
 extern void opencl_codelet(void *descr[], void *_args);
-extern struct starpu_opencl_program opencl_code;
+struct starpu_opencl_program opencl_code;
 #endif
 
 typedef void (*device_func)(void **, void *);
