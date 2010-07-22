@@ -2799,31 +2799,32 @@ for (i=0; i<starpu_data_get_nb_children(handle); i++) @{
 @node More examples
 @section More examples
 
-More examples are available in the StarPU sources in the examples/
-directory. Simple examples include
+More examples are available in the StarPU sources in the @code{examples/}
+directory. Simple examples include:
 
 @table @asis
-@item @code{cuda} and @code{incrementer}:
+@item @code{incrementer/}:
 	Trivial incrementation test.
-@item @code{basic_examples}:
-        Simple documented Hello world, vector/scalar product, matrix product
-        examples.
-@item @code{matvecmult}:
+@item @code{basic_examples/}:
+        Simple documented Hello world (as shown in @ref{Hello World}), vector/scalar product (as shown
+        in @ref{Vector Scaling on an Hybrid CPU/GPU Machine}), matrix
+        product examples.
+@item @code{matvecmult/}:
 	OpenCL example from NVidia, adapted to StarPU.
-@item @code{axpy}:
+@item @code{axpy/}:
 	AXPY CUBLAS operation adapted to StarPU.
-@item @code{block}:
+@item @code{block/}:
 	Example using the blocked matrix data interface.
-@item @code{fortran}:
+@item @code{fortran/}:
 	Example of Fortran bindings.
 @end table
 
-More advanced examples include
+More advanced examples include:
 
 @table @asis
-@item @code{filters}:
-	Examples using filters.
-@item @code{lu}:
+@item @code{filters/}:
+	Examples using filters, as shown in @ref{Filtering data}.
+@item @code{lu/}:
 	LU matrix factorization.
 @end table
 
