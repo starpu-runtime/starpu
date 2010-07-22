@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 	starpu_task_wait_for_all();
 
 	/* Make sure that data A is in main memory */
-	starpu_data_sync_with_mem(A_handle, STARPU_R);	
+	starpu_data_acquire(A_handle, STARPU_R);	
 
 	/* Check result */
 	unsigned i;
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 		STARPU_ASSERT(A[i] == NLOOPS);
 	}
 
-	starpu_data_release_from_mem(A_handle);
+	starpu_data_release(A_handle);
 
 	starpu_shutdown();
 

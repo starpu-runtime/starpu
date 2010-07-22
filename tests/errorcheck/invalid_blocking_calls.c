@@ -27,7 +27,7 @@ static void wrong_func(void *descr[], void *arg)
 
 	/* try to fetch data in the RAM while we are in a codelet, such a
 	 * blocking call is forbidden */
-	ret = starpu_data_sync_with_mem(handle, STARPU_RW);
+	ret = starpu_data_acquire(handle, STARPU_RW);
 	if (ret != -EDEADLK)
 		exit(-1);
 
@@ -50,7 +50,7 @@ static void wrong_callback(void *arg)
 {
 	int ret;
 
-	ret  = starpu_data_sync_with_mem(handle, STARPU_RW);
+	ret  = starpu_data_acquire(handle, STARPU_RW);
 	if (ret != -EDEADLK)
 		exit(-1);
 
@@ -91,11 +91,11 @@ int main(int argc, char **argv)
 
 	/* This call is valid as it is done by the application outside a
 	 * callback */
-	ret = starpu_data_sync_with_mem(handle, STARPU_RW);
+	ret = starpu_data_acquire(handle, STARPU_RW);
 	if (ret)
 		return -1;
 
-	starpu_data_release_from_mem(handle);
+	starpu_data_release(handle);
 
 	starpu_shutdown();
 

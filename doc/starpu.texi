@@ -1162,7 +1162,7 @@ undefined behaviour.
 @code{void starpu_data_unregister(starpu_data_handle handle);}
 @end table
 @c user interaction with the DSM
-@c   void starpu_data_sync_with_mem(struct starpu_data_state_t *state);
+@c   void starpu_data_acquire(struct starpu_data_state_t *state);
 @c   void starpu_notify_data_modification(struct starpu_data_state_t *state, uint32_t modifying_node);
 @c   struct starpu_data_interface_ops_t *ops
 
@@ -2684,7 +2684,7 @@ int main(int argc, char **argv)
     starpu_task_wait_for_all();
 
     /* @b{Update the vector in RAM} */
-    starpu_data_sync_with_mem(vector_handle, STARPU_R);
+    starpu_data_acquire(vector_handle, STARPU_R);
 @end smallexample
 @end cartouche
 
@@ -2697,7 +2697,7 @@ int main(int argc, char **argv)
     fprintf(stderr, "\n");
 
     /* @b{Release the data and shutdown StarPU} */
-    starpu_data_release_from_mem(vector_handle);
+    starpu_data_release(vector_handle);
     starpu_shutdown();
 
     return 0;

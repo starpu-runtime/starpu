@@ -146,12 +146,12 @@ int main(int argc, char **argv)
 		}
 
 		/* synchronize v in RAM */
-		starpu_data_sync_with_mem(v_handle, STARPU_RW);
+		starpu_data_acquire(v_handle, STARPU_RW);
 
 		/* increment b */
 		v[1]++;
 
-		starpu_data_release_from_mem(v_handle);
+		starpu_data_release(v_handle);
 
 		for (ind = 0; ind < N; ind++)
 		{
@@ -168,11 +168,11 @@ int main(int argc, char **argv)
 
 	}
 
-	starpu_data_sync_with_mem(v_handle, STARPU_RW);
+	starpu_data_acquire(v_handle, STARPU_RW);
 
 	fprintf(stderr, "V = { %d, %d, %d }\n", v[0], v[1], v[2]);
 
-	starpu_data_release_from_mem(v_handle);
+	starpu_data_release(v_handle);
 
 	starpu_shutdown();
 

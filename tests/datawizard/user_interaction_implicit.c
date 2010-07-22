@@ -38,7 +38,7 @@ void callback_sync_data(void *arg)
 
 	data->val++;
 
-	starpu_data_release_from_mem(data->handle);
+	starpu_data_release(data->handle);
 }
 
 int main(int argc, char **argv)
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 	for (iter = 0; iter < NITER; iter++)
 	for (b = 0; b < NBUFFERS; b++)
 	{
-		starpu_data_sync_with_mem_non_blocking(buffers[b].handle, STARPU_RW,
+		starpu_data_acquire_cb(buffers[b].handle, STARPU_RW,
 							callback_sync_data, &buffers[b]);
 	}
 

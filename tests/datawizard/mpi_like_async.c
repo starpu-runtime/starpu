@@ -115,7 +115,7 @@ static int test_recv_handle_async(void *arg)
 		fprintf(stderr, "Thread %d received value %d from thread %d\n",
 			thread_data->index, thread_data->val, (thread_data->index - 1)%NTHREADS);
 #endif
-		starpu_data_release_from_mem(thread_data->handle);
+		starpu_data_release(thread_data->handle);
 	}
 	
 	return ret;
@@ -152,7 +152,7 @@ static int test_send_handle_async(void *arg)
 #ifdef DEBUG_MESSAGES
 		fprintf(stderr, "Thread %d sends value %d to thread %d\n", thread_data->index, thread_data->val, neighbour_data->index);
 #endif
-		starpu_data_release_from_mem(thread_data->handle);
+		starpu_data_release(thread_data->handle);
 	}
 
 	return ret;
@@ -255,7 +255,7 @@ static void *thread_func(void *arg)
 		/* The first thread initiates the first transfer */
 		if (!((index == 0) && (iter == 0)))
 		{
-			starpu_data_sync_with_mem_non_blocking(
+			starpu_data_acquire_cb(
 				thread_data->handle, STARPU_W,
 				recv_handle_async, thread_data
 			);
@@ -265,7 +265,7 @@ static void *thread_func(void *arg)
 
 		if (!((index == (NTHREADS - 1)) && (iter == (NITER - 1))))
 		{
-			starpu_data_sync_with_mem_non_blocking(
+			starpu_data_acquire_cb(
 				thread_data->handle, STARPU_R,
 				send_handle_async, thread_data
 			);
@@ -330,13 +330,13 @@ int main(int argc, char **argv)
 
 	/* We check that the value in the "last" thread is valid */
 	starpu_data_handle last_handle = problem_data[NTHREADS - 1].handle;
-	starpu_data_sync_with_mem(last_handle, STARPU_R);
+	starpu_data_acquire(last_handle, STARPU_R);
 	if (problem_data[NTHREADS - 1].val != (NTHREADS * NITER))
 	{
 		fprintf(stderr, "Final value : %d should be %d\n", problem_data[NTHREADS - 1].val, (NTHREADS * NITER));
 		STARPU_ABORT();
 	}
-	starpu_data_release_from_mem(last_handle);
+	starpu_data_release(last_handle);
 
 	starpu_shutdown();
 

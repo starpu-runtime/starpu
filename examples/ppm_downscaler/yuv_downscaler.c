@@ -297,9 +297,9 @@ int main(int argc, char **argv)
 	/* make sure all output buffers are sync'ed */
 	for (frame = 0; frame < nframes; frame++)
 	{
-		starpu_data_sync_with_mem(new_frame_y_handle[frame], STARPU_R);
-		starpu_data_sync_with_mem(new_frame_u_handle[frame], STARPU_R);
-		starpu_data_sync_with_mem(new_frame_v_handle[frame], STARPU_R);
+		starpu_data_acquire(new_frame_y_handle[frame], STARPU_R);
+		starpu_data_acquire(new_frame_u_handle[frame], STARPU_R);
+		starpu_data_acquire(new_frame_v_handle[frame], STARPU_R);
 	}
 
 	/* partition the layers into smaller parts */

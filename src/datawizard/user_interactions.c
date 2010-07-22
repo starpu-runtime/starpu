@@ -65,7 +65,7 @@ static void _starpu_sync_data_with_mem_fetch_data_callback(void *arg)
 
 	/* At that moment, the caller holds a reference to the piece of data.
 	 * We enqueue the "post" sync task in the list associated to the handle
-	 * so that it is submitted by the starpu_data_release_from_mem
+	 * so that it is submitted by the starpu_data_release
 	 * function. */
 	_starpu_add_post_sync_tasks(wrapper->post_sync_task, handle);
 
@@ -101,8 +101,8 @@ static void starpu_data_sync_with_mem_non_blocking_pre_sync_callback(void *arg)
 	}
 }
 
-/* The data must be released by calling starpu_data_release_from_mem later on */
-int starpu_data_sync_with_mem_non_blocking(starpu_data_handle handle,
+/* The data must be released by calling starpu_data_release later on */
+int starpu_data_acquire_cb(starpu_data_handle handle,
 		starpu_access_mode mode, void (*callback)(void *), void *arg)
 {
 	STARPU_ASSERT(handle);
@@ -164,15 +164,15 @@ static inline void _starpu_sync_data_with_mem_continuation(void *arg)
 
 	_starpu_fetch_data_on_node(handle, 0, wrapper->mode, 0, NULL, NULL);
 	
-	/* continuation of starpu_data_sync_with_mem */
+	/* continuation of starpu_data_acquire */
 	PTHREAD_MUTEX_LOCK(&wrapper->lock);
 	wrapper->finished = 1;
 	PTHREAD_COND_SIGNAL(&wrapper->cond);
 	PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
 }
 
-/* The data must be released by calling starpu_data_release_from_mem later on */
-int starpu_data_sync_with_mem(starpu_data_handle handle, starpu_access_mode mode)
+/* The data must be released by calling starpu_data_release later on */
+int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode)
 {
 	STARPU_ASSERT(handle);
 
@@ -190,7 +190,7 @@ int starpu_data_sync_with_mem(starpu_data_handle handle, starpu_access_mode mode
 		.finished = 0
 	};
 
-//	fprintf(stderr, "TAKE sequential_consistency_mutex starpu_data_sync_with_mem\n");
+//	fprintf(stderr, "TAKE sequential_consistency_mutex starpu_data_acquire\n");
 	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 	int sequential_consistency = handle->sequential_consistency;
 	if (sequential_consistency)
@@ -233,16 +233,16 @@ int starpu_data_sync_with_mem(starpu_data_handle handle, starpu_access_mode mode
 
 	/* At that moment, the caller holds a reference to the piece of data.
 	 * We enqueue the "post" sync task in the list associated to the handle
-	 * so that it is submitted by the starpu_data_release_from_mem
+	 * so that it is submitted by the starpu_data_release
 	 * function. */
 	_starpu_add_post_sync_tasks(wrapper.post_sync_task, handle);
 
 	return 0;
 }
 
-/* This function must be called after starpu_data_sync_with_mem so that the
+/* This function must be called after starpu_data_acquire so that the
  * application release the data */
-void starpu_data_release_from_mem(starpu_data_handle handle)
+void starpu_data_release(starpu_data_handle handle)
 {
 	STARPU_ASSERT(handle);
 

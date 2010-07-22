@@ -85,7 +85,7 @@ static void increment_handle(struct thread_data *thread_data)
 
 static void recv_handle(struct thread_data *thread_data)
 {
-	starpu_data_sync_with_mem(thread_data->handle, STARPU_W);
+	starpu_data_acquire(thread_data->handle, STARPU_W);
 	pthread_mutex_lock(&thread_data->recv_mutex);
 
 	/* We wait for the previous thread to notify that the data is available */
@@ -102,14 +102,14 @@ static void recv_handle(struct thread_data *thread_data)
 //	fprintf(stderr, "Thread %d received value %d from thread %d\n", thread_data->index, thread_data->val, (thread_data->index - 1)%NTHREADS);
 
 	pthread_mutex_unlock(&thread_data->recv_mutex);
-	starpu_data_release_from_mem(thread_data->handle);
+	starpu_data_release(thread_data->handle);
 }
 
 static void send_handle(struct thread_data *thread_data)
 {
 	struct thread_data *neighbour_data = thread_data->neighbour;
 
-	starpu_data_sync_with_mem(thread_data->handle, STARPU_R);
+	starpu_data_acquire(thread_data->handle, STARPU_R);
 
 //	fprintf(stderr, "Thread %d sends value %d to thread %d\n", thread_data->index, thread_data->val, neighbour_data->index);
 	/* send the message */
@@ -124,7 +124,7 @@ static void send_handle(struct thread_data *thread_data)
 	
 	pthread_mutex_unlock(&neighbour_data->recv_mutex);
 
-	starpu_data_release_from_mem(thread_data->handle);
+	starpu_data_release(thread_data->handle);
 }
 
 static void *thread_func(void *arg)
@@ -186,13 +186,13 @@ int main(int argc, char **argv)
 
 	/* We check that the value in the "last" thread is valid */
 	starpu_data_handle last_handle = problem_data[NTHREADS - 1].handle;
-	starpu_data_sync_with_mem(last_handle, STARPU_R);
+	starpu_data_acquire(last_handle, STARPU_R);
 	if (problem_data[NTHREADS - 1].val != (NTHREADS * NITER))
 	{
 		fprintf(stderr, "Final value : %d should be %d\n", problem_data[NTHREADS - 1].val, (NTHREADS * NITER));
 		STARPU_ABORT();
 	}
-	starpu_data_release_from_mem(last_handle);
+	starpu_data_release(last_handle);
 
 	starpu_shutdown();
 

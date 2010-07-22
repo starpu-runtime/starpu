@@ -48,10 +48,10 @@ void starpu_data_unregister(starpu_data_handle handle);
 
 void starpu_data_advise_as_important(starpu_data_handle handle, unsigned is_important);
 
-int starpu_data_sync_with_mem(starpu_data_handle handle, starpu_access_mode mode);
-int starpu_data_sync_with_mem_non_blocking(starpu_data_handle handle,
+int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode);
+int starpu_data_acquire_cb(starpu_data_handle handle,
 			starpu_access_mode mode, void (*callback)(void *), void *arg);
-void starpu_data_release_from_mem(starpu_data_handle handle);
+void starpu_data_release(starpu_data_handle handle);
 
 int starpu_data_malloc_pinned_if_possible(void **A, size_t dim);
 int starpu_data_free_pinned_if_possible(void *A);

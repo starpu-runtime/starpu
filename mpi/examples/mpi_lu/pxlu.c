@@ -774,7 +774,7 @@ static void wait_tag_and_fetch_handle(starpu_tag_t tag, starpu_data_handle handl
 	starpu_tag_wait(tag);
 //	fprintf(stderr, "Rank %d : tag %lx is done\n", rank, tag);
 
-	starpu_data_sync_with_mem(handle, STARPU_R);
+	starpu_data_acquire(handle, STARPU_R);
 
 //	starpu_data_unregister(handle);
 }

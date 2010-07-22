@@ -146,7 +146,7 @@ int main(int argc, char **argv)
 
 	/* Get the cnt_array back in main memory */
 	starpu_data_unpartition(cnt_array_handle, 0);
-	starpu_data_sync_with_mem(cnt_array_handle, STARPU_RW);
+	starpu_data_acquire(cnt_array_handle, STARPU_RW);
 
 	/* Count the total number of entries */
 	unsigned long total_cnt = 0;
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 	fprintf(stderr, "Total time : %f ms\n", timing/1000.0);
 	fprintf(stderr, "Speed : %f GShot/s\n", total_shot_cnt/(1e3*timing));
 
-	starpu_data_release_from_mem(cnt_array_handle);
+	starpu_data_release(cnt_array_handle);
 
 	starpu_display_codelet_stats(&cl);
 

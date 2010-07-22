@@ -111,9 +111,9 @@ int main(int argc, char **argv)
 		}
 		else {
 
-			starpu_data_sync_with_mem(token_handle, STARPU_R);
+			starpu_data_acquire(token_handle, STARPU_R);
 			fprintf(stdout, "Finished : token value %d\n", token);
-			starpu_data_release_from_mem(token_handle);
+			starpu_data_release(token_handle);
 		}
 	}
 

@@ -108,14 +108,14 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
 	starpu_task_wait_for_all();
 
 	/* update the array in RAM */
-        starpu_data_sync_with_mem(block_handle, STARPU_R);
+        starpu_data_acquire(block_handle, STARPU_R);
 
         for(i=0 ; i<pnx*pny*pnz; i++) {
           fprintf(stderr, "%f ", block[i]);
         }
         fprintf(stderr, "\n");
 
-        starpu_data_release_from_mem(block_handle);
+        starpu_data_release(block_handle);
 
         return 0;
 }

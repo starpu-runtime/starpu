@@ -89,11 +89,11 @@ int main(int argc, char **argv)
 
 		/* Grab the different pieces of data into main memory */
 		for (b = 0; b < NBUFFERS; b++)
-			starpu_data_sync_with_mem(v_handle[b], STARPU_RW);
+			starpu_data_acquire(v_handle[b], STARPU_RW);
 
 		/* Release them */
 		for (b = 0; b < NBUFFERS; b++)
-			starpu_data_release_from_mem(v_handle[b]);
+			starpu_data_release(v_handle[b]);
 	}
 
 	/* do some cleanup */

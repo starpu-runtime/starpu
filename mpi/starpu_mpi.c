@@ -97,7 +97,7 @@ static struct starpu_mpi_req_s *_starpu_mpi_isend_common(starpu_data_handle data
 	/* Asynchronously request StarPU to fetch the data in main memory: when
 	 * it is available in main memory, submit_mpi_req(req) is called and
 	 * the request is actually submitted  */
-	starpu_data_sync_with_mem_non_blocking(data_handle, STARPU_R,
+	starpu_data_acquire_cb(data_handle, STARPU_R,
 			submit_mpi_req, (void *)req);
 
 	return req;
@@ -181,7 +181,7 @@ static struct starpu_mpi_req_s *_starpu_mpi_irecv_common(starpu_data_handle data
 	/* Asynchronously request StarPU to fetch the data in main memory: when
 	 * it is available in main memory, submit_mpi_req(req) is called and
 	 * the request is actually submitted  */
-	starpu_data_sync_with_mem_non_blocking(data_handle, STARPU_W,
+	starpu_data_acquire_cb(data_handle, STARPU_W,
 			submit_mpi_req, (void *)req);
 
 	return req;
@@ -382,7 +382,7 @@ int starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 static void handle_request_termination(struct starpu_mpi_req_s *req)
 {
 	MPI_Type_free(&req->datatype);
-	starpu_data_release_from_mem(req->data_handle);
+	starpu_data_release(req->data_handle);
 
 #ifdef VERBOSE_STARPU_MPI
 	int rank;

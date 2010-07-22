@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 		/* Grab the different pieces of data into main memory */
 		for (b = 0; b < NBUFFERS; b++)
 		{
-			starpu_data_sync_with_mem_non_blocking(v_handle[b], STARPU_RW,
+			starpu_data_acquire_cb(v_handle[b], STARPU_RW,
 					callback_sync_data, NULL);
 		}
 
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 
 		/* Release them */
 		for (b = 0; b < NBUFFERS; b++)
-			starpu_data_release_from_mem(v_handle[b]);
+			starpu_data_release(v_handle[b]);
 	}
 
 	/* do some cleanup */
