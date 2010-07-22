@@ -468,18 +468,20 @@ check_PROGRAMS +=				\
 examplebin_PROGRAMS +=				\
 	variable/variable
 
-variable_variable_SOURCES =	\
-	variable/variable.c
+variable_variable_SOURCES =			\
+	variable/variable.c			\
+	variable/variable_kernels_cpu.c
+
 if STARPU_USE_CUDA
-variable_variable_SOURCES +=	\
+variable_variable_SOURCES +=			\
 	variable/variable_kernels.cu
 endif
 if STARPU_USE_OPENCL
-variable_variable_SOURCES +=	\
+variable_variable_SOURCES +=			\
 	variable/variable_kernels_opencl.c
 endif
 
-nobase_STARPU_OPENCL_DATA_DATA += \
+nobase_STARPU_OPENCL_DATA_DATA += 		\
 	variable/variable_kernels_opencl_codelet.cl
 
 

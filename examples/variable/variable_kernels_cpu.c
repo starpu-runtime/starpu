@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
+ * Copyright (C) INRIA 2008-2009 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,10 +14,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-__kernel void variable(__global float* input) 
+#include <starpu.h>
+
+void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	const int i = get_global_id(0);
-	if (i == 0)
-		input[i] = input[i] + 1.0;
+	float *val = (float *)STARPU_VARIABLE_GET_PTR(descr[0]);
+
+	*val += 1.0f;
 }
 
