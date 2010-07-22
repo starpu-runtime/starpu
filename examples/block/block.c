@@ -19,60 +19,13 @@
 #include <pthread.h>
 #include <math.h>
 
-void cpu_codelet(void *descr[], void *_args)
-{
-	float *block = (float *)STARPU_BLOCK_GET_PTR(descr[0]);
-	int nx = (int)STARPU_BLOCK_GET_NX(descr[0]);
-	int ny = (int)STARPU_BLOCK_GET_NY(descr[0]);
-	int nz = (int)STARPU_BLOCK_GET_NZ(descr[0]);
-        float *multiplier = (float *)_args;
-        int i;
-
-        for(i=0 ; i<nx*ny*nz ; i++) block[i] *= *multiplier;
-}
-
-#ifdef STARPU_USE_OPENCL
-struct starpu_opencl_program opencl_code;
-void opencl_codelet(void *descr[], void *_args)
-{
-	cl_kernel kernel;
-	cl_command_queue queue;
-	int id, devid, err, n;
-	float *block = (float *)STARPU_BLOCK_GET_PTR(descr[0]);
-	int nx = (int)STARPU_BLOCK_GET_NX(descr[0]);
-	int ny = (int)STARPU_BLOCK_GET_NY(descr[0]);
-	int nz = (int)STARPU_BLOCK_GET_NZ(descr[0]);
-        float *multiplier = (float *)_args;
-
-        id = starpu_worker_get_id();
-        devid = starpu_worker_get_devid(id);
-
-        err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_code, "block", devid);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-
-	err = 0;
-        n=0;
-	err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &block);
-	err = clSetKernelArg(kernel, 1, sizeof(int), &nx);
-	err = clSetKernelArg(kernel, 2, sizeof(int), &ny);
-	err = clSetKernelArg(kernel, 3, sizeof(int), &nz);
-	err = clSetKernelArg(kernel, 4, sizeof(float), multiplier);
-        if (err) STARPU_OPENCL_REPORT_ERROR(err);
-
-	{
-                size_t global=1024;
-		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, NULL, 0, NULL, NULL);
-		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-	}
-
-	clFinish(queue);
-
-        starpu_opencl_release_kernel(kernel);
-}
-#endif
-
+extern void cpu_codelet(void *descr[], void *_args);
 #ifdef STARPU_USE_CUDA
 extern void cuda_codelet(void *descr[], void *_args);
+#endif
+#ifdef STARPU_USE_OPENCL
+extern void opencl_codelet(void *descr[], void *_args);
+extern struct starpu_opencl_program opencl_code;
 #endif
 
 typedef void (*device_func)(void **, void *);
@@ -139,7 +92,7 @@ int main(int argc, char **argv)
         ret = execute_on(STARPU_CPU, cpu_codelet, block, nx, ny, nz, 1.0);
         if (!ret) multiplier *= 1.0;
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_load_opencl_from_file("examples/block/block_kernel.cl", &opencl_code);
+        starpu_opencl_load_opencl_from_file("examples/block/block_opencl_kernel.cl", &opencl_code);
         ret = execute_on(STARPU_OPENCL, opencl_codelet, block, nx, ny, nz, 2.0);
         if (!ret) multiplier *= 2.0;
 #endif

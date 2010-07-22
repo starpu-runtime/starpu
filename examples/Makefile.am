@@ -46,7 +46,7 @@ EXTRA_DIST = 					\
 	incrementer/incrementer_kernels_opencl_codelet.cl 	\
 	variable/variable_kernels_opencl_codelet.cl		\
 	matvecmult/matvecmult_kernel.cl				\
-	block/block_kernel.cl					\
+	block/block_opencl_kernel.cl					\
 	filters/fblock_opencl_codelet.cl
 
 CLEANFILES = 					\
@@ -511,8 +511,9 @@ check_PROGRAMS +=				\
 examplebin_PROGRAMS +=				\
 	block/block
 
-block_block_SOURCES =	\
-	block/block.c
+block_block_SOURCES =				\
+	block/block.c				\
+	block/block_cpu.c
 
 if STARPU_USE_CUDA
 block_block_SOURCES +=				\
@@ -520,8 +521,10 @@ block_block_SOURCES +=				\
 endif
 
 if STARPU_USE_OPENCL
-nobase_STARPU_OPENCL_DATA_DATA += \
-	block/block_kernel.cl
+block_block_SOURCES +=				\
+	block/block_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += 		\
+	block/block_opencl_kernel.cl
 endif
 
 #####################
