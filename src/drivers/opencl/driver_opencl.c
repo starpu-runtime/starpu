@@ -179,7 +179,7 @@ int _starpu_opencl_copy_opencl_to_ram(cl_mem buffer, void *ptr, size_t size, siz
         return EXIT_SUCCESS;
 }
 
-#ifdef 0
+#if 0
 int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, void *ptr, const size_t buffer_origin[3], const size_t host_origin[3],
                                            const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
                                            size_t host_row_pitch, size_t host_slice_pitch, cl_event *event)
