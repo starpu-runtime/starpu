@@ -2063,7 +2063,10 @@ Source codes for OpenCL codelets can be stored in a file or in a
 string. StarPU provides functions to build the program executable for
 each available OpenCL device as a @code{cl_program} object. This
 program executable can then be loaded within a specific queue as
-explained in the next section.
+explained in the next section. These are only helpers, Applications
+can also fill a starpu_opencl_program array by hand for more advanced
+use (e.g. different programs on the different OpenCL devices, for
+relocation purpose for instance).
 
 @menu
 * starpu_opencl_load_opencl_from_file::  Compiling OpenCL source code
