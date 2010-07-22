@@ -76,8 +76,8 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
 int main(int argc, char **argv)
 {
 	starpu_codelet cl;
-        float *block;
-        int i, ret;
+        float *block, n=1.0;
+        int i, j, k, ret;
         int nx=3;
         int ny=2;
         int nz=4;
@@ -87,7 +87,13 @@ int main(int argc, char **argv)
 
         block = (float*)malloc(nx*ny*nz*sizeof(float));
         assert(block);
-        for(i=0 ; i<nx*ny*nz ; i++) block[i] = i+1;
+        for(k=0 ; k<nz ; k++) {
+                for(j=0 ; j<ny ; j++) {
+                        for(i=0 ; i<nx ; i++) {
+                                block[(k*nx*ny)+(j*nx)+i] = n++;
+                        }
+                }
+        }
 
         ret = execute_on(STARPU_CPU, cpu_codelet, block, nx, ny, nz, 1.0);
         if (!ret) multiplier *= 1.0;

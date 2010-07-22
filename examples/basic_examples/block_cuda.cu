@@ -16,10 +16,15 @@
 
 #include <starpu.h>
 
-static __global__ void cuda_block(float *block, int nx, int ny, int nz, float multiplier)
+static __global__ void cuda_block(float *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz, float multiplier)
 {
-        int i;
-        for(i=0 ; i<nx*ny*nz ; i++) block[i] *= multiplier;
+        int i, j, k;
+        for(k=0; k<nz ; k++) {
+                for(j=0; j<ny ; j++) {
+                        for(i=0; i<nx ; i++)
+                                block[(k*ldz)+(j*ldy)+i] *= multiplier;
+                }
+        }
 }
 
 extern "C" void cuda_codelet(void *descr[], void *_args)
@@ -28,7 +33,10 @@ extern "C" void cuda_codelet(void *descr[], void *_args)
 	int nx = STARPU_BLOCK_GET_NX(descr[0]);
 	int ny = STARPU_BLOCK_GET_NY(descr[0]);
 	int nz = STARPU_BLOCK_GET_NZ(descr[0]);
+        unsigned ldy = STARPU_BLOCK_GET_LDY(descr[0]);
+        unsigned ldz = STARPU_BLOCK_GET_LDZ(descr[0]);
         float *multiplier = (float *)_args;
 
-        cuda_block<<<1,1>>>(block, nx, ny, nz, *multiplier);
+        cuda_block<<<1,1>>>(block, nx, ny, nz, ldy, ldz, *multiplier);
+	cudaThreadSynchronize();
 }

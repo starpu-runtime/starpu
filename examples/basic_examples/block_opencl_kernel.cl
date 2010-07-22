@@ -14,10 +14,13 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-__kernel void block(__global float *b, int nx, int ny, int nz, float multiplier)
+__kernel void block(__global float *b, int nx, int ny, int nz, unsigned ldy, unsigned ldz, float multiplier)
 {
-        const int i = get_global_id(0);
-        if (i < nx*ny*nz) {
-                b[i] *= multiplier;
+        int i, j, k;
+        for(k=0; k<nz ; k++) {
+                for(j=0; j<ny ; j++) {
+                        for(i=0; i<nx ; i++)
+                                b[(k*ldz)+(j*ldy)+i] *= multiplier;
+                }
         }
 }

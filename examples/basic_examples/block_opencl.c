@@ -28,6 +28,8 @@ void opencl_codelet(void *descr[], void *_args)
 	int nx = (int)STARPU_BLOCK_GET_NX(descr[0]);
 	int ny = (int)STARPU_BLOCK_GET_NY(descr[0]);
 	int nz = (int)STARPU_BLOCK_GET_NZ(descr[0]);
+        unsigned ldy = STARPU_BLOCK_GET_LDY(descr[0]);
+        unsigned ldz = STARPU_BLOCK_GET_LDZ(descr[0]);
         float *multiplier = (float *)_args;
 
         id = starpu_worker_get_id();
@@ -42,11 +44,13 @@ void opencl_codelet(void *descr[], void *_args)
 	err = clSetKernelArg(kernel, 1, sizeof(int), &nx);
 	err = clSetKernelArg(kernel, 2, sizeof(int), &ny);
 	err = clSetKernelArg(kernel, 3, sizeof(int), &nz);
-	err = clSetKernelArg(kernel, 4, sizeof(float), multiplier);
+	err = clSetKernelArg(kernel, 4, sizeof(ldy), &ldy);
+	err = clSetKernelArg(kernel, 5, sizeof(ldz), &ldz);
+	err = clSetKernelArg(kernel, 6, sizeof(float), multiplier);
         if (err) STARPU_OPENCL_REPORT_ERROR(err);
 
 	{
-                size_t global=1024;
+                size_t global=nx*ny*nz;
 		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, NULL, 0, NULL, NULL);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}
