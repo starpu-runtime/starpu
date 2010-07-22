@@ -92,7 +92,7 @@ int main(int argc, char **argv)
         ret = execute_on(STARPU_CPU, cpu_codelet, block, nx, ny, nz, 1.0);
         if (!ret) multiplier *= 1.0;
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_load_opencl_from_file("examples/block/block_opencl_kernel.cl", &opencl_code);
+        starpu_opencl_load_opencl_from_file("examples/basic_examples/block_opencl_kernel.cl", &opencl_code);
         ret = execute_on(STARPU_OPENCL, opencl_codelet, block, nx, ny, nz, 2.0);
         if (!ret) multiplier *= 2.0;
 #endif

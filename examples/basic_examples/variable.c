@@ -46,7 +46,7 @@ int main(int argc, char **argv)
                                       (uintptr_t)&foo, sizeof(float));
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_load_opencl_from_file("examples/variable/variable_kernels_opencl_codelet.cl", &opencl_code);
+        starpu_opencl_load_opencl_from_file("examples/basic_examples/variable_kernels_opencl_codelet.cl", &opencl_code);
 #endif
 
 	cl.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL;

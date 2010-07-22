@@ -43,9 +43,9 @@ EXTRA_DIST = 					\
 	lu/xlu_kernels.c			\
 	lu/lu_example.c				\
 	incrementer/incrementer_kernels_opencl_codelet.cl 	\
-	variable/variable_kernels_opencl_codelet.cl		\
+	basic_examples/variable_kernels_opencl_codelet.cl	\
 	matvecmult/matvecmult_kernel.cl				\
-	block/block_opencl_kernel.cl					\
+	basic_examples/block_opencl_kernel.cl			\
 	filters/fblock_opencl_codelet.cl
 
 CLEANFILES = 					\
@@ -158,6 +158,58 @@ examplebin_PROGRAMS +=				\
 
 basic_examples_mult_SOURCES =			\
 	basic_examples/mult.c
+
+#################
+# block example #
+#################
+
+check_PROGRAMS +=				\
+	basic_examples/block
+
+examplebin_PROGRAMS +=				\
+	basic_examples/block
+
+basic_examples_block_SOURCES =			\
+	basic_examples/block.c			\
+	basic_examples/block_cpu.c
+
+if STARPU_USE_CUDA
+basic_examples_block_SOURCES +=			\
+	basic_examples/block_cuda.cu
+endif
+
+if STARPU_USE_OPENCL
+basic_examples_block_SOURCES +=			\
+	basic_examples/block_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += 		\
+	basic_examples/block_opencl_kernel.cl
+endif
+
+####################
+# Variable example #
+####################
+
+check_PROGRAMS +=				\
+	basic_examples/variable
+
+examplebin_PROGRAMS +=				\
+	basic_examples/variable
+
+basic_examples_variable_SOURCES =		\
+	basic_examples/variable.c		\
+	basic_examples/variable_kernels_cpu.c
+
+if STARPU_USE_CUDA
+basic_examples_variable_SOURCES +=		\
+	basic_examples/variable_kernels.cu
+endif
+if STARPU_USE_OPENCL
+basic_examples_variable_SOURCES +=		\
+	basic_examples/variable_kernels_opencl.c
+endif
+
+nobase_STARPU_OPENCL_DATA_DATA += 		\
+	basic_examples/variable_kernels_opencl_codelet.cl
 
 ###########
 # Filters #
@@ -457,33 +509,6 @@ endif
 nobase_STARPU_OPENCL_DATA_DATA += \
 	incrementer/incrementer_kernels_opencl_codelet.cl
 
-####################
-# Variable example #
-####################
-
-check_PROGRAMS +=				\
-	variable/variable
-
-examplebin_PROGRAMS +=				\
-	variable/variable
-
-variable_variable_SOURCES =			\
-	variable/variable.c			\
-	variable/variable_kernels_cpu.c
-
-if STARPU_USE_CUDA
-variable_variable_SOURCES +=			\
-	variable/variable_kernels.cu
-endif
-if STARPU_USE_OPENCL
-variable_variable_SOURCES +=			\
-	variable/variable_kernels_opencl.c
-endif
-
-nobase_STARPU_OPENCL_DATA_DATA += 		\
-	variable/variable_kernels_opencl_codelet.cl
-
-
 ######################
 # matVecMult example #
 ######################
@@ -500,32 +525,6 @@ matvecmult_matvecmult_SOURCES =	\
 if STARPU_USE_OPENCL
 nobase_STARPU_OPENCL_DATA_DATA += \
 	matvecmult/matvecmult_kernel.cl
-endif
-
-#################
-# block example #
-#################
-
-check_PROGRAMS +=				\
-	block/block
-
-examplebin_PROGRAMS +=				\
-	block/block
-
-block_block_SOURCES =				\
-	block/block.c				\
-	block/block_cpu.c
-
-if STARPU_USE_CUDA
-block_block_SOURCES +=				\
-	block/block_cuda.cu
-endif
-
-if STARPU_USE_OPENCL
-block_block_SOURCES +=				\
-	block/block_opencl.c
-nobase_STARPU_OPENCL_DATA_DATA += 		\
-	block/block_opencl_kernel.cl
 endif
 
 #####################

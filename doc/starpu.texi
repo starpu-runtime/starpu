@@ -2811,13 +2811,12 @@ directory. Simple examples include:
 @item @code{basic_examples/}:
         Simple documented Hello world (as shown in @ref{Hello World}), vector/scalar product (as shown
         in @ref{Vector Scaling on an Hybrid CPU/GPU Machine}), matrix
-        product examples.
+        product examples, an example using the blocked matrix data
+        interface, and an example using the variable data interface.
 @item @code{matvecmult/}:
 	OpenCL example from NVidia, adapted to StarPU.
 @item @code{axpy/}:
 	AXPY CUBLAS operation adapted to StarPU.
-@item @code{block/}:
-	Example using the blocked matrix data interface.
 @item @code{fortran/}:
 	Example of Fortran bindings.
 @end table
