@@ -22,6 +22,8 @@
 #define NZ    3
 #define PARTS 2
 
+extern void cpu_func(void *buffers[], void *cl_arg);
+
 #ifdef STARPU_USE_CUDA
 extern void cuda_func(void *buffers[], void *cl_arg);
 #endif
@@ -29,25 +31,6 @@ extern void cuda_func(void *buffers[], void *cl_arg);
 #ifdef STARPU_USE_OPENCL
 extern void opencl_func(void *buffers[], void *cl_arg);
 #endif
-
-void cpu_func(void *buffers[], void *cl_arg)
-{
-        unsigned i, j, k;
-        int *factor = cl_arg;
-	int *block = (int *)STARPU_BLOCK_GET_PTR(buffers[0]);
-	int nx = (int)STARPU_BLOCK_GET_NX(buffers[0]);
-	int ny = (int)STARPU_BLOCK_GET_NY(buffers[0]);
-	int nz = (int)STARPU_BLOCK_GET_NZ(buffers[0]);
-        unsigned ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
-        unsigned ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
-
-        for(k=0; k<nz ; k++) {
-                for(j=0; j<ny ; j++) {
-                        for(i=0; i<nx ; i++)
-                                block[(k*ldz)+(j*ldy)+i] = *factor;
-                }
-        }
-}
 
 void print_block(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz)
 {

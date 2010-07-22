@@ -31,7 +31,6 @@ BUILT_SOURCES =
 
 EXTRA_DIST = 					\
 	basic_examples/vector_scal_opencl_codelet.cl \
-	cuda/incrementer_cuda.cu		\
 	spmv/spmv_cuda.cu			\
 	gordon/null_kernel_gordon.c		\
 	mult/xgemm.c				\
@@ -114,7 +113,6 @@ noinst_HEADERS = 				\
 	common/blas.h				\
 	mult/dw_mult.h				\
 	mult/gordon/func_sgemm_ibm.h		\
-	cuda/incrementer_cuda.h			\
 	gordon/null.h				\
 	fortran/bindings/StarPU_fortran.h	\
 	ppm_downscaler/ppm_downscaler.h		\
@@ -174,7 +172,8 @@ filters_fvector_SOURCES =			\
 	filters/fvector.c
 
 filters_fblock_SOURCES =			\
-	filters/fblock.c
+	filters/fblock.c			\
+	filters/fblock_cpu.c
 
 if STARPU_USE_CUDA
 filters_fblock_SOURCES +=			\

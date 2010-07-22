@@ -23,8 +23,4 @@ __kernel void fblock_opencl(__global int* block, int nx, int ny, int nz, unsigne
                                 block[(k*ldz)+(j*ldy)+i] = factor;
                 }
         }
-//        const int i = get_global_id(0);
-//        if (i < nx*ny*nz) {
-//                block[i] = factor;//10*(factor+1);
-//        }
 }
