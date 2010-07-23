@@ -141,6 +141,7 @@ several processing units as long as it is not modified.
 @chapter Installing StarPU
 
 @menu
+* Downloading StarPU::          
 * Configuration of StarPU::     
 * Building and Installing StarPU::  
 @end menu
@@ -148,6 +149,92 @@ several processing units as long as it is not modified.
 StarPU can be built and installed by the standard means of the GNU
 autotools. The following chapter is intended to briefly remind how these tools
 can be used to install StarPU.
+
+@node Downloading StarPU
+@section Downloading StarPU
+
+@menu
+* Getting Sources::             
+* Optional dependencies::       
+@end menu
+
+@node Getting Sources
+@subsection Getting Sources
+
+The source code is managed by a Subversion server hosted by the
+InriaGforge. To get the source code, you need:
+
+@itemize
+@item
+To install the client side of the software Subversion if it is
+not already available on your system. The software can be obtained from
+@indicateurl{http://subversion.tigris.org}.
+
+@item
+To become a member of the project @code{starpu}. For this, you
+first need to get an account to the gForge server. You can then send a
+request to join the project
+(@indicateurl{https://gforge.inria.fr/project/request.php?group_id=1570}).
+
+You can also choose to check out the project's SVN repository through
+anonymous access. In that case, you do not need to become a member,
+and you will only have read access to the repository.
+
+@item
+More information on how to get a gForge account, to become a member of
+a project, or on any other related task can be obtained from the
+InriaGforge at @indicateurl{https://gforge.inria.fr/}. The most important
+thing is to upload your public SSH key on the gForge server (see the
+FAQ at @indicateurl{http://siteadmin.gforge.inria.fr/FAQ.html#Q6} for
+instructions).
+@end itemize
+
+You can now check out the latest version from the Subversion server:
+@itemize
+@item
+using the anonymous access via svn:
+@example
+% svn checkout svn://scm.gforge.inria.fr/svn/starpu/trunk
+@end example
+@item
+using the anonymous access via https:
+@example
+% svn checkout --username anonsvn https://scm.gforge.inria.fr/svn/starpu/trunk
+@end example
+The password is @code{anonsvn}.
+@item
+using your gForge account
+@example
+% svn checkout svn+ssh://<login>@@scm.gforge.inria.fr/svn/starpu/trunk
+@end example
+@end itemize
+
+These steps require to run autoconf and automake to generate the
+@code{./configure} script. This can be done by calling
+@code{./autogen.sh}. The required version for autoconf is 2.60 or
+higher.
+
+@example
+% ./autogen.sh
+@end example
+
+If the autotools are not available on your machine or not recent
+enough, you can choose to download the latest nightly tarball, which
+is provided with a @code{configure} script.
+
+@example
+% wget http://starpu.gforge.inria.fr/testing/starpu-nightly-latest.tar.gz
+@end example
+
+@node Optional dependencies
+@subsection Optional dependencies
+
+The topology discovery library, hwloc, is not mandatory to use StarPU
+but strongly recommended. It allows to increase performance, and to
+perform some topology aware scheduling.
+
+hwloc is available in major distributions and for most OSes and can be
+downloaded from @indicateurl{http://www.open-mpi.org/software/hwloc}.
 
 @node Configuration of StarPU
 @section Configuration of StarPU
@@ -165,7 +252,7 @@ are using the source code from the svn repository, you first need to generate
 the configure scripts and the Makefiles.
 
 @example
-% autoreconf -vfi
+% ./autogen.sh
 @end example
 
 @node Running the configuration
