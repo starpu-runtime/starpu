@@ -2171,10 +2171,10 @@ instance.
 @menu
 * Compiling and linking options::  
 * Hello World::                 Submitting Tasks
-* Scaling a Vector::  Manipulating Data
+* Scaling a Vector::            Manipulating Data
 * Vector Scaling on an Hybrid CPU/GPU Machine::  Handling Heterogeneous Architectures
-* Filtering data:: Partitionning data
-* More examples:: More examples shipped with StarPU
+* Partitioning Data::           Partitioning Data
+* More examples::               More examples shipped with StarPU
 @end menu
 
 @node Compiling and linking options
@@ -2360,9 +2360,9 @@ guarantee that asynchronous tasks have been executed before it returns.
 @subsection Execution of Hello World
 
 @smallexample
-% make helloWorld
-cc $(pkg-config --cflags libstarpu)  $(pkg-config --libs libstarpu) helloWorld.c -o helloWorld
-% ./helloWorld
+% make hello_world
+cc $(pkg-config --cflags libstarpu)  $(pkg-config --libs libstarpu) hello_world.c -o hello_world
+% ./hello_world
 Hello world (array = @{1.000000, -1.000000@} )
 Callback function (arg 42)
 @end smallexample
@@ -2484,9 +2484,9 @@ to this vector made by other tasks.
 @subsection Execution of Vector Scaling
 
 @smallexample
-% make vector
-cc $(pkg-config --cflags libstarpu)  $(pkg-config --libs libstarpu)  vector.c   -o vector
-% ./vector
+% make vector_scal
+cc $(pkg-config --cflags libstarpu)  $(pkg-config --libs libstarpu)  vector_scal.c   -o vector_scal
+% ./vector_scal
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample
 
@@ -2500,7 +2500,7 @@ only be executed by the CPUs, but also by a CUDA device.
 * Definition of the CUDA Codelet::  
 * Definition of the OpenCL Codelet::  
 * Definition of the Main Code::  
-* Compilation and execution of Hybrid Vector Scaling::  
+* Execution of Hybrid Vector Scaling::  
 @end menu
 
 @node Definition of the CUDA Codelet
@@ -2708,8 +2708,8 @@ int main(int argc, char **argv)
 @end smallexample
 @end cartouche
 
-@node Compilation and execution of Hybrid Vector Scaling
-@subsection Compilation and execution of Hybrid Vector Scaling
+@node Execution of Hybrid Vector Scaling
+@subsection Execution of Hybrid Vector Scaling
 
 The Makefile given at the beginning of the section must be extended to
 give the rules to compile the CUDA source code. Note that the source
@@ -2760,8 +2760,8 @@ or by disabling CUDA devices:
 
 @c TODO: Add performance model example (and update basic_examples)
 
-@node Filtering data
-@section Filtering data
+@node Partitioning Data
+@section Partitioning Data
 
 @cartouche
 @smallexample
@@ -2828,7 +2828,7 @@ More advanced examples include:
 
 @table @asis
 @item @code{filters/}:
-	Examples using filters, as shown in @ref{Filtering data}.
+	Examples using filters, as shown in @ref{Partitioning Data}.
 @item @code{lu/}:
 	LU matrix factorization.
 @end table
