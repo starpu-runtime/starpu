@@ -19,11 +19,6 @@
 #include <pthread.h>
 #include <math.h>
 
-//static int width=1100;
-//static int height=244021;
-static int width=20;
-static int height=4;
-
 #ifdef STARPU_USE_OPENCL
 struct starpu_opencl_program opencl_code;
 void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
@@ -34,6 +29,8 @@ void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 	float *matrix = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 	float *vector = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
 	float *mult = (float *)STARPU_VECTOR_GET_PTR(descr[2]);
+        int nx = STARPU_MATRIX_GET_NX(descr[0]);
+        int ny = STARPU_MATRIX_GET_NY(descr[0]);
 
         id = starpu_worker_get_id();
         devid = starpu_worker_get_devid(id);
@@ -41,17 +38,16 @@ void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
         err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_code, "matVecMult", devid);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = 0;
         n=0;
         err = clSetKernelArg(kernel, n++, sizeof(cl_mem), &matrix);
         err |= clSetKernelArg(kernel, n++, sizeof(cl_mem), &vector);
-        err |= clSetKernelArg(kernel, n++, sizeof(int), (void*)&width);
-        err |= clSetKernelArg(kernel, n++, sizeof(int), (void*)&height);
+        err |= clSetKernelArg(kernel, n++, sizeof(int), (void*)&nx);
+        err |= clSetKernelArg(kernel, n++, sizeof(int), (void*)&ny);
         err |= clSetKernelArg(kernel, n++, sizeof(cl_mem), &mult);
         if (err) STARPU_OPENCL_REPORT_ERROR(err);
 
 	{
-                size_t global=512;
+                size_t global=nx*ny;
 		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, NULL, 0, NULL, NULL);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}
@@ -121,13 +117,18 @@ int main(int argc, char **argv)
                 .nopencl = 1,
 	};
 
-        starpu_init(&conf);
+        //int width=1100;
+        //int height=244021;
+        int width=20;
+        int height=4;
 
         float *matrix, *vector, *mult;
         float *correctResult;
         unsigned int mem_size_matrix, mem_size_vector, mem_size_mult;
 
 	starpu_data_handle matrix_handle, vector_handle, mult_handle;
+
+        starpu_init(&conf);
 
         mem_size_matrix = width * height * sizeof(float);
         matrix = (float*)malloc(mem_size_matrix);
