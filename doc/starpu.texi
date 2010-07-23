@@ -1138,8 +1138,8 @@ allocate the memory described by the interface the data handle is used for the
 first time in write-only mode. Once such data handle has been automatically
 allocated, it is possible to access it using any access mode.
 
-Note that StarPU supplies a set of predefined types of interface (eg. vector or
-matrix) which can be registered by the means of helper functions (eg.
+Note that StarPU supplies a set of predefined types of interface (e.g. vector or
+matrix) which can be registered by the means of helper functions (e.g.
 @code{starpu_vector_data_register} or @code{starpu_matrix_data_register}).
 @item @emph{Prototype}:
 @code{void starpu_data_register(starpu_data_handle *handleptr,
@@ -2064,7 +2064,7 @@ string. StarPU provides functions to build the program executable for
 each available OpenCL device as a @code{cl_program} object. This
 program executable can then be loaded within a specific queue as
 explained in the next section. These are only helpers, Applications
-can also fill a starpu_opencl_program array by hand for more advanced
+can also fill a @code{starpu_opencl_program} array by hand for more advanced
 use (e.g. different programs on the different OpenCL devices, for
 relocation purpose for instance).
 
@@ -2712,7 +2712,10 @@ int main(int argc, char **argv)
 @subsection Compilation and execution of Hybrid Vector Scaling
 
 The Makefile given at the beginning of the section must be extended to
-give the rules to compile the CUDA source code.
+give the rules to compile the CUDA source code. Note that the source
+file of the OpenCL codelet does not need to be compiled now, it will
+be compiled at run-time when calling the function
+@code{starpu_opencl_load_opencl_from_file} (@pxref{starpu_opencl_load_opencl_from_file}).
 
 @cartouche
 @smallexample
@@ -2720,13 +2723,13 @@ CFLAGS	+=	$(shell pkg-config --cflags libstarpu)
 LDFLAGS	+=	$(shell pkg-config --libs libstarpu)
 CC	=	gcc
 
-vector: vector.o vector_cpu.o vector_cuda.o
+vector_scal: vector_scal.o vector_scal_cpu.o vector_scal_cuda.o vector_scal_opencl.o
 
 %.o: %.cu
        nvcc $(CFLAGS) $< -c $@
 
 clean:
-       rm -f vector *.o
+       rm -f vector_scal *.o
 @end smallexample
 @end cartouche
 
@@ -2737,21 +2740,21 @@ clean:
 and to execute it, with the default configuration:
 
 @smallexample
-% ./vector
+% ./vector_scal
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample
 
 or for example, by disabling CPU devices:
 
 @smallexample
-% STARPU_NCPUS=0 ./vector
+% STARPU_NCPUS=0 ./vector_scal
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample
 
 or by disabling CUDA devices:
 
 @smallexample
-% STARPU_NCUDA=0 ./vector
+% STARPU_NCUDA=0 ./vector_scal
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample
 
