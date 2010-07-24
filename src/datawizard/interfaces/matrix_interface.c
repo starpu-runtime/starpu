@@ -277,7 +277,7 @@ static size_t allocate_matrix_buffer_on_node(void *interface_, uint32_t dst_node
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
-			status = cudaMallocPitch((void **)&addr, &pitch, (size_t)nx*elemsize, (size_t)ny);
+			status = cudaMalloc((void **)&addr, (size_t)nx*ny*elemsize);
 			if (!addr || status != cudaSuccess)
 			{
 				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
@@ -286,7 +286,7 @@ static size_t allocate_matrix_buffer_on_node(void *interface_, uint32_t dst_node
 				fail = 1;
 			}
 
-			ld = (uint32_t)(pitch/elemsize);
+			ld = nx;
 
 			break;
 #endif
