@@ -256,7 +256,6 @@ static size_t allocate_matrix_buffer_on_node(void *interface_, uint32_t dst_node
 
 #ifdef STARPU_USE_CUDA
 	cudaError_t status;
-	size_t pitch;
 #endif
 
 	starpu_matrix_interface_t *interface = interface_;
