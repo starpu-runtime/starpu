@@ -32,36 +32,6 @@
 /* TODO actually move this struct into this header */
 struct starpu_machine_config_s;
 
-/* This structure is "inspired" by the hwloc project
- * (see http://www.open-mpi.org/projects/hwloc/) */
-
-struct starpu_topo_obj_t {
-	/* global position */
-	unsigned level;
-	unsigned number;
-
-	/* father */
-	struct starpu_topo_obj_t *father;
-	unsigned index;
-	
-	/* children */
-	unsigned arity;
-	struct starpu_topo_obj **children;
-	struct starpu_topo_obj *first_child;
-	struct starpu_topo_obj *last_child;
-
-	/* cousins */
-	struct topo_obj *next_cousin;
-	struct topo_obj *prev_cousin;
-
-	/* for the convenience of the scheduler */
-	void *sched_data;
-
-	/* flags */
-	unsigned is_a_worker;
-	struct starpu_worker_s *worker; /* (ignored if !is_a_worker) */
-};
-
 int _starpu_build_topology(struct starpu_machine_config_s *config);
 
 void _starpu_destroy_topology(struct starpu_machine_config_s *config);

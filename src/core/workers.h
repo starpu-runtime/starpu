@@ -133,8 +133,6 @@ struct starpu_machine_config_s {
 	struct starpu_worker_s workers[STARPU_NMAXWORKERS];
 	uint32_t worker_mask;
 
-	struct starpu_topo_obj_t *topology;
-
 	/* in case the user gives an explicit configuration, this is only valid
 	 * during starpu_init. */
 	struct starpu_conf *user_conf;
