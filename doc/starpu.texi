@@ -2462,6 +2462,7 @@ instance.
 * Hello World::                 Submitting Tasks
 * Scaling a Vector::            Manipulating Data
 * Vector Scaling on an Hybrid CPU/GPU Machine::  Handling Heterogeneous Architectures
+* Task and Worker Profiling::   
 * Partitioning Data::           Partitioning Data
 * More examples::               More examples shipped with StarPU
 @end menu
@@ -3046,6 +3047,66 @@ or by disabling CUDA devices:
 % STARPU_NCUDA=0 ./vector_scal
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample
+
+@node Task and Worker Profiling
+@section Task and Worker Profiling
+
+A full example showing how to use the profiling API is available in
+the StarPU sources in the directory @code{examples/profiling/}.
+
+@cartouche
+@smallexample
+struct starpu_task *task = starpu_task_create();
+task->cl = &cl;
+task->synchronous = 1;
+/* We will destroy the task structure by hand so that we can
+ * query the profiling info before the task is destroyed. */
+task->destroy = 0;
+
+starpu_task_submit(task);
+
+/* The task is finished, get profiling information */
+struct starpu_task_profiling_info *info = task->profiling_info;
+
+/* How much time did it take before the task started ? */
+double delay += starpu_timing_timespec_delay_us(&info->submit_time, &info->start_time);
+
+/* How long was the task execution ? */
+double length += starpu_timing_timespec_delay_us(&info->start_time, &info->end_time);
+
+/* We don't need the task structure anymore */
+starpu_task_destroy(task);
+@end smallexample
+@end cartouche
+
+@cartouche
+@smallexample
+/* Display the occupancy of all workers during the test */
+int worker;
+for (worker = 0; worker < starpu_worker_get_count(); worker++)
+@{
+        struct starpu_worker_profiling_info worker_info;
+        int ret = starpu_worker_get_profiling_info(worker, &worker_info);
+        STARPU_ASSERT(!ret);
+
+        double total_time = starpu_timing_timespec_to_us(&worker_info.total_time);
+        double executing_time = starpu_timing_timespec_to_us(&worker_info.executing_time);
+        double sleeping_time = starpu_timing_timespec_to_us(&worker_info.sleeping_time);
+
+        float executing_ratio = 100.0*executing_time/total_time;
+        float sleeping_ratio = 100.0*sleeping_time/total_time;
+
+        char workername[128];
+        starpu_worker_get_name(worker, workername, 128);
+        fprintf(stderr, "Worker %s:\n", workername);
+        fprintf(stderr, "\ttotal time : %.2lf ms\n", total_time*1e-3);
+        fprintf(stderr, "\texec time  : %.2lf ms (%.2f %%)\n", executing_time*1e-3,
+                executing_ratio);
+        fprintf(stderr, "\tblocked time  : %.2lf ms (%.2f %%)\n", sleeping_time*1e-3,
+                sleeping_ratio);
+@}
+@end smallexample
+@end cartouche
 
 @c TODO: Add performance model example (and update basic_examples)
 
