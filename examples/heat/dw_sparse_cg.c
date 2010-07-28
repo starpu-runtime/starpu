@@ -326,7 +326,7 @@ void iteration_cg(void *problem)
 void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 			unsigned nrow, uint32_t *colind, uint32_t *rowptr)
 {
-	/* first declare all the data structures to the runtime */
+	/* first register all the data structures to StarPU */
 
 	starpu_data_handle ds_matrixA;
 	starpu_data_handle ds_vecx, ds_vecb;
@@ -355,7 +355,7 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 
 	printf("nrow = %d \n", nrow);
 
-	/* and declare them as well */
+	/* and register them as well */
 	starpu_vector_data_register(&ds_vecr, 0, (uintptr_t)ptr_vecr, nrow, sizeof(float));
 	starpu_vector_data_register(&ds_vecd, 0, (uintptr_t)ptr_vecd, nrow, sizeof(float));
 	starpu_vector_data_register(&ds_vecq, 0, (uintptr_t)ptr_vecq, nrow, sizeof(float));

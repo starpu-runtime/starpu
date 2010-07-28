@@ -17,11 +17,7 @@
 #ifndef __WORKERS_H__
 #define __WORKERS_H__
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <string.h>
+#include <starpu.h>
 #include <common/config.h>
 #include <pthread.h>
 #include <common/timing.h>
@@ -32,7 +28,6 @@
 #include <core/topology.h>
 #include <core/errorcheck.h>
 
-#include <starpu.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -131,6 +126,10 @@ struct starpu_machine_config_s {
 	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
 	
 	struct starpu_worker_s workers[STARPU_NMAXWORKERS];
+
+	/* This bitmask indicates which kinds of worker are available. For
+	 * instance it is possible to test if there is a CUDA worker with
+	 * the result of (worker_mask & STARPU_CUDA). */
 	uint32_t worker_mask;
 
 	/* in case the user gives an explicit configuration, this is only valid
@@ -140,8 +139,6 @@ struct starpu_machine_config_s {
 	/* this flag is set until the runtime is stopped */
 	unsigned running;
 };
-
-void _starpu_display_general_stats(void);
 
 unsigned _starpu_machine_is_running(void);
 

@@ -17,17 +17,10 @@
 #ifndef __TOPOLOGY_H__
 #define __TOPOLOGY_H__
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <string.h>
-#include <pthread.h>
+#include <starpu.h>
 #include <common/config.h>
 #include <common/list.h>
 #include <common/fxt.h>
-
-#include <starpu.h>
 
 /* TODO actually move this struct into this header */
 struct starpu_machine_config_s;

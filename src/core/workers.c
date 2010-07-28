@@ -609,11 +609,14 @@ void starpu_worker_get_name(int id, char *dst, size_t maxlen)
 	snprintf(dst, maxlen, "%s", name);
 }
 
+/* Retrieve the status which indicates what the worker is currently doing. */
 starpu_worker_status _starpu_worker_get_status(int workerid)
 {
 	return config.workers[workerid].status;
 }
 
+/* Change the status of the worker which indicates what the worker is currently
+ * doing (eg. executing a callback). */
 void _starpu_worker_set_status(int workerid, starpu_worker_status status)
 {
 	config.workers[workerid].status = status;
