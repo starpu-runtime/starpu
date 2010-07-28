@@ -22,10 +22,9 @@
 #include <datawizard/filters.h>
 #include <common/hash.h>
 
-#ifdef STARPU_USE_OPENCL
+#include <starpu_cuda.h>
 #include <starpu_opencl.h>
 #include <drivers/opencl/driver_opencl.h>
-#endif
 
 /*
  * BCSR : blocked CSR, we use blocks of size (r x c)

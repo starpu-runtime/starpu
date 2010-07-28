@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_cuda.h>
 #include <starpu_profiling.h>
 #include <common/utils.h>
 #include <common/config.h>

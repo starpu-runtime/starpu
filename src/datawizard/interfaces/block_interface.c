@@ -22,10 +22,9 @@
 
 #include <common/hash.h>
 
-#ifdef STARPU_USE_OPENCL
+#include <starpu_cuda.h>
 #include <starpu_opencl.h>
 #include <drivers/opencl/driver_opencl.h>
-#endif
 
 static int dummy_copy_ram_to_ram(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)));
 #ifdef STARPU_USE_CUDA

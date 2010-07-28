@@ -20,6 +20,7 @@
 /* for STARPU_USE_CUDA */
 #include <starpu_config.h>
 #include <starpu.h>
+#include <starpu_cuda.h>
 
 #include <common/blas.h>
 

@@ -22,7 +22,8 @@
 #include <common/fxt.h>
 #include "copy_driver.h"
 #include "memalloc.h"
-#include "starpu_opencl.h"
+#include <starpu_opencl.h>
+#include <starpu_cuda.h>
 #include <profiling/profiling.h>
 
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)

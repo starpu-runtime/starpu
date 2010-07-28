@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_cuda.h>
 #include <common/config.h>
 
 #ifdef STARPU_USE_CUDA

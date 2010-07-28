@@ -20,16 +20,10 @@
 #include <datawizard/coherency.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/filters.h>
-
 #include <common/hash.h>
-
-#ifdef STARPU_USE_CUDA
-#include <cuda.h>
-#endif
-#ifdef STARPU_USE_OPENCL
+#include <starpu_cuda.h>
 #include <starpu_opencl.h>
 #include <drivers/opencl/driver_opencl.h>
-#endif
 
 static int dummy_copy_ram_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node __attribute__((unused)));
 #ifdef STARPU_USE_CUDA

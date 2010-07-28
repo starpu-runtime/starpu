@@ -24,12 +24,6 @@
 #include <starpu_config.h>
 #include <starpu_task.h>
 
-#ifdef STARPU_USE_CUDA
-#include <cuda.h>
-#include <cuda_runtime_api.h>
-#include <cublas.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -123,62 +117,6 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #define STARPU_SYNCHRONIZE() __asm__ __volatile__("sync" ::: "memory")
 #endif
 
-#ifdef STARPU_USE_CUDA
-
-#if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
-#define STARPU_CUBLAS_OOPS() do { \
-		printf("oops  %s \n", errormsg); \
-		*(int*)NULL = 0; \
-	} while (0);
-#else
-#define STARPU_CUBLAS_OOPS() do { \
-		printf("oops  in %s ... %s \n", __func__, errormsg); \
-		assert(0);						\
-	} while (0);
-#endif
-
-#define STARPU_CUBLAS_REPORT_ERROR(status) 					\
-	do {								\
-		char *errormsg;						\
-		switch (status) {					\
-			case CUBLAS_STATUS_SUCCESS:			\
-				errormsg = "success";			\
-				break;					\
-			case CUBLAS_STATUS_NOT_INITIALIZED:		\
-				errormsg = "not initialized";		\
-				break;					\
-			case CUBLAS_STATUS_ALLOC_FAILED:		\
-				errormsg = "alloc failed";		\
-				break;					\
-			case CUBLAS_STATUS_INVALID_VALUE:		\
-				errormsg = "invalid value";		\
-				break;					\
-			case CUBLAS_STATUS_ARCH_MISMATCH:		\
-				errormsg = "arch mismatch";		\
-				break;					\
-			case CUBLAS_STATUS_EXECUTION_FAILED:		\
-				errormsg = "execution failed";		\
-				break;					\
-			case CUBLAS_STATUS_INTERNAL_ERROR:		\
-				errormsg = "internal error";		\
-				break;					\
-			default:					\
-				errormsg = "unknown error";		\
-				break;					\
-		}							\
-		STARPU_CUBLAS_OOPS();					\
-	} while (0)  
-
-
-
-#define STARPU_CUDA_REPORT_ERROR(status) 				\
-	do {								\
-		const char *errormsg = cudaGetErrorString(status);	\
-		STARPU_CUBLAS_OOPS();					\
-	} while (0)  
-
-#endif // STARPU_USE_CUDA
-
 static inline int starpu_get_env_number(const char *str)
 {
 	char *strval;
@@ -220,10 +158,6 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
  * dependencies are fulfilled. */
 void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps,
 				void (*callback)(void *), void *callback_arg);
-
-#ifdef STARPU_USE_CUDA
-cudaStream_t *starpu_cuda_get_local_stream(void);
-#endif
 
 #ifdef __cplusplus
 }

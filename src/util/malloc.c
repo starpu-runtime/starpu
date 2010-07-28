@@ -19,14 +19,8 @@
 #include <core/workers.h>
 #include <common/config.h>
 #include <starpu.h>
-
-#ifdef STARPU_USE_CUDA
-#include <cuda.h>
-#endif
-
-#ifdef STARPU_USE_OPENCL
+#include <starpu_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
-#endif
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 struct malloc_pinned_codelet_struct {

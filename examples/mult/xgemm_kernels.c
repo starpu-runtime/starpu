@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_cuda.h>
 #include <common/blas.h>
 
 #define COMMON_CODE			\

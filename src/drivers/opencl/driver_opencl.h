@@ -21,6 +21,8 @@
 #define _GNU_SOURCE
 #endif
 
+#ifdef STARPU_USE_OPENCL
+
 #include <CL/cl.h>
 
 extern
@@ -65,4 +67,5 @@ void _starpu_opencl_init(void);
 extern
 void *_starpu_opencl_worker(void *);
 
+#endif // STARPU_USE_OPENCL
 #endif //  __DRIVER_OPENCL_H__
