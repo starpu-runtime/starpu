@@ -964,8 +964,9 @@ OpenCL devices in a round-robin fashion.
 
 @item @code{calibrate} (default = 0):
 If this flag is set, StarPU will calibrate the performance models when
-executing tasks. This can also be specified with the @code{STARPU_CALIBRATE}
-environment variable.
+executing tasks. If this value is equal to -1, the default value is used. The
+default value is overwritten by the @code{STARPU_CALIBRATE} environment
+variable when it is set.
 @end table
 
 @end table

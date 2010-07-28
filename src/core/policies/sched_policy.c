@@ -172,7 +172,7 @@ void _starpu_init_sched_policy(struct starpu_machine_config_s *config)
 
 	/* By default, we don't calibrate */
 	unsigned do_calibrate = 0;
-	if (config->user_conf)
+	if (config->user_conf && (config->user_conf->calibrate != -1))
 	{
 		do_calibrate = config->user_conf->calibrate;
 	}

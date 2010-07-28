@@ -60,8 +60,8 @@ struct starpu_conf {
 	unsigned use_explicit_workers_opencl_gpuid;
 	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
 
-	/* calibrate performance models, if any */
-	unsigned calibrate;
+	/* calibrate performance models, if any (-1 for default) */
+	int calibrate;
 };
 
 /* Initialization method: it must be called prior to any other StarPU call
