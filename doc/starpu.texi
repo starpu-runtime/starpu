@@ -863,6 +863,7 @@ This variable specify in which file the debugging output should be saved to.
 * Codelets and Tasks::          Methods to construct tasks
 * Explicit Dependencies::       Explicit Dependencies
 * Implicit Data Dependencies::  Implicit Data Dependencies
+* Performance Model API::       
 * Profiling API::               Profiling API
 * CUDA extensions::             CUDA extensions
 * OpenCL extensions::           OpenCL extensions
@@ -1389,8 +1390,9 @@ starpu_block_data_register(&block_handle, 0, (uintptr_t)block,
 * struct starpu_data_filter::   StarPU filter structure
 * starpu_data_partition::       Partition Data
 * starpu_data_unpartition::     Unpartition Data
-* starpu_data_get_nb_children:: 
+* starpu_data_get_nb_children::  
 * starpu_data_get_sub_data::    
+* Predefined filter functions::  
 @end menu
 
 @node struct starpu_data_filter
@@ -1464,6 +1466,62 @@ TODO
 @code{starpu_data_handle starpu_data_get_sub_data(starpu_data_handle root_data, unsigned depth, ... );}
 @end table
 
+@node Predefined filter functions
+@subsection Predefined filter functions
+
+@menu
+* Partitioning BCSR Data::      
+* Partitioning BLAS interface::  
+* Partitioning Vector Data::    
+* Partitioning Block Data::     
+@end menu
+
+This section gives a list of the predefined partitioning functions.
+Examples on how to use them are shown in @ref{Partitioning Data}.
+
+@node Partitioning BCSR Data
+@subsubsection Partitioning BCSR Data
+@itemize
+@item
+TODO
+@code{void starpu_canonical_block_filter_bcsr(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
+@item
+TODO
+@code{void starpu_vertical_block_filter_func_csr(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
+@end itemize
+
+@node Partitioning BLAS interface
+@subsubsection Partitioning BLAS interface
+@itemize
+@item
+TODO
+@code{void starpu_block_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
+@item
+TODO
+@code{void starpu_vertical_block_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
+@end itemize
+
+@node Partitioning Vector Data
+@subsubsection Partitioning Vector Data
+@itemize
+@item
+TODO
+@code{void starpu_block_filter_func_vector(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
+@item
+TODO
+@code{void starpu_vector_list_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
+@item
+TODO
+@code{void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
+@end itemize
+
+@node Partitioning Block Data
+@subsubsection Partitioning Block Data
+@itemize
+@item
+TODO
+@code{void starpu_block_filter_func_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
+@end itemize
 
 @node Codelets and Tasks
 @section Codelets and Tasks
@@ -1478,6 +1536,8 @@ TODO
 * starpu_task_wait::            Wait for the termination of a Task
 * starpu_task_submit::          Submit a Task
 * starpu_task_wait_for_all::    Wait for the termination of all Tasks
+* starpu_get_current_task::     Return the task currently executed by the worker
+* starpu_display_codelet_stats::  Display statistics
 @end menu
 
 @node struct starpu_codelet
@@ -1710,8 +1770,6 @@ indicates that the specified task was either synchronous or detached.
 @code{int starpu_task_wait(struct starpu_task *task);}
 @end table
 
-
-
 @node starpu_task_submit
 @subsection @code{starpu_task_submit} -- Submit a Task
 @table @asis
@@ -1742,6 +1800,25 @@ This function blocks until all the tasks that were submitted are terminated.
 @code{void starpu_task_wait_for_all(void);}
 @end table
 
+@node starpu_get_current_task
+@subsection @code{starpu_get_current_task} -- Return the task currently executed by the worker
+@table @asis
+@item @emph{Description}:
+This function returns the task currently executed by the worker, or
+NULL if it is called either from a thread that is not a task or simply
+because there is no task being executed at the moment.
+@item @emph{Prototype}:
+@code{struct starpu_task *starpu_get_current_task(void);}
+@end table
+
+@node starpu_display_codelet_stats
+@subsection @code{starpu_display_codelet_stats} -- Display statistics
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{void starpu_display_codelet_stats(struct starpu_codelet_t *cl);}
+@end table
 
 
 
@@ -1953,16 +2030,70 @@ be set with @code{starpu_data_set_sequential_consistency_flag}.
 @code{void starpu_data_set_sequential_consistency_flag(starpu_data_handle handle, unsigned flag);}
 @end table
 
+@node Performance Model API
+@section Performance Model API
+
+@menu
+* starpu_load_history_debug::   
+* starpu_perfmodel_debugfilepath::  
+* starpu_perfmodel_get_arch_name::  
+* starpu_force_bus_sampling::   
+@end menu
+
+@node starpu_load_history_debug
+@subsection @code{starpu_load_history_debug}
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *model);}
+@end table
+
+@node starpu_perfmodel_debugfilepath
+@subsection @code{starpu_perfmodel_debugfilepath}
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, char *path, size_t maxlen);}
+@end table
+
+@node starpu_perfmodel_get_arch_name
+@subsection @code{starpu_perfmodel_get_arch_name}
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archname, size_t maxlen);}
+@end table
+
+@node starpu_force_bus_sampling
+@subsection @code{starpu_force_bus_sampling}
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{void starpu_force_bus_sampling(void);}
+@end table
+
+
 @node Profiling API
 @section Profiling API
 
 @menu
-* starpu_profiling_status_set::           starpu_profiling_status_set
-* starpu_profiling_status_get::           starpu_profiling_status_get
-* struct starpu_task_profiling_info::     task profiling information
-* struct starpu_worker_profiling_info::   worker profiling information
-* starpu_worker_get_profiling_info::      starpu_worker_get_profiling_info
-* struct starpu_bus_profiling_info::      bus profiling information
+* starpu_profiling_status_set::  starpu_profiling_status_set
+* starpu_profiling_status_get::  starpu_profiling_status_get
+* struct starpu_task_profiling_info::  task profiling information
+* struct starpu_worker_profiling_info::  worker profiling information
+* starpu_worker_get_profiling_info::  starpu_worker_get_profiling_info
+* struct starpu_bus_profiling_info::  bus profiling information
+* starpu_bus_get_count::        
+* starpu_bus_get_id::           
+* starpu_bus_get_src::          
+* starpu_bus_get_dst::          
+* starpu_timing_timespec_delay_us::  
+* starpu_timing_timespec_to_us::  
+* starpu_bus_profiling_helper_display_summary::  
 @end menu
 
 @node starpu_profiling_status_set
@@ -2065,6 +2196,70 @@ TODO
 TODO
 @end table
 @end table
+
+@node starpu_bus_get_count
+@subsection @code{starpu_bus_get_count}
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{int starpu_bus_get_count(void);}
+@end table
+
+@node starpu_bus_get_id
+@subsection @code{starpu_bus_get_id}
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{int starpu_bus_get_id(int src, int dst);}
+@end table
+
+@node starpu_bus_get_src
+@subsection @code{starpu_bus_get_src}
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{int starpu_bus_get_src(int busid);}
+@end table
+
+@node starpu_bus_get_dst
+@subsection @code{starpu_bus_get_dst}
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{int starpu_bus_get_dst(int busid);}
+@end table
+
+@node starpu_timing_timespec_delay_us
+@subsection @code{starpu_timing_timespec_delay_us}
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{double starpu_timing_timespec_delay_us(struct timespec *start, struct timespec *end);}
+@end table
+
+@node starpu_timing_timespec_to_us
+@subsection @code{starpu_timing_timespec_to_us}
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{double starpu_timing_timespec_to_us(struct timespec *ts);}
+@end table
+
+@node starpu_bus_profiling_helper_display_summary
+@subsection @code{starpu_bus_profiling_helper_display_summary}
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{void starpu_bus_profiling_helper_display_summary(void);}
+@end table
+
 
 
 @node CUDA extensions
