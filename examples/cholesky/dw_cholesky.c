@@ -162,10 +162,6 @@ static void _dw_cholesky(starpu_data_handle dataA, unsigned nblocks)
 	struct timeval start;
 	struct timeval end;
 
-	/* create a new codelet */
-	sem_t sem;
-	sem_init(&sem, 0, 0U);
-
 	struct starpu_task *entry_task = NULL;
 
 	/* create all the DAG nodes */
