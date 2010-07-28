@@ -43,7 +43,6 @@ typedef struct starpu_buffer_descr_t {
 
 struct starpu_data_interface_ops_t;
 
-void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_node);
 void starpu_data_unregister(starpu_data_handle handle);
 
 void starpu_data_advise_as_important(starpu_data_handle handle, unsigned is_important);
