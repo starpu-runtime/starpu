@@ -18,6 +18,7 @@
 #define __PI_H__
 
 #include <starpu.h>
+#include <starpu_cuda.h>
 #include <stdio.h>
 
 #define NSHOT_PER_TASK	(16*1024*1024ULL)
