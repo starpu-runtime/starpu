@@ -2464,6 +2464,7 @@ instance.
 * Vector Scaling on an Hybrid CPU/GPU Machine::  Handling Heterogeneous Architectures
 * Task and Worker Profiling::   
 * Partitioning Data::           Partitioning Data
+* Performance model example::   
 * More examples::               More examples shipped with StarPU
 @end menu
 
@@ -3108,8 +3109,6 @@ for (worker = 0; worker < starpu_worker_get_count(); worker++)
 @end smallexample
 @end cartouche
 
-@c TODO: Add performance model example (and update basic_examples)
-
 @node Partitioning Data
 @section Partitioning Data
 
@@ -3152,6 +3151,28 @@ for (i=0; i<starpu_data_get_nb_children(handle); i++) @{
 @end smallexample
 @end cartouche
 
+@node Performance model example
+@section Performance model example
+
+TODO
+
+@cartouche
+@smallexample
+static struct starpu_perfmodel_t mult_perf_model = @{
+    .type = STARPU_HISTORY_BASED,
+    .symbol = "mult_perf_model"
+@};
+
+starpu_codelet cl = @{
+    .where = STARPU_CPU,
+    .cpu_func = cpu_mult,
+    .nbuffers = 3,
+    /* in case the scheduling policy may use performance models */
+    .model = &mult_perf_model
+@};
+@end smallexample
+@end cartouche
+
 @node More examples
 @section More examples
 
@@ -3164,7 +3185,7 @@ directory. Simple examples include:
 @item @code{basic_examples/}:
         Simple documented Hello world (as shown in @ref{Hello World}), vector/scalar product (as shown
         in @ref{Vector Scaling on an Hybrid CPU/GPU Machine}), matrix
-        product examples, an example using the blocked matrix data
+        product examples (as shown in @ref{Performance model example}), an example using the blocked matrix data
         interface, and an example using the variable data interface.
 @item @code{matvecmult/}:
 	OpenCL example from NVidia, adapted to StarPU.
