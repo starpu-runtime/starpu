@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) INRIA 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
  * Copyright (C) Sebastien Fremal 2010
  *
  * This program is free software; you can redistribute it and/or modify
