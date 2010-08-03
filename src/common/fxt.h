@@ -201,6 +201,9 @@ do {									\
 #define STARPU_TRACE_TASK_DEPS(job_prev, job_succ)	\
 	FUT_DO_PROBE2(STARPU_FUT_TASK_DEPS, (job_prev)->job_id, (job_succ)->job_id)
 
+#define STARPU_TRACE_GHOST_TASK_DEPS(ghost_prev_id, job_succ_id)		\
+	FUT_DO_PROBE2(STARPU_FUT_TASK_DEPS, (ghost_prev_id), (job_succ_id))
+
 #define STARPU_TRACE_TASK_DONE(job)						\
 do {										\
 	struct starpu_task *task = (job)->task;					\

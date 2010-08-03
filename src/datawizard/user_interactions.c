@@ -16,6 +16,7 @@
 
 #include <common/config.h>
 #include <common/utils.h>
+#include <core/task.h>
 #include <datawizard/coherency.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/write_back.h>

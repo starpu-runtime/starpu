@@ -69,6 +69,11 @@ struct starpu_task_list {
 	struct starpu_task_list *next;
 };
 
+struct starpu_jobid_list {
+	unsigned long id;
+	struct starpu_jobid_list *next;
+};
+
 struct starpu_data_state_t {
 	struct starpu_data_requester_list_s *req_list;
 	/* the number of requests currently in the scheduling engine
@@ -127,7 +132,20 @@ struct starpu_data_state_t {
 	 * sequential_consistency flag is enabled. */
 	starpu_access_mode last_submitted_mode;
 	struct starpu_task *last_submitted_writer;
+	unsigned last_submitted_readers_count;
 	struct starpu_task_list *last_submitted_readers;
+
+#ifdef STARPU_USE_FXT
+	/* If FxT is enabled, we keep track of "ghost dependencies": that is to
+	 * say the dependencies that are not needed anymore, but that should
+	 * appear in the post-mortem DAG. For instance if we have the sequence
+	 * f(Aw) g(Aw), and that g is submitted after the termination of f, we
+	 * want to have f->g appear in the DAG even if StarPU does not need to
+	 * enforce this dependency anymore.*/
+	unsigned last_submitted_ghost_writer_id_is_valid;
+	unsigned long last_submitted_ghost_writer_id;
+	struct starpu_jobid_list *last_submitted_ghost_readers_id;
+#endif
 	
 	struct starpu_task_list *post_sync_tasks;
 	unsigned post_sync_tasks_cnt;
