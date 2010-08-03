@@ -24,8 +24,6 @@ void starpu_canonical_block_filter_bcsr(void *father_interface, void *child_inte
 	/* each chunk becomes a small dense matrix */
 	starpu_matrix_interface_t *matrix_child = child_interface;
 	
-	uint32_t nnz = bcsr_father->nnz;
-
 	size_t elemsize = bcsr_father->elemsize;
 	uint32_t firstentry = bcsr_father->firstentry;
 
