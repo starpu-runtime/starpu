@@ -59,7 +59,7 @@ struct user_interaction_wrapper {
  *	Non Blocking data request from application
  */
 /* put the current value of the data into RAM */
-static void _starpu_sync_data_with_mem_fetch_data_callback(void *arg)
+static void _starpu_data_acquire_fetch_data_callback(void *arg)
 {
 	struct user_interaction_wrapper *wrapper = arg;
 	starpu_data_handle handle = wrapper->handle;
@@ -73,7 +73,7 @@ static void _starpu_sync_data_with_mem_fetch_data_callback(void *arg)
 	wrapper->callback(wrapper->callback_arg);
 }
 
-static void _starpu_sync_data_with_mem_continuation_non_blocking(void *arg)
+static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 {
 	int ret;
 	struct user_interaction_wrapper *wrapper = arg;
@@ -83,11 +83,11 @@ static void _starpu_sync_data_with_mem_continuation_non_blocking(void *arg)
 	STARPU_ASSERT(handle);
 
 	ret = _starpu_fetch_data_on_node(handle, 0, wrapper->mode, 1,
-			_starpu_sync_data_with_mem_fetch_data_callback, wrapper);
+			_starpu_data_acquire_fetch_data_callback, wrapper);
 	STARPU_ASSERT(!ret);
 }
 
-static void starpu_data_sync_with_mem_non_blocking_pre_sync_callback(void *arg)
+static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 {
 	struct user_interaction_wrapper *wrapper = arg;
 
@@ -95,10 +95,10 @@ static void starpu_data_sync_with_mem_non_blocking_pre_sync_callback(void *arg)
  	* callback function that will be executed automatically when the data is
  	* available again, otherwise we fetch the data directly */
 	if (!_starpu_attempt_to_submit_data_request_from_apps(wrapper->handle, wrapper->mode,
-			_starpu_sync_data_with_mem_continuation_non_blocking, wrapper))
+			_starpu_data_acquire_continuation_non_blocking, wrapper))
 	{
 		/* no one has locked this data yet, so we proceed immediately */
-		_starpu_sync_data_with_mem_continuation_non_blocking(wrapper);
+		_starpu_data_acquire_continuation_non_blocking(wrapper);
 	}
 }
 
@@ -130,7 +130,7 @@ int starpu_data_acquire_cb(starpu_data_handle handle,
 	{
 		wrapper->pre_sync_task = starpu_task_create();
 		wrapper->pre_sync_task->detach = 1;
-		wrapper->pre_sync_task->callback_func = starpu_data_sync_with_mem_non_blocking_pre_sync_callback;
+		wrapper->pre_sync_task->callback_func = starpu_data_acquire_cb_pre_sync_callback;
 		wrapper->pre_sync_task->callback_arg = wrapper;
 
 		wrapper->post_sync_task = starpu_task_create();
@@ -146,7 +146,7 @@ int starpu_data_acquire_cb(starpu_data_handle handle,
 	else {
 		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
-		starpu_data_sync_with_mem_non_blocking_pre_sync_callback(wrapper);
+		starpu_data_acquire_cb_pre_sync_callback(wrapper);
 	}
 
 	return 0;
@@ -155,7 +155,7 @@ int starpu_data_acquire_cb(starpu_data_handle handle,
 /*
  *	Block data request from application
  */
-static inline void _starpu_sync_data_with_mem_continuation(void *arg)
+static inline void _starpu_data_acquire_continuation(void *arg)
 {
 	struct user_interaction_wrapper *wrapper = arg;
 
@@ -219,7 +219,7 @@ int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode)
  	* callback function that will be executed automatically when the data is
  	* available again, otherwise we fetch the data directly */
 	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode,
-			_starpu_sync_data_with_mem_continuation, &wrapper))
+			_starpu_data_acquire_continuation, &wrapper))
 	{
 		/* no one has locked this data yet, so we proceed immediately */
 		int ret = _starpu_fetch_data_on_node(handle, 0, mode, 0, NULL, NULL);
