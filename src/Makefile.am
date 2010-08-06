@@ -176,6 +176,7 @@ libstarpu_la_SOURCES = 						\
 	util/starpu_create_sync_task.c				\
 	util/starpu_cublas.c					\
 	util/file.c						\
+	util/starpu_insert_task.c				\
 	debug/latency.c						\
 	profiling/profiling.c					\
 	profiling/bus_profiling_helpers.c

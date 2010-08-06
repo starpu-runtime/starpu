@@ -159,6 +159,19 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps,
 				void (*callback)(void *), void *callback_arg);
 
+/* Constants used by the starpu_insert_task helper to determine the different types of argument */
+#define STARPU_VALUE		(1<<3)	/* Pointer to a constant value */
+#define STARPU_CALLBACK		(1<<4)	/* Callback function */
+#define STARPU_CALLBACK_ARG	(1<<5)	/* Argument of the callback function (of type void *) */
+#define STARPU_PRIORITY		(1<<6)	/* Priority associated to the task */
+
+/* Wrapper to create a task. TODO document this interface */
+void starpu_insert_task(starpu_codelet *cl, ...);
+
+/* Retrieve the arguments of type STARPU_VALUE associated to a task
+ * automatically created using starpu_insert_task. */
+void starpu_unpack_cl_args(void *cl_arg, ...);
+
 #ifdef __cplusplus
 }
 #endif
