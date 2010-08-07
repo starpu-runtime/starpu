@@ -132,7 +132,6 @@ struct starpu_data_state_t {
 	 * sequential_consistency flag is enabled. */
 	starpu_access_mode last_submitted_mode;
 	struct starpu_task *last_submitted_writer;
-	unsigned last_submitted_readers_count;
 	struct starpu_task_list *last_submitted_readers;
 
 #ifdef STARPU_USE_FXT

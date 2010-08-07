@@ -49,7 +49,6 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	PTHREAD_MUTEX_INIT(&handle->sequential_consistency_mutex, NULL);
 	handle->last_submitted_mode = STARPU_R;
 	handle->last_submitted_writer = NULL;
-	handle->last_submitted_readers_count = 0;
 	handle->last_submitted_readers = NULL;
 	handle->post_sync_tasks = NULL;
 	handle->post_sync_tasks_cnt = 0;

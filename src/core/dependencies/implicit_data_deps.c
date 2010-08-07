@@ -83,7 +83,15 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 				/* Count the readers */
 				unsigned nreaders = 0;
 				struct starpu_task_list *l;
-				struct starpu_task *task_array[handle->last_submitted_readers_count];
+				l = handle->last_submitted_readers;
+				while (l)
+				{
+					nreaders++;
+					l = l->next;
+				}
+
+				struct starpu_task *task_array[nreaders];
+
 				unsigned i = 0;
 				l = handle->last_submitted_readers;
 				while (l)
@@ -95,9 +103,6 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 					l = l->next;
 					free(prev);
 				}
-
-				handle->last_submitted_readers_count = 0;
-
 #ifdef STARPU_USE_FXT
 				/* Declare all dependencies with ghost readers */
 				starpu_job_t post_sync_job = _starpu_get_job_associated_to_task(post_sync_task);
@@ -132,8 +137,6 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 			link->task = post_sync_task;
 			link->next = handle->last_submitted_readers;
 			handle->last_submitted_readers = link;
-
-			handle->last_submitted_readers_count++;
 
 			/* This task depends on the previous writer if any */
 			if (handle->last_submitted_writer)
