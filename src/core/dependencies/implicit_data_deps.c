@@ -323,3 +323,32 @@ void _starpu_unlock_post_sync_tasks(starpu_data_handle handle)
 		}
 	}
 }
+
+int _starpu_data_wait_until_available(starpu_data_handle handle, starpu_access_mode mode)
+{
+	/* If sequential consistency is enabled, wait until data is available */
+	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+	int sequential_consistency = handle->sequential_consistency;
+	if (sequential_consistency)
+	{
+		struct starpu_task *sync_task;
+		sync_task = starpu_task_create();
+		sync_task->detach = 0;
+		sync_task->destroy = 1;
+
+		/* It is not really a RW access, but we want to make sure that
+		 * all previous accesses are done */
+		_starpu_detect_implicit_data_deps_with_handle(sync_task, sync_task, handle, mode);
+		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+
+		/* TODO detect if this is superflous */
+		int ret = starpu_task_submit(sync_task);
+		STARPU_ASSERT(!ret);
+		starpu_task_wait(sync_task);
+	}
+	else {
+		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+	}
+
+	return 0;
+}

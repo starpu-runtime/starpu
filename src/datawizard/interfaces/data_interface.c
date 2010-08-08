@@ -173,28 +173,7 @@ void starpu_data_unregister(starpu_data_handle handle)
 	unsigned node;
 
 	/* If sequential consistency is enabled, wait until data is available */
-	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
-	int sequential_consistency = handle->sequential_consistency;
-	if (sequential_consistency)
-	{
-		struct starpu_task *sync_task;
-		sync_task = starpu_task_create();
-		sync_task->detach = 0;
-		sync_task->destroy = 1;
-
-		/* It is not really a RW access, but we want to make sure that
-		 * all previous accesses are done */
-		_starpu_detect_implicit_data_deps_with_handle(sync_task, sync_task, handle, STARPU_RW);
-		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
-
-		/* TODO detect if this is superflous */
-		int ret = starpu_task_submit(sync_task);
-		STARPU_ASSERT(!ret);
-		starpu_task_wait(sync_task);
-	}
-	else {
-		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
-	}
+	_starpu_data_wait_until_available(handle, STARPU_RW);
 
 	/* Fetch data in the home of the data to ensure we have a valid copy
 	 * where we registered it */
