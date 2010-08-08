@@ -99,6 +99,7 @@ check_PROGRAMS += 				\
 	datawizard/sync_and_notify_data_implicit\
 	datawizard/dsm_stress			\
 	datawizard/write_only_tmp_buffer	\
+	datawizard/data_invalidation		\
 	datawizard/dining_philosophers		\
 	datawizard/readers_and_writers		\
 	datawizard/unpartition			\
@@ -206,6 +207,9 @@ datawizard_dsm_stress_SOURCES =			\
 
 datawizard_write_only_tmp_buffer_SOURCES =	\
 	datawizard/write_only_tmp_buffer.c
+
+datawizard_data_invalidation_SOURCES =	\
+	datawizard/data_invalidation.c
 
 datawizard_dining_philosophers_SOURCES = 	\
 	datawizard/dining_philosophers.c

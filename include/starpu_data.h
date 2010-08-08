@@ -45,6 +45,10 @@ struct starpu_data_interface_ops_t;
 
 void starpu_data_unregister(starpu_data_handle handle);
 
+/* Destroy all data replicates. After data invalidation, the first access to
+ * the handle must be performed in write-only mode. */
+void starpu_data_invalidate(starpu_data_handle);
+
 void starpu_data_advise_as_important(starpu_data_handle handle, unsigned is_important);
 
 int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode);

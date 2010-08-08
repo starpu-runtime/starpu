@@ -324,6 +324,8 @@ void _starpu_unlock_post_sync_tasks(starpu_data_handle handle)
 	}
 }
 
+/* If sequential consistency mode is enabled, this function blocks until the
+ * handle is available in the requested access mode. */
 int _starpu_data_wait_until_available(starpu_data_handle handle, starpu_access_mode mode)
 {
 	/* If sequential consistency is enabled, wait until data is available */

@@ -170,7 +170,7 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 
 void starpu_data_unregister(starpu_data_handle handle)
 {
-	unsigned node;
+	STARPU_ASSERT(handle);
 
 	/* If sequential consistency is enabled, wait until data is available */
 	_starpu_data_wait_until_available(handle, STARPU_RW);
@@ -203,7 +203,7 @@ void starpu_data_unregister(starpu_data_handle handle)
 	}
 
 	/* Destroy the data now */
-	STARPU_ASSERT(handle);
+	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		starpu_local_data_state *local = &handle->per_node[node];
@@ -219,6 +219,32 @@ void starpu_data_unregister(starpu_data_handle handle)
 	_starpu_data_free_interfaces(handle);
 
 	free(handle);
+}
+
+void starpu_data_invalidate(starpu_data_handle handle)
+{
+	STARPU_ASSERT(handle);
+
+	starpu_data_acquire(handle, STARPU_W);
+
+	_starpu_spin_lock(&handle->header_lock);
+
+	unsigned node;
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		starpu_local_data_state *local = &handle->per_node[node];
+
+		if (local->allocated && local->automatically_allocated){
+			/* free the data copy in a lazy fashion */
+			_starpu_request_mem_chunk_removal(handle, node);
+		}
+
+		local->state = STARPU_INVALID; 
+	}
+
+	_starpu_spin_unlock(&handle->header_lock);
+
+	starpu_data_release(handle);
 }
 
 unsigned starpu_get_handle_interface_id(starpu_data_handle handle)
