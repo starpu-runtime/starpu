@@ -82,6 +82,9 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
+	/* Implicit data dependencies and regeneratable tasks are not compatible */
+	starpu_data_set_default_sequential_consistency_flag(0);
+
 	starpu_task_init(&taskA);
 	taskA.cl = &dummy_codelet;
 	taskA.cl_arg = &taskA;
