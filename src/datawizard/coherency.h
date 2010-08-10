@@ -172,7 +172,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask);
 
 unsigned _starpu_is_data_present_or_requested(struct starpu_data_state_t *state, uint32_t node);
 
-inline void _starpu_set_data_requested_flag_if_needed(struct starpu_data_state_t *state, uint32_t node);
+void _starpu_set_data_requested_flag_if_needed(struct starpu_data_state_t *state, uint32_t node);
 
 int _starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node);
 

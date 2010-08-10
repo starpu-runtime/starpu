@@ -22,13 +22,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-inline void _starpu_msi_cache_hit(unsigned node);
-inline void _starpu_msi_cache_miss(unsigned node);
+void _starpu_msi_cache_hit(unsigned node);
+void _starpu_msi_cache_miss(unsigned node);
 
 void _starpu_display_msi_stats(void);
 
-inline void _starpu_allocation_cache_hit(unsigned node __attribute__ ((unused)));
-inline void _starpu_data_allocation_inc_stats(unsigned node __attribute__ ((unused)));
+void _starpu_allocation_cache_hit(unsigned node __attribute__ ((unused)));
+void _starpu_data_allocation_inc_stats(unsigned node __attribute__ ((unused)));
 
 
 void _starpu_display_comm_amounts(void);

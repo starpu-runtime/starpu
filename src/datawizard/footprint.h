@@ -22,6 +22,6 @@
 #include <core/jobs.h>
 
 void _starpu_compute_buffers_footprint(struct starpu_job_s *j);
-inline uint32_t _starpu_compute_data_footprint(starpu_data_handle handle);
+uint32_t _starpu_compute_data_footprint(starpu_data_handle handle);
 
 #endif // __FOOTPRINT_H__

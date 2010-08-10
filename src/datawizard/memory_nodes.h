@@ -61,6 +61,6 @@ void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
 starpu_node_kind _starpu_get_node_kind(uint32_t node);
 unsigned _starpu_get_memory_nodes_count(void);
 
-inline starpu_mem_node_descr *_starpu_get_memory_node_description(void);
+starpu_mem_node_descr *_starpu_get_memory_node_description(void);
 
 #endif // __MEMORY_NODES_H__
