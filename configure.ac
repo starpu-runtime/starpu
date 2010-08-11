@@ -137,20 +137,24 @@ fi
 #                                                                             #
 ###############################################################################
 
+AC_MSG_CHECKING(maximum number of CPUs)
+AC_ARG_ENABLE(nmaxcpus, [AS_HELP_STRING([--enable-maxcpus=<number>],
+			[maximum number of CPUs])],
+			nmaxcpus=$enableval, nmaxcpus=16)
+AC_MSG_RESULT($nmaxcpus)
+AC_DEFINE_UNQUOTED(STARPU_NMAXCPUS, [$nmaxcpus], [Maximum number of CPUs supported])
+
 AC_MSG_CHECKING(whether CPUs should be used)
 AC_ARG_ENABLE(cpu, [AS_HELP_STRING([--disable-cpu],
 			[do not use the CPU(s)])],
 			enable_cpu=$enableval, enable_cpu=yes)
 AC_MSG_RESULT($enable_cpu)
 AC_SUBST(STARPU_USE_CPU, $enable_cpu)
+
 AM_CONDITIONAL(STARPU_USE_CPU, test x$enable_cpu = xyes)
 
 if test x$enable_cpu = xyes; then
 	AC_DEFINE(STARPU_USE_CPU, [1], [CPU driver is activated])
-
-	# This value is set quite randomly, but StarPU should not take more
-	# core than there are in the system
-	AC_DEFINE(STARPU_NMAXCPUS, [16], [Maximum number of CPUs supported])
 fi
 
 ###############################################################################
