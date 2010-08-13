@@ -1157,6 +1157,10 @@ design their own data interfaces if required.
 * void *interface::             StarPU data interface
 * starpu_data_register::        Register a piece of data to StarPU
 * starpu_data_unregister::      Unregister a piece of data from StarPU
+* starpu_data_invalidate::      Invalidate all data replicates
+* starpu_data_acquire::         Access registered data from the application
+* starpu_data_acquire_cb::      Access registered data from the application asynchronously
+* starpu_data_release::         Release registered data from the application
 @end menu
 
 @node starpu_access_mode
@@ -1257,10 +1261,68 @@ undefined behaviour.
 @item @emph{Prototype}:
 @code{void starpu_data_unregister(starpu_data_handle handle);}
 @end table
-@c user interaction with the DSM
-@c   void starpu_data_acquire(struct starpu_data_state_t *state);
-@c   void starpu_notify_data_modification(struct starpu_data_state_t *state, uint32_t modifying_node);
-@c   struct starpu_data_interface_ops_t *ops
+
+@node starpu_data_invalidate
+@subsection @code{starpu_data_invalidate} -- Invalidate all data replicates
+@table @asis
+@item @emph{Description}:
+Destroy all replicates of the data handle. After data invalidation, the first
+access to the handle must be performed in write-only mode. Accessing an
+invalidated data in read-mode results in undefined behaviour.
+@item @emph{Prototype}:
+@code{void starpu_data_invalidate(starpu_data_handle handle);}
+@end table
+
+@c TODO create a specific sections about user interaction with the DSM ?
+
+@node starpu_data_acquire
+@subsection @code{starpu_data_acquire} -- Access registered data from the application
+@table @asis
+@item @emph{Description}:
+The application must call this function prior to accessing registered data from
+main memory outside tasks. StarPU ensures that the application will get an
+up-to-date copy of the data in main memory located where the data was
+originally registered, and that all concurrent accesses (e.g. from tasks) will
+be consistent with the access mode specified in the @code{mode} argument.
+@code{starpu_data_release} must be called once the application does not need to
+access the piece of data anymore.
+Note that implicit data dependencies are also enforced by
+@code{starpu_data_acquire} in case they are enabled.
+@code{starpu_data_acquire} is a blocking call, so that it cannot be called from
+tasks or from their callbacks (in that case, @code{starpu_data_acquire} returns
+@code{-EDEADLK}). Upon successful completion, this function returns 0. 
+@item @emph{Prototype}:
+@code{int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode);}
+@end table
+
+@node starpu_data_acquire_cb
+@subsection @code{starpu_data_acquire_cb} -- Access registered data from the application asynchronously
+@table @asis
+@item @emph{Description}:
+@code{starpu_data_acquire_cb} is the asynchronous equivalent of
+@code{starpu_data_release}. When the data specified in the first argument is
+available in the appropriate access mode, the callback function is executed.
+The application may access the requested data during the execution of this
+callback. The callback function must call @code{starpu_data_release} once the
+application does not need to access the piece of data anymore. 
+Note that implicit data dependencies are also enforced by
+@code{starpu_data_acquire} in case they are enabled.
+ Contrary to @code{starpu_data_acquire}, this function is non-blocking and may
+be called from task callbacks. Upon successful completion, this function
+returns 0.
+@item @emph{Prototype}:
+@code{int starpu_data_acquire_cb(starpu_data_handle handle, starpu_access_mode mode, void (*callback)(void *), void *arg);}
+@end table
+
+@node starpu_data_release
+@subsection @code{starpu_data_release} -- Release registered data from the application
+@table @asis
+@item @emph{Description}:
+This function releases the piece of data acquired by the application either by
+@code{starpu_data_acquire} or by @code{starpu_data_acquire_cb}.
+@item @emph{Prototype}:
+@code{void starpu_data_release(starpu_data_handle handle);}
+@end table
 
 @node Data Interfaces
 @section Data Interfaces
