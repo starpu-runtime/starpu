@@ -84,13 +84,13 @@ static int _dm_push_task(struct starpu_jobq_s *q __attribute__ ((unused)), starp
 		fifo->exp_start = STARPU_MAX(fifo->exp_start, _starpu_timing_now());
 		fifo->exp_end = STARPU_MAX(fifo->exp_end, _starpu_timing_now());
 
-		if ((queue_array[worker]->who & task->cl->where) == 0)
+		if (!_starpu_worker_may_execute_task(worker, task->cl->where))
 		{
 			/* no one on that queue may execute this task */
 			continue;
 		}
 
-		double local_length = _starpu_job_expected_length(queue_array[worker]->who, j, queue_array[worker]->arch);
+		double local_length = _starpu_job_expected_length(worker, j, queue_array[worker]->arch);
 
 		if (local_length == -1.0) 
 		{
@@ -161,7 +161,6 @@ static struct starpu_jobq_s *init_dm_fifo(void)
 	q->push_prio_task = dm_push_prio_task; 
 	q->pop_task = dm_pop_task;
 	q->pop_every_task = dm_pop_every_task;
-	q->who = 0;
 
 	queue_array[nworkers++] = q;
 

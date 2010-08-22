@@ -167,7 +167,6 @@ static struct starpu_jobq_s *init_ws_deque(void)
 	q->push_task = _starpu_deque_push_task; 
 	q->push_prio_task = _starpu_deque_push_prio_task; 
 	q->pop_task = ws_pop_task;
-	q->who = 0;
 
 	queue_array[nworkers++] = q;
 

@@ -89,8 +89,6 @@ static void _starpu_init_worker_queue(struct starpu_worker_s *workerarg)
 	  queue, we overwrite this value so that it is meaningless */
 	jobq->arch = workerarg->perf_arch;
 		
-	jobq->who |= workerarg->worker_mask;
-
 	switch (workerarg->arch) {
 		case STARPU_CPU_WORKER:
 			jobq->alpha = STARPU_CPU_ALPHA;

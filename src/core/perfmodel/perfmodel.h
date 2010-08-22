@@ -91,9 +91,9 @@ void _starpu_register_model(struct starpu_perfmodel_t *model);
 void _starpu_initialize_registered_performance_models(void);
 void _starpu_deinitialize_registered_performance_models(void);
 
-double _starpu_job_expected_length(uint32_t who, struct starpu_job_s *j, enum starpu_perf_archtype arch);
+double _starpu_job_expected_length(int workerid, struct starpu_job_s *j, enum starpu_perf_archtype arch);
 double _starpu_regression_based_job_expected_length(struct starpu_perfmodel_t *model,
-		uint32_t who, struct starpu_job_s *j);
+					enum starpu_perf_archtype arch, struct starpu_job_s *j);
 void _starpu_update_perfmodel_history(struct starpu_job_s *j, enum starpu_perf_archtype arch,
 				unsigned cpuid, double measured);
 

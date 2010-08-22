@@ -41,9 +41,6 @@ struct starpu_jobq_s {
  	 * */
 	struct starpu_job_list_s *(*pop_every_task)(struct starpu_jobq_s *, uint32_t);
 
-	/* what are the driver that may pop job from that queue ? */
-	uint32_t who;
-
 	/* this is only relevant if there is a single worker per queue */
 	uint32_t memory_node;
 	enum starpu_perf_archtype arch;

@@ -71,21 +71,24 @@ static double per_arch_task_expected_length(struct starpu_perfmodel_t *model, en
  * Common model
  */
 
-static double common_task_expected_length(struct starpu_perfmodel_t *model, uint32_t who, struct starpu_task *task)
+static double common_task_expected_length(struct starpu_perfmodel_t *model, int workerid, struct starpu_task *task)
 {
 	double exp;
 
 	if (model->cost_model) {
 		float alpha;
 		exp = model->cost_model(task->buffers);
-		switch (who) {
-			case STARPU_CPU:
+
+		enum starpu_archtype arch = starpu_worker_get_type(workerid);
+
+		switch (arch) {
+			case STARPU_CPU_WORKER:
 				alpha = STARPU_CPU_ALPHA;
 				break;
-			case STARPU_CUDA:
+			case STARPU_CUDA_WORKER:
 				alpha = STARPU_CUDA_ALPHA;
 				break;
-  		        case STARPU_OPENCL:
+  		        case STARPU_OPENCL_WORKER:
 	                        alpha = STARPU_OPENCL_ALPHA;
                                 break;
 			default:
@@ -102,7 +105,7 @@ static double common_task_expected_length(struct starpu_perfmodel_t *model, uint
 	return -1.0;
 }
 
-double _starpu_job_expected_length(uint32_t who, struct starpu_job_s *j, enum starpu_perf_archtype arch)
+double _starpu_job_expected_length(int workerid, struct starpu_job_s *j, enum starpu_perf_archtype arch)
 {
 	struct starpu_task *task = j->task;
 	struct starpu_perfmodel_t *model = task->cl->model;
@@ -113,7 +116,7 @@ double _starpu_job_expected_length(uint32_t who, struct starpu_job_s *j, enum st
 				return per_arch_task_expected_length(model, arch, task);
 
 			case STARPU_COMMON:
-				return common_task_expected_length(model, who, task);
+				return common_task_expected_length(model, workerid, task);
 
 			case STARPU_HISTORY_BASED:
 				return _starpu_history_based_job_expected_length(model, arch, j);
