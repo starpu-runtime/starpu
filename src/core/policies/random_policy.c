@@ -40,7 +40,7 @@ static int _random_push_task(struct starpu_jobq_s *q __attribute__ ((unused)), s
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		alpha_sum += queue_array[worker]->alpha;
+		alpha_sum += _starpu_worker_get_relative_speedup(worker);
 	}
 
 	double random = starpu_drand48()*alpha_sum;
@@ -49,13 +49,15 @@ static int _random_push_task(struct starpu_jobq_s *q __attribute__ ((unused)), s
 	double alpha = 0.0;
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		if (alpha + queue_array[worker]->alpha > random) {
+		double worker_alpha = _starpu_worker_get_relative_speedup(worker);
+
+		if (alpha + worker_alpha > random) {
 			/* we found the worker */
 			selected = worker;
 			break;
 		}
 
-		alpha += queue_array[worker]->alpha;
+		alpha += worker_alpha;
 	}
 
 	/* we should now have the best worker in variable "best" */

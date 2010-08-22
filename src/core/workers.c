@@ -85,31 +85,6 @@ static void _starpu_init_worker_queue(struct starpu_worker_s *workerarg)
 
 	PTHREAD_MUTEX_LOCK(&jobq->activity_mutex);
 
-	/* warning : in case there are multiple workers on the same
-	  queue, we overwrite this value so that it is meaningless */
-	jobq->arch = workerarg->perf_arch;
-		
-	switch (workerarg->arch) {
-		case STARPU_CPU_WORKER:
-			jobq->alpha = STARPU_CPU_ALPHA;
-			break;
-		case STARPU_CUDA_WORKER:
-			jobq->alpha = STARPU_CUDA_ALPHA;
-			break;
-		case STARPU_OPENCL_WORKER:
-			jobq->alpha = STARPU_OPENCL_ALPHA;
-			break;
-		case STARPU_GORDON_WORKER:
-			jobq->alpha = STARPU_GORDON_ALPHA;
-			break;
-		default:
-			STARPU_ABORT();
-	}
-
-	/* This is only useful (and meaningful) is there is a single memory
-	 * node "related" to that queue */
-	jobq->memory_node = workerarg->memory_node;
-
 	jobq->total_computation_time = 0.0;
 	jobq->total_communication_time = 0.0;
 	jobq->total_computation_time_error = 0.0;

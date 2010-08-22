@@ -90,7 +90,8 @@ static int _dm_push_task(struct starpu_jobq_s *q __attribute__ ((unused)), starp
 			continue;
 		}
 
-		double local_length = _starpu_job_expected_length(worker, j, queue_array[worker]->arch);
+		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
+		double local_length = _starpu_job_expected_length(worker, j, perf_arch);
 
 		if (local_length == -1.0) 
 		{
@@ -128,8 +129,10 @@ static int _dm_push_task(struct starpu_jobq_s *q __attribute__ ((unused)), starp
 
 	j->predicted = model_best;
 
+	unsigned memory_node = starpu_worker_get_memory_node(best);
+
 	if (_starpu_get_prefetch_flag())
-		_starpu_prefetch_task_input_on_node(task, queue_array[best]->memory_node);
+		_starpu_prefetch_task_input_on_node(task, memory_node);
 
 	if (prio) {
 		return _starpu_fifo_push_prio_task(queue_array[best], j);

@@ -89,10 +89,11 @@ static int _dmda_push_task(struct starpu_jobq_s *q __attribute__ ((unused)) , st
 			continue;
 		}
 
-		local_task_length[worker] = _starpu_job_expected_length(worker,	j, queue_array[worker]->arch);
+		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
+		local_task_length[worker] = _starpu_job_expected_length(worker,	j, perf_arch);
 
-		//local_data_penalty[worker] = 0;
-		local_data_penalty[worker] = _starpu_data_expected_penalty(queue_array[worker]->memory_node, task);
+		unsigned memory_node = starpu_worker_get_memory_node(worker);
+		local_data_penalty[worker] = _starpu_data_expected_penalty(memory_node, task);
 
 		if (local_task_length[worker] == -1.0)
 		{
@@ -163,7 +164,7 @@ static int _dmda_push_task(struct starpu_jobq_s *q __attribute__ ((unused)) , st
 	j->predicted = model_best;
 	j->penality = penality_best;
 
-	uint32_t memory_node = queue_array[best]->memory_node;
+	unsigned memory_node = starpu_worker_get_memory_node(best);
 
 	update_data_requests(memory_node, task);
 	

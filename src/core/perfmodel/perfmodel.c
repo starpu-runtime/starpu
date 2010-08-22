@@ -42,6 +42,13 @@ unsigned _starpu_get_calibrate_flag(void)
 	return calibrate_flag;
 }
 
+enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid)
+{
+	struct starpu_machine_config_s *config = _starpu_get_machine_config();
+
+	return config->workers[workerid].perf_arch;
+}
+
 /*
  * PER ARCH model
  */
@@ -71,31 +78,38 @@ static double per_arch_task_expected_length(struct starpu_perfmodel_t *model, en
  * Common model
  */
 
+double _starpu_worker_get_relative_speedup(int workerid)
+{
+	double alpha;
+	enum starpu_archtype arch = starpu_worker_get_type(workerid);
+
+	switch (arch) {
+		case STARPU_CPU_WORKER:
+			alpha = STARPU_CPU_ALPHA;
+			break;
+		case STARPU_CUDA_WORKER:
+			alpha = STARPU_CUDA_ALPHA;
+			break;
+	        case STARPU_OPENCL_WORKER:
+                        alpha = STARPU_OPENCL_ALPHA;
+                        break;
+		default:
+			/* perhaps there are various worker types on that queue */
+			alpha = 1.0; // this value is not significant ...
+			break;
+	}
+
+	return alpha;
+}
+
 static double common_task_expected_length(struct starpu_perfmodel_t *model, int workerid, struct starpu_task *task)
 {
 	double exp;
+	double alpha;
 
 	if (model->cost_model) {
-		float alpha;
 		exp = model->cost_model(task->buffers);
-
-		enum starpu_archtype arch = starpu_worker_get_type(workerid);
-
-		switch (arch) {
-			case STARPU_CPU_WORKER:
-				alpha = STARPU_CPU_ALPHA;
-				break;
-			case STARPU_CUDA_WORKER:
-				alpha = STARPU_CUDA_ALPHA;
-				break;
-  		        case STARPU_OPENCL_WORKER:
-	                        alpha = STARPU_OPENCL_ALPHA;
-                                break;
-			default:
-				/* perhaps there are various worker types on that queue */
-				alpha = 1.0; // this value is not significant ...
-				break;
-		}
+		alpha = _starpu_worker_get_relative_speedup(workerid);
 
 		STARPU_ASSERT(alpha != 0.0f);
 

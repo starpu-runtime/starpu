@@ -41,11 +41,6 @@ struct starpu_jobq_s {
  	 * */
 	struct starpu_job_list_s *(*pop_every_task)(struct starpu_jobq_s *, uint32_t);
 
-	/* this is only relevant if there is a single worker per queue */
-	uint32_t memory_node;
-	enum starpu_perf_archtype arch;
-	float alpha;
-
 	/* for performance analysis purpose */
 	double total_computation_time;
 	double total_communication_time;
