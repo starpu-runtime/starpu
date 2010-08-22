@@ -40,9 +40,8 @@ static starpu_job_t dmda_pop_task(struct starpu_jobq_s *q)
 	return j;
 }
 
-static void update_data_requests(struct starpu_jobq_s *q, struct starpu_task *task)
+static void update_data_requests(uint32_t memory_node, struct starpu_task *task)
 {
-	uint32_t memory_node = q->memory_node;
 	unsigned nbuffers = task->cl->nbuffers;
 	unsigned buffer;
 
@@ -93,7 +92,7 @@ static int _dmda_push_task(struct starpu_jobq_s *q __attribute__ ((unused)) , st
 		local_task_length[worker] = _starpu_job_expected_length(worker,	j, queue_array[worker]->arch);
 
 		//local_data_penalty[worker] = 0;
-		local_data_penalty[worker] = _starpu_data_expected_penalty(queue_array[worker], task);
+		local_data_penalty[worker] = _starpu_data_expected_penalty(queue_array[worker]->memory_node, task);
 
 		if (local_task_length[worker] == -1.0)
 		{
@@ -164,10 +163,12 @@ static int _dmda_push_task(struct starpu_jobq_s *q __attribute__ ((unused)) , st
 	j->predicted = model_best;
 	j->penality = penality_best;
 
-	update_data_requests(queue_array[best], task);
+	uint32_t memory_node = queue_array[best]->memory_node;
+
+	update_data_requests(memory_node, task);
 	
 	if (_starpu_get_prefetch_flag())
-		_starpu_prefetch_task_input_on_node(task, queue_array[best]->memory_node);
+		_starpu_prefetch_task_input_on_node(task, memory_node);
 
 	if (prio) {
 		return _starpu_fifo_push_prio_task(queue_array[best], j);
