@@ -31,11 +31,6 @@ static void init_central_queue_design(void)
 
 	_starpu_init_fifo_queues_mechanisms();
 
-	jobq->push_task = _starpu_fifo_push_task;
-	jobq->push_prio_task = _starpu_fifo_push_prio_task;
-	jobq->pop_task = _starpu_fifo_pop_task;
-
-	jobq->pop_every_task = _starpu_fifo_pop_every_task;
 }
 
 static void deinit_central_queue_design(void)
@@ -75,7 +70,11 @@ static struct starpu_jobq_s *get_local_queue_eager(struct starpu_sched_policy_s 
 struct starpu_sched_policy_s _starpu_sched_eager_policy = {
 	.init_sched = initialize_eager_center_policy,
 	.deinit_sched = deinitialize_eager_center_policy,
-	.starpu_get_local_queue = get_local_queue_eager,
+	.get_local_queue = get_local_queue_eager,
+	.push_task = _starpu_fifo_push_task,
+	.push_prio_task = _starpu_fifo_push_prio_task,
+	.pop_task = _starpu_fifo_pop_task,
+	.pop_every_task = _starpu_fifo_pop_every_task,
 	.policy_name = "eager",
 	.policy_description = "greedy policy"
 };

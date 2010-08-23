@@ -25,11 +25,6 @@ static void init_priority_queue_design(void)
 	jobq = _starpu_create_priority_jobq();
 
 	_starpu_init_priority_queues_mechanisms();
-
-	/* we always use priorities in that policy */
-	jobq->push_task = _starpu_priority_push_task;
-	jobq->push_prio_task = _starpu_priority_push_task;
-	jobq->pop_task = _starpu_priority_pop_task;
 }
 
 static void deinit_priority_queue_design(void)
@@ -67,7 +62,11 @@ static struct starpu_jobq_s *get_local_queue_eager_priority(struct starpu_sched_
 struct starpu_sched_policy_s _starpu_sched_prio_policy = {
 	.init_sched = initialize_eager_center_priority_policy,
 	.deinit_sched = deinitialize_eager_center_priority_policy,
-	.starpu_get_local_queue = get_local_queue_eager_priority,
+	.get_local_queue = get_local_queue_eager_priority,
+	/* we always use priorities in that policy */
+	.push_task = _starpu_priority_push_task,
+	.push_prio_task = _starpu_priority_push_task,
+	.pop_task = _starpu_priority_pop_task,
 	.policy_name = "prio",
 	.policy_description = "eager (with priorities)"
 };

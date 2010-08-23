@@ -84,10 +84,6 @@ static struct starpu_jobq_s *init_random_fifo(void)
 
 	q = _starpu_create_fifo();
 
-	q->push_task = random_push_task; 
-	q->push_prio_task = random_push_prio_task; 
-	q->pop_task = random_pop_task;
-
 	queue_array[nworkers++] = q;
 
 	return q;
@@ -120,7 +116,10 @@ static struct starpu_jobq_s *get_local_queue_random(struct starpu_sched_policy_s
 struct starpu_sched_policy_s _starpu_sched_random_policy = {
 	.init_sched = initialize_random_policy,
 	.deinit_sched = NULL,
-	.starpu_get_local_queue = get_local_queue_random,
+	.get_local_queue = get_local_queue_random,
+	.push_task = random_push_task,
+	.push_prio_task = random_push_prio_task,
+	.pop_task = random_pop_task,
 	.policy_name = "random",
 	.policy_description = "weighted random"
 };

@@ -197,10 +197,6 @@ static struct starpu_jobq_s *init_dmda_fifo(void)
 
 	q = _starpu_create_fifo();
 
-	q->push_task = dmda_push_task; 
-	q->push_prio_task = dmda_push_prio_task; 
-	q->pop_task = dmda_pop_task;
-
 	queue_array[nworkers++] = q;
 
 	return q;
@@ -247,7 +243,10 @@ static struct starpu_jobq_s *get_local_queue_dmda(struct starpu_sched_policy_s *
 struct starpu_sched_policy_s _starpu_sched_dmda_policy = {
 	.init_sched = initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,
-	.starpu_get_local_queue = get_local_queue_dmda,
+	.get_local_queue = get_local_queue_dmda,
+	.push_task = dmda_push_task, 
+	.push_prio_task = dmda_push_prio_task, 
+	.pop_task = dmda_pop_task,
 	.policy_name = "dmda",
 	.policy_description = "data-aware performance model"
 };

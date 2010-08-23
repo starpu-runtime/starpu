@@ -164,10 +164,6 @@ static struct starpu_jobq_s *init_ws_deque(void)
 
 	q = _starpu_create_deque();
 
-	q->push_task = _starpu_deque_push_task; 
-	q->push_prio_task = _starpu_deque_push_prio_task; 
-	q->pop_task = ws_pop_task;
-
 	queue_array[nworkers++] = q;
 
 	return q;
@@ -201,7 +197,10 @@ static struct starpu_jobq_s *get_local_queue_ws(struct starpu_sched_policy_s *po
 struct starpu_sched_policy_s _starpu_sched_ws_policy = {
 	.init_sched = initialize_ws_policy,
 	.deinit_sched = NULL,
-	.starpu_get_local_queue = get_local_queue_ws,
+	.get_local_queue = get_local_queue_ws,
+	.push_task = _starpu_deque_push_task,
+	.push_prio_task = _starpu_deque_push_prio_task,
+	.pop_task = ws_pop_task,
 	.policy_name = "ws",
 	.policy_description = "work stealing"
 };

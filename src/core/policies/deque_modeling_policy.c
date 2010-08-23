@@ -160,11 +160,6 @@ static struct starpu_jobq_s *init_dm_fifo(void)
 
 	q = _starpu_create_fifo();
 
-	q->push_task = dm_push_task; 
-	q->push_prio_task = dm_push_prio_task; 
-	q->pop_task = dm_pop_task;
-	q->pop_every_task = dm_pop_every_task;
-
 	queue_array[nworkers++] = q;
 
 	return q;
@@ -201,7 +196,11 @@ static struct starpu_jobq_s *get_local_queue_dm(struct starpu_sched_policy_s *po
 struct starpu_sched_policy_s _starpu_sched_dm_policy = {
 	.init_sched = initialize_dm_policy,
 	.deinit_sched = deinitialize_dm_policy,
-	.starpu_get_local_queue = get_local_queue_dm,
+	.get_local_queue = get_local_queue_dm,
+	.push_task = dm_push_task, 
+	.push_prio_task = dm_push_prio_task,
+	.pop_task = dm_pop_task,
+	.pop_every_task = dm_pop_every_task,
 	.policy_name = "dm",
 	.policy_description = "performance model"
 };

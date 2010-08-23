@@ -30,11 +30,6 @@ static void init_no_prio_design(void)
 	jobq = _starpu_create_fifo();
 
 	_starpu_init_fifo_queues_mechanisms();
-
-	jobq->push_task = _starpu_fifo_push_task;
-	/* no priority in that policy, let's be stupid here */
-	jobq->push_prio_task = _starpu_fifo_push_task;
-	jobq->pop_task = _starpu_fifo_pop_task;
 }
 
 static struct starpu_jobq_s *func_init_central_queue(void)
@@ -59,7 +54,10 @@ static struct starpu_jobq_s *get_local_queue_no_prio(struct starpu_sched_policy_
 struct starpu_sched_policy_s _starpu_sched_no_prio_policy = {
 	.init_sched = initialize_no_prio_policy,
 	.deinit_sched = NULL,
-	.starpu_get_local_queue = get_local_queue_no_prio,
+	.get_local_queue = get_local_queue_no_prio,
+	.push_task = _starpu_fifo_push_task,
+	.push_prio_task = _starpu_fifo_push_task,
+	.pop_task = _starpu_fifo_pop_task,
 	.policy_name = "no-prio",
 	.policy_description = "eager without priority"
 };
