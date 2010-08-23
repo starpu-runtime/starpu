@@ -28,7 +28,6 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 {
 	int ret;
 	struct timespec codelet_start, codelet_end;
-	struct timespec codelet_start_comm, codelet_end_comm;
 
 	unsigned calibrate_model = 0;
 	int workerid = cpu_args->workerid;
@@ -41,13 +40,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 	if (cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
 
-	if (STARPU_BENCHMARK_COMM)
-		starpu_clock_gettime(&codelet_start_comm);
-
 	ret = _starpu_fetch_task_input(task, 0);
-
-	if (STARPU_BENCHMARK_COMM)
-		starpu_clock_gettime(&codelet_end_comm);
 
 	if (ret != 0) {
 		/* there was not enough memory so the codelet cannot be executed right now ... */
@@ -60,7 +53,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 	struct starpu_task_profiling_info *profiling_info;
 	profiling_info = task->profiling_info;
 
-	if (profiling_info || calibrate_model || STARPU_BENCHMARK_COMM)
+	if (profiling_info || calibrate_model)
 	{
 		starpu_clock_gettime(&codelet_start);
 		_starpu_worker_register_executing_start_date(workerid, &codelet_start);
@@ -74,7 +67,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 
 	cl->per_worker_stats[workerid]++;
 	
-	if (profiling_info || calibrate_model || STARPU_BENCHMARK_COMM)
+	if (profiling_info || calibrate_model)
 		starpu_clock_gettime(&codelet_end);
 
 	STARPU_TRACE_END_CODELET_BODY(j);
@@ -83,9 +76,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 	_starpu_push_task_output(task, 0);
 
 	_starpu_driver_update_job_feedback(j, cpu_args, profiling_info, calibrate_model,
-			&codelet_start, &codelet_end, &codelet_start_comm, &codelet_end_comm);
-
-	(void)STARPU_ATOMIC_ADD(&cpu_args->jobq->total_job_performed, 1);
+			&codelet_start, &codelet_end);
 
 	return 0;
 }
@@ -195,20 +186,6 @@ void *_starpu_cpu_worker(void *arg)
 	 * allocated by StarPU, we release it now. Note that data
 	 * coherency is not maintained anymore at that point ! */
 	_starpu_free_all_automatically_allocated_buffers(memnode);
-
-#ifdef STARPU_DATA_STATS
-	fprintf(stderr, "CPU #%d computation %le comm %le (%lf \%%)\n", devid, jobq->total_computation_time, jobq->total_communication_time,  jobq->total_communication_time*100.0/jobq->total_computation_time);
-#endif
-
-#ifdef STARPU_VERBOSE
-	double ratio = 0;
-	if (jobq->total_job_performed != 0)
-	{
-		ratio = jobq->total_computation_time_error/jobq->total_computation_time;
-	}
-
-	_starpu_print_to_logfile("MODEL ERROR: CPU %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", devid, jobq->total_computation_time_error, jobq->total_computation_time, ratio, jobq->total_job_performed);
-#endif
 
 	STARPU_TRACE_WORKER_DEINIT_END(STARPU_FUT_CPU_KEY);
 

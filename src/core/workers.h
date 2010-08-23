@@ -54,12 +54,6 @@
 #define STARPU_OPENCL_ALPHA	12.22f
 #define STARPU_GORDON_ALPHA	6.0f /* XXX this is a random value ... */
 
-#ifdef STARPU_DATA_STATS
-#define STARPU_BENCHMARK_COMM	1
-#else
-#define STARPU_BENCHMARK_COMM	0
-#endif
-
 struct starpu_worker_s {
 	struct starpu_machine_config_s *config;
         pthread_mutex_t mutex;

@@ -27,8 +27,7 @@
 void _starpu_driver_update_job_feedback(starpu_job_t j, struct starpu_worker_s *worker_args,
 		struct starpu_task_profiling_info *profiling_info,
 		unsigned calibrate_model,
-		struct timespec *codelet_start, struct timespec *codelet_end,
-		struct timespec *codelet_start_comm, struct timespec *codelet_end_comm);
+		struct timespec *codelet_start, struct timespec *codelet_end);
 
 void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *mutex);
 

@@ -382,22 +382,7 @@ void *_starpu_opencl_worker(void *arg)
 
 	STARPU_TRACE_WORKER_DEINIT_START
 
-          _starpu_opencl_deinit_context(devid);
-
-#ifdef STARPU_DATA_STATS
-	fprintf(stderr, "OpenCL #%d computation %le comm %le (%lf \%%)\n", args->id, jobq->total_computation_time, jobq->total_communication_time, jobq->total_communication_time*100.0/jobq->total_computation_time);
-#endif
-
-#ifdef STARPU_VERBOSE
-	double ratio = 0;
-	if (jobq->total_job_performed != 0)
-	{
-		ratio = jobq->total_computation_time_error/jobq->total_computation_time;
-	}
-
-
-	_starpu_print_to_logfile("MODEL ERROR: OpenCL %d ERROR %lf EXEC %lf RATIO %lf NTASKS %d\n", args->devid, jobq->total_computation_time_error, jobq->total_computation_time, ratio, jobq->total_job_performed);
-#endif
+        _starpu_opencl_deinit_context(devid);
 
 	pthread_exit(NULL);
 
@@ -437,7 +422,6 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 	struct starpu_task *task = j->task;
 
 	struct timespec codelet_start, codelet_end;
-	struct timespec codelet_start_comm, codelet_end_comm;
 
 	unsigned calibrate_model = 0;
 	int workerid = args->workerid;
@@ -449,13 +433,6 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 	if (cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
 
-	/* we do not take communication into account when modeling the performance */
-	if (STARPU_BENCHMARK_COMM)
-	{
-                //barrier(CLK_GLOBAL_MEM_FENCE);
-		starpu_clock_gettime(&codelet_start_comm);
-	}
-
 	ret = _starpu_fetch_task_input(task, mask);
 	if (ret != 0) {
 		/* there was not enough memory, so the input of
@@ -464,18 +441,12 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 		return -EAGAIN;
 	}
 
-	if (STARPU_BENCHMARK_COMM)
-	{
-                //barrier(CLK_GLOBAL_MEM_FENCE);
-		starpu_clock_gettime(&codelet_end_comm);
-	}
-
 	STARPU_TRACE_START_CODELET_BODY(j);
 
 	struct starpu_task_profiling_info *profiling_info;
 	profiling_info = task->profiling_info;
 
-	if (profiling_info || calibrate_model || STARPU_BENCHMARK_COMM)
+	if (profiling_info || calibrate_model)
 	{
 		starpu_clock_gettime(&codelet_start);
 		_starpu_worker_register_executing_start_date(workerid, &codelet_start);
@@ -490,7 +461,7 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 
 	cl->per_worker_stats[workerid]++;
 
-	if (profiling_info || calibrate_model || STARPU_BENCHMARK_COMM)
+	if (profiling_info || calibrate_model)
 		starpu_clock_gettime(&codelet_end);
 
 	STARPU_TRACE_END_CODELET_BODY(j);
@@ -499,10 +470,7 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 	_starpu_push_task_output(task, mask);
 
 	_starpu_driver_update_job_feedback(j, args, profiling_info, calibrate_model,
-			&codelet_start, &codelet_end, &codelet_start_comm, &codelet_end_comm);
-
-	(void)STARPU_ATOMIC_ADD(&args->jobq->total_job_performed, 1);
-
+							&codelet_start, &codelet_end);
 
 	return EXIT_SUCCESS;
 }

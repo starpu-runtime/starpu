@@ -26,12 +26,6 @@ struct starpu_jobq_s {
 	/* a pointer to some queue structure */
 	void *queue; 
 
-	/* for performance analysis purpose */
-	double total_computation_time;
-	double total_communication_time;
-	double total_computation_time_error;
-	unsigned total_job_performed;
-
 	/* in case workers are blocked on the queue, signaling on that 
 	  condition must unblock them, even if there is no available task */
 	pthread_cond_t activity_cond;

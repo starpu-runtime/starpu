@@ -83,15 +83,6 @@ static void _starpu_init_worker_queue(struct starpu_worker_s *workerarg)
 {
 	struct starpu_jobq_s *jobq = workerarg->jobq;
 
-	PTHREAD_MUTEX_LOCK(&jobq->activity_mutex);
-
-	jobq->total_computation_time = 0.0;
-	jobq->total_communication_time = 0.0;
-	jobq->total_computation_time_error = 0.0;
-	jobq->total_job_performed = 0;
-		
-	PTHREAD_MUTEX_UNLOCK(&jobq->activity_mutex);
-
 	_starpu_memory_node_attach_queue(jobq, workerarg->memory_node);
 }
 
