@@ -44,16 +44,16 @@ static int nworkers = 0;
 unsigned ninputfiles = 0;
 static char *filenames[64];
 
-static uint64_t last_codelet_hash[MAXWORKERS];
-static double last_codelet_start[MAXWORKERS];
-static char last_codelet_symbol[128][MAXWORKERS];
+static uint64_t last_codelet_hash[STARPU_NMAXWORKERS];
+static double last_codelet_start[STARPU_NMAXWORKERS];
+static char last_codelet_symbol[128][STARPU_NMAXWORKERS];
 
 /* If more than a period of time has elapsed, we flush the profiling info,
  * otherwise they are accumulated everytime there is a new relevant event. */
 #define ACTIVITY_PERIOD	75.0
-static double last_activity_flush_timestamp[MAXWORKERS];
-static double accumulated_sleep_time[MAXWORKERS];
-static double accumulated_exec_time[MAXWORKERS];
+static double last_activity_flush_timestamp[STARPU_NMAXWORKERS];
+static double accumulated_sleep_time[STARPU_NMAXWORKERS];
+static double accumulated_exec_time[STARPU_NMAXWORKERS];
 
 
 
@@ -413,7 +413,7 @@ static void handle_worker_status(const char *newstatus)
 	end_time = STARPU_MAX(end_time, ev.time);
 }
 
-static double last_sleep_start[MAXWORKERS];
+static double last_sleep_start[STARPU_NMAXWORKERS];
 
 static void handle_start_sleep(void)
 {
@@ -778,7 +778,7 @@ void parse_new_file(char *filename_in, char *file_prefix, uint64_t file_offset)
 	block = fxt_blockev_enter(fut);
 
 	/* create a htable to identify each worker(tid) */
-	hcreate(MAXWORKERS);
+	hcreate(STARPU_NMAXWORKERS);
 
 	symbol_list = symbol_name_list_new(); 
 	communication_list = communication_list_new();

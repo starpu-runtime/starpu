@@ -29,10 +29,10 @@
 #include <common/fxt.h>
 #include <common/list.h>
 #include <starpu_mpi_fxt.h>
+#include <starpu.h>
 
 #include "histo_paje.h"
 
-#define MAXWORKERS      32
 #define FACTOR  100
 
 extern void init_dag_dot(void);
