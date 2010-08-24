@@ -426,6 +426,7 @@ Enable flags for the coverage tool.
 @subsection Configuring workers
 
 @menu
+* --enable-nmaxcpus::         
 * --disable-cpu::               
 * --enable-maxcudadev::         
 * --disable-cuda::              
@@ -436,6 +437,14 @@ Enable flags for the coverage tool.
 * --enable-gordon::             
 * --with-gordon-dir::           
 @end menu
+
+@node --enable-nmaxcpus
+@subsubsection @code{--enable-nmaxcpus=<number>}
+@table @asis
+@item @emph{Description}:
+Defines the maximum number of CPU cores that StarPU will support, then
+available as the @code{STARPU_NMAXCPUS} macro.
+@end table
 
 @node --disable-cpu
 @subsubsection @code{--disable-cpu}
