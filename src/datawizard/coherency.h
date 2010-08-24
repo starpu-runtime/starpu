@@ -109,8 +109,8 @@ struct starpu_data_state_t {
 	/* where is the data home ? -1 if none yet */
 	int home_node;
 
-	/* what is the default write-back mask for that data ? */
-	uint32_t wb_mask;
+	/* what is the default write-through mask for that data ? */
+	uint32_t wt_mask;
 
 	/* allows special optimization */
 	uint8_t is_readonly;
@@ -155,7 +155,7 @@ void _starpu_display_msi_stats(void);
 int _starpu_fetch_data_on_node(struct starpu_data_state_t *state, uint32_t requesting_node,
 				starpu_access_mode mode, unsigned is_prefetch,
 				void (*callback_func)(void *), void *callback_arg);
-void _starpu_release_data_on_node(struct starpu_data_state_t *state, uint32_t default_wb_mask, unsigned memory_node);
+void _starpu_release_data_on_node(struct starpu_data_state_t *state, uint32_t default_wt_mask, unsigned memory_node);
 
 void _starpu_update_data_state(struct starpu_data_state_t *state, uint32_t requesting_node, starpu_access_mode mode);
 

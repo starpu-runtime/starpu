@@ -130,7 +130,7 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 		child->depth = initial_handle->depth + 1;
 
 		child->is_not_important = initial_handle->is_not_important;
-		child->wb_mask = initial_handle->wb_mask;
+		child->wt_mask = initial_handle->wt_mask;
 		child->home_node = initial_handle->home_node;
 
 		/* We compute the size and the footprint of the child once and

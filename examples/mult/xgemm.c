@@ -144,7 +144,7 @@ static void partition_mult_data(void)
 	starpu_matrix_data_register(&C_handle, 0, (uintptr_t)C, 
 		ydim, ydim, xdim, sizeof(TYPE));
 
-	starpu_data_set_wb_mask(C_handle, 1<<0);
+	starpu_data_set_wt_mask(C_handle, 1<<0);
 
 	conf.k = zdim;
 	conf.m = ydim/nslicesy;

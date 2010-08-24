@@ -520,7 +520,7 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 		starpu_vector_data_register(&plan->fft1_handle[z], 0, (uintptr_t) &plan->fft1[z*plan->totsize2], plan->totsize2, sizeof(*plan->fft1));
 
 		/* We'll need it on the CPU for the second twist anyway */
-		starpu_data_set_wb_mask(plan->fft1_handle[z], 1<<0);
+		starpu_data_set_wt_mask(plan->fft1_handle[z], 1<<0);
 
 		/* Create twist1 task */
 		plan->twist1_tasks[z] = task = starpu_task_create();
@@ -585,7 +585,7 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 		starpu_vector_data_register(&plan->fft2_handle[z], 0, (uintptr_t) &plan->fft2[z*plan->totsize4], plan->totsize4, sizeof(*plan->fft2));
 
 		/* We'll need it on the CPU for the last twist anyway */
-		starpu_data_set_wb_mask(plan->fft2_handle[z], 1<<0);
+		starpu_data_set_wt_mask(plan->fft2_handle[z], 1<<0);
 
 		/* Tell that twisted2 depends on the whole first step to be
 		 * done */

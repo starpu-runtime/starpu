@@ -61,15 +61,15 @@ void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_n
 	_starpu_spin_unlock(&handle->header_lock);
 }
 
-void starpu_data_set_wb_mask(starpu_data_handle handle, uint32_t wb_mask)
+void starpu_data_set_wt_mask(starpu_data_handle handle, uint32_t wt_mask)
 {
-	handle->wb_mask = wb_mask;
+	handle->wt_mask = wt_mask;
 
-	/* in case the data has some children, set their wb_mask as well */
+	/* in case the data has some children, set their wt_mask as well */
 	if (handle->nchildren > 0) 
 	{
 		unsigned child;
 		for (child = 0; child < handle->nchildren; child++)
-			starpu_data_set_wb_mask(&handle->children[child], wb_mask);
+			starpu_data_set_wt_mask(&handle->children[child], wt_mask);
 	}
 }

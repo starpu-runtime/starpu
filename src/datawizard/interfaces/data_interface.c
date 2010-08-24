@@ -22,7 +22,7 @@
  */
 
 static void _starpu_register_new_data(starpu_data_handle handle,
-					uint32_t home_node, uint32_t wb_mask)
+					uint32_t home_node, uint32_t wt_mask)
 {
 	STARPU_ASSERT(handle);
 
@@ -59,7 +59,7 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	handle->last_submitted_ghost_readers_id = NULL;
 #endif
 
-	handle->wb_mask = wb_mask;
+	handle->wt_mask = wt_mask;
 
 	/* Store some values directly in the handle not to recompute them all
 	 * the time. */

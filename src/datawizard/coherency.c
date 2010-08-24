@@ -312,19 +312,18 @@ uint32_t _starpu_data_get_footprint(starpu_data_handle handle)
 
 /* in case the data was accessed on a write mode, do not forget to 
  * make it accessible again once it is possible ! */
-void _starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wb_mask, uint32_t memory_node)
+void _starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wt_mask, uint32_t memory_node)
 {
-	uint32_t wb_mask;
-	wb_mask = default_wb_mask | handle->wb_mask;
+	uint32_t wt_mask;
+	wt_mask = default_wt_mask | handle->wt_mask;
 
 	/* Note that it is possible that there is no valid copy of the data (if
 	 * starpu_data_invalidate was called for instance). In that case, we do
 	 * not enforce any write-through mechanism. */
 
-	/* are we doing write-through or just some normal write-back ? */
 	if (handle->per_node[memory_node].state != STARPU_INVALID)
-	if ((wb_mask & ~(1<<memory_node)))
-		_starpu_write_through_data(handle, memory_node, wb_mask);
+	if ((wt_mask & ~(1<<memory_node)))
+		_starpu_write_through_data(handle, memory_node, wt_mask);
 
 	uint32_t local_node = _starpu_get_local_memory_node();
 	while (_starpu_spin_trylock(&handle->header_lock))

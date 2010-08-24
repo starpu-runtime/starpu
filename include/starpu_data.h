@@ -67,9 +67,9 @@ unsigned starpu_worker_get_memory_node(unsigned workerid);
 
 /* It is possible to associate a mask to a piece of data (and its children) so
  * that when it is modified, it is automatically transfered into those memory
- * node. For instance a (1<<0) write-back mask means that the CUDA workers will
+ * node. For instance a (1<<0) write-through mask means that the CUDA workers will
  * commit their changes in main memory (node 0). */
-void starpu_data_set_wb_mask(starpu_data_handle handle, uint32_t wb_mask);
+void starpu_data_set_wt_mask(starpu_data_handle handle, uint32_t wt_mask);
 
 void starpu_data_set_sequential_consistency_flag(starpu_data_handle handle, unsigned flag);
 unsigned starpu_data_get_default_sequential_consistency_flag(void);

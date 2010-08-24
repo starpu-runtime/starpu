@@ -531,7 +531,7 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 		/* We'll need the result of fft1 on the CPU for the second
 		 * twist anyway, so tell starpu to not keep the fft1 buffer in
 		 * the GPU. */
-		starpu_data_set_wb_mask(plan->fft1_handle[z], 1<<0);
+		starpu_data_set_wt_mask(plan->fft1_handle[z], 1<<0);
 
 		/* Create twist1 task */
 		plan->twist1_tasks[z] = task = starpu_task_create();
@@ -597,7 +597,7 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 		/* We'll need the result of fft2 on the CPU for the third
 		 * twist anyway, so tell starpu to not keep the fft2 buffer in
 		 * the GPU. */
-		starpu_data_set_wb_mask(plan->fft2_handle[z], 1<<0);
+		starpu_data_set_wt_mask(plan->fft2_handle[z], 1<<0);
 
 		/* Tell that twisted2 depends on the join task */
 		starpu_tag_declare_deps(STEP_TAG(TWIST2),

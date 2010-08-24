@@ -402,7 +402,7 @@ int main(int argc, char **argv)
 	starpu_data_partition(A_handle, &f);
 
 	for (iter = 0; iter < niter; iter++)
-		starpu_data_set_wb_mask(starpu_data_get_sub_data(A_handle, 1, iter), 1<<0);
+		starpu_data_set_wt_mask(starpu_data_get_sub_data(A_handle, 1, iter), 1<<0);
 
 	gettimeofday(&start, NULL);
 

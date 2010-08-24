@@ -91,10 +91,10 @@ int main(int argc, char **argv)
 	starpu_data_handle cnt_array_handle;
 	starpu_vector_data_register(&cnt_array_handle, 0, (uintptr_t)cnt_array, ntasks, sizeof(unsigned));
 
-	/* Use a write-back policy : when the data is modified on an
+	/* Use a write-through policy : when the data is modified on an
 	 * accelerator, we know that it will only be modified once and be
 	 * accessed by the CPU later on */
-	starpu_data_set_wb_mask(cnt_array_handle, (1<<0));
+	starpu_data_set_wt_mask(cnt_array_handle, (1<<0));
 
 	struct starpu_data_filter f = {
 		.filter_func = starpu_block_filter_func_vector,
