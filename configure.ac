@@ -658,6 +658,13 @@ AC_MSG_RESULT($perf_model_dir)
 AC_CHECK_LIB([rt], [clock_gettime])
 AC_CHECK_FUNCS([clock_gettime])
 
+# Compute the maximum number of workers (we round it to 16 for alignment
+# purposes).
+nmaxworkers=`expr 16 \* \( \( $nmaxcpus + $nmaxcudadev + $nmaxopencldev + 15 \) / 16 \) `
+AC_MSG_CHECKING(Maximum number of workers)
+AC_MSG_RESULT($nmaxworkers)
+AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
+
 ###############################################################################
 #                                                                             #
 #                                    MPI                                      #

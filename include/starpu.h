@@ -20,10 +20,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-/* Maximum number of workers supported by StarPU, the actual number of worker
- * is given by the startpu_get_worker_count method */
-#define STARPU_NMAXWORKERS	32
-
 #include <starpu_config.h>
 #include <starpu_util.h>
 #include <starpu_data.h>
