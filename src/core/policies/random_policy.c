@@ -16,9 +16,8 @@
 
 #include <core/policies/random_policy.h>
 
-/* XXX 32 is set randomly */
 static unsigned nworkers;
-static struct starpu_jobq_s *queue_array[32];
+static struct starpu_jobq_s *queue_array[STARPU_NMAXWORKERS];
 
 static starpu_job_t random_pop_task(struct starpu_jobq_s *q)
 {

@@ -41,11 +41,10 @@ typedef struct {
 	starpu_node_kind nodes[STARPU_MAXNODES];
 
 	/* the list of queues that are attached to a given node */
-	// XXX 32 is set randomly !
 	// TODO move this 2 lists outside starpu_mem_node_descr
 	pthread_rwlock_t attached_queues_rwlock;
-	struct starpu_jobq_s *attached_queues_per_node[STARPU_MAXNODES][32];
-	struct starpu_jobq_s *attached_queues_all[STARPU_MAXNODES*32];
+	struct starpu_jobq_s *attached_queues_per_node[STARPU_MAXNODES][STARPU_NMAXWORKERS];
+	struct starpu_jobq_s *attached_queues_all[STARPU_MAXNODES*STARPU_NMAXWORKERS];
 	/* the number of queues attached to each node */
 	unsigned total_queues_count;
 	unsigned queues_count[STARPU_MAXNODES];
