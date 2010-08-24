@@ -802,10 +802,11 @@ Note: this currently only applies to dm and dmda scheduling policies.
 @table @asis
 
 @item @emph{Description}:
-If this variable is set, data prefetching will be enabled, that is when a task is
-scheduled to be executed e.g. on a GPU, StarPU will request an asynchronous
-transfer in advance, so that data is already present on the GPU when the task
-starts. As a result, computation and data transfers are overlapped.
+This variable indicates whether data prefetching should be enabled (0 means
+that it is disabled). If prefetching is enabled, when a task is scheduled to be
+executed e.g. on a GPU, StarPU will request an asynchronous transfer in
+advance, so that data is already present on the GPU when the task starts. As a
+result, computation and data transfers are overlapped.
 
 @end table
 

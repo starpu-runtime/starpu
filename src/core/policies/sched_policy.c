@@ -170,9 +170,10 @@ void _starpu_init_sched_policy(struct starpu_machine_config_s *config)
 	/* Perhaps we have to display some help */
 	display_sched_help_message();
 
+	/* Prefetch is activated by default */
 	use_prefetch = starpu_get_env_number("STARPU_PREFETCH");
 	if (use_prefetch == -1)
-		use_prefetch = 0;
+		use_prefetch = 1;
 
 	/* By default, we don't calibrate */
 	unsigned do_calibrate = 0;
