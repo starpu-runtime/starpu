@@ -1,3 +1,27 @@
+StarPU 0.4 (svn revision ????)
+==============================================
+The API strengthening release
+  
+  * Major API improvements
+    - Provide the STARPU_SCRATCH data access mode
+    - Rework data filter interface
+    - Rework data interface structure
+    - A script that automatically renames old functions to accomodate with the new
+      API is available from https://scm.gforge.inria.fr/svn/starpu/scripts/renaming
+  * Implement dependencies between task directly (eg. without tags)
+  * Implicit data-driven task dependencies simplifies the design of
+    data-parallel algorithms
+  * Dynamic profiling capabilities
+    - starpu_top
+  * Provide a library to help accelerating MPI applications
+  * Automate data movement overhead prediction
+    * Transparently benchmark buses to generate performance models
+    * Bind accelerator-controlling threads with respect to NUMA locality 
+  * Improve StarPU's portability
+    - Finalize OpenCL support
+    - Add support for Windows
+    - StarPU can be used from C++ or NVCC directly now
+
 StarPU 0.2.901 aka 0.3-rc1 (svn revision 1236)
 ==============================================
 The asynchronous heterogeneous multi-accelerator release
