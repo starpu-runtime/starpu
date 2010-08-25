@@ -8,19 +8,21 @@ The API strengthening release
     - Rework data interface structure
     - A script that automatically renames old functions to accomodate with the new
       API is available from https://scm.gforge.inria.fr/svn/starpu/scripts/renaming
+      (login: anonsvn, password: anonsvn)
   * Implement dependencies between task directly (eg. without tags)
   * Implicit data-driven task dependencies simplifies the design of
     data-parallel algorithms
-  * Dynamic profiling capabilities
-    - starpu_top
+  * Add dynamic profiling capabilities
+    - Provide per-task feedback
+    - Provide per-worker feedback
+    - Provide feedback about memory transfers
   * Provide a library to help accelerating MPI applications
-  * Automate data movement overhead prediction
-    * Transparently benchmark buses to generate performance models
-    * Bind accelerator-controlling threads with respect to NUMA locality 
+  * Improve data transfers overhead prediction
+    - Transparently benchmark buses to generate performance models
+    - Bind accelerator-controlling threads with respect to NUMA locality 
   * Improve StarPU's portability
-    - Finalize OpenCL support
+    - Add OpenCL support
     - Add support for Windows
-    - StarPU can be used from C++ or NVCC directly now
 
 StarPU 0.2.901 aka 0.3-rc1 (svn revision 1236)
 ==============================================
