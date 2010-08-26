@@ -84,6 +84,40 @@ The password is 'anonsvn'
   $ make
   $ make install
 
++---------------------
+| IV.c. Windows build:
+
+- c:\cuda\include\host_defines.h has a bogus CUDARTAPI definition which makes
+  linking fail completely. Replace the first occurence of
+
+    #define CUDARTAPI
+    
+  with
+    
+    #ifdef _WIN32
+    #define CUDARTAPI __stdcall
+    #else
+    #define CUDARTAPI
+    #endif
+
+  While at it, you can also comment the __cdecl definition to avoid spurious
+  warnings.
+
+- If you have a non-english version of windows, use
+
+    export LANG=C
+
+  else libtool has troubles parsing the translated output of the toolchain.
+
+- libtool is not able to find the libraries automatically, you need to make some
+  copies:
+
+    copy c:\cuda\lib\cuda.lib c:\cuda\lib\libcuda.lib
+    copy c:\cuda\lib\cudart.lib c:\cuda\lib\libcudart.lib
+    copy c:\cuda\lib\cublas.lib c:\cuda\lib\libcublas.lib
+    copy c:\cuda\lib\cufft.lib c:\cuda\lib\libcufft.lib
+    copy c:\cuda\lib\OpenCL.lib c:\cuda\lib\libOpenCL.lib
+
 ++============++
 || V. Contact ||
 ++============++

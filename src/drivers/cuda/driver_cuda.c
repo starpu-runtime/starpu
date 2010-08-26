@@ -72,7 +72,7 @@ unsigned _starpu_get_cuda_device_count(void)
 	cudaError_t cures;
 	cures = cudaGetDeviceCount(&cnt);
 	if (STARPU_UNLIKELY(cures))
-		 STARPU_CUDA_REPORT_ERROR(cures);
+		 return 0;
 	
 	return (unsigned)cnt;
 }

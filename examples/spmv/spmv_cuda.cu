@@ -14,7 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <stdint.h>
 #include <starpu.h>
 
 #define MIN(a,b)	((a)<(b)?(a):(b))

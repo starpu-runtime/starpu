@@ -248,6 +248,7 @@ typedef pthread_mutex_t pthread_rwlock_t;
 #define pthread_rwlock_wrlock(lock) pthread_mutex_lock(lock)
 #define pthread_rwlock_rdlock(lock) pthread_mutex_lock(lock)
 #define pthread_rwlock_unlock(lock) pthread_mutex_unlock(lock)
+#define pthread_rwlock_destroy(lock) pthread_mutex_destroy(lock)
 
 /**************
  * conditions *
@@ -259,10 +260,13 @@ typedef struct {
 } pthread_cond_t;
 #define PTHREAD_COND_INITIALIZER { NULL, 0}
 
+#ifndef STARPU_TIMESPEC_DEFINED
+#define STARPU_TIMESPEC_DEFINED 1
 struct timespec {
   time_t  tv_sec;  /* Seconds */
   long    tv_nsec; /* Nanoseconds */
 };
+#endif /* STARPU_TIMESPEC_DEFINED */
 
 typedef unsigned pthread_condattr_t;
 

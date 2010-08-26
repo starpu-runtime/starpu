@@ -411,7 +411,6 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
  * the performance model files */
 int starpu_list_models(void)
 {
-#ifdef DT_REG
         char path[256];
         DIR *dp;
         struct dirent *ep;
@@ -423,7 +422,13 @@ int starpu_list_models(void)
         dp = opendir(path);
         if (dp != NULL) {
                 while ((ep = readdir(dp))) {
-                        if (ep->d_type == DT_REG) {
+#ifdef DT_REG
+                        if (ep->d_type == DT_REG)
+#else
+			if (strcmp(ep->d_name, ".")
+			 && strcmp(ep->d_name, ".."))
+#endif
+			{
                                 fprintf(stdout, "file: <%s>\n", ep->d_name);
                         }
                 }
@@ -434,10 +439,6 @@ int starpu_list_models(void)
                 perror ("Couldn't open the directory");
                 return 1;
         }
-#else
-	perror ("not supported\n");
-	return 1;
-#endif
 }
 
 /* This function is intended to be used by external tools that should read the

@@ -24,8 +24,9 @@ static __global__ void cuda_incrementer(float * tab)
 	return;
 }
 
-extern "C" void cuda_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+extern "C" void cuda_codelet(void *descr[], void *_args)
 {
+	(void)_args;
 	float *val = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 
 	cuda_incrementer<<<1,1>>>(val);

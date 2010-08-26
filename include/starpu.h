@@ -18,7 +18,15 @@
 #define __STARPU_H__
 
 #include <stdlib.h>
+
+#ifndef _MSC_VER
 #include <stdint.h>
+#else
+typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned long uint32_t;
+typedef unsigned long long uint64_t;
+#endif
 
 #include <starpu_config.h>
 #include <starpu_util.h>

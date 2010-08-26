@@ -18,6 +18,11 @@
 
 int main(int argc, char **argv)
 {
+#ifdef __MINGW32__
+	WSADATA wsadata;
+	WSAStartup(MAKEWORD(1,0), &wsadata);
+#endif
+
 	starpu_force_bus_sampling();
 
 	return 0;

@@ -184,8 +184,9 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 			# in case this was not explicit yet
 			enable_cuda=yes
 		], cuda_dir=/usr/local/cuda/)
-# TODO: try other paths as well (including /c/cuda for windows)
-	
+
+	[ ! -d "$cuda_dir" -a -d "/c/cuda" ] && cuda_dir=/c/cuda
+
 	if test -d "$cuda_dir/include/"; then
 		CPPFLAGS="${CPPFLAGS} -I$cuda_dir/include/ "
                 STARPU_CUDA_CPPFLAGS="-I$cuda_dir/include/"

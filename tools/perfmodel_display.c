@@ -271,6 +271,11 @@ int main(int argc, char **argv)
 {
 //	assert(argc == 2);
 
+#ifdef __MINGW32__
+	WSADATA wsadata;
+	WSAStartup(MAKEWORD(1,0), &wsadata);
+#endif
+
 	parse_args(argc, argv);
 
         if (list) {

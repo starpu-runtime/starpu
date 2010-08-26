@@ -549,7 +549,9 @@ static void write_bus_affinity_file_content(void)
 	f = fopen(path, "w+");
 	if (!f)
 	{
-		perror("fopen");
+		perror("fopen write_buf_affinity_file_content");
+		fprintf(stderr,"path '%s'\n", path);
+		fflush(stderr);
 		STARPU_ABORT();
 	}
 
@@ -686,7 +688,9 @@ static void write_bus_latency_file_content(void)
 	f = fopen(path, "w+");
 	if (!f)
 	{
-		perror("fopen");
+		perror("fopen write_bus_latency_file_content");
+		fprintf(stderr,"path '%s'\n", path);
+		fflush(stderr);
 		STARPU_ABORT();
 	}
 
@@ -773,7 +777,9 @@ static void load_bus_bandwidth_file_content(void)
 	f = fopen(path, "r");
 	if (!f)
 	{
-		perror("fopen");
+		perror("fopen load_bus_bandwidth_file_content");
+		fprintf(stderr,"path '%s'\n", path);
+		fflush(stderr);
 		STARPU_ABORT();
 	}
 
