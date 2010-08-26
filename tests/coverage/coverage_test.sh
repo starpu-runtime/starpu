@@ -199,5 +199,5 @@ apps;
 generatehtml;
 
 echo
-echo "See $LOGFILE for detailed output"
+echo "See $WORKDIR and $LOGFILE for detailed output"
 echo
