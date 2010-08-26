@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #
 # StarPU
 # Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
@@ -16,198 +15,188 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-
 DIR=$PWD
 ROOTDIR=$DIR/../..
 COVDIR=$PWD/coverage
 BUILDDIR=$PWD/build/
 INSTALLDIR=$PWD/local/
 EXAMPLEDIR=$INSTALLDIR/lib/starpu/examples/
-
-mkdir -p $INSTALLDIR
-mkdir -p $BUILDDIR
+LOGFILE=`mktemp`
 
 init()
 {
-	mkdir -p $COVDIR
-	lcov --directory $BUILDDIR --zerocounters > /dev/null
+    mkdir -p $INSTALLDIR
+    mkdir -p $BUILDDIR
+    mkdir -p $COVDIR
+    lcov --directory $BUILDDIR --zerocounters >$LOGFILE 2>&1
 }
 
 save_cov()
 {
-	testname=$1
-	lcov --directory $BUILDDIR --capture --output $COVDIR/$testname.info > /dev/null 
-	lcov -a $COVDIR/$testname.info -o $COVDIR/all.info > /dev/null
+    testname=$1
+    lcov --directory $BUILDDIR --capture --output $COVDIR/$testname.info >>$LOGFILE 2>&1
+    lcov -a $COVDIR/$testname.info -o $COVDIR/all.info >>$LOGFILE 2>&1
 }
 
 generatehtml()
 {
-	cd $COVDIR
-	genhtml all.info
-	cd -
+    cd $COVDIR
+    genhtml all.info
+    cd -
 }
 
 apps()
 {
+    echo "incrementer"
+    $EXAMPLEDIR/incrementer >>$LOGFILE 2>&1
+    save_cov "incrementer";
 
-echo "incrementer"
-timing=`$EXAMPLEDIR/incrementer 2> /dev/null`
-save_cov "incrementer";
+    echo "tag_example"
+    $EXAMPLEDIR/tag_example -iter 64 -i 128 -j 24 >>$LOGFILE 2>&1
+    save_cov "tag_example";
 
-echo "tag_example"
-timing=`$EXAMPLEDIR/tag_example -iter 64 -i 128 -j 24 2> /dev/null`
-save_cov "tag_example";
+    echo "tag_example2"
+    $EXAMPLEDIR/tag_example2 -iter 64 -i 128 >>$LOGFILE 2>&1
+    save_cov "tag_example2";
 
-echo "tag_example2"
-timing=`$EXAMPLEDIR/tag_example2 -iter 64 -i 128 2> /dev/null`
-save_cov "tag_example2";
+    #echo "spmv"
+    #$BUILDDIR/examples/spmv/dw_spmv >>$LOGFILE 2>&1
+    #save_cov "spmv";
+    #
+    #echo "spmv.gpu"
+    #STARPU_NCPUS=0 $BUILDDIR/examples/spmv/dw_spmv >>$LOGFILE 2>&1
+    #save_cov "spmv.gpu";
+    #
+    #echo "spmv.cpu"
+    #STARPU_NCUDA=0 $BUILDDIR/examples/spmv/dw_spmv >>$LOGFILE 2>&1
+    #save_cov "spmv.cpu";
+    #
+    #echo "spmv.dm"
+    #STARPU_SCHED="dm" $BUILDDIR/examples/spmv/dw_spmv >>$LOGFILE 2>&1
+    #save_cov "spmv.dm";
+    #
+    #echo "spmv.dmda"
+    #STARPU_SCHED="dmda" $BUILDDIR/examples/spmv/dw_spmv >>$LOGFILE 2>&1
+    #save_cov "spmv.dmda";
 
-# echo "spmv"
-# timing=`$BUILDDIR/examples/spmv/dw_spmv 2> /dev/null`
-# save_cov "spmv";
-# 
-# echo "spmv.gpu"
-# timing=`STARPU_NCPUS=0 $BUILDDIR/examples/spmv/dw_spmv 2> /dev/null`
-# save_cov "spmv.gpu";
-# 
-# echo "spmv.cpu"
-# timing=`STARPU_NCUDA=0 $BUILDDIR/examples/spmv/dw_spmv 2> /dev/null`
-# save_cov "spmv.cpu";
-# 
-# echo "spmv.dm"
-# timing=`STARPU_SCHED="dm" $BUILDDIR/examples/spmv/dw_spmv 2> /dev/null`
-# save_cov "spmv.dm";
-# 
-# echo "spmv.dmda"
-# timing=`STARPU_SCHED="dmda" $BUILDDIR/examples/spmv/dw_spmv 2> /dev/null`
-# save_cov "spmv.dmda";
+    #echo "strassen.ws"
+    #STARPU_SCHED="ws" $EXAMPLEDIR/dw_strassen -rec 3 -size 2048 -pin >>$LOGFILE 2>&1
+    #save_cov "strassen.ws";
+    #
+    #echo "strassen.dm"
+    #STARPU_SCHED="dm" $EXAMPLEDIR/dw_strassen -rec 3 -size 2048 -pin >>$LOGFILE 2>&1
+    #save_cov "strassen.dm";
+    #
+    #echo "strassen.dmda"
+    #STARPU_SCHED="dmda" $EXAMPLEDIR/dw_strassen -rec 3 -size 2048 -pin >>$LOGFILE 2>&1
+    #save_cov "strassen.dmda";
+    
+    echo "chol.dm"
+    STARPU_CALIBRATE=1 STARPU_SCHED="dm" $EXAMPLEDIR/dw_cholesky -pin >>$LOGFILE 2>&1
+    save_cov "chol.dm";
 
-echo "strassen.ws"
-timing=`STARPU_SCHED="ws" $EXAMPLEDIR/dw_strassen -rec 3 -size 2048 -pin 2> /dev/null`
-save_cov "strassen.ws";
+    echo "chol.dmda"
+    STARPU_CALIBRATE=1 STARPU_SCHED="dmda" $EXAMPLEDIR/dw_cholesky -pin >>$LOGFILE 2>&1
+    save_cov "chol.dmda";
 
+    echo "chol.cpu"
+    STARPU_CALIBRATE=1 STARPU_NCUDA=0 STARPU_SCHED="dm" $EXAMPLEDIR/dw_cholesky -pin >>$LOGFILE 2>&1
+    save_cov "chol.cpu";
 
-echo "strassen.dm"
-timing=`STARPU_SCHED="dm" $EXAMPLEDIR/dw_strassen -rec 3 -size 2048 -pin 2> /dev/null`
-save_cov "strassen.dm";
+    echo "chol.gpu"
+    STARPU_CALIBRATE=1 STARPU_NCPUS=0 STARPU_SCHED="dm" $EXAMPLEDIR/dw_cholesky -pin >>$LOGFILE 2>&1
+    save_cov "chol.gpu";
 
+    echo "chol"
+    $EXAMPLE/dw_cholesky >>$LOGFILE 2>&1
+    save_cov "chol";
 
-echo "strassen.dmda"
-timing=`STARPU_SCHED="dmda" $EXAMPLEDIR/dw_strassen -rec 3 -size 2048 -pin 2> /dev/null`
-save_cov "strassen.dmda";
+    echo "heat.dm.4k.calibrate.v2"
+    STARPU_CALIBRATE=1 STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 66 -nblocks 4 -v2 -pin >>$LOGFILE 2>&1
+    save_cov "heat.dm.4k.calibrate.v2";
 
-echo "chol.dm"
-timing=`STARPU_CALIBRATE=1 STARPU_SCHED="dm" $EXAMPLEDIR/dw_cholesky -pin 2> /dev/null`
-save_cov "chol.dm";
+    echo "heat.dm.8k.calibrate.v2"
+    STARPU_CALIBRATE=1 STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 -pin >>$LOGFILE 2>&1
+    save_cov "heat.dm.8k.calibrate.v2";
 
+    echo "heat.dm.16k.calibrate.v2"
+    STARPU_CALIBRATE=1 STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 130 -nthick 130 -nblocks 16 -v2 -pin >>$LOGFILE 2>&1
+    save_cov "heat.dm.16k.calibrate.v2";
 
-echo "chol.dmda"
-timing=`STARPU_CALIBRATE=1 STARPU_SCHED="dmda" $EXAMPLEDIR/dw_cholesky -pin 2> /dev/null`
-save_cov "chol.dmda";
+    echo "heat.dm.8k.no.pin.v2"
+    STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 >>$LOGFILE 2>&1
+    save_cov "heat.dm.8k.no.pin.v2";
 
-echo "chol.cpu"
-timing=`STARPU_CALIBRATE=1 STARPU_NCUDA=0 STARPU_SCHED="dm" $EXAMPLEDIR/dw_cholesky -pin 2> /dev/null`
-save_cov "chol.cpu";
+    #echo "heat.prio.8k"
+    #STARPU_SCHED="prio" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 -pin >>$LOGFILE 2>&1
+    #save_cov "heat.prio.8k";
+    
+    echo "heat.dm.8k.v2.no.prio"
+    STARPU_SCHED="no-prio" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 >>$LOGFILE 2>&1
+    save_cov "heat.dm.8k.v2.no.prio";
 
-echo "chol.gpu"
-timing=`STARPU_CALIBRATE=1 STARPU_NCPUS=0 STARPU_SCHED="dm" $EXAMPLEDIR/dw_cholesky -pin 2> /dev/null`
-save_cov "chol.gpu";
+    echo "heat.dm.8k.v2.random"
+    STARPU_SCHED="random" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 >>$LOGFILE 2>&1
+    save_cov "heat.dm.8k.v2.random";
 
-echo "chol"
-timing=`$EXAMPLE/dw_cholesky 2> /dev/null`
-save_cov "chol";
+    echo "heat.dm.8k.v2"
+    STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 >>$LOGFILE 2>&1
+    save_cov "heat.dm.8k.v2";
 
-echo "heat.dm.4k.calibrate.v2"
-timing=`STARPU_CALIBRATE=1 STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 66 -nblocks 4 -v2 -pin 2> /dev/null`
-save_cov "heat.dm.4k.calibrate.v2";
+    echo "heat.dm.16k.v2"
+    STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 130 -nthick 130 -nblocks 16 -pin -v2 >>$LOGFILE 2>&1
+    save_cov "heat.dm.16k.v2";
 
+    #echo "heat.ws.8k.v2"
+    #STARPU_SCHED="ws" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 >>$LOGFILE 2>&1
+    #save_cov "heat.ws.8k.v2";
+    
+    echo "heat.greedy.8k.v2"
+    STARPU_SCHED="greedy" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 >>$LOGFILE 2>&1
+    save_cov "heat.greedy.8k.v2";
 
-echo "heat.dm.8k.calibrate.v2"
-timing=`STARPU_CALIBRATE=1 STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 -pin 2> /dev/null`
-save_cov "heat.dm.8k.calibrate.v2";
+    echo "heat.8k.cg"
+    $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 -cg >>$LOGFILE 2>&1
+    save_cov "heat.8k.cg";
 
-echo "heat.dm.16k.calibrate.v2"
-timing=`STARPU_CALIBRATE=1 STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 130 -nthick 130 -nblocks 16 -v2 -pin 2> /dev/null`
-save_cov "heat.dm.16k.calibrate.v2";
+    echo "heat.dm.8k.cg"
+    STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 -cg >>$LOGFILE 2>&1
+    save_cov "heat.dm.8k.cg";
 
-echo "heat.dm.8k.no.pin.v2"
-timing=`STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 2> /dev/null`
-save_cov "heat.dm.8k.no.pin.v2";
+    #echo "heat.dm.8k.v3"
+    #STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v3 >>$LOGFILE 2>&1
+    #save_cov "heat.dm.8k.v3";
+    
+    echo "mult.dm.common"
+    STARPU_SCHED="dm" $EXAMPLEDIR/dw_mult -nblocks 4 -x 4096 -y 4096 -z 1024 -pin -common-model >>$LOGFILE 2>&1
+    save_cov "mult.dm.common";
 
-echo "heat.prio.8k"
-timing=`STARPU_SCHED="prio" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 -pin 2> /dev/null`
-save_cov "heat.prio.8k";
+    echo "mult.dm"
+    STARPU_CALIBRATE=1 STARPU_SCHED="dm" $EXAMPLEDIR/dw_mult -nblocks 8 -x 8192 -y 8192 -z 8192 -pin >>$LOGFILE 2>&1
+    save_cov "mult.dm";
 
-echo "heat.dm.8k.v2.no.prio"
-timing=`STARPU_SCHED="no-prio" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> /dev/null`
-save_cov "heat.dm.8k.v2.no.prio";
-
-echo "heat.dm.8k.v2.random"
-timing=`STARPU_SCHED="random" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> /dev/null`
-save_cov "heat.dm.8k.v2.random";
-
-echo "heat.dm.8k.v2"
-timing=`STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> /dev/null`
-save_cov "heat.dm.8k.v2";
-
-echo "heat.dm.16k.v2"
-timing=`STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 130 -nthick 130 -nblocks 16 -pin -v2 2> /dev/null`
-save_cov "heat.dm.16k.v2";
-
-echo "heat.ws.8k.v2"
-timing=`STARPU_SCHED="ws" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> /dev/null`
-save_cov "heat.ws.8k.v2";
-
-echo "heat.greedy.8k.v2"
-timing=`STARPU_SCHED="greedy" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> /dev/null`
-save_cov "heat.greedy.8k.v2";
-
-echo "heat.8k.cg"
-timing=`$EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 -cg 2> /dev/null`
-save_cov "heat.8k.cg";
-
-
-echo "heat.dm.8k.cg"
-timing=`STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 -cg 2> /dev/null`
-save_cov "heat.dm.8k.cg";
-
-echo "heat.dm.8k.v3"
-timing=`STARPU_SCHED="dm" $EXAMPLEDIR/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v3 2> /dev/null`
-save_cov "heat.dm.8k.v3";
-
-echo "mult.dm.common"
-timing=`STARPU_SCHED="dm" $EXAMPLEDIR/dw_mult -nblocks 4 -x 4096 -y 4096 -z 1024 -pin -common-model 2> /dev/null`
-save_cov "mult.dm.common";
-
-echo "mult.dm"
-timing=`STARPU_CALIBRATE=1 STARPU_SCHED="dm" $EXAMPLEDIR/dw_mult -nblocks 8 -x 8192 -y 8192 -z 8192 -pin 2> /dev/null`
-save_cov "mult.dm";
-
-echo "mult.dmda"
-timing=`STARPU_CALIBRATE=1 STARPU_SCHED="dmda" $EXAMPLEDIR/dw_mult -nblocks 8 -x 8192 -y 8192 -z 8192 -pin 2> /dev/null`
-save_cov "mult.dmda";
-
-
+    echo "mult.dmda"
+    STARPU_CALIBRATE=1 STARPU_SCHED="dmda" $EXAMPLEDIR/dw_mult -nblocks 8 -x 8192 -y 8192 -z 8192 -pin >>$LOGFILE 2>&1
+    save_cov "mult.dmda";
 }
-
-make -C ../../ distclean
-
-cd $BUILDDIR
-../../../configure --prefix=$INSTALLDIR --enable-coverage
 
 init;
 
+cd $BUILDDIR
+$ROOTDIR/configure --enable-coverage --prefix=$INSTALLDIR >>$LOGFILE 2>&1
+make clean >>$LOGFILE 2>&1
+make check
+make install -j >>$LOGFILE 2>&1
+apps;
+
+$ROOTDIR/configure --prefix=$INSTALLDIR --enable-coverage --enable-data-rw-lock
 make clean 1> /dev/null 2> /dev/null
 make check
 make install -j 1> /dev/null 2> log
-
-apps;
-
-../../../configure --prefix=$INSTALLDIR --enable-coverage --enable-data-rw-lock
-
-make check
-make install -j 1> /dev/null 2> log
-
 apps;
 
 generatehtml;
+
+echo
+echo "See $LOGFILE for detailed output"
+echo
