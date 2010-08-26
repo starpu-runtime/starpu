@@ -17,9 +17,10 @@
 
 DIR=$PWD
 ROOTDIR=$DIR/../..
-COVDIR=$PWD/coverage
-BUILDDIR=$PWD/build/
-INSTALLDIR=$PWD/local/
+WORKDIR=`mktemp -d`
+COVDIR=$WORKDIR/coverage
+BUILDDIR=$WORKDIR/build
+INSTALLDIR=$WORKDIR/local
 EXAMPLEDIR=$INSTALLDIR/lib/starpu/examples/
 LOGFILE=`mktemp`
 
