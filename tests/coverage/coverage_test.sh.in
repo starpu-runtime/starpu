@@ -15,8 +15,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-DIR=$PWD
-ROOTDIR=$DIR/../..
+ROOTDIR=@STARPU_SRC_DIR@
 WORKDIR=`mktemp -d`
 COVDIR=$WORKDIR/coverage
 BUILDDIR=$WORKDIR/build
@@ -199,5 +198,5 @@ apps;
 generatehtml;
 
 echo
-echo "See $WORKDIR and $LOGFILE for detailed output"
+echo "See directory $WORKDIR/ and file $LOGFILE for detailed output"
 echo
