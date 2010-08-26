@@ -28,26 +28,36 @@
 
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 {
-	/* wake up all queues on that node */
-	unsigned q_id;
+	/* workers may be blocked on the policy's global condition */
+	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
+	pthread_cond_t *sched_cond = &sched->sched_activity_cond;
+	pthread_mutex_t *sched_mutex = &sched->sched_activity_mutex;
+
+
+	PTHREAD_MUTEX_LOCK(sched_mutex);
+	PTHREAD_COND_BROADCAST(sched_cond);
+	PTHREAD_MUTEX_UNLOCK(sched_mutex);
+
+	/* wake up all workers on that memory node */
+	unsigned cond_id;
 
 	starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
 
-	PTHREAD_RWLOCK_RDLOCK(&descr->attached_queues_rwlock);
+	PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
-	unsigned nqueues = descr->queues_count[nodeid];
-	for (q_id = 0; q_id < nqueues; q_id++)
+	unsigned nconds = descr->condition_count[nodeid];
+	for (cond_id = 0; cond_id < nconds; cond_id++)
 	{
-		struct starpu_jobq_s *q;
-		q  = descr->attached_queues_per_node[nodeid][q_id];
+		struct _cond_and_mutex *condition;
+		condition  = &descr->conditions_attached_to_node[nodeid][cond_id];
 
-		/* wake anybody waiting on that queue */
-		PTHREAD_MUTEX_LOCK(&q->activity_mutex);
-		PTHREAD_COND_BROADCAST(&q->activity_cond);
-		PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
+		/* wake anybody waiting on that condition */
+		PTHREAD_MUTEX_LOCK(condition->mutex);
+		PTHREAD_COND_BROADCAST(condition->cond);
+		PTHREAD_MUTEX_UNLOCK(condition->mutex);
 	}
 
-	PTHREAD_RWLOCK_UNLOCK(&descr->attached_queues_rwlock);
+	PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
 }
 
 void starpu_wake_all_blocked_workers(void)
@@ -62,12 +72,25 @@ void starpu_wake_all_blocked_workers(void)
 	PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	/* workers may be blocked on the various queues' conditions */
-	unsigned node;
-	unsigned nnodes = _starpu_get_memory_nodes_count();
-	for (node = 0; node < nnodes; node++)
+	unsigned cond_id;
+
+	starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
+
+	PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
+
+	unsigned nconds = descr->total_condition_count;
+	for (cond_id = 0; cond_id < nconds; cond_id++)
 	{
-		_starpu_wake_all_blocked_workers_on_node(node);
+		struct _cond_and_mutex *condition;
+		condition  = &descr->conditions_all[cond_id];
+
+		/* wake anybody waiting on that condition */
+		PTHREAD_MUTEX_LOCK(condition->mutex);
+		PTHREAD_COND_BROADCAST(condition->cond);
+		PTHREAD_MUTEX_UNLOCK(condition->mutex);
 	}
+
+	PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
 }
 
 #ifdef STARPU_USE_FXT

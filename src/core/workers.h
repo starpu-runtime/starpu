@@ -144,10 +144,6 @@ uint32_t _starpu_worker_may_execute_task(unsigned workerid, uint32_t where);
 unsigned _starpu_worker_can_block(unsigned memnode);
 void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *mutex);
 
-void _starpu_lock_all_queues_attached_to_node(unsigned node);
-void _starpu_unlock_all_queues_attached_to_node(unsigned node);
-void _starpu_broadcast_all_queues_attached_to_node(unsigned node);
-
 void _starpu_set_local_worker_key(struct starpu_worker_s *worker);
 struct starpu_worker_s *_starpu_get_local_worker_key(void);
 

@@ -40,8 +40,8 @@ void _starpu_init_memory_nodes(void)
 	_starpu_init_mem_chunk_lists();
 	_starpu_init_data_request_lists();
 
-	pthread_rwlock_init(&descr.attached_queues_rwlock, NULL);
-	descr.total_queues_count = 0;
+	pthread_rwlock_init(&descr.conditions_rwlock, NULL);
+	descr.total_condition_count = 0;
 }
 
 void _starpu_deinit_memory_nodes(void)
@@ -94,54 +94,59 @@ unsigned _starpu_register_memory_node(starpu_node_kind kind)
 	descr.nodes[nnodes-1] = kind;
 	STARPU_TRACE_NEW_MEM_NODE(nnodes-1);
 
-	/* for now, there is no queue related to that newly created node */
-	descr.queues_count[nnodes-1] = 0;
+	/* for now, there is no condition associated to that newly created node */
+	descr.condition_count[nnodes-1] = 0;
 
 	return (nnodes-1);
 }
 
 /* TODO move in a more appropriate file  !! */
-/* attach a queue to a memory node (if it's not already attached) */
-void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid)
+/* Register a condition variable associated to worker which is associated to a
+ * memory node itself. */
+void _starpu_memory_node_register_condition(pthread_cond_t *cond, pthread_mutex_t *mutex, unsigned nodeid)
 {
-	unsigned queue;
-	unsigned nqueues_total, nqueues;
+	unsigned cond_id;
+	unsigned nconds_total, nconds;
 	
-	pthread_rwlock_wrlock(&descr.attached_queues_rwlock);
+	pthread_rwlock_wrlock(&descr.conditions_rwlock);
 
 	/* we only insert the queue if it's not already in the list */
-	nqueues = descr.queues_count[nodeid];
-	for (queue = 0; queue < nqueues; queue++)
+	nconds = descr.condition_count[nodeid];
+	for (cond_id = 0; cond_id < nconds; cond_id++)
 	{
-		if (descr.attached_queues_per_node[nodeid][queue] == q)
+		if (descr.conditions_attached_to_node[nodeid][cond_id].cond == cond)
 		{
-			/* the queue is already in the list */
-			pthread_rwlock_unlock(&descr.attached_queues_rwlock);
+			STARPU_ASSERT(descr.conditions_attached_to_node[nodeid][cond_id].mutex == mutex);
+
+			/* the condition is already in the list */
+			pthread_rwlock_unlock(&descr.conditions_rwlock);
 			return;
 		}
 	}
 
 	/* it was not found locally */
-	descr.attached_queues_per_node[nodeid][nqueues] = q;
-	descr.queues_count[nodeid]++;
+	descr.conditions_attached_to_node[nodeid][cond_id].cond = cond;
+	descr.conditions_attached_to_node[nodeid][cond_id].mutex = mutex;
+	descr.condition_count[nodeid]++;
 
 	/* do we have to add it in the global list as well ? */
-	nqueues_total = descr.total_queues_count; 
-	for (queue = 0; queue < nqueues_total; queue++)
+	nconds_total = descr.total_condition_count; 
+	for (cond_id = 0; cond_id < nconds_total; cond_id++)
 	{
-		if (descr.attached_queues_all[queue] == q)
+		if (descr.conditions_all[cond_id].cond == cond)
 		{
 			/* the queue is already in the global list */
-			pthread_rwlock_unlock(&descr.attached_queues_rwlock);
+			pthread_rwlock_unlock(&descr.conditions_rwlock);
 			return;
 		}
 	} 
 
-	/* it was not in the global queue either */
-	descr.attached_queues_all[nqueues_total] = q;
-	descr.total_queues_count++;
+	/* it was not in the global list either */
+	descr.conditions_all[nconds_total].cond = cond;
+	descr.conditions_all[nconds_total].mutex = mutex;
+	descr.total_condition_count++;
 
-	pthread_rwlock_unlock(&descr.attached_queues_rwlock);
+	pthread_rwlock_unlock(&descr.conditions_rwlock);
 }
 
 unsigned starpu_worker_get_memory_node(unsigned workerid)

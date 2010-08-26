@@ -82,8 +82,12 @@ static struct starpu_worker_set_s gordon_worker_set;
 static void _starpu_init_worker_queue(struct starpu_worker_s *workerarg)
 {
 	struct starpu_jobq_s *jobq = workerarg->jobq;
+	pthread_cond_t *cond = &jobq->activity_cond;
+	pthread_mutex_t *mutex = &jobq->activity_mutex;
 
-	_starpu_memory_node_attach_queue(jobq, workerarg->memory_node);
+	unsigned memory_node = workerarg->memory_node;
+
+	_starpu_memory_node_register_condition(cond, mutex, memory_node);
 }
 
 static void _starpu_init_workers(struct starpu_machine_config_s *config)
@@ -365,79 +369,34 @@ typedef enum {
 	UNLOCK
 } queue_op;
 
-static void _starpu_operate_on_all_queues_attached_to_node(unsigned nodeid, queue_op op)
+static void _starpu_operate_on_all_conditions(queue_op op)
 {
-	unsigned q_id;
-	struct starpu_jobq_s *q;
+	unsigned cond_id;
+	struct _cond_and_mutex *condition;
 
 	starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
 
-	PTHREAD_RWLOCK_RDLOCK(&descr->attached_queues_rwlock);
+	PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
-	unsigned nqueues = descr->queues_count[nodeid];
+	unsigned nconds = descr->total_condition_count;
 
-	for (q_id = 0; q_id < nqueues; q_id++)
+	for (cond_id = 0; cond_id < nconds; cond_id++)
 	{
-		q  = descr->attached_queues_per_node[nodeid][q_id];
+		condition = &descr->conditions_all[cond_id];
 		switch (op) {
 			case BROADCAST:
-				PTHREAD_COND_BROADCAST(&q->activity_cond);
+				PTHREAD_COND_BROADCAST(condition->cond);
 				break;
 			case LOCK:
-				PTHREAD_MUTEX_LOCK(&q->activity_mutex);
+				PTHREAD_MUTEX_LOCK(condition->mutex);
 				break;
 			case UNLOCK:
-				PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
+				PTHREAD_MUTEX_UNLOCK(condition->mutex);
 				break;
 		}
 	}
 
-	PTHREAD_RWLOCK_UNLOCK(&descr->attached_queues_rwlock);
-}
-
-inline void _starpu_lock_all_queues_attached_to_node(unsigned node)
-{
-	_starpu_operate_on_all_queues_attached_to_node(node, LOCK);
-}
-
-inline void _starpu_unlock_all_queues_attached_to_node(unsigned node)
-{
-	_starpu_operate_on_all_queues_attached_to_node(node, UNLOCK);
-}
-
-inline void _starpu_broadcast_all_queues_attached_to_node(unsigned node)
-{
-	_starpu_operate_on_all_queues_attached_to_node(node, BROADCAST);
-}
-
-static void _starpu_operate_on_all_queues(queue_op op)
-{
-	unsigned q_id;
-	struct starpu_jobq_s *q;
-
-	starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
-
-	PTHREAD_RWLOCK_RDLOCK(&descr->attached_queues_rwlock);
-
-	unsigned nqueues = descr->total_queues_count;
-
-	for (q_id = 0; q_id < nqueues; q_id++)
-	{
-		q  = descr->attached_queues_all[q_id];
-		switch (op) {
-			case BROADCAST:
-				PTHREAD_COND_BROADCAST(&q->activity_cond);
-				break;
-			case LOCK:
-				PTHREAD_MUTEX_LOCK(&q->activity_mutex);
-				break;
-			case UNLOCK:
-				PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
-				break;
-		}
-	}
-
-	PTHREAD_RWLOCK_UNLOCK(&descr->attached_queues_rwlock);
+	PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
 }
 
 static void _starpu_kill_all_workers(struct starpu_machine_config_s *config)
@@ -449,17 +408,17 @@ static void _starpu_kill_all_workers(struct starpu_machine_config_s *config)
 
 	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
 
-	_starpu_operate_on_all_queues(LOCK);
+	_starpu_operate_on_all_conditions(LOCK);
 	PTHREAD_MUTEX_LOCK(&sched->sched_activity_mutex);
 	
 	/* set the flag which will tell workers to stop */
 	config->running = 0;
 
-	_starpu_operate_on_all_queues(BROADCAST);
+	_starpu_operate_on_all_conditions(BROADCAST);
 	PTHREAD_COND_BROADCAST(&sched->sched_activity_cond);
 
 	PTHREAD_MUTEX_UNLOCK(&sched->sched_activity_mutex);
-	_starpu_operate_on_all_queues(UNLOCK);
+	_starpu_operate_on_all_conditions(UNLOCK);
 }
 
 void starpu_shutdown(void)

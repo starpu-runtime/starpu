@@ -36,18 +36,28 @@ typedef starpu_node_kind starpu_memory_node_tuple;
 #define _STARPU_MEMORY_NODE_TUPLE_FIRST(tuple) (tuple & 0x0F)
 #define _STARPU_MEMORY_NODE_TUPLE_SECOND(tuple) (tuple & 0xF0)
 
+struct _cond_and_mutex {
+        pthread_cond_t *cond;
+        pthread_mutex_t *mutex;	
+};
+
 typedef struct {
 	unsigned nnodes;
 	starpu_node_kind nodes[STARPU_MAXNODES];
 
-	/* the list of queues that are attached to a given node */
 	// TODO move this 2 lists outside starpu_mem_node_descr
-	pthread_rwlock_t attached_queues_rwlock;
-	struct starpu_jobq_s *attached_queues_per_node[STARPU_MAXNODES][STARPU_NMAXWORKERS];
-	struct starpu_jobq_s *attached_queues_all[STARPU_MAXNODES*STARPU_NMAXWORKERS];
+	/* Every worker is associated to a condition variable on which the
+	 * worker waits when there is task available. It is possible that
+	 * multiple worker share the same condition variable, so we maintain a
+	 * list of all these condition variables so that we can wake up all
+	 * worker attached to a memory node that are waiting on a task. */
+	pthread_rwlock_t conditions_rwlock;
+	struct _cond_and_mutex conditions_attached_to_node[STARPU_MAXNODES][STARPU_NMAXWORKERS];
+	struct _cond_and_mutex conditions_all[STARPU_MAXNODES*STARPU_NMAXWORKERS];
 	/* the number of queues attached to each node */
-	unsigned total_queues_count;
-	unsigned queues_count[STARPU_MAXNODES];
+	unsigned total_condition_count;
+	unsigned condition_count[STARPU_MAXNODES];
+
 } starpu_mem_node_descr;
 
 void _starpu_init_memory_nodes(void);
@@ -55,7 +65,8 @@ void _starpu_deinit_memory_nodes(void);
 void _starpu_set_local_memory_node_key(unsigned *node);
 unsigned _starpu_get_local_memory_node(void);
 unsigned _starpu_register_memory_node(starpu_node_kind kind);
-void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
+//void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
+void _starpu_memory_node_register_condition(pthread_cond_t *cond, pthread_mutex_t *mutex, unsigned memory_node);
 
 starpu_node_kind _starpu_get_node_kind(uint32_t node);
 unsigned _starpu_get_memory_nodes_count(void);
