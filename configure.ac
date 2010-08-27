@@ -185,7 +185,10 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 			enable_cuda=yes
 		], cuda_dir=/usr/local/cuda/)
 
-	[ ! -d "$cuda_dir" -a -d "/c/cuda" ] && cuda_dir=/c/cuda
+	if ! test -d "$cuda_dir" && test -d "/c/cuda" ;
+        then
+                cuda_dir=/c/cuda
+        fi
 
 	if test -d "$cuda_dir/include/"; then
 		CPPFLAGS="${CPPFLAGS} -I$cuda_dir/include/ "
