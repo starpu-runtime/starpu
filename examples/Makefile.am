@@ -17,7 +17,8 @@
 LIBS = $(top_builddir)/src/libstarpu.la @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
 
-TESTS = $(check_PROGRAMS)
+TESTS	=	coverage/coverage.sh	\
+		$(check_PROGRAMS)
 
 if STARPU_HAVE_FFTW
 if STARPU_HAVE_FFTWL
@@ -46,7 +47,8 @@ EXTRA_DIST = 					\
 	basic_examples/variable_kernels_opencl_codelet.cl	\
 	matvecmult/matvecmult_kernel.cl				\
 	basic_examples/block_opencl_kernel.cl			\
-	filters/fblock_opencl_codelet.cl
+	filters/fblock_opencl_codelet.cl			\
+	coverage/coverage.sh
 
 CLEANFILES = 					\
 	gordon/null_kernel_gordon.spuelf	\
