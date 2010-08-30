@@ -344,9 +344,6 @@ AC_DEFINE_UNQUOTED(STARPU_MAXOPENCLDEVS, [$nmaxopencldev],
 AC_ARG_ENABLE(opencl, [AS_HELP_STRING([--disable-opencl],
 		[do not use OpenCL device(s)])],, [enable_opencl=maybe])
 
-case "$target" in
-*-*-mingw*|*-*-cygwin*) enable_opencl=no ;;
-esac
 if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
 	#AC_MSG_CHECKING(whether OpenCL is available)
 	AC_ARG_WITH(opencl-dir, 
@@ -371,11 +368,10 @@ if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
 	# restore it in case it's not working.
 	SAVED_LDFLAGS="${LDFLAGS}"
 
-	found_opencllib=no
 	if test -d "$opencl_dir/lib/"; then
 		LDFLAGS="${SAVED_LDFLAGS} -L$opencl_dir/lib/ "
-		AC_SEARCH_LIBS([clCreateKernel],[OpenCL],[found_opencllib=yes],[found_opencllib=no])
 	fi
+	AC_HAVE_LIBRARY([OpenCL],[],[have_valid_opencl=no])
 
 	# in case OpenCL was explicitely required, but is not available, this is an error
 	if test x$enable_opencl = xyes -a x$have_valid_opencl = no; then

@@ -21,7 +21,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 
 #include <starpu_opencl.h>
 #include <core/workers.h>
