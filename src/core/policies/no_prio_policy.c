@@ -27,7 +27,8 @@ static struct starpu_jobq_s *jobq;
 static pthread_cond_t sched_cond;
 static pthread_mutex_t sched_mutex;
 
-static void init_no_prio_design(void)
+static void initialize_no_prio_policy(struct starpu_machine_config_s *config, 
+	   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
 	/* there is only a single queue in that trivial design */
 	jobq = _starpu_create_fifo();
@@ -36,20 +37,8 @@ static void init_no_prio_design(void)
 	PTHREAD_COND_INIT(&sched_cond, NULL);
 
 	int workerid;
-	for (workerid = 0; workerid < STARPU_NMAXWORKERS; workerid++)
+	for (workerid = 0; workerid < config->nworkers; workerid++)
 		starpu_worker_set_sched_condition(workerid, &sched_cond, &sched_mutex);
-}
-
-static struct starpu_jobq_s *func_init_central_queue(void)
-{
-	/* once again, this is trivial */
-	return jobq;
-}
-
-static void initialize_no_prio_policy(struct starpu_machine_config_s *config, 
-	   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
-{
-	_starpu_setup_queues(init_no_prio_design, func_init_central_queue, config);
 }
 
 static int push_task_no_prio_policy(starpu_job_t task)

@@ -197,28 +197,10 @@ static int dmda_push_task(starpu_job_t j)
 	return _dmda_push_task(j, 0);
 }
 
-static struct starpu_jobq_s *init_dmda_fifo(void)
-{
-	struct starpu_jobq_s *q;
-
-	q = _starpu_create_fifo();
-
-	int workerid = nworkers++;
-
-	queue_array[workerid] = q;
-
-	PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
-	PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
-
-	starpu_worker_set_sched_condition(workerid, &sched_cond[workerid], &sched_mutex[workerid]);
-
-	return q;
-}
-
 static void initialize_dmda_policy(struct starpu_machine_config_s *config, 
 	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
-	nworkers = 0;
+	nworkers = config->nworkers;
 
 	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
 	if (strval_alpha)
@@ -228,13 +210,24 @@ static void initialize_dmda_policy(struct starpu_machine_config_s *config,
 	if (strval_beta)
 		beta = atof(strval_beta);
 
-	_starpu_setup_queues(NULL, init_dmda_fifo, config);
+	unsigned workerid;
+	for (workerid = 0; workerid < nworkers; workerid++)
+	{
+		queue_array[workerid] = _starpu_create_fifo();
+	
+		PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
+		PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
+	
+		starpu_worker_set_sched_condition(workerid, &sched_cond[workerid], &sched_mutex[workerid]);
+	}
 }
 
 static void deinitialize_dmda_policy(struct starpu_machine_config_s *config, 
 	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
-	_starpu_deinit_queues(NULL, _starpu_destroy_fifo, config);
+	unsigned workerid;
+	for (workerid = 0; workerid < config->nworkers; workerid++)
+		_starpu_destroy_fifo(queue_array[workerid]);
 }
 
 struct starpu_sched_policy_s _starpu_sched_dmda_policy = {

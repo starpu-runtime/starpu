@@ -36,12 +36,12 @@ static void initialize_eager_center_policy(struct starpu_machine_config_s *confi
 	PTHREAD_MUTEX_INIT(&sched_mutex, NULL);
 	PTHREAD_COND_INIT(&sched_cond, NULL);
 
-	int workerid;
-	for (workerid = 0; workerid < STARPU_NMAXWORKERS; workerid++)
+	unsigned workerid;
+	for (workerid = 0; workerid < config->nworkers; workerid++)
 		starpu_worker_set_sched_condition(workerid, &sched_cond, &sched_mutex);
 }
 
-static void deinitialize_eager_center_policy(struct starpu_machine_config_s *config, 
+static void deinitialize_eager_center_policy(__attribute__ ((unused)) struct starpu_machine_config_s *config, 
 		   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
 	/* TODO check that there is no task left in the queue */

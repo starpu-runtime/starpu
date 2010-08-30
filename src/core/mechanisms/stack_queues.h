@@ -17,6 +17,8 @@
 #ifndef __STACK_QUEUES_H__
 #define __STACK_QUEUES_H__
 
+#include <starpu.h>
+#include <common/config.h>
 #include <core/mechanisms/queues.h>
 
 struct starpu_stack_jobq_s {

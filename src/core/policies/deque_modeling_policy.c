@@ -165,36 +165,31 @@ static int dm_push_task(starpu_job_t j)
 	return _dm_push_task(j, 0);
 }
 
-static struct starpu_jobq_s *init_dm_fifo(void)
+static void init_dm_fifo(void)
 {
-	struct starpu_jobq_s *q;
-
-	q = _starpu_create_fifo();
-
-	int workerid = nworkers++;
-
-	queue_array[workerid] = q;
-
-	PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
-	PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
-
-	starpu_worker_set_sched_condition(workerid, &sched_cond[workerid], &sched_mutex[workerid]);
-
-	return q;
 }
 
 static void initialize_dm_policy(struct starpu_machine_config_s *config, 
 	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
-	nworkers = 0;
-
-	_starpu_setup_queues(NULL, init_dm_fifo, config);
+	int workerid;
+	for (workerid = 0; workerid < config->nworkers; workerid++)
+	{
+		queue_array[workerid] = _starpu_create_fifo();
+	
+		PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
+		PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
+	
+		starpu_worker_set_sched_condition(workerid, &sched_cond[workerid], &sched_mutex[workerid]);
+	}
 }
 
 static void deinitialize_dm_policy(struct starpu_machine_config_s *config, 
 	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
-	_starpu_deinit_queues(NULL, _starpu_destroy_fifo, config);
+	int worker;
+	for (worker = 0; worker < config->nworkers; worker++)
+		_starpu_destroy_fifo(queue_array[worker]);
 }
 
 struct starpu_sched_policy_s _starpu_sched_dm_policy = {

@@ -19,14 +19,6 @@
 #include <errno.h>
 #include <common/utils.h>
 
-void _starpu_init_deque_queues_mechanisms(void)
-{
-}
-
-void _starpu_deinit_deque_queues_mechanisms(void)
-{
-}
-
 struct starpu_jobq_s *_starpu_create_deque(void)
 {
 	struct starpu_jobq_s *jobq;

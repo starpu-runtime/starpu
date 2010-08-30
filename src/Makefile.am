@@ -130,7 +130,6 @@ libstarpu_la_SOURCES = 						\
 	core/dependencies/task_deps.c				\
 	core/dependencies/htable.c				\
 	core/dependencies/data_concurrency.c			\
-	core/mechanisms/queues.c				\
 	core/mechanisms/stack_queues.c				\
 	core/mechanisms/deque_queues.c				\
 	core/mechanisms/priority_queues.c			\

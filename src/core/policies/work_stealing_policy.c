@@ -188,21 +188,10 @@ int ws_push_task(starpu_job_t task)
         return 0;
 }
 
-static struct starpu_jobq_s *init_ws_deque(void)
-{
-	struct starpu_jobq_s *q;
-
-	q = _starpu_create_deque();
-
-	queue_array[nworkers++] = q;
-
-	return q;
-}
-
 static void initialize_ws_policy(struct starpu_machine_config_s *config, 
 				__attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
-	nworkers = 0;
+	nworkers = config->nworkers;
 	rr_worker = 0;
 
 	//machineconfig = config;
@@ -211,10 +200,11 @@ static void initialize_ws_policy(struct starpu_machine_config_s *config,
 	PTHREAD_COND_INIT(&global_sched_cond, NULL);
 
 	int workerid;
-	for (workerid = 0; workerid < STARPU_NMAXWORKERS; workerid++)
+	for (workerid = 0; workerid < nworkers; workerid++)
+	{
+		queue_array[workerid] = _starpu_create_deque();
 		starpu_worker_set_sched_condition(workerid, &global_sched_cond, &global_sched_mutex);
-
-	_starpu_setup_queues(_starpu_init_deque_queues_mechanisms, init_ws_deque, config);
+	}
 }
 
 struct starpu_sched_policy_s _starpu_sched_ws_policy = {

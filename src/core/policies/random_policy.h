@@ -18,7 +18,6 @@
 #define __RANDOM_POLICY_H__
 
 #include <core/workers.h>
-#include <core/mechanisms/queues.h>
 #include <core/mechanisms/fifo_queues.h>
 
 extern struct starpu_sched_policy_s _starpu_sched_random_policy;

@@ -17,6 +17,8 @@
 #ifndef __DEQUE_QUEUES_H__
 #define __DEQUE_QUEUES_H__
 
+#include <starpu.h>
+#include <common/config.h>
 #include <core/mechanisms/queues.h>
 
 struct starpu_deque_jobq_s {
@@ -42,9 +44,6 @@ int _starpu_deque_push_task(struct starpu_jobq_s *q, starpu_job_t task);
 int _starpu_deque_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task);
 
 starpu_job_t _starpu_deque_pop_task(struct starpu_jobq_s *q);
-
-void _starpu_init_deque_queues_mechanisms(void);
-void _starpu_deinit_deque_queues_mechanisms(void);
 
 unsigned _starpu_get_deque_njobs(struct starpu_jobq_s *q);
 unsigned _starpu_get_deque_nprocessed(struct starpu_jobq_s *q);

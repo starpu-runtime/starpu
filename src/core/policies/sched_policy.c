@@ -19,7 +19,6 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/utils.h>
-#include <core/mechanisms/queues.h>
 #include <core/policies/sched_policy.h>
 #include <core/policies/no_prio_policy.h>
 #include <core/policies/eager_central_policy.h>

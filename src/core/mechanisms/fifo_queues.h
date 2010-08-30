@@ -17,6 +17,8 @@
 #ifndef __FIFO_QUEUES_H__
 #define __FIFO_QUEUES_H__
 
+#include <starpu.h>
+#include <common/config.h>
 #include <core/mechanisms/queues.h>
 
 struct starpu_fifo_jobq_s {

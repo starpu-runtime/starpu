@@ -83,32 +83,23 @@ static int random_push_task(starpu_job_t task)
 	return _random_push_task(task, 0);
 }
 
-static struct starpu_jobq_s *init_random_fifo(void)
-{
-	struct starpu_jobq_s *q;
-
-	q = _starpu_create_fifo();
-
-	int workerid = nworkers++;
-
-	queue_array[workerid] = q;
-
-	PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
-	PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
-
-	starpu_worker_set_sched_condition(workerid, &sched_cond[workerid], &sched_mutex[workerid]);
-
-	return q;
-}
-
 static void initialize_random_policy(struct starpu_machine_config_s *config, 
 	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
-	nworkers = 0;
-
 	starpu_srand48(time(NULL));
 
-	_starpu_setup_queues(NULL, init_random_fifo, config);
+	nworkers = config->nworkers;
+
+	int workerid;
+	for (workerid = 0; workerid < nworkers; workerid++)
+	{
+		queue_array[workerid] = _starpu_create_fifo();
+	
+		PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
+		PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
+	
+		starpu_worker_set_sched_condition(workerid, &sched_cond[workerid], &sched_mutex[workerid]);
+	}
 }
 
 struct starpu_sched_policy_s _starpu_sched_random_policy = {

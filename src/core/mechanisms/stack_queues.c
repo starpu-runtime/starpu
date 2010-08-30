@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <pthread.h>
+#include <starpu.h>
 #include <core/mechanisms/stack_queues.h>
 #include <errno.h>
 #include <common/utils.h>
