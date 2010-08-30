@@ -69,7 +69,6 @@ noinst_HEADERS = 						\
 	core/mechanisms/priority_queues.h			\
 	core/mechanisms/fifo_queues.h				\
 	core/mechanisms/deque_queues.h				\
-	core/mechanisms/queues.h				\
 	core/mechanisms/stack_queues.h				\
 	core/perfmodel/perfmodel.h				\
 	core/perfmodel/regression.h				\

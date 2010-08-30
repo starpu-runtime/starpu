@@ -22,7 +22,7 @@
  */
 
 /* the former is the actual queue, the latter some container */
-static struct starpu_jobq_s *jobq;
+static struct starpu_fifo_jobq_s *fifo;
 
 static pthread_cond_t sched_cond;
 static pthread_mutex_t sched_mutex;
@@ -31,7 +31,7 @@ static void initialize_eager_center_policy(struct starpu_machine_config_s *confi
 		   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
 	/* there is only a single queue in that trivial design */
-	jobq = _starpu_create_fifo();
+	fifo = _starpu_create_fifo();
 
 	PTHREAD_MUTEX_INIT(&sched_mutex, NULL);
 	PTHREAD_COND_INIT(&sched_cond, NULL);
@@ -47,27 +47,27 @@ static void deinitialize_eager_center_policy(__attribute__ ((unused)) struct sta
 	/* TODO check that there is no task left in the queue */
 
 	/* deallocate the job queue */
-	_starpu_destroy_fifo(jobq);
+	_starpu_destroy_fifo(fifo);
 }
 
 static int push_task_eager_policy(starpu_job_t task)
 {
-	return _starpu_fifo_push_task(jobq, &sched_mutex, &sched_cond, task);
+	return _starpu_fifo_push_task(fifo, &sched_mutex, &sched_cond, task);
 }
 
 static int push_prio_task_eager_policy(starpu_job_t task)
 {
-	return _starpu_fifo_push_prio_task(jobq, &sched_mutex, &sched_cond, task);
+	return _starpu_fifo_push_prio_task(fifo, &sched_mutex, &sched_cond, task);
 }
 
 static struct starpu_job_list_s *pop_every_task_eager_policy(uint32_t where)
 {
-	return _starpu_fifo_pop_every_task(jobq, &sched_mutex, where);
+	return _starpu_fifo_pop_every_task(fifo, &sched_mutex, where);
 }
 
 static starpu_job_t pop_task_eager_policy(void)
 {
-	return _starpu_fifo_pop_task(jobq);
+	return _starpu_fifo_pop_task(fifo);
 }
 
 struct starpu_sched_policy_s _starpu_sched_eager_policy = {

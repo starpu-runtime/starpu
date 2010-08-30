@@ -19,7 +19,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
-#include <core/mechanisms/queues.h>
+#include <core/jobs.h>
 
 #define NPRIO_LEVELS	((STARPU_MAX_PRIO) - (STARPU_MIN_PRIO) + 1)
 
@@ -32,8 +32,8 @@ struct starpu_priority_jobq_s {
 	unsigned total_njobs;
 };
 
-struct starpu_jobq_s *_starpu_create_priority_jobq(void);
-void _starpu_destroy_priority_jobq(struct starpu_jobq_s *jobq);
+struct starpu_priority_jobq_s *_starpu_create_priority_jobq(void);
+void _starpu_destroy_priority_jobq(struct starpu_priority_jobq_s *priority_queue);
 
 void _starpu_init_priority_queues_mechanisms(void);
 

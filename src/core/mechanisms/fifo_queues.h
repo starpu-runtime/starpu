@@ -19,7 +19,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
-#include <core/mechanisms/queues.h>
+#include <core/jobs.h>
 
 struct starpu_fifo_jobq_s {
 	/* the actual list */
@@ -37,13 +37,13 @@ struct starpu_fifo_jobq_s {
 	double exp_len;
 };
 
-struct starpu_jobq_s *_starpu_create_fifo(void);
-void _starpu_destroy_fifo(struct starpu_jobq_s *jobq);
+struct starpu_fifo_jobq_s*_starpu_create_fifo(void);
+void _starpu_destroy_fifo(struct starpu_fifo_jobq_s *fifo);
 
-int _starpu_fifo_push_task(struct starpu_jobq_s *q, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task);
-int _starpu_fifo_push_prio_task(struct starpu_jobq_s *q, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task);
+int _starpu_fifo_push_task(struct starpu_fifo_jobq_s *fifo, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task);
+int _starpu_fifo_push_prio_task(struct starpu_fifo_jobq_s *fifo, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task);
 
-starpu_job_t _starpu_fifo_pop_task(struct starpu_jobq_s *q);
-struct starpu_job_list_s * _starpu_fifo_pop_every_task(struct starpu_jobq_s *q, pthread_mutex_t *sched_mutex, uint32_t where);
+starpu_job_t _starpu_fifo_pop_task(struct starpu_fifo_jobq_s *fifo);
+struct starpu_job_list_s * _starpu_fifo_pop_every_task(struct starpu_fifo_jobq_s *fifo, pthread_mutex_t *sched_mutex, uint32_t where);
 
 #endif // __FIFO_QUEUES_H__

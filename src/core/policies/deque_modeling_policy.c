@@ -19,7 +19,7 @@
 #include <core/perfmodel/perfmodel.h>
 
 static unsigned nworkers;
-static struct starpu_jobq_s *queue_array[STARPU_NMAXWORKERS];
+static struct starpu_fifo_jobq_s *queue_array[STARPU_NMAXWORKERS];
 
 static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
 static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
@@ -30,11 +30,10 @@ static starpu_job_t dm_pop_task(void)
 
 	int workerid = starpu_worker_get_id();
 
-	struct starpu_jobq_s *q = queue_array[workerid];
+	struct starpu_fifo_jobq_s *fifo = queue_array[workerid];
 
-	j = _starpu_fifo_pop_task(q);
+	j = _starpu_fifo_pop_task(fifo);
 	if (j) {
-		struct starpu_fifo_jobq_s *fifo = q->queue;
 		double model = j->predicted;
 	
 		fifo->exp_len -= model;
@@ -51,16 +50,15 @@ static struct starpu_job_list_s *dm_pop_every_task(uint32_t where)
 
 	int workerid = starpu_worker_get_id();
 
-	struct starpu_jobq_s *q = queue_array[workerid];
+	struct starpu_fifo_jobq_s *fifo = queue_array[workerid];
 
-	new_list = _starpu_fifo_pop_every_task(queue_array[workerid], &sched_mutex[workerid], where);
+	new_list = _starpu_fifo_pop_every_task(fifo, &sched_mutex[workerid], where);
 	if (new_list) {
 		starpu_job_itor_t i;
 		for(i = starpu_job_list_begin(new_list);
 			i != starpu_job_list_end(new_list);
 			i = starpu_job_list_next(i))
 		{
-			struct starpu_fifo_jobq_s *fifo = q->queue;
 			double model = i->predicted;
 	
 			fifo->exp_len -= model;
@@ -90,7 +88,7 @@ static int _dm_push_task(starpu_job_t j, unsigned prio)
 	{
 		double exp_end;
 		
-		fifo = queue_array[worker]->queue;
+		fifo = queue_array[worker];
 
 		fifo->exp_start = STARPU_MAX(fifo->exp_start, _starpu_timing_now());
 		fifo->exp_end = STARPU_MAX(fifo->exp_end, _starpu_timing_now());
@@ -133,7 +131,7 @@ static int _dm_push_task(starpu_job_t j, unsigned prio)
 	STARPU_ASSERT(best != -1);
 
 	/* we should now have the best worker in variable "best" */
-	fifo = queue_array[best]->queue;
+	fifo = queue_array[best];
 
 	fifo->exp_end += model_best;
 	fifo->exp_len += model_best;
@@ -165,14 +163,12 @@ static int dm_push_task(starpu_job_t j)
 	return _dm_push_task(j, 0);
 }
 
-static void init_dm_fifo(void)
-{
-}
-
 static void initialize_dm_policy(struct starpu_machine_config_s *config, 
 	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
-	int workerid;
+	nworkers = config->nworkers;
+
+	unsigned workerid;
 	for (workerid = 0; workerid < config->nworkers; workerid++)
 	{
 		queue_array[workerid] = _starpu_create_fifo();
@@ -187,7 +183,7 @@ static void initialize_dm_policy(struct starpu_machine_config_s *config,
 static void deinitialize_dm_policy(struct starpu_machine_config_s *config, 
 	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
-	int worker;
+	unsigned worker;
 	for (worker = 0; worker < config->nworkers; worker++)
 		_starpu_destroy_fifo(queue_array[worker]);
 }

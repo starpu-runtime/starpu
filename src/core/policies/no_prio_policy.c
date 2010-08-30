@@ -22,7 +22,7 @@
  */
 
 /* the former is the actual queue, the latter some container */
-static struct starpu_jobq_s *jobq;
+static struct starpu_fifo_jobq_s *fifo;
 
 static pthread_cond_t sched_cond;
 static pthread_mutex_t sched_mutex;
@@ -31,24 +31,24 @@ static void initialize_no_prio_policy(struct starpu_machine_config_s *config,
 	   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
 	/* there is only a single queue in that trivial design */
-	jobq = _starpu_create_fifo();
+	fifo = _starpu_create_fifo();
 
 	PTHREAD_MUTEX_INIT(&sched_mutex, NULL);
 	PTHREAD_COND_INIT(&sched_cond, NULL);
 
-	int workerid;
+	unsigned workerid;
 	for (workerid = 0; workerid < config->nworkers; workerid++)
 		starpu_worker_set_sched_condition(workerid, &sched_cond, &sched_mutex);
 }
 
 static int push_task_no_prio_policy(starpu_job_t task)
 {
-        return _starpu_fifo_push_task(jobq, &sched_mutex, &sched_cond, task);
+        return _starpu_fifo_push_task(fifo, &sched_mutex, &sched_cond, task);
 }
 
 static starpu_job_t pop_task_no_prio_policy(void)
 {
-	return _starpu_fifo_pop_task(jobq);
+	return _starpu_fifo_pop_task(fifo);
 }
 
 struct starpu_sched_policy_s _starpu_sched_no_prio_policy = {

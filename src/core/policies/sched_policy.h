@@ -19,7 +19,6 @@
 
 #include <starpu.h>
 #include <core/workers.h>
-#include <core/mechanisms/queues.h>
 
 struct starpu_machine_config_s;
 

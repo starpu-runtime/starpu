@@ -14,16 +14,15 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <pthread.h>
+#include <starpu.h>
+#include <common/config.h>
+#include <core/workers.h>
 #include <core/mechanisms/deque_queues.h>
 #include <errno.h>
 #include <common/utils.h>
 
-struct starpu_jobq_s *_starpu_create_deque(void)
+struct starpu_deque_jobq_s *_starpu_create_deque(void)
 {
-	struct starpu_jobq_s *jobq;
-	jobq = malloc(sizeof(struct starpu_jobq_s));
-
 	struct starpu_deque_jobq_s *deque;
 	deque = malloc(sizeof(struct starpu_deque_jobq_s));
 
@@ -36,47 +35,28 @@ struct starpu_jobq_s *_starpu_create_deque(void)
 	deque->exp_len = 0.0;
 	deque->exp_end = deque->exp_start;
 
-	jobq->queue = deque;
-
-	return jobq;
+	return deque;
 }
 
-void _starpu_destroy_deque(struct starpu_jobq_s *jobq)
+void _starpu_destroy_deque(struct starpu_deque_jobq_s *deque)
 {
-	struct starpu_deque_jobq_s *deque;
-
-	deque = jobq->queue;
-
 	starpu_job_list_delete(deque->jobq);
 	free(deque);
-
-	free(jobq);
 }
 
-unsigned _starpu_get_deque_njobs(struct starpu_jobq_s *q)
+unsigned _starpu_get_deque_njobs(struct starpu_deque_jobq_s *deque_queue)
 {
-	STARPU_ASSERT(q);
-
-	struct starpu_deque_jobq_s *deque_queue = q->queue;
-
 	return deque_queue->njobs;
 }
 
-unsigned _starpu_get_deque_nprocessed(struct starpu_jobq_s *q)
+unsigned _starpu_get_deque_nprocessed(struct starpu_deque_jobq_s *deque_queue)
 {
-	STARPU_ASSERT(q);
-
-	struct starpu_deque_jobq_s *deque_queue = q->queue;
-
 	return deque_queue->nprocessed;
 }
 
-starpu_job_t _starpu_deque_pop_task(struct starpu_jobq_s *q)
+starpu_job_t _starpu_deque_pop_task(struct starpu_deque_jobq_s *deque_queue)
 {
 	starpu_job_t j = NULL;
-
-	STARPU_ASSERT(q);
-	struct starpu_deque_jobq_s *deque_queue = q->queue;
 
 	if ((deque_queue->njobs == 0) && _starpu_machine_is_running())
 	{
@@ -97,12 +77,9 @@ starpu_job_t _starpu_deque_pop_task(struct starpu_jobq_s *q)
 	return j;
 }
 
-struct starpu_job_list_s * _starpu_deque_pop_every_task(struct starpu_jobq_s *q, pthread_mutex_t *sched_mutex, uint32_t where)
+struct starpu_job_list_s *_starpu_deque_pop_every_task(struct starpu_deque_jobq_s *deque_queue, pthread_mutex_t *sched_mutex, uint32_t where)
 {
 	struct starpu_job_list_s *new_list, *old_list;
-
-	STARPU_ASSERT(q);
-	struct starpu_deque_jobq_s *deque_queue = q->queue;
 
 	/* block until some task is available in that queue */
 	PTHREAD_MUTEX_LOCK(sched_mutex);

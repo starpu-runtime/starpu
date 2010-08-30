@@ -18,7 +18,7 @@
 #include <core/perfmodel/perfmodel.h>
 
 static unsigned nworkers;
-static struct starpu_jobq_s *queue_array[STARPU_NMAXWORKERS];
+static struct starpu_fifo_jobq_s *queue_array[STARPU_NMAXWORKERS];
 
 static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
 static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
@@ -31,11 +31,10 @@ static starpu_job_t dmda_pop_task(void)
 	struct starpu_job_s *j;
 
 	int workerid = starpu_worker_get_id();
-	struct starpu_jobq_s *q = queue_array[workerid];
+	struct starpu_fifo_jobq_s *fifo = queue_array[workerid];
 
-	j = _starpu_fifo_pop_task(q);
+	j = _starpu_fifo_pop_task(fifo);
 	if (j) {
-		struct starpu_fifo_jobq_s *fifo = q->queue;
 		double model = j->predicted;
 	
 		fifo->exp_len -= model;
@@ -84,7 +83,7 @@ static int _dmda_push_task(starpu_job_t j, unsigned prio)
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		fifo = queue_array[worker]->queue;
+		fifo = queue_array[worker];
 
 		fifo->exp_start = STARPU_MAX(fifo->exp_start, _starpu_timing_now());
 		fifo->exp_end = STARPU_MAX(fifo->exp_end, _starpu_timing_now());
@@ -122,7 +121,7 @@ static int _dmda_push_task(starpu_job_t j, unsigned prio)
 	{
 		for (worker = 0; worker < nworkers; worker++)
 		{
-			fifo = queue_array[worker]->queue;
+			fifo = queue_array[worker];
 	
 			if (!_starpu_worker_may_execute_task(worker, task->cl->where))
 			{
@@ -162,7 +161,7 @@ static int _dmda_push_task(starpu_job_t j, unsigned prio)
 	}
 
 	/* we should now have the best worker in variable "best" */
-	fifo = queue_array[best]->queue;
+	fifo = queue_array[best];
 
 	fifo->exp_end += model_best;
 	fifo->exp_len += model_best;

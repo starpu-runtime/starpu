@@ -17,7 +17,7 @@
 #include <core/policies/eager_central_priority_policy.h>
 
 /* the former is the actual queue, the latter some container */
-static struct starpu_jobq_s *jobq;
+static struct starpu_priority_jobq_s *jobq;
 
 /* keep track of the total number of jobs to be scheduled to avoid infinite 
  * polling when there are really few jobs in the overall queue */
@@ -49,8 +49,6 @@ static void deinitialize_eager_center_priority_policy(struct starpu_machine_conf
 
 static int _starpu_priority_push_task(starpu_job_t j)
 {
-	struct starpu_priority_jobq_s *queue = jobq->queue;
-
 	/* wake people waiting for a task */
 	PTHREAD_MUTEX_LOCK(&global_sched_mutex);
 
@@ -58,9 +56,9 @@ static int _starpu_priority_push_task(starpu_job_t j)
 	
 	unsigned priolevel = j->task->priority - STARPU_MIN_PRIO;
 
-	starpu_job_list_push_front(queue->jobq[priolevel], j);
-	queue->njobs[priolevel]++;
-	queue->total_njobs++;
+	starpu_job_list_push_front(jobq->jobq[priolevel], j);
+	jobq->njobs[priolevel]++;
+	jobq->total_njobs++;
 
 	PTHREAD_COND_SIGNAL(&global_sched_cond);
 	PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
@@ -72,12 +70,10 @@ static starpu_job_t _starpu_priority_pop_task(void)
 {
 	starpu_job_t j = NULL;
 
-	struct starpu_priority_jobq_s *queue = jobq->queue;
-
 	/* block until some event happens */
 	PTHREAD_MUTEX_LOCK(&global_sched_mutex);
 
-	if ((queue->total_njobs == 0) && _starpu_machine_is_running())
+	if ((jobq->total_njobs == 0) && _starpu_machine_is_running())
 	{
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 		_starpu_datawizard_progress(q->memory_node, 1);
@@ -86,15 +82,15 @@ static starpu_job_t _starpu_priority_pop_task(void)
 #endif
 	}
 
-	if (queue->total_njobs > 0)
+	if (jobq->total_njobs > 0)
 	{
 		unsigned priolevel = NPRIO_LEVELS - 1;
 		do {
-			if (queue->njobs[priolevel] > 0) {
+			if (jobq->njobs[priolevel] > 0) {
 				/* there is some task that we can grab */
-				j = starpu_job_list_pop_back(queue->jobq[priolevel]);
-				queue->njobs[priolevel]--;
-				queue->total_njobs--;
+				j = starpu_job_list_pop_back(jobq->jobq[priolevel]);
+				jobq->njobs[priolevel]--;
+				jobq->total_njobs--;
 				STARPU_TRACE_JOB_POP(j, 0);
 			}
 		} while (!j && priolevel-- > 0);

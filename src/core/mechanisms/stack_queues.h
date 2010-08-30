@@ -19,7 +19,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
-#include <core/mechanisms/queues.h>
+#include <core/jobs.h>
 
 struct starpu_stack_jobq_s {
 	/* the actual list */
@@ -37,18 +37,18 @@ struct starpu_stack_jobq_s {
 	double exp_len;
 };
 
-struct starpu_jobq_s *_starpu_create_stack(void);
+struct starpu_stack_jobq_s *_starpu_create_stack(void);
 
-void _starpu_stack_push_task(struct starpu_jobq_s *q, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task);
-void _starpu_stack_push_prio_task(struct starpu_jobq_s *q, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task);
+void _starpu_stack_push_task(struct starpu_stack_jobq_s *stack, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task);
+void _starpu_stack_push_prio_task(struct starpu_stack_jobq_s *stack, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task);
 
-starpu_job_t _starpu_stack_pop_task(struct starpu_jobq_s *q, pthread_mutex_t *sched_mutex);
+starpu_job_t _starpu_stack_pop_task(struct starpu_stack_jobq_s *stack, pthread_mutex_t *sched_mutex);
 
 void _starpu_init_stack_queues_mechanisms(void);
 
 
-unsigned _starpu_get_stack_njobs(struct starpu_jobq_s *q);
-unsigned _starpu_get_stack_nprocessed(struct starpu_jobq_s *q);
+unsigned _starpu_get_stack_njobs(struct starpu_stack_jobq_s *stack);
+unsigned _starpu_get_stack_nprocessed(struct starpu_stack_jobq_s *stack);
 
 
 #endif // __STACK_QUEUES_H__

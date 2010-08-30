@@ -17,7 +17,7 @@
 #include <core/policies/random_policy.h>
 
 static unsigned nworkers;
-static struct starpu_jobq_s *queue_array[STARPU_NMAXWORKERS];
+static struct starpu_fifo_jobq_s *queue_array[STARPU_NMAXWORKERS];
 
 static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
 static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
@@ -27,9 +27,8 @@ static starpu_job_t random_pop_task(void)
 	struct starpu_job_s *j;
 
 	int workerid = starpu_worker_get_id();
-	struct starpu_jobq_s *jobq = queue_array[workerid];
 
-	j = _starpu_fifo_pop_task(jobq);
+	j = _starpu_fifo_pop_task(queue_array[workerid]);
 
 	return j;
 }
@@ -90,7 +89,7 @@ static void initialize_random_policy(struct starpu_machine_config_s *config,
 
 	nworkers = config->nworkers;
 
-	int workerid;
+	unsigned workerid;
 	for (workerid = 0; workerid < nworkers; workerid++)
 	{
 		queue_array[workerid] = _starpu_create_fifo();

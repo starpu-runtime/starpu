@@ -18,7 +18,6 @@
 #define __DEQUE_MODELING_POLICY_H__
 
 #include <core/workers.h>
-#include <core/mechanisms/queues.h>
 #include <core/mechanisms/fifo_queues.h>
 #include <core/mechanisms/deque_queues.h>
 
