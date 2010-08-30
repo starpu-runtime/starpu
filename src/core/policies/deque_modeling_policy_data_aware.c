@@ -196,10 +196,10 @@ static int dmda_push_task(starpu_job_t j)
 	return _dmda_push_task(j, 0);
 }
 
-static void initialize_dmda_policy(struct starpu_machine_config_s *config, 
+static void initialize_dmda_policy(struct starpu_machine_topology_s *topology, 
 	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
-	nworkers = config->nworkers;
+	nworkers = topology->nworkers;
 
 	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
 	if (strval_alpha)
@@ -221,11 +221,11 @@ static void initialize_dmda_policy(struct starpu_machine_config_s *config,
 	}
 }
 
-static void deinitialize_dmda_policy(struct starpu_machine_config_s *config, 
+static void deinitialize_dmda_policy(struct starpu_machine_topology_s *topology, 
 	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
 	unsigned workerid;
-	for (workerid = 0; workerid < config->nworkers; workerid++)
+	for (workerid = 0; workerid < topology->nworkers; workerid++)
 		_starpu_destroy_fifo(queue_array[workerid]);
 }
 

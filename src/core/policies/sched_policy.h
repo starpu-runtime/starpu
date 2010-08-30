@@ -21,13 +21,14 @@
 #include <core/workers.h>
 
 struct starpu_machine_config_s;
+struct starpu_machine_topology_s;
 
 struct starpu_sched_policy_s {
 	/* create all the queues */
-	void (*init_sched)(struct starpu_machine_config_s *, struct starpu_sched_policy_s *);
+	void (*init_sched)(struct starpu_machine_topology_s *, struct starpu_sched_policy_s *);
 
 	/* cleanup method at termination */
-	void (*deinit_sched)(struct starpu_machine_config_s *, struct starpu_sched_policy_s *);
+	void (*deinit_sched)(struct starpu_machine_topology_s *, struct starpu_sched_policy_s *);
 
 	/* some methods to manipulate the previous queue */
 	int (*push_task)(starpu_job_t);

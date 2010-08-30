@@ -187,13 +187,13 @@ void _starpu_init_sched_policy(struct starpu_machine_config_s *config)
 
 	load_sched_policy(selected_policy);
 
-	policy.init_sched(config, &policy);
+	policy.init_sched(&config->topology, &policy);
 }
 
 void _starpu_deinit_sched_policy(struct starpu_machine_config_s *config)
 {
 	if (policy.deinit_sched)
-		policy.deinit_sched(config, &policy);
+		policy.deinit_sched(&config->topology, &policy);
 }
 
 /* the generic interface that call the proper underlying implementation */

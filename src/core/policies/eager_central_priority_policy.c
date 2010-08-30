@@ -24,7 +24,7 @@ static struct starpu_priority_jobq_s *jobq;
 static pthread_cond_t global_sched_cond;
 static pthread_mutex_t global_sched_mutex;
 
-static void initialize_eager_center_priority_policy(struct starpu_machine_config_s *config, 
+static void initialize_eager_center_priority_policy(struct starpu_machine_topology_s *topology, 
 			__attribute__ ((unused))	struct starpu_sched_policy_s *_policy) 
 {
 	/* only a single queue (even though there are several internaly) */
@@ -33,12 +33,12 @@ static void initialize_eager_center_priority_policy(struct starpu_machine_config
 	PTHREAD_MUTEX_INIT(&global_sched_mutex, NULL);
 	PTHREAD_COND_INIT(&global_sched_cond, NULL);
 
-	int workerid;
-	for (workerid = 0; workerid < STARPU_NMAXWORKERS; workerid++)
+	unsigned workerid;
+	for (workerid = 0; workerid < topology->nworkers; workerid++)
 		starpu_worker_set_sched_condition(workerid, &global_sched_cond, &global_sched_mutex);
 }
 
-static void deinitialize_eager_center_priority_policy(struct starpu_machine_config_s *config, 
+static void deinitialize_eager_center_priority_policy(struct starpu_machine_topology_s *topology,
 		   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
 	/* TODO check that there is no task left in the queue */

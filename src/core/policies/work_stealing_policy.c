@@ -189,13 +189,11 @@ int ws_push_task(starpu_job_t task)
         return 0;
 }
 
-static void initialize_ws_policy(struct starpu_machine_config_s *config, 
+static void initialize_ws_policy(struct starpu_machine_topology_s *topology, 
 				__attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
-	nworkers = config->nworkers;
+	nworkers = topology->nworkers;
 	rr_worker = 0;
-
-	//machineconfig = config;
 
 	PTHREAD_MUTEX_INIT(&global_sched_mutex, NULL);
 	PTHREAD_COND_INIT(&global_sched_cond, NULL);

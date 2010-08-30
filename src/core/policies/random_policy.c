@@ -82,12 +82,12 @@ static int random_push_task(starpu_job_t task)
 	return _random_push_task(task, 0);
 }
 
-static void initialize_random_policy(struct starpu_machine_config_s *config, 
+static void initialize_random_policy(struct starpu_machine_topology_s *topology, 
 	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
 	starpu_srand48(time(NULL));
 
-	nworkers = config->nworkers;
+	nworkers = topology->nworkers;
 
 	unsigned workerid;
 	for (workerid = 0; workerid < nworkers; workerid++)

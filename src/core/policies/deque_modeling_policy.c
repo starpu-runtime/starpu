@@ -70,8 +70,6 @@ static struct starpu_job_list_s *dm_pop_every_task(uint32_t where)
 	return new_list;
 }
 
-
-
 static int _dm_push_task(starpu_job_t j, unsigned prio)
 {
 	/* find the queue */
@@ -163,13 +161,13 @@ static int dm_push_task(starpu_job_t j)
 	return _dm_push_task(j, 0);
 }
 
-static void initialize_dm_policy(struct starpu_machine_config_s *config, 
+static void initialize_dm_policy(struct starpu_machine_topology_s *topology, 
 	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
-	nworkers = config->nworkers;
+	nworkers = topology->nworkers;
 
 	unsigned workerid;
-	for (workerid = 0; workerid < config->nworkers; workerid++)
+	for (workerid = 0; workerid < nworkers; workerid++)
 	{
 		queue_array[workerid] = _starpu_create_fifo();
 	
@@ -180,11 +178,11 @@ static void initialize_dm_policy(struct starpu_machine_config_s *config,
 	}
 }
 
-static void deinitialize_dm_policy(struct starpu_machine_config_s *config, 
+static void deinitialize_dm_policy(struct starpu_machine_topology_s *topology, 
 	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
 	unsigned worker;
-	for (worker = 0; worker < config->nworkers; worker++)
+	for (worker = 0; worker < nworkers; worker++)
 		_starpu_destroy_fifo(queue_array[worker]);
 }
 

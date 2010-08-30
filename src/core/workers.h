@@ -91,12 +91,11 @@ struct starpu_worker_set_s {
 	unsigned set_is_initialized;
 };
 
-struct starpu_machine_config_s {
+struct starpu_machine_topology_s {
 	unsigned nworkers;
 
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_t hwtopology;
-	int cpu_depth;
 #endif
 
 	unsigned nhwcpus;
@@ -109,16 +108,33 @@ struct starpu_machine_config_s {
 	unsigned ngordon_spus;
 
 	/* Where to bind workers ? */
-	int current_bindid;
 	unsigned workers_bindid[STARPU_NMAXWORKERS];
 	
 	/* Which GPU(s) do we use for CUDA ? */
-	int current_cuda_gpuid;
 	unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS];
 
 	/* Which GPU(s) do we use for OpenCL ? */
-	int current_opencl_gpuid;
 	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
+};
+
+
+
+struct starpu_machine_config_s {
+
+	struct starpu_machine_topology_s topology;
+
+#ifdef STARPU_HAVE_HWLOC
+	int cpu_depth;
+#endif
+
+	/* Where to bind workers ? */
+	int current_bindid;
+	
+	/* Which GPU(s) do we use for CUDA ? */
+	int current_cuda_gpuid;
+
+	/* Which GPU(s) do we use for OpenCL ? */
+	int current_opencl_gpuid;
 	
 	struct starpu_worker_s workers[STARPU_NMAXWORKERS];
 

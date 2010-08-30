@@ -27,7 +27,7 @@ static struct starpu_fifo_jobq_s *fifo;
 static pthread_cond_t sched_cond;
 static pthread_mutex_t sched_mutex;
 
-static void initialize_no_prio_policy(struct starpu_machine_config_s *config, 
+static void initialize_no_prio_policy(struct starpu_machine_topology_s *topology, 
 	   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
 	/* there is only a single queue in that trivial design */
@@ -37,7 +37,7 @@ static void initialize_no_prio_policy(struct starpu_machine_config_s *config,
 	PTHREAD_COND_INIT(&sched_cond, NULL);
 
 	unsigned workerid;
-	for (workerid = 0; workerid < config->nworkers; workerid++)
+	for (workerid = 0; workerid < topology->nworkers; workerid++)
 		starpu_worker_set_sched_condition(workerid, &sched_cond, &sched_mutex);
 }
 

@@ -95,9 +95,11 @@ static void _starpu_init_workers(struct starpu_machine_config_s *config)
 
 	pthread_key_create(&worker_key, NULL);
 
+	unsigned nworkers = config->topology.nworkers;
+
 	/* Launch workers asynchronously (except for SPUs) */
 	unsigned worker;
-	for (worker = 0; worker < config->nworkers; worker++)
+	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct starpu_worker_s *workerarg = &config->workers[worker];
 
@@ -183,7 +185,7 @@ static void _starpu_init_workers(struct starpu_machine_config_s *config)
 		}
 	}
 
-	for (worker = 0; worker < config->nworkers; worker++)
+	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct starpu_worker_s *workerarg = &config->workers[worker];
 
@@ -298,7 +300,7 @@ static void _starpu_terminate_workers(struct starpu_machine_config_s *config)
 	int status __attribute__((unused));
 	unsigned workerid;
 
-	for (workerid = 0; workerid < config->nworkers; workerid++)
+	for (workerid = 0; workerid < config->topology.nworkers; workerid++)
 	{
 		starpu_wake_all_blocked_workers();
 		
@@ -414,27 +416,27 @@ void starpu_shutdown(void)
 
 unsigned starpu_worker_get_count(void)
 {
-	return config.nworkers;
+	return config.topology.nworkers;
 }
 
 unsigned starpu_cpu_worker_get_count(void)
 {
-	return config.ncpus;
+	return config.topology.ncpus;
 }
 
 unsigned starpu_cuda_worker_get_count(void)
 {
-	return config.ncudagpus;
+	return config.topology.ncudagpus;
 }
 
 unsigned starpu_opencl_worker_get_count(void)
 {
-	return config.nopenclgpus;
+	return config.topology.nopenclgpus;
 }
 
 unsigned starpu_spu_worker_get_count(void)
 {
-	return config.ngordon_spus;
+	return config.topology.ngordon_spus;
 }
 
 /* When analyzing performance, it is useful to see what is the processing unit
