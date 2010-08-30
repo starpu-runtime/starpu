@@ -23,25 +23,6 @@
  * Centralized queue with priorities 
  */
 
-
-/* keep track of the total number of jobs to be scheduled to avoid infinite 
- * polling when there are really few jobs in the overall queue */
-static pthread_cond_t *sched_cond;
-static pthread_mutex_t *sched_mutex;
-
-void _starpu_init_priority_queues_mechanisms(void)
-{
-	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
-
-	/* to access them more easily, we keep their address in local variables */
-	sched_cond = &sched->sched_activity_cond;
-	sched_mutex = &sched->sched_activity_mutex;
-}
-
-void _starpu_deinit_priority_queues_mechanisms(void)
-{
-}
-
 struct starpu_jobq_s *_starpu_create_priority_jobq(void)
 {
 	struct starpu_jobq_s *q;
@@ -52,9 +33,6 @@ struct starpu_jobq_s *_starpu_create_priority_jobq(void)
 	
 	central_queue = malloc(sizeof(struct starpu_priority_jobq_s));
 	q->queue = central_queue;
-
-	PTHREAD_MUTEX_INIT(&q->activity_mutex, NULL);
-	PTHREAD_COND_INIT(&q->activity_cond, NULL);
 
 	central_queue->total_njobs = 0;
 
@@ -81,69 +59,4 @@ void _starpu_destroy_priority_jobq(struct starpu_jobq_s *jobq)
 	free(central_queue);
 
 	free(jobq);
-}
-
-int _starpu_priority_push_task(struct starpu_jobq_s *q, starpu_job_t j)
-{
-	STARPU_ASSERT(q);
-	struct starpu_priority_jobq_s *queue = q->queue;
-
-	/* if anyone is blocked on the entire machine, wake it up */
-	PTHREAD_MUTEX_LOCK(sched_mutex);
-	PTHREAD_COND_SIGNAL(sched_cond);
-	PTHREAD_MUTEX_UNLOCK(sched_mutex);
-
-	/* wake people waiting locally */
-	PTHREAD_MUTEX_LOCK(&q->activity_mutex);
-
-	STARPU_TRACE_JOB_PUSH(j, 1);
-	
-	unsigned priolevel = j->task->priority - STARPU_MIN_PRIO;
-
-	starpu_job_list_push_front(queue->jobq[priolevel], j);
-	queue->njobs[priolevel]++;
-	queue->total_njobs++;
-
-	PTHREAD_COND_SIGNAL(&q->activity_cond);
-	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
-
-	return 0;
-}
-
-starpu_job_t _starpu_priority_pop_task(struct starpu_jobq_s *q)
-{
-	starpu_job_t j = NULL;
-
-	STARPU_ASSERT(q);
-	struct starpu_priority_jobq_s *queue = q->queue;
-
-	/* block until some event happens */
-	PTHREAD_MUTEX_LOCK(&q->activity_mutex);
-
-	if ((queue->total_njobs == 0) && _starpu_machine_is_running())
-	{
-#ifdef STARPU_NON_BLOCKING_DRIVERS
-		_starpu_datawizard_progress(q->memory_node, 1);
-#else
-		PTHREAD_COND_WAIT(&q->activity_cond, &q->activity_mutex);
-#endif
-	}
-
-	if (queue->total_njobs > 0)
-	{
-		unsigned priolevel = NPRIO_LEVELS - 1;
-		do {
-			if (queue->njobs[priolevel] > 0) {
-				/* there is some task that we can grab */
-				j = starpu_job_list_pop_back(queue->jobq[priolevel]);
-				queue->njobs[priolevel]--;
-				queue->total_njobs--;
-				STARPU_TRACE_JOB_POP(j, 0);
-			}
-		} while (!j && priolevel-- > 0);
-	}
-
-	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
-
-	return j;
 }

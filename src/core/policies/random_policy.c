@@ -19,16 +19,22 @@
 static unsigned nworkers;
 static struct starpu_jobq_s *queue_array[STARPU_NMAXWORKERS];
 
-static starpu_job_t random_pop_task(struct starpu_jobq_s *q)
+static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
+static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
+
+static starpu_job_t random_pop_task(void)
 {
 	struct starpu_job_s *j;
 
-	j = _starpu_fifo_pop_task(q);
+	int workerid = starpu_worker_get_id();
+	struct starpu_jobq_s *jobq = queue_array[workerid];
+
+	j = _starpu_fifo_pop_task(jobq);
 
 	return j;
 }
 
-static int _random_push_task(struct starpu_jobq_s *q __attribute__ ((unused)), starpu_job_t task, unsigned prio)
+static int _random_push_task(starpu_job_t task, unsigned prio)
 {
 	/* find the queue */
 	unsigned worker;
@@ -59,22 +65,22 @@ static int _random_push_task(struct starpu_jobq_s *q __attribute__ ((unused)), s
 		alpha += worker_alpha;
 	}
 
-	/* we should now have the best worker in variable "best" */
+	/* we should now have the best worker in variable "selected" */
 	if (prio) {
-		return _starpu_fifo_push_prio_task(queue_array[selected], task);
+		return _starpu_fifo_push_prio_task(queue_array[selected], &sched_mutex[selected], &sched_cond[selected], task);
 	} else {
-		return _starpu_fifo_push_task(queue_array[selected], task);
+		return _starpu_fifo_push_task(queue_array[selected],&sched_mutex[selected], &sched_cond[selected],  task);
 	}
 }
 
-static int random_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
+static int random_push_prio_task(starpu_job_t task)
 {
-	return _random_push_task(q, task, 1);
+	return _random_push_task(task, 1);
 }
 
-static int random_push_task(struct starpu_jobq_s *q, starpu_job_t task)
+static int random_push_task(starpu_job_t task)
 {
-	return _random_push_task(q, task, 0);
+	return _random_push_task(task, 0);
 }
 
 static struct starpu_jobq_s *init_random_fifo(void)
@@ -83,7 +89,14 @@ static struct starpu_jobq_s *init_random_fifo(void)
 
 	q = _starpu_create_fifo();
 
-	queue_array[nworkers++] = q;
+	int workerid = nworkers++;
+
+	queue_array[workerid] = q;
+
+	PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
+	PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
+
+	starpu_worker_set_sched_condition(workerid, &sched_cond[workerid], &sched_mutex[workerid]);
 
 	return q;
 }
@@ -95,27 +108,12 @@ static void initialize_random_policy(struct starpu_machine_config_s *config,
 
 	starpu_srand48(time(NULL));
 
-	_starpu_setup_queues(_starpu_init_fifo_queues_mechanisms, init_random_fifo, config);
-}
-
-static struct starpu_jobq_s *get_local_queue_random(struct starpu_sched_policy_s *policy __attribute__ ((unused)))
-{
-	struct starpu_jobq_s *queue;
-	queue = pthread_getspecific(policy->local_queue_key);
-
-	if (!queue)
-	{
-		/* take one randomly as this *must* be for a push anyway XXX */
-		queue = queue_array[0];
-	}
-
-	return queue;
+	_starpu_setup_queues(NULL, init_random_fifo, config);
 }
 
 struct starpu_sched_policy_s _starpu_sched_random_policy = {
 	.init_sched = initialize_random_policy,
 	.deinit_sched = NULL,
-	.get_local_queue = get_local_queue_random,
 	.push_task = random_push_task,
 	.push_prio_task = random_push_prio_task,
 	.pop_task = random_pop_task,

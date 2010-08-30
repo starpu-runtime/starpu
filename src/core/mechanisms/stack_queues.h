@@ -37,11 +37,10 @@ struct starpu_stack_jobq_s {
 
 struct starpu_jobq_s *_starpu_create_stack(void);
 
-void _starpu_stack_push_task(struct starpu_jobq_s *q, starpu_job_t task);
+void _starpu_stack_push_task(struct starpu_jobq_s *q, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task);
+void _starpu_stack_push_prio_task(struct starpu_jobq_s *q, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task);
 
-void _starpu_stack_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task);
-
-starpu_job_t _starpu_stack_pop_task(struct starpu_jobq_s *q);
+starpu_job_t _starpu_stack_pop_task(struct starpu_jobq_s *q, pthread_mutex_t *sched_mutex);
 
 void _starpu_init_stack_queues_mechanisms(void);
 

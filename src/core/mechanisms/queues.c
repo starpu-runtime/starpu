@@ -59,38 +59,3 @@ void _starpu_deinit_queues(void (*deinit_queue_design)(void),
 	if (deinit_queue_design)
 		deinit_queue_design();
 }
-
-
-
-/* this may return NULL for an "anonymous thread" */
-struct starpu_jobq_s *_starpu_get_local_queue(void)
-{
-	struct starpu_sched_policy_s *policy = _starpu_get_sched_policy();
-
-	return pthread_getspecific(policy->local_queue_key);
-}
-
-/* XXX how to retrieve policy ? that may be given in the machine config ? */
-void _starpu_set_local_queue(struct starpu_jobq_s *jobq)
-{
-	struct starpu_sched_policy_s *policy = _starpu_get_sched_policy();
-
-	pthread_setspecific(policy->local_queue_key, jobq);
-}
-
-void _starpu_jobq_lock(struct starpu_jobq_s *jobq)
-{
-//	_starpu_check_mutex_deadlock(&jobq->activity_mutex);
-
-        PTHREAD_MUTEX_LOCK(&jobq->activity_mutex);
-}
-
-void _starpu_jobq_unlock(struct starpu_jobq_s *jobq)
-{
-	PTHREAD_MUTEX_UNLOCK(&jobq->activity_mutex);
-}
-
-int _starpu_jobq_trylock(struct starpu_jobq_s *jobq)
-{
-	return pthread_mutex_trylock(&jobq->activity_mutex);	
-}

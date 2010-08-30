@@ -28,16 +28,6 @@
 
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 {
-	/* workers may be blocked on the policy's global condition */
-	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
-	pthread_cond_t *sched_cond = &sched->sched_activity_cond;
-	pthread_mutex_t *sched_mutex = &sched->sched_activity_mutex;
-
-
-	PTHREAD_MUTEX_LOCK(sched_mutex);
-	PTHREAD_COND_BROADCAST(sched_cond);
-	PTHREAD_MUTEX_UNLOCK(sched_mutex);
-
 	/* wake up all workers on that memory node */
 	unsigned cond_id;
 
@@ -62,15 +52,6 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 
 void starpu_wake_all_blocked_workers(void)
 {
-	/* workers may be blocked on the policy's global condition */
-	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
-	pthread_cond_t *sched_cond = &sched->sched_activity_cond;
-	pthread_mutex_t *sched_mutex = &sched->sched_activity_mutex;
-
-	PTHREAD_MUTEX_LOCK(sched_mutex);
-	PTHREAD_COND_BROADCAST(sched_cond);
-	PTHREAD_MUTEX_UNLOCK(sched_mutex);
-
 	/* workers may be blocked on the various queues' conditions */
 	unsigned cond_id;
 

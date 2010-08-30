@@ -20,12 +20,18 @@
 static unsigned nworkers;
 static struct starpu_jobq_s *queue_array[STARPU_NMAXWORKERS];
 
+static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
+static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
+
 static double alpha = 1.0;
 static double beta = 1.0;
 
-static starpu_job_t dmda_pop_task(struct starpu_jobq_s *q)
+static starpu_job_t dmda_pop_task(void)
 {
 	struct starpu_job_s *j;
+
+	int workerid = starpu_worker_get_id();
+	struct starpu_jobq_s *q = queue_array[workerid];
 
 	j = _starpu_fifo_pop_task(q);
 	if (j) {
@@ -53,7 +59,7 @@ static void update_data_requests(uint32_t memory_node, struct starpu_task *task)
 	}
 }
 
-static int _dmda_push_task(struct starpu_jobq_s *q __attribute__ ((unused)) , starpu_job_t j, unsigned prio)
+static int _dmda_push_task(starpu_job_t j, unsigned prio)
 {
 	/* find the queue */
 	struct starpu_fifo_jobq_s *fifo;
@@ -172,23 +178,23 @@ static int _dmda_push_task(struct starpu_jobq_s *q __attribute__ ((unused)) , st
 		_starpu_prefetch_task_input_on_node(task, memory_node);
 
 	if (prio) {
-		return _starpu_fifo_push_prio_task(queue_array[best], j);
+		return _starpu_fifo_push_prio_task(queue_array[best], &sched_mutex[best], &sched_cond[best], j);
 	} else {
-		return _starpu_fifo_push_task(queue_array[best], j);
+		return _starpu_fifo_push_task(queue_array[best], &sched_mutex[best], &sched_cond[best], j);
 	}
 }
 
-static int dmda_push_prio_task(struct starpu_jobq_s *q, starpu_job_t j)
+static int dmda_push_prio_task(starpu_job_t j)
 {
-	return _dmda_push_task(q, j, 1);
+	return _dmda_push_task(j, 1);
 }
 
-static int dmda_push_task(struct starpu_jobq_s *q, starpu_job_t j)
+static int dmda_push_task(starpu_job_t j)
 {
 	if (j->task->priority == STARPU_MAX_PRIO)
-		return _dmda_push_task(q, j, 1);
+		return _dmda_push_task(j, 1);
 
-	return _dmda_push_task(q, j, 0);
+	return _dmda_push_task(j, 0);
 }
 
 static struct starpu_jobq_s *init_dmda_fifo(void)
@@ -197,7 +203,14 @@ static struct starpu_jobq_s *init_dmda_fifo(void)
 
 	q = _starpu_create_fifo();
 
-	queue_array[nworkers++] = q;
+	int workerid = nworkers++;
+
+	queue_array[workerid] = q;
+
+	PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
+	PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
+
+	starpu_worker_set_sched_condition(workerid, &sched_cond[workerid], &sched_mutex[workerid]);
 
 	return q;
 }
@@ -215,7 +228,7 @@ static void initialize_dmda_policy(struct starpu_machine_config_s *config,
 	if (strval_beta)
 		beta = atof(strval_beta);
 
-	_starpu_setup_queues(_starpu_init_fifo_queues_mechanisms, init_dmda_fifo, config);
+	_starpu_setup_queues(NULL, init_dmda_fifo, config);
 }
 
 static void deinitialize_dmda_policy(struct starpu_machine_config_s *config, 
@@ -224,26 +237,9 @@ static void deinitialize_dmda_policy(struct starpu_machine_config_s *config,
 	_starpu_deinit_queues(NULL, _starpu_destroy_fifo, config);
 }
 
-
-
-static struct starpu_jobq_s *get_local_queue_dmda(struct starpu_sched_policy_s *policy __attribute__ ((unused)))
-{
-	struct starpu_jobq_s *queue;
-	queue = pthread_getspecific(policy->local_queue_key);
-
-	if (!queue)
-	{
-		/* take one randomly as this *must* be for a push anyway XXX */
-		queue = queue_array[0];
-	}
-
-	return queue;
-}
-
 struct starpu_sched_policy_s _starpu_sched_dmda_policy = {
 	.init_sched = initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,
-	.get_local_queue = get_local_queue_dmda,
 	.push_task = dmda_push_task, 
 	.push_prio_task = dmda_push_prio_task, 
 	.pop_task = dmda_pop_task,

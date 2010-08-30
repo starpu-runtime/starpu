@@ -19,39 +19,18 @@
 #include <errno.h>
 #include <common/utils.h>
 
-/* keep track of the total number of jobs to be scheduled to avoid infinite 
- * polling when there are really few jobs in the overall queue */
-static unsigned total_number_of_jobs;
-
-static pthread_cond_t *sched_cond;
-static pthread_mutex_t *sched_mutex;
-
 void _starpu_init_deque_queues_mechanisms(void)
 {
-	total_number_of_jobs = 0;
-
-	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
-
-	/* to access them more easily, we keep their address in local variables */
-	sched_cond = &sched->sched_activity_cond;
-	sched_mutex = &sched->sched_activity_mutex;
 }
 
 void _starpu_deinit_deque_queues_mechanisms(void)
 {
-	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
-
-	PTHREAD_MUTEX_DESTROY(&sched->sched_activity_mutex);
-	PTHREAD_COND_DESTROY(&sched->sched_activity_cond);
 }
 
 struct starpu_jobq_s *_starpu_create_deque(void)
 {
 	struct starpu_jobq_s *jobq;
 	jobq = malloc(sizeof(struct starpu_jobq_s));
-
-	PTHREAD_MUTEX_INIT(&jobq->activity_mutex, NULL);
-	PTHREAD_COND_INIT(&jobq->activity_cond, NULL);
 
 	struct starpu_deque_jobq_s *deque;
 	deque = malloc(sizeof(struct starpu_deque_jobq_s));
@@ -82,11 +61,6 @@ void _starpu_destroy_deque(struct starpu_jobq_s *jobq)
 	free(jobq);
 }
 
-unsigned _starpu_get_total_njobs_deques(void)
-{
-	return total_number_of_jobs;
-}
-
 unsigned _starpu_get_deque_njobs(struct starpu_jobq_s *q)
 {
 	STARPU_ASSERT(q);
@@ -103,36 +77,6 @@ unsigned _starpu_get_deque_nprocessed(struct starpu_jobq_s *q)
 	struct starpu_deque_jobq_s *deque_queue = q->queue;
 
 	return deque_queue->nprocessed;
-}
-
-int _starpu_deque_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
-{
-	return _starpu_deque_push_task(q, task);
-}
-
-int _starpu_deque_push_task(struct starpu_jobq_s *q, starpu_job_t task)
-{
-	STARPU_ASSERT(q);
-	struct starpu_deque_jobq_s *deque_queue = q->queue;
-
-	/* if anyone is blocked on the entire machine, wake it up */
-	PTHREAD_MUTEX_LOCK(sched_mutex);
-	total_number_of_jobs++;
-	PTHREAD_COND_SIGNAL(sched_cond);
-	PTHREAD_MUTEX_UNLOCK(sched_mutex);
-
-	/* wake people waiting locally */
-	PTHREAD_MUTEX_LOCK(&q->activity_mutex);
-
-	STARPU_TRACE_JOB_PUSH(task, 0);
-	starpu_job_list_push_front(deque_queue->jobq, task);
-	deque_queue->njobs++;
-	deque_queue->nprocessed++;
-
-	PTHREAD_COND_SIGNAL(&q->activity_cond);
-	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
-
-	return 0;
 }
 
 starpu_job_t _starpu_deque_pop_task(struct starpu_jobq_s *q)
@@ -156,18 +100,12 @@ starpu_job_t _starpu_deque_pop_task(struct starpu_jobq_s *q)
 		deque_queue->njobs--;
 		
 		STARPU_TRACE_JOB_POP(j, 0);
-
-		/* we are sure that we got it now, so at worst, some people thought 
-		 * there remained some work and will soon discover it is not true */
-		PTHREAD_MUTEX_LOCK(sched_mutex);
-		total_number_of_jobs--;
-		PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
 	
 	return j;
 }
 
-struct starpu_job_list_s * _starpu_deque_pop_every_task(struct starpu_jobq_s *q, uint32_t where)
+struct starpu_job_list_s * _starpu_deque_pop_every_task(struct starpu_jobq_s *q, pthread_mutex_t *sched_mutex, uint32_t where)
 {
 	struct starpu_job_list_s *new_list, *old_list;
 
@@ -175,7 +113,7 @@ struct starpu_job_list_s * _starpu_deque_pop_every_task(struct starpu_jobq_s *q,
 	struct starpu_deque_jobq_s *deque_queue = q->queue;
 
 	/* block until some task is available in that queue */
-	PTHREAD_MUTEX_LOCK(&q->activity_mutex);
+	PTHREAD_MUTEX_LOCK(sched_mutex);
 
 	if (deque_queue->njobs == 0)
 	{
@@ -217,16 +155,10 @@ struct starpu_job_list_s * _starpu_deque_pop_every_task(struct starpu_jobq_s *q,
 		else
 		{
 			deque_queue->njobs -= new_list_size;
-	
-			/* we are sure that we got it now, so at worst, some people thought
-			 * there remained some work and will soon discover it is not true */
-			PTHREAD_MUTEX_LOCK(sched_mutex);
-			total_number_of_jobs -= new_list_size;
-			PTHREAD_MUTEX_UNLOCK(sched_mutex);
 		}
 	}
 	
-	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
+	PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	return new_list;
 }

@@ -34,13 +34,10 @@ struct starpu_sched_policy_s {
 	/* cleanup method at termination */
 	void (*deinit_sched)(struct starpu_machine_config_s *, struct starpu_sched_policy_s *);
 
-	/* anyone can request which queue it is associated to */
-	struct starpu_jobq_s *(*get_local_queue)(struct starpu_sched_policy_s *);
-
 	/* some methods to manipulate the previous queue */
-	int (*push_task)(struct starpu_jobq_s *, starpu_job_t);
-	int (*push_prio_task)(struct starpu_jobq_s *, starpu_job_t);
-	struct starpu_job_s* (*pop_task)(struct starpu_jobq_s *);
+	int (*push_task)(starpu_job_t);
+	int (*push_prio_task)(starpu_job_t);
+	struct starpu_job_s* (*pop_task)(void);
 
 	/* returns the number of tasks that were retrieved 
  	 * the function is reponsible for allocating the output but the driver
@@ -48,19 +45,13 @@ struct starpu_sched_policy_s {
  	 *
  	 * NB : this function is non blocking
  	 * */
-	struct starpu_job_list_s *(*pop_every_task)(struct starpu_jobq_s *, uint32_t);
+	struct starpu_job_list_s *(*pop_every_task)(uint32_t where);
 
 	/* name of the policy (optionnal) */
 	const char *policy_name;
 
 	/* description of the policy (optionnal) */
 	const char *policy_description;
-
-	/* some worker may block until some activity happens in the machine */
-	pthread_cond_t sched_activity_cond;
-	pthread_mutex_t sched_activity_mutex;
-
-	pthread_key_t local_queue_key;
 };
 
 struct starpu_sched_policy_s *_starpu_get_sched_policy(void);

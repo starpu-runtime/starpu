@@ -83,15 +83,10 @@ static void load_sched_policy(struct starpu_sched_policy_s *sched_policy)
 
 	policy.init_sched = sched_policy->init_sched;
 	policy.deinit_sched = sched_policy->deinit_sched;
-	policy.get_local_queue = sched_policy->get_local_queue;
 	policy.push_task = sched_policy->push_task;
 	policy.push_prio_task = sched_policy->push_prio_task;
 	policy.pop_task = sched_policy->pop_task;
 	policy.pop_every_task = sched_policy->pop_every_task;
-
-	PTHREAD_COND_INIT(&policy.sched_activity_cond, NULL);
-	PTHREAD_MUTEX_INIT(&policy.sched_activity_mutex, NULL);
-	pthread_key_create(&policy.local_queue_key, NULL);
 }
 
 static struct starpu_sched_policy_s *find_sched_policy_from_name(const char *policy_name)
@@ -200,17 +195,11 @@ void _starpu_deinit_sched_policy(struct starpu_machine_config_s *config)
 {
 	if (policy.deinit_sched)
 		policy.deinit_sched(config, &policy);
-
-	pthread_key_delete(policy.local_queue_key);
-	PTHREAD_MUTEX_DESTROY(&policy.sched_activity_mutex);
-	PTHREAD_COND_DESTROY(&policy.sched_activity_cond);
 }
 
 /* the generic interface that call the proper underlying implementation */
 int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 {
-	struct starpu_jobq_s *queue = policy.get_local_queue(&policy);
-
 	struct starpu_task *task = j->task;
 
 	task->status = STARPU_TASK_READY;
@@ -240,57 +229,39 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 	else {
 		STARPU_ASSERT(policy.push_task);
 
-		return policy.push_task(queue, j);
+		return policy.push_task(j);
 	}
-}
-
-struct starpu_job_s * _starpu_pop_task_from_queue(struct starpu_jobq_s *queue)
-{
-	STARPU_ASSERT(policy.pop_task);
-
-	struct starpu_job_s *j = policy.pop_task(queue);
-
-	return j;
 }
 
 struct starpu_job_s * _starpu_pop_task(void)
 {
-	struct starpu_jobq_s *queue = policy.get_local_queue(&policy);
-
-	return _starpu_pop_task_from_queue(queue);
-}
-
-struct starpu_job_list_s * _starpu_pop_every_task_from_queue(struct starpu_jobq_s *queue, uint32_t where)
-{
-	STARPU_ASSERT(policy.pop_every_task);
-
-	struct starpu_job_list_s *list = policy.pop_every_task(queue, where);
-
-	return list;
+	return policy.pop_task();
 }
 
 /* pop every task that can be executed on "where" (eg. GORDON) */
 struct starpu_job_list_s *_starpu_pop_every_task(uint32_t where)
 {
-	struct starpu_jobq_s *queue = policy.get_local_queue(&policy);
+	STARPU_ASSERT(policy.pop_every_task);
 
-	return _starpu_pop_every_task_from_queue(queue, where);
+	struct starpu_job_list_s *list = policy.pop_every_task(where);
+
+	return list;
 }
 
 void _starpu_wait_on_sched_event(void)
 {
-	struct starpu_jobq_s *q = policy.get_local_queue(&policy);
+	struct starpu_worker_s *worker = _starpu_get_local_worker_key();
 
-	PTHREAD_MUTEX_LOCK(&q->activity_mutex);
+	PTHREAD_MUTEX_LOCK(worker->sched_mutex);
 
-	_starpu_handle_all_pending_node_data_requests(_starpu_get_local_memory_node());
+	_starpu_handle_all_pending_node_data_requests(worker->memory_node);
 
 	if (_starpu_machine_is_running())
 	{
 #ifndef STARPU_NON_BLOCKING_DRIVERS
-		pthread_cond_wait(&q->activity_cond, &q->activity_mutex);
+		pthread_cond_wait(worker->sched_cond, worker->sched_mutex);
 #endif
 	}
 
-	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
+	PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
 }

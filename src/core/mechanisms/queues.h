@@ -26,10 +26,10 @@ struct starpu_jobq_s {
 	/* a pointer to some queue structure */
 	void *queue; 
 
-	/* in case workers are blocked on the queue, signaling on that 
-	  condition must unblock them, even if there is no available task */
-	pthread_cond_t activity_cond;
-	pthread_mutex_t activity_mutex;
+//	/* in case workers are blocked on the queue, signaling on that 
+//	  condition must unblock them, even if there is no available task */
+//	pthread_cond_t activity_cond;
+//	pthread_mutex_t activity_mutex;
 };
 
 struct starpu_machine_config_s;
@@ -40,13 +40,5 @@ void _starpu_setup_queues(void (*init_queue_design)(void),
 void _starpu_deinit_queues(void (*deinit_queue_design)(void),
 		  void (*func_deinit_queue)(struct starpu_jobq_s *q), 
 		  struct starpu_machine_config_s *config);
-
-
-struct starpu_jobq_s *_starpu_get_local_queue(void);
-void _starpu_set_local_queue(struct starpu_jobq_s *jobq);
-
-void _starpu_jobq_lock(struct starpu_jobq_s *jobq);
-void _starpu_jobq_unlock(struct starpu_jobq_s *jobq);
-int _starpu_jobq_trylock(struct starpu_jobq_s *jobq);
 
 #endif // __QUEUES_H__

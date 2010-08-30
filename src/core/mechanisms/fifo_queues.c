@@ -19,29 +19,10 @@
 #include <errno.h>
 #include <common/utils.h>
 
-static pthread_cond_t *sched_cond;
-static pthread_mutex_t *sched_mutex;
-
-void _starpu_init_fifo_queues_mechanisms(void)
-{
-	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
-
-	/* to access them more easily, we keep their address in local variables */
-	sched_cond = &sched->sched_activity_cond;
-	sched_mutex = &sched->sched_activity_mutex;
-}
-
-void _starpu_deinit_fifo_queues_mechanisms(void)
-{
-}
-
 struct starpu_jobq_s *_starpu_create_fifo(void)
 {
 	struct starpu_jobq_s *jobq;
 	jobq = malloc(sizeof(struct starpu_jobq_s));
-
-	PTHREAD_MUTEX_INIT(&jobq->activity_mutex, NULL);
-	PTHREAD_COND_INIT(&jobq->activity_cond, NULL);
 
 	struct starpu_fifo_jobq_s *fifo;
 	fifo = malloc(sizeof(struct starpu_fifo_jobq_s));
@@ -73,50 +54,38 @@ void _starpu_destroy_fifo(struct starpu_jobq_s *jobq)
 	free(jobq);
 }
 
-int _starpu_fifo_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task)
+int _starpu_fifo_push_prio_task(struct starpu_jobq_s *q, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task)
 {
 	STARPU_ASSERT(q);
 	struct starpu_fifo_jobq_s *fifo_queue = q->queue;
 
-	/* if anyone is blocked on the entire machine, wake it up */
 	PTHREAD_MUTEX_LOCK(sched_mutex);
-	pthread_cond_signal(sched_cond);
-	PTHREAD_MUTEX_UNLOCK(sched_mutex);
-	
-	/* wake people waiting locally */
-	PTHREAD_MUTEX_LOCK(&q->activity_mutex);
 
 	STARPU_TRACE_JOB_PUSH(task, 0);
 	starpu_job_list_push_back(fifo_queue->jobq, task);
 	fifo_queue->njobs++;
 	fifo_queue->nprocessed++;
 
-	pthread_cond_signal(&q->activity_cond);
-	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
+	pthread_cond_signal(sched_cond);
+	PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	return 0;
 }
 
-int _starpu_fifo_push_task(struct starpu_jobq_s *q, starpu_job_t task)
+int _starpu_fifo_push_task(struct starpu_jobq_s *q, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task)
 {
 	STARPU_ASSERT(q);
 	struct starpu_fifo_jobq_s *fifo_queue = q->queue;
 
-	/* if anyone is blocked on the entire machine, wake it up */
 	PTHREAD_MUTEX_LOCK(sched_mutex);
-	pthread_cond_signal(sched_cond);
-	PTHREAD_MUTEX_UNLOCK(sched_mutex);
-	
-	/* wake people waiting locally */
-	PTHREAD_MUTEX_LOCK(&q->activity_mutex);
 
 	STARPU_TRACE_JOB_PUSH(task, 0);
 	starpu_job_list_push_front(fifo_queue->jobq, task);
 	fifo_queue->njobs++;
 	fifo_queue->nprocessed++;
 
-	pthread_cond_signal(&q->activity_cond);
-	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
+	pthread_cond_signal(sched_cond);
+	PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	return 0;
 }
@@ -146,7 +115,7 @@ starpu_job_t _starpu_fifo_pop_task(struct starpu_jobq_s *q)
 }
 
 /* pop every task that can be executed on the calling driver */
-struct starpu_job_list_s * _starpu_fifo_pop_every_task(struct starpu_jobq_s *q, uint32_t where)
+struct starpu_job_list_s * _starpu_fifo_pop_every_task(struct starpu_jobq_s *q, pthread_mutex_t *sched_mutex, uint32_t where)
 {
 	struct starpu_job_list_s *new_list, *old_list;
 	unsigned size;
@@ -154,7 +123,7 @@ struct starpu_job_list_s * _starpu_fifo_pop_every_task(struct starpu_jobq_s *q, 
 	STARPU_ASSERT(q);
 	struct starpu_fifo_jobq_s *fifo_queue = q->queue;
 
-	PTHREAD_MUTEX_LOCK(&q->activity_mutex);
+	PTHREAD_MUTEX_LOCK(sched_mutex);
 
 	size = fifo_queue->njobs;
 
@@ -199,7 +168,7 @@ struct starpu_job_list_s * _starpu_fifo_pop_every_task(struct starpu_jobq_s *q, 
 		}
 	}
 
-	PTHREAD_MUTEX_UNLOCK(&q->activity_mutex);
+	PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	return new_list;
 }

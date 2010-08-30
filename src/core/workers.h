@@ -66,7 +66,10 @@ struct starpu_worker_s {
 	int workerid; /* uniquely identify the worker among all processing units types */
         pthread_cond_t ready_cond; /* indicate when the worker is ready */
 	unsigned memory_node; /* which memory node is associated that worker to ? */
+	/* TODO remove */
 	struct starpu_jobq_s *jobq; /* in which queue will that worker get/put tasks ? */
+	pthread_cond_t *sched_cond; /* condition variable used when the worker waits for tasks. */
+	pthread_mutex_t *sched_mutex; /* mutex protecting sched_cond */
 	struct starpu_job_list_s *local_jobs; /* this queue contains tasks that have been explicitely submitted to that queue */
 	pthread_mutex_t local_jobs_mutex; /* protect the local_jobs list */
 	struct starpu_worker_set_s *set; /* in case this worker belongs to a set */
@@ -156,5 +159,7 @@ void _starpu_worker_set_status(int workerid, starpu_worker_status status);
 
 /* TODO move */
 unsigned _starpu_execute_registered_progression_hooks(void);
+
+void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond, pthread_mutex_t *sched_mutex);
 
 #endif // __WORKERS_H__

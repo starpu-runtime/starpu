@@ -23,11 +23,13 @@ static unsigned nworkers;
 static unsigned rr_worker;
 static struct starpu_jobq_s *queue_array[STARPU_NMAXWORKERS];
 
+static pthread_mutex_t global_sched_mutex;
+static pthread_cond_t global_sched_cond;
+
 /* keep track of the work performed from the beginning of the algorithm to make
  * better decisions about which queue to select when stealing or deferring work
  */
 static unsigned performed_total = 0;
-//static unsigned performed_local[16];
 
 #ifdef USE_OVERLOAD
 static float overload_metric(unsigned id)
@@ -119,7 +121,6 @@ static struct starpu_jobq_s *select_victimq(void)
  * we need to select a queue where to dispose them */
 static struct starpu_jobq_s *select_workerq(void)
 {
-
 	struct starpu_jobq_s *q;
 
 	q = queue_array[rr_worker];
@@ -131,14 +132,22 @@ static struct starpu_jobq_s *select_workerq(void)
 
 #endif
 
-static starpu_job_t ws_pop_task(struct starpu_jobq_s *q)
+#warning TODO rewrite ... this will not scale at all now
+static starpu_job_t ws_pop_task(void)
 {
 	starpu_job_t j;
+
+	int workerid = starpu_worker_get_id();
+
+	struct starpu_jobq_s *q = queue_array[workerid];
+
+	PTHREAD_MUTEX_LOCK(&global_sched_mutex);
 
 	j = _starpu_deque_pop_task(q);
 	if (j) {
 		/* there was a local task */
 		performed_total++;
+		PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
 		return j;
 	}
 	
@@ -146,16 +155,37 @@ static starpu_job_t ws_pop_task(struct starpu_jobq_s *q)
 	struct starpu_jobq_s *victimq;
 	victimq = select_victimq();
 
-	if (!_starpu_jobq_trylock(victimq))
-	{
-		j = _starpu_deque_pop_task(victimq);
-		_starpu_jobq_unlock(victimq);
-
+	j = _starpu_deque_pop_task(victimq);
+	if (j) {
 		STARPU_TRACE_WORK_STEALING(q, j);
 		performed_total++;
 	}
 
+	PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
+
 	return j;
+}
+
+int ws_push_task(starpu_job_t task)
+{
+	int workerid = starpu_worker_get_id();
+
+        struct starpu_deque_jobq_s *deque_queue;
+	deque_queue = queue_array[workerid]->queue;
+
+        PTHREAD_MUTEX_LOCK(&global_sched_mutex);
+	// XXX reuse ?
+        //total_number_of_jobs++;
+
+        STARPU_TRACE_JOB_PUSH(task, 0);
+        starpu_job_list_push_front(deque_queue->jobq, task);
+        deque_queue->njobs++;
+        deque_queue->nprocessed++;
+
+        PTHREAD_COND_SIGNAL(&global_sched_cond);
+        PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
+
+        return 0;
 }
 
 static struct starpu_jobq_s *init_ws_deque(void)
@@ -177,29 +207,21 @@ static void initialize_ws_policy(struct starpu_machine_config_s *config,
 
 	//machineconfig = config;
 
+	PTHREAD_MUTEX_INIT(&global_sched_mutex, NULL);
+	PTHREAD_COND_INIT(&global_sched_cond, NULL);
+
+	int workerid;
+	for (workerid = 0; workerid < STARPU_NMAXWORKERS; workerid++)
+		starpu_worker_set_sched_condition(workerid, &global_sched_cond, &global_sched_mutex);
+
 	_starpu_setup_queues(_starpu_init_deque_queues_mechanisms, init_ws_deque, config);
-}
-
-static struct starpu_jobq_s *get_local_queue_ws(struct starpu_sched_policy_s *policy __attribute__ ((unused)))
-{
-	struct starpu_jobq_s *queue;
-	queue = pthread_getspecific(policy->local_queue_key);
-
-	if (!queue) {
-		queue = select_workerq();
-	}
-
-	STARPU_ASSERT(queue);
-
-	return queue;
 }
 
 struct starpu_sched_policy_s _starpu_sched_ws_policy = {
 	.init_sched = initialize_ws_policy,
 	.deinit_sched = NULL,
-	.get_local_queue = get_local_queue_ws,
-	.push_task = _starpu_deque_push_task,
-	.push_prio_task = _starpu_deque_push_prio_task,
+	.push_task = ws_push_task,
+	.push_prio_task = ws_push_task,
 	.pop_task = ws_pop_task,
 	.policy_name = "ws",
 	.policy_description = "work stealing"

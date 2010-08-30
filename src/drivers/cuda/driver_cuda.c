@@ -148,7 +148,6 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 void *_starpu_cuda_worker(void *arg)
 {
 	struct starpu_worker_s* args = arg;
-	struct starpu_jobq_s *jobq = args->jobq;
 
 	int devid = args->devid;
 	int workerid = args->workerid;
@@ -162,8 +161,6 @@ void *_starpu_cuda_worker(void *arg)
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
 	_starpu_set_local_memory_node_key(&memnode);
-
-	_starpu_set_local_queue(jobq);
 
 	_starpu_set_local_worker_key(args);
 
@@ -196,9 +193,6 @@ void *_starpu_cuda_worker(void *arg)
 	struct starpu_job_s * j;
 	int res;
 
-	struct starpu_sched_policy_s *policy = _starpu_get_sched_policy();
-	struct starpu_jobq_s *queue = policy->get_local_queue(policy);
-	
 	while (_starpu_machine_is_running())
 	{
 		STARPU_TRACE_START_PROGRESS(memnode);
@@ -207,7 +201,7 @@ void *_starpu_cuda_worker(void *arg)
 
 		_starpu_execute_registered_progression_hooks();
 	
-		_starpu_jobq_lock(queue);
+		PTHREAD_MUTEX_LOCK(args->sched_mutex);
 
 		/* perhaps there is some local task to be executed first */
 		j = _starpu_pop_local_task(args);
@@ -219,14 +213,14 @@ void *_starpu_cuda_worker(void *arg)
                 if (j == NULL) 
 		{
 			if (_starpu_worker_can_block(memnode))
-				_starpu_block_worker(workerid, &queue->activity_cond, &queue->activity_mutex);
+				_starpu_block_worker(workerid, args->sched_cond, args->sched_mutex);
 
-			_starpu_jobq_unlock(queue);
+			PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
 
 			continue;
 		};
 
-		_starpu_jobq_unlock(queue);
+		PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
 
 		/* can CUDA do that task ? */
 		if (!STARPU_CUDA_MAY_PERFORM(j))

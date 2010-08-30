@@ -81,9 +81,8 @@ static struct starpu_worker_set_s gordon_worker_set;
 
 static void _starpu_init_worker_queue(struct starpu_worker_s *workerarg)
 {
-	struct starpu_jobq_s *jobq = workerarg->jobq;
-	pthread_cond_t *cond = &jobq->activity_cond;
-	pthread_mutex_t *mutex = &jobq->activity_mutex;
+	pthread_cond_t *cond = workerarg->sched_cond;
+	pthread_mutex_t *mutex = workerarg->sched_mutex;
 
 	unsigned memory_node = workerarg->memory_node;
 
@@ -363,62 +362,11 @@ unsigned _starpu_worker_can_block(unsigned memnode)
 	return can_block;
 }
 
-typedef enum {
-	BROADCAST,
-	LOCK,
-	UNLOCK
-} queue_op;
-
-static void _starpu_operate_on_all_conditions(queue_op op)
-{
-	unsigned cond_id;
-	struct _cond_and_mutex *condition;
-
-	starpu_mem_node_descr * const descr = _starpu_get_memory_node_description();
-
-	PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
-
-	unsigned nconds = descr->total_condition_count;
-
-	for (cond_id = 0; cond_id < nconds; cond_id++)
-	{
-		condition = &descr->conditions_all[cond_id];
-		switch (op) {
-			case BROADCAST:
-				PTHREAD_COND_BROADCAST(condition->cond);
-				break;
-			case LOCK:
-				PTHREAD_MUTEX_LOCK(condition->mutex);
-				break;
-			case UNLOCK:
-				PTHREAD_MUTEX_UNLOCK(condition->mutex);
-				break;
-		}
-	}
-
-	PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
-}
-
 static void _starpu_kill_all_workers(struct starpu_machine_config_s *config)
 {
-	/* lock all workers and the scheduler (in the proper order) to make
-	   sure everyone will notice the termination */
-	/* WARNING: here we make the asumption that a queue is not attached to
- 	 * different memory nodes ! */
-
-	struct starpu_sched_policy_s *sched = _starpu_get_sched_policy();
-
-	_starpu_operate_on_all_conditions(LOCK);
-	PTHREAD_MUTEX_LOCK(&sched->sched_activity_mutex);
-	
 	/* set the flag which will tell workers to stop */
 	config->running = 0;
-
-	_starpu_operate_on_all_conditions(BROADCAST);
-	PTHREAD_COND_BROADCAST(&sched->sched_activity_cond);
-
-	PTHREAD_MUTEX_UNLOCK(&sched->sched_activity_mutex);
-	_starpu_operate_on_all_conditions(UNLOCK);
+	starpu_wake_all_blocked_workers();
 }
 
 void starpu_shutdown(void)
@@ -543,4 +491,10 @@ starpu_worker_status _starpu_worker_get_status(int workerid)
 void _starpu_worker_set_status(int workerid, starpu_worker_status status)
 {
 	config.workers[workerid].status = status;
+}
+
+void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond, pthread_mutex_t *sched_mutex)
+{
+	config.workers[workerid].sched_cond = sched_cond;
+	config.workers[workerid].sched_mutex = sched_mutex;
 }

@@ -24,57 +24,59 @@
 /* the former is the actual queue, the latter some container */
 static struct starpu_jobq_s *jobq;
 
-static void init_central_queue_design(void)
-{
-	/* there is only a single queue in that trivial design */
-	jobq = _starpu_create_fifo();
-
-	_starpu_init_fifo_queues_mechanisms();
-
-}
-
-static void deinit_central_queue_design(void)
-{
-	/* TODO check that there is no task left in the queue */
-	_starpu_deinit_fifo_queues_mechanisms();
-
-	/* deallocate the job queue */
-	_starpu_destroy_fifo(jobq);
-}
-
-static struct starpu_jobq_s *func_init_central_queue(void)
-{
-	/* once again, this is trivial */
-	return jobq;
-}
+static pthread_cond_t sched_cond;
+static pthread_mutex_t sched_mutex;
 
 static void initialize_eager_center_policy(struct starpu_machine_config_s *config, 
 		   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
-	_starpu_setup_queues(init_central_queue_design, func_init_central_queue, config);
+	/* there is only a single queue in that trivial design */
+	jobq = _starpu_create_fifo();
+
+	PTHREAD_MUTEX_INIT(&sched_mutex, NULL);
+	PTHREAD_COND_INIT(&sched_cond, NULL);
+
+	int workerid;
+	for (workerid = 0; workerid < STARPU_NMAXWORKERS; workerid++)
+		starpu_worker_set_sched_condition(workerid, &sched_cond, &sched_mutex);
 }
 
 static void deinitialize_eager_center_policy(struct starpu_machine_config_s *config, 
 		   __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
-	_starpu_deinit_queues(deinit_central_queue_design, NULL, config);
+	/* TODO check that there is no task left in the queue */
+
+	/* deallocate the job queue */
+	_starpu_destroy_fifo(jobq);
 }
 
-static struct starpu_jobq_s *get_local_queue_eager(struct starpu_sched_policy_s *policy 
-						__attribute__ ((unused)))
+static int push_task_eager_policy(starpu_job_t task)
 {
-	/* this is trivial for that strategy :) */
-	return jobq;
+	return _starpu_fifo_push_task(jobq, &sched_mutex, &sched_cond, task);
+}
+
+static int push_prio_task_eager_policy(starpu_job_t task)
+{
+	return _starpu_fifo_push_prio_task(jobq, &sched_mutex, &sched_cond, task);
+}
+
+static struct starpu_job_list_s *pop_every_task_eager_policy(uint32_t where)
+{
+	return _starpu_fifo_pop_every_task(jobq, &sched_mutex, where);
+}
+
+static starpu_job_t pop_task_eager_policy(void)
+{
+	return _starpu_fifo_pop_task(jobq);
 }
 
 struct starpu_sched_policy_s _starpu_sched_eager_policy = {
 	.init_sched = initialize_eager_center_policy,
 	.deinit_sched = deinitialize_eager_center_policy,
-	.get_local_queue = get_local_queue_eager,
-	.push_task = _starpu_fifo_push_task,
-	.push_prio_task = _starpu_fifo_push_prio_task,
-	.pop_task = _starpu_fifo_pop_task,
-	.pop_every_task = _starpu_fifo_pop_every_task,
+	.push_task = push_task_eager_policy,
+	.push_prio_task = push_prio_task_eager_policy,
+	.pop_task = pop_task_eager_policy,
+	.pop_every_task = pop_every_task_eager_policy,
 	.policy_name = "eager",
 	.policy_description = "greedy policy"
 };

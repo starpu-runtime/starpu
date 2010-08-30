@@ -38,13 +38,10 @@ struct starpu_fifo_jobq_s {
 struct starpu_jobq_s *_starpu_create_fifo(void);
 void _starpu_destroy_fifo(struct starpu_jobq_s *jobq);
 
-int _starpu_fifo_push_task(struct starpu_jobq_s *q, starpu_job_t task);
-int _starpu_fifo_push_prio_task(struct starpu_jobq_s *q, starpu_job_t task);
+int _starpu_fifo_push_task(struct starpu_jobq_s *q, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task);
+int _starpu_fifo_push_prio_task(struct starpu_jobq_s *q, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task);
 
 starpu_job_t _starpu_fifo_pop_task(struct starpu_jobq_s *q);
-struct starpu_job_list_s * _starpu_fifo_pop_every_task(struct starpu_jobq_s *q, uint32_t where);
-
-void _starpu_init_fifo_queues_mechanisms(void);
-void _starpu_deinit_fifo_queues_mechanisms(void);
+struct starpu_job_list_s * _starpu_fifo_pop_every_task(struct starpu_jobq_s *q, pthread_mutex_t *sched_mutex, uint32_t where);
 
 #endif // __FIFO_QUEUES_H__
