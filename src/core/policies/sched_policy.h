@@ -20,36 +20,9 @@
 #include <starpu.h>
 #include <core/workers.h>
 
+#include <starpu_scheduler.h>
+
 struct starpu_machine_config_s;
-struct starpu_machine_topology_s;
-
-struct starpu_sched_policy_s {
-	/* create all the queues */
-	void (*init_sched)(struct starpu_machine_topology_s *, struct starpu_sched_policy_s *);
-
-	/* cleanup method at termination */
-	void (*deinit_sched)(struct starpu_machine_topology_s *, struct starpu_sched_policy_s *);
-
-	/* some methods to manipulate the previous queue */
-	int (*push_task)(struct starpu_task *);
-	int (*push_prio_task)(struct starpu_task *);
-	struct starpu_task *(*pop_task)(void);
-
-	/* returns the number of tasks that were retrieved 
- 	 * the function is reponsible for allocating the output but the driver
- 	 * has to free it 
- 	 *
- 	 * NB : this function is non blocking
- 	 * */
-	struct starpu_task_list *(*pop_every_task)(uint32_t where);
-
-	/* name of the policy (optionnal) */
-	const char *policy_name;
-
-	/* description of the policy (optionnal) */
-	const char *policy_description;
-};
-
 struct starpu_sched_policy_s *_starpu_get_sched_policy(void);
 
 void _starpu_init_sched_policy(struct starpu_machine_config_s *config);

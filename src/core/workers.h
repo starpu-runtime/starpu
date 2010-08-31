@@ -18,6 +18,7 @@
 #define __WORKERS_H__
 
 #include <starpu.h>
+#include <starpu_scheduler.h>
 #include <common/config.h>
 #include <pthread.h>
 #include <common/timing.h>
@@ -90,34 +91,6 @@ struct starpu_worker_set_s {
         pthread_cond_t ready_cond; /* indicate when the set is ready */
 	unsigned set_is_initialized;
 };
-
-struct starpu_machine_topology_s {
-	unsigned nworkers;
-
-#ifdef STARPU_HAVE_HWLOC
-	hwloc_topology_t hwtopology;
-#endif
-
-	unsigned nhwcpus;
-        unsigned nhwcudagpus;
-        unsigned nhwopenclgpus;
-
-	unsigned ncpus;
-	unsigned ncudagpus;
-	unsigned nopenclgpus;
-	unsigned ngordon_spus;
-
-	/* Where to bind workers ? */
-	unsigned workers_bindid[STARPU_NMAXWORKERS];
-	
-	/* Which GPU(s) do we use for CUDA ? */
-	unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS];
-
-	/* Which GPU(s) do we use for OpenCL ? */
-	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
-};
-
-
 
 struct starpu_machine_config_s {
 
