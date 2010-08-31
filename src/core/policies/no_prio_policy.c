@@ -41,7 +41,7 @@ static void initialize_no_prio_policy(struct starpu_machine_topology_s *topology
 		starpu_worker_set_sched_condition(workerid, &sched_cond, &sched_mutex);
 }
 
-static int push_task_no_prio_policy(starpu_job_t task)
+static int push_task_no_prio_policy(struct starpu_task *task)
 {
         return _starpu_fifo_push_task(fifo, &sched_mutex, &sched_cond, task);
 }

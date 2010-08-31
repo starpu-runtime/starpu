@@ -64,11 +64,6 @@ typedef struct starpu_local_data_state_t {
 
 struct starpu_data_requester_list_s;
 
-struct starpu_task_list {
-	struct starpu_task *task;
-	struct starpu_task_list *next;
-};
-
 struct starpu_jobid_list {
 	unsigned long id;
 	struct starpu_jobid_list *next;

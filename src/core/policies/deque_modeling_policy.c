@@ -44,34 +44,34 @@ static struct starpu_task *dm_pop_task(void)
 	return task;
 }
 
-static struct starpu_job_list_s *dm_pop_every_task(uint32_t where)
+static struct starpu_task_list *dm_pop_every_task(uint32_t where)
 {
-	struct starpu_job_list_s *new_list;
+	struct starpu_task_list *new_list;
 
 	int workerid = starpu_worker_get_id();
 
 	struct starpu_fifo_jobq_s *fifo = queue_array[workerid];
 
 	new_list = _starpu_fifo_pop_every_task(fifo, &sched_mutex[workerid], where);
-	if (new_list) {
-		starpu_job_itor_t i;
-		for(i = starpu_job_list_begin(new_list);
-			i != starpu_job_list_end(new_list);
-			i = starpu_job_list_next(i))
-		{
-			double model = i->task->predicted;
+
+	while (new_list)
+	{
+		double model = new_list->task->predicted;
+
+		fifo->exp_len -= model;
+		fifo->exp_start = _starpu_timing_now() + model;
+		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 	
-			fifo->exp_len -= model;
-			fifo->exp_start = _starpu_timing_now() + model;
-			fifo->exp_end = fifo->exp_start + fifo->exp_len;
-		}
+		new_list = new_list->next;
 	}
 
 	return new_list;
 }
 
-static int _dm_push_task(starpu_job_t j, unsigned prio)
+static int _dm_push_task(struct starpu_task *task, unsigned prio)
 {
+	starpu_job_t j = _starpu_get_job_associated_to_task(task);
+
 	/* find the queue */
 	struct starpu_fifo_jobq_s *fifo;
 	unsigned worker;
@@ -79,8 +79,6 @@ static int _dm_push_task(starpu_job_t j, unsigned prio)
 
 	double best_exp_end = 0.0;
 	double model_best = 0.0;
-
-	struct starpu_task *task = j->task;
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
@@ -134,7 +132,7 @@ static int _dm_push_task(starpu_job_t j, unsigned prio)
 	fifo->exp_end += model_best;
 	fifo->exp_len += model_best;
 
-	j->task->predicted = model_best;
+	task->predicted = model_best;
 
 	unsigned memory_node = starpu_worker_get_memory_node(best);
 
@@ -142,23 +140,23 @@ static int _dm_push_task(starpu_job_t j, unsigned prio)
 		_starpu_prefetch_task_input_on_node(task, memory_node);
 
 	if (prio) {
-		return _starpu_fifo_push_prio_task(queue_array[best], &sched_mutex[best], &sched_cond[best], j);
+		return _starpu_fifo_push_prio_task(queue_array[best], &sched_mutex[best], &sched_cond[best], task);
 	} else {
-		return _starpu_fifo_push_task(queue_array[best], &sched_mutex[best], &sched_cond[best], j);
+		return _starpu_fifo_push_task(queue_array[best], &sched_mutex[best], &sched_cond[best], task);
 	}
 }
 
-static int dm_push_prio_task(starpu_job_t j)
+static int dm_push_prio_task(struct starpu_task *task)
 {
-	return _dm_push_task(j, 1);
+	return _dm_push_task(task, 1);
 }
 
-static int dm_push_task(starpu_job_t j)
+static int dm_push_task(struct starpu_task *task)
 {
-	if (j->task->priority == STARPU_MAX_PRIO)
-		return _dm_push_task(j, 1);
+	if (task->priority == STARPU_MAX_PRIO)
+		return _dm_push_task(task, 1);
 
-	return _dm_push_task(j, 0);
+	return _dm_push_task(task, 0);
 }
 
 static void initialize_dm_policy(struct starpu_machine_topology_s *topology, 

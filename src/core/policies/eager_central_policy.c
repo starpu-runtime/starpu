@@ -50,17 +50,17 @@ static void deinitialize_eager_center_policy(__attribute__ ((unused)) struct sta
 	_starpu_destroy_fifo(fifo);
 }
 
-static int push_task_eager_policy(starpu_job_t task)
+static int push_task_eager_policy(struct starpu_task *task)
 {
 	return _starpu_fifo_push_task(fifo, &sched_mutex, &sched_cond, task);
 }
 
-static int push_prio_task_eager_policy(starpu_job_t task)
+static int push_prio_task_eager_policy(struct starpu_task *task)
 {
 	return _starpu_fifo_push_prio_task(fifo, &sched_mutex, &sched_cond, task);
 }
 
-static struct starpu_job_list_s *pop_every_task_eager_policy(uint32_t where)
+static struct starpu_task_list *pop_every_task_eager_policy(uint32_t where)
 {
 	return _starpu_fifo_pop_every_task(fifo, &sched_mutex, where);
 }

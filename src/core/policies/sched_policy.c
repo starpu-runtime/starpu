@@ -228,7 +228,7 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 	else {
 		STARPU_ASSERT(policy.push_task);
 
-		return policy.push_task(j);
+		return policy.push_task(task);
 	}
 }
 
@@ -238,11 +238,11 @@ struct starpu_task *_starpu_pop_task(void)
 }
 
 /* pop every task that can be executed on "where" (eg. GORDON) */
-struct starpu_job_list_s *_starpu_pop_every_task(uint32_t where)
+struct starpu_task_list *_starpu_pop_every_task(uint32_t where)
 {
 	STARPU_ASSERT(policy.pop_every_task);
 
-	struct starpu_job_list_s *list = policy.pop_every_task(where);
+	struct starpu_task_list *list = policy.pop_every_task(where);
 
 	return list;
 }

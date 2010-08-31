@@ -58,8 +58,10 @@ static void update_data_requests(uint32_t memory_node, struct starpu_task *task)
 	}
 }
 
-static int _dmda_push_task(starpu_job_t j, unsigned prio)
+static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 {
+	starpu_job_t j = _starpu_get_job_associated_to_task(task);
+
 	/* find the queue */
 	struct starpu_fifo_jobq_s *fifo;
 	unsigned worker;
@@ -78,8 +80,6 @@ static int _dmda_push_task(starpu_job_t j, unsigned prio)
 	double best_exp_end = 10e240;
 	double model_best = 0.0;
 	double penality_best = 0.0;
-
-	struct starpu_task *task = j->task;
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
@@ -166,7 +166,7 @@ static int _dmda_push_task(starpu_job_t j, unsigned prio)
 	fifo->exp_end += model_best;
 	fifo->exp_len += model_best;
 
-	j->task->predicted = model_best;
+	task->predicted = model_best;
 
 	unsigned memory_node = starpu_worker_get_memory_node(best);
 
@@ -176,23 +176,23 @@ static int _dmda_push_task(starpu_job_t j, unsigned prio)
 		_starpu_prefetch_task_input_on_node(task, memory_node);
 
 	if (prio) {
-		return _starpu_fifo_push_prio_task(queue_array[best], &sched_mutex[best], &sched_cond[best], j);
+		return _starpu_fifo_push_prio_task(queue_array[best], &sched_mutex[best], &sched_cond[best], task);
 	} else {
-		return _starpu_fifo_push_task(queue_array[best], &sched_mutex[best], &sched_cond[best], j);
+		return _starpu_fifo_push_task(queue_array[best], &sched_mutex[best], &sched_cond[best], task);
 	}
 }
 
-static int dmda_push_prio_task(starpu_job_t j)
+static int dmda_push_prio_task(struct starpu_task *task)
 {
-	return _dmda_push_task(j, 1);
+	return _dmda_push_task(task, 1);
 }
 
-static int dmda_push_task(starpu_job_t j)
+static int dmda_push_task(struct starpu_task *task)
 {
-	if (j->task->priority == STARPU_MAX_PRIO)
-		return _dmda_push_task(j, 1);
+	if (task->priority == STARPU_MAX_PRIO)
+		return _dmda_push_task(task, 1);
 
-	return _dmda_push_task(j, 0);
+	return _dmda_push_task(task, 0);
 }
 
 static void initialize_dmda_policy(struct starpu_machine_topology_s *topology, 

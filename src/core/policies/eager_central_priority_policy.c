@@ -47,14 +47,16 @@ static void deinitialize_eager_center_priority_policy(struct starpu_machine_topo
 	_starpu_destroy_priority_jobq(jobq);
 }
 
-static int _starpu_priority_push_task(starpu_job_t j)
+static int _starpu_priority_push_task(struct starpu_task *task)
 {
+	starpu_job_t j = _starpu_get_job_associated_to_task(task);
+
 	/* wake people waiting for a task */
 	PTHREAD_MUTEX_LOCK(&global_sched_mutex);
 
-	STARPU_TRACE_JOB_PUSH(j, 1);
+	STARPU_TRACE_JOB_PUSH(task, 1);
 	
-	unsigned priolevel = j->task->priority - STARPU_MIN_PRIO;
+	unsigned priolevel = task->priority - STARPU_MIN_PRIO;
 
 	starpu_job_list_push_front(jobq->jobq[priolevel], j);
 	jobq->njobs[priolevel]++;

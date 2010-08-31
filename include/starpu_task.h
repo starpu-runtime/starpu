@@ -137,6 +137,11 @@ struct starpu_task {
 	void *starpu_private;
 };
 
+struct starpu_task_list { 
+	struct starpu_task *task;
+	struct starpu_task_list *next;
+};
+
 /* It is possible to initialize statically allocated tasks with this value.
  * This is equivalent to initializing a starpu_task structure with the
  * starpu_task_init function. */

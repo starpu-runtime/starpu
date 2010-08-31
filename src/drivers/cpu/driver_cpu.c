@@ -135,7 +135,8 @@ void *_starpu_cpu_worker(void *arg)
 		if (!j)
 		{
 			struct starpu_task *task = _starpu_pop_task();
-			j = _starpu_get_job_associated_to_task(task);
+			if (task)
+				j = _starpu_get_job_associated_to_task(task);
 		}
 		
                 if (j == NULL) 

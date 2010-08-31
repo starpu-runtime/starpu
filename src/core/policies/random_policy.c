@@ -33,7 +33,7 @@ static struct starpu_task *random_pop_task(void)
 	return task;
 }
 
-static int _random_push_task(starpu_job_t task, unsigned prio)
+static int _random_push_task(struct starpu_task *task, unsigned prio)
 {
 	/* find the queue */
 	unsigned worker;
@@ -72,12 +72,12 @@ static int _random_push_task(starpu_job_t task, unsigned prio)
 	}
 }
 
-static int random_push_prio_task(starpu_job_t task)
+static int random_push_prio_task(struct starpu_task *task)
 {
 	return _random_push_task(task, 1);
 }
 
-static int random_push_task(starpu_job_t task)
+static int random_push_task(struct starpu_task *task)
 {
 	return _random_push_task(task, 0);
 }

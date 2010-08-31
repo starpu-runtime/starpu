@@ -31,8 +31,8 @@ struct starpu_sched_policy_s {
 	void (*deinit_sched)(struct starpu_machine_topology_s *, struct starpu_sched_policy_s *);
 
 	/* some methods to manipulate the previous queue */
-	int (*push_task)(starpu_job_t);
-	int (*push_prio_task)(starpu_job_t);
+	int (*push_task)(struct starpu_task *);
+	int (*push_prio_task)(struct starpu_task *);
 	struct starpu_task *(*pop_task)(void);
 
 	/* returns the number of tasks that were retrieved 
@@ -41,7 +41,7 @@ struct starpu_sched_policy_s {
  	 *
  	 * NB : this function is non blocking
  	 * */
-	struct starpu_job_list_s *(*pop_every_task)(uint32_t where);
+	struct starpu_task_list *(*pop_every_task)(uint32_t where);
 
 	/* name of the policy (optionnal) */
 	const char *policy_name;
@@ -59,7 +59,7 @@ int _starpu_get_prefetch_flag(void);
 
 int _starpu_push_task(starpu_job_t task, unsigned job_is_already_locked);
 struct starpu_task *_starpu_pop_task(void);
-struct starpu_job_list_s *_starpu_pop_every_task(uint32_t where);
+struct starpu_task_list *_starpu_pop_every_task(uint32_t where);
 
 void _starpu_wait_on_sched_event(void);
 

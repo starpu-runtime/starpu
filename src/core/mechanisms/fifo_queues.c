@@ -18,6 +18,7 @@
 #include <core/mechanisms/fifo_queues.h>
 #include <errno.h>
 #include <common/utils.h>
+#include <core/task.h>
 
 struct starpu_fifo_jobq_s *_starpu_create_fifo(void)
 {
@@ -42,12 +43,14 @@ void _starpu_destroy_fifo(struct starpu_fifo_jobq_s *fifo)
 	free(fifo);
 }
 
-int _starpu_fifo_push_prio_task(struct starpu_fifo_jobq_s *fifo_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task)
+int _starpu_fifo_push_prio_task(struct starpu_fifo_jobq_s *fifo_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, struct starpu_task *task)
 {
+	starpu_job_t j = _starpu_get_job_associated_to_task(task);
+
 	PTHREAD_MUTEX_LOCK(sched_mutex);
 
 	STARPU_TRACE_JOB_PUSH(task, 0);
-	starpu_job_list_push_back(fifo_queue->jobq, task);
+	starpu_job_list_push_back(fifo_queue->jobq, j);
 	fifo_queue->njobs++;
 	fifo_queue->nprocessed++;
 
@@ -57,12 +60,14 @@ int _starpu_fifo_push_prio_task(struct starpu_fifo_jobq_s *fifo_queue, pthread_m
 	return 0;
 }
 
-int _starpu_fifo_push_task(struct starpu_fifo_jobq_s *fifo_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task)
+int _starpu_fifo_push_task(struct starpu_fifo_jobq_s *fifo_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, struct starpu_task *task)
 {
+	starpu_job_t j = _starpu_get_job_associated_to_task(task);
+
 	PTHREAD_MUTEX_LOCK(sched_mutex);
 
 	STARPU_TRACE_JOB_PUSH(task, 0);
-	starpu_job_list_push_front(fifo_queue->jobq, task);
+	starpu_job_list_push_front(fifo_queue->jobq, j);
 	fifo_queue->njobs++;
 	fifo_queue->nprocessed++;
 
@@ -94,22 +99,20 @@ struct starpu_task *_starpu_fifo_pop_task(struct starpu_fifo_jobq_s *fifo_queue)
 }
 
 /* pop every task that can be executed on the calling driver */
-struct starpu_job_list_s * _starpu_fifo_pop_every_task(struct starpu_fifo_jobq_s *fifo_queue, pthread_mutex_t *sched_mutex, uint32_t where)
+struct starpu_task_list *_starpu_fifo_pop_every_task(struct starpu_fifo_jobq_s *fifo_queue, pthread_mutex_t *sched_mutex, uint32_t where)
 {
-	struct starpu_job_list_s *new_list, *old_list;
+	struct starpu_job_list_s *old_list;
 	unsigned size;
+
+	struct starpu_task_list *new_list = NULL;
+	struct starpu_task_list *new_list_tail = NULL;
 	
 	PTHREAD_MUTEX_LOCK(sched_mutex);
 
 	size = fifo_queue->njobs;
 
-	if (size == 0) {
-		new_list = NULL;
-	}
-	else {
+	if (size > 0) {
 		old_list = fifo_queue->jobq;
-		new_list = starpu_job_list_new();
-
 		unsigned new_list_size = 0;
 
 		starpu_job_itor_t i;
@@ -128,20 +131,29 @@ struct starpu_job_list_s * _starpu_fifo_pop_every_task(struct starpu_fifo_jobq_s
 				new_list_size++;
 				
 				starpu_job_list_erase(old_list, i);
-				starpu_job_list_push_back(new_list, i);
+
+				if (new_list)
+				{
+					struct starpu_task_list *link;
+
+					link = malloc(sizeof(struct starpu_task_list));
+					link->task = i->task;
+					link->next = NULL;
+
+					new_list_tail->next = link;
+					new_list_tail = link;
+					
+				}
+				else {
+					new_list = malloc(sizeof(struct starpu_task_list));
+					new_list->task = i->task;
+					new_list->next = NULL;
+					new_list_tail = new_list;
+				}
 			}
 		}
 
-		if (new_list_size == 0)
-		{
-			/* the new list is empty ... */
-			starpu_job_list_delete(new_list);
-			new_list = NULL;
-		}
-		else
-		{
-			fifo_queue->njobs -= new_list_size;
-		}
+		fifo_queue->njobs -= new_list_size;
 	}
 
 	PTHREAD_MUTEX_UNLOCK(sched_mutex);
