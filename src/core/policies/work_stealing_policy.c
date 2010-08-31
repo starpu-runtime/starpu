@@ -132,9 +132,9 @@ static struct starpu_deque_jobq_s *select_workerq(void)
 #endif
 
 #warning TODO rewrite ... this will not scale at all now
-static starpu_job_t ws_pop_task(void)
+static struct starpu_task *ws_pop_task(void)
 {
-	starpu_job_t j;
+	struct starpu_task *task;
 
 	int workerid = starpu_worker_get_id();
 
@@ -144,27 +144,27 @@ static starpu_job_t ws_pop_task(void)
 
 	PTHREAD_MUTEX_LOCK(&global_sched_mutex);
 
-	j = _starpu_deque_pop_task(q);
-	if (j) {
+	task = _starpu_deque_pop_task(q);
+	if (task) {
 		/* there was a local task */
 		performed_total++;
 		PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
-		return j;
+		return task;
 	}
 	
 	/* we need to steal someone's job */
 	struct starpu_deque_jobq_s *victimq;
 	victimq = select_victimq();
 
-	j = _starpu_deque_pop_task(victimq);
-	if (j) {
-		STARPU_TRACE_WORK_STEALING(q, j);
+	task = _starpu_deque_pop_task(victimq);
+	if (task) {
+		STARPU_TRACE_WORK_STEALING(q, victimq);
 		performed_total++;
 	}
 
 	PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
 
-	return j;
+	return task;
 }
 
 int ws_push_task(starpu_job_t task)

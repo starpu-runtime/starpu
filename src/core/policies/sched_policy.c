@@ -232,7 +232,7 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 	}
 }
 
-struct starpu_job_s * _starpu_pop_task(void)
+struct starpu_task *_starpu_pop_task(void)
 {
 	return policy.pop_task();
 }

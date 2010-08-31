@@ -24,24 +24,24 @@ static struct starpu_fifo_jobq_s *queue_array[STARPU_NMAXWORKERS];
 static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
 static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
 
-static starpu_job_t dm_pop_task(void)
+static struct starpu_task *dm_pop_task(void)
 {
-	struct starpu_job_s *j;
+	struct starpu_task *task;
 
 	int workerid = starpu_worker_get_id();
 
 	struct starpu_fifo_jobq_s *fifo = queue_array[workerid];
 
-	j = _starpu_fifo_pop_task(fifo);
-	if (j) {
-		double model = j->task->predicted;
+	task = _starpu_fifo_pop_task(fifo);
+	if (task) {
+		double model = task->predicted;
 	
 		fifo->exp_len -= model;
 		fifo->exp_start = _starpu_timing_now() + model;
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 	}	
 
-	return j;
+	return task;
 }
 
 static struct starpu_job_list_s *dm_pop_every_task(uint32_t where)

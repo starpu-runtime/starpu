@@ -54,7 +54,7 @@ unsigned _starpu_get_deque_nprocessed(struct starpu_deque_jobq_s *deque_queue)
 	return deque_queue->nprocessed;
 }
 
-starpu_job_t _starpu_deque_pop_task(struct starpu_deque_jobq_s *deque_queue)
+struct starpu_task *_starpu_deque_pop_task(struct starpu_deque_jobq_s *deque_queue)
 {
 	starpu_job_t j = NULL;
 
@@ -74,7 +74,7 @@ starpu_job_t _starpu_deque_pop_task(struct starpu_deque_jobq_s *deque_queue)
 		STARPU_TRACE_JOB_POP(j, 0);
 	}
 	
-	return j;
+	return j->task;
 }
 
 struct starpu_job_list_s *_starpu_deque_pop_every_task(struct starpu_deque_jobq_s *deque_queue, pthread_mutex_t *sched_mutex, uint32_t where)

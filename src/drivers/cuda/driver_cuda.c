@@ -208,8 +208,11 @@ void *_starpu_cuda_worker(void *arg)
 
 		/* otherwise ask a task to the scheduler */
 		if (!j)
-			j = _starpu_pop_task();
-	       
+		{
+			struct starpu_task *task = _starpu_pop_task();
+			j = _starpu_get_job_associated_to_task(task);
+		}
+	
                 if (j == NULL) 
 		{
 			if (_starpu_worker_can_block(memnode))

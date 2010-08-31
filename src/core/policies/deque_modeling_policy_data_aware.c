@@ -26,23 +26,23 @@ static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
 static double alpha = 1.0;
 static double beta = 1.0;
 
-static starpu_job_t dmda_pop_task(void)
+static struct starpu_task *dmda_pop_task(void)
 {
-	struct starpu_job_s *j;
+	struct starpu_task *task;
 
 	int workerid = starpu_worker_get_id();
 	struct starpu_fifo_jobq_s *fifo = queue_array[workerid];
 
-	j = _starpu_fifo_pop_task(fifo);
-	if (j) {
-		double model = j->task->predicted;
+	task = _starpu_fifo_pop_task(fifo);
+	if (task) {
+		double model = task->predicted;
 	
 		fifo->exp_len -= model;
 		fifo->exp_start = _starpu_timing_now() + model;
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 	}	
 
-	return j;
+	return task;
 }
 
 static void update_data_requests(uint32_t memory_node, struct starpu_task *task)

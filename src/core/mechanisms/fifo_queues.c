@@ -72,7 +72,7 @@ int _starpu_fifo_push_task(struct starpu_fifo_jobq_s *fifo_queue, pthread_mutex_
 	return 0;
 }
 
-starpu_job_t _starpu_fifo_pop_task(struct starpu_fifo_jobq_s *fifo_queue)
+struct starpu_task *_starpu_fifo_pop_task(struct starpu_fifo_jobq_s *fifo_queue)
 {
 	starpu_job_t j = NULL;
 
@@ -90,7 +90,7 @@ starpu_job_t _starpu_fifo_pop_task(struct starpu_fifo_jobq_s *fifo_queue)
 		STARPU_TRACE_JOB_POP(j, 0);
 	}
 	
-	return j;
+	return j->task;
 }
 
 /* pop every task that can be executed on the calling driver */

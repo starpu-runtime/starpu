@@ -22,15 +22,15 @@ static struct starpu_fifo_jobq_s *queue_array[STARPU_NMAXWORKERS];
 static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
 static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
 
-static starpu_job_t random_pop_task(void)
+static struct starpu_task *random_pop_task(void)
 {
-	struct starpu_job_s *j;
+	struct starpu_task *task;
 
 	int workerid = starpu_worker_get_id();
 
-	j = _starpu_fifo_pop_task(queue_array[workerid]);
+	task = _starpu_fifo_pop_task(queue_array[workerid]);
 
-	return j;
+	return task;
 }
 
 static int _random_push_task(starpu_job_t task, unsigned prio)

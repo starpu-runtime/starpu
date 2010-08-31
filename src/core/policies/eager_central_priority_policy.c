@@ -66,7 +66,7 @@ static int _starpu_priority_push_task(starpu_job_t j)
 	return 0;
 }
 
-static starpu_job_t _starpu_priority_pop_task(void)
+static struct starpu_task *_starpu_priority_pop_task(void)
 {
 	starpu_job_t j = NULL;
 
@@ -98,7 +98,7 @@ static starpu_job_t _starpu_priority_pop_task(void)
 
 	PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
 
-	return j;
+	return j->task;
 }
 
 struct starpu_sched_policy_s _starpu_sched_prio_policy = {

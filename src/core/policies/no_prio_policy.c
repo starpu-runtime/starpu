@@ -46,7 +46,7 @@ static int push_task_no_prio_policy(starpu_job_t task)
         return _starpu_fifo_push_task(fifo, &sched_mutex, &sched_cond, task);
 }
 
-static starpu_job_t pop_task_no_prio_policy(void)
+static struct starpu_task *pop_task_no_prio_policy(void)
 {
 	return _starpu_fifo_pop_task(fifo);
 }

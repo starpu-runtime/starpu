@@ -65,7 +65,7 @@ static struct starpu_job_list_s *pop_every_task_eager_policy(uint32_t where)
 	return _starpu_fifo_pop_every_task(fifo, &sched_mutex, where);
 }
 
-static starpu_job_t pop_task_eager_policy(void)
+static struct starpu_task *pop_task_eager_policy(void)
 {
 	return _starpu_fifo_pop_task(fifo);
 }
