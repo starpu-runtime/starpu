@@ -541,3 +541,16 @@ examplebin_PROGRAMS +=				\
 
 profiling_profiling_SOURCES =			\
 	profiling/profiling.c
+
+#####################
+# scheduler example #
+#####################
+
+check_PROGRAMS +=				\
+	scheduler/dummy_sched
+
+examplebin_PROGRAMS +=				\
+	scheduler/dummy_sched
+
+scheduler_dummy_sched_SOURCES =			\
+	scheduler/dummy_sched.c
