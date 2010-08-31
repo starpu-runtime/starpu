@@ -24,6 +24,8 @@
 #include <hwloc.h>
 #endif
 
+struct starpu_task;
+
 struct starpu_machine_topology_s {
 	unsigned nworkers;
 
@@ -49,8 +51,6 @@ struct starpu_machine_topology_s {
 	/* Which GPU(s) do we use for OpenCL ? */
 	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
 };
-
-
 
 struct starpu_sched_policy_s {
 	/* create all the queues */
@@ -79,6 +79,6 @@ struct starpu_sched_policy_s {
 	const char *policy_description;
 };
 
-
+void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond, pthread_mutex_t *sched_mutex);
 
 #endif // __STARPU_SCHEDULER_H__

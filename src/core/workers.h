@@ -147,6 +147,4 @@ void _starpu_worker_set_status(int workerid, starpu_worker_status status);
 /* TODO move */
 unsigned _starpu_execute_registered_progression_hooks(void);
 
-void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond, pthread_mutex_t *sched_mutex);
-
 #endif // __WORKERS_H__
