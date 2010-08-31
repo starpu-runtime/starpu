@@ -189,12 +189,6 @@ make check
 make install -j >>$LOGFILE 2>&1
 apps;
 
-$ROOTDIR/configure --prefix=$INSTALLDIR --enable-coverage --enable-data-rw-lock
-make clean 1> /dev/null 2> /dev/null
-make check
-make install -j 1> /dev/null 2> log
-apps;
-
 generatehtml;
 
 echo
