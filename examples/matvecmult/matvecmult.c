@@ -175,7 +175,7 @@ int main(int argc, char **argv)
 
         int ret = starpu_task_submit(task);
         if (STARPU_UNLIKELY(ret == -ENODEV)) {
-                fprintf(stderr, "No worker may execute this task\n");
+                fprintf(stderr, "No worker may execute this task. This application requires an OpenCL worker.\n");
                 exit(0);
 	}
 
