@@ -127,6 +127,10 @@ struct starpu_task {
 
 	struct starpu_task_profiling_info *profiling_info;
 
+	/* Predicted duration of the task. This field is only valid if the
+	 * scheduling strategy uses performance models. */
+	double predicted;
+
 	/* this is private to StarPU, do not modify. If the task is allocated
 	 * by hand (without starpu_task_create), this field should be set to
 	 * NULL. */
@@ -152,6 +156,7 @@ struct starpu_task {
 	.regenerate = 0,				\
 	.status = STARPU_TASK_INVALID,			\
 	.profiling_info = NULL,				\
+	.predicted = -1.0,				\
 	.starpu_private = NULL				\
 };
 

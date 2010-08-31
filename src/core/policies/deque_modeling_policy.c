@@ -34,7 +34,7 @@ static starpu_job_t dm_pop_task(void)
 
 	j = _starpu_fifo_pop_task(fifo);
 	if (j) {
-		double model = j->predicted;
+		double model = j->task->predicted;
 	
 		fifo->exp_len -= model;
 		fifo->exp_start = _starpu_timing_now() + model;
@@ -59,7 +59,7 @@ static struct starpu_job_list_s *dm_pop_every_task(uint32_t where)
 			i != starpu_job_list_end(new_list);
 			i = starpu_job_list_next(i))
 		{
-			double model = i->predicted;
+			double model = i->task->predicted;
 	
 			fifo->exp_len -= model;
 			fifo->exp_start = _starpu_timing_now() + model;
@@ -134,7 +134,7 @@ static int _dm_push_task(starpu_job_t j, unsigned prio)
 	fifo->exp_end += model_best;
 	fifo->exp_len += model_best;
 
-	j->predicted = model_best;
+	j->task->predicted = model_best;
 
 	unsigned memory_node = starpu_worker_get_memory_node(best);
 

@@ -35,7 +35,7 @@ static starpu_job_t dmda_pop_task(void)
 
 	j = _starpu_fifo_pop_task(fifo);
 	if (j) {
-		double model = j->predicted;
+		double model = j->task->predicted;
 	
 		fifo->exp_len -= model;
 		fifo->exp_start = _starpu_timing_now() + model;
@@ -166,8 +166,7 @@ static int _dmda_push_task(starpu_job_t j, unsigned prio)
 	fifo->exp_end += model_best;
 	fifo->exp_len += model_best;
 
-	j->predicted = model_best;
-	j->penality = penality_best;
+	j->task->predicted = model_best;
 
 	unsigned memory_node = starpu_worker_get_memory_node(best);
 

@@ -65,9 +65,6 @@ LIST_TYPE(starpu_job,
 	struct starpu_tag_s *tag;
 	struct starpu_cg_list_s job_successors;
 
-	double predicted;
-	double penality;
-
 	unsigned footprint_is_computed;
 	uint32_t footprint;
 

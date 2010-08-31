@@ -637,16 +637,16 @@ void _starpu_update_perfmodel_history(starpu_job_t j, enum starpu_perf_archtype 
 		}
 
 #ifdef STARPU_MODEL_DEBUG
+		struct starpu_task *task = j->task;
 		FILE * debug_file = per_arch_model->debug_file;
 
 		PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
 
 		STARPU_ASSERT(j->footprint_is_computed);
 
-		fprintf(debug_file, "0x%x\t%lu\t%lf\t%lf\t%d\t\t", j->footprint, (unsigned long) _starpu_job_get_data_size(j), measured, j->predicted, cpuid);
+		fprintf(debug_file, "0x%x\t%lu\t%lf\t%lf\t%d\t\t", j->footprint, (unsigned long) _starpu_job_get_data_size(j), measured, task->predicted, cpuid);
 		unsigned i;
 			
-		struct starpu_task *task = j->task;
 		for (i = 0; i < task->cl->nbuffers; i++)
 		{
 			struct starpu_data_handle_t *handle = task->buffers[i].handle;

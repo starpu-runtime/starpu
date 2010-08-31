@@ -61,7 +61,6 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 
 	job->task = task;
 
-	job->predicted = 0.0;
 	job->footprint_is_computed = 0;
 	job->submitted = 0;
 	job->terminated = 0;

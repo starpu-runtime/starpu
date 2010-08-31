@@ -1772,6 +1772,10 @@ allocated data structures will not be freed until @code{starpu_task_destroy} is
 called explicitly. Setting this flag for a statically allocated task structure
 will result in undefined behaviour.
 
+@item @code{predicted} (output field):
+Predicted duration of the task. This field is only set if the scheduling
+strategy used performance models.
+
 @end table
 @end table
 
