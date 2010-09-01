@@ -23,28 +23,24 @@
  * Centralized queue with priorities 
  */
 
-struct starpu_priority_jobq_s *_starpu_create_priority_jobq(void)
+struct starpu_priority_taskq_s *_starpu_create_priority_taskq(void)
 {
-	struct starpu_priority_jobq_s *central_queue;
+	struct starpu_priority_taskq_s *central_queue;
 	
-	central_queue = malloc(sizeof(struct starpu_priority_jobq_s));
-	central_queue->total_njobs = 0;
+	central_queue = malloc(sizeof(struct starpu_priority_taskq_s));
+	central_queue->total_ntasks = 0;
 
 	unsigned prio;
 	for (prio = 0; prio < NPRIO_LEVELS; prio++)
 	{
-		central_queue->jobq[prio] = starpu_job_list_new();
-		central_queue->njobs[prio] = 0;
+		starpu_task_list_init(&central_queue->taskq[prio]);
+		central_queue->ntasks[prio] = 0;
 	}
 
 	return central_queue;
 }
 
-void _starpu_destroy_priority_jobq(struct starpu_priority_jobq_s *priority_queue)
+void _starpu_destroy_priority_taskq(struct starpu_priority_taskq_s *priority_queue)
 {
-	unsigned prio;
-	for (prio = 0; prio < NPRIO_LEVELS; prio++)
-		starpu_job_list_delete(priority_queue->jobq[prio]);
-
 	free(priority_queue);
 }
