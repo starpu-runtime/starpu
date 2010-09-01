@@ -69,6 +69,12 @@ struct starpu_jobid_list {
 	struct starpu_jobid_list *next;
 };
 
+/* This structure describes a simply-linked list of task */
+struct starpu_task_wrapper_list {
+	struct starpu_task *task;
+	struct starpu_task_wrapper_list *next;
+};
+
 struct starpu_data_state_t {
 	struct starpu_data_requester_list_s *req_list;
 	/* the number of requests currently in the scheduling engine
@@ -127,7 +133,7 @@ struct starpu_data_state_t {
 	 * sequential_consistency flag is enabled. */
 	starpu_access_mode last_submitted_mode;
 	struct starpu_task *last_submitted_writer;
-	struct starpu_task_list *last_submitted_readers;
+	struct starpu_task_wrapper_list *last_submitted_readers;
 
 #ifdef STARPU_USE_FXT
 	/* If FxT is enabled, we keep track of "ghost dependencies": that is to
@@ -141,7 +147,7 @@ struct starpu_data_state_t {
 	struct starpu_jobid_list *last_submitted_ghost_readers_id;
 #endif
 	
-	struct starpu_task_list *post_sync_tasks;
+	struct starpu_task_wrapper_list *post_sync_tasks;
 	unsigned post_sync_tasks_cnt;
 };
 

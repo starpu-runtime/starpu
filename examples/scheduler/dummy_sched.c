@@ -14,11 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <sys/time.h>
 #include <pthread.h>
-#include <stdio.h>
-#include <unistd.h>
-
 #include <starpu.h>
 
 #define NTASKS	32000
@@ -57,8 +53,7 @@ static void init_dummy_sched(struct starpu_machine_topology_s *topology,
 static void deinit_dummy_sched(struct starpu_machine_topology_s *topology,
 				struct starpu_sched_policy_s *policy)
 {
-	STARPU_ASSERT(sched_list.head == NULL);
-	STARPU_ASSERT(sched_list.tail == NULL);
+	STARPU_ASSERT((sched_list.head == NULL) && (sched_list.tail == NULL));
 
 	pthread_cond_destroy(&sched_cond);
 	pthread_mutex_destroy(&sched_mutex);

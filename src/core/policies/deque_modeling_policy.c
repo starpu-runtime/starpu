@@ -44,9 +44,9 @@ static struct starpu_task *dm_pop_task(void)
 	return task;
 }
 
-static struct starpu_task_list *dm_pop_every_task(uint32_t where)
+static struct starpu_task *dm_pop_every_task(uint32_t where)
 {
-	struct starpu_task_list *new_list;
+	struct starpu_task *new_list;
 
 	int workerid = starpu_worker_get_id();
 
@@ -56,7 +56,7 @@ static struct starpu_task_list *dm_pop_every_task(uint32_t where)
 
 	while (new_list)
 	{
-		double model = new_list->task->predicted;
+		double model = new_list->predicted;
 
 		fifo->exp_len -= model;
 		fifo->exp_start = _starpu_timing_now() + model;

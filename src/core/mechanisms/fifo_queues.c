@@ -99,13 +99,13 @@ struct starpu_task *_starpu_fifo_pop_task(struct starpu_fifo_jobq_s *fifo_queue)
 }
 
 /* pop every task that can be executed on the calling driver */
-struct starpu_task_list *_starpu_fifo_pop_every_task(struct starpu_fifo_jobq_s *fifo_queue, pthread_mutex_t *sched_mutex, uint32_t where)
+struct starpu_task *_starpu_fifo_pop_every_task(struct starpu_fifo_jobq_s *fifo_queue, pthread_mutex_t *sched_mutex, uint32_t where)
 {
 	struct starpu_job_list_s *old_list;
 	unsigned size;
 
-	struct starpu_task_list *new_list = NULL;
-	struct starpu_task_list *new_list_tail = NULL;
+	struct starpu_task *new_list = NULL;
+	struct starpu_task *new_list_tail = NULL;
 	
 	PTHREAD_MUTEX_LOCK(sched_mutex);
 
@@ -124,31 +124,27 @@ struct starpu_task_list *_starpu_fifo_pop_every_task(struct starpu_fifo_jobq_s *
 			i  = next_job)
 		{
 			next_job = starpu_job_list_next(i);
+			struct starpu_task *task = i->task;
 
-			if (i->task->cl->where & where)
+			if (task->cl->where & where)
 			{
 				/* this elements can be moved into the new list */
 				new_list_size++;
 				
 				starpu_job_list_erase(old_list, i);
 
-				if (new_list)
+				if (new_list_tail)
 				{
-					struct starpu_task_list *link;
-
-					link = malloc(sizeof(struct starpu_task_list));
-					link->task = i->task;
-					link->next = NULL;
-
-					new_list_tail->next = link;
-					new_list_tail = link;
-					
+					new_list_tail->next = task;
+					task->prev = new_list_tail;
+					task->next = NULL;
+					new_list_tail = task;
 				}
 				else {
-					new_list = malloc(sizeof(struct starpu_task_list));
-					new_list->task = i->task;
-					new_list->next = NULL;
-					new_list_tail = new_list;
+					new_list = task;
+					new_list_tail = task;
+					task->prev = NULL;
+					task->next = NULL;
 				}
 			}
 		}

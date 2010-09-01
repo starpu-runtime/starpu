@@ -18,8 +18,8 @@
 #define __STARPU_TASK_H__
 
 #include <errno.h>
-#include <starpu_config.h>
 #include <starpu.h>
+#include <starpu_config.h>
 
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
@@ -131,15 +131,14 @@ struct starpu_task {
 	 * scheduling strategy uses performance models. */
 	double predicted;
 
+	/* This field are provided for the convenience of the scheduler. */
+	struct starpu_task *prev;
+	struct starpu_task *next;
+
 	/* this is private to StarPU, do not modify. If the task is allocated
 	 * by hand (without starpu_task_create), this field should be set to
 	 * NULL. */
 	void *starpu_private;
-};
-
-struct starpu_task_list { 
-	struct starpu_task *task;
-	struct starpu_task_list *next;
 };
 
 /* It is possible to initialize statically allocated tasks with this value.

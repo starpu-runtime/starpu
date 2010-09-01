@@ -64,13 +64,10 @@ struct starpu_sched_policy_s {
 	int (*push_prio_task)(struct starpu_task *);
 	struct starpu_task *(*pop_task)(void);
 
-	/* returns the number of tasks that were retrieved 
- 	 * the function is reponsible for allocating the output but the driver
- 	 * has to free it 
- 	 *
- 	 * NB : this function is non blocking
- 	 * */
-	struct starpu_task_list *(*pop_every_task)(uint32_t where);
+	 /* Remove all available tasks from the scheduler (tasks are chained by
+	  * the means of the prev and next fields of the starpu_task
+	  * structure). */
+	struct starpu_task *(*pop_every_task)(uint32_t where);
 
 	/* name of the policy (optionnal) */
 	const char *policy_name;

@@ -82,7 +82,7 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 			
 				/* Count the readers */
 				unsigned nreaders = 0;
-				struct starpu_task_list *l;
+				struct starpu_task_wrapper_list *l;
 				l = handle->last_submitted_readers;
 				while (l)
 				{
@@ -99,7 +99,7 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 					STARPU_ASSERT(l->task);
 					task_array[i++] = l->task;
 
-					struct starpu_task_list *prev = l;
+					struct starpu_task_wrapper_list *prev = l;
 					l = l->next;
 					free(prev);
 				}
@@ -133,7 +133,7 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 			STARPU_ASSERT(post_sync_task);
 	
 			/* Add this task to the list of readers */
-			struct starpu_task_list *link = malloc(sizeof(struct starpu_task_list));
+			struct starpu_task_wrapper_list *link = malloc(sizeof(struct starpu_task_wrapper_list));
 			link->task = post_sync_task;
 			link->next = handle->last_submitted_readers;
 			handle->last_submitted_readers = link;
@@ -221,12 +221,12 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 
 		/* Same if this is one of the readers: we go through the list
 		 * of readers and remove the task if it is found. */
-		struct starpu_task_list *l;
+		struct starpu_task_wrapper_list *l;
 		l = handle->last_submitted_readers;
-		struct starpu_task_list *prev = NULL;
+		struct starpu_task_wrapper_list *prev = NULL;
 		while (l)
 		{
-			struct starpu_task_list *next = l->next;
+			struct starpu_task_wrapper_list *next = l->next;
 
 			if (l->task == task)
 			{
@@ -277,7 +277,7 @@ void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data
 	{
 		handle->post_sync_tasks_cnt++;
 
-		struct starpu_task_list *link = malloc(sizeof(struct starpu_task_list));
+		struct starpu_task_wrapper_list *link = malloc(sizeof(struct starpu_task_wrapper_list));
 		link->task = post_sync_task;
 		link->next = handle->post_sync_tasks;
 		handle->post_sync_tasks = link;		
@@ -288,7 +288,7 @@ void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data
 
 void _starpu_unlock_post_sync_tasks(starpu_data_handle handle)
 {
-	struct starpu_task_list *post_sync_tasks = NULL;
+	struct starpu_task_wrapper_list *post_sync_tasks = NULL;
 	unsigned do_submit_tasks = 0;
 
 	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
@@ -311,7 +311,7 @@ void _starpu_unlock_post_sync_tasks(starpu_data_handle handle)
 
 	if (do_submit_tasks)
 	{
-		struct starpu_task_list *link = post_sync_tasks;
+		struct starpu_task_wrapper_list *link = post_sync_tasks;
 
 		while (link) {
 			/* There is no need to depend on that task now, since it was already unlocked */
