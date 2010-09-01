@@ -17,7 +17,7 @@
 #include <core/policies/random_policy.h>
 
 static unsigned nworkers;
-static struct starpu_fifo_jobq_s *queue_array[STARPU_NMAXWORKERS];
+static struct starpu_fifo_taskq_s *queue_array[STARPU_NMAXWORKERS];
 
 static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
 static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];

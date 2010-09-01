@@ -19,7 +19,7 @@
 #include <core/perfmodel/perfmodel.h>
 
 static unsigned nworkers;
-static struct starpu_fifo_jobq_s *queue_array[STARPU_NMAXWORKERS];
+static struct starpu_fifo_taskq_s *queue_array[STARPU_NMAXWORKERS];
 
 static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
 static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
@@ -30,7 +30,7 @@ static struct starpu_task *dm_pop_task(void)
 
 	int workerid = starpu_worker_get_id();
 
-	struct starpu_fifo_jobq_s *fifo = queue_array[workerid];
+	struct starpu_fifo_taskq_s *fifo = queue_array[workerid];
 
 	task = _starpu_fifo_pop_task(fifo);
 	if (task) {
@@ -50,7 +50,7 @@ static struct starpu_task *dm_pop_every_task(uint32_t where)
 
 	int workerid = starpu_worker_get_id();
 
-	struct starpu_fifo_jobq_s *fifo = queue_array[workerid];
+	struct starpu_fifo_taskq_s *fifo = queue_array[workerid];
 
 	new_list = _starpu_fifo_pop_every_task(fifo, &sched_mutex[workerid], where);
 
@@ -71,7 +71,7 @@ static struct starpu_task *dm_pop_every_task(uint32_t where)
 static int _dm_push_task(struct starpu_task *task, unsigned prio)
 {
 	/* find the queue */
-	struct starpu_fifo_jobq_s *fifo;
+	struct starpu_fifo_taskq_s *fifo;
 	unsigned worker;
 	int best = -1;
 

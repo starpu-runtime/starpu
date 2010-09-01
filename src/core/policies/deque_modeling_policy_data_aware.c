@@ -18,7 +18,7 @@
 #include <core/perfmodel/perfmodel.h>
 
 static unsigned nworkers;
-static struct starpu_fifo_jobq_s *queue_array[STARPU_NMAXWORKERS];
+static struct starpu_fifo_taskq_s *queue_array[STARPU_NMAXWORKERS];
 
 static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
 static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
@@ -31,7 +31,7 @@ static struct starpu_task *dmda_pop_task(void)
 	struct starpu_task *task;
 
 	int workerid = starpu_worker_get_id();
-	struct starpu_fifo_jobq_s *fifo = queue_array[workerid];
+	struct starpu_fifo_taskq_s *fifo = queue_array[workerid];
 
 	task = _starpu_fifo_pop_task(fifo);
 	if (task) {
@@ -61,7 +61,7 @@ static void update_data_requests(uint32_t memory_node, struct starpu_task *task)
 static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 {
 	/* find the queue */
-	struct starpu_fifo_jobq_s *fifo;
+	struct starpu_fifo_taskq_s *fifo;
 	unsigned worker;
 	int best = -1;
 	

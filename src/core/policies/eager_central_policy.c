@@ -22,7 +22,7 @@
  */
 
 /* the former is the actual queue, the latter some container */
-static struct starpu_fifo_jobq_s *fifo;
+static struct starpu_fifo_taskq_s *fifo;
 
 static pthread_cond_t sched_cond;
 static pthread_mutex_t sched_mutex;
