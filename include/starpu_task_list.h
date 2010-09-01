@@ -46,9 +46,9 @@ int starpu_task_list_empty(struct starpu_task_list *list);
 void starpu_task_list_erase(struct starpu_task_list *list, struct starpu_task *task);
 
 /* Remove the element at the front of the list */
-struct starpu_task *starpu_task_pop_front(struct starpu_task_list *list);
+struct starpu_task *starpu_task_list_pop_front(struct starpu_task_list *list);
 
 /* Remove the element at the back of the list */
-struct starpu_task *starpu_task_pop_back(struct starpu_task_list *list);
+struct starpu_task *starpu_task_list_pop_back(struct starpu_task_list *list);
 						
 #endif // __STARPU_TASK_LIST_H__

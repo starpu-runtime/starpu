@@ -94,20 +94,22 @@ void starpu_task_list_erase(struct starpu_task_list *list,
 	task->next = NULL;
 }
 
-struct starpu_task *starpu_task_pop_front(struct starpu_task_list *list)
+struct starpu_task *starpu_task_list_pop_front(struct starpu_task_list *list)
 {
 	struct starpu_task *task = list->head;
 
-	starpu_task_list_erase(list, task);
+	if (task)
+		starpu_task_list_erase(list, task);
 
 	return task;
 }
 						
-struct starpu_task *starpu_task_pop_back(struct starpu_task_list *list)
+struct starpu_task *starpu_task_list_pop_back(struct starpu_task_list *list)
 {
 	struct starpu_task *task = list->tail;
 
-	starpu_task_list_erase(list, task);
+	if (task)
+		starpu_task_list_erase(list, task);
 
 	return task;
 }
