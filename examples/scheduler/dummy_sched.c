@@ -19,18 +19,7 @@
 
 #define NTASKS	32000
 
-struct task_list_node {
-	struct starpu_task *task;
-	struct task_list_node *prev;
-	struct task_list_node *next;
-};
-
-struct task_list {
-	struct task_list_node *head;
-	struct task_list_node *tail;
-};
-
-struct task_list sched_list;
+struct starpu_task_list sched_list;
 
 static pthread_cond_t sched_cond;
 static pthread_mutex_t sched_mutex;
@@ -39,8 +28,7 @@ static void init_dummy_sched(struct starpu_machine_topology_s *topology,
 			struct starpu_sched_policy_s *policy)
 {
 	/* Create a linked-list of tasks and a condition variable to protect it */
-	sched_list.head = NULL;
-	sched_list.tail = NULL;
+	starpu_task_list_init(&sched_list);
 
 	pthread_mutex_init(&sched_mutex, NULL);
 	pthread_cond_init(&sched_cond, NULL);
@@ -53,7 +41,7 @@ static void init_dummy_sched(struct starpu_machine_topology_s *topology,
 static void deinit_dummy_sched(struct starpu_machine_topology_s *topology,
 				struct starpu_sched_policy_s *policy)
 {
-	STARPU_ASSERT((sched_list.head == NULL) && (sched_list.tail == NULL));
+	STARPU_ASSERT(starpu_task_list_empty(&sched_list));
 
 	pthread_cond_destroy(&sched_cond);
 	pthread_mutex_destroy(&sched_mutex);
@@ -63,24 +51,7 @@ static int push_task_dummy(struct starpu_task *task)
 {
 	pthread_mutex_lock(&sched_mutex);
 
-	if (!sched_list.head)
-	{
-		/* This is the first element in the queue */
-		sched_list.head = malloc(sizeof(struct task_list_node));
-		sched_list.head->task = task;
-		sched_list.head->prev = NULL;
-		sched_list.head->next = NULL;
-		sched_list.tail = sched_list.head;
-	}
-	else {
-		struct task_list_node *node = malloc(sizeof(struct task_list_node));
-		node->task = task;
-
-		sched_list.tail->next = node;
-		node->prev = sched_list.tail;
-		node->next = NULL;
-		sched_list.tail = node;
-	}
+	starpu_task_list_push_front(&sched_list, task);
 
 	pthread_cond_signal(&sched_cond);
 
@@ -90,33 +61,12 @@ static int push_task_dummy(struct starpu_task *task)
 /* The mutex associated to the calling worker is already taken by StarPU */
 static struct starpu_task *pop_task_dummy(void)
 {
-	struct starpu_task *task = NULL;
-	struct task_list_node *link, *second;
-
-	if (!sched_list.head)
-		return NULL;
-
 	/* NB: In this simplistic strategy, we assume that all workers are able
 	 * to execute all tasks, otherwise, it would have been necessary to go
 	 * through the entire list until we find a task that is executable from
 	 * the calling worker. So we just take the head of the list and give it
 	 * to the worker. */
-	link = sched_list.head;
-	task = link->task;
-
-	second = link->next;
-
-	if (second)
-	{
-		second->prev = NULL;
-		sched_list.head = second;
-	}
-	else {
-		sched_list.head = NULL;
-		sched_list.tail = NULL;
-	}
-
-	return task;
+	return starpu_task_list_pop_back(&sched_list);
 }
 
 static struct starpu_sched_policy_s dummy_sched_policy = {
