@@ -238,13 +238,11 @@ struct starpu_task *_starpu_pop_task(void)
 }
 
 /* pop every task that can be executed on "where" (eg. GORDON) */
-struct starpu_task_list *_starpu_pop_every_task(uint32_t where)
+struct starpu_task *_starpu_pop_every_task(uint32_t where)
 {
 	STARPU_ASSERT(policy.pop_every_task);
 
-	struct starpu_task_list *list = policy.pop_every_task(where);
-
-	return list;
+	return policy.pop_every_task(where);
 }
 
 void _starpu_wait_on_sched_event(void)
