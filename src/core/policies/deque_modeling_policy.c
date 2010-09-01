@@ -70,8 +70,6 @@ static struct starpu_task *dm_pop_every_task(uint32_t where)
 
 static int _dm_push_task(struct starpu_task *task, unsigned prio)
 {
-	starpu_job_t j = _starpu_get_job_associated_to_task(task);
-
 	/* find the queue */
 	struct starpu_fifo_jobq_s *fifo;
 	unsigned worker;
@@ -96,7 +94,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 		}
 
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
-		double local_length = _starpu_job_expected_length(worker, j, perf_arch);
+		double local_length = _starpu_task_expected_length(worker, task, perf_arch);
 
 		if (local_length == -1.0) 
 		{
