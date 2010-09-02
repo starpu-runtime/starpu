@@ -35,7 +35,7 @@ if STARPU_USE_CUDA
 # TODO define NVCCFLAGS
 NVCC ?= nvcc
 
-NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_builddir)/include
+NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_builddir)/include $(HWLOC_CFLAGS)
 
 .cu.cubin:
 	$(MKDIR_P) `dirname $@`

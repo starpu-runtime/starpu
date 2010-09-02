@@ -60,6 +60,8 @@ CLEANFILES += *.gcno *.gcda *.linkinfo
 
 if STARPU_USE_CUDA
 
+NVCCFLAGS += $(HWLOC_CFLAGS)
+
 .cu.cubin:
 	$(MKDIR_P) `dirname $@`
 	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
