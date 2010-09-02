@@ -31,6 +31,9 @@ struct starpu_machine_topology_s {
 
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_t hwtopology;
+#else
+	/* We maintain ABI compatibility with and without hwloc */
+	void *dummy;
 #endif
 
 	unsigned nhwcpus;
