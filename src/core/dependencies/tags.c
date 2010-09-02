@@ -20,7 +20,7 @@
 #include <core/dependencies/tags.h>
 #include <core/dependencies/htable.h>
 #include <core/jobs.h>
-#include <core/policies/sched_policy.h>
+#include <core/sched_policy.h>
 #include <core/dependencies/data_concurrency.h>
 
 static starpu_htbl_node_t *tag_htbl = NULL;

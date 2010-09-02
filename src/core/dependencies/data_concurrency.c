@@ -16,7 +16,7 @@
 
 #include <core/dependencies/data_concurrency.h>
 #include <datawizard/coherency.h>
-#include <core/policies/sched_policy.h>
+#include <core/sched_policy.h>
 #include <common/starpu_spinlock.h>
 #include <datawizard/sort_data_handles.h>
 

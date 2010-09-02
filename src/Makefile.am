@@ -59,7 +59,7 @@ noinst_HEADERS = 						\
 	core/dependencies/htable.h				\
 	core/dependencies/implicit_data_deps.h			\
 	core/policies/eager_central_priority_policy.h		\
-	core/policies/sched_policy.h				\
+	core/sched_policy.h					\
 	core/policies/random_policy.h				\
 	core/policies/eager_central_policy.h			\
 	core/policies/deque_modeling_policy.h			\
@@ -139,7 +139,7 @@ libstarpu_la_SOURCES = 						\
 	core/policies/eager_central_policy.c			\
 	core/policies/eager_central_priority_policy.c		\
 	core/policies/work_stealing_policy.c			\
-	core/policies/sched_policy.c				\
+	core/sched_policy.c					\
 	core/policies/deque_modeling_policy.c			\
 	core/policies/random_policy.c				\
 	core/policies/deque_modeling_policy_data_aware.c	\

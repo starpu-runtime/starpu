@@ -23,7 +23,7 @@
 #include <common/utils.h>
 #include "driver_gordon.h"
 #include "gordon_interface.h"
-#include <core/policies/sched_policy.h>
+#include <core/sched_policy.h>
 
 static unsigned progress_thread_is_inited = 0;
 

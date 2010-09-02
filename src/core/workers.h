@@ -25,7 +25,7 @@
 #include <common/fxt.h>
 #include <core/jobs.h>
 #include <core/perfmodel/perfmodel.h>
-#include <core/policies/sched_policy.h>
+#include <core/sched_policy.h>
 #include <core/topology.h>
 #include <core/errorcheck.h>
 

@@ -21,7 +21,7 @@
 #include <core/dependencies/htable.h>
 #include <core/jobs.h>
 #include <core/task.h>
-#include <core/policies/sched_policy.h>
+#include <core/sched_policy.h>
 #include <core/dependencies/data_concurrency.h>
 
 static starpu_cg_t *create_cg_task(unsigned ntags, starpu_job_t j)

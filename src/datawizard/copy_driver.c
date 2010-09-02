@@ -17,7 +17,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/utils.h>
-#include <core/policies/sched_policy.h>
+#include <core/sched_policy.h>
 #include <datawizard/datastats.h>
 #include <common/fxt.h>
 #include "copy_driver.h"

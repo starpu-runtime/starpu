@@ -22,7 +22,7 @@
 #include <common/utils.h>
 #include <core/debug.h>
 #include "driver_cpu.h"
-#include <core/policies/sched_policy.h>
+#include <core/sched_policy.h>
 
 static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 {

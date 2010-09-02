@@ -19,13 +19,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/utils.h>
-#include <core/policies/sched_policy.h>
-#include <core/policies/eager_central_policy.h>
-#include <core/policies/eager_central_priority_policy.h>
-#include <core/policies/work_stealing_policy.h>
-#include <core/policies/deque_modeling_policy.h>
-#include <core/policies/random_policy.h>
-#include <core/policies/deque_modeling_policy_data_aware.h>
+#include <core/sched_policy.h>
 
 static struct starpu_sched_policy_s policy;
 
@@ -39,6 +33,14 @@ int _starpu_get_prefetch_flag(void)
 /*
  *	Predefined policies
  */
+
+extern struct starpu_sched_policy_s _starpu_sched_ws_policy;
+extern struct starpu_sched_policy_s _starpu_sched_prio_policy;
+extern struct starpu_sched_policy_s _starpu_sched_no_prio_policy;
+extern struct starpu_sched_policy_s _starpu_sched_random_policy;
+extern struct starpu_sched_policy_s _starpu_sched_dm_policy;
+extern struct starpu_sched_policy_s _starpu_sched_dmda_policy;
+extern struct starpu_sched_policy_s _starpu_sched_eager_policy;
 
 #define NPREDEFINED_POLICIES	7
 
