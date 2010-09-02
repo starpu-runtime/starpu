@@ -80,3 +80,15 @@ struct starpu_sched_policy_s _starpu_sched_eager_policy = {
 	.policy_name = "eager",
 	.policy_description = "greedy policy"
 };
+
+struct starpu_sched_policy_s _starpu_sched_no_prio_policy = {
+	.init_sched = initialize_eager_center_policy,
+	.deinit_sched = deinitialize_eager_center_policy,
+	.push_task = push_task_eager_policy,
+	/* we use the same method in spite of the priority */
+	.push_prio_task = push_task_eager_policy,
+	.pop_task = pop_task_eager_policy,
+	.pop_every_task = pop_every_task_eager_policy,
+	.policy_name = "no-prio",
+	.policy_description = "eager without priority"
+};

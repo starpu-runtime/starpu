@@ -63,7 +63,6 @@ noinst_HEADERS = 						\
 	core/policies/random_policy.h				\
 	core/policies/eager_central_policy.h			\
 	core/policies/deque_modeling_policy.h			\
-	core/policies/no_prio_policy.h				\
 	core/policies/deque_modeling_policy_data_aware.h	\
 	core/policies/work_stealing_policy.h			\
 	core/mechanisms/priority_queues.h			\
@@ -137,7 +136,6 @@ libstarpu_la_SOURCES = 						\
 	core/perfmodel/perfmodel_bus.c				\
 	core/perfmodel/perfmodel.c				\
 	core/perfmodel/regression.c				\
-	core/policies/no_prio_policy.c				\
 	core/policies/eager_central_policy.c			\
 	core/policies/eager_central_priority_policy.c		\
 	core/policies/work_stealing_policy.c			\
