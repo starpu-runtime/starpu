@@ -245,6 +245,12 @@ struct starpu_task *_starpu_pop_every_task(uint32_t where)
 	return policy.pop_every_task(where);
 }
 
+void _starpu_sched_post_exec_hook(struct starpu_task *task)
+{
+	if (policy.post_exec_hook)
+		policy.post_exec_hook(task);
+}
+
 void _starpu_wait_on_sched_event(void)
 {
 	struct starpu_worker_s *worker = _starpu_get_local_worker_key();

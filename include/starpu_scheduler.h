@@ -67,6 +67,8 @@ struct starpu_sched_policy_s {
 	int (*push_prio_task)(struct starpu_task *);
 	struct starpu_task *(*pop_task)(void);
 
+	void (*post_exec_hook)(struct starpu_task *);
+
 	 /* Remove all available tasks from the scheduler (tasks are chained by
 	  * the means of the prev and next fields of the starpu_task
 	  * structure). */

@@ -33,6 +33,7 @@ int _starpu_get_prefetch_flag(void);
 int _starpu_push_task(starpu_job_t task, unsigned job_is_already_locked);
 struct starpu_task *_starpu_pop_task(void);
 struct starpu_task *_starpu_pop_every_task(uint32_t where);
+void _starpu_sched_post_exec_hook(struct starpu_task *task);
 
 void _starpu_wait_on_sched_event(void);
 

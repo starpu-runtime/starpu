@@ -156,6 +156,8 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
 		_starpu_set_local_worker_status(STATUS_UNKNOWN);
 	}
 
+	_starpu_sched_post_exec_hook(task);
+
 	STARPU_TRACE_TASK_DONE(j);
 
 	/* NB: we do not save those values before the callback, in case the
