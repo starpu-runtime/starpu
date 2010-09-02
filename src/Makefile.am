@@ -62,8 +62,6 @@ noinst_HEADERS = 						\
 	core/sched_policy.h					\
 	core/policies/random_policy.h				\
 	core/policies/eager_central_policy.h			\
-	core/policies/deque_modeling_policy.h			\
-	core/policies/deque_modeling_policy_data_aware.h	\
 	core/policies/work_stealing_policy.h			\
 	core/mechanisms/priority_queues.h			\
 	core/mechanisms/fifo_queues.h				\
@@ -140,7 +138,6 @@ libstarpu_la_SOURCES = 						\
 	core/policies/eager_central_priority_policy.c		\
 	core/policies/work_stealing_policy.c			\
 	core/sched_policy.c					\
-	core/policies/deque_modeling_policy.c			\
 	core/policies/random_policy.c				\
 	core/policies/deque_modeling_policy_data_aware.c	\
 	drivers/driver_common/driver_common.c			\

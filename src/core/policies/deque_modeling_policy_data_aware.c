@@ -14,7 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <core/policies/deque_modeling_policy_data_aware.h>
+#include <core/workers.h>
+#include <core/mechanisms/fifo_queues.h>
 #include <core/perfmodel/perfmodel.h>
 
 static unsigned nworkers;
@@ -45,17 +46,111 @@ static struct starpu_task *dmda_pop_task(void)
 	return task;
 }
 
-static void update_data_requests(uint32_t memory_node, struct starpu_task *task)
+static struct starpu_task *dmda_pop_every_task(uint32_t where)
 {
-	unsigned nbuffers = task->cl->nbuffers;
-	unsigned buffer;
+	struct starpu_task *new_list;
 
-	for (buffer = 0; buffer < nbuffers; buffer++)
+	int workerid = starpu_worker_get_id();
+
+	struct starpu_fifo_taskq_s *fifo = queue_array[workerid];
+
+	new_list = _starpu_fifo_pop_every_task(fifo, &sched_mutex[workerid], where);
+
+	while (new_list)
 	{
-		starpu_data_handle handle = task->buffers[buffer].handle;
+		double model = new_list->predicted;
 
-		_starpu_set_data_requested_flag_if_needed(handle, memory_node);
+		fifo->exp_len -= model;
+		fifo->exp_start = _starpu_timing_now() + model;
+		fifo->exp_end = fifo->exp_start + fifo->exp_len;
+	
+		new_list = new_list->next;
 	}
+
+	return new_list;
+}
+
+static int push_task_on_best_worker(struct starpu_task *task, int best_workerid, double predicted, int prio)
+{
+	/* make sure someone coule execute that task ! */
+	STARPU_ASSERT(best_workerid != -1);
+
+	struct starpu_fifo_taskq_s *fifo;
+	fifo = queue_array[best_workerid];
+
+	fifo->exp_end += predicted;
+	fifo->exp_len += predicted;
+
+	task->predicted = predicted;
+
+	unsigned memory_node = starpu_worker_get_memory_node(best_workerid);
+
+	if (_starpu_get_prefetch_flag())
+		_starpu_prefetch_task_input_on_node(task, memory_node);
+
+	if (prio) {
+		return _starpu_fifo_push_prio_task(queue_array[best_workerid],
+				&sched_mutex[best_workerid], &sched_cond[best_workerid], task);
+	} else {
+		return _starpu_fifo_push_task(queue_array[best_workerid],
+				&sched_mutex[best_workerid], &sched_cond[best_workerid], task);
+	}
+}
+
+static int _dm_push_task(struct starpu_task *task, unsigned prio)
+{
+	/* find the queue */
+	struct starpu_fifo_taskq_s *fifo;
+	unsigned worker;
+	int best = -1;
+
+	double best_exp_end = 0.0;
+	double model_best = 0.0;
+
+	for (worker = 0; worker < nworkers; worker++)
+	{
+		double exp_end;
+		
+		fifo = queue_array[worker];
+
+		fifo->exp_start = STARPU_MAX(fifo->exp_start, _starpu_timing_now());
+		fifo->exp_end = STARPU_MAX(fifo->exp_end, _starpu_timing_now());
+
+		if (!_starpu_worker_may_execute_task(worker, task->cl->where))
+		{
+			/* no one on that queue may execute this task */
+			continue;
+		}
+
+		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
+		double local_length = _starpu_task_expected_length(worker, task, perf_arch);
+
+		if (local_length == -1.0) 
+		{
+			/* there is no prediction available for that task
+			 * with that arch we want to speed-up calibration time 
+			 * so we force this measurement */
+			/* XXX assert we are benchmarking ! */
+			best = worker;
+			model_best = 0.0;
+			exp_end = fifo->exp_start + fifo->exp_len;
+			break;
+		}
+
+
+		exp_end = fifo->exp_start + fifo->exp_len + local_length;
+
+		if (best == -1 || exp_end < best_exp_end)
+		{
+			/* a better solution was found */
+			best_exp_end = exp_end;
+			best = worker;
+			model_best = local_length;
+		}
+	}
+	
+	/* we should now have the best worker in variable "best" */
+	return push_task_on_best_worker(task, best, model_best, prio);
 }
 
 static int _dmda_push_task(struct starpu_task *task, unsigned prio)
@@ -159,25 +254,20 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 	}
 
 	/* we should now have the best worker in variable "best" */
-	fifo = queue_array[best];
+	return push_task_on_best_worker(task, best, model_best, prio);
+}
 
-	fifo->exp_end += model_best;
-	fifo->exp_len += model_best;
+static int dm_push_prio_task(struct starpu_task *task)
+{
+	return _dm_push_task(task, 1);
+}
 
-	task->predicted = model_best;
+static int dm_push_task(struct starpu_task *task)
+{
+	if (task->priority == STARPU_MAX_PRIO)
+		return _dm_push_task(task, 1);
 
-	unsigned memory_node = starpu_worker_get_memory_node(best);
-
-	update_data_requests(memory_node, task);
-	
-	if (_starpu_get_prefetch_flag())
-		_starpu_prefetch_task_input_on_node(task, memory_node);
-
-	if (prio) {
-		return _starpu_fifo_push_prio_task(queue_array[best], &sched_mutex[best], &sched_cond[best], task);
-	} else {
-		return _starpu_fifo_push_task(queue_array[best], &sched_mutex[best], &sched_cond[best], task);
-	}
+	return _dm_push_task(task, 0);
 }
 
 static int dmda_push_prio_task(struct starpu_task *task)
@@ -226,12 +316,24 @@ static void deinitialize_dmda_policy(struct starpu_machine_topology_s *topology,
 		_starpu_destroy_fifo(queue_array[workerid]);
 }
 
+struct starpu_sched_policy_s _starpu_sched_dm_policy = {
+	.init_sched = initialize_dmda_policy,
+	.deinit_sched = deinitialize_dmda_policy,
+	.push_task = dm_push_task, 
+	.push_prio_task = dm_push_prio_task,
+	.pop_task = dmda_pop_task,
+	.pop_every_task = dmda_pop_every_task,
+	.policy_name = "dm",
+	.policy_description = "performance model"
+};
+
 struct starpu_sched_policy_s _starpu_sched_dmda_policy = {
 	.init_sched = initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,
 	.push_task = dmda_push_task, 
 	.push_prio_task = dmda_push_prio_task, 
 	.pop_task = dmda_pop_task,
+	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmda",
 	.policy_description = "data-aware performance model"
 };
