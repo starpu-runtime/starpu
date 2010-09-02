@@ -14,7 +14,8 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-LIBS = $(top_builddir)/src/libstarpu.la @LIBS@
+AM_CFLAGS = $(HWLOC_CFLAGS)
+LIBS = $(top_builddir)/src/libstarpu.la $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
 
 TESTS	=	coverage/coverage.sh	\

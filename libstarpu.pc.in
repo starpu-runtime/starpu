@@ -9,4 +9,5 @@ Version: @PACKAGE_VERSION@
 Cflags: -I${includedir} @STARPU_CUDA_CPPFLAGS@
 Libs: -L${libdir} -lstarpu @STARPU_CUDA_LDFLAGS@
 Libs.private: @LDFLAGS@ @LIBS@
-Requires.private: @HWLOC_REQUIRES@ @GORDON_REQUIRES@
+Requires: @HWLOC_REQUIRES@
+Requires.private: @GORDON_REQUIRES@
