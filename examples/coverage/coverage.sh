@@ -28,11 +28,19 @@ apps()
     check_success $?
 
     echo "variable opencl"
-    STARPU_NCUDA=0 STARPU_NCPUS=0 ./basic_examples/variable 
+    STARPU_NCUDA=0 STARPU_NCPUS=0 ./basic_examples/variable 100
+    check_success $?
+
+    echo "variable no worker"
+    STARPU_NCUDA=0 STARPU_NOPENCL=0 STARPU_NCPUS=0 ./basic_examples/variable 
     check_success $?
 
     echo "incrementer opencl"
-    STARPU_NCUDA=0 STARPU_NCPUS=0 ./incrementer/incrementer
+    STARPU_NCUDA=0 STARPU_NCPUS=0 ./incrementer/incrementer 10
+    check_success $?
+
+    echo "incrementer no worker"
+    STARPU_NCUDA=0 STARPU_NOPENCL=0 STARPU_NCPUS=0 ./incrementer/incrementer
     check_success $?
 
     echo "tag_example"
