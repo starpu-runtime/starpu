@@ -14,7 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <core/policies/random_policy.h>
+#include <core/workers.h>
+#include <sched_policies/fifo_queues.h>
 
 static unsigned nworkers;
 static struct starpu_fifo_taskq_s *queue_array[STARPU_NMAXWORKERS];

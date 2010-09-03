@@ -14,10 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <core/policies/work_stealing_policy.h>
-
-/* save the general machine configuration */
-//static struct starpu_machine_config_s *machineconfig;
+#include <core/workers.h>
+#include <sched_policies/deque_queues.h>
 
 static unsigned nworkers;
 static unsigned rr_worker;

@@ -15,7 +15,7 @@
  */
 
 #include <pthread.h>
-#include <core/mechanisms/fifo_queues.h>
+#include <sched_policies/fifo_queues.h>
 #include <errno.h>
 #include <common/utils.h>
 #include <core/task.h>

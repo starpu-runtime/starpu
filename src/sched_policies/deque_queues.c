@@ -17,7 +17,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <core/workers.h>
-#include <core/mechanisms/deque_queues.h>
+#include <sched_policies/deque_queues.h>
 #include <errno.h>
 #include <common/utils.h>
 

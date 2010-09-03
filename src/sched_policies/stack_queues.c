@@ -15,7 +15,7 @@
  */
 
 #include <starpu.h>
-#include <core/mechanisms/stack_queues.h>
+#include <sched_policies/stack_queues.h>
 #include <errno.h>
 #include <common/utils.h>
 

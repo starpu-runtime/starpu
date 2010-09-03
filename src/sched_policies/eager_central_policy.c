@@ -14,7 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <core/policies/eager_central_policy.h>
+#include <core/workers.h>
+#include <sched_policies/fifo_queues.h>
 
 /*
  *	This is just the trivial policy where every worker use the same

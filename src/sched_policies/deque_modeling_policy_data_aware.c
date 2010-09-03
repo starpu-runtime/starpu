@@ -15,7 +15,7 @@
  */
 
 #include <core/workers.h>
-#include <core/mechanisms/fifo_queues.h>
+#include <sched_policies/fifo_queues.h>
 #include <core/perfmodel/perfmodel.h>
 
 static unsigned nworkers;

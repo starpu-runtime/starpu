@@ -14,7 +14,21 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <core/policies/eager_central_priority_policy.h>
+#include <starpu.h>
+#include <common/config.h>
+#include <core/workers.h>
+#include <common/utils.h>
+
+#define NPRIO_LEVELS	((STARPU_MAX_PRIO) - (STARPU_MIN_PRIO) + 1)
+
+struct starpu_priority_taskq_s {
+	/* the actual lists 
+	 *	taskq[p] is for priority [p - STARPU_MIN_PRIO] */
+	struct starpu_task_list taskq[NPRIO_LEVELS];
+	unsigned ntasks[NPRIO_LEVELS];
+
+	unsigned total_ntasks;
+};
 
 /* the former is the actual queue, the latter some container */
 static struct starpu_priority_taskq_s *taskq;
@@ -23,6 +37,32 @@ static struct starpu_priority_taskq_s *taskq;
  * polling when there are really few tasks in the overall queue */
 static pthread_cond_t global_sched_cond;
 static pthread_mutex_t global_sched_mutex;
+
+/*
+ * Centralized queue with priorities 
+ */
+
+static struct starpu_priority_taskq_s *_starpu_create_priority_taskq(void)
+{
+	struct starpu_priority_taskq_s *central_queue;
+	
+	central_queue = malloc(sizeof(struct starpu_priority_taskq_s));
+	central_queue->total_ntasks = 0;
+
+	unsigned prio;
+	for (prio = 0; prio < NPRIO_LEVELS; prio++)
+	{
+		starpu_task_list_init(&central_queue->taskq[prio]);
+		central_queue->ntasks[prio] = 0;
+	}
+
+	return central_queue;
+}
+
+static void _starpu_destroy_priority_taskq(struct starpu_priority_taskq_s *priority_queue)
+{
+	free(priority_queue);
+}
 
 static void initialize_eager_center_priority_policy(struct starpu_machine_topology_s *topology, 
 			__attribute__ ((unused))	struct starpu_sched_policy_s *_policy) 

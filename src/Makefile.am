@@ -58,15 +58,7 @@ noinst_HEADERS = 						\
 	core/dependencies/tags.h				\
 	core/dependencies/htable.h				\
 	core/dependencies/implicit_data_deps.h			\
-	core/policies/eager_central_priority_policy.h		\
 	core/sched_policy.h					\
-	core/policies/random_policy.h				\
-	core/policies/eager_central_policy.h			\
-	core/policies/work_stealing_policy.h			\
-	core/mechanisms/priority_queues.h			\
-	core/mechanisms/fifo_queues.h				\
-	core/mechanisms/deque_queues.h				\
-	core/mechanisms/stack_queues.h				\
 	core/perfmodel/perfmodel.h				\
 	core/perfmodel/regression.h				\
 	core/jobs.h						\
@@ -75,6 +67,9 @@ noinst_HEADERS = 						\
 	core/topology.h						\
 	core/debug.h						\
 	core/errorcheck.h					\
+	sched_policies/fifo_queues.h				\
+	sched_policies/deque_queues.h				\
+	sched_policies/stack_queues.h				\
 	datawizard/footprint.h					\
 	datawizard/datawizard.h					\
 	datawizard/data_request.h				\
@@ -126,20 +121,19 @@ libstarpu_la_SOURCES = 						\
 	core/dependencies/task_deps.c				\
 	core/dependencies/htable.c				\
 	core/dependencies/data_concurrency.c			\
-	core/mechanisms/stack_queues.c				\
-	core/mechanisms/deque_queues.c				\
-	core/mechanisms/priority_queues.c			\
-	core/mechanisms/fifo_queues.c				\
 	core/perfmodel/perfmodel_history.c			\
 	core/perfmodel/perfmodel_bus.c				\
 	core/perfmodel/perfmodel.c				\
 	core/perfmodel/regression.c				\
-	core/policies/eager_central_policy.c			\
-	core/policies/eager_central_priority_policy.c		\
-	core/policies/work_stealing_policy.c			\
 	core/sched_policy.c					\
-	core/policies/random_policy.c				\
-	core/policies/deque_modeling_policy_data_aware.c	\
+	sched_policies/eager_central_policy.c			\
+	sched_policies/eager_central_priority_policy.c		\
+	sched_policies/work_stealing_policy.c			\
+	sched_policies/deque_modeling_policy_data_aware.c	\
+	sched_policies/random_policy.c				\
+	sched_policies/stack_queues.c				\
+	sched_policies/deque_queues.c				\
+	sched_policies/fifo_queues.c				\
 	drivers/driver_common/driver_common.c			\
 	datawizard/memory_nodes.c				\
 	datawizard/write_back.c					\
