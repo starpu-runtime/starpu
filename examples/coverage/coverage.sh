@@ -23,6 +23,18 @@ check_success()
 }
 apps()
 {
+    echo "block opencl"
+    STARPU_NCUDA=0 STARPU_NCPUS=0 basic_examples/block
+    check_success $?
+
+    echo "variable opencl"
+    STARPU_NCUDA=0 STARPU_NCPUS=0 ./basic_examples/variable 
+    check_success $?
+
+    echo "incrementer opencl"
+    STARPU_NCUDA=0 STARPU_NCPUS=0 ./incrementer/incrementer
+    check_success $?
+
     echo "tag_example"
     tag_example/tag_example -iter 64 -i 128 -j 24
     check_success $?
