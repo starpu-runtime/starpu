@@ -24,7 +24,7 @@
 #include <starpu_opencl.h>
 #include <drivers/opencl/driver_opencl.h>
 
-static int dummy_copy_ram_to_ram(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)));
+static int copy_ram_to_ram(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)));
 #ifdef STARPU_USE_CUDA
 static int copy_ram_to_cuda(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)));
 static int copy_cuda_to_ram(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)));
@@ -39,7 +39,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node __att
 #endif
 
 static const struct starpu_data_copy_methods matrix_copy_data_methods_s = {
-	.ram_to_ram = dummy_copy_ram_to_ram,
+	.ram_to_ram = copy_ram_to_ram,
 	.ram_to_spu = NULL,
 #ifdef STARPU_USE_CUDA
 	.ram_to_cuda = copy_ram_to_cuda,
@@ -512,7 +512,7 @@ static int copy_opencl_to_ram(void *src_interface, unsigned src_node __attribute
 #endif
 
 /* as not all platform easily have a  lib installed ... */
-static int dummy_copy_ram_to_ram(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
+static int copy_ram_to_ram(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
 {
 	starpu_matrix_interface_t *src_matrix = src_interface;
 	starpu_matrix_interface_t *dst_matrix = dst_interface;
