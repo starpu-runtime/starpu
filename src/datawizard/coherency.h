@@ -172,6 +172,8 @@ __attribute__((warn_unused_result))
 int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask);
 
 unsigned _starpu_is_data_present_or_requested(struct starpu_data_state_t *state, uint32_t node);
+unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle handle, uint32_t memory_node);
+
 
 void _starpu_set_data_requested_flag_if_needed(struct starpu_data_state_t *state, uint32_t node);
 

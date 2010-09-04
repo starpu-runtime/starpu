@@ -75,7 +75,8 @@ void starpu_data_set_sequential_consistency_flag(starpu_data_handle handle, unsi
 unsigned starpu_data_get_default_sequential_consistency_flag(void);
 void starpu_data_set_default_sequential_consistency_flag(unsigned flag);
 
-unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle handle, uint32_t memory_node);
+/* Query the status of the handle on the specified memory node. */
+void starpu_data_query_status(starpu_data_handle handle, int memory_node, int *is_allocated, int *is_valid, int *is_requested);
 
 #ifdef __cplusplus
 }
