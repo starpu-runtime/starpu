@@ -383,7 +383,8 @@ void starpu_data_set_default_sequential_consistency_flag(unsigned flag)
 /* Query the status of the handle on the specified memory node. */
 void starpu_data_query_status(starpu_data_handle handle, int memory_node, int *is_allocated, int *is_valid, int *is_requested)
 {
-	_starpu_spin_lock(&handle->header_lock);
+#warning FIXME
+//	_starpu_spin_lock(&handle->header_lock);
 
 	if (is_allocated)
 		*is_allocated = handle->per_node[memory_node].allocated;
@@ -394,5 +395,5 @@ void starpu_data_query_status(starpu_data_handle handle, int memory_node, int *i
 	if (is_requested)
 		*is_requested = handle->per_node[memory_node].requested;
 
-	_starpu_spin_unlock(&handle->header_lock);
+//	_starpu_spin_unlock(&handle->header_lock);
 }

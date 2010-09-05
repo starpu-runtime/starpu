@@ -40,9 +40,10 @@ extern struct starpu_sched_policy_s _starpu_sched_no_prio_policy;
 extern struct starpu_sched_policy_s _starpu_sched_random_policy;
 extern struct starpu_sched_policy_s _starpu_sched_dm_policy;
 extern struct starpu_sched_policy_s _starpu_sched_dmda_policy;
+extern struct starpu_sched_policy_s _starpu_sched_dmda_ready_policy;
 extern struct starpu_sched_policy_s _starpu_sched_eager_policy;
 
-#define NPREDEFINED_POLICIES	7
+#define NPREDEFINED_POLICIES	8
 
 static struct starpu_sched_policy_s *predefined_policies[NPREDEFINED_POLICIES] = {
 	&_starpu_sched_ws_policy,
@@ -50,6 +51,7 @@ static struct starpu_sched_policy_s *predefined_policies[NPREDEFINED_POLICIES] =
 	&_starpu_sched_no_prio_policy,
 	&_starpu_sched_dm_policy,
 	&_starpu_sched_dmda_policy,
+	&_starpu_sched_dmda_ready_policy,
 	&_starpu_sched_random_policy,
 	&_starpu_sched_eager_policy
 };
