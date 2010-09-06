@@ -90,6 +90,7 @@ static void load_sched_policy(struct starpu_sched_policy_s *sched_policy)
 	policy.push_task = sched_policy->push_task;
 	policy.push_prio_task = sched_policy->push_prio_task;
 	policy.pop_task = sched_policy->pop_task;
+        policy.post_exec_hook = sched_policy->post_exec_hook;
 	policy.pop_every_task = sched_policy->pop_every_task;
 }
 
