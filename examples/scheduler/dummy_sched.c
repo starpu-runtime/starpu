@@ -36,6 +36,8 @@ static void init_dummy_sched(struct starpu_machine_topology_s *topology,
 	unsigned workerid;
 	for (workerid = 0; workerid < topology->nworkers; workerid++)
 		starpu_worker_set_sched_condition(workerid, &sched_cond, &sched_mutex);
+
+	fprintf(stderr, "Initialising Dummy scheduler\n");
 }
 
 static void deinit_dummy_sched(struct starpu_machine_topology_s *topology,
@@ -45,6 +47,8 @@ static void deinit_dummy_sched(struct starpu_machine_topology_s *topology,
 
 	pthread_cond_destroy(&sched_cond);
 	pthread_mutex_destroy(&sched_mutex);
+
+	fprintf(stderr, "Destroying Dummy scheduler\n");
 }
 
 static int push_task_dummy(struct starpu_task *task)
