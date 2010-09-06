@@ -108,6 +108,8 @@ struct starpu_sched_policy_s _starpu_sched_random_policy = {
 	.push_task = random_push_task,
 	.push_prio_task = random_push_prio_task,
 	.pop_task = random_pop_task,
+	.pop_exec_hook = NULL,
+	.pop_every_task = NULL,
 	.policy_name = "random",
 	.policy_description = "weighted random"
 };

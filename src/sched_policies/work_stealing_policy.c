@@ -212,6 +212,8 @@ struct starpu_sched_policy_s _starpu_sched_ws_policy = {
 	.push_task = ws_push_task,
 	.push_prio_task = ws_push_task,
 	.pop_task = ws_pop_task,
+	.post_exec_hook = NULL,
+	.pop_every_task = NULL,
 	.policy_name = "ws",
 	.policy_description = "work stealing"
 };

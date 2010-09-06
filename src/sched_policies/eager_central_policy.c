@@ -77,6 +77,7 @@ struct starpu_sched_policy_s _starpu_sched_eager_policy = {
 	.push_task = push_task_eager_policy,
 	.push_prio_task = push_prio_task_eager_policy,
 	.pop_task = pop_task_eager_policy,
+	.post_exec_hook = NULL,
 	.pop_every_task = pop_every_task_eager_policy,
 	.policy_name = "eager",
 	.policy_description = "greedy policy"
@@ -89,6 +90,7 @@ struct starpu_sched_policy_s _starpu_sched_no_prio_policy = {
 	/* we use the same method in spite of the priority */
 	.push_prio_task = push_task_eager_policy,
 	.pop_task = pop_task_eager_policy,
+	.post_exec_hook = NULL,
 	.pop_every_task = pop_every_task_eager_policy,
 	.policy_name = "no-prio",
 	.policy_description = "eager without priority"

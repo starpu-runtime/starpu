@@ -148,6 +148,8 @@ struct starpu_sched_policy_s _starpu_sched_prio_policy = {
 	.push_task = _starpu_priority_push_task,
 	.push_prio_task = _starpu_priority_push_task,
 	.pop_task = _starpu_priority_pop_task,
+	.post_exec_hook = NULL,
+	.pop_every_task = NULL,
 	.policy_name = "prio",
 	.policy_description = "eager (with priorities)"
 };
