@@ -3329,6 +3329,62 @@ TODO
 
 TODO
 
+A full example showing how to define a new scheduling policy is available in
+the StarPU sources in the directory @code{examples/scheduler/}.
+
+@menu
+* struct starpu_sched_policy_s::  
+* Source code::                 
+@end menu
+
+@node struct starpu_sched_policy_s
+@subsection @code{struct starpu_sched_policy_s} -- Scheduler methods
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Fields}:
+@table @asis
+@item @code{init_sched}:
+TODO
+@item @code{deinit_sched}:
+TODO
+@item @code{push_task}:
+TODO
+@item @code{push_prio_task}:
+TODO
+@item @code{pop_task}:
+TODO
+@item @code{post_exec_hook}:
+TODO
+@item @code{pop_every_task}:
+TODO
+@item @code{policy_name}:
+TODO
+@item @code{policy_description}:
+TODO
+@end table
+@end table
+
+@node Source code
+@subsection Source code
+
+@cartouche
+@smallexample
+static struct starpu_sched_policy_s dummy_sched_policy = @{
+    .init_sched = init_dummy_sched,
+    .deinit_sched = deinit_dummy_sched,
+    .push_task = push_task_dummy,
+    .push_prio_task = NULL,
+    .pop_task = pop_task_dummy,
+    .post_exec_hook = NULL,
+    .pop_every_task = NULL,
+    .policy_name = "dummy",
+    .policy_description = "dummy scheduling strategy"
+@};
+@end smallexample
+@end cartouche
+
+
 @c ---------------------------------------------------------------------
 @c Appendices
 @c ---------------------------------------------------------------------
