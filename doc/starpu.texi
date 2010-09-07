@@ -3342,27 +3342,34 @@ the StarPU sources in the directory @code{examples/scheduler/}.
 @subsection @code{struct starpu_sched_policy_s} -- Scheduler methods
 @table @asis
 @item @emph{Description}:
-TODO
+This structure contains all the methods that implement a scheduling policy.  An
+application may specify which scheduling strategy in the @code{sched_policy}
+field of the @code{starpu_conf} structure passed to the @code{starpu_init}
+function.
+
 @item @emph{Fields}:
 @table @asis
 @item @code{init_sched}:
-TODO
+Initialize the scheduling policy.
 @item @code{deinit_sched}:
-TODO
+Cleanup the scheduling policy.
 @item @code{push_task}:
-TODO
+Insert a task into the scheduler.
 @item @code{push_prio_task}:
-TODO
+Insert a priority task into the scheduler.
 @item @code{pop_task}:
-TODO
-@item @code{post_exec_hook}:
-TODO
+Get a task from the scheduler. The mutex associated to the worker is already
+taken when this method is called.
 @item @code{pop_every_task}:
-TODO
+Remove all available tasks from the scheduler (tasks are chained by the means
+of the prev and next fields of the starpu_task structure). The mutex associated
+to the worker is already taken when this method is called. 
+@item @code{post_exec_hook} (optionnal):
+This method is called every time a task has been executed.
 @item @code{policy_name}:
-TODO
+Name of the policy (optionnal).
 @item @code{policy_description}:
-TODO
+Description of the policy (optionnal).
 @end table
 @end table
 

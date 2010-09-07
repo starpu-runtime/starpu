@@ -55,29 +55,39 @@ struct starpu_machine_topology_s {
 	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
 };
 
+/* This structure contains all the methods that implement a scheduling policy.
+ * An application may specify which scheduling strategy in the "sched_policy"
+ * field of the starpu_conf structure passed to the starpu_init function. */
 struct starpu_sched_policy_s {
-	/* create all the queues */
+	/* Initialize the scheduling policy. */
 	void (*init_sched)(struct starpu_machine_topology_s *, struct starpu_sched_policy_s *);
 
-	/* cleanup method at termination */
+	/* Cleanup the scheduling policy. */
 	void (*deinit_sched)(struct starpu_machine_topology_s *, struct starpu_sched_policy_s *);
 
-	/* some methods to manipulate the previous queue */
+	/* Insert a task into the scheduler. */
 	int (*push_task)(struct starpu_task *);
-	int (*push_prio_task)(struct starpu_task *);
-	struct starpu_task *(*pop_task)(void);
 
-	void (*post_exec_hook)(struct starpu_task *);
+	/* Insert a priority task into the scheduler. */
+	int (*push_prio_task)(struct starpu_task *);
+
+	/* Get a task from the scheduler. The mutex associated to the worker is
+	 * already taken when this method is called. */
+	struct starpu_task *(*pop_task)(void);
 
 	 /* Remove all available tasks from the scheduler (tasks are chained by
 	  * the means of the prev and next fields of the starpu_task
-	  * structure). */
+	  * structure). The mutex associated to the worker is already taken
+	  * when this method is called. */
 	struct starpu_task *(*pop_every_task)(uint32_t where);
 
-	/* name of the policy (optionnal) */
+	/* This method is called every time a task has been executed. (optionnal) */
+	void (*post_exec_hook)(struct starpu_task *);
+
+	/* Name of the policy (optionnal) */
 	const char *policy_name;
 
-	/* description of the policy (optionnal) */
+	/* Description of the policy (optionnal) */
 	const char *policy_description;
 };
 
