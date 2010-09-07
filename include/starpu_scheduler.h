@@ -81,6 +81,13 @@ struct starpu_sched_policy_s {
 	const char *policy_description;
 };
 
+/* When there is no available task for a worker, StarPU blocks this worker on a
+condition variable. This function specifies which condition variable (and the
+associated mutex) should be used to block (and to wake up) a worker. Note that
+multiple workers may use the same condition variable. For instance, in the case
+of a scheduling strategy with a single task queue, the same condition variable
+would be used to block and wake up all workers.  The initialization method of a
+scheduling strategy (init_sched) must call this function once per worker. */
 void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond, pthread_mutex_t *sched_mutex);
 
 #endif // __STARPU_SCHEDULER_H__
