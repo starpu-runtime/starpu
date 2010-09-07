@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* Distributed queues using performance modeling to assign tasks */
+
 #include <core/workers.h>
 #include <sched_policies/fifo_queues.h>
 #include <core/perfmodel/perfmodel.h>

@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* Stack queues, ready for use by schedulers */
+
 #ifndef __STACK_QUEUES_H__
 #define __STACK_QUEUES_H__
 

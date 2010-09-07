@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* Policy attributing tasks randomly to workers */
+
 #include <core/workers.h>
 #include <sched_policies/fifo_queues.h>
 

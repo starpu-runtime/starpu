@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* FIFO queues, ready for use by schedulers */
+
 #include <pthread.h>
 #include <sched_policies/fifo_queues.h>
 #include <errno.h>

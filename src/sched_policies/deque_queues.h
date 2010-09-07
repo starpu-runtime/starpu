@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* Deque queues, ready for use by schedulers */
+
 #ifndef __DEQUE_QUEUES_H__
 #define __DEQUE_QUEUES_H__
 

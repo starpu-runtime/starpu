@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* Work stealing policy */
+
 #include <core/workers.h>
 #include <sched_policies/deque_queues.h>
 

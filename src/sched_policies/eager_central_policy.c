@@ -14,13 +14,13 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <core/workers.h>
-#include <sched_policies/fifo_queues.h>
-
 /*
  *	This is just the trivial policy where every worker use the same
  *	JOB QUEUE.
  */
+
+#include <core/workers.h>
+#include <sched_policies/fifo_queues.h>
 
 /* the former is the actual queue, the latter some container */
 static struct starpu_fifo_taskq_s *fifo;

@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* Deque queues, ready for use by schedulers */
+
 #include <starpu.h>
 #include <common/config.h>
 #include <core/workers.h>

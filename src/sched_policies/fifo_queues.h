@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* FIFO queues, ready for use by schedulers */
+
 #ifndef __FIFO_QUEUES_H__
 #define __FIFO_QUEUES_H__
 

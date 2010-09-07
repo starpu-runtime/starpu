@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* Stack queues, ready for use by schedulers */
+
 #include <starpu.h>
 #include <sched_policies/stack_queues.h>
 #include <errno.h>
