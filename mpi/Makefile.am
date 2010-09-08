@@ -33,7 +33,6 @@ EXTRA_DIST = 					\
 	examples/mpi_lu/pxlu.c			\
 	examples/mpi_lu/pxlu_kernels.h		\
 	examples/mpi_lu/pxlu_kernels.c
-	
 
 examplebindir = $(libdir)/starpu/mpi/examples/
 mpiexamplebindir=$(libdir)/starpu/mpi/
@@ -49,7 +48,7 @@ NVCC ?= nvcc
 	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
 
 .cu.o:
-	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I$(top_srcdir)/include/
+	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I$(top_srcdir)/include/  -I$(top_builddir)/include/
 endif
 
 LIBS = $(top_builddir)/src/libstarpu.la @LIBS@
