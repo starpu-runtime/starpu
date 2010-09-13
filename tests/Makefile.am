@@ -94,6 +94,7 @@ check_PROGRAMS += 				\
 	core/declare_deps_after_submission	\
 	core/declare_deps_after_submission_synchronous	\
 	core/get_current_task			\
+	datawizard/acquire_release		\
 	datawizard/data_implicit_deps		\
 	datawizard/scratch			\
 	datawizard/sync_and_notify_data		\
