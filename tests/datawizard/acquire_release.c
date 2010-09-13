@@ -65,10 +65,12 @@ int main(int argc, char **argv)
                 starpu_data_acquire_cb(token_handle, STARPU_RW, callback, NULL);
 	}
 
-        starpu_task_wait_for_all();
-	starpu_shutdown();
+	starpu_data_unregister(token_handle);
+
         fprintf(stderr, "Token: %d\n", token);
         STARPU_ASSERT(token==ntasks);
+
+	starpu_shutdown();
 
 	return 0;
 }
