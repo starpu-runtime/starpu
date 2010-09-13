@@ -78,6 +78,7 @@ void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, st
 
 		starpu_job_t dep_job;
 		dep_job = _starpu_get_job_associated_to_task(dep_task);
+		STARPU_ASSERT(dep_job != job);
 
 		STARPU_TRACE_TASK_DEPS(dep_job, job);
 
