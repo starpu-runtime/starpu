@@ -529,7 +529,6 @@ Specify the location of the Gordon SDK.
 * --with-fxt::                  
 * --with-perf-model-dir::       
 * --with-mpicc::                
-* --with-mpi::                  
 * --with-goto-dir::             
 * --with-atlas-dir::            
 @end menu
@@ -616,15 +615,6 @@ current user's home).
 @table @asis
 @item @emph{Description}:
 Specify the location of the @code{mpicc} compiler to be used for starpumpi.
-@c TODO: also just use AC_PROG
-@end table
-
-@node --with-mpi
-@subsubsection @code{--with-mpi}
-@table @asis
-@item @emph{Description}:
-Enable building libstarpumpi.
-@c TODO: rather just use the availability of mpicc instead of a second option
 @end table
 
 @node --with-goto-dir

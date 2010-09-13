@@ -673,50 +673,28 @@ AC_ARG_WITH(mpicc, [AS_HELP_STRING([--with-mpicc[=<path to mpicc>]],
 			[Path of the mpicc compiler])],
 	[
 		if test x$withval = xyes; then
-			AC_MSG_ERROR(--with-mpi must be given a pathname)
+			AC_MSG_ERROR(--with-mpicc must be given a pathname)
 		else
-			use_mpi=forceyes
 			mpicc_path=$withval
 		fi
 	],
 	[
 		# nothing was specified: default value is used
 		AC_PATH_PROG(mpicc_path, mpicc, [no], [])
-		use_mpi=maybe
 	])
 
-AC_ARG_WITH(mpi, [AS_HELP_STRING([--with-mpi],
-			[Generate a library to use StarPU with MPI])],
-	[
-		if test x$withval != xno; then
-			use_mpi=yes
-		else
-			# explicitly without mpi
-			use_mpi=no
-		fi
-	],
-	[
-		# nothing was specified, the MPI lib is generated only if some
-		# mpicc was explicitely specified (thus implicitely indicating
-		# MPI support).
-		if test x$use_mpi = xforceyes; then
-			use_mpi=yes
-		else
-			use_mpi=no
-		fi
-	])
-
-if test x$use_mpi = xyes; then
-	# We test if the MPICC compiler exists
-	if test ! -x $mpicc_path; then
-		#MPICC does not exists or is not executable
-		AC_MSG_ERROR(The mpicc compiler is not valid)
-	fi
-
-	AC_MSG_CHECKING(mpicc path)
-	AC_MSG_RESULT($mpicc_path)
-	AC_SUBST(MPICC, $mpicc_path)
+# We test if the MPICC compiler exists
+if test ! -x $mpicc_path; then
+	#MPICC does not exists or is not executable
+	AC_MSG_ERROR(The mpicc compiler is not valid)
+	use_mpi=no
+else
+	use_mpi=yes
 fi
+
+AC_MSG_CHECKING(mpicc path)
+AC_MSG_RESULT($mpicc_path)
+AC_SUBST(MPICC, $mpicc_path)
 
 AC_MSG_CHECKING(whether the MPI library should be generated)
 AC_MSG_RESULT($use_mpi)
