@@ -399,6 +399,7 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
 #endif
 		if (!calibrate_flag) {
 			fprintf(stderr, "Warning: model %s is not calibrated, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol);
+			_starpu_set_calibrate_flag(1);
 			model->benchmarking = 1;
 		}
 		initialize_model(model);
