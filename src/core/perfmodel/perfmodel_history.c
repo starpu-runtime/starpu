@@ -397,6 +397,10 @@ static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned 
 #ifdef STARPU_VERBOSE
 		fprintf(stderr, "File does not exists\n");
 #endif
+		if (!calibrate_flag) {
+			fprintf(stderr, "Warning: model %s is not calibrated, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol);
+			model->benchmarking = 1;
+		}
 		initialize_model(model);
 	}
 
