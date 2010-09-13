@@ -22,6 +22,8 @@
 #include <datawizard/write_back.h>
 #include <core/dependencies/data_concurrency.h>
 
+#  define _STARPU_DEBUG(fmt, args ...) { fprintf(stderr, "[starpu][%s] " fmt , __func__ ,##args); fflush(stderr); }
+
 /* Explicitly ask StarPU to allocate room for a piece of data on the specified
  * memory node. */
 int starpu_data_request_allocation(starpu_data_handle handle, uint32_t node)
@@ -90,6 +92,8 @@ static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 {
 	struct user_interaction_wrapper *wrapper = arg;
+        _STARPU_DEBUG("-----------------> starpu_data_acquire_cb_pre_sync_callback\n");
+
 
 	/* we try to get the data, if we do not succeed immediately, we set a
  	* callback function that will be executed automatically when the data is
@@ -100,6 +104,7 @@ static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 		/* no one has locked this data yet, so we proceed immediately */
 		_starpu_data_acquire_continuation_non_blocking(wrapper);
 	}
+        _STARPU_DEBUG("<----------------- starpu_data_acquire_cb_pre_sync_callback\n");
 }
 
 /* The data must be released by calling starpu_data_release later on */
@@ -107,6 +112,8 @@ int starpu_data_acquire_cb(starpu_data_handle handle,
 		starpu_access_mode mode, void (*callback)(void *), void *arg)
 {
 	STARPU_ASSERT(handle);
+
+        _STARPU_DEBUG("-----------------> starpu_data_acquire_cb\n");
 
 	struct user_interaction_wrapper *wrapper = malloc(sizeof(struct user_interaction_wrapper));
 	STARPU_ASSERT(wrapper);
@@ -149,6 +156,7 @@ int starpu_data_acquire_cb(starpu_data_handle handle,
 		starpu_data_acquire_cb_pre_sync_callback(wrapper);
 	}
 
+        _STARPU_DEBUG("<----------------- starpu_data_acquire_cb\n");
 	return 0;
 }
 
