@@ -119,8 +119,15 @@ The password is 'anonsvn'
     copy c:\cuda\lib\OpenCL.lib c:\cuda\lib\libOpenCL.lib
 
 ++============++
-|| V. Contact ||
+|| V. Upgrade ||
 ++============++
+
+To upgrade from older version (there were quite a few renamings), use the
+tools/rename.sh script
+
+++=============++
+|| VI. Contact ||
+++=============++
 
 For any questions regarding StarPU, please contact the starpu-devel
 mailing-list at starpu-devel@lists.gforge.inria.fr .
