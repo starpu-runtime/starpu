@@ -76,7 +76,6 @@ static struct starpu_mpi_req_s *_starpu_mpi_isend_common(starpu_data_handle data
 				int dest, int mpi_tag, MPI_Comm comm,
 				unsigned detached, void (*callback)(void *), void *arg)
 {
-        _STARPU_MPI_DEBUG("--> starpu_mpi_isend_common\n");
 	struct starpu_mpi_req_s *req = calloc(1, sizeof(struct starpu_mpi_req_s));
 	STARPU_ASSERT(req);
 
@@ -104,7 +103,6 @@ static struct starpu_mpi_req_s *_starpu_mpi_isend_common(starpu_data_handle data
 	starpu_data_acquire_cb(data_handle, STARPU_R,
 			submit_mpi_req, (void *)req);
 
-        _STARPU_MPI_DEBUG("<-- starpu_mpi_isend_common\n");
 	return req;
 }
 
@@ -128,9 +126,7 @@ int starpu_mpi_isend(starpu_data_handle data_handle, starpu_mpi_req *public_req,
 int starpu_mpi_isend_detached(starpu_data_handle data_handle,
 				int dest, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 {
-        _STARPU_MPI_DEBUG("--> starpu_mpi_isend_detached\n");
 	_starpu_mpi_isend_common(data_handle, dest, mpi_tag, comm, 1, callback, arg);
-        _STARPU_MPI_DEBUG("<-- starpu_mpi_isend_detached\n");
 
 	return 0;
 }
@@ -308,7 +304,7 @@ static void starpu_mpi_test_func(struct starpu_mpi_req_s *testing_req)
 	/* Which is the mpi request we are testing for ? */
 	struct starpu_mpi_req_s *req = testing_req->other_request;
 
-        //_STARPU_MPI_DEBUG("Test request %p - mpitag %x - TYPE %s %d\n", &req->request, req->mpi_tag, (req->request_type == RECV_REQ)?"recv : source":"send : dest", req->srcdst);
+        _STARPU_MPI_DEBUG("Test request %p - mpitag %x - TYPE %s %d\n", &req->request, req->mpi_tag, (req->request_type == RECV_REQ)?"recv : source":"send : dest", req->srcdst);
 	int ret = MPI_Test(&req->request, testing_req->flag, testing_req->status);
 
 	if (*testing_req->flag)
@@ -457,7 +453,8 @@ static void test_detached_requests(void)
 		int ret = MPI_Test(&req->request, &flag, &status);
 		STARPU_ASSERT(ret == MPI_SUCCESS);
 
-                //_STARPU_MPI_DEBUG("Test request %p - mpitag %x - TYPE %s %d\n", &req->request, req->mpi_tag, (req->request_type == RECV_REQ)?"recv : source":"send : dest", req->srcdst);
+
+                _STARPU_MPI_DEBUG("Test request %p - mpitag %x - TYPE %s %d\n", &req->request, req->mpi_tag, (req->request_type == RECV_REQ)?"recv : source":"send : dest", req->srcdst);
 
 		if (flag)
 		{

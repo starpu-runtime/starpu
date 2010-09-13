@@ -16,7 +16,7 @@
 
 #include <starpu_mpi.h>
 
-#define NITER	2//048
+#define NITER	2048
 
 unsigned token = 42;
 starpu_data_handle token_handle;
@@ -32,7 +32,7 @@ void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 }
 
 static starpu_codelet increment_cl = {
-        .where = STARPU_CPU,//|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = increment_cuda,
 #endif
@@ -87,9 +87,8 @@ int main(int argc, char **argv)
 
 		if (!((loop == 0) && (rank == 0)))
 		{
-                  //			token = 0;
-                        fprintf(stderr,"[%d] RECV %d\n", rank, tag);
-                        starpu_mpi_irecv_detached(token_handle, (rank+size-1)%size, tag, MPI_COMM_WORLD, NULL, NULL);
+			token = 0;
+			starpu_mpi_irecv_detached(token_handle, (rank+size-1)%size, tag, MPI_COMM_WORLD, NULL, NULL);
 		}
 		else {
 			token = 0;
@@ -97,24 +96,19 @@ int main(int argc, char **argv)
 		}
 
 		increment_token();
-
+		
 		if (!((loop == last_loop) && (rank == last_rank)))
 		{
-                        fprintf(stderr,"[%d] SEND %d\n", rank, tag+1);
-                        starpu_mpi_isend_detached(token_handle, (rank+1)%size, tag+1, MPI_COMM_WORLD, NULL, NULL);
+			starpu_mpi_isend_detached(token_handle, (rank+1)%size, tag+1, MPI_COMM_WORLD, NULL, NULL);
 		}
 		else {
-                        fprintf(stderr,"[%d] ACQUIRE %d\n", rank, tag);
-                        starpu_task_wait_for_all();
+
 			starpu_data_acquire(token_handle, STARPU_R);
 			fprintf(stdout, "Finished : token value %d\n", token);
-                        starpu_task_wait_for_all();
 			starpu_data_release(token_handle);
-                        starpu_task_wait_for_all();
 		}
 	}
 
-        fprintf(stderr, "[%d] wait for all\n", rank);
 	starpu_task_wait_for_all();
 
 	starpu_mpi_shutdown();
@@ -124,8 +118,7 @@ int main(int argc, char **argv)
 
 	if (rank == last_rank)
 	{
-                fprintf(stderr, "[%d] token = %d == %d * %d ?\n", rank, token, nloops, size);
-//		STARPU_ASSERT(token == nloops*size);
+		STARPU_ASSERT(token == nloops*size);
 	}
 
 	return 0;

@@ -166,7 +166,6 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 {
 	STARPU_ASSERT(task->cl);
 
-        fprintf(stderr, "---------------> _starpu_detect_implicit_data_deps %p\n", task);
 	unsigned nbuffers = task->cl->nbuffers;
 
 	unsigned buffer;
@@ -183,7 +182,6 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 		_starpu_detect_implicit_data_deps_with_handle(task, task, handle, mode);
 		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 	}
-        fprintf(stderr, "<--------------- _starpu_detect_implicit_data_deps %p\n", task);
 }
 
 /* This function is called when a task has been executed so that we don't

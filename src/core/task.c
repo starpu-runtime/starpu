@@ -188,15 +188,12 @@ int starpu_task_submit(struct starpu_task *task)
 	int ret;
 	unsigned is_sync = task->synchronous;
 
-        fprintf(stderr, "---------------> starpu_task_submit %p\n", task);
 	if (is_sync)
 	{
 		/* Perhaps it is not possible to submit a synchronous
 		 * (blocking) task */
-                if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls())) {
-                        fprintf(stderr, "---------------> starpu_task_submit DEADLK %p\n", task);
+		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 			return -EDEADLK;
-                }
 
 		task->detach = 0;
 	}
@@ -206,18 +203,15 @@ int starpu_task_submit(struct starpu_task *task)
 	if (task->cl)
 	{
 		uint32_t where = task->cl->where;
-		if (!_starpu_worker_exists(where)) {
-                        fprintf(stderr, "---------------> starpu_task_submit ENODEV %p\n", task);
+		if (!_starpu_worker_exists(where))
 			return -ENODEV;
-                }
 
 		/* In case we require that a task should be explicitely
 		 * executed on a specific worker, we make sure that the worker
 		 * is able to execute this task.  */
-		if (task->execute_on_a_specific_worker && !_starpu_worker_may_execute_task(task->workerid, where)) {
-                        fprintf(stderr, "---------------> starpu_task_submit ENODEV %p\n", task);
+		if (task->execute_on_a_specific_worker 
+			&& !_starpu_worker_may_execute_task(task->workerid, where))
 			return -ENODEV;
-                }
 
 		_starpu_detect_implicit_data_deps(task);
 	}
@@ -251,12 +245,9 @@ int starpu_task_submit(struct starpu_task *task)
 
 	ret = _starpu_submit_job(j, 0);
 
-	if (is_sync) {
-                fprintf(stderr, "---------------> starpu_task_submit WAIT %p\n", task);
+	if (is_sync)
 		_starpu_wait_job(j);
-        }
 
-        fprintf(stderr, "<--------------- starpu_task_submit %p\n", task);
 	return ret;
 }
 

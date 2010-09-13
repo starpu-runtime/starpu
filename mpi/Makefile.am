@@ -16,8 +16,7 @@
 
 CC=$(MPICC)
 
-TESTS_ENVIRONMENT	=	mpiexec -np 2
-TESTS			=	$(check_PROGRAMS)
+TESTS = $(check_PROGRAMS)
 
 check_PROGRAMS =
 
@@ -79,10 +78,6 @@ libstarpumpi_la_SOURCES =				\
 
 if !NO_BLAS_LIB
 
-check_PROGRAMS += 				\
-	examples/mpi_lu/plu_example_float	\
-	examples/mpi_lu/plu_example_double
-
 examplebin_PROGRAMS += 				\
 	examples/mpi_lu/plu_example_float	\
 	examples/mpi_lu/plu_example_double
@@ -107,20 +102,6 @@ examples_mpi_lu_plu_example_double_SOURCES =	\
 	examples/mpi_lu/pdlu.c		    	\
 	$(top_srcdir)/examples/common/blas.c
 endif
-
-check_PROGRAMS +=				\
-	tests/pingpong					\
-	tests/mpi_test					\
-	tests/mpi_isend					\
-	tests/mpi_irecv					\
-	tests/mpi_isend_detached			\
-	tests/mpi_irecv_detached			\
-	tests/mpi_detached_tag				\
-	tests/ring					\
-	tests/ring_async				\
-	tests/ring_async_implicit			\
-	tests/block_interface				\
-	tests/block_interface_pinned
 
 mpiexamplebin_PROGRAMS =				\
 	tests/pingpong					\
