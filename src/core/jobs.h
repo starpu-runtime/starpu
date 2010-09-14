@@ -74,7 +74,7 @@ LIST_TYPE(starpu_job,
 #ifdef STARPU_USE_FXT
 	unsigned long job_id;
         unsigned exclude_from_dag;
-        char *model_name;
+        const char *model_name;
 #endif
 );
 
@@ -99,6 +99,6 @@ size_t _starpu_job_get_data_size(starpu_job_t j);
 starpu_job_t _starpu_pop_local_task(struct starpu_worker_s *worker);
 int _starpu_push_local_task(struct starpu_worker_s *worker, starpu_job_t j);
 
-char *_starpu_get_model_name(starpu_job_t j);
+const char *_starpu_get_model_name(starpu_job_t j);
 
 #endif // __JOBS_H__

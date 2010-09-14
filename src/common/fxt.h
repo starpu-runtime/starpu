@@ -150,7 +150,7 @@ do {									\
 
 #define STARPU_TRACE_START_CODELET_BODY(job)				\
 do {									\
-        char *model_name = _starpu_get_model_name((job));               \
+        const char *model_name = _starpu_get_model_name((job));               \
 	if (model_name)                                                 \
 	{								\
 		/* we include the symbol name */			\
@@ -207,7 +207,7 @@ do {									\
 #define STARPU_TRACE_TASK_DONE(job)						\
 do {										\
 	unsigned exclude_from_dag = (job)->exclude_from_dag;			\
-        char *model_name = _starpu_get_model_name((job));                       \
+        const char *model_name = _starpu_get_model_name((job));                       \
 	if (model_name)					                        \
 	{									\
 		STARPU_FUT_DO_PROBE4STR(STARPU_FUT_TASK_DONE, (job)->job_id, syscall(SYS_gettid), (long unsigned)exclude_from_dag, 1, model_name);\
@@ -220,7 +220,7 @@ do {										\
 #define STARPU_TRACE_TAG_DONE(tag)						\
 do {										\
         struct starpu_job_s *job = (tag)->job;                                  \
-        char *model_name = _starpu_get_model_name((job));                       \
+        const char *model_name = _starpu_get_model_name((job));                       \
 	if (model_name)                                                         \
 	{									\
           STARPU_FUT_DO_PROBE3STR(STARPU_FUT_TAG_DONE, (tag)->id, syscall(SYS_gettid), 1, model_name); \
