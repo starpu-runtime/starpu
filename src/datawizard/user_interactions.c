@@ -136,6 +136,13 @@ int starpu_data_acquire_cb(starpu_data_handle handle,
 		wrapper->post_sync_task = starpu_task_create();
 		wrapper->post_sync_task->detach = 1;
 
+#ifdef STARPU_USE_FXT
+                starpu_job_t job = _starpu_get_job_associated_to_task(wrapper->pre_sync_task);
+                job->model_name = "acquire_cb_pre";
+                job = _starpu_get_job_associated_to_task(wrapper->post_sync_task);
+                job->model_name = "acquire_cb_post";
+#endif
+
 		_starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, wrapper->post_sync_task, handle, mode);
 		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
@@ -201,6 +208,13 @@ int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode)
 
 		wrapper.post_sync_task = starpu_task_create();
 		wrapper.post_sync_task->detach = 1;
+
+#ifdef STARPU_USE_FXT
+                starpu_job_t job = _starpu_get_job_associated_to_task(wrapper.pre_sync_task);
+                job->model_name = "acquire_pre";
+                job = _starpu_get_job_associated_to_task(wrapper.post_sync_task);
+                job->model_name = "acquire_post";
+#endif
 
 		_starpu_detect_implicit_data_deps_with_handle(wrapper.pre_sync_task, wrapper.post_sync_task, handle, mode);
 		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);

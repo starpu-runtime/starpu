@@ -69,6 +69,7 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 	job->job_id = STARPU_ATOMIC_ADD(&job_cnt, 1);
 	/* display all tasks by default */
 	job->exclude_from_dag = 0;
+        job->model_name = NULL;
 #endif
 
 	_starpu_cg_list_init(&job->job_successors);
@@ -342,4 +343,18 @@ int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_job_s 
 #endif
 
 	return 0;
+}
+
+char *_starpu_get_model_name(starpu_job_t j) {
+        struct starpu_task *task = j->task;
+        if (task && task->cl
+            && task->cl->model
+            && task->cl->model->symbol)
+                return task->cl->model->symbol;
+#ifdef STARPU_USE_FXT
+        else {
+                return j->model_name;
+        }
+#endif
+        return NULL;
 }

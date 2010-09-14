@@ -148,16 +148,16 @@ do {									\
 #define STARPU_TRACE_WORKER_INIT_END				\
 	FUT_DO_PROBE1(STARPU_FUT_WORKER_INIT_END, syscall(SYS_gettid));
 
-#define STARPU_TRACE_START_CODELET_BODY(job)					\
+#define STARPU_TRACE_START_CODELET_BODY(job)				\
 do {									\
-	struct starpu_perfmodel_t *model = (job)->task->cl->model;	\
-	if (model && model->symbol)					\
+        char *model_name = _starpu_get_model_name((job));               \
+	if (model_name)                                                 \
 	{								\
 		/* we include the symbol name */			\
-		STARPU_FUT_DO_PROBE3STR(STARPU_FUT_START_CODELET_BODY, job, syscall(SYS_gettid), 1, model->symbol);\
+		STARPU_FUT_DO_PROBE3STR(STARPU_FUT_START_CODELET_BODY, (job), syscall(SYS_gettid), 1, model_name); \
 	}								\
-	else {								\
-		FUT_DO_PROBE3(STARPU_FUT_START_CODELET_BODY, job, syscall(SYS_gettid), 0);\
+	else {                                                          \
+		FUT_DO_PROBE3(STARPU_FUT_START_CODELET_BODY, (job), syscall(SYS_gettid), 0); \
 	}								\
 } while(0);
 
@@ -206,14 +206,11 @@ do {									\
 
 #define STARPU_TRACE_TASK_DONE(job)						\
 do {										\
-	struct starpu_task *task = (job)->task;					\
 	unsigned exclude_from_dag = (job)->exclude_from_dag;			\
-	if (task && task->cl 							\
-		&& task->cl->model						\
-		&& task->cl->model->symbol)					\
+        char *model_name = _starpu_get_model_name((job));                       \
+	if (model_name)					                        \
 	{									\
-		char *symbol = task->cl->model->symbol;				\
-		STARPU_FUT_DO_PROBE4STR(STARPU_FUT_TASK_DONE, (job)->job_id, syscall(SYS_gettid), (long unsigned)exclude_from_dag, 1, symbol);\
+		STARPU_FUT_DO_PROBE4STR(STARPU_FUT_TASK_DONE, (job)->job_id, syscall(SYS_gettid), (long unsigned)exclude_from_dag, 1, model_name);\
 	}									\
 	else {									\
 		FUT_DO_PROBE4(STARPU_FUT_TASK_DONE, (job)->job_id, syscall(SYS_gettid), (long unsigned)exclude_from_dag, 0);\
@@ -222,14 +219,11 @@ do {										\
 
 #define STARPU_TRACE_TAG_DONE(tag)						\
 do {										\
-	struct starpu_job_s *job = (tag)->job;					\
-	if (job && job->task 							\
-		&& job->task->cl						\
-		&& job->task->cl->model						\
-		&& job->task->cl->model->symbol)				\
+        struct starpu_job_s *job = (tag)->job;                                  \
+        char *model_name = _starpu_get_model_name((job));                       \
+	if (model_name)                                                         \
 	{									\
-		char *symbol = job->task->cl->model->symbol;			\
-		STARPU_FUT_DO_PROBE3STR(STARPU_FUT_TAG_DONE, (tag)->id, syscall(SYS_gettid), 1, symbol);\
+          STARPU_FUT_DO_PROBE3STR(STARPU_FUT_TAG_DONE, (tag)->id, syscall(SYS_gettid), 1, model_name); \
 	}									\
 	else {									\
 		FUT_DO_PROBE3(STARPU_FUT_TAG_DONE, (tag)->id, syscall(SYS_gettid), 0);\
