@@ -453,9 +453,9 @@ if test x$enable_gordon = xyes; then
 fi
 AC_SUBST(GORDON_REQUIRES)
 
-AC_MSG_CHECKING(whether debug mode should be enabled)
+AC_MSG_CHECKING(whether blocking drivers should be disabled)
 AC_ARG_ENABLE(blocking-drivers, [AS_HELP_STRING([--disable-blocking-drivers], [disable blocking drivers])],
-				enable_blocking=$enableval, enable_debug=$enable_gordon)
+				enable_blocking=$enableval, enable_blocking=$enable_gordon)
 AC_MSG_RESULT($enable_blocking)
 
 if test x$enable_blocking = xno; then
