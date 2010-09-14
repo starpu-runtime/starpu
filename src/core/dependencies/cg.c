@@ -109,6 +109,7 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 	
 				tag_successors->ndeps_completed++;
 
+				/* FIXME: who locks this? */
 				if ((tag->state == STARPU_BLOCKED) &&
 					(tag_successors->ndeps == tag_successors->ndeps_completed)) {
 					/* reset the counter so that we can reuse the completion group */
