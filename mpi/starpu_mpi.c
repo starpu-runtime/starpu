@@ -19,7 +19,7 @@
 #include <starpu_mpi_datatype.h>
 #include <starpu_mpi_private.h>
 
-#define STARPU_MPI_VERBOSE	1
+//#define STARPU_MPI_VERBOSE	1
 
 #ifdef STARPU_MPI_VERBOSE
 #  define _STARPU_MPI_DEBUG(fmt, args ...) { int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);                        \
