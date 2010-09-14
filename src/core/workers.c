@@ -350,6 +350,9 @@ unsigned _starpu_machine_is_running(void)
 
 unsigned _starpu_worker_can_block(unsigned memnode)
 {
+#ifdef STARPU_NON_BLOCKING_DRIVERS
+	return 0;
+#else
 	unsigned can_block = 1;
 
 	if (!_starpu_check_that_no_data_request_exists(memnode))
@@ -362,6 +365,7 @@ unsigned _starpu_worker_can_block(unsigned memnode)
 		can_block = 0;
 
 	return can_block;
+#endif
 }
 
 static void _starpu_kill_all_workers(struct starpu_machine_config_s *config)

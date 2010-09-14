@@ -151,7 +151,9 @@ int _starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_a
 
 		_starpu_spin_unlock(&r->lock);
 
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 		_starpu_wake_all_blocked_workers_on_node(r->handling_node);
+#endif
 
 		_starpu_datawizard_progress(local_node, may_alloc);
 
@@ -195,7 +197,9 @@ void _starpu_post_data_request(starpu_data_request_t r, uint32_t handling_node)
 
 	PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[handling_node]);
 
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 	_starpu_wake_all_blocked_workers_on_node(handling_node);
+#endif
 }
 
 /* We assume that r->lock is taken by the caller */

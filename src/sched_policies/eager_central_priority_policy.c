@@ -121,7 +121,8 @@ static struct starpu_task *_starpu_priority_pop_task(void)
 	if ((taskq->total_ntasks == 0) && _starpu_machine_is_running())
 	{
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-		_starpu_datawizard_progress(q->memory_node, 1);
+		PTHREAD_MUTEX_UNLOCK(&global_sched_mutex);
+		return NULL;
 #else
 		PTHREAD_COND_WAIT(&global_sched_cond, &global_sched_mutex);
 #endif

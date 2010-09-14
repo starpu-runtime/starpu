@@ -336,8 +336,10 @@ int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_job_s 
 
 	PTHREAD_MUTEX_UNLOCK(&worker->local_jobs_mutex);
 
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 	/* XXX that's a bit excessive ... */
 	_starpu_wake_all_blocked_workers_on_node(worker->memory_node);
+#endif
 
 	return 0;
 }

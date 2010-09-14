@@ -449,10 +449,19 @@ AM_CONDITIONAL(STARPU_USE_GORDON, test x$enable_gordon = xyes)
 
 if test x$enable_gordon = xyes; then
 	AC_DEFINE(STARPU_USE_GORDON, [1], [Cell support is enabled])
-	AC_DEFINE(STARPU_NON_BLOCKING_DRIVERS, [1], [drivers must progress])
 	GORDON_REQUIRES=gordon
 fi
 AC_SUBST(GORDON_REQUIRES)
+
+AC_MSG_CHECKING(whether debug mode should be enabled)
+AC_ARG_ENABLE(blocking-drivers, [AS_HELP_STRING([--disable-blocking-drivers], [disable blocking drivers])],
+				enable_blocking=$enableval, enable_debug=$enable_gordon)
+AC_MSG_RESULT($enable_blocking)
+
+if test x$enable_blocking = xno; then
+	AC_DEFINE(STARPU_NON_BLOCKING_DRIVERS, [1], [drivers must progress])
+fi
+
 
 ###############################################################################
 #                                                                             #
