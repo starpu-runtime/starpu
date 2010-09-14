@@ -109,12 +109,14 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 	
 				tag_successors->ndeps_completed++;
 
+				_starpu_spin_lock(&tag->lock);
 				if ((tag->state == STARPU_BLOCKED) &&
 					(tag_successors->ndeps == tag_successors->ndeps_completed)) {
 					/* reset the counter so that we can reuse the completion group */
 					tag_successors->ndeps_completed = 0;
 					_starpu_tag_set_ready(tag);
 				}
+				_starpu_spin_unlock(&tag->lock);
 				break;
 
 			case STARPU_CG_TASK:
