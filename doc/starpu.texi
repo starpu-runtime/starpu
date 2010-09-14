@@ -2067,7 +2067,7 @@ are also inserted in the case of data accesses from the application.
 @subsection @code{starpu_data_set_default_sequential_consistency_flag} -- Set default sequential consistency flag
 @table @asis
 @item @emph{Description}:
-Set the default sequential consistency flag. If a non-null value is passed, a
+Set the default sequential consistency flag. If a non-zero value is passed, a
 sequential data consistency will be enforced for all handles registered after
 this function call, otherwise it is disabled. By default, StarPU enables
 sequential data consistency. It is also possible to select the data consistency
