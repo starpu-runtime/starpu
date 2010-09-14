@@ -16,7 +16,7 @@
 
 #include <starpu.h>
 
-static unsigned ntasks = 400;
+static unsigned ntasks = 40000;
 
 void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 {
@@ -58,8 +58,9 @@ int main(int argc, char **argv)
 
 	for(i=0; i<ntasks; i++)
 	{
+		/* synchronize data in RAM */
                 starpu_data_acquire(token_handle, STARPU_RW);
-                increment_token();
+		token ++;
                 starpu_data_release(token_handle);
 
                 starpu_data_acquire_cb(token_handle, STARPU_RW, callback, NULL);
