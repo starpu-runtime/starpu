@@ -229,6 +229,7 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 		 * so cg should be among dep_id's successors*/
 		STARPU_TRACE_CODELET_TAG_DEPS(id, dep_id);
 		struct starpu_tag_s *tag_dep = gettag_struct(dep_id);
+		STARPU_ASSERT(tag_dep != tag_child);
 		_starpu_spin_lock(&tag_dep->lock);
 		_starpu_tag_add_succ(tag_dep, cg);
 		_starpu_spin_unlock(&tag_dep->lock);
@@ -261,6 +262,7 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 		 * so cg should be among dep_id's successors*/
 		STARPU_TRACE_CODELET_TAG_DEPS(id, dep_id);
 		struct starpu_tag_s *tag_dep = gettag_struct(dep_id);
+		STARPU_ASSERT(tag_dep != tag_child);
 		_starpu_spin_lock(&tag_dep->lock);
 		_starpu_tag_add_succ(tag_dep, cg);
 		_starpu_spin_unlock(&tag_dep->lock);
