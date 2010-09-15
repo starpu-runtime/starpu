@@ -695,7 +695,7 @@ AC_ARG_WITH(mpicc, [AS_HELP_STRING([--with-mpicc[=<path to mpicc>]],
 # We test if the MPICC compiler exists
 if test ! -x $mpicc_path; then
 	#MPICC does not exists or is not executable
-	AC_MSG_ERROR(The mpicc compiler is not valid)
+	AC_MSG_RESULT(The mpicc compiler is not valid)
 	use_mpi=no
 else
 	use_mpi=yes
