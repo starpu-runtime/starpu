@@ -322,8 +322,6 @@ if STARPU_USE_CUDA
 datawizard_mpi_like_SOURCES +=			\
 	datawizard/cuda_codelet_unsigned_inc.cu
 
-testbin_PROGRAMS +=				\
-	datawizard/cuda_codelet_unsigned_inc.
 datawizard_mpi_like_async_SOURCES +=		\
 	datawizard/cuda_codelet_unsigned_inc.cu
 endif
