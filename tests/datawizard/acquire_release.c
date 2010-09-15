@@ -16,7 +16,7 @@
 
 #include <starpu.h>
 
-static unsigned ntasks = 40000;
+static unsigned ntasks = 10000;
 
 void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 {
@@ -36,6 +36,7 @@ starpu_data_handle token_handle;
 void increment_token()
 {
 	struct starpu_task *task = starpu_task_create();
+        task->synchronous = 1;
 	task->cl = &increment_cl;
 	task->buffers[0].handle = token_handle;
 	task->buffers[0].mode = STARPU_RW;
@@ -59,17 +60,19 @@ int main(int argc, char **argv)
 	for(i=0; i<ntasks; i++)
 	{
 		/* synchronize data in RAM */
-                starpu_data_acquire(token_handle, STARPU_RW);
-		token ++;
+                starpu_data_acquire(token_handle, STARPU_R);
+                token ++;
                 starpu_data_release(token_handle);
 
-                starpu_data_acquire_cb(token_handle, STARPU_RW, callback, NULL);
+                increment_token();
+
+                starpu_data_acquire_cb(token_handle, STARPU_R, callback, NULL);
 	}
 
 	starpu_data_unregister(token_handle);
 
         fprintf(stderr, "Token: %d\n", token);
-        STARPU_ASSERT(token==ntasks);
+        STARPU_ASSERT(token==ntasks*2);
 
 	starpu_shutdown();
 
