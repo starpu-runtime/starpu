@@ -54,7 +54,8 @@ stencil_SOURCES =				\
 	stencil.c
 
 noinst_HEADERS =				\
-	stencil.h
+	stencil.h				\
+	shadow.h
 
 if STARPU_USE_CUDA
 stencil_SOURCES +=				\
