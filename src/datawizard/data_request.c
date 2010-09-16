@@ -162,7 +162,7 @@ int _starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_a
 
 	retval = r->retval;
 	if (retval)
-		fprintf(stderr, "REQUEST %p COMPLETED (retval %d) !\n", r, r->retval);
+		_STARPU_DISP("REQUEST %p COMPLETED (retval %d) !\n", r, r->retval);
 		
 
 	r->refcnt--;
@@ -182,7 +182,7 @@ int _starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_a
 /* this is non blocking */
 void _starpu_post_data_request(starpu_data_request_t r, uint32_t handling_node)
 {
-//	fprintf(stderr, "POST REQUEST\n");
+//	_STARPU_DEBUG("POST REQUEST\n");
 
 	if (r->mode & STARPU_R)
 	{
@@ -371,7 +371,7 @@ void _starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc)
 
 static void _handle_pending_node_data_requests(uint32_t src_node, unsigned force)
 {
-//	fprintf(stderr, "_starpu_handle_pending_node_data_requests ...\n");
+//	_STARPU_DEBUG("_starpu_handle_pending_node_data_requests ...\n");
 
 	PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[src_node]);
 

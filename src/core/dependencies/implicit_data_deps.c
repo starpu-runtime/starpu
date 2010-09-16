@@ -20,9 +20,9 @@
 #include <datawizard/datawizard.h>
 
 #if 0
-# define _STARPU_DEBUG(fmt, args ...) fprintf(stderr, fmt, ##args);
+# define _STARPU_DEP_DEBUG(fmt, args ...) fprintf(stderr, fmt, ##args);
 #else
-# define _STARPU_DEBUG(fmt, args ...)
+# define _STARPU_DEP_DEBUG(fmt, args ...)
 #endif
 
 /* This function adds the implicit task dependencies introduced by data
@@ -56,10 +56,10 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 	
 		if (mode & STARPU_W)
 		{
-			_STARPU_DEBUG("W %p\n", handle);
+			_STARPU_DEP_DEBUG("W %p\n", handle);
 			if (previous_mode & STARPU_W)
 			{
-				_STARPU_DEBUG("WAW %p\n", handle);
+				_STARPU_DEP_DEBUG("WAW %p\n", handle);
 				/* (Read) Write */
 				/* This task depends on the previous writer */
 				if (handle->last_submitted_writer)
@@ -87,7 +87,7 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 				 * mode: this task must depend on all those read-only
 				 * tasks and we get rid of the list of readers */
 			
-				_STARPU_DEBUG("WAR %p\n", handle);
+				_STARPU_DEP_DEBUG("WAR %p\n", handle);
 				/* Count the readers */
 				unsigned nreaders = 0;
 				struct starpu_task_wrapper_list *l;
@@ -97,7 +97,7 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 					nreaders++;
 					l = l->next;
 				}
-				_STARPU_DEBUG("%d readers\n", nreaders);
+				_STARPU_DEP_DEBUG("%d readers\n", nreaders);
 
 				struct starpu_task *task_array[nreaders];
 
@@ -137,7 +137,7 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 	
 		}
 		else {
-			_STARPU_DEBUG("R %p\n", handle);
+			_STARPU_DEP_DEBUG("R %p\n", handle);
 			/* Add a reader */
 			STARPU_ASSERT(pre_sync_task);
 			STARPU_ASSERT(post_sync_task);
@@ -151,7 +151,7 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 			/* This task depends on the previous writer if any */
 			if (handle->last_submitted_writer)
 			{
-				_STARPU_DEBUG("RAW %p\n", handle);
+				_STARPU_DEP_DEBUG("RAW %p\n", handle);
 				struct starpu_task *task_array[1] = {handle->last_submitted_writer};
 				starpu_task_declare_deps_array(pre_sync_task, 1, task_array);
 			}

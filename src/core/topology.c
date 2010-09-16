@@ -443,9 +443,7 @@ static int _starpu_init_machine_config(struct starpu_machine_config_s *config,
 
 	if (topology->nworkers == 0)
 	{
-#ifdef STARPU_VERBOSE
-		fprintf(stderr, "No worker found, aborting ...\n");
-#endif
+                _STARPU_DEBUG("No worker found, aborting ...\n");
 		return -ENODEV;
 	}
 

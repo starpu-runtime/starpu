@@ -95,9 +95,7 @@ void *_starpu_cpu_worker(void *arg)
 
 	_starpu_bind_thread_on_cpu(cpu_arg->config, cpu_arg->bindid);
 
-#ifdef STARPU_VERBOSE
-        fprintf(stderr, "cpu worker %d is ready on logical cpu %d\n", devid, cpu_arg->bindid);
-#endif
+        _STARPU_DEBUG("cpu worker %d is ready on logical cpu %d\n", devid, cpu_arg->bindid);
 
 	_starpu_set_local_memory_node_key(&memnode);
 

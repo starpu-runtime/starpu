@@ -51,7 +51,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 	}
 
 	double random = starpu_drand48()*alpha_sum;
-//	fprintf(stderr, "my rand is %e\n", random);
+//	_STARPU_DEBUG("my rand is %e\n", random);
 
 	double alpha = 0.0;
 	for (worker = 0; worker < nworkers; worker++)

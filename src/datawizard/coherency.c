@@ -273,7 +273,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 			r->mode |= mode;
 		}
 
-		//fprintf(stderr, "found a similar request : refcnt (req) %d\n", r->refcnt);
+		//_STARPU_DEBUG("found a similar request : refcnt (req) %d\n", r->refcnt);
 		_starpu_spin_unlock(&r->lock);
 		_starpu_spin_unlock(&handle->header_lock);
 	}
@@ -434,7 +434,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 enomem:
 	/* try to unreference all the input that were successfully taken */
 	/* XXX broken ... */
-	fprintf(stderr, "something went wrong with buffer %u\n", index);
+	_STARPU_DISP("something went wrong with buffer %u\n", index);
 	//push_codelet_output(task, index, mask);
 	_starpu_push_task_output(task, mask);
 	return -1;
@@ -443,8 +443,6 @@ enomem:
 void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 {
 	STARPU_TRACE_START_PUSH_OUTPUT(NULL);
-
-	//fprintf(stderr, "_starpu_push_task_output\n");
 
         starpu_buffer_descr *descrs = task->buffers;
         unsigned nbuffers = task->cl->nbuffers;

@@ -34,25 +34,25 @@ char *_starpu_opencl_program_dir;
 
 static
 int _starpu_opencl_locate_file(char *source_file_name, char *located_file_name) {
-        _STARPU_OPENCL_DEBUG("Trying to locate <%s>\n", source_file_name);
+        _STARPU_DEBUG("Trying to locate <%s>\n", source_file_name);
         if (access(source_file_name, R_OK) == 0) {
                 strcpy(located_file_name, source_file_name);
                 return EXIT_SUCCESS;
         }
         if (_starpu_opencl_program_dir) {
                 sprintf(located_file_name, "%s/%s", _starpu_opencl_program_dir, source_file_name);
-                _STARPU_OPENCL_DEBUG("Trying to locate <%s>\n", located_file_name);
+                _STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
                 if (access(located_file_name, R_OK) == 0) return EXIT_SUCCESS;
         }
         sprintf(located_file_name, "%s/%s", _STARPU_STRINGIFY(STARPU_OPENCL_DATADIR), source_file_name);
-        _STARPU_OPENCL_DEBUG("Trying to locate <%s>\n", located_file_name);
+        _STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
         if (access(located_file_name, R_OK) == 0) return EXIT_SUCCESS;
         sprintf(located_file_name, "%s/%s", STARPU_SRC_DIR, source_file_name);
-        _STARPU_OPENCL_DEBUG("Trying to locate <%s>\n", located_file_name);
+        _STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
         if (access(located_file_name, R_OK) == 0) return EXIT_SUCCESS;
 
         strcpy(located_file_name, "");
-        _STARPU_OPENCL_ERROR("Cannot locate file <%s>\n", source_file_name);
+        _STARPU_ERROR("Cannot locate file <%s>\n", source_file_name);
         return EXIT_FAILURE;
 }
 
@@ -70,7 +70,7 @@ int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct
 
         program = opencl_programs->programs[devid];
         if (!program) {
-                fprintf(stderr, "Program not available\n");
+                _STARPU_DISP("Program not available\n");
                 return CL_INVALID_PROGRAM;
         }
 
@@ -140,10 +140,10 @@ int starpu_opencl_load_opencl_from_string(char *opencl_program_source, struct st
                         size_t len;
                         static char buffer[4096];
 
-                        fprintf(stderr, "Error: Failed to build program executable!\n");
+                        _STARPU_DISP("Error: Failed to build program executable!\n");
                         clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
 
-                        fprintf(stderr, "<%s>\n", buffer);
+                        _STARPU_DISP("<%s>\n", buffer);
                         return EXIT_FAILURE;
                 }
 
@@ -159,12 +159,12 @@ int starpu_opencl_load_opencl_from_file(char *source_file_name, struct starpu_op
 
         // Locate source file
         _starpu_opencl_locate_file(source_file_name, located_file_name);
-        _STARPU_OPENCL_DEBUG("Source file name : <%s>\n", located_file_name);
+        _STARPU_DEBUG("Source file name : <%s>\n", located_file_name);
 
         // Load the compute program from disk into a cstring buffer
         char *opencl_program_source = _starpu_opencl_load_program_source(located_file_name);
         if(!opencl_program_source)
-                _STARPU_OPENCL_ERROR("Failed to load compute program from file <%s>!\n", located_file_name);
+                _STARPU_ERROR("Failed to load compute program from file <%s>!\n", located_file_name);
 
         return starpu_opencl_load_opencl_from_string(opencl_program_source, opencl_programs);
 }

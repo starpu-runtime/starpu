@@ -304,9 +304,7 @@ static void _starpu_terminate_workers(struct starpu_machine_config_s *config)
 	{
 		starpu_wake_all_blocked_workers();
 		
-#ifdef STARPU_VERBOSE
-		fprintf(stderr, "wait for worker %d\n", workerid);
-#endif
+		_STARPU_DEBUG("wait for worker %d\n", workerid);
 
 		struct starpu_worker_set_s *set = config->workers[workerid].set;
 		struct starpu_worker_s *worker = &config->workers[workerid];
@@ -320,7 +318,7 @@ static void _starpu_terminate_workers(struct starpu_machine_config_s *config)
 					status = pthread_join(set->worker_thread, NULL);
 #ifdef STARPU_VERBOSE
 					if (status)
-						fprintf(stderr, "pthread_join -> %d\n", status);
+						_STARPU_DEBUG("pthread_join -> %d\n", status);
 #endif
 				}
 
@@ -333,7 +331,7 @@ static void _starpu_terminate_workers(struct starpu_machine_config_s *config)
 				status = pthread_join(worker->worker_thread, NULL);
 #ifdef STARPU_VERBOSE
 				if (status)
-					fprintf(stderr, "pthread_join -> %d\n", status);
+					_STARPU_DEBUG("pthread_join -> %d\n", status);
 #endif
 			}
 		}

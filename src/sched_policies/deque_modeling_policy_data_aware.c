@@ -30,10 +30,6 @@ static double alpha = 1.0;
 static double beta = 1.0;
 
 #ifdef STARPU_VERBOSE
-#define DISPLAY_DEBUG
-#endif
-
-#ifdef DISPLAY_DEBUG
 static long int total_task_cnt = 0;
 static long int ready_task_cnt = 0;
 #endif
@@ -125,7 +121,7 @@ static struct starpu_task *dmda_pop_ready_task(void)
 		fifo->exp_start = _starpu_timing_now() + model;
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
-#ifdef DISPLAY_DEBUG
+#ifdef STARPU_VERBOSE
 		if (task->cl)
 		{
 			int non_ready = count_non_ready_buffers(task, starpu_worker_get_memory_node(workerid));
@@ -155,7 +151,7 @@ static struct starpu_task *dmda_pop_task(void)
 		fifo->exp_start = _starpu_timing_now() + model;
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
-#ifdef DISPLAY_DEBUG
+#ifdef STARPU_VERBOSE
 		if (task->cl)
 		{
 			int non_ready = count_non_ready_buffers(task, starpu_worker_get_memory_node(workerid));
@@ -427,7 +423,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 				best_fitness = fitness[worker];
 				best = worker;
 
-	//			fprintf(stderr, "best fitness (worker %d) %le = alpha*(%le) + beta(%le) \n", worker, best_fitness, exp_end[worker] - best_exp_end, local_data_penalty[worker]);
+	//			_STARPU_DEBUG("best fitness (worker %d) %le = alpha*(%le) + beta(%le) \n", worker, best_fitness, exp_end[worker] - best_exp_end, local_data_penalty[worker]);
 			}
 		}
 	}
@@ -516,9 +512,7 @@ static void deinitialize_dmda_policy(struct starpu_machine_topology_s *topology,
 	for (workerid = 0; workerid < topology->nworkers; workerid++)
 		_starpu_destroy_fifo(queue_array[workerid]);
 
-#ifdef DISPLAY_DEBUG
-	fprintf(stderr, "total_task_cnt %ld ready_task_cnt %ld -> %f\n", total_task_cnt, ready_task_cnt, (100.0f*ready_task_cnt)/total_task_cnt);
-#endif
+	_STARPU_DEBUG("total_task_cnt %ld ready_task_cnt %ld -> %f\n", total_task_cnt, ready_task_cnt, (100.0f*ready_task_cnt)/total_task_cnt);
 }
 
 struct starpu_sched_policy_s _starpu_sched_dm_policy = {

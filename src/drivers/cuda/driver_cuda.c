@@ -178,9 +178,7 @@ void *_starpu_cuda_worker(void *arg)
 	strncpy(devname, prop.name, 128);
 	snprintf(args->name, 32, "CUDA %d (%s)", args->devid, devname);
 
-#ifdef STARPU_VERBOSE
-	fprintf(stderr, "cuda (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
-#endif
+	_STARPU_DEBUG("cuda (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 
 	STARPU_TRACE_WORKER_INIT_END
 
@@ -243,7 +241,7 @@ void *_starpu_cuda_worker(void *arg)
 		if (res) {
 			switch (res) {
 				case -EAGAIN:
-					fprintf(stderr, "ouch, put the codelet %p back ... \n", j);
+					_STARPU_DISP("ouch, put the codelet %p back ... \n", j);
 					_starpu_push_task(j, 0);
 					STARPU_ABORT();
 					continue;

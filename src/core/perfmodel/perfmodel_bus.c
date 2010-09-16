@@ -363,12 +363,12 @@ static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_h
 
 		double bandwidth_sum2 = bandwidth_dtoh*bandwidth_dtoh + bandwidth_htod*bandwidth_htod;
 
-		fprintf(stderr, "BANDWIDTH GPU %d CPU %d - htod %lf - dtoh %lf - %lf\n", dev, current_cpu, bandwidth_htod, bandwidth_dtoh, sqrt(bandwidth_sum2));
+		_STARPU_DISP("BANDWIDTH GPU %d CPU %d - htod %lf - dtoh %lf - %lf\n", dev, current_cpu, bandwidth_htod, bandwidth_dtoh, sqrt(bandwidth_sum2));
 	}
 
 	unsigned best_cpu = dev_timing_per_cpu[(dev+1)*MAXCPUS+0].cpu_id;
 
-	fprintf(stderr, "BANDWIDTH GPU %d BEST CPU %d\n", dev, best_cpu);
+	_STARPU_DISP("BANDWIDTH GPU %d BEST CPU %d\n", dev, best_cpu);
 #endif
 
 	/* The results are sorted in a decreasing order, so that the best
@@ -383,9 +383,7 @@ static void benchmark_all_gpu_devices(void)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	int i, ret;
 
-#ifdef STARPU_VERBOSE
-	fprintf(stderr, "Benchmarking the speed of the bus\n");
-#endif
+	_STARPU_DEBUG("Benchmarking the speed of the bus\n");
 
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_init(&hwtopology);
@@ -439,9 +437,7 @@ static void benchmark_all_gpu_devices(void)
 	hwloc_topology_destroy(hwtopology);
 #endif
 
-#ifdef STARPU_VERBOSE
-	fprintf(stderr, "Benchmarking the speed of the bus is done.\n");
-#endif
+	_STARPU_DEBUG("Benchmarking the speed of the bus is done.\n");
 #endif /* defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) */
 
 	was_benchmarked = 1;
@@ -550,7 +546,7 @@ static void write_bus_affinity_file_content(void)
 	if (!f)
 	{
 		perror("fopen write_buf_affinity_file_content");
-		fprintf(stderr,"path '%s'\n", path);
+		_STARPU_DISP("path '%s'\n", path);
 		fflush(stderr);
 		STARPU_ABORT();
 	}
@@ -689,7 +685,7 @@ static void write_bus_latency_file_content(void)
 	if (!f)
 	{
 		perror("fopen write_bus_latency_file_content");
-		fprintf(stderr,"path '%s'\n", path);
+		_STARPU_DISP("path '%s'\n", path);
 		fflush(stderr);
 		STARPU_ABORT();
 	}
@@ -778,7 +774,7 @@ static void load_bus_bandwidth_file_content(void)
 	if (!f)
 	{
 		perror("fopen load_bus_bandwidth_file_content");
-		fprintf(stderr,"path '%s'\n", path);
+		_STARPU_DISP("path '%s'\n", path);
 		fflush(stderr);
 		STARPU_ABORT();
 	}

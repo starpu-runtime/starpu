@@ -47,7 +47,7 @@ struct gordon_task_wrapper_s {
 
 void *gordon_worker_progress(void *arg)
 {
-	fprintf(stderr, "gordon_worker_progress\n");
+	_STARPU_DEBUG("gordon_worker_progress\n");
 
 	/* fix the thread on the correct cpu */
 	struct starpu_worker_set_s *gordon_set_arg = arg;
@@ -190,7 +190,7 @@ static void gordon_callback_list_func(void *arg)
 
 	task_wrapper->terminated = 1;
 
-//	fprintf(stderr, "gordon callback : push job j %p\n", task_wrapper->j);
+//	_STARPU_DEBUG("gordon callback : push job j %p\n", task_wrapper->j);
 
 	unsigned task_cnt = 0;
 
@@ -286,7 +286,7 @@ int inject_task_list(struct starpu_job_list_s *list, struct starpu_worker_s *wor
 //	}
 
 	nvalids = job_list_size(list);
-//	fprintf(stderr, "nvalids %d \n", nvalids);
+//	_STARPU_DEBUG("nvalids %d \n", nvalids);
 
 	
 
@@ -390,7 +390,7 @@ void *gordon_worker_inject(struct starpu_worker_set_s *arg)
 			/* gordon should accept a little more work */
 			starpu_job_t j;
 			j =  _starpu_pop_task();
-	//		fprintf(stderr, "pop task %p\n", j);
+	//		_STARPU_DEBUG("pop task %p\n", j);
 			if (j) {
 				if (STARPU_GORDON_MAY_PERFORM(j)) {
 					/* inject that task */
@@ -449,7 +449,7 @@ void *_starpu_gordon_worker(void *arg)
 		PTHREAD_COND_WAIT(&progress_cond, &progress_mutex);
 	PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
-	fprintf(stderr, "progress thread is running ... \n");
+	_STARPU_DEBUG("progress thread is running ... \n");
 	
 	/* tell the core that gordon is ready */
 	PTHREAD_MUTEX_LOCK(&gordon_set_arg->mutex);
@@ -459,9 +459,9 @@ void *_starpu_gordon_worker(void *arg)
 
 	gordon_worker_inject(gordon_set_arg);
 
-	fprintf(stderr, "gordon deinit...\n");
+	_STARPU_DEBUG("gordon deinit...\n");
 	gordon_deinit();
-	fprintf(stderr, "gordon was deinited\n");
+	_STARPU_DEBUG("gordon was deinited\n");
 
 	pthread_exit((void *)0x42);
 }

@@ -190,8 +190,7 @@ void _starpu_get_perf_model_dir(char *path, size_t maxlen)
 	if (!home_path)
 		home_path = getenv("USERPROFILE");
 	if (!home_path) {
-		fprintf(stderr,"couldn't find a home place to put starpu data\n");
-		STARPU_ABORT();
+		_STARPU_ERROR("couldn't find a home place to put starpu data\n");
 	}
 	snprintf(path, maxlen, "%s/.starpu/sampling/", home_path);
 #endif

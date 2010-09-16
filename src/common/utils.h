@@ -23,6 +23,19 @@
 #include <string.h>
 #include <pthread.h>
 
+#ifdef STARPU_VERBOSE
+#  define _STARPU_DEBUG(fmt, args ...) fprintf(stderr, "[starpu][%s] " fmt ,__func__ ,##args)
+#else
+#  define _STARPU_DEBUG(fmt, args ...)
+#endif
+#define _STARPU_DISP(fmt, args ...) fprintf(stderr, "[starpu][%s] " fmt ,__func__ ,##args)
+#define _STARPU_ERROR(fmt, args ...)                                                  \
+	do {                                                                          \
+                fprintf(stderr, "[starpu][%s] Error: " fmt ,__func__ ,##args);        \
+		STARPU_ABORT();                                                            \
+	} while (0)
+
+
 int _starpu_mkpath(const char *s, mode_t mode);
 int _starpu_check_mutex_deadlock(pthread_mutex_t *mutex);
 

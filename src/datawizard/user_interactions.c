@@ -198,7 +198,7 @@ int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode)
 		.finished = 0
 	};
 
-//	fprintf(stderr, "TAKE sequential_consistency_mutex starpu_data_acquire\n");
+//	_STARPU_DEBUG("TAKE sequential_consistency_mutex starpu_data_acquire\n");
 	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 	int sequential_consistency = handle->sequential_consistency;
 	if (sequential_consistency)

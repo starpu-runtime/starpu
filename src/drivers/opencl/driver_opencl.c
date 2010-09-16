@@ -55,7 +55,7 @@ int _starpu_opencl_init_context(int devid)
 	cl_int err;
         cl_device_id device;
 
-        _STARPU_OPENCL_DEBUG("Initialising context for dev %d\n", devid);
+        _STARPU_DEBUG("Initialising context for dev %d\n", devid);
 
         // Create a compute context
         device = devices[devid];
@@ -73,7 +73,7 @@ int _starpu_opencl_deinit_context(int devid)
 {
         int err;
 
-        _STARPU_OPENCL_DEBUG("De-initialising context for dev %d\n", devid);
+        _STARPU_DEBUG("De-initialising context for dev %d\n", devid);
 
         err = clReleaseContext(contexts[devid]);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
@@ -222,12 +222,12 @@ void _starpu_opencl_init(void)
                 cl_int err;
                 unsigned int i;
 
-                _STARPU_OPENCL_DEBUG("Initialising OpenCL\n");
+                _STARPU_DEBUG("Initialising OpenCL\n");
 
                 // Get Platforms
                 err = clGetPlatformIDs(STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
                 if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-                _STARPU_OPENCL_DEBUG("Platforms detected: %d\n", nb_platforms);
+                _STARPU_DEBUG("Platforms detected: %d\n", nb_platforms);
 
                 // Get devices
                 nb_devices = 0;
@@ -240,16 +240,16 @@ void _starpu_opencl_init(void)
                                         char name[1024], vendor[1024];
                                         clGetPlatformInfo(platform_id[i], CL_PLATFORM_NAME, 1024, name, NULL);
                                         clGetPlatformInfo(platform_id[i], CL_PLATFORM_VENDOR, 1024, vendor, NULL);
-                                        _STARPU_OPENCL_DEBUG("Platform: %s - %s\n", name, vendor);
+                                        _STARPU_DEBUG("Platform: %s - %s\n", name, vendor);
                                 }
 #endif
                                 err = clGetDeviceIDs(platform_id[i], device_type, STARPU_MAXOPENCLDEVS-nb_devices, &devices[nb_devices], &num);
                                 if (err == CL_DEVICE_NOT_FOUND) {
-                                        _STARPU_OPENCL_DEBUG("  No devices detected on this platform\n");
+                                        _STARPU_DEBUG("  No devices detected on this platform\n");
                                 }
                                 else {
                                         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-                                        _STARPU_OPENCL_DEBUG("  %d devices detected\n", num);
+                                        _STARPU_DEBUG("  %d devices detected\n", num);
                                         nb_devices += num;
                                 }
                         }
@@ -303,7 +303,7 @@ void *_starpu_opencl_worker(void *arg)
 	_starpu_opencl_get_device_name(devid, devname, 128);
 	snprintf(args->name, 32, "OpenCL %d (%s)", args->devid, devname);
 
-	_STARPU_OPENCL_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
+	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 
 	STARPU_TRACE_WORKER_INIT_END
 
@@ -366,7 +366,7 @@ void *_starpu_opencl_worker(void *arg)
                 if (res) {
 			switch (res) {
 				case -EAGAIN:
-					fprintf(stderr, "ouch, put the codelet %p back ... \n", j);
+					_STARPU_DISP("ouch, put the codelet %p back ... \n", j);
 					_starpu_push_task(j, 0);
 					STARPU_ABORT();
 					continue;
@@ -399,7 +399,7 @@ static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname)
 	err = clGetDeviceInfo(devices[dev], CL_DEVICE_NAME, lname, name, NULL);
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-	_STARPU_OPENCL_DEBUG("Device %d : [%s]\n", dev, name);
+	_STARPU_DEBUG("Device %d : [%s]\n", dev, name);
 	return EXIT_SUCCESS;
 }
 

@@ -301,7 +301,7 @@ static size_t allocate_block_buffer_on_node(void *interface_, uint32_t dst_node)
 		case STARPU_CUDA_RAM:
 			status = cudaMalloc((void **)&addr, nx*ny*nz*elemsize);
 
-			//fprintf(stderr, "cudaMalloc -> addr %p\n", addr);
+			//_STARPU_DEBUG("cudaMalloc -> addr %p\n", addr);
 
 			if (!addr || status != cudaSuccess)
 			{
