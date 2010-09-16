@@ -1,0 +1,27 @@
+This is a sample 3D stencil application (here just using the game of life rules
+for simplicity), split on the z axis.
+
+This is a suggest order of read:
+
+life.c
+life.cu: Heart of the stencil computation: compute a new state from an old one.
+
+shadow.cu
+shadow.h: Perform replication of data on X and Y edges, to fold the domain on
+itself through mere replication of the source state.
+
+stencil.h: Declarations
+
+stencil-kernels.c: Computation Kernels
+
+stencil-blocks.c: Manage block and tags allocation
+
+stencil-tasks.c: Schedule tasks for updates and saves
+
+stencil.c: Main application
+
+*.out: various results according to beta value (communication vs computation
+penalty ratio), run make pics or make view to get pictures.
+mpi.out: results on MPI.
+
+results: a few results

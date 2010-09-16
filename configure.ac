@@ -704,12 +704,20 @@ fi
 AC_MSG_CHECKING(mpicc path)
 AC_MSG_RESULT($mpicc_path)
 AC_SUBST(MPICC, $mpicc_path)
+if test x$user_mpi = xyes; then
+	cc_or_mpicc=$mpicc_path
+else
+	cc=$CC
+fi
+AC_SUBST(CC_OR_MPICC, $mpicc_path)
 
-AC_MSG_CHECKING(whether the MPI library should be generated)
+AC_MSG_CHECKING(whether the StarPU MPI library should be generated)
 AC_MSG_RESULT($use_mpi)
 AC_SUBST(USE_MPI, $use_mpi)
-
 AM_CONDITIONAL(USE_MPI, test x$use_mpi = xyes)
+if test x$use_mpi = xyes; then
+	AC_DEFINE(STARPU_USE_MPI,[],[whether the StarPU MPI library is available])
+fi
 
 ###############################################################################
 #                                                                             #
@@ -872,6 +880,7 @@ AC_OUTPUT([
 	libstarpu.pc
 	examples/Makefile
 	examples/starpufft/Makefile
+	examples/stencil/Makefile
 	tests/Makefile
 	doc/Makefile
 	mpi/Makefile

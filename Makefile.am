@@ -17,11 +17,11 @@
 ACLOCAL_AMFLAGS=-I m4
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
-SUBDIRS = src tools examples tests doc
-
+SUBDIRS = src
 if USE_MPI
 SUBDIRS += mpi
 endif
+SUBDIRS += tools examples tests doc
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpu.pc
