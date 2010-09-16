@@ -184,7 +184,7 @@ void _starpu_notify_cg_list(struct starpu_cg_list_s *successors)
 			unsigned must_destroy_task = 0;
 			struct starpu_task *task = j->task;
 
-			if ((j->terminated > 0) && task->destroy && task->detach)
+			if (j->submitted && (j->terminated > 0) && task->destroy && task->detach)
 				must_destroy_task = 1;
 
 			PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
