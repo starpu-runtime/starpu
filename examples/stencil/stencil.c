@@ -23,7 +23,7 @@
 static unsigned  bind_tasks = 0;
 
 static unsigned niter = 32;
-static unsigned ticks = 100;
+static unsigned ticks = 1000;
 
 #define SIZE 128
 
