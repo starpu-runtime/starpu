@@ -23,6 +23,8 @@
 #include <profiling/bound.h>
 #include <core/jobs.h>
 
+/* TODO: output duration between starpu_bound_start and starpu_bound_stop */
+
 struct task_pool {
 	/* Which codelet has been executed */
 	struct starpu_codelet_t *cl;
