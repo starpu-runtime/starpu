@@ -1121,7 +1121,9 @@ call @code{starpu_bound_start}, and after complete execution, call
 @code{starpu_bound_print_mps} can then be used to output a Linear Programming
 problem corresponding to the schedule of your tasks. Run it through
 @code{lp_solve} or any other linear programming solver, and that will give you a
-lower bound for the total execution time of your tasks.
+lower bound for the total execution time of your tasks. If StarPU was compiled
+with the glpk library installed, starpu_bound_compute can be used to solve it
+immediately and get the optimized minimum.
 
 Note that this is not taking into account task dependencies and data
 transfers. It only takes into account the actual computations on processing
