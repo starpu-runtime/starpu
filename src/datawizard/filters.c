@@ -133,11 +133,6 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 		child->wt_mask = initial_handle->wt_mask;
 		child->home_node = initial_handle->home_node;
 
-		/* We compute the size and the footprint of the child once and
-		 * store it in the handle */
-		child->data_size = child->ops->get_size(child);
-		child->footprint = _starpu_compute_data_footprint(child);
-
 		/* initialize the chunk lock */
 		child->req_list = starpu_data_requester_list_new();
 		child->refcnt = 0;
@@ -158,6 +153,11 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 			/* update the interface */
 			f->filter_func(initial_handle->interface[node], child->interface[node], f, i, nparts);
 		}
+
+		/* We compute the size and the footprint of the child once and
+		 * store it in the handle */
+		child->data_size = child->ops->get_size(child);
+		child->footprint = _starpu_compute_data_footprint(child);
 	}
 	/* now let the header */
 	_starpu_spin_unlock(&initial_handle->header_lock);
