@@ -40,6 +40,7 @@ include_HEADERS = 				\
 	include/starpu_opencl.h			\
 	include/starpu_expert.h			\
 	include/starpu_profiling.h		\
+	include/starpu_bound.h			\
 	include/starpu_scheduler.h
 
 noinst_HEADERS = \

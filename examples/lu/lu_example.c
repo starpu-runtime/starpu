@@ -31,6 +31,7 @@ static unsigned check = 0;
 static unsigned pivot = 0;
 static unsigned no_stride = 0;
 static unsigned profile = 0;
+static unsigned bound = 0;
 
 TYPE *A, *A_saved;
 
@@ -65,6 +66,10 @@ static void parse_args(int argc, char **argv)
 
 		if (strcmp(argv[i], "-profile") == 0) {
 			profile = 1;
+		}
+
+		if (strcmp(argv[i], "-bound") == 0) {
+			bound = 1;
 		}
 	}
 }
@@ -261,6 +266,9 @@ int main(int argc, char **argv)
 
 	display_matrix(A, size, size, "A");
 
+	if (bound)
+		starpu_bound_start();
+
 	if (profile)
 		starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
 
@@ -307,6 +315,11 @@ int main(int argc, char **argv)
 	{
 		starpu_profiling_status_set(STARPU_PROFILING_DISABLE);
 		starpu_bus_profiling_helper_display_summary();
+	}
+
+	if (bound) {
+		starpu_bound_stop();
+		starpu_bound_print_lp(stderr);
 	}
 
 	if (check)

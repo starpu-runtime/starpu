@@ -22,6 +22,7 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <profiling/profiling.h>
+#include <profiling/bound.h>
 
 /* XXX this should be reinitialized when StarPU is shutdown (or we should make
  * sure that no task remains !) */
@@ -242,6 +243,9 @@ int starpu_task_submit(struct starpu_task *task)
 	else {
 		j = (struct starpu_job_s *)task->starpu_private;
 	}
+
+	/* notify bound computation of a new task */
+	_starpu_bound_record(j);
 
 	ret = _starpu_submit_job(j, 0);
 
