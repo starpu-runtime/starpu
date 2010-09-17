@@ -144,7 +144,7 @@ void starpu_bound_print_lp(FILE *output)
 
 		_starpu_get_tasks_times(nw, nt, times);
 
-		fprintf(output, "/* StarPU upper bound linear programming problem */\n");
+		fprintf(output, "/* StarPU upper bound linear programming problem, to be run in lp_solve. */\n\n");
 		fprintf(output, "/* We want to minimize total execution time (ms) */\n");
 		fprintf(output, "min: tmax;\n\n");
 
