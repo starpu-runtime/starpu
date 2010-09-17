@@ -161,7 +161,7 @@ void starpu_bound_print_lp(FILE *output)
 		}
 		fprintf(output, "\n");
 
-		/* And we have to have computed exactly all tasks */
+		fprintf(output, "/* And we have to have computed exactly all tasks */\n");
 		for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
 			fprintf(output, "/* task %s key %lx */\n", tp->cl->model->symbol, (unsigned long) tp->footprint);
 			for (w = 0; w < nw; w++)
@@ -174,8 +174,8 @@ void starpu_bound_print_lp(FILE *output)
 			fprintf(output, "\t*/\n\n");
 		}
 
-		/* Optionally tell that tasks can not be divided */
-		fprintf(output, "int ");
+		fprintf(output, "/* Optionally tell that tasks can not be divided */\n");
+		fprintf(output, "/* int ");
 		int first = 1;
 		for (w = 0; w < nw; w++)
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
@@ -185,7 +185,7 @@ void starpu_bound_print_lp(FILE *output)
 					first = 0;
 				fprintf(output, "w%dt%dn", w, t);
 			}
-		fprintf(output, ";\n");
+		fprintf(output, "; */\n");
 	}
 
 	PTHREAD_MUTEX_UNLOCK(&mutex);
@@ -210,13 +210,50 @@ void starpu_bound_print_mps(FILE *output)
 
 		_starpu_get_tasks_times(nw, nt, times);
 
-		fprintf(output, "NAME           StarPU theoretical bound");
-		fprintf(output, "ROWS");
-		fprintf(output, "TODO");
-		for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
-			for (w = 0; w < nw; w++)
-				;
+		fprintf(output, "NAME           StarPU theoretical bound\n");
+
+		fprintf(output, "\nROWS\n");
+
+		fprintf(output, "* We want to minimize total execution time (ms)\n");
+		fprintf(output, " N  TMAX\n");
+
+		fprintf(output, "\n* Which is the maximum of all worker execution times (ms)\n");
+		for (w = 0; w < nw; w++) {
+			char name[32];
+			starpu_worker_get_name(w, name, sizeof(name));
+			fprintf(output, "* worker %s\n", name);
+			fprintf(output, " L  W%d\n", w);
 		}
+
+		fprintf(output, "\n* And we have to have computed exactly all tasks\n");
+		for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+			fprintf(output, "* task %s key %lx\n", tp->cl->model->symbol, (unsigned long) tp->footprint);
+			fprintf(output, " E  T%d\n", t);
+		}
+
+		fprintf(output, "\nCOLUMNS\n");
+
+		fprintf(output, "\n* Execution times and completion of all tasks\n");
+		for (w = 0; w < nw; w++)
+			for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+				char name[9];
+				snprintf(name, sizeof(name)-1, "W%dT%d", w, t);
+				fprintf(stderr,"    %-8s  W%-7d  %12f\n", name, w, times[w][t]);
+				fprintf(stderr,"    %-8s  T%-7d  %12u\n", name, t, 1);
+			}
+
+		fprintf(output, "\n* Total execution time\n");
+		for (w = 0; w < nw; w++)
+			fprintf(stderr,"    TMAX      W%-2d       %12d\n", w, -1);
+		fprintf(stderr,"    TMAX      TMAX      %12d\n", 1);
+
+		fprintf(output, "\nRHS\n");
+
+		fprintf(output, "\n* Total number of tasks\n");
+		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
+			fprintf(stderr,"    NT%-2d      T%-7d  %12lu\n", t, t, tp->n);
+
+		fprintf(output, "ENDATA\n");
 	}
 
 	PTHREAD_MUTEX_UNLOCK(&mutex);

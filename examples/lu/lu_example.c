@@ -319,7 +319,7 @@ int main(int argc, char **argv)
 
 	if (bound) {
 		starpu_bound_stop();
-		starpu_bound_print_lp(stderr);
+		starpu_bound_print_mps(stderr);
 	}
 
 	if (check)
