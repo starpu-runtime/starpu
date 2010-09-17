@@ -348,10 +348,10 @@ STARPUFFT(showstats)(FILE *out)
 
 	fprintf(out, "Total %2.2f ms\n", MSTIMING(start,end));
 
-	for (worker = 0, total = 0; worker < STARPU_NMAXWORKERS; worker++)
+	for (worker = 0, total = 0; worker < starpu_worker_get_count(); worker++)
 		total += task_per_worker[worker];
 
-	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	for (worker = 0; worker < starpu_worker_get_count(); worker++)
 	{
 		if (task_per_worker[worker])
 		{
