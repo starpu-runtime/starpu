@@ -318,12 +318,11 @@ int main(int argc, char **argv)
 	}
 
 	if (bound) {
+		double min;
 		starpu_bound_stop();
-#ifdef HAVE_GLPK_H
-		starpu_bound_print(stderr);
-#else
-		starpu_bound_print_lp(stderr);
-#endif
+		starpu_bound_compute(&min);
+		if (min != 0.)
+			fprintf(stderr, "theoretical min: %lf ms\n", min);
 	}
 
 	if (check)

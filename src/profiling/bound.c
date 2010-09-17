@@ -273,18 +273,15 @@ void starpu_bound_print_mps(FILE *output)
 /*
  * GNU Linear Programming Kit backend
  */
-void starpu_bound_print(FILE *output)
-{
 #ifdef HAVE_GLPK_H
+static glp_prob *_starpu_bound_glp_resolve(void)
+{
 	struct task_pool * tp;
 	int nt; /* Number of different kinds of tasks */
 	int nw; /* Number of different workers */
 	int t, w;
 	glp_prob *lp;
-	double tmax;
 	int ret;
-
-	PTHREAD_MUTEX_LOCK(&mutex);
 
 	nw = starpu_worker_get_count();
 	nt = 0;
@@ -301,7 +298,7 @@ void starpu_bound_print(FILE *output)
 		int ne =
 			nw * (nt+1)	/* worker execution time */
 			+ nt * nw
-			+ 1; /* glpk dumbness */
+			+ 1; /* glp dumbness */
 		int n = 1;
 		int ia[ne], ja[ne];
 		double ar[ne];
@@ -310,7 +307,7 @@ void starpu_bound_print(FILE *output)
 
 		/* Variables: number of tasks i assigned to worker j, and tmax */
 		glp_add_cols(lp, nw*nt+1);
-#define colnum(w, t) ((w)*nt+(t)+1)
+#define colnum(w, t) ((t)*nw+(w)+1)
 		glp_set_obj_coef(lp, nw*nt+1, 1.);
 
 		for (w = 0; w < nw; w++)
@@ -370,8 +367,26 @@ void starpu_bound_print(FILE *output)
 	parm.msg_lev = GLP_MSG_OFF;
 	ret = glp_simplex(lp, &parm);
 	if (ret) {
-		fprintf(output, "simplex failed: %d\n", ret);
-	} else {
+		glp_delete_prob(lp);
+		lp = NULL;
+	}
+
+	return lp;
+}
+#endif /* HAVE_GLPK_H */
+
+void starpu_bound_print(FILE *output) {
+#ifdef HAVE_GLPK_H
+	PTHREAD_MUTEX_LOCK(&mutex);
+	glp_prob *lp = _starpu_bound_glp_resolve();
+	if (lp) {
+		struct task_pool * tp;
+		int t, w;
+		int nw; /* Number of different workers */
+		double tmax;
+
+		nw = starpu_worker_get_count();
+
 		tmax = glp_get_obj_val(lp);
 
 		fprintf(output, "Theoretical minimum execution time: %f ms\n", tmax);
@@ -382,12 +397,30 @@ void starpu_bound_print(FILE *output)
 				fprintf(output, "\tw%dt%d %f", w, t, glp_get_col_prim(lp, colnum(w, t)));
 			fprintf(output, "\n");
 		}
+
+		glp_delete_prob(lp);
+	} else {
+		fprintf(stderr, "Simplex failed\n");
 	}
-
-	glp_delete_prob(lp);
-
 	PTHREAD_MUTEX_UNLOCK(&mutex);
 #else /* HAVE_GLPK_H */
-	fprintf(output, "Please rebuild StarPU with glpk enabled.\n");
+	fprintf(output, "Please rebuild StarPU with glpk installed.\n");
+#endif /* HAVE_GLPK_H */
+}
+
+void starpu_bound_compute(double *res) {
+#ifdef HAVE_GLPK_H
+	double ret;
+	PTHREAD_MUTEX_LOCK(&mutex);
+	glp_prob *lp = _starpu_bound_glp_resolve();
+	if (lp) {
+		ret = glp_get_obj_val(lp);
+		glp_delete_prob(lp);
+	} else
+		ret = 0.;
+	PTHREAD_MUTEX_UNLOCK(&mutex);
+	*res = ret;
+#else /* HAVE_GLPK_H */
+	*res = 0.;
 #endif /* HAVE_GLPK_H */
 }

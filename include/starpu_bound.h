@@ -27,6 +27,9 @@ void starpu_bound_start(void);
 /* Stop recording tasks */
 void starpu_bound_stop(void);
 
+/* Get theoretical upper bound (needs glpk support) */
+void starpu_bound_compute(double *res);
+
 /* Emit Linear Programming system on output for the recorded tasks in lp format */
 void starpu_bound_print_lp(FILE *output);
 
