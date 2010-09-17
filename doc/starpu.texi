@@ -1021,6 +1021,8 @@ for (worker = 0; worker < starpu_worker_get_count(); worker++)
 @node Partitioning Data
 @section Partitioning Data
 
+An existing piece of data can be partitioned in sub parts to be used by different tasks, for instance:
+
 @cartouche
 @smallexample
 int vector[NX];
@@ -1060,10 +1062,30 @@ for (i=0; i<starpu_data_get_nb_children(handle); i++) @{
 @end smallexample
 @end cartouche
 
+Partitioning can be applied several times, see
+@code{examples/basic_examples/mult.c} and @code{examples/filters/}.
+
 @node Performance model example
 @section Performance model example
 
-TODO
+To achieve good scheduling, StarPU scheduling policies need to be able to
+estimate in advance the duration of a task. This is done by giving to codelets a
+performance model. There are several kinds of performance models.
+
+@itemize
+@item
+Providing an estimation from the application itself (@code{STARPU_COMMON} model type and @code{cost_model} field),
+see for instance
+@code{examples/common/blas_model.c} and @code{examples/common/blas_model.h}. It can also be provided for each architecture (@code{STARPU_PER_ARCH} model type and @code{per_arch} field)
+@item
+Measured at runtime (STARPU_HISTORY_BASED model type). This assumes that for a
+given set of data input/output sizes, the performance will always be about the
+same. This is very true for regular kernels on GPUs for instance (<0.1% error),
+and just a bit less true on CPUs (~=1% error). This also assumes that there are
+few different sets of data input/output sizes. StarPU will then keep record of
+the average time of previous executions on the various processing units, and use
+it as an estimation. It will also save it in @code{~/.starpu/sampling/codelets}
+for further executions.  The following is a small code example.
 
 @cartouche
 @smallexample
@@ -1076,11 +1098,34 @@ starpu_codelet cl = @{
     .where = STARPU_CPU,
     .cpu_func = cpu_mult,
     .nbuffers = 3,
-    /* in case the scheduling policy may use performance models */
+    /* for the scheduling policy to be able to use performance models */
     .model = &mult_perf_model
 @};
 @end smallexample
 @end cartouche
+
+@item
+Measured at runtime and refined by regression (STARPU_REGRESSION_BASED model
+type). This still assumes performance regularity, but can work with various data
+input sizes, by applying a*n^b+c regression over observed execution times.
+@end itemize
+
+@node Theoretical lower bound on execution time
+@section Theoretical lower bound on execution time
+
+For history-based kernels, StarPU can very easily provide a theoretical lower
+bound for the execution time of a whole set of tasks. See for
+instance @code{examples/lu/lu_example.c}: before submitting tasks,
+call @code{starpu_bound_start}, and after complete execution, call
+@code{starpu_bound_stop}. @code{starpu_bound_print_lp} can then be used to
+output a Linear Programming problem corresponding to the schedule of your
+tasks. Run it through @code{lp_solve}, and that will give you a lower bound for the total execution time of your tasks.
+
+Note that this is not taking into account task dependencies and data
+transfers. It only takes into account the actual computations on processing
+units. It however properly takes into account the varying performances of
+kernels and processing units, which is quite more accurate than just comparing
+StarPU performances with the fastest of the kernels being used.
 
 @node More examples
 @section More examples
