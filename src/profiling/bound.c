@@ -171,6 +171,19 @@ void starpu_bound_print_lp(FILE *output)
 				fprintf(output, "\t+%ld", tp->cl->per_worker_stats[w]);
 			fprintf(output, "\t*/\n\n");
 		}
+
+		/* Optionally tell that tasks can not be divided */
+		fprintf(output, "int ");
+		int first = 1;
+		for (w = 0; w < nw; w++)
+			for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+				if (!first)
+					fprintf(output, ",");
+				else
+					first = 0;
+				fprintf(output, "w%dt%dn", w, t);
+			}
+		fprintf(output, ";\n");
 	}
 
 	PTHREAD_MUTEX_UNLOCK(&mutex);
