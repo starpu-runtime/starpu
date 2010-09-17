@@ -20,8 +20,13 @@
  */
 
 #include <starpu.h>
+#include <starpu_config.h>
 #include <profiling/bound.h>
 #include <core/jobs.h>
+
+#ifdef HAVE_GLPK_H
+#include <glpk.h>
+#endif /* HAVE_GLPK_H */
 
 /* TODO: output duration between starpu_bound_start and starpu_bound_stop */
 
@@ -127,6 +132,9 @@ static void _starpu_get_tasks_times(int nw, int nt, double times[nw][nt]) {
 	}
 }
 
+/*
+ * lp_solve format
+ */
 void starpu_bound_print_lp(FILE *output)
 {
 	struct task_pool *tp;
@@ -163,7 +171,7 @@ void starpu_bound_print_lp(FILE *output)
 
 		fprintf(output, "/* And we have to have computed exactly all tasks */\n");
 		for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
-			fprintf(output, "/* task %s key %lx */\n", tp->cl->model->symbol, (unsigned long) tp->footprint);
+			fprintf(output, "/* task %s key %x */\n", tp->cl->model->symbol, (unsigned) tp->footprint);
 			for (w = 0; w < nw; w++)
 				fprintf(output, "\t+w%dt%dn", w, t);
 			fprintf(output, " = %ld;\n", tp->n);
@@ -191,6 +199,9 @@ void starpu_bound_print_lp(FILE *output)
 	PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
+/*
+ * MPS output format
+ */
 void starpu_bound_print_mps(FILE *output)
 {
 	struct task_pool * tp;
@@ -227,7 +238,7 @@ void starpu_bound_print_mps(FILE *output)
 
 		fprintf(output, "\n* And we have to have computed exactly all tasks\n");
 		for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
-			fprintf(output, "* task %s key %lx\n", tp->cl->model->symbol, (unsigned long) tp->footprint);
+			fprintf(output, "* task %s key %x\n", tp->cl->model->symbol, (unsigned) tp->footprint);
 			fprintf(output, " E  T%d\n", t);
 		}
 
@@ -237,7 +248,7 @@ void starpu_bound_print_mps(FILE *output)
 		for (w = 0; w < nw; w++)
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
 				char name[9];
-				snprintf(name, sizeof(name)-1, "W%dT%d", w, t);
+				snprintf(name, sizeof(name), "W%dT%d", w, t);
 				fprintf(stderr,"    %-8s  W%-7d  %12f\n", name, w, times[w][t]);
 				fprintf(stderr,"    %-8s  T%-7d  %12u\n", name, t, 1);
 			}
@@ -259,7 +270,124 @@ void starpu_bound_print_mps(FILE *output)
 	PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
+/*
+ * GNU Linear Programming Kit backend
+ */
 void starpu_bound_print(FILE *output)
 {
-	fprintf(output, "TODO: use glpk");
+#ifdef HAVE_GLPK_H
+	struct task_pool * tp;
+	int nt; /* Number of different kinds of tasks */
+	int nw; /* Number of different workers */
+	int t, w;
+	glp_prob *lp;
+	double tmax;
+	int ret;
+
+	PTHREAD_MUTEX_LOCK(&mutex);
+
+	nw = starpu_worker_get_count();
+	nt = 0;
+	for (tp = task_pools; tp; tp = tp->next)
+		nt++;
+
+	lp = glp_create_prob();
+	glp_set_prob_name(lp, "StarPU theoretical bound");
+	glp_set_obj_dir(lp, GLP_MIN);
+	glp_set_obj_name(lp, "total execution time");
+
+	{
+		double times[nw][nt];
+		int ne =
+			nw * (nt+1)	/* worker execution time */
+			+ nt * nw
+			+ 1; /* glpk dumbness */
+		int n = 1;
+		int ia[ne], ja[ne];
+		double ar[ne];
+
+		_starpu_get_tasks_times(nw, nt, times);
+
+		/* Variables: number of tasks i assigned to worker j, and tmax */
+		glp_add_cols(lp, nw*nt+1);
+#define colnum(w, t) ((w)*nt+(t)+1)
+		glp_set_obj_coef(lp, nw*nt+1, 1.);
+
+		for (w = 0; w < nw; w++)
+			for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+				char name[32];
+				snprintf(name, sizeof(name), "w%dt%dn", w, t);
+				glp_set_col_name(lp, colnum(w, t), name);
+				glp_set_col_bnds(lp, colnum(w, t), GLP_LO, 0., 0.);
+			}
+		glp_set_col_bnds(lp, nw*nt+1, GLP_LO, 0., 0.);
+
+		/* Total worker execution time */
+		glp_add_rows(lp, nw);
+		for (w = 0; w < nw; w++) {
+			char name[32], title[64];
+			starpu_worker_get_name(w, name, sizeof(name));
+			snprintf(title, sizeof(title), "worker %s", name);
+			glp_set_row_name(lp, w+1, title);
+			for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+				ia[n] = w+1;
+				ja[n] = colnum(w, t);
+				ar[n] = times[w][t];
+				n++;
+			}
+			/* tmax */
+			ia[n] = w+1;
+			ja[n] = nw*nt+1;
+			ar[n] = -1;
+			n++;
+			glp_set_row_bnds(lp, w+1, GLP_UP, 0, 0);
+		}
+
+		/* Total task completion */
+		glp_add_rows(lp, nt);
+		for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+			char name[32], title[64];
+			starpu_worker_get_name(w, name, sizeof(name));
+			snprintf(title, sizeof(title), "task %s key %x", tp->cl->model->symbol, (unsigned) tp->footprint);
+			glp_set_row_name(lp, nw+t+1, title);
+			for (w = 0; w < nw; w++) {
+				ia[n] = nw+t+1;
+				ja[n] = colnum(w, t);
+				ar[n] = 1;
+				n++;
+			}
+			glp_set_row_bnds(lp, nw+t+1, GLP_FX, tp->n, tp->n);
+		}
+
+		STARPU_ASSERT(n == ne);
+
+		glp_load_matrix(lp, ne-1, ia, ja, ar);
+	}
+
+	glp_adv_basis(lp, 0);
+	glp_smcp parm;
+	glp_init_smcp(&parm);
+	parm.msg_lev = GLP_MSG_OFF;
+	ret = glp_simplex(lp, &parm);
+	if (ret) {
+		fprintf(output, "simplex failed: %d\n", ret);
+	} else {
+		tmax = glp_get_obj_val(lp);
+
+		fprintf(output, "Theoretical minimum execution time: %f ms\n", tmax);
+
+		for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+			fprintf(output, "%s key %x\n", tp->cl->model->symbol, (unsigned) tp->footprint);
+			for (w = 0; w < nw; w++)
+				fprintf(output, "\tw%dt%d %f", w, t, glp_get_col_prim(lp, colnum(w, t)));
+			fprintf(output, "\n");
+		}
+	}
+
+	glp_delete_prob(lp);
+
+	PTHREAD_MUTEX_UNLOCK(&mutex);
+#else /* HAVE_GLPK_H */
+	fprintf(output, "Please rebuild StarPU with glpk enabled.\n");
+#endif /* HAVE_GLPK_H */
 }

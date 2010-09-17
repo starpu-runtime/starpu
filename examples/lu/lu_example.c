@@ -319,7 +319,11 @@ int main(int argc, char **argv)
 
 	if (bound) {
 		starpu_bound_stop();
-		starpu_bound_print_mps(stderr);
+#ifdef HAVE_GLPK_H
+		starpu_bound_print(stderr);
+#else
+		starpu_bound_print_lp(stderr);
+#endif
 	}
 
 	if (check)

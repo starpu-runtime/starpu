@@ -594,8 +594,8 @@ if test x$enable_stats = xyes; then
         AC_DEFINE(STARPU_DATA_STATS, [1], [enable statistics])
 fi
 
-#AC_CHECK_HEADERS([glpk.h])
-#AC_HAVE_LIBRARY([glpk])
+AC_CHECK_HEADERS([glpk.h])
+AC_HAVE_LIBRARY([glpk])
 
 ###############################################################################
 #                                                                             #
