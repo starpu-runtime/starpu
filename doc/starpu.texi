@@ -374,6 +374,7 @@ installed. This step is done only once per user and per machine.
 * Task and Worker Profiling::   
 * Partitioning Data::           Partitioning Data
 * Performance model example::   
+* Theoretical lower bound on execution time::
 * More examples::               More examples shipped with StarPU
 @end menu
 
