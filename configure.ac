@@ -706,7 +706,7 @@ fi
 AC_MSG_CHECKING(mpicc path)
 AC_MSG_RESULT($mpicc_path)
 AC_SUBST(MPICC, $mpicc_path)
-if test x$user_mpi = xyes; then
+if test x$use_mpi = xyes; then
 	cc_or_mpicc=$mpicc_path
 else
 	cc=$CC
