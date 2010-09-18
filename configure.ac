@@ -709,7 +709,7 @@ AC_SUBST(MPICC, $mpicc_path)
 if test x$use_mpi = xyes; then
 	cc_or_mpicc=$mpicc_path
 else
-	cc=$CC
+	cc_or_mpicc=$CC
 fi
 AC_SUBST(CC_OR_MPICC, $mpicc_path)
 
