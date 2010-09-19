@@ -361,7 +361,6 @@ static glp_prob *_starpu_bound_glp_resolve(void)
 		glp_load_matrix(lp, ne-1, ia, ja, ar);
 	}
 
-	glp_adv_basis(lp, 0);
 	glp_smcp parm;
 	glp_init_smcp(&parm);
 	parm.msg_lev = GLP_MSG_OFF;
