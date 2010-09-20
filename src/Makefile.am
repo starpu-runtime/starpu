@@ -127,6 +127,7 @@ libstarpu_la_SOURCES = 						\
 	core/perfmodel/perfmodel.c				\
 	core/perfmodel/regression.c				\
 	core/sched_policy.c					\
+	core/priorities.c					\
 	sched_policies/eager_central_policy.c			\
 	sched_policies/eager_central_priority_policy.c		\
 	sched_policies/work_stealing_policy.c			\

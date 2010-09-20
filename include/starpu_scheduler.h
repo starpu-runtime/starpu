@@ -100,4 +100,18 @@ would be used to block and wake up all workers.  The initialization method of a
 scheduling strategy (init_sched) must call this function once per worker. */
 void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond, pthread_mutex_t *sched_mutex);
 
+/* Provided for legacy reasons */
+#define STARPU_MIN_PRIO		(starpu_sched_get_min_priority())
+#define STARPU_MAX_PRIO		(starpu_sched_get_max_priority())
+
+/* By convention, the default priority level should be 0 so that we can
+ * statically allocate tasks with a default priority. */
+#define STARPU_DEFAULT_PRIO	0
+
+int starpu_sched_get_min_priority(void);
+int starpu_sched_get_max_priority(void);
+
+void starpu_sched_set_min_priority(int min_prio);
+void starpu_sched_set_max_priority(int max_prio);
+
 #endif // __STARPU_SCHEDULER_H__

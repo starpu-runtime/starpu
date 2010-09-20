@@ -33,10 +33,6 @@
 #define STARPU_GORDON	((1ULL)<<5)
 #define STARPU_OPENCL	((1ULL)<<6)
 
-#define STARPU_MIN_PRIO        (-4)
-#define STARPU_MAX_PRIO        5
-#define STARPU_DEFAULT_PRIO	0
-
 /* task status */
 #define STARPU_TASK_INVALID	0
 #define STARPU_TASK_BLOCKED	1
@@ -151,7 +147,7 @@ struct starpu_task {
 	.cl_arg_size = 0,				\
 	.callback_func = NULL,				\
 	.callback_arg = NULL,				\
-	.priority = STARPU_DEFAULT_PRIO,                \
+	.priority = STARPU_DEFAULT_PRIO,		\
 	.use_tag = 0,					\
 	.synchronous = 0,				\
 	.execute_on_a_specific_worker = 0,		\

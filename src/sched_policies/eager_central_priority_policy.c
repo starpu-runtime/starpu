@@ -20,11 +20,15 @@
  */
 
 #include <starpu.h>
+#include <starpu_scheduler.h>
 #include <common/config.h>
 #include <core/workers.h>
 #include <common/utils.h>
 
-#define NPRIO_LEVELS	((STARPU_MAX_PRIO) - (STARPU_MIN_PRIO) + 1)
+#define MIN_LEVEL	(-5)
+#define MAX_LEVEL	(+5)
+
+#define NPRIO_LEVELS	(MAX_LEVEL - MIN_LEVEL + 1)
 
 struct starpu_priority_taskq_s {
 	/* the actual lists 
@@ -72,6 +76,10 @@ static void _starpu_destroy_priority_taskq(struct starpu_priority_taskq_s *prior
 static void initialize_eager_center_priority_policy(struct starpu_machine_topology_s *topology, 
 			__attribute__ ((unused))	struct starpu_sched_policy_s *_policy) 
 {
+	/* In this policy, we support more than two levels of priority. */
+	starpu_sched_set_min_priority(MIN_LEVEL);
+	starpu_sched_set_max_priority(MAX_LEVEL);
+
 	/* only a single queue (even though there are several internaly) */
 	taskq = _starpu_create_priority_taskq();
 
