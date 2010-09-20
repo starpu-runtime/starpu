@@ -16,6 +16,8 @@
 
 /* Distributed queues using performance modeling to assign tasks */
 
+#include <limits.h>
+
 #include <core/workers.h>
 #include <sched_policies/fifo_queues.h>
 #include <core/perfmodel/perfmodel.h>
@@ -505,6 +507,16 @@ static void initialize_dmda_policy(struct starpu_machine_topology_s *topology,
 	}
 }
 
+static void initialize_dmda_sorted_policy(struct starpu_machine_topology_s *topology,
+					struct starpu_sched_policy_s *_policy)
+{
+	initialize_dmda_policy(topology, _policy);
+
+	/* The application may use any integer */
+	starpu_sched_set_min_priority(INT_MIN);
+	starpu_sched_set_max_priority(INT_MAX);
+}
+
 static void deinitialize_dmda_policy(struct starpu_machine_topology_s *topology, 
 	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
@@ -540,7 +552,7 @@ struct starpu_sched_policy_s _starpu_sched_dmda_policy = {
 };
 
 struct starpu_sched_policy_s _starpu_sched_dmda_sorted_policy = {
-	.init_sched = initialize_dmda_policy,
+	.init_sched = initialize_dmda_sorted_policy,
 	.deinit_sched = deinitialize_dmda_policy,
 	.push_task = dmda_push_sorted_task, 
 	.push_prio_task = dmda_push_sorted_task, 
