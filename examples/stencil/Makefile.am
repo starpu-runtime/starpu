@@ -18,6 +18,11 @@ AM_CFLAGS = $(HWLOC_CFLAGS)
 LIBS = $(top_builddir)/src/libstarpu.la $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
 
+if USE_MPI
+LIBS += $(top_builddir)/mpi/libstarpumpi.la
+AM_CPPFLAGS += -I$(top_srcdir)/mpi/
+endif
+
 CC = $(CC_OR_MPICC)
 
 if STARPU_USE_CUDA
