@@ -1129,7 +1129,10 @@ immediately and get the optimized minimum.
 The @code{deps} parameter tells StarPU whether to take tasks and implicit data
 dependencies into account. It must be understood that the linear programming
 problem size is quadratic with the number of tasks and thus the time to solve it
-will be very long, typically one minute for just 14 tasks. Setting @code{deps}
+will be very long, it could be minutes for just a few dozen tasks. You should
+probably use @code{lp_solve} to convert the problem to MPS format and then
+use a better solver, @code{glpsol} is already better than @code{lp_solve} for
+instance (the @code{--pcost} option may be useful). Setting @code{deps}
 to 0 will only take into account the actual computations on processing
 units. It however still properly takes into account the varying performances of
 kernels and processing units, which is quite more accurate than just comparing
