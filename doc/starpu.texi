@@ -1126,14 +1126,17 @@ lower bound for the total execution time of your tasks. If StarPU was compiled
 with the glpk library installed, @code{starpu_bound_compute} can be used to solve it
 immediately and get the optimized minimum.
 
-The @code{deps} parameter tells StarPU whether to take tasks and data
+The @code{deps} parameter tells StarPU whether to take tasks and implicit data
 dependencies into account. It must be understood that the linear programming
-problem size is quadratic with number of tasks and thus the time to solve it
+problem size is quadratic with the number of tasks and thus the time to solve it
 will be very long, typically one minute for just 14 tasks. Setting @code{deps}
-to 0 will only takes into account the actual computations on processing
+to 0 will only take into account the actual computations on processing
 units. It however still properly takes into account the varying performances of
 kernels and processing units, which is quite more accurate than just comparing
 StarPU performances with the fastest of the kernels being used.
+
+Note that all this however doesn't take into account data transfer, which is
+assumed to be completely overlapped.
 
 @node More examples
 @section More examples
