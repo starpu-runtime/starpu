@@ -379,9 +379,9 @@ void starpu_bound_print_lp(FILE *output)
 		for (t = tasks; t; t = t->next)
 			for (t2 = t->next; t2; t2 = t2->next) {
 				for (w = 0; w < nw; w++) {
-					fprintf(output, "s%u - c%u >= -3e10 + 1e10 t%uw%u + 1e10 t%uw%u + 1e10 t%uafter%u;\n",
+					fprintf(output, "s%u - c%u >= -3e6 + 1e6 t%uw%u + 1e6 t%uw%u + 1e6 t%uafter%u;\n",
 							t->id, t2->id, t->id, w, t2->id, w, t->id, t2->id);
-					fprintf(output, "s%u - c%u >= -2e10 + 1e10 t%uw%u + 1e10 t%uw%u - 1e10 t%uafter%u;\n",
+					fprintf(output, "s%u - c%u >= -2e6 + 1e6 t%uw%u + 1e6 t%uw%u - 1e6 t%uafter%u;\n",
 							t2->id, t->id, t->id, w, t2->id, w, t->id, t2->id);
 				}
 			}
