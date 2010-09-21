@@ -300,6 +300,17 @@ static void _starpu_get_tasks_times(int nw, int nt, double times[nw][nt]) {
 	}
 }
 
+static int ancestor(struct bound_task *child, struct bound_task *parent) {
+	int i;
+	for (i = 0; i < child->depsn; i++) {
+		if (parent == child->deps[i])
+			return 1;
+		if (ancestor(child->deps[i], parent))
+			return -1;
+	}
+	return 0;
+}
+
 /*
  * lp_solve format
  */
@@ -377,21 +388,24 @@ void starpu_bound_print_lp(FILE *output)
 		fprintf(output, "\n/* For each task pair and each worker, if both tasks are executed by the same worker,\n");
 		fprintf(output, "   one is started after the other's completion */\n");
 		for (t = tasks; t; t = t->next)
-			for (t2 = t->next; t2; t2 = t2->next) {
-				for (w = 0; w < nw; w++) {
+			for (t2 = t->next; t2; t2 = t2->next)
+			{
+				if (!ancestor(t, t2) && !ancestor(t2, t))
+				    for (w = 0; w < nw; w++) {
 					fprintf(output, "s%u - c%u >= -3e6 + 1e6 t%uw%u + 1e6 t%uw%u + 1e6 t%uafter%u;\n",
 							t->id, t2->id, t->id, w, t2->id, w, t->id, t2->id);
 					fprintf(output, "s%u - c%u >= -2e6 + 1e6 t%uw%u + 1e6 t%uw%u - 1e6 t%uafter%u;\n",
 							t2->id, t->id, t->id, w, t2->id, w, t->id, t2->id);
 				}
 			}
+		for (t = tasks; t; t = t->next)
+			for (t2 = t->next; t2; t2 = t2->next)
+				if (!ancestor(t, t2) && !ancestor(t2, t))
+				fprintf(output, "bin t%uafter%u;\n", t->id, t2->id);
 
 		for (t = tasks; t; t = t->next)
 			for (w = 0; w < nw; w++)
 				fprintf(output, "bin t%uw%u;\n", t->id, w);
-		for (t = tasks; t; t = t->next)
-			for (t2 = t->next; t2; t2 = t2->next)
-				fprintf(output, "bin t%uafter%u;\n", t->id, t2->id);
 	} else {
 		struct bound_task_pool *tp;
 		nt = 0;
