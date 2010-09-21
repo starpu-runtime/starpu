@@ -81,6 +81,7 @@ void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, st
 		STARPU_ASSERT(dep_job != job);
 
 		STARPU_TRACE_TASK_DEPS(dep_job, job);
+		_starpu_bound_task_dep(job, dep_job);
 
 		PTHREAD_MUTEX_LOCK(&dep_job->sync_mutex);
 		_starpu_task_add_succ(dep_job, cg);

@@ -77,6 +77,8 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 	PTHREAD_MUTEX_INIT(&job->sync_mutex, NULL);
 	PTHREAD_COND_INIT(&job->sync_cond, NULL);
 
+	job->bound_task = NULL;
+
 	if (task->use_tag)
 		_starpu_tag_declare(task->tag_id, job);
 

@@ -24,4 +24,10 @@
 /* Record task for bound computation */
 extern void _starpu_bound_record(starpu_job_t j);
 
+/* Record tag dependency */
+extern void _starpu_bound_tag_dep(starpu_tag_t id, starpu_tag_t dep_id);
+
+/* Record task dependency */
+extern void _starpu_bound_task_dep(starpu_job_t j, starpu_job_t dep_j);
+
 #endif // __BOUND_H__

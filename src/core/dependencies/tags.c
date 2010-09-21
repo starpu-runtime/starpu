@@ -22,6 +22,7 @@
 #include <core/jobs.h>
 #include <core/sched_policy.h>
 #include <core/dependencies/data_concurrency.h>
+#include <profiling/bound.h>
 
 static starpu_htbl_node_t *tag_htbl = NULL;
 static pthread_rwlock_t tag_global_rwlock = PTHREAD_RWLOCK_INITIALIZER;
@@ -228,6 +229,7 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 		/* id depends on dep_id
 		 * so cg should be among dep_id's successors*/
 		STARPU_TRACE_TAG_DEPS(id, dep_id);
+		_starpu_bound_tag_dep(id, dep_id);
 		struct starpu_tag_s *tag_dep = gettag_struct(dep_id);
 		STARPU_ASSERT(tag_dep != tag_child);
 		_starpu_spin_lock(&tag_dep->lock);
@@ -261,6 +263,7 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 		/* id depends on dep_id
 		 * so cg should be among dep_id's successors*/
 		STARPU_TRACE_TAG_DEPS(id, dep_id);
+		_starpu_bound_tag_dep(id, dep_id);
 		struct starpu_tag_s *tag_dep = gettag_struct(dep_id);
 		STARPU_ASSERT(tag_dep != tag_child);
 		_starpu_spin_lock(&tag_dep->lock);

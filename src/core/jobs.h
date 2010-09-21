@@ -76,6 +76,7 @@ LIST_TYPE(starpu_job,
         unsigned exclude_from_dag;
         const char *model_name;
 #endif
+	struct bound_task *bound_task;
 );
 
 starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task);

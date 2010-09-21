@@ -32,6 +32,7 @@ static unsigned pivot = 0;
 static unsigned no_stride = 0;
 static unsigned profile = 0;
 static unsigned bound = 0;
+static unsigned bounddeps = 0;
 
 TYPE *A, *A_saved;
 
@@ -70,6 +71,10 @@ static void parse_args(int argc, char **argv)
 
 		if (strcmp(argv[i], "-bound") == 0) {
 			bound = 1;
+		}
+		if (strcmp(argv[i], "-bounddeps") == 0) {
+			bound = 1;
+			bounddeps = 1;
 		}
 	}
 }
@@ -267,7 +272,7 @@ int main(int argc, char **argv)
 	display_matrix(A, size, size, "A");
 
 	if (bound)
-		starpu_bound_start();
+		starpu_bound_start(bounddeps);
 
 	if (profile)
 		starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
@@ -320,9 +325,15 @@ int main(int argc, char **argv)
 	if (bound) {
 		double min;
 		starpu_bound_stop();
+#if 0
+		FILE *f = fopen("lu.pl", "w");
+		starpu_bound_print_lp(f);
+		starpu_bound_print(stderr);
+#else
 		starpu_bound_compute(&min);
 		if (min != 0.)
 			fprintf(stderr, "theoretical min: %lf ms\n", min);
+#endif
 	}
 
 	if (check)

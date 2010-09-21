@@ -22,8 +22,9 @@
 #ifndef __STARPU_BOUND_H__
 #define __STARPU_BOUND_H__
 
-/* Start recording tasks (resets stats) */
-void starpu_bound_start(void);
+/* Start recording tasks (resets stats).  `deps' tells whether dependencies
+ * should be recorded too (this is quite expensive).  */
+void starpu_bound_start(int deps);
 /* Stop recording tasks */
 void starpu_bound_stop(void);
 
