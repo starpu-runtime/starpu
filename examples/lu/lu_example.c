@@ -325,15 +325,15 @@ int main(int argc, char **argv)
 	if (bound) {
 		double min;
 		starpu_bound_stop();
-#if 0
-		FILE *f = fopen("lu.pl", "w");
-		starpu_bound_print_lp(f);
-		starpu_bound_print(stderr);
-#else
-		starpu_bound_compute(&min);
-		if (min != 0.)
-			fprintf(stderr, "theoretical min: %lf ms\n", min);
-#endif
+		if (bounddeps) {
+			FILE *f = fopen("lu.pl", "w");
+			starpu_bound_print_lp(f);
+			fprintf(stderr,"system printed to lu.pl\n");
+		} else {
+			starpu_bound_compute(&min);
+			if (min != 0.)
+				fprintf(stderr, "theoretical min: %lf ms\n", min);
+		}
 	}
 
 	if (check)
