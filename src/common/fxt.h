@@ -52,8 +52,8 @@
 #define STARPU_FUT_START_PUSH_OUTPUT	0x5109
 #define STARPU_FUT_END_PUSH_OUTPUT	0x5110
 
-#define STARPU_FUT_CODELET_TAG		0x5111
-#define STARPU_FUT_CODELET_TAG_DEPS	0x5112
+#define STARPU_FUT_TAG		0x5111
+#define STARPU_FUT_TAG_DEPS	0x5112
 
 #define STARPU_FUT_TASK_DEPS		0x5113
 
@@ -192,11 +192,11 @@ do {									\
 #define STARPU_TRACE_END_PUSH_OUTPUT(job)	\
 	FUT_DO_PROBE2(STARPU_FUT_END_PUSH_OUTPUT, job, syscall(SYS_gettid));
 
-#define STARPU_TRACE_CODELET_TAG(tag, job)	\
-	FUT_DO_PROBE2(STARPU_FUT_CODELET_TAG, tag, (job)->job_id)
+#define STARPU_TRACE_TAG(tag, job)	\
+	FUT_DO_PROBE2(STARPU_FUT_TAG, tag, (job)->job_id)
 
-#define STARPU_TRACE_CODELET_TAG_DEPS(tag_child, tag_father)	\
-	FUT_DO_PROBE2(STARPU_FUT_CODELET_TAG_DEPS, tag_child, tag_father)
+#define STARPU_TRACE_TAG_DEPS(tag_child, tag_father)	\
+	FUT_DO_PROBE2(STARPU_FUT_TAG_DEPS, tag_child, tag_father)
 
 #define STARPU_TRACE_TASK_DEPS(job_prev, job_succ)	\
 	FUT_DO_PROBE2(STARPU_FUT_TASK_DEPS, (job_prev)->job_id, (job_succ)->job_id)
@@ -307,8 +307,8 @@ do {										\
 #define STARPU_TRACE_END_FETCH_INPUT(job)	do {} while(0);
 #define STARPU_TRACE_START_PUSH_OUTPUT(job)	do {} while(0);
 #define STARPU_TRACE_END_PUSH_OUTPUT(job)	do {} while(0);
-#define STARPU_TRACE_CODELET_TAG(tag, job)	do {} while(0);
-#define STARPU_TRACE_CODELET_TAG_DEPS(a, b)	do {} while(0);
+#define STARPU_TRACE_TAG(tag, job)	do {} while(0);
+#define STARPU_TRACE_TAG_DEPS(a, b)	do {} while(0);
 #define STARPU_TRACE_TASK_DEPS(a, b)		do {} while(0);
 #define STARPU_TRACE_TASK_DONE(a)		do {} while(0);
 #define STARPU_TRACE_TAG_DONE(a)		do {} while(0);

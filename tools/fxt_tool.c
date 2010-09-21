@@ -877,11 +877,11 @@ void parse_new_file(char *filename_in, char *file_prefix, uint64_t file_offset)
 				handle_end_sleep();
 				break;
 
-			case STARPU_FUT_CODELET_TAG:
+			case STARPU_FUT_TAG:
 				/* XXX */
 				break;
 
-			case STARPU_FUT_CODELET_TAG_DEPS:
+			case STARPU_FUT_TAG_DEPS:
 				handle_codelet_tag_deps();
 				break;
 

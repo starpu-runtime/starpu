@@ -193,7 +193,7 @@ void starpu_tag_notify_from_apps(starpu_tag_t id)
 
 void _starpu_tag_declare(starpu_tag_t id, struct starpu_job_s *job)
 {
-	STARPU_TRACE_CODELET_TAG(id, job);
+	STARPU_TRACE_TAG(id, job);
 	job->task->use_tag = 1;
 	
 	struct starpu_tag_s *tag= gettag_struct(id);
@@ -227,7 +227,7 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 		
 		/* id depends on dep_id
 		 * so cg should be among dep_id's successors*/
-		STARPU_TRACE_CODELET_TAG_DEPS(id, dep_id);
+		STARPU_TRACE_TAG_DEPS(id, dep_id);
 		struct starpu_tag_s *tag_dep = gettag_struct(dep_id);
 		STARPU_ASSERT(tag_dep != tag_child);
 		_starpu_spin_lock(&tag_dep->lock);
@@ -260,7 +260,7 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 	
 		/* id depends on dep_id
 		 * so cg should be among dep_id's successors*/
-		STARPU_TRACE_CODELET_TAG_DEPS(id, dep_id);
+		STARPU_TRACE_TAG_DEPS(id, dep_id);
 		struct starpu_tag_s *tag_dep = gettag_struct(dep_id);
 		STARPU_ASSERT(tag_dep != tag_child);
 		_starpu_spin_lock(&tag_dep->lock);
