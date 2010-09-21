@@ -63,6 +63,8 @@ static starpu_data_handle *(tmp_21_block_handles[2]);
 static TYPE **(tmp_21_block[2]);
 #endif
 
+int get_block_rank(unsigned i, unsigned j);
+
 static void parse_args(int argc, char **argv, int rank)
 {
 	int i;
