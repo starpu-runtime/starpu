@@ -173,6 +173,9 @@ starpu_job_t _starpu_get_job_associated_to_task(struct starpu_task *task)
  * already counted. */
 int _starpu_submit_job(starpu_job_t j, unsigned do_not_increment_nsubmitted)
 {
+	/* notify bound computation of a new task */
+	_starpu_bound_record(j);
+
 	j->terminated = 0;
 
 	if (!do_not_increment_nsubmitted)
@@ -243,9 +246,6 @@ int starpu_task_submit(struct starpu_task *task)
 	else {
 		j = (struct starpu_job_s *)task->starpu_private;
 	}
-
-	/* notify bound computation of a new task */
-	_starpu_bound_record(j);
 
 	ret = _starpu_submit_job(j, 0);
 
