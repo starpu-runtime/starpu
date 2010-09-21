@@ -392,9 +392,9 @@ void starpu_bound_print_lp(FILE *output)
 			{
 				if (!ancestor(t, t2) && !ancestor(t2, t))
 				    for (w = 0; w < nw; w++) {
-					fprintf(output, "s%u - c%u >= -3e6 + 1e6 t%uw%u + 1e6 t%uw%u + 1e6 t%uafter%u;\n",
+					fprintf(output, "s%u - c%u >= -3e5 + 1e5 t%uw%u + 1e5 t%uw%u + 1e5 t%uafter%u;\n",
 							t->id, t2->id, t->id, w, t2->id, w, t->id, t2->id);
-					fprintf(output, "s%u - c%u >= -2e6 + 1e6 t%uw%u + 1e6 t%uw%u - 1e6 t%uafter%u;\n",
+					fprintf(output, "s%u - c%u >= -2e5 + 1e5 t%uw%u + 1e5 t%uw%u - 1e5 t%uafter%u;\n",
 							t2->id, t->id, t->id, w, t2->id, w, t->id, t2->id);
 				}
 			}
