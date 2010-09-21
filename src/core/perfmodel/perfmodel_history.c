@@ -226,7 +226,7 @@ void _starpu_register_model(struct starpu_perfmodel_t *model)
 	_starpu_create_sampling_directory_if_needed();
 
 	unsigned arch;
-	for (arch = 0; arch < NARCH_VARIATIONS; arch++)
+	for (arch = 0; arch < STARPU_NARCH_VARIATIONS; arch++)
 	{
 		char debugpath[256];
 		starpu_perfmodel_debugfilepath(model, arch, debugpath, 256);
