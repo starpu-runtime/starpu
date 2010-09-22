@@ -33,6 +33,7 @@ static unsigned no_stride = 0;
 static unsigned profile = 0;
 static unsigned bound = 0;
 static unsigned bounddeps = 0;
+static unsigned boundprio = 0;
 
 TYPE *A, *A_saved;
 
@@ -75,6 +76,11 @@ static void parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-bounddeps") == 0) {
 			bound = 1;
 			bounddeps = 1;
+		}
+		if (strcmp(argv[i], "-bounddepsprio") == 0) {
+			bound = 1;
+			bounddeps = 1;
+			boundprio = 1;
 		}
 	}
 }
@@ -272,7 +278,7 @@ int main(int argc, char **argv)
 	display_matrix(A, size, size, "A");
 
 	if (bound)
-		starpu_bound_start(bounddeps);
+		starpu_bound_start(bounddeps, boundprio);
 
 	if (profile)
 		starpu_profiling_status_set(STARPU_PROFILING_ENABLE);

@@ -24,7 +24,7 @@
 
 /* Start recording tasks (resets stats).  `deps' tells whether dependencies
  * should be recorded too (this is quite expensive).  */
-void starpu_bound_start(int deps);
+void starpu_bound_start(int deps, int prio);
 /* Stop recording tasks */
 void starpu_bound_stop(void);
 

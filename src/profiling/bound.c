@@ -109,10 +109,11 @@ static struct bound_task *tasks;
 static struct bound_tag_dep *tag_deps;
 static int recording;
 static int recorddeps;
+static int recordprio;
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-void starpu_bound_start(int deps)
+void starpu_bound_start(int deps, int prio)
 {
 	struct bound_task_pool *tp;
 	struct bound_task *t;
@@ -132,6 +133,7 @@ void starpu_bound_start(int deps)
 
 	recording = 1;
 	recorddeps = deps;
+	recordprio = prio;
 
 	PTHREAD_MUTEX_UNLOCK(&mutex);
 
@@ -385,23 +387,112 @@ void starpu_bound_print_lp(FILE *output)
 		for (td = tag_deps; td; td = td->next)
 			fprintf(output, "tag%lu >= tag%lu;\n", (unsigned long) td->tag, (unsigned long) td->dep_tag);
 
+/* TODO: factorize ancestor calls */
 		fprintf(output, "\n/* For each task pair and each worker, if both tasks are executed by the same worker,\n");
 		fprintf(output, "   one is started after the other's completion */\n");
-		for (t = tasks; t; t = t->next)
+		for (t = tasks; t; t = t->next) {
 			for (t2 = t->next; t2; t2 = t2->next)
 			{
-				if (!ancestor(t, t2) && !ancestor(t2, t))
-				    for (w = 0; w < nw; w++) {
-					fprintf(output, "s%u - c%u >= -3e5 + 1e5 t%uw%u + 1e5 t%uw%u + 1e5 t%uafter%u;\n",
-							t->id, t2->id, t->id, w, t2->id, w, t->id, t2->id);
-					fprintf(output, "s%u - c%u >= -2e5 + 1e5 t%uw%u + 1e5 t%uw%u - 1e5 t%uafter%u;\n",
-							t2->id, t->id, t->id, w, t2->id, w, t->id, t2->id);
+				if (!ancestor(t, t2) && !ancestor(t2, t)) {
+					for (w = 0; w < nw; w++) {
+						fprintf(output, "s%u - c%u >= -3e5 + 1e5 t%uw%u + 1e5 t%uw%u + 1e5 t%uafter%u;\n",
+								t->id, t2->id, t->id, w, t2->id, w, t->id, t2->id);
+						fprintf(output, "s%u - c%u >= -2e5 + 1e5 t%uw%u + 1e5 t%uw%u - 1e5 t%uafter%u;\n",
+								t2->id, t->id, t->id, w, t2->id, w, t->id, t2->id);
+					}
 				}
 			}
+		}
+
+#if 0
+/* Doesn't help at all to actually express what "after" means */
 		for (t = tasks; t; t = t->next)
 			for (t2 = t->next; t2; t2 = t2->next)
 				if (!ancestor(t, t2) && !ancestor(t2, t))
-				fprintf(output, "bin t%uafter%u;\n", t->id, t2->id);
+				{
+					fprintf(output, "s%u - s%u >= -1e5 + 1e5 t%uafter%u;\n", t->id, t2->id, t->id, t2->id);
+					fprintf(output, "s%u - s%u >= -1e5 t%uafter%u;\n", t2->id, t->id, t->id, t2->id);
+				}
+#endif
+
+		if (recordprio) {
+			fprintf(output, "\n/* For StarPU, a priority means given schedulable tasks it will consider the\n");
+			fprintf(output, " * more prioritized first */\n");
+			for (t = tasks; t; t = t->next) {
+				for (t2 = t->next; t2; t2 = t2->next)
+				{
+					if (!ancestor(t, t2) && !ancestor(t2, t)
+					     && t->priority != t2->priority) {
+						if (t->priority > t2->priority) {
+							/* Either t2 is scheduled before t, but then it
+							   needs to be scheduled before some t dep finishes */
+
+							/* One of the t deps to give the maximum start time for t2 */
+							if (t->depsn > 1) {
+								for (i = 0; i < t->depsn; i++)
+									fprintf(output, " + t%ut%ud%u", t2->id, t->id, i);
+								fprintf(output, " = 1;\n");
+							}
+
+							for (i = 0; i < t->depsn; i++) {
+								fprintf(output, "c%u - s%u >= ", t->deps[i]->id, t2->id);
+								if (t->depsn > 1)
+									/* Only checks this when it's this dependency that is chosen */
+									fprintf(output, "-2e5 + 1e5 t%ut%ud%u", t2->id, t->id, i);
+								else
+									fprintf(output, "-1e5");
+								/* Only check this if t is after t2 */
+								fprintf(output, " + 1e5 t%uafter%u", t->id, t2->id);
+								fprintf(output, ";\n");
+							}
+
+							/* Or t2 is scheduled after t is.  */
+							fprintf(output, "s%u - s%u >= -1e5 t%uafter%u;\n", t2->id, t->id, t->id, t2->id);
+						} else {
+							/* Either t is scheduled before t2, but then it
+							   needs to be scheduled before some t2 dep finishes */
+
+							/* One of the t2 deps to give the maximum start time for t */
+							if (t2->depsn > 1) {
+								for (i = 0; i < t2->depsn; i++)
+									fprintf(output, " + t%ut%ud%u", t->id, t2->id, i);
+								fprintf(output, " = 1;\n");
+							}
+
+							for (i = 0; i < t2->depsn; i++) {
+								fprintf(output, "c%u - s%u >= ", t2->deps[i]->id, t->id);
+								if (t2->depsn > 1)
+									/* Only checks this when it's this dependency that is chosen */
+									fprintf(output, "-1e5 + 1e5 t%ut%ud%u", t->id, t2->id, i);
+								/* Only check this if t2 is after t */
+								fprintf(output, " - 1e5 t%uafter%u;\n", t->id, t2->id);
+							}
+
+							/* Or t is scheduled after t2 is.  */
+							fprintf(output, "s%u - s%u >= -1e5 + 1e5 t%uafter%u;\n", t->id, t2->id, t->id, t2->id);
+						}
+					}
+				}
+			}
+		}
+
+
+		for (t = tasks; t; t = t->next)
+			for (t2 = t->next; t2; t2 = t2->next)
+				if (!ancestor(t, t2) && !ancestor(t2, t)) {
+					fprintf(output, "bin t%uafter%u;\n", t->id, t2->id);
+					if (recordprio && t->priority != t2->priority) {
+						if (t->priority > t2->priority) {
+							if (t->depsn > 1)
+								for (i = 0; i < t->depsn; i++)
+									fprintf(output, "bin t%ut%ud%u;\n", t2->id, t->id, i);
+						} else {
+							if (t2->depsn > 1)
+								for (i = 0; i < t2->depsn; i++)
+									fprintf(output, "bin t%ut%ud%u;\n", t->id, t2->id, i);
+						}
+					}
+				}
 
 		for (t = tasks; t; t = t->next)
 			for (w = 0; w < nw; w++)

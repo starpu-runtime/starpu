@@ -1139,6 +1139,11 @@ on processing units. It however still properly takes into account the varying
 performances of kernels and processing units, which is quite more accurate than
 just comparing StarPU performances with the fastest of the kernels being used.
 
+The @code{prio} parameter tells StarPU whether to simulate taking into account
+the priorities as the StarPU scheduler would, i.e. schedule prioritized
+tasks before less prioritized tasks, to check to which extend this results
+to a less optimal solution. This increases even more computation time.
+
 Note that all this however doesn't take into account data transfer, which is
 assumed to be completely overlapped.
 
