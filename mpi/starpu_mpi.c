@@ -73,7 +73,6 @@ static void starpu_mpi_isend_func(struct starpu_mpi_req_s *req)
 
 	starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype);
 
-	//MPI_Isend(ptr, 1, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
 	MPI_Isend(ptr, 1, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
 
 	TRACE_MPI_ISEND(req->srcdst, req->mpi_tag, 0);
@@ -292,27 +291,26 @@ int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 {
         _STARPU_MPI_LOG_IN();
 	int ret;
-	struct starpu_mpi_req_s waiting_req;
-	memset(&waiting_req, 0, sizeof(struct starpu_mpi_req_s));
-
+	struct starpu_mpi_req_s *waiting_req = calloc(1, sizeof(struct starpu_mpi_req_s));
+	STARPU_ASSERT(waiting_req);
 	struct starpu_mpi_req_s *req = *public_req;
 
 	/* We cannot try to complete a MPI request that was not actually posted
 	 * to MPI yet. */
-	PTHREAD_MUTEX_LOCK(&req->req_mutex);
-	while (!req->submitted)
-		PTHREAD_COND_WAIT(&req->req_cond, &req->req_mutex);
-	PTHREAD_MUTEX_UNLOCK(&req->req_mutex);
+	PTHREAD_MUTEX_LOCK(&(req->req_mutex));
+	while (!(req->submitted))
+		PTHREAD_COND_WAIT(&(req->req_cond), &(req->req_mutex));
+	PTHREAD_MUTEX_UNLOCK(&(req->req_mutex));
 
 	/* Initialize the request structure */
-	PTHREAD_MUTEX_INIT(&waiting_req.req_mutex, NULL);
-	PTHREAD_COND_INIT(&waiting_req.req_cond, NULL);
-	waiting_req.status = status;
-	waiting_req.other_request = req;
-	waiting_req.func = starpu_mpi_wait_func;
-        waiting_req.request_type = WAIT_REQ;
+	PTHREAD_MUTEX_INIT(&(waiting_req->req_mutex), NULL);
+	PTHREAD_COND_INIT(&(waiting_req->req_cond), NULL);
+	waiting_req->status = status;
+	waiting_req->other_request = req;
+	waiting_req->func = starpu_mpi_wait_func;
+	waiting_req->request_type = WAIT_REQ;
 
-	submit_mpi_req(&waiting_req);
+	submit_mpi_req(waiting_req);
 
 	/* We wait for the MPI request to finish */
 	PTHREAD_MUTEX_LOCK(&req->req_mutex);
@@ -326,6 +324,7 @@ int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	*public_req = NULL;
 	free(req);
 
+        //free(waiting_req);
         _STARPU_MPI_LOG_OUT();
 	return ret;
 }
@@ -373,30 +372,31 @@ int starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 
 	if (submitted)
 	{
-		struct starpu_mpi_req_s testing_req;
-		memset(&testing_req, 0, sizeof(struct starpu_mpi_req_s));
+		struct starpu_mpi_req_s *testing_req = calloc(1, sizeof(struct starpu_mpi_req_s));
+                STARPU_ASSERT(testing_req);
+                //		memset(testing_req, 0, sizeof(struct starpu_mpi_req_s));
 
 		/* Initialize the request structure */
-		PTHREAD_MUTEX_INIT(&testing_req.req_mutex, NULL);
-		PTHREAD_COND_INIT(&testing_req.req_cond, NULL);
-		testing_req.flag = flag;
-		testing_req.status = status;
-		testing_req.other_request = req;
-		testing_req.func = starpu_mpi_test_func;
-		testing_req.completed = 0;
-                testing_req.request_type = TEST_REQ;
+		PTHREAD_MUTEX_INIT(&(testing_req->req_mutex), NULL);
+		PTHREAD_COND_INIT(&(testing_req->req_cond), NULL);
+		testing_req->flag = flag;
+		testing_req->status = status;
+		testing_req->other_request = req;
+		testing_req->func = starpu_mpi_test_func;
+		testing_req->completed = 0;
+                testing_req->request_type = TEST_REQ;
 
-		submit_mpi_req(&testing_req);
+		submit_mpi_req(testing_req);
 	
 		/* We wait for the test request to finish */
-		PTHREAD_MUTEX_LOCK(&testing_req.req_mutex);
-		while (!testing_req.completed)
-			PTHREAD_COND_WAIT(&testing_req.req_cond, &testing_req.req_mutex);
-		PTHREAD_MUTEX_UNLOCK(&testing_req.req_mutex);
-	
-		ret = testing_req.ret;
+		PTHREAD_MUTEX_LOCK(&(testing_req->req_mutex));
+		while (!(testing_req->completed))
+                        PTHREAD_COND_WAIT(&(testing_req->req_cond), &(testing_req->req_mutex));
+		PTHREAD_MUTEX_UNLOCK(&(testing_req->req_mutex));
 
-		if (*testing_req.flag)
+		ret = testing_req->ret;
+
+		if (*(testing_req->flag))
 		{
 			/* The request was completed so we free the internal
 			 * request structure which was automatically allocated
@@ -495,11 +495,9 @@ static void test_detached_requests(void)
 
 		PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
+                _STARPU_MPI_DEBUG("Test detached request %p - mpitag %x - TYPE %s %d\n", &req->request, req->mpi_tag, (req->request_type == RECV_REQ)?"recv : source":"send : dest", req->srcdst);
 		int ret = MPI_Test(&req->request, &flag, &status);
 		STARPU_ASSERT(ret == MPI_SUCCESS);
-
-
-                _STARPU_MPI_DEBUG("Test request %p - mpitag %x - TYPE %s %d\n", &req->request, req->mpi_tag, (req->request_type == RECV_REQ)?"recv : source":"send : dest", req->srcdst);
 
 		if (flag)
 		{
