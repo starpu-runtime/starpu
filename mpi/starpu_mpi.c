@@ -277,7 +277,8 @@ int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	waiting_req.status = status;
 	waiting_req.other_request = req;
 	waiting_req.func = starpu_mpi_wait_func;
-	
+        waiting_req.request_type = WAIT_REQ;
+
 	submit_mpi_req(&waiting_req);
 
 	/* We wait for the MPI request to finish */
@@ -346,7 +347,8 @@ int starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 		testing_req.other_request = req;
 		testing_req.func = starpu_mpi_test_func;
 		testing_req.completed = 0;
-		
+                testing_req.request_type = TEST_REQ;
+
 		submit_mpi_req(&testing_req);
 	
 		/* We wait for the test request to finish */
