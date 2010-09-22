@@ -83,7 +83,7 @@ static void starpu_mpi_isend_func(struct starpu_mpi_req_s *req)
 	req->submitted = 1;
 	PTHREAD_COND_BROADCAST(&req->req_cond);
 	PTHREAD_MUTEX_UNLOCK(&req->req_mutex);
-        _STARPU_MPI_LOG_IN();
+        _STARPU_MPI_LOG_OUT();
 }
 
 static struct starpu_mpi_req_s *_starpu_mpi_isend_common(starpu_data_handle data_handle,
