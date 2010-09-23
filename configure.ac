@@ -711,7 +711,7 @@ if test x$use_mpi = xyes; then
 else
 	cc_or_mpicc=$CC
 fi
-AC_SUBST(CC_OR_MPICC, $mpicc_path)
+AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 
 AC_MSG_CHECKING(whether the StarPU MPI library should be generated)
 AC_MSG_RESULT($use_mpi)
