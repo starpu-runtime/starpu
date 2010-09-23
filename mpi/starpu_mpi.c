@@ -459,6 +459,7 @@ static void submit_mpi_req(void *arg)
  *	Scheduler hook
  */
 
+#ifdef USE_STARPU_ACTIVITY
 static unsigned progression_hook_func(void *arg __attribute__((unused)))
 {
 	unsigned may_block = 1;
@@ -473,6 +474,7 @@ static unsigned progression_hook_func(void *arg __attribute__((unused)))
 
 	return may_block;
 }
+#endif
 
 /*
  *	Progression loop
