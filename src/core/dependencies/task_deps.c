@@ -23,6 +23,7 @@
 #include <core/task.h>
 #include <core/sched_policy.h>
 #include <core/dependencies/data_concurrency.h>
+#include <profiling/bound.h>
 
 static starpu_cg_t *create_cg_task(unsigned ntags, starpu_job_t j)
 {
