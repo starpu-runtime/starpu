@@ -657,7 +657,7 @@ void starpu_bound_print_mps(FILE *output)
  * GNU Linear Programming Kit backend
  */
 #ifdef HAVE_GLPK_H
-static glp_prob *_starpu_bound_glp_resolve(void)
+static glp_prob *_starpu_bound_glp_resolve(int integer)
 {
 	struct bound_task_pool * tp;
 	int nt; /* Number of different kinds of tasks */
@@ -698,7 +698,8 @@ static glp_prob *_starpu_bound_glp_resolve(void)
 				char name[32];
 				snprintf(name, sizeof(name), "w%ut%un", w, t);
 				glp_set_col_name(lp, colnum(w, t), name);
-				glp_set_col_kind(lp, colnum(w, t), GLP_IV);
+				if (integer)
+					glp_set_col_kind(lp, colnum(w, t), GLP_IV);
 				glp_set_col_bnds(lp, colnum(w, t), GLP_LO, 0., 0.);
 			}
 		glp_set_col_bnds(lp, nw*nt+1, GLP_LO, 0., 0.);
@@ -752,20 +753,23 @@ static glp_prob *_starpu_bound_glp_resolve(void)
 	glp_init_smcp(&parm);
 	parm.msg_lev = GLP_MSG_OFF;
 	ret = glp_simplex(lp, &parm);
-	glp_iocp iocp;
-	glp_init_iocp(&iocp);
-	iocp.msg_lev = GLP_MSG_OFF;
-	glp_intopt(lp, &iocp);
 	if (ret) {
 		glp_delete_prob(lp);
 		lp = NULL;
+		return NULL;
+	}
+	if (integer) {
+		glp_iocp iocp;
+		glp_init_iocp(&iocp);
+		iocp.msg_lev = GLP_MSG_OFF;
+		glp_intopt(lp, &iocp);
 	}
 
 	return lp;
 }
 #endif /* HAVE_GLPK_H */
 
-void starpu_bound_print(FILE *output) {
+void starpu_bound_print(FILE *output, int integer) {
 #ifdef HAVE_GLPK_H
 	if (recorddeps) {
 		fprintf(output, "Not supported\n");
@@ -773,7 +777,7 @@ void starpu_bound_print(FILE *output) {
 	}
 
 	PTHREAD_MUTEX_LOCK(&mutex);
-	glp_prob *lp = _starpu_bound_glp_resolve();
+	glp_prob *lp = _starpu_bound_glp_resolve(integer);
 	if (lp) {
 		struct bound_task_pool * tp;
 		int t, w;
@@ -782,14 +786,20 @@ void starpu_bound_print(FILE *output) {
 
 		nw = starpu_worker_get_count();
 
-		tmax = glp_get_obj_val(lp);
+		if (integer)
+			tmax = glp_mip_obj_val(lp);
+		else
+			tmax = glp_get_obj_val(lp);
 
 		fprintf(output, "Theoretical minimum execution time: %f ms\n", tmax);
 
 		for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
 			fprintf(output, "%s key %x\n", tp->cl->model->symbol, (unsigned) tp->footprint);
 			for (w = 0; w < nw; w++)
-				fprintf(output, "\tw%ut%un %f", w, t, glp_mip_col_val(lp, colnum(w, t)));
+				if (integer)
+					fprintf(output, "\tw%ut%un %f", w, t, glp_mip_col_val(lp, colnum(w, t)));
+				else
+					fprintf(output, "\tw%ut%un %f", w, t, glp_get_col_prim(lp, colnum(w, t)));
 			fprintf(output, "\n");
 		}
 
@@ -803,7 +813,7 @@ void starpu_bound_print(FILE *output) {
 #endif /* HAVE_GLPK_H */
 }
 
-void starpu_bound_compute(double *res) {
+void starpu_bound_compute(double *res, double *integer_res, int integer) {
 #ifdef HAVE_GLPK_H
 	double ret;
 
@@ -813,9 +823,11 @@ void starpu_bound_compute(double *res) {
 	}
 
 	PTHREAD_MUTEX_LOCK(&mutex);
-	glp_prob *lp = _starpu_bound_glp_resolve();
+	glp_prob *lp = _starpu_bound_glp_resolve(integer);
 	if (lp) {
 		ret = glp_get_obj_val(lp);
+		if (integer)
+			*integer_res = glp_mip_obj_val(lp);
 		glp_delete_prob(lp);
 	} else
 		ret = 0.;

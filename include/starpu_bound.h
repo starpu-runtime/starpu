@@ -29,7 +29,7 @@ void starpu_bound_start(int deps, int prio);
 void starpu_bound_stop(void);
 
 /* Get theoretical upper bound (needs glpk support) */
-void starpu_bound_compute(double *res);
+void starpu_bound_compute(double *res, double *integer_res, int integer);
 
 /* Emit Linear Programming system on output for the recorded tasks in lp format */
 void starpu_bound_print_lp(FILE *output);
@@ -38,6 +38,6 @@ void starpu_bound_print_lp(FILE *output);
 void starpu_bound_print_mps(FILE *output);
 
 /* Emit statistics of actual execution vs theoretical upper bound */
-void starpu_bound_print(FILE *output);
+void starpu_bound_print(FILE *output, int integer);
 
 #endif /* __STARPU_BOUND_H__ */
