@@ -2555,10 +2555,15 @@ process the task). Otherwise, @code{starpu_task_submit} returns immediately.
 
 @item @code{priority} (optional) (default = @code{STARPU_DEFAULT_PRIO}):
 This field indicates a level of priority for the task. This is an integer value
-that must be set between @code{STARPU_MIN_PRIO} (for the least important
-tasks) and @code{STARPU_MAX_PRIO} (for the most important tasks) included.
-Default priority is @code{STARPU_DEFAULT_PRIO}.  Scheduling strategies that
-take priorities into account can use this parameter to take better scheduling
+that must be set between the return values of the
+@code{starpu_sched_get_min_priority} function for the least important tasks,
+and that of the @code{starpu_sched_get_max_priority} for the most important
+tasks (included). The @code{STARPU_MIN_PRIO} and @code{STARPU_MAX_PRIO} macros
+are provided for convenience and respectively returns value of
+@code{starpu_sched_get_min_priority} and @code{starpu_sched_get_max_priority}.
+Default priority is @code{STARPU_DEFAULT_PRIO}, which is always defined as 0 in
+order to allow static task initialization.  Scheduling strategies that take
+priorities into account can use this parameter to take better scheduling
 decisions, but the scheduling policy may also ignore it.
 
 @item @code{execute_on_a_specific_worker} (default = 0):
@@ -3358,6 +3363,8 @@ instance.
 @menu
 * struct starpu_data_interface_ops_t::  Per-interface methods
 * struct starpu_data_copy_methods::	Per-interface data transfer methods
+* starpu_sched_set_min_priority::       Set the minimum priority level
+* starpu_sched_set_max_priority::       Set the maximum priority level
 * An example of data interface::        An example of data interface
 @end menu
 
@@ -3375,6 +3382,33 @@ TODO describe all the different fields
 @table @asis
 @item @emph{Description}:
 TODO describe all the different fields
+@end table
+
+@node starpu_sched_set_min_priority
+@subsection @code{starpu_sched_set_min_priority}
+@table @asis
+@item @emph{Description}:
+Defines the minimum priority level supported by the scheduling policy. The
+default minimum priority level is the same as the default priority level which
+is 0 by convention.  The application may access that value by calling the
+@code{starpu_sched_get_min_priority} function. This function should only be
+called from the initialization method of the scheduling policy, and should not
+be used directly from the application.
+@item @emph{Prototype}:
+@code{void starpu_sched_set_min_priority(int min_prio)}
+@end table
+
+@node starpu_sched_set_max_priority
+@subsection @code{starpu_sched_set_max_priority}
+@table @asis
+@item @emph{Description}:
+Defines the maximum priority level supported by the scheduling policy. The
+default maximum priority level is 1.  The application may access that value by
+calling the @code{starpu_sched_get_max_priority} function. This function should
+only be called from the initialization method of the scheduling policy, and
+should not be used directly from the application.
+@item @emph{Prototype}:
+@code{void starpu_sched_set_min_priority(int max_prio)}
 @end table
 
 @node An example of data interface
