@@ -16,6 +16,7 @@
 
 #include "pxlu.h"
 #include "pxlu_kernels.h"
+#include <sys/time.h>
 
 #define MPI_TAG11(k)	((1U << 16) | (k))
 #define MPI_TAG12(k, j)	((2U << 16) | (k)<<8 | (j))
