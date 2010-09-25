@@ -714,7 +714,7 @@ static glp_prob *_starpu_bound_glp_resolve(void)
 				ia[n] = w+1;
 				ja[n] = colnum(w, t);
 				if (times[w][t] == -1.)
-					ar[n] = INFINITY;
+					ar[n] = 1000000000.;
 				else
 					ar[n] = times[w][t];
 				n++;
