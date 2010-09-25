@@ -64,4 +64,6 @@ starpu_data_handle STARPU_PLU(get_tmp_21_block_handle)(unsigned i, unsigned k);
 
 void STARPU_PLU(display_data_content)(TYPE *data, unsigned blocksize);
 
+int get_block_rank(unsigned i, unsigned j);
+
 #endif // __PXLU_H__
