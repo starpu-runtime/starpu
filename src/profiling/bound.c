@@ -338,8 +338,14 @@ void starpu_bound_print_lp(FILE *output)
 			};
 			for (w = 0; w < nw; w++) {
 				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
-				if (t->duration[arch] == 0.)
-					t->duration[arch] = _starpu_history_based_job_expected_length(t->cl->model, arch, &j) / 1000.;
+				if (t->duration[arch] == 0.) {
+					double length = _starpu_history_based_job_expected_length(t->cl->model, arch, &j);
+					if (length == -1.0)
+						/* Avoid problems with binary coding of doubles */
+						t->duration[arch] = -1.0;
+					else
+						t->duration[arch] = length / 1000.;
+				}
 			}
 			nt++;
 		}
@@ -362,12 +368,18 @@ void starpu_bound_print_lp(FILE *output)
 		fprintf(output, "\n/* Completion time is start time plus computation time */\n");
 		fprintf(output, "/* According to where the task is indeed executed */\n");
 		for (t = tasks; t; t = t->next) {
-			fprintf(output, "c%u = s%u", t->id, t->id);
+			fprintf(output, "/* %s %x */\tc%u = s%u", t->cl->model->symbol, (unsigned) t->footprint, t->id, t->id);
 			for (w = 0; w < nw; w++) {
 				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
 				fprintf(output, " + %f t%uw%u", t->duration[arch], t->id, w);
 			}
 			fprintf(output, ";\n");
+			for (w = 0; w < nw; w++) {
+				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
+				if (t->duration[arch] == -1.0)
+					/* Wasn't actually measured, prohibit running this task on this arch */
+					fprintf(output, "t%uw%u = 0;\n", t->id, w);
+			}
 		}
 
 		fprintf(output, "\n/* Each task starts after all its task dependencies finish. */\n");
