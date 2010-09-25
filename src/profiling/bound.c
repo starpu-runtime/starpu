@@ -357,6 +357,26 @@ static int ancestor(struct bound_task *child, struct bound_task *parent) {
 	return 0;
 }
 
+void starpu_bound_print_dot(FILE *output) {
+	struct bound_task *t;
+	struct bound_tag_dep *td;
+	int i;
+
+	if (!recorddeps) {
+		fprintf(output, "Not supported\n");
+		return;
+	}
+	fprintf(output, "strict digraph bounddeps {\n");
+	for (t = tasks; t; t = t->next) {
+		fprintf(output, "\"t%lu\"\n", t->id);
+		for (i = 0; i < t->depsn; i++)
+			fprintf(output, "\"t%lu\" -> \"t%lu\"\n", t->deps[i]->id, t->id);
+	}
+	for (td = tag_deps; td; td = td->next)
+		fprintf(output, "\"tag%lu\" -> \"tag%lu\";\n", (unsigned long) td->dep_tag, (unsigned long) td->tag);
+	fprintf(output, "}\n");
+}
+
 /*
  * lp_solve format
  */
