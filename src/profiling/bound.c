@@ -299,7 +299,11 @@ static void _starpu_get_tasks_times(int nw, int nt, double times[nw][nt]) {
 				.footprint_is_computed = 1,
 			};
 			enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
-			times[w][t] = _starpu_history_based_job_expected_length(tp->cl->model, arch, &j) / 1000.;
+			double length = _starpu_history_based_job_expected_length(tp->cl->model, arch, &j);
+			if (length == -1.0)
+				times[w][t] = -1.0;
+			else
+				times[w][t] = length / 1000.;
 		}
 	}
 }
@@ -362,8 +366,11 @@ void starpu_bound_print_lp(FILE *output)
 
 		fprintf(output, "\n/* We have tasks executing on workers, exactly one worker executes each task */\n");
 		for (t = tasks; t; t = t->next) {
-			for (w = 0; w < nw; w++)
-				fprintf(output, " +t%uw%u", t->id, w);
+			for (w = 0; w < nw; w++) {
+				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
+				if (t->duration[arch] != -1.0)
+					fprintf(output, " +t%uw%u", t->id, w);
+			}
 			fprintf(output, " = 1;\n");
 		}
 
@@ -373,15 +380,10 @@ void starpu_bound_print_lp(FILE *output)
 			fprintf(output, "/* %s %x */\tc%u = s%u", t->cl->model->symbol, (unsigned) t->footprint, t->id, t->id);
 			for (w = 0; w < nw; w++) {
 				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
-				fprintf(output, " + %f t%uw%u", t->duration[arch], t->id, w);
+				if (t->duration[arch] != -1.0)
+					fprintf(output, " + %f t%uw%u", t->duration[arch], t->id, w);
 			}
 			fprintf(output, ";\n");
-			for (w = 0; w < nw; w++) {
-				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
-				if (t->duration[arch] == -1.0)
-					/* Wasn't actually measured, prohibit running this task on this arch */
-					fprintf(output, "t%uw%u = 0;\n", t->id, w);
-			}
 		}
 
 		fprintf(output, "\n/* Each task starts after all its task dependencies finish. */\n");
@@ -409,10 +411,13 @@ void starpu_bound_print_lp(FILE *output)
 			{
 				if (!ancestor(t, t2) && !ancestor(t2, t)) {
 					for (w = 0; w < nw; w++) {
-						fprintf(output, "s%u - c%u >= -3e5 + 1e5 t%uw%u + 1e5 t%uw%u + 1e5 t%uafter%u;\n",
-								t->id, t2->id, t->id, w, t2->id, w, t->id, t2->id);
-						fprintf(output, "s%u - c%u >= -2e5 + 1e5 t%uw%u + 1e5 t%uw%u - 1e5 t%uafter%u;\n",
-								t2->id, t->id, t->id, w, t2->id, w, t->id, t2->id);
+						enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
+						if (t->duration[arch] != -1.0) {
+							fprintf(output, "s%u - c%u >= -3e5 + 1e5 t%uw%u + 1e5 t%uw%u + 1e5 t%uafter%u;\n",
+									t->id, t2->id, t->id, w, t2->id, w, t->id, t2->id);
+							fprintf(output, "s%u - c%u >= -2e5 + 1e5 t%uw%u + 1e5 t%uw%u - 1e5 t%uafter%u;\n",
+									t2->id, t->id, t->id, w, t2->id, w, t->id, t2->id);
+						}
 					}
 				}
 			}
@@ -531,8 +536,10 @@ void starpu_bound_print_lp(FILE *output)
 				char name[32];
 				starpu_worker_get_name(w, name, sizeof(name));
 				fprintf(output, "/* worker %s */\n", name);
-				for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
-					fprintf(output, "\t%+f * w%ut%un", (float) times[w][t], w, t);
+				for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
+					if (times[w][t] != -1.0)
+						fprintf(output, "\t%+f * w%ut%un", (float) times[w][t], w, t);
+				}
 				fprintf(output, " <= tmax;\n");
 			}
 			fprintf(output, "\n");
@@ -541,7 +548,8 @@ void starpu_bound_print_lp(FILE *output)
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
 				fprintf(output, "/* task %s key %x */\n", tp->cl->model->symbol, (unsigned) tp->footprint);
 				for (w = 0; w < nw; w++)
-					fprintf(output, "\t+w%ut%un", w, t);
+					if (times[w][t] != -1.0)
+						fprintf(output, "\t+w%ut%un", w, t);
 				fprintf(output, " = %ld;\n", tp->n);
 				/* Show actual values */
 				fprintf(output, "/*");
@@ -620,12 +628,13 @@ void starpu_bound_print_mps(FILE *output)
 
 		fprintf(output, "\n* Execution times and completion of all tasks\n");
 		for (w = 0; w < nw; w++)
-			for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
-				char name[9];
-				snprintf(name, sizeof(name), "W%uT%u", w, t);
-				fprintf(stderr,"    %-8s  W%-7u  %12f\n", name, w, times[w][t]);
-				fprintf(stderr,"    %-8s  T%-7u  %12u\n", name, t, 1);
-			}
+			for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
+				if (times[w][t] != -1.0) {
+					char name[9];
+					snprintf(name, sizeof(name), "W%uT%u", w, t);
+					fprintf(stderr,"    %-8s  W%-7u  %12f\n", name, w, times[w][t]);
+					fprintf(stderr,"    %-8s  T%-7u  %12u\n", name, t, 1);
+				}
 
 		fprintf(output, "\n* Total execution time\n");
 		for (w = 0; w < nw; w++)
@@ -689,6 +698,7 @@ static glp_prob *_starpu_bound_glp_resolve(void)
 				char name[32];
 				snprintf(name, sizeof(name), "w%ut%un", w, t);
 				glp_set_col_name(lp, colnum(w, t), name);
+				glp_set_col_kind(lp, colnum(w, t), GLP_IV);
 				glp_set_col_bnds(lp, colnum(w, t), GLP_LO, 0., 0.);
 			}
 		glp_set_col_bnds(lp, nw*nt+1, GLP_LO, 0., 0.);
@@ -703,7 +713,10 @@ static glp_prob *_starpu_bound_glp_resolve(void)
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
 				ia[n] = w+1;
 				ja[n] = colnum(w, t);
-				ar[n] = times[w][t];
+				if (times[w][t] == -1.)
+					ar[n] = INFINITY;
+				else
+					ar[n] = times[w][t];
 				n++;
 			}
 			/* tmax */
@@ -739,6 +752,10 @@ static glp_prob *_starpu_bound_glp_resolve(void)
 	glp_init_smcp(&parm);
 	parm.msg_lev = GLP_MSG_OFF;
 	ret = glp_simplex(lp, &parm);
+	glp_iocp iocp;
+	glp_init_iocp(&iocp);
+	iocp.msg_lev = GLP_MSG_OFF;
+	glp_intopt(lp, &iocp);
 	if (ret) {
 		glp_delete_prob(lp);
 		lp = NULL;
@@ -772,7 +789,7 @@ void starpu_bound_print(FILE *output) {
 		for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
 			fprintf(output, "%s key %x\n", tp->cl->model->symbol, (unsigned) tp->footprint);
 			for (w = 0; w < nw; w++)
-				fprintf(output, "\tw%ut%u %f", w, t, glp_get_col_prim(lp, colnum(w, t)));
+				fprintf(output, "\tw%ut%un %f", w, t, glp_mip_col_val(lp, colnum(w, t)));
 			fprintf(output, "\n");
 		}
 
