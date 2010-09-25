@@ -1123,20 +1123,21 @@ call @code{starpu_bound_start}, and after complete execution, call
 problem corresponding to the schedule of your tasks. Run it through
 @code{lp_solve} or any other linear programming solver, and that will give you a
 lower bound for the total execution time of your tasks. If StarPU was compiled
-with the glpk library installed, @code{starpu_bound_compute} can be used to solve it
-immediately and get the optimized minimum.
+with the glpk library installed, @code{starpu_bound_compute} can be used to
+solve it immediately and get the optimized minimum.
 
 The @code{deps} parameter tells StarPU whether to take tasks and implicit data
 dependencies into account. It must be understood that the linear programming
 problem size is quadratic with the number of tasks and thus the time to solve it
 will be very long, it could be minutes for just a few dozen tasks. You should
 probably use @code{lp_solve -timeout 1 test.pl -wmps test.mps} to convert the
-problem to MPS format and then
-use a better solver, @code{glpsol} might be better than @code{lp_solve} for
-instance (the @code{--pcost} option may be useful), but sometimes doesn't manage
-to converge. Be sure to try all the @code{-B} options of @code{lp_solve}. For
-instance, we often just use @code{lp_solve -cc -B1 -Bb -Bg -Bp -Bf -Br -BG -Bd
--Bs -BB -Bo -Bc -Bi} , and the @code{-gr} option can be quite useful.
+problem to MPS format and then use a better solver, @code{glpsol} might be
+better than @code{lp_solve} for instance (the @code{--pcost} option may be
+useful), but sometimes doesn't manage to converge. @code{cbc} might look
+slower, but it is parallel. Be sure to try at least all the @code{-B} options
+of @code{lp_solve}. For instance, we often just use
+@code{lp_solve -cc -B1 -Bb -Bg -Bp -Bf -Br -BG -Bd -Bs -BB -Bo -Bc -Bi} , and
+the @code{-gr} option can also be quite useful.
 
 Setting @code{deps} to 0 will only take into account the actual computations
 on processing units. It however still properly takes into account the varying
