@@ -90,13 +90,13 @@ void STARPU_PLU(extract_lower)(unsigned block_size, TYPE *inblock, TYPE *outbloc
  *	Compute Ax = y
  */
 
-static STARPU_PLU(compute_ax_block)(unsigned block_size, TYPE *block_data, TYPE *sub_x, TYPE *sub_y)
+static void STARPU_PLU(compute_ax_block)(unsigned block_size, TYPE *block_data, TYPE *sub_x, TYPE *sub_y)
 {
 	fprintf(stderr, "block data %p sub x %p sub y %p\n", block_data, sub_x, sub_y);
 	CPU_GEMV("N", block_size, block_size, 1.0, block_data, block_size, sub_x, 1, 1.0, sub_y, 1);
 }
 
-static STARPU_PLU(compute_ax_block_upper)(unsigned size, unsigned nblocks,
+static void STARPU_PLU(compute_ax_block_upper)(unsigned size, unsigned nblocks,
 				 TYPE *block_data, TYPE *sub_x, TYPE *sub_y)
 {
 	unsigned block_size = size/nblocks;
@@ -110,7 +110,7 @@ static STARPU_PLU(compute_ax_block_upper)(unsigned size, unsigned nblocks,
 	free(upper_block_copy);
 }
 
-static STARPU_PLU(compute_ax_block_lower)(unsigned size, unsigned nblocks,
+static void STARPU_PLU(compute_ax_block_lower)(unsigned size, unsigned nblocks,
 				 TYPE *block_data, TYPE *sub_x, TYPE *sub_y)
 {
 	unsigned block_size = size/nblocks;
