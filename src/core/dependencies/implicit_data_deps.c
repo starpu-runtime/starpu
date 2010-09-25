@@ -23,7 +23,7 @@
 #if 0
 # define _STARPU_DEP_DEBUG(fmt, args ...) fprintf(stderr, fmt, ##args);
 #else
-# define _STARPU_DEP_DEBUG(fmt, args ...)
+# define _STARPU_DEP_DEBUG(fmt, args ...) 0
 #endif
 
 /* This function adds the implicit task dependencies introduced by data
@@ -54,7 +54,7 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 			starpu_job_t pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
 			starpu_job_t post_sync_job = _starpu_get_job_associated_to_task(post_sync_task);
 			STARPU_TRACE_GHOST_TASK_DEPS(pre_sync_job->job_id, post_sync_job->job_id);
-			_starpu_bound_task_dep(pre_sync_job, post_sync_job);
+			_starpu_bound_task_dep(post_sync_job, pre_sync_job);
 		}
 
 		starpu_access_mode previous_mode = handle->last_submitted_mode;
@@ -86,7 +86,7 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 					{
 						starpu_job_t pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
 						STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_writer_id, pre_sync_job->job_id);
-						_starpu_bound_job_id_dep(handle->last_submitted_ghost_writer_id, pre_sync_job);
+						_starpu_bound_job_id_dep(pre_sync_job, handle->last_submitted_ghost_writer_id);
 						_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_writer_id, pre_sync_task);
 						handle->last_submitted_ghost_writer_id_is_valid = 0;
 					} else
@@ -138,7 +138,7 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 					{
 						unsigned long id = ghost_readers_id->id;
 						STARPU_TRACE_GHOST_TASK_DEPS(id, pre_sync_job->job_id);
-						_starpu_bound_job_id_dep(id, pre_sync_job);
+						_starpu_bound_job_id_dep(pre_sync_job, id);
 						_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", id, pre_sync_task);
 
 						struct starpu_jobid_list *prev = ghost_readers_id;
@@ -188,7 +188,7 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 			{
 				starpu_job_t pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
 				STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_writer_id, pre_sync_job->job_id);
-				_starpu_bound_job_id_dep(handle->last_submitted_ghost_writer_id, pre_sync_job);
+				_starpu_bound_job_id_dep(pre_sync_job, handle->last_submitted_ghost_writer_id);
 				_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_writer_id, pre_sync_task);
 			}
 		}

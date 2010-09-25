@@ -291,14 +291,14 @@ static struct bound_task *find_job(unsigned long id)
 	return NULL;
 }
 
-void _starpu_bound_job_id_dep(unsigned long id, starpu_job_t dep_j)
+void _starpu_bound_job_id_dep(starpu_job_t j, unsigned long id)
 {
-	struct bound_task *t;
+	struct bound_task *t, *dep_t;
 
 	if (!_starpu_bound_recording || !recorddeps)
 		return;
 
-	if (!good_job(dep_j))
+	if (!good_job(j))
 		return;
 
 	PTHREAD_MUTEX_LOCK(&mutex);
@@ -308,15 +308,16 @@ void _starpu_bound_job_id_dep(unsigned long id, starpu_job_t dep_j)
 		return;
 	}
 
-	new_task(dep_j);
-	t = find_job(id);
-	if (!t) {
+	new_task(j);
+	dep_t = find_job(id);
+	if (!dep_t) {
 		fprintf(stderr,"dependency %lu not found !\n", id);
 		PTHREAD_MUTEX_UNLOCK(&mutex);
 		return;
 	}
+	t = j->bound_task;
 	t->deps = realloc(t->deps, ++t->depsn * sizeof(t->deps[0]));
-	t->deps[t->depsn-1] = dep_j->bound_task;
+	t->deps[t->depsn-1] = dep_t;
 	PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
