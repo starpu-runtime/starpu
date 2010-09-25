@@ -18,6 +18,7 @@
 #include <common/config.h>
 #include <core/task.h>
 #include <datawizard/datawizard.h>
+#include <profiling/bound.h>
 
 #if 0
 # define _STARPU_DEP_DEBUG(fmt, args ...) fprintf(stderr, fmt, ##args);
@@ -40,17 +41,21 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 
 	if (handle->sequential_consistency)
 	{
-#ifdef STARPU_USE_FXT
+		_STARPU_DEP_DEBUG("Tasks %p %p\n", pre_sync_task, post_sync_task);
 		/* In case we are generating the DAG, we add an implicit
 		 * dependency between the pre and the post sync tasks in case
 		 * they are not the same. */
-		if (pre_sync_task != post_sync_task)
+		if (pre_sync_task != post_sync_task
+#ifndef STARPU_USE_FXT
+			&& _starpu_bound_recording
+#endif
+		)
 		{
 			starpu_job_t pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
 			starpu_job_t post_sync_job = _starpu_get_job_associated_to_task(post_sync_task);
 			STARPU_TRACE_GHOST_TASK_DEPS(pre_sync_job->job_id, post_sync_job->job_id);
+			_starpu_bound_task_dep(pre_sync_job, post_sync_job);
 		}
-#endif
 
 		starpu_access_mode previous_mode = handle->last_submitted_mode;
 	
@@ -66,19 +71,27 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 				{
 					struct starpu_task *task_array[1] = {handle->last_submitted_writer};
 					starpu_task_declare_deps_array(pre_sync_task, 1, task_array);
-				}
+					_STARPU_DEP_DEBUG("dep %p -> %p\n", handle->last_submitted_writer, pre_sync_task);
+				} else
+					_STARPU_DEP_DEBUG("No dep\n");
 
-#ifdef STARPU_USE_FXT
 				/* If there is a ghost writer instead, we
 				 * should declare a ghost dependency here, and
 				 * invalidate the ghost value. */
-				if (handle->last_submitted_ghost_writer_id_is_valid)
-				{
-					starpu_job_t post_sync_job = _starpu_get_job_associated_to_task(post_sync_task);
-					STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_writer_id, post_sync_job->job_id);
-					handle->last_submitted_ghost_writer_id_is_valid = 0;
-				}
+#ifndef STARPU_USE_FXT
+				if (_starpu_bound_recording)
 #endif
+				{
+					if (handle->last_submitted_ghost_writer_id_is_valid)
+					{
+						starpu_job_t pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
+						STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_writer_id, pre_sync_job->job_id);
+						_starpu_bound_job_id_dep(handle->last_submitted_ghost_writer_id, pre_sync_job);
+						_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_writer_id, pre_sync_task);
+						handle->last_submitted_ghost_writer_id_is_valid = 0;
+					} else
+						_STARPU_DEP_DEBUG("No dep ID\n");
+				}
 	
 				handle->last_submitted_writer = post_sync_task;
 			}
@@ -107,27 +120,33 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 				{
 					STARPU_ASSERT(l->task);
 					task_array[i++] = l->task;
+					_STARPU_DEP_DEBUG("dep %p -> %p\n", l->task, pre_sync_task);
 
 					struct starpu_task_wrapper_list *prev = l;
 					l = l->next;
 					free(prev);
 				}
-#ifdef STARPU_USE_FXT
-				/* Declare all dependencies with ghost readers */
-				starpu_job_t post_sync_job = _starpu_get_job_associated_to_task(post_sync_task);
-
-				struct starpu_jobid_list *ghost_readers_id = handle->last_submitted_ghost_readers_id;
-				while (ghost_readers_id)
+#ifndef STARPU_USE_FXT
+				if (_starpu_bound_recording)
 				{
-					unsigned long id = ghost_readers_id->id;
-					STARPU_TRACE_GHOST_TASK_DEPS(id, post_sync_job->job_id);
-
-					struct starpu_jobid_list *prev = ghost_readers_id;
-					ghost_readers_id = ghost_readers_id->next;
-					free(prev);
-				}
-				handle->last_submitted_ghost_readers_id = NULL;
 #endif
+					/* Declare all dependencies with ghost readers */
+					starpu_job_t pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
+
+					struct starpu_jobid_list *ghost_readers_id = handle->last_submitted_ghost_readers_id;
+					while (ghost_readers_id)
+					{
+						unsigned long id = ghost_readers_id->id;
+						STARPU_TRACE_GHOST_TASK_DEPS(id, pre_sync_job->job_id);
+						_starpu_bound_job_id_dep(id, pre_sync_job);
+						_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", id, pre_sync_task);
+
+						struct starpu_jobid_list *prev = ghost_readers_id;
+						ghost_readers_id = ghost_readers_id->next;
+						free(prev);
+					}
+					handle->last_submitted_ghost_readers_id = NULL;
+				}
 
 				handle->last_submitted_readers = NULL;
 				handle->last_submitted_writer = post_sync_task;
@@ -153,19 +172,25 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 			{
 				_STARPU_DEP_DEBUG("RAW %p\n", handle);
 				struct starpu_task *task_array[1] = {handle->last_submitted_writer};
+				_STARPU_DEP_DEBUG("dep %p -> %p\n", handle->last_submitted_writer, pre_sync_task);
 				starpu_task_declare_deps_array(pre_sync_task, 1, task_array);
-			}
+			} else
+				_STARPU_DEP_DEBUG("No dep\n");
 
-#ifdef STARPU_USE_FXT
 			/* There was perhaps no last submitted writer but a
 			 * ghost one, we should report that here, and keep the
 			 * ghost writer valid */
-			if (handle->last_submitted_ghost_writer_id_is_valid)
-			{
-				starpu_job_t post_sync_job = _starpu_get_job_associated_to_task(post_sync_task);
-				STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_writer_id, post_sync_job->job_id);
-			}
+			if (
+#ifndef STARPU_USE_FXT
+				_starpu_bound_recording &&
 #endif
+				handle->last_submitted_ghost_writer_id_is_valid)
+			{
+				starpu_job_t pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
+				STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_writer_id, pre_sync_job->job_id);
+				_starpu_bound_job_id_dep(handle->last_submitted_ghost_writer_id, pre_sync_job);
+				_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_writer_id, pre_sync_task);
+			}
 		}
 	
 		handle->last_submitted_mode = mode;
@@ -216,12 +241,15 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 		{
 			handle->last_submitted_writer = NULL;
 			
-#ifdef STARPU_USE_FXT
-			/* Save the previous writer as the ghost last writer */
-			handle->last_submitted_ghost_writer_id_is_valid = 1;
-			starpu_job_t ghost_job = _starpu_get_job_associated_to_task(task);
-			handle->last_submitted_ghost_writer_id = ghost_job->job_id;
+#ifndef STARPU_USE_FXT
+			if (_starpu_bound_recording)
 #endif
+			{
+				/* Save the previous writer as the ghost last writer */
+				handle->last_submitted_ghost_writer_id_is_valid = 1;
+				starpu_job_t ghost_job = _starpu_get_job_associated_to_task(task);
+				handle->last_submitted_ghost_writer_id = ghost_job->job_id;
+			}
 			
 		}
 		
@@ -244,15 +272,18 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 				/* If we found the task in the reader list */
 				free(l);
 
-#ifdef STARPU_USE_FXT
-				/* Save the job id of the reader task in the ghost reader linked list list */
-				starpu_job_t ghost_reader_job = _starpu_get_job_associated_to_task(task);
-				struct starpu_jobid_list *link = malloc(sizeof(struct starpu_jobid_list));
-				STARPU_ASSERT(link);
-				link->next = handle->last_submitted_ghost_readers_id;
-				link->id = ghost_reader_job->job_id; 
-				handle->last_submitted_ghost_readers_id = link;
+#ifndef STARPU_USE_FXT
+				if (_starpu_bound_recording)
 #endif
+				{
+					/* Save the job id of the reader task in the ghost reader linked list list */
+					starpu_job_t ghost_reader_job = _starpu_get_job_associated_to_task(task);
+					struct starpu_jobid_list *link = malloc(sizeof(struct starpu_jobid_list));
+					STARPU_ASSERT(link);
+					link->next = handle->last_submitted_ghost_readers_id;
+					link->id = ghost_reader_job->job_id; 
+					handle->last_submitted_ghost_readers_id = link;
+				}
 
 				if (prev)
 				{

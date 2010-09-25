@@ -21,6 +21,7 @@
 #include <core/dependencies/data_concurrency.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <profiling/bound.h>
 
 size_t _starpu_job_get_data_size(starpu_job_t j)
 {
@@ -40,10 +41,8 @@ size_t _starpu_job_get_data_size(starpu_job_t j)
 	return size;
 }
 
-#ifdef STARPU_USE_FXT
 /* we need to identify each task to generate the DAG. */
 static unsigned long job_cnt = 0;
-#endif
 
 void _starpu_exclude_task_from_dag(struct starpu_task *task)
 {
@@ -65,8 +64,11 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 	job->submitted = 0;
 	job->terminated = 0;
 
+#ifndef STARPU_USE_FXT
+	if (_starpu_bound_recording)
+#endif
+		job->job_id = STARPU_ATOMIC_ADD(&job_cnt, 1);
 #ifdef STARPU_USE_FXT
-	job->job_id = STARPU_ATOMIC_ADD(&job_cnt, 1);
 	/* display all tasks by default */
         job->model_name = NULL;
 #endif

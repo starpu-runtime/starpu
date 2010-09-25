@@ -310,6 +310,7 @@ do {										\
 #define STARPU_TRACE_TAG(tag, job)	do {} while(0);
 #define STARPU_TRACE_TAG_DEPS(a, b)	do {} while(0);
 #define STARPU_TRACE_TASK_DEPS(a, b)		do {} while(0);
+#define STARPU_TRACE_GHOST_TASK_DEPS(a, b)	do {} while(0);
 #define STARPU_TRACE_TASK_DONE(a)		do {} while(0);
 #define STARPU_TRACE_TAG_DONE(a)		do {} while(0);
 #define STARPU_TRACE_DATA_COPY(a, b, c)		do {} while(0);

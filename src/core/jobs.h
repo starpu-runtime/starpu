@@ -73,8 +73,8 @@ LIST_TYPE(starpu_job,
 
         unsigned exclude_from_dag;
 
-#ifdef STARPU_USE_FXT
 	unsigned long job_id;
+#ifdef STARPU_USE_FXT
         const char *model_name;
 #endif
 	struct bound_task *bound_task;

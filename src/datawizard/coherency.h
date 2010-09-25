@@ -135,7 +135,6 @@ struct starpu_data_state_t {
 	struct starpu_task *last_submitted_writer;
 	struct starpu_task_wrapper_list *last_submitted_readers;
 
-#ifdef STARPU_USE_FXT
 	/* If FxT is enabled, we keep track of "ghost dependencies": that is to
 	 * say the dependencies that are not needed anymore, but that should
 	 * appear in the post-mortem DAG. For instance if we have the sequence
@@ -145,7 +144,6 @@ struct starpu_data_state_t {
 	unsigned last_submitted_ghost_writer_id_is_valid;
 	unsigned long last_submitted_ghost_writer_id;
 	struct starpu_jobid_list *last_submitted_ghost_readers_id;
-#endif
 	
 	struct starpu_task_wrapper_list *post_sync_tasks;
 	unsigned post_sync_tasks_cnt;

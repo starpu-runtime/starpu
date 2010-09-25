@@ -21,6 +21,9 @@
 #include <starpu_bound.h>
 #include <core/jobs.h>
 
+/* Are we recording? */
+extern int _starpu_bound_recording;
+
 /* Record task for bound computation */
 extern void _starpu_bound_record(starpu_job_t j);
 
@@ -29,5 +32,8 @@ extern void _starpu_bound_tag_dep(starpu_tag_t id, starpu_tag_t dep_id);
 
 /* Record task dependency */
 extern void _starpu_bound_task_dep(starpu_job_t j, starpu_job_t dep_j);
+
+/* Record job id dependency */
+extern void _starpu_bound_job_id_dep(unsigned long job_id, starpu_job_t dep_j);
 
 #endif // __BOUND_H__
