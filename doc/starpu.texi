@@ -3363,8 +3363,6 @@ instance.
 @menu
 * struct starpu_data_interface_ops_t::  Per-interface methods
 * struct starpu_data_copy_methods::	Per-interface data transfer methods
-* starpu_sched_set_min_priority::       Set the minimum priority level
-* starpu_sched_set_max_priority::       Set the maximum priority level
 * An example of data interface::        An example of data interface
 @end menu
 
@@ -3384,33 +3382,6 @@ TODO describe all the different fields
 TODO describe all the different fields
 @end table
 
-@node starpu_sched_set_min_priority
-@subsection @code{starpu_sched_set_min_priority}
-@table @asis
-@item @emph{Description}:
-Defines the minimum priority level supported by the scheduling policy. The
-default minimum priority level is the same as the default priority level which
-is 0 by convention.  The application may access that value by calling the
-@code{starpu_sched_get_min_priority} function. This function should only be
-called from the initialization method of the scheduling policy, and should not
-be used directly from the application.
-@item @emph{Prototype}:
-@code{void starpu_sched_set_min_priority(int min_prio)}
-@end table
-
-@node starpu_sched_set_max_priority
-@subsection @code{starpu_sched_set_max_priority}
-@table @asis
-@item @emph{Description}:
-Defines the maximum priority level supported by the scheduling policy. The
-default maximum priority level is 1.  The application may access that value by
-calling the @code{starpu_sched_get_max_priority} function. This function should
-only be called from the initialization method of the scheduling policy, and
-should not be used directly from the application.
-@item @emph{Prototype}:
-@code{void starpu_sched_set_min_priority(int max_prio)}
-@end table
-
 @node An example of data interface
 @subsection An example of data interface
 @table @asis
@@ -3428,6 +3399,8 @@ the StarPU sources in the directory @code{examples/scheduler/}.
 @menu
 * struct starpu_sched_policy_s::  
 * starpu_worker_set_sched_condition::
+* starpu_sched_set_min_priority::       Set the minimum priority level
+* starpu_sched_set_max_priority::       Set the maximum priority level
 * Source code::                 
 @end menu
 
@@ -3482,6 +3455,33 @@ call this function once per worker.
 
 @item @emph{Prototype}:
 @code{void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond, pthread_mutex_t *sched_mutex);}
+@end table
+
+@node starpu_sched_set_min_priority
+@subsection @code{starpu_sched_set_min_priority}
+@table @asis
+@item @emph{Description}:
+Defines the minimum priority level supported by the scheduling policy. The
+default minimum priority level is the same as the default priority level which
+is 0 by convention.  The application may access that value by calling the
+@code{starpu_sched_get_min_priority} function. This function should only be
+called from the initialization method of the scheduling policy, and should not
+be used directly from the application.
+@item @emph{Prototype}:
+@code{void starpu_sched_set_min_priority(int min_prio)}
+@end table
+
+@node starpu_sched_set_max_priority
+@subsection @code{starpu_sched_set_max_priority}
+@table @asis
+@item @emph{Description}:
+Defines the maximum priority level supported by the scheduling policy. The
+default maximum priority level is 1.  The application may access that value by
+calling the @code{starpu_sched_get_max_priority} function. This function should
+only be called from the initialization method of the scheduling policy, and
+should not be used directly from the application.
+@item @emph{Prototype}:
+@code{void starpu_sched_set_min_priority(int max_prio)}
 @end table
 
 
