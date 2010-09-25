@@ -79,20 +79,23 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct starpu_fifo_taskq_s
 
 		current = task;
 
-		int non_ready_best = count_non_ready_buffers(current, node);
+		int non_ready_best = INT_MAX;
 
 		while (current)
 		{
 			int priority = current->priority;
-			int non_ready = count_non_ready_buffers(current, node);
 
-			if ((priority < first_task_priority) && (non_ready < non_ready_best))
+			if (priority <= first_task_priority)
 			{
-				non_ready_best = non_ready;
-				task = current;
+				int non_ready = count_non_ready_buffers(current, node);
+				if (non_ready < non_ready_best)
+				{
+					non_ready_best = non_ready;
+					task = current;
 
-				if (non_ready == 0)
-					break;
+					if (non_ready == 0)
+						break;
+				}
 			}
 
 			current = current->prev;
