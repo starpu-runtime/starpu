@@ -150,6 +150,8 @@ void starpu_bound_start(int deps, int prio)
 static int good_job(starpu_job_t j)
 {
 	/* No codelet, nothing to measure */
+	if (j->exclude_from_dag)
+		return 0;
 	if (!j->task->cl)
 		return 0;
 	/* No performance model, no time duration estimation */

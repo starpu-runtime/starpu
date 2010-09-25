@@ -43,6 +43,7 @@ size_t _starpu_job_get_data_size(starpu_job_t j)
 #ifdef STARPU_USE_FXT
 /* we need to identify each task to generate the DAG. */
 static unsigned long job_cnt = 0;
+#endif
 
 void _starpu_exclude_task_from_dag(struct starpu_task *task)
 {
@@ -50,7 +51,6 @@ void _starpu_exclude_task_from_dag(struct starpu_task *task)
 
 	j->exclude_from_dag = 1;
 }
-#endif
 
 /* create an internal starpu_job_t structure to encapsulate the task */
 starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task)

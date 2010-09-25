@@ -71,9 +71,10 @@ LIST_TYPE(starpu_job,
 	unsigned submitted;
 	unsigned terminated;
 
+        unsigned exclude_from_dag;
+
 #ifdef STARPU_USE_FXT
 	unsigned long job_id;
-        unsigned exclude_from_dag;
         const char *model_name;
 #endif
 	struct bound_task *bound_task;
@@ -83,9 +84,7 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 void _starpu_job_destroy(starpu_job_t j);
 void _starpu_wait_job(starpu_job_t j);
 
-#ifdef STARPU_USE_FXT
 void _starpu_exclude_task_from_dag(struct starpu_task *task);
-#endif
 
 /* try to submit job j, enqueue it if it's not schedulable yet */
 unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j, unsigned job_is_already_locked);

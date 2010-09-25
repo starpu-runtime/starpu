@@ -72,9 +72,7 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 		tasks[worker]->detach = 0;
 		tasks[worker]->destroy = 0;
 
-#ifdef STARPU_USE_FXT
 		_starpu_exclude_task_from_dag(tasks[worker]);
-#endif
 
 		ret = starpu_task_submit(tasks[worker]);
 		if (ret == -ENODEV)
