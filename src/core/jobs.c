@@ -68,9 +68,9 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 #ifdef STARPU_USE_FXT
 	job->job_id = STARPU_ATOMIC_ADD(&job_cnt, 1);
 	/* display all tasks by default */
-	job->exclude_from_dag = 0;
         job->model_name = NULL;
 #endif
+	job->exclude_from_dag = 0;
 
 	_starpu_cg_list_init(&job->job_successors);
 
