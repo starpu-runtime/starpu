@@ -368,7 +368,7 @@ void starpu_bound_print_dot(FILE *output) {
 	}
 	fprintf(output, "strict digraph bounddeps {\n");
 	for (t = tasks; t; t = t->next) {
-		fprintf(output, "\"t%lu\"\n", t->id);
+		fprintf(output, "\"t%lu\" [label=\"%lu: %s\"]\n", t->id, t->id, t->cl->model->symbol);
 		for (i = 0; i < t->depsn; i++)
 			fprintf(output, "\"t%lu\" -> \"t%lu\"\n", t->deps[i]->id, t->id);
 	}
