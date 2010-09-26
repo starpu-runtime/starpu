@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 	nw = atoi(argv[1]);
 	nt = atoi(argv[2]);
 	fprintf(stderr,"%d workers, %d tasks\n", nw, nt);
-	assert(scanf("Optimal - objective value       %lf", &tmax) == 1);
+	assert(scanf("\nValue of objective function: %lf\n", &tmax) == 1);
 	printf(
 "%%EventDef PajeDefineContainerType 1\n"
 "%%  Alias         string\n"
@@ -89,50 +89,48 @@ int main(int argc, char *argv[]) {
 	for (w = 0; w < nw; w++)
 		printf("4 %f W%d W\n", tmax, w);
 
-	assert(scanf("%d C%d %lf %lf", &foo, &foo, &tmax, &bar) == 4);
+	assert(scanf("Actual values of the variables:\n") == 0);
+	assert(scanf("tmax %f\n", &tmax) == 1);
 	next++;
 	{
 		struct task task[nt];
 		memset(&task, 0, sizeof(task));
 		for (t = 0; t < nt; t++) {
-			assert(scanf("%d C%d %lf %lf", &foo, &foo, &task[t].stop, &bar) == 4);
+			assert(scanf("c%d %lf\n", &foo, &task[t].stop) == 2);
 			next++;
 		}
 
+		num = next;
 		while (1) {
-			assert(scanf("%d C%lu", &foo, &num) == 2);
 			if (num >= next +
 
 				/* FIXME */
 				//nw*nt
-				8*20 + 5*16
+				8*84 + 5*49
 
 				) {
-				next+= 8*20+5*16;
+				next+= 8*84+5*49;
 				break;
 			}
+			assert(scanf("t%dw%d %lf\n", &foo, &foo, &bar) == 3);
 			/* FIXME */
-			if (num-next < 8*20) {
+			if (num-next < 8*84) {
 				t = (num - next) / nw;
 				w = (num - next) % nw;
 			} else {
-				unsigned long nnum = (num-next)-8*20;
-				t = (nnum / 5) + 20;
+				unsigned long nnum = (num-next)-8*84;
+				t = (nnum / 5) + 84;
 				w = (nnum % 5)+3;
 			}
 
-			assert(scanf("%d %lf", &b, &bar) == 2);
-			if (b) {
+			if (bar > 0.5) {
 				task[t].worker = w;
 				fprintf(stderr,"%lu: task %d on %d: %f\n", num, t, w, task[t].stop);
 			}
+			num++;
 		}
-		while(1) {
-			t = num - next;
-			if (t > nt)
-				break;
-			assert(scanf("%lf %lf", &task[t].start, &bar) == 2);
-			assert(scanf("%d C%lu", &foo, &num) == 2);
+		for (t = 0; t < nt; t++) {
+			assert(scanf("s%d %lf\n", &foo, &task[t].start) == 2);
 		}
 
 		for (t = 0; t < nt; t++) {
