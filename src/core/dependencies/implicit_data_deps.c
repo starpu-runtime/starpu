@@ -146,7 +146,9 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 						free(prev);
 					}
 					handle->last_submitted_ghost_readers_id = NULL;
+#ifndef STARPU_USE_FXT
 				}
+#endif
 
 				handle->last_submitted_readers = NULL;
 				handle->last_submitted_writer = post_sync_task;
