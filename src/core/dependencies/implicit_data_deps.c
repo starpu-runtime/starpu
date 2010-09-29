@@ -23,7 +23,7 @@
 #if 0
 # define _STARPU_DEP_DEBUG(fmt, args ...) fprintf(stderr, fmt, ##args);
 #else
-# define _STARPU_DEP_DEBUG(fmt, args ...) 0
+# define _STARPU_DEP_DEBUG(fmt, args ...)
 #endif
 
 /* This function adds the implicit task dependencies introduced by data
@@ -72,8 +72,11 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 					struct starpu_task *task_array[1] = {handle->last_submitted_writer};
 					starpu_task_declare_deps_array(pre_sync_task, 1, task_array);
 					_STARPU_DEP_DEBUG("dep %p -> %p\n", handle->last_submitted_writer, pre_sync_task);
-				} else
+				}
+                                else
+                                {
 					_STARPU_DEP_DEBUG("No dep\n");
+                                }
 
 				/* If there is a ghost writer instead, we
 				 * should declare a ghost dependency here, and
@@ -89,8 +92,11 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 						_starpu_bound_job_id_dep(pre_sync_job, handle->last_submitted_ghost_writer_id);
 						_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_writer_id, pre_sync_task);
 						handle->last_submitted_ghost_writer_id_is_valid = 0;
-					} else
+					}
+                                        else
+                                        {
 						_STARPU_DEP_DEBUG("No dep ID\n");
+                                        }
 				}
 	
 				handle->last_submitted_writer = post_sync_task;
@@ -174,8 +180,11 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 				struct starpu_task *task_array[1] = {handle->last_submitted_writer};
 				_STARPU_DEP_DEBUG("dep %p -> %p\n", handle->last_submitted_writer, pre_sync_task);
 				starpu_task_declare_deps_array(pre_sync_task, 1, task_array);
-			} else
+			}
+                        else
+                        {
 				_STARPU_DEP_DEBUG("No dep\n");
+                        }
 
 			/* There was perhaps no last submitted writer but a
 			 * ghost one, we should report that here, and keep the
