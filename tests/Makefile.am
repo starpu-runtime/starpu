@@ -99,6 +99,7 @@ check_PROGRAMS += 				\
 	core/declare_deps_after_submission_synchronous	\
 	core/get_current_task			\
 	datawizard/acquire_release		\
+	datawizard/acquire_release2		\
 	datawizard/data_implicit_deps		\
 	datawizard/scratch			\
 	datawizard/sync_and_notify_data		\
@@ -246,6 +247,15 @@ datawizard_acquire_release_SOURCES =		\
 	datawizard/acquire_release.c
 if STARPU_USE_CUDA
 datawizard_acquire_release_SOURCES +=		\
+	datawizard/acquire_release_cuda.cu
+endif
+
+testbin_PROGRAMS +=				\
+	datawizard/acquire_release2
+datawizard_acquire_release2_SOURCES =		\
+	datawizard/acquire_release2.c
+if STARPU_USE_CUDA
+datawizard_acquire_release2_SOURCES +=		\
 	datawizard/acquire_release_cuda.cu
 endif
 
