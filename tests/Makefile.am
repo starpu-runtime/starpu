@@ -242,6 +242,12 @@ core_get_current_task_SOURCES =			\
 
 testbin_PROGRAMS +=				\
 	datawizard/acquire_release
+datawizard_acquire_release_SOURCES =		\
+	datawizard/acquire_release.c
+if STARPU_USE_CUDA
+datawizard_acquire_release_SOURCES +=		\
+	datawizard/acquire_release_cuda.cu
+endif
 
 testbin_PROGRAMS +=				\
 	datawizard/data_implicit_deps

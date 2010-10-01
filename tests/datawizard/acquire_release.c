@@ -18,6 +18,10 @@
 
 static unsigned ntasks = 10000;
 
+#ifdef STARPU_USE_CUDA
+extern void increment_cuda(void *descr[], __attribute__ ((unused)) void *_args);
+#endif
+
 void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -25,8 +29,11 @@ void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 }
 
 static starpu_codelet increment_cl = {
-        .where = STARPU_CPU,
+        .where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = increment_cpu,
+#ifdef STARPU_USE_CUDA
+	.cuda_func = increment_cuda,
+#endif
 	.nbuffers = 1
 };
 
@@ -66,7 +73,7 @@ int main(int argc, char **argv)
 
                 increment_token();
 
-                starpu_data_acquire_cb(token_handle, STARPU_R, callback, NULL);
+                starpu_data_acquire_cb(token_handle, STARPU_RW, callback, NULL);
 	}
 
 	starpu_data_unregister(token_handle);
