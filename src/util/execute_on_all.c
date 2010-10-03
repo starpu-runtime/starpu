@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <core/jobs.h>
+#include <core/task.h>
 
 struct wrapper_func_args {
 	void (*func)(void *);
@@ -64,6 +65,11 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 
 		tasks[worker]->detach = 0;
 		tasks[worker]->destroy = 0;
+
+#ifdef STARPU_USE_FXT
+                starpu_job_t job = _starpu_get_job_associated_to_task(tasks[worker]);
+                job->model_name = "execute_on_all_wrapper";
+#endif
 
 		_starpu_exclude_task_from_dag(tasks[worker]);
 
