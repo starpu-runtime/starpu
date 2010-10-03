@@ -29,12 +29,6 @@ static void wrapper_func(void *buffers[] __attribute__ ((unused)), void *_args)
 	args->func(args->arg);
 }
 
-static struct starpu_perfmodel_t wrapper_model = {
-	.type = STARPU_HISTORY_BASED,
-	.symbol = "_wrapper_model"
-};
-
-
 /* execute func(arg) on each worker that matches the "where" flag */
 void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where)
 {
@@ -50,8 +44,7 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 		.cpu_func = wrapper_func,
 		.opencl_func = wrapper_func,
 		/* XXX we do not handle Cell .. */
-		.nbuffers = 0,
-		.model = &wrapper_model
+		.nbuffers = 0
 	};
 
 	struct wrapper_func_args args = {
