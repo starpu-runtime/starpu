@@ -51,6 +51,7 @@ This manual documents the usage of StarPU.
 @menu
 * Motivation::                  Why StarPU ?
 * StarPU in a Nutshell::        The Fundamentals of StarPU
+* Research papers::             Research papers on StarPU
 @end menu
 
 @node Motivation
@@ -132,6 +133,17 @@ Moreover, to avoid unnecessary transfers, StarPU keeps data
 where it was last needed, even if was modified there, and it
 allows multiple copies of the same data to reside at the same time on
 several processing units as long as it is not modified.
+
+@node Research Papers
+@subsection Research Papers
+
+Research papers on StarPU can be found on
+
+@indicateurl{http://runtime.bordeaux.inria.fr/Publis/Keyword/STARPU.html}
+
+Notably a good overview in the research report
+
+@indicateurl{http://hal.archives-ouvertes.fr/inria-00467677}
 
 @c ---------------------------------------------------------------------
 @c Installing StarPU
