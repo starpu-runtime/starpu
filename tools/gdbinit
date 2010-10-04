@@ -1,0 +1,42 @@
+
+define starpu-jobs-on-worker
+  set language c
+  set $worker=config->workers[$arg0]
+  set $job=$worker->local_jobs->_head
+  printf "Jobs\n"
+  printf "Submitted Terminated\n"
+  while $job != 0x0
+    printf "%9d %10d\n", $job->submitted, $job->terminated
+    set $job=$job->_next
+  end
+end
+
+document starpu-jobs-on-worker
+Prints a list of the jobs running on the given worker
+end
+
+define starpu-workers
+  set language c
+  set $num=0
+  printf "[Id] Arch Mask Devid Bindid Workerid Isrunning Isinitialized\n"
+  while $num<config->topology->nworkers
+    set $worker=config->workers[$num]
+    printf "[%d] %4d %4d %5d %6d %8d %9d %13d\n", $num, $worker->arch, $worker->worker_mask, \
+          $worker->devid, $worker->bindid, $worker->workerid, $worker->worker_is_running, $worker->worker_is_initialized
+    set $num = $num + 1
+  end
+end
+
+document starpu-workers
+Prints a list of the StarPU workers
+end
+
+define starpu
+  printf "Here I am...\n"
+end
+
+document starpu
+List of StarPU-specific gdb functions:
+starpu-workers		prints a list of the StarPU workers
+starpu-jobs-on-worker   prints a list of the jobs running on the given worker
+end
