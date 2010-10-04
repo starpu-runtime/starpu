@@ -108,6 +108,26 @@ int main(int argc, char **argv)
 	fprintf(stderr, "Total: %lf secs\n", timing/1000000);
 	fprintf(stderr, "Per task: %lf usecs\n", timing/ntasks);
 
+        {
+                char *output_dir = getenv("STARPU_BENCH_DIR");
+                char *bench_id = getenv("STARPU_BENCH_ID");
+
+                if (output_dir && bench_id) {
+                        char file[1024];
+                        FILE *f;
+
+                        sprintf(file, "%s/sync_tasks_overhead_total.dat", output_dir);
+                        f = fopen(file, "a");
+                        fprintf(f, "%s\t%lf\n", bench_id, timing/1000000);
+                        fclose(f);
+
+                        sprintf(file, "%s/sync_tasks_overhead_per_task.dat", output_dir);
+                        f = fopen(file, "a");
+                        fprintf(f, "%s\t%lf\n", bench_id, timing/ntasks);
+                        fclose(f);
+                }
+        }
+
 	starpu_shutdown();
 
 	return 0;
