@@ -51,7 +51,6 @@ This manual documents the usage of StarPU.
 @menu
 * Motivation::                  Why StarPU ?
 * StarPU in a Nutshell::        The Fundamentals of StarPU
-* Research papers::             Research papers on StarPU
 @end menu
 
 @node Motivation
@@ -85,6 +84,7 @@ transparently handling low-level issues in a portable fashion.
 @menu
 * Codelet and Tasks::           
 * StarPU Data Management Library::  
+* Research Papers::
 @end menu
 
 From a programming point of view, StarPU is not a new language but a library
