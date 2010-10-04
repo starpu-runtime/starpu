@@ -157,32 +157,32 @@ int main(int argc, char **argv)
                         char file[1024];
                         FILE *f;
 
-                        sprintf(file, "%s/total_submit.dat", output_dir);
+                        sprintf(file, "%s/tasks_overhead_total_submit.dat", output_dir);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%lf\n", bench_id, timing_submit/1000000);
                         fclose(f);
 
-                        sprintf(file, "%s/per_task_submit.dat", output_dir);
+                        sprintf(file, "%s/tasks_overhead_per_task_submit.dat", output_dir);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%lf\n", bench_id, timing_submit/ntasks);
                         fclose(f);
 
-                        sprintf(file, "%s/total_execution.dat", output_dir);
+                        sprintf(file, "%s/tasks_overhead_total_execution.dat", output_dir);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%lf\n", bench_id, timing_exec/1000000);
                         fclose(f);
 
-                        sprintf(file, "%s/per_task_execution.dat", output_dir);
+                        sprintf(file, "%s/tasks_overhead_per_task_execution.dat", output_dir);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%lf\n", bench_id, timing_exec/ntasks);
                         fclose(f);
 
-                        sprintf(file, "%s/total_submit_execution.dat", output_dir);
+                        sprintf(file, "%s/tasks_overhead_total_submit_execution.dat", output_dir);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%lf\n", bench_id, (timing_submit+timing_exec)/1000000);
                         fclose(f);
 
-                        sprintf(file, "%s/per_task_submit_execution.dat", output_dir);
+                        sprintf(file, "%s/tasks_overhead_per_task_submit_execution.dat", output_dir);
                         f = fopen(file, "a");
                         fprintf(f, "%s\t%lf\n", bench_id, (timing_submit+timing_exec)/ntasks);
                         fclose(f);
