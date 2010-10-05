@@ -190,9 +190,10 @@ static void partition_mult_data(void)
 	/* The BLAS data interface is described by 4 parameters: 
 	 *  - the location of the first element of the matrix to monitor (3rd
 	 *    argument)
-	 *  - the number of elements per row, ie. contiguous elements (4th arg)
 	 *  - the number of elements between columns, aka leading dimension
-	 *    (5th arg)
+	 *    (4th arg)
+	 *  - the number of (contiguous) elements per column, ie. contiguous
+	 *  elements (5th arg)
 	 *  - the number of columns (6th arg)
 	 * The first elements is a pointer to the data_handle that will be
 	 * associated to the matrix, and the second elements gives the memory
