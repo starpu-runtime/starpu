@@ -289,6 +289,8 @@ int starpu_task_wait_for_all(void)
 
 	PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
+	STARPU_TRACE_TASK_WAIT_FOR_ALL;
+
 	while (nsubmitted > 0)
 		PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
 	

@@ -96,6 +96,8 @@
 
 #define STARPU_FUT_SET_PROFILING	0x5138
 
+#define STARPU_FUT_TASK_WAIT_FOR_ALL	0x5139
+
 #ifdef STARPU_USE_FXT
 #include <sys/syscall.h> /* pour les définitions de SYS_xxx */
 #include <fxt/fxt.h>
@@ -290,6 +292,9 @@ do {										\
 #define STARPU_TRACE_SET_PROFILING(status)		\
 	FUT_DO_PROBE2(STARPU_FUT_SET_PROFILING, status, syscall(SYS_gettid));
 
+#define STARPU_TRACE_TASK_WAIT_FOR_ALL			\
+	FUT_DO_PROBE0(STARPU_FUT_TASK_WAIT_FOR_ALL)
+
 #else // !STARPU_USE_FXT
 
 #define STARPU_TRACE_NEW_MEM_NODE(nodeid)	do {} while(0);
@@ -333,6 +338,7 @@ do {										\
 #define STARPU_TRACE_END_PROGRESS(memnode)	do {} while(0);
 #define STARPU_TRACE_USER_EVENT(code)		do {} while(0);
 #define STARPU_TRACE_SET_PROFILING(status)	do {} while(0);
+#define STARPU_TRACE_TASK_WAIT_FOR_ALL		do {} while(0);
 
 #endif // STARPU_USE_FXT
 

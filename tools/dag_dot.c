@@ -21,20 +21,28 @@
 
 static char *out_path = "dag.dot";
 static FILE *out_file;
-
+static unsigned cluster_cnt;
 
 void init_dag_dot(void)
 {
 	/* create a new file */
 	out_file = fopen(out_path, "w+");
+	cluster_cnt = 0;
 
 	fprintf(out_file, "digraph G {\n");
 	fprintf(out_file, "\tcolor=white\n");
 	fprintf(out_file, "\trankdir=LR;\n");
+
+	/* Create a new cluster */
+	fprintf(out_file, "subgraph cluster_%d {\n", cluster_cnt);
+	fprintf(out_file, "\tcolor=black;\n");
 }
 
 void terminate_dat_dot(void)
 {
+	/* Close the last cluster */
+	fprintf(out_file, "}\n");
+	/* Close the graph */
 	fprintf(out_file, "}\n");
 	fclose(out_file);
 }
@@ -60,4 +68,16 @@ void dot_set_tag_done(uint64_t tag, const char *color)
 void dot_set_task_done(unsigned long job_id, const char *label, const char *color)
 {
 	fprintf(out_file, "\t \"task_%lx\" \[ style=filled, label=\"%s\", color=\"%s\"]\n", job_id, label, color);
+}
+
+void dot_add_sync_point(void)
+{
+	/* Close the previous cluster */
+	fprintf(out_file, "}\n");
+
+	cluster_cnt++;
+
+	/* Create a new cluster */
+	fprintf(out_file, "subgraph cluster_%d {\n", cluster_cnt);
+	fprintf(out_file, "\tcolor=black;\n");
 }

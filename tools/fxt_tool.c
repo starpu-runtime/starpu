@@ -694,6 +694,11 @@ static void handle_set_profiling(void)
 	fprintf(activity_file, "set_profiling\t%lf\t%d\n", get_event_time_stamp(), status);
 }
 
+static void handle_task_wait_for_all(void)
+{
+	dot_add_sync_point();
+}
+
 static void parse_args(int argc, char **argv)
 {
 	/* We want to support arguments such as "fxt_tool -i trace_*" */
@@ -963,6 +968,10 @@ void parse_new_file(char *filename_in, char *file_prefix, uint64_t file_offset)
 
 			case STARPU_FUT_SET_PROFILING:
 				handle_set_profiling();
+				break;
+
+			case STARPU_FUT_TASK_WAIT_FOR_ALL:
+				handle_task_wait_for_all();
 				break;
 
 			default:
