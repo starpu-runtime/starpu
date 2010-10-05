@@ -1439,6 +1439,7 @@ Specify where magma is installed.
 Specify the location of FxT (for generating traces and rendering them
 using ViTE). This directory should notably contain
 @code{include/fxt/fxt.h}.
+@c TODO add ref to other section
 @end table
 
 @node --with-perf-model-dir
@@ -1675,6 +1676,7 @@ the coefficient to be applied to it before adding it to the computation part.
 
 @menu
 * STARPU_LOGFILENAME::          Select debug file name
+* STARPU_FXT_PREFIX::           FxT trace location
 @end menu
 
 @node STARPU_LOGFILENAME
@@ -1682,8 +1684,15 @@ the coefficient to be applied to it before adding it to the computation part.
 @table @asis
 
 @item @emph{Description}:
-This variable specify in which file the debugging output should be saved to.
+This variable specifies in which file the debugging output should be saved to.
+@end table
 
+@node STARPU_FXT_PREFIX
+@subsubsection @code{STARPU_FXT_PREFIX} -- FxT trace location
+@table @asis
+
+@item @emph{Description}
+This variable specifies in which directory to put the trace generated if FxT is enabled.
 @end table
 
 @c ---------------------------------------------------------------------
@@ -3531,6 +3540,21 @@ static struct starpu_sched_policy_s dummy_sched_policy = @{
 @chapter Performance feedback
 
 @menu
+* On-line::       On-line performance feedback
+* Off-line::      Off-line performance feedback
+@end menu
+
+@node On-line
+@section On-line performance feedback
+
+@c how to enable/disable performance monitoring
+
+@c what kind of information do we get ?
+
+@node Off-line
+@section Off-line performance feedback
+
+@menu
 * Generating traces::       Generating traces with FxT
 * Gantt diagram::           Creating a Gantt Diagram
 * DAG::                     Creating a DAG with graphviz
@@ -3538,16 +3562,82 @@ static struct starpu_sched_policy_s dummy_sched_policy = @{
 @end menu
 
 @node Generating traces
-@section Generating traces with FxT
+@subsection Generating traces with FxT
+
+StarPU can use the FxT library (see
+@indicateurl{https://savannah.nongnu.org/projects/fkt/}) to generate traces
+with a limited runtime overhead. 
+
+You can either get the FxT library is available either from CVS (autotools are required):
+@example
+% cvs -d :pserver:anonymous@@cvs.sv.gnu.org:/sources/fkt co FxT
+% ./bootstrap
+@end example
+
+If autotools are not available on your machine, or if you prefer to do so,
+FxT's code is also as a tarball:
+@example
+% wget http://download.savannah.gnu.org/releases/fkt/fxt-0.2.tar.gz
+@end example
+
+Compiling and installing the FxT library in the @code{$FXTDIR} path follows the
+standard procedure: 
+@example
+% ./configure --prefix=$FXTDIR
+% make
+% make install
+@end example
+
+In order to have StarPU to generate traces, StarPU should be configured with
+the @code{--with-fxt} option:
+@example
+$ ./configure --with-fxt=$FXTDIR
+@end example
+
+When FxT is enabled, a trace is generated when StarPU is terminated by calling
+@code{starpu_shutdown}). The trace is a binary file which name has the form
+@code{prof_file_XXX_YYY} where @code{XXX} is the user name, and
+@code{YYY} is the pid of the process that used StarPU. This file is put in the
+@code{/tmp/} directory by default, but it is possible to specify in which
+directory the file should be created with the @code{STARPU_FXT_PREFIX}
+environment variable.
 
 @node Gantt diagram
-@section Creating a Gantt Diagram
+@subsection Creating a Gantt Diagram
+
+When the FxT trace file @code{filename} has been generated, it is possible to
+generate a trace in the Paje format by calling:
+@example
+% fxt_tool -i filename
+@end example
+
+This will create a @code{paje.trace} file in the current directory that can be
+inspected with the Vite trace visualizing open-source tool. More information
+about Vite is available at @indicateurl{http://vite.gforge.inria.fr/}. It is
+possible to open the @code{paje.trace} file with Vite by using the following
+command:
+@example
+% vite paje.trace
+@end example
 
 @node DAG
-@section Creating a DAG with graphviz
+@subsection Creating a DAG with graphviz
+
+When the FxT trace file @code{filename} has been generated, it is possible to
+generate a trace in the Paje format by calling:
+@example
+$ fxt_tool -i filename
+@end example
+
+This will create a @code{dag.dot} file in the current directory. This file is a
+task graph described using the DOT language. It is possible to display this
+graph by the means of the graphviz library:
+@example
+$ dot -Tpdf dag.dot -o output.pdf
+@end example
 
 @node starpu-top
-@section Monitoring activity
+@subsection Monitoring activity
 
 @c ---------------------------------------------------------------------
 @c Appendices
