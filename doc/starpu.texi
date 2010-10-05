@@ -3192,6 +3192,8 @@ function is only provided for convenience so that programmers can easily use
 asynchronous operations within codelets without having to create a stream by
 hand. Note that the application is not forced to use the stream provided by
 @code{starpu_cuda_get_local_stream} and may also create its own streams.
+Synchronizing with @code{cudaThreadSynchronize()} is allowed, but will reduce
+the likelihood of having all transfers overlapped.
 
 @item @emph{Prototype}:
 @code{cudaStream_t *starpu_cuda_get_local_stream(void);}
