@@ -38,6 +38,7 @@ This manual documents the usage of StarPU.
 * Configuring StarPU::          How to configure StarPU
 * StarPU API::                  The API to use StarPU
 * Advanced Topics::             Advanced use of StarPU
+* Performance feedback::       Performance debugging tools
 * Full source code for the 'Scaling a Vector' example::  
 @end menu
 
@@ -3522,6 +3523,31 @@ static struct starpu_sched_policy_s dummy_sched_policy = @{
 @end smallexample
 @end cartouche
 
+@c ---------------------------------------------------------------------
+@c Performance feedback
+@c ---------------------------------------------------------------------
+
+@node Performance feedback
+@chapter Performance feedback
+
+@menu
+* Generating traces::       Generating traces with FxT
+* Gantt diagram::           Creating a Gantt Diagram
+* DAG::                     Creating a DAG with graphviz
+* starpu-top::              Monitoring activity
+@end menu
+
+@node Generating traces
+@section Generating traces with FxT
+
+@node Gantt diagram
+@section Creating a Gantt Diagram
+
+@node DAG
+@section Creating a DAG with graphviz
+
+@node starpu-top
+@section Monitoring activity
 
 @c ---------------------------------------------------------------------
 @c Appendices
