@@ -59,7 +59,7 @@ static const struct starpu_data_copy_methods bcsr_copy_data_methods_s = {
 };
 
 static void register_bcsr_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
-static size_t allocate_bcsr_buffer_on_node(void *interface, uint32_t dst_node);
+static ssize_t allocate_bcsr_buffer_on_node(void *interface, uint32_t dst_node);
 static void free_bcsr_buffer_on_node(void *interface, uint32_t node);
 static size_t bcsr_interface_get_size(starpu_data_handle handle);
 static int bcsr_compare(void *interface_a, void *interface_b);
@@ -252,11 +252,11 @@ static size_t bcsr_interface_get_size(starpu_data_handle handle)
 /* memory allocation/deallocation primitives for the BLAS interface */
 
 /* returns the size of the allocated area */
-static size_t allocate_bcsr_buffer_on_node(void *interface_, uint32_t dst_node)
+static ssize_t allocate_bcsr_buffer_on_node(void *interface_, uint32_t dst_node)
 {
 	uintptr_t addr_nzval;
 	uint32_t *addr_colind, *addr_rowptr;
-	size_t allocated_memory;
+	ssize_t allocated_memory;
 
 	/* we need the 3 arrays to be allocated */
 	starpu_bcsr_interface_t *interface = interface_;
@@ -376,9 +376,7 @@ fail_colind:
 fail_nzval:
 
 	/* allocation failed */
-	allocated_memory = 0;
-
-	return allocated_memory;
+	return -ENOMEM;
 }
 
 static void free_bcsr_buffer_on_node(void *interface, uint32_t node)

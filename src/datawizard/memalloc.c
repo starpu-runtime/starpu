@@ -658,10 +658,10 @@ static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
  *
  */
 
-size_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, uint32_t dst_node)
+ssize_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, uint32_t dst_node)
 {
 	unsigned attempts = 0;
-	size_t allocated_memory;
+	ssize_t allocated_memory;
 
 	_starpu_data_allocation_inc_stats(dst_node);
 
@@ -673,7 +673,7 @@ size_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, ui
 	if (try_to_find_reusable_mem_chunk(dst_node, handle, footprint))
 	{
 		_starpu_allocation_cache_hit(dst_node);
-		return 0;
+		return -ENOMEM;
 	}
 	STARPU_TRACE_END_ALLOC_REUSE(dst_node);
 #endif
@@ -686,7 +686,7 @@ size_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, ui
 		allocated_memory = handle->ops->allocate_data_on_node(interface, dst_node);
 		STARPU_TRACE_END_ALLOC(dst_node);
 
-		if (!allocated_memory) {
+		if (allocated_memory == -ENOMEM) {
 			/* XXX perhaps we should find the proper granularity 
 			 * not to waste our cache all the time */
 			size_t data_size = _starpu_data_get_size(handle);
@@ -696,14 +696,14 @@ size_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, ui
 			STARPU_TRACE_END_MEMRECLAIM(dst_node);
 		}
 		
-	} while(!allocated_memory && attempts++ < 2);
+	} while((allocated_memory == -ENOMEM) && attempts++ < 2);
 
 	return allocated_memory;
 }
 
 int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node, unsigned may_alloc)
 {
-	size_t allocated_memory;
+	ssize_t allocated_memory;
 
 	STARPU_ASSERT(handle);
 
@@ -718,7 +718,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node
 	allocated_memory = _starpu_allocate_interface(handle, interface, dst_node);
 
 	/* perhaps we could really not handle that capacity misses */
-	if (!allocated_memory)
+	if (allocated_memory == -ENOMEM)
 		return ENOMEM;
 
 	register_mem_chunk(handle, dst_node, allocated_memory, 1);

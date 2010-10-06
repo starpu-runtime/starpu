@@ -83,7 +83,7 @@ struct starpu_data_copy_methods {
 struct starpu_data_interface_ops_t {
 	void (*register_data_handle)(starpu_data_handle handle,
 					uint32_t home_node, void *interface);
-	size_t (*allocate_data_on_node)(void *interface, uint32_t node);
+	ssize_t (*allocate_data_on_node)(void *interface, uint32_t node);
 	void (*free_data_on_node)(void *interface, uint32_t node);
 	const struct starpu_data_copy_methods *copy_methods;
 	size_t (*get_size)(starpu_data_handle handle);
