@@ -43,7 +43,7 @@ static void profile_set_tracefile(char *fmt, ...)
 	int pid = getpid();
 
 	char suffix[128];
-	snprintf(suffix, 128, "_user_%s_%d", user, pid);
+	snprintf(suffix, 128, "prof_file_%s_%d", user, pid);
 
 	strcat(PROF_FILE_USER, suffix);
 }
@@ -57,7 +57,7 @@ void _starpu_start_fxt_profiling(void)
 
 		char *fxt_prefix = getenv("STARPU_FXT_PREFIX");
 		if (!fxt_prefix)
-			fxt_prefix = "/tmp/prof_file";
+			fxt_prefix = "/tmp/";
 
 		profile_set_tracefile(fxt_prefix);
 	}
