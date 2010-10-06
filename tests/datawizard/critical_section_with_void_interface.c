@@ -68,8 +68,6 @@ int main(int argc, char **argv)
 
 	STARPU_ASSERT(critical_var == ntasks);
 
-	fprintf(stderr, "CRITICAL : %d\n", critical_var);
-
 	starpu_shutdown();
 
 	return 0;
