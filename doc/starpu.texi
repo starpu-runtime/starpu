@@ -35,10 +35,10 @@ This manual documents the usage of StarPU.
 * Installing StarPU::           How to configure, build and install StarPU
 * Using StarPU::                How to run StarPU application
 * Basic Examples::              Basic examples of the use of StarPU
+* Performance feedback::        Performance debugging tools
 * Configuring StarPU::          How to configure StarPU
 * StarPU API::                  The API to use StarPU
 * Advanced Topics::             Advanced use of StarPU
-* Performance feedback::       Performance debugging tools
 * Full source code for the 'Scaling a Vector' example::  
 @end menu
 
