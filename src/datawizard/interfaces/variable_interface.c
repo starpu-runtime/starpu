@@ -319,7 +319,7 @@ static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node __attri
 
 	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_variable->elemsize);
 
-	return EAGAIN;
+	return -EAGAIN;
 }
 
 static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)), cudaStream_t *stream)
@@ -344,7 +344,7 @@ static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node __attri
 
 	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_variable->elemsize);
 
-	return EAGAIN;
+	return -EAGAIN;
 }
 #endif // STARPU_USE_CUDA
 

@@ -238,7 +238,7 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 		ret_copy = copy_data_1_to_1_generic(handle, src_node, dst_node, req);
 
 #ifdef STARPU_USE_FXT
-		if (ret_copy != EAGAIN)
+		if (ret_copy != -EAGAIN)
 		{
 			size_t size = _starpu_data_get_size(handle);
 			STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, com_id);

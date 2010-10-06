@@ -469,7 +469,7 @@ static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node __attri
 				ret = 0;
 			}
 			else {
-				ret = EAGAIN;
+				ret = -EAGAIN;
 			}
 			
 		}
@@ -490,7 +490,7 @@ static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node __attri
 				ret = 0;
 			}
 			else {
-				ret = EAGAIN;
+				ret = -EAGAIN;
 			}
 		}
 	}
@@ -514,7 +514,7 @@ static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node __attri
 
 		}
 
-		ret = EAGAIN;
+		ret = -EAGAIN;
 
 	}
 
@@ -580,7 +580,7 @@ static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node __attri
 				ret = 0;
 			}
 			else {
-				ret = EAGAIN;
+				ret = -EAGAIN;
 			}
 			
 		}
@@ -601,7 +601,7 @@ static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node __attri
 				ret = 0;
 			}
 			else {
-				ret = EAGAIN;
+				ret = -EAGAIN;
 			}
 		}
 	}
@@ -625,7 +625,7 @@ static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node __attri
 
 		}
 
-		ret = EAGAIN;
+		ret = -EAGAIN;
 
 	}
 

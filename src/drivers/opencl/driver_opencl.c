@@ -106,7 +106,7 @@ int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, cl_mem buffer, size_
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
         err = clEnqueueWriteBuffer(queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
         if (STARPU_LIKELY(err == CL_SUCCESS)) {
-                *ret = (event == NULL) ? 0 : EAGAIN;
+                *ret = (event == NULL) ? 0 : -EAGAIN;
                 return EXIT_SUCCESS;
         }
         else {
@@ -146,7 +146,7 @@ int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, void *ptr, size_
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
         err = clEnqueueReadBuffer(queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
         if (STARPU_LIKELY(err == CL_SUCCESS)) {
-                *ret = (event == NULL) ? 0 : EAGAIN;
+                *ret = (event == NULL) ? 0 : -EAGAIN;
                 return EXIT_SUCCESS;
         }
         else {

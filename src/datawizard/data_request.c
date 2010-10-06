@@ -304,7 +304,7 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 		return -ENOMEM;
 	}
 
-	if (r->retval == EAGAIN)
+	if (r->retval == -EAGAIN)
 	{
 		_starpu_spin_unlock(&r->lock);
 		_starpu_spin_unlock(&handle->header_lock);
@@ -314,7 +314,7 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 		starpu_data_request_list_push_front(data_requests_pending[r->handling_node], r);
 		PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[r->handling_node]);
 
-		return EAGAIN;
+		return -EAGAIN;
 	}
 
 	/* the request has been handled */
