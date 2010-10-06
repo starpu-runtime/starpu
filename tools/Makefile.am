@@ -21,6 +21,7 @@ LIBS = $(top_builddir)/src/libstarpu.la $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/tools/ -I$(top_srcdir)/mpi/ -I$(top_builddir)/src -I$(top_srcdir)/src
 
 bin_PROGRAMS =
+dist_bin_SCRIPTS =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
@@ -47,3 +48,6 @@ bin_PROGRAMS +=	cbc2paje lp2paje
 noinst_HEADERS = \
 	fxt_tool.h	\
 	histo_paje.h
+
+dist_bin_SCRIPTS +=	\
+	starpu_top.sh
