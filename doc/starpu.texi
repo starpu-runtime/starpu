@@ -1199,6 +1199,200 @@ More advanced examples include:
 @end table
 
 @c ---------------------------------------------------------------------
+@c Performance feedback
+@c ---------------------------------------------------------------------
+
+@node Performance feedback
+@chapter Performance feedback
+
+@menu
+* On-line::       On-line performance feedback
+* Off-line::      Off-line performance feedback
+@end menu
+
+@node On-line
+@section On-line performance feedback
+
+@menu
+* Enabling monitoring::     Enabling on-line performance monitoring
+* Task feedback::           Per-task feedback
+* Codelet feedback::        Per-codelet feedback
+* Worker feedback::         Per-worker feedback
+* Bus feedback::            Bus-related feedback
+@end menu
+
+@node Enabling monitoring
+@subsection Enabling on-line performance monitoring
+
+In order to enable online performance monitoring, the application must call
+@code{starpu_profiling_status_set(STARPU_PROFILING_ENABLE)}. It is possible to
+detect whether monitoring is already enabled or not by calling
+@code{starpu_profiling_status_get()}. Enabling monitoring also reinitialize all
+previously collected feedback.
+
+Likewise, performance monitoring is stopped by calling
+@code{starpu_profiling_status_set(STARPU_PROFILING_DISABLE)}. Note that this
+does not reset the performance counters so that the application may consult
+them later on.
+
+@node Task feedback
+@subsection Per-task feedback
+
+If profiling is enabled, a pointer to a @code{starpu_task_profiling_info}
+structure is put in the @code{.profiling_info} field of the @code{starpu_task}
+structure when a task terminates.
+This structure is automatically destroyed when the task structure is destroyed,
+either automatically or by calling @code{starpu_task_destroy}.
+
+The @code{starpu_task_profiling_info} structure indicates the date when the
+task was submitted (@code{submit_time}), started (@code{start_time}), and
+terminated (@code{end_time}), relative to the initialization of
+StarPU with @code{starpu_init}. It also specifies the identifier of the worker
+that has executed the task (@code{workerid}).
+These date are stored as @code{timespec} structures which the user may convert
+into micro-seconds using the @code{starpu_timing_timespec_to_us} helper
+function.
+
+It it worth noting that the application may directly access this structure from
+the callback executed at the end of the task. The @code{starpu_task} structure
+associated to the callback currently being executed is indeed accessible with
+the @code{starpu_get_current_task()} function.
+
+@node Codelet feedback
+@subsection Per-codelet feedback
+
+TODO
+
+@node Worker feedback
+@subsection Per-worker feedback
+
+TODO
+
+@node Bus feedback
+@subsection Bus-related feedback 
+
+TODO
+
+@c how to enable/disable performance monitoring
+
+@c what kind of information do we get ?
+
+@node Off-line
+@section Off-line performance feedback
+
+@menu
+* Generating traces::       Generating traces with FxT
+* Gantt diagram::           Creating a Gantt Diagram
+* DAG::                     Creating a DAG with graphviz
+* starpu-top::              Monitoring activity
+@end menu
+
+@node Generating traces
+@subsection Generating traces with FxT
+
+StarPU can use the FxT library (see
+@indicateurl{https://savannah.nongnu.org/projects/fkt/}) to generate traces
+with a limited runtime overhead.
+
+You can either get the FxT library from CVS (autotools are required):
+@example
+% cvs -d :pserver:anonymous@@cvs.sv.gnu.org:/sources/fkt co FxT
+% ./bootstrap
+@end example
+
+If autotools are not available on your machine, or if you prefer to do so,
+FxT's code is also available as a tarball:
+@example
+% wget http://download.savannah.gnu.org/releases/fkt/fxt-0.2.tar.gz
+@end example
+
+Compiling and installing the FxT library in the @code{$FXTDIR} path is
+done following the standard procedure:
+@example
+% ./configure --prefix=$FXTDIR
+% make
+% make install
+@end example
+
+In order to have StarPU to generate traces, StarPU should be configured with
+the @code{--with-fxt} option:
+@example
+$ ./configure --with-fxt=$FXTDIR
+@end example
+
+When FxT is enabled, a trace is generated when StarPU is terminated by calling
+@code{starpu_shutdown()}). The trace is a binary file which name has the form
+@code{prof_file_XXX_YYY} where @code{XXX} is the user name, and
+@code{YYY} is the pid of the process that used StarPU. This file is put in the
+@code{/tmp/} directory by default, but it is possible to specify in which
+directory the file should be created by setting the @code{STARPU_FXT_PREFIX}
+environment variable.
+
+@node Gantt diagram
+@subsection Creating a Gantt Diagram
+
+When the FxT trace file @code{filename} has been generated, it is possible to
+generate a trace in the Paje format by calling:
+@example
+% fxt_tool -i filename
+@end example
+
+This will create a @code{paje.trace} file in the current directory that can be
+inspected with the Vite trace visualizing open-source tool. More information
+about Vite is available at @indicateurl{http://vite.gforge.inria.fr/}. It is
+possible to open the @code{paje.trace} file with Vite by using the following
+command:
+@example
+% vite paje.trace
+@end example
+
+@node DAG
+@subsection Creating a DAG with graphviz
+
+When the FxT trace file @code{filename} has been generated, it is possible to
+generate a trace in the Paje format by calling:
+@example
+$ fxt_tool -i filename
+@end example
+
+This will create a @code{dag.dot} file in the current directory. This file is a
+task graph described using the DOT language. It is possible to display this
+graph by the means of the graphviz library:
+@example
+$ dot -Tpdf dag.dot -o output.pdf
+@end example
+
+@node starpu-top
+@subsection Monitoring activity
+
+When the FxT trace file @code{filename} has been generated, it is possible to
+generate a trace in the Paje format by calling:
+@example
+$ fxt_tool -i filename
+@end example
+
+This will create an @code{activity.data} file in the current directory. A profile of the application showing the activity of StarPU during the execution of the program can be generated:
+@example
+$ starpu_top.sh activity.data
+@end example
+
+This will create a file named @code{activity.eps} in the current directory.
+This picture is composed of two parts.
+The first part shows the activity of the different workers. The green sections
+indicate which proportion of the time was spent executed kernels on the
+processing unit. The red sections indicate the proportion of time spent in
+StartPU: an important overhead may indicate that the granularity may be too
+low, and that bigger tasks may be appropriate to use the processing unit more
+efficiently. The black sections indicate that the processing unit was blocked
+because there was no task to process: this may indicate a lack of parallelism
+which may be alleviated by creating more tasks when it is possible.
+
+The second part of the @code{activity.eps} picture is a graph showing the
+evolution of the number of tasks available in the system during the execution.
+Ready tasks are shown in black, and tasks that are submitted but not
+schedulable yet are shown in grey.
+
+@c ---------------------------------------------------------------------
 @c Configuration options
 @c ---------------------------------------------------------------------
 
@@ -3532,199 +3726,6 @@ static struct starpu_sched_policy_s dummy_sched_policy = @{
 @end smallexample
 @end cartouche
 
-@c ---------------------------------------------------------------------
-@c Performance feedback
-@c ---------------------------------------------------------------------
-
-@node Performance feedback
-@chapter Performance feedback
-
-@menu
-* On-line::       On-line performance feedback
-* Off-line::      Off-line performance feedback
-@end menu
-
-@node On-line
-@section On-line performance feedback
-
-@menu
-* Enabling monitoring::     Enabling on-line performance monitoring
-* Task feedback::           Per-task feedback
-* Codelet feedback::        Per-codelet feedback
-* Worker feedback::         Per-worker feedback
-* Bus feedback::            Bus-related feedback
-@end menu
-
-@node Enabling monitoring
-@subsection Enabling on-line performance monitoring
-
-In order to enable online performance monitoring, the application must call
-@code{starpu_profiling_status_set(STARPU_PROFILING_ENABLE)}. It is possible to
-detect whether monitoring is already enabled or not by calling
-@code{starpu_profiling_status_get()}. Enabling monitoring also reinitialize all
-previously collected feedback.
-
-Likewise, performance monitoring is stopped by calling
-@code{starpu_profiling_status_set(STARPU_PROFILING_DISABLE)}. Note that this
-does not reset the performance counters so that the application may consult
-them later on.
-
-@node Task feedback
-@subsection Per-task feedback
-
-If profiling is enabled, a pointer to a @code{starpu_task_profiling_info}
-structure is put in the @code{.profiling_info} field of the @code{starpu_task}
-structure when a task terminates.
-This structure is automatically destroyed when the task structure is destroyed,
-either automatically or by calling @code{starpu_task_destroy}.
-
-The @code{starpu_task_profiling_info} structure indicates the date when the
-task was submitted (@code{submit_time}), started (@code{start_time}), and
-terminated (@code{end_time}), relative to the initialization of
-StarPU with @code{starpu_init}. It also specifies the identifier of the worker
-that has executed the task (@code{workerid}).
-These date are stored as @code{timespec} structures which the user may convert
-into micro-seconds using the @code{starpu_timing_timespec_to_us} helper
-function.
-
-It it worth noting that the application may directly access this structure from
-the callback executed at the end of the task. The @code{starpu_task} structure
-associated to the callback currently being executed is indeed accessible with
-the @code{starpu_get_current_task()} function.
-
-@node Codelet feedback
-@subsection Per-codelet feedback
-
-TODO
-
-@node Worker feedback
-@subsection Per-worker feedback
-
-TODO
-
-@node Bus feedback
-@subsection Bus-related feedback 
-
-TODO
-
-@c how to enable/disable performance monitoring
-
-@c what kind of information do we get ?
-
-@node Off-line
-@section Off-line performance feedback
-
-@menu
-* Generating traces::       Generating traces with FxT
-* Gantt diagram::           Creating a Gantt Diagram
-* DAG::                     Creating a DAG with graphviz
-* starpu-top::              Monitoring activity
-@end menu
-
-@node Generating traces
-@subsection Generating traces with FxT
-
-StarPU can use the FxT library (see
-@indicateurl{https://savannah.nongnu.org/projects/fkt/}) to generate traces
-with a limited runtime overhead.
-
-You can either get the FxT library from CVS (autotools are required):
-@example
-% cvs -d :pserver:anonymous@@cvs.sv.gnu.org:/sources/fkt co FxT
-% ./bootstrap
-@end example
-
-If autotools are not available on your machine, or if you prefer to do so,
-FxT's code is also available as a tarball:
-@example
-% wget http://download.savannah.gnu.org/releases/fkt/fxt-0.2.tar.gz
-@end example
-
-Compiling and installing the FxT library in the @code{$FXTDIR} path is
-done following the standard procedure:
-@example
-% ./configure --prefix=$FXTDIR
-% make
-% make install
-@end example
-
-In order to have StarPU to generate traces, StarPU should be configured with
-the @code{--with-fxt} option:
-@example
-$ ./configure --with-fxt=$FXTDIR
-@end example
-
-When FxT is enabled, a trace is generated when StarPU is terminated by calling
-@code{starpu_shutdown()}). The trace is a binary file which name has the form
-@code{prof_file_XXX_YYY} where @code{XXX} is the user name, and
-@code{YYY} is the pid of the process that used StarPU. This file is put in the
-@code{/tmp/} directory by default, but it is possible to specify in which
-directory the file should be created by setting the @code{STARPU_FXT_PREFIX}
-environment variable.
-
-@node Gantt diagram
-@subsection Creating a Gantt Diagram
-
-When the FxT trace file @code{filename} has been generated, it is possible to
-generate a trace in the Paje format by calling:
-@example
-% fxt_tool -i filename
-@end example
-
-This will create a @code{paje.trace} file in the current directory that can be
-inspected with the Vite trace visualizing open-source tool. More information
-about Vite is available at @indicateurl{http://vite.gforge.inria.fr/}. It is
-possible to open the @code{paje.trace} file with Vite by using the following
-command:
-@example
-% vite paje.trace
-@end example
-
-@node DAG
-@subsection Creating a DAG with graphviz
-
-When the FxT trace file @code{filename} has been generated, it is possible to
-generate a trace in the Paje format by calling:
-@example
-$ fxt_tool -i filename
-@end example
-
-This will create a @code{dag.dot} file in the current directory. This file is a
-task graph described using the DOT language. It is possible to display this
-graph by the means of the graphviz library:
-@example
-$ dot -Tpdf dag.dot -o output.pdf
-@end example
-
-@node starpu-top
-@subsection Monitoring activity
-
-When the FxT trace file @code{filename} has been generated, it is possible to
-generate a trace in the Paje format by calling:
-@example
-$ fxt_tool -i filename
-@end example
-
-This will create an @code{activity.data} file in the current directory. A profile of the application showing the activity of StarPU during the execution of the program can be generated:
-@example
-$ starpu_top.sh activity.data
-@end example
-
-This will create a file named @code{activity.eps} in the current directory.
-This picture is composed of two parts.
-The first part shows the activity of the different workers. The green sections
-indicate which proportion of the time was spent executed kernels on the
-processing unit. The red sections indicate the proportion of time spent in
-StartPU: an important overhead may indicate that the granularity may be too
-low, and that bigger tasks may be appropriate to use the processing unit more
-efficiently. The black sections indicate that the processing unit was blocked
-because there was no task to process: this may indicate a lack of parallelism
-which may be alleviated by creating more tasks when it is possible.
-
-The second part of the @code{activity.eps} picture is a graph showing the
-evolution of the number of tasks available in the system during the execution.
-Ready tasks are shown in black, and tasks that are submitted but not
-schedulable yet are shown in grey.
 
 @c ---------------------------------------------------------------------
 @c Appendices
