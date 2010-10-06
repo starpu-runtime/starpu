@@ -3639,6 +3639,33 @@ $ dot -Tpdf dag.dot -o output.pdf
 @node starpu-top
 @subsection Monitoring activity
 
+When the FxT trace file @code{filename} has been generated, it is possible to
+generate a trace in the Paje format by calling:
+@example
+$ fxt_tool -i filename
+@end example
+
+This will create an @code{activity.data} file in the current directory. A profile of the application showing the activity of StarPU during the execution of the program can be generated:
+@example
+$ starpu_top.sh activity.data
+@end example
+
+This will create a file named @code{activity.eps} in the current directory.
+This picture is composed of two parts.
+The first part shows the activity of the different workers. The green sections
+indicate which proportion of the time was spent executed kernels on the
+processing unit. The red sections indicate the proportion of time spent in
+StartPU: an important overhead may indicate that the granularity may be too
+low, and that bigger tasks may be appropriate to use the processing unit more
+efficiently. The black sections indicate that the processing unit was blocked
+because there was no task to process: this may indicate a lack of parallelism
+which may be alleviated by creating more tasks when it is possible.
+
+The second part of the @code{activity.eps} picture is a graph showing the
+evolution of the number of tasks available in the system during the execution.
+Ready tasks are shown in black, and tasks that are submitted but not
+schedulable yet are shown in grey.
+
 @c ---------------------------------------------------------------------
 @c Appendices
 @c ---------------------------------------------------------------------
