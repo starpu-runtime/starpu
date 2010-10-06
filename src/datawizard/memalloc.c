@@ -712,14 +712,14 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node
 		return 0;
 
 	if (!may_alloc)
-		return ENOMEM;
+		return -ENOMEM;
 
 	void *interface = starpu_data_get_interface_on_node(handle, dst_node);
 	allocated_memory = _starpu_allocate_interface(handle, interface, dst_node);
 
 	/* perhaps we could really not handle that capacity misses */
 	if (allocated_memory == -ENOMEM)
-		return ENOMEM;
+		return -ENOMEM;
 
 	register_mem_chunk(handle, dst_node, allocated_memory, 1);
 

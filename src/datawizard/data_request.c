@@ -296,12 +296,12 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 	/* the header of the data must be locked by the worker that submitted the request */
 	r->retval = _starpu_driver_copy_data_1_to_1(handle, r->src_node, r->dst_node, !(r->mode & STARPU_R), r, may_alloc);
 
-	if (r->retval == ENOMEM)
+	if (r->retval == -ENOMEM)
 	{
 		_starpu_spin_unlock(&r->lock);
 		_starpu_spin_unlock(&handle->header_lock);
 
-		return ENOMEM;
+		return -ENOMEM;
 	}
 
 	if (r->retval == EAGAIN)
@@ -352,7 +352,7 @@ void _starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc)
 		r = starpu_data_request_list_pop_back(local_list);
 
 		res = starpu_handle_data_request(r, may_alloc);
-		if (res == ENOMEM)
+		if (res == -ENOMEM)
 		{
                         PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
 

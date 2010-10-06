@@ -251,7 +251,7 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 	return 0;
 
 nomem:
-	return ENOMEM;
+	return -ENOMEM;
 }
 
 void _starpu_driver_wait_request_completion(starpu_async_channel *async_channel __attribute__ ((unused)),
