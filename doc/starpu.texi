@@ -1261,12 +1261,33 @@ the @code{starpu_get_current_task()} function.
 @node Codelet feedback
 @subsection Per-codelet feedback
 
-TODO
+The @code{per_worker_stats} field of the @code{starpu_codelet_t} structure is
+an array of counters. The i-th entry of the array is incremented every time a
+task implementing the codelet is executed on the i-th worker.
+This array is not reinitialized when profiling is enabled or disabled.
 
 @node Worker feedback
 @subsection Per-worker feedback
 
-TODO
+The second argument returned by the @code{starpu_worker_get_profiling_info}
+function is a @code{starpu_worker_profiling_info} structure that gives
+statistics about the specified worker. This structure specifies when StarPU
+started collecting profiling information for that worker (@code{start_time}),
+the duration of the profiling measurement interval (@code{total_time}), the
+time spent executing kernels (@code{executing_time}), the time spent sleeping
+because there is no task to execute at all (@code{sleeping_time}), and the
+number of tasks that were executed while profiling was enabled.
+These values give an estimation of the proportion of time spent do real work,
+and the time spent either sleeping because there are not enough executable
+tasks or simply wasted in pure StarPU overhead. 
+
+Calling @code{starpu_worker_get_profiling_info} resets the profiling
+information associated to a worker.
+
+When an FxT trace is generated (see @ref{Generating traces}), it is also
+possible to use the @code{starpu_top} script (described in @ref{starpu-top}) to
+generate a graphic showing the evolution of these values during the time, for
+the different workers.
 
 @node Bus feedback
 @subsection Bus-related feedback 
