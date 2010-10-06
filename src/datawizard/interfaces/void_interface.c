@@ -137,7 +137,7 @@ static int dummy_copy(void *src_interface __attribute__((unused)),
 }
 
 #ifdef STARPU_USE_CUDA
-static int dummy_cuda_copyasync(void *src_interface __attribute__((unused)),
+static int dummy_cuda_copy_async(void *src_interface __attribute__((unused)),
 				unsigned src_node __attribute__((unused)),
 				void *dst_interface __attribute__((unused)),
 				unsigned dst_node __attribute__((unused)),
