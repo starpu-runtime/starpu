@@ -721,9 +721,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node
 	if (!allocated_memory)
 		return ENOMEM;
 
-	/* perhaps we could really not handle that capacity misses */
-	if (allocated_memory)
-		register_mem_chunk(handle, dst_node, allocated_memory, 1);
+	register_mem_chunk(handle, dst_node, allocated_memory, 1);
 
 	handle->per_node[dst_node].allocated = 1;
 	handle->per_node[dst_node].automatically_allocated = 1;
