@@ -116,6 +116,7 @@ check_PROGRAMS += 				\
 	datawizard/sync_with_data_with_mem_non_blocking_implicit\
 	datawizard/mpi_like			\
 	datawizard/mpi_like_async		\
+	datawizard/critical_section_with_void_interface\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
@@ -333,6 +334,11 @@ testbin_PROGRAMS +=				\
 	datawizard/mpi_like_async
 datawizard_mpi_like_async_SOURCES =		\
 	datawizard/mpi_like_async.c
+
+testbin_PROGRAMS +=				\
+	datawizard/critical_section_with_void_interface
+datawizard_critical_section_with_void_interface_SOURCES =	\
+	datawizard/critical_section_with_void_interface.c
 
 if STARPU_USE_CUDA
 datawizard_mpi_like_SOURCES +=			\
