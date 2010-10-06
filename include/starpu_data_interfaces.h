@@ -207,6 +207,13 @@ uintptr_t starpu_variable_get_local_ptr(starpu_data_handle handle);
 #define STARPU_VARIABLE_GET_PTR(interface)	(((starpu_variable_interface_t *)(interface))->ptr)
 #define STARPU_VARIABLE_GET_ELEMSIZE(interface)	(((starpu_variable_interface_t *)(interface))->elemsize)
 
+/* void interface. There is no data really associated to that interface, but it
+ * may be used as a synchronization mechanism. It also permits to express an
+ * abstract piece of data that is managed by the application internally: this
+ * makes it possible to forbid the concurrent execution of different tasks
+ * accessing the same "void" data in read-write concurrently. */
+void starpu_void_data_register(starpu_data_handle *handleptr);
+
 /* CSR interface for sparse matrices (compressed sparse row representation) */
 typedef struct starpu_csr_interface_s {
 	uint32_t nnz; /* number of non-zero entries */
@@ -282,7 +289,8 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle);
 #define STARPU_CSR_INTERFACE_ID		3
 #define STARPU_BCSR_INTERFACE_ID	4
 #define STARPU_VARIABLE_INTERFACE_ID	5
-#define STARPU_NINTERFACES_ID		6 /* number of data interfaces */
+#define STARPU_VOID_INTERFACE_ID	6
+#define STARPU_NINTERFACES_ID		7 /* number of data interfaces */
 
 unsigned starpu_get_handle_interface_id(starpu_data_handle);
 

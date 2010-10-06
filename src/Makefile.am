@@ -161,6 +161,7 @@ libstarpu_la_SOURCES = 						\
 	datawizard/interfaces/csr_filters.c			\
 	datawizard/interfaces/vector_filters.c			\
 	datawizard/interfaces/variable_interface.c		\
+	datawizard/interfaces/void_interface.c			\
 	util/malloc.c						\
 	util/execute_on_all.c					\
 	util/starpu_create_sync_task.c				\
