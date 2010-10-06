@@ -1692,7 +1692,7 @@ This variable specifies in which file the debugging output should be saved to.
 @table @asis
 
 @item @emph{Description}
-This variable specifies in which directory to put the trace generated if FxT is enabled.
+This variable specifies in which directory to save the trace generated if FxT is enabled.
 @end table
 
 @c ---------------------------------------------------------------------
@@ -3566,22 +3566,22 @@ static struct starpu_sched_policy_s dummy_sched_policy = @{
 
 StarPU can use the FxT library (see
 @indicateurl{https://savannah.nongnu.org/projects/fkt/}) to generate traces
-with a limited runtime overhead. 
+with a limited runtime overhead.
 
-You can either get the FxT library is available either from CVS (autotools are required):
+You can either get the FxT library from CVS (autotools are required):
 @example
 % cvs -d :pserver:anonymous@@cvs.sv.gnu.org:/sources/fkt co FxT
 % ./bootstrap
 @end example
 
 If autotools are not available on your machine, or if you prefer to do so,
-FxT's code is also as a tarball:
+FxT's code is also available as a tarball:
 @example
 % wget http://download.savannah.gnu.org/releases/fkt/fxt-0.2.tar.gz
 @end example
 
-Compiling and installing the FxT library in the @code{$FXTDIR} path follows the
-standard procedure: 
+Compiling and installing the FxT library in the @code{$FXTDIR} path is
+done following the standard procedure:
 @example
 % ./configure --prefix=$FXTDIR
 % make
@@ -3595,11 +3595,11 @@ $ ./configure --with-fxt=$FXTDIR
 @end example
 
 When FxT is enabled, a trace is generated when StarPU is terminated by calling
-@code{starpu_shutdown}). The trace is a binary file which name has the form
+@code{starpu_shutdown()}). The trace is a binary file which name has the form
 @code{prof_file_XXX_YYY} where @code{XXX} is the user name, and
 @code{YYY} is the pid of the process that used StarPU. This file is put in the
 @code{/tmp/} directory by default, but it is possible to specify in which
-directory the file should be created with the @code{STARPU_FXT_PREFIX}
+directory the file should be created by setting the @code{STARPU_FXT_PREFIX}
 environment variable.
 
 @node Gantt diagram
