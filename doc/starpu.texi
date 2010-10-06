@@ -3547,6 +3547,66 @@ static struct starpu_sched_policy_s dummy_sched_policy = @{
 @node On-line
 @section On-line performance feedback
 
+@menu
+* Enabling monitoring::     Enabling on-line performance monitoring
+* Task feedback::           Per-task feedback
+* Codelet feedback::        Per-codelet feedback
+* Worker feedback::         Per-worker feedback
+* Bus feedback::            Bus-related feedback
+@end menu
+
+@node Enabling monitoring
+@subsection Enabling on-line performance monitoring
+
+In order to enable online performance monitoring, the application must call
+@code{starpu_profiling_status_set(STARPU_PROFILING_ENABLE)}. It is possible to
+detect whether monitoring is already enabled or not by calling
+@code{starpu_profiling_status_get()}. Enabling monitoring also reinitialize all
+previously collected feedback.
+
+Likewise, performance monitoring is stopped by calling
+@code{starpu_profiling_status_set(STARPU_PROFILING_DISABLE)}. Note that this
+does not reset the performance counters so that the application may consult
+them later on.
+
+@node Task feedback
+@subsection Per-task feedback
+
+If profiling is enabled, a pointer to a @code{starpu_task_profiling_info}
+structure is put in the @code{.profiling_info} field of the @code{starpu_task}
+structure when a task terminates.
+This structure is automatically destroyed when the task structure is destroyed,
+either automatically or by calling @code{starpu_task_destroy}.
+
+The @code{starpu_task_profiling_info} structure indicates the date when the
+task was submitted (@code{submit_time}), started (@code{start_time}), and
+terminated (@code{end_time}), relative to the initialization of
+StarPU with @code{starpu_init}. It also specifies the identifier of the worker
+that has executed the task (@code{workerid}).
+These date are stored as @code{timespec} structures which the user may convert
+into micro-seconds using the @code{starpu_timing_timespec_to_us} helper
+function.
+
+It it worth noting that the application may directly access this structure from
+the callback executed at the end of the task. The @code{starpu_task} structure
+associated to the callback currently being executed is indeed accessible with
+the @code{starpu_get_current_task()} function.
+
+@node Codelet feedback
+@subsection Per-codelet feedback
+
+TODO
+
+@node Worker feedback
+@subsection Per-worker feedback
+
+TODO
+
+@node Bus feedback
+@subsection Bus-related feedback 
+
+TODO
+
 @c how to enable/disable performance monitoring
 
 @c what kind of information do we get ?
