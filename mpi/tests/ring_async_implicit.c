@@ -45,7 +45,6 @@ void increment_token(void)
 	struct starpu_task *task = starpu_task_create();
 
 	task->cl = &increment_cl;
-	
 	task->buffers[0].handle = token_handle;
 	task->buffers[0].mode = STARPU_RW;
 
@@ -87,7 +86,6 @@ int main(int argc, char **argv)
 
 		if (!((loop == 0) && (rank == 0)))
 		{
-			token = 0;
 			starpu_mpi_irecv_detached(token_handle, (rank+size-1)%size, tag, MPI_COMM_WORLD, NULL, NULL);
 		}
 		else {
@@ -96,13 +94,12 @@ int main(int argc, char **argv)
 		}
 
 		increment_token();
-		
+
 		if (!((loop == last_loop) && (rank == last_rank)))
 		{
 			starpu_mpi_isend_detached(token_handle, (rank+1)%size, tag+1, MPI_COMM_WORLD, NULL, NULL);
 		}
 		else {
-
 			starpu_data_acquire(token_handle, STARPU_R);
 			fprintf(stdout, "Finished : token value %d\n", token);
 			starpu_data_release(token_handle);
@@ -118,7 +115,8 @@ int main(int argc, char **argv)
 
 	if (rank == last_rank)
 	{
-		STARPU_ASSERT(token == nloops*size);
+                fprintf(stderr, "[%d] token = %d == %d * %d ?\n", rank, token, nloops, size);
+                STARPU_ASSERT(token == nloops*size);
 	}
 
 	return 0;
