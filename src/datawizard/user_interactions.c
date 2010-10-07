@@ -107,6 +107,7 @@ int starpu_data_acquire_cb(starpu_data_handle handle,
 		starpu_access_mode mode, void (*callback)(void *), void *arg)
 {
 	STARPU_ASSERT(handle);
+        _STARPU_LOG_IN();
 
 	struct user_interaction_wrapper *wrapper = malloc(sizeof(struct user_interaction_wrapper));
 	STARPU_ASSERT(wrapper);
@@ -156,6 +157,7 @@ int starpu_data_acquire_cb(starpu_data_handle handle,
 		starpu_data_acquire_cb_pre_sync_callback(wrapper);
 	}
 
+        _STARPU_LOG_OUT();
 	return 0;
 }
 
@@ -183,10 +185,13 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode)
 {
 	STARPU_ASSERT(handle);
+        _STARPU_LOG_IN();
 
 	/* it is forbidden to call this function from a callback or a codelet */
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls())) {
+                _STARPU_LOG_OUT_TAG("EDEADLK");
 		return -EDEADLK;
+        }
 
 	struct user_interaction_wrapper wrapper =
 	{
@@ -232,8 +237,7 @@ int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode)
 	/* we try to get the data, if we do not succeed immediately, we set a
  	* callback function that will be executed automatically when the data is
  	* available again, otherwise we fetch the data directly */
-	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode,
-			_starpu_data_acquire_continuation, &wrapper))
+	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _starpu_data_acquire_continuation, &wrapper))
 	{
 		/* no one has locked this data yet, so we proceed immediately */
 		int ret = _starpu_fetch_data_on_node(handle, 0, mode, 0, NULL, NULL);
@@ -252,6 +256,7 @@ int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode)
 	 * function. */
 	_starpu_add_post_sync_tasks(wrapper.post_sync_task, handle);
 
+        _STARPU_LOG_OUT();
 	return 0;
 }
 

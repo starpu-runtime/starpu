@@ -203,6 +203,7 @@ void _starpu_deinit_sched_policy(struct starpu_machine_config_s *config)
 int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 {
 	struct starpu_task *task = j->task;
+        _STARPU_LOG_IN();
 
 	task->status = STARPU_TASK_READY;
 
@@ -212,9 +213,11 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 	if (task->cl == NULL)
 	{
 		_starpu_handle_job_termination(j, job_is_already_locked);
+                _STARPU_LOG_OUT_TAG("handle_job_termination");
 		return 0;
 	}
 
+        int ret;
 	if (STARPU_UNLIKELY(task->execute_on_a_specific_worker))
 	{
 		unsigned workerid = task->workerid;
@@ -226,13 +229,15 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 			_starpu_prefetch_task_input_on_node(task, memory_node);
 		}
 
-		return _starpu_push_local_task(worker, j);
+		ret = _starpu_push_local_task(worker, j);
 	}
 	else {
 		STARPU_ASSERT(policy.push_task);
 
-		return policy.push_task(task);
+		ret = policy.push_task(task);
 	}
+        _STARPU_LOG_OUT();
+        return ret;
 }
 
 struct starpu_task *_starpu_pop_task(void)

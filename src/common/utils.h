@@ -28,6 +28,17 @@
 #else
 #  define _STARPU_DEBUG(fmt, args ...)
 #endif
+
+#ifdef STARPU_VERBOSE0
+#  define _STARPU_LOG_IN()             fprintf(stderr, "[starpu][%ld][%s] -->\n", pthread_self(), __func__ );
+#  define _STARPU_LOG_OUT()            fprintf(stderr, "[starpu][%ld][%s] <--\n", pthread_self(), __func__ );
+#  define _STARPU_LOG_OUT_TAG(outtag)  fprintf(stderr, "[starpu][%ld][%s] <-- (%s)\n", pthread_self(), __func__, outtag);
+#else
+#  define _STARPU_LOG_IN()
+#  define _STARPU_LOG_OUT()
+#  define _STARPU_LOG_OUT_TAG(outtag)
+#endif
+
 #define _STARPU_DISP(fmt, args ...) fprintf(stderr, "[starpu][%s] " fmt ,__func__ ,##args)
 #define _STARPU_ERROR(fmt, args ...)                                                  \
 	do {                                                                          \

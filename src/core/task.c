@@ -173,6 +173,7 @@ starpu_job_t _starpu_get_job_associated_to_task(struct starpu_task *task)
  * already counted. */
 int _starpu_submit_job(starpu_job_t j, unsigned do_not_increment_nsubmitted)
 {
+        _STARPU_LOG_IN();
 	/* notify bound computation of a new task */
 	_starpu_bound_record(j);
 
@@ -183,7 +184,9 @@ int _starpu_submit_job(starpu_job_t j, unsigned do_not_increment_nsubmitted)
 
 	j->submitted = 1;
 
-	return _starpu_enforce_deps_and_schedule(j, 0);
+	int ret = _starpu_enforce_deps_and_schedule(j, 0);
+        _STARPU_LOG_OUT();
+        return ret;
 }
 
 /* application should submit new tasks to StarPU through this function */
@@ -191,13 +194,16 @@ int starpu_task_submit(struct starpu_task *task)
 {
 	int ret;
 	unsigned is_sync = task->synchronous;
+        _STARPU_LOG_IN();
 
 	if (is_sync)
 	{
 		/* Perhaps it is not possible to submit a synchronous
 		 * (blocking) task */
-		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+                if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls())) {
+                        _STARPU_LOG_OUT_TAG("EDEADLK");
 			return -EDEADLK;
+                }
 
 		task->detach = 0;
 	}
@@ -207,15 +213,18 @@ int starpu_task_submit(struct starpu_task *task)
 	if (task->cl)
 	{
 		uint32_t where = task->cl->where;
-		if (!_starpu_worker_exists(where))
+		if (!_starpu_worker_exists(where)) {
+                        _STARPU_LOG_OUT_TAG("ENODEV");
 			return -ENODEV;
+                }
 
 		/* In case we require that a task should be explicitely
 		 * executed on a specific worker, we make sure that the worker
 		 * is able to execute this task.  */
-		if (task->execute_on_a_specific_worker 
-			&& !_starpu_worker_may_execute_task(task->workerid, where))
+		if (task->execute_on_a_specific_worker && !_starpu_worker_may_execute_task(task->workerid, where)) {
+                        _STARPU_LOG_OUT_TAG("ENODEV");
 			return -ENODEV;
+                }
 
 		_starpu_detect_implicit_data_deps(task);
 	}
@@ -243,6 +252,7 @@ int starpu_task_submit(struct starpu_task *task)
 	if (is_sync)
 		_starpu_wait_job(j);
 
+        _STARPU_LOG_OUT();
 	return ret;
 }
 

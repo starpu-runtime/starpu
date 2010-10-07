@@ -55,6 +55,7 @@ void _starpu_exclude_task_from_dag(struct starpu_task *task)
 starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task)
 {
 	starpu_job_t job;
+        _STARPU_LOG_IN();
 
 	job = starpu_job_new();
 
@@ -84,6 +85,7 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 	if (task->use_tag)
 		_starpu_tag_declare(task->tag_id, job);
 
+        _STARPU_LOG_OUT();
 	return job;
 }
 
@@ -101,6 +103,7 @@ void _starpu_wait_job(starpu_job_t j)
 {
 	STARPU_ASSERT(j->task);
 	STARPU_ASSERT(!j->task->detach);
+        _STARPU_LOG_IN();
 
 	PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
@@ -113,6 +116,7 @@ void _starpu_wait_job(starpu_job_t j)
 		PTHREAD_COND_WAIT(&j->sync_cond, &j->sync_mutex);
 
 	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+        _STARPU_LOG_OUT();
 }
 
 void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_locked)
@@ -280,21 +284,29 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j, unsigned
 unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j, unsigned job_is_already_locked)
 {
 	unsigned ret;
+        _STARPU_LOG_IN();
 
 	/* enfore tag dependencies */
-	if (_starpu_not_all_tag_deps_are_fulfilled(j))
+	if (_starpu_not_all_tag_deps_are_fulfilled(j)) {
+                _STARPU_LOG_OUT_TAG("not_all_tag_deps_are_fulfilled");
 		return 0;
+        }
 
 	/* enfore task dependencies */
-	if (_starpu_not_all_task_deps_are_fulfilled(j, job_is_already_locked))
+	if (_starpu_not_all_task_deps_are_fulfilled(j, job_is_already_locked)) {
+                _STARPU_LOG_OUT_TAG("not_all_task_deps_are_fulfilled");
 		return 0;
+        }
 
 	/* enforce data dependencies */
-	if (_starpu_submit_job_enforce_data_deps(j))
+	if (_starpu_submit_job_enforce_data_deps(j)) {
+                _STARPU_LOG_OUT_TAG("enforce_data_deps");
 		return 0;
+        }
 
 	ret = _starpu_push_task(j, job_is_already_locked);
 
+        _STARPU_LOG_OUT();
 	return ret;
 }
 

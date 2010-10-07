@@ -145,6 +145,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 				void (*callback_func)(void *), void *callback_arg)
 {
 	uint32_t local_node = _starpu_get_local_memory_node();
+        _STARPU_LOG_IN();
 
 	while (_starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(local_node, 1);
@@ -162,6 +163,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 		if (callback_func)
 			callback_func(callback_arg);
 
+                _STARPU_LOG_OUT_TAG("data available");
 		return 0;
 	}
 
@@ -260,7 +262,8 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 
 			_starpu_spin_unlock(&handle->header_lock);
 
-			return 0;
+                        _STARPU_LOG_OUT_TAG("similar request");
+                        return 0;
 		}
 
 		r->refcnt++;
@@ -281,7 +284,9 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 		_starpu_spin_unlock(&handle->header_lock);
 	}
 
-	return (is_prefetch?0:_starpu_wait_data_request_completion(r, 1));
+	int ret = is_prefetch?0:_starpu_wait_data_request_completion(r, 1);
+        _STARPU_LOG_OUT();
+        return ret;
 }
 
 static int prefetch_data_on_node(starpu_data_handle handle, starpu_access_mode mode, uint32_t node)

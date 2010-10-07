@@ -67,6 +67,7 @@ unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle han
 						void (*callback)(void *), void *argcb)
 {
 	unsigned ret;
+        _STARPU_LOG_IN();
 
 	_starpu_spin_lock(&handle->header_lock);
 
@@ -109,6 +110,7 @@ unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle han
 	}
 
 	_starpu_spin_unlock(&handle->header_lock);
+        _STARPU_LOG_OUT();
 	return ret;
 }
 

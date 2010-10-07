@@ -38,6 +38,7 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 						starpu_data_handle handle, starpu_access_mode mode)
 {
 	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
+        _STARPU_LOG_IN();
 
 	if (handle->sequential_consistency)
 	{
@@ -204,12 +205,14 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 	
 		handle->last_submitted_mode = mode;
 	}
+        _STARPU_LOG_OUT();
 }
 
 /* Create the implicit dependencies for a newly submitted task */
 void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 {
 	STARPU_ASSERT(task->cl);
+        _STARPU_LOG_IN();
 
 	unsigned nbuffers = task->cl->nbuffers;
 
@@ -227,6 +230,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 		_starpu_detect_implicit_data_deps_with_handle(task, task, handle, mode);
 		PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 	}
+        _STARPU_LOG_OUT();
 }
 
 /* This function is called when a task has been executed so that we don't
@@ -322,6 +326,7 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 
 void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data_handle handle)
 {
+        _STARPU_LOG_IN();
 	PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 
 	if (handle->sequential_consistency)
@@ -335,6 +340,7 @@ void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data
 	}
 
 	PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+        _STARPU_LOG_OUT();
 }
 
 void _starpu_unlock_post_sync_tasks(starpu_data_handle handle)
