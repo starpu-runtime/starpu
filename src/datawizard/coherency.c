@@ -173,7 +173,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 	starpu_data_request_t r;
 
 	/* is there already a pending request ? */
-	r = _starpu_search_existing_data_request(handle, requesting_node, mode);
+	r = _starpu_search_existing_data_request(&handle->per_node[requesting_node], mode);
 	/* at the exit of _starpu_search_existing_data_request the lock is taken is the request existed ! */
 
 	if (!r) {
@@ -202,7 +202,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 			if (!is_prefetch)
 				r_ram_to_dst->refcnt++;
 
-			r_src_to_ram = _starpu_search_existing_data_request(handle, 0, mode);
+			r_src_to_ram = _starpu_search_existing_data_request(&handle->per_node[0], mode);
 			if (!r_src_to_ram)
 			{
 				reuse_r_src_to_ram = 0;

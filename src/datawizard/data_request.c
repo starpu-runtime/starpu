@@ -109,9 +109,9 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uin
 }
 
 /* handle->lock should be taken. r is returned locked */
-starpu_data_request_t _starpu_search_existing_data_request(starpu_data_handle handle, uint32_t dst_node, starpu_access_mode mode)
+starpu_data_request_t _starpu_search_existing_data_request(struct starpu_data_replicate_s *replicate, starpu_access_mode mode)
 {
-	starpu_data_request_t r = handle->per_node[dst_node].request;
+	starpu_data_request_t r = replicate->request;
 
 	if (r)
 	{
@@ -124,7 +124,7 @@ starpu_data_request_t _starpu_search_existing_data_request(starpu_data_handle ha
 			 * transfer yet, we have to increment the refcnt now
 			 * (so that the source remains valid) */
 			if (!(r->mode & STARPU_R))
-				handle->per_node[dst_node].refcnt++;
+				replicate->refcnt++;
 
 			r->mode |= STARPU_R;
 		}
