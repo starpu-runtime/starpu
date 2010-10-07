@@ -317,8 +317,9 @@ static void _starpu_terminate_workers(struct starpu_machine_config_s *config)
 				{
 					status = pthread_join(set->worker_thread, NULL);
 #ifdef STARPU_VERBOSE
-					if (status)
+					if (status) {
 						_STARPU_DEBUG("pthread_join -> %d\n", status);
+                                        }
 #endif
 				}
 
@@ -330,8 +331,9 @@ static void _starpu_terminate_workers(struct starpu_machine_config_s *config)
 			{
 				status = pthread_join(worker->worker_thread, NULL);
 #ifdef STARPU_VERBOSE
-				if (status)
+				if (status) {
 					_STARPU_DEBUG("pthread_join -> %d\n", status);
+                                }
 #endif
 			}
 		}
