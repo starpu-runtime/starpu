@@ -236,16 +236,7 @@ int starpu_task_submit(struct starpu_task *task)
 	/* internally, StarPU manipulates a starpu_job_t which is a wrapper around a
 	* task structure, it is possible that this job structure was already
 	* allocated, for instance to enforce task depenencies. */
-	starpu_job_t j;
-
-	if (!task->starpu_private)
-	{
-		j = _starpu_job_create(task);
-		task->starpu_private = j;
-	}
-	else {
-		j = (struct starpu_job_s *)task->starpu_private;
-	}
+	starpu_job_t j = _starpu_get_job_associated_to_task(task);
 
 	ret = _starpu_submit_job(j, 0);
 
