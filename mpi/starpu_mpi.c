@@ -593,6 +593,9 @@ static void *progress_thread_func(void *arg __attribute__((unused)))
 		}
 	}
 
+	STARPU_ASSERT(starpu_mpi_req_list_empty(detached_requests));
+	STARPU_ASSERT(starpu_mpi_req_list_empty(new_requests));
+
 	PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	return NULL;
