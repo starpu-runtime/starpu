@@ -36,8 +36,8 @@ LIST_TYPE(starpu_data_request,
 	unsigned refcnt;
 
 	starpu_data_handle handle;
-	uint32_t src_node;
-	uint32_t dst_node;
+	struct starpu_data_replicate_s *src_replicate;
+	struct starpu_data_replicate_s *dst_replicate;
 
 	uint32_t handling_node;
 
@@ -92,7 +92,13 @@ void _starpu_handle_all_pending_node_data_requests(uint32_t src_node);
 
 int _starpu_check_that_no_data_request_exists(uint32_t node);
 
-starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, starpu_access_mode mode, unsigned is_prefetch);
+starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle,
+				struct starpu_data_replicate_s *src_replicate,
+				struct starpu_data_replicate_s *dst_replicate,
+				uint32_t handling_node,
+				starpu_access_mode mode,
+				unsigned is_prefetch);
+
 starpu_data_request_t _starpu_search_existing_data_request(struct starpu_data_replicate_s *replicate, starpu_access_mode mode);
 int _starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_alloc);
 

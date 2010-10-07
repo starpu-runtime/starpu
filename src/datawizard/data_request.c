@@ -61,21 +61,26 @@ void _starpu_deinit_data_request_lists(void)
 /* this should be called with the lock r->handle->header_lock taken */
 static void starpu_data_request_destroy(starpu_data_request_t r)
 {
-	r->handle->per_node[r->dst_node].request = NULL;
+	r->dst_replicate->request = NULL;
 
 	starpu_data_request_delete(r);
 }
 
 /* handle->lock should already be taken !  */
-starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, uint32_t handling_node, starpu_access_mode mode, unsigned is_prefetch)
+starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle,
+				struct starpu_data_replicate_s *src_replicate,
+				struct starpu_data_replicate_s *dst_replicate,
+				uint32_t handling_node,
+				starpu_access_mode mode,
+				unsigned is_prefetch)
 {
 	starpu_data_request_t r = starpu_data_request_new();
 
 	_starpu_spin_init(&r->lock);
 
 	r->handle = handle;
-	r->src_node = src_node;
-	r->dst_node = dst_node;
+	r->src_replicate = src_replicate;
+	r->dst_replicate = dst_replicate;
 	r->mode = mode;
 
 	r->handling_node = handling_node;
@@ -94,12 +99,12 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle, uin
 
 	_starpu_spin_lock(&r->lock);
 
-	handle->per_node[dst_node].request = r;
+	dst_replicate->request = r;
 
-	handle->per_node[dst_node].refcnt++;
+	dst_replicate->refcnt++;
 
 	if (mode & STARPU_R)
-		handle->per_node[src_node].refcnt++;
+		src_replicate->refcnt++;
 
 	r->refcnt = 1;
 
@@ -186,8 +191,8 @@ void _starpu_post_data_request(starpu_data_request_t r, uint32_t handling_node)
 
 	if (r->mode & STARPU_R)
 	{
-		STARPU_ASSERT(r->handle->per_node[r->src_node].allocated);
-		STARPU_ASSERT(r->handle->per_node[r->src_node].refcnt);
+		STARPU_ASSERT(r->src_replicate->allocated);
+		STARPU_ASSERT(r->src_replicate->refcnt);
 	}
 
 	/* insert the request in the proper list */
@@ -224,8 +229,8 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 	unsigned do_delete = 0;
 	starpu_data_handle handle = r->handle;
 
-	uint32_t src_node = r->src_node;
-	uint32_t dst_node = r->dst_node;
+	uint32_t src_node = r->src_replicate->memory_node;
+	uint32_t dst_node = r->dst_replicate->memory_node;
 
 	_starpu_update_data_state(handle, dst_node, r->mode);
 
@@ -242,10 +247,10 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 
 	r->completed = 1;
 	
-	handle->per_node[dst_node].refcnt--;
+	r->dst_replicate->refcnt--;
 
 	if (r->mode & STARPU_R)
-		handle->per_node[src_node].refcnt--;
+		r->src_replicate->refcnt--;
 
 	r->refcnt--;
 
@@ -288,13 +293,14 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 
 	if (r->mode & STARPU_R)
 	{
-		STARPU_ASSERT(handle->per_node[r->src_node].allocated);
-		STARPU_ASSERT(handle->per_node[r->src_node].refcnt);
+		STARPU_ASSERT(r->src_replicate->allocated);
+		STARPU_ASSERT(r->src_replicate->refcnt);
 	}
 
 	/* perform the transfer */
 	/* the header of the data must be locked by the worker that submitted the request */
-	r->retval = _starpu_driver_copy_data_1_to_1(handle, r->src_node, r->dst_node, !(r->mode & STARPU_R), r, may_alloc);
+	r->retval = _starpu_driver_copy_data_1_to_1(handle, r->src_replicate->memory_node,
+			r->dst_replicate->memory_node, !(r->mode & STARPU_R), r, may_alloc);
 
 	if (r->retval == -ENOMEM)
 	{

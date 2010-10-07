@@ -197,7 +197,8 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 			starpu_data_request_t r_ram_to_dst;
 
 			/* XXX we hardcore 0 as the RAM node ... */
-			r_ram_to_dst = _starpu_create_data_request(handle, 0, requesting_node, requesting_node, mode, is_prefetch);
+			r_ram_to_dst = _starpu_create_data_request(handle, &handle->per_node[0],
+						&handle->per_node[requesting_node], requesting_node, mode, is_prefetch);
 
 			if (!is_prefetch)
 				r_ram_to_dst->refcnt++;
@@ -206,7 +207,8 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 			if (!r_src_to_ram)
 			{
 				reuse_r_src_to_ram = 0;
-				r_src_to_ram = _starpu_create_data_request(handle, src_node, 0, src_node, mode, is_prefetch);
+				r_src_to_ram = _starpu_create_data_request(handle, &handle->per_node[src_node],
+							&handle->per_node[0], src_node, mode, is_prefetch);
 			}
 			else {
 				reuse_r_src_to_ram = 1;
@@ -234,7 +236,8 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 			uint32_t handling_node =
 				_starpu_select_node_to_handle_request(src_node, requesting_node);
 
-			r = _starpu_create_data_request(handle, src_node, requesting_node, handling_node, mode, is_prefetch);
+			r = _starpu_create_data_request(handle, &handle->per_node[src_node],
+					&handle->per_node[requesting_node], handling_node, mode, is_prefetch);
 
 			_starpu_data_request_append_callback(r, callback_func, callback_arg);
 
