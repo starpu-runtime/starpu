@@ -131,29 +131,32 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 
 	if (handle->nchildren == 0)
 	{
+		struct starpu_data_replicate_s *src_replicate = &handle->per_node[src_node];
+		struct starpu_data_replicate_s *dst_replicate = &handle->per_node[dst_node];
+
 		/* this is a leaf */
-		switch(handle->per_node[src_node].state) {
+		switch(src_replicate->state) {
 		case STARPU_OWNER:
 			/* the local node has the only copy */
 			/* the owner is now the destination_node */
-			handle->per_node[src_node].state = STARPU_INVALID;
-			handle->per_node[dst_node].state = STARPU_OWNER;
+			src_replicate->state = STARPU_INVALID;
+			dst_replicate->state = STARPU_OWNER;
 
 #warning we should use requests during memory reclaim
 			/* TODO use request !! */
-			handle->per_node[src_node].refcnt++;
-			handle->per_node[dst_node].refcnt++;
+			src_replicate->refcnt++;
+			dst_replicate->refcnt++;
 
-			ret = _starpu_driver_copy_data_1_to_1(handle, src_node, dst_node, 0, NULL, 1);
+			ret = _starpu_driver_copy_data_1_to_1(handle, &handle->per_node[src_node], &handle->per_node[dst_node], 0, NULL, 1);
 			STARPU_ASSERT(ret == 0);
 
-			handle->per_node[src_node].refcnt--;
-			handle->per_node[dst_node].refcnt--;
+			src_replicate->refcnt--;
+			dst_replicate->refcnt--;
 
 			break;
 		case STARPU_SHARED:
 			/* some other node may have the copy */
-			handle->per_node[src_node].state = STARPU_INVALID;
+			src_replicate->state = STARPU_INVALID;
 
 			/* count the number of copies */
 			cnt = 0;

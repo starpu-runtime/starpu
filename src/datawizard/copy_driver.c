@@ -81,28 +81,31 @@ void starpu_wake_all_blocked_workers(void)
 static unsigned communication_cnt = 0;
 #endif
 
-static int copy_data_1_to_1_generic(starpu_data_handle handle, uint32_t src_node, uint32_t dst_node, struct starpu_data_request_s *req __attribute__((unused)))
+static int copy_data_1_to_1_generic(starpu_data_handle handle, struct starpu_data_replicate_s *src_replicate, struct starpu_data_replicate_s *dst_replicate, struct starpu_data_request_s *req __attribute__((unused)))
 {
 	int ret = 0;
 
 	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
 
+	unsigned src_node = src_replicate->memory_node;
+	unsigned dst_node = dst_replicate->memory_node;
+
 	starpu_node_kind src_kind = _starpu_get_node_kind(src_node);
 	starpu_node_kind dst_kind = _starpu_get_node_kind(dst_node);
 
-	STARPU_ASSERT(handle->per_node[src_node].refcnt);
-	STARPU_ASSERT(handle->per_node[dst_node].refcnt);
+	STARPU_ASSERT(src_replicate->refcnt);
+	STARPU_ASSERT(dst_replicate->refcnt);
 
-	STARPU_ASSERT(handle->per_node[src_node].allocated);
-	STARPU_ASSERT(handle->per_node[dst_node].allocated);
+	STARPU_ASSERT(src_replicate->allocated);
+	STARPU_ASSERT(dst_replicate->allocated);
 
 #ifdef STARPU_USE_CUDA
 	cudaError_t cures;
 	cudaStream_t *stream;
 #endif
 
-	void *src_interface = starpu_data_get_interface_on_node(handle, src_node);
-	void *dst_interface = starpu_data_get_interface_on_node(handle, dst_node);
+	void *src_interface = src_replicate->interface;
+	void *dst_interface = dst_replicate->interface;
 
 	switch (_STARPU_MEMORY_NODE_TUPLE(src_kind,dst_kind)) {
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CPU_RAM):
@@ -197,25 +200,32 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, uint32_t src_node
 	return ret;
 }
 
-int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_data_handle handle, uint32_t src_node, 
-		uint32_t dst_node, unsigned donotread, struct starpu_data_request_s *req, unsigned may_alloc)
+int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_data_handle handle,
+						struct starpu_data_replicate_s *src_replicate,
+						struct starpu_data_replicate_s *dst_replicate,
+						unsigned donotread,
+						struct starpu_data_request_s *req,
+						unsigned may_alloc)
 {
 	if (!donotread)
 	{
-		STARPU_ASSERT(handle->per_node[src_node].allocated);
-		STARPU_ASSERT(handle->per_node[src_node].refcnt);
+		STARPU_ASSERT(src_replicate->allocated);
+		STARPU_ASSERT(src_replicate->refcnt);
 	}
 
 	int ret_alloc, ret_copy;
 	unsigned __attribute__((unused)) com_id = 0;
+
+	unsigned src_node = src_replicate->memory_node;
+	unsigned dst_node = dst_replicate->memory_node;
 
 	/* first make sure the destination has an allocated buffer */
 	ret_alloc = _starpu_allocate_memory_on_node(handle, dst_node, may_alloc);
 	if (ret_alloc)
 		goto nomem;
 
-	STARPU_ASSERT(handle->per_node[dst_node].allocated);
-	STARPU_ASSERT(handle->per_node[dst_node].refcnt);
+	STARPU_ASSERT(dst_replicate->allocated);
+	STARPU_ASSERT(dst_replicate->refcnt);
 
 	/* if there is no need to actually read the data, 
 	 * we do not perform any transfer */
@@ -235,7 +245,7 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 
 		/* for now we set the size to 0 in the FxT trace XXX */
 		STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, 0, com_id);
-		ret_copy = copy_data_1_to_1_generic(handle, src_node, dst_node, req);
+		ret_copy = copy_data_1_to_1_generic(handle, src_replicate, dst_replicate, req);
 
 #ifdef STARPU_USE_FXT
 		if (ret_copy != -EAGAIN)

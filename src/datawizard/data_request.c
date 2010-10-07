@@ -299,8 +299,8 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 
 	/* perform the transfer */
 	/* the header of the data must be locked by the worker that submitted the request */
-	r->retval = _starpu_driver_copy_data_1_to_1(handle, r->src_replicate->memory_node,
-			r->dst_replicate->memory_node, !(r->mode & STARPU_R), r, may_alloc);
+	r->retval = _starpu_driver_copy_data_1_to_1(handle, r->src_replicate,
+			r->dst_replicate, !(r->mode & STARPU_R), r, may_alloc);
 
 	if (r->retval == -ENOMEM)
 	{

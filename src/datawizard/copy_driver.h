@@ -33,6 +33,7 @@
 #endif
 
 struct starpu_data_request_s;
+struct starpu_data_replicate_s;
 
 /* this is a structure that can be queried to see whether an asynchronous
  * transfer has terminated or not */
@@ -48,9 +49,12 @@ typedef union {
 
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid);
 
-__attribute__((warn_unused_result))
-int _starpu_driver_copy_data_1_to_1(starpu_data_handle handle, uint32_t node, 
-		uint32_t requesting_node, unsigned donotread, struct starpu_data_request_s *req, unsigned may_allloc);
+int _starpu_driver_copy_data_1_to_1(starpu_data_handle handle,
+					struct starpu_data_replicate_s *src_replicate,
+					struct starpu_data_replicate_s *dst_replicate,
+					unsigned donotread,
+					struct starpu_data_request_s *req,
+					unsigned may_alloc);
 
 unsigned _starpu_driver_test_request_completion(starpu_async_channel *async_channel, unsigned handling_node);
 void _starpu_driver_wait_request_completion(starpu_async_channel *async_channel, unsigned handling_node);
