@@ -151,7 +151,10 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 			child->per_node[node].refcnt = 0;
 			
 			/* update the interface */
-			f->filter_func(initial_handle->interface[node], child->interface[node], f, i, nparts);
+			void *initial_interface = starpu_data_get_interface_on_node(initial_handle, node);
+			void *child_interface = starpu_data_get_interface_on_node(child, node);
+
+			f->filter_func(initial_interface, child_interface, f, i, nparts);
 		}
 
 		/* We compute the size and the footprint of the child once and
@@ -212,7 +215,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 
 		for (child = 0; child < root_handle->nchildren; child++)
 		{
-			starpu_local_data_state *local = &root_handle->children[child].per_node[node];
+			struct starpu_data_replicate_s *local = &root_handle->children[child].per_node[node];
 
 			if (local->state == STARPU_INVALID) {
 				isvalid = 0; 
@@ -275,8 +278,8 @@ static void starpu_data_create_children(starpu_data_handle handle, unsigned nchi
 
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
-			handle_child->interface[node] = calloc(1, interfacesize);
-			STARPU_ASSERT(handle->children->interface[node]);
+			handle_child->per_node[node].interface = calloc(1, interfacesize);
+			STARPU_ASSERT(handle_child->per_node[node].interface);
 		}
 	}
 	

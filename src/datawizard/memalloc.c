@@ -247,7 +247,7 @@ static void reuse_mem_chunk(unsigned node, starpu_data_handle new_data, starpu_m
 	new_data->per_node[node].allocated = 1;
 	new_data->per_node[node].automatically_allocated = 1;
 
-	memcpy(&new_data->interface[node], mc->interface, old_data->ops->interface_size);
+	memcpy(&new_data->per_node[node].interface, mc->interface, old_data->ops->interface_size);
 
 	mc->data = new_data;
 	mc->data_was_deleted = 0;
@@ -378,7 +378,7 @@ starpu_mem_chunk_t _starpu_memchunk_cache_lookup(uint32_t node, starpu_data_hand
 		if (mc->footprint == footprint)
 		{
 			/* Is that a false hit ? (this is _very_ unlikely) */
-			if (_starpu_data_interface_compare(&handle->interface[node], handle->ops, mc->interface, mc->ops))
+			if (_starpu_data_interface_compare(&handle->per_node[node].interface, handle->ops, mc->interface, mc->ops))
 				continue;
 
 			/* Cache hit */

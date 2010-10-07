@@ -106,8 +106,8 @@ static starpu_data_handle _starpu_data_handle_allocate(struct starpu_data_interf
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		handle->interface[node] = calloc(1, interfacesize);
-		STARPU_ASSERT(handle->interface[node]);
+		handle->per_node[node].interface = calloc(1, interfacesize);
+		STARPU_ASSERT(handle->per_node[node].interface);
 	}
 
 	return handle;
@@ -137,7 +137,7 @@ void _starpu_data_free_interfaces(starpu_data_handle handle)
 {
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
-		free(handle->interface[node]);
+		free(handle->per_node[node].interface);
 }
 
 struct unregister_callback_arg {
@@ -206,7 +206,7 @@ void starpu_data_unregister(starpu_data_handle handle)
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		starpu_local_data_state *local = &handle->per_node[node];
+		struct starpu_data_replicate_s *local = &handle->per_node[node];
 
 		if (local->allocated && local->automatically_allocated){
 			/* free the data copy in a lazy fashion */
@@ -232,7 +232,7 @@ void starpu_data_invalidate(starpu_data_handle handle)
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		starpu_local_data_state *local = &handle->per_node[node];
+		struct starpu_data_replicate_s *local = &handle->per_node[node];
 
 		if (local->allocated && local->automatically_allocated){
 			/* free the data copy in a lazy fashion */
@@ -254,5 +254,5 @@ unsigned starpu_get_handle_interface_id(starpu_data_handle handle)
 
 void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node)
 {
-	return handle->interface[memory_node];
+	return handle->per_node[memory_node].interface;
 }
