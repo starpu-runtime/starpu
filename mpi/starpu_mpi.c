@@ -60,6 +60,20 @@ static pthread_mutex_t mutex;
 static pthread_t progress_thread;
 static int running = 0;
 
+#if 0
+void starpu_mpi_debug(FILE *stream, const char *format, ...) {
+        int rank;
+	va_list args;
+
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        fprintf(stream, "[%d] ", rank);
+        va_start(args, format);
+        vfprintf(stream, format, args);
+        va_end(args);
+        fflush(stream);
+}
+#endif
+
 /*
  *	Isend
  */
