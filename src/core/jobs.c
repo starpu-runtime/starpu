@@ -229,6 +229,7 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(starpu_job_t j)
 	if (tag_successors->ndeps != tag_successors->ndeps_completed)
 	{
 		tag->state = STARPU_BLOCKED;
+                j->task->status = STARPU_TASK_BLOCKED_ON_TAG;
 		ret = 1;
 	}
 	else {
@@ -254,6 +255,7 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j, unsigned
 
 	if (!j->submitted || (job_successors->ndeps != job_successors->ndeps_completed))
 	{
+                j->task->status = STARPU_TASK_BLOCKED_ON_TASK;
 		ret = 1;
 	}
 	else {
