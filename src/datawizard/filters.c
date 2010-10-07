@@ -149,6 +149,7 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 				initial_handle->per_node[node].allocated;
 			child->per_node[node].automatically_allocated = initial_handle->per_node[node].automatically_allocated;
 			child->per_node[node].refcnt = 0;
+			child->per_node[node].memory_node = node;
 			
 			/* update the interface */
 			void *initial_interface = starpu_data_get_interface_on_node(initial_handle, node);

@@ -36,10 +36,12 @@ typedef enum {
 	STARPU_INVALID
 } starpu_cache_state;
 
-/* this should contain the information relative to a given node */
+/* this should contain the information relative to a given data replicate  */
 struct starpu_data_replicate_s {
 	/* describe the actual data layout */
 	void *interface;
+
+	unsigned memory_node;
 
 	/* describes the state of the local data in term of coherency */
 	starpu_cache_state	state; 

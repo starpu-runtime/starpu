@@ -73,6 +73,8 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
+		handle->per_node[node].memory_node = node;
+
 		if (node == home_node) {
 			/* this is the home node with the only valid copy */
 			handle->per_node[node].state = STARPU_OWNER;
