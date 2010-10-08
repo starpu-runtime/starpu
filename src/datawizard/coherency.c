@@ -94,7 +94,8 @@ void _starpu_update_data_state(starpu_data_handle handle, uint32_t requesting_no
 	unsigned nnodes = _starpu_get_memory_nodes_count();
 
 	/* the data is present now */
-	handle->per_node[requesting_node].requested = 0;
+	struct starpu_data_replicate_s *requesting_replicate = &handle->per_node[requesting_node];
+	requesting_replicate->requested = 0;
 
 	if (mode & STARPU_W) {
 		/* the requesting node now has the only valid copy */
@@ -102,19 +103,20 @@ void _starpu_update_data_state(starpu_data_handle handle, uint32_t requesting_no
 		for (node = 0; node < nnodes; node++)
 			handle->per_node[node].state = STARPU_INVALID;
 
-		handle->per_node[requesting_node].state = STARPU_OWNER;
+		requesting_replicate->state = STARPU_OWNER;
 	}
 	else { /* read only */
-		if (handle->per_node[requesting_node].state != STARPU_OWNER)
+		if (requesting_replicate->state != STARPU_OWNER)
 		{
 			/* there was at least another copy of the data */
 			uint32_t node;
 			for (node = 0; node < nnodes; node++)
 			{
-				if (handle->per_node[node].state != STARPU_INVALID)
-					handle->per_node[node].state = STARPU_SHARED;
+				struct starpu_data_replicate_s *replicate = &handle->per_node[node];
+				if (replicate->state != STARPU_INVALID)
+					replicate->state = STARPU_SHARED;
 			}
-			handle->per_node[requesting_node].state = STARPU_SHARED;
+			requesting_replicate->state = STARPU_SHARED;
 		}
 	}
 }
@@ -194,25 +196,29 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 		unsigned src_is_a_gpu = (_starpu_get_node_kind(src_node) == STARPU_CUDA_RAM || _starpu_get_node_kind(src_node) == STARPU_OPENCL_RAM);
 		unsigned dst_is_a_gpu = (_starpu_get_node_kind(requesting_node) == STARPU_CUDA_RAM || _starpu_get_node_kind(requesting_node) == STARPU_OPENCL_RAM);
 
+		struct starpu_data_replicate_s *src_replicate = &handle->per_node[src_node];
+
 		/* we have to perform 2 successive requests for GPU->GPU transfers */
 		if ((mode & STARPU_R) && (src_is_a_gpu && dst_is_a_gpu)) {
 			unsigned reuse_r_src_to_ram;
 			starpu_data_request_t r_src_to_ram;
 			starpu_data_request_t r_ram_to_dst;
 
+			struct starpu_data_replicate_s *ram_replicate = &handle->per_node[0];
+
 			/* XXX we hardcore 0 as the RAM node ... */
-			r_ram_to_dst = _starpu_create_data_request(handle, &handle->per_node[0],
+			r_ram_to_dst = _starpu_create_data_request(handle, ram_replicate,
 						dst_replicate, requesting_node, mode, is_prefetch);
 
 			if (!is_prefetch)
 				r_ram_to_dst->refcnt++;
 
-			r_src_to_ram = _starpu_search_existing_data_request(&handle->per_node[0], mode);
+			r_src_to_ram = _starpu_search_existing_data_request(ram_replicate, mode);
 			if (!r_src_to_ram)
 			{
 				reuse_r_src_to_ram = 0;
-				r_src_to_ram = _starpu_create_data_request(handle, &handle->per_node[src_node],
-							&handle->per_node[0], src_node, mode, is_prefetch);
+				r_src_to_ram = _starpu_create_data_request(handle, src_replicate,
+							ram_replicate, src_node, mode, is_prefetch);
 			}
 			else {
 				reuse_r_src_to_ram = 1;
@@ -240,7 +246,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 			uint32_t handling_node =
 				_starpu_select_node_to_handle_request(src_node, requesting_node);
 
-			r = _starpu_create_data_request(handle, &handle->per_node[src_node],
+			r = _starpu_create_data_request(handle, src_replicate,
 					dst_replicate, handling_node, mode, is_prefetch);
 
 			_starpu_data_request_append_callback(r, callback_func, callback_arg);
@@ -331,7 +337,9 @@ void _starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wt
 	 * starpu_data_invalidate was called for instance). In that case, we do
 	 * not enforce any write-through mechanism. */
 
-	if (handle->per_node[memory_node].state != STARPU_INVALID)
+	struct starpu_data_replicate_s *replicate = &handle->per_node[memory_node];
+
+	if (replicate->state != STARPU_INVALID)
 	if ((wt_mask & ~(1<<memory_node)))
 		_starpu_write_through_data(handle, memory_node, wt_mask);
 
@@ -339,9 +347,9 @@ void _starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wt
 	while (_starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(local_node, 1);
 
-	handle->per_node[memory_node].refcnt--;
+	replicate->refcnt--;
 
-	STARPU_ASSERT(handle->per_node[memory_node].refcnt >= 0);
+	STARPU_ASSERT(replicate->refcnt >= 0);
 
 	_starpu_notify_data_dependencies(handle);
 
@@ -353,8 +361,10 @@ inline void _starpu_set_data_requested_flag_if_needed(starpu_data_handle handle,
 // XXX : this is just a hint, so we don't take the lock ...
 //	pthread_spin_lock(&handle->header_lock);
 
-	if (handle->per_node[node].state == STARPU_INVALID) 
-		handle->per_node[node].requested = 1;
+	struct starpu_data_replicate_s *replicate = &handle->per_node[node];
+
+	if (replicate->state == STARPU_INVALID) 
+		replicate->requested = 1;
 
 //	pthread_spin_unlock(&handle->header_lock);
 }
@@ -367,13 +377,8 @@ int _starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
-		starpu_buffer_descr *descr;
-		starpu_data_handle handle;
-
-		descr = &descrs[index];
-		handle = descr->handle;
-		
-		starpu_access_mode mode = task->buffers[index].mode;
+		starpu_data_handle handle = descrs[index].handle;
+		starpu_access_mode mode = descrs[index].mode;
 
 		if (mode & STARPU_SCRATCH)
 			continue;
@@ -402,13 +407,8 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 	for (index = 0; index < nbuffers; index++)
 	{
 		int ret;
-		starpu_buffer_descr *descr;
-		starpu_data_handle handle;
-
-		descr = &descrs[index];
-
-		handle = descr->handle;
-		starpu_access_mode mode = descr->mode;
+		starpu_data_handle handle = descrs[index].handle;
+		starpu_access_mode mode = descrs[index].mode;
 
 		void *interface;
 
