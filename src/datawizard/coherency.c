@@ -23,7 +23,7 @@
 uint32_t _starpu_select_node_to_handle_request(uint32_t src_node, uint32_t dst_node) 
 {
 	/* in case one of the node is a GPU, it needs to perform the transfer,
-	 * if both of them are GPU, it's a bit more complicated (TODO !) */
+	 * if both of them are GPU, it's a bit more complicated */
 
 	unsigned src_is_a_gpu = (_starpu_get_node_kind(src_node) == STARPU_CUDA_RAM || _starpu_get_node_kind(src_node) == STARPU_OPENCL_RAM);
 	unsigned dst_is_a_gpu = (_starpu_get_node_kind(dst_node) == STARPU_CUDA_RAM || _starpu_get_node_kind(dst_node) == STARPU_OPENCL_RAM);
@@ -147,13 +147,15 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 	uint32_t local_node = _starpu_get_local_memory_node();
         _STARPU_LOG_IN();
 
+	struct starpu_data_replicate_s *dst_replicate = &handle->per_node[requesting_node];
+
 	while (_starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(local_node, 1);
 
 	if (!is_prefetch)
-		handle->per_node[requesting_node].refcnt++;
+		dst_replicate->refcnt++;
 
-	if (handle->per_node[requesting_node].state != STARPU_INVALID)
+	if (dst_replicate->state != STARPU_INVALID)
 	{
 		/* the data is already available so we can stop */
 		_starpu_update_data_state(handle, requesting_node, mode);
@@ -168,14 +170,14 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 	}
 
 	/* the only remaining situation is that the local copy was invalid */
-	STARPU_ASSERT(handle->per_node[requesting_node].state == STARPU_INVALID);
+	STARPU_ASSERT(dst_replicate->state == STARPU_INVALID);
 
 	_starpu_msi_cache_miss(requesting_node);
 
 	starpu_data_request_t r;
 
 	/* is there already a pending request ? */
-	r = _starpu_search_existing_data_request(&handle->per_node[requesting_node], mode);
+	r = _starpu_search_existing_data_request(dst_replicate, mode);
 	/* at the exit of _starpu_search_existing_data_request the lock is taken is the request existed ! */
 
 	if (!r) {
@@ -200,7 +202,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 
 			/* XXX we hardcore 0 as the RAM node ... */
 			r_ram_to_dst = _starpu_create_data_request(handle, &handle->per_node[0],
-						&handle->per_node[requesting_node], requesting_node, mode, is_prefetch);
+						dst_replicate, requesting_node, mode, is_prefetch);
 
 			if (!is_prefetch)
 				r_ram_to_dst->refcnt++;
@@ -239,7 +241,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 				_starpu_select_node_to_handle_request(src_node, requesting_node);
 
 			r = _starpu_create_data_request(handle, &handle->per_node[src_node],
-					&handle->per_node[requesting_node], handling_node, mode, is_prefetch);
+					dst_replicate, handling_node, mode, is_prefetch);
 
 			_starpu_data_request_append_callback(r, callback_func, callback_arg);
 
