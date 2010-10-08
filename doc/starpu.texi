@@ -1235,6 +1235,9 @@ Likewise, performance monitoring is stopped by calling
 does not reset the performance counters so that the application may consult
 them later on.
 
+More details about the performance monitoring API are available in section
+@ref{Profiling API}.
+
 @node Task feedback
 @subsection Per-task feedback
 
