@@ -704,18 +704,19 @@ ssize_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, u
 	return allocated_memory;
 }
 
-int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node)
+int _starpu_allocate_memory_on_node(starpu_data_handle handle, struct starpu_data_replicate_s *replicate)
 {
 	ssize_t allocated_memory;
+
+	unsigned dst_node = replicate->memory_node;
 
 	STARPU_ASSERT(handle);
 
 	/* A buffer is already allocated on the node */
-	if (handle->per_node[dst_node].allocated)
+	if (replicate->allocated)
 		return 0;
 
-	void *interface = starpu_data_get_interface_on_node(handle, dst_node);
-	allocated_memory = _starpu_allocate_interface(handle, interface, dst_node);
+	allocated_memory = _starpu_allocate_interface(handle, replicate->interface, dst_node);
 
 	/* perhaps we could really not handle that capacity misses */
 	if (allocated_memory == -ENOMEM)
@@ -723,8 +724,8 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node
 
 	register_mem_chunk(handle, dst_node, allocated_memory, 1);
 
-	handle->per_node[dst_node].allocated = 1;
-	handle->per_node[dst_node].automatically_allocated = 1;
+	replicate->allocated = 1;
+	replicate->automatically_allocated = 1;
 
 	return 0;
 }
