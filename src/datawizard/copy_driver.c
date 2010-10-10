@@ -220,9 +220,12 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 	unsigned dst_node = dst_replicate->memory_node;
 
 	/* first make sure the destination has an allocated buffer */
-	ret_alloc = _starpu_allocate_memory_on_node(handle, dst_node, may_alloc);
-	if (ret_alloc)
-		goto nomem;
+	if (!handle->per_node[dst_node].allocated)
+	{
+		ret_alloc = _starpu_allocate_memory_on_node(handle, dst_node);
+		if (ret_alloc)
+			goto nomem;
+	}
 
 	STARPU_ASSERT(dst_replicate->allocated);
 	STARPU_ASSERT(dst_replicate->refcnt);

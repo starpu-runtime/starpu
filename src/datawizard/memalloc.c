@@ -704,7 +704,7 @@ ssize_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, u
 	return allocated_memory;
 }
 
-int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node, unsigned may_alloc)
+int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node)
 {
 	ssize_t allocated_memory;
 
@@ -713,9 +713,6 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, uint32_t dst_node
 	/* A buffer is already allocated on the node */
 	if (handle->per_node[dst_node].allocated)
 		return 0;
-
-	if (!may_alloc)
-		return -ENOMEM;
 
 	void *interface = starpu_data_get_interface_on_node(handle, dst_node);
 	allocated_memory = _starpu_allocate_interface(handle, interface, dst_node);
