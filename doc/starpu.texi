@@ -1345,12 +1345,11 @@ $ ./configure --with-fxt=$FXTDIR
 @end example
 
 When FxT is enabled, a trace is generated when StarPU is terminated by calling
-@code{starpu_shutdown()}). The trace is a binary file which name has the form
+@code{starpu_shutdown()}). The trace is a binary file whose name has the form
 @code{prof_file_XXX_YYY} where @code{XXX} is the user name, and
-@code{YYY} is the pid of the process that used StarPU. This file is put in the
-@code{/tmp/} directory by default, but it is possible to specify in which
-directory the file should be created by setting the @code{STARPU_FXT_PREFIX}
-environment variable.
+@code{YYY} is the pid of the process that used StarPU. This file is saved in the
+@code{/tmp/} directory by default, or by the directory specified by
+the @code{STARPU_FXT_PREFIX} environment variable.
 
 @node Gantt diagram
 @subsection Creating a Gantt Diagram
@@ -1374,14 +1373,14 @@ command:
 @subsection Creating a DAG with graphviz
 
 When the FxT trace file @code{filename} has been generated, it is possible to
-generate a trace in the Paje format by calling:
+generate a task graph in the DOT format by calling:
 @example
 $ fxt_tool -i filename
 @end example
 
 This will create a @code{dag.dot} file in the current directory. This file is a
-task graph described using the DOT language. It is possible to display this
-graph by the means of the graphviz library:
+task graph described using the DOT language. It is possible to get a
+graphical output of the graph by using the graphviz library:
 @example
 $ dot -Tpdf dag.dot -o output.pdf
 @end example
@@ -1390,12 +1389,14 @@ $ dot -Tpdf dag.dot -o output.pdf
 @subsection Monitoring activity
 
 When the FxT trace file @code{filename} has been generated, it is possible to
-generate a trace in the Paje format by calling:
+generate a activity trace by calling:
 @example
 $ fxt_tool -i filename
 @end example
 
-This will create an @code{activity.data} file in the current directory. A profile of the application showing the activity of StarPU during the execution of the program can be generated:
+This will create an @code{activity.data} file in the current
+directory. A profile of the application showing the activity of StarPU
+during the execution of the program can be generated:
 @example
 $ starpu_top.sh activity.data
 @end example
