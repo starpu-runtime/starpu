@@ -159,7 +159,9 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 
 	STARPU_ASSERT(handle);
 
-	ret = _starpu_fetch_data_on_node(handle, arg->memory_node, STARPU_R, 0, NULL, NULL);
+	struct starpu_data_replicate_s *replicate = &handle->per_node[arg->memory_node];
+
+	ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, 0, NULL, NULL);
 	STARPU_ASSERT(!ret);
 	
 	/* unlock the caller */
@@ -193,7 +195,8 @@ void starpu_data_unregister(starpu_data_handle handle)
 				_starpu_data_unregister_fetch_data_callback, &arg))
 		{
 			/* no one has locked this data yet, so we proceed immediately */
-			int ret = _starpu_fetch_data_on_node(handle, home_node, STARPU_R, 0, NULL, NULL);
+			struct starpu_data_replicate_s *home_replicate = &handle->per_node[home_node];
+			int ret = _starpu_fetch_data_on_node(handle, home_replicate, STARPU_R, 0, NULL, NULL);
 			STARPU_ASSERT(!ret);
 		}
 		else {

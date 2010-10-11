@@ -143,14 +143,14 @@ void _starpu_update_data_state(starpu_data_handle handle,
  * 		    else (invalid,owner->shared)
  */
 
-int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_node,
+int _starpu_fetch_data_on_node(starpu_data_handle handle, struct starpu_data_replicate_s *dst_replicate,
 				starpu_access_mode mode, unsigned is_prefetch,
 				void (*callback_func)(void *), void *callback_arg)
 {
 	uint32_t local_node = _starpu_get_local_memory_node();
         _STARPU_LOG_IN();
 
-	struct starpu_data_replicate_s *dst_replicate = &handle->per_node[requesting_node];
+	unsigned requesting_node = dst_replicate->memory_node;
 
 	while (_starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(local_node, 1);
@@ -297,18 +297,16 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
         return ret;
 }
 
-static int prefetch_data_on_node(starpu_data_handle handle, starpu_access_mode mode, uint32_t node)
+static int prefetch_data_on_node(starpu_data_handle handle, struct starpu_data_replicate_s *replicate, starpu_access_mode mode)
 {
-	return _starpu_fetch_data_on_node(handle, node, mode, 1, NULL, NULL);
+	return _starpu_fetch_data_on_node(handle, replicate, mode, 1, NULL, NULL);
 }
 
-static int fetch_data(starpu_data_handle handle, starpu_access_mode mode)
+static int fetch_data(starpu_data_handle handle, struct starpu_data_replicate_s *replicate, starpu_access_mode mode)
 {
-	uint32_t requesting_node = _starpu_get_local_memory_node(); 
-
 	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
 
-	return _starpu_fetch_data_on_node(handle, requesting_node, mode, 0, NULL, NULL);
+	return _starpu_fetch_data_on_node(handle, replicate, mode, 0, NULL, NULL);
 }
 
 inline uint32_t _starpu_get_data_refcnt(starpu_data_handle handle, uint32_t node)
@@ -328,7 +326,7 @@ uint32_t _starpu_data_get_footprint(starpu_data_handle handle)
 
 /* in case the data was accessed on a write mode, do not forget to 
  * make it accessible again once it is possible ! */
-void _starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wt_mask, uint32_t memory_node)
+void _starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wt_mask, struct starpu_data_replicate_s *replicate)
 {
 	uint32_t wt_mask;
 	wt_mask = default_wt_mask | handle->wt_mask;
@@ -337,7 +335,7 @@ void _starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wt
 	 * starpu_data_invalidate was called for instance). In that case, we do
 	 * not enforce any write-through mechanism. */
 
-	struct starpu_data_replicate_s *replicate = &handle->per_node[memory_node];
+	unsigned memory_node = replicate->memory_node;
 
 	if (replicate->state != STARPU_INVALID)
 	if ((wt_mask & ~(1<<memory_node)))
@@ -382,8 +380,9 @@ int _starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 
 		if (mode & STARPU_SCRATCH)
 			continue;
-	
-		prefetch_data_on_node(handle, mode, node);
+
+		struct starpu_data_replicate_s *replicate = &handle->per_node[node];
+		prefetch_data_on_node(handle, replicate, mode);
 
 		_starpu_set_data_requested_flag_if_needed(handle, node);
 	}
@@ -439,7 +438,9 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 		}
 		else {
 			/* That's a "normal" buffer (R/W) */
-			ret = fetch_data(handle, mode);
+			struct starpu_data_replicate_s *local_replicate;
+			local_replicate = &handle->per_node[local_memory_node];
+			ret = fetch_data(handle, local_replicate, mode);
 			if (STARPU_UNLIKELY(ret))
 				goto enomem;
 
@@ -484,7 +485,8 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 			_starpu_memchunk_cache_insert(local_node, j->scratch_memchunks[index]);
 		}
 		else {
-			_starpu_release_data_on_node(handle, mask, local_node);
+			struct starpu_data_replicate_s *replicate = &handle->per_node[local_node];
+			_starpu_release_data_on_node(handle, mask, replicate);
 			_starpu_release_data_enforce_sequential_consistency(task, handle);
 		}
 	}

@@ -82,7 +82,9 @@ static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 
 	STARPU_ASSERT(handle);
 
-	ret = _starpu_fetch_data_on_node(handle, 0, wrapper->mode, 1,
+	struct starpu_data_replicate_s *ram_replicate = &handle->per_node[0];
+
+	ret = _starpu_fetch_data_on_node(handle, ram_replicate, wrapper->mode, 1,
 			_starpu_data_acquire_fetch_data_callback, wrapper);
 	STARPU_ASSERT(!ret);
 }
@@ -172,7 +174,9 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 
 	STARPU_ASSERT(handle);
 
-	_starpu_fetch_data_on_node(handle, 0, wrapper->mode, 0, NULL, NULL);
+	struct starpu_data_replicate_s *ram_replicate = &handle->per_node[0];
+
+	_starpu_fetch_data_on_node(handle, ram_replicate, wrapper->mode, 0, NULL, NULL);
 	
 	/* continuation of starpu_data_acquire */
 	PTHREAD_MUTEX_LOCK(&wrapper->lock);
@@ -240,7 +244,8 @@ int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode)
 	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _starpu_data_acquire_continuation, &wrapper))
 	{
 		/* no one has locked this data yet, so we proceed immediately */
-		int ret = _starpu_fetch_data_on_node(handle, 0, mode, 0, NULL, NULL);
+		struct starpu_data_replicate_s *ram_replicate = &handle->per_node[0];
+		int ret = _starpu_fetch_data_on_node(handle, ram_replicate, mode, 0, NULL, NULL);
 		STARPU_ASSERT(!ret);
 	}
 	else {
@@ -267,7 +272,7 @@ void starpu_data_release(starpu_data_handle handle)
 	STARPU_ASSERT(handle);
 
 	/* The application can now release the rw-lock */
-	_starpu_release_data_on_node(handle, 0, 0);
+	_starpu_release_data_on_node(handle, 0, &handle->per_node[0]);
 
 	/* In case there are some implicit dependencies, unlock the "post sync" tasks */
 	_starpu_unlock_post_sync_tasks(handle);
@@ -276,9 +281,11 @@ void starpu_data_release(starpu_data_handle handle)
 static void _prefetch_data_on_node(void *arg)
 {
 	struct user_interaction_wrapper *wrapper = arg;
+	starpu_data_handle handle = wrapper->handle;
         int ret;
 
-	ret = _starpu_fetch_data_on_node(wrapper->handle, wrapper->node, STARPU_R, wrapper->async, NULL, NULL);
+	struct starpu_data_replicate_s *replicate = &handle->per_node[wrapper->node];
+	ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, wrapper->async, NULL, NULL);
         STARPU_ASSERT(!ret);
 
         PTHREAD_MUTEX_LOCK(&wrapper->lock);
@@ -288,9 +295,9 @@ static void _prefetch_data_on_node(void *arg)
 
 	if (!wrapper->async)
 	{
-		_starpu_spin_lock(&wrapper->handle->header_lock);
-		_starpu_notify_data_dependencies(wrapper->handle);
-		_starpu_spin_unlock(&wrapper->handle->header_lock);
+		_starpu_spin_lock(&handle->header_lock);
+		_starpu_notify_data_dependencies(handle);
+		_starpu_spin_unlock(&handle->header_lock);
 	}
 
 }
@@ -316,7 +323,8 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _prefetch_data_on_node, &wrapper))
 	{
 		/* we can immediately proceed */
-		_starpu_fetch_data_on_node(handle, node, mode, async, NULL, NULL);
+		struct starpu_data_replicate_s *replicate = &handle->per_node[node];
+		_starpu_fetch_data_on_node(handle, replicate, mode, async, NULL, NULL);
 
 		/* remove the "lock"/reference */
 		if (!async)

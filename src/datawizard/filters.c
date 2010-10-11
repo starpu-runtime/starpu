@@ -179,12 +179,14 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 	/* first take all the children lock (in order !) */
 	for (child = 0; child < root_handle->nchildren; child++)
 	{
+		struct starpu_data_state_t *child_handle = &root_handle->children[child];
+
 		/* make sure the intermediate children is unpartitionned as well */
-		if (root_handle->children[child].nchildren > 0)
-			starpu_data_unpartition(&root_handle->children[child], gathering_node);
+		if (child_handle->nchildren > 0)
+			starpu_data_unpartition(child_handle, gathering_node);
 
 		int ret;
-		ret = _starpu_fetch_data_on_node(&root_handle->children[child], gathering_node, STARPU_R, 0, NULL, NULL);
+		ret = _starpu_fetch_data_on_node(child_handle, &child_handle->per_node[gathering_node], STARPU_R, 0, NULL, NULL);
 		/* for now we pretend that the RAM is almost unlimited and that gathering 
 		 * data should be possible from the node that does the unpartionning ... we
 		 * don't want to have the programming deal with memory shortage at that time,
