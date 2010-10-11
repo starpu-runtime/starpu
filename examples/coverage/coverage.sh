@@ -25,7 +25,7 @@ check_success()
 apps()
 {
     echo "block opencl"
-    STARPU_NCUDA=0 STARPU_NCPUS=0 basic_examples/block
+    STARPU_NCUDA=0 STARPU_NCPUS=0 ./basic_examples/block
     check_success $?
 
     echo "variable opencl"
@@ -45,88 +45,88 @@ apps()
     check_success $?
 
     echo "tag_example"
-    tag_example/tag_example -iter 64 -i 128 -j 24
+    ./tag_example/tag_example -iter 64 -i 128 -j 24
     check_success $?
 
     echo "tag_example2"
-    tag_example/tag_example2 -iter 64 -i 128
+    ./tag_example/tag_example2 -iter 64 -i 128
     check_success $?
 
-    if [ -f cholesky/dw_cholesky ] ; then
+    if [ -f ./cholesky/dw_cholesky ] ; then
 	echo "chol.dm"
-	STARPU_CALIBRATE=1 STARPU_SCHED="dm" cholesky/dw_cholesky -pin
+	STARPU_CALIBRATE=1 STARPU_SCHED="dm" ./cholesky/dw_cholesky -pin
 	check_success $?
 
 	echo "chol.dmda"
-	STARPU_CALIBRATE=1 STARPU_SCHED="dmda" cholesky/dw_cholesky -pin
+	STARPU_CALIBRATE=1 STARPU_SCHED="dmda" ./cholesky/dw_cholesky -pin
 	check_success $?
 
 	echo "chol.cpu"
-	STARPU_CALIBRATE=1 STARPU_NCUDA=0 STARPU_SCHED="dm" cholesky/dw_cholesky -pin
+	STARPU_CALIBRATE=1 STARPU_NCUDA=0 STARPU_SCHED="dm" ./cholesky/dw_cholesky -pin
 	check_success $?
 
 	echo "chol.gpu"
-	STARPU_CALIBRATE=1 STARPU_NCPUS=0 STARPU_SCHED="dm" cholesky/dw_cholesky -pin
+	STARPU_CALIBRATE=1 STARPU_NCPUS=0 STARPU_SCHED="dm" ./cholesky/dw_cholesky -pin
 	check_success $?
     fi
 
-    if [ -f heat/heat ] ; then
+    if [ -f ./heat/heat ] ; then
 	echo "heat.dm.4k.calibrate.v2"
-	STARPU_CALIBRATE=1 STARPU_SCHED="dm" heat/heat -ntheta 66 -nthick 66 -nblocks 4 -v2 -pin
+	STARPU_CALIBRATE=1 STARPU_SCHED="dm" ./heat/heat -ntheta 66 -nthick 66 -nblocks 4 -v2 -pin
 	check_success $?
 
 	echo "heat.dm.8k.calibrate.v2"
-	STARPU_CALIBRATE=1 STARPU_SCHED="dm" heat/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 -pin
+	STARPU_CALIBRATE=1 STARPU_SCHED="dm" ./heat/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 -pin
 	check_success $?
 
 	echo "heat.dm.16k.calibrate.v2"
-	STARPU_CALIBRATE=1 STARPU_SCHED="dm" heat/heat -ntheta 130 -nthick 130 -nblocks 16 -v2 -pin
+	STARPU_CALIBRATE=1 STARPU_SCHED="dm" ./heat/heat -ntheta 130 -nthick 130 -nblocks 16 -v2 -pin
 	check_success $?
 
 	echo "heat.dm.8k.no.pin.v2"
-	STARPU_SCHED="dm" heat/heat -ntheta 66 -nthick 130 -nblocks 8 -v2
+	STARPU_SCHED="dm" ./heat/heat -ntheta 66 -nthick 130 -nblocks 8 -v2
 	check_success $?
 
 	echo "heat.dm.8k.v2.no.prio"
-	STARPU_SCHED="no-prio" heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2
+	STARPU_SCHED="no-prio" ./heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2
 	check_success $?
 
 	echo "heat.dm.8k.v2.random"
-	STARPU_SCHED="random" heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2
+	STARPU_SCHED="random" ./heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2
 	check_success $?
 
 	echo "heat.dm.8k.v2"
-	STARPU_SCHED="dm" heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2
+	STARPU_SCHED="dm" ./heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2
 	check_success $?
 
 	echo "heat.dm.16k.v2"
-	STARPU_SCHED="dm" heat/heat -ntheta 130 -nthick 130 -nblocks 16 -pin -v2
+	STARPU_SCHED="dm" ./heat/heat -ntheta 130 -nthick 130 -nblocks 16 -pin -v2
 	check_success $?
 
 	echo "heat.greedy.8k.v2"
-	STARPU_SCHED="greedy" heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2
+	STARPU_SCHED="greedy" ./heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2
 	check_success $?
 
 	echo "heat.8k.cg"
-	heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 -cg
+	./heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 -cg
 	check_success $?
 
 	echo "heat.dm.8k.cg"
-	STARPU_SCHED="dm" heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 -cg
+	STARPU_SCHED="dm" ./heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 -cg
 	check_success $?
     fi
 
-    if [ -f mult/dw_mult_no_stride ] ; then
+    if [ -f ./mult/dw_mult_no_stride ] ; then
 	echo "mult.dm.common"
-	STARPU_SCHED="dm" mult/dw_mult_no_stride -nblocks 4 -x 4096 -y 4096 -z 1024 -pin -common-model
+	STARPU_SCHED="dm" ./mult/dw_mult_no_stride -nblocks 4 -x 4096 -y 4096 -z 1024 -pin -common-model
 	check_success $?
 
 	echo "mult.dm"
-	STARPU_CALIBRATE=1 STARPU_SCHED="dm" mult/dw_mult_no_stride -nblocks 8 -x 8192 -y 8192 -z 8192 -pin
+	STARPU_CALIBRATE=1 STARPU_SCHED="dm" ./mult/dw_mult_no_stride -nblocks 8 -x 8192 -y 8192 -z 8192 -pin
 	check_success $?
 
 	echo "mult.dmda"
-	STARPU_CALIBRATE=1 STARPU_SCHED="dmda" mult/dw_mult_no_stride -nblocks 8 -x 8192 -y 8192 -z 8192 -pin
+	STARPU_CALIBRATE=1 STARPU_SCHED="dmda" ./mult/dw_mult_no_stride -nblocks 8 -x 8192 -y 8192 -z 8192 -pin
 	check_success $?
     fi
 }
