@@ -10,7 +10,7 @@
 @titlepage
 @title StarPU
 @page
-@vskip 0pt plus 1filll
+@vskip 0pt plus 1fill
 @comment For the @value{version-GCC} Version*
 @end titlepage
 
@@ -138,7 +138,7 @@ several processing units as long as it is not modified.
 @node Research Papers
 @subsection Research Papers
 
-Research papers on StarPU can be found on
+Research papers about StarPU can be found at
 
 @indicateurl{http://runtime.bordeaux.inria.fr/Publis/Keyword/STARPU.html}
 
@@ -242,11 +242,11 @@ is provided with a @code{configure} script.
 @node Optional dependencies
 @subsection Optional dependencies
 
-The topology discovery library, hwloc, is not mandatory to use StarPU
+The topology discovery library, @code{hwloc}, is not mandatory to use StarPU
 but strongly recommended. It allows to increase performance, and to
 perform some topology aware scheduling.
 
-hwloc is available in major distributions and for most OSes and can be
+@code{hwloc} is available in major distributions and for most OSes and can be
 downloaded from @indicateurl{http://www.open-mpi.org/software/hwloc}.
 
 @node Configuration of StarPU
@@ -929,7 +929,7 @@ The Makefile given at the beginning of the section must be extended to
 give the rules to compile the CUDA source code. Note that the source
 file of the OpenCL codelet does not need to be compiled now, it will
 be compiled at run-time when calling the function
-@code{starpu_opencl_load_opencl_from_file} (@pxref{starpu_opencl_load_opencl_from_file}).
+@code{starpu_opencl_load_opencl_from_file()} (@pxref{starpu_opencl_load_opencl_from_file}).
 
 @cartouche
 @smallexample
