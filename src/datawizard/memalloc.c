@@ -250,7 +250,7 @@ static void reuse_mem_chunk(unsigned node, starpu_data_handle new_data, starpu_m
 	new_data->per_node[node].allocated = 1;
 	new_data->per_node[node].automatically_allocated = 1;
 
-	memcpy(&new_data->per_node[node].interface, mc->interface, old_data->ops->interface_size);
+	memcpy(new_data->per_node[node].interface, mc->interface, old_data->ops->interface_size);
 
 	mc->data = new_data;
 	mc->data_was_deleted = 0;
