@@ -62,72 +62,24 @@ static unsigned may_unlock_data_req_list_head(starpu_data_handle handle)
 	return (r->mode == STARPU_R);
 }
 
-
-unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle handle, starpu_access_mode mode,
-						void (*callback)(void *), void *argcb)
+static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_codelet,
+					starpu_data_handle handle, starpu_access_mode mode,
+					void (*callback)(void *), void *argcb,
+					starpu_job_t j, unsigned buffer_index)
 {
 	unsigned ret;
-        _STARPU_LOG_IN();
-
-	_starpu_spin_lock(&handle->header_lock);
-
-	if (handle->refcnt == 0)
-	{
-		/* there is nobody currently about to manipulate the data */
-		handle->refcnt++;
-		handle->current_mode = mode;
-
-		/* success */
-		ret = 0;
-	}
-	else
-	{
-		/* there is already someone that may access the data */
-		if ( (mode == STARPU_R) && (handle->current_mode == STARPU_R))
-		{
-			handle->refcnt++;
-
-			/* success : there is a new reader */
-			ret = 0;
-		}
-		else
-		{
-			/* there cannot be multiple writers or a new writer
-			 * while the data is in read mode */
-			
-			/* enqueue the request */
-			starpu_data_requester_t r = starpu_data_requester_new();
-				r->mode = mode;
-				r->is_requested_by_codelet = 0;
-				r->ready_data_callback = callback;
-				r->argcb = argcb;
-
-			starpu_data_requester_list_push_back(handle->req_list, r);
-
-			/* failed */
-			ret = 1;
-		}
-	}
-
-	_starpu_spin_unlock(&handle->header_lock);
-        _STARPU_LOG_OUT();
-	return ret;
-}
-
-static unsigned attempt_to_submit_data_request_from_job(starpu_job_t j, unsigned buffer_index)
-{
-	unsigned ret;
-
-	/* Note that we do not access j->task->buffers, but j->ordered_buffers
-	 * which is a sorted copy of it. */
-	starpu_data_handle handle = j->ordered_buffers[buffer_index].handle;
-	starpu_access_mode mode = j->ordered_buffers[buffer_index].mode;
 
 	if (mode & STARPU_SCRATCH)
 		return 0;
 
-	while (_starpu_spin_trylock(&handle->header_lock))
-		_starpu_datawizard_progress(_starpu_get_local_memory_node(), 0);
+	if (request_from_codelet)
+	{
+		while (_starpu_spin_trylock(&handle->header_lock))
+			_starpu_datawizard_progress(_starpu_get_local_memory_node(), 0);
+	}
+	else {
+		_starpu_spin_lock(&handle->header_lock);
+	}
 
 	if (handle->refcnt == 0)
 	{
@@ -156,9 +108,11 @@ static unsigned attempt_to_submit_data_request_from_job(starpu_job_t j, unsigned
 			/* enqueue the request */
 			starpu_data_requester_t r = starpu_data_requester_new();
 				r->mode = mode;
-				r->is_requested_by_codelet = 1;
+				r->is_requested_by_codelet = request_from_codelet;
 				r->j = j;
 				r->buffer_index = buffer_index;
+				r->ready_data_callback = callback;
+				r->argcb = argcb;
 
 			starpu_data_requester_list_push_back(handle->req_list, r);
 
@@ -169,6 +123,25 @@ static unsigned attempt_to_submit_data_request_from_job(starpu_job_t j, unsigned
 
 	_starpu_spin_unlock(&handle->header_lock);
 	return ret;
+
+}
+
+
+unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle handle, starpu_access_mode mode,
+						void (*callback)(void *), void *argcb)
+{
+	return _starpu_attempt_to_submit_data_request(0, handle, mode, callback, argcb, NULL, 0);
+}
+
+static unsigned attempt_to_submit_data_request_from_job(starpu_job_t j, unsigned buffer_index)
+{
+	/* Note that we do not access j->task->buffers, but j->ordered_buffers
+	 * which is a sorted copy of it. */
+	starpu_data_handle handle = j->ordered_buffers[buffer_index].handle;
+	starpu_access_mode mode = j->ordered_buffers[buffer_index].mode;
+
+	return _starpu_attempt_to_submit_data_request(1, handle, mode, NULL, NULL, j, buffer_index);
+
 }
 
 static unsigned _submit_job_enforce_data_deps(starpu_job_t j, unsigned start_buffer_index)
