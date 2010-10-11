@@ -89,12 +89,13 @@ uint32_t _starpu_select_src_node(starpu_data_handle handle)
 }
 
 /* this may be called once the data is fetched with header and STARPU_RW-lock hold */
-void _starpu_update_data_state(starpu_data_handle handle, uint32_t requesting_node, starpu_access_mode mode)
+void _starpu_update_data_state(starpu_data_handle handle,
+				struct starpu_data_replicate_s *requesting_replicate,
+				starpu_access_mode mode)
 {
 	unsigned nnodes = _starpu_get_memory_nodes_count();
 
 	/* the data is present now */
-	struct starpu_data_replicate_s *requesting_replicate = &handle->per_node[requesting_node];
 	requesting_replicate->requested = 0;
 
 	if (mode & STARPU_W) {
@@ -160,7 +161,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 	if (dst_replicate->state != STARPU_INVALID)
 	{
 		/* the data is already available so we can stop */
-		_starpu_update_data_state(handle, requesting_node, mode);
+		_starpu_update_data_state(handle, dst_replicate, mode);
 		_starpu_msi_cache_hit(requesting_node);
 		_starpu_spin_unlock(&handle->header_lock);
 
@@ -214,14 +215,13 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, uint32_t requesting_no
 				r_ram_to_dst->refcnt++;
 
 			r_src_to_ram = _starpu_search_existing_data_request(ram_replicate, mode);
+
+			reuse_r_src_to_ram = r_src_to_ram?1:0;
+
 			if (!r_src_to_ram)
 			{
-				reuse_r_src_to_ram = 0;
 				r_src_to_ram = _starpu_create_data_request(handle, src_replicate,
 							ram_replicate, src_node, mode, is_prefetch);
-			}
-			else {
-				reuse_r_src_to_ram = 1;
 			}
 
 			/* we chain both requests */
@@ -430,6 +430,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 				_starpu_allocate_interface(handle, src_interface, local_memory_node);
 
 				size_t size = _starpu_data_get_size(handle);
+#warning TODO create a replicate struct here:
 				mc = _starpu_memchunk_init(handle, size, src_interface, interface_size, 1);
 			}
 

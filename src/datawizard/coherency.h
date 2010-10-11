@@ -158,7 +158,9 @@ int _starpu_fetch_data_on_node(struct starpu_data_state_t *state, uint32_t reque
 				void (*callback_func)(void *), void *callback_arg);
 void _starpu_release_data_on_node(struct starpu_data_state_t *state, uint32_t default_wt_mask, unsigned memory_node);
 
-void _starpu_update_data_state(struct starpu_data_state_t *state, uint32_t requesting_node, starpu_access_mode mode);
+void _starpu_update_data_state(starpu_data_handle handle,
+				struct starpu_data_replicate_s *requesting_replicate,
+				starpu_access_mode mode);
 
 uint32_t _starpu_get_data_refcnt(struct starpu_data_state_t *state, uint32_t node);
 

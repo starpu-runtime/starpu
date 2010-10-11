@@ -243,14 +243,16 @@ static void reuse_mem_chunk(unsigned node, starpu_data_handle new_data, starpu_m
 
 	if (!mc->data_was_deleted)
 	{
-		old_data->per_node[node].allocated = 0;
-		old_data->per_node[node].automatically_allocated = 0;
+		struct starpu_data_replicate_s *old_replicate = &old_data->per_node[node];
+		old_replicate->allocated = 0;
+		old_replicate->automatically_allocated = 0;
 	}
 
-	new_data->per_node[node].allocated = 1;
-	new_data->per_node[node].automatically_allocated = 1;
+	struct starpu_data_replicate_s *new_replicate = &new_data->per_node[node];
+	new_replicate->allocated = 1;
+	new_replicate->automatically_allocated = 1;
 
-	memcpy(new_data->per_node[node].interface, mc->interface, old_data->ops->interface_size);
+	memcpy(new_replicate->interface, mc->interface, old_data->ops->interface_size);
 
 	mc->data = new_data;
 	mc->data_was_deleted = 0;

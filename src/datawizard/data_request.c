@@ -229,12 +229,11 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 	unsigned do_delete = 0;
 	starpu_data_handle handle = r->handle;
 
-	uint32_t src_node = r->src_replicate->memory_node;
-	uint32_t dst_node = r->dst_replicate->memory_node;
-
-	_starpu_update_data_state(handle, dst_node, r->mode);
+	_starpu_update_data_state(handle, r->dst_replicate, r->mode);
 
 #ifdef STARPU_USE_FXT
+	uint32_t src_node = r->src_replicate->memory_node;
+	uint32_t dst_node = r->dst_replicate->memory_node;
 	size_t size = _starpu_data_get_size(handle);
 	STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, r->com_id);
 #endif
@@ -293,6 +292,7 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 
 	if (r->mode & STARPU_R)
 	{
+		STARPU_ASSERT(r->src_replicate);
 		STARPU_ASSERT(r->src_replicate->allocated);
 		STARPU_ASSERT(r->src_replicate->refcnt);
 	}
