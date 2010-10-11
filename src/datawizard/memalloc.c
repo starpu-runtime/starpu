@@ -383,7 +383,7 @@ starpu_mem_chunk_t _starpu_memchunk_cache_lookup(uint32_t node, starpu_data_hand
 		if (mc->footprint == footprint)
 		{
 			/* Is that a false hit ? (this is _very_ unlikely) */
-			if (_starpu_data_interface_compare(&handle->per_node[node].interface, handle->ops, mc->interface, mc->ops))
+			if (_starpu_data_interface_compare(handle->per_node[node].interface, handle->ops, mc->interface, mc->ops))
 				continue;
 
 			/* Cache hit */
