@@ -140,7 +140,7 @@ uint32_t _starpu_may_submit_cpu_task(void);
 uint32_t _starpu_may_submit_opencl_task(void);
 
 /* Check if the worker specified by workerid can execute the codelet. */
-uint32_t _starpu_worker_may_execute_task(unsigned workerid, uint32_t where);
+int _starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task);
 
 /* Check whether there is anything that the worker should do instead of
  * sleeping (waiting on something to happen). */

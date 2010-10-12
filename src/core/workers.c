@@ -65,9 +65,9 @@ inline uint32_t _starpu_may_submit_opencl_task(void)
 	return (STARPU_OPENCL & config.worker_mask);
 }
 
-inline uint32_t _starpu_worker_may_execute_task(unsigned workerid, uint32_t where)
+int _starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task)
 {
-	return (where & config.workers[workerid].worker_mask);
+	return !!(task->cl->where & config.workers[workerid].worker_mask);
 }
 
 /*

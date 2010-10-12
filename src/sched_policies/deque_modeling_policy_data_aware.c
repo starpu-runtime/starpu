@@ -313,7 +313,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 		fifo->exp_start = STARPU_MAX(fifo->exp_start, _starpu_timing_now());
 		fifo->exp_end = STARPU_MAX(fifo->exp_end, _starpu_timing_now());
 
-		if (!_starpu_worker_may_execute_task(worker, task->cl->where))
+		if (!_starpu_worker_may_execute_task(worker, task))
 		{
 			/* no one on that queue may execute this task */
 			continue;
@@ -378,7 +378,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 		fifo->exp_start = STARPU_MAX(fifo->exp_start, _starpu_timing_now());
 		fifo->exp_end = STARPU_MAX(fifo->exp_end, _starpu_timing_now());
 
-		if (!_starpu_worker_may_execute_task(worker, task->cl->where))
+		if (!_starpu_worker_may_execute_task(worker, task))
 		{
 			/* no one on that queue may execute this task */
 			continue;
@@ -413,7 +413,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 		{
 			fifo = queue_array[worker];
 	
-			if (!_starpu_worker_may_execute_task(worker, task->cl->where))
+			if (!_starpu_worker_may_execute_task(worker, task))
 			{
 				/* no one on that queue may execute this task */
 				continue;
