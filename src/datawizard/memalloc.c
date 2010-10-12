@@ -678,7 +678,8 @@ ssize_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, u
 	if (try_to_find_reusable_mem_chunk(dst_node, handle, footprint))
 	{
 		_starpu_allocation_cache_hit(dst_node);
-		return -ENOMEM;
+		ssize_t data_size = _starpu_data_get_size(handle);
+		return data_size;
 	}
 	STARPU_TRACE_END_ALLOC_REUSE(dst_node);
 #endif
