@@ -67,6 +67,9 @@ inline uint32_t _starpu_may_submit_opencl_task(void)
 
 int _starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task)
 {
+	/* TODO: check that the task operand sizes will fit on that device */
+	/* TODO: call application-provided function for various cases like
+	 * double support, shared memory size limit, etc. */
 	return !!(task->cl->where & config.workers[workerid].worker_mask);
 }
 
