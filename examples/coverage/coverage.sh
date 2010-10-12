@@ -114,11 +114,11 @@ apps()
 	check_success $?
 
 	echo "mult.dm"
-	STARPU_CALIBRATE=1 STARPU_SCHED="dm" ./mult/dw_mult_no_stride -nblocks 8 -x 8192 -y 8192 -z 8192 -pin
+	STARPU_CALIBRATE=1 STARPU_SCHED="dm" ./mult/dw_mult_no_stride -nblocks 8 -x 4096 -y 4096 -z 4096 -pin
 	check_success $?
 
 	echo "mult.dmda"
-	STARPU_CALIBRATE=1 STARPU_SCHED="dmda" ./mult/dw_mult_no_stride -nblocks 8 -x 8192 -y 8192 -z 8192 -pin
+	STARPU_CALIBRATE=1 STARPU_SCHED="dmda" ./mult/dw_mult_no_stride -nblocks 8 -x 4096 -y 4096 -z 4096 -pin
 	check_success $?
     fi
 }
