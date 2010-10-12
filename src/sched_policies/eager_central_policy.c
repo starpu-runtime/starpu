@@ -61,14 +61,14 @@ static int push_prio_task_eager_policy(struct starpu_task *task)
 	return _starpu_fifo_push_prio_task(fifo, &sched_mutex, &sched_cond, task);
 }
 
-static struct starpu_task *pop_every_task_eager_policy(uint32_t where)
+static struct starpu_task *pop_every_task_eager_policy(void)
 {
-	return _starpu_fifo_pop_every_task(fifo, &sched_mutex, where);
+	return _starpu_fifo_pop_every_task(fifo, &sched_mutex, starpu_worker_get_id());
 }
 
 static struct starpu_task *pop_task_eager_policy(void)
 {
-	return _starpu_fifo_pop_task(fifo);
+	return _starpu_fifo_pop_task(fifo, starpu_worker_get_id());
 }
 
 struct starpu_sched_policy_s _starpu_sched_eager_policy = {

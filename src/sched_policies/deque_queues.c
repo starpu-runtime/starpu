@@ -56,7 +56,7 @@ unsigned _starpu_get_deque_nprocessed(struct starpu_deque_jobq_s *deque_queue)
 	return deque_queue->nprocessed;
 }
 
-struct starpu_task *_starpu_deque_pop_task(struct starpu_deque_jobq_s *deque_queue)
+struct starpu_task *_starpu_deque_pop_task(struct starpu_deque_jobq_s *deque_queue, int workerid)
 {
 	starpu_job_t j = NULL;
 
@@ -65,6 +65,7 @@ struct starpu_task *_starpu_deque_pop_task(struct starpu_deque_jobq_s *deque_que
 		return NULL;
 	}
 
+	/* TODO find a task that suits workerid */
 	if (deque_queue->njobs > 0) 
 	{
 		/* there is a task */
@@ -79,9 +80,10 @@ struct starpu_task *_starpu_deque_pop_task(struct starpu_deque_jobq_s *deque_que
 	return j->task;
 }
 
-struct starpu_job_list_s *_starpu_deque_pop_every_task(struct starpu_deque_jobq_s *deque_queue, pthread_mutex_t *sched_mutex, uint32_t where)
+struct starpu_job_list_s *_starpu_deque_pop_every_task(struct starpu_deque_jobq_s *deque_queue, pthread_mutex_t *sched_mutex, int workerid)
 {
 	struct starpu_job_list_s *new_list, *old_list;
+	uint32_t where = starpu_worker_get_type(workerid);
 
 	/* block until some task is available in that queue */
 	PTHREAD_MUTEX_LOCK(sched_mutex);

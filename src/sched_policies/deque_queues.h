@@ -42,8 +42,8 @@ struct starpu_deque_jobq_s {
 struct starpu_deque_jobq_s *_starpu_create_deque(void);
 void _starpu_destroy_deque(struct starpu_deque_jobq_s *deque);
 
-struct starpu_task *_starpu_deque_pop_task(struct starpu_deque_jobq_s *deque_queue);
-struct starpu_job_list_s *_starpu_deque_pop_every_task(struct starpu_deque_jobq_s *deque_queue, pthread_mutex_t *sched_mutex, uint32_t where);
+struct starpu_task *_starpu_deque_pop_task(struct starpu_deque_jobq_s *deque_queue, int workerid);
+struct starpu_job_list_s *_starpu_deque_pop_every_task(struct starpu_deque_jobq_s *deque_queue, pthread_mutex_t *sched_mutex, int workerid);
 
 unsigned _starpu_get_deque_njobs(struct starpu_deque_jobq_s *deque_queue);
 unsigned _starpu_get_deque_nprocessed(struct starpu_deque_jobq_s *deque_queue);

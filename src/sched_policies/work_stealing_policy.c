@@ -144,7 +144,7 @@ static struct starpu_task *ws_pop_task(void)
 
 	PTHREAD_MUTEX_LOCK(&global_sched_mutex);
 
-	task = _starpu_deque_pop_task(q);
+	task = _starpu_deque_pop_task(q, -1);
 	if (task) {
 		/* there was a local task */
 		performed_total++;
@@ -156,7 +156,7 @@ static struct starpu_task *ws_pop_task(void)
 	struct starpu_deque_jobq_s *victimq;
 	victimq = select_victimq();
 
-	task = _starpu_deque_pop_task(victimq);
+	task = _starpu_deque_pop_task(victimq, workerid);
 	if (task) {
 		STARPU_TRACE_WORK_STEALING(q, victimq);
 		performed_total++;

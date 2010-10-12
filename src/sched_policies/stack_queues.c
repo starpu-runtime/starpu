@@ -89,13 +89,14 @@ void _starpu_stack_push_task(struct starpu_stack_jobq_s *stack_queue, pthread_mu
 	PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
-starpu_job_t _starpu_stack_pop_task(struct starpu_stack_jobq_s *stack_queue, pthread_mutex_t *sched_mutex)
+starpu_job_t _starpu_stack_pop_task(struct starpu_stack_jobq_s *stack_queue, pthread_mutex_t *sched_mutex, int workerid)
 {
 	starpu_job_t j = NULL;
 
 	if (stack_queue->njobs == 0)
 		return NULL;
 
+	/* TODO find a task that suits workerid */
 	if (stack_queue->njobs > 0) 
 	{
 		/* there is a task */

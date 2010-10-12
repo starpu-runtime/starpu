@@ -74,13 +74,14 @@ int _starpu_fifo_push_task(struct starpu_fifo_taskq_s *fifo_queue, pthread_mutex
 	return 0;
 }
 
-struct starpu_task *_starpu_fifo_pop_task(struct starpu_fifo_taskq_s *fifo_queue)
+struct starpu_task *_starpu_fifo_pop_task(struct starpu_fifo_taskq_s *fifo_queue, int workerid)
 {
 	struct starpu_task *task = NULL;
 
 	if (fifo_queue->ntasks == 0)
 		return NULL;
 
+	/* TODO: find a task that suits workerid */
 	if (fifo_queue->ntasks > 0) 
 	{
 		/* there is a task */
@@ -96,10 +97,11 @@ struct starpu_task *_starpu_fifo_pop_task(struct starpu_fifo_taskq_s *fifo_queue
 }
 
 /* pop every task that can be executed on the calling driver */
-struct starpu_task *_starpu_fifo_pop_every_task(struct starpu_fifo_taskq_s *fifo_queue, pthread_mutex_t *sched_mutex, uint32_t where)
+struct starpu_task *_starpu_fifo_pop_every_task(struct starpu_fifo_taskq_s *fifo_queue, pthread_mutex_t *sched_mutex, int workerid)
 {
 	struct starpu_task_list *old_list;
 	unsigned size;
+	uint32_t where = starpu_worker_get_type(workerid);
 
 	struct starpu_task *new_list = NULL;
 	struct starpu_task *new_list_tail = NULL;

@@ -31,7 +31,7 @@ static struct starpu_task *random_pop_task(void)
 
 	int workerid = starpu_worker_get_id();
 
-	task = _starpu_fifo_pop_task(queue_array[workerid]);
+	task = _starpu_fifo_pop_task(queue_array[workerid], -1);
 
 	return task;
 }

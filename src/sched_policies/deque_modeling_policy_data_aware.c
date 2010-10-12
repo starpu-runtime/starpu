@@ -148,7 +148,7 @@ static struct starpu_task *dmda_pop_task(void)
 	int workerid = starpu_worker_get_id();
 	struct starpu_fifo_taskq_s *fifo = queue_array[workerid];
 
-	task = _starpu_fifo_pop_task(fifo);
+	task = _starpu_fifo_pop_task(fifo, -1);
 	if (task) {
 		double model = task->predicted;
 	
@@ -173,7 +173,7 @@ static struct starpu_task *dmda_pop_task(void)
 
 
 
-static struct starpu_task *dmda_pop_every_task(uint32_t where)
+static struct starpu_task *dmda_pop_every_task(void)
 {
 	struct starpu_task *new_list;
 
@@ -181,7 +181,7 @@ static struct starpu_task *dmda_pop_every_task(uint32_t where)
 
 	struct starpu_fifo_taskq_s *fifo = queue_array[workerid];
 
-	new_list = _starpu_fifo_pop_every_task(fifo, &sched_mutex[workerid], where);
+	new_list = _starpu_fifo_pop_every_task(fifo, &sched_mutex[workerid], workerid);
 
 	while (new_list)
 	{

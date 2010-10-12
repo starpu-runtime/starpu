@@ -79,7 +79,7 @@ struct starpu_sched_policy_s {
 	  * the means of the prev and next fields of the starpu_task
 	  * structure). The mutex associated to the worker is already taken
 	  * when this method is called. */
-	struct starpu_task *(*pop_every_task)(uint32_t where);
+	struct starpu_task *(*pop_every_task)(void);
 
 	/* This method is called every time a task has been executed. (optionnal) */
 	void (*post_exec_hook)(struct starpu_task *);
