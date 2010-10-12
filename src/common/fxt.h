@@ -103,12 +103,19 @@
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
 
+/* Initialize the FxT library. */
 void _starpu_start_fxt_profiling(void);
+
+/* Stop the FxT library, and generate the trace file. */
 void _starpu_stop_fxt_profiling(void);
+
+/* Associate the current processing unit to the identifier of the LWP that runs
+ * the worker. */
 void _starpu_fxt_register_thread(unsigned);
 
-/* sometimes we need something a little more specific than the wrappers from
- * FxT */
+/* Sometimes we need something a little more specific than the wrappers from
+ * FxT: these macro permit to put add an event with 3 (or 4) numbers followed
+ * by a string. */
 #define STARPU_FUT_DO_PROBE3STR(CODE, P1, P2, P3, str)				\
 do {									\
 	/* we add a \0 just in case ... */				\
@@ -297,6 +304,7 @@ do {										\
 
 #else // !STARPU_USE_FXT
 
+/* Dummy macros in case FxT is disabled */
 #define STARPU_TRACE_NEW_MEM_NODE(nodeid)	do {} while(0);
 #define TRACE_NEW_WORKER(a,b)			do {} while(0);
 #define STARPU_TRACE_WORKER_INIT_START(a,b,c)	do {} while(0);

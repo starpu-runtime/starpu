@@ -22,15 +22,43 @@
 #include <starpu_profiling.h>
 #include <common/config.h>
 
+/* Create a task profiling info structure (with the proper time stamps) in case
+ * profiling is enabled. */
 struct starpu_task_profiling_info *_starpu_allocate_profiling_info_if_needed(void);
+
+/* Clear all the profiling info related to the worker. */
 void _starpu_worker_reset_profiling_info(int workerid);
+
+/* Update the per-worker profiling info after a task (or more) was executed.
+ * This tells StarPU how much time was spent doing computation. */
 void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks);
+
+/* Update the per-worker profiling info when StarPU wakes up: this indicates
+ * how much time was spent sleeping. */
 void _starpu_worker_update_profiling_info_sleeping(int workerid, struct timespec *sleeping_start, struct timespec *sleeping_end);
+
+/* Record the date when the worker started to sleep. This permits to measure
+ * how much time was spent sleeping when it becomes awake later on. */
 void _starpu_worker_register_sleeping_start_date(int workerid, struct timespec *sleeping_start);
+
+/* Record the date when the worker started to execute a piece of code. This
+ * permits to measure how much time was really spent doing computation at the
+ * end of the codelet. */
 void _starpu_worker_register_executing_start_date(int workerid, struct timespec *executing_start);
 
+/* When StarPU is initialized, a matrix describing all the bus between memory
+ * nodes is created: it indicates whether there is a physical link between two
+ * memory nodes or not. This matrix should contain the identifier of the bus
+ * between two nodes or -1 in case there is no link. */
 void _starpu_initialize_busid_matrix(void);
+
+/* Tell StarPU that there exists a link between the two memory nodes. This
+ * function returns the identifier associated to the bus which can be used to
+ * retrieve profiling information about the bus activity later on. */
 int _starpu_register_bus(int src_node, int dst_node);
+
+/* Tell StarPU that "size" bytes were transferred between the two specified
+ * memory nodes. */
 void _starpu_bus_update_profiling_info(int src_node, int dst_node, size_t size);
 
 #endif // __PROFILING_H__

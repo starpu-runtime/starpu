@@ -38,6 +38,9 @@ typedef enum {
 void _starpu_set_local_worker_status(starpu_worker_status st);
 starpu_worker_status _starpu_get_local_worker_status(void);
 
+/* It is forbidden to do blocking calls during some operations such as callback
+ * or during the execution of a task. This function indicates whether it is
+ * legal to call a blocking operation in the current context. */
 unsigned _starpu_worker_may_perform_blocking_calls(void);
 
 #endif // __ERRORCHECK_H__

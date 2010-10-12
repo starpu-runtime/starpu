@@ -20,21 +20,31 @@
 #include <stdint.h>
 #include <starpu.h>
 
+/* Dummy implementation of a RW-lock using a spinlock. */
 typedef struct starpu_rw_lock_s {
 	uint32_t busy;
 	uint8_t writer;
 	uint16_t readercnt;
 } starpu_rw_lock_t;
 
+/* Initialize the RW-lock */
 void _starpu_init_rw_lock(starpu_rw_lock_t *lock);
-void _starpu_take_rw_lock_write(starpu_rw_lock_t *lock);
-void _starpu_take_rw_lock_read(starpu_rw_lock_t *lock);
-int _starpu_take_rw_lock_write_try(starpu_rw_lock_t *lock);
-int _starpu_take_rw_lock_read_try(starpu_rw_lock_t *lock);
-void _starpu_release_rw_lock(starpu_rw_lock_t *lock);
 
-///* make sure to have the lock before using that function */
-//inline uint8_t _starpu_rw_lock_is_writer(starpu_rw_lock_t *lock);
-//unsigned _starpu_is_rw_lock_referenced(starpu_rw_lock_t *lock);
+/* Grab the RW-lock in a write mode */
+void _starpu_take_rw_lock_write(starpu_rw_lock_t *lock);
+
+/* Grab the RW-lock in a read mode */
+void _starpu_take_rw_lock_read(starpu_rw_lock_t *lock);
+
+/* Try to grab the RW-lock in a write mode. Returns 0 in case of success, -1
+ * otherwise. */
+int _starpu_take_rw_lock_write_try(starpu_rw_lock_t *lock);
+
+/* Try to grab the RW-lock in a read mode. Returns 0 in case of success, -1
+ * otherwise. */
+int _starpu_take_rw_lock_read_try(starpu_rw_lock_t *lock);
+
+/* Unlock the RW-lock. */
+void _starpu_release_rw_lock(starpu_rw_lock_t *lock);
 
 #endif

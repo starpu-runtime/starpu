@@ -224,6 +224,7 @@ void _starpu_data_request_append_callback(starpu_data_request_t r, void (*callba
 	}
 }
 
+/* This method is called with handle's header_lock taken */
 static void starpu_handle_data_request_completion(starpu_data_request_t r)
 {
 	unsigned do_delete = 0;
@@ -238,6 +239,8 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 	STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, r->com_id);
 #endif
 
+	/* Once the request has been fulfilled, we may submit the requests that
+	 * were chained to that request. */
 	unsigned chained_req;
 	for (chained_req = 0; chained_req < r->next_req_count; chained_req++)
 	{

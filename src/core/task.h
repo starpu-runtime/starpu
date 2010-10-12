@@ -25,6 +25,9 @@
  * task currently submitted */
 void _starpu_decrement_nsubmitted_tasks(void);
 
+/* A pthread key is used to store the task currently executed on the thread.
+ * _starpu_initialize_current_task_key initializes this pthread key and
+ * _starpu_set_current_task updates its current value. */
 void _starpu_initialize_current_task_key(void);
 void _starpu_set_current_task(struct starpu_task *task);
 

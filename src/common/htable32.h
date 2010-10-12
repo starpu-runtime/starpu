@@ -24,12 +24,19 @@
 
 #define STARPU_HTBL32_NODE_SIZE	16
 
+/* Hierarchical table: all nodes have a 2^16 arity . */
 typedef struct starpu_htbl32_node_s {
 	unsigned nentries;
 	struct starpu_htbl32_node_s *children[1<<STARPU_HTBL32_NODE_SIZE];
 } starpu_htbl32_node_t;
 
+/* Look for a 32bit key into the hierchical table. Returns the entry if
+ * something is found, NULL otherwise. */
 void *_starpu_htbl_search_32(struct starpu_htbl32_node_s *htbl, uint32_t key);
+
+/* Insert an entry indexed by the 32bit key into the hierarchical table.
+ * Returns the entry that was previously associated to that key if any, NULL
+ * otherwise. */
 void *_starpu_htbl_insert_32(struct starpu_htbl32_node_s **htbl, uint32_t key, void *entry);
 
 #endif // __GENERIC_HTABLE_H__

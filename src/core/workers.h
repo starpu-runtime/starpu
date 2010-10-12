@@ -124,14 +124,31 @@ struct starpu_machine_config_s {
 	unsigned running;
 };
 
+/* Has starpu_shutdown already been called ? */
 unsigned _starpu_machine_is_running(void);
 
+/* Check if there is a worker that may execute the task. */
 uint32_t _starpu_worker_exists(uint32_t task_mask);
+
+/* Is there a worker that can execute CUDA code ? */
 uint32_t _starpu_may_submit_cuda_task(void);
+
+/* Is there a worker that can execute CPU code ? */
 uint32_t _starpu_may_submit_cpu_task(void);
+
+/* Is there a worker that can execute OpenCL code ? */
 uint32_t _starpu_may_submit_opencl_task(void);
+
+/* Check if the worker specified by workerid can execute the codelet. */
 uint32_t _starpu_worker_may_execute_task(unsigned workerid, uint32_t where);
+
+/* Check whether there is anything that the worker should do instead of
+ * sleeping (waiting on something to happen). */
 unsigned _starpu_worker_can_block(unsigned memnode);
+
+/* This function must be called to block a worker. It puts the worker in a
+ * sleeping state until there is some event that forces the worker to wake up.
+ * */
 void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *mutex);
 
 void _starpu_set_local_worker_key(struct starpu_worker_s *worker);
@@ -141,7 +158,11 @@ struct starpu_worker_s *_starpu_get_worker_struct(unsigned id);
 
 struct starpu_machine_config_s *_starpu_get_machine_config(void);
 
+/* Retrieve the status which indicates what the worker is currently doing. */
 starpu_worker_status _starpu_worker_get_status(int workerid);
+
+/* Change the status of the worker which indicates what the worker is currently
+ * doing (eg. executing a callback). */
 void _starpu_worker_set_status(int workerid, starpu_worker_status status);
 
 /* TODO move */
