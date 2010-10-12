@@ -66,7 +66,7 @@ typedef struct {
 	sem_t *sem;
 } cl_args;
 
-static unsigned size = 16*1024;
+static unsigned size = 4*1024;
 static unsigned nblocks = 16;
 static unsigned nbigblocks = 8;
 static unsigned pinned = 0;
