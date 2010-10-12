@@ -24,9 +24,13 @@
 #include <common/config.h>
 #include <core/workers.h>
 
+/* Create a file that will contain StarPU's log */
 void _starpu_open_debug_logfile(void);
+
+/* Close StarPU's log file */
 void _starpu_close_debug_logfile(void);
 
+/* Write into StarPU's log file */
 void _starpu_print_to_logfile(const char *format, ...);
 
 #endif // __DEBUG_H__

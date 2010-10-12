@@ -363,8 +363,10 @@ int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_job_s 
 	return 0;
 }
 
-const char *_starpu_get_model_name(starpu_job_t j) {
-	if (!j) return NULL;
+const char *_starpu_get_model_name(starpu_job_t j)
+{
+	if (!j)
+		return NULL;
 
 	struct starpu_task *task = j->task;
         if (task && task->cl

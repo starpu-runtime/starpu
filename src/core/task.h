@@ -34,6 +34,9 @@ void _starpu_set_current_task(struct starpu_task *task);
 /* NB the second argument makes it possible to count regenerable tasks only
  * once. */
 int _starpu_submit_job(starpu_job_t j, unsigned do_not_increment_nsubmitted);
+
+/* Returns the job structure (which is the internal data structure associated
+ * to a task). */
 starpu_job_t _starpu_get_job_associated_to_task(struct starpu_task *task);
 
 #endif // __CORE_TASK_H__
