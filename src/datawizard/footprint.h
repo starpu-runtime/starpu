@@ -21,7 +21,11 @@
 #include <common/config.h>
 #include <core/jobs.h>
 
+/* Compute the footprint that characterizes the job and cache it into the job
+ * structure. */
 void _starpu_compute_buffers_footprint(struct starpu_job_s *j);
+
+/* Compute the footprint that characterizes the layout of the data handle. */
 uint32_t _starpu_compute_data_footprint(starpu_data_handle handle);
 
 #endif // __FOOTPRINT_H__
