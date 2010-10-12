@@ -49,7 +49,7 @@ static unsigned may_unlock_data_req_list_head(starpu_data_handle handle)
 	{
 		int i;
 		for (i = 0; i < STARPU_MAXNODES; i++)
-			STARPU_ASSERT(!handle->per_node[i].request);
+			STARPU_ASSERT(!handle->per_node[i]->request);
 		return 1;
 	}
 

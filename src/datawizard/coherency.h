@@ -37,7 +37,9 @@ typedef enum {
 } starpu_cache_state;
 
 /* this should contain the information relative to a given data replicate  */
-struct starpu_data_replicate_s {
+LIST_TYPE(starpu_data_replicate,
+	starpu_data_handle handle;
+
 	/* describe the actual data layout */
 	void *interface;
 
@@ -65,7 +67,7 @@ struct starpu_data_replicate_s {
 	 */
 	uint8_t requested;
 	struct starpu_data_request_s *request;
-};
+);
 
 struct starpu_data_requester_list_s;
 
@@ -99,7 +101,7 @@ struct starpu_data_state_t {
 	unsigned nchildren;
 
 	/* describe the state of the data in term of coherency */
-	struct starpu_data_replicate_s per_node[STARPU_MAXNODES];
+	struct starpu_data_replicate_s *per_node[STARPU_MAXNODES];
 
 	struct starpu_data_interface_ops_t *ops;
 

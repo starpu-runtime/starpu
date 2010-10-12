@@ -73,20 +73,23 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		handle->per_node[node].memory_node = node;
+		struct starpu_data_replicate_s *replicate;
+		replicate = handle->per_node[node];
+		
+		replicate->memory_node = node;
 
 		if (node == home_node) {
 			/* this is the home node with the only valid copy */
-			handle->per_node[node].state = STARPU_OWNER;
-			handle->per_node[node].allocated = 1;
-			handle->per_node[node].automatically_allocated = 0;
-			handle->per_node[node].refcnt = 0;
+			replicate->state = STARPU_OWNER;
+			replicate->allocated = 1;
+			replicate->automatically_allocated = 0;
+			replicate->refcnt = 0;
 		}
 		else {
 			/* the value is not available here yet */
-			handle->per_node[node].state = STARPU_INVALID;
-			handle->per_node[node].allocated = 0;
-			handle->per_node[node].refcnt = 0;
+			replicate->state = STARPU_INVALID;
+			replicate->allocated = 0;
+			replicate->refcnt = 0;
 		}
 	}
 
@@ -108,8 +111,16 @@ static starpu_data_handle _starpu_data_handle_allocate(struct starpu_data_interf
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		handle->per_node[node].interface = calloc(1, interfacesize);
-		STARPU_ASSERT(handle->per_node[node].interface);
+		struct starpu_data_replicate_s *replicate;
+
+		replicate = calloc(1, sizeof(struct starpu_data_replicate_s));
+		STARPU_ASSERT(replicate);
+		handle->per_node[node] = replicate;
+
+		replicate->handle = handle;
+
+		replicate->interface = calloc(1, interfacesize);
+		STARPU_ASSERT(replicate->interface);
 	}
 
 	return handle;
@@ -125,6 +136,7 @@ void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 	STARPU_ASSERT(handleptr);
 	*handleptr = handle;
 
+
 	/* fill the interface fields with the appropriate method */
 	ops->register_data_handle(handle, home_node, interface);
 
@@ -139,7 +151,7 @@ void _starpu_data_free_interfaces(starpu_data_handle handle)
 {
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
-		free(handle->per_node[node].interface);
+		free(handle->per_node[node]->interface);
 }
 
 struct unregister_callback_arg {
@@ -159,7 +171,7 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 
 	STARPU_ASSERT(handle);
 
-	struct starpu_data_replicate_s *replicate = &handle->per_node[arg->memory_node];
+	struct starpu_data_replicate_s *replicate = handle->per_node[arg->memory_node];
 
 	ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, 0, NULL, NULL);
 	STARPU_ASSERT(!ret);
@@ -195,7 +207,7 @@ void starpu_data_unregister(starpu_data_handle handle)
 				_starpu_data_unregister_fetch_data_callback, &arg))
 		{
 			/* no one has locked this data yet, so we proceed immediately */
-			struct starpu_data_replicate_s *home_replicate = &handle->per_node[home_node];
+			struct starpu_data_replicate_s *home_replicate = handle->per_node[home_node];
 			int ret = _starpu_fetch_data_on_node(handle, home_replicate, STARPU_R, 0, NULL, NULL);
 			STARPU_ASSERT(!ret);
 		}
@@ -211,11 +223,14 @@ void starpu_data_unregister(starpu_data_handle handle)
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		struct starpu_data_replicate_s *local = &handle->per_node[node];
+		struct starpu_data_replicate_s *local = handle->per_node[node];
 
 		if (local->allocated && local->automatically_allocated){
 			/* free the data copy in a lazy fashion */
 			_starpu_request_mem_chunk_removal(handle, node);
+		}
+		else {
+			free(local);
 		}
 	}
 
@@ -237,7 +252,7 @@ void starpu_data_invalidate(starpu_data_handle handle)
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		struct starpu_data_replicate_s *local = &handle->per_node[node];
+		struct starpu_data_replicate_s *local = handle->per_node[node];
 
 		if (local->allocated && local->automatically_allocated){
 			/* free the data copy in a lazy fashion */
@@ -259,5 +274,5 @@ unsigned starpu_get_handle_interface_id(starpu_data_handle handle)
 
 void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node)
 {
-	return handle->per_node[memory_node].interface;
+	return handle->per_node[memory_node]->interface;
 }

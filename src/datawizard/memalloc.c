@@ -131,8 +131,8 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 
 	if (handle->nchildren == 0)
 	{
-		struct starpu_data_replicate_s *src_replicate = &handle->per_node[src_node];
-		struct starpu_data_replicate_s *dst_replicate = &handle->per_node[dst_node];
+		struct starpu_data_replicate_s *src_replicate = handle->per_node[src_node];
+		struct starpu_data_replicate_s *dst_replicate = handle->per_node[dst_node];
 
 		/* this is a leaf */
 		switch(src_replicate->state) {
@@ -147,7 +147,7 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 			src_replicate->refcnt++;
 			dst_replicate->refcnt++;
 
-			ret = _starpu_driver_copy_data_1_to_1(handle, &handle->per_node[src_node], &handle->per_node[dst_node], 0, NULL, 1);
+			ret = _starpu_driver_copy_data_1_to_1(handle, handle->per_node[src_node], handle->per_node[dst_node], 0, NULL, 1);
 			STARPU_ASSERT(ret == 0);
 
 			src_replicate->refcnt--;
@@ -162,14 +162,14 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 			cnt = 0;
 			for (i = 0; i < STARPU_MAXNODES; i++)
 			{
-				if (handle->per_node[i].state == STARPU_SHARED) {
+				if (handle->per_node[i]->state == STARPU_SHARED) {
 					cnt++; 
 					last = i;
 				}
 			}
 
 			if (cnt == 1)
-				handle->per_node[last].state = STARPU_OWNER;
+				handle->per_node[last]->state = STARPU_OWNER;
 
 			break;
 		case STARPU_INVALID:
@@ -207,13 +207,13 @@ static size_t try_to_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node)
 	/* check if they are all "free" */
 	if (may_free_subtree(handle, node))
 	{
-		STARPU_ASSERT(handle->per_node[node].refcnt == 0);
+		STARPU_ASSERT(handle->per_node[node]->refcnt == 0);
 
 		/* in case there was nobody using that buffer, throw it 
 		 * away after writing it back to main memory */
 		transfer_subtree_to_node(handle, node, 0);
 
-		STARPU_ASSERT(handle->per_node[node].refcnt == 0);
+		STARPU_ASSERT(handle->per_node[node]->refcnt == 0);
 
 		/* now the actual buffer may be freed */
 		freed = do_free_mem_chunk(mc, node);
@@ -243,12 +243,12 @@ static void reuse_mem_chunk(unsigned node, starpu_data_handle new_data, starpu_m
 
 	if (!mc->data_was_deleted)
 	{
-		struct starpu_data_replicate_s *old_replicate = &old_data->per_node[node];
+		struct starpu_data_replicate_s *old_replicate = old_data->per_node[node];
 		old_replicate->allocated = 0;
 		old_replicate->automatically_allocated = 0;
 	}
 
-	struct starpu_data_replicate_s *new_replicate = &new_data->per_node[node];
+	struct starpu_data_replicate_s *new_replicate = new_data->per_node[node];
 	new_replicate->allocated = 1;
 	new_replicate->automatically_allocated = 1;
 
@@ -318,8 +318,8 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 			starpu_data_handle old_data;
 			old_data = mc->data;
 
-			if (old_data->per_node[node].allocated &&
-					old_data->per_node[node].automatically_allocated)
+			if (old_data->per_node[node]->allocated &&
+					old_data->per_node[node]->automatically_allocated)
 			{
 				reuse_mem_chunk(node, data, mc, 0);
 
@@ -383,7 +383,7 @@ starpu_mem_chunk_t _starpu_memchunk_cache_lookup(uint32_t node, starpu_data_hand
 		if (mc->footprint == footprint)
 		{
 			/* Is that a false hit ? (this is _very_ unlikely) */
-			if (_starpu_data_interface_compare(handle->per_node[node].interface, handle->ops, mc->interface, mc->ops))
+			if (_starpu_data_interface_compare(handle->per_node[node]->interface, handle->ops, mc->interface, mc->ops))
 				continue;
 
 			/* Cache hit */
@@ -625,25 +625,25 @@ static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
 //	_starpu_spin_lock(&handle->header_lock);
 
 	if (mc->automatically_allocated && 
-		(!handle || data_was_deleted || handle->per_node[node].refcnt == 0))
+		(!handle || data_was_deleted || handle->per_node[node]->refcnt == 0))
 	{
 		if (handle && !data_was_deleted)
-			STARPU_ASSERT(handle->per_node[node].allocated);
+			STARPU_ASSERT(handle->per_node[node]->allocated);
 
 		mc->ops->free_data_on_node(mc->interface, node);
 
 		if (handle && !data_was_deleted)
 		{
-			handle->per_node[node].allocated = 0;
+			handle->per_node[node]->allocated = 0;
 
 			/* XXX why do we need that ? */
-			handle->per_node[node].automatically_allocated = 0;
+			handle->per_node[node]->automatically_allocated = 0;
 		}
 
 		freed = mc->size;
 
 		if (handle && !data_was_deleted)
-			STARPU_ASSERT(handle->per_node[node].refcnt == 0);
+			STARPU_ASSERT(handle->per_node[node]->refcnt == 0);
 	}
 
 //	_starpu_spin_unlock(&handle->header_lock);
@@ -734,5 +734,5 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, struct starpu_dat
 
 unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle handle, uint32_t memory_node)
 {
-	return handle->per_node[memory_node].allocated;
+	return handle->per_node[memory_node]->allocated;
 }

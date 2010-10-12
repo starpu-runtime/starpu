@@ -143,13 +143,15 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 		unsigned node;
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
-			child->per_node[node].state = 
-				initial_handle->per_node[node].state;
-			child->per_node[node].allocated = 
-				initial_handle->per_node[node].allocated;
-			child->per_node[node].automatically_allocated = initial_handle->per_node[node].automatically_allocated;
-			child->per_node[node].refcnt = 0;
-			child->per_node[node].memory_node = node;
+			struct starpu_data_replicate_s *initial_replicate = initial_handle->per_node[node];
+			struct starpu_data_replicate_s *child_replicate;
+			child_replicate = child->per_node[node];
+
+			child_replicate->state = initial_replicate->state;
+			child_replicate->allocated = initial_replicate->allocated;
+			child_replicate->automatically_allocated = initial_replicate->automatically_allocated;
+			child_replicate->refcnt = 0;
+			child_replicate->memory_node = node;
 			
 			/* update the interface */
 			void *initial_interface = starpu_data_get_interface_on_node(initial_handle, node);
@@ -186,7 +188,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 			starpu_data_unpartition(child_handle, gathering_node);
 
 		int ret;
-		ret = _starpu_fetch_data_on_node(child_handle, &child_handle->per_node[gathering_node], STARPU_R, 0, NULL, NULL);
+		ret = _starpu_fetch_data_on_node(child_handle, child_handle->per_node[gathering_node], STARPU_R, 0, NULL, NULL);
 		/* for now we pretend that the RAM is almost unlimited and that gathering 
 		 * data should be possible from the node that does the unpartionning ... we
 		 * don't want to have the programming deal with memory shortage at that time,
@@ -218,7 +220,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 
 		for (child = 0; child < root_handle->nchildren; child++)
 		{
-			struct starpu_data_replicate_s *local = &root_handle->children[child].per_node[node];
+			struct starpu_data_replicate_s *local = root_handle->children[child].per_node[node];
 
 			if (local->state == STARPU_INVALID) {
 				isvalid = 0; 
@@ -229,6 +231,8 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 				_starpu_request_mem_chunk_removal(root_handle, node);
 				isvalid = 0; 
 			}
+#warning free the data replicate if needed
+
 		}
 
 		/* no problem was found so the node still has a valid copy */
@@ -243,7 +247,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		root_handle->per_node[node].state = 
+		root_handle->per_node[node]->state = 
 			still_valid[node]?newstate:STARPU_INVALID;
 	}
 
@@ -281,8 +285,13 @@ static void starpu_data_create_children(starpu_data_handle handle, unsigned nchi
 
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
-			handle_child->per_node[node].interface = calloc(1, interfacesize);
-			STARPU_ASSERT(handle_child->per_node[node].interface);
+			handle_child->per_node[node] = calloc(1, sizeof(struct starpu_data_replicate_s));
+			STARPU_ASSERT(handle_child->per_node[node]);
+
+			handle_child->per_node[node]->handle = handle_child;
+
+			handle_child->per_node[node]->interface = calloc(1, interfacesize);
+			STARPU_ASSERT(handle_child->per_node[node]->interface);
 		}
 	}
 	
