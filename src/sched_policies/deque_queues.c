@@ -83,7 +83,6 @@ struct starpu_task *_starpu_deque_pop_task(struct starpu_deque_jobq_s *deque_que
 struct starpu_job_list_s *_starpu_deque_pop_every_task(struct starpu_deque_jobq_s *deque_queue, pthread_mutex_t *sched_mutex, int workerid)
 {
 	struct starpu_job_list_s *new_list, *old_list;
-	uint32_t where = starpu_worker_get_type(workerid);
 
 	/* block until some task is available in that queue */
 	PTHREAD_MUTEX_LOCK(sched_mutex);
@@ -109,7 +108,7 @@ struct starpu_job_list_s *_starpu_deque_pop_every_task(struct starpu_deque_jobq_
 		{
 			next_job = starpu_job_list_next(i);
 
-			if (i->task->cl->where & where)
+			if (_starpu_worker_may_execute_task(workerid, i->task))
 			{
 				/* this elements can be moved into the new list */
 				new_list_size++;

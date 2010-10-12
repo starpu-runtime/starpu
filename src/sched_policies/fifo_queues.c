@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <common/utils.h>
 #include <core/task.h>
+#include <core/workers.h>
 
 struct starpu_fifo_taskq_s *_starpu_create_fifo(void)
 {
@@ -101,7 +102,6 @@ struct starpu_task *_starpu_fifo_pop_every_task(struct starpu_fifo_taskq_s *fifo
 {
 	struct starpu_task_list *old_list;
 	unsigned size;
-	uint32_t where = starpu_worker_get_type(workerid);
 
 	struct starpu_task *new_list = NULL;
 	struct starpu_task *new_list_tail = NULL;
@@ -122,7 +122,7 @@ struct starpu_task *_starpu_fifo_pop_every_task(struct starpu_fifo_taskq_s *fifo
 		{
 			next_task = task->next;
 
-			if (task->cl->where & where)
+			if (_starpu_worker_may_execute_task(workerid, task))
 			{
 				/* this elements can be moved into the new list */
 				new_list_size++;
