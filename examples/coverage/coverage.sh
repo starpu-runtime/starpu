@@ -79,10 +79,6 @@ apps()
 	STARPU_CALIBRATE=1 STARPU_SCHED="dm" ./heat/heat -ntheta 66 -nthick 130 -nblocks 8 -v2 -pin
 	check_success $?
 
-	echo "heat.dm.16k.calibrate.v2"
-	STARPU_CALIBRATE=1 STARPU_SCHED="dm" ./heat/heat -ntheta 130 -nthick 130 -nblocks 16 -v2 -pin
-	check_success $?
-
 	echo "heat.dm.8k.no.pin.v2"
 	STARPU_SCHED="dm" ./heat/heat -ntheta 66 -nthick 130 -nblocks 8 -v2
 	check_success $?
@@ -97,10 +93,6 @@ apps()
 
 	echo "heat.dm.8k.v2"
 	STARPU_SCHED="dm" ./heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2
-	check_success $?
-
-	echo "heat.dm.16k.v2"
-	STARPU_SCHED="dm" ./heat/heat -ntheta 130 -nthick 130 -nblocks 16 -pin -v2
 	check_success $?
 
 	echo "heat.greedy.8k.v2"
