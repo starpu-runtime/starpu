@@ -66,11 +66,6 @@ LIST_TYPE(starpu_job,
 	 * handles in the same order. */
 	struct starpu_buffer_descr_t ordered_buffers[STARPU_NMAXBUFS];
 	
-	/* In case the task accesses a piece of data in SCRATCH mode, we create
-	 * a memchunk specifically for that purpose when the task is submitted.
-	 * It is put back into the memchunk cache when the task is finished. */
-	starpu_mem_chunk_t scratch_memchunks[STARPU_NMAXBUFS];
-
 	/* If a tag is associated to the job, this points to the internal data
 	 * structure that describes the tag status. */
 	struct starpu_tag_s *tag;

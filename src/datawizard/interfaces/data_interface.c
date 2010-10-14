@@ -116,6 +116,7 @@ static starpu_data_handle _starpu_data_handle_allocate(struct starpu_data_interf
 		replicate = calloc(1, sizeof(struct starpu_data_replicate_s));
 		STARPU_ASSERT(replicate);
 		handle->per_node[node] = replicate;
+		/* relaxed_coherency = 0 */
 
 		replicate->handle = handle;
 

@@ -235,7 +235,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 
 		}
 
-		/* no problem was found so the node still has a valid copy */
+		/* if there was no invalid copy, the node still has a valid copy */
 		still_valid[node] = isvalid;
 		nvalids++;
 	}
@@ -287,6 +287,8 @@ static void starpu_data_create_children(starpu_data_handle handle, unsigned nchi
 		{
 			handle_child->per_node[node] = calloc(1, sizeof(struct starpu_data_replicate_s));
 			STARPU_ASSERT(handle_child->per_node[node]);
+
+			/* relaxed_coherency = 0 */
 
 			handle_child->per_node[node]->handle = handle_child;
 

@@ -26,8 +26,6 @@ static starpu_mem_chunk_list_t mc_list[STARPU_MAXNODES];
 /* Explicitly caches memory chunks that can be reused */
 static starpu_mem_chunk_list_t memchunk_cache[STARPU_MAXNODES];
 
-static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node);
-
 void _starpu_init_mem_chunk_lists(void)
 {
 	unsigned i;
@@ -140,7 +138,7 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 			src_replicate->refcnt++;
 			dst_replicate->refcnt++;
 
-			ret = _starpu_driver_copy_data_1_to_1(handle, handle->per_node[src_node], handle->per_node[dst_node], 0, NULL, 1);
+			ret = _starpu_driver_copy_data_1_to_1(handle, src_replicate, dst_replicate, 0, NULL, 1);
 			STARPU_ASSERT(ret == 0);
 
 			src_replicate->refcnt--;
@@ -184,6 +182,56 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 	}
 }
 
+static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
+{
+	size_t freed = 0;
+
+	STARPU_ASSERT(mc->ops);
+	STARPU_ASSERT(mc->ops->free_data_on_node);
+
+	starpu_data_handle handle = mc->data;
+
+	/* Does this memory chunk refers to a handle that does not exist
+	 * anymore ? */
+	unsigned data_was_deleted = mc->data_was_deleted;
+
+	struct starpu_data_replicate_s *replicate = mc->replicate;
+
+//	while (_starpu_spin_trylock(&handle->header_lock))
+//		_starpu_datawizard_progress(_starpu_get_local_memory_node());
+
+#warning can we block here ?
+//	_starpu_spin_lock(&handle->header_lock);
+
+	if (mc->automatically_allocated && 
+		(!handle || data_was_deleted || replicate->refcnt == 0))
+	{
+		if (handle && !data_was_deleted)
+			STARPU_ASSERT(replicate->allocated);
+
+		mc->ops->free_data_on_node(mc->interface, node);
+
+		if (handle && !data_was_deleted)
+		{
+			replicate->allocated = 0;
+
+			/* XXX why do we need that ? */
+			replicate->automatically_allocated = 0;
+		}
+
+		freed = mc->size;
+
+		if (handle && !data_was_deleted)
+			STARPU_ASSERT(replicate->refcnt == 0);
+	}
+
+//	_starpu_spin_unlock(&handle->header_lock);
+
+	return freed;
+}
+
+
+
 static size_t do_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node)
 {
 	size_t size;
@@ -200,43 +248,66 @@ static size_t do_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node)
 	return size; 
 }
 
+/* This function is called for memory chunks that are possibly in used (ie. not
+ * in the cache). They should therefore still be associated to a handle. */
 static size_t try_to_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node)
 {
 	size_t freed = 0;
 
 	starpu_data_handle handle;
-
 	handle = mc->data;
-
 	STARPU_ASSERT(handle);
 
-	/* try to lock all the leafs of the subtree */
-	lock_all_subtree(handle);
-
-	/* check if they are all "free" */
-	if (may_free_subtree(handle, node))
+	/* Either it's a "relaxed coherency" memchunk, or it's a memchunk that
+	 * could be used with filters. */
+	if (mc->relaxed_coherency)
 	{
-		STARPU_ASSERT(handle->per_node[node]->refcnt == 0);
+		STARPU_ASSERT(mc->replicate);
 
-		/* in case there was nobody using that buffer, throw it 
-		 * away after writing it back to main memory */
-		transfer_subtree_to_node(handle, node, 0);
+		while (_starpu_spin_trylock(&handle->header_lock))
+			_starpu_datawizard_progress(_starpu_get_local_memory_node(), 0);
 
-		STARPU_ASSERT(handle->per_node[node]->refcnt == 0);
+		if (mc->replicate->refcnt == 0)
+		{
+			/* Note taht there is no need to transfer any data or
+			 * to update the status in terms of MSI protocol
+			 * because this memchunk is associated to a replicate
+			 * in "relaxed coherency" mode. */
+			freed = do_free_mem_chunk(mc, node);
+		}
 
-		/* now the actual buffer may be freed */
-		freed = do_free_mem_chunk(mc, node);
+		_starpu_spin_unlock(&handle->header_lock);
 	}
-
-	/* unlock the leafs */
-	unlock_all_subtree(handle);
-
+	else {
+		/* try to lock all the leafs of the subtree */
+		lock_all_subtree(handle);
+	
+		/* check if they are all "free" */
+		if (may_free_subtree(handle, node))
+		{
+			STARPU_ASSERT(handle->per_node[node]->refcnt == 0);
+	
+			/* in case there was nobody using that buffer, throw it 
+			 * away after writing it back to main memory */
+			transfer_subtree_to_node(handle, node, 0);
+	
+			STARPU_ASSERT(handle->per_node[node]->refcnt == 0);
+	
+			/* now the actual buffer may be freed */
+			freed = do_free_mem_chunk(mc, node);
+		}
+	
+		/* unlock the leafs */
+		unlock_all_subtree(handle);
+	}
 	return freed;
 }
 
 #ifdef STARPU_USE_ALLOCATION_CACHE
-/* we assume that mc_rwlock[node] is taken */
-static void reuse_mem_chunk(unsigned node, starpu_data_handle new_data, starpu_mem_chunk_t mc, unsigned is_already_in_mc_list)
+/* We assume that mc_rwlock[node] is taken. is_already_in_mc_list indicates
+ * that the mc is already in the list of buffers that are possibly used, and
+ * therefore not in the cache. */
+static void reuse_mem_chunk(unsigned node, struct starpu_data_replicate_s *new_replicate, starpu_mem_chunk_t mc, unsigned is_already_in_mc_list)
 {
 	starpu_data_handle old_data;
 	old_data = mc->data;
@@ -250,20 +321,18 @@ static void reuse_mem_chunk(unsigned node, starpu_data_handle new_data, starpu_m
 		starpu_mem_chunk_list_erase(memchunk_cache[node], mc);
 	}
 
-	if (!mc->data_was_deleted)
-	{
-		struct starpu_data_replicate_s *old_replicate = old_data->per_node[node];
-		old_replicate->allocated = 0;
-		old_replicate->automatically_allocated = 0;
-	}
+	struct starpu_data_replicate_s *old_replicate = mc->replicate;
+	old_replicate->allocated = 0;
+	old_replicate->automatically_allocated = 0;
 
-	struct starpu_data_replicate_s *new_replicate = new_data->per_node[node];
 	new_replicate->allocated = 1;
 	new_replicate->automatically_allocated = 1;
 
-	memcpy(new_replicate->interface, mc->interface, old_data->ops->interface_size);
+	STARPU_ASSERT(new_replicate->interface);
+	STARPU_ASSERT(mc->interface);
+	memcpy(new_replicate->interface, mc->interface, old_replicate->ops->interface_size);
 
-	mc->data = new_data;
+	mc->data = new_replicate->handle;
 	mc->data_was_deleted = 0;
 	/* mc->ops, mc->size, mc->footprint and mc->interface should be
  	 * unchanged ! */
@@ -308,11 +377,11 @@ static unsigned try_to_reuse_mem_chunk(starpu_mem_chunk_t mc, unsigned node, sta
 }
 
 /* this function looks for a memory chunk that matches a given footprint in the
- * list of mem chunk that need to be freed */
+ * list of mem chunk that need to be freed. This function must be called with
+ * mc_rwlock[node] taken in write mode. */
 static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle data, uint32_t footprint)
 {
 	starpu_mem_chunk_t mc, next_mc;
-	pthread_rwlock_wrlock(&mc_rwlock[node]);
 
 	/* go through all buffers in the cache */
 	mc = _starpu_memchunk_cache_lookup_locked(node, handle);
@@ -320,7 +389,6 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 	{
 		/* We found an entry in the cache so we can reuse it */
 		reuse_mem_chunk(node, data, mc, 0);
-		pthread_rwlock_unlock(&mc_rwlock[node]);
 		return 1;
 	}
 
@@ -338,14 +406,9 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 		{
 //			fprintf(stderr, "found a candidate ...\n");
 			if (try_to_reuse_mem_chunk(mc, node, data, 1))
-			{
-				pthread_rwlock_unlock(&mc_rwlock[node]);
 				return 1;
-			}
 		}
 	}
-
-	pthread_rwlock_unlock(&mc_rwlock[node]);
 
 	return 0;
 }
@@ -507,9 +570,10 @@ size_t _starpu_free_all_automatically_allocated_buffers(uint32_t node)
 	return reclaim_memory_generic(node, 1);
 }
 
-starpu_mem_chunk_t _starpu_memchunk_init(starpu_data_handle handle, size_t size, void *interface, size_t interface_size, unsigned automatically_allocated)
+static starpu_mem_chunk_t _starpu_memchunk_init(struct starpu_data_replicate_s *replicate, size_t size, size_t interface_size, unsigned automatically_allocated)
 {
 	starpu_mem_chunk_t mc = starpu_mem_chunk_new();
+	starpu_data_handle handle = replicate->handle;
 
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT(handle->ops);
@@ -520,27 +584,30 @@ starpu_mem_chunk_t _starpu_memchunk_init(starpu_data_handle handle, size_t size,
 	mc->ops = handle->ops;
 	mc->data_was_deleted = 0;
 	mc->automatically_allocated = automatically_allocated;
+	mc->relaxed_coherency = replicate->relaxed_coherency;		
+	mc->replicate = replicate;
 
 	/* Save a copy of the interface */
 	mc->interface = malloc(interface_size);
 	STARPU_ASSERT(mc->interface);
-	memcpy(mc->interface, interface, interface_size);
+	memcpy(mc->interface, replicate->interface, interface_size);
 
 	return mc;
 }
 
-static void register_mem_chunk(starpu_data_handle handle, uint32_t dst_node, size_t size, unsigned automatically_allocated)
+static void register_mem_chunk(struct starpu_data_replicate_s *replicate, size_t size, unsigned automatically_allocated)
 {
 	int res;
+
+	unsigned dst_node = replicate->memory_node;
 
 	starpu_mem_chunk_t mc;
 
 	/* the interface was already filled by ops->allocate_data_on_node */
-	void *src_interface = starpu_data_get_interface_on_node(handle, dst_node);
-	size_t interface_size = handle->ops->interface_size;
+	size_t interface_size = replicate->handle->ops->interface_size;
 
 	/* Put this memchunk in the list of memchunk in use */
-	mc = _starpu_memchunk_init(handle, size, src_interface, interface_size, automatically_allocated); 
+	mc = _starpu_memchunk_init(replicate, size, interface_size, automatically_allocated); 
 
 	res = pthread_rwlock_wrlock(&mc_rwlock[dst_node]);
 	STARPU_ASSERT(!res);
@@ -589,52 +656,6 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle handle, unsigned node)
 	STARPU_ASSERT(!res);
 }
 
-static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
-{
-	size_t freed = 0;
-
-	STARPU_ASSERT(mc->ops);
-	STARPU_ASSERT(mc->ops->free_data_on_node);
-
-	starpu_data_handle handle = mc->data;
-
-	/* Does this memory chunk refers to a handle that does not exist
-	 * anymore ? */
-	unsigned data_was_deleted = mc->data_was_deleted;
-
-//	while (_starpu_spin_trylock(&handle->header_lock))
-//		_starpu_datawizard_progress(_starpu_get_local_memory_node());
-
-#warning can we block here ?
-//	_starpu_spin_lock(&handle->header_lock);
-
-	if (mc->automatically_allocated && 
-		(!handle || data_was_deleted || handle->per_node[node]->refcnt == 0))
-	{
-		if (handle && !data_was_deleted)
-			STARPU_ASSERT(handle->per_node[node]->allocated);
-
-		mc->ops->free_data_on_node(mc->interface, node);
-
-		if (handle && !data_was_deleted)
-		{
-			handle->per_node[node]->allocated = 0;
-
-			/* XXX why do we need that ? */
-			handle->per_node[node]->automatically_allocated = 0;
-		}
-
-		freed = mc->size;
-
-		if (handle && !data_was_deleted)
-			STARPU_ASSERT(handle->per_node[node]->refcnt == 0);
-	}
-
-//	_starpu_spin_unlock(&handle->header_lock);
-
-	return freed;
-}
-
 /*
  * In order to allocate a piece of data, we try to reuse existing buffers if
  * its possible.
@@ -647,7 +668,7 @@ static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
  *
  */
 
-ssize_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, uint32_t dst_node)
+static ssize_t _starpu_allocate_interface(starpu_data_handle handle, struct starpu_data_replicate_s *replicate, uint32_t dst_node)
 {
 	unsigned attempts = 0;
 	ssize_t allocated_memory;
@@ -659,12 +680,17 @@ ssize_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, u
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
 	STARPU_TRACE_START_ALLOC_REUSE(dst_node);
+	pthread_rwlock_wrlock(&mc_rwlock[node]);
+
 	if (try_to_find_reusable_mem_chunk(dst_node, handle, footprint))
 	{
+		pthread_rwlock_unlock(&mc_rwlock[node]);
 		_starpu_allocation_cache_hit(dst_node);
 		ssize_t data_size = _starpu_data_get_size(handle);
 		return data_size;
 	}
+
+	pthread_rwlock_unlock(&mc_rwlock[node]);
 	STARPU_TRACE_END_ALLOC_REUSE(dst_node);
 #endif
 
@@ -673,7 +699,8 @@ ssize_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, u
 		STARPU_ASSERT(handle->ops->allocate_data_on_node);
 
 		STARPU_TRACE_START_ALLOC(dst_node);
-		allocated_memory = handle->ops->allocate_data_on_node(interface, dst_node);
+		STARPU_ASSERT(replicate->interface);
+		allocated_memory = handle->ops->allocate_data_on_node(replicate->interface, dst_node);
 		STARPU_TRACE_END_ALLOC(dst_node);
 
 		if (allocated_memory == -ENOMEM) {
@@ -699,13 +726,14 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, struct starpu_dat
 	if (replicate->allocated)
 		return 0;
 
-	allocated_memory = _starpu_allocate_interface(handle, replicate->interface, dst_node);
+	STARPU_ASSERT(replicate->interface);
+	allocated_memory = _starpu_allocate_interface(handle, replicate, dst_node);
 
 	/* perhaps we could really not handle that capacity misses */
 	if (allocated_memory == -ENOMEM)
 		return -ENOMEM;
 
-	register_mem_chunk(handle, dst_node, allocated_memory, 1);
+	register_mem_chunk(replicate, allocated_memory, 1);
 
 	replicate->allocated = 1;
 	replicate->automatically_allocated = 1;

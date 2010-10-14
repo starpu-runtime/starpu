@@ -43,18 +43,20 @@ LIST_TYPE(starpu_mem_chunk,
 	void *interface;
 	unsigned automatically_allocated;
 	unsigned data_was_deleted;
+
+	/* A buffer that is used for SCRATCH or reduction cannnot be used with
+	 * filters. */
+	unsigned relaxed_coherency;
+	struct starpu_data_replicate_s *replicate;
 )
 
 void _starpu_init_mem_chunk_lists(void);
 void _starpu_deinit_mem_chunk_lists(void);
 void _starpu_request_mem_chunk_removal(starpu_data_handle handle, unsigned node);
-ssize_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, uint32_t dst_node);
 int _starpu_allocate_memory_on_node(starpu_data_handle handle, struct starpu_data_replicate_s *replicate);
 size_t _starpu_free_all_automatically_allocated_buffers(uint32_t node);
 
 /* Memory chunk cache */
 void _starpu_memchunk_cache_insert(uint32_t node, starpu_mem_chunk_t);
 starpu_mem_chunk_t _starpu_memchunk_cache_lookup(uint32_t node, starpu_data_handle handle);
-starpu_mem_chunk_t _starpu_memchunk_init(starpu_data_handle handle, size_t size, void *interface,
-			size_t interface_size, unsigned automatically_allocated);
 #endif

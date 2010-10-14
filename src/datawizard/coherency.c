@@ -304,8 +304,6 @@ static int prefetch_data_on_node(starpu_data_handle handle, struct starpu_data_r
 
 static int fetch_data(starpu_data_handle handle, struct starpu_data_replicate_s *replicate, starpu_access_mode mode)
 {
-	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
-
 	return _starpu_fetch_data_on_node(handle, replicate, mode, 0, NULL, NULL);
 }
 
@@ -388,17 +386,41 @@ int _starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 	return 0;
 }
 
+static struct starpu_data_replicate_s *initialize_data_replicate(starpu_data_handle handle, unsigned local_memory_node)
+{
+	struct starpu_data_replicate_s *replicate;
+
+	replicate = malloc(sizeof(struct starpu_data_replicate_s));
+	STARPU_ASSERT(replicate);
+
+	replicate->memory_node = local_memory_node;
+	replicate->relaxed_coherency = 1;
+
+	size_t interfacesize = handle->ops->interface_size;
+	replicate->interface = malloc(interfacesize);
+	STARPU_ASSERT(replicate->interface);
+	void *ram_interface = handle->per_node[0]->interface;
+	memcpy(replicate->interface, ram_interface, interfacesize);
+	replicate->allocated = 0;
+	replicate->automatically_allocated = 0;
+
+	replicate->state = STARPU_INVALID;
+	replicate->refcnt = 0;
+	replicate->handle = handle;
+	replicate->requested = 0;
+	replicate->request = NULL;
+
+	return replicate;
+}
+
 int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 {
 	STARPU_TRACE_START_FETCH_INPUT(NULL);
 
-	uint32_t local_memory_node = _starpu_get_local_memory_node();
-
 	starpu_buffer_descr *descrs = task->buffers;
 	unsigned nbuffers = task->cl->nbuffers;
 
-	/* TODO get that from the stack */
-	starpu_job_t j = (struct starpu_job_s *)task->starpu_private;
+	unsigned local_memory_node = _starpu_get_local_memory_node();
 
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
@@ -411,31 +433,30 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 
 		if (mode & STARPU_SCRATCH)
 		{
-			starpu_mem_chunk_t mc;
-			mc = _starpu_memchunk_cache_lookup(local_memory_node, handle);
-			if (!mc)
+			int workerid = starpu_worker_get_id();
+			struct starpu_data_replicate_s *local_replicate;
+
+			while (_starpu_spin_trylock(&handle->header_lock))
+				_starpu_datawizard_progress(local_memory_node, 1);
+
+			local_replicate = handle->per_worker[workerid];
+			if (!local_replicate)
 			{
-				/* Cache miss */
-
-				/* This is a scratch memory, so we duplicate (any of)
-				 * the interface which contains sufficient information
-				 * to allocate the buffer. */
-				size_t interface_size = handle->ops->interface_size;
-				void *src_interface = starpu_data_get_interface_on_node(handle, local_memory_node);
-	
-				/* Pass the interface to StarPU so that the buffer can be allocated */
-				_starpu_allocate_interface(handle, src_interface, local_memory_node);
-
-				size_t size = _starpu_data_get_size(handle);
-#warning TODO create a replicate struct here:
-				mc = _starpu_memchunk_init(handle, size, src_interface, interface_size, 1);
+				local_replicate = initialize_data_replicate(handle, local_memory_node);
+				handle->per_worker[workerid] = local_replicate;
 			}
 
-			interface = mc->interface;
-			j->scratch_memchunks[index] = mc;
+			_starpu_spin_unlock(&handle->header_lock);
+
+			ret = fetch_data(handle, local_replicate, mode);
+			if (STARPU_UNLIKELY(ret))
+				goto enomem;
+
+			interface = local_replicate->interface;
 		}
 		else {
 			/* That's a "normal" buffer (R/W) */
+
 			struct starpu_data_replicate_s *local_replicate;
 			local_replicate = handle->per_node[local_memory_node];
 			ret = fetch_data(handle, local_replicate, mode);
@@ -468,25 +489,27 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
         starpu_buffer_descr *descrs = task->buffers;
         unsigned nbuffers = task->cl->nbuffers;
 
-	starpu_job_t j = (struct starpu_job_s *)task->starpu_private;
-
-	uint32_t local_node = _starpu_get_local_memory_node();
-
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle handle = descrs[index].handle;
 		starpu_access_mode mode = descrs[index].mode;
 
-		if (mode & STARPU_SCRATCH)
+		struct starpu_data_replicate_s *replicate;
+
+		if (mode & STARPU_RW)
 		{
-			_starpu_memchunk_cache_insert(local_node, j->scratch_memchunks[index]);
+			unsigned local_node = _starpu_get_local_memory_node();
+			replicate = handle->per_node[local_node];
 		}
-		else {
-			struct starpu_data_replicate_s *replicate = handle->per_node[local_node];
-			_starpu_release_data_on_node(handle, mask, replicate);
-			_starpu_release_data_enforce_sequential_consistency(task, handle);
+		else
+		{
+			int workerid = starpu_worker_get_id();
+			replicate = handle->per_worker[workerid];
 		}
+
+		_starpu_release_data_on_node(handle, mask, replicate);
+		_starpu_release_data_enforce_sequential_consistency(task, handle);
 	}
 
 	STARPU_TRACE_END_PUSH_OUTPUT(NULL);

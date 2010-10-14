@@ -45,6 +45,10 @@ LIST_TYPE(starpu_data_replicate,
 
 	unsigned memory_node;
 
+	/* A buffer that is used for SCRATCH or reduction cannnot be used with
+	 * filters. */
+	unsigned relaxed_coherency;
+
 	/* describes the state of the local data in term of coherency */
 	starpu_cache_state	state; 
 
@@ -102,6 +106,7 @@ struct starpu_data_state_t {
 
 	/* describe the state of the data in term of coherency */
 	struct starpu_data_replicate_s *per_node[STARPU_MAXNODES];
+	struct starpu_data_replicate_s *per_worker[STARPU_NMAXWORKERS];
 
 	struct starpu_data_interface_ops_t *ops;
 
