@@ -18,7 +18,7 @@
 
 static __global__ void cuda_variable(float * tab)
 {
-	*tab += 1.0;
+	*tab += 1.0f;
 	return;
 }
 
