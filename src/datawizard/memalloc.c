@@ -17,8 +17,13 @@
 #include <datawizard/memalloc.h>
 #include <datawizard/footprint.h>
 
+/* This per-node RW-locks protect mc_list and memchunk_cache entries */
 static pthread_rwlock_t mc_rwlock[STARPU_MAXNODES]; 
+
+/* Potentially in use memory chunks */
 static starpu_mem_chunk_list_t mc_list[STARPU_MAXNODES];
+
+/* Explicitly caches memory chunks that can be reused */
 static starpu_mem_chunk_list_t memchunk_cache[STARPU_MAXNODES];
 
 static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node);
@@ -492,11 +497,6 @@ static size_t reclaim_memory_generic(uint32_t node, unsigned force)
 
 }
 
-static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unused)))
-{
-	return reclaim_memory_generic(node, 0);
-}
-
 /*
  * This function frees all the memory that was implicitely allocated by StarPU
  * (for the data replicates). This is not ensuring data coherency, and should
@@ -552,7 +552,8 @@ static void register_mem_chunk(starpu_data_handle handle, uint32_t dst_node, siz
 }
 
 /* This function is called when the handle is destroyed (eg. when calling
- * unregister or unpartition). */
+ * unregister or unpartition). It puts all the memchunks that refer to the
+ * specified handle into the cache. */
 void _starpu_request_mem_chunk_removal(starpu_data_handle handle, unsigned node)
 {
 	int res;
@@ -577,10 +578,9 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle handle, unsigned node)
 			/* put it in the list of buffers to be removed */
 			starpu_mem_chunk_list_push_front(memchunk_cache[node], mc);
 
-			res = pthread_rwlock_unlock(&mc_rwlock[node]);
-			STARPU_ASSERT(!res);
-
-			return;
+			/* Note that we do not stop here because there can be
+			 * multiple replicates associated to the same handle on
+			 * the same memory node.  */
 		}
 	}
 
@@ -677,12 +677,8 @@ ssize_t _starpu_allocate_interface(starpu_data_handle handle, void *interface, u
 		STARPU_TRACE_END_ALLOC(dst_node);
 
 		if (allocated_memory == -ENOMEM) {
-			/* XXX perhaps we should find the proper granularity 
-			 * not to waste our cache all the time */
-			size_t data_size = _starpu_data_get_size(handle);
-
 			STARPU_TRACE_START_MEMRECLAIM(dst_node);
-			reclaim_memory(dst_node, 2*data_size);
+			reclaim_memory_generic(dst_node, 0);
 			STARPU_TRACE_END_MEMRECLAIM(dst_node);
 		}
 		
