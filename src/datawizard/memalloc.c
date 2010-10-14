@@ -44,6 +44,10 @@ void _starpu_deinit_mem_chunk_lists(void)
 	}
 }
 
+/*
+ *	Manipulate subtrees
+ */
+
 static void lock_all_subtree(starpu_data_handle handle)
 {
 	if (handle->nchildren == 0)
@@ -103,22 +107,6 @@ static unsigned may_free_subtree(starpu_data_handle handle, unsigned node)
 
 	/* no problem was found */
 	return 1;
-}
-
-static size_t do_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node)
-{
-	size_t size;
-
-	/* free the actual buffer */
-	size = free_memory_on_node(mc, node);
-
-	/* remove the mem_chunk from the list */
-	starpu_mem_chunk_list_erase(mc_list[node], mc);
-
-	free(mc->interface);
-	starpu_mem_chunk_delete(mc);
-
-	return size; 
 }
 
 static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_node, 
@@ -189,6 +177,22 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 							src_node, dst_node);
 		}
 	}
+}
+
+static size_t do_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node)
+{
+	size_t size;
+
+	/* free the actual buffer */
+	size = free_memory_on_node(mc, node);
+
+	/* remove the mem_chunk from the list */
+	starpu_mem_chunk_list_erase(mc_list[node], mc);
+
+	free(mc->interface);
+	starpu_mem_chunk_delete(mc);
+
+	return size; 
 }
 
 static size_t try_to_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node)
@@ -302,32 +306,17 @@ static unsigned try_to_reuse_mem_chunk(starpu_mem_chunk_t mc, unsigned node, sta
  * list of mem chunk that need to be freed */
 static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle data, uint32_t footprint)
 {
+	starpu_mem_chunk_t mc, next_mc;
 	pthread_rwlock_wrlock(&mc_rwlock[node]);
 
 	/* go through all buffers in the cache */
-	starpu_mem_chunk_t mc, next_mc;
-	for (mc = starpu_mem_chunk_list_begin(memchunk_cache[node]);
-	     mc != starpu_mem_chunk_list_end(memchunk_cache[node]);
-	     mc = next_mc)
+	mc = _starpu_memchunk_cache_lookup_locked(node, handle);
+	if (mc)
 	{
-		next_mc = starpu_mem_chunk_list_next(mc);
-
-		if (mc->footprint == footprint)
-		{
-
-			starpu_data_handle old_data;
-			old_data = mc->data;
-
-			if (old_data->per_node[node]->allocated &&
-					old_data->per_node[node]->automatically_allocated)
-			{
-				reuse_mem_chunk(node, data, mc, 0);
-
-				pthread_rwlock_unlock(&mc_rwlock[node]);
-				return 1;
-			}
-		}
-
+		/* We found an entry in the cache so we can reuse it */
+		reuse_mem_chunk(node, data, mc, 0);
+		pthread_rwlock_unlock(&mc_rwlock[node]);
+		return 1;
 	}
 
 	/* now look for some non essential data in the active list */
@@ -368,11 +357,10 @@ static int _starpu_data_interface_compare(void *interface_a, struct starpu_data_
 	return ret;
 }
 
-starpu_mem_chunk_t _starpu_memchunk_cache_lookup(uint32_t node, starpu_data_handle handle)
+/* This function must be called with mc_rwlock[node] taken in write mode */
+starpu_mem_chunk_t _starpu_memchunk_cache_lookup_locked(uint32_t node, starpu_data_handle handle)
 {
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
-
-	pthread_rwlock_wrlock(&mc_rwlock[node]);
 
 	/* go through all buffers in the cache */
 	starpu_mem_chunk_t mc;
@@ -390,15 +378,23 @@ starpu_mem_chunk_t _starpu_memchunk_cache_lookup(uint32_t node, starpu_data_hand
 
 			/* Remove from the cache */
 			starpu_mem_chunk_list_erase(memchunk_cache[node], mc);
-			pthread_rwlock_unlock(&mc_rwlock[node]);
-
 			return mc;
 		}
 	}
 
 	/* This is a cache miss */
-	pthread_rwlock_unlock(&mc_rwlock[node]);
 	return NULL;
+}
+
+starpu_mem_chunk_t _starpu_memchunk_cache_lookup(uint32_t node, starpu_data_handle handle)
+{
+	starpu_mem_chunk_t mc;
+
+	pthread_rwlock_wrlock(&mc_rwlock[node]);
+	mc = _starpu_memchunk_cache_lookup_locked(node, handle);
+	pthread_rwlock_unlock(&mc_rwlock[node]);
+
+	return mc;
 }
 
 void _starpu_memchunk_cache_insert(uint32_t node, starpu_mem_chunk_t mc)
@@ -475,12 +471,7 @@ static size_t free_potentially_in_use_mc(uint32_t node, unsigned force)
 	return freed;
 }
 
-/* 
- * Try to free some memory on the specified node
- * 	returns 0 if no memory was released, 1 else
- */
-
-static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unused)))
+static size_t reclaim_memory_generic(uint32_t node, unsigned force)
 {
 	int res;
 	size_t freed = 0;
@@ -492,12 +483,18 @@ static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unu
 	freed += flush_memchunk_cache(node);
 
 	/* try to free all allocated data potentially in use */
-	freed += free_potentially_in_use_mc(node, 0);
+	freed += free_potentially_in_use_mc(node, force);
 
 	res = pthread_rwlock_unlock(&mc_rwlock[node]);
 	STARPU_ASSERT(!res);
 
 	return freed;
+
+}
+
+static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unused)))
+{
+	return reclaim_memory_generic(node, 0);
 }
 
 /*
@@ -507,20 +504,7 @@ static size_t reclaim_memory(uint32_t node, size_t toreclaim __attribute__ ((unu
  */
 size_t _starpu_free_all_automatically_allocated_buffers(uint32_t node)
 {
-	int res;
-
-	size_t freed = 0;
-
-	res = pthread_rwlock_wrlock(&mc_rwlock[node]);
-	STARPU_ASSERT(!res);
-
-	freed += flush_memchunk_cache(node);
-	freed += free_potentially_in_use_mc(node, 1);
-
-	res = pthread_rwlock_unlock(&mc_rwlock[node]);
-	STARPU_ASSERT(!res);
-
-	return freed;
+	return reclaim_memory_generic(node, 1);
 }
 
 starpu_mem_chunk_t _starpu_memchunk_init(starpu_data_handle handle, size_t size, void *interface, size_t interface_size, unsigned automatically_allocated)

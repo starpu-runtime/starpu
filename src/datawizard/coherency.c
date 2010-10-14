@@ -354,12 +354,10 @@ void _starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wt
 	_starpu_spin_unlock(&handle->header_lock);
 }
 
-inline void _starpu_set_data_requested_flag_if_needed(starpu_data_handle handle, uint32_t node)
+static void _starpu_set_data_requested_flag_if_needed(struct starpu_data_replicate_s *replicate)
 {
 // XXX : this is just a hint, so we don't take the lock ...
 //	pthread_spin_lock(&handle->header_lock);
-
-	struct starpu_data_replicate_s *replicate = handle->per_node[node];
 
 	if (replicate->state == STARPU_INVALID) 
 		replicate->requested = 1;
@@ -384,7 +382,7 @@ int _starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 		struct starpu_data_replicate_s *replicate = handle->per_node[node];
 		prefetch_data_on_node(handle, replicate, mode);
 
-		_starpu_set_data_requested_flag_if_needed(handle, node);
+		_starpu_set_data_requested_flag_if_needed(replicate);
 	}
 
 	return 0;
