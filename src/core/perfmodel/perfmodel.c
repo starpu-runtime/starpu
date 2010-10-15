@@ -170,7 +170,12 @@ double _starpu_data_expected_penalty(uint32_t memory_node, struct starpu_task *t
 
 			uint32_t src_node = _starpu_select_src_node(handle);
 
-			penalty += _starpu_predict_transfer_time(src_node, memory_node, size);
+			/* XXX in case we have an abstract piece of data (eg.
+			 * with the void interface, this does not introduce any
+			 * overhead, and we don't even want to consider the
+			 * latency that is not relevant). */
+			if (size > 0)
+				penalty += _starpu_predict_transfer_time(src_node, memory_node, size);
 		}
 	}
 
