@@ -111,6 +111,7 @@ check_PROGRAMS += 				\
 	datawizard/readers_and_writers		\
 	datawizard/unpartition			\
 	datawizard/user_interaction_implicit	\
+	datawizard/reclaim			\
 	datawizard/sync_with_data_with_mem	\
 	datawizard/sync_with_data_with_mem_non_blocking\
 	datawizard/sync_with_data_with_mem_non_blocking_implicit\
@@ -309,6 +310,11 @@ testbin_PROGRAMS +=				\
 	datawizard/user_interaction_implicit
 datawizard_user_interaction_implicit_SOURCES =	\
 	datawizard/user_interaction_implicit.c
+
+testbin_PROGRAMS +=				\
+	datawizard/reclaim
+datawizard_reclaim_SOURCES =			\
+	datawizard/reclaim.c
 
 testbin_PROGRAMS +=				\
 	datawizard/sync_with_data_with_mem
