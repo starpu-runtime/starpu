@@ -138,7 +138,7 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 			src_replicate->refcnt++;
 			dst_replicate->refcnt++;
 
-			ret = _starpu_driver_copy_data_1_to_1(handle, src_replicate, dst_replicate, 0, NULL, 1);
+			ret = _starpu_driver_copy_data_1_to_1(handle, src_replicate, dst_replicate, 0, NULL, 0);
 			STARPU_ASSERT(ret == 0);
 
 			src_replicate->refcnt--;
