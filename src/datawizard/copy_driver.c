@@ -222,9 +222,12 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 	/* first make sure the destination has an allocated buffer */
 	if (!dst_replicate->allocated)
 	{
+		if (!may_alloc)
+			return -ENOMEM;
+
 		ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate);
 		if (ret_alloc)
-			goto nomem;
+			return -ENOMEM;
 	}
 
 	STARPU_ASSERT(dst_replicate->allocated);
@@ -262,9 +265,6 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 	}
 
 	return 0;
-
-nomem:
-	return -ENOMEM;
 }
 
 void _starpu_driver_wait_request_completion(starpu_async_channel *async_channel __attribute__ ((unused)),
