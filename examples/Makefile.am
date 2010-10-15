@@ -20,7 +20,6 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddi
 
 TESTS	=	$(check_PROGRAMS) \
 		coverage/coverage.sh
-		
 
 SUBDIRS = stencil
 
@@ -142,7 +141,13 @@ basic_examples_hello_world_SOURCES =		\
 	basic_examples/hello_world.c
 
 examplebin_PROGRAMS +=				\
-	basic_examples/vector_scal
+	basic_examples/vector_scal		\
+	basic_examples/vector_scal_fortran
+
+basic_examples_vector_scal_fortran_SOURCES =	\
+	basic_examples/vector_scal_fortran.F	\
+	basic_examples/vector_scal_c.c		\
+	basic_examples/vector_scal_cpu.c
 
 basic_examples_vector_scal_SOURCES =		\
 	basic_examples/vector_scal.c		\
@@ -150,6 +155,8 @@ basic_examples_vector_scal_SOURCES =		\
 
 if STARPU_USE_CUDA
 basic_examples_vector_scal_SOURCES +=		\
+	basic_examples/vector_scal_cuda.cu
+basic_examples_vector_scal_fortran_SOURCES +=	\
 	basic_examples/vector_scal_cuda.cu
 endif
 
