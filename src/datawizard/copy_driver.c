@@ -236,9 +236,6 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 	/* if there is no need to actually read the data, 
 	 * we do not perform any transfer */
 	if (!donotread) {
-		STARPU_ASSERT(handle->ops);
-		//STARPU_ASSERT(handle->ops->copy_data_1_to_1);
-
 		size_t size = _starpu_data_get_size(handle);
 		_starpu_bus_update_profiling_info((int)src_node, (int)dst_node, size);
 		
@@ -249,14 +246,12 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 			req->com_id = com_id;
 #endif
 
-		/* for now we set the size to 0 in the FxT trace XXX */
-		STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, 0, com_id);
+		STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id);
 		ret_copy = copy_data_1_to_1_generic(handle, src_replicate, dst_replicate, req);
 
 #ifdef STARPU_USE_FXT
 		if (ret_copy != -EAGAIN)
 		{
-			size_t size = _starpu_data_get_size(handle);
 			STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, com_id);
 		}
 #endif
