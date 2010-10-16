@@ -21,8 +21,25 @@
 
 #include <assert.h>
 #include <starpu.h>
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#endif
 
-static unsigned ntasks = 10000;
+#define BLOCK_SIZE	(64*1024*1024)
+
+static unsigned ntasks = 1000;
+
+#ifdef STARPU_HAVE_HWLOC
+static uint64_t get_total_memory_size(void)
+{
+	hwloc_topology_t hwtopology;
+	hwloc_topology_init(&hwtopology);
+	hwloc_topology_load(hwtopology);
+	hwloc_obj_t root = hwloc_get_root_obj(hwtopology);	
+
+	return root->memory.total_memory;
+}
+#endif
 
 static void dummy_func(void *descr[], __attribute__ ((unused)) void *_args)
 {
@@ -35,13 +52,20 @@ static starpu_codelet dummy_cl = {
 	.nbuffers = 3
 };
 
-/* Number of 1MB chunks */
+/* Number of chunks */
 static int mb = 256;
 
 int main(int argc, char **argv)
 {
 	int i;
 	int task;
+
+#ifdef STARPU_HAVE_HWLOC
+	/* We allocate 75% of the memory */
+	uint64_t total_size = get_total_memory_size();
+
+	mb = (int)((0.75 * total_size)/(BLOCK_SIZE));
+#endif
 
 	/* An optional argument indicates the number of MB to allocate */
 	if (argc > 1)
@@ -63,10 +87,10 @@ int main(int argc, char **argv)
 	/* Register mb buffers of 1MB */
 	for (i = 0; i < mb; i++)
 	{
-		host_ptr_array[i] = malloc(1024*1024);
+		host_ptr_array[i] = malloc(BLOCK_SIZE);
 		assert(host_ptr_array[i]);
 		starpu_variable_data_register(&handle_array[i], 0,
-			(uintptr_t)host_ptr_array[i], 1024*1024);
+			(uintptr_t)host_ptr_array[i], BLOCK_SIZE);
 		assert(handle_array[i]);
 	}
 
