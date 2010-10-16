@@ -53,13 +53,11 @@ void starpu_opencl_get_queue(int devid, cl_command_queue *queue)
 int _starpu_opencl_init_context(int devid)
 {
 	cl_int err;
-        cl_device_id device;
 
         _STARPU_DEBUG("Initialising context for dev %d\n", devid);
 
         // Create a compute context
-        device = devices[devid];
-        contexts[devid] = clCreateContext(NULL, 1, &device, NULL, NULL, &err);
+        contexts[devid] = clCreateContext(NULL, 1, &devices[devid], NULL, NULL, &err);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         // Create queue for the given device
