@@ -34,6 +34,7 @@ extern "C" {
 #define STARPU_W	(1<<1)
 #define STARPU_RW	(STARPU_R|STARPU_W)
 #define STARPU_SCRATCH	(1<<2)
+#define STARPU_REDUX	(1<<3)
 typedef uint32_t starpu_access_mode;
 
 typedef struct starpu_buffer_descr_t {
