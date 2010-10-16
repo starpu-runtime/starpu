@@ -93,6 +93,11 @@ void _starpu_update_data_state(starpu_data_handle handle,
 				struct starpu_data_replicate_s *requesting_replicate,
 				starpu_access_mode mode)
 {
+	/* There is nothing to do for relaxed coherency modes (scratch or
+	 * reductions) */
+	if (!(mode & STARPU_RW))
+		return;
+
 	unsigned nnodes = _starpu_get_memory_nodes_count();
 
 	/* the data is present now */
