@@ -28,6 +28,8 @@
 #include <common/utils.h>
 #include <profiling/profiling.h>
 
+static pthread_mutex_t big_lock = PTHREAD_MUTEX_INITIALIZER;
+
 static cl_context contexts[STARPU_MAXOPENCLDEVS];
 static cl_device_id devices[STARPU_MAXOPENCLDEVS];
 static cl_command_queue queues[STARPU_MAXOPENCLDEVS];
@@ -54,6 +56,8 @@ int _starpu_opencl_init_context(int devid)
 {
 	cl_int err;
 
+	PTHREAD_MUTEX_LOCK(&big_lock);
+
         _STARPU_DEBUG("Initialising context for dev %d\n", devid);
 
         // Create a compute context
@@ -63,6 +67,7 @@ int _starpu_opencl_init_context(int devid)
         // Create queue for the given device
         queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], 0, &err);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	PTHREAD_MUTEX_UNLOCK(&big_lock);
 
 	return EXIT_SUCCESS;
 }
@@ -71,6 +76,8 @@ int _starpu_opencl_deinit_context(int devid)
 {
         int err;
 
+	PTHREAD_MUTEX_LOCK(&big_lock);
+
         _STARPU_DEBUG("De-initialising context for dev %d\n", devid);
 
         err = clReleaseContext(contexts[devid]);
@@ -78,6 +85,8 @@ int _starpu_opencl_deinit_context(int devid)
 
         err = clReleaseCommandQueue(queues[devid]);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	
+	PTHREAD_MUTEX_UNLOCK(&big_lock);
 
         return EXIT_SUCCESS;
 }
@@ -213,6 +222,7 @@ int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, cl_mem buffer, const size_
 
 void _starpu_opencl_init(void)
 {
+	PTHREAD_MUTEX_LOCK(&big_lock);
         if (!init_done) {
                 cl_platform_id platform_id[STARPU_OPENCL_PLATFORM_MAX];
                 cl_uint nb_platforms;
@@ -264,6 +274,7 @@ void _starpu_opencl_init(void)
 
                 init_done=1;
         }
+	PTHREAD_MUTEX_UNLOCK(&big_lock);
 }
 
 static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname);
