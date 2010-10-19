@@ -30,6 +30,53 @@ static int ncudagpus;
 
 static cudaStream_t streams[STARPU_NMAXWORKERS];
 
+/* In case we want to cap the amount of memory available on the GPUs by the
+ * mean of the STARPU_LIMIT_GPU_MEM, we allocate a big buffer when the driver
+ * is launched. */
+static char *wasted_memory[STARPU_NMAXWORKERS];
+
+static void limit_gpu_mem_if_needed(int devid)
+{
+	cudaError_t cures;
+	int workerid = starpu_worker_get_id();
+	int limit = starpu_get_env_number("STARPU_LIMIT_GPU_MEM");
+
+	if (limit == -1)
+	{
+		wasted_memory[workerid] = NULL;
+		return;
+	}
+
+	/* Find the size of the memory on the device */
+	struct cudaDeviceProp prop;
+	cures = cudaGetDeviceProperties(&prop, devid);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
+
+	size_t totalGlobalMem = prop.totalGlobalMem;
+	size_t to_waste = totalGlobalMem - (size_t)limit*1024*1024;
+
+	_STARPU_DEBUG(stderr, "Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n", (size_t)to_waste/(1024*1024), (size_t)limit, (size_t)totalGlobalMem/(1024*1024), (size_t)(totalGlobalMem - to_waste)/(1024*1024));
+
+	cures = cudaMalloc((void **)&wasted_memory[workerid], to_waste);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
+}
+
+static void unlimit_gpu_mem_if_needed(int workerid)
+{
+	cudaError_t cures;
+
+	if (wasted_memory[workerid])
+	{
+		cures = cudaFree(wasted_memory[workerid]);
+		if (STARPU_UNLIKELY(cures))
+			STARPU_CUDA_REPORT_ERROR(cures);
+
+		wasted_memory[workerid] = NULL;
+	}
+}
+
 cudaStream_t *starpu_cuda_get_local_stream(void)
 {
 	int worker = starpu_worker_get_id();
@@ -48,6 +95,8 @@ static void init_context(int devid)
 	/* force CUDA to initialize the context for real */
 	cudaFree(0);
 
+	limit_gpu_mem_if_needed(devid);
+
 	cures = cudaStreamCreate(starpu_cuda_get_local_stream());
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
@@ -58,6 +107,8 @@ static void deinit_context(int workerid)
 	cudaError_t cures;
 
 	cudaStreamDestroy(streams[workerid]);
+
+	unlimit_gpu_mem_if_needed(workerid);
 
 	/* cleanup the runtime API internal stuffs (which CUBLAS is using) */
 	cures = cudaThreadExit();
