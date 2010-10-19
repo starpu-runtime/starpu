@@ -224,6 +224,8 @@ void starpu_data_unregister(starpu_data_handle handle)
 		}
 	}
 
+	_starpu_data_free_interfaces(handle);
+
 	/* Destroy the data now */
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -240,8 +242,6 @@ void starpu_data_unregister(starpu_data_handle handle)
 	}
 
 	starpu_data_requester_list_delete(handle->req_list);
-
-	_starpu_data_free_interfaces(handle);
 
 	free(handle);
 }
