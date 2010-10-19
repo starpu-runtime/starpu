@@ -156,6 +156,13 @@ struct starpu_data_state_t {
 	
 	struct starpu_task_wrapper_list *post_sync_tasks;
 	unsigned post_sync_tasks_cnt;
+
+	/* During reduction we need some specific methods: redux_func performs
+	 * the reduction of an interface into another one (eg. "+="), and init_func
+	 * initializes the data interface to a default value that is stable by
+	 * reduction (eg. 0 for +=). */
+	void (*redux_func)(void *dst_interface, void *src_interface);
+	void (*init_func)(void *interface);
 };
 
 void _starpu_display_msi_stats(void);

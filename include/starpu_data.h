@@ -79,6 +79,10 @@ void starpu_data_set_default_sequential_consistency_flag(unsigned flag);
 /* Query the status of the handle on the specified memory node. */
 void starpu_data_query_status(starpu_data_handle handle, int memory_node, int *is_allocated, int *is_valid, int *is_requested);
 
+void starpu_data_set_reduction_methods(starpu_data_handle handle,
+					void (*redux_func)(void *, void *),
+					void (*init_func)(void *));
+
 #ifdef __cplusplus
 }
 #endif

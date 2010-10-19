@@ -140,6 +140,11 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 
 		child->sequential_consistency = initial_handle->sequential_consistency;
 
+		/* The methods used for reduction are propagated to the
+		 * children. */
+		child->redux_func = initial_handle->redux_func;
+		child->init_func = initial_handle->init_func;
+
 		unsigned node;
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{

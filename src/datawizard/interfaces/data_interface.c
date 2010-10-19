@@ -53,6 +53,10 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	handle->post_sync_tasks = NULL;
 	handle->post_sync_tasks_cnt = 0;
 
+	/* By default, there are no methods available to perform a reduction */
+	handle->redux_func = NULL;
+	handle->init_func = NULL;
+
 #ifdef STARPU_USE_FXT
 	handle->last_submitted_ghost_writer_id_is_valid = 0;
 	handle->last_submitted_ghost_writer_id = 0;
