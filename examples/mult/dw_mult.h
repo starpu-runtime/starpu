@@ -182,15 +182,15 @@ static void parse_args(int argc, char **argv)
 static void display_memory_consumption(void)
 {
 	fprintf(stderr, "Total memory : %ld MB\n",
-		(MAXSLICESY*MAXSLICESZ*sizeof(float *) 
-		+ MAXSLICESZ*MAXSLICESX*sizeof(float *)
-		+ MAXSLICESY*MAXSLICESX*sizeof(float *)
+		(MAXSLICESY*MAXSLICESZ*sizeof(TYPE *) 
+		+ MAXSLICESZ*MAXSLICESX*sizeof(TYPE *)
+		+ MAXSLICESY*MAXSLICESX*sizeof(TYPE *)
 		+ MAXSLICESY*MAXSLICESZ*sizeof(starpu_data_handle)
 		+ MAXSLICESZ*MAXSLICESX*sizeof(starpu_data_handle)
 		+ MAXSLICESY*MAXSLICESX*sizeof(starpu_data_handle)
-		+ ydim*zdim*sizeof(float)
-		+ zdim*xdim*sizeof(float)
-		+ ydim*xdim*sizeof(float))/(1024*1024) );
+		+ ydim*zdim*sizeof(TYPE)
+		+ zdim*xdim*sizeof(TYPE)
+		+ ydim*xdim*sizeof(TYPE))/(1024*1024) );
 }
 
 #ifdef STARPU_USE_CUDA

@@ -18,7 +18,7 @@
 
 #include <blas_s.h>
 
-void func_sgemm_ibm(__attribute__ ((unused)) void **alloc,
+void func_dgemm_ibm(__attribute__ ((unused)) void **alloc,
 		__attribute__ ((unused)) void **in,
 		__attribute__ ((unused)) void **inout,
 		__attribute__ ((unused)) void **out)
@@ -34,9 +34,9 @@ void func_sgemm_ibm(__attribute__ ((unused)) void **alloc,
  	 *   t(C) = t(B)t(A) + t(C) instead
  	 */
 	struct ibm_gemm_block_conf *conf = in[0];
-	float *A = in[1];
-	float *B = in[2];
-	float *C = inout[0];
+	double *A = in[1];
+	double *B = in[2];
+	double *C = inout[0];
 
-	sgemm_spu(conf->m, conf->n, conf->k, B, A, C);
+	dgemm_spu(conf->m, conf->n, conf->k, B, A, C);
 }

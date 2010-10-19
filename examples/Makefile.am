@@ -119,7 +119,9 @@ noinst_HEADERS = 				\
 	common/blas_model.h			\
 	common/blas.h				\
 	mult/dw_mult.h				\
-	mult/gordon/func_sgemm_ibm.h		\
+	mult/simple.h				\
+	mult/double.h				\
+	mult/gordon/func_gemm_ibm.h		\
 	gordon/null.h				\
 	fortran/bindings/StarPU_fortran.h	\
 	ppm_downscaler/ppm_downscaler.h		\
@@ -338,13 +340,11 @@ mult_dgemm_SOURCES = 				\
 
 mult_dw_mult_no_stride_SOURCES = 		\
 	mult/dw_mult_no_stride.c		\
-	mult/sgemm_kernels.c			\
 	common/blas.c				\
 	common/blas_model.c
 
 mult_dw_mult_no_stride_no_tag_SOURCES =		\
 	mult/dw_mult_no_stride_no_tag.c		\
-	mult/sgemm_kernels.c			\
 	common/blas.c				\
 	common/blas_model.c
 

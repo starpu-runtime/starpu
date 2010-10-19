@@ -21,8 +21,7 @@
 
 double gemm_cost(starpu_buffer_descr *descr);
 
-static struct starpu_perfmodel_t sgemm_model = {
-	.cost_model = gemm_cost,
+static struct starpu_perfmodel_t starpu_sgemm_model = {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
 	.symbol = "sgemm_atlas"
@@ -33,7 +32,23 @@ static struct starpu_perfmodel_t sgemm_model = {
 #endif
 };
 
-static struct starpu_perfmodel_t sgemm_model_common = {
+static struct starpu_perfmodel_t starpu_sgemm_model_common = {
+	.cost_model = gemm_cost,
+	.type = STARPU_COMMON,
+};
+
+static struct starpu_perfmodel_t starpu_dgemm_model = {
+	.type = STARPU_HISTORY_BASED,
+#ifdef STARPU_ATLAS
+	.symbol = "dgemm_atlas"
+#elif defined(STARPU_GOTO)
+	.symbol = "dgemm_goto"
+#else
+	.symbol = "dgemm"
+#endif
+};
+
+static struct starpu_perfmodel_t starpu_dgemm_model_common = {
 	.cost_model = gemm_cost,
 	.type = STARPU_COMMON,
 };

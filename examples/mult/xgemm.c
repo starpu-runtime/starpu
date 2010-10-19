@@ -16,15 +16,11 @@
 
 #include "dw_mult.h"
 
-#define str(s) #s
-#define xstr(s)        str(s)
-#define STARPU_GEMM_STR(name)  xstr(STARPU_GEMM(name))
-
 TYPE *A, *B, *C;
 starpu_data_handle A_handle, B_handle, C_handle;
 
 /*
- * That program should compute C = A * B 
+ * This program computes C = A * B 
  * 
  *   A of size (z,y)
  *   B of size (x,z)
@@ -49,17 +45,22 @@ static void check_output(void)
 	/* check results */
 	/* compute C = C - AB */
 
-	CPU_GEMM("N", "N", ydim, xdim, zdim, (TYPE)-1.0, A, ydim, B, zdim, (TYPE)1.0f, C, ydim);
+	CPU_GEMM("N", "N", ydim, xdim, zdim, (TYPE)-1.0f, A, ydim, B, zdim, (TYPE)1.0f, C, ydim);
 		
 	/* make sure C = 0 */
 	TYPE err;
 	err = CPU_ASUM(xdim*ydim, C, 1);
 
-	int max;
-	max = CPU_IAMAX(xdim*ydim, C, 1);
+	if (err < xdim*ydim*0.001) {
+		fprintf(stderr, "Results are OK\n");
+	}
+	else {
+		int max;
+		max = CPU_IAMAX(xdim*ydim, C, 1);
 
-	fprintf(stderr, "Avg error : %e\n", err/(xdim*ydim));
-	fprintf(stderr, "Max error : %e\n", C[max]);
+		fprintf(stderr, "There were errors ... err = %f\n", err);
+		fprintf(stderr, "Max error : %e\n", C[max]);
+	}
 }
 
 void callback_func(void *arg)
@@ -108,6 +109,10 @@ static void init_problem_data(void)
 		}
 	} 
 	else {
+#ifdef NORANDOM
+		srand(2008);
+		STARPU_ABORT();
+#endif
 		for (j=0; j < ydim; j++) {
 			for (i=0; i < zdim; i++) {
 				A[j+i*ydim] = (TYPE)(starpu_drand48());
@@ -127,12 +132,7 @@ static void init_problem_data(void)
 		}
 	}
 
-	/* display memory consumption */
-	fprintf(stderr, "Total memory : %ld MB\n",
-		( ydim*zdim*sizeof(TYPE)
-		+ zdim*xdim*sizeof(TYPE)
-		+ ydim*xdim*sizeof(TYPE) )/(1024*1024));
-
+	display_memory_consumption();
 }
 
 static void partition_mult_data(void)
@@ -170,60 +170,94 @@ static void partition_mult_data(void)
 
 static void unpartition_mult_data(void)
 {
+	fprintf(stderr, "unpartition !!\n");
+
 	starpu_data_unpartition(C_handle, 0);
 
 	starpu_data_unregister(C_handle);
 }
 
-static struct starpu_perfmodel_t gemm_model = {
-	.type = STARPU_HISTORY_BASED,
-#ifdef STARPU_ATLAS
-	.symbol = STARPU_GEMM_STR(gemm_atlas)
-#elif defined(STARPU_GOTO)
-	.symbol = STARPU_GEMM_STR(gemm_goto)
-#else
-	.symbol = STARPU_GEMM_STR(gemm)
-#endif
-};
-
 static starpu_codelet cl = {
-	.where = STARPU_CPU|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA
+#ifdef SPU_FUNC_SGEMM
+		|STARPU_GORDON
+#endif
+		,
 	.cpu_func = STARPU_GEMM(cpu_mult),
 #ifdef STARPU_USE_CUDA
 	.cuda_func = STARPU_GEMM(cublas_mult),
 #endif
-	.model = &gemm_model,
+#ifdef STARPU_USE_GORDON
+#ifdef SPU_FUNC_SGEMM
+	.gordon_func = SPU_FUNC_SGEMM,
+#else
+#warning SPU_FUNC_SGEMM is not available
+#endif
+#endif
 	.nbuffers = 3
 };
 
+static struct starpu_task *construct_task(unsigned x, unsigned y, unsigned z, unsigned iter)
+{
+	/* A B[task] = C[task] */
+	struct starpu_task *task = starpu_task_create();
+
+	task->cl = &cl;
+
+	/* we have a callback to do some accounting */
+	task->callback_func = callback_func;
+	task->callback_arg = NULL;
+
+	task->buffers[0].handle = starpu_data_get_sub_data(A_handle, 1, y);
+	task->buffers[0].mode = STARPU_R;
+	task->buffers[1].handle = starpu_data_get_sub_data(B_handle, 1, x);
+	task->buffers[1].mode = STARPU_R;
+	task->buffers[2].handle = starpu_data_get_sub_data(C_handle, 2, x, y);
+	task->buffers[2].mode = STARPU_RW;
+
+	task->cl_arg = &conf;
+	task->cl_arg_size = sizeof(struct block_conf);
+	return task;
+}
+
+static void submit_new_iter(unsigned x, unsigned y, unsigned iter)
+{
+	unsigned z;
+
+	z = 0;
+
+	{
+		struct starpu_task *task;
+		task = construct_task(x, y, z, iter);
+
+		starpu_task_submit(task);
+	}
+}
+
 static void launch_codelets(void)
 {
+#ifdef STARPU_USE_FXT
+	_starpu_fxt_register_thread(0);
+#endif
 	/* partition the work into slices */
 	unsigned taskx, tasky;
+
+	srand(time(NULL));
+
+	/* should we use a single performance model for all archs and use an
+ 	 * acceleration factor ? */
+	if (use_common_model) {
+		cl.model = &STARPU_GEMM(model_common);
+	}
+	else {
+		cl.model = &STARPU_GEMM(model);
+	}
 
 	for (taskx = 0; taskx < nslicesx; taskx++) 
 	{
 		for (tasky = 0; tasky < nslicesy; tasky++)
 		{
-			/* A B[task] = C[task] */
-			struct starpu_task *task = starpu_task_create();
-
-			task->cl = &cl;
-			task->cl_arg = &conf;
-			task->cl_arg_size = sizeof(struct block_conf);
-
-			/* we have a callback to do some accounting */
-			task->callback_func = callback_func;
-			task->callback_arg = NULL;
-
-			task->buffers[0].handle = starpu_data_get_sub_data(A_handle, 1, tasky);
-			task->buffers[0].mode = STARPU_R;
-			task->buffers[1].handle = starpu_data_get_sub_data(B_handle, 1, taskx);
-			task->buffers[1].mode = STARPU_R;
-			task->buffers[2].handle = starpu_data_get_sub_data(C_handle, 2, taskx, tasky);
-			task->buffers[2].mode = STARPU_RW;
-
-			starpu_task_submit(task);
+			submit_new_iter(taskx, tasky, 0);
 		}
 	}
 }
@@ -236,6 +270,7 @@ int main(__attribute__ ((unused)) int argc,
 
 	/* start the runtime */
 	starpu_init(NULL);
+
 	starpu_helper_cublas_init();
 
 	init_problem_data();
@@ -245,11 +280,11 @@ int main(__attribute__ ((unused)) int argc,
 	partition_mult_data();
 
 	launch_codelets();
+
 	starpu_task_wait_for_all();
 
 	gettimeofday(&end, NULL);
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 +
-					(end.tv_usec - start.tv_usec));
+	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	display_stats(timing);
 
 	unpartition_mult_data();

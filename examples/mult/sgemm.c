@@ -14,13 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#define TYPE	float
-
-#define CUBLAS_GEMM cublasSgemm
-#define CPU_GEMM	SGEMM
-#define CPU_ASUM	SASUM
-#define CPU_IAMAX	ISAMAX
-#define STARPU_GEMM(name)	starpu_sgemm_##name
+#include "simple.h"
 
 #include "xgemm_kernels.c"
 #include "xgemm.c" 

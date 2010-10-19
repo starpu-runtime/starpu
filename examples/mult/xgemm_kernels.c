@@ -41,13 +41,20 @@
 
 
 #ifdef STARPU_USE_CUDA
+
+#ifdef STARPU_HAVE_MAGMA
+#define GPU_GEMM MAGMABLAS_GEMM
+#else
+#define GPU_GEMM CUBLAS_GEMM
+#endif
+
 void STARPU_GEMM(cublas_mult)(void *descr[], __attribute__((unused)) void *arg)
 {
 	COMMON_CODE
 
 	starpu_trace_user_event(0x42);
 
-	CUBLAS_GEMM('n', 'n', nxC, nyC, nyA, (TYPE)1.0, subA, ldA, subB, ldB,
+	GPU_GEMM('n', 'n', nxC, nyC, nyA, (TYPE)1.0, subA, ldA, subB, ldB,
 					     (TYPE)0.0, subC, ldC);
 	cublasStatus st;
 	st = cublasGetError();
@@ -65,8 +72,6 @@ void STARPU_GEMM(cpu_mult)(void *descr[], __attribute__((unused))  void *arg)
 	COMMON_CODE
 
 	starpu_trace_user_event(0x42);
-	CPU_GEMM("N", "N", nxC, nyC, nyA, (TYPE)1.0, subA, ldA, subB, ldB,
-					  (TYPE)0.0, subC, ldC);
-
+	CPU_GEMM("N", "N", nxC, nyC, nyA, (TYPE)1.0, subA, ldA, subB, ldB, (TYPE)0.0, subC, ldC);
 	starpu_trace_user_event(0x43);
 }
