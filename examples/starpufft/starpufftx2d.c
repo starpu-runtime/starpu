@@ -468,7 +468,7 @@ STARPUFFT(plan_dft_2d)(int n, int m, int sign, unsigned flags)
 					sign, _FFTW_FLAGS);
 			STARPU_ASSERT(plan->plans[workerid].plan2_cpu);
 #else
-#warning libstarpufft can not work correctly without libfftw3
+#warning libstarpufft can not work correctly if libfftw3 is not installed
 #endif
 			break;
 		case STARPU_CUDA_WORKER:
