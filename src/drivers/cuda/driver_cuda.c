@@ -56,7 +56,7 @@ static void limit_gpu_mem_if_needed(int devid)
 	size_t totalGlobalMem = prop.totalGlobalMem;
 	size_t to_waste = totalGlobalMem - (size_t)limit*1024*1024;
 
-	_STARPU_DEBUG(stderr, "Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n", (size_t)to_waste/(1024*1024), (size_t)limit, (size_t)totalGlobalMem/(1024*1024), (size_t)(totalGlobalMem - to_waste)/(1024*1024));
+	_STARPU_DEBUG("Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n", (size_t)to_waste/(1024*1024), (size_t)limit, (size_t)totalGlobalMem/(1024*1024), (size_t)(totalGlobalMem - to_waste)/(1024*1024));
 
 	cures = cudaMalloc((void **)&wasted_memory[workerid], to_waste);
 	if (STARPU_UNLIKELY(cures))
