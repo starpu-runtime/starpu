@@ -10,6 +10,7 @@
 
 #undef STARPU_ATLAS
 #undef STARPU_GOTO
+#undef STARPU_MKL
 #undef STARPU_SYSTEM_BLAS
 
 #undef STARPU_BUILD_DIR

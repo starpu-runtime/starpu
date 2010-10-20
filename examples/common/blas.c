@@ -232,7 +232,7 @@ void DSWAP(const int n, double *x, const int incx, double *y, const int incy)
 	cblas_dswap(n, x, incx, y, incy);
 }
 
-#elif defined(STARPU_GOTO) || defined(STARPU_SYSTEM_BLAS)
+#elif defined(STARPU_GOTO) || defined(STARPU_SYSTEM_BLAS) || defined(STARPU_MKL)
 
 inline void SGEMM(char *transa, char *transb, int M, int N, int K, 
 			float alpha, float *A, int lda, float *B, int ldb, 

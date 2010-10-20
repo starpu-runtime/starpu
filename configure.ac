@@ -817,7 +817,25 @@ AC_DEFINE(STARPU_ATLAS, [1], [use STARPU_ATLAS library])
 fi
 
 fi
- 
+
+if test x$blas_lib = xmaybe; then
+	# Should we use MKL ?
+	AC_ARG_WITH(mkl-cflags, [AS_HELP_STRING([--with-mkl-cflags], [specify MKL compilation flags])],
+		[
+			CPPFLAGS="${CPPFLAGS} $withval"
+			blas_lib=mkl
+		])
+
+	AC_ARG_WITH(mkl-ldflags, [AS_HELP_STRING([--with-mkl-ldflags], [specify MKL linking flags])],
+		[
+			LDFLAGS="${LDFLAGS} $withval"
+			blas_lib=mkl
+		])
+	if test x$blas_lib=xmkl; then
+	        AC_DEFINE(STARPU_MKL, [1], [use MKL library])
+	fi
+fi
+
 if test x$blas_lib = xmaybe; then
      #perhaps it is possible to use some BLAS lib from the system
      use_system_blas=no
@@ -832,6 +850,7 @@ fi
 
 AM_CONDITIONAL(ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
 AM_CONDITIONAL(GOTO_BLAS_LIB, test x$blas_lib = xgoto)
+AM_CONDITIONAL(MKL_BLAS_LIB, test x$blas_lib = xmkl)
 AM_CONDITIONAL(SYSTEM_BLAS_LIB, test x$blas_lib = xsystem)
 AM_CONDITIONAL(NO_BLAS_LIB, test x$blas_lib = xnone)
 
