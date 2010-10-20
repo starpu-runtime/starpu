@@ -105,8 +105,8 @@ struct starpu_data_state_t {
 	unsigned nchildren;
 
 	/* describe the state of the data in term of coherency */
-	struct starpu_data_replicate_s *per_node[STARPU_MAXNODES];
-	struct starpu_data_replicate_s *per_worker[STARPU_NMAXWORKERS];
+	struct starpu_data_replicate_s per_node[STARPU_MAXNODES];
+	struct starpu_data_replicate_s per_worker[STARPU_NMAXWORKERS];
 
 	struct starpu_data_interface_ops_t *ops;
 

@@ -78,24 +78,43 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_data_replicate_s *replicate;
-		replicate = handle->per_node[node];
+		replicate = &handle->per_node[node];
 		
 		replicate->memory_node = node;
+		replicate->relaxed_coherency = 0;
+		replicate->refcnt = 0;
 
 		if (node == home_node) {
 			/* this is the home node with the only valid copy */
 			replicate->state = STARPU_OWNER;
 			replicate->allocated = 1;
 			replicate->automatically_allocated = 0;
-			replicate->refcnt = 0;
 		}
 		else {
 			/* the value is not available here yet */
 			replicate->state = STARPU_INVALID;
 			replicate->allocated = 0;
-			replicate->refcnt = 0;
 		}
 	}
+
+	unsigned worker;
+	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	{
+		struct starpu_data_replicate_s *replicate;
+		replicate = &handle->per_worker[worker];
+		replicate->allocated = 0;
+		replicate->automatically_allocated = 0;
+		replicate->state = STARPU_INVALID;
+		replicate->refcnt = 0;
+		replicate->handle = handle;
+		replicate->requested = 0;
+		replicate->request = NULL;
+		replicate->relaxed_coherency = 1;
+		replicate->memory_node = starpu_worker_get_memory_node(worker);
+
+		/* duplicate  the content of the interface on node 0 */
+		memcpy(replicate->interface, handle->per_node[0].interface, handle->ops->interface_size);
+	} 
 
 	/* now the data is available ! */
 	_starpu_spin_unlock(&handle->header_lock);
@@ -116,16 +135,26 @@ static starpu_data_handle _starpu_data_handle_allocate(struct starpu_data_interf
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_data_replicate_s *replicate;
-
-		replicate = calloc(1, sizeof(struct starpu_data_replicate_s));
-		STARPU_ASSERT(replicate);
-		handle->per_node[node] = replicate;
+		replicate = &handle->per_node[node];
 		/* relaxed_coherency = 0 */
 
 		replicate->handle = handle;
 
 		replicate->interface = calloc(1, interfacesize);
 		STARPU_ASSERT(replicate->interface);
+	}
+
+	unsigned worker;
+	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	{
+		struct starpu_data_replicate_s *replicate;
+		replicate = &handle->per_worker[worker];
+
+		replicate->handle = handle;
+
+		replicate->interface = calloc(1, interfacesize);
+		STARPU_ASSERT(replicate->interface);
+
 	}
 
 	return handle;
@@ -156,7 +185,7 @@ void _starpu_data_free_interfaces(starpu_data_handle handle)
 {
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
-		free(handle->per_node[node]->interface);
+		free(handle->per_node[node].interface);
 }
 
 struct unregister_callback_arg {
@@ -176,7 +205,7 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 
 	STARPU_ASSERT(handle);
 
-	struct starpu_data_replicate_s *replicate = handle->per_node[arg->memory_node];
+	struct starpu_data_replicate_s *replicate = &handle->per_node[arg->memory_node];
 
 	ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, 0, NULL, NULL);
 	STARPU_ASSERT(!ret);
@@ -212,7 +241,7 @@ void starpu_data_unregister(starpu_data_handle handle)
 				_starpu_data_unregister_fetch_data_callback, &arg))
 		{
 			/* no one has locked this data yet, so we proceed immediately */
-			struct starpu_data_replicate_s *home_replicate = handle->per_node[home_node];
+			struct starpu_data_replicate_s *home_replicate = &handle->per_node[home_node];
 			int ret = _starpu_fetch_data_on_node(handle, home_replicate, STARPU_R, 0, NULL, NULL);
 			STARPU_ASSERT(!ret);
 		}
@@ -230,14 +259,11 @@ void starpu_data_unregister(starpu_data_handle handle)
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		struct starpu_data_replicate_s *local = handle->per_node[node];
+		struct starpu_data_replicate_s *local = &handle->per_node[node];
 
 		if (local->allocated && local->automatically_allocated){
 			/* free the data copy in a lazy fashion */
 			_starpu_request_mem_chunk_removal(handle, node);
-		}
-		else {
-			free(local);
 		}
 	}
 
@@ -257,7 +283,7 @@ void starpu_data_invalidate(starpu_data_handle handle)
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		struct starpu_data_replicate_s *local = handle->per_node[node];
+		struct starpu_data_replicate_s *local = &handle->per_node[node];
 
 		if (local->allocated && local->automatically_allocated){
 			/* free the data copy in a lazy fashion */
@@ -279,5 +305,5 @@ unsigned starpu_get_handle_interface_id(starpu_data_handle handle)
 
 void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node)
 {
-	return handle->per_node[memory_node]->interface;
+	return handle->per_node[memory_node].interface;
 }

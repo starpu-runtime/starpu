@@ -27,11 +27,11 @@ void _starpu_benchmark_ping_pong(starpu_data_handle handle,
 	{
 		int ret;
 
-		struct starpu_data_replicate_s *replicate_0 = handle->per_node[node0];
+		struct starpu_data_replicate_s *replicate_0 = &handle->per_node[node0];
 		ret = _starpu_fetch_data_on_node(handle, replicate_0, STARPU_RW, 0, NULL, NULL);
 		STARPU_ASSERT(!ret);
 
-		struct starpu_data_replicate_s *replicate_1 = handle->per_node[node1];
+		struct starpu_data_replicate_s *replicate_1 = &handle->per_node[node1];
 		ret = _starpu_fetch_data_on_node(handle, replicate_1, STARPU_RW, 0, NULL, NULL);
 		STARPU_ASSERT(!ret);
 	}

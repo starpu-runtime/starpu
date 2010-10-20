@@ -148,9 +148,11 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 		unsigned node;
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
-			struct starpu_data_replicate_s *initial_replicate = initial_handle->per_node[node];
+			struct starpu_data_replicate_s *initial_replicate; 
 			struct starpu_data_replicate_s *child_replicate;
-			child_replicate = child->per_node[node];
+
+			initial_replicate = &initial_handle->per_node[node];
+			child_replicate = &child->per_node[node];
 
 			child_replicate->state = initial_replicate->state;
 			child_replicate->allocated = initial_replicate->allocated;
@@ -163,6 +165,25 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 			void *child_interface = starpu_data_get_interface_on_node(child, node);
 
 			f->filter_func(initial_interface, child_interface, f, i, nparts);
+		}
+
+		unsigned worker;
+		for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+		{
+			struct starpu_data_replicate_s *child_replicate;
+			child_replicate = &child->per_worker[worker];
+			
+			child_replicate->state = STARPU_INVALID;
+			child_replicate->allocated = 0;
+			child_replicate->automatically_allocated = 0;
+			child_replicate->refcnt = 0;
+			child_replicate->memory_node = starpu_worker_get_memory_node(worker);
+			child_replicate->requested = 0;
+			child_replicate->request = NULL;
+			child_replicate->relaxed_coherency = 1;
+
+			/* duplicate  the content of the interface on node 0 */
+			memcpy(child_replicate->interface, child->per_node[0].interface, child->ops->interface_size);
 		}
 
 		/* We compute the size and the footprint of the child once and
@@ -193,7 +214,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 			starpu_data_unpartition(child_handle, gathering_node);
 
 		int ret;
-		ret = _starpu_fetch_data_on_node(child_handle, child_handle->per_node[gathering_node], STARPU_R, 0, NULL, NULL);
+		ret = _starpu_fetch_data_on_node(child_handle, &child_handle->per_node[gathering_node], STARPU_R, 0, NULL, NULL);
 		/* for now we pretend that the RAM is almost unlimited and that gathering 
 		 * data should be possible from the node that does the unpartionning ... we
 		 * don't want to have the programming deal with memory shortage at that time,
@@ -225,7 +246,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 
 		for (child = 0; child < root_handle->nchildren; child++)
 		{
-			struct starpu_data_replicate_s *local = root_handle->children[child].per_node[node];
+			struct starpu_data_replicate_s *local = &root_handle->children[child].per_node[node];
 
 			if (local->state == STARPU_INVALID) {
 				isvalid = 0; 
@@ -252,7 +273,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		root_handle->per_node[node]->state = 
+		root_handle->per_node[node].state = 
 			still_valid[node]?newstate:STARPU_INVALID;
 	}
 
@@ -270,6 +291,7 @@ static void starpu_data_create_children(starpu_data_handle handle, unsigned nchi
 	STARPU_ASSERT(handle->children);
 
 	unsigned node;
+	unsigned worker;
 	unsigned child;
 
 	for (child = 0; child < nchildren; child++)
@@ -290,15 +312,17 @@ static void starpu_data_create_children(starpu_data_handle handle, unsigned nchi
 
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
-			handle_child->per_node[node] = calloc(1, sizeof(struct starpu_data_replicate_s));
-			STARPU_ASSERT(handle_child->per_node[node]);
-
 			/* relaxed_coherency = 0 */
+			handle_child->per_node[node].handle = handle_child;
+			handle_child->per_node[node].interface = calloc(1, interfacesize);
+			STARPU_ASSERT(handle_child->per_node[node].interface);
+		}
 
-			handle_child->per_node[node]->handle = handle_child;
-
-			handle_child->per_node[node]->interface = calloc(1, interfacesize);
-			STARPU_ASSERT(handle_child->per_node[node]->interface);
+		for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+		{
+			handle_child->per_worker[worker].handle = handle_child;
+			handle_child->per_worker[worker].interface = calloc(1, interfacesize);
+			STARPU_ASSERT(handle_child->per_node[node].interface);
 		}
 	}
 	
