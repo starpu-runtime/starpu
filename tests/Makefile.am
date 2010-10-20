@@ -79,6 +79,7 @@ check_PROGRAMS += 				\
 	core/restart				\
 	core/execute_on_a_specific_worker	\
 	core/multithreaded			\
+	core/multithreaded_init			\
 	core/starpu_task_wait_for_all		\
 	core/starpu_task_wait			\
 	core/static_restartable			\
@@ -147,6 +148,11 @@ testbin_PROGRAMS +=				\
 	core/multithreaded
 core_multithreaded_SOURCES =			\
 	core/multithreaded.c
+
+testbin_PROGRAMS +=				\
+	core/multithreaded_init
+core_multithreaded_init_SOURCES =			\
+	core/multithreaded_init.c
 
 testbin_PROGRAMS +=				\
 	core/starpu_task_wait_for_all

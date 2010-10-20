@@ -233,9 +233,11 @@ int starpu_init(struct starpu_conf *user_conf)
 		/* Wait for the other one changing it */
 		PTHREAD_COND_WAIT(&init_cond, &init_mutex);
 	init_count++;
-	if (initialized == INITIALIZED)
-		/* He initialized it, don't do it again */
-		return 0;
+	if (initialized == INITIALIZED) {
+	  /* He initialized it, don't do it again, and let the others get the mutex */
+	  PTHREAD_MUTEX_UNLOCK(&init_mutex);
+	  return 0;
+	  }
 	/* initialized == UNINITIALIZED */
 	initialized = CHANGING;
 	PTHREAD_MUTEX_UNLOCK(&init_mutex);
