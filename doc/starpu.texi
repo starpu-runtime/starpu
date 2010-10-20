@@ -1589,6 +1589,8 @@ Specify the location of the Gordon SDK.
 * --with-mpicc::                
 * --with-goto-dir::             
 * --with-atlas-dir::            
+* --with-mkl-cflags::
+* --with-mkl-ldflags::
 @end menu
 
 @node --enable-perf-debug
@@ -1690,6 +1692,23 @@ Specify the location of GotoBLAS.
 Specify the location of ATLAS. This directory should notably contain
 @code{include/cblas.h}.
 @end table
+
+@node --with-mkl-cflags
+@subsubsection @code{--with-mkl-cflags=<cflags>}
+@table @asis
+@item @emph{Description}:
+Specify the compilation flags for the MKL Library.
+@end table
+
+@node --with-mkl-ldflags
+@subsubsection @code{--with-mkl-ldflags=<ldflags>}
+@table @asis
+@item @emph{Description}:
+Specify the linking flags for the MKL Library. Note that the
+@url{http://software.intel.com/en-us/articles/intel-mkl-link-line-advisor/}
+website provides a script to determine the linking flags.
+@end table
+
 
 @c ---------------------------------------------------------------------
 @c Environment variables
