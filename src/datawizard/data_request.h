@@ -48,6 +48,10 @@ LIST_TYPE(starpu_data_request,
 	unsigned completed;
 	int retval;
 
+	/* The request will not actually be submitted until there remains
+	 * dependencies. */
+	unsigned ndeps;
+
 	/* in case we have a chain of request (eg. for nvidia multi-GPU) */
 	struct starpu_data_request_s *next_req[STARPU_MAXNODES];
 	/* who should perform the next request ? */
@@ -97,6 +101,7 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle,
 				struct starpu_data_replicate_s *dst_replicate,
 				uint32_t handling_node,
 				starpu_access_mode mode,
+				unsigned ndeps,
 				unsigned is_prefetch);
 
 starpu_data_request_t _starpu_search_existing_data_request(struct starpu_data_replicate_s *replicate, starpu_access_mode mode);

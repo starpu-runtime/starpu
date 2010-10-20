@@ -71,6 +71,7 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle,
 				struct starpu_data_replicate_s *dst_replicate,
 				uint32_t handling_node,
 				starpu_access_mode mode,
+				unsigned ndeps,
 				unsigned is_prefetch)
 {
 	starpu_data_request_t r = starpu_data_request_new();
@@ -84,6 +85,7 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle,
 	r->handling_node = handling_node;
 	r->completed = 0;
 	r->retval = -1;
+	r->ndeps = ndeps;
 	r->next_req_count = 0;
 	r->callbacks = NULL;
 	r->is_a_prefetch_request = is_prefetch;
@@ -179,6 +181,10 @@ void _starpu_post_data_request(starpu_data_request_t r, uint32_t handling_node)
 {
 //	_STARPU_DEBUG("POST REQUEST\n");
 
+	/* If some dependencies are not fulfilled yet, we don't actually post the request */
+	if (r->ndeps > 0)
+		return;
+
 	if (r->mode & STARPU_R)
 	{
 		STARPU_ASSERT(r->src_replicate->allocated);
@@ -237,6 +243,8 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 	for (chained_req = 0; chained_req < r->next_req_count; chained_req++)
 	{
 		struct starpu_data_request_s *next_req = r->next_req[chained_req];
+		STARPU_ASSERT(next_req->ndeps > 0);
+		next_req->ndeps--;
 		_starpu_post_data_request(next_req, next_req->handling_node);
 	}
 

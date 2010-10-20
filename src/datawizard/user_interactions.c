@@ -30,7 +30,7 @@ int starpu_data_request_allocation(starpu_data_handle handle, uint32_t node)
 
 	STARPU_ASSERT(handle);
 
-	r = _starpu_create_data_request(handle, NULL, handle->per_node[node], node, 0, 1);
+	r = _starpu_create_data_request(handle, NULL, handle->per_node[node], node, 0, 0, 1);
 
 	/* we do not increase the refcnt associated to the request since we are
 	 * not waiting for its termination */

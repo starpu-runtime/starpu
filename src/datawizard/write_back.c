@@ -46,7 +46,7 @@ void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_n
 				if (!r) {
 					/* there was no existing request so we create one now */
 					r = _starpu_create_data_request(handle, handle->per_node[requesting_node],
-							handle->per_node[node], handling_node, STARPU_R, 1);
+							handle->per_node[node], handling_node, STARPU_R, 0, 1);
 					_starpu_post_data_request(r, handling_node);
 				}
 				else {
