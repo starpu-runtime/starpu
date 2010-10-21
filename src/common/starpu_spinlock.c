@@ -21,7 +21,9 @@
 int _starpu_spin_init(starpu_spinlock_t *lock)
 {
 #ifdef HAVE_PTHREAD_SPIN_LOCK
-	return pthread_spin_init(&lock->lock, 0);
+	int ret = pthread_spin_init(&lock->lock, 0);
+	STARPU_ASSERT(!ret);
+	return ret;
 #else
 	lock->taken = 0;
 	return 0;
@@ -31,7 +33,9 @@ int _starpu_spin_init(starpu_spinlock_t *lock)
 int _starpu_spin_destroy(starpu_spinlock_t *lock)
 {
 #ifdef HAVE_PTHREAD_SPIN_LOCK
-	return pthread_spin_destroy(&lock->lock);
+	int ret = pthread_spin_destroy(&lock->lock);
+	STARPU_ASSERT(!ret);
+	return ret;
 #else
 	/* we don't do anything */
 	return 0;
@@ -41,7 +45,9 @@ int _starpu_spin_destroy(starpu_spinlock_t *lock)
 int _starpu_spin_lock(starpu_spinlock_t *lock)
 {
 #ifdef HAVE_PTHREAD_SPIN_LOCK
-	return pthread_spin_lock(&lock->lock);
+	int ret = pthread_spin_lock(&lock->lock);
+	STARPU_ASSERT(!ret);
+	return ret;
 #else
 	uint32_t prev;
 	do {
@@ -67,7 +73,9 @@ int _starpu_spin_trylock(starpu_spinlock_t *lock)
 int _starpu_spin_unlock(starpu_spinlock_t *lock)
 {
 #ifdef HAVE_PTHREAD_SPIN_LOCK
-	return pthread_spin_unlock(&lock->lock);
+	int ret = pthread_spin_unlock(&lock->lock);
+	STARPU_ASSERT(!ret);
+	return ret;
 #else
 	STARPU_RELEASE(&lock->taken);
 	return 0;
