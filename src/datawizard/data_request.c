@@ -336,6 +336,7 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 	}
 
 	/* the request has been handled */
+	_starpu_spin_lock(&r->lock);
 	starpu_handle_data_request_completion(r);
 
 	return 0;
