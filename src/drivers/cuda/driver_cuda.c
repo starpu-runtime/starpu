@@ -38,12 +38,11 @@ static char *wasted_memory[STARPU_NMAXWORKERS];
 static void limit_gpu_mem_if_needed(int devid)
 {
 	cudaError_t cures;
-	int workerid = starpu_worker_get_id();
 	int limit = starpu_get_env_number("STARPU_LIMIT_GPU_MEM");
 
 	if (limit == -1)
 	{
-		wasted_memory[workerid] = NULL;
+		wasted_memory[devid] = NULL;
 		return;
 	}
 
@@ -54,26 +53,31 @@ static void limit_gpu_mem_if_needed(int devid)
 		STARPU_CUDA_REPORT_ERROR(cures);
 
 	size_t totalGlobalMem = prop.totalGlobalMem;
+
+	/* How much memory to waste ? */
 	size_t to_waste = totalGlobalMem - (size_t)limit*1024*1024;
 
-	_STARPU_DEBUG("Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n", (size_t)to_waste/(1024*1024), (size_t)limit, (size_t)totalGlobalMem/(1024*1024), (size_t)(totalGlobalMem - to_waste)/(1024*1024));
-
-	cures = cudaMalloc((void **)&wasted_memory[workerid], to_waste);
+	_STARPU_DEBUG("CUDA device %d: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
+			devid, (size_t)to_waste/(1024*1024), (size_t)limit, (size_t)totalGlobalMem/(1024*1024),
+			(size_t)(totalGlobalMem - to_waste)/(1024*1024));
+	
+	/* Allocate a large buffer to waste memory and constraint the amount of available memory. */
+	cures = cudaMalloc((void **)&wasted_memory[devid], to_waste);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
 
-static void unlimit_gpu_mem_if_needed(int workerid)
+static void unlimit_gpu_mem_if_needed(int devid)
 {
 	cudaError_t cures;
 
-	if (wasted_memory[workerid])
+	if (wasted_memory[devid])
 	{
-		cures = cudaFree(wasted_memory[workerid]);
+		cures = cudaFree(wasted_memory[devid]);
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 
-		wasted_memory[workerid] = NULL;
+		wasted_memory[devid] = NULL;
 	}
 }
 
@@ -102,13 +106,13 @@ static void init_context(int devid)
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
 
-static void deinit_context(int workerid)
+static void deinit_context(int workerid, int devid)
 {
 	cudaError_t cures;
 
 	cudaStreamDestroy(streams[workerid]);
 
-	unlimit_gpu_mem_if_needed(workerid);
+	unlimit_gpu_mem_if_needed(devid);
 
 	/* cleanup the runtime API internal stuffs (which CUBLAS is using) */
 	cures = cudaThreadExit();
@@ -311,7 +315,7 @@ void *_starpu_cuda_worker(void *arg)
 	 * coherency is not maintained anymore at that point ! */
 	_starpu_free_all_automatically_allocated_buffers(memnode);
 
-	deinit_context(args->workerid);
+	deinit_context(args->workerid, args->devid);
 
 	STARPU_TRACE_WORKER_DEINIT_END(STARPU_FUT_CUDA_KEY);
 

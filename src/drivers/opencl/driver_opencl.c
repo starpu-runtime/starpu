@@ -37,6 +37,49 @@ static cl_uint nb_devices = -1;
 static int init_done = 0;
 extern char *_starpu_opencl_program_dir;
 
+/* In case we want to cap the amount of memory available on the GPUs by the
+ * mean of the STARPU_LIMIT_GPU_MEM, we allocate a big buffer when the driver
+ * is launched. */
+static cl_mem wasted_memory[STARPU_MAXOPENCLDEVS];
+
+static void limit_gpu_mem_if_needed(int devid)
+{
+	cl_int err;
+
+	int limit = starpu_get_env_number("STARPU_LIMIT_GPU_MEM");
+	if (limit == -1)
+	{
+		wasted_memory[devid] = NULL;
+		return;
+	}
+
+	/* Request the size of the current device's memory */
+	cl_ulong totalGlobalMem;
+	clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
+
+	/* How much memory to waste ? */
+	size_t to_waste = (size_t)totalGlobalMem - (size_t)limit*1024*1024;
+
+	_STARPU_DEBUG("OpenCL device %d: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
+			devid, (size_t)to_waste/(1024*1024), (size_t)limit, (size_t)totalGlobalMem/(1024*1024),
+			(size_t)(totalGlobalMem - to_waste)/(1024*1024));
+
+	/* Allocate a large buffer to waste memory and constraint the amount of available memory. */
+	wasted_memory[devid] = clCreateBuffer(contexts[devid], CL_MEM_READ_WRITE, to_waste, NULL, &err);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+}
+
+static void unlimit_gpu_mem_if_needed(int devid)
+{
+	if (wasted_memory[devid])
+	{
+		clReleaseMemObject(wasted_memory[devid]);
+		wasted_memory[devid] = NULL;
+	}
+}
+
+
 void starpu_opencl_get_context(int devid, cl_context *context)
 {
         *context = contexts[devid];
@@ -69,6 +112,8 @@ int _starpu_opencl_init_context(int devid)
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	PTHREAD_MUTEX_UNLOCK(&big_lock);
 
+	limit_gpu_mem_if_needed(devid);
+
 	return EXIT_SUCCESS;
 }
 
@@ -79,6 +124,8 @@ int _starpu_opencl_deinit_context(int devid)
 	PTHREAD_MUTEX_LOCK(&big_lock);
 
         _STARPU_DEBUG("De-initialising context for dev %d\n", devid);
+
+	unlimit_gpu_mem_if_needed(devid);
 
         err = clReleaseContext(contexts[devid]);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
