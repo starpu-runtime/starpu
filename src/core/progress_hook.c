@@ -27,13 +27,14 @@ struct progression_hook {
 };
 
 /* protect the hook table */
-static pthread_mutex_t progression_hook_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_rwlock_t progression_hook_rwlock = PTHREAD_RWLOCK_INITIALIZER;
+
 static struct progression_hook hooks[NMAXHOOKS] = {{NULL, NULL, 0}};
 
 int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg)
 {
 	int hook;
-	PTHREAD_MUTEX_LOCK(&progression_hook_mutex);
+	PTHREAD_RWLOCK_WRLOCK(&progression_hook_rwlock);
 	for (hook = 0; hook < NMAXHOOKS; hook++)
 	{
 		if (!hooks[hook].active)
@@ -43,13 +44,13 @@ int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg)
 			hooks[hook].arg = arg;
 			hooks[hook].active = 1;
 
-			PTHREAD_MUTEX_UNLOCK(&progression_hook_mutex);
+			PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
 			
 			return hook;
 		}
 	}
 
-	PTHREAD_MUTEX_UNLOCK(&progression_hook_mutex);
+	PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
 
 	starpu_wake_all_blocked_workers();
 
@@ -59,9 +60,9 @@ int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg)
 
 void starpu_progression_hook_deregister(int hook_id)
 {
-	PTHREAD_MUTEX_LOCK(&progression_hook_mutex);
+	PTHREAD_RWLOCK_WRLOCK(&progression_hook_rwlock);
 	hooks[hook_id].active = 0;
-	PTHREAD_MUTEX_UNLOCK(&progression_hook_mutex);
+	PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
 }
 
 unsigned _starpu_execute_registered_progression_hooks(void)
@@ -75,9 +76,9 @@ unsigned _starpu_execute_registered_progression_hooks(void)
 	{
 		unsigned active;
 
-		PTHREAD_MUTEX_LOCK(&progression_hook_mutex);
+		PTHREAD_RWLOCK_RDLOCK(&progression_hook_rwlock);
 		active = hooks[hook].active;
-		PTHREAD_MUTEX_UNLOCK(&progression_hook_mutex);
+		PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
 
 		unsigned may_block_hook = 1;
 
