@@ -29,6 +29,7 @@
 #define RECV_REQ	1
 #define WAIT_REQ        2
 #define TEST_REQ        3
+#define BARRIER_REQ     4
 
 LIST_TYPE(starpu_mpi_req,
 	/* description of the data at StarPU level */

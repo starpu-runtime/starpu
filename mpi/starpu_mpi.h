@@ -30,7 +30,9 @@ int starpu_mpi_isend_detached(starpu_data_handle data_handle, int dest, int mpi_
 int starpu_mpi_irecv_detached(starpu_data_handle data_handle, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg);
 int starpu_mpi_wait(starpu_mpi_req *req, MPI_Status *status);
 int starpu_mpi_test(starpu_mpi_req *req, int *flag, MPI_Status *status);
+int starpu_mpi_barrier(MPI_Comm comm);
 int starpu_mpi_initialize(void);
+int starpu_mpi_initialize_extended(int initialize_mpi, int *rank, int *world_size);
 int starpu_mpi_shutdown(void);
 
 /* Some helper functions */
