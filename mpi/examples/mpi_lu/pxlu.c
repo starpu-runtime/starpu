@@ -856,7 +856,7 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 		}
 	}
 
-	int barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
+	int barrier_ret = starpu_mpi_barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 
 	/* schedule the codelet */
