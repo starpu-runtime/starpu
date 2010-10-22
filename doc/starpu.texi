@@ -1915,6 +1915,7 @@ the coefficient to be applied to it before adding it to the computation part.
 @menu
 * STARPU_LOGFILENAME::          Select debug file name
 * STARPU_FXT_PREFIX::           FxT trace location
+* STARPU_LIMIT_GPU_MEM::        Restrict memory size on the GPUs
 @end menu
 
 @node STARPU_LOGFILENAME
@@ -1932,6 +1933,20 @@ This variable specifies in which file the debugging output should be saved to.
 @item @emph{Description}
 This variable specifies in which directory to save the trace generated if FxT is enabled.
 @end table
+
+@node STARPU_LIMIT_GPU_MEM
+@subsubsection @code{STARPU_LIMIT_GPU_MEM} -- Restrict memory size on the GPUs
+@table @asis
+
+@item @emph{Description}
+This variable specifies the maximum number of megabytes that should be
+available to the application on each GPUs. In case this value is smaller than
+the size of the memory of a GPU, StarPU pre-allocates a buffer to waste memory
+on the device. This variable is intended to be used for experimental purposes
+as it emulates devices that have a limited amount of memory.
+@end table
+
+
 
 @c ---------------------------------------------------------------------
 @c StarPU API
