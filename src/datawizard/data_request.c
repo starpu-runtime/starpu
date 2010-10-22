@@ -304,8 +304,11 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate->allocated);
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate->refcnt);
 
+	_starpu_spin_unlock(&r->lock);
+
 	/* perform the transfer */
 	/* the header of the data must be locked by the worker that submitted the request */
+
 	r->retval = _starpu_driver_copy_data_1_to_1(handle, src_replicate,
 			dst_replicate, !(r_mode & STARPU_R), r, may_alloc);
 
@@ -313,9 +316,7 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 	{
 		/* If there was not enough memory, we will try to redo the
 		 * request later. */
-		_starpu_spin_unlock(&r->lock);
 		_starpu_spin_unlock(&handle->header_lock);
-
 		return -ENOMEM;
 	}
 
@@ -325,7 +326,6 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 		 * immediatly. We will handle the completion of the request
 		 * asynchronously. The request is put in the list of "pending"
 		 * requests in the meantime. */
-		_starpu_spin_unlock(&r->lock);
 		_starpu_spin_unlock(&handle->header_lock);
 
 		PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[r->handling_node]);

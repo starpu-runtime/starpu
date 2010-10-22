@@ -693,10 +693,19 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle handle, struct star
 		allocated_memory = handle->ops->allocate_data_on_node(replicate->interface, dst_node);
 		STARPU_TRACE_END_ALLOC(dst_node);
 
-		if (allocated_memory == -ENOMEM) {
+		if (allocated_memory == -ENOMEM)
+		{
+			replicate->refcnt++;
+			_starpu_spin_unlock(&handle->header_lock);
+
 			STARPU_TRACE_START_MEMRECLAIM(dst_node);
 			reclaim_memory_generic(dst_node, 0);
 			STARPU_TRACE_END_MEMRECLAIM(dst_node);
+
+		        while (_starpu_spin_trylock(&handle->header_lock))
+		                _starpu_datawizard_progress(_starpu_get_local_memory_node(), 0);
+		
+			replicate->refcnt--;
 		}
 		
 	} while((allocated_memory == -ENOMEM) && attempts++ < 2);
