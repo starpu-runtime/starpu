@@ -20,6 +20,18 @@
 
 int _starpu_spin_init(starpu_spinlock_t *lock)
 {
+#ifdef STARPU_SPINLOCK_CHECK
+//	memcpy(&lock->errcheck_lock, PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP, sizeof(PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP));
+	int ret;
+	ret = pthread_mutexattr_init(&lock->errcheck_attr);
+	STARPU_ASSERT(!ret);
+
+	ret = pthread_mutexattr_settype(&lock->errcheck_attr, PTHREAD_MUTEX_ERRORCHECK);
+	STARPU_ASSERT(!ret);
+
+	ret = pthread_mutex_init(&lock->errcheck_lock, &lock->errcheck_attr);
+	return ret;
+#else
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 	int ret = pthread_spin_init(&lock->lock, 0);
 	STARPU_ASSERT(!ret);
@@ -28,10 +40,15 @@ int _starpu_spin_init(starpu_spinlock_t *lock)
 	lock->taken = 0;
 	return 0;
 #endif
+#endif
 }
 
 int _starpu_spin_destroy(starpu_spinlock_t *lock)
 {
+#ifdef STARPU_SPINLOCK_CHECK
+	pthread_mutexattr_destroy(&lock->errcheck_attr);
+	return pthread_mutex_destroy(&lock->errcheck_lock);
+#else
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 	int ret = pthread_spin_destroy(&lock->lock);
 	STARPU_ASSERT(!ret);
@@ -40,10 +57,16 @@ int _starpu_spin_destroy(starpu_spinlock_t *lock)
 	/* we don't do anything */
 	return 0;
 #endif
+#endif
 }
 
 int _starpu_spin_lock(starpu_spinlock_t *lock)
 {
+#ifdef STARPU_SPINLOCK_CHECK
+	int ret = pthread_mutex_lock(&lock->errcheck_lock);
+	STARPU_ASSERT(!ret);
+	return ret;
+#else
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 	int ret = pthread_spin_lock(&lock->lock);
 	STARPU_ASSERT(!ret);
@@ -55,10 +78,16 @@ int _starpu_spin_lock(starpu_spinlock_t *lock)
 	} while (prev);
 	return 0;
 #endif
+#endif
 }
 
 int _starpu_spin_trylock(starpu_spinlock_t *lock)
 {
+#ifdef STARPU_SPINLOCK_CHECK
+	int ret = pthread_mutex_trylock(&lock->errcheck_lock);
+	STARPU_ASSERT(!ret || (ret == EBUSY));
+	return ret;
+#else
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 	int ret =  pthread_spin_trylock(&lock->lock);
 	STARPU_ASSERT(!ret || (ret == EBUSY));
@@ -68,10 +97,16 @@ int _starpu_spin_trylock(starpu_spinlock_t *lock)
 	prev = STARPU_TEST_AND_SET(&lock->taken, 1);
 	return (prev == 0)?0:EBUSY;
 #endif
+#endif
 }
 
 int _starpu_spin_unlock(starpu_spinlock_t *lock)
 {
+#ifdef STARPU_SPINLOCK_CHECK
+	int ret = pthread_mutex_unlock(&lock->errcheck_lock);
+	STARPU_ASSERT(!ret);
+	return ret;
+#else
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 	int ret = pthread_spin_unlock(&lock->lock);
 	STARPU_ASSERT(!ret);
@@ -79,5 +114,6 @@ int _starpu_spin_unlock(starpu_spinlock_t *lock)
 #else
 	STARPU_RELEASE(&lock->taken);
 	return 0;
+#endif
 #endif
 }

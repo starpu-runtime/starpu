@@ -19,14 +19,24 @@
 #include <errno.h>
 #include <stdint.h>
 #include <pthread.h>
+#include <common/utils.h>
 #include <common/config.h>
 
+//#ifndef STARPU_SPINLOCK_CHECK
+//#define STARPU_SPINLOCK_CHECK	1
+//#endif
+
 typedef struct starpu_spinlock_s {
+#ifdef STARPU_SPINLOCK_CHECK
+	pthread_mutexattr_t errcheck_attr;
+	pthread_mutex_t errcheck_lock;
+#else
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 	pthread_spinlock_t lock;
 #else
 	/* we only have a trivial implementation yet ! */
 	uint32_t taken __attribute__ ((aligned(16)));
+#endif
 #endif
 } starpu_spinlock_t;
 
