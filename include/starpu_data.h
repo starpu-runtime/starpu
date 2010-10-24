@@ -44,7 +44,11 @@ typedef struct starpu_buffer_descr_t {
 
 struct starpu_data_interface_ops_t;
 
+/* Destroy the data handle, in case we don't need to update the value of the
+ * data in the home node, we can use starpu_data_unregister_no_coherency
+ * instead. */
 void starpu_data_unregister(starpu_data_handle handle);
+void starpu_data_unregister_no_coherency(starpu_data_handle handle);
 
 /* Destroy all data replicates. After data invalidation, the first access to
  * the handle must be performed in write-only mode. */

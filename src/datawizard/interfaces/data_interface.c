@@ -217,39 +217,43 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 	PTHREAD_MUTEX_UNLOCK(&arg->mutex);
 }
 
-
-void starpu_data_unregister(starpu_data_handle handle)
+/* Unregister the data handle, perhaps we don't need to update the home_node
+ * (in that case coherent is set to 0) */
+static void _starpu_data_unregister(starpu_data_handle handle, unsigned coherent)
 {
 	STARPU_ASSERT(handle);
 
 	/* If sequential consistency is enabled, wait until data is available */
 	_starpu_data_wait_until_available(handle, STARPU_RW);
 
-	/* Fetch data in the home of the data to ensure we have a valid copy
-	 * where we registered it */
-	int home_node = handle->home_node; 
-	if (home_node >= 0)
+	if (coherent)
 	{
-		struct unregister_callback_arg arg;
-		arg.handle = handle;
-		arg.memory_node = (unsigned)home_node;
-		arg.terminated = 0;
-		PTHREAD_MUTEX_INIT(&arg.mutex, NULL);
-		PTHREAD_COND_INIT(&arg.cond, NULL);
-
-		if (!_starpu_attempt_to_submit_data_request_from_apps(handle, STARPU_R,
-				_starpu_data_unregister_fetch_data_callback, &arg))
+		/* Fetch data in the home of the data to ensure we have a valid copy
+		 * where we registered it */
+		int home_node = handle->home_node; 
+		if (home_node >= 0)
 		{
-			/* no one has locked this data yet, so we proceed immediately */
-			struct starpu_data_replicate_s *home_replicate = &handle->per_node[home_node];
-			int ret = _starpu_fetch_data_on_node(handle, home_replicate, STARPU_R, 0, NULL, NULL);
-			STARPU_ASSERT(!ret);
-		}
-		else {
-			PTHREAD_MUTEX_LOCK(&arg.mutex);
-			while (!arg.terminated)
-				PTHREAD_COND_WAIT(&arg.cond, &arg.mutex);
-			PTHREAD_MUTEX_UNLOCK(&arg.mutex);
+			struct unregister_callback_arg arg;
+			arg.handle = handle;
+			arg.memory_node = (unsigned)home_node;
+			arg.terminated = 0;
+			PTHREAD_MUTEX_INIT(&arg.mutex, NULL);
+			PTHREAD_COND_INIT(&arg.cond, NULL);
+	
+			if (!_starpu_attempt_to_submit_data_request_from_apps(handle, STARPU_R,
+					_starpu_data_unregister_fetch_data_callback, &arg))
+			{
+				/* no one has locked this data yet, so we proceed immediately */
+				struct starpu_data_replicate_s *home_replicate = &handle->per_node[home_node];
+				int ret = _starpu_fetch_data_on_node(handle, home_replicate, STARPU_R, 0, NULL, NULL);
+				STARPU_ASSERT(!ret);
+			}
+			else {
+				PTHREAD_MUTEX_LOCK(&arg.mutex);
+				while (!arg.terminated)
+					PTHREAD_COND_WAIT(&arg.cond, &arg.mutex);
+				PTHREAD_MUTEX_UNLOCK(&arg.mutex);
+			}
 		}
 	}
 
@@ -270,6 +274,16 @@ void starpu_data_unregister(starpu_data_handle handle)
 	starpu_data_requester_list_delete(handle->req_list);
 
 	free(handle);
+}
+
+void starpu_data_unregister(starpu_data_handle handle)
+{
+	_starpu_data_unregister(handle, 1);
+}
+
+void starpu_data_unregister_no_coherency(starpu_data_handle handle)
+{
+	_starpu_data_unregister(handle, 0);
 }
 
 void starpu_data_invalidate(starpu_data_handle handle)
