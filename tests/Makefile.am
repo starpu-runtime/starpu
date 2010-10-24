@@ -109,6 +109,7 @@ check_PROGRAMS += 				\
 	datawizard/write_only_tmp_buffer	\
 	datawizard/data_invalidation		\
 	datawizard/dining_philosophers		\
+	datawizard/manual_reduction		\
 	datawizard/readers_and_writers		\
 	datawizard/unpartition			\
 	datawizard/user_interaction_implicit	\
@@ -303,6 +304,11 @@ datawizard_dining_philosophers_SOURCES = 	\
 	datawizard/dining_philosophers.c
 
 testbin_PROGRAMS +=				\
+	datawizard/manual_reduction
+datawizard_manual_reduction_SOURCES = 		\
+	datawizard/manual_reduction.c
+
+testbin_PROGRAMS +=				\
 	datawizard/readers_and_writers
 datawizard_readers_and_writers_SOURCES = 	\
 	datawizard/readers_and_writers.c
@@ -357,6 +363,9 @@ datawizard_mpi_like_SOURCES +=			\
 	datawizard/cuda_codelet_unsigned_inc.cu
 
 datawizard_mpi_like_async_SOURCES +=		\
+	datawizard/cuda_codelet_unsigned_inc.cu
+
+datawizard_manual_reduction_SOURCES +=		\
 	datawizard/cuda_codelet_unsigned_inc.cu
 endif
 
