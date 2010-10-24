@@ -15,6 +15,9 @@
  */
 
 #include <starpu.h>
+#ifdef STARPU_USE_CUDA
+#include <cuda.h>
+#endif
 
 #define INIT_VALUE	42
 #define NTASKS		10000
@@ -41,10 +44,12 @@ static void initialize_per_worker_handle(void *arg __attribute__((unused)))
 			/* Not supported yet */
 			STARPU_ABORT();
 			break;
+#ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_WORKER:
 			cudaMalloc((void **)&per_worker[workerid], sizeof(variable));
 			cudaMemset((void *)per_worker[workerid], 0, sizeof(variable));
 			break;
+#endif
 		default:
 			STARPU_ABORT();
 			break;
