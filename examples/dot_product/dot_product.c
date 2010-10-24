@@ -17,8 +17,10 @@
 #include <starpu.h>
 #include <assert.h>
 
+#ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cublas.h>
+#endif
 
 static float *x;
 static float *y;
@@ -43,17 +45,21 @@ void init_cpu_func(void *descr[], void *cl_arg)
 	*dot = 0.0f;
 }
 
+#ifdef STARPU_USE_CUDA
 void init_cuda_func(void *descr[], void *cl_arg)
 {
 	DOT_TYPE *dot = (DOT_TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	cudaMemset(dot, 0, sizeof(DOT_TYPE));
 	cudaThreadSynchronize();
 }
+#endif
 
 static struct starpu_codelet_t init_codelet = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = init_cpu_func,
+#ifdef STARPU_USE_CUDA
 	.cuda_func = init_cuda_func,
+#endif
 	.nbuffers = 1
 };
 
@@ -98,6 +104,7 @@ void dot_cpu_func(void *descr[], void *cl_arg)
 	*dot = *dot + local_dot;
 }
 
+#ifdef STARPU_USE_CUDA
 void dot_cuda_func(void *descr[], void *cl_arg)
 {
 	DOT_TYPE current_dot;
@@ -124,11 +131,14 @@ void dot_cuda_func(void *descr[], void *cl_arg)
 
 	cudaThreadSynchronize();
 }
+#endif
 
 static struct starpu_codelet_t dot_codelet = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = dot_cpu_func,
+#ifdef STARPU_USE_CUDA
 	.cuda_func = dot_cuda_func,
+#endif
 	.nbuffers = 3
 };
 
