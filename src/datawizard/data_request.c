@@ -61,6 +61,7 @@ void _starpu_deinit_data_request_lists(void)
 /* this should be called with the lock r->handle->header_lock taken */
 static void starpu_data_request_destroy(starpu_data_request_t r)
 {
+	STARPU_ASSERT(r->dst_replicate->request == r);
 	r->dst_replicate->request = NULL;
 	starpu_data_request_delete(r);
 }
@@ -251,11 +252,15 @@ static void starpu_handle_data_request_completion(starpu_data_request_t r)
 	r->completed = 1;
 	
 	/* Remove a reference on the destination replicate  */
+	STARPU_ASSERT(dst_replicate->refcnt > 0);
 	dst_replicate->refcnt--;
 
 	/* In case the source was "locked" by the request too */
-	if (mode & (STARPU_R|STARPU_REDUX))
+	if (mode & STARPU_R)
+	{
+		STARPU_ASSERT(src_replicate->refcnt > 0);
 		src_replicate->refcnt--;
+	}
 
 	r->refcnt--;
 
