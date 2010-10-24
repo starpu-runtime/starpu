@@ -574,3 +574,16 @@ examplebin_PROGRAMS +=				\
 
 scheduler_dummy_sched_SOURCES =			\
 	scheduler/dummy_sched.c
+
+#######################
+# dot_product example #
+#######################
+
+check_PROGRAMS +=				\
+	dot_product/dot_product
+
+examplebin_PROGRAMS +=				\
+	dot_product/dot_product
+
+dot_product_dot_product_SOURCES =		\
+	dot_product/dot_product.c
