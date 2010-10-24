@@ -142,8 +142,8 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 
 		/* The methods used for reduction are propagated to the
 		 * children. */
-		child->redux_func = initial_handle->redux_func;
-		child->init_func = initial_handle->init_func;
+		child->redux_cl = initial_handle->redux_cl;
+		child->init_cl = initial_handle->init_cl;
 
 		unsigned node;
 		for (node = 0; node < STARPU_MAXNODES; node++)
@@ -181,6 +181,7 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 			child_replicate->requested = 0;
 			child_replicate->request = NULL;
 			child_replicate->relaxed_coherency = 1;
+			child_replicate->initialized = 0;
 
 			/* duplicate  the content of the interface on node 0 */
 			memcpy(child_replicate->interface, child->per_node[0].interface, child->ops->interface_size);

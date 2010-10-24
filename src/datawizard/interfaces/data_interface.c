@@ -54,8 +54,8 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	handle->post_sync_tasks_cnt = 0;
 
 	/* By default, there are no methods available to perform a reduction */
-	handle->redux_func = NULL;
-	handle->init_func = NULL;
+	handle->redux_cl = NULL;
+	handle->init_cl = NULL;
 
 #ifdef STARPU_USE_FXT
 	handle->last_submitted_ghost_writer_id_is_valid = 0;
@@ -110,6 +110,7 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 		replicate->requested = 0;
 		replicate->request = NULL;
 		replicate->relaxed_coherency = 1;
+		replicate->initialized = 0;
 		replicate->memory_node = starpu_worker_get_memory_node(worker);
 
 		/* duplicate  the content of the interface on node 0 */

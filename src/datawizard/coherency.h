@@ -49,6 +49,10 @@ LIST_TYPE(starpu_data_replicate,
 	 * filters. */
 	unsigned relaxed_coherency;
 
+	/* In the case of a SCRATCH access, we need to initialize the replicate
+	 * with a neutral element before using it. */
+	unsigned initialized;
+
 	/* describes the state of the local data in term of coherency */
 	starpu_cache_state	state; 
 
@@ -161,8 +165,8 @@ struct starpu_data_state_t {
 	 * the reduction of an interface into another one (eg. "+="), and init_func
 	 * initializes the data interface to a default value that is stable by
 	 * reduction (eg. 0 for +=). */
-	void (*redux_func)(void *dst_interface, void *src_interface);
-	void (*init_func)(void *interface);
+	struct starpu_codelet_t *redux_cl;
+	struct starpu_codelet_t *init_cl;
 };
 
 void _starpu_display_msi_stats(void);
@@ -196,5 +200,7 @@ int _starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 
 uint32_t _starpu_select_node_to_handle_request(uint32_t src_node, uint32_t dst_node);
 uint32_t _starpu_select_src_node(struct starpu_data_state_t *state);
+
+void _starpu_redux_init_data_replicate(starpu_data_handle handle, struct starpu_data_replicate_s *replicate, int workerid);
 
 #endif // __COHERENCY__H__

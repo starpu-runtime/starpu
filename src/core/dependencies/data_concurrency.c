@@ -191,6 +191,7 @@ static unsigned unlock_one_requester(starpu_data_requester_t r)
 void _starpu_notify_data_dependencies(starpu_data_handle handle)
 {
 	/* A data access has finished so we remove a reference. */
+	STARPU_ASSERT(handle->refcnt > 0);
 	handle->refcnt--;
 
 	while (may_unlock_data_req_list_head(handle))

@@ -148,6 +148,7 @@ void _starpu_update_data_state(starpu_data_handle handle,
  * 		    else (invalid,owner->shared)
  */
 
+/* This function is called with handle's header lock taken */
 static starpu_data_request_t create_new_request_to_fetch_data(starpu_data_handle handle,
 				struct starpu_data_replicate_s *dst_replicate,
                                 starpu_access_mode mode, unsigned is_prefetch,
@@ -412,6 +413,8 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 
 	unsigned local_memory_node = _starpu_get_local_memory_node();
 
+	int workerid = starpu_worker_get_id();
+
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
@@ -423,7 +426,6 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 		{
-			int workerid = starpu_worker_get_id();
 			local_replicate = &handle->per_worker[workerid];
 		}
 		else {
@@ -436,6 +438,13 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 			goto enomem;
 
 		task->interface[index] = local_replicate->interface;
+
+		if (mode & STARPU_REDUX)
+		{
+			/* If the replicate was not initialized yet, we have to do it now */
+			if (!local_replicate->initialized)
+				_starpu_redux_init_data_replicate(handle, local_replicate, workerid);
+		}
 	}
 
 	STARPU_TRACE_END_FETCH_INPUT(NULL);

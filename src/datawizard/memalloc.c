@@ -138,7 +138,7 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 			src_replicate->refcnt++;
 			dst_replicate->refcnt++;
 
-			ret = _starpu_driver_copy_data_1_to_1(handle, src_replicate, dst_replicate, 0, NULL, 0);
+			ret = _starpu_driver_copy_data_1_to_1(handle, src_replicate, dst_replicate, 0, NULL, 1);
 			STARPU_ASSERT(ret == 0);
 
 			src_replicate->refcnt--;
@@ -324,9 +324,11 @@ static void reuse_mem_chunk(unsigned node, struct starpu_data_replicate_s *new_r
 	struct starpu_data_replicate_s *old_replicate = mc->replicate;
 	old_replicate->allocated = 0;
 	old_replicate->automatically_allocated = 0;
+	old_replicate->initialized = 0;
 
 	new_replicate->allocated = 1;
 	new_replicate->automatically_allocated = 1;
+	new_replicate->initialized = 0;
 
 	STARPU_ASSERT(new_replicate->interface);
 	STARPU_ASSERT(mc->interface);
