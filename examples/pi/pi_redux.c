@@ -273,5 +273,8 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
+	if (abs(pi_approx - PI) > 1.0)
+		return 1;
+
 	return 0;
 }

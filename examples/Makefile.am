@@ -286,6 +286,9 @@ ppm_downscaler_yuv_downscaler_SOURCES =		\
 # Pi #
 ######
 
+check_PROGRAMS +=				\
+	pi/pi_redux
+
 examplebin_PROGRAMS +=				\
 	pi/pi					\
 	pi/pi_redux
