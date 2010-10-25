@@ -328,6 +328,15 @@ if test x$have_cufftdoublecomplex = xyes; then
 	AC_DEFINE(STARPU_HAVE_CUFFTDOUBLECOMPLEX, [1], [cufftDoubleComplex is available])
 fi
 
+# The CURAND library is only available since CUDA 3.2
+have_curand=$enable_cuda
+if test x$enable_cuda = xyes; then
+	AC_HAVE_LIBRARY([curand],[],[have_curand=no])
+fi
+AC_MSG_CHECKING(whether CURAND is available)
+AC_MSG_RESULT($have_curand)
+AC_SUBST(STARPU_HAVE_CURAND, $have_curand) 
+
 ###############################################################################
 #                                                                             #
 #                                 OpenCL settings                             #

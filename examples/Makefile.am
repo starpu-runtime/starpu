@@ -287,7 +287,8 @@ ppm_downscaler_yuv_downscaler_SOURCES =		\
 ######
 
 examplebin_PROGRAMS +=				\
-	pi/pi
+	pi/pi					\
+	pi/pi_redux
 
 pi_pi_SOURCES =					\
 	pi/pi.c					\
@@ -298,6 +299,14 @@ if STARPU_USE_CUDA
 pi_pi_SOURCES +=				\
 	pi/pi_kernel.cu				\
 	pi/SobolQRNG/sobol_gpu.cu
+endif
+
+pi_pi_redux_SOURCES =				\
+	pi/pi_redux.c
+
+if STARPU_USE_CUDA
+pi_pi_redux_SOURCES +=				\
+	pi/pi_redux_kernel.cu
 endif
 
 
