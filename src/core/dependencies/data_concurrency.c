@@ -88,7 +88,12 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 	if ((handle->refcnt == 0) || (!(mode == STARPU_W) && (handle->current_mode == mode)))
 	{
 		handle->refcnt++;
+
+		starpu_access_mode previous_mode = handle->current_mode;
 		handle->current_mode = mode;
+
+		if ((mode == STARPU_REDUX) && (previous_mode != STARPU_REDUX))
+			starpu_data_start_reduction_mode(handle);
 
 		/* success */
 		ret = 0;
@@ -208,7 +213,15 @@ void _starpu_notify_data_dependencies(starpu_data_handle handle)
 		if (r_mode == STARPU_RW)
 			r_mode = STARPU_W;
 
+		starpu_access_mode previous_mode = handle->current_mode;
 		handle->current_mode = r_mode;
+
+		/* In case we enter in a reduction mode, we invalidate all per
+		 * worker replicates. Note that the "per_node" replicates are
+		 * kept intact because we'll reduce a valid copy of the
+		 * "per-node replicate" with the per-worker replicates .*/
+		if ((r_mode == STARPU_REDUX) && (previous_mode != STARPU_REDUX))
+			starpu_data_start_reduction_mode(handle);
 
 		_starpu_spin_unlock(&handle->header_lock);
 

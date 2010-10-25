@@ -146,7 +146,6 @@ static struct starpu_codelet_t dot_codelet = {
  *	Tasks initialization
  */
 
-extern void starpu_data_start_reduction_mode(starpu_data_handle handle);
 extern void starpu_data_end_reduction_mode(starpu_data_handle handle);
 
 int main(int argc, char **argv)
@@ -194,8 +193,6 @@ int main(int argc, char **argv)
 	 *	Compute dot product with StarPU
 	 */
 	starpu_data_set_reduction_methods(dot_handle, &redux_codelet, &init_codelet);
-
-	starpu_data_start_reduction_mode(dot_handle);
 
 	for (block = 0; block < nblocks; block++)
 	{

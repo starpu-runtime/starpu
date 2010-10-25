@@ -202,5 +202,7 @@ uint32_t _starpu_select_node_to_handle_request(uint32_t src_node, uint32_t dst_n
 uint32_t _starpu_select_src_node(struct starpu_data_state_t *state);
 
 void _starpu_redux_init_data_replicate(starpu_data_handle handle, struct starpu_data_replicate_s *replicate, int workerid);
+void starpu_data_start_reduction_mode(starpu_data_handle handle);
+void starpu_data_end_reduction_mode(starpu_data_handle handle);
 
 #endif // __COHERENCY__H__

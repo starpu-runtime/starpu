@@ -18,6 +18,8 @@
 #include <starpu_cuda.h>
 #include <stdlib.h>
 
+#define PI	3.14159265358979323846
+
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CURAND)
 #error CURAND is required to run that example on CUDA devices
 #endif
@@ -30,7 +32,7 @@
 #define NSHOT_PER_TASK	(1024*1024)
 
 /* default value */
-static unsigned ntasks = 128;
+static unsigned ntasks = 1024;
 
 /*
  *	Initialization of the Random Number Generators (RNG)
@@ -187,7 +189,6 @@ static struct starpu_codelet_t init_codelet = {
         .nbuffers = 1
 };
 
-
 void redux_cpu_func(void *descr[], void *cl_arg)
 {
 	unsigned long *a = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -232,7 +233,6 @@ int main(int argc, char **argv)
 
 	starpu_data_set_reduction_methods(shot_cnt_handle,
 					&redux_codelet, &init_codelet);
-	starpu_data_start_reduction_mode(shot_cnt_handle);
 
 	struct timeval start;
 	struct timeval end;
@@ -262,10 +262,12 @@ int main(int argc, char **argv)
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	starpu_data_unregister(shot_cnt_handle);
 
-	/* Total surface : Pi * r^ 2 = Pi*1^2, total square surface : 2^2 = 4, probability to impact the disk: pi/4 */
-	unsigned long total = ntasks*NSHOT_PER_TASK;	
-	fprintf(stderr, "Pi approximation : %f (%ld / %ld)\n",
-			((float)shot_cnt*4.0)/total, shot_cnt, total);
+	/* Total surface : Pi * r^ 2 = Pi*1^2, total square surface : 2^2 = 4,
+	 * probability to impact the disk: pi/4 */
+	unsigned long total = ntasks*NSHOT_PER_TASK;
+	double pi_approx = ((double)shot_cnt*4.0)/total;
+	fprintf(stderr, "Pi approximation : %lf (%ld / %ld)\n", pi_approx, shot_cnt, total);
+	fprintf(stderr, "Error %le \n", pi_approx - PI);
 	fprintf(stderr, "Total time : %f ms\n", timing/1000.0);
 	fprintf(stderr, "Speed : %f GShot/s\n", total/(1e3*timing));
 
