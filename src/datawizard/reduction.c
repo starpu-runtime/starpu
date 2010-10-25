@@ -73,12 +73,11 @@ void _starpu_redux_init_data_replicate(starpu_data_handle handle, struct starpu_
 	replicate->initialized = 1;
 }
 
-/* Enable reduction mode */
+/* Enable reduction mode. This function must be called with the header lock
+ * taken. */
 void starpu_data_start_reduction_mode(starpu_data_handle handle)
 {
 	unsigned worker;
-
-	_starpu_spin_lock(&handle->header_lock);
 
 	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
 	{
@@ -86,8 +85,6 @@ void starpu_data_start_reduction_mode(starpu_data_handle handle)
 		replicate = &handle->per_worker[worker];
 		replicate->initialized = 0;
 	}
-
-	_starpu_spin_unlock(&handle->header_lock);
 }
 
 /* Force reduction */
