@@ -125,6 +125,7 @@ static void pi_func_cpu(void *descr[], void *cl_arg __attribute__ ((unused)))
 
 extern void pi_redux_cuda_kernel(float *x, float *y, unsigned n, unsigned long *shot_cnt);
 
+#ifdef STARPU_USE_CUDA
 static void pi_func_cuda(void *descr[], void *cl_arg __attribute__ ((unused)))
 {
 	cudaError_t cures;
@@ -150,6 +151,7 @@ static void pi_func_cuda(void *descr[], void *cl_arg __attribute__ ((unused)))
 	unsigned long *shot_cnt = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[1]);
 	pi_redux_cuda_kernel(x, y, NSHOT_PER_TASK, shot_cnt);
 }
+#endif
 
 static struct starpu_codelet_t pi_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
