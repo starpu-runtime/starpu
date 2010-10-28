@@ -149,7 +149,7 @@ static unsigned _submit_job_enforce_data_deps(starpu_job_t j, unsigned start_buf
 	for (buf = start_buffer_index; buf < nbuffers; buf++)
 	{
                 if (attempt_to_submit_data_request_from_job(j, buf)) {
-                        j->task->status = STARPU_TASK_BLOCKED_ON_JOB;
+                        j->task->status = STARPU_TASK_BLOCKED_ON_DATA;
 			return 1;
                 }
 	}

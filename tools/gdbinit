@@ -40,7 +40,7 @@ define starpu-print-task
     set $status="STARPU_TASK_BLOCKED_ON_TASK"
   end
   if $task->status == 7
-    set $status="STARPU_TASK_BLOCKED_ON_JOB"
+    set $status="STARPU_TASK_BLOCKED_ON_DATA"
   end
 
   printf "StarPU Task (%p)\n", $task

@@ -42,7 +42,7 @@
 
 #define STARPU_TASK_BLOCKED_ON_TAG	5
 #define STARPU_TASK_BLOCKED_ON_TASK	6
-#define STARPU_TASK_BLOCKED_ON_JOB	7
+#define STARPU_TASK_BLOCKED_ON_DATA	7
 
 #ifdef __cplusplus
 extern "C" {
