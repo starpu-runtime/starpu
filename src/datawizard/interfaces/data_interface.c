@@ -57,6 +57,9 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	handle->redux_cl = NULL;
 	handle->init_cl = NULL;
 
+	handle->reduction_refcnt = 0;
+	handle->reduction_req_list = starpu_data_requester_list_new();
+
 #ifdef STARPU_USE_FXT
 	handle->last_submitted_ghost_writer_id_is_valid = 0;
 	handle->last_submitted_ghost_writer_id = 0;
@@ -224,11 +227,11 @@ static void _starpu_data_unregister(starpu_data_handle handle, unsigned coherent
 {
 	STARPU_ASSERT(handle);
 
-	/* If sequential consistency is enabled, wait until data is available */
-	_starpu_data_wait_until_available(handle, STARPU_RW);
-
 	if (coherent)
 	{
+		/* If sequential consistency is enabled, wait until data is available */
+		_starpu_data_wait_until_available(handle, STARPU_RW);
+
 		/* Fetch data in the home of the data to ensure we have a valid copy
 		 * where we registered it */
 		int home_node = handle->home_node; 
@@ -256,6 +259,11 @@ static void _starpu_data_unregister(starpu_data_handle handle, unsigned coherent
 				PTHREAD_MUTEX_UNLOCK(&arg.mutex);
 			}
 		}
+	}
+	else {
+		/* Should we postpone the unregister operation ? */
+		if ((handle->refcnt > 0) && handle->lazy_unregister)
+			return;
 	}
 
 	_starpu_data_free_interfaces(handle);

@@ -75,6 +75,8 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 #endif
 	job->exclude_from_dag = 0;
 
+	job->reduction_task = 0;
+
 	_starpu_cg_list_init(&job->job_successors);
 
 	PTHREAD_MUTEX_INIT(&job->sync_mutex, NULL);

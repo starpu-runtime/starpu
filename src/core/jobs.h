@@ -94,6 +94,12 @@ LIST_TYPE(starpu_job,
 	/* Each job is attributed a unique id. */
 	unsigned long job_id;
 
+	/* During the reduction of a handle, StarPU may have to submit tasks to
+	 * perform the reduction itself: those task should not be stalled while
+	 * other tasks are blocked until the handle has been properly reduced,
+	 * so we need a flag to differentiate them from "normal" tasks. */
+	unsigned reduction_task;
+
 #ifdef STARPU_USE_FXT
 	/* A symbol name may be associated to the job directly for debug
 	 * purposes (for instance if the codelet is NULL). */

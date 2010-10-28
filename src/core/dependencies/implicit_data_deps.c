@@ -214,6 +214,12 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 	STARPU_ASSERT(task->cl);
         _STARPU_LOG_IN();
 
+	/* We don't want to enforce a sequential consistency for tasks that are
+	 * not visible to the application. */
+	starpu_job_t j = _starpu_get_job_associated_to_task(task);
+	if (j->reduction_task)
+		return;
+
 	unsigned nbuffers = task->cl->nbuffers;
 
 	unsigned buffer;

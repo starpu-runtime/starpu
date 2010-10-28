@@ -211,10 +211,6 @@ int main(int argc, char **argv)
 		STARPU_ASSERT(!ret);
 	}
 
-	starpu_task_wait_for_all();
-
-	starpu_data_end_reduction_mode(dot_handle);
-
 	starpu_data_unregister(dot_handle);
 
 	fprintf(stderr, "Reference : %e vs. %e (Delta %e)\n", reference_dot, dot, reference_dot - dot);

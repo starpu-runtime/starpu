@@ -161,12 +161,30 @@ struct starpu_data_state_t {
 	struct starpu_task_wrapper_list *post_sync_tasks;
 	unsigned post_sync_tasks_cnt;
 
+	/*
+	 *	Reductions
+	 */
+
 	/* During reduction we need some specific methods: redux_func performs
 	 * the reduction of an interface into another one (eg. "+="), and init_func
 	 * initializes the data interface to a default value that is stable by
 	 * reduction (eg. 0 for +=). */
 	struct starpu_codelet_t *redux_cl;
 	struct starpu_codelet_t *init_cl;
+
+	/* Are we currently performing a reduction on that handle ? If so the
+	 * reduction_refcnt should be non null until there are pending tasks
+	 * that are performing the reduction. */
+	unsigned reduction_refcnt;
+
+	/* List of requesters that are specific to the pending reduction. This
+	 * list is used when the requests in the req_list list are frozen until
+	 * the end of the reduction. */
+	struct starpu_data_requester_list_s *reduction_req_list;
+
+	starpu_data_handle reduction_tmp_handles[STARPU_NMAXWORKERS];
+
+	unsigned lazy_unregister;
 };
 
 void _starpu_display_msi_stats(void);
@@ -204,5 +222,6 @@ uint32_t _starpu_select_src_node(struct starpu_data_state_t *state);
 void _starpu_redux_init_data_replicate(starpu_data_handle handle, struct starpu_data_replicate_s *replicate, int workerid);
 void starpu_data_start_reduction_mode(starpu_data_handle handle);
 void starpu_data_end_reduction_mode(starpu_data_handle handle);
+void starpu_data_end_reduction_mode_terminate(starpu_data_handle handle);
 
 #endif // __COHERENCY__H__

@@ -16,6 +16,7 @@
 
 #include <starpu.h>
 #include <common/utils.h>
+#include <core/task.h>
 #include <datawizard/datawizard.h>
 
 void starpu_data_set_reduction_methods(starpu_data_handle handle,
@@ -77,6 +78,8 @@ void _starpu_redux_init_data_replicate(starpu_data_handle handle, struct starpu_
  * taken. */
 void starpu_data_start_reduction_mode(starpu_data_handle handle)
 {
+	STARPU_ASSERT(handle->reduction_refcnt == 0);
+
 	unsigned worker;
 
 	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
@@ -87,16 +90,14 @@ void starpu_data_start_reduction_mode(starpu_data_handle handle)
 	}
 }
 
-/* Force reduction */
+/* Force reduction. The lock should already have been taken.  */
 void starpu_data_end_reduction_mode(starpu_data_handle handle)
 {
 	unsigned worker;
 
-	_starpu_spin_lock(&handle->header_lock);
+	handle->reduction_refcnt = 0;
 
 	/* Register all valid per-worker replicates */
-	starpu_data_handle tmp_handles[STARPU_NMAXWORKERS];
-
 	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
 	{
 		if (handle->per_worker[worker].initialized)
@@ -105,21 +106,35 @@ void starpu_data_end_reduction_mode(starpu_data_handle handle)
 			handle->per_worker[worker].refcnt++;
 
 			uint32_t home_node = starpu_worker_get_memory_node(worker); 
-			starpu_data_register(&tmp_handles[worker], home_node, handle->per_worker[worker].interface, handle->ops);
+			starpu_data_register(&handle->reduction_tmp_handles[worker],
+				home_node, handle->per_worker[worker].interface, handle->ops);
+
+			/* We know that in this reduction algorithm there is exactly one task per valid replicate. */
+			handle->reduction_refcnt++;
 		}
 		else {
-			tmp_handles[worker] = NULL;
+			handle->reduction_tmp_handles[worker] = NULL;
 		}
 	}
+
+//	fprintf(stderr, "REDUX REFCNT = %d\n", handle->reduction_refcnt);
 	
+	/* Temporarily unlock the handle */
 	_starpu_spin_unlock(&handle->header_lock);
 
 	/* Create a set of tasks to perform the reduction */
 	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
 	{
-		if (tmp_handles[worker])
+		if (handle->reduction_tmp_handles[worker])
 		{
 			struct starpu_task *redux_task = starpu_task_create();
+
+			/* Mark these tasks so that StarPU does not block them
+			 * when they try to access the handle (normal tasks are
+			 * data requests to that handle are frozen until the
+			 * data is coherent again). */
+			starpu_job_t j = _starpu_get_job_associated_to_task(redux_task);
+			j->reduction_task = 1;
 
 			redux_task->cl = handle->redux_cl;
 			STARPU_ASSERT(redux_task->cl);
@@ -127,7 +142,7 @@ void starpu_data_end_reduction_mode(starpu_data_handle handle)
 			redux_task->buffers[0].handle = handle;
 			redux_task->buffers[0].mode = STARPU_RW;
 
-			redux_task->buffers[1].handle = tmp_handles[worker];
+			redux_task->buffers[1].handle = handle->reduction_tmp_handles[worker];
 			redux_task->buffers[1].mode = STARPU_R;
 
 			int ret = starpu_task_submit(redux_task);
@@ -135,23 +150,27 @@ void starpu_data_end_reduction_mode(starpu_data_handle handle)
 		}
 	}
 
-	/* TODO have a better way to synchronize */
-	starpu_task_wait_for_all();
-
+	/* Get the header lock back */
 	_starpu_spin_lock(&handle->header_lock);
+}
+
+void starpu_data_end_reduction_mode_terminate(starpu_data_handle handle)
+{
+//	fprintf(stderr, "starpu_data_end_reduction_mode_terminate\n");
+	unsigned worker;
 	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
 	{
 		struct starpu_data_replicate_s *replicate;
 		replicate = &handle->per_worker[worker];
 		replicate->initialized = 0;
 
-		if (tmp_handles[worker])
+		if (handle->reduction_tmp_handles[worker])
 		{
-			starpu_data_unregister_no_coherency(tmp_handles[worker]);
-
+//			fprintf(stderr, "unregister handle %p\n", handle);
+			handle->reduction_tmp_handles[worker]->lazy_unregister = 1;
+			starpu_data_unregister_no_coherency(handle->reduction_tmp_handles[worker]);
 			handle->per_worker[worker].refcnt--;
 			/* TODO put in cache */
 		}
 	}
-	_starpu_spin_unlock(&handle->header_lock);
 }

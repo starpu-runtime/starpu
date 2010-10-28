@@ -30,10 +30,11 @@
  */
 
 /* the header lock must be taken by the caller */
-static unsigned may_unlock_data_req_list_head(starpu_data_handle handle)
+static unsigned may_unlock_data_req_list_head(starpu_data_handle handle,
+					starpu_data_requester_list_t req_list)
 {
 	/* if there is no one to unlock ... */
-	if (starpu_data_requester_list_empty(handle->req_list))
+	if (starpu_data_requester_list_empty(req_list))
 		return 0;
 
 	/* if there is no reference to the data anymore, we can use it */
@@ -44,7 +45,7 @@ static unsigned may_unlock_data_req_list_head(starpu_data_handle handle)
 		return 0;
 
 	/* data->current_mode == STARPU_R, so we can process more readers */
-	starpu_data_requester_t r = starpu_data_requester_list_front(handle->req_list);
+	starpu_data_requester_t r = starpu_data_requester_list_front(req_list);
 
 	starpu_access_mode r_mode = r->mode;
 	if (r_mode == STARPU_RW)
@@ -65,8 +66,6 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 					void (*callback)(void *), void *argcb,
 					starpu_job_t j, unsigned buffer_index)
 {
-	unsigned ret;
-
 	if (mode == STARPU_RW)
 		mode = STARPU_W;
 
@@ -82,23 +81,46 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 		_starpu_spin_lock(&handle->header_lock);
 	}
 
+	/* If we have a request that is not used for the reduction, and that a
+	 * reduction is pending, we put it at the end of normal list, and we
+	 * use the reduction_req_list instead */
+	unsigned pending_reduction = (handle->reduction_refcnt > 0);
+	unsigned frozen = 0;
+
+	/* If we are currently performing a reduction, we freeze any request
+	 * that is not explicitely a reduction task. */
+	unsigned is_a_reduction_task = (request_from_codelet && j->reduction_task);
+
+	if (pending_reduction && !is_a_reduction_task)
+		frozen = 1;
+
 	/* If there is currently nobody accessing the piece of data, or it's
 	 * not another writter and if this is the same type of access as the
 	 * current one, we can proceed. */
-	if ((handle->refcnt == 0) || (!(mode == STARPU_W) && (handle->current_mode == mode)))
+	unsigned put_in_list = 1;
+
+	starpu_access_mode previous_mode = handle->current_mode;
+
+	if (!frozen && ((handle->refcnt == 0) || (!(mode == STARPU_W) && (handle->current_mode == mode))))
 	{
-		handle->refcnt++;
+		/* Detect whether this is the end of a reduction phase */
+			/* We don't want to start multiple reductions of the
+			 * same handle at the same time ! */
 
-		starpu_access_mode previous_mode = handle->current_mode;
-		handle->current_mode = mode;
+		if ((handle->reduction_refcnt == 0) && (previous_mode == STARPU_REDUX) && (mode != STARPU_REDUX))
+		{
+			starpu_data_end_reduction_mode(handle);
 
-		if ((mode == STARPU_REDUX) && (previous_mode != STARPU_REDUX))
-			starpu_data_start_reduction_mode(handle);
-
-		/* success */
-		ret = 0;
+			/* Since we need to perform a mode change, we freeze
+			 * the request if needed. */
+			put_in_list = (handle->reduction_refcnt > 0);
+		}
+		else {
+			put_in_list = 0;
+		}
 	}
-	else
+
+	if (put_in_list)
 	{
 		/* there cannot be multiple writers or a new writer
 		 * while the data is in read mode */
@@ -112,14 +134,29 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 			r->ready_data_callback = callback;
 			r->argcb = argcb;
 
-		starpu_data_requester_list_push_back(handle->req_list, r);
+		/* We put the requester in a specific list if this is a reduction task */
+		starpu_data_requester_list_t req_list =
+			is_a_reduction_task?handle->reduction_req_list:handle->req_list;
+
+		starpu_data_requester_list_push_back(req_list, r);
 
 		/* failed */
-		ret = 1;
+		put_in_list = 1;
+	}
+	else {
+		handle->refcnt++;
+
+		handle->current_mode = mode;
+
+		if ((mode == STARPU_REDUX) && (previous_mode != STARPU_REDUX))
+			starpu_data_start_reduction_mode(handle);
+
+		/* success */
+		put_in_list = 0;
 	}
 
 	_starpu_spin_unlock(&handle->header_lock);
-	return ret;
+	return put_in_list;
 
 }
 
@@ -199,47 +236,94 @@ void _starpu_notify_data_dependencies(starpu_data_handle handle)
 	STARPU_ASSERT(handle->refcnt > 0);
 	handle->refcnt--;
 
-	while (may_unlock_data_req_list_head(handle))
+	/* The handle has been destroyed in between (eg. this was a temporary
+	 * handle created for a reduction.) */
+	if (handle->lazy_unregister && handle->refcnt == 0)
+	{
+		starpu_data_unregister_no_coherency(handle);
+		/* Warning: in case we unregister the handle, we must be sure
+		 * that the application will not try to unlock the header after
+		 * !*/
+		return;
+	}
+
+	/* In case there is a pending reduction, and that this is the last
+	 * requester, we may go back to a "normal" coherency model. */
+	if (handle->reduction_refcnt > 0)
+	{
+		//fprintf(stderr, "NOTIFY REDUCTION TASK RED REFCNT %d\n", handle->reduction_refcnt);
+		handle->reduction_refcnt--;
+		if (handle->reduction_refcnt == 0)
+			starpu_data_end_reduction_mode_terminate(handle);
+	}
+
+	starpu_data_requester_list_t req_list =
+		(handle->reduction_refcnt > 0)?handle->reduction_req_list:handle->req_list;
+
+	while (may_unlock_data_req_list_head(handle, req_list))
 	{
 		/* Grab the head of the requester list and unlock it. */
-		starpu_data_requester_t r = starpu_data_requester_list_pop_front(handle->req_list);
+		starpu_data_requester_t r = starpu_data_requester_list_pop_front(req_list);
 
-		/* The data is now attributed to that request so we put a
-		 * reference on it. */
-		handle->refcnt++;
-	
 		/* STARPU_RW accesses are treated as STARPU_W */
 		starpu_access_mode r_mode = r->mode;
 		if (r_mode == STARPU_RW)
 			r_mode = STARPU_W;
 
-		starpu_access_mode previous_mode = handle->current_mode;
-		handle->current_mode = r_mode;
-
-		/* In case we enter in a reduction mode, we invalidate all per
-		 * worker replicates. Note that the "per_node" replicates are
-		 * kept intact because we'll reduce a valid copy of the
-		 * "per-node replicate" with the per-worker replicates .*/
-		if ((r_mode == STARPU_REDUX) && (previous_mode != STARPU_REDUX))
-			starpu_data_start_reduction_mode(handle);
-
-		_starpu_spin_unlock(&handle->header_lock);
-
-		if (r->is_requested_by_codelet)
+		int put_in_list = 1;
+		if ((handle->reduction_refcnt == 0) && (handle->current_mode == STARPU_REDUX) && (r_mode != STARPU_REDUX))
 		{
-			if (!unlock_one_requester(r))
-				_starpu_push_task(r->j, 0);
+			starpu_data_end_reduction_mode(handle);
+
+			/* Since we need to perform a mode change, we freeze
+			 * the request if needed. */
+			put_in_list = (handle->reduction_refcnt > 0);
 		}
-		else
-		{
-			STARPU_ASSERT(r->ready_data_callback);
-
-			/* execute the callback associated with the data requester */
-			r->ready_data_callback(r->argcb);
+		else {
+			put_in_list = 0;
 		}
 
-		starpu_data_requester_delete(r);
+		if (put_in_list)
+		{
+			/* We need to put the request back because we must
+			 * perform a reduction before. */
+			starpu_data_requester_list_push_front(req_list, r);
+
+			req_list = handle->reduction_req_list;
+		}
+		else {
+			/* The data is now attributed to that request so we put a
+			 * reference on it. */
+			handle->refcnt++;
 		
-		_starpu_spin_lock(&handle->header_lock);
+			starpu_access_mode previous_mode = handle->current_mode;
+			handle->current_mode = r_mode;
+
+			/* In case we enter in a reduction mode, we invalidate all per
+			 * worker replicates. Note that the "per_node" replicates are
+			 * kept intact because we'll reduce a valid copy of the
+			 * "per-node replicate" with the per-worker replicates .*/
+			if ((r_mode == STARPU_REDUX) && (previous_mode != STARPU_REDUX))
+				starpu_data_start_reduction_mode(handle);
+
+			_starpu_spin_unlock(&handle->header_lock);
+
+			if (r->is_requested_by_codelet)
+			{
+				if (!unlock_one_requester(r))
+					_starpu_push_task(r->j, 0);
+			}
+			else
+			{
+				STARPU_ASSERT(r->ready_data_callback);
+
+				/* execute the callback associated with the data requester */
+				r->ready_data_callback(r->argcb);
+			}
+
+			starpu_data_requester_delete(r);
+			
+			_starpu_spin_lock(&handle->header_lock);
+		}
 	}
 }

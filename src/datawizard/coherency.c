@@ -365,9 +365,15 @@ void _starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wt
 
 	STARPU_ASSERT(replicate->refcnt >= 0);
 
+	/* In case there was a temporary handle (eg. used for reduction), this
+	 * handle may have requested to be destroyed when the data is released
+	 * */
+	unsigned handle_was_destroyed = handle->lazy_unregister;
+
 	_starpu_notify_data_dependencies(handle);
 
-	_starpu_spin_unlock(&handle->header_lock);
+	if (!handle_was_destroyed)
+		_starpu_spin_unlock(&handle->header_lock);
 }
 
 static void _starpu_set_data_requested_flag_if_needed(struct starpu_data_replicate_s *replicate)
@@ -486,8 +492,15 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 			replicate = &handle->per_worker[workerid];
 		}
 
+		/* In case there was a temporary handle (eg. used for
+		 * reduction), this handle may have requested to be destroyed
+		 * when the data is released
+		 * */
+		unsigned handle_was_destroyed = handle->lazy_unregister;
+
 		_starpu_release_data_on_node(handle, mask, replicate);
-		_starpu_release_data_enforce_sequential_consistency(task, handle);
+		if (!handle_was_destroyed)
+			_starpu_release_data_enforce_sequential_consistency(task, handle);
 	}
 
 	STARPU_TRACE_END_PUSH_OUTPUT(NULL);
