@@ -21,9 +21,6 @@
 
 #include <starpu.h>
 
-static pthread_mutex_t mutex;
-static pthread_cond_t cond;
-
 static unsigned ntasks = 65536;
 static unsigned cnt;
 
@@ -61,31 +58,15 @@ static void init_gordon_kernel(void)
 #endif
 }
 
-
-
-void callback(void *arg)
-{
-	unsigned res = STARPU_ATOMIC_ADD(&cnt, -1);
-
-	if (res == 0)
-	{
-		pthread_mutex_lock(&mutex);
-		finished = 1;
-		pthread_cond_signal(&cond);
-		pthread_mutex_unlock(&mutex);
-	}
-}
-
 static void inject_one_task(void)
 {
 	struct starpu_task *task = starpu_task_create();
 
 	task->cl = &dummy_codelet;
 	task->cl_arg = NULL;
-	task->callback_func = callback;
-	task->callback_arg = NULL;
 
-	starpu_task_submit(task);
+	int ret = starpu_task_submit(task);
+	STARPU_ASSERT(!ret);
 }
 
 static struct starpu_conf conf = {
@@ -130,9 +111,6 @@ int main(int argc, char **argv)
 	struct timeval start;
 	struct timeval end;
 
-	pthread_mutex_init(&mutex, NULL);
-	pthread_cond_init(&cond, NULL);
-
 	parse_args(argc, argv);
 
 	cnt = ntasks;
@@ -149,10 +127,7 @@ int main(int argc, char **argv)
 		inject_one_task();
 	}
 
-	pthread_mutex_lock(&mutex);
-	while (!finished)
-		pthread_cond_wait(&cond, &mutex);
-	pthread_mutex_unlock(&mutex);
+	starpu_task_wait_for_all();
 
 	gettimeofday(&end, NULL);
 
