@@ -32,7 +32,7 @@
 #define NSHOT_PER_TASK	(1024*1024)
 
 /* default value */
-static unsigned ntasks = 1024;
+static unsigned long ntasks = 1024;
 
 /*
  *	Initialization of the Random Number Generators (RNG)
