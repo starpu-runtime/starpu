@@ -20,11 +20,16 @@
 #include <unistd.h>
 
 #include <starpu.h>
+#include <starpu_profiling.h>
 
 static unsigned ntasks = 65536;
 static unsigned cnt;
 
 static unsigned finished = 0;
+
+static double cumulated = 0.0;
+static double cumulated_push = 0.0;
+static double cumulated_pop = 0.0;
 
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
@@ -64,6 +69,7 @@ static void inject_one_task(void)
 
 	task->cl = &dummy_codelet;
 	task->cl_arg = NULL;
+	task->detach = 0;
 
 	int ret = starpu_task_submit(task);
 	STARPU_ASSERT(!ret);
@@ -119,22 +125,55 @@ int main(int argc, char **argv)
 
 	init_gordon_kernel();
 
+	starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
+
 	fprintf(stderr, "#tasks : %d\n", ntasks);
+
+	/* Create an array of tasks */
+	struct starpu_task **tasks = malloc(ntasks*sizeof(struct starpu_task *));
+
+	for (i = 0; i < ntasks; i++)
+	{
+		struct starpu_task *task = starpu_task_create();
+		task->cl = &dummy_codelet;
+		task->cl_arg = NULL;
+		task->detach = 0;
+		tasks[i] = task;
+	}
 
 	gettimeofday(&start, NULL);
 	for (i = 0; i < ntasks; i++)
 	{
-		inject_one_task();
+		int ret = starpu_task_submit(tasks[i]);
+		STARPU_ASSERT(!ret);
 	}
 
 	starpu_task_wait_for_all();
 
 	gettimeofday(&end, NULL);
 
+	/* Read profiling feedback */
+	for (i = 0; i < ntasks; i++)
+	{
+		struct starpu_task_profiling_info *info;
+		info = tasks[i]->profiling_info;
+
+		double queued = starpu_timing_timespec_delay_us(&info->push_end_time, &info->pop_end_time);
+		double length = starpu_timing_timespec_delay_us(&info->submit_time, &info->end_time);
+		double push_duration = starpu_timing_timespec_delay_us(&info->push_start_time, &info->push_end_time);
+		double pop_duration = starpu_timing_timespec_delay_us(&info->push_start_time, &info->push_end_time);
+		cumulated += (length - queued);
+		cumulated_push += push_duration;
+		cumulated_pop += pop_duration;
+	}
+
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
 	fprintf(stderr, "Total: %lf secs\n", timing/1000000);
 	fprintf(stderr, "Per task: %lf usecs\n", timing/ntasks);
+	fprintf(stderr, "Per task (except scheduler): %lf usecs\n", cumulated/ntasks);
+	fprintf(stderr, "Per task (push): %lf usecs\n", cumulated_push/ntasks);
+	fprintf(stderr, "Per task (pop): %lf usecs\n", cumulated_pop/ntasks);
 
         {
                 char *output_dir = getenv("STARPU_BENCH_DIR");
