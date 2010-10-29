@@ -61,4 +61,7 @@ int _starpu_register_bus(int src_node, int dst_node);
  * memory nodes. */
 void _starpu_bus_update_profiling_info(int src_node, int dst_node, size_t size);
 
+void _starpu_profiling_set_task_push_start_time(struct starpu_task *task);
+void _starpu_profiling_set_task_push_end_time(struct starpu_task *task);
+
 #endif // __PROFILING_H__

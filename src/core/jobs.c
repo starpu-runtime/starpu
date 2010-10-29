@@ -21,6 +21,7 @@
 #include <core/dependencies/data_concurrency.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <profiling/profiling.h>
 #include <profiling/bound.h>
 
 size_t _starpu_job_get_data_size(starpu_job_t j)
@@ -147,9 +148,14 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
  	 * of the task itself */
 	if (task->callback_func)
 	{
+		int profiling = starpu_profiling_status_get();
+		if (profiling && task->profiling_info)
+			starpu_clock_gettime(&task->profiling_info->callback_start_time);
+
 		/* so that we can check whether we are doing blocking calls
 		 * within the callback */
 		_starpu_set_local_worker_status(STATUS_CALLBACK);
+		
 		
 		/* Perhaps we have nested callbacks (eg. with chains of empty
 		 * tasks). So we store the current task and we will restore it
@@ -165,6 +171,9 @@ void _starpu_handle_job_termination(starpu_job_t j, unsigned job_is_already_lock
 		_starpu_set_current_task(current_task);
 
 		_starpu_set_local_worker_status(STATUS_UNKNOWN);
+
+		if (profiling && task->profiling_info)
+			starpu_clock_gettime(&task->profiling_info->callback_end_time);
 	}
 
 	_starpu_sched_post_exec_hook(task);

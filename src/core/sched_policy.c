@@ -20,6 +20,7 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <core/sched_policy.h>
+#include <profiling/profiling.h>
 
 static struct starpu_sched_policy_s policy;
 
@@ -206,6 +207,7 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
         _STARPU_LOG_IN();
 
 	task->status = STARPU_TASK_READY;
+	_starpu_profiling_set_task_push_start_time(task);
 
 	/* in case there is no codelet associated to the task (that's a control
 	 * task), we directly execute its callback and enforce the
@@ -236,19 +238,52 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 
 		ret = policy.push_task(task);
 	}
+
+	_starpu_profiling_set_task_push_end_time(task);
+
         _STARPU_LOG_OUT();
         return ret;
 }
 
 struct starpu_task *_starpu_pop_task(void)
 {
-	return policy.pop_task();
+	struct starpu_task *task;
+
+	/* We can't tell in advance which task will be picked up, so we measure
+	 * a timestamp, and will attribute it afterwards to the task. */
+	int profiling = starpu_profiling_status_get();
+	struct timespec pop_start_time;
+	if (profiling)
+		starpu_clock_gettime(&pop_start_time);
+
+	task = policy.pop_task();
+
+	/* Note that we may get a NULL task in case the scheduler was unlocked
+	 * for some reason. */
+	if (profiling && task)
+	{
+		struct starpu_task_profiling_info *profiling_info;
+		profiling_info = task->profiling_info;
+
+		/* The task may have been created before profiling was enabled,
+		 * so we check if the profiling_info structure is available
+		 * even though we already tested if profiling is enabled. */
+		if (profiling_info)
+		{
+			memcpy(&profiling_info->pop_start_time,
+				&pop_start_time, sizeof(struct timespec));
+			starpu_clock_gettime(&profiling_info->pop_end_time);
+		}
+	}
+
+	return task;
 }
 
 struct starpu_task *_starpu_pop_every_task(void)
 {
 	STARPU_ASSERT(policy.pop_every_task);
 
+	/* TODO set profiling info */
 	return policy.pop_every_task();
 }
 

@@ -118,10 +118,6 @@ struct starpu_task_profiling_info *_starpu_allocate_profiling_info_if_needed(voi
 	{
 		info = calloc(1, sizeof(struct starpu_task_profiling_info));
 		STARPU_ASSERT(info);
-
-		starpu_timespec_clear(&info->submit_time);
-		starpu_timespec_clear(&info->start_time);
-		starpu_timespec_clear(&info->end_time);
 	}
 
 	return info;
@@ -280,6 +276,31 @@ int starpu_worker_get_profiling_info(int workerid, struct starpu_worker_profilin
 	PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 
 	return 0;
+}
+
+/* When did the task reach the scheduler  ? */
+void _starpu_profiling_set_task_push_start_time(struct starpu_task *task)
+{
+	if (!profiling)
+		return;
+
+	struct starpu_task_profiling_info *profiling_info;
+	profiling_info = task->profiling_info;
+
+	if (profiling_info)
+		starpu_clock_gettime(&profiling_info->push_start_time);
+}
+
+void _starpu_profiling_set_task_push_end_time(struct starpu_task *task)
+{
+	if (!profiling)
+		return;
+
+	struct starpu_task_profiling_info *profiling_info;
+	profiling_info = task->profiling_info;
+
+	if (profiling_info)
+		starpu_clock_gettime(&profiling_info->push_end_time);
 }
 
 /*

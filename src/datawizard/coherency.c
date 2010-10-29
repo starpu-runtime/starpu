@@ -19,6 +19,7 @@
 #include <datawizard/copy_driver.h>
 #include <datawizard/write_back.h>
 #include <core/dependencies/data_concurrency.h>
+#include <profiling/profiling.h>
 
 uint32_t _starpu_select_node_to_handle_request(uint32_t src_node, uint32_t dst_node) 
 {
@@ -414,6 +415,10 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 {
 	STARPU_TRACE_START_FETCH_INPUT(NULL);
 
+	int profiling = starpu_profiling_status_get();
+	if (profiling && task->profiling_info)
+		starpu_clock_gettime(&task->profiling_info->acquire_data_start_time);
+
 	starpu_buffer_descr *descrs = task->buffers;
 	unsigned nbuffers = task->cl->nbuffers;
 
@@ -453,6 +458,9 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 		}
 	}
 
+	if (profiling && task->profiling_info)
+		starpu_clock_gettime(&task->profiling_info->acquire_data_end_time);
+
 	STARPU_TRACE_END_FETCH_INPUT(NULL);
 
 	return 0;
@@ -469,6 +477,10 @@ enomem:
 void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 {
 	STARPU_TRACE_START_PUSH_OUTPUT(NULL);
+
+	int profiling = starpu_profiling_status_get();
+	if (profiling && task->profiling_info)
+		starpu_clock_gettime(&task->profiling_info->release_data_start_time);
 
         starpu_buffer_descr *descrs = task->buffers;
         unsigned nbuffers = task->cl->nbuffers;
@@ -502,6 +514,9 @@ void _starpu_push_task_output(struct starpu_task *task, uint32_t mask)
 		if (!handle_was_destroyed)
 			_starpu_release_data_enforce_sequential_consistency(task, handle);
 	}
+
+	if (profiling && task->profiling_info)
+		starpu_clock_gettime(&task->profiling_info->release_data_end_time);
 
 	STARPU_TRACE_END_PUSH_OUTPUT(NULL);
 }

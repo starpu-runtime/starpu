@@ -40,9 +40,31 @@ extern "C" {
 #define STARPU_PROFILING_ENABLE		1
 
 struct starpu_task_profiling_info {
+	/* Task submission */
 	struct timespec submit_time;
+
+	/* Scheduling overhead */
+	struct timespec push_start_time;
+	struct timespec push_end_time;
+	struct timespec pop_start_time;
+	struct timespec pop_end_time;
+
+	/* Take input data */
+	struct timespec acquire_data_start_time;
+	struct timespec acquire_data_end_time;
+
+	/* Execution */
 	struct timespec start_time;
 	struct timespec end_time;
+
+	/* Release data */
+	struct timespec release_data_start_time;
+	struct timespec release_data_end_time;
+
+	/* Callback */
+	struct timespec callback_start_time;
+	struct timespec callback_end_time;
+
 	/* TODO add expected length, expected start/end ? */
 	int workerid;
 };
