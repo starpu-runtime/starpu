@@ -20,8 +20,11 @@
 #include <assert.h>
 #include <sys/time.h>
 
-
 #include <common/blas.h>
+
+#ifdef STARPU_USE_CUDA
+#include <cublas.h>
+#endif
 
 #define TYPE	float
 #define AXPY	SAXPY
