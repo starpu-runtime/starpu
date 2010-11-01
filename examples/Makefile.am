@@ -14,7 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-AM_CFLAGS = $(HWLOC_CFLAGS)
+AM_CFLAGS = $(HWLOC_CFLAGS) -Wall
 LIBS = $(top_builddir)/src/libstarpu.la $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
 
@@ -101,6 +101,7 @@ examplebindir = $(libdir)/starpu/examples/
 examplebin_PROGRAMS =
 
 noinst_HEADERS = 				\
+	cg/cg.h					\
 	heat/lu_kernels_model.h			\
 	heat/dw_sparse_cg.h			\
 	heat/heat.h				\
@@ -463,6 +464,22 @@ heat_heat_SOURCES =				\
 	common/blas.c
 
 endif
+
+##############
+# CG example #
+##############
+
+if !NO_BLAS_LIB
+
+examplebin_PROGRAMS += cg/cg
+
+cg_cg_SOURCES =					\
+	cg/cg.c					\
+	cg/cg_kernels.c				\
+	common/blas.c
+endif
+
+
 
 ################
 # Tag examples #
