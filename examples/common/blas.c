@@ -222,6 +222,11 @@ float SDOT(const int n, const float *x, const int incx, const float *y, const in
 	return cblas_sdot(n, x, incx, y, incy);
 }
 
+double DDOT(const int n, const double *x, const int incx, const double *y, const int incy)
+{
+	return cblas_ddot(n, x, incx, y, incy);
+}
+
 void SSWAP(const int n, float *x, const int incx, float *y, const int incy)
 {
 	cblas_sswap(n, x, incx, y, incy);
@@ -391,6 +396,11 @@ float SDOT(const int n, const float *x, const int incx, const float *y, const in
 	retVal = (float)sdot_(&n, x, &incx, y, &incy);
 
 	return retVal;
+}
+
+double DDOT(const int n, const double *x, const int incx, const double *y, const int incy)
+{
+	return ddot_(&n, x, &incx, y, &incy);
 }
 
 void SSWAP(const int n, float *X, const int incX, float *Y, const int incY)

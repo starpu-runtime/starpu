@@ -73,6 +73,7 @@ void DAXPY(const int n, const double alpha, double *X, const int incX, double *Y
 int ISAMAX (const int n, float *X, const int incX);
 int IDAMAX (const int n, double *X, const int incX);
 float SDOT(const int n, const float *x, const int incx, const float *y, const int incy);
+double DDOT(const int n, const double *x, const int incx, const double *y, const int incy);
 void SSWAP(const int n, float *x, const int incx, float *y, const int incy);
 void DSWAP(const int n, double *x, const int incx, double *y, const int incy);
 
@@ -136,6 +137,7 @@ extern int isamax_(const int *n, float *X, const int *incX);
 extern int idamax_(const int *n, double *X, const int *incX);
 /* for some reason, FLOATRET is not a float but a double in GOTOBLAS */
 extern double sdot_(const int *n, const float *x, const int *incx, const float *y, const int *incy);
+extern double ddot_(const int *n, const double *x, const int *incx, const double *y, const int *incy);
 extern void sswap_(const int *n, float *x, const int *incx, float *y, const int *incy);
 extern void dswap_(const int *n, double *x, const int *incx, double *y, const int *incy);
 
