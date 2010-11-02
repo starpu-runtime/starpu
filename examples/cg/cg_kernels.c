@@ -28,9 +28,16 @@ static void dot_kernel_cuda(void *descr[], void *cl_arg)
 
 	unsigned n = STARPU_VECTOR_GET_NX(descr[1]);
  
+	/* Get current value */
+	TYPE host_dot;
+	cudaMemcpy(&host_dot, dot, sizeof(TYPE), cudaMemcpyDeviceToHost);
+	cudaThreadSynchronize();
+
 	TYPE local_dot = cublasdot(n, v1, 1, v2, 1);
-//	fprintf(stderr, "DOT -> %e\n", local_dot);
-	cudaMemcpy(dot, &local_dot, sizeof(TYPE), cudaMemcpyHostToDevice);
+	host_dot += local_dot;
+	cudaThreadSynchronize();
+
+	cudaMemcpy(dot, &host_dot, sizeof(TYPE), cudaMemcpyHostToDevice);
 	cudaThreadSynchronize();
 }
 
@@ -42,48 +49,86 @@ static void dot_kernel_cpu(void *descr[], void *cl_arg)
 
 	unsigned n = STARPU_VECTOR_GET_NX(descr[1]);
 
-//	fprintf(stderr, "SDOT n = %d v1 %p v2 %p\n", n, v1, v2);
-//	fprintf(stderr, "v1:");
-//	print_vector(descr[1]);
-//	fprintf(stderr, "v2:");
-//	print_vector(descr[2]);
+	TYPE local_dot;
+	local_dot = DOT(n, v1, 1, v2, 1);
 
-	*dot = DOT(n, v1, 1, v2, 1);
-
-//	*dot = 0.0;
-//	TYPE local_dot = 0.0;
-//
-//	unsigned i;
-//	for (i =0; i < n; i++)
-//		local_dot += v1[i]*v2[i]; 
-//
-//	*dot = local_dot;
+	*dot += local_dot;
 }
+
+static struct starpu_perfmodel_t dot_kernel_model = {
+	.type = STARPU_HISTORY_BASED,
+	.symbol = "dot_kernel"
+};
 
 static starpu_codelet dot_kernel_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = dot_kernel_cpu,
 	.cuda_func = dot_kernel_cuda,
-	.nbuffers = 3
+	.nbuffers = 3,
+	.model = &dot_kernel_model
+};
+
+static void bzero_variable_cuda(void *descr[], void *cl_arg)
+{
+	TYPE *v = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
+ 
+	TYPE zero = 0.0;
+	cudaMemcpy(v, &zero, sizeof(TYPE), cudaMemcpyHostToDevice);
+	cudaThreadSynchronize();
+}
+
+static void bzero_variable_cpu(void *descr[], void *cl_arg)
+{
+	TYPE *v = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
+ 
+	memset(v, 0, sizeof(TYPE));
+}
+
+static struct starpu_perfmodel_t bzero_variable_model = {
+	.type = STARPU_HISTORY_BASED,
+	.symbol = "bzero_variable"
+};
+
+static starpu_codelet bzero_variable_cl = {
+	.where = STARPU_CPU|STARPU_CUDA,
+	.cpu_func = bzero_variable_cpu,
+	.cuda_func = bzero_variable_cuda,
+	.nbuffers = 1,
+	.model = &bzero_variable_model
 };
 
 void dot_kernel(starpu_data_handle v1,
 		starpu_data_handle v2,
-		starpu_data_handle s)
+		starpu_data_handle s,
+		unsigned nblocks)
 {
 	int ret;
-	struct starpu_task *task = starpu_task_create();
+	struct starpu_task *task;
 
-	task->cl = &dot_kernel_cl;
+	/* Blank the accumulation variable */
+	task = starpu_task_create();
+	task->cl = &bzero_variable_cl;
 	task->buffers[0].handle = s;
 	task->buffers[0].mode = STARPU_W;
-	task->buffers[1].handle = v1;
-	task->buffers[1].mode = STARPU_R;
-	task->buffers[2].handle = v2;
-	task->buffers[2].mode = STARPU_R;
-
 	ret = starpu_task_submit(task);
 	assert(!ret);
+
+	unsigned b;
+	for (b = 0; b < nblocks; b++)
+	{
+		task = starpu_task_create();
+
+		task->cl = &dot_kernel_cl;
+		task->buffers[0].handle = s;
+		task->buffers[0].mode = STARPU_RW;
+		task->buffers[1].handle = starpu_data_get_sub_data(v1, 1, b);
+		task->buffers[1].mode = STARPU_R;
+		task->buffers[2].handle = starpu_data_get_sub_data(v2, 1, b);
+		task->buffers[2].mode = STARPU_R;
+
+		ret = starpu_task_submit(task);
+		assert(!ret);
+	}
 }
 
 /*
@@ -107,12 +152,41 @@ static void gemv_kernel_cuda(void *descr[], void *cl_arg)
 	unsigned nx = STARPU_MATRIX_GET_NX(descr[1]);
 	unsigned ny = STARPU_MATRIX_GET_NY(descr[1]);
  
-	/* Compute v1 = p1 * v1 + p2 * M v2 */
-	cublasgemv('N', nx, ny, params->p2, M, ld, v2, 1, params->p1, v1, 1);
+	TYPE alpha = params->p2;
+	TYPE beta = params->p1;
+
+	/* Compute v1 = alpha M v2 + beta v1 */
+	cublasgemv('N', nx, ny, alpha, M, ld, v2, 1, beta, v1, 1);
 	cudaThreadSynchronize();
 
 	free(params);
 }
+
+#if 0
+static void print_vector_from_descr(unsigned nx, TYPE *v)
+{
+	unsigned i;
+	for (i = 0; i < nx; i++)
+	{
+		fprintf(stderr, "%2.2e ", v[i]);
+	}
+	fprintf(stderr, "\n");
+}
+
+
+static void print_matrix_from_descr(unsigned nx, unsigned ny, unsigned ld, TYPE *mat)
+{
+	unsigned i, j;
+	for (j = 0; j < nx; j++)
+	{
+		for (i = 0; i < ny; i++)
+		{
+			fprintf(stderr, "%2.2e ", mat[j+i*ld]);
+		}
+		fprintf(stderr, "\n");
+	}
+}
+#endif
 
 static void gemv_kernel_cpu(void *descr[], void *cl_arg)
 {
@@ -126,44 +200,63 @@ static void gemv_kernel_cpu(void *descr[], void *cl_arg)
 	unsigned nx = STARPU_MATRIX_GET_NX(descr[1]);
 	unsigned ny = STARPU_MATRIX_GET_NY(descr[1]);
 
-	/* Compute v1 = p1 * v1 + p2 * M v2 */
-	GEMV("N", nx, ny, params->p2, M, ld, v2, 1, params->p1, v1, 1);
+	TYPE alpha = params->p2;
+	TYPE beta = params->p1;
+
+	/* Compute v1 = alpha M v2 + beta v1 */
+	GEMV("N", nx, ny, alpha, M, ld, v2, 1, beta, v1, 1);
 
 	free(params);
 }
+
+static struct starpu_perfmodel_t gemv_kernel_model = {
+	.type = STARPU_HISTORY_BASED,
+	.symbol = "gemv_kernel"
+};
 
 static starpu_codelet gemv_kernel_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = gemv_kernel_cpu,
 	.cuda_func = gemv_kernel_cuda,
-	.nbuffers = 3
+	.nbuffers = 3,
+	.model = &gemv_kernel_model
 };
 
 void gemv_kernel(starpu_data_handle v1,
 		starpu_data_handle matrix,
 		starpu_data_handle v2,
-		TYPE p1, TYPE p2)
+		TYPE p1, TYPE p2,
+		unsigned nblocks)
 {
 	int ret;
-	struct starpu_task *task = starpu_task_create();
 
-	task->cl = &gemv_kernel_cl;
-	task->buffers[0].handle = v1;
-	task->buffers[0].mode = STARPU_RW;
-	task->buffers[1].handle = matrix;
-	task->buffers[1].mode = STARPU_R;
-	task->buffers[2].handle = v2;
-	task->buffers[2].mode = STARPU_R;
+	unsigned b1, b2;
 
-	struct kernel_params *params = malloc(sizeof(struct kernel_params));
-	assert(params);
-	params->p1 = p1;
-	params->p2 = p2;
-
-	task->cl_arg = params;
-
-	ret = starpu_task_submit(task);
-	assert(!ret);
+	for (b2 = 0; b2 < nblocks; b2++)
+	{
+		for (b1 = 0; b1 < nblocks; b1++)
+		{
+			struct starpu_task *task = starpu_task_create();
+		
+			task->cl = &gemv_kernel_cl;
+			task->buffers[0].handle = starpu_data_get_sub_data(v1, 1, b2);
+			task->buffers[0].mode = STARPU_RW;
+			task->buffers[1].handle = starpu_data_get_sub_data(matrix, 2, b2, b1);
+			task->buffers[1].mode = STARPU_R;
+			task->buffers[2].handle = starpu_data_get_sub_data(v2, 1, b1);
+			task->buffers[2].mode = STARPU_R;
+		
+			struct kernel_params *params = malloc(sizeof(struct kernel_params));
+			assert(params);
+			params->p1 = (b1==0)?p1:1.0;
+			params->p2 = p2;
+		
+			task->cl_arg = params;
+		
+			ret = starpu_task_submit(task);
+			assert(!ret);
+		}
+	}
 }
 
 /*
@@ -208,34 +301,46 @@ static void scal_axpy_kernel_cpu(void *descr[], void *cl_arg)
 	free(params);
 }
 
+static struct starpu_perfmodel_t scal_axpy_kernel_model = {
+	.type = STARPU_HISTORY_BASED,
+	.symbol = "scal_axpy_kernel"
+};
+
 static starpu_codelet scal_axpy_kernel_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = scal_axpy_kernel_cpu,
 	.cuda_func = scal_axpy_kernel_cuda,
-	.nbuffers = 2
+	.nbuffers = 2,
+	.model = &scal_axpy_kernel_model
 };
 
 void scal_axpy_kernel(starpu_data_handle v1, TYPE p1,
-			starpu_data_handle v2, TYPE p2)
+			starpu_data_handle v2, TYPE p2,
+			unsigned nblocks)
 {
 	int ret;
-	struct starpu_task *task = starpu_task_create();
 
-	task->cl = &scal_axpy_kernel_cl;
-	task->buffers[0].handle = v1;
-	task->buffers[0].mode = STARPU_RW;
-	task->buffers[1].handle = v2;
-	task->buffers[1].mode = STARPU_R;
+	unsigned b;
+	for (b = 0; b < nblocks; b++)
+	{
+		struct starpu_task *task = starpu_task_create();
 
-	struct kernel_params *params = malloc(sizeof(struct kernel_params));
-	assert(params);
-	params->p1 = p1;
-	params->p2 = p2;
-
-	task->cl_arg = params;
-
-	ret = starpu_task_submit(task);
-	assert(!ret);
+		task->cl = &scal_axpy_kernel_cl;
+		task->buffers[0].handle = starpu_data_get_sub_data(v1, 1, b);
+		task->buffers[0].mode = STARPU_RW;
+		task->buffers[1].handle = starpu_data_get_sub_data(v2, 1, b);
+		task->buffers[1].mode = STARPU_R;
+	
+		struct kernel_params *params = malloc(sizeof(struct kernel_params));
+		assert(params);
+		params->p1 = p1;
+		params->p2 = p2;
+	
+		task->cl_arg = params;
+	
+		ret = starpu_task_submit(task);
+		assert(!ret);
+	}
 }
 
 
@@ -275,33 +380,45 @@ static void axpy_kernel_cpu(void *descr[], void *cl_arg)
 	free(params);
 }
 
+static struct starpu_perfmodel_t axpy_kernel_model = {
+	.type = STARPU_HISTORY_BASED,
+	.symbol = "axpy_kernel"
+};
+
 static starpu_codelet axpy_kernel_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = axpy_kernel_cpu,
 	.cuda_func = axpy_kernel_cuda,
-	.nbuffers = 2
+	.nbuffers = 2,
+	.model = &axpy_kernel_model
 };
 
 void axpy_kernel(starpu_data_handle v1,
-		starpu_data_handle v2, TYPE p1)
+		starpu_data_handle v2, TYPE p1,
+		unsigned nblocks)
 {
 	int ret;
-	struct starpu_task *task = starpu_task_create();
+	unsigned b;
 
-	task->cl = &axpy_kernel_cl;
-	task->buffers[0].handle = v1;
-	task->buffers[0].mode = STARPU_RW;
-	task->buffers[1].handle = v2;
-	task->buffers[1].mode = STARPU_R;
-
-	struct kernel_params *params = malloc(sizeof(struct kernel_params));
-	assert(params);
-	params->p1 = p1;
-
-	task->cl_arg = params;
-
-	ret = starpu_task_submit(task);
-	assert(!ret);
+	for (b = 0; b < nblocks; b++)
+	{
+		struct starpu_task *task = starpu_task_create();
+	
+		task->cl = &axpy_kernel_cl;
+		task->buffers[0].handle = starpu_data_get_sub_data(v1, 1, b);
+		task->buffers[0].mode = STARPU_RW;
+		task->buffers[1].handle = starpu_data_get_sub_data(v2, 1, b);
+		task->buffers[1].mode = STARPU_R;
+	
+		struct kernel_params *params = malloc(sizeof(struct kernel_params));
+		assert(params);
+		params->p1 = p1;
+	
+		task->cl_arg = params;
+	
+		ret = starpu_task_submit(task);
+		assert(!ret);
+	}
 }
 
 
@@ -318,8 +435,6 @@ static void copy_handle_cpu(void *descr[], void *cl_arg)
 	size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(descr[0]);
 
 	memcpy(dst, src, nx*elemsize);
-
-//	fprintf(stderr, "MEMCPY %p -> %p length %d src[0] = %f\n", src, dst, nx*elemsize, src[0]);
 }
 
 static void copy_handle_cuda(void *descr[], void *cl_arg)
@@ -334,24 +449,35 @@ static void copy_handle_cuda(void *descr[], void *cl_arg)
 	cudaThreadSynchronize();
 }
 
+static struct starpu_perfmodel_t copy_handle_model = {
+	.type = STARPU_HISTORY_BASED,
+	.symbol = "copy_handle"
+};
+
 static starpu_codelet copy_handle_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = copy_handle_cpu,
 	.cuda_func = copy_handle_cuda,
-	.nbuffers = 2
+	.nbuffers = 2,
+	.model = &copy_handle_model
 };
 
-void copy_handle(starpu_data_handle dst, starpu_data_handle src)
+void copy_handle(starpu_data_handle dst, starpu_data_handle src, unsigned nblocks)
 {
 	int ret;
-	struct starpu_task *task = starpu_task_create();
+	unsigned b;
 
-	task->cl = &copy_handle_cl;
-	task->buffers[0].handle = dst;
-	task->buffers[0].mode = STARPU_W;
-	task->buffers[1].handle = src;
-	task->buffers[1].mode = STARPU_R;
-
-	ret = starpu_task_submit(task);
-	assert(!ret);
+	for (b = 0; b < nblocks; b++)
+	{
+		struct starpu_task *task = starpu_task_create();
+	
+		task->cl = &copy_handle_cl;
+		task->buffers[0].handle = starpu_data_get_sub_data(dst, 1, b);
+		task->buffers[0].mode = STARPU_W;
+		task->buffers[1].handle = starpu_data_get_sub_data(src, 1, b);
+		task->buffers[1].mode = STARPU_R;
+	
+		ret = starpu_task_submit(task);
+		assert(!ret);
+	}
 } 

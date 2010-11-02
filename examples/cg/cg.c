@@ -13,12 +13,15 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
-
-#include <starpu.h>
 #include <math.h>
+#include <assert.h>
+#include <starpu.h>
 #include <common/blas.h>
+
+#ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cublas.h>
+#endif
 
 /*
  *	Conjugate Gradient
@@ -61,14 +64,14 @@
 
 #include "cg.h"
 
-/* TODO parse argc / argv */
-static int long long n = 16*1024;
+static int long long n = 1024;
+static int nblocks = 8;
 
 static starpu_data_handle A_handle, b_handle, x_handle;
 static TYPE *A, *b, *x;
 
-static int i_max = 20000;
-static TYPE eps = 0.000000001;
+static int i_max = 4000;
+static double eps = (10e-14);
 
 static starpu_data_handle r_handle, d_handle, q_handle;
 static TYPE *r, *d, *q;
@@ -94,16 +97,24 @@ static void generate_random_problem(void)
 	/* Create a random matrix (A) and two random vectors (x and b) */
 	for (j = 0; j < n; j++)
 	{
-		b[j] = (TYPE)drand48();
-		x[j] = (TYPE)b[j];
+		b[j] = (TYPE)1.0;
+		x[j] = (TYPE)0.0;
 
-		for (i = 0; i < j; i++)
+#if 0
+		for (i = 0; i < n; i++)
 		{
-			A[n*j + i] = (TYPE)(-2.0+drand48());	
-			A[n*i + j] = A[n*j + i];
+			A[n*j + i] = (i <= j)?1.0:0.0;
 		}
 
-		A[n*j + j] = (TYPE)30.0;
+#else
+
+		/* We take Hilbert matrix that is not well conditionned but definite positive: H(i,j) = 1/(1+i+j) */
+
+		for (i = 0; i < n; i++)
+		{
+			A[n*j + i] = (TYPE)(1.0/(1.0+i+j));
+		}
+#endif
 	}
 
 	/* Internal vectors */
@@ -131,10 +142,83 @@ static void register_data(void)
 	starpu_variable_data_register(&rtr_handle, 0, (uintptr_t)&rtr, sizeof(TYPE));
 }
 
+/*
+ *	Data partitioning filters
+ */
+
+struct starpu_data_filter vector_filter;
+struct starpu_data_filter matrix_filter_1;
+struct starpu_data_filter matrix_filter_2;
+
 static void partition_data(void)
 {
+	assert(n % nblocks == 0);
 
+	/*
+	 *	Partition the A matrix
+	 */
+
+	/* Partition into contiguous parts */
+	matrix_filter_1.filter_func = starpu_block_filter_func;
+	matrix_filter_1.nchildren = nblocks;
+	/* Partition into non-contiguous parts */
+	matrix_filter_2.filter_func = starpu_vertical_block_filter_func;
+	matrix_filter_2.nchildren = nblocks;
+
+	/* A is in FORTRAN ordering, starpu_data_get_sub_data(A_handle, 2, i,
+	 * j) designates the block in column i and row j. */
+	starpu_data_map_filters(A_handle, 2, &matrix_filter_1, &matrix_filter_2);
+
+	/*
+	 *	Partition the vectors
+	 */
+
+	vector_filter.filter_func = starpu_block_filter_func_vector;
+	vector_filter.nchildren = nblocks;
+
+	starpu_data_partition(b_handle, &vector_filter);
+	starpu_data_partition(x_handle, &vector_filter);
+	starpu_data_partition(r_handle, &vector_filter);
+	starpu_data_partition(d_handle, &vector_filter);
+	starpu_data_partition(q_handle, &vector_filter);
 }
+
+/*
+ *	Debug
+ */
+
+#if 0
+static void display_vector(starpu_data_handle handle, TYPE *ptr)
+{
+	unsigned block_size = n / nblocks;
+
+	unsigned b, ind;
+	for (b = 0; b < nblocks; b++)
+	{
+		starpu_data_acquire(starpu_data_get_sub_data(handle, 1, b), STARPU_R);
+		for (ind = 0; ind < block_size; ind++)
+		{
+			fprintf(stderr, "%2.2e ", ptr[b*block_size + ind]);
+		}
+		fprintf(stderr, "| ");
+		starpu_data_release(starpu_data_get_sub_data(handle, 1, b));
+	}
+	fprintf(stderr, "\n");
+}
+
+static void display_matrix(void)
+{
+	unsigned i, j;
+	for (i = 0; i < n; i++)
+	{
+		for (j = 0; j < n; j++)
+		{
+			fprintf(stderr, "%2.2e ", A[j*n + i]);
+		}
+		fprintf(stderr, "\n");
+	}
+}
+#endif
 
 /*
  *	Main loop
@@ -142,66 +226,62 @@ static void partition_data(void)
 
 static void cg(void)
 {
-	TYPE delta_new, delta_old, delta_0;
+	double delta_new, delta_old, delta_0;
+	double alpha, beta;
 
 	int i = 0;
 
 	/* r <- b */
-	copy_handle(r_handle, b_handle);
-
-	starpu_task_wait_for_all();
+	copy_handle(r_handle, b_handle, nblocks);
 
 	/* r <- r - A x */
-	gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0); 
+	gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks); 
 
 	/* d <- r */
-	copy_handle(d_handle, r_handle);
+	copy_handle(d_handle, r_handle, nblocks);
 
 	/* delta_new = dot(r,r) */
-	dot_kernel(r_handle, r_handle, rtr_handle);
+	dot_kernel(r_handle, r_handle, rtr_handle, nblocks);
 
 	starpu_data_acquire(rtr_handle, STARPU_R);
 	delta_new = rtr;
 	delta_0 = delta_new;
 	starpu_data_release(rtr_handle);
-	
-	fprintf(stderr, "DELTA %f\n", delta_new);
 
-	while ((i < i_max) && (delta_new > (eps*eps*delta_0)))
+	fprintf(stderr, "*************** INITIAL ************ \n");
+	fprintf(stderr, "Delta 0: %e\n", delta_new);
+
+	while ((i < i_max) && ((double)delta_new > (double)(eps*eps*delta_0)))
 	{
-		fprintf(stderr, "*****************************************\niter %d DELTA %e - %e\n", i, delta_new, sqrt(delta_new/n));
-		TYPE alpha, beta;
-
 		/* q <- A d */
-		gemv_kernel(q_handle, A_handle, d_handle, 0.0, 1.0);
+		gemv_kernel(q_handle, A_handle, d_handle, 0.0, 1.0, nblocks);
 
 		/* dtq <- dot(d,q) */
-		dot_kernel(d_handle, q_handle, dtq_handle);
+		dot_kernel(d_handle, q_handle, dtq_handle, nblocks);
 
 		/* alpha = delta_new / dtq */
 		starpu_data_acquire(dtq_handle, STARPU_R);
 		alpha = delta_new/dtq;
-//		fprintf(stderr, "ALPHA %e DELTA NEW %e DTQ %e\n", alpha, delta_new, dtq);
 		starpu_data_release(dtq_handle);
 		
 		/* x <- x + alpha d */
-		axpy_kernel(x_handle, d_handle, alpha);
+		axpy_kernel(x_handle, d_handle, alpha, nblocks);
 
 		if ((i % 50) == 0)
 		{
 			/* r <- b */
-			copy_handle(r_handle, b_handle);
+			copy_handle(r_handle, b_handle, nblocks);
 		
 			/* r <- r - A x */
-			gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0); 
+			gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks); 
 		}
 		else {
 			/* r <- r - alpha q */
-			axpy_kernel(r_handle, q_handle, -alpha);
+			axpy_kernel(r_handle, q_handle, -alpha, nblocks);
 		}
 
 		/* delta_new = dot(r,r) */
-		dot_kernel(r_handle, r_handle, rtr_handle);
+		dot_kernel(r_handle, r_handle, rtr_handle, nblocks);
 
 		starpu_data_acquire(rtr_handle, STARPU_R);
 		delta_old = delta_new;
@@ -210,20 +290,48 @@ static void cg(void)
 		starpu_data_release(rtr_handle);
 
 		/* d <- beta d + r */
-		scal_axpy_kernel(d_handle, beta, r_handle, 1.0);
+		scal_axpy_kernel(d_handle, beta, r_handle, 1.0, nblocks);
+
+		/* We here take the error as ||r||_2 / (n||b||_2) */
+		double error = sqrt(delta_new/delta_0)/(1.0*n);
+		fprintf(stderr, "*****************************************\n");
+		fprintf(stderr, "iter %d DELTA %e - %e\n", i, delta_new, error);
 
 		i++;
 	}
 }
 
-int check(void)
+static int check(void)
 {
 	return 0;
+}
+
+static void parse_args(int argc, char **argv)
+{
+	int i;
+	for (i = 1; i < argc; i++) {
+	        if (strcmp(argv[i], "-n") == 0) {
+			n = (int long long)atoi(argv[++i]);
+			continue;
+		}
+
+	        if (strcmp(argv[i], "-maxiter") == 0) {
+			i_max = atoi(argv[++i]);
+			continue;
+		}
+
+	        if (strcmp(argv[i], "-nblocks") == 0) {
+			nblocks = atoi(argv[++i]);
+			continue;
+		}
+        }
 }
 
 int main(int argc, char **argv)
 {
 	int ret;
+
+	parse_args(argc, argv);
 
 	starpu_init(NULL);
 	starpu_helper_cublas_init();
