@@ -281,6 +281,7 @@ static void _starpu_data_unregister(starpu_data_handle handle, unsigned coherent
 	}
 
 	starpu_data_requester_list_delete(handle->req_list);
+	starpu_data_requester_list_delete(handle->reduction_req_list);
 
 	free(handle);
 }
