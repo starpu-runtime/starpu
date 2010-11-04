@@ -391,7 +391,7 @@ static void benchmark_all_gpu_devices(void)
 #endif
 
 	/* TODO: use hwloc */
-#ifndef __MINGW32__
+#ifdef __linux__
 	/* Save the current cpu binding */
 	cpu_set_t former_process_affinity;
 	ret = sched_getaffinity(0, sizeof(former_process_affinity), &former_process_affinity);
@@ -400,6 +400,8 @@ static void benchmark_all_gpu_devices(void)
 		perror("sched_getaffinity");
 		STARPU_ABORT();
 	}
+#else
+#warning Missing binding support, StarPU will not be able to properly benchmark NUMA topology
 #endif
 
 	struct starpu_machine_config_s *config = _starpu_get_machine_config();
