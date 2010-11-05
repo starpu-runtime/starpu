@@ -33,6 +33,10 @@ check_PROGRAMS =
 
 BUILT_SOURCES =
 
+if STARPU_USE_OPENCL
+nobase_STARPU_OPENCL_DATA_DATA =
+endif
+
 EXTRA_DIST = 					\
 	basic_examples/vector_scal_opencl_codelet.cl \
 	spmv/spmv_cuda.cu			\
@@ -158,10 +162,9 @@ endif
 if STARPU_USE_OPENCL
 basic_examples_vector_scal_SOURCES +=		\
 	basic_examples/vector_scal_opencl.c
-endif
-
-nobase_STARPU_OPENCL_DATA_DATA = \
+nobase_STARPU_OPENCL_DATA_DATA += \
 	basic_examples/vector_scal_opencl_codelet.cl
+endif
 
 if STARPU_HAVE_F77_H
 examplebin_PROGRAMS +=				\
@@ -231,10 +234,10 @@ endif
 if STARPU_USE_OPENCL
 basic_examples_variable_SOURCES +=		\
 	basic_examples/variable_kernels_opencl.c
-endif
-
 nobase_STARPU_OPENCL_DATA_DATA += 		\
 	basic_examples/variable_kernels_opencl_codelet.cl
+endif
+
 
 ###########
 # Filters #
@@ -259,10 +262,9 @@ endif
 if STARPU_USE_OPENCL
 filters_fblock_SOURCES +=			\
 	filters/fblock_opencl.c
-endif
-
 nobase_STARPU_OPENCL_DATA_DATA += \
 	filters/fblock_opencl_codelet.cl
+endif
 
 filters_fmatrix_SOURCES =			\
 	filters/fmatrix.c
@@ -555,10 +557,9 @@ endif
 if STARPU_USE_OPENCL
 incrementer_incrementer_SOURCES +=	\
 	incrementer/incrementer_kernels_opencl.c
-endif
-
 nobase_STARPU_OPENCL_DATA_DATA += \
 	incrementer/incrementer_kernels_opencl_codelet.cl
+endif
 
 ######################
 # matVecMult example #
