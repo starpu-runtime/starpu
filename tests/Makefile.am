@@ -469,7 +469,7 @@ datawizard_sync_and_notify_data_SOURCES +=	\
 
 datawizard_sync_and_notify_data_implicit_SOURCES +=	\
 	datawizard/sync_and_notify_data_opencl.c
-nobase_STARPU_OPENCL_DATA_DATA = \
+nobase_STARPU_OPENCL_DATA_DATA += \
 	datawizard/sync_and_notify_data_opencl_codelet.cl
 endif
 
