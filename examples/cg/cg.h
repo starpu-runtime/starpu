@@ -20,8 +20,12 @@
 #include <starpu.h>
 #include <math.h>
 #include <common/blas.h>
+
+#ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cublas.h>
+#include <starpu_cuda.h>
+#endif
 
 #include <starpu.h>
 
@@ -38,6 +42,7 @@
 #define cublasscal	cublasDscal
 #define cublasaxpy	cublasDaxpy
 #define cublasgemv	cublasDgemv
+#define cublasscal	cublasDscal
 #else
 #define TYPE	float
 #define GEMV	SGEMV
@@ -49,18 +54,21 @@
 #define cublasscal	cublasSscal
 #define cublasaxpy	cublasSaxpy
 #define cublasgemv	cublasSgemv
+#define cublasscal	cublasSscal
 #endif
 
 void dot_kernel(starpu_data_handle v1,
                 starpu_data_handle v2,
                 starpu_data_handle s,
-		unsigned nblocks);
+		unsigned nblocks,
+		int use_reduction);
 
 void gemv_kernel(starpu_data_handle v1,
                 starpu_data_handle matrix, 
                 starpu_data_handle v2,
                 TYPE p1, TYPE p2,
-		unsigned nblocks);
+		unsigned nblocks,
+		int use_reduction);
 
 void axpy_kernel(starpu_data_handle v1,
 		starpu_data_handle v2, TYPE p1,

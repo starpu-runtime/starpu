@@ -15,6 +15,7 @@
  */
 #include <math.h>
 #include <assert.h>
+#include <sys/time.h>
 #include <starpu.h>
 #include <common/blas.h>
 
@@ -66,6 +67,7 @@
 
 static int long long n = 1024;
 static int nblocks = 8;
+static int use_reduction = 1;
 
 static starpu_data_handle A_handle, b_handle, x_handle;
 static TYPE *A, *b, *x;
@@ -78,6 +80,11 @@ static TYPE *r, *d, *q;
 
 static starpu_data_handle dtq_handle, rtr_handle;
 static TYPE dtq, rtr;
+
+extern starpu_codelet accumulate_variable_cl;
+extern starpu_codelet accumulate_vector_cl;
+extern starpu_codelet bzero_variable_cl;
+extern starpu_codelet bzero_vector_cl;
 
 /*
  *	Generate Input data
@@ -100,21 +107,12 @@ static void generate_random_problem(void)
 		b[j] = (TYPE)1.0;
 		x[j] = (TYPE)0.0;
 
-#if 0
-		for (i = 0; i < n; i++)
-		{
-			A[n*j + i] = (i <= j)?1.0:0.0;
-		}
-
-#else
-
 		/* We take Hilbert matrix that is not well conditionned but definite positive: H(i,j) = 1/(1+i+j) */
 
 		for (i = 0; i < n; i++)
 		{
 			A[n*j + i] = (TYPE)(1.0/(1.0+i+j));
 		}
-#endif
 	}
 
 	/* Internal vectors */
@@ -140,6 +138,15 @@ static void register_data(void)
 
 	starpu_variable_data_register(&dtq_handle, 0, (uintptr_t)&dtq, sizeof(TYPE));
 	starpu_variable_data_register(&rtr_handle, 0, (uintptr_t)&rtr, sizeof(TYPE));
+
+	if (use_reduction)
+	{
+		starpu_data_set_reduction_methods(q_handle, &accumulate_vector_cl, &bzero_vector_cl);
+		starpu_data_set_reduction_methods(r_handle, &accumulate_vector_cl, &bzero_vector_cl);
+	
+		starpu_data_set_reduction_methods(dtq_handle, &accumulate_variable_cl, &bzero_variable_cl);
+		starpu_data_set_reduction_methods(rtr_handle, &accumulate_variable_cl, &bzero_variable_cl);
+	}
 }
 
 /*
@@ -235,13 +242,13 @@ static void cg(void)
 	copy_handle(r_handle, b_handle, nblocks);
 
 	/* r <- r - A x */
-	gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks); 
+	gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction); 
 
 	/* d <- r */
 	copy_handle(d_handle, r_handle, nblocks);
 
 	/* delta_new = dot(r,r) */
-	dot_kernel(r_handle, r_handle, rtr_handle, nblocks);
+	dot_kernel(r_handle, r_handle, rtr_handle, nblocks, use_reduction);
 
 	starpu_data_acquire(rtr_handle, STARPU_R);
 	delta_new = rtr;
@@ -251,13 +258,17 @@ static void cg(void)
 	fprintf(stderr, "*************** INITIAL ************ \n");
 	fprintf(stderr, "Delta 0: %e\n", delta_new);
 
+	struct timeval start;
+	struct timeval end;
+	gettimeofday(&start, NULL);
+
 	while ((i < i_max) && ((double)delta_new > (double)(eps*eps*delta_0)))
 	{
 		/* q <- A d */
-		gemv_kernel(q_handle, A_handle, d_handle, 0.0, 1.0, nblocks);
+		gemv_kernel(q_handle, A_handle, d_handle, 0.0, 1.0, nblocks, use_reduction);
 
 		/* dtq <- dot(d,q) */
-		dot_kernel(d_handle, q_handle, dtq_handle, nblocks);
+		dot_kernel(d_handle, q_handle, dtq_handle, nblocks, use_reduction);
 
 		/* alpha = delta_new / dtq */
 		starpu_data_acquire(dtq_handle, STARPU_R);
@@ -273,7 +284,7 @@ static void cg(void)
 			copy_handle(r_handle, b_handle, nblocks);
 		
 			/* r <- r - A x */
-			gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks); 
+			gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction); 
 		}
 		else {
 			/* r <- r - alpha q */
@@ -281,7 +292,7 @@ static void cg(void)
 		}
 
 		/* delta_new = dot(r,r) */
-		dot_kernel(r_handle, r_handle, rtr_handle, nblocks);
+		dot_kernel(r_handle, r_handle, rtr_handle, nblocks, use_reduction);
 
 		starpu_data_acquire(rtr_handle, STARPU_R);
 		delta_old = delta_new;
@@ -292,13 +303,22 @@ static void cg(void)
 		/* d <- beta d + r */
 		scal_axpy_kernel(d_handle, beta, r_handle, 1.0, nblocks);
 
-		/* We here take the error as ||r||_2 / (n||b||_2) */
-		double error = sqrt(delta_new/delta_0)/(1.0*n);
-		fprintf(stderr, "*****************************************\n");
-		fprintf(stderr, "iter %d DELTA %e - %e\n", i, delta_new, error);
+		if ((i % 10) == 0)
+		{
+			/* We here take the error as ||r||_2 / (n||b||_2) */
+			double error = sqrt(delta_new/delta_0)/(1.0*n);
+			fprintf(stderr, "*****************************************\n");
+			fprintf(stderr, "iter %d DELTA %e - %e\n", i, delta_new, error);
+		}
 
 		i++;
 	}
+
+	gettimeofday(&end, NULL);
+
+	double timing = (double)(((double)end.tv_sec - (double)start.tv_sec)*10e6 + ((double)end.tv_usec - (double)start.tv_usec));
+	fprintf(stderr, "Total timing : %2.2f seconds\n", timing/10e6);
+	fprintf(stderr, "Seconds per iteration : %2.2e\n", timing/10e6/i);
 }
 
 static int check(void)
@@ -322,6 +342,17 @@ static void parse_args(int argc, char **argv)
 
 	        if (strcmp(argv[i], "-nblocks") == 0) {
 			nblocks = atoi(argv[++i]);
+			continue;
+		}
+
+	        if (strcmp(argv[i], "-no-reduction") == 0) {
+			use_reduction = 0;
+			continue;
+		}
+
+	        if (strcmp(argv[i], "-h") == 0) {
+			fprintf(stderr, "usage: %s [-h] [-nblocks #blocks] [-n problem_size] [-no-reduction]\n", argv[0]);
+			exit(-1);
 			continue;
 		}
         }
