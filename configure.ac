@@ -239,8 +239,14 @@ AM_CONDITIONAL(STARPU_USE_CUDA, test x$enable_cuda = xyes)
 if test x$enable_cuda = xyes; then
 	AC_DEFINE(STARPU_USE_CUDA, [1], [CUDA support is activated])
 
-        AC_SUBST(STARPU_CUDA_LDFLAGS, "$STARPU_CUDA_LDFLAGS -lcuda")
-        AC_SUBST(STARPU_CUDA_CPPFLAGS, $STARPU_CUDA_CPPFLAGS)
+	# On Darwin, the libstdc++ dependency is not automatically added by nvcc
+	case "$target" in
+	*-*darwin*) AC_CHECK_LIB([stdc++], [STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"]) ;;
+	esac
+	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcuda"
+
+        AC_SUBST(STARPU_CUDA_LDFLAGS)
+        AC_SUBST(STARPU_CUDA_CPPFLAGS)
 
 	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag
 	AC_CHECK_SIZEOF([void *])
