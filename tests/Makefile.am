@@ -30,6 +30,10 @@ CLEANFILES = 					\
 
 BUILT_SOURCES =
 
+if STARPU_USE_OPENCL
+nobase_STARPU_OPENCL_DATA_DATA =
+endif
+
 if STARPU_USE_CUDA
 
 # TODO define NVCCFLAGS
@@ -441,9 +445,6 @@ testbin_PROGRAMS +=				\
 datawizard_sync_and_notify_data_implicit_SOURCES =	\
 	datawizard/sync_and_notify_data_implicit.c
 
-nobase_STARPU_OPENCL_DATA_DATA = \
-	datawizard/sync_and_notify_data_opencl_codelet.cl
-
 testbin_PROGRAMS +=				\
 	microbenchs/redundant_buffer
 microbenchs_redundant_buffer_SOURCES =		\
@@ -468,6 +469,8 @@ datawizard_sync_and_notify_data_SOURCES +=	\
 
 datawizard_sync_and_notify_data_implicit_SOURCES +=	\
 	datawizard/sync_and_notify_data_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA = \
+	datawizard/sync_and_notify_data_opencl_codelet.cl
 endif
 
 if STARPU_USE_GORDON
