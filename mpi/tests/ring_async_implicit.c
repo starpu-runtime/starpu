@@ -53,12 +53,16 @@ void increment_token(void)
 
 int main(int argc, char **argv)
 {
-	MPI_Init(NULL, NULL);
-
 	int rank, size;
 
+#if 0
+	MPI_Init(NULL, NULL);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
+#endif
+
+	starpu_init(NULL);
+	starpu_mpi_initialize_extended(1, &rank, &size);
 
 	if (size < 2)
 	{
@@ -69,8 +73,6 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	starpu_init(NULL);
-	starpu_mpi_initialize();
 
 	starpu_vector_data_register(&token_handle, 0, (uintptr_t)&token, 1, sizeof(unsigned));
 
