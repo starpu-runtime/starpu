@@ -22,7 +22,7 @@
 
 static size_t vector_size = 1;
 
-static niter = 1000;
+static int niter = 1000;
 static unsigned cnt;
 
 static unsigned finished = 0;

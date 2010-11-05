@@ -56,7 +56,7 @@ unsigned _starpu_get_deque_nprocessed(struct starpu_deque_jobq_s *deque_queue)
 	return deque_queue->nprocessed;
 }
 
-struct starpu_task *_starpu_deque_pop_task(struct starpu_deque_jobq_s *deque_queue, int workerid)
+struct starpu_task *_starpu_deque_pop_task(struct starpu_deque_jobq_s *deque_queue, int workerid __attribute__ ((unused)))
 {
 	starpu_job_t j = NULL;
 

@@ -120,6 +120,7 @@ void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model,
 		enum starpu_perf_archtype arch, char *path, size_t maxlen);
 void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch,
 		char *archname, size_t maxlen);
+int starpu_list_models(void);
 
 void starpu_force_bus_sampling(void);
 

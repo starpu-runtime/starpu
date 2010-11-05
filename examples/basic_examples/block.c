@@ -34,7 +34,7 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
 {
 	starpu_codelet cl;
 	starpu_data_handle block_handle;
-        int i, j, k;
+        int i;
 
 	starpu_block_data_register(&block_handle, 0, (uintptr_t)block, pnx, pnx*pny, pnx, pny, pnz, sizeof(float));
 
@@ -75,7 +75,6 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
 
 int main(int argc, char **argv)
 {
-	starpu_codelet cl;
         float *block, n=1.0;
         int i, j, k, ret;
         int nx=3;

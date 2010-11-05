@@ -309,7 +309,7 @@ static void _starpu_terminate_workers(struct starpu_machine_config_s *config)
 	{
 		starpu_wake_all_blocked_workers();
 		
-		_STARPU_DEBUG("wait for worker %d\n", workerid);
+		_STARPU_DEBUG("wait for worker %u\n", workerid);
 
 		struct starpu_worker_set_s *set = config->workers[workerid].set;
 		struct starpu_worker_s *worker = &config->workers[workerid];
@@ -353,7 +353,7 @@ unsigned _starpu_machine_is_running(void)
 	return config.running;
 }
 
-unsigned _starpu_worker_can_block(unsigned memnode)
+unsigned _starpu_worker_can_block(unsigned memnode __attribute__((unused)))
 {
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	return 0;

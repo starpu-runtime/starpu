@@ -94,7 +94,7 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 
 		/* the group is now completed */
 		switch (cg->cg_type) {
-			case STARPU_CG_APPS:
+			case STARPU_CG_APPS: {
 				/* this is a cg for an application waiting on a set of
 	 			 * tags, wake the thread */
 				PTHREAD_MUTEX_LOCK(&cg->succ.succ_apps.cg_mutex);
@@ -102,8 +102,9 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 				PTHREAD_COND_SIGNAL(&cg->succ.succ_apps.cg_cond);
 				PTHREAD_MUTEX_UNLOCK(&cg->succ.succ_apps.cg_mutex);
 				break;
+			}
 
-			case STARPU_CG_TAG:
+			case STARPU_CG_TAG: {
 				tag = cg->succ.tag;
 				tag_successors = &tag->tag_successors;
 	
@@ -117,8 +118,9 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 					_starpu_tag_set_ready(tag);
 				}
 				break;
+			}
 
-			case STARPU_CG_TASK:
+ 		        case STARPU_CG_TASK: {
 				j = cg->succ.job;
 
 				job_successors = &j->job_successors;
@@ -135,6 +137,7 @@ void _starpu_notify_cg(starpu_cg_t *cg)
 				}
 
 				break;
+			}
 
 			default:
 				STARPU_ABORT();

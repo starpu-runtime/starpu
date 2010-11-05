@@ -39,7 +39,7 @@ static struct timespec reference_start_time_ts;
  * to have consistent timing measurements. The CLOCK_MONOTONIC_RAW clock is not
  * subject to NTP adjustments, but is not available on all systems (in that
  * case we use the CLOCK_MONOTONIC clock instead). */
-void __starpu_clock_gettime(struct timespec *ts) {
+static void __starpu_clock_gettime(struct timespec *ts) {
 #ifdef CLOCK_MONOTONIC_RAW
 	static int raw_supported = 0;
 	switch (raw_supported) {

@@ -75,7 +75,7 @@ int _starpu_fifo_push_task(struct starpu_fifo_taskq_s *fifo_queue, pthread_mutex
 	return 0;
 }
 
-struct starpu_task *_starpu_fifo_pop_task(struct starpu_fifo_taskq_s *fifo_queue, int workerid)
+struct starpu_task *_starpu_fifo_pop_task(struct starpu_fifo_taskq_s *fifo_queue, int workerid __attribute__ ((unused)))
 {
 	struct starpu_task *task = NULL;
 

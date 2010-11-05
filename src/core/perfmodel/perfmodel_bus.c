@@ -923,7 +923,7 @@ static void check_bus_config_file()
                 f = fopen(path, "r");
                 STARPU_ASSERT(f);
                 _starpu_drop_comments(f);
-                ret = fscanf(f, "%d\t", &read_cpus);
+                ret = fscanf(f, "%u\t", &read_cpus);
 		STARPU_ASSERT(ret == 1);
                 _starpu_drop_comments(f);
 		ret = fscanf(f, "%d\t", &read_cuda);
@@ -945,7 +945,7 @@ static void check_bus_config_file()
 
                 // Checking if both configurations match
                 if (read_cpus != ncpus) {
-			fprintf(stderr, "Current configuration does not match the performance model (CPUS: (stored) %d != (current) %d), recalibrating...", read_cpus, ncpus);
+			fprintf(stderr, "Current configuration does not match the performance model (CPUS: (stored) %u != (current) %u), recalibrating...", read_cpus, ncpus);
                         starpu_force_bus_sampling();
 			fprintf(stderr, "done\n");
                 }
@@ -973,7 +973,7 @@ static void write_bus_config_file_content(void)
 	STARPU_ASSERT(f);
 
         fprintf(f, "# Current configuration\n");
-        fprintf(f, "%d # Number of CPUs\n", ncpus);
+        fprintf(f, "%u # Number of CPUs\n", ncpus);
         fprintf(f, "%d # Number of CUDA devices\n", ncuda);
         fprintf(f, "%d # Number of OpenCL devices\n", nopencl);
 

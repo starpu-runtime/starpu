@@ -190,19 +190,23 @@ static void _starpu_initialize_workers_gpuid(int use_explicit_workers_gpuid, int
 }
 #endif
 
+#ifdef STARPU_USE_CUDA
 static inline int _starpu_get_next_cuda_gpuid(struct starpu_machine_config_s *config)
 {
 	unsigned i = ((config->current_cuda_gpuid++) % config->topology.ncudagpus);
 
 	return (int)config->topology.workers_cuda_gpuid[i];
 }
+#endif
 
+#ifdef STARPU_USE_OPENCL
 static inline int _starpu_get_next_opencl_gpuid(struct starpu_machine_config_s *config)
 {
 	unsigned i = ((config->current_opencl_gpuid++) % config->topology.nopenclgpus);
 
 	return (int)config->topology.workers_opencl_gpuid[i];
 }
+#endif
 
 static void _starpu_init_topology(struct starpu_machine_config_s *config)
 {

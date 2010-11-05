@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <common/utils.h>
 
 void _starpu_drop_comments(FILE *f)
 {

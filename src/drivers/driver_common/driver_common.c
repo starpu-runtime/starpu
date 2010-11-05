@@ -20,6 +20,7 @@
 #include <profiling/profiling.h>
 #include <common/utils.h>
 #include <core/debug.h>
+#include <drivers/driver_common/driver_common.h>
 
 void _starpu_driver_update_job_feedback(starpu_job_t j, struct starpu_worker_s *worker_args,
 					struct starpu_task_profiling_info *profiling_info,

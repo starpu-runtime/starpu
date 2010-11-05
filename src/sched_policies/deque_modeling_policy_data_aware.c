@@ -62,7 +62,7 @@ static int count_non_ready_buffers(struct starpu_task *task, uint32_t node)
 	return cnt;
 }
 
-struct starpu_task *_starpu_fifo_pop_first_ready_task(struct starpu_fifo_taskq_s *fifo_queue, unsigned node)
+static struct starpu_task *_starpu_fifo_pop_first_ready_task(struct starpu_fifo_taskq_s *fifo_queue, unsigned node)
 {
 	struct starpu_task *task = NULL, *current;
 

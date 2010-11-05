@@ -274,7 +274,7 @@ void starpu_display_codelet_stats(struct starpu_codelet_t *cl)
 		char name[32];
 		starpu_worker_get_name(worker, name, 32);
 
-		fprintf(stderr, "\t%s -> %ld / %ld (%2.2f \%%)\n", name, cl->per_worker_stats[worker], total, (100.0f*cl->per_worker_stats[worker])/total);
+		fprintf(stderr, "\t%s -> %lu / %lu (%2.2f %%)\n", name, cl->per_worker_stats[worker], total, (100.0f*cl->per_worker_stats[worker])/total);
 	}
 }
 
