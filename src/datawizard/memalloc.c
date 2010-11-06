@@ -378,6 +378,46 @@ static unsigned try_to_reuse_mem_chunk(starpu_mem_chunk_t mc, unsigned node, sta
 	return success;
 }
 
+static int _starpu_data_interface_compare(void *interface_a, struct starpu_data_interface_ops_t *ops_a,
+						void *interface_b, struct starpu_data_interface_ops_t *ops_b)
+{
+	if (ops_a->interfaceid != ops_b->interfaceid)
+		return -1;
+
+	int ret = ops_a->compare(interface_a, interface_b);
+
+	return ret;
+}
+
+/* This function must be called with mc_rwlock[node] taken in write mode */
+static starpu_mem_chunk_t _starpu_memchunk_cache_lookup_locked(uint32_t node, starpu_data_handle handle)
+{
+	uint32_t footprint = _starpu_compute_data_footprint(handle);
+
+	/* go through all buffers in the cache */
+	starpu_mem_chunk_t mc;
+	for (mc = starpu_mem_chunk_list_begin(memchunk_cache[node]);
+	     mc != starpu_mem_chunk_list_end(memchunk_cache[node]);
+	     mc = starpu_mem_chunk_list_next(mc))
+	{
+		if (mc->footprint == footprint)
+		{
+			/* Is that a false hit ? (this is _very_ unlikely) */
+			if (_starpu_data_interface_compare(handle->per_node[node].interface, handle->ops, mc->interface, mc->ops))
+				continue;
+
+			/* Cache hit */
+
+			/* Remove from the cache */
+			starpu_mem_chunk_list_erase(memchunk_cache[node], mc);
+			return mc;
+		}
+	}
+
+	/* This is a cache miss */
+	return NULL;
+}
+
 /* this function looks for a memory chunk that matches a given footprint in the
  * list of mem chunk that need to be freed. This function must be called with
  * mc_rwlock[node] taken in write mode. */
@@ -415,65 +455,6 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 	return 0;
 }
 #endif
-
-static int _starpu_data_interface_compare(void *interface_a, struct starpu_data_interface_ops_t *ops_a,
-						void *interface_b, struct starpu_data_interface_ops_t *ops_b)
-{
-	if (ops_a->interfaceid != ops_b->interfaceid)
-		return -1;
-
-	int ret = ops_a->compare(interface_a, interface_b);
-
-	return ret;
-}
-
-/* This function must be called with mc_rwlock[node] taken in write mode */
-starpu_mem_chunk_t _starpu_memchunk_cache_lookup_locked(uint32_t node, starpu_data_handle handle)
-{
-	uint32_t footprint = _starpu_compute_data_footprint(handle);
-
-	/* go through all buffers in the cache */
-	starpu_mem_chunk_t mc;
-	for (mc = starpu_mem_chunk_list_begin(memchunk_cache[node]);
-	     mc != starpu_mem_chunk_list_end(memchunk_cache[node]);
-	     mc = starpu_mem_chunk_list_next(mc))
-	{
-		if (mc->footprint == footprint)
-		{
-			/* Is that a false hit ? (this is _very_ unlikely) */
-			if (_starpu_data_interface_compare(handle->per_node[node].interface, handle->ops, mc->interface, mc->ops))
-				continue;
-
-			/* Cache hit */
-
-			/* Remove from the cache */
-			starpu_mem_chunk_list_erase(memchunk_cache[node], mc);
-			return mc;
-		}
-	}
-
-	/* This is a cache miss */
-	return NULL;
-}
-
-starpu_mem_chunk_t _starpu_memchunk_cache_lookup(uint32_t node, starpu_data_handle handle)
-{
-	starpu_mem_chunk_t mc;
-
-	PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
-	mc = _starpu_memchunk_cache_lookup_locked(node, handle);
-	PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
-
-	return mc;
-}
-
-void _starpu_memchunk_cache_insert(uint32_t node, starpu_mem_chunk_t mc)
-{
-	PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
-	mc->data = NULL;
-	starpu_mem_chunk_list_push_front(memchunk_cache[node], mc);
-	PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
-}
 
 /*
  * Free the memory chuncks that are explicitely tagged to be freed. The
