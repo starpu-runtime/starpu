@@ -241,7 +241,7 @@ if test x$enable_cuda = xyes; then
 
 	# On Darwin, the libstdc++ dependency is not automatically added by nvcc
 	case "$target" in
-	*-*darwin*) AC_CHECK_LIB([stdc++], [STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"]) ;;
+		*-*darwin*) AC_HAVE_LIBRARY([stdc++], [STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"]) ;;
 	esac
 	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcuda"
 
