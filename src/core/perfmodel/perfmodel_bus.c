@@ -425,7 +425,7 @@ static void benchmark_all_gpu_devices(void)
 #endif
 
 	/* FIXME: use hwloc */
-#ifndef __MINGW32__
+#ifdef __linux__
 	/* Restore the former affinity */
 	ret = sched_setaffinity(0, sizeof(former_process_affinity), &former_process_affinity);
 	if (ret)
