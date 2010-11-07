@@ -153,4 +153,6 @@ int main(int argc, char **argv)
         print_block(block, NX, NY, NZ, NX, NX*NY);
 
 	starpu_shutdown();
+
+	return 0;
 }

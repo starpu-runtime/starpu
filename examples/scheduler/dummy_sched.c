@@ -60,6 +60,8 @@ static int push_task_dummy(struct starpu_task *task)
 	pthread_cond_signal(&sched_cond);
 
 	pthread_mutex_unlock(&sched_mutex);
+
+	return 0;
 }
 
 /* The mutex associated to the calling worker is already taken by StarPU */
