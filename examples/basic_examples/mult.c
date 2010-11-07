@@ -49,7 +49,6 @@ static unsigned terminated = 0;
 
 static unsigned nslicesx = 4;
 static unsigned nslicesy = 4;
-static unsigned nslicesz = 4;
 static unsigned xdim = 1024;
 static unsigned ydim = 1024;
 static unsigned zdim = 512;
