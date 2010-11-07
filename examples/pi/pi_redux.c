@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include <starpu_cuda.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 #define PI	3.14159265358979323846
 

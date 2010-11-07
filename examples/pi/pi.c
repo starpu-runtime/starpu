@@ -15,6 +15,7 @@
  */
 
 #include "SobolQRNG/sobol.h"
+#include "SobolQRNG/sobol_gold.h"
 #include "pi.h"
 #include <sys/time.h>
 
