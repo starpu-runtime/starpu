@@ -137,8 +137,6 @@ static double dw_codelet_facto_pivot(starpu_data_handle *dataAp,
 	struct timeval start;
 	struct timeval end;
 
-	struct starpu_task *entry_task = NULL;
-
 	gettimeofday(&start, NULL);
 
 	/* create all the DAG nodes */

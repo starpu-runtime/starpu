@@ -17,6 +17,8 @@
 #ifndef __XLU_H__
 #define __XLU_H__
 
+#include <sys/time.h>
+
 /* for STARPU_USE_CUDA */
 #include <starpu_config.h>
 #include <starpu.h>
@@ -106,5 +108,9 @@ struct piv_s {
 	unsigned first; /* first element */
 	unsigned last; /* last element */
 };
+
+void STARPU_LU(lu_decomposition)(TYPE *matA, unsigned size, unsigned ld, unsigned nblocks);
+void STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, unsigned size, unsigned ld, unsigned nblocks);
+void STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size, unsigned ld, unsigned nblocks);
 
 #endif // __XLU_H__

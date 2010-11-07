@@ -21,7 +21,7 @@
 #include <math.h>
 #include <starpu.h>
 #include <starpu_profiling.h>
-
+#include <starpu_bound.h>
 #include "xlu.h"
 #include "xlu_kernels.h"
 
@@ -191,7 +191,7 @@ static double frobenius_norm(TYPE *v, unsigned n)
 	return sqrt(sum2);
 }
 
-static pivot_saved_matrix(unsigned *ipiv)
+static void pivot_saved_matrix(unsigned *ipiv)
 {
 	unsigned k;
 	for (k = 0; k < size; k++)
@@ -336,7 +336,7 @@ int main(int argc, char **argv)
 			starpu_bound_print_lp(f);
 			fprintf(stderr,"system printed to lu.pl\n");
 		} else {
-			starpu_bound_compute(&min);
+			starpu_bound_compute(&min, NULL, 0);
 			if (min != 0.)
 				fprintf(stderr, "theoretical min: %lf ms\n", min);
 		}

@@ -383,8 +383,6 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 	unsigned *ipiv = piv->piv;
 	unsigned first = piv->first;
 
-	int i,j;
-
 	switch (s) {
 		case 0:
 			for (z = 0; z < nx; z++)
@@ -512,12 +510,11 @@ static inline void STARPU_LU(common_pivot)(void *descr[],
 	unsigned long nx = STARPU_MATRIX_GET_NX(descr[0]);
 	unsigned long ld = STARPU_MATRIX_GET_LD(descr[0]);
 
-	unsigned row, rowaux;
+	unsigned row;
 
 	struct piv_s *piv = _args;
 	unsigned *ipiv = piv->piv;
 	unsigned first = piv->first;
-	unsigned last = piv->last;
 
 	switch (s) {
 		case 0:
