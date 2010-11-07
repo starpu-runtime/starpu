@@ -89,6 +89,12 @@ extern void dgemm_ (const char *transa, const char *transb, const int *m,
                    const double *A, const int *lda, const double *B, 
                    const int *ldb, const double *beta, double *C, 
                    const int *ldc);
+extern void sgemv_(const char *trans, int *m, int *n, float *alpha,
+                   void *a, int *lda, void *x, int *incx, 
+                   float *beta, void *y, int *incy);
+extern void dgemv_(const char *trans, int *m, int *n, double *alpha,
+                   void *a, int *lda, void *x, int *incx,
+                   double *beta, void *y, int *incy);
 extern void ssyr_ (const char *uplo, const int *n, const float *alpha,
                   const float *x, const int *incx, float *A, const int *lda);
 extern void ssyrk_ (const char *uplo, const char *trans, const int *n,
