@@ -316,8 +316,6 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, __attribut
 
 	unsigned long z;
 
-	float pouet;
-
 	switch (s) {
 		case 0:
 			for (z = 0; z < nx; z++)

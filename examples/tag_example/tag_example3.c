@@ -35,7 +35,6 @@ starpu_codelet cl;
 
 static unsigned ni = Ni, nk = Nk;
 static unsigned callback_cnt;
-static unsigned iter = 0;
 
 static void parse_args(int argc, char **argv)
 {
