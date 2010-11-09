@@ -65,7 +65,7 @@ static TYPE **(tmp_21_block[2]);
 
 int get_block_rank(unsigned i, unsigned j);
 
-static void parse_args(int argc, char **argv)
+static void parse_args(int rank, int argc, char **argv)
 {
 	int i;
 	for (i = 1; i < argc; i++) {
@@ -418,7 +418,7 @@ int main(int argc, char **argv)
 
 	starpu_srand48((long int)time(NULL));
 
-	parse_args(argc, argv);
+	parse_args(rank, argc, argv);
 
 	starpu_init(NULL);
 
