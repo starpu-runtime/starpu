@@ -15,19 +15,19 @@
  */
 
 #include <starpu.h>
-#include <starpu_cuda.h>
 #include <stdlib.h>
 #include <sys/time.h>
 
 #define PI	3.14159265358979323846
 
-#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CURAND)
-#error CURAND is required to run that example on CUDA devices
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CURAND)
+#warning CURAND is required to run that example on CUDA devices
 #endif
 
-#ifdef STARPU_USE_CUDA
+#ifdef STARPU_HAVE_CURAND
 #include <cuda.h>
 #include <curand.h>
+#include <starpu_cuda.h>
 #endif
 
 #define NSHOT_PER_TASK	(1024*1024)
@@ -39,7 +39,7 @@ static unsigned long ntasks = 1024;
  *	Initialization of the Random Number Generators (RNG)
  */
 
-#ifdef STARPU_USE_CUDA
+#ifdef STARPU_HAVE_CURAND
 /* RNG for the CURAND library */
 static curandGenerator_t curandgens[STARPU_NMAXWORKERS];
 #endif 
@@ -50,7 +50,7 @@ static unsigned short xsubi[3*STARPU_NMAXWORKERS];
 /* Function to initialize the random number generator in the current worker */
 static void init_rng(void *arg __attribute__((unused)))
 {
-#ifdef STARPU_USE_CUDA
+#ifdef STARPU_HAVE_CURAND
 	curandStatus_t res;
 #endif
 
@@ -63,7 +63,7 @@ static void init_rng(void *arg __attribute__((unused)))
 			xsubi[1 + 3*workerid] = (unsigned short)workerid;
 			xsubi[2 + 3*workerid] = (unsigned short)workerid;
 			break;
-#ifdef STARPU_USE_CUDA
+#ifdef STARPU_HAVE_CURAND
 		case STARPU_CUDA_WORKER:
 
 			/* Create a RNG */
@@ -126,7 +126,7 @@ static void pi_func_cpu(void *descr[], void *cl_arg __attribute__ ((unused)))
 
 extern void pi_redux_cuda_kernel(float *x, float *y, unsigned n, unsigned long *shot_cnt);
 
-#ifdef STARPU_USE_CUDA
+#ifdef STARPU_HAVE_CURAND
 static void pi_func_cuda(void *descr[], void *cl_arg __attribute__ ((unused)))
 {
 	cudaError_t cures;
@@ -155,9 +155,13 @@ static void pi_func_cuda(void *descr[], void *cl_arg __attribute__ ((unused)))
 #endif
 
 static struct starpu_codelet_t pi_cl = {
-	.where = STARPU_CPU|STARPU_CUDA,
+	.where =
+#ifdef STARPU_HAVE_CURAND
+		STARPU_CUDA|
+#endif
+		STARPU_CPU,
 	.cpu_func = pi_func_cpu,
-#ifdef STARPU_USE_CUDA
+#ifdef STARPU_HAVE_CURAND
 	.cuda_func = pi_func_cuda,
 #endif
 	.nbuffers = 2,
@@ -174,7 +178,7 @@ static void init_cpu_func(void *descr[], void *cl_arg)
         *val = 0;
 }
 
-#ifdef STARPU_USE_CUDA
+#ifdef STARPU_HAVE_CURAND
 static void init_cuda_func(void *descr[], void *cl_arg)
 {
         unsigned long *val = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -184,9 +188,13 @@ static void init_cuda_func(void *descr[], void *cl_arg)
 #endif
 
 static struct starpu_codelet_t init_codelet = {
-        .where = STARPU_CPU|STARPU_CUDA,
+	.where =
+#ifdef STARPU_HAVE_CURAND
+		STARPU_CUDA|
+#endif
+		STARPU_CPU,
         .cpu_func = init_cpu_func,
-#ifdef STARPU_USE_CUDA
+#ifdef STARPU_HAVE_CURAND
         .cuda_func = init_cuda_func,
 #endif
         .nbuffers = 1

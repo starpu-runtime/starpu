@@ -174,24 +174,47 @@ AC_DEFINE_UNQUOTED(STARPU_MAXCUDADEVS, [$nmaxcudadev],
 AC_ARG_ENABLE(cuda, [AS_HELP_STRING([--disable-cuda],
 		[do not use CUDA device(s)])],, [enable_cuda=maybe])
 
-if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
-	#AC_MSG_CHECKING(whether CUDA is available)
-	AC_ARG_WITH(cuda-dir, 
-		[AS_HELP_STRING([--with-cuda-dir=<path>],
-		[specify CUDA installation directory (default is /usr/local/cuda/)])],
-		[
-			cuda_dir=$withval
-			# in case this was not explicit yet
-			enable_cuda=yes
-		], cuda_dir=/usr/local/cuda/)
+#AC_MSG_CHECKING(whether CUDA is available)
+AC_ARG_WITH(cuda-dir, 
+	[AS_HELP_STRING([--with-cuda-dir=<path>],
+	[specify CUDA installation directory (default is /usr/local/cuda/)])],
+	[
+		cuda_dir=$withval
+		# in case this was not explicit yet
+		enable_cuda=yes
+	], cuda_dir=/usr/local/cuda/)
 
+AC_ARG_WITH(cuda-include-dir, 
+	[AS_HELP_STRING([--with-cuda-include-dir=<path>],
+	[specify where CUDA headers are installed])],
+	[
+		cuda_include_dir=$withval
+		# in case this was not explicit yet
+		enable_cuda=yes
+	], [cuda_include_dir=no])
+
+AC_ARG_WITH(cuda-lib-dir, 
+	[AS_HELP_STRING([--with-cuda-lib-dir=<path>],
+	[specify where CUDA libraries are installed])],
+	[
+		cuda_lib_dir=$withval
+		# in case this was not explicit yet
+		enable_cuda=yes
+	], [cuda_lib_dir=no])
+
+
+if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	! test -d "$cuda_dir" && test -d "/c/cuda" && cuda_dir=/c/cuda
 	! test -d "$cuda_dir" && test -d "/cygdrive/c/cuda" && cuda_dir=/cygdrive/c/cuda
 
-	if test -d "$cuda_dir/include/"; then
-		CPPFLAGS="${CPPFLAGS} -I$cuda_dir/include/ "
-                STARPU_CUDA_CPPFLAGS="-I$cuda_dir/include/"
-		NVCCFLAGS="${NVCCFLAGS} -I$cuda_dir/include/ "
+	if test x$cuda_include_dir = xno; then
+		cuda_include_dir="$cuda_dir/include/"
+	fi
+
+	if test -d "$cuda_include_dir"; then
+		CPPFLAGS="${CPPFLAGS} -I$cuda_include_dir "
+                STARPU_CUDA_CPPFLAGS="-I$cuda_include_dir"
+		NVCCFLAGS="${NVCCFLAGS} -I$cuda_include_dir "
 	fi
 
 	# do we have a valid CUDA setup ?
@@ -203,16 +226,23 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	# restore it in case it's not working.
 	SAVED_LDFLAGS="${LDFLAGS}"
 
-	found_cudalib=no
-	if test -d "$cuda_dir/lib/"; then
-		LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib/ "
-                STARPU_CUDA_LDFLAGS="-L$cuda_dir/lib/"
-		AC_HAVE_LIBRARY([cuda],[found_cudalib=yes],[found_cudalib=no])
-	fi
-
-	if test x$found_cudalib=xno -a -d "$cuda_dir/lib64/"; then
-		LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib64/ "
-                STARPU_CUDA_LDFLAGS="-L$cuda_dir/lib64/"
+	if test x$cuda_lib_dir = xno; then
+		found_cudalib=no
+		if test -d "$cuda_dir/lib/"; then
+			LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib/ "
+	                STARPU_CUDA_LDFLAGS="-L$cuda_dir/lib/"
+			AC_HAVE_LIBRARY([cuda],[found_cudalib=yes],[found_cudalib=no])
+		fi
+	
+		if test x$found_cudalib=xno -a -d "$cuda_dir/lib64/"; then
+			LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib64/ "
+	                STARPU_CUDA_LDFLAGS="-L$cuda_dir/lib64/"
+		fi
+	else
+		if test -d "$cuda_lib_dir"; then
+			LDFLAGS="${LDFLAGS} -L$cuda_lib_dir "
+	                STARPU_CUDA_LDFLAGS="-L$cuda_lib_dir "
+		fi
 	fi
 
 	AC_HAVE_LIBRARY([cuda],[],[have_valid_cuda=no])
@@ -341,7 +371,10 @@ if test x$enable_cuda = xyes; then
 fi
 AC_MSG_CHECKING(whether CURAND is available)
 AC_MSG_RESULT($have_curand)
-AC_SUBST(STARPU_HAVE_CURAND, $have_curand) 
+if test x$have_curand = xyes; then
+AC_DEFINE(STARPU_HAVE_CURAND,[1], [CURAND is available])
+fi
+
 
 ###############################################################################
 #                                                                             #
