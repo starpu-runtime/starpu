@@ -1489,9 +1489,13 @@ Enable flags for the coverage tool.
 * --enable-maxcudadev::         
 * --disable-cuda::              
 * --with-cuda-dir::             
+* --with-cuda-include-dir::             
+* --with-cuda-lib-dir::             
 * --enable-maxopencldev::       
 * --disable-opencl::            
 * --with-opencl-dir::           
+* --with-opencl-include-dir::           
+* --with-opencl-lib-dir::           
 * --enable-gordon::             
 * --with-gordon-dir::           
 @end menu
@@ -1534,6 +1538,21 @@ Specify the directory where CUDA is installed. This directory should notably con
 @code{include/cuda.h}.
 @end table
 
+@node --with-cuda-include-dir
+@subsubsection @code{--with-cuda-include-dir=<path>}
+@table @asis
+@item @emph{Description}:
+Specify the directory where CUDA headers are installed. This directory should
+notably contain @code{cuda.h}.
+@end table
+
+@node --with-cuda-lib-dir
+@subsubsection @code{--with-cuda-lib-dir=<path>}
+@table @asis
+@item @emph{Description}:
+Specify the directory where the CUDA library is installed.
+@end table
+
 @node --enable-maxopencldev
 @subsubsection @code{--enable-maxopencldev=<number>}
 @table @asis
@@ -1554,6 +1573,22 @@ Disable the use of OpenCL, even if the SDK is detected.
 @table @asis
 @item @emph{Description}:
 Specify the location of the OpenCL SDK. This directory should notably contain
+@code{include/CL/cl.h}.
+@end table
+
+@node --with-opencl-include-dir
+@subsubsection @code{--with-opencl-include-dir=<path>}
+@table @asis
+@item @emph{Description}:
+Specify the location of OpenCL headers. This directory should notably contain
+@code{CL/cl.h}.
+@end table
+
+@node --with-opencl-lib-dir
+@subsubsection @code{--with-opencl-lib-dir=<path>}
+@table @asis
+@item @emph{Description}:
+Specify the location of the OpenCL library.
 @code{include/CL/cl.h}.
 @end table
 

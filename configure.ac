@@ -392,19 +392,42 @@ AC_DEFINE_UNQUOTED(STARPU_MAXOPENCLDEVS, [$nmaxopencldev],
 AC_ARG_ENABLE(opencl, [AS_HELP_STRING([--disable-opencl],
 		[do not use OpenCL device(s)])],, [enable_opencl=maybe])
 
-if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
-	#AC_MSG_CHECKING(whether OpenCL is available)
-	AC_ARG_WITH(opencl-dir, 
-		[AS_HELP_STRING([--with-opencl-dir=<path>],
-		[specify OpenCL installation directory (default is /usr/)])],
-		[
-			opencl_dir=$withval
-			# in case this was not explicit yet
-			enable_opencl=yes
-		], opencl_dir=/usr/)
+#AC_MSG_CHECKING(whether OpenCL is available)
+AC_ARG_WITH(opencl-dir, 
+	[AS_HELP_STRING([--with-opencl-dir=<path>],
+	[specify OpenCL installation directory (default is /usr/)])],
+	[
+		opencl_dir=$withval
+		# in case this was not explicit yet
+		enable_opencl=yes
+	], opencl_dir=/usr/)
+
+AC_ARG_WITH(opencl-include-dir, 
+	[AS_HELP_STRING([--with-opencl-include-dir=<path>],
+	[specify where OpenCL headers are installed])],
+	[
+		opencl_include_dir=$withval
+		# in case this was not explicit yet
+		enable_opencl=yes
+	], [opencl_include_dir=no])
+
+AC_ARG_WITH(opencl-lib-dir, 
+	[AS_HELP_STRING([--with-opencl-lib-dir=<path>],
+	[specify where OpenCL libraries are installed])],
+	[
+		opencl_lib_dir=$withval
+		# in case this was not explicit yet
+		enable_opencl=yes
+	], [opencl_lib_dir=no])
 	
-	if test -d "$opencl_dir/include/"; then
-		CPPFLAGS="${CPPFLAGS} -I$opencl_dir/include/ "
+if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
+
+	if test x$opencl_include_dir = xno; then
+		opencl_include_dir="$opencl_dir/include/"
+	fi
+
+	if test -d "$opencl_include_dir"; then
+		CPPFLAGS="${CPPFLAGS} -I$opencl_include_dir/ "
 	fi
 
 	# do we have a valid OpenCL setup ?
@@ -416,8 +439,13 @@ if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
 	# restore it in case it's not working.
 	SAVED_LDFLAGS="${LDFLAGS}"
 
-	if test -d "$opencl_dir/lib/"; then
-		LDFLAGS="${SAVED_LDFLAGS} -L$opencl_dir/lib/ "
+	if test x$opencl_lib_dir = xno; then
+		# Default location
+		opencl_lib_dir="$opencl_dir/lib/"
+	fi
+
+	if test -d "$opencl_lib_dir"; then
+		LDFLAGS="${SAVED_LDFLAGS} -L$opencl_lib_dir "
 	fi
 	AC_HAVE_LIBRARY([OpenCL],[],[have_valid_opencl=no])
 
