@@ -34,6 +34,7 @@ static int copy_ram_to_ram(void *src_interface, unsigned src_node __attribute__(
 #ifdef STARPU_USE_CUDA
 static int copy_ram_to_cuda(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)));
 static int copy_cuda_to_ram(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)));
+static int copy_cuda_to_cuda(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)));
 #endif
 #ifdef STARPU_USE_OPENCL
 static int copy_ram_to_opencl(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)));
@@ -46,12 +47,12 @@ static const struct starpu_data_copy_methods bcsr_copy_data_methods_s = {
 #ifdef STARPU_USE_CUDA
 	.ram_to_cuda = copy_ram_to_cuda,
 	.cuda_to_ram = copy_cuda_to_ram,
+	.cuda_to_cuda = copy_cuda_to_cuda,
 #endif
 #ifdef STARPU_USE_OPENCL
 	.ram_to_opencl = copy_ram_to_opencl,
 	.opencl_to_ram = copy_opencl_to_ram,
 #endif
-	.cuda_to_cuda = NULL,
 	.cuda_to_spu = NULL,
 	.spu_to_ram = NULL,
 	.spu_to_cuda = NULL,
@@ -410,7 +411,7 @@ static void free_bcsr_buffer_on_node(void *interface, uint32_t node)
 }
 
 #ifdef STARPU_USE_CUDA
-static int copy_cuda_to_ram(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
+static int copy_cuda_common(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)), enum cudaMemcpyKind kind)
 {
 	starpu_bcsr_interface_t *src_bcsr = src_interface;
 	starpu_bcsr_interface_t *dst_bcsr = dst_interface;
@@ -424,15 +425,15 @@ static int copy_cuda_to_ram(void *src_interface, unsigned src_node __attribute__
 
 	cudaError_t cures;
 
-	cures = cudaMemcpy((char *)dst_bcsr->nzval, (char *)src_bcsr->nzval, nnz*r*c*elemsize, cudaMemcpyDeviceToHost);
+	cures = cudaMemcpy((char *)dst_bcsr->nzval, (char *)src_bcsr->nzval, nnz*r*c*elemsize, kind);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
-	cures = cudaMemcpy((char *)dst_bcsr->colind, (char *)src_bcsr->colind, nnz*sizeof(uint32_t), cudaMemcpyDeviceToHost);
+	cures = cudaMemcpy((char *)dst_bcsr->colind, (char *)src_bcsr->colind, nnz*sizeof(uint32_t), kind);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
-	cures = cudaMemcpy((char *)dst_bcsr->rowptr, (char *)src_bcsr->rowptr, (nrow+1)*sizeof(uint32_t), cudaMemcpyDeviceToHost);
+	cures = cudaMemcpy((char *)dst_bcsr->rowptr, (char *)src_bcsr->rowptr, (nrow+1)*sizeof(uint32_t), kind);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
@@ -443,37 +444,19 @@ static int copy_cuda_to_ram(void *src_interface, unsigned src_node __attribute__
 	return 0;
 }
 
+static int copy_cuda_to_ram(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
+{
+	return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToHost);
+}
+
 static int copy_ram_to_cuda(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
 {
-	starpu_bcsr_interface_t *src_bcsr = src_interface;
-	starpu_bcsr_interface_t *dst_bcsr = dst_interface;
+	return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyHostToDevice);
+}
 
-	uint32_t nnz = src_bcsr->nnz;
-	uint32_t nrow = src_bcsr->nrow;
-	size_t elemsize = src_bcsr->elemsize;
-
-	uint32_t r = src_bcsr->r;
-	uint32_t c = src_bcsr->c;
-
-	cudaError_t cures;
-
-	cures = cudaMemcpy((char *)dst_bcsr->nzval, (char *)src_bcsr->nzval, nnz*r*c*elemsize, cudaMemcpyHostToDevice);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
-
-	cures = cudaMemcpy((char *)dst_bcsr->colind, (char *)src_bcsr->colind, nnz*sizeof(uint32_t), cudaMemcpyHostToDevice);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
-
-	cures = cudaMemcpy((char *)dst_bcsr->rowptr, (char *)src_bcsr->rowptr, (nrow+1)*sizeof(uint32_t), cudaMemcpyHostToDevice);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
-
-	cudaThreadSynchronize();
-
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*r*c*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
-
-	return 0;
+static int copy_cuda_to_cuda(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
+{
+	return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToDevice);
 }
 #endif // STARPU_USE_CUDA
 
