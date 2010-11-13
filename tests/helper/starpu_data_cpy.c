@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 	starpu_variable_data_register(&var1_handle, 0, (uintptr_t)&var1, sizeof(var1));
 	starpu_variable_data_register(&var2_handle, 0, (uintptr_t)&var2, sizeof(var2));
 
-	starpu_data_cpy(var2_handle, var1_handle, 0);
+	starpu_data_cpy(var2_handle, var1_handle, 0, NULL, NULL);
 
 	starpu_data_acquire(var2_handle, STARPU_R);
 	STARPU_ASSERT(var2 == 42);

@@ -164,7 +164,8 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
  * asynchronous call, it is possible to synchronize with the termination of
  * this operation either by the means of implicit dependencies (if enabled) or
  * by calling starpu_task_wait_for_all(). */
-int starpu_data_cpy(starpu_data_handle dst_handle, starpu_data_handle src_handle, int asynchronous);
+int starpu_data_cpy(starpu_data_handle dst_handle, starpu_data_handle src_handle,
+			int asynchronous, void (*callback_func)(void*), void *callback_arg);
 
 /* Constants used by the starpu_insert_task helper to determine the different types of argument */
 #define STARPU_VALUE		(1<<3)	/* Pointer to a constant value */
