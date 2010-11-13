@@ -129,6 +129,7 @@ check_PROGRAMS += 				\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
 	helper/cublas_init			\
+	helper/starpu_data_cpy			\
 	helper/pinned_memory			\
 	helper/execute_on_all			\
 	helper/starpu_create_sync_task		\
@@ -399,6 +400,11 @@ testbin_PROGRAMS +=				\
 	helper/cublas_init
 helper_cublas_init_SOURCES =			\
 	helper/cublas_init.c
+
+testbin_PROGRAMS +=				\
+	helper/starpu_data_cpy
+helper_starpu_data_cpy_SOURCES =		\
+	helper/starpu_data_cpy.c	
 
 testbin_PROGRAMS +=				\
 	helper/pinned_memory

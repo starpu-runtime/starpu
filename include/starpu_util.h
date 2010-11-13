@@ -159,6 +159,13 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps,
 				void (*callback)(void *), void *callback_arg);
 
+/* Copy the content of a handle into another handle. The last parameter
+ * indicates whether the function should be blocking or not. In the case of an
+ * asynchronous call, it is possible to synchronize with the termination of
+ * this operation either by the means of implicit dependencies (if enabled) or
+ * by calling starpu_task_wait_for_all(). */
+int starpu_data_cpy(starpu_data_handle dst_handle, starpu_data_handle src_handle, int asynchronous);
+
 /* Constants used by the starpu_insert_task helper to determine the different types of argument */
 #define STARPU_VALUE		(1<<3)	/* Pointer to a constant value */
 #define STARPU_CALLBACK		(1<<4)	/* Callback function */

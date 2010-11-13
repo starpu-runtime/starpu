@@ -168,6 +168,7 @@ libstarpu_la_SOURCES = 						\
 	util/starpu_create_sync_task.c				\
 	util/starpu_cublas.c					\
 	util/file.c						\
+	util/starpu_data_cpy.c					\
 	util/starpu_insert_task.c				\
 	util/starpu_task_list.c					\
 	debug/latency.c						\
