@@ -159,11 +159,13 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps,
 				void (*callback)(void *), void *callback_arg);
 
-/* Copy the content of a handle into another handle. The last parameter
- * indicates whether the function should be blocking or not. In the case of an
- * asynchronous call, it is possible to synchronize with the termination of
- * this operation either by the means of implicit dependencies (if enabled) or
- * by calling starpu_task_wait_for_all(). */
+/* Copy the content of the src_handle into the dst_handle handle.  The
+ * asynchronous parameter indicates whether the function should block or not.
+ * In the case of an asynchronous call, it is possible to synchronize with the
+ * termination of this operation either by the means of implicit dependencies
+ * (if enabled) or by calling starpu_task_wait_for_all(). If callback_func is
+ * not NULL, this callback function is executed after the handle has been
+ * copied, and it is given the callback_arg pointer as argument.*/
 int starpu_data_cpy(starpu_data_handle dst_handle, starpu_data_handle src_handle,
 			int asynchronous, void (*callback_func)(void*), void *callback_arg);
 

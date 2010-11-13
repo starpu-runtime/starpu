@@ -3636,8 +3636,27 @@ nothing yet.
 @section Miscellaneous helpers
 
 @menu
+* starpu_data_cpy::                Copy a data handle into another data handle
 * starpu_execute_on_each_worker::  Execute a function on a subset of workers
 @end menu
+
+@node starpu_data_cpy
+@subsection @code{starpu_data_cpy} -- Copy a data handle into another data handle
+@table @asis
+@item @emph{Description}:
+Copy the content of the @code{src_handle} into the @code{dst_handle} handle.
+The @code{asynchronous} parameter indicates whether the function should 
+block or not. In the case of an asynchronous call, it is possible to
+synchronize with the termination of this operation either by the means of
+implicit dependencies (if enabled) or by calling
+@code{starpu_task_wait_for_all()}. If @code{callback_func} is not @code{NULL},
+this callback function is executed after the handle has been copied, and it is
+given the @code{callback_arg} pointer as argument.
+@item @emph{Prototype}:
+@code{int starpu_data_cpy(starpu_data_handle dst_handle, starpu_data_handle src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);}
+@end table
+
+
 
 @node starpu_execute_on_each_worker
 @subsection @code{starpu_execute_on_each_worker} -- Execute a function on a subset of workers
