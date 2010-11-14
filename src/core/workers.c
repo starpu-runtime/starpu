@@ -419,7 +419,7 @@ void starpu_shutdown(void)
 	PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = UNINITIALIZED;
 	/* Let someone else that wants to initialize it again do it */
-	pthread_cond_signal(&init_cond);
+	PTHREAD_COND_SIGNAL(&init_cond);
 	PTHREAD_MUTEX_UNLOCK(&init_mutex);
 }
 

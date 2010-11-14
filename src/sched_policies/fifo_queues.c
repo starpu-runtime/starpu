@@ -54,7 +54,7 @@ int _starpu_fifo_push_prio_task(struct starpu_fifo_taskq_s *fifo_queue, pthread_
 	fifo_queue->ntasks++;
 	fifo_queue->nprocessed++;
 
-	pthread_cond_signal(sched_cond);
+	PTHREAD_COND_SIGNAL(sched_cond);
 	PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	return 0;
@@ -69,7 +69,7 @@ int _starpu_fifo_push_task(struct starpu_fifo_taskq_s *fifo_queue, pthread_mutex
 	fifo_queue->ntasks++;
 	fifo_queue->nprocessed++;
 
-	pthread_cond_signal(sched_cond);
+	PTHREAD_COND_SIGNAL(sched_cond);
 	PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	return 0;
