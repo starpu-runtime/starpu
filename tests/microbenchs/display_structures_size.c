@@ -16,24 +16,10 @@
 
 #include <starpu.h>
 #include <debug/starpu_debug_helpers.h>
-#include <common/config.h>
-#include <datawizard/coherency.h>
 
-void _starpu_benchmark_ping_pong(starpu_data_handle handle,
-			unsigned node0, unsigned node1, unsigned niter)
+int main(int argc, char **argv)
 {
-	/* We assume that no one is using that handle !! */
-	unsigned iter;
-	for (iter = 0; iter < niter; iter++)
-	{
-		int ret;
+	_starpu_debug_display_structures_size();
 
-		struct starpu_data_replicate_s *replicate_0 = &handle->per_node[node0];
-		ret = _starpu_fetch_data_on_node(handle, replicate_0, STARPU_RW, 0, NULL, NULL);
-		STARPU_ASSERT(!ret);
-
-		struct starpu_data_replicate_s *replicate_1 = &handle->per_node[node1];
-		ret = _starpu_fetch_data_on_node(handle, replicate_1, STARPU_RW, 0, NULL, NULL);
-		STARPU_ASSERT(!ret);
-	}
+	return 0;
 }

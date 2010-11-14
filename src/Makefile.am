@@ -97,6 +97,7 @@ noinst_HEADERS = 						\
 	drivers/cuda/driver_cuda.h				\
 	drivers/opencl/driver_opencl.h				\
 	drivers/opencl/driver_opencl_utils.h			\
+	debug/starpu_debug_helpers.h				\
 	profiling/bound.h					\
 	profiling/profiling.h
 
@@ -172,6 +173,7 @@ libstarpu_la_SOURCES = 						\
 	util/starpu_insert_task.c				\
 	util/starpu_task_list.c					\
 	debug/latency.c						\
+	debug/structures_size.c					\
 	profiling/profiling.c					\
 	profiling/bound.c					\
 	profiling/bus_profiling_helpers.c

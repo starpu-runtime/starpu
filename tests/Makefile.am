@@ -16,7 +16,7 @@
 
 AM_CFLAGS = $(HWLOC_CFLAGS)
 LIBS = $(top_builddir)/src/libstarpu.la $(HWLOC_LIBS) @LIBS@
-AM_CPPFLAGS = -I$(top_srcdir)/include/
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/src/
 
 EXTRA_DIST =					\
 	microbenchs/null_kernel_gordon.c	\
@@ -455,6 +455,11 @@ testbin_PROGRAMS +=				\
 	microbenchs/redundant_buffer
 microbenchs_redundant_buffer_SOURCES =		\
 	microbenchs/redundant_buffer.c
+
+testbin_PROGRAMS +=				\
+	microbenchs/display_structures_size
+microbenchs_display_structures_size_SOURCES =	\
+	microbenchs/display_structures_size.c
 
 testbin_PROGRAMS +=				\
 	microbenchs/local_pingpong
