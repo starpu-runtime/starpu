@@ -367,7 +367,7 @@ static void starpu_mpi_test_func(struct starpu_mpi_req_s *testing_req)
 
 	PTHREAD_MUTEX_LOCK(&testing_req->req_mutex);
 	testing_req->completed = 1;
-	pthread_cond_signal(&testing_req->req_cond);
+	PTHREAD_COND_SIGNAL(&testing_req->req_cond);
 	PTHREAD_MUTEX_UNLOCK(&testing_req->req_mutex);
         _STARPU_MPI_LOG_OUT();
 }
@@ -545,7 +545,7 @@ static unsigned progression_hook_func(void *arg __attribute__((unused)))
 	PTHREAD_MUTEX_LOCK(&mutex);
 	if (!starpu_mpi_req_list_empty(detached_requests))
 	{
-		pthread_cond_signal(&cond);
+		PTHREAD_COND_SIGNAL(&cond);
 		may_block = 0;
 	}
 	PTHREAD_MUTEX_UNLOCK(&mutex);
@@ -618,7 +618,7 @@ static void handle_new_request(struct starpu_mpi_req_s *req)
 		/* put the submitted request into the list of pending requests
 		 * so that it can be handled by the progression mechanisms */
 		PTHREAD_MUTEX_LOCK(&mutex);
-		pthread_cond_signal(&cond);
+		PTHREAD_COND_SIGNAL(&cond);
 		PTHREAD_MUTEX_UNLOCK(&mutex);
 	}
         _STARPU_MPI_LOG_OUT();
@@ -646,7 +646,7 @@ static void *progress_thread_func(void *arg)
 	/* notify the main thread that the progression thread is ready */
 	PTHREAD_MUTEX_LOCK(&mutex);
 	running = 1;
-	pthread_cond_signal(&cond);
+	PTHREAD_COND_SIGNAL(&cond);
 	PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	PTHREAD_MUTEX_LOCK(&mutex);

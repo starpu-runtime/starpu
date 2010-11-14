@@ -29,10 +29,10 @@ void callback(void *arg __attribute__((unused)))
 {
 	unsigned *received = arg;
 	
-	pthread_mutex_lock(&mutex);
+	PTHREAD_MUTEX_LOCK(&mutex);
 	*received = 1;
-	pthread_cond_signal(&cond);
-	pthread_mutex_unlock(&mutex);
+	PTHREAD_COND_SIGNAL(&cond);
+	PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
 

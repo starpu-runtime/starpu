@@ -30,10 +30,10 @@ void callback(void *arg __attribute__((unused)))
 {
 	unsigned *sent = arg;
 	
-	pthread_mutex_lock(&mutex);
+	PTHREAD_MUTEX_LOCK(&mutex);
 	*sent = 1;
-	pthread_cond_signal(&cond);
-	pthread_mutex_unlock(&mutex);
+	PTHREAD_COND_SIGNAL(&cond);
+	PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
 int main(int argc, char **argv)
