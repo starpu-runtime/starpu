@@ -15,6 +15,7 @@
  */
 
 #include <starpu_mpi.h>
+#include <common/utils.h>
 
 #define NITER	2048
 #define SIZE	16
@@ -77,10 +78,10 @@ int main(int argc, char **argv)
 			int received = 0;
 			starpu_mpi_irecv_detached(tab_handle, other_rank, loop, MPI_COMM_WORLD, callback, &received);
 
-			pthread_mutex_lock(&mutex);
+			PTHREAD_MUTEX_LOCK(&mutex);
 			while (!received)
-				pthread_cond_wait(&cond, &mutex);
-			pthread_mutex_unlock(&mutex);
+				PTHREAD_COND_WAIT(&cond, &mutex);
+			PTHREAD_MUTEX_UNLOCK(&mutex);
 		}
 	}
 	
