@@ -24,6 +24,7 @@
 
 /* TODO:
  * pthread_rwlock_*
+ * pthread_spinlock_*
  */
 
 #ifdef __cplusplus
@@ -78,16 +79,21 @@ static inline int pthread_attr_init (pthread_attr_t *attr) {
 
 #define PTHREAD_CREATE_DETACHED 1
 static inline int pthread_attr_setdetachstate (pthread_attr_t *attr, int yes) {
+  (void)attr;
+  (void)yes;
   /* not supported, ignore */
   return 0;
 }
 
 static inline int pthread_attr_setstacksize (pthread_attr_t *attr, size_t stacksize) {
+  (void)attr;
+  (void)stacksize;
   /* not supported, ignore */
   return 0;
 }
 
 static inline int pthread_attr_destroy (pthread_attr_t *attr) {
+  (void)attr;
   return 0;
 }
 
@@ -117,6 +123,8 @@ static inline int pthread_create (
 }
 
 static inline int pthread_setcancelstate (int state, int *oldstate) {
+  (void)state;
+  (void)oldstate;
   /* not yet implemented :( */
   return 0;
 }
@@ -158,6 +166,7 @@ again:
 #define PTHREAD_MUTEX_INITIALIZER NULL
 typedef HANDLE pthread_mutex_t;
 #define PTHREAD_MUTEX_RECURSIVE 1
+#define PTHREAD_MUTEX_ERRORCHECK 2
 typedef int pthread_mutexattr_t;
 
 static inline int pthread_mutexattr_init(pthread_mutexattr_t *attr) {
@@ -166,7 +175,7 @@ static inline int pthread_mutexattr_init(pthread_mutexattr_t *attr) {
 }
 
 static inline int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int type) {
-  if (type != PTHREAD_MUTEX_RECURSIVE)
+  if (type != PTHREAD_MUTEX_RECURSIVE && type != PTHREAD_MUTEX_ERRORCHECK)
     return EINVAL;
   *attr = type;
   return 0;
@@ -373,6 +382,7 @@ static inline int pthread_once (pthread_once_t *once, void (*oncefun)(void)) {
 }
 
 static inline int pthread_key_create (pthread_key_t *key, void (*freefun)(void *)) {
+  (void)freefun;
   DWORD res;
   winPthreadAssertWindows((res = TlsAlloc()) != 0xFFFFFFFF);
   *key = res;
