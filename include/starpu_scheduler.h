@@ -19,6 +19,7 @@
 
 #include <starpu.h>
 #include <starpu_config.h>
+#include <pthread.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
