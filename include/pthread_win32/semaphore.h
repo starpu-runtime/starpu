@@ -31,6 +31,7 @@
 typedef HANDLE sem_t;
 
 static inline int sem_init(sem_t *sem, int pshared, unsigned int value) {
+  (void)pshared;
   winPthreadAssertWindows(*sem = CreateSemaphore(NULL, value, MAXLONG, NULL));
   return 0;
 }
