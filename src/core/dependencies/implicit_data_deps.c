@@ -42,6 +42,17 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 
 	if (handle->sequential_consistency)
 	{
+		/* Skip tasks that are associated to a reduction phase so that
+		 * they do not interfere with the application. */
+		{
+			starpu_job_t pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
+			starpu_job_t post_sync_job = _starpu_get_job_associated_to_task(post_sync_task);
+		
+			if (pre_sync_job->reduction_task || post_sync_job->reduction_task)
+				return;
+		}
+	
+	
 		_STARPU_DEP_DEBUG("Tasks %p %p\n", pre_sync_task, post_sync_task);
 		/* In case we are generating the DAG, we add an implicit
 		 * dependency between the pre and the post sync tasks in case
