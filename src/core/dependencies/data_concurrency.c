@@ -30,19 +30,31 @@
  */
 
 /* the header lock must be taken by the caller */
-static unsigned may_unlock_data_req_list_head(starpu_data_handle handle,
-					starpu_data_requester_list_t req_list)
+static starpu_data_requester_t may_unlock_data_req_list_head(starpu_data_handle handle)
 {
+	starpu_data_requester_list_t req_list;
+
+	if (handle->reduction_refcnt > 0)
+	{
+		req_list = handle->reduction_req_list;
+	}
+	else {
+		if (starpu_data_requester_list_empty(handle->reduction_req_list))
+			req_list = handle->req_list;
+		else
+			req_list = handle->reduction_req_list;
+	}
+
 	/* if there is no one to unlock ... */
 	if (starpu_data_requester_list_empty(req_list))
-		return 0;
+		return NULL;
 
 	/* if there is no reference to the data anymore, we can use it */
 	if (handle->refcnt == 0)
-		return 1;
+		return starpu_data_requester_list_pop_front(req_list);
 
 	if (handle->current_mode == STARPU_W)
-		return 0;
+		return NULL;
 
 	/* data->current_mode == STARPU_R, so we can process more readers */
 	starpu_data_requester_t r = starpu_data_requester_list_front(req_list);
@@ -54,7 +66,10 @@ static unsigned may_unlock_data_req_list_head(starpu_data_handle handle,
 	/* If this is a STARPU_R, STARPU_SCRATCH or STARPU_REDUX type of
 	 * access, we only proceed if the cuurrent mode is the same as the
 	 * requested mode. */
-	return (r_mode == handle->current_mode);
+	if (r_mode == handle->current_mode)
+		return starpu_data_requester_list_pop_front(req_list);
+	else
+		return NULL;
 }
 
 /* Try to submit a data request, in case the request can be processed
@@ -257,14 +272,10 @@ void _starpu_notify_data_dependencies(starpu_data_handle handle)
 			starpu_data_end_reduction_mode_terminate(handle);
 	}
 
-	starpu_data_requester_list_t req_list =
-		(handle->reduction_refcnt > 0)?handle->reduction_req_list:handle->req_list;
 
-	while (may_unlock_data_req_list_head(handle, req_list))
+	starpu_data_requester_t r;
+	while ((r = may_unlock_data_req_list_head(handle)))
 	{
-		/* Grab the head of the requester list and unlock it. */
-		starpu_data_requester_t r = starpu_data_requester_list_pop_front(req_list);
-
 		/* STARPU_RW accesses are treated as STARPU_W */
 		starpu_access_mode r_mode = r->mode;
 		if (r_mode == STARPU_RW)
@@ -287,9 +298,7 @@ void _starpu_notify_data_dependencies(starpu_data_handle handle)
 		{
 			/* We need to put the request back because we must
 			 * perform a reduction before. */
-			starpu_data_requester_list_push_front(req_list, r);
-
-			req_list = handle->reduction_req_list;
+			starpu_data_requester_list_push_front(handle->req_list, r);
 		}
 		else {
 			/* The data is now attributed to that request so we put a
