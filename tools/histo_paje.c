@@ -75,28 +75,11 @@ void write_paje_header(FILE *file)
 	fprintf(file, "\%%	Container	string\n");
 	fprintf(file, "\%%	Value	string\n");
 	fprintf(file, "\%%EndEventDef\n");
-	fprintf(file, "\%%EventDef PajeSetState 101\n");
-	fprintf(file, "\%%	Time	date\n");
-	fprintf(file, "\%%	Type	string\n");
-	fprintf(file, "\%%	Container	string\n");
-	fprintf(file, "\%%	Value	string\n");
-	/* XXX that's a hack as we redefine Value ! this should be a secondary
-	 * field displayed by Vite or we should create a state for each type of
-	 * codelet */
-	fprintf(file, "\%%	Value	string\n");
-	fprintf(file, "\%%EndEventDef\n");
 	fprintf(file, "\%%EventDef	PajePushState	11\n");
 	fprintf(file, "\%%	Time	date\n");
 	fprintf(file, "\%%	Type	string\n");
 	fprintf(file, "\%%	Container	string\n");
 	fprintf(file, "\%%	Value	string\n");
-	fprintf(file, "\%%EndEventDef\n");
-	fprintf(file, "\%%EventDef	PajePushState	111\n");
-	fprintf(file, "\%%	Time	date\n");
-	fprintf(file, "\%%	Type	string\n");
-	fprintf(file, "\%%	Container	string\n");
-	fprintf(file, "\%%	Value	string\n");
-	fprintf(file, "\%%	Object	string\n");
 	fprintf(file, "\%%EndEventDef\n");
 	fprintf(file, "\%%EventDef	PajePopState	12\n");
 	fprintf(file, "\%%	Time	date\n");
@@ -121,24 +104,6 @@ void write_paje_header(FILE *file)
 	fprintf(file, "\%%	Container	string\n");
 	fprintf(file, "\%%	Value	double\n");
 	fprintf(file, "\%%EndEventDef\n");
-	fprintf(file, "\%%EventDef	PajeStartLink	16\n");
-	fprintf(file, "\%%	Time	date\n");
-	fprintf(file, "\%%	Type	string\n");
-	fprintf(file, "\%%	Container	string\n");
-	fprintf(file, "\%%	Value	string\n");
-	fprintf(file, "\%%	SourceContainer	string\n");
-	fprintf(file, "\%%	Key	string\n");
-	fprintf(file, "\%%	Size	int\n");
-	fprintf(file, "\%%EndEventDef\n");
-	fprintf(file, "\%%EventDef	PajeEndLink	17\n");
-	fprintf(file, "\%%	Time	date\n");
-	fprintf(file, "\%%	Type	string\n");
-	fprintf(file, "\%%	Container	string\n");
-	fprintf(file, "\%%	Value	string\n");
-	fprintf(file, "\%%	DestContainer	string\n");
-	fprintf(file, "\%%	Key	string\n");
-	fprintf(file, "\%%	Size	int\n");
-	fprintf(file, "\%%EndEventDef\n");
 	fprintf(file, "\%%EventDef	PajeStartLink	18\n");
 	fprintf(file, "\%%	Time	date\n");
 	fprintf(file, "\%%	Type	string\n");
@@ -155,22 +120,4 @@ void write_paje_header(FILE *file)
 	fprintf(file, "\%%	DestContainer	string\n");
 	fprintf(file, "\%%	Key	string\n");
 	fprintf(file, "\%%EndEventDef\n");
-	fprintf(file, "\%%EventDef       PajeNewEvent   22\n");
-	fprintf(file, "\%	Time	date\n");
-	fprintf(file, "\%	Type	string\n");
-	fprintf(file, "\%	Container	string\n");
-	fprintf(file, "\%	Value	string\n");
-	fprintf(file, "\%	EventName	string\n");
-	fprintf(file, "\%	EventNumber	string\n");
-	fprintf(file, "\%%EndEventDef\n");
-	fprintf(file, "\%%EventDef	PajeNewEvent   112\n");
-	fprintf(file, "\%%	Time	date\n");
-	fprintf(file, "\%%	Type	string\n");
-	fprintf(file, "\%%	Container	string\n");
-	fprintf(file, "\%%	Value	string\n");
-	fprintf(file, "\%%       ThreadName      string\n");
-	fprintf(file, "\%%       ThreadGroup     string\n");
-	fprintf(file, "\%%       ThreadParent    string\n");
-	fprintf(file, "\%%EndEventDef\n");
-
 }

@@ -338,7 +338,7 @@ static void handle_start_codelet_body(void)
 	{
 		create_paje_state_if_not_found(name);
 
-		fprintf(out_paje_file, "101       %f	S      %s%"PRIu64"      E	%s\n", start_codelet_time, prefix, ev.param[1], name);
+		fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev.param[1], name);
 	}
 	else {
 		fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      E\n", start_codelet_time, prefix, ev.param[1]);
