@@ -31,7 +31,7 @@
 #endif
 #endif
 
-#if defined(__MINGW32__) || defined(__CYGWIN__)
+#ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
 #endif
 		

@@ -25,6 +25,10 @@
 #include <core/workers.h>
 #include <datawizard/datawizard.h>
 
+#ifdef STARPU_HAVE_WINDOWS
+#include <windows.h>
+#endif
+		
 /* This flag indicates whether performance models should be calibrated or not.
  *	0: models need not be calibrated
  *	1: models must be calibrated

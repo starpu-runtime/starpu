@@ -27,6 +27,10 @@
 #include <core/perfmodel/regression.h>
 #include <common/config.h>
 
+#ifdef STARPU_HAVE_WINDOWS
+#include <windows.h>
+#endif
+		
 static pthread_rwlock_t registered_models_rwlock;
 static struct starpu_model_list_t *registered_models = NULL;
 
@@ -79,7 +83,11 @@ static void scan_history_entry(FILE *f, struct starpu_history_entry_t *entry)
 
 	_starpu_drop_comments(f);
 
-	res = fscanf(f, "%x\t%zu\t%le\t%le\t%le\t%le\t%u\n", &entry->footprint, &entry->size, &entry->mean, &entry->deviation, &entry->sum, &entry->sum2, &entry->nsample);
+	res = fscanf(f, "%x\t%"
+#ifndef STARPU_HAVE_WINDOWS
+	"z"
+#endif
+	"u\t%le\t%le\t%le\t%le\t%u\n", &entry->footprint, &entry->size, &entry->mean, &entry->deviation, &entry->sum, &entry->sum2, &entry->nsample);
 	STARPU_ASSERT(res == 7);
 }
 

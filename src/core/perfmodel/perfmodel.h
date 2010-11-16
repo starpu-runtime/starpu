@@ -59,7 +59,11 @@ struct starpu_history_entry_t {
 	unsigned nsample;
 
 	uint32_t footprint;
+#ifdef STARPU_HAVE_WINDOWS
+	unsigned size; /* in bytes */
+#else
 	size_t size; /* in bytes */
+#endif
 };
 
 struct starpu_history_list_t {

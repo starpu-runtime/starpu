@@ -20,6 +20,10 @@
 
 #include <common/fxt.h>
 
+#ifdef STARPU_HAVE_WINDOWS
+#include <windows.h>
+#endif
+		
 #define PROF_BUFFER_SIZE  (8*1024*1024)
 
 static char PROF_FILE_USER[128];

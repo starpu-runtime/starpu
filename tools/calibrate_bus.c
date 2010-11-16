@@ -15,6 +15,9 @@
  */
 
 #include <starpu.h>
+#ifdef __MINGW32__
+#include <windows.h>
+#endif
 
 int main(int argc, char **argv)
 {

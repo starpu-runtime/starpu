@@ -31,6 +31,10 @@
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
 
+#ifdef STARPU_HAVE_WINDOWS
+#include <windows.h>
+#endif
+		
 #define SIZE	(32*1024*1024*sizeof(char))
 #define NITER	128
 
