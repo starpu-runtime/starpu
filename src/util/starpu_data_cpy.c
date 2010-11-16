@@ -32,17 +32,14 @@ static void data_cpy_func(void *descr[], void *cl_arg)
 	switch (type) {
 		case STARPU_CPU_WORKER:
 			STARPU_ASSERT(copy_methods->ram_to_ram);
-			fprintf(stderr, "PROUT CPU\n");
 			copy_methods->ram_to_ram(src_interface, memory_node, dst_interface, memory_node);
 			break;
 		case STARPU_CUDA_WORKER:
 			STARPU_ASSERT(copy_methods->cuda_to_cuda);
-			fprintf(stderr, "PROUT CUDA\n");
 			copy_methods->cuda_to_cuda(src_interface, memory_node, dst_interface, memory_node);
 			break;
 		case STARPU_OPENCL_WORKER:
 			STARPU_ASSERT(copy_methods->opencl_to_opencl);
-			fprintf(stderr, "PROUT OPENCL\n");
 			copy_methods->opencl_to_opencl(src_interface, memory_node, dst_interface, memory_node);
 			break;
 		default:
