@@ -395,12 +395,12 @@ AC_ARG_ENABLE(opencl, [AS_HELP_STRING([--disable-opencl],
 #AC_MSG_CHECKING(whether OpenCL is available)
 AC_ARG_WITH(opencl-dir, 
 	[AS_HELP_STRING([--with-opencl-dir=<path>],
-	[specify OpenCL installation directory (default is /usr/)])],
+	[specify OpenCL installation directory (default is /usr)])],
 	[
 		opencl_dir=$withval
 		# in case this was not explicit yet
 		enable_opencl=yes
-	], opencl_dir=/usr/)
+	], opencl_dir=/usr)
 
 AC_ARG_WITH(opencl-include-dir, 
 	[AS_HELP_STRING([--with-opencl-include-dir=<path>],
@@ -423,11 +423,11 @@ AC_ARG_WITH(opencl-lib-dir,
 if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
 
 	if test x$opencl_include_dir = xno; then
-		opencl_include_dir="$opencl_dir/include/"
+		opencl_include_dir="$opencl_dir/include"
 	fi
 
-	if test -d "$opencl_include_dir"; then
-		CPPFLAGS="${CPPFLAGS} -I$opencl_include_dir/ "
+	if test -d "$opencl_include_dir" && test "$opencl_include_dir" != "/usr/include" ; then
+		CPPFLAGS="${CPPFLAGS} -I$opencl_include_dir "
 	fi
 
 	# do we have a valid OpenCL setup ?
