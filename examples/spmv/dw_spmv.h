@@ -17,11 +17,11 @@
 #ifndef __DW_SPARSE_CG_H__
 #define __DW_SPARSE_CG_H__
 
+#include <sys/types.h>
 #include <semaphore.h>
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
-#include <sys/types.h>
 #include <sys/time.h>
 #include <pthread.h>
 #include <signal.h>

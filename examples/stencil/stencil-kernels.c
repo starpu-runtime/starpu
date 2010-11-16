@@ -17,6 +17,29 @@
 #include "stencil.h"
 #include <sys/time.h>
 
+#ifndef timersub
+#define	timersub(x, y, res) \
+	do { \
+		(res)->tv_sec = (x)->tv_sec - (y)->tv_sec; \
+		(res)->tv_usec = (x)->tv_usec - (y)->tv_usec; \
+		if ((res)->tv_usec < 0) { \
+			(res)->tv_sec--; \
+			(res)->tv_usec += 1000000; \
+		} \
+	} while (0)
+#endif
+#ifndef timeradd
+#define	timeradd(x, y, res) \
+	do { \
+		(res)->tv_sec = (x)->tv_sec + (y)->tv_sec; \
+		(res)->tv_usec = (x)->tv_usec + (y)->tv_usec; \
+		if ((res)->tv_usec >= 1000000) { \
+			(res)->tv_sec++; \
+			(res)->tv_usec -= 1000000; \
+		} \
+	} while (0)
+#endif
+
 /* Computation Kernels */
 
 /*

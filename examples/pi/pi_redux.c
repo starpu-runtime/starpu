@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <starpu_config.h>
 
 #define PI	3.14159265358979323846
 
@@ -111,8 +112,8 @@ static void pi_func_cpu(void *descr[], void *cl_arg __attribute__ ((unused)))
 	int i;
 	for (i = 0; i < NSHOT_PER_TASK; i++)
 	{
-		float x = (float)(2.0*erand48(worker_xsub) - 1.0);
-		float y = (float)(2.0*erand48(worker_xsub) - 1.0);
+		float x = (float)(2.0*starpu_erand48(worker_xsub) - 1.0);
+		float y = (float)(2.0*starpu_erand48(worker_xsub) - 1.0);
 
 		float dist = x*x + y*y;
 		if (dist < 1.0)

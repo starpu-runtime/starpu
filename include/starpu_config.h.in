@@ -54,5 +54,6 @@
 
 #undef starpu_drand48
 #undef starpu_srand48
+#undef starpu_erand48
 
 #endif

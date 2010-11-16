@@ -97,9 +97,11 @@ AC_CHECK_FUNCS([memalign], [AC_DEFINE([STARPU_HAVE_MEMALIGN], [1], [Define to 1 
 # Some systems don't have drand48
 AC_CHECK_FUNCS([drand48],
   AC_DEFINE([starpu_srand48(seed)],[srand48(seed)],[srand48 equivalent function])
-  AC_DEFINE([starpu_drand48()],[drand48()],[drand48 equivalent function]),
+  AC_DEFINE([starpu_drand48()],[drand48()],[drand48 equivalent function])
+  AC_DEFINE([starpu_erand48(xsubi)],[erand48(xsubi)],[erand48 equivalent function]),
   AC_DEFINE([starpu_srand48(seed)],[srand(seed)],[srand48 equivalent function])
   AC_DEFINE([starpu_drand48()],[((double)(rand()) / RAND_MAX)],[drand48 equivalent function])
+  AC_DEFINE([starpu_erand48(xsubi)],[starpu_drand48()],[erand48 equivalent function])
 )
 
 AC_CHECK_HEADERS([malloc.h], [AC_DEFINE([STARPU_HAVE_MALLOC_H], [1], [Define to 1 if you have the <malloc.h> header file.])])

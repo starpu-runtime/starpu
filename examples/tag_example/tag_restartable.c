@@ -14,10 +14,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <sys/types.h>
 #include <semaphore.h>
 #include <string.h>
 #include <math.h>
-#include <sys/types.h>
 #include <pthread.h>
 #include <unistd.h>
 #include <signal.h>
