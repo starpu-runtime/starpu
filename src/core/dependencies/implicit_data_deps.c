@@ -158,6 +158,20 @@ static void _starpu_add_writer_after_writer(starpu_data_handle handle, struct st
 
 	handle->last_submitted_writer = post_sync_task;
 }
+
+static void disable_last_writer_callback(void *cl_arg)
+{
+	starpu_data_handle handle = cl_arg;
+	
+	/* NB: we don't take the handle->sequential_consistency_mutex mutex
+	 * because the empty task that is used for synchronization is going to
+	 * be unlock in the context of a call to
+	 * _starpu_detect_implicit_data_deps_with_handle. It will therefore
+	 * already have been locked. */
+	handle->last_submitted_writer = NULL;
+}
+
+
 /* This function adds the implicit task dependencies introduced by data
  * sequential consistency. Two tasks are provided: pre_sync and post_sync which
  * respectively indicates which task is going to depend on the previous deps
@@ -222,6 +236,29 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 			/* Add a reader, after a writer or a reader. */
 			STARPU_ASSERT(pre_sync_task);
 			STARPU_ASSERT(post_sync_task);
+
+			STARPU_ASSERT(mode & (STARPU_R|STARPU_REDUX));
+
+			if (!(previous_mode & STARPU_W) && (mode != previous_mode))
+			{
+				/* Read after Redux or Redux after Read: we
+				 * insert a dummy synchronization task so that
+				 * we don't need to have a gigantic number of
+				 * dependencies between all readers and all
+				 * redux tasks. */
+
+				/* Create an empty task */
+				struct starpu_task *new_sync_task;
+				new_sync_task = starpu_task_create();
+				STARPU_ASSERT(new_sync_task);
+				new_sync_task->cl = NULL;
+				new_sync_task->callback_func = disable_last_writer_callback;
+				new_sync_task->callback_arg = handle;
+				
+				_starpu_add_writer_after_readers(handle, new_sync_task, new_sync_task);
+
+				starpu_task_submit(new_sync_task);
+			}
 	
 			_starpu_add_reader_after_writer(handle, pre_sync_task, post_sync_task);
 		}
