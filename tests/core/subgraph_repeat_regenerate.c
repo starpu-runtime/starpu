@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <sys/time.h>
 #include <starpu.h>
 #include <pthread.h>
 
