@@ -282,9 +282,6 @@ void dot_kernel(starpu_data_handle v1,
 	ret = starpu_task_submit(task);
 	assert(!ret);
 
-	if (use_reduction)
-		starpu_task_wait_for_all();
-
 	unsigned b;
 	for (b = 0; b < nblocks; b++)
 	{
@@ -301,9 +298,6 @@ void dot_kernel(starpu_data_handle v1,
 		ret = starpu_task_submit(task);
 		assert(!ret);
 	}
-
-	if (use_reduction)
-		starpu_task_wait_for_all();
 }
 
 /*
@@ -432,9 +426,6 @@ void gemv_kernel(starpu_data_handle v1,
 
 	unsigned b1, b2;
 
-	if (use_reduction)
-		starpu_task_wait_for_all();
-
 	for (b2 = 0; b2 < nblocks; b2++)
 	{
 		struct starpu_task *task = starpu_task_create();
@@ -449,9 +440,6 @@ void gemv_kernel(starpu_data_handle v1,
 		ret = starpu_task_submit(task);
 		assert(!ret);
 	}
-
-	if (use_reduction)
-		starpu_task_wait_for_all();
 
 	for (b2 = 0; b2 < nblocks; b2++)
 	{
@@ -478,9 +466,6 @@ void gemv_kernel(starpu_data_handle v1,
 			assert(!ret);
 		}
 	}
-
-	if (use_reduction)
-		starpu_task_wait_for_all();
 }
 
 /*
