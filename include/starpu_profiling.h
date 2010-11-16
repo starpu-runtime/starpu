@@ -20,16 +20,6 @@
 #include <errno.h>
 #include <sys/time.h>
 
-#ifdef __MINGW32__
-#ifndef STARPU_TIMESPEC_DEFINED
-#define STARPU_TIMESPEC_DEFINED 1
-struct timespec {
-  time_t  tv_sec;  /* Seconds */
-  long    tv_nsec; /* Nanoseconds */
-};
-#endif /* STARPU_TIMESPEC_DEFINED */
-#endif
-
 #include <starpu.h>
 
 #ifdef __cplusplus
