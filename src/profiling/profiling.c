@@ -47,7 +47,7 @@ struct node_pair {
 static int busid_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
 static struct starpu_bus_profiling_info bus_profiling_info[STARPU_MAXNODES][STARPU_MAXNODES];
 static struct node_pair busid_to_node_pair[STARPU_MAXNODES*STARPU_MAXNODES]; 
-static int busid_cnt = 0;
+static unsigned busid_cnt = 0;
 
 static void _do_starpu_bus_reset_profiling_info(struct starpu_bus_profiling_info *bus_info);
 
