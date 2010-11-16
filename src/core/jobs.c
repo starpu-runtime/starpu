@@ -43,7 +43,7 @@ size_t _starpu_job_get_data_size(starpu_job_t j)
 }
 
 /* we need to identify each task to generate the DAG. */
-static unsigned long job_cnt = 0;
+static unsigned job_cnt = 0;
 
 void _starpu_exclude_task_from_dag(struct starpu_task *task)
 {
