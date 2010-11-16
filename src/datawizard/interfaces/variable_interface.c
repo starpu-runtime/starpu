@@ -323,7 +323,7 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node __attri
 		return 0;
 	}
 
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_vector->elemsize);
+	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_variable->elemsize);
 
 	return -EAGAIN;
 }
