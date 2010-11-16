@@ -42,7 +42,3 @@ include_HEADERS = 				\
 	include/starpu_profiling.h		\
 	include/starpu_bound.h			\
 	include/starpu_scheduler.h
-
-noinst_HEADERS = \
-	include/pthread_win32/pthread.h		\
-	include/pthread_win32/semaphore.h

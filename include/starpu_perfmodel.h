@@ -19,12 +19,7 @@
 
 #include <starpu_config.h>
 #include <stdio.h>
-#ifndef STARPU_HAVE_WINDOWS
 #include <pthread.h>
-#else
-#include <windows.h>
-#undef interface
-#endif
 #include <starpu.h>
 #include <starpu_task.h>
 
@@ -106,11 +101,7 @@ struct starpu_perfmodel_t {
 	unsigned is_loaded;
 	unsigned benchmarking;
 
-#ifndef STARPU_HAVE_WINDOWS
 	pthread_rwlock_t model_rwlock;
-#else
-	HANDLE model_rwlock;
-#endif
 };
 
 /* This function is intended to be used by external tools that should read the
