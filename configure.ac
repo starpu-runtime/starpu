@@ -70,9 +70,6 @@ case "${srcdir}" in
 esac
 
 AC_CHECK_LIB([pthread], [pthread_create])
-case "$target" in
-*-*-mingw*) CPPFLAGS+=" -I$PWD/include/pthread_win32 " ;;
-esac
 AC_COMPILE_IFELSE(
   AC_LANG_PROGRAM([[
     #include <pthread.h>
