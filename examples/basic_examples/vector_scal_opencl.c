@@ -26,7 +26,8 @@ extern struct starpu_opencl_program codelet;
 void scal_opencl_func(void *buffers[], void *_args)
 {
 	float *factor = _args;
-	int id, devid, err;
+	int id, devid;
+        cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
 
@@ -48,7 +49,16 @@ void scal_opencl_func(void *buffers[], void *_args)
 
 	{
 		size_t global=n;
-		size_t local=n;
+		size_t local;
+                size_t s;
+                cl_device_id device;
+
+                starpu_opencl_get_device(devid, &device);
+
+                err = clGetKernelWorkGroupInfo (kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, &s);
+                if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+                if (local > global) local=global;
+
 		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}
