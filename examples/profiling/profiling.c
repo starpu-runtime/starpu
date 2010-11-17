@@ -34,6 +34,7 @@ int main(int argc, char **argv)
 	starpu_init(NULL);
 
 	/* Enable profiling */
+	starpu_profiling_init();
 	starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
 
 	/* We should observe at least 500ms in the sleep time reported by every
