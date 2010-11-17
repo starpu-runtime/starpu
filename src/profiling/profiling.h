@@ -64,4 +64,7 @@ void _starpu_bus_update_profiling_info(int src_node, int dst_node, size_t size);
 void _starpu_profiling_set_task_push_start_time(struct starpu_task *task);
 void _starpu_profiling_set_task_push_end_time(struct starpu_task *task);
 
+/* This function needs to be called before other starpu_profile_* functions */
+void _starpu_profiling_init(void);
+
 #endif // __PROFILING_H__
