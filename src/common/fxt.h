@@ -287,11 +287,15 @@ do {										\
 #define STARPU_TRACE_END_MEMRECLAIM(memnode)		\
 	FUT_DO_PROBE2(STARPU_FUT_END_MEMRECLAIM, memnode, syscall(SYS_gettid));
 	
+/* We skip these events becasue they are called so often that they cause FxT to
+ * fail and make the overall trace unreadable anyway. */
 #define STARPU_TRACE_START_PROGRESS(memnode)		\
-	FUT_DO_PROBE2(STARPU_FUT_START_PROGRESS, memnode, syscall(SYS_gettid));
+	do {} while (0);
+//	FUT_DO_PROBE2(STARPU_FUT_START_PROGRESS, memnode, syscall(SYS_gettid));
 
 #define STARPU_TRACE_END_PROGRESS(memnode)		\
-	FUT_DO_PROBE2(STARPU_FUT_END_PROGRESS, memnode, syscall(SYS_gettid));
+	do {} while (0);
+	//FUT_DO_PROBE2(STARPU_FUT_END_PROGRESS, memnode, syscall(SYS_gettid));
 	
 #define STARPU_TRACE_USER_EVENT(code)			\
 	FUT_DO_PROBE2(STARPU_FUT_USER_EVENT, code, syscall(SYS_gettid));
