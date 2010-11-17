@@ -91,7 +91,7 @@ int starpu_profiling_status_get(void)
 	return profiling;
 }
 
-void starpu_profiling_init(void)
+void _starpu_profiling_init(void)
 {
 	int worker;
 	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)

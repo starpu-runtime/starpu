@@ -280,10 +280,8 @@ int main(int argc, char **argv)
 	if (bound)
 		starpu_bound_start(bounddeps, boundprio);
 
-	if (profile) {
-		starpu_profiling_init();
+	if (profile)
 		starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
-	}
 
 	/* Factorize the matrix (in place) */
 	if (pivot)

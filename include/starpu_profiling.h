@@ -75,9 +75,6 @@ struct starpu_bus_profiling_info {
 	int transfer_count;
 };
 
-/* This function needs to be called before other starpu_profile_* functions */
-int starpu_profiling_init(void);
-
 /* This function sets the profiling status:
  * - enable with STARPU_PROFILING_ENABLE
  * - disable with STARPU_PROFILING_DISABLE 
