@@ -56,10 +56,10 @@ int _starpu_opencl_locate_file(char *source_file_name, char *located_file_name) 
         return EXIT_FAILURE;
 }
 
-int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct starpu_opencl_program *opencl_programs,
-                              char *kernel_name, int devid)
+cl_int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct starpu_opencl_program *opencl_programs,
+                                 char *kernel_name, int devid)
 {
-        int err;
+        cl_int err;
 	cl_device_id device;
         cl_context context;
         cl_program program;
@@ -81,7 +81,7 @@ int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct
 	return CL_SUCCESS;
 }
 
-int starpu_opencl_release_kernel(cl_kernel kernel) {
+cl_int starpu_opencl_release_kernel(cl_kernel kernel) {
 	cl_int err;
 
 	err = clReleaseKernel(kernel);
@@ -169,7 +169,7 @@ int starpu_opencl_load_opencl_from_file(char *source_file_name, struct starpu_op
         return starpu_opencl_load_opencl_from_string(opencl_program_source, opencl_programs);
 }
 
-int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs)
+cl_int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs)
 {
         unsigned int dev;
         unsigned int nb_devices;
@@ -180,5 +180,5 @@ int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs)
                 if (opencl_programs->programs[dev])
                         clReleaseProgram(opencl_programs->programs[dev]);
         }
-        return EXIT_SUCCESS;
+        return CL_SUCCESS;
 }

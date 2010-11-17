@@ -35,30 +35,30 @@ extern
 unsigned _starpu_opencl_get_device_count(void);
 
 extern
-int _starpu_opencl_allocate_memory(void **addr, size_t size, cl_mem_flags flags);
+cl_int _starpu_opencl_allocate_memory(void **addr, size_t size, cl_mem_flags flags);
 
 extern
-int _starpu_opencl_copy_ram_to_opencl(void *ptr, cl_mem buffer, size_t size, size_t offset, cl_event *event);
+cl_int _starpu_opencl_copy_ram_to_opencl(void *ptr, cl_mem buffer, size_t size, size_t offset, cl_event *event);
 
 extern
-int _starpu_opencl_copy_opencl_to_ram(cl_mem buffer, void *ptr, size_t size, size_t offset, cl_event *event);
+cl_int _starpu_opencl_copy_opencl_to_ram(cl_mem buffer, void *ptr, size_t size, size_t offset, cl_event *event);
 
 extern
-int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, cl_mem buffer, size_t size, size_t offset, cl_event *event, int *ret);
+cl_int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, cl_mem buffer, size_t size, size_t offset, cl_event *event, int *ret);
 
 extern
-int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, void *ptr, size_t size, size_t offset, cl_event *event, int *ret);
+cl_int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, void *ptr, size_t size, size_t offset, cl_event *event, int *ret);
 
 #if 0
 extern
-int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, void *ptr, const size_t buffer_origin[3], const size_t host_origin[3],
-                                           const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
-                                           size_t host_row_pitch, size_t host_slice_pitch, cl_event *event);
+cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, void *ptr, const size_t buffer_origin[3], const size_t host_origin[3],
+                                              const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
+                                              size_t host_row_pitch, size_t host_slice_pitch, cl_event *event);
 
 extern
-int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, cl_mem buffer, const size_t buffer_origin[3], const size_t host_origin[3],
-                                           const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
-                                           size_t host_row_pitch, size_t host_slice_pitch, cl_event *event);
+cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, cl_mem buffer, const size_t buffer_origin[3], const size_t host_origin[3],
+                                              const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
+                                              size_t host_row_pitch, size_t host_slice_pitch, cl_event *event);
 #endif
 
 extern
