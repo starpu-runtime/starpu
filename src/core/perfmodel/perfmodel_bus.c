@@ -34,7 +34,7 @@
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
 #endif
-		
+
 #define SIZE	(32*1024*1024*sizeof(char))
 #define NITER	128
 
@@ -52,6 +52,7 @@ static unsigned was_benchmarked = 0;
 static unsigned ncpus = 0;
 static int ncuda = 0;
 static int nopencl = 0;
+static size_t opencl_size = SIZE;
 
 /* Benchmarking the performance of the bus */
 
@@ -161,6 +162,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 {
         cl_context context;
         cl_command_queue queue;
+        cl_int err=0;
 
         struct starpu_machine_config_s *config = _starpu_get_machine_config();
 	_starpu_bind_thread_on_cpu(config, cpu);
@@ -170,31 +172,35 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
         starpu_opencl_get_context(dev, &context);
         starpu_opencl_get_queue(dev, &queue);
 
+        /* Get the maximum size which can be allocated on the device */
+        cl_device_id device;
+	cl_ulong maxMemAllocSize;
+        starpu_opencl_get_device(dev, &device);
+	err = clGetDeviceInfo(device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(maxMemAllocSize), &maxMemAllocSize, NULL);
+        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+        if (opencl_size > maxMemAllocSize) opencl_size = maxMemAllocSize;
+
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
 
 	/* Allocate a buffer on the device */
-        int err;
 	cl_mem d_buffer;
-	d_buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, SIZE, NULL, &err);
+	d_buffer = clCreateBuffer(context, CL_MEM_READ_WRITE, opencl_size, NULL, &err);
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
-
         /* Allocate a buffer on the host */
 	unsigned char *h_buffer;
-        h_buffer = malloc(SIZE);
+        h_buffer = malloc(opencl_size);
 	assert(h_buffer);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
-
         /* Fill them */
-	memset(h_buffer, 0, SIZE);
-        err = clEnqueueWriteBuffer(queue, d_buffer, CL_TRUE, 0, SIZE, h_buffer, 0, NULL, NULL);
+	memset(h_buffer, 0, opencl_size);
+        err = clEnqueueWriteBuffer(queue, d_buffer, CL_TRUE, 0, opencl_size, h_buffer, 0, NULL, NULL);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
 
@@ -207,7 +213,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; iter++)
 	{
-                err = clEnqueueWriteBuffer(queue, d_buffer, CL_TRUE, 0, SIZE, h_buffer, 0, NULL, NULL);
+                err = clEnqueueWriteBuffer(queue, d_buffer, CL_TRUE, 0, opencl_size, h_buffer, 0, NULL, NULL);
                 if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}
 	gettimeofday(&end, NULL);
@@ -219,7 +225,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; iter++)
 	{
-                err = clEnqueueReadBuffer(queue, d_buffer, CL_TRUE, 0, SIZE, h_buffer, 0, NULL, NULL);
+                err = clEnqueueReadBuffer(queue, d_buffer, CL_TRUE, 0, opencl_size, h_buffer, 0, NULL, NULL);
                 if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}
 	gettimeofday(&end, NULL);
@@ -841,21 +847,22 @@ static void write_bus_bandwidth_file_content(void)
 			else if (src != dst)
 			{
                                 double time_src_to_ram=0.0, time_ram_to_dst=0.0;
+                                double timing;
                                 /* Bandwidth = (SIZE)/(time i -> ram + time ram -> j)*/
 #ifdef STARPU_USE_CUDA
 				time_src_to_ram = (src==0)?0.0:cudadev_timing_dtoh[src];
                                 time_ram_to_dst = (dst==0)?0.0:cudadev_timing_htod[dst];
+				timing =time_src_to_ram + time_ram_to_dst;
+				bandwidth = 1.0*SIZE/timing;
 #endif
 #ifdef STARPU_USE_OPENCL
                                 if (src > ncuda)
                                         time_src_to_ram = (src==0)?0.0:opencldev_timing_dtoh[src-ncuda];
                                 if (dst > ncuda)
                                         time_ram_to_dst = (dst==0)?0.0:opencldev_timing_htod[dst-ncuda];
+				timing =time_src_to_ram + time_ram_to_dst;
+				bandwidth = 1.0*opencl_size/timing;
 #endif
-
-				double timing =time_src_to_ram + time_ram_to_dst;
-
-				bandwidth = 1.0*SIZE/timing;
 			}
 #endif
 			else {
