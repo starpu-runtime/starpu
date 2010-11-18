@@ -38,7 +38,14 @@ void opencl_codelet(void *descr[], void *_args)
 
 	{
 		size_t global=4;
-		size_t local=4;
+		size_t local, s;
+                cl_device_id device;
+
+                starpu_opencl_get_device(devid, &device);
+                err = clGetKernelWorkGroupInfo (kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, &s);
+                if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+                if (local > global) local=global;
+
 		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}
