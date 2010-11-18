@@ -178,7 +178,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
         starpu_opencl_get_device(dev, &device);
 	err = clGetDeviceInfo(device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(maxMemAllocSize), &maxMemAllocSize, NULL);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-        if (opencl_size > maxMemAllocSize) opencl_size = maxMemAllocSize;
+        if (opencl_size > (size_t)maxMemAllocSize) opencl_size = maxMemAllocSize;
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
