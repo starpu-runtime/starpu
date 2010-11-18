@@ -103,6 +103,7 @@ cl_int _starpu_opencl_init_context(int devid)
         _STARPU_DEBUG("Initialising context for dev %d\n", devid);
 
         // Create a compute context
+	err = 0;
         contexts[devid] = clCreateContext(NULL, 1, &devices[devid], NULL, NULL, &err);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -163,9 +164,10 @@ cl_int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, cl_mem buffer, si
                 return CL_SUCCESS;
         }
         else {
-                if (event != NULL)
+                if (event != NULL) {
                         /* The asynchronous copy has failed, try to copy synchronously */
                         err = clEnqueueWriteBuffer(queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
+                }
                 if (STARPU_LIKELY(err == CL_SUCCESS)) {
                         *ret = 0;
                         return CL_SUCCESS;
@@ -292,8 +294,10 @@ void _starpu_opencl_init(void)
 #ifdef STARPU_VERBOSE
                                 {
                                         char name[1024], vendor[1024];
-                                        clGetPlatformInfo(platform_id[i], CL_PLATFORM_NAME, 1024, name, NULL);
-                                        clGetPlatformInfo(platform_id[i], CL_PLATFORM_VENDOR, 1024, vendor, NULL);
+                                        err = clGetPlatformInfo(platform_id[i], CL_PLATFORM_NAME, 1024, name, NULL);
+                                        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+                                        err = clGetPlatformInfo(platform_id[i], CL_PLATFORM_VENDOR, 1024, vendor, NULL);
+                                        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
                                         _STARPU_DEBUG("Platform: %s - %s\n", name, vendor);
                                 }
 #endif
