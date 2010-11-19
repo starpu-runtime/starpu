@@ -610,13 +610,13 @@ scheduler_dummy_sched_SOURCES =			\
 #######################
 
 check_PROGRAMS +=				\
-	dot_product/dot_product
+	reductions/dot_product
 
 examplebin_PROGRAMS +=				\
-	dot_product/dot_product
+	reductions/dot_product
 
-dot_product_dot_product_SOURCES =		\
-	dot_product/dot_product.c
+reductions_dot_product_SOURCES =		\
+	reductions/dot_product.c
 
 #####################
 # Min/Max reduction #
