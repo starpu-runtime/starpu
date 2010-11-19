@@ -19,7 +19,6 @@ LIBS = $(top_builddir)/src/libstarpu.la $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
 
 TESTS	=	$(check_PROGRAMS)
-TESTS	+=	coverage/coverage.sh
 
 SUBDIRS = stencil
 

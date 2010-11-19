@@ -75,7 +75,8 @@ testbin_PROGRAMS =
 
 SUBDIRS = 
 
-TESTS = $(check_PROGRAMS)
+TESTS = $(check_PROGRAMS)			\
+	coverage/coverage.sh
 
 check_PROGRAMS =
 
