@@ -69,9 +69,6 @@ void minmax_redux_cpu_func(void *descr[], void *cl_arg)
 
 	array_dst[0] = STARPU_MIN(min_dst, min_src);
 	array_dst[1] = STARPU_MAX(max_dst, max_src);
-
-//	fprintf(stderr, "REDUX: Min(%e,%e) = %e\n", min_dst, min_src, array_dst[0]);
-//	fprintf(stderr, "REDUX: Max(%e,%e) = %e\n", max_dst, max_src, array_dst[1]);
 }
 
 static struct starpu_codelet_t minmax_redux_codelet = {
@@ -104,9 +101,6 @@ void minmax_cpu_func(void *descr[], void *cl_arg)
 		local_max = STARPU_MAX(local_max, val);
 	}
 
-//	fprintf(stderr, "AFTER local min: %e was %e\n", local_min, minmax[0]);
-//	fprintf(stderr, "AFTER local max: %e was %e\n", local_max, minmax[1]);
-
 	minmax[0] = local_min;
 	minmax[1] = local_max;
 }
@@ -123,6 +117,8 @@ static struct starpu_codelet_t minmax_codelet = {
 
 int main(int argc, char **argv)
 {
+	unsigned long i;
+
 	starpu_init(NULL);
 
 	unsigned long nelems = nblocks*entries_per_bock;
@@ -130,12 +126,11 @@ int main(int argc, char **argv)
 
 	x = malloc(size);
 	x_handles = calloc(nblocks, sizeof(starpu_data_handle));
-
-	assert(x);
-
-        starpu_srand48(0);
 	
-	unsigned long i;
+	assert(x && x_handles);
+
+	/* Initialize the vector with random values */
+        starpu_srand48(0);
 	for (i = 0; i < nelems; i++)
 		x[i] = (TYPE)starpu_drand48();
 	
@@ -171,7 +166,12 @@ int main(int argc, char **argv)
 		task->buffers[1].mode = STARPU_REDUX;
 
 		int ret = starpu_task_submit(task);
-		STARPU_ASSERT(!ret);
+		if (ret)
+		{
+			STARPU_ASSERT(ret == -ENODEV);
+			fprintf(stderr, "This test can only run on CPUs, but there are no CPU workers (this is not a bug).\n");
+			return 0;
+		}
 	}
 
 	starpu_data_unregister(minmax_handle);
