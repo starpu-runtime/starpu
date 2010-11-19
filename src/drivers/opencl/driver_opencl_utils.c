@@ -96,6 +96,8 @@ char *_starpu_opencl_load_program_source(const char *filename)
         struct stat statbuf;
         FILE        *fh;
         char        *source;
+        int         x;
+        char        c;
 
         fh = fopen(filename, "r");
         if (fh == 0)
@@ -103,8 +105,14 @@ char *_starpu_opencl_load_program_source(const char *filename)
 
         stat(filename, &statbuf);
         source = (char *) malloc(statbuf.st_size + 1);
-        fread(source, statbuf.st_size, 1, fh);
-        source[statbuf.st_size] = '\0';
+
+        for(c=fgetc(fh), x=0 ; c != EOF ; c = fgetc(fh), x++) {
+          source[x] = c;
+        }
+        source[x] = '\0';
+
+
+        _STARPU_DEBUG("OpenCL codelet <%s>\n", source);
 
         fclose(fh);
 
