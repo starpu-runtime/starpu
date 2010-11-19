@@ -1,0 +1,187 @@
+/*
+ * StarPU
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+#include <assert.h>
+#include <float.h>
+#include <limits.h>
+#include <starpu.h>
+
+static unsigned nblocks = 4096;
+static unsigned entries_per_bock = 1024;
+
+#define TYPE		double
+#define TYPE_MAX	DBL_MAX
+#define TYPE_MIN	DBL_MIN
+
+static TYPE *x;
+static starpu_data_handle *x_handles;
+
+static TYPE minmax[2];
+static starpu_data_handle minmax_handle;
+
+/*
+ *	Codelet to create a neutral element
+ */
+
+static void minmax_neutral_cpu_func(void *descr[], void *cl_arg)
+{
+	TYPE *array = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
+
+	/* current min */
+	array[0] = TYPE_MAX;
+
+	/* current max */
+	array[1] = TYPE_MIN;
+}
+
+static struct starpu_codelet_t minmax_init_codelet = {
+	.where = STARPU_CPU,
+	.cpu_func = minmax_neutral_cpu_func,
+	.nbuffers = 1
+};
+
+/*
+ *	Codelet to perform the reduction of two elements
+ */
+
+void minmax_redux_cpu_func(void *descr[], void *cl_arg)
+{
+	TYPE *array_dst = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	TYPE *array_src = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[1]);
+
+	TYPE min_dst = array_dst[0];
+	TYPE min_src = array_src[0];
+	TYPE max_dst = array_dst[1];
+	TYPE max_src = array_src[1];
+
+	array_dst[0] = STARPU_MIN(min_dst, min_src);
+	array_dst[1] = STARPU_MAX(max_dst, max_src);
+
+//	fprintf(stderr, "REDUX: Min(%e,%e) = %e\n", min_dst, min_src, array_dst[0]);
+//	fprintf(stderr, "REDUX: Max(%e,%e) = %e\n", max_dst, max_src, array_dst[1]);
+}
+
+static struct starpu_codelet_t minmax_redux_codelet = {
+	.where = STARPU_CPU,
+	.cpu_func = minmax_redux_cpu_func,
+	.nbuffers = 2
+};
+
+/*
+ *	Compute max/min within a vector and update the min/max value
+ */
+
+void minmax_cpu_func(void *descr[], void *cl_arg)
+{
+	/* The array containing the values */
+	TYPE *local_array = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
+	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+
+	TYPE *minmax = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[1]);
+
+	TYPE local_min = minmax[0];
+	TYPE local_max = minmax[1];
+
+	/* Compute the min and the max elements in the array */
+	unsigned i;
+	for (i = 0; i < n; i++)
+	{
+		TYPE val = local_array[i];
+		local_min = STARPU_MIN(local_min, val);
+		local_max = STARPU_MAX(local_max, val);
+	}
+
+//	fprintf(stderr, "AFTER local min: %e was %e\n", local_min, minmax[0]);
+//	fprintf(stderr, "AFTER local max: %e was %e\n", local_max, minmax[1]);
+
+	minmax[0] = local_min;
+	minmax[1] = local_max;
+}
+
+static struct starpu_codelet_t minmax_codelet = {
+	.where = STARPU_CPU,
+	.cpu_func = minmax_cpu_func,
+	.nbuffers = 2
+};
+
+/*
+ *	Tasks initialization
+ */
+
+int main(int argc, char **argv)
+{
+	starpu_init(NULL);
+
+	unsigned long nelems = nblocks*entries_per_bock;
+	size_t size = nelems*sizeof(TYPE);
+
+	x = malloc(size);
+	x_handles = calloc(nblocks, sizeof(starpu_data_handle));
+
+	assert(x);
+
+        starpu_srand48(0);
+	
+	unsigned long i;
+	for (i = 0; i < nelems; i++)
+		x[i] = (TYPE)starpu_drand48();
+	
+	unsigned block;
+	for (block = 0; block < nblocks; block++)
+	{
+		starpu_vector_data_register(&x_handles[block], 0,
+			(uintptr_t)&x[entries_per_bock*block], entries_per_bock, sizeof(TYPE));
+	}
+
+	/* Initialize current min */
+	minmax[0] = TYPE_MAX;
+
+	/* Initialize current max */
+	minmax[1] = TYPE_MIN;
+
+	starpu_variable_data_register(&minmax_handle, 0, (uintptr_t)minmax, 2*sizeof(TYPE));
+
+	/*
+	 *	Compute dot product with StarPU
+	 */
+	starpu_data_set_reduction_methods(minmax_handle, &minmax_redux_codelet, &minmax_init_codelet);
+
+	for (block = 0; block < nblocks; block++)
+	{
+		struct starpu_task *task = starpu_task_create();
+
+		task->cl = &minmax_codelet;
+
+		task->buffers[0].handle = x_handles[block];
+		task->buffers[0].mode = STARPU_R;
+		task->buffers[1].handle = minmax_handle;
+		task->buffers[1].mode = STARPU_REDUX;
+
+		int ret = starpu_task_submit(task);
+		STARPU_ASSERT(!ret);
+	}
+
+	starpu_data_unregister(minmax_handle);
+
+	fprintf(stderr, "Min : %e\n", minmax[0]);
+	fprintf(stderr, "Max : %e\n", minmax[1]);
+
+	STARPU_ASSERT(minmax[0] <= minmax[1]);
+
+	starpu_shutdown();
+
+	return 0;
+}

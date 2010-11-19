@@ -617,3 +617,16 @@ examplebin_PROGRAMS +=				\
 
 dot_product_dot_product_SOURCES =		\
 	dot_product/dot_product.c
+
+#####################
+# Min/Max reduction #
+#####################
+
+check_PROGRAMS +=				\
+	reductions/minmax_reduction
+
+examplebin_PROGRAMS +=				\
+	reductions/minmax_reduction
+
+reductions_minmax_reduction_SOURCES =		\
+	reductions/minmax_reduction.c
