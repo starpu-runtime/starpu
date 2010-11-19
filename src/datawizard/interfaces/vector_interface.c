@@ -308,8 +308,6 @@ static int copy_cuda_common(void *src_interface, unsigned src_node __attribute__
 
 	cudaError_t cures;
 	cures = cudaMemcpy((char *)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize, kind);
-	cudaThreadSynchronize();
-
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
@@ -350,8 +348,6 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node __attri
 	{
 		/* do it in a synchronous fashion */
 		cures = cudaMemcpy((char *)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize, kind);
-		cudaThreadSynchronize();
-
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 

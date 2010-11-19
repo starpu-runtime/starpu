@@ -406,11 +406,6 @@ static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node __attri
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 
-		cures = cudaThreadSynchronize();
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
-		
-
 		return 0;
 	}
 
@@ -436,7 +431,6 @@ static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node __attri
 		cures = cudaMemcpy2D((char *)dst_matrix->ptr, dst_matrix->ld*elemsize,
 				(char *)src_matrix->ptr, src_matrix->ld*elemsize,
 				src_matrix->nx*elemsize, src_matrix->ny, cudaMemcpyHostToDevice);
-		cudaThreadSynchronize();
 
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);

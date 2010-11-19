@@ -437,8 +437,6 @@ static int copy_cuda_common(void *src_interface, unsigned src_node __attribute__
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
-	cudaThreadSynchronize();
-
 	STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*r*c*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
 
 	return 0;

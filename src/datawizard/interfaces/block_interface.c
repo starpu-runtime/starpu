@@ -429,8 +429,6 @@ static int copy_cuda_common(void *src_interface, unsigned src_node __attribute__
 		}
 	}
 
-	cudaThreadSynchronize();
-
 	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->elemsize*src_block->elemsize);
 
 	return 0;
@@ -465,7 +463,6 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node __attri
 					nx*ny*nz*elemsize, kind);
 				if (STARPU_UNLIKELY(cures))
 					STARPU_CUDA_REPORT_ERROR(cures);
-				cudaThreadSynchronize();
 
 				ret = 0;
 			}
@@ -486,7 +483,6 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node __attri
 						nx*ny*elemsize, nz, kind);
 				if (STARPU_UNLIKELY(cures))
 					STARPU_CUDA_REPORT_ERROR(cures);
-				cudaThreadSynchronize();
 
 				ret = 0;
 			}
@@ -539,7 +535,6 @@ no_async_default:
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}
-	cudaThreadSynchronize();
 
 	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_block->nx*src_block->ny*src_block->nz*src_block->elemsize);
 	return 0;
