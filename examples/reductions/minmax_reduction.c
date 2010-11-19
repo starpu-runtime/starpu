@@ -19,7 +19,7 @@
 #include <limits.h>
 #include <starpu.h>
 
-static unsigned nblocks = 4096;
+static unsigned nblocks = 8192;
 static unsigned entries_per_bock = 1024;
 
 #define TYPE		double
@@ -29,6 +29,7 @@ static unsigned entries_per_bock = 1024;
 static TYPE *x;
 static starpu_data_handle *x_handles;
 
+/* The first element (resp. second) stores the min element (resp. max). */
 static TYPE minmax[2];
 static starpu_data_handle minmax_handle;
 
@@ -40,10 +41,10 @@ static void minmax_neutral_cpu_func(void *descr[], void *cl_arg)
 {
 	TYPE *array = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
-	/* current min */
+	/* Initialize current min to the greatest possible value. */
 	array[0] = TYPE_MAX;
 
-	/* current max */
+	/* Initialize current max to the smallest possible value. */
 	array[1] = TYPE_MIN;
 }
 
@@ -62,12 +63,14 @@ void minmax_redux_cpu_func(void *descr[], void *cl_arg)
 	TYPE *array_dst = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	TYPE *array_src = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
+	/* Compute the min value */
 	TYPE min_dst = array_dst[0];
 	TYPE min_src = array_src[0];
+	array_dst[0] = STARPU_MIN(min_dst, min_src);
+
+	/* Compute the max value */
 	TYPE max_dst = array_dst[1];
 	TYPE max_src = array_src[1];
-
-	array_dst[0] = STARPU_MIN(min_dst, min_src);
 	array_dst[1] = STARPU_MAX(max_dst, max_src);
 }
 
@@ -137,8 +140,9 @@ int main(int argc, char **argv)
 	unsigned block;
 	for (block = 0; block < nblocks; block++)
 	{
-		starpu_vector_data_register(&x_handles[block], 0,
-			(uintptr_t)&x[entries_per_bock*block], entries_per_bock, sizeof(TYPE));
+		uintptr_t block_start = (uintptr_t)&x[entries_per_bock*block];
+		starpu_vector_data_register(&x_handles[block], 0, block_start,
+						entries_per_bock, sizeof(TYPE));
 	}
 
 	/* Initialize current min */
@@ -149,9 +153,7 @@ int main(int argc, char **argv)
 
 	starpu_variable_data_register(&minmax_handle, 0, (uintptr_t)minmax, 2*sizeof(TYPE));
 
-	/*
-	 *	Compute dot product with StarPU
-	 */
+	/* Set the methods to define neutral elements and to perform the reduction operation */
 	starpu_data_set_reduction_methods(minmax_handle, &minmax_redux_codelet, &minmax_init_codelet);
 
 	for (block = 0; block < nblocks; block++)
