@@ -21,7 +21,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/src/
 EXTRA_DIST =					\
 	microbenchs/null_kernel_gordon.c	\
 	datawizard/sync_and_notify_data_gordon_kernels.c \
-	datawizard/sync_and_notify_data_opencl_codelet.cl
+	datawizard/sync_and_notify_data_opencl_codelet.cl\
+	coverage/coverage.sh
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo		\

@@ -53,8 +53,7 @@ EXTRA_DIST = 					\
 	basic_examples/variable_kernels_opencl_codelet.cl	\
 	matvecmult/matvecmult_kernel.cl				\
 	basic_examples/block_opencl_kernel.cl			\
-	filters/fblock_opencl_codelet.cl			\
-	coverage/coverage.sh
+	filters/fblock_opencl_codelet.cl
 
 CLEANFILES = 					\
 	gordon/null_kernel_gordon.spuelf	\
@@ -65,15 +64,10 @@ CLEANFILES += *.gcno *.gcda *.linkinfo
 
 if STARPU_USE_CUDA
 
-NVCCFLAGS += $(HWLOC_CFLAGS)
-
-.cu.cubin:
-	$(MKDIR_P) `dirname $@`
-	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
+NVCCFLAGS += --compiler-options -fno-strict-aliasing  $(HWLOC_CFLAGS) -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_srcdir)/examples/
 
 .cu.o:
-	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I$(top_srcdir)/include/ -I$(top_builddir)/include/
-
+	$(NVCC) $< -c -o $@ $(NVCCFLAGS)
 
 endif
 

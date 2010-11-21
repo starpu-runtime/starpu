@@ -976,8 +976,8 @@ if test x$have_f77_h = xyes; then
         AC_DEFINE([STARPU_HAVE_F77_H], [1], [Define to 1 if you have the <f77.h> header file.])
 fi
 
-AC_CONFIG_COMMANDS([executable-scripts], [chmod +x ]tests/regression/regression.sh tests/coverage/coverage_test.sh)
-AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only tests/coverage/coverage_test.sh)
+AC_CONFIG_COMMANDS([executable-scripts], [chmod +x ]tests/regression/regression.sh)
+AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
 AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h)
 
 AC_OUTPUT([
