@@ -166,6 +166,13 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 		return -EAGAIN;
 	}
 
+	if (calibrate_model)
+	{
+		cudaError_t cures = cudaThreadSynchronize();
+		if (STARPU_UNLIKELY(cures))
+			STARPU_CUDA_REPORT_ERROR(cures);
+	}
+
 	STARPU_TRACE_START_CODELET_BODY(j);
 
 	struct starpu_task_profiling_info *profiling_info;
