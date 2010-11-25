@@ -1,4 +1,5 @@
-:
+#!/bin/sh
+
 if ! libtool --version > /dev/null
 then
 	echo "Libtool is missing, please install it."
