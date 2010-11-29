@@ -2307,7 +2307,7 @@ This datatype describes a data access mode. The different available modes are:
 @item @code{STARPU_R} read-only mode.
 @item @code{STARPU_W} write-only mode.
 @item @code{STARPU_RW} read-write mode. This is equivalent to @code{STARPU_R|STARPU_W}.
-@item @code{STARPU_SCRATCH} scratch memory. A temporary buffer is allocated for the task, but StarPU does not enforce data consistency, i.e. each device has its own buffer, independently from each other. This is useful for temporary variables.
+@item @code{STARPU_SCRATCH} scratch memory. A temporary buffer is allocated for the task, but StarPU does not enforce data consistency, i.e. each device has its own buffer, independently from each other (even for CPUs). This is useful for temporary variables. For now, no behavior is defined concerning the relation with STARPU_R/W modes and the value provided at registration, but this is being considered for future extensions.
 @end table
 @end table
 
