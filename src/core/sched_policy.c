@@ -231,7 +231,7 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 			_starpu_prefetch_task_input_on_node(task, memory_node);
 		}
 
-		ret = _starpu_push_local_task(worker, j);
+		ret = _starpu_push_local_task(worker, task);
 	}
 	else {
 		STARPU_ASSERT(policy.push_task);

@@ -114,6 +114,8 @@ void *_starpu_cpu_worker(void *arg)
 	PTHREAD_MUTEX_UNLOCK(&cpu_arg->mutex);
 
         starpu_job_t j;
+	struct starpu_task *task;
+
 	int res;
 
 	while (_starpu_machine_is_running())
@@ -127,17 +129,13 @@ void *_starpu_cpu_worker(void *arg)
 		PTHREAD_MUTEX_LOCK(cpu_arg->sched_mutex);
 
 		/* perhaps there is some local task to be executed first */
-		j = _starpu_pop_local_task(cpu_arg);
+		task = _starpu_pop_local_task(cpu_arg);
 
 		/* otherwise ask a task to the scheduler */
-		if (!j)
-		{
-			struct starpu_task *task = _starpu_pop_task();
-			if (task)
-				j = _starpu_get_job_associated_to_task(task);
-		}
-		
-                if (j == NULL) 
+		if (!task)
+			task = _starpu_pop_task();
+	
+                if (!task) 
 		{
 			if (_starpu_worker_can_block(memnode))
 				_starpu_block_worker(workerid, cpu_arg->sched_cond, cpu_arg->sched_mutex);
@@ -146,9 +144,12 @@ void *_starpu_cpu_worker(void *arg)
 
 			continue;
 		};
+
+		PTHREAD_MUTEX_UNLOCK(cpu_arg->sched_mutex);	
+
+		STARPU_ASSERT(task);
+		j = _starpu_get_job_associated_to_task(task);
 	
-		PTHREAD_MUTEX_UNLOCK(cpu_arg->sched_mutex);
-		
 		/* can a cpu perform that task ? */
 		if (!STARPU_CPU_MAY_PERFORM(j)) 
 		{
@@ -157,7 +158,7 @@ void *_starpu_cpu_worker(void *arg)
 			continue;
 		}
 
-		_starpu_set_current_task(j->task);
+		_starpu_set_current_task(task);
 
                 res = execute_job_on_cpu(j, cpu_arg);
 

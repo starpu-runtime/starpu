@@ -69,8 +69,8 @@ struct starpu_worker_s {
 	unsigned memory_node; /* which memory node is associated that worker to ? */
 	pthread_cond_t *sched_cond; /* condition variable used when the worker waits for tasks. */
 	pthread_mutex_t *sched_mutex; /* mutex protecting sched_cond */
-	struct starpu_job_list_s *local_jobs; /* this queue contains tasks that have been explicitely submitted to that queue */
-	pthread_mutex_t local_jobs_mutex; /* protect the local_jobs list */
+	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
+	pthread_mutex_t local_tasks_mutex; /* protect the local_tasks list */
 	struct starpu_worker_set_s *set; /* in case this worker belongs to a set */
 	struct starpu_job_list_s *terminated_jobs; /* list of pending jobs which were executed */
 	unsigned worker_is_running;

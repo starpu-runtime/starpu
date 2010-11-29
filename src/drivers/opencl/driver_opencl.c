@@ -373,6 +373,7 @@ void *_starpu_opencl_worker(void *arg)
 	PTHREAD_MUTEX_UNLOCK(&args->mutex);
 
 	struct starpu_job_s * j;
+	struct starpu_task *task;
 	int res;
 
 	while (_starpu_machine_is_running())
@@ -386,17 +387,13 @@ void *_starpu_opencl_worker(void *arg)
 		PTHREAD_MUTEX_LOCK(args->sched_mutex);
 
 		/* perhaps there is some local task to be executed first */
-		j = _starpu_pop_local_task(args);
+		task = _starpu_pop_local_task(args);
 
 		/* otherwise ask a task to the scheduler */
-		if (!j)
-		{
-			struct starpu_task *task = _starpu_pop_task();
-			if (task)
-				j = _starpu_get_job_associated_to_task(task);
-		}
+		if (!task)
+			task = _starpu_pop_task();
 		
-                if (j == NULL) 
+                if (task == NULL) 
 		{
 			if (_starpu_worker_can_block(memnode))
 				_starpu_block_worker(workerid, args->sched_cond, args->sched_mutex);
@@ -407,7 +404,10 @@ void *_starpu_opencl_worker(void *arg)
 		};
 
 		PTHREAD_MUTEX_UNLOCK(args->sched_mutex);
-	       
+
+		STARPU_ASSERT(task);
+		j = _starpu_get_job_associated_to_task(task);
+
 		/* can OpenCL do that task ? */
 		if (!STARPU_OPENCL_MAY_PERFORM(j))
 		{

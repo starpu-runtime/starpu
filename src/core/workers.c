@@ -22,6 +22,7 @@
 #include <core/debug.h>
 #include <core/task.h>
 #include <profiling/profiling.h>
+#include <starpu_task_list.h>
 
 #ifdef __MINGW32__
 #include <windows.h>
@@ -120,8 +121,8 @@ static void _starpu_init_workers(struct starpu_machine_config_s *config)
 		 * directly */
 		workerarg->terminated_jobs = starpu_job_list_new();
 
-		workerarg->local_jobs = starpu_job_list_new();
-		PTHREAD_MUTEX_INIT(&workerarg->local_jobs_mutex, NULL);
+		starpu_task_list_init(&workerarg->local_tasks);
+		PTHREAD_MUTEX_INIT(&workerarg->local_tasks_mutex, NULL);
 	
 		workerarg->status = STATUS_INITIALIZING;
 
@@ -345,7 +346,7 @@ static void _starpu_terminate_workers(struct starpu_machine_config_s *config)
 			}
 		}
 
-		starpu_job_list_delete(worker->local_jobs);
+		STARPU_ASSERT(starpu_task_list_empty(&worker->local_tasks));
 		starpu_job_list_delete(worker->terminated_jobs);
 	}
 }

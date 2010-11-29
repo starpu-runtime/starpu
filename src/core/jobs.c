@@ -339,32 +339,30 @@ unsigned _starpu_enforce_deps_starting_from_task(starpu_job_t j, unsigned job_is
 	return ret;
 }
 
-struct starpu_job_s *_starpu_pop_local_task(struct starpu_worker_s *worker)
+struct starpu_task *_starpu_pop_local_task(struct starpu_worker_s *worker)
 {
-	struct starpu_job_s *j = NULL;
+	struct starpu_task *task = NULL;
 
-	PTHREAD_MUTEX_LOCK(&worker->local_jobs_mutex);
+	PTHREAD_MUTEX_LOCK(&worker->local_tasks_mutex);
 
-	if (!starpu_job_list_empty(worker->local_jobs))
-		j = starpu_job_list_pop_back(worker->local_jobs);
+	if (!starpu_task_list_empty(&worker->local_tasks))
+		task = starpu_task_list_pop_back(&worker->local_tasks);
 
-	PTHREAD_MUTEX_UNLOCK(&worker->local_jobs_mutex);
+	PTHREAD_MUTEX_UNLOCK(&worker->local_tasks_mutex);
 
-	return j;
+	return task;
 }
 
-int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_job_s *j)
+int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_task *task)
 {
 	/* Check that the worker is able to execute the task ! */
-	STARPU_ASSERT(j->task && j->task->cl);
-	if (STARPU_UNLIKELY(!(worker->worker_mask & j->task->cl->where)))
+	STARPU_ASSERT(task && task->cl);
+	if (STARPU_UNLIKELY(!(worker->worker_mask & task->cl->where)))
 		return -ENODEV;
 
-	PTHREAD_MUTEX_LOCK(&worker->local_jobs_mutex);
-
-	starpu_job_list_push_front(worker->local_jobs, j);
-
-	PTHREAD_MUTEX_UNLOCK(&worker->local_jobs_mutex);
+	PTHREAD_MUTEX_LOCK(&worker->local_tasks_mutex);
+	starpu_task_list_push_front(&worker->local_tasks, task);
+	PTHREAD_MUTEX_UNLOCK(&worker->local_tasks_mutex);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	/* XXX that's a bit excessive ... */

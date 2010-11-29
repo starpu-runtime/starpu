@@ -134,11 +134,11 @@ size_t _starpu_job_get_data_size(starpu_job_t j);
 
 /* Get a task from the local pool of tasks that were explicitly attributed to
  * that worker. */
-starpu_job_t _starpu_pop_local_task(struct starpu_worker_s *worker);
+struct starpu_task *_starpu_pop_local_task(struct starpu_worker_s *worker);
 
 /* Put a task into the pool of tasks that are explicitly attributed to the
  * specified worker. */
-int _starpu_push_local_task(struct starpu_worker_s *worker, starpu_job_t j);
+int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_task *task);
 
 /* Returns the symbol associated to that job if any. */
 const char *_starpu_get_model_name(starpu_job_t j);
