@@ -76,8 +76,11 @@ testbin_PROGRAMS =
 
 SUBDIRS = 
 
-TESTS = $(check_PROGRAMS)			\
-	coverage/coverage.sh
+TESTS = $(check_PROGRAMS)
+
+if STARPU_COVERAGE_ENABLED
+TESTS	+=	coverage/coverage.sh
+endif
 
 check_PROGRAMS =
 

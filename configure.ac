@@ -583,6 +583,7 @@ AC_ARG_ENABLE(coverage, [AS_HELP_STRING([--enable-coverage],
 			enable_coverage=$enableval, enable_coverage=no)
 AC_MSG_RESULT($enable_coverage)
 AC_SUBST(COVERAGE, $enable_coverage)
+AM_CONDITIONAL(STARPU_COVERAGE_ENABLED, [test "x$enable_coverage" = "xyes"])
 if test x$enable_coverage = xyes; then
 	CPPFLAGS="${CPPFLAGS} --coverage"
 	LDFLAGS="${LDFLAGS} --coverage"
