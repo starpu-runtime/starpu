@@ -37,7 +37,7 @@ nobase_STARPU_OPENCL_DATA_DATA =
 endif
 
 EXTRA_DIST = 					\
-	basic_examples/vector_scal_opencl_codelet.cl \
+	basic_examples/vector_scal_opencl_kernel.cl \
 	spmv/spmv_cuda.cu			\
 	gordon/null_kernel_gordon.c		\
 	mult/xgemm.c				\
@@ -49,11 +49,11 @@ EXTRA_DIST = 					\
 	lu/xlu_implicit_pivot.c			\
 	lu/xlu_kernels.c			\
 	lu/lu_example.c				\
-	incrementer/incrementer_kernels_opencl_codelet.cl 	\
-	basic_examples/variable_kernels_opencl_codelet.cl	\
+	incrementer/incrementer_kernels_opencl_kernel.cl 	\
+	basic_examples/variable_kernels_opencl_kernel.cl	\
 	matvecmult/matvecmult_kernel.cl				\
 	basic_examples/block_opencl_kernel.cl			\
-	filters/fblock_opencl_codelet.cl
+	filters/fblock_opencl_kernel.cl
 
 CLEANFILES = 					\
 	gordon/null_kernel_gordon.spuelf	\
@@ -156,7 +156,7 @@ if STARPU_USE_OPENCL
 basic_examples_vector_scal_SOURCES +=		\
 	basic_examples/vector_scal_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
-	basic_examples/vector_scal_opencl_codelet.cl
+	basic_examples/vector_scal_opencl_kernel.cl
 endif
 
 if STARPU_HAVE_F77_H
@@ -228,7 +228,7 @@ if STARPU_USE_OPENCL
 basic_examples_variable_SOURCES +=		\
 	basic_examples/variable_kernels_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += 		\
-	basic_examples/variable_kernels_opencl_codelet.cl
+	basic_examples/variable_kernels_opencl_kernel.cl
 endif
 
 
@@ -256,7 +256,7 @@ if STARPU_USE_OPENCL
 filters_fblock_SOURCES +=			\
 	filters/fblock_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
-	filters/fblock_opencl_codelet.cl
+	filters/fblock_opencl_kernel.cl
 endif
 
 filters_fmatrix_SOURCES =			\

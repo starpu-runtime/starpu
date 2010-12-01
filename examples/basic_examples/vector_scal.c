@@ -47,7 +47,7 @@ static starpu_codelet cl = {
 };
 
 #ifdef STARPU_USE_OPENCL
-struct starpu_opencl_program codelet;
+struct starpu_opencl_program opencl_program;
 #endif
 
 int main(int argc, char **argv)
@@ -65,8 +65,8 @@ int main(int argc, char **argv)
 	starpu_init(NULL);
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_load_opencl_from_file("examples/basic_examples/vector_scal_opencl_codelet.cl",
-					    &codelet);
+	starpu_opencl_load_opencl_from_file("examples/basic_examples/vector_scal_opencl_kernel.cl",
+					    &opencl_program);
 #endif
 
 	/* Tell StaPU to associate the "vector" vector with the "vector_handle"
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 	starpu_data_unregister(vector_handle);
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_unload_opencl(&codelet);
+        starpu_opencl_unload_opencl(&opencl_program);
 #endif
 
 	/* terminate StarPU, no task can be submitted after */

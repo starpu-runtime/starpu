@@ -17,7 +17,7 @@
 #include <starpu.h>
 #include <starpu_opencl.h>
 
-extern struct starpu_opencl_program codelet;
+extern struct starpu_opencl_program opencl_program;
 
 void opencl_func(void *buffers[], void *cl_arg)
 {
@@ -36,7 +36,7 @@ void opencl_func(void *buffers[], void *cl_arg)
 	id = starpu_worker_get_id();
 	devid = starpu_worker_get_devid(id);
 
-	err = starpu_opencl_load_kernel(&kernel, &queue, &codelet, "fblock_opencl", devid);
+	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_program, "fblock_opencl", devid);
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = 0;

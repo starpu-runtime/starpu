@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     starpu_init(NULL);
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_load_opencl_from_file("examples/basic_examples/vector_scal_opencl_codelet.cl",
+        starpu_opencl_load_opencl_from_file("examples/basic_examples/vector_scal_opencl_kernel.cl",
                                             &programs);
 #endif
 
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
     starpu_data_unregister(vector_handle);
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_unload_opencl(&codelet);
+    starpu_opencl_unload_opencl(&programs);
 #endif
 
     /* terminate StarPU, no task can be submitted after */

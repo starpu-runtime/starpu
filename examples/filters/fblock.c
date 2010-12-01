@@ -61,7 +61,7 @@ void print_data(starpu_data_handle block_handle)
 }
 
 #ifdef STARPU_USE_OPENCL
-struct starpu_opencl_program codelet;
+struct starpu_opencl_program opencl_program;
 #endif
 
 int main(int argc, char **argv)
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
         starpu_init(NULL);
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_load_opencl_from_file("examples/filters/fblock_opencl_codelet.cl", &codelet);
+        starpu_opencl_load_opencl_from_file("examples/filters/fblock_opencl_kernel.cl", &opencl_program);
 #endif
 
         /* Declare data to StarPU */

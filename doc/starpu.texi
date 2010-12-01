@@ -711,14 +711,14 @@ Contrary to the previous examples, the task submitted in this example may not
 only be executed by the CPUs, but also by a CUDA device.
 
 @menu
-* Definition of the CUDA Codelet::  
-* Definition of the OpenCL Codelet::  
+* Definition of the CUDA Kernel::  
+* Definition of the OpenCL Kernel::  
 * Definition of the Main Code::  
 * Execution of Hybrid Vector Scaling::  
 @end menu
 
-@node Definition of the CUDA Codelet
-@subsection Definition of the CUDA Codelet
+@node Definition of the CUDA Kernel
+@subsection Definition of the CUDA Kernel
 
 The CUDA implementation can be written as follows. It needs to be
 compiled with a CUDA compiler such as nvcc, the NVIDIA CUDA compiler
@@ -752,11 +752,11 @@ extern "C" void scal_cuda_func(void *buffers[], void *_args)
 @end smallexample
 @end cartouche
 
-@node Definition of the OpenCL Codelet
-@subsection Definition of the OpenCL Codelet
+@node Definition of the OpenCL Kernel
+@subsection Definition of the OpenCL Kernel
 
 The OpenCL implementation can be written as follows. StarPU provides
-tools to compile a OpenCL codelet stored in a file.
+tools to compile a OpenCL kernel stored in a file.
 
 @cartouche
 @smallexample
@@ -927,7 +927,7 @@ int main(int argc, char **argv)
 
 The Makefile given at the beginning of the section must be extended to
 give the rules to compile the CUDA source code. Note that the source
-file of the OpenCL codelet does not need to be compiled now, it will
+file of the OpenCL kernel does not need to be compiled now, it will
 be compiled at run-time when calling the function
 @code{starpu_opencl_load_opencl_from_file()} (@pxref{starpu_opencl_load_opencl_from_file}).
 
@@ -3525,8 +3525,8 @@ This function synchronously deinitializes the CUBLAS library on every CUDA devic
 
 @menu
 * Enabling OpenCL::             Enabling OpenCL
-* Compiling OpenCL codelets::   Compiling OpenCL codelets
-* Loading OpenCL codelets::     Loading OpenCL codelets
+* Compiling OpenCL kernels::   Compiling OpenCL kernels
+* Loading OpenCL kernels::     Loading OpenCL kernels
 @end menu
 
 @node Enabling OpenCL
@@ -3555,10 +3555,10 @@ so:
 % STARPU_NCUDA=2 ./application
 @end example
 
-@node Compiling OpenCL codelets
-@subsection Compiling OpenCL codelets
+@node Compiling OpenCL kernels
+@subsection Compiling OpenCL kernels
 
-Source codes for OpenCL codelets can be stored in a file or in a
+Source codes for OpenCL kernels can be stored in a file or in a
 string. StarPU provides functions to build the program executable for
 each available OpenCL device as a @code{cl_program} object. This
 program executable can then be loaded within a specific queue as
@@ -3600,8 +3600,8 @@ TODO
 @code{int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs);}
 @end table
 
-@node Loading OpenCL codelets
-@subsection Loading OpenCL codelets
+@node Loading OpenCL kernels
+@subsection Loading OpenCL kernels
 
 @menu
 * starpu_opencl_load_kernel::   Loading a kernel
@@ -3853,9 +3853,9 @@ static struct starpu_sched_policy_s dummy_sched_policy = @{
 
 @menu
 * Main application::            
-* CPU Codelet::                 
-* CUDA Codelet::                
-* OpenCL Codelet::              
+* CPU Kernel::                 
+* CUDA Kernel::                
+* OpenCL Kernel::              
 @end menu
 
 @node Main application
@@ -3872,15 +3872,15 @@ static struct starpu_sched_policy_s dummy_sched_policy = @{
 @include vector_scal_cpu.texi
 @end smallexample
 
-@node CUDA Codelet
-@section CUDA Codelet
+@node CUDA Kernel
+@section CUDA Kernel
 
 @smallexample
 @include vector_scal_cuda.texi
 @end smallexample
 
-@node OpenCL Codelet
-@section OpenCL Codelet
+@node OpenCL Kernel
+@section OpenCL Kernel
 
 @menu
 * Invoking the kernel::         
