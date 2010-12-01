@@ -313,7 +313,7 @@ void _starpu_opencl_init(void)
                         }
                 }
 
-                // Get location of OpenCl codelet source files
+                // Get location of OpenCl kernel source files
                 _starpu_opencl_program_dir = getenv("STARPU_OPENCL_PROGRAM_DIR");
 
                 // initialise internal structures

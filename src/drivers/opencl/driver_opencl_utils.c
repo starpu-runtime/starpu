@@ -112,7 +112,7 @@ char *_starpu_opencl_load_program_source(const char *filename)
         source[x] = '\0';
 
 
-        _STARPU_DEBUG("OpenCL codelet <%s>\n", source);
+        _STARPU_DEBUG("OpenCL kernel <%s>\n", source);
 
         fclose(fh);
 
