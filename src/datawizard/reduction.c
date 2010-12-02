@@ -82,7 +82,8 @@ void starpu_data_start_reduction_mode(starpu_data_handle handle)
 
 	unsigned worker;
 
-	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	unsigned nworkers = starpu_worker_get_count();
+	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct starpu_data_replicate_s *replicate;
 		replicate = &handle->per_worker[worker];
@@ -102,7 +103,8 @@ void starpu_data_end_reduction_mode(starpu_data_handle handle)
 	starpu_data_handle replicate_array[STARPU_NMAXWORKERS];
 
 	/* Register all valid per-worker replicates */
-	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	unsigned nworkers = starpu_worker_get_count();
+	for (worker = 0; worker < nworkers; worker++)
 	{
 		if (handle->per_worker[worker].initialized)
 		{
@@ -248,9 +250,11 @@ void starpu_data_end_reduction_mode(starpu_data_handle handle)
 
 void starpu_data_end_reduction_mode_terminate(starpu_data_handle handle)
 {
+	unsigned nworkers = starpu_worker_get_count();
+
 //	fprintf(stderr, "starpu_data_end_reduction_mode_terminate\n");
 	unsigned worker;
-	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct starpu_data_replicate_s *replicate;
 		replicate = &handle->per_worker[worker];

@@ -101,7 +101,8 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	}
 
 	unsigned worker;
-	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	unsigned nworkers = starpu_worker_get_count();
+	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct starpu_data_replicate_s *replicate;
 		replicate = &handle->per_worker[worker];
@@ -149,7 +150,8 @@ static starpu_data_handle _starpu_data_handle_allocate(struct starpu_data_interf
 	}
 
 	unsigned worker;
-	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	unsigned nworkers = starpu_worker_get_count();
+	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct starpu_data_replicate_s *replicate;
 		replicate = &handle->per_worker[worker];

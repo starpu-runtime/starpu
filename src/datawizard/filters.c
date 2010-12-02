@@ -116,6 +116,8 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 	/* allocate the children */
 	starpu_data_create_children(initial_handle, nparts, f);
 
+	unsigned nworkers = starpu_worker_get_count();
+
 	for (i = 0; i < nparts; i++)
 	{
 		starpu_data_handle child =
@@ -169,7 +171,7 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 		}
 
 		unsigned worker;
-		for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+		for (worker = 0; worker < nworkers; worker++)
 		{
 			struct starpu_data_replicate_s *child_replicate;
 			child_replicate = &child->per_worker[worker];
@@ -296,6 +298,8 @@ static void starpu_data_create_children(starpu_data_handle handle, unsigned nchi
 	unsigned worker;
 	unsigned child;
 
+	unsigned nworkers = starpu_worker_get_count();
+
 	for (child = 0; child < nchildren; child++)
 	{
 		starpu_data_handle handle_child = &handle->children[child];
@@ -320,7 +324,7 @@ static void starpu_data_create_children(starpu_data_handle handle, unsigned nchi
 			STARPU_ASSERT(handle_child->per_node[node].interface);
 		}
 
-		for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+		for (worker = 0; worker < nworkers; worker++)
 		{
 			handle_child->per_worker[worker].handle = handle_child;
 			handle_child->per_worker[worker].interface = calloc(1, interfacesize);
