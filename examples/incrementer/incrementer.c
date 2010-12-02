@@ -27,7 +27,7 @@ extern void cuda_codelet(void *descr[], __attribute__ ((unused)) void *_args);
 #ifdef STARPU_USE_OPENCL
 #include <starpu_opencl.h>
 extern void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args);
-struct starpu_opencl_program opencl_code;
+struct starpu_opencl_program opencl_program;
 #endif
 
 void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 			(uintptr_t)&float_array, 4, sizeof(float));
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_load_opencl_from_file("examples/incrementer/incrementer_kernels_opencl_codelet.cl", &opencl_code);
+        starpu_opencl_load_opencl_from_file("examples/incrementer/incrementer_kernels_opencl_kernel.cl", &opencl_program);
 #endif
 
 	starpu_codelet cl =

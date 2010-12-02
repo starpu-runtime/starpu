@@ -551,7 +551,7 @@ if STARPU_USE_OPENCL
 incrementer_incrementer_SOURCES +=	\
 	incrementer/incrementer_kernels_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
-	incrementer/incrementer_kernels_opencl_codelet.cl
+	incrementer/incrementer_kernels_opencl_kernel.cl
 endif
 
 ######################
