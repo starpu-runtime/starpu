@@ -320,7 +320,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 		}
 
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
-		double local_length = _starpu_task_expected_length(worker, task, perf_arch);
+		double local_length = _starpu_task_expected_length(task, perf_arch);
 
 		if (local_length == -1.0) 
 		{
@@ -385,7 +385,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 		}
 
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
-		local_task_length[worker] = _starpu_task_expected_length(worker, task, perf_arch);
+		local_task_length[worker] = _starpu_task_expected_length(task, perf_arch);
 
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
 		local_data_penalty[worker] = _starpu_data_expected_penalty(memory_node, task);

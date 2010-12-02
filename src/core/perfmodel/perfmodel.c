@@ -82,38 +82,39 @@ static double per_arch_task_expected_length(struct starpu_perfmodel_t *model, en
  * Common model
  */
 
-double _starpu_worker_get_relative_speedup(int workerid)
+double _starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtype)
 {
-	double alpha;
-	enum starpu_archtype arch = starpu_worker_get_type(workerid);
-
-	switch (arch) {
-		case STARPU_CPU_WORKER:
-			alpha = STARPU_CPU_ALPHA;
-			break;
-		case STARPU_CUDA_WORKER:
-			alpha = STARPU_CUDA_ALPHA;
-			break;
-	        case STARPU_OPENCL_WORKER:
-                        alpha = STARPU_OPENCL_ALPHA;
-                        break;
-		default:
-			/* perhaps there are various worker types on that queue */
-			alpha = 1.0; // this value is not significant ...
-			break;
+	if (perf_archtype < STARPU_CUDA_DEFAULT)
+	{
+		return STARPU_CPU_ALPHA;
+	}
+	else if (perf_archtype < STARPU_OPENCL_DEFAULT)
+	{
+		return STARPU_CUDA_ALPHA;
+	}
+	else if (perf_archtype < STARPU_GORDON_DEFAULT)
+	{
+		return STARPU_OPENCL_ALPHA;
+	}
+	else if (perf_archtype < STARPU_NARCH_VARIATIONS) {
+		/* Gordon value */
+		return 1.0;
 	}
 
-	return alpha;
+	STARPU_ABORT();
+
+	/* Never reached ! */
+	return -1.0;
 }
 
-static double common_task_expected_length(struct starpu_perfmodel_t *model, int workerid, struct starpu_task *task)
+static double common_task_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_task *task)
 {
 	double exp;
 	double alpha;
 
 	if (model->cost_model) {
 		exp = model->cost_model(task->buffers);
-		alpha = _starpu_worker_get_relative_speedup(workerid);
+		alpha = _starpu_worker_get_relative_speedup(arch);
 
 		STARPU_ASSERT(alpha != 0.0f);
 
@@ -123,7 +124,7 @@ static double common_task_expected_length(struct starpu_perfmodel_t *model, int 
 	return -1.0;
 }
 
-double _starpu_task_expected_length(int workerid, struct starpu_task *task, enum starpu_perf_archtype arch)
+double _starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_archtype arch)
 {
 	starpu_job_t j = _starpu_get_job_associated_to_task(task);
 	struct starpu_perfmodel_t *model = task->cl->model;
@@ -134,7 +135,7 @@ double _starpu_task_expected_length(int workerid, struct starpu_task *task, enum
 				return per_arch_task_expected_length(model, arch, task);
 
 			case STARPU_COMMON:
-				return common_task_expected_length(model, workerid, task);
+				return common_task_expected_length(model, arch, task);
 
 			case STARPU_HISTORY_BASED:
 				return _starpu_history_based_job_expected_length(model, arch, j);
