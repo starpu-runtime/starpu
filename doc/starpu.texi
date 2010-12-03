@@ -3865,8 +3865,8 @@ static struct starpu_sched_policy_s dummy_sched_policy = @{
 @include vector_scal_c.texi
 @end smallexample
 
-@node CPU Codelet
-@section CPU Codelet
+@node CPU Kernel
+@section CPU Kernel
 
 @smallexample
 @include vector_scal_cpu.texi
