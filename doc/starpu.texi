@@ -1780,7 +1780,7 @@ variables.
 @table @asis
 
 @item @emph{Description}:
-Specify the maximum number of CPU workers. Note that StarPU will not allocate
+Specify the number of CPU workers. Note that by default, StarPU will not allocate
 more CPUs than there are physical CPUs, and that some CPUs are used to control
 the accelerators.
 
@@ -1791,10 +1791,11 @@ the accelerators.
 @table @asis
 
 @item @emph{Description}:
-Specify the maximum number of CUDA devices that StarPU can use. If
+Specify the number of CUDA devices that StarPU can use. If
 @code{STARPU_NCUDA} is lower than the number of physical devices, it is
 possible to select which CUDA devices should be used by the means of the
-@code{STARPU_WORKERS_CUDAID} environment variable.
+@code{STARPU_WORKERS_CUDAID} environment variable. By default, StarPU will
+create as many CUDA workers as there are CUDA devices.
 
 @end table
 
@@ -1811,7 +1812,7 @@ OpenCL equivalent of the @code{STARPU_NCUDA} environment variable.
 @table @asis
 
 @item @emph{Description}:
-Specify the maximum number of SPUs that StarPU can use.
+Specify the number of SPUs that StarPU can use.
 @end table
 
 
@@ -2055,16 +2056,16 @@ This is the definition of the scheduling policy. This field is ignored
 if @code{sched_policy_name} is set.
 
 @item @code{ncpus} (default = -1):
-This is the maximum number of CPU cores that StarPU can use. This can also be
+This is the number of CPU cores that StarPU can use. This can also be
 specified with the @code{STARPU_NCPUS} environment variable.
 @item @code{ncuda} (default = -1):
-This is the maximum number of CUDA devices that StarPU can use. This can also be
+This is the number of CUDA devices that StarPU can use. This can also be
 specified with the @code{STARPU_NCUDA} environment variable.
 @item @code{nopencl} (default = -1):
-This is the maximum number of OpenCL devices that StarPU can use. This can also be
+This is the number of OpenCL devices that StarPU can use. This can also be
 specified with the @code{STARPU_NOPENCL} environment variable.
 @item @code{nspus} (default = -1):
-This is the maximum number of Cell SPUs that StarPU can use. This can also be
+This is the number of Cell SPUs that StarPU can use. This can also be
 specified with the @code{STARPU_NGORDON} environment variable.
 
 @item @code{use_explicit_workers_bindid} (default = 0)
