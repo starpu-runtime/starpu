@@ -201,7 +201,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 
 	_starpu_push_task_output(task, mask);
 
-	_starpu_driver_update_job_feedback(j, args, profiling_info, calibrate_model,
+	_starpu_driver_update_job_feedback(j, args, profiling_info, calibrate_model, args->perf_arch,
 			&codelet_start, &codelet_end);
 
 	return 0;
@@ -260,8 +260,6 @@ void *_starpu_cuda_worker(void *arg)
 		_starpu_datawizard_progress(memnode, 1);
 		STARPU_TRACE_END_PROGRESS(memnode);
 
-		_starpu_execute_registered_progression_hooks();
-	
 		PTHREAD_MUTEX_LOCK(args->sched_mutex);
 
 		/* perhaps there is some local task to be executed first */

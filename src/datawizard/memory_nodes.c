@@ -151,7 +151,17 @@ void _starpu_memory_node_register_condition(pthread_cond_t *cond, pthread_mutex_
 
 unsigned starpu_worker_get_memory_node(unsigned workerid)
 {
-	struct starpu_worker_s *worker = _starpu_get_worker_struct(workerid);
+	struct starpu_machine_config_s *config = _starpu_get_machine_config();
 
-	return worker->memory_node;
+	/* This workerid may either be a basic worker or a combined worker */
+	unsigned nworkers = config->topology.nworkers;
+
+	if (workerid < config->topology.nworkers)
+		return config->workers[workerid].memory_node;
+
+	/* We have a combined worker */
+	unsigned ncombinedworkers = config->topology.ncombinedworkers;
+	STARPU_ASSERT(workerid < ncombinedworkers + nworkers);
+	return config->combined_workers[workerid - nworkers].memory_node;
+
 }

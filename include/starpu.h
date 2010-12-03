@@ -82,6 +82,7 @@ void starpu_shutdown(void);
 /* This function returns the number of workers (ie. processing units executing
  * StarPU tasks). The returned value should be at most STARPU_NMAXWORKERS. */
 unsigned starpu_worker_get_count(void);
+unsigned starpu_combined_worker_get_count(void);
 
 unsigned starpu_cpu_worker_get_count(void);
 unsigned starpu_cuda_worker_get_count(void);
@@ -92,6 +93,10 @@ unsigned starpu_opencl_worker_get_count(void);
  * This will return -1 if this function is called directly from the application
  * or if it is some SPU worker where a single thread controls different SPUs. */
 int starpu_worker_get_id(void);
+
+int starpu_combined_worker_get_id(void);
+int starpu_combined_worker_get_size(void);
+int starpu_combined_worker_get_rank(void);
 
 enum starpu_archtype {
 	STARPU_CPU_WORKER, /* CPU core */

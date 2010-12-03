@@ -156,6 +156,11 @@ if test x$enable_cpu = xyes; then
 	AC_DEFINE(STARPU_USE_CPU, [1], [CPU driver is activated])
 fi
 
+# How many parallel worker can we support ?
+nmaxcombinedworkers=`expr 2 \* $nmaxcpus`
+AC_DEFINE_UNQUOTED(STARPU_NMAX_COMBINEDWORKERS,
+	[$nmaxcombinedworkers], [Maximum number of worker combinations])
+
 ###############################################################################
 #                                                                             #
 #                                 CUDA settings                               #

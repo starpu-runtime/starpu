@@ -24,7 +24,7 @@
 #include "driver_cpu.h"
 #include <core/sched_policy.h>
 
-static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
+static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, int is_parallel_task, int rank, enum starpu_perf_archtype perf_arch)
 {
 	int ret;
 	struct timespec codelet_start, codelet_end;
@@ -40,43 +40,68 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args)
 	if (cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
 
-	ret = _starpu_fetch_task_input(task, 0);
-
-	if (ret != 0) {
-		/* there was not enough memory so the codelet cannot be executed right now ... */
-		/* push the codelet back and try another one ... */
-		return -EAGAIN;
+	if (rank == 0)
+	{
+		ret = _starpu_fetch_task_input(task, 0);
+		if (ret != 0)
+		{
+			/* there was not enough memory so the codelet cannot be executed right now ... */
+			/* push the codelet back and try another one ... */
+			return -EAGAIN;
+		}
 	}
+
+	if (is_parallel_task)
+		pthread_barrier_wait(&j->before_work_barrier);
 
 	STARPU_TRACE_START_CODELET_BODY(j);
 
 	struct starpu_task_profiling_info *profiling_info;
-	profiling_info = task->profiling_info;
 
-	if (profiling_info || calibrate_model)
+	if (rank == 0)
 	{
-		starpu_clock_gettime(&codelet_start);
-		_starpu_worker_register_executing_start_date(workerid, &codelet_start);
+		profiling_info = task->profiling_info;
+	
+		if (profiling_info || calibrate_model)
+		{
+			starpu_clock_gettime(&codelet_start);
+			_starpu_worker_register_executing_start_date(workerid, &codelet_start);
+		}
+	
+		cpu_args->status = STATUS_EXECUTING;
+		task->status = STARPU_TASK_RUNNING;	
+	}
+	
+	/* In case this is a Fork-join parallel task, the worker does not
+	 * execute the kernel at all. */
+	if ((rank == 0) || (cl->type != STARPU_FORKJOIN))
+	{
+		cl_func func = cl->cpu_func;
+		func(task->interface, task->cl_arg);
+	}
+	
+	if (rank == 0)
+	{
+		cl->per_worker_stats[workerid]++;
+		
+		if (profiling_info || calibrate_model)
+			starpu_clock_gettime(&codelet_end);
+	
+		STARPU_TRACE_END_CODELET_BODY(j);
+		cpu_args->status = STATUS_UNKNOWN;
 	}
 
-	cpu_args->status = STATUS_EXECUTING;
-	task->status = STARPU_TASK_RUNNING;	
+	if (is_parallel_task)
+		pthread_barrier_wait(&j->after_work_barrier);
 
-	cl_func func = cl->cpu_func;
-	func(task->interface, task->cl_arg);
+	if (rank == 0)
+	{
+		_starpu_push_task_output(task, 0);
 
-	cl->per_worker_stats[workerid]++;
-	
-	if (profiling_info || calibrate_model)
-		starpu_clock_gettime(&codelet_end);
-
-	STARPU_TRACE_END_CODELET_BODY(j);
-	cpu_args->status = STATUS_UNKNOWN;
-
-	_starpu_push_task_output(task, 0);
-
-	_starpu_driver_update_job_feedback(j, cpu_args, profiling_info, calibrate_model,
-			&codelet_start, &codelet_end);
+		_starpu_driver_update_job_feedback(j, cpu_args, profiling_info,
+				calibrate_model, perf_arch,
+				&codelet_start, &codelet_end);
+	}
 
 	return 0;
 }
@@ -124,8 +149,6 @@ void *_starpu_cpu_worker(void *arg)
 		_starpu_datawizard_progress(memnode, 1);
 		STARPU_TRACE_END_PROGRESS(memnode);
 
-		_starpu_execute_registered_progression_hooks();
-
 		PTHREAD_MUTEX_LOCK(cpu_arg->sched_mutex);
 
 		/* perhaps there is some local task to be executed first */
@@ -158,9 +181,40 @@ void *_starpu_cpu_worker(void *arg)
 			continue;
 		}
 
-		_starpu_set_current_task(task);
+		int rank = 0;
+		int is_parallel_task = (j->task_size > 1);
 
-                res = execute_job_on_cpu(j, cpu_arg);
+		enum starpu_perf_archtype perf_arch; 
+	
+		/* Get the rank in case it is a parallel task */
+		if (is_parallel_task)
+		{
+			/* We can release the fake task */
+			STARPU_ASSERT(task != j->task);
+			free(task);
+
+			PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+			rank = j->active_task_alias_count++;
+			PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+
+			struct starpu_combined_worker_s *combined_worker;
+			combined_worker = _starpu_get_combined_worker_struct(j->combined_workerid);
+
+			cpu_arg->combined_workerid = j->combined_workerid;
+			cpu_arg->worker_size = combined_worker->worker_size;
+			cpu_arg->current_rank = rank;
+			perf_arch = combined_worker->perf_arch;
+		}
+		else {
+			cpu_arg->combined_workerid = cpu_arg->workerid;
+			cpu_arg->worker_size = 1;
+			cpu_arg->current_rank = 0;
+			perf_arch = cpu_arg->perf_arch;
+		}
+
+		_starpu_set_current_task(j->task);
+
+                res = execute_job_on_cpu(j, cpu_arg, is_parallel_task, rank, perf_arch);
 
 		_starpu_set_current_task(NULL);
 
@@ -174,7 +228,8 @@ void *_starpu_cpu_worker(void *arg)
 			}
 		}
 
-		_starpu_handle_job_termination(j, 0);
+		if (rank == 0)
+			_starpu_handle_job_termination(j, 0);
         }
 
 	STARPU_TRACE_WORKER_DEINIT_START

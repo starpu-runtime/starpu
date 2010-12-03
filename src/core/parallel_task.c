@@ -14,21 +14,20 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __DRIVER_COMMON_H__
-#define __DRIVER_COMMON_H__
-
-#include <sys/time.h>
 #include <starpu.h>
-#include <starpu_profiling.h>
+#include <common/config.h>
 #include <core/jobs.h>
-#include <profiling/profiling.h>
+#include <core/task.h>
 #include <common/utils.h>
 
-void _starpu_driver_update_job_feedback(starpu_job_t j, struct starpu_worker_s *worker_args,
-		struct starpu_task_profiling_info *profiling_info,
-		unsigned calibrate_model, enum starpu_perf_archtype perf_arch,
-		struct timespec *codelet_start, struct timespec *codelet_end);
+struct starpu_task *_starpu_create_task_alias(struct starpu_task *task)
+{
+	struct starpu_task *task_dup = malloc(sizeof(struct starpu_task));
+	STARPU_ASSERT(task_dup);
 
-void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *mutex);
+	/* XXX perhaps this is a bit too much overhead and we should only copy
+	 * part of the structure ? */
+	memcpy(task_dup, task, sizeof(struct starpu_task));
 
-#endif // __DRIVER_COMMON_H__
+	return task_dup;
+}

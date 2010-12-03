@@ -30,6 +30,8 @@ struct starpu_task;
 struct starpu_machine_topology_s {
 	unsigned nworkers;
 
+	unsigned ncombinedworkers;
+
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_t hwtopology;
 #else
@@ -114,5 +116,11 @@ int starpu_sched_get_max_priority(void);
 
 void starpu_sched_set_min_priority(int min_prio);
 void starpu_sched_set_max_priority(int max_prio);
+
+int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[]);
+
+void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *topology);
+
+int starpu_combined_worker_get_description(int workerid, int *worker_size, int **combined_workerid);
 
 #endif // __STARPU_SCHEDULER_H__

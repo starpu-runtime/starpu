@@ -266,6 +266,7 @@ static int _starpu_init_machine_config(struct starpu_machine_config_s *config,
 	struct starpu_machine_topology_s *topology = &config->topology;
 
 	topology->nworkers = 0;
+	topology->ncombinedworkers = 0;
 
 	_starpu_init_topology(config);
 
@@ -699,6 +700,20 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 		}
 
 		workerarg->memory_node = memory_node;
+
+		/* Save the initial cpuset */
+		CPU_ZERO(&workerarg->initial_cpu_set);
+		CPU_SET(workerarg->bindid, &workerarg->initial_cpu_set);
+		CPU_ZERO(&workerarg->current_cpu_set);
+		CPU_SET(workerarg->bindid, &workerarg->current_cpu_set);
+
+#ifdef STARPU_HAVE_HWLOC
+		/* Clear the cpu set and set the cpu */
+		workerarg->initial_hwloc_cpu_set = hwloc_cpuset_alloc();
+		hwloc_cpuset_cpu(workerarg->initial_hwloc_cpu_set, workerarg->bindid);
+		workerarg->current_hwloc_cpu_set = hwloc_cpuset_alloc();
+		hwloc_cpuset_cpu(workerarg->current_hwloc_cpu_set, workerarg->bindid);
+#endif
 	}
 }
 

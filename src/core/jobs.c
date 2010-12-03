@@ -85,6 +85,9 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 
 	job->bound_task = NULL;
 
+	/* By default we have sequential tasks */
+	job->task_size = 1;
+
 	if (task->use_tag)
 		_starpu_tag_declare(task->tag_id, job);
 

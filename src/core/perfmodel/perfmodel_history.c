@@ -471,9 +471,19 @@ int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *mod
 
 void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archname, size_t maxlen)
 {
-	if (arch == STARPU_CPU_DEFAULT)
+	if (arch < STARPU_CUDA_DEFAULT)
 	{
-		snprintf(archname, maxlen, "cpu");
+		if (arch == STARPU_CPU_DEFAULT)
+		{
+#warning We could just use cpu_1 as well ...
+			snprintf(archname, maxlen, "cpu");
+		}
+		else
+		{
+			/* For combined CPU workers */
+			int cpu_count = arch - STARPU_CPU_DEFAULT + 1;
+			snprintf(archname, maxlen, "cpu_%d", cpu_count);
+		}
 	}
 	else if ((STARPU_CUDA_DEFAULT <= arch)
 		&& (arch < STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS))

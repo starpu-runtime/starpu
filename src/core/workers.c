@@ -74,6 +74,39 @@ int _starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task)
 	return !!(task->cl->where & config.workers[workerid].worker_mask);
 }
 
+
+
+int _starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_task *task)
+{
+	/* TODO: check that the task operand sizes will fit on that device */
+	/* TODO: call application-provided function for various cases like
+	 * double support, shared memory size limit, etc. */
+
+	struct starpu_codelet_t *cl = task->cl;
+	unsigned nworkers = config.topology.nworkers;
+
+	/* Is this a parallel worker ? */
+	if (workerid < nworkers)
+	{
+		return !!(task->cl->where & config.workers[workerid].worker_mask);
+	}
+	else {
+		if ((cl->type == STARPU_SPMD) || (cl->type == STARPU_FORKJOIN))
+		{
+			/* TODO we should add other types of constraints */
+
+			/* Is the worker larger than requested ? */
+			int worker_size = (int)config.combined_workers[workerid - nworkers].worker_size;
+			return !!(worker_size <= task->cl->max_parallelism);
+		}
+		else
+		{
+			/* We have a sequential task but a parallel worker */
+			return 0;
+		}
+	}
+}
+
 /*
  * Runtime initialization methods
  */
@@ -93,7 +126,7 @@ static void _starpu_init_worker_queue(struct starpu_worker_s *workerarg)
 	_starpu_memory_node_register_condition(cond, mutex, memory_node);
 }
 
-static void _starpu_init_workers(struct starpu_machine_config_s *config)
+static void _starpu_launch_drivers(struct starpu_machine_config_s *config)
 {
 	config->running = 1;
 
@@ -113,6 +146,9 @@ static void _starpu_init_workers(struct starpu_machine_config_s *config)
 		PTHREAD_COND_INIT(&workerarg->ready_cond, NULL);
 
 		workerarg->workerid = (int)worker;
+		workerarg->worker_size = 1;
+		workerarg->combined_workerid = workerarg->workerid;
+		workerarg->current_rank = 0;
 
 		/* if some codelet's termination cannot be handled directly :
 		 * for instance in the Gordon driver, Gordon tasks' callbacks
@@ -281,14 +317,13 @@ int starpu_init(struct starpu_conf *user_conf)
 	 * threads */
 	_starpu_initialize_current_task_key();	
 
-	/* initialize the scheduler */
-
-	/* initialize the queue containing the jobs */
+	/* initialize the scheduling policy */
 	_starpu_init_sched_policy(&config);
 
 	_starpu_initialize_registered_performance_models();
 
-	_starpu_init_workers(&config);
+	/* Launch "basic" workers (ie. non-combined workers) */
+	_starpu_launch_drivers(&config);
 
 	PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = INITIALIZED;
@@ -431,6 +466,11 @@ unsigned starpu_worker_get_count(void)
 	return config.topology.nworkers;
 }
 
+unsigned starpu_combined_worker_get_count(void)
+{
+	return config.topology.ncombinedworkers;
+}
+
 unsigned starpu_cpu_worker_get_count(void)
 {
 	return config.topology.ncpus;
@@ -472,6 +512,54 @@ int starpu_worker_get_id(void)
 	}
 }
 
+int starpu_combined_worker_get_id(void)
+{
+	struct starpu_worker_s *worker;
+
+	worker = _starpu_get_local_worker_key();
+	if (worker)
+	{
+		return worker->combined_workerid;
+	}
+	else {
+		/* there is no worker associated to that thread, perhaps it is
+		 * a thread from the application or this is some SPU worker */
+		return -1;
+	}
+}
+
+int starpu_combined_worker_get_size(void)
+{
+	struct starpu_worker_s *worker;
+
+	worker = _starpu_get_local_worker_key();
+	if (worker)
+	{
+		return worker->worker_size;
+	}
+	else {
+		/* there is no worker associated to that thread, perhaps it is
+		 * a thread from the application or this is some SPU worker */
+		return -1;
+	}
+}
+
+int starpu_combined_worker_get_rank(void)
+{
+	struct starpu_worker_s *worker;
+
+	worker = _starpu_get_local_worker_key();
+	if (worker)
+	{
+		return worker->current_rank;
+	}
+	else {
+		/* there is no worker associated to that thread, perhaps it is
+		 * a thread from the application or this is some SPU worker */
+		return -1;
+	}
+}
+
 int starpu_worker_get_devid(int id)
 {
 	return config.workers[id].devid;
@@ -480,6 +568,14 @@ int starpu_worker_get_devid(int id)
 struct starpu_worker_s *_starpu_get_worker_struct(unsigned id)
 {
 	return &config.workers[id];
+}
+
+struct starpu_combined_worker_s *_starpu_get_combined_worker_struct(unsigned id)
+{
+	unsigned basic_worker_count = starpu_worker_get_count();
+
+	STARPU_ASSERT(id >= basic_worker_count);
+	return &config.combined_workers[id - basic_worker_count];
 }
 
 enum starpu_archtype starpu_worker_get_type(int id)

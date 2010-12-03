@@ -112,6 +112,7 @@ libstarpu_la_SOURCES = 						\
 	core/jobs.c						\
 	core/task.c						\
 	core/workers.c						\
+	core/combined_workers.c					\
 	core/topology.c						\
 	core/debug.c						\
 	core/errorcheck.c					\
@@ -129,6 +130,7 @@ libstarpu_la_SOURCES = 						\
 	core/perfmodel/regression.c				\
 	core/sched_policy.c					\
 	core/priorities.c					\
+	core/parallel_task.c					\
 	sched_policies/eager_central_policy.c			\
 	sched_policies/eager_central_priority_policy.c		\
 	sched_policies/work_stealing_policy.c			\
@@ -137,6 +139,8 @@ libstarpu_la_SOURCES = 						\
 	sched_policies/stack_queues.c				\
 	sched_policies/deque_queues.c				\
 	sched_policies/fifo_queues.c				\
+	sched_policies/detect_combined_workers.c		\
+	sched_policies/parallel_heft.c				\
 	drivers/driver_common/driver_common.c			\
 	datawizard/memory_nodes.c				\
 	datawizard/write_back.c					\

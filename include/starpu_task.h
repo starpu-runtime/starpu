@@ -33,6 +33,11 @@
 #define STARPU_GORDON	((1ULL)<<5)
 #define STARPU_OPENCL	((1ULL)<<6)
 
+/* Codelet types */
+#define STARPU_SEQ		0
+#define STARPU_SPMD		1
+#define STARPU_FORKJOIN		2
+
 /* task status */
 #define STARPU_TASK_INVALID	0
 #define STARPU_TASK_BLOCKED	1
@@ -57,6 +62,8 @@ typedef uint64_t starpu_tag_t;
 typedef struct starpu_codelet_t {
 	/* where can it be performed ? */
 	uint32_t where;
+	unsigned type;
+	int max_parallelism;
 
 	/* the different implementations of the codelet */
 	void (*cuda_func)(void **, void *);

@@ -232,6 +232,7 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 		}
 	}
 	else {
+#warning TODO add the cpu:k interface as in the branch
 		if (strcmp(arch, "cpu") == 0) {
 			display_perf_model(model, STARPU_CPU_DEFAULT);
 			return;

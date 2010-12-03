@@ -144,7 +144,10 @@ check_PROGRAMS += 				\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
 	microbenchs/local_pingpong		\
-	overlap/overlap
+	overlap/overlap				\
+	parallel_tasks/explicit_combined_worker	\
+	parallel_tasks/parallel_kernels		\
+	parallel_tasks/parallel_kernels_spmd
 
 testbin_PROGRAMS +=				\
 	core/restart
@@ -505,3 +508,18 @@ testbin_PROGRAMS +=				\
 	overlap/overlap
 overlap_overlap_SOURCES =			\
 	overlap/overlap.c
+
+testbin_PROGRAMS +=					\
+	parallel_tasks/explicit_combined_worker
+parallel_tasks_explicit_combined_worker_SOURCES =	\
+	parallel_tasks/explicit_combined_worker.c
+
+testbin_PROGRAMS +=				\
+	parallel_tasks/parallel_kernels
+parallel_tasks_parallel_kernels_SOURCES =	\
+	parallel_tasks/parallel_kernels.c
+
+testbin_PROGRAMS +=				\
+	parallel_tasks/parallel_kernels_spmd
+parallel_tasks_parallel_kernels_spmd_SOURCES =	\
+	parallel_tasks/parallel_kernels_spmd.c

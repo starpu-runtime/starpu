@@ -14,21 +14,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __DRIVER_COMMON_H__
-#define __DRIVER_COMMON_H__
+#ifndef __COMBINED_WORKERS_H__
+#define __COMBINED_WORKERS_H__
 
-#include <sys/time.h>
 #include <starpu.h>
-#include <starpu_profiling.h>
-#include <core/jobs.h>
-#include <profiling/profiling.h>
-#include <common/utils.h>
+#include <common/config.h>
 
-void _starpu_driver_update_job_feedback(starpu_job_t j, struct starpu_worker_s *worker_args,
-		struct starpu_task_profiling_info *profiling_info,
-		unsigned calibrate_model, enum starpu_perf_archtype perf_arch,
-		struct timespec *codelet_start, struct timespec *codelet_end);
-
-void _starpu_block_worker(int workerid, pthread_cond_t *cond, pthread_mutex_t *mutex);
-
-#endif // __DRIVER_COMMON_H__
+#endif // __COMBINED_WORKERS_H__

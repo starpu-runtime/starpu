@@ -24,7 +24,7 @@
 
 void _starpu_driver_update_job_feedback(starpu_job_t j, struct starpu_worker_s *worker_args,
 					struct starpu_task_profiling_info *profiling_info,
-					unsigned calibrate_model,
+					unsigned calibrate_model, enum starpu_perf_archtype perf_arch,
 					struct timespec *codelet_start, struct timespec *codelet_end)
 {
 	struct timespec measured_ts;
@@ -47,7 +47,7 @@ void _starpu_driver_update_job_feedback(starpu_job_t j, struct starpu_worker_s *
 		}
 
 		if (calibrate_model)
-			_starpu_update_perfmodel_history(j, worker_args->perf_arch, worker_args->devid, measured);
+			_starpu_update_perfmodel_history(j, perf_arch, worker_args->devid, measured);
 	}
 }
 

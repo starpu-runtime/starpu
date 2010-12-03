@@ -44,8 +44,9 @@ extern struct starpu_sched_policy_s _starpu_sched_dmda_policy;
 extern struct starpu_sched_policy_s _starpu_sched_dmda_ready_policy;
 extern struct starpu_sched_policy_s _starpu_sched_dmda_sorted_policy;
 extern struct starpu_sched_policy_s _starpu_sched_eager_policy;
+extern struct starpu_sched_policy_s _starpu_sched_parallel_heft_policy;
 
-#define NPREDEFINED_POLICIES	9
+#define NPREDEFINED_POLICIES	10
 
 static struct starpu_sched_policy_s *predefined_policies[NPREDEFINED_POLICIES] = {
 	&_starpu_sched_ws_policy,
@@ -56,7 +57,8 @@ static struct starpu_sched_policy_s *predefined_policies[NPREDEFINED_POLICIES] =
 	&_starpu_sched_dmda_ready_policy,
 	&_starpu_sched_dmda_sorted_policy,
 	&_starpu_sched_random_policy,
-	&_starpu_sched_eager_policy
+	&_starpu_sched_eager_policy,
+	&_starpu_sched_parallel_heft_policy
 };
 
 struct starpu_sched_policy_s *_starpu_get_sched_policy(void)
@@ -200,6 +202,66 @@ void _starpu_deinit_sched_policy(struct starpu_machine_config_s *config)
 		policy.deinit_sched(&config->topology, &policy);
 }
 
+/* Enqueue a task into the list of tasks explicitely attached to a worker. In
+ * case workerid identifies a combined worker, a task will be enqueued into
+ * each worker of the combination. */
+static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int workerid)
+{
+	int nbasic_workers = (int)starpu_worker_get_count();
+
+	/* Is this a basic worker or a combined worker ? */
+	int is_basic_worker = (workerid < nbasic_workers);
+
+	unsigned memory_node; 
+	struct starpu_worker_s *worker;
+	struct starpu_combined_worker_s *combined_worker;
+
+	if (is_basic_worker)
+	{
+		worker = _starpu_get_worker_struct(workerid);
+		memory_node = worker->memory_node;
+	}
+	else
+	{
+		combined_worker = _starpu_get_combined_worker_struct(workerid);
+		memory_node = combined_worker->memory_node;
+	}
+
+	if (use_prefetch)
+		_starpu_prefetch_task_input_on_node(task, memory_node);
+
+	if (is_basic_worker)
+	{
+		return _starpu_push_local_task(worker, task);
+	}
+	else {
+		/* This is a combined worker so we create task aliases */
+		int worker_size = combined_worker->worker_size;
+		int *combined_workerid = combined_worker->combined_workerid;
+
+		int ret = 0;
+		int i;
+
+		starpu_job_t j = _starpu_get_job_associated_to_task(task);
+		j->task_size = worker_size;
+		j->combined_workerid = workerid;
+		j->active_task_alias_count = 0;
+
+		pthread_barrier_init(&j->before_work_barrier, NULL, worker_size);
+		pthread_barrier_init(&j->after_work_barrier, NULL, worker_size);
+
+		for (i = 0; i < worker_size; i++)
+		{
+			struct starpu_task *alias = _starpu_create_task_alias(task);
+
+			worker = _starpu_get_worker_struct(combined_workerid[i]);
+			ret |= _starpu_push_local_task(worker, alias);
+		}
+
+		return ret;
+	}
+}
+
 /* the generic interface that call the proper underlying implementation */
 int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 {
@@ -222,20 +284,10 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
         int ret;
 	if (STARPU_UNLIKELY(task->execute_on_a_specific_worker))
 	{
-		unsigned workerid = task->workerid;
-		struct starpu_worker_s *worker = _starpu_get_worker_struct(workerid);
-		
-		if (use_prefetch)
-		{
-			uint32_t memory_node = starpu_worker_get_memory_node(workerid); 
-			_starpu_prefetch_task_input_on_node(task, memory_node);
-		}
-
-		ret = _starpu_push_local_task(worker, task);
+		ret = _starpu_push_task_on_specific_worker(task, task->workerid);
 	}
 	else {
 		STARPU_ASSERT(policy.push_task);
-
 		ret = policy.push_task(task);
 	}
 

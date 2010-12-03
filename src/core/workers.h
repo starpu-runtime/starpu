@@ -65,6 +65,9 @@ struct starpu_worker_s {
 	int devid; /* which cpu/gpu/etc is controlled by the workker ? */
 	int bindid; /* which cpu is the driver bound to ? */
 	int workerid; /* uniquely identify the worker among all processing units types */
+	int combined_workerid; /* combined worker currently using this worker */
+	int current_rank; /* current rank in case the worker is used in a parallel fashion */
+	int worker_size; /* size of the worker in case we use a combined worker */
         pthread_cond_t ready_cond; /* indicate when the worker is ready */
 	unsigned memory_node; /* which memory node is associated that worker to ? */
 	pthread_cond_t *sched_cond; /* condition variable used when the worker waits for tasks. */
@@ -77,6 +80,26 @@ struct starpu_worker_s {
 	unsigned worker_is_initialized;
 	starpu_worker_status status; /* what is the worker doing now ? (eg. CALLBACK) */
 	char name[32];
+
+	cpu_set_t initial_cpu_set;
+	cpu_set_t current_cpu_set;
+#ifdef STARPU_HAVE_HWLOC
+	hwloc_cpuset_t initial_hwloc_cpu_set;
+	hwloc_cpuset_t current_hwloc_cpu_set;
+#endif
+};
+
+struct starpu_combined_worker_s {
+	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
+	uint32_t worker_mask; /* what is the type of workers ? */
+	int worker_size;
+	unsigned memory_node; /* which memory node is associated that worker to ? */
+	int combined_workerid[STARPU_NMAXWORKERS];
+
+	cpu_set_t cpu_set;
+#ifdef STARPU_HAVE_HWLOC
+	hwloc_cpuset_t hwloc_cpu_set;
+#endif
 };
 
 /* in case a single CPU worker may control multiple 
@@ -109,7 +132,13 @@ struct starpu_machine_config_s {
 	/* Which GPU(s) do we use for OpenCL ? */
 	int current_opencl_gpuid;
 	
+	/* Basic workers : each of this worker is running its own driver and
+	 * can be combined with other basic workers. */
 	struct starpu_worker_s workers[STARPU_NMAXWORKERS];
+
+	/* Combined workers: these worker are a combination of basic workers
+	 * that can run parallel tasks together. */
+	struct starpu_combined_worker_s combined_workers[STARPU_NMAX_COMBINEDWORKERS];
 
 	/* This bitmask indicates which kinds of worker are available. For
 	 * instance it is possible to test if there is a CUDA worker with
@@ -141,6 +170,7 @@ uint32_t _starpu_may_submit_opencl_task(void);
 
 /* Check if the worker specified by workerid can execute the codelet. */
 int _starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task);
+int _starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_task *task);
 
 /* Check whether there is anything that the worker should do instead of
  * sleeping (waiting on something to happen). */
@@ -163,6 +193,8 @@ struct starpu_worker_s *_starpu_get_local_worker_key(void);
 /* Returns the starpu_worker_s structure that describes the state of the
  * specified worker. */
 struct starpu_worker_s *_starpu_get_worker_struct(unsigned id);
+
+struct starpu_combined_worker_s *_starpu_get_combined_worker_struct(unsigned id);
 
 /* Returns the structure that describes the overall machine configuration (eg.
  * all workers and topology). */

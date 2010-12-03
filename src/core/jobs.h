@@ -106,6 +106,21 @@ LIST_TYPE(starpu_job,
         const char *model_name;
 #endif
 	struct bound_task *bound_task;
+
+	/* Number of workers executing that task (>1 if the task is parallel)
+	 * */
+	int task_size;
+
+	/* In case we have assigned this job to a combined workerid */
+	int combined_workerid;
+
+	/* How many workers are currently running an alias of that job (for
+	 * parallel tasks only). */
+	int active_task_alias_count;
+
+	/* Parallel workers may have to synchronize before/after the execution of a parallel task. */
+	pthread_barrier_t before_work_barrier;
+	pthread_barrier_t after_work_barrier;
 );
 
 /* Create an internal starpu_job_t structure to encapsulate the task. */

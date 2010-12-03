@@ -50,7 +50,16 @@ enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid)
 {
 	struct starpu_machine_config_s *config = _starpu_get_machine_config();
 
-	return config->workers[workerid].perf_arch;
+	/* This workerid may either be a basic worker or a combined worker */
+	unsigned nworkers = config->topology.nworkers;
+
+	if (workerid < (int)config->topology.nworkers)
+		return config->workers[workerid].perf_arch;
+
+	/* We have a combined worker */
+	unsigned ncombinedworkers = config->topology.ncombinedworkers;
+	STARPU_ASSERT(workerid < (int)(ncombinedworkers + nworkers));
+	return config->combined_workers[workerid - nworkers].perf_arch;
 }
 
 /*
