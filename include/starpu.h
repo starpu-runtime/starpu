@@ -41,20 +41,18 @@ typedef unsigned long long uint64_t;
 extern "C" {
 #endif
 
-/* TODO: should either make 0 be the default, or provide an initializer, to
- * make future extensions not problematic */
 struct starpu_conf {
 	/* which scheduling policy should be used ? (NULL for default) */
 	const char *sched_policy_name;
 	struct starpu_sched_policy_s *sched_policy;
 
-	/* maximum number of CPUs (-1 for default) */
+	/* number of CPU workers (-1 for default) */
 	int ncpus;
-	/* maximum number of CUDA GPUs (-1 for default) */
+	/* number of CUDA GPU workers (-1 for default) */
 	int ncuda;
-	/* maximum number of OpenCL GPUs (-1 for default) */
+	/* number of GPU OpenCL device workers (-1 for default) */
 	int nopencl;
-	/* maximum number of Cell's SPUs (-1 for default) */
+	/* number of Cell's SPUs (-1 for default) */
 	int nspus;
 
 	unsigned use_explicit_workers_bindid;
