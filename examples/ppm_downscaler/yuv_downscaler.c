@@ -49,34 +49,16 @@ void parse_args(int argc, char **argv)
 #define FRAMESIZE	sizeof(struct yuv_frame)
 #define NEW_FRAMESIZE	sizeof(struct yuv_new_frame)
 
-static pthread_cond_t ds_callback_cond = PTHREAD_COND_INITIALIZER;
-static pthread_mutex_t ds_callback_mutex = PTHREAD_MUTEX_INITIALIZER;
-static unsigned ds_callback_terminated = 0;
-static unsigned ds_callback_cnt = 0;
-
-static void ds_callback(void *arg)
-{
-	unsigned val = STARPU_ATOMIC_ADD(&ds_callback_cnt, -1);
-	if (val == 0)
-	{
-		fprintf(stderr, "Downscaling terminated...\n");
-		pthread_mutex_lock(&ds_callback_mutex);
-		ds_callback_terminated = 1;
-		pthread_cond_signal(&ds_callback_cond);
-		pthread_mutex_unlock(&ds_callback_mutex);
-	}
-}
-
 static void ds_kernel_cpu(void *descr[], __attribute__((unused)) void *arg)
 {
 	uint8_t *input = (uint8_t *)STARPU_MATRIX_GET_PTR(descr[0]);
-	unsigned input_ld = STARPU_MATRIX_GET_LD(descr[0]);
+	const unsigned input_ld = STARPU_MATRIX_GET_LD(descr[0]);
 
 	uint8_t *output = (uint8_t *)STARPU_MATRIX_GET_PTR(descr[1]);
-	unsigned output_ld = STARPU_MATRIX_GET_LD(descr[1]);
+	const unsigned output_ld = STARPU_MATRIX_GET_LD(descr[1]);
 
-	unsigned ncols = STARPU_MATRIX_GET_NX(descr[0]);
-	unsigned nlines = STARPU_MATRIX_GET_NY(descr[0]);
+	const unsigned ncols = STARPU_MATRIX_GET_NX(descr[0]);
+	const unsigned nlines = STARPU_MATRIX_GET_NY(descr[0]);
 
 	unsigned line, col;
 	for (line = 0; line < nlines; line+=FACTOR)
@@ -113,14 +95,7 @@ static struct starpu_data_filter filter_y = {
 	.get_child_ops = NULL
 };
 	
-static struct starpu_data_filter filter_u = {
-	.filter_func = starpu_block_filter_func,
-	.nchildren = (HEIGHT/2)/BLOCK_HEIGHT,
-	.get_nchildren = NULL,
-	.get_child_ops = NULL
-};
-
-static struct starpu_data_filter filter_v = {
+static struct starpu_data_filter filter_uv = {
 	.filter_func = starpu_block_filter_func,
 	.nchildren = (HEIGHT/2)/BLOCK_HEIGHT,
 	.get_nchildren = NULL,
@@ -193,36 +168,36 @@ int main(int argc, char **argv)
 			(uintptr_t)&yuv_in_buffer[frame].u,
 			WIDTH/2, WIDTH/2, HEIGHT/2, sizeof(uint8_t));
 
-		starpu_data_partition(frame_u_handle[frame], &filter_u);
+		starpu_data_partition(frame_u_handle[frame], &filter_uv);
 
 		starpu_matrix_data_register(&new_frame_u_handle[frame], 0,
 			(uintptr_t)&yuv_out_buffer[frame].u,
 			NEW_WIDTH/2, NEW_WIDTH/2, NEW_HEIGHT/2, sizeof(uint8_t));
 
-		starpu_data_partition(new_frame_u_handle[frame], &filter_u);
+		starpu_data_partition(new_frame_u_handle[frame], &filter_uv);
 
 		/* register V layer */
 		starpu_matrix_data_register(&frame_v_handle[frame], 0,
 			(uintptr_t)&yuv_in_buffer[frame].v,
 			WIDTH/2, WIDTH/2, HEIGHT/2, sizeof(uint8_t));
 
-		starpu_data_partition(frame_v_handle[frame], &filter_v);
+		starpu_data_partition(frame_v_handle[frame], &filter_uv);
 
 		starpu_matrix_data_register(&new_frame_v_handle[frame], 0,
 			(uintptr_t)&yuv_out_buffer[frame].v,
 			NEW_WIDTH/2, NEW_WIDTH/2, NEW_HEIGHT/2, sizeof(uint8_t));
 
-		starpu_data_partition(new_frame_v_handle[frame], &filter_v);
+		starpu_data_partition(new_frame_v_handle[frame], &filter_uv);
 
 	}
 
 	/* how many tasks are there ? */
 	unsigned nblocks_y = filter_y.filter_arg;
-	unsigned nblocks_uv = filter_u.filter_arg;
+	unsigned nblocks_uv = filter_uv.filter_arg;
 
-	ds_callback_cnt = (nblocks_y + 2*nblocks_uv)*nframes;
+	unsigned ntasks = (nblocks_y + 2*nblocks_uv)*nframes;
 
-	fprintf(stderr, "Start computation: there will be %d tasks for %d frames\n", ds_callback_cnt, nframes);
+	fprintf(stderr, "Start computation: there will be %d tasks for %d frames\n", ntasks, nframes);
 	gettimeofday(&start, NULL);
 
 	/* do the computation */
@@ -233,7 +208,6 @@ int main(int argc, char **argv)
 		{
 			struct starpu_task *task = starpu_task_create();
 				task->cl = &ds_codelet;
-				task->callback_func = ds_callback;
 
 				/* input */
 				task->buffers[0].handle = starpu_data_get_sub_data(frame_y_handle[frame], 1, blocky);
@@ -251,7 +225,6 @@ int main(int argc, char **argv)
 		{
 			struct starpu_task *task = starpu_task_create();
 				task->cl = &ds_codelet;
-				task->callback_func = ds_callback;
 
 				/* input */
 				task->buffers[0].handle = starpu_data_get_sub_data(frame_u_handle[frame], 1, blocku);
@@ -269,7 +242,6 @@ int main(int argc, char **argv)
 		{
 			struct starpu_task *task = starpu_task_create();
 				task->cl = &ds_codelet;
-				task->callback_func = ds_callback;
 
 				/* input */
 				task->buffers[0].handle = starpu_data_get_sub_data(frame_v_handle[frame], 1, blockv);
@@ -283,29 +255,31 @@ int main(int argc, char **argv)
 		}
 	}
 
-	pthread_mutex_lock(&ds_callback_mutex);
-	if (!ds_callback_terminated)
-		pthread_cond_wait(&ds_callback_cond, &ds_callback_mutex);
-	pthread_mutex_unlock(&ds_callback_mutex);
+	/* make sure all output buffers are sync'ed */
+	for (frame = 0; frame < nframes; frame++)
+	{
+		starpu_data_unregister(frame_y_handle[frame]);
+		starpu_data_unregister(frame_u_handle[frame]);
+		starpu_data_unregister(frame_v_handle[frame]);
 
+		starpu_data_unregister(new_frame_y_handle[frame]);
+		starpu_data_unregister(new_frame_u_handle[frame]);
+		starpu_data_unregister(new_frame_v_handle[frame]);
+	}
+
+	/* There is an implicit barrier: the unregister methods will block
+	 * until the computation is done and that the result was put back into
+	 * memory. */
 	gettimeofday(&end, NULL);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	fprintf(stderr, "Computation took %f seconds\n", timing/1000000);
 	fprintf(stderr, "FPS %f\n", (1000000*nframes)/timing);
 
-	/* make sure all output buffers are sync'ed */
-	for (frame = 0; frame < nframes; frame++)
-	{
-		starpu_data_acquire(new_frame_y_handle[frame], STARPU_R);
-		starpu_data_acquire(new_frame_u_handle[frame], STARPU_R);
-		starpu_data_acquire(new_frame_v_handle[frame], STARPU_R);
-	}
+	fwrite(yuv_out_buffer, NEW_FRAMESIZE, nframes, f_out);
 
 	/* partition the layers into smaller parts */
 	starpu_shutdown();
-
-	fwrite(yuv_out_buffer, NEW_FRAMESIZE, nframes, f_out);
 
 	return 0;
 }
