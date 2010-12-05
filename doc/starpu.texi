@@ -2014,6 +2014,7 @@ as it emulates devices that have a limited amount of memory.
 @menu
 * starpu_init::                 Initialize StarPU
 * struct starpu_conf::          StarPU runtime configuration
+* starpu_conf_init::     Initialize starpu_conf structure
 * starpu_shutdown::             Terminate StarPU
 @end menu
 
@@ -2105,6 +2106,22 @@ executing tasks. If this value is equal to -1, the default value is used. The
 default value is overwritten by the @code{STARPU_CALIBRATE} environment
 variable when it is set.
 @end table
+
+@end table
+
+
+@node starpu_conf_init
+@subsection @code{starpu_conf_init} -- Initialize starpu_conf structure
+@table @asis
+
+This function initializes the @code{starpu_conf} structure passed as argument with the default values.
+
+@item @emph{Return value}:
+Upon successful completion, this function returns 0. Otherwise, @code{-EINVAL}
+indicates that the argument was NULL.
+
+@item @emph{Prototype}:
+@code{int starpu_conf_init(struct starpu_conf *conf);}
 
 @end table
 
