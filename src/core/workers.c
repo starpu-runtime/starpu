@@ -261,6 +261,26 @@ struct starpu_worker_s *_starpu_get_local_worker_key(void)
 	return pthread_getspecific(worker_key);
 }
 
+/* Initialize the starpu_conf with default values */
+int starpu_conf_init(struct starpu_conf *conf)
+{
+	if (!conf)
+		return -EINVAL;
+
+	conf->sched_policy_name = NULL;
+	conf->sched_policy = NULL;
+	conf->ncpus = -1;
+	conf->ncuda = -1;
+	conf->nopencl = -1;
+	conf->nspus = -1;
+	conf->use_explicit_workers_bindid = 0;
+	conf->use_explicit_workers_cuda_gpuid = 0;
+	conf->use_explicit_workers_opencl_gpuid = 0;
+	conf->calibrate = -1;
+
+	return 0;
+};
+
 int starpu_init(struct starpu_conf *user_conf)
 {
 	int ret;

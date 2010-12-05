@@ -68,6 +68,9 @@ struct starpu_conf {
 	int calibrate;
 };
 
+/* Initialize a starpu_conf structure with default values. */
+int starpu_conf_init(struct starpu_conf *conf);
+
 /* Initialization method: it must be called prior to any other StarPU call
  * Default configuration is used if NULL is passed as argument.
  */
