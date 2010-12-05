@@ -34,8 +34,6 @@ starpu_codelet cl;
 #define Nk	256
 
 static unsigned ni = Ni, nk = Nk;
-static unsigned callback_cnt;
-static unsigned iter = 0;
 
 static void parse_args(int argc, char **argv)
 {
@@ -59,25 +57,18 @@ static void parse_args(int argc, char **argv)
 
 void callback_cpu(void *argcb);
 
-static void tag_cleanup_grid(unsigned ni, unsigned iter)
+static void tag_cleanup_grid(unsigned ni, unsigned it)
 {
 	unsigned i;
-
 	for (i = 0; i < ni; i++)
-	{
-		starpu_tag_remove(TAG(i,iter));
-	}
-
-
+		starpu_tag_remove(TAG(i,it));
 } 
 
-static void create_task_grid(unsigned iter)
+static void create_task_grid(unsigned it)
 {
 	unsigned i;
 
-//	fprintf(stderr, "start iter %d ni %d...\n", iter, ni);
-
-	callback_cnt = (ni);
+//	fprintf(stderr, "start iter %d ni %d...\n", it, ni);
 
 	for (i = 0; i < ni; i++)
 	{
@@ -88,10 +79,10 @@ static void create_task_grid(unsigned iter)
 		task->cl_arg = NULL;
 
 		task->use_tag = 1;
-		task->tag_id = TAG(i, iter);
+		task->tag_id = TAG(i, it);
 
 		if (i != 0)
-			starpu_tag_declare_deps(TAG(i,iter), 1, TAG(i-1,iter));
+			starpu_tag_declare_deps(TAG(i,it), 1, TAG(i-1,it));
 
 		starpu_task_submit(task);
 	}
