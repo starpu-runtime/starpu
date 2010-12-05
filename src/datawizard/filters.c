@@ -328,7 +328,7 @@ static void starpu_data_create_children(starpu_data_handle handle, unsigned nchi
 		{
 			handle_child->per_worker[worker].handle = handle_child;
 			handle_child->per_worker[worker].interface = calloc(1, interfacesize);
-			STARPU_ASSERT(handle_child->per_node[node].interface);
+			STARPU_ASSERT(handle_child->per_worker[worker].interface);
 		}
 	}
 	
