@@ -26,9 +26,10 @@ void _starpu_drop_comments(FILE *f)
 			case '#':
 			{
 				char s[128];
+				char *ret;
 				do {
-					fgets(s, sizeof(s), f);
-				} while (!strchr(s, '\n'));
+					ret = fgets(s, sizeof(s), f);
+				} while (ret && (!strchr(s, '\n')));
 			}
 			case '\n':
 				continue;
