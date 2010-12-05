@@ -69,7 +69,8 @@ struct ppm_image *file_to_ppm(char *filename)
 #endif
 	assert(ppm->data);
 
-	fread(ppm->data, sizeof(struct ppm_color), ppm->ncols*ppm->nlines, file);
+	ret = fread(ppm->data, sizeof(struct ppm_color), ppm->ncols*ppm->nlines, file);
+	STARPU_ASSERT(ret == ppm->ncols*ppm->nlines);
 
 	unsigned i;
 	for (i = 0; i < ppm->ncols*ppm->nlines; i++)
