@@ -71,6 +71,8 @@ static void _starpu_data_acquire_fetch_data_callback(void *arg)
 	_starpu_add_post_sync_tasks(wrapper->post_sync_task, handle);
 
 	wrapper->callback(wrapper->callback_arg);
+
+	free(wrapper);
 }
 
 static void _starpu_data_acquire_continuation_non_blocking(void *arg)
