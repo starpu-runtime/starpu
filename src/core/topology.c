@@ -701,11 +701,13 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 
 		workerarg->memory_node = memory_node;
 
+#ifndef STARPU_HAVE_WINDOWS
 		/* Save the initial cpuset */
 		CPU_ZERO(&workerarg->initial_cpu_set);
 		CPU_SET(workerarg->bindid, &workerarg->initial_cpu_set);
 		CPU_ZERO(&workerarg->current_cpu_set);
 		CPU_SET(workerarg->bindid, &workerarg->current_cpu_set);
+#endif /* STARPU_HAVE_WINDOWS */
 
 #ifdef STARPU_HAVE_HWLOC
 		/* Clear the cpu set and set the cpu */

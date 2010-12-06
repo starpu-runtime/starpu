@@ -86,7 +86,9 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 	/* Save the list of combined workers */
 	memcpy(&combined_worker->combined_workerid, workerid_array, nworkers*sizeof(int));
 
+#ifndef STARPU_HAVE_WINDOWS
 	CPU_ZERO(&combined_worker->cpu_set);
+#endif /* STARPU_HAVE_WINDOWS */
 #ifdef STARPU_HAVE_HWLOC
 	combined_worker->hwloc_cpu_set = hwloc_cpuset_alloc();
 #endif
@@ -94,9 +96,11 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 	for (i = 0; i < nworkers; i++)
 	{
 		int id = workerid_array[i];
+#ifndef STARPU_HAVE_WINDOWS
 		CPU_OR(&combined_worker->cpu_set,
 			&combined_worker->cpu_set,
 			&config->workers[id].initial_cpu_set);
+#endif /* STARPU_HAVE_WINDOWS */
 
 #ifdef STARPU_HAVE_HWLOC
 		hwloc_cpuset_or(combined_worker->hwloc_cpu_set,

@@ -81,8 +81,10 @@ struct starpu_worker_s {
 	starpu_worker_status status; /* what is the worker doing now ? (eg. CALLBACK) */
 	char name[32];
 
+#ifndef STARPU_HAVE_WINDOWS
 	cpu_set_t initial_cpu_set;
 	cpu_set_t current_cpu_set;
+#endif /* STARPU_HAVE_WINDOWS */
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_cpuset_t initial_hwloc_cpu_set;
 	hwloc_cpuset_t current_hwloc_cpu_set;
@@ -96,7 +98,9 @@ struct starpu_combined_worker_s {
 	unsigned memory_node; /* which memory node is associated that worker to ? */
 	int combined_workerid[STARPU_NMAXWORKERS];
 
+#ifndef STARPU_HAVE_WINDOWS
 	cpu_set_t cpu_set;
+#endif /* STARPU_HAVE_WINDOWS */
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_cpuset_t hwloc_cpu_set;
 #endif
