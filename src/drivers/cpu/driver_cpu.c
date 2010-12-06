@@ -52,7 +52,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 	}
 
 	if (is_parallel_task)
-		pthread_barrier_wait(&j->before_work_barrier);
+		PTHREAD_BARRIER_WAIT(&j->before_work_barrier);
 
 	STARPU_TRACE_START_CODELET_BODY(j);
 
@@ -92,7 +92,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 	}
 
 	if (is_parallel_task)
-		pthread_barrier_wait(&j->after_work_barrier);
+		PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
 
 	if (rank == 0)
 	{

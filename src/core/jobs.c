@@ -100,6 +100,12 @@ void _starpu_job_destroy(starpu_job_t j)
 	PTHREAD_COND_DESTROY(&j->sync_cond);
 	PTHREAD_MUTEX_DESTROY(&j->sync_mutex);
 
+	if (j->task_size > 1)
+	{
+		PTHREAD_BARRIER_DESTROY(&j->before_work_barrier);
+		PTHREAD_BARRIER_DESTROY(&j->after_work_barrier);
+	}
+
 	_starpu_cg_list_deinit(&j->job_successors);
 
 	starpu_job_delete(j);

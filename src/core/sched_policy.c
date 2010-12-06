@@ -247,8 +247,8 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		j->combined_workerid = workerid;
 		j->active_task_alias_count = 0;
 
-		pthread_barrier_init(&j->before_work_barrier, NULL, worker_size);
-		pthread_barrier_init(&j->after_work_barrier, NULL, worker_size);
+		PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
+		PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
 
 		for (i = 0; i < worker_size; i++)
 		{
