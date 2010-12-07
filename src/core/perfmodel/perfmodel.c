@@ -218,19 +218,19 @@ void _starpu_get_perf_model_dir(char *path, size_t maxlen)
 void _starpu_get_perf_model_dir_codelets(char *path, size_t maxlen)
 {
 	_starpu_get_perf_model_dir(path, maxlen);
-	strncat(path, "codelets/", maxlen);
+	strncat(path, "/codelets/", maxlen);
 }
 
 void _starpu_get_perf_model_dir_bus(char *path, size_t maxlen)
 {
 	_starpu_get_perf_model_dir(path, maxlen);
-	strncat(path, "bus/", maxlen);
+	strncat(path, "/bus/", maxlen);
 }
 
 void _starpu_get_perf_model_dir_debug(char *path, size_t maxlen)
 {
 	_starpu_get_perf_model_dir(path, maxlen);
-	strncat(path, "debug/", maxlen);
+	strncat(path, "/debug/", maxlen);
 }
 
 void _starpu_create_sampling_directory_if_needed(void)
