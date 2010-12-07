@@ -133,6 +133,8 @@ cl_int _starpu_opencl_deinit_context(int devid)
         err = clReleaseCommandQueue(queues[devid]);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
+        contexts[devid] = NULL;
+
 	PTHREAD_MUTEX_UNLOCK(&big_lock);
 
         return CL_SUCCESS;

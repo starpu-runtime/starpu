@@ -134,6 +134,11 @@ int starpu_opencl_load_opencl_from_string(char *opencl_program_source, struct st
 
                 starpu_opencl_get_device(dev, &device);
                 starpu_opencl_get_context(dev, &context);
+                if (context == NULL) {
+                        _STARPU_DEBUG("[%d] is not a valid OpenCL context\n", dev);
+                        continue;
+                }
+
                 opencl_programs->programs[dev] = NULL;
 
                 if (context == NULL) continue;
