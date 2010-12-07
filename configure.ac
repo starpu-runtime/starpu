@@ -724,7 +724,7 @@ fi
 
 AC_ARG_WITH(perf-model-dir, [AS_HELP_STRING([--with-perf-model-dir=<dir>], [specify where performance models shoulds be stored])],
 	[
-		if x$withval = xno; then
+		if test x$withval = xno; then
 			AC_MSG_ERROR(--without-perf-model-dir is not a valid option)
 		fi
 	
