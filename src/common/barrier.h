@@ -21,6 +21,8 @@
 # define PTHREAD_BARRIER_SERIAL_THREAD -1
 #endif
 
+#include <pthread.h>
+
 typedef struct {
 	int count;
 	int reached;
