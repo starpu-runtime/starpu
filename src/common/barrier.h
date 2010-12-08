@@ -17,10 +17,6 @@
 #ifndef __COMMON_BARRIER_H__
 #define __COMMON_BARRIER_H__
 
-#if defined(__CYGWIN__)
-# define PTHREAD_BARRIER_SERIAL_THREAD -1
-#endif
-
 #include <pthread.h>
 
 typedef struct {
@@ -36,11 +32,12 @@ int _starpu_barrier_destroy(_starpu_barrier_t *barrier);
 
 int _starpu_barrier_wait(_starpu_barrier_t *barrier);
 
-#if defined(__CYGWIN__)
-#define pthread_barrier_t _starpu_barrier_t
-#define pthread_barrier_init(b,a,c) _starpu_barrier_init(b, c)
-#define pthread_barrier_destroy(b) _starpu_barrier_destroy(b)
-#define pthread_barrier_wait(b) _starpu_barrier_wait(b)
-#endif /* __CYGWIN__ */
+#if !defined(PTHREAD_BARRIER_SERIAL_THREAD)
+#  define PTHREAD_BARRIER_SERIAL_THREAD -1
+#  define pthread_barrier_t _starpu_barrier_t
+#  define pthread_barrier_init(b,a,c) _starpu_barrier_init(b, c)
+#  define pthread_barrier_destroy(b) _starpu_barrier_destroy(b)
+#  define pthread_barrier_wait(b) _starpu_barrier_wait(b)
+#endif /* !PTHREAD_BARRIER_SERIAL_THREAD */
 
 #endif // __COMMON_BARRIER_H__
