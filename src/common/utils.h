@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <pthread.h>
+#include <common/barrier.h>
 
 #ifdef STARPU_VERBOSE
 #  define _STARPU_DEBUG(fmt, args ...) fprintf(stderr, "[starpu][%s] " fmt ,__func__ ,##args)

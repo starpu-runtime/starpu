@@ -102,6 +102,7 @@ noinst_HEADERS = 						\
 	profiling/profiling.h
 
 libstarpu_la_SOURCES = 						\
+	common/barrier.c					\
 	common/hash.c 						\
 	common/htable32.c					\
 	common/rwlock.c						\
