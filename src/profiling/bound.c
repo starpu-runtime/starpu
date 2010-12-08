@@ -328,7 +328,7 @@ void starpu_bound_stop(void)
 	PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
-static void _starpu_get_tasks_times(int nw, int nt, double times[nw][nt]) {
+static void _starpu_get_tasks_times(int nw, int nt, double *times) {
 	struct bound_task_pool *tp;
 	int w, t;
 	for (w = 0; w < nw; w++) {
@@ -340,9 +340,9 @@ static void _starpu_get_tasks_times(int nw, int nt, double times[nw][nt]) {
 			enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
 			double length = _starpu_history_based_job_expected_length(tp->cl->model, arch, &j);
 			if (length == -1.0)
-				times[w][t] = -1.0;
+				times[w*nt+t] = -1.0;
 			else
-				times[w][t] = length / 1000.;
+				times[w*nt+t] = length / 1000.;
 		}
 	}
 }
@@ -582,7 +582,7 @@ void starpu_bound_print_lp(FILE *output)
 			nt++;
 
 		{
-			double times[nw][nt];
+			double times[nw*nt];
 
 			_starpu_get_tasks_times(nw, nt, times);
 
@@ -596,8 +596,8 @@ void starpu_bound_print_lp(FILE *output)
 				starpu_worker_get_name(w, name, sizeof(name));
 				fprintf(output, "/* worker %s */\n", name);
 				for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
-					if (times[w][t] != -1.0)
-						fprintf(output, "\t%+f * w%dt%dn", (float) times[w][t], w, t);
+					if (times[w*nt+t] != -1.0)
+						fprintf(output, "\t%+f * w%dt%dn", (float) times[w*nt+t], w, t);
 				}
 				fprintf(output, " <= tmax;\n");
 			}
@@ -607,7 +607,7 @@ void starpu_bound_print_lp(FILE *output)
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
 				fprintf(output, "/* task %s key %x */\n", tp->cl->model->symbol, (unsigned) tp->footprint);
 				for (w = 0; w < nw; w++)
-					if (times[w][t] != -1.0)
+					if (times[w*nt+t] != -1.0)
 						fprintf(output, "\t+w%dt%dn", w, t);
 				fprintf(output, " = %lu;\n", tp->n);
 				/* Show actual values */
@@ -658,7 +658,7 @@ void starpu_bound_print_mps(FILE *output)
 		nt++;
 
 	{
-		double times[nw][nt];
+		double times[nw*nt];
 
 		_starpu_get_tasks_times(nw, nt, times);
 
@@ -688,10 +688,10 @@ void starpu_bound_print_mps(FILE *output)
 		fprintf(output, "\n* Execution times and completion of all tasks\n");
 		for (w = 0; w < nw; w++)
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
-				if (times[w][t] != -1.0) {
+				if (times[w*nt+t] != -1.0) {
 					char name[9];
 					snprintf(name, sizeof(name), "W%dT%d", w, t);
-					fprintf(stderr,"    %-8s  W%-7d  %12f\n", name, w, times[w][t]);
+					fprintf(stderr,"    %-8s  W%-7d  %12f\n", name, w, times[w*nt+t]);
 					fprintf(stderr,"    %-8s  T%-7d  %12d\n", name, t, 1);
 				}
 
@@ -736,7 +736,7 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 	glp_set_obj_name(lp, "total execution time");
 
 	{
-		double times[nw][nt];
+		double times[nw*nt];
 		int ne =
 			nw * (nt+1)	/* worker execution time */
 			+ nt * nw
@@ -773,10 +773,10 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
 				ia[n] = w+1;
 				ja[n] = colnum(w, t);
-				if (times[w][t] == -1.)
+				if (times[w*nt+t] == -1.)
 					ar[n] = 1000000000.;
 				else
-					ar[n] = times[w][t];
+					ar[n] = times[w*nt+t];
 				n++;
 			}
 			/* tmax */
