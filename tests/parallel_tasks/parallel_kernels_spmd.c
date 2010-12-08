@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <limits.h>
 
 #define N	1000
 #define VECTORSIZE	1024
