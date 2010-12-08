@@ -34,17 +34,20 @@ int _starpu_barrier_destroy(_starpu_barrier_t *barrier)
 
 int _starpu_barrier_wait(_starpu_barrier_t *barrier)
 {
+	int ret=0;
+
 	pthread_mutex_lock(&barrier->mutex);
 	barrier->reached++;
 	if (barrier->reached == barrier->count)
 	{
 		barrier->reached = 0;
 		pthread_cond_broadcast(&barrier->cond);
+		ret = PTHREAD_BARRIER_SERIAL_THREAD;
 	}
 	else
 	{
 		pthread_cond_wait(&barrier->cond,&barrier->mutex);
 	}
 	pthread_mutex_unlock(&barrier->mutex);
-	return 0;
+	return ret;
 }

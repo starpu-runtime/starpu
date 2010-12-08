@@ -17,6 +17,10 @@
 #ifndef __COMMON_BARRIER_H__
 #define __COMMON_BARRIER_H__
 
+#if defined(__CYGWIN__)
+# define PTHREAD_BARRIER_SERIAL_THREAD -1
+#endif
+
 typedef struct {
 	int count;
 	int reached;
