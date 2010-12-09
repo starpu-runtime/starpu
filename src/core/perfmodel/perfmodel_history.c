@@ -475,7 +475,7 @@ void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archna
 	{
 		if (arch == STARPU_CPU_DEFAULT)
 		{
-#warning We could just use cpu_1 as well ...
+			/* NB: We could just use cpu_1 as well ... */
 			snprintf(archname, maxlen, "cpu");
 		}
 		else

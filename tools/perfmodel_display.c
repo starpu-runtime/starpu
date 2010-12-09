@@ -49,7 +49,7 @@ static void usage(char **argv)
         fprintf(stderr, "   -l                  display all available models\n");
         fprintf(stderr, "   -s <symbol>         specify the symbol\n");
         fprintf(stderr, "   -p <parameter>      specify the parameter (e.g. a, b, c, mean, stddev)\n");
-        fprintf(stderr, "   -a <arch>           specify the architecture (e.g. cpu, cuda, gordon)\n");
+        fprintf(stderr, "   -a <arch>           specify the architecture (e.g. cpu, cpu:k, cuda, gordon)\n");
 	fprintf(stderr, "   -f <footprint>      display the history-based model for the specified footprint\n");
         fprintf(stderr, "\n");
 
@@ -232,9 +232,22 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 		}
 	}
 	else {
-#warning TODO add the cpu:k interface as in the branch
 		if (strcmp(arch, "cpu") == 0) {
 			display_perf_model(model, STARPU_CPU_DEFAULT);
+			return;
+		}
+
+		int k;
+		if (sscanf(arch, "cpu:%d", &k) == 1)
+		{
+			/* For combined CPU workers */
+			if ((k < 1) || (k > STARPU_NMAXCPUS))
+			{
+				fprintf(stderr, "Invalid CPU size\n");
+				exit(-1);
+			}
+
+			display_perf_model(model, STARPU_CPU_DEFAULT + k - 1);
 			return;
 		}
 
