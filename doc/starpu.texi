@@ -324,6 +324,7 @@ configuration:
 @menu
 * Setting flags for compiling and linking applications::  
 * Running a basic StarPU application::  
+* Using accelerators::          
 @end menu
 
 @node Setting flags for compiling and linking applications
@@ -371,6 +372,19 @@ that directory.
 Please note that buses are benchmarked when StarPU is launched for the
 first time. This may take a few minutes, or less if @code{hwloc} is
 installed. This step is done only once per user and per machine.
+
+@node Using accelerators
+@section Using accelerators
+
+When both CUDA and OpenCL drivers are enabled, StarPU will launch an
+OpenCL worker only if CUDA is not already running on the GPU.
+This design choice was necessary as OpenCL and CUDA can not run at the
+same time on the same GPU, as there is currently no interoperability
+between them.
+
+Details on how to specify devices running OpenCL and the ones running
+CUDA are given in @ref{Enabling OpenCL}.
+
 
 @c ---------------------------------------------------------------------
 @c Basic Examples
