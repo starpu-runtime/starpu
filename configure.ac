@@ -824,6 +824,12 @@ AC_MSG_CHECKING(whether OpenGL rendering is enabled)
 AC_SUBST(STARPU_OPENGL_RENDER, $enable_opengl_render)
 AC_MSG_RESULT($enable_opengl_render)
 
+have_x11=yes
+AC_CHECK_LIB(X11, XOpenDisplay,,[have_x11=no]) 
+if test x$have_x11 = xyes; then
+	AC_DEFINE(STARPU_HAVE_X11, [1], [enable X11])
+fi
+
 # In case there are BLAS kernels that are used by the example applications
 # we may specify which library to use. Note that this is not used for StarPU
 # itself.

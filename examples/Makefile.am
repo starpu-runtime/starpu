@@ -623,3 +623,13 @@ examplebin_PROGRAMS +=				\
 
 reductions_minmax_reduction_SOURCES =		\
 	reductions/minmax_reduction.c
+
+##################
+# Mandelbrot Set #
+##################
+
+examplebin_PROGRAMS +=				\
+	mandelbrot/mandelbrot
+
+mandelbrot_mandelbrot_SOURCES =			\
+	mandelbrot/mandelbrot.c
