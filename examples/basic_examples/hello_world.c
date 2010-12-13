@@ -40,14 +40,18 @@ void callback_func(void *callback_arg)
 
 /* Every implementation of a codelet must have this prototype, the first
  * argument (buffers) describes the buffers/streams that are managed by the
- * DSM; the second arguments references a read-only buffer that is passed as an
+ * DSM; the second arguments references read-only data that is passed as an
  * argument of the codelet (task->cl_arg). Here, "buffers" is unused as there
  * are no data input/output managed by the DSM (cl.nbuffers = 0) */
-void cpu_func(void *buffers[], void *func_arg)
+struct params {
+	int i;
+	float f;
+};
+void cpu_func(void *buffers[], void *cl_arg)
 {
-	float *array = func_arg;
+	struct params *params = cl_arg;
 
-	printf("Hello world (array = {%f, %f} )\n", array[0], array[1]);
+	printf("Hello world (array = {%i, %f} )\n", params->i, params->f);
 }
 
 starpu_codelet cl =
@@ -76,7 +80,7 @@ int main(int argc, char **argv)
 	/* the task uses codelet "cl" */
 	task->cl = &cl;
 
-	/* It is possible to use buffers that are not managed by the DSM to the
+	/* It is possible to pass buffers that are not managed by the DSM to the
  	 * kernels: the second argument of the "cpu_func" function is a pointer to a
 	 * buffer that contains information for the codelet (cl_arg stands for
 	 * codelet argument). In the case of accelerators, it is possible that
@@ -84,9 +88,9 @@ int main(int argc, char **argv)
 	 * is read-only so that any modification is not passed to other copies
 	 * of the buffer.  For this reason, a buffer passed as a codelet
 	 * argument (cl_arg) is NOT a valid synchronization medium! */
-	float array[2] = {1.0f, -1.0f};
-	task->cl_arg = &array;
-	task->cl_arg_size = sizeof(array);
+	struct params params = { 1, 2.0f };
+	task->cl_arg = &params;
+	task->cl_arg_size = sizeof(params);
 		
 	/* once the task has been executed, callback_func(0x42)
 	 * will be called on a CPU */
