@@ -15,6 +15,9 @@
  */
 
 #include <starpu.h>
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
 #ifdef STARPU_HAVE_X11
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -22,7 +25,7 @@
 
 /* NB: The X11 code is inspired from the http://locklessinc.com/articles/mandelbrot/ article */
 
-static int nblocks = 32;
+static int nblocks = 16;
 static int height = 1280;
 static int width = 1600;
 static int maxIt = 20000;
@@ -31,6 +34,10 @@ static double leftX = -0.745;
 static double rightX = -0.74375;
 static double topY = .15;
 static double bottomY = .14875;
+
+#ifdef STARPU_USE_OPENCL
+static struct starpu_opencl_program opencl_programs;
+#endif
 
 #ifdef STARPU_HAVE_X11
 /* X11 data */
@@ -105,6 +112,66 @@ static void init_x11(int width, int height, unsigned *buffer)
 }
 #endif
 
+#ifdef STARPU_USE_OPENCL
+char *mandelbrot_opencl_src = "\
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable\n\
+#define MIN(a,b) (((a)<(b))? (a) : (b))\n\
+__kernel void mandelbrot_kernel(__global unsigned* a,\n\
+          double leftX, double topY,\n\
+          double stepX, double stepY,\n\
+          int maxIt, int iby, int block_size)\n\
+{\n\
+    double xc = leftX + get_global_id(0) * stepX;\n\
+    double yc = -iby*block_size*stepY + topY  - get_global_id(1) * stepY;\n\
+    int it;\n\
+    double x,y;\n\
+    x = y = (double)0.0;\n\
+    for (it=0;it<maxIt;it++)\n\
+    {\n\
+      double x2 = x*x;\n\
+      double y2 = y*y;\n\
+      if (x2+y2 > 4.0) break; \n\
+      double twoxy = (double)2.0*x*y;\n\
+      x = x2 - y2 + xc;\n\
+      y = twoxy + yc;\n\
+    }\n\
+   unsigned v = MIN((1024*((float)(it)/(2000))), 256);\n\
+   a[get_global_id(0) + get_global_id(1)*get_global_size(0)] = (v<<16|(255-v)<<8); \n\
+}";
+
+static void compute_block_opencl(void *descr[], void *cl_arg)
+{
+	int iby, block_size;
+	double stepX, stepY;
+	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY);
+
+	cl_mem data = (cl_mem)STARPU_VECTOR_GET_PTR(descr[0]);
+
+	cl_kernel kernel;
+	cl_command_queue queue;
+
+	int id = starpu_worker_get_id();
+	int devid = starpu_worker_get_devid(id);
+
+	starpu_opencl_load_kernel(&kernel, &queue, &opencl_programs, "mandelbrot_kernel", devid);
+
+	clSetKernelArg(kernel, 0, sizeof(cl_mem), &data);
+	clSetKernelArg(kernel, 1, sizeof(double), &leftX);
+	clSetKernelArg(kernel, 2, sizeof(double), &topY);
+	clSetKernelArg(kernel, 3, sizeof(double), &stepX);
+	clSetKernelArg(kernel, 4, sizeof(double), &stepY);
+	clSetKernelArg(kernel, 5, sizeof(int), &maxIt);
+	clSetKernelArg(kernel, 6, sizeof(int), &iby);
+	clSetKernelArg(kernel, 7, sizeof(int), &block_size);
+
+	size_t local[3] = {64, 1, 1};
+	size_t global[3] = {width, block_size, 1};
+	clEnqueueNDRangeKernel(queue, kernel, 3, NULL, global, local, 0, NULL, NULL);
+	clFinish(queue);
+	starpu_opencl_release_kernel(kernel);
+}
+#endif
+
 static void compute_block(void *descr[], void *cl_arg)
 {
 	int ix, iy;
@@ -150,9 +217,12 @@ static void compute_block(void *descr[], void *cl_arg)
 }
 
 static starpu_codelet mandelbrot_cl = {
-	.where = STARPU_CPU,
+	.where = STARPU_CPU|STARPU_OPENCL,
 	.type = STARPU_SEQ,
 	.cpu_func = compute_block,
+#ifdef STARPU_USE_OPENCL
+	.opencl_func = compute_block_opencl,
+#endif
 	.nbuffers = 1
 };
 
@@ -231,8 +301,10 @@ static int handle_events(void)
 
 int main(int argc, char **argv)
 {
+	starpu_init(NULL);
+
 	unsigned *buffer;
-	buffer = malloc(height*width*sizeof(unsigned));
+	starpu_data_malloc_pinned_if_possible((void **)&buffer, height*width*sizeof(unsigned));
 
 #ifdef STARPU_HAVE_X11
 	init_x11(width, height, buffer);
@@ -241,7 +313,9 @@ int main(int argc, char **argv)
 	int block_size = height/nblocks;
 	STARPU_ASSERT((height % nblocks) == 0);
 
-	starpu_init(NULL);
+#ifdef STARPU_USE_OPENCL
+	starpu_opencl_load_opencl_from_string(mandelbrot_opencl_src, &opencl_programs);
+#endif
 
 	starpu_data_handle block_handles[nblocks];
 	
@@ -292,6 +366,11 @@ int main(int argc, char **argv)
 #ifdef STARPU_HAVE_X11
 	exit_x11();
 #endif
+
+	for (iby = 0; iby < nblocks; iby++)
+		starpu_data_unregister(block_handles[iby]);
+
+	starpu_data_free_pinned_if_possible(buffer);
 
 	starpu_shutdown();
 
