@@ -18,10 +18,14 @@
 #ifdef STARPU_USE_OPENCL
 #include <starpu_opencl.h>
 #endif
+#include <sys/time.h>
+
 #ifdef STARPU_HAVE_X11
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+int use_x11 = 1;
 #endif
+
 
 /* NB: The X11 code is inspired from the http://locklessinc.com/articles/mandelbrot/ article */
 
@@ -35,9 +39,9 @@ static double rightX = -0.74375;
 static double topY = .15;
 static double bottomY = .14875;
 
-#ifdef STARPU_USE_OPENCL
-static struct starpu_opencl_program opencl_programs;
-#endif
+/*
+ *	X11 window management
+ */
 
 #ifdef STARPU_HAVE_X11
 /* X11 data */
@@ -46,7 +50,6 @@ static Window win;
 static XImage *bitmap;
 static GC gc;
 static KeySym Left=-1, Right, Down, Up, Alt ;
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void exit_x11(void)
 {
@@ -110,123 +113,7 @@ static void init_x11(int width, int height, unsigned *buffer)
         Down = XStringToKeysym ("Down");
         Alt = XStringToKeysym ("Alt");
 }
-#endif
 
-#ifdef STARPU_USE_OPENCL
-char *mandelbrot_opencl_src = "\
-#pragma OPENCL EXTENSION cl_khr_fp64 : enable\n\
-#define MIN(a,b) (((a)<(b))? (a) : (b))\n\
-__kernel void mandelbrot_kernel(__global unsigned* a,\n\
-          double leftX, double topY,\n\
-          double stepX, double stepY,\n\
-          int maxIt, int iby, int block_size)\n\
-{\n\
-    double xc = leftX + get_global_id(0) * stepX;\n\
-    double yc = -iby*block_size*stepY + topY  - get_global_id(1) * stepY;\n\
-    int it;\n\
-    double x,y;\n\
-    x = y = (double)0.0;\n\
-    for (it=0;it<maxIt;it++)\n\
-    {\n\
-      double x2 = x*x;\n\
-      double y2 = y*y;\n\
-      if (x2+y2 > 4.0) break; \n\
-      double twoxy = (double)2.0*x*y;\n\
-      x = x2 - y2 + xc;\n\
-      y = twoxy + yc;\n\
-    }\n\
-   unsigned v = MIN((1024*((float)(it)/(2000))), 256);\n\
-   a[get_global_id(0) + get_global_id(1)*get_global_size(0)] = (v<<16|(255-v)<<8); \n\
-}";
-
-static void compute_block_opencl(void *descr[], void *cl_arg)
-{
-	int iby, block_size;
-	double stepX, stepY;
-	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY);
-
-	cl_mem data = (cl_mem)STARPU_VECTOR_GET_PTR(descr[0]);
-
-	cl_kernel kernel;
-	cl_command_queue queue;
-
-	int id = starpu_worker_get_id();
-	int devid = starpu_worker_get_devid(id);
-
-	starpu_opencl_load_kernel(&kernel, &queue, &opencl_programs, "mandelbrot_kernel", devid);
-
-	clSetKernelArg(kernel, 0, sizeof(cl_mem), &data);
-	clSetKernelArg(kernel, 1, sizeof(double), &leftX);
-	clSetKernelArg(kernel, 2, sizeof(double), &topY);
-	clSetKernelArg(kernel, 3, sizeof(double), &stepX);
-	clSetKernelArg(kernel, 4, sizeof(double), &stepY);
-	clSetKernelArg(kernel, 5, sizeof(int), &maxIt);
-	clSetKernelArg(kernel, 6, sizeof(int), &iby);
-	clSetKernelArg(kernel, 7, sizeof(int), &block_size);
-
-	size_t local[3] = {64, 1, 1};
-	size_t global[3] = {width, block_size, 1};
-	clEnqueueNDRangeKernel(queue, kernel, 3, NULL, global, local, 0, NULL, NULL);
-	clFinish(queue);
-	starpu_opencl_release_kernel(kernel);
-}
-#endif
-
-static void compute_block(void *descr[], void *cl_arg)
-{
-	int ix, iy;
-
-	int iby, block_size;
-	double stepX, stepY;
-	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY);
-
-	unsigned *data = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
-
-	int local_iy;
-	for (local_iy = 0; local_iy < block_size; local_iy++)
-	{
-		iy = iby*block_size + local_iy;
-		for (ix = 0; ix < width; ix++)
-		{
-			double cx = leftX + ix * stepX;
-			double cy = topY - iy * stepY;
-			// Z = X+I*Y
-			double x = 0;
-			double y = 0;
-			int it;
-			for (it = 0; it < maxIt; it++)
-			{
-				double x2 = x*x;
-				double y2 = y*y;
-
-				// Stop iterations when |Z| > 2
-				if (x2 + y2 > 4.0)
-					break;
-
-				double twoxy = 2.0*x*y;
-
-				// Z = Z^2 + C
-				x = x2 - y2 + cx;
-				y = twoxy + cy;
-			}
-	
-			unsigned int v = STARPU_MIN((1024*((float)(it)/(2000))), 256);
-			data[ix + local_iy*width] = (v<<16|(255-v)<<8);
-		}
-	}
-}
-
-static starpu_codelet mandelbrot_cl = {
-	.where = STARPU_CPU|STARPU_OPENCL,
-	.type = STARPU_SEQ,
-	.cpu_func = compute_block,
-#ifdef STARPU_USE_OPENCL
-	.opencl_func = compute_block_opencl,
-#endif
-	.nbuffers = 1
-};
-
-#ifdef STARPU_HAVE_X11
 static int handle_events(void)
 {
 	XEvent event;
@@ -299,15 +186,186 @@ static int handle_events(void)
 }
 #endif
 
+/*
+ *	OpenCL kernel
+ */
+
+#ifdef STARPU_USE_OPENCL
+char *mandelbrot_opencl_src = "\
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable\n\
+#define MIN(a,b) (((a)<(b))? (a) : (b))					\n\
+__kernel void mandelbrot_kernel(__global unsigned* a,			\n\
+          double leftX, double topY,					\n\
+          double stepX, double stepY,					\n\
+          int maxIt, int iby, int block_size, int width)		\n\
+{									\n\
+    size_t id_x = get_global_id(0);	\n\
+    size_t id_y = get_global_id(1);	\n\
+    if ((id_x < width) && (id_y < block_size))				\n\
+    {									\n\
+        double xc = leftX + id_x * stepX;				\n\
+        double yc = topY - (id_y + iby*block_size) * stepY;		\n\
+        int it;								\n\
+        double x,y;							\n\
+        x = y = (double)0.0;						\n\
+        for (it=0;it<maxIt;it++)					\n\
+        {								\n\
+          double x2 = x*x;						\n\
+          double y2 = y*y;						\n\
+          if (x2+y2 > 4.0) break;					\n\
+          double twoxy = (double)2.0*x*y;				\n\
+          x = x2 - y2 + xc;						\n\
+          y = twoxy + yc;						\n\
+        }								\n\
+       unsigned int v = MIN((1024*((float)(it)/(2000))), 256);		\n\
+       a[id_x + width * id_y] = (v<<16|(255-v)<<8);			\n\
+   }									\n\
+}";
+
+static struct starpu_opencl_program opencl_programs;
+
+static void compute_block_opencl(void *descr[], void *cl_arg)
+{
+	int iby, block_size;
+	double stepX, stepY;
+	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY);
+
+	cl_mem data = (cl_mem)STARPU_VECTOR_GET_PTR(descr[0]);
+
+	cl_kernel kernel;
+	cl_command_queue queue;
+
+	int id = starpu_worker_get_id();
+	int devid = starpu_worker_get_devid(id);
+
+	starpu_opencl_load_kernel(&kernel, &queue, &opencl_programs, "mandelbrot_kernel", devid);
+
+	clSetKernelArg(kernel, 0, sizeof(cl_mem), &data);
+	clSetKernelArg(kernel, 1, sizeof(double), &leftX);
+	clSetKernelArg(kernel, 2, sizeof(double), &topY);
+	clSetKernelArg(kernel, 3, sizeof(double), &stepX);
+	clSetKernelArg(kernel, 4, sizeof(double), &stepY);
+	clSetKernelArg(kernel, 5, sizeof(int), &maxIt);
+	clSetKernelArg(kernel, 6, sizeof(int), &iby);
+	clSetKernelArg(kernel, 7, sizeof(int), &block_size);
+	clSetKernelArg(kernel, 8, sizeof(int), &width);
+
+	unsigned dim = 16;
+	size_t local[2] = {dim, 1};
+	size_t global[2] = {width, block_size};
+	clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global, local, 0, NULL, NULL);
+	clFinish(queue);
+	starpu_opencl_release_kernel(kernel);
+}
+#endif
+
+/*
+ *	CPU kernel
+ */
+
+static void compute_block(void *descr[], void *cl_arg)
+{
+	int ix, iy;
+
+	int iby, block_size;
+	double stepX, stepY;
+	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY);
+
+	unsigned *data = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
+
+	int local_iy;
+	for (local_iy = 0; local_iy < block_size; local_iy++)
+	{
+		iy = iby*block_size + local_iy;
+		for (ix = 0; ix < width; ix++)
+		{
+			double cx = leftX + ix * stepX;
+			double cy = topY - iy * stepY;
+			// Z = X+I*Y
+			double x = 0;
+			double y = 0;
+			int it;
+			for (it = 0; it < maxIt; it++)
+			{
+				double x2 = x*x;
+				double y2 = y*y;
+
+				// Stop iterations when |Z| > 2
+				if (x2 + y2 > 4.0)
+					break;
+
+				double twoxy = 2.0*x*y;
+
+				// Z = Z^2 + C
+				x = x2 - y2 + cx;
+				y = twoxy + cy;
+			}
+	
+			unsigned int v = STARPU_MIN((1024*((float)(it)/(2000))), 256);
+			data[ix + local_iy*width] = (v<<16|(255-v)<<8);
+		}
+	}
+}
+
+static starpu_codelet mandelbrot_cl = {
+	.where = STARPU_CPU|STARPU_OPENCL,
+	.type = STARPU_SEQ,
+	.cpu_func = compute_block,
+#ifdef STARPU_USE_OPENCL
+	.opencl_func = compute_block_opencl,
+#endif
+	.nbuffers = 1
+};
+
+static void parse_args(int argc, char **argv)
+{
+	int i;
+	for (i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "-h") == 0) {
+			fprintf(stderr, "Usage: %s [-h] [ -width 800] [-height 600] [-nblocks 16] [-no-x11] [-pos leftx:rightx:bottomy:topy]\n", argv[0]);
+			exit(-1);
+		}
+
+		if (strcmp(argv[i], "-width") == 0) {
+			char *argptr;
+			width = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-height") == 0) {
+			char *argptr;
+			height = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-nblocks") == 0) {
+			char *argptr;
+			nblocks = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-pos") == 0) {
+			int ret = sscanf(argv[++i], "%lf:%lf:%lf:%lf", &leftX, &rightX, &bottomY, &topY);
+			assert(ret == 4);
+		}
+
+		if (strcmp(argv[i], "-no-x11") == 0) {
+#ifdef STARPU_HAVE_X11
+			use_x11 = 0;
+#endif
+		}
+	}
+}
+
 int main(int argc, char **argv)
 {
+	parse_args(argc, argv);
+
 	starpu_init(NULL);
 
 	unsigned *buffer;
 	starpu_data_malloc_pinned_if_possible((void **)&buffer, height*width*sizeof(unsigned));
 
 #ifdef STARPU_HAVE_X11
-	init_x11(width, height, buffer);
+	if (use_x11)
+		init_x11(width, height, buffer);
 #endif
 
 	int block_size = height/nblocks;
@@ -332,6 +390,10 @@ int main(int argc, char **argv)
 		double stepX = (rightX - leftX)/width;
 		double stepY = (topY - bottomY)/height;
 
+		struct timeval start, end;
+
+		gettimeofday(&start, NULL);
+
 		for (iby = 0; iby < nblocks; iby++)
 		{
 			starpu_insert_task(&mandelbrot_cl,
@@ -347,24 +409,31 @@ int main(int argc, char **argv)
 		{
 			starpu_data_acquire(block_handles[iby], STARPU_R);
 #ifdef STARPU_HAVE_X11
-			pthread_mutex_lock(&mutex);
-			XPutImage(dpy, win, gc, bitmap,
-				0, iby*block_size,
-				0, iby*block_size,
-				width, block_size);
-			pthread_mutex_unlock(&mutex);
+			if (use_x11)
+			{
+				XPutImage(dpy, win, gc, bitmap,
+					0, iby*block_size,
+					0, iby*block_size,
+					width, block_size);
+			}
 #endif
 			starpu_data_release(block_handles[iby]);
 		}
 
+		gettimeofday(&end, NULL);
+		double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+
+		fprintf(stderr, "Time to generate frame : %f ms\n", timing/1000.0);
+
 #ifdef STARPU_HAVE_X11
-		if (handle_events())
+		if (use_x11 && handle_events())
 			break;
 #endif
 	}
 
 #ifdef STARPU_HAVE_X11
-	exit_x11();
+	if (use_x11)
+		exit_x11();
 #endif
 
 	for (iby = 0; iby < nblocks; iby++)
