@@ -182,11 +182,11 @@ void starpu_opencl_get_context(int devid, cl_context *context);
 void starpu_opencl_get_device(int devid, cl_device_id *device);
 void starpu_opencl_get_queue(int devid, cl_command_queue *queue);
 
-int starpu_opencl_load_opencl_from_file(char *source_file_name, struct starpu_opencl_program *opencl_programs);
-int starpu_opencl_load_opencl_from_string(char *opencl_program_source, struct starpu_opencl_program *opencl_programs);
+int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs);
+int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, struct starpu_opencl_program *opencl_programs);
 int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs);
 
-int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct starpu_opencl_program *opencl_programs, char *kernel_name, int devid);
+int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct starpu_opencl_program *opencl_programs, const char *kernel_name, int devid);
 int starpu_opencl_release_kernel(cl_kernel kernel);
 
 

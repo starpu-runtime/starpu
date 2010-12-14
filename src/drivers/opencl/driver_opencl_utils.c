@@ -33,7 +33,7 @@ char *_starpu_opencl_program_dir;
 #define _STARPU_STRINGIFY(x) _STARPU_STRINGIFY_(x)
 
 static
-int _starpu_opencl_locate_file(char *source_file_name, char *located_file_name) {
+int _starpu_opencl_locate_file(const char *source_file_name, char *located_file_name) {
         _STARPU_DEBUG("Trying to locate <%s>\n", source_file_name);
         if (access(source_file_name, R_OK) == 0) {
                 strcpy(located_file_name, source_file_name);
@@ -57,7 +57,7 @@ int _starpu_opencl_locate_file(char *source_file_name, char *located_file_name) 
 }
 
 cl_int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct starpu_opencl_program *opencl_programs,
-                                 char *kernel_name, int devid)
+                                 const char *kernel_name, int devid)
 {
         cl_int err;
 	cl_device_id device;
@@ -119,7 +119,7 @@ char *_starpu_opencl_load_program_source(const char *filename)
         return source;
 }
 
-int starpu_opencl_load_opencl_from_string(char *opencl_program_source, struct starpu_opencl_program *opencl_programs)
+int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, struct starpu_opencl_program *opencl_programs)
 {
         unsigned int dev;
         unsigned int nb_devices;
@@ -166,7 +166,7 @@ int starpu_opencl_load_opencl_from_string(char *opencl_program_source, struct st
         return EXIT_SUCCESS;
 }
 
-int starpu_opencl_load_opencl_from_file(char *source_file_name, struct starpu_opencl_program *opencl_programs)
+int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs)
 {
         char located_file_name[1024];
 
