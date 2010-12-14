@@ -52,7 +52,6 @@ static unsigned was_benchmarked = 0;
 static unsigned ncpus = 0;
 static int ncuda = 0;
 static int nopencl = 0;
-static size_t opencl_size = SIZE;
 
 /* Benchmarking the performance of the bus */
 
@@ -67,6 +66,7 @@ static int opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][MAXCPUS];
 static double opencldev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double opencldev_timing_dtoh[STARPU_MAXNODES] = {0.0};
 static struct dev_timing opencldev_timing_per_cpu[STARPU_MAXNODES*MAXCPUS];
+static size_t opencl_size = SIZE;
 #endif
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
