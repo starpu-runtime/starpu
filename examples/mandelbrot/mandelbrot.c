@@ -26,6 +26,7 @@
 int use_x11 = 1;
 #endif
 
+int demo = 0;
 
 /* NB: The X11 code is inspired from the http://locklessinc.com/articles/mandelbrot/ article */
 
@@ -346,6 +347,15 @@ static void parse_args(int argc, char **argv)
 			assert(ret == 4);
 		}
 
+		if (strcmp(argv[i], "-demo") == 0) {
+			demo = 1;
+			leftX = -50.22749575062760;
+			rightX = 48.73874621262927;
+			topY = -49.35016705749115;
+			bottomY = 49.64891691946615;
+
+		}
+
 		if (strcmp(argv[i], "-no-x11") == 0) {
 #ifdef STARPU_HAVE_X11
 			use_x11 = 0;
@@ -424,9 +434,22 @@ int main(int argc, char **argv)
 		double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
 		fprintf(stderr, "Time to generate frame : %f ms\n", timing/1000.0);
+		fprintf(stderr, "%14.14f:%14.14f:%14.14f:%14.14f\n", leftX, rightX, bottomY, topY);
 
 #ifdef STARPU_HAVE_X11
-		if (use_x11 && handle_events())
+		if (demo)
+		{
+			/* Zoom in */
+			double zoom_factor = 0.05;
+			double widthX = rightX - leftX;
+			double heightY = topY - bottomY;
+			leftX += (zoom_factor/2)*widthX;
+			rightX -= (zoom_factor/2)*widthX;
+			topY -= (zoom_factor/2)*heightY;
+			bottomY += (zoom_factor/2)*heightY;
+	
+		}
+		else if (use_x11 && handle_events())
 			break;
 #endif
 	}
