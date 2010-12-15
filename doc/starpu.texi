@@ -458,11 +458,15 @@ The @code{starpu.h} header should be included in any code using StarPU.
 
 @cartouche
 @smallexample
+struct params @{
+    int i;
+    float f;
+@};
 void cpu_func(void *buffers[], void *cl_arg)
 @{
-    float *array = cl_arg;
+    struct params *params = cl_arg;
 
-    printf("Hello world (array = @{%f, %f@} )\n", array[0], array[1]);
+    printf("Hello world (params = @{%i, %f@} )\n", params->i, params->f);
 @}
 
 starpu_codelet cl =
@@ -527,9 +531,9 @@ int main(int argc, char **argv)
 
     task->cl = &cl; /* @b{Pointer to the codelet defined above} */
 
-    float array[2] = @{1.0f, -1.0f@};
-    task->cl_arg = &array;
-    task->cl_arg_size = sizeof(array);
+    struct params params = @{ 1, 2.0f @};
+    task->cl_arg = &params;
+    task->cl_arg_size = sizeof(params);
 
     task->callback_func = callback_func;
     task->callback_arg = 0x42;
