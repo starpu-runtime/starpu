@@ -43,7 +43,7 @@ endif
 bin_PROGRAMS +=	perfmodel_display
 perfmodel_display_SOURCES = perfmodel_display.c
 
-bin_PROGRAMS +=	cbc2paje lp2paje
+noinst_PROGRAMS +=	cbc2paje lp2paje
 
 noinst_HEADERS = \
 	fxt_tool.h	\
