@@ -118,16 +118,22 @@ The password is 'anonsvn'
     copy c:\cuda\lib\cufft.lib c:\cuda\lib\libcufft.lib
     copy c:\cuda\lib\OpenCL.lib c:\cuda\lib\libOpenCL.lib
 
-++============++
-|| V. Upgrade ||
-++============++
+++===========++
+|| V. Trying ||
+++===========++
 
-To upgrade from older version (there were quite a few renamings), use the
-tools/rename.sh script
+Some examples ready to run are installed into $prefix/lib/starpu/{examples,mpi}
 
 ++=============++
-|| VI. Contact ||
+|| VI. Upgrade ||
 ++=============++
+
+To upgrade your source code from older version (there were quite a few
+renamings), use the tools/rename.sh script
+
+++==============++
+|| VII. Contact ||
+++==============++
 
 For any questions regarding StarPU, please contact the starpu-devel
 mailing-list at starpu-devel@lists.gforge.inria.fr .
