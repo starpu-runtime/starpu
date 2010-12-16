@@ -94,6 +94,20 @@ void starpu_opencl_get_queue(int devid, cl_command_queue *queue)
         *queue = queues[devid];
 }
 
+void starpu_opencl_get_current_queue(cl_command_queue *queue)
+{
+	struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+	STARPU_ASSERT(queue);
+        *queue = queues[worker->devid];
+}
+
+void starpu_opencl_get_current_context(cl_context *context)
+{
+	struct starpu_worker_s *worker = _starpu_get_local_worker_key();
+	STARPU_ASSERT(context);
+        *context = contexts[worker->devid];
+}
+
 cl_int _starpu_opencl_init_context(int devid)
 {
 	cl_int err;

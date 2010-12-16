@@ -181,6 +181,8 @@ struct starpu_opencl_program {
 void starpu_opencl_get_context(int devid, cl_context *context);
 void starpu_opencl_get_device(int devid, cl_device_id *device);
 void starpu_opencl_get_queue(int devid, cl_command_queue *queue);
+void starpu_opencl_get_current_context(cl_context *context);
+void starpu_opencl_get_current_queue(cl_command_queue *queue);
 
 int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs);
 int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, struct starpu_opencl_program *opencl_programs);
