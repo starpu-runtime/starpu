@@ -113,7 +113,7 @@ static void cuda_func_incr(void *descr[], void *cl_arg __attribute__((unused)))
 	unsigned h_val;
 	cudaMemcpy(&h_val, val, sizeof(unsigned), cudaMemcpyDeviceToHost);
 	h_val++;
-	cudaMemcpy(val, h_val, sizeof(unsigned), cudaMemcpyHostToDevice);
+	cudaMemcpy(val, &h_val, sizeof(unsigned), cudaMemcpyHostToDevice);
 }
 #endif
 
