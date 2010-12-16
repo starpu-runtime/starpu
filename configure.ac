@@ -92,14 +92,20 @@ AC_CHECK_FUNCS([posix_memalign], [AC_DEFINE([STARPU_HAVE_POSIX_MEMALIGN], [1], [
 AC_CHECK_FUNCS([memalign], [AC_DEFINE([STARPU_HAVE_MEMALIGN], [1], [Define to 1 if you have the `memalign' function.])])
 
 # Some systems don't have drand48
-AC_CHECK_FUNCS([drand48],
+AC_CHECK_FUNC([drand48], have_drand48=yes, have_drand48=no)
+# Maybe the user still does not want to use the provided drand48
+AC_ARG_ENABLE(default-drand48, [AS_HELP_STRING([--disable-default-drand48],
+				   [Do not use the default version of drand48])],
+				   enable_default_drand48=$enableval, enable_default_drand48=yes)
+if test x$have_drand48 = xyes -a x$use_default_drand48 = xyes ; then
   AC_DEFINE([starpu_srand48(seed)],[srand48(seed)],[srand48 equivalent function])
   AC_DEFINE([starpu_drand48()],[drand48()],[drand48 equivalent function])
-  AC_DEFINE([starpu_erand48(xsubi)],[erand48(xsubi)],[erand48 equivalent function]),
+  AC_DEFINE([starpu_erand48(xsubi)],[erand48(xsubi)],[erand48 equivalent function])
+else
   AC_DEFINE([starpu_srand48(seed)],[srand(seed)],[srand48 equivalent function])
   AC_DEFINE([starpu_drand48()],[((double)(rand()) / RAND_MAX)],[drand48 equivalent function])
   AC_DEFINE([starpu_erand48(xsubi)],[starpu_drand48()],[erand48 equivalent function])
-)
+fi
 
 AC_CHECK_HEADERS([malloc.h], [AC_DEFINE([STARPU_HAVE_MALLOC_H], [1], [Define to 1 if you have the <malloc.h> header file.])])
 
@@ -480,7 +486,7 @@ fi
 
 #TODO fix the default dir
 AC_ARG_ENABLE(gordon, [AS_HELP_STRING([--enable-gordon],
-			[use Cell's SPUs])],, enable_gordon=maybe)
+			[use Cell SPUs])],, enable_gordon=maybe)
 
 if test x$enable_gordon = xyes -o x$enable_gordon = xmaybe; then
 
