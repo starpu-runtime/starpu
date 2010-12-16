@@ -384,9 +384,6 @@ datawizard_mpi_like_SOURCES +=			\
 
 datawizard_mpi_like_async_SOURCES +=		\
 	datawizard/cuda_codelet_unsigned_inc.cu
-
-datawizard_manual_reduction_SOURCES +=		\
-	datawizard/cuda_codelet_unsigned_inc.cu
 endif
 
 testbin_PROGRAMS +=				\
