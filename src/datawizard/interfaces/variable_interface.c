@@ -36,6 +36,7 @@ static int copy_cuda_to_cuda(void *src_interface, unsigned src_node, void *dst_i
 #ifdef STARPU_USE_OPENCL
 static int copy_ram_to_opencl(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node __attribute__((unused)));
 static int copy_opencl_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node __attribute__((unused)));
+static int copy_opencl_to_opencl(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node __attribute__((unused)));
 static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node __attribute__((unused)), void *_event);
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node __attribute__((unused)), void *_event);
 #endif
@@ -53,6 +54,7 @@ static const struct starpu_data_copy_methods variable_copy_data_methods_s = {
 #ifdef STARPU_USE_OPENCL
 	.ram_to_opencl = copy_ram_to_opencl,
 	.opencl_to_ram = copy_opencl_to_ram,
+	.opencl_to_opencl = copy_opencl_to_opencl,
         .ram_to_opencl_async = copy_ram_to_opencl_async,
 	.opencl_to_ram_async = copy_opencl_to_ram_async,
 #endif
@@ -383,6 +385,29 @@ static int copy_ram_to_opencl(void *src_interface, unsigned src_node __attribute
 static int copy_opencl_to_ram(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
 {
         return copy_opencl_to_ram_async(src_interface, src_node, dst_interface, dst_node, NULL);
+}
+
+static int copy_opencl_to_opencl(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
+{
+	cl_int err;
+
+	starpu_variable_interface_t *src_variable = src_interface;
+	starpu_variable_interface_t *dst_variable = dst_interface;
+
+	cl_mem src_ptr = (cl_mem)src_variable->ptr;
+	cl_mem dst_ptr = (cl_mem)dst_variable->ptr;
+
+	cl_command_queue cq;
+	starpu_opencl_get_current_queue(&cq);
+
+	STARPU_ASSERT(src_variable->elemsize == dst_variable->elemsize);
+	err= clEnqueueCopyBuffer(cq, src_ptr, dst_ptr, 0, 0, src_variable->elemsize, 0, NULL, NULL);
+	if (STARPU_UNLIKELY(err))
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+	STARPU_TRACE_DATA_COPY(src_node, dst_node, elemsize);
+
+	return 0;
 }
 
 #endif

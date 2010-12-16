@@ -1,4 +1,3 @@
-
 /*
  * StarPU
  * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
