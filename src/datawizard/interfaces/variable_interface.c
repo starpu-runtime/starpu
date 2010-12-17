@@ -405,7 +405,7 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node __attrib
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	STARPU_TRACE_DATA_COPY(src_node, dst_node, elemsize);
+	STARPU_TRACE_DATA_COPY(src_node, dst_node, src_variable->elemsize);
 
 	return 0;
 }
