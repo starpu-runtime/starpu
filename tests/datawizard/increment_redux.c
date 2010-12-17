@@ -19,6 +19,10 @@
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #endif
+#ifdef STARPU_USE_OPENCL
+#include <CL/cl.h>
+#endif
+
 
 static unsigned var = 0;
 static starpu_data_handle handle;
@@ -42,7 +46,6 @@ static void redux_cuda_kernel(void *descr[], void *arg)
 
 	host_dst += host_src;
 
-	cudaMemcpy(src, &host_src, sizeof(unsigned), cudaMemcpyHostToDevice);
 	cudaMemcpy(dst, &host_dst, sizeof(unsigned), cudaMemcpyHostToDevice);
 	cudaThreadSynchronize();
 }
@@ -58,6 +61,40 @@ static void neutral_cuda_kernel(void *descr[], void *arg)
 }
 #endif
 
+#ifdef STARPU_USE_OPENCL
+static void redux_opencl_kernel(void *descr[], void *arg)
+{
+	unsigned h_dst, h_src;
+
+	cl_mem d_dst = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
+	cl_mem d_src = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[1]);
+
+	cl_command_queue queue;
+	starpu_opencl_get_current_queue(&queue);
+
+	/* This is a dummy technique of course */
+	clEnqueueReadBuffer(queue, d_dst, CL_TRUE, 0, sizeof(unsigned), (void *)&h_dst, 0, NULL, NULL);
+	clEnqueueReadBuffer(queue, d_src, CL_TRUE, 0, sizeof(unsigned), (void *)&h_src, 0, NULL, NULL);
+
+	h_dst += h_src;
+
+	clEnqueueWriteBuffer(queue, d_dst, CL_TRUE, 0, sizeof(unsigned), (void *)&h_dst, 0, NULL, NULL); 
+}
+
+static void neutral_opencl_kernel(void *descr[], void *arg)
+{
+	unsigned h_dst = 0;
+	cl_mem d_dst = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
+
+	cl_command_queue queue;
+	starpu_opencl_get_current_queue(&queue);
+
+	clEnqueueWriteBuffer(queue, d_dst, CL_TRUE, 0, sizeof(unsigned), (void *)&h_dst, 0, NULL, NULL); 
+}
+#endif
+
+
+
 static void redux_cpu_kernel(void *descr[], void *arg)
 {
 	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -72,9 +109,12 @@ static void neutral_cpu_kernel(void *descr[], void *arg)
 }
 
 static starpu_codelet redux_cl = {
-	.where = STARPU_CPU|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = redux_cuda_kernel,
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_func = redux_opencl_kernel,
 #endif
 	.cpu_func = redux_cpu_kernel,
 	.nbuffers = 2
@@ -85,6 +125,9 @@ static starpu_codelet neutral_cl = {
 #ifdef STARPU_USE_CUDA
 	.cuda_func = neutral_cuda_kernel,
 #endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_func = neutral_opencl_kernel,
+#endif
 	.cpu_func = neutral_cpu_kernel,
 	.nbuffers = 1
 };
@@ -92,6 +135,23 @@ static starpu_codelet neutral_cl = {
 /*
  *	Increment codelet
  */
+
+#ifdef STARPU_USE_OPENCL
+/* dummy OpenCL implementation */
+static void increment_opencl_kernel(void *descr[], void *cl_arg __attribute__((unused)))
+{
+	cl_mem d_token = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
+	unsigned h_token;
+
+	cl_command_queue queue;
+	starpu_opencl_get_current_queue(&queue);
+
+	clEnqueueReadBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL);
+	h_token++;
+	clEnqueueWriteBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL); 
+}
+#endif
+
 
 #ifdef STARPU_USE_CUDA
 static void increment_cuda_kernel(void *descr[], void *arg)
@@ -117,9 +177,12 @@ static void increment_cpu_kernel(void *descr[], void *arg)
 }
 
 static starpu_codelet increment_cl = {
-	.where = STARPU_CPU|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = increment_cuda_kernel,
+#endif
+#ifdef STARPU_USE_CUDA
+	.opencl_func = increment_opencl_kernel,
 #endif
 	.cpu_func = increment_cpu_kernel,
 	.nbuffers = 1
