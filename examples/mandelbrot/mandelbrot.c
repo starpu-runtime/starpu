@@ -81,7 +81,7 @@ static void init_x11(int width, int height, unsigned *buffer)
 	XMapWindow(dpy, win);
 	
 	XTextProperty tp;
-	char name[128] = "Mandelbrot";
+	char name[128] = "Mandelbrot - StarPU";
 	char *n = name;
 	Status st = XStringListToTextProperty(&n, 1, &tp);
 	if (st)
