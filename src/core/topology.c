@@ -748,4 +748,10 @@ void _starpu_destroy_topology(struct starpu_machine_config_s *config __attribute
 #endif
 
 	topology_is_initialized = 0;
+#ifdef STARPU_USE_CUDA
+	devices_using_cuda = NULL;
+#endif
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+	may_bind_automatically = 0;
+#endif
 }
