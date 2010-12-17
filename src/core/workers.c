@@ -162,6 +162,8 @@ static void _starpu_launch_drivers(struct starpu_machine_config_s *config)
 	
 		workerarg->status = STATUS_INITIALIZING;
 
+		_STARPU_DEBUG("initialising worker %d\n", worker);
+
 		_starpu_init_worker_queue(workerarg);
 
 		switch (workerarg->arch) {
