@@ -214,6 +214,7 @@ static void _starpu_init_topology(struct starpu_machine_config_s *config)
 
 	if (!topology_is_initialized)
 	{
+		topology->nhwcpus = 0;
 #ifdef STARPU_HAVE_HWLOC
 		hwloc_topology_init(&topology->hwtopology);
 		hwloc_topology_load(topology->hwtopology);
