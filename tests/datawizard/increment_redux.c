@@ -181,7 +181,7 @@ static starpu_codelet increment_cl = {
 #ifdef STARPU_USE_CUDA
 	.cuda_func = increment_cuda_kernel,
 #endif
-#ifdef STARPU_USE_CUDA
+#ifdef STARPU_USE_OPENCL
 	.opencl_func = increment_opencl_kernel,
 #endif
 	.cpu_func = increment_cpu_kernel,
