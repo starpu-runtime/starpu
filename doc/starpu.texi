@@ -700,9 +700,7 @@ starpu_codelet cl = @{
 @end smallexample
 @end cartouche
 
-The second argument of the @code{scal_cpu_func} function contains a pointer to the
-parameters of the codelet (given in @code{task->cl_arg}), so that we read the
-constant factor from this pointer. The first argument is an array that gives
+The first argument is an array that gives
 a description of all the buffers passed in the @code{task->buffers}@ array. The
 size of this array is given by the @code{nbuffers} field of the codelet
 structure. For the sake of generality, this array contains pointers to the
@@ -711,6 +709,10 @@ interface}, the location of the vector (resp. its length) is accessible in the
 @code{ptr} (resp. @code{nx}) of this array. Since the vector is accessed in a
 read-write fashion, any modification will automatically affect future accesses
 to this vector made by other tasks.
+
+The second argument of the @code{scal_cpu_func} function contains a pointer to the
+parameters of the codelet (given in @code{task->cl_arg}), so that we read the
+constant factor from this pointer.
 
 @node Execution of Vector Scaling
 @subsection Execution of Vector Scaling
