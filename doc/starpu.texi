@@ -2405,7 +2405,7 @@ data in the home node. The @code{ops} argument is a pointer to a structure
 describing the different methods used to manipulate this type of interface. See
 @ref{struct starpu_data_interface_ops_t} for more details on this structure.
 
-If @code{home_node} is not a valid memory node, StarPU will automatically
+If @code{home_node} is -1, StarPU will automatically
 allocate the memory described by the interface the data handle is used for the
 first time in write-only mode. Once such data handle has been automatically
 allocated, it is possible to access it using any access mode.
