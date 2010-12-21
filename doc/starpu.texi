@@ -2513,6 +2513,9 @@ This function releases the piece of data acquired by the application either by
 
 @table @asis
 @item @emph{Description}:
+This variant of @code{starpu_data_register} uses the variable interface,
+i.e. for a mere single variable. @code{ptr} is the address of the variable,
+and @code{elemsize} is the size of the variable.
 @item @emph{Prototype}:
 @code{void starpu_variable_data_register(starpu_data_handle *handle,
                                    uint32_t home_node,
@@ -2532,6 +2535,10 @@ starpu_variable_data_register(&var_handle, 0, (uintptr_t)&var, sizeof(var));
 
 @table @asis
 @item @emph{Description}:
+This variant of @code{starpu_data_register} uses the vector interface,
+i.e. for mere arrays of elements. @code{ptr} is the address of the first
+element in the home node. @code{nx} is the number of elements in the vector.
+@code{elemsize} is the size of each element.
 @item @emph{Prototype}:
 @code{void starpu_vector_data_register(starpu_data_handle *handle, uint32_t home_node,
                         uintptr_t ptr, uint32_t nx, size_t elemsize);}
@@ -2551,6 +2558,12 @@ starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX,
 
 @table @asis
 @item @emph{Description}:
+This variant of @code{starpu_data_register} uses the matrix interface, i.e. for
+matrices of elements. @code{ptr} is the address of the first element in the home
+node. @code{ld} is the number of elements between rows. @code{nx} is the number
+of elements in a row (this can be different from @code{ld} if there are extra
+elements for alignment for instance). @code{ny} is the number of rows.
+@code{elemsize} is the size of each element.
 @item @emph{Prototype}:
 @code{void starpu_matrix_data_register(starpu_data_handle *handle, uint32_t home_node,
                                        uintptr_t ptr, uint32_t ld, uint32_t nx,
@@ -2572,6 +2585,8 @@ starpu_matrix_data_register(&matrix_handle, 0, (uintptr_t)matrix,
 
 @table @asis
 @item @emph{Description}:
+This variant of @code{starpu_data_register} uses the BCSR sparse matrix interface.
+TODO
 @item @emph{Prototype}:
 @code{void starpu_bcsr_data_register(starpu_data_handle *handle, uint32_t home_node, uint32_t nnz, uint32_t nrow,
 		uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize);}
@@ -2587,6 +2602,8 @@ starpu_matrix_data_register(&matrix_handle, 0, (uintptr_t)matrix,
 
 @table @asis
 @item @emph{Description}:
+This variant of @code{starpu_data_register} uses the CSR sparse matrix interface.
+TODO
 @item @emph{Prototype}:
 @code{void starpu_csr_data_register(starpu_data_handle *handle, uint32_t home_node, uint32_t nnz, uint32_t nrow,
 		uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize);}
@@ -2602,6 +2619,14 @@ starpu_matrix_data_register(&matrix_handle, 0, (uintptr_t)matrix,
 
 @table @asis
 @item @emph{Description}:
+This variant of @code{starpu_data_register} uses the 3D matrix interface.
+@code{ptr} is the address of the array of first element in the home node.
+@code{ldy} is the number of elements between rows. @code{ldz} is the number
+of rows between z planes. @code{nx} is the number of elements in a row (this
+can be different from @code{ldy} if there are extra elements for alignment
+for instance). @code{ny} is the number of rows in a z plane (likewise with
+@code{ldz}). @code{nz} is the number of z planes. @code{elemsize} is the size of
+each element.
 @item @emph{Prototype}:
 @code{void starpu_block_data_register(starpu_data_handle *handle, uint32_t home_node,
                         uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx,
