@@ -48,6 +48,7 @@ advantage of their specificities in a portable fashion.
  * extra requirements for the svn version
    * autoconf (version >= 2.60)
    * automake
+   * makeinfo
 
  * Remark: It is strongly recommanded that you also install the hwloc library
    before installing StarPU. This permits StarPU to actually map the processing
