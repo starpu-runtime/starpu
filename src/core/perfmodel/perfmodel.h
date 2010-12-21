@@ -95,13 +95,10 @@ void _starpu_register_model(struct starpu_perfmodel_t *model);
 void _starpu_initialize_registered_performance_models(void);
 void _starpu_deinitialize_registered_performance_models(void);
 
-double _starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_archtype arch);
 double _starpu_regression_based_job_expected_length(struct starpu_perfmodel_t *model,
 					enum starpu_perf_archtype arch, struct starpu_job_s *j);
 void _starpu_update_perfmodel_history(struct starpu_job_s *j, enum starpu_perf_archtype arch,
 				unsigned cpuid, double measured);
-
-double _starpu_data_expected_penalty(uint32_t memory_node, struct starpu_task *task);
 
 void _starpu_create_sampling_directory_if_needed(void);
 
@@ -110,8 +107,6 @@ double _starpu_predict_transfer_time(unsigned src_node, unsigned dst_node, size_
 
 void _starpu_set_calibrate_flag(unsigned val);
 unsigned _starpu_get_calibrate_flag(void);
-
-double _starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtype);
 
 enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid);
 

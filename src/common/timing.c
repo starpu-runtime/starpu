@@ -185,7 +185,7 @@ double starpu_timing_timespec_to_us(struct timespec *ts)
 	return (1000000.0*ts->tv_sec) + (0.001*ts->tv_nsec);
 }
 
-double _starpu_timing_now(void)
+double starpu_timing_now(void)
 {
 	struct timespec now;
 	starpu_clock_gettime(&now);

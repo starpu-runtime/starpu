@@ -388,7 +388,7 @@ static void _starpu_set_data_requested_flag_if_needed(struct starpu_data_replica
 //	pthread_spin_unlock(&handle->header_lock);
 }
 
-int _starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
+int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node)
 {
 	starpu_buffer_descr *descrs = task->buffers;
 	unsigned nbuffers = task->cl->nbuffers;

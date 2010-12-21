@@ -66,7 +66,7 @@ inline uint32_t _starpu_may_submit_opencl_task(void)
 	return (STARPU_OPENCL & config.worker_mask);
 }
 
-int _starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task)
+int starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task)
 {
 	/* TODO: check that the task operand sizes will fit on that device */
 	/* TODO: call application-provided function for various cases like
@@ -76,7 +76,7 @@ int _starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task)
 
 
 
-int _starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_task *task)
+int starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_task *task)
 {
 	/* TODO: check that the task operand sizes will fit on that device */
 	/* TODO: call application-provided function for various cases like

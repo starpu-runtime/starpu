@@ -26,7 +26,7 @@ static struct starpu_sched_policy_s policy;
 
 static int use_prefetch = 0;
 
-int _starpu_get_prefetch_flag(void)
+int starpu_get_prefetch_flag(void)
 {
 	return use_prefetch;
 }
@@ -228,7 +228,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 	}
 
 	if (use_prefetch)
-		_starpu_prefetch_task_input_on_node(task, memory_node);
+		starpu_prefetch_task_input_on_node(task, memory_node);
 
 	if (is_basic_worker)
 	{

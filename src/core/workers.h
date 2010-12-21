@@ -172,10 +172,6 @@ uint32_t _starpu_may_submit_cpu_task(void);
 /* Is there a worker that can execute OpenCL code ? */
 uint32_t _starpu_may_submit_opencl_task(void);
 
-/* Check if the worker specified by workerid can execute the codelet. */
-int _starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task);
-int _starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_task *task);
-
 /* Check whether there is anything that the worker should do instead of
  * sleeping (waiting on something to happen). */
 unsigned _starpu_worker_can_block(unsigned memnode);

@@ -30,7 +30,7 @@
 
 void _starpu_timing_init(void);
 void starpu_clock_gettime(struct timespec *ts);
-double _starpu_timing_now(void);
+double starpu_timing_now(void);
 
 #endif /* TIMING_H */
 

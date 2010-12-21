@@ -119,6 +119,19 @@ void starpu_sched_set_max_priority(int max_prio);
 
 int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[]);
 
+/* Return the current date */
+double starpu_timing_now(void);
+
+/* Check if the worker specified by workerid can execute the codelet. */
+int starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task);
+int starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_task *task);
+
+/* Whether STARPU_PREFETCH was set */
+int starpu_get_prefetch_flag(void);
+/* Prefetch data for a given task on a given node */
+int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node);
+
+/* Initialize combined workers */
 void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *topology);
 
 int starpu_combined_worker_get_description(int workerid, int *worker_size, int **combined_workerid);

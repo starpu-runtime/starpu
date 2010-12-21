@@ -91,7 +91,7 @@ static double per_arch_task_expected_length(struct starpu_perfmodel_t *model, en
  * Common model
  */
 
-double _starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtype)
+double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtype)
 {
 	if (perf_archtype < STARPU_CUDA_DEFAULT)
 	{
@@ -123,7 +123,7 @@ static double common_task_expected_length(struct starpu_perfmodel_t *model, enum
 
 	if (model->cost_model) {
 		exp = model->cost_model(task->buffers);
-		alpha = _starpu_worker_get_relative_speedup(arch);
+		alpha = starpu_worker_get_relative_speedup(arch);
 
 		STARPU_ASSERT(alpha != 0.0f);
 
@@ -133,7 +133,7 @@ static double common_task_expected_length(struct starpu_perfmodel_t *model, enum
 	return -1.0;
 }
 
-double _starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_archtype arch)
+double starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_archtype arch)
 {
 	starpu_job_t j = _starpu_get_job_associated_to_task(task);
 	struct starpu_perfmodel_t *model = task->cl->model;
@@ -162,7 +162,7 @@ double _starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_a
 }
 
 /* Data transfer performance modeling */
-double _starpu_data_expected_penalty(uint32_t memory_node, struct starpu_task *task)
+double starpu_data_expected_penalty(uint32_t memory_node, struct starpu_task *task)
 {
 	unsigned nbuffers = task->cl->nbuffers;
 	unsigned buffer;
