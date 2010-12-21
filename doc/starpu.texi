@@ -2425,7 +2425,7 @@ matrix) which can be registered by the means of helper functions (e.g.
 @table @asis
 @item @emph{Description}:
 This function unregisters a data handle from StarPU. If the data was
-automatically allocated by StarPU because the home node was not valid, all
+automatically allocated by StarPU because the home node was -1, all
 automatically allocated buffers are freed. Otherwise, a valid copy of the data
 is put back into the home node in the buffer that was initially registered.
 Using a data handle that has been unregistered from StarPU results in an
