@@ -33,7 +33,7 @@ struct starpu_deque_jobq_s *_starpu_create_deque(void)
 	deque->njobs = 0;
 	deque->nprocessed = 0;
 
-	deque->exp_start = _starpu_timing_now();
+	deque->exp_start = starpu_timing_now();
 	deque->exp_len = 0.0;
 	deque->exp_end = deque->exp_start;
 
@@ -108,7 +108,7 @@ struct starpu_job_list_s *_starpu_deque_pop_every_task(struct starpu_deque_jobq_
 		{
 			next_job = starpu_job_list_next(i);
 
-			if (_starpu_worker_may_execute_task(workerid, i->task))
+			if (starpu_worker_may_execute_task(workerid, i->task))
 			{
 				/* this elements can be moved into the new list */
 				new_list_size++;

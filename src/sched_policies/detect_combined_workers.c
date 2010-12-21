@@ -21,9 +21,7 @@
 
 void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *topology)
 {
-//#ifdef STARPU_HAVE_HWLOC
-//#error TODO !
-//#else
+#warning TODO: use hwloc instead
 	struct starpu_machine_config_s *config = _starpu_get_machine_config();
 
 	/* We put the id of all CPU workers in this array */
@@ -57,5 +55,4 @@ void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *to
 			}
 		}
 	}
-//#endif
 }

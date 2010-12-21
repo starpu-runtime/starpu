@@ -48,7 +48,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
-		alpha_sum += _starpu_worker_get_relative_speedup(perf_arch);
+		alpha_sum += starpu_worker_get_relative_speedup(perf_arch);
 	}
 
 	double random = starpu_drand48()*alpha_sum;
@@ -58,7 +58,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
-		double worker_alpha = _starpu_worker_get_relative_speedup(perf_arch);
+		double worker_alpha = starpu_worker_get_relative_speedup(perf_arch);
 
 		if (alpha + worker_alpha > random) {
 			/* we found the worker */

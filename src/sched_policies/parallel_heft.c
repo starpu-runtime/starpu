@@ -48,7 +48,7 @@ static struct starpu_task *parallel_heft_pop_task(void)
 		double model = task->predicted;
 	
 		fifo->exp_len -= model;
-		fifo->exp_start = _starpu_timing_now() + model;
+		fifo->exp_start = starpu_timing_now() + model;
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 	}
 
@@ -67,8 +67,8 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	unsigned memory_node; 
 	memory_node = starpu_worker_get_memory_node(best_workerid);
 
-	if (_starpu_get_prefetch_flag())
-		_starpu_prefetch_task_input_on_node(task, memory_node);
+	if (starpu_get_prefetch_flag())
+		starpu_prefetch_task_input_on_node(task, memory_node);
 
 	if (is_basic_worker)
 	{
@@ -205,13 +205,13 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		fifo = queue_array[worker];
-		fifo->exp_start = STARPU_MAX(fifo->exp_start, _starpu_timing_now());
-		fifo->exp_end = STARPU_MAX(fifo->exp_end, _starpu_timing_now());
+		fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
+		fifo->exp_end = STARPU_MAX(fifo->exp_end, starpu_timing_now());
 	}
 
 	for (worker = 0; worker < (nworkers+ncombinedworkers); worker++)
 	{
-		if (!_starpu_combined_worker_may_execute_task(worker, task))
+		if (!starpu_combined_worker_may_execute_task(worker, task))
 		{
 			/* no one on that queue may execute this task */
 			skip_worker[worker] = 1;
@@ -222,10 +222,10 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 		}
 
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
-		local_task_length[worker] = _starpu_task_expected_length(task, perf_arch);
+		local_task_length[worker] = starpu_task_expected_length(task, perf_arch);
 
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
-		local_data_penalty[worker] = _starpu_data_expected_penalty(memory_node, task);
+		local_data_penalty[worker] = starpu_data_expected_penalty(memory_node, task);
 
 		if (local_task_length[worker] == -1.0)
 		{

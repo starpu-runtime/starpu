@@ -39,7 +39,7 @@ struct starpu_stack_jobq_s *_starpu_create_stack(void)
 	stack->njobs = 0;
 	stack->nprocessed = 0;
 
-	stack->exp_start = _starpu_timing_now();
+	stack->exp_start = starpu_timing_now();
 	stack->exp_len = 0.0;
 	stack->exp_end = stack->exp_start;
 

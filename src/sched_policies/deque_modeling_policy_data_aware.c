@@ -123,7 +123,7 @@ static struct starpu_task *dmda_pop_ready_task(void)
 		double model = task->predicted;
 	
 		fifo->exp_len -= model;
-		fifo->exp_start = _starpu_timing_now() + model;
+		fifo->exp_start = starpu_timing_now() + model;
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 #ifdef STARPU_VERBOSE
@@ -153,7 +153,7 @@ static struct starpu_task *dmda_pop_task(void)
 		double model = task->predicted;
 	
 		fifo->exp_len -= model;
-		fifo->exp_start = _starpu_timing_now() + model;
+		fifo->exp_start = starpu_timing_now() + model;
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 #ifdef STARPU_VERBOSE
@@ -188,7 +188,7 @@ static struct starpu_task *dmda_pop_every_task(void)
 		double model = new_list->predicted;
 
 		fifo->exp_len -= model;
-		fifo->exp_start = _starpu_timing_now() + model;
+		fifo->exp_start = starpu_timing_now() + model;
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 	
 		new_list = new_list->next;
@@ -278,8 +278,8 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	unsigned memory_node = starpu_worker_get_memory_node(best_workerid);
 
-	if (_starpu_get_prefetch_flag())
-		_starpu_prefetch_task_input_on_node(task, memory_node);
+	if (starpu_get_prefetch_flag())
+		starpu_prefetch_task_input_on_node(task, memory_node);
 
 	switch (prio) {
 		case 1:
@@ -310,17 +310,17 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 		
 		fifo = queue_array[worker];
 
-		fifo->exp_start = STARPU_MAX(fifo->exp_start, _starpu_timing_now());
-		fifo->exp_end = STARPU_MAX(fifo->exp_end, _starpu_timing_now());
+		fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
+		fifo->exp_end = STARPU_MAX(fifo->exp_end, starpu_timing_now());
 
-		if (!_starpu_worker_may_execute_task(worker, task))
+		if (!starpu_worker_may_execute_task(worker, task))
 		{
 			/* no one on that queue may execute this task */
 			continue;
 		}
 
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
-		double local_length = _starpu_task_expected_length(task, perf_arch);
+		double local_length = starpu_task_expected_length(task, perf_arch);
 
 		if (local_length == -1.0) 
 		{
@@ -375,20 +375,20 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 	{
 		fifo = queue_array[worker];
 
-		fifo->exp_start = STARPU_MAX(fifo->exp_start, _starpu_timing_now());
-		fifo->exp_end = STARPU_MAX(fifo->exp_end, _starpu_timing_now());
+		fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
+		fifo->exp_end = STARPU_MAX(fifo->exp_end, starpu_timing_now());
 
-		if (!_starpu_worker_may_execute_task(worker, task))
+		if (!starpu_worker_may_execute_task(worker, task))
 		{
 			/* no one on that queue may execute this task */
 			continue;
 		}
 
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
-		local_task_length[worker] = _starpu_task_expected_length(task, perf_arch);
+		local_task_length[worker] = starpu_task_expected_length(task, perf_arch);
 
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
-		local_data_penalty[worker] = _starpu_data_expected_penalty(memory_node, task);
+		local_data_penalty[worker] = starpu_data_expected_penalty(memory_node, task);
 
 		if (local_task_length[worker] == -1.0)
 		{
@@ -413,7 +413,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 		{
 			fifo = queue_array[worker];
 	
-			if (!_starpu_worker_may_execute_task(worker, task))
+			if (!starpu_worker_may_execute_task(worker, task))
 			{
 				/* no one on that queue may execute this task */
 				continue;
