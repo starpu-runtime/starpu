@@ -2725,15 +2725,17 @@ The filter structure describes a data partitioning operation, to be given to the
 This function fills the @code{child_interface} structure with interface
 information for the @code{id}-th child of the parent @code{father_interface} (among @code{nparts}).
 @code{void (*filter_func)(void *father_interface, void* child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts);}
+@item @code{nchildren}:
+This is the number of parts to partition the data into.
 @item @code{get_nchildren}:
-This returns the number of children.
+This returns the number of children. This can be used instead of @code{nchildren} when the number of
+children depends on the actual data (e.g. the number of blocks in a sparse
+matrix).
 @code{unsigned (*get_nchildren)(struct starpu_data_filter *, starpu_data_handle initial_handle);}
 @item @code{get_child_ops}:
 In case the resulting children use a different data interface, this function
 returns which interface is used by child number @code{id}.
 @code{struct starpu_data_interface_ops_t *(*get_child_ops)(struct starpu_data_filter *, unsigned id);}
-@item @code{nchildren}:
-This is the number of parts to partition the data into.
 @item @code{filter_arg}:
 Some filters take an addition parameter, but this is usually unused.
 @item @code{filter_arg_ptr}:
