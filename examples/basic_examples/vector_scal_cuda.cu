@@ -23,8 +23,9 @@
 static __global__ void vector_mult_cuda(float *val, unsigned n,
                                         float factor)
 {
-        unsigned i;
-        for(i = 0 ; i < n ; i++)
+        unsigned i = threadIdx.x;
+
+	if (i < n)
                val[i] *= factor;
 }
 
@@ -36,9 +37,10 @@ extern "C" void scal_cuda_func(void *buffers[], void *_args)
         unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
         /* local copy of the vector pointer */
         float *val = (float *)STARPU_VECTOR_GET_PTR(buffers[0]);
+	unsigned threads_per_block = 64;
+	unsigned nblocks = (n + threads_per_block-1) / threads_per_block;
 
-        /* TODO: use more blocks and threads in blocks */
-        vector_mult_cuda<<<1,1>>>(val, n, *factor);
+        vector_mult_cuda<<<nblocks,threads_per_block>>>(val, n, *factor);
 
 	cudaThreadSynchronize();
 }
