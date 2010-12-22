@@ -112,12 +112,12 @@ void call_filters(void)
 	bcsr_f.get_child_ops = get_bcsr_child_ops;
 
 	vector_in_f.filter_func = starpu_block_filter_func_vector;
-	vector_in_f.filter_arg  = size/c;
+	vector_in_f.nchildren  = size/c;
 	vector_in_f.get_nchildren  = NULL;
 	vector_in_f.get_child_ops  = NULL;
 	
 	vector_out_f.filter_func = starpu_block_filter_func_vector;
-	vector_out_f.filter_arg  = size/r;
+	vector_out_f.nchildren  = size/r;
 	vector_out_f.get_nchildren  = NULL;
 	vector_out_f.get_child_ops  = NULL;
 

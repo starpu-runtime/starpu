@@ -192,8 +192,8 @@ int main(int argc, char **argv)
 	}
 
 	/* how many tasks are there ? */
-	unsigned nblocks_y = filter_y.filter_arg;
-	unsigned nblocks_uv = filter_uv.filter_arg;
+	unsigned nblocks_y = filter_y.nchildren;
+	unsigned nblocks_uv = filter_uv.nchildren;
 
 	unsigned ntasks = (nblocks_y + 2*nblocks_uv)*nframes;
 

@@ -315,11 +315,11 @@ void STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size
 
 	struct starpu_data_filter f;
 		f.filter_func = starpu_vertical_block_filter_func;
-		f.filter_arg = nblocks;
+		f.nchildren = nblocks;
 
 	struct starpu_data_filter f2;
 		f2.filter_func = starpu_block_filter_func;
-		f2.filter_arg = nblocks;
+		f2.nchildren = nblocks;
 
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 
