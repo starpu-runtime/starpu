@@ -147,6 +147,7 @@ AC_ARG_ENABLE(nmaxcpus, [AS_HELP_STRING([--enable-nmaxcpus=<number>],
 			[maximum number of CPUs])],
 			nmaxcpus=$enableval, nmaxcpus=16)
 AC_MSG_RESULT($nmaxcpus)
+# TODO: rename to STARPU_MAXCPUS for coherency with CUDA/OpenCL?
 AC_DEFINE_UNQUOTED(STARPU_NMAXCPUS, [$nmaxcpus], [Maximum number of CPUs supported])
 
 AC_MSG_CHECKING(whether CPUs should be used)

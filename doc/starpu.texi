@@ -35,6 +35,7 @@ This manual documents the usage of StarPU.
 * Installing StarPU::           How to configure, build and install StarPU
 * Using StarPU::                How to run StarPU application
 * Basic Examples::              Basic examples of the use of StarPU
+* Performance options::         Performance options worth knowing
 * Performance feedback::        Performance debugging tools
 * Configuring StarPU::          How to configure StarPU
 * StarPU API::                  The API to use StarPU
@@ -70,7 +71,8 @@ StarPU is a runtime system that offers support for heterogeneous multicore
 architectures, it not only offers a unified view of the computational resources
 (i.e. CPUs and accelerators at the same time), but it also takes care of
 efficiently mapping and executing tasks onto an heterogeneous machine while
-transparently handling low-level issues in a portable fashion.
+transparently handling low-level issues such as data transfers in a portable
+fashion.
 
 @c this leads to a complicated distributed memory design
 @c which is not (easily) manageable by hand
@@ -100,7 +102,7 @@ fashion.
 @node Codelet and Tasks
 @subsection Codelet and Tasks
 
-One of StarPU primary data structure is the @b{codelet}. A codelet describes a
+One of the StarPU primary data structures is the @b{codelet}. A codelet describes a
 computational kernel that can possibly be implemented on multiple architectures
 such as a CPU, a CUDA device or a Cell's SPU.
 
@@ -109,7 +111,7 @@ such as a CPU, a CUDA device or a Cell's SPU.
 Another important data structure is the @b{task}. Executing a StarPU task
 consists in applying a codelet on a data set, on one of the architectures on
 which the codelet is implemented. In addition to the codelet that a task
-implements, it also describes which data are accessed, and how they are
+useuses, it also describes which data are accessed, and how they are
 accessed during the computation (read and/or write).
 StarPU tasks are asynchronous: submitting a task to StarPU is a non-blocking
 operation. The task structure can also specify a @b{callback} function that is
@@ -117,9 +119,12 @@ called once StarPU has properly executed the task. It also contains optional
 fields that the application may use to give hints to the scheduler (such as
 priority levels).
 
-A task may be identified by a unique 64-bit number which we refer as a @b{tag}.
-Task dependencies can be enforced either by the means of callback functions, or
-by expressing dependencies between tags.
+A task may be identified by a unique 64-bit number chosen by the application
+which we refer as a @b{tag}.
+Task dependencies can be enforced either by the means of callback functions, by
+expressing dependencies between explicit tasks or by expressing dependencies
+between tags (which can thus correspond to tasks that have not been submitted
+yet).
 
 @c TODO insert illustration f(Ar, Brw, Cr) + ..
 
@@ -174,6 +179,14 @@ can be used to install StarPU.
 @node Getting Sources
 @subsection Getting Sources
 
+The simplest way to get StarPU sources is to download the latest official
+release tarball from @indicateurl{https://gforge.inria.fr/frs/?group_id=1570} ,
+or the latest nightly snapshot from
+@indicateurl{http://starpu.gforge.inria.fr/testing/} . The following documents
+how to get the very latest version from the subversion repository itself, it
+should be needed only if you need the very latest changes (i.e. less than a
+day!)
+
 The source code is managed by a Subversion server hosted by the
 InriaGforge. To get the source code, you need:
 
@@ -181,16 +194,18 @@ InriaGforge. To get the source code, you need:
 @item
 To install the client side of the software Subversion if it is
 not already available on your system. The software can be obtained from
-@indicateurl{http://subversion.tigris.org}.
+@indicateurl{http://subversion.tigris.org} . If you are running
+on Windows, you will probably prefer to use TortoiseSVN from
+@indicateurl{http://tortoisesvn.tigris.org/} .
 
 @item
 You can check out the project's SVN repository through anonymous
 access. This will provide you with a read access to the
 repository.
 
-You can also choose to become a member of the project @code{starpu}.
-For this, you first need to get an account to the gForge server. You
-can then send a request to join the project
+If you need to have write access on the StarPU project, you can also choose to
+become a member of the project @code{starpu}.  For this, you first need to get
+an account to the gForge server. You can then send a request to join the project
 (@indicateurl{https://gforge.inria.fr/project/request.php?group_id=1570}).
 
 @item
@@ -225,7 +240,7 @@ using your gForge account
 These steps require to run autoconf and automake to generate the
 @code{./configure} script. This can be done by calling
 @code{./autogen.sh}. The required version for autoconf is 2.60 or
-higher.
+higher. You will also need makeinfo.
 
 @example
 % ./autogen.sh
@@ -377,9 +392,9 @@ installed. This step is done only once per user and per machine.
 @section Using accelerators
 
 When both CUDA and OpenCL drivers are enabled, StarPU will launch an
-OpenCL worker only if CUDA is not already running on the GPU.
+OpenCL worker for NVIDIA GPUs only if CUDA is not already running on them.
 This design choice was necessary as OpenCL and CUDA can not run at the
-same time on the same GPU, as there is currently no interoperability
+same time on the same NVIDIA GPU, as there is currently no interoperability
 between them.
 
 Details on how to specify devices running OpenCL and the ones running
@@ -487,7 +502,7 @@ manipulated by the codelet: here the codelet does not access or modify any data
 that is controlled by our data management library. Note that the argument
 passed to the codelet (the @code{cl_arg} field of the @code{starpu_task}
 structure) does not count as a buffer since it is not managed by our data
-management library.
+management library, but just contain trivial parameters.
 
 @c TODO need a crossref to the proper description of "where" see bla for more ...
 We create a codelet which may only be executed on the CPUs. The @code{where}
@@ -501,7 +516,8 @@ which @emph{must} have the following prototype:
 
 In this example, we can ignore the first argument of this function which gives a
 description of the input and output buffers (e.g. the size and the location of
-the matrices). The second argument is a pointer to a buffer passed as an
+the matrices) since there is none.
+The second argument is a pointer to a buffer passed as an
 argument to the codelet by the means of the @code{cl_arg} field of the
 @code{starpu_task} structure.
 
@@ -510,7 +526,8 @@ Be aware that this may be a pointer to a
 @emph{copy} of the actual buffer, and not the pointer given by the programmer:
 if the codelet modifies this buffer, there is no guarantee that the initial
 buffer will be modified as well: this for instance implies that the buffer
-cannot be used as a synchronization medium.
+cannot be used as a synchronization medium. If synchronization is needed, data
+has to be registered to StarPU, see @ref{Scaling a Vector}.
 
 @node Submitting a Task
 @subsection Submitting a Task
@@ -573,9 +590,10 @@ The optional @code{cl_arg} field is a pointer to a buffer (of size
 @code{cl_arg_size}) with some parameters for the kernel
 described by the codelet. For instance, if a codelet implements a computational
 kernel that multiplies its input vector by a constant, the constant could be
-specified by the means of this buffer, instead of registering it.
+specified by the means of this buffer, instead of registering it as a StarPU
+data.
 
-Once a task has been executed, an optional callback function can be called.
+Once a task has been executed, an optional callback function is be called.
 While the computational kernel could be offloaded on various architectures, the
 callback function is always executed on a CPU. The @code{callback_arg}
 pointer is passed as an argument of the callback. The prototype of a callback
@@ -583,10 +601,11 @@ function must be:
 
 @code{void (*callback_function)(void *);}
 
-If the @code{synchronous} field is non-null, task submission will be
+If the @code{synchronous} field is non-zero, task submission will be
 synchronous: the @code{starpu_task_submit} function will not return until the
 task was executed. Note that the @code{starpu_shutdown} method does not
-guarantee that asynchronous tasks have been executed before it returns.
+guarantee that asynchronous tasks have been executed before it returns,
+@code{starpu_task_wait_for_all} can be used to that effect..
 
 @node Execution of Hello World
 @subsection Execution of Hello World
@@ -595,7 +614,7 @@ guarantee that asynchronous tasks have been executed before it returns.
 % make hello_world
 cc $(pkg-config --cflags libstarpu)  $(pkg-config --libs libstarpu) hello_world.c -o hello_world
 % ./hello_world
-Hello world (array = @{1.000000, -1.000000@} )
+Hello world (params = @{1, 2.000000@} )
 Callback function (arg 42)
 @end smallexample
 
@@ -625,7 +644,7 @@ Before submitting those tasks, the programmer first needs to declare the
 different pieces of data to StarPU using the @code{starpu_*_data_register}
 functions. To ease the development of applications for StarPU, it is possible
 to describe multiple types of data layout. A type of data layout is called an
-@b{interface}. By default, there are different interfaces available in StarPU:
+@b{interface}. There are different predefined interfaces available in StarPU:
 here we will consider the @b{vector interface}.
 
 The following lines show how to declare an array of @code{NX} elements of type
@@ -644,10 +663,10 @@ starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX,
 The first argument, called the @b{data handle}, is an opaque pointer which
 designates the array in StarPU. This is also the structure which is used to
 describe which data is used by a task. The second argument is the node number
-where the data currently resides. Here it is 0 since the @code{vector} array is in
-the main memory. Then comes the pointer @code{vector} where the data can be found,
+where the data originally resides. Here it is 0 since the @code{vector} array is in
+the main memory. Then comes the pointer @code{vector} where the data can be found in main memory,
 the number of elements in the vector and the size of each element.
-It is possible to construct a StarPU task that will manipulate the
+The following shows how to construct a StarPU task that will manipulate the
 vector and a constant factor.
 
 @cartouche
@@ -666,7 +685,8 @@ starpu_task_submit(task);
 @end smallexample
 @end cartouche
 
-Since the factor is a mere float value parameter, it does not need a preliminary registration, and
+Since the factor is a mere constant float value parameter,
+it does not need a preliminary registration, and
 can just be passed through the @code{cl_arg} pointer like in the previous
 example.  The vector parameter is described by its handle.
 There are two fields in each element of the @code{buffers} array.
@@ -703,7 +723,7 @@ starpu_codelet cl = @{
 The first argument is an array that gives
 a description of all the buffers passed in the @code{task->buffers}@ array. The
 size of this array is given by the @code{nbuffers} field of the codelet
-structure. For the sake of generality, this array contains pointers to the
+structure. For the sake of genericity, this array contains pointers to the
 different interfaces describing each buffer.  In the case of the @b{vector
 interface}, the location of the vector (resp. its length) is accessible in the
 @code{ptr} (resp. @code{nx}) of this array. Since the vector is accessed in a
@@ -752,7 +772,7 @@ static __global__ void vector_mult_cuda(float *val, unsigned n,
                                         float factor)
 @{
     unsigned i;
-    for(i = 0 ; i < n ; i++)
+    if (i < n)
         val[i] *= factor;
 @}
 
@@ -764,8 +784,10 @@ extern "C" void scal_cuda_func(void *buffers[], void *_args)
     unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
     /* local copy of the vector pointer */
     float *val = (float *)STARPU_VECTOR_GET_PTR(buffers[0]);
+    unsigned threads_per_block = 64;
+    unsigned nblocks = (n + threads_per_block-1) / threads_per_block;
 
-@i{    vector_mult_cuda<<<1,1>>>(val, n, *factor);}
+@i{    vector_mult_cuda<<<nblocks,threads_per_block>>>(val, n, *factor);}
 
 @i{    cudaThreadSynchronize();}
 @}
@@ -882,8 +904,8 @@ int main(int argc, char **argv)
     starpu_init(NULL);                            /* @b{Initialising StarPU} */
 
 #ifdef STARPU_USE_OPENCL
-    starpu_opencl_load_opencl_from_file("examples/basic_examples/vector_scal_opencl_codelet.cl",
-                                        &programs);
+    starpu_opencl_load_opencl_from_file(
+            "examples/basic_examples/vector_scal_opencl_codelet.cl", &programs);
 #endif
 
     vector = malloc(NX*sizeof(vector[0]));
@@ -917,6 +939,7 @@ int main(int argc, char **argv)
             return 1;
     @}
 
+@c TODO: Mmm, should rather be an unregistration with an implicit dependency, no?
     /* @b{Waiting for its termination} */
     starpu_task_wait_for_all();
 
@@ -985,7 +1008,8 @@ or for example, by disabling CPU devices:
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample
 
-or by disabling CUDA devices:
+or by disabling CUDA devices (which may permit to enable the use of OpenCL,
+see @ref{Using accelerators}):
 
 @smallexample
 % STARPU_NCUDA=0 ./vector_scal
@@ -1007,6 +1031,7 @@ task->synchronous = 1;
  * query the profiling info before the task is destroyed. */
 task->destroy = 0;
 
+/* Submit and wait for completion (since synchronous was set to 1) */
 starpu_task_submit(task);
 
 /* The task is finished, get profiling information */
@@ -1081,6 +1106,7 @@ starpu_data_partition(handle, &f);
 @smallexample
 /* Submit a task on each sub-vector */
 for (i=0; i<starpu_data_get_nb_children(handle); i++) @{
+    /* Get subdata number i (there is only 1 dimension) */
     starpu_data_handle sub_handle = starpu_data_get_sub_data(handle, 1, i);
     struct starpu_task *task = starpu_task_create();
 
@@ -1110,7 +1136,7 @@ performance model. There are several kinds of performance models.
 @item
 Providing an estimation from the application itself (@code{STARPU_COMMON} model type and @code{cost_model} field),
 see for instance
-@code{examples/common/blas_model.c} and @code{examples/common/blas_model.h}. It can also be provided for each architecture (@code{STARPU_PER_ARCH} model type and @code{per_arch} field)
+@code{examples/common/blas_model.h} and @code{examples/common/blas_model.c}. It can also be provided for each architecture (@code{STARPU_PER_ARCH} model type and @code{per_arch} field)
 @item
 Measured at runtime (STARPU_HISTORY_BASED model type). This assumes that for a
 given set of data input/output sizes, the performance will always be about the
@@ -1184,8 +1210,8 @@ the priorities as the StarPU scheduler would, i.e. schedule prioritized
 tasks before less prioritized tasks, to check to which extend this results
 to a less optimal solution. This increases even more computation time.
 
-Note that all this however doesn't take into account data transfer, which is
-assumed to be completely overlapped.
+Note that for simplicity, all this however doesn't take into account data
+transfers, which are assumed to be completely overlapped.
 
 @node More examples
 @section More examples
@@ -1217,6 +1243,18 @@ More advanced examples include:
 @item @code{lu/}:
 	LU matrix factorization.
 @end table
+
+@c ---------------------------------------------------------------------
+@c Performance feedback
+@c ---------------------------------------------------------------------
+
+@node Performance options
+@chapter Performance options worth knowing
+
+TODO: explain why execution should be tried with
+@code{STARPU_PREFETCH=1 STARPU_SCHED=dmda}, when to use
+@code{STARPU_CALIBRATE=2} to force re-calibration, and how to play with
+@code{STARPU_BETA=2} or more.
 
 @c ---------------------------------------------------------------------
 @c Performance feedback
@@ -1381,9 +1419,9 @@ generate a trace in the Paje format by calling:
 @end example
 
 This will create a @code{paje.trace} file in the current directory that can be
-inspected with the Vite trace visualizing open-source tool. More information
-about Vite is available at @indicateurl{http://vite.gforge.inria.fr/}. It is
-possible to open the @code{paje.trace} file with Vite by using the following
+inspected with the ViTE trace visualizing open-source tool. More information
+about ViTE is available at @indicateurl{http://vite.gforge.inria.fr/}. It is
+possible to open the @code{paje.trace} file with ViTE by using the following
 command:
 @example
 % vite paje.trace
@@ -1497,7 +1535,7 @@ Augment the verbosity of the debugging messages.
 @subsubsection @code{--enable-coverage}
 @table @asis
 @item @emph{Description}:
-Enable flags for the coverage tool.
+Enable flags for the @code{gcov} coverage tool.
 @end table
 
 @node Configuring workers
@@ -1563,14 +1601,18 @@ Specify the directory where CUDA is installed. This directory should notably con
 @table @asis
 @item @emph{Description}:
 Specify the directory where CUDA headers are installed. This directory should
-notably contain @code{cuda.h}.
+notably contain @code{cuda.h}. This defaults to @code{/include} appended to the
+value given to @code{--with-cuda-dir}.
 @end table
 
 @node --with-cuda-lib-dir
 @subsubsection @code{--with-cuda-lib-dir=<path>}
 @table @asis
 @item @emph{Description}:
-Specify the directory where the CUDA library is installed.
+Specify the directory where the CUDA library is installed. This directory should
+notably contain the CUDA shared libraries (e.g. libcuda.so). This defaults to
+@code{/lib} appended to the value given to @code{--with-cuda-dir}.
+
 @end table
 
 @node --enable-maxopencldev
@@ -1601,15 +1643,18 @@ Specify the location of the OpenCL SDK. This directory should notably contain
 @table @asis
 @item @emph{Description}:
 Specify the location of OpenCL headers. This directory should notably contain
-@code{CL/cl.h}.
+@code{CL/cl.h}. This defaults to
+@code{/include} appended to the value given to @code{--with-opencl-dir}.
+
 @end table
 
 @node --with-opencl-lib-dir
 @subsubsection @code{--with-opencl-lib-dir=<path>}
 @table @asis
 @item @emph{Description}:
-Specify the location of the OpenCL library.
-@code{include/CL/cl.h}.
+Specify the location of the OpenCL library. This directory should notably
+contain the OpenCL shared libraries (e.g. libOpenCL.so). This defaults to
+@code{/lib} appended to the value given to @code{--with-opencl-dir}.
 @end table
 
 @node --enable-gordon
@@ -1705,7 +1750,8 @@ library has to be 'atlas' or 'goto'.
 @subsubsection @code{--with-magma=<path>}
 @table @asis
 @item @emph{Description}:
-Specify where magma is installed.
+Specify where magma is installed. This directory should notably contain
+@code{include/magmablas.h}.
 @end table
 
 @node --with-fxt
@@ -1843,9 +1889,9 @@ Specify the number of SPUs that StarPU can use.
 @item @emph{Description}:
 Passing an array of integers (starting from 0) in @code{STARPU_WORKERS_CPUID}
 specifies on which logical CPU the different workers should be
-bound. For instance, if @code{STARPU_WORKERS_CPUID = "1 3 0 2"}, the first
-worker will be bound to logical CPU #1, the second CPU worker will be bound to
-logical CPU #3 and so on.  Note that the logical ordering of the CPUs is either
+bound. For instance, if @code{STARPU_WORKERS_CPUID = "0 1 4 5"}, the first
+worker will be bound to logical CPU #0, the second CPU worker will be bound to
+logical CPU #1 and so on.  Note that the logical ordering of the CPUs is either
 determined by the OS, or provided by the @code{hwloc} library in case it is
 available.
 
@@ -2480,7 +2526,7 @@ The application may access the requested data during the execution of this
 callback. The callback function must call @code{starpu_data_release} once the
 application does not need to access the piece of data anymore. 
 Note that implicit data dependencies are also enforced by
-@code{starpu_data_acquire} in case they are enabled.
+@code{starpu_data_acquire_cb} in case they are enabled.
  Contrary to @code{starpu_data_acquire}, this function is non-blocking and may
 be called from task callbacks. Upon successful completion, this function
 returns 0.
@@ -2505,9 +2551,9 @@ This function releases the piece of data acquired by the application either by
 * Variable Interface::          
 * Vector Interface::            
 * Matrix Interface::            
+* 3D Matrix Interface::             
 * BCSR Interface for Sparse Matrices (Blocked Compressed Sparse Row Representation)::  
 * CSR Interface for Sparse Matrices (Compressed Sparse Row Representation)::  
-* Block Interface::             
 @end menu
 
 @node Variable Interface
@@ -2582,6 +2628,35 @@ starpu_matrix_data_register(&matrix_handle, 0, (uintptr_t)matrix,
 @end cartouche
 @end table
 
+@node 3D Matrix Interface
+@subsection 3D Matrix Interface
+
+@table @asis
+@item @emph{Description}:
+This variant of @code{starpu_data_register} uses the 3D matrix interface.
+@code{ptr} is the address of the array of first element in the home node.
+@code{ldy} is the number of elements between rows. @code{ldz} is the number
+of rows between z planes. @code{nx} is the number of elements in a row (this
+can be different from @code{ldy} if there are extra elements for alignment
+for instance). @code{ny} is the number of rows in a z plane (likewise with
+@code{ldz}). @code{nz} is the number of z planes. @code{elemsize} is the size of
+each element.
+@item @emph{Prototype}:
+@code{void starpu_block_data_register(starpu_data_handle *handle, uint32_t home_node,
+                        uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx,
+                        uint32_t ny, uint32_t nz, size_t elemsize);}
+@item @emph{Example}:
+@cartouche
+@smallexample
+float *block;
+starpu_data_handle block_handle;
+block = (float*)malloc(nx*ny*nz*sizeof(float));
+starpu_block_data_register(&block_handle, 0, (uintptr_t)block,
+                           nx, nx*ny, nx, ny, nz, sizeof(float));
+@end smallexample
+@end cartouche
+@end table
+
 @node BCSR Interface for Sparse Matrices (Blocked Compressed Sparse Row Representation)
 @subsection BCSR Interface for Sparse Matrices (Blocked Compressed Sparse Row Representation)
 
@@ -2616,35 +2691,6 @@ TODO
 @end cartouche
 @end table
 
-@node Block Interface
-@subsection Block Interface
-
-@table @asis
-@item @emph{Description}:
-This variant of @code{starpu_data_register} uses the 3D matrix interface.
-@code{ptr} is the address of the array of first element in the home node.
-@code{ldy} is the number of elements between rows. @code{ldz} is the number
-of rows between z planes. @code{nx} is the number of elements in a row (this
-can be different from @code{ldy} if there are extra elements for alignment
-for instance). @code{ny} is the number of rows in a z plane (likewise with
-@code{ldz}). @code{nz} is the number of z planes. @code{elemsize} is the size of
-each element.
-@item @emph{Prototype}:
-@code{void starpu_block_data_register(starpu_data_handle *handle, uint32_t home_node,
-                        uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx,
-                        uint32_t ny, uint32_t nz, size_t elemsize);}
-@item @emph{Example}:
-@cartouche
-@smallexample
-float *block;
-starpu_data_handle block_handle;
-block = (float*)malloc(nx*ny*nz*sizeof(float));
-starpu_block_data_register(&block_handle, 0, (uintptr_t)block,
-                           nx, nx*ny, nx, ny, nz, sizeof(float));
-@end smallexample
-@end cartouche
-@end table
-
 @node Data Partition
 @section Data Partition
 
@@ -2661,24 +2707,28 @@ starpu_block_data_register(&block_handle, 0, (uintptr_t)block,
 @subsection @code{struct starpu_data_filter} -- StarPU filter structure
 @table @asis
 @item @emph{Description}:
-The filter structure describes a data partitioning function.
+The filter structure describes a data partitioning operation, to be given to the
+@code{starpu_data_partition} function, see @ref{starpu_data_partition} for an example.
 @item @emph{Fields}:
 @table @asis
 @item @code{filter_func}:
-TODO
+This function fills the @code{child_interface} structure with interface
+information for the @code{id}-th child of the parent @code{father_interface} (among @code{nparts}).
 @code{void (*filter_func)(void *father_interface, void* child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts);}
 @item @code{get_nchildren}:
-TODO
+This returns the number of children.
 @code{unsigned (*get_nchildren)(struct starpu_data_filter *, starpu_data_handle initial_handle);}
 @item @code{get_child_ops}:
-TODO
+In case the resulting children use a different data interface, this function
+returns which interface is used by child number @code{id}.
 @code{struct starpu_data_interface_ops_t *(*get_child_ops)(struct starpu_data_filter *, unsigned id);}
-@item @code{filter_arg}:
-TODO
 @item @code{nchildren}:
-TODO
+This is the number of parts to partition the data into.
+@item @code{filter_arg}:
+Some filters take an addition parameter, but this is usually unused.
 @item @code{filter_arg_ptr}:
-TODO
+Some filters take an additional array parameter like the sizes of the parts, but
+this is usually unused.
 @end table
 @end table
 
@@ -2687,9 +2737,22 @@ TODO
 
 @table @asis
 @item @emph{Description}:
-TODO
+This requests partitioning one StarPU data @code{initial_handle} into several
+subdata according to the filter @code{f}
 @item @emph{Prototype}:
 @code{void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data_filter *f);}
+@item @emph{Example}:
+@cartouche
+@smallexample
+struct starpu_data_filter f = {
+    .filter_func = starpu_vertical_block_filter_func,
+    .nchildren = nslicesx,
+    .get_nchildren = NULL,
+    .get_child_ops = NULL
+};
+starpu_data_partition(A_handle, &f);
+@end smallexample
+@end cartouche
 @end table
 
 @node starpu_data_unpartition
@@ -2697,9 +2760,16 @@ TODO
 
 @table @asis
 @item @emph{Description}:
-TODO
+This unapplies one filter, thus unpartitioning the data. The pieces of data are
+collected back into one big piece in the @code{gathering_node} (usually 0).
 @item @emph{Prototype}:
 @code{void starpu_data_unpartition(starpu_data_handle root_data, uint32_t gathering_node);}
+@item @emph{Example}:
+@cartouche
+@smallexample
+starpu_data_unpartition(A_handle, 0);
+@end smallexample
+@end cartouche
 @end table
 
 @node starpu_data_get_nb_children
@@ -2707,9 +2777,9 @@ TODO
 
 @table @asis
 @item @emph{Description}:
-TODO
+This function returns the number of children.
 @item @emph{Return value}:
-This function returns returns the number of children.
+The number of children.
 @item @emph{Prototype}:
 @code{int starpu_data_get_nb_children(starpu_data_handle handle);}
 @end table
@@ -2721,11 +2791,22 @@ This function returns returns the number of children.
 
 @table @asis
 @item @emph{Description}:
-TODO
+After partitioning a StarPU data by applying a filter,
+@code{starpu_data_get_sub_data} can be used to get handles for each of the data
+portions. @code{root_data} is the parent data that was partitioned. @code{depth}
+is the number of filters to traverse (in case several filters have been applied,
+to e.g. partition in row blocks, and then in column blocks), and the subsequent
+parameters are the indexes.
 @item @emph{Return value}:
-TODO
+A handle to the subdata.
 @item @emph{Prototype}:
 @code{starpu_data_handle starpu_data_get_sub_data(starpu_data_handle root_data, unsigned depth, ... );}
+@item @emph{Example}:
+@cartouche
+@smallexample
+h = starpu_data_get_sub_data(A_handle, 1, taskx);
+@end smallexample
+@end cartouche
 @end table
 
 @node Predefined filter functions
@@ -2738,52 +2819,79 @@ TODO
 * Partitioning Block Data::     
 @end menu
 
-This section gives a list of the predefined partitioning functions.
-Examples on how to use them are shown in @ref{Partitioning Data}.
+This section gives a partial list of the predefined partitioning functions.
+Examples on how to use them are shown in @ref{Partitioning Data}. The complete
+list can be found in @code{starpu_data_filters.h} .
 
 @node Partitioning BCSR Data
 @subsubsection Partitioning BCSR Data
-@itemize
-@item
+
+@table @asis
+@item @emph{Description}:
 TODO
+@item @emph{Prototype}:
 @code{void starpu_canonical_block_filter_bcsr(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
-@item
+@end table
+
+@table @asis
+@item @emph{Description}:
 TODO
+@item @emph{Prototype}:
 @code{void starpu_vertical_block_filter_func_csr(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
-@end itemize
+@end table
 
 @node Partitioning BLAS interface
 @subsubsection Partitioning BLAS interface
-@itemize
-@item
-TODO
+
+@table @asis
+@item @emph{Description}:
+This partitions a dense Matrix into horizontal blocks.
+@item @emph{Prototype}:
 @code{void starpu_block_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
-@item
-TODO
+@end table
+
+@table @asis
+@item @emph{Description}:
+This partitions a dense Matrix into vertical blocks.
+@item @emph{Prototype}:
 @code{void starpu_vertical_block_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
-@end itemize
+@end table
 
 @node Partitioning Vector Data
 @subsubsection Partitioning Vector Data
-@itemize
-@item
-TODO
+
+@table @asis
+@item @emph{Description}:
+This partitions a vector into blocks of the same size.
+@item @emph{Prototype}:
 @code{void starpu_block_filter_func_vector(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
-@item
-TODO
+@end table
+
+
+@table @asis
+@item @emph{Description}:
+This partitions a vector into blocks of sizes given in @code{filter_arg_ptr}.
+@item @emph{Prototype}:
 @code{void starpu_vector_list_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
-@item
-TODO
+@end table
+
+@table @asis
+@item @emph{Description}:
+This partitions a vector into two blocks, the first block size being given in @code{filter_arg}.
+@item @emph{Prototype}:
 @code{void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
-@end itemize
+@end table
+
 
 @node Partitioning Block Data
 @subsubsection Partitioning Block Data
-@itemize
-@item
-TODO
+
+@table @asis
+@item @emph{Description}:
+This partitions a 3D matrix along the X axis.
+@item @emph{Prototype}:
 @code{void starpu_block_filter_func_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
-@end itemize
+@end table
 
 @node Codelets and Tasks
 @section Codelets and Tasks
@@ -3086,7 +3194,7 @@ because there is no task being executed at the moment.
 @subsection @code{starpu_display_codelet_stats} -- Display statistics
 @table @asis
 @item @emph{Description}:
-TODO
+Output on @code{stderr} some statistics on the codelet @code{cl}.
 @item @emph{Prototype}:
 @code{void starpu_display_codelet_stats(struct starpu_codelet_t *cl);}
 @end table
@@ -3133,7 +3241,7 @@ redundancy in the task dependencies.
 @subsection @code{starpu_tag_t} -- Task logical identifier
 @table @asis
 @item @emph{Description}:
-It is possible to associate a task with a unique ``tag'' and to express
+It is possible to associate a task with a unique ``tag'' chosen by the application, and to express
 dependencies between tasks by the means of those tags. To do so, fill the
 @code{tag_id} field of the @code{starpu_task} structure with a tag number (can
 be arbitrary) and set the @code{use_tag} field to 1.
@@ -3342,7 +3450,7 @@ TODO
 @subsection @code{starpu_force_bus_sampling}
 @table @asis
 @item @emph{Description}:
-TODO
+This forces sampling the bus performance model again.
 @item @emph{Prototype}:
 @code{void starpu_force_bus_sampling(void);}
 @end table
