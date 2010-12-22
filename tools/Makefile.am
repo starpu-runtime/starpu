@@ -25,11 +25,13 @@ dist_bin_SCRIPTS =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
+# TODO: prefix with starpu_
 bin_PROGRAMS += calibrate_bus
 
 calibrate_bus_SOURCES = calibrate_bus.c
 
 if STARPU_USE_FXT
+# TODO: prefix with starpu_
 bin_PROGRAMS += fxt_tool fxt_stats
 
 fxt_tool_SOURCES = fxt_tool.c fxt_tool_common.c fxt_tool_mpi.c dag_dot.c histo_paje.c
