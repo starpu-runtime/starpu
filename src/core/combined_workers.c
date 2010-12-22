@@ -24,6 +24,12 @@
 #include <windows.h>
 #endif
 
+#ifndef HWLOC_BITMAP_H
+/* hwloc <1.1 does not offer the bitmap API yet */
+#define hwloc_bitmap_alloc hwloc_cpuset_alloc
+#define hwloc_bitmap_or hwloc_cpuset_or
+#endif
+
 /* Create a new worker id for a combination of workers. This method should
  * typically be called at the initialization of the scheduling policy. This
  * worker should be the combination of the list of id's contained in the
@@ -90,7 +96,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 	CPU_ZERO(&combined_worker->cpu_set);
 #endif /* STARPU_HAVE_WINDOWS */
 #ifdef STARPU_HAVE_HWLOC
-	combined_worker->hwloc_cpu_set = hwloc_cpuset_alloc();
+	combined_worker->hwloc_cpu_set = hwloc_bitmap_alloc();
 #endif
 
 	for (i = 0; i < nworkers; i++)
@@ -103,7 +109,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 #endif /* STARPU_HAVE_WINDOWS */
 
 #ifdef STARPU_HAVE_HWLOC
-		hwloc_cpuset_or(combined_worker->hwloc_cpu_set,
+		hwloc_bitmap_or(combined_worker->hwloc_cpu_set,
 				combined_worker->hwloc_cpu_set,
 				config->workers[id].initial_hwloc_cpu_set);
 #endif

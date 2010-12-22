@@ -34,6 +34,13 @@
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
 #endif
+#ifndef HWLOC_BITMAP_H
+/* hwloc <1.1 does not offer the bitmap API yet */
+#define hwloc_bitmap_alloc hwloc_cpuset_alloc
+#define hwloc_bitmap_only hwloc_cpuset_cpu
+#define hwloc_bitmap_singlify hwloc_cpuset_singlify
+#endif
+
 		
 static unsigned topology_is_initialized = 0;
 
@@ -580,7 +587,7 @@ void _starpu_bind_thread_on_cpu(struct starpu_machine_config_s *config __attribu
 
 	hwloc_obj_t obj = hwloc_get_obj_by_depth(config->topology.hwtopology, config->cpu_depth, cpuid);
 	hwloc_cpuset_t set = obj->cpuset;
-	hwloc_cpuset_singlify(set);
+	hwloc_bitmap_singlify(set);
 	ret = hwloc_set_cpubind(config->topology.hwtopology, set, HWLOC_CPUBIND_THREAD);
 	if (ret)
 	{
@@ -712,10 +719,10 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 
 #ifdef STARPU_HAVE_HWLOC
 		/* Clear the cpu set and set the cpu */
-		workerarg->initial_hwloc_cpu_set = hwloc_cpuset_alloc();
-		hwloc_cpuset_cpu(workerarg->initial_hwloc_cpu_set, workerarg->bindid);
-		workerarg->current_hwloc_cpu_set = hwloc_cpuset_alloc();
-		hwloc_cpuset_cpu(workerarg->current_hwloc_cpu_set, workerarg->bindid);
+		workerarg->initial_hwloc_cpu_set = hwloc_bitmap_alloc();
+		hwloc_bitmap_only(workerarg->initial_hwloc_cpu_set, workerarg->bindid);
+		workerarg->current_hwloc_cpu_set = hwloc_bitmap_alloc();
+		hwloc_bitmap_only(workerarg->current_hwloc_cpu_set, workerarg->bindid);
 #endif
 	}
 }
