@@ -51,7 +51,7 @@ void cpu_func(void *buffers[], void *cl_arg)
 {
 	struct params *params = cl_arg;
 
-	printf("Hello world (array = {%i, %f} )\n", params->i, params->f);
+	printf("Hello world (params = {%i, %f} )\n", params->i, params->f);
 }
 
 starpu_codelet cl =
