@@ -140,6 +140,7 @@ size_t starpu_matrix_get_elemsize(starpu_data_handle handle);
 
 
 /* BLOCK interface for 3D dense blocks */
+/* TODO: rename to 3dmatrix? */
 typedef struct starpu_block_interface_s {
 	uintptr_t ptr;
         uintptr_t dev_handle;
