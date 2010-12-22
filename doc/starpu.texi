@@ -339,6 +339,7 @@ configuration:
 @menu
 * Setting flags for compiling and linking applications::  
 * Running a basic StarPU application::  
+* Kernel threads started by StarPU::
 * Using accelerators::          
 @end menu
 
@@ -387,6 +388,15 @@ that directory.
 Please note that buses are benchmarked when StarPU is launched for the
 first time. This may take a few minutes, or less if @code{hwloc} is
 installed. This step is done only once per user and per machine.
+
+@node Kernel threads started by StarPU
+@section Kernel threads started by StarPU
+
+TODO: StarPU starts one thread per CPU core and binds them there, uses one of
+them per GPU. The application is not supposed to do computations in its own
+threads. TODO: add a StarPU function to bind an application thread (e.g. the
+main thread) to a dedicated core (and thus disable the corresponding StarPU CPU
+worker).
 
 @node Using accelerators
 @section Using accelerators
