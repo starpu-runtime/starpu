@@ -92,9 +92,12 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 	/* Save the list of combined workers */
 	memcpy(&combined_worker->combined_workerid, workerid_array, nworkers*sizeof(int));
 
+	/* Note that we maintain both the cpu_set and the hwloc_cpu_set so that
+	 * the application is not forced to use hwloc when it is available. */
 #ifndef STARPU_HAVE_WINDOWS
 	CPU_ZERO(&combined_worker->cpu_set);
 #endif /* STARPU_HAVE_WINDOWS */
+
 #ifdef STARPU_HAVE_HWLOC
 	combined_worker->hwloc_cpu_set = hwloc_bitmap_alloc();
 #endif
