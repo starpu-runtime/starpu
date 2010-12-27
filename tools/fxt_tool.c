@@ -371,18 +371,16 @@ static void handle_end_codelet_body(void)
 static void handle_user_event(void)
 {
 	int worker;
-	unsigned code;
-	code = ev.param[2];	
+	unsigned long code = ev.param[0];
 
 	worker = find_worker_id(ev.param[1]);
 	if (worker < 0)
 	{
-		fprintf(out_paje_file, "9       %f     event      %sp      %d\n", get_event_time_stamp(), prefix, rank);
+		fprintf(out_paje_file, "9       %f     event      %sp      %ld\n", get_event_time_stamp(), prefix, code);
 	}
 	else {
-		fprintf(out_paje_file, "9       %f     event      %s%"PRIu64"      %d\n", get_event_time_stamp(), prefix, ev.param[1], code);
+		fprintf(out_paje_file, "9       %f     event      %s%"PRIu64"      %ld\n", get_event_time_stamp(), prefix, ev.param[1], code);
 	}
-
 }
 
 static void handle_start_callback(void)
