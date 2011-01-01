@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include <starpu_profiling.h>
 #include <assert.h>
+#include <unistd.h>
 
 static unsigned niter = 500;
 
