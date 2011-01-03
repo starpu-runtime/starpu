@@ -130,6 +130,7 @@ check_PROGRAMS += 				\
 	datawizard/mpi_like_async		\
 	datawizard/critical_section_with_void_interface\
 	datawizard/increment_redux		\
+	datawizard/increment_redux_v2		\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
@@ -377,6 +378,12 @@ testbin_PROGRAMS +=				\
 
 datawizard_increment_redux_SOURCES =		\
 	datawizard/increment_redux.c
+
+testbin_PROGRAMS +=				\
+	datawizard/increment_redux_v2
+
+datawizard_increment_redux_v2_SOURCES =		\
+	datawizard/increment_redux_v2.c
 
 if STARPU_USE_CUDA
 datawizard_mpi_like_SOURCES +=			\
