@@ -1425,7 +1425,7 @@ the @code{STARPU_FXT_PREFIX} environment variable.
 When the FxT trace file @code{filename} has been generated, it is possible to
 generate a trace in the Paje format by calling:
 @example
-% fxt_tool -i filename
+% starpu_fxt_tool -i filename
 @end example
 
 This will create a @code{paje.trace} file in the current directory that can be
@@ -1443,7 +1443,7 @@ command:
 When the FxT trace file @code{filename} has been generated, it is possible to
 generate a task graph in the DOT format by calling:
 @example
-$ fxt_tool -i filename
+$ starpu_fxt_tool -i filename
 @end example
 
 This will create a @code{dag.dot} file in the current directory. This file is a
@@ -1459,7 +1459,7 @@ $ dot -Tpdf dag.dot -o output.pdf
 When the FxT trace file @code{filename} has been generated, it is possible to
 generate a activity trace by calling:
 @example
-$ fxt_tool -i filename
+$ starpu_fxt_tool -i filename
 @end example
 
 This will create an @code{activity.data} file in the current

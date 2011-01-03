@@ -25,25 +25,24 @@ dist_bin_SCRIPTS =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
-# TODO: prefix with starpu_
-bin_PROGRAMS += calibrate_bus
+bin_PROGRAMS += starpu_calibrate_bus
 
-calibrate_bus_SOURCES = calibrate_bus.c
+starpu_calibrate_bus_SOURCES = starpu_calibrate_bus.c
 
 if STARPU_USE_FXT
 # TODO: prefix with starpu_
-bin_PROGRAMS += fxt_tool fxt_stats
+bin_PROGRAMS += starpu_fxt_tool starpu_fxt_stats
 
-fxt_tool_SOURCES = fxt_tool.c fxt_tool_common.c fxt_tool_mpi.c dag_dot.c histo_paje.c
-fxt_tool_CFLAGS = -I$(top_srcdir)/src/
-fxt_tool_LDADD = 
+starpu_fxt_tool_SOURCES = starpu_fxt_tool.c fxt_tool_common.c fxt_tool_mpi.c dag_dot.c histo_paje.c
+starpu_fxt_tool_CFLAGS = -I$(top_srcdir)/src/
+starpu_fxt_tool_LDADD = 
 
-fxt_stats_SOURCES = fxt_stats.c
-fxt_stats_CFLAGS = -I$(top_srcdir)/src/
+starpu_fxt_stats_SOURCES = starpu_fxt_stats.c
+starpu_fxt_stats_CFLAGS = -I$(top_srcdir)/src/
 endif
 
-bin_PROGRAMS +=	perfmodel_display
-perfmodel_display_SOURCES = perfmodel_display.c
+bin_PROGRAMS +=	starpu_perfmodel_display
+starpu_perfmodel_display_SOURCES = starpu_perfmodel_display.c
 
 noinst_PROGRAMS =	cbc2paje lp2paje
 
