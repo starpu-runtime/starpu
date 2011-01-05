@@ -16,7 +16,8 @@
 
 CC=$(MPICC)
 
-TESTS = $(check_PROGRAMS)
+TESTS_ENVIRONMENT	=	$(shell dirname $(MPICC))/mpiexec -np 2
+TESTS			=	$(check_PROGRAMS)
 
 check_PROGRAMS =
 
@@ -35,7 +36,7 @@ EXTRA_DIST = 					\
 	examples/mpi_lu/pxlu_kernels.c
 
 examplebindir = $(libdir)/starpu/mpi/examples/
-mpiexamplebindir=$(libdir)/starpu/mpi/
+testbindir = $(libdir)/starpu/mpi/tests/
 
 examplebin_PROGRAMS =
 
@@ -106,7 +107,21 @@ examples_mpi_lu_plu_example_double_SOURCES =	\
 	$(top_srcdir)/examples/common/blas.c
 endif
 
-mpiexamplebin_PROGRAMS =				\
+check_PROGRAMS +=				\
+	tests/pingpong					\
+	tests/mpi_test					\
+	tests/mpi_isend					\
+	tests/mpi_irecv					\
+	tests/mpi_isend_detached			\
+	tests/mpi_irecv_detached			\
+	tests/mpi_detached_tag				\
+	tests/ring					\
+	tests/ring_async				\
+	tests/ring_async_implicit			\
+	tests/block_interface				\
+	tests/block_interface_pinned
+
+testbin_PROGRAMS =				\
 	tests/pingpong					\
 	tests/mpi_test					\
 	tests/mpi_isend					\
