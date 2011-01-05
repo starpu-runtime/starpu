@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-	MPI_Finalize();
+        //MPI_Finalize();
 
 	if (rank == last_rank)
 	{
