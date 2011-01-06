@@ -182,9 +182,14 @@ int _starpu_submit_job(starpu_job_t j, unsigned do_not_increment_nsubmitted)
 	if (!do_not_increment_nsubmitted)
 		_starpu_increment_nsubmitted_tasks();
 
+	PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+	
 	j->submitted = 1;
 
-	int ret = _starpu_enforce_deps_and_schedule(j, 0);
+	int ret = _starpu_enforce_deps_and_schedule(j, 1);
+
+	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+
         _STARPU_LOG_OUT();
         return ret;
 }

@@ -268,6 +268,7 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(starpu_job_t j)
 	return ret;
 }
 
+#warning TODO remove the job_is_already_locked parameter
 static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j, unsigned job_is_already_locked)
 {
 	unsigned ret;
@@ -301,6 +302,7 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(starpu_job_t j, unsigned
  *	In order, we enforce tag, task and data dependencies. The task is
  *	passed to the scheduler only once all these constraints are fulfilled.
  */
+#warning TODO remove the job_is_already_locked parameter
 unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j, unsigned job_is_already_locked)
 {
 	unsigned ret;
@@ -331,6 +333,7 @@ unsigned _starpu_enforce_deps_and_schedule(starpu_job_t j, unsigned job_is_alrea
 }
 
 /* Tag deps are already fulfilled */
+#warning TODO remove the job_is_already_locked parameter
 unsigned _starpu_enforce_deps_starting_from_task(starpu_job_t j, unsigned job_is_already_locked)
 {
 	unsigned ret;

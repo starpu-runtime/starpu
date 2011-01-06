@@ -154,8 +154,12 @@ void _starpu_tag_set_ready(struct starpu_tag_s *tag)
 	 * lock again, resulting in a deadlock. */
 	_starpu_spin_unlock(&tag->lock);
 
+	PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+
 	/* enforce data dependencies */
-	_starpu_enforce_deps_starting_from_task(j, 0);
+	_starpu_enforce_deps_starting_from_task(j, 1);
+
+	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	_starpu_spin_lock(&tag->lock);
 }
