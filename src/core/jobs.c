@@ -336,7 +336,7 @@ unsigned _starpu_enforce_deps_starting_from_task(starpu_job_t j, unsigned job_is
 	unsigned ret;
 
 	/* enfore task dependencies */
-	if (_starpu_not_all_task_deps_are_fulfilled(j, 0))
+	if (_starpu_not_all_task_deps_are_fulfilled(j, job_is_already_locked))
 		return 0;
 
 	/* enforce data dependencies */
