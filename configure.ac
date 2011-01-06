@@ -801,6 +801,37 @@ else
 fi
 AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 
+# If the user specifically asks for it, or if we are in a developer checkout, we enable mpi check
+AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]))
+running_mpi_check=0
+if test -d "$srcdir/.svn" ; then
+    running_mpi_check=yes
+fi
+if test x$enable_mpi_check = xyes ; then
+    running_mpi_check=yes
+fi
+if test x$enable_mpi_check = xno ; then
+    running_mpi_check=no
+fi
+
+# Check if mpiexec is available
+mpiexec=$(dirname $mpicc_path)/mpiexec
+if test ! -x $mpiexec ; then
+    mpiexec=""
+    running_mpi_check=no
+fi
+
+if test x$use_mpi = xyes; then
+        AC_MSG_CHECKING(whether mpiexec is available)
+        AC_MSG_RESULT($mpiexec)
+        AC_MSG_CHECKING(whether MPI tests should be run)
+        AC_MSG_RESULT($running_mpi_check)
+        if test x$running_mpi_check = xyes; then
+            AC_SUBST(MPIEXEC,$mpiexec)
+        fi
+        AM_CONDITIONAL(STARPU_MPI_CHECK, test x$running_mpi_check = xyes)
+fi
+
 AC_MSG_CHECKING(whether the StarPU MPI library should be generated)
 AC_MSG_RESULT($use_mpi)
 AC_SUBST(USE_MPI, $use_mpi)

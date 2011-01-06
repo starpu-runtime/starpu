@@ -16,8 +16,10 @@
 
 CC=$(MPICC)
 
-TESTS_ENVIRONMENT	=	$(shell dirname $(MPICC))/mpiexec -np 2
+if STARPU_MPI_CHECK
+TESTS_ENVIRONMENT	=	$(MPIEXEC) -np 2
 TESTS			=	$(check_PROGRAMS)
+endif
 
 check_PROGRAMS =
 
