@@ -190,8 +190,14 @@ void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 void _starpu_data_free_interfaces(starpu_data_handle handle)
 {
 	unsigned node;
+	unsigned worker;
+	unsigned nworkers = starpu_worker_get_count();
+
 	for (node = 0; node < STARPU_MAXNODES; node++)
 		free(handle->per_node[node].interface);
+
+	for (worker = 0; worker < nworkers; worker++)
+		free(handle->per_worker[worker].interface);
 }
 
 struct unregister_callback_arg {
