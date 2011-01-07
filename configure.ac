@@ -97,7 +97,7 @@ AC_CHECK_FUNC([drand48], have_drand48=yes, have_drand48=no)
 AC_ARG_ENABLE(default-drand48, [AS_HELP_STRING([--disable-default-drand48],
 				   [Do not use the default version of drand48])],
 				   enable_default_drand48=$enableval, enable_default_drand48=yes)
-if test x$have_drand48 = xyes -a x$use_default_drand48 = xyes ; then
+if test x$have_drand48 = xyes -a x$enable_default_drand48 = xyes ; then
   AC_DEFINE([starpu_srand48(seed)],[srand48(seed)],[srand48 equivalent function])
   AC_DEFINE([starpu_drand48()],[drand48()],[drand48 equivalent function])
   AC_DEFINE([starpu_erand48(xsubi)],[erand48(xsubi)],[erand48 equivalent function])
