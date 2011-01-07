@@ -340,7 +340,9 @@ static int _starpu_init_machine_config(struct starpu_machine_config_s *config,
 	}
 	else {
 		/* we need to initialize OpenCL early to count the number of devices */
+		int nb_devices;
 		_starpu_opencl_init();
+		nb_devices = STARPU_MIN(_starpu_opencl_get_device_count(), STARPU_MAXOPENCLDEVS);
 
 		if (user_conf && (user_conf->nopencl != -1))
 		{
@@ -350,12 +352,19 @@ static int _starpu_init_machine_config(struct starpu_machine_config_s *config,
 			explicitval = starpu_get_env_number("STARPU_NOPENCL");
 		}
 
+
 		if (explicitval < 0) {
-			topology->nopenclgpus =
-				STARPU_MIN(_starpu_opencl_get_device_count(), STARPU_MAXOPENCLDEVS);
-		} else {
-			/* use the specified value */
-			topology->nopenclgpus = (unsigned)explicitval;
+			topology->nopenclgpus = nb_devices;
+		}
+		else {
+			if (explicitval > nb_devices) {
+				/* The user requires more OpenCL devices than there is available */
+				topology->nopenclgpus = nb_devices;
+			}
+			else {
+				/* use the specified value */
+				topology->nopenclgpus = (unsigned)explicitval;
+			}
 			STARPU_ASSERT(topology->nopenclgpus <= STARPU_MAXOPENCLDEVS);
 		}
 		STARPU_ASSERT(topology->nopenclgpus + topology->nworkers <= STARPU_NMAXWORKERS);
