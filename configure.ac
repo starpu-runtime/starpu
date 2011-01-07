@@ -821,6 +821,7 @@ if test ! -x $mpiexec ; then
     running_mpi_check=no
 fi
 
+AM_CONDITIONAL(STARPU_MPI_CHECK, test x$running_mpi_check = xyes)
 if test x$use_mpi = xyes; then
         AC_MSG_CHECKING(whether mpiexec is available)
         AC_MSG_RESULT($mpiexec)
@@ -829,7 +830,6 @@ if test x$use_mpi = xyes; then
         if test x$running_mpi_check = xyes; then
             AC_SUBST(MPIEXEC,$mpiexec)
         fi
-        AM_CONDITIONAL(STARPU_MPI_CHECK, test x$running_mpi_check = xyes)
 fi
 
 AC_MSG_CHECKING(whether the StarPU MPI library should be generated)
