@@ -827,9 +827,7 @@ if test x$use_mpi = xyes; then
         AC_MSG_RESULT($mpiexec)
         AC_MSG_CHECKING(whether MPI tests should be run)
         AC_MSG_RESULT($running_mpi_check)
-        if test x$running_mpi_check = xyes; then
-            AC_SUBST(MPIEXEC,$mpiexec)
-        fi
+	AC_SUBST(MPIEXEC,$mpiexec)
 fi
 
 AC_MSG_CHECKING(whether the StarPU MPI library should be generated)
