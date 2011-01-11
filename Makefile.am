@@ -45,6 +45,6 @@ include_HEADERS = 				\
 
 txtdir = ${prefix}
 txt_DATA = AUTHORS COPYING.LGPL README
-
+EXTRA_DIST = AUTHORS COPYING.LGPL README
 
 
