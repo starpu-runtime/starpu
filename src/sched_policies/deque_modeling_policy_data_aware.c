@@ -466,7 +466,7 @@ static int dm_push_prio_task(struct starpu_task *task)
 
 static int dm_push_task(struct starpu_task *task)
 {
-	if (task->priority == STARPU_MAX_PRIO)
+	if (task->priority > 0)
 		return _dm_push_task(task, 1);
 
 	return _dm_push_task(task, 0);
@@ -479,7 +479,7 @@ static int dmda_push_prio_task(struct starpu_task *task)
 
 static int dmda_push_task(struct starpu_task *task)
 {
-	if (task->priority == STARPU_MAX_PRIO)
+	if (task->priority > 0)
 		return _dmda_push_task(task, 1);
 
 	return _dmda_push_task(task, 0);

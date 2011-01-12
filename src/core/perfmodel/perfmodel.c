@@ -152,6 +152,9 @@ double starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_ar
 			case STARPU_REGRESSION_BASED:
 				return _starpu_regression_based_job_expected_length(model, arch, j);
 
+			case STARPU_NL_REGRESSION_BASED:
+				return _starpu_non_linear_regression_based_job_expected_length(model, arch, j);
+
 			default:
 				STARPU_ABORT();
 		};

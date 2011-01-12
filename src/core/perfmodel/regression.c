@@ -19,8 +19,6 @@
 #define MAXREGITER	1000
 #define EPS 1.0e-10
 
-//#define MIN(a,b) ((a)<(b)?(a):(b))
-
 static double compute_b(double c, unsigned n, unsigned *x, double *y)
 {
 	double b;

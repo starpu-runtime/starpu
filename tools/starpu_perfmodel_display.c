@@ -148,21 +148,29 @@ static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_per
 	if (parameter == NULL)
 	{
 		/* no specific parameter was requested, so we display everything */
-		fprintf(stderr, "\tRegression : #sample = %d (%s)\n",
-			arch_model->regression.nsample,
-			arch_model->regression.valid?"VALID":"STARPU_INVALID");
-	
+		fprintf(stderr, "\tRegression : #sample = %d\n",
+			arch_model->regression.nsample);
+
 		/* Only display the regression model if we could actually build a model */
 		if (arch_model->regression.valid)
 		{
 			fprintf(stderr, "\tLinear: y = alpha size ^ beta\n");
 			fprintf(stderr, "\t\talpha = %le\n", arch_model->regression.alpha);
 			fprintf(stderr, "\t\tbeta = %le\n", arch_model->regression.beta);
+		}
+		else {
+			fprintf(stderr, "\tLinear model is INVALID\n");
+		}
 	
+		if (arch_model->regression.nl_valid)
+		{
 			fprintf(stderr, "\tNon-Linear: y = a size ^b + c\n");
 			fprintf(stderr, "\t\ta = %le\n", arch_model->regression.a);
 			fprintf(stderr, "\t\tb = %le\n", arch_model->regression.b);
 			fprintf(stderr, "\t\tc = %le\n", arch_model->regression.c);
+		}
+		else {
+			fprintf(stderr, "\tNon-Linear model is INVALID\n");
 		}
 
 		display_history_based_perf_model(arch_model);

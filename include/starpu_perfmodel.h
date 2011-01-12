@@ -61,10 +61,11 @@ struct starpu_regression_model_t {
 	/* y = alpha size ^ beta */
 	double alpha;
 	double beta;
+	unsigned valid;
 
 	/* y = a size ^b + c */
 	double a, b, c;
-	unsigned valid;
+	unsigned nl_valid;
 
 	unsigned nsample;
 };
@@ -84,7 +85,8 @@ typedef enum {
 	STARPU_PER_ARCH,	/* Application-provided per-arch cost model function */
 	STARPU_COMMON,		/* Application-provided common cost model function, with per-arch factor */
 	STARPU_HISTORY_BASED,	/* Automatic history-based cost model */
-	STARPU_REGRESSION_BASED	/* Automatic history-based regression cost model */
+	STARPU_REGRESSION_BASED,	/* Automatic linear regression-based cost model  (alpha * size ^ beta) */
+	STARPU_NL_REGRESSION_BASED	/* Automatic non-linear regression-based cost model (a * size ^ b + c) */
 } starpu_perfmodel_type;
 
 struct starpu_perfmodel_t {
