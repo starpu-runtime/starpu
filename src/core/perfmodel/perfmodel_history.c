@@ -83,12 +83,37 @@ static void scan_history_entry(FILE *f, struct starpu_history_entry_t *entry)
 
 	_starpu_drop_comments(f);
 
+	/* In case entry is NULL, we just drop these values */
+	unsigned nsample;
+	uint32_t footprint;
+#ifdef STARPU_HAVE_WINDOWS
+	unsigned size; /* in bytes */
+#else
+	size_t size; /* in bytes */
+#endif
+	double mean;
+	double deviation;
+	double sum;
+	double sum2;
+
+	/* Read the values from the file */
 	res = fscanf(f, "%x\t%"
 #ifndef STARPU_HAVE_WINDOWS
 	"z"
 #endif
-	"u\t%le\t%le\t%le\t%le\t%u\n", &entry->footprint, &entry->size, &entry->mean, &entry->deviation, &entry->sum, &entry->sum2, &entry->nsample);
+	"u\t%le\t%le\t%le\t%le\t%u\n", &footprint, &size, &mean, &deviation, &sum, &sum2, &nsample);
 	STARPU_ASSERT(res == 7);
+
+	if (entry)
+	{
+		entry->footprint = footprint;
+		entry->size = size;
+		entry->mean = mean;
+		entry->deviation = deviation;
+		entry->sum = sum;
+		entry->sum2 = sum2;
+		entry->nsample = nsample;
+	}
 }
 
 static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_t *per_arch_model, unsigned scan_history)
@@ -118,19 +143,21 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_
 		per_arch_model->regression.valid = 1;
 	}
 
-	if (!scan_history)
-		return;
-
 	/* parse cpu entries */
 	unsigned i;
 	for (i = 0; i < nentries; i++) {
-		struct starpu_history_entry_t *entry = malloc(sizeof(struct starpu_history_entry_t));
-		STARPU_ASSERT(entry);
+		struct starpu_history_entry_t *entry = NULL;
+		if (scan_history)
+		{
+			entry = malloc(sizeof(struct starpu_history_entry_t));
+			STARPU_ASSERT(entry);
+		}
 
 		scan_history_entry(f, entry);
 		
 		/* insert the entry in the hashtable and the list structures  */
-		insert_history_entry(entry, &per_arch_model->list, &per_arch_model->history);
+		if (scan_history)
+			insert_history_entry(entry, &per_arch_model->list, &per_arch_model->history);
 	}
 }
 
