@@ -1980,7 +1980,8 @@ Use @code{STARPU_SCHED=help} to get the list of available schedulers.
 @item @emph{Description}:
 If this variable is set to 1, the performance models are calibrated during
 the execution. If it is set to 2, the previous values are dropped to restart
-calibration from scratch.
+calibration from scratch. Setting this variable to 0 disable calibration, this
+is the default behaviour.
 
 Note: this currently only applies to dm and dmda scheduling policies.
 
