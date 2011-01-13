@@ -75,7 +75,8 @@ include_HEADERS =					\
 libstarpumpi_la_SOURCES =				\
 	starpu_mpi.c					\
 	starpu_mpi_helper.c				\
-	starpu_mpi_datatype.c
+	starpu_mpi_datatype.c				\
+	starpu_mpi_insert_task.c
 
 
 ##################
@@ -121,7 +122,9 @@ check_PROGRAMS +=				\
 	tests/ring_async				\
 	tests/ring_async_implicit			\
 	tests/block_interface				\
-	tests/block_interface_pinned
+	tests/block_interface_pinned			\
+	tests/insert_task				\
+	tests/multiple_send
 
 testbin_PROGRAMS =				\
 	tests/pingpong					\
@@ -135,7 +138,9 @@ testbin_PROGRAMS =				\
 	tests/ring_async				\
 	tests/ring_async_implicit			\
 	tests/block_interface				\
-	tests/block_interface_pinned
+	tests/block_interface_pinned			\
+	tests/insert_task				\
+	tests/multiple_send
 
 tests_mpi_isend_LDADD =					\
 	libstarpumpi.la
@@ -208,6 +213,19 @@ tests_block_interface_pinned_LDADD =			\
 
 tests_block_interface_pinned_SOURCES =			\
 	tests/block_interface_pinned.c
+
+tests_insert_task_LDADD =				\
+	libstarpumpi.la
+
+tests_insert_task_SOURCES =				\
+	tests/insert_task.c
+
+tests_multiple_send_LDADD =				\
+	libstarpumpi.la
+
+tests_multiple_send_SOURCES =				\
+	tests/multiple_send.c
+
 
 if STARPU_USE_CUDA
 tests_ring_SOURCES += tests/ring_kernel.cu

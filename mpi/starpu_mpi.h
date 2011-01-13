@@ -35,6 +35,8 @@ int starpu_mpi_initialize(void);
 int starpu_mpi_initialize_extended(int initialize_mpi, int *rank, int *world_size);
 int starpu_mpi_shutdown(void);
 
+int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...);
+
 /* Some helper functions */
 
 /* When the transfer is completed, the tag is unlocked */
