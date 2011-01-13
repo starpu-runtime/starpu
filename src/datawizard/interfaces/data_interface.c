@@ -183,6 +183,17 @@ void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 	_starpu_register_new_data(handle, home_node, 0);
 }
 
+int starpu_data_get_rank(starpu_data_handle handle)
+{
+	return handle->rank;
+}
+
+int starpu_data_set_rank(starpu_data_handle handle, int rank)
+{
+        handle->rank = rank;
+        return 0;
+}
+
 /* 
  * Stop monitoring a piece of data
  */

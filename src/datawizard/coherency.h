@@ -185,6 +185,9 @@ struct starpu_data_state_t {
 	starpu_data_handle reduction_tmp_handles[STARPU_NMAXWORKERS];
 
 	unsigned lazy_unregister;
+
+        /* Used for MPI */
+        int rank;
 };
 
 void _starpu_display_msi_stats(void);
