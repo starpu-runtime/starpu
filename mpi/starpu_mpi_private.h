@@ -25,6 +25,31 @@
 #include <common/utils.h>
 #include <pthread.h>
 
+//#define STARPU_MPI_VERBOSE	1
+
+#ifdef STARPU_MPI_VERBOSE
+#  define _STARPU_MPI_DEBUG(fmt, args ...) { int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);                        \
+                                             int yyy; for(yyy=0 ; yyy<=rank ; yyy++) fprintf(stderr, "    ");    \
+                                             fprintf(stderr, "[%d][starpu_mpi][%s] " fmt , rank, __func__ ,##args); \
+                                             fflush(stderr); }
+#else
+#  define _STARPU_MPI_DEBUG(fmt, args ...)
+#endif
+
+#ifdef STARPU_MPI_VERBOSE0
+#  define _STARPU_MPI_LOG_IN()             { int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);                        \
+                                             int yyy; for(yyy=0 ; yyy<=rank ; yyy++) fprintf(stderr, "    ");      \
+                                             fprintf(stderr, "[%d][starpu_mpi][%s] -->\n", rank, __func__ ); \
+                                             fflush(stderr); }
+#  define _STARPU_MPI_LOG_OUT()            { int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);                        \
+                                             int yyy; for(yyy=0 ; yyy<=rank ; yyy++) fprintf(stderr, "    ");      \
+                                             fprintf(stderr, "[%d][starpu_mpi][%s] <--\n", rank, __func__ ); \
+                                             fflush(stderr); }
+#else
+#  define _STARPU_MPI_LOG_IN()
+#  define _STARPU_MPI_LOG_OUT()
+#endif
+
 #define SEND_REQ	0
 #define RECV_REQ	1
 #define WAIT_REQ        2

@@ -17,29 +17,8 @@
 #include <stdlib.h>
 #include <starpu_mpi.h>
 #include <starpu_mpi_datatype.h>
-#include <starpu_mpi_private.h>
-
 //#define STARPU_MPI_VERBOSE	1
-
-#ifdef STARPU_MPI_VERBOSE
-#  define _STARPU_MPI_DEBUG(fmt, args ...) { int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);                        \
-                                             fprintf(stderr, "[%d][starpu_mpi][%s] " fmt , rank, __func__ ,##args); \
-                                             fflush(stderr); }
-#else
-#  define _STARPU_MPI_DEBUG(fmt, args ...)
-#endif
-
-#ifdef STARPU_MPI_VERBOSE
-#  define _STARPU_MPI_LOG_IN()             { int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);                        \
-                                             fprintf(stderr, "[%d][starpu_mpi][%s] -->\n", rank, __func__ ); \
-                                             fflush(stderr); }
-#  define _STARPU_MPI_LOG_OUT()            { int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);                        \
-                                             fprintf(stderr, "[%d][starpu_mpi][%s] <--\n", rank, __func__ ); \
-                                             fflush(stderr); }
-#else
-#  define _STARPU_MPI_LOG_IN()
-#  define _STARPU_MPI_LOG_OUT()
-#endif
+#include <starpu_mpi_private.h>
 
 /* TODO find a better way to select the polling method (perhaps during the
  * configuration) */
@@ -647,14 +626,14 @@ static void *progress_thread_func(void *arg)
 {
         int initialize_mpi = *((int *) arg);
 
-        _STARPU_MPI_DEBUG("Initialize mpi: %d\n", initialize_mpi);
+        _STARPU_DEBUG("Initialize mpi: %d\n", initialize_mpi);
 
         if (initialize_mpi) {
 #warning get real argc and argv from the application
                 int argc = 0;
                 char **argv = NULL;
                 int thread_support;
-                _STARPU_MPI_DEBUG("Calling MPI_Init_thread\n");
+                _STARPU_DEBUG("Calling MPI_Init_thread\n");
                 if (MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS) {
                         fprintf(stderr,"MPI_Init_thread failed\n");
                         exit(1);
@@ -785,6 +764,7 @@ int starpu_mpi_initialize_extended(int initialize_mpi, int *rank, int *world_siz
 	PTHREAD_MUTEX_UNLOCK(&mutex);
 
         if (initialize_mpi) {
+                _STARPU_DEBUG("Calling MPI_Comm_rank\n");
                 MPI_Comm_rank(MPI_COMM_WORLD, rank);
                 MPI_Comm_size(MPI_COMM_WORLD, world_size);
         }
