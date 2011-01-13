@@ -110,7 +110,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...) {
                                 }
                                 if (!do_execute && mpi_rank == me) {
                                         /* Somebody else will execute it, and I have the data, send it. */
-                                        /* FIXME: we need to know whether the receiver has it. */
+                                        /* FIXME CACHE: we need to know whether the receiver has it. */
                                         _STARPU_MPI_DEBUG("Send data to %d\n", dest);
                                         starpu_mpi_isend(data, &req[nb_req], dest, 0, comm);
                                         nb_req++;
