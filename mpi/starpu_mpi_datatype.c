@@ -113,6 +113,30 @@ static void *handle_to_ptr_vector(starpu_data_handle data_handle)
 }
 
 /*
+ * 	Variable
+ */
+
+static int handle_to_datatype_variable(starpu_data_handle data_handle, MPI_Datatype *datatype)
+{
+	int ret;
+
+	size_t elemsize = starpu_variable_get_elemsize(data_handle);
+
+	ret = MPI_Type_contiguous(elemsize, MPI_BYTE, datatype);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
+
+	ret = MPI_Type_commit(datatype);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
+
+	return 0;
+}
+
+static void *handle_to_ptr_variable(starpu_data_handle data_handle)
+{
+	return (void *)starpu_variable_get_local_ptr(data_handle);
+}
+
+/*
  *	Generic
  */
 
@@ -122,7 +146,7 @@ static handle_to_datatype_func handle_to_datatype_funcs[STARPU_NINTERFACES_ID] =
 	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_datatype_vector,
 	[STARPU_CSR_INTERFACE_ID]	= NULL,
 	[STARPU_BCSR_INTERFACE_ID]	= NULL,
-	[STARPU_VARIABLE_INTERFACE_ID]	= NULL
+	[STARPU_VARIABLE_INTERFACE_ID]	= handle_to_datatype_variable,
 };
 
 static handle_to_ptr_func handle_to_ptr_funcs[STARPU_NINTERFACES_ID] = {
@@ -131,7 +155,7 @@ static handle_to_ptr_func handle_to_ptr_funcs[STARPU_NINTERFACES_ID] = {
 	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_ptr_vector,
 	[STARPU_CSR_INTERFACE_ID]	= NULL,
 	[STARPU_BCSR_INTERFACE_ID]	= NULL,
-	[STARPU_VARIABLE_INTERFACE_ID]	= NULL
+	[STARPU_VARIABLE_INTERFACE_ID]	= handle_to_ptr_variable,
 };
 
 int starpu_mpi_handle_to_datatype(starpu_data_handle data_handle, MPI_Datatype *datatype)
