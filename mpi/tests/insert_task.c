@@ -26,9 +26,7 @@ void stencil5_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 	unsigned *xyp1 = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[4]);
 
         fprintf(stdout, "VALUES: %d %d %d %d %d\n", *xy, *xm1y, *xp1y, *xym1, *xyp1);
-        MPI_Comm_rank(MPI_COMM_WORLD, xy);
-
-        //        *xy += *xm1y + *xp1y + *xym1 + *xyp1;
+        *xy += *xm1y + *xp1y + *xym1 + *xyp1;
 }
 
 starpu_codelet stencil5_cl = {
