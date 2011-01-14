@@ -70,7 +70,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...) {
                                                 do_execute = 1;
                                         }
                                 }
-                                else {
+                                else if (mpi_rank != -1) {
                                         if (do_execute == 1) {
                                                 _STARPU_ERROR("erh? incoherent!\n");
                                         }
@@ -82,6 +82,18 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...) {
                                 }
                         }
                 }
+		else if (arg_type==STARPU_VALUE) {
+			va_arg(varg_list, void *);
+		}
+		else if (arg_type==STARPU_CALLBACK) {
+			va_arg(varg_list, void (*)(void *));
+		}
+		else if (arg_type==STARPU_CALLBACK_ARG) {
+			va_arg(varg_list, void *);
+		}
+		else if (arg_type==STARPU_PRIORITY) {
+			va_arg(varg_list, int);
+		}
 	}
 	va_end(varg_list);
         assert(do_execute != -1);
@@ -94,7 +106,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...) {
                         if (arg_type & STARPU_R) {
                                 int mpi_rank = starpu_data_get_rank(data);
                                 /* The task needs to read this data */
-                                if (do_execute && mpi_rank != me) {
+                                if (do_execute && mpi_rank != me && mpi_rank != -1) {
                                         _STARPU_MPI_DEBUG("Receive data from %d\n", mpi_rank);
                                         /* I will have to execute but I don't have the data, receive */
 #ifdef MPI_CACHE
@@ -112,6 +124,18 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...) {
                                 }
                         }
                 }
+		else if (arg_type==STARPU_VALUE) {
+			va_arg(varg_list, void *);
+		}
+		else if (arg_type==STARPU_CALLBACK) {
+			va_arg(varg_list, void (*)(void *));
+		}
+		else if (arg_type==STARPU_CALLBACK_ARG) {
+			va_arg(varg_list, void *);
+		}
+		else if (arg_type==STARPU_PRIORITY) {
+			va_arg(varg_list, int);
+		}
         }
 	va_end(varg_list);
 
@@ -149,12 +173,24 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...) {
                         /* We allocated a temporary buffer for the received data, now drop it */
                         if ((arg_type & STARPU_R) && do_execute) {
                                 int mpi_rank = starpu_data_get_rank(data);
-                                if (mpi_rank != me) {
+                                if (mpi_rank != me && mpi_rank != -1) {
                                         //                                        starpu_deallocate(data);
                                 }
                         }
 #endif
                 }
+		else if (arg_type==STARPU_VALUE) {
+			va_arg(varg_list, void *);
+		}
+		else if (arg_type==STARPU_CALLBACK) {
+			va_arg(varg_list, void (*)(void *));
+		}
+		else if (arg_type==STARPU_CALLBACK_ARG) {
+			va_arg(varg_list, void *);
+		}
+		else if (arg_type==STARPU_PRIORITY) {
+			va_arg(varg_list, int);
+		}
         }
 	va_end(varg_list);
 }
