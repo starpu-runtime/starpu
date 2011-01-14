@@ -61,9 +61,6 @@ int starpu_insert_task_create_and_submit(size_t arg_buffer_size, starpu_codelet 
 	char *arg_buffer = malloc(arg_buffer_size);
 	unsigned current_arg_offset = 0;
 
-
-        _STARPU_DEBUG("cl->nbuffers: %d\n", cl->nbuffers);
-
 	/* We will begin the buffer with the number of args (which is stored as a char) */
 	current_arg_offset += sizeof(char);
 
@@ -119,8 +116,6 @@ int starpu_insert_task_create_and_submit(size_t arg_buffer_size, starpu_codelet 
 
 	arg_buffer[0] = nargs;
 
-        _STARPU_DEBUG("current_buffer: %d\n", current_buffer);
-        _STARPU_DEBUG("cl->nbuffers: %d\n", cl->nbuffers);
 	STARPU_ASSERT(current_buffer == cl->nbuffers);
 
 	(*task)->cl = cl;
@@ -134,4 +129,3 @@ int starpu_insert_task_create_and_submit(size_t arg_buffer_size, starpu_codelet 
 	STARPU_ASSERT(!ret);
         return ret;
 }
-
