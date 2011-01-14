@@ -1493,7 +1493,7 @@ schedulable yet are shown in grey.
 @node StarPU MPI support
 @chapter StarPU MPI support
 
-TODO: document include/starpu_mpi.h
+TODO: document include/starpu_mpi.h and explain a simple example (pingpong?)
 
 @c ---------------------------------------------------------------------
 @c Configuration options
