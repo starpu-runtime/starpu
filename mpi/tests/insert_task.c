@@ -77,8 +77,7 @@ int main(int argc, char **argv)
                         else if (rank == mpi_rank+1 || rank == mpi_rank-1) {
                                 /* I don't own that index, but will need it for my computations */
                                 //fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
-#warning should use NULL instead of matrix[x][y]
-                                starpu_variable_data_register(&data_handles[x][y], 0, (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
+                                starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
                         }
                         else {
                                 /* I know it's useless to allocate anything for this */
