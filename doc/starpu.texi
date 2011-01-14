@@ -37,6 +37,7 @@ This manual documents the usage of StarPU.
 * Basic Examples::              Basic examples of the use of StarPU
 * Performance options::         Performance options worth knowing
 * Performance feedback::        Performance debugging tools
+* StarPU MPI support::          How to combine StarPU with MPI
 * Configuring StarPU::          How to configure StarPU
 * StarPU API::                  The API to use StarPU
 * Advanced Topics::             Advanced use of StarPU
@@ -1255,7 +1256,7 @@ More advanced examples include:
 @end table
 
 @c ---------------------------------------------------------------------
-@c Performance feedback
+@c Performance options
 @c ---------------------------------------------------------------------
 
 @node Performance options
@@ -1484,6 +1485,15 @@ The second part of the @code{activity.eps} picture is a graph showing the
 evolution of the number of tasks available in the system during the execution.
 Ready tasks are shown in black, and tasks that are submitted but not
 schedulable yet are shown in grey.
+
+@c ---------------------------------------------------------------------
+@c MPI support
+@c ---------------------------------------------------------------------
+
+@node StarPU MPI support
+@chapter StarPU MPI support
+
+TODO: document include/starpu_mpi.h
 
 @c ---------------------------------------------------------------------
 @c Configuration options
