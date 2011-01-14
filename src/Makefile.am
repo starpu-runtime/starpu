@@ -101,7 +101,8 @@ noinst_HEADERS = 						\
 	drivers/opencl/driver_opencl_utils.h			\
 	debug/starpu_debug_helpers.h				\
 	profiling/bound.h					\
-	profiling/profiling.h
+	profiling/profiling.h					\
+	util/starpu_insert_task_utils.h
 
 libstarpu_la_SOURCES = 						\
 	common/barrier.c					\
