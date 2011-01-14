@@ -60,10 +60,9 @@ void starpu_insert_task(starpu_codelet *cl, ...)
 
 	/* Compute the size */
 	size_t arg_buffer_size = 0;
-        int nb_buffers;
 
 	va_start(varg_list, cl);
-        starpu_insert_task_get_sizes(&arg_buffer_size, &nb_buffers, varg_list);
+        arg_buffer_size = starpu_insert_task_get_arg_size(varg_list);
 
 	va_start(varg_list, cl);
         struct starpu_task *task = starpu_task_create();

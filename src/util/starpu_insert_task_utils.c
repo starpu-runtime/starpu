@@ -18,26 +18,25 @@
 #include <common/config.h>
 #include <common/utils.h>
 
-void starpu_insert_task_get_sizes(size_t *arg_buffer_size, int *nb_buffers, va_list varg_list)
+size_t starpu_insert_task_get_arg_size(va_list varg_list)
 {
 	int arg_type;
+        size_t arg_buffer_size;
 
-        *arg_buffer_size = 0;
-        *nb_buffers = 0;
+        arg_buffer_size = 0;
 
-	*arg_buffer_size += sizeof(char);
+	arg_buffer_size += sizeof(char);
 
 	while ((arg_type = va_arg(varg_list, int)) != 0) {
 		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH) {
 			va_arg(varg_list, starpu_data_handle);
-                        *nb_buffers ++;
 		}
 		else if (arg_type==STARPU_VALUE) {
 			va_arg(varg_list, void *);
 			size_t cst_size = va_arg(varg_list, size_t);
 
-			*arg_buffer_size += sizeof(size_t);
-			*arg_buffer_size += cst_size;
+			arg_buffer_size += sizeof(size_t);
+			arg_buffer_size += cst_size;
 		}
 		else if (arg_type==STARPU_CALLBACK) {
 			va_arg(varg_list, void (*)(void *));
@@ -51,7 +50,7 @@ void starpu_insert_task_get_sizes(size_t *arg_buffer_size, int *nb_buffers, va_l
 	}
 
 	va_end(varg_list);
-
+        return arg_buffer_size;
 }
 
 int starpu_insert_task_create_and_submit(size_t arg_buffer_size, starpu_codelet *cl, struct starpu_task **task, va_list varg_list) {

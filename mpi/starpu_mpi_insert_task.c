@@ -35,14 +35,13 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...) {
         va_list varg_list;
         int me, do_execute;
 	size_t arg_buffer_size = 0;
-        int nb_buffers;
         int dest;
 
 	MPI_Comm_rank(comm, &me);
 
         /* Get the number of buffers and the size of the arguments */
 	va_start(varg_list, codelet);
-        starpu_insert_task_get_sizes(&arg_buffer_size, &nb_buffers, varg_list);
+        arg_buffer_size = starpu_insert_task_get_arg_size(varg_list);
 
 	/* Find out whether we are to execute the data because we own the data to be written to. */
         do_execute = -1;
