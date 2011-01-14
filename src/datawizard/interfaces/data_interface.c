@@ -40,6 +40,7 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	handle->father_handle = NULL;
 	handle->sibling_index = 0; /* could be anything for the root */
 	handle->depth = 1; /* the tree is just a node yet */
+        handle->rank = -1; /* invalid until set */
 
 	handle->is_not_important = 0;
 
