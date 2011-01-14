@@ -75,9 +75,16 @@ include_HEADERS =					\
 libstarpumpi_la_SOURCES =				\
 	starpu_mpi.c					\
 	starpu_mpi_helper.c				\
-	starpu_mpi_datatype.c				\
-	starpu_mpi_insert_task.c
+	starpu_mpi_datatype.c
 
+
+examplebin_PROGRAMS +=				\
+	examples/stencil/stencil5
+
+examples_stencil_stencil5_LDADD =		\
+	libstarpumpi.la
+examples_stencil_stencil5_SOURCES =		\
+	examples/stencil/stencil5.c
 
 ##################
 # MPI LU example #
@@ -123,7 +130,6 @@ check_PROGRAMS +=				\
 	tests/ring_async_implicit			\
 	tests/block_interface				\
 	tests/block_interface_pinned			\
-	tests/insert_task				\
 	tests/multiple_send
 
 testbin_PROGRAMS =				\
@@ -139,7 +145,6 @@ testbin_PROGRAMS =				\
 	tests/ring_async_implicit			\
 	tests/block_interface				\
 	tests/block_interface_pinned			\
-	tests/insert_task				\
 	tests/multiple_send
 
 tests_mpi_isend_LDADD =					\
@@ -213,12 +218,6 @@ tests_block_interface_pinned_LDADD =			\
 
 tests_block_interface_pinned_SOURCES =			\
 	tests/block_interface_pinned.c
-
-tests_insert_task_LDADD =				\
-	libstarpumpi.la
-
-tests_insert_task_SOURCES =				\
-	tests/insert_task.c
 
 tests_multiple_send_LDADD =				\
 	libstarpumpi.la
