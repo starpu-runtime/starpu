@@ -89,6 +89,9 @@ void starpu_data_set_reduction_methods(starpu_data_handle handle,
 					struct starpu_codelet_t *redux_cl,
 					struct starpu_codelet_t *init_cl);
 
+int starpu_data_set_rank(starpu_data_handle handle, int rank);
+int starpu_data_get_rank(starpu_data_handle handle);
+
 #ifdef __cplusplus
 }
 #endif
