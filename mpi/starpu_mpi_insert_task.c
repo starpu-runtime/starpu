@@ -221,7 +221,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...) {
                                                 _STARPU_MPI_DEBUG("Clear cache for data %p\n", data);
                                                 //                                        if (starpu_data_allocated(data))
 #warning do a submit deallocate
-                                                starpu_data_deallocate(data);
+                                                //starpu_data_deallocate(data);
                                         }
                                 }
                         }
@@ -230,7 +230,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...) {
                         if ((arg_type & STARPU_R) && do_execute) {
                                 int mpi_rank = starpu_data_get_rank(data);
                                 if (mpi_rank != me && mpi_rank != -1) {
-                                        starpu_data_deallocate(data);
+                                        //starpu_data_deallocate(data);
                                 }
                         }
 #endif
