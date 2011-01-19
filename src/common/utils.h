@@ -23,9 +23,10 @@
 #include <string.h>
 #include <pthread.h>
 #include <common/barrier.h>
+#include <stdlib.h>
 
 #ifdef STARPU_VERBOSE
-#  define _STARPU_DEBUG(fmt, args ...) fprintf(stderr, "[starpu][%s] " fmt ,__func__ ,##args)
+#  define _STARPU_DEBUG(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__func__ ,##args); }} while(0)
 #else
 #  define _STARPU_DEBUG(fmt, args ...)
 #endif
