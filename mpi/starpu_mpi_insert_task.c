@@ -91,6 +91,11 @@ void _starpu_mpi_clear_data(starpu_data_handle data_handle, int rank, int mode)
 }
 #endif
 
+void _starpu_data_deallocate(starpu_data_handle data_handle)
+{
+#warning _starpu_data_deallocate not implemented yet
+}
+
 int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 {
         int arg_type;
@@ -270,6 +275,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                                                 /* TODO: starpu_mpi could just remember itself. */
                                                 _STARPU_MPI_DEBUG("Posting request to clear receive cache for data %p\n", data);
                                                 _starpu_mpi_clear_data(data, mpi_rank, _STARPU_MPI_CLEAR_RECEIVED_DATA);
+                                                _starpu_data_deallocate(data);
                                         }
                                 }
                         }
@@ -278,7 +284,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                         if ((arg_type & STARPU_R) && do_execute) {
                                 int mpi_rank = starpu_data_get_rank(data);
                                 if (mpi_rank != me && mpi_rank != -1) {
-                                        //starpu_data_deallocate(data);
+                                        _starpu_data_deallocate(data);
                                 }
                         }
 #endif
