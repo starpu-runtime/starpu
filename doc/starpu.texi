@@ -1301,7 +1301,11 @@ accurately estimate data transfer penalty without the need of a hand-tuned beta 
 Profiling can be enabled by using @code{export STARPU_PROFILING=1} or by
 calling @code{starpu_profiling_status_set} from the source code.
 Statistics on the execution can then be obtained by using @code{export
-STARPU_BUS_STATS=1} and @code{export STARPU_WORKER_STATS=1} .
+STARPU_BUS_STATS=1} and @code{export STARPU_WORKER_STATS=1} . Workers
+stats will include an approximation of the number of executed tasks even if
+@code{STARPU_PROFILING} is not set. This is a convenient way to check that
+execution did happen on accelerators without penalizing performance with
+the profiling overhead.
 
 @c ---------------------------------------------------------------------
 @c Performance feedback
