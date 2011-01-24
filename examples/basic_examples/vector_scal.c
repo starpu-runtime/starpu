@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,7 +34,12 @@ extern void scal_opencl_func(void *buffers[], void *_args);
 
 static struct starpu_perfmodel_t vector_scal_model = {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "vector_scale_model"
+	.symbol = "vector_scale"
+};
+
+static struct starpu_perfmodel_t vector_scal_power_model = {
+	.type = STARPU_HISTORY_BASED,
+	.symbol = "vector_scale_power"
 };
 
 static starpu_codelet cl = {
@@ -50,7 +55,8 @@ static starpu_codelet cl = {
 	.opencl_func = scal_opencl_func,
 #endif
 	.nbuffers = 1,
-	.model = &vector_scal_model
+	.model = &vector_scal_model,
+	.power_model = &vector_scal_power_model
 };
 
 #ifdef STARPU_USE_OPENCL

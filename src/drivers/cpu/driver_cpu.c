@@ -100,8 +100,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 		_starpu_push_task_output(task, 0);
 
 		_starpu_driver_update_job_feedback(j, cpu_args, profiling_info,
-				calibrate_model, perf_arch,
-				&codelet_start, &codelet_end);
+				perf_arch, &codelet_start, &codelet_end);
 	}
 
 	return 0;

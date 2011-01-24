@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,6 +30,7 @@ static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
 
 static double alpha = 1.0;
 static double beta = 1.0;
+static double _gamma = 1000.0;
 
 #ifdef STARPU_VERBOSE
 static long int total_task_cnt = 0;
@@ -363,6 +364,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 
 	double local_task_length[nworkers];
 	double local_data_penalty[nworkers];
+	double local_power[nworkers];
 	double exp_end[nworkers];
 
 	double fitness[nworkers];
@@ -403,6 +405,10 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 			/* a better solution was found */
 			best_exp_end = exp_end[worker];
 		}
+
+		local_power[worker] = starpu_task_expected_power(task, perf_arch);
+		if (local_power[worker] == -1.0)
+			local_power[worker] = 0.;
 	}
 
 	double best_fitness = -1;
@@ -420,7 +426,8 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 			}
 	
 			fitness[worker] = alpha*(exp_end[worker] - best_exp_end) 
-					+ beta*(local_data_penalty[worker]);
+					+ beta*(local_data_penalty[worker])
+					+ _gamma*(local_power[worker]);
 
 			if (best == -1 || fitness[worker] < best_fitness)
 			{
@@ -428,7 +435,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 				best_fitness = fitness[worker];
 				best = worker;
 
-	//			_STARPU_DEBUG("best fitness (worker %d) %le = alpha*(%le) + beta(%le) \n", worker, best_fitness, exp_end[worker] - best_exp_end, local_data_penalty[worker]);
+	//			_STARPU_DEBUG("best fitness (worker %d) %le = alpha*(%le) + beta(%le) +gamma(%le)\n", worker, best_fitness, exp_end[worker] - best_exp_end, local_data_penalty[worker], local_power[worker]);
 			}
 		}
 	}
@@ -492,11 +499,15 @@ static void initialize_dmda_policy(struct starpu_machine_topology_s *topology,
 
 	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
 	if (strval_alpha)
-		beta = atof(strval_alpha);
+		alpha = atof(strval_alpha);
 
 	const char *strval_beta = getenv("STARPU_SCHED_BETA");
 	if (strval_beta)
 		beta = atof(strval_beta);
+
+	const char *strval_gamma = getenv("STARPU_SCHED_GAMMA");
+	if (strval_gamma)
+		_gamma = atof(strval_gamma);
 
 	unsigned workerid;
 	for (workerid = 0; workerid < nworkers; workerid++)

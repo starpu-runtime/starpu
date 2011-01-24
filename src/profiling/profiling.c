@@ -118,7 +118,7 @@ struct starpu_task_profiling_info *_starpu_allocate_profiling_info_if_needed(str
 	struct starpu_task_profiling_info *info = NULL;
 
 	/* If we are benchmarking, we need room for the power consumption */
-	if (profiling || (task->cl && task->cl->model && task->cl->model->benchmarking))
+	if (profiling || (task->cl && task->cl->power_model && (task->cl->power_model->benchmarking || _starpu_get_calibrate_flag())))
 	{
 		info = calloc(1, sizeof(struct starpu_task_profiling_info));
 		STARPU_ASSERT(info);

@@ -202,7 +202,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 
 	_starpu_push_task_output(task, mask);
 
-	_starpu_driver_update_job_feedback(j, args, profiling_info, calibrate_model, args->perf_arch,
+	_starpu_driver_update_job_feedback(j, args, profiling_info, args->perf_arch,
 			&codelet_start, &codelet_end);
 
 	return 0;

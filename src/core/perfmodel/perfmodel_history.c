@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -590,7 +590,7 @@ void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model,
 	get_model_debug_path(model, archname, path, maxlen);
 }
 
-double _starpu_regression_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j)
+double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j)
 {
 	double exp = -1.0;
 	size_t size = _starpu_job_get_data_size(j);
@@ -606,7 +606,7 @@ double _starpu_regression_based_job_expected_length(struct starpu_perfmodel_t *m
 	return exp;
 }
 
-double _starpu_non_linear_regression_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j)
+double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j)
 {
 	double exp = -1.0;
 	size_t size = _starpu_job_get_data_size(j);
@@ -622,7 +622,7 @@ double _starpu_non_linear_regression_based_job_expected_length(struct starpu_per
 	return exp;
 }
 
-double _starpu_history_based_job_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j)
+double _starpu_history_based_job_expected_perf(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j)
 {
 	double exp;
 	struct starpu_per_arch_perfmodel_t *per_arch_model;
@@ -651,10 +651,8 @@ double _starpu_history_based_job_expected_length(struct starpu_perfmodel_t *mode
 	return exp;
 }
 
-void _starpu_update_perfmodel_history(starpu_job_t j, enum starpu_perf_archtype arch, unsigned cpuid __attribute__((unused)), double measured)
+void _starpu_update_perfmodel_history(starpu_job_t j, struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, unsigned cpuid __attribute__((unused)), double measured)
 {
-	struct starpu_perfmodel_t *model = j->task->cl->model;
-
 	if (model)
 	{
 		PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);

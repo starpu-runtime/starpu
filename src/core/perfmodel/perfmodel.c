@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,7 +66,7 @@ enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid)
  * PER ARCH model
  */
 
-static double per_arch_task_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_task *task)
+static double per_arch_task_expected_perf(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_task *task)
 {
 	double exp = -1.0;
 	double (*per_arch_cost_model)(struct starpu_buffer_descr_t *);
@@ -116,7 +116,7 @@ double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtyp
 	return -1.0;
 }
 
-static double common_task_expected_length(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_task *task)
+static double common_task_expected_perf(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_task *task)
 {
 	double exp;
 	double alpha;
@@ -133,27 +133,25 @@ static double common_task_expected_length(struct starpu_perfmodel_t *model, enum
 	return -1.0;
 }
 
-double starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_archtype arch)
+static double starpu_model_expected_perf(struct starpu_task *task, struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch)
 {
-	starpu_job_t j = _starpu_get_job_associated_to_task(task);
-	struct starpu_perfmodel_t *model = task->cl->model;
-
 	if (model) {
+		starpu_job_t j = _starpu_get_job_associated_to_task(task);
 		switch (model->type) {
 			case STARPU_PER_ARCH:
-				return per_arch_task_expected_length(model, arch, task);
+				return per_arch_task_expected_perf(model, arch, task);
 
 			case STARPU_COMMON:
-				return common_task_expected_length(model, arch, task);
+				return common_task_expected_perf(model, arch, task);
 
 			case STARPU_HISTORY_BASED:
-				return _starpu_history_based_job_expected_length(model, arch, j);
+				return _starpu_history_based_job_expected_perf(model, arch, j);
 
 			case STARPU_REGRESSION_BASED:
-				return _starpu_regression_based_job_expected_length(model, arch, j);
+				return _starpu_regression_based_job_expected_perf(model, arch, j);
 
 			case STARPU_NL_REGRESSION_BASED:
-				return _starpu_non_linear_regression_based_job_expected_length(model, arch, j);
+				return _starpu_non_linear_regression_based_job_expected_perf(model, arch, j);
 
 			default:
 				STARPU_ABORT();
@@ -162,6 +160,16 @@ double starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_ar
 
 	/* no model was found */
 	return 0.0;
+}
+
+double starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_archtype arch)
+{
+	return starpu_model_expected_perf(task, task->cl->model, arch);
+}
+
+double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_archtype arch)
+{
+	return starpu_model_expected_perf(task, task->cl->power_model, arch);
 }
 
 /* Data transfer performance modeling */

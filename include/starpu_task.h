@@ -75,6 +75,7 @@ typedef struct starpu_codelet_t {
 	unsigned nbuffers;
 
 	struct starpu_perfmodel_t *model;
+	struct starpu_perfmodel_t *power_model;
 
 	/* statistics collected at runtime: this is filled by StarPU and should
 	 * not be accessed directly (use the starpu_display_codelet_stats
@@ -136,7 +137,7 @@ struct starpu_task {
 	 * starpu_profiling_status_set */
 	struct starpu_task_profiling_info *profiling_info;
 
-	/* Predicted duration of the task. This field is only valid if the
+	/* Predicted duration of the task in µs. This field is only valid if the
 	 * scheduling strategy uses performance models. */
 	double predicted;
 

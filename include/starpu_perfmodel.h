@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -117,6 +117,7 @@ int starpu_list_models(void);
 double starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_archtype arch);
 double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtype);
 double starpu_data_expected_penalty(uint32_t memory_node, struct starpu_task *task);
+double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_archtype arch);
 
 void starpu_force_bus_sampling(void);
 

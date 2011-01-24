@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -206,7 +206,7 @@ static void gordon_callback_list_func(void *arg)
 			double measured = (double)gordon_task->measured;
 			unsigned cpuid = 0; /* XXX */
 
-			_starpu_update_perfmodel_history(j, STARPU_GORDON_DEFAULT, cpuid, measured);
+			_starpu_update_perfmodel_history(j, j->task->cl->model, STARPU_GORDON_DEFAULT, cpuid, measured);
 		}
 
 		_starpu_push_task_output(j->task, 0);

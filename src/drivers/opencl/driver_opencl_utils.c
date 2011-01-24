@@ -197,7 +197,7 @@ cl_int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs
         return CL_SUCCESS;
 }
 
-int starpu_opencl_collect_stats(cl_event event)
+int starpu_opencl_collect_stats(cl_event event __attribute__((unused)))
 {
 	struct starpu_task *task = starpu_get_current_task();
 	struct starpu_task_profiling_info *info = task->profiling_info;
@@ -226,7 +226,7 @@ int starpu_opencl_collect_stats(cl_event event)
 	}
 #endif
 #ifdef CL_PROFILING_POWER_CONSUMED
-	if (info && (starpu_profiling_status_get() || (task->cl && task->cl->model && task->cl->model->benchmarking))) {
+	if (info && (starpu_profiling_status_get() || (task->cl && task->cl->power_model && task->cl->power_model->benchmarking))) {
 		cl_int err;
 		double power_consumed;
 		size_t size;

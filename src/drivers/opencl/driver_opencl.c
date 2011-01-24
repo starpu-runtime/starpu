@@ -540,7 +540,7 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 
 	_starpu_push_task_output(task, mask);
 
-	_starpu_driver_update_job_feedback(j, args, profiling_info, calibrate_model, args->perf_arch,
+	_starpu_driver_update_job_feedback(j, args, profiling_info, args->perf_arch,
 							&codelet_start, &codelet_end);
 
 	return EXIT_SUCCESS;

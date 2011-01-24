@@ -1184,6 +1184,11 @@ type). This still assumes performance regularity, but can work with various data
 input sizes, by applying a*n^b+c regression over observed execution times.
 @end itemize
 
+The same can be done for task power consumption estimation, by setting the
+@code{power_model} field the same way as the @code{model} field. Note: for
+now, the application has to give to the power consumption performance model
+a different name.
+
 @node Theoretical lower bound on execution time
 @section Theoretical lower bound on execution time
 
@@ -1283,8 +1288,9 @@ yet. To force continuing calibration, use @code{export STARPU_CALIBRATE=1}
 start, use @code{export STARPU_CALIBRATE=2}.
 
 Distributing tasks to balance the load induces data transfer penalty. StarPU
-thus needs to find a balance between both. The target function that StarPU
-tries to optimise is @code{alpha * T_execution + beta * T_data_transfer}, where
+thus needs to find a balance between both. The target function that the
+@code{dmda} scheduler of StarPU
+tries to minimize is @code{alpha * T_execution + beta * T_data_transfer}, where
 @code{T_execution} is the estimated execution time of the codelet (usually
 accurate), and @code{T_data_transfer} is the estimated data transfer time. The
 latter is however estimated based on bus calibration before execution start,
@@ -1297,6 +1303,16 @@ results that a precise estimation would give.
 
 Measuring the actual data transfer time is however on our TODO-list to
 accurately estimate data transfer penalty without the need of a hand-tuned beta parameter.
+
+If the application can provide some power performance model (through
+the @code{power_model} field of the codelet structure), StarPU will
+take it into account when distributing tasks. The target function that
+the @code{dmda} scheduler minimizes becomes @code{alpha * T_execution +
+beta * T_data_transfer + gamma * Consumption} , where @code{Consumption}
+is the estimated task consumption in Joules. To tune this parameter, use
+@code{export STARPU_GAMMA=3000} for instance, to express that each Joule
+(i.e kW during 1000µs) is worth 3000µs execution time penalty. Setting
+alpha and beta to zero permits to only take into account power consumption.
 
 Profiling can be enabled by using @code{export STARPU_PROFILING=1} or by
 calling @code{starpu_profiling_status_set} from the source code.
@@ -3023,8 +3039,12 @@ array. The constant argument passed with the @code{cl_arg} field of the
 not be above @code{STARPU_NMAXBUFS}.
 
 @item @code{model} (optional):
-This is a pointer to the performance model associated to this codelet. This
-optional field is ignored when set to @code{NULL}. TODO
+This is a pointer to the task duration performance model associated to this
+codelet. This optional field is ignored when set to @code{NULL}. TODO
+
+@item @code{power_model} (optional):
+This is a pointer to the task power consumption performance model associated
+to this codelet. This optional field is ignored when set to @code{NULL}. TODO
 
 @end table
 @end table
