@@ -72,7 +72,11 @@ void starpu_worker_profiling_helper_display_summary(void)
 			double sleeping_time = starpu_timing_timespec_to_us(&info.sleeping_time) / 1000.;
 
 			fprintf(stderr, "%-32s\n", name);
-			fprintf(stderr, "\t%d task(s)\n\ttotal: %.2lf ms executing: %.2lf ms sleeping: %.2lf\n\t%lu Mcy %lu Mcy stall\n\t%lf J consumed\n", info.executed_tasks, total_time, executing_time, sleeping_time, info.used_cycles/1000000, info.stall_cycles/1000000, info.power_consumed);
+			fprintf(stderr, "\t%d task(s)\n\ttotal: %.2lf ms executing: %.2lf ms sleeping: %.2lf\n", info.executed_tasks, total_time, executing_time, sleeping_time);
+			if (info.used_cycles || info.stall_cycles)
+				fprintf(stderr, "\t%lu Mcy %lu Mcy stall\n", info.used_cycles/1000000, info.stall_cycles/1000000);
+			if (info.power_consumed)
+				fprintf(stderr, "\t%lf J consumed\n", info.power_consumed);
 		} else {
 			fprintf(stderr, "\t%-32s\tapproximately %d task(s)\n", name, info.executed_tasks);
 		}
@@ -80,6 +84,6 @@ void starpu_worker_profiling_helper_display_summary(void)
 		sum_consumed += info.power_consumed;
 	}
 
-	if (profiling)
+	if (profiling && sum_consumed)
 		fprintf(stderr, "Total consumption: %.2lf J\n", sum_consumed);
 }
