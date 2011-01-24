@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -176,9 +176,10 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 	STARPU_TRACE_START_CODELET_BODY(j);
 
 	struct starpu_task_profiling_info *profiling_info;
+	int profiling = starpu_profiling_status_get();
 	profiling_info = task->profiling_info;
 
-	if (profiling_info || calibrate_model)
+	if ((profiling && profiling_info) || calibrate_model)
 	{
 		starpu_clock_gettime(&codelet_start);
 		_starpu_worker_register_executing_start_date(workerid, &codelet_start);
@@ -193,7 +194,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 
 	cl->per_worker_stats[workerid]++;
 
-	if (profiling_info || calibrate_model)
+	if ((profiling && profiling_info) || calibrate_model)
 		starpu_clock_gettime(&codelet_end);
 
 	STARPU_TRACE_END_CODELET_BODY(j);	

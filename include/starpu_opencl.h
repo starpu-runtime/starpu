@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -190,6 +190,8 @@ int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs);
 
 int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct starpu_opencl_program *opencl_programs, const char *kernel_name, int devid);
 int starpu_opencl_release_kernel(cl_kernel kernel);
+
+int starpu_opencl_collect_stats(cl_event event);
 
 
 #ifdef __cplusplus

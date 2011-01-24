@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,8 @@
  *  1- how to declare a piece of data to StarPU (starpu_vector_data_register)
  *  2- how to describe which data are accessed by a task (task->buffers[0])
  *  3- how a kernel can manipulate the data (buffers[0].vector.ptr)
+ *
+ * This is a variant of vector_scal.c which shows it can be integrated with fortran.
  */
 
 #include "f77.h"
@@ -33,6 +35,11 @@ extern void scal_cpu_func(void *buffers[], void *_args);
 extern void scal_cuda_func(void *buffers[], void *_args);
 //extern void scal_opencl_func(void *buffers[], void *_args);
 
+static struct starpu_perfmodel_t vector_scal_model = {
+	.type = STARPU_HISTORY_BASED,
+	.symbol = "vector_scale_model"
+};
+
 static starpu_codelet cl = {
 	.where = STARPU_CPU | STARPU_CUDA | STARPU_OPENCL,
 	/* CPU implementation of the codelet */
@@ -45,7 +52,8 @@ static starpu_codelet cl = {
 	/* OpenCL implementation of the codelet */
 	//.opencl_func = scal_opencl_func,
 	//#endif
-	.nbuffers = 1
+	.nbuffers = 1,
+	.model = &vector_scal_model
 };
 
 //#ifdef STARPU_USE_OPENCL

@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -235,6 +235,7 @@ static void compute_block_opencl(void *descr[], void *cl_arg)
 
 	cl_kernel kernel;
 	cl_command_queue queue;
+	cl_event event;
 
 	int id = starpu_worker_get_id();
 	int devid = starpu_worker_get_devid(id);
@@ -254,8 +255,10 @@ static void compute_block_opencl(void *descr[], void *cl_arg)
 	unsigned dim = 16;
 	size_t local[2] = {dim, 1};
 	size_t global[2] = {width, block_size};
-	clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global, local, 0, NULL, NULL);
+	clEnqueueNDRangeKernel(queue, kernel, 2, NULL, global, local, 0, NULL, &event);
 	clFinish(queue);
+	starpu_opencl_collect_stats(event);
+	clReleaseEvent(event);
 	starpu_opencl_release_kernel(kernel);
 }
 #endif

@@ -1,6 +1,6 @@
 #
 # StarPU
-# Copyright (C) Université Bordeaux 1, CNRS 2008-2009 (see AUTHORS file)
+# Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -185,7 +185,7 @@ libstarpu_la_SOURCES = 						\
 	debug/structures_size.c					\
 	profiling/profiling.c					\
 	profiling/bound.c					\
-	profiling/bus_profiling_helpers.c
+	profiling/profiling_helpers.c
 
 if STARPU_USE_CPU
 libstarpu_la_SOURCES += drivers/cpu/driver_cpu.c

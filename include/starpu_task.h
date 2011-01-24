@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -132,6 +132,8 @@ struct starpu_task {
 
 	unsigned status;
 
+	/* This gets filled when profiling is enabled by using
+	 * starpu_profiling_status_set */
 	struct starpu_task_profiling_info *profiling_info;
 
 	/* Predicted duration of the task. This field is only valid if the

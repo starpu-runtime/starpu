@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -94,11 +94,14 @@ int starpu_profiling_status_get(void)
 void _starpu_profiling_init(void)
 {
 	int worker;
+	const char *env;
 	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
 	{
 		PTHREAD_MUTEX_INIT(&worker_info_mutex[worker], NULL);
 		_starpu_worker_reset_profiling_info(worker);
 	}
+	if ((env = getenv("STARPU_PROFILING")) && atoi(env))
+		profiling = 1;
 }
 
 void starpu_profiling_terminate(void)
@@ -110,11 +113,12 @@ void starpu_profiling_terminate(void)
  *	Task profiling
  */
 
-struct starpu_task_profiling_info *_starpu_allocate_profiling_info_if_needed(void)
+struct starpu_task_profiling_info *_starpu_allocate_profiling_info_if_needed(struct starpu_task *task)
 {
 	struct starpu_task_profiling_info *info = NULL;
 
-	if (profiling)
+	/* If we are benchmarking, we need room for the power consumption */
+	if (profiling || (task->cl && task->cl->model && task->cl->model->benchmarking))
 	{
 		info = calloc(1, sizeof(struct starpu_task_profiling_info));
 		STARPU_ASSERT(info);
@@ -139,6 +143,10 @@ static void _do_starpu_worker_reset_profiling_info(int workerid)
 	starpu_timespec_clear(&worker_info[workerid].sleeping_time);
 
 	worker_info[workerid].executed_tasks = 0;
+
+	worker_info[workerid].used_cycles = 0;
+	worker_info[workerid].stall_cycles = 0;
+	worker_info[workerid].power_consumed = 0;
 	
 	/* We detect if the worker is already sleeping or doing some
 	 * computation */
@@ -221,7 +229,7 @@ void _starpu_worker_update_profiling_info_sleeping(int workerid, struct timespec
 }
 
 
-void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks)
+void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double power_consumed)
 {
 	if (profiling)
 	{
@@ -229,16 +237,23 @@ void _starpu_worker_update_profiling_info_executing(int workerid, struct timespe
 
 		starpu_timespec_accumulate(&worker_info[workerid].executing_time, executing_time);
 
+		worker_info[workerid].used_cycles += used_cycles;
+		worker_info[workerid].stall_cycles += stall_cycles;
+		worker_info[workerid].power_consumed += power_consumed;
 		worker_info[workerid].executed_tasks += executed_tasks;
 	
 		PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
-	}
+	} else /* Not thread safe, shouldn't be too much a problem */
+		worker_info[workerid].executed_tasks += executed_tasks;
 }
 
 int starpu_worker_get_profiling_info(int workerid, struct starpu_worker_profiling_info *info)
 {
 	if (!profiling)
-		return -EINVAL;
+	{
+		/* Not thread safe, shouldn't be too much a problem */
+		info->executed_tasks = worker_info[workerid].executed_tasks;
+	}
 
 	PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 

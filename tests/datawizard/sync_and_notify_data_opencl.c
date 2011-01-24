@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,7 @@ void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
         unsigned *val = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 	cl_kernel kernel;
 	cl_command_queue queue;
+	cl_event event;
 	int id, devid, err;
 
 	id = starpu_worker_get_id();
@@ -40,12 +41,13 @@ void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
 	{
 		size_t global=100;
 		size_t local=100;
-		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}
 
 	clFinish(queue);
-
+	starpu_opencl_collect_stats(event);
+	clReleaseEvent(event);
 	starpu_opencl_release_kernel(kernel);
 }
 
@@ -54,6 +56,7 @@ void opencl_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
 	unsigned *val = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 	cl_kernel kernel;
 	cl_command_queue queue;
+	cl_event event;
 	int id, devid, err;
 
 	id = starpu_worker_get_id();
@@ -69,11 +72,13 @@ void opencl_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
 	{
 		size_t global=100;
 		size_t local=100;
-		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}
 
 	clFinish(queue);
+	starpu_opencl_collect_stats(event);
+	clReleaseEvent(event);
 
 	starpu_opencl_release_kernel(kernel);
 }

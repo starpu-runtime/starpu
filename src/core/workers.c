@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -442,6 +442,7 @@ static void _starpu_kill_all_workers(struct starpu_machine_config_s *config)
 
 void starpu_shutdown(void)
 {
+	const char *stats;
 	PTHREAD_MUTEX_LOCK(&init_mutex);
 	init_count--;
 	if (init_count)
@@ -460,6 +461,11 @@ void starpu_shutdown(void)
 #ifdef STARPU_DATA_STATS
 	_starpu_display_comm_amounts();
 #endif
+	if ((stats = getenv("STARPU_BUS_STATS")) && atoi(stats))
+		starpu_bus_profiling_helper_display_summary();
+
+	if ((stats = getenv("STARPU_WORKER_STATS")) && atoi(stats))
+		starpu_worker_profiling_helper_display_summary();
 
 	_starpu_deinitialize_registered_performance_models();
 

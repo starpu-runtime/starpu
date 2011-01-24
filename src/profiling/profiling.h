@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,14 +24,14 @@
 
 /* Create a task profiling info structure (with the proper time stamps) in case
  * profiling is enabled. */
-struct starpu_task_profiling_info *_starpu_allocate_profiling_info_if_needed(void);
+struct starpu_task_profiling_info *_starpu_allocate_profiling_info_if_needed(struct starpu_task *task);
 
 /* Clear all the profiling info related to the worker. */
 void _starpu_worker_reset_profiling_info(int workerid);
 
 /* Update the per-worker profiling info after a task (or more) was executed.
  * This tells StarPU how much time was spent doing computation. */
-void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks);
+void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double consumed_power);
 
 /* Update the per-worker profiling info when StarPU wakes up: this indicates
  * how much time was spent sleeping. */

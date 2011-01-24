@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,7 @@
 #include <sys/types.h>
 
 #include <starpu_opencl.h>
+#include <starpu_profiling.h>
 #include <core/workers.h>
 #include "driver_opencl_utils.h"
 #include "driver_opencl.h"
@@ -194,4 +195,48 @@ cl_int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs
                         clReleaseProgram(opencl_programs->programs[dev]);
         }
         return CL_SUCCESS;
+}
+
+int starpu_opencl_collect_stats(cl_event event)
+{
+	struct starpu_task *task = starpu_get_current_task();
+	struct starpu_task_profiling_info *info = task->profiling_info;
+
+#ifdef CL_PROFILING_CLOCK_CYCLE_COUNT
+	if (starpu_profiling_status_get() && info) {
+		cl_int err;
+		unsigned int clock_cycle_count;
+		size_t size;
+		err = clGetEventProfilingInfo(event, CL_PROFILING_CLOCK_CYCLE_COUNT, sizeof(clock_cycle_count), &clock_cycle_count, &size);
+		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+		STARPU_ASSERT(size == sizeof(clock_cycle_count));
+		info->used_cycles += clock_cycle_count;
+	}
+#endif
+#ifdef CL_PROFILING_STALL_CYCLE_COUNT
+	if (starpu_profiling_status_get() && info) {
+		cl_int err;
+		unsigned int stall_cycle_count;
+		size_t size;
+		err = clGetEventProfilingInfo(event, CL_PROFILING_STALL_CYCLE_COUNT, sizeof(stall_cycle_count), &stall_cycle_count, &size);
+		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+		STARPU_ASSERT(size == sizeof(stall_cycle_count));
+
+		info->stall_cycles += stall_cycle_count;
+	}
+#endif
+#ifdef CL_PROFILING_POWER_CONSUMED
+	if (info && (starpu_profiling_status_get() || (task->cl && task->cl->model && task->cl->model->benchmarking))) {
+		cl_int err;
+		double power_consumed;
+		size_t size;
+		err = clGetEventProfilingInfo(event, CL_PROFILING_POWER_CONSUMED, sizeof(power_consumed), &power_consumed, &size);
+		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+		STARPU_ASSERT(size == sizeof(power_consumed));
+
+		info->power_consumed += power_consumed;
+	}
+#endif
+
+	return 0;
 }

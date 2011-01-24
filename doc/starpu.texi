@@ -836,6 +836,7 @@ void scal_opencl_func(void *buffers[], void *_args)
 @i{    int id, devid, err;}
 @i{    cl_kernel kernel;}
 @i{    cl_command_queue queue;}
+@i{    cl_event event;}
 
     /* length of the vector */
     unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
@@ -857,11 +858,13 @@ void scal_opencl_func(void *buffers[], void *_args)
 @i{    @{}
 @i{        size_t global=1;}
 @i{        size_t local=1;}
-@i{        err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);}
+@i{        err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);}
 @i{        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);}
 @i{    @}}
 
 @i{    clFinish(queue);}
+@i{    starpu_opencl_collect_stats(event);}
+@i{    clReleaseEvent(event);}
 
 @i{    starpu_opencl_release_kernel(kernel);}
 @}
@@ -1262,10 +1265,43 @@ More advanced examples include:
 @node Performance options
 @chapter Performance options worth knowing
 
-TODO: explain why execution should be tried with
-@code{STARPU_PREFETCH=1 STARPU_SCHED=dmda}, when to use
-@code{STARPU_CALIBRATE=2} to force re-calibration, and how to play with
-@code{STARPU_BETA=2} or more.
+TODO: improve!
+
+By default, StarPU uses a simple greedy scheduler. To improve performance,
+you should change the scheduler thanks to the @code{STARPU_SCHED} environment
+variable. For instancel @code{export STARPU_SCHED=dmda} . Use @code{help}
+to get the list of available schedulers.
+
+By default, StarPU does not enable data prefetching, because CUDA does
+not announce when too many data transfers were scheduled and can thus block
+unexpectedly... To enable data prefetching, use @code{export STARPU_PREFETCH=1}
+.
+
+StarPU will automatically calibrate codelets which have never been calibrated
+yet. To force continuing calibration, use @code{export STARPU_CALIBRATE=1}
+. To drop existing calibration information completely and re-calibrate from
+start, use @code{export STARPU_CALIBRATE=2}.
+
+Distributing tasks to balance the load induces data transfer penalty. StarPU
+thus needs to find a balance between both. The target function that StarPU
+tries to optimise is @code{alpha * T_execution + beta * T_data_transfer}, where
+@code{T_execution} is the estimated execution time of the codelet (usually
+accurate), and @code{T_data_transfer} is the estimated data transfer time. The
+latter is however estimated based on bus calibration before execution start,
+i.e. with an idle machine. When StarPU manages several GPUs, such estimation
+is not accurate any more. Beta can then be used to correct this by hand. For
+instance, you can use @code{export STARPU_BETA=2} to double the transfer
+time estimation, e.g. because there are two GPUs in the machine. This is of
+course imprecise, but in practice, a rough estimation already gives the good
+results that a precise estimation would give.
+
+Measuring the actual data transfer time is however on our TODO-list to
+accurately estimate data transfer penalty without the need of a hand-tuned beta parameter.
+
+Profiling can be enabled by using @code{export STARPU_PROFILING=1} or by
+calling @code{starpu_profiling_status_set} from the source code.
+Statistics on the execution can then be obtained by using @code{export
+STARPU_BUS_STATS=1} and @code{export STARPU_WORKER_STATS=1} .
 
 @c ---------------------------------------------------------------------
 @c Performance feedback
@@ -3496,6 +3532,7 @@ This forces sampling the bus performance model again.
 * starpu_timing_timespec_delay_us::  
 * starpu_timing_timespec_to_us::  
 * starpu_bus_profiling_helper_display_summary::  
+* starpu_worker_profiling_helper_display_summary::  
 @end menu
 
 @node starpu_profiling_status_set
@@ -3662,6 +3699,15 @@ TODO
 @code{void starpu_bus_profiling_helper_display_summary(void);}
 @end table
 
+@node starpu_worker_profiling_helper_display_summary
+@subsection @code{starpu_worker_profiling_helper_display_summary}
+@table @asis
+@item @emph{Description}:
+TODO
+@item @emph{Prototype}:
+@code{void starpu_worker_profiling_helper_display_summary(void);}
+@end table
+
 
 
 @node CUDA extensions
@@ -3718,9 +3764,10 @@ This function synchronously deinitializes the CUBLAS library on every CUDA devic
 @section OpenCL extensions
 
 @menu
-* Enabling OpenCL::             Enabling OpenCL
+* Enabling OpenCL::            Enabling OpenCL
 * Compiling OpenCL kernels::   Compiling OpenCL kernels
 * Loading OpenCL kernels::     Loading OpenCL kernels
+* OpenCL statistics::          Collecting statistics from OpenCL
 @end menu
 
 @node Enabling OpenCL
@@ -3820,6 +3867,25 @@ TODO
 @item @emph{Prototype}:
 @code{int starpu_opencl_release_kernel(cl_kernel kernel);}
 @end table
+
+@node OpenCL statistics
+@subsection OpenCL statistics
+
+@menu
+* starpu_opencl_collect_stats::   Collect statistics on a kernel execution
+@end menu
+
+@node starpu_opencl_collect_stats
+@subsubsection @code{starpu_opencl_collect_stats} -- Collect statistics on a kernel execution
+@table @asis
+@item @emph{Description}:
+After termination of the kernels, the OpenCL codelet should call this function
+to pass it the even returned by @code{clEnqueueNDRangeKernel}, to let StarPU
+collect statistics about the kernel execution (used cycles, consumed power).
+@item @emph{Prototype}:
+@code{int starpu_opencl_collect_stats(cl_event event);}
+@end table
+
 
 @node Cell extensions
 @section Cell extensions

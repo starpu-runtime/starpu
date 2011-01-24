@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -237,14 +237,15 @@ int starpu_task_submit(struct starpu_task *task)
 	/* If profiling is activated, we allocate a structure to store the
 	 * appropriate info. */
 	struct starpu_task_profiling_info *info;
-	info = _starpu_allocate_profiling_info_if_needed();
+	int profiling = starpu_profiling_status_get();
+	info = _starpu_allocate_profiling_info_if_needed(task);
 	task->profiling_info = info;
 
 	/* The task is considered as block until we are sure there remains not
 	 * dependency. */
 	task->status = STARPU_TASK_BLOCKED;
 	
-	if (info)
+	if (profiling)
 		starpu_clock_gettime(&info->submit_time);
 
 	/* internally, StarPU manipulates a starpu_job_t which is a wrapper around a

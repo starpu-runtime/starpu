@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,6 +24,7 @@ void opencl_func(void *buffers[], void *cl_arg)
 	int id, devid, err;
 	cl_kernel kernel;
 	cl_command_queue queue;
+	cl_event event;
 
         int *factor = cl_arg;
 	int *block = (int *)STARPU_BLOCK_GET_PTR(buffers[0]);
@@ -51,11 +52,13 @@ void opencl_func(void *buffers[], void *cl_arg)
 
 	{
 		size_t global=nx*ny*nz;
-		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, NULL, 0, NULL, NULL);
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, NULL, 0, NULL, &event);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}
 
 	clFinish(queue);
+	starpu_opencl_collect_stats(event);
+	clReleaseEvent(event);
 
 	starpu_opencl_release_kernel(kernel);
 }

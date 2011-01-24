@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -57,6 +57,10 @@ struct starpu_task_profiling_info {
 
 	/* TODO add expected length, expected start/end ? */
 	int workerid;
+
+	uint64_t used_cycles;
+	uint64_t stall_cycles;
+	double power_consumed;
 };
 
 /* The timing is provided since the previous call to starpu_worker_get_profiling_info */
@@ -66,6 +70,10 @@ struct starpu_worker_profiling_info {
 	struct timespec executing_time;
 	struct timespec sleeping_time;
 	int executed_tasks;
+
+	uint64_t used_cycles;
+	uint64_t stall_cycles;
+	double power_consumed;
 };
 
 struct starpu_bus_profiling_info {
@@ -157,6 +165,7 @@ double starpu_timing_timespec_delay_us(struct timespec *start, struct timespec *
 double starpu_timing_timespec_to_us(struct timespec *ts);
 
 void starpu_bus_profiling_helper_display_summary(void);
+void starpu_worker_profiling_helper_display_summary(void);
 
 #ifdef __cplusplus
 }

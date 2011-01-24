@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,8 @@ void starpu_bus_profiling_helper_display_summary(void)
 {
 	int long long sum_transferred = 0;
 
-	fprintf(stderr, "Data transfer statistics:\n");
+	fprintf(stderr, "\nData transfer statistics:\n");
+	fprintf(stderr,   "*************************\n");
 
 	int busid;
 	int bus_cnt = starpu_bus_get_count();
@@ -46,4 +47,39 @@ void starpu_bus_profiling_helper_display_summary(void)
 	}
 
 	fprintf(stderr, "Total transfers: %.2lf MB\n", (1.0*sum_transferred)/(1024*1024));
+}
+
+void starpu_worker_profiling_helper_display_summary(void)
+{
+	double sum_consumed = 0.;
+	int profiling = starpu_profiling_status_get();
+	fprintf(stderr, "\nWorker statistics:\n");
+	fprintf(stderr,   "******************\n");
+
+	int workerid;
+	int worker_cnt = starpu_worker_get_count();
+	for (workerid = 0; workerid < worker_cnt; workerid++)
+	{
+		struct starpu_worker_profiling_info info;
+		starpu_worker_get_profiling_info(workerid, &info);
+		char name[32];
+
+		starpu_worker_get_name(workerid, name, sizeof(name));
+
+		if (profiling) {
+			double total_time = starpu_timing_timespec_to_us(&info.total_time) / 1000.;
+			double executing_time = starpu_timing_timespec_to_us(&info.executing_time) / 1000.;
+			double sleeping_time = starpu_timing_timespec_to_us(&info.sleeping_time) / 1000.;
+
+			fprintf(stderr, "%-32s\n", name);
+			fprintf(stderr, "\t%d task(s)\n\ttotal: %.2lf ms executing: %.2lf ms sleeping: %.2lf\n\t%lu Mcy %lu Mcy stall\n\t%lf J consumed\n", info.executed_tasks, total_time, executing_time, sleeping_time, info.used_cycles/1000000, info.stall_cycles/1000000, info.power_consumed);
+		} else {
+			fprintf(stderr, "\t%-32s\tapproximately %d task(s)\n", name, info.executed_tasks);
+		}
+
+		sum_consumed += info.power_consumed;
+	}
+
+	if (profiling)
+		fprintf(stderr, "Total consumption: %.2lf J\n", sum_consumed);
 }

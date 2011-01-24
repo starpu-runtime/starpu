@@ -1,6 +1,6 @@
 /*
  * StarPU
- * Copyright (C) Université Bordeaux 1, CNRS 2008-2010 (see AUTHORS file)
+ * Copyright (C) Université Bordeaux 1, CNRS 2008-2011 (see AUTHORS file)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,25 +29,39 @@ void _starpu_driver_update_job_feedback(starpu_job_t j, struct starpu_worker_s *
 {
 	struct timespec measured_ts;
 	double measured;
+	int workerid = worker_args->workerid;
 
 	if (profiling_info || calibrate_model)
 	{
 		starpu_timespec_sub(codelet_end, codelet_start, &measured_ts);
 		measured = starpu_timing_timespec_to_us(&measured_ts);
 
-		if (profiling_info)
+		if (starpu_profiling_status_get())
 		{
-			memcpy(&profiling_info->start_time, codelet_start, sizeof(struct timespec));
-			memcpy(&profiling_info->end_time, codelet_end, sizeof(struct timespec));
+			if (profiling_info)
+			{
+				memcpy(&profiling_info->start_time, codelet_start, sizeof(struct timespec));
+				memcpy(&profiling_info->end_time, codelet_end, sizeof(struct timespec));
 
-			int workerid = worker_args->workerid;
-			profiling_info->workerid = workerid;
-			
-			_starpu_worker_update_profiling_info_executing(workerid, &measured_ts, 1);
+				profiling_info->workerid = workerid;
+				
+				_starpu_worker_update_profiling_info_executing(workerid, &measured_ts, 1,
+					profiling_info->used_cycles,
+					profiling_info->stall_cycles,
+					profiling_info->power_consumed);
+			}
+		} else {
+			_starpu_worker_update_profiling_info_executing(workerid, 0, 1, 0, 0, 0);
 		}
 
-		if (calibrate_model)
+		if (calibrate_model) {
+			if (profiling_info && profiling_info->power_consumed) {
+				/* TODO: update power model history */
+			}
 			_starpu_update_perfmodel_history(j, perf_arch, worker_args->devid, measured);
+		}
+	} else {
+		_starpu_worker_update_profiling_info_executing(workerid, 0, 1, 0, 0, 0);
 	}
 }
 
