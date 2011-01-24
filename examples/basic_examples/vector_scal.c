@@ -24,12 +24,18 @@
 
 #include <starpu.h>
 #include <starpu_opencl.h>
+#include <stdio.h>
 
 #define	NX	2048
 
 extern void scal_cpu_func(void *buffers[], void *_args);
 extern void scal_cuda_func(void *buffers[], void *_args);
 extern void scal_opencl_func(void *buffers[], void *_args);
+
+static struct starpu_perfmodel_t vector_scal_model = {
+	.type = STARPU_HISTORY_BASED,
+	.symbol = "vector_scale_model"
+};
 
 static starpu_codelet cl = {
 	.where = STARPU_CPU | STARPU_CUDA | STARPU_OPENCL,
@@ -43,7 +49,8 @@ static starpu_codelet cl = {
 	/* OpenCL implementation of the codelet */
 	.opencl_func = scal_opencl_func,
 #endif
-	.nbuffers = 1
+	.nbuffers = 1,
+	.model = &vector_scal_model
 };
 
 #ifdef STARPU_USE_OPENCL
