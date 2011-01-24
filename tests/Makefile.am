@@ -148,7 +148,9 @@ check_PROGRAMS += 				\
 	overlap/overlap				\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
-	parallel_tasks/parallel_kernels_spmd
+	parallel_tasks/parallel_kernels_spmd	\
+	perfmodels/regression_based		\
+	perfmodels/non_linear_regression_based
 
 testbin_PROGRAMS +=				\
 	core/restart
@@ -527,3 +529,13 @@ testbin_PROGRAMS +=				\
 	parallel_tasks/parallel_kernels_spmd
 parallel_tasks_parallel_kernels_spmd_SOURCES =	\
 	parallel_tasks/parallel_kernels_spmd.c
+
+testbin_PROGRAMS +=				\
+	perfmodels/regression_based
+perfmodels_regression_based_SOURCES = 		\
+	perfmodels/regression_based.c
+
+testbin_PROGRAMS +=				\
+	perfmodels/non_linear_regression_based
+perfmodels_non_linear_regression_based_SOURCES = \
+	perfmodels/non_linear_regression_based.c
