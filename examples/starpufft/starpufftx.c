@@ -356,7 +356,7 @@ STARPUFFT(showstats)(FILE *out)
 		if (task_per_worker[worker])
 		{
 			char name[32];
-			starpu_worker_get_name(worker, name, 32);
+			starpu_worker_get_name(worker, name, sizeof(name));
 
 			unsigned long bytes = sizeof(STARPUFFT(complex))*samples_per_worker[worker];
 
