@@ -63,7 +63,6 @@ void _starpu_driver_update_job_feedback(starpu_job_t j, struct starpu_worker_s *
 	if (!updated)
 		_starpu_worker_update_profiling_info_executing(workerid, 0, 1, 0, 0, 0);
 
-//printf("ici %p %lf %p %d\n", profiling_info, profiling_info->power_consumed, cl->power_model, cl->power_model->benchmarking);
 	if (profiling_info && profiling_info->power_consumed && cl->power_model && cl->power_model->benchmarking) {
 		_starpu_update_perfmodel_history(j, j->task->cl->power_model,  perf_arch, worker_args->devid, profiling_info->power_consumed);
 		}
