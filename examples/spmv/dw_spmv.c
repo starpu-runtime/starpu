@@ -263,8 +263,7 @@ void call_spmv_codelet_filters(void)
         }
 #endif
 
-	starpu_codelet cl;
-	memset(&cl, 0, sizeof(starpu_codelet));
+	starpu_codelet cl = {};
 
 	cl.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL;
 	cl.cpu_func =  cpu_spmv;

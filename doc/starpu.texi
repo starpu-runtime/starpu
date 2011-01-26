@@ -2993,8 +2993,8 @@ This partitions a 3D matrix along the X axis.
 @subsection @code{struct starpu_codelet} -- StarPU codelet structure
 @table @asis
 @item @emph{Description}:
-The codelet structure describes a kernel that is possibly implemented on
-various targets.
+The codelet structure describes a kernel that is possibly implemented on various
+targets. For compatibility, make sure to initialize the whole structure to zero.
 @item @emph{Fields}:
 @table @asis
 @item @code{where}:

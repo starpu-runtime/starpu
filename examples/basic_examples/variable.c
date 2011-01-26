@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 	unsigned i;
         float foo;
 	starpu_data_handle float_array_handle;
-	starpu_codelet cl;
+	starpu_codelet cl = {};
 
 	starpu_init(NULL);
         if (argc == 2) niter = atoi(argv[1]);
