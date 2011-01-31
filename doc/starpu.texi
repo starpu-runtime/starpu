@@ -35,7 +35,7 @@ This manual documents the usage of StarPU.
 * Installing StarPU::           How to configure, build and install StarPU
 * Using StarPU::                How to run StarPU application
 * Basic Examples::              Basic examples of the use of StarPU
-* Performance options::         Performance options worth knowing
+* Performance optimization::    How to optimize performance with StarPU
 * Performance feedback::        Performance debugging tools
 * StarPU MPI support::          How to combine StarPU with MPI
 * Configuring StarPU::          How to configure StarPU
@@ -1267,25 +1267,71 @@ More advanced examples include:
 @c Performance options
 @c ---------------------------------------------------------------------
 
-@node Performance options
-@chapter Performance options worth knowing
+@node Performance optimization
+@chapter How to optimize performance with StarPU
 
 TODO: improve!
 
-By default, StarPU uses a simple greedy scheduler. To improve performance,
-you should change the scheduler thanks to the @code{STARPU_SCHED} environment
-variable. For instancel @code{export STARPU_SCHED=dmda} . Use @code{help}
-to get the list of available schedulers.
+@menu
+* Data management::
+* Task scheduling policy::
+* Task distribution vs Data transfer::
+* Power-based scheduling::
+* Profiling::
+@end menu
+
+Simply encapsulating application kernels into tasks already permits to
+seamlessly support CPU and GPUs at the same time. To achieve good performance, a
+few additional changes are needed.
+
+@node Data management
+@section Data management
 
 By default, StarPU does not enable data prefetching, because CUDA does
 not announce when too many data transfers were scheduled and can thus block
 unexpectedly... To enable data prefetching, use @code{export STARPU_PREFETCH=1}
 .
 
-StarPU will automatically calibrate codelets which have never been calibrated
-yet. To force continuing calibration, use @code{export STARPU_CALIBRATE=1}
-. To drop existing calibration information completely and re-calibrate from
-start, use @code{export STARPU_CALIBRATE=2}.
+By default, StarPU leaves replicates of data wherever they were used, in case they
+will be re-used by other tasks, thus saving the data transfer time. When some
+task modifies some data, all the other replicates are invalidated, and only the
+processing unit will have a valid replicate of the data. If the application knows
+that this data will not be re-used by further tasks, it should advise StarPU to
+immediately replicate it to a desired list of memory nodes (given through a
+bitmask). This can be understood like the write-through mode of CPU caches.
+
+@example
+starpu_data_set_wt_mask(img_handle, 1<<0);
+@end example
+
+will for instance request to always transfer a replicate into the main memory (node
+0), as bit 0 of the write-through bitmask is being set.
+
+When the application allocates data, whenever possible it should use the
+@code{starpu_data_malloc_pinned_if_possible} function, which will ask CUDA or
+OpenCL to make the allocation itself and pin the corresponding allocated
+memory. This is needed to permit asynchronous data transfer, i.e. permit data
+transfer to overlap with computations.
+
+@node Task scheduling policy
+@section Task scheduling policy
+
+By default, StarPU uses a simple greedy scheduler. To improve performance,
+you should change the scheduler thanks to the @code{STARPU_SCHED} environment
+variable. For instancel @code{export STARPU_SCHED=dmda} . Use @code{help}
+to get the list of available schedulers.
+
+Most schedulers are based on an estimation of codelet duration on each kind
+of processing unit. For this to be possible, the application programmer needs
+to configure a performance model for the codelets of the application (see
+@ref{Performance model example} for instance). History-based performance models
+use on-line calibration.  StarPU will automatically calibrate codelets
+which have never been calibrated yet. To force continuing calibration, use
+@code{export STARPU_CALIBRATE=1} . To drop existing calibration information
+completely and re-calibrate from start, use @code{export STARPU_CALIBRATE=2}.
+
+@node Task distribution vs Data transfer
+@section Task distribution vs Data transfer
 
 Distributing tasks to balance the load induces data transfer penalty. StarPU
 thus needs to find a balance between both. The target function that the
@@ -1304,6 +1350,9 @@ results that a precise estimation would give.
 Measuring the actual data transfer time is however on our TODO-list to
 accurately estimate data transfer penalty without the need of a hand-tuned beta parameter.
 
+@node Power-based scheduling
+@section Power-based scheduling
+
 If the application can provide some power performance model (through
 the @code{power_model} field of the codelet structure), StarPU will
 take it into account when distributing tasks. The target function that
@@ -1311,8 +1360,11 @@ the @code{dmda} scheduler minimizes becomes @code{alpha * T_execution +
 beta * T_data_transfer + gamma * Consumption} , where @code{Consumption}
 is the estimated task consumption in Joules. To tune this parameter, use
 @code{export STARPU_GAMMA=3000} for instance, to express that each Joule
-(i.e kW during 1000µs) is worth 3000µs execution time penalty. Setting
+(i.e kW during 1000us) is worth 3000us execution time penalty. Setting
 alpha and beta to zero permits to only take into account power consumption.
+
+@node Profiling
+@section Profiling
 
 Profiling can be enabled by using @code{export STARPU_PROFILING=1} or by
 calling @code{starpu_profiling_status_set} from the source code.
@@ -1321,7 +1373,8 @@ STARPU_BUS_STATS=1} and @code{export STARPU_WORKER_STATS=1} . Workers
 stats will include an approximation of the number of executed tasks even if
 @code{STARPU_PROFILING} is not set. This is a convenient way to check that
 execution did happen on accelerators without penalizing performance with
-the profiling overhead.
+the profiling overhead. More details on performance feedback are provided by the
+next chapter.
 
 @c ---------------------------------------------------------------------
 @c Performance feedback
@@ -1349,11 +1402,12 @@ the profiling overhead.
 @node Enabling monitoring
 @subsection Enabling on-line performance monitoring
 
-In order to enable online performance monitoring, the application must call
+In order to enable online performance monitoring, the application can call
 @code{starpu_profiling_status_set(STARPU_PROFILING_ENABLE)}. It is possible to
 detect whether monitoring is already enabled or not by calling
 @code{starpu_profiling_status_get()}. Enabling monitoring also reinitialize all
-previously collected feedback.
+previously collected feedback. The @code{STARPU_PROFILING} environment variable
+can also be set to 1 to achieve the same effect.
 
 Likewise, performance monitoring is stopped by calling
 @code{starpu_profiling_status_set(STARPU_PROFILING_DISABLE)}. Note that this
@@ -2448,7 +2502,8 @@ We show how to use existing data interfaces in @ref{Data Interfaces}, but develo
 design their own data interfaces if required.
 
 @menu
-* starpu_access_mode::          starpu_access_mode
+* starpu_data_malloc_pinned_if_possible::          Allocate data and pin it
+* starpu_access_mode::          Data access mode
 * unsigned memory_node::        Memory node
 * starpu_data_handle::          StarPU opaque data handle
 * void *interface::             StarPU data interface
@@ -2458,7 +2513,19 @@ design their own data interfaces if required.
 * starpu_data_acquire::         Access registered data from the application
 * starpu_data_acquire_cb::      Access registered data from the application asynchronously
 * starpu_data_release::         Release registered data from the application
+* starpu_data_set_wt_mask::     Set the Write-Through mask
 @end menu
+
+@node starpu_data_malloc_pinned_if_possible
+@subsection @code{starpu_data_malloc_pinned_if_possible} -- Allocate data and pin it
+@table @asis
+@item @emph{Description}:
+This function allocates data of the given size. It will also try to pin it in
+CUDA or OpenGL, so that data transfers from this buffer can be asynchronous, and
+thus permit data transfer and computation overlapping.
+@item @emph{Prototype}:
+@code{int starpu_data_malloc_pinned_if_possible(void **A, size_t dim);}
+@end table
 
 @node starpu_access_mode
 @subsection @code{starpu_access_mode} -- Data access mode
@@ -2619,6 +2686,16 @@ This function releases the piece of data acquired by the application either by
 @code{starpu_data_acquire} or by @code{starpu_data_acquire_cb}.
 @item @emph{Prototype}:
 @code{void starpu_data_release(starpu_data_handle handle);}
+@end table
+
+@node starpu_data_set_wt_mask
+@subsection @code{starpu_data_set_wt_mask} -- Set the Write-Through mask
+@table @asis
+@item @emph{Description}:
+This function sets the write-through mask of a given data, i.e. a bitmask of
+nodes where the data should be always replicated after modification.
+@item @emph{Prototype}:
+@code{void starpu_data_set_wt_mask(starpu_data_handle handle, uint32_t wt_mask);}
 @end table
 
 @node Data Interfaces
