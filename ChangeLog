@@ -1,4 +1,26 @@
-StarPU 0.4 (svn revision ????)
+StarPU 0.5 (svn revision ????)
+==============================================
+The yet-more-stuff release
+  
+  * Provide the STARPU_REDUX data access mode
+  * Externalize the scheduler API.
+  * Add theoretical bound computation
+  * Add the void interface
+  * Add power consumption optimization
+  * Add parallel task support
+  * Add starpu_mpi_insert_task
+  * Add profiling information interface.
+  * Add STARPU_LIMIT_GPU_MEM environment variable.
+  * OpenCL fixes
+  * MPI fixes
+  * Improve optimization documentation
+  * Upgrade to hwloc 1.1 interface
+  * Add fortran example
+  * Add mandelbrot OpenCL example
+  * Add cg example
+  * Add stencil MPI example
+
+StarPU 0.4 (svn revision 2535)
 ==============================================
 The API strengthening release
   
