@@ -13,10 +13,6 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
-/*
- * Copyright © 2010 Université Bordeaux 1
- * See COPYING in top-level directory.
- */
 
 /* Wrapper to avoid msys' tendency to turn / into \ and : into ;  */
 
