@@ -103,6 +103,8 @@ void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 				void *interface,
 				struct starpu_data_interface_ops_t *ops);
 
+extern struct starpu_data_interface_ops_t _starpu_interface_matrix_ops;
+
 /* "node" means memory node: 0 for main RAM, then 1, 2, etc. for various GPUs,
  * etc.
  *
