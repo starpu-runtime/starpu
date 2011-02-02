@@ -1344,7 +1344,8 @@ tries to minimize is @code{alpha * T_execution + beta * T_data_transfer}, where
 @code{T_execution} is the estimated execution time of the codelet (usually
 accurate), and @code{T_data_transfer} is the estimated data transfer time. The
 latter is however estimated based on bus calibration before execution start,
-i.e. with an idle machine. When StarPU manages several GPUs, such estimation
+i.e. with an idle machine. You can force bus re-calibration by running
+@code{starpu_calibrate_bus}. When StarPU manages several GPUs, such estimation
 is not accurate any more. Beta can then be used to correct this by hand. For
 instance, you can use @code{export STARPU_BETA=2} to double the transfer
 time estimation, e.g. because there are two GPUs in the machine. This is of
@@ -1390,6 +1391,7 @@ next chapter.
 @menu
 * On-line::       On-line performance feedback
 * Off-line::      Off-line performance feedback
+* Codelet performance::      Performance of codelets
 @end menu
 
 @node On-line
@@ -1599,6 +1601,45 @@ The second part of the @code{activity.eps} picture is a graph showing the
 evolution of the number of tasks available in the system during the execution.
 Ready tasks are shown in black, and tasks that are submitted but not
 schedulable yet are shown in grey.
+
+@node Codelet performance
+@section Performance of codelets
+
+The performance model of codelets can be examined by using the
+@code{starpu_perfmodel_display} tool:
+
+@example
+$ starpu_perfmodel_display -l
+file: <malloc_pinned.hannibal>
+file: <starpu_slu_lu_model_21.hannibal>
+file: <starpu_slu_lu_model_11.hannibal>
+file: <starpu_slu_lu_model_22.hannibal>
+file: <starpu_slu_lu_model_12.hannibal>
+@end example
+
+Here, the codelets of the lu example are available. We can examine the
+performance of the 22 kernel:
+
+@example
+$ starpu_perfmodel_display -s starpu_slu_lu_model_22
+performance model for cpu
+# hash		size		mean		dev		n
+57618ab0	19660800       	2.851069e+05   	1.829369e+04   	109
+performance model for cuda_0
+# hash		size		mean		dev		n
+57618ab0	19660800       	1.164144e+04   	1.556094e+01   	315
+performance model for cuda_1
+# hash		size		mean		dev		n
+57618ab0	19660800       	1.164271e+04   	1.330628e+01   	360
+performance model for cuda_2
+# hash		size		mean		dev		n
+57618ab0	19660800       	1.166730e+04   	3.390395e+02   	456
+@end example
+
+We can see that for the given size, over a sample of a few hundreds of
+execution, the GPUs are about 20 times faster than the CPUs (numbers are in
+us). The standard deviation is extremely low for the GPUs, and less than 10% for
+CPUs.
 
 @c ---------------------------------------------------------------------
 @c MPI support
