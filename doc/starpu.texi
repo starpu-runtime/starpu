@@ -1368,6 +1368,9 @@ is the estimated task consumption in Joules. To tune this parameter, use
 (i.e kW during 1000us) is worth 3000us execution time penalty. Setting
 alpha and beta to zero permits to only take into account power consumption.
 
+The power actually consumed by the total execution can be displayed by setting
+@code{export STARPU_PROFILING=1 STARPU_WORKER_STATS=1} .
+
 @node Profiling
 @section Profiling
 
