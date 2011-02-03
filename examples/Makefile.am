@@ -367,7 +367,8 @@ if !NO_BLAS_LIB
 examplebin_PROGRAMS += 			\
 	cholesky/dw_cholesky			\
 	cholesky/dw_cholesky_no_stride		\
-	cholesky/dw_cholesky_grain
+	cholesky/dw_cholesky_grain		\
+	cholesky/cholesky_implicit
 
 cholesky_dw_cholesky_SOURCES =			\
 	cholesky/dw_cholesky.c			\
@@ -383,6 +384,12 @@ cholesky_dw_cholesky_no_stride_SOURCES =	\
 
 cholesky_dw_cholesky_grain_SOURCES =		\
 	cholesky/dw_cholesky_grain.c		\
+	cholesky/dw_cholesky_models.c		\
+	cholesky/dw_cholesky_kernels.c		\
+	common/blas.c
+
+cholesky_cholesky_implicit_SOURCES =		\
+	cholesky/cholesky_implicit.c		\
 	cholesky/dw_cholesky_models.c		\
 	cholesky/dw_cholesky_kernels.c		\
 	common/blas.c
