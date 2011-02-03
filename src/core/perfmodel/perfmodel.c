@@ -96,7 +96,7 @@ double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtyp
 {
 	if (perf_archtype < STARPU_CUDA_DEFAULT)
 	{
-		return STARPU_CPU_ALPHA;
+		return STARPU_CPU_ALPHA * (perf_archtype + 1);
 	}
 	else if (perf_archtype < STARPU_OPENCL_DEFAULT)
 	{
