@@ -102,7 +102,8 @@ noinst_HEADERS = 						\
 	debug/starpu_debug_helpers.h				\
 	profiling/bound.h					\
 	profiling/profiling.h					\
-	util/starpu_insert_task_utils.h
+	util/starpu_insert_task_utils.h				\
+	starpu_parameters.h
 
 libstarpu_la_SOURCES = 						\
 	common/barrier.c					\
