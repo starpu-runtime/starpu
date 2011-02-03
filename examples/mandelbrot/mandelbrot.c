@@ -20,6 +20,7 @@
 #include <starpu_opencl.h>
 #endif
 #include <sys/time.h>
+#include <math.h>
 
 #ifdef STARPU_HAVE_X11
 #include <X11/Xlib.h>
@@ -31,10 +32,12 @@ int demo = 0;
 
 /* NB: The X11 code is inspired from the http://locklessinc.com/articles/mandelbrot/ article */
 
-static int nblocks = 16;
-static int height = 1280;
-static int width = 1600;
-static int maxIt = 20000;
+static int nblocks = 20;
+static int height = 400;
+static int width = 640;
+static int maxIt = 20000; // max number of iteration in the Mandelbrot function
+static int niter = -1; // number of loops in case we don't use X11, -1 means infinite
+static int use_spmd = 0;
 
 static double leftX = -0.745;
 static double rightX = -0.74375;
@@ -312,6 +315,68 @@ static void compute_block(void *descr[], void *cl_arg)
 	}
 }
 
+static void compute_block_spmd(void *descr[], void *cl_arg)
+{
+	int ix, iy;
+
+	int iby, block_size;
+	double stepX, stepY;
+	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY);
+
+	int size = starpu_combined_worker_get_size();
+	int rank = starpu_combined_worker_get_rank();
+
+	unsigned *data = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
+
+	int local_block_size = block_size/size;
+
+	int local_iy;
+	for (local_iy = rank*local_block_size; local_iy < (rank + 1)*local_block_size; local_iy++)
+	{
+		iy = iby*block_size + local_iy;
+		for (ix = 0; ix < width; ix++)
+		{
+			double cx = leftX + ix * stepX;
+			double cy = topY - iy * stepY;
+			// Z = X+I*Y
+			double x = 0;
+			double y = 0;
+			int it;
+			for (it = 0; it < maxIt; it++)
+			{
+				double x2 = x*x;
+				double y2 = y*y;
+
+				// Stop iterations when |Z| > 2
+				if (x2 + y2 > 4.0)
+					break;
+
+				double twoxy = 2.0*x*y;
+
+				// Z = Z^2 + C
+				x = x2 - y2 + cx;
+				y = twoxy + cy;
+			}
+	
+			unsigned int v = STARPU_MIN((1024*((float)(it)/(2000))), 256);
+			data[ix + local_iy*width] = (v<<16|(255-v)<<8);
+		}
+	}
+}
+
+
+
+static starpu_codelet spmd_mandelbrot_cl = {
+	.where = STARPU_CPU|STARPU_OPENCL,
+	.type = STARPU_SPMD,
+	.max_parallelism = INT_MAX,
+	.cpu_func = compute_block_spmd,
+#ifdef STARPU_USE_OPENCL
+	.opencl_func = compute_block_opencl,
+#endif
+	.nbuffers = 1
+};
+
 static starpu_codelet mandelbrot_cl = {
 	.where = STARPU_CPU|STARPU_OPENCL,
 	.type = STARPU_SEQ,
@@ -327,7 +392,7 @@ static void parse_args(int argc, char **argv)
 	int i;
 	for (i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-h") == 0) {
-			fprintf(stderr, "Usage: %s [-h] [ -width 800] [-height 600] [-nblocks 16] [-no-x11] [-pos leftx:rightx:bottomy:topy]\n", argv[0]);
+			fprintf(stderr, "Usage: %s [-h] [ -width 800] [-height 600] [-nblocks 16] [-no-x11] [-pos leftx:rightx:bottomy:topy] [-niter 1000] [-spmd]\n", argv[0]);
 			exit(-1);
 		}
 
@@ -344,6 +409,11 @@ static void parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-nblocks") == 0) {
 			char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-niter") == 0) {
+			char *argptr;
+			niter = strtol(argv[++i], &argptr, 10);
 		}
 
 		if (strcmp(argv[i], "-pos") == 0) {
@@ -365,6 +435,10 @@ static void parse_args(int argc, char **argv)
 			use_x11 = 0;
 #endif
 		}
+
+		if (strcmp(argv[i], "-spmd") == 0) {
+			use_spmd = 1;
+		}
 	}
 }
 
@@ -372,7 +446,15 @@ int main(int argc, char **argv)
 {
 	parse_args(argc, argv);
 
-	starpu_init(NULL);
+	/* We don't use CUDA in that example */
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+	conf.ncuda = 0;
+
+	if (use_spmd)
+		conf.sched_policy_name = "pgreedy";
+
+	starpu_init(&conf);
 
 	unsigned *buffer;
 	starpu_data_malloc_pinned_if_possible((void **)&buffer, height*width*sizeof(unsigned));
@@ -399,18 +481,21 @@ int main(int argc, char **argv)
                         (uintptr_t)data, block_size*width, sizeof(unsigned));
 	}
 
-	while (1)
+	unsigned iter = 0;
+
+	struct timeval start, end;
+
+	if (demo)
+		gettimeofday(&start, NULL);
+
+	while (niter-- != 0)
 	{
 		double stepX = (rightX - leftX)/width;
 		double stepY = (topY - bottomY)/height;
 
-		struct timeval start, end;
-
-		gettimeofday(&start, NULL);
-
 		for (iby = 0; iby < nblocks; iby++)
 		{
-			starpu_insert_task(&mandelbrot_cl,
+			starpu_insert_task(use_spmd?&spmd_mandelbrot_cl:&mandelbrot_cl,
 				STARPU_VALUE, &iby, sizeof(iby),
 				STARPU_VALUE, &block_size, sizeof(block_size),
 				STARPU_VALUE, &stepX, sizeof(stepX),
@@ -434,25 +519,43 @@ int main(int argc, char **argv)
 			starpu_data_release(block_handles[iby]);
 		}
 
-		gettimeofday(&end, NULL);
-		double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-		fprintf(stderr, "Time to generate frame : %f ms\n", timing/1000.0);
-		fprintf(stderr, "%14.14f:%14.14f:%14.14f:%14.14f\n", leftX, rightX, bottomY, topY);
-
-#ifdef STARPU_HAVE_X11
 		if (demo)
 		{
 			/* Zoom in */
 			double zoom_factor = 0.05;
 			double widthX = rightX - leftX;
 			double heightY = topY - bottomY;
-			leftX += (zoom_factor/2)*widthX;
-			rightX -= (zoom_factor/2)*widthX;
-			topY -= (zoom_factor/2)*heightY;
-			bottomY += (zoom_factor/2)*heightY;
+
+			iter++;
+
+			/* If the window is too small, we reset the demo and display some statistics */
+			if ((fabs(widthX) < 1e-12) || (fabs(heightY) < 1e-12))
+			{
+				leftX = -50.22749575062760;
+				rightX = 48.73874621262927;
+				topY = -49.35016705749115;
+				bottomY = 49.64891691946615;
+
+				gettimeofday(&end, NULL);
+				double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+
+				fprintf(stderr, "Time to generate %d frames : %f s\n", iter, timing/1000000.0);
+				fprintf(stderr, "Average FPS: %f\n", ((double)iter*1e+6)/timing);
+
+				/* Reset counters */
+				iter = 0;
+				gettimeofday(&start, NULL);
+			}
+			else {
+				leftX += (zoom_factor/2)*widthX;
+				rightX -= (zoom_factor/2)*widthX;
+				topY -= (zoom_factor/2)*heightY;
+				bottomY += (zoom_factor/2)*heightY;
+			}
 	
 		}
+#ifdef STARPU_HAVE_X11
 		else if (use_x11 && handle_events())
 			break;
 #endif
@@ -466,7 +569,7 @@ int main(int argc, char **argv)
 	for (iby = 0; iby < nblocks; iby++)
 		starpu_data_unregister(block_handles[iby]);
 
-	starpu_data_free_pinned_if_possible(buffer);
+//	starpu_data_free_pinned_if_possible(buffer);
 
 	starpu_shutdown();
 
