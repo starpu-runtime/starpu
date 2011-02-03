@@ -815,19 +815,36 @@ if test x$enable_mpi_check = xno ; then
 fi
 
 # Check if mpiexec is available
-mpiexec=$(dirname $mpicc_path)/mpiexec
-if test ! -x $mpiexec ; then
-    mpiexec=""
-    running_mpi_check=no
+AC_ARG_WITH(mpiexec, [AS_HELP_STRING([--with-mpiexec[=<path to mpiexec>]],
+			[Path of mpiexec])],
+	[
+		if test x$withval = xyes; then
+			AC_MSG_ERROR(--with-mpiexec must be given a pathname)
+		else
+			mpiexec_path=$withval
+		fi
+	],
+	[
+		# nothing was specified: default value is used
+		AC_PATH_PROG(mpiexec_path, $(dirname $mpicc_path)/mpiexec, [no], [])
+	])
+
+AC_MSG_CHECKING(whether mpiexec is available)
+AC_MSG_RESULT($mpiexec_path)
+
+# We test if MPIEXEC exists
+if test ! -x $mpiexec_path; then
+	#MPIEXEC does not exists or is not executable
+	AC_MSG_RESULT(The mpiexec script is not valid)
+        running_mpi_check=no 
+        mpiexec_path=""
 fi
 
 AM_CONDITIONAL(STARPU_MPI_CHECK, test x$running_mpi_check = xyes)
 if test x$use_mpi = xyes; then
-        AC_MSG_CHECKING(whether mpiexec is available)
-        AC_MSG_RESULT($mpiexec)
         AC_MSG_CHECKING(whether MPI tests should be run)
         AC_MSG_RESULT($running_mpi_check)
-	AC_SUBST(MPIEXEC,$mpiexec)
+	AC_SUBST(MPIEXEC,$mpiexec_path)
 fi
 
 AC_MSG_CHECKING(whether the StarPU MPI library should be generated)

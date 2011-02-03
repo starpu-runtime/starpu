@@ -57,7 +57,7 @@ NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_builddir)/include $(HWLOC_CFLAGS)
 endif
 
 AM_CFLAGS = $(HWLOC_CFLAGS)
-LIBS = $(top_builddir)/src/libstarpu.la  $(HWLOC_LIBS) @LIBS@
+LIBS = $(top_builddir)/src/libstarpu.la $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/mpi/ -I$(top_srcdir)/src/  -I$(top_srcdir)/examples/ -I$(top_builddir)/src -I$(top_builddir)/include
 
 lib_LTLIBRARIES = libstarpumpi.la
