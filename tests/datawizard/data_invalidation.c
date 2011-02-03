@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <starpu.h>
+#include <starpu_cuda.h>
 #include <stdlib.h>
 
 #define NLOOPS		1000
@@ -35,8 +36,8 @@ static void cuda_memset_codelet(void *descr[], __attribute__ ((unused)) void *_a
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
 
-	cudaMemset(buf, 42, length);
-	cudaThreadSynchronize();
+	cudaMemsetAsync(buf, 42, length, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 

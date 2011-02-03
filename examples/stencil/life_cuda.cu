@@ -16,6 +16,7 @@
 
 #define _externC extern "C"
 #include "stencil.h"
+#include <starpu_cuda.h>
 
 /* Heart of the stencil computation: compute a new state from an old one. */
 
@@ -72,5 +73,5 @@ cuda_life_update_host(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int n
 	dim3 dimBlock(threads_per_dim_x, threads_per_dim_y);
 	dim3 dimGrid((nx + threads_per_dim_x-1) / threads_per_dim_x, (ny + threads_per_dim_y-1) / threads_per_dim_y);
 #endif
-	cuda_life_update <<<dimGrid, dimBlock>>> (bz, old, newp, nx, ny, nz, ldy, ldz, iter);
+	cuda_life_update <<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>> (bz, old, newp, nx, ny, nz, ldy, ldz, iter);
 }

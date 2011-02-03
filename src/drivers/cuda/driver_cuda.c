@@ -83,16 +83,17 @@ static void unlimit_gpu_mem_if_needed(int devid)
 	}
 }
 
-cudaStream_t *starpu_cuda_get_local_stream(void)
+cudaStream_t starpu_cuda_get_local_stream(void)
 {
 	int worker = starpu_worker_get_id();
 
-	return &streams[worker];
+	return streams[worker];
 }
 
 static void init_context(int devid)
 {
 	cudaError_t cures;
+	int workerid = starpu_worker_get_id();
 
 	cures = cudaSetDevice(devid);
 	if (STARPU_UNLIKELY(cures))
@@ -103,7 +104,7 @@ static void init_context(int devid)
 
 	limit_gpu_mem_if_needed(devid);
 
-	cures = cudaStreamCreate(starpu_cuda_get_local_stream());
+	cures = cudaStreamCreate(&streams[workerid]);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 }

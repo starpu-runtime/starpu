@@ -26,7 +26,7 @@
 
 static int dummy_copy(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 #ifdef STARPU_USE_CUDA
-static int dummy_cuda_copy_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t *stream);
+static int dummy_cuda_copy_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);
 #endif
 #ifdef STARPU_USE_OPENCL
 static int dummy_opencl_copy_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *_event);
@@ -141,7 +141,7 @@ static int dummy_cuda_copy_async(void *src_interface __attribute__((unused)),
 				unsigned src_node __attribute__((unused)),
 				void *dst_interface __attribute__((unused)),
 				unsigned dst_node __attribute__((unused)),
-				cudaStream_t *stream __attribute__ ((unused)))
+				cudaStream_t stream __attribute__ ((unused)))
 {
 	return 0;
 }

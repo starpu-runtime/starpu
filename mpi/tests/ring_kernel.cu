@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_cuda.h>
 
 static __global__ void cuda_incrementer(unsigned *token)
 {
@@ -26,5 +27,6 @@ extern "C" void increment_cuda(void *descr[], void *_args)
 	(void) _args;
 	unsigned *tokenptr = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-	cuda_incrementer<<<1,1>>>(tokenptr);
+	cuda_incrementer<<<1,1, 0, starpu_cuda_get_local_stream()>>>(tokenptr);
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }

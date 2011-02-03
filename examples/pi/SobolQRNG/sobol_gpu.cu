@@ -39,6 +39,8 @@
 
 #include "sobol.h"
 #include "sobol_gpu.h"
+#include <starpu.h>
+#include <starpu_cuda.h>
 
 #define k_2powneg32 2.3283064E-10F
 
@@ -164,5 +166,5 @@ void sobolGPU(int n_vectors, int n_dimensions, unsigned int *d_directions, float
     dimBlock.x = threadsperblock;
 
     // Execute GPU kernel
-    sobolGPU_kernel<<<dimGrid, dimBlock>>>(n_vectors, n_dimensions, d_directions, d_output);
+    sobolGPU_kernel<<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>>(n_vectors, n_dimensions, d_directions, d_output);
 }

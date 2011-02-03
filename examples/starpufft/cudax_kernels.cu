@@ -28,13 +28,13 @@
 \
 	if (n < threads_per_block) { \
 		dim3 dimGrid(n); \
-		func <<<dimGrid, 1>>> args; \
+		func <<<dimGrid, 1, 0, starpu_cuda_get_local_stream()>>> args; \
 	} else { \
 		dim3 dimGrid(n / threads_per_block); \
 		dim3 dimBlock(threads_per_block); \
-		func <<<dimGrid, dimBlock>>> args; \
+		func <<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>> args; \
 	} \
-	cudaThreadSynchronize(); \
+	cudaStreamSynchronize(starpu_cuda_get_local_stream()); \
 
 extern "C" __global__ void
 STARPUFFT(cuda_twist1_1d)(const _cuComplex *in, _cuComplex *twisted1, unsigned i, unsigned n1, unsigned n2)
@@ -83,24 +83,24 @@ STARPUFFT(cuda_twiddle_1d_host)(_cuComplex *out, const _cuComplex *roots, unsign
 	if (n < threads_per_dim) { \
 		if (m < threads_per_dim) { \
 			dim3 dimGrid(n, m); \
-			func <<<dimGrid, 1>>> args; \
+			func <<<dimGrid, 1, 0, starpu_cuda_get_local_stream()>>> args; \
 		} else { \
 			dim3 dimGrid(1, m / threads_per_dim); \
 			dim3 dimBlock(n, threads_per_dim); \
-			func <<<dimGrid, dimBlock>>> args; \
+			func <<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>> args; \
 		} \
 	} else {  \
 		if (m < threads_per_dim) { \
 			dim3 dimGrid(n / threads_per_dim, 1); \
 			dim3 dimBlock(threads_per_dim, m); \
-			func <<<dimGrid, dimBlock>>> args; \
+			func <<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>> args; \
 		} else { \
 			dim3 dimGrid(n / threads_per_dim, m / threads_per_dim); \
 			dim3 dimBlock(threads_per_dim, threads_per_dim); \
-			func <<<dimGrid, dimBlock>>> args; \
+			func <<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>> args; \
 		} \
 	} \
-	cudaThreadSynchronize(); \
+	cudaStreamSynchronize(starpu_cuda_get_local_stream()); \
 
 extern "C" __global__ void
 STARPUFFT(cuda_twist1_2d)(const _cuComplex *in, _cuComplex *twisted1, unsigned i, unsigned j, unsigned n1, unsigned n2, unsigned m1, unsigned m2)

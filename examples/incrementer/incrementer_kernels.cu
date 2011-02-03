@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_cuda.h>
 
 static __global__ void cuda_incrementer(float * tab)
 {
@@ -29,5 +30,6 @@ extern "C" void cuda_codelet(void *descr[], void *_args)
 	(void)_args;
 	float *val = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-	cuda_incrementer<<<1,1>>>(val);
+	cuda_incrementer<<<1,1, 0, starpu_cuda_get_local_stream()>>>(val);
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }

@@ -173,7 +173,7 @@ static void load_subblock_from_buffer_cuda(starpu_block_interface_t *block,
 	unsigned offset = firstz*block->ldz;
 	TYPE *block_data = (TYPE *)block->ptr;
 	TYPE *boundary_data = (TYPE *)boundary->ptr;
-	cudaMemcpy(&block_data[offset], boundary_data, boundary_size, cudaMemcpyDeviceToDevice);
+	cudaMemcpyAsync(&block_data[offset], boundary_data, boundary_size, cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
 }
 
 /*
@@ -243,12 +243,12 @@ fprintf(stderr,"!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid)
 #ifdef LIFE
 		cuda_life_update_host(block->bz, old, new, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
 #else
-		cudaMemcpy(new, old, oldb->nx * oldb->ny * oldb->nz * sizeof(*new), cudaMemcpyDeviceToDevice);
+		cudaMemcpyAsync(new, old, oldb->nx * oldb->ny * oldb->nz * sizeof(*new), cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
 #endif /* LIFE */
 	}
 
 	cudaError_t cures;
-	if ((cures = cudaThreadSynchronize()) != cudaSuccess)
+	if ((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess)
 		STARPU_CUDA_REPORT_ERROR(cures);
 
 }
@@ -407,7 +407,7 @@ static void load_subblock_into_buffer_cuda(starpu_block_interface_t *block,
 	unsigned offset = firstz*block->ldz;
 	TYPE *block_data = (TYPE *)block->ptr;
 	TYPE *boundary_data = (TYPE *)boundary->ptr;
-	cudaMemcpy(boundary_data, &block_data[offset], boundary_size, cudaMemcpyDeviceToDevice);
+	cudaMemcpyAsync(boundary_data, &block_data[offset], boundary_size, cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
 }
 #endif /* STARPU_USE_CUDA */
 
@@ -459,7 +459,7 @@ static void dummy_func_top_cuda(void *descr[] __attribute__((unused)), void *arg
 
 	load_subblock_into_buffer_cuda(descr[0], descr[2], block_size_z);
 	load_subblock_into_buffer_cuda(descr[1], descr[3], block_size_z);
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 
 /* bottom save, CUDA version */
@@ -473,7 +473,7 @@ static void dummy_func_bottom_cuda(void *descr[] __attribute__((unused)), void *
 
 	load_subblock_into_buffer_cuda(descr[0], descr[2], K);
 	load_subblock_into_buffer_cuda(descr[1], descr[3], K);
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif /* STARPU_USE_CUDA */
 

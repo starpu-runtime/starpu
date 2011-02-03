@@ -102,7 +102,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, struct starpu_dat
 
 #ifdef STARPU_USE_CUDA
 	cudaError_t cures;
-	cudaStream_t *stream;
+	cudaStream_t stream;
 #endif
 
 	void *src_interface = src_replicate->interface;
@@ -132,7 +132,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, struct starpu_dat
 				stream = starpu_cuda_get_local_stream();
 				ret = copy_methods->cuda_to_ram_async(src_interface, src_node, dst_interface, dst_node, stream);
 
-				cures = cudaEventRecord(req->async_channel.cuda_event, *stream);
+				cures = cudaEventRecord(req->async_channel.cuda_event, stream);
 				if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 			}
 		}
@@ -157,7 +157,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, struct starpu_dat
 			stream = starpu_cuda_get_local_stream();
 			ret = copy_methods->ram_to_cuda_async(src_interface, src_node, dst_interface, dst_node, stream);
 
-			cures = cudaEventRecord(req->async_channel.cuda_event, *stream);
+			cures = cudaEventRecord(req->async_channel.cuda_event, stream);
 			if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 		}
 		break;

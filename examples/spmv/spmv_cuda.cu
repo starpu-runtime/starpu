@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_cuda.h>
 
 #define MIN(a,b)	((a)<(b)?(a):(b))
 
@@ -95,10 +96,10 @@ extern "C" void spmv_kernel_cuda(void *descr[], void *args)
 	dim3 dimBlock(8, 1);
 	dim3 dimGrid(512, 1);
 
-	spmv_kernel_3<<<dimGrid, dimBlock>>>(nnz, nrow, nzval, colind, rowptr,
-						firstentry, vecin, nx_in, vecout, nx_out);
+	spmv_kernel_3<<<dimGrid, dimBlock, 0, starpu_cuda_get_local_stream()>>>
+		(nnz, nrow, nzval, colind, rowptr, firstentry, vecin, nx_in, vecout, nx_out);
 
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 }
 

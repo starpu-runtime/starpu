@@ -798,9 +798,9 @@ extern "C" void scal_cuda_func(void *buffers[], void *_args)
     unsigned threads_per_block = 64;
     unsigned nblocks = (n + threads_per_block-1) / threads_per_block;
 
-@i{    vector_mult_cuda<<<nblocks,threads_per_block>>>(val, n, *factor);}
+@i{    vector_mult_cuda<<<nblocks,threads_per_block, 0, starpu_cuda_get_local_stream()>>>(val, n, *factor);}
 
-@i{    cudaThreadSynchronize();}
+@i{    cudaStreamSynchronize(starpu_cuda_get_local_stream());}
 @}
 @end smallexample
 @end cartouche
@@ -1278,6 +1278,7 @@ TODO: improve!
 * Task distribution vs Data transfer::
 * Power-based scheduling::
 * Profiling::
+* CUDA-specific optimizations::
 @end menu
 
 Simply encapsulating application kernels into tasks already permits to
@@ -1383,6 +1384,21 @@ stats will include an approximation of the number of executed tasks even if
 execution did happen on accelerators without penalizing performance with
 the profiling overhead. More details on performance feedback are provided by the
 next chapter.
+
+@node CUDA-specific optimizations
+@section CUDA-specific optimizations
+
+Due to CUDA limitations, StarPU will have a hard time overlapping
+communications and computations if the application does not use a dedicated
+CUDA stream for its computations. StarPU provides one by the use of
+@code{starpu_cuda_get_local_stream()}. For instance:
+
+@example
+func <<<grid,block,0,starpu_cuda_get_local_stream()>>> (foo, bar);
+cudaStreamSynchronize(starpu_cuda_get_local_stream());
+@end example
+
+Unfortunately, a lot of cuda libraries do not have stream variants of kernels.
 
 @c ---------------------------------------------------------------------
 @c Performance feedback

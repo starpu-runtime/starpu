@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_cuda.h>
 
 static __global__ void fblock_cuda(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz, float factor)
 {
@@ -38,7 +39,7 @@ extern "C" void cuda_func(void *buffers[], void *_args)
         unsigned ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
 
         /* TODO: use more blocks and threads in blocks */
-        fblock_cuda<<<1,1>>>(block, nx, ny, nz, ldy, ldz, *factor);
+        fblock_cuda<<<1,1, 0, starpu_cuda_get_local_stream()>>>(block, nx, ny, nz, ldy, ldz, *factor);
 
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }

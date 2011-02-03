@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_cuda.h>
 
 static __global__ void _increment_cuda_codelet(unsigned *val)
 {
@@ -25,7 +26,7 @@ extern "C" void increment_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *cl_a
 {
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
-	_increment_cuda_codelet<<<1,1>>>(val);
+	_increment_cuda_codelet<<<1,1, 0, starpu_cuda_get_local_stream()>>>(val);
 
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }

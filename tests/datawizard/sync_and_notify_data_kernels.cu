@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_cuda.h>
 
 /*
  *	increment a (val[0])
@@ -29,9 +30,9 @@ extern "C" void cuda_codelet_incA(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_
 {
 	unsigned *v = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-	_cuda_incA<<<1,1>>>(v);
+	_cuda_incA<<<1,1, 0, starpu_cuda_get_local_stream()>>>(v);
 
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 
 /*
@@ -47,7 +48,7 @@ extern "C" void cuda_codelet_incC(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_
 {
 	unsigned *v = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-	_cuda_incC<<<1,1>>>(v);
+	_cuda_incC<<<1,1, 0, starpu_cuda_get_local_stream()>>>(v);
 
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }

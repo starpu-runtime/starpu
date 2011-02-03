@@ -16,6 +16,7 @@
 
 #include "SobolQRNG/sobol_gpu.h"
 #include "pi.h"
+#include <starpu_cuda.h>
 
 #define MAXNBLOCKS	128
 #define MAXTHREADSPERBLOCK	256
@@ -109,7 +110,7 @@ extern "C" void cuda_kernel(void *descr[], void *cl_arg)
 	STARPU_ASSERT(random_numbers);
 	
 	sobolGPU(2*nx/n_dimensions, n_dimensions, directions, random_numbers);
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 	TYPE *random_numbers_x = &random_numbers[0];
 	TYPE *random_numbers_y = &random_numbers[nx];
@@ -132,14 +133,14 @@ extern "C" void cuda_kernel(void *descr[], void *cl_arg)
 
 	/* each entry of per_block_cnt contains the number of successful shots
 	 * in the corresponding block. */
-	monte_carlo<<<nblocks, nthread_per_block>>>(random_numbers_x, random_numbers_y, nx, per_block_cnt);
+	monte_carlo<<<nblocks, nthread_per_block, 0, starpu_cuda_get_local_stream()>>>(random_numbers_x, random_numbers_y, nx, per_block_cnt);
 
 	/* Note that we do not synchronize between kernel calls because there is an implicit serialization */
 
 	/* compute the total number of successful shots by adding the elements
 	 * of the per_block_cnt array */
-	sum_per_block_cnt<<<1, nblocks>>>(per_block_cnt, cnt);
-	cures = cudaThreadSynchronize();
+	sum_per_block_cnt<<<1, nblocks, 0, starpu_cuda_get_local_stream()>>>(per_block_cnt, cnt);
+	cures = cudaStreamSynchronize(starpu_cuda_get_local_stream());
 	if (cures)
 		STARPU_CUDA_REPORT_ERROR(cures);
 

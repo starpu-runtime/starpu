@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_cuda.h>
 
 static __global__ void _cuda_unsigned_inc(unsigned *val)
 {
@@ -25,7 +26,7 @@ extern "C" void cuda_codelet_unsigned_inc(void *descr[], STARPU_ATTRIBUTE_UNUSED
 {
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
-	_cuda_unsigned_inc<<<1,1>>>(val);
+	_cuda_unsigned_inc<<<1,1, 0, starpu_cuda_get_local_stream()>>>(val);
 
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }

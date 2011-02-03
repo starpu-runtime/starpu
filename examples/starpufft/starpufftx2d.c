@@ -41,7 +41,7 @@ STARPUFFT(twist1_2d_kernel_gpu)(void *descr[], void *_args)
 	_cufftComplex * restrict twisted1 = (_cufftComplex *)STARPU_VECTOR_GET_PTR(descr[1]);
 
 	STARPUFFT(cuda_twist1_2d_host)(in, twisted1, i, j, n1, n2, m1, m2);
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 
 /* Perform an n2,m2 fft */
@@ -67,6 +67,8 @@ STARPUFFT(fft1_2d_kernel_gpu)(void *descr[], void *_args)
 
 	if (!plan->plans[workerid].initialized1) {
 		cures = cufftPlan2d(&plan->plans[workerid].plan1_cuda, n2, m2, _CUFFT_C2C);
+		STARPU_ASSERT(cures == CUFFT_SUCCESS);
+		cufftSetStream(plan->plans[workerid].plan1_cuda, starpu_cuda_get_local_stream());
 
 		STARPU_ASSERT(cures == CUFFT_SUCCESS);
 		plan->plans[workerid].initialized1 = 1;
@@ -78,7 +80,7 @@ STARPUFFT(fft1_2d_kernel_gpu)(void *descr[], void *_args)
 	/* synchronization is done after the twiddling */
 	STARPUFFT(cuda_twiddle_2d_host)(out, roots0, roots1, n2, m2, i, j);
 
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 
 static void
@@ -104,6 +106,8 @@ STARPUFFT(fft2_2d_kernel_gpu)(void *descr[], void *_args)
 
 	if (!plan->plans[workerid].initialized2) {
 		cures = cufftPlan2d(&plan->plans[workerid].plan2_cuda, n1, m1, _CUFFT_C2C);
+		STARPU_ASSERT(cures == CUFFT_SUCCESS);
+		cufftSetStream(plan->plans[workerid].plan2_cuda, starpu_cuda_get_local_stream());
 
 		STARPU_ASSERT(cures == CUFFT_SUCCESS);
 		plan->plans[workerid].initialized2 = 1;
@@ -114,7 +118,7 @@ STARPUFFT(fft2_2d_kernel_gpu)(void *descr[], void *_args)
 		STARPU_ASSERT(cures == CUFFT_SUCCESS);
 	}
 
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 

@@ -30,8 +30,8 @@ static int copy_ram_to_ram(void *src_interface, unsigned src_node __attribute__(
 static int copy_ram_to_cuda(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)));
 static int copy_cuda_to_ram(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)));
 static int copy_cuda_to_cuda(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)));
-static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)), cudaStream_t *stream);
-static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)), cudaStream_t *stream);
+static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)), cudaStream_t stream);
+static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)), cudaStream_t stream);
 #endif
 #ifdef STARPU_USE_OPENCL
 static int copy_ram_to_opencl(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)));
@@ -385,7 +385,7 @@ static int copy_cuda_to_cuda(void *src_interface, unsigned src_node __attribute_
 	return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToDevice);
 }
 
-static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)), cudaStream_t *stream)
+static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)), cudaStream_t stream)
 {
 	starpu_matrix_interface_t *src_matrix = src_interface;
 	starpu_matrix_interface_t *dst_matrix = dst_interface;
@@ -396,7 +396,7 @@ static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node __attri
 	cures = cudaMemcpy2DAsync((char *)dst_matrix->ptr, dst_matrix->ld*elemsize,
 			(char *)src_matrix->ptr, (size_t)src_matrix->ld*elemsize,
 			(size_t)src_matrix->nx*elemsize, src_matrix->ny,
-			cudaMemcpyDeviceToHost, *stream);
+			cudaMemcpyDeviceToHost, stream);
 	if (cures)
 	{
 		cures = cudaMemcpy2D((char *)dst_matrix->ptr, dst_matrix->ld*elemsize,
@@ -415,7 +415,7 @@ static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node __attri
 	return -EAGAIN;
 }
 
-static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)), cudaStream_t *stream)
+static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)), cudaStream_t stream)
 {
 	starpu_matrix_interface_t *src_matrix = src_interface;
 	starpu_matrix_interface_t *dst_matrix = dst_interface;
@@ -426,7 +426,7 @@ static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node __attri
 	cures = cudaMemcpy2DAsync((char *)dst_matrix->ptr, dst_matrix->ld*elemsize,
 				(char *)src_matrix->ptr, src_matrix->ld*elemsize,
 				src_matrix->nx*elemsize, src_matrix->ny,
-				cudaMemcpyHostToDevice, *stream);
+				cudaMemcpyHostToDevice, stream);
 	if (cures)
 	{
 		cures = cudaMemcpy2D((char *)dst_matrix->ptr, dst_matrix->ld*elemsize,

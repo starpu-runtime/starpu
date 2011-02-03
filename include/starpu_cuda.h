@@ -79,7 +79,7 @@ extern "C" {
 		STARPU_CUBLAS_OOPS();					\
 	} while (0)
 
-cudaStream_t *starpu_cuda_get_local_stream(void);
+cudaStream_t starpu_cuda_get_local_stream(void);
 
 #ifdef __cplusplus
 }

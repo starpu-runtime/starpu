@@ -19,6 +19,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_cuda.h>
 
 static __global__ void vector_mult_cuda(float *val, unsigned n,
                                         float factor)
@@ -40,7 +41,7 @@ extern "C" void scal_cuda_func(void *buffers[], void *_args)
 	unsigned threads_per_block = 64;
 	unsigned nblocks = (n + threads_per_block-1) / threads_per_block;
 
-        vector_mult_cuda<<<nblocks,threads_per_block>>>(val, n, *factor);
+        vector_mult_cuda<<<nblocks,threads_per_block,0,starpu_cuda_get_local_stream()>>>(val, n, *factor);
 
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }

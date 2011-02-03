@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <starpu.h>
+#include <starpu_cuda.h>
 
 #define MAXNBLOCKS		32
 #define MAXTHREADSPERBLOCK	128
@@ -45,6 +46,6 @@ extern "C" void cuda_f(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	unsigned nblocks = 128;
 	unsigned nthread_per_block = STARPU_MIN(MAXTHREADSPERBLOCK, (nx / nblocks));
 	
-	increment_vector<<<nblocks, nthread_per_block>>>(v, tmp, nx);
-	cudaThreadSynchronize();
+	increment_vector<<<nblocks, nthread_per_block, 0, starpu_cuda_get_local_stream()>>>(v, tmp, nx);
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
