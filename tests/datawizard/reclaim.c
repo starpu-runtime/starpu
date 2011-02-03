@@ -61,10 +61,10 @@ int main(int argc, char **argv)
 	int task;
 
 #ifdef STARPU_HAVE_HWLOC
-	/* We allocate 75% of the memory */
+	/* We allocate 50% of the memory */
 	uint64_t total_size = get_total_memory_size();
 
-	mb = (int)((0.75 * total_size)/(BLOCK_SIZE));
+	mb = (int)((0.50 * total_size)/(BLOCK_SIZE));
 #endif
 
 	/* An optional argument indicates the number of MB to allocate */
