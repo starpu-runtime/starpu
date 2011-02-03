@@ -86,8 +86,8 @@ void spmv_kernel_opencl(void *descr[], void *args)
 }
 #endif
 
-unsigned nblocks = 2;
-uint32_t size = 4194304;
+unsigned nblocks = 4;
+uint32_t size = 4*1024*1024;
 
 starpu_data_handle sparse_matrix;
 starpu_data_handle vector_in, vector_out;
