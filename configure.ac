@@ -463,6 +463,7 @@ if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
 	# in case OpenCL was explicitely required, but is not available, this is an error
 	if test x$enable_opencl = xyes -a x$have_valid_opencl = no; then
 		AC_MSG_ERROR([cannot find OpenCL])
+                LDFLAGS="${SAVED_LDFLAGS}"
 	fi
 
 	# now we enable OpenCL if and only if a proper setup is available
