@@ -48,9 +48,6 @@ void starpu_unpack_cl_args(void *_cl_arg, ...)
 	}
 
 	va_end(varg_list);
-
-	/* XXX this should not really be done in StarPU but well .... */
-	free(_cl_arg);
 }
 
 void starpu_insert_task(starpu_codelet *cl, ...)
