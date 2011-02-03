@@ -229,8 +229,15 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 
 		if (local_task_length[worker] == -1.0)
 		{
+			/* there is no prediction available for that task
+			 * with that arch yet, we want to speed-up calibration time 
+			 * so we force this measurement */
+			/* XXX assert we are benchmarking ! */
 			forced_best = worker;
 			break;
+		}
+		if (local_task_length[worker] == 0.)
+		{
 		}
 
 		exp_end[worker] = compute_expected_end(worker, local_task_length[worker]);
