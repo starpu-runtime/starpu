@@ -1317,10 +1317,12 @@ transfer to overlap with computations.
 @node Task scheduling policy
 @section Task scheduling policy
 
-By default, StarPU uses a simple greedy scheduler. To improve performance,
+By default, StarPU uses the @code{eager} simple greedy scheduler. This is
+because it provides correct load balance even if the application codelets do not
+have performance models. If your application codelets have performance models,
 you should change the scheduler thanks to the @code{STARPU_SCHED} environment
-variable. For instancel @code{export STARPU_SCHED=dmda} . Use @code{help}
-to get the list of available schedulers.
+variable. For instance @code{export STARPU_SCHED=dmda} . Use @code{help} to get
+the list of available schedulers.
 
 Most schedulers are based on an estimation of codelet duration on each kind
 of processing unit. For this to be possible, the application programmer needs
