@@ -51,10 +51,7 @@
 
 #include <datawizard/datawizard.h>
 
-#define STARPU_CPU_ALPHA	1.0f
-#define STARPU_CUDA_ALPHA	13.33f
-#define STARPU_OPENCL_ALPHA	12.22f
-#define STARPU_GORDON_ALPHA	6.0f /* XXX this is a random value ... */
+#include <starpu_parameters.h>
 
 struct starpu_worker_s {
 	struct starpu_machine_config_s *config;

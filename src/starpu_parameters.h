@@ -33,4 +33,10 @@
  * consider that calibration will provide a value good enough for scheduling */
 #define STARPU_CALIBRATION_MINIMUM 10
 
+/* Assumed relative performance ratios */
+#define STARPU_CPU_ALPHA	1.0f
+#define STARPU_CUDA_ALPHA	13.33f
+#define STARPU_OPENCL_ALPHA	12.22f
+#define STARPU_GORDON_ALPHA	6.0f /* XXX this is a random value ... */
+
 #endif /* _STARPU_PARAMETERS_H */

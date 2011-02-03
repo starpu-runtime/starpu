@@ -108,7 +108,7 @@ double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtyp
 	}
 	else if (perf_archtype < STARPU_NARCH_VARIATIONS) {
 		/* Gordon value */
-		return 1.0;
+		return STARPU_GORDON_ALPHA;
 	}
 
 	STARPU_ABORT();
