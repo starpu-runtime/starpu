@@ -21,6 +21,7 @@
 #include <core/workers.h>
 #include <sched_policies/fifo_queues.h>
 #include <core/perfmodel/perfmodel.h>
+#include <starpu_parameters.h>
 
 static pthread_mutex_t big_lock;
 
@@ -33,8 +34,9 @@ static struct starpu_fifo_taskq_s *queue_array[STARPU_NMAXWORKERS];
 static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
 static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
 
-static double alpha = 1.0;
-static double beta = 1.0;
+static double alpha = STARPU_DEFAULT_ALPHA;
+static double beta = STARPU_DEFAULT_BETA;
+/* TODO: Gamma */
 
 static struct starpu_task *parallel_heft_pop_task(void)
 {

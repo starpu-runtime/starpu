@@ -22,6 +22,7 @@
 #include <core/workers.h>
 #include <sched_policies/fifo_queues.h>
 #include <core/perfmodel/perfmodel.h>
+#include <starpu_parameters.h>
 
 static unsigned nworkers;
 static struct starpu_fifo_taskq_s *queue_array[STARPU_NMAXWORKERS];
@@ -29,9 +30,9 @@ static struct starpu_fifo_taskq_s *queue_array[STARPU_NMAXWORKERS];
 static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
 static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
 
-static double alpha = 1.0;
-static double beta = 1.0;
-static double _gamma = 1000.0;
+static double alpha = STARPU_DEFAULT_ALPHA;
+static double beta = STARPU_DEFAULT_BETA;
+static double _gamma = STARPU_DEFAULT_GAMMA;
 
 #ifdef STARPU_VERBOSE
 static long int total_task_cnt = 0;
