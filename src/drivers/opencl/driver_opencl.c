@@ -291,7 +291,7 @@ void _starpu_opencl_init(void)
         if (!init_done) {
                 cl_platform_id platform_id[STARPU_OPENCL_PLATFORM_MAX];
                 cl_uint nb_platforms;
-                cl_device_type device_type = CL_DEVICE_TYPE_CPU;//CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
+                cl_device_type device_type = CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
                 cl_int err;
                 unsigned int i;
 

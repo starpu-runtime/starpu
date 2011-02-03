@@ -25,7 +25,7 @@
 #include <common/htable32.h>
 #include <util/starpu_insert_task_utils.h>
 
-#define STARPU_MPI_VERBOSE	1
+//#define STARPU_MPI_VERBOSE	1
 #include <starpu_mpi_private.h>
 
 /* Whether we are allowed to keep copies of remote data. Does not work
