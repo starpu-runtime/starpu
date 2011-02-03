@@ -146,6 +146,7 @@ libstarpu_la_SOURCES = 						\
 	sched_policies/fifo_queues.c				\
 	sched_policies/detect_combined_workers.c		\
 	sched_policies/parallel_heft.c				\
+	sched_policies/parallel_greedy.c			\
 	drivers/driver_common/driver_common.c			\
 	datawizard/memory_nodes.c				\
 	datawizard/write_back.c					\
