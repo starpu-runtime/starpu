@@ -27,6 +27,7 @@
 #include <datawizard/datawizard.h>
 #include <core/perfmodel/regression.h>
 #include <common/config.h>
+#include <starpu_parameters.h>
 
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
@@ -113,7 +114,7 @@ static void scan_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
 
 	/* If any of the parameters describing the linear regression model is NaN, the model is invalid */
 	unsigned invalid = (isnan(reg_model->alpha)||isnan(reg_model->beta));
-	reg_model->valid = !invalid;
+	reg_model->valid = !invalid && reg_model->nsample >= STARPU_CALIBRATION_MINIMUM;
 
 	/*
 	 * Non-Linear Regression model
@@ -126,7 +127,7 @@ static void scan_reg_model(FILE *f, struct starpu_regression_model_t *reg_model)
 
 	/* If any of the parameters describing the non-linear regression model is NaN, the model is invalid */
 	unsigned nl_invalid = (isnan(reg_model->a)||isnan(reg_model->b)||isnan(reg_model->c));
-	reg_model->nl_valid = !nl_invalid;
+	reg_model->nl_valid = !nl_invalid && reg_model->nsample >= STARPU_CALIBRATION_MINIMUM;
 }
 
 static void dump_history_entry(FILE *f, struct starpu_history_entry_t *entry)
@@ -649,6 +650,12 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel_t *model,
 
 	exp = entry?entry->mean:-1.0;
 
+	if (entry->nsample < STARPU_CALIBRATION_MINIMUM)
+		/* TODO: report differently if we've scheduled really enough
+		 * of that task and the scheduler should perhaps put it aside */
+		/* Not calibrated enough */
+		return -1.0;
+
 	return exp;
 }
 
@@ -734,6 +741,11 @@ void _starpu_update_perfmodel_history(starpu_job_t j, struct starpu_perfmodel_t 
 
 			reg_model->beta = num/denom;
 			reg_model->alpha = exp((reg_model->sumlny - reg_model->beta*reg_model->sumlnx)/n);
+
+			if (reg_model->nsample >= STARPU_CALIBRATION_MINIMUM) {
+				reg_model->valid = 1;
+				reg_model->nl_valid = 1;
+			}
 		}
 
 #ifdef STARPU_MODEL_DEBUG

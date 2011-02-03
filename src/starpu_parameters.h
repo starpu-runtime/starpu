@@ -29,4 +29,8 @@
 #define STARPU_DEFAULT_BETA 1.0
 #define STARPU_DEFAULT_GAMMA 1000.0
 
+/* How many executions a codelet will have to be measured before we
+ * consider that calibration will provide a value good enough for scheduling */
+#define STARPU_CALIBRATION_MINIMUM 10
+
 #endif /* _STARPU_PARAMETERS_H */
