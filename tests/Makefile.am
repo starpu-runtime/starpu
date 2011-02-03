@@ -532,6 +532,11 @@ parallel_tasks_parallel_kernels_spmd_SOURCES =	\
 	parallel_tasks/parallel_kernels_spmd.c
 
 testbin_PROGRAMS +=				\
+	parallel_tasks/spmd_pgreedy
+parallel_tasks_spmd_pgreedy_SOURCES =	\
+	parallel_tasks/spmd_pgreedy.c
+
+testbin_PROGRAMS +=				\
 	perfmodels/regression_based
 perfmodels_regression_based_SOURCES = 		\
 	perfmodels/regression_based.c
