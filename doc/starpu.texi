@@ -2375,7 +2375,12 @@ variable when it is set.
 @subsection @code{starpu_conf_init} -- Initialize starpu_conf structure
 @table @asis
 
-This function initializes the @code{starpu_conf} structure passed as argument with the default values.
+This function initializes the @code{starpu_conf} structure passed as argument
+with the default values. In case some configuration parameters are already
+specified through environment variables, @code{starpu_conf_init} initializes
+the fields of the structure according to the environment variables. For
+instance if @code{STARPU_CALIBRATE} is set, its value is put in the
+@code{.ncuda} field of the structure passed as argument.
 
 @item @emph{Return value}:
 Upon successful completion, this function returns 0. Otherwise, @code{-EINVAL}

@@ -271,16 +271,20 @@ int starpu_conf_init(struct starpu_conf *conf)
 	if (!conf)
 		return -EINVAL;
 
-	conf->sched_policy_name = NULL;
+	conf->sched_policy_name = getenv("STARPU_SCHED");
 	conf->sched_policy = NULL;
-	conf->ncpus = -1;
-	conf->ncuda = -1;
-	conf->nopencl = -1;
-	conf->nspus = -1;
-	conf->use_explicit_workers_bindid = 0;
-	conf->use_explicit_workers_cuda_gpuid = 0;
-	conf->use_explicit_workers_opencl_gpuid = 0;
-	conf->calibrate = -1;
+
+	/* Note that starpu_get_env_number returns -1 in case the variable is
+	 * not defined */
+	conf->ncpus = starpu_get_env_number("STARPU_NCPUS");
+	conf->ncuda = starpu_get_env_number("STARPU_NCUDA");
+	conf->nopencl = starpu_get_env_number("STARPU_NOPENCL");
+	conf->nspus = starpu_get_env_number("STARPU_NGORDON");
+	conf->calibrate = starpu_get_env_number("STARPU_CALIBRATE");
+
+	conf->use_explicit_workers_bindid = 0; /* TODO */
+	conf->use_explicit_workers_cuda_gpuid = 0; /* TODO */
+	conf->use_explicit_workers_opencl_gpuid = 0; /* TODO */
 
 	return 0;
 };
