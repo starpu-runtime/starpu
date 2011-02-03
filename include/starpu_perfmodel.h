@@ -40,6 +40,7 @@ struct starpu_buffer_descr_t;
 
 enum starpu_perf_archtype {
 	STARPU_CPU_DEFAULT = 0,
+	/* CPU combined workers between 0 and STARPU_NMAXCPUS-1 */
 	STARPU_CUDA_DEFAULT = STARPU_NMAXCPUS,
 	STARPU_OPENCL_DEFAULT = STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS,
 	/* STARPU_OPENCL_DEFAULT + devid */
