@@ -307,6 +307,12 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 	double best_exp_end = 0.0;
 	double model_best = 0.0;
 
+	int ntasks_best = -1;
+	double ntasks_best_end = 0.0;
+
+	/* A priori, we know all estimations */
+	int unknown = 0;
+
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		double exp_end;
@@ -324,19 +330,21 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 		double local_length = starpu_task_expected_length(task, perf_arch);
+		double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
 
-		if (local_length == -1.0) 
-		{
-			/* there is no prediction available for that task
-			 * with that arch yet, we want to speed-up calibration time 
-			 * so we force this measurement */
-			/* XXX assert we are benchmarking ! */
-			best = worker;
-			model_best = 0.0;
-			exp_end = fifo->exp_start + fifo->exp_len;
-			break;
+		if (ntasks_best == -1 || ntasks_end < ntasks_best_end) {
+			ntasks_best_end = ntasks_end;
+			ntasks_best = worker;
 		}
 
+		if (local_length <= 0.0)
+			/* there is no prediction available for that task
+			 * with that arch yet, we want to speed-up calibration time 
+			 * so we switch to distributing tasks greedily */
+			unknown = 1;
+
+		if (unknown)
+			continue;
 
 		exp_end = fifo->exp_start + fifo->exp_len + local_length;
 
@@ -347,6 +355,11 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 			best = worker;
 			model_best = local_length;
 		}
+	}
+
+	if (unknown) {
+		best = ntasks_best;
+		model_best = 0.0;
 	}
 	
 	/* we should now have the best worker in variable "best" */
@@ -375,6 +388,12 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 	double model_best = 0.0;
 	double penality_best = 0.0;
 
+	int ntasks_best = -1;
+	double ntasks_best_end = 0.0;
+
+	/* A priori, we know all estimations */
+	int unknown = 0;
+
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		fifo = queue_array[worker];
@@ -394,15 +413,21 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
 		local_data_penalty[worker] = starpu_data_expected_penalty(memory_node, task);
 
-		if (local_task_length[worker] == -1.0)
-		{
+		double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
+
+		if (ntasks_best == -1 || ntasks_end < ntasks_best_end) {
+			ntasks_best_end = ntasks_end;
+			ntasks_best = worker;
+		}
+
+		if (local_task_length[worker] <= 0.0)
 			/* there is no prediction available for that task
 			 * with that arch yet, we want to speed-up calibration time 
-			 * so we force this measurement */
-			/* XXX assert we are benchmarking ! */
-			forced_best = worker;
-			break;
-		}
+			 * so we switch to distributing tasks greedily */
+			unknown = 1;
+
+		if (unknown)
+			continue;
 
 		exp_end[worker] = fifo->exp_start + fifo->exp_len + local_task_length[worker];
 
@@ -416,6 +441,9 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 		if (local_power[worker] == -1.0)
 			local_power[worker] = 0.;
 	}
+
+	if (unknown)
+		forced_best = ntasks_best;
 
 	double best_fitness = -1;
 	
@@ -453,7 +481,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 		/* there is no prediction available for that task
 		 * with that arch we want to speed-up calibration time
 		 * so we force this measurement */
-		best = worker;
+		best = forced_best;
 		model_best = 0.0;
 		penality_best = 0.0;
 	}

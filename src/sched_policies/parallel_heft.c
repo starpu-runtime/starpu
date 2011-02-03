@@ -182,6 +182,37 @@ static double compute_expected_end(int workerid, double length)
 	}
 }
 
+static double compute_ntasks_end(int workerid)
+{
+	enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(workerid);
+	if (workerid < (int)nworkers)
+	{
+		/* This is a basic worker */
+		struct starpu_fifo_taskq_s *fifo;
+		fifo = queue_array[workerid];
+		return fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
+	}
+	else {
+		/* This is a combined worker, the expected end is the end for the latest worker */
+		int worker_size;
+		int *combined_workerid;
+		starpu_combined_worker_get_description(workerid, &worker_size, &combined_workerid);
+
+		int ntasks_end;
+
+		int i;
+		for (i = 0; i < worker_size; i++)
+		{
+			struct starpu_fifo_taskq_s *fifo;
+			fifo = queue_array[combined_workerid[i]];
+			/* XXX: this is actually bogus: not all pushed tasks are necessarily parallel... */
+			ntasks_end = STARPU_MAX(ntasks_end, fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch));
+		}
+
+		return ntasks_end;
+	}
+}
+
 static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 {
 	/* find the queue */
@@ -203,6 +234,12 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 	double best_exp_end = DBL_MAX;
 	double model_best = 0.0;
 	double penality_best = 0.0;
+
+	int ntasks_best = -1;
+	double ntasks_best_end = 0.0;
+
+	/* A priori, we know all estimations */
+	int unknown = 0;
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
@@ -229,18 +266,21 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
 		local_data_penalty[worker] = starpu_data_expected_penalty(memory_node, task);
 
-		if (local_task_length[worker] == -1.0)
-		{
+		double ntasks_end = compute_ntasks_end(worker);
+
+		if (ntasks_best == -1 || ntasks_end < ntasks_best_end) {
+			ntasks_best_end = ntasks_end;
+			ntasks_best = worker;
+		}
+
+		if (local_task_length[worker] <= 0.0)
 			/* there is no prediction available for that task
 			 * with that arch yet, we want to speed-up calibration time 
-			 * so we force this measurement */
-			/* XXX assert we are benchmarking ! */
-			forced_best = worker;
-			break;
-		}
-		if (local_task_length[worker] == 0.)
-		{
-		}
+			 * so we switch to distributing tasks greedily */
+			unknown = 1;
+
+		if (unknown)
+			continue;
 
 		exp_end[worker] = compute_expected_end(worker, local_task_length[worker]);
 
@@ -250,6 +290,9 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 			best_exp_end = exp_end[worker];
 		}
 	}
+
+	if (unknown)
+		forced_best = ntasks_best;
 
 	double best_fitness = -1;
 	
@@ -283,7 +326,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 		/* there is no prediction available for that task
 		 * with that arch we want to speed-up calibration time
 		 * so we force this measurement */
-		best = worker;
+		best = forced_best;
 		model_best = 0.0;
 		penality_best = 0.0;
 	}
