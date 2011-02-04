@@ -121,6 +121,24 @@ examples_mpi_lu_plu_example_double_SOURCES =	\
 	$(top_srcdir)/examples/common/blas.c
 endif
 
+########################
+# MPI Cholesky example #
+########################
+
+if !NO_BLAS_LIB
+examplebin_PROGRAMS +=		\
+	examples/cholesky/mpi_cholesky
+
+examples_cholesky_mpi_cholesky_SOURCES	=		\
+	examples/cholesky/mpi_cholesky.c		\
+	examples/cholesky/mpi_cholesky_models.c		\
+	examples/cholesky/mpi_cholesky_kernels.c	\
+	$(top_srcdir)/examples/common/blas.c
+
+examples_cholesky_mpi_cholesky_LDADD =	\
+	libstarpumpi.la
+endif
+
 check_PROGRAMS +=					\
 	tests/pingpong					\
 	tests/mpi_test					\
