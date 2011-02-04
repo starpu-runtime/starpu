@@ -320,8 +320,9 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 		
 		fifo = queue_array[worker];
 
+		/* Sometimes workers didn't take the tasks as early as we expected */
 		fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
-		fifo->exp_end = STARPU_MAX(fifo->exp_end, starpu_timing_now());
+		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 		if (!starpu_worker_may_execute_task(worker, task))
 		{
@@ -409,8 +410,9 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 	{
 		fifo = queue_array[worker];
 
+		/* Sometimes workers didn't take the tasks as early as we expected */
 		fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
-		fifo->exp_end = STARPU_MAX(fifo->exp_end, starpu_timing_now());
+		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 		if (!starpu_worker_may_execute_task(worker, task))
 		{
@@ -595,6 +597,7 @@ static void deinitialize_dmda_policy(struct starpu_machine_topology_s *topology,
 	_STARPU_DEBUG("total_task_cnt %ld ready_task_cnt %ld -> %f\n", total_task_cnt, ready_task_cnt, (100.0f*ready_task_cnt)/total_task_cnt);
 }
 
+/* TODO: use post_exec_hook to fix the expected start */
 struct starpu_sched_policy_s _starpu_sched_dm_policy = {
 	.init_sched = initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,

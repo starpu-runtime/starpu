@@ -246,8 +246,9 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 	{
 		fifo = queue_array[worker];
 
+		/* Sometimes workers didn't take the tasks as early as we expected */
 		fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
-		fifo->exp_end = STARPU_MAX(fifo->exp_end, starpu_timing_now());
+		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 	}
 
 	for (worker = 0; worker < (nworkers+ncombinedworkers); worker++)
@@ -424,6 +425,7 @@ static void deinitialize_parallel_heft_policy(struct starpu_machine_topology_s *
 		_starpu_destroy_fifo(queue_array[workerid]);
 }
 
+/* TODO: use post_exec_hook to fix the expected start */
 struct starpu_sched_policy_s _starpu_sched_parallel_heft_policy = {
 	.init_sched = initialize_parallel_heft_policy,
 	.deinit_sched = deinitialize_parallel_heft_policy,
