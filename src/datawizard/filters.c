@@ -128,6 +128,7 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 		STARPU_ASSERT(child);
 
 		child->nchildren = 0;
+                child->rank = initial_handle->rank;
 		child->root_handle = initial_handle->root_handle;
 		child->father_handle = initial_handle;
 		child->sibling_index = i;
