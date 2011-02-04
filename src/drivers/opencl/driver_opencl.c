@@ -162,11 +162,8 @@ cl_int _starpu_opencl_allocate_memory(void **addr, size_t size, cl_mem_flags fla
         struct starpu_worker_s *worker = _starpu_get_local_worker_key();
 
 	address = clCreateBuffer(contexts[worker->devid], flags, size, NULL, &err);
-	if (err != CL_SUCCESS)
-        {
-                STARPU_OPENCL_DISPLAY_ERROR(err);
-                return err;
-        }
+	if (err == CL_OUT_OF_HOST_MEMORY) return err;
+        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         *addr = address;
         return CL_SUCCESS;
