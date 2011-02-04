@@ -19,7 +19,7 @@
 
 void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	unsigned *matrix = (unsigned **)STARPU_MATRIX_GET_PTR(descr[0]);
+	unsigned *matrix = (unsigned *)STARPU_MATRIX_GET_PTR(descr[0]);
 	int nx = (int)STARPU_MATRIX_GET_NX(descr[0]);
 	int ny = (int)STARPU_MATRIX_GET_NY(descr[0]);
 	int ld = (int)STARPU_MATRIX_GET_LD(descr[0]);
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 {
         int rank, size, x, y, loop;
         int value=0;
-        unsigned matrix[SIZE][SIZE];
+        unsigned matrix[SIZE*SIZE];
         starpu_data_handle data_handles[SIZE][SIZE];
 
 	starpu_init(NULL);
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 
         for(x = 0; x < SIZE; x++) {
                 for (y = 0; y < SIZE; y++) {
-                        matrix[x][y] = rank*100 + value;
+                        matrix[x+y*SIZE] = rank*100 + value;
                         value++;
                 }
         }
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
         for(x = 0; x < SIZE; x++) {
                 fprintf(stdout, "[%d] ", rank);
                 for (y = 0; y < SIZE; y++) {
-                        fprintf(stdout, "%3d ", matrix[x][y]);
+                        fprintf(stdout, "%3d ", matrix[x+y*SIZE]);
                 }
                 fprintf(stdout, "\n");
         }
@@ -85,13 +85,13 @@ int main(int argc, char **argv)
                         int mpi_rank = my_distrib(x, y, size);
                         if (mpi_rank == rank) {
                                 //fprintf(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
-                                starpu_matrix_data_register(&data_handles[x][y], 0, (uintptr_t)&(matrix[(SIZE/BLOCKS)*x][(SIZE/BLOCKS)*y]),
+                                starpu_matrix_data_register(&data_handles[x][y], 0, (uintptr_t)&(matrix[((SIZE/BLOCKS)*x) + ((SIZE/BLOCKS)*y) * SIZE]),
                                                             SIZE, SIZE/BLOCKS, SIZE/BLOCKS, sizeof(float));
                         }
                         else if (rank == mpi_rank+1 || rank == mpi_rank-1) {
                                 /* I don't own that index, but will need it for my computations */
                                 //fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
-                                starpu_matrix_data_register(&data_handles[x][y], -1, (uintptr_t)&(matrix[(SIZE/BLOCKS)*x][(SIZE/BLOCKS)*y]),
+                                starpu_matrix_data_register(&data_handles[x][y], -1, (uintptr_t)&(matrix[((SIZE/BLOCKS)*x) + ((SIZE/BLOCKS)*y) * SIZE]),
                                                             SIZE, SIZE/BLOCKS, SIZE/BLOCKS, sizeof(float));
                         }
                         else {
@@ -120,6 +120,7 @@ int main(int argc, char **argv)
                                 starpu_data_release(data_handles[x][y]);
                 }
         }
+
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
@@ -127,7 +128,7 @@ int main(int argc, char **argv)
         for(x = 0; x < SIZE; x++) {
                 fprintf(stdout, "[%d] ", rank);
                 for (y = 0; y < SIZE; y++) {
-                        fprintf(stdout, "%3d ", matrix[x][y]);
+                        fprintf(stdout, "%3d ", matrix[x+y*SIZE]);
                 }
                 fprintf(stdout, "\n");
         }
