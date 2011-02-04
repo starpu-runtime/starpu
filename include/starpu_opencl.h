@@ -25,7 +25,7 @@
 extern "C" {
 #endif
 
-#define STARPU_OPENCL_REPORT_ERROR(status)                                     \
+#define STARPU_OPENCL_DISPLAY_ERROR(status)                                     \
 	do {                                                            \
 		char *errormsg;                                         \
 		switch (status) {                                       \
@@ -172,6 +172,11 @@ extern "C" {
 			break;			                        \
 		}                                                       \
 		printf("oops in %s ... <%s> (%d) \n", __func__, errormsg, status); \
+	} while (0)
+
+#define STARPU_OPENCL_REPORT_ERROR(status)                                     \
+	do {                                                            \
+        	STARPU_OPENCL_DISPLAY_ERROR(status);			\
 		assert(0);	                                        \
 	} while (0)
 
