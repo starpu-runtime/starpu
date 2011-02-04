@@ -116,9 +116,13 @@ void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model,
 void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch,
 		char *archname, size_t maxlen);
 int starpu_list_models(void);
+/* Returns expected task duration in µs */
 double starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_archtype arch);
+/* Returns an estimated speedup factor relative to CPU speed */
 double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtype);
+/* Returns expected data transfer time in µs */
 double starpu_data_expected_penalty(uint32_t memory_node, struct starpu_task *task);
+/* Returns expected power consumption in J */
 double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_archtype arch);
 
 void starpu_force_bus_sampling(void);

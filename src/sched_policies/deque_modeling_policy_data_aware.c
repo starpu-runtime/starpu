@@ -33,6 +33,7 @@ static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
 static double alpha = STARPU_DEFAULT_ALPHA;
 static double beta = STARPU_DEFAULT_BETA;
 static double _gamma = STARPU_DEFAULT_GAMMA;
+static double idle_power = 0.0;
 
 #ifdef STARPU_VERBOSE
 static long int total_task_cnt = 0;
@@ -392,6 +393,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 	double local_data_penalty[nworkers];
 	double local_power[nworkers];
 	double exp_end[nworkers];
+	double max_exp_end = 0.0;
 
 	double fitness[nworkers];
 
@@ -413,6 +415,8 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 		/* Sometimes workers didn't take the tasks as early as we expected */
 		fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
+		if (fifo->exp_end > max_exp_end)
+			max_exp_end = fifo->exp_end;
 
 		if (!starpu_worker_may_execute_task(worker, task))
 		{
@@ -484,6 +488,12 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 			fitness[worker] = alpha*(exp_end[worker] - best_exp_end) 
 					+ beta*(local_data_penalty[worker])
 					+ _gamma*(local_power[worker]);
+
+			if (exp_end[worker] > max_exp_end)
+				/* This placement will make the computation
+				 * longer, take into account the idle
+				 * consumption of other cpus */
+				fitness[worker] += _gamma * idle_power * (exp_end[worker] - max_exp_end) / 1000000.0;
 
 			if (best == -1 || fitness[worker] < best_fitness)
 			{
@@ -564,6 +574,10 @@ static void initialize_dmda_policy(struct starpu_machine_topology_s *topology,
 	const char *strval_gamma = getenv("STARPU_SCHED_GAMMA");
 	if (strval_gamma)
 		_gamma = atof(strval_gamma);
+
+	const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
+	if (strval_idle_power)
+		idle_power = atof(strval_idle_power);
 
 	unsigned workerid;
 	for (workerid = 0; workerid < nworkers; workerid++)

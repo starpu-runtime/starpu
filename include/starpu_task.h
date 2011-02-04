@@ -75,7 +75,10 @@ typedef struct starpu_codelet_t {
 	/* how many buffers do the codelet takes as argument ? */
 	unsigned nbuffers;
 
+	/* performance model of the codelet */
 	struct starpu_perfmodel_t *model;
+	/* consumption model of the codelet.
+	 * In the case of parallel codelets, accounts for all units. */
 	struct starpu_perfmodel_t *power_model;
 
 	/* statistics collected at runtime: this is filled by StarPU and should

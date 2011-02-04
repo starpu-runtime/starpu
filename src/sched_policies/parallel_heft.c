@@ -36,7 +36,8 @@ static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
 
 static double alpha = STARPU_DEFAULT_ALPHA;
 static double beta = STARPU_DEFAULT_BETA;
-/* TODO: Gamma */
+static double _gamma = STARPU_DEFAULT_GAMMA;
+static double idle_power = 0.0;
 
 static struct starpu_task *parallel_heft_pop_task(void)
 {
@@ -226,8 +227,11 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 
 	double local_task_length[nworkers+ncombinedworkers];
 	double local_data_penalty[nworkers+ncombinedworkers];
+	double local_power[nworkers+ncombinedworkers];
 	double exp_end[nworkers+ncombinedworkers];
 	double fitness[nworkers+ncombinedworkers];
+
+	double max_exp_end = 0.0;
 
 	int skip_worker[nworkers+ncombinedworkers];
 
@@ -249,6 +253,8 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 		/* Sometimes workers didn't take the tasks as early as we expected */
 		fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
+		if (fifo->exp_end > max_exp_end)
+			max_exp_end = fifo->exp_end;
 	}
 
 	for (worker = 0; worker < (nworkers+ncombinedworkers); worker++)
@@ -301,6 +307,10 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 			/* a better solution was found */
 			best_exp_end = exp_end[worker];
 		}
+
+		local_power[worker] = starpu_task_expected_power(task, perf_arch);
+		if (local_power[worker] == -1.0)
+			local_power[worker] = 0.;
 	}
 
 	if (unknown)
@@ -320,7 +330,14 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 			}
 	
 			fitness[worker] = alpha*(exp_end[worker] - best_exp_end) 
-					+ beta*(local_data_penalty[worker]);
+					+ beta*(local_data_penalty[worker])
+					+ _gamma*(local_power[worker]);
+
+			if (exp_end[worker] > max_exp_end)
+				/* This placement will make the computation
+				 * longer, take into account the idle
+				 * consumption of other cpus */
+				fitness[worker] += _gamma * idle_power * (exp_end[worker] - max_exp_end) / 1000000.0;
 
 			if (best == -1 || fitness[worker] < best_fitness)
 			{
@@ -377,6 +394,14 @@ static void initialize_parallel_heft_policy(struct starpu_machine_topology_s *to
 	const char *strval_beta = getenv("STARPU_SCHED_BETA");
 	if (strval_beta)
 		beta = atof(strval_beta);
+
+	const char *strval_gamma = getenv("STARPU_SCHED_GAMMA");
+	if (strval_gamma)
+		_gamma = atof(strval_gamma);
+
+	const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
+	if (strval_idle_power)
+		idle_power = atof(strval_idle_power);
 
 	_starpu_sched_find_worker_combinations(topology);
 

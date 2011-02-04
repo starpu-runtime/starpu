@@ -1381,6 +1381,13 @@ is the estimated task consumption in Joules. To tune this parameter, use
 (i.e kW during 1000us) is worth 3000us execution time penalty. Setting
 alpha and beta to zero permits to only take into account power consumption.
 
+This is however not sufficient to correctly optimize power: the scheduler would
+simply tend to run all computations on the most energy-conservative processing
+unit. To account for the consumption of the whole machine (including idle
+processing units), the idle power of the machine should be given by setting
+@code{export STARPU_IDLE_POWER=200} for 200W, for instance. This value can often
+be obtained from the machine power supplier.
+
 The power actually consumed by the total execution can be displayed by setting
 @code{export STARPU_PROFILING=1 STARPU_WORKER_STATS=1} .
 
@@ -3198,11 +3205,17 @@ not be above @code{STARPU_NMAXBUFS}.
 
 @item @code{model} (optional):
 This is a pointer to the task duration performance model associated to this
-codelet. This optional field is ignored when set to @code{NULL}. TODO
+codelet. This optional field is ignored when set to @code{NULL}.
+
+TODO
 
 @item @code{power_model} (optional):
 This is a pointer to the task power consumption performance model associated
-to this codelet. This optional field is ignored when set to @code{NULL}. TODO
+to this codelet. This optional field is ignored when set to @code{NULL}.
+In the case of parallel codelets, this has to account for all processing units
+involved in the parallel execution.
+
+TODO
 
 @end table
 @end table
