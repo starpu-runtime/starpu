@@ -86,13 +86,13 @@ int main(int argc, char **argv)
                         if (mpi_rank == rank) {
                                 //fprintf(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
                                 starpu_matrix_data_register(&data_handles[x][y], 0, (uintptr_t)&(matrix[((SIZE/BLOCKS)*x) + ((SIZE/BLOCKS)*y) * SIZE]),
-                                                            SIZE, SIZE/BLOCKS, SIZE/BLOCKS, sizeof(float));
+                                                            SIZE, SIZE/BLOCKS, SIZE/BLOCKS, sizeof(unsigned));
                         }
                         else if (rank == mpi_rank+1 || rank == mpi_rank-1) {
                                 /* I don't own that index, but will need it for my computations */
                                 //fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
                                 starpu_matrix_data_register(&data_handles[x][y], -1, (uintptr_t)&(matrix[((SIZE/BLOCKS)*x) + ((SIZE/BLOCKS)*y) * SIZE]),
-                                                            SIZE, SIZE/BLOCKS, SIZE/BLOCKS, sizeof(float));
+                                                            SIZE, SIZE/BLOCKS, SIZE/BLOCKS, sizeof(unsigned));
                         }
                         else {
                                 /* I know it's useless to allocate anything for this */
