@@ -153,6 +153,7 @@ check_PROGRAMS +=					\
 	tests/block_interface				\
 	tests/block_interface_pinned			\
 	tests/insert_task				\
+	tests/insert_task_cache				\
 	tests/insert_task_block				\
 	tests/multiple_send
 
@@ -170,6 +171,7 @@ testbin_PROGRAMS =				\
 	tests/block_interface				\
 	tests/block_interface_pinned			\
 	tests/insert_task				\
+	tests/insert_task_cache				\
 	tests/insert_task_block				\
 	tests/multiple_send
 
@@ -250,6 +252,12 @@ tests_insert_task_LDADD =				\
 
 tests_insert_task_SOURCES =				\
 	tests/insert_task.c
+
+tests_insert_task_cache_LDADD =				\
+	libstarpumpi.la
+
+tests_insert_task_cache_SOURCES =			\
+	tests/insert_task_cache.c
 
 tests_insert_task_block_LDADD =				\
 	libstarpumpi.la

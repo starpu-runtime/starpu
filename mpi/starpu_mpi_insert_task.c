@@ -25,7 +25,7 @@
 #include <common/htable32.h>
 #include <util/starpu_insert_task_utils.h>
 
-//#define STARPU_MPI_VERBOSE	1
+#define STARPU_MPI_VERBOSE	1
 #include <starpu_mpi_private.h>
 
 /* Whether we are allowed to keep copies of remote data. Does not work
@@ -157,6 +157,9 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                                                 dest = mpi_rank;
                                                 /* That's the rank which needs the data to be sent to */
                                         }
+                                }
+                                else {
+                                        _STARPU_ERROR("rank invalid\n");
                                 }
                         }
                 }
