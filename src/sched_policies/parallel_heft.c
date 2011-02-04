@@ -372,7 +372,7 @@ static void initialize_parallel_heft_policy(struct starpu_machine_topology_s *to
 
 	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
 	if (strval_alpha)
-		beta = atof(strval_alpha);
+		alpha = atof(strval_alpha);
 
 	const char *strval_beta = getenv("STARPU_SCHED_BETA");
 	if (strval_beta)
