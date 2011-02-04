@@ -650,7 +650,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel_t *model,
 
 	exp = entry?entry->mean:-1.0;
 
-	if (entry->nsample < STARPU_CALIBRATION_MINIMUM)
+	if (entry && entry->nsample < STARPU_CALIBRATION_MINIMUM)
 		/* TODO: report differently if we've scheduled really enough
 		 * of that task and the scheduler should perhaps put it aside */
 		/* Not calibrated enough */
