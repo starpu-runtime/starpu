@@ -201,7 +201,25 @@ static struct starpu_codelet_t init_codelet = {
         .nbuffers = 1
 };
 
-void redux_cpu_func(void *descr[], void *cl_arg)
+#ifdef STARPU_HAVE_CURAND
+/* Dummy implementation of the addition of two unsigned longs in CUDA */
+static void redux_cuda_func(void *descr[], void *cl_arg)
+{
+	unsigned long *d_a = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	unsigned long *d_b = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[1]);
+
+	unsigned long h_a, h_b;
+	
+	cudaMemcpy(&h_a, d_a, sizeof(h_a), cudaMemcpyDeviceToHost);
+	cudaMemcpy(&h_b, d_b, sizeof(h_b), cudaMemcpyDeviceToHost);
+
+	h_a += h_b;
+
+	cudaMemcpy(d_a, &h_a, sizeof(h_a), cudaMemcpyHostToDevice);
+};
+#endif
+
+static void redux_cpu_func(void *descr[], void *cl_arg)
 {
 	unsigned long *a = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned long *b = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[1]);
@@ -210,8 +228,15 @@ void redux_cpu_func(void *descr[], void *cl_arg)
 };
 
 static struct starpu_codelet_t redux_codelet = {
-	.where = STARPU_CPU,
+	.where =
+#ifdef STARPU_HAVE_CURAND
+		STARPU_CUDA|
+#endif
+		STARPU_CPU,
 	.cpu_func = redux_cpu_func,
+#ifdef STARPU_HAVE_CURAND
+	.cuda_func = redux_cuda_func,
+#endif
 	.nbuffers = 2
 };
 
