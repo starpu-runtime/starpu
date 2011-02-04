@@ -1274,6 +1274,7 @@ TODO: improve!
 
 @menu
 * Data management::
+* Task submission::
 * Task scheduling policy::
 * Task distribution vs Data transfer::
 * Power-based scheduling::
@@ -1313,6 +1314,15 @@ When the application allocates data, whenever possible it should use the
 OpenCL to make the allocation itself and pin the corresponding allocated
 memory. This is needed to permit asynchronous data transfer, i.e. permit data
 transfer to overlap with computations.
+
+@node Task submission
+@section Task submission
+
+To let StarPU make online optimizations, tasks should be submitted
+asynchronously as much as possible. Ideally, all the tasks should be
+submitted, and a mere @code{starpu_task_wait_for_all} call be done to wait for
+termination. StarPU will then be able to rework the whole schedule, overlap
+computation with communication, manage accelerator local memory usage, etc.
 
 @node Task scheduling policy
 @section Task scheduling policy
