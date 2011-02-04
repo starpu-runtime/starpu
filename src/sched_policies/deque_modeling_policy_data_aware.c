@@ -309,6 +309,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 
 	int ntasks_best = -1;
 	double ntasks_best_end = 0.0;
+	int calibrating = 0;
 
 	/* A priori, we know all estimations */
 	int unknown = 0;
@@ -332,15 +333,24 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 		double local_length = starpu_task_expected_length(task, perf_arch);
 		double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
 
-		if (ntasks_best == -1 || ntasks_end < ntasks_best_end) {
+		if (ntasks_best == -1
+				|| (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
+				|| (!calibrating && local_length == -1.0) /* Not calibrating but this worker is being calibrated */
+				|| (calibrating && local_length == -1.0 && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
+				) {
 			ntasks_best_end = ntasks_end;
 			ntasks_best = worker;
 		}
 
+		if (local_length == -1.0)
+			/* we are calibrating, we want to speed-up calibration time
+			 * so we privilege non-calibrated tasks (but still
+			 * greedily distribute them to avoid dumb schedules) */
+			calibrating = 1;
+
 		if (local_length <= 0.0)
 			/* there is no prediction available for that task
-			 * with that arch yet, we want to speed-up calibration time 
-			 * so we switch to distributing tasks greedily */
+			 * with that arch yet, so switch to a greedy strategy */
 			unknown = 1;
 
 		if (unknown)
@@ -390,6 +400,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 
 	int ntasks_best = -1;
 	double ntasks_best_end = 0.0;
+	int calibrating = 0;
 
 	/* A priori, we know all estimations */
 	int unknown = 0;
@@ -415,15 +426,24 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 
 		double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
 
-		if (ntasks_best == -1 || ntasks_end < ntasks_best_end) {
+		if (ntasks_best == -1
+				|| (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
+				|| (!calibrating && local_task_length[worker] == -1.0) /* Not calibrating but this worker is being calibrated */
+				|| (calibrating && local_task_length[worker] == -1.0 && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
+				) {
 			ntasks_best_end = ntasks_end;
 			ntasks_best = worker;
 		}
 
+		if (local_task_length[worker] == -1.0)
+			/* we are calibrating, we want to speed-up calibration time
+			 * so we privilege non-calibrated tasks (but still
+			 * greedily distribute them to avoid dumb schedules) */
+			calibrating = 1;
+
 		if (local_task_length[worker] <= 0.0)
 			/* there is no prediction available for that task
-			 * with that arch yet, we want to speed-up calibration time 
-			 * so we switch to distributing tasks greedily */
+			 * with that arch yet, so switch to a greedy strategy */
 			unknown = 1;
 
 		if (unknown)

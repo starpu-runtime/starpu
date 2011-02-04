@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -237,6 +237,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 
 	int ntasks_best = -1;
 	double ntasks_best_end = 0.0;
+	int calibrating = 0;
 
 	/* A priori, we know all estimations */
 	int unknown = 0;
@@ -244,6 +245,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		fifo = queue_array[worker];
+
 		fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
 		fifo->exp_end = STARPU_MAX(fifo->exp_end, starpu_timing_now());
 	}
@@ -268,15 +270,24 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 
 		double ntasks_end = compute_ntasks_end(worker);
 
-		if (ntasks_best == -1 || ntasks_end < ntasks_best_end) {
+		if (ntasks_best == -1
+				|| (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
+				|| (!calibrating && local_task_length[worker] == -1.0) /* Not calibrating but this worker is being calibrated */
+				|| (calibrating && local_task_length[worker] == -1.0 && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
+				) {
 			ntasks_best_end = ntasks_end;
 			ntasks_best = worker;
 		}
 
+		if (local_task_length[worker] == -1.0)
+			/* we are calibrating, we want to speed-up calibration time
+			 * so we privilege non-calibrated tasks (but still
+			 * greedily distribute them to avoid dumb schedules) */
+			calibrating = 1;
+
 		if (local_task_length[worker] <= 0.0)
 			/* there is no prediction available for that task
-			 * with that arch yet, we want to speed-up calibration time 
-			 * so we switch to distributing tasks greedily */
+			 * with that arch yet, so switch to a greedy strategy */
 			unknown = 1;
 
 		if (unknown)
