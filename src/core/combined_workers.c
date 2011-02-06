@@ -15,6 +15,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <stdlib.h> // for qsort
+
 #include <starpu.h>
 #include <common/config.h>
 #include <core/workers.h>
@@ -31,6 +33,19 @@
 #define hwloc_bitmap_or hwloc_cpuset_or
 #endif
 
+static int compar_int(const void *pa, const void *pb)
+{
+	int a = *((int *)pa);
+	int b = *((int *)pb);
+
+	return a > b;
+}
+
+static void sort_workerid_array(int nworkers, int workerid_array[])
+{
+	qsort(workerid_array, nworkers, sizeof(int), compar_int);
+}
+
 /* Create a new worker id for a combination of workers. This method should
  * typically be called at the initialization of the scheduling policy. This
  * worker should be the combination of the list of id's contained in the
@@ -46,6 +61,9 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 
 	int basic_worker_count = (int)config->topology.nworkers;
 	int combined_worker_id = (int)config->topology.ncombinedworkers;
+
+	/* We sort the ids */
+	sort_workerid_array(nworkers, workerid_array);
 
 	/* Test that all workers are not combined workers already. */
 	int i;
