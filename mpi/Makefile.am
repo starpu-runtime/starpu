@@ -35,7 +35,9 @@ EXTRA_DIST = 					\
 	examples/mpi_lu/pxlu.h			\
 	examples/mpi_lu/pxlu.c			\
 	examples/mpi_lu/pxlu_kernels.h		\
-	examples/mpi_lu/pxlu_kernels.c
+	examples/mpi_lu/pxlu_kernels.c		\
+	examples/cholesky/mpi_cholesky.h	\
+	examples/cholesky/mpi_cholesky_models.h
 
 examplebindir = $(libdir)/starpu/mpi/examples/
 testbindir = $(libdir)/starpu/mpi/tests/
