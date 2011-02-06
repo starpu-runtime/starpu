@@ -207,26 +207,21 @@ static struct starpu_task *pop_task_pgreedy_policy(void)
 			PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
 			PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
 
-			struct starpu_task *master_alias;
-
-			for (i = 0; i < worker_size; i++)
+			/* Dispatch task aliases to the different slaves */
+			for (i = 1; i < worker_size; i++)
 			{
 				struct starpu_task *alias = _starpu_create_task_alias(task);
 				int local_worker = combined_workerid[i];
 
-				if (i > 0)
-				{
-			//		fprintf(stderr, "push alias for rank i %d in fifo %p\n", i, local_fifo[local_worker]);
-					_starpu_fifo_push_task(local_fifo[local_worker], &master_sched_mutex[master], &master_sched_cond[master], alias);
-				}
-				else {
-					master_alias = alias;
-				}
+				_starpu_fifo_push_task(local_fifo[local_worker],
+					&master_sched_mutex[master],
+					&master_sched_cond[master], alias);
 			}
 
+			/* The master also manipulated an alias */
+			struct starpu_task *master_alias = _starpu_create_task_alias(task);
 			return master_alias;
 		}
-
 	}
 	else {
 		/* The worker is a slave */
