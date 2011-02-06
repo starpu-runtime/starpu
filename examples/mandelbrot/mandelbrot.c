@@ -233,7 +233,8 @@ static void compute_block_opencl(void *descr[], void *cl_arg)
 {
 	int iby, block_size;
 	double stepX, stepY;
-	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY);
+	int *pcnt; // unused for CUDA tasks
+	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
 
 	cl_mem data = (cl_mem)STARPU_VECTOR_GET_PTR(descr[0]);
 
@@ -277,7 +278,8 @@ static void compute_block(void *descr[], void *cl_arg)
 
 	int iby, block_size;
 	double stepX, stepY;
-	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY);
+	int *pcnt; // unused for sequential tasks
+	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
 
 	unsigned *data = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 
@@ -317,23 +319,28 @@ static void compute_block(void *descr[], void *cl_arg)
 
 static void compute_block_spmd(void *descr[], void *cl_arg)
 {
-	int ix, iy;
 
 	int iby, block_size;
 	double stepX, stepY;
-	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY);
+	int *pcnt;
+	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
 
 	int size = starpu_combined_worker_get_size();
 	int rank = starpu_combined_worker_get_rank();
 
 	unsigned *data = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-	int local_block_size = block_size/size;
+	int ix, iy; // global coordinates
+	int local_iy; // current line
 
-	int local_iy;
-	for (local_iy = rank*local_block_size; local_iy < (rank + 1)*local_block_size; local_iy++)
+	while (1)
 	{
+		local_iy = STARPU_ATOMIC_ADD(pcnt, 1);
+		if (local_iy >= size)
+			break;
+
 		iy = iby*block_size + local_iy;
+	
 		for (ix = 0; ix < width; ix++)
 		{
 			double cx = leftX + ix * stepX;
@@ -493,14 +500,24 @@ int main(int argc, char **argv)
 		double stepX = (rightX - leftX)/width;
 		double stepY = (topY - bottomY)/height;
 
+		/* In case we have a SPMD task, each worker will grab tasks in
+		 * a greedy and select which piece of image to compute by
+		 * incrementing a counter shared by all the workers within the
+		 * parallel task. */
+		int per_block_cnt[nblocks];
+
 		for (iby = 0; iby < nblocks; iby++)
 		{
+			per_block_cnt[iby] = 0;
+			int *pcnt = &per_block_cnt[iby];
+
 			starpu_insert_task(use_spmd?&spmd_mandelbrot_cl:&mandelbrot_cl,
 				STARPU_VALUE, &iby, sizeof(iby),
 				STARPU_VALUE, &block_size, sizeof(block_size),
 				STARPU_VALUE, &stepX, sizeof(stepX),
 				STARPU_VALUE, &stepY, sizeof(stepY),
 				STARPU_W, block_handles[iby],
+				STARPU_VALUE, &pcnt, sizeof(int *),
 				0);
 		}
 
