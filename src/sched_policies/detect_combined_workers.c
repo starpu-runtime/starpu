@@ -19,9 +19,91 @@
 #include <common/utils.h>
 #include <core/workers.h>
 
-void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *topology)
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#endif
+
+#ifdef STARPU_HAVE_HWLOC
+/* This function returns 1 the subtree induced by obj only contains CPU
+ * workers, otherwise 0 is returned. This function registers all valid worker
+ * combination below obj. The id of the CPU workers are put in the worker_array
+ * and their count is put in the worker_cnt pointer. */
+static int find_combinations_with_hwloc_rec(hwloc_obj_t obj, int *worker_array, int *worker_cnt)
 {
-#warning TODO: use hwloc instead
+	struct starpu_machine_config_s *config = _starpu_get_machine_config();
+
+	/* Is this a leaf ? (eg. a PU for hwloc) */
+	int is_leaf = !hwloc_compare_types(config->cpu_depth, obj->depth);
+
+	if (is_leaf)
+	{
+		struct starpu_worker_s *worker = obj->userdata;
+
+		/* If this is a CPU worker, append its id at the end of the
+		 * list */
+		if (worker && worker->arch == STARPU_CPU_WORKER)
+		{
+			worker_array[*worker_cnt] = worker->workerid;
+			*worker_cnt = *worker_cnt + 1;
+		}
+
+		/* We cannot create a combined worker only if there is a CPU
+		 * worker. */
+		return (!worker || worker->arch == STARPU_CPU_WORKER);
+	}
+
+	/* If there is only one child, we go to the next level directly */
+	if (obj->arity == 1)
+		return find_combinations_with_hwloc_rec(obj->children[0], worker_array, worker_cnt);
+
+	/* We recursively go from the root to the leaves of the tree to find
+	 * subtrees that only have CPUs as leaves. */
+	unsigned cpu_children_cnt = 0;
+
+	int worker_array_rec[STARPU_NMAXWORKERS];
+	int worker_cnt_rec = 0;
+	memset(worker_array, 0, sizeof(worker_array));
+
+	unsigned i;
+	for (i = 0; i < obj->arity; i++)
+	{
+		int valid_subtree = find_combinations_with_hwloc_rec(obj->children[i],
+						worker_array_rec, &worker_cnt_rec);
+		if (valid_subtree)
+			cpu_children_cnt++;
+	}
+
+	int child;
+
+	if (cpu_children_cnt == obj->arity)
+	for (child = 0; child < worker_cnt_rec; child++)
+	{
+		worker_array[*worker_cnt] = worker_array_rec[child];
+		*worker_cnt = *worker_cnt + 1;
+	}
+	
+	/* If there is at least 2 children that are valid, we combined them. */
+	if (cpu_children_cnt > 1)
+		starpu_combined_worker_assign_workerid(worker_cnt_rec, worker_array_rec);
+
+	return (cpu_children_cnt == obj->arity);
+}
+
+static void find_combinations_with_hwloc(struct starpu_machine_topology_s *topology)
+{
+	/* We don't care about the result */
+	int worker_array[STARPU_NMAXWORKERS];
+	int worker_cnt = 0;
+
+	/* We recursively go from the root to the leaves of the tree to find
+	 * subtrees that only have CPUs as leaves. */
+	hwloc_obj_t root;
+	root = hwloc_get_obj_by_depth(topology->hwtopology, HWLOC_OBJ_SYSTEM, 0); 
+	find_combinations_with_hwloc_rec(root, worker_array, &worker_cnt);
+}
+#else
+static void find_combinations_without_hwloc(struct starpu_machine_topology_s *topology)
+{
 	struct starpu_machine_config_s *config = _starpu_get_machine_config();
 
 	/* We put the id of all CPU workers in this array */
@@ -55,4 +137,14 @@ void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *to
 			}
 		}
 	}
+}
+#endif
+
+void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *topology)
+{
+#ifdef STARPU_HAVE_HWLOC
+	find_combinations_with_hwloc(topology);
+#else
+	find_combinations_without_hwloc(topology);
+#endif
 }

@@ -147,7 +147,6 @@ static void _starpu_launch_drivers(struct starpu_machine_config_s *config)
 		PTHREAD_MUTEX_INIT(&workerarg->mutex, NULL);
 		PTHREAD_COND_INIT(&workerarg->ready_cond, NULL);
 
-		workerarg->workerid = (int)worker;
 		workerarg->worker_size = 1;
 		workerarg->combined_workerid = workerarg->workerid;
 		workerarg->current_rank = 0;

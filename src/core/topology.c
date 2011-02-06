@@ -272,11 +272,14 @@ static int _starpu_init_machine_config(struct starpu_machine_config_s *config,
 	int explicitval __attribute__((unused));
 	unsigned use_accelerator = 0;
 
+	int i;
+	for (i = 0; i < STARPU_NMAXWORKERS; i++)
+		config->workers[i].workerid = i;
+
 	struct starpu_machine_topology_s *topology = &config->topology;
 
 	topology->nworkers = 0;
 	topology->ncombinedworkers = 0;
-
 	_starpu_init_topology(config);
 
 	_starpu_initialize_workers_bindid(config);
@@ -733,6 +736,12 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 		hwloc_bitmap_only(workerarg->initial_hwloc_cpu_set, workerarg->bindid);
 		workerarg->current_hwloc_cpu_set = hwloc_bitmap_alloc();
 		hwloc_bitmap_only(workerarg->current_hwloc_cpu_set, workerarg->bindid);
+
+		/* Put the worker descriptor in the userdata field of the hwloc object describing the CPU */
+		hwloc_obj_t worker_obj;
+		worker_obj = hwloc_get_obj_by_depth(config->topology.hwtopology,
+					config->cpu_depth, workerarg->bindid);
+		worker_obj->userdata = &config->workers[worker];
 #endif
 	}
 }
