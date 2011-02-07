@@ -68,6 +68,9 @@ size_t starpu_insert_task_get_arg_size(va_list varg_list)
 		else if (arg_type==STARPU_PRIORITY) {
 			va_arg(varg_list, int);
 		}
+		else if (arg_type==STARPU_EXECUTE) {
+			va_arg(varg_list, int);
+		}
 	}
 
 	va_end(varg_list);
@@ -138,6 +141,9 @@ int starpu_insert_task_create_and_submit(size_t arg_buffer_size, starpu_codelet 
 			/* Followed by a priority level */
 			int prio = va_arg(varg_list, int); 
 			(*task)->priority = prio;
+		}
+		else if (arg_type==STARPU_EXECUTE) {
+			va_arg(varg_list, int);
 		}
 	}
 

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -175,6 +175,7 @@ int starpu_data_cpy(starpu_data_handle dst_handle, starpu_data_handle src_handle
 #define STARPU_CALLBACK		(1<<4)	/* Callback function */
 #define STARPU_CALLBACK_ARG	(1<<5)	/* Argument of the callback function (of type void *) */
 #define STARPU_PRIORITY		(1<<6)	/* Priority associated to the task */
+#define STARPU_EXECUTE		(1<<7)	/* Used by MPI to define which task is going to execute the codelet */
 
 /* Wrapper to create a task. TODO document this interface */
 void starpu_insert_task(starpu_codelet *cl, ...);
