@@ -49,13 +49,13 @@ int main(int argc, char **argv)
                 starpu_data_set_rank(data_handlesx1, 1);
         }
         else if (rank == 1) {
-                starpu_variable_data_register(&data_handlesx1, 1, (uintptr_t)&x1, sizeof(x1));
+                starpu_variable_data_register(&data_handlesx1, 0, (uintptr_t)&x1, sizeof(x1));
                 starpu_data_set_rank(data_handlesx1, rank);
                 starpu_variable_data_register(&data_handlesx0, -1, (uintptr_t)NULL, sizeof(unsigned));
                 starpu_data_set_rank(data_handlesx0, 0);
         }
 
-        int err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1);
+        int err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, 0);
         if (err == -EINVAL) {
                 fprintf(stderr, "starpu_mpi_insert_task failed as expected\n");
         }
