@@ -157,6 +157,7 @@ check_PROGRAMS +=					\
 	tests/insert_task				\
 	tests/insert_task_cache				\
 	tests/insert_task_block				\
+	tests/insert_task_owner				\
 	tests/multiple_send
 
 testbin_PROGRAMS =				\
@@ -175,6 +176,7 @@ testbin_PROGRAMS =				\
 	tests/insert_task				\
 	tests/insert_task_cache				\
 	tests/insert_task_block				\
+	tests/insert_task_owner				\
 	tests/multiple_send
 
 tests_mpi_isend_LDADD =					\
@@ -266,6 +268,12 @@ tests_insert_task_block_LDADD =				\
 
 tests_insert_task_block_SOURCES =			\
 	tests/insert_task_block.c
+
+tests_insert_task_owner_LDADD =				\
+	libstarpumpi.la
+
+tests_insert_task_owner_SOURCES =			\
+	tests/insert_task_owner.c
 
 tests_multiple_send_LDADD =				\
 	libstarpumpi.la

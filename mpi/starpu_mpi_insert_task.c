@@ -142,7 +142,8 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                                 int mpi_rank = starpu_data_get_rank(data);
                                 if (mpi_rank == me) {
                                         if (do_execute == 0) {
-                                                _STARPU_ERROR("erh? incoherent!\n");
+                                                _STARPU_MPI_DEBUG("erh? incoherent!\n");
+                                                return -EINVAL;
                                         }
                                         else {
                                                 do_execute = 1;
@@ -150,7 +151,8 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                                 }
                                 else if (mpi_rank != -1) {
                                         if (do_execute == 1) {
-                                                _STARPU_ERROR("erh? incoherent!\n");
+                                                _STARPU_MPI_DEBUG("erh? incoherent!\n");
+                                                return -EINVAL;
                                         }
                                         else {
                                                 do_execute = 0;
