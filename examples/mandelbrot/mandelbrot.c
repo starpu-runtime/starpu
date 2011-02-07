@@ -325,9 +325,6 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 	int *pcnt;
 	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
 
-	int size = starpu_combined_worker_get_size();
-	int rank = starpu_combined_worker_get_rank();
-
 	unsigned *data = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 
 	int ix, iy; // global coordinates
@@ -336,7 +333,7 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 	while (1)
 	{
 		local_iy = STARPU_ATOMIC_ADD(pcnt, 1);
-		if (local_iy >= size)
+		if (local_iy >= block_size)
 			break;
 
 		iy = iby*block_size + local_iy;
