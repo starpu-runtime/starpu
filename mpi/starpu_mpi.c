@@ -29,7 +29,7 @@ static void submit_mpi_req(void *arg);
 static void handle_request_termination(struct starpu_mpi_req_s *req);
 
 /* The list of requests that have been newly submitted by the application */
-static starpu_mpi_req_list_t new_requests; 
+static starpu_mpi_req_list_t new_requests;
 
 /* The list of detached requests that have already been submitted to MPI */
 static starpu_mpi_req_list_t detached_requests;
@@ -46,20 +46,6 @@ static int posted_requests = 0;
 
 #define INC_POSTED_REQUESTS(value) { PTHREAD_MUTEX_LOCK(&mutex_posted_requests); posted_requests += value; PTHREAD_MUTEX_UNLOCK(&mutex_posted_requests); }
 
-#if 0
-void starpu_mpi_debug(FILE *stream, const char *format, ...) {
-        int rank;
-	va_list args;
-
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        fprintf(stream, "[%d] ", rank);
-        va_start(args, format);
-        vfprintf(stream, format, args);
-        va_end(args);
-        fflush(stream);
-}
-#endif
-
 /*
  *	Isend
  */
@@ -69,7 +55,7 @@ static void starpu_mpi_isend_func(struct starpu_mpi_req_s *req)
         _STARPU_MPI_LOG_IN();
 	void *ptr = starpu_mpi_handle_to_ptr(req->data_handle);
 
-        _STARPU_MPI_DEBUG("post MPI isend tag %x dst %d ptr %p req %p\n", req->mpi_tag, req->srcdst, ptr, &req->request);
+        _STARPU_MPI_DEBUG("post MPI isend tag %d dst %d ptr %p req %p\n", req->mpi_tag, req->srcdst, ptr, &req->request);
 
 	starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype);
 
@@ -165,7 +151,7 @@ static void starpu_mpi_irecv_func(struct starpu_mpi_req_s *req)
 
 	starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype);
 
-	_STARPU_MPI_DEBUG("post MPI irecv tag %x src %d ptr %p req %p datatype %d\n", req->mpi_tag, req->srcdst, ptr, &req->request, req->datatype);
+	_STARPU_MPI_DEBUG("post MPI irecv tag %d src %d data %p ptr %p req %p datatype %d\n", req->mpi_tag, req->srcdst, req->data_handle, ptr, &req->request, req->datatype);
 
         req->ret = MPI_Irecv(ptr, 1, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
         STARPU_ASSERT(req->ret == MPI_SUCCESS);
@@ -348,7 +334,7 @@ static void starpu_mpi_test_func(struct starpu_mpi_req_s *testing_req)
 	/* Which is the mpi request we are testing for ? */
 	struct starpu_mpi_req_s *req = testing_req->other_request;
 
-        _STARPU_MPI_DEBUG("Test request %p - mpitag %x - TYPE %s %d\n", &req->request, req->mpi_tag, (req->request_type == RECV_REQ)?"recv : source":"send : dest", req->srcdst);
+        _STARPU_MPI_DEBUG("Test request %p - mpitag %d - TYPE %s %d\n", &req->request, req->mpi_tag, (req->request_type == RECV_REQ)?"recv : source":"send : dest", req->srcdst);
 	req->ret = MPI_Test(&req->request, testing_req->flag, testing_req->status);
         STARPU_ASSERT(req->ret == MPI_SUCCESS);
 
@@ -490,8 +476,7 @@ static void handle_request_termination(struct starpu_mpi_req_s *req)
 {
         _STARPU_MPI_LOG_IN();
 
-	_STARPU_MPI_DEBUG("complete MPI (%s %d) req %p - tag %x\n", starpu_mpi_request_type(req->request_type), req->srcdst, &req->request, req->mpi_tag);
-
+	_STARPU_MPI_DEBUG("complete MPI (%s %d) data %p req %p - tag %d\n", starpu_mpi_request_type(req->request_type), req->srcdst, req->data_handle, &req->request, req->mpi_tag);
         if (req->request_type != BARRIER_REQ) {
                 MPI_Type_free(&req->datatype);
                 starpu_data_release(req->data_handle);
@@ -573,7 +558,7 @@ static void test_detached_requests(void)
 
 		PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
-                _STARPU_MPI_DEBUG("Test detached request %p - mpitag %x - TYPE %s %d\n", &req->request, req->mpi_tag, (req->request_type == RECV_REQ)?"recv : source":"send : dest", req->srcdst);
+                //_STARPU_MPI_DEBUG("Test detached request %p - mpitag %d - TYPE %s %d\n", &req->request, req->mpi_tag, (req->request_type == RECV_REQ)?"recv : source":"send : dest", req->srcdst);
 		req->ret = MPI_Test(&req->request, &flag, &status);
 		STARPU_ASSERT(req->ret == MPI_SUCCESS);
 
@@ -592,7 +577,7 @@ static void test_detached_requests(void)
 		//if (req->detached)
 		//	free(req);
 	}
-	
+
 	PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
         _STARPU_MPI_LOG_OUT();
 }
@@ -702,7 +687,7 @@ static void *progress_thread_func(void *arg)
 }
 
 /*
- *	(De)Initialization methods 
+ *	(De)Initialization methods
  */
 
 #ifdef USE_STARPU_ACTIVITY
@@ -716,7 +701,7 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 	int worldsize;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
-	
+
 	int barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 
@@ -731,12 +716,12 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 		srand(time(NULL));
 		random_number = rand();
 	}
-		
+
 	MPI_Bcast(&random_number, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
 	TRACE_MPI_BARRIER(rank, worldsize, random_number);
 
-	_STARPU_MPI_DEBUG("unique key %x\n", random_number);
+        _STARPU_MPI_DEBUG("unique key %x\n", random_number);
 #endif
 }
 
@@ -776,7 +761,7 @@ int starpu_mpi_initialize_extended(int initialize_mpi, int *rank, int *world_siz
 #endif
 
 	_starpu_mpi_add_sync_point_in_fxt();
-	
+
 	return 0;
 }
 
@@ -794,7 +779,7 @@ int starpu_mpi_shutdown(void)
 
 #ifdef USE_STARPU_ACTIVITY
 	starpu_progression_hook_deregister(hookid);
-#endif 
+#endif
 
 	/* free the request queues */
 	starpu_mpi_req_list_delete(detached_requests);
