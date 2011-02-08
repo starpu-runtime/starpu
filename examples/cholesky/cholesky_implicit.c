@@ -182,7 +182,6 @@ int main(int argc, char **argv)
 	 * */
 
 	parse_args(argc, argv);
-#define CHECK_OUTPUT
 
 	float *mat;
 
@@ -200,6 +199,7 @@ int main(int argc, char **argv)
 	}
 
 
+//#define PRINT_OUTPUT
 #ifdef PRINT_OUTPUT
 	printf("Input :\n");
 
