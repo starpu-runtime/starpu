@@ -19,11 +19,11 @@
 
 void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	unsigned *x = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	unsigned *y = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
+	int *x = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	int *y = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
-        fprintf(stdout, "VALUES: %d %d\n", *x, *y);
-        *x = (*x + *y) / 2;
+        *x = *x + 1;
+        *y = *y + 1;
 }
 
 starpu_codelet mycodelet = {
@@ -32,10 +32,23 @@ starpu_codelet mycodelet = {
         .nbuffers = 2
 };
 
+#define ACQUIRE_DATA \
+        if (rank == 0) starpu_data_acquire(data_handlesx0, STARPU_R);    \
+        if (rank == 1) starpu_data_acquire(data_handlesx1, STARPU_R);    \
+        fprintf(stderr, "[%d] Values: %d %d\n", rank, x0, x1);
+
+#define RELEASE_DATA \
+        if (rank == 0) starpu_data_release(data_handlesx0); \
+        if (rank == 1) starpu_data_release(data_handlesx1); \
+
+#define CHECK_RESULT \
+        if (rank == 0) assert(x0 == vx0[0] && x1 == vx1[0]); \
+        if (rank == 1) assert(x0 == vx0[1] && x1 == vx1[1]);
+
 int main(int argc, char **argv)
 {
-        int rank, size;
-        unsigned x0, x1;
+        int rank, size, err;
+        int x0=0, x1=0, vx0[2] = {x0, x0}, vx1[2]={x1,x1};
         starpu_data_handle data_handlesx0;
         starpu_data_handle data_handlesx1;
 
@@ -45,23 +58,69 @@ int main(int argc, char **argv)
         if (rank == 0) {
                 starpu_variable_data_register(&data_handlesx0, 0, (uintptr_t)&x0, sizeof(x0));
                 starpu_data_set_rank(data_handlesx0, rank);
-                starpu_variable_data_register(&data_handlesx1, -1, (uintptr_t)NULL, sizeof(unsigned));
+                starpu_variable_data_register(&data_handlesx1, -1, (uintptr_t)NULL, sizeof(int));
                 starpu_data_set_rank(data_handlesx1, 1);
         }
         else if (rank == 1) {
                 starpu_variable_data_register(&data_handlesx1, 0, (uintptr_t)&x1, sizeof(x1));
                 starpu_data_set_rank(data_handlesx1, rank);
-                starpu_variable_data_register(&data_handlesx0, -1, (uintptr_t)NULL, sizeof(unsigned));
+                starpu_variable_data_register(&data_handlesx0, -1, (uintptr_t)NULL, sizeof(int));
                 starpu_data_set_rank(data_handlesx0, 0);
         }
 
-        int err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, 0);
-        if (err == -EINVAL) {
-                fprintf(stderr, "starpu_mpi_insert_task failed as expected\n");
-        }
-        else {
-                return 1;
-        }
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_R, data_handlesx0, STARPU_W, data_handlesx1, 0);
+        assert(err == 0);
+        ACQUIRE_DATA;
+        vx1[1]++;
+        CHECK_RESULT;
+        RELEASE_DATA;
+
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handlesx0, STARPU_R, data_handlesx1, 0);
+        assert(err == 0);
+        ACQUIRE_DATA;
+        vx0[0] ++;
+        CHECK_RESULT;
+        RELEASE_DATA;
+
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, 0);
+        assert(err == -EINVAL);
+        ACQUIRE_DATA;
+        CHECK_RESULT;
+        RELEASE_DATA;
+
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, STARPU_EXECUTE, 1, 0);
+        assert(err == 0);
+        ACQUIRE_DATA;
+        vx0[0] ++ ; vx1[1] ++;
+        CHECK_RESULT;
+        RELEASE_DATA;
+
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, STARPU_EXECUTE, 0, 0);
+        assert(err == 0);
+        ACQUIRE_DATA;
+        vx0[0] ++ ; vx1[1] ++;
+        CHECK_RESULT;
+        RELEASE_DATA;
+
+        /* Here the value specified by the property STARPU_EXECUTE is
+           going to be ignored as the data model clearly specifies
+           which task is going to execute the codelet */
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_R, data_handlesx0, STARPU_W, data_handlesx1, STARPU_EXECUTE, 12, 0);
+        assert(err == 0);
+        ACQUIRE_DATA;
+        vx1[1] ++;
+        CHECK_RESULT;
+        RELEASE_DATA;
+
+        /* Here the value specified by the property STARPU_EXECUTE is
+           going to be ignored as the data model clearly specifies
+           which task is going to execute the codelet */
+        err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_W, data_handlesx0, STARPU_R, data_handlesx1, STARPU_EXECUTE, 11, 0);
+        assert(err == 0);
+        ACQUIRE_DATA;
+        vx0[0] ++;
+        CHECK_RESULT;
+        RELEASE_DATA;
 
         starpu_task_wait_for_all();
 	starpu_mpi_shutdown();
