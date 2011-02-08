@@ -73,22 +73,21 @@ static void _dw_cholesky(starpu_data_handle dataA, unsigned nblocks)
 
 	for (k = 0; k < nblocks; k++)
 	{
-                starpu_data_handle subdata = starpu_data_get_sub_data(dataA, 2, k, k);
+                starpu_data_handle sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
                 int prio = STARPU_DEFAULT_PRIO;
                 if (!noprio) prio = STARPU_MAX_PRIO;
 
                 starpu_insert_task(&cl11,
                                    STARPU_PRIORITY, prio,
-                                   STARPU_RW, subdata,
+                                   STARPU_RW, sdatakk,
                                    0);
 
 		for (j = k+1; j<nblocks; j++)
 		{
-                        starpu_data_handle sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
                         starpu_data_handle sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
-
                         prio = STARPU_DEFAULT_PRIO;
-                        if (!noprio&& (j == k+1)) prio = STARPU_MAX_PRIO;
+                        if (!noprio && (j == k+1)) prio = STARPU_MAX_PRIO;
+
                         starpu_insert_task(&cl21,
                                            STARPU_PRIORITY, prio,
                                            STARPU_R, sdatakk,
@@ -100,10 +99,10 @@ static void _dw_cholesky(starpu_data_handle dataA, unsigned nblocks)
 				if (i <= j)
                                 {
                                         starpu_data_handle sdataki = starpu_data_get_sub_data(dataA, 2, k, i);
-                                        starpu_data_handle sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
                                         starpu_data_handle sdataij = starpu_data_get_sub_data(dataA, 2, i, j);
                                         prio = STARPU_DEFAULT_PRIO;
                                         if (!noprio && (i == k + 1) && (j == k +1) ) prio = STARPU_MAX_PRIO;
+
                                         starpu_insert_task(&cl22,
                                                            STARPU_PRIORITY, prio,
                                                            STARPU_R, sdataki,
@@ -115,7 +114,7 @@ static void _dw_cholesky(starpu_data_handle dataA, unsigned nblocks)
 		}
 	}
 
-	//starpu_task_wait_for_all();
+	starpu_task_wait_for_all();
 
 	starpu_data_unpartition(dataA, 0);
 
@@ -183,6 +182,7 @@ int main(int argc, char **argv)
 	 * */
 
 	parse_args(argc, argv);
+#define CHECK_OUTPUT
 
 	float *mat;
 
@@ -200,7 +200,7 @@ int main(int argc, char **argv)
 	}
 
 
-#ifdef CHECK_OUTPUT
+#ifdef PRINT_OUTPUT
 	printf("Input :\n");
 
 	for (j = 0; j < size; j++)
@@ -220,9 +220,8 @@ int main(int argc, char **argv)
 
 	dw_cholesky(mat, size, size, nblocks);
 
-#ifdef CHECK_OUTPUT
+#ifdef PRINT_OUTPUT
 	printf("Results :\n");
-
 	for (j = 0; j < size; j++)
 	{
 		for (i = 0; i < size; i++)
@@ -237,8 +236,18 @@ int main(int argc, char **argv)
 		}
 		printf("\n");
 	}
+#endif
 
 	fprintf(stderr, "compute explicit LLt ...\n");
+	for (j = 0; j < size; j++)
+	{
+		for (i = 0; i < size; i++)
+		{
+			if (i > j) {
+				mat[j+i*size] = 0.0f; // debug
+			}
+		}
+	}
 	float *test_mat = malloc(size*size*sizeof(float));
 	STARPU_ASSERT(test_mat);
 
@@ -246,6 +255,7 @@ int main(int argc, char **argv)
 				mat, size, 0.0f, test_mat, size);
 
 	fprintf(stderr, "comparing results ...\n");
+#ifdef PRINT_OUTPUT
 	for (j = 0; j < size; j++)
 	{
 		for (i = 0; i < size; i++)
@@ -260,6 +270,21 @@ int main(int argc, char **argv)
 		printf("\n");
 	}
 #endif
+
+	for (j = 0; j < size; j++)
+	{
+		for (i = 0; i < size; i++)
+		{
+			if (i <= j) {
+                                float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
+                                float err = abs(test_mat[j +i*size] - orig);
+                                if (err > 0.00001) {
+                                        fprintf(stderr, "Error[%d, %d] --> %2.2f != %2.2f (err %2.2f)\n", i, j, test_mat[j +i*size], orig, err);
+                                        assert(0);
+                                }
+                        }
+		}
+        }
 
 	return 0;
 }
