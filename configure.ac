@@ -827,8 +827,8 @@ AC_ARG_WITH(mpiexec, [AS_HELP_STRING([--with-mpiexec[=<path to mpiexec>]],
 		fi
 	],
 	[
-		# nothing was specified: default value is used
-		AC_PATH_PROG(mpiexec_path, $(dirname $mpicc_path)/mpiexec, [no], [])
+		# nothing was specified: look in the path
+		AC_PATH_PROG(mpiexec_path, mpiexec, [no], [$(dirname $mpicc_path):$PATH])
 	])
 
 AC_MSG_CHECKING(whether mpiexec is available)
