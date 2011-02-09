@@ -332,7 +332,7 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 
 	while (1)
 	{
-		local_iy = STARPU_ATOMIC_ADD(pcnt, 1);
+		local_iy = STARPU_ATOMIC_ADD(pcnt, 1) - 1;
 		if (local_iy >= block_size)
 			break;
 
