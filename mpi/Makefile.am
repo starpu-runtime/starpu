@@ -81,9 +81,6 @@ libstarpumpi_la_SOURCES =				\
 	starpu_mpi_insert_task.c
 
 
-check_PROGRAMS +=				\
-	examples/stencil/stencil5
-
 examplebin_PROGRAMS +=				\
 	examples/stencil/stencil5
 
