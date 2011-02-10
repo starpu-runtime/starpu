@@ -1358,15 +1358,10 @@ tries to minimize is @code{alpha * T_execution + beta * T_data_transfer}, where
 accurate), and @code{T_data_transfer} is the estimated data transfer time. The
 latter is however estimated based on bus calibration before execution start,
 i.e. with an idle machine. You can force bus re-calibration by running
-@code{starpu_calibrate_bus}. When StarPU manages several GPUs, such estimation
-is not accurate any more. Beta can then be used to correct this by hand. For
-instance, you can use @code{export STARPU_BETA=2} to double the transfer
-time estimation, e.g. because there are two GPUs in the machine. This is of
-course imprecise, but in practice, a rough estimation already gives the good
-results that a precise estimation would give.
-
-Measuring the actual data transfer time is however on our TODO-list to
-accurately estimate data transfer penalty without the need of a hand-tuned beta parameter.
+@code{starpu_calibrate_bus}. The beta parameter defaults to 1, but it can be
+worth trying to tweak it by using @code{export STARPU_BETA=2} for instance.
+This is of course imprecise, but in practice, a rough estimation already gives
+the good results that a precise estimation would give.
 
 @node Power-based scheduling
 @section Power-based scheduling

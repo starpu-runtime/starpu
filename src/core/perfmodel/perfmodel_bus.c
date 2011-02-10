@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -1028,6 +1028,7 @@ double _starpu_predict_transfer_time(unsigned src_node, unsigned dst_node, size_
 {
 	double bandwidth = bandwidth_matrix[src_node][dst_node];
 	double latency = latency_matrix[src_node][dst_node];
+	struct starpu_machine_topology_s *topology = &_starpu_get_machine_config()->topology;
 
-	return latency + size/bandwidth;
+	return latency + (size/bandwidth)*2*(topology->ncudagpus+topology->nopenclgpus);
 }
