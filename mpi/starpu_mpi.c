@@ -151,7 +151,7 @@ static void starpu_mpi_irecv_func(struct starpu_mpi_req_s *req)
 
 	starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype);
 
-	_STARPU_MPI_DEBUG2("post MPI irecv tag %d src %d data %p ptr %p req %p datatype %d\n", req->mpi_tag, req->srcdst, req->data_handle, ptr, &req->request, (int)req->datatype);
+	_STARPU_MPI_DEBUG("post MPI irecv tag %d src %d data %p ptr %p req %p datatype %d\n", req->mpi_tag, req->srcdst, req->data_handle, ptr, &req->request, (int)req->datatype);
 
         req->ret = MPI_Irecv(ptr, 1, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
         STARPU_ASSERT(req->ret == MPI_SUCCESS);
