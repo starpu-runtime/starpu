@@ -151,7 +151,7 @@ static void starpu_mpi_irecv_func(struct starpu_mpi_req_s *req)
 
 	starpu_mpi_handle_to_datatype(req->data_handle, &req->datatype);
 
-	_STARPU_MPI_DEBUG("post MPI irecv tag %d src %d data %p ptr %p req %p datatype %d\n", req->mpi_tag, req->srcdst, req->data_handle, ptr, &req->request, req->datatype);
+	_STARPU_MPI_DEBUG2("post MPI irecv tag %d src %d data %p ptr %p req %p datatype %d\n", req->mpi_tag, req->srcdst, req->data_handle, ptr, &req->request, (int)req->datatype);
 
         req->ret = MPI_Irecv(ptr, 1, req->datatype, req->srcdst, req->mpi_tag, req->comm, &req->request);
         STARPU_ASSERT(req->ret == MPI_SUCCESS);
@@ -459,6 +459,7 @@ int starpu_mpi_barrier(MPI_Comm comm)
  *	Requests
  */
 
+#ifdef STARPU_MPI_VERBOSE
 static char *starpu_mpi_request_type(unsigned request_type)
 {
         switch (request_type)
@@ -471,6 +472,7 @@ static char *starpu_mpi_request_type(unsigned request_type)
                 default: return "unknown request type";
                 }
 }
+#endif
 
 static void handle_request_termination(struct starpu_mpi_req_s *req)
 {
@@ -742,7 +744,7 @@ int starpu_mpi_initialize_extended(int initialize_mpi, int *rank, int *world_siz
 
         PTHREAD_MUTEX_INIT(&mutex_posted_requests, NULL);
 
-	int ret = pthread_create(&progress_thread, NULL, progress_thread_func, (void *)&initialize_mpi);
+	pthread_create(&progress_thread, NULL, progress_thread_func, (void *)&initialize_mpi);
 
 	PTHREAD_MUTEX_LOCK(&mutex);
 	while (!running)
