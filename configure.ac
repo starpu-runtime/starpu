@@ -1,17 +1,17 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
-# 
+#
 # Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
 # Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
-# 
+#
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation; either version 2.1 of the License, or (at
 # your option) any later version.
-# 
+#
 # StarPU is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-# 
+#
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 AC_INIT([StarPU],0.4, [starpu-bugs@lists.gforge.inria.fr], starpu)
@@ -179,14 +179,14 @@ AC_ARG_ENABLE(maxcudadev, [AS_HELP_STRING([--enable-maxcudadev=<number>],
 			[maximum number of CUDA devices])],
 			nmaxcudadev=$enableval, nmaxcudadev=4)
 AC_MSG_RESULT($nmaxcudadev)
-AC_DEFINE_UNQUOTED(STARPU_MAXCUDADEVS, [$nmaxcudadev], 
+AC_DEFINE_UNQUOTED(STARPU_MAXCUDADEVS, [$nmaxcudadev],
 		[maximum number of CUDA devices])
 
 AC_ARG_ENABLE(cuda, [AS_HELP_STRING([--disable-cuda],
 		[do not use CUDA device(s)])],, [enable_cuda=maybe])
 
 #AC_MSG_CHECKING(whether CUDA is available)
-AC_ARG_WITH(cuda-dir, 
+AC_ARG_WITH(cuda-dir,
 	[AS_HELP_STRING([--with-cuda-dir=<path>],
 	[specify CUDA installation directory (default is /usr/local/cuda/)])],
 	[
@@ -195,7 +195,7 @@ AC_ARG_WITH(cuda-dir,
 		enable_cuda=yes
 	], cuda_dir=/usr/local/cuda/)
 
-AC_ARG_WITH(cuda-include-dir, 
+AC_ARG_WITH(cuda-include-dir,
 	[AS_HELP_STRING([--with-cuda-include-dir=<path>],
 	[specify where CUDA headers are installed])],
 	[
@@ -204,7 +204,7 @@ AC_ARG_WITH(cuda-include-dir,
 		enable_cuda=yes
 	], [cuda_include_dir=no])
 
-AC_ARG_WITH(cuda-lib-dir, 
+AC_ARG_WITH(cuda-lib-dir,
 	[AS_HELP_STRING([--with-cuda-lib-dir=<path>],
 	[specify where CUDA libraries are installed])],
 	[
@@ -244,7 +244,7 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	                STARPU_CUDA_LDFLAGS="-L$cuda_dir/lib/"
 			AC_HAVE_LIBRARY([cuda],[found_cudalib=yes],[found_cudalib=no])
 		fi
-	
+
 		if test x$found_cudalib=xno -a -d "$cuda_dir/lib64/"; then
 			LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib64/ "
 	                STARPU_CUDA_LDFLAGS="-L$cuda_dir/lib64/"
@@ -333,7 +333,7 @@ if test x$enable_cuda = xyes; then
 			AC_CHECK_LIB(magmablas, main,,[have_valid_magma=no])
 			AC_CHECK_LIB(magma, magmablas_sgemm,,[have_valid_magma=no])
 		fi
-	
+
 		if test -d "$magma_dir/include/"; then
 			CPPFLAGS="${SAVED_CPPFLAGS} -I$magma_dir/include/ "
 			AC_CHECK_HEADER([magmablas.h],,[have_valid_magma=no])
@@ -345,7 +345,7 @@ if test x$enable_cuda = xyes; then
 			if test x$enable_magma = xyes; then
 				AC_MSG_ERROR([cannot find MAGMA])
 			fi
-	
+
 			# Restore old flags and don't use MAGMA
 			LDFLAGS="${SAVED_LDFLAGS}"
 			CPPFLAGS="${SAVED_CPPFLAGS}"
@@ -398,13 +398,13 @@ AC_ARG_ENABLE(maxopencldev, [AS_HELP_STRING([--enable-maxopencldev=<number>],
 			[maximum number of OPENCL devices])],
 			nmaxopencldev=$enableval, nmaxopencldev=8)
 AC_MSG_RESULT($nmaxopencldev)
-AC_DEFINE_UNQUOTED(STARPU_MAXOPENCLDEVS, [$nmaxopencldev], 
+AC_DEFINE_UNQUOTED(STARPU_MAXOPENCLDEVS, [$nmaxopencldev],
 		[maximum number of OPENCL devices])
 AC_ARG_ENABLE(opencl, [AS_HELP_STRING([--disable-opencl],
 		[do not use OpenCL device(s)])],, [enable_opencl=maybe])
 
 #AC_MSG_CHECKING(whether OpenCL is available)
-AC_ARG_WITH(opencl-dir, 
+AC_ARG_WITH(opencl-dir,
 	[AS_HELP_STRING([--with-opencl-dir=<path>],
 	[specify OpenCL installation directory (default is /usr)])],
 	[
@@ -413,7 +413,7 @@ AC_ARG_WITH(opencl-dir,
 		enable_opencl=yes
 	], opencl_dir=/usr)
 
-AC_ARG_WITH(opencl-include-dir, 
+AC_ARG_WITH(opencl-include-dir,
 	[AS_HELP_STRING([--with-opencl-include-dir=<path>],
 	[specify where OpenCL headers are installed])],
 	[
@@ -422,7 +422,7 @@ AC_ARG_WITH(opencl-include-dir,
 		enable_opencl=yes
 	], [opencl_include_dir=no])
 
-AC_ARG_WITH(opencl-lib-dir, 
+AC_ARG_WITH(opencl-lib-dir,
 	[AS_HELP_STRING([--with-opencl-lib-dir=<path>],
 	[specify where OpenCL libraries are installed])],
 	[
@@ -430,7 +430,7 @@ AC_ARG_WITH(opencl-lib-dir,
 		# in case this was not explicit yet
 		enable_opencl=yes
 	], [opencl_lib_dir=no])
-	
+
 if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
 
 	if test x$opencl_include_dir = xno; then
@@ -502,7 +502,7 @@ if test x$enable_gordon = xyes -o x$enable_gordon = xmaybe; then
 
 	# do we have a valid Gordon setup ?
 	have_valid_gordon=yes
-	
+
 	# can we use dynamic code loading facilities ?
 	AC_CHECK_LIB(elf, elf_memory,, [have_valid_gordon=no])
 
@@ -626,7 +626,7 @@ AC_ARG_WITH(fxt, [AS_HELP_STRING([--with-fxt[=<dir>]], [generate fxt traces])],
 			AC_MSG_RESULT(no)
 		fi
 	],
-	[	
+	[
 		use_fxt=no
 		AC_MSG_RESULT(no)
 	])
@@ -698,7 +698,7 @@ AC_ARG_ENABLE(maxbuffers, [AS_HELP_STRING([--enable-maxbuffers=<nbuffers>],
 			[maximum number of buffers per task])],
 			nmaxbuffers=$enableval, nmaxbuffers=8)
 AC_MSG_RESULT($nmaxbuffers)
-AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers], 
+AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers],
 		[how many buffers can be manipulated per task])
 
 # We have one memory node shared by all CPU workers, one node per GPU, and
@@ -736,7 +736,7 @@ AC_ARG_WITH(perf-model-dir, [AS_HELP_STRING([--with-perf-model-dir=<dir>], [spec
 		if test x$withval = xno; then
 			AC_MSG_ERROR(--without-perf-model-dir is not a valid option)
 		fi
-	
+
 		perf_model_dir=$withval
 		have_explicit_perf_model_dir=yes
 		AC_DEFINE_UNQUOTED(STARPU_PERF_MODEL_DIR, ["$perf_model_dir"], [performance models location])
@@ -838,7 +838,7 @@ AC_MSG_RESULT($mpiexec_path)
 if test ! -x $mpiexec_path; then
 	#MPIEXEC does not exists or is not executable
 	AC_MSG_RESULT(The mpiexec script is not valid)
-        running_mpi_check=no 
+        running_mpi_check=no
         mpiexec_path=""
 fi
 
@@ -871,7 +871,7 @@ if test x$enable_opengl_render = xyes; then
 	AC_CHECK_LIB(glut, glutInit,,AC_MSG_ERROR([cannot find glut]))
 	AC_CHECK_LIB(GL, glXCreateContext,,AC_MSG_ERROR([cannot find GL]))
 	AC_CHECK_LIB(GLU, gluLookAt,,AC_MSG_ERROR([cannot find GLU]))
-	
+
 	AC_DEFINE(STARPU_OPENGL_RENDER, [1], [enable OpenGL rendering of some examples])
 fi
 
@@ -880,7 +880,7 @@ AC_SUBST(STARPU_OPENGL_RENDER, $enable_opengl_render)
 AC_MSG_RESULT($enable_opengl_render)
 
 have_x11=yes
-AC_CHECK_LIB(X11, XOpenDisplay,,[have_x11=no]) 
+AC_CHECK_LIB(X11, XOpenDisplay,,[have_x11=no])
 if test x$have_x11 = xyes; then
 	AC_DEFINE(STARPU_HAVE_X11, [1], [enable X11])
 fi
@@ -895,7 +895,7 @@ AC_ARG_ENABLE(blas-lib,
                       none [default]: no BLAS lib is used
                       atlas: use ATLAS library
                       goto: use GotoBLAS library],
- [ 
+ [
      if   test "x$enableval" = "xatlas" ; then
         blas_lib=atlas
      elif test "x$enableval" = "xgoto" ; then
@@ -935,7 +935,7 @@ AC_DEFINE(STARPU_GOTO, [1], [use STARPU_GOTO library])
 fi
 
 fi
-     
+
 if test x$blas_lib = xmaybe -o x$blas_lib = xatlas; then
 AC_ARG_WITH(atlas-dir, [AS_HELP_STRING([--with-atlas-dir=<dir>], [specify ATLAS lib location])],
 	[
@@ -1007,21 +1007,21 @@ have_fftwl=no
 PKG_CHECK_MODULES([FFTW],  [fftw3],  [
   AC_DEFINE([STARPU_HAVE_FFTW], [1], [Define to 1 if you have the libfftw3 library.])
   AC_SUBST([STARPU_HAVE_FFTW], [1])
-  have_fftw=yes  
+  have_fftw=yes
 ], [:])
 AM_CONDITIONAL(STARPU_HAVE_FFTW, [test x$have_fftw = xyes])
 
 PKG_CHECK_MODULES([FFTWF], [fftw3f], [
   AC_DEFINE([STARPU_HAVE_FFTWF], [1], [Define to 1 if you have the libfftw3f library.])
   AC_SUBST([STARPU_HAVE_FFTWF], [1])
-  have_fftwf=yes  
+  have_fftwf=yes
 ], [:])
 AM_CONDITIONAL(STARPU_HAVE_FFTWF, [test x$have_fftwf = xyes])
 
 PKG_CHECK_MODULES([FFTWL], [fftw3l], [
   AC_DEFINE([STARPU_HAVE_FFTWL], [1], [Define to 1 if you have the libfftw3l library.])
   AC_SUBST([HAVE_FFTWFL], [1])
-  have_fftwl=yes  
+  have_fftwl=yes
 ], [:])
 AM_CONDITIONAL(STARPU_HAVE_FFTWL, [test x$have_fftwl = xyes])
 
