@@ -220,6 +220,9 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                         dest = execute;
                 }
         }
+        else if (execute != -1) {
+                _STARPU_MPI_DEBUG("Property STARPU_EXECUTE ignored as W data are all owned by the same task\n");
+        }
 
         /* Send and receive data as requested */
 	va_start(varg_list, codelet);
