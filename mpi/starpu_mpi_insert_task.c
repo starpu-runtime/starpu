@@ -395,3 +395,23 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
         _STARPU_MPI_LOG_OUT();
         return 0;
 }
+
+void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle data_handle, int node)
+{
+        int me, rank;
+
+        rank = starpu_data_get_rank(data_handle);
+	MPI_Comm_rank(comm, &me);
+
+        if (node == rank) return;
+
+        if (me == node)
+        {
+                starpu_mpi_irecv_detached(data_handle, rank, 42, comm, NULL, NULL);
+        }
+        else if (me == rank)
+        {
+                starpu_mpi_isend_detached(data_handle, node, 42, comm, NULL, NULL);
+        }
+        starpu_task_wait_for_all();
+}
