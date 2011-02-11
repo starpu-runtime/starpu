@@ -70,14 +70,14 @@ static void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblock
 {
 	struct timeval start;
 	struct timeval end;
-        starpu_data_handle **data_handles; //[size][size];
+        starpu_data_handle **data_handles;
         int x, y;
 
 	/* create all the DAG nodes */
 	unsigned i,j,k;
 
-        data_handles = malloc(size*sizeof(starpu_data_handle *));
-        for(x=0 ; x<size ; x++) data_handles[x] = malloc(size*sizeof(starpu_data_handle));
+        data_handles = malloc(nblocks*sizeof(starpu_data_handle *));
+        for(x=0 ; x<nblocks ; x++) data_handles[x] = malloc(nblocks*sizeof(starpu_data_handle));
 
 	gettimeofday(&start, NULL);
         for(x = 0; x < nblocks ;  x++) {
@@ -91,7 +91,7 @@ static void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblock
                         else if (rank == mpi_rank+1 || rank == mpi_rank-1) {
                                 /* I don't own that index, but will need it for my computations */
                                 //fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
-                                starpu_matrix_data_register(&data_handles[x][y], -1, (uintptr_t)&(matA[((size/nblocks)*x) + ((size/nblocks)*y) * ld]),
+                                starpu_matrix_data_register(&data_handles[x][y], -1, (uintptr_t)NULL,
                                                             ld, size/nblocks, size/nblocks, sizeof(float));
                         }
                         else {
@@ -192,7 +192,8 @@ int main(int argc, char **argv)
 	}
 
 
-#ifdef CHECK_OUTPUT
+        //#define PRINT_OUTPUT
+#ifdef PRINT_OUTPUT
 	printf("Input :\n");
 
 	for (j = 0; j < size; j++)
@@ -216,7 +217,7 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-#ifdef CHECK_OUTPUT
+#ifdef PRINT_OUTPUT
 	printf("Results :\n");
 
 	for (j = 0; j < size; j++)
@@ -228,13 +229,22 @@ int main(int argc, char **argv)
 			}
 			else {
 				printf(".\t");
-				mat[j+i*size] = 0.0f; // debug
 			}
 		}
 		printf("\n");
 	}
+#endif
 
 	fprintf(stderr, "compute explicit LLt ...\n");
+	for (j = 0; j < size; j++)
+	{
+		for (i = 0; i < size; i++)
+		{
+			if (i > j) {
+				mat[j+i*size] = 0.0f; // debug
+			}
+		}
+	}
 	float *test_mat = malloc(size*size*sizeof(float));
 	STARPU_ASSERT(test_mat);
 
@@ -242,6 +252,7 @@ int main(int argc, char **argv)
 				mat, size, 0.0f, test_mat, size);
 
 	fprintf(stderr, "comparing results ...\n");
+#ifdef PRINT_OUTPUT
 	for (j = 0; j < size; j++)
 	{
 		for (i = 0; i < size; i++)
@@ -256,6 +267,25 @@ int main(int argc, char **argv)
 		printf("\n");
 	}
 #endif
+
+#warning check result
+#if 0
+	for (j = 0; j < size; j++)
+	{
+		for (i = 0; i < size; i++)
+		{
+			if (i <= j) {
+                                float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
+                                float err = abs(test_mat[j +i*size] - orig);
+                                if (err > 0.00001) {
+                                        fprintf(stderr, "Error[%d, %d] --> %2.2f != %2.2f (err %2.2f)\n", i, j, test_mat[j +i*size], orig, err);
+                                        //                                        assert(0);
+                                }
+                        }
+		}
+        }
+#endif
+
 
 	return 0;
 }
