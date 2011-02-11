@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -62,7 +62,7 @@ static int find_combinations_with_hwloc_rec(hwloc_obj_t obj, int *worker_array, 
 
 	int worker_array_rec[STARPU_NMAXWORKERS];
 	int worker_cnt_rec = 0;
-	memset(worker_array, 0, sizeof(worker_array));
+	memset(worker_array_rec, 0, sizeof(worker_array_rec));
 
 	unsigned i;
 	for (i = 0; i < obj->arity; i++)
