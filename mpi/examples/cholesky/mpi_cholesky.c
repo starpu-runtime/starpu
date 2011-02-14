@@ -85,7 +85,7 @@ static void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblock
                         int mpi_rank = my_distrib(x, nodes);
                         if (mpi_rank == rank) {
                                 //fprintf(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
-                                starpu_matrix_data_register(&data_handles[x][y], 0, (uintptr_t)&(matA[((size/nblocks)*x) + ((size/nblocks)*y) * ld]),
+                                starpu_matrix_data_register(&data_handles[x][y], 0, (uintptr_t)&(matA[((size/nblocks)*y) + ((size/nblocks)*x) * ld]),
                                                             ld, size/nblocks, size/nblocks, sizeof(float));
                         }
                         else if (rank == mpi_rank+1 || rank == mpi_rank-1) {
@@ -194,7 +194,7 @@ int main(int argc, char **argv)
 
         //#define PRINT_OUTPUT
 #ifdef PRINT_OUTPUT
-	printf("Input :\n");
+	printf("[%d] Input :\n", rank);
 
 	for (j = 0; j < size; j++)
 	{
@@ -218,7 +218,7 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 #ifdef PRINT_OUTPUT
-	printf("Results :\n");
+	printf("[%d] Results :\n", rank);
 
 	for (j = 0; j < size; j++)
 	{
@@ -235,7 +235,7 @@ int main(int argc, char **argv)
 	}
 #endif
 
-	fprintf(stderr, "compute explicit LLt ...\n");
+	fprintf(stderr, "[%d] compute explicit LLt ...\n", rank);
 	for (j = 0; j < size; j++)
 	{
 		for (i = 0; i < size; i++)
@@ -251,7 +251,7 @@ int main(int argc, char **argv)
 	SSYRK("L", "N", size, size, 1.0f,
 				mat, size, 0.0f, test_mat, size);
 
-	fprintf(stderr, "comparing results ...\n");
+	fprintf(stderr, "[%d] comparing results ...\n", rank);
 #ifdef PRINT_OUTPUT
 	for (j = 0; j < size; j++)
 	{
@@ -269,23 +269,31 @@ int main(int argc, char **argv)
 #endif
 
 #warning check result
-#if 0
-	for (j = 0; j < size; j++)
+        int x, y;
+        for(x = 0; x < nblocks ;  x++)
 	{
-		for (i = 0; i < size; i++)
+                for (y = 0; y < nblocks; y++)
 		{
-			if (i <= j) {
-                                float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-                                float err = abs(test_mat[j +i*size] - orig);
-                                if (err > 0.00001) {
-                                        fprintf(stderr, "Error[%d, %d] --> %2.2f != %2.2f (err %2.2f)\n", i, j, test_mat[j +i*size], orig, err);
-                                        //                                        assert(0);
+                        int mpi_rank = my_distrib(x, nodes);
+                        if (mpi_rank == rank) {
+                                for (i = (size/nblocks)*x ; i < (size/nblocks)*x+(size/nblocks); i++)
+                                {
+                                        for (j = (size/nblocks)*y ; j < (size/nblocks)*y+(size/nblocks); j++)
+                                        {
+                                                if (i <= j)
+                                                {
+                                                        float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
+                                                        float err = abs(test_mat[j +i*size] - orig);
+                                                        if (err > 0.00001) {
+                                                                fprintf(stderr, "[%d] Error[%d, %d] --> %2.2f != %2.2f (err %2.2f)\n", rank, i, j, test_mat[j +i*size], orig, err);
+                                                                assert(0);
+                                                        }
+                                                }
+                                        }
                                 }
                         }
-		}
+                }
         }
-#endif
-
 
 	return 0;
 }
