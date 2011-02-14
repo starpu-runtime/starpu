@@ -2,19 +2,19 @@
 
 @c %**start of header
 @setfilename starpu.info
-@settitle StarPU
+@settitle StarPU Handbook
 @c %**end of header
 
 @setchapternewpage odd
 
 @titlepage
-@title StarPU
+@title StarPU Handbook
 @page
 @vskip 0pt plus 1fill
 @comment For the @value{version-GCC} Version*
 @end titlepage
 
-@summarycontents
+@c @summarycontents
 @contents
 @page
 
@@ -238,10 +238,10 @@ using your gForge account
 @end example
 @end itemize
 
-These steps require to run autoconf and automake to generate the
-@code{./configure} script. This can be done by calling
-@code{./autogen.sh}. The required version for autoconf is 2.60 or
-higher. You will also need makeinfo.
+The following step requires the availability of @code{autoconf} and
+@code{automake} to generate the @code{./configure} script. This is
+done by calling @code{./autogen.sh}. The required version for
+@code{autoconf} is 2.60 or higher. You will also need @code{makeinfo}.
 
 @example
 % ./autogen.sh
@@ -1263,7 +1263,7 @@ More advanced examples include:
 	Examples using filters, as shown in @ref{Partitioning Data}.
 @item @code{lu/}:
 	LU matrix factorization, see for instance @code{xlu_implicit.c}
-@item @code{choleskyk/}:
+@item @code{cholesky/}:
 	Cholesky matrix factorization, see for instance @code{cholesky_implicit.c}.
 @end table
 
