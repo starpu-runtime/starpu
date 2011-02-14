@@ -25,16 +25,13 @@
  * This is a variant of vector_scal.c which shows it can be integrated with fortran.
  */
 
-#include "f77.h"
 #include <starpu.h>
 #include <starpu_opencl.h>
 #include <stdio.h>
 
-//#define	NX	2048
 
 extern void scal_cpu_func(void *buffers[], void *_args);
 extern void scal_cuda_func(void *buffers[], void *_args);
-//extern void scal_opencl_func(void *buffers[], void *_args);
 
 static struct starpu_perfmodel_t vector_scal_model = {
 	.type = STARPU_HISTORY_BASED,
@@ -42,36 +39,23 @@ static struct starpu_perfmodel_t vector_scal_model = {
 };
 
 static starpu_codelet cl = {
-	.where = STARPU_CPU | STARPU_CUDA | STARPU_OPENCL,
+  .where = STARPU_CPU | STARPU_CUDA,
 	/* CPU implementation of the codelet */
 	.cpu_func = scal_cpu_func,
 #ifdef STARPU_USE_CUDA
 	/* CUDA implementation of the codelet */
 	.cuda_func = scal_cuda_func,
 #endif
-	//#ifdef STARPU_USE_OPENCL
-	/* OpenCL implementation of the codelet */
-	//.opencl_func = scal_opencl_func,
-	//#endif
 	.nbuffers = 1,
 	.model = &vector_scal_model
 };
 
-//#ifdef STARPU_USE_OPENCL
-//struct starpu_opencl_program codelet;
-//#endif
-
-F77_SUBROUTINE(compute)(INTEGER(F_NX), REAL(vector))
+void compute_(int *F_NX, float *vector)
 {
-        int NX = *INTEGER_ARG(F_NX);
+        int NX = *F_NX;
 	
 	/* Initialize StarPU with default configuration */
 	starpu_init(NULL);
-
-	//#ifdef STARPU_USE_OPENCL
-        //starpu_opencl_load_opencl_from_file("examples/basic_examples/vector_scal_opencl_codelet.cl",
-	//				    &codelet);
-	//#endif
 
 	/* Tell StaPU to associate the "vector" vector with the "vector_handle"
 	 * identifier. When a task needs to access a piece of data, it should
@@ -114,10 +98,6 @@ F77_SUBROUTINE(compute)(INTEGER(F_NX), REAL(vector))
 	/* StarPU does not need to manipulate the array anymore so we can stop
  	 * monitoring it */
 	starpu_data_unregister(vector_handle);
-
-	//#ifdef STARPU_USE_OPENCL
-        //starpu_opencl_unload_opencl(&codelet);
-	//#endif
 
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
