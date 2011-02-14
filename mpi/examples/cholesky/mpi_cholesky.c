@@ -58,8 +58,8 @@ static starpu_codelet cl22 =
 };
 
 /* Returns the MPI node number where data indexes index is */
-int my_distrib(int x, int nb_nodes) {
-        return x % nb_nodes;
+int my_distrib(int x, int y, int nb_nodes) {
+        return (x+y) % nb_nodes;
 }
 
 /*
@@ -82,7 +82,7 @@ static void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblock
 	gettimeofday(&start, NULL);
         for(x = 0; x < nblocks ;  x++) {
                 for (y = 0; y < nblocks; y++) {
-                        int mpi_rank = my_distrib(x, nodes);
+                        int mpi_rank = my_distrib(x, y, nodes);
                         if (mpi_rank == rank) {
                                 //fprintf(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
                                 starpu_matrix_data_register(&data_handles[x][y], 0, (uintptr_t)&(matA[((size/nblocks)*y) + ((size/nblocks)*x) * ld]),
@@ -268,13 +268,12 @@ int main(int argc, char **argv)
 	}
 #endif
 
-#warning check result
         int x, y;
         for(x = 0; x < nblocks ;  x++)
 	{
                 for (y = 0; y < nblocks; y++)
 		{
-                        int mpi_rank = my_distrib(x, nodes);
+                        int mpi_rank = my_distrib(x, y, nodes);
                         if (mpi_rank == rank) {
                                 for (i = (size/nblocks)*x ; i < (size/nblocks)*x+(size/nblocks); i++)
                                 {
