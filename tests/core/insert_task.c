@@ -16,13 +16,16 @@
 
 #include <starpu.h>
 
-void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
+void func_cpu(void *descr[], void *_args)
 {
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	int *x1 = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
+	float *x1 = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
+	int ifactor;
+	float ffactor;
 
-        *x0 = *x0 * 10;
-        *x1 = *x1 * 10;
+	starpu_unpack_cl_args(_args, &ifactor, &ffactor);
+        *x0 = *x0 * ifactor;
+        *x1 = *x1 * ffactor;
 }
 
 starpu_codelet mycodelet = {
@@ -33,18 +36,24 @@ starpu_codelet mycodelet = {
 
 int main(int argc, char **argv)
 {
-        int x[2];
+        int x; float f;
         int i;
+	int ifactor=15;
+	float ffactor=25.0;
         starpu_data_handle data_handles[2];
 
 	starpu_init(NULL);
 
-        for(i=0 ; i<2 ; i++) {
-                x[i] = 10*(i+1);
-                starpu_variable_data_register(&data_handles[i], 0, (uintptr_t)&x[i], sizeof(x[i]));
-        }
+	x = 10;
+	starpu_variable_data_register(&data_handles[0], 0, (uintptr_t)&x, sizeof(x));
+	f = 20.0;
+	starpu_variable_data_register(&data_handles[1], 0, (uintptr_t)&f, sizeof(f));
+
+        fprintf(stderr, "VALUES: %d %f\n", x, f);
 
         starpu_insert_task(&mycodelet,
+			   STARPU_VALUE, &ifactor, sizeof(ifactor),
+			   STARPU_VALUE, &ffactor, sizeof(ffactor),
                            STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
                            0);
         starpu_task_wait_for_all();
@@ -52,7 +61,7 @@ int main(int argc, char **argv)
         for(i=0 ; i<2 ; i++) {
                 starpu_data_acquire(data_handles[i], STARPU_R);
         }
-        fprintf(stderr, "VALUES: %d %d\n", x[0], x[1]);
+        fprintf(stderr, "VALUES: %d %f\n", x, f);
 
 	starpu_shutdown();
 
