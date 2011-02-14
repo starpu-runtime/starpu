@@ -427,7 +427,8 @@ CUDA are given in @ref{Enabling OpenCL}.
 * Task and Worker Profiling::   
 * Partitioning Data::           Partitioning Data
 * Performance model example::   
-* Theoretical lower bound on execution time::
+* Theoretical lower bound on execution time::  
+* Insert Task Utility::          
 * More examples::               More examples shipped with StarPU
 @end menu
 
@@ -1232,7 +1233,70 @@ to a less optimal solution. This increases even more computation time.
 Note that for simplicity, all this however doesn't take into account data
 transfers, which are assumed to be completely overlapped.
 
-@c TODO: document starpu_insert_task
+@node Insert Task Utility
+@section Insert Task Utility
+
+StarPU provides the function @code{starpu_insert_task} to ease the
+creation and submission of tasks. 
+
+@emph{Prototype}:
+@code{int starpu_insert_task(starpu_codelet *cl, ...);}
+
+The arguments following the codelets can be of the following types:
+@itemize
+@item
+@code{STARPU_R}, @code{STARPU_W}, @code{STARPU_RW}, @code{STARPU_SCRATCH} an access mode followed by a data handle;
+@item
+@code{STARPU_VALUE} followed  by a pointer to the constant value and
+the size of the constant;
+@item
+@code{STARPU_CALLBACK} followed by pointer to a function;
+@item
+@code{STARPU_CALLBACK_ARG} followed by a pointer;
+@item
+@code{STARPU_PRIORITY} followed by a integer defining a priority level.
+@end itemize
+
+A call to @code{starpu_insert_task} will create and submit the task
+based on the given arguments. The list of varying arguments has to be
+ended by the value @code{0}.
+
+Parameters to be passed to the codelet implementation are defined
+through the type @code{STARPU_EXECUTE}. The function
+@code{starpu_unpack_cl_args} must be called within the codelet
+implementation to retrieve them.
+
+Here the implementation of the codelet:
+
+@smallexample
+void func_cpu(void *descr[], void *_args)
+@{
+        int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
+        float *x1 = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
+        int ifactor;
+        float ffactor;
+
+        starpu_unpack_cl_args(_args, &ifactor, &ffactor);
+        *x0 = *x0 * ifactor;
+        *x1 = *x1 * ffactor;
+@}
+
+starpu_codelet mycodelet = @{
+        .where = STARPU_CPU,
+        .cpu_func = func_cpu,
+        .nbuffers = 2
+@};
+@end smallexample
+
+And the call to the @code{starpu_insert_task} wrapper:
+
+@smallexample
+starpu_insert_task(&mycodelet,
+                   STARPU_VALUE, &ifactor, sizeof(ifactor),
+                   STARPU_VALUE, &ffactor, sizeof(ffactor),
+                   STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
+                   0);
+@end smallexample
 
 @node More examples
 @section More examples
