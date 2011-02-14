@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
-# Copyright (C) 2010  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
 # Copyright (C) 2010  Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -88,6 +88,7 @@ check_PROGRAMS =
 check_PROGRAMS += 				\
 	core/restart				\
 	core/execute_on_a_specific_worker	\
+	core/insert_task			\
 	core/multithreaded			\
 	core/multithreaded_init			\
 	core/starpu_task_wait_for_all		\
@@ -162,6 +163,11 @@ testbin_PROGRAMS +=				\
 	core/execute_on_a_specific_worker
 core_execute_on_a_specific_worker_SOURCES = 	\
 	core/execute_on_a_specific_worker.c
+
+testbin_PROGRAMS +=				\
+	core/insert_task
+core_insert_task_SOURCES =			\
+	core/insert_task.c
 
 testbin_PROGRAMS +=				\
 	core/multithreaded
