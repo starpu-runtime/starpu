@@ -1232,6 +1232,8 @@ to a less optimal solution. This increases even more computation time.
 Note that for simplicity, all this however doesn't take into account data
 transfers, which are assumed to be completely overlapped.
 
+@c TODO: document starpu_insert_task
+
 @node More examples
 @section More examples
 
