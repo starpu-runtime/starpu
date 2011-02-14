@@ -1260,7 +1260,9 @@ More advanced examples include:
 @item @code{filters/}:
 	Examples using filters, as shown in @ref{Partitioning Data}.
 @item @code{lu/}:
-	LU matrix factorization.
+	LU matrix factorization, see for instance @code{xlu_implicit.c}
+@item @code{choleskyk/}:
+	Cholesky matrix factorization, see for instance @code{cholesky_implicit.c}.
 @end table
 
 @c ---------------------------------------------------------------------
