@@ -1236,8 +1236,8 @@ transfers, which are assumed to be completely overlapped.
 @node Insert Task Utility
 @section Insert Task Utility
 
-StarPU provides the function @code{starpu_insert_task} to ease the
-creation and submission of tasks. 
+StarPU provides the wrapper function @code{starpu_insert_task} to ease
+the creation and submission of tasks.
 
 @emph{Prototype}:
 @code{int starpu_insert_task(starpu_codelet *cl, ...);}
@@ -1247,12 +1247,13 @@ The arguments following the codelets can be of the following types:
 @item
 @code{STARPU_R}, @code{STARPU_W}, @code{STARPU_RW}, @code{STARPU_SCRATCH} an access mode followed by a data handle;
 @item
-@code{STARPU_VALUE} followed  by a pointer to the constant value and
+@code{STARPU_VALUE} followed  by a pointer to a constant value and
 the size of the constant;
 @item
-@code{STARPU_CALLBACK} followed by pointer to a function;
+@code{STARPU_CALLBACK} followed by a pointer to a callback function;
 @item
-@code{STARPU_CALLBACK_ARG} followed by a pointer;
+@code{STARPU_CALLBACK_ARG} followed by a pointer to be given as an
+argument to the callback function;
 @item
 @code{STARPU_PRIORITY} followed by a integer defining a priority level.
 @end itemize
