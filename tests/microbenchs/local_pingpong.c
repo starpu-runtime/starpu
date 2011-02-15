@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,13 +21,14 @@
 #include <errno.h>
 #include <starpu.h>
 #include <stdlib.h>
+#include <debug/starpu_debug_helpers.h>
 
 static size_t vector_size = 1;
 
 static int niter = 1000;
-static unsigned cnt;
+//static unsigned cnt;
 
-static unsigned finished = 0;
+//static unsigned finished = 0;
 
 starpu_data_handle v_handle;
 static unsigned *v;
@@ -79,10 +80,10 @@ int main(int argc, char **argv)
 					worker_0_name, memory_node_0, worker_1_name, memory_node_1);
 	}
 
-	unsigned iter;
+	//	unsigned iter;
 
 	/* warm up */
-	unsigned nwarmupiter = 128;
+	//	unsigned nwarmupiter = 128;
 	_starpu_benchmark_ping_pong(v_handle, memory_node_0, memory_node_1, 128);
 
 	gettimeofday(&start, NULL);

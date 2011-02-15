@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,7 +26,7 @@
 static unsigned ntasks = 65536;
 static unsigned cnt;
 
-static unsigned finished = 0;
+//static unsigned finished = 0;
 
 static double cumulated = 0.0;
 static double cumulated_push = 0.0;
@@ -64,17 +64,17 @@ static void init_gordon_kernel(void)
 #endif
 }
 
-static void inject_one_task(void)
-{
-	struct starpu_task *task = starpu_task_create();
-
-	task->cl = &dummy_codelet;
-	task->cl_arg = NULL;
-	task->detach = 0;
-
-	int ret = starpu_task_submit(task);
-	STARPU_ASSERT(!ret);
-}
+//static void inject_one_task(void)
+//{
+//	struct starpu_task *task = starpu_task_create();
+//
+//	task->cl = &dummy_codelet;
+//	task->cl_arg = NULL;
+//	task->detach = 0;
+//
+//	int ret = starpu_task_submit(task);
+//	STARPU_ASSERT(!ret);
+//}
 
 static struct starpu_conf conf = {
 	.sched_policy_name = NULL,

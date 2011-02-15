@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 			    0);
 	task->cl_arg = arg_buffer;
 	task->cl_arg_size = arg_buffer_size;
-	int ret = starpu_task_submit(task);
+	starpu_task_submit(task);
         starpu_task_wait_for_all();
         for(i=0 ; i<2 ; i++) {
                 starpu_data_acquire(data_handles[i], STARPU_R);

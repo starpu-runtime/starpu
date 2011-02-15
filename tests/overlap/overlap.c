@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -74,7 +74,7 @@ static char symbolname[128];
 
 int main(int argc, char **argv)
 {
-	unsigned i;
+	//	unsigned i;
 
 	starpu_init(NULL);
 
