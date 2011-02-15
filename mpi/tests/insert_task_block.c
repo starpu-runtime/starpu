@@ -56,7 +56,7 @@ int my_distrib(int x, int y, int nb_nodes) {
 
 int main(int argc, char **argv)
 {
-        int rank, size, x, y, loop;
+        int rank, size, x, y;
         int value=0;
         unsigned matrix[SIZE*SIZE];
         starpu_data_handle data_handles[SIZE][SIZE];
