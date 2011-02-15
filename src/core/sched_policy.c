@@ -235,7 +235,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 
 	if (is_basic_worker)
 	{
-		return _starpu_push_local_task(worker, task);
+		return _starpu_push_local_task(worker, task, 0);
 	}
 	else {
 		/* This is a combined worker so we create task aliases */
@@ -258,7 +258,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 			struct starpu_task *alias = _starpu_create_task_alias(task);
 
 			worker = _starpu_get_worker_struct(combined_workerid[i]);
-			ret |= _starpu_push_local_task(worker, alias);
+			ret |= _starpu_push_local_task(worker, alias, 0);
 		}
 
 		return ret;
@@ -300,7 +300,7 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
         return ret;
 }
 
-struct starpu_task *_starpu_pop_task(void)
+struct starpu_task *_starpu_pop_task(struct starpu_worker_s *worker)
 {
 	struct starpu_task *task;
 
@@ -311,7 +311,11 @@ struct starpu_task *_starpu_pop_task(void)
 	if (profiling)
 		starpu_clock_gettime(&pop_start_time);
 
-	task = policy.pop_task();
+	/* perhaps there is some local task to be executed first */
+	task = _starpu_pop_local_task(worker);
+
+	if (!task && policy.pop_task)
+		task = policy.pop_task();
 
 	/* Note that we may get a NULL task in case the scheduler was unlocked
 	 * for some reason. */
@@ -365,3 +369,17 @@ void _starpu_wait_on_sched_event(void)
 
 	PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
 }
+
+/* The scheduling policy may put tasks directly into a worker's local queue so
+ * that it is not always necessary to create its own queue when the local queue
+ * is sufficient. If "back" not null, the task is put at the back of the queue
+ * where the worker will pop tasks first. Setting "back" to 0 therefore ensures
+ * a FIFO ordering. */
+int starpu_push_local_task(int workerid, struct starpu_task *task, int back)
+{
+	struct starpu_worker_s *worker = _starpu_get_worker_struct(workerid);
+
+	return _starpu_push_local_task(worker, task, back);
+}
+
+

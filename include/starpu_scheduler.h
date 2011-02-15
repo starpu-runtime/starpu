@@ -136,4 +136,11 @@ void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *to
 
 int starpu_combined_worker_get_description(int workerid, int *worker_size, int **combined_workerid);
 
+/* The scheduling policy may put tasks directly into a worker's local queue so
+ * that it is not always necessary to create its own queue when the local queue
+ * is sufficient. If "back" not null, the task is put at the back of the queue
+ * where the worker will pop tasks first. Setting "back" to 0 therefore ensures
+ * a FIFO ordering. */
+int starpu_push_local_task(int workerid, struct starpu_task *task, int back);
+
 #endif // __STARPU_SCHEDULER_H__

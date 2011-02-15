@@ -363,7 +363,7 @@ struct starpu_task *_starpu_pop_local_task(struct starpu_worker_s *worker)
 	return task;
 }
 
-int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_task *task)
+int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_task *task, int back)
 {
 	/* Check that the worker is able to execute the task ! */
 	STARPU_ASSERT(task && task->cl);
@@ -371,7 +371,12 @@ int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_task *
 		return -ENODEV;
 
 	PTHREAD_MUTEX_LOCK(worker->sched_mutex);
-	starpu_task_list_push_front(&worker->local_tasks, task);
+
+	if (back)
+		starpu_task_list_push_back(&worker->local_tasks, task);
+	else
+		starpu_task_list_push_front(&worker->local_tasks, task);
+
 	PTHREAD_COND_BROADCAST(worker->sched_cond);
 	PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
 

@@ -4270,6 +4270,7 @@ the StarPU sources in the directory @code{examples/scheduler/}.
 * starpu_worker_set_sched_condition::
 * starpu_sched_set_min_priority::       Set the minimum priority level
 * starpu_sched_set_max_priority::       Set the maximum priority level
+* starpu_push_local_task::		Assign a task to a worker
 * Source code::                 
 @end menu
 
@@ -4294,7 +4295,10 @@ Insert a task into the scheduler.
 Insert a priority task into the scheduler.
 @item @code{pop_task}:
 Get a task from the scheduler. The mutex associated to the worker is already
-taken when this method is called.
+taken when this method is called. If this method is defined as @code{NULL}, the
+worker will only execute tasks from its local queue. In this case, the
+@code{push_task} method should use the @code{starpu_push_local_task} method to
+assign tasks to the different workers.
 @item @code{pop_every_task}:
 Remove all available tasks from the scheduler (tasks are chained by the means
 of the prev and next fields of the starpu_task structure). The mutex associated
@@ -4337,7 +4341,7 @@ is 0 by convention.  The application may access that value by calling the
 called from the initialization method of the scheduling policy, and should not
 be used directly from the application.
 @item @emph{Prototype}:
-@code{void starpu_sched_set_min_priority(int min_prio)}
+@code{void starpu_sched_set_min_priority(int min_prio);}
 @end table
 
 @node starpu_sched_set_max_priority
@@ -4350,8 +4354,23 @@ calling the @code{starpu_sched_get_max_priority} function. This function should
 only be called from the initialization method of the scheduling policy, and
 should not be used directly from the application.
 @item @emph{Prototype}:
-@code{void starpu_sched_set_min_priority(int max_prio)}
+@code{void starpu_sched_set_min_priority(int max_prio);}
 @end table
+
+@node starpu_push_local_task
+@subsection @code{starpu_push_local_task}
+@table @asis
+@item @emph{Description}:
+The scheduling policy may put tasks directly into a worker's local queue so
+that it is not always necessary to create its own queue when the local queue
+is sufficient. If "back" not null, the task is put at the back of the queue
+where the worker will pop tasks first. Setting "back" to 0 therefore ensures
+a FIFO ordering. 
+
+@item @emph{Prototype}:
+@code{int starpu_push_local_task(int workerid, struct starpu_task *task, int back);}
+@end table
+
 
 
 

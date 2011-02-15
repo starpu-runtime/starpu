@@ -153,12 +153,7 @@ void *_starpu_cpu_worker(void *arg)
 
 		PTHREAD_MUTEX_LOCK(cpu_arg->sched_mutex);
 
-		/* perhaps there is some local task to be executed first */
-		task = _starpu_pop_local_task(cpu_arg);
-
-		/* otherwise ask a task to the scheduler */
-		if (!task)
-			task = _starpu_pop_task();
+		task = _starpu_pop_task(cpu_arg);
 	
                 if (!task) 
 		{

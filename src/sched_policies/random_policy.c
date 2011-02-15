@@ -21,21 +21,9 @@
 #include <sched_policies/fifo_queues.h>
 
 static unsigned nworkers;
-static struct starpu_fifo_taskq_s *queue_array[STARPU_NMAXWORKERS];
 
 static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
 static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
-
-static struct starpu_task *random_pop_task(void)
-{
-	struct starpu_task *task;
-
-	int workerid = starpu_worker_get_id();
-
-	task = _starpu_fifo_pop_task(queue_array[workerid], -1);
-
-	return task;
-}
 
 static int _random_push_task(struct starpu_task *task, unsigned prio)
 {
@@ -71,11 +59,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 	}
 
 	/* we should now have the best worker in variable "selected" */
-	if (prio) {
-		return _starpu_fifo_push_prio_task(queue_array[selected], &sched_mutex[selected], &sched_cond[selected], task);
-	} else {
-		return _starpu_fifo_push_task(queue_array[selected],&sched_mutex[selected], &sched_cond[selected],  task);
-	}
+	return starpu_push_local_task(selected, task, prio);
 }
 
 static int random_push_prio_task(struct starpu_task *task)
@@ -98,8 +82,6 @@ static void initialize_random_policy(struct starpu_machine_topology_s *topology,
 	unsigned workerid;
 	for (workerid = 0; workerid < nworkers; workerid++)
 	{
-		queue_array[workerid] = _starpu_create_fifo();
-	
 		PTHREAD_MUTEX_INIT(&sched_mutex[workerid], NULL);
 		PTHREAD_COND_INIT(&sched_cond[workerid], NULL);
 	
@@ -112,7 +94,7 @@ struct starpu_sched_policy_s _starpu_sched_random_policy = {
 	.deinit_sched = NULL,
 	.push_task = random_push_task,
 	.push_prio_task = random_push_prio_task,
-	.pop_task = random_pop_task,
+	.pop_task = NULL,
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
 	.policy_name = "random",

@@ -402,12 +402,7 @@ void *_starpu_opencl_worker(void *arg)
 
 		PTHREAD_MUTEX_LOCK(args->sched_mutex);
 
-		/* perhaps there is some local task to be executed first */
-		task = _starpu_pop_local_task(args);
-
-		/* otherwise ask a task to the scheduler */
-		if (!task)
-			task = _starpu_pop_task();
+		task = _starpu_pop_task(args);
 		
                 if (task == NULL) 
 		{

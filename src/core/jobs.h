@@ -153,8 +153,10 @@ size_t _starpu_job_get_data_size(starpu_job_t j);
 struct starpu_task *_starpu_pop_local_task(struct starpu_worker_s *worker);
 
 /* Put a task into the pool of tasks that are explicitly attributed to the
- * specified worker. */
-int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_task *task);
+ * specified worker. If "back" is set, the task is put at the back of the list.
+ * Considering the tasks are popped from the back, this value should be 0 to
+ * enforce a FIFO ordering. */
+int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_task *task, int back);
 
 /* Returns the symbol associated to that job if any. */
 const char *_starpu_get_model_name(starpu_job_t j);
