@@ -1299,6 +1299,28 @@ starpu_insert_task(&mycodelet,
                    0);
 @end smallexample
 
+The call to @code{starpu_insert_task} is equivalent to the following
+code:
+
+@smallexample
+struct starpu_task *task = starpu_task_create();
+task->cl = &mycodelet;
+task->buffers[0].handle = data_handles[0];
+task->buffers[0].mode = STARPU_RW;
+task->buffers[1].handle = data_handles[1];
+task->buffers[1].mode = STARPU_RW;
+char *arg_buffer;
+size_t arg_buffer_size;
+starpu_pack_cl_args(&arg_buffer, &arg_buffer_size,
+		    STARPU_VALUE, &ifactor, sizeof(ifactor),
+		    STARPU_VALUE, &ffactor, sizeof(ffactor),
+		    0);
+task->cl_arg = arg_buffer;
+task->cl_arg_size = arg_buffer_size;
+int ret = starpu_task_submit(task);
+@end smallexample
+
+
 @node More examples
 @section More examples
 

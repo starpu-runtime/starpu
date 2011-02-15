@@ -19,7 +19,7 @@
 void func_cpu(void *descr[], void *_args)
 {
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	float *x1 = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
+	float *x1 = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
 	int ifactor;
 	float ffactor;
 
@@ -38,18 +38,18 @@ int main(int argc, char **argv)
 {
         int x; float f;
         int i;
-	int ifactor=15;
-	float ffactor=25.0;
+	int ifactor=12;
+	float ffactor=10.0;
         starpu_data_handle data_handles[2];
 
 	starpu_init(NULL);
 
-	x = 10;
+	x = 1;
 	starpu_variable_data_register(&data_handles[0], 0, (uintptr_t)&x, sizeof(x));
-	f = 20.0;
+	f = 2.0;
 	starpu_variable_data_register(&data_handles[1], 0, (uintptr_t)&f, sizeof(f));
 
-        fprintf(stderr, "VALUES: %d %f\n", x, f);
+        fprintf(stderr, "VALUES: %d (%d) %f (%f)\n", x, ifactor, f, ffactor);
 
         starpu_insert_task(&mycodelet,
 			   STARPU_VALUE, &ifactor, sizeof(ifactor),
@@ -58,6 +58,31 @@ int main(int argc, char **argv)
                            0);
         starpu_task_wait_for_all();
 
+        for(i=0 ; i<2 ; i++) {
+                starpu_data_acquire(data_handles[i], STARPU_R);
+        }
+        fprintf(stderr, "VALUES: %d %f\n", x, f);
+
+        for(i=0 ; i<2 ; i++) {
+                starpu_data_release(data_handles[i]);
+        }
+
+	struct starpu_task *task = starpu_task_create();
+	task->cl = &mycodelet;
+	task->buffers[0].handle = data_handles[0];
+	task->buffers[0].mode = STARPU_RW;
+	task->buffers[1].handle = data_handles[1];
+	task->buffers[1].mode = STARPU_RW;
+	char *arg_buffer;
+	size_t arg_buffer_size;
+	starpu_pack_cl_args(&arg_buffer, &arg_buffer_size,
+			    STARPU_VALUE, &ifactor, sizeof(ifactor),
+			    STARPU_VALUE, &ffactor, sizeof(ffactor),
+			    0);
+	task->cl_arg = arg_buffer;
+	task->cl_arg_size = arg_buffer_size;
+	int ret = starpu_task_submit(task);
+        starpu_task_wait_for_all();
         for(i=0 ; i<2 ; i++) {
                 starpu_data_acquire(data_handles[i], STARPU_R);
         }
