@@ -177,12 +177,16 @@ int starpu_data_cpy(starpu_data_handle dst_handle, starpu_data_handle src_handle
 #define STARPU_PRIORITY		(1<<6)	/* Priority associated to the task */
 #define STARPU_EXECUTE		(1<<7)	/* Used by MPI to define which task is going to execute the codelet */
 
-/* Wrapper to create a task. TODO document this interface */
+/* Wrapper to create a task. */
 void starpu_insert_task(starpu_codelet *cl, ...);
 
 /* Retrieve the arguments of type STARPU_VALUE associated to a task
  * automatically created using starpu_insert_task. */
 void starpu_unpack_cl_args(void *cl_arg, ...);
+
+/* Pack arguments of type STARPU_VALUE into a buffer which can be
+ * given to a codelet and later unpacked with starpu_unpack_cl_args */
+void starpu_pack_cl_args(char **arg_buffer, size_t *arg_buffer_size, ...);
 
 #ifdef __cplusplus
 }
