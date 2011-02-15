@@ -39,7 +39,7 @@ void starpu_task_insert_callback_wrapper(void *_cl_arg_wrapper)
 	free(cl_arg_wrapper->arg_stack);
 }
 
-int starpu_pack_cl_args(va_list varg_list)
+size_t starpu_insert_task_get_arg_size(va_list varg_list)
 {
 	int arg_type;
         size_t arg_buffer_size;
@@ -77,10 +77,19 @@ int starpu_pack_cl_args(va_list varg_list)
         return arg_buffer_size;
 }
 
-int starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, struct starpu_task **task, va_list varg_list) {
+int starpu_insert_task_create_and_submit(size_t arg_buffer_size, starpu_codelet *cl, struct starpu_task **task, va_list varg_list) {
         int arg_type;
 	unsigned current_buffer = 0;
 	unsigned char nargs = 0;
+
+	/* TODO use a single malloc to allocate the memory for arg_buffer and
+	 * the callback argument wrapper */
+	char *arg_buffer = malloc(arg_buffer_size);
+	STARPU_ASSERT(arg_buffer);
+	unsigned current_arg_offset = 0;
+
+	/* We will begin the buffer with the number of args (which is stored as a char) */
+	current_arg_offset += sizeof(char);
 
 	struct insert_task_cb_wrapper *cl_arg_wrapper = malloc(sizeof(struct insert_task_cb_wrapper));
 	STARPU_ASSERT(cl_arg_wrapper);
@@ -104,8 +113,18 @@ int starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, s
 		}
 		else if (arg_type==STARPU_VALUE)
 		{
-			va_arg(varg_list, void *);
-			va_arg(varg_list, size_t);
+			/* We have a constant value: this should be followed by a pointer to the cst value and the size of the constant */
+			void *ptr = va_arg(varg_list, void *);
+			size_t cst_size = va_arg(varg_list, size_t);
+
+			*(size_t *)(&arg_buffer[current_arg_offset]) = cst_size;
+			current_arg_offset += sizeof(size_t);
+
+			memcpy(&arg_buffer[current_arg_offset], ptr, cst_size);
+			current_arg_offset += cst_size;
+
+			nargs++;
+			STARPU_ASSERT(current_arg_offset <= arg_buffer_size);
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
@@ -129,6 +148,9 @@ int starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, s
 	}
 
 	va_end(varg_list);
+
+	arg_buffer[0] = nargs;
+
 	STARPU_ASSERT(current_buffer == cl->nbuffers);
 
 	(*task)->cl = cl;
