@@ -140,6 +140,7 @@ libstarpu_la_SOURCES = 						\
 	sched_policies/eager_central_priority_policy.c		\
 	sched_policies/work_stealing_policy.c			\
 	sched_policies/deque_modeling_policy_data_aware.c	\
+	sched_policies/heft.c					\
 	sched_policies/random_policy.c				\
 	sched_policies/stack_queues.c				\
 	sched_policies/deque_queues.c				\
