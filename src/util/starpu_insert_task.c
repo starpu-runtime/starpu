@@ -23,13 +23,25 @@
 #include <stdarg.h>
 #include <util/starpu_insert_task_utils.h>
 
+void starpu_pack_cl_args(char **arg_buffer, size_t *arg_buffer_size, ...)
+{
+	va_list varg_list;
+
+	/* Compute the size */
+	va_start(varg_list, arg_buffer_size);
+        *arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
+
+	va_start(varg_list, arg_buffer_size);
+	_starpu_pack_cl_args(*arg_buffer_size, arg_buffer, varg_list);
+}
+
 void starpu_unpack_cl_args(void *_cl_arg, ...)
 {
 	unsigned char *cl_arg = _cl_arg;
-
 	unsigned current_arg_offset = 0;
 	va_list varg_list;
 
+	assert(cl_arg);
 	va_start(varg_list, _cl_arg);
 
 	/* We fill the different pointers with the appropriate arguments */
@@ -54,16 +66,17 @@ void starpu_insert_task(starpu_codelet *cl, ...)
 {
 	va_list varg_list;
 
-	/* The buffer will contain : nargs, {size, content} (x nargs)*/
-
 	/* Compute the size */
 	size_t arg_buffer_size = 0;
+	va_start(varg_list, cl);
+        arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
 
 	va_start(varg_list, cl);
-        arg_buffer_size = starpu_insert_task_get_arg_size(varg_list);
+	char *arg_buffer;
+	_starpu_pack_cl_args(arg_buffer_size, &arg_buffer, varg_list);
 
 	va_start(varg_list, cl);
         struct starpu_task *task = starpu_task_create();
-        starpu_insert_task_create_and_submit(arg_buffer_size, cl, &task, varg_list);
+        _starpu_insert_task_create_and_submit(arg_buffer, cl, &task, varg_list);
 
 }

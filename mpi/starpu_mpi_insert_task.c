@@ -104,6 +104,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
         va_list varg_list;
         int me, do_execute;
 	size_t arg_buffer_size = 0;
+	char *arg_buffer;
         int dest, execute, inconsistent_execute;
         int mpi_tag = 100;
 
@@ -121,7 +122,10 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 
         /* Get the number of buffers and the size of the arguments */
 	va_start(varg_list, codelet);
-        arg_buffer_size = starpu_insert_task_get_arg_size(varg_list);
+        arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
+
+	va_start(varg_list, codelet);
+	_starpu_pack_cl_args(arg_buffer_size, &arg_buffer, varg_list);
 
         /* Finds out if the property STARPU_EXECUTE is specified */
         execute = -1;
@@ -293,7 +297,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                 _STARPU_MPI_DEBUG("Execution of the codelet %p\n", codelet);
                 va_start(varg_list, codelet);
                 struct starpu_task *task = starpu_task_create();
-                int ret = starpu_insert_task_create_and_submit(arg_buffer_size, codelet, &task, varg_list);
+                int ret = _starpu_insert_task_create_and_submit(arg_buffer, codelet, &task, varg_list);
                 _STARPU_MPI_DEBUG("ret: %d\n", ret);
                 STARPU_ASSERT(ret==0);
         }
