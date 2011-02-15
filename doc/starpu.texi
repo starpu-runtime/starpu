@@ -1262,7 +1262,7 @@ based on the given arguments. The list of varying arguments has to be
 ended by the value @code{0}.
 
 Parameters to be passed to the codelet implementation are defined
-through the type @code{STARPU_EXECUTE}. The function
+through the type @code{STARPU_VALUE}. The function
 @code{starpu_unpack_cl_args} must be called within the codelet
 implementation to retrieve them.
 
