@@ -159,7 +159,6 @@ static void _starpu_launch_drivers(struct starpu_machine_config_s *config)
 		workerarg->terminated_jobs = starpu_job_list_new();
 
 		starpu_task_list_init(&workerarg->local_tasks);
-		PTHREAD_MUTEX_INIT(&workerarg->local_tasks_mutex, NULL);
 	
 		workerarg->status = STATUS_INITIALIZING;
 

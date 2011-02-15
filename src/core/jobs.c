@@ -352,16 +352,13 @@ unsigned _starpu_enforce_deps_starting_from_task(starpu_job_t j, unsigned job_is
 	return ret;
 }
 
+/* This function must be called with worker->sched_mutex taken */
 struct starpu_task *_starpu_pop_local_task(struct starpu_worker_s *worker)
 {
 	struct starpu_task *task = NULL;
 
-	PTHREAD_MUTEX_LOCK(&worker->local_tasks_mutex);
-
 	if (!starpu_task_list_empty(&worker->local_tasks))
 		task = starpu_task_list_pop_back(&worker->local_tasks);
-
-	PTHREAD_MUTEX_UNLOCK(&worker->local_tasks_mutex);
 
 	return task;
 }
@@ -373,14 +370,10 @@ int _starpu_push_local_task(struct starpu_worker_s *worker, struct starpu_task *
 	if (STARPU_UNLIKELY(!(worker->worker_mask & task->cl->where)))
 		return -ENODEV;
 
-	PTHREAD_MUTEX_LOCK(&worker->local_tasks_mutex);
+	PTHREAD_MUTEX_LOCK(worker->sched_mutex);
 	starpu_task_list_push_front(&worker->local_tasks, task);
-	PTHREAD_MUTEX_UNLOCK(&worker->local_tasks_mutex);
-
-#ifndef STARPU_NON_BLOCKING_DRIVERS
-	/* XXX that's a bit excessive ... */
-	_starpu_wake_all_blocked_workers_on_node(worker->memory_node);
-#endif
+	PTHREAD_COND_BROADCAST(worker->sched_cond);
+	PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
 
 	return 0;
 }
