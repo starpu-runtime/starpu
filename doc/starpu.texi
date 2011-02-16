@@ -1366,6 +1366,7 @@ TODO: improve!
 @menu
 * Data management::
 * Task submission::
+* Task priorities::
 * Task scheduling policy::
 * Task distribution vs Data transfer::
 * Power-based scheduling::
@@ -1414,6 +1415,16 @@ asynchronously as much as possible. Ideally, all the tasks should be
 submitted, and a mere @code{starpu_task_wait_for_all} call be done to wait for
 termination. StarPU will then be able to rework the whole schedule, overlap
 computation with communication, manage accelerator local memory usage, etc.
+
+@node Task priorities
+@section Task priorities
+
+By default, StarPU will consider the tasks in the order they are submitted by
+the application. If the application programmer knows that some tasks should
+be performed in priority (for instance because their output is needed by many
+other tasks and may thus be a bottleneck if not executed early enough), the
+@code{priority} field of the task structure should be set to transmit the
+priority information to StarPU.
 
 @node Task scheduling policy
 @section Task scheduling policy
