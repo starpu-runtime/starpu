@@ -350,7 +350,9 @@ struct starpu_task *_starpu_pop_every_task(void)
 
 void _starpu_sched_post_exec_hook(struct starpu_task *task)
 {
-	if (policy.post_exec_hook)
+	/* We only execute the hook if the task was put here by the scheduling
+	 * policy */
+	if (!task->execute_on_a_specific_worker && policy.post_exec_hook)
 		policy.post_exec_hook(task);
 }
 
