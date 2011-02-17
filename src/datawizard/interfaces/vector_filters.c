@@ -114,7 +114,4 @@ void starpu_vector_list_filter_func(void *father_interface, void *child_interfac
 	  vector_child->offset = vector_father->offset + current_pos*elemsize;
 	  vector_child->dev_handle = vector_father->dev_handle;
 	}
-	
-	__attribute__ ((unused)) uint32_t nx = vector_father->nx;
-	STARPU_ASSERT(current_pos == nx);
 }
