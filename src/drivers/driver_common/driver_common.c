@@ -32,7 +32,7 @@ void _starpu_driver_update_job_feedback(starpu_job_t j, struct starpu_worker_s *
 	double measured;
 	int workerid = worker_args->workerid;
 	struct starpu_codelet_t *cl = j->task->cl;
-	int calibrate_model;
+	int calibrate_model = 0;
 	int profiling = starpu_profiling_status_get();
 	int updated = 0;
 
