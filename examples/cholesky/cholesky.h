@@ -58,6 +58,7 @@ static unsigned nblocks = 16;
 static unsigned nbigblocks = 8;
 static unsigned pinned = 0;
 static unsigned noprio = 0;
+static unsigned check = 0;
 
 void chol_cpu_codelet_update_u11(void **, void *);
 void chol_cpu_codelet_update_u21(void **, void *);
@@ -100,8 +101,12 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 			noprio = 1;
 		}
 
+		if (strcmp(argv[i], "-check") == 0) {
+			check = 1;
+		}
+
 		if (strcmp(argv[i], "-h") == 0) {
-			printf("usage : %s [-pin] [-size size] [-nblocks nblocks]\n", argv[0]);
+			printf("usage : %s [-pin] [-size size] [-nblocks nblocks] [-check]\n", argv[0]);
 		}
 	}
 }

@@ -65,30 +65,28 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 	struct timeval start;
 	struct timeval end;
 
-	/* create all the DAG nodes */
 	unsigned i,j,k;
+
+	int prio_level = noprio?STARPU_DEFAULT_PRIO:STARPU_MAX_PRIO;
 
 	gettimeofday(&start, NULL);
 
+	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
                 starpu_data_handle sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
-                int prio = STARPU_DEFAULT_PRIO;
-                if (!noprio) prio = STARPU_MAX_PRIO;
 
                 starpu_insert_task(&cl11,
-                                   STARPU_PRIORITY, prio,
+                                   STARPU_PRIORITY, prio_level,
                                    STARPU_RW, sdatakk,
                                    0);
 
 		for (j = k+1; j<nblocks; j++)
 		{
                         starpu_data_handle sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
-                        prio = STARPU_DEFAULT_PRIO;
-                        if (!noprio && (j == k+1)) prio = STARPU_MAX_PRIO;
 
                         starpu_insert_task(&cl21,
-                                           STARPU_PRIORITY, prio,
+                                           STARPU_PRIORITY, (j == k+1)?prio_level:STARPU_DEFAULT_PRIO,
                                            STARPU_R, sdatakk,
                                            STARPU_RW, sdatakj,
                                            0);
@@ -97,13 +95,11 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 			{
 				if (i <= j)
                                 {
-                                        starpu_data_handle sdataki = starpu_data_get_sub_data(dataA, 2, k, i);
-                                        starpu_data_handle sdataij = starpu_data_get_sub_data(dataA, 2, i, j);
-                                        prio = STARPU_DEFAULT_PRIO;
-                                        if (!noprio && (i == k + 1) && (j == k +1) ) prio = STARPU_MAX_PRIO;
-
-                                        starpu_insert_task(&cl22,
-                                                           STARPU_PRIORITY, prio,
+					starpu_data_handle sdataki = starpu_data_get_sub_data(dataA, 2, k, i);
+					starpu_data_handle sdataij = starpu_data_get_sub_data(dataA, 2, i, j);
+					
+					starpu_insert_task(&cl22,
+                                                           STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
                                                            STARPU_R, sdataki,
                                                            STARPU_R, sdatakj,
                                                            STARPU_RW, sdataij,
@@ -123,25 +119,10 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 	fprintf(stderr, "Computation took (in ms)\n");
 	printf("%2.2f\n", timing/1000);
 
-	unsigned n = starpu_matrix_get_nx(dataA);
+	unsigned long n = starpu_matrix_get_nx(dataA);
 
 	double flop = (1.0f*n*n*n)/3.0f;
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
-}
-
-static void initialize_system(float **A, unsigned dim, unsigned pinned)
-{
-	starpu_init(NULL);
-
-	starpu_helper_cublas_init();
-
-	if (pinned)
-	{
-		starpu_data_malloc_pinned_if_possible((void **)A, (size_t)dim*dim*sizeof(float));
-	}
-	else {
-		*A = malloc(dim*dim*sizeof(float));
-	}
 }
 
 static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
@@ -167,10 +148,6 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 
 	_cholesky(dataA, nblocks);
-
-	starpu_helper_cublas_shutdown();
-
-	starpu_shutdown();
 }
 
 int main(int argc, char **argv)
@@ -182,10 +159,12 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	float *mat;
+	starpu_init(NULL);
 
-	mat = malloc(size*size*sizeof(float));
-	initialize_system(&mat, size, pinned);
+	starpu_helper_cublas_init();
+
+	float *mat;
+	starpu_data_malloc_pinned_if_possible((void **)&mat, (size_t)size*size*sizeof(float));
 
 	unsigned i,j;
 	for (i = 0; i < size; i++)
@@ -196,7 +175,6 @@ int main(int argc, char **argv)
 			//mat[j +i*size] = ((i == j)?1.0f*size:0.0f);
 		}
 	}
-
 
 //#define PRINT_OUTPUT
 #ifdef PRINT_OUTPUT
@@ -237,53 +215,59 @@ int main(int argc, char **argv)
 	}
 #endif
 
-	fprintf(stderr, "compute explicit LLt ...\n");
-	for (j = 0; j < size; j++)
+	if (check)
 	{
-		for (i = 0; i < size; i++)
+		fprintf(stderr, "compute explicit LLt ...\n");
+		for (j = 0; j < size; j++)
 		{
-			if (i > j) {
-				mat[j+i*size] = 0.0f; // debug
+			for (i = 0; i < size; i++)
+			{
+				if (i > j) {
+					mat[j+i*size] = 0.0f; // debug
+				}
 			}
 		}
-	}
-	float *test_mat = malloc(size*size*sizeof(float));
-	STARPU_ASSERT(test_mat);
-
-	SSYRK("L", "N", size, size, 1.0f,
-				mat, size, 0.0f, test_mat, size);
-
-	fprintf(stderr, "comparing results ...\n");
+		float *test_mat = malloc(size*size*sizeof(float));
+		STARPU_ASSERT(test_mat);
+	
+		SSYRK("L", "N", size, size, 1.0f,
+					mat, size, 0.0f, test_mat, size);
+	
+		fprintf(stderr, "comparing results ...\n");
 #ifdef PRINT_OUTPUT
-	for (j = 0; j < size; j++)
-	{
-		for (i = 0; i < size; i++)
+		for (j = 0; j < size; j++)
 		{
-			if (i <= j) {
-				printf("%2.2f\t", test_mat[j +i*size]);
+			for (i = 0; i < size; i++)
+			{
+				if (i <= j) {
+					printf("%2.2f\t", test_mat[j +i*size]);
+				}
+				else {
+					printf(".\t");
+				}
 			}
-			else {
-				printf(".\t");
-			}
+			printf("\n");
 		}
-		printf("\n");
-	}
 #endif
-
-	for (j = 0; j < size; j++)
-	{
-		for (i = 0; i < size; i++)
+	
+		for (j = 0; j < size; j++)
 		{
-			if (i <= j) {
-                                float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-                                float err = abs(test_mat[j +i*size] - orig);
-                                if (err > 0.00001) {
-                                        fprintf(stderr, "Error[%d, %d] --> %2.2f != %2.2f (err %2.2f)\n", i, j, test_mat[j +i*size], orig, err);
-                                        assert(0);
-                                }
-                        }
-		}
-        }
+			for (i = 0; i < size; i++)
+			{
+				if (i <= j) {
+	                                float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
+	                                float err = abs(test_mat[j +i*size] - orig);
+	                                if (err > 0.00001) {
+	                                        fprintf(stderr, "Error[%d, %d] --> %2.2f != %2.2f (err %2.2f)\n", i, j, test_mat[j +i*size], orig, err);
+	                                        assert(0);
+	                                }
+	                        }
+			}
+	        }
+	}
+
+	starpu_helper_cublas_shutdown();
+	starpu_shutdown();
 
 	return 0;
 }
