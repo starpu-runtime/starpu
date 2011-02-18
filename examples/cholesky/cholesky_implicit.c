@@ -25,6 +25,7 @@
 static starpu_codelet cl11 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
+	.type = STARPU_SEQ,
 	.cpu_func = chol_cpu_codelet_update_u11,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = chol_cublas_codelet_update_u11,
@@ -36,6 +37,7 @@ static starpu_codelet cl11 =
 static starpu_codelet cl21 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
+	.type = STARPU_SEQ,
 	.cpu_func = chol_cpu_codelet_update_u21,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = chol_cublas_codelet_update_u21,
@@ -47,6 +49,8 @@ static starpu_codelet cl21 =
 static starpu_codelet cl22 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
+	.type = STARPU_SEQ,
+	.max_parallelism = INT_MAX,
 	.cpu_func = chol_cpu_codelet_update_u22,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = chol_cublas_codelet_update_u22,
@@ -59,6 +63,11 @@ static starpu_codelet cl22 =
  *	code to bootstrap the factorization
  *	and construct the DAG
  */
+
+static void callback_turn_spmd_on(void *arg __attribute__ ((unused)))
+{
+	cl22.type = STARPU_SPMD;
+}
 
 static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 {
@@ -79,6 +88,7 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
                 starpu_insert_task(&cl11,
                                    STARPU_PRIORITY, prio_level,
                                    STARPU_RW, sdatakk,
+				   STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
                                    0);
 
 		for (j = k+1; j<nblocks; j++)
