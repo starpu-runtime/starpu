@@ -15,8 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "dw_cholesky_models.h"
-
 /*
  * As a convention, in that file, descr[0] is represented by A,
  * 				  descr[1] is B ...
@@ -26,8 +24,9 @@
  *	Number of flops of Gemm 
  */
 
-//#define USE_PERTURBATION	1
+#include <starpu.h>
 
+//#define USE_PERTURBATION	1
 
 #ifdef USE_PERTURBATION
 #define PERTURBATE(a)	((starpu_drand48()*2.0f*(AMPL) + 1.0f - (AMPL))*(a))

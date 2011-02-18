@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
@@ -16,8 +16,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "dw_cholesky.h"
-#include "dw_cholesky_models.h"
+#include "cholesky.h"
 
 /*
  *	Some useful functions
@@ -168,7 +167,7 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
  *	and construct the DAG
  */
 
-static void _dw_cholesky(starpu_data_handle dataA, unsigned nblocks)
+static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 {
 	struct timeval start;
 	struct timeval end;
@@ -234,7 +233,7 @@ static void _dw_cholesky(starpu_data_handle dataA, unsigned nblocks)
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
 
-void initialize_system(float **A, unsigned dim, unsigned pinned)
+static void initialize_system(float **A, unsigned dim, unsigned pinned)
 {
 	starpu_init(NULL);
 	
@@ -249,7 +248,7 @@ void initialize_system(float **A, unsigned dim, unsigned pinned)
 	}
 }
 
-void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
+static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
 	starpu_data_handle dataA;
 
@@ -273,7 +272,7 @@ void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 
-	_dw_cholesky(dataA, nblocks);
+	_cholesky(dataA, nblocks);
 
 	starpu_helper_cublas_shutdown();
 
@@ -324,7 +323,7 @@ int main(int argc, char **argv)
 #endif
 
 
-	dw_cholesky(mat, size, size, nblocks);
+	cholesky(mat, size, size, nblocks);
 
 #ifdef CHECK_OUTPUT
 	printf("Results :\n");

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,7 +18,6 @@
 #ifndef __DW_CHOLESKY_H__
 #define __DW_CHOLESKY_H__
 
-#include <semaphore.h>
 #include <string.h>
 #include <math.h>
 #include <sys/time.h>
@@ -40,8 +39,6 @@
 					| ((unsigned long long)(i)<<16)	\
 					| (unsigned long long)(j))))
 
-
-
 #define TAG11_AUX(k, prefix)	((starpu_tag_t)( (((unsigned long long)(prefix))<<60)  |  (1ULL<<56) | (unsigned long long)(k)))
 #define TAG21_AUX(k,j, prefix)	((starpu_tag_t)( (((unsigned long long)(prefix))<<60)  			\
 					|  ((3ULL<<56) | (((unsigned long long)(k))<<32)	\
@@ -53,19 +50,8 @@
 
 #define BLOCKSIZE	(size/nblocks)
 
-
 #define BLAS3_FLOP(n1,n2,n3)    \
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
-
-typedef struct {
-	starpu_data_handle dataA;
-	unsigned i;
-	unsigned j;
-	unsigned k;
-	unsigned nblocks;
-	unsigned *remaining;
-	sem_t *sem;
-} cl_args;
 
 static unsigned size = 4*1024;
 static unsigned nblocks = 16;
@@ -82,9 +68,6 @@ void chol_cublas_codelet_update_u11(void *descr[], void *_args);
 void chol_cublas_codelet_update_u21(void *descr[], void *_args);
 void chol_cublas_codelet_update_u22(void *descr[], void *_args);
 #endif
-
-void initialize_system(float **A, unsigned dim, unsigned pinned);
-void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks);
 
 extern struct starpu_perfmodel_t chol_model_11;
 extern struct starpu_perfmodel_t chol_model_21;

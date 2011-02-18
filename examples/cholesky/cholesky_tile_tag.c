@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -15,8 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "dw_cholesky.h"
-#include "dw_cholesky_models.h"
+#include "cholesky.h"
 
 /* A [ y ] [ x ] */
 float *A[NMAXBLOCKS][NMAXBLOCKS];
@@ -182,7 +181,7 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
  *	and construct the DAG
  */
 
-static void dw_cholesky_no_stride(void)
+static void cholesky_no_stride(void)
 {
 	struct timeval start;
 	struct timeval end;
@@ -302,7 +301,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	dw_cholesky_no_stride();
+	cholesky_no_stride();
 
 	starpu_helper_cublas_shutdown();
 

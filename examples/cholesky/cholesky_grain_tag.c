@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
@@ -16,8 +16,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "dw_cholesky.h"
-#include "dw_cholesky_models.h"
+#include "cholesky.h"
 
 /*
  *	Some useful functions
@@ -158,7 +157,7 @@ static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, uns
  *	and construct the DAG
  */
 
-static void _dw_cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks, unsigned reclevel)
+static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks, unsigned reclevel)
 {
 	/* create a new codelet */
 	struct starpu_task *entry_task = NULL;
@@ -250,11 +249,11 @@ static void _dw_cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned
 
 		float *newmatA = &matA[nbigblocks*(size/nblocks)*(ld+1)];
 
-		_dw_cholesky_grain(newmatA, size/nblocks*(nblocks - nbigblocks), ld, (nblocks - nbigblocks)*2, (nblocks - nbigblocks)*2, reclevel+1);
+		cholesky_grain_rec(newmatA, size/nblocks*(nblocks - nbigblocks), ld, (nblocks - nbigblocks)*2, (nblocks - nbigblocks)*2, reclevel+1);
 	}
 }
 
-void initialize_system(float **A, unsigned dim, unsigned pinned)
+static void initialize_system(float **A, unsigned dim, unsigned pinned)
 {
 	starpu_init(NULL);
 
@@ -269,14 +268,14 @@ void initialize_system(float **A, unsigned dim, unsigned pinned)
 	}
 }
 
-void dw_cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks)
+void cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, unsigned nbigblocks)
 {
 	struct timeval start;
 	struct timeval end;
 
 	gettimeofday(&start, NULL);
 
-	_dw_cholesky_grain(matA, size, ld, nblocks, nbigblocks, 0);
+	cholesky_grain_rec(matA, size, ld, nblocks, nbigblocks, 0);
 
 	gettimeofday(&end, NULL);
 
@@ -336,7 +335,7 @@ int main(int argc, char **argv)
 #endif
 
 
-	dw_cholesky_grain(mat, size, size, nblocks, nbigblocks);
+	cholesky_grain(mat, size, size, nblocks, nbigblocks);
 
 #ifdef CHECK_OUTPUT
 	printf("Results :\n");

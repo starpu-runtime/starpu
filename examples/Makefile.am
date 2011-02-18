@@ -108,8 +108,7 @@ noinst_HEADERS = 				\
 	pi/SobolQRNG/sobol_gold.h		\
 	pi/SobolQRNG/sobol_gpu.h		\
 	pi/SobolQRNG/sobol_primitives.h		\
-	cholesky/dw_cholesky_models.h		\
-	cholesky/dw_cholesky.h			\
+	cholesky/cholesky.h			\
 	common/blas_model.h			\
 	common/blas.h				\
 	mult/simple.h				\
@@ -344,34 +343,34 @@ endif
 
 if !NO_BLAS_LIB
 
-examplebin_PROGRAMS += 			\
-	cholesky/dw_cholesky			\
-	cholesky/dw_cholesky_no_stride		\
-	cholesky/dw_cholesky_grain		\
+examplebin_PROGRAMS += 				\
+	cholesky/cholesky_tag			\
+	cholesky/cholesky_tile_tag		\
+	cholesky/cholesky_grain_tag		\
 	cholesky/cholesky_implicit
 
-cholesky_dw_cholesky_SOURCES =			\
-	cholesky/dw_cholesky.c			\
-	cholesky/dw_cholesky_models.c		\
-	cholesky/dw_cholesky_kernels.c		\
+cholesky_cholesky_tag_SOURCES =			\
+	cholesky/cholesky_tag.c			\
+	cholesky/cholesky_models.c		\
+	cholesky/cholesky_kernels.c		\
 	common/blas.c
 
-cholesky_dw_cholesky_no_stride_SOURCES =	\
-	cholesky/dw_cholesky_no_stride.c	\
-	cholesky/dw_cholesky_models.c		\
-	cholesky/dw_cholesky_kernels.c		\
+cholesky_cholesky_tile_tag_SOURCES =		\
+	cholesky/cholesky_tile_tag.c		\
+	cholesky/cholesky_models.c		\
+	cholesky/cholesky_kernels.c		\
 	common/blas.c
 
-cholesky_dw_cholesky_grain_SOURCES =		\
-	cholesky/dw_cholesky_grain.c		\
-	cholesky/dw_cholesky_models.c		\
-	cholesky/dw_cholesky_kernels.c		\
+cholesky_cholesky_grain_tag_SOURCES =		\
+	cholesky/cholesky_grain_tag.c		\
+	cholesky/cholesky_models.c		\
+	cholesky/cholesky_kernels.c		\
 	common/blas.c
 
 cholesky_cholesky_implicit_SOURCES =		\
 	cholesky/cholesky_implicit.c		\
-	cholesky/dw_cholesky_models.c		\
-	cholesky/dw_cholesky_kernels.c		\
+	cholesky/cholesky_models.c		\
+	cholesky/cholesky_kernels.c		\
 	common/blas.c
 
 endif
