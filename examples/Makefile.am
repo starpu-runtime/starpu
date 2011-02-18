@@ -41,8 +41,6 @@ EXTRA_DIST = 					\
 	spmv/spmv_cuda.cu			\
 	gordon/null_kernel_gordon.c		\
 	mult/xgemm.c				\
-	mult/xgemm_kernels.c			\
-	mult/gordon/func_sgemm_ibm.c		\
 	lu/xlu.c				\
 	lu/xlu_pivot.c				\
 	lu/xlu_implicit.c			\
@@ -56,8 +54,7 @@ EXTRA_DIST = 					\
 	filters/fblock_opencl_kernel.cl
 
 CLEANFILES = 					\
-	gordon/null_kernel_gordon.spuelf	\
-	mult/gordon/func_sgemm_ibm.spuelf
+	gordon/null_kernel_gordon.spuelf
 
 
 CLEANFILES += *.gcno *.gcda *.linkinfo
@@ -88,8 +85,7 @@ SPULIBS = -lblas #-lc -lgloss -lc
 	$(SPU_LD) $(SPULDFLAGS) $< -o $@ $(SPULIBS)
 
 BUILT_SOURCES +=				\
-	gordon/null_kernel_gordon.spuelf	\
-	mult/gordon/func_sgemm_ibm.spuelf
+	gordon/null_kernel_gordon.spuelf
 
 endif
 
@@ -116,10 +112,8 @@ noinst_HEADERS = 				\
 	cholesky/dw_cholesky.h			\
 	common/blas_model.h			\
 	common/blas.h				\
-	mult/dw_mult.h				\
 	mult/simple.h				\
 	mult/double.h				\
-	mult/gordon/func_gemm_ibm.h		\
 	gordon/null.h				\
 	fortran/bindings/StarPU_fortran.h	\
 	ppm_downscaler/ppm_downscaler.h		\
@@ -332,29 +326,15 @@ if !NO_BLAS_LIB
 
 examplebin_PROGRAMS += 				\
 	mult/sgemm 				\
-	mult/dgemm 				\
-	mult/dw_mult_no_stride			\
-	mult/dw_mult_no_stride_no_tag
+	mult/dgemm
 
 mult_sgemm_SOURCES = 				\
 	mult/sgemm.c				\
-	common/blas.c				\
-	common/blas_model.c
+	common/blas.c
 
 mult_dgemm_SOURCES = 				\
 	mult/dgemm.c				\
-	common/blas.c				\
-	common/blas_model.c
-
-mult_dw_mult_no_stride_SOURCES = 		\
-	mult/dw_mult_no_stride.c		\
-	common/blas.c				\
-	common/blas_model.c
-
-mult_dw_mult_no_stride_no_tag_SOURCES =		\
-	mult/dw_mult_no_stride_no_tag.c		\
-	common/blas.c				\
-	common/blas_model.c
+	common/blas.c
 
 endif
 

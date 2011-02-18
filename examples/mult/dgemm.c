@@ -16,6 +16,4 @@
  */
 
 #include "double.h"
-
-#include "xgemm_kernels.c"
 #include "xgemm.c" 

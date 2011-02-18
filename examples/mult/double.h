@@ -17,7 +17,6 @@
 #define TYPE	double
 
 #define CUBLAS_GEMM cublasDgemm
-#define MAGMABLAS_GEMM magmablas_dgemm
 #define CPU_GEMM	DGEMM
 #define CPU_ASUM	DASUM
 #define CPU_IAMAX	IDAMAX
