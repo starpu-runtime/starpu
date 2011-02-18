@@ -83,7 +83,7 @@ static int find_combinations_with_hwloc_rec(hwloc_obj_t obj, int *worker_array, 
 	}
 	
 	/* If there is at least 2 children that are valid, we combined them. */
-	if (cpu_children_cnt > 1)
+	if (cpu_children_cnt > 1 && worker_cnt_rec > 0)
 		starpu_combined_worker_assign_workerid(worker_cnt_rec, worker_array_rec);
 
 	return (cpu_children_cnt == obj->arity);
