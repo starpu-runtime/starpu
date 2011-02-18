@@ -43,6 +43,7 @@ unsigned _starpu_get_cuda_device_count(void);
 #ifdef STARPU_USE_CUDA
 void _starpu_init_cuda(void);
 void *_starpu_cuda_worker(void *);
+cudaStream_t starpu_cuda_get_local_transfer_stream(void);
 #endif
 
 #endif //  __DRIVER_CUDA_H__

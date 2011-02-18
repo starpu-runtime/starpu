@@ -129,7 +129,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, struct starpu_dat
 				cures = cudaEventCreate(&req->async_channel.cuda_event);
 				if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
-				stream = starpu_cuda_get_local_stream();
+				stream = starpu_cuda_get_local_transfer_stream();
 				ret = copy_methods->cuda_to_ram_async(src_interface, src_node, dst_interface, dst_node, stream);
 
 				cures = cudaEventRecord(req->async_channel.cuda_event, stream);

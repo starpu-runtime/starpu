@@ -31,6 +31,7 @@
 static int ncudagpus;
 
 static cudaStream_t streams[STARPU_NMAXWORKERS];
+static cudaStream_t transfer_streams[STARPU_NMAXWORKERS];
 
 /* In case we want to cap the amount of memory available on the GPUs by the
  * mean of the STARPU_LIMIT_GPU_MEM, we allocate a big buffer when the driver
@@ -83,6 +84,13 @@ static void unlimit_gpu_mem_if_needed(int devid)
 	}
 }
 
+cudaStream_t starpu_cuda_get_local_transfer_stream(void)
+{
+	int worker = starpu_worker_get_id();
+
+	return transfer_streams[worker];
+}
+
 cudaStream_t starpu_cuda_get_local_stream(void)
 {
 	int worker = starpu_worker_get_id();
@@ -107,6 +115,10 @@ static void init_context(int devid)
 	cures = cudaStreamCreate(&streams[workerid]);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
+
+	cures = cudaStreamCreate(&transfer_streams[workerid]);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
 }
 
 static void deinit_context(int workerid, int devid)
@@ -114,6 +126,7 @@ static void deinit_context(int workerid, int devid)
 	cudaError_t cures;
 
 	cudaStreamDestroy(streams[workerid]);
+	cudaStreamDestroy(transfer_streams[workerid]);
 
 	unlimit_gpu_mem_if_needed(devid);
 
@@ -171,7 +184,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 
 	if (calibrate_model)
 	{
-		cudaError_t cures = cudaThreadSynchronize();
+		cudaError_t cures = cudaStreamSynchronize(starpu_cuda_get_local_transfer_stream());
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}

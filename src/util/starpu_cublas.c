@@ -25,6 +25,8 @@ static void init_cublas_func(void *args __attribute__((unused)))
 	cublasStatus cublasst = cublasInit();
 	if (STARPU_UNLIKELY(cublasst))
 		STARPU_CUBLAS_REPORT_ERROR(cublasst);
+
+	cublasSetKernelStream(starpu_cuda_get_local_stream());
 }
 
 static void shutdown_cublas_func(void *args __attribute__((unused)))
