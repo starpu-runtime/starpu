@@ -173,8 +173,31 @@ double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_arc
 	return starpu_model_expected_perf(task, task->cl->power_model, arch);
 }
 
+/* Predict the transfer time (in µs) to move a handle to a memory node */
+double starpu_data_expected_transfer_time(starpu_data_handle handle, unsigned memory_node, starpu_access_mode mode)
+{
+	/* If we don't need to read the content of the handle */
+	if (!mode & STARPU_R)
+		return 0.0;
+	
+	if (_starpu_is_data_present_or_requested(handle, memory_node))
+		return 0.0;
+
+	size_t size = _starpu_data_get_size(handle);
+
+	/* XXX in case we have an abstract piece of data (eg.  with the
+	 * void interface, this does not introduce any overhead, and we
+	 * don't even want to consider the latency that is not
+	 * relevant). */
+	if (size == 0)
+		return 0.0;
+
+	uint32_t src_node = _starpu_select_src_node(handle);
+	return _starpu_predict_transfer_time(src_node, memory_node, size);
+}
+
 /* Data transfer performance modeling */
-double starpu_data_expected_penalty(uint32_t memory_node, struct starpu_task *task)
+double starpu_task_expected_data_transfer_time(uint32_t memory_node, struct starpu_task *task)
 {
 	unsigned nbuffers = task->cl->nbuffers;
 	unsigned buffer;
@@ -184,25 +207,9 @@ double starpu_data_expected_penalty(uint32_t memory_node, struct starpu_task *ta
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
 		starpu_data_handle handle = task->buffers[buffer].handle;
-
 		starpu_access_mode mode = task->buffers[buffer].mode;
 
-		if ((mode == STARPU_W) || (mode == STARPU_SCRATCH))
-			continue;
-
-		if (!_starpu_is_data_present_or_requested(handle, memory_node))
-		{
-			size_t size = _starpu_data_get_size(handle);
-
-			uint32_t src_node = _starpu_select_src_node(handle);
-
-			/* XXX in case we have an abstract piece of data (eg.
-			 * with the void interface, this does not introduce any
-			 * overhead, and we don't even want to consider the
-			 * latency that is not relevant). */
-			if (size > 0)
-				penalty += _starpu_predict_transfer_time(src_node, memory_node, size);
-		}
+		penalty += starpu_data_expected_transfer_time(handle, memory_node, mode);
 	}
 
 	return penalty;

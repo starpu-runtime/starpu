@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -171,7 +171,9 @@ double starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_ar
 /* Returns an estimated speedup factor relative to CPU speed */
 double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtype);
 /* Returns expected data transfer time in µs */
-double starpu_data_expected_penalty(uint32_t memory_node, struct starpu_task *task);
+double starpu_task_expected_data_transfer_time(uint32_t memory_node, struct starpu_task *task);
+/* Predict the transfer time (in µs) to move a handle to a memory node */
+double starpu_data_expected_transfer_time(starpu_data_handle handle, unsigned memory_node, starpu_access_mode mode);
 /* Returns expected power consumption in J */
 double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_archtype arch);
 
