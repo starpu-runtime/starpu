@@ -100,8 +100,13 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 	exp_start[workerid] = STARPU_MAX(exp_start[workerid], starpu_timing_now());
 	exp_end[workerid] = STARPU_MAX(exp_start[workerid], starpu_timing_now());
 
-	exp_end[workerid] += predicted;
-	exp_len[workerid] += predicted;
+	/* If there is no prediction available, we consider the task has a null length */
+	if (predicted != -1.0)
+	{
+		exp_end[workerid] += predicted;
+		exp_len[workerid] += predicted;
+	}
+
 	ntasks[workerid]++;
 
 	PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
