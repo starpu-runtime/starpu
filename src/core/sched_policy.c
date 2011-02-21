@@ -235,6 +235,9 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 	if (use_prefetch)
 		starpu_prefetch_task_input_on_node(task, memory_node);
 
+	if (policy.push_task_notify)
+		policy.push_task_notify(task, workerid);
+
 	if (is_basic_worker)
 	{
 		return _starpu_push_local_task(worker, task, 0);
@@ -350,9 +353,7 @@ struct starpu_task *_starpu_pop_every_task(void)
 
 void _starpu_sched_post_exec_hook(struct starpu_task *task)
 {
-	/* We only execute the hook if the task was put here by the scheduling
-	 * policy */
-	if (!task->execute_on_a_specific_worker && policy.post_exec_hook)
+	if (policy.post_exec_hook)
 		policy.post_exec_hook(task);
 }
 

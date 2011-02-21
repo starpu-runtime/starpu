@@ -71,6 +71,13 @@ struct starpu_sched_policy_s {
 	/* Insert a task into the scheduler. */
 	int (*push_task)(struct starpu_task *);
 
+	/* Notify the scheduler that a task was pushed on the worker. This
+	 * method is called when a task that was explicitely assigned to a
+	 * worker is scheduled. This method therefore permits to keep the state
+	 * of of the scheduler coherent even when StarPU bypasses the
+	 * scheduling strategy. */
+	void (*push_task_notify)(struct starpu_task *, int workerid);
+
 	/* Insert a priority task into the scheduler. */
 	int (*push_prio_task)(struct starpu_task *);
 

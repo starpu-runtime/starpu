@@ -87,6 +87,26 @@ static void heft_post_exec_hook(struct starpu_task *task)
 	PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
 }
 
+static void heft_push_task_notify(struct starpu_task *task, int workerid)
+{
+	/* Compute the expected penality */
+	enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(workerid);
+	double predicted = starpu_task_expected_length(task, perf_arch);
+
+	/* Update the predictions */
+	PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
+
+	/* Sometimes workers didn't take the tasks as early as we expected */
+	exp_start[workerid] = STARPU_MAX(exp_start[workerid], starpu_timing_now());
+	exp_end[workerid] = STARPU_MAX(exp_start[workerid], starpu_timing_now());
+
+	exp_end[workerid] += predicted;
+	exp_len[workerid] += predicted;
+	ntasks[workerid]++;
+
+	PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
+}
+
 static int push_task_on_best_worker(struct starpu_task *task, int best_workerid, double predicted, int prio)
 {
 	/* make sure someone coule execute that task ! */
@@ -290,6 +310,7 @@ struct starpu_sched_policy_s heft_policy = {
 	.deinit_sched = heft_deinit,
 	.push_task = heft_push_task, 
 	.push_prio_task = heft_push_prio_task, 
+	.push_task_notify = heft_push_task_notify,
 	.pop_task = NULL,
 	.pop_every_task = NULL,
 	.post_exec_hook = heft_post_exec_hook,
