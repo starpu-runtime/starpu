@@ -177,7 +177,7 @@ double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_arc
 double starpu_data_expected_transfer_time(starpu_data_handle handle, unsigned memory_node, starpu_access_mode mode)
 {
 	/* If we don't need to read the content of the handle */
-	if (!mode & STARPU_R)
+	if (!(mode & STARPU_R))
 		return 0.0;
 	
 	if (_starpu_is_data_present_or_requested(handle, memory_node))
