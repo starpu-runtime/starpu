@@ -116,6 +116,7 @@ libstarpu_la_SOURCES = 						\
 	common/utils.c						\
 	core/jobs.c						\
 	core/task.c						\
+	core/task_bundle.c					\
 	core/workers.c						\
 	core/combined_workers.c					\
 	core/topology.c						\

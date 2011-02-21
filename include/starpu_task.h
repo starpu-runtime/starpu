@@ -115,6 +115,9 @@ struct starpu_task {
 	unsigned execute_on_a_specific_worker;
 	unsigned workerid;
 
+	/* Bundle including the task */
+	struct starpu_task_bundle *bundle;
+
 	/* If this flag is set, it is not possible to synchronize with the task
 	 * by the means of starpu_task_wait later on. Internal data structures
 	 * are only garanteed to be freed once starpu_task_wait is called if
@@ -169,6 +172,7 @@ struct starpu_task {
 	.use_tag = 0,					\
 	.synchronous = 0,				\
 	.execute_on_a_specific_worker = 0,		\
+	.bundle = NULL,					\
 	.detach = 1,					\
 	.destroy = 0,					\
 	.regenerate = 0,				\

@@ -32,6 +32,7 @@ include_HEADERS = 				\
 	include/starpu_data_filters.h		\
 	include/starpu_data_interfaces.h	\
 	include/starpu_task.h			\
+	include/starpu_task_bundle.h		\
 	include/starpu_task_list.h		\
 	include/starpu_data.h			\
 	include/starpu_perfmodel.h		\

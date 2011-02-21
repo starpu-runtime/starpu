@@ -22,6 +22,7 @@
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
 #include <starpu_parameters.h>
+#include <starpu_task_bundle.h>
 
 static unsigned nworkers;
 
@@ -141,7 +142,8 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 					double *local_task_length, double *exp_end,
 					double *max_exp_endp, double *best_exp_endp,
 					double *local_data_penalty,
-					double *local_power, int *forced_best)
+					double *local_power, int *forced_best,
+					struct starpu_task_bundle *bundle)
 {
 	int calibrating = 0;
 	double max_exp_end = DBL_MIN;
@@ -168,10 +170,19 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 		}
 
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
-		local_task_length[worker] = starpu_task_expected_length(task, perf_arch);
-
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
-		local_data_penalty[worker] = starpu_task_expected_data_transfer_time(memory_node, task);
+
+		if (bundle)
+		{
+			local_task_length[worker] = starpu_task_bundle_expected_length(bundle, perf_arch);
+			local_data_penalty[worker] = starpu_task_bundle_expected_data_transfer_time(bundle, memory_node);
+			local_power[worker] = starpu_task_bundle_expected_power(bundle, perf_arch);
+		}
+		else {
+			local_task_length[worker] = starpu_task_expected_length(task, perf_arch);
+			local_data_penalty[worker] = starpu_task_expected_data_transfer_time(memory_node, task);
+			local_power[worker] = starpu_task_expected_power(task, perf_arch);
+		}
 
 		double ntasks_end = ntasks[worker] / starpu_worker_get_relative_speedup(perf_arch);
 
@@ -206,7 +217,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			best_exp_end = exp_end[worker];
 		}
 
-		local_power[worker] = starpu_task_expected_power(task, perf_arch);
 		if (local_power[worker] == -1.0)
 			local_power[worker] = 0.;
 	}
@@ -239,10 +249,12 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 	 *	and detect if there is some calibration that needs to be done.
 	 */
 
+	struct starpu_task_bundle *bundle = task->bundle;
+
 	compute_all_performance_predictions(task, local_task_length, exp_end,
 					&max_exp_end, &best_exp_end,
 					local_data_penalty,
-					local_power, &forced_best);
+					local_power, &forced_best, bundle);
 
 	/* If there is no prediction available for that task with that arch we
 	 * want to speed-up calibration time so we force this measurement */
@@ -288,7 +300,31 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 	STARPU_ASSERT(best != -1);
 	
 	/* we should now have the best worker in variable "best" */
-	double model_best = local_task_length[best];
+	double model_best;
+
+	if (bundle)
+	{
+		/* If we have a task bundle, we have computed the expected
+		 * length for the entire bundle, but not for the task alone. */
+		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(best);
+		model_best = starpu_task_expected_length(task, perf_arch);
+
+		/* Remove the task from the bundle since we have made a
+		 * decision for it, and that other tasks should not consider it
+		 * anymore. */
+		PTHREAD_MUTEX_LOCK(&bundle->mutex);
+		int ret = starpu_task_bundle_remove(bundle, task);
+
+		/* Perhaps the bundle was destroyed when removing the last
+		 * entry */
+		if (ret != 1)
+			PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+
+	}
+	else {
+		model_best = local_task_length[best];
+	}
+
 	return push_task_on_best_worker(task, best, model_best, prio);
 }
 

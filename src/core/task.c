@@ -17,6 +17,7 @@
 
 #include <starpu.h>
 #include <starpu_profiling.h>
+#include <starpu_task_bundle.h>
 #include <core/workers.h>
 #include <core/jobs.h>
 #include <core/task.h>
@@ -57,6 +58,8 @@ void starpu_task_init(struct starpu_task *task)
 
 	task->execute_on_a_specific_worker = 0;
 
+	task->bundle = NULL;
+
 	task->detach = 1;
 
 	/* by default, we do not let StarPU free the task structure since
@@ -86,6 +89,19 @@ void starpu_task_deinit(struct starpu_task *task)
 	{
 		free(task->profiling_info);
 		task->profiling_info = NULL;
+	}
+
+	/* If case the task is (still) part of a bundle */
+	struct starpu_task_bundle *bundle = task->bundle;
+	if (bundle)
+	{
+		PTHREAD_MUTEX_LOCK(&bundle->mutex);
+		int ret = starpu_task_bundle_remove(bundle, task);
+
+		/* Perhaps the bundle was destroyed when removing the last
+		 * entry */
+		if (ret != 1)
+			PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 	}
 
 	starpu_job_t j = (struct starpu_job_s *)task->starpu_private;
