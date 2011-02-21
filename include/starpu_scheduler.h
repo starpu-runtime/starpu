@@ -110,6 +110,20 @@ would be used to block and wake up all workers.  The initialization method of a
 scheduling strategy (init_sched) must call this function once per worker. */
 void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond, pthread_mutex_t *sched_mutex);
 
+/* Check if the worker specified by workerid can execute the codelet. */
+int starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task);
+
+/* The scheduling policy may put tasks directly into a worker's local queue so
+ * that it is not always necessary to create its own queue when the local queue
+ * is sufficient. If "back" not null, the task is put at the back of the queue
+ * where the worker will pop tasks first. Setting "back" to 0 therefore ensures
+ * a FIFO ordering. */
+int starpu_push_local_task(int workerid, struct starpu_task *task, int back);
+
+/*
+ *	Priorities
+ */
+
 /* Provided for legacy reasons */
 #define STARPU_MIN_PRIO		(starpu_sched_get_min_priority())
 #define STARPU_MAX_PRIO		(starpu_sched_get_max_priority())
@@ -124,30 +138,41 @@ int starpu_sched_get_max_priority(void);
 void starpu_sched_set_min_priority(int min_prio);
 void starpu_sched_set_max_priority(int max_prio);
 
+/*
+ *	Parallel tasks
+ */
+
+/* Register a new combined worker and get its identifier */
 int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[]);
-
-/* Return the current date */
-double starpu_timing_now(void);
-
-/* Check if the worker specified by workerid can execute the codelet. */
-int starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task);
+/* Initialize combined workers */
+void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *topology);
+/* Get the description of a combined worker */
+int starpu_combined_worker_get_description(int workerid, int *worker_size, int **combined_workerid);
+/* Variant of starpu_worker_may_execute_task compatible with combined workers */
 int starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_task *task);
+
+/*
+ *	Data prefetching
+ */
 
 /* Whether STARPU_PREFETCH was set */
 int starpu_get_prefetch_flag(void);
 /* Prefetch data for a given task on a given node */
 int starpu_prefetch_task_input_on_node(struct starpu_task *task, uint32_t node);
 
-/* Initialize combined workers */
-void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *topology);
+/*
+ *	Performance predictions
+ */
 
-int starpu_combined_worker_get_description(int workerid, int *worker_size, int **combined_workerid);
-
-/* The scheduling policy may put tasks directly into a worker's local queue so
- * that it is not always necessary to create its own queue when the local queue
- * is sufficient. If "back" not null, the task is put at the back of the queue
- * where the worker will pop tasks first. Setting "back" to 0 therefore ensures
- * a FIFO ordering. */
-int starpu_push_local_task(int workerid, struct starpu_task *task, int back);
+/* Return the current date */
+double starpu_timing_now(void);
+/* Returns expected task duration in µs */
+double starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_archtype arch);
+/* Returns an estimated speedup factor relative to CPU speed */
+double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtype);
+/* Returns expected data transfer time in µs */
+double starpu_data_expected_penalty(uint32_t memory_node, struct starpu_task *task);
+/* Returns expected power consumption in J */
+double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_archtype arch);
 
 #endif // __STARPU_SCHEDULER_H__
