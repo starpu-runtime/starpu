@@ -179,26 +179,34 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+			{
+			float *lambda11;
+			cudaHostAlloc((void **)&lambda11, sizeof(float), 0);
+
 			for (z = 0; z < nx; z++)
 			{
-				float lambda11;
-				cudaMemcpyAsync(&lambda11, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
+
+				cudaMemcpyAsync(lambda11, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
 				cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
-				STARPU_ASSERT(lambda11 != 0.0f);
+				STARPU_ASSERT(*lambda11 != 0.0f);
 				
-				lambda11 = sqrt(lambda11);
+				*lambda11 = sqrt(*lambda11);
 
-				cublasSetVector(1, sizeof(float), &lambda11, sizeof(float), &sub11[z+z*ld], sizeof(float));
+//				cublasSetVector(1, sizeof(float), lambda11, sizeof(float), &sub11[z+z*ld], sizeof(float));
+				cudaMemcpyAsync(&sub11[z+z*ld], lambda11, sizeof(float), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
 
-				cublasSscal(nx - z - 1, 1.0f/lambda11, &sub11[(z+1)+z*ld], 1);
+				cublasSscal(nx - z - 1, 1.0f/(*lambda11), &sub11[(z+1)+z*ld], 1);
 
 				cublasSsyr('U', nx - z - 1, -1.0f,
 							&sub11[(z+1)+z*ld], 1,
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
-		
+
 			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaFreeHost(lambda11);
+			}
+		
 
 			break;
 #endif
