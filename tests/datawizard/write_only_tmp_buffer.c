@@ -27,6 +27,8 @@ starpu_data_handle v_handle;
 
 #ifdef STARPU_USE_OPENCL
 #include <CL/cl.h>
+#include <starpu_opencl.h>
+
 static void opencl_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	cl_mem buf = (cl_mem)STARPU_VECTOR_GET_PTR(descr[0]);

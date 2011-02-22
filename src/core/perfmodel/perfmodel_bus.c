@@ -32,6 +32,10 @@
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
 
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
+
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
 #endif

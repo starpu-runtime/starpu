@@ -200,8 +200,10 @@ cl_int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs
 
 int starpu_opencl_collect_stats(cl_event event __attribute__((unused)))
 {
+#if defined(CL_PROFILING_CLOCK_CYCLE_COUNT)||defined(CL_PROFILING_STALL_CYCLE_COUNT)||defined(CL_PROFILING_POWER_CONSUMED)
 	struct starpu_task *task = starpu_get_current_task();
 	struct starpu_task_profiling_info *info = task->profiling_info;
+#endif
 
 #ifdef CL_PROFILING_CLOCK_CYCLE_COUNT
 	if (starpu_profiling_status_get() && info) {
