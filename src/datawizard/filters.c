@@ -209,8 +209,6 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 
 	_starpu_spin_lock(&root_handle->header_lock);
 
-#warning starpu_data_unpartition is not supported with NO_DATA_RW_LOCK yet ...
-
 	/* first take all the children lock (in order !) */
 	for (child = 0; child < root_handle->nchildren; child++)
 	{
