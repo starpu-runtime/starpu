@@ -40,6 +40,10 @@ void STRSM (const char *side, const char *uplo, const char *transa,
                    const char *diag, const int m, const int n,
                    const float alpha, const float *A, const int lda,
                    float *B, const int ldb);
+void DTRSM (const char *side, const char *uplo, const char *transa,
+                   const char *diag, const int m, const int n,
+                   const double alpha, const double *A, const int lda,
+                   double *B, const int ldb);
 void DGEMM(char *transa, char *transb, int M, int N, int K, 
 			double alpha, double *A, int lda, double *B, int ldb, 
 			double beta, double *C, int ldc);
