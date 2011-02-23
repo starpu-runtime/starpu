@@ -31,6 +31,7 @@ struct progression_hook {
 static pthread_rwlock_t progression_hook_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
 static struct progression_hook hooks[NMAXHOOKS] = {{NULL, NULL, 0}};
+static int active_hook_cnt = 0;
 
 int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg)
 {
@@ -44,6 +45,7 @@ int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg)
 			hooks[hook].func = func;
 			hooks[hook].arg = arg;
 			hooks[hook].active = 1;
+			active_hook_cnt++;
 
 			PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
 			
@@ -62,12 +64,25 @@ int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg)
 void starpu_progression_hook_deregister(int hook_id)
 {
 	PTHREAD_RWLOCK_WRLOCK(&progression_hook_rwlock);
+
+	if (hooks[hook_id].active)
+		active_hook_cnt--;
+
 	hooks[hook_id].active = 0;
+
 	PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
 }
 
 unsigned _starpu_execute_registered_progression_hooks(void)
 {
+	/* If there is no hook registered, we short-cut loop. */
+	PTHREAD_RWLOCK_RDLOCK(&progression_hook_rwlock);
+	int no_hook = (active_hook_cnt == 0);
+	PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
+
+	if (no_hook)
+		return 1;
+
 	/* By default, it is possible to block, but if some progression hooks
 	 * requires that it's not blocking, we disable blocking. */
 	unsigned may_block = 1;
