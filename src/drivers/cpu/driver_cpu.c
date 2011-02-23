@@ -70,10 +70,11 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 			starpu_clock_gettime(&codelet_start);
 			_starpu_worker_register_executing_start_date(workerid, &codelet_start);
 		}
-	
-		cpu_args->status = STATUS_EXECUTING;
-		task->status = STARPU_TASK_RUNNING;	
+
 	}
+	
+	cpu_args->status = STATUS_EXECUTING;
+	task->status = STARPU_TASK_RUNNING;	
 	
 	/* In case this is a Fork-join parallel task, the worker does not
 	 * execute the kernel at all. */
@@ -83,22 +84,20 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 		func(task->interface, task->cl_arg);
 	}
 	
+	if (is_parallel_task)
+		PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
+
+	STARPU_TRACE_END_CODELET_BODY(j);
+
+	cpu_args->status = STATUS_UNKNOWN;
+
 	if (rank == 0)
 	{
 		cl->per_worker_stats[workerid]++;
 		
 		if ((profiling && profiling_info) || calibrate_model)
 			starpu_clock_gettime(&codelet_end);
-	
-		STARPU_TRACE_END_CODELET_BODY(j);
-		cpu_args->status = STATUS_UNKNOWN;
-	}
 
-	if (is_parallel_task)
-		PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
-
-	if (rank == 0)
-	{
 		_starpu_push_task_output(task, 0);
 
 		_starpu_driver_update_job_feedback(j, cpu_args, profiling_info,
