@@ -190,7 +190,7 @@ AC_ARG_WITH(cuda-dir,
 	[AS_HELP_STRING([--with-cuda-dir=<path>],
 	[specify CUDA installation directory (default is /usr/local/cuda/)])],
 	[
-		cuda_dir=$withval
+		cuda_dir="$withval"
 		# in case this was not explicit yet
 		enable_cuda=yes
 	], cuda_dir=/usr/local/cuda/)
@@ -199,7 +199,7 @@ AC_ARG_WITH(cuda-include-dir,
 	[AS_HELP_STRING([--with-cuda-include-dir=<path>],
 	[specify where CUDA headers are installed])],
 	[
-		cuda_include_dir=$withval
+		cuda_include_dir="$withval"
 		# in case this was not explicit yet
 		enable_cuda=yes
 	], [cuda_include_dir=no])
@@ -208,7 +208,7 @@ AC_ARG_WITH(cuda-lib-dir,
 	[AS_HELP_STRING([--with-cuda-lib-dir=<path>],
 	[specify where CUDA libraries are installed])],
 	[
-		cuda_lib_dir=$withval
+		cuda_lib_dir="$withval"
 		# in case this was not explicit yet
 		enable_cuda=yes
 	], [cuda_lib_dir=no])
@@ -223,9 +223,9 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	fi
 
 	if test -d "$cuda_include_dir"; then
-		CPPFLAGS="${CPPFLAGS} -I$cuda_include_dir "
-                STARPU_CUDA_CPPFLAGS="-I$cuda_include_dir"
-		NVCCFLAGS="${NVCCFLAGS} -I$cuda_include_dir "
+		CPPFLAGS="${CPPFLAGS} -I\"$cuda_include_dir\" "
+                STARPU_CUDA_CPPFLAGS="-I\"$cuda_include_dir\""
+		NVCCFLAGS="${NVCCFLAGS} -I\"$cuda_include_dir\" "
 	fi
 
 	# do we have a valid CUDA setup ?
@@ -240,19 +240,19 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	if test x$cuda_lib_dir = xno; then
 		found_cudalib=no
 		if test -d "$cuda_dir/lib/"; then
-			LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib/ "
-	                STARPU_CUDA_LDFLAGS="-L$cuda_dir/lib/"
+			LDFLAGS="${SAVED_LDFLAGS} -L\"$cuda_dir\"/lib/ "
+	                STARPU_CUDA_LDFLAGS="-L\"$cuda_dir\"/lib/"
 			AC_HAVE_LIBRARY([cuda],[found_cudalib=yes],[found_cudalib=no])
 		fi
 
 		if test x$found_cudalib=xno -a -d "$cuda_dir/lib64/"; then
-			LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib64/ "
-	                STARPU_CUDA_LDFLAGS="-L$cuda_dir/lib64/"
+			LDFLAGS="${SAVED_LDFLAGS} -L\"$cuda_dir\"/lib64/ "
+	                STARPU_CUDA_LDFLAGS="-L\"$cuda_dir\"/lib64/"
 		fi
 	else
 		if test -d "$cuda_lib_dir"; then
-			LDFLAGS="${LDFLAGS} -L$cuda_lib_dir "
-	                STARPU_CUDA_LDFLAGS="-L$cuda_lib_dir "
+			LDFLAGS="${LDFLAGS} -L\"$cuda_lib_dir\" "
+	                STARPU_CUDA_LDFLAGS="-L\"$cuda_lib_dir\" "
 		fi
 	fi
 
@@ -318,7 +318,7 @@ if test x$enable_cuda = xyes; then
 				else
 					# MAGMA is enabled and the PATH is given in $withval
 					enable_magma=yes
-					magma_dir=$withval
+					magma_dir="$withval"
 				fi
 				fi
 			], [])
@@ -328,14 +328,14 @@ if test x$enable_cuda = xyes; then
 		SAVED_LDFLAGS="${LDFLAGS}"
 		SAVED_CPPFLAGS="${CPPFLAGS}"
 		if test -d "$magma_dir/lib/"; then
-			LDFLAGS="${SAVED_LDFLAGS} -L$magma_dir/lib/ "
+			LDFLAGS="${SAVED_LDFLAGS} -L\"$magma_dir\"/lib/ "
 			have_valid_magma=yes
 			AC_CHECK_LIB(magmablas, main,,[have_valid_magma=no])
 			AC_CHECK_LIB(magma, magmablas_sgemm,,[have_valid_magma=no])
 		fi
 
 		if test -d "$magma_dir/include/"; then
-			CPPFLAGS="${SAVED_CPPFLAGS} -I$magma_dir/include/ "
+			CPPFLAGS="${SAVED_CPPFLAGS} -I\"$magma_dir\"/include/ "
 			AC_CHECK_HEADER([magmablas.h],,[have_valid_magma=no])
 			#AC_CHECK_HEADER([magma.h],,[have_valid_magma=no])
 		fi
@@ -408,7 +408,7 @@ AC_ARG_WITH(opencl-dir,
 	[AS_HELP_STRING([--with-opencl-dir=<path>],
 	[specify OpenCL installation directory (default is /usr)])],
 	[
-		opencl_dir=$withval
+		opencl_dir="$withval"
 		# in case this was not explicit yet
 		enable_opencl=yes
 	], opencl_dir=/usr)
@@ -417,7 +417,7 @@ AC_ARG_WITH(opencl-include-dir,
 	[AS_HELP_STRING([--with-opencl-include-dir=<path>],
 	[specify where OpenCL headers are installed])],
 	[
-		opencl_include_dir=$withval
+		opencl_include_dir="$withval"
 		# in case this was not explicit yet
 		enable_opencl=yes
 	], [opencl_include_dir=no])
@@ -426,7 +426,7 @@ AC_ARG_WITH(opencl-lib-dir,
 	[AS_HELP_STRING([--with-opencl-lib-dir=<path>],
 	[specify where OpenCL libraries are installed])],
 	[
-		opencl_lib_dir=$withval
+		opencl_lib_dir="$withval"
 		# in case this was not explicit yet
 		enable_opencl=yes
 	], [opencl_lib_dir=no])
@@ -438,7 +438,7 @@ if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
 	fi
 
 	if test -d "$opencl_include_dir" && test "$opencl_include_dir" != "/usr/include" ; then
-		CPPFLAGS="${CPPFLAGS} -I$opencl_include_dir "
+		CPPFLAGS="${CPPFLAGS} -I\"$opencl_include_dir\" "
 	fi
 
 	# do we have a valid OpenCL setup ?
@@ -456,7 +456,7 @@ if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
 	fi
 
 	if test -d "$opencl_lib_dir"; then
-		LDFLAGS="${SAVED_LDFLAGS} -L$opencl_lib_dir "
+		LDFLAGS="${SAVED_LDFLAGS} -L\"$opencl_lib_dir\" "
 	fi
 	AC_HAVE_LIBRARY([OpenCL],[],[have_valid_opencl=no])
 
@@ -496,7 +496,7 @@ if test x$enable_gordon = xyes -o x$enable_gordon = xmaybe; then
 	AC_ARG_WITH(gordon-dir, [AS_HELP_STRING([--with-gordon-dir=<path>],
 			[specify Gordon installation directory (default is /usr/local/)])],
 			[
-				gordon_dir=$withval
+				gordon_dir="$withval"
 				enable_gordon=yes
 			], gordon_dir=/usr/local/)
 
@@ -737,7 +737,7 @@ AC_ARG_WITH(perf-model-dir, [AS_HELP_STRING([--with-perf-model-dir=<dir>], [spec
 			AC_MSG_ERROR(--without-perf-model-dir is not a valid option)
 		fi
 
-		perf_model_dir=$withval
+		perf_model_dir="$withval"
 		have_explicit_perf_model_dir=yes
 		AC_DEFINE_UNQUOTED(STARPU_PERF_MODEL_DIR, ["$perf_model_dir"], [performance models location])
 	], [
