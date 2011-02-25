@@ -224,9 +224,9 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	fi
 
 	if test -d "$cuda_include_dir"; then
-		CPPFLAGS="${CPPFLAGS} -I\"$cuda_include_dir\" "
-                STARPU_CUDA_CPPFLAGS="-I\"$cuda_include_dir\""
-		NVCCFLAGS="${NVCCFLAGS} -I\"$cuda_include_dir\" "
+		CPPFLAGS="${CPPFLAGS} -I$cuda_include_dir "
+                STARPU_CUDA_CPPFLAGS="-I$cuda_include_dir"
+		NVCCFLAGS="${NVCCFLAGS} -I$cuda_include_dir "
 	fi
 
 	# do we have a valid CUDA setup ?
@@ -241,19 +241,19 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	if test x$cuda_lib_dir = xno; then
 		found_cudalib=no
 		if test -d "$cuda_dir/lib/"; then
-			LDFLAGS="${SAVED_LDFLAGS} -L\"$cuda_dir\"/lib/ "
-	                STARPU_CUDA_LDFLAGS="-L\"$cuda_dir\"/lib/"
+			LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib/ "
+	                STARPU_CUDA_LDFLAGS="-L$cuda_dir/lib/"
 			AC_HAVE_LIBRARY([cuda],[found_cudalib=yes],[found_cudalib=no])
 		fi
 
 		if test x$found_cudalib=xno -a -d "$cuda_dir/lib64/"; then
-			LDFLAGS="${SAVED_LDFLAGS} -L\"$cuda_dir\"/lib64/ "
-	                STARPU_CUDA_LDFLAGS="-L\"$cuda_dir\"/lib64/"
+			LDFLAGS="${SAVED_LDFLAGS} -L$cuda_dir/lib64/ "
+	                STARPU_CUDA_LDFLAGS="-L$cuda_dir/lib64/"
 		fi
 	else
 		if test -d "$cuda_lib_dir"; then
-			LDFLAGS="${LDFLAGS} -L\"$cuda_lib_dir\" "
-	                STARPU_CUDA_LDFLAGS="-L\"$cuda_lib_dir\" "
+			LDFLAGS="${LDFLAGS} -L$cuda_lib_dir "
+	                STARPU_CUDA_LDFLAGS="-L$cuda_lib_dir "
 		fi
 	fi
 
@@ -329,14 +329,14 @@ if test x$enable_cuda = xyes; then
 		SAVED_LDFLAGS="${LDFLAGS}"
 		SAVED_CPPFLAGS="${CPPFLAGS}"
 		if test -d "$magma_dir/lib/"; then
-			LDFLAGS="${SAVED_LDFLAGS} -L\"$magma_dir\"/lib/ "
+			LDFLAGS="${SAVED_LDFLAGS} -L$magma_dir/lib/ "
 			have_valid_magma=yes
 			AC_CHECK_LIB(magmablas, main,,[have_valid_magma=no])
 			AC_CHECK_LIB(magma, magmablas_sgemm,,[have_valid_magma=no])
 		fi
 
 		if test -d "$magma_dir/include/"; then
-			CPPFLAGS="${SAVED_CPPFLAGS} -I\"$magma_dir\"/include/ "
+			CPPFLAGS="${SAVED_CPPFLAGS} -I$magma_dir/include/ "
 			AC_CHECK_HEADER([magmablas.h],,[have_valid_magma=no])
 			#AC_CHECK_HEADER([magma.h],,[have_valid_magma=no])
 		fi
@@ -439,7 +439,7 @@ if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
 	fi
 
 	if test -d "$opencl_include_dir" && test "$opencl_include_dir" != "/usr/include" ; then
-		CPPFLAGS="${CPPFLAGS} -I\"$opencl_include_dir\" "
+		CPPFLAGS="${CPPFLAGS} -I$opencl_include_dir "
 	fi
 
 	# do we have a valid OpenCL setup ?
@@ -457,7 +457,7 @@ if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
 	fi
 
 	if test -d "$opencl_lib_dir"; then
-		LDFLAGS="${SAVED_LDFLAGS} -L\"$opencl_lib_dir\" "
+		LDFLAGS="${SAVED_LDFLAGS} -L$opencl_lib_dir "
 	fi
 	AC_HAVE_LIBRARY([OpenCL],[],[have_valid_opencl=no])
 
