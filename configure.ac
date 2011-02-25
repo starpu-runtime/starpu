@@ -47,6 +47,7 @@ AM_CONDITIONAL([STARPU_HAVE_MS_LIB], [test "x$STARPU_MS_LIB" != "x"])
 case "$target" in
 *-*-mingw*|*-*-cygwin*)
   starpu_windows=yes
+  libext=a
   AC_DEFINE(STARPU_HAVE_WINDOWS, [], [Define this on windows.])
   ;;
 esac
