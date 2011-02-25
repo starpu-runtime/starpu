@@ -18,6 +18,6 @@ __kernel void incrementer(__global float* input)
 {
 	const int i = get_global_id(0);
 	if (i == 0 || i == 3)
-		input[i] = input[i] + 1.0;
+		input[i] = input[i] + 1.0f;
 }
 

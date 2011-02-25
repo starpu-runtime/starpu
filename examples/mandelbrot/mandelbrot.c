@@ -21,7 +21,7 @@
 #endif
 #include <sys/time.h>
 #include <math.h>
-
+#include <limits.h>
 #ifdef STARPU_HAVE_X11
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
