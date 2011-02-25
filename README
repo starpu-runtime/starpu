@@ -89,6 +89,13 @@ The password is 'anonsvn'
 +---------------------
 | IV.c. Windows build:
 
+StarPU can be built using MinGW or Cygwin.  To avoid the cygwin dependency,
+we provide MinGW-built binaries.  The build process produces libstarpu.dll,
+libstarpu.def, and libstarpu.lib, which should be enough to use it from e.g.
+Microsoft Visual Studio.
+
+A few details need to be fixed when building StarPU on windows:
+
 - c:\cuda\include\host_defines.h has a bogus CUDARTAPI definition which makes
   linking fail completely. Replace the first occurence of
 
