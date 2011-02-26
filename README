@@ -96,6 +96,12 @@ Microsoft Visual Studio.
 
 A few details need to be fixed when building StarPU on windows:
 
+- To get a .def file built, make sure that MSVC's lib.exe tool is in PATH.
+
+- Update the video drivers to the latest stable release available for your
+  hardware. Older drivers contain bugs that cause OpenCL support in StarPU to
+  hang or exhibit incorrect behaviour.
+
 - c:\cuda\include\host_defines.h has a bogus CUDARTAPI definition which makes
   linking fail completely. Replace the first occurence of
 
