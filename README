@@ -45,6 +45,9 @@ advantage of their specificities in a portable fashion.
  * if CUDA support is enabled
    * CUDA (version >= 2.2)
    * CUBLAS (version >= 2.2)
+ * if OpenCL support is enabled
+   * AMD SDK >= 2.3 if AMD driver is used
+   * CUDA >= 3.2 if NVIDIA driver is used
  * extra requirements for the svn version (we usually use the Debian testing
    versions)
    * autoconf (version >= 2.60)
@@ -99,8 +102,8 @@ A few details need to be fixed when building StarPU on windows:
 - To get a .def file built, make sure that MSVC's lib.exe tool is in PATH.
 
 - Update the video drivers to the latest stable release available for your
-  hardware. Older drivers contain bugs that cause OpenCL support in StarPU to
-  hang or exhibit incorrect behaviour.
+  hardware. Older ATI drivers (< 2.3) contain bugs that cause OpenCL support in
+  StarPU to hang or exhibit incorrect behaviour.
 
 - c:\cuda\include\host_defines.h has a bogus CUDARTAPI definition which makes
   linking fail completely. Replace the first occurence of
