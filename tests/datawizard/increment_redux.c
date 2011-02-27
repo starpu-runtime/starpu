@@ -18,10 +18,10 @@
 #include <starpu.h>
 
 #ifdef STARPU_USE_CUDA
-#include <cuda.h>
+#include <starpu_cuda.h>
 #endif
 #ifdef STARPU_USE_OPENCL
-#include <CL/cl.h>
+#include <starpu_opencl.h>
 #endif
 
 

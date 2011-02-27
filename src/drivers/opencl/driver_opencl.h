@@ -24,7 +24,11 @@
 
 #ifdef STARPU_USE_OPENCL
 
+#ifdef __APPLE__
+#include <OpenCL/cl.h>
+#else
 #include <CL/cl.h>
+#endif
 
 extern
 int _starpu_opencl_init_context(int devid);

@@ -18,6 +18,7 @@
 #ifndef __DW_CHOLESKY_H__
 #define __DW_CHOLESKY_H__
 
+#include <limits.h>
 #include <string.h>
 #include <math.h>
 #include <sys/time.h>

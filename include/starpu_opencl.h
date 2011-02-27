@@ -19,7 +19,11 @@
 #define __STARPU_OPENCL_H__
 
 #ifdef STARPU_USE_OPENCL
+#ifdef __APPLE__
+#include <OpenCL/cl.h>
+#else
 #include <CL/cl.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {

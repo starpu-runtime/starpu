@@ -17,7 +17,6 @@
 
 #include <starpu.h>
 #include <starpu_opencl.h>
-#include <CL/cl.h>
 
 extern struct starpu_opencl_program opencl_code;
 

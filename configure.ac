@@ -54,9 +54,13 @@ esac
 AM_CONDITIONAL([STARPU_HAVE_WINDOWS], [test "x$starpu_windows" = "xyes"])
 
 # on Darwin, GCC targets i386 by default, so we don't have atomic ops
-case "$target" in
-i386-*darwin*) CFLAGS+=" -march=i686 " ;;
-esac
+AC_CHECK_SIZEOF([void *])
+if test x$SIZEOF_VOID_P = x4; then
+	case "$target" in
+	i386-*darwin*) CFLAGS+=" -march=i686 " ;;
+	esac
+fi
+
 
 
 # This will be useful for program which use CUDA (and .cubin files) which need
@@ -282,9 +286,10 @@ if test x$enable_cuda = xyes; then
 	AC_DEFINE(STARPU_USE_CUDA, [1], [CUDA support is activated])
 
 	# On Darwin, the libstdc++ dependency is not automatically added by nvcc
-	case "$target" in
-		*-*darwin*) AC_HAVE_LIBRARY([stdc++], [STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"]) ;;
-	esac
+#	case "$target" in
+#		*-*darwin*) AC_HAVE_LIBRARY([stdc++], []) ;;
+#		#*-*darwin*) AC_HAVE_LIBRARY([stdc++], [STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"]) ;;
+#	esac
 	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcuda"
 
         AC_SUBST(STARPU_CUDA_LDFLAGS)
@@ -296,6 +301,8 @@ if test x$enable_cuda = xyes; then
 		NVCCFLAGS="${NVCCFLAGS} -m64"
 		AC_SUBST(NVCCFLAGS)
 	fi
+
+	NVCCFLAGS=$"${NVCCFLAGS} -m64"
 
 	AC_PATH_PROG([NVCC], [nvcc], [nvcc], [$cuda_dir/bin:$PATH:/usr/local/bin:/usr/bin:/bin], [AC_MSG_WARN(Cannot find nvcc.)])
 fi

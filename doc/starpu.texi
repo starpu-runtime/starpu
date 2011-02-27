@@ -1951,7 +1951,7 @@ Disable the use of OpenCL, even if the SDK is detected.
 @table @asis
 @item @emph{Description}:
 Specify the location of the OpenCL SDK. This directory should notably contain
-@code{include/CL/cl.h}.
+@code{include/CL/cl.h} (or @code{include/OpenCL/cl.h} on Mac OS).
 @end table
 
 @node --with-opencl-include-dir
@@ -1959,7 +1959,7 @@ Specify the location of the OpenCL SDK. This directory should notably contain
 @table @asis
 @item @emph{Description}:
 Specify the location of OpenCL headers. This directory should notably contain
-@code{CL/cl.h}. This defaults to
+@code{CL/cl.h} (or @code{OpenCL/cl.h} on Mac OS). This defaults to
 @code{/include} appended to the value given to @code{--with-opencl-dir}.
 
 @end table
