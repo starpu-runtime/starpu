@@ -29,8 +29,8 @@
 
 #define SYMBOL	"sleep"
 
-static pthread_mutex_t mutex;
-static pthread_cond_t cond;
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 static unsigned finished = 0;
 static unsigned cnt = NTASKS;
@@ -74,8 +74,6 @@ static char symbolname[128];
 
 int main(int argc, char **argv)
 {
-	//	unsigned i;
-
 	starpu_init(NULL);
 
 	/* create data */
