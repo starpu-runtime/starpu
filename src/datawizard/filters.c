@@ -137,6 +137,7 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 		child->is_not_important = initial_handle->is_not_important;
 		child->wt_mask = initial_handle->wt_mask;
 		child->home_node = initial_handle->home_node;
+		child->is_readonly = initial_handle->is_readonly;
 
 		/* initialize the chunk lock */
 		child->req_list = starpu_data_requester_list_new();
@@ -146,10 +147,26 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 
 		child->sequential_consistency = initial_handle->sequential_consistency;
 
+		PTHREAD_MUTEX_INIT(&child->sequential_consistency_mutex, NULL);
+		child->last_submitted_mode = STARPU_R;
+		child->last_submitted_writer = NULL;
+		child->last_submitted_readers = NULL;
+		child->post_sync_tasks = NULL;
+		child->post_sync_tasks_cnt = 0;
+
 		/* The methods used for reduction are propagated to the
 		 * children. */
 		child->redux_cl = initial_handle->redux_cl;
 		child->init_cl = initial_handle->init_cl;
+
+		child->reduction_refcnt = 0;
+		child->reduction_req_list = starpu_data_requester_list_new();
+
+#ifdef STARPU_USE_FXT
+		child->last_submitted_ghost_writer_id_is_valid = 0;
+		child->last_submitted_ghost_writer_id = 0;
+		child->last_submitted_ghost_readers_id = NULL;
+#endif
 
 		unsigned node;
 		for (node = 0; node < STARPU_MAXNODES; node++)
@@ -165,6 +182,7 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 			child_replicate->automatically_allocated = initial_replicate->automatically_allocated;
 			child_replicate->refcnt = 0;
 			child_replicate->memory_node = node;
+			child_replicate->relaxed_coherency = 0;
 			
 			/* update the interface */
 			void *initial_interface = starpu_data_get_interface_on_node(initial_handle, node);
