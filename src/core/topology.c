@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -722,13 +722,13 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 
 		workerarg->memory_node = memory_node;
 
-#if !defined(STARPU_HAVE_WINDOWS) && !defined(__APPLE__)
+#ifdef __GLIBC__
 		/* Save the initial cpuset */
 		CPU_ZERO(&workerarg->initial_cpu_set);
 		CPU_SET(workerarg->bindid, &workerarg->initial_cpu_set);
 		CPU_ZERO(&workerarg->current_cpu_set);
 		CPU_SET(workerarg->bindid, &workerarg->current_cpu_set);
-#endif /* !STARPU_HAVE_WINDOWS && !__APPLE__ */
+#endif /* __GLIBC__ */
 
 #ifdef STARPU_HAVE_HWLOC
 		/* Clear the cpu set and set the cpu */

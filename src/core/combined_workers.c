@@ -113,9 +113,9 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 
 	/* Note that we maintain both the cpu_set and the hwloc_cpu_set so that
 	 * the application is not forced to use hwloc when it is available. */
-#if !defined(STARPU_HAVE_WINDOWS) && !defined(__APPLE__)
+#ifdef __GLIBC__
 	CPU_ZERO(&combined_worker->cpu_set);
-#endif /* !STARPU_HAVE_WINDOWS && !Ã__APPLE__ */
+#endif /* __GLIBC__ */
 
 #ifdef STARPU_HAVE_HWLOC
 	combined_worker->hwloc_cpu_set = hwloc_bitmap_alloc();
@@ -124,7 +124,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 	for (i = 0; i < nworkers; i++)
 	{
 		int id = workerid_array[i];
-#if !defined(STARPU_HAVE_WINDOWS) && !defined(__APPLE__)
+#ifdef __GLIBC__
 #ifdef CPU_OR
 		CPU_OR(&combined_worker->cpu_set,
 			&combined_worker->cpu_set,
@@ -136,7 +136,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 				CPU_SET(j, &combined_worker->cpu_set);
 		}
 #endif
-#endif /* !STARPU_HAVE_WINDOWS && !__APPLE__*/
+#endif /* __GLIBC__ */
 
 #ifdef STARPU_HAVE_HWLOC
 		hwloc_bitmap_or(combined_worker->hwloc_cpu_set,
