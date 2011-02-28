@@ -351,7 +351,7 @@ static void parse_args(int argc, char **argv)
 		}
 
 	        if (strcmp(argv[i], "-h") == 0) {
-			fprintf(stderr, "usage: %s [-h] [-nblocks #blocks] [-n problem_size] [-no-reduction]\n", argv[0]);
+			fprintf(stderr, "usage: %s [-h] [-nblocks #blocks] [-n problem_size] [-no-reduction] [-maxiter i]\n", argv[0]);
 			exit(-1);
 			continue;
 		}
