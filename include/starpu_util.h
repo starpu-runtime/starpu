@@ -171,11 +171,11 @@ int starpu_data_cpy(starpu_data_handle dst_handle, starpu_data_handle src_handle
 			int asynchronous, void (*callback_func)(void*), void *callback_arg);
 
 /* Constants used by the starpu_insert_task helper to determine the different types of argument */
-#define STARPU_VALUE		(1<<3)	/* Pointer to a constant value */
-#define STARPU_CALLBACK		(1<<4)	/* Callback function */
-#define STARPU_CALLBACK_ARG	(1<<5)	/* Argument of the callback function (of type void *) */
-#define STARPU_PRIORITY		(1<<6)	/* Priority associated to the task */
-#define STARPU_EXECUTE		(1<<7)	/* Used by MPI to define which task is going to execute the codelet */
+#define STARPU_VALUE		(1<<4)	/* Pointer to a constant value */
+#define STARPU_CALLBACK		(1<<5)	/* Callback function */
+#define STARPU_CALLBACK_ARG	(1<<6)	/* Argument of the callback function (of type void *) */
+#define STARPU_PRIORITY		(1<<7)	/* Priority associated to the task */
+#define STARPU_EXECUTE		(1<<8)	/* Used by MPI to define which task is going to execute the codelet */
 
 /* Wrapper to create a task. */
 void starpu_insert_task(starpu_codelet *cl, ...);
