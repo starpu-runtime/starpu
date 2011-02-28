@@ -519,7 +519,7 @@ int starpu_list_models(void)
  * performance model files */
 int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *model)
 {
-	model->symbol = symbol;
+	model->symbol = strdup(symbol);
 
 	/* where is the file if it exists ? */
 	char path[256];
@@ -531,6 +531,15 @@ int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *mod
 	int res;
 	res = access(path, F_OK);
 	if (res) {
+		char *dot = rindex(symbol, '.');
+		if (dot) {
+			char *symbol2 = strndup(symbol, dot-symbol);
+			int ret;
+			fprintf(stderr,"note: loading history from %s instead of %s\n", symbol2, symbol);
+			ret = starpu_load_history_debug(symbol2,model);
+			free(symbol2);
+			return ret;
+		}
 		_STARPU_DISP("There is no performance model for symbol %s\n", symbol);
 		return 1;
 	}
