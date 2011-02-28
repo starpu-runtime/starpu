@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,6 +28,11 @@ void init_dag_dot(void)
 {
 	/* create a new file */
 	out_file = fopen(out_path, "w+");
+	if (!out_file) {
+		fprintf(stderr,"error while opening %s\n", out_path);
+		perror("fopen");
+		exit(1);
+	}
 	cluster_cnt = 0;
 
 	fprintf(out_file, "digraph G {\n");
