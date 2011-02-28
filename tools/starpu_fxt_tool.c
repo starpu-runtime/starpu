@@ -1,5 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
+ * Copyright (C) 2011  Université de Bordeaux 1
  * Copyright (C) 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -91,8 +92,9 @@ static void paje_output_file_init(void)
 	out_paje_file = fopen(out_paje_path, "w+");
 	if (!out_paje_file)
 	{
+		fprintf(stderr,"error while opening %s\n", out_paje_path);
 		perror("fopen");
-		STARPU_ABORT();
+		exit(1);
 	}
 
 	write_paje_header(out_paje_file);
