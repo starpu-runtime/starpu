@@ -61,6 +61,9 @@ int main(int argc, char **argv)
 {
 	int i;
 
+#ifdef STARPU_HAVE_WINDOWS
+	ntasks /= 10;
+#endif
         starpu_init(NULL);
 	starpu_variable_data_register(&token_handle, 0, (uintptr_t)&token, sizeof(unsigned));
 

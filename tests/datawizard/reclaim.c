@@ -25,7 +25,11 @@
 #include <hwloc.h>
 #endif
 
-#define BLOCK_SIZE	(64*1024*1024)
+#ifdef STARPU_HAVE_WINDOWS
+#  define BLOCK_SIZE	(64*1024)
+#else
+#  define BLOCK_SIZE	(64*1024*1024)
+#endif
 
 static unsigned ntasks = 1000;
 
