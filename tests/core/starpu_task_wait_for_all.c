@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 	struct timeval end;
 
 #ifdef STARPU_HAVE_WINDOWS
-	ntasks /= 8
+	ntasks /= 8;
 #endif
 	parse_args(argc, argv);
 
