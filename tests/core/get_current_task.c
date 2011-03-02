@@ -50,9 +50,6 @@ int main(int argc, char **argv)
 //	struct timeval start;
 //	struct timeval end;
 
-#ifdef STARPU_HAVE_WINDOWS
-	ntasks /= 8;
-#endif
 	starpu_init(NULL);
 
 	fprintf(stderr, "#tasks : %d\n", ntasks);

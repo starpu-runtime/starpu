@@ -42,9 +42,6 @@ int main(int argc, char **argv)
 {
 	starpu_init(NULL);
 
-#ifdef STARPU_HAVE_WINDOWS
-	niter /= 10;
-#endif
 	if (argc == 2)
 		niter = atoi(argv[1]);
 
