@@ -61,7 +61,7 @@ CLEANFILES += *.gcno *.gcda *.linkinfo
 
 if STARPU_USE_CUDA
 
-NVCCFLAGS += --compiler-options -fno-strict-aliasing  $(HWLOC_CFLAGS) -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_srcdir)/examples/
+NVCCFLAGS += --compiler-options -fno-strict-aliasing  $(HWLOC_CFLAGS) -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_srcdir)/examples/  -arch sm_13
 
 .cu.o:
 	$(NVCC) $< -c -o $@ $(NVCCFLAGS)
@@ -458,6 +458,12 @@ cg_cg_SOURCES =					\
 	cg/cg.c					\
 	cg/cg_kernels.c				\
 	common/blas.c
+
+if STARPU_USE_CUDA
+cg_cg_SOURCES +=				\
+	cg/cg_dot_kernel.cu
+endif
+
 endif
 
 

@@ -55,9 +55,7 @@ static void accumulate_variable_cuda(void *descr[], void *cl_arg)
 	TYPE *v_src = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[1]);
  
 	cublasaxpy(1, (TYPE)1.0, v_src, 1, v_dst, 1);
-	cudaError_t ret = cudaThreadSynchronize();
-	if (ret)
-		STARPU_CUDA_REPORT_ERROR(ret);
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -92,9 +90,7 @@ static void accumulate_vector_cuda(void *descr[], void *cl_arg)
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
  
 	cublasaxpy(n, (TYPE)1.0, v_src, 1, v_dst, 1);
-	cudaError_t ret = cudaThreadSynchronize();
-	if (ret)
-		STARPU_CUDA_REPORT_ERROR(ret);
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -132,8 +128,7 @@ static void bzero_variable_cuda(void *descr[], void *cl_arg)
 	TYPE *v = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
  
 	cublasscal (1, (TYPE)0.0, v, 1);
-	cudaThreadSynchronize();
-
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -165,9 +160,7 @@ static void bzero_vector_cuda(void *descr[], void *cl_arg)
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
  
 	cublasscal (n, (TYPE)0.0, v, 1);
-	cudaError_t ret = cudaThreadSynchronize();
-	if (ret)
-		STARPU_CUDA_REPORT_ERROR(ret);
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -199,33 +192,20 @@ starpu_codelet bzero_vector_cl = {
  */
 
 #ifdef STARPU_USE_CUDA
+extern void dot_host(TYPE *x, TYPE *y, unsigned nelems, TYPE *dot);
+
 static void dot_kernel_cuda(void *descr[], void *cl_arg)
 {
-	cudaError_t ret;
-
 	TYPE *dot = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]); 
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 	TYPE *v2 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[2]);
 
 	unsigned n = STARPU_VECTOR_GET_NX(descr[1]);
- 
-	/* Get current value */
-	TYPE host_dot;
-	cudaMemcpy(&host_dot, dot, sizeof(TYPE), cudaMemcpyDeviceToHost);
-	ret = cudaThreadSynchronize();
-	if (ret)
-		STARPU_CUDA_REPORT_ERROR(ret);
 
-	TYPE local_dot = cublasdot(n, v1, 1, v2, 1);
-	host_dot += local_dot;
-	ret = cudaThreadSynchronize();
-	if (ret)
-		STARPU_CUDA_REPORT_ERROR(ret);
-
-	cudaMemcpy(dot, &host_dot, sizeof(TYPE), cudaMemcpyHostToDevice);
-	ret = cudaThreadSynchronize();
-	if (ret)
-		STARPU_CUDA_REPORT_ERROR(ret);
+	/* Contrary to cublasSdot, this function puts its result directly in
+	 * device memory, so that we don't have to transfer that value back and
+	 * forth. */
+	dot_host(v1, v2, n, dot);
 }
 #endif
 
@@ -296,7 +276,7 @@ static void scal_kernel_cuda(void *descr[], void *cl_arg)
 	/* v1 = p1 v1 */
 	TYPE alpha = p1;
 	cublasscal(n, alpha, v1, 1);
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -347,7 +327,7 @@ static void gemv_kernel_cuda(void *descr[], void *cl_arg)
 
 	/* Compute v1 = alpha M v2 + beta v1 */
 	cublasgemv('N', nx, ny, alpha, M, ld, v2, 1, beta, v1, 1);
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -453,7 +433,7 @@ static void scal_axpy_kernel_cuda(void *descr[], void *cl_arg)
 	 */
 	cublasscal(n, p1, v1, 1);
 	cublasaxpy(n, p2, v2, 1, v1, 1);
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -524,7 +504,7 @@ static void axpy_kernel_cuda(void *descr[], void *cl_arg)
 	/* Compute v1 = v1 + p1 * v2.
 	 */
 	cublasaxpy(n, p1, v2, 1, v1, 1);
-	cudaThreadSynchronize();
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
