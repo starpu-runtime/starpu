@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -210,7 +210,7 @@ static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
 		if (handle && !data_was_deleted)
 			STARPU_ASSERT(replicate->allocated);
 
-		mc->ops->free_data_on_node(mc->interface, node);
+		mc->ops->free_data_on_node(mc->chunk_interface, node);
 
 		if (handle && !data_was_deleted)
 		{
@@ -243,7 +243,7 @@ static size_t do_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node)
 	/* remove the mem_chunk from the list */
 	starpu_mem_chunk_list_erase(mc_list[node], mc);
 
-	free(mc->interface);
+	free(mc->chunk_interface);
 	starpu_mem_chunk_delete(mc);
 
 	return size; 
@@ -331,9 +331,9 @@ static void reuse_mem_chunk(unsigned node, struct starpu_data_replicate_s *new_r
 	new_replicate->automatically_allocated = 1;
 	new_replicate->initialized = 0;
 
-	STARPU_ASSERT(new_replicate->interface);
-	STARPU_ASSERT(mc->interface);
-	memcpy(new_replicate->interface, mc->interface, old_replicate->ops->interface_size);
+	STARPU_ASSERT(new_replicate->chunk_interface);
+	STARPU_ASSERT(mc->chunk_interface);
+	memcpy(new_replicate->chunk_interface, mc->chunk_interface, old_replicate->ops->interface_size);
 
 	mc->data = new_replicate->handle;
 	mc->data_was_deleted = 0;
@@ -477,7 +477,7 @@ static size_t flush_memchunk_cache(uint32_t node)
 
 		starpu_mem_chunk_list_erase(memchunk_cache[node], mc);
 
-		free(mc->interface);
+		free(mc->chunk_interface);
 		starpu_mem_chunk_delete(mc);
 	}
 
@@ -569,9 +569,9 @@ static starpu_mem_chunk_t _starpu_memchunk_init(struct starpu_data_replicate_s *
 	mc->replicate = replicate;
 
 	/* Save a copy of the interface */
-	mc->interface = malloc(interface_size);
-	STARPU_ASSERT(mc->interface);
-	memcpy(mc->interface, replicate->interface, interface_size);
+	mc->chunk_interface = malloc(interface_size);
+	STARPU_ASSERT(mc->chunk_interface);
+	memcpy(mc->chunk_interface, replicate->interface, interface_size);
 
 	return mc;
 }
