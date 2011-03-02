@@ -33,6 +33,43 @@ static void display_worker_names(enum starpu_archtype type)
 	}
 }
 
+static void display_combined_worker(unsigned workerid)
+{
+	int worker_size;
+	int *combined_workerid;
+	starpu_combined_worker_get_description(workerid, &worker_size, &combined_workerid);
+
+	fprintf(stdout, "\t\t");
+
+	int i;
+	for (i = 0; i < worker_size; i++)
+	{
+		char name[256];
+
+		starpu_worker_get_name(combined_workerid[i], name, 256);
+		
+		fprintf(stdout, "%s\t", name);
+	}
+
+	fprintf(stdout, "\n");
+}
+
+static void display_all_combined_workers(void)
+{
+	unsigned ncombined_workers = starpu_combined_worker_get_count();
+
+	if (ncombined_workers == 0)
+		return;
+
+	unsigned nworkers = starpu_worker_get_count();
+
+	fprintf(stdout, "\t%d Combined workers\n", ncombined_workers);
+
+	unsigned i;
+	for (i = 0; i < ncombined_workers; i++)
+		display_combined_worker(nworkers + i);
+}
+
 int main(int argc, char **argv)
 {
 	starpu_init(NULL);
@@ -51,6 +88,8 @@ int main(int argc, char **argv)
 
 	fprintf(stdout, "\t%d OpenCL devices\n", nopencl);
 	display_worker_names(STARPU_OPENCL_WORKER);
+
+	display_all_combined_workers();
 
 	starpu_shutdown();
 
