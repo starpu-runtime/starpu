@@ -120,7 +120,7 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 		replicate->memory_node = starpu_worker_get_memory_node(worker);
 
 		/* duplicate  the content of the interface on node 0 */
-		memcpy(replicate->interface, handle->per_node[0].interface, handle->ops->interface_size);
+		memcpy(replicate->data_interface, handle->per_node[0].data_interface, handle->ops->interface_size);
 	} 
 
 	/* now the data is available ! */
@@ -147,8 +147,8 @@ static starpu_data_handle _starpu_data_handle_allocate(struct starpu_data_interf
 
 		replicate->handle = handle;
 
-		replicate->interface = calloc(1, interfacesize);
-		STARPU_ASSERT(replicate->interface);
+		replicate->data_interface = calloc(1, interfacesize);
+		STARPU_ASSERT(replicate->data_interface);
 	}
 
 	unsigned worker;
@@ -160,8 +160,8 @@ static starpu_data_handle _starpu_data_handle_allocate(struct starpu_data_interf
 
 		replicate->handle = handle;
 
-		replicate->interface = calloc(1, interfacesize);
-		STARPU_ASSERT(replicate->interface);
+		replicate->data_interface = calloc(1, interfacesize);
+		STARPU_ASSERT(replicate->data_interface);
 
 	}
 
@@ -207,10 +207,10 @@ void _starpu_data_free_interfaces(starpu_data_handle handle)
 	unsigned nworkers = starpu_worker_get_count();
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
-		free(handle->per_node[node].interface);
+		free(handle->per_node[node].data_interface);
 
 	for (worker = 0; worker < nworkers; worker++)
-		free(handle->per_worker[worker].interface);
+		free(handle->per_worker[worker].data_interface);
 }
 
 struct unregister_callback_arg {
@@ -350,5 +350,5 @@ unsigned starpu_get_handle_interface_id(starpu_data_handle handle)
 
 void *starpu_data_get_interface_on_node(starpu_data_handle handle, unsigned memory_node)
 {
-	return handle->per_node[memory_node].interface;
+	return handle->per_node[memory_node].data_interface;
 }

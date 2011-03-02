@@ -42,7 +42,7 @@ LIST_TYPE(starpu_data_replicate,
 	starpu_data_handle handle;
 
 	/* describe the actual data layout */
-	void *interface;
+	void *data_interface;
 
 	unsigned memory_node;
 

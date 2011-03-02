@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -208,7 +208,7 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 			child_replicate->initialized = 0;
 
 			/* duplicate  the content of the interface on node 0 */
-			memcpy(child_replicate->interface, child->per_node[0].interface, child->ops->interface_size);
+			memcpy(child_replicate->data_interface, child->per_node[0].data_interface, child->ops->interface_size);
 		}
 
 		/* We compute the size and the footprint of the child once and
@@ -339,15 +339,15 @@ static void starpu_data_create_children(starpu_data_handle handle, unsigned nchi
 		{
 			/* relaxed_coherency = 0 */
 			handle_child->per_node[node].handle = handle_child;
-			handle_child->per_node[node].interface = calloc(1, interfacesize);
-			STARPU_ASSERT(handle_child->per_node[node].interface);
+			handle_child->per_node[node].data_interface = calloc(1, interfacesize);
+			STARPU_ASSERT(handle_child->per_node[node].data_interface);
 		}
 
 		for (worker = 0; worker < nworkers; worker++)
 		{
 			handle_child->per_worker[worker].handle = handle_child;
-			handle_child->per_worker[worker].interface = calloc(1, interfacesize);
-			STARPU_ASSERT(handle_child->per_worker[worker].interface);
+			handle_child->per_worker[worker].data_interface = calloc(1, interfacesize);
+			STARPU_ASSERT(handle_child->per_worker[worker].data_interface);
 		}
 	}
 	

@@ -571,7 +571,7 @@ static starpu_mem_chunk_t _starpu_memchunk_init(struct starpu_data_replicate_s *
 	/* Save a copy of the interface */
 	mc->chunk_interface = malloc(interface_size);
 	STARPU_ASSERT(mc->chunk_interface);
-	memcpy(mc->chunk_interface, replicate->interface, interface_size);
+	memcpy(mc->chunk_interface, replicate->data_interface, interface_size);
 
 	return mc;
 }
@@ -673,8 +673,8 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle handle, struct star
 		STARPU_ASSERT(handle->ops->allocate_data_on_node);
 
 		STARPU_TRACE_START_ALLOC(dst_node);
-		STARPU_ASSERT(replicate->interface);
-		allocated_memory = handle->ops->allocate_data_on_node(replicate->interface, dst_node);
+		STARPU_ASSERT(replicate->data_interface);
+		allocated_memory = handle->ops->allocate_data_on_node(replicate->data_interface, dst_node);
 		STARPU_TRACE_END_ALLOC(dst_node);
 
 		if (allocated_memory == -ENOMEM)
@@ -709,7 +709,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, struct starpu_dat
 	if (replicate->allocated)
 		return 0;
 
-	STARPU_ASSERT(replicate->interface);
+	STARPU_ASSERT(replicate->data_interface);
 	allocated_memory = _starpu_allocate_interface(handle, replicate, dst_node);
 
 	/* perhaps we could really not handle that capacity misses */
