@@ -1036,9 +1036,12 @@ AM_CONDITIONAL(STARPU_HAVE_FFTWL, [test x$have_fftwl = xyes])
 AC_ARG_WITH([hwloc], [AS_HELP_STRING([--without-hwloc], [Disable hwloc (enabled by default)])])
 SAVED_LDFLAGS="${LDFLAGS}"
 SAVED_CPPFLAGS="${CPPFLAGS}"
-
 AS_IF([test "x$with_hwloc" != "xno"], [
-	PKG_CHECK_MODULES([HWLOC],[hwloc],have_valid_hwloc=yes,have_valid_hwloc=no)
+	PKG_CHECK_MODULES([HWLOC],[hwloc], [
+		have_valid_hwloc=yes
+		have_pkgconfig_hwloc=yes], [
+		have_valid_hwloc=no
+		have_pkgconfig_hwloc=no])
 	AS_IF([test "$have_valid_hwloc" = "no"], [
 		hwloc_dir="$withval"
 		CPPFLAGS="${SAVED_CPPFLAGS} -I$hwloc_dir/include"
@@ -1047,15 +1050,16 @@ AS_IF([test "x$with_hwloc" != "xno"], [
 		AC_HAVE_LIBRARY([hwloc],[have_valid_hwloc=yes],[have_valid_hwloc=no])
 		])
     ])
-
 AS_IF([test "$have_valid_hwloc" = "yes"], [
 	AC_DEFINE([STARPU_HAVE_HWLOC], [1], [Define to 1 if you have the hwloc library.])
 	HWLOC_REQUIRES=hwloc
-	AC_SUBST([STARPU_HAVE_HWLOC], [1])], [
-	LDFLAGS="${SAVED_LDFLAGS}"
-	CPPFLAGS="${SAVED_CPPFLAGS}"]
-    )
-
+	AC_SUBST([STARPU_HAVE_HWLOC], [1])
+	AS_IF([test "$have_pkgconfig_hwloc" = "no"], [
+		HWLOC_CFLAGS="-I$hwloc_dir/include"
+		HWLOC_LIBS="-L$hwloc_dir/lib -lhwloc"])
+	])
+LDFLAGS="${SAVED_LDFLAGS}"
+CPPFLAGS="${SAVED_CPPFLAGS}"
 AC_MSG_CHECKING(whether hwloc should be used)
 AC_MSG_RESULT($have_valid_hwloc)
 AC_SUBST(HWLOC_REQUIRES)
