@@ -68,6 +68,14 @@ int starpu_task_bundle_insert(struct starpu_task_bundle *bundle, struct starpu_t
 		return -EPERM;
 	}
 
+	if (task->status != STARPU_TASK_INVALID)
+	{
+		/* the task has already been submitted, it's too late to put it
+		 * into a bundle now. */
+		PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+		return -EINVAL;
+	}
+
 	/* Insert a task at the end of the bundle */
 	struct starpu_task_bundle_entry *entry;
 	entry = malloc(sizeof(struct starpu_task_bundle_entry));
