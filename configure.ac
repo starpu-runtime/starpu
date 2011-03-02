@@ -1034,15 +1034,31 @@ PKG_CHECK_MODULES([FFTWL], [fftw3l], [
 AM_CONDITIONAL(STARPU_HAVE_FFTWL, [test x$have_fftwl = xyes])
 
 AC_ARG_WITH([hwloc], [AS_HELP_STRING([--without-hwloc], [Disable hwloc (enabled by default)])])
+SAVED_LDFLAGS="${LDFLAGS}"
+SAVED_CPPFLAGS="${CPPFLAGS}"
 
 AS_IF([test "x$with_hwloc" != "xno"], [
-	PKG_CHECK_MODULES([HWLOC], [hwloc], [
-	  AC_DEFINE([STARPU_HAVE_HWLOC], [1], [Define to 1 if you have the hwloc library.])
-	  HWLOC_REQUIRES=hwloc
-	  AC_SUBST([STARPU_HAVE_HWLOC], [1])
-	], [:])
-	AC_SUBST(HWLOC_REQUIRES)
-])
+	PKG_CHECK_MODULES([HWLOC],[hwloc],have_valid_hwloc=yes,have_valid_hwloc=no)
+	AS_IF([test "$have_valid_hwloc" = "no"], [
+		hwloc_dir="$withval"
+		CPPFLAGS="${SAVED_CPPFLAGS} -I$hwloc_dir/include"
+		AC_CHECK_HEADER([hwloc.h],[have_valid_hwloc=yes],[have_valid_hwloc=no])
+		LDFLAGS="${SAVED_LDFLAGS} -L$hwloc_dir/lib"
+		AC_HAVE_LIBRARY([hwloc],[have_valid_hwloc=yes],[have_valid_hwloc=no])
+		])
+    ])
+
+AS_IF([test "$have_valid_hwloc" = "yes"], [
+	AC_DEFINE([STARPU_HAVE_HWLOC], [1], [Define to 1 if you have the hwloc library.])
+	HWLOC_REQUIRES=hwloc
+	AC_SUBST([STARPU_HAVE_HWLOC], [1])], [
+	LDFLAGS="${SAVED_LDFLAGS}"
+	CPPFLAGS="${SAVED_CPPFLAGS}"]
+    )
+
+AC_MSG_CHECKING(whether hwloc should be used)
+AC_MSG_RESULT($have_valid_hwloc)
+AC_SUBST(HWLOC_REQUIRES)
 
 # is the header file f77.h available ?
 have_f77_h=yes
