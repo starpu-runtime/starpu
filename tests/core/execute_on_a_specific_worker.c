@@ -26,8 +26,8 @@
 
 #define VECTORSIZE	1024
 
-static pthread_mutex_t mutex;
-static pthread_cond_t cond;
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
 static unsigned finished = 0;
 
