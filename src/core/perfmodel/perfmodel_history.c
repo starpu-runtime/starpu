@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -525,15 +525,16 @@ int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *mod
 	char path[256];
 	get_model_path(model, path, 256);
 
-//	_STARPU_DEBUG("get_model_path -> %s\n", path);
+	//	_STARPU_DEBUG("get_model_path -> %s\n", path);
 
 	/* does it exist ? */
 	int res;
 	res = access(path, F_OK);
 	if (res) {
-		char *dot = rindex(symbol, '.');
+		char *dot = strrchr(symbol, '.');
 		if (dot) {
-			char *symbol2 = strndup(symbol, dot-symbol);
+			char *symbol2 = strdup(symbol);
+			symbol2[dot-symbol] = '\0';
 			int ret;
 			fprintf(stderr,"note: loading history from %s instead of %s\n", symbol2, symbol);
 			ret = starpu_load_history_debug(symbol2,model);
