@@ -398,12 +398,12 @@ int main(int argc, char **argv)
 {
 	int rank;
 	int world_size;
-	int thread_support;
 
 #if 0
 	/*
 	 *	Initialization
 	 */
+	int thread_support;
 	if (MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS) {
 		fprintf(stderr,"MPI_Init_thread failed\n");
 		exit(1);
@@ -442,9 +442,9 @@ int main(int argc, char **argv)
 	init_matrix(rank);
 
 	fprintf(stderr, "Rank %d: allocated (%d + %d) MB = %d MB\n", rank,
-			allocated_memory/(1024*1024),
-			allocated_memory_extra/(1024*1024),
-			(allocated_memory+allocated_memory_extra)/(1024*1024));
+                        (int)allocated_memory/(1024*1024),
+			(int)allocated_memory_extra/(1024*1024),
+                        (int)(allocated_memory+allocated_memory_extra)/(1024*1024));
 
 	display_grid(rank, nblocks);
 
@@ -514,8 +514,6 @@ int main(int argc, char **argv)
 	/*
 	 *	Test Result Correctness
 	 */
-
-	TYPE *y2;
 
 	if (check)
 	{
