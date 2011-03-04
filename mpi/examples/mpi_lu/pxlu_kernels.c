@@ -263,7 +263,6 @@ static inline void STARPU_PLU(common_u21)(void *descr[],
 
 #ifdef STARPU_USE_CUDA
 	cublasStatus status;
-	cudaError_t cures;
 #endif
 
 

@@ -168,7 +168,7 @@ void STARPU_PLU(compute_lux)(unsigned size, TYPE *x, TYPE *y, unsigned nblocks, 
 	MPI_Reduce(yi, x, size, MPI_TYPE, MPI_SUM, 0, MPI_COMM_WORLD);
 	memset(yi, 0, size*sizeof(TYPE));
 
-	unsigned ind;
+//	unsigned ind;
 //	if (rank == 0)
 //	{
 //		fprintf(stderr, "INTERMEDIATE\n");

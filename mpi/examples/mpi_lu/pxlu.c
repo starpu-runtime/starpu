@@ -178,8 +178,6 @@ static void receive_when_deps_are_done(unsigned ndeps, starpu_tag_t *deps_tags,
 
 static void create_task_11_recv(unsigned k)
 {
-	unsigned i, j;
-
 	/* The current node is not computing that task, so we receive the block
 	 * with MPI */
 
@@ -190,6 +188,7 @@ static void create_task_11_recv(unsigned k)
 	starpu_tag_t tag_array[2*nblocks];
 	
 #ifdef SINGLE_TMP11
+	unsigned i, j;
 	if (k > 0)
 	for (i = (k-1)+1; i < nblocks; i++)
 	{
@@ -832,8 +831,6 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 	nblocks = _nblocks;
 	rank = _rank;
 	world_size = _world_size;
-
-	struct starpu_task *entry_task = NULL;
 
 	/* create all the DAG nodes */
 	unsigned i,j,k;
