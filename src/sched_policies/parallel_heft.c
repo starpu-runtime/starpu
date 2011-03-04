@@ -22,6 +22,7 @@
 #include <sched_policies/fifo_queues.h>
 #include <core/perfmodel/perfmodel.h>
 #include <starpu_parameters.h>
+#include <common/barrier.h>
 
 static pthread_mutex_t big_lock;
 
@@ -199,7 +200,7 @@ static double compute_ntasks_end(int workerid)
 		int *combined_workerid;
 		starpu_combined_worker_get_description(workerid, &worker_size, &combined_workerid);
 
-		int ntasks_end;
+		int ntasks_end=0;
 
 		int i;
 		for (i = 0; i < worker_size; i++)

@@ -16,6 +16,7 @@
 
 #include <core/workers.h>
 #include <sched_policies/fifo_queues.h>
+#include <common/barrier.h>
 
 /* the former is the actual queue, the latter some container */
 static struct starpu_fifo_taskq_s *fifo;
