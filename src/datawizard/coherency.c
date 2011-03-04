@@ -449,7 +449,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, uint32_t mask)
 		if (STARPU_UNLIKELY(ret))
 			goto enomem;
 
-		task->interface[index] = local_replicate->data_interface;
+		task->interfaces[index] = local_replicate->data_interface;
 
 		if (mode & STARPU_REDUX)
 		{

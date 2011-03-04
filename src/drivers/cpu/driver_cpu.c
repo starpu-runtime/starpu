@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -81,7 +81,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 	if ((rank == 0) || (cl->type != STARPU_FORKJOIN))
 	{
 		cl_func func = cl->cpu_func;
-		func(task->interface, task->cl_arg);
+		func(task->interfaces, task->cl_arg);
 	}
 	
 	if (is_parallel_task)

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -92,7 +92,7 @@ struct starpu_task {
 
 	/* arguments managed by the DSM */
 	struct starpu_buffer_descr_t buffers[STARPU_NMAXBUFS];
-	void *interface[STARPU_NMAXBUFS];
+	void *interfaces[STARPU_NMAXBUFS];
 
 	/* arguments not managed by the DSM are given as a buffer */
 	void *cl_arg;
