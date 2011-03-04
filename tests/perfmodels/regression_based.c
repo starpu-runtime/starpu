@@ -73,29 +73,22 @@ static void test_memset(int nelems, starpu_codelet *codelet)
 {
 	int nloops = 20;
 	int loop;
+	starpu_data_handle handle;
 
-	starpu_data_handle *handle;
-	handle = malloc(nloops*sizeof(starpu_data_handle));
-	assert(handle);
-
+        starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, nelems, sizeof(int));
 	for (loop = 0; loop < nloops; loop++)
 	{
-		starpu_vector_data_register(&handle[loop], -1, (uintptr_t)NULL, nelems, sizeof(int));
-
 		struct starpu_task *task = starpu_task_create();
 	
 		task->cl = codelet;
-		task->buffers[0].handle = handle[loop];
+		task->buffers[0].handle = handle;
 		task->buffers[0].mode = STARPU_W;
 	
 		int ret = starpu_task_submit(task);
 		assert(!ret);
 	}
 
-	for (loop = 0; loop < nloops; loop++)
-		starpu_data_unregister(handle[loop]);
-
-	free(handle);
+        starpu_data_unregister(handle);
 }
 
 int main(int argc, char **argv)
