@@ -162,19 +162,19 @@ static int vector_compare(void *data_interface_a, void *data_interface_b)
 
 static void display_vector_interface(starpu_data_handle handle, FILE *f)
 {
-	starpu_vector_interface_t *interface =
+	starpu_vector_interface_t *vector_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	fprintf(f, "%u\t", interface->nx);
+	fprintf(f, "%u\t", vector_interface->nx);
 }
 
 static size_t vector_interface_get_size(starpu_data_handle handle)
 {
 	size_t size;
-	starpu_vector_interface_t *interface =
+	starpu_vector_interface_t *vector_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	size = interface->nx*interface->elemsize;
+	size = vector_interface->nx*vector_interface->elemsize;
 
 	return size;
 }
@@ -182,10 +182,10 @@ static size_t vector_interface_get_size(starpu_data_handle handle)
 /* offer an access to the data parameters */
 uint32_t starpu_vector_get_nx(starpu_data_handle handle)
 {
-	starpu_vector_interface_t *interface =
+	starpu_vector_interface_t *vector_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	return interface->nx;
+	return vector_interface->nx;
 }
 
 uintptr_t starpu_vector_get_local_ptr(starpu_data_handle handle)
@@ -195,18 +195,18 @@ uintptr_t starpu_vector_get_local_ptr(starpu_data_handle handle)
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
-	starpu_vector_interface_t *interface =
+	starpu_vector_interface_t *vector_interface =
 		starpu_data_get_interface_on_node(handle, node);
 
-	return interface->ptr;
+	return vector_interface->ptr;
 }
 
 size_t starpu_vector_get_elemsize(starpu_data_handle handle)
 {
-	starpu_vector_interface_t *interface =
+	starpu_vector_interface_t *vector_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	return interface->elemsize;
+	return vector_interface->elemsize;
 }
 
 /* memory allocation/deallocation primitives for the vector interface */
@@ -214,14 +214,14 @@ size_t starpu_vector_get_elemsize(starpu_data_handle handle)
 /* returns the size of the allocated area */
 static ssize_t allocate_vector_buffer_on_node(void *data_interface_, uint32_t dst_node)
 {
-	starpu_vector_interface_t *interface = data_interface_;
+	starpu_vector_interface_t *vector_interface = data_interface_;
 
 	unsigned fail = 0;
 	uintptr_t addr = 0;
 	ssize_t allocated_memory;
 
-	uint32_t nx = interface->nx;
-	size_t elemsize = interface->elemsize;
+	uint32_t nx = vector_interface->nx;
+	size_t elemsize = vector_interface->elemsize;
 
 	starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 
@@ -271,9 +271,9 @@ static ssize_t allocate_vector_buffer_on_node(void *data_interface_, uint32_t ds
 	allocated_memory = nx*elemsize;
 
 	/* update the data properly in consequence */
-	interface->ptr = addr;
-        interface->dev_handle = addr;
-        interface->offset = 0;
+	vector_interface->ptr = addr;
+        vector_interface->dev_handle = addr;
+        vector_interface->offset = 0;
 	
 	return allocated_memory;
 }

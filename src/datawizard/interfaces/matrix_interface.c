@@ -141,7 +141,7 @@ void starpu_matrix_data_register(starpu_data_handle *handleptr, uint32_t home_no
 			uintptr_t ptr, uint32_t ld, uint32_t nx,
 			uint32_t ny, size_t elemsize)
 {
-	starpu_matrix_interface_t interface = {
+	starpu_matrix_interface_t matrix_interface = {
 		.ptr = ptr,
 		.ld = ld,
 		.nx = nx,
@@ -151,7 +151,7 @@ void starpu_matrix_data_register(starpu_data_handle *handleptr, uint32_t home_no
                 .offset = 0
 	};
 
-	starpu_data_register(handleptr, home_node, &interface, &_starpu_interface_matrix_ops);
+	starpu_data_register(handleptr, home_node, &matrix_interface, &_starpu_interface_matrix_ops);
 }
 
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle handle)
@@ -172,19 +172,19 @@ static int matrix_compare(void *data_interface_a, void *data_interface_b)
 
 static void display_matrix_interface(starpu_data_handle handle, FILE *f)
 {
-	starpu_matrix_interface_t *interface =
+	starpu_matrix_interface_t *matrix_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	fprintf(f, "%u\t%u\t", interface->nx, interface->ny);
+	fprintf(f, "%u\t%u\t", matrix_interface->nx, matrix_interface->ny);
 }
 
 static size_t matrix_interface_get_size(starpu_data_handle handle)
 {
-	starpu_matrix_interface_t *interface =
+	starpu_matrix_interface_t *matrix_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
 	size_t size;
-	size = (size_t)interface->nx*interface->ny*interface->elemsize; 
+	size = (size_t)matrix_interface->nx*matrix_interface->ny*matrix_interface->elemsize; 
 
 	return size;
 }
@@ -192,18 +192,18 @@ static size_t matrix_interface_get_size(starpu_data_handle handle)
 /* offer an access to the data parameters */
 uint32_t starpu_matrix_get_nx(starpu_data_handle handle)
 {
-	starpu_matrix_interface_t *interface =
+	starpu_matrix_interface_t *matrix_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	return interface->nx;
+	return matrix_interface->nx;
 }
 
 uint32_t starpu_matrix_get_ny(starpu_data_handle handle)
 {
-	starpu_matrix_interface_t *interface =
+	starpu_matrix_interface_t *matrix_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	return interface->ny;
+	return matrix_interface->ny;
 }
 
 uint32_t starpu_matrix_get_local_ld(starpu_data_handle handle)
@@ -213,10 +213,10 @@ uint32_t starpu_matrix_get_local_ld(starpu_data_handle handle)
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
-	starpu_matrix_interface_t *interface =
+	starpu_matrix_interface_t *matrix_interface =
 		starpu_data_get_interface_on_node(handle, node);
 
-	return interface->ld;
+	return matrix_interface->ld;
 }
 
 uintptr_t starpu_matrix_get_local_ptr(starpu_data_handle handle)
@@ -226,18 +226,18 @@ uintptr_t starpu_matrix_get_local_ptr(starpu_data_handle handle)
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
-	starpu_matrix_interface_t *interface =
+	starpu_matrix_interface_t *matrix_interface =
 		starpu_data_get_interface_on_node(handle, node);
 
-	return interface->ptr;
+	return matrix_interface->ptr;
 }
 
 size_t starpu_matrix_get_elemsize(starpu_data_handle handle)
 {
-	starpu_matrix_interface_t *interface =
+	starpu_matrix_interface_t *matrix_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	return interface->elemsize;
+	return matrix_interface->elemsize;
 }
 
 /* memory allocation/deallocation primitives for the matrix interface */
@@ -253,12 +253,12 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t ds
 	cudaError_t status;
 #endif
 
-	starpu_matrix_interface_t *interface = data_interface_;
+	starpu_matrix_interface_t *matrix_interface = data_interface_;
 
-	uint32_t nx = interface->nx;
-	uint32_t ny = interface->ny;
+	uint32_t nx = matrix_interface->nx;
+	uint32_t ny = matrix_interface->ny;
 	uint32_t ld = nx; // by default
-	size_t elemsize = interface->elemsize;
+	size_t elemsize = matrix_interface->elemsize;
 
 	starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 
@@ -306,10 +306,10 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t ds
 		allocated_memory = (size_t)nx*ny*elemsize;
 
 		/* update the data properly in consequence */
-		interface->ptr = addr;
-                interface->dev_handle = addr;
-                interface->offset = 0;
-		interface->ld = ld;
+		matrix_interface->ptr = addr;
+                matrix_interface->dev_handle = addr;
+                matrix_interface->offset = 0;
+		matrix_interface->ld = ld;
 	} else {
 		/* allocation failed */
 		allocated_memory = -ENOMEM;

@@ -149,18 +149,18 @@ static int variable_compare(void *data_interface_a, void *data_interface_b)
 
 static void display_variable_interface(starpu_data_handle handle, FILE *f)
 {
-	starpu_variable_interface_t *interface =
+	starpu_variable_interface_t *variable_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	fprintf(f, "%ld\t", (long)interface->elemsize);
+	fprintf(f, "%ld\t", (long)variable_interface->elemsize);
 }
 
 static size_t variable_interface_get_size(starpu_data_handle handle)
 {
-	starpu_variable_interface_t *interface =
+	starpu_variable_interface_t *variable_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	return interface->elemsize;
+	return variable_interface->elemsize;
 }
 
 uintptr_t starpu_variable_get_local_ptr(starpu_data_handle handle)
@@ -183,13 +183,13 @@ size_t starpu_variable_get_elemsize(starpu_data_handle handle)
 /* returns the size of the allocated area */
 static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t dst_node)
 {
-	starpu_variable_interface_t *interface = data_interface_;
+	starpu_variable_interface_t *variable_interface = data_interface_;
 
 	unsigned fail = 0;
 	uintptr_t addr = 0;
 	ssize_t allocated_memory;
 
-	size_t elemsize = interface->elemsize;
+	size_t elemsize = variable_interface->elemsize;
 
 	starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 
@@ -239,7 +239,7 @@ static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t 
 	allocated_memory = elemsize;
 
 	/* update the data properly in consequence */
-	interface->ptr = addr;
+	variable_interface->ptr = addr;
 	
 	return allocated_memory;
 }

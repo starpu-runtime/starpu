@@ -115,7 +115,7 @@ void starpu_bcsr_data_register(starpu_data_handle *handleptr, uint32_t home_node
 		uint32_t *rowptr, uint32_t firstentry,
 		uint32_t r, uint32_t c, size_t elemsize)
 {
-	starpu_bcsr_interface_t interface = {
+	starpu_bcsr_interface_t bcsr_interface = {
 		.nzval = nzval,
 		.colind = colind,
 		.rowptr = rowptr,
@@ -127,7 +127,7 @@ void starpu_bcsr_data_register(starpu_data_handle *handleptr, uint32_t home_node
 		.elemsize = elemsize
 	};
 
-	starpu_data_register(handleptr, home_node, &interface, &interface_bcsr_ops);
+	starpu_data_register(handleptr, home_node, &bcsr_interface, &interface_bcsr_ops);
 }
 
 static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle handle)
@@ -157,50 +157,50 @@ static int bcsr_compare(void *data_interface_a, void *data_interface_b)
 /* offer an access to the data parameters */
 uint32_t starpu_bcsr_get_nnz(starpu_data_handle handle)
 {
-	starpu_bcsr_interface_t *interface =
+	starpu_bcsr_interface_t *data_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	return interface->nnz;
+	return data_interface->nnz;
 }
 
 uint32_t starpu_bcsr_get_nrow(starpu_data_handle handle)
 {
-	starpu_bcsr_interface_t *interface =
+	starpu_bcsr_interface_t *data_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	return interface->nrow;
+	return data_interface->nrow;
 }
 
 uint32_t starpu_bcsr_get_firstentry(starpu_data_handle handle)
 {
-	starpu_bcsr_interface_t *interface =
+	starpu_bcsr_interface_t *data_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	return interface->firstentry;
+	return data_interface->firstentry;
 }
 
 uint32_t starpu_bcsr_get_r(starpu_data_handle handle)
 {
-	starpu_bcsr_interface_t *interface =
+	starpu_bcsr_interface_t *data_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	return interface->r;
+	return data_interface->r;
 }
 
 uint32_t starpu_bcsr_get_c(starpu_data_handle handle)
 {
-	starpu_bcsr_interface_t *interface =
+	starpu_bcsr_interface_t *data_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	return interface->c;
+	return data_interface->c;
 }
 
 size_t starpu_bcsr_get_elemsize(starpu_data_handle handle)
 {
-	starpu_bcsr_interface_t *interface =
+	starpu_bcsr_interface_t *data_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	return interface->elemsize;
+	return data_interface->elemsize;
 }
 
 uintptr_t starpu_bcsr_get_local_nzval(starpu_data_handle handle)
@@ -210,28 +210,28 @@ uintptr_t starpu_bcsr_get_local_nzval(starpu_data_handle handle)
 
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
-	starpu_bcsr_interface_t *interface =
+	starpu_bcsr_interface_t *data_interface =
 		starpu_data_get_interface_on_node(handle, node);
 	
-	return interface->nzval;
+	return data_interface->nzval;
 }
 
 uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle handle)
 {
 	/* XXX 0 */
-	starpu_bcsr_interface_t *interface =
+	starpu_bcsr_interface_t *data_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	return interface->colind;
+	return data_interface->colind;
 }
 
 uint32_t *starpu_bcsr_get_local_rowptr(starpu_data_handle handle)
 {
 	/* XXX 0 */
-	starpu_bcsr_interface_t *interface =
+	starpu_bcsr_interface_t *data_interface =
 		starpu_data_get_interface_on_node(handle, 0);
 
-	return interface->rowptr;
+	return data_interface->rowptr;
 }
 
 
@@ -261,14 +261,14 @@ static ssize_t allocate_bcsr_buffer_on_node(void *data_interface_, uint32_t dst_
 	ssize_t allocated_memory;
 
 	/* we need the 3 arrays to be allocated */
-	starpu_bcsr_interface_t *interface = data_interface_;
+	starpu_bcsr_interface_t *bcsr_interface = data_interface_;
 
-	uint32_t nnz = interface->nnz;
-	uint32_t nrow = interface->nrow;
-	size_t elemsize = interface->elemsize;
+	uint32_t nnz = bcsr_interface->nnz;
+	uint32_t nrow = bcsr_interface->nrow;
+	size_t elemsize = bcsr_interface->elemsize;
 
-	uint32_t r = interface->r;
-	uint32_t c = interface->c;
+	uint32_t r = bcsr_interface->r;
+	uint32_t c = bcsr_interface->c;
 
 	starpu_node_kind kind = _starpu_get_node_kind(dst_node);
 
@@ -333,9 +333,9 @@ static ssize_t allocate_bcsr_buffer_on_node(void *data_interface_, uint32_t dst_
 		nnz*r*c*elemsize + nnz*sizeof(uint32_t) + (nrow+1)*sizeof(uint32_t);
 
 	/* update the data properly in consequence */
-	interface->nzval = addr_nzval;
-	interface->colind = addr_colind;
-	interface->rowptr = addr_rowptr;
+	bcsr_interface->nzval = addr_nzval;
+	bcsr_interface->colind = addr_colind;
+	bcsr_interface->rowptr = addr_rowptr;
 	
 	return allocated_memory;
 
