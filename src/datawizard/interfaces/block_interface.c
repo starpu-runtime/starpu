@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -65,15 +65,15 @@ static const struct starpu_data_copy_methods block_copy_data_methods_s = {
 };
 
 
-static void register_block_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
-static ssize_t allocate_block_buffer_on_node(void *interface_, uint32_t dst_node);
-static void free_block_buffer_on_node(void *interface, uint32_t node);
+static void register_block_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface);
+static ssize_t allocate_block_buffer_on_node(void *data_interface_, uint32_t dst_node);
+static void free_block_buffer_on_node(void *data_interface, uint32_t node);
 static size_t block_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_block_interface_crc32(starpu_data_handle handle);
-static int block_compare(void *interface_a, void *interface_b);
+static int block_compare(void *data_interface_a, void *data_interface_b);
 static void display_block_interface(starpu_data_handle handle, FILE *f);
 #ifdef STARPU_USE_GORDON
-static int convert_block_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss);
+static int convert_block_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss);
 #endif
 
 static struct starpu_data_interface_ops_t interface_block_ops = {
@@ -93,7 +93,7 @@ static struct starpu_data_interface_ops_t interface_block_ops = {
 };
 
 #ifdef STARPU_USE_GORDON
-int convert_block_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
+int convert_block_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
 	/* TODO */
 	STARPU_ABORT();
@@ -102,9 +102,9 @@ int convert_block_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t 
 }
 #endif
 
-static void register_block_handle(starpu_data_handle handle, uint32_t home_node, void *interface)
+static void register_block_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface)
 {
-	starpu_block_interface_t *block_interface = interface;
+	starpu_block_interface_t *block_interface = data_interface;
 
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -165,10 +165,10 @@ static uint32_t footprint_block_interface_crc32(starpu_data_handle handle)
 	return hash;
 }
 
-static int block_compare(void *interface_a, void *interface_b)
+static int block_compare(void *data_interface_a, void *data_interface_b)
 {
-	starpu_block_interface_t *block_a = interface_a;
-	starpu_block_interface_t *block_b = interface_b;
+	starpu_block_interface_t *block_a = data_interface_a;
+	starpu_block_interface_t *block_b = data_interface_b;
 
 	/* Two matricess are considered compatible if they have the same size */
 	return ((block_a->nx == block_b->nx)
@@ -274,7 +274,7 @@ size_t starpu_block_get_elemsize(starpu_data_handle handle)
 /* memory allocation/deallocation primitives for the BLOCK interface */
 
 /* returns the size of the allocated area */
-static ssize_t allocate_block_buffer_on_node(void *interface_, uint32_t dst_node)
+static ssize_t allocate_block_buffer_on_node(void *data_interface_, uint32_t dst_node)
 {
 	uintptr_t addr = 0;
 	unsigned fail = 0;
@@ -283,7 +283,7 @@ static ssize_t allocate_block_buffer_on_node(void *interface_, uint32_t dst_node
 #ifdef STARPU_USE_CUDA
 	cudaError_t status;
 #endif
-	starpu_block_interface_t *dst_block = interface_;
+	starpu_block_interface_t *dst_block = data_interface_;
 
 	uint32_t nx = dst_block->nx;
 	uint32_t ny = dst_block->ny;
@@ -350,9 +350,9 @@ static ssize_t allocate_block_buffer_on_node(void *interface_, uint32_t dst_node
 	return allocated_memory;
 }
 
-static void free_block_buffer_on_node(void *interface, uint32_t node)
+static void free_block_buffer_on_node(void *data_interface, uint32_t node)
 {
-	starpu_block_interface_t *block_interface = interface;
+	starpu_block_interface_t *block_interface = data_interface;
 
 #ifdef STARPU_USE_CUDA
 	cudaError_t status;

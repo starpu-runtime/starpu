@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -54,12 +55,12 @@ static const struct starpu_data_copy_methods void_copy_data_methods_s = {
 	.spu_to_spu = dummy_copy
 };
 
-static void register_void_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
-static ssize_t allocate_void_buffer_on_node(void *interface_, uint32_t dst_node);
-static void free_void_buffer_on_node(void *interface, uint32_t node);
+static void register_void_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface);
+static ssize_t allocate_void_buffer_on_node(void *data_interface_, uint32_t dst_node);
+static void free_void_buffer_on_node(void *data_interface, uint32_t node);
 static size_t void_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_void_interface_crc32(starpu_data_handle handle);
-static int void_compare(void *interface_a, void *interface_b);
+static int void_compare(void *data_interface_a, void *data_interface_b);
 static void display_void_interface(starpu_data_handle handle, FILE *f);
 
 static struct starpu_data_interface_ops_t interface_void_ops = {
@@ -77,7 +78,7 @@ static struct starpu_data_interface_ops_t interface_void_ops = {
 
 static void register_void_handle(starpu_data_handle handle __attribute__((unused)),
 				uint32_t home_node __attribute__((unused)),
-				void *interface __attribute__((unused)))
+				void *data_interface __attribute__((unused)))
 {
 	/* Since there is no real data to register, we don't do anything */
 }
@@ -94,8 +95,8 @@ static uint32_t footprint_void_interface_crc32(starpu_data_handle handle __attri
 	return 0;
 }
 
-static int void_compare(void *interface_a __attribute__((unused)),
-			void *interface_b __attribute__((unused)))
+static int void_compare(void *data_interface_a __attribute__((unused)),
+			void *data_interface_b __attribute__((unused)))
 {
 	/* There is no allocation required, and therefore nothing to cache
 	 * anyway. */
@@ -115,14 +116,14 @@ static size_t void_interface_get_size(starpu_data_handle handle __attribute__((u
 /* memory allocation/deallocation primitives for the void interface */
 
 /* returns the size of the allocated area */
-static ssize_t allocate_void_buffer_on_node(void *interface __attribute__((unused)),
+static ssize_t allocate_void_buffer_on_node(void *data_interface __attribute__((unused)),
 					uint32_t dst_node __attribute__((unused)))
 {
 	/* Successfuly allocated 0 bytes */
 	return 0;
 }
 
-static void free_void_buffer_on_node(void *interface __attribute__((unused)) ,
+static void free_void_buffer_on_node(void *data_interface __attribute__((unused)) ,
 					uint32_t node __attribute__((unused)))
 {
 	/* There is no buffer actually */

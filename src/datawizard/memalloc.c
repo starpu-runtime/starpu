@@ -379,8 +379,8 @@ static unsigned try_to_reuse_mem_chunk(starpu_mem_chunk_t mc, unsigned node, sta
 	return success;
 }
 
-static int _starpu_data_interface_compare(void *interface_a, struct starpu_data_interface_ops_t *ops_a,
-						void *interface_b, struct starpu_data_interface_ops_t *ops_b)
+static int _starpu_data_interface_compare(void *data_interface_a, struct starpu_data_interface_ops_t *ops_a,
+                                          void *data_interface_b, struct starpu_data_interface_ops_t *ops_b)
 {
 	if (ops_a->interfaceid != ops_b->interfaceid)
 		return -1;

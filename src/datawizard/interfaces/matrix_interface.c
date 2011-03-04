@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -62,15 +62,15 @@ static const struct starpu_data_copy_methods matrix_copy_data_methods_s = {
 	.spu_to_spu = NULL
 };
 
-static void register_matrix_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
-static ssize_t allocate_matrix_buffer_on_node(void *interface_, uint32_t dst_node);
-static void free_matrix_buffer_on_node(void *interface, uint32_t node);
+static void register_matrix_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface);
+static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t dst_node);
+static void free_matrix_buffer_on_node(void *data_interface, uint32_t node);
 static size_t matrix_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle handle);
-static int matrix_compare(void *interface_a, void *interface_b);
+static int matrix_compare(void *data_interface_a, void *data_interface_b);
 static void display_matrix_interface(starpu_data_handle handle, FILE *f);
 #ifdef STARPU_USE_GORDON
-static int convert_matrix_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
+static int convert_matrix_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 
 struct starpu_data_interface_ops_t _starpu_interface_matrix_ops = {
@@ -90,7 +90,7 @@ struct starpu_data_interface_ops_t _starpu_interface_matrix_ops = {
 };
 
 #ifdef STARPU_USE_GORDON
-static int convert_matrix_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
+static int convert_matrix_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
 	size_t elemsize = GET_MATRIX_ELEMSIZE(interface);
 	uint32_t nx = STARPU_MATRIX_GET_NX(interface);
@@ -107,9 +107,9 @@ static int convert_matrix_to_gordon(void *interface, uint64_t *ptr, gordon_strid
 }
 #endif
 
-static void register_matrix_handle(starpu_data_handle handle, uint32_t home_node, void *interface)
+static void register_matrix_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface)
 {
-	starpu_matrix_interface_t *matrix_interface = interface;
+	starpu_matrix_interface_t *matrix_interface = data_interface;
 
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -159,10 +159,10 @@ static uint32_t footprint_matrix_interface_crc32(starpu_data_handle handle)
 	return _starpu_crc32_be(starpu_matrix_get_nx(handle), starpu_matrix_get_ny(handle));
 }
 
-static int matrix_compare(void *interface_a, void *interface_b)
+static int matrix_compare(void *data_interface_a, void *data_interface_b)
 {
-	starpu_matrix_interface_t *matrix_a = interface_a;
-	starpu_matrix_interface_t *matrix_b = interface_b;
+	starpu_matrix_interface_t *matrix_a = data_interface_a;
+	starpu_matrix_interface_t *matrix_b = data_interface_b;
 
 	/* Two matricess are considered compatible if they have the same size */
 	return ((matrix_a->nx == matrix_b->nx)
@@ -243,7 +243,7 @@ size_t starpu_matrix_get_elemsize(starpu_data_handle handle)
 /* memory allocation/deallocation primitives for the matrix interface */
 
 /* returns the size of the allocated area */
-static ssize_t allocate_matrix_buffer_on_node(void *interface_, uint32_t dst_node)
+static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, uint32_t dst_node)
 {
 	uintptr_t addr = 0;
 	unsigned fail = 0;
@@ -253,7 +253,7 @@ static ssize_t allocate_matrix_buffer_on_node(void *interface_, uint32_t dst_nod
 	cudaError_t status;
 #endif
 
-	starpu_matrix_interface_t *interface = interface_;
+	starpu_matrix_interface_t *interface = data_interface_;
 
 	uint32_t nx = interface->nx;
 	uint32_t ny = interface->ny;
@@ -318,9 +318,9 @@ static ssize_t allocate_matrix_buffer_on_node(void *interface_, uint32_t dst_nod
 	return allocated_memory;
 }
 
-static void free_matrix_buffer_on_node(void *interface, uint32_t node)
+static void free_matrix_buffer_on_node(void *data_interface, uint32_t node)
 {
-	starpu_matrix_interface_t *matrix_interface = interface;
+	starpu_matrix_interface_t *matrix_interface = data_interface;
 
 #ifdef STARPU_USE_CUDA
 	cudaError_t status;

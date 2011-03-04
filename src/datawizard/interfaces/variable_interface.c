@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -64,15 +64,15 @@ static const struct starpu_data_copy_methods variable_copy_data_methods_s = {
 	.spu_to_spu = NULL
 };
 
-static void register_variable_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
-static ssize_t allocate_variable_buffer_on_node(void *interface_, uint32_t dst_node);
-static void free_variable_buffer_on_node(void *interface, uint32_t node);
+static void register_variable_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface);
+static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t dst_node);
+static void free_variable_buffer_on_node(void *data_interface, uint32_t node);
 static size_t variable_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_variable_interface_crc32(starpu_data_handle handle);
-static int variable_compare(void *interface_a, void *interface_b);
+static int variable_compare(void *data_interface_a, void *data_interface_b);
 static void display_variable_interface(starpu_data_handle handle, FILE *f);
 #ifdef STARPU_USE_GORDON
-static int convert_variable_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
+static int convert_variable_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 
 static struct starpu_data_interface_ops_t interface_variable_ops = {
@@ -91,7 +91,7 @@ static struct starpu_data_interface_ops_t interface_variable_ops = {
 	.display = display_variable_interface
 };
 
-static void register_variable_handle(starpu_data_handle handle, uint32_t home_node, void *interface)
+static void register_variable_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface)
 {
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -100,18 +100,18 @@ static void register_variable_handle(starpu_data_handle handle, uint32_t home_no
 			starpu_data_get_interface_on_node(handle, node);
 
 		if (node == home_node) {
-			local_interface->ptr = STARPU_VARIABLE_GET_PTR(interface);
+			local_interface->ptr = STARPU_VARIABLE_GET_PTR(data_interface);
 		}
 		else {
 			local_interface->ptr = 0;
 		}
 
-		local_interface->elemsize = STARPU_VARIABLE_GET_ELEMSIZE(interface);
+		local_interface->elemsize = STARPU_VARIABLE_GET_ELEMSIZE(data_interface);
 	}
 }
 
 #ifdef STARPU_USE_GORDON
-int convert_variable_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
+int convert_variable_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
 	*ptr = STARPU_VARIABLE_GET_PTR(interface);
 	(*ss).size = STARPU_VARIABLE_GET_ELEMSIZE(interface);
@@ -138,10 +138,10 @@ static uint32_t footprint_variable_interface_crc32(starpu_data_handle handle)
 	return _starpu_crc32_be(starpu_variable_get_elemsize(handle), 0);
 }
 
-static int variable_compare(void *interface_a, void *interface_b)
+static int variable_compare(void *data_interface_a, void *data_interface_b)
 {
-	starpu_variable_interface_t *variable_a = interface_a;
-	starpu_variable_interface_t *variable_b = interface_b;
+	starpu_variable_interface_t *variable_a = data_interface_a;
+	starpu_variable_interface_t *variable_b = data_interface_b;
 
 	/* Two variables are considered compatible if they have the same size */
 	return (variable_a->elemsize == variable_b->elemsize);
@@ -181,9 +181,9 @@ size_t starpu_variable_get_elemsize(starpu_data_handle handle)
 /* memory allocation/deallocation primitives for the variable interface */
 
 /* returns the size of the allocated area */
-static ssize_t allocate_variable_buffer_on_node(void *interface_, uint32_t dst_node)
+static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t dst_node)
 {
-	starpu_variable_interface_t *interface = interface_;
+	starpu_variable_interface_t *interface = data_interface_;
 
 	unsigned fail = 0;
 	uintptr_t addr = 0;
@@ -244,21 +244,21 @@ static ssize_t allocate_variable_buffer_on_node(void *interface_, uint32_t dst_n
 	return allocated_memory;
 }
 
-static void free_variable_buffer_on_node(void *interface, uint32_t node)
+static void free_variable_buffer_on_node(void *data_interface, uint32_t node)
 {
 	starpu_node_kind kind = _starpu_get_node_kind(node);
 	switch(kind) {
 		case STARPU_CPU_RAM:
-			free((void*)STARPU_VARIABLE_GET_PTR(interface));
+			free((void*)STARPU_VARIABLE_GET_PTR(data_interface));
 			break;
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
-			cudaFree((void*)STARPU_VARIABLE_GET_PTR(interface));
+			cudaFree((void*)STARPU_VARIABLE_GET_PTR(data_interface));
 			break;
 #endif
 #ifdef STARPU_USE_OPENCL
                 case STARPU_OPENCL_RAM:
-                        clReleaseMemObject((void*)STARPU_VARIABLE_GET_PTR(interface));
+                        clReleaseMemObject((void*)STARPU_VARIABLE_GET_PTR(data_interface));
                         break;
 #endif
 		default:

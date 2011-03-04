@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,11 +60,11 @@ static const struct starpu_data_copy_methods bcsr_copy_data_methods_s = {
 	.spu_to_spu = NULL
 };
 
-static void register_bcsr_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
-static ssize_t allocate_bcsr_buffer_on_node(void *interface, uint32_t dst_node);
-static void free_bcsr_buffer_on_node(void *interface, uint32_t node);
+static void register_bcsr_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface);
+static ssize_t allocate_bcsr_buffer_on_node(void *data_interface, uint32_t dst_node);
+static void free_bcsr_buffer_on_node(void *data_interface, uint32_t node);
 static size_t bcsr_interface_get_size(starpu_data_handle handle);
-static int bcsr_compare(void *interface_a, void *interface_b);
+static int bcsr_compare(void *data_interface_a, void *data_interface_b);
 static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle handle);
 
 
@@ -80,9 +80,9 @@ static struct starpu_data_interface_ops_t interface_bcsr_ops = {
 	.compare = bcsr_compare
 };
 
-static void register_bcsr_handle(starpu_data_handle handle, uint32_t home_node, void *interface)
+static void register_bcsr_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface)
 {
-	starpu_bcsr_interface_t *bcsr_interface = interface;
+	starpu_bcsr_interface_t *bcsr_interface = data_interface;
 
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -141,10 +141,10 @@ static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle handle)
 	return hash;
 }
 
-static int bcsr_compare(void *interface_a, void *interface_b)
+static int bcsr_compare(void *data_interface_a, void *data_interface_b)
 {
-	starpu_bcsr_interface_t *bcsr_a = interface_a;
-	starpu_bcsr_interface_t *bcsr_b = interface_b;
+	starpu_bcsr_interface_t *bcsr_a = data_interface_a;
+	starpu_bcsr_interface_t *bcsr_b = data_interface_b;
 
 	/* Two matricess are considered compatible if they have the same size */
 	return ((bcsr_a->nnz == bcsr_b->nnz)
@@ -254,14 +254,14 @@ static size_t bcsr_interface_get_size(starpu_data_handle handle)
 /* memory allocation/deallocation primitives for the BLAS interface */
 
 /* returns the size of the allocated area */
-static ssize_t allocate_bcsr_buffer_on_node(void *interface_, uint32_t dst_node)
+static ssize_t allocate_bcsr_buffer_on_node(void *data_interface_, uint32_t dst_node)
 {
 	uintptr_t addr_nzval;
 	uint32_t *addr_colind, *addr_rowptr;
 	ssize_t allocated_memory;
 
 	/* we need the 3 arrays to be allocated */
-	starpu_bcsr_interface_t *interface = interface_;
+	starpu_bcsr_interface_t *interface = data_interface_;
 
 	uint32_t nnz = interface->nnz;
 	uint32_t nrow = interface->nrow;
@@ -381,9 +381,9 @@ fail_nzval:
 	return -ENOMEM;
 }
 
-static void free_bcsr_buffer_on_node(void *interface, uint32_t node)
+static void free_bcsr_buffer_on_node(void *data_interface, uint32_t node)
 {
-	starpu_bcsr_interface_t *bcsr_interface = interface;	
+	starpu_bcsr_interface_t *bcsr_interface = data_interface;
 
 	starpu_node_kind kind = _starpu_get_node_kind(node);
 	switch(kind) {

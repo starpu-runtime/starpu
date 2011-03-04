@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -83,16 +83,16 @@ struct starpu_data_copy_methods {
 
 struct starpu_data_interface_ops_t {
 	void (*register_data_handle)(starpu_data_handle handle,
-					uint32_t home_node, void *interface);
-	ssize_t (*allocate_data_on_node)(void *interface, uint32_t node);
-	void (*free_data_on_node)(void *interface, uint32_t node);
+					uint32_t home_node, void *data_interface);
+	ssize_t (*allocate_data_on_node)(void *data_interface, uint32_t node);
+	void (*free_data_on_node)(void *data_interface, uint32_t node);
 	const struct starpu_data_copy_methods *copy_methods;
 	size_t (*get_size)(starpu_data_handle handle);
 	uint32_t (*footprint)(starpu_data_handle handle);
-	int (*compare)(void *interface_a, void *interface_b);
+	int (*compare)(void *data_interface_a, void *data_interface_b);
 	void (*display)(starpu_data_handle handle, FILE *f);
 #ifdef STARPU_USE_GORDON
-	int (*convert_to_gordon)(void *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
+	int (*convert_to_gordon)(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 	/* an identifier that is unique to each interface */
 	unsigned interfaceid;
@@ -100,7 +100,7 @@ struct starpu_data_interface_ops_t {
 };
 
 void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
-				void *interface,
+				void *data_interface,
 				struct starpu_data_interface_ops_t *ops);
 
 extern struct starpu_data_interface_ops_t _starpu_interface_matrix_ops;

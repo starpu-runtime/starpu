@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -64,15 +64,15 @@ static const struct starpu_data_copy_methods vector_copy_data_methods_s = {
 	.spu_to_spu = NULL
 };
 
-static void register_vector_handle(starpu_data_handle handle, uint32_t home_node, void *interface);
-static ssize_t allocate_vector_buffer_on_node(void *interface_, uint32_t dst_node);
-static void free_vector_buffer_on_node(void *interface, uint32_t node);
+static void register_vector_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface);
+static ssize_t allocate_vector_buffer_on_node(void *data_interface_, uint32_t dst_node);
+static void free_vector_buffer_on_node(void *data_interface, uint32_t node);
 static size_t vector_interface_get_size(starpu_data_handle handle);
 static uint32_t footprint_vector_interface_crc32(starpu_data_handle handle);
-static int vector_compare(void *interface_a, void *interface_b);
+static int vector_compare(void *data_interface_a, void *data_interface_b);
 static void display_vector_interface(starpu_data_handle handle, FILE *f);
 #ifdef STARPU_USE_GORDON
-static int convert_vector_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss); 
+static int convert_vector_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss); 
 #endif
 
 static struct starpu_data_interface_ops_t interface_vector_ops = {
@@ -91,9 +91,9 @@ static struct starpu_data_interface_ops_t interface_vector_ops = {
 	.display = display_vector_interface
 };
 
-static void register_vector_handle(starpu_data_handle handle, uint32_t home_node, void *interface)
+static void register_vector_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface)
 {
-	starpu_vector_interface_t *vector_interface = interface;
+	starpu_vector_interface_t *vector_interface = data_interface;
 
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -118,7 +118,7 @@ static void register_vector_handle(starpu_data_handle handle, uint32_t home_node
 }
 
 #ifdef STARPU_USE_GORDON
-int convert_vector_to_gordon(void *interface, uint64_t *ptr, gordon_strideSize_t *ss) 
+int convert_vector_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSize_t *ss) 
 {
 	starpu_vector_interface_t *vector_interface = interface;
 	
@@ -150,10 +150,10 @@ static uint32_t footprint_vector_interface_crc32(starpu_data_handle handle)
 	return _starpu_crc32_be(starpu_vector_get_nx(handle), 0);
 }
 
-static int vector_compare(void *interface_a, void *interface_b)
+static int vector_compare(void *data_interface_a, void *data_interface_b)
 {
-	starpu_vector_interface_t *vector_a = interface_a;
-	starpu_vector_interface_t *vector_b = interface_b;
+	starpu_vector_interface_t *vector_a = data_interface_a;
+	starpu_vector_interface_t *vector_b = data_interface_b;
 
 	/* Two vectors are considered compatible if they have the same size */
 	return ((vector_a->nx == vector_b->nx)
@@ -212,9 +212,9 @@ size_t starpu_vector_get_elemsize(starpu_data_handle handle)
 /* memory allocation/deallocation primitives for the vector interface */
 
 /* returns the size of the allocated area */
-static ssize_t allocate_vector_buffer_on_node(void *interface_, uint32_t dst_node)
+static ssize_t allocate_vector_buffer_on_node(void *data_interface_, uint32_t dst_node)
 {
-	starpu_vector_interface_t *interface = interface_;
+	starpu_vector_interface_t *interface = data_interface_;
 
 	unsigned fail = 0;
 	uintptr_t addr = 0;
@@ -278,9 +278,9 @@ static ssize_t allocate_vector_buffer_on_node(void *interface_, uint32_t dst_nod
 	return allocated_memory;
 }
 
-static void free_vector_buffer_on_node(void *interface, uint32_t node)
+static void free_vector_buffer_on_node(void *data_interface, uint32_t node)
 {
-	starpu_vector_interface_t *vector_interface = interface;
+	starpu_vector_interface_t *vector_interface = data_interface;
 
 	starpu_node_kind kind = _starpu_get_node_kind(node);
 	switch(kind) {

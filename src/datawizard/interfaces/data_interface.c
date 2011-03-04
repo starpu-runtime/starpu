@@ -169,7 +169,7 @@ static starpu_data_handle _starpu_data_handle_allocate(struct starpu_data_interf
 }
 
 void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
-				void *interface,
+				void *data_interface,
 				struct starpu_data_interface_ops_t *ops)
 {
 	starpu_data_handle handle =
@@ -180,7 +180,7 @@ void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 
 
 	/* fill the interface fields with the appropriate method */
-	ops->register_data_handle(handle, home_node, interface);
+	ops->register_data_handle(handle, home_node, data_interface);
 
 	_starpu_register_new_data(handle, home_node, 0);
 }
