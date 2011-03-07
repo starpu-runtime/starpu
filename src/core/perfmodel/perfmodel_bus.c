@@ -661,7 +661,6 @@ static int load_bus_latency_file_content(void)
 	int n;
 	unsigned src, dst;
 	FILE *f;
-	char c;
 
 	char path[256];
 	get_latency_path(path, 256);
@@ -676,8 +675,13 @@ static int load_bus_latency_file_content(void)
 		{
 			double latency;
 
-			n = fscanf(f, "%lf\t", &latency);
+			n = fscanf(f, "%lf", &latency);
 			if (n != 1) {
+				fclose(f);
+				return 0;
+			}
+			n = getc(f);
+			if (n != '\t') {
 				fclose(f);
 				return 0;
 			}
@@ -685,8 +689,8 @@ static int load_bus_latency_file_content(void)
 			latency_matrix[src][dst] = latency;
 		}
 
-		n = fscanf(f, "%c", &c);
-		if (n != 1 || c != '\n') {
+		n = getc(f);
+		if (n != '\n') {
 			fclose(f);
 			return 0;
 		}
@@ -790,7 +794,6 @@ static int load_bus_bandwidth_file_content(void)
 	int n;
 	unsigned src, dst;
 	FILE *f;
-	char c;
 
 	char path[256];
 	get_bandwidth_path(path, 256);
@@ -811,8 +814,14 @@ static int load_bus_bandwidth_file_content(void)
 		{
 			double bandwidth;
 
-			n = fscanf(f, "%lf\t", &bandwidth);
+			n = fscanf(f, "%lf", &bandwidth);
 			if (n != 1) {
+				fprintf(stderr,"didn't get a number\n");
+				fclose(f);
+				return 0;
+			}
+			n = getc(f);
+			if (n != '\t') {
 				fclose(f);
 				return 0;
 			}
@@ -820,8 +829,8 @@ static int load_bus_bandwidth_file_content(void)
 			bandwidth_matrix[src][dst] = bandwidth;
 		}
 
-		n = fscanf(f, "%c", &c);
-		if (n != 1 || c != '\n') {
+		n = getc(f);
+		if (n != '\n') {
 			fclose(f);
 			return 0;
 		}
