@@ -686,7 +686,7 @@ static int load_bus_latency_file_content(void)
 		}
 
 		n = fscanf(f, "%c", &c);
-		if (n != 0 || c != '\n') {
+		if (n != 1 || c != '\n') {
 			fclose(f);
 			return 0;
 		}
@@ -821,7 +821,7 @@ static int load_bus_bandwidth_file_content(void)
 		}
 
 		n = fscanf(f, "%c", &c);
-		if (n != 0 || c != '\n') {
+		if (n != 1 || c != '\n') {
 			fclose(f);
 			return 0;
 		}
