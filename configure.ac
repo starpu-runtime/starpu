@@ -302,8 +302,6 @@ if test x$enable_cuda = xyes; then
 		AC_SUBST(NVCCFLAGS)
 	fi
 
-	NVCCFLAGS=$"${NVCCFLAGS} -m64"
-
 	AC_PATH_PROG([NVCC], [nvcc], [nvcc], [$cuda_dir/bin:$PATH:/usr/local/bin:/usr/bin:/bin], [AC_MSG_WARN(Cannot find nvcc.)])
 fi
 
