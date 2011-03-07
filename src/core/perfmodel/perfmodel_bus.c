@@ -656,11 +656,12 @@ static void get_latency_path(char *path, size_t maxlen)
 	get_bus_path("latency", path, maxlen);
 }
 
-static void load_bus_latency_file_content(void)
+static int load_bus_latency_file_content(void)
 {
 	int n;
 	unsigned src, dst;
 	FILE *f;
+	char c;
 
 	char path[256];
 	get_latency_path(path, 256);
@@ -676,16 +677,23 @@ static void load_bus_latency_file_content(void)
 			double latency;
 
 			n = fscanf(f, "%lf\t", &latency);
-			STARPU_ASSERT(n == 1);
+			if (n != 1) {
+				fclose(f);
+				return 0;
+			}
 
 			latency_matrix[src][dst] = latency;
 		}
 
-		n = fscanf(f, "\n");
-		STARPU_ASSERT(n == 0);
+		n = fscanf(f, "%c", &c);
+		if (n != 0 || c != '\n') {
+			fclose(f);
+			return 0;
+		}
 	}
 
 	fclose(f);
+	return 1;
 }
 
 static void write_bus_latency_file_content(void)
@@ -760,13 +768,12 @@ static void load_bus_latency_file(void)
 	get_latency_path(path, 256);
 
 	res = access(path, F_OK);
-	if (res)
+	if (res || !load_bus_latency_file_content())
 	{
-		/* File does not exist yet */
+		/* File does not exist yet or is bogus */
 		generate_bus_latency_file();
 	}
 
-	load_bus_latency_file_content();
 }
 
 
@@ -778,11 +785,12 @@ static void get_bandwidth_path(char *path, size_t maxlen)
 	get_bus_path("bandwidth", path, maxlen);
 }
 
-static void load_bus_bandwidth_file_content(void)
+static int load_bus_bandwidth_file_content(void)
 {
 	int n;
 	unsigned src, dst;
 	FILE *f;
+	char c;
 
 	char path[256];
 	get_bandwidth_path(path, 256);
@@ -804,16 +812,23 @@ static void load_bus_bandwidth_file_content(void)
 			double bandwidth;
 
 			n = fscanf(f, "%lf\t", &bandwidth);
-			STARPU_ASSERT(n == 1);
+			if (n != 1) {
+				fclose(f);
+				return 0;
+			}
 
 			bandwidth_matrix[src][dst] = bandwidth;
 		}
 
-		n = fscanf(f, "\n");
-		STARPU_ASSERT(n == 0);
+		n = fscanf(f, "%c", &c);
+		if (n != 0 || c != '\n') {
+			fclose(f);
+			return 0;
+		}
 	}
 
 	fclose(f);
+	return 1;
 }
 
 static void write_bus_bandwidth_file_content(void)
@@ -900,13 +915,11 @@ static void load_bus_bandwidth_file(void)
 	get_bandwidth_path(path, 256);
 
 	res = access(path, F_OK);
-	if (res)
+	if (res || !load_bus_bandwidth_file_content())
 	{
-		/* File does not exist yet */
+		/* File does not exist yet or is bogus */
 		generate_bus_bandwidth_file();
 	}
-
-	load_bus_bandwidth_file_content();
 }
 
 /*
