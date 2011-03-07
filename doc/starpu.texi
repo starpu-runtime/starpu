@@ -1680,6 +1680,10 @@ generate a trace in the Paje format by calling:
 % starpu_fxt_tool -i filename
 @end example
 
+Or alternatively, setting the @code{STARPU_GENERATE_TRACE} environment variable
+to 1 before application execution will make StarPU do it automatically at
+application shutdown.
+
 This will create a @code{paje.trace} file in the current directory that can be
 inspected with the ViTE trace visualizing open-source tool. More information
 about ViTE is available at @indicateurl{http://vite.gforge.inria.fr/}. It is
