@@ -136,6 +136,10 @@ A few details need to be fixed when building StarPU on windows:
     copy c:\cuda\lib\cufft.lib c:\cuda\lib\libcufft.lib
     copy c:\cuda\lib\OpenCL.lib c:\cuda\lib\libOpenCL.lib
 
+(and if the version of your CUDA driver is >= 3.2)
+
+    copy c:\cuda\lib\curand.lib c:\cuda\lib\libcurand.lib
+
 ++===========++
 || V. Trying ||
 ++===========++
