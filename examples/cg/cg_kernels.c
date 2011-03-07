@@ -123,11 +123,14 @@ starpu_codelet accumulate_vector_cl = {
  */
 
 #ifdef STARPU_USE_CUDA
+extern void zero_vector(TYPE *x, unsigned nelems);
+
 static void bzero_variable_cuda(void *descr[], void *cl_arg)
 {
 	TYPE *v = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
+
+	zero_vector(v, 1);
  
-	cublasscal (1, (TYPE)0.0, v, 1);
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
@@ -159,7 +162,8 @@ static void bzero_vector_cuda(void *descr[], void *cl_arg)
 	TYPE *v = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
  
-	cublasscal (n, (TYPE)0.0, v, 1);
+	zero_vector(v, n);
+
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif

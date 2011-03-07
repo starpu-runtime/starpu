@@ -126,3 +126,22 @@ extern "C" void dot_host(TYPE *x, TYPE *y, unsigned nelems, TYPE *dot)
 
 	cudaFree(per_block_sum);
 }
+
+static __global__ void zero_vector_device(TYPE *x, unsigned nelems, unsigned nelems_per_thread)
+{
+	unsigned i;
+	unsigned first_i = blockDim.x * blockIdx.x + threadIdx.x;
+
+	for (i = first_i; i < nelems; i += nelems_per_thread)
+		x[i] = 0.0;
+}
+
+extern "C" void zero_vector(TYPE *x, unsigned nelems)
+{
+	unsigned nblocks = STARPU_MIN(128, nelems);
+	unsigned nthread_per_block = STARPU_MIN(MAXTHREADSPERBLOCK, (nelems / nblocks));
+
+	unsigned nelems_per_thread = nelems / (nblocks * nthread_per_block);
+
+	zero_vector_device<<<nblocks, nthread_per_block, 0, starpu_cuda_get_local_stream()>>>(x, nelems, nelems_per_thread);
+}

@@ -92,8 +92,6 @@ extern starpu_codelet bzero_vector_cl;
 
 static void generate_random_problem(void)
 {
-	srand48(0xdeadbeef);
-
 	int i, j;
 
 	starpu_data_malloc_pinned_if_possible((void **)&A, n*n*sizeof(TYPE));
@@ -101,14 +99,12 @@ static void generate_random_problem(void)
 	starpu_data_malloc_pinned_if_possible((void **)&x, n*sizeof(TYPE));
 	assert(A && b && x);
 
-	/* Create a random matrix (A) and two random vectors (x and b) */
 	for (j = 0; j < n; j++)
 	{
 		b[j] = (TYPE)1.0;
 		x[j] = (TYPE)0.0;
 
 		/* We take Hilbert matrix that is not well conditionned but definite positive: H(i,j) = 1/(1+i+j) */
-
 		for (i = 0; i < n; i++)
 		{
 			A[n*j + i] = (TYPE)(1.0/(1.0+i+j));
