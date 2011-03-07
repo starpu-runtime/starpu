@@ -582,8 +582,8 @@ static void copy_handle_cuda(void *descr[], void *cl_arg)
 	unsigned nx = STARPU_VECTOR_GET_NX(descr[0]);
 	size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(descr[0]);
 
-	cudaMemcpy(dst, src, nx*elemsize, cudaMemcpyDeviceToDevice);
-	cudaThreadSynchronize();
+	cudaMemcpyAsync(dst, src, nx*elemsize, cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
