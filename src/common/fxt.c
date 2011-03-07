@@ -17,8 +17,9 @@
 
 #include <starpu.h>
 #include <common/config.h>
-#ifdef STARPU_USE_FXT
+#include <starpu_util.h>
 
+#ifdef STARPU_USE_FXT
 #include <common/fxt.h>
 
 #ifdef STARPU_HAVE_WINDOWS
@@ -81,6 +82,23 @@ void _starpu_start_fxt_profiling(void)
 	return;
 }
 
+static void generate_paje_trace(char *input_fxt_filename, char *output_paje_filename)
+{
+	/* We take default options */
+	struct starpu_fxt_options options;
+	starpu_fxt_options_init(&options);
+
+	/* TODO parse some STARPU_GENERATE_TRACE_OPTIONS env variable */
+
+	options.ninputfiles = 1;
+	options.filenames[0] = input_fxt_filename;
+	options.out_paje_path = output_paje_filename;
+	options.file_prefix = "";
+	options.file_rank = -1;
+
+	starpu_fxt_generate_trace(&options);
+}
+
 void _starpu_stop_fxt_profiling(void)
 {
 	if (!written)
@@ -91,6 +109,11 @@ void _starpu_stop_fxt_profiling(void)
 		fprintf(stderr, "Writing FxT traces into file %s:%s\n", hostname, PROF_FILE_USER);
 #endif
 		fut_endup(PROF_FILE_USER);
+
+		/* Should we generate a Paje trace directly ? */
+		int generate_trace = starpu_get_env_number("STARPU_GENERATE_TRACE");
+		if (generate_trace == 1)
+			generate_paje_trace(PROF_FILE_USER, "paje.trace");
 
 		int ret = fut_done();
 		if (ret < 0)
@@ -109,7 +132,7 @@ void _starpu_fxt_register_thread(unsigned cpuid)
 	FUT_DO_PROBE2(FUT_NEW_LWP_CODE, cpuid, syscall(SYS_gettid));
 }
 
-#endif
+#endif // STARPU_USE_FXT
 
 void starpu_trace_user_event(unsigned long code __attribute__((unused)))
 {

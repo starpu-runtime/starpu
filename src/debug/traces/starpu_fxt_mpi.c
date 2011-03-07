@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,11 +14,24 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "fxt_tool.h"
+#include <starpu.h>
+#include <common/config.h>
+
+#ifdef STARPU_USE_FXT
+
+#include "starpu_fxt.h"
+
+struct mpi_transfer {
+	unsigned matched;
+	int other_rank; /* src for a recv, dest for a send */
+	int mpi_tag;
+	size_t size;
+	float date;
+};
 
 /* Returns 0 if a barrier is found, -1 otherwise. In case of success, offset is
  * filled with the timestamp of the barrier */
-int find_sync_point(char *filename_in, uint64_t *offset, int *key, int *rank)
+int starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *key, int *rank)
 {
 	STARPU_ASSERT(offset);
 
@@ -93,7 +106,7 @@ unsigned mpi_recvs_used[64] = {0};
  * transfer, thus avoiding a quadratic complexity. */
 unsigned mpi_recvs_matched[64] = {0};
 
-void add_mpi_send_transfer(int src, int dst, int mpi_tag, size_t size, float date)
+void starpu_fxt_mpi_add_send_transfer(int src, int dst __attribute__((unused)), int mpi_tag, size_t size, float date)
 {
 	unsigned slot = mpi_sends_used[src]++;
 
@@ -117,7 +130,7 @@ void add_mpi_send_transfer(int src, int dst, int mpi_tag, size_t size, float dat
 	mpi_sends[src][slot].date = date;
 }
 
-void add_mpi_recv_transfer(int src, int dst, int mpi_tag, float date)
+void starpu_fxt_mpi_add_recv_transfer(int src __attribute__((unused)), int dst, int mpi_tag, float date)
 {
 	unsigned slot = mpi_recvs_used[dst]++;
 
@@ -140,7 +153,7 @@ void add_mpi_recv_transfer(int src, int dst, int mpi_tag, float date)
 	mpi_recvs[dst][slot].date = date;
 }
 
-struct mpi_transfer *try_to_match_send_transfer(int src, int dst, int mpi_tag)
+struct mpi_transfer *try_to_match_send_transfer(int src __attribute__((unused)), int dst, int mpi_tag)
 {
 	unsigned slot;
 	unsigned firstslot = mpi_recvs_matched[dst];
@@ -176,7 +189,7 @@ struct mpi_transfer *try_to_match_send_transfer(int src, int dst, int mpi_tag)
 
 static unsigned long mpi_com_id = 0;
 
-void display_all_transfers_from_trace(FILE *out_paje_file, int src)
+static void display_all_transfers_from_trace(FILE *out_paje_file, int src)
 {
 	unsigned slot;
 	for (slot = 0; slot < mpi_sends_used[src]; slot++)
@@ -195,8 +208,8 @@ void display_all_transfers_from_trace(FILE *out_paje_file, int src)
 
 			unsigned long id = mpi_com_id++;
 			/* TODO replace 0 by a MPI program ? */
-			fprintf(out_paje_file, "18	%f	MPIL	MPIroot   %d	mpi_%d_p	mpicom_%ld\n", start_date, size, /* XXX */src, id);
-			fprintf(out_paje_file, "19	%f	MPIL	MPIroot	  %d	mpi_%d_p	mpicom_%ld\n", end_date, size, /* XXX */dst, id);
+			fprintf(out_paje_file, "18	%f	MPIL	MPIroot   %ld	mpi_%d_p	mpicom_%ld\n", start_date, size, /* XXX */src, id);
+			fprintf(out_paje_file, "19	%f	MPIL	MPIroot	  %ld	mpi_%d_p	mpicom_%ld\n", end_date, size, /* XXX */dst, id);
 		}
 		else
 		{
@@ -206,3 +219,17 @@ void display_all_transfers_from_trace(FILE *out_paje_file, int src)
 
 	}
 }
+
+void starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file)
+{
+	unsigned inputfile;
+
+	/* display the MPI transfers if possible */
+	for (inputfile = 0; inputfile < options->ninputfiles; inputfile++)
+	{
+		int filerank = ranks[inputfile];
+		display_all_transfers_from_trace(out_paje_file, filerank);
+	}
+}
+
+#endif // STARPU_USE_FXT

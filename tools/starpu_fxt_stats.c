@@ -14,7 +14,21 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "fxt_tool.h"
+//#include "fxt_tool.h"
+
+#include <search.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+#include <common/fxt.h>
+#include <common/list.h>
+#include <starpu.h>
+
 
 static fxt_t fut;
 struct fxt_ev_64 ev;

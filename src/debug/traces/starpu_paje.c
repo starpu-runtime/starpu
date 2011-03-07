@@ -1,7 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,9 +14,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "histo_paje.h"
+#include "starpu_fxt.h"
 
-void write_paje_header(FILE *file)
+void starpu_fxt_write_paje_header(FILE *file)
 {
 	fprintf(file, "\%%EventDef	PajeDefineContainerType	1\n");
 	fprintf(file, "\%%	Alias	string\n");
@@ -121,4 +120,36 @@ void write_paje_header(FILE *file)
 	fprintf(file, "\%%	DestContainer	string\n");
 	fprintf(file, "\%%	Key	string\n");
 	fprintf(file, "\%%EndEventDef\n");
+
+	fprintf(file, "                                        \n \
+	1       MPIP      0       \"MPI Program\"                      	\n \
+	1       P      MPIP       \"Program\"                      	\n \
+	1       Mn      P       \"Memory Node\"                         \n \
+	1       T      Mn       \"Worker\"                               \n \
+	1       Sc       P       \"Scheduler State\"                        \n \
+	2       event   T       \"event type\"				\n \
+	3       S       T       \"Thread State\"                        \n \
+	3       MS       Mn       \"Memory Node State\"                        \n \
+	4       ntask    Sc       \"Number of tasks\"                        \n \
+	4       bw      Mn       \"Bandwidth\"                        \n \
+	6       I       S      Initializing       \"0.0 .7 1.0\"            \n \
+	6       D       S      Deinitializing       \"0.0 .1 .7\"            \n \
+	6       Fi       S      FetchingInput       \"1.0 .1 1.0\"            \n \
+	6       Po       S      PushingOutput       \"0.1 1.0 1.0\"            \n \
+	6       E       S       Executing       \".0 .6 .4\"            \n \
+	6       C       S       Callback       \".0 .3 .8\"            \n \
+	6       B       S       Blocked         \".9 .1 .0\"		\n \
+	6       Sl       S      Sleeping         \".9 .1 .0\"		\n \
+	6       P       S       Progressing         \".4 .1 .6\"		\n \
+	6       A       MS      Allocating         \".4 .1 .0\"		\n \
+	6       Ar       MS      AllocatingReuse       \".1 .1 .8\"		\n \
+	6       R       MS      Reclaiming         \".0 .1 .4\"		\n \
+	6       Co       MS     DriverCopy         \".3 .5 .1\"		\n \
+	6       No       MS     Nothing         \".0 .0 .0\"		\n \
+	5       MPIL     MPIP	P	P      MPIL\n \
+	5       L       P	Mn	Mn      L\n");
+
+	fprintf(file, "7      0.0 MPIroot      MPIP      0       root\n");
 }
+
+

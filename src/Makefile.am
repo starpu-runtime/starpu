@@ -100,6 +100,7 @@ noinst_HEADERS = 						\
 	drivers/opencl/driver_opencl.h				\
 	drivers/opencl/driver_opencl_utils.h			\
 	debug/starpu_debug_helpers.h				\
+	debug/traces/starpu_fxt.h				\
 	profiling/bound.h					\
 	profiling/profiling.h					\
 	util/starpu_insert_task_utils.h				\
@@ -185,6 +186,10 @@ libstarpu_la_SOURCES = 						\
 	util/starpu_insert_task.c				\
 	util/starpu_insert_task_utils.c				\
 	util/starpu_task_list.c					\
+	debug/traces/starpu_fxt.c				\
+	debug/traces/starpu_fxt_mpi.c				\
+	debug/traces/starpu_fxt_dag.c				\
+	debug/traces/starpu_paje.c				\
 	debug/latency.c						\
 	debug/structures_size.c					\
 	profiling/profiling.c					\

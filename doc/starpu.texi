@@ -2375,6 +2375,14 @@ on the device. This variable is intended to be used for experimental purposes
 as it emulates devices that have a limited amount of memory.
 @end table
 
+@node STARPU_GENERATE_TRACE
+@subsubsection @code{STARPU_GENERATE_TRACE} -- Generate a Paje trace when StarPU is shut down
+@table @asis
+
+@item @emph{Description}
+When set to 1, this variable indicates that StarPU should automatically
+generate a Paje trace when starpu_shutdown is called.
+@end table
 
 
 @c ---------------------------------------------------------------------
