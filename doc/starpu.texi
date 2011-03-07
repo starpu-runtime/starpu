@@ -2336,6 +2336,7 @@ the coefficient to be applied to it before adding it to the computation part.
 * STARPU_LOGFILENAME::          Select debug file name
 * STARPU_FXT_PREFIX::           FxT trace location
 * STARPU_LIMIT_GPU_MEM::        Restrict memory size on the GPUs
+* STARPU_GENERATE_TRACE::       Generate a Paje trace when StarPU is shut down
 @end menu
 
 @node STARPU_SILENT
