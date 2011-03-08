@@ -19,7 +19,10 @@
 
 #include <starpu.h>
 #include <starpu_config.h>
-#include <pthread.h>
+
+#if ! defined(_MSC_VER)
+#  include <pthread.h>
+#endif
 
 struct starpu_task_bundle_entry {
 	struct starpu_task *task;
@@ -30,7 +33,11 @@ struct starpu_task_bundle_entry {
  * together whenever possible. */
 struct starpu_task_bundle {
 	/* Mutex protecting the bundle */
+#if defined(_MSC_VER)
+	void *mutex;
+#else
 	pthread_mutex_t mutex;
+#endif
 	/* last worker previously assigned a task from the bundle (-1 if none) .*/
 	int previous_workerid;
 	/* list of tasks */
