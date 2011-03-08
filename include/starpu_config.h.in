@@ -57,4 +57,12 @@
 #undef starpu_srand48
 #undef starpu_erand48
 
+#ifdef _MSC_VER
+typedef long starpu_ssize_t;
+#else
+#  include <sys/types.h>
+typedef ssize_t starpu_ssize_t;
+#endif
+
+
 #endif
