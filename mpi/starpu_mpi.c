@@ -20,6 +20,7 @@
 #include <starpu_mpi_datatype.h>
 //#define STARPU_MPI_VERBOSE	1
 #include <starpu_mpi_private.h>
+#include <starpu_profiling.h>
 
 /* TODO find a better way to select the polling method (perhaps during the
  * configuration) */
@@ -754,7 +755,9 @@ int starpu_mpi_initialize_extended(int initialize_mpi, int *rank, int *world_siz
         if (initialize_mpi) {
                 _STARPU_DEBUG("Calling MPI_Comm_rank\n");
                 MPI_Comm_rank(MPI_COMM_WORLD, rank);
-		starpu_set_profiling_id(rank);
+#ifdef STARPU_USE_FXT
+		            starpu_set_profiling_id(rank);
+#endif //STARPU_USE_FXT
                 MPI_Comm_size(MPI_COMM_WORLD, world_size);
         }
 
