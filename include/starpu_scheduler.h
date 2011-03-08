@@ -19,7 +19,10 @@
 
 #include <starpu.h>
 #include <starpu_config.h>
-#include <pthread.h>
+
+#if ! defined(_MSC_VER)
+#  include <pthread.h>
+#endif
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -108,7 +111,11 @@ multiple workers may use the same condition variable. For instance, in the case
 of a scheduling strategy with a single task queue, the same condition variable
 would be used to block and wake up all workers.  The initialization method of a
 scheduling strategy (init_sched) must call this function once per worker. */
+#if defined(_MSC_VER)
+void starpu_worker_set_sched_condition(int workerid, void **sched_cond, void **sched_mutex);
+#else
 void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond, pthread_mutex_t *sched_mutex);
+#endif
 
 /* Check if the worker specified by workerid can execute the codelet. */
 int starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task);

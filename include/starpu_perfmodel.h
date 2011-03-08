@@ -20,9 +20,12 @@
 
 #include <starpu_config.h>
 #include <stdio.h>
-#include <pthread.h>
 #include <starpu.h>
 #include <starpu_task.h>
+
+#if ! defined(_MSC_VER)
+#  include <pthread.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -105,7 +108,11 @@ struct starpu_perfmodel_t {
 	unsigned is_loaded;
 	unsigned benchmarking;
 
+#if defined(_MSC_VER)
+	void *model_rwlock;
+#else
 	pthread_rwlock_t model_rwlock;
+#endif
 };
 
 /* This function is intended to be used by external tools that should read the
