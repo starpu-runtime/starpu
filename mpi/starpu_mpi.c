@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -754,6 +754,7 @@ int starpu_mpi_initialize_extended(int initialize_mpi, int *rank, int *world_siz
         if (initialize_mpi) {
                 _STARPU_DEBUG("Calling MPI_Comm_rank\n");
                 MPI_Comm_rank(MPI_COMM_WORLD, rank);
+		starpu_set_profiling_id(rank);
                 MPI_Comm_size(MPI_COMM_WORLD, world_size);
         }
 
