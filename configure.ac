@@ -48,6 +48,7 @@ case "$target" in
 *-*-mingw*|*-*-cygwin*)
   starpu_windows=yes
   libext=a
+  NVCCFLAGS="-D__MINGW32__"
   AC_DEFINE(STARPU_HAVE_WINDOWS, [], [Define this on windows.])
   ;;
 esac
