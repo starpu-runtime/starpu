@@ -33,6 +33,7 @@ NVCCFLAGS += $(HWLOC_CFLAGS)
 	$(NVCC) -cubin $< -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
 
 .cu.o:
+	$(MKDIR_P) `dirname $@`
 	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I$(top_srcdir)/include/ -I$(top_builddir)/include/
 
 
