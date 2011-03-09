@@ -123,7 +123,10 @@ cl_int _starpu_opencl_init_context(int devid)
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         // Create queue for the given device
-        queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], 0, &err);
+        cl_command_queue_properties props;
+        clGetDeviceInfo(devices[devid], CL_DEVICE_QUEUE_PROPERTIES, sizeof(props), &props, NULL);
+        props &= CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
+        queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	PTHREAD_MUTEX_UNLOCK(&big_lock);
 
