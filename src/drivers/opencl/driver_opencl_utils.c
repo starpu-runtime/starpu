@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -170,7 +170,12 @@ int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, str
 
 int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs)
 {
+	int nb_devices;
         char located_file_name[1024];
+
+	// Do not try to load and compile the file if there is no devices
+	nb_devices = _starpu_opencl_get_device_count();
+	if (nb_devices == 0) return EXIT_SUCCESS;
 
         // Locate source file
         _starpu_opencl_locate_file(source_file_name, located_file_name);
