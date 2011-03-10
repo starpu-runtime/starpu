@@ -104,6 +104,12 @@ http://www.open-mpi.org/projects/hwloc
    make
    make install
 
+   Also convert a couple of files to CRLF:
+
+   sed -e 's/$/'$'\015'/ < README > $PWD/target/README.txt
+   sed -e 's/$/'$'\015'/ < AUTHORS > $PWD/target/AUTHORS.txt
+   sed -e 's/$/'$'\015'/ < COPYING.LGPL > $PWD/target/COPYING.LGPL.txt
+
 9. If you want your StarPU installation to be standalone, you need to
    copy the DLL files from hwloc, Cuda, and OpenCL into the StarPU
    installation bin directory, as well as MinGW/bin/libpthread*dll
