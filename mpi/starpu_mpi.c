@@ -756,7 +756,7 @@ int starpu_mpi_initialize_extended(int initialize_mpi, int *rank, int *world_siz
                 _STARPU_DEBUG("Calling MPI_Comm_rank\n");
                 MPI_Comm_rank(MPI_COMM_WORLD, rank);
 #ifdef STARPU_USE_FXT
-		            starpu_set_profiling_id(rank);
+                starpu_set_profiling_id(*rank);
 #endif //STARPU_USE_FXT
                 MPI_Comm_size(MPI_COMM_WORLD, world_size);
         }
