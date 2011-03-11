@@ -91,6 +91,18 @@ define starpu
   printf "Here I am...\n"
 end
 
+define starpu-print-data
+  set language c
+  set $data = $arg0
+  printf "Home node %d\n", $data->home_node
+  printf "Post sync tasks\n"
+  set $tasklist = $data->post_sync_tasks
+  while $tasklist != 0x0
+    starpu-print-task $tasklist->task
+    set $tasklist = $tasklist->next
+  end
+end
+
 document starpu
 List of StarPU-specific gdb functions:
 starpu-workers		prints a list of the StarPU workers
