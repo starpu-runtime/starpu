@@ -118,7 +118,7 @@ void dot_cuda_func(void *descr[], void *cl_arg)
 
 	cudaMemcpy(&current_dot, dot, sizeof(DOT_TYPE), cudaMemcpyDeviceToHost);
 
-	int ret = cudaThreadSynchronize();
+	cudaThreadSynchronize();
 
 	local_dot = (DOT_TYPE)cublasSdot(n, local_x, 1, local_y, 1);
 
