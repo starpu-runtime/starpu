@@ -222,6 +222,8 @@ AC_ARG_WITH(cuda-lib-dir,
 if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	! test -d "$cuda_dir" && test -d "/c/cuda" && cuda_dir=/c/cuda
 	! test -d "$cuda_dir" && test -d "/cygdrive/c/cuda" && cuda_dir=/cygdrive/c/cuda
+	! test -d "$cuda_dir" && test -d "/usr/cuda" && cuda_dir=/usr/cuda
+	! test -d "$cuda_dir" && test -d "/opt/cuda" && cuda_dir=/opt/cuda
 
 	if test x$cuda_include_dir = xno; then
 		cuda_include_dir="$cuda_dir/include/"
