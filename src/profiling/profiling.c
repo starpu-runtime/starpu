@@ -236,7 +236,8 @@ void _starpu_worker_update_profiling_info_executing(int workerid, struct timespe
 	{
 		PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 
-		starpu_timespec_accumulate(&worker_info[workerid].executing_time, executing_time);
+		if (executing_time)
+			starpu_timespec_accumulate(&worker_info[workerid].executing_time, executing_time);
 
 		worker_info[workerid].used_cycles += used_cycles;
 		worker_info[workerid].stall_cycles += stall_cycles;
