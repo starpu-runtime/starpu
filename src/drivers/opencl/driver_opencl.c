@@ -34,6 +34,7 @@ static pthread_mutex_t big_lock = PTHREAD_MUTEX_INITIALIZER;
 static cl_context contexts[STARPU_MAXOPENCLDEVS];
 static cl_device_id devices[STARPU_MAXOPENCLDEVS];
 static cl_command_queue queues[STARPU_MAXOPENCLDEVS];
+static cl_command_queue transfer_queues[STARPU_MAXOPENCLDEVS];
 static cl_uint nb_devices = -1;
 static int init_done = 0;
 extern char *_starpu_opencl_program_dir;
@@ -122,12 +123,17 @@ cl_int _starpu_opencl_init_context(int devid)
         contexts[devid] = clCreateContext(NULL, 1, &devices[devid], NULL, NULL, &err);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-        // Create queue for the given device
+        // Create execution queue for the given device
+        queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], 0, &err);
+        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+
+        // Create transfer queue for the given device
         cl_command_queue_properties props;
         clGetDeviceInfo(devices[devid], CL_DEVICE_QUEUE_PROPERTIES, sizeof(props), &props, NULL);
         props &= CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
-        queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
+        transfer_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+
 	PTHREAD_MUTEX_UNLOCK(&big_lock);
 
 	limit_gpu_mem_if_needed(devid);
@@ -149,6 +155,9 @@ cl_int _starpu_opencl_deinit_context(int devid)
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         err = clReleaseCommandQueue(queues[devid]);
+        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+
+        err = clReleaseCommandQueue(transfer_queues[devid]);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         contexts[devid] = NULL;
@@ -179,7 +188,7 @@ cl_int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, cl_mem buffer, si
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
-        err = clEnqueueWriteBuffer(queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
+        err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
         if (STARPU_LIKELY(err == CL_SUCCESS)) {
                 *ret = (event == NULL) ? 0 : -EAGAIN;
                 return CL_SUCCESS;
@@ -187,7 +196,7 @@ cl_int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, cl_mem buffer, si
         else {
                 if (event != NULL) {
                         /* The asynchronous copy has failed, try to copy synchronously */
-                        err = clEnqueueWriteBuffer(queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
+                        err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
                 }
                 if (STARPU_LIKELY(err == CL_SUCCESS)) {
                         *ret = 0;
@@ -207,7 +216,7 @@ cl_int _starpu_opencl_copy_ram_to_opencl(void *ptr, cl_mem buffer, size_t size, 
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
-        err = clEnqueueWriteBuffer(queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
+        err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         return CL_SUCCESS;
@@ -220,7 +229,7 @@ cl_int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, void *ptr, si
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
-        err = clEnqueueReadBuffer(queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
+        err = clEnqueueReadBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
         if (STARPU_LIKELY(err == CL_SUCCESS)) {
                 *ret = (event == NULL) ? 0 : -EAGAIN;
                 return CL_SUCCESS;
@@ -228,7 +237,7 @@ cl_int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, void *ptr, si
         else {
                 if (event != NULL)
                         /* The asynchronous copy has failed, try to copy synchronously */
-                        err = clEnqueueReadBuffer(queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
+                        err = clEnqueueReadBuffer(transfer_queues[worker->devid], buffer, CL_TRUE, offset, size, ptr, 0, NULL, NULL);
                 if (STARPU_LIKELY(err == CL_SUCCESS)) {
                         *ret = 0;
                         return CL_SUCCESS;
@@ -249,7 +258,7 @@ cl_int _starpu_opencl_copy_opencl_to_ram(cl_mem buffer, void *ptr, size_t size, 
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
-        err = clEnqueueReadBuffer(queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
+        err = clEnqueueReadBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         return CL_SUCCESS;
@@ -265,7 +274,7 @@ cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, void *ptr, const si
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
-        err = clEnqueueReadBufferRect(queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
+        err = clEnqueueReadBufferRect(transfer_queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
                                       buffer_slice_pitch, host_row_pitch, host_slice_pitch, ptr, 0, NULL, event);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -281,7 +290,7 @@ cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, cl_mem buffer, const si
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
-        err = clEnqueueWriteBufferRect(queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
+        err = clEnqueueWriteBufferRect(transfer_queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
                                        buffer_slice_pitch, host_row_pitch, host_slice_pitch, ptr, 0, NULL, event);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -341,6 +350,7 @@ void _starpu_opencl_init(void)
                 for(i=0 ; i<nb_devices ; i++) {
                         contexts[i] = NULL;
                         queues[i] = NULL;
+                        transfer_queues[i] = NULL;
                 }
 
                 init_done=1;
