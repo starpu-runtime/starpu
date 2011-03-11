@@ -728,7 +728,6 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 	communication_list = communication_list_new();
 
 	char *prefix = options->file_prefix;
-	uint64_t offset = options->file_offset;
 
 	/* TODO starttime ...*/
 	/* create the "program" container */
@@ -744,7 +743,6 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 	while(1) {
 		int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
 		if (ret != FXT_EV_OK) {
-			fprintf(stderr, "no more block ...\n");
 			break;
 		}
 
@@ -908,8 +906,10 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				break;
 
 			default:
+#ifdef STARPU_VERBOSE
 				fprintf(stderr, "unknown event.. %x at time %llx WITH OFFSET %llx\n",
-					(unsigned)ev.code, (long long unsigned)ev.time, (long long unsigned)(ev.time-offset));
+					(unsigned)ev.code, (long long unsigned)ev.time, (long long unsigned)(ev.time-options->file_offset));
+#endif
 				break;
 		}
 	}
@@ -1116,7 +1116,9 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 		{
 			int filerank = rank_k[inputfile];
 
+#ifdef STARPU_VERBOSE
 			fprintf(stderr, "Handle file %s (rank %d)\n", options->filenames[inputfile], filerank);
+#endif
 
 			char file_prefix[32];
 			snprintf(file_prefix, 32, "mpi_%d_", filerank);
