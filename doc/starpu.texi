@@ -1447,7 +1447,8 @@ completely and re-calibrate from start, use @code{export STARPU_CALIBRATE=2}.
 Note: due to CUDA limitations, to be able to measure kernel duration,
 calibration mode needs to disable asynchronous data transfers. Calibration thus
 disables data transfer / computation overlapping, and should thus not be used
-for eventual benchmarks.
+for eventual benchmarks. Note 2: history-based performance model get calibrated
+only if a performance-model-based scheduler is chosen.
 
 @node Task distribution vs Data transfer
 @section Task distribution vs Data transfer
@@ -1504,17 +1505,19 @@ next chapter.
 @node CUDA-specific optimizations
 @section CUDA-specific optimizations
 
-Due to CUDA limitations, StarPU will have a hard time overlapping
-communications and computations if the application does not use a dedicated
-CUDA stream for its computations. StarPU provides one by the use of
-@code{starpu_cuda_get_local_stream()}. For instance:
+Due to CUDA limitations, StarPU will have a hard time overlapping its own
+communications and the codelet computations if the application does not use a
+dedicated CUDA stream for its computations. StarPU provides one by the use of
+@code{starpu_cuda_get_local_stream()} which should be used by all CUDA codelet
+operations. For instance:
 
 @example
 func <<<grid,block,0,starpu_cuda_get_local_stream()>>> (foo, bar);
 cudaStreamSynchronize(starpu_cuda_get_local_stream());
 @end example
 
-Unfortunately, a lot of cuda libraries do not have stream variants of kernels.
+Unfortunately, a lot of CUDA libraries do not have stream variants of
+kernels. That will lower the potential for overlapping.
 
 @c ---------------------------------------------------------------------
 @c Performance feedback
@@ -2736,7 +2739,8 @@ design their own data interfaces if required.
 @item @emph{Description}:
 This function allocates data of the given size. It will also try to pin it in
 CUDA or OpenGL, so that data transfers from this buffer can be asynchronous, and
-thus permit data transfer and computation overlapping.
+thus permit data transfer and computation overlapping. The allocated buffer must
+be freed thanks to the @code{starpu_data_free_pinned_if_possible} function.
 @item @emph{Prototype}:
 @code{int starpu_data_malloc_pinned_if_possible(void **A, size_t dim);}
 @end table
