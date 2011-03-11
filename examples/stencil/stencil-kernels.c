@@ -1,7 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
- *
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 2.1 of the License, or (at
@@ -123,12 +122,26 @@ struct timeval *last_tick;
 /* Record how many updates each worker performed */
 unsigned update_per_worker[STARPU_NMAXWORKERS];
 
-/*
- * Load a neighbour's boundary into block, CPU version
- */
-static void load_subblock_from_buffer_cpu(starpu_block_interface_t *block,
-					starpu_block_interface_t *boundary,
-					unsigned firstz)
+static void record_who_runs_what(struct block_description *block)
+{
+	struct timeval tv, tv2, diff, delta = {.tv_sec = 0, .tv_usec = get_ticks() * 1000};
+	int workerid = starpu_worker_get_id();
+
+	gettimeofday(&tv, NULL);
+	timersub(&tv, &start, &tv2);
+	timersub(&tv2, &last_tick[block->bz], &diff);
+	while (timercmp(&diff, &delta, >=)) {
+		timeradd(&last_tick[block->bz], &delta, &last_tick[block->bz]);
+		timersub(&tv2, &last_tick[block->bz], &diff);
+		if (who_runs_what_index[block->bz] < who_runs_what_len)
+			who_runs_what[block->bz + (who_runs_what_index[block->bz]++) * get_nbz()] = -1;
+	}
+
+	if (who_runs_what_index[block->bz] < who_runs_what_len)
+		who_runs_what[block->bz + (who_runs_what_index[block->bz]++) * get_nbz()] = global_workerid(workerid);
+}
+
+static void check_load(starpu_block_interface_t *block, starpu_block_interface_t *boundary)
 {
 	/* Sanity checks */
 	STARPU_ASSERT(block->nx == boundary->nx);
@@ -139,7 +152,17 @@ static void load_subblock_from_buffer_cpu(starpu_block_interface_t *block,
 	 * makes our life much simpler */
 	STARPU_ASSERT(block->ldy == boundary->ldy);
 	STARPU_ASSERT(block->ldz == boundary->ldz);
-	
+}
+
+/*
+ * Load a neighbour's boundary into block, CPU version
+ */
+static void load_subblock_from_buffer_cpu(starpu_block_interface_t *block,
+					starpu_block_interface_t *boundary,
+					unsigned firstz)
+{
+	check_load(block, boundary);
+
 	/* We do a contiguous memory transfer */
 	size_t boundary_size = K*block->ldz*block->elemsize;
 
@@ -157,16 +180,8 @@ static void load_subblock_from_buffer_cuda(starpu_block_interface_t *block,
 					starpu_block_interface_t *boundary,
 					unsigned firstz)
 {
-	/* Sanity checks */
-	STARPU_ASSERT(block->nx == boundary->nx);
-	STARPU_ASSERT(block->ny == boundary->ny);
-	STARPU_ASSERT(boundary->nz == K);
+	check_load(block, boundary);
 
-	/* NB: this is not fully garanteed ... but it's *very* likely and that
-	 * makes our life much simpler */
-	STARPU_ASSERT(block->ldy == boundary->ldy);
-	STARPU_ASSERT(block->ldz == boundary->ldz);
-	
 	/* We do a contiguous memory transfer */
 	size_t boundary_size = K*block->ldz*block->elemsize;
 
@@ -199,19 +214,7 @@ fprintf(stderr,"!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid)
 	unsigned i;
 	update_per_worker[workerid]++;
 
-	struct timeval tv, tv2, diff, delta = {.tv_sec = 0, .tv_usec = get_ticks()*1000};
-	gettimeofday(&tv, NULL);
-	timersub(&tv, &start, &tv2);
-	timersub(&tv2, &last_tick[block->bz], &diff);
-	while (timercmp(&diff, &delta, >=)) {
-		timeradd(&last_tick[block->bz], &delta, &last_tick[block->bz]);
-		timersub(&tv2, &last_tick[block->bz], &diff);
-		if (who_runs_what_index[block->bz] < who_runs_what_len)
-			who_runs_what[block->bz + (who_runs_what_index[block->bz]++) * get_nbz()] = -1;
-	}
-
-	if (who_runs_what_index[block->bz] < who_runs_what_len)
-		who_runs_what[block->bz + (who_runs_what_index[block->bz]++) * get_nbz()] = global_workerid(workerid);
+	record_who_runs_what(block);
 
 	/*
 	 *	Load neighbours' boundaries : TOP
@@ -277,19 +280,7 @@ fprintf(stderr,"!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
 	unsigned i;
 	update_per_worker[workerid]++;
 
-	struct timeval tv, tv2, diff, delta = {.tv_sec = 0, .tv_usec = get_ticks() * 1000};
-	gettimeofday(&tv, NULL);
-	timersub(&tv, &start, &tv2);
-	timersub(&tv2, &last_tick[block->bz], &diff);
-	while (timercmp(&diff, &delta, >=)) {
-		timeradd(&last_tick[block->bz], &delta, &last_tick[block->bz]);
-		timersub(&tv2, &last_tick[block->bz], &diff);
-		if (who_runs_what_index[block->bz] < who_runs_what_len)
-			who_runs_what[block->bz + (who_runs_what_index[block->bz]++) * get_nbz()] = -1;
-	}
-
-	if (who_runs_what_index[block->bz] < who_runs_what_len)
-		who_runs_what[block->bz + (who_runs_what_index[block->bz]++) * get_nbz()] = global_workerid(workerid);
+	record_who_runs_what(block);
 
 	/*
 	 *	Load neighbours' boundaries : TOP
@@ -366,16 +357,8 @@ static void load_subblock_into_buffer_cpu(starpu_block_interface_t *block,
 					starpu_block_interface_t *boundary,
 					unsigned firstz)
 {
-	/* Sanity checks */
-	STARPU_ASSERT(block->nx == boundary->nx);
-	STARPU_ASSERT(block->ny == boundary->ny);
-	STARPU_ASSERT(boundary->nz == K);
+	check_load(block, boundary);
 
-	/* NB: this is not fully garanteed ... but it's *very* likely and that
-	 * makes our life much simpler */
-	STARPU_ASSERT(block->ldy == boundary->ldy);
-	STARPU_ASSERT(block->ldz == boundary->ldz);
-	
 	/* We do a contiguous memory transfer */
 	size_t boundary_size = K*block->ldz*block->elemsize;
 
@@ -391,16 +374,8 @@ static void load_subblock_into_buffer_cuda(starpu_block_interface_t *block,
 					starpu_block_interface_t *boundary,
 					unsigned firstz)
 {
-	/* Sanity checks */
-	STARPU_ASSERT(block->nx == boundary->nx);
-	STARPU_ASSERT(block->ny == boundary->ny);
-	STARPU_ASSERT(boundary->nz == K);
+	check_load(block, boundary);
 
-	/* NB: this is not fully garanteed ... but it's *very* likely and that
-	 * makes our life much simpler */
-	STARPU_ASSERT(block->ldy == boundary->ldy);
-	STARPU_ASSERT(block->ldz == boundary->ldz);
-	
 	/* We do a contiguous memory transfer */
 	size_t boundary_size = K*block->ldz*block->elemsize;
 
