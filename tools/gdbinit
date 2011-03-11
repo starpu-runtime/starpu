@@ -60,20 +60,15 @@ document starpu-print-task
 Prints a StarPU task
 end
 
-define starpu-jobs-on-worker
+define starpu-tasks-on-worker
   set language c
   set $worker=config->workers[$arg0]
-  set $job=$worker->local_jobs->_head
-  printf "Jobs\n"
-  printf "Submitted Terminated\n"
-  while $job != 0x0
-    printf "%9d %10d\n", $job->submitted, $job->terminated
-    set $job=$job->_next
+  set $task=$worker->local_tasks->head
+  printf "Tasks\n"
+  while $task != 0x0
+    starpu-print-task $task
+    set $task=$task->next
   end
-end
-
-document starpu-jobs-on-worker
-Prints a list of the jobs running on the given worker
 end
 
 define starpu-workers
@@ -99,7 +94,7 @@ end
 document starpu
 List of StarPU-specific gdb functions:
 starpu-workers		prints a list of the StarPU workers
-starpu-jobs-on-worker   prints a list of the jobs running on the given worker
+starpu-tasks-on-worker  prints a list of the tasks running on the given worker
 starpu-print-job        prints a StarPU job
 starpu-print-task       prints a StarPU task
 end
