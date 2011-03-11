@@ -97,48 +97,12 @@ we provide MinGW-built binaries.  The build process produces libstarpu.dll,
 libstarpu.def, and libstarpu.lib, which should be enough to use it from e.g.
 Microsoft Visual Studio.
 
-A few details need to be fixed when building StarPU on windows:
+Update the video drivers to the latest stable release available for your
+hardware. Old ATI drivers (< 2.3) contain bugs that cause OpenCL support in
+StarPU to hang or exhibit incorrect behaviour.
 
-- To get a .def file built, make sure that MSVC's lib.exe tool is in PATH.
-
-- Update the video drivers to the latest stable release available for your
-  hardware. Older ATI drivers (< 2.3) contain bugs that cause OpenCL support in
-  StarPU to hang or exhibit incorrect behaviour.
-
-- c:\cuda\include\host_defines.h has a bogus CUDARTAPI definition which makes
-  linking fail completely. Replace the first occurence of
-
-    #define CUDARTAPI
-    
-  with
-    
-    #ifdef _WIN32
-    #define CUDARTAPI __stdcall
-    #else
-    #define CUDARTAPI
-    #endif
-
-  While at it, you can also comment the __cdecl definition to avoid spurious
-  warnings.
-
-- If you have a non-english version of windows, use
-
-    export LANG=C
-
-  else libtool has troubles parsing the translated output of the toolchain.
-
-- libtool is not able to find the libraries automatically, you need to make some
-  copies:
-
-    copy c:\cuda\lib\cuda.lib c:\cuda\lib\libcuda.lib
-    copy c:\cuda\lib\cudart.lib c:\cuda\lib\libcudart.lib
-    copy c:\cuda\lib\cublas.lib c:\cuda\lib\libcublas.lib
-    copy c:\cuda\lib\cufft.lib c:\cuda\lib\libcufft.lib
-    copy c:\cuda\lib\OpenCL.lib c:\cuda\lib\libOpenCL.lib
-
-(and if the version of your CUDA driver is >= 3.2)
-
-    copy c:\cuda\lib\curand.lib c:\cuda\lib\libcurand.lib
+For details on the Windows build process, see the README.dev file in the
+subversion tree.
 
 ++===========++
 || V. Trying ||
