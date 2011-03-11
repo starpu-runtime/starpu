@@ -16,6 +16,11 @@
 #include "stencil.h"
 #include <sys/time.h>
 
+#ifdef STARPU_USE_OPENCL
+#include <CL/cl.h>
+#include <starpu_opencl.h>
+#endif
+
 #ifndef timersub
 #define	timersub(x, y, res) \
 	do { \
@@ -258,6 +263,97 @@ fprintf(stderr,"!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid)
 #endif /* STARPU_USE_CUDA */
 
 /*
+ * Load a neighbour's boundary into block, OpenCL version
+ */
+#ifdef STARPU_USE_OPENCL
+static void load_subblock_from_buffer_opencl(starpu_block_interface_t *block,
+					starpu_block_interface_t *boundary,
+					unsigned firstz)
+{
+	check_load(block, boundary);
+
+	/* We do a contiguous memory transfer */
+	size_t boundary_size = K*block->ldz*block->elemsize;
+
+	unsigned offset = firstz*block->ldz;
+	cl_mem block_data = (cl_mem)block->ptr;
+	cl_mem boundary_data = (cl_mem)boundary->ptr;
+
+        cl_command_queue cq;
+        starpu_opencl_get_current_queue(&cq);
+        clEnqueueCopyBuffer(cq, boundary_data, block_data, 0, offset, boundary_size, 0, NULL, NULL);
+}
+
+/*
+ * cl_update (OpenCL version)
+ */
+static void update_func_opencl(void *descr[], void *arg)
+{
+	struct block_description *block = arg;
+	int workerid = starpu_worker_get_id();
+	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+	if (block->bz == 0)
+fprintf(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, workerid);
+	else
+	DEBUG( "!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, workerid);
+#ifdef STARPU_USE_MPI
+	int rank = 0;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	DEBUG( "!!!           RANK %d              !!!\n", rank);
+#endif
+	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+
+	unsigned block_size_z = get_block_size(block->bz);
+	unsigned i;
+	update_per_worker[workerid]++;
+
+	record_who_runs_what(block);
+
+        cl_command_queue cq;
+        starpu_opencl_get_current_queue(&cq);
+
+	/*
+	 *	Load neighbours' boundaries : TOP
+	 */
+
+	/* The offset along the z axis is (block_size_z + K) */
+	load_subblock_from_buffer_opencl(descr[0], descr[2], block_size_z+K);
+	load_subblock_from_buffer_opencl(descr[1], descr[3], block_size_z+K);
+
+	/*
+	 *	Load neighbours' boundaries : BOTTOM
+	 */
+	load_subblock_from_buffer_opencl(descr[0], descr[4], 0);
+	load_subblock_from_buffer_opencl(descr[1], descr[5], 0);
+
+	/*
+	 *	Stencils ... do the actual work here :) TODO
+	 */
+
+	for (i=1; i<=K; i++)
+	{
+		starpu_block_interface_t *oldb = descr[i%2], *newb = descr[(i+1)%2];
+		TYPE *old = (void*) oldb->ptr, *new = (void*) newb->ptr;
+
+		/* Shadow data */
+		opencl_shadow_host(block->bz, old, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
+
+		/* And perform actual computation */
+#ifdef LIFE
+		opencl_life_update_host(block->bz, old, new, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
+#else
+                clEnqueueCopyBuffer(cq, old, new, 0, 0, oldb->nx * oldb->ny * oldb->nz * sizeof(*new), 0, NULL, NULL);
+#endif /* LIFE */
+	}
+
+	cl_int err;
+	if ((err = clFinish(cq)))
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+}
+#endif /* STARPU_USE_OPENCL */
+
+/*
  * cl_update (CPU version)
  */
 static void update_func_cpu(void *descr[], void *arg)
@@ -335,14 +431,20 @@ static struct starpu_perfmodel_t cl_update_model = {
 };
 
 starpu_codelet cl_update = {
-	.where = 
+	.where = 0 |
 #ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
+#endif
+#ifdef STARPU_USE_OPENCL
+                STARPU_OPENCL|
 #endif
 		STARPU_CPU,
 	.cpu_func = update_func_cpu,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = update_func_cuda,
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_func = update_func_opencl,
 #endif
 	.model = &cl_update_model,
 	.nbuffers = 6
@@ -385,6 +487,28 @@ static void load_subblock_into_buffer_cuda(starpu_block_interface_t *block,
 	cudaMemcpyAsync(boundary_data, &block_data[offset], boundary_size, cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
 }
 #endif /* STARPU_USE_CUDA */
+
+/* OPENCL version */
+#ifdef STARPU_USE_OPENCL
+static void load_subblock_into_buffer_opencl(starpu_block_interface_t *block,
+					starpu_block_interface_t *boundary,
+					unsigned firstz)
+{
+	check_load(block, boundary);
+
+	/* We do a contiguous memory transfer */
+	size_t boundary_size = K*block->ldz*block->elemsize;
+
+	unsigned offset = firstz*block->ldz;
+	cl_mem block_data = (cl_mem)block->ptr;
+	cl_mem boundary_data = (cl_mem)boundary->ptr;
+
+        cl_command_queue cq;
+        starpu_opencl_get_current_queue(&cq);
+
+        clEnqueueCopyBuffer(cq, block_data, boundary_data, offset, 0, boundary_size, 0, NULL, NULL);
+}
+#endif /* STARPU_USE_OPENCL */
 
 /* Record how many top/bottom saves each worker performed */
 unsigned top_per_worker[STARPU_NMAXWORKERS];
@@ -452,6 +576,45 @@ static void dummy_func_bottom_cuda(void *descr[] __attribute__((unused)), void *
 }
 #endif /* STARPU_USE_CUDA */
 
+/* top save, OpenCL version */
+#ifdef STARPU_USE_OPENCL
+static void dummy_func_top_opencl(void *descr[] __attribute__((unused)), void *arg)
+{
+	struct block_description *block = arg;
+	int workerid = starpu_worker_get_id();
+	top_per_worker[workerid]++;
+
+	DEBUG( "DO SAVE Top block %d\n", block->bz);
+
+	/* The offset along the z axis is (block_size_z + K)- K */
+	unsigned block_size_z = get_block_size(block->bz);
+
+	load_subblock_into_buffer_opencl(descr[0], descr[2], block_size_z);
+	load_subblock_into_buffer_opencl(descr[1], descr[3], block_size_z);
+
+        cl_command_queue cq;
+        starpu_opencl_get_current_queue(&cq);
+        clFinish(cq);
+}
+
+/* bottom save, OPENCL version */
+static void dummy_func_bottom_opencl(void *descr[] __attribute__((unused)), void *arg)
+{
+	struct block_description *block = arg;
+	int workerid = starpu_worker_get_id();
+	bottom_per_worker[workerid]++;
+
+	DEBUG( "DO SAVE Bottom block %d on OPENCL\n", block->bz);
+
+	load_subblock_into_buffer_opencl(descr[0], descr[2], K);
+	load_subblock_into_buffer_opencl(descr[1], descr[3], K);
+
+        cl_command_queue cq;
+        starpu_opencl_get_current_queue(&cq);
+        clFinish(cq);
+}
+#endif /* STARPU_USE_OPENCL */
+
 /* Performance models and codelet for save */
 static struct starpu_perfmodel_t save_cl_bottom_model = {
 	.type = STARPU_HISTORY_BASED,
@@ -464,28 +627,40 @@ static struct starpu_perfmodel_t save_cl_top_model = {
 };
 
 starpu_codelet save_cl_bottom = {
-	.where = 
+	.where = 0 |
 #ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
+#endif
+#ifdef STARPU_USE_OPENCL
+		STARPU_OPENCL|
 #endif
 		STARPU_CPU,
 	.cpu_func = dummy_func_bottom_cpu,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = dummy_func_bottom_cuda,
 #endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_func = dummy_func_bottom_opencl,
+#endif
 	.model = &save_cl_bottom_model,
 	.nbuffers = 4
 };
 
 starpu_codelet save_cl_top = {
-	.where = 
+	.where = 0|
 #ifdef STARPU_USE_CUDA
 		STARPU_CUDA|
+#endif
+#ifdef STARPU_USE_OPENCL
+		STARPU_OPENCL|
 #endif
 		STARPU_CPU,
 	.cpu_func = dummy_func_top_cpu,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = dummy_func_top_cuda,
+#endif
+#ifdef STARPU_USE_OPENCL
+	.opencl_func = dummy_func_top_opencl,
 #endif
 	.model = &save_cl_top_model,
 	.nbuffers = 4

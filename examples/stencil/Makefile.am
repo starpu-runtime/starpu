@@ -68,6 +68,12 @@ stencil_SOURCES +=				\
 	shadow.cu
 endif
 
+if STARPU_USE_OPENCL
+stencil_SOURCES +=				\
+	life_opencl.c				\
+	shadow_opencl.c
+endif
+
 outs =						\
 	0.5.out					\
 	0.out					\

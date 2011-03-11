@@ -219,9 +219,10 @@ void create_task_update(unsigned iter, unsigned z, unsigned local_rank)
 /* Dummy empty codelet taking one buffer */
 static void null_func(void *descr[] __attribute__((unused)), void *arg __attribute__((unused))) { }
 static starpu_codelet null = {
-	.where = STARPU_CPU|STARPU_CUDA,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = null_func,
 	.cuda_func = null_func,
+	.opencl_func = null_func,
 	.nbuffers = 2
 };
 

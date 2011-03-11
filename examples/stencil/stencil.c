@@ -197,6 +197,11 @@ int main(int argc, char **argv)
 	starpu_mpi_initialize();
 #endif
 
+#ifdef STARPU_USE_OPENCL
+        opencl_life_init();
+        opencl_shadow_init();
+#endif /*STARPU_USE_OPENCL*/
+
 	init_problem(argc, argv, rank, world_size);
 
 	create_tasks(rank);
@@ -316,6 +321,11 @@ int main(int argc, char **argv)
 #ifdef STARPU_USE_MPI
 	MPI_Finalize();
 #endif
+
+#ifdef STARPU_USE_OPENCL
+        opencl_life_free();
+        opencl_shadow_free();
+#endif /*STARPU_USE_OPENCL*/
 
 	return 0;
 }
