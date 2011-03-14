@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,8 +28,7 @@
  *    monitoring data (starpu_data_unregister)
  *  - how to manipulate subsets of data (starpu_data_get_sub_data)
  *  - how to construct an autocalibrated performance model (starpu_perfmodel_t)
- *  - how to submit asynchronous tasks and how to use callback to handle task
- *    termination
+ *  - how to submit asynchronous tasks
  */
 
 #include <string.h>
@@ -43,11 +42,6 @@
 
 static float *A, *B, *C;
 static starpu_data_handle A_handle, B_handle, C_handle;
-
-static pthread_mutex_t mutex;
-static pthread_cond_t cond;
-static unsigned taskcounter;
-static unsigned terminated = 0;
 
 static unsigned nslicesx = 4;
 static unsigned nslicesy = 4;
@@ -76,31 +70,6 @@ static unsigned zdim = 512;
      |----|   |---------------|
 
  */
-
-static void callback_func(void *arg)
-{
-	/* the argument is a pointer to a counter of the remaining tasks */
-	int *counterptr = arg;
-
-	/* counterptr points to a variable with the number of remaining tasks,
- 	 * when it reaches 0, all tasks are done */
-	int counter = STARPU_ATOMIC_ADD(counterptr, -1);
-	if (counter == 0)
-	{
-		/* IMPORTANT : note that we CANNOT call blocking operations
-		 * within callbacks as it may lead to a deadlock of StarPU.
-		 * starpu_data_unpartition is for instance called by the main
-		 * thread since it may cause /potentially/ blocking operations
-		 * such as memory transfers from a GPU to a CPU. */
-		
-		/* wake the application to notify the termination of all the
- 		 * tasks */
-		pthread_mutex_lock(&mutex);
-		terminated = 1;
-		pthread_cond_signal(&cond);
-		pthread_mutex_unlock(&mutex);
-	}
-}
 
 /*
  * The codelet is passed 3 matrices, the "descr" union-type field gives a
@@ -287,27 +256,22 @@ static struct starpu_perfmodel_t mult_perf_model = {
 	.symbol = "mult_perf_model"
 };
 
+static starpu_codelet cl = {
+        /* we can only execute that kernel on a CPU yet */
+        .where = STARPU_CPU,
+        /* CPU implementation of the codelet */
+        .cpu_func = cpu_mult,
+        /* the codelet manipulates 3 buffers that are managed by the
+         * DSM */
+        .nbuffers = 3,
+        /* in case the scheduling policy may use performance models */
+        .model = &mult_perf_model
+};
+
 static void launch_tasks(void)
 {
 	/* partition the work into slices */
 	unsigned taskx, tasky;
-
-	/* the callback decrements this value every time a task is terminated
-	 * and notify the termination of the computation to the application
-	 * when the counter reaches 0 */
-	taskcounter = nslicesx * nslicesy;
-
-	starpu_codelet cl = {
-		/* we can only execute that kernel on a CPU yet */
-		.where = STARPU_CPU,
-		/* CPU implementation of the codelet */
-		.cpu_func = cpu_mult,
-		/* the codelet manipulates 3 buffers that are managed by the
- 		 * DSM */
-		.nbuffers = 3,
-		/* in case the scheduling policy may use performance models */
-		.model = &mult_perf_model
-	};
 
 	for (taskx = 0; taskx < nslicesx; taskx++) 
 	{
@@ -321,9 +285,6 @@ static void launch_tasks(void)
 
 			/* this task implements codelet "cl" */
 			task->cl = &cl;
-
-			task->callback_func = callback_func;
-			task->callback_arg = &taskcounter;
 
 			/*
 			 *              |---|---|---|---|
@@ -371,9 +332,6 @@ static void launch_tasks(void)
 int main(__attribute__ ((unused)) int argc, 
 	 __attribute__ ((unused)) char **argv)
 {
-	pthread_mutex_init(&mutex, NULL);
-	pthread_cond_init(&cond, NULL);
-
 	/* start the runtime */
 	starpu_init(NULL);
 
@@ -387,12 +345,8 @@ int main(__attribute__ ((unused)) int argc,
 	/* submit all tasks in an asynchronous fashion */
 	launch_tasks();
 
-	/* the different tasks are asynchronous so we use a callback to get
-	 * notified of the termination of the computation */
-	pthread_mutex_lock(&mutex);
-	if (!terminated)
-		pthread_cond_wait(&cond, &mutex);
-	pthread_mutex_unlock(&mutex);
+	/* wait for termination */
+        starpu_task_wait_for_all();
 
 	/* remove the filters applied by the means of starpu_data_map_filters; now
  	 * it's not possible to manipulate a subset of C using starpu_data_get_sub_data until
