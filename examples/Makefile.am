@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009, 2010  Université de Bordeaux 1
-# Copyright (C) 2010  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -127,12 +127,17 @@ noinst_HEADERS = 				\
 # Basic examples #
 ##################
 
+check_PROGRAMS +=				\
+	basic_examples/hello_world
+
 examplebin_PROGRAMS +=				\
 	basic_examples/hello_world
 
 basic_examples_hello_world_SOURCES =		\
 	basic_examples/hello_world.c
 
+check_PROGRAMS +=				\
+	basic_examples/vector_scal
 examplebin_PROGRAMS +=				\
 	basic_examples/vector_scal
 
@@ -153,6 +158,8 @@ nobase_STARPU_OPENCL_DATA_DATA += \
 endif
 
 if STARPU_HAVE_F77_H
+check_PROGRAMS +=				\
+	basic_examples/vector_scal_fortran
 examplebin_PROGRAMS +=				\
 	basic_examples/vector_scal_fortran
 
@@ -167,6 +174,8 @@ basic_examples_vector_scal_fortran_SOURCES +=	\
 endif
 endif
 
+check_PROGRAMS +=				\
+	basic_examples/mult
 examplebin_PROGRAMS +=				\
 	basic_examples/mult
 
@@ -229,6 +238,11 @@ endif
 # Filters #
 ###########
 
+check_PROGRAMS	+=	\
+	filters/fvector				\
+	filters/fblock				\
+	filters/fmatrix
+
 examplebin_PROGRAMS +=				\
 	filters/fvector				\
 	filters/fblock				\
@@ -259,11 +273,17 @@ filters_fmatrix_SOURCES =			\
 # PPM downscaling #
 ###################
 
+#check_PROGRAMS +=				\
+#	ppm_downscaler/ppm_downscaler
+
 examplebin_PROGRAMS +=				\
 	ppm_downscaler/ppm_downscaler
 
 ppm_downscaler_ppm_downscaler_SOURCES =		\
 	ppm_downscaler/ppm_downscaler.c
+
+#check_PROGRAMS +=				\
+#	ppm_downscaler/yuv_downscaler
 
 examplebin_PROGRAMS +=				\
 	ppm_downscaler/yuv_downscaler
@@ -276,6 +296,7 @@ ppm_downscaler_yuv_downscaler_SOURCES =		\
 ######
 
 check_PROGRAMS +=				\
+	pi/pi					\
 	pi/pi_redux
 
 examplebin_PROGRAMS +=				\
@@ -308,6 +329,9 @@ endif
 
 if !NO_BLAS_LIB
 
+check_PROGRAMS +=				\
+	axpy/axpy
+
 examplebin_PROGRAMS +=				\
 	axpy/axpy
 
@@ -322,6 +346,10 @@ endif
 ################
 
 if !NO_BLAS_LIB
+
+check_PROGRAMS += 				\
+	mult/sgemm 				\
+	mult/dgemm
 
 examplebin_PROGRAMS += 				\
 	mult/sgemm 				\
@@ -342,6 +370,12 @@ endif
 ####################
 
 if !NO_BLAS_LIB
+
+check_PROGRAMS += 				\
+	cholesky/cholesky_tag			\
+	cholesky/cholesky_tile_tag		\
+	cholesky/cholesky_grain_tag		\
+	cholesky/cholesky_implicit
 
 examplebin_PROGRAMS += 				\
 	cholesky/cholesky_tag			\
@@ -383,7 +417,7 @@ if !NO_BLAS_LIB
 
 check_PROGRAMS +=				\
 	lu/lu_example_float			\
-	lu/lu_implicit_example_float
+	lu/lu_example_double
 
 examplebin_PROGRAMS += 				\
 	lu/lu_example_float			\
@@ -402,6 +436,10 @@ lu_lu_example_double_SOURCES =			\
 	lu/dlu_pivot.c				\
 	lu/dlu_kernels.c			\
 	common/blas.c
+
+check_PROGRAMS += 				\
+	lu/lu_implicit_example_float		\
+	lu/lu_implicit_example_double
 
 examplebin_PROGRAMS += 				\
 	lu/lu_implicit_example_float		\
@@ -430,6 +468,8 @@ endif
 
 if !NO_BLAS_LIB
 
+check_PROGRAMS += heat/heat
+
 examplebin_PROGRAMS += heat/heat
 
 heat_heat_SOURCES =				\
@@ -451,6 +491,8 @@ endif
 ##############
 
 if !NO_BLAS_LIB
+
+check_PROGRAMS += cg/cg
 
 examplebin_PROGRAMS += cg/cg
 
@@ -500,6 +542,9 @@ tag_example_tag_restartable_SOURCES =		\
 # SpMV example #
 ################
 
+check_PROGRAMS += 				\
+	spmv/dw_spmv
+
 examplebin_PROGRAMS += 				\
 	spmv/dw_spmv
 
@@ -512,6 +557,9 @@ spmv_dw_spmv_SOURCES +=				\
 endif
 
 if ATLAS_BLAS_LIB
+check_PROGRAMS += 				\
+	spmv/dw_block_spmv
+
 examplebin_PROGRAMS += 				\
 	spmv/dw_block_spmv
 
@@ -620,6 +668,8 @@ reductions_minmax_reduction_SOURCES =		\
 # Mandelbrot Set #
 ##################
 
+#check_PROGRAMS +=				\
+#	mandelbrot/mandelbrot
 examplebin_PROGRAMS +=				\
 	mandelbrot/mandelbrot
 
