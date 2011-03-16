@@ -2169,8 +2169,8 @@ variables.
 @table @asis
 
 @item @emph{Description}:
-Specify the number of CPU workers. Note that by default, StarPU will not allocate
-more CPUs than there are physical CPUs, and that some CPUs are used to control
+Specify the number of CPU workers (thus not including workers dedicated to control acceleratores). Note that by default, StarPU will not allocate
+more CPU workers than there are physical CPUs, and that some CPUs are used to control
 the accelerators.
 
 @end table
