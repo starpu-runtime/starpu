@@ -83,7 +83,10 @@ static int find_combinations_with_hwloc_rec(hwloc_obj_t obj, int *worker_array, 
 	}
 	
 	/* If there is at least 2 children that are valid, we combined them. */
-	if (cpu_children_cnt > 1 && worker_cnt_rec > 0)
+	int maxsize = starpu_get_env_number("STARPU_MAX_WORKERSIZE");
+	int minsize = starpu_get_env_number("STARPU_MIN_WORKERSIZE");
+
+	if (cpu_children_cnt > 1 && worker_cnt_rec > 0 && worker_cnt_rec <= maxsize && worker_cnt_rec >= minsize)
 		starpu_combined_worker_assign_workerid(worker_cnt_rec, worker_array_rec);
 
 	return (cpu_children_cnt == obj->arity);
@@ -101,7 +104,9 @@ static void find_combinations_with_hwloc(struct starpu_machine_topology_s *topol
 	root = hwloc_get_obj_by_depth(topology->hwtopology, HWLOC_OBJ_SYSTEM, 0); 
 	find_combinations_with_hwloc_rec(root, worker_array, &worker_cnt);
 }
+
 #else
+
 static void find_combinations_without_hwloc(struct starpu_machine_topology_s *topology)
 {
 	struct starpu_machine_config_s *config = _starpu_get_machine_config();
@@ -140,10 +145,34 @@ static void find_combinations_without_hwloc(struct starpu_machine_topology_s *to
 }
 #endif
 
+static void combine_all_cpu_workers(struct starpu_machine_topology_s *topology)
+{
+	struct starpu_machine_config_s *config = _starpu_get_machine_config();
+
+	int cpu_workers[STARPU_NMAXWORKERS];
+	unsigned ncpus = 0;
+
+	unsigned i;
+	for (i = 0; i < topology->nworkers; i++)
+	{
+		if (config->workers[i].perf_arch == STARPU_CPU_DEFAULT)
+			cpu_workers[ncpus++] = i;
+	}
+
+	if (ncpus > 0)
+	{
+		int ret;
+		ret = starpu_combined_worker_assign_workerid(ncpus, cpu_workers);
+		STARPU_ASSERT(ret >= 0);
+	}
+}
+
 void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *topology)
 {
+//	combine_all_cpu_workers(topology);
 #ifdef STARPU_HAVE_HWLOC
 	find_combinations_with_hwloc(topology);
+	//find_combinations_without_hwloc(topology);
 #else
 	find_combinations_without_hwloc(topology);
 #endif
