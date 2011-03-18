@@ -145,10 +145,12 @@ static void mult_kernel_common(void *descr[], int type)
 			int block_size = (nyC + worker_size - 1)/worker_size;
 			int new_nyC = STARPU_MIN(nyC, block_size*(rank+1)) - block_size*rank;
 
-			TYPE *new_subA = &subA[block_size*rank];
+			STARPU_ASSERT(nyC = STARPU_MATRIX_GET_NY(descr[1]));
+
+			TYPE *new_subB = &subB[block_size*rank];
 			TYPE *new_subC = &subC[block_size*rank];
 
-			CPU_GEMM("N", "N", nxC, new_nyC, nyA, (TYPE)1.0, new_subA, ldA, subB, ldB, (TYPE)0.0, new_subC, ldC);
+			CPU_GEMM("N", "N", nxC, new_nyC, nyA, (TYPE)1.0, subA, ldA, new_subB, ldB, (TYPE)0.0, new_subC, ldC);
 		}
 	}
 #ifdef STARPU_USE_CUDA
