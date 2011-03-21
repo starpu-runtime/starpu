@@ -677,5 +677,7 @@ examplebin_PROGRAMS +=				\
 mandelbrot_mandelbrot_SOURCES =			\
 	mandelbrot/mandelbrot.c
 
+if HAVE_X11
 mandelbrot_mandelbrot_CPPFLAGS = $(X_CFLAGS)
 mandelbrot_mandelbrot_LDADD = $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
+endif
