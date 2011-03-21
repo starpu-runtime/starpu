@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
+#include <common/utils.h>
 #include <starpu_util.h>
 
 #ifdef STARPU_USE_FXT
@@ -35,13 +36,17 @@ static int written = 0;
 
 static int id;
 
-static void profile_set_tracefile(char *fmt, ...)
+static void _profile_set_tracefile(void *last, ...)
 {
 	va_list vl;
 	char *user;
-	
-	va_start(vl, fmt);
-	vsprintf(PROF_FILE_USER, fmt, vl);
+
+        char *fxt_prefix = getenv("STARPU_FXT_PREFIX");
+        if (!fxt_prefix)
+			fxt_prefix = "/tmp/";
+
+	va_start(vl, last);
+	vsprintf(PROF_FILE_USER, fxt_prefix, vl);
 	va_end(vl);
 
 	user = getenv("USER");
@@ -55,7 +60,9 @@ static void profile_set_tracefile(char *fmt, ...)
 }
 
 void starpu_set_profiling_id(int new_id) {
+        _STARPU_DEBUG("Set id to <%d>\n", new_id);
 	id = new_id;
+        _profile_set_tracefile(NULL);
 }
 
 void _starpu_start_fxt_profiling(void)
@@ -64,12 +71,7 @@ void _starpu_start_fxt_profiling(void)
 
 	if (!fxt_started) {
 		fxt_started = 1;
-
-		char *fxt_prefix = getenv("STARPU_FXT_PREFIX");
-		if (!fxt_prefix)
-			fxt_prefix = "/tmp/";
-
-		profile_set_tracefile(fxt_prefix);
+		_profile_set_tracefile(NULL);
 	}
 
 	threadid = syscall(SYS_gettid);
