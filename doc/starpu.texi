@@ -617,7 +617,11 @@ If the @code{synchronous} field is non-zero, task submission will be
 synchronous: the @code{starpu_task_submit} function will not return until the
 task was executed. Note that the @code{starpu_shutdown} method does not
 guarantee that asynchronous tasks have been executed before it returns,
-@code{starpu_task_wait_for_all} can be used to that effect..
+@code{starpu_task_wait_for_all} can be used to that effect, or data can be
+acquired (@code{starpu_data_acquire(vector_handle, STARPU_R);}), which will
+implicitly wait for all the tasks scheduled to work on it, unless explicitly
+disabled thanks to @code{starpu_data_set_default_sequential_consistency_flag} or
+@code{starpu_data_set_sequential_consistency_flag}.
 
 @node Execution of Hello World
 @subsection Execution of Hello World
@@ -1415,7 +1419,8 @@ transfer to overlap with computations.
 
 To let StarPU make online optimizations, tasks should be submitted
 asynchronously as much as possible. Ideally, all the tasks should be
-submitted, and a mere @code{starpu_task_wait_for_all} call be done to wait for
+submitted, and mere calls to @code{starpu_task_wait_for_all} or
+@code{starpu_data_acquire} be done to wait for
 termination. StarPU will then be able to rework the whole schedule, overlap
 computation with communication, manage accelerator local memory usage, etc.
 
@@ -2870,9 +2875,12 @@ up-to-date copy of the data in main memory located where the data was
 originally registered, and that all concurrent accesses (e.g. from tasks) will
 be consistent with the access mode specified in the @code{mode} argument.
 @code{starpu_data_release} must be called once the application does not need to
-access the piece of data anymore.
-Note that implicit data dependencies are also enforced by
-@code{starpu_data_acquire} in case they are enabled.
+access the piece of data anymore.  Note that implicit data
+dependencies are also enforced by @code{starpu_data_acquire}, i.e.
+@code{starpu_data_acquire} will wait for all tasks scheduled to work on
+the data, unless that they have not been disabled explictly by calling
+@code{starpu_data_set_default_sequential_consistency_flag} or
+@code{starpu_data_set_sequential_consistency_flag}.
 @code{starpu_data_acquire} is a blocking call, so that it cannot be called from
 tasks or from their callbacks (in that case, @code{starpu_data_acquire} returns
 @code{-EDEADLK}). Upon successful completion, this function returns 0. 
