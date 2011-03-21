@@ -887,9 +887,8 @@ AC_MSG_CHECKING(whether OpenGL rendering is enabled)
 AC_SUBST(STARPU_OPENGL_RENDER, $enable_opengl_render)
 AC_MSG_RESULT($enable_opengl_render)
 
-have_x11=yes
-AC_CHECK_LIB(X11, XOpenDisplay,,[have_x11=no])
-if test x$have_x11 = xyes; then
+AC_PATH_XTRA
+if test x$x_includes != xNONE; then
 	AC_DEFINE(STARPU_HAVE_X11, [1], [enable X11])
 fi
 
