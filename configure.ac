@@ -867,6 +867,32 @@ fi
 
 ###############################################################################
 #                                                                             #
+#                               GCC extensions                                #
+#                                                                             #
+###############################################################################
+
+AC_ARG_ENABLE([gcc-extensions],
+  [AS_HELP_STRING([--enable-gcc-extensions],
+    [build the GCC plug-in that provides C language extensions (experimental)])],
+  [enable_gcc_plugin="$enableval"],
+  [enable_gcc_plugin="no"])
+
+if test "x$enable_gcc_plugin" = "xyes"; then
+   STARPU_GCC_PLUGIN_SUPPORT
+
+   if test "x$ac_cv_have_gcc_plugins" != "xyes"; then
+     AC_MSG_ERROR([This compiler lacks GCC plug-in support.])
+   fi
+
+   build_gcc_plugin="yes"
+else
+   build_gcc_plugin="no"
+fi
+
+AM_CONDITIONAL([BUILD_GCC_PLUGIN], [test "x$build_gcc_plugin" = "xyes"])
+
+###############################################################################
+#                                                                             #
 #                                  Examples                                   #
 #                                                                             #
 ###############################################################################
@@ -1083,6 +1109,9 @@ AC_OUTPUT([
 	Makefile
 	src/Makefile
 	tools/Makefile
+	gcc-plugin/Makefile
+	gcc-plugin/src/Makefile
+	gcc-plugin/tests/Makefile
 	libstarpu.pc
 	examples/Makefile
 	examples/starpufft/Makefile

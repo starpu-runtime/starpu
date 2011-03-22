@@ -1,0 +1,8 @@
+StarPU's GCC Plug-In
+=====================
+
+This directory contains an (experimental) GCC plug-in that provides C
+language extensions to make it easier to define and invoke StarPU
+tasks.
+
+Plug-ins are supported starting from GCC 4.5.

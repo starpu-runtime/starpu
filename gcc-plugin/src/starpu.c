@@ -1,0 +1,805 @@
+/* GCC-StarPU
+   Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+
+   GCC-StarPU is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   GCC-StarPU is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with GCC-StarPU.  If not, see <http://www.gnu.org/licenses/>.  */
+
+/* Use extensions of the GNU C Library.  */
+#define _GNU_SOURCE 1
+
+int plugin_is_GPL_compatible;
+
+/* #define ENABLE_TREE_CHECKING 1 */
+
+#include <gcc-plugin.h>
+#include <plugin-version.h>
+
+#include <plugin.h>
+#include <cpplib.h>
+#include <tree.h>
+#include <tree-iterator.h>
+#include <c-common.h>
+#include <c-pragma.h>
+#include <tm.h>
+#include <gimple.h>
+#include <tree-pass.h>
+#include <cgraph.h>
+#include <gimple.h>
+#include <toplev.h>
+
+#include <stdio.h>
+
+#include <starpu.h>  /* for `STARPU_CPU' & co.  */
+
+
+/* The name of this plug-in.  */
+static const char plugin_name[] = "starpu";
+
+/* Names of public attributes.  */
+static const char task_attribute_name[] = "task";
+static const char task_implementation_attribute_name[] = "task_implementation";
+
+/* Names of attributes used internally.  */
+static const char task_codelet_attribute_name[] = ".codelet";
+static const char task_implementation_list_attribute_name[] =
+  ".task_implementation_list";
+
+/* Names of data structures defined in <starpu.h>.  */
+static const char codelet_struct_name[] = "starpu_codelet";
+static const char task_struct_name[] = "starpu_task";
+
+/* The `starpu_insert_task' FUNCTION_DECL.  */
+static tree insert_task_fn = NULL_TREE;
+
+
+/* Forward declarations.  */
+
+static tree build_codelet_declaration (tree task_decl);
+
+
+
+/* Debugging helpers.  */
+
+static tree build_printf (const char *, ...)
+  __attribute__ ((format (printf, 1, 2)));
+
+static tree
+build_printf (const char *fmt, ...)
+{
+  tree call;
+  char *str;
+  va_list args;
+
+  va_start (args, fmt);
+  vasprintf (&str, fmt, args);
+  call = build_call_expr (built_in_decls[BUILT_IN_PUTS], 1,
+	 		  build_string_literal (strlen (str) + 1, str));
+  free (str);
+  va_end (args);
+
+  return call;
+}
+
+static tree
+build_hello_world (void)
+{
+  return build_printf ("Hello, StarPU!");
+}
+
+static tree chain_trees (tree t, ...)
+  __attribute__ ((sentinel));
+
+static tree
+chain_trees (tree t, ...)
+{
+  va_list args;
+
+  va_start (args, t);
+
+  tree next, prev = t;
+  for (prev = t, next = va_arg (args, tree);
+       next != NULL_TREE;
+       prev = next, next = va_arg (args, tree))
+    TREE_CHAIN (prev) = next;
+
+  va_end (args);
+
+  return t;
+}
+
+
+/* Pragmas.  */
+
+#define STARPU_PRAGMA_NAME_SPACE "starpu"
+
+static void
+handle_pragma_hello (struct cpp_reader *reader)
+{
+  add_stmt (build_hello_world ());
+}
+
+static void
+register_pragmas (void *gcc_data, void *user_data)
+{
+  c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "hello",
+		     handle_pragma_hello);
+}
+
+
+/* Attributes.  */
+
+/* Return the type of a codelet function, i.e.,
+   `void (*) (void **, void *)'.  */
+
+static tree
+build_codelet_wrapper_type (void)
+{
+  tree void_ptr, void_ptr_ptr;
+
+  void_ptr = build_pointer_type (void_type_node);
+  void_ptr_ptr = build_pointer_type (void_ptr);
+
+  return build_function_type_list (void_type_node,
+				   void_ptr_ptr, void_ptr,
+				   NULL_TREE);
+}
+
+/* Return a function of type `void (*) (void **, void *)' that calls function
+   TASK_DECL whose prototype may be arbitrary.  */
+
+static tree
+build_codelet_wrapper_definition (tree task_decl)
+{
+  location_t loc;
+
+  loc = DECL_SOURCE_LOCATION (task_decl);
+
+  /* Return the body of the wrapper.
+     FIXME: This should be an argument so that:
+
+       1. When calling the task, the generated wrapper does a `submit ()'.
+
+       2. When defining the CPU implementation of a task, the wrapper just
+          marshalls/unmarshalls arguments.
+
+   */
+  tree build_body (tree wrapper_decl)
+  {
+    tree stmts = NULL;
+    append_to_statement_list (build_printf ("right here"), &stmts);
+    return stmts;
+  }
+
+  /* Return the parameter list of the wrapper:
+     `(void **NAME1, void *NAME2)'.  */
+  tree build_parameters (tree name1, tree name2)
+  {
+    tree void_ptr, void_ptr_ptr, parm1, parm2;
+
+    void_ptr = build_pointer_type (void_type_node);
+    void_ptr_ptr = build_pointer_type (void_ptr);
+
+    parm1 = build_decl (DECL_SOURCE_LOCATION (task_decl),
+			PARM_DECL, name1, void_ptr_ptr);
+    parm2 = build_decl (DECL_SOURCE_LOCATION (task_decl),
+			PARM_DECL, name2, void_ptr);
+    TREE_CHAIN (parm1) = parm2;
+
+    return parm1;
+  }
+
+  tree decl, wrapper_name;
+
+  /* See `cgraph_build_static_cdtor_1'.  */
+
+  wrapper_name = create_tmp_var_name (".starpu_codelet_wrapper");
+  decl = build_decl (loc, FUNCTION_DECL, wrapper_name,
+		     build_codelet_wrapper_type ());
+
+  DECL_EXTERNAL (decl) = false;
+  DECL_CONTEXT (decl) = NULL_TREE;
+
+  tree parm1, parm2;
+  parm1 = create_tmp_var_name ("codelet_buffers");
+  parm2 = create_tmp_var_name ("codelet_args");
+  DECL_ARGUMENTS (decl) = build_parameters (parm1, parm2);
+
+  DECL_RESULT (decl) = build_decl (loc, RESULT_DECL,
+				   NULL_TREE, void_type_node);
+  DECL_SAVED_TREE (decl) = build_body (decl);
+
+  allocate_struct_function (decl, false);
+  cfun->function_end_locus = DECL_SOURCE_LOCATION (task_decl);
+
+  TREE_PUBLIC (decl) = TREE_PUBLIC (task_decl);
+  TREE_STATIC (decl) = true;
+  TREE_USED (decl) = true;
+  DECL_ARTIFICIAL (decl) = true;
+  DECL_EXTERNAL (decl) = false;
+  DECL_UNINLINABLE (decl) = true;
+
+  DECL_INITIAL (decl) = build_block (NULL_TREE, NULL_TREE,
+				     decl, NULL_TREE);
+
+  return decl;
+}
+
+/* Handle the `task' function attribute.  */
+
+static tree
+handle_task_attribute (tree *node, tree name, tree args,
+		       int flags, bool *no_add_attrs)
+{
+  tree fn;
+
+  fn = *node;
+  gcc_assert (TREE_CODE (fn) == FUNCTION_DECL);
+
+  /* This is a function declaration for something local to this
+     translation unit, so add the `task' attribute to FN.  */
+  *no_add_attrs = false;
+
+  /* Add an empty `task_implementation_list' attribute.  */
+  DECL_ATTRIBUTES (fn) =
+    tree_cons (get_identifier (task_implementation_list_attribute_name),
+	       NULL_TREE,
+	       NULL_TREE);
+
+  /* Push a declaration for the corresponding `starpu_codelet' object and add
+     it as an attribute of FN.  */
+  tree cl = build_codelet_declaration (fn);
+  DECL_ATTRIBUTES (fn) =
+    tree_cons (get_identifier (task_codelet_attribute_name), cl,
+	       DECL_ATTRIBUTES (fn));
+  pushdecl (cl);
+
+  TREE_USED (fn) = true;
+
+  if (insert_task_fn == NULL_TREE)
+    {
+      /* Lookup the TASK_CREATE_NAME in the global scope (this can't be done
+	 from `lower_starpu'.)
+	 XXX: Move it in a pass of its own.  */
+
+      insert_task_fn = lookup_name (get_identifier ("starpu_insert_task"));
+      gcc_assert (insert_task_fn != NULL_TREE &&
+		  TREE_CODE (insert_task_fn) == FUNCTION_DECL);
+    }
+
+  return NULL_TREE;
+}
+
+/* Handle the `task_implementation (WHERE, TASK)' attribute.  WHERE is a
+   string constant ("cpu", "cuda", etc.), and TASK is the identifier of a
+   function declared with the `task' attribute.  */
+
+static tree
+handle_task_implementation_attribute (tree *node, tree name, tree args,
+				      int flags, bool *no_add_attrs)
+{
+  tree fn, where, task_decl;
+
+  /* FIXME: Use error nodes instead of `gcc_assert'.  */
+
+  /* FIXME:TODO: To change the order to (TASK, WHERE):
+	  tree cleanup_id = TREE_VALUE (TREE_VALUE (attr));
+	  tree cleanup_decl = lookup_name (cleanup_id);
+  */
+
+
+  fn = *node;
+  gcc_assert (TREE_CODE (fn) == FUNCTION_DECL);
+
+  where = TREE_VALUE (args);
+  gcc_assert (TREE_CODE (where) == STRING_CST);
+
+  task_decl = TREE_VALUE (TREE_CHAIN (args));
+  gcc_assert (TREE_CODE (task_decl) == FUNCTION_DECL);
+  gcc_assert (lookup_attribute (task_attribute_name,
+				DECL_ATTRIBUTES (task_decl)));
+  gcc_assert (TYPE_CANONICAL (TREE_TYPE (fn))
+	      == TYPE_CANONICAL (TREE_TYPE (task_decl))
+	      && TYPE_CANONICAL (TREE_TYPE (fn)) != NULL_TREE);
+
+  /* Add FN to the list of implementations of TASK_DECL.  */
+
+  tree attr, impls;
+
+  attr = lookup_attribute (task_implementation_list_attribute_name,
+			   DECL_ATTRIBUTES (task_decl));
+  impls = tree_cons (NULL_TREE, fn, TREE_VALUE (attr));
+
+  DECL_ATTRIBUTES (task_decl) =
+    tree_cons (get_identifier (task_implementation_list_attribute_name),
+	       impls,
+	       remove_attribute (task_implementation_list_attribute_name,
+				 DECL_ATTRIBUTES (task_decl)));
+
+  TREE_USED (fn) = true;
+
+  /* Keep the attribute.  */
+  *no_add_attrs = false;
+
+  return NULL_TREE;
+}
+
+/* Return the declaration of the `starpu_codelet' variable associated with
+   TASK_DECL.  */
+
+static tree
+task_codelet_declaration (const_tree task_decl)
+{
+  tree cl_attr;
+
+  cl_attr = lookup_attribute (task_codelet_attribute_name,
+			      DECL_ATTRIBUTES (task_decl));
+  gcc_assert (cl_attr != NULL_TREE);
+
+  return TREE_VALUE (cl_attr);
+}
+
+/* Return a value indicating where TASK_IMPL should execute (`STARPU_CPU',
+   `STARPU_CUDA', etc.).  */
+
+static int
+task_implementation_where (const_tree task_impl)
+{
+  int where_int;
+  tree impl_attr, args, where;
+
+  gcc_assert (TREE_CODE (task_impl) == FUNCTION_DECL);
+
+  impl_attr = lookup_attribute (task_implementation_attribute_name,
+				DECL_ATTRIBUTES (task_impl));
+  gcc_assert (impl_attr != NULL_TREE);
+
+  args = TREE_VALUE (impl_attr);
+  where = TREE_VALUE (args);
+
+  if (!strncmp (TREE_STRING_POINTER (where), "cpu",
+		TREE_STRING_LENGTH (where)))
+    where_int = STARPU_CPU;
+  else if (!strncmp (TREE_STRING_POINTER (where), "opencl",
+		     TREE_STRING_LENGTH (where)))
+    where_int = STARPU_OPENCL;
+  else if (!strncmp (TREE_STRING_POINTER (where), "cuda",
+		     TREE_STRING_LENGTH (where)))
+    where_int = STARPU_CUDA;
+  else
+    /* FIXME: Error out?  */
+    where_int = 0;
+
+  return where_int;
+}
+
+/* Return the task implemented by TASK_IMPL.  */
+
+static tree
+task_implementation_task (const_tree task_impl)
+{
+  tree impl_attr, args;
+
+  gcc_assert (TREE_CODE (task_impl) == FUNCTION_DECL);
+
+  impl_attr = lookup_attribute (task_implementation_attribute_name,
+				DECL_ATTRIBUTES (task_impl));
+  gcc_assert (impl_attr != NULL_TREE);
+
+  args = TREE_VALUE (impl_attr);
+
+  return TREE_VALUE (TREE_CHAIN (args));
+}
+
+
+static void
+register_task_attributes (void *gcc_data, void *user_data)
+{
+  static const struct attribute_spec task_attr =
+    {
+      task_attribute_name, 0, 0, true, false, false,
+      handle_task_attribute
+    };
+
+  static const struct attribute_spec task_implementation_attr =
+    {
+      task_implementation_attribute_name, 2, 2, true, false, false,
+      handle_task_implementation_attribute
+    };
+
+  register_attribute (&task_attr);
+  register_attribute (&task_implementation_attr);
+}
+
+
+
+/* Return a NODE_IDENTIFIER for the variable holding the `starpu_codelet'
+   structure associated with TASK_DECL.  */
+
+static tree
+build_codelet_identifier (tree task_decl)
+{
+  static const char suffix[] = ".codelet";
+
+  tree id;
+  char *cl_name;
+  const char *task_name;
+
+  id = DECL_NAME (task_decl);
+  task_name = IDENTIFIER_POINTER (id);
+
+  cl_name = alloca (IDENTIFIER_LENGTH (id) + strlen (suffix) + 1);
+  memcpy (cl_name, task_name, IDENTIFIER_LENGTH (id));
+  strcpy (&cl_name[IDENTIFIER_LENGTH (id)], suffix);
+
+  return get_identifier (cl_name);
+}
+
+static tree
+codelet_type (void)
+{
+  tree type_decl;
+
+  /* Lookup the `starpu_codelet' struct type.  This should succeed since we
+     push <starpu.h> early on.  */
+
+  type_decl = lookup_name (get_identifier (codelet_struct_name));
+  gcc_assert (type_decl != NULL_TREE && TREE_CODE (type_decl) == TYPE_DECL);
+
+  return TREE_TYPE (type_decl);
+}
+
+/* Return a VAR_DECL that declares a `starpu_codelet' structure for
+   TASK_DECL.  */
+
+static tree
+build_codelet_declaration (tree task_decl)
+{
+  tree name, cl_decl;
+
+  name = build_codelet_identifier (task_decl);
+
+  cl_decl = build_decl (DECL_SOURCE_LOCATION (task_decl),
+			VAR_DECL, name,
+			/* c_build_qualified_type (type, TYPE_QUAL_CONST) */
+			codelet_type ());
+
+  DECL_ARTIFICIAL (cl_decl) = true;
+  TREE_PUBLIC (cl_decl) = TREE_PUBLIC (task_decl);
+  TREE_STATIC (cl_decl) = false;
+  TREE_USED (cl_decl) = true;
+  DECL_EXTERNAL (cl_decl) = true;
+  DECL_CONTEXT (cl_decl) = NULL_TREE;
+
+  return cl_decl;
+}
+
+/* Return a `starpu_codelet' initializer for TASK_DECL.  */
+
+static tree
+build_codelet_initializer (tree task_decl)
+{
+  tree fields;
+
+  fields = TYPE_FIELDS (codelet_type ());
+  gcc_assert (TREE_CODE (fields) == FIELD_DECL);
+
+  tree lookup_field (const char *name)
+  {
+    tree fdecl, fname;
+
+    fname = get_identifier (name);
+    for (fdecl = fields;
+	 fdecl != NULL_TREE;
+	 fdecl = TREE_CHAIN (fdecl))
+      {
+	if (DECL_NAME (fdecl) == fname)
+	  return fdecl;
+      }
+
+    /* Field NAME wasn't found.  */
+    gcc_assert (false);
+  }
+
+  tree field_initializer (const char *name, tree value)
+  {
+    tree field, init;
+
+    field = lookup_field (name);
+    init = make_node (TREE_LIST);
+    TREE_PURPOSE (init) = field;
+    TREE_VALUE (init) = fold_convert (TREE_TYPE (field), value);
+    TREE_CHAIN (init) = NULL_TREE;
+
+    return init;
+  }
+
+  tree where_init (tree impls)
+  {
+    tree impl;
+    int where_int = 0;
+
+    for (impl = impls;
+	 impl != NULL_TREE;
+	 impl = TREE_CHAIN (impl))
+      {
+	tree impl_decl;
+
+	impl_decl = TREE_VALUE (impl);
+	gcc_assert (TREE_CODE (impl_decl) == FUNCTION_DECL);
+
+	printf ("   `%s'\n", IDENTIFIER_POINTER (DECL_NAME (impl_decl)));
+
+	where_int |= task_implementation_where (impl_decl);
+      }
+
+    return build_int_cstu (integer_type_node, where_int);
+  }
+
+  tree implementation_pointer (tree impls, int where)
+  {
+    tree impl;
+
+    for (impl = impls;
+	 impl != NULL_TREE;
+	 impl = TREE_CHAIN (impl))
+      {
+	tree impl_decl;
+
+	impl_decl = TREE_VALUE (impl);
+	if (task_implementation_where (impl_decl) == where)
+	  {
+	    /* Return a pointer to the wrapper of IMPL_DECL.  */
+	    /* FIXME: Currently points to IMPL_DECL.  */
+	    tree addr = build_addr (impl_decl, NULL_TREE);
+	    /* TREE_TYPE (addr) = build_pointer_type (void_type_node); */
+	    return addr;
+	  }
+      }
+
+    /* Default to a NULL pointer.  */
+    return build_int_cstu (build_pointer_type (void_type_node), 0);
+  }
+
+  printf ("implementations for `%s':\n",
+	  IDENTIFIER_POINTER (DECL_NAME (task_decl)));
+
+  tree impls_attr, impls;
+  impls_attr = lookup_attribute (task_implementation_list_attribute_name,
+				 DECL_ATTRIBUTES (task_decl));
+  impls = TREE_VALUE (impls_attr);
+
+  tree inits;
+
+  inits =
+    chain_trees (field_initializer ("where", where_init (impls)),
+		 field_initializer ("cpu_func",
+				    implementation_pointer (impls, STARPU_CPU)),
+		 field_initializer ("opencl_func",
+		 		    implementation_pointer (impls,
+		 					    STARPU_OPENCL)),
+		 /* field_initializer ("cuda_func", */
+		 /* 		    implementation_pointer (impls, */
+		 /* 					    STARPU_CUDA)), */
+		 NULL_TREE);
+
+  return build_constructor_from_list (codelet_type (), inits);
+}
+
+/* Return the VAR_DECL that defines a `starpu_codelet' structure for
+   TASK_DECL.  The VAR_DECL is assumed to already exists, so it must not be
+   pushed again.  */
+
+static tree
+define_codelet (tree task_decl)
+{
+  /* Generate a wrapper function that does all the packing/unpacking.  */
+  tree wrapper_decl;
+  wrapper_decl = build_codelet_wrapper_definition (task_decl);
+  pushdecl (wrapper_decl);
+
+  /* Retrieve the declaration of the `starpu_codelet' object.  */
+  tree cl_def;
+  cl_def = lookup_name (build_codelet_identifier (task_decl));
+  gcc_assert (cl_def != NULL_TREE && TREE_CODE (cl_def) == VAR_DECL);
+
+  /* Turn the codelet declaration into a definition.  */
+  TREE_STATIC (cl_def) = true;
+  DECL_EXTERNAL (cl_def) = false;
+  DECL_INITIAL (cl_def) = build_codelet_initializer (task_decl);
+
+  return cl_def;
+}
+
+/* Define the `starpu_codelet' structure for the task implemented by
+   IMPL_DECL if we're in the right compilation unit, i.e., is IMPL_DECL is a
+   "cpu" task implementation.  */
+
+static void
+maybe_define_codelet (tree impl_decl)
+{
+  if (task_implementation_where (impl_decl) == STARPU_CPU)
+    /* IMPL_DECL is a "cpu" implementation of some task, so define the
+       codelet structure in this compilation unit.  */
+    define_codelet (task_implementation_task (impl_decl));
+}
+
+static void
+handle_pre_genericize (void *gcc_data, void *user_data)
+{
+  tree fndecl = (tree) gcc_data;
+
+  gcc_assert (fndecl != NULL_TREE && TREE_CODE (fndecl) == FUNCTION_DECL);
+  gcc_assert (lookup_name (DECL_NAME (fndecl)) == fndecl);
+
+  if (lookup_attribute (task_implementation_attribute_name,
+			DECL_ATTRIBUTES (fndecl)))
+    maybe_define_codelet (fndecl);
+}
+
+/* Build a call to `starpu_insert_task' for TASK_DECL, which will replace
+   CALL.  */
+
+static gimple
+build_task_submission (tree task_decl, gimple call)
+{
+  size_t n;
+  VEC(tree, heap) *args = NULL;
+
+  /* The first argument will be a pointer to the codelet.  */
+
+  VEC_safe_push (tree, heap, args,
+		 build_addr (task_codelet_declaration (task_decl),
+			     current_function_decl));
+
+  for (n = 0; n < gimple_call_num_args (call); n++)
+    {
+      tree arg;
+
+      arg = gimple_call_arg (call, n);
+      if (POINTER_TYPE_P (TREE_TYPE (arg)))
+	{
+	  /* A pointer: the arguments will be:
+	     `STARPU_RW, ptr' or similar.  */
+	  gcc_assert (!"not implemented yet");
+	}
+      else
+	{
+	  /* A scalar: the arguments will be:
+	     `STARPU_VALUE, &scalar, sizeof (scalar)'.  */
+
+	  /* XXX: Currently the argument has to be a variable.  */
+	  gcc_assert (TREE_CODE (arg) == VAR_DECL);
+
+	  VEC_safe_push (tree, heap, args,
+			 build_int_cst (integer_type_node, STARPU_VALUE));
+	  VEC_safe_push (tree, heap, args,
+			 build_addr (arg, current_function_decl));
+	  VEC_safe_push (tree, heap, args,
+			 TYPE_SIZE (TREE_TYPE (arg)));
+	}
+    }
+
+  /* Push the terminating zero.  */
+
+  VEC_safe_push (tree, heap, args,
+		 build_int_cst (integer_type_node, 0));
+
+  return gimple_build_call_vec (insert_task_fn, args);
+}
+
+static unsigned int
+lower_starpu (void)
+{
+  tree fndecl;
+  const struct cgraph_node *cgraph;
+  const struct cgraph_edge *callee;
+
+  fndecl = current_function_decl;
+  gcc_assert (TREE_CODE (fndecl) == FUNCTION_DECL);
+
+  /* This pass should occur after `build_cgraph_edges'.  */
+  cgraph = cgraph_get_node (fndecl);
+  gcc_assert (cgraph != NULL);
+
+  printf ("%s: %s -> %p (callees: %p)\n", __func__,
+	  IDENTIFIER_POINTER (DECL_NAME (fndecl)),
+	  cgraph, cgraph ? cgraph->callees : NULL);
+
+  for (callee = cgraph->callees;
+       callee != NULL;
+       callee = callee->next_callee)
+    {
+      gcc_assert (callee->callee != NULL);
+
+      tree callee_decl;
+      const char *callee_name;
+
+      callee_decl = callee->callee->decl;
+      callee_name = IDENTIFIER_POINTER (DECL_NAME (callee_decl));
+
+      printf ("%s:   callee `%s'\n", __func__, callee_name);
+
+      if (lookup_attribute (task_attribute_name,
+			    DECL_ATTRIBUTES (callee_decl)))
+	{
+	  printf ("%s:     callee is a task\n", __func__);
+
+	  gimple call_site, submission;
+	  gimple_stmt_iterator gsi;
+
+	  call_site = callee->call_stmt;
+	  gsi = gsi_for_stmt (call_site);
+
+	  submission = build_task_submission (callee_decl, call_site);
+	  gsi_replace (&gsi, submission, true);
+
+	  gimple_set_block (submission, gimple_block (call_site));
+
+	  rebuild_cgraph_edges ();
+	}
+    }
+
+  return 0;
+}
+
+static struct opt_pass pass_lower_starpu =
+  {
+    .type = GIMPLE_PASS,
+    .name = "pass_lower_starpu",
+    .execute = lower_starpu,
+
+    /* The rest is zeroed.  */
+  };
+
+
+/* Initialization.  */
+
+static void
+define_cpp_macros (void *gcc_data, void *user_data)
+{
+  cpp_define (parse_in, "STARPU_GCC_PLUGIN=0");
+  cpp_push_include (parse_in, "starpu.h");
+}
+
+int
+plugin_init (struct plugin_name_args *plugin_info,
+	     struct plugin_gcc_version *version)
+{
+  if (!plugin_default_version_check (version, &gcc_version))
+    return 1;
+
+  register_callback (plugin_name, PLUGIN_START_UNIT,
+		     define_cpp_macros, NULL);
+  register_callback (plugin_name, PLUGIN_PRAGMAS,
+		     register_pragmas, NULL);
+  register_callback (plugin_name, PLUGIN_ATTRIBUTES,
+		     register_task_attributes, NULL);
+  register_callback (plugin_name, PLUGIN_PRE_GENERICIZE,
+  		     handle_pre_genericize, NULL);
+
+  /* Register our pass so that it happens after `build_cgraph_edges' has been
+     done.  */
+
+  struct register_pass_info pass_info =
+    {
+      .pass = &pass_lower_starpu,
+      .reference_pass_name = "*build_cgraph_edges",
+      .ref_pass_instance_number = 1,
+      .pos_op = PASS_POS_INSERT_AFTER
+    };
+
+  register_callback (plugin_name, PLUGIN_PASS_MANAGER_SETUP,
+		     NULL, &pass_info);
+
+  return 0;
+}

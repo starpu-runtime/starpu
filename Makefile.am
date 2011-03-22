@@ -23,6 +23,10 @@ SUBDIRS += mpi
 endif
 SUBDIRS += tools examples tests doc
 
+if BUILD_GCC_PLUGIN
+SUBDIRS += gcc-plugin
+endif
+
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpu.pc
 
@@ -47,5 +51,3 @@ include_HEADERS = 				\
 txtdir = ${prefix}
 txt_DATA = AUTHORS COPYING.LGPL README
 EXTRA_DIST = AUTHORS COPYING.LGPL README
-
-
