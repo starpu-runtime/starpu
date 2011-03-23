@@ -80,7 +80,7 @@ static unsigned get_colour_symbol_blue(char *name)
 }
 
 static uint64_t last_codelet_hash[STARPU_NMAXWORKERS];
-static double last_codelet_start[STARPU_NMAXWORKERS];
+static float last_codelet_start[STARPU_NMAXWORKERS];
 static char last_codelet_symbol[128][STARPU_NMAXWORKERS];
 
 /* If more than a period of time has elapsed, we flush the profiling info,
@@ -92,7 +92,7 @@ static double accumulated_exec_time[STARPU_NMAXWORKERS];
 
 LIST_TYPE(symbol_name,
 	char *name;
-);
+)
 
 static symbol_name_list_t symbol_list;
 
@@ -101,7 +101,7 @@ LIST_TYPE(communication,
 	float comm_start;	
 	float bandwidth;
 	unsigned node;
-);
+)
 
 static communication_list_t communication_list;
 
@@ -130,7 +130,7 @@ static int register_worker_id(unsigned long tid)
 
 	/* create a new key in the htable */
 	char *tidstr = malloc(16*sizeof(char));
-	sprintf(tidstr, "%ld", tid);
+	sprintf(tidstr, "%lu", tid);
 
 	ENTRY item;
 		item.key = tidstr;
@@ -151,7 +151,7 @@ static int register_worker_id(unsigned long tid)
 static int find_worker_id(unsigned long tid)
 {
 	char tidstr[16];
-	sprintf(tidstr, "%ld", tid);
+	sprintf(tidstr, "%lu", tid);
 
 	ENTRY item;
 		item.key = tidstr;
@@ -300,7 +300,7 @@ static void create_paje_state_if_not_found(char *name)
 	unsigned hash_symbol_green = get_colour_symbol_green(name);
 	unsigned hash_symbol_blue = get_colour_symbol_blue(name);
 
-	fprintf(stderr, "name %s hash red %d green %d blue %d \n", name, hash_symbol_red, hash_symbol_green, hash_symbol_blue);
+	fprintf(stderr, "name %s hash red %u green %u blue %u \n", name, hash_symbol_red, hash_symbol_green, hash_symbol_blue);
 
 	uint32_t hash_sum = hash_symbol_red + hash_symbol_green + hash_symbol_blue;
 
@@ -375,10 +375,10 @@ static void handle_user_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *o
 	worker = find_worker_id(ev->param[1]);
 	if (worker < 0)
 	{
-		fprintf(out_paje_file, "9       %f     event      %sp      %ld\n", get_event_time_stamp(ev, options), prefix, code);
+		fprintf(out_paje_file, "9       %f     event      %sp      %lu\n", get_event_time_stamp(ev, options), prefix, code);
 	}
 	else {
-		fprintf(out_paje_file, "9       %f     event      %s%"PRIu64"      %ld\n", get_event_time_stamp(ev, options), prefix, ev->param[1], code);
+		fprintf(out_paje_file, "9       %f     event      %s%"PRIu64"      %lu\n", get_event_time_stamp(ev, options), prefix, ev->param[1], code);
 	}
 }
 
@@ -454,8 +454,8 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 
 	if (!options->no_bus)
 	{
-		fprintf(out_paje_file, "10       %f     MS      %sMEMNODE%d      Co\n", get_event_time_stamp(ev, options), prefix, dst);
-		fprintf(out_paje_file, "18       %f	L      %sp	%d	%sMEMNODE%d	com_%d\n", get_event_time_stamp(ev, options), prefix, size, prefix, src, comid);
+		fprintf(out_paje_file, "10       %f     MS      %sMEMNODE%u      Co\n", get_event_time_stamp(ev, options), prefix, dst);
+		fprintf(out_paje_file, "18       %f	L      %sp	%u	%sMEMNODE%u	com_%u\n", get_event_time_stamp(ev, options), prefix, size, prefix, src, comid);
 
 		/* create a structure to store the start of the communication, this will be matched later */
 		communication_t com = communication_new();
@@ -481,8 +481,8 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 	if (!options->no_bus)
 	{
-		fprintf(out_paje_file, "10       %f     MS      %sMEMNODE%d      No\n", get_event_time_stamp(ev, options), prefix, dst);
-		fprintf(out_paje_file, "19       %f	L      %sp	%d	%sMEMNODE%d	com_%d\n", get_event_time_stamp(ev, options), prefix, size, prefix, dst, comid);
+		fprintf(out_paje_file, "10       %f     MS      %sMEMNODE%u      No\n", get_event_time_stamp(ev, options), prefix, dst);
+		fprintf(out_paje_file, "19       %f	L      %sp	%u	%sMEMNODE%u	com_%u\n", get_event_time_stamp(ev, options), prefix, size, prefix, dst, comid);
 
 		/* look for a data transfer to match */
 		communication_itor_t itor;
@@ -516,7 +516,7 @@ static void handle_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options
 {
 	unsigned memnode = ev->param[0];
 
-	fprintf(out_paje_file, "10       %f     MS      %sMEMNODE%d      %s\n",
+	fprintf(out_paje_file, "10       %f     MS      %sMEMNODE%u      %s\n",
 		get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr);
 }
 
@@ -535,7 +535,7 @@ static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 		fprintf(out_paje_file, "13       %f ntask %ssched %f\n", current_timestamp, options->file_prefix, (float)curq_size);
 
 
-	fprintf(activity_file, "cnt_ready\t%lf\t%ld\n", current_timestamp, curq_size);
+	fprintf(activity_file, "cnt_ready\t%lf\t%d\n", current_timestamp, curq_size);
 }
 
 static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -547,14 +547,15 @@ static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *opti
 	if (!options->no_counter)
 		fprintf(out_paje_file, "13       %f ntask %ssched %f\n", current_timestamp, options->file_prefix, (float)curq_size);
 
-	fprintf(activity_file, "cnt_ready\t%lf\t%ld\n", current_timestamp, curq_size);
+	fprintf(activity_file, "cnt_ready\t%lf\t%d\n", current_timestamp, curq_size);
 }
 
+static
 void handle_update_task_cnt(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	float current_timestamp = get_event_time_stamp(ev, options);
 	unsigned long nsubmitted = ev->param[0]; 
-	fprintf(activity_file, "cnt_submitted\t%lf\t%ld\n", current_timestamp, nsubmitted);
+	fprintf(activity_file, "cnt_submitted\t%lf\t%lu\n", current_timestamp, nsubmitted);
 }
 
 static void handle_codelet_tag_deps(struct fxt_ev_64 *ev)
@@ -675,7 +676,8 @@ static void handle_task_wait_for_all(void)
 	starpu_fxt_dag_add_sync_point();
 }
 
-void starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
+static
+void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
 {
 	float current_bandwidth = 0.0;
 	float current_bandwidth_per_node[32] = {0.0};
@@ -692,7 +694,7 @@ void starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
 				itor->comm_start, prefix, current_bandwidth);
 
 		current_bandwidth_per_node[itor->node] +=  itor->bandwidth;
-		fprintf(out_paje_file, "13  %f bw %sMEMNODE%d %f\n",
+		fprintf(out_paje_file, "13  %f bw %sMEMNODE%u %f\n",
 				itor->comm_start, prefix, itor->node, current_bandwidth_per_node[itor->node]);
 	}
 }
@@ -701,6 +703,7 @@ void starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
  *	Public functions
  */
 
+static
 void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *options)
 {
 	/* Open the trace file */
@@ -938,28 +941,33 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 
 }
 
+static
 void starpu_fxt_distrib_file_init(struct starpu_fxt_options *options)
 {
 	if (options->generate_distrib)
 		distrib_time = fopen(options->distrib_time_path, "w+");
 }
 
+static
 void starpu_fxt_distrib_file_close(struct starpu_fxt_options *options)
 {
 	if (options->generate_distrib)
 		fclose(distrib_time);
 }
 
+static
 void starpu_fxt_activity_file_init(struct starpu_fxt_options *options)
 {
 	activity_file = fopen(options->activity_path, "w+");
 }
 
+static
 void starpu_fxt_activity_file_close(void)
 {
 	fclose(activity_file);
 }
 
+static
 void starpu_fxt_paje_file_init(struct starpu_fxt_options *options)
 {
 	/* create a new file */
@@ -974,6 +982,7 @@ void starpu_fxt_paje_file_init(struct starpu_fxt_options *options)
 	starpu_fxt_write_paje_header(out_paje_file);
 }
 
+static
 void starpu_fxt_paje_file_close(void)
 {
 	fclose(out_paje_file);
@@ -1135,7 +1144,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 			starpu_fxt_display_mpi_transfers(options, rank_k, out_paje_file);
 	}
 
-	starpu_fxt_display_bandwidth(options);
+	_starpu_fxt_display_bandwidth(options);
 
 	/* close the different files */
 	starpu_fxt_paje_file_close();

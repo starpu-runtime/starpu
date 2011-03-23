@@ -613,7 +613,7 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel_t *mod
 	regmodel = &model->per_arch[arch].regression;
 
 	if (regmodel->valid)
-		exp = regmodel->alpha*pow(size, regmodel->beta);
+                exp = regmodel->alpha*pow((double)size, regmodel->beta);
 
 	return exp;
 }
@@ -629,7 +629,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 	regmodel = &model->per_arch[arch].regression;
 
 	if (regmodel->nl_valid)
-		exp = regmodel->a*pow(size, regmodel->b) + regmodel->c;
+		exp = regmodel->a*pow((double)size, regmodel->b) + regmodel->c;
 
 	return exp;
 }
@@ -735,7 +735,7 @@ void _starpu_update_perfmodel_history(starpu_job_t j, struct starpu_perfmodel_t 
 			/* update the regression model */
 			size_t job_size = _starpu_job_get_data_size(j);
 			double logy, logx;
-			logx = log(job_size);
+			logx = log((double)job_size);
 			logy = log(measured);
 
 			reg_model->sumlnx += logx;

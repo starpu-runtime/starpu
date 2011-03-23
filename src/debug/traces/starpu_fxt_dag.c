@@ -16,6 +16,9 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <common/config.h>
+
+#ifdef STARPU_USE_FXT
 
 #include "starpu_fxt.h"
 
@@ -38,7 +41,7 @@ void starpu_fxt_dag_init(char *out_path)
 	fprintf(out_file, "\trankdir=LR;\n");
 
 	/* Create a new cluster */
-	fprintf(out_file, "subgraph cluster_%d {\n", cluster_cnt);
+	fprintf(out_file, "subgraph cluster_%u {\n", cluster_cnt);
 	fprintf(out_file, "\tcolor=black;\n");
 }
 
@@ -65,13 +68,13 @@ void starpu_fxt_dag_add_task_deps(unsigned long dep_prev, unsigned long dep_succ
 void starpu_fxt_dag_set_tag_done(uint64_t tag, const char *color)
 {
 
-	fprintf(out_file, "\t \"tag_%llx\" \[ style=filled, label=\"\", color=\"%s\"]\n", 
+	fprintf(out_file, "\t \"tag_%llx\" [ style=filled, label=\"\", color=\"%s\"]\n", 
 		(unsigned long long)tag, color);
 }
 
 void starpu_fxt_dag_set_task_done(unsigned long job_id, const char *label, const char *color)
 {
-	fprintf(out_file, "\t \"task_%lx\" \[ style=filled, label=\"%s\", color=\"%s\"]\n", job_id, label, color);
+	fprintf(out_file, "\t \"task_%lx\" [ style=filled, label=\"%s\", color=\"%s\"]\n", job_id, label, color);
 }
 
 void starpu_fxt_dag_add_sync_point(void)
@@ -82,6 +85,8 @@ void starpu_fxt_dag_add_sync_point(void)
 	cluster_cnt++;
 
 	/* Create a new cluster */
-	fprintf(out_file, "subgraph cluster_%d {\n", cluster_cnt);
+	fprintf(out_file, "subgraph cluster_%u {\n", cluster_cnt);
 	fprintf(out_file, "\tcolor=black;\n");
 }
+
+#endif /* STARPU_USE_FXT */

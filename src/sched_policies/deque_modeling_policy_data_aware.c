@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -201,6 +201,7 @@ static struct starpu_task *dmda_pop_every_task(void)
 	return new_list;
 }
 
+static
 int _starpu_fifo_push_sorted_task(struct starpu_fifo_taskq_s *fifo_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, struct starpu_task *task)
 {
 	struct starpu_task_list *list = &fifo_queue->taskq;
@@ -399,7 +400,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 
 	double best_exp_end = 10e240;
 	double model_best = 0.0;
-	double penality_best = 0.0;
+	//double penality_best = 0.0;
 
 	int ntasks_best = -1;
 	double ntasks_best_end = 0.0;
@@ -515,12 +516,12 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 		 * so we force this measurement */
 		best = forced_best;
 		model_best = 0.0;
-		penality_best = 0.0;
+		//penality_best = 0.0;
 	}
 	else 
 	{
 		model_best = local_task_length[best];
-		penality_best = local_data_penalty[best];
+		//penality_best = local_data_penalty[best];
 	}
 
 	/* we should now have the best worker in variable "best" */

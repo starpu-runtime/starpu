@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -574,7 +574,7 @@ static void write_bus_affinity_file_content(void)
 
         fprintf(f, "# GPU\t");
 	for (cpu = 0; cpu < ncpus; cpu++)
-		fprintf(f, "CPU%d\t", cpu);
+		fprintf(f, "CPU%u\t", cpu);
 	fprintf(f, "\n");
 
 #ifdef STARPU_USE_CUDA

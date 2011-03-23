@@ -43,7 +43,7 @@ static void initialize_pgreedy_policy(struct starpu_machine_topology_s *topology
 
 	_starpu_sched_find_worker_combinations(topology);
 
-	unsigned workerid;
+	int workerid;
 	unsigned ncombinedworkers, nworkers;
 
 	nworkers = topology->nworkers;
@@ -66,7 +66,7 @@ static void initialize_pgreedy_policy(struct starpu_machine_topology_s *topology
 	
 	for (i = 0; i < ncombinedworkers; i++)
 	{
-		int workerid = nworkers + i;
+		workerid = nworkers + i;
 
 		/* Note that we ASSUME that the workers are sorted by size ! */
 		int *workers;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -756,7 +756,7 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 		for (w = 0; w < nw; w++)
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next) {
 				char name[32];
-				snprintf(name, sizeof(name), "w%ut%un", w, t);
+				snprintf(name, sizeof(name), "w%dt%dn", w, t);
 				glp_set_col_name(lp, colnum(w, t), name);
 				if (integer)
 					glp_set_col_kind(lp, colnum(w, t), GLP_IV);
@@ -857,9 +857,9 @@ void starpu_bound_print(FILE *output, int integer __attribute__ ((unused))) {
 			fprintf(output, "%s key %x\n", tp->cl->model->symbol, (unsigned) tp->footprint);
 			for (w = 0; w < nw; w++)
 				if (integer)
-					fprintf(output, "\tw%ut%un %f", w, t, glp_mip_col_val(lp, colnum(w, t)));
+					fprintf(output, "\tw%dt%dn %f", w, t, glp_mip_col_val(lp, colnum(w, t)));
 				else
-					fprintf(output, "\tw%ut%un %f", w, t, glp_get_col_prim(lp, colnum(w, t)));
+					fprintf(output, "\tw%dt%dn %f", w, t, glp_get_col_prim(lp, colnum(w, t)));
 			fprintf(output, "\n");
 		}
 

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,7 @@
 #include <common/config.h>
 
 #include <datawizard/filters.h>
+#include <datawizard/sort_data_handles.h>
 
 /* To avoid deadlocks in case we have multiple tasks accessing the same piece
  * of data  (eg. task T1 needs A and B, and T2 needs B and A), we need to lock

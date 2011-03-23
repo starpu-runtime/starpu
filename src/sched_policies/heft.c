@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -341,8 +341,8 @@ static int heft_push_task(struct starpu_task *task)
 	return _heft_push_task(task, 0);
 }
 
-static void heft_deinit(struct starpu_machine_topology_s *topology, 
-	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
+static void heft_deinit(__attribute__ ((unused)) struct starpu_machine_topology_s *topology, 
+                        __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
 {
 	unsigned workerid;
 	for (workerid = 0; workerid < nworkers; workerid++)

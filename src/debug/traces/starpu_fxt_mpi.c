@@ -153,6 +153,7 @@ void starpu_fxt_mpi_add_recv_transfer(int src __attribute__((unused)), int dst, 
 	mpi_recvs[dst][slot].date = date;
 }
 
+static
 struct mpi_transfer *try_to_match_send_transfer(int src __attribute__((unused)), int dst, int mpi_tag)
 {
 	unsigned slot;
@@ -208,8 +209,8 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, int src)
 
 			unsigned long id = mpi_com_id++;
 			/* TODO replace 0 by a MPI program ? */
-			fprintf(out_paje_file, "18	%f	MPIL	MPIroot   %ld	mpi_%d_p	mpicom_%ld\n", start_date, size, /* XXX */src, id);
-			fprintf(out_paje_file, "19	%f	MPIL	MPIroot	  %ld	mpi_%d_p	mpicom_%ld\n", end_date, size, /* XXX */dst, id);
+			fprintf(out_paje_file, "18	%f	MPIL	MPIroot   %ld	mpi_%d_p	mpicom_%lu\n", start_date, size, /* XXX */src, id);
+			fprintf(out_paje_file, "19	%f	MPIL	MPIroot	  %ld	mpi_%d_p	mpicom_%lu\n", end_date, size, /* XXX */dst, id);
 		}
 		else
 		{

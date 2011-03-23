@@ -27,6 +27,7 @@ struct insert_task_cb_wrapper {
 	void *arg_stack;
 };
 
+static
 void starpu_task_insert_callback_wrapper(void *_cl_arg_wrapper)
 {
 	struct insert_task_cb_wrapper *cl_arg_wrapper = _cl_arg_wrapper;

@@ -28,6 +28,7 @@ int _starpu_barrier_init(_starpu_barrier_t *barrier, int count)
 	return 0;
 }
 
+static
 int _starpu_barrier_test(_starpu_barrier_t *barrier)
 {
     /*

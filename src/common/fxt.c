@@ -19,6 +19,7 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <starpu_util.h>
+#include <starpu_profiling.h>
 
 #ifdef STARPU_USE_FXT
 #include <common/fxt.h>

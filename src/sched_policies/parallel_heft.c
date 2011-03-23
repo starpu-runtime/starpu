@@ -26,8 +26,8 @@
 static pthread_mutex_t big_lock;
 
 static unsigned nworkers, ncombinedworkers;
-static enum starpu_perf_archtype applicable_perf_archtypes[STARPU_NARCH_VARIATIONS];
-static unsigned napplicable_perf_archtypes = 0;
+//static enum starpu_perf_archtype applicable_perf_archtypes[STARPU_NARCH_VARIATIONS];
+//static unsigned napplicable_perf_archtypes = 0;
 
 static pthread_cond_t sched_cond[STARPU_NMAXWORKERS];
 static pthread_mutex_t sched_mutex[STARPU_NMAXWORKERS];
@@ -207,7 +207,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 	int skip_worker[nworkers+ncombinedworkers];
 
 	double best_exp_end = DBL_MAX;
-	double penality_best = 0.0;
+	//double penality_best = 0.0;
 
 	int ntasks_best = -1;
 	double ntasks_best_end = 0.0;
@@ -329,12 +329,12 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 		 * with that arch we want to speed-up calibration time
 		 * so we force this measurement */
 		best = forced_best;
-		penality_best = 0.0;
+		//penality_best = 0.0;
 		best_exp_end = local_exp_end[best];
 	}
 	else 
 	{
-		penality_best = local_data_penalty[best];
+                //penality_best = local_data_penalty[best];
 		best_exp_end = local_exp_end[best];
 	}
 
@@ -408,14 +408,14 @@ static void initialize_parallel_heft_policy(struct starpu_machine_topology_s *to
 		used_perf_archtypes[perf_archtype] = 1;
 	}
 
-	napplicable_perf_archtypes = 0;
+//	napplicable_perf_archtypes = 0;
 
-	int arch;
-	for (arch = 0; arch < STARPU_NARCH_VARIATIONS; arch++)
-	{
-		if (used_perf_archtypes[arch])
-			applicable_perf_archtypes[napplicable_perf_archtypes++] = arch;
-	}
+//	int arch;
+//	for (arch = 0; arch < STARPU_NARCH_VARIATIONS; arch++)
+//	{
+//		if (used_perf_archtypes[arch])
+//			applicable_perf_archtypes[napplicable_perf_archtypes++] = arch;
+//	}
 }
 
 /* TODO: use post_exec_hook to fix the expected start */
