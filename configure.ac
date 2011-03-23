@@ -414,12 +414,12 @@ AC_ARG_ENABLE(opencl, [AS_HELP_STRING([--disable-opencl],
 #AC_MSG_CHECKING(whether OpenCL is available)
 AC_ARG_WITH(opencl-dir,
 	[AS_HELP_STRING([--with-opencl-dir=<path>],
-	[specify OpenCL installation directory (default is /usr)])],
+	[specify OpenCL installation directory])],
 	[
 		opencl_dir="$withval"
 		# in case this was not explicit yet
 		enable_opencl=yes
-	], opencl_dir=/usr)
+	], opencl_dir=no)
 
 AC_ARG_WITH(opencl-include-dir,
 	[AS_HELP_STRING([--with-opencl-include-dir=<path>],
@@ -442,7 +442,9 @@ AC_ARG_WITH(opencl-lib-dir,
 if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
 
 	if test x$opencl_include_dir = xno; then
-		opencl_include_dir="$opencl_dir/include"
+	        if test x$opencl_dir != xno; then
+		    opencl_include_dir="$opencl_dir/include"
+		fi
 	fi
 
 	if test -d "$opencl_include_dir" && test "$opencl_include_dir" != "/usr/include" ; then
@@ -459,8 +461,10 @@ if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
 	SAVED_LDFLAGS="${LDFLAGS}"
 
 	if test x$opencl_lib_dir = xno; then
+	        if test x$opencl_dir != xno; then
 		# Default location
-		opencl_lib_dir="$opencl_dir/lib/"
+		    opencl_lib_dir="$opencl_dir/lib/"
+		fi
 	fi
 
 	if test -d "$opencl_lib_dir"; then
