@@ -16,6 +16,7 @@
 
 #include "cg.h"
 #include <math.h>
+#include <limits.h>
 
 #if 0
 static void print_vector_from_descr(unsigned nx, TYPE *v)
