@@ -571,6 +571,19 @@ spmv_dw_block_spmv_SOURCES =			\
 	spmv/matrix_market/mmio.c
 endif
 
+####################
+# Callback example #
+####################
+
+check_PROGRAMS +=				\
+	callback/callback
+
+examplebin_PROGRAMS +=				\
+	callback/callback
+
+callback_callback_SOURCES =	\
+	callback/callback.c
+
 #######################
 # Incrementer example #
 #######################
