@@ -1658,7 +1658,7 @@ You can either get the FxT library from CVS (autotools are required):
 If autotools are not available on your machine, or if you prefer to do so,
 FxT's code is also available as a tarball:
 @example
-% wget http://download.savannah.gnu.org/releases/fkt/fxt-0.2.tar.gz
+% wget http://download.savannah.gnu.org/releases/fkt/fxt-0.2.2.tar.gz
 @end example
 
 Compiling and installing the FxT library in the @code{$FXTDIR} path is
