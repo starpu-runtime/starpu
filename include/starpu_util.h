@@ -46,12 +46,14 @@ extern "C" {
 
 #define STARPU_ABORT()		abort()
 
-#define STARPU_UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
-#define STARPU_LIKELY(expr)            (__builtin_expect(!!(expr),1))
 
 #ifdef __GNUC__
+#  define STARPU_UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
+#  define STARPU_LIKELY(expr)            (__builtin_expect(!!(expr),1))
 #  define STARPU_ATTRIBUTE_UNUSED                  __attribute__((unused))
 #else
+#  define STARPU_UNLIKELY(expr)          (expr)
+#  define STARPU_LIKELY(expr)            (expr)
 #  define STARPU_ATTRIBUTE_UNUSED                  
 #endif
 
