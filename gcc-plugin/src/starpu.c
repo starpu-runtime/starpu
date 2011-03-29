@@ -55,6 +55,8 @@ static const char task_implementation_attribute_name[] = "task_implementation";
 static const char task_codelet_attribute_name[] = ".codelet";
 static const char task_implementation_list_attribute_name[] =
   ".task_implementation_list";
+static const char task_implementation_wrapper_attribute_name[] =
+  ".task_implementation_wrapper";
 
 /* Names of data structures defined in <starpu.h>.  */
 static const char codelet_struct_name[] = "starpu_codelet";
@@ -125,6 +127,9 @@ build_hello_world (void)
   return build_printf ("Hello, StarPU!");
 }
 
+
+/* List and vector utilities, à la SRFI-1.  */
+
 static tree chain_trees (tree t, ...)
   __attribute__ ((sentinel));
 
@@ -144,6 +149,35 @@ chain_trees (tree t, ...)
   va_end (args);
 
   return t;
+}
+
+static tree
+filter (bool (*pred) (const_tree), tree t)
+{
+  tree result, lst;
+
+  gcc_assert (TREE_CODE (t) == TREE_LIST);
+
+  result = NULL_TREE;
+  for (lst = t; lst != NULL_TREE; lst = TREE_CHAIN (lst))
+    {
+      if (pred (lst))
+	result = tree_cons (TREE_PURPOSE (lst), TREE_VALUE (lst),
+			    result);
+    }
+
+  return nreverse (result);
+}
+
+static void
+for_each (void (*func) (tree), tree t)
+{
+  tree lst;
+
+  gcc_assert (TREE_CODE (t) == TREE_LIST);
+
+  for (lst = t; lst != NULL_TREE; lst = TREE_CHAIN (lst))
+    func (TREE_VALUE (lst));
 }
 
 
@@ -166,102 +200,6 @@ register_pragmas (void *gcc_data, void *user_data)
 
 
 /* Attributes.  */
-
-/* Return the type of a codelet function, i.e.,
-   `void (*) (void **, void *)'.  */
-
-static tree
-build_codelet_wrapper_type (void)
-{
-  tree void_ptr, void_ptr_ptr;
-
-  void_ptr = build_pointer_type (void_type_node);
-  void_ptr_ptr = build_pointer_type (void_ptr);
-
-  return build_function_type_list (void_type_node,
-				   void_ptr_ptr, void_ptr,
-				   NULL_TREE);
-}
-
-/* Return a function of type `void (*) (void **, void *)' that calls function
-   TASK_DECL whose prototype may be arbitrary.  */
-
-static tree
-build_codelet_wrapper_definition (tree task_decl)
-{
-  location_t loc;
-
-  loc = DECL_SOURCE_LOCATION (task_decl);
-
-  /* Return the body of the wrapper.
-     FIXME: This should be an argument so that:
-
-       1. When calling the task, the generated wrapper does a `submit ()'.
-
-       2. When defining the CPU implementation of a task, the wrapper just
-          marshalls/unmarshalls arguments.
-
-   */
-  tree build_body (tree wrapper_decl)
-  {
-    tree stmts = NULL;
-    append_to_statement_list (build_printf ("right here"), &stmts);
-    return stmts;
-  }
-
-  /* Return the parameter list of the wrapper:
-     `(void **NAME1, void *NAME2)'.  */
-  tree build_parameters (tree name1, tree name2)
-  {
-    tree void_ptr, void_ptr_ptr, parm1, parm2;
-
-    void_ptr = build_pointer_type (void_type_node);
-    void_ptr_ptr = build_pointer_type (void_ptr);
-
-    parm1 = build_decl (DECL_SOURCE_LOCATION (task_decl),
-			PARM_DECL, name1, void_ptr_ptr);
-    parm2 = build_decl (DECL_SOURCE_LOCATION (task_decl),
-			PARM_DECL, name2, void_ptr);
-    TREE_CHAIN (parm1) = parm2;
-
-    return parm1;
-  }
-
-  tree decl, wrapper_name;
-
-  /* See `cgraph_build_static_cdtor_1'.  */
-
-  wrapper_name = create_tmp_var_name (".starpu_codelet_wrapper");
-  decl = build_decl (loc, FUNCTION_DECL, wrapper_name,
-		     build_codelet_wrapper_type ());
-
-  DECL_EXTERNAL (decl) = false;
-  DECL_CONTEXT (decl) = NULL_TREE;
-
-  tree parm1, parm2;
-  parm1 = create_tmp_var_name ("codelet_buffers");
-  parm2 = create_tmp_var_name ("codelet_args");
-  DECL_ARGUMENTS (decl) = build_parameters (parm1, parm2);
-
-  DECL_RESULT (decl) = build_decl (loc, RESULT_DECL,
-				   NULL_TREE, void_type_node);
-  DECL_SAVED_TREE (decl) = build_body (decl);
-
-  allocate_struct_function (decl, false);
-  cfun->function_end_locus = DECL_SOURCE_LOCATION (task_decl);
-
-  TREE_PUBLIC (decl) = TREE_PUBLIC (task_decl);
-  TREE_STATIC (decl) = true;
-  TREE_USED (decl) = true;
-  DECL_ARTIFICIAL (decl) = true;
-  DECL_EXTERNAL (decl) = false;
-  DECL_UNINLINABLE (decl) = true;
-
-  DECL_INITIAL (decl) = build_block (NULL_TREE, NULL_TREE,
-				     decl, NULL_TREE);
-
-  return decl;
-}
 
 /* Handle the `task' function attribute.  */
 
@@ -377,6 +315,32 @@ task_codelet_declaration (const_tree task_decl)
   return TREE_VALUE (cl_attr);
 }
 
+/* Return the list of implementations of TASK_DECL.  */
+
+static tree
+task_implementation_list (const_tree task_decl)
+{
+  tree attr;
+
+  attr = lookup_attribute (task_implementation_list_attribute_name,
+			   DECL_ATTRIBUTES (task_decl));
+  return TREE_VALUE (attr);
+}
+
+/* Return the list of scalar parameter types of TASK_DECL.  */
+
+static tree
+task_scalar_parameter_types (const_tree task_decl)
+{
+  bool is_scalar (const_tree item)
+  {
+    return (!POINTER_TYPE_P (TREE_VALUE (item))
+	    && !VOID_TYPE_P (TREE_VALUE (item)));
+  }
+
+  return filter (is_scalar, TYPE_ARG_TYPES (TREE_TYPE (task_decl)));
+}
+
 /* Return a value indicating where TASK_IMPL should execute (`STARPU_CPU',
    `STARPU_CUDA', etc.).  */
 
@@ -429,6 +393,22 @@ task_implementation_task (const_tree task_impl)
   return TREE_VALUE (TREE_CHAIN (args));
 }
 
+/* Return the FUNCTION_DECL of the wrapper generated for TASK_IMPL.  */
+
+static tree
+task_implementation_wrapper (const_tree task_impl)
+{
+  tree attr;
+
+  gcc_assert (TREE_CODE (task_impl) == FUNCTION_DECL);
+
+  attr = lookup_attribute (task_implementation_wrapper_attribute_name,
+			   DECL_ATTRIBUTES (task_impl));
+  gcc_assert (attr != NULL_TREE);
+
+  return TREE_VALUE (attr);
+}
+
 
 static void
 register_task_attributes (void *gcc_data, void *user_data)
@@ -460,6 +440,208 @@ sizeof_type (const_tree type)
 
   bits = TREE_INT_CST_LOW (TYPE_SIZE (type));
   return build_int_cstu (size_type_node, bits / 8);
+}
+
+/* Return the type of a codelet function, i.e.,
+   `void (*) (void **, void *)'.  */
+
+static tree
+build_codelet_wrapper_type (void)
+{
+  tree void_ptr, void_ptr_ptr;
+
+  void_ptr = build_pointer_type (void_type_node);
+  void_ptr_ptr = build_pointer_type (void_ptr);
+
+  return build_function_type_list (void_type_node,
+				   void_ptr_ptr, void_ptr,
+				   NULL_TREE);
+}
+
+/* Return an identifier for the wrapper of TASK_IMPL, a task
+   implementation.  */
+
+static tree
+build_codelet_wrapper_identifier (tree task_impl)
+{
+  static const char suffix[] = "_task_implementation_wrapper";
+
+  tree id;
+  char *cl_name;
+  const char *task_name;
+
+  id = DECL_NAME (task_impl);
+  task_name = IDENTIFIER_POINTER (id);
+
+  cl_name = alloca (IDENTIFIER_LENGTH (id) + strlen (suffix) + 1);
+  memcpy (cl_name, task_name, IDENTIFIER_LENGTH (id));
+  strcpy (&cl_name[IDENTIFIER_LENGTH (id)], suffix);
+
+  return get_identifier (cl_name);
+}
+
+/* Return a function of type `void (*) (void **, void *)' that calls function
+   TASK_IMPL, the FUNCTION_DECL of a task implementation whose prototype may
+   be arbitrary.  */
+
+static tree
+build_codelet_wrapper_definition (tree task_impl)
+{
+  location_t loc;
+  tree task_decl;
+
+  loc = DECL_SOURCE_LOCATION (task_impl);
+  task_decl = task_implementation_task (task_impl);
+
+  tree build_scalar_var_chain (tree wrapper_decl)
+  {
+    tree types, prev, vars = NULL_TREE;
+
+    for (types = task_scalar_parameter_types (task_decl), prev = NULL_TREE;
+	 types != NULL_TREE;
+	 types = TREE_CHAIN (types))
+      {
+	tree var;
+
+	var = build_decl (loc, VAR_DECL,
+			  create_tmp_var_name ("scalar_arg"),
+			  TREE_VALUE (types));
+	DECL_CONTEXT (var) = wrapper_decl;
+
+	if (prev != NULL_TREE)
+	  TREE_CHAIN (prev) = var;
+	else
+	  vars = var;
+
+	prev = var;
+      }
+
+    return vars;
+  }
+
+  /* Return the body of the wrapper, which unpacks `cl_args' and calls the
+     user-defined task implementation.  */
+
+  tree build_body (tree wrapper_decl, tree vars)
+  {
+    tree stmts = NULL, call, unpack_fndecl, v;
+    VEC(tree, gc) *args;
+
+    unpack_fndecl = lookup_name (get_identifier ("starpu_unpack_cl_args"));
+    gcc_assert (unpack_fndecl != NULL_TREE
+    		&& TREE_CODE (unpack_fndecl) == FUNCTION_DECL);
+
+    append_to_statement_list (build_printf ("entering task wrapper"), &stmts);
+
+    /* Build `starpu_unpack_cl_args (cl_args, &var1, &var2, ...)'.  */
+
+    args = NULL;
+    VEC_safe_push (tree, gc, args, TREE_CHAIN (DECL_ARGUMENTS (wrapper_decl)));
+    for (v = vars; v != NULL_TREE; v = TREE_CHAIN (v))
+      VEC_safe_push (tree, gc, args, build_addr (v, wrapper_decl));
+
+    call = build_call_expr_loc_vec (UNKNOWN_LOCATION, unpack_fndecl, args);
+    append_to_statement_list (call, &stmts);
+
+    /* Build `my_task_imply (var1, var2, ...)'.  */
+
+    args = NULL;
+    for (v = vars; v != NULL_TREE; v = TREE_CHAIN (v))
+      VEC_safe_push (tree, gc, args, v);
+
+    call = build_call_expr_loc_vec (UNKNOWN_LOCATION, task_impl, args);
+    append_to_statement_list (call, &stmts);
+
+    append_to_statement_list (build_printf ("leaving task wrapper"), &stmts);
+
+    return build3 (BIND_EXPR, void_type_node, vars, stmts,
+		   DECL_INITIAL (wrapper_decl));
+  }
+
+  /* Return the parameter list of the wrapper:
+     `(void **BUFFERS, void *CL_ARGS)'.  */
+
+  tree build_parameters (void)
+  {
+    tree void_ptr, void_ptr_ptr;
+
+    void_ptr = build_pointer_type (void_type_node);
+    void_ptr_ptr = build_pointer_type (void_ptr);
+
+    return chain_trees (build_decl (loc, PARM_DECL,
+				    create_tmp_var_name ("buffers"),
+				    void_ptr_ptr),
+			build_decl (loc, PARM_DECL,
+				    create_tmp_var_name ("cl_args"),
+				    void_ptr),
+			NULL_TREE);
+  }
+
+  tree decl, wrapper_name, vars, result;
+
+  wrapper_name = build_codelet_wrapper_identifier (task_impl);
+  decl = build_decl (loc, FUNCTION_DECL, wrapper_name,
+		     build_codelet_wrapper_type ());
+
+  vars = build_scalar_var_chain (decl);
+
+  DECL_CONTEXT (decl) = NULL_TREE;
+  DECL_ARGUMENTS (decl) = build_parameters ();
+
+  result = build_decl (loc, RESULT_DECL, NULL_TREE, void_type_node);
+  DECL_ARTIFICIAL (result) = true;
+  DECL_IGNORED_P (result) = true;
+  DECL_CONTEXT (result) = decl;
+  DECL_RESULT (decl) = result;
+
+  DECL_INITIAL (decl) =
+    build_block (vars, NULL_TREE, decl, NULL_TREE);
+  TREE_TYPE (DECL_INITIAL (decl)) = void_type_node;
+  TREE_SIDE_EFFECTS (DECL_INITIAL (decl)) = true;
+
+  DECL_SAVED_TREE (decl) = build_body (decl, vars);
+  TREE_TYPE (DECL_SAVED_TREE (decl)) = TREE_TYPE (TREE_TYPE (decl));
+
+  /* FIXME: DECL shouldn't have to be public.  */
+
+  TREE_PUBLIC (decl) = true; /* TREE_PUBLIC (task_impl); */
+  TREE_STATIC (decl) = true;
+  TREE_USED (decl) = true;
+  DECL_ARTIFICIAL (decl) = true;
+  DECL_EXTERNAL (decl) = false;
+  DECL_UNINLINABLE (decl) = true;
+
+  allocate_struct_function (decl, false);
+  cfun->function_end_locus = DECL_SOURCE_LOCATION (task_impl);
+
+  cgraph_finalize_function (decl, false);
+
+  set_cfun (NULL);
+
+  return decl;
+}
+
+/* Define one wrapper function for each implementation of TASK.  TASK should
+   be the FUNCTION_DECL of a task.  */
+
+static void
+define_codelet_wrappers (tree task)
+{
+  void define (tree task_impl)
+  {
+    tree wrapper_def;
+
+    wrapper_def = build_codelet_wrapper_definition (task_impl);
+
+    DECL_ATTRIBUTES (task_impl) =
+      tree_cons (get_identifier (task_implementation_wrapper_attribute_name),
+		 wrapper_def,
+		 DECL_ATTRIBUTES (task_impl));
+
+    pushdecl (wrapper_def);
+  }
+
+  for_each (define, task_implementation_list (task));
 }
 
 /* Return a NODE_IDENTIFIER for the variable holding the `starpu_codelet'
@@ -599,9 +781,8 @@ build_codelet_initializer (tree task_decl)
 	if (task_implementation_where (impl_decl) == where)
 	  {
 	    /* Return a pointer to the wrapper of IMPL_DECL.  */
-	    /* FIXME: Currently points to IMPL_DECL.  */
-	    tree addr = build_addr (impl_decl, NULL_TREE);
-	    /* TREE_TYPE (addr) = build_pointer_type (void_type_node); */
+	    tree addr = build_addr (task_implementation_wrapper (impl_decl),
+				    NULL_TREE);
 	    return addr;
 	  }
       }
@@ -613,12 +794,9 @@ build_codelet_initializer (tree task_decl)
   printf ("implementations for `%s':\n",
 	  IDENTIFIER_POINTER (DECL_NAME (task_decl)));
 
-  tree impls_attr, impls;
-  impls_attr = lookup_attribute (task_implementation_list_attribute_name,
-				 DECL_ATTRIBUTES (task_decl));
-  impls = TREE_VALUE (impls_attr);
+  tree impls, inits;
 
-  tree inits;
+  impls = task_implementation_list (task_decl);
 
   inits =
     chain_trees (field_initializer ("where", where_init (impls)),
@@ -642,10 +820,9 @@ build_codelet_initializer (tree task_decl)
 static tree
 define_codelet (tree task_decl)
 {
-  /* Generate a wrapper function that does all the packing/unpacking.  */
-  tree wrapper_decl;
-  wrapper_decl = build_codelet_wrapper_definition (task_decl);
-  pushdecl (wrapper_decl);
+  /* Generate a wrapper function for each implementation of TASK_DECL that
+     does all the packing/unpacking.  */
+  define_codelet_wrappers (task_decl);
 
   /* Retrieve the declaration of the `starpu_codelet' object.  */
   tree cl_def;
