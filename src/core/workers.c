@@ -498,6 +498,27 @@ unsigned starpu_worker_get_count(void)
 	return config.topology.nworkers;
 }
 
+int starpu_worker_get_count_by_type(enum starpu_archtype type)
+{
+	switch (type)
+	{
+		case STARPU_CPU_WORKER:
+			return config.topology.ncpus;
+
+		case STARPU_CUDA_WORKER:
+			return config.topology.ncudagpus;
+
+		case STARPU_OPENCL_WORKER:
+			return config.topology.nopenclgpus;
+
+		case STARPU_GORDON_WORKER:
+			return config.topology.ngordon_spus;
+
+		default:
+			return -EINVAL;
+	}
+}
+
 unsigned starpu_combined_worker_get_count(void)
 {
 	return config.topology.ncombinedworkers;
@@ -613,6 +634,28 @@ struct starpu_combined_worker_s *_starpu_get_combined_worker_struct(unsigned id)
 enum starpu_archtype starpu_worker_get_type(int id)
 {
 	return config.workers[id].arch;
+}
+
+int starpu_worker_get_ids_by_type(enum starpu_archtype type, int *workerids, int maxsize)
+{
+	unsigned nworkers = starpu_worker_get_count();
+
+	int cnt = 0;
+
+	unsigned id;
+	for (id = 0; id < nworkers; id++)
+	{
+		if (starpu_worker_get_type(id) == type)
+		{
+			/* Perhaps the array is too small ? */
+			if (cnt + 1 >= maxsize)
+				return -ERANGE;
+
+			workerids[cnt++] = id;
+		}
+	}
+
+	return cnt;
 }
 
 void starpu_worker_get_name(int id, char *dst, size_t maxlen)

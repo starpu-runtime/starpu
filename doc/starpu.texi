@@ -2568,11 +2568,13 @@ guaranteed to be available until this method has been called.
 
 @menu
 * starpu_worker_get_count::     Get the number of processing units
+* starpu_worker_get_count_by_type:: Get the number of processing units of a given type
 * starpu_cpu_worker_get_count::  Get the number of CPU controlled by StarPU
 * starpu_cuda_worker_get_count::  Get the number of CUDA devices controlled by StarPU
 * starpu_opencl_worker_get_count::  Get the number of OpenCL devices controlled by StarPU
 * starpu_spu_worker_get_count::  Get the number of Cell SPUs controlled by StarPU
 * starpu_worker_get_id::        Get the identifier of the current worker
+* starpu_worker_get_ids_by_type:: Get the list of identifiers of workers with a given type
 * starpu_worker_get_devid::        Get the device identifier of a worker
 * starpu_worker_get_type::      Get the type of processing unit associated to a worker
 * starpu_worker_get_name::      Get the name of a worker
@@ -2589,6 +2591,19 @@ StarPU tasks). The returned value should be at most @code{STARPU_NMAXWORKERS}.
 
 @item @emph{Prototype}:
 @code{unsigned starpu_worker_get_count(void);}
+@end table
+
+@node starpu_worker_get_count_by_type
+@subsection @code{starpu_worker_get_count_by_type} -- Get the number of processing units of a given type
+@table @asis
+
+@item @emph{Description}:
+Returns the number of workers of the type indicated by the argument. A positive
+(or null) value is returned in case of success, @code{-EINVAL} indicates that
+the type is not valid otherwise.
+
+@item @emph{Prototype}:
+@code{int starpu_worker_get_count_by_type(enum starpu_archtype type);}
 @end table
 
 @node starpu_cpu_worker_get_count
@@ -2651,6 +2666,24 @@ an integer between 0 and @code{starpu_worker_get_count() - 1}.
 
 @item @emph{Prototype}:
 @code{int starpu_worker_get_id(void);}
+@end table
+
+@node starpu_worker_get_ids_by_type
+@subsection @code{starpu_worker_get_ids_by_type} -- Get the list of identifiers of workers with a given type
+@table @asis
+
+@item @emph{Description}:
+Fill the workerids array with the identifiers of the workers that have the type
+indicated in the first argument. The maxsize argument indicates the size of the
+workids array. The returned value gives the number of identifiers that were put
+in the array. @code{-ERANGE} is returned is maxsize is lower than the number of
+workers with the appropriate type: in that case, the array is filled with the
+maxsize first elements. To avoid such overflows, the value of maxsize can be
+chosen by the means of the @code{starpu_worker_get_count_by_type} function, or
+by passing a value greater or equal to @code{STARPU_NMAXWORKERS}.
+
+@item @emph{Prototype}:
+@code{int starpu_worker_get_ids_by_type(enum starpu_archtype type, int *workerids, int maxsize);}
 @end table
 
 @node starpu_worker_get_devid
