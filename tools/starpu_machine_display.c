@@ -19,17 +19,17 @@
 
 static void display_worker_names(enum starpu_archtype type)
 {
-	unsigned nworkers = starpu_worker_get_count();
+	unsigned nworkers = starpu_worker_get_count_by_type(type);
+
+	int ids[nworkers];
+	starpu_worker_get_ids_by_type(type, ids, nworkers);
 
 	unsigned i;
 	for (i = 0; i < nworkers; i++)
 	{
-		if (starpu_worker_get_type(i) == type)
-		{
-			char name[256];
-			starpu_worker_get_name(i, name, 256);
-			fprintf(stdout, "\t\t%s\n", name);
-		}
+		char name[256];
+		starpu_worker_get_name(ids[i], name, 256);
+		fprintf(stdout, "\t\t%s\n", name);
 	}
 }
 

@@ -648,7 +648,7 @@ int starpu_worker_get_ids_by_type(enum starpu_archtype type, int *workerids, int
 		if (starpu_worker_get_type(id) == type)
 		{
 			/* Perhaps the array is too small ? */
-			if (cnt + 1 >= maxsize)
+			if (cnt >= maxsize)
 				return -ERANGE;
 
 			workerids[cnt++] = id;
