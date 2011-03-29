@@ -42,6 +42,8 @@ This manual documents the usage of StarPU.
 * StarPU API::                  The API to use StarPU
 * Advanced Topics::             Advanced use of StarPU
 * Full source code for the 'Scaling a Vector' example::  
+
+* Function Index::              Index of C functions.
 @end menu
 
 @c ---------------------------------------------------------------------
@@ -4552,5 +4554,13 @@ static struct starpu_sched_policy_s dummy_sched_policy = @{
 @smallexample
 @include vector_scal_opencl_codelet.texi
 @end smallexample
+
+@c
+@c Indices.
+@c
+
+@node Function Index
+@unnumbered Function Index
+@printindex fn
 
 @bye
