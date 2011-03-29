@@ -60,8 +60,6 @@ LIST_TYPE(starpu_data_request,
 
 	struct callback_list *callbacks;
 
-	unsigned is_a_prefetch_request;
-
 #ifdef STARPU_USE_FXT
 	unsigned com_id;
 #endif
@@ -102,10 +100,8 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle,
 				struct starpu_data_replicate_s *dst_replicate,
 				uint32_t handling_node,
 				starpu_access_mode mode,
-				unsigned ndeps,
-				unsigned is_prefetch);
+				unsigned ndeps);
 
-starpu_data_request_t _starpu_search_existing_data_request(struct starpu_data_replicate_s *replicate, starpu_access_mode mode);
 int _starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_alloc);
 
 void _starpu_data_request_append_callback(starpu_data_request_t r,

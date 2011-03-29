@@ -194,6 +194,7 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 		unsigned worker;
 		for (worker = 0; worker < nworkers; worker++)
 		{
+			unsigned node;
 			struct starpu_data_replicate_s *child_replicate;
 			child_replicate = &child->per_worker[worker];
 			
@@ -202,8 +203,13 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 			child_replicate->automatically_allocated = 0;
 			child_replicate->refcnt = 0;
 			child_replicate->memory_node = starpu_worker_get_memory_node(worker);
-			child_replicate->requested = 0;
-			child_replicate->request = NULL;
+
+			for (node = 0; node < STARPU_MAXNODES; node++)
+			{
+				child_replicate->requested[node] = 0;
+				child_replicate->request[node] = NULL;
+			}
+
 			child_replicate->relaxed_coherency = 1;
 			child_replicate->initialized = 0;
 

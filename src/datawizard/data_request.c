@@ -62,8 +62,22 @@ void _starpu_deinit_data_request_lists(void)
 /* this should be called with the lock r->handle->header_lock taken */
 static void starpu_data_request_destroy(starpu_data_request_t r)
 {
-	STARPU_ASSERT(r->dst_replicate->request == r);
-	r->dst_replicate->request = NULL;
+	unsigned node;
+
+	/* If this is a write only request, then there is no source and we use
+	 * the destination node to cache the request. Otherwise we store the
+	 * pending requests between src and dst. */
+	if (r->mode & STARPU_R)
+	{
+		node = r->src_replicate->memory_node;
+	}
+	else {
+		node = r->dst_replicate->memory_node;
+	}
+
+	STARPU_ASSERT(r->dst_replicate->request[node] == r);
+	r->dst_replicate->request[node] = NULL;
+	//fprintf(stderr, "DESTROY REQ %p (%d) refcnt %d\n", r, node, r->refcnt);
 	starpu_data_request_delete(r);
 }
 
@@ -73,8 +87,7 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle,
 				struct starpu_data_replicate_s *dst_replicate,
 				uint32_t handling_node,
 				starpu_access_mode mode,
-				unsigned ndeps,
-				unsigned is_prefetch)
+				unsigned ndeps)
 {
 	starpu_data_request_t r = starpu_data_request_new();
 
@@ -90,47 +103,25 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle,
 	r->ndeps = ndeps;
 	r->next_req_count = 0;
 	r->callbacks = NULL;
-	r->is_a_prefetch_request = is_prefetch;
 
 	_starpu_spin_lock(&r->lock);
 
-	dst_replicate->request = r;
 	dst_replicate->refcnt++;
 
 	if (mode & STARPU_R)
+	{
+		unsigned src_node = src_replicate->memory_node;
+		dst_replicate->request[src_node] = r;
 		src_replicate->refcnt++;
+	}
+	else {
+		unsigned dst_node = dst_replicate->memory_node;
+		dst_replicate->request[dst_node] = r;
+	}
 
 	r->refcnt = 1;
 
 	_starpu_spin_unlock(&r->lock);
-
-	return r;
-}
-
-/* handle->lock should be taken. r is returned locked */
-starpu_data_request_t _starpu_search_existing_data_request(struct starpu_data_replicate_s *replicate, starpu_access_mode mode)
-{
-	starpu_data_request_t r = replicate->request;
-
-	if (r)
-	{
-		_starpu_spin_lock(&r->lock);
-
-		/* perhaps we need to "upgrade" the request */
-		if (mode & STARPU_R)
-		{
-			/* in case the exisiting request did not imply a memory
-			 * transfer yet, we have to increment the refcnt now
-			 * (so that the source remains valid) */
-			if (!(r->mode & STARPU_R))
-				replicate->refcnt++;
-
-			r->mode |= STARPU_R;
-		}
-
-		if (mode & STARPU_W)
-			r->mode |= STARPU_W;
-	}
 
 	return r;
 }

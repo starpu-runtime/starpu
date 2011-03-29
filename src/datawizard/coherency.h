@@ -74,8 +74,8 @@ LIST_TYPE(starpu_data_replicate,
 	   flag when it assigns a task to a queue, policies which do not
 	   use this hint can simply ignore it.
 	 */
-	uint8_t requested;
-	struct starpu_data_request_s *request;
+	uint8_t requested[STARPU_MAXNODES];
+	struct starpu_data_request_s *request[STARPU_MAXNODES];
 );
 
 struct starpu_data_requester_list_s;
@@ -218,8 +218,12 @@ unsigned _starpu_is_data_present_or_requested(struct starpu_data_state_t *state,
 unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle handle, uint32_t memory_node);
 
 
-uint32_t _starpu_select_node_to_handle_request(uint32_t src_node, uint32_t dst_node);
 uint32_t _starpu_select_src_node(struct starpu_data_state_t *state);
+
+starpu_data_request_t create_request_to_fetch_data(starpu_data_handle handle,
+				struct starpu_data_replicate_s *dst_replicate,
+                                starpu_access_mode mode, unsigned is_prefetch,
+                                void (*callback_func)(void *), void *callback_arg);
 
 void _starpu_redux_init_data_replicate(starpu_data_handle handle, struct starpu_data_replicate_s *replicate, int workerid);
 void starpu_data_start_reduction_mode(starpu_data_handle handle);

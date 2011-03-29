@@ -31,7 +31,7 @@ int starpu_data_request_allocation(starpu_data_handle handle, uint32_t node)
 
 	STARPU_ASSERT(handle);
 
-	r = _starpu_create_data_request(handle, NULL, &handle->per_node[node], node, 0, 0, 1);
+	r = _starpu_create_data_request(handle, NULL, &handle->per_node[node], node, 0, 0);
 
 	/* we do not increase the refcnt associated to the request since we are
 	 * not waiting for its termination */
@@ -424,7 +424,21 @@ void starpu_data_query_status(starpu_data_handle handle, int memory_node, int *i
 		*is_valid = (handle->per_node[memory_node].state != STARPU_INVALID);
 
 	if (is_requested)
-		*is_requested = handle->per_node[memory_node].requested;
+	{
+		int requested = 0;
+
+		unsigned node;
+		for (node = 0; node < STARPU_MAXNODES; node++)
+		{
+			if (handle->per_node[memory_node].requested[node])
+			{
+				requested = 1;
+				break;
+			}
+		}
+
+		*is_requested = requested;
+	}
 
 //	_starpu_spin_unlock(&handle->header_lock);
 }
