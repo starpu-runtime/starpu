@@ -1246,10 +1246,12 @@ transfers, which are assumed to be completely overlapped.
 StarPU provides the wrapper function @code{starpu_insert_task} to ease
 the creation and submission of tasks.
 
-@emph{Prototype}:
-@code{int starpu_insert_task(starpu_codelet *cl, ...);}
+@deftypefun int starpu_insert_task (starpu_codelet *cl, ...)
+Create and submit a task corresponding to @var{cl} with the following
+arguments.  The argument list must be zero-terminated.
 
 The arguments following the codelets can be of the following types:
+
 @itemize
 @item
 @code{STARPU_R}, @code{STARPU_W}, @code{STARPU_RW}, @code{STARPU_SCRATCH} an access mode followed by a data handle;
@@ -1265,14 +1267,11 @@ argument to the callback function;
 @code{STARPU_PRIORITY} followed by a integer defining a priority level.
 @end itemize
 
-A call to @code{starpu_insert_task} will create and submit the task
-based on the given arguments. The list of varying arguments has to be
-ended by the value @code{0}.
-
 Parameters to be passed to the codelet implementation are defined
 through the type @code{STARPU_VALUE}. The function
 @code{starpu_unpack_cl_args} must be called within the codelet
 implementation to retrieve them.
+@end deftypefun
 
 Here the implementation of the codelet:
 
