@@ -444,7 +444,7 @@ static int _starpu_init_machine_config(struct starpu_machine_config_s *config,
 	}
 
 	if (explicitval < 0) {
-		unsigned already_busy_cpus = (topology->ngordon_spus?1:0) + topology->ncudagpus;
+		unsigned already_busy_cpus = (topology->ngordon_spus?1:0) + topology->ncudagpus + topology->nopenclgpus;
 		long avail_cpus = topology->nhwcpus - (use_accelerator?already_busy_cpus:0);
 		topology->ncpus = STARPU_MIN(avail_cpus, STARPU_NMAXCPUS);
 	} else {
