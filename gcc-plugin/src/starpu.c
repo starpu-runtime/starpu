@@ -17,6 +17,8 @@
 /* Use extensions of the GNU C Library.  */
 #define _GNU_SOURCE 1
 
+#include <starpu-gcc-config.h>
+
 int plugin_is_GPL_compatible;
 
 /* #define ENABLE_TREE_CHECKING 1 */
@@ -66,6 +68,33 @@ static tree insert_task_fn = NULL_TREE;
 
 static tree build_codelet_declaration (tree task_decl);
 
+
+
+/* Useful code backported from GCC 4.6.  */
+
+#if !HAVE_DECL_BUILD_CALL_EXPR_LOC_ARRAY
+
+static tree
+build_call_expr_loc_array (location_t loc, tree fndecl, int n, tree *argarray)
+{
+  tree fntype = TREE_TYPE (fndecl);
+  tree fn = build1 (ADDR_EXPR, build_pointer_type (fntype), fndecl);
+
+  return fold_builtin_call_array (loc, TREE_TYPE (fntype), fn, n, argarray);
+}
+
+#endif
+
+#if !HAVE_DECL_BUILD_CALL_EXPR_LOC_VEC
+
+static tree
+build_call_expr_loc_vec (location_t loc, tree fndecl, VEC(tree,gc) *vec)
+{
+  return build_call_expr_loc_array (loc, fndecl, VEC_length (tree, vec),
+				    VEC_address (tree, vec));
+}
+
+#endif
 
 
 /* Debugging helpers.  */

@@ -1169,6 +1169,8 @@ AC_CONFIG_COMMANDS([executable-scripts], [chmod +x ]tests/regression/regression.
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
 AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h)
 
+AC_CONFIG_HEADERS([gcc-plugin/src/starpu-gcc-config.h])
+
 AC_OUTPUT([
 	Makefile
 	src/Makefile
