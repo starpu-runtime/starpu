@@ -464,7 +464,7 @@ build_codelet_wrapper_type (void)
 static tree
 build_codelet_wrapper_identifier (tree task_impl)
 {
-  static const char suffix[] = "_task_implementation_wrapper";
+  static const char suffix[] = ".task_implementation_wrapper";
 
   tree id;
   char *cl_name;
@@ -554,8 +554,12 @@ build_codelet_wrapper_definition (tree task_impl)
 
     append_to_statement_list (build_printf ("leaving task wrapper"), &stmts);
 
-    return build3 (BIND_EXPR, void_type_node, vars, stmts,
+    tree bind;
+    bind = build3 (BIND_EXPR, void_type_node, vars, stmts,
 		   DECL_INITIAL (wrapper_decl));
+    TREE_TYPE (bind) = TREE_TYPE (TREE_TYPE (wrapper_decl));
+
+    return bind;
   }
 
   /* Return the parameter list of the wrapper:
@@ -591,17 +595,11 @@ build_codelet_wrapper_definition (tree task_impl)
   result = build_decl (loc, RESULT_DECL, NULL_TREE, void_type_node);
   DECL_ARTIFICIAL (result) = true;
   DECL_IGNORED_P (result) = true;
-  DECL_CONTEXT (result) = decl;
   DECL_RESULT (decl) = result;
 
-  DECL_INITIAL (decl) =
-    build_block (vars, NULL_TREE, decl, NULL_TREE);
-  TREE_TYPE (DECL_INITIAL (decl)) = void_type_node;
-  TREE_SIDE_EFFECTS (DECL_INITIAL (decl)) = true;
+  DECL_INITIAL (decl) = build_block (vars, NULL_TREE, decl, NULL_TREE);
 
   DECL_SAVED_TREE (decl) = build_body (decl, vars);
-  TREE_TYPE (DECL_SAVED_TREE (decl)) = TREE_TYPE (TREE_TYPE (decl));
-
 
   TREE_PUBLIC (decl) = TREE_PUBLIC (task_impl);
   TREE_STATIC (decl) = true;
@@ -610,15 +608,20 @@ build_codelet_wrapper_definition (tree task_impl)
   DECL_EXTERNAL (decl) = false;
   DECL_UNINLINABLE (decl) = true;
 
+  rest_of_decl_compilation (decl, true, 0);
+
+  struct function *prev_cfun = cfun;
+  set_cfun (NULL);
   allocate_struct_function (decl, false);
   cfun->function_end_locus = DECL_SOURCE_LOCATION (task_impl);
 
   cgraph_finalize_function (decl, false);
 
-  set_cfun (NULL);
   /* Mark DECL as needed so that it doesn't get removed by
      `cgraph_remove_unreachable_nodes' when it's not public.  */
   cgraph_mark_needed_node (cgraph_get_node (decl));
+
+  set_cfun (prev_cfun);
 
   return decl;
 }
