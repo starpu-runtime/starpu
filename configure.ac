@@ -259,7 +259,12 @@ AC_DEFUN([STARPU_CHECK_CUDA_RUNTIME],
     __cuda_include_dir=$2
     __cuda_lib_dir=$3
 
-    AC_MSG_NOTICE("Checking CUDA RT is available in $__cuda_dir")
+    if test "$__cuda_dir" != "no" ; then
+	AC_MSG_NOTICE(whether CUDA RT is available in $__cuda_dir)
+    else
+	AC_MSG_NOTICE(whether CUDA RT is available)
+    fi
+    AC_MSG_RESULT()
 
     SAVED_STARPU_CUDA_LDFLAGS=${STARPU_CUDA_LDFLAGS}
 
