@@ -222,7 +222,12 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 [
     __cuda_dir=$1
 
-    AC_MSG_NOTICE("Checking CUDA is available in $__cuda_dir")
+    if test "$__cuda_dir" != "no" ; then
+	AC_MSG_CHECKING(whether CUDA is available in $__cuda_dir)
+    else
+	AC_MSG_CHECKING(whether CUDA is available)
+    fi
+    AC_MSG_RESULT()
 
     SAVED_LDFLAGS="${LDFLAGS}"
 
@@ -341,7 +346,7 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 fi
 
 AC_MSG_CHECKING(whether CUDA should be used)
-AC_MSG_RESULT($enable_cuda ($CPPFLAGS - $LDFLAGS))
+AC_MSG_RESULT($enable_cuda)
 AC_SUBST(STARPU_USE_CUDA, $enable_cuda)
 AM_CONDITIONAL(STARPU_USE_CUDA, test x$enable_cuda = xyes)
 if test x$enable_cuda = xyes; then
