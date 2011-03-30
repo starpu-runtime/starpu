@@ -835,6 +835,7 @@ define_codelet (tree task_decl)
   gcc_assert (cl_def != NULL_TREE && TREE_CODE (cl_def) == VAR_DECL);
 
   /* Turn the codelet declaration into a definition.  */
+  TREE_PUBLIC (cl_def) = TREE_PUBLIC (task_decl);
   TREE_STATIC (cl_def) = true;
   DECL_EXTERNAL (cl_def) = false;
   DECL_INITIAL (cl_def) = build_codelet_initializer (task_decl);
