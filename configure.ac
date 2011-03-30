@@ -260,9 +260,9 @@ AC_DEFUN([STARPU_CHECK_CUDA_RUNTIME],
     __cuda_lib_dir=$3
 
     if test "$__cuda_dir" != "no" ; then
-	AC_MSG_NOTICE(whether CUDA RT is available in $__cuda_dir)
+	AC_MSG_CHECKING(whether CUDA RT is available in $__cuda_dir)
     else
-	AC_MSG_NOTICE(whether CUDA RT is available)
+	AC_MSG_CHECKING(whether CUDA RT is available)
     fi
     AC_MSG_RESULT()
 
