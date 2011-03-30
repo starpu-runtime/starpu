@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,6 +24,8 @@
 #ifdef STARPU_USE_CUDA
 void cuda_kernel(void **descr, void *cl_arg);
 #endif
+
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 /* default value */
 static unsigned ntasks = 1024;
@@ -163,13 +165,13 @@ int main(int argc, char **argv)
 	unsigned long total_shot_cnt = ntasks * NSHOT_PER_TASK;
 
 	/* Total surface : Pi * r^ 2 = Pi*1^2, total square surface : 2^2 = 4, probability to impact the disk: pi/4 */
-	fprintf(stderr, "Pi approximation : %f (%ld / %ld)\n", ((TYPE)total_cnt*4)/(total_shot_cnt), total_cnt, total_shot_cnt);
-	fprintf(stderr, "Total time : %f ms\n", timing/1000.0);
-	fprintf(stderr, "Speed : %f GShot/s\n", total_shot_cnt/(1e3*timing));
+	FPRINTF(stderr, "Pi approximation : %f (%ld / %ld)\n", ((TYPE)total_cnt*4)/(total_shot_cnt), total_cnt, total_shot_cnt);
+	FPRINTF(stderr, "Total time : %f ms\n", timing/1000.0);
+	FPRINTF(stderr, "Speed : %f GShot/s\n", total_shot_cnt/(1e3*timing));
 
 	starpu_data_release(cnt_array_handle);
 
-	starpu_display_codelet_stats(&cl);
+	if (!getenv("STARPU_SSILENT")) starpu_display_codelet_stats(&cl);
 
 	starpu_shutdown();
 

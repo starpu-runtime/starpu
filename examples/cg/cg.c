@@ -13,6 +13,7 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #include <math.h>
 #include <assert.h>
 #include <sys/time.h>
@@ -23,6 +24,8 @@
 #include <cuda.h>
 #include <cublas.h>
 #endif
+
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 /*
  *	Conjugate Gradient
@@ -201,12 +204,12 @@ static void display_vector(starpu_data_handle handle, TYPE *ptr)
 		starpu_data_acquire(starpu_data_get_sub_data(handle, 1, b), STARPU_R);
 		for (ind = 0; ind < block_size; ind++)
 		{
-			fprintf(stderr, "%2.2e ", ptr[b*block_size + ind]);
+			FPRINTF(stderr, "%2.2e ", ptr[b*block_size + ind]);
 		}
-		fprintf(stderr, "| ");
+		FPRINTF(stderr, "| ");
 		starpu_data_release(starpu_data_get_sub_data(handle, 1, b));
 	}
-	fprintf(stderr, "\n");
+	FPRINTF(stderr, "\n");
 }
 
 static void display_matrix(void)
@@ -216,9 +219,9 @@ static void display_matrix(void)
 	{
 		for (j = 0; j < n; j++)
 		{
-			fprintf(stderr, "%2.2e ", A[j*n + i]);
+			FPRINTF(stderr, "%2.2e ", A[j*n + i]);
 		}
-		fprintf(stderr, "\n");
+		FPRINTF(stderr, "\n");
 	}
 }
 #endif
@@ -251,8 +254,8 @@ static void cg(void)
 	delta_0 = delta_new;
 	starpu_data_release(rtr_handle);
 
-	fprintf(stderr, "*************** INITIAL ************ \n");
-	fprintf(stderr, "Delta 0: %e\n", delta_new);
+	FPRINTF(stderr, "*************** INITIAL ************ \n");
+	FPRINTF(stderr, "Delta 0: %e\n", delta_new);
 
 	struct timeval start;
 	struct timeval end;
@@ -303,8 +306,8 @@ static void cg(void)
 		{
 			/* We here take the error as ||r||_2 / (n||b||_2) */
 			double error = sqrt(delta_new/delta_0)/(1.0*n);
-			fprintf(stderr, "*****************************************\n");
-			fprintf(stderr, "iter %d DELTA %e - %e\n", i, delta_new, error);
+			FPRINTF(stderr, "*****************************************\n");
+			FPRINTF(stderr, "iter %d DELTA %e - %e\n", i, delta_new, error);
 		}
 
 		i++;
@@ -313,8 +316,8 @@ static void cg(void)
 	gettimeofday(&end, NULL);
 
 	double timing = (double)(((double)end.tv_sec - (double)start.tv_sec)*10e6 + ((double)end.tv_usec - (double)start.tv_usec));
-	fprintf(stderr, "Total timing : %2.2f seconds\n", timing/10e6);
-	fprintf(stderr, "Seconds per iteration : %2.2e\n", timing/10e6/i);
+	FPRINTF(stderr, "Total timing : %2.2f seconds\n", timing/10e6);
+	FPRINTF(stderr, "Seconds per iteration : %2.2e\n", timing/10e6/i);
 }
 
 static int check(void)
@@ -347,7 +350,7 @@ static void parse_args(int argc, char **argv)
 		}
 
 	        if (strcmp(argv[i], "-h") == 0) {
-			fprintf(stderr, "usage: %s [-h] [-nblocks #blocks] [-n problem_size] [-no-reduction] [-maxiter i]\n", argv[0]);
+			FPRINTF(stderr, "usage: %s [-h] [-nblocks #blocks] [-n problem_size] [-no-reduction] [-maxiter i]\n", argv[0]);
 			exit(-1);
 			continue;
 		}

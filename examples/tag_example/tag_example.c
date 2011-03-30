@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +27,7 @@
 #include <gordon/null.h>
 #endif
 
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 #define TAG(i, j, iter)	((starpu_tag_t) ( ((uint64_t)(iter)<<48) |  ((uint64_t)(j)<<24) | (i)) )
 
 starpu_codelet cl;
@@ -84,7 +85,7 @@ static void create_task_grid(unsigned iter)
 {
 	unsigned i, j;
 
-//	fprintf(stderr, "start iter %d...\n", iter);
+//	FPRINTF(stderr, "start iter %d...\n", iter);
 	callback_cnt = (ni*nj);
 
 	/* create non-entry tasks */
@@ -191,7 +192,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	parse_args(argc, argv);
 
-	fprintf(stderr, "ITER: %d\n", nk);
+	FPRINTF(stderr, "ITER: %d\n", nk);
 
 	cl.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON;
 	cl.cpu_func = cpu_codelet;
@@ -207,7 +208,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	starpu_shutdown();
 
-	fprintf(stderr, "TEST DONE ...\n");
+	FPRINTF(stderr, "TEST DONE ...\n");
 
 	return 0;
 }

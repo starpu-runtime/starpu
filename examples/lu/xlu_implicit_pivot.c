@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -219,12 +219,12 @@ void STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size
 	double timing;
 	timing = dw_codelet_facto_pivot(&dataA, piv_description, nblocks, get_block_with_striding);
 
-	fprintf(stderr, "Computation took (in ms)\n");
-	fprintf(stderr, "%2.2f\n", timing/1000);
+	FPRINTF(stderr, "Computation took (in ms)\n");
+	FPRINTF(stderr, "%2.2f\n", timing/1000);
 
 	unsigned n = starpu_matrix_get_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
-	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 
 	/* gather all the data */
 	starpu_data_unpartition(dataA, 0);
@@ -268,12 +268,12 @@ void STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, un
 	double timing;
 	timing = dw_codelet_facto_pivot(dataAp, piv_description, nblocks, get_block_with_no_striding);
 
-	fprintf(stderr, "Computation took (in ms)\n");
-	fprintf(stderr, "%2.2f\n", timing/1000);
+	FPRINTF(stderr, "Computation took (in ms)\n");
+	FPRINTF(stderr, "%2.2f\n", timing/1000);
 
 	unsigned n = starpu_matrix_get_nx(dataAp[0])*nblocks;
 	double flop = (2.0f*n*n*n)/3.0f;
-	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 
 	for (bj = 0; bj < nblocks; bj++)
 	for (bi = 0; bi < nblocks; bi++)

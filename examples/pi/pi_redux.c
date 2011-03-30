@@ -19,6 +19,7 @@
 #include <sys/time.h>
 #include <starpu_config.h>
 
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 #define PI	3.14159265358979323846
 
 #if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CURAND)
@@ -303,10 +304,10 @@ int main(int argc, char **argv)
 	starpu_data_release(shot_cnt_handle);
 
 
-	fprintf(stderr, "Pi approximation : %lf (%ld / %ld)\n", pi_approx, shot_cnt, total);
-	fprintf(stderr, "Error %le \n", pi_approx - PI);
-	fprintf(stderr, "Total time : %f ms\n", timing/1000.0);
-	fprintf(stderr, "Speed : %f GShot/s\n", total/(1e3*timing));
+	FPRINTF(stderr, "Pi approximation : %lf (%ld / %ld)\n", pi_approx, shot_cnt, total);
+	FPRINTF(stderr, "Error %le \n", pi_approx - PI);
+	FPRINTF(stderr, "Total time : %f ms\n", timing/1000.0);
+	FPRINTF(stderr, "Speed : %f GShot/s\n", total/(1e3*timing));
 
 	starpu_data_unregister(shot_cnt_handle);
 	starpu_shutdown();

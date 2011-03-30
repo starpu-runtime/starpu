@@ -18,6 +18,8 @@
 #include <starpu.h>
 #include <pthread.h>
 
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
 static unsigned niter = 50000;
 
 extern void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args);
@@ -77,7 +79,7 @@ int main(int argc, char **argv)
 		ret = starpu_task_submit(task);
 		if (STARPU_UNLIKELY(ret == -ENODEV))
 		{
-			fprintf(stderr, "No worker may execute this task\n");
+			FPRINTF(stderr, "No worker may execute this task\n");
 			exit(0);
 		}
 	}
@@ -87,7 +89,7 @@ int main(int argc, char **argv)
 	/* update the array in RAM */
 	starpu_data_acquire(float_array_handle, STARPU_R);
 
-	fprintf(stderr, "variable -> %f\n", foo);
+	FPRINTF(stderr, "variable -> %f\n", foo);
 
 	starpu_data_release(float_array_handle);
 

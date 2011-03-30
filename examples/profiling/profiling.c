@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,8 @@
 #include <starpu_profiling.h>
 #include <assert.h>
 #include <unistd.h>
+
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 static unsigned niter = 500;
 
@@ -70,7 +72,7 @@ int main(int argc, char **argv)
 		int ret = starpu_task_submit(task);
 		if (STARPU_UNLIKELY(ret == -ENODEV))
 		{
-			fprintf(stderr, "No worker may execute this task\n");
+			FPRINTF(stderr, "No worker may execute this task\n");
 			exit(0);
 		}
 	}
@@ -97,8 +99,8 @@ int main(int argc, char **argv)
 
 	free(tasks);
 
-	fprintf(stderr, "Avg. delay : %2.2lf us\n", (delay_sum)/niter);
-	fprintf(stderr, "Avg. length : %2.2lf us\n", (length_sum)/niter);
+	FPRINTF(stderr, "Avg. delay : %2.2lf us\n", (delay_sum)/niter);
+	FPRINTF(stderr, "Avg. length : %2.2lf us\n", (length_sum)/niter);
 
 	/* Display the occupancy of all workers during the test */
 	int worker;
@@ -117,10 +119,10 @@ int main(int argc, char **argv)
 
 		char workername[128];
 		starpu_worker_get_name(worker, workername, 128);
-		fprintf(stderr, "Worker %s:\n", workername);
-		fprintf(stderr, "\ttotal time : %.2lf ms\n", total_time*1e-3);
-		fprintf(stderr, "\texec time  : %.2lf ms (%.2f %%)\n", executing_time*1e-3, executing_ratio);
-		fprintf(stderr, "\tblocked time  : %.2lf ms (%.2f %%)\n", sleeping_time*1e-3, sleeping_ratio);
+		FPRINTF(stderr, "Worker %s:\n", workername);
+		FPRINTF(stderr, "\ttotal time : %.2lf ms\n", total_time*1e-3);
+		FPRINTF(stderr, "\texec time  : %.2lf ms (%.2f %%)\n", executing_time*1e-3, executing_ratio);
+		FPRINTF(stderr, "\tblocked time  : %.2lf ms (%.2f %%)\n", sleeping_time*1e-3, sleeping_ratio);
 	}
 
 	starpu_shutdown();

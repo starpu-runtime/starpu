@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,6 +26,8 @@
 #include <starpu_cuda.h>
 
 #include <common/blas.h>
+
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 #define BLAS3_FLOP(n1,n2,n3)    \
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
@@ -74,7 +76,7 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 		}
 	}
 
-	printf("max error between A and L*U = %f \n", max_err);
+	FPRINTF(stdout, "max error between A and L*U = %f \n", max_err);
 }
 #endif // CHECK_RESULTS
 

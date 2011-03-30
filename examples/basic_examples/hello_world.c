@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,12 +31,14 @@
 #include <stdint.h>
 #include <starpu.h>
 
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
 /* When the task is done, task->callback_func(task->callback_arg) is called. Any
  * callback function must have the prototype void (*)(void *).
  * NB: Callback are NOT allowed to perform potentially blocking operations */
 void callback_func(void *callback_arg)
 {
-	printf("Callback function got argument %p\n", callback_arg);
+        FPRINTF(stdout, "Callback function got argument %p\n", callback_arg);
 }
 
 /* Every implementation of a codelet must have this prototype, the first
@@ -52,7 +54,7 @@ void cpu_func(void *buffers[], void *cl_arg)
 {
 	struct params *params = cl_arg;
 
-	printf("Hello world (params = {%i, %f} )\n", params->i, params->f);
+	FPRINTF(stdout, "Hello world (params = {%i, %f} )\n", params->i, params->f);
 }
 
 starpu_codelet cl =

@@ -22,6 +22,8 @@
 static unsigned nblocks = 8192;
 static unsigned entries_per_bock = 1024;
 
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
 #define TYPE		double
 #define TYPE_MAX	DBL_MAX
 #define TYPE_MIN	DBL_MIN
@@ -171,15 +173,15 @@ int main(int argc, char **argv)
 		if (ret)
 		{
 			STARPU_ASSERT(ret == -ENODEV);
-			fprintf(stderr, "This test can only run on CPUs, but there are no CPU workers (this is not a bug).\n");
+			FPRINTF(stderr, "This test can only run on CPUs, but there are no CPU workers (this is not a bug).\n");
 			return 0;
 		}
 	}
 
 	starpu_data_unregister(minmax_handle);
 
-	fprintf(stderr, "Min : %e\n", minmax[0]);
-	fprintf(stderr, "Max : %e\n", minmax[1]);
+	FPRINTF(stderr, "Min : %e\n", minmax[0]);
+	FPRINTF(stderr, "Max : %e\n", minmax[1]);
 
 	STARPU_ASSERT(minmax[0] <= minmax[1]);
 

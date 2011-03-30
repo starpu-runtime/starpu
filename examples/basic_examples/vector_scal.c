@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,6 +28,7 @@
 #include <stdio.h>
 
 #define	NX	2048
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 extern void scal_cpu_func(void *buffers[], void *_args);
 extern void scal_cuda_func(void *buffers[], void *_args);
@@ -73,7 +74,7 @@ int main(int argc, char **argv)
 	for (i = 0; i < NX; i++)
 		vector[i] = 1.0f;
 
-	fprintf(stderr, "BEFORE : First element was %f\n", vector[0]);
+	FPRINTF(stderr, "BEFORE : First element was %f\n", vector[0]);
 
 	/* Initialize StarPU with default configuration */
 	starpu_init(NULL);
@@ -132,7 +133,7 @@ int main(int argc, char **argv)
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
 
-	fprintf(stderr, "AFTER First element is %f\n", vector[0]);
+	FPRINTF(stderr, "AFTER First element is %f\n", vector[0]);
 
 	return 0;
 }

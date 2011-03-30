@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,6 +35,8 @@
 #define N	(16*1024*1024)
 
 #define NBLOCKS	8
+
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 TYPE *vec_x, *vec_y;
 
@@ -106,8 +108,8 @@ int main(int argc, char **argv)
 		vec_y[i] = 4.0f;//(TYPE)starpu_drand48();
 	}
 
-	fprintf(stderr, "BEFORE x[0] = %2.2f\n", vec_x[0]);
-	fprintf(stderr, "BEFORE y[0] = %2.2f\n", vec_y[0]);
+	FPRINTF(stderr, "BEFORE x[0] = %2.2f\n", vec_x[0]);
+	FPRINTF(stderr, "BEFORE y[0] = %2.2f\n", vec_y[0]);
 
 	/* Declare the data to StarPU */
 	starpu_vector_data_register(&handle_x, 0, (uintptr_t)vec_x, N, sizeof(TYPE));
@@ -158,9 +160,9 @@ int main(int argc, char **argv)
         double timing = (double)((end.tv_sec - start.tv_sec)*1000000 +
                                         (end.tv_usec - start.tv_usec));
 
-	fprintf(stderr, "timing -> %2.2f us %2.2f MB/s\n", timing, 3*N*sizeof(TYPE)/timing);
+	FPRINTF(stderr, "timing -> %2.2f us %2.2f MB/s\n", timing, 3*N*sizeof(TYPE)/timing);
 
-	fprintf(stderr, "AFTER y[0] = %2.2f (ALPHA = %2.2f)\n", vec_y[0], alpha);
+	FPRINTF(stderr, "AFTER y[0] = %2.2f (ALPHA = %2.2f)\n", vec_y[0], alpha);
 
 	/* Stop StarPU */
 	starpu_shutdown();

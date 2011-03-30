@@ -20,6 +20,7 @@
 #include <sys/time.h>
 
 static unsigned niter = 50000;
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 #ifdef STARPU_USE_CUDA
 extern void cuda_codelet(void *descr[], __attribute__ ((unused)) void *_args);
@@ -88,7 +89,7 @@ int main(int argc, char **argv)
 		int ret = starpu_task_submit(task);
 		if (STARPU_UNLIKELY(ret == -ENODEV))
 		{
-			fprintf(stderr, "No worker may execute this task\n");
+			FPRINTF(stderr, "No worker may execute this task\n");
 			exit(0);
 		}
 	}
@@ -100,11 +101,11 @@ int main(int argc, char **argv)
 
 	gettimeofday(&end, NULL);
 
-	fprintf(stderr, "array -> %f, %f, %f, %f\n", float_array[0],
+	FPRINTF(stderr, "array -> %f, %f, %f, %f\n", float_array[0],
                 float_array[1], float_array[2], float_array[3]);
 
 	if (float_array[0] != float_array[1] + float_array[2] + float_array[3]) {
-		fprintf(stderr, "Incorrect result\n");
+		FPRINTF(stderr, "Incorrect result\n");
 		return 1;
 	}
 
@@ -113,7 +114,7 @@ int main(int argc, char **argv)
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 +
 					(end.tv_usec - start.tv_usec));
 
-	fprintf(stderr, "%d elems took %lf ms\n", niter, timing/1000);
+	FPRINTF(stderr, "%d elems took %lf ms\n", niter, timing/1000);
 
 	starpu_shutdown();
 

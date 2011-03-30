@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,7 +33,7 @@ void display_stat_heat(void)
 {
 	unsigned nworkers = starpu_worker_get_count();
 
-	fprintf(stderr, "STATS : \n");
+	FPRINTF(stderr, "STATS : \n");
 
 	unsigned worker;
 	for (worker = 0; worker < nworkers; worker++)
@@ -49,7 +49,7 @@ void display_stat_heat(void)
 		count_22_total += count_22_per_worker[worker];
 	}
 
-	fprintf(stderr, "\t11 (diagonal block LU)\n");
+	FPRINTF(stderr, "\t11 (diagonal block LU)\n");
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		if (count_total_per_worker[worker])
@@ -57,11 +57,11 @@ void display_stat_heat(void)
 			char name[32];
 			starpu_worker_get_name(worker, name, 32);
 			
-			fprintf(stderr, "\t\t%s -> %d / %d (%2.2f %%)\n", name, count_11_per_worker[worker], count_11_total, (100.0*count_11_per_worker[worker])/count_11_total);
+			FPRINTF(stderr, "\t\t%s -> %d / %d (%2.2f %%)\n", name, count_11_per_worker[worker], count_11_total, (100.0*count_11_per_worker[worker])/count_11_total);
 		}
 	}
 
-	fprintf(stderr, "\t12 (TRSM)\n");
+	FPRINTF(stderr, "\t12 (TRSM)\n");
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		if (count_total_per_worker[worker])
@@ -69,12 +69,12 @@ void display_stat_heat(void)
 			char name[32];
 			starpu_worker_get_name(worker, name, 32);
 			
-			fprintf(stderr, "\t\t%s -> %d / %d (%2.2f %%)\n", name, count_12_per_worker[worker], count_12_total, (100.0*count_12_per_worker[worker])/count_12_total);
+			FPRINTF(stderr, "\t\t%s -> %d / %d (%2.2f %%)\n", name, count_12_per_worker[worker], count_12_total, (100.0*count_12_per_worker[worker])/count_12_total);
 		}
 	}
 	
 	
-	fprintf(stderr, "\t21 (TRSM)\n");
+	FPRINTF(stderr, "\t21 (TRSM)\n");
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		if (count_total_per_worker[worker])
@@ -82,11 +82,11 @@ void display_stat_heat(void)
 			char name[32];
 			starpu_worker_get_name(worker, name, 32);
 			
-			fprintf(stderr, "\t\t%s -> %d / %d (%2.2f %%)\n", name, count_21_per_worker[worker], count_21_total, (100.0*count_21_per_worker[worker])/count_21_total);
+			FPRINTF(stderr, "\t\t%s -> %d / %d (%2.2f %%)\n", name, count_21_per_worker[worker], count_21_total, (100.0*count_21_per_worker[worker])/count_21_total);
 		}
 	}
 	
-	fprintf(stderr, "\t22 (SGEMM)\n");
+	FPRINTF(stderr, "\t22 (SGEMM)\n");
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		if (count_total_per_worker[worker])
@@ -94,7 +94,7 @@ void display_stat_heat(void)
 			char name[32];
 			starpu_worker_get_name(worker, name, 32);
 			
-			fprintf(stderr, "\t\t%s -> %d / %d (%2.2f %%)\n", name, count_22_per_worker[worker], count_22_total, (100.0*count_22_per_worker[worker])/count_22_total);
+			FPRINTF(stderr, "\t\t%s -> %d / %d (%2.2f %%)\n", name, count_22_per_worker[worker], count_22_total, (100.0*count_22_per_worker[worker])/count_22_total);
 		}
 	}
 }
@@ -298,12 +298,12 @@ static inline void debug_print(float *tab, unsigned ld, unsigned n)
 	{
 		for (i = 0; i < n; i++)
 		{
-			fprintf(stderr, "%2.2f\t", tab[(size_t)j+(size_t)i*ld]);
+			FPRINTF(stderr, "%2.2f\t", tab[(size_t)j+(size_t)i*ld]);
 		}
-		fprintf(stderr, "\n");
+		FPRINTF(stderr, "\n");
 	}
 	
-	fprintf(stderr, "\n");
+	FPRINTF(stderr, "\n");
 }
 
 static inline void dw_common_codelet_update_u11(void *descr[], int s, __attribute__((unused)) void *_args) 

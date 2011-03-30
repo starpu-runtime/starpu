@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,8 @@
 #define NZ    3
 #define PARTS 2
 
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
 extern void cpu_func(void *buffers[], void *cl_arg);
 
 #ifdef STARPU_USE_CUDA
@@ -36,17 +38,17 @@ extern void opencl_func(void *buffers[], void *cl_arg);
 void print_block(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz)
 {
         int i, j, k;
-        fprintf(stderr, "block=%p nx=%d ny=%d nz=%d ldy=%d ldz=%d\n", block, nx, ny, nz, ldy, ldz);
+        FPRINTF(stderr, "block=%p nx=%d ny=%d nz=%d ldy=%d ldz=%d\n", block, nx, ny, nz, ldy, ldz);
         for(k=0 ; k<nz ; k++) {
                 for(j=0 ; j<ny ; j++) {
                         for(i=0 ; i<nx ; i++) {
-                                fprintf(stderr, "%2d ", block[(k*ldz)+(j*ldy)+i]);
+                                FPRINTF(stderr, "%2d ", block[(k*ldz)+(j*ldy)+i]);
                         }
-                        fprintf(stderr,"\n");
+                        FPRINTF(stderr,"\n");
                 }
-                fprintf(stderr,"\n");
+                FPRINTF(stderr,"\n");
         }
-        fprintf(stderr,"\n");
+        FPRINTF(stderr,"\n");
 }
 
 void print_data(starpu_data_handle block_handle)
@@ -101,7 +103,7 @@ int main(int argc, char **argv)
 
         /* Declare data to StarPU */
         starpu_block_data_register(&handle, 0, (uintptr_t)block, NX, NX*NY, NX, NY, NZ, sizeof(int));
-        fprintf(stderr, "IN  Block\n");
+        FPRINTF(stderr, "IN  Block\n");
         print_data(handle);
 
         /* Partition the block in PARTS sub-blocks */
@@ -114,12 +116,12 @@ int main(int argc, char **argv)
 	};
         starpu_data_partition(handle, &f);
 
-        fprintf(stderr,"Nb of partitions : %d\n",starpu_data_get_nb_children(handle));
+        FPRINTF(stderr,"Nb of partitions : %d\n",starpu_data_get_nb_children(handle));
 
         for(i=0 ; i<starpu_data_get_nb_children(handle) ; i++)
         {
                 starpu_data_handle sblock = starpu_data_get_sub_data(handle, 1, i);
-                fprintf(stderr, "Sub block %d\n", i);
+                FPRINTF(stderr, "Sub block %d\n", i);
                 print_data(sblock);
         }
 
@@ -129,7 +131,7 @@ int main(int argc, char **argv)
                 int ret,multiplier=i;
                 struct starpu_task *task = starpu_task_create();
 
-                fprintf(stderr,"Dealing with sub-block %d\n", i);
+                FPRINTF(stderr,"Dealing with sub-block %d\n", i);
                 task->cl = &cl;
                 task->synchronous = 1;
                 task->callback_func = NULL;
@@ -139,7 +141,7 @@ int main(int argc, char **argv)
 
                 ret = starpu_task_submit(task);
                 if (ret) {
-                        fprintf(stderr, "Error when submitting task\n");
+                        FPRINTF(stderr, "Error when submitting task\n");
                         exit(ret);
                 }
         }
@@ -150,7 +152,7 @@ int main(int argc, char **argv)
         starpu_data_unregister(handle);
 
         /* Print result block */
-        fprintf(stderr, "OUT Block\n");
+        FPRINTF(stderr, "OUT Block\n");
         print_block(block, NX, NY, NZ, NX, NX*NY);
 
 	starpu_shutdown();

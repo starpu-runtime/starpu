@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -624,12 +624,12 @@ void dw_codelet_facto(starpu_data_handle dataA, unsigned nblocks)
 	gettimeofday(&end, NULL);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-	fprintf(stderr, "Computation took (in ms)\n");
-	printf("%2.2f\n", timing/1000);
+	FPRINTF(stderr, "Computation took (in ms)\n");
+	FPRINTF(stdout, "%2.2f\n", timing/1000);
 
 	unsigned n = starpu_matrix_get_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
-	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
 
 void dw_codelet_facto_v2(starpu_data_handle dataA, unsigned nblocks)
@@ -666,7 +666,7 @@ void dw_codelet_facto_v2(starpu_data_handle dataA, unsigned nblocks)
 	int ret = starpu_task_submit(task);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
-		fprintf(stderr, "No worker may execute this task\n");
+		FPRINTF(stderr, "No worker may execute this task\n");
 		exit(0);
 	}
 
@@ -681,12 +681,12 @@ void dw_codelet_facto_v2(starpu_data_handle dataA, unsigned nblocks)
 	gettimeofday(&end, NULL);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-	fprintf(stderr, "Computation took (in ms)\n");
-	printf("%2.2f\n", timing/1000);
+	FPRINTF(stderr, "Computation took (in ms)\n");
+	FPRINTF(stdout, "%2.2f\n", timing/1000);
 
 	unsigned n = starpu_matrix_get_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
-	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
 
 void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
@@ -714,7 +714,7 @@ void dw_factoLU(float *matA, unsigned size,
 {
 
 #ifdef CHECK_RESULTS
-	fprintf(stderr, "Checking results ...\n");
+	FPRINTF(stderr, "Checking results ...\n");
 	float *Asaved;
 	Asaved = malloc((size_t)ld*ld*sizeof(float));
 

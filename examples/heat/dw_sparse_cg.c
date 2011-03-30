@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,7 @@
  */
 
 #include "dw_sparse_cg.h"
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 static struct starpu_task *create_task(starpu_tag_t id)
 {
@@ -298,13 +299,13 @@ void iteration_cg(void *problem)
 {
 	struct cg_problem *pb = problem;
 
-	printf("i : %d (MAX %d)\n\tdelta_new %f (%f)\n", pb->i, MAXITER, pb->delta_new, sqrt(pb->delta_new / pb->size));
+	FPRINTF(stdout, "i : %d (MAX %d)\n\tdelta_new %f (%f)\n", pb->i, MAXITER, pb->delta_new, sqrt(pb->delta_new / pb->size));
 
 	if ((pb->i < MAXITER) && 
 		(pb->delta_new > pb->epsilon) )
 	{
 		if (pb->i % 1000 == 0)
-			printf("i : %d\n\tdelta_new %f (%f)\n", pb->i, pb->delta_new, sqrt(pb->delta_new / pb->size));
+			FPRINTF(stdout, "i : %d\n\tdelta_new %f (%f)\n", pb->i, pb->delta_new, sqrt(pb->delta_new / pb->size));
 
 		pb->i++;
 
@@ -313,8 +314,8 @@ void iteration_cg(void *problem)
 	}
 	else {
 		/* we may stop */
-		printf("We are done ... after %d iterations \n", pb->i - 1);
-		printf("i : %d\n\tdelta_new %2.5f\n", pb->i, pb->delta_new);
+		FPRINTF(stdout, "We are done ... after %d iterations \n", pb->i - 1);
+		FPRINTF(stdout, "i : %d\n\tdelta_new %2.5f\n", pb->i, pb->delta_new);
 		sem_post(pb->sem);
 	}
 }
@@ -353,7 +354,7 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 		ptr_vecq[i] = 0.0f;
 	}
 
-	printf("nrow = %d \n", nrow);
+	FPRINTF(stdout, "nrow = %d \n", nrow);
 
 	/* and register them as well */
 	starpu_vector_data_register(&ds_vecr, 0, (uintptr_t)ptr_vecr, nrow, sizeof(float));

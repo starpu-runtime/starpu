@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,7 @@
 #include <starpu.h>
 
 #define NTASKS	32000
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 struct starpu_task_list sched_list;
 
@@ -38,7 +39,7 @@ static void init_dummy_sched(struct starpu_machine_topology_s *topology,
 	for (workerid = 0; workerid < topology->nworkers; workerid++)
 		starpu_worker_set_sched_condition(workerid, &sched_cond, &sched_mutex);
 
-	fprintf(stderr, "Initialising Dummy scheduler\n");
+	FPRINTF(stderr, "Initialising Dummy scheduler\n");
 }
 
 static void deinit_dummy_sched(struct starpu_machine_topology_s *topology,
@@ -49,7 +50,7 @@ static void deinit_dummy_sched(struct starpu_machine_topology_s *topology,
 	pthread_cond_destroy(&sched_cond);
 	pthread_mutex_destroy(&sched_mutex);
 
-	fprintf(stderr, "Destroying Dummy scheduler\n");
+	FPRINTF(stderr, "Destroying Dummy scheduler\n");
 }
 
 static int push_task_dummy(struct starpu_task *task)

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,6 +35,8 @@ static unsigned profile = 0;
 static unsigned bound = 0;
 static unsigned bounddeps = 0;
 static unsigned boundprio = 0;
+
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 TYPE *A, *A_saved;
 
@@ -89,18 +91,18 @@ static void parse_args(int argc, char **argv)
 static void display_matrix(TYPE *m, unsigned n, unsigned ld, char *str)
 {
 #if 0
-	fprintf(stderr, "***********\n");
-	fprintf(stderr, "Display matrix %s\n", str);
+	FPRINTF(stderr, "***********\n");
+	FPRINTF(stderr, "Display matrix %s\n", str);
 	unsigned i,j;
 	for (j = 0; j < n; j++)
 	{
 		for (i = 0; i < n; i++)
 		{
-			fprintf(stderr, "%2.2f\t", m[i+j*ld]);
+			FPRINTF(stderr, "%2.2f\t", m[i+j*ld]);
 		}
-		fprintf(stderr, "\n");
+		FPRINTF(stderr, "\n");
 	}
-	fprintf(stderr, "***********\n");
+	FPRINTF(stderr, "***********\n");
 #endif
 }
 
@@ -199,7 +201,7 @@ static void pivot_saved_matrix(unsigned *ipiv)
 	{
 		if (k != ipiv[k])
 		{
-	//		fprintf(stderr, "SWAP %d and %d\n", k, ipiv[k]);
+	//		FPRINTF(stderr, "SWAP %d and %d\n", k, ipiv[k]);
 			CPU_SWAP(size, &A_saved[k*size], 1, &A_saved[ipiv[k]*size], 1);
 		}
 	}
@@ -250,13 +252,13 @@ static void check_result(void)
 	TYPE err = CPU_ASUM(size*size, L, 1);
 	int max = CPU_IAMAX(size*size, L, 1);
 
-	fprintf(stderr, "Avg error : %e\n", err/(size*size));
-	fprintf(stderr, "Max error : %e\n", L[max]);
+	FPRINTF(stderr, "Avg error : %e\n", err/(size*size));
+	FPRINTF(stderr, "Max error : %e\n", L[max]);
 
 	double residual = frobenius_norm(L, size);
 	double matnorm = frobenius_norm(A_saved, size);
 
-	fprintf(stderr, "||%sA-LU|| / (||A||*N) : %e\n", pivot?"P":"", residual/(matnorm*size));
+	FPRINTF(stderr, "||%sA-LU|| / (||A||*N) : %e\n", pivot?"P":"", residual/(matnorm*size));
 
 	if (residual/(matnorm*size) > 1e-5)
 		exit(-1);
@@ -314,8 +316,8 @@ int main(int argc, char **argv)
 			
 			unsigned n = size;
 			double flop = (2.0f*n*n*n)/3.0f;
-			fprintf(stderr, "Synthetic GFlops (TOTAL) : \n");
-			fprintf(stdout, "%d	%6.2f\n", n, (flop/timing/1000.0f));
+			FPRINTF(stderr, "Synthetic GFlops (TOTAL) : \n");
+			FPRINTF(stdout, "%d	%6.2f\n", n, (flop/timing/1000.0f));
 		}
 	}
 	else
@@ -335,11 +337,11 @@ int main(int argc, char **argv)
 		if (bounddeps) {
 			FILE *f = fopen("lu.pl", "w");
 			starpu_bound_print_lp(f);
-			fprintf(stderr,"system printed to lu.pl\n");
+			FPRINTF(stderr,"system printed to lu.pl\n");
 		} else {
 			starpu_bound_compute(&min, NULL, 0);
 			if (min != 0.)
-				fprintf(stderr, "theoretical min: %lf ms\n", min);
+				FPRINTF(stderr, "theoretical min: %lf ms\n", min);
 		}
 	}
 

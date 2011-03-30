@@ -126,13 +126,13 @@ static void _cholesky(starpu_data_handle dataA, unsigned nblocks)
 	gettimeofday(&end, NULL);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-	fprintf(stderr, "Computation took (in ms)\n");
-	printf("%2.2f\n", timing/1000);
+	FPRINTF(stderr, "Computation took (in ms)\n");
+	FPRINTF(stdout, "%2.2f\n", timing/1000);
 
 	unsigned long n = starpu_matrix_get_nx(dataA);
 
 	double flop = (1.0f*n*n*n)/3.0f;
-	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
 
 static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
@@ -188,46 +188,46 @@ int main(int argc, char **argv)
 
 //#define PRINT_OUTPUT
 #ifdef PRINT_OUTPUT
-	printf("Input :\n");
+	FPRINTF(stdout, "Input :\n");
 
 	for (j = 0; j < size; j++)
 	{
 		for (i = 0; i < size; i++)
 		{
 			if (i <= j) {
-				printf("%2.2f\t", mat[j +i*size]);
+				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
 			}
 			else {
-				printf(".\t");
+				FPRINTF(stdout, ".\t");
 			}
 		}
-		printf("\n");
+		FPRINTF(stdout, "\n");
 	}
 #endif
 
 	cholesky(mat, size, size, nblocks);
 
 #ifdef PRINT_OUTPUT
-	printf("Results :\n");
+	FPRINTF(stdout, "Results :\n");
 	for (j = 0; j < size; j++)
 	{
 		for (i = 0; i < size; i++)
 		{
 			if (i <= j) {
-				printf("%2.2f\t", mat[j +i*size]);
+				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
 			}
 			else {
-				printf(".\t");
+				FPRINTF(stdout, ".\t");
 				mat[j+i*size] = 0.0f; // debug
 			}
 		}
-		printf("\n");
+		FPRINTF(stdout, "\n");
 	}
 #endif
 
 	if (check)
 	{
-		fprintf(stderr, "compute explicit LLt ...\n");
+		FPRINTF(stderr, "compute explicit LLt ...\n");
 		for (j = 0; j < size; j++)
 		{
 			for (i = 0; i < size; i++)
@@ -243,20 +243,20 @@ int main(int argc, char **argv)
 		SSYRK("L", "N", size, size, 1.0f,
 					mat, size, 0.0f, test_mat, size);
 	
-		fprintf(stderr, "comparing results ...\n");
+		FPRINTF(stderr, "comparing results ...\n");
 #ifdef PRINT_OUTPUT
 		for (j = 0; j < size; j++)
 		{
 			for (i = 0; i < size; i++)
 			{
 				if (i <= j) {
-					printf("%2.2f\t", test_mat[j +i*size]);
+					FPRINTF(stdout, "%2.2f\t", test_mat[j +i*size]);
 				}
 				else {
-					printf(".\t");
+					FPRINTF(stdout, ".\t");
 				}
 			}
-			printf("\n");
+			FPRINTF(stdout, "\n");
 		}
 #endif
 	
@@ -268,7 +268,7 @@ int main(int argc, char **argv)
 	                                float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
 	                                float err = abs(test_mat[j +i*size] - orig);
 	                                if (err > 0.00001) {
-	                                        fprintf(stderr, "Error[%d, %d] --> %2.2f != %2.2f (err %2.2f)\n", i, j, test_mat[j +i*size], orig, err);
+	                                        FPRINTF(stderr, "Error[%d, %d] --> %2.2f != %2.2f (err %2.2f)\n", i, j, test_mat[j +i*size], orig, err);
 	                                        assert(0);
 	                                }
 	                        }

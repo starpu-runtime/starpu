@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,6 +35,8 @@
 #include <starpu.h>
 
 #include "lu_kernels_model.h"
+
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 #define BLAS3_FLOP(n1,n2,n3)    \
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
@@ -82,53 +84,53 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 
 #if 0
 	/* display L */
-	printf("(LU): \n");
+	FPRINTF(stdout, "(LU): \n");
 	for (j = 0; j < size; j++)
 	{
 		for (i = 0; i < size; i++)
 		{
 //			if (i <= j) {
-				printf("%2.2f\t", LU[j +i*size]);
+				FPRINTF(stdout, "%2.2f\t", LU[j +i*size]);
 //			}
 //			else {
-//				printf(".\t");
+//				FPRINTF(stdout, ".\t");
 //			}
 		}
-		printf("\n");
+		FPRINTF(stdout, "\n");
 	}
 
 
 
 	/* display L */
-	printf("L: \n");
+	FPRINTF(stdout, "L: \n");
 	for (j = 0; j < size; j++)
 	{
 		for (i = 0; i < size; i++)
 		{
 //			if (i <= j) {
-				printf("%2.2f\t", L[j +i*size]);
+				FPRINTF(stdout, "%2.2f\t", L[j +i*size]);
 //			}
 //			else {
-//				printf(".\t");
+//				FPRINTF(stdout, ".\t");
 //			}
 		}
-		printf("\n");
+		FPRINTF(stdout, "\n");
 	}
 
 	/* display U */
-	printf("U: \n");
+	FPRINTF(stdout, "U: \n");
 	for (j = 0; j < size; j++)
 	{
 		for (i = 0; i < size; i++)
 		{
 //			if (i <= j) {
-				printf("%2.2f\t", U[j +i*size]);
+				FPRINTF(stdout, "%2.2f\t", U[j +i*size]);
 //			}
 //			else {
-//				printf(".\t");
+//				FPRINTF(stdout, ".\t");
 //			}
 		}
-		printf("\n");
+		FPRINTF(stdout, "\n");
 	}
 
 #endif
@@ -148,40 +150,40 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 
 #if 0
 	/* display A */
-	printf("A: \n");
+	FPRINTF(stdout, "A: \n");
 	for (j = 0; j < size; j++)
 	{
 		for (i = 0; i < size; i++)
 		{
 	//		if (i <= j) {
-	      			printf("%2.2f\t", A[j +i*size]);
+	      			FPRINTF(stdout, "%2.2f\t", A[j +i*size]);
 	//		}
 	//		else {
-	//			printf(".\t");
+	//			FPRINTF(stdout, ".\t");
 	//		}
 		}
-		printf("\n");
+		FPRINTF(stdout, "\n");
 	}
 
 
 	/* display LU */
-	printf("LU: \n");
+	FPRINTF(stdout, "LU: \n");
 	for (j = 0; j < size; j++)
 	{
 		for (i = 0; i < size; i++)
 		{
 	//		if (i <= j) {
-	      			printf("%2.2f\t", L[j +i*size]);
+	      			FPRINTF(stdout, "%2.2f\t", L[j +i*size]);
 	//		}
 	//		else {
-	//			printf(".\t");
+	//			FPRINTF(stdout, ".\t");
 	//		}
 		}
-		printf("\n");
+		FPRINTF(stdout, "\n");
 	}
 #endif
 
-	printf("max error between A and L*U = %f \n", max_err);
+	FPRINTF(stdout, "max error between A and L*U = %f \n", max_err);
 }
 #endif // CHECK_RESULTS
 

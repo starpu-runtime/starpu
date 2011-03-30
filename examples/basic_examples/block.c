@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,8 @@
 #include <starpu_opencl.h>
 #include <pthread.h>
 #include <math.h>
+
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 extern void cpu_codelet(void *descr[], void *_args);
 #ifdef STARPU_USE_CUDA
@@ -55,7 +57,7 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
 
         int ret = starpu_task_submit(task);
         if (STARPU_UNLIKELY(ret == -ENODEV)) {
-                fprintf(stderr, "No worker may execute this task\n");
+                FPRINTF(stderr, "No worker may execute this task\n");
                 return 1;
 	}
 
@@ -65,9 +67,9 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
         starpu_data_acquire(block_handle, STARPU_R);
 
         for(i=0 ; i<pnx*pny*pnz; i++) {
-          fprintf(stderr, "%f ", block[i]);
+          FPRINTF(stderr, "%f ", block[i]);
         }
-        fprintf(stderr, "\n");
+        FPRINTF(stderr, "\n");
 
         starpu_data_release(block_handle);
 
@@ -116,7 +118,7 @@ int main(int argc, char **argv)
           }
         }
 
-        fprintf(stderr,"TEST %s\n", ret==1?"PASSED":"FAILED");
+        FPRINTF(stderr,"TEST %s\n", ret==1?"PASSED":"FAILED");
         starpu_shutdown();
 
 	return 0;

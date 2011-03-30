@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -59,7 +59,7 @@ static starpu_codelet cl11 =
 
 static struct starpu_task * create_task_11(unsigned k, unsigned nblocks)
 {
-//	printf("task 11 k = %d TAG = %llx\n", k, (TAG11(k)));
+//	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG11(k)));
 
 	struct starpu_task *task = create_task(TAG11(k));
 	
@@ -145,7 +145,7 @@ static starpu_codelet cl22 =
 
 static void create_task_22(unsigned k, unsigned i, unsigned j)
 {
-//	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j));
+//	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j));
 
 	struct starpu_task *task = create_task(TAG22(k, i, j));
 
@@ -224,11 +224,11 @@ static void cholesky_no_stride(void)
 	gettimeofday(&end, NULL);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-	fprintf(stderr, "Computation took (in ms)\n");
-	printf("%2.2f\n", timing/1000);
+	FPRINTF(stderr, "Computation took (in ms)\n");
+	FPRINTF(stdout, "%2.2f\n", timing/1000);
 
 	double flop = (1.0f*size*size*size)/3.0f;
-	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
 
 int main(int argc, char **argv)
@@ -239,7 +239,7 @@ int main(int argc, char **argv)
 	parse_args(argc, argv);
 	assert(nblocks <= NMAXBLOCKS);
 
-	fprintf(stderr, "BLOCK SIZE = %d\n", size / nblocks);
+	FPRINTF(stderr, "BLOCK SIZE = %d\n", size / nblocks);
 
 	starpu_init(NULL);
 

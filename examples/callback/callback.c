@@ -19,6 +19,8 @@
 #include <pthread.h>
 #include <sys/time.h>
 
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
 starpu_data_handle handle;
 
 void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
@@ -62,7 +64,7 @@ int main(int argc, char **argv)
 
 	starpu_task_wait_for_all();
 
-	fprintf(stderr, "v -> %d\n", v);
+	FPRINTF(stderr, "v -> %d\n", v);
 
 	starpu_shutdown();
 

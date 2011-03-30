@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +21,7 @@
  */
 
 #include "dw_spmv.h"
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 #ifdef STARPU_USE_CUDA
 extern void spmv_kernel_cuda(void *descr[], void *args);
@@ -259,7 +260,7 @@ void call_spmv_codelet_filters(void)
                 int ret = starpu_opencl_load_opencl_from_file("examples/spmv/spmv_opencl.cl", &opencl_codelet);
                 if (ret)
 		{
-			fprintf(stderr, "Failed to compile OpenCL codelet\n");
+			FPRINTF(stderr, "Failed to compile OpenCL codelet\n");
 			exit(ret);
 		}
         }
@@ -301,7 +302,7 @@ void call_spmv_codelet_filters(void)
 		ret = starpu_task_submit(task);
 		if (STARPU_UNLIKELY(ret == -ENODEV))
 		{
-			fprintf(stderr, "No worker may execute this task\n");
+			FPRINTF(stderr, "No worker may execute this task\n");
 			exit(0);
 		}
 	}
@@ -320,7 +321,7 @@ static void print_results(void)
 
 	for (row = 0; row < STARPU_MIN(size, 16); row++)
 	{
-		printf("%2.2f\t%2.2f\n", vector_in_ptr[row], vector_out_ptr[row]);
+                FPRINTF(stdout, "%2.2f\t%2.2f\n", vector_in_ptr[row], vector_out_ptr[row]);
 	}
 }
 
@@ -343,8 +344,8 @@ int main(__attribute__ ((unused)) int argc,
 	print_results();
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-	fprintf(stderr, "Computation took (in ms)\n");
-	printf("%2.2f\n", timing/1000);
+	FPRINTF(stderr, "Computation took (in ms)\n");
+	FPRINTF(stdout, "%2.2f\n", timing/1000);
 
 	return 0;
 }

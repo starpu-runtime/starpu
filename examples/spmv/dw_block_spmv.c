@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +18,7 @@
 
 #include "dw_block_spmv.h"
 #include "matrix_market/mm_to_bcsr.h"
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 struct timeval start;
 struct timeval end;
@@ -266,7 +267,7 @@ int main(__attribute__ ((unused)) int argc,
 {
 	if (argc < 2)
 	{
-		fprintf(stderr, "usage : %s filename [tile size]\n", argv[0]);
+		FPRINTF(stderr, "usage : %s filename [tile size]\n", argv[0]);
 		exit(-1);
 	}
 
@@ -297,10 +298,10 @@ int main(__attribute__ ((unused)) int argc,
 	double totalflop = 2.0*c*r*totaltasks;
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-	fprintf(stderr, "Computation took (in ms)\n");
-	printf("%2.2f\n", timing/1000);
-	fprintf(stderr, "Flop %e\n", totalflop);
-	fprintf(stderr, "GFlops : %2.2f\n", totalflop/timing/1000);
+	FPRINTF(stderr, "Computation took (in ms)\n");
+	FPRINTF(stdout, "%2.2f\n", timing/1000);
+	FPRINTF(stderr, "Flop %e\n", totalflop);
+	FPRINTF(stderr, "GFlops : %2.2f\n", totalflop/timing/1000);
 
 	return 0;
 }

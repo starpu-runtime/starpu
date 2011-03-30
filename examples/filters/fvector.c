@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +18,8 @@
 
 #define NX    21
 #define PARTS 3
+
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 void cpu_func(void *buffers[], void *cl_arg)
 {
@@ -47,9 +49,9 @@ int main(int argc, char **argv)
         };
 
         for(i=0 ; i<NX ; i++) vector[i] = i;
-        fprintf(stderr,"IN  Vector: ");
-        for(i=0 ; i<NX ; i++) fprintf(stderr, "%5d ", vector[i]);
-        fprintf(stderr,"\n");
+        FPRINTF(stderr,"IN  Vector: ");
+        for(i=0 ; i<NX ; i++) FPRINTF(stderr, "%5d ", vector[i]);
+        FPRINTF(stderr,"\n");
 
 	starpu_init(NULL);
 
@@ -87,9 +89,9 @@ int main(int argc, char **argv)
         starpu_data_unregister(handle);
 	starpu_shutdown();
 
-        fprintf(stderr,"OUT Vector: ");
-        for(i=0 ; i<NX ; i++) fprintf(stderr, "%5d ", vector[i]);
-        fprintf(stderr,"\n");
+        FPRINTF(stderr,"OUT Vector: ");
+        for(i=0 ; i<NX ; i++) FPRINTF(stderr, "%5d ", vector[i]);
+        FPRINTF(stderr,"\n");
 
 	return 0;
 }

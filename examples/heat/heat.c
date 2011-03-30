@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -321,7 +321,7 @@ static void solve_system(unsigned size, unsigned subsize, float *result, int *Re
 	/* solve the actual problem LU X = B */
         /* solve LX' = Y with X' = UX */
         /* solve UX = X' */
-	fprintf(stderr, "Solving the problem ...\n");
+	FPRINTF(stderr, "Solving the problem ...\n");
 
 	float *savedB;
 	float *LUB;
@@ -360,10 +360,10 @@ static void solve_system(unsigned size, unsigned subsize, float *result, int *Re
 	
 		/* check if LUB is close to the 0 vector */
 		int maxind = ISAMAX(subsize, LUB, 1);
-		fprintf(stderr, "max error (LUX - B) = %e\n",LUB[maxind - 1]);
+		FPRINTF(stderr, "max error (LUX - B) = %e\n",LUB[maxind - 1]);
 
 		float sum = SASUM(subsize, LUB, 1);
-		fprintf(stderr,"avg. error %e\n", sum/subsize);
+		FPRINTF(stderr,"avg. error %e\n", sum/subsize);
 	
 		free(LUB);
 		free(savedB);
@@ -729,7 +729,7 @@ int main(int argc, char **argv)
 
 		build_dense_stiffness_matrix_A(pmesh, A, newsize, RefArray, RefArrayBack);
 
-		fprintf(stderr, "Problem size : %dx%d (%dx%d) (%ld MB)\n", newsize, newsize, DIM, DIM, ((unsigned long)newsize*newsize*4UL)/(1024*1024));
+		FPRINTF(stderr, "Problem size : %dx%d (%dx%d) (%ld MB)\n", newsize, newsize, DIM, DIM, ((unsigned long)newsize*newsize*4UL)/(1024*1024));
 
 		STARPU_ASSERT(newsize % nblocks == 0);
 

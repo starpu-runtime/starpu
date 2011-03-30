@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -54,7 +54,7 @@ static starpu_codelet cl11 = {
 
 static struct starpu_task *create_task_11(starpu_data_handle dataA, unsigned k, unsigned tag_prefix)
 {
-//	printf("task 11 k = %d TAG = %llx\n", k, (TAG11(k)));
+//	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG11(k)));
 
 	struct starpu_task *task = create_task(TAG11(k, tag_prefix));
 
@@ -87,7 +87,7 @@ static starpu_codelet cl12 = {
 
 static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned i, unsigned tag_prefix)
 {
-//	printf("task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i));
+//	FPRINTF(stdout, "task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i));
 
 	struct starpu_task *task = create_task(TAG12(k, i, tag_prefix));
 	
@@ -163,7 +163,7 @@ static starpu_codelet cl22 = {
 
 static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, unsigned j, unsigned tag_prefix)
 {
-//	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j));
+//	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j));
 
 	struct starpu_task *task = create_task(TAG22(k, i, j, tag_prefix));
 
@@ -262,7 +262,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 	int ret = starpu_task_submit(entry_task);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
-		fprintf(stderr, "No worker may execute this task\n");
+		FPRINTF(stderr, "No worker may execute this task\n");
 		exit(-1);
 	}
 
@@ -314,7 +314,7 @@ void dw_factoLU_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks,
 {
 
 #ifdef CHECK_RESULTS
-	fprintf(stderr, "Checking results ...\n");
+	FPRINTF(stderr, "Checking results ...\n");
 	float *Asaved;
 	Asaved = malloc(ld*ld*sizeof(float));
 
@@ -333,12 +333,12 @@ void dw_factoLU_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks,
 	gettimeofday(&end, NULL);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-	fprintf(stderr, "Computation took (in ms)\n");
-	printf("%2.2f\n", timing/1000);
+	FPRINTF(stderr, "Computation took (in ms)\n");
+	FPRINTF(stdout, "%2.2f\n", timing/1000);
 
 	unsigned n = size;
 	double flop = (2.0f*n*n*n)/3.0f;
-	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 
 #ifdef CHECK_RESULTS
 	compare_A_LU(Asaved, matA, size, ld);

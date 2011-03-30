@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -49,7 +49,7 @@ static starpu_codelet cl11 =
 
 static struct starpu_task * create_task_11(starpu_data_handle dataA, unsigned k, unsigned reclevel)
 {
-//	printf("task 11 k = %d TAG = %llx\n", k, (TAG11(k)));
+//	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG11(k)));
 
 	struct starpu_task *task = create_task(TAG11_AUX(k, reclevel));
 	
@@ -121,7 +121,7 @@ static starpu_codelet cl22 =
 
 static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, unsigned j, unsigned reclevel)
 {
-//	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22_AUX(k,i,j));
+//	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22_AUX(k,i,j));
 
 	struct starpu_task *task = create_task(TAG22_AUX(k, i, j, reclevel));
 
@@ -214,7 +214,7 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 	int ret = starpu_task_submit(entry_task);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
-		fprintf(stderr, "No worker may execute this task\n");
+		FPRINTF(stderr, "No worker may execute this task\n");
 		exit(-1);
 	}
 
@@ -280,11 +280,11 @@ void cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, u
 	gettimeofday(&end, NULL);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-	fprintf(stderr, "Computation took (in ms)\n");
-	printf("%2.2f\n", timing/1000);
+	FPRINTF(stderr, "Computation took (in ms)\n");
+	FPRINTF(stdout, "%2.2f\n", timing/1000);
 
 	double flop = (1.0f*size*size*size)/3.0f;
-	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 
 	starpu_helper_cublas_shutdown();
 
@@ -317,20 +317,20 @@ int main(int argc, char **argv)
 
 
 #ifdef CHECK_OUTPUT
-	printf("Input :\n");
+	FPRINTF(stdout, "Input :\n");
 
 	for (j = 0; j < size; j++)
 	{
 		for (i = 0; i < size; i++)
 		{
 			if (i <= j) {
-				printf("%2.2f\t", mat[j +i*size]);
+				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
 			}
 			else {
-				printf(".\t");
+				FPRINTF(stdout, ".\t");
 			}
 		}
-		printf("\n");
+		FPRINTF(stdout, "\n");
 	}
 #endif
 
@@ -338,43 +338,43 @@ int main(int argc, char **argv)
 	cholesky_grain(mat, size, size, nblocks, nbigblocks);
 
 #ifdef CHECK_OUTPUT
-	printf("Results :\n");
+	FPRINTF(stdout, "Results :\n");
 
 	for (j = 0; j < size; j++)
 	{
 		for (i = 0; i < size; i++)
 		{
 			if (i <= j) {
-				printf("%2.2f\t", mat[j +i*size]);
+				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
 			}
 			else {
-				printf(".\t");
+				FPRINTF(stdout, ".\t");
 				mat[j+i*size] = 0.0f; // debug
 			}
 		}
-		printf("\n");
+		FPRINTF(stdout, "\n");
 	}
 
-	fprintf(stderr, "compute explicit LLt ...\n");
+	FPRINTF(stderr, "compute explicit LLt ...\n");
 	float *test_mat = malloc(size*size*sizeof(float));
 	STARPU_ASSERT(test_mat);
 
 	SSYRK("L", "N", size, size, 1.0f, 
 				mat, size, 0.0f, test_mat, size);
 
-	fprintf(stderr, "comparing results ...\n");
+	FPRINTF(stderr, "comparing results ...\n");
 	for (j = 0; j < size; j++)
 	{
 		for (i = 0; i < size; i++)
 		{
 			if (i <= j) {
-				printf("%2.2f\t", test_mat[j +i*size]);
+                                FPRINTF(stdout, "%2.2f\t", test_mat[j +i*size]);
 			}
 			else {
-				printf(".\t");
+				FPRINTF(stdout, ".\t");
 			}
 		}
-		printf("\n");
+		FPRINTF(stdout, "\n");
 	}
 #endif
 

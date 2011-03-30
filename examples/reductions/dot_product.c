@@ -22,6 +22,8 @@
 #include <cublas.h>
 #endif
 
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
 static float *x;
 static float *y;
 static starpu_data_handle *x_handles;
@@ -122,7 +124,7 @@ void dot_cuda_func(void *descr[], void *cl_arg)
 
 	local_dot = (DOT_TYPE)cublasSdot(n, local_x, 1, local_y, 1);
 
-	//fprintf(stderr, "current_dot %f local dot %f -> %f\n", current_dot, local_dot, current_dot + local_dot);
+	//FPRINTF(stderr, "current_dot %f local dot %f -> %f\n", current_dot, local_dot, current_dot + local_dot);
 	current_dot += local_dot;
 
 	cudaThreadSynchronize();
@@ -213,7 +215,7 @@ int main(int argc, char **argv)
 
 	starpu_data_unregister(dot_handle);
 
-	fprintf(stderr, "Reference : %e vs. %e (Delta %e)\n", reference_dot, dot, reference_dot - dot);
+	FPRINTF(stderr, "Reference : %e vs. %e (Delta %e)\n", reference_dot, dot, reference_dot - dot);
 
 	starpu_helper_cublas_shutdown();
 

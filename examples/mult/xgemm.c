@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,6 +42,8 @@ static unsigned check = 0;
 static TYPE *A, *B, *C;
 static starpu_data_handle A_handle, B_handle, C_handle;
 
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
 static void check_output(void)
 {
 	/* compute C = C - AB */
@@ -52,14 +54,14 @@ static void check_output(void)
 	err = CPU_ASUM(xdim*ydim, C, 1);
 
 	if (err < xdim*ydim*0.001) {
-		fprintf(stderr, "Results are OK\n");
+		FPRINTF(stderr, "Results are OK\n");
 	}
 	else {
 		int max;
 		max = CPU_IAMAX(xdim*ydim, C, 1);
 
-		fprintf(stderr, "There were errors ... err = %f\n", err);
-		fprintf(stderr, "Max error : %e\n", C[max]);
+		FPRINTF(stderr, "There were errors ... err = %f\n", err);
+		FPRINTF(stderr, "Max error : %e\n", C[max]);
 	}
 }
 
@@ -284,11 +286,11 @@ int main(int argc, char **argv)
 	gettimeofday(&end, NULL);
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	fprintf(stderr, "Time: %2.2f ms\n", timing/1000.0);
+	FPRINTF(stderr, "Time: %2.2f ms\n", timing/1000.0);
 
 	double flops = 2.0*((unsigned long)niter)*((unsigned long)xdim)
 				*((unsigned long)ydim)*((unsigned long)zdim);
-	fprintf(stderr, "GFlop/s: %.2f\n", flops/timing/1000.0);
+	FPRINTF(stderr, "GFlop/s: %.2f\n", flops/timing/1000.0);
 
 	starpu_data_unpartition(C_handle, 0);
 	starpu_data_unregister(C_handle);

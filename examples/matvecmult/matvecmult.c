@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,8 @@
 #include <starpu_opencl.h>
 #include <pthread.h>
 #include <math.h>
+
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 #ifdef STARPU_USE_OPENCL
 struct starpu_opencl_program opencl_code;
@@ -73,9 +75,9 @@ void fillArray(float* pfData, int iSize) {
 void printArray(float* pfData, int iSize) {
     int i;
     for (i = 0; i < iSize; ++i) {
-            fprintf(stderr, "%f ", pfData[i]);
+            FPRINTF(stderr, "%f ", pfData[i]);
     }
-    fprintf(stderr, "\n");
+    FPRINTF(stderr, "\n");
 }
 
 void matVecMult(const float *matrix, const float *vector, int width, int height, float *mult) {
@@ -179,7 +181,7 @@ int main(int argc, char **argv)
 
         int ret = starpu_task_submit(task);
         if (STARPU_UNLIKELY(ret == -ENODEV)) {
-                fprintf(stderr, "No worker may execute this task. This application requires an OpenCL worker.\n");
+                FPRINTF(stderr, "No worker may execute this task. This application requires an OpenCL worker.\n");
                 exit(0);
 	}
 
@@ -191,7 +193,7 @@ int main(int argc, char **argv)
         starpu_data_acquire(mult_handle, STARPU_R);
 
         int res = compareL2fe(correctResult, mult, height, 1e-6f);
-        printf("TEST %s\n\n", (res == 0) ? "PASSED" : "FAILED !!!");
+        FPRINTF(stdout, "TEST %s\n\n", (res == 0) ? "PASSED" : "FAILED !!!");
 #if 0
         printArray(matrix, width*height);
         printArray(vector, width);

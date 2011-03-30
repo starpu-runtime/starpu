@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -211,7 +211,7 @@ void find_limits(void)
 
 void opengl_render(unsigned _ntheta, unsigned _nthick, float *_result, point *_pmesh, int argc_, char **argv_)
 {
-	fprintf(stderr, "OpenGL rendering ... \n");
+	FPRINTF(stderr, "OpenGL rendering ... \n");
 
 	ntheta = _ntheta;
 	nthick = _nthick;
