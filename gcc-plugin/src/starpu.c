@@ -602,9 +602,8 @@ build_codelet_wrapper_definition (tree task_impl)
   DECL_SAVED_TREE (decl) = build_body (decl, vars);
   TREE_TYPE (DECL_SAVED_TREE (decl)) = TREE_TYPE (TREE_TYPE (decl));
 
-  /* FIXME: DECL shouldn't have to be public.  */
 
-  TREE_PUBLIC (decl) = true; /* TREE_PUBLIC (task_impl); */
+  TREE_PUBLIC (decl) = TREE_PUBLIC (task_impl);
   TREE_STATIC (decl) = true;
   TREE_USED (decl) = true;
   DECL_ARTIFICIAL (decl) = true;
@@ -617,6 +616,9 @@ build_codelet_wrapper_definition (tree task_impl)
   cgraph_finalize_function (decl, false);
 
   set_cfun (NULL);
+  /* Mark DECL as needed so that it doesn't get removed by
+     `cgraph_remove_unreachable_nodes' when it's not public.  */
+  cgraph_mark_needed_node (cgraph_get_node (decl));
 
   return decl;
 }
