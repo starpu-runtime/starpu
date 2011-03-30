@@ -24,6 +24,7 @@
 
 #define INIT_VALUE	42
 #define NTASKS		10000
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 static unsigned variable;
 static starpu_data_handle variable_handle;
@@ -81,7 +82,7 @@ static void cpu_redux_func(void *descr[], void *cl_arg __attribute__((unused)))
 	unsigned *a = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned *b = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
-	fprintf(stderr, "%d = %d + %d\n", *a + *b, *a, *b);
+	FPRINTF(stderr, "%d = %d + %d\n", *a + *b, *a, *b);
 
 	*a = *a + *b;
 }

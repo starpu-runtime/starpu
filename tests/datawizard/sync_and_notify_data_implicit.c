@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +28,7 @@
 #define K	256
 //#define N	1
 //#define K	1
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 /*
  * In this test, we maintain a vector v = (a,b,c).
@@ -119,7 +120,7 @@ int main(int argc, char **argv)
 	unsigned kernel_incC_id = gordon_register_kernel(elf_id, "incC");
 	gordon_load_kernel_on_all_spu(kernel_incC_id);
 
-	fprintf(stderr, "kernel incA %d incC %d elf %d\n", kernel_incA_id, kernel_incC_id, elf_id);
+	FPRINTF(stderr, "kernel incA %d incC %d elf %d\n", kernel_incA_id, kernel_incC_id, elf_id);
 #endif
 
 #ifdef STARPU_USE_OPENCL
@@ -171,7 +172,7 @@ int main(int argc, char **argv)
 
 	starpu_data_acquire(v_handle, STARPU_RW);
 
-	fprintf(stderr, "V = { %d, %d, %d }\n", v[0], v[1], v[2]);
+	FPRINTF(stderr, "V = { %d, %d, %d }\n", v[0], v[1], v[2]);
 
 	starpu_data_release(v_handle);
 

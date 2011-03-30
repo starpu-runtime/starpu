@@ -21,6 +21,7 @@
 
 #define NTHREADS	4
 #define NITER		128
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 //static pthread_cond_t cond;
 //static pthread_mutex_t mutex;
@@ -100,7 +101,7 @@ static void recv_handle(struct thread_data *thread_data)
 	thread_data->recv_flag = 0;
 	pthread_cond_signal(&thread_data->recv_cond);
 
-//	fprintf(stderr, "Thread %d received value %d from thread %d\n", thread_data->index, thread_data->val, (thread_data->index - 1)%NTHREADS);
+//	FPRINTF(stderr, "Thread %d received value %d from thread %d\n", thread_data->index, thread_data->val, (thread_data->index - 1)%NTHREADS);
 
 	pthread_mutex_unlock(&thread_data->recv_mutex);
 	starpu_data_release(thread_data->handle);
@@ -112,7 +113,7 @@ static void send_handle(struct thread_data *thread_data)
 
 	starpu_data_acquire(thread_data->handle, STARPU_R);
 
-//	fprintf(stderr, "Thread %d sends value %d to thread %d\n", thread_data->index, thread_data->val, neighbour_data->index);
+//	FPRINTF(stderr, "Thread %d sends value %d to thread %d\n", thread_data->index, thread_data->val, neighbour_data->index);
 	/* send the message */
 	pthread_mutex_lock(&neighbour_data->recv_mutex);
 	neighbour_data->recv_buf = thread_data->val;
@@ -190,7 +191,7 @@ int main(int argc, char **argv)
 	starpu_data_acquire(last_handle, STARPU_R);
 	if (problem_data[NTHREADS - 1].val != (NTHREADS * NITER))
 	{
-		fprintf(stderr, "Final value : %d should be %d\n", problem_data[NTHREADS - 1].val, (NTHREADS * NITER));
+		FPRINTF(stderr, "Final value : %d should be %d\n", problem_data[NTHREADS - 1].val, (NTHREADS * NITER));
 		STARPU_ABORT();
 	}
 	starpu_data_release(last_handle);

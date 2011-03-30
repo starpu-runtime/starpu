@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +21,8 @@
 
 #include <starpu.h>
 
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
 static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
 }
@@ -38,7 +40,7 @@ static starpu_codelet dummy_codelet =
 static void callback(void *tag)
 {
 //	fflush(stderr);
-//	fprintf(stderr, "Callback for tag %p\n", tag);
+//	FPRINTF(stderr, "Callback for tag %p\n", tag);
 //	fflush(stderr);
 }
 
@@ -76,7 +78,7 @@ int main(int argc, char **argv)
 {
 	starpu_init(NULL);
 
-	fprintf(stderr, "{ A } -> { B }\n");
+	FPRINTF(stderr, "{ A } -> { B }\n");
 	fflush(stderr);
 
 	struct starpu_task *taskA, *taskB;
@@ -92,7 +94,7 @@ int main(int argc, char **argv)
 
 	starpu_tag_wait(tagB);
 	
-	fprintf(stderr, "{ C, D, E, F } -> { G }\n");
+	FPRINTF(stderr, "{ C, D, E, F } -> { G }\n");
 
 	struct starpu_task *taskC, *taskD, *taskE, *taskF, *taskG;
 
@@ -113,7 +115,7 @@ int main(int argc, char **argv)
 
 	starpu_tag_wait(tagG);
 
-	fprintf(stderr, "{ H, I } -> { J, K, L }\n");
+	FPRINTF(stderr, "{ H, I } -> { J, K, L }\n");
 	
 	struct starpu_task *taskH, *taskI, *taskJ, *taskK, *taskL;
 

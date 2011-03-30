@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +21,8 @@
 #include <errno.h>
 #include <starpu.h>
 #include <stdlib.h>
+
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 #define N	10
 
@@ -49,8 +51,8 @@ int main(int argc, char **argv)
 		shutdown_timing += (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	}
 
-	fprintf(stderr, "starpu_init: %2.2f seconds\n", init_timing/(N*1000000));
-	fprintf(stderr, "starpu_shutdown: %2.2f seconds\n", shutdown_timing/(N*1000000));
+	FPRINTF(stderr, "starpu_init: %2.2f seconds\n", init_timing/(N*1000000));
+	FPRINTF(stderr, "starpu_shutdown: %2.2f seconds\n", shutdown_timing/(N*1000000));
 
 	return 0;
 }

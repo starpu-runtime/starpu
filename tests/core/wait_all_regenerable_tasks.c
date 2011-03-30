@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,8 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <starpu.h>
+
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 static unsigned ntasks = 1024;
 
@@ -88,7 +90,7 @@ int main(int argc, char **argv)
 		task[i].callback_arg = &cnt[i];
 	}
 
-	fprintf(stderr, "#tasks : %d x %d tasks\n", K, ntasks);
+	FPRINTF(stderr, "#tasks : %d x %d tasks\n", K, ntasks);
 
 	gettimeofday(&start, NULL);
 	
@@ -109,8 +111,8 @@ int main(int argc, char **argv)
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000
 				+ (end.tv_usec - start.tv_usec));
 
-	fprintf(stderr, "Total: %lf secs\n", timing/1000000);
-	fprintf(stderr, "Per task: %lf usecs\n", timing/(K*ntasks));
+	FPRINTF(stderr, "Total: %lf secs\n", timing/1000000);
+	FPRINTF(stderr, "Per task: %lf usecs\n", timing/(K*ntasks));
 
 	starpu_shutdown();
 

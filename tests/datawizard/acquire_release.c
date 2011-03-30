@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +16,8 @@
  */
 
 #include <starpu.h>
+
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 static unsigned ntasks = 10000;
 
@@ -63,7 +65,7 @@ int main(int argc, char **argv)
         starpu_init(NULL);
 	starpu_variable_data_register(&token_handle, 0, (uintptr_t)&token, sizeof(unsigned));
 
-        fprintf(stderr, "Token: %d\n", token);
+        FPRINTF(stderr, "Token: %d\n", token);
 
 	for(i=0; i<ntasks; i++)
 	{
@@ -79,7 +81,7 @@ int main(int argc, char **argv)
 
 	starpu_data_unregister(token_handle);
 
-        fprintf(stderr, "Token: %d\n", token);
+        FPRINTF(stderr, "Token: %d\n", token);
         STARPU_ASSERT(token==ntasks*2);
 
 	starpu_shutdown();

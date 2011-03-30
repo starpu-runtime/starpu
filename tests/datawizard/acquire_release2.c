@@ -16,6 +16,8 @@
 
 #include <starpu.h>
 
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
 static unsigned ntasks = 40000;
 
 #ifdef STARPU_USE_CUDA
@@ -64,7 +66,7 @@ int main(int argc, char **argv)
         starpu_init(NULL);
 	starpu_variable_data_register(&token_handle, 0, (uintptr_t)&token, sizeof(unsigned));
 
-        fprintf(stderr, "Token: %d\n", token);
+        FPRINTF(stderr, "Token: %d\n", token);
 
 	for(i=0; i<ntasks; i++)
 	{
@@ -74,7 +76,7 @@ int main(int argc, char **argv)
 	}
 
 	starpu_data_unregister(token_handle);
-        fprintf(stderr, "Token: %d\n", token);
+        FPRINTF(stderr, "Token: %d\n", token);
         assert(token==ntasks);
 
 	starpu_shutdown();

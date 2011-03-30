@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
 static unsigned ntasks = 65536;
 
 static void dummy_func(void *descr[], void *arg)
@@ -82,7 +84,7 @@ static struct starpu_conf conf = {
 
 static void usage(char **argv)
 {
-	fprintf(stderr, "%s [-i ntasks] [-p sched_policy] [-h]\n", argv[0]);
+	FPRINTF(stderr, "%s [-i ntasks] [-p sched_policy] [-h]\n", argv[0]);
 	exit(-1);
 }
 
@@ -116,7 +118,7 @@ int main(int argc, char **argv)
 
 	init_gordon_kernel();
 
-	fprintf(stderr, "#tasks : %d\n", ntasks);
+	FPRINTF(stderr, "#tasks : %d\n", ntasks);
 
 	gettimeofday(&start, NULL);
 	for (i = 0; i < ntasks; i++)
@@ -130,8 +132,8 @@ int main(int argc, char **argv)
 
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	fprintf(stderr, "Total: %lf secs\n", timing/1000000);
-	fprintf(stderr, "Per task: %lf usecs\n", timing/ntasks);
+	FPRINTF(stderr, "Total: %lf secs\n", timing/1000000);
+	FPRINTF(stderr, "Per task: %lf usecs\n", timing/ntasks);
 
 	starpu_shutdown();
 

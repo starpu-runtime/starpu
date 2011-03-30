@@ -26,6 +26,7 @@
 #endif
 
 #define BLOCK_SIZE	(64*1024*1024)
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 static unsigned ntasks = 1000;
 
@@ -74,7 +75,7 @@ int main(int argc, char **argv)
 	if (2*mb > ntasks)
 		ntasks = 2*mb;
 
-	fprintf(stderr, "Allocate %d buffers and create %d tasks\n", mb, ntasks);
+	FPRINTF(stderr, "Allocate %d buffers and create %d tasks\n", mb, ntasks);
 
         starpu_init(NULL);
 

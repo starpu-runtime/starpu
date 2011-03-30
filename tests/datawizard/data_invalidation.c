@@ -23,6 +23,7 @@
 
 #define NLOOPS		1000
 #define VECTORSIZE	1024
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 static starpu_data_handle v_handle;
 
@@ -72,7 +73,7 @@ static void cpu_check_content_codelet(void *descr[], __attribute__ ((unused)) vo
 	{
 		if (buf[i] != 42)
 		{
-			fprintf(stderr, "buf[%d] is %c while it should be %c\n", i, buf[i], 42);
+			FPRINTF(stderr, "buf[%d] is %c while it should be %c\n", i, buf[i], 42);
 			exit(-1);
 		}
 	}

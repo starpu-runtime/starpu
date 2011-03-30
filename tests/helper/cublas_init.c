@@ -22,6 +22,8 @@
 #include <starpu.h>
 #include <stdlib.h>
 
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
 struct timeval start;
 struct timeval end;
 
@@ -46,16 +48,16 @@ int main(int argc, char **argv)
 	gettimeofday(&end, NULL);
 	shutdown_timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	fprintf(stderr, "Total:\n");
-	fprintf(stderr, "\tinit: %2.2f us\n", init_timing/(1000));
-	fprintf(stderr, "\tshutdown: %2.2f us\n", shutdown_timing/(1000));
+	FPRINTF(stderr, "Total:\n");
+	FPRINTF(stderr, "\tinit: %2.2f us\n", init_timing/(1000));
+	FPRINTF(stderr, "\tshutdown: %2.2f us\n", shutdown_timing/(1000));
 
 	if (ngpus != 0)
 	{
-		fprintf(stderr, "per-GPU (#gpu = %d):\n", ngpus);
+		FPRINTF(stderr, "per-GPU (#gpu = %d):\n", ngpus);
 
-		fprintf(stderr, "\tinit: %2.2f us\n", init_timing/(1000*ngpus));
-		fprintf(stderr, "\tshutdown: %2.2f us\n", shutdown_timing/(1000*ngpus));
+		FPRINTF(stderr, "\tinit: %2.2f us\n", init_timing/(1000*ngpus));
+		FPRINTF(stderr, "\tshutdown: %2.2f us\n", shutdown_timing/(1000*ngpus));
 	}
 
 	starpu_shutdown();

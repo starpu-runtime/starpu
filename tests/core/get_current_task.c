@@ -20,6 +20,8 @@
 #include <unistd.h>
 #include <starpu.h>
 
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
 static unsigned ntasks = 65536;
 
 static void check_task_func(void *descr[], void *arg)
@@ -52,7 +54,7 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
-	fprintf(stderr, "#tasks : %d\n", ntasks);
+	FPRINTF(stderr, "#tasks : %d\n", ntasks);
 
 	int i;
 	for (i = 0; i < ntasks; i++)
@@ -73,7 +75,7 @@ int main(int argc, char **argv)
 
 	starpu_task_wait_for_all();
 	
-	fprintf(stderr, "#empty tasks : %d\n", ntasks);
+	FPRINTF(stderr, "#empty tasks : %d\n", ntasks);
 
 	/* We repeat the same experiment with null codelets */
 

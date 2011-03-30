@@ -16,6 +16,8 @@
 
 #include <starpu.h>
 
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
 void func_cpu(void *descr[], void *_args)
 {
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -49,7 +51,7 @@ int main(int argc, char **argv)
 	f = 2.0;
 	starpu_variable_data_register(&data_handles[1], 0, (uintptr_t)&f, sizeof(f));
 
-        fprintf(stderr, "VALUES: %d (%d) %f (%f)\n", x, ifactor, f, ffactor);
+        FPRINTF(stderr, "VALUES: %d (%d) %f (%f)\n", x, ifactor, f, ffactor);
 
         starpu_insert_task(&mycodelet,
 			   STARPU_VALUE, &ifactor, sizeof(ifactor),
@@ -61,7 +63,7 @@ int main(int argc, char **argv)
         for(i=0 ; i<2 ; i++) {
                 starpu_data_acquire(data_handles[i], STARPU_R);
         }
-        fprintf(stderr, "VALUES: %d %f\n", x, f);
+        FPRINTF(stderr, "VALUES: %d %f\n", x, f);
 
         for(i=0 ; i<2 ; i++) {
                 starpu_data_release(data_handles[i]);
@@ -86,7 +88,7 @@ int main(int argc, char **argv)
         for(i=0 ; i<2 ; i++) {
                 starpu_data_acquire(data_handles[i], STARPU_R);
         }
-        fprintf(stderr, "VALUES: %d %f\n", x, f);
+        FPRINTF(stderr, "VALUES: %d %f\n", x, f);
 
 	starpu_shutdown();
 

@@ -20,6 +20,7 @@
 
 #define NTHREADS	16
 #define NITER		128
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 //#define DEBUG_MESSAGES	1
 
@@ -64,7 +65,7 @@ static void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute_
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*val += 1;
 
-//	fprintf(stderr, "VAL %d (&val = %p)\n", *val, val);
+//	FPRINTF(stderr, "VAL %d (&val = %p)\n", *val, val);
 }
 
 static starpu_codelet increment_handle_cl = {
@@ -93,7 +94,7 @@ static void increment_handle_async(struct thread_data *thread_data)
 
 static int test_recv_handle_async(void *arg)
 {
-//	fprintf(stderr, "test_recv_handle_async\n");
+//	FPRINTF(stderr, "test_recv_handle_async\n");
 
 	int ret;
 	struct thread_data *thread_data = arg;
@@ -113,7 +114,7 @@ static int test_recv_handle_async(void *arg)
 	if (ret)
 	{
 #ifdef DEBUG_MESSAGES
-		fprintf(stderr, "Thread %d received value %d from thread %d\n",
+		FPRINTF(stderr, "Thread %d received value %d from thread %d\n",
 			thread_data->index, thread_data->val, (thread_data->index - 1)%NTHREADS);
 #endif
 		starpu_data_release(thread_data->handle);
@@ -151,7 +152,7 @@ static int test_send_handle_async(void *arg)
 	if (ret)
 	{
 #ifdef DEBUG_MESSAGES
-		fprintf(stderr, "Thread %d sends value %d to thread %d\n", thread_data->index, thread_data->val, neighbour_data->index);
+		FPRINTF(stderr, "Thread %d sends value %d to thread %d\n", thread_data->index, thread_data->val, neighbour_data->index);
 #endif
 		starpu_data_release(thread_data->handle);
 	}
@@ -164,7 +165,7 @@ static void send_handle_async(void *_thread_data)
 	struct thread_data *thread_data = _thread_data;
 	struct thread_data *neighbour_data = thread_data->neighbour;
 
-//	fprintf(stderr, "send_handle_async\n");
+//	FPRINTF(stderr, "send_handle_async\n");
 
 	/* send the message */
 	pthread_mutex_lock(&neighbour_data->recv_mutex);
@@ -334,7 +335,7 @@ int main(int argc, char **argv)
 	starpu_data_acquire(last_handle, STARPU_R);
 	if (problem_data[NTHREADS - 1].val != (NTHREADS * NITER))
 	{
-		fprintf(stderr, "Final value : %d should be %d\n", problem_data[NTHREADS - 1].val, (NTHREADS * NITER));
+		FPRINTF(stderr, "Final value : %d should be %d\n", problem_data[NTHREADS - 1].val, (NTHREADS * NITER));
 		STARPU_ABORT();
 	}
 	starpu_data_release(last_handle);

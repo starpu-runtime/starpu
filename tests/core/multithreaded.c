@@ -23,6 +23,7 @@
 #include <pthread.h>
 
 #include <starpu.h>
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 pthread_t threads[16];
 
@@ -66,7 +67,7 @@ void *thread_func(void *arg __attribute__((unused)))
 
 static void usage(char **argv)
 {
-	fprintf(stderr, "%s [-i ntasks] [-t nthreads] [-h]\n", argv[0]);
+	FPRINTF(stderr, "%s [-i ntasks] [-t nthreads] [-h]\n", argv[0]);
 	exit(-1);
 }
 
@@ -98,7 +99,7 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
-	fprintf(stderr, "#tasks : %d\n", ntasks);
+	FPRINTF(stderr, "#tasks : %d\n", ntasks);
 
 	gettimeofday(&start, NULL);
 
@@ -119,8 +120,8 @@ int main(int argc, char **argv)
 
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	fprintf(stderr, "Total: %lf secs\n", timing/1000000);
-	fprintf(stderr, "Per task: %lf usecs\n", timing/(nthreads*ntasks));
+	FPRINTF(stderr, "Total: %lf secs\n", timing/1000000);
+	FPRINTF(stderr, "Per task: %lf usecs\n", timing/(nthreads*ntasks));
 
 	starpu_shutdown();
 
