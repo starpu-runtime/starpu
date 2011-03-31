@@ -131,6 +131,7 @@ check_PROGRAMS += 				\
 	datawizard/mpi_like			\
 	datawizard/mpi_like_async		\
 	datawizard/critical_section_with_void_interface\
+	datawizard/wt_host			\
 	datawizard/wt_broadcast			\
 	datawizard/increment_redux		\
 	datawizard/increment_redux_v2		\
@@ -382,6 +383,11 @@ testbin_PROGRAMS +=				\
 	datawizard/critical_section_with_void_interface
 datawizard_critical_section_with_void_interface_SOURCES =	\
 	datawizard/critical_section_with_void_interface.c
+
+testbin_PROGRAMS +=				\
+	datawizard/wt_host
+datawizard_wt_host_SOURCES =			\
+	datawizard/wt_host.c
 
 testbin_PROGRAMS +=				\
 	datawizard/wt_broadcast
