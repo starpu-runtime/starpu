@@ -1175,6 +1175,15 @@ if test x$have_f77_h = xyes; then
         AC_DEFINE([STARPU_HAVE_F77_H], [1], [Define to 1 if you have the <f77.h> header file.])
 fi
 
+# Do we want to run optional tests
+AC_MSG_CHECKING(whether optional tests should be run)
+AC_ARG_ENABLE(optional_tests, [AS_HELP_STRING([--optional-tests],
+			[run optional tests])],
+			want_optional_tests=$enableval, want_optional_tests=no)
+AC_MSG_RESULT($want_optional_tests)
+AM_CONDITIONAL([COND_OPT], [test "$want_optional_tests" = yes])
+
+# File configuration
 AC_CONFIG_COMMANDS([executable-scripts], [chmod +x ]tests/regression/regression.sh)
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
 AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h)
@@ -1193,6 +1202,7 @@ AC_OUTPUT([
 	examples/starpufft/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
+        opt/Makefile
 	doc/Makefile
 	mpi/Makefile
 ])
