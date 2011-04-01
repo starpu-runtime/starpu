@@ -303,9 +303,13 @@ AC_DEFUN([STARPU_CHECK_CUDA_RUNTIME],
     fi
 
     if test "$have_valid_cuda" = "yes" ; then
+        STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart"
 	# we also check that CUBLAS is available
-	AC_HAVE_LIBRARY([cublas],,[have_valid_cuda=no])
+	AC_HAVE_LIBRARY([cublas],[have_valid_cuda=yes],[have_valid_cuda=no])
         unset ac_cv_lib_cublas_main
+        if test "$have_valid_cuda" = "yes" ; then
+            STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcublas"
+        fi
     fi
 
     if test "$have_valid_cuda" = "no" ; then
@@ -364,8 +368,9 @@ if test x$enable_cuda = xyes; then
 #	esac
 	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcuda"
 
-        AC_SUBST(STARPU_CUDA_LDFLAGS)
-        AC_SUBST(STARPU_CUDA_CPPFLAGS)
+        if test "$F77" = "gfortran" ; then
+            STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lgfortran"
+        fi
 
 	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag
 	AC_CHECK_SIZEOF([void *])
@@ -456,14 +461,20 @@ fi
 # The CURAND library is only available since CUDA 3.2
 have_curand=$enable_cuda
 if test x$enable_cuda = xyes; then
-	AC_HAVE_LIBRARY([curand],[],[have_curand=no])
+	AC_HAVE_LIBRARY([curand],[have_curand=yes],[have_curand=no])
 fi
 AC_MSG_CHECKING(whether CURAND is available)
 AC_MSG_RESULT($have_curand)
 if test x$have_curand = xyes; then
-AC_DEFINE(STARPU_HAVE_CURAND,[1], [CURAND is available])
+    AC_DEFINE(STARPU_HAVE_CURAND,[1], [CURAND is available])
+    STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcurand"
 fi
 
+if test x$enable_cuda = xyes; then
+    STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"
+    AC_SUBST(STARPU_CUDA_LDFLAGS)
+    AC_SUBST(STARPU_CUDA_CPPFLAGS)
+fi
 
 ###############################################################################
 #                                                                             #

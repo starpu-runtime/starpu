@@ -17,6 +17,7 @@
 AM_CFLAGS = $(HWLOC_CFLAGS) -Wall
 LIBS = $(top_builddir)/src/libstarpu.la $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
+AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS)
 
 TESTS	=	$(check_PROGRAMS)
 
