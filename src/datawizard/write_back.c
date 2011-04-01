@@ -26,9 +26,6 @@ void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_n
 		return;
 	}
 
-	while (_starpu_spin_trylock(&handle->header_lock))
-		_starpu_datawizard_progress(requesting_node, 1);
-
 	/* first commit all changes onto the nodes specified by the mask */
 	uint32_t node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -37,13 +34,22 @@ void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_n
 			/* we need to commit the buffer on that node */
 			if (node != requesting_node) 
 			{
-				create_request_to_fetch_data(handle, &handle->per_node[node],
-								STARPU_R, 1, NULL, NULL);
+				while (_starpu_spin_trylock(&handle->header_lock))
+					_starpu_datawizard_progress(requesting_node, 1);
+
+				starpu_data_request_t r;
+				r = create_request_to_fetch_data(handle, &handle->per_node[node],
+								STARPU_R, 0, NULL, NULL);
+
+			        _starpu_spin_unlock(&handle->header_lock);
+
+			        /* If no request was created, the handle was already up-to-date on the
+			         * node */
+			        if (r)
+        				_starpu_wait_data_request_completion(r, 1);
 			}
 		}
 	}
-
-	_starpu_spin_unlock(&handle->header_lock);
 }
 
 void starpu_data_set_wt_mask(starpu_data_handle handle, uint32_t wt_mask)
