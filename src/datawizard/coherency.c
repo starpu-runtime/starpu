@@ -218,6 +218,24 @@ starpu_data_request_t create_request_to_fetch_data(starpu_data_handle handle,
 {
 	unsigned requesting_node = dst_replicate->memory_node;
 
+	if (dst_replicate->state != STARPU_INVALID)
+	{
+		/* the data is already available so we can stop */
+		_starpu_update_data_state(handle, dst_replicate, mode);
+		_starpu_msi_cache_hit(requesting_node);
+
+		if (callback_func)
+			callback_func(callback_arg);
+
+                _STARPU_LOG_OUT_TAG("data available");
+		return NULL;
+	}
+
+	_starpu_msi_cache_miss(requesting_node);
+
+	/* the only remaining situation is that the local copy was invalid */
+	STARPU_ASSERT(dst_replicate->state == STARPU_INVALID);
+
 	/* find someone who already has the data */
 	uint32_t src_node = 0;
 
@@ -298,8 +316,6 @@ starpu_data_request_t create_request_to_fetch_data(starpu_data_handle handle,
 		requests[nhops - 1]->refcnt++;
 
 
-	_starpu_spin_unlock(&handle->header_lock);
-
 	/* we only submit the first request, the remaining will be
 	 * automatically submitted afterward */
 	if (!reused_requests[0])
@@ -315,38 +331,23 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, struct starpu_data_rep
 	uint32_t local_node = _starpu_get_local_memory_node();
         _STARPU_LOG_IN();
 
-	unsigned requesting_node = dst_replicate->memory_node;
-
 	while (_starpu_spin_trylock(&handle->header_lock))
 		_starpu_datawizard_progress(local_node, 1);
 
 	if (!is_prefetch)
 		dst_replicate->refcnt++;
 
-	if (dst_replicate->state != STARPU_INVALID)
-	{
-		/* the data is already available so we can stop */
-		_starpu_update_data_state(handle, dst_replicate, mode);
-		_starpu_msi_cache_hit(requesting_node);
-		_starpu_spin_unlock(&handle->header_lock);
-
-		if (callback_func)
-			callback_func(callback_arg);
-
-                _STARPU_LOG_OUT_TAG("data available");
-		return 0;
-	}
-
-	/* the only remaining situation is that the local copy was invalid */
-	STARPU_ASSERT(dst_replicate->state == STARPU_INVALID);
-
-	_starpu_msi_cache_miss(requesting_node);
-
 	starpu_data_request_t r;
-
 	r = create_request_to_fetch_data(handle, dst_replicate, mode,
 					is_prefetch, callback_func, callback_arg);
 
+	_starpu_spin_unlock(&handle->header_lock);
+
+	/* If no request was created, the handle was already up-to-date on the
+	 * node */
+	if (!r)
+		return 0;
+	
 	int ret = is_prefetch?0:_starpu_wait_data_request_completion(r, 1);
         _STARPU_LOG_OUT();
         return ret;
