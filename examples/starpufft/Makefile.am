@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009, 2010  Université de Bordeaux 1
-# Copyright (C) 2010  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +14,8 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include $(STARPU_CUDA_CPPFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
+AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 
 lib_LTLIBRARIES = libstarpufft.la
 
@@ -55,7 +56,7 @@ libstarpufft_la_SOURCES += cuda_kernels.cu
 am_libstarpufft_la_OBJECTS += cuda_kernels.o starpufft.lo
 endif
 
-libstarpufft_la_LIBADD += $(STARPU_CUDA_LDFLAGS)
+libstarpufft_la_LIBADD +=  $(STARPU_CUDA_LDFLAGS)
 endif
 
 check_PROGRAMS = testf

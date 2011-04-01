@@ -58,10 +58,10 @@ NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_builddir)/include $(HWLOC_CFLAGS)
 	$(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I$(top_srcdir)/include/  -I$(top_builddir)/include/
 endif
 
-AM_CFLAGS = $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS)
+AM_CFLAGS = $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
 LIBS = $(top_builddir)/src/libstarpu.la $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/mpi/ -I$(top_srcdir)/src/  -I$(top_srcdir)/examples/ -I$(top_builddir)/src -I$(top_builddir)/include
-AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS)
+AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 
 lib_LTLIBRARIES = libstarpumpi.la
 

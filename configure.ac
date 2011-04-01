@@ -364,7 +364,7 @@ if test x$enable_cuda = xyes; then
 #		*-*darwin*) AC_HAVE_LIBRARY([stdc++], []) ;;
 #		#*-*darwin*) AC_HAVE_LIBRARY([stdc++], [STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"]) ;;
 #	esac
-	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcuda"
+	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcuda -lcufft"
 
         if test "$F77" = "gfortran" ; then
             STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lgfortran"
@@ -454,7 +454,6 @@ AC_CHECK_TYPE(cufftDoubleComplex,
 AM_CONDITIONAL(STARPU_HAVE_CUFFTDOUBLECOMPLEX, test x$have_cufftdoublecomplex = xyes)
 if test x$have_cufftdoublecomplex = xyes; then
 	AC_DEFINE(STARPU_HAVE_CUFFTDOUBLECOMPLEX, [1], [cufftDoubleComplex is available])
-        STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcufft"
 fi
 
 # The CURAND library is only available since CUDA 3.2
@@ -491,6 +490,66 @@ AC_DEFINE_UNQUOTED(STARPU_MAXOPENCLDEVS, [$nmaxopencldev],
 AC_ARG_ENABLE(opencl, [AS_HELP_STRING([--disable-opencl],
 		[do not use OpenCL device(s)])],, [enable_opencl=maybe])
 
+AC_DEFUN([STARPU_CHECK_OPENCL],
+[
+    __opencl_dir=$1
+    __opencl_include_dir=$2
+    __opencl_lib_dir=$3
+
+    if test "$__opencl_dir" != "no" ; then
+	AC_MSG_CHECKING(whether OpenCL is available in $__opencl_dir)
+    else
+	AC_MSG_CHECKING(whether OpenCL is available)
+    fi
+    AC_MSG_RESULT()
+
+    if test "$__opencl_include_dir" = "no" -a "$__opencl_dir" != "no" ; then
+        __opencl_include_dir="$__opencl_dir/include"
+    fi
+    if test "$__opencl_lib_dir" = "no" -a "$__opencl_dir" != "no" ; then
+        __opencl_lib_dir="$__opencl_dir/lib"
+    fi
+
+    SAVED_CPPFLAGS="$CPPFLAGS"
+    SAVED_LDFLAGS="${LDFLAGS}"
+
+    if test "$__opencl_include_dir" != "no" ; then
+        CPPFLAGS="${CPPFLAGS} -I$__opencl_include_dir"
+    fi
+    AC_CHECK_HEADER([CL/cl.h],[have_valid_opencl=yes],[have_valid_opencl=no])
+    unset ac_cv_header_CL_cl_h
+
+    if test "$have_valid_opencl" = "yes" ; then
+	if test "$__opencl_lib_dir" != "no"; then
+	    LDFLAGS="${SAVED_LDFLAGS} -L$__opencl_lib_dir"
+        fi
+	AC_HAVE_LIBRARY([OpenCL],[have_valid_opencl=yes],[have_valid_opencl=no])
+        unset ac_cv_lib_OpenCL_main
+        if test "$have_valid_opencl" = "no" ; then
+            if test "$3" = "no" -a "$__opencl_dir" != "no" ; then
+                __opencl_lib_dir="$__opencl_dir/lib64"
+	        LDFLAGS="${SAVED_LDFLAGS} -L$__opencl_lib_dir"
+	        AC_HAVE_LIBRARY([OpenCL],[have_valid_opencl=yes],[have_valid_opencl=no])
+                unset ac_cv_lib_OpenCL_main
+            fi
+        fi
+    fi
+
+    CPPFLAGS="${SAVED_CPPFLAGS}"
+    LDFLAGS="${SAVED_LDFLAGS}"
+
+    if test "$have_valid_opencl" = "yes" -a "$__opencl_include_dir" != "no"; then
+        STARPU_OPENCL_CPPFLAGS="-I$__opencl_include_dir"
+    fi
+    if test "$have_valid_opencl" = "yes" ; then
+        if test "$__opencl_lib_dir" != "no"; then
+            STARPU_OPENCL_LDFLAGS="-L$__opencl_lib_dir"
+        fi
+        STARPU_OPENCL_LDFLAGS="${STARPU_OPENCL_LDFLAGS} -lOpenCL"
+    fi
+
+])
+
 #AC_MSG_CHECKING(whether OpenCL is available)
 AC_ARG_WITH(opencl-dir,
 	[AS_HELP_STRING([--with-opencl-dir=<path>],
@@ -520,41 +579,19 @@ AC_ARG_WITH(opencl-lib-dir,
 	], [opencl_lib_dir=no])
 
 if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
-
-	if test x$opencl_include_dir = xno; then
-	        if test x$opencl_dir != xno; then
-		    opencl_include_dir="$opencl_dir/include"
-		fi
-	fi
-
-	if test -d "$opencl_include_dir" && test "$opencl_include_dir" != "/usr/include" ; then
-		CPPFLAGS="${CPPFLAGS} -I$opencl_include_dir "
-	fi
-
-	# do we have a valid OpenCL setup ?
-	have_valid_opencl=yes
-	AC_CHECK_HEADER([CL/cl.h],,[have_valid_opencl=no])
-
-	# we are looking for the proper option in LDFLAGS, so we save the
-	# current value of LDFLAGS so that we can add new things in it and
-	# restore it in case it's not working.
-	SAVED_LDFLAGS="${LDFLAGS}"
-
-	if test x$opencl_lib_dir = xno; then
-	        if test x$opencl_dir != xno; then
-		# Default location
-		    opencl_lib_dir="$opencl_dir/lib/"
-		fi
-	fi
-
-	if test -d "$opencl_lib_dir"; then
-		LDFLAGS="${SAVED_LDFLAGS} -L$opencl_lib_dir "
-	fi
-	AC_HAVE_LIBRARY([OpenCL],[],[have_valid_opencl=no])
+    	STARPU_CHECK_OPENCL($opencl_dir, $opencl_include_dir, $opencl_lib_dir)
+        if test "$have_valid_opencl" = "no" ; then
+            for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" ; do
+    	        STARPU_CHECK_OPENCL($f, "no", "no")
+                if test "$have_valid_opencl" = "yes" ; then
+                    break
+                fi
+            done
+        fi
 
 	# in case OpenCL was explicitely required, but is not available, this is an error
 	if test x$enable_opencl = xyes -a x$have_valid_opencl = no; then
-		AC_MSG_ERROR([cannot find OpenCL])
+	    AC_MSG_ERROR([cannot find OpenCL])
 	fi
 
 	# now we enable OpenCL if and only if a proper setup is available
@@ -565,12 +602,12 @@ AC_MSG_CHECKING(whether OpenCL should be used)
 AC_MSG_RESULT($enable_opencl)
 AC_SUBST(STARPU_USE_OPENCL, $enable_opencl)
 AM_CONDITIONAL(STARPU_USE_OPENCL, test x$enable_opencl = xyes)
-if test x$enable_opencl = xyes; then
+if test x$enable_opencl = xyes ; then
 	AC_DEFINE(STARPU_USE_OPENCL, [1], [OpenCL support is activated])
-	CPPFLAGS="${CPPFLAGS} -DSTARPU_OPENCL_DATADIR=${datarootdir}/starpu/opencl"
+	STARPU_OPENCL_CPPFLAGS="${STARPU_OPENCL_CPPFLAGS} -DSTARPU_OPENCL_DATADIR=${datarootdir}/starpu/opencl"
         AC_SUBST(STARPU_OPENCL_DATAdir, "$(eval echo ${datarootdir}/starpu/opencl/examples)")
-else
-        LDFLAGS="${SAVED_LDFLAGS}"
+        AC_SUBST(STARPU_OPENCL_CPPFLAGS)
+        AC_SUBST(STARPU_OPENCL_LDFLAGS)
 fi
 
 ###############################################################################
