@@ -1212,7 +1212,7 @@ AC_OUTPUT([
 	examples/starpufft/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
-        opt/Makefile
+        tests/opt/Makefile
 	doc/Makefile
 	mpi/Makefile
 ])

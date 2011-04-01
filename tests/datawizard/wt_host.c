@@ -92,31 +92,30 @@ int main(int argc, char **argv)
 	uint32_t wt_mask = (1<<0);
 	starpu_data_set_wt_mask(handle, wt_mask);
 
-	unsigned ntasks = 1024;
-	unsigned nloops = 16;
+	unsigned ntasks = 2;
 
-	unsigned loop;
 	unsigned t;
 
-	for (loop = 0; loop < nloops; loop++)
+	for (t = 0; t < ntasks; t++)
 	{
-		for (t = 0; t < ntasks; t++)
-		{
-			struct starpu_task *task = starpu_task_create();
-	
-			task->cl = &increment_cl;
-	
-			task->buffers[0].mode = STARPU_RW;
-			task->buffers[0].handle = handle;
-	
-			int ret = starpu_task_submit(task);
-			STARPU_ASSERT(!ret);
+		struct starpu_task *task = starpu_task_create();
 
-		}
+		task->cl = &increment_cl;
+
+		task->buffers[0].mode = STARPU_RW;
+		task->buffers[0].handle = handle;
+
+		int ret = starpu_task_submit(task);
+		STARPU_ASSERT(!ret);
+
 	}
 
 	starpu_data_unregister(handle);
-	STARPU_ASSERT(var == ntasks*nloops);
+
+	if (var != ntasks)
+		fprintf(stderr, "VAR is %d should be %d\n", var, ntasks);
+
+	STARPU_ASSERT(var == ntasks);
 	
 	starpu_shutdown();
 
