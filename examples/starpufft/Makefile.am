@@ -14,7 +14,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include $(STARPU_CUDA_CPPFLAGS)
 
 lib_LTLIBRARIES = libstarpufft.la
 
@@ -55,7 +55,7 @@ libstarpufft_la_SOURCES += cuda_kernels.cu
 am_libstarpufft_la_OBJECTS += cuda_kernels.o starpufft.lo
 endif
 
-libstarpufft_la_LIBADD += -lcufft
+libstarpufft_la_LIBADD += $(STARPU_CUDA_LDFLAGS)
 endif
 
 check_PROGRAMS = testf

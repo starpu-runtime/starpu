@@ -48,7 +48,7 @@ lib_LTLIBRARIES = libstarpu.la
 
 libstarpu_la_CPPFLAGS = -I$(top_srcdir)/include/
 
-libstarpu_la_CFLAGS = -W -Wall -Wextra $(HWLOC_CFLAGS)
+libstarpu_la_CFLAGS = -W -Wall -Wextra $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS)
 libstarpu_la_LIBADD = -lm $(HWLOC_LIBS)
 libstarpu_la_LDFLAGS = $(ldflags) -version-number 0:0:0 -no-undefined
 

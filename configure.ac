@@ -312,10 +312,8 @@ AC_DEFUN([STARPU_CHECK_CUDA_RUNTIME],
         fi
     fi
 
-    if test "$have_valid_cuda" = "no" ; then
-        CPPFLAGS="${SAVED_CPPFLAGS}"
-        LDFLAGS="${SAVED_LDFLAGS}"
-    fi
+    CPPFLAGS="${SAVED_CPPFLAGS}"
+    LDFLAGS="${SAVED_LDFLAGS}"
 
     if test "$have_valid_cuda" = "yes" -a "$__cuda_include_dir" != "no"; then
         STARPU_CUDA_CPPFLAGS="-I$__cuda_include_dir"
@@ -456,6 +454,7 @@ AC_CHECK_TYPE(cufftDoubleComplex,
 AM_CONDITIONAL(STARPU_HAVE_CUFFTDOUBLECOMPLEX, test x$have_cufftdoublecomplex = xyes)
 if test x$have_cufftdoublecomplex = xyes; then
 	AC_DEFINE(STARPU_HAVE_CUFFTDOUBLECOMPLEX, [1], [cufftDoubleComplex is available])
+        STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcufft"
 fi
 
 # The CURAND library is only available since CUDA 3.2

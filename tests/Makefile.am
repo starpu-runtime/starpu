@@ -15,7 +15,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-AM_CFLAGS = $(HWLOC_CFLAGS) -Wall
+AM_CFLAGS = $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS)
 LIBS = $(top_builddir)/src/libstarpu.la $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/src/
 AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS)
