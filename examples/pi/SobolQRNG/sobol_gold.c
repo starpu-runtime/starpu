@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -62,7 +62,7 @@
 
 #define k_2powneg32 2.3283064E-10F
 
-// Create the direction numbers, based on the primitive polynomials.
+/* Create the direction numbers, based on the primitive polynomials. */
 void initSobolDirectionVectors(int n_dimensions, unsigned int *directions)
 {
     unsigned int *v = directions;
@@ -70,40 +70,40 @@ void initSobolDirectionVectors(int n_dimensions, unsigned int *directions)
     int dim;
     for (dim = 0 ; dim < n_dimensions ; dim++)
     {
-        // First dimension is a special case
+        /* First dimension is a special case */
         if (dim == 0)
         {
             int i;
             for (i = 0 ; i < n_directions ; i++)
             {
-                // All m's are 1
+                /* All m's are 1 */
                 v[i] = 1 << (31 - i);
             }
         }
         else
         {
             int d = sobol_primitives[dim].degree;
-            // The first direction numbers (up to the degree of the polynomial)
-            // are simply v[i] = m[i] / 2^i (stored in Q0.32 format)
+            /* The first direction numbers (up to the degree of the polynomial) 
+               are simply v[i] = m[i] / 2^i (stored in Q0.32 format) */
             int i;
             for (i = 0 ; i < d ; i++)
             {
                 v[i] = sobol_primitives[dim].m[i] << (31 - i);
             }
-            // The remaining direction numbers are computed as described in
-            // the Bratley and Fox paper.
-            // v[i] = a[1]v[i-1] ^ a[2]v[i-2] ^ ... ^ a[v-1]v[i-d+1] ^ v[i-d] ^ v[i-d]/2^d
+            /* The remaining direction numbers are computed as described in
+               the Bratley and Fox paper. */
+            /* v[i] = a[1]v[i-1] ^ a[2]v[i-2] ^ ... ^ a[v-1]v[i-d+1] ^ v[i-d] ^ v[i-d]/2^d */
             for (i = d ; i < n_directions ; i++)
             {
-                // First do the v[i-d] ^ v[i-d]/2^d part
+                /* First do the v[i-d] ^ v[i-d]/2^d part */
                 v[i] = v[i - d] ^ (v[i - d] >> d);
-                // Now do the a[1]v[i-1] ^ a[2]v[i-2] ^ ... part
-                // Note that the coefficients a[] are zero or one and for compactness in
-                // the input tables they are stored as bits of a single integer. To extract
-                // the relevant bit we use right shift and mask with 1.
-                // For example, for a 10 degree polynomial there are ten useful bits in a,
-                // so to get a[2] we need to right shift 7 times (to get the 8th bit into
-                // the LSB) and then mask with 1.
+                /* Now do the a[1]v[i-1] ^ a[2]v[i-2] ^ ... part
+                   Note that the coefficients a[] are zero or one and for compactness in
+                   the input tables they are stored as bits of a single integer. To extract
+                   the relevant bit we use right shift and mask with 1.
+                   For example, for a 10 degree polynomial there are ten useful bits in a,
+                   so to get a[2] we need to right shift 7 times (to get the 8th bit into
+                   the LSB) and then mask with 1. */
                 int j;
                 for (j = 1 ; j < d ; j++)
                 {
@@ -115,7 +115,7 @@ void initSobolDirectionVectors(int n_dimensions, unsigned int *directions)
     }
 }
 
-// Reference model for generating Sobol numbers on the host
+/* Reference model for generating Sobol numbers on the host */
 void sobolCPU(int n_vectors, int n_dimensions, unsigned int *directions, float *output)
 {
     unsigned int *v = directions;
@@ -124,15 +124,15 @@ void sobolCPU(int n_vectors, int n_dimensions, unsigned int *directions, float *
     for (d = 0 ; d < n_dimensions ; d++)
     {
         unsigned int X = 0;
-        // x[0] is zero (in all dimensions)
+        /* x[0] is zero (in all dimensions) */
         output[n_vectors * d] = 0.0;        
         int i;
         for (i = 1 ; i < n_vectors ; i++)
         {
-            // x[i] = x[i-1] ^ v[c]
-            //  where c is the index of the rightmost zero bit in i
-            //  minus 1 (since C arrays count from zero)
-            // In the Bratley and Fox paper this is equation (**)
+            /* x[i] = x[i-1] ^ v[c]
+                where c is the index of the rightmost zero bit in i
+                minus 1 (since C arrays count from zero)
+               In the Bratley and Fox paper this is equation (**) */
             X ^= v[ffs(~(i - 1)) - 1];
             output[i + n_vectors * d] = (float)X * k_2powneg32;
         }

@@ -123,8 +123,8 @@ int main(int argc, char **argv)
                 .nopencl = 1,
 	};
 
-        //int width=1100;
-        //int height=244021;
+        /* int width=1100; */
+        /* int height=244021; */
         int width=20;
         int height=4;
 
