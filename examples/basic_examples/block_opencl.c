@@ -25,7 +25,7 @@ void opencl_codelet(void *descr[], void *_args)
 	cl_kernel kernel;
 	cl_command_queue queue;
 	cl_event event;
-	int id, devid, err, n;
+	int id, devid, err;
 	float *block = (float *)STARPU_BLOCK_GET_PTR(descr[0]);
 	int nx = (int)STARPU_BLOCK_GET_NX(descr[0]);
 	int ny = (int)STARPU_BLOCK_GET_NY(descr[0]);
@@ -41,7 +41,6 @@ void opencl_codelet(void *descr[], void *_args)
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = 0;
-        n=0;
 	err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &block);
 	err = clSetKernelArg(kernel, 1, sizeof(int), &nx);
 	err = clSetKernelArg(kernel, 2, sizeof(int), &ny);
