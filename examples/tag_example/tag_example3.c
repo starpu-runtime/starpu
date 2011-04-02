@@ -76,7 +76,7 @@ static void create_task_grid(unsigned iter)
 {
 	int i;
 
-//	FPRINTF(stderr, "start iter %d ni %d...\n", iter, ni);
+/*	FPRINTF(stderr, "start iter %d ni %d...\n", iter, ni); */
 
 	callback_cnt = (ni);
 

@@ -54,7 +54,7 @@
 #ifndef SOBOL_H
 #define SOBOL_H
 
-// Number of direction vectors is fixed to 32
+/* Number of direction vectors is fixed to 32 */
 #define n_directions 32
 
 #endif

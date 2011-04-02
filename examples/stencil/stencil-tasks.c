@@ -125,7 +125,7 @@ static void create_task_save_mpi_recv(unsigned iter, unsigned z, int dir, unsign
 	starpu_mpi_irecv_detached(handle0, source, MPI_TAG0(z, iter, dir), MPI_COMM_WORLD, recv_done, (void*)(uintptr_t)z);
 	starpu_mpi_irecv_detached(handle1, source, MPI_TAG1(z, iter, dir), MPI_COMM_WORLD, recv_done, (void*)(uintptr_t)z);
 }
-#endif // STARPU_USE_MPI
+#endif /* STARPU_USE_MPI */
 
 /*
  * Schedule saving boundaries of blocks to communication buffers
@@ -141,26 +141,26 @@ void create_task_save(unsigned iter, unsigned z, int dir, unsigned local_rank)
 		/* Save data from update */
 		create_task_save_local(iter, z, dir, local_rank);
 		if (node_z_and_d != local_rank)
-		{ // R(z) = local & R(z+d) != local, We have to send the data
+		{ /* R(z) = local & R(z+d) != local, We have to send the data */
 			create_task_save_mpi_send(iter, z, dir, local_rank);
 		}
 
 	}
-	else {	// node_z != local_rank, this MPI node doesn't have the saved data
+	else {	/* node_z != local_rank, this MPI node doesn't have the saved data */
 		if (node_z_and_d == local_rank)
 		{
 			create_task_save_mpi_recv(iter, z, dir, local_rank);
 		}
-		else {  // R(z) != local & R(z+d) != local We don't have
-			// the saved data and don't need it, we shouldn't
-			// even have been called!
+		else { /* R(z) != local & R(z+d) != local We don't have
+			      the saved data and don't need it, we shouldn't
+			      even have been called! */
 			STARPU_ASSERT(0);
 		}
 	}
-#else // !STARPU_USE_MPI
+#else /* !STARPU_USE_MPI */
 	STARPU_ASSERT((node_z == local_rank) && (node_z_and_d == local_rank));
 	create_task_save_local(iter, z, dir, local_rank);
-#endif // STARPU_USE_MPI
+#endif /* STARPU_USE_MPI */
 }
 
 /*

@@ -166,7 +166,7 @@ STARPUFFT(twist1_1d_kernel_cpu)(void *descr[], void *_args)
 	STARPUFFT(complex) * restrict in = (STARPUFFT(complex) *)STARPU_VECTOR_GET_PTR(descr[0]);
 	STARPUFFT(complex) * restrict twisted1 = (STARPUFFT(complex) *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	//printf("twist1 %d %g\n", i, (double) cabs(plan->in[i]));
+	/* printf("twist1 %d %g\n", i, (double) cabs(plan->in[i])); */
 
 	for (j = 0; j < n2; j++)
 		twisted1[j] = in[i+j*n1];
@@ -194,7 +194,7 @@ STARPUFFT(fft1_1d_kernel_cpu)(void *descr[], void *_args)
 	_fftw_complex * restrict worker_in1 = (STARPUFFT(complex) *)plan->plans[workerid].in1;
 	_fftw_complex * restrict worker_out1 = (STARPUFFT(complex) *)plan->plans[workerid].out1;
 
-	//printf("fft1 %d %g\n", i, (double) cabs(twisted1[0]));
+	/* printf("fft1 %d %g\n", i, (double) cabs(twisted1[0])); */
 
 	memcpy(worker_in1, twisted1, plan->totsize2 * sizeof(*worker_in1));
 	_FFTW(execute)(plan->plans[workerid].plan1_cpu);
@@ -223,7 +223,7 @@ STARPUFFT(twist2_1d_kernel_cpu)(void *descr[], void *_args)
 
 	STARPUFFT(complex) * restrict twisted2 = (STARPUFFT(complex) *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-	//printf("twist2 %d %g\n", jj, (double) cabs(plan->fft1[jj]));
+	/* printf("twist2 %d %g\n", jj, (double) cabs(plan->fft1[jj])); */
 
 	for (jjj = 0; jjj < n3; jjj++) {
 		int j = jj * n3 + jjj;
@@ -241,7 +241,7 @@ STARPUFFT(fft2_1d_kernel_cpu)(void *descr[], void *_args)
 {
 	struct STARPUFFT(args) *args = _args;
 	STARPUFFT(plan) plan = args->plan;
-	//int jj = args->jj;
+	/* int jj = args->jj; */
 	int workerid = starpu_worker_get_id();
 
 	task_per_worker[workerid]++;
@@ -249,7 +249,7 @@ STARPUFFT(fft2_1d_kernel_cpu)(void *descr[], void *_args)
 	const STARPUFFT(complex) * restrict twisted2 = (STARPUFFT(complex) *)STARPU_VECTOR_GET_PTR(descr[0]);
 	STARPUFFT(complex) * restrict fft2 = (STARPUFFT(complex) *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	//printf("fft2 %d %g\n", jj, (double) cabs(twisted2[plan->totsize4-1]));
+	/* printf("fft2 %d %g\n", jj, (double) cabs(twisted2[plan->totsize4-1])); */
 
 	_fftw_complex * restrict worker_in2 = (STARPUFFT(complex) *)plan->plans[workerid].in2;
 	_fftw_complex * restrict worker_out2 = (STARPUFFT(complex) *)plan->plans[workerid].out2;
@@ -278,7 +278,7 @@ STARPUFFT(twist3_1d_kernel_cpu)(void *descr[], void *_args)
 
 	const STARPUFFT(complex) * restrict fft2 = (STARPUFFT(complex) *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-	//printf("twist3 %d %g\n", jj, (double) cabs(fft2[0]));
+	/* printf("twist3 %d %g\n", jj, (double) cabs(fft2[0])); */
 
 	for (jjj = 0; jjj < n3; jjj++) {
 		int j = jj * n3 + jjj;
@@ -541,8 +541,8 @@ STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 		/* Create twist1 task */
 		plan->twist1_tasks[z] = task = starpu_task_create();
 		task->cl = &STARPUFFT(twist1_1d_codelet);
-		//task->buffers[0].handle = to be filled at execution to point
-		//to the application input.
+		/* task->buffers[0].handle = to be filled at execution to point
+		   to the application input. */
 		task->buffers[0].mode = STARPU_R;
 		task->buffers[1].handle = plan->twisted1_handle[z];
 		task->buffers[1].mode = STARPU_W;

@@ -168,7 +168,7 @@ void assign_blocks_to_workers(int rank)
 	/* NB: perhaps we could count a GPU as multiple workers */
 
 	/* how many workers are there ? */
-	//unsigned nworkers = starpu_worker_get_count();
+	/*unsigned nworkers = starpu_worker_get_count();*/
 
 	/* how many blocks are on that MPI node ? */
 	unsigned nblocks = 0;
@@ -182,7 +182,7 @@ void assign_blocks_to_workers(int rank)
 	}
 
 	/* how many blocks per worker ? */
-	//	unsigned nblocks_per_worker = (nblocks + nworkers - 1)/nworkers;
+	/*unsigned nblocks_per_worker = (nblocks + nworkers - 1)/nworkers;*/
 
 	/* we now attribute up to nblocks_per_worker blocks per workers */
 	unsigned attributed = 0;
@@ -215,7 +215,7 @@ void assign_blocks_to_workers(int rank)
 			/* Only GPUS */
 			workerid = (attributed / 21) % 3;
 		#endif
-			//= attributed/nblocks_per_worker;
+			/*= attributed/nblocks_per_worker;*/
 
 			block->preferred_worker = workerid;
 
@@ -294,7 +294,7 @@ void allocate_memory_on_node(int rank)
 					for (z = 0; z < size_bz; z++)
 						/* Just random data */
 						sum += block->layers[0][(K+x)+(K+y)*(sizex + 2*K)+(K+z)*(sizex+2*K)*(sizey+2*K)] = (int)((x/7.+y/13.+(bz*size_bz + z)/17.) * 10.) % 2;
-//			printf("block %d starts with %d/%d alive\n", bz, sum, sizex*sizey*size_bz);
+/*			printf("block %d starts with %d/%d alive\n", bz, sum, sizex*sizey*size_bz);*/
 #endif
 			allocate_block_on_node(&block->layers_handle[1], &block->layers[1],
 						(sizex + 2*K), (sizey + 2*K), (size_bz + 2*K));

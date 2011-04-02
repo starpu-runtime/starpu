@@ -137,4 +137,4 @@ extern struct timeval *last_tick;
 _externC void cuda_life_update_host(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int nz, int ldy, int ldz, int iter);
 _externC void cuda_shadow_host(int bz, TYPE *ptr, int nx, int ny, int nz, int ldy, int ldz, int i);
 
-#endif // __STENCIL_H__
+#endif /* __STENCIL_H__ */

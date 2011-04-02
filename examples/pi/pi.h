@@ -26,8 +26,8 @@
 
 #define TYPE	float
 
-//extern "C" void cuda_kernel(void *descr[], void *cl_arg);
+/* extern "C" void cuda_kernel(void *descr[], void *cl_arg); */
 
 static int n_dimensions = 100;
 
-#endif // __PI_H__
+#endif /* __PI_H__ */

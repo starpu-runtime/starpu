@@ -57,19 +57,13 @@ void cpu_func(void *buffers[], void *cl_arg)
 	FPRINTF(stdout, "Hello world (params = {%i, %f} )\n", params->i, params->f);
 }
 
-starpu_codelet cl =
-{
-	/* this codelet may only be executed on a CPU, and its cpu
- 	 * implementation is function "cpu_func" */
-	.where = STARPU_CPU,
-	.cpu_func = cpu_func,
-	/* the codelet does not manipulate any data that is managed
-	 * by our DSM */
-	.nbuffers = 0
-};
+starpu_codelet cl;
 
 int main(int argc, char **argv)
 {
+	struct starpu_task *task;
+	struct params params = {1, 2.0f};
+
 	/* initialize StarPU : passing a NULL argument means that we use
  	* default configuration for the scheduling policies and the number of
 	* processors/accelerators */
@@ -78,7 +72,15 @@ int main(int argc, char **argv)
 	/* create a new task that is non-blocking by default : the task is not
 	 * submitted to the scheduler until the starpu_task_submit function is
 	 * called */
-	struct starpu_task *task = starpu_task_create();
+	task = starpu_task_create();
+
+	/* this codelet may only be executed on a CPU, and its cpu
+ 	 * implementation is function "cpu_func" */
+	cl.where = STARPU_CPU;
+	cl.cpu_func = cpu_func;
+	/* the codelet does not manipulate any data that is managed
+	 * by our DSM */
+	cl.nbuffers = 0;
 
 	/* the task uses codelet "cl" */
 	task->cl = &cl;
@@ -91,7 +93,6 @@ int main(int argc, char **argv)
 	 * is read-only so that any modification is not passed to other copies
 	 * of the buffer.  For this reason, a buffer passed as a codelet
 	 * argument (cl_arg) is NOT a valid synchronization medium! */
-	struct params params = { 1, 2.0f };
 	task->cl_arg = &params;
 	task->cl_arg_size = sizeof(params);
 		

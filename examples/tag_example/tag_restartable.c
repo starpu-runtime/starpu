@@ -98,7 +98,7 @@ static void start_task_grid(unsigned iter)
 {
 	unsigned i;
 
-	//FPRINTF(stderr, "start grid %d ni %d...\n", iter, ni);
+	/* FPRINTF(stderr, "start grid %d ni %d...\n", iter, ni); */
 
 	for (i = 0; i < ni; i++)
 		starpu_task_submit(tasks[iter][i]);
@@ -106,10 +106,11 @@ static void start_task_grid(unsigned iter)
 
 void cpu_codelet(void *descr[], void *_args __attribute__((unused)))
 {
-	//int i = (uintptr_t) _args;
-	//printf("doing %x\n", i);
-	//usleep(SLEEP);
-	//printf("done %x\n", i);
+/*	int i = (uintptr_t) _args;
+	printf("doing %x\n", i);
+	usleep(SLEEP);
+	printf("done %x\n", i);
+*/
 }
 
 int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))

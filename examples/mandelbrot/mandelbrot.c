@@ -35,8 +35,8 @@ int demo = 0;
 static int nblocks = 20;
 static int height = 400;
 static int width = 640;
-static int maxIt = 20000; // max number of iteration in the Mandelbrot function
-static int niter = -1; // number of loops in case we don't use X11, -1 means infinite
+static int maxIt = 20000; /* max number of iteration in the Mandelbrot function */
+static int niter = -1; /* number of loops in case we don't use X11, -1 means infinite */
 static int use_spmd = 0;
 
 static double leftX = -0.745;
@@ -233,7 +233,7 @@ static void compute_block_opencl(void *descr[], void *cl_arg)
 {
 	int iby, block_size;
 	double stepX, stepY;
-	int *pcnt; // unused for CUDA tasks
+	int *pcnt; /* unused for CUDA tasks */
 	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
 
 	cl_mem data = (cl_mem)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -278,7 +278,7 @@ static void compute_block(void *descr[], void *cl_arg)
 
 	int iby, block_size;
 	double stepX, stepY;
-	int *pcnt; // unused for sequential tasks
+	int *pcnt; /* unused for sequential tasks */
 	starpu_unpack_cl_args(cl_arg, &iby, &block_size, &stepX, &stepY, &pcnt);
 
 	unsigned *data = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -291,7 +291,7 @@ static void compute_block(void *descr[], void *cl_arg)
 		{
 			double cx = leftX + ix * stepX;
 			double cy = topY - iy * stepY;
-			// Z = X+I*Y
+			/* Z = X+I*Y */
 			double x = 0;
 			double y = 0;
 			int it;
@@ -300,13 +300,13 @@ static void compute_block(void *descr[], void *cl_arg)
 				double x2 = x*x;
 				double y2 = y*y;
 
-				// Stop iterations when |Z| > 2
+				/* Stop iterations when |Z| > 2 */
 				if (x2 + y2 > 4.0)
 					break;
 
 				double twoxy = 2.0*x*y;
 
-				// Z = Z^2 + C
+				/* Z = Z^2 + C */
 				x = x2 - y2 + cx;
 				y = twoxy + cy;
 			}
@@ -327,8 +327,8 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 
 	unsigned *data = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-	int ix, iy; // global coordinates
-	int local_iy; // current line
+	int ix, iy; /* global coordinates */
+	int local_iy; /* current line */
 
 	while (1)
 	{
@@ -342,7 +342,7 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 		{
 			double cx = leftX + ix * stepX;
 			double cy = topY - iy * stepY;
-			// Z = X+I*Y
+			/* Z = X+I*Y */
 			double x = 0;
 			double y = 0;
 			int it;
@@ -351,13 +351,13 @@ static void compute_block_spmd(void *descr[], void *cl_arg)
 				double x2 = x*x;
 				double y2 = y*y;
 
-				// Stop iterations when |Z| > 2
+				/* Stop iterations when |Z| > 2 */
 				if (x2 + y2 > 4.0)
 					break;
 
 				double twoxy = 2.0*x*y;
 
-				// Z = Z^2 + C
+				/* Z = Z^2 + C */
 				x = x2 - y2 + cx;
 				y = twoxy + cy;
 			}
@@ -583,7 +583,7 @@ int main(int argc, char **argv)
 	for (iby = 0; iby < nblocks; iby++)
 		starpu_data_unregister(block_handles[iby]);
 
-//	starpu_data_free_pinned_if_possible(buffer);
+/*	starpu_data_free_pinned_if_possible(buffer); */
 
 	starpu_shutdown();
 

@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 	
 	parse_args(argc, argv);
 
-//	fprintf(stderr, "Reading input file ...\n");
+/*	fprintf(stderr, "Reading input file ...\n"); */
 
 	/* how many frames ? */
 	struct stat stbuf;
@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 
 	unsigned nframes = filesize/FRAMESIZE; 
 
-//	fprintf(stderr, "filesize %lx (FRAME SIZE %lx NEW SIZE %lx); nframes %d\n", filesize, FRAMESIZE, NEW_FRAMESIZE, nframes);
+/*	fprintf(stderr, "filesize %lx (FRAME SIZE %lx NEW SIZE %lx); nframes %d\n", filesize, FRAMESIZE, NEW_FRAMESIZE, nframes); */
 	assert((filesize % sizeof(struct yuv_frame)) == 0);
 
 	/* fetch input data */
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 	FILE *f_out = fopen(filename_out, "w+");
 	assert(f_out);
 
-//	fprintf(stderr, "Alloc output file ...\n");
+/*	fprintf(stderr, "Alloc output file ...\n"); */
 	struct yuv_new_frame *yuv_out_buffer = calloc(nframes, NEW_FRAMESIZE);
 	assert(yuv_out_buffer);
 

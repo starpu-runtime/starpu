@@ -70,7 +70,7 @@ static void create_task_grid(unsigned it)
 {
 	unsigned i;
 
-//	FPRINTF(stderr, "start iter %d ni %d...\n", it, ni);
+/*	FPRINTF(stderr, "start iter %d ni %d...\n", it, ni); */
 
 	for (i = 0; i < ni; i++)
 	{

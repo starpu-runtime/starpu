@@ -230,7 +230,7 @@ int main(int argc, char **argv)
 	check(rank);
 #endif
 
-	//display_debug(nbz, niter, rank);
+	/*display_debug(nbz, niter, rank);*/
 
 #ifdef STARPU_USE_MPI
 	starpu_mpi_shutdown();

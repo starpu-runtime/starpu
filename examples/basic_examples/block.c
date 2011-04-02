@@ -109,7 +109,7 @@ int main(int argc, char **argv)
         if (!ret) multiplier *= 3.0;
 #endif
 
-        // Check result is correct
+        /* Check result is correct */
         ret=1;
         for(i=0 ; i<nx*ny*nz ; i++) {
           if (block[i] != (i+1) * multiplier) {

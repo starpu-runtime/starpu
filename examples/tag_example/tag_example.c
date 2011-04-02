@@ -85,7 +85,7 @@ static void create_task_grid(unsigned iter)
 {
 	unsigned i, j;
 
-//	FPRINTF(stderr, "start iter %d...\n", iter);
+/*	FPRINTF(stderr, "start iter %d...\n", iter); */
 	callback_cnt = (ni*nj);
 
 	/* create non-entry tasks */
@@ -95,16 +95,16 @@ static void create_task_grid(unsigned iter)
 		/* create a new task */
 		struct starpu_task *task = starpu_task_create();
 		task->callback_func = callback_cpu;
-		//jb->argcb = &coords[i][j];
+		/* jb->argcb = &coords[i][j]; */
 		task->cl = &cl;
 		task->cl_arg = NULL;
 
 		task->use_tag = 1;
 		task->tag_id = TAG(i, j, iter);
 
-		/* express deps : (i,j) depends on (i-1, j-1) & (i-1, j+1) */		
+		/* express deps : (i,j) depends on (i-1, j-1) & (i-1, j+1) */
 		express_deps(i, j, iter);
-		
+
 		starpu_task_submit(task);
 	}
 
@@ -148,7 +148,7 @@ void callback_cpu(void *argcb __attribute__ ((unused)))
 void cpu_codelet(void *descr[] __attribute__((unused)),
 			void *_args __attribute__ ((unused)))
 {
-//	printf("execute task\n");
+/*	printf("execute task\n"); */
 }
 
 static void express_deps(unsigned i, unsigned j, unsigned iter)

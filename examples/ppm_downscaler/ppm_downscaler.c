@@ -76,7 +76,7 @@ struct ppm_image *file_to_ppm(char *filename)
 	unsigned i;
 	for (i = 0; i < ppm->ncols*ppm->nlines; i++)
 	{
-//		fprintf(stderr, "READ (index %d) -> r %d g %d b %d\n", i, ppm->data[i].r, ppm->data[i].g, ppm->data[i].b);
+/*		fprintf(stderr, "READ (index %d) -> r %d g %d b %d\n", i, ppm->data[i].r, ppm->data[i].g, ppm->data[i].b); */
 	}
 
 	fclose(file);
@@ -136,7 +136,7 @@ void dummy_downscale(struct ppm_image *input_ppm, struct ppm_image *output_ppm)
 				{
 					unsigned index = (big_col + i)+(big_line + j)*input_ppm->ncols;
 
-//					fprintf(stderr, "(col %d, line %d) i %d j %d index %d -> r %d g %d b %d\n", col, line, i, j, index, in[index].r, in[index].g, in[index].b);
+/*					fprintf(stderr, "(col %d, line %d) i %d j %d index %d -> r %d g %d b %d\n", col, line, i, j, index, in[index].r, in[index].g, in[index].b); */
 
 					sum_r += (unsigned)in[index].r;
 					sum_g += (unsigned)in[index].g;
@@ -148,7 +148,7 @@ void dummy_downscale(struct ppm_image *input_ppm, struct ppm_image *output_ppm)
 			out[col + line*output_ppm->ncols].g = (unsigned char)(sum_g/(FACTOR*FACTOR));
 			out[col + line*output_ppm->ncols].b = (unsigned char)(sum_b/(FACTOR*FACTOR));
 
-//			fprintf(stderr, "col %d line %d -> sum_r = %d out -> %d\n", col, line, sum_r, out[col + line*FACTOR].r);
+/*			fprintf(stderr, "col %d line %d -> sum_r = %d out -> %d\n", col, line, sum_r, out[col + line*FACTOR].r); */
 	
 		}
 	}

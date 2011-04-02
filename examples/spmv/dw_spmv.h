@@ -29,4 +29,4 @@
 
 #include <starpu.h>
 
-#endif // __DW_SPARSE_CG_H__
+#endif /* __DW_SPARSE_CG_H__ */

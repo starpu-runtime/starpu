@@ -16,7 +16,7 @@
 
 /* Heart of the stencil computation: compute a new state from an old one. */
 
-//#define _externC extern "C"
+/* #define _externC extern "C" */
 
 #include <stencil.h>
 #include <CL/cl.h>
