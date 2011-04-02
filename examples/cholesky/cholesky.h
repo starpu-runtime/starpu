@@ -113,4 +113,4 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 	}
 }
 
-#endif // __DW_CHOLESKY_H__
+#endif /* __DW_CHOLESKY_H__ */

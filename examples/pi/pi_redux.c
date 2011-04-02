@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -139,8 +139,8 @@ static void pi_func_cuda(void *descr[], void *cl_arg __attribute__ ((unused)))
 	/* CURAND is a bit silly: it assumes that any error is fatal. Calling
 	 * cudaGetLastError resets the last error value. */
 	cures = cudaGetLastError();
-//	if (cures)
-//		STARPU_CUDA_REPORT_ERROR(cures);
+/*	if (cures)
+		STARPU_CUDA_REPORT_ERROR(cures); */
 
 	/* Fill the scratchpad with random numbers. Note that both x and y
 	 * arrays are in stored the same vector. */

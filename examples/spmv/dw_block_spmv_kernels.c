@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,7 +23,7 @@
 
 static inline void common_block_spmv(void *descr[], int s, __attribute__((unused)) void *_args)
 {
-	//printf("22\n");
+	/* printf("22\n"); */
 	float *block 	= (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 	float *in 	= (float *)STARPU_VECTOR_GET_PTR(descr[1]);
 	float *out 	= (float *)STARPU_VECTOR_GET_PTR(descr[2]);
@@ -50,7 +50,7 @@ static inline void common_block_spmv(void *descr[], int s, __attribute__((unused
 
 void cpu_block_spmv(void *descr[], void *_args)
 {
-//	printf("CPU CODELET \n");
+/*	printf("CPU CODELET \n"); */
 
 	common_block_spmv(descr, 0, _args);
 }
@@ -58,8 +58,8 @@ void cpu_block_spmv(void *descr[], void *_args)
 #ifdef STARPU_USE_CUDA
 void cublas_block_spmv(void *descr[], void *_args)
 {
-//	printf("CUBLAS CODELET \n");
+/*	printf("CUBLAS CODELET \n"); */
 
 	common_block_spmv(descr, 1, _args);
 }
-#endif// STARPU_USE_CUDA
+#endif /* STARPU_USE_CUDA */

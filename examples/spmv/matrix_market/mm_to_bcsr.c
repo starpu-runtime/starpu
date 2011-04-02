@@ -84,7 +84,7 @@ static unsigned count_row_blocks(tmp_block_t *block_list)
 static tmp_block_t *search_block(tmp_block_t *block_list, unsigned i, unsigned j)
 {
 	tmp_block_t *current_block = block_list;
-	//printf("search %d %d\n", i, j);
+	/* printf("search %d %d\n", i, j); */
 
 	while (current_block) {
 		if ((current_block->i == i) && (current_block->j == j)) 
@@ -135,9 +135,9 @@ static unsigned next_block_is_bigger(tmp_block_t *block, unsigned i, unsigned j)
 /* we insert a block in the list, directly at the appropriate place */
 static void insert_block(tmp_block_t *block, tmp_block_t **block_list, unsigned i, unsigned j)
 {
-	///* insert block at the beginning of the list */
-	//block->next = *block_list;
-	//*block_list = block;
+	/* insert block at the beginning of the list */
+	/*block->next = *block_list;
+	*block_list = block; */
 
 	/* insert the block in lexicographical order */
 	/* first find an element that is bigger, then insert the block just before it */
@@ -185,7 +185,7 @@ static void insert_elem(tmp_block_t **block_list, unsigned abs_i, unsigned abs_j
 		block->i = i;
 		block->j = j;
 		
-		//printf("create block %d %d !\n", i, j);
+		/* printf("create block %d %d !\n", i, j); */
 
 		/* insert it in the block list */
 		insert_block(block, block_list, i, j);
@@ -262,7 +262,7 @@ static bcsr_t * blocks_to_bcsr(tmp_block_t *block_list, unsigned c, unsigned r)
 {
 	unsigned nblocks;
 
-	//print_all_blocks(block_list, r, c);
+	/* print_all_blocks(block_list, r, c); */
 
 	nblocks = count_blocks(block_list);
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
@@ -30,7 +30,7 @@
 #include <cufft.h>
 #endif
 
-//#define SAVE_RAW	1
+/* #define SAVE_RAW	1 */
 
 #define DEFAULTINPUTFILE	"input.wav"
 #define DEFAULTOUTPUTFILE	"output.wav"
@@ -335,7 +335,7 @@ static void init_problem(void)
 	}
 
 	/* allocate working buffer (this could be done online, but we'll keep it simple) */
-	//starpu_data_malloc_pinned_if_possible((void **)&outdata, length_data*sizeof(fftwf_complex));
+	/* starpu_data_malloc_pinned_if_possible((void **)&outdata, length_data*sizeof(fftwf_complex)); */
 
 	/* read input data into buffer "A" */
 	read_16bit_wav(infile, length_data, A, infile_raw);

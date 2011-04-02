@@ -182,11 +182,11 @@ int main(int argc, char **argv)
 		for (j = 0; j < size; j++)
 		{
 			mat[j +i*size] = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-			//mat[j +i*size] = ((i == j)?1.0f*size:0.0f);
+			/* mat[j +i*size] = ((i == j)?1.0f*size:0.0f); */
 		}
 	}
 
-//#define PRINT_OUTPUT
+/* #define PRINT_OUTPUT */
 #ifdef PRINT_OUTPUT
 	FPRINTF(stdout, "Input :\n");
 
@@ -218,7 +218,7 @@ int main(int argc, char **argv)
 			}
 			else {
 				FPRINTF(stdout, ".\t");
-				mat[j+i*size] = 0.0f; // debug
+				mat[j+i*size] = 0.0f; /* debug */
 			}
 		}
 		FPRINTF(stdout, "\n");
@@ -233,7 +233,7 @@ int main(int argc, char **argv)
 			for (i = 0; i < size; i++)
 			{
 				if (i > j) {
-					mat[j+i*size] = 0.0f; // debug
+					mat[j+i*size] = 0.0f; /* debug */
 				}
 			}
 		}

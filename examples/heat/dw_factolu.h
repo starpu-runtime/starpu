@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -89,12 +89,12 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (i = 0; i < size; i++)
 		{
-//			if (i <= j) {
+/*			if (i <= j) { */
 				FPRINTF(stdout, "%2.2f\t", LU[j +i*size]);
-//			}
-//			else {
-//				FPRINTF(stdout, ".\t");
-//			}
+/*			}
+			else {
+				FPRINTF(stdout, ".\t");
+			} */
 		}
 		FPRINTF(stdout, "\n");
 	}
@@ -107,12 +107,12 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (i = 0; i < size; i++)
 		{
-//			if (i <= j) {
+/*			if (i <= j) { */
 				FPRINTF(stdout, "%2.2f\t", L[j +i*size]);
-//			}
-//			else {
-//				FPRINTF(stdout, ".\t");
-//			}
+/*			}
+			else {
+				FPRINTF(stdout, ".\t");
+			} */
 		}
 		FPRINTF(stdout, "\n");
 	}
@@ -123,12 +123,12 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (i = 0; i < size; i++)
 		{
-//			if (i <= j) {
+/*			if (i <= j) { */
 				FPRINTF(stdout, "%2.2f\t", U[j +i*size]);
-//			}
-//			else {
-//				FPRINTF(stdout, ".\t");
-//			}
+/*			}
+			else {
+				FPRINTF(stdout, ".\t");
+			} */
 		}
 		FPRINTF(stdout, "\n");
 	}
@@ -155,12 +155,12 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (i = 0; i < size; i++)
 		{
-	//		if (i <= j) {
+	/*		if (i <= j) { */
 	      			FPRINTF(stdout, "%2.2f\t", A[j +i*size]);
-	//		}
-	//		else {
-	//			FPRINTF(stdout, ".\t");
-	//		}
+	/*		}
+			else {
+				FPRINTF(stdout, ".\t");
+			} */
 		}
 		FPRINTF(stdout, "\n");
 	}
@@ -172,12 +172,12 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 	{
 		for (i = 0; i < size; i++)
 		{
-	//		if (i <= j) {
+	/*		if (i <= j) { */
 	      			FPRINTF(stdout, "%2.2f\t", L[j +i*size]);
-	//		}
-	//		else {
-	//			FPRINTF(stdout, ".\t");
-	//		}
+	/*		}
+			else {
+				FPRINTF(stdout, ".\t");
+			} */
 		}
 		FPRINTF(stdout, "\n");
 	}
@@ -185,7 +185,7 @@ static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
 
 	FPRINTF(stdout, "max error between A and L*U = %f \n", max_err);
 }
-#endif // CHECK_RESULTS
+#endif /* CHECK_RESULTS */
 
 void dw_cpu_codelet_update_u11(void **, void *);
 void dw_cpu_codelet_update_u12(void **, void *);
@@ -213,4 +213,4 @@ extern struct starpu_perfmodel_t model_12;
 extern struct starpu_perfmodel_t model_21;
 extern struct starpu_perfmodel_t model_22;
 
-#endif // __DW_FACTO_LU_H__
+#endif /* __DW_FACTO_LU_H__ */

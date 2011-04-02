@@ -24,7 +24,7 @@
 #include <assert.h>
 #include <math.h>
 
-// needed for STARPU_OPENGL_RENDER
+/* needed for STARPU_OPENGL_RENDER */
 #include <starpu_config.h>
 #include <starpu.h>
 
@@ -68,4 +68,4 @@ void display_stat_heat(void);
 extern void opengl_render(unsigned _ntheta, unsigned _nthick, float *_result, point *_pmesh, int argc_, char **argv_);
 #endif
 
-#endif // __HEAT_H__
+#endif /* __HEAT_H__ */

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
@@ -50,7 +50,7 @@ static struct starpu_task *create_task(starpu_tag_t id)
 
 static struct starpu_task *create_task_11(starpu_data_handle dataA, unsigned k)
 {
-//	printf("task 11 k = %d TAG = %llx\n", k, (TAG11(k)));
+/*	printf("task 11 k = %d TAG = %llx\n", k, (TAG11(k))); */
 
 	struct starpu_task *task = create_task(TAG11(k));
 
@@ -74,7 +74,7 @@ static struct starpu_task *create_task_11(starpu_data_handle dataA, unsigned k)
 
 static void create_task_12(starpu_data_handle dataA, unsigned k, unsigned j)
 {
-//	printf("task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i));
+/*	printf("task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i)); */
 
 	struct starpu_task *task = create_task(TAG12(k, j));
 	
@@ -130,7 +130,7 @@ static void create_task_21(starpu_data_handle dataA, unsigned k, unsigned i)
 
 static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, unsigned j)
 {
-//	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j));
+/*	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); */
 
 	struct starpu_task *task = create_task(TAG22(k, i, j));
 

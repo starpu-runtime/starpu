@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,7 +26,7 @@
  *	Number of flops of Gemm 
  */
 
-//#define USE_PERTURBATION	1
+/* #define USE_PERTURBATION	1 */
 
 
 #ifdef USE_PERTURBATION
@@ -58,10 +58,10 @@ double task_12_cost(starpu_buffer_descr *descr)
 
 	n = starpu_matrix_get_nx(descr[0].handle);
 
-//	double cost = ((n*n*n)/1744.695);
+/*	double cost = ((n*n*n)/1744.695); */
 	double cost = ((n*n*n)/3210.80);
 
-	//fprintf(stderr, "task 12 predicts %e\n", cost);
+	/* fprintf(stderr, "task 12 predicts %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
@@ -72,10 +72,10 @@ double task_21_cost(starpu_buffer_descr *descr)
 
 	n = starpu_matrix_get_nx(descr[0].handle);
 
-//	double cost = ((n*n*n)/1744.695);
+/*	double cost = ((n*n*n)/1744.695); */
 	double cost = ((n*n*n)/3691.53);
 
-	//fprintf(stderr, "task 12 predicts %e\n", cost);
+	/* fprintf(stderr, "task 12 predicts %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
@@ -109,7 +109,7 @@ double task_11_cost_cuda(starpu_buffer_descr *descr)
 
 	double cost = ((n*n*n)/1853.7806);
 
-//	printf("CUDA task 11 ; predict %e\n", cost);
+/*	printf("CUDA task 11 ; predict %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
@@ -121,7 +121,7 @@ double task_12_cost_cuda(starpu_buffer_descr *descr)
 
 	double cost = ((n*n*n)/42838.5718);
 
-//	printf("CUDA task 12 ; predict %e\n", cost);
+/*	printf("CUDA task 12 ; predict %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
@@ -134,7 +134,7 @@ double task_21_cost_cuda(starpu_buffer_descr *descr)
 
 	double cost = ((n*n*n)/49208.667);
 
-//	printf("CUDA task 21 ; predict %e\n", cost);
+/*	printf("CUDA task 21 ; predict %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
@@ -150,7 +150,7 @@ double task_22_cost_cuda(starpu_buffer_descr *descr)
 
 	double cost = ((nx*ny*nz)/57523.560);
 
-//	printf("CUDA task 22 ; predict %e\n", cost);
+/*	printf("CUDA task 22 ; predict %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
@@ -168,7 +168,7 @@ double task_11_cost_cpu(starpu_buffer_descr *descr)
 
 	double cost = ((n*n*n)/537.5);
 
-//	printf("CPU task 11 ; predict %e\n", cost);
+/*	printf("CPU task 11 ; predict %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
@@ -180,7 +180,7 @@ double task_12_cost_cpu(starpu_buffer_descr *descr)
 
 	double cost = ((n*n*n)/6668.224);
 
-//	printf("CPU task 12 ; predict %e\n", cost);
+/*	printf("CPU task 12 ; predict %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
@@ -193,7 +193,7 @@ double task_21_cost_cpu(starpu_buffer_descr *descr)
 
 	double cost = ((n*n*n)/6793.8423);
 
-//	printf("CPU task 21 ; predict %e\n", cost);
+/*	printf("CPU task 21 ; predict %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
@@ -209,7 +209,7 @@ double task_22_cost_cpu(starpu_buffer_descr *descr)
 
 	double cost = ((nx*ny*nz)/4203.0175);
 
-//	printf("CPU task 22 ; predict %e\n", cost);
+/*	printf("CPU task 22 ; predict %e\n", cost); */
 	return PERTURBATE(cost);
 }
 

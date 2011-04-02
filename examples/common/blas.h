@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -154,4 +154,4 @@ extern void dswap_(const int *n, double *x, const int *incx, double *y, const in
 
 #endif
 
-#endif // __BLAS_H__
+#endif /* __BLAS_H__ */

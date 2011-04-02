@@ -28,7 +28,7 @@
 
 static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, __attribute__((unused)) void *_args)
 {
-	//printf("22\n");
+	/* printf("22\n"); */
 	float *left 	= (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 	float *right 	= (float *)STARPU_MATRIX_GET_PTR(descr[1]);
 	float *center 	= (float *)STARPU_MATRIX_GET_PTR(descr[2]);
@@ -88,7 +88,7 @@ void chol_cublas_codelet_update_u22(void *descr[], void *_args)
 {
 	chol_common_cpu_codelet_update_u22(descr, 1, _args);
 }
-#endif// STARPU_USE_CUDA
+#endif /* STARPU_USE_CUDA */
 
 /* 
  * U21
@@ -96,7 +96,7 @@ void chol_cublas_codelet_update_u22(void *descr[], void *_args)
 
 static inline void chol_common_codelet_update_u21(void *descr[], int s, __attribute__((unused)) void *_args)
 {
-//	printf("21\n");
+/*	printf("21\n"); */
 	float *sub11;
 	float *sub21;
 
@@ -143,7 +143,7 @@ void chol_cublas_codelet_update_u21(void *descr[], void *_args)
 
 static inline void chol_common_codelet_update_u11(void *descr[], int s, __attribute__((unused)) void *_args) 
 {
-//	printf("11\n");
+/*	printf("11\n"); */
 	float *sub11;
 
 	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]); 
@@ -193,7 +193,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 				
 				*lambda11 = sqrt(*lambda11);
 
-//				cublasSetVector(1, sizeof(float), lambda11, sizeof(float), &sub11[z+z*ld], sizeof(float));
+/*				cublasSetVector(1, sizeof(float), lambda11, sizeof(float), &sub11[z+z*ld], sizeof(float)); */
 				cudaMemcpyAsync(&sub11[z+z*ld], lambda11, sizeof(float), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
 
 				cublasSscal(nx - z - 1, 1.0f/(*lambda11), &sub11[(z+1)+z*ld], 1);
@@ -227,4 +227,4 @@ void chol_cublas_codelet_update_u11(void *descr[], void *_args)
 {
 	chol_common_codelet_update_u11(descr, 1, _args);
 }
-#endif// STARPU_USE_CUDA
+#endif/* STARPU_USE_CUDA */

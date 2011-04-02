@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
@@ -104,8 +104,8 @@ int main(int argc, char **argv)
 	unsigned i;
 	for (i = 0; i < N; i++)
 	{
-		vec_x[i] = 1.0f;//(TYPE)starpu_drand48();
-		vec_y[i] = 4.0f;//(TYPE)starpu_drand48();
+		vec_x[i] = 1.0f; /*(TYPE)starpu_drand48(); */
+		vec_y[i] = 4.0f; /*(TYPE)starpu_drand48(); */
 	}
 
 	FPRINTF(stderr, "BEFORE x[0] = %2.2f\n", vec_x[0]);

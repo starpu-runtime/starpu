@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -37,11 +37,11 @@ double gemm_cost(starpu_buffer_descr *descr)
 	nyC = starpu_matrix_get_ny(descr[2].handle);
 	nxA = starpu_matrix_get_nx(descr[0].handle);
 
-//	printf("nxC %d nxC %d nxA %d\n", nxC, nyC, nxA);
+/*	printf("nxC %d nxC %d nxA %d\n", nxC, nyC, nxA); */
 
 	double cost = ((double)nxC)*((double)nyC)*((double)nxA/1000.0f/4.11f);
 
-//	printf("cost %e \n", cost);
+/*	printf("cost %e \n", cost); */
 
 	return cost;
 }

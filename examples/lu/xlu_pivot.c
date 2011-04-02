@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -121,7 +121,7 @@ static struct starpu_task *create_task_11_pivot(starpu_data_handle *dataAp, unsi
 static void create_task_12(starpu_data_handle *dataAp, unsigned nblocks, unsigned k, unsigned j,
 		starpu_data_handle (* get_block)(starpu_data_handle *, unsigned, unsigned, unsigned))
 {
-//	printf("task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i));
+/*	printf("task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i)); */
 
 	struct starpu_task *task = create_task(TAG12(k, j));
 	
@@ -181,7 +181,7 @@ static void create_task_21(starpu_data_handle *dataAp, unsigned nblocks, unsigne
 static void create_task_22(starpu_data_handle *dataAp, unsigned nblocks, unsigned k, unsigned i, unsigned j,
 				starpu_data_handle (* get_block)(starpu_data_handle *, unsigned, unsigned, unsigned))
 {
-//	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j));
+/*	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); */
 
 	struct starpu_task *task = create_task(TAG22(k, i, j));
 
@@ -287,7 +287,7 @@ static double dw_codelet_facto_pivot(starpu_data_handle *dataAp,
 
 	/* stall the application until the end of computations */
 	starpu_tag_wait_array(ndeps, tags);
-//	starpu_task_wait_for_all();
+/*	starpu_task_wait_for_all(); */
 
 	gettimeofday(&end, NULL);
 

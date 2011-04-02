@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
@@ -51,7 +51,7 @@ void create_data(void)
 			0, bcsr_matrix->r, bcsr_matrix->c, sizeof(float));
 
 	size = c*r*starpu_bcsr_get_nnz(sparse_matrix);
-//	printf("size = %d \n ", size);
+/*	printf("size = %d \n ", size); */
 
 	/* initiate the 2 vectors */
 	vector_in_ptr = malloc(size*sizeof(float));
@@ -78,15 +78,15 @@ void init_problem_callback(void *arg)
 
 	unsigned val = STARPU_ATOMIC_ADD(remaining, -1);
 
-//	if (val < 10)
-//		printf("callback %d remaining \n", val);
+/*	if (val < 10)
+		printf("callback %d remaining \n", val); */
 
 	if ( val == 0 )
 	{
 		printf("DONE ...\n");
 		gettimeofday(&end, NULL);
 
-//		starpu_data_unpartition(sparse_matrix, 0);
+/*		starpu_data_unpartition(sparse_matrix, 0); */
 		starpu_data_unpartition(vector_out, 0);
 
 		sem_post(&sem);

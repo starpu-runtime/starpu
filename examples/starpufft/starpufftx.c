@@ -325,7 +325,7 @@ void
 STARPUFFT(free)(void *p)
 {
 #ifdef STARPU_USE_CUDA
-	// TODO: FIXME
+	/* TODO: FIXME */
 #else
 #  ifdef STARPU_HAVE_FFTW
 	_FFTW(free)(p);

@@ -49,7 +49,7 @@ static starpu_codelet cl11 =
 
 static struct starpu_task * create_task_11(starpu_data_handle dataA, unsigned k, unsigned reclevel)
 {
-//	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG11(k)));
+/*	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG11(k))); */
 
 	struct starpu_task *task = create_task(TAG11_AUX(k, reclevel));
 	
@@ -121,7 +121,7 @@ static starpu_codelet cl22 =
 
 static void create_task_22(starpu_data_handle dataA, unsigned k, unsigned i, unsigned j, unsigned reclevel)
 {
-//	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22_AUX(k,i,j));
+/*	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22_AUX(k,i,j)); */
 
 	struct starpu_task *task = create_task(TAG22_AUX(k, i, j, reclevel));
 
@@ -311,7 +311,7 @@ int main(int argc, char **argv)
 		for (j = 0; j < size; j++)
 		{
 			mat[j +i*size] = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-			//mat[j +i*size] = ((i == j)?1.0f*size:0.0f);
+			/* mat[j +i*size] = ((i == j)?1.0f*size:0.0f); */
 		}
 	}
 
@@ -349,7 +349,7 @@ int main(int argc, char **argv)
 			}
 			else {
 				FPRINTF(stdout, ".\t");
-				mat[j+i*size] = 0.0f; // debug
+				mat[j+i*size] = 0.0f; /* debug */
 			}
 		}
 		FPRINTF(stdout, "\n");
