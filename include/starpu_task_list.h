@@ -51,4 +51,4 @@ struct starpu_task *starpu_task_list_pop_front(struct starpu_task_list *list);
 /* Remove the element at the back of the list */
 struct starpu_task *starpu_task_list_pop_back(struct starpu_task_list *list);
 						
-#endif // __STARPU_TASK_LIST_H__
+#endif /* __STARPU_TASK_LIST_H__ */

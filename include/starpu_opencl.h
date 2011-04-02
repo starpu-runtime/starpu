@@ -208,6 +208,6 @@ int starpu_opencl_collect_stats(cl_event event);
 }
 #endif
 
-#endif // STARPU_USE_OPENCL
-#endif // __STARPU_OPENCL_H__
+#endif /* STARPU_USE_OPENCL */
+#endif /* __STARPU_OPENCL_H__ */
 

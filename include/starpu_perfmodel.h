@@ -130,4 +130,4 @@ void starpu_force_bus_sampling(void);
 }
 #endif
 
-#endif // __STARPU_PERFMODEL_H__
+#endif /* __STARPU_PERFMODEL_H__ */

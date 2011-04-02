@@ -97,4 +97,4 @@ int starpu_data_get_rank(starpu_data_handle handle);
 }
 #endif
 
-#endif // __STARPU_DATA_H__
+#endif /* __STARPU_DATA_H__ */

@@ -182,4 +182,4 @@ double starpu_data_expected_transfer_time(starpu_data_handle handle, unsigned me
 /* Returns expected power consumption in J */
 double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_archtype arch);
 
-#endif // __STARPU_SCHEDULER_H__
+#endif /* __STARPU_SCHEDULER_H__ */

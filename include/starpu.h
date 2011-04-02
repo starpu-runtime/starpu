@@ -148,4 +148,4 @@ int starpu_worker_get_devid(int id);
 }
 #endif
 
-#endif // __STARPU_H__
+#endif /* __STARPU_H__ */

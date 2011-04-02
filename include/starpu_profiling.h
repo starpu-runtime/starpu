@@ -175,4 +175,4 @@ void starpu_worker_profiling_helper_display_summary(void);
 }
 #endif
 
-#endif // __STARPU_PROFILING_H__
+#endif /* __STARPU_PROFILING_H__ */

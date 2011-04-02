@@ -33,4 +33,4 @@ void starpu_progression_hook_deregister(int hook_id);
 }
 #endif
 
-#endif // __STARPU_H__
+#endif /* __STARPU_H__ */

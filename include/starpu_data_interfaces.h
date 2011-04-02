@@ -259,7 +259,7 @@ typedef struct starpu_bcsr_interface_s {
 
 	uintptr_t nzval; /* non-zero values */
 	uint32_t *colind; /* position of non-zero entried on the row */
-//	uint32_t *rowind; /* position of non-zero entried on the col */
+/*	uint32_t *rowind; */ /* position of non-zero entried on the col */
 	uint32_t *rowptr; /* index (in nzval) of the first entry of the row */
 
         /* k for k-based indexing (0 or 1 usually) */
@@ -302,4 +302,4 @@ unsigned starpu_get_handle_interface_id(starpu_data_handle);
 }
 #endif
 
-#endif // __STARPU_DATA_INTERFACES_H__
+#endif /* __STARPU_DATA_INTERFACES_H__ */

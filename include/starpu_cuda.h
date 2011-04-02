@@ -85,6 +85,6 @@ cudaStream_t starpu_cuda_get_local_stream(void);
 }
 #endif
 
-#endif // STARPU_USE_CUDA
-#endif // __STARPU_CUDA_H__
+#endif /* STARPU_USE_CUDA */
+#endif /* __STARPU_CUDA_H__ */
 

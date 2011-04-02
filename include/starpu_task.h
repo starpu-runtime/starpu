@@ -265,4 +265,4 @@ struct starpu_task *starpu_get_current_task(void);
 }
 #endif
 
-#endif // __STARPU_TASK_H__
+#endif /* __STARPU_TASK_H__ */
