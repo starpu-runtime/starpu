@@ -133,7 +133,7 @@ static void cpu_spmv(void *descr[], __attribute__((unused))  void *arg)
 	nnz = STARPU_CSR_GET_NNZ(descr[0]);
 	nrow = STARPU_CSR_GET_NROW(descr[0]);
 
-	//STARPU_ASSERT(nrow == STARPU_VECTOR_GET_NX(descr[1]));
+	/* STARPU_ASSERT(nrow == STARPU_VECTOR_GET_NX(descr[1])); */
 	STARPU_ASSERT(nrow == STARPU_VECTOR_GET_NX(descr[2]));
 
 	unsigned row;
