@@ -98,7 +98,7 @@ int main(int argc, char **argv)
         starpu_init(NULL);
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_load_opencl_from_file("examples/filters/fblock_opencl_kernel.cl", &opencl_program);
+        starpu_opencl_load_opencl_from_file("examples/filters/fblock_opencl_kernel.cl", &opencl_program, NULL);
 #endif
 
         /* Declare data to StarPU */

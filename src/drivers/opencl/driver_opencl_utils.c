@@ -121,7 +121,8 @@ char *_starpu_opencl_load_program_source(const char *filename)
         return source;
 }
 
-int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, struct starpu_opencl_program *opencl_programs)
+int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, struct starpu_opencl_program *opencl_programs,
+					  const char* build_options)
 {
         unsigned int dev;
         unsigned int nb_devices;
@@ -150,7 +151,10 @@ int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, str
                 if (!program || err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
                 // Build the program executable
-                err = clBuildProgram(program, 1, &device, "-Werror -cl-mad-enable", NULL, NULL);
+		if (build_options)
+			err = clBuildProgram(program, 1, &device, build_options, NULL, NULL);
+		else
+			err = clBuildProgram(program, 1, &device, "-Werror -cl-mad-enable", NULL, NULL);
                 if (err != CL_SUCCESS) {
                         size_t len;
                         static char buffer[4096];
@@ -168,7 +172,8 @@ int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, str
         return EXIT_SUCCESS;
 }
 
-int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs)
+int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs,
+					const char* build_options)
 {
 	int nb_devices;
         char located_file_name[1024];
@@ -186,7 +191,7 @@ int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct sta
         if(!opencl_program_source)
                 _STARPU_ERROR("Failed to load compute program from file <%s>!\n", located_file_name);
 
-        return starpu_opencl_load_opencl_from_string(opencl_program_source, opencl_programs);
+        return starpu_opencl_load_opencl_from_string(opencl_program_source, opencl_programs, build_options);
 }
 
 cl_int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs)

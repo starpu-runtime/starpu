@@ -67,7 +67,7 @@ static struct starpu_opencl_program program;
 
 void
 opencl_life_init(void) {
-  starpu_opencl_load_opencl_from_string(src, &program);
+  starpu_opencl_load_opencl_from_string(src, &program, NULL);
 }
 
 void opencl_life_free(void) {

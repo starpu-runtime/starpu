@@ -926,7 +926,8 @@ int main(int argc, char **argv)
 
 #ifdef STARPU_USE_OPENCL
     starpu_opencl_load_opencl_from_file(
-            "examples/basic_examples/vector_scal_opencl_codelet.cl", &programs);
+            "examples/basic_examples/vector_scal_opencl_codelet.cl",
+            &programs, NULL);
 #endif
 
     vector = malloc(NX*sizeof(vector[0]));
@@ -4190,7 +4191,7 @@ relocation purpose for instance).
 @item @emph{Description}:
 TODO
 @item @emph{Prototype}:
-@code{int starpu_opencl_load_opencl_from_file(char *source_file_name, struct starpu_opencl_program *opencl_programs);}
+@code{int starpu_opencl_load_opencl_from_file(char *source_file_name, struct starpu_opencl_program *opencl_programs, const char* build_options);}
 @end table
 
 @node starpu_opencl_load_opencl_from_string
@@ -4199,7 +4200,7 @@ TODO
 @item @emph{Description}:
 TODO
 @item @emph{Prototype}:
-@code{int starpu_opencl_load_opencl_from_string(char *opencl_program_source, struct starpu_opencl_program *opencl_programs);}
+@code{int starpu_opencl_load_opencl_from_string(char *opencl_program_source, struct starpu_opencl_program *opencl_programs, const char* build_options);}
 @end table
 
 @node starpu_opencl_unload_opencl

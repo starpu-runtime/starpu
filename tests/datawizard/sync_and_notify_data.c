@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef STARPU_USE_OPENCL
-        starpu_opencl_load_opencl_from_file("tests/datawizard/sync_and_notify_data_opencl_codelet.cl", &opencl_code);
+        starpu_opencl_load_opencl_from_file("tests/datawizard/sync_and_notify_data_opencl_codelet.cl", &opencl_code, NULLx);
 #endif
 
         starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));

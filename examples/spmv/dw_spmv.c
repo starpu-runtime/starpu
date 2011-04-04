@@ -257,7 +257,7 @@ void call_spmv_codelet_filters(void)
 
 #ifdef STARPU_USE_OPENCL
         {
-                int ret = starpu_opencl_load_opencl_from_file("examples/spmv/spmv_opencl.cl", &opencl_codelet);
+                int ret = starpu_opencl_load_opencl_from_file("examples/spmv/spmv_opencl.cl", &opencl_codelet, NULL);
                 if (ret)
 		{
 			FPRINTF(stderr, "Failed to compile OpenCL codelet\n");
