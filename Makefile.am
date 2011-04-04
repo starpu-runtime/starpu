@@ -23,7 +23,7 @@ SUBDIRS += mpi
 endif
 SUBDIRS += tools examples tests doc
 if COND_OPT
-SUBDIRS += tests/opt
+SUBDIRS += tests/opt examples/opt
 endif
 
 if BUILD_GCC_PLUGIN

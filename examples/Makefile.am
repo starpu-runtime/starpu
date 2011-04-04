@@ -105,11 +105,6 @@ noinst_HEADERS = 				\
 	lu/xlu_kernels.h			\
 	lu/float.h				\
 	lu/double.h				\
-	pi/pi.h					\
-	pi/SobolQRNG/sobol.h			\
-	pi/SobolQRNG/sobol_gold.h		\
-	pi/SobolQRNG/sobol_gpu.h		\
-	pi/SobolQRNG/sobol_primitives.h		\
 	cholesky/cholesky.h			\
 	common/blas_model.h			\
 	common/blas.h				\
@@ -292,38 +287,6 @@ examplebin_PROGRAMS +=				\
 
 ppm_downscaler_yuv_downscaler_SOURCES =		\
 	ppm_downscaler/yuv_downscaler.c
-
-######
-# Pi #
-######
-
-check_PROGRAMS +=				\
-	pi/pi					\
-	pi/pi_redux
-
-examplebin_PROGRAMS +=				\
-	pi/pi					\
-	pi/pi_redux
-
-pi_pi_SOURCES =					\
-	pi/pi.c					\
-	pi/SobolQRNG/sobol_gold.c		\
-	pi/SobolQRNG/sobol_primitives.c
-
-if STARPU_USE_CUDA
-pi_pi_SOURCES +=				\
-	pi/pi_kernel.cu				\
-	pi/SobolQRNG/sobol_gpu.cu
-endif
-
-pi_pi_redux_SOURCES =				\
-	pi/pi_redux.c
-
-if STARPU_USE_CUDA
-pi_pi_redux_SOURCES +=				\
-	pi/pi_redux_kernel.cu
-endif
-
 
 ################
 # AXPY example #

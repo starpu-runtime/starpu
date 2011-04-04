@@ -1249,6 +1249,7 @@ AC_OUTPUT([
 	gcc-plugin/tests/Makefile
 	libstarpu.pc
 	examples/Makefile
+        examples/opt/Makefile
 	examples/starpufft/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
