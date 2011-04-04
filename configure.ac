@@ -459,7 +459,10 @@ fi
 # The CURAND library is only available since CUDA 3.2
 have_curand=$enable_cuda
 if test x$enable_cuda = xyes; then
+        SAVED_LDFLAGS="${LDFLAGS}"
+        LDFLAGS="${LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
 	AC_HAVE_LIBRARY([curand],[have_curand=yes],[have_curand=no])
+        LDFLAGS="${SAVED_LDFLAGS}"
 fi
 AC_MSG_CHECKING(whether CURAND is available)
 AC_MSG_RESULT($have_curand)
