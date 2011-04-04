@@ -31,15 +31,12 @@ bin_PROGRAMS += starpu_calibrate_bus
 starpu_calibrate_bus_SOURCES = starpu_calibrate_bus.c
 
 if STARPU_USE_FXT
-# TODO: prefix with starpu_
 bin_PROGRAMS += starpu_fxt_tool starpu_fxt_stats
 
 starpu_fxt_tool_SOURCES = starpu_fxt_tool.c
-starpu_fxt_tool_CFLAGS = -I$(top_srcdir)/src/
 starpu_fxt_tool_LDADD =
 
 starpu_fxt_stats_SOURCES = starpu_fxt_stats.c
-starpu_fxt_stats_CFLAGS = -I$(top_srcdir)/src/
 endif
 
 bin_PROGRAMS +=	starpu_perfmodel_display
