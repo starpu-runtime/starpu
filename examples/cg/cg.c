@@ -97,9 +97,9 @@ static void generate_random_problem(void)
 {
 	int i, j;
 
-	starpu_data_malloc_pinned_if_possible((void **)&A, n*n*sizeof(TYPE));
-	starpu_data_malloc_pinned_if_possible((void **)&b, n*sizeof(TYPE));
-	starpu_data_malloc_pinned_if_possible((void **)&x, n*sizeof(TYPE));
+	starpu_malloc((void **)&A, n*n*sizeof(TYPE));
+	starpu_malloc((void **)&b, n*sizeof(TYPE));
+	starpu_malloc((void **)&x, n*sizeof(TYPE));
 	assert(A && b && x);
 
 	for (j = 0; j < n; j++)
@@ -115,9 +115,9 @@ static void generate_random_problem(void)
 	}
 
 	/* Internal vectors */
-	starpu_data_malloc_pinned_if_possible((void **)&r, n*sizeof(TYPE));
-	starpu_data_malloc_pinned_if_possible((void **)&d, n*sizeof(TYPE));
-	starpu_data_malloc_pinned_if_possible((void **)&q, n*sizeof(TYPE));
+	starpu_malloc((void **)&r, n*sizeof(TYPE));
+	starpu_malloc((void **)&d, n*sizeof(TYPE));
+	starpu_malloc((void **)&q, n*sizeof(TYPE));
 	assert(r && d && q);
 
 	memset(r, 0, n*sizeof(TYPE));

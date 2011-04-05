@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
-	starpu_data_malloc_pinned_if_possible((void **)&buffer, VECTORSIZE);
+	starpu_malloc((void **)&buffer, VECTORSIZE);
 
 	starpu_vector_data_register(&v_handle, 0, (uintptr_t)buffer, VECTORSIZE, sizeof(char));
 

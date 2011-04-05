@@ -223,7 +223,7 @@ static void init_matrix(int rank)
 			{
 				/* This blocks should be treated by the current MPI process */
 				/* Allocate and fill it */
-				starpu_data_malloc_pinned_if_possible((void **)blockptr, blocksize);
+				starpu_malloc((void **)blockptr, blocksize);
 				allocated_memory += blocksize;
 
 				//fprintf(stderr, "Rank %d : fill block (i = %d, j = %d)\n", rank, i, j);
@@ -256,7 +256,7 @@ static void init_matrix(int rank)
 
 	/* tmp buffer 11 */
 #ifdef SINGLE_TMP11
-	starpu_data_malloc_pinned_if_possible((void **)&tmp_11_block, blocksize);
+	starpu_malloc((void **)&tmp_11_block, blocksize);
 	allocated_memory_extra += blocksize;
 	starpu_matrix_data_register(&tmp_11_block_handle, 0, (uintptr_t)tmp_11_block,
 			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
@@ -269,7 +269,7 @@ static void init_matrix(int rank)
 	{
 		if (tmp_11_block_is_needed(rank, nblocks, k))
 		{
-			starpu_data_malloc_pinned_if_possible((void **)&tmp_11_block[k], blocksize);
+			starpu_malloc((void **)&tmp_11_block[k], blocksize);
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_11_block[k]);
 
@@ -304,7 +304,7 @@ static void init_matrix(int rank)
 #ifdef SINGLE_TMP1221
 		if (tmp_12_block_is_needed(rank, nblocks, k))
 		{
-			starpu_data_malloc_pinned_if_possible((void **)&tmp_12_block[k], blocksize);
+			starpu_malloc((void **)&tmp_12_block[k], blocksize);
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_12_block[k]);
 
@@ -315,7 +315,7 @@ static void init_matrix(int rank)
 
 		if (tmp_21_block_is_needed(rank, nblocks, k))
 		{
-			starpu_data_malloc_pinned_if_possible((void **)&tmp_21_block[k], blocksize);
+			starpu_malloc((void **)&tmp_21_block[k], blocksize);
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_21_block[k]);
 
@@ -327,7 +327,7 @@ static void init_matrix(int rank)
 	for (i = 0; i < 2; i++) {
 		if (tmp_12_block_is_needed(rank, nblocks, k))
 		{
-			starpu_data_malloc_pinned_if_possible((void **)&tmp_12_block[i][k], blocksize);
+			starpu_malloc((void **)&tmp_12_block[i][k], blocksize);
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_12_block[i][k]);
 	
@@ -338,7 +338,7 @@ static void init_matrix(int rank)
 
 		if (tmp_21_block_is_needed(rank, nblocks, k))
 		{
-			starpu_data_malloc_pinned_if_possible((void **)&tmp_21_block[i][k], blocksize);
+			starpu_malloc((void **)&tmp_21_block[i][k], blocksize);
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_21_block[i][k]);
 	

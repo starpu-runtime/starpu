@@ -174,7 +174,7 @@ int main(int argc, char **argv)
 	starpu_helper_cublas_init();
 
 	float *mat;
-	starpu_data_malloc_pinned_if_possible((void **)&mat, (size_t)size*size*sizeof(float));
+	starpu_malloc((void **)&mat, (size_t)size*size*sizeof(float));
 
 	unsigned i,j;
 	for (i = 0; i < size; i++)

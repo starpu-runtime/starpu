@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 	starpu_init(NULL);
 
 	/* Create a piece of data */
-	starpu_data_malloc_pinned_if_possible((void **)&v, vector_size);
+	starpu_malloc((void **)&v, vector_size);
 	starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, vector_size, 1);
 
 	/* Find a pair of memory nodes */

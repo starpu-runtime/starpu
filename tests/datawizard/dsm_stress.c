@@ -93,8 +93,8 @@ int main(int argc, char **argv)
 {
 	starpu_init(NULL);
 
-	starpu_data_malloc_pinned_if_possible((void **)&v, VECTORSIZE*sizeof(unsigned));
-	starpu_data_malloc_pinned_if_possible((void **)&v2, VECTORSIZE*sizeof(unsigned));
+	starpu_malloc((void **)&v, VECTORSIZE*sizeof(unsigned));
+	starpu_malloc((void **)&v2, VECTORSIZE*sizeof(unsigned));
 
 	starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 	starpu_vector_data_register(&v_handle2, 0, (uintptr_t)v2, VECTORSIZE, sizeof(unsigned));

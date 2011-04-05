@@ -69,9 +69,9 @@ static void init_problem_data(void)
 {
 	unsigned i,j;
 
-	starpu_data_malloc_pinned_if_possible((void **)&A, zdim*ydim*sizeof(TYPE));
-	starpu_data_malloc_pinned_if_possible((void **)&B, xdim*zdim*sizeof(TYPE));
-	starpu_data_malloc_pinned_if_possible((void **)&C, xdim*ydim*sizeof(TYPE));
+	starpu_malloc((void **)&A, zdim*ydim*sizeof(TYPE));
+	starpu_malloc((void **)&B, xdim*zdim*sizeof(TYPE));
+	starpu_malloc((void **)&C, xdim*ydim*sizeof(TYPE));
 
 	/* fill the A and B matrices */
 	for (j=0; j < ydim; j++) {

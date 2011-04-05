@@ -249,7 +249,7 @@ static void allocate_block_on_node(starpu_data_handle *handleptr, TYPE **ptr, un
 
 	/* Allocate memory */
 #if 1
-	ret = starpu_data_malloc_pinned_if_possible((void **)ptr, block_size);
+	ret = starpu_malloc((void **)ptr, block_size);
 	STARPU_ASSERT(ret == 0);
 #else
 	*ptr = malloc(block_size);

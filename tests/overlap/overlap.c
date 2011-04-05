@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 	starpu_init(NULL);
 
 	/* create data */
-	starpu_data_malloc_pinned_if_possible((void **)&buffer, NTASKS*VECTORSIZE*sizeof(char));
+	starpu_malloc((void **)&buffer, NTASKS*VECTORSIZE*sizeof(char));
 
 	/* declare data to StarPU */
 	starpu_vector_data_register(&handle, 0, (uintptr_t)buffer,

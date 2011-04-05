@@ -461,7 +461,7 @@ int main(int argc, char **argv)
 	starpu_init(&conf);
 
 	unsigned *buffer;
-	starpu_data_malloc_pinned_if_possible((void **)&buffer, height*width*sizeof(unsigned));
+	starpu_malloc((void **)&buffer, height*width*sizeof(unsigned));
 
 #ifdef STARPU_HAVE_X11
 	if (use_x11)

@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 	unsigned b;
 	for (b = 0; b < NBUFFERS; b++)
 	{
-		starpu_data_malloc_pinned_if_possible((void **)&buffer[b], VECTORSIZE);
+		starpu_malloc((void **)&buffer[b], VECTORSIZE);
 		starpu_vector_data_register(&v_handle[b], 0,
 				(uintptr_t)buffer[b], VECTORSIZE, sizeof(char));
 	}

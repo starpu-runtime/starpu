@@ -241,7 +241,7 @@ static void initialize_system(float **A, unsigned dim, unsigned pinned)
 
 	if (pinned)
 	{
-		starpu_data_malloc_pinned_if_possible((void **)A, (size_t)dim*dim*sizeof(float));
+		starpu_malloc((void **)A, (size_t)dim*dim*sizeof(float));
 	} 
 	else {
 		*A = malloc(dim*dim*sizeof(float));

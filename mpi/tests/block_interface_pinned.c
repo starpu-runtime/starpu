@@ -61,7 +61,7 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
-		starpu_data_malloc_pinned_if_possible((void **)&block,
+		starpu_malloc((void **)&block,
 				BIGSIZE*BIGSIZE*BIGSIZE*sizeof(float));
 		memset(block, 0, BIGSIZE*BIGSIZE*BIGSIZE*sizeof(float));
 
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 	}
 	else /* rank == 1 */
 	{
-		starpu_data_malloc_pinned_if_possible((void **)&block,
+		starpu_malloc((void **)&block,
 			SIZE*SIZE*SIZE*sizeof(float));
 		memset(block, 0, SIZE*SIZE*SIZE*sizeof(float));
 

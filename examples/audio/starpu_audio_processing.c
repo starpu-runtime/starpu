@@ -328,7 +328,7 @@ static void init_problem(void)
 	/* allocate a buffer to store the content of input file */
 	if (use_pin)
 	{
-		starpu_data_malloc_pinned_if_possible((void **)&A, length_data*sizeof(float));
+		starpu_malloc((void **)&A, length_data*sizeof(float));
 	}
 	else {
 		A = malloc(length_data*sizeof(float));

@@ -95,10 +95,10 @@ int main(int argc, char **argv)
 		vec_a = malloc(N*sizeof(TYPE));
 		vec_b = malloc(N*sizeof(TYPE));
 	*/
-	starpu_data_malloc_pinned_if_possible((void **)&vec_x, N*sizeof(TYPE));
+	starpu_malloc((void **)&vec_x, N*sizeof(TYPE));
 	assert(vec_x);
 
-	starpu_data_malloc_pinned_if_possible((void **)&vec_y, N*sizeof(TYPE));
+	starpu_malloc((void **)&vec_y, N*sizeof(TYPE));
 	assert(vec_y);
 
 	unsigned i;
