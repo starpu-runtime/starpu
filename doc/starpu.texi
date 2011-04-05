@@ -1411,7 +1411,7 @@ will for instance request to always transfer a replicate into the main memory (n
 0), as bit 0 of the write-through bitmask is being set.
 
 When the application allocates data, whenever possible it should use the
-@code{starpu_data_malloc_pinned_if_possible} function, which will ask CUDA or
+@code{starpu_malloc} function, which will ask CUDA or
 OpenCL to make the allocation itself and pin the corresponding allocated
 memory. This is needed to permit asynchronous data transfer, i.e. permit data
 transfer to overlap with computations.
@@ -2762,7 +2762,7 @@ We show how to use existing data interfaces in @ref{Data Interfaces}, but develo
 design their own data interfaces if required.
 
 @menu
-* starpu_data_malloc_pinned_if_possible::          Allocate data and pin it
+* starpu_malloc::          Allocate data and pin it
 * starpu_access_mode::          Data access mode
 * unsigned memory_node::        Memory node
 * starpu_data_handle::          StarPU opaque data handle
@@ -2776,16 +2776,16 @@ design their own data interfaces if required.
 * starpu_data_set_wt_mask::     Set the Write-Through mask
 @end menu
 
-@node starpu_data_malloc_pinned_if_possible
-@subsection @code{starpu_data_malloc_pinned_if_possible} -- Allocate data and pin it
+@node starpu_malloc
+@subsection @code{starpu_malloc} -- Allocate data and pin it
 @table @asis
 @item @emph{Description}:
 This function allocates data of the given size. It will also try to pin it in
 CUDA or OpenGL, so that data transfers from this buffer can be asynchronous, and
 thus permit data transfer and computation overlapping. The allocated buffer must
-be freed thanks to the @code{starpu_data_free_pinned_if_possible} function.
+be freed thanks to the @code{starpu_free} function.
 @item @emph{Prototype}:
-@code{int starpu_data_malloc_pinned_if_possible(void **A, size_t dim);}
+@code{int starpu_malloc(void **A, size_t dim);}
 @end table
 
 @node starpu_access_mode
@@ -4084,7 +4084,7 @@ TODO
 @node CUDA extensions
 @section CUDA extensions
 
-@c void starpu_data_malloc_pinned_if_possible(float **A, size_t dim);
+@c void starpu_malloc(float **A, size_t dim);
 
 @menu
 * starpu_cuda_get_local_stream::  Get current worker's CUDA stream

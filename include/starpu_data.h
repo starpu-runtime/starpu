@@ -62,8 +62,13 @@ int starpu_data_acquire_cb(starpu_data_handle handle,
 			starpu_access_mode mode, void (*callback)(void *), void *arg);
 void starpu_data_release(starpu_data_handle handle);
 
-int starpu_data_malloc_pinned_if_possible(void **A, size_t dim);
-int starpu_data_free_pinned_if_possible(void *A);
+int starpu_malloc(void **A, size_t dim);
+int starpu_free(void *A);
+
+/* XXX These macros are provided to avoid breaking old codes. But consider
+ * these function names as deprecated. */
+#define starpu_data_malloc_pinned_if_possible	starpu_malloc
+#define starpu_data_free_pinned_if_possible	starpu_free
 
 int starpu_data_request_allocation(starpu_data_handle handle, uint32_t node);
 
