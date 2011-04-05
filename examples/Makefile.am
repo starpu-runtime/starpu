@@ -116,7 +116,7 @@ noinst_HEADERS = 				\
 	ppm_downscaler/yuv_downscaler.h		\
 	spmv/matrix_market/mmio.h		\
 	spmv/matrix_market/mm_to_bcsr.h		\
-	spmv/dw_spmv.h				\
+	spmv/spmv.h				\
 	spmv/dw_block_spmv.h
 
 
@@ -508,16 +508,17 @@ tag_example_tag_restartable_SOURCES =		\
 ################
 
 check_PROGRAMS += 				\
-	spmv/dw_spmv
+	spmv/spmv
 
 examplebin_PROGRAMS += 				\
-	spmv/dw_spmv
+	spmv/spmv
 
-spmv_dw_spmv_SOURCES = 				\
-	spmv/dw_spmv.c
+spmv_spmv_SOURCES = 				\
+	spmv/spmv.c				\
+	spmv/spmv_kernels.c
 
 if STARPU_USE_CUDA
-spmv_dw_spmv_SOURCES +=				\
+spmv_spmv_SOURCES +=				\
 	spmv/spmv_cuda.cu
 endif
 

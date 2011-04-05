@@ -104,9 +104,9 @@ int main(int argc, char **argv)
 	 *	Create a 3-band sparse matrix as input example
 	 */
 	nnz = 3*size-2;
-	nzval = malloc(nnz*sizeof(float));
-	colind = malloc(nnz*sizeof(uint32_t));
-	rowptr = malloc((size+1)*sizeof(uint32_t));
+	starpu_malloc((void **)&nzval, nnz*sizeof(float));
+	starpu_malloc((void **)&colind, nnz*sizeof(uint32_t));
+	starpu_malloc((void **)&rowptr, (size+1)*sizeof(uint32_t));
 	assert(nzval && colind && rowptr);
 
 	/* fill the matrix */
@@ -136,8 +136,8 @@ int main(int argc, char **argv)
 	rowptr[size] = nnz;
 	
 	/* initiate the 2 vectors */
-	vector_in_ptr = malloc(size*sizeof(float));
-	vector_out_ptr = malloc(size*sizeof(float));
+	starpu_malloc((void **)&vector_in_ptr, size*sizeof(float));
+	starpu_malloc((void **)&vector_out_ptr, size*sizeof(float));
 	assert(vector_in_ptr && vector_out_ptr);
 
 	/* fill them */
@@ -218,17 +218,16 @@ int main(int argc, char **argv)
                 FPRINTF(stdout, "%2.2f\t%2.2f\n", vector_in_ptr[row], vector_out_ptr[row]);
 	}
 
+	starpu_free(nzval);
+	starpu_free(colind);
+	starpu_free(rowptr);
+	starpu_free(vector_in_ptr);
+	starpu_free(vector_out_ptr);
 
 	/*
 	 *	Stop StarPU
 	 */
 	starpu_shutdown();
-
-	free(nzval);
-	free(colind);
-	free(rowptr);
-	free(vector_in_ptr);
-	free(vector_out_ptr);
 
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	FPRINTF(stderr, "Computation took (in ms)\n");
