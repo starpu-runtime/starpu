@@ -72,9 +72,10 @@ int main(int argc, char **argv)
 	float vector[NX];
 	unsigned i;
 	for (i = 0; i < NX; i++)
-		vector[i] = 1.0f;
+                vector[i] = (i+1.0f);
 
-	FPRINTF(stderr, "BEFORE : First element was %f\n", vector[0]);
+	FPRINTF(stderr, "BEFORE: First element was %f\n", vector[0]);
+	FPRINTF(stderr, "BEFORE: Last element was %f\n", vector[NX-1]);
 
 	/* Initialize StarPU with default configuration */
 	starpu_init(NULL);
@@ -133,7 +134,8 @@ int main(int argc, char **argv)
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
 
-	FPRINTF(stderr, "AFTER First element is %f\n", vector[0]);
+	FPRINTF(stderr, "AFTER: First element is %f\n", vector[0]);
+	FPRINTF(stderr, "AFTER: Last element is %f\n", vector[NX-1]);
 
 	return 0;
 }

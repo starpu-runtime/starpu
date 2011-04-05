@@ -3,7 +3,7 @@
 static __global__ void vector_mult_cuda(float *val, unsigned n,
                                         float factor)
 @{
-        unsigned i = threadIdx.x;
+        unsigned i =  blockIdx.x*blockDim.x + threadIdx.x;
         if (i < n)
                val[i] *= factor;
 @}
