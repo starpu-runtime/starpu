@@ -151,10 +151,7 @@ int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, str
                 if (!program || err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
                 // Build the program executable
-		if (build_options)
-			err = clBuildProgram(program, 1, &device, build_options, NULL, NULL);
-		else
-			err = clBuildProgram(program, 1, &device, "-Werror -cl-mad-enable", NULL, NULL);
+                err = clBuildProgram(program, 1, &device, build_options, NULL, NULL);
                 if (err != CL_SUCCESS) {
                         size_t len;
                         static char buffer[4096];
