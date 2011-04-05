@@ -15,11 +15,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __DW_SPARSE_CG_H__
-#define __DW_SPARSE_CG_H__
+#ifndef __SPMV_H__
+#define __SPMV_H__
 
 #include <sys/types.h>
-#include <semaphore.h>
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
@@ -29,4 +28,25 @@
 
 #include <starpu.h>
 
-#endif /* __DW_SPARSE_CG_H__ */
+#ifdef STARPU_USE_CUDA
+#include <starpu_cuda.h>
+#endif
+
+#ifdef STARPU_USE_OPENCL
+#include <starpu_opencl.h>
+#endif
+
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
+#ifdef STARPU_USE_CUDA
+void spmv_kernel_cuda(void *descr[], void *args);
+#endif
+
+#ifdef STARPU_USE_OPENCL
+void spmv_kernel_opencl(void *descr[], void *args);
+void compile_spmv_opencl_kernel(void);
+#endif
+
+void spmv_kernel_cpu(void *descr[], void *arg);
+
+#endif /* __SPMV_H__ */
