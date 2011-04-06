@@ -233,7 +233,7 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 	
 		}
 		else {
-			_STARPU_DEP_DEBUG("R %p\n", handle);
+			_STARPU_DEP_DEBUG("R %p %d -> %d\n", handle, previous_mode, mode);
 			/* Add a reader, after a writer or a reader. */
 			STARPU_ASSERT(pre_sync_task);
 			STARPU_ASSERT(post_sync_task);
@@ -256,7 +256,7 @@ void _starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_
 				new_sync_task->callback_func = disable_last_writer_callback;
 				new_sync_task->callback_arg = handle;
 #ifdef STARPU_USE_FXT
-				_starpu_get_job_associated_to_task(new_sync_task)->model_name = "sync_task";
+				_starpu_get_job_associated_to_task(new_sync_task)->model_name = "sync_task_redux";
 #endif
 
 				_starpu_add_writer_after_readers(handle, new_sync_task, new_sync_task);
