@@ -274,7 +274,7 @@ static void handle_worker_deinit_end(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 			get_event_time_stamp(ev, options), prefix, ev->param[1]);
 }
 
-static void create_paje_state_if_not_found(char *name)
+static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options *options)
 {
 	symbol_name_itor_t itor;
 	for (itor = symbol_name_list_begin(symbol_list);
@@ -300,13 +300,21 @@ static void create_paje_state_if_not_found(char *name)
 	unsigned hash_symbol_green = get_colour_symbol_green(name);
 	unsigned hash_symbol_blue = get_colour_symbol_blue(name);
 
-	fprintf(stderr, "name %s hash red %u green %u blue %u \n", name, hash_symbol_red, hash_symbol_green, hash_symbol_blue);
-
 	uint32_t hash_sum = hash_symbol_red + hash_symbol_green + hash_symbol_blue;
 
-	float red = (1.0f * hash_symbol_red) / hash_sum;
-	float green = (1.0f * hash_symbol_green) / hash_sum;
-	float blue = (1.0f * hash_symbol_blue) / hash_sum;
+	float red, green, blue;
+	if (options->per_task_colour)
+	{
+		red = (1.0f * hash_symbol_red) / hash_sum;
+		green = (1.0f * hash_symbol_green) / hash_sum;
+		blue = (1.0f * hash_symbol_blue) / hash_sum;
+	}
+	else {
+		/* Use the hardcoded value for execution mode */
+		red = 0.0f;
+		green = 0.6f;
+		blue = 0.4f;
+	}
 
 	/* create the Paje state */
 	fprintf(out_paje_file, "6       %s       S       %s \"%f %f %f\" \n", name, name, red, green, blue);
@@ -333,15 +341,9 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	float start_codelet_time = get_event_time_stamp(ev, options);
 	last_codelet_start[worker] = start_codelet_time;
 
-	if (options->per_task_colour)
-	{
-		create_paje_state_if_not_found(name);
+	create_paje_state_if_not_found(name, options);
 
-		fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[1], name);
-	}
-	else {
-		fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      E\n", start_codelet_time, prefix, ev->param[1]);
-	}
+	fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      %s\n", start_codelet_time, prefix, ev->param[1], name);
 }
 
 static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)

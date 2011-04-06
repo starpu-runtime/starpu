@@ -139,7 +139,6 @@ void starpu_fxt_write_paje_header(FILE *file)
 	6       D       S      Deinitializing       \"0.0 .1 .7\"            \n \
 	6       Fi       S      FetchingInput       \"1.0 .1 1.0\"            \n \
 	6       Po       S      PushingOutput       \"0.1 1.0 1.0\"            \n \
-	6       E       S       Executing       \".0 .6 .4\"            \n \
 	6       C       S       Callback       \".0 .3 .8\"            \n \
 	6       B       S       Blocked         \".9 .1 .0\"		\n \
 	6       Sl       S      Sleeping         \".9 .1 .0\"		\n \
