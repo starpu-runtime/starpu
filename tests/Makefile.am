@@ -111,6 +111,7 @@ check_PROGRAMS += 				\
 	core/declare_deps_after_submission	\
 	core/declare_deps_after_submission_synchronous	\
 	core/get_current_task			\
+	datawizard/acquire_cb			\
 	datawizard/acquire_release		\
 	datawizard/acquire_release2		\
 	datawizard/data_implicit_deps		\
@@ -274,6 +275,11 @@ testbin_PROGRAMS +=				\
 	core/get_current_task
 core_get_current_task_SOURCES =			\
 	core/get_current_task.c
+
+testbin_PROGRAMS +=				\
+	datawizard/acquire_cb
+datawizard_acquire_cb_SOURCES =			\
+	datawizard/acquire_cb.c
 
 testbin_PROGRAMS +=				\
 	datawizard/acquire_release
