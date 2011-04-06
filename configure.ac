@@ -266,22 +266,24 @@ AC_DEFUN([STARPU_CHECK_CUDA_RUNTIME],
     fi
     AC_MSG_RESULT()
 
-    SAVED_STARPU_CUDA_LDFLAGS=${STARPU_CUDA_LDFLAGS}
-
     if test "$__cuda_include_dir" = "no" -a "$__cuda_dir" != "no" ; then
         __cuda_include_dir="$__cuda_dir/include"
     fi
     if test "$__cuda_lib_dir" = "no" -a "$__cuda_dir" != "no" ; then
         __cuda_lib_dir="$__cuda_dir/lib"
-	STARPU_CUDA_LDFLAGS="${SAVED_STARPU_CUDA_LDFLAGS} -L$__cuda_lib_dir"
     fi
 
     SAVED_CPPFLAGS="$CPPFLAGS"
     SAVED_LDFLAGS="${LDFLAGS}"
+    SAVED_STARPU_CUDA_LDFLAGS=${STARPU_CUDA_LDFLAGS}
 
+    if test "$__cuda_lib_dir" != "no" ; then
+	STARPU_CUDA_LDFLAGS="${SAVED_STARPU_CUDA_LDFLAGS} -L$__cuda_lib_dir"
+    fi
     if test "$__cuda_include_dir" != "no" ; then
         CPPFLAGS="${CPPFLAGS} -I$__cuda_include_dir"
     fi
+
     AC_CHECK_HEADER([cuda.h],[have_valid_cuda=yes],[have_valid_cuda=no])
     unset ac_cv_header_cuda_h
 
