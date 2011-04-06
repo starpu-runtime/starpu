@@ -41,12 +41,13 @@ void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_n
 				r = create_request_to_fetch_data(handle, &handle->per_node[node],
 								STARPU_R, 0, NULL, NULL);
 
-			        _starpu_spin_unlock(&handle->header_lock);
-
 			        /* If no request was created, the handle was already up-to-date on the
 			         * node */
 			        if (r)
+				{
+				        _starpu_spin_unlock(&handle->header_lock);
         				_starpu_wait_data_request_completion(r, 1);
+				}
 			}
 		}
 	}

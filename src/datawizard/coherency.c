@@ -224,6 +224,8 @@ starpu_data_request_t create_request_to_fetch_data(starpu_data_handle handle,
 		_starpu_update_data_state(handle, dst_replicate, mode);
 		_starpu_msi_cache_hit(requesting_node);
 
+		_starpu_spin_unlock(&handle->header_lock);
+
 		if (callback_func)
 			callback_func(callback_arg);
 
@@ -341,13 +343,14 @@ int _starpu_fetch_data_on_node(starpu_data_handle handle, struct starpu_data_rep
 	r = create_request_to_fetch_data(handle, dst_replicate, mode,
 					is_prefetch, callback_func, callback_arg);
 
-	_starpu_spin_unlock(&handle->header_lock);
-
 	/* If no request was created, the handle was already up-to-date on the
-	 * node */
+	 * node. In this case, create_request_to_fetch_data has already
+	 * unlocked the header. */
 	if (!r)
 		return 0;
 	
+	_starpu_spin_unlock(&handle->header_lock);
+
 	int ret = is_prefetch?0:_starpu_wait_data_request_completion(r, 1);
         _STARPU_LOG_OUT();
         return ret;
