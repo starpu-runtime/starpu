@@ -81,12 +81,17 @@ inline starpu_node_kind _starpu_get_node_kind(uint32_t node)
 	return descr.nodes[node];
 }
 
+int starpu_memory_node_to_devid(unsigned node)
+{
+	return descr.devid[node];
+}
+
 unsigned _starpu_get_memory_nodes_count(void)
 {
 	return descr.nnodes;
 }
 
-unsigned _starpu_register_memory_node(starpu_node_kind kind)
+unsigned _starpu_register_memory_node(starpu_node_kind kind, int devid)
 {
 	unsigned nnodes;
 	/* ATOMIC_ADD returns the new value ... */
@@ -94,6 +99,8 @@ unsigned _starpu_register_memory_node(starpu_node_kind kind)
 
 	descr.nodes[nnodes-1] = kind;
 	STARPU_TRACE_NEW_MEM_NODE(nnodes-1);
+
+	descr.devid[nnodes-1] = devid;
 
 	/* for now, there is no condition associated to that newly created node */
 	descr.condition_count[nnodes-1] = 0;

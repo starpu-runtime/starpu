@@ -645,7 +645,7 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 
 	/* note that even if the CPU cpu are not used, we always have a RAM node */
 	/* TODO : support NUMA  ;) */
-	ram_memory_node = _starpu_register_memory_node(STARPU_CPU_RAM);
+	ram_memory_node = _starpu_register_memory_node(STARPU_CPU_RAM, -1);
 
 	/* We will store all the busid of the different (src, dst) combinations
 	 * in a matrix which we initialize here. */
@@ -684,7 +684,7 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 					npreferred = config->topology.nhwcpus;
 				}
 				is_a_set_of_accelerators = 0;
-				memory_node = _starpu_register_memory_node(STARPU_CUDA_RAM);
+				memory_node = _starpu_register_memory_node(STARPU_CUDA_RAM, workerarg->devid);
 
 				_starpu_register_bus(0, memory_node);
 				_starpu_register_bus(memory_node, 0);
@@ -700,7 +700,7 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 					npreferred = config->topology.nhwcpus;
 				}
 				is_a_set_of_accelerators = 0;
-				memory_node = _starpu_register_memory_node(STARPU_OPENCL_RAM);
+				memory_node = _starpu_register_memory_node(STARPU_OPENCL_RAM, workerarg->devid);
 				_starpu_register_bus(0, memory_node);
 				_starpu_register_bus(memory_node, 0);
 				break;

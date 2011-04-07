@@ -46,6 +46,9 @@ typedef struct {
 	unsigned nnodes;
 	starpu_node_kind nodes[STARPU_MAXNODES];
 
+	/* Get the device id associated to this node, or -1 if not applicable */
+	int devid[STARPU_MAXNODES];
+
 	// TODO move this 2 lists outside starpu_mem_node_descr
 	/* Every worker is associated to a condition variable on which the
 	 * worker waits when there is task available. It is possible that
@@ -65,11 +68,12 @@ void _starpu_init_memory_nodes(void);
 void _starpu_deinit_memory_nodes(void);
 void _starpu_set_local_memory_node_key(unsigned *node);
 unsigned _starpu_get_local_memory_node(void);
-unsigned _starpu_register_memory_node(starpu_node_kind kind);
+unsigned _starpu_register_memory_node(starpu_node_kind kind, int devid);
 //void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
 void _starpu_memory_node_register_condition(pthread_cond_t *cond, pthread_mutex_t *mutex, unsigned memory_node);
 
 starpu_node_kind _starpu_get_node_kind(uint32_t node);
+int starpu_memory_node_to_devid(unsigned node);
 unsigned _starpu_get_memory_nodes_count(void);
 
 starpu_mem_node_descr *_starpu_get_memory_node_description(void);
