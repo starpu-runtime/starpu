@@ -431,17 +431,6 @@ register_task_attributes (void *gcc_data, void *user_data)
 
 
 
-/* Return the size in bytes of TYPE.  */
-
-static tree
-sizeof_type (const_tree type)
-{
-  size_t bits;
-
-  bits = TREE_INT_CST_LOW (TYPE_SIZE (type));
-  return build_int_cstu (size_type_node, bits / 8);
-}
-
 /* Return the type of a codelet function, i.e.,
    `void (*) (void **, void *)'.  */
 
@@ -908,7 +897,7 @@ build_task_submission (tree task_decl, gimple call)
 	  VEC_safe_push (tree, heap, args,
 			 build_addr (arg, current_function_decl));
 	  VEC_safe_push (tree, heap, args,
-			 sizeof_type (TREE_TYPE (arg)));
+			 size_in_bytes (TREE_TYPE (arg)));
 	}
     }
 
