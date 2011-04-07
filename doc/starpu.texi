@@ -1196,7 +1196,7 @@ input sizes, by applying a*n^b+c regression over observed execution times.
 @end itemize
 
 How to use schedulers which can benefit from such performance model is explained
-in section @ref{Task scheduling policy}.
+in @ref{Task scheduling policy}.
 
 The same can be done for task power consumption estimation, by setting the
 @code{power_model} field the same way as the @code{model} field. Note: for
@@ -1445,7 +1445,7 @@ priority information to StarPU.
 By default, StarPU uses the @code{eager} simple greedy scheduler. This is
 because it provides correct load balance even if the application codelets do not
 have performance models. If your application codelets have performance models
-(see section @ref{Performance model example} for examples showing how to do it),
+(@pxref{Performance model example} for examples showing how to do it),
 you should change the scheduler thanks to the @code{STARPU_SCHED} environment
 variable. For instance @code{export STARPU_SCHED=dmda} . Use @code{help} to get
 the list of available schedulers.
