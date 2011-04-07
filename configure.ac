@@ -18,7 +18,7 @@ AC_INIT([StarPU],0.4, [starpu-bugs@lists.gforge.inria.fr], starpu)
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CANONICAL_SYSTEM
-AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AM_INIT_AUTOMAKE([1.10 -Wall -Werror foreign])
 
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
