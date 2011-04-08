@@ -121,6 +121,7 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 			printf("usage : %s [-pin] [-size size] [-nblocks nblocks]\n", argv[0]);
 		}
 	}
+	if (nblocks > size) nblocks = size;
 }
 
 #endif // __DW_CHOLESKY_H__
