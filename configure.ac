@@ -481,7 +481,7 @@ if test x$enable_cuda = xyes; then
     AC_CHECK_FUNC([cudaMemcpyPeer], have_cuda_memcpy_peer=yes, have_cuda_memcpy_peer=no)
     LDFLAGS="${SAVED_LDFLAGS}"
 fi
-if test x$have_cuda_memcpy_peer=yes; then
+if test x$have_cuda_memcpy_peer = xyes; then
     AC_DEFINE(HAVE_CUDA_MEMCPY_PEER,[],[Peer transfers are supported in CUDA])
 fi
 
