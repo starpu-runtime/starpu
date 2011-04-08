@@ -136,11 +136,13 @@ static int link_supports_direct_transfers(starpu_data_handle handle, unsigned sr
 	/* XXX That's a hack until we get cudaMemcpy3DPeerAsync to work !
 	 * Perhaps not all data interface provide a direct GPU-GPU transfer
 	 * method ! */
+#ifdef STARPU_USE_CUDA
 	if (src_node != dst_node && _starpu_get_node_kind(src_node) == STARPU_CUDA_RAM && _starpu_get_node_kind(dst_node) == STARPU_CUDA_RAM)
 	{
 		const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
 		return (!!copy_methods->cuda_to_cuda_async);
 	}
+#endif
 
 	return (worker_supports_direct_access(src_node)
 			&& worker_supports_direct_access(dst_node));
