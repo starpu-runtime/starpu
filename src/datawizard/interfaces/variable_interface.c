@@ -31,6 +31,7 @@ static int copy_ram_to_cuda(void *src_interface, unsigned src_node, void *dst_in
 static int copy_cuda_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node __attribute__((unused)));
 static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node __attribute__((unused)), cudaStream_t stream);
 static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node __attribute__((unused)), cudaStream_t stream);
+static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node __attribute__((unused)), cudaStream_t stream);
 static int copy_cuda_to_cuda(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node __attribute__((unused)));
 #endif
 #ifdef STARPU_USE_OPENCL
@@ -47,9 +48,10 @@ static const struct starpu_data_copy_methods variable_copy_data_methods_s = {
 #ifdef STARPU_USE_CUDA
 	.ram_to_cuda = copy_ram_to_cuda,
 	.cuda_to_ram = copy_cuda_to_ram,
+	.cuda_to_cuda = copy_cuda_to_cuda,
 	.ram_to_cuda_async = copy_ram_to_cuda_async,
 	.cuda_to_ram_async = copy_cuda_to_ram_async,
-	.cuda_to_cuda = copy_cuda_to_cuda,
+	.cuda_to_cuda_async = copy_cuda_to_cuda_async,
 #endif
 #ifdef STARPU_USE_OPENCL
 	.ram_to_opencl = copy_ram_to_opencl,
@@ -300,7 +302,31 @@ static int copy_ram_to_cuda(void *src_interface, unsigned src_node __attribute__
 static int copy_cuda_to_cuda(void *src_interface, unsigned src_node __attribute__((unused)),
 				void *dst_interface, unsigned dst_node __attribute__((unused)))
 {
-	return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToDevice);
+	if (src_node == dst_node)
+	{
+		return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToDevice);
+	}
+	else {
+#ifdef HAVE_CUDA_MEMCPY_PEER
+		int src_dev = starpu_memory_node_to_devid(src_node);
+		int dst_dev = starpu_memory_node_to_devid(dst_node);
+
+		starpu_variable_interface_t *src_variable = src_interface;
+		starpu_variable_interface_t *dst_variable = dst_interface;
+
+		cudaError_t cures;
+		cures = cudaMemcpyPeer((char *)dst_variable->ptr, dst_dev, (char *)src_variable->ptr, src_dev, src_variable->elemsize);
+		if (STARPU_UNLIKELY(cures))
+			STARPU_CUDA_REPORT_ERROR(cures);
+
+		STARPU_TRACE_DATA_COPY(src_node, dst_node, src_variable->elemsize);
+
+#else
+		/* This is illegal without support for cudaMemcpyPeer */
+		STARPU_ABORT();
+#endif
+		return 0;
+	}
 }
 
 static int copy_cuda_async_common(void *src_interface, unsigned src_node __attribute__((unused)),
@@ -340,6 +366,47 @@ static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node __attri
 {
 	return copy_cuda_async_common(src_interface, src_node, dst_interface, dst_node, stream, cudaMemcpyHostToDevice);
 }
+
+static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node,					void *dst_interface, unsigned dst_node, cudaStream_t stream)
+{
+	if (src_node == dst_node)
+	{
+		return copy_cuda_async_common(src_interface, src_node, dst_interface, dst_node, stream, cudaMemcpyDeviceToDevice);
+	}
+	else {
+#ifdef HAVE_CUDA_MEMCPY_PEER
+		int src_dev = starpu_memory_node_to_devid(src_node);
+		int dst_dev = starpu_memory_node_to_devid(dst_node);
+
+		starpu_variable_interface_t *src_variable = src_interface;
+		starpu_variable_interface_t *dst_variable = dst_interface;
+
+		size_t length = src_variable->elemsize;
+
+		cudaError_t cures;
+		cures = cudaMemcpyPeerAsync((char *)dst_variable->ptr, dst_dev, (char *)src_variable->ptr, src_dev, length, stream);
+		if (cures)
+		{
+			/* sychronous fallback */
+			cures = cudaMemcpyPeer((char *)dst_variable->ptr, dst_dev, (char *)src_variable->ptr, src_dev, length);
+			if (STARPU_UNLIKELY(cures))
+				STARPU_CUDA_REPORT_ERROR(cures);
+
+			return 0;
+		}
+
+		STARPU_TRACE_DATA_COPY(src_node, dst_node, length);
+
+		return -EAGAIN;
+#else
+		/* This is illegal without cudaMemcpyPeer */
+		STARPU_ABORT();
+		return 0;
+#endif
+	}
+}
+
+
 #endif // STARPU_USE_CUDA
 
 #ifdef STARPU_USE_OPENCL

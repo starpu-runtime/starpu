@@ -46,7 +46,12 @@ typedef union {
 #ifdef STARPU_USE_OPENCL
         cl_event opencl_event;
 #endif
-} starpu_async_channel;
+} starpu_async_channel_event;
+
+struct starpu_async_channel {
+	starpu_async_channel_event event;
+	starpu_node_kind type;
+};
 
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid);
 
@@ -57,6 +62,6 @@ int _starpu_driver_copy_data_1_to_1(starpu_data_handle handle,
 					struct starpu_data_request_s *req,
 					unsigned may_alloc);
 
-unsigned _starpu_driver_test_request_completion(starpu_async_channel *async_channel, unsigned handling_node);
-void _starpu_driver_wait_request_completion(starpu_async_channel *async_channel, unsigned handling_node);
+unsigned _starpu_driver_test_request_completion(struct starpu_async_channel *async_channel);
+void _starpu_driver_wait_request_completion(struct starpu_async_channel *async_channel);
 #endif // __COPY_DRIVER_H__

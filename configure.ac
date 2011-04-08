@@ -473,6 +473,18 @@ if test x$have_curand = xyes; then
     STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcurand"
 fi
 
+# Peer transfers are only supported since CUDA 4.0
+have_cuda_memcpy_peer=no
+if test x$enable_cuda = xyes; then
+    SAVED_LDFLAGS="${LDFLAGS}"
+    LDFLAGS="${LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
+    AC_CHECK_FUNC([cudaMemcpyPeer], have_cuda_memcpy_peer=yes, have_cuda_memcpy_peer=no)
+    LDFLAGS="${SAVED_LDFLAGS}"
+fi
+if test x$have_cuda_memcpy_peer=yes; then
+    AC_DEFINE(HAVE_CUDA_MEMCPY_PEER,[],[Peer transfers are supported in CUDA])
+fi
+
 if test x$enable_cuda = xyes; then
     STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"
     AC_SUBST(STARPU_CUDA_LDFLAGS)

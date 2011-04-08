@@ -158,6 +158,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 {
 	int ret;
 	uint32_t mask = 0;
+	cudaError_t cures;
 
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
@@ -184,7 +185,7 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 
 	if (calibrate_model)
 	{
-		cudaError_t cures = cudaStreamSynchronize(starpu_cuda_get_local_transfer_stream());
+		cures = cudaStreamSynchronize(starpu_cuda_get_local_transfer_stream());
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}
@@ -194,6 +195,11 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 	struct starpu_task_profiling_info *profiling_info;
 	int profiling = starpu_profiling_status_get();
 	profiling_info = task->profiling_info;
+
+#ifdef HAVE_CUDA_MEMCPY_PEER
+	/* We make sure we do manipulate the proper device */
+	cures = cudaSetDevice(args->devid);
+#endif
 
 	if ((profiling && profiling_info) || calibrate_model)
 	{

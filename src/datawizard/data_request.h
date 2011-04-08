@@ -44,7 +44,7 @@ LIST_TYPE(starpu_data_request,
 
 	starpu_access_mode mode;
 
-	starpu_async_channel async_channel;
+	struct starpu_async_channel async_channel;
 
 	unsigned completed;
 	int retval;

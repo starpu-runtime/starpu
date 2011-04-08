@@ -39,8 +39,10 @@ static const struct starpu_data_copy_methods void_copy_data_methods_s = {
 #ifdef STARPU_USE_CUDA
 	.ram_to_cuda = dummy_copy,
 	.cuda_to_ram = dummy_copy,
+	.cuda_to_cuda = dummy_copy,
 	.ram_to_cuda_async = dummy_cuda_copy_async,
 	.cuda_to_ram_async = dummy_cuda_copy_async,
+	.cuda_to_cuda_async = dummy_cuda_copy_async,
 #endif
 #ifdef STARPU_USE_OPENCL
 	.ram_to_opencl = dummy_copy,

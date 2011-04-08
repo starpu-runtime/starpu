@@ -210,6 +210,18 @@ static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
 		if (handle && !data_was_deleted)
 			STARPU_ASSERT(replicate->allocated);
 
+#if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER)
+		if (_starpu_get_node_kind(node) == STARPU_CUDA_RAM)
+		{
+			/* To facilitate the design of interface, we set the
+			 * proper CUDA device in case it is needed. This avoids
+			 * having to set it again in the free method of each
+			 * interface. */
+			cudaError_t err = cudaSetDevice(starpu_memory_node_to_devid(node));
+			STARPU_ASSERT(err == cudaSuccess);
+		}
+#endif
+
 		mc->ops->free_data_on_node(mc->chunk_interface, node);
 
 		if (handle && !data_was_deleted)
@@ -674,6 +686,19 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle handle, struct star
 
 		STARPU_TRACE_START_ALLOC(dst_node);
 		STARPU_ASSERT(replicate->data_interface);
+
+#if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER)
+		if (_starpu_get_node_kind(dst_node) == STARPU_CUDA_RAM)
+		{
+			/* To facilitate the design of interface, we set the
+			 * proper CUDA device in case it is needed. This avoids
+			 * having to set it again in the malloc method of each
+			 * interface. */
+			cudaError_t err = cudaSetDevice(starpu_memory_node_to_devid(dst_node));
+			STARPU_ASSERT(err == cudaSuccess);
+		}
+#endif
+
 		allocated_memory = handle->ops->allocate_data_on_node(replicate->data_interface, dst_node);
 		STARPU_TRACE_END_ALLOC(dst_node);
 
