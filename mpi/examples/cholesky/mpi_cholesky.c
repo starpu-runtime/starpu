@@ -192,24 +192,23 @@ int main(int argc, char **argv)
 	}
 
 
-        //#define PRINT_OUTPUT
-#ifdef PRINT_OUTPUT
-	printf("[%d] Input :\n", rank);
+        if (display) {
+                printf("[%d] Input :\n", rank);
 
-	for (j = 0; j < size; j++)
-	{
-		for (i = 0; i < size; i++)
-		{
-			if (i <= j) {
-				printf("%2.2f\t", mat[j +i*size]);
-			}
-			else {
-				printf(".\t");
-			}
-		}
-		printf("\n");
-	}
-#endif
+                for (j = 0; j < size; j++)
+                {
+                        for (i = 0; i < size; i++)
+                        {
+                                if (i <= j) {
+                                        printf("%2.2f\t", mat[j +i*size]);
+                                }
+                                else {
+                                        printf(".\t");
+                                }
+                        }
+                        printf("\n");
+                }
+        }
 
 	dw_cholesky(mat, size, size, nblocks, rank, nodes);
 
@@ -217,23 +216,23 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-#ifdef PRINT_OUTPUT
-	printf("[%d] Results :\n", rank);
+        if (display) {
+                printf("[%d] Results :\n", rank);
 
-	for (j = 0; j < size; j++)
-	{
-		for (i = 0; i < size; i++)
+                for (j = 0; j < size; j++)
 		{
-			if (i <= j) {
-				printf("%2.2f\t", mat[j +i*size]);
-			}
-			else {
-				printf(".\t");
-			}
-		}
-		printf("\n");
-	}
-#endif
+                        for (i = 0; i < size; i++)
+			{
+                                if (i <= j) {
+                                        printf("%2.2f\t", mat[j +i*size]);
+                                }
+                                else {
+                                        printf(".\t");
+                                }
+                        }
+                        printf("\n");
+                }
+        }
 
 	fprintf(stderr, "[%d] compute explicit LLt ...\n", rank);
 	for (j = 0; j < size; j++)
@@ -252,21 +251,21 @@ int main(int argc, char **argv)
 				mat, size, 0.0f, test_mat, size);
 
 	fprintf(stderr, "[%d] comparing results ...\n", rank);
-#ifdef PRINT_OUTPUT
-	for (j = 0; j < size; j++)
-	{
-		for (i = 0; i < size; i++)
+        if (display) {
+                for (j = 0; j < size; j++)
 		{
-			if (i <= j) {
-				printf("%2.2f\t", test_mat[j +i*size]);
-			}
-			else {
-				printf(".\t");
-			}
-		}
-		printf("\n");
-	}
-#endif
+                        for (i = 0; i < size; i++)
+			{
+                                if (i <= j) {
+                                        printf("%2.2f\t", test_mat[j +i*size]);
+                                }
+                                else {
+                                        printf(".\t");
+                                }
+                        }
+                        printf("\n");
+                }
+        }
 
         int x, y;
         for(x = 0; x < nblocks ;  x++)
