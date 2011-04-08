@@ -142,6 +142,13 @@ static void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblock
 
         starpu_task_wait_for_all();
 
+        for(x = 0; x < nblocks ;  x++) {
+                for (y = 0; y < nblocks; y++) {
+                        if (data_handles[x][y])
+                                starpu_data_unregister(data_handles[x][y]);
+                }
+        }
+
 	gettimeofday(&end, NULL);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
