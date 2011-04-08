@@ -133,6 +133,9 @@ static int link_supports_direct_transfers(starpu_data_handle handle, unsigned sr
 	/* NB: when OpenCL and CUDA support peer transfers, we'll need to apply
 	 * a little more checking here! */
 
+	int valid_link = (worker_supports_direct_access(src_node)
+			&& worker_supports_direct_access(dst_node));
+
 	/* XXX That's a hack until we get cudaMemcpy3DPeerAsync to work !
 	 * Perhaps not all data interface provide a direct GPU-GPU transfer
 	 * method ! */
@@ -140,12 +143,10 @@ static int link_supports_direct_transfers(starpu_data_handle handle, unsigned sr
 	if (src_node != dst_node && _starpu_get_node_kind(src_node) == STARPU_CUDA_RAM && _starpu_get_node_kind(dst_node) == STARPU_CUDA_RAM)
 	{
 		const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
-		return (!!copy_methods->cuda_to_cuda_async);
+		return (!!copy_methods->cuda_to_cuda_async && valid_link);
 	}
 #endif
-
-	return (worker_supports_direct_access(src_node)
-			&& worker_supports_direct_access(dst_node));
+	return valid_link;
 }
 
 /* Determines the path of a request : each hop is defined by (src,dst) and the
@@ -194,6 +195,10 @@ static int determine_request_path(starpu_data_handle handle,
 		src_nodes[0] = src_node;
 		dst_nodes[0] = dst_node;
 		handling_nodes[0] = handling_node;
+
+#ifndef HAVE_CUDA_MEMCPY_PEER
+		STARPU_ASSERT(!(mode & STARPU_R) || _starpu_get_node_kind(src_node) != STARPU_CUDA_RAM || _starpu_get_node_kind(dst_node) != STARPU_CUDA_RAM);
+#endif
 
 		return 1;
 	}
