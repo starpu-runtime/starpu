@@ -437,13 +437,12 @@ register_task_attributes (void *gcc_data, void *user_data)
 static tree
 build_codelet_wrapper_type (void)
 {
-  tree void_ptr, void_ptr_ptr;
+  tree void_ptr_ptr;
 
-  void_ptr = build_pointer_type (void_type_node);
-  void_ptr_ptr = build_pointer_type (void_ptr);
+  void_ptr_ptr = build_pointer_type (ptr_type_node);
 
   return build_function_type_list (void_type_node,
-				   void_ptr_ptr, void_ptr,
+				   void_ptr_ptr, ptr_type_node,
 				   NULL_TREE);
 }
 
@@ -520,8 +519,6 @@ build_codelet_wrapper_definition (tree task_impl)
     gcc_assert (unpack_fndecl != NULL_TREE
     		&& TREE_CODE (unpack_fndecl) == FUNCTION_DECL);
 
-    append_to_statement_list (build_printf ("entering task wrapper"), &stmts);
-
     /* Build `starpu_unpack_cl_args (cl_args, &var1, &var2, ...)'.  */
 
     args = NULL;
@@ -530,18 +527,18 @@ build_codelet_wrapper_definition (tree task_impl)
       VEC_safe_push (tree, gc, args, build_addr (v, wrapper_decl));
 
     call = build_call_expr_loc_vec (UNKNOWN_LOCATION, unpack_fndecl, args);
+    TREE_SIDE_EFFECTS (call) = 1;
     append_to_statement_list (call, &stmts);
 
-    /* Build `my_task_imply (var1, var2, ...)'.  */
+    /* Build `my_task_impl (var1, var2, ...)'.  */
 
     args = NULL;
     for (v = vars; v != NULL_TREE; v = TREE_CHAIN (v))
       VEC_safe_push (tree, gc, args, v);
 
     call = build_call_expr_loc_vec (UNKNOWN_LOCATION, task_impl, args);
+    TREE_SIDE_EFFECTS (call) = 1;
     append_to_statement_list (call, &stmts);
-
-    append_to_statement_list (build_printf ("leaving task wrapper"), &stmts);
 
     tree bind;
     bind = build3 (BIND_EXPR, void_type_node, vars, stmts,
