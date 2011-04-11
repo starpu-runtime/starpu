@@ -554,20 +554,25 @@ build_codelet_wrapper_definition (tree task_impl)
   /* Return the parameter list of the wrapper:
      `(void **BUFFERS, void *CL_ARGS)'.  */
 
-  tree build_parameters (void)
+  tree build_parameters (tree wrapper_decl)
   {
-    tree void_ptr, void_ptr_ptr;
+    tree param1, param2;
 
-    void_ptr = build_pointer_type (void_type_node);
-    void_ptr_ptr = build_pointer_type (void_ptr);
+    param1 = build_decl (loc, PARM_DECL,
+			 create_tmp_var_name ("buffers"),
+			 build_pointer_type (ptr_type_node));
+    DECL_ARG_TYPE (param1) = ptr_type_node;
+    DECL_CONTEXT (param1) = wrapper_decl;
+    TREE_USED (param1) = true;
 
-    return chain_trees (build_decl (loc, PARM_DECL,
-				    create_tmp_var_name ("buffers"),
-				    void_ptr_ptr),
-			build_decl (loc, PARM_DECL,
-				    create_tmp_var_name ("cl_args"),
-				    void_ptr),
-			NULL_TREE);
+    param2 = build_decl (loc, PARM_DECL,
+			 create_tmp_var_name ("cl_args"),
+			 ptr_type_node);
+    DECL_ARG_TYPE (param2) = ptr_type_node;
+    DECL_CONTEXT (param2) = wrapper_decl;
+    TREE_USED (param2) = true;
+
+    return chainon (param1, param2);
   }
 
   tree decl, wrapper_name, vars, result;
@@ -579,9 +584,10 @@ build_codelet_wrapper_definition (tree task_impl)
   vars = build_scalar_var_chain (decl);
 
   DECL_CONTEXT (decl) = NULL_TREE;
-  DECL_ARGUMENTS (decl) = build_parameters ();
+  DECL_ARGUMENTS (decl) = build_parameters (decl);
 
   result = build_decl (loc, RESULT_DECL, NULL_TREE, void_type_node);
+  DECL_CONTEXT (result) = decl;
   DECL_ARTIFICIAL (result) = true;
   DECL_IGNORED_P (result) = true;
   DECL_RESULT (decl) = result;

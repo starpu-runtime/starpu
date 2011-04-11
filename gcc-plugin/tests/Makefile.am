@@ -16,7 +16,9 @@
 
 TESTS = $(check_PROGRAMS)
 
-check_PROGRAMS = base
+check_PROGRAMS = base scalar-tasks
+
+scalar_tasks_LDADD = $(top_builddir)/src/libstarpu.la
 
 # Unfortunately `libtool --mode=execute' doesn't help here, so
 # hard-code the real file name.
