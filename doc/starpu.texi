@@ -605,7 +605,11 @@ The optional @code{cl_arg} field is a pointer to a buffer (of size
 described by the codelet. For instance, if a codelet implements a computational
 kernel that multiplies its input vector by a constant, the constant could be
 specified by the means of this buffer, instead of registering it as a StarPU
-data.
+data. It must however be noted that StarPU avoids making copy whenever possible
+and rather passes the pointer as such, so the buffer which is pointed at must
+kept allocated until the task terminates, and if several tasks are submitted
+with various parameters, each of them must be given a pointer to their own
+buffer.
 
 Once a task has been executed, an optional callback function is be called.
 While the computational kernel could be offloaded on various architectures, the
@@ -3447,7 +3451,7 @@ the SPU. This buffer is then filled with the @code{cl_arg_size} bytes starting
 at address @code{cl_arg}. In this case, the argument given to the SPU codelet
 is therefore not the @code{cl_arg} pointer, but the address of the buffer in
 local store (LS) instead. This field is ignored for CPU, CUDA and OpenCL
-codelets.
+codelets, where the @code{cl_arg} pointer is given as such.
 
 @item @code{callback_func} (optional) (default = @code{NULL}):
 This is a function pointer of prototype @code{void (*f)(void *)} which
