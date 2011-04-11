@@ -62,7 +62,7 @@ main (int argc, char *argv[])
      EXPECTED.  */
   my_scalar_task (x, y);
 
-  starpu_task_wait_for_all ();
+#pragma starpu wait
 
   assert ((implementations_called & STARPU_CPU)
 	  || (implementations_called & STARPU_OPENCL));

@@ -192,10 +192,23 @@ handle_pragma_hello (struct cpp_reader *reader)
 }
 
 static void
+handle_pragma_wait (struct cpp_reader *reader)
+{
+  tree fndecl;
+
+  fndecl = lookup_name (get_identifier ("starpu_task_wait_for_all"));
+  gcc_assert (TREE_CODE (fndecl) == FUNCTION_DECL);
+
+  add_stmt (build_call_expr (fndecl, 0));
+}
+
+static void
 register_pragmas (void *gcc_data, void *user_data)
 {
   c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "hello",
 		     handle_pragma_hello);
+  c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "wait",
+		     handle_pragma_wait);
 }
 
 
