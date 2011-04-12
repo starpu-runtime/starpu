@@ -782,9 +782,11 @@ only be executed by the CPUs, but also by a CUDA device.
 @node Definition of the CUDA Kernel
 @subsection Definition of the CUDA Kernel
 
-The CUDA implementation can be written as follows. It needs to be
-compiled with a CUDA compiler such as nvcc, the NVIDIA CUDA compiler
-driver.
+The CUDA implementation can be written as follows. It needs to be compiled with
+a CUDA compiler such as nvcc, the NVIDIA CUDA compiler driver. It must be noted
+that the vector pointer returned by STARPU_VECTOR_GET_PTR is here a pointer in GPU
+memory, so that it can be passed as such to the @code{vector_mult_cuda} kernel
+call.
 
 @cartouche
 @smallexample
@@ -833,6 +835,9 @@ __kernel void vector_mult_opencl(__global float* val, int nx, float factor)
 @}
 @end smallexample
 @end cartouche
+
+Similarly to CUDA, the pointer returned by @code{STARPU_VECTOR_GET_PTR} is here
+a device pointer, so that it is passed as such to the OpenCL kernel.
 
 @cartouche
 @smallexample
