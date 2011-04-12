@@ -119,7 +119,7 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 #ifdef HAVE_CUDA_MEMCPY_PEER
 			/* GPUs not always allow direct remote access: if CUDA4
 			 * is enabled, we allow two CUDA devices to communicate. */
-			return (type_handling != STARPU_OPENCL_RAM);
+			return (_starpu_get_node_kind(handling_node) != STARPU_OPENCL_RAM);
 #else
 			/* Direct GPU-GPU transfers are not allowed in general */
 			return 0;
