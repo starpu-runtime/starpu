@@ -50,7 +50,6 @@ static const struct starpu_data_copy_methods void_copy_data_methods_s = {
         .ram_to_opencl_async = dummy_opencl_copy_async,
 	.opencl_to_ram_async = dummy_opencl_copy_async,
 #endif
-	.cuda_to_cuda = dummy_copy,
 	.cuda_to_spu = dummy_copy,
 	.spu_to_ram = dummy_copy,
 	.spu_to_cuda = dummy_copy,
