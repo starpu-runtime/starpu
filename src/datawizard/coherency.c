@@ -107,8 +107,11 @@ void _starpu_update_data_state(starpu_data_handle handle,
 	}
 }
 
-static int worker_supports_direct_access(unsigned node)
+static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 {
+	if (node == handling_node)
+		return 1;
+
 	int type = _starpu_get_node_kind(node);
 	switch (type)
 	{
@@ -116,7 +119,7 @@ static int worker_supports_direct_access(unsigned node)
 #ifdef HAVE_CUDA_MEMCPY_PEER
 			/* GPUs not always allow direct remote access: if CUDA4
 			 * is enabled, we allow two CUDA devices to communicate. */
-			return 1;
+			return (type_handling != STARPU_OPENCL_RAM);
 #else
 			/* Direct GPU-GPU transfers are not allowed in general */
 			return 0;
@@ -128,14 +131,8 @@ static int worker_supports_direct_access(unsigned node)
 	}
 }
 
-static int link_supports_direct_transfers(starpu_data_handle handle, unsigned src_node, unsigned dst_node)
+static int link_supports_direct_transfers(starpu_data_handle handle, unsigned src_node, unsigned dst_node, unsigned *handling_node)
 {
-	/* NB: when OpenCL and CUDA support peer transfers, we'll need to apply
-	 * a little more checking here! */
-
-	int valid_link = (worker_supports_direct_access(src_node)
-			&& worker_supports_direct_access(dst_node));
-
 	/* XXX That's a hack until we get cudaMemcpy3DPeerAsync to work !
 	 * Perhaps not all data interface provide a direct GPU-GPU transfer
 	 * method ! */
@@ -143,10 +140,24 @@ static int link_supports_direct_transfers(starpu_data_handle handle, unsigned sr
 	if (src_node != dst_node && _starpu_get_node_kind(src_node) == STARPU_CUDA_RAM && _starpu_get_node_kind(dst_node) == STARPU_CUDA_RAM)
 	{
 		const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
-		return (!!copy_methods->cuda_to_cuda_async && valid_link);
+		if (!copy_methods->cuda_to_cuda_async)
+			return 0;
 	}
 #endif
-	return valid_link;
+
+	if (worker_supports_direct_access(src_node, dst_node))
+	{
+		*handling_node = dst_node;
+		return 1;
+	}
+
+	if (worker_supports_direct_access(dst_node, src_node))
+	{
+		*handling_node = src_node;
+		return 1;
+	}
+
+	return 0;
 }
 
 /* Determines the path of a request : each hop is defined by (src,dst) and the
@@ -159,9 +170,20 @@ static int determine_request_path(starpu_data_handle handle,
 				unsigned *src_nodes, unsigned *dst_nodes,
 				unsigned *handling_nodes)
 {
-	int link_is_valid = link_supports_direct_transfers(handle, src_node, dst_node);
+	if (!(mode & STARPU_R))
+	{
+		/* The destination node should only allocate the data, no transfer is required */
+		STARPU_ASSERT(max_len >= 1);
+		src_nodes[0] = 0; // ignored
+		dst_nodes[0] = dst_node;
+		handling_nodes[0] = dst_node;
+		return 1;
+	}
 
-	if (!link_is_valid && (mode & STARPU_R)) {
+	unsigned handling_node;
+	int link_is_valid = link_supports_direct_transfers(handle, src_node, dst_node, &handling_node);
+
+	if (!link_is_valid) {
 		/* We need an intermediate hop to implement data staging
 		 * through main memory. */
 		STARPU_ASSERT(max_len >= 2);
@@ -181,17 +203,8 @@ static int determine_request_path(starpu_data_handle handle,
 		return 2;
 	}
 	else {
-		unsigned handling_node;
-		int src_supports_peer;
-
 		STARPU_ASSERT(max_len >= 1);
 		
-		/* If we do have to perform a transfer (mode & STARPU_R), but
-		 * the source does not support peer access, then we need to
-		 * rely on the source to perform the transfer. */
-		src_supports_peer = worker_supports_direct_access(src_node);
-		handling_node = ((mode & STARPU_R) && !src_supports_peer)?src_node:dst_node;
-
 		src_nodes[0] = src_node;
 		dst_nodes[0] = dst_node;
 		handling_nodes[0] = handling_node;
