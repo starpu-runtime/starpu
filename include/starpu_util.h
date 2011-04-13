@@ -51,10 +51,12 @@ extern "C" {
 #  define STARPU_UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
 #  define STARPU_LIKELY(expr)            (__builtin_expect(!!(expr),1))
 #  define STARPU_ATTRIBUTE_UNUSED                  __attribute__((unused))
+#  define STARPU_ATTRIBUTE_INTERNAL      __attribute__ ((visibility ("internal")))
 #else
 #  define STARPU_UNLIKELY(expr)          (expr)
 #  define STARPU_LIKELY(expr)            (expr)
-#  define STARPU_ATTRIBUTE_UNUSED                  
+#  define STARPU_ATTRIBUTE_UNUSED
+#  define STARPU_ATTRIBUTE_INTERNAL
 #endif
 
 #if defined(__i386__) || defined(__x86_64__)
