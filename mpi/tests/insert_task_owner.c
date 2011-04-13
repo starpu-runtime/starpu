@@ -55,6 +55,13 @@ int main(int argc, char **argv)
 	starpu_init(NULL);
 	starpu_mpi_initialize_extended(1, &rank, &size);
 
+        if (size != 2) {
+		if (rank == 0) fprintf(stderr, "We need exactly 2 processes.\n");
+                starpu_mpi_shutdown();
+                starpu_shutdown();
+                return 0;
+        }
+
         if (rank == 0) {
                 starpu_variable_data_register(&data_handlesx0, 0, (uintptr_t)&x0, sizeof(x0));
                 starpu_data_set_rank(data_handlesx0, rank);
