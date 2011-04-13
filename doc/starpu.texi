@@ -1402,10 +1402,10 @@ few additional changes are needed.
 @node Data management
 @section Data management
 
-By default, StarPU does not enable data prefetching, because CUDA does
-not announce when too many data transfers were scheduled and can thus block
-unexpectedly... To enable data prefetching, use @code{export STARPU_PREFETCH=1}
-.
+@c By default, StarPU does not enable data prefetching, because CUDA does
+@c not announce when too many data transfers were scheduled and can thus block
+@c unexpectedly... To enable data prefetching, use @code{export STARPU_PREFETCH=1}
+@c .
 
 By default, StarPU leaves replicates of data wherever they were used, in case they
 will be re-used by other tasks, thus saving the data transfer time. When some
