@@ -307,11 +307,6 @@ unsigned starpu_get_handle_interface_id(starpu_data_handle);
 
 extern starpu_data_handle starpu_data_lookup(const void *ptr);
 
-/* Internal functions.  */
-
-extern void _starpu_data_interface_init(void) STARPU_ATTRIBUTE_INTERNAL;
-extern void _starpu_data_interface_shutdown(void) STARPU_ATTRIBUTE_INTERNAL;
-
 #ifdef __cplusplus
 }
 #endif
