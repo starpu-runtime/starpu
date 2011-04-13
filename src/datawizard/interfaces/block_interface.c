@@ -66,6 +66,7 @@ static const struct starpu_data_copy_methods block_copy_data_methods_s = {
 
 
 static void register_block_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface);
+static void *block_handle_to_pointer(starpu_data_handle data_handle);
 static ssize_t allocate_block_buffer_on_node(void *data_interface_, uint32_t dst_node);
 static void free_block_buffer_on_node(void *data_interface, uint32_t node);
 static size_t block_interface_get_size(starpu_data_handle handle);
@@ -79,6 +80,7 @@ static int convert_block_to_gordon(void *data_interface, uint64_t *ptr, gordon_s
 static struct starpu_data_interface_ops_t interface_block_ops = {
 	.register_data_handle = register_block_handle,
 	.allocate_data_on_node = allocate_block_buffer_on_node,
+	.handle_to_pointer = block_handle_to_pointer,
 	.free_data_on_node = free_block_buffer_on_node,
 	.copy_methods = &block_copy_data_methods_s,
 	.get_size = block_interface_get_size,
@@ -101,6 +103,11 @@ int convert_block_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSi
 	return 0;
 }
 #endif
+
+static void *block_handle_to_pointer(starpu_data_handle data_handle)
+{
+	return (void *)starpu_block_get_local_ptr(data_handle);
+}
 
 static void register_block_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface)
 {

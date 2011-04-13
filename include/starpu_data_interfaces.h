@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Institut National de Recherche en Informatique et Automatique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -87,6 +88,7 @@ struct starpu_data_interface_ops_t {
 	starpu_ssize_t (*allocate_data_on_node)(void *data_interface, uint32_t node);
 	void (*free_data_on_node)(void *data_interface, uint32_t node);
 	const struct starpu_data_copy_methods *copy_methods;
+	void * (*handle_to_pointer)(starpu_data_handle handle);
 	size_t (*get_size)(starpu_data_handle handle);
 	uint32_t (*footprint)(starpu_data_handle handle);
 	int (*compare)(void *data_interface_a, void *data_interface_b);
@@ -102,6 +104,10 @@ struct starpu_data_interface_ops_t {
 void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 				void *data_interface,
 				struct starpu_data_interface_ops_t *ops);
+
+/* Return the local pointer associated with HANDLE or NULL if HANDLE's
+ * interface does not support this operation.  */
+void *starpu_handle_to_pointer(starpu_data_handle handle);
 
 extern struct starpu_data_interface_ops_t _starpu_interface_matrix_ops;
 

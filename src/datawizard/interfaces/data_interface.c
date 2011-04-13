@@ -191,6 +191,16 @@ void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 	_starpu_register_new_data(handle, home_node, 0);
 }
 
+void *starpu_handle_to_pointer(starpu_data_handle handle)
+{
+	if (handle->ops->handle_to_pointer)
+	{
+		return handle->ops->handle_to_pointer(handle);
+	}
+
+	return NULL;
+}
+
 int starpu_data_get_rank(starpu_data_handle handle)
 {
 	return handle->rank;

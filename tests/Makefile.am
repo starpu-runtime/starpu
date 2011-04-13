@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
 # Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
-# Copyright (C) 2010  Institut National de Recherche en Informatique et Automatique
+# Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -135,6 +135,7 @@ check_PROGRAMS += 				\
 	datawizard/critical_section_with_void_interface\
 	datawizard/increment_redux		\
 	datawizard/increment_redux_v2		\
+	datawizard/handle_to_pointer		\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
