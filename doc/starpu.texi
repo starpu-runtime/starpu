@@ -5,10 +5,13 @@
 @settitle StarPU Handbook
 @c %**end of header
 
+@include version.texi
+
 @setchapternewpage odd
 
 @titlepage
 @title StarPU Handbook
+@subtitle for StarPU @value{VERSION}
 @page
 @vskip 0pt plus 1fill
 @comment For the @value{version-GCC} Version*
@@ -22,7 +25,8 @@
 @top Preface
 @cindex Preface
 
-This manual documents the usage of StarPU.
+This manual documents the usage of StarPU version @value{VERSION}.  It
+was last updated in @value{UPDATED-MONTH}.
 
 
 @comment
