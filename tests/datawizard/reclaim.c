@@ -59,7 +59,7 @@ static int mb = 256;
 int main(int argc, char **argv)
 {
 	int i;
-	int task;
+	int taskid;
 
 #ifdef STARPU_HAVE_HWLOC
 	/* We allocate 50% of the memory */
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 		assert(handle_array[i]);
 	}
 
-	for (task = 0; task < ntasks; task++)
+	for (taskid = 0; taskid < ntasks; taskid++)
 	{
 		struct starpu_task *task = starpu_task_create();
 		task->cl = &dummy_cl;
