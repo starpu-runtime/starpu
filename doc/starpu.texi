@@ -26,7 +26,7 @@
 @cindex Preface
 
 This manual documents the usage of StarPU version @value{VERSION}.  It
-was last updated in @value{UPDATED-MONTH}.
+was last updated on @value{UPDATED}.
 
 
 @comment
