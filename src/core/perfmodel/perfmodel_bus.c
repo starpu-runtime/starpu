@@ -105,7 +105,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	cudaError_t cures;
 	cures = cudaGetDeviceProperties(&prop, dev);
 	if (STARPU_UNLIKELY(cures)) STARPU_CUDA_REPORT_ERROR(cures);
-        if (cuda_size > prop.totalGlobalMem) cuda_size = prop.totalGlobalMem;
+        if (cuda_size > prop.totalGlobalMem/4) cuda_size = prop.totalGlobalMem/4;
 
 	/* Allocate a buffer on the device */
 	unsigned char *d_buffer;
@@ -191,7 +191,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
         starpu_opencl_get_device(dev, &device);
 	err = clGetDeviceInfo(device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(maxMemAllocSize), &maxMemAllocSize, NULL);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-        if (opencl_size > (size_t)maxMemAllocSize) opencl_size = maxMemAllocSize;
+        if (opencl_size > (size_t)maxMemAllocSize/4) opencl_size = maxMemAllocSize/4;
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
