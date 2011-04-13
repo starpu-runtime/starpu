@@ -233,7 +233,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 	while ((arg_type = va_arg(varg_list, int)) != 0) {
 		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH) {
                         starpu_data_handle data = va_arg(varg_list, starpu_data_handle);
-                        if (arg_type & STARPU_R) {
+                        if (data && arg_type & STARPU_R) {
                                 int mpi_rank = starpu_data_get_rank(data);
                                 /* The task needs to read this data */
                                 if (do_execute && mpi_rank != me && mpi_rank != -1) {
