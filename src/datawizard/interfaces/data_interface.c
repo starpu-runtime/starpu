@@ -20,7 +20,7 @@
 #include <datawizard/datawizard.h>
 #include <core/dependencies/data_concurrency.h>
 #include <common/uthash.h>
-#include <starpu_spinlock.h>
+#include <common/starpu_spinlock.h>
 
 /* Entry in the `registered_handles' hash table.  */
 struct handle_entry
