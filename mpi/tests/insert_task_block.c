@@ -116,8 +116,8 @@ int main(int argc, char **argv)
 
         for(x = 0; x < BLOCKS; x++) {
                 for (y = 0; y < BLOCKS; y++) {
-                        if (!data_handles[x][y])
-                                starpu_data_release(data_handles[x][y]);
+                        if (data_handles[x][y])
+                                starpu_data_unregister(data_handles[x][y]);
                 }
         }
 
