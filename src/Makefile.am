@@ -92,6 +92,7 @@ noinst_HEADERS = 						\
 	common/fxt.h						\
 	common/utils.h						\
 	common/barrier.h					\
+	common/uthash.h						\
 	drivers/driver_common/driver_common.h			\
 	drivers/cpu/driver_cpu.h				\
 	drivers/gordon/driver_gordon.h				\
