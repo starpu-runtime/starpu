@@ -47,11 +47,6 @@ static int handle_to_datatype_matrix(starpu_data_handle data_handle, MPI_Datatyp
 	return 0;
 }
 
-static void *handle_to_ptr_matrix(starpu_data_handle data_handle)
-{
-	return (void *)starpu_matrix_get_local_ptr(data_handle);
-}
-
 /*
  * 	Block
  */
@@ -83,11 +78,6 @@ static int handle_to_datatype_block(starpu_data_handle data_handle, MPI_Datatype
 	return 0;
 }
 
-static void *handle_to_ptr_block(starpu_data_handle data_handle)
-{
-	return (void *)starpu_block_get_local_ptr(data_handle);
-}
-
 /*
  * 	Vector
  */
@@ -106,11 +96,6 @@ static int handle_to_datatype_vector(starpu_data_handle data_handle, MPI_Datatyp
 	STARPU_ASSERT(ret == MPI_SUCCESS);
 
 	return 0;
-}
-
-static void *handle_to_ptr_vector(starpu_data_handle data_handle)
-{
-	return (void *)starpu_vector_get_local_ptr(data_handle);
 }
 
 /*
@@ -132,11 +117,6 @@ static int handle_to_datatype_variable(starpu_data_handle data_handle, MPI_Datat
 	return 0;
 }
 
-static void *handle_to_ptr_variable(starpu_data_handle data_handle)
-{
-	return (void *)starpu_variable_get_local_ptr(data_handle);
-}
-
 /*
  *	Generic
  */
@@ -150,14 +130,6 @@ static handle_to_datatype_func handle_to_datatype_funcs[STARPU_NINTERFACES_ID] =
 	[STARPU_VARIABLE_INTERFACE_ID]	= handle_to_datatype_variable,
 };
 
-static handle_to_ptr_func handle_to_ptr_funcs[STARPU_NINTERFACES_ID] = {
-	[STARPU_MATRIX_INTERFACE_ID]	= handle_to_ptr_matrix,
-	[STARPU_BLOCK_INTERFACE_ID]	= handle_to_ptr_block,
-	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_ptr_vector,
-	[STARPU_CSR_INTERFACE_ID]	= NULL,
-	[STARPU_BCSR_INTERFACE_ID]	= NULL,
-	[STARPU_VARIABLE_INTERFACE_ID]	= handle_to_ptr_variable,
-};
 
 int starpu_mpi_handle_to_datatype(starpu_data_handle data_handle, MPI_Datatype *datatype)
 {
@@ -172,11 +144,5 @@ int starpu_mpi_handle_to_datatype(starpu_data_handle data_handle, MPI_Datatype *
 
 void *starpu_mpi_handle_to_ptr(starpu_data_handle data_handle)
 {
-	unsigned id = starpu_get_handle_interface_id(data_handle);
-
-	handle_to_ptr_func func = handle_to_ptr_funcs[id];
-	
-	STARPU_ASSERT(func);
-
-	return func(data_handle);
+	return starpu_handle_to_pointer(data_handle);
 }
