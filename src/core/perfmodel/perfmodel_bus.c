@@ -27,6 +27,7 @@
 #include <math.h>
 
 #include <starpu.h>
+#include <starpu_cuda.h>
 #include <starpu_opencl.h>
 #include <common/config.h>
 #include <core/workers.h>
@@ -65,6 +66,7 @@ static int cuda_affinity_matrix[STARPU_MAXCUDADEVS][MAXCPUS];
 static double cudadev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double cudadev_timing_dtoh[STARPU_MAXNODES] = {0.0};
 static struct dev_timing cudadev_timing_per_cpu[STARPU_MAXNODES*MAXCPUS];
+static size_t cuda_size = SIZE;
 #endif
 #ifdef STARPU_USE_OPENCL
 static int opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][MAXCPUS];
@@ -98,10 +100,16 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
 
+        /* Get the maximum size which can be allocated on the device */
+	struct cudaDeviceProp prop;
+	cudaError_t cures;
+	cures = cudaGetDeviceProperties(&prop, dev);
+	if (STARPU_UNLIKELY(cures)) STARPU_CUDA_REPORT_ERROR(cures);
+        if (cuda_size > prop.totalGlobalMem) cuda_size = prop.totalGlobalMem;
 
 	/* Allocate a buffer on the device */
 	unsigned char *d_buffer;
-	cudaMalloc((void **)&d_buffer, SIZE);
+	cudaMalloc((void **)&d_buffer, cuda_size);
 	assert(d_buffer);
 
 	/* hack to avoid third party libs to rebind threads */
@@ -110,7 +118,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 
 	/* Allocate a buffer on the host */
 	unsigned char *h_buffer;
-	cudaHostAlloc((void **)&h_buffer, SIZE, 0);
+	cudaHostAlloc((void **)&h_buffer, cuda_size, 0);
 	assert(h_buffer);
 
 	/* hack to avoid third party libs to rebind threads */
@@ -118,8 +126,8 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 
 
 	/* Fill them */
-	memset(h_buffer, 0, SIZE);
-	cudaMemset(d_buffer, 0, SIZE);
+	memset(h_buffer, 0, cuda_size);
+	cudaMemset(d_buffer, 0, cuda_size);
 
 	/* hack to avoid third party libs to rebind threads */
 	_starpu_bind_thread_on_cpu(config, cpu);
@@ -134,7 +142,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; iter++)
 	{
-		cudaMemcpy(d_buffer, h_buffer, SIZE, cudaMemcpyHostToDevice);
+		cudaMemcpy(d_buffer, h_buffer, cuda_size, cudaMemcpyHostToDevice);
 		cudaThreadSynchronize();
 	}
 	gettimeofday(&end, NULL);
@@ -146,7 +154,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; iter++)
 	{
-		cudaMemcpy(h_buffer, d_buffer, SIZE, cudaMemcpyDeviceToHost);
+		cudaMemcpy(h_buffer, d_buffer, cuda_size, cudaMemcpyDeviceToHost);
 		cudaThreadSynchronize();
 	}
 	gettimeofday(&end, NULL);
@@ -882,7 +890,7 @@ static void write_bus_bandwidth_file_content(void)
 				time_src_to_ram = (src==0)?0.0:cudadev_timing_dtoh[src];
                                 time_ram_to_dst = (dst==0)?0.0:cudadev_timing_htod[dst];
 				timing =time_src_to_ram + time_ram_to_dst;
-				bandwidth = 1.0*SIZE/timing;
+				bandwidth = 1.0*cuda_size/timing;
 #endif
 #ifdef STARPU_USE_OPENCL
                                 if (src > ncuda)
