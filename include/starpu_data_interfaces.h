@@ -107,7 +107,8 @@ void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 				struct starpu_data_interface_ops_t *ops);
 
 /* Return the local pointer associated with HANDLE or NULL if HANDLE's
- * interface does not support this operation.  */
+ * interface does not support this operation or if HANDLE has a "home node"
+ * equal to -1.  */
 void *starpu_handle_to_pointer(starpu_data_handle handle);
 
 extern struct starpu_data_interface_ops_t _starpu_interface_matrix_ops;

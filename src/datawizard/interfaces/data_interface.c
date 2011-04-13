@@ -273,7 +273,7 @@ void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 
 void *starpu_handle_to_pointer(starpu_data_handle handle)
 {
-	if (handle->ops->handle_to_pointer)
+	if (handle->ops->handle_to_pointer && handle->home_node != -1)
 	{
 		return handle->ops->handle_to_pointer(handle);
 	}

@@ -48,6 +48,14 @@ int main(int argc, char *argv[])
 	assert(starpu_handle_to_pointer(handle) == pointer);
 	starpu_data_unregister(handle);
 
+	/* Lazy allocation.  */
+	starpu_vector_data_register(&handle, -1, 0 /* NULL */,
+				    COUNT, sizeof(float));
+	assert(starpu_handle_to_pointer(handle) == NULL);
+	starpu_data_unregister(handle);
+
+	starpu_free(pointer);
+
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
