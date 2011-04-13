@@ -2322,7 +2322,7 @@ the execution. If it is set to 2, the previous values are dropped to restart
 calibration from scratch. Setting this variable to 0 disable calibration, this
 is the default behaviour.
 
-Note: this currently only applies to dm and dmda scheduling policies.
+Note: this currently only applies to dm, dmda and heft scheduling policies.
 
 @end table
 
@@ -2336,6 +2336,7 @@ that it is disabled). If prefetching is enabled, when a task is scheduled to be
 executed e.g. on a GPU, StarPU will request an asynchronous transfer in
 advance, so that data is already present on the GPU when the task starts. As a
 result, computation and data transfers are overlapped.
+Note that prefetching is enabled by default in StarPU.
 
 @end table
 
