@@ -21,6 +21,7 @@
 
 #include <starpu.h>
 #include <starpu_data.h>
+#include <starpu_util.h>
 
 #ifdef STARPU_USE_GORDON
 /* to get the gordon_strideSize_t data structure from gordon */
@@ -303,6 +304,13 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle);
 #define STARPU_NINTERFACES_ID		7 /* number of data interfaces */
 
 unsigned starpu_get_handle_interface_id(starpu_data_handle);
+
+extern starpu_data_handle starpu_data_lookup(const void *ptr);
+
+/* Internal functions.  */
+
+extern void _starpu_data_interface_init(void) STARPU_ATTRIBUTE_INTERNAL;
+extern void _starpu_data_interface_shutdown(void) STARPU_ATTRIBUTE_INTERNAL;
 
 #ifdef __cplusplus
 }

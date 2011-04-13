@@ -115,6 +115,7 @@ check_PROGRAMS += 				\
 	datawizard/acquire_release		\
 	datawizard/acquire_release2		\
 	datawizard/data_implicit_deps		\
+	datawizard/data_lookup			\
 	datawizard/scratch			\
 	datawizard/sync_and_notify_data		\
 	datawizard/sync_and_notify_data_implicit\

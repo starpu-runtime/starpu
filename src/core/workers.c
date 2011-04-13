@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
- * Copyright (C) 2010  Institut National de Recherche en Informatique et Automatique
+ * Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -318,6 +318,8 @@ int starpu_init(struct starpu_conf *user_conf)
 	
 	_starpu_open_debug_logfile();
 
+	_starpu_data_interface_init();
+
 	_starpu_timing_init();
 
 	_starpu_profiling_init();
@@ -483,6 +485,8 @@ void starpu_shutdown(void)
 #ifdef STARPU_USE_FXT
 	_starpu_stop_fxt_profiling();
 #endif
+
+	_starpu_data_interface_shutdown();
 
 	_starpu_close_debug_logfile();
 

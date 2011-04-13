@@ -15,8 +15,62 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <stdint.h>
+
 #include <datawizard/datawizard.h>
 #include <core/dependencies/data_concurrency.h>
+#include <common/uthash.h>
+#include <starpu_spinlock.h>
+
+/* Entry in the `registered_handles' hash table.  */
+struct handle_entry
+{
+	UT_hash_handle hh;
+	void *pointer;
+	starpu_data_handle handle;
+};
+
+/* Hash table mapping host pointers to data handles.  */
+static struct handle_entry *registered_handles;
+static starpu_spinlock_t    registered_handles_lock;
+
+void _starpu_data_interface_init()
+{
+	_starpu_spin_init(&registered_handles_lock);
+}
+
+void _starpu_data_interface_shutdown()
+{
+	struct handle_entry *entry, *tmp;
+
+	_starpu_spin_destroy(&registered_handles_lock);
+
+	HASH_ITER(hh, registered_handles, entry, tmp) {
+		HASH_DEL(registered_handles, entry);
+		free(entry);
+	}
+
+	registered_handles = NULL;
+}
+
+starpu_data_handle starpu_data_lookup(const void *ptr)
+{
+	starpu_data_handle result;
+
+	_starpu_spin_lock(&registered_handles_lock);
+	{
+		struct handle_entry *entry;
+
+		HASH_FIND_PTR(registered_handles, &ptr, entry);
+		if(STARPU_UNLIKELY(entry == NULL))
+			result = NULL;
+		else
+			result = entry->handle;
+	}
+	_starpu_spin_unlock(&registered_handles_lock);
+
+	return result;
+}
 
 /* 
  * Start monitoring a piece of data
@@ -25,6 +79,8 @@
 static void _starpu_register_new_data(starpu_data_handle handle,
 					uint32_t home_node, uint32_t wt_mask)
 {
+	void *ptr;
+
 	STARPU_ASSERT(handle);
 
 	/* initialize the new lock */
@@ -127,10 +183,34 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 
 		/* duplicate  the content of the interface on node 0 */
 		memcpy(replicate->data_interface, handle->per_node[0].data_interface, handle->ops->interface_size);
-	} 
+	}
 
 	/* now the data is available ! */
 	_starpu_spin_unlock(&handle->header_lock);
+
+	ptr = starpu_handle_to_pointer(handle);
+	if (ptr != NULL)
+	{
+		/* Register the mapping from PTR to HANDLE.  */
+		struct handle_entry *entry;
+
+		entry = malloc(sizeof(*entry));
+		STARPU_ASSERT(entry != NULL);
+
+		entry->pointer = ptr;
+		entry->handle = handle;
+
+		_starpu_spin_lock(&registered_handles_lock);
+		HASH_ADD_PTR(registered_handles, pointer, entry);
+
+		struct handle_entry *entry2;
+		HASH_FIND_PTR(registered_handles, &ptr, entry2);
+		STARPU_ASSERT(entry2 == entry);
+
+		_starpu_spin_unlock(&registered_handles_lock);
+
+		STARPU_ASSERT(starpu_data_lookup(ptr) == handle);
+	}
 }
 
 static starpu_data_handle _starpu_data_handle_allocate(struct starpu_data_interface_ops_t *interface_ops)
@@ -218,15 +298,33 @@ int starpu_data_set_rank(starpu_data_handle handle, int rank)
 
 void _starpu_data_free_interfaces(starpu_data_handle handle)
 {
+	void *ptr;
 	unsigned node;
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();
+
+	ptr = starpu_handle_to_pointer(handle);
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 		free(handle->per_node[node].data_interface);
 
 	for (worker = 0; worker < nworkers; worker++)
 		free(handle->per_worker[worker].data_interface);
+
+	if (ptr != NULL)
+	{
+		/* Remove the PTR -> HANDLE mapping.  */
+		struct handle_entry *entry;
+
+		_starpu_spin_lock(&registered_handles_lock);
+		HASH_FIND_PTR(registered_handles, &ptr, entry);
+		STARPU_ASSERT(entry != NULL);
+
+		HASH_DEL(registered_handles, entry);
+		free(entry);
+
+		_starpu_spin_unlock(&registered_handles_lock);
+	}
 }
 
 struct unregister_callback_arg {

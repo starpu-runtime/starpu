@@ -23,7 +23,6 @@
 #include <string.h>
 #include <assert.h>
 #include <starpu_config.h>
-#include <starpu_task.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -122,6 +121,10 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #elif defined(__ppc__) || defined(__ppc64__)
 #define STARPU_SYNCHRONIZE() __asm__ __volatile__("sync" ::: "memory")
 #endif
+
+/* Include this only here so that <starpu_data_interfaces.h> can use the
+ * macros above.  */
+#include <starpu_task.h>
 
 static __inline int starpu_get_env_number(const char *str)
 {
