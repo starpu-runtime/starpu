@@ -99,7 +99,6 @@ void spmv_kernel_cpu(void *descr[], __attribute__((unused))  void *arg)
 
 	uint32_t nrow;
 
-	nnz = STARPU_CSR_GET_NNZ(descr[0]);
 	nrow = STARPU_CSR_GET_NROW(descr[0]);
 
 	STARPU_ASSERT(nrow == STARPU_VECTOR_GET_NX(descr[2]));
