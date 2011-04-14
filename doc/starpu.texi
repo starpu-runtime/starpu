@@ -595,8 +595,8 @@ be submitted after the termination of StarPU by a call to
 
 In the example above, a task structure is allocated by a call to
 @code{starpu_task_create}. This function only allocates and fills the
-corresponding structure with the default settings (@pxref{starpu_task_create}),
-but it does not submit the task to StarPU.
+corresponding structure with the default settings (@pxref{Codelets and
+Tasks, starpu_task_create}), but it does not submit the task to StarPU.
 
 @c not really clear ;)
 The @code{cl} field is a pointer to the codelet which the task will
@@ -3350,35 +3350,20 @@ This partitions a 3D matrix along the X axis.
 @node Codelets and Tasks
 @section Codelets and Tasks
 
-@menu
-* struct starpu_codelet::       StarPU codelet structure
-* struct starpu_task::          StarPU task structure
-* starpu_task_init::            Initialize a Task
-* starpu_task_create::          Allocate and Initialize a Task
-* starpu_task_deinit::          Release all the resources used by a Task
-* starpu_task_destroy::         Destroy a dynamically allocated Task
-* starpu_task_wait::            Wait for the termination of a Task
-* starpu_task_submit::          Submit a Task
-* starpu_task_wait_for_all::    Wait for the termination of all Tasks
-* starpu_get_current_task::     Return the task currently executed by the worker
-* starpu_display_codelet_stats::  Display statistics
-@end menu
+This section describes the interface to manipulate codelets and tasks.
 
-@node struct starpu_codelet
-@subsection @code{struct starpu_codelet} -- StarPU codelet structure
-@table @asis
-@item @emph{Description}:
+@deftp {Data Type} struct starpu_codelet
 The codelet structure describes a kernel that is possibly implemented on various
 targets. For compatibility, make sure to initialize the whole structure to zero.
-@item @emph{Fields}:
+
 @table @asis
-@item @code{where}:
+@item @code{where}
 Indicates which types of processing units are able to execute the codelet.
 @code{STARPU_CPU|STARPU_CUDA} for instance indicates that the codelet is
 implemented for both CPU cores and CUDA devices while @code{STARPU_GORDON}
 indicates that it is only available on Cell SPUs.
 
-@item @code{cpu_func} (optional):
+@item @code{cpu_func} (optional)
 Is a function pointer to the CPU implementation of the codelet. Its prototype
 must be: @code{void cpu_func(void *buffers[], void *cl_arg)}. The first
 argument being the array of data managed by the data management library, and
@@ -3387,39 +3372,39 @@ field of the @code{starpu_task} structure.
 The @code{cpu_func} field is ignored if @code{STARPU_CPU} does not appear in
 the @code{where} field, it must be non-null otherwise.
 
-@item @code{cuda_func} (optional):
+@item @code{cuda_func} (optional)
 Is a function pointer to the CUDA implementation of the codelet. @emph{This
 must be a host-function written in the CUDA runtime API}. Its prototype must
 be: @code{void cuda_func(void *buffers[], void *cl_arg);}. The @code{cuda_func}
 field is ignored if @code{STARPU_CUDA} does not appear in the @code{where}
 field, it must be non-null otherwise.
 
-@item @code{opencl_func} (optional):
+@item @code{opencl_func} (optional)
 Is a function pointer to the OpenCL implementation of the codelet. Its
 prototype must be:
 @code{void opencl_func(starpu_data_interface_t *descr, void *arg);}.
 This pointer is ignored if @code{STARPU_OPENCL} does not appear in the
 @code{where} field, it must be non-null otherwise.
 
-@item @code{gordon_func} (optional):
+@item @code{gordon_func} (optional)
 This is the index of the Cell SPU implementation within the Gordon library.
 See Gordon documentation for more details on how to register a kernel and
 retrieve its index.
 
-@item @code{nbuffers}:
+@item @code{nbuffers}
 Specifies the number of arguments taken by the codelet. These arguments are
 managed by the DSM and are accessed from the @code{void *buffers[]}
 array. The constant argument passed with the @code{cl_arg} field of the
 @code{starpu_task} structure is not counted in this number.  This value should
 not be above @code{STARPU_NMAXBUFS}.
 
-@item @code{model} (optional):
+@item @code{model} (optional)
 This is a pointer to the task duration performance model associated to this
 codelet. This optional field is ignored when set to @code{NULL}.
 
 TODO
 
-@item @code{power_model} (optional):
+@item @code{power_model} (optional)
 This is a pointer to the task power consumption performance model associated
 to this codelet. This optional field is ignored when set to @code{NULL}.
 In the case of parallel codelets, this has to account for all processing units
@@ -3428,12 +3413,9 @@ involved in the parallel execution.
 TODO
 
 @end table
-@end table
+@end deftp
 
-@node struct starpu_task
-@subsection @code{struct starpu_task} -- StarPU task structure
-@table @asis
-@item @emph{Description}:
+@deftp {Data Type} struct starpu_task
 The @code{starpu_task} structure describes a task that can be offloaded on the various
 processing units managed by StarPU. It instantiates a codelet. It can either be
 allocated dynamically with the @code{starpu_task_create} method, or declared
@@ -3442,15 +3424,14 @@ statically. In the latter case, the programmer has to zero the
 indicated default values correspond to the configuration of a task allocated
 with @code{starpu_task_create}.
 
-@item @emph{Fields}:
 @table @asis
-@item @code{cl}:
+@item @code{cl}
 Is a pointer to the corresponding @code{starpu_codelet} data structure. This
 describes where the kernel should be executed, and supplies the appropriate
 implementations. When set to @code{NULL}, no code is executed during the tasks,
 such empty tasks can be useful for synchronization purposes.
 
-@item @code{buffers}:
+@item @code{buffers}
 Is an array of @code{starpu_buffer_descr_t} structures. It describes the
 different pieces of data accessed by the task, and how they should be accessed.
 The @code{starpu_buffer_descr_t} structure is composed of two fields, the
@@ -3461,13 +3442,13 @@ of entries in this array must be specified in the @code{nbuffers} field of the
 If unsufficient, this value can be set with the @code{--enable-maxbuffers}
 option when configuring StarPU.
 
-@item @code{cl_arg} (optional) (default = NULL):
+@item @code{cl_arg} (optional; default: @code{NULL})
 This pointer is passed to the codelet through the second argument
 of the codelet implementation (e.g. @code{cpu_func} or @code{cuda_func}).
 In the specific case of the Cell processor, see the @code{cl_arg_size}
 argument.
 
-@item @code{cl_arg_size} (optional, Cell specific):
+@item @code{cl_arg_size} (optional, Cell-specific)
 In the case of the Cell processor, the @code{cl_arg} pointer is not directly
 given to the SPU function. A buffer of size @code{cl_arg_size} is allocated on
 the SPU. This buffer is then filled with the @code{cl_arg_size} bytes starting
@@ -3476,32 +3457,32 @@ is therefore not the @code{cl_arg} pointer, but the address of the buffer in
 local store (LS) instead. This field is ignored for CPU, CUDA and OpenCL
 codelets, where the @code{cl_arg} pointer is given as such.
 
-@item @code{callback_func} (optional) (default = @code{NULL}):
+@item @code{callback_func} (optional) (default: @code{NULL})
 This is a function pointer of prototype @code{void (*f)(void *)} which
 specifies a possible callback. If this pointer is non-null, the callback
 function is executed @emph{on the host} after the execution of the task. The
 callback is passed the value contained in the @code{callback_arg} field. No
 callback is executed if the field is set to @code{NULL}.
 
-@item @code{callback_arg} (optional) (default = @code{NULL}):
+@item @code{callback_arg} (optional) (default: @code{NULL})
 This is the pointer passed to the callback function. This field is ignored if
 the @code{callback_func} is set to @code{NULL}.
 
-@item @code{use_tag} (optional) (default = 0):
+@item @code{use_tag} (optional) (default: @code{0})
 If set, this flag indicates that the task should be associated with the tag
 contained in the @code{tag_id} field. Tag allow the application to synchronize
 with the task and to express task dependencies easily.
 
-@item @code{tag_id}:
+@item @code{tag_id}
 This fields contains the tag associated to the task if the @code{use_tag} field
 was set, it is ignored otherwise.
 
-@item @code{synchronous}:
+@item @code{synchronous}
 If this flag is set, the @code{starpu_task_submit} function is blocking and
 returns only when the task has been executed (or if no worker is able to
 process the task). Otherwise, @code{starpu_task_submit} returns immediately.
 
-@item @code{priority} (optional) (default = @code{STARPU_DEFAULT_PRIO}):
+@item @code{priority} (optional) (default: @code{STARPU_DEFAULT_PRIO})
 This field indicates a level of priority for the task. This is an integer value
 that must be set between the return values of the
 @code{starpu_sched_get_min_priority} function for the least important tasks,
@@ -3514,23 +3495,23 @@ order to allow static task initialization.  Scheduling strategies that take
 priorities into account can use this parameter to take better scheduling
 decisions, but the scheduling policy may also ignore it.
 
-@item @code{execute_on_a_specific_worker} (default = 0):
+@item @code{execute_on_a_specific_worker} (default: @code{0})
 If this flag is set, StarPU will bypass the scheduler and directly affect this
 task to the worker specified by the @code{workerid} field.
 
-@item @code{workerid} (optional):
+@item @code{workerid} (optional)
 If the @code{execute_on_a_specific_worker} field is set, this field indicates
 which is the identifier of the worker that should process this task (as
 returned by @code{starpu_worker_get_id}). This field is ignored if
 @code{execute_on_a_specific_worker} field is set to 0.
 
-@item @code{detach} (optional) (default = 1):
+@item @code{detach} (optional) (default: @code{1})
 If this flag is set, it is not possible to synchronize with the task
 by the means of @code{starpu_task_wait} later on. Internal data structures
 are only guaranteed to be freed once @code{starpu_task_wait} is called if the
 flag is not set.
 
-@item @code{destroy} (optional) (default = 1):
+@item @code{destroy} (optional) (default: @code{1})
 If this flag is set, the task structure will automatically be freed, either
 after the execution of the callback if the task is detached, or during
 @code{starpu_task_wait} otherwise. If this flag is not set, dynamically
@@ -3538,86 +3519,54 @@ allocated data structures will not be freed until @code{starpu_task_destroy} is
 called explicitly. Setting this flag for a statically allocated task structure
 will result in undefined behaviour.
 
-@item @code{predicted} (output field):
+@item @code{predicted} (output field)
 Predicted duration of the task. This field is only set if the scheduling
 strategy used performance models.
 
 @end table
-@end table
+@end deftp
 
-@node starpu_task_init
-@subsection @code{starpu_task_init} -- Initialize a Task
-@table @asis
-@item @emph{Description}:
-Initialize a task structure with default values. This function is implicitly
+@deftypefun void starpu_task_init (struct starpu_task *@var{task})
+Initialize @var{task} with default values. This function is implicitly
 called by @code{starpu_task_create}. By default, tasks initialized with
 @code{starpu_task_init} must be deinitialized explicitly with
 @code{starpu_task_deinit}. Tasks can also be initialized statically, using the
 constant @code{STARPU_TASK_INITIALIZER}.
-@item @emph{Prototype}:
-@code{void starpu_task_init(struct starpu_task *task);}
-@end table
+@end deftypefun
 
-@node starpu_task_create
-@subsection @code{starpu_task_create} -- Allocate and Initialize a Task
-@table @asis
-@item @emph{Description}:
+@deftypefun {struct starpu_task *} starpu_task_create ()
 Allocate a task structure and initialize it with default values. Tasks
 allocated dynamically with @code{starpu_task_create} are automatically freed when the
 task is terminated. If the destroy flag is explicitly unset, the resources used
 by the task are freed by calling
 @code{starpu_task_destroy}.
+@end deftypefun
 
-@item @emph{Prototype}:
-@code{struct starpu_task *starpu_task_create(void);}
-@end table
-
-@node starpu_task_deinit
-@subsection @code{starpu_task_deinit} -- Release all the resources used by a Task
-@table @asis
-@item @emph{Description}:
-Release all the structures automatically allocated to execute the task. This is
+@deftypefun void starpu_task_deinit (struct starpu_task *@var{task})
+Release all the structures automatically allocated to execute @var{task}. This is
 called automatically by @code{starpu_task_destroy}, but the task structure itself is not
 freed. This should be used for statically allocated tasks for instance.
-@item @emph{Prototype}:
-@code{void starpu_task_deinit(struct starpu_task *task);}
-@end table
+@end deftypefun
 
+@deftypefun void starpu_task_destroy (struct starpu_task *@var{task})
+Free the resource allocated during @code{starpu_task_create} and
+associated with @var{task}. This function can be called automatically
+after the execution of a task by setting the @code{destroy} flag of the
+@code{starpu_task} structure (default behaviour).  Calling this function
+on a statically allocated task results in an undefined behaviour.
+@end deftypefun
 
-
-@node starpu_task_destroy
-@subsection @code{starpu_task_destroy} -- Destroy a dynamically allocated Task
-@table @asis
-@item @emph{Description}:
-Free the resource allocated during @code{starpu_task_create}. This function can be
-called automatically after the execution of a task by setting the
-@code{destroy} flag of the @code{starpu_task} structure (default behaviour).
-Calling this function on a statically allocated task results in an undefined
-behaviour.
-
-@item @emph{Prototype}:
-@code{void starpu_task_destroy(struct starpu_task *task);}
-@end table
-
-@node starpu_task_wait
-@subsection @code{starpu_task_wait} -- Wait for the termination of a Task
-@table @asis
-@item @emph{Description}:
-This function blocks until the task has been executed. It is not possible to
+@deftypefun int starpu_task_wait (struct starpu_task *@var{task})
+This function blocks until @var{task} has been executed. It is not possible to
 synchronize with a task more than once. It is not possible to wait for
 synchronous or detached tasks.
-@item @emph{Return value}:
+
 Upon successful completion, this function returns 0. Otherwise, @code{-EINVAL}
 indicates that the specified task was either synchronous or detached.
-@item @emph{Prototype}:
-@code{int starpu_task_wait(struct starpu_task *task);}
-@end table
+@end deftypefun
 
-@node starpu_task_submit
-@subsection @code{starpu_task_submit} -- Submit a Task
-@table @asis
-@item @emph{Description}:
-This function submits a task to StarPU. Calling this function does
+@deftypefun int starpu_task_submit (struct starpu_task *@var{task})
+This function submits @var{task} to StarPU. Calling this function does
 not mean that the task will be executed immediately as there can be data or task
 (tag) dependencies that are not fulfilled yet: StarPU will take care of
 scheduling this task with respect to such dependencies.
@@ -3626,43 +3575,25 @@ This function returns immediately if the @code{synchronous} field of the
 the task otherwise. It is also possible to synchronize the application with
 asynchronous tasks by the means of tags, using the @code{starpu_tag_wait}
 function for instance.
-@item @emph{Return value}:
+
 In case of success, this function returns 0, a return value of @code{-ENODEV}
 means that there is no worker able to process this task (e.g. there is no GPU
 available and this task is only implemented for CUDA devices).
-@item @emph{Prototype}:
-@code{int starpu_task_submit(struct starpu_task *task);}
-@end table
+@end deftypefun
 
-@node starpu_task_wait_for_all
-@subsection @code{starpu_task_wait_for_all} -- Wait for the termination of all Tasks
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_task_wait_for_all ()
 This function blocks until all the tasks that were submitted are terminated.
-@item @emph{Prototype}:
-@code{void starpu_task_wait_for_all(void);}
-@end table
+@end deftypefun
 
-@node starpu_get_current_task
-@subsection @code{starpu_get_current_task} -- Return the task currently executed by the worker
-@table @asis
-@item @emph{Description}:
+@deftypefun {struct starpu_task *} starpu_get_current_task ()
 This function returns the task currently executed by the worker, or
 NULL if it is called either from a thread that is not a task or simply
 because there is no task being executed at the moment.
-@item @emph{Prototype}:
-@code{struct starpu_task *starpu_get_current_task(void);}
-@end table
+@end deftypefun
 
-@node starpu_display_codelet_stats
-@subsection @code{starpu_display_codelet_stats} -- Display statistics
-@table @asis
-@item @emph{Description}:
-Output on @code{stderr} some statistics on the codelet @code{cl}.
-@item @emph{Prototype}:
-@code{void starpu_display_codelet_stats(struct starpu_codelet_t *cl);}
-@end table
-
+@deftypefun void starpu_display_codelet_stats (struct starpu_codelet_t *@var{cl})
+Output on @code{stderr} some statistics on the codelet @var{cl}.
+@end deftypefun
 
 
 @c Callbacks : what can we put in callbacks ?
