@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
 		printf("4 %f W%d W\n", tmax, w);
 
 	assert(scanf("Actual values of the variables:\n") == 0);
-	assert(scanf("tmax %f\n", &tmax) == 1);
+	assert(scanf("tmax %lf\n", &tmax) == 1);
 	next++;
 	{
 		struct task task[nt];
