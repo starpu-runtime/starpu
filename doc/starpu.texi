@@ -1273,7 +1273,7 @@ The arguments following the codelets can be of the following types:
 
 @itemize
 @item
-@code{STARPU_R}, @code{STARPU_W}, @code{STARPU_RW}, @code{STARPU_SCRATCH} an access mode followed by a data handle;
+@code{STARPU_R}, @code{STARPU_W}, @code{STARPU_RW}, @code{STARPU_SCRATCH}, @code{STARPU_REDUX} an access mode followed by a data handle;
 @item
 @code{STARPU_VALUE} followed  by a pointer to a constant value and
 the size of the constant;
@@ -2818,6 +2818,7 @@ This datatype describes a data access mode. The different available modes are:
 @item @code{STARPU_W} write-only mode.
 @item @code{STARPU_RW} read-write mode. This is equivalent to @code{STARPU_R|STARPU_W}.
 @item @code{STARPU_SCRATCH} scratch memory. A temporary buffer is allocated for the task, but StarPU does not enforce data consistency, i.e. each device has its own buffer, independently from each other (even for CPUs). This is useful for temporary variables. For now, no behaviour is defined concerning the relation with STARPU_R/W modes and the value provided at registration, i.e. the value of the scratch buffer is undefined at entry of the codelet function, but this is being considered for future extensions.
+@item @code{STARPU_REDUX} reduction mode. TODO: document, as well as @code{starpu_data_set_reduction_methods}
 @end table
 @end table
 
