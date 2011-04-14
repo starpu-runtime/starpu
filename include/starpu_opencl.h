@@ -31,7 +31,7 @@ extern "C" {
 
 #define STARPU_OPENCL_DISPLAY_ERROR(status)                                     \
 	do {                                                            \
-		char *errormsg;                                         \
+                const char *errormsg;                                   \
 		switch (status) {                                       \
 		case CL_SUCCESS:                                        \
 			errormsg = "success";                           \
