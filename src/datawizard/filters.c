@@ -194,7 +194,6 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 		unsigned worker;
 		for (worker = 0; worker < nworkers; worker++)
 		{
-			unsigned node;
 			struct starpu_data_replicate_s *child_replicate;
 			child_replicate = &child->per_worker[worker];
 			

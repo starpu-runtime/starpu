@@ -386,12 +386,12 @@ static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_h
 
 		double bandwidth_sum2 = bandwidth_dtoh*bandwidth_dtoh + bandwidth_htod*bandwidth_htod;
 
-		_STARPU_DISP("BANDWIDTH GPU %d CPU %d - htod %lf - dtoh %lf - %lf\n", dev, current_cpu, bandwidth_htod, bandwidth_dtoh, sqrt(bandwidth_sum2));
+		_STARPU_DISP("BANDWIDTH GPU %d CPU %u - htod %lf - dtoh %lf - %lf\n", dev, current_cpu, bandwidth_htod, bandwidth_dtoh, sqrt(bandwidth_sum2));
 	}
 
 	unsigned best_cpu = dev_timing_per_cpu[(dev+1)*MAXCPUS+0].cpu_id;
 
-	_STARPU_DISP("BANDWIDTH GPU %d BEST CPU %d\n", dev, best_cpu);
+	_STARPU_DISP("BANDWIDTH GPU %d BEST CPU %u\n", dev, best_cpu);
 #endif
 
 	/* The results are sorted in a decreasing order, so that the best

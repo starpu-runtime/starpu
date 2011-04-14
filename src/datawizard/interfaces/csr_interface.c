@@ -472,7 +472,7 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node __attri
 	}
 }
 
-static int copy_cuda_peer(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
+static int copy_cuda_peer(void *src_interface __attribute__((unused)), unsigned src_node __attribute__((unused)), void *dst_interface __attribute__((unused)), unsigned dst_node __attribute__((unused)))
 {
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	starpu_csr_interface_t *src_csr = src_interface;
@@ -508,7 +508,8 @@ static int copy_cuda_peer(void *src_interface, unsigned src_node __attribute__((
 #endif
 }
 
-static int copy_cuda_peer_async(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)), cudaStream_t stream)
+static int copy_cuda_peer_async(void *src_interface __attribute__((unused)), unsigned src_node __attribute__((unused)),
+				void *dst_interface __attribute__((unused)), unsigned dst_node __attribute__((unused)), cudaStream_t stream __attribute__((unused)))
 {
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	starpu_csr_interface_t *src_csr = src_interface;
