@@ -117,7 +117,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	cl.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON;
 	cl.nbuffers = 0;
 
-	FPRINTF(stderr, "ITER : %d\n", nk);
+	FPRINTF(stderr, "ITER : %u\n", nk);
 
 	for (i = 0; i < nk; i++)
 	{

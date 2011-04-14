@@ -354,7 +354,7 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 		ptr_vecq[i] = 0.0f;
 	}
 
-	FPRINTF(stdout, "nrow = %d \n", nrow);
+	FPRINTF(stdout, "nrow = %u \n", nrow);
 
 	/* and register them as well */
 	starpu_vector_data_register(&ds_vecr, 0, (uintptr_t)ptr_vecr, nrow, sizeof(float));

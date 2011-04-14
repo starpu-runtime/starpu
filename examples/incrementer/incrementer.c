@@ -116,7 +116,7 @@ int main(int argc, char **argv)
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 +
 					(end.tv_usec - start.tv_usec));
 
-	FPRINTF(stderr, "%d elems took %lf ms\n", niter, timing/1000);
+	FPRINTF(stderr, "%u elems took %lf ms\n", niter, timing/1000);
 
 	starpu_shutdown();
 

@@ -41,7 +41,6 @@ starpu_codelet cl;
 #define Nk	256
 
 static unsigned ni = Ni, nk = Nk;
-static unsigned callback_cnt;
 struct starpu_task **tasks[Nrolls];
 
 static void parse_args(int argc, char **argv)
@@ -70,9 +69,7 @@ static void create_task_grid(unsigned iter)
 {
 	unsigned i;
 
-	FPRINTF(stderr, "init iter %d ni %d...\n", iter, ni);
-
-	callback_cnt = (ni);
+	FPRINTF(stderr, "init iter %u ni %u...\n", iter, ni);
 
 	for (i = 0; i < ni; i++)
 	{
@@ -134,7 +131,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	cl.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON;
 	cl.nbuffers = 0;
 
-	FPRINTF(stderr, "ITER : %d\n", nk);
+	FPRINTF(stderr, "ITER : %u\n", nk);
 
 	for (i = 0; i < Nrolls; i++) {
 		tasks[i] = malloc(ni * sizeof(*tasks[i]));

@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
-	FPRINTF(stderr, "#tasks : %d\n", ntasks);
+	FPRINTF(stderr, "#tasks : %u\n", ntasks);
 
 	int i;
 	for (i = 0; i < ntasks; i++)
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 
 	starpu_task_wait_for_all();
 	
-	FPRINTF(stderr, "#empty tasks : %d\n", ntasks);
+	FPRINTF(stderr, "#empty tasks : %u\n", ntasks);
 
 	/* We repeat the same experiment with null codelets */
 

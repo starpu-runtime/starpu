@@ -494,10 +494,10 @@ static unsigned long build_neighbour_vector(unsigned long*neighbours, unsigned n
 				if ((former_theta + dtheta) >= 0 && (former_theta + dtheta) <= (int)ntheta )
 				{
 					/* we got a possible neighbour */
-					unsigned node = 
+					unsigned pnode = 
 						NODE_NUMBER((former_theta + dtheta), (former_thick + dthick));
 
-					neighbours[nneighbours++] = TRANSLATEBACK(node);
+					neighbours[nneighbours++] = TRANSLATEBACK(pnode);
 				}
 			}
 		}
@@ -569,10 +569,10 @@ static void build_sparse_stiffness_matrix_B(point *pmesh, float *B, float *Bform
 
 		for (neighbour = 0; neighbour < nneighbours; neighbour++)
 		{
-			unsigned i = neighbours[neighbour]; 
-			if (i >= newsize)
+			unsigned n = neighbours[neighbour]; 
+			if (n >= newsize)
 			{
-				B[j] -= compute_A_value(TRANSLATE(i), TRANSLATE(j), pmesh)*Bformer[TRANSLATE(i)];
+				B[j] -= compute_A_value(TRANSLATE(n), TRANSLATE(j), pmesh)*Bformer[TRANSLATE(n)];
 			}
 		}
 	}
@@ -729,7 +729,7 @@ int main(int argc, char **argv)
 
 		build_dense_stiffness_matrix_A(pmesh, A, newsize, RefArray, RefArrayBack);
 
-		FPRINTF(stderr, "Problem size : %dx%d (%dx%d) (%ld MB)\n", newsize, newsize, DIM, DIM, ((unsigned long)newsize*newsize*4UL)/(1024*1024));
+		FPRINTF(stderr, "Problem size : %ux%u (%ux%u) (%lu MB)\n", newsize, newsize, DIM, DIM, ((unsigned long)newsize*newsize*4UL)/(1024*1024));
 
 		STARPU_ASSERT(newsize % nblocks == 0);
 

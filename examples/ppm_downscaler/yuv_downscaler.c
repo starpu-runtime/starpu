@@ -199,7 +199,7 @@ int main(int argc, char **argv)
 
 	unsigned ntasks = (nblocks_y + 2*nblocks_uv)*nframes;
 
-	fprintf(stderr, "Start computation: there will be %d tasks for %d frames\n", ntasks, nframes);
+	fprintf(stderr, "Start computation: there will be %u tasks for %u frames\n", ntasks, nframes);
 	gettimeofday(&start, NULL);
 
 	/* do the computation */

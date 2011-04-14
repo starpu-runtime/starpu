@@ -38,7 +38,7 @@ extern void opencl_func(void *buffers[], void *cl_arg);
 void print_block(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz)
 {
         int i, j, k;
-        FPRINTF(stderr, "block=%p nx=%d ny=%d nz=%d ldy=%d ldz=%d\n", block, nx, ny, nz, ldy, ldz);
+        FPRINTF(stderr, "block=%p nx=%d ny=%d nz=%d ldy=%u ldz=%u\n", block, nx, ny, nz, ldy, ldz);
         for(k=0 ; k<nz ; k++) {
                 for(j=0 ; j<ny ; j++) {
                         for(i=0 ; i<nx ; i++) {

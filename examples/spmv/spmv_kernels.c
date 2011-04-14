@@ -97,7 +97,6 @@ void spmv_kernel_cpu(void *descr[], __attribute__((unused))  void *arg)
 
 	uint32_t firstelem = STARPU_CSR_GET_FIRSTENTRY(descr[0]);
 
-	uint32_t nnz;
 	uint32_t nrow;
 
 	nnz = STARPU_CSR_GET_NNZ(descr[0]);

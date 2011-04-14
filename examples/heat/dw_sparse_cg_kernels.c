@@ -64,10 +64,8 @@ void cpu_codelet_func_1(void *descr[], __attribute__((unused)) void *arg)
 	float *vecb = (float *)STARPU_VECTOR_GET_PTR(descr[3]);
 
 
-	uint32_t nnz;
 	uint32_t nrow;
 
-	nnz = STARPU_CSR_GET_NNZ(descr[0]);
 	nrow = STARPU_CSR_GET_NROW(descr[0]);
 
 	unsigned row;
@@ -173,10 +171,8 @@ void cpu_codelet_func_4(void *descr[], __attribute__((unused)) void *arg)
 	float *vecd = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
 	float *vecq = (float *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-	uint32_t nnz;
 	uint32_t nrow;
 
-	nnz = STARPU_CSR_GET_NNZ(descr[0]);
 	nrow = STARPU_CSR_GET_NROW(descr[0]);
 
 	unsigned row;

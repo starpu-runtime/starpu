@@ -554,7 +554,7 @@ int main(int argc, char **argv)
 				gettimeofday(&end, NULL);
 				double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-				fprintf(stderr, "Time to generate %d frames : %f s\n", iter, timing/1000000.0);
+				fprintf(stderr, "Time to generate %u frames : %f s\n", iter, timing/1000000.0);
 				fprintf(stderr, "Average FPS: %f\n", ((double)iter*1e+6)/timing);
 
 				/* Reset counters */

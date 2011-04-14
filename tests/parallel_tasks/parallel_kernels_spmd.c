@@ -26,8 +26,6 @@
 //static pthread_cond_t cond;
 //static unsigned finished = 0;
 
-static unsigned cnt;
-
 starpu_data_handle v_handle;
 static unsigned *v;
 

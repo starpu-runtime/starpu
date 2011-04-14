@@ -317,7 +317,7 @@ int main(int argc, char **argv)
 			unsigned n = size;
 			double flop = (2.0f*n*n*n)/3.0f;
 			FPRINTF(stderr, "Synthetic GFlops (TOTAL) : \n");
-			FPRINTF(stdout, "%d	%6.2f\n", n, (flop/timing/1000.0f));
+			FPRINTF(stdout, "%u	%6.2f\n", n, (flop/timing/1000.0f));
 		}
 	}
 	else

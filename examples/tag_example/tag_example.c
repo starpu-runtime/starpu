@@ -192,7 +192,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	parse_args(argc, argv);
 
-	FPRINTF(stderr, "ITER: %d\n", nk);
+	FPRINTF(stderr, "ITER: %u\n", nk);
 
 	cl.where = STARPU_CPU|STARPU_CUDA|STARPU_GORDON;
 	cl.cpu_func = cpu_codelet;

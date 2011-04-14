@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 
 	init_gordon_kernel();
 
-	FPRINTF(stderr, "#tasks : %d\n", ntasks);
+	FPRINTF(stderr, "#tasks : %u\n", ntasks);
 
 	gettimeofday(&start, NULL);
 	for (i = 0; i < ntasks; i++)

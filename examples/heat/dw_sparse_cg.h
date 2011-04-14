@@ -101,7 +101,7 @@ static void __attribute__ ((unused)) print_results(float *result, unsigned size)
 
 	for (i = 0; i < STARPU_MIN(size, 16); i++)
 	{
-		printf("%d -> %f\n", i, result[i]);
+		printf("%u -> %f\n", i, result[i]);
 	}
 }
 
