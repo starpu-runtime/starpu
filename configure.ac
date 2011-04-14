@@ -1005,6 +1005,45 @@ fi
 
 ###############################################################################
 #                                                                             #
+#                           Flags for C Compiler                              #
+#                                                                             #
+###############################################################################
+
+# IS_SUPPORTED_CFLAG(flag)
+# ------------------------
+# Check if the CFLAGS `flag' is supported by the compiler
+AC_DEFUN([IS_SUPPORTED_CFLAG],
+[
+	AC_REQUIRE([AC_PROG_CC])
+
+	AC_MSG_CHECKING([whether compiler support $1])
+
+	CFLAGS=$1
+
+	AC_COMPILE_IFELSE(
+		AC_LANG_PROGRAM(
+			[[]],
+			[[
+				AC_LANG_SOURCE([
+					const char *hello = "Hello World";
+				])
+			]]
+		),
+		[
+			GLOBAL_AM_CFLAGS="$GLOBAL_AM_CFLAGS $1"
+			AC_MSG_RESULT(yes)
+		],
+			AC_MSG_RESULT(no)
+	)
+])
+
+IS_SUPPORTED_CFLAG(-W)
+IS_SUPPORTED_CFLAG(-Wall)
+IS_SUPPORTED_CFLAG(-Wextra)
+AC_SUBST(GLOBAL_AM_CFLAGS)
+
+###############################################################################
+#                                                                             #
 #                               GCC extensions                                #
 #                                                                             #
 ###############################################################################
