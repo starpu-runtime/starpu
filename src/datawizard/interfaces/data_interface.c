@@ -265,7 +265,14 @@ void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 
 void *starpu_handle_to_pointer(starpu_data_handle handle)
 {
-	if (handle->ops->handle_to_pointer && handle->home_node != -1)
+	unsigned int local_node;
+
+	local_node = _starpu_get_local_memory_node();
+
+	/* Check whether the operation is supported and the node has actually
+	 * been allocated.  */
+	if (handle->ops->handle_to_pointer
+	    && starpu_data_test_if_allocated_on_node(handle, local_node))
 	{
 		return handle->ops->handle_to_pointer(handle);
 	}

@@ -20,17 +20,36 @@
 #include <starpu.h>
 #include <stdlib.h>
 
-#define COUNT 123
+static void task(void **buffers, void *args)
+{
+	float *numbers;
+	size_t size, i;
+
+	numbers = (float *) STARPU_VECTOR_GET_PTR(buffers[0]);
+	starpu_unpack_cl_args (args, &size);
+	for(i = 0; i < size; i++)
+	{
+		numbers[i] = i;
+	}
+}
+
+static starpu_codelet cl = {
+	.where = STARPU_CPU,
+	.cpu_func = task,
+	.nbuffers = 1
+};
 
 int main(int argc, char *argv[])
 {
 	int err;
+	size_t i;
 	void *pointer;
 	starpu_data_handle handle;
+	static const size_t count = 123;
 
 	starpu_init(NULL);
 
-	err = starpu_malloc(&pointer, COUNT * sizeof(float));
+	err = starpu_malloc(&pointer, count * sizeof(float));
 	assert((err == 0) && (pointer != NULL));
 
 	starpu_variable_data_register(&handle, 0, (uintptr_t)pointer,
@@ -39,22 +58,43 @@ int main(int argc, char *argv[])
 	starpu_data_unregister(handle);
 
 	starpu_vector_data_register(&handle, 0, (uintptr_t)pointer,
-				    COUNT, sizeof(float));
+				    count, sizeof(float));
 	assert(starpu_handle_to_pointer(handle) == pointer);
 	starpu_data_unregister(handle);
 
 	starpu_matrix_data_register(&handle, 0, (uintptr_t)pointer, 0,
-				    COUNT, 1, sizeof(float));
+				    count, 1, sizeof(float));
 	assert(starpu_handle_to_pointer(handle) == pointer);
 	starpu_data_unregister(handle);
 
+	starpu_free(pointer);
+	pointer = NULL;
+
 	/* Lazy allocation.  */
 	starpu_vector_data_register(&handle, -1, 0 /* NULL */,
-				    COUNT, sizeof(float));
+				    count, sizeof(float));
 	assert(starpu_handle_to_pointer(handle) == NULL);
-	starpu_data_unregister(handle);
 
-	starpu_free(pointer);
+	/* Pass the handle to a task.  */
+	starpu_insert_task(&cl,
+			   STARPU_W, handle,
+			   STARPU_VALUE, &count, sizeof(count),
+			   0);
+
+	/* Acquire the handle, forcing a local allocation.  */
+	starpu_data_acquire(handle, STARPU_R);
+
+	/* Make sure we have a local pointer to it.  */
+	pointer = starpu_handle_to_pointer(handle);
+	assert(pointer != NULL);
+	for(i = 0; i < count; i++)
+	{
+		float *numbers = (float *)pointer;
+		assert(numbers[i] == i);
+	}
+	starpu_data_release(handle);
+
+	starpu_data_unregister(handle);
 
 	starpu_shutdown();
 
