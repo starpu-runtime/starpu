@@ -436,6 +436,7 @@ CUDA are given in @ref{Enabling OpenCL}.
 * Theoretical lower bound on execution time::  
 * Insert Task Utility::          
 * More examples::               More examples shipped with StarPU
+* Debugging::                   When things go wrong.
 @end menu
 
 @node Compiling and linking options
