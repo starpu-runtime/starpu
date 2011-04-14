@@ -81,8 +81,6 @@ int main(int argc, char **argv)
 
 	unsigned nworker = starpu_worker_get_count() + starpu_combined_worker_get_count();
 
-	cnt = nworker*N;
-
 	unsigned iter, worker;
 	for (iter = 0; iter < N; iter++)
 	{
