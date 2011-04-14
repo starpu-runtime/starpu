@@ -201,14 +201,7 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 
 		_starpu_spin_lock(&registered_handles_lock);
 		HASH_ADD_PTR(registered_handles, pointer, entry);
-
-		struct handle_entry *entry2;
-		HASH_FIND_PTR(registered_handles, &ptr, entry2);
-		STARPU_ASSERT(entry2 == entry);
-
 		_starpu_spin_unlock(&registered_handles_lock);
-
-		STARPU_ASSERT(starpu_data_lookup(ptr) == handle);
 	}
 }
 
