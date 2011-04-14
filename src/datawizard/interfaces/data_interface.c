@@ -53,6 +53,22 @@ void _starpu_data_interface_shutdown()
 	registered_handles = NULL;
 }
 
+/* Register the mapping from PTR to HANDLE.  */
+void _starpu_data_register_local_pointer(starpu_data_handle handle, void *ptr)
+{
+	struct handle_entry *entry;
+
+	entry = malloc(sizeof(*entry));
+	STARPU_ASSERT(entry != NULL);
+
+	entry->pointer = ptr;
+	entry->handle = handle;
+
+	_starpu_spin_lock(&registered_handles_lock);
+	HASH_ADD_PTR(registered_handles, pointer, entry);
+	_starpu_spin_unlock(&registered_handles_lock);
+}
+
 starpu_data_handle starpu_data_lookup(const void *ptr)
 {
 	starpu_data_handle result;
@@ -190,18 +206,7 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	ptr = starpu_handle_to_pointer(handle);
 	if (ptr != NULL)
 	{
-		/* Register the mapping from PTR to HANDLE.  */
-		struct handle_entry *entry;
-
-		entry = malloc(sizeof(*entry));
-		STARPU_ASSERT(entry != NULL);
-
-		entry->pointer = ptr;
-		entry->handle = handle;
-
-		_starpu_spin_lock(&registered_handles_lock);
-		HASH_ADD_PTR(registered_handles, pointer, entry);
-		_starpu_spin_unlock(&registered_handles_lock);
+		_starpu_data_register_local_pointer(handle, ptr);
 	}
 }
 

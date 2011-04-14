@@ -746,6 +746,15 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, struct starpu_dat
 	replicate->allocated = 1;
 	replicate->automatically_allocated = 1;
 
+	if (dst_node == _starpu_get_local_memory_node())
+	{
+		void *ptr = starpu_handle_to_pointer(handle);
+		if (ptr != NULL)
+		{
+			_starpu_data_register_local_pointer(handle, ptr);
+		}
+	}
+
 	return 0;
 }
 

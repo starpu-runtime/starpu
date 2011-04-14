@@ -21,7 +21,62 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-#include <stdio.h>
+static void task(void **buffers, void *args)
+{
+	float *numbers;
+	size_t size, i;
+
+	numbers = (float *) STARPU_VECTOR_GET_PTR(buffers[0]);
+	starpu_unpack_cl_args (args, &size);
+	for(i = 0; i < size; i++)
+	{
+		numbers[i] = i;
+	}
+}
+
+static starpu_codelet cl = {
+	.where = STARPU_CPU,
+	.cpu_func = task,
+	.nbuffers = 1
+};
+
+static void test_lazy_allocation()
+{
+	static const size_t count = 123;
+
+	size_t i;
+	void *pointer;
+	starpu_data_handle handle;
+
+	/* Lazily-allocated vector.  */
+	starpu_vector_data_register(&handle, -1, 0 /* NULL */,
+				    count, sizeof(float));
+
+	starpu_insert_task(&cl,
+			   STARPU_W, handle,
+			   STARPU_VALUE, &count, sizeof(float),
+			   0);
+
+	/* Acquire the handle, forcing a local allocation.  */
+	starpu_data_acquire(handle, STARPU_R);
+
+	/* Make sure we have a local pointer to it.  */
+	pointer = starpu_handle_to_pointer(handle);
+	assert(pointer != NULL);
+	for(i = 0; i < count; i++)
+	{
+		float *numbers = (float *)pointer;
+		assert(numbers[i] == i);
+	}
+
+	/* Make sure the pointer/handle mapping is up-to-date.  */
+	assert(starpu_data_lookup(pointer) == handle);
+
+	starpu_data_release(handle);
+	starpu_data_unregister(handle);
+
+	assert(starpu_data_lookup(pointer) == NULL);
+}
 
 #define VECTOR_COUNT    12
 #define VARIABLE_COUNT  42
@@ -107,6 +162,8 @@ int main(int argc, char *argv[])
 		assert(handle == NULL);
 		starpu_free(vectors[i]);
 	}
+
+	test_lazy_allocation();
 
 	starpu_shutdown();
 
