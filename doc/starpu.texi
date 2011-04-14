@@ -1265,7 +1265,7 @@ transfers, which are assumed to be completely overlapped.
 StarPU provides the wrapper function @code{starpu_insert_task} to ease
 the creation and submission of tasks.
 
-@deftypefun int starpu_insert_task (starpu_codelet *cl, ...)
+@deftypefun void starpu_insert_task (starpu_codelet *cl, ...)
 Create and submit a task corresponding to @var{cl} with the following
 arguments.  The argument list must be zero-terminated.
 
