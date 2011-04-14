@@ -24,6 +24,8 @@ AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 bin_PROGRAMS =
 dist_bin_SCRIPTS =
 
+data_DATA = gdbinit
+
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
 bin_PROGRAMS += starpu_calibrate_bus
