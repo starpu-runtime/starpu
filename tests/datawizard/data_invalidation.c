@@ -73,7 +73,7 @@ static void cpu_check_content_codelet(void *descr[], __attribute__ ((unused)) vo
 	{
 		if (buf[i] != 42)
 		{
-			FPRINTF(stderr, "buf[%d] is %c while it should be %c\n", i, buf[i], 42);
+			FPRINTF(stderr, "buf[%u] is %c while it should be %c\n", i, buf[i], 42);
 			exit(-1);
 		}
 	}

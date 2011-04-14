@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 
 	task.callback_func = callback;
 
-	FPRINTF(stderr, "#tasks : %d\n", ntasks);
+	FPRINTF(stderr, "#tasks : %u\n", ntasks);
 
 	gettimeofday(&start, NULL);
 

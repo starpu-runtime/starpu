@@ -335,7 +335,7 @@ int main(int argc, char **argv)
 	starpu_data_acquire(last_handle, STARPU_R);
 	if (problem_data[NTHREADS - 1].val != (NTHREADS * NITER))
 	{
-		FPRINTF(stderr, "Final value : %d should be %d\n", problem_data[NTHREADS - 1].val, (NTHREADS * NITER));
+		FPRINTF(stderr, "Final value : %u should be %d\n", problem_data[NTHREADS - 1].val, (NTHREADS * NITER));
 		STARPU_ABORT();
 	}
 	starpu_data_release(last_handle);

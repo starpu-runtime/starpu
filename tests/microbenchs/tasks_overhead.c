@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
-	fprintf(stderr, "#tasks : %d\n#buffers : %d\n", ntasks, nbuffers);
+	fprintf(stderr, "#tasks : %u\n#buffers : %u\n", ntasks, nbuffers);
 
 	/* submit tasks (but don't execute them yet !) */
 	tasks = malloc(ntasks*sizeof(struct starpu_task));

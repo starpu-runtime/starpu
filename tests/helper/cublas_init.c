@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 
 	if (ngpus != 0)
 	{
-		FPRINTF(stderr, "per-GPU (#gpu = %d):\n", ngpus);
+		FPRINTF(stderr, "per-GPU (#gpu = %u):\n", ngpus);
 
 		FPRINTF(stderr, "\tinit: %2.2f us\n", init_timing/(1000*ngpus));
 		FPRINTF(stderr, "\tshutdown: %2.2f us\n", shutdown_timing/(1000*ngpus));

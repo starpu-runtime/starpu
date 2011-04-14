@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 	task.use_tag = 1;
 	task.tag_id = tag;
 
-	FPRINTF(stderr, "#tasks : %d\n", ntasks);
+	FPRINTF(stderr, "#tasks : %u\n", ntasks);
 
 	gettimeofday(&start, NULL);
 

@@ -66,7 +66,7 @@ int main(int argc, char **argv)
         starpu_init(NULL);
 	starpu_variable_data_register(&token_handle, 0, (uintptr_t)&token, sizeof(unsigned));
 
-        FPRINTF(stderr, "Token: %d\n", token);
+        FPRINTF(stderr, "Token: %u\n", token);
 
 	for(i=0; i<ntasks; i++)
 	{
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 	}
 
 	starpu_data_unregister(token_handle);
-        FPRINTF(stderr, "Token: %d\n", token);
+        FPRINTF(stderr, "Token: %u\n", token);
         assert(token==ntasks);
 
 	starpu_shutdown();

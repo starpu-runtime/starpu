@@ -172,7 +172,7 @@ int main(int argc, char **argv)
 
 	starpu_data_acquire(v_handle, STARPU_RW);
 
-	FPRINTF(stderr, "V = { %d, %d, %d }\n", v[0], v[1], v[2]);
+	FPRINTF(stderr, "V = {%u, %u, %u}\n", v[0], v[1], v[2]);
 
 	starpu_data_release(v_handle);
 

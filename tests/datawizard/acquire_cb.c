@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 
 	starpu_data_unregister(token_handle);
 
-        FPRINTF(stderr, "Token: %d\n", token);
+        FPRINTF(stderr, "Token: %u\n", token);
         STARPU_ASSERT(token == 42);
 
 	starpu_shutdown();

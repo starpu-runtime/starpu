@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 			}
 		}
 
-		fprintf(stderr, "Ping-pong will be done between %s (node %d) and %s (node %d)\n",
+		fprintf(stderr, "Ping-pong will be done between %s (node %u) and %s (node %u)\n",
 					worker_0_name, memory_node_0, worker_1_name, memory_node_1);
 	}
 

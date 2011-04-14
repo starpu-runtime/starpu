@@ -82,7 +82,7 @@ static void cpu_redux_func(void *descr[], void *cl_arg __attribute__((unused)))
 	unsigned *a = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned *b = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
-	FPRINTF(stderr, "%d = %d + %d\n", *a + *b, *a, *b);
+	FPRINTF(stderr, "%u = %u + %u\n", *a + *b, *a, *b);
 
 	*a = *a + *b;
 }

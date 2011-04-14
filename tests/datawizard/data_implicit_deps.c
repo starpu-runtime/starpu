@@ -56,7 +56,7 @@ static starpu_codelet cl_g = {
 
 static void h(void *descr[], __attribute__ ((unused)) void *_args)
 {
-	FPRINTF(stderr, "VAR %d (should be 42)\n", var);
+	FPRINTF(stderr, "VAR %u (should be 42)\n", var);
 	STARPU_ASSERT(var == 42);
 }
 

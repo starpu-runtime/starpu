@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 
 	starpu_data_partition(handle, &f);
 
-	snprintf(symbolname, 128, "overlap_sleep_%d_%d", VECTORSIZE, TASKDURATION);
+	snprintf(symbolname, 128, "overlap_sleep_%d_%u", VECTORSIZE, TASKDURATION);
 
 	model.symbol = symbolname;
 

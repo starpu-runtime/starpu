@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
-	FPRINTF(stderr, "#tasks : %d\n", ntasks);
+	FPRINTF(stderr, "#tasks : %u\n", ntasks);
 
 	gettimeofday(&start, NULL);
 

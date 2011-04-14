@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 		task[i].callback_arg = &cnt[i];
 	}
 
-	FPRINTF(stderr, "#tasks : %d x %d tasks\n", K, ntasks);
+	FPRINTF(stderr, "#tasks : %d x %u tasks\n", K, ntasks);
 
 	gettimeofday(&start, NULL);
 	

@@ -24,7 +24,6 @@
 #include <starpu_profiling.h>
 
 static unsigned ntasks = 65536;
-static unsigned cnt;
 
 //static unsigned finished = 0;
 
@@ -120,15 +119,13 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	cnt = ntasks;
-
 	starpu_init(&conf);
 
 	init_gordon_kernel();
 
 	starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
 
-	fprintf(stderr, "#tasks : %d\n", ntasks);
+	fprintf(stderr, "#tasks : %u\n", ntasks);
 
 	/* Create an array of tasks */
 	struct starpu_task **tasks = malloc(ntasks*sizeof(struct starpu_task *));

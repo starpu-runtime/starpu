@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 
 	init_gordon_kernel();
 
-	fprintf(stderr, "#tasks : %d\n", ntasks);
+	fprintf(stderr, "#tasks : %u\n", ntasks);
 
 	gettimeofday(&start, NULL);
 	for (i = 0; i < ntasks; i++)

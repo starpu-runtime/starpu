@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 	if (2*mb > ntasks)
 		ntasks = 2*mb;
 
-	FPRINTF(stderr, "Allocate %d buffers and create %d tasks\n", mb, ntasks);
+	FPRINTF(stderr, "Allocate %d buffers and create %u tasks\n", mb, ntasks);
 
         starpu_init(NULL);
 

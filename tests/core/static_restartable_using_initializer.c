@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 	task.cl = &dummy_codelet;
 	task.detach = 0;
 
-	FPRINTF(stderr, "#tasks : %d\n", ntasks);
+	FPRINTF(stderr, "#tasks : %u\n", ntasks);
 
 	gettimeofday(&start, NULL);
 
