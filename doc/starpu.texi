@@ -629,7 +629,7 @@ synchronous: the @code{starpu_task_submit} function will not return until the
 task was executed. Note that the @code{starpu_shutdown} method does not
 guarantee that asynchronous tasks have been executed before it returns,
 @code{starpu_task_wait_for_all} can be used to that effect, or data can be
-acquired (@code{starpu_data_acquire(vector_handle, STARPU_R);}), which will
+unregistered (@code{starpu_data_unregister(vector_handle);}), which will
 implicitly wait for all the tasks scheduled to work on it, unless explicitly
 disabled thanks to @code{starpu_data_set_default_sequential_consistency_flag} or
 @code{starpu_data_set_sequential_consistency_flag}.
@@ -992,8 +992,9 @@ int main(int argc, char **argv)
     @}
     fprintf(stderr, "\n");
 
-    /* @b{Release the data and shutdown StarPU} */
+    /* @b{Release the RAM view of the data before unregistering it and shutting down StarPU} */
     starpu_data_release(vector_handle);
+    starpu_data_unregister(vector_handle);
     starpu_shutdown();
 
     return 0;
@@ -1450,7 +1451,7 @@ transfer to overlap with computations.
 To let StarPU make online optimizations, tasks should be submitted
 asynchronously as much as possible. Ideally, all the tasks should be
 submitted, and mere calls to @code{starpu_task_wait_for_all} or
-@code{starpu_data_acquire} be done to wait for
+@code{starpu_data_unregister} be done to wait for
 termination. StarPU will then be able to rework the whole schedule, overlap
 computation with communication, manage accelerator local memory usage, etc.
 
