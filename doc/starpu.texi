@@ -3352,7 +3352,7 @@ This partitions a 3D matrix along the X axis.
 
 This section describes the interface to manipulate codelets and tasks.
 
-@deftp {Data Type} struct starpu_codelet
+@deftp {Data Type} {struct starpu_codelet}
 The codelet structure describes a kernel that is possibly implemented on various
 targets. For compatibility, make sure to initialize the whole structure to zero.
 
@@ -3415,7 +3415,7 @@ TODO
 @end table
 @end deftp
 
-@deftp {Data Type} struct starpu_task
+@deftp {Data Type} {struct starpu_task}
 The @code{starpu_task} structure describes a task that can be offloaded on the various
 processing units managed by StarPU. It instantiates a codelet. It can either be
 allocated dynamically with the @code{starpu_task_create} method, or declared
