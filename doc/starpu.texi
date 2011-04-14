@@ -1345,6 +1345,17 @@ task->cl_arg_size = arg_buffer_size;
 int ret = starpu_task_submit(task);
 @end smallexample
 
+@node Debugging
+@section Debugging
+
+StarPU provides several tools to help debugging aplications. Execution traces
+can be generated and displayed graphically, see @ref{Generating traces}. Some
+gdb helpers are also provided to show the whole StarPU state:
+
+@smallexample
+(gdb) source tools/gdbinit
+(gdb) help starpu
+@end smallexample
 
 @node More examples
 @section More examples
