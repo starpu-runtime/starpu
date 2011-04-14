@@ -104,5 +104,5 @@ int main(int argc, char **argv)
 enodev:
 	/* No one can execute that task, this is not a bug, just an incomplete
 	 * test :) */
-	return 0;
+	return 77;
 }
