@@ -379,7 +379,12 @@ if test x$enable_cuda = xyes; then
 		AC_SUBST(NVCCFLAGS)
 	fi
 
-	AC_PATH_PROG([NVCC], [nvcc], [nvcc], [$cuda_dir/bin:$PATH:/usr/local/bin:/usr/bin:/bin], [AC_MSG_WARN(Cannot find nvcc.)])
+	AC_PATH_PROG([NVCC], [nvcc], [not-found],
+	  [$cuda_dir/bin:$PATH:/usr/local/bin:/usr/bin:/bin])
+	if test "x$NVCC" = "xnot-found"; then
+	   AC_MSG_WARN([`nvcc' not found, disabling CUDA])
+	   enable_cuda=no
+	fi
 fi
 
 enable_magma=no
