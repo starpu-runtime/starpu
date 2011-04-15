@@ -717,9 +717,9 @@ AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [enable debug mode])],
 AC_MSG_RESULT($enable_debug)
 
 if test x$enable_debug = xyes; then
-	CFLAGS=" -O0 "
+	CFLAGS="$CFLAGS -O0"
 else
-	CFLAGS=" -O3 "
+	CFLAGS="$CFLAGS -O3"
 fi
 CFLAGS+=" -gdwarf-2 -g3 "
 
