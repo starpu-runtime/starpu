@@ -53,7 +53,8 @@ void _starpu_data_interface_shutdown()
 	registered_handles = NULL;
 }
 
-/* Register the mapping from PTR to HANDLE.  */
+/* Register the mapping from PTR to HANDLE.  If PTR is already mapped to
+ * some handle, the new mapping shadows the previous one.   */
 void _starpu_data_register_local_pointer(starpu_data_handle handle, void *ptr)
 {
 	struct handle_entry *entry;
@@ -302,7 +303,7 @@ int starpu_data_set_rank(starpu_data_handle handle, int rank)
 
 void _starpu_data_free_interfaces(starpu_data_handle handle)
 {
-	void *ptr;
+	const void *ptr;
 	unsigned node;
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();
@@ -317,7 +318,9 @@ void _starpu_data_free_interfaces(starpu_data_handle handle)
 
 	if (ptr != NULL)
 	{
-		/* Remove the PTR -> HANDLE mapping.  */
+		/* Remove the PTR -> HANDLE mapping.  If a mapping from PTR
+		 * to another handle existed before (e.g., when using
+		 * filters), it becomes visible again.  */
 		struct handle_entry *entry;
 
 		_starpu_spin_lock(&registered_handles_lock);

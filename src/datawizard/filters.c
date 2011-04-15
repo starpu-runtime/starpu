@@ -220,6 +220,13 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 		 * store it in the handle */
 		child->data_size = child->ops->get_size(child);
 		child->footprint = _starpu_compute_data_footprint(child);
+
+		void *ptr;
+		ptr = starpu_handle_to_pointer(child);
+		if (ptr != NULL)
+		{
+			_starpu_data_register_local_pointer(child, ptr);
+		}
 	}
 	/* now let the header */
 	_starpu_spin_unlock(&initial_handle->header_lock);

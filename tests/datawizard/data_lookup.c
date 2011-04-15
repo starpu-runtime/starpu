@@ -83,6 +83,58 @@ static void test_lazy_allocation()
 
 #define VECTOR_SIZE     123
 
+static void test_filters()
+{
+#define CHILDREN_COUNT 10
+	int err, i;
+	void *ptr, *children_pointers[CHILDREN_COUNT];
+	starpu_data_handle handle;
+
+	err = starpu_malloc(&ptr, VECTOR_SIZE * sizeof(*ptr));
+	assert(err == 0);
+
+	starpu_vector_data_register(&handle, 0, (uintptr_t)ptr,
+				    VECTOR_SIZE, sizeof(*ptr));
+
+	struct starpu_data_filter f =
+	{
+		.filter_func = starpu_block_filter_func_vector,
+		.nchildren = CHILDREN_COUNT,
+		.get_nchildren = NULL,
+		.get_child_ops = NULL
+	};
+	starpu_data_partition(handle, &f);
+	assert(starpu_data_get_nb_children(handle) == CHILDREN_COUNT);
+
+	for (i = 0; i < CHILDREN_COUNT; i++)
+	{
+                starpu_data_handle child;
+
+		child = starpu_data_get_sub_data(handle, 1, i);
+		children_pointers[i] = starpu_handle_to_pointer(child);
+		assert(children_pointers[i] != NULL);
+
+		/* Make sure we have a pointer -> handle mapping for CHILD.  */
+		assert(starpu_data_lookup(children_pointers[i]) == child);
+	}
+
+	starpu_data_unpartition(handle, 0);
+
+	for (i = 0; i < CHILDREN_COUNT; i++)
+	{
+		if (children_pointers[i] != ptr)
+			/* Make sure the pointer -> handle mapping is gone.  */
+			assert(starpu_data_lookup(children_pointers[i]) == NULL);
+	}
+
+	/* Make sure the parent's mapping is back.  */
+	assert(starpu_data_lookup(ptr) == handle);
+
+	starpu_data_unregister(handle);
+
+#undef CHILDREN_COUNT
+}
+
 int main(int argc, char *argv[])
 {
 	int err;
@@ -164,6 +216,7 @@ int main(int argc, char *argv[])
 	}
 
 	test_lazy_allocation();
+	test_filters();
 
 	starpu_shutdown();
 
