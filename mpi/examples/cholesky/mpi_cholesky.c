@@ -88,15 +88,11 @@ static void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblock
                                 starpu_matrix_data_register(&data_handles[x][y], 0, (uintptr_t)&(matA[((size/nblocks)*y) + ((size/nblocks)*x) * ld]),
                                                             ld, size/nblocks, size/nblocks, sizeof(float));
                         }
-                        else if (rank == mpi_rank+1 || rank == mpi_rank-1) {
+                        else {
                                 /* I don't own that index, but will need it for my computations */
                                 //fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
                                 starpu_matrix_data_register(&data_handles[x][y], -1, (uintptr_t)NULL,
                                                             ld, size/nblocks, size/nblocks, sizeof(float));
-                        }
-                        else {
-                                /* I know it's useless to allocate anything for this */
-                                data_handles[x][y] = NULL;
                         }
                         if (data_handles[x][y])
                                 starpu_data_set_rank(data_handles[x][y], mpi_rank);
