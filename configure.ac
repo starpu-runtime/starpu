@@ -380,7 +380,7 @@ if test x$enable_cuda = xyes; then
 	fi
 
 	AC_PATH_PROG([NVCC], [nvcc], [not-found],
-	  [$cuda_dir/bin:$PATH:/usr/local/bin:/usr/bin:/bin])
+	  [$cuda_dir/bin:$PATH:/usr/local/cuda/bin:/usr/bin:/bin])
 	if test "x$NVCC" = "xnot-found"; then
 	   AC_MSG_WARN([`nvcc' not found, disabling CUDA])
 	   enable_cuda=no
