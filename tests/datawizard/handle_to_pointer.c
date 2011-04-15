@@ -34,8 +34,9 @@ static void task(void **buffers, void *args)
 }
 
 static starpu_codelet cl = {
-	.where = STARPU_CPU,
+	.where = STARPU_CPU | STARPU_CUDA,
 	.cpu_func = task,
+	.cuda_func = task,
 	.nbuffers = 1
 };
 

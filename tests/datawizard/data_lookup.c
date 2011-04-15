@@ -54,7 +54,7 @@ static void test_lazy_allocation()
 
 	starpu_insert_task(&cl,
 			   STARPU_W, handle,
-			   STARPU_VALUE, &count, sizeof(float),
+			   STARPU_VALUE, &count, sizeof(size_t),
 			   0);
 
 	/* Acquire the handle, forcing a local allocation.  */
