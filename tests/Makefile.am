@@ -137,6 +137,7 @@ check_PROGRAMS += 				\
 	datawizard/increment_redux		\
 	datawizard/increment_redux_v2		\
 	datawizard/handle_to_pointer		\
+	datawizard/lazy_allocation		\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
@@ -410,6 +411,11 @@ datawizard_mpi_like_SOURCES +=			\
 datawizard_mpi_like_async_SOURCES +=		\
 	datawizard/cuda_codelet_unsigned_inc.cu
 endif
+
+testbin_PROGRAMS +=				\
+	datawizard/lazy_allocation
+datawizard_lazy_allocation_SOURCES =		\
+	datawizard/lazy_allocation.c
 
 testbin_PROGRAMS +=				\
 	errorcheck/starpu_init_noworker
