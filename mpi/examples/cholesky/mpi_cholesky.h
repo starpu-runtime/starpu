@@ -70,7 +70,6 @@ typedef struct {
 static unsigned size = 4*1024;
 static unsigned nblocks = 16;
 static unsigned nbigblocks = 8;
-static unsigned pinned = 0;
 static unsigned noprio = 0;
 static unsigned display = 0;
 
@@ -84,7 +83,7 @@ void chol_cublas_codelet_update_u21(void *descr[], void *_args);
 void chol_cublas_codelet_update_u22(void *descr[], void *_args);
 #endif
 
-void initialize_system(float **A, unsigned dim, unsigned pinned, int *rank, int *nodes);
+void initialize_system(float **A, unsigned dim, int *rank, int *nodes);
 //void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks);
 
 extern struct starpu_perfmodel_t chol_model_11;
@@ -110,10 +109,6 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 			nbigblocks = strtol(argv[++i], &argptr, 10);
 		}
 
-		if (strcmp(argv[i], "-pin") == 0) {
-			pinned = 1;
-		}
-
 		if (strcmp(argv[i], "-no-prio") == 0) {
 			noprio = 1;
 		}
@@ -123,7 +118,7 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 		}
 
 		if (strcmp(argv[i], "-h") == 0) {
-			printf("usage : %s [-display] [-pin] [-size size] [-nblocks nblocks]\n", argv[0]);
+			printf("usage : %s [-display] [-size size] [-nblocks nblocks]\n", argv[0]);
 		}
 	}
 	if (nblocks > size) nblocks = size;

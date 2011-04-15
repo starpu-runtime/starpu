@@ -159,19 +159,13 @@ static void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblock
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 }
 
-void initialize_system(float **A, unsigned dim, unsigned pinned, int *rank, int *nodes)
+void initialize_system(float **A, unsigned dim, int *rank, int *nodes)
 {
 	starpu_init(NULL);
 	starpu_mpi_initialize_extended(1, rank, nodes);
 	starpu_helper_cublas_init();
 
-	if (pinned)
-	{
-		starpu_malloc((void **)A, (size_t)dim*dim*sizeof(float));
-	}
-	else {
-		*A = malloc(dim*dim*sizeof(float));
-	}
+	starpu_malloc((void **)A, (size_t)dim*dim*sizeof(float));
 }
 
 int main(int argc, char **argv)
@@ -186,7 +180,7 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 	mat = malloc(size*size*sizeof(float));
-	initialize_system(&mat, size, pinned, &rank, &nodes);
+	initialize_system(&mat, size, &rank, &nodes);
 
 	unsigned i,j;
 	for (i = 0; i < size; i++)
