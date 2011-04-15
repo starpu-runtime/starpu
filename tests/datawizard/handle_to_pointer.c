@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 
 	/* Lazy allocation.  */
 	starpu_vector_data_register(&handle, -1, 0 /* NULL */,
-				    count, sizeof(float));
+				    count, sizeof(count));
 	assert(starpu_handle_to_pointer(handle) == NULL);
 
 	/* Pass the handle to a task.  */
