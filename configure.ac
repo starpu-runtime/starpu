@@ -354,6 +354,15 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
     enable_cuda=$have_valid_cuda
 fi
 
+if test x$enable_cuda = xyes; then
+        AC_PATH_PROG([NVCC], [nvcc], [not-found],
+	  [$cuda_dir/bin:$PATH:/usr/local/cuda/bin:/usr/bin:/bin])
+	if test "x$NVCC" = "xnot-found"; then
+	   AC_MSG_WARN(['nvcc' not found, disabling CUDA])
+	   enable_cuda=no
+	fi
+fi
+
 AC_MSG_CHECKING(whether CUDA should be used)
 AC_MSG_RESULT($enable_cuda)
 AC_SUBST(STARPU_USE_CUDA, $enable_cuda)
@@ -377,13 +386,6 @@ if test x$enable_cuda = xyes; then
 	if test x$SIZEOF_VOID_P = x8; then
 		NVCCFLAGS="${NVCCFLAGS} -m64"
 		AC_SUBST(NVCCFLAGS)
-	fi
-
-	AC_PATH_PROG([NVCC], [nvcc], [not-found],
-	  [$cuda_dir/bin:$PATH:/usr/local/cuda/bin:/usr/bin:/bin])
-	if test "x$NVCC" = "xnot-found"; then
-	   AC_MSG_WARN([`nvcc' not found, disabling CUDA])
-	   enable_cuda=no
 	fi
 fi
 
