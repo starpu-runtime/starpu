@@ -239,6 +239,7 @@ int starpu_task_submit(struct starpu_task *task)
                         _STARPU_LOG_OUT_TAG("ENODEV");
 			return -ENODEV;
                 }
+		assert(task->cl->nbuffers <= STARPU_NMAXBUFS);
 
 		/* In case we require that a task should be explicitely
 		 * executed on a specific worker, we make sure that the worker
