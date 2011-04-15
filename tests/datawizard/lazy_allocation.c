@@ -79,7 +79,7 @@ static void check_content_codelet(void *descr[], __attribute__ ((unused)) void *
 }
 
 static starpu_codelet check_content_cl = {
-	.where = STARPU_CPU,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = check_content_codelet,
 #ifdef STARPU_USE_CUDA
 	.cuda_func = check_content_codelet,
