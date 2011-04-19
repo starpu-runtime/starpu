@@ -122,9 +122,17 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #define STARPU_SYNCHRONIZE() __asm__ __volatile__("sync" ::: "memory")
 #endif
 
+#ifdef __cplusplus
+}
+#endif
+
 /* Include this only here so that <starpu_data_interfaces.h> can use the
  * macros above.  */
 #include <starpu_task.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 static __inline int starpu_get_env_number(const char *str)
 {
