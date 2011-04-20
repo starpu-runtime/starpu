@@ -329,8 +329,8 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 
 	char *prefix = options->file_prefix;
 
-	unsigned long has_name = ev->param[4];
-	char *name = has_name?(char *)&ev->param[5]:"unknown";
+	unsigned long has_name = ev->param[2];
+	char *name = has_name?(char *)&ev->param[3]:"unknown";
 
 	snprintf(last_codelet_symbol[worker], 128, "%s", name);
 
