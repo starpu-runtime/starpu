@@ -43,7 +43,7 @@ static void initialize_pgreedy_policy(struct starpu_machine_topology_s *topology
 
 	_starpu_sched_find_worker_combinations(topology);
 
-	int workerid;
+	unsigned workerid;
 	unsigned ncombinedworkers, nworkers;
 
 	nworkers = topology->nworkers;
