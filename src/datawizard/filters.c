@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
@@ -222,10 +222,10 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 		child->footprint = _starpu_compute_data_footprint(child);
 
 		void *ptr;
-		ptr = starpu_handle_to_pointer(child);
+		ptr = starpu_handle_to_pointer(child, 0);
 		if (ptr != NULL)
 		{
-			_starpu_data_register_local_pointer(child, ptr);
+			_starpu_data_register_ram_pointer(child, ptr);
 		}
 	}
 	/* now let the header */

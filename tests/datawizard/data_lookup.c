@@ -61,7 +61,7 @@ static void test_lazy_allocation()
 	starpu_data_acquire(handle, STARPU_R);
 
 	/* Make sure we have a local pointer to it.  */
-	pointer = starpu_handle_to_pointer(handle);
+	pointer = starpu_handle_get_local_ptr(handle);
 	assert(pointer != NULL);
 	for(i = 0; i < count; i++)
 	{
@@ -111,7 +111,7 @@ static void test_filters()
                 starpu_data_handle child;
 
 		child = starpu_data_get_sub_data(handle, 1, i);
-		children_pointers[i] = starpu_handle_to_pointer(child);
+		children_pointers[i] = starpu_handle_get_local_ptr(child);
 		assert(children_pointers[i] != NULL);
 
 		/* Make sure we have a pointer -> handle mapping for CHILD.  */

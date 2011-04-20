@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -66,7 +66,7 @@ static const struct starpu_data_copy_methods block_copy_data_methods_s = {
 
 
 static void register_block_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface);
-static void *block_handle_to_pointer(starpu_data_handle data_handle);
+static void *block_handle_to_pointer(starpu_data_handle data_handle, uint32_t node);
 static ssize_t allocate_block_buffer_on_node(void *data_interface_, uint32_t dst_node);
 static void free_block_buffer_on_node(void *data_interface, uint32_t node);
 static size_t block_interface_get_size(starpu_data_handle handle);
@@ -81,6 +81,7 @@ static struct starpu_data_interface_ops_t interface_block_ops = {
 	.register_data_handle = register_block_handle,
 	.allocate_data_on_node = allocate_block_buffer_on_node,
 	.handle_to_pointer = block_handle_to_pointer,
+	.get_local_ptr = starpu_block_get_local_ptr,
 	.free_data_on_node = free_block_buffer_on_node,
 	.copy_methods = &block_copy_data_methods_s,
 	.get_size = block_interface_get_size,
@@ -104,9 +105,14 @@ int convert_block_to_gordon(void *data_interface, uint64_t *ptr, gordon_strideSi
 }
 #endif
 
-static void *block_handle_to_pointer(starpu_data_handle data_handle)
+static void *block_handle_to_pointer(starpu_data_handle handle, uint32_t node)
 {
-	return (void *)starpu_block_get_local_ptr(data_handle);
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+
+	starpu_block_interface_t *block_interface =
+		starpu_data_get_interface_on_node(handle, node);
+
+	return (void*) block_interface->ptr;
 }
 
 static void register_block_handle(starpu_data_handle handle, uint32_t home_node, void *data_interface)

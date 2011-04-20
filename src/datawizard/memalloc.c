@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -746,12 +746,12 @@ int _starpu_allocate_memory_on_node(starpu_data_handle handle, struct starpu_dat
 	replicate->allocated = 1;
 	replicate->automatically_allocated = 1;
 
-	if (dst_node == _starpu_get_local_memory_node())
+	if (dst_node == 0)
 	{
-		void *ptr = starpu_handle_to_pointer(handle);
+		void *ptr = starpu_handle_to_pointer(handle, 0);
 		if (ptr != NULL)
 		{
-			_starpu_data_register_local_pointer(handle, ptr);
+			_starpu_data_register_ram_pointer(handle, ptr);
 		}
 	}
 

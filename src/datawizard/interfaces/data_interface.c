@@ -55,7 +55,7 @@ void _starpu_data_interface_shutdown()
 
 /* Register the mapping from PTR to HANDLE.  If PTR is already mapped to
  * some handle, the new mapping shadows the previous one.   */
-void _starpu_data_register_local_pointer(starpu_data_handle handle, void *ptr)
+void _starpu_data_register_ram_pointer(starpu_data_handle handle, void *ptr)
 {
 	struct handle_entry *entry;
 
@@ -204,10 +204,10 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	/* now the data is available ! */
 	_starpu_spin_unlock(&handle->header_lock);
 
-	ptr = starpu_handle_to_pointer(handle);
+	ptr = starpu_handle_to_pointer(handle, 0);
 	if (ptr != NULL)
 	{
-		_starpu_data_register_local_pointer(handle, ptr);
+		_starpu_data_register_ram_pointer(handle, ptr);
 	}
 }
 
@@ -269,7 +269,20 @@ void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node,
 	_starpu_register_new_data(handle, home_node, 0);
 }
 
-void *starpu_handle_to_pointer(starpu_data_handle handle)
+void *starpu_handle_to_pointer(starpu_data_handle handle, uint32_t node)
+{
+	/* Check whether the operation is supported and the node has actually
+	 * been allocated.  */
+	if (handle->ops->handle_to_pointer
+	    && starpu_data_test_if_allocated_on_node(handle, node))
+	{
+		return handle->ops->handle_to_pointer(handle, node);
+	}
+
+	return NULL;
+}
+
+void *starpu_handle_get_local_ptr(starpu_data_handle handle)
 {
 	unsigned int local_node;
 
@@ -277,10 +290,10 @@ void *starpu_handle_to_pointer(starpu_data_handle handle)
 
 	/* Check whether the operation is supported and the node has actually
 	 * been allocated.  */
-	if (handle->ops->handle_to_pointer
+	if (handle->ops->get_local_ptr
 	    && starpu_data_test_if_allocated_on_node(handle, local_node))
 	{
-		return handle->ops->handle_to_pointer(handle);
+		return (void*) handle->ops->get_local_ptr(handle);
 	}
 
 	return NULL;
@@ -303,12 +316,12 @@ int starpu_data_set_rank(starpu_data_handle handle, int rank)
 
 void _starpu_data_free_interfaces(starpu_data_handle handle)
 {
-	const void *ptr;
+	const void *ram_ptr;
 	unsigned node;
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();
 
-	ptr = starpu_handle_to_pointer(handle);
+	ram_ptr = starpu_handle_to_pointer(handle, 0);
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 		free(handle->per_node[node].data_interface);
@@ -316,7 +329,7 @@ void _starpu_data_free_interfaces(starpu_data_handle handle)
 	for (worker = 0; worker < nworkers; worker++)
 		free(handle->per_worker[worker].data_interface);
 
-	if (ptr != NULL)
+	if (ram_ptr != NULL)
 	{
 		/* Remove the PTR -> HANDLE mapping.  If a mapping from PTR
 		 * to another handle existed before (e.g., when using
@@ -324,7 +337,7 @@ void _starpu_data_free_interfaces(starpu_data_handle handle)
 		struct handle_entry *entry;
 
 		_starpu_spin_lock(&registered_handles_lock);
-		HASH_FIND_PTR(registered_handles, &ptr, entry);
+		HASH_FIND_PTR(registered_handles, &ram_ptr, entry);
 		STARPU_ASSERT(entry != NULL);
 
 		HASH_DEL(registered_handles, entry);

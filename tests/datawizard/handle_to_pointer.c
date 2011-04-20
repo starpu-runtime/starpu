@@ -55,17 +55,17 @@ int main(int argc, char *argv[])
 
 	starpu_variable_data_register(&handle, 0, (uintptr_t)pointer,
 				      sizeof(float));
-	assert(starpu_handle_to_pointer(handle) == pointer);
+	assert(starpu_handle_to_pointer(handle, 0) == pointer);
 	starpu_data_unregister(handle);
 
 	starpu_vector_data_register(&handle, 0, (uintptr_t)pointer,
 				    count, sizeof(float));
-	assert(starpu_handle_to_pointer(handle) == pointer);
+	assert(starpu_handle_to_pointer(handle, 0) == pointer);
 	starpu_data_unregister(handle);
 
 	starpu_matrix_data_register(&handle, 0, (uintptr_t)pointer, 0,
 				    count, 1, sizeof(float));
-	assert(starpu_handle_to_pointer(handle) == pointer);
+	assert(starpu_handle_to_pointer(handle, 0) == pointer);
 	starpu_data_unregister(handle);
 
 	starpu_free(pointer);
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 	/* Lazy allocation.  */
 	starpu_vector_data_register(&handle, -1, 0 /* NULL */,
 				    count, sizeof(float));
-	assert(starpu_handle_to_pointer(handle) == NULL);
+	assert(starpu_handle_to_pointer(handle, 0) == NULL);
 
 	/* Pass the handle to a task.  */
 	starpu_insert_task(&cl,
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 	starpu_data_acquire(handle, STARPU_R);
 
 	/* Make sure we have a local pointer to it.  */
-	pointer = starpu_handle_to_pointer(handle);
+	pointer = starpu_handle_to_pointer(handle, 0);
 	assert(pointer != NULL);
 	for(i = 0; i < count; i++)
 	{
