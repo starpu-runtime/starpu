@@ -29,6 +29,10 @@
 extern "C" {
 #endif
 
+#ifdef _MSC_VER
+#define __func__ __FUNCTION__
+#endif
+
 #define STARPU_OPENCL_DISPLAY_ERROR(status)                                     \
 	do {                                                            \
                 const char *errormsg;                                   \
