@@ -643,10 +643,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel_t *model,
 
 	load_history_based_model(model, 1);
 
-	if (STARPU_UNLIKELY(!j->footprint_is_computed))
-		_starpu_compute_buffers_footprint(j);
-		
-	uint32_t key = j->footprint;
+	uint32_t key = _starpu_compute_buffers_footprint(j);
 
 	per_arch_model = &model->per_arch[arch];
 

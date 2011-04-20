@@ -146,6 +146,22 @@ do {									\
 	sprintf((char *)futargs, "%s", str);				\
 } while (0);
 
+#define STARPU_FUT_DO_PROBE5STR(CODE, P1, P2, P3, P4, P5, str)		\
+do {									\
+	/* we add a \0 just in case ... */				\
+	size_t len = strlen((str)) + 1;					\
+	unsigned nbargs = 5 + (len + sizeof(unsigned long) - 1)/(sizeof(unsigned long));\
+	size_t total_len = FUT_SIZE(nbargs);				\
+	unsigned long *futargs =						\
+		fut_getstampedbuffer(FUT_CODE(CODE, nbargs), total_len);\
+	*(futargs++) = (unsigned long)(P1);				\
+	*(futargs++) = (unsigned long)(P2);				\
+	*(futargs++) = (unsigned long)(P3);				\
+	*(futargs++) = (unsigned long)(P4);				\
+	*(futargs++) = (unsigned long)(P5);				\
+	sprintf((char *)futargs, "%s", str);				\
+} while (0);
+
 
 
 /* workerkind = STARPU_FUT_CPU_KEY for instance */
@@ -160,7 +176,7 @@ do {									\
 
 #define STARPU_TRACE_START_CODELET_BODY(job)				\
 do {									\
-        const char *model_name = _starpu_get_model_name((job));               \
+        const char *model_name = _starpu_get_model_name((job));         \
 	if (model_name)                                                 \
 	{								\
 		/* we include the symbol name */			\
@@ -171,9 +187,12 @@ do {									\
 	}								\
 } while(0);
 
-
 #define STARPU_TRACE_END_CODELET_BODY(job)	\
-	FUT_DO_PROBE2(STARPU_FUT_END_CODELET_BODY, job, syscall(SYS_gettid));
+do {						\
+	const size_t job_size = _starpu_job_get_data_size((job));	\
+	const uint32_t job_hash = _starpu_compute_buffers_footprint(job);\
+	FUT_DO_PROBE4(STARPU_FUT_END_CODELET_BODY, job, (job_size), (job_hash), syscall(SYS_gettid));	\
+} while(0);
 
 #define STARPU_TRACE_START_CALLBACK(job)	\
 	FUT_DO_PROBE2(STARPU_FUT_START_CALLBACK, job, syscall(SYS_gettid));

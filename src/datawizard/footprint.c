@@ -18,8 +18,11 @@
 #include <datawizard/footprint.h>
 #include <common/hash.h>
 
-void _starpu_compute_buffers_footprint(starpu_job_t j)
+uint32_t _starpu_compute_buffers_footprint(starpu_job_t j)
 {
+	if (j->footprint_is_computed)
+		return j->footprint;
+
 	uint32_t footprint = 0;
 	unsigned buffer;
 
@@ -36,6 +39,8 @@ void _starpu_compute_buffers_footprint(starpu_job_t j)
 
 	j->footprint = footprint;
 	j->footprint_is_computed = 1;
+
+	return footprint;
 }
 
 inline uint32_t _starpu_compute_data_footprint(starpu_data_handle handle)

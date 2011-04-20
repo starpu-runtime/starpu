@@ -79,7 +79,6 @@ static unsigned get_colour_symbol_blue(char *name)
 	return (unsigned)_starpu_crc32_string("blue", hash_symbol) % 1024;
 }
 
-static uint64_t last_codelet_hash[STARPU_NMAXWORKERS];
 static float last_codelet_start[STARPU_NMAXWORKERS];
 static char last_codelet_symbol[128][STARPU_NMAXWORKERS];
 
@@ -330,13 +329,10 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 
 	char *prefix = options->file_prefix;
 
-	unsigned long has_name = ev->param[2];
-	char *name = has_name?(char *)&ev->param[3]:"unknown";
+	unsigned long has_name = ev->param[4];
+	char *name = has_name?(char *)&ev->param[5]:"unknown";
 
 	snprintf(last_codelet_symbol[worker], 128, "%s", name);
-
-	/* TODO */
-	last_codelet_hash[worker] = 0;
 
 	float start_codelet_time = get_event_time_stamp(ev, options);
 	last_codelet_start[worker] = start_codelet_time;
@@ -349,22 +345,25 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
-	worker = find_worker_id(ev->param[1]);
+	worker = find_worker_id(ev->param[3]);
 	if (worker < 0) return;
 
 	char *prefix = options->file_prefix;
 
 	float end_codelet_time = get_event_time_stamp(ev, options);
 
-	fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      B\n", end_codelet_time, prefix, ev->param[1]);
+	size_t codelet_size = ev->param[1];
+	uint32_t codelet_hash = ev->param[2];
+
+	fprintf(out_paje_file, "10       %f	S      %s%"PRIu64"      B\n", end_codelet_time, prefix, ev->param[3]);
 
 	float codelet_length = (end_codelet_time - last_codelet_start[worker]);
 
 	update_accumulated_time(worker, 0.0, codelet_length, end_codelet_time, 0);
 	
 	if (options->generate_distrib)
-	fprintf(distrib_time, "%s\t%s%d\t%"PRIx64"\t%f\n", last_codelet_symbol[worker],
-				prefix, worker, last_codelet_hash[worker], codelet_length);
+	fprintf(distrib_time, "%s\t%s%d\t%ld\t%"PRIx64"\t%f\n", last_codelet_symbol[worker],
+				prefix, worker, codelet_size, codelet_hash, codelet_length);
 }
 
 static void handle_user_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
