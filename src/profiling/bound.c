@@ -171,16 +171,13 @@ static void new_task(starpu_job_t j)
 	if (j->bound_task)
 		return;
 
-	if (STARPU_UNLIKELY(!j->footprint_is_computed))
-		_starpu_compute_buffers_footprint(j);
-
 	t = malloc(sizeof(*t));
 	memset(t, 0, sizeof(*t));
 	t->id = j->job_id;
 	t->tag_id = j->task->tag_id;
 	t->use_tag = j->task->use_tag;
 	t->cl = j->task->cl;
-	t->footprint = j->footprint;
+	t->footprint = _starpu_compute_buffers_footprint(j);
 	t->priority = j->task->priority;
 	t->deps = NULL;
 	t->depsn = 0;
@@ -209,8 +206,7 @@ void _starpu_bound_record(starpu_job_t j)
 	} else {
 		struct bound_task_pool *tp;
 
-		if (STARPU_UNLIKELY(!j->footprint_is_computed))
-			_starpu_compute_buffers_footprint(j);
+		_starpu_compute_buffers_footprint(j);
 
 		if (last && last->cl == j->task->cl && last->footprint == j->footprint)
 			tp = last;

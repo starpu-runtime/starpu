@@ -117,25 +117,30 @@ void _starpu_fxt_register_thread(unsigned);
 /* Sometimes we need something a little more specific than the wrappers from
  * FxT: these macro permit to put add an event with 3 (or 4) numbers followed
  * by a string. */
-#define STARPU_FUT_DO_PROBE3STR(CODE, P1, P2, P3, str)				\
+#define STARPU_FUT_DO_PROBE3STR(CODE, P1, P2, P3, str)			\
 do {									\
+	/* No more than FXT_MAX_PARAMS args are allowed */		\
 	/* we add a \0 just in case ... */				\
-	size_t len = strlen((str)) + 1;					\
-	unsigned nbargs = 3 + (len + sizeof(unsigned long) - 1)/(sizeof(unsigned long));\
+	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 3)*sizeof(unsigned long));\
+	unsigned nbargs_str = (len + sizeof(unsigned long) - 1)/(sizeof(unsigned long));\
+	unsigned nbargs = 3 + nbargs_str;				\
 	size_t total_len = FUT_SIZE(nbargs);				\
-	unsigned long *futargs =						\
+	unsigned long *futargs =					\
 		fut_getstampedbuffer(FUT_CODE(CODE, nbargs), total_len);\
 	*(futargs++) = (unsigned long)(P1);				\
 	*(futargs++) = (unsigned long)(P2);				\
 	*(futargs++) = (unsigned long)(P3);				\
-	sprintf((char *)futargs, "%s", str);				\
+	snprintf((char *)futargs, len, "%s", str);			\
+	((char *)futargs)[len - 1] = '\0';				\
 } while (0);
 
 #define STARPU_FUT_DO_PROBE4STR(CODE, P1, P2, P3, P4, str)		\
 do {									\
+	/* No more than FXT_MAX_PARAMS args are allowed */		\
 	/* we add a \0 just in case ... */				\
-	size_t len = strlen((str)) + 1;					\
-	unsigned nbargs = 4 + (len + sizeof(unsigned long) - 1)/(sizeof(unsigned long));\
+	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 4)*sizeof(unsigned long));\
+	unsigned nbargs_str = (len + sizeof(unsigned long) - 1)/(sizeof(unsigned long));\
+	unsigned nbargs = 4 + nbargs_str;				\
 	size_t total_len = FUT_SIZE(nbargs);				\
 	unsigned long *futargs =						\
 		fut_getstampedbuffer(FUT_CODE(CODE, nbargs), total_len);\
@@ -143,23 +148,27 @@ do {									\
 	*(futargs++) = (unsigned long)(P2);				\
 	*(futargs++) = (unsigned long)(P3);				\
 	*(futargs++) = (unsigned long)(P4);				\
-	sprintf((char *)futargs, "%s", str);				\
+	snprintf((char *)futargs, len, "%s", str);			\
+	((char *)futargs)[len - 1] = '\0';				\
 } while (0);
 
 #define STARPU_FUT_DO_PROBE5STR(CODE, P1, P2, P3, P4, P5, str)		\
 do {									\
+	/* No more than FXT_MAX_PARAMS args are allowed */		\
 	/* we add a \0 just in case ... */				\
-	size_t len = strlen((str)) + 1;					\
-	unsigned nbargs = 5 + (len + sizeof(unsigned long) - 1)/(sizeof(unsigned long));\
+	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 5)*sizeof(unsigned long));\
+	unsigned nbargs_str = (len + sizeof(unsigned long) - 1)/(sizeof(unsigned long));\
+	unsigned nbargs = 5 + nbargs_str;				\
 	size_t total_len = FUT_SIZE(nbargs);				\
-	unsigned long *futargs =						\
+	unsigned long *futargs =					\
 		fut_getstampedbuffer(FUT_CODE(CODE, nbargs), total_len);\
 	*(futargs++) = (unsigned long)(P1);				\
 	*(futargs++) = (unsigned long)(P2);				\
 	*(futargs++) = (unsigned long)(P3);				\
 	*(futargs++) = (unsigned long)(P4);				\
 	*(futargs++) = (unsigned long)(P5);				\
-	sprintf((char *)futargs, "%s", str);				\
+	snprintf((char *)futargs, len, "%s", str);			\
+	((char *)futargs)[len - 1] = '\0';				\
 } while (0);
 
 
