@@ -59,10 +59,11 @@
 
 #ifdef _MSC_VER
 typedef long starpu_ssize_t;
+#define __starpu_func__ __FUNCTION__
 #else
 #  include <sys/types.h>
 typedef ssize_t starpu_ssize_t;
+#define __starpu_func__ __func__
 #endif
-
 
 #endif

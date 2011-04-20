@@ -29,10 +29,6 @@
 extern "C" {
 #endif
 
-#ifdef _MSC_VER
-#define __func__ __FUNCTION__
-#endif
-
 #if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
 #define STARPU_CUBLAS_OOPS() do { \
 		printf("oops  %s \n", errormsg); \
@@ -40,7 +36,7 @@ extern "C" {
 	} while (0);
 #else
 #define STARPU_CUBLAS_OOPS() do { \
-		printf("oops  in %s ... %s \n", __func__, errormsg); \
+		printf("oops  in %s ... %s \n", __starpu_func__, errormsg); \
 		assert(0);						\
 	} while (0);
 #endif

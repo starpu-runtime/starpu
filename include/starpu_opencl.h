@@ -24,13 +24,10 @@
 #else
 #include <CL/cl.h>
 #endif
+#include <starpu_config.h>
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-#ifdef _MSC_VER
-#define __func__ __FUNCTION__
 #endif
 
 #define STARPU_OPENCL_DISPLAY_ERROR(status)                                     \
@@ -179,7 +176,7 @@ extern "C" {
 			errormsg = "unknown error";			\
 			break;			                        \
 		}                                                       \
-		printf("oops in %s ... <%s> (%d) \n", __func__, errormsg, status); \
+		printf("oops in %s ... <%s> (%d) \n", __starpu_func__, errormsg, status); \
 	} while (0)
 
 #define STARPU_OPENCL_REPORT_ERROR(status)                                     \
