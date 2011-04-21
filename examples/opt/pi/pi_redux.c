@@ -292,7 +292,7 @@ int main(int argc, char **argv)
 		STARPU_ASSERT(!ret);
 	}
 
-	starpu_data_acquire(shot_cnt_handle, STARPU_R);
+	starpu_data_unregister(shot_cnt_handle);
 
 	gettimeofday(&end, NULL);
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
@@ -301,15 +301,11 @@ int main(int argc, char **argv)
 	unsigned long total = ntasks*NSHOT_PER_TASK;
 	double pi_approx = ((double)shot_cnt*4.0)/total;
 
-	starpu_data_release(shot_cnt_handle);
-
-
 	FPRINTF(stderr, "Pi approximation : %lf (%ld / %ld)\n", pi_approx, shot_cnt, total);
 	FPRINTF(stderr, "Error %le \n", pi_approx - PI);
 	FPRINTF(stderr, "Total time : %f ms\n", timing/1000.0);
 	FPRINTF(stderr, "Speed : %f GShot/s\n", total/(1e3*timing));
 
-	starpu_data_unregister(shot_cnt_handle);
 	starpu_shutdown();
 
 	if (abs(pi_approx - PI) > 1.0)

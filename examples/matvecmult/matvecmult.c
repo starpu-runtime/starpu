@@ -187,10 +187,9 @@ int main(int argc, char **argv)
 
 	starpu_task_wait_for_all();
 
-	/* update the array in RAM */
-        starpu_data_acquire(matrix_handle, STARPU_R);
-        starpu_data_acquire(vector_handle, STARPU_R);
-        starpu_data_acquire(mult_handle, STARPU_R);
+	starpu_data_unregister(matrix_handle);
+	starpu_data_unregister(vector_handle);
+	starpu_data_unregister(mult_handle);
 
         int res = compareL2fe(correctResult, mult, height, 1e-6f);
         FPRINTF(stdout, "TEST %s\n\n", (res == 0) ? "PASSED" : "FAILED !!!");
@@ -199,10 +198,6 @@ int main(int argc, char **argv)
         printArray(vector, width);
         printArray(mult, height);
 #endif
-        starpu_data_release(matrix_handle);
-        starpu_data_release(vector_handle);
-        starpu_data_release(mult_handle);
-
         starpu_shutdown();
 
 	return 0;

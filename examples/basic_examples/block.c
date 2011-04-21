@@ -64,14 +64,12 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
 	starpu_task_wait_for_all();
 
 	/* update the array in RAM */
-        starpu_data_acquire(block_handle, STARPU_R);
+	starpu_data_unregister(block_handle);
 
         for(i=0 ; i<pnx*pny*pnz; i++) {
           FPRINTF(stderr, "%f ", block[i]);
         }
         FPRINTF(stderr, "\n");
-
-        starpu_data_release(block_handle);
 
         return 0;
 }
@@ -119,6 +117,7 @@ int main(int argc, char **argv)
         }
 
         FPRINTF(stderr,"TEST %s\n", ret==1?"PASSED":"FAILED");
+
         starpu_shutdown();
 
 	return 0;

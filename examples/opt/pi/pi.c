@@ -151,7 +151,7 @@ int main(int argc, char **argv)
 
 	/* Get the cnt_array back in main memory */
 	starpu_data_unpartition(cnt_array_handle, 0);
-	starpu_data_acquire(cnt_array_handle, STARPU_RW);
+	starpu_data_unregister(cnt_array_handle);
 
 	/* Count the total number of entries */
 	unsigned long total_cnt = 0;
@@ -168,8 +168,6 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "Pi approximation : %f (%ld / %ld)\n", ((TYPE)total_cnt*4)/(total_shot_cnt), total_cnt, total_shot_cnt);
 	FPRINTF(stderr, "Total time : %f ms\n", timing/1000.0);
 	FPRINTF(stderr, "Speed : %f GShot/s\n", total_shot_cnt/(1e3*timing));
-
-	starpu_data_release(cnt_array_handle);
 
 	if (!getenv("STARPU_SSILENT")) starpu_display_codelet_stats(&cl);
 
