@@ -57,15 +57,19 @@ static void test_memset(int nelems)
 
 	starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, nelems, sizeof(int));
 
-	struct starpu_task *task = starpu_task_create();
-
-	task->cl = &memset_cl;
-	task->buffers[0].handle = handle;
-	task->buffers[0].mode = STARPU_W;
-	task->synchronous = 1;
-
-	int ret = starpu_task_submit(task);
-	assert(!ret);
+	int nloops = 200;
+	int loop;
+	for (loop = 0; loop < nloops; loop++)
+	{
+		struct starpu_task *task = starpu_task_create();
+	
+		task->cl = &memset_cl;
+		task->buffers[0].handle = handle;
+		task->buffers[0].mode = STARPU_W;
+	
+		int ret = starpu_task_submit(task);
+		assert(!ret);
+	} 
 
 	starpu_data_unregister(handle);
 }
@@ -75,21 +79,17 @@ int main(int argc, char **argv)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 
-	conf.sched_policy_name = "dm";
+	conf.sched_policy_name = "greedy";
 	conf.calibrate = 1;
 
 	starpu_init(&conf);
 
-	int nloops = 32;
-	int loop, slog;
-	for (loop = 0; loop < nloops; loop++)
+	int slog;
+	for (slog = 8; slog < 25; slog++)
 	{
-		for (slog = 8; slog < 25; slog++)
-		{
-			int size = 1 << slog;
-			test_memset(size);
-		}
-	} 
+		int size = 1 << slog;
+		test_memset(size);
+	}
 
 	starpu_shutdown();
 

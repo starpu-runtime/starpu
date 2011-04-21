@@ -71,7 +71,7 @@ static starpu_codelet nl_memset_cl =
 
 static void test_memset(int nelems, starpu_codelet *codelet)
 {
-	int nloops = 20;
+	int nloops = 100;
 	int loop;
 	starpu_data_handle handle;
 
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 
-	conf.sched_policy_name = "dm";
+	conf.sched_policy_name = "greedy";
 	conf.calibrate = 1;
 
 	starpu_init(&conf);

@@ -392,7 +392,7 @@ void _starpu_deinitialize_registered_performance_models(void)
  * was loaded or not (this is very likely to have been already loaded). If the
  * model was not loaded yet, we take the lock in write mode, and if the model
  * is still not loaded once we have the lock, we do load it.  */
-static void load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_history)
+void _starpu_load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_history)
 {
 
 	STARPU_ASSERT(model);
@@ -608,8 +608,6 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel_t *mod
 	size_t size = _starpu_job_get_data_size(j);
 	struct starpu_regression_model_t *regmodel;
 
-	load_history_based_model(model, 0);
-
 	regmodel = &model->per_arch[arch].regression;
 
 	if (regmodel->valid)
@@ -623,8 +621,6 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 	double exp = -1.0;
 	size_t size = _starpu_job_get_data_size(j);
 	struct starpu_regression_model_t *regmodel;
-
-	load_history_based_model(model, 0);
 
 	regmodel = &model->per_arch[arch].regression;
 
@@ -640,8 +636,6 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel_t *model,
 	struct starpu_per_arch_perfmodel_t *per_arch_model;
 	struct starpu_history_entry_t *entry;
 	struct starpu_htbl32_node_s *history;
-
-	load_history_based_model(model, 1);
 
 	uint32_t key = _starpu_compute_buffers_footprint(j);
 

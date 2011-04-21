@@ -250,6 +250,9 @@ int starpu_task_submit(struct starpu_task *task)
                 }
 
 		_starpu_detect_implicit_data_deps(task);
+
+		if (task->cl->model)
+			_starpu_load_perfmodel(task->cl->model);
 	}
 
 	/* If profiling is activated, we allocate a structure to store the
@@ -262,7 +265,8 @@ int starpu_task_submit(struct starpu_task *task)
 	/* The task is considered as block until we are sure there remains not
 	 * dependency. */
 	task->status = STARPU_TASK_BLOCKED;
-	
+
+
 	if (profiling)
 		starpu_clock_gettime(&info->submit_time);
 

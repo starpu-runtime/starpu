@@ -209,8 +209,11 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, int src)
 
 			unsigned long id = mpi_com_id++;
 			/* TODO replace 0 by a MPI program ? */
-			fprintf(out_paje_file, "18	%f	MPIL	MPIroot   %ld	mpi_%d_p	mpicom_%lu\n", start_date, size, /* XXX */src, id);
-			fprintf(out_paje_file, "19	%f	MPIL	MPIroot	  %ld	mpi_%d_p	mpicom_%lu\n", end_date, size, /* XXX */dst, id);
+			if (out_paje_file)
+			{
+				fprintf(out_paje_file, "18	%f	MPIL	MPIroot   %ld	mpi_%d_p	mpicom_%lu\n", start_date, size, /* XXX */src, id);
+				fprintf(out_paje_file, "19	%f	MPIL	MPIroot	  %ld	mpi_%d_p	mpicom_%lu\n", end_date, size, /* XXX */dst, id);
+			}
 		}
 		else
 		{

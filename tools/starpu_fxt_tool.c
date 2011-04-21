@@ -62,12 +62,6 @@ static void parse_args(int argc, char **argv)
 			continue;
 		}
 
-		if (strcmp(argv[i], "-d") == 0) {
-			options.generate_distrib = 1;
-			reading_input_filenames = 0;
-			continue;
-		}
-
 		if (strcmp(argv[i], "-h") == 0) {
 		        fprintf(stderr, "Usage : %s [-c] [-no-counter] [-no-bus] [-i input_filename] [-o output_filename]\n", argv[0]);
 			fprintf(stderr, "\t-c: use a different colour for every type of task.\n");

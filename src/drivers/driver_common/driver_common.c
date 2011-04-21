@@ -36,7 +36,7 @@ void _starpu_driver_update_job_feedback(starpu_job_t j, struct starpu_worker_s *
 	int profiling = starpu_profiling_status_get();
 	int updated = 0;
 
-	if (cl->model && cl->model->benchmarking)
+	if (cl->model && _starpu_get_calibrate_flag())
 		calibrate_model = 1;
 
 	if (profiling_info || calibrate_model)
