@@ -17,6 +17,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 #include <starpu.h>
 #include <starpu_perfmodel.h>
@@ -32,11 +33,14 @@ static struct starpu_perfmodel_t model;
 static char *symbol = NULL;
 /* which architecture ? (NULL = all)*/
 static char *arch = NULL;
+/* Unless a FxT file is specified, we just display the model */
+static int no_fxt_file = 1;
 
+#ifdef STARPU_USE_FXT
 static struct starpu_fxt_codelet_event *dumped_codelets;
 static long dumped_codelets_count;
-
 static struct starpu_fxt_options options;
+#endif
 
 static int archtype_is_found[STARPU_NARCH_VARIATIONS];
 static long dumped_per_archtype_count[STARPU_NARCH_VARIATIONS];
@@ -58,6 +62,7 @@ static void usage(char **argv)
 
 static void parse_args(int argc, char **argv)
 {
+#ifdef STARPU_USE_FXT
 	/* Default options */
 	starpu_fxt_options_init(&options);
 
@@ -67,6 +72,7 @@ static void parse_args(int argc, char **argv)
 	options.dag_path = NULL;
 
 	options.dumped_codelets = &dumped_codelets;
+#endif
 
 	/* We want to support arguments such as "-i trace_*" */
 	unsigned reading_input_filenames = 0;
@@ -79,8 +85,13 @@ static void parse_args(int argc, char **argv)
 		}
 
 		if (strcmp(argv[i], "-i") == 0) {
-			options.filenames[options.ninputfiles++] = argv[++i];
 			reading_input_filenames = 1;
+#ifdef STARPU_USE_FXT
+			options.filenames[options.ninputfiles++] = argv[++i];
+			no_fxt_file = 0;
+#else
+			fprintf(stderr, "Warning: FxT support was not enabled in StarPU: FxT traces will thus be ignored!\n");
+#endif
 			continue;
 		}
 
@@ -99,7 +110,9 @@ static void parse_args(int argc, char **argv)
 		 * another filename */
 		if (reading_input_filenames)
 		{
+#ifdef STARPU_USE_FXT
 			options.filenames[options.ninputfiles++] = argv[i];
+#endif
 			continue;
 		}
 	}
@@ -107,49 +120,66 @@ static void parse_args(int argc, char **argv)
 
 static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, int *first)
 {
-	if (!archtype_is_found[arch])
-		return;
-
-	if (*first)
-	{
-		*first = 0;
-	}
-	else {
-		fprintf(gnuplot_file, ",\\\n\t");
-	}
-
 	char arch_name[256];
 	starpu_perfmodel_get_arch_name(arch, arch_name, 256);
 
-	fprintf(gnuplot_file, "\"< grep -w \\^%d %s\" using 2:3 title \"%s\"", arch, data_file_name, arch_name);
+#ifdef STARPU_USE_FXT
+	if (!no_fxt_file && archtype_is_found[arch])
+	{
+		if (*first)
+		{
+			*first = 0;
+		}
+		else {
+			fprintf(gnuplot_file, ",\\\n\t");
+		}
+	
+		fprintf(gnuplot_file, "\"< grep -w \\^%d %s\" using 2:3 title \"%s\"", arch, data_file_name, arch_name);
+	}
+#endif
 
 	struct starpu_per_arch_perfmodel_t *arch_model = &model->per_arch[arch];
 
 	/* Only display the regression model if we could actually build a model */
 	if (arch_model->regression.valid)
 	{
+		if (*first)
+		{
+			*first = 0;
+		}
+		else {
+			fprintf(gnuplot_file, ",\\\n\t");
+		}
+	
 		fprintf(stderr, "\tLinear: y = alpha size ^ beta\n");
 		fprintf(stderr, "\t\talpha = %le\n", arch_model->regression.alpha * 0.001);
 		fprintf(stderr, "\t\tbeta = %le\n", arch_model->regression.beta);
 
-		fprintf(gnuplot_file, ",\\\n\t");
 		fprintf(gnuplot_file, "0.001 * %f * x ** %f title \"Linear Regression %s\"",
 			arch_model->regression.alpha, arch_model->regression.beta, arch_name);
 	}
 
 	if (arch_model->regression.nl_valid)
 	{
+		if (*first)
+		{
+			*first = 0;
+		}
+		else {
+			fprintf(gnuplot_file, ",\\\n\t");
+		}
+	
 		fprintf(stderr, "\tNon-Linear: y = a size ^b + c\n");
 		fprintf(stderr, "\t\ta = %le\n", arch_model->regression.a * 0.001);
 		fprintf(stderr, "\t\tb = %le\n", arch_model->regression.b);
 		fprintf(stderr, "\t\tc = %le\n", arch_model->regression.c * 0.001);
 
-		fprintf(gnuplot_file, ",\\\n\t");
 		fprintf(gnuplot_file, "0.001 * %f * x ** %f + 0.001 * %f title \"Non-Linear Regression %s\"",
 			arch_model->regression.a, arch_model->regression.b,  arch_model->regression.c, arch_name);
 	}
 }
 
+#ifdef STARPU_USE_FXT
 static void dump_data_file(FILE *data_file)
 {
 	memset(archtype_is_found, 0, STARPU_NARCH_VARIATIONS*sizeof(int));
@@ -170,6 +200,7 @@ static void dump_data_file(FILE *data_file)
 		}
 	}
 }
+#endif
 
 static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel_t *model)
 {
@@ -184,6 +215,11 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel_
 	fprintf(gnuplot_file, "set logscale x\n");
 	fprintf(gnuplot_file, "set logscale y\n");
 	fprintf(gnuplot_file, "\n");
+
+	/* If no input data is given to gnuplot, we at least need to specify an
+	 * arbitrary range. */
+	if (no_fxt_file)
+		fprintf(gnuplot_file, "set xrange [10**3:10**9]\n\n");
 
 	int first = 1;
 	fprintf(gnuplot_file, "plot\t");
@@ -249,6 +285,8 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel_
 
 int main(int argc, char **argv)
 {
+	int ret;
+
 #ifdef __MINGW32__
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(1,0), &wsadata);
@@ -264,27 +302,51 @@ int main(int argc, char **argv)
 	}
 
 	/* Load the performance model associated to the symbol */
-	int ret = starpu_load_history_debug(symbol, &model);
+	ret = starpu_load_history_debug(symbol, &model);
 	if (ret == 1)
 	{
 		fprintf(stderr, "The performance model could not be loaded\n");
 		return 1;
 	}
 
-	starpu_fxt_generate_trace(&options);
+	/* If some FxT input was specified, we put the points on the graph */
+#ifdef STARPU_USE_FXT
+	if (!no_fxt_file)
+	{
+		starpu_fxt_generate_trace(&options);
 
-	snprintf(data_file_name, 256, "starpu_%s.data", symbol);
+		snprintf(data_file_name, 256, "starpu_%s.data", symbol);
+
+		FILE *data_file = fopen(data_file_name, "w+");
+		STARPU_ASSERT(data_file);
+		dump_data_file(data_file);
+		fclose(data_file);
+	}
+#endif
+
 	snprintf(gnuplot_file_name, 256, "starpu_%s.gp", symbol);
-
-	FILE *data_file = fopen(data_file_name, "w+");
-	STARPU_ASSERT(data_file);
-	dump_data_file(data_file);
-	fclose(data_file);
 
 	FILE *gnuplot_file = fopen(gnuplot_file_name, "w+");
 	STARPU_ASSERT(gnuplot_file);
 	display_selected_models(gnuplot_file, &model);
 	fclose(gnuplot_file);
+
+	/* Retrieve the current mode of the gnuplot executable */
+	struct stat sb;
+	ret = stat(gnuplot_file_name, &sb);
+	if (ret)
+	{
+		perror("stat");
+		STARPU_ABORT();
+	}
+
+	/* Make the gnuplot scrit executable for the owner */
+	ret = chmod(gnuplot_file_name, sb.st_mode|S_IXUSR);
+	if (ret)
+	{
+		perror("chmod");
+		STARPU_ABORT();
+	}
 
 	return 0;
 }

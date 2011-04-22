@@ -44,10 +44,8 @@ endif
 bin_PROGRAMS +=	starpu_perfmodel_display
 starpu_perfmodel_display_SOURCES = starpu_perfmodel_display.c
 
-if STARPU_USE_FXT
 bin_PROGRAMS +=	starpu_regression_display
 starpu_regression_display_SOURCES = starpu_regression_display.c
-endif
 
 bin_PROGRAMS += starpu_machine_display
 starpu_machine_display_SOURCES = starpu_machine_display.c
