@@ -43,7 +43,6 @@ static struct starpu_fxt_options options;
 #endif
 
 static int archtype_is_found[STARPU_NARCH_VARIATIONS];
-static long dumped_per_archtype_count[STARPU_NARCH_VARIATIONS];
 
 static char data_file_name[256];
 static char gnuplot_file_name[256];
@@ -189,8 +188,7 @@ static void dump_data_file(FILE *data_file)
 	{
 		/* Dump only if the symbol matches user's request */
 		if (strcmp(dumped_codelets[i].symbol, symbol) == 0) {
-			int workerid = dumped_codelets[i].workerid;
-			enum starpu_perf_archtype archtype = options.worker_archtypes[workerid];
+			enum starpu_perf_archtype archtype = dumped_codelets[i].archtype;
 			archtype_is_found[archtype] = 1;
 
 			size_t size = dumped_codelets[i].size;

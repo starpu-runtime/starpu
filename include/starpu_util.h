@@ -166,6 +166,7 @@ void starpu_trace_user_event(unsigned long code);
 struct starpu_fxt_codelet_event {
 	char symbol[256]; /* name of the codelet */
 	int workerid;
+	enum starpu_perf_archtype archtype;
 	uint32_t hash;
 	size_t size;
 	float time;

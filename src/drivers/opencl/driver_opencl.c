@@ -546,12 +546,13 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 	if ((profiling && profiling_info) || calibrate_model)
 		starpu_clock_gettime(&codelet_end);
 
-	STARPU_TRACE_END_CODELET_BODY(j);
+	enum starpu_perf_archtype archtype = args->perf_arch;
+	STARPU_TRACE_END_CODELET_BODY(j, archtype);
 	args->status = STATUS_UNKNOWN;
 
 	_starpu_push_task_output(task, mask);
 
-	_starpu_driver_update_job_feedback(j, args, profiling_info, args->perf_arch,
+	_starpu_driver_update_job_feedback(j, args, profiling_info, archtype,
 							&codelet_start, &codelet_end);
 
 	return EXIT_SUCCESS;

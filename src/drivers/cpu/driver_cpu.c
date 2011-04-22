@@ -87,7 +87,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 	if (is_parallel_task)
 		PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
 
-	STARPU_TRACE_END_CODELET_BODY(j);
+	STARPU_TRACE_END_CODELET_BODY(j, perf_arch);
 
 	cpu_args->status = STATUS_UNKNOWN;
 
