@@ -20,23 +20,44 @@
 #include <starpu.h>
 #include <stdlib.h>
 
-static void task(void **buffers, void *args)
+static void cpu_task(void **buffers, void *args)
 {
-	float *numbers;
-	size_t size, i;
+	int *numbers;
+	int i;
+	size_t size;
 
-	numbers = (float *) STARPU_VECTOR_GET_PTR(buffers[0]);
+	numbers = (int *) STARPU_VECTOR_GET_PTR(buffers[0]);
 	starpu_unpack_cl_args (args, &size);
+
 	for(i = 0; i < size; i++)
 	{
 		numbers[i] = i;
 	}
 }
 
+#ifdef STARPU_USE_CUDA
+static void cuda_task(void **buffers, void *args)
+{
+	int *numbers;
+	int i;
+	size_t size;
+
+	numbers = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
+	starpu_unpack_cl_args (args, &size);
+
+	for(i = 0; i < size; i++)
+	{
+		cudaMemcpy(&numbers[i], &i, sizeof(int), cudaMemcpyHostToDevice);
+	}
+}
+#endif
+
 static starpu_codelet cl = {
 	.where = STARPU_CPU | STARPU_CUDA,
-	.cpu_func = task,
-	.cuda_func = task,
+	.cpu_func = cpu_task,
+#ifdef STARPU_USE_CUDA
+	.cuda_func = cuda_task,
+#endif
 	.nbuffers = 1
 };
 
@@ -44,27 +65,27 @@ int main(int argc, char *argv[])
 {
 	int err;
 	size_t i;
-	void *pointer;
+	int *pointer;
 	starpu_data_handle handle;
 	static const size_t count = 123;
 
 	starpu_init(NULL);
 
-	err = starpu_malloc(&pointer, count * sizeof(float));
+	err = starpu_malloc((void **)&pointer, count * sizeof(int));
 	assert((err == 0) && (pointer != NULL));
 
 	starpu_variable_data_register(&handle, 0, (uintptr_t)pointer,
-				      sizeof(float));
+				      sizeof(int));
 	assert(starpu_handle_to_pointer(handle, 0) == pointer);
 	starpu_data_unregister(handle);
 
 	starpu_vector_data_register(&handle, 0, (uintptr_t)pointer,
-				    count, sizeof(float));
+				    count, sizeof(int));
 	assert(starpu_handle_to_pointer(handle, 0) == pointer);
 	starpu_data_unregister(handle);
 
 	starpu_matrix_data_register(&handle, 0, (uintptr_t)pointer, 0,
-				    count, 1, sizeof(float));
+				    count, 1, sizeof(int));
 	assert(starpu_handle_to_pointer(handle, 0) == pointer);
 	starpu_data_unregister(handle);
 
@@ -73,7 +94,7 @@ int main(int argc, char *argv[])
 
 	/* Lazy allocation.  */
 	starpu_vector_data_register(&handle, -1, 0 /* NULL */,
-				    count, sizeof(float));
+				    count, sizeof(int));
 	assert(starpu_handle_to_pointer(handle, 0) == NULL);
 
 	/* Pass the handle to a task.  */
@@ -90,7 +111,7 @@ int main(int argc, char *argv[])
 	assert(pointer != NULL);
 	for(i = 0; i < count; i++)
 	{
-		float *numbers = (float *)pointer;
+		int *numbers = (int *)pointer;
 		assert(numbers[i] == i);
 	}
 	starpu_data_release(handle);
