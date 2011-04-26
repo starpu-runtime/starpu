@@ -83,9 +83,6 @@ void chol_cublas_codelet_update_u21(void *descr[], void *_args);
 void chol_cublas_codelet_update_u22(void *descr[], void *_args);
 #endif
 
-void initialize_system(float **A, unsigned dim, int *rank, int *nodes);
-//void dw_cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks);
-
 extern struct starpu_perfmodel_t chol_model_11;
 extern struct starpu_perfmodel_t chol_model_21;
 extern struct starpu_perfmodel_t chol_model_22;
