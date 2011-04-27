@@ -39,7 +39,7 @@ starpu_codelet mycodelet = {
 int main(int argc, char **argv)
 {
         int x; float f;
-        int i;
+        int i, ret;
 	int ifactor=12;
 	float ffactor=10.0;
         starpu_data_handle data_handles[2];
@@ -53,11 +53,13 @@ int main(int argc, char **argv)
 
         FPRINTF(stderr, "VALUES: %d (%d) %f (%f)\n", x, ifactor, f, ffactor);
 
-        starpu_insert_task(&mycodelet,
-			   STARPU_VALUE, &ifactor, sizeof(ifactor),
-			   STARPU_VALUE, &ffactor, sizeof(ffactor),
-                           STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
-                           0);
+        ret = starpu_insert_task(&mycodelet,
+				 STARPU_VALUE, &ifactor, sizeof(ifactor),
+				 STARPU_VALUE, &ffactor, sizeof(ffactor),
+				 STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
+				 0);
+	if (ret == -ENODEV) goto enodev;
+
         starpu_task_wait_for_all();
 
         for(i=0 ; i<2 ; i++) {
@@ -93,4 +95,10 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	return 77;
 }
