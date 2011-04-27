@@ -348,3 +348,43 @@ void *_starpu_cuda_worker(void *arg)
 	return NULL;
 
 }
+
+void starpu_cublas_report_error(const char *func, cublasStatus status)
+{
+	char *errormsg;
+	switch (status) {
+		case CUBLAS_STATUS_SUCCESS:
+			errormsg = "success";
+			break;
+		case CUBLAS_STATUS_NOT_INITIALIZED:
+			errormsg = "not initialized";
+			break;
+		case CUBLAS_STATUS_ALLOC_FAILED:
+			errormsg = "alloc failed";
+			break;
+		case CUBLAS_STATUS_INVALID_VALUE:
+			errormsg = "invalid value";
+			break;
+		case CUBLAS_STATUS_ARCH_MISMATCH:
+			errormsg = "arch mismatch";
+			break;
+		case CUBLAS_STATUS_EXECUTION_FAILED:
+			errormsg = "execution failed";
+			break;
+		case CUBLAS_STATUS_INTERNAL_ERROR:
+			errormsg = "internal error";
+			break;
+		default:
+			errormsg = "unknown error";
+			break;
+	}
+	printf("oops in %s ... %s \n", func, errormsg);
+	assert(0);
+}
+
+void starpu_cuda_report_error(const char *func, CUresult status)
+{
+	const char *errormsg = cudaGetErrorString(status);
+	printf("oops in %s ... %s \n", func, errormsg);
+	assert(0);
+}
