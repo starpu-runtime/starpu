@@ -210,6 +210,7 @@ int main(int argc, char **argv)
 		task->buffers[2].mode = STARPU_REDUX;
 
 		int ret = starpu_task_submit(task);
+		if (ret == -ENODEV) goto enodev;
 		STARPU_ASSERT(!ret);
 	}
 
@@ -222,4 +223,10 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	return 0;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	return 77;
 }
