@@ -62,7 +62,7 @@ void starpu_unpack_cl_args(void *_cl_arg, ...)
 	va_end(varg_list);
 }
 
-void starpu_insert_task(starpu_codelet *cl, ...)
+int starpu_insert_task(starpu_codelet *cl, ...)
 {
 	va_list varg_list;
 
@@ -77,6 +77,5 @@ void starpu_insert_task(starpu_codelet *cl, ...)
 
 	va_start(varg_list, cl);
         struct starpu_task *task = starpu_task_create();
-        _starpu_insert_task_create_and_submit(arg_buffer, cl, &task, varg_list);
-
+        return _starpu_insert_task_create_and_submit(arg_buffer, cl, &task, varg_list);
 }

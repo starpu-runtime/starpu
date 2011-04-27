@@ -200,6 +200,5 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, 
 	if (STARPU_UNLIKELY(ret == -ENODEV))
           fprintf(stderr, "submission of task %p wih codelet %p failed (symbol `%s')\n", *task, (*task)->cl, ((*task)->cl->model && (*task)->cl->model->symbol)?(*task)->cl->model->symbol:"none");
 
-	STARPU_ASSERT(!ret);
         return ret;
 }
