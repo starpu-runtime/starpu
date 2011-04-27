@@ -284,19 +284,8 @@ void *starpu_handle_to_pointer(starpu_data_handle handle, uint32_t node)
 
 void *starpu_handle_get_local_ptr(starpu_data_handle handle)
 {
-	unsigned int local_node;
-
-	local_node = _starpu_get_local_memory_node();
-
-	/* Check whether the operation is supported and the node has actually
-	 * been allocated.  */
-	if (handle->ops->get_local_ptr
-	    && starpu_data_test_if_allocated_on_node(handle, local_node))
-	{
-		return (void*) handle->ops->get_local_ptr(handle);
-	}
-
-	return NULL;
+	return starpu_handle_to_pointer(handle,
+					_starpu_get_local_memory_node());
 }
 
 int starpu_data_get_rank(starpu_data_handle handle)

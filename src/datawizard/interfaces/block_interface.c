@@ -81,7 +81,6 @@ static struct starpu_data_interface_ops_t interface_block_ops = {
 	.register_data_handle = register_block_handle,
 	.allocate_data_on_node = allocate_block_buffer_on_node,
 	.handle_to_pointer = block_handle_to_pointer,
-	.get_local_ptr = starpu_block_get_local_ptr,
 	.free_data_on_node = free_block_buffer_on_node,
 	.copy_methods = &block_copy_data_methods_s,
 	.get_size = block_interface_get_size,

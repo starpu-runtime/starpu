@@ -95,8 +95,6 @@ struct starpu_data_interface_ops_t {
 	const struct starpu_data_copy_methods *copy_methods;
 	/* Return the current pointer (if any) for the handle on the given node. */
 	void * (*handle_to_pointer)(starpu_data_handle handle, uint32_t node);
-	/* Return the pointer for the handle on the current worker node. */
-	uintptr_t (*get_local_ptr)(starpu_data_handle handle);
 	/* Return an estimation of the size of data, for performance models */
 	size_t (*get_size)(starpu_data_handle handle);
 	/* Return a 32bit footprint which characterizes the data size */
