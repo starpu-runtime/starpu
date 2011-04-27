@@ -629,6 +629,10 @@ examplebin_PROGRAMS +=				\
 
 reductions_dot_product_SOURCES =		\
 	reductions/dot_product.c
+if STARPU_USE_CUDA
+reductions_dot_product_SOURCES +=		\
+	reductions/dot_product_kernels.cu
+endif
 
 #####################
 # Min/Max reduction #

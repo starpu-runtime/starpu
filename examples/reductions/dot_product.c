@@ -77,9 +77,16 @@ void redux_cpu_func(void *descr[], void *cl_arg)
 	*dota = *dota + *dotb;
 }
 
+#ifdef STARPU_USE_CUDA
+extern void redux_cuda_func(void *descr[], void *_args);
+#endif
+
 static struct starpu_codelet_t redux_codelet = {
-	.where = STARPU_CPU,
+	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_func = redux_cpu_func,
+#ifdef STARPU_USE_CUDA
+	.cuda_func = redux_cuda_func,
+#endif
 	.nbuffers = 2
 };
 
@@ -147,8 +154,6 @@ static struct starpu_codelet_t dot_codelet = {
 /*
  *	Tasks initialization
  */
-
-extern void starpu_data_end_reduction_mode(starpu_data_handle handle);
 
 int main(int argc, char **argv)
 {
