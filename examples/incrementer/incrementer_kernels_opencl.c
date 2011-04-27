@@ -21,7 +21,7 @@
 extern struct starpu_opencl_program opencl_program;
 void opencl_codelet(void *descr[], void *_args)
 {
-	float *val = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
+	cl_mem val = (cl_mem)STARPU_VECTOR_GET_PTR(descr[0]);
 	cl_kernel kernel;
 	cl_command_queue queue;
 	cl_event event;
@@ -34,7 +34,7 @@ void opencl_codelet(void *descr[], void *_args)
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = 0;
-	err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &val);
+	err = clSetKernelArg(kernel, 0, sizeof(val), &val);
 	if (err) STARPU_OPENCL_REPORT_ERROR(err);
 
 	{

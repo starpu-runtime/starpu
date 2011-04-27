@@ -732,7 +732,7 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
 
     /* length of the vector */
     unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-    /* local copy of the vector pointer */
+    /* CPU copy of the vector pointer */
     float *val = (float *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
     for (i = 0; i < n; i++)
@@ -811,7 +811,7 @@ extern "C" void scal_cuda_func(void *buffers[], void *_args)
 
     /* length of the vector */
     unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-    /* local copy of the vector pointer */
+    /* CUDA copy of the vector pointer */
     float *val = (float *)STARPU_VECTOR_GET_PTR(buffers[0]);
     unsigned threads_per_block = 64;
     unsigned nblocks = (n + threads_per_block-1) / threads_per_block;
@@ -861,8 +861,8 @@ void scal_opencl_func(void *buffers[], void *_args)
 
     /* length of the vector */
     unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-    /* local copy of the vector pointer */
-    float *val = (float *)STARPU_VECTOR_GET_PTR(buffers[0]);
+    /* OpenCL copy of the vector pointer */
+    cl_mem val = (cl_mem) STARPU_VECTOR_GET_PTR(buffers[0]);
 
 @i{    id = starpu_worker_get_id();}
 @i{    devid = starpu_worker_get_devid(id);}
@@ -871,7 +871,7 @@ void scal_opencl_func(void *buffers[], void *_args)
 @i{                    "vector_mult_opencl", devid);   /* @b{Name of the codelet defined above} */}
 @i{    if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);}
 
-@i{    err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &val);}
+@i{    err = clSetKernelArg(kernel, 0, sizeof(val), &val);}
 @i{    err |= clSetKernelArg(kernel, 1, sizeof(n), &n);}
 @i{    err |= clSetKernelArg(kernel, 2, sizeof(*factor), factor);}
 @i{    if (err) STARPU_OPENCL_REPORT_ERROR(err);}

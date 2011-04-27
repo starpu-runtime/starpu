@@ -26,7 +26,7 @@ void opencl_codelet(void *descr[], void *_args)
 	cl_command_queue queue;
 	cl_event event;
 	int id, devid, err;
-	float *block = (float *)STARPU_BLOCK_GET_PTR(descr[0]);
+	cl_mem block = (cl_mem)STARPU_BLOCK_GET_PTR(descr[0]);
 	int nx = (int)STARPU_BLOCK_GET_NX(descr[0]);
 	int ny = (int)STARPU_BLOCK_GET_NY(descr[0]);
 	int nz = (int)STARPU_BLOCK_GET_NZ(descr[0]);
@@ -41,13 +41,13 @@ void opencl_codelet(void *descr[], void *_args)
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = 0;
-	err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &block);
-	err = clSetKernelArg(kernel, 1, sizeof(int), &nx);
-	err = clSetKernelArg(kernel, 2, sizeof(int), &ny);
-	err = clSetKernelArg(kernel, 3, sizeof(int), &nz);
+	err = clSetKernelArg(kernel, 0, sizeof(block), &block);
+	err = clSetKernelArg(kernel, 1, sizeof(nx), &nx);
+	err = clSetKernelArg(kernel, 2, sizeof(ny), &ny);
+	err = clSetKernelArg(kernel, 3, sizeof(nz), &nz);
 	err = clSetKernelArg(kernel, 4, sizeof(ldy), &ldy);
 	err = clSetKernelArg(kernel, 5, sizeof(ldz), &ldz);
-	err = clSetKernelArg(kernel, 6, sizeof(float), multiplier);
+	err = clSetKernelArg(kernel, 6, sizeof(*multiplier), multiplier);
         if (err) STARPU_OPENCL_REPORT_ERROR(err);
 
 	{

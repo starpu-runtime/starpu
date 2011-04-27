@@ -30,15 +30,15 @@ void spmv_kernel_opencl(void *descr[], void *args)
 
 	uint32_t nnz = STARPU_CSR_GET_NNZ(descr[0]);
 	uint32_t nrow = STARPU_CSR_GET_NROW(descr[0]);
-	float *nzval = (float *)STARPU_CSR_GET_NZVAL(descr[0]);
+	cl_mem nzval = (cl_mem)STARPU_CSR_GET_NZVAL(descr[0]);
 	uint32_t *colind = STARPU_CSR_GET_COLIND(descr[0]);
 	uint32_t *rowptr = STARPU_CSR_GET_ROWPTR(descr[0]);
 	uint32_t firstentry = STARPU_CSR_GET_FIRSTENTRY(descr[0]);
 
-	float *vecin = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
+	cl_mem vecin = (cl_mem)STARPU_VECTOR_GET_PTR(descr[1]);
 	uint32_t nx_in = STARPU_VECTOR_GET_NX(descr[1]);
 
-	float *vecout = (float *)STARPU_VECTOR_GET_PTR(descr[2]);
+	cl_mem vecout = (cl_mem)STARPU_VECTOR_GET_PTR(descr[2]);
 	uint32_t nx_out = STARPU_VECTOR_GET_NX(descr[2]);
 
         id = starpu_worker_get_id();
@@ -49,16 +49,16 @@ void spmv_kernel_opencl(void *descr[], void *args)
 
 	err = 0;
         n=0;
-	err = clSetKernelArg(kernel, n++, sizeof(uint32_t), &nnz);
-	err = clSetKernelArg(kernel, n++, sizeof(uint32_t), &nrow);
-	err = clSetKernelArg(kernel, n++, sizeof(cl_mem), &nzval);
-	err = clSetKernelArg(kernel, n++, sizeof(cl_mem), &colind);
-	err = clSetKernelArg(kernel, n++, sizeof(cl_mem), &rowptr);
-	err = clSetKernelArg(kernel, n++, sizeof(uint32_t), &firstentry);
-	err = clSetKernelArg(kernel, n++, sizeof(cl_mem), &vecin);
-	err = clSetKernelArg(kernel, n++, sizeof(uint32_t), &nx_in);
-	err = clSetKernelArg(kernel, n++, sizeof(cl_mem), &vecout);
-	err = clSetKernelArg(kernel, n++, sizeof(uint32_t), &nx_out);
+	err = clSetKernelArg(kernel, n++, sizeof(nnz), &nnz);
+	err = clSetKernelArg(kernel, n++, sizeof(nrow), &nrow);
+	err = clSetKernelArg(kernel, n++, sizeof(nzval), &nzval);
+	err = clSetKernelArg(kernel, n++, sizeof(colind), &colind);
+	err = clSetKernelArg(kernel, n++, sizeof(rowptr), &rowptr);
+	err = clSetKernelArg(kernel, n++, sizeof(firstentry), &firstentry);
+	err = clSetKernelArg(kernel, n++, sizeof(vecin), &vecin);
+	err = clSetKernelArg(kernel, n++, sizeof(nx_in), &nx_in);
+	err = clSetKernelArg(kernel, n++, sizeof(vecout), &vecout);
+	err = clSetKernelArg(kernel, n++, sizeof(nx_out), &nx_out);
         if (err) STARPU_OPENCL_REPORT_ERROR(err);
 
 	{

@@ -29,9 +29,9 @@ void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 	cl_kernel kernel;
 	cl_command_queue queue;
 	int id, devid, err, n;
-	float *matrix = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
-	float *vector = (float *)STARPU_VECTOR_GET_PTR(descr[1]);
-	float *mult = (float *)STARPU_VECTOR_GET_PTR(descr[2]);
+	cl_mem matrix = (cl_mem)STARPU_MATRIX_GET_PTR(descr[0]);
+	cl_mem vector = (cl_mem)STARPU_VECTOR_GET_PTR(descr[1]);
+	cl_mem mult = (cl_mem)STARPU_VECTOR_GET_PTR(descr[2]);
 	int nx = STARPU_MATRIX_GET_NX(descr[0]);
 	int ny = STARPU_MATRIX_GET_NY(descr[0]);
 	cl_event event;
@@ -43,11 +43,11 @@ void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         n=0;
-        err = clSetKernelArg(kernel, n++, sizeof(cl_mem), &matrix);
-        err |= clSetKernelArg(kernel, n++, sizeof(cl_mem), &vector);
-        err |= clSetKernelArg(kernel, n++, sizeof(int), (void*)&nx);
-        err |= clSetKernelArg(kernel, n++, sizeof(int), (void*)&ny);
-        err |= clSetKernelArg(kernel, n++, sizeof(cl_mem), &mult);
+        err = clSetKernelArg(kernel, n++, sizeof(matrix), &matrix);
+        err |= clSetKernelArg(kernel, n++, sizeof(vector), &vector);
+        err |= clSetKernelArg(kernel, n++, sizeof(nx), (void*)&nx);
+        err |= clSetKernelArg(kernel, n++, sizeof(ny), (void*)&ny);
+	err |= clSetKernelArg(kernel, n++, sizeof(mult), &mult);
         if (err) STARPU_OPENCL_REPORT_ERROR(err);
 
 	{

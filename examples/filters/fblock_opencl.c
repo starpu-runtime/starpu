@@ -28,7 +28,7 @@ void opencl_func(void *buffers[], void *cl_arg)
 	cl_event event;
 
         int *factor = cl_arg;
-	int *block = (int *)STARPU_BLOCK_GET_PTR(buffers[0]);
+	cl_mem block = (cl_mem)STARPU_BLOCK_GET_PTR(buffers[0]);
 	int nx = (int)STARPU_BLOCK_GET_NX(buffers[0]);
 	int ny = (int)STARPU_BLOCK_GET_NY(buffers[0]);
 	int nz = (int)STARPU_BLOCK_GET_NZ(buffers[0]);
@@ -42,7 +42,7 @@ void opencl_func(void *buffers[], void *cl_arg)
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = 0;
-	err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &block);
+	err = clSetKernelArg(kernel, 0, sizeof(block), &block);
 	err = clSetKernelArg(kernel, 1, sizeof(nx), &nx);
 	err = clSetKernelArg(kernel, 2, sizeof(ny), &ny);
 	err = clSetKernelArg(kernel, 3, sizeof(nz), &nz);

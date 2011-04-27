@@ -36,8 +36,8 @@ void scal_opencl_func(void *buffers[], void *_args)
 
 	/* length of the vector */
 	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-	/* local copy of the vector pointer */
-	float *val = (float *)STARPU_VECTOR_GET_PTR(buffers[0]);
+	/* OpenCL copy of the vector pointer */
+	cl_mem val = (cl_mem)STARPU_VECTOR_GET_PTR(buffers[0]);
 
 	id = starpu_worker_get_id();
 	devid = starpu_worker_get_devid(id);
@@ -45,7 +45,7 @@ void scal_opencl_func(void *buffers[], void *_args)
 	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_program, "vector_mult_opencl", devid);
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &val);
+	err = clSetKernelArg(kernel, 0, sizeof(val), &val);
 	err |= clSetKernelArg(kernel, 1, sizeof(n), &n);
 	err |= clSetKernelArg(kernel, 2, sizeof(*factor), factor);
 	if (err) STARPU_OPENCL_REPORT_ERROR(err);

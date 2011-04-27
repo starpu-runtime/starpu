@@ -247,15 +247,15 @@ static void compute_block_opencl(void *descr[], void *cl_arg)
 
 	starpu_opencl_load_kernel(&kernel, &queue, &opencl_programs, "mandelbrot_kernel", devid);
 
-	clSetKernelArg(kernel, 0, sizeof(cl_mem), &data);
-	clSetKernelArg(kernel, 1, sizeof(double), &leftX);
-	clSetKernelArg(kernel, 2, sizeof(double), &topY);
-	clSetKernelArg(kernel, 3, sizeof(double), &stepX);
-	clSetKernelArg(kernel, 4, sizeof(double), &stepY);
-	clSetKernelArg(kernel, 5, sizeof(int), &maxIt);
-	clSetKernelArg(kernel, 6, sizeof(int), &iby);
-	clSetKernelArg(kernel, 7, sizeof(int), &block_size);
-	clSetKernelArg(kernel, 8, sizeof(int), &width);
+	clSetKernelArg(kernel, 0, sizeof(data), &data);
+	clSetKernelArg(kernel, 1, sizeof(leftX), &leftX);
+	clSetKernelArg(kernel, 2, sizeof(topY), &topY);
+	clSetKernelArg(kernel, 3, sizeof(stepX), &stepX);
+	clSetKernelArg(kernel, 4, sizeof(stepY), &stepY);
+	clSetKernelArg(kernel, 5, sizeof(maxIt), &maxIt);
+	clSetKernelArg(kernel, 6, sizeof(iby), &iby);
+	clSetKernelArg(kernel, 7, sizeof(block_size), &block_size);
+	clSetKernelArg(kernel, 8, sizeof(width), &width);
 
 	unsigned dim = 16;
 	size_t local[2] = {dim, 1};
