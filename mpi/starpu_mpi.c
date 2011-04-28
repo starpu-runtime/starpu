@@ -755,11 +755,14 @@ int starpu_mpi_initialize_extended(int initialize_mpi, int *rank, int *world_siz
         if (initialize_mpi) {
                 _STARPU_DEBUG("Calling MPI_Comm_rank\n");
                 MPI_Comm_rank(MPI_COMM_WORLD, rank);
-#ifdef STARPU_USE_FXT
-                starpu_set_profiling_id(*rank);
-#endif //STARPU_USE_FXT
                 MPI_Comm_size(MPI_COMM_WORLD, world_size);
         }
+
+#ifdef STARPU_USE_FXT
+	int prank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &prank);
+	starpu_set_profiling_id(prank);
+#endif //STARPU_USE_FXT
 
 #ifdef USE_STARPU_ACTIVITY
 	hookid = starpu_progression_hook_register(progression_hook_func, NULL);
