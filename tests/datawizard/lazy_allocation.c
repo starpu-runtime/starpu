@@ -62,7 +62,7 @@ static starpu_codelet memset_cl = {
  *	Check content
  */
 
-static void check_content_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+static void cpu_check_content_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
@@ -78,11 +78,29 @@ static void check_content_codelet(void *descr[], __attribute__ ((unused)) void *
 	}
 }
 
+static void cuda_check_content_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+{
+	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
+	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
+
+	unsigned i;
+	for (i = 0; i < length; i++)
+	{
+		char dst;
+		cudaMemcpy(&dst, &buf[i], sizeof(char), cudaMemcpyDeviceToHost);
+		if (dst != 42)
+		{
+			FPRINTF(stderr, "buf[%u] is %c while it should be %c\n", i, dst, 42);
+			exit(-1);
+		}
+	}
+}
+
 static starpu_codelet check_content_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_func = check_content_codelet,
+	.cpu_func = cpu_check_content_codelet,
 #ifdef STARPU_USE_CUDA
-	.cuda_func = check_content_codelet,
+	.cuda_func = cuda_check_content_codelet,
 #endif
 	.nbuffers = 1
 };
