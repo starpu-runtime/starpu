@@ -382,7 +382,7 @@ void starpu_cublas_report_error(const char *func, cublasStatus status)
 	assert(0);
 }
 
-void starpu_cuda_report_error(const char *func, CUresult status)
+void starpu_cuda_report_error(const char *func, cudaError_t status)
 {
 	const char *errormsg = cudaGetErrorString(status);
 	printf("oops in %s ... %s \n", func, errormsg);

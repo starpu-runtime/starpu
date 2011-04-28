@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,7 +33,7 @@ void starpu_cublas_report_error(const char *func, cublasStatus status);
 #define STARPU_CUBLAS_REPORT_ERROR(status) \
 	starpu_cublas_report_error(__starpu_func__, status)
 
-void starpu_cuda_report_error(const char *func, CUresult status);
+void starpu_cuda_report_error(const char *func, cudaError_t status);
 #define STARPU_CUDA_REPORT_ERROR(status) \
 	starpu_cuda_report_error(__starpu_func__, status)
 
