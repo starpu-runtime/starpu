@@ -20,6 +20,10 @@ check_PROGRAMS = base scalar-tasks
 
 scalar_tasks_LDADD = $(top_builddir)/src/libstarpu.la
 
+dist_noinst_HEADERS = lib.h
+
+AM_CPPFLAGS = -I$(builddir)
+
 # Unfortunately `libtool --mode=execute' doesn't help here, so
 # hard-code the real file name.
 AM_CFLAGS =					\
