@@ -99,6 +99,42 @@ build_call_expr_loc_vec (location_t loc, tree fndecl, VEC(tree,gc) *vec)
 #endif
 
 
+/* Helpers.  */
+
+/* Like `build_constructor_from_list', but sort VALS according to their
+   offset in struct TYPE.  Inspired by `gnat_build_constructor'.  */
+
+static tree
+build_constructor_from_unsorted_list (tree type, tree vals)
+{
+  int compare_elmt_bitpos (const void *rt1, const void *rt2)
+  {
+    const constructor_elt *elmt1 = (constructor_elt *) rt1;
+    const constructor_elt *elmt2 = (constructor_elt *) rt2;
+    const_tree field1 = elmt1->index;
+    const_tree field2 = elmt2->index;
+    int ret
+      = tree_int_cst_compare (bit_position (field1), bit_position (field2));
+
+    return ret ? ret : (int) (DECL_UID (field1) - DECL_UID (field2));
+  }
+
+  tree t;
+  VEC(constructor_elt,gc) *v = NULL;
+
+  if (vals)
+    {
+      v = VEC_alloc (constructor_elt, gc, list_length (vals));
+      for (t = vals; t; t = TREE_CHAIN (t))
+	CONSTRUCTOR_APPEND_ELT (v, TREE_PURPOSE (t), TREE_VALUE (t));
+    }
+
+  /* Sort field initializers by field offset.  */
+  VEC_qsort (constructor_elt, v, compare_elmt_bitpos);
+
+  return build_constructor (type, v);
+}
+
 /* Debugging helpers.  */
 
 static tree build_printf (const char *, ...)
@@ -815,12 +851,12 @@ build_codelet_initializer (tree task_decl)
 		 field_initializer ("opencl_func",
 		 		    implementation_pointer (impls,
 		 					    STARPU_OPENCL)),
-		 /* field_initializer ("cuda_func", */
-		 /* 		    implementation_pointer (impls, */
-		 /* 					    STARPU_CUDA)), */
+		 field_initializer ("cuda_func",
+		 		    implementation_pointer (impls,
+		 					    STARPU_CUDA)),
 		 NULL_TREE);
 
-  return build_constructor_from_list (codelet_type (), inits);
+  return build_constructor_from_unsorted_list (codelet_type (), inits);
 }
 
 /* Return the VAR_DECL that defines a `starpu_codelet' structure for
