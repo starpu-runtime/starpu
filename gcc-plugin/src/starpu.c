@@ -956,7 +956,14 @@ build_task_submission (tree task_decl, gimple call)
 	{
 	  /* A pointer: the arguments will be:
 	     `STARPU_RW, ptr' or similar.  */
-	  gcc_assert (!"not implemented yet");
+
+	  gcc_assert (TREE_CODE (arg) == VAR_DECL
+		      || TREE_CODE (arg) == ADDR_EXPR);
+
+	  VEC_safe_push (tree, heap, args,
+			 build_int_cst (integer_type_node, STARPU_RW));
+	  VEC_safe_push (tree, heap, args, arg);
+	  /* FIXME: Should pass the result of `starpu_data_lookup (ARG)'.  */
 	}
       else
 	{

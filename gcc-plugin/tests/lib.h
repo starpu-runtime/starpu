@@ -70,17 +70,35 @@ starpu_insert_task (starpu_codelet *cl, ...)
        expected++)
     {
       int type;
-      void *arg;
-      size_t size;
 
       type = va_arg (args, int);
-      arg = va_arg (args, void *);
-      size = va_arg (args, size_t);
-
       assert (type == expected->type);
-      assert (size == expected->size);
-      assert (arg != NULL);
-      assert (!memcmp (arg, expected->pointer, size));
+
+      switch (type)
+	{
+	case STARPU_VALUE:
+	  {
+	    void *arg;
+	    size_t size;
+
+	    arg = va_arg (args, void *);
+	    size = va_arg (args, size_t);
+
+	    assert (size == expected->size);
+	    assert (arg != NULL);
+	    assert (!memcmp (arg, expected->pointer, size));
+	    break;
+	  }
+
+	case STARPU_RW:
+	case STARPU_R:
+	case STARPU_W:
+	  assert (va_arg (args, void *) == expected->pointer);
+	  break;
+
+	default:
+	  abort ();
+	}
     }
 
   va_end (args);
@@ -120,4 +138,16 @@ starpu_unpack_cl_args (void *cl_raw_arg, ...)
     }
 
   va_end (args);
+}
+
+starpu_data_handle
+starpu_data_lookup (const void *ptr)
+{
+  return (starpu_data_handle) ptr;
+}
+
+void *
+starpu_handle_get_local_ptr (starpu_data_handle handle)
+{
+  return handle;
 }

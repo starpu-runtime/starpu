@@ -16,7 +16,10 @@
 
 TESTS = $(check_PROGRAMS)
 
-check_PROGRAMS = base scalar-tasks
+check_PROGRAMS =				\
+  base						\
+  pointers					\
+  scalar-tasks
 
 scalar_tasks_LDADD = $(top_builddir)/src/libstarpu.la
 
