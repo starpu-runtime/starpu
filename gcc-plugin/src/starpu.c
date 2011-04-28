@@ -390,6 +390,19 @@ task_scalar_parameter_types (const_tree task_decl)
   return filter (is_scalar, TYPE_ARG_TYPES (TREE_TYPE (task_decl)));
 }
 
+/* Return the list of pointer parameter types of TASK_DECL.  */
+
+static tree
+task_pointer_parameter_types (const_tree task_decl)
+{
+  bool is_pointer (const_tree item)
+  {
+    return POINTER_TYPE_P (TREE_VALUE (item));
+  }
+
+  return filter (is_pointer, TYPE_ARG_TYPES (TREE_TYPE (task_decl)));
+}
+
 /* Return a value indicating where TASK_IMPL should execute (`STARPU_CPU',
    `STARPU_CUDA', etc.).  */
 
@@ -837,6 +850,14 @@ build_codelet_initializer (tree task_decl)
     return build_int_cstu (build_pointer_type (void_type_node), 0);
   }
 
+  tree pointer_arg_count (void)
+  {
+    size_t len;
+
+    len = list_length (task_pointer_parameter_types (task_decl));
+    return build_int_cstu (integer_type_node, len);
+  }
+
   printf ("implementations for `%s':\n",
 	  IDENTIFIER_POINTER (DECL_NAME (task_decl)));
 
@@ -846,6 +867,7 @@ build_codelet_initializer (tree task_decl)
 
   inits =
     chain_trees (field_initializer ("where", where_init (impls)),
+		 field_initializer ("nbuffers", pointer_arg_count ()),
 		 field_initializer ("cpu_func",
 				    implementation_pointer (impls, STARPU_CPU)),
 		 field_initializer ("opencl_func",
