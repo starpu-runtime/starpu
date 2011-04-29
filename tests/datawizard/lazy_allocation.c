@@ -78,6 +78,7 @@ static void cpu_check_content_codelet(void *descr[], __attribute__ ((unused)) vo
 	}
 }
 
+#ifdef STARPU_USE_CUDA
 static void cuda_check_content_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -95,6 +96,7 @@ static void cuda_check_content_codelet(void *descr[], __attribute__ ((unused)) v
 		}
 	}
 }
+#endif
 
 static starpu_codelet check_content_cl = {
 	.where = STARPU_CPU|STARPU_CUDA,
