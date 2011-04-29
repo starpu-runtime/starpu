@@ -40,22 +40,26 @@ static starpu_codelet cl = {
 	.nbuffers = 1
 };
 
-static void test_lazy_allocation()
+static int test_lazy_allocation()
 {
 	static const size_t count = 123;
 
 	size_t i;
 	void *pointer;
 	starpu_data_handle handle;
+	int ret;
 
 	/* Lazily-allocated vector.  */
 	starpu_vector_data_register(&handle, -1, 0 /* NULL */,
 				    count, sizeof(float));
 
-	starpu_insert_task(&cl,
-			   STARPU_W, handle,
-			   STARPU_VALUE, &count, sizeof(size_t),
-			   0);
+	ret = starpu_insert_task(&cl,
+				 STARPU_W, handle,
+				 STARPU_VALUE, &count, sizeof(size_t),
+				 0);
+	if (ret == -ENODEV) return ret;
+	/* yes, we do not perform the computation but we did detect that no one
+	 * could perform the kernel, so this is not an error from StarPU */
 
 	/* Acquire the handle, forcing a local allocation.  */
 	starpu_data_acquire(handle, STARPU_R);
@@ -76,6 +80,7 @@ static void test_lazy_allocation()
 	starpu_data_unregister(handle);
 
 	assert(starpu_data_lookup(pointer) == NULL);
+	return 0;
 }
 
 #define VECTOR_COUNT    12
@@ -215,10 +220,17 @@ int main(int argc, char *argv[])
 		starpu_free(vectors[i]);
 	}
 
-	test_lazy_allocation();
+	err = test_lazy_allocation();
+	if (err == -ENODEV) goto enodev;
 	test_filters();
 
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	return 77;
 }
