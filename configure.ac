@@ -221,6 +221,7 @@ AC_ARG_WITH(cuda-lib-dir,
 AC_DEFUN([STARPU_CHECK_CUDA],
 [
     __cuda_dir=$1
+    __cuda_lib_dir=$2
 
     if test "$__cuda_dir" != "no" ; then
 	AC_MSG_CHECKING(whether CUDA is available in $__cuda_dir)
@@ -229,11 +230,15 @@ AC_DEFUN([STARPU_CHECK_CUDA],
     fi
     AC_MSG_RESULT()
 
+    if test "$__cuda_lib_dir" = "no" -a "$__cuda_dir" != "no" ; then
+        __cuda_lib_dir="$__cuda_dir/lib"
+    fi
+
     SAVED_LDFLAGS="${LDFLAGS}"
 
     if test "$__cuda_dir" != "no" ; then
-	STARPU_CUDA_LDFLAGS="-L${__cuda_dir}/lib"
-	LDFLAGS="${SAVED_LDFLAGS} -L${__cuda_dir}/lib"
+	STARPU_CUDA_LDFLAGS="-L${__cuda_lib_dir}"
+	LDFLAGS="${SAVED_LDFLAGS} -L${__cuda_lib_dir}"
     fi
 
     AC_HAVE_LIBRARY([cuda],[have_valid_cuda=yes],[have_valid_cuda=no])
@@ -324,10 +329,10 @@ AC_DEFUN([STARPU_CHECK_CUDA_RUNTIME],
 ])
 
 if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
-    STARPU_CHECK_CUDA($cuda_dir)
+    STARPU_CHECK_CUDA($cuda_dir, $cuda_lib_dir)
     if test "$have_valid_cuda" = "no" ; then
         for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" ; do
-            STARPU_CHECK_CUDA($f)
+            STARPU_CHECK_CUDA($f, "no")
             if test "$have_valid_cuda" = "yes" ; then
                 break
             fi
