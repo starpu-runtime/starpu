@@ -1414,6 +1414,7 @@ TODO: improve!
 * Task priorities::
 * Task scheduling policy::
 * Task distribution vs Data transfer::
+* Data prefetch::
 * Power-based scheduling::
 * Profiling::
 * CUDA-specific optimizations::
@@ -1425,11 +1426,6 @@ few additional changes are needed.
 
 @node Data management
 @section Data management
-
-@c By default, StarPU does not enable data prefetching, because CUDA does
-@c not announce when too many data transfers were scheduled and can thus block
-@c unexpectedly... To enable data prefetching, use @code{export STARPU_PREFETCH=1}
-@c .
 
 By default, StarPU leaves replicates of data wherever they were used, in case they
 will be re-used by other tasks, thus saving the data transfer time. When some
@@ -1514,6 +1510,24 @@ i.e. with an idle machine. You can force bus re-calibration by running
 worth trying to tweak it by using @code{export STARPU_BETA=2} for instance.
 This is of course imprecise, but in practice, a rough estimation already gives
 the good results that a precise estimation would give.
+
+@node Data prefetch
+@section Data prefetch
+
+The heft scheduling policy performs data prefetch (see @ref{STARPU_PREFETCH}):
+as soon as a scheduling decision is taken for a task, requests are issued to
+transfer its required data to the target processing unit, if needeed, so that
+when the processing unit actually starts the task, its data will hopefully be
+already available and it will not have to wait for the transfer to finish.
+
+The application may want to perform some manual prefetching, for several reasons
+such as excluding initial data transfers from performance measurements, or
+setting up an initial statically-computed data distribution on the machine
+before submitting tasks, which will thus guide StarPU toward an initial task
+distribution (since StarPU will try to avoid further transfers).
+
+This can be achieved by giving the @code{starpu_data_prefetch_on_node} function
+the handle and the desired target memory node.
 
 @node Power-based scheduling
 @section Power-based scheduling
@@ -2815,6 +2829,7 @@ design their own data interfaces if required.
 * starpu_data_acquire_cb::      Access registered data from the application asynchronously
 * starpu_data_release::         Release registered data from the application
 * starpu_data_set_wt_mask::     Set the Write-Through mask
+* starpu_data_prefetch_on_node:: Prefetch data to a given node
 @end menu
 
 @node starpu_malloc
@@ -3002,6 +3017,19 @@ This function sets the write-through mask of a given data, i.e. a bitmask of
 nodes where the data should be always replicated after modification.
 @item @emph{Prototype}:
 @code{void starpu_data_set_wt_mask(starpu_data_handle handle, uint32_t wt_mask);}
+@end table
+
+@node starpu_data_prefetch_on_node
+@subsection @code{starpu_data_prefetch_on_node} -- Prefetch data to a given node
+@table @asis
+@item @emph{Description}:
+This function issues a prefetch request for a given data to a given node, i.e.
+requests that the data be replicated to the given node, so that it is available
+there for tasks. If the @code{async} parameter is 0, the call will block until
+the transfer is achieved, else the call will return as soon as the request is
+scheduled (which may however have to wait for a task completion).
+@item @emph{Prototype}:
+@code{int starpu_data_prefetch_on_node(starpu_data_handle handle, unsigned node, unsigned async);}
 @end table
 
 @node Data Interfaces
