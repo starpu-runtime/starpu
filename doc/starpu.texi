@@ -1205,9 +1205,12 @@ starpu_codelet cl = @{
 @end cartouche
 
 @item
-Measured at runtime and refined by regression (STARPU_REGRESSION_BASED model
-type). This still assumes performance regularity, but can work with various data
-input sizes, by applying a*n^b+c regression over observed execution times.
+Measured at runtime and refined by regression (STARPU_REGRESSION_*_BASED
+model type). This still assumes performance regularity, but can work
+with various data input sizes, by applying regression over observed
+execution times. STARPU_REGRESSION_BASED uses an a*n^b regression
+form, STARPU_NL_REGRESSION_BASED uses an a*n^b+c (more precise than
+STARPU_REGRESSION_BASED, but costs a lot more to compute)
 
 @item
 Provided explicitly by the application (STARPU_PER_ARCH model type): the
