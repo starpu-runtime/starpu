@@ -1208,6 +1208,13 @@ starpu_codelet cl = @{
 Measured at runtime and refined by regression (STARPU_REGRESSION_BASED model
 type). This still assumes performance regularity, but can work with various data
 input sizes, by applying a*n^b+c regression over observed execution times.
+
+@item
+Provided explicitly by the application (STARPU_PER_ARCH model type): the
+@code{.per_arch[i].cost_model} fields have to be filled with pointers to
+functions which return the expected duration of the task in micro-seconds, one
+per architecture.
+
 @end itemize
 
 How to use schedulers which can benefit from such performance model is explained
