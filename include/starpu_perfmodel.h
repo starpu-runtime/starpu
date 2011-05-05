@@ -76,7 +76,9 @@ struct starpu_regression_model_t {
 };
 
 struct starpu_per_arch_perfmodel_t {
-	double (*cost_model)(struct starpu_buffer_descr_t *t);
+	double (*cost_model)(struct starpu_buffer_descr_t *t); /* returns expected duration in µs */
+
+	/* internal variables */
 	double alpha;
 	struct starpu_htbl32_node_s *history;
 	struct starpu_history_list_t *list;
@@ -98,13 +100,16 @@ struct starpu_perfmodel_t {
 	/* which model is used for that task ? */
 	starpu_perfmodel_type type;
 
-	/* single cost model */
+	/* single cost model (STARPU_COMMON), returns expected duration in µs */
 	double (*cost_model)(struct starpu_buffer_descr_t *);
 
 	/* per-architecture model */
 	struct starpu_per_arch_perfmodel_t per_arch[STARPU_NARCH_VARIATIONS];
-	
+
+	/* Name of the performance model, this is used as a file name when saving history-based performance models */
 	const char *symbol;
+
+	/* Internal variables */
 	unsigned is_loaded;
 	unsigned benchmarking;
 
