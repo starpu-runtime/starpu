@@ -1537,7 +1537,7 @@ the good results that a precise estimation would give.
 @node Data prefetch
 @section Data prefetch
 
-The heft, dmda and pheft scheduling policies perform data prefetch (see @ref{STARPU_PREFETCH}):
+The @code{heft}, @code{dmda} and @code{pheft} scheduling policies perform data prefetch (see @ref{STARPU_PREFETCH}):
 as soon as a scheduling decision is taken for a task, requests are issued to
 transfer its required data to the target processing unit, if needeed, so that
 when the processing unit actually starts the task, its data will hopefully be
@@ -2383,7 +2383,7 @@ the execution. If it is set to 2, the previous values are dropped to restart
 calibration from scratch. Setting this variable to 0 disable calibration, this
 is the default behaviour.
 
-Note: this currently only applies to dm, dmda and heft scheduling policies.
+Note: this currently only applies to @code{dm}, @code{dmda} and @code{heft} scheduling policies.
 
 @end table
 
@@ -2631,17 +2631,11 @@ indicates that the argument was NULL.
 
 @node starpu_shutdown
 @subsection @code{starpu_shutdown} -- Terminate StarPU
-@table @asis
-
-@item @emph{Description}:
+@deftypefun void starpu_shutdown(void);
 This is StarPU termination method. It must be called at the end of the
 application: statistics and other post-mortem debugging information are not
 guaranteed to be available until this method has been called.
-
-@item @emph{Prototype}:
-@code{void starpu_shutdown(void);}
-
-@end table
+@end deftypefun
 
 @node Workers' Properties
 @section Workers' Properties
@@ -2663,96 +2657,59 @@ guaranteed to be available until this method has been called.
 
 @node starpu_worker_get_count
 @subsection @code{starpu_worker_get_count} -- Get the number of processing units
-@table @asis
-
-@item @emph{Description}:
+@deftypefun unsigned starpu_worker_get_count(void);
 This function returns the number of workers (i.e. processing units executing
 StarPU tasks). The returned value should be at most @code{STARPU_NMAXWORKERS}.
-
-@item @emph{Prototype}:
-@code{unsigned starpu_worker_get_count(void);}
-@end table
+@end deftypefun
 
 @node starpu_worker_get_count_by_type
 @subsection @code{starpu_worker_get_count_by_type} -- Get the number of processing units of a given type
-@table @asis
-
-@item @emph{Description}:
+@deftypefun int starpu_worker_get_count_by_type(enum starpu_archtype type);
 Returns the number of workers of the type indicated by the argument. A positive
 (or null) value is returned in case of success, @code{-EINVAL} indicates that
 the type is not valid otherwise.
-
-@item @emph{Prototype}:
-@code{int starpu_worker_get_count_by_type(enum starpu_archtype type);}
-@end table
+@end deftypefun
 
 @node starpu_cpu_worker_get_count
 @subsection @code{starpu_cpu_worker_get_count} -- Get the number of CPU controlled by StarPU
-@table @asis
-
-@item @emph{Description}:
+@deftypefun unsigned starpu_cpu_worker_get_count(void);
 This function returns the number of CPUs controlled by StarPU. The returned
 value should be at most @code{STARPU_NMAXCPUS}.
-
-@item @emph{Prototype}:
-@code{unsigned starpu_cpu_worker_get_count(void);}
-@end table
+@end deftypefun
 
 @node starpu_cuda_worker_get_count
 @subsection @code{starpu_cuda_worker_get_count} -- Get the number of CUDA devices controlled by StarPU
-@table @asis
-
-@item @emph{Description}:
+@deftypefun unsigned starpu_cuda_worker_get_count(void);
 This function returns the number of CUDA devices controlled by StarPU. The returned
 value should be at most @code{STARPU_MAXCUDADEVS}.
-
-@item @emph{Prototype}:
-@code{unsigned starpu_cuda_worker_get_count(void);}
-@end table
+@end deftypefun
 
 @node starpu_opencl_worker_get_count
 @subsection @code{starpu_opencl_worker_get_count} -- Get the number of OpenCL devices controlled by StarPU
-@table @asis
-
-@item @emph{Description}:
+@deftypefun unsigned starpu_opencl_worker_get_count(void);
 This function returns the number of OpenCL devices controlled by StarPU. The returned
 value should be at most @code{STARPU_MAXOPENCLDEVS}.
-
-@item @emph{Prototype}:
-@code{unsigned starpu_opencl_worker_get_count(void);}
-@end table
+@end deftypefun
 
 @node starpu_spu_worker_get_count
 @subsection @code{starpu_spu_worker_get_count} -- Get the number of Cell SPUs controlled by StarPU
-@table @asis
-
-@item @emph{Description}:
+@deftypefun unsigned starpu_opencl_worker_get_count(void);
 This function returns the number of Cell SPUs controlled by StarPU.
-
-@item @emph{Prototype}:
-@code{unsigned starpu_opencl_worker_get_count(void);}
-@end table
+@end deftypefun
 
 
 @node starpu_worker_get_id
 @subsection @code{starpu_worker_get_id} -- Get the identifier of the current worker
-@table @asis
-
-@item @emph{Description}:
+@deftypefun int starpu_worker_get_id(void);
 This function returns the identifier of the worker associated to the calling
 thread. The returned value is either -1 if the current context is not a StarPU
 worker (i.e. when called from the application outside a task or a callback), or
 an integer between 0 and @code{starpu_worker_get_count() - 1}.
-
-@item @emph{Prototype}:
-@code{int starpu_worker_get_id(void);}
-@end table
+@end deftypefun
 
 @node starpu_worker_get_ids_by_type
 @subsection @code{starpu_worker_get_ids_by_type} -- Get the list of identifiers of workers with a given type
-@table @asis
-
-@item @emph{Description}:
+@deftypefun int starpu_worker_get_ids_by_type(enum starpu_archtype type, int *workerids, int maxsize);
 Fill the workerids array with the identifiers of the workers that have the type
 indicated in the first argument. The maxsize argument indicates the size of the
 workids array. The returned value gives the number of identifiers that were put
@@ -2761,16 +2718,11 @@ workers with the appropriate type: in that case, the array is filled with the
 maxsize first elements. To avoid such overflows, the value of maxsize can be
 chosen by the means of the @code{starpu_worker_get_count_by_type} function, or
 by passing a value greater or equal to @code{STARPU_NMAXWORKERS}.
-
-@item @emph{Prototype}:
-@code{int starpu_worker_get_ids_by_type(enum starpu_archtype type, int *workerids, int maxsize);}
-@end table
+@end deftypefun
 
 @node starpu_worker_get_devid
 @subsection @code{starpu_worker_get_devid} -- Get the device identifier of a worker
-@table @asis
-
-@item @emph{Description}:
+@deftypefun int starpu_worker_get_devid(int id);
 This functions returns the device id of the worker associated to an identifier
 (as returned by the @code{starpu_worker_get_id} function). In the case of a
 CUDA worker, this device identifier is the logical device identifier exposed by
@@ -2778,16 +2730,11 @@ CUDA (used by the @code{cudaGetDevice} function for instance). The device
 identifier of a CPU worker is the logical identifier of the core on which the
 worker was bound; this identifier is either provided by the OS or by the
 @code{hwloc} library in case it is available.
-
-@item @emph{Prototype}:
-@code{int starpu_worker_get_devid(int id);}
-@end table
+@end deftypefun
 
 @node starpu_worker_get_type
 @subsection @code{starpu_worker_get_type} -- Get the type of processing unit associated to a worker
-@table @asis
-
-@item @emph{Description}:
+@deftypefun enum starpu_archtype starpu_worker_get_type(int id);
 This function returns the type of worker associated to an identifier (as
 returned by the @code{starpu_worker_get_id} function). The returned value
 indicates the architecture of the worker: @code{STARPU_CPU_WORKER} for a CPU
@@ -2795,40 +2742,26 @@ core, @code{STARPU_CUDA_WORKER} for a CUDA device,
 @code{STARPU_OPENCL_WORKER} for a OpenCL device, and
 @code{STARPU_GORDON_WORKER} for a Cell SPU. The value returned for an invalid
 identifier is unspecified.
-
-@item @emph{Prototype}:
-@code{enum starpu_archtype starpu_worker_get_type(int id);}
-
-@end table
+@end deftypefun
 
 @node starpu_worker_get_name
 @subsection @code{starpu_worker_get_name} -- Get the name of a worker
-@table @asis
 
-@item @emph{Description}:
+@deftypefun void starpu_worker_get_name(int id, char *dst, size_t maxlen);
 StarPU associates a unique human readable string to each processing unit. This
 function copies at most the @code{maxlen} first bytes of the unique string
 associated to a worker identified by its identifier @code{id} into the
 @code{dst} buffer. The caller is responsible for ensuring that the @code{dst}
 is a valid pointer to a buffer of @code{maxlen} bytes at least. Calling this
 function on an invalid identifier results in an unspecified behaviour.
-
-@item @emph{Prototype}:
-@code{void starpu_worker_get_name(int id, char *dst, size_t maxlen);}
-
-@end table
+@end deftypefun
 
 @node starpu_worker_get_memory_node
 @subsection @code{starpu_worker_get_memory_node} -- Get the memory node of a worker
-@table @asis
-@item @emph{Description}:
+@deftypefun unsigned starpu_worker_get_memory_node(unsigned workerid);
 This function returns the identifier of the memory node associated to the
 worker identified by @code{workerid}.
-
-@item @emph{Prototype}:
-@code{unsigned starpu_worker_get_memory_node(unsigned workerid);}
-
-@end table
+@end deftypefun
 
 
 @node Data Library
@@ -2857,15 +2790,12 @@ design their own data interfaces if required.
 
 @node starpu_malloc
 @subsection @code{starpu_malloc} -- Allocate data and pin it
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_malloc(void **A, size_t dim);
 This function allocates data of the given size. It will also try to pin it in
 CUDA or OpenGL, so that data transfers from this buffer can be asynchronous, and
 thus permit data transfer and computation overlapping. The allocated buffer must
 be freed thanks to the @code{starpu_free} function.
-@item @emph{Prototype}:
-@code{int starpu_malloc(void **A, size_t dim);}
-@end table
+@end deftypefun
 
 @node starpu_access_mode
 @subsection @code{starpu_access_mode} -- Data access mode
@@ -2930,8 +2860,7 @@ the data that is accessible from the current processing unit.
 
 @node starpu_data_register
 @subsection @code{starpu_data_register} -- Register a piece of data to StarPU
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_data_register(starpu_data_handle *handleptr, uint32_t home_node, void *interface, struct starpu_data_interface_ops_t *ops);
 Register a piece of data into the handle located at the @code{handleptr}
 address. The @code{interface} buffer contains the initial description of the
 data in the home node. The @code{ops} argument is a pointer to a structure
@@ -2946,44 +2875,32 @@ allocated, it is possible to access it using any access mode.
 Note that StarPU supplies a set of predefined types of interface (e.g. vector or
 matrix) which can be registered by the means of helper functions (e.g.
 @code{starpu_vector_data_register} or @code{starpu_matrix_data_register}).
-@item @emph{Prototype}:
-@code{void starpu_data_register(starpu_data_handle *handleptr,
-				uint32_t home_node,
-				void *interface,
-				struct starpu_data_interface_ops_t *ops);}
-@end table
+@end deftypefun
 
 @node starpu_data_unregister
 @subsection @code{starpu_data_unregister} -- Unregister a piece of data from StarPU
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_data_unregister(starpu_data_handle handle);
 This function unregisters a data handle from StarPU. If the data was
 automatically allocated by StarPU because the home node was -1, all
 automatically allocated buffers are freed. Otherwise, a valid copy of the data
 is put back into the home node in the buffer that was initially registered.
 Using a data handle that has been unregistered from StarPU results in an
 undefined behaviour.
-@item @emph{Prototype}:
-@code{void starpu_data_unregister(starpu_data_handle handle);}
-@end table
+@end deftypefun
 
 @node starpu_data_invalidate
 @subsection @code{starpu_data_invalidate} -- Invalidate all data replicates
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_data_invalidate(starpu_data_handle handle);
 Destroy all replicates of the data handle. After data invalidation, the first
 access to the handle must be performed in write-only mode. Accessing an
 invalidated data in read-mode results in undefined behaviour.
-@item @emph{Prototype}:
-@code{void starpu_data_invalidate(starpu_data_handle handle);}
-@end table
+@end deftypefun
 
 @c TODO create a specific sections about user interaction with the DSM ?
 
 @node starpu_data_acquire
 @subsection @code{starpu_data_acquire} -- Access registered data from the application
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode);
 The application must call this function prior to accessing registered data from
 main memory outside tasks. StarPU ensures that the application will get an
 up-to-date copy of the data in main memory located where the data was
@@ -2999,14 +2916,11 @@ the data, unless that they have not been disabled explictly by calling
 @code{starpu_data_acquire} is a blocking call, so that it cannot be called from
 tasks or from their callbacks (in that case, @code{starpu_data_acquire} returns
 @code{-EDEADLK}). Upon successful completion, this function returns 0. 
-@item @emph{Prototype}:
-@code{int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode);}
-@end table
+@end deftypefun
 
 @node starpu_data_acquire_cb
 @subsection @code{starpu_data_acquire_cb} -- Access registered data from the application asynchronously
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_data_acquire_cb(starpu_data_handle handle, starpu_access_mode mode, void (*callback)(void *), void *arg);
 @code{starpu_data_acquire_cb} is the asynchronous equivalent of
 @code{starpu_data_release}. When the data specified in the first argument is
 available in the appropriate access mode, the callback function is executed.
@@ -3018,42 +2932,32 @@ Note that implicit data dependencies are also enforced by
  Contrary to @code{starpu_data_acquire}, this function is non-blocking and may
 be called from task callbacks. Upon successful completion, this function
 returns 0.
-@item @emph{Prototype}:
-@code{int starpu_data_acquire_cb(starpu_data_handle handle, starpu_access_mode mode, void (*callback)(void *), void *arg);}
-@end table
+@end deftypefun
 
 @node starpu_data_release
 @subsection @code{starpu_data_release} -- Release registered data from the application
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_data_release(starpu_data_handle handle);
 This function releases the piece of data acquired by the application either by
 @code{starpu_data_acquire} or by @code{starpu_data_acquire_cb}.
-@item @emph{Prototype}:
-@code{void starpu_data_release(starpu_data_handle handle);}
-@end table
+@end deftypefun
 
 @node starpu_data_set_wt_mask
 @subsection @code{starpu_data_set_wt_mask} -- Set the Write-Through mask
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_data_set_wt_mask(starpu_data_handle handle, uint32_t wt_mask);
 This function sets the write-through mask of a given data, i.e. a bitmask of
 nodes where the data should be always replicated after modification.
-@item @emph{Prototype}:
-@code{void starpu_data_set_wt_mask(starpu_data_handle handle, uint32_t wt_mask);}
-@end table
+@end deftypefun
 
 @node starpu_data_prefetch_on_node
 @subsection @code{starpu_data_prefetch_on_node} -- Prefetch data to a given node
-@table @asis
-@item @emph{Description}:
-This function issues a prefetch request for a given data to a given node, i.e.
+
+@deftypefun int starpu_data_prefetch_on_node(starpu_data_handle handle, unsigned node, unsigned async)
+Issue a prefetch request for a given data to a given node, i.e.
 requests that the data be replicated to the given node, so that it is available
 there for tasks. If the @code{async} parameter is 0, the call will block until
 the transfer is achieved, else the call will return as soon as the request is
 scheduled (which may however have to wait for a task completion).
-@item @emph{Prototype}:
-@code{int starpu_data_prefetch_on_node(starpu_data_handle handle, unsigned node, unsigned async);}
-@end table
+@end deftypefun
 
 @node Data Interfaces
 @section Data Interfaces
@@ -3171,36 +3075,18 @@ starpu_block_data_register(&block_handle, 0, (uintptr_t)block,
 @node BCSR Interface for Sparse Matrices (Blocked Compressed Sparse Row Representation)
 @subsection BCSR Interface for Sparse Matrices (Blocked Compressed Sparse Row Representation)
 
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_bcsr_data_register(starpu_data_handle *handle, uint32_t home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize);
 This variant of @code{starpu_data_register} uses the BCSR sparse matrix interface.
 TODO
-@item @emph{Prototype}:
-@code{void starpu_bcsr_data_register(starpu_data_handle *handle, uint32_t home_node, uint32_t nnz, uint32_t nrow,
-		uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize);}
-@item @emph{Example}:
-@cartouche
-@smallexample
-@end smallexample
-@end cartouche
-@end table
+@end deftypefun
 
 @node CSR Interface for Sparse Matrices (Compressed Sparse Row Representation)
 @subsection CSR Interface for Sparse Matrices (Compressed Sparse Row Representation)
 
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_csr_data_register(starpu_data_handle *handle, uint32_t home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize);
 This variant of @code{starpu_data_register} uses the CSR sparse matrix interface.
 TODO
-@item @emph{Prototype}:
-@code{void starpu_csr_data_register(starpu_data_handle *handle, uint32_t home_node, uint32_t nnz, uint32_t nrow,
-		uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize);}
-@item @emph{Example}:
-@cartouche
-@smallexample
-@end smallexample
-@end cartouche
-@end table
+@end deftypefun
 
 @node Data Partition
 @section Data Partition
@@ -3339,72 +3225,48 @@ list can be found in @code{starpu_data_filters.h} .
 @node Partitioning BCSR Data
 @subsubsection Partitioning BCSR Data
 
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_canonical_block_filter_bcsr(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 TODO
-@item @emph{Prototype}:
-@code{void starpu_canonical_block_filter_bcsr(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
-@end table
+@end deftypefun
 
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_vertical_block_filter_func_csr(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 TODO
-@item @emph{Prototype}:
-@code{void starpu_vertical_block_filter_func_csr(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
-@end table
+@end deftypefun
 
 @node Partitioning BLAS interface
 @subsubsection Partitioning BLAS interface
 
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_block_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 This partitions a dense Matrix into horizontal blocks.
-@item @emph{Prototype}:
-@code{void starpu_block_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
-@end table
+@end deftypefun
 
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_vertical_block_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 This partitions a dense Matrix into vertical blocks.
-@item @emph{Prototype}:
-@code{void starpu_vertical_block_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
-@end table
+@end deftypefun
 
 @node Partitioning Vector Data
 @subsubsection Partitioning Vector Data
 
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_block_filter_func_vector(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 This partitions a vector into blocks of the same size.
-@item @emph{Prototype}:
-@code{void starpu_block_filter_func_vector(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
-@end table
+@end deftypefun
 
 
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_vector_list_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 This partitions a vector into blocks of sizes given in @code{filter_arg_ptr}.
-@item @emph{Prototype}:
-@code{void starpu_vector_list_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
-@end table
+@end deftypefun
 
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 This partitions a vector into two blocks, the first block size being given in @code{filter_arg}.
-@item @emph{Prototype}:
-@code{void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
-@end table
+@end deftypefun
 
 
 @node Partitioning Block Data
 @subsubsection Partitioning Block Data
 
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_block_filter_func_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 This partitions a 3D matrix along the X axis.
-@item @emph{Prototype}:
-@code{void starpu_block_filter_func_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);}
-@end table
+@end deftypefun
 
 @node Codelets and Tasks
 @section Codelets and Tasks
@@ -3673,8 +3535,7 @@ Output on @code{stderr} some statistics on the codelet @var{cl}.
 
 @node starpu_task_declare_deps_array
 @subsection @code{starpu_task_declare_deps_array} -- Declare task dependencies
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
 Declare task dependencies between a @code{task} and an array of tasks of length
 @code{ndeps}. This function must be called prior to the submission of the task,
 but it may called after the submission or the execution of the tasks in the
@@ -3685,9 +3546,7 @@ undefined behaviour. If @code{ndeps} is null, no dependency is added. It is
 possible to call @code{starpu_task_declare_deps_array} multiple times on the
 same task, in this case, the dependencies are added. It is possible to have
 redundancy in the task dependencies.
-@item @emph{Prototype}:
-@code{void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);}
-@end table
+@end deftypefun
 
 
 
@@ -3761,8 +3620,7 @@ starpu_tag_declare_deps_array((starpu_tag_t)0x1, 2, tag_array);
 
 @node starpu_tag_wait
 @subsection @code{starpu_tag_wait} -- Block until a Tag is terminated
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_tag_wait(starpu_tag_t id);
 This function blocks until the task associated to tag @code{id} has been
 executed. This is a blocking call which must therefore not be called within
 tasks or callbacks, but only from the application directly.  It is possible to
@@ -3771,45 +3629,33 @@ synchronize with the same tag multiple times, as long as the
 possible to synchronize with a tag associated to a task which @code{starpu_task}
 data structure was freed (e.g. if the @code{destroy} flag of the
 @code{starpu_task} was enabled).
-
-@item @emph{Prototype}:
-@code{void starpu_tag_wait(starpu_tag_t id);}
-@end table
+@end deftypefun
 
 @node starpu_tag_wait_array
 @subsection @code{starpu_tag_wait_array} -- Block until a set of Tags is terminated
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id);
 This function is similar to @code{starpu_tag_wait} except that it blocks until
 @emph{all} the @code{ntags} tags contained in the @code{id} array are
 terminated.
-@item @emph{Prototype}:
-@code{void starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id);}
-@end table
+@end deftypefun
 
 @node starpu_tag_remove
 @subsection @code{starpu_tag_remove} -- Destroy a Tag
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_tag_remove(starpu_tag_t id);
 This function releases the resources associated to tag @code{id}. It can be
 called once the corresponding task has been executed and when there is
 no other tag that depend on this tag anymore.
-@item @emph{Prototype}:
-@code{void starpu_tag_remove(starpu_tag_t id);}
-@end table
+@end deftypefun
 
 @node starpu_tag_notify_from_apps
 @subsection @code{starpu_tag_notify_from_apps} -- Feed a Tag explicitly
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_tag_notify_from_apps(starpu_tag_t id);
 This function explicitly unlocks tag @code{id}. It may be useful in the
 case of applications which execute part of their computation outside StarPU
 tasks (e.g. third-party libraries).  It is also provided as a
 convenient tool for the programmer, for instance to entirely construct the task
 DAG before actually giving StarPU the opportunity to execute the tasks.
-@item @emph{Prototype}:
-@code{void starpu_tag_notify_from_apps(starpu_tag_t id);}
-@end table
+@end deftypefun
 
 @node Implicit Data Dependencies
 @section Implicit Data Dependencies
@@ -3831,37 +3677,28 @@ are also inserted in the case of data accesses from the application.
 
 @node starpu_data_set_default_sequential_consistency_flag
 @subsection @code{starpu_data_set_default_sequential_consistency_flag} -- Set default sequential consistency flag
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_data_set_default_sequential_consistency_flag(unsigned flag);
 Set the default sequential consistency flag. If a non-zero value is passed, a
 sequential data consistency will be enforced for all handles registered after
 this function call, otherwise it is disabled. By default, StarPU enables
 sequential data consistency. It is also possible to select the data consistency
 mode of a specific data handle with the
 @code{starpu_data_set_sequential_consistency_flag} function.
-@item @emph{Prototype}:
-@code{void starpu_data_set_default_sequential_consistency_flag(unsigned flag);}
-@end table
+@end deftypefun
 
 @node starpu_data_get_default_sequential_consistency_flag
 @subsection @code{starpu_data_get_default_sequential_consistency_flag} -- Get current default sequential consistency flag
-@table @asis
-@item @emph{Description}:
+@deftypefun unsigned starpu_data_set_default_sequential_consistency_flag(void);
 This function returns the current default sequential consistency flag.
-@item @emph{Prototype}:
-@code{unsigned starpu_data_set_default_sequential_consistency_flag(void);}
-@end table
+@end deftypefun
 
 @node starpu_data_set_sequential_consistency_flag
 @subsection @code{starpu_data_set_sequential_consistency_flag} -- Set data sequential consistency mode
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_data_set_sequential_consistency_flag(starpu_data_handle handle, unsigned flag);
 Select the data consistency mode associated to a data handle. The consistency
 mode set using this function has the priority over the default mode which can
 be set with @code{starpu_data_set_sequential_consistency_flag}.
-@item @emph{Prototype}:
-@code{void starpu_data_set_sequential_consistency_flag(starpu_data_handle handle, unsigned flag);}
-@end table
+@end deftypefun
 
 @node Performance Model API
 @section Performance Model API
@@ -3875,39 +3712,27 @@ be set with @code{starpu_data_set_sequential_consistency_flag}.
 
 @node starpu_load_history_debug
 @subsection @code{starpu_load_history_debug}
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *model);
 TODO
-@item @emph{Prototype}:
-@code{int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *model);}
-@end table
+@end deftypefun
 
 @node starpu_perfmodel_debugfilepath
 @subsection @code{starpu_perfmodel_debugfilepath}
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, char *path, size_t maxlen);
 TODO
-@item @emph{Prototype}:
-@code{void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, char *path, size_t maxlen);}
-@end table
+@end deftypefun
 
 @node starpu_perfmodel_get_arch_name
 @subsection @code{starpu_perfmodel_get_arch_name}
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archname, size_t maxlen);
 TODO
-@item @emph{Prototype}:
-@code{void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archname, size_t maxlen);}
-@end table
+@end deftypefun
 
 @node starpu_force_bus_sampling
 @subsection @code{starpu_force_bus_sampling}
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_force_bus_sampling(void);
 This forces sampling the bus performance model again.
-@item @emph{Prototype}:
-@code{void starpu_force_bus_sampling(void);}
-@end table
+@end deftypefun
 
 
 @node Profiling API
@@ -3950,12 +3775,9 @@ returned.
 
 @node starpu_profiling_status_get
 @subsection @code{starpu_profiling_status_get} -- Get current profiling status
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_profiling_status_get(void);
 Return the current profiling status or a negative value in case there was an error.
-@item @emph{Prototype}:
-@code{int starpu_profiling_status_get(void);}
-@end table
+@end deftypefun
 
 @node struct starpu_task_profiling_info
 @subsection @code{struct starpu_task_profiling_info} -- Task profiling information
@@ -4033,75 +3855,51 @@ TODO
 
 @node starpu_bus_get_count
 @subsection @code{starpu_bus_get_count}
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_bus_get_count(void);
 TODO
-@item @emph{Prototype}:
-@code{int starpu_bus_get_count(void);}
-@end table
+@end deftypefun
 
 @node starpu_bus_get_id
 @subsection @code{starpu_bus_get_id}
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_bus_get_id(int src, int dst);
 TODO
-@item @emph{Prototype}:
-@code{int starpu_bus_get_id(int src, int dst);}
-@end table
+@end deftypefun
 
 @node starpu_bus_get_src
 @subsection @code{starpu_bus_get_src}
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_bus_get_src(int busid);
 TODO
-@item @emph{Prototype}:
-@code{int starpu_bus_get_src(int busid);}
-@end table
+@end deftypefun
 
 @node starpu_bus_get_dst
 @subsection @code{starpu_bus_get_dst}
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_bus_get_dst(int busid);
 TODO
-@item @emph{Prototype}:
-@code{int starpu_bus_get_dst(int busid);}
-@end table
+@end deftypefun
 
 @node starpu_timing_timespec_delay_us
 @subsection @code{starpu_timing_timespec_delay_us}
-@table @asis
-@item @emph{Description}:
+@deftypefun double starpu_timing_timespec_delay_us(struct timespec *start, struct timespec *end);
 TODO
-@item @emph{Prototype}:
-@code{double starpu_timing_timespec_delay_us(struct timespec *start, struct timespec *end);}
-@end table
+@end deftypefun
 
 @node starpu_timing_timespec_to_us
 @subsection @code{starpu_timing_timespec_to_us}
-@table @asis
-@item @emph{Description}:
+@deftypefun double starpu_timing_timespec_to_us(struct timespec *ts);
 TODO
-@item @emph{Prototype}:
-@code{double starpu_timing_timespec_to_us(struct timespec *ts);}
-@end table
+@end deftypefun
 
 @node starpu_bus_profiling_helper_display_summary
 @subsection @code{starpu_bus_profiling_helper_display_summary}
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_bus_profiling_helper_display_summary(void);
 TODO
-@item @emph{Prototype}:
-@code{void starpu_bus_profiling_helper_display_summary(void);}
-@end table
+@end deftypefun
 
 @node starpu_worker_profiling_helper_display_summary
 @subsection @code{starpu_worker_profiling_helper_display_summary}
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_worker_profiling_helper_display_summary(void);
 TODO
-@item @emph{Prototype}:
-@code{void starpu_worker_profiling_helper_display_summary(void);}
-@end table
+@end deftypefun
 
 
 
@@ -4118,8 +3916,7 @@ TODO
 
 @node starpu_cuda_get_local_stream
 @subsection @code{starpu_cuda_get_local_stream} -- Get current worker's CUDA stream
-@table @asis
-@item @emph{Description}:
+@deftypefun cudaStream_t *starpu_cuda_get_local_stream(void);
 StarPU provides a stream for every CUDA device controlled by StarPU. This
 function is only provided for convenience so that programmers can easily use
 asynchronous operations within codelets without having to create a stream by
@@ -4127,33 +3924,22 @@ hand. Note that the application is not forced to use the stream provided by
 @code{starpu_cuda_get_local_stream} and may also create its own streams.
 Synchronizing with @code{cudaThreadSynchronize()} is allowed, but will reduce
 the likelihood of having all transfers overlapped.
-
-@item @emph{Prototype}:
-@code{cudaStream_t *starpu_cuda_get_local_stream(void);}
-@end table
+@end deftypefun
 
 @node starpu_helper_cublas_init
 @subsection @code{starpu_helper_cublas_init} -- Initialize CUBLAS on every CUDA device
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_helper_cublas_init(void);
 The CUBLAS library must be initialized prior to any CUBLAS call. Calling
 @code{starpu_helper_cublas_init} will initialize CUBLAS on every CUDA device
 controlled by StarPU. This call blocks until CUBLAS has been properly
 initialized on every device.
-
-@item @emph{Prototype}:
-@code{void starpu_helper_cublas_init(void);}
-@end table
+@end deftypefun
 
 @node starpu_helper_cublas_shutdown
 @subsection @code{starpu_helper_cublas_shutdown} -- Deinitialize CUBLAS on every CUDA device
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_helper_cublas_shutdown(void);
 This function synchronously deinitializes the CUBLAS library on every CUDA device.
-
-@item @emph{Prototype}:
-@code{void starpu_helper_cublas_shutdown(void);}
-@end table
+@end deftypefun
 
 @node OpenCL extensions
 @section OpenCL extensions
@@ -4211,30 +3997,21 @@ relocation purpose for instance).
 
 @node starpu_opencl_load_opencl_from_file
 @subsubsection @code{starpu_opencl_load_opencl_from_file} -- Compiling OpenCL source code
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_opencl_load_opencl_from_file(char *source_file_name, struct starpu_opencl_program *opencl_programs, const char* build_options);
 TODO
-@item @emph{Prototype}:
-@code{int starpu_opencl_load_opencl_from_file(char *source_file_name, struct starpu_opencl_program *opencl_programs, const char* build_options);}
-@end table
+@end deftypefun
 
 @node starpu_opencl_load_opencl_from_string
 @subsubsection @code{starpu_opencl_load_opencl_from_string} -- Compiling OpenCL source code
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_opencl_load_opencl_from_string(char *opencl_program_source, struct starpu_opencl_program *opencl_programs, const char* build_options);
 TODO
-@item @emph{Prototype}:
-@code{int starpu_opencl_load_opencl_from_string(char *opencl_program_source, struct starpu_opencl_program *opencl_programs, const char* build_options);}
-@end table
+@end deftypefun
 
 @node starpu_opencl_unload_opencl
 @subsubsection @code{starpu_opencl_unload_opencl} -- Releasing OpenCL code
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs);
 TODO
-@item @emph{Prototype}:
-@code{int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs);}
-@end table
+@end deftypefun
 
 @node Loading OpenCL kernels
 @subsection Loading OpenCL kernels
@@ -4246,22 +4023,15 @@ TODO
 
 @node starpu_opencl_load_kernel
 @subsubsection @code{starpu_opencl_load_kernel} -- Loading a kernel
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct starpu_opencl_program *opencl_programs, char *kernel_name, int devid)
 TODO
-@item @emph{Prototype}:
-@code{int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct starpu_opencl_program *opencl_programs, char *kernel_name, int devid)
-}
-@end table
+@end deftypefun
 
 @node starpu_opencl_relase_kernel
 @subsubsection @code{starpu_opencl_release_kernel} -- Releasing a kernel
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_opencl_release_kernel(cl_kernel kernel);
 TODO
-@item @emph{Prototype}:
-@code{int starpu_opencl_release_kernel(cl_kernel kernel);}
-@end table
+@end deftypefun
 
 @node OpenCL statistics
 @subsection OpenCL statistics
@@ -4272,14 +4042,11 @@ TODO
 
 @node starpu_opencl_collect_stats
 @subsubsection @code{starpu_opencl_collect_stats} -- Collect statistics on a kernel execution
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_opencl_collect_stats(cl_event event);
 After termination of the kernels, the OpenCL codelet should call this function
 to pass it the even returned by @code{clEnqueueNDRangeKernel}, to let StarPU
 collect statistics about the kernel execution (used cycles, consumed power).
-@item @emph{Prototype}:
-@code{int starpu_opencl_collect_stats(cl_event event);}
-@end table
+@end deftypefun
 
 
 @node Cell extensions
@@ -4297,8 +4064,7 @@ nothing yet.
 
 @node starpu_data_cpy
 @subsection @code{starpu_data_cpy} -- Copy a data handle into another data handle
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_data_cpy(starpu_data_handle dst_handle, starpu_data_handle src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
 Copy the content of the @code{src_handle} into the @code{dst_handle} handle.
 The @code{asynchronous} parameter indicates whether the function should 
 block or not. In the case of an asynchronous call, it is possible to
@@ -4307,16 +4073,13 @@ implicit dependencies (if enabled) or by calling
 @code{starpu_task_wait_for_all()}. If @code{callback_func} is not @code{NULL},
 this callback function is executed after the handle has been copied, and it is
 given the @code{callback_arg} pointer as argument.
-@item @emph{Prototype}:
-@code{int starpu_data_cpy(starpu_data_handle dst_handle, starpu_data_handle src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);}
-@end table
+@end deftypefun
 
 
 
 @node starpu_execute_on_each_worker
 @subsection @code{starpu_execute_on_each_worker} -- Execute a function on a subset of workers
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where);
 When calling this method, the offloaded function specified by the first argument is
 executed by every StarPU worker that may execute the function.
 The second argument is passed to the offloaded function.
@@ -4328,10 +4091,7 @@ should be executed on every CUDA device and every CPU by passing
 This function blocks until the function has been executed on every appropriate
 processing units, so that it may not be called from a callback function for
 instance.
-
-@item @emph{Prototype}:
-@code{void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where);}
-@end table
+@end deftypefun
 
 
 @c ---------------------------------------------------------------------
@@ -4440,8 +4200,7 @@ Description of the policy (optionnal).
 
 @node starpu_worker_set_sched_condition
 @subsection @code{starpu_worker_set_sched_condition} -- Specify the condition variable associated to a worker
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond, pthread_mutex_t *sched_mutex);
 When there is no available task for a worker, StarPU blocks this worker on a
 condition variable. This function specifies which condition variable (and the
 associated mutex) should be used to block (and to wake up) a worker. Note that
@@ -4450,51 +4209,38 @@ of a scheduling strategy with a single task queue, the same condition variable
 would be used to block and wake up all workers.
 The initialization method of a scheduling strategy (@code{init_sched}) must
 call this function once per worker.
-
-@item @emph{Prototype}:
-@code{void starpu_worker_set_sched_condition(int workerid, pthread_cond_t *sched_cond, pthread_mutex_t *sched_mutex);}
-@end table
+@end deftypefun
 
 @node starpu_sched_set_min_priority
 @subsection @code{starpu_sched_set_min_priority}
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_sched_set_min_priority(int min_prio);
 Defines the minimum priority level supported by the scheduling policy. The
 default minimum priority level is the same as the default priority level which
 is 0 by convention.  The application may access that value by calling the
 @code{starpu_sched_get_min_priority} function. This function should only be
 called from the initialization method of the scheduling policy, and should not
 be used directly from the application.
-@item @emph{Prototype}:
-@code{void starpu_sched_set_min_priority(int min_prio);}
-@end table
+@end deftypefun
 
 @node starpu_sched_set_max_priority
 @subsection @code{starpu_sched_set_max_priority}
-@table @asis
-@item @emph{Description}:
+@deftypefun void starpu_sched_set_min_priority(int max_prio);
 Defines the maximum priority level supported by the scheduling policy. The
 default maximum priority level is 1.  The application may access that value by
 calling the @code{starpu_sched_get_max_priority} function. This function should
 only be called from the initialization method of the scheduling policy, and
 should not be used directly from the application.
-@item @emph{Prototype}:
-@code{void starpu_sched_set_min_priority(int max_prio);}
-@end table
+@end deftypefun
 
 @node starpu_push_local_task
 @subsection @code{starpu_push_local_task}
-@table @asis
-@item @emph{Description}:
+@deftypefun int starpu_push_local_task(int workerid, struct starpu_task *task, int back);
 The scheduling policy may put tasks directly into a worker's local queue so
 that it is not always necessary to create its own queue when the local queue
 is sufficient. If "back" not null, the task is put at the back of the queue
 where the worker will pop tasks first. Setting "back" to 0 therefore ensures
 a FIFO ordering. 
-
-@item @emph{Prototype}:
-@code{int starpu_push_local_task(int workerid, struct starpu_task *task, int back);}
-@end table
+@end deftypefun
 
 
 
