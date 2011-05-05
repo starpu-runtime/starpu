@@ -1487,12 +1487,32 @@ to configure a performance model for the codelets of the application (see
 @ref{Performance model example} for instance). History-based performance models
 use on-line calibration.  StarPU will automatically calibrate codelets
 which have never been calibrated yet. To force continuing calibration, use
-@code{export STARPU_CALIBRATE=1} . To drop existing calibration information
-completely and re-calibrate from start, use @code{export STARPU_CALIBRATE=2}.
+@code{export STARPU_CALIBRATE=1} . This may be necessary if your application
+have not-so-stable performance. Details on the current performance model status
+can be obtained from the @code{starpu_perfmodel_display} command: the @code{-l}
+option lists the available performance models, and the @code{-s} option permits
+to choose the performance model to be displayed. The result looks like:
+
+@example
+€ starpu_perfmodel_display -s starpu_dlu_lu_model_22
+performance model for cpu
+# hash		size		mean		dev		n
+5c6c3401	1572864        	1.216300e+04   	2.277778e+03   	1240
+@end example
+
+Which shows that for the LU 22 kernel with a 1.5MiB matrix, the average
+execution time on CPUs was about 12ms, with a 2ms standard deviation, over
+1240 samples. It is a good idea to check this before doing actual performance
+measurements.
+
+If a kernel source code was modified (e.g. performance improvement), the
+calibration information is stale and should be dropped, to re-calibrate from
+start. This can be done by using @code{export STARPU_CALIBRATE=2}.
+
 Note: due to CUDA limitations, to be able to measure kernel duration,
 calibration mode needs to disable asynchronous data transfers. Calibration thus
 disables data transfer / computation overlapping, and should thus not be used
-for eventual benchmarks. Note 2: history-based performance model get calibrated
+for eventual benchmarks. Note 2: history-based performance models get calibrated
 only if a performance-model-based scheduler is chosen.
 
 @node Task distribution vs Data transfer
@@ -1514,7 +1534,7 @@ the good results that a precise estimation would give.
 @node Data prefetch
 @section Data prefetch
 
-The heft scheduling policy performs data prefetch (see @ref{STARPU_PREFETCH}):
+The heft, dmda and pheft scheduling policies perform data prefetch (see @ref{STARPU_PREFETCH}):
 as soon as a scheduling decision is taken for a task, requests are issued to
 transfer its required data to the target processing unit, if needeed, so that
 when the processing unit actually starts the task, its data will hopefully be
