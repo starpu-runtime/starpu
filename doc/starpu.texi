@@ -1896,19 +1896,24 @@ GPU-RAM-NIC transfers are handled efficiently by StarPU-MPI.
 @subsection Initialisation
 
 @deftypefun int starpu_mpi_initialize (void)
-Initialize the starpumpi library. This must be called between calling
-@code{starpu_init} and other @code{starpu_mpi} functions. This replace calls to
-MPI_Init.
+Initializes the starpumpi library. This must be called between calling
+@code{starpu_init} and other @code{starpu_mpi} functions. This
+function does not call @code{MPI_Init}, it should be called beforehand.
 @end deftypefun
 
-@deftypefun int starpu_mpi_initialize_extended (int @var{initialize_mpi}, int *@var{rank}, int *@var{world_size})
-Same as @code{starpu_mpi_initialize}, except that it returns the current MPI
-node rank and world size.
+@deftypefun int starpu_mpi_initialize_extended (int *@var{rank}, int *@var{world_size})
+Initializes the starpumpi library. This must be called between calling
+@code{starpu_init} and other @code{starpu_mpi} functions.
+This function calls @code{MPI_Init}, and therefore should be prefered
+to the previous one for MPI implementations which are not thread-safe.
+Returns the current MPI node rank and world size.
 @end deftypefun
 
 @deftypefun int starpu_mpi_shutdown (void)
 Cleans the starpumpi library. This must be called between calling
 @code{starpu_mpi} functions and @code{starpu_shutdown}.
+@code{MPI_Finalize} will be called if StarPU-MPI has been initialized
+by calling @code{starpu_mpi_initialize_extended}.
 @end deftypefun
 
 @subsection Communication
