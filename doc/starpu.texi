@@ -3790,7 +3790,7 @@ Output on @code{stderr} some statistics on the codelet @var{cl}.
 
 @node starpu_task_declare_deps_array
 @subsection @code{starpu_task_declare_deps_array} -- Declare task dependencies
-@deftypefun void starpu_task_declare_deps_array ({struct starpu_task} *@var{task}, unsigned @var{ndeps}, {struct starpu_task} *@var{task_array[]})
+@deftypefun void starpu_task_declare_deps_array ({struct starpu_task} *@var{task}, unsigned @var{ndeps}, {struct starpu_task} *@var{task_array}[])
 Declare task dependencies between a @code{task} and an array of tasks of length
 @code{ndeps}. This function must be called prior to the submission of the task,
 but it may called after the submission or the execution of the tasks in the
