@@ -1999,27 +1999,29 @@ int main(int argc, char **argv)
     for (loop = 0; loop < nloops; loop++) @{
         int tag = loop*size + rank;
 
-        if (!((loop == 0) && (rank == 0)))
+        if (loop == 0 && rank == 0)
+	@{
+            token = 0;
+            fprintf(stdout, "Start with token value %d\n", token);
+        @}
+        else
         @{
             starpu_mpi_irecv_detached(token_handle, (rank+size-1)%size, tag,
                     MPI_COMM_WORLD, NULL, NULL);
         @}
-        else @{
-            token = 0;
-            fprintf(stdout, "Start with token value %d\n", token);
-        @}
 
         increment_token();
 
-        if (!((loop == last_loop) && (rank == last_rank)))
-        @{
-            starpu_mpi_isend_detached(token_handle, (rank+1)%size, tag+1,
-                    MPI_COMM_WORLD, NULL, NULL);
-        @}
-        else @{
+        if (loop == last_loop && rank == last_rank)
+	@{
             starpu_data_acquire(token_handle, STARPU_R);
             fprintf(stdout, "Finished : token value %d\n", token);
             starpu_data_release(token_handle);
+        @}
+        else
+        @{
+            starpu_mpi_isend_detached(token_handle, (rank+1)%size, tag+1,
+                    MPI_COMM_WORLD, NULL, NULL);
         @}
     @}
 
