@@ -168,6 +168,8 @@ basic_examples_vector_scal_fortran_SOURCES =	\
 if STARPU_USE_CUDA
 basic_examples_vector_scal_fortran_SOURCES +=	\
 	basic_examples/vector_scal_cuda.cu
+basic_examples_vector_scal_fortran_LDADD =	\
+	$(STARPU_CUDA_FORTRAN_LDFLAGS)
 endif
 endif
 

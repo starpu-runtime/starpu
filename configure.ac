@@ -385,7 +385,7 @@ if test x$enable_cuda = xyes; then
 	STARPU_CUFFT_LDFLAGS="-lcufft"
 
         if test "$F77" = "gfortran" ; then
-            STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lgfortran"
+            STARPU_CUDA_FORTRAN_LDFLAGS="-lgfortran"
         fi
 
 	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag
