@@ -1097,9 +1097,9 @@ AC_ARG_ENABLE(opengl-render, [AS_HELP_STRING([--enable-opengl-render],
 			enable_opengl_render=$enableval, enable_opengl_render=no)
 
 if test x$enable_opengl_render = xyes; then
-	AC_CHECK_LIB(glut, glutInit,,AC_MSG_ERROR([cannot find glut]))
-	AC_CHECK_LIB(GL, glXCreateContext,,AC_MSG_ERROR([cannot find GL]))
-	AC_CHECK_LIB(GLU, gluLookAt,,AC_MSG_ERROR([cannot find GLU]))
+	STARPU_CHECK_LIB(OPENGL_RENDER, glut, glutInit,,AC_MSG_ERROR([cannot find glut]))
+	STARPU_CHECK_LIB(OPENGL_RENDER, GL, glXCreateContext,,AC_MSG_ERROR([cannot find GL]))
+	STARPU_CHECK_LIB(OPENGL_RENDER, GLU, gluLookAt,,AC_MSG_ERROR([cannot find GLU]))
 
 	AC_DEFINE(STARPU_OPENGL_RENDER, [1], [enable OpenGL rendering of some examples])
 fi

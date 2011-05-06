@@ -451,6 +451,9 @@ heat_heat_SOURCES =				\
 	heat/dw_factolu_kernels.c		\
 	common/blas.c
 
+heat_heat_LDADD =				\
+	$(STARPU_OPENGL_RENDER_LDFLAGS)
+
 endif
 
 ##############
