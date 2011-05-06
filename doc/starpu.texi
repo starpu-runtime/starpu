@@ -1473,6 +1473,7 @@ TODO: improve!
 * Task submission::
 * Task priorities::
 * Task scheduling policy::
+* Performance model calibration::
 * Task distribution vs Data transfer::
 * Data prefetch::
 * Power-based scheduling::
@@ -1539,7 +1540,43 @@ you should change the scheduler thanks to the @code{STARPU_SCHED} environment
 variable. For instance @code{export STARPU_SCHED=dmda} . Use @code{help} to get
 the list of available schedulers.
 
-@c TODO: give some details about each scheduler.
+The @b{eager} scheduler uses a central task queue, from which workers draw tasks
+to work on. If a task has a non-0 priority, it is put at the front of the queue.
+
+The @b{prio} scheduler also uses a central task queue, but sorts tasks by
+priority (between -5 and 5).
+
+The @b{random} scheduler distributes tasks randomly according to assumed worker
+overall performance.
+
+The @b{ws} (work stealing) scheduler schedules tasks on the local worker by
+default. When a worker becomes idle, it steals a task from the most loaded
+worker.
+
+The @b{dm} (deque model) scheduler uses task execution performance models into account to
+perform an HEFT-similar scheduling strategy: it schedules tasks where their
+termination time will be minimal.
+
+The @b{dmda} (deque model data aware) scheduler is similar to dm, it also takes
+into account data transfer time.
+
+The @b{dmdar} (deque model data aware ready) scheduler is similar to dmda,
+it also sorts tasks on per-worker queues by number of already-available data
+buffers.
+
+The @b{dmdas} (deque model data aware sorted) scheduler is similar to dmda, it
+also supports arbitrary priority values.
+
+The @b{heft} (HEFT) scheduler is similar to dmda, it also supports task bundles.
+
+The @b{pheft} (parallel HEFT) scheduler is similar to heft, it also supports
+parallel tasks (still experimental).
+
+The @b{pgreedy} (parallel greedy) scheduler is similar to greedy, it also
+supports parallel tasks (still experimental).
+
+@node Performance model calibration
+@section Performance model calibration
 
 Most schedulers are based on an estimation of codelet duration on each kind
 of processing unit. For this to be possible, the application programmer needs
