@@ -71,6 +71,8 @@ pi_pi_redux_SOURCES =				\
 if STARPU_USE_CUDA
 pi_pi_redux_SOURCES +=				\
 	pi/pi_redux_kernel.cu
+pi_pi_redux_LDADD =				\
+	$(STARPU_CURAND_LDFLAGS)
 endif
 
 

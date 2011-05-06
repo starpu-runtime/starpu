@@ -386,6 +386,7 @@ if test x$enable_cuda = xyes; then
 
         if test "$F77" = "gfortran" ; then
             STARPU_CUDA_FORTRAN_LDFLAGS="-lgfortran"
+            AC_SUBST(STARPU_CUDA_FORTRAN_LDFLAGS)
         fi
 
 	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag
@@ -483,7 +484,8 @@ AC_MSG_CHECKING(whether CURAND is available)
 AC_MSG_RESULT($have_curand)
 if test x$have_curand = xyes; then
     AC_DEFINE(STARPU_HAVE_CURAND,[1], [CURAND is available])
-    STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcurand"
+    STARPU_CURAND_LDFLAGS="$STARPU_CURAND_LDFLAGS -lcurand"
+    AC_SUBST(STARPU_CURAND_LDFLAGS)
 fi
 
 # Peer transfers are only supported since CUDA 4.0
