@@ -62,7 +62,7 @@ int main(int argc, char **argv)
         starpu_data_handle data_handles[SIZE][SIZE];
 
 	starpu_init(NULL);
-	starpu_mpi_initialize_extended(1, &rank, &size);
+	starpu_mpi_initialize_extended(&rank, &size);
 
         for(x = 0; x < SIZE; x++) {
                 for (y = 0; y < SIZE; y++) {

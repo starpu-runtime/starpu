@@ -28,7 +28,7 @@ int main(int argc, char **argv)
         starpu_data_handle recv_handle[2];
 
 	starpu_init(NULL);
-	starpu_mpi_initialize_extended(1, &rank, &size);
+	starpu_mpi_initialize_extended(&rank, &size);
 
 	if (size < 2)
 	{

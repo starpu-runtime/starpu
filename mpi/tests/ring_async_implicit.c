@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 #endif
 
 	starpu_init(NULL);
-	starpu_mpi_initialize_extended(1, &rank, &size);
+	starpu_mpi_initialize_extended(&rank, &size);
 
 	if (size < 2)
 	{

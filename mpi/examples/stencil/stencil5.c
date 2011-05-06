@@ -73,7 +73,7 @@ int main(int argc, char **argv)
         starpu_data_handle data_handles[X][Y];
 
 	starpu_init(NULL);
-	starpu_mpi_initialize_extended(1, &rank, &size);
+	starpu_mpi_initialize_extended(&rank, &size);
         parse_args(argc, argv);
 
         for(x = 0; x < X; x++) {

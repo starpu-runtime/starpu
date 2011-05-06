@@ -52,7 +52,7 @@ int main(int argc, char **argv)
         starpu_data_handle data_handles[4];
 
 	starpu_init(NULL);
-	starpu_mpi_initialize_extended(1, &rank, &size);
+	starpu_mpi_initialize_extended(&rank, &size);
 
         if (rank > 1) {
                 starpu_mpi_shutdown();

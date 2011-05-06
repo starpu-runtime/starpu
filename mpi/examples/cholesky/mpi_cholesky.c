@@ -171,7 +171,7 @@ int main(int argc, char **argv)
 	parse_args(argc, argv);
 
 	starpu_init(NULL);
-	starpu_mpi_initialize_extended(1, &rank, &nodes);
+	starpu_mpi_initialize_extended(&rank, &nodes);
 	starpu_helper_cublas_init();
 
 	unsigned i,j,x,y;

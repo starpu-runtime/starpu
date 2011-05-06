@@ -53,7 +53,7 @@ int main(int argc, char **argv)
         starpu_data_handle data_handlesx1;
 
 	starpu_init(NULL);
-	starpu_mpi_initialize_extended(1, &rank, &size);
+	starpu_mpi_initialize_extended(&rank, &size);
 
         if (size != 2) {
 		if (rank == 0) fprintf(stderr, "We need exactly 2 processes.\n");

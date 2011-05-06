@@ -728,13 +728,8 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 #endif
 }
 
-
-int starpu_mpi_initialize(void)
-{
-        return starpu_mpi_initialize_extended(0, NULL, NULL);
-}
-
-int starpu_mpi_initialize_extended(int initialize_mpi, int *rank, int *world_size)
+static
+int _starpu_mpi_initialize(int initialize_mpi, int *rank, int *world_size)
 {
 	PTHREAD_MUTEX_INIT(&mutex, NULL);
 	PTHREAD_COND_INIT(&cond, NULL);
@@ -752,7 +747,7 @@ int starpu_mpi_initialize_extended(int initialize_mpi, int *rank, int *world_siz
 		PTHREAD_COND_WAIT(&cond, &mutex);
 	PTHREAD_MUTEX_UNLOCK(&mutex);
 
-        if (initialize_mpi) {
+        if (rank && world_size) {
                 _STARPU_DEBUG("Calling MPI_Comm_rank\n");
                 MPI_Comm_rank(MPI_COMM_WORLD, rank);
                 MPI_Comm_size(MPI_COMM_WORLD, world_size);
@@ -772,6 +767,16 @@ int starpu_mpi_initialize_extended(int initialize_mpi, int *rank, int *world_siz
 	_starpu_mpi_add_sync_point_in_fxt();
 
 	return 0;
+}
+
+int starpu_mpi_initialize(void)
+{
+        return _starpu_mpi_initialize(0, NULL, NULL);
+}
+
+int starpu_mpi_initialize_extended(int *rank, int *world_size)
+{
+        return _starpu_mpi_initialize(1, rank, world_size);
 }
 
 int starpu_mpi_shutdown(void)
