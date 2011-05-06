@@ -2006,7 +2006,7 @@ int main(int argc, char **argv)
         int tag = loop*size + rank;
 
         if (loop == 0 && rank == 0)
-	@{
+        @{
             token = 0;
             fprintf(stdout, "Start with token value %d\n", token);
         @}
@@ -2019,7 +2019,7 @@ int main(int argc, char **argv)
         increment_token();
 
         if (loop == last_loop && rank == last_rank)
-	@{
+        @{
             starpu_data_acquire(token_handle, STARPU_R);
             fprintf(stdout, "Finished : token value %d\n", token);
             starpu_data_release(token_handle);
