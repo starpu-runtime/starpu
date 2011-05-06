@@ -342,11 +342,6 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio)
 	return push_task_on_best_worker(task, best, best_exp_end, prio);
 }
 
-static int parallel_heft_push_prio_task(struct starpu_task *task)
-{
-	return _parallel_heft_push_task(task, 1);
-}
-
 static int parallel_heft_push_task(struct starpu_task *task)
 {
 	if (task->priority == STARPU_MAX_PRIO)
@@ -423,7 +418,6 @@ struct starpu_sched_policy_s _starpu_sched_parallel_heft_policy = {
 	.init_sched = initialize_parallel_heft_policy,
 	.deinit_sched = NULL,
 	.push_task = parallel_heft_push_task, 
-	.push_prio_task = parallel_heft_push_prio_task, 
 	.pop_task = NULL,
 	.post_exec_hook = parallel_heft_post_exec_hook,
 	.pop_every_task = NULL,

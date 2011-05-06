@@ -234,7 +234,6 @@ struct starpu_sched_policy_s _starpu_sched_pgreedy_policy = {
 	.init_sched = initialize_pgreedy_policy,
 	.deinit_sched = deinitialize_pgreedy_policy,
 	.push_task = push_task_pgreedy_policy,
-	.push_prio_task = push_task_pgreedy_policy,
 	.pop_task = pop_task_pgreedy_policy,
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,

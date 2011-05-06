@@ -286,17 +286,12 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	if (starpu_get_prefetch_flag())
 		starpu_prefetch_task_input_on_node(task, memory_node);
 
-	switch (prio) {
-		case 1:
-			return _starpu_fifo_push_prio_task(queue_array[best_workerid],
-				&sched_mutex[best_workerid], &sched_cond[best_workerid], task);
-		case 2:
-			return _starpu_fifo_push_sorted_task(queue_array[best_workerid],
-				&sched_mutex[best_workerid], &sched_cond[best_workerid], task);
-		default:
-			return _starpu_fifo_push_task(queue_array[best_workerid],
-				&sched_mutex[best_workerid], &sched_cond[best_workerid], task);
-	}
+	if (prio)
+		return _starpu_fifo_push_sorted_task(queue_array[best_workerid],
+			&sched_mutex[best_workerid], &sched_cond[best_workerid], task);
+	else
+		return _starpu_fifo_push_task(queue_array[best_workerid],
+			&sched_mutex[best_workerid], &sched_cond[best_workerid], task);
 }
 
 static int _dm_push_task(struct starpu_task *task, unsigned prio)
@@ -530,32 +525,16 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 
 static int dmda_push_sorted_task(struct starpu_task *task)
 {
-	return _dmda_push_task(task, 2);
-}
-
-static int dm_push_prio_task(struct starpu_task *task)
-{
-	return _dm_push_task(task, 1);
+	return _dmda_push_task(task, 1);
 }
 
 static int dm_push_task(struct starpu_task *task)
 {
-	if (task->priority > 0)
-		return _dm_push_task(task, 1);
-
 	return _dm_push_task(task, 0);
-}
-
-static int dmda_push_prio_task(struct starpu_task *task)
-{
-	return _dmda_push_task(task, 1);
 }
 
 static int dmda_push_task(struct starpu_task *task)
 {
-	if (task->priority > 0)
-		return _dmda_push_task(task, 1);
-
 	return _dmda_push_task(task, 0);
 }
 
@@ -617,7 +596,6 @@ struct starpu_sched_policy_s _starpu_sched_dm_policy = {
 	.init_sched = initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,
 	.push_task = dm_push_task, 
-	.push_prio_task = dm_push_prio_task,
 	.pop_task = dmda_pop_task,
 	.post_exec_hook = NULL,
 	.pop_every_task = dmda_pop_every_task,
@@ -629,7 +607,6 @@ struct starpu_sched_policy_s _starpu_sched_dmda_policy = {
 	.init_sched = initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,
 	.push_task = dmda_push_task, 
-	.push_prio_task = dmda_push_prio_task, 
 	.pop_task = dmda_pop_task,
 	.post_exec_hook = NULL,
 	.pop_every_task = dmda_pop_every_task,
@@ -641,7 +618,6 @@ struct starpu_sched_policy_s _starpu_sched_dmda_sorted_policy = {
 	.init_sched = initialize_dmda_sorted_policy,
 	.deinit_sched = deinitialize_dmda_policy,
 	.push_task = dmda_push_sorted_task, 
-	.push_prio_task = dmda_push_sorted_task, 
 	.pop_task = dmda_pop_ready_task,
 	.post_exec_hook = NULL,
 	.pop_every_task = dmda_pop_every_task,
@@ -653,7 +629,6 @@ struct starpu_sched_policy_s _starpu_sched_dmda_ready_policy = {
 	.init_sched = initialize_dmda_policy,
 	.deinit_sched = deinitialize_dmda_policy,
 	.push_task = dmda_push_task, 
-	.push_prio_task = dmda_push_prio_task, 
 	.pop_task = dmda_pop_ready_task,
 	.post_exec_hook = NULL,
 	.pop_every_task = dmda_pop_every_task,

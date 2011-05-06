@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -46,26 +46,14 @@ void _starpu_destroy_fifo(struct starpu_fifo_taskq_s *fifo)
 	free(fifo);
 }
 
-int _starpu_fifo_push_prio_task(struct starpu_fifo_taskq_s *fifo_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, struct starpu_task *task)
-{
-	PTHREAD_MUTEX_LOCK(sched_mutex);
-
-	STARPU_TRACE_JOB_PUSH(task, 0);
-	starpu_task_list_push_back(&fifo_queue->taskq, task);
-	fifo_queue->ntasks++;
-	fifo_queue->nprocessed++;
-
-	PTHREAD_COND_SIGNAL(sched_cond);
-	PTHREAD_MUTEX_UNLOCK(sched_mutex);
-
-	return 0;
-}
+/* TODO: revert front/back? */
 
 int _starpu_fifo_push_task(struct starpu_fifo_taskq_s *fifo_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, struct starpu_task *task)
 {
 	PTHREAD_MUTEX_LOCK(sched_mutex);
 
 	STARPU_TRACE_JOB_PUSH(task, 0);
+	/* TODO: if prio, put at back */
 	starpu_task_list_push_front(&fifo_queue->taskq, task);
 	fifo_queue->ntasks++;
 	fifo_queue->nprocessed++;

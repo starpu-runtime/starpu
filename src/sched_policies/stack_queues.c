@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -57,27 +57,16 @@ unsigned _starpu_get_stack_nprocessed(struct starpu_stack_jobq_s *stack_queue)
 	return stack_queue->nprocessed;
 }
 
-void _starpu_stack_push_prio_task(struct starpu_stack_jobq_s *stack_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task)
-{
-	PTHREAD_MUTEX_LOCK(sched_mutex);
-	total_number_of_jobs++;
-
-	STARPU_TRACE_JOB_PUSH(task, 0);
-	starpu_job_list_push_back(stack_queue->jobq, task);
-	stack_queue->njobs++;
-	stack_queue->nprocessed++;
-
-	PTHREAD_COND_SIGNAL(sched_cond);
-	PTHREAD_MUTEX_UNLOCK(sched_mutex);
-}
-
 void _starpu_stack_push_task(struct starpu_stack_jobq_s *stack_queue, pthread_mutex_t *sched_mutex, pthread_cond_t *sched_cond, starpu_job_t task)
 {
 	PTHREAD_MUTEX_LOCK(sched_mutex);
 	total_number_of_jobs++;
 
 	STARPU_TRACE_JOB_PUSH(task, 0);
-	starpu_job_list_push_front(stack_queue->jobq, task);
+	if (task->task->priority)
+		starpu_job_list_push_back(stack_queue->jobq, task);
+	else
+		starpu_job_list_push_front(stack_queue->jobq, task);
 	stack_queue->njobs++;
 	stack_queue->nprocessed++;
 

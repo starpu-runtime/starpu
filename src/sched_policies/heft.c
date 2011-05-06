@@ -328,11 +328,6 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 	return push_task_on_best_worker(task, best, model_best, prio);
 }
 
-static int heft_push_prio_task(struct starpu_task *task)
-{
-	return _heft_push_task(task, 1);
-}
-
 static int heft_push_task(struct starpu_task *task)
 {
 	if (task->priority > 0)
@@ -356,7 +351,6 @@ struct starpu_sched_policy_s heft_policy = {
 	.init_sched = heft_init,
 	.deinit_sched = heft_deinit,
 	.push_task = heft_push_task, 
-	.push_prio_task = heft_push_prio_task, 
 	.push_task_notify = heft_push_task_notify,
 	.pop_task = NULL,
 	.pop_every_task = NULL,

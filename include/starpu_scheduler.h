@@ -81,9 +81,6 @@ struct starpu_sched_policy_s {
 	 * scheduling strategy. */
 	void (*push_task_notify)(struct starpu_task *, int workerid);
 
-	/* Insert a priority task into the scheduler. */
-	int (*push_prio_task)(struct starpu_task *);
-
 	/* Get a task from the scheduler. The mutex associated to the worker is
 	 * already taken when this method is called. */
 	struct starpu_task *(*pop_task)(void);

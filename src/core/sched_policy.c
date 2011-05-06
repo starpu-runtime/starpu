@@ -39,7 +39,6 @@ int starpu_get_prefetch_flag(void)
 
 extern struct starpu_sched_policy_s _starpu_sched_ws_policy;
 extern struct starpu_sched_policy_s _starpu_sched_prio_policy;
-extern struct starpu_sched_policy_s _starpu_sched_no_prio_policy;
 extern struct starpu_sched_policy_s _starpu_sched_random_policy;
 extern struct starpu_sched_policy_s _starpu_sched_dm_policy;
 extern struct starpu_sched_policy_s _starpu_sched_dmda_policy;
@@ -55,7 +54,6 @@ extern struct starpu_sched_policy_s heft_policy;
 static struct starpu_sched_policy_s *predefined_policies[NPREDEFINED_POLICIES] = {
 	&_starpu_sched_ws_policy,
 	&_starpu_sched_prio_policy,
-	&_starpu_sched_no_prio_policy,
 	&_starpu_sched_dm_policy,
 	&_starpu_sched_dmda_policy,
 	&heft_policy,
@@ -94,7 +92,6 @@ static void load_sched_policy(struct starpu_sched_policy_s *sched_policy)
 	policy.init_sched = sched_policy->init_sched;
 	policy.deinit_sched = sched_policy->deinit_sched;
 	policy.push_task = sched_policy->push_task;
-	policy.push_prio_task = sched_policy->push_prio_task;
 	policy.pop_task = sched_policy->pop_task;
         policy.post_exec_hook = sched_policy->post_exec_hook;
 	policy.pop_every_task = sched_policy->pop_every_task;
