@@ -135,7 +135,7 @@ STARPU_CHECK_SYNC_SYNCHRONIZE
 
 CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE "
 
-AC_SEARCH_LIBS([set_mempolicy],[numa],[enable_libnuma=yes],[enable_libnuma=no])
+STARPU_SEARCH_LIBS([LIBNUMA],[set_mempolicy],[numa],[enable_libnuma=yes],[enable_libnuma=no])
 AC_MSG_CHECKING(whether libnuma is available)
 AC_MSG_RESULT($enable_libnuma)
 if test x$enable_libnuma = xyes; then
