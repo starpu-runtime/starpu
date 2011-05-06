@@ -313,7 +313,7 @@ AC_DEFUN([STARPU_CHECK_CUDA_RUNTIME],
     if test "$have_valid_cuda" = "yes" ; then
         STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart"
 	# we also check that CUBLAS is available
-	STARPU_HAVE_LIBRARY(CUBLAS,[cublas],[have_valid_cuda=yes],[have_valid_cuda=no])
+	AC_HAVE_LIBRARY([cublas],[have_valid_cuda=yes],[have_valid_cuda=no])
         unset ac_cv_lib_cublas_main
         if test "$have_valid_cuda" = "yes" ; then
             STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcublas"
