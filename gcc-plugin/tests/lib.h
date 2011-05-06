@@ -48,7 +48,7 @@ struct insert_task_argument
    `starpu_insert_task' arguments.  */
 const struct insert_task_argument *expected_insert_task_arguments;
 
-void
+int
 starpu_insert_task (starpu_codelet *cl, ...)
 {
   assert (cl->where == (STARPU_CPU | STARPU_OPENCL));
@@ -107,6 +107,8 @@ starpu_insert_task (starpu_codelet *cl, ...)
   assert (expected->type == 0);
 
   tasks_submitted++;
+
+  return 0;
 }
 
 /* Our own implementation of `starpu_unpack_cl_args', for debugging
