@@ -380,7 +380,8 @@ if test x$enable_cuda = xyes; then
 #		*-*darwin*) AC_HAVE_LIBRARY([stdc++], []) ;;
 #		#*-*darwin*) AC_HAVE_LIBRARY([stdc++], [STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"]) ;;
 #	esac
-	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcuda -lcufft"
+	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcuda"
+	STARPU_CUFFT_LDFLAGS="-lcufft"
 
         if test "$F77" = "gfortran" ; then
             STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lgfortran"
@@ -500,6 +501,7 @@ fi
 if test x$enable_cuda = xyes; then
     STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"
     AC_SUBST(STARPU_CUDA_LDFLAGS)
+    AC_SUBST(STARPU_CUFFT_LDFLAGS)
     AC_SUBST(STARPU_CUDA_CPPFLAGS)
 fi
 
