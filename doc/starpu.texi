@@ -1988,7 +1988,7 @@ int main(int argc, char **argv)
     int rank, size;
 
     starpu_init(NULL);
-    starpu_mpi_initialize_extended(1, &rank, &size);
+    starpu_mpi_initialize_extended(&rank, &size);
 
     starpu_vector_data_register(&token_handle, 0, (uintptr_t)&token, 1, sizeof(unsigned));
 
