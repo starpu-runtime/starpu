@@ -306,6 +306,9 @@ axpy_axpy_SOURCES =				\
 	axpy/axpy.c				\
 	common/blas.c
 
+axpy_axpy_LDADD =				\
+	$(STARPU_BLAS_LDFLAGS)
+
 endif
 
 ################
@@ -326,9 +329,15 @@ mult_sgemm_SOURCES = 				\
 	mult/sgemm.c				\
 	common/blas.c
 
+mult_sgemm_LDADD =				\
+	$(STARPU_BLAS_LDFLAGS)
+
 mult_dgemm_SOURCES = 				\
 	mult/dgemm.c				\
 	common/blas.c
+
+mult_dgemm_LDADD =				\
+	$(STARPU_BLAS_LDFLAGS)
 
 endif
 
@@ -356,11 +365,17 @@ cholesky_cholesky_tag_SOURCES =			\
 	cholesky/cholesky_kernels.c		\
 	common/blas.c
 
+cholesky_cholesky_tag_LDADD =			\
+	$(STARPU_BLAS_LDFLAGS)
+
 cholesky_cholesky_tile_tag_SOURCES =		\
 	cholesky/cholesky_tile_tag.c		\
 	cholesky/cholesky_models.c		\
 	cholesky/cholesky_kernels.c		\
 	common/blas.c
+
+cholesky_cholesky_tile_tag_LDADD =		\
+	$(STARPU_BLAS_LDFLAGS)
 
 cholesky_cholesky_grain_tag_SOURCES =		\
 	cholesky/cholesky_grain_tag.c		\
@@ -368,11 +383,17 @@ cholesky_cholesky_grain_tag_SOURCES =		\
 	cholesky/cholesky_kernels.c		\
 	common/blas.c
 
+cholesky_cholesky_grain_tag_LDADD =		\
+	$(STARPU_BLAS_LDFLAGS)
+
 cholesky_cholesky_implicit_SOURCES =		\
 	cholesky/cholesky_implicit.c		\
 	cholesky/cholesky_models.c		\
 	cholesky/cholesky_kernels.c		\
 	common/blas.c
+
+cholesky_cholesky_implicit_LDADD =		\
+	$(STARPU_BLAS_LDFLAGS)
 
 endif
 
@@ -397,12 +418,18 @@ lu_lu_example_float_SOURCES =			\
 	lu/slu_kernels.c			\
 	common/blas.c
 
+lu_lu_example_float_LDADD =			\
+	$(STARPU_BLAS_LDFLAGS)
+
 lu_lu_example_double_SOURCES =			\
 	lu/lu_example_double.c			\
 	lu/dlu.c				\
 	lu/dlu_pivot.c				\
 	lu/dlu_kernels.c			\
 	common/blas.c
+
+lu_lu_example_double_LDADD =			\
+	$(STARPU_BLAS_LDFLAGS)
 
 check_PROGRAMS += 				\
 	lu/lu_implicit_example_float		\
@@ -419,6 +446,9 @@ lu_lu_implicit_example_float_SOURCES =		\
 	lu/slu_kernels.c			\
 	common/blas.c
 
+lu_lu_implicit_example_float_LDADD =		\
+	$(STARPU_BLAS_LDFLAGS)
+
 lu_lu_implicit_example_double_SOURCES =		\
 	lu/lu_example_double.c			\
 	lu/dlu_implicit.c			\
@@ -426,6 +456,8 @@ lu_lu_implicit_example_double_SOURCES =		\
 	lu/dlu_kernels.c			\
 	common/blas.c
 
+lu_lu_implicit_example_double_LDADD =		\
+	$(STARPU_BLAS_LDFLAGS)
 endif
 
 
@@ -452,7 +484,8 @@ heat_heat_SOURCES =				\
 	common/blas.c
 
 heat_heat_LDADD =				\
-	$(STARPU_OPENGL_RENDER_LDFLAGS)
+	$(STARPU_OPENGL_RENDER_LDFLAGS)		\
+	$(STARPU_BLAS_LDFLAGS)
 
 endif
 
@@ -475,6 +508,9 @@ if STARPU_USE_CUDA
 cg_cg_SOURCES +=				\
 	cg/cg_dot_kernel.cu
 endif
+
+cg_cg_LDADD =					\
+	$(STARPU_BLAS_LDFLAGS)
 
 endif
 
@@ -539,6 +575,9 @@ spmv_dw_block_spmv_SOURCES =			\
 	spmv/dw_block_spmv_kernels.c		\
 	spmv/matrix_market/mm_to_bcsr.c		\
 	spmv/matrix_market/mmio.c
+
+spmv_dw_block_spmv_LDADD =			\
+	$(STARPU_BLAS_LDFLAGS)
 endif
 
 ####################

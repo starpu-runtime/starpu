@@ -102,7 +102,8 @@ examplebin_PROGRAMS += 				\
 
 examples_mpi_lu_plu_example_float_LDADD =	\
 	libstarpumpi.la				\
-	$(STARPU_LIBNUMA_LDFLAGS)
+	$(STARPU_LIBNUMA_LDFLAGS)		\
+	$(STARPU_BLAS_LDFLAGS)
 
 examples_mpi_lu_plu_example_float_SOURCES =	\
 	examples/mpi_lu/plu_example_float.c	\
@@ -113,7 +114,8 @@ examples_mpi_lu_plu_example_float_SOURCES =	\
 
 examples_mpi_lu_plu_example_double_LDADD =	\
 	libstarpumpi.la				\
-	$(STARPU_LIBNUMA_LDFLAGS)
+	$(STARPU_LIBNUMA_LDFLAGS)		\
+	$(STARPU_BLAS_LDFLAGS)
 
 examples_mpi_lu_plu_example_double_SOURCES =	\
 	examples/mpi_lu/plu_example_double.c	\
@@ -137,8 +139,9 @@ examples_cholesky_mpi_cholesky_SOURCES	=		\
 	examples/cholesky/mpi_cholesky_kernels.c	\
 	$(top_srcdir)/examples/common/blas.c
 
-examples_cholesky_mpi_cholesky_LDADD =	\
-	libstarpumpi.la
+examples_cholesky_mpi_cholesky_LDADD =			\
+	libstarpumpi.la					\
+	$(STARPU_BLAS_LDFLAGS)
 endif
 
 check_PROGRAMS +=					\

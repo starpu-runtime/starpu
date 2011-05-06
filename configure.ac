@@ -313,7 +313,7 @@ AC_DEFUN([STARPU_CHECK_CUDA_RUNTIME],
     if test "$have_valid_cuda" = "yes" ; then
         STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart"
 	# we also check that CUBLAS is available
-	AC_HAVE_LIBRARY([cublas],[have_valid_cuda=yes],[have_valid_cuda=no])
+	STARPU_HAVE_LIBRARY(CUBLAS,[cublas],[have_valid_cuda=yes],[have_valid_cuda=no])
         unset ac_cv_lib_cublas_main
         if test "$have_valid_cuda" = "yes" ; then
             STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcublas"
@@ -427,8 +427,8 @@ if test x$enable_cuda = xyes; then
 		if test -d "$magma_dir/lib/"; then
 			LDFLAGS="${SAVED_LDFLAGS} -L$magma_dir/lib/ "
 			have_valid_magma=yes
-			AC_CHECK_LIB(magmablas, main,,[have_valid_magma=no])
-			AC_CHECK_LIB(magma, magmablas_sgemm,,[have_valid_magma=no])
+			STARPU_CHECK_LIB(BLAS, magmablas, main,,[have_valid_magma=no])
+			STARPU_CHECK_LIB(BLAS, magma, magmablas_sgemm,,[have_valid_magma=no])
 		fi
 
 		if test -d "$magma_dir/include/"; then
@@ -1154,11 +1154,11 @@ AC_ARG_WITH(goto-dir, [AS_HELP_STRING([--with-goto-dir=<dir>], [specify GotoBLAS
 	)
 
 if test x$blas_lib = xgoto; then
-AC_CHECK_LIB(gfortran, main,,)
+STARPU_CHECK_LIB(BLAS, gfortran, main,,)
 # Perhaps that GotoBLAS2 is available instead (so that we have libgotoblas2.{so,a})
-AC_CHECK_LIB(goto2, sgemm_,, [havegoto2=no])
+STARPU_CHECK_LIB(BLAS, goto2, sgemm_,, [havegoto2=no])
 if test x$havegoto2 = xno; then
-AC_CHECK_LIB(goto, sgemm_,,AC_MSG_ERROR([cannot find goto lib]))
+STARPU_CHECK_LIB(BLAS, goto, sgemm_,,AC_MSG_ERROR([cannot find goto lib]))
 fi
 AC_DEFINE(STARPU_GOTO, [1], [use STARPU_GOTO library])
 fi
@@ -1182,8 +1182,8 @@ AC_ARG_WITH(atlas-dir, [AS_HELP_STRING([--with-atlas-dir=<dir>], [specify ATLAS 
 if test x$blas_lib = xatlas; then
 # test whether STARPU_ATLAS is actually available
 AC_CHECK_HEADER([cblas.h],,AC_MSG_ERROR([cannot find atlas headers]))
-AC_CHECK_LIB(atlas, ATL_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),)
-AC_CHECK_LIB(cblas, cblas_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),[-latlas])
+STARPU_CHECK_LIB(BLAS, atlas, ATL_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),)
+STARPU_CHECK_LIB(BLAS, cblas, cblas_sgemm,,AC_MSG_ERROR([cannot find atlas lib]),[-latlas])
 AC_DEFINE(STARPU_ATLAS, [1], [use STARPU_ATLAS library])
 fi
 
@@ -1210,7 +1210,7 @@ fi
 if test x$blas_lib = xmaybe; then
      #perhaps it is possible to use some BLAS lib from the system
      use_system_blas=no
-     AC_SEARCH_LIBS([sgemm_],[blas],use_system_blas=yes,,)
+     STARPU_SEARCH_LIBS(BLAS,[sgemm_],[blas],use_system_blas=yes,,)
      if test x$use_system_blas = xyes; then
         AC_DEFINE(STARPU_SYSTEM_BLAS, [1], [use refblas library])
 	blas_lib=system
