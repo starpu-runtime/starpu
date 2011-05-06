@@ -320,28 +320,40 @@ void _starpu_opencl_init(void)
                 {
                         for (i=0; i<nb_platforms; i++) {
                                 cl_uint num;
+				int platform_valid = 1;
+				char name[1024], vendor[1024];
 
+				err = clGetPlatformInfo(platform_id[i], CL_PLATFORM_NAME, 1024, name, NULL);
+				if (err != CL_SUCCESS) {
+					STARPU_OPENCL_REPORT_ERROR_WITH_MSG("clGetPlatformInfo NAME", err);
+					platform_valid = 0;
+				}
+				else {
+					err = clGetPlatformInfo(platform_id[i], CL_PLATFORM_VENDOR, 1024, vendor, NULL);
+					if (err != CL_SUCCESS) {
+						STARPU_OPENCL_REPORT_ERROR_WITH_MSG("clGetPlatformInfo VENDOR", err);
+						platform_valid = 0;
+					}
+				}
 #ifdef STARPU_VERBOSE
-                                {
-                                        char name[1024], vendor[1024];
-                                        err = clGetPlatformInfo(platform_id[i], CL_PLATFORM_NAME, 1024, name, NULL);
-                                        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-                                        err = clGetPlatformInfo(platform_id[i], CL_PLATFORM_VENDOR, 1024, vendor, NULL);
-                                        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-                                        _STARPU_DEBUG("Platform: %s - %s\n", name, vendor);
-                                }
+				if (platform_valid)
+					_STARPU_DEBUG("Platform: %s - %s\n", name, vendor);
+				else
+					_STARPU_DEBUG("Platform invalid\n");
 #endif
-                                err = clGetDeviceIDs(platform_id[i], device_type, STARPU_MAXOPENCLDEVS-nb_devices, &devices[nb_devices], &num);
-                                if (err == CL_DEVICE_NOT_FOUND) {
-                                        _STARPU_DEBUG("  No devices detected on this platform\n");
-                                }
-                                else {
-                                        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-                                        _STARPU_DEBUG("  %d devices detected\n", num);
-                                        nb_devices += num;
-                                }
-                        }
-                }
+				if (platform_valid) {
+					err = clGetDeviceIDs(platform_id[i], device_type, STARPU_MAXOPENCLDEVS-nb_devices, &devices[nb_devices], &num);
+					if (err == CL_DEVICE_NOT_FOUND) {
+						_STARPU_DEBUG("  No devices detected on this platform\n");
+					}
+					else {
+						if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+						_STARPU_DEBUG("  %d devices detected\n", num);
+						nb_devices += num;
+					}
+				}
+			}
+		}
 
                 // Get location of OpenCl kernel source files
                 _starpu_opencl_program_dir = getenv("STARPU_OPENCL_PROGRAM_DIR");

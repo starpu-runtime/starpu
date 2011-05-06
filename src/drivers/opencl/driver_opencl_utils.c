@@ -251,7 +251,7 @@ int starpu_opencl_collect_stats(cl_event event __attribute__((unused)))
 	return 0;
 }
 
-void starpu_opencl_display_error(const char *func, cl_int status)
+void starpu_opencl_display_error(const char *func, const char* msg, cl_int status)
 {
 	const char *errormsg;
 	switch (status) {
@@ -397,5 +397,9 @@ void starpu_opencl_display_error(const char *func, cl_int status)
 		errormsg = "unknown error";
 		break;
 	}
-	printf("oops in %s ... <%s> (%d) \n", func, errormsg, status);
+	if (msg)
+		printf("oops in %s (%s) ... <%s> (%d) \n", func, msg, errormsg, status);
+	else
+		printf("oops in %s ... <%s> (%d) \n", func, errormsg, status);
+
 }
