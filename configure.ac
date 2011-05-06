@@ -1325,3 +1325,23 @@ AC_OUTPUT([
 	mpi/Makefile
 ])
 
+AC_MSG_NOTICE([
+
+	CPUs   enabled: $enable_cpu
+	CUDA   enabled: $enable_cuda
+	OpenCL enabled: $enable_opencl
+	Cell   enabled: $enable_gordon
+
+	Maximum number of CPUs:           $nmaxcpus
+	Maximum number of CUDA devices:   $nmaxcudadev
+	Maximum number of OpenCL devices: $nmaxopencldev
+
+	GPU-GPU transfers: $have_cuda_memcpy_peer
+
+	MPI enabled:   $use_mpi
+	Magma enabled: $enable_magma
+	BLAS library:  $blas_lib
+	hwloc:         $have_valid_hwloc
+
+	Tracing enabled: $use_fxt
+])
