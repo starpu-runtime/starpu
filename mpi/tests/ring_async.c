@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -88,33 +88,31 @@ int main(int argc, char **argv)
 	{
 		int tag = loop*size + rank;
 
-		if (!((loop == 0) && (rank == 0)))
+		if (loop == 0 && rank == 0)
 		{
 			token = 0;
+			fprintf(stdout, "Start with token value %d\n", token);
+		}
+		else {
 			MPI_Status status;
 			starpu_mpi_req req;
 			starpu_mpi_irecv(token_handle, &req, (rank+size-1)%size, tag, MPI_COMM_WORLD);
 			starpu_mpi_wait(&req, &status);
 		}
-		else {
-			token = 0;
-			fprintf(stdout, "Start with token value %d\n", token);
-		}
 
 		increment_token();
-		
-		if (!((loop == last_loop) && (rank == last_rank)))
+
+		if (loop == last_loop && rank == last_rank)
 		{
+			starpu_data_acquire(token_handle, STARPU_R);
+			fprintf(stdout, "Finished : token value %d\n", token);
+			starpu_data_release(token_handle);
+		}
+		else {
 			starpu_mpi_req req;
 			MPI_Status status;
 			starpu_mpi_isend(token_handle, &req, (rank+1)%size, tag+1, MPI_COMM_WORLD);
 			starpu_mpi_wait(&req, &status);
-		}
-		else {
-
-			starpu_data_acquire(token_handle, STARPU_R);
-			fprintf(stdout, "Finished : token value %d\n", token);
-			starpu_data_release(token_handle);
 		}
 	}
 
