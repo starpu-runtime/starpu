@@ -1879,7 +1879,10 @@ CPUs.
 
 The integration of MPI transfers within task parallelism is done in a
 very natural way by the means of asynchronous interactions between the
-application and StarPU.
+application and StarPU.  This is implemented in a separate libstarpumpi library
+which basically provides "StarPU" equivalents of @code{MPI_*} functions, where
+@code{void *} buffers are replaced with @code{starpu_data_handle}s, and all
+GPU-RAM-NIC transfers are handled efficiently by StarPU-MPI.
 
 @menu
 * The API::                     
@@ -1893,26 +1896,34 @@ application and StarPU.
 @subsection Initialisation
 
 @deftypefun int starpu_mpi_initialize (void)
+Initialize the starpumpi library. This must be called between calling
+@code{starpu_init} and other @code{starpu_mpi} functions. This replace calls to
+MPI_Init.
 @end deftypefun
 
 @deftypefun int starpu_mpi_initialize_extended (int @var{initialize_mpi}, int *@var{rank}, int *@var{world_size})
+Same as @code{starpu_mpi_initialize}, except that it returns the current MPI
+node rank and world size.
 @end deftypefun
 
 @deftypefun int starpu_mpi_shutdown (void)
+Cleans the starpumpi library. This must be called between calling
+@code{starpu_mpi} functions and @code{starpu_shutdown}.
 @end deftypefun
 
 @subsection Communication
-
-@deftypefun int starpu_mpi_isend (starpu_data_handle @var{data_handle}, starpu_mpi_req *@var{req}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm})
-@end deftypefun
-
-@deftypefun int starpu_mpi_irecv (starpu_data_handle @var{data_handle}, starpu_mpi_req *@var{req}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm})
-@end deftypefun
 
 @deftypefun int starpu_mpi_send (starpu_data_handle @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm})
 @end deftypefun
 
 @deftypefun int starpu_mpi_recv (starpu_data_handle @var{data_handle}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm}, MPI_Status *@var{status})
+@end deftypefun
+
+@deftypefun int starpu_mpi_isend (starpu_data_handle @var{data_handle}, starpu_mpi_req *@var{req}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm})
+
+@end deftypefun
+
+@deftypefun int starpu_mpi_irecv (starpu_data_handle @var{data_handle}, starpu_mpi_req *@var{req}, int @var{source}, int @var{mpi_tag}, MPI_Comm @var{comm})
 @end deftypefun
 
 @deftypefun int starpu_mpi_isend_detached (starpu_data_handle @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm}, void (*@var{callback})(void *), void *@var{arg})
