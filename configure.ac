@@ -55,6 +55,7 @@ AM_CONDITIONAL([STARPU_HAVE_WINDOWS], [test "x$starpu_windows" = "xyes"])
 
 # on Darwin, GCC targets i386 by default, so we don't have atomic ops
 AC_CHECK_SIZEOF([void *])
+SIZEOF_VOID_P=$ac_cv_sizeof_void_p
 if test x$SIZEOF_VOID_P = x4; then
 	case "$target" in
 	i386-*darwin*) CFLAGS+=" -march=i686 " ;;
@@ -388,7 +389,6 @@ if test x$enable_cuda = xyes; then
         fi
 
 	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag
-	AC_CHECK_SIZEOF([void *])
 	if test x$SIZEOF_VOID_P = x8; then
 		NVCCFLAGS="${NVCCFLAGS} -m64"
 		AC_SUBST(NVCCFLAGS)
