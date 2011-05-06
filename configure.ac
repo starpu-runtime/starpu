@@ -1332,11 +1332,16 @@ AC_MSG_NOTICE([
 	OpenCL enabled: $enable_opencl
 	Cell   enabled: $enable_gordon
 
+	GCC plugin: $build_gcc_plugin
+
 	Maximum number of CPUs:           $nmaxcpus
 	Maximum number of CUDA devices:   $nmaxcudadev
 	Maximum number of OpenCL devices: $nmaxopencldev
+	Maximum number of memory nodes:   $maxnodes
+	Maximum number of task buffers:   $nmaxbuffers
 
 	GPU-GPU transfers: $have_cuda_memcpy_peer
+	Allocation cache:  $enable_allocation_cache
 
 	MPI enabled:   $use_mpi
 	Magma enabled: $enable_magma
