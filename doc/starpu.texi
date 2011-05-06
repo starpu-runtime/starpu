@@ -3004,10 +3004,10 @@ identifier is unspecified.
 
 @deftypefun void starpu_worker_get_name (int @var{id}, char *@var{dst}, size_t @var{maxlen})
 StarPU associates a unique human readable string to each processing unit. This
-function copies at most the @code{maxlen} first bytes of the unique string
-associated to a worker identified by its identifier @code{id} into the
-@code{dst} buffer. The caller is responsible for ensuring that the @code{dst}
-is a valid pointer to a buffer of @code{maxlen} bytes at least. Calling this
+function copies at most the @var{maxlen} first bytes of the unique string
+associated to a worker identified by its identifier @var{id} into the
+@var{dst} buffer. The caller is responsible for ensuring that the @var{dst}
+is a valid pointer to a buffer of @var{maxlen} bytes at least. Calling this
 function on an invalid identifier results in an unspecified behaviour.
 @end deftypefun
 
@@ -3015,7 +3015,7 @@ function on an invalid identifier results in an unspecified behaviour.
 @subsection @code{starpu_worker_get_memory_node} -- Get the memory node of a worker
 @deftypefun unsigned starpu_worker_get_memory_node (unsigned @var{workerid})
 This function returns the identifier of the memory node associated to the
-worker identified by @code{workerid}.
+worker identified by @var{workerid}.
 @end deftypefun
 
 
@@ -3116,9 +3116,9 @@ the data that is accessible from the current processing unit.
 @node starpu_data_register
 @subsection @code{starpu_data_register} -- Register a piece of data to StarPU
 @deftypefun void starpu_data_register (starpu_data_handle *@var{handleptr}, uint32_t @var{home_node}, void *@var{interface}, {struct starpu_data_interface_ops_t} *@var{ops})
-Register a piece of data into the handle located at the @code{handleptr}
-address. The @code{interface} buffer contains the initial description of the
-data in the home node. The @code{ops} argument is a pointer to a structure
+Register a piece of data into the handle located at the @var{handleptr}
+address. The @var{interface} buffer contains the initial description of the
+data in the home node. The @var{ops} argument is a pointer to a structure
 describing the different methods used to manipulate this type of interface. See
 @ref{struct starpu_data_interface_ops_t} for more details on this structure.
 
@@ -3160,7 +3160,7 @@ The application must call this function prior to accessing registered data from
 main memory outside tasks. StarPU ensures that the application will get an
 up-to-date copy of the data in main memory located where the data was
 originally registered, and that all concurrent accesses (e.g. from tasks) will
-be consistent with the access mode specified in the @code{mode} argument.
+be consistent with the access mode specified in the @var{mode} argument.
 @code{starpu_data_release} must be called once the application does not need to
 access the piece of data anymore.  Note that implicit data
 dependencies are also enforced by @code{starpu_data_acquire}, i.e.
@@ -3209,7 +3209,7 @@ nodes where the data should be always replicated after modification.
 @deftypefun int starpu_data_prefetch_on_node (starpu_data_handle @var{handle}, unsigned @var{node}, unsigned @var{async})
 Issue a prefetch request for a given data to a given node, i.e.
 requests that the data be replicated to the given node, so that it is available
-there for tasks. If the @code{async} parameter is 0, the call will block until
+there for tasks. If the @var{async} parameter is 0, the call will block until
 the transfer is achieved, else the call will return as soon as the request is
 scheduled (which may however have to wait for a task completion).
 @end deftypefun
@@ -3508,11 +3508,11 @@ This partitions a vector into blocks of the same size.
 
 
 @deftypefun void starpu_vector_list_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a vector into blocks of sizes given in @code{filter_arg_ptr}.
+This partitions a vector into blocks of sizes given in @var{filter_arg_ptr}.
 @end deftypefun
 
 @deftypefun void starpu_vector_divide_in_2_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a vector into two blocks, the first block size being given in @code{filter_arg}.
+This partitions a vector into two blocks, the first block size being given in @var{filter_arg}.
 @end deftypefun
 
 
@@ -3791,13 +3791,13 @@ Output on @code{stderr} some statistics on the codelet @var{cl}.
 @node starpu_task_declare_deps_array
 @subsection @code{starpu_task_declare_deps_array} -- Declare task dependencies
 @deftypefun void starpu_task_declare_deps_array ({struct starpu_task} *@var{task}, unsigned @var{ndeps}, {struct starpu_task} *@var{task_array}[])
-Declare task dependencies between a @code{task} and an array of tasks of length
-@code{ndeps}. This function must be called prior to the submission of the task,
+Declare task dependencies between a @var{task} and an array of tasks of length
+@var{ndeps}. This function must be called prior to the submission of the task,
 but it may called after the submission or the execution of the tasks in the
 array provided the tasks are still valid (ie. they were not automatically
 destroyed). Calling this function on a task that was already submitted or with
-an entry of @code{task_array} that is not a valid task anymore results in an
-undefined behaviour. If @code{ndeps} is null, no dependency is added. It is
+an entry of @var{task_array} that is not a valid task anymore results in an
+undefined behaviour. If @var{ndeps} is null, no dependency is added. It is
 possible to call @code{starpu_task_declare_deps_array} multiple times on the
 same task, in this case, the dependencies are added. It is possible to have
 redundancy in the task dependencies.
@@ -3876,7 +3876,7 @@ starpu_tag_declare_deps_array((starpu_tag_t)0x1, 2, tag_array);
 @node starpu_tag_wait
 @subsection @code{starpu_tag_wait} -- Block until a Tag is terminated
 @deftypefun void starpu_tag_wait (starpu_tag_t @var{id})
-This function blocks until the task associated to tag @code{id} has been
+This function blocks until the task associated to tag @var{id} has been
 executed. This is a blocking call which must therefore not be called within
 tasks or callbacks, but only from the application directly.  It is possible to
 synchronize with the same tag multiple times, as long as the
@@ -3890,14 +3890,14 @@ data structure was freed (e.g. if the @code{destroy} flag of the
 @subsection @code{starpu_tag_wait_array} -- Block until a set of Tags is terminated
 @deftypefun void starpu_tag_wait_array (unsigned @var{ntags}, starpu_tag_t *@var{id})
 This function is similar to @code{starpu_tag_wait} except that it blocks until
-@emph{all} the @code{ntags} tags contained in the @code{id} array are
+@emph{all} the @var{ntags} tags contained in the @var{id} array are
 terminated.
 @end deftypefun
 
 @node starpu_tag_remove
 @subsection @code{starpu_tag_remove} -- Destroy a Tag
 @deftypefun void starpu_tag_remove (starpu_tag_t @var{id})
-This function releases the resources associated to tag @code{id}. It can be
+This function releases the resources associated to tag @var{id}. It can be
 called once the corresponding task has been executed and when there is
 no other tag that depend on this tag anymore.
 @end deftypefun
@@ -3905,7 +3905,7 @@ no other tag that depend on this tag anymore.
 @node starpu_tag_notify_from_apps
 @subsection @code{starpu_tag_notify_from_apps} -- Feed a Tag explicitly
 @deftypefun void starpu_tag_notify_from_apps (starpu_tag_t @var{id})
-This function explicitly unlocks tag @code{id}. It may be useful in the
+This function explicitly unlocks tag @var{id}. It may be useful in the
 case of applications which execute part of their computation outside StarPU
 tasks (e.g. third-party libraries).  It is also provided as a
 convenient tool for the programmer, for instance to entirely construct the task
@@ -4320,14 +4320,14 @@ nothing yet.
 @node starpu_data_cpy
 @subsection @code{starpu_data_cpy} -- Copy a data handle into another data handle
 @deftypefun int starpu_data_cpy (starpu_data_handle @var{dst_handle}, starpu_data_handle @var{src_handle}, int @var{asynchronous}, void (*@var{callback_func})(void*), void *@var{callback_arg})
-Copy the content of the @code{src_handle} into the @code{dst_handle} handle.
-The @code{asynchronous} parameter indicates whether the function should 
+Copy the content of the @var{src_handle} into the @var{dst_handle} handle.
+The @var{asynchronous} parameter indicates whether the function should 
 block or not. In the case of an asynchronous call, it is possible to
 synchronize with the termination of this operation either by the means of
 implicit dependencies (if enabled) or by calling
-@code{starpu_task_wait_for_all()}. If @code{callback_func} is not @code{NULL},
+@code{starpu_task_wait_for_all()}. If @var{callback_func} is not @code{NULL},
 this callback function is executed after the handle has been copied, and it is
-given the @code{callback_arg} pointer as argument.
+given the @var{callback_arg} pointer as argument.
 @end deftypefun
 
 
@@ -4339,7 +4339,7 @@ When calling this method, the offloaded function specified by the first argument
 executed by every StarPU worker that may execute the function.
 The second argument is passed to the offloaded function.
 The last argument specifies on which types of processing units the function
-should be executed. Similarly to the @code{where} field of the
+should be executed. Similarly to the @var{where} field of the
 @code{starpu_codelet} structure, it is possible to specify that the function
 should be executed on every CUDA device and every CPU by passing
 @code{STARPU_CPU|STARPU_CUDA}.
