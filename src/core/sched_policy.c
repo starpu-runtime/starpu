@@ -49,7 +49,7 @@ extern struct starpu_sched_policy_s _starpu_sched_parallel_heft_policy;
 extern struct starpu_sched_policy_s _starpu_sched_pgreedy_policy;
 extern struct starpu_sched_policy_s heft_policy;
 
-#define NPREDEFINED_POLICIES	12
+#define NPREDEFINED_POLICIES	11
 
 static struct starpu_sched_policy_s *predefined_policies[NPREDEFINED_POLICIES] = {
 	&_starpu_sched_ws_policy,
