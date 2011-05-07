@@ -49,9 +49,7 @@ extern struct starpu_sched_policy_s _starpu_sched_parallel_heft_policy;
 extern struct starpu_sched_policy_s _starpu_sched_pgreedy_policy;
 extern struct starpu_sched_policy_s heft_policy;
 
-#define NPREDEFINED_POLICIES	11
-
-static struct starpu_sched_policy_s *predefined_policies[NPREDEFINED_POLICIES] = {
+static struct starpu_sched_policy_s *predefined_policies[] = {
 	&_starpu_sched_ws_policy,
 	&_starpu_sched_prio_policy,
 	&_starpu_sched_dm_policy,
@@ -104,7 +102,7 @@ static struct starpu_sched_policy_s *find_sched_policy_from_name(const char *pol
 		return NULL;
 
 	unsigned i;
-	for (i = 0; i < NPREDEFINED_POLICIES; i++)
+	for (i = 0; i < sizeof(predefined_policies)/sizeof(predefined_policies[0]); i++)
 	{
 		struct starpu_sched_policy_s *p;
 		p = predefined_policies[i];
@@ -130,7 +128,7 @@ static void display_sched_help_message(void)
 
 		/* display the description of all predefined policies */
 		unsigned i;
-		for (i = 0; i < NPREDEFINED_POLICIES; i++)
+		for (i = 0; i < sizeof(predefined_policies)/sizeof(predefined_policies[0]); i++)
 		{
 			struct starpu_sched_policy_s *p;
 			p = predefined_policies[i];
