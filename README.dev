@@ -1,19 +1,19 @@
 Installing StarPU on windows
 ----------------------------
 
-1. Install cygwin 
+1. Install cygwin
 
 http://cygwin.com/install.html
 
 Make sure the following packages are available:
-- subversion
-- libtool
-- gcc
-- make
+- (Devel)/subversion
+- (Devel)/libtool
+- (Devel)/gcc
+- (Devel)/make
 - your favorite editor (vi, emacs, ...)
-- gdb
-- zip
-- pkg-config
+- (Devel)/gdb
+- (Archive)/zip
+- (Devel)/pkg-config
 
 2. Install mingw
 
@@ -32,15 +32,15 @@ http://www.open-mpi.org/projects/hwloc
     version and on 64 and 32bit Windows versions)
 
    On cygwin, with Visual C++ 2010 e.g.;
-   
+
    export PATH="/cygdrive/c/Program Files (x86)/Microsoft Visual Studio 10.0/Common7/IDE":$PATH
    export PATH="/cygdrive/c/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin":$PATH
-   
+
    On MingW, with Visual C++ 2010, e.g.;
-   
+
    export PATH="/c/Program Files (x86)/Microsoft Visual Studio 10.0/Common7/IDE":$PATH
    export PATH="/c/Program Files (x86)/Microsoft Visual Studio 10.0/VC/bin":$PATH
-   
+
    Try to call <lib.exe> and <link.exe> without any option to make sure these
    dump their help output, else no .def or .lib file will be produced.
 
@@ -149,9 +149,9 @@ makes
   linking fail completely. Replace the first occurence of
 
     #define CUDARTAPI
-    
+
   with
-    
+
     #ifdef _WIN32
     #define CUDARTAPI __stdcall
     #else
