@@ -6,7 +6,7 @@ Installing StarPU on windows
 http://cygwin.com/install.html
 
 Make sure the following packages are available:
-- svn
+- subversion
 - libtool
 - gcc
 - make
