@@ -112,11 +112,11 @@ http://www.open-mpi.org/projects/hwloc
    cd starpu-trunk
    mkdir build
    cd build
-   ../configure --prefix=$PWD/target --disable-default-drand48
+   ../configure --prefix=$PWD/target --disable-default-drand48 \
         --with-hwloc=<HWLOC installation directory> \
         --with-cuda-dir=<CUDA installation directory> \
         --with-cuda-lib-dir=<CUDA installation directory>/lib/Win32 \
-        --enable-opencl
+	--with-opencl-dir=<CUDA installation directory>
    make
    make install
 
