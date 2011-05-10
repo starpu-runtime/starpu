@@ -404,7 +404,7 @@ static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_h
 static void benchmark_all_gpu_devices(void)
 {
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-	int i, ret;
+	int i;
 
 	_STARPU_DEBUG("Benchmarking the speed of the bus\n");
 
@@ -417,6 +417,7 @@ static void benchmark_all_gpu_devices(void)
 #ifdef __linux__
 	/* Save the current cpu binding */
 	cpu_set_t former_process_affinity;
+	int ret;
 	ret = sched_getaffinity(0, sizeof(former_process_affinity), &former_process_affinity);
 	if (ret)
 	{
