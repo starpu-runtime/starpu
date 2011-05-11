@@ -425,9 +425,7 @@ static void benchmark_all_gpu_devices(void)
 		STARPU_ABORT();
 	}
 #else
-#ifdef STARPU_DEVEL
 #warning Missing binding support, StarPU will not be able to properly benchmark NUMA topology
-#endif
 #endif
 
 	struct starpu_machine_config_s *config = _starpu_get_machine_config();
