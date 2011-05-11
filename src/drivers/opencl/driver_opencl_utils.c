@@ -393,6 +393,11 @@ void starpu_opencl_display_error(const char *func, const char* msg, cl_int statu
 	case CL_INVALID_MIP_LEVEL:
 		errormsg = "Invalid MIP level";
 		break;
+#ifdef CL_PLATFORM_NOT_FOUND_KHR
+	case CL_PLATFORM_NOT_FOUND_KHR:
+		errormsg = "Platform not found";
+		break;
+#endif
 	default:
 		errormsg = "unknown error";
 		break;
