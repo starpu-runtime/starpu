@@ -29,6 +29,10 @@
 #include "driver_opencl_utils.h"
 #include "driver_opencl.h"
 
+#ifdef HAVE_CL_CL_EXT_H
+#include <CL/cl_ext.h>
+#endif
+
 char *_starpu_opencl_program_dir;
 
 #define _STARPU_STRINGIFY_(x) #x

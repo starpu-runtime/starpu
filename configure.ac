@@ -570,12 +570,14 @@ AC_DEFUN([STARPU_CHECK_OPENCL],
         fi
     fi
 
+    if test "$have_valid_opencl" = "yes" -a "$__opencl_include_dir" != "no"; then
+        STARPU_OPENCL_CPPFLAGS="-I$__opencl_include_dir"
+	AC_CHECK_HEADERS([CL/cl_ext.h])
+    fi
+
     CPPFLAGS="${SAVED_CPPFLAGS}"
     LDFLAGS="${SAVED_LDFLAGS}"
 
-    if test "$have_valid_opencl" = "yes" -a "$__opencl_include_dir" != "no"; then
-        STARPU_OPENCL_CPPFLAGS="-I$__opencl_include_dir"
-    fi
     if test "$have_valid_opencl" = "yes" ; then
         if test "$__opencl_lib_dir" != "no"; then
             STARPU_OPENCL_LDFLAGS="-L$__opencl_lib_dir"
