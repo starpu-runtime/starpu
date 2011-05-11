@@ -215,8 +215,8 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 	int is_basic_worker = (workerid < nbasic_workers);
 
 	unsigned memory_node; 
-	struct starpu_worker_s *worker;
-	struct starpu_combined_worker_s *combined_worker;
+	struct starpu_worker_s *worker = NULL;
+	struct starpu_combined_worker_s *combined_worker = NULL;
 
 	if (is_basic_worker)
 	{
