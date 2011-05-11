@@ -501,7 +501,9 @@ if test x$have_cuda_memcpy_peer = xyes; then
 fi
 
 if test x$enable_cuda = xyes; then
-    STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"
+    if test x$starpu_windows != xyes ; then
+	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"
+    fi
     AC_SUBST(STARPU_CUDA_LDFLAGS)
     AC_SUBST(STARPU_CUFFT_LDFLAGS)
     AC_SUBST(STARPU_CUDA_CPPFLAGS)
