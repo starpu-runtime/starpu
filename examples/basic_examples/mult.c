@@ -186,14 +186,14 @@ static void partition_mult_data(void)
 	/* StarPU supplies some basic filters such as the partition of a matrix
 	 * into blocks, note that we are using a FORTRAN ordering so that the
 	 * name of the filters are a bit misleading */
-	struct starpu_data_filter f = {
+	struct starpu_data_filter vert = {
 		.filter_func = starpu_vertical_block_filter_func,
 		.nchildren = nslicesx,
 		.get_nchildren = NULL,
 		.get_child_ops = NULL
 	};
 		
-	struct starpu_data_filter f2 = {
+	struct starpu_data_filter horiz = {
 		.filter_func = starpu_block_filter_func,
 		.nchildren = nslicesy,
 		.get_nchildren = NULL,
@@ -237,17 +237,17 @@ static void partition_mult_data(void)
  *	enforce memory consistency.
  */
 
-	starpu_data_partition(B_handle, &f);
-	starpu_data_partition(A_handle, &f2);
+	starpu_data_partition(B_handle, &vert);
+	starpu_data_partition(A_handle, &horiz);
 
 	/* starpu_data_map_filters is a variable-arity function, the first argument
 	 * is the handle of the data to partition, the second argument is the
 	 * number of filters to apply recursively. Filters are applied in the
 	 * same order as the arguments.
-	 * This would be equivalent to starpu_data_partition(C_handle, &f) and
-	 * then applying f2 on each sub-data (ie. each column of C)
+	 * This would be equivalent to starpu_data_partition(C_handle, &vert) and
+	 * then applying horiz on each sub-data (ie. each column of C)
 	 */
-	starpu_data_map_filters(C_handle, 2, &f, &f2);
+	starpu_data_map_filters(C_handle, 2, &vert, &horiz);
 }
 
 static struct starpu_perfmodel_t mult_perf_model = {
