@@ -30,6 +30,11 @@ typedef unsigned long long uint64_t;
 #endif
 
 #include <starpu_config.h>
+
+#ifdef STARPU_HAVE_WINDOWS
+#include <windows.h>
+#endif
+
 #include <starpu_util.h>
 #include <starpu_data.h>
 #include <starpu_perfmodel.h>
