@@ -1823,16 +1823,15 @@ StarPU can use the FxT library (see
 @indicateurl{https://savannah.nongnu.org/projects/fkt/}) to generate traces
 with a limited runtime overhead.
 
-You can either get the FxT library from CVS (autotools are required):
+You can either get a tarball:
+@example
+% wget http://download.savannah.gnu.org/releases/fkt/fxt-0.2.2.tar.gz
+@end example
+
+or use the FxT library from CVS (autotools are required):
 @example
 % cvs -d :pserver:anonymous@@cvs.sv.gnu.org:/sources/fkt co FxT
 % ./bootstrap
-@end example
-
-If autotools are not available on your machine, or if you prefer to do so,
-FxT's code is also available as a tarball:
-@example
-% wget http://download.savannah.gnu.org/releases/fkt/fxt-0.2.2.tar.gz
 @end example
 
 Compiling and installing the FxT library in the @code{$FXTDIR} path is
@@ -1848,6 +1847,9 @@ the @code{--with-fxt} option:
 @example
 $ ./configure --with-fxt=$FXTDIR
 @end example
+
+Or you can simply point the @code{PKG_CONFIG_PATH} to
+@code{$FXTDIR/lib/pkgconfig} and pass @code{--with-fxt} to @code{./configure}
 
 When FxT is enabled, a trace is generated when StarPU is terminated by calling
 @code{starpu_shutdown()}). The trace is a binary file whose name has the form

@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2010  Université de Bordeaux 1
+# Copyright (C) 2009-2011  Université de Bordeaux 1
 # Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -36,9 +36,12 @@ if STARPU_USE_FXT
 bin_PROGRAMS += starpu_fxt_tool starpu_fxt_stats
 
 starpu_fxt_tool_SOURCES = starpu_fxt_tool.c
-starpu_fxt_tool_LDADD =
+starpu_fxt_tool_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
+starpu_fxt_tool_LDADD = $(FXT_LIBS)
 
 starpu_fxt_stats_SOURCES = starpu_fxt_stats.c
+starpu_fxt_stats_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
+starpu_fxt_stats_LDADD = $(FXT_LIBS)
 endif
 
 bin_PROGRAMS +=	starpu_perfmodel_display
