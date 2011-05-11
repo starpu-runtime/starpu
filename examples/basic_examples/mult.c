@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
@@ -75,8 +75,7 @@ static unsigned zdim = 512;
  * The codelet is passed 3 matrices, the "descr" union-type field gives a
  * description of the layout of those 3 matrices in the local memory (ie. RAM
  * in the case of CPU, GPU frame buffer in the case of GPU etc.). Since we have
- * registered data with the "blas" data interface, we manipulate the .blas
- * field of the descr[x] elements which are union types.
+ * registered data with the "matrix" data interface, we use the matrix macros.
  */
 
 static void cpu_mult(void *descr[], __attribute__((unused))  void *arg)
