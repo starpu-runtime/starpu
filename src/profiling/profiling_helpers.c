@@ -78,7 +78,7 @@ void starpu_worker_profiling_helper_display_summary(void)
 			if (info.power_consumed)
 				fprintf(stderr, "\t%lf J consumed\n", info.power_consumed);
 		} else {
-			fprintf(stderr, "\t%-32s\tapproximately %d task(s)\n", name, info.executed_tasks);
+			fprintf(stderr, "\t%-32s\t%d task(s)\n", name, info.executed_tasks);
 		}
 
 		sum_consumed += info.power_consumed;
