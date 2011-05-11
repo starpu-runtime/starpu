@@ -58,7 +58,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 
 	STARPU_TRACE_START_CODELET_BODY(j);
 
-	struct starpu_task_profiling_info *profiling_info;
+	struct starpu_task_profiling_info *profiling_info = NULL;
 	int profiling = starpu_profiling_status_get();
 
 	if (rank == 0)
@@ -238,4 +238,5 @@ void *_starpu_cpu_worker(void *arg)
 	STARPU_TRACE_WORKER_DEINIT_END(STARPU_FUT_CPU_KEY);
 
 	pthread_exit(NULL);
+	return NULL;
 }
