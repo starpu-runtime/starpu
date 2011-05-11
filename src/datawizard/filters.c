@@ -292,7 +292,9 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 				_starpu_request_mem_chunk_removal(root_handle, node);
 				isvalid = 0; 
 			}
+#ifdef STARPU_DEVEL
 #warning free the data replicate if needed
+#endif
 
 		}
 

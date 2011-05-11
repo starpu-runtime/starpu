@@ -132,7 +132,9 @@ static struct starpu_deque_jobq_s *select_workerq(void)
 
 #endif
 
+#ifdef STARPU_DEVEL
 #warning TODO rewrite ... this will not scale at all now
+#endif
 static struct starpu_task *ws_pop_task(void)
 {
 	struct starpu_task *task;

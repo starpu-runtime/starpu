@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -125,7 +125,9 @@ int starpu_data_acquire_cb(starpu_data_handle handle,
 	PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
 	wrapper->finished = 0;
 
+#ifdef STARPU_DEVEL
 #warning TODO instead of having the is_prefetch argument, _starpu_fetch_data shoud consider two flags: async and detached
+#endif
 	_starpu_spin_lock(&handle->header_lock);
 	handle->per_node[0].refcnt++;
 	_starpu_spin_unlock(&handle->header_lock);
@@ -414,7 +416,9 @@ void starpu_data_set_default_sequential_consistency_flag(unsigned flag)
 /* Query the status of the handle on the specified memory node. */
 void starpu_data_query_status(starpu_data_handle handle, int memory_node, int *is_allocated, int *is_valid, int *is_requested)
 {
+#ifdef STARPU_DEVEL
 #warning FIXME
+#endif
 //	_starpu_spin_lock(&handle->header_lock);
 
 	if (is_allocated)

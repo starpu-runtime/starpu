@@ -134,7 +134,9 @@ static void transfer_subtree_to_node(starpu_data_handle handle, unsigned src_nod
 			src_replicate->state = STARPU_INVALID;
 			dst_replicate->state = STARPU_OWNER;
 
+#ifdef STARPU_DEVEL
 #warning we should use requests during memory reclaim
+#endif
 			/* TODO use request !! */
 			src_replicate->refcnt++;
 			dst_replicate->refcnt++;
@@ -201,7 +203,9 @@ static size_t free_memory_on_node(starpu_mem_chunk_t mc, uint32_t node)
 //	while (_starpu_spin_trylock(&handle->header_lock))
 //		_starpu_datawizard_progress(_starpu_get_local_memory_node());
 
+#ifdef STARPU_DEVEL
 #warning can we block here ?
+#endif
 //	_starpu_spin_lock(&handle->header_lock);
 
 	if (mc->automatically_allocated && 

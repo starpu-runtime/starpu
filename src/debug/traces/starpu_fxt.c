@@ -517,7 +517,9 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		com->comid = comid;
 		com->comm_start = get_event_time_stamp(ev, options);
 
+#ifdef STARPU_DEVEL
 #warning this is wrong with peers
+#endif
 		/* that's a hack: either src or dst is non null */
 		com->node = (src + dst);
 

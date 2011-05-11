@@ -160,3 +160,8 @@ makes
 
   While at it, you can also comment the __cdecl definition to avoid spurious
   warnings.
+
+
+Developers warning
+------------------
+They are only enabled if the STARPU_DEVEL environment is defined to a non-empty value.

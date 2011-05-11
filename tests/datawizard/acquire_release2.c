@@ -57,7 +57,7 @@ void callback(void *arg __attribute__ ((unused)))
         starpu_data_release(token_handle);
 }
 
-#warning add threads
+#warning TODO add threads
 
 int main(int argc, char **argv)
 {

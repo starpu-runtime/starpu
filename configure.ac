@@ -1062,6 +1062,10 @@ IS_SUPPORTED_CFLAG(-Wall)
 IS_SUPPORTED_CFLAG(-Wextra)
 AC_SUBST(GLOBAL_AM_CFLAGS)
 
+if test "x$STARPU_DEVEL" != x; then
+	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
+fi
+
 ###############################################################################
 #                                                                             #
 #                               GCC extensions                                #

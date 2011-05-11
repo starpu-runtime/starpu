@@ -575,7 +575,9 @@ static void test_detached_requests(void)
 		if (flag)
 			starpu_mpi_req_list_erase(detached_requests, req);
 
+#ifdef STARPU_DEVEL
 #warning TODO fix memleak
+#endif
 		/* Detached requests are automatically allocated by the lib */
 		//if (req->detached)
 		//	free(req);
@@ -618,7 +620,9 @@ static void *progress_thread_func(void *arg)
         _STARPU_DEBUG("Initialize mpi: %d\n", initialize_mpi);
 
         if (initialize_mpi) {
+#ifdef STARPU_DEVEL
 #warning get real argc and argv from the application
+#endif
                 int argc = 0;
                 char **argv = NULL;
                 int thread_support;
