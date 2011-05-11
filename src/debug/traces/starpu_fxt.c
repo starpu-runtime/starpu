@@ -385,7 +385,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	update_accumulated_time(worker, 0.0, codelet_length, end_codelet_time, 0);
 	
 	if (distrib_time)
-	fprintf(distrib_time, "%s\t%s%d\t%ld\t%"PRIx64"\t%f\n", last_codelet_symbol[worker],
+	fprintf(distrib_time, "%s\t%s%d\t%"PRId32"\t%"PRIx64"\t%f\n", last_codelet_symbol[worker],
 				prefix, worker, codelet_size, codelet_hash, codelet_length);
 
 	if (options->dumped_codelets)
@@ -1159,7 +1159,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 		uint64_t M = 0;
 
 		unsigned found_one_sync_point = 0;
-		int key;
+		int key = 0;
 		unsigned display_mpi = 0; 
 
 		/* Compute all start_k */
