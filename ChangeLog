@@ -1,7 +1,7 @@
-StarPU 0.5 (svn revision ????)
+StarPU 0.9 (svn revision 3719)
 ==============================================
 The yet-more-stuff release
-  
+
   * Provide the STARPU_REDUX data access mode
   * Externalize the scheduler API.
   * Add theoretical bound computation
@@ -19,11 +19,12 @@ The yet-more-stuff release
   * Add mandelbrot OpenCL example
   * Add cg example
   * Add stencil MPI example
+  * Initial support for CUDA4
 
 StarPU 0.4 (svn revision 2535)
 ==============================================
 The API strengthening release
-  
+
   * Major API improvements
     - Provide the STARPU_SCRATCH data access mode
     - Rework data filter interface
@@ -41,7 +42,7 @@ The API strengthening release
   * Provide a library to help accelerating MPI applications
   * Improve data transfers overhead prediction
     - Transparently benchmark buses to generate performance models
-    - Bind accelerator-controlling threads with respect to NUMA locality 
+    - Bind accelerator-controlling threads with respect to NUMA locality
   * Improve StarPU's portability
     - Add OpenCL support
     - Add support for Windows
@@ -63,7 +64,7 @@ The asynchronous heterogeneous multi-accelerator release
     - All data transfers use data requests now
     - Implement asynchronous data transfers
     - Implement prefetch mechanism
-    - Chain data requests to support GPU->RAM->GPU transfers 
+    - Chain data requests to support GPU->RAM->GPU transfers
   * Make it possible to bypass the scheduler and to assign a task to a specific
     worker
   * Support restartable tasks to reinstanciate dependencies task graphs
