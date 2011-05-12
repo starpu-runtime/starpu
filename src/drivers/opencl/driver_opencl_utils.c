@@ -209,7 +209,7 @@ cl_int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs
         return CL_SUCCESS;
 }
 
-int starpu_opencl_collect_stats(cl_event event __attribute__((unused)))
+int starpu_opencl_collect_stats(cl_event event STARPU_ATTRIBUTE_UNUSED)
 {
 #if defined(CL_PROFILING_CLOCK_CYCLE_COUNT)||defined(CL_PROFILING_STALL_CYCLE_COUNT)||defined(CL_PROFILING_POWER_CONSUMED)
 	struct starpu_task *task = starpu_get_current_task();

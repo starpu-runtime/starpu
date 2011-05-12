@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +20,7 @@
 #include <common/config.h>
 #include <datawizard/filters.h>
 
-void starpu_canonical_block_filter_bcsr(void *father_interface, void *child_interface, __attribute__((unused)) struct starpu_data_filter *f, unsigned id, __attribute__((unused)) unsigned nparts)
+void starpu_canonical_block_filter_bcsr(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nparts)
 {
 	struct starpu_bcsr_interface_s *bcsr_father = father_interface;
 	/* each chunk becomes a small dense matrix */

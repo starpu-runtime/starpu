@@ -269,7 +269,7 @@ unsigned _starpu_topology_get_nhwcpu(struct starpu_machine_config_s *config)
 static int _starpu_init_machine_config(struct starpu_machine_config_s *config,
 				struct starpu_conf *user_conf)
 {
-	int explicitval __attribute__((unused));
+	int explicitval STARPU_ATTRIBUTE_UNUSED;
 	unsigned use_accelerator = 0;
 
 	int i;
@@ -592,7 +592,7 @@ static inline int _starpu_get_next_bindid(struct starpu_machine_config_s *config
 	return (int)topology->workers_bindid[i];
 }
 
-void _starpu_bind_thread_on_cpu(struct starpu_machine_config_s *config __attribute__((unused)), unsigned cpuid)
+void _starpu_bind_thread_on_cpu(struct starpu_machine_config_s *config STARPU_ATTRIBUTE_UNUSED, unsigned cpuid)
 {
 #ifdef STARPU_HAVE_HWLOC
 	int ret;

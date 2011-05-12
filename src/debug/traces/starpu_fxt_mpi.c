@@ -106,7 +106,7 @@ unsigned mpi_recvs_used[64] = {0};
  * transfer, thus avoiding a quadratic complexity. */
 unsigned mpi_recvs_matched[64] = {0};
 
-void starpu_fxt_mpi_add_send_transfer(int src, int dst __attribute__((unused)), int mpi_tag, size_t size, float date)
+void starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, int mpi_tag, size_t size, float date)
 {
 	unsigned slot = mpi_sends_used[src]++;
 
@@ -130,7 +130,7 @@ void starpu_fxt_mpi_add_send_transfer(int src, int dst __attribute__((unused)), 
 	mpi_sends[src][slot].date = date;
 }
 
-void starpu_fxt_mpi_add_recv_transfer(int src __attribute__((unused)), int dst, int mpi_tag, float date)
+void starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, int mpi_tag, float date)
 {
 	unsigned slot = mpi_recvs_used[dst]++;
 
@@ -154,7 +154,7 @@ void starpu_fxt_mpi_add_recv_transfer(int src __attribute__((unused)), int dst, 
 }
 
 static
-struct mpi_transfer *try_to_match_send_transfer(int src __attribute__((unused)), int dst, int mpi_tag)
+struct mpi_transfer *try_to_match_send_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, int mpi_tag)
 {
 	unsigned slot;
 	unsigned firstslot = mpi_recvs_matched[dst];

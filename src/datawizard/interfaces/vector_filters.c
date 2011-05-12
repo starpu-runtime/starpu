@@ -20,7 +20,7 @@
 #include <common/config.h>
 #include <datawizard/filters.h>
 
-void starpu_block_filter_func_vector(void *father_interface, void *child_interface, __attribute__((unused)) struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+void starpu_block_filter_func_vector(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
         starpu_vector_interface_t *vector_father = father_interface;
         starpu_vector_interface_t *vector_child = child_interface;
@@ -47,7 +47,7 @@ void starpu_block_filter_func_vector(void *father_interface, void *child_interfa
 }
 
 
-void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, __attribute__((unused)) unsigned nchunks)
+void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
 {
         /* there cannot be more than 2 chunks */
         STARPU_ASSERT(id < 2);
@@ -88,7 +88,7 @@ void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_i
 }
 
 
-void starpu_vector_list_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, __attribute__((unused)) unsigned nchunks)
+void starpu_vector_list_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
 {
         starpu_vector_interface_t *vector_father = father_interface;
         starpu_vector_interface_t *vector_child = child_interface;

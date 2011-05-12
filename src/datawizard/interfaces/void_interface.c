@@ -77,9 +77,9 @@ static struct starpu_data_interface_ops_t interface_void_ops = {
 	.display = display_void_interface
 };
 
-static void register_void_handle(starpu_data_handle handle __attribute__((unused)),
-				uint32_t home_node __attribute__((unused)),
-				void *data_interface __attribute__((unused)))
+static void register_void_handle(starpu_data_handle handle STARPU_ATTRIBUTE_UNUSED,
+				uint32_t home_node STARPU_ATTRIBUTE_UNUSED,
+				void *data_interface STARPU_ATTRIBUTE_UNUSED)
 {
 	/* Since there is no real data to register, we don't do anything */
 }
@@ -91,25 +91,25 @@ void starpu_void_data_register(starpu_data_handle *handleptr)
 }
 
 
-static uint32_t footprint_void_interface_crc32(starpu_data_handle handle __attribute__((unused)))
+static uint32_t footprint_void_interface_crc32(starpu_data_handle handle STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }
 
-static int void_compare(void *data_interface_a __attribute__((unused)),
-			void *data_interface_b __attribute__((unused)))
+static int void_compare(void *data_interface_a STARPU_ATTRIBUTE_UNUSED,
+			void *data_interface_b STARPU_ATTRIBUTE_UNUSED)
 {
 	/* There is no allocation required, and therefore nothing to cache
 	 * anyway. */
 	return 1;
 }
 
-static void display_void_interface(starpu_data_handle handle __attribute__((unused)), FILE *f)
+static void display_void_interface(starpu_data_handle handle STARPU_ATTRIBUTE_UNUSED, FILE *f)
 {
 	fprintf(f, "void\t");
 }
 
-static size_t void_interface_get_size(starpu_data_handle handle __attribute__((unused)))
+static size_t void_interface_get_size(starpu_data_handle handle STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }
@@ -117,32 +117,32 @@ static size_t void_interface_get_size(starpu_data_handle handle __attribute__((u
 /* memory allocation/deallocation primitives for the void interface */
 
 /* returns the size of the allocated area */
-static ssize_t allocate_void_buffer_on_node(void *data_interface __attribute__((unused)),
-					uint32_t dst_node __attribute__((unused)))
+static ssize_t allocate_void_buffer_on_node(void *data_interface STARPU_ATTRIBUTE_UNUSED,
+					uint32_t dst_node STARPU_ATTRIBUTE_UNUSED)
 {
 	/* Successfuly allocated 0 bytes */
 	return 0;
 }
 
-static void free_void_buffer_on_node(void *data_interface __attribute__((unused)) ,
-					uint32_t node __attribute__((unused)))
+static void free_void_buffer_on_node(void *data_interface STARPU_ATTRIBUTE_UNUSED ,
+					uint32_t node STARPU_ATTRIBUTE_UNUSED)
 {
 	/* There is no buffer actually */
 }
 
-static int dummy_copy(void *src_interface __attribute__((unused)),
-			unsigned src_node __attribute__((unused)),
-			void *dst_interface __attribute__((unused)),
-			unsigned dst_node __attribute__((unused)))
+static int dummy_copy(void *src_interface STARPU_ATTRIBUTE_UNUSED,
+			unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+			void *dst_interface STARPU_ATTRIBUTE_UNUSED,
+			unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }
 
 #ifdef STARPU_USE_CUDA
-static int dummy_cuda_copy_async(void *src_interface __attribute__((unused)),
-				unsigned src_node __attribute__((unused)),
-				void *dst_interface __attribute__((unused)),
-				unsigned dst_node __attribute__((unused)),
+static int dummy_cuda_copy_async(void *src_interface STARPU_ATTRIBUTE_UNUSED,
+				unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+				void *dst_interface STARPU_ATTRIBUTE_UNUSED,
+				unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
 				cudaStream_t stream __attribute__ ((unused)))
 {
 	return 0;
@@ -150,11 +150,11 @@ static int dummy_cuda_copy_async(void *src_interface __attribute__((unused)),
 #endif // STARPU_USE_CUDA
 
 #ifdef STARPU_USE_OPENCL
-static int dummy_opencl_copy_async(void *src_interface __attribute__((unused)),
-					unsigned src_node __attribute__((unused)),
-					void *dst_interface __attribute__((unused)),
-					unsigned dst_node __attribute__((unused)),
-					void *_event __attribute__((unused)))
+static int dummy_opencl_copy_async(void *src_interface STARPU_ATTRIBUTE_UNUSED,
+					unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+					void *dst_interface STARPU_ATTRIBUTE_UNUSED,
+					unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
+					void *_event STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }

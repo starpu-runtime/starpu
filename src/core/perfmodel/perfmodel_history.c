@@ -661,7 +661,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel_t *model,
 	return exp;
 }
 
-void _starpu_update_perfmodel_history(starpu_job_t j, struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, unsigned cpuid __attribute__((unused)), double measured)
+void _starpu_update_perfmodel_history(starpu_job_t j, struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, unsigned cpuid STARPU_ATTRIBUTE_UNUSED, double measured)
 {
 	if (model)
 	{

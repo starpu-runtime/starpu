@@ -101,7 +101,7 @@ int _starpu_spin_trylock(starpu_spinlock_t *lock)
 #endif
 }
 
-int _starpu_spin_unlock(starpu_spinlock_t *lock __attribute__((unused)))
+int _starpu_spin_unlock(starpu_spinlock_t *lock STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SPINLOCK_CHECK
 	int ret = pthread_mutex_unlock(&lock->errcheck_lock);

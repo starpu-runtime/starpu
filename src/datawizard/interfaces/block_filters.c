@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,7 @@
 #include <common/config.h>
 #include <datawizard/filters.h>
 
-void starpu_block_filter_func_block(void *father_interface, void *child_interface, __attribute__((unused)) struct starpu_data_filter *f,
+void starpu_block_filter_func_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
                                     unsigned id, unsigned nparts)
 {
         starpu_block_interface_t *block_father = father_interface;

@@ -386,7 +386,7 @@ static void free_csr_buffer_on_node(void *data_interface, uint32_t node)
 }
 
 #ifdef STARPU_USE_CUDA
-static int copy_cuda_common(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)), enum cudaMemcpyKind kind)
+static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, enum cudaMemcpyKind kind)
 {
 	starpu_csr_interface_t *src_csr = src_interface;
 	starpu_csr_interface_t *dst_csr = dst_interface;
@@ -414,7 +414,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node __attribute__
 	return 0;
 }
 
-static int copy_cuda_common_async(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)), enum cudaMemcpyKind kind, cudaStream_t stream)
+static int copy_cuda_common_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, enum cudaMemcpyKind kind, cudaStream_t stream)
 {
 	starpu_csr_interface_t *src_csr = src_interface;
 	starpu_csr_interface_t *dst_csr = dst_interface;
@@ -472,7 +472,7 @@ static int copy_cuda_common_async(void *src_interface, unsigned src_node __attri
 	}
 }
 
-static int copy_cuda_peer(void *src_interface __attribute__((unused)), unsigned src_node __attribute__((unused)), void *dst_interface __attribute__((unused)), unsigned dst_node __attribute__((unused)))
+static int copy_cuda_peer(void *src_interface STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface STARPU_ATTRIBUTE_UNUSED, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	starpu_csr_interface_t *src_csr = src_interface;
@@ -508,8 +508,8 @@ static int copy_cuda_peer(void *src_interface __attribute__((unused)), unsigned 
 #endif
 }
 
-static int copy_cuda_peer_async(void *src_interface __attribute__((unused)), unsigned src_node __attribute__((unused)),
-				void *dst_interface __attribute__((unused)), unsigned dst_node __attribute__((unused)), cudaStream_t stream __attribute__((unused)))
+static int copy_cuda_peer_async(void *src_interface STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+				void *dst_interface STARPU_ATTRIBUTE_UNUSED, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	starpu_csr_interface_t *src_csr = src_interface;
@@ -615,7 +615,7 @@ static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node, void 
 #endif // STARPU_USE_CUDA
 
 #ifdef STARPU_USE_OPENCL
-static int copy_opencl_to_ram(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
+static int copy_opencl_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
 	starpu_csr_interface_t *src_csr = src_interface;
 	starpu_csr_interface_t *dst_csr = dst_interface;
@@ -643,7 +643,7 @@ static int copy_opencl_to_ram(void *src_interface, unsigned src_node __attribute
 	return 0;
 }
 
-static int copy_ram_to_opencl(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
+static int copy_ram_to_opencl(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
 	starpu_csr_interface_t *src_csr = src_interface;
 	starpu_csr_interface_t *dst_csr = dst_interface;
@@ -673,7 +673,7 @@ static int copy_ram_to_opencl(void *src_interface, unsigned src_node __attribute
 #endif // STARPU_USE_OPENCL
 
 /* as not all platform easily have a BLAS lib installed ... */
-static int copy_ram_to_ram(void *src_interface, unsigned src_node __attribute__((unused)), void *dst_interface, unsigned dst_node __attribute__((unused)))
+static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
 	starpu_csr_interface_t *src_csr = src_interface;
 	starpu_csr_interface_t *dst_csr = dst_interface;

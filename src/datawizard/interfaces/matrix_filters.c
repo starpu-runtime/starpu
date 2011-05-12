@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,7 +23,7 @@
 /*
  * an example of a dummy partition function : blocks ...
  */
-void starpu_block_filter_func(void *father_interface, void *child_interface, __attribute__((unused)) struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+void starpu_block_filter_func(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
        starpu_matrix_interface_t *matrix_father = father_interface;
        starpu_matrix_interface_t *matrix_child = child_interface;
@@ -54,7 +54,7 @@ void starpu_block_filter_func(void *father_interface, void *child_interface, __a
 	}
 }
 
-void starpu_vertical_block_filter_func(void *father_interface, void *child_interface, __attribute__((unused)) struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+void starpu_vertical_block_filter_func(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
         starpu_matrix_interface_t *matrix_father = father_interface;
         starpu_matrix_interface_t *matrix_child = child_interface;

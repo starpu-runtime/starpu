@@ -368,7 +368,7 @@ int starpu_init(struct starpu_conf *user_conf)
 
 static void _starpu_terminate_workers(struct starpu_machine_config_s *config)
 {
-	int status __attribute__((unused));
+	int status STARPU_ATTRIBUTE_UNUSED;
 	unsigned workerid;
 
 	for (workerid = 0; workerid < config->topology.nworkers; workerid++)
@@ -419,7 +419,7 @@ unsigned _starpu_machine_is_running(void)
 	return config.running;
 }
 
-unsigned _starpu_worker_can_block(unsigned memnode __attribute__((unused)))
+unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	return 0;
