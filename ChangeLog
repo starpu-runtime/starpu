@@ -1,6 +1,6 @@
 StarPU 0.9 (svn revision 3719)
 ==============================================
-The yet-more-stuff release
+The extensions release
 
   * Provide the STARPU_REDUX data access mode
   * Externalize the scheduler API.
