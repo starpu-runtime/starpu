@@ -1679,6 +1679,9 @@ A quick view of how many tasks each worker has executed can be obtained by setti
 execution did happen on accelerators without penalizing performance with
 the profiling overhead.
 
+A quick view of how much data transfers have been issued can be obtained by setting 
+@code{export STARPU_BUS_STATS=1} .
+
 More detailed profiling information can be enabled by using @code{export STARPU_PROFILING=1} or by
 calling @code{starpu_profiling_status_set} from the source code.
 Statistics on the execution can then be obtained by using @code{export
