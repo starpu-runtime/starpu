@@ -24,7 +24,7 @@ AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 bin_PROGRAMS =
 dist_bin_SCRIPTS =
 
-dist_data_DATA = gdbinit
+dist_pkgdata_DATA = gdbinit
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
