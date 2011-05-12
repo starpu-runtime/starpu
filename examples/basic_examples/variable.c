@@ -43,6 +43,9 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
+#ifdef STARPU_SLOW_MACHINE
+	niter /= 100;
+#endif
         if (argc == 2) niter = atoi(argv[1]);
         foo = 0.0f;
 

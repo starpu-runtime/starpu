@@ -99,6 +99,10 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
+#ifdef STARPU_SLOW_MACHINE
+	ntasks /= 10;
+#endif
+
 	FPRINTF(stderr, "#tasks : %u\n", ntasks);
 
 	gettimeofday(&start, NULL);

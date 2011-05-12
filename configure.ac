@@ -113,6 +113,14 @@ else
   AC_DEFINE([starpu_erand48(xsubi)],[starpu_drand48()],[erand48 equivalent function])
 fi
 
+# Define slow machine
+AC_ARG_ENABLE(slow-machine, [AS_HELP_STRING([--disable-slow-machine],
+				   [Lower default values for the testcases run by make check])],
+				   enable_slow_machine=$enableval, enable_slow_machine=false)
+if  test x$enable_slow_machine = xyes; then
+	AC_DEFINE(STARPU_SLOW_MACHINE, [1], [enable slow machine])
+fi
+
 AC_CHECK_HEADERS([malloc.h], [AC_DEFINE([STARPU_HAVE_MALLOC_H], [1], [Define to 1 if you have the <malloc.h> header file.])])
 
 # This defines HAVE_SYNC_VAL_COMPARE_AND_SWAP

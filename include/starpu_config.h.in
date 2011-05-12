@@ -64,4 +64,6 @@ typedef ssize_t starpu_ssize_t;
 #define __starpu_func__ __func__
 #endif
 
+#undef STARPU_SLOW_MACHINE
+
 #endif

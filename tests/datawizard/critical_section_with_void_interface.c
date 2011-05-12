@@ -44,6 +44,10 @@ int main(int argc, char **argv)
 	int ntasks = 1000;
 	int ret;
 
+#ifdef STARPU_SLOW_MACHINE
+	ntasks /= 10;
+#endif
+
 	starpu_init(NULL);
 
 	critical_var = 0;

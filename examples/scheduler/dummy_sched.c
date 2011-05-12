@@ -118,10 +118,16 @@ static starpu_codelet dummy_codelet =
 
 int main(int argc, char **argv)
 {
+	int ntasks = NTASKS;
+
 	starpu_init(&conf);
 
+#ifdef STARPU_SLOW_MACHINE
+	ntasks /= 100;
+#endif
+
 	unsigned i;
-	for (i = 0; i < NTASKS; i++)
+	for (i = 0; i < ntasks; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
 	

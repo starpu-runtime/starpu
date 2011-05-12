@@ -68,6 +68,10 @@ int main(int argc, char **argv)
 
         FPRINTF(stderr, "Token: %u\n", token);
 
+#ifdef STARPU_SLOW_MACHINE
+	ntasks /= 10;
+#endif
+
 	for(i=0; i<ntasks; i++)
 	{
                 starpu_data_acquire_cb(token_handle, STARPU_W, callback, NULL);  // recv

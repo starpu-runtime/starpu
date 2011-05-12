@@ -68,6 +68,10 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
+#ifdef STARPU_SLOW_MACHINE
+	ntasks /= 10;
+#endif
+
 	starpu_init(NULL);
 
 	FPRINTF(stderr, "#tasks : %u\n", ntasks);
