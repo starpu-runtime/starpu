@@ -95,7 +95,9 @@ void _starpu_mpi_clear_cache_request(starpu_data_handle data_handle, int rank, i
 
 void _starpu_data_deallocate(starpu_data_handle data_handle)
 {
+#ifdef STARPU_DEVEL
 #warning _starpu_data_deallocate not implemented yet
+#endif
 }
 
 int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
@@ -105,7 +107,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
         int me, do_execute;
 	size_t arg_buffer_size = 0;
 	char *arg_buffer;
-        int dest, execute, inconsistent_execute;
+        int dest=0, execute, inconsistent_execute;
         int mpi_tag = 100;
 
         _STARPU_MPI_LOG_IN();
