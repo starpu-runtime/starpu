@@ -504,15 +504,8 @@ int starpu_list_models(void)
         dp = opendir(path);
         if (dp != NULL) {
                 while ((ep = readdir(dp))) {
-#ifdef DT_REG
-                        if (ep->d_type == DT_REG)
-#else
-			if (strcmp(ep->d_name, ".")
-			 && strcmp(ep->d_name, ".."))
-#endif
-			{
+                        if (strcmp(ep->d_name, ".") && strcmp(ep->d_name, ".."))
                                 fprintf(stdout, "file: <%s>\n", ep->d_name);
-                        }
                 }
                 closedir (dp);
                 return 0;
