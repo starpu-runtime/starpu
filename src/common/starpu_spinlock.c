@@ -44,7 +44,7 @@ int _starpu_spin_init(starpu_spinlock_t *lock)
 #endif
 }
 
-int _starpu_spin_destroy(starpu_spinlock_t *lock)
+int _starpu_spin_destroy(starpu_spinlock_t *lock STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SPINLOCK_CHECK
 	pthread_mutexattr_destroy(&lock->errcheck_attr);
