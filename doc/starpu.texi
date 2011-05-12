@@ -2832,7 +2832,7 @@ This variable specifies in which file the debugging output should be saved to.
 @table @asis
 
 @item @emph{Description}
-This variable specifies in which directory to save the trace generated if FxT is enabled.
+This variable specifies in which directory to save the trace generated if FxT is enabled. It needs to have a trailing '/' character.
 @end table
 
 @node STARPU_LIMIT_GPU_MEM
