@@ -996,17 +996,17 @@ static void check_bus_config_file()
 
                 // Checking if both configurations match
                 if (read_cpus != ncpus) {
-			fprintf(stderr, "Current configuration does not match the performance model (CPUS: (stored) %u != (current) %u), recalibrating...", read_cpus, ncpus);
+			fprintf(stderr, "Current configuration does not match the bus performance model (CPUS: (stored) %u != (current) %u), recalibrating...", read_cpus, ncpus);
                         starpu_force_bus_sampling();
 			fprintf(stderr, "done\n");
                 }
                 else if (read_cuda != ncuda) {
-                        fprintf(stderr, "Current configuration does not match the performance model (CUDA: (stored) %d != (current) %d), recalibrating...", read_cuda, ncuda);
+                        fprintf(stderr, "Current configuration does not match the bus performance model (CUDA: (stored) %d != (current) %d), recalibrating...", read_cuda, ncuda);
                         starpu_force_bus_sampling();
 			fprintf(stderr, "done\n");
                 }
                 else if (read_opencl != nopencl) {
-                        fprintf(stderr, "Current configuration does not match the performance model (OpenCL: (stored) %d != (current) %d), recalibrating...", read_opencl, nopencl);
+                        fprintf(stderr, "Current configuration does not match the bus performance model (OpenCL: (stored) %d != (current) %d), recalibrating...", read_opencl, nopencl);
                         starpu_force_bus_sampling();
 			fprintf(stderr, "done\n");
                 }
