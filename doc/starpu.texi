@@ -1541,7 +1541,8 @@ variable. For instance @code{export STARPU_SCHED=dmda} . Use @code{help} to get
 the list of available schedulers.
 
 The @b{eager} scheduler uses a central task queue, from which workers draw tasks
-to work on. If a task has a non-0 priority, it is put at the front of the queue.
+to work on. This however does not permit to prefetch data since the scheduling
+decision is taken late. If a task has a non-0 priority, it is put at the front of the queue.
 
 The @b{prio} scheduler also uses a central task queue, but sorts tasks by
 priority (between -5 and 5).
