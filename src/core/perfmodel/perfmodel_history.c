@@ -670,7 +670,7 @@ void _starpu_update_perfmodel_history(starpu_job_t j, struct starpu_perfmodel_t 
 
 		if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
 		{
-			uint32_t key = j->footprint;
+			uint32_t key = _starpu_compute_buffers_footprint(j);
 			struct starpu_history_entry_t *entry;
 
 			struct starpu_htbl32_node_s *history;
