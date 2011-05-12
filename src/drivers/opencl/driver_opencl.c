@@ -312,7 +312,7 @@ void _starpu_opencl_init(void)
 
                 // Get Platforms
                 err = clGetPlatformIDs(STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
-                if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+                if (err != CL_SUCCESS) nb_platforms=0;
                 _STARPU_DEBUG("Platforms detected: %d\n", nb_platforms);
 
                 // Get devices
