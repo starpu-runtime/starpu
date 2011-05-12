@@ -475,7 +475,11 @@ static void get_bus_path(const char *type, char *path, size_t maxlen)
 	strncat(path, type, maxlen);
 
 	char hostname[32];
-	gethostname(hostname, 32);
+	char *forced_hostname = getenv("STARPU_HOSTNAME");
+	if (forced_hostname && forced_hostname[0])
+		snprintf(hostname, sizeof(hostname), forced_hostname);
+	else
+		gethostname(hostname, sizeof(hostname));
 	strncat(path, ".", maxlen);
 	strncat(path, hostname, maxlen);
 }
