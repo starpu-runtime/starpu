@@ -219,6 +219,11 @@ int main(int argc, char **argv)
 		STARPU_ASSERT(!ret);
 	}
 
+	for (block = 0; block < nblocks; block++)
+	{
+		starpu_data_unregister(x_handles[block]);
+		starpu_data_unregister(y_handles[block]);
+	}
 	starpu_data_unregister(dot_handle);
 
 	FPRINTF(stderr, "Reference : %e vs. %e (Delta %e)\n", reference_dot, dot, reference_dot - dot);

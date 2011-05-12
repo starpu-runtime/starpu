@@ -178,6 +178,10 @@ int main(int argc, char **argv)
 		}
 	}
 
+	for (block = 0; block < nblocks; block++)
+	{
+		starpu_data_unregister(x_handles[block]);
+	}
 	starpu_data_unregister(minmax_handle);
 
 	FPRINTF(stderr, "Min : %e\n", minmax[0]);
