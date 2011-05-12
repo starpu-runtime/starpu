@@ -106,6 +106,7 @@ int main(int argc, char **argv)
 	}
 
 	starpu_data_unregister(v_handle);
+	starpu_free(buffer);
 
 	starpu_shutdown();
 

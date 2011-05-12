@@ -124,6 +124,8 @@ int main(int argc, char **argv)
 		pthread_cond_wait(&cond, &mutex);
 	pthread_mutex_unlock(&mutex);
 
+	starpu_free(v);
+	starpu_free(v2);
 	starpu_shutdown();
 
 	return 0;

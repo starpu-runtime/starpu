@@ -118,6 +118,11 @@ int main(int argc, char **argv)
 
 	starpu_task_wait_for_all();
 
+	free(A);
+	free(B);
+	free(C);
+	free(D);
+
 	starpu_shutdown();
 
 	return 0;

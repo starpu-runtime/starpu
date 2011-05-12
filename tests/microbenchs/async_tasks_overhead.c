@@ -194,6 +194,7 @@ int main(int argc, char **argv)
         }
 
 	starpu_shutdown();
+	free(tasks);
 
 	return 0;
 }

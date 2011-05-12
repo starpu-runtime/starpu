@@ -98,6 +98,7 @@ int main(int argc, char **argv)
 	fprintf(stderr, "Took %f ms\n", timing/1000);
 	fprintf(stderr, "Avg. transfer time : %f us\n", timing/(2*niter));
 
+	starpu_free(v);
 	starpu_shutdown();
 
 	return 0;

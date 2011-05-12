@@ -136,6 +136,7 @@ static void test_filters()
 	assert(starpu_data_lookup(ptr) == handle);
 
 	starpu_data_unregister(handle);
+	starpu_free(ptr);
 
 #undef CHILDREN_COUNT
 }
