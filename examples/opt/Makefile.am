@@ -21,7 +21,7 @@ AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 
 if STARPU_USE_CUDA
 
-NVCCFLAGS += --compiler-options -fno-strict-aliasing  $(HWLOC_CFLAGS) -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_srcdir)/examples/  -arch sm_13
+NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_srcdir)/examples/ $(HWLOC_CFLAGS) -arch sm_13
 
 .cu.o:
 	$(NVCC) $< -c -o $@ $(NVCCFLAGS)
