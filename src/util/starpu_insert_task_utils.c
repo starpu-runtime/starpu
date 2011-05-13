@@ -69,8 +69,11 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 		else if (arg_type==STARPU_PRIORITY) {
 			va_arg(varg_list, int);
 		}
-		else if (arg_type==STARPU_EXECUTE) {
+		else if (arg_type==STARPU_EXECUTE_ON_NODE) {
 			va_arg(varg_list, int);
+		}
+		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
+			va_arg(varg_list, starpu_data_handle);
 		}
 	}
 
@@ -123,8 +126,11 @@ int _starpu_pack_cl_args(size_t arg_buffer_size, char **arg_buffer, va_list varg
 		{
 			va_arg(varg_list, int);
 		}
-		else if (arg_type==STARPU_EXECUTE) {
+		else if (arg_type==STARPU_EXECUTE_ON_NODE) {
 			va_arg(varg_list, int);
+		}
+		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
+			va_arg(varg_list, starpu_data_handle);
 		}
 	}
 
@@ -178,8 +184,11 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, 
 			int prio = va_arg(varg_list, int); 
 			(*task)->priority = prio;
 		}
-		else if (arg_type==STARPU_EXECUTE) {
+		else if (arg_type==STARPU_EXECUTE_ON_NODE) {
 			va_arg(varg_list, int);
+		}
+		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
+			va_arg(varg_list, starpu_data_handle);
 		}
 	}
 

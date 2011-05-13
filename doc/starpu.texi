@@ -2160,15 +2160,19 @@ arguments.  The argument list must be zero-terminated.
 
 The arguments following the codelets are the same types as for the
 function @code{starpu_insert_task} defined in @ref{Insert Task
-Utility}. The extra argument @code{STARPU_EXECUTE} followed by an
-integer allows to specify the node to execute the codelet.
+Utility}. The extra argument @code{STARPU_EXECUTE_ON_NODE} followed by an
+integer allows to specify the node to execute the codelet. It is also
+possible to specify that the node owning a specific data will execute
+the codelet, by using @code{STARPU_EXECUTE_ON_DATA} followed by a data
+handle.
 
 The algorithm is as follows:
 @enumerate
 @item Find out whether we are to execute the codelet because we own the
 data to be written to. If different tasks own data to be written to,
-the argument @code{STARPU_EXECUTE} should be used to specify the
-executing task @code{ET}.
+the argument @code{STARPU_EXECUTE_ON_NODE} or
+@code{STARPU_EXECUTE_ON_DATA} should be used to specify the executing
+task @code{ET}.
 @item Send and receive data as requested. Tasks owning data which need
 to be read by the executing task @code{ET} are sending them to @code{ET}.
 @item Execute the codelet. This is done by the task selected in the

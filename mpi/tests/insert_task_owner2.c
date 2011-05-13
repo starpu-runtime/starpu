@@ -86,7 +86,7 @@ int main(int argc, char **argv)
                                      STARPU_R, data_handles[0], STARPU_RW, data_handles[1],
                                      STARPU_W, data_handles[2],
                                      STARPU_W, data_handles[3],
-                                     STARPU_EXECUTE, 1, 0);
+                                     STARPU_EXECUTE_ON_NODE, 1, 0);
         assert(err == 0);
         starpu_task_wait_for_all();
 

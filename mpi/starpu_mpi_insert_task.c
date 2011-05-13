@@ -129,12 +129,16 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 	va_start(varg_list, codelet);
 	_starpu_pack_cl_args(arg_buffer_size, &arg_buffer, varg_list);
 
-        /* Finds out if the property STARPU_EXECUTE is specified */
+        /* Finds out if the property STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA is specified */
         execute = -1;
 	va_start(varg_list, codelet);
 	while ((arg_type = va_arg(varg_list, int)) != 0) {
-		if (arg_type==STARPU_EXECUTE) {
+		if (arg_type==STARPU_EXECUTE_ON_NODE) {
                         execute = va_arg(varg_list, int);
+                }
+		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
+			starpu_data_handle data = va_arg(varg_list, starpu_data_handle);
+                        execute = starpu_data_get_rank(data);
                 }
 		else if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH) {
                         va_arg(varg_list, starpu_data_handle);
@@ -209,7 +213,10 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 		else if (arg_type==STARPU_PRIORITY) {
 			va_arg(varg_list, int);
 		}
-		else if (arg_type==STARPU_EXECUTE) {
+		else if (arg_type==STARPU_EXECUTE_ON_NODE) {
+			va_arg(varg_list, int);
+		}
+		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
 			va_arg(varg_list, int);
 		}
 	}
@@ -227,7 +234,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                 }
         }
         else if (execute != -1) {
-                _STARPU_MPI_DEBUG("Property STARPU_EXECUTE ignored as W data are all owned by the same task\n");
+                _STARPU_MPI_DEBUG("Property STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA ignored as W data are all owned by the same task\n");
         }
 
         /* Send and receive data as requested */
@@ -289,8 +296,11 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 		else if (arg_type==STARPU_PRIORITY) {
 			va_arg(varg_list, int);
 		}
-		else if (arg_type==STARPU_EXECUTE) {
+		else if (arg_type==STARPU_EXECUTE_ON_NODE) {
 			va_arg(varg_list, int);
+		}
+		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
+			va_arg(varg_list, starpu_data_handle);
 		}
         }
 	va_end(varg_list);
@@ -336,8 +346,11 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                         else if (arg_type==STARPU_PRIORITY) {
                                 va_arg(varg_list, int);
                         }
-                        else if (arg_type==STARPU_EXECUTE) {
+                        else if (arg_type==STARPU_EXECUTE_ON_NODE) {
                                 va_arg(varg_list, int);
+                        }
+                        else if (arg_type==STARPU_EXECUTE_ON_DATA) {
+                                va_arg(varg_list, starpu_data_handle);
                         }
                 }
                 va_end(varg_list);
@@ -396,8 +409,11 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 		else if (arg_type==STARPU_PRIORITY) {
 			va_arg(varg_list, int);
 		}
-		else if (arg_type==STARPU_EXECUTE) {
+		else if (arg_type==STARPU_EXECUTE_ON_NODE) {
 			va_arg(varg_list, int);
+		}
+		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
+			va_arg(varg_list, starpu_data_handle);
 		}
         }
 	va_end(varg_list);
