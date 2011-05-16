@@ -47,7 +47,7 @@ endif
 check_PROGRAMS =				\
 	stencil
 
-examplebindir = $(libdir)/starpu/examples/
+examplebindir = $(libdir)/starpu/examples/stencil
 
 examplebin_PROGRAMS =				\
 	stencil

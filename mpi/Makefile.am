@@ -81,14 +81,11 @@ libstarpumpi_la_SOURCES =				\
 	starpu_mpi_datatype.c				\
 	starpu_mpi_insert_task.c
 
-
 examplebin_PROGRAMS +=				\
 	examples/stencil/stencil5
 
 examples_stencil_stencil5_LDADD =		\
 	libstarpumpi.la
-examples_stencil_stencil5_SOURCES =		\
-	examples/stencil/stencil5.c
 
 ##################
 # MPI LU example #
@@ -188,116 +185,46 @@ testbin_PROGRAMS =				\
 
 tests_mpi_isend_LDADD =					\
 	libstarpumpi.la
-
-tests_mpi_isend_SOURCES =				\
-	tests/mpi_isend.c
-
 tests_mpi_irecv_LDADD =					\
 	libstarpumpi.la
-
-tests_mpi_irecv_SOURCES =				\
-	tests/mpi_irecv.c
-
 tests_mpi_isend_detached_LDADD =			\
 	libstarpumpi.la
-
-tests_mpi_isend_detached_SOURCES =			\
-	tests/mpi_isend_detached.c
-
 tests_mpi_irecv_detached_LDADD =			\
 	libstarpumpi.la
-
-tests_mpi_irecv_detached_SOURCES =			\
-	tests/mpi_irecv_detached.c
-
 tests_mpi_detached_tag_LDADD =				\
 	libstarpumpi.la
-
-tests_mpi_detached_tag_SOURCES =			\
-	tests/mpi_detached_tag.c
-
 tests_pingpong_LDADD =					\
 	libstarpumpi.la
-
-tests_pingpong_SOURCES =				\
-	tests/pingpong.c
-
 tests_mpi_test_LDADD =					\
 	libstarpumpi.la
-
-tests_mpi_test_SOURCES =				\
-	tests/mpi_test.c
-
 tests_ring_LDADD =					\
 	libstarpumpi.la
-
-tests_ring_SOURCES =					\
-	tests/ring.c
-
 tests_ring_async_LDADD =				\
 	libstarpumpi.la
-
-tests_ring_async_SOURCES =				\
-	tests/ring_async.c
-
 tests_ring_async_implicit_LDADD =			\
 	libstarpumpi.la
-
-tests_ring_async_implicit_SOURCES =			\
-	tests/ring_async_implicit.c
-
 tests_block_interface_LDADD =				\
 	libstarpumpi.la
-
-tests_block_interface_SOURCES =				\
-	tests/block_interface.c
-
 tests_block_interface_pinned_LDADD =			\
 	libstarpumpi.la
-
-tests_block_interface_pinned_SOURCES =			\
-	tests/block_interface_pinned.c
-
 tests_insert_task_LDADD =				\
 	libstarpumpi.la
-
-tests_insert_task_SOURCES =				\
-	tests/insert_task.c
-
 tests_insert_task_cache_LDADD =				\
 	libstarpumpi.la
-
-tests_insert_task_cache_SOURCES =			\
-	tests/insert_task_cache.c
-
 tests_insert_task_block_LDADD =				\
 	libstarpumpi.la
-
-tests_insert_task_block_SOURCES =			\
-	tests/insert_task_block.c
-
 tests_insert_task_owner_LDADD =				\
 	libstarpumpi.la
-
-tests_insert_task_owner_SOURCES =			\
-	tests/insert_task_owner.c
-
 tests_insert_task_owner2_LDADD =			\
 	libstarpumpi.la
-
-tests_insert_task_owner2_SOURCES =			\
-	tests/insert_task_owner2.c
-
 tests_insert_task_owner_data_LDADD =			\
 	libstarpumpi.la
-
 tests_multiple_send_LDADD =				\
 	libstarpumpi.la
 
-tests_multiple_send_SOURCES =				\
-	tests/multiple_send.c
-
-
+tests_ring_SOURCES = tests/ring.c
+tests_ring_async_SOURCES = tests/ring_async.c
+tests_ring_async_implicit_SOURCES = tests/ring_async_implicit.c
 if STARPU_USE_CUDA
 tests_ring_SOURCES += tests/ring_kernel.cu
 tests_ring_async_SOURCES += tests/ring_kernel.cu

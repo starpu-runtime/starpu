@@ -59,6 +59,10 @@ endif
 libstarpufft_la_LIBADD +=  $(STARPU_CUDA_LDFLAGS)
 endif
 
+examplebindir = $(libdir)/starpu/examples/starpufft
+examplebin_PROGRAMS =				\
+	testf
+
 check_PROGRAMS = testf
 testf_LDADD = libstarpufft.la $(top_builddir)/src/libstarpu.la $(FFTWF_LIBS)
 
