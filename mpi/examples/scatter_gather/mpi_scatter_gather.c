@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 
 	unsigned i,j,x,y;
 
-	unsigned nblocks=2;
+	unsigned nblocks=4;
 	unsigned block_size=1;
 	unsigned size = nblocks*block_size;
 	unsigned ld = size / nblocks;
@@ -92,6 +92,7 @@ int main(int argc, char **argv)
 		}
 	}
 
+#if 0
 	// Print matrix
 	if (rank == 0)
 	{
@@ -111,6 +112,7 @@ int main(int argc, char **argv)
 			}
 		}
 	}
+#endif
 
 	/* Allocate data handles and register data to StarPU */
         data_handles = malloc(nblocks*sizeof(starpu_data_handle *));
@@ -138,7 +140,9 @@ int main(int argc, char **argv)
 				}
 			}
                         if (data_handles[x][y])
+			{
                                 starpu_data_set_rank(data_handles[x][y], mpi_rank);
+			}
                 }
         }
 
@@ -149,11 +153,14 @@ int main(int argc, char **argv)
 		{
 			for (y = 0; y < nblocks; y++)
 			{
-				int mpi_rank = my_distrib(x, y, nodes);
-				if (mpi_rank)
+				if (data_handles[x][y])
 				{
-					fprintf(stderr, "[%d] Sending data[%d][%d] to %d\n", rank, x, y, mpi_rank);
-					starpu_mpi_isend_detached(data_handles[x][y], mpi_rank, mpi_rank, MPI_COMM_WORLD, NULL, NULL);
+					int owner = starpu_data_get_rank(data_handles[x][y]);
+					if (owner != 0)
+					{
+						fprintf(stderr, "[%d] Sending data[%d][%d] to %d\n", rank, x, y, owner);
+						starpu_mpi_isend_detached(data_handles[x][y], owner, owner, MPI_COMM_WORLD, NULL, NULL);
+					}
 				}
 			}
 		}
@@ -163,11 +170,14 @@ int main(int argc, char **argv)
 		{
 			for (y = 0; y < nblocks; y++)
 			{
-				int mpi_rank = my_distrib(x, y, nodes);
-				if (mpi_rank)
+				if (data_handles[x][y])
 				{
-					fprintf(stderr, "[%d] Receiving data[%d][%d] from %d\n", rank, x, y, 0);
-					starpu_mpi_irecv_detached(data_handles[x][y], 0, mpi_rank, MPI_COMM_WORLD, NULL, NULL);
+					int owner = starpu_data_get_rank(data_handles[x][y]);
+					if (owner == rank)
+					{
+						fprintf(stderr, "[%d] Receiving data[%d][%d] from %d\n", rank, x, y, 0);
+						starpu_mpi_irecv_detached(data_handles[x][y], 0, rank, MPI_COMM_WORLD, NULL, NULL);
+					}
 				}
 			}
 		}
@@ -201,11 +211,14 @@ int main(int argc, char **argv)
 		{
 			for (y = 0; y < nblocks; y++)
 			{
-				int mpi_rank = my_distrib(x, y, nodes);
-				if (mpi_rank)
+				if (data_handles[x][y])
 				{
-					fprintf(stderr, "[%d] Receiving data[%d][%d] from %d\n", rank, x, y, mpi_rank);
-					starpu_mpi_irecv_detached(data_handles[x][y], mpi_rank, mpi_rank, MPI_COMM_WORLD, NULL, NULL);
+					int owner = starpu_data_get_rank(data_handles[x][y]);
+					if (owner != 0)
+					{
+						fprintf(stderr, "[%d] Receiving data[%d][%d] from %d\n", rank, x, y, owner);
+						starpu_mpi_irecv_detached(data_handles[x][y], owner, owner, MPI_COMM_WORLD, NULL, NULL);
+					}
 				}
 			}
 		}
@@ -215,11 +228,14 @@ int main(int argc, char **argv)
 		{
 			for (y = 0; y < nblocks; y++)
 			{
-				int mpi_rank = my_distrib(x, y, nodes);
-				if (mpi_rank)
+				if (data_handles[x][y])
 				{
-					fprintf(stderr, "[%d] Sending data[%d][%d] to %d\n", rank, x, y, 0);
-					starpu_mpi_isend_detached(data_handles[x][y], 0, mpi_rank, MPI_COMM_WORLD, NULL, NULL);
+					int owner = starpu_data_get_rank(data_handles[x][y]);
+					if (owner == rank)
+					{
+						fprintf(stderr, "[%d] Sending data[%d][%d] to %d\n", rank, x, y, 0);
+						starpu_mpi_isend_detached(data_handles[x][y], 0, rank, MPI_COMM_WORLD, NULL, NULL);
+					}
 				}
 			}
 		}
