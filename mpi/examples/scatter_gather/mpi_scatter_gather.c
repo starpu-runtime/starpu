@@ -153,7 +153,7 @@ int main(int argc, char **argv)
 				if (mpi_rank)
 				{
 					fprintf(stderr, "[%d] Sending data[%d][%d] to %d\n", rank, x, y, mpi_rank);
-					starpu_mpi_send(data_handles[x][y], mpi_rank, mpi_rank, MPI_COMM_WORLD);
+					starpu_mpi_isend_detached(data_handles[x][y], mpi_rank, mpi_rank, MPI_COMM_WORLD, NULL, NULL);
 				}
 			}
 		}
@@ -166,9 +166,8 @@ int main(int argc, char **argv)
 				int mpi_rank = my_distrib(x, y, nodes);
 				if (mpi_rank)
 				{
-					MPI_Status status;
 					fprintf(stderr, "[%d] Receiving data[%d][%d] from %d\n", rank, x, y, 0);
-					starpu_mpi_recv(data_handles[x][y], 0, mpi_rank, MPI_COMM_WORLD, &status);
+					starpu_mpi_irecv_detached(data_handles[x][y], 0, mpi_rank, MPI_COMM_WORLD, NULL, NULL);
 				}
 			}
 		}
@@ -205,9 +204,8 @@ int main(int argc, char **argv)
 				int mpi_rank = my_distrib(x, y, nodes);
 				if (mpi_rank)
 				{
-					MPI_Status status;
 					fprintf(stderr, "[%d] Receiving data[%d][%d] from %d\n", rank, x, y, mpi_rank);
-					starpu_mpi_recv(data_handles[x][y], mpi_rank, mpi_rank, MPI_COMM_WORLD, &status);
+					starpu_mpi_irecv_detached(data_handles[x][y], mpi_rank, mpi_rank, MPI_COMM_WORLD, NULL, NULL);
 				}
 			}
 		}
@@ -221,7 +219,7 @@ int main(int argc, char **argv)
 				if (mpi_rank)
 				{
 					fprintf(stderr, "[%d] Sending data[%d][%d] to %d\n", rank, x, y, 0);
-					starpu_mpi_send(data_handles[x][y], 0, mpi_rank, MPI_COMM_WORLD);
+					starpu_mpi_isend_detached(data_handles[x][y], 0, mpi_rank, MPI_COMM_WORLD, NULL, NULL);
 				}
 			}
 		}
