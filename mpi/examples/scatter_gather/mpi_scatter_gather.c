@@ -31,7 +31,8 @@ void cpu_codelet(void *descr[], void *_args)
 	float factor;
 
 	block = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
-        starpu_unpack_cl_args(_args, &rank, &factor);
+        starpu_unpack_cl_args(_args, &rank);
+	factor = block[0];
 
 	//fprintf(stderr,"rank %d factor %f\n", rank, factor);
 	for (j = 0; j < nx; j++)
@@ -51,6 +52,83 @@ static starpu_codelet cl =
 	.nbuffers = 1
 };
 
+int starpu_mpi_scatter(starpu_data_handle *data_handles, int count, int root, MPI_Comm comm)
+{
+	int rank;
+	int x;
+
+	MPI_Comm_rank(comm, &rank);
+
+	if (rank == root)
+	{
+		for(x = 0; x < count ;  x++)
+		{
+			if (data_handles[x])
+			{
+				int owner = starpu_data_get_rank(data_handles[x]);
+				if (owner != 0)
+				{
+					//fprintf(stderr, "[%d] Sending data[%d] to %d\n", rank, x, owner);
+					starpu_mpi_isend_detached(data_handles[x], owner, owner, comm, NULL, NULL);
+				}
+			}
+		}
+	}
+	else {
+		for(x = 0; x < count ;  x++)
+		{
+			if (data_handles[x])
+			{
+				int owner = starpu_data_get_rank(data_handles[x]);
+				if (owner == rank)
+				{
+					//fprintf(stderr, "[%d] Receiving data[%d] from %d\n", rank, x, root);
+					starpu_mpi_irecv_detached(data_handles[x], root, rank, comm, NULL, NULL);
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+int starpu_mpi_gather(starpu_data_handle *data_handles, int count, int root, MPI_Comm comm)
+{
+	int rank;
+	int x;
+
+	MPI_Comm_rank(comm, &rank);
+
+	if (rank == root)
+	{
+		for(x = 0; x < count ;  x++)
+		{
+			if (data_handles[x])
+			{
+				int owner = starpu_data_get_rank(data_handles[x]);
+				if (owner != root)
+				{
+					//fprintf(stderr, "[%d] Receiving data[%d] from %d\n", rank, x, owner);
+					starpu_mpi_irecv_detached(data_handles[x], owner, owner, comm, NULL, NULL);
+				}
+			}
+		}
+	}
+	else {
+		for(x = 0; x < count ;  x++)
+		{
+			if (data_handles[x])
+			{
+				int owner = starpu_data_get_rank(data_handles[x]);
+				if (owner == rank)
+				{
+					//fprintf(stderr, "[%d] Sending data[%d] to %d\n", rank, x, root);
+					starpu_mpi_isend_detached(data_handles[x], root, rank, comm, NULL, NULL);
+				}
+			}
+		}
+	}
+	return 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -61,7 +139,7 @@ int main(int argc, char **argv)
 	unsigned i,j,x,y;
 
 	unsigned nblocks=4;
-	unsigned block_size=1;
+	unsigned block_size=2;
 	unsigned size = nblocks*block_size;
 	unsigned ld = size / nblocks;
 
@@ -71,14 +149,14 @@ int main(int argc, char **argv)
 	if (rank == 0)
 	{
 		/* Allocate the matrix */
-		int block_number=100;
+		int block_number=10;
 		bmat = malloc(nblocks * sizeof(float *));
 		for(x=0 ; x<nblocks ; x++)
 		{
 			bmat[x] = malloc(nblocks * sizeof(float *));
 			for(y=0 ; y<nblocks ; y++)
 			{
-				float value=1.0;
+				float value=0.0;
 				starpu_malloc((void **)&bmat[x][y], block_size*block_size*sizeof(float));
 				for (i = 0; i < block_size; i++)
 				{
@@ -88,7 +166,7 @@ int main(int argc, char **argv)
 						value++;
 					}
 				}
-				block_number += 100;
+				block_number += 10;
 			}
 		}
 	}
@@ -97,6 +175,7 @@ int main(int argc, char **argv)
 	// Print matrix
 	if (rank == 0)
 	{
+		fprintf(stderr, "Input matrix\n");
 		for(x=0 ; x<nblocks ; x++)
 		{
 			for(y=0 ; y<nblocks ; y++)
@@ -129,7 +208,7 @@ int main(int argc, char **argv)
 				if ((mpi_rank == rank) || ((rank == mpi_rank+1 || rank == mpi_rank-1)))
 				{
 					/* I own that index, or i will need it for my computations */
-					fprintf(stderr, "[%d] Owning or neighbor of data[%d][%d]\n", rank, x, y);
+					//fprintf(stderr, "[%d] Owning or neighbor of data[%d][%d]\n", rank, x, y);
 					starpu_matrix_data_register(&data_handles[x+y*nblocks], -1, (uintptr_t)NULL,
 								    ld, size/nblocks, size/nblocks, sizeof(float));
 				}
@@ -147,38 +226,9 @@ int main(int argc, char **argv)
         }
 
 	/* Scatter the matrix among the nodes */
-	if (rank == 0)
-	{
-		for(x = 0; x < nblocks*nblocks ;  x++)
-		{
-			if (data_handles[x])
-			{
-				int owner = starpu_data_get_rank(data_handles[x]);
-				if (owner != 0)
-				{
-					fprintf(stderr, "[%d] Sending data[%d] to %d\n", rank, x, owner);
-					starpu_mpi_isend_detached(data_handles[x], owner, owner, MPI_COMM_WORLD, NULL, NULL);
-				}
-			}
-		}
-	}
-	else {
-		for(x = 0; x < nblocks*nblocks ;  x++)
-		{
-			if (data_handles[x])
-			{
-				int owner = starpu_data_get_rank(data_handles[x]);
-				if (owner == rank)
-				{
-					fprintf(stderr, "[%d] Receiving data[%d] from %d\n", rank, x, 0);
-					starpu_mpi_irecv_detached(data_handles[x], 0, rank, MPI_COMM_WORLD, NULL, NULL);
-				}
-			}
-		}
-	}
+	starpu_mpi_scatter(data_handles, nblocks*nblocks, 0, MPI_COMM_WORLD);
 
 	/* Calculation */
-	float factor=10.0;
 	for(x = 0; x < nblocks*nblocks ;  x++)
 	{
 		if (data_handles[x])
@@ -186,57 +236,37 @@ int main(int argc, char **argv)
 			int owner = starpu_data_get_rank(data_handles[x]);
 			if (owner == rank)
 			{
-				fprintf(stderr,"[%d] Computing on data[%d]\n", rank, x);
+				//fprintf(stderr,"[%d] Computing on data[%d]\n", rank, x);
 				starpu_insert_task(&cl,
 						   STARPU_VALUE, &rank, sizeof(rank),
-						   STARPU_VALUE, &factor, sizeof(factor),
 						   STARPU_RW, data_handles[x],
 						   0);
 				starpu_task_wait_for_all();
 			}
-			factor+=10.0;
 		}
 	}
 
 	/* Gather the matrix on main node */
-	if (rank == 0)
+	starpu_mpi_gather(data_handles, nblocks*nblocks, 0, MPI_COMM_WORLD);
+
+	/* Unregister matrix from StarPU */
+	for(x=0 ; x<nblocks*nblocks ; x++)
 	{
-		for(x = 0; x < nblocks*nblocks ;  x++)
+		if (data_handles[x])
 		{
-			if (data_handles[x])
-			{
-				int owner = starpu_data_get_rank(data_handles[x]);
-				if (owner != 0)
-				{
-					fprintf(stderr, "[%d] Receiving data[%d] from %d\n", rank, x, owner);
-					starpu_mpi_irecv_detached(data_handles[x], owner, owner, MPI_COMM_WORLD, NULL, NULL);
-				}
-			}
-		}
-	}
-	else {
-		for(x = 0; x < nblocks*nblocks ;  x++)
-		{
-			if (data_handles[x])
-			{
-				int owner = starpu_data_get_rank(data_handles[x]);
-				if (owner == rank)
-				{
-					fprintf(stderr, "[%d] Sending data[%d] to %d\n", rank, x, 0);
-					starpu_mpi_isend_detached(data_handles[x], 0, rank, MPI_COMM_WORLD, NULL, NULL);
-				}
-			}
+			starpu_data_unregister(data_handles[x]);
 		}
 	}
 
+#if 0
 	// Print matrix
 	if (rank == 0)
 	{
+		fprintf(stderr, "Output matrix\n");
 		for(x=0 ; x<nblocks ; x++)
 		{
 			for(y=0 ; y<nblocks ; y++)
 			{
-				starpu_data_unregister(data_handles[x+y*nblocks]);
 				for (j = 0; j < block_size; j++)
 				{
 					for (i = 0; i < block_size; i++)
@@ -249,6 +279,7 @@ int main(int argc, char **argv)
 			}
 		}
 	}
+#endif
 
 	// Free memory
         free(data_handles);
