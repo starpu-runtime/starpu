@@ -141,6 +141,20 @@ examples_cholesky_mpi_cholesky_LDADD =			\
 	$(STARPU_BLAS_LDFLAGS)
 endif
 
+########################
+# Scatter Gather       #
+########################
+
+examplebin_PROGRAMS +=		\
+	examples/scatter_gather/mpi_scatter_gather
+
+examples_scatter_gather_mpi_scatter_gather_LDADD =	\
+	libstarpumpi.la
+
+########################
+# Unit testcases       #
+########################
+
 check_PROGRAMS +=					\
 	tests/pingpong					\
 	tests/mpi_test					\
