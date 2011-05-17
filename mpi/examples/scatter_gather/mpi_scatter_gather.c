@@ -66,7 +66,7 @@ int starpu_mpi_scatter(starpu_data_handle *data_handles, int count, int root, MP
 			if (data_handles[x])
 			{
 				int owner = starpu_data_get_rank(data_handles[x]);
-				if (owner != 0)
+				if (owner != root)
 				{
 					//fprintf(stderr, "[%d] Sending data[%d] to %d\n", rank, x, owner);
 					starpu_mpi_isend_detached(data_handles[x], owner, owner, comm, NULL, NULL);
