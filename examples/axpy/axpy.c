@@ -153,7 +153,9 @@ int main(int argc, char **argv)
 
 	starpu_task_wait_for_all();
 
+	starpu_data_unpartition(handle_x, 0);
 	starpu_data_unpartition(handle_y, 0);
+	starpu_data_unregister(handle_x);
 	starpu_data_unregister(handle_y);
 
 	gettimeofday(&end, NULL);
@@ -163,6 +165,9 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "timing -> %2.2f us %2.2f MB/s\n", timing, 3*N*sizeof(TYPE)/timing);
 
 	FPRINTF(stderr, "AFTER y[0] = %2.2f (ALPHA = %2.2f)\n", vec_y[0], alpha);
+
+	starpu_free((void *)vec_x);
+	starpu_free((void *)vec_y);
 
 	/* Stop StarPU */
 	starpu_shutdown();
