@@ -770,6 +770,16 @@ void _starpu_destroy_topology(struct starpu_machine_config_s *config __attribute
 	/* cleanup StarPU internal data structures */
 	_starpu_deinit_memory_nodes();
 
+	unsigned worker;
+	for (worker = 0; worker < config->topology.nworkers; worker++)
+	{
+#ifdef STARPU_HAVE_HWLOC
+		struct starpu_worker_s *workerarg = &config->workers[worker];
+		hwloc_bitmap_free(workerarg->initial_hwloc_cpu_set);
+		hwloc_bitmap_free(workerarg->current_hwloc_cpu_set);
+#endif
+	}
+
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_destroy(config->topology.hwtopology);
 #endif

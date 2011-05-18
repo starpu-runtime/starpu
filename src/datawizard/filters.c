@@ -143,6 +143,7 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 		child->req_list = starpu_data_requester_list_new();
 		child->reduction_req_list = starpu_data_requester_list_new();
 		child->refcnt = 0;
+		child->reduction_refcnt = 0;
 		_starpu_spin_init(&child->header_lock);
 
 		child->sequential_consistency = initial_handle->sequential_consistency;
@@ -158,9 +159,6 @@ void starpu_data_partition(starpu_data_handle initial_handle, struct starpu_data
 		 * children. */
 		child->redux_cl = initial_handle->redux_cl;
 		child->init_cl = initial_handle->init_cl;
-
-		child->reduction_refcnt = 0;
-		child->reduction_req_list = starpu_data_requester_list_new();
 
 #ifdef STARPU_USE_FXT
 		child->last_submitted_ghost_writer_id_is_valid = 0;
@@ -257,6 +255,8 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 		STARPU_ASSERT(ret == 0); 
 
 		_starpu_data_free_interfaces(&root_handle->children[child]);
+		starpu_data_requester_list_delete(child_handle->req_list);
+		starpu_data_requester_list_delete(child_handle->reduction_req_list);
 	}
 
 	/* the gathering_node should now have a valid copy of all the children.
@@ -315,6 +315,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 	}
 
 	/* there is no child anymore */
+	free(root_handle->children);
 	root_handle->nchildren = 0;
 
 	/* now the parent may be used again so we release the lock */
