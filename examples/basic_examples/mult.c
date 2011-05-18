@@ -352,14 +352,22 @@ int main(__attribute__ ((unused)) int argc,
 	 * starpu_data_map_filters is called again on C_handle.
 	 * The second argument is the memory node where the different subsets
 	 * should be reassembled, 0 = main memory (RAM) */
+	starpu_data_unpartition(A_handle, 0);
+	starpu_data_unpartition(B_handle, 0);
 	starpu_data_unpartition(C_handle, 0);
 
 	/* stop monitoring matrix C : after this, it is not possible to pass C 
 	 * (or any subset of C) as a codelet input/output. This also implements
 	 * a barrier so that the piece of data is put back into main memory in
 	 * case it was only available on a GPU for instance. */
+	starpu_data_unregister(A_handle);
+	starpu_data_unregister(B_handle);
 	starpu_data_unregister(C_handle);
-	
+
+	free(A);
+	free(B);
+	free(C);
+
 	starpu_shutdown();
 
 	return 0;

@@ -63,6 +63,7 @@ int main(int argc, char **argv)
 	starpu_task_submit(task);
 
 	starpu_task_wait_for_all();
+	starpu_data_unregister(handle);
 
 	FPRINTF(stderr, "v -> %d\n", v);
 

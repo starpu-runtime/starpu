@@ -106,6 +106,9 @@ int main(int argc, char **argv)
 	
 	/* submit the task to StarPU */
 	starpu_task_submit(task);
+
+	/* destroy the task */
+	starpu_task_destroy(task);
 	
 	/* terminate StarPU: statistics and other debug outputs are not
 	 * guaranteed to be generated unless this function is called. Once it

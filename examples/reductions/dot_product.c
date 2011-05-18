@@ -206,6 +206,7 @@ int main(int argc, char **argv)
 		struct starpu_task *task = starpu_task_create();
 
 		task->cl = &dot_codelet;
+		task->destroy = 1;
 
 		task->buffers[0].handle = x_handles[block];
 		task->buffers[0].mode = STARPU_R;
@@ -231,6 +232,11 @@ int main(int argc, char **argv)
 	starpu_helper_cublas_shutdown();
 
 	starpu_shutdown();
+
+	free(x);
+	free(y);
+	free(x_handles);
+	free(y_handles);
 
 	return 0;
 

@@ -133,8 +133,14 @@ int main(int argc, char **argv)
         unsigned int mem_size_matrix, mem_size_vector, mem_size_mult;
 
 	starpu_data_handle matrix_handle, vector_handle, mult_handle;
+	int ret, submit;
 
-        starpu_init(&conf);
+        ret = starpu_init(&conf);
+	if (STARPU_UNLIKELY(ret == -ENODEV)) {
+                FPRINTF(stderr, "This application requires an OpenCL worker.\n");
+		starpu_shutdown();
+		exit(0);
+	}
 
         mem_size_matrix = width * height * sizeof(float);
         matrix = (float*)malloc(mem_size_matrix);
@@ -179,20 +185,23 @@ int main(int argc, char **argv)
         task->buffers[2].handle = mult_handle;
         task->buffers[2].mode = STARPU_RW;
 
-        int ret = starpu_task_submit(task);
-        if (STARPU_UNLIKELY(ret == -ENODEV)) {
+        submit = starpu_task_submit(task);
+        if (STARPU_UNLIKELY(submit == -ENODEV)) {
                 FPRINTF(stderr, "No worker may execute this task. This application requires an OpenCL worker.\n");
-                exit(0);
 	}
-
-	starpu_task_wait_for_all();
+	else {
+		starpu_task_wait_for_all();
+	}
 
 	starpu_data_unregister(matrix_handle);
 	starpu_data_unregister(vector_handle);
 	starpu_data_unregister(mult_handle);
 
-        int res = compareL2fe(correctResult, mult, height, 1e-6f);
-        FPRINTF(stdout, "TEST %s\n\n", (res == 0) ? "PASSED" : "FAILED !!!");
+        if (STARPU_LIKELY(submit != -ENODEV)) {
+		int res = compareL2fe(correctResult, mult, height, 1e-6f);
+		FPRINTF(stdout, "TEST %s\n\n", (res == 0) ? "PASSED" : "FAILED !!!");
+	}
+
 #if 0
         printArray(matrix, width*height);
         printArray(vector, width);
