@@ -62,7 +62,6 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
 	}
 
 	starpu_task_wait_for_all();
-	starpu_task_destroy(task);
 
 	/* update the array in RAM */
 	starpu_data_unregister(block_handle);
