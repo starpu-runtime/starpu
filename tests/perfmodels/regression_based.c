@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 
-	conf.sched_policy_name = "greedy";
+	conf.sched_policy_name = "eager";
 	conf.calibrate = 1;
 
 	starpu_init(&conf);
