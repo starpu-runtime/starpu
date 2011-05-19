@@ -828,7 +828,7 @@ AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],
 			enable_perf_debug=$enableval, enable_perf_debug=no)
 AC_MSG_RESULT($enable_perf_debug)
 AC_SUBST(STARPU_PERF_DEBUG, $enable_perf_debug)
-if test x$enable_perf_debuf = xyes; then
+if test x$enable_perf_debug = xyes; then
 	AC_DEFINE(STARPU_PERF_DEBUG, [1], [enable performance debug])
 	CPPFLAGS="${CPPFLAGS} -pg "
 	LDFLAGS="${LDFLAGS} -pg "
