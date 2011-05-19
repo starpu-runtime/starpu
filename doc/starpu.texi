@@ -8,6 +8,10 @@
 @include version.texi
 
 @setchapternewpage odd
+@dircategory Development
+@direntry
+* StarPU: (starpu).             StarPU Handbook
+@end direntry
 
 @titlepage
 @title StarPU Handbook
