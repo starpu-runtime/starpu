@@ -79,7 +79,8 @@ libstarpumpi_la_SOURCES =				\
 	starpu_mpi.c					\
 	starpu_mpi_helper.c				\
 	starpu_mpi_datatype.c				\
-	starpu_mpi_insert_task.c
+	starpu_mpi_insert_task.c			\
+	starpu_mpi_collective.c
 
 examplebin_PROGRAMS +=				\
 	examples/stencil/stencil5

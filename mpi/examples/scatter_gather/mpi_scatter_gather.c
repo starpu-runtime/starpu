@@ -52,66 +52,6 @@ static starpu_codelet cl =
 	.nbuffers = 1
 };
 
-int starpu_mpi_scatter(starpu_data_handle *data_handles, int count, int root, MPI_Comm comm)
-{
-	int rank;
-	int x;
-	int mpi_tag = 0;
-
-	MPI_Comm_rank(comm, &rank);
-
-	for(x = 0; x < count ;  x++)
-	{
-		if (data_handles[x])
-		{
-			int owner = starpu_data_get_rank(data_handles[x]);
-			if ((rank == root) && (owner != root))
-			{
-				//fprintf(stderr, "[%d] Sending data[%d] to %d\n", rank, x, owner);
-				starpu_mpi_isend_detached(data_handles[x], owner, mpi_tag, comm, NULL, NULL);
-			}
-			if ((rank != root) && (owner == rank))
-			{
-				//fprintf(stderr, "[%d] Receiving data[%d] from %d\n", rank, x, root);
-				//MPI_Status status;
-				starpu_mpi_irecv_detached(data_handles[x], root, mpi_tag, comm, NULL, NULL);
-			}
-		}
-		mpi_tag++;
-	}
-	return 0;
-}
-
-int starpu_mpi_gather(starpu_data_handle *data_handles, int count, int root, MPI_Comm comm)
-{
-	int rank;
-	int x;
-	int mpi_tag = 0;
-
-	MPI_Comm_rank(comm, &rank);
-
-	for(x = 0; x < count ;  x++)
-	{
-		if (data_handles[x])
-		{
-			int owner = starpu_data_get_rank(data_handles[x]);
-			if ((rank == root) && (owner != root))
-			{
-				//fprintf(stderr, "[%d] Receiving data[%d] from %d\n", rank, x, owner);
-				//MPI_Status status;
-				starpu_mpi_irecv_detached(data_handles[x], owner, mpi_tag, comm, NULL, NULL);
-			}
-			if ((rank != root) && (owner == rank))
-			{
-				//fprintf(stderr, "[%d] Sending data[%d] to %d\n", rank, x, root);
-				starpu_mpi_isend_detached(data_handles[x], root, mpi_tag, comm, NULL, NULL);
-			}
-		}
-		mpi_tag ++;
-	}
-	return 0;
-}
-
 int main(int argc, char **argv)
 {
         int rank, nodes;
@@ -208,7 +148,7 @@ int main(int argc, char **argv)
         }
 
 	/* Scatter the matrix among the nodes */
-	starpu_mpi_scatter(data_handles, nblocks*nblocks, 0, MPI_COMM_WORLD);
+	starpu_mpi_scatter_detached(data_handles, nblocks*nblocks, 0, MPI_COMM_WORLD);
 
 	/* Calculation */
 	for(x = 0; x < nblocks*nblocks ;  x++)
@@ -228,7 +168,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Gather the matrix on main node */
-	starpu_mpi_gather(data_handles, nblocks*nblocks, 0, MPI_COMM_WORLD);
+	starpu_mpi_gather_detached(data_handles, nblocks*nblocks, 0, MPI_COMM_WORLD);
 
 	/* Unregister matrix from StarPU */
 	for(x=0 ; x<nblocks*nblocks ; x++)
