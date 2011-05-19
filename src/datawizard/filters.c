@@ -315,7 +315,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 	}
 
 	/* there is no child anymore */
-	free(root_handle->children);
+	//free(root_handle->children);
 	root_handle->nchildren = 0;
 
 	/* now the parent may be used again so we release the lock */
