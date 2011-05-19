@@ -2294,23 +2294,22 @@ if (rank == root)
 data_handles = malloc(nblocks*sizeof(starpu_data_handle *));
 for(x = 0; x < nblocks ;  x++)
 @{
-    int mpi_rank = my_distrib(x, y, nodes);
-    if (rank == root)
+    int mpi_rank = my_distrib(x, nodes);
+    if (rank == root) @{
         starpu_vector_data_register(&data_handles[x], 0, (uintptr_t)vector[x],
                                     blocks_size, sizeof(float));
-    else  @{
-        if ((mpi_rank == rank) || ((rank == mpi_rank+1 || rank == mpi_rank-1))) @{
-            /* I own that index, or i will need it for my computations */
-            starpu_vector_data_register(&data_handles[x], -1, (uintptr_t)NULL,
-                                        block_size, sizeof(float));
-        @}
-        else @{
-            /* I know it's useless to allocate anything for this */
-            data_handles[x] = NULL;
-        @}
-        if (data_handles[x]) @{
-            starpu_data_set_rank(data_handles[x], mpi_rank);
-        @}
+    @}
+    else if ((mpi_rank == rank) || ((rank == mpi_rank+1 || rank == mpi_rank-1))) @{
+        /* I own that index, or i will need it for my computations */
+        starpu_vector_data_register(&data_handles[x], -1, (uintptr_t)NULL,
+                                   block_size, sizeof(float));
+    @}
+    else @{
+        /* I know it's useless to allocate anything for this */
+        data_handles[x] = NULL;
+    @}
+    if (data_handles[x]) @{
+        starpu_data_set_rank(data_handles[x], mpi_rank);
     @}
 @}
 

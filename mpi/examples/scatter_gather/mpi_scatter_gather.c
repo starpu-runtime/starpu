@@ -124,21 +124,21 @@ int main(int argc, char **argv)
 		{
 			int mpi_rank = my_distrib(x, y, nodes);
 			if (rank == 0)
+			{
 				starpu_matrix_data_register(&data_handles[x+y*nblocks], 0, (uintptr_t)bmat[x][y],
 							    ld, size/nblocks, size/nblocks, sizeof(float));
-			else {
-				if ((mpi_rank == rank) || ((rank == mpi_rank+1 || rank == mpi_rank-1)))
-				{
-					/* I own that index, or i will need it for my computations */
-					//fprintf(stderr, "[%d] Owning or neighbor of data[%d][%d]\n", rank, x, y);
-					starpu_matrix_data_register(&data_handles[x+y*nblocks], -1, (uintptr_t)NULL,
-								    ld, size/nblocks, size/nblocks, sizeof(float));
-				}
-				else
-				{
-					/* I know it's useless to allocate anything for this */
-					data_handles[x+y*nblocks] = NULL;
-				}
+			}
+			else if ((mpi_rank == rank) || ((rank == mpi_rank+1 || rank == mpi_rank-1)))
+			{
+				/* I own that index, or i will need it for my computations */
+				//fprintf(stderr, "[%d] Owning or neighbor of data[%d][%d]\n", rank, x, y);
+				starpu_matrix_data_register(&data_handles[x+y*nblocks], -1, (uintptr_t)NULL,
+							    ld, size/nblocks, size/nblocks, sizeof(float));
+			}
+			else
+			{
+				/* I know it's useless to allocate anything for this */
+				data_handles[x+y*nblocks] = NULL;
 			}
                         if (data_handles[x+y*nblocks])
 			{
