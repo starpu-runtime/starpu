@@ -43,9 +43,11 @@ AC_DEFUN([STARPU_CHECK_LIB], [dnl
 	AC_SUBST(STARPU_$1_LDFLAGS)
 ])dnl
 
-# AC_HAVE_LIBRARY(NAME, LIBRARY,
-#                 [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND],
-#                 [OTHER-LIBRARIES])
+# STARPU_HAVE_LIBRARY(NAME, LIBRARY,
+#                     [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND],
+#                     [OTHER-LIBRARIES])
+# Like AC_HAVE_LIBRARY, but puts -l flags into $1_LDFLAGS instead of LIBS, and
+# AC_SUBSTs it
 AC_DEFUN([STARPU_HAVE_LIBRARY], [dnl
 STARPU_CHECK_LIB([$1], [$2], main, [$3], [$4], [$5])
 ])dnl
