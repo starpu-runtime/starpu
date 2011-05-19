@@ -56,37 +56,28 @@ int starpu_mpi_scatter(starpu_data_handle *data_handles, int count, int root, MP
 {
 	int rank;
 	int x;
+	int mpi_tag = 0;
 
 	MPI_Comm_rank(comm, &rank);
 
-	if (rank == root)
+	for(x = 0; x < count ;  x++)
 	{
-		for(x = 0; x < count ;  x++)
+		if (data_handles[x])
 		{
-			if (data_handles[x])
+			int owner = starpu_data_get_rank(data_handles[x]);
+			if ((rank == root) && (owner != root))
 			{
-				int owner = starpu_data_get_rank(data_handles[x]);
-				if (owner != root)
-				{
-					//fprintf(stderr, "[%d] Sending data[%d] to %d\n", rank, x, owner);
-					starpu_mpi_isend_detached(data_handles[x], owner, owner, comm, NULL, NULL);
-				}
+				//fprintf(stderr, "[%d] Sending data[%d] to %d\n", rank, x, owner);
+				starpu_mpi_isend_detached(data_handles[x], owner, mpi_tag, comm, NULL, NULL);
+			}
+			if ((rank != root) && (owner == rank))
+			{
+				//fprintf(stderr, "[%d] Receiving data[%d] from %d\n", rank, x, root);
+				//MPI_Status status;
+				starpu_mpi_irecv_detached(data_handles[x], root, mpi_tag, comm, NULL, NULL);
 			}
 		}
-	}
-	else {
-		for(x = 0; x < count ;  x++)
-		{
-			if (data_handles[x])
-			{
-				int owner = starpu_data_get_rank(data_handles[x]);
-				if (owner == rank)
-				{
-					//fprintf(stderr, "[%d] Receiving data[%d] from %d\n", rank, x, root);
-					starpu_mpi_irecv_detached(data_handles[x], root, rank, comm, NULL, NULL);
-				}
-			}
-		}
+		mpi_tag++;
 	}
 	return 0;
 }
@@ -95,37 +86,28 @@ int starpu_mpi_gather(starpu_data_handle *data_handles, int count, int root, MPI
 {
 	int rank;
 	int x;
+	int mpi_tag = 0;
 
 	MPI_Comm_rank(comm, &rank);
 
-	if (rank == root)
+	for(x = 0; x < count ;  x++)
 	{
-		for(x = 0; x < count ;  x++)
+		if (data_handles[x])
 		{
-			if (data_handles[x])
+			int owner = starpu_data_get_rank(data_handles[x]);
+			if ((rank == root) && (owner != root))
 			{
-				int owner = starpu_data_get_rank(data_handles[x]);
-				if (owner != root)
-				{
-					//fprintf(stderr, "[%d] Receiving data[%d] from %d\n", rank, x, owner);
-					starpu_mpi_irecv_detached(data_handles[x], owner, owner, comm, NULL, NULL);
-				}
+				//fprintf(stderr, "[%d] Receiving data[%d] from %d\n", rank, x, owner);
+				//MPI_Status status;
+				starpu_mpi_irecv_detached(data_handles[x], owner, mpi_tag, comm, NULL, NULL);
+			}
+			if ((rank != root) && (owner == rank))
+			{
+				//fprintf(stderr, "[%d] Sending data[%d] to %d\n", rank, x, root);
+				starpu_mpi_isend_detached(data_handles[x], root, mpi_tag, comm, NULL, NULL);
 			}
 		}
-	}
-	else {
-		for(x = 0; x < count ;  x++)
-		{
-			if (data_handles[x])
-			{
-				int owner = starpu_data_get_rank(data_handles[x]);
-				if (owner == rank)
-				{
-					//fprintf(stderr, "[%d] Sending data[%d] to %d\n", rank, x, root);
-					starpu_mpi_isend_detached(data_handles[x], root, rank, comm, NULL, NULL);
-				}
-			}
-		}
+		mpi_tag ++;
 	}
 	return 0;
 }
