@@ -830,8 +830,8 @@ AC_MSG_RESULT($enable_perf_debug)
 AC_SUBST(STARPU_PERF_DEBUG, $enable_perf_debug)
 if test x$enable_perf_debug = xyes; then
 	AC_DEFINE(STARPU_PERF_DEBUG, [1], [enable performance debug])
-	CPPFLAGS="${CPPFLAGS} -pg "
-	LDFLAGS="${LDFLAGS} -pg "
+	CPPFLAGS="${CPPFLAGS} -pg -fprofile-arcs "
+	LDFLAGS="${LDFLAGS} -pg -fprofile-arcs "
 fi
 
 AC_MSG_CHECKING(whether performance model debugging should be enabled)
