@@ -223,7 +223,6 @@ int main(int argc, char **argv)
 						   STARPU_VALUE, &rank, sizeof(rank),
 						   STARPU_RW, data_handles[x],
 						   0);
-				starpu_task_wait_for_all();
 			}
 		}
 	}
