@@ -856,7 +856,7 @@ if test x$enable_stats = xyes; then
 fi
 
 AC_CHECK_HEADERS([glpk.h])
-AC_HAVE_LIBRARY([glpk])
+STARPU_HAVE_LIBRARY(GLPK, [glpk])
 
 ###############################################################################
 #                                                                             #
