@@ -2564,7 +2564,7 @@ Specify the location of the Gordon SDK.
 @subsubsection @code{--enable-perf-debug}
 @table @asis
 @item @emph{Description}:
-Enable performance debugging.
+Enable performance debugging through gprof.
 @end table
 
 @node --enable-model-debug

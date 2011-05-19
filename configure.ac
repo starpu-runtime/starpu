@@ -824,7 +824,7 @@ fi
 
 AC_MSG_CHECKING(whether performance debugging should be enabled)
 AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],
-			[enable performance debugging])],
+			[enable performance debugging through gprof])],
 			enable_perf_debug=$enableval, enable_perf_debug=no)
 AC_MSG_RESULT($enable_perf_debug)
 AC_SUBST(STARPU_PERF_DEBUG, $enable_perf_debug)
