@@ -82,11 +82,18 @@ libstarpumpi_la_SOURCES =				\
 	starpu_mpi_insert_task.c			\
 	starpu_mpi_collective.c
 
+###################
+# Stencil example #
+###################
+
 examplebin_PROGRAMS +=				\
 	examples/stencil/stencil5
 
 examples_stencil_stencil5_LDADD =		\
 	libstarpumpi.la
+
+check_PROGRAMS	+=	\
+	examples/stencil/stencil5
 
 ##################
 # MPI LU example #
@@ -152,6 +159,9 @@ examples_cholesky_mpi_cholesky_distributed_LDADD =	\
 	libstarpumpi.la					\
 	$(STARPU_BLAS_LDFLAGS)
 
+check_PROGRAMS +=					\
+	examples/cholesky/mpi_cholesky			\
+	examples/cholesky/mpi_cholesky_distributed
 endif
 
 ########################
@@ -163,6 +173,9 @@ examplebin_PROGRAMS +=		\
 
 examples_scatter_gather_mpi_scatter_gather_LDADD =	\
 	libstarpumpi.la
+
+check_PROGRAMS +=		\
+	examples/scatter_gather/mpi_scatter_gather
 
 ########################
 # Unit testcases       #
