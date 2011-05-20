@@ -129,7 +129,8 @@ endif
 
 if !NO_BLAS_LIB
 examplebin_PROGRAMS +=		\
-	examples/cholesky/mpi_cholesky
+	examples/cholesky/mpi_cholesky			\
+	examples/cholesky/mpi_cholesky_distributed
 
 examples_cholesky_mpi_cholesky_SOURCES	=		\
 	examples/cholesky/mpi_cholesky.c		\
@@ -140,6 +141,17 @@ examples_cholesky_mpi_cholesky_SOURCES	=		\
 examples_cholesky_mpi_cholesky_LDADD =			\
 	libstarpumpi.la					\
 	$(STARPU_BLAS_LDFLAGS)
+
+examples_cholesky_mpi_cholesky_distributed_SOURCES =	\
+	examples/cholesky/mpi_cholesky_distributed.c	\
+	examples/cholesky/mpi_cholesky_models.c		\
+	examples/cholesky/mpi_cholesky_kernels.c	\
+	$(top_srcdir)/examples/common/blas.c
+
+examples_cholesky_mpi_cholesky_distributed_LDADD =	\
+	libstarpumpi.la					\
+	$(STARPU_BLAS_LDFLAGS)
+
 endif
 
 ########################
