@@ -143,6 +143,7 @@ int main(int argc, char **argv)
                         if (data_handles[x+y*nblocks])
 			{
                                 starpu_data_set_rank(data_handles[x+y*nblocks], mpi_rank);
+                                starpu_data_set_tag(data_handles[x+y*nblocks], (y*nblocks)+x);
 			}
                 }
         }

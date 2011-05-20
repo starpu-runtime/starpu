@@ -96,7 +96,10 @@ static void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblo
                                                             ld, size/nblocks, size/nblocks, sizeof(float));
                         }
                         if (data_handles[x][y])
+			{
                                 starpu_data_set_rank(data_handles[x][y], mpi_rank);
+                                starpu_data_set_tag(data_handles[x][y], (y*nblocks)+x);
+			}
                 }
         }
 

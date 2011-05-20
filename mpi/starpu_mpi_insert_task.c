@@ -108,7 +108,6 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 	size_t arg_buffer_size = 0;
 	char *arg_buffer;
         int dest=0, execute, inconsistent_execute;
-        int mpi_tag = 100;
 
         _STARPU_MPI_LOG_IN();
 
@@ -244,6 +243,8 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                         starpu_data_handle data = va_arg(varg_list, starpu_data_handle);
                         if (data && arg_type & STARPU_R) {
                                 int mpi_rank = starpu_data_get_rank(data);
+				int mpi_tag = starpu_data_get_tag(data);
+				STARPU_ASSERT(mpi_tag >= 0);
                                 /* The task needs to read this data */
                                 if (do_execute && mpi_rank != me && mpi_rank != -1) {
                                         /* I will have to execute but I don't have the data, receive */
@@ -258,10 +259,10 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                                         }
                                         if (!already_received)
 #endif
-                                                {
-                                                        _STARPU_MPI_DEBUG("Receive data %p from %d\n", data, mpi_rank);
-                                                        starpu_mpi_irecv_detached(data, mpi_rank, mpi_tag, comm, NULL, NULL);
-                                                }
+					{
+						_STARPU_MPI_DEBUG("Receive data %p from %d\n", data, mpi_rank);
+						starpu_mpi_irecv_detached(data, mpi_rank, mpi_tag, comm, NULL, NULL);
+					}
                                 }
                                 if (!do_execute && mpi_rank == me) {
                                         /* Somebody else will execute it, and I have the data, send it. */
@@ -276,12 +277,11 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                                         }
                                         if (!already_sent)
 #endif
-                                                {
-                                                        _STARPU_MPI_DEBUG("Send data %p to %d\n", data, dest);
-                                                        starpu_mpi_isend_detached(data, dest, mpi_tag, comm, NULL, NULL);
-                                                }
+					{
+						_STARPU_MPI_DEBUG("Send data %p to %d\n", data, dest);
+						starpu_mpi_isend_detached(data, dest, mpi_tag, comm, NULL, NULL);
+					}
                                 }
-                                mpi_tag++;
                         }
                 }
 		else if (arg_type==STARPU_VALUE) {
@@ -321,6 +321,8 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                                 starpu_data_handle data = va_arg(varg_list, starpu_data_handle);
                                 if (arg_type & STARPU_W) {
                                         int mpi_rank = starpu_data_get_rank(data);
+					int mpi_tag = starpu_data_get_tag(data);
+					STARPU_ASSERT(mpi_tag >= 0);
                                         if (mpi_rank == me) {
                                                 if (execute != -1 && me != execute) {
                                                         _STARPU_MPI_DEBUG("Receive data %p back from the task %d which executed the codelet ...\n", data, dest);
@@ -331,7 +333,6 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                                                 _STARPU_MPI_DEBUG("Send data %p back to its owner %d...\n", data, mpi_rank);
                                                 starpu_mpi_isend_detached(data, mpi_rank, mpi_tag, comm, NULL, NULL);
                                         }
-                                        mpi_tag ++;
                                 }
                         }
                         else if (arg_type==STARPU_VALUE) {

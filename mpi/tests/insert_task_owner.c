@@ -65,14 +65,18 @@ int main(int argc, char **argv)
         if (rank == 0) {
                 starpu_variable_data_register(&data_handlesx0, 0, (uintptr_t)&x0, sizeof(x0));
                 starpu_data_set_rank(data_handlesx0, rank);
+		starpu_data_set_tag(data_handlesx0, 0);
                 starpu_variable_data_register(&data_handlesx1, -1, (uintptr_t)NULL, sizeof(int));
                 starpu_data_set_rank(data_handlesx1, 1);
+		starpu_data_set_tag(data_handlesx1, 1);
         }
         else if (rank == 1) {
                 starpu_variable_data_register(&data_handlesx1, 0, (uintptr_t)&x1, sizeof(x1));
                 starpu_data_set_rank(data_handlesx1, rank);
+		starpu_data_set_tag(data_handlesx1, 1);
                 starpu_variable_data_register(&data_handlesx0, -1, (uintptr_t)NULL, sizeof(int));
                 starpu_data_set_rank(data_handlesx0, 0);
+		starpu_data_set_tag(data_handlesx0, 0);
         }
 
         err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_R, data_handlesx0, STARPU_W, data_handlesx1, 0);

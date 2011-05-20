@@ -102,7 +102,10 @@ int main(int argc, char **argv)
                                 data_handles[x][y] = NULL;
                         }
                         if (data_handles[x][y])
+			{
                                 starpu_data_set_rank(data_handles[x][y], mpi_rank);
+                                starpu_data_set_tag(data_handles[x][y], (y*X)+x);
+			}
                 }
         }
 
