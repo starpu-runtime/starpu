@@ -98,6 +98,9 @@ void starpu_data_set_reduction_methods(starpu_data_handle handle,
 int starpu_data_set_rank(starpu_data_handle handle, int rank);
 int starpu_data_get_rank(starpu_data_handle handle);
 
+int starpu_data_set_tag(starpu_data_handle handle, int tag);
+int starpu_data_get_tag(starpu_data_handle handle);
+
 #ifdef __cplusplus
 }
 #endif

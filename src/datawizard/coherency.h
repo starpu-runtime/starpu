@@ -189,6 +189,7 @@ struct starpu_data_state_t {
 
         /* Used for MPI */
         int rank;
+	int tag;
 };
 
 void _starpu_display_msi_stats(void);

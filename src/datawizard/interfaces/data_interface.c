@@ -115,6 +115,7 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 	handle->sibling_index = 0; /* could be anything for the root */
 	handle->depth = 1; /* the tree is just a node yet */
         handle->rank = -1; /* invalid until set */
+	handle->tag = -1; /* invalid until set */
 
 	handle->is_not_important = 0;
 
@@ -296,6 +297,17 @@ int starpu_data_get_rank(starpu_data_handle handle)
 int starpu_data_set_rank(starpu_data_handle handle, int rank)
 {
         handle->rank = rank;
+        return 0;
+}
+
+int starpu_data_get_tag(starpu_data_handle handle)
+{
+	return handle->tag;
+}
+
+int starpu_data_set_tag(starpu_data_handle handle, int tag)
+{
+        handle->tag = tag;
         return 0;
 }
 
