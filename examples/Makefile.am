@@ -119,7 +119,7 @@ noinst_HEADERS = 				\
 	spmv/spmv.h				\
 	spmv/dw_block_spmv.h
 
-check_PROGRAMS +=				\
+examplebin_PROGRAMS +=				\
 	basic_examples/hello_world		\
 	basic_examples/vector_scal		\
 	basic_examples/mult			\
@@ -145,12 +145,12 @@ check_PROGRAMS +=				\
 #	ppm_downscaler/yuv_downscaler
 
 if STARPU_HAVE_F77_H
-check_PROGRAMS +=				\
+examplebin_PROGRAMS +=				\
 	basic_examples/vector_scal_fortran
 endif
 
 if !NO_BLAS_LIB
-check_PROGRAMS +=				\
+examplebin_PROGRAMS +=				\
 	axpy/axpy				\
 	mult/sgemm 				\
 	mult/dgemm				\
@@ -167,12 +167,11 @@ check_PROGRAMS +=				\
 endif
 
 if ATLAS_BLAS_LIB
-check_PROGRAMS += 				\
+examplebin_PROGRAMS +=				\
 	spmv/dw_block_spmv
 endif
 
-examplebin_PROGRAMS +=				\
-	$(check_PROGRAMS)
+check_PROGRAMS +=	$(examplebin_PROGRAMS)
 
 ##################
 # Basic examples #

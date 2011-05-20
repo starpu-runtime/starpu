@@ -74,7 +74,6 @@ endif
 
 
 testbindir = $(libdir)/starpu/tests
-testbin_PROGRAMS =
 
 SUBDIRS =
 
@@ -84,9 +83,7 @@ if STARPU_COVERAGE_ENABLED
 TESTS	+=	coverage/coverage.sh
 endif
 
-check_PROGRAMS =
-
-check_PROGRAMS += 				\
+testbin_PROGRAMS =				\
 	core/restart				\
 	core/execute_on_a_specific_worker	\
 	core/insert_task			\
@@ -159,8 +156,8 @@ check_PROGRAMS += 				\
 	perfmodels/regression_based		\
 	perfmodels/non_linear_regression_based
 
-testbin_PROGRAMS +=				\
-	$(check_PROGRAMS)
+check_PROGRAMS =
+	$(testbin_PROGRAMS)
 
 datawizard_acquire_release_SOURCES =		\
 	datawizard/acquire_release.c
