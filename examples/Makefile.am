@@ -119,6 +119,10 @@ noinst_HEADERS = 				\
 	spmv/spmv.h				\
 	spmv/dw_block_spmv.h
 
+#####################################
+# What to install and what to check #
+#####################################
+
 examplebin_PROGRAMS +=				\
 	basic_examples/hello_world		\
 	basic_examples/vector_scal		\
@@ -139,10 +143,10 @@ examplebin_PROGRAMS +=				\
 	profiling/profiling			\
 	scheduler/dummy_sched			\
 	reductions/dot_product			\
-	reductions/minmax_reduction
-#	mandelbrot/mandelbrot
-#	ppm_downscaler/ppm_downscaler
-#	ppm_downscaler/yuv_downscaler
+	reductions/minmax_reduction		\
+	mandelbrot/mandelbrot			\
+	ppm_downscaler/ppm_downscaler		\
+	ppm_downscaler/yuv_downscaler
 
 if STARPU_HAVE_F77_H
 examplebin_PROGRAMS +=				\
@@ -171,7 +175,54 @@ examplebin_PROGRAMS +=				\
 	spmv/dw_block_spmv
 endif
 
-check_PROGRAMS +=	$(examplebin_PROGRAMS)
+check_PROGRAMS +=				\
+	basic_examples/hello_world		\
+	basic_examples/vector_scal		\
+	basic_examples/mult			\
+	basic_examples/block			\
+	basic_examples/variable			\
+	filters/fvector				\
+	filters/fblock				\
+	filters/fmatrix				\
+	tag_example/tag_example			\
+	tag_example/tag_example3		\
+	tag_example/tag_example2		\
+	tag_example/tag_restartable		\
+	spmv/spmv				\
+	callback/callback			\
+	incrementer/incrementer			\
+	matvecmult/matvecmult			\
+	profiling/profiling			\
+	scheduler/dummy_sched			\
+	reductions/dot_product			\
+	reductions/minmax_reduction
+
+if STARPU_HAVE_F77_H
+check_PROGRAMS +=				\
+	basic_examples/vector_scal_fortran
+endif
+
+if !NO_BLAS_LIB
+check_PROGRAMS +=				\
+	axpy/axpy				\
+	mult/sgemm 				\
+	mult/dgemm				\
+	cholesky/cholesky_tag			\
+	cholesky/cholesky_tile_tag		\
+	cholesky/cholesky_grain_tag		\
+	cholesky/cholesky_implicit		\
+	lu/lu_example_float			\
+	lu/lu_example_double			\
+	lu/lu_implicit_example_float		\
+	lu/lu_implicit_example_double		\
+	heat/heat				\
+	cg/cg
+endif
+
+if ATLAS_BLAS_LIB
+check_PROGRAMS +=				\
+	spmv/dw_block_spmv
+endif
 
 ##################
 # Basic examples #
@@ -265,14 +316,6 @@ filters_fblock_SOURCES +=			\
 nobase_STARPU_OPENCL_DATA_DATA += \
 	filters/fblock_opencl_kernel.cl
 endif
-
-###################
-# PPM downscaling #
-###################
-
-examplebin_PROGRAMS +=				\
-	ppm_downscaler/ppm_downscaler		\
-	ppm_downscaler/yuv_downscaler
 
 ################
 # AXPY example #
@@ -511,9 +554,6 @@ endif
 ##################
 # Mandelbrot Set #
 ##################
-
-examplebin_PROGRAMS +=				\
-	mandelbrot/mandelbrot
 
 mandelbrot_mandelbrot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS)
 if HAVE_X11
