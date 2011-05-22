@@ -30,7 +30,7 @@ static starpu_data_handle *x_handles;
 static starpu_data_handle *y_handles;
 
 static unsigned nblocks = 4096;
-static unsigned entries_per_bock = 1024;
+static unsigned entries_per_block = 1024;
 
 #define DOT_TYPE double
 
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
 
 	starpu_helper_cublas_init();
 
-	unsigned long nelems = nblocks*entries_per_bock;
+	unsigned long nelems = nblocks*entries_per_block;
 	size_t size = nelems*sizeof(float);
 
 	x = malloc(size);
@@ -189,9 +189,9 @@ int main(int argc, char **argv)
 	for (block = 0; block < nblocks; block++)
 	{
 		starpu_vector_data_register(&x_handles[block], 0,
-			(uintptr_t)&x[entries_per_bock*block], entries_per_bock, sizeof(float));
+			(uintptr_t)&x[entries_per_block*block], entries_per_block, sizeof(float));
 		starpu_vector_data_register(&y_handles[block], 0,
-			(uintptr_t)&y[entries_per_bock*block], entries_per_bock, sizeof(float));
+			(uintptr_t)&y[entries_per_block*block], entries_per_block, sizeof(float));
 	}
 
 	starpu_variable_data_register(&dot_handle, 0, (uintptr_t)&dot, sizeof(DOT_TYPE));
