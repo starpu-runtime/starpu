@@ -154,8 +154,8 @@ static void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblo
 	gettimeofday(&end, NULL);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-	fprintf(stderr, "Computation took (in ms)\n");
-	printf("%2.2f\n", timing/1000);
+	fprintf(stderr, "[%d] Computation took (in ms)\n", rank);
+	fprintf(stdout, "%2.2f\n", timing/1000);
 
 	double flop = (1.0f*size*size*size)/3.0f;
 	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
