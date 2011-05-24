@@ -32,6 +32,7 @@ CLEANFILES = 					\
 	datawizard/sync_and_notify_data_gordon_kernels.spuelf
 
 BUILT_SOURCES =
+SUBDIRS =
 
 if STARPU_USE_OPENCL
 nobase_STARPU_OPENCL_DATA_DATA =
@@ -72,12 +73,18 @@ SPU_LD ?= spu-ld
 
 endif
 
-
 testbindir = $(libdir)/starpu/tests
 
-SUBDIRS =
+#####################################
+# What to install and what to check #
+#####################################
 
-TESTS = $(check_PROGRAMS)
+## test loader program
+LOADER			=	loader
+LOADER_BIN		=	$(abs_top_builddir)/tests/$(LOADER)
+TESTS_ENVIRONMENT	=	$(LOADER_BIN)
+
+TESTS = $(testbin_PROGRAMS)
 
 if STARPU_COVERAGE_ENABLED
 TESTS	+=	coverage/coverage.sh
@@ -156,8 +163,12 @@ testbin_PROGRAMS =				\
 	perfmodels/regression_based		\
 	perfmodels/non_linear_regression_based
 
-check_PROGRAMS =
-	$(testbin_PROGRAMS)
+check_PROGRAMS =				\
+	$(LOADER) $(testbin_PROGRAMS)
+
+#######################
+# Source files        #
+#######################
 
 datawizard_acquire_release_SOURCES =		\
 	datawizard/acquire_release.c

@@ -19,8 +19,6 @@ LIBS = $(top_builddir)/src/libstarpu.la $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
 AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 
-TESTS	=	$(check_PROGRAMS)
-
 SUBDIRS = stencil
 
 if STARPU_HAVE_FFTW
@@ -28,8 +26,6 @@ if STARPU_HAVE_FFTWL
 SUBDIRS += starpufft
 endif
 endif
-
-check_PROGRAMS =
 
 BUILT_SOURCES =
 
@@ -123,6 +119,16 @@ noinst_HEADERS = 				\
 # What to install and what to check #
 #####################################
 
+STARPU_EXAMPLES	=
+check_PROGRAMS	=	$(LOADER) $(STARPU_EXAMPLES)
+TESTS		=	$(STARPU_EXAMPLES)
+
+## test loader program
+LOADER			=	loader
+LOADER_BIN		=	$(abs_top_builddir)/examples/$(LOADER)
+loader_SOURCES		=	../tests/loader.c
+TESTS_ENVIRONMENT	=	$(LOADER_BIN)
+
 examplebin_PROGRAMS +=				\
 	basic_examples/hello_world		\
 	basic_examples/vector_scal		\
@@ -175,7 +181,7 @@ examplebin_PROGRAMS +=				\
 	spmv/dw_block_spmv
 endif
 
-check_PROGRAMS +=				\
+STARPU_EXAMPLES +=				\
 	basic_examples/hello_world		\
 	basic_examples/vector_scal		\
 	basic_examples/mult			\
@@ -198,12 +204,12 @@ check_PROGRAMS +=				\
 	reductions/minmax_reduction
 
 if STARPU_HAVE_F77_H
-check_PROGRAMS +=				\
+STARPU_EXAMPLES +=				\
 	basic_examples/vector_scal_fortran
 endif
 
 if !NO_BLAS_LIB
-check_PROGRAMS +=				\
+STARPU_EXAMPLES +=				\
 	axpy/axpy				\
 	mult/sgemm 				\
 	mult/dgemm				\
@@ -220,7 +226,7 @@ check_PROGRAMS +=				\
 endif
 
 if ATLAS_BLAS_LIB
-check_PROGRAMS +=				\
+STARPU_EXAMPLES +=				\
 	spmv/dw_block_spmv
 endif
 
