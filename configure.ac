@@ -814,9 +814,9 @@ if test x$use_fxt = xyes; then
 	if test x$use_fxt_from_system = xno; then
 		CPPFLAGS="${CPPFLAGS} -I$fxtdir/include/ "
 		LDFLAGS="${LDFLAGS} -L$fxtdir/lib/ "
+	else
+	    PKG_CHECK_MODULES([FXT],  [fxt])
 	fi
-
-	PKG_CHECK_MODULES([FXT],  [fxt])
 
 	# if we use monotonic clocks, FxT uses -lrt
 	AC_CHECK_LIB(rt, clock_gettime,,AC_MSG_ERROR([cannot find clock_gettime]))
@@ -1369,5 +1369,5 @@ AC_MSG_NOTICE([
 	BLAS library:  $blas_lib
 	hwloc:         $have_valid_hwloc
 
-	Tracing enabled: $use_fxt
+	FxT trace enabled: $use_fxt
 ])
