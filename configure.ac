@@ -813,7 +813,7 @@ if test x$use_fxt = xyes; then
 
 	if test x$use_fxt_from_system = xno; then
 		CPPFLAGS="${CPPFLAGS} -I$fxtdir/include/ "
-		LDFLAGS="${LDFLAGS} -L$fxtdir/lib/ "
+		LDFLAGS="${LDFLAGS} -L$fxtdir/lib/ -lfxt"
 	else
 	    PKG_CHECK_MODULES([FXT],  [fxt])
 	fi
