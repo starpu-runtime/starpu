@@ -36,6 +36,10 @@
 
 /* default value */
 static unsigned long ntasks = 1024;
+static unsigned long ntasks_warmup = 0;
+
+static unsigned use_redux = 1;
+static unsigned do_warmup = 0;
 
 /*
  *	Initialization of the Random Number Generators (RNG)
@@ -46,8 +50,10 @@ static unsigned long ntasks = 1024;
 static curandGenerator_t curandgens[STARPU_NMAXWORKERS];
 #endif 
 
-/* state for the erand48 function */
-static unsigned short xsubi[3*STARPU_NMAXWORKERS];
+/* state for the erand48 function : note the huge padding to avoid false-sharing */
+#define PADDING	1024
+static unsigned short xsubi[STARPU_NMAXWORKERS*PADDING];
+static struct drand48_data randbuffer[STARPU_NMAXWORKERS*PADDING];
 
 /* Function to initialize the random number generator in the current worker */
 static void init_rng(void *arg __attribute__((unused)))
@@ -61,9 +67,11 @@ static void init_rng(void *arg __attribute__((unused)))
 	switch (starpu_worker_get_type(workerid)) {
 		case STARPU_CPU_WORKER:
 			/* create a seed */
-			xsubi[0 + 3*workerid] = (unsigned short)workerid;
-			xsubi[1 + 3*workerid] = (unsigned short)workerid;
-			xsubi[2 + 3*workerid] = (unsigned short)workerid;
+			starpu_srand48_r((long int)workerid, &randbuffer[PADDING*workerid]);
+
+			xsubi[0 + PADDING*workerid] = (unsigned short)workerid;
+			xsubi[1 + PADDING*workerid] = (unsigned short)workerid;
+			xsubi[2 + PADDING*workerid] = (unsigned short)workerid;
 			break;
 #ifdef STARPU_HAVE_CURAND
 		case STARPU_CUDA_WORKER:
@@ -93,6 +101,20 @@ static void parse_args(int argc, char **argv)
 			char *argptr;
 			ntasks = strtol(argv[++i], &argptr, 10);
 		}
+
+		if (strcmp(argv[i], "-noredux") == 0) {
+			use_redux = 0;
+		}
+
+		if (strcmp(argv[i], "-warmup") == 0) {
+			do_warmup = 1;
+			ntasks_warmup = 8; /* arbitrary number of warmup tasks */
+		}
+
+		if (strcmp(argv[i], "-h") == 0) {
+			fprintf(stderr, "Usage: %s [-ntasks n] [-noredux] [-warmup] [-h]\n", argv[0]);
+			exit(-1);
+		}
 	}
 }
 
@@ -105,7 +127,10 @@ static void pi_func_cpu(void *descr[], void *cl_arg __attribute__ ((unused)))
 	int workerid = starpu_worker_get_id();
 
 	unsigned short *worker_xsub;
-	worker_xsub = &xsubi[3*workerid];
+	worker_xsub = &xsubi[PADDING*workerid];
+	
+	struct drand48_data *buffer;
+	buffer = &randbuffer[PADDING*workerid];
 
 	unsigned long local_cnt = 0;
 
@@ -113,10 +138,15 @@ static void pi_func_cpu(void *descr[], void *cl_arg __attribute__ ((unused)))
 	int i;
 	for (i = 0; i < NSHOT_PER_TASK; i++)
 	{
-		float x = (float)(2.0*starpu_erand48(worker_xsub) - 1.0);
-		float y = (float)(2.0*starpu_erand48(worker_xsub) - 1.0);
+		double randx, randy;
 
-		float dist = x*x + y*y;
+		starpu_erand48_r(worker_xsub, buffer, &randx);
+		starpu_erand48_r(worker_xsub, buffer, &randy);
+
+		double x = (2.0*randx - 1.0);
+		double y = (2.0*randy - 1.0);
+
+		double dist = x*x + y*y;
 		if (dist < 1.0)
 			local_cnt++;
 	}
@@ -275,6 +305,22 @@ int main(int argc, char **argv)
 	struct timeval start;
 	struct timeval end;
 
+	for (i = 0; i < ntasks_warmup; i++)
+	{
+		struct starpu_task *task = starpu_task_create();
+
+		task->cl = &pi_cl;
+
+		task->buffers[0].handle = xy_scratchpad_handle;
+		task->buffers[0].mode   = STARPU_SCRATCH;
+		task->buffers[1].handle = shot_cnt_handle;
+		task->buffers[1].mode   = use_redux?STARPU_REDUX:STARPU_RW;
+
+		int ret = starpu_task_submit(task);
+		STARPU_ASSERT(!ret);
+	}
+
+
 	gettimeofday(&start, NULL);
 
 	for (i = 0; i < ntasks; i++)
@@ -286,7 +332,7 @@ int main(int argc, char **argv)
 		task->buffers[0].handle = xy_scratchpad_handle;
 		task->buffers[0].mode   = STARPU_SCRATCH;
 		task->buffers[1].handle = shot_cnt_handle;
-		task->buffers[1].mode   = STARPU_REDUX;
+		task->buffers[1].mode   = use_redux?STARPU_REDUX:STARPU_RW;
 
 		int ret = starpu_task_submit(task);
 		STARPU_ASSERT(!ret);
@@ -298,9 +344,10 @@ int main(int argc, char **argv)
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	/* Total surface : Pi * r^ 2 = Pi*1^2, total square surface : 2^2 = 4,
 	 * probability to impact the disk: pi/4 */
-	unsigned long total = ntasks*NSHOT_PER_TASK;
+	unsigned long total = (ntasks + ntasks_warmup)*NSHOT_PER_TASK;
 	double pi_approx = ((double)shot_cnt*4.0)/total;
 
+	FPRINTF(stderr, "Reductions? %s\n", use_redux?"yes":"no");
 	FPRINTF(stderr, "Pi approximation : %lf (%ld / %ld)\n", pi_approx, shot_cnt, total);
 	FPRINTF(stderr, "Error %le \n", pi_approx - PI);
 	FPRINTF(stderr, "Total time : %f ms\n", timing/1000.0);

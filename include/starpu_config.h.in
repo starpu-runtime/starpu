@@ -55,6 +55,9 @@
 #undef starpu_srand48
 #undef starpu_erand48
 
+#undef starpu_srand48_r
+#undef starpu_erand48_r
+
 #ifdef _MSC_VER
 typedef long starpu_ssize_t;
 #define __starpu_func__ __FUNCTION__

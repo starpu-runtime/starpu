@@ -107,10 +107,14 @@ if test x$have_drand48 = xyes -a x$enable_default_drand48 = xyes ; then
   AC_DEFINE([starpu_srand48(seed)],[srand48(seed)],[srand48 equivalent function])
   AC_DEFINE([starpu_drand48()],[drand48()],[drand48 equivalent function])
   AC_DEFINE([starpu_erand48(xsubi)],[erand48(xsubi)],[erand48 equivalent function])
+  AC_DEFINE([starpu_srand48_r(seed, buffer)],[srand48_r(seed, buffer)],[srand48_r equivalent function])
+  AC_DEFINE([starpu_erand48_r(xsubi, buffer, result)],[erand48_r(xsubi, buffer, result)],[erand48_r equivalent function])
 else
   AC_DEFINE([starpu_srand48(seed)],[srand(seed)],[srand48 equivalent function])
   AC_DEFINE([starpu_drand48()],[((double)(rand()) / RAND_MAX)],[drand48 equivalent function])
   AC_DEFINE([starpu_erand48(xsubi)],[starpu_drand48()],[erand48 equivalent function])
+  AC_DEFINE([starpu_srand48_r(seed, buffer)],[srand((unsigned int)seed)],[srand48_r equivalent function])
+  AC_DEFINE([starpu_erand48_r(xsubi, buffer, result)],[do {*(result) = ((double)(rand()) / RAND_MAX);} while (0);],[erand48_r equivalent function])
 fi
 
 # Define slow machine
