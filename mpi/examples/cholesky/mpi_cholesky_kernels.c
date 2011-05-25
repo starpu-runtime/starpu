@@ -22,6 +22,10 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cublas.h>
+#ifdef STARPU_HAVE_MAGMA
+#include "magma.h"
+#include "magma_lapack.h"
+#endif
 #endif
 
 /*
@@ -171,6 +175,19 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+#ifdef STARPU_HAVE_MAGMA
+			{
+				int ret;
+				int info;
+				ret = magma_spotrf_gpu('L', nx, sub11, ld, &info);
+				if (ret != MAGMA_SUCCESS) {
+					fprintf(stderr, "Error in Magma: %d\n", ret);
+					STARPU_ABORT();
+				}
+				cudaError_t cures = cudaThreadSynchronize();
+				STARPU_ASSERT(!cures);
+			}
+#else
 			for (z = 0; z < nx; z++)
 			{
 				float lambda11;
@@ -191,7 +208,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 			}
 		
 			cudaThreadSynchronize();
-
+#endif
 			break;
 #endif
 		default:

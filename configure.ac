@@ -408,72 +408,17 @@ if test x$enable_cuda = xyes; then
 	fi
 fi
 
-enable_magma=no
+have_magma=no
 if test x$enable_cuda = xyes; then
-	# Should we use the MAGMA library (instead or in addition to CUBLAS)
-	magma_dir=/usr/local # default
-	enable_magma=maybe
-
-	AC_ARG_WITH(magma, [AS_HELP_STRING([--with-magma=<path>],
-			[specify that MAGMA should be used and its installation directory])],
-			[
-				if test x$withval = xyes; then
-					# No path was specified but MAGMA is explicitely enabled
-					enable_magma=yes
-				else
-				if test x$withval = xno; then
-					# MAGMA is explicitely disabled
-					enable_magma=no
-				else
-					# MAGMA is enabled and the PATH is given in $withval
-					enable_magma=yes
-					magma_dir="$withval"
-				fi
-				fi
-			], [])
-
-	# Do we have a valid MAGMA setup ?
-	if test x$enable_magma = xyes -o x$enable_magma = xmaybe; then
-		SAVED_LDFLAGS="${LDFLAGS}"
-		SAVED_CPPFLAGS="${CPPFLAGS}"
-		if test -d "$magma_dir/lib/"; then
-			LDFLAGS="${SAVED_LDFLAGS} -L$magma_dir/lib/ "
-			have_valid_magma=yes
-			STARPU_CHECK_LIB(BLAS, magmablas, main,,[have_valid_magma=no])
-			STARPU_CHECK_LIB(BLAS, magma, magmablas_sgemm,,[have_valid_magma=no])
-		fi
-
-		if test -d "$magma_dir/include/"; then
-			CPPFLAGS="${SAVED_CPPFLAGS} -I$magma_dir/include/ "
-			AC_CHECK_HEADER([magmablas.h],,[have_valid_magma=no])
-			#AC_CHECK_HEADER([magma.h],,[have_valid_magma=no])
-		fi
-
-		if test x$have_valid_magma = xno; then
-			# If MAGMA was explicitely required, this is an error
-			if test x$enable_magma = xyes; then
-				AC_MSG_ERROR([cannot find MAGMA])
-			fi
-
-			# Restore old flags and don't use MAGMA
-			LDFLAGS="${SAVED_LDFLAGS}"
-			CPPFLAGS="${SAVED_CPPFLAGS}"
-			enable_magma=no
-		else
-			enable_magma=yes
-		fi
-
-	else
-		have_valid_magma=no
-		enable_magma=no
-	fi
+	PKG_CHECK_MODULES([MAGMA],  [magma], [
+	AC_DEFINE([STARPU_HAVE_MAGMA], [1], [Define to 1 if you have the MAGMA library.])
+	AC_SUBST([STARPU_HAVE_MAGMA], [1])
+	have_magma=yes
+], [:])
 fi
-
+AM_CONDITIONAL(STARPU_HAVE_MAGMA, [test x$have_magma = xyes])
 AC_MSG_CHECKING(whether MAGMA should be used)
-AC_MSG_RESULT($enable_magma)
-if test x$enable_magma = xyes; then
-	AC_DEFINE(STARPU_HAVE_MAGMA, [1], [use MAGMA library])
-fi
+AC_MSG_RESULT($have_magma)
 
 # cufftDoubleComplex may not be available on an old CUDA setup
 AC_CHECK_TYPE(cufftDoubleComplex,
@@ -1369,7 +1314,7 @@ AC_MSG_NOTICE([
 	Allocation cache:  $enable_allocation_cache
 
 	MPI enabled:   $use_mpi
-	Magma enabled: $enable_magma
+	Magma enabled: $have_magma
 	BLAS library:  $blas_lib
 	hwloc:         $have_valid_hwloc
 

@@ -20,6 +20,10 @@
 #include "../common/blas.h"
 #ifdef STARPU_USE_CUDA
 #include <starpu_cuda.h>
+#ifdef STARPU_HAVE_MAGMA
+#include "magma.h"
+#include "magma_lapack.h"
+#endif
 #endif
 
 /*
@@ -179,13 +183,27 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+#ifdef STARPU_HAVE_MAGMA
 			{
+			int ret;
+			int info;
+			ret = magma_spotrf_gpu('L', nx, sub11, ld, &info);
+			if (ret != MAGMA_SUCCESS) {
+				fprintf(stderr, "Error in Magma: %d\n", ret);
+				STARPU_ABORT();
+			}
+			cudaError_t cures = cudaThreadSynchronize();
+			STARPU_ASSERT(!cures);
+			}
+#else
+			{
+
 			float *lambda11;
 			cudaHostAlloc((void **)&lambda11, sizeof(float), 0);
 
 			for (z = 0; z < nx; z++)
 			{
-
+				
 				cudaMemcpyAsync(lambda11, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
 				cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
@@ -206,8 +224,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, __attrib
 			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 			cudaFreeHost(lambda11);
 			}
-		
-
+#endif
 			break;
 #endif
 		default:
