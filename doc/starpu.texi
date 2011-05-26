@@ -1708,6 +1708,8 @@ func <<<grid,block,0,starpu_cuda_get_local_stream()>>> (foo, bar);
 cudaStreamSynchronize(starpu_cuda_get_local_stream());
 @end example
 
+StarPU already does appropriate calls for the CUBLAS library.
+
 Unfortunately, some CUDA libraries do not have stream variants of
 kernels. That will lower the potential for overlapping.
 
