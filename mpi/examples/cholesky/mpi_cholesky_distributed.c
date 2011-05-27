@@ -79,6 +79,7 @@ static void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblo
         data_handles = malloc(nblocks*sizeof(starpu_data_handle *));
         for(x=0 ; x<nblocks ; x++) data_handles[x] = malloc(nblocks*sizeof(starpu_data_handle));
 
+	starpu_mpi_barrier(MPI_COMM_WORLD);
 	gettimeofday(&start, NULL);
         for(x = 0; x < nblocks ;  x++) {
                 for (y = 0; y < nblocks; y++) {
@@ -151,14 +152,18 @@ static void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblo
         }
 	free(data_handles);
 
+	starpu_mpi_barrier(MPI_COMM_WORLD);
 	gettimeofday(&end, NULL);
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-	fprintf(stderr, "[%d] Computation took (in ms)\n", rank);
-	fprintf(stdout, "%2.2f\n", timing/1000);
-
-	double flop = (1.0f*size*size*size)/3.0f;
-	fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+	if (rank == 0)
+	{
+		double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+		fprintf(stderr, "Computation took (in ms)\n");
+		fprintf(stdout, "%2.2f\n", timing/1000);
+	
+		double flop = (1.0f*size*size*size)/3.0f;
+		fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+	}
 }
 
 int main(int argc, char **argv)
@@ -173,7 +178,13 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	starpu_init(NULL);
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+
+	conf.sched_policy_name = "heft";
+	conf.calibrate = 1;
+
+	starpu_init(&conf);
 	starpu_mpi_initialize_extended(&rank, &nodes);
 	starpu_helper_cublas_init();
 
