@@ -22,7 +22,7 @@
 #include <signal.h>
 #include <string.h>
 
-#define  DEFAULT_TIMEOUT       250
+#define  DEFAULT_TIMEOUT       600
 #define  AUTOTEST_SKIPPED_TEST 77
 
 static pid_t child_pid = 0;
