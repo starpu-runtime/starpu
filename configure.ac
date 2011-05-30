@@ -1164,7 +1164,7 @@ if test x$blas_lib = xmaybe; then
 			LDFLAGS="${LDFLAGS} $withval"
 			blas_lib=mkl
 		])
-	if test x$blas_lib=xmkl; then
+	if test x$blas_lib = xmkl; then
 	        AC_DEFINE(STARPU_MKL, [1], [use MKL library])
 	fi
 fi
