@@ -62,7 +62,7 @@ void spmv_kernel_opencl(void *descr[], void *args)
         if (err) STARPU_OPENCL_REPORT_ERROR(err);
 
 	{
-                size_t global=1024;
+                size_t global=nrow;
 		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, NULL, 0, NULL, &event);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}

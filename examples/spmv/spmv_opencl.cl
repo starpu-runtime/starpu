@@ -21,7 +21,9 @@ __kernel void spmv(unsigned nnz, unsigned nrow,
                    __global float *vecout, unsigned nx_out)
 {
 	unsigned row;
-	for (row = 0; row < nrow; row++)
+	// for (row = 0; row < nrow; row++)
+	row = get_global_id(0);
+	if (row < nrow)
 	{
 		float tmp = 0.0f;
 		unsigned index;
