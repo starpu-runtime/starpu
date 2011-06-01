@@ -44,7 +44,7 @@ void spmv_kernel_opencl(void *descr[], void *args)
         id = starpu_worker_get_id();
         devid = starpu_worker_get_devid(id);
 
-        err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_codelet, "spvm", devid);
+        err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_codelet, "spmv", devid);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = 0;

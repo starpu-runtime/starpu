@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-__kernel void spvm(unsigned nnz, unsigned nrow,
+__kernel void spmv(unsigned nnz, unsigned nrow,
                    __global float* nzval, __global unsigned* colind,
                    __global unsigned* rowptr, unsigned firstentry,
                    __global float *vecin, unsigned nx_in,
