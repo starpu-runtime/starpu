@@ -29,6 +29,7 @@ int use_x11 = 1;
 #endif
 
 int demo = 0;
+static double demozoom = 0.05;
 
 /* NB: The X11 code is inspired from the http://locklessinc.com/articles/mandelbrot/ article */
 
@@ -396,7 +397,7 @@ static void parse_args(int argc, char **argv)
 	int i;
 	for (i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-h") == 0) {
-			fprintf(stderr, "Usage: %s [-h] [ -width 800] [-height 600] [-nblocks 16] [-no-x11] [-pos leftx:rightx:bottomy:topy] [-niter 1000] [-spmd]\n", argv[0]);
+			fprintf(stderr, "Usage: %s [-h] [ -width 800] [-height 600] [-nblocks 16] [-no-x11] [-pos leftx:rightx:bottomy:topy] [-niter 1000] [-spmd] [-demo] [-demozoom 0.2]\n", argv[0]);
 			exit(-1);
 		}
 
@@ -432,6 +433,11 @@ static void parse_args(int argc, char **argv)
 			topY = -49.35016705749115;
 			bottomY = 49.64891691946615;
 
+		}
+
+		if (strcmp(argv[i], "-demozoom") == 0) {
+			char *argptr;
+			demozoom = strtof(argv[++i], &argptr);
 		}
 
 		if (strcmp(argv[i], "-no-x11") == 0) {
@@ -537,7 +543,7 @@ int main(int argc, char **argv)
 		if (demo)
 		{
 			/* Zoom in */
-			double zoom_factor = 0.05;
+			double zoom_factor = demozoom;
 			double widthX = rightX - leftX;
 			double heightY = topY - bottomY;
 
