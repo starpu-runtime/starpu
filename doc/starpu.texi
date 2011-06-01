@@ -1248,6 +1248,10 @@ It will also save it in @code{~/.starpu/sampling/codelets}
 for further executions, and can be observed by using the
 @code{starpu_perfmodel_display} command. The models are indexed by machine name. To share the models between machines (e.g. for a homogeneous cluster), use @code{export STARPU_HOSTNAME=some_global_name}.  The following is a small code example.
 
+If e.g. the code is recompiled with other compilation options, or several
+variants of the code are used, the symbol string should be changed to reflect
+that, in order to recalibrate the model from zero.
+
 @cartouche
 @smallexample
 static struct starpu_perfmodel_t mult_perf_model = @{
