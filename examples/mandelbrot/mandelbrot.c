@@ -526,17 +526,17 @@ int main(int argc, char **argv)
 
 		for (iby = 0; iby < nblocks; iby++)
 		{
-			starpu_data_acquire(block_handles[iby], STARPU_R);
 #ifdef STARPU_HAVE_X11
 			if (use_x11)
 			{
+				starpu_data_acquire(block_handles[iby], STARPU_R);
 				XPutImage(dpy, win, gc, bitmap,
 					0, iby*block_size,
 					0, iby*block_size,
 					width, block_size);
+				starpu_data_release(block_handles[iby]);
 			}
 #endif
-			starpu_data_release(block_handles[iby]);
 		}
 
 
