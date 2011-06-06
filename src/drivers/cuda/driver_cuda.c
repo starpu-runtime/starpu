@@ -152,6 +152,11 @@ void _starpu_init_cuda(void)
 	{
 		fprintf(stderr, "# Warning: %d CUDA device(s) found. Only %d enabled.\n", ncudagpus, STARPU_MAXCUDADEVS);
 	}
+	if (STARPU_MAXCUDADEVS > ncudagpus)
+	{
+		fprintf(stderr, "# Error: %d CUDA devices asked. Only %d are available.\n", STARPU_MAXCUDADEVS, ncudagpus);
+		assert(STARPU_MAXCUDADEVS <= ncudagpus);
+	}
 }
 
 static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
