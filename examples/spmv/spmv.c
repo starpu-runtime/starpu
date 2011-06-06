@@ -106,6 +106,7 @@ static starpu_codelet spmv_cl = {
 
 int main(int argc, char **argv)
 {
+	simInitLibrary();
 	int ret;
 	unsigned part;
 	double timing;
@@ -265,6 +266,8 @@ int main(int argc, char **argv)
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	FPRINTF(stderr, "Computation took (in ms)\n");
 	FPRINTF(stdout, "%2.2f\n", timing/1000);
+
+	closeThreads();
 
 	return 0;
 }

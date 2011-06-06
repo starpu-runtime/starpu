@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include "intrinsics.h"
+
 __kernel void vector_mult_opencl(__global float* val, int nx, float factor)
 {
         const int i = get_global_id(0);

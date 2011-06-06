@@ -72,6 +72,7 @@ static void display_all_combined_workers(void)
 
 int main(int argc, char **argv)
 {
+	simInitLibrary();
 	starpu_init(NULL);
 
 	unsigned ncpu = starpu_cpu_worker_get_count();
@@ -92,6 +93,8 @@ int main(int argc, char **argv)
 	display_all_combined_workers();
 
 	starpu_shutdown();
+
+	closeThreads();
 
 	return 0;
 }

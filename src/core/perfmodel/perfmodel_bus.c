@@ -41,7 +41,7 @@
 #include <windows.h>
 #endif
 
-#define SIZE	(32*1024*1024*sizeof(char))
+#define SIZE	(32*1024*sizeof(char))
 #define NITER	128
 
 #define MAXCPUS	32

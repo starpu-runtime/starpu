@@ -1118,9 +1118,9 @@ AC_ARG_WITH(goto-dir, [AS_HELP_STRING([--with-goto-dir=<dir>], [specify GotoBLAS
 if test x$blas_lib = xgoto; then
 STARPU_CHECK_LIB(BLAS, gfortran, main,,)
 # Perhaps that GotoBLAS2 is available instead (so that we have libgotoblas2.{so,a})
-STARPU_CHECK_LIB(BLAS, goto2, sgemm_,, [havegoto2=no])
+STARPU_CHECK_LIB(BLAS, goto2, sgemm_,, [havegoto2=no], [$STARPU_BLAS_LDFLAGS])
 if test x$havegoto2 = xno; then
-STARPU_CHECK_LIB(BLAS, goto, sgemm_,,AC_MSG_ERROR([cannot find goto lib]))
+STARPU_CHECK_LIB(BLAS, goto, sgemm_,,AC_MSG_ERROR([cannot find goto lib]), [$STARPU_BLAS_LDFLAGS])
 fi
 AC_DEFINE(STARPU_GOTO, [1], [use STARPU_GOTO library])
 fi

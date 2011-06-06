@@ -27,7 +27,7 @@
 #include <starpu_opencl.h>
 #include <stdio.h>
 
-#define	NX	2048
+#define	NX	128
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 extern void scal_cpu_func(void *buffers[], void *_args);
@@ -67,6 +67,9 @@ struct starpu_opencl_program opencl_program;
 
 int main(int argc, char **argv)
 {
+
+		simInitLibrary();
+
 	/* We consider a vector of float that is initialized just as any of C
  	 * data */
 	float vector[NX];
@@ -138,6 +141,8 @@ int main(int argc, char **argv)
 
 	FPRINTF(stderr, "AFTER: First element is %f\n", vector[0]);
 	FPRINTF(stderr, "AFTER: Last element is %f\n", vector[NX-1]);
+
+	closeThreads();
 
 	return 0;
 }
