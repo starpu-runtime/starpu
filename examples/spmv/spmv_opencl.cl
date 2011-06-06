@@ -14,8 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "intrinsics.h"
-
 __kernel void spmv(unsigned nnz, unsigned nrow,
                    __global float* nzval, __global unsigned* colind,
                    __global unsigned* rowptr, unsigned firstentry,
