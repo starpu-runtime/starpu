@@ -438,12 +438,13 @@ accessible with the following commands:
 @node Running a basic StarPU application
 @section Running a basic StarPU application
 
-Basic examples using StarPU have been built in the directory
-@code{$prefix_dir/lib/starpu/examples/}. You can for example run the
-example @code{vector_scal}.
+Basic examples using StarPU are built in the directory
+@code{examples/basic_examples/} (and installed in
+@code{$prefix_dir/lib/starpu/examples/}). You can for example run the example
+@code{vector_scal}.
 
 @example
-% $prefix_dir/lib/starpu/examples/vector_scal
+% ./examples/basic_examples/vector_scal
 BEFORE : First element was 1.000000
 AFTER First element is 3.140000
 %
