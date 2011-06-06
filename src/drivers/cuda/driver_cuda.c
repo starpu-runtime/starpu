@@ -27,9 +27,6 @@
 #include <core/sched_policy.h>
 #include <profiling/profiling.h>
 
-/* the number of CUDA devices */
-static int ncudagpus;
-
 static cudaStream_t streams[STARPU_NMAXWORKERS];
 static cudaStream_t transfer_streams[STARPU_NMAXWORKERS];
 
@@ -150,8 +147,11 @@ unsigned _starpu_get_cuda_device_count(void)
 
 void _starpu_init_cuda(void)
 {
-	ncudagpus = _starpu_get_cuda_device_count();
-	assert(ncudagpus <= STARPU_MAXCUDADEVS);
+	int ncudagpus = _starpu_get_cuda_device_count();
+	if (ncudagpus > STARPU_MAXCUDADEVS)
+	{
+		fprintf(stderr, "# Warning: %d CUDA device(s) found. Only %d enabled.\n", ncudagpus, STARPU_MAXCUDADEVS);
+	}
 }
 
 static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
