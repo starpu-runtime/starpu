@@ -27,7 +27,7 @@
 #include <stdlib.h>
 
 #ifdef STARPU_VERBOSE
-#  define _STARPU_DEBUG(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__func__ ,##args); }} while(0)
+#  define _STARPU_DEBUG(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__func__ ,##args); fflush(stderr); }} while(0)
 #else
 #  define _STARPU_DEBUG(fmt, args ...)
 #endif
