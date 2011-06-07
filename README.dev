@@ -69,6 +69,25 @@ http://www.open-mpi.org/projects/hwloc
 
       export PATH=/cygdrive/c/CUDA/bin:$PATH
 
+      Since we tell nvcc to build CUDA code with gcc instead of Visual studio,
+      a fix is needed: c:\cuda\include\host_defines.h has a bogus CUDARTAPI
+      definition which makes linking fail completely. Replace the first
+      occurence of
+
+      #define CUDARTAPI
+
+      with
+
+      #ifdef _WIN32
+      #define CUDARTAPI __stdcall
+      #else
+      #define CUDARTAPI
+      #endif
+
+      While at it, you can also comment the __cdecl definition to avoid spurious
+      warnings.
+
+
   5.2 Install OpenCL
 
       http://developer.nvidia.com/object/opencl-download.html
@@ -137,29 +156,6 @@ http://www.open-mpi.org/projects/hwloc
    and set the StarPU bin directory in your path.
 
    export PATH=<StarPU installation directory>/bin:$PATH
-
-
-Gcc-compiled CUDA
------------------
-
-If you tell nvcc to build CUDA code with gcc instead of Visual studio, a fix is
-needed: c:\cuda\include\host_defines.h has a bogus CUDARTAPI definition which
-makes
-
-  linking fail completely. Replace the first occurence of
-
-    #define CUDARTAPI
-
-  with
-
-    #ifdef _WIN32
-    #define CUDARTAPI __stdcall
-    #else
-    #define CUDARTAPI
-    #endif
-
-  While at it, you can also comment the __cdecl definition to avoid spurious
-  warnings.
 
 
 Developers warning
