@@ -100,6 +100,8 @@ static void init_context(int devid)
 	cudaError_t cures;
 	int workerid = starpu_worker_get_id();
 
+	_STARPU_DEBUG("Initialising context on CUDA device %d\n", devid);
+
 	cures = cudaSetDevice(devid);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
@@ -154,8 +156,7 @@ void _starpu_init_cuda(void)
 	}
 	if (STARPU_MAXCUDADEVS > ncudagpus)
 	{
-		fprintf(stderr, "# Error: %d CUDA devices asked. Only %d are available.\n", STARPU_MAXCUDADEVS, ncudagpus);
-		assert(STARPU_MAXCUDADEVS <= ncudagpus);
+		fprintf(stderr, "# Warning: %d CUDA devices asked. Only %d are available.\n", STARPU_MAXCUDADEVS, ncudagpus);
 	}
 }
 
