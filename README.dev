@@ -1,6 +1,9 @@
 Installing StarPU on windows
 ----------------------------
 
+If you are building from a tarball downloaded from the website, you can skip the
+cygwin part.
+
 1. Install cygwin
 
 http://cygwin.com/install.html
@@ -110,6 +113,9 @@ http://www.open-mpi.org/projects/hwloc
 
       cp /cygdrive/c/NVIDIA/DisplayDriver/190.89/International/*.dl_ .
       for i in *.dl_ ; do /cygdrive/c/Program\ Files/GnuWin32/bin/msexpand.exe  $i ; mv ${i%_} ${i%_}l ; done
+
+If you are building from a tarball downloaded from the website, you can skip the
+autogen.sh part.
 
 6. Start autogen.sh from cygwin
 
