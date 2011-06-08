@@ -1304,11 +1304,11 @@ AC_MSG_NOTICE([
 	(change these with --enable-nmaxcpus, --enable-maxcudadev,
 	--enable-maxopencldev, --enable-maxbuffers)
 
-	Number of CPUs:           $nmaxcpus
-	Number of CUDA devices:   $nmaxcudadev
-	Number of OpenCL devices: $nmaxopencldev
-	Number of memory nodes:   $maxnodes
-	Number of task buffers:   $nmaxbuffers
+	Maximum number of CPUs:           $nmaxcpus
+	Maximum number of CUDA devices:   $nmaxcudadev
+	Maximum number of OpenCL devices: $nmaxopencldev
+	Maximum number of memory nodes:   $maxnodes
+	Maximum number of task buffers:   $nmaxbuffers
 
 	GPU-GPU transfers: $have_cuda_memcpy_peer
 	Allocation cache:  $enable_allocation_cache
