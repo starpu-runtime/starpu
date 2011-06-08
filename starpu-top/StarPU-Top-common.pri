@@ -7,48 +7,48 @@ QT += sql
 
 TARGET = StarPU-Top
 TEMPLATE = app
-SOURCES += main.cpp \
+SOURCES += $$SRCDIR/main.cpp \
 #STARPU-TOP
-    mainwindow.cpp \
-    configurationmanager.cpp \
-    widgetwindowsmanager.cpp \
-    communicationthread.cpp \
-    communicationmanager.cpp \
-    preferencesdialog.cpp \
-    datawidget.cpp \
-    interactivewidget.cpp \
-    ganttwidget.cpp \
-    debugconsole.cpp \
-    dataaggregatorwidget.cpp \
-    taskmanager.cpp \
-    abstractwidgetwindow.cpp \
-    sessionsetupmanager.cpp \
+    $$SRCDIR/mainwindow.cpp \
+    $$SRCDIR/configurationmanager.cpp \
+    $$SRCDIR/widgetwindowsmanager.cpp \
+    $$SRCDIR/communicationthread.cpp \
+    $$SRCDIR/communicationmanager.cpp \
+    $$SRCDIR/preferencesdialog.cpp \
+    $$SRCDIR/datawidget.cpp \
+    $$SRCDIR/interactivewidget.cpp \
+    $$SRCDIR/ganttwidget.cpp \
+    $$SRCDIR/debugconsole.cpp \
+    $$SRCDIR/dataaggregatorwidget.cpp \
+    $$SRCDIR/taskmanager.cpp \
+    $$SRCDIR/abstractwidgetwindow.cpp \
+    $$SRCDIR/sessionsetupmanager.cpp \
 #QLEDINDICATOR
-    qledindicator/qledindicator.cpp \
-    aboutdialog.cpp
-HEADERS += mainwindow.h \
+    $$SRCDIR/qledindicator/qledindicator.cpp \
+    $$SRCDIR/aboutdialog.cpp
+HEADERS += $$SRCDIR/mainwindow.h \
 #STARPU-TOP
-    starputoptypes.h \
-    widgetwindowsmanager.h \
-    configurationmanager.h \
-    communicationthread.h \
-    communicationmanager.h \
-    preferencesdialog.h \
-    datawidget.h \
-    interactivewidget.h \
-    ganttwidget.h \
-    debugconsole.h \
-    dataaggregatorwidget.h \
-    taskmanager.h \
-    abstractwidgetwindow.h \
-    sessionsetupmanager.h \
+    $$SRCDIR/starputoptypes.h \
+    $$SRCDIR/widgetwindowsmanager.h \
+    $$SRCDIR/configurationmanager.h \
+    $$SRCDIR/communicationthread.h \
+    $$SRCDIR/communicationmanager.h \
+    $$SRCDIR/preferencesdialog.h \
+    $$SRCDIR/datawidget.h \
+    $$SRCDIR/interactivewidget.h \
+    $$SRCDIR/ganttwidget.h \
+    $$SRCDIR/debugconsole.h \
+    $$SRCDIR/dataaggregatorwidget.h \
+    $$SRCDIR/taskmanager.h \
+    $$SRCDIR/abstractwidgetwindow.h \
+    $$SRCDIR/sessionsetupmanager.h \
 #QLEDINDICATOR
-    qledindicator/qledindicator.h \
-    aboutdialog.h
+    $$SRCDIR/qledindicator/qledindicator.h \
+    $$SRCDIR/aboutdialog.h
 
-FORMS += mainwindow.ui \
-    preferencesdialog.ui \
-    debugconsole.ui \
-    aboutdialog.ui
-RESOURCES += resources.qrc
-OTHER_FILES += TODO.txt
+FORMS += $$SRCDIR/mainwindow.ui \
+    $$SRCDIR/preferencesdialog.ui \
+    $$SRCDIR/debugconsole.ui \
+    $$SRCDIR/aboutdialog.ui
+RESOURCES += $$SRCDIR/resources.qrc
+OTHER_FILES += $$SRCDIR/TODO.txt
