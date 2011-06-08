@@ -59,6 +59,12 @@ advantage of their specificities in a portable fashion.
    units according to the machine topology. For more details on hwloc, see
    http://www.open-mpi.org/projects/hwloc/ .
 
+ * To build the StarPU-Top tool the following are also required:
+   * libqt4 >= 4.7
+   * libqt4-network
+   * libqt4-opengl
+   * libqt4-sql
+
 ++=====================++
 || III. Getting StarPU ||
 ++=====================++
