@@ -1,0 +1,2 @@
+include (StarPU-Top-common.pri)
+include (StarPU-Top-qwt-@QWT_PRI@.pri)

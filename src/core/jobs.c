@@ -24,6 +24,7 @@
 #include <common/utils.h>
 #include <profiling/profiling.h>
 #include <profiling/bound.h>
+#include <starpu_top.h>
 
 size_t _starpu_job_get_data_size(starpu_job_t j)
 {
@@ -68,7 +69,7 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 	job->terminated = 0;
 
 #ifndef STARPU_USE_FXT
-	if (_starpu_bound_recording)
+	if (_starpu_bound_recording || starpu_top_status_get())
 #endif
 		job->job_id = STARPU_ATOMIC_ADD(&job_cnt, 1);
 #ifdef STARPU_USE_FXT

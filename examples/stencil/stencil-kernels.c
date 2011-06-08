@@ -124,6 +124,9 @@ int *who_runs_what;
 int *who_runs_what_index;
 struct timeval *last_tick;
 
+/* Achieved iterations */
+static int achieved_iter;
+
 /* Record how many updates each worker performed */
 unsigned update_per_worker[STARPU_NMAXWORKERS];
 
@@ -259,6 +262,8 @@ fprintf(stderr,"!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid)
 	if ((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess)
 		STARPU_CUDA_REPORT_ERROR(cures);
 
+	if (block->bz == 0)
+		starputop_update_data_integer(starputop_achieved_loop, ++achieved_iter);
 }
 #endif /* STARPU_USE_CUDA */
 
@@ -350,6 +355,8 @@ fprintf(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, worke
 	if ((err = clFinish(cq)))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
+	if (block->bz == 0)
+		starputop_update_data_integer(starputop_achieved_loop, ++achieved_iter);
 }
 #endif /* STARPU_USE_OPENCL */
 
@@ -422,6 +429,9 @@ fprintf(stderr,"!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
 		memcpy(new, old, oldb->nx * oldb->ny * oldb->nz * sizeof(*new));
 #endif /* LIFE */
 	}
+
+	if (block->bz == 0)
+		starputop_update_data_integer(starputop_achieved_loop, ++achieved_iter);
 }
 
 /* Performance model and codelet structure */

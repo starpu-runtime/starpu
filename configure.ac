@@ -979,6 +979,53 @@ fi
 
 ###############################################################################
 #                                                                             #
+#                               StarPU-Top                                    #
+#                                                                             #
+###############################################################################
+
+build_starpu_top=no
+AC_PATH_PROGS([QMAKE], [qmake-qt4 qmake], [not-found])
+if test x$QMAKE != xnot-found; then
+	QMAKE_VERSION=`$QMAKE --version 2>&1 | head -n 1 | cut -d '.' -f 1 | cut -d ' ' -f 3`
+	if test $QMAKE_VERSION -ge 2 ; then
+		PKG_CHECK_EXISTS([QtGui QtNetwork QtOpenGL QtSql], [
+			QT_MAJVERSION=`$PKG_CONFIG --modversion QtGui | cut -d '.' -f 1`
+			QT_MINVERSION=`$PKG_CONFIG --modversion QtGui | cut -d '.' -f 2`
+			if test $QT_MAJVERSION -gt 4 -o \( $QT_MAJVERSION -eq 4 -a $QT_MINVERSION -ge 7 \) ; then
+				build_starpu_top=yes
+			fi
+			QWT_PRI=embed
+			AC_ARG_WITH(qwt-include-dir,
+				[AS_HELP_STRING([--with-qwt-include-dir=<path>],
+				[specify installed libqwt include path])],
+				[
+					STARPU_QWT_CPPFLAGS="-I$withval"
+					AC_SUBST(STARPU_QWT_CPPFLAGS)
+					QWT_PRI=system
+				])
+			AC_ARG_WITH(qwt-lib-dir,
+				[AS_HELP_STRING([--with-qwt-lib-dir=<path>],
+				[specify installed libqwt library path])],
+				[
+					STARPU_QWT_LDFLAGS="-L$withval"
+					QWT_PRI=system
+				])
+			AC_ARG_WITH(qwt-lib,
+				[AS_HELP_STRING([--with-qwt-lib=<path>],
+				[specify installed libqwt library name])],
+				[
+					STARPU_QWT_LDFLAGS="${STARPU_QWT_LDFLAGS} -l$withval"
+					QWT_PRI=system
+				])
+			AC_SUBST(QWT_PRI)
+		])
+	fi
+fi
+
+AM_CONDITIONAL(BUILD_STARPU_TOP, test x$build_starpu_top = xyes)
+
+###############################################################################
+#                                                                             #
 #                           Flags for C Compiler                              #
 #                                                                             #
 ###############################################################################
@@ -1289,6 +1336,7 @@ AC_OUTPUT([
         tests/opt/Makefile
 	doc/Makefile
 	mpi/Makefile
+	starpu-top/StarPU-Top.pro
 ])
 
 AC_MSG_NOTICE([

@@ -18,14 +18,12 @@
 
 #include <starpu.h>
 #include <starpu_cuda.h>
-#include <starpu_profiling.h>
 #include <common/utils.h>
 #include <common/config.h>
 #include <core/debug.h>
 #include <drivers/driver_common/driver_common.h>
 #include "driver_cuda.h"
 #include <core/sched_policy.h>
-#include <profiling/profiling.h>
 
 /* the number of CUDA devices */
 static int ncudagpus;
@@ -166,7 +164,6 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 	struct timespec codelet_start, codelet_end;
 
 	unsigned calibrate_model = 0;
-	int workerid = args->workerid;
 
 	STARPU_ASSERT(task);
 	struct starpu_codelet_t *cl = task->cl;
@@ -190,42 +187,22 @@ static int execute_job_on_cuda(starpu_job_t j, struct starpu_worker_s *args)
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}
 
-	STARPU_TRACE_START_CODELET_BODY(j);
-
-	struct starpu_task_profiling_info *profiling_info;
-	int profiling = starpu_profiling_status_get();
-	profiling_info = task->profiling_info;
+	_starpu_driver_start_job(args, j, &codelet_start, 0);
 
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	/* We make sure we do manipulate the proper device */
 	cures = cudaSetDevice(args->devid);
 #endif
 
-	if ((profiling && profiling_info) || calibrate_model)
-	{
-		starpu_clock_gettime(&codelet_start);
-		_starpu_worker_register_executing_start_date(workerid, &codelet_start);
-	}
-
-	args->status = STATUS_EXECUTING;
-	task->status = STARPU_TASK_RUNNING;	
-
 	cl_func func = cl->cuda_func;
 	STARPU_ASSERT(func);
 	func(task->interfaces, task->cl_arg);
 
-	cl->per_worker_stats[workerid]++;
-
-	if ((profiling && profiling_info) || calibrate_model)
-		starpu_clock_gettime(&codelet_end);
-
-	enum starpu_perf_archtype archtype = args->perf_arch;
-	STARPU_TRACE_END_CODELET_BODY(j, archtype);
-	args->status = STATUS_UNKNOWN;
+	_starpu_driver_end_job(args, j, &codelet_end, 0);
 
 	_starpu_push_task_output(task, mask);
 
-	_starpu_driver_update_job_feedback(j, args, profiling_info, archtype,
+	_starpu_driver_update_job_feedback(j, args, profiling_info, args->perf_arch,
 			&codelet_start, &codelet_end);
 
 	return 0;

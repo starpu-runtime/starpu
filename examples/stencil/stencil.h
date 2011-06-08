@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <starpu.h>
+#include <starpu_top.h>
 #ifdef STARPU_USE_CUDA
 #include <starpu_cuda.h>
 #endif
@@ -44,6 +45,9 @@ extern void life_update(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int
 #define K	1
 
 #define NDIRS 2
+extern starputop_data* starputop_init_loop;
+extern starputop_data* starputop_achieved_loop;
+
 
 /* Split only on the z axis to make things simple */
 typedef enum {

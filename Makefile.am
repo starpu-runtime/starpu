@@ -49,7 +49,19 @@ include_HEADERS = 				\
 	include/starpu_expert.h			\
 	include/starpu_profiling.h		\
 	include/starpu_bound.h			\
-	include/starpu_scheduler.h
+	include/starpu_scheduler.h		\
+	include/starpu_top.h
+
+if BUILD_STARPU_TOP
+all-local:
+	cd starpu-top ; $(QMAKE) ; $(MAKE)
+clean-local:
+	cd starpu-top ; $(MAKE) clean
+# TODO: resources
+install-exec-local:
+	$(MKDIR_P) $(DESTDIR)$(bindir)
+	$(INSTALL_STRIP_PROGRAM) starpu-top/StarPU-Top $(DESTDIR)$(bindir)
+endif
 
 if STARPU_HAVE_WINDOWS
 txtdir = ${prefix}

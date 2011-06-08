@@ -22,12 +22,73 @@
 #include <common/utils.h>
 #include <core/debug.h>
 #include <drivers/driver_common/driver_common.h>
+#include <starpu_top.h>
 
+void _starpu_driver_start_job(struct starpu_worker_s *args, starpu_job_t j, struct timespec *codelet_start, int rank)
+{
+	struct starpu_task *task = j->task;
+	struct starpu_codelet_t *cl = task->cl;
+	struct starpu_task_profiling_info *profiling_info;
+	int profiling = starpu_profiling_status_get();
+	int starpu_top=starpu_top_status_get();
+	int workerid = args->workerid;
+	unsigned calibrate_model = 0;
+
+	if (cl->model && cl->model->benchmarking)
+		calibrate_model = 1;
+
+	args->status = STATUS_EXECUTING;
+	task->status = STARPU_TASK_RUNNING;	
+
+	if (rank == 0) {
+		cl->per_worker_stats[workerid]++;
+
+		profiling_info = task->profiling_info;
+	
+		if ((profiling && profiling_info) || calibrate_model || starpu_top)
+		{
+			starpu_clock_gettime(codelet_start);
+			_starpu_worker_register_executing_start_date(workerid, codelet_start);
+		}
+	}
+
+	if (starpu_top)
+		starputop_task_started(task,workerid,codelet_start);
+
+	STARPU_TRACE_START_CODELET_BODY(j);
+}
+
+void _starpu_driver_end_job(struct starpu_worker_s *args, starpu_job_t j, struct timespec *codelet_end, int rank)
+{
+	struct starpu_task *task = j->task;
+	struct starpu_codelet_t *cl = task->cl;
+	struct starpu_task_profiling_info *profiling_info = task->profiling_info;
+	int profiling = starpu_profiling_status_get();
+	int starpu_top=starpu_top_status_get();
+	int workerid = args->workerid;
+	unsigned calibrate_model = 0;
+	enum starpu_perf_archtype archtype = args->perf_arch;
+
+	STARPU_TRACE_END_CODELET_BODY(j, archtype);
+
+	if (cl->model && cl->model->benchmarking)
+		calibrate_model = 1;
+
+	if (rank == 0) {
+		if ((profiling && profiling_info) || calibrate_model || starpu_top)
+			starpu_clock_gettime(codelet_end);
+	}
+
+	if (starpu_top)
+	  starputop_task_ended(task,workerid,codelet_end);
+
+	args->status = STATUS_UNKNOWN;
+}
 void _starpu_driver_update_job_feedback(starpu_job_t j, struct starpu_worker_s *worker_args,
-					struct starpu_task_profiling_info *profiling_info,
 					enum starpu_perf_archtype perf_arch,
 					struct timespec *codelet_start, struct timespec *codelet_end)
 {
+	struct starpu_task_profiling_info *profiling_info = j->task->profiling_info;
 	struct timespec measured_ts;
 	double measured;
 	int workerid = worker_args->workerid;

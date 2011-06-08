@@ -23,6 +23,7 @@
 #include <core/perfmodel/perfmodel.h>
 #include <starpu_parameters.h>
 #include <starpu_task_bundle.h>
+#include <starpu_top.h>
 
 static unsigned nworkers;
 
@@ -38,6 +39,21 @@ static double exp_start[STARPU_NMAXWORKERS];
 static double exp_end[STARPU_NMAXWORKERS];
 static double exp_len[STARPU_NMAXWORKERS];
 static double ntasks[STARPU_NMAXWORKERS];
+
+const float alpha_minimum=0;
+const float alpha_maximum=10.0;
+const float beta_minimum=0;
+const float beta_maximum=10.0;
+const float gamma_minimum=0;
+const float gamma_maximum=10000.0;
+const float idle_power_minimum=0;
+const float idle_power_maximum=10000.0;
+
+void param_modified(struct starputop_param_t* d){
+	//just to show parameter modification
+	fprintf(stderr,"%s has been modified : alpha=%f|beta=%f|gamma=%f|idle_power=%f !\n", 
+		d->name, alpha,beta,_gamma,idle_power);
+}
 
 static void heft_init(struct starpu_machine_topology_s *topology, 
 	 __attribute__ ((unused)) struct starpu_sched_policy_s *_policy) 
@@ -59,6 +75,11 @@ static void heft_init(struct starpu_machine_topology_s *topology,
 	const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
 	if (strval_idle_power)
 		idle_power = atof(strval_idle_power);
+	
+	starputop_register_parameter_float("HEFT_ALPHA", &alpha, alpha_minimum,alpha_maximum,param_modified);
+	starputop_register_parameter_float("HEFT_BETA", &beta, beta_minimum,beta_maximum,param_modified);
+	starputop_register_parameter_float("HEFT_GAMMA", &_gamma, gamma_minimum,gamma_maximum,param_modified);
+	starputop_register_parameter_float("HEFT_IDLE_POWER", &idle_power, idle_power_minimum,idle_power_maximum,param_modified);
 
 	unsigned workerid;
 	for (workerid = 0; workerid < nworkers; workerid++)
@@ -128,6 +149,11 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	PTHREAD_MUTEX_UNLOCK(&sched_mutex[best_workerid]);
 
 	task->predicted = predicted;
+
+	if (starpu_top_status_get())
+		starputop_task_prevision(task, best_workerid, 
+					(unsigned long long)(exp_end[best_workerid]-predicted)/1000,
+					(unsigned long long)exp_end[best_workerid]/1000);
 
 	if (starpu_get_prefetch_flag())
 	{

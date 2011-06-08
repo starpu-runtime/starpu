@@ -18,8 +18,6 @@
 
 #include <math.h>
 #include <starpu.h>
-#include <starpu_profiling.h>
-#include <profiling/profiling.h>
 #include <drivers/driver_common/driver_common.h>
 #include <common/utils.h>
 #include <core/debug.h>
@@ -31,16 +29,11 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 	int ret;
 	struct timespec codelet_start, codelet_end;
 
-	unsigned calibrate_model = 0;
-	int workerid = cpu_args->workerid;
 	struct starpu_task *task = j->task;
 	struct starpu_codelet_t *cl = task->cl;
 
 	STARPU_ASSERT(cl);
 	STARPU_ASSERT(cl->cpu_func);
-
-	if (cl->model && cl->model->benchmarking)
-		calibrate_model = 1;
 
 	if (rank == 0)
 	{
@@ -56,51 +49,25 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 	if (is_parallel_task)
 		PTHREAD_BARRIER_WAIT(&j->before_work_barrier);
 
-	STARPU_TRACE_START_CODELET_BODY(j);
+	_starpu_driver_start_job(cpu_args, j, &codelet_start, rank);
 
-	struct starpu_task_profiling_info *profiling_info = NULL;
-	int profiling = starpu_profiling_status_get();
-
-	if (rank == 0)
-	{
-		profiling_info = task->profiling_info;
-	
-		if ((profiling && profiling_info) || calibrate_model)
-		{
-			starpu_clock_gettime(&codelet_start);
-			_starpu_worker_register_executing_start_date(workerid, &codelet_start);
-		}
-
-	}
-	
-	cpu_args->status = STATUS_EXECUTING;
-	task->status = STARPU_TASK_RUNNING;	
-	
 	/* In case this is a Fork-join parallel task, the worker does not
 	 * execute the kernel at all. */
 	if ((rank == 0) || (cl->type != STARPU_FORKJOIN))
 	{
 		cl_func func = cl->cpu_func;
+		STARPU_ASSERT(func);
 		func(task->interfaces, task->cl_arg);
 	}
 	
 	if (is_parallel_task)
 		PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
 
-	STARPU_TRACE_END_CODELET_BODY(j, perf_arch);
-
-	cpu_args->status = STATUS_UNKNOWN;
-
 	if (rank == 0)
 	{
-		cl->per_worker_stats[workerid]++;
-		
-		if ((profiling && profiling_info) || calibrate_model)
-			starpu_clock_gettime(&codelet_end);
-
 		_starpu_push_task_output(task, 0);
 
-		_starpu_driver_update_job_feedback(j, cpu_args, profiling_info,
+		_starpu_driver_update_job_feedback(j, cpu_args,
 				perf_arch, &codelet_start, &codelet_end);
 	}
 

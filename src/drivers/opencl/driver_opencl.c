@@ -18,7 +18,6 @@
 
 #include <math.h>
 #include <starpu.h>
-#include <starpu_profiling.h>
 #include <common/config.h>
 #include <common/utils.h>
 #include <core/debug.h>
@@ -27,7 +26,6 @@
 #include "driver_opencl.h"
 #include "driver_opencl_utils.h"
 #include <common/utils.h>
-#include <profiling/profiling.h>
 
 static pthread_mutex_t big_lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -516,15 +514,9 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 
 	struct timespec codelet_start, codelet_end;
 
-	unsigned calibrate_model = 0;
-	int workerid = args->workerid;
-
 	STARPU_ASSERT(task);
 	struct starpu_codelet_t *cl = task->cl;
 	STARPU_ASSERT(cl);
-
-	if (cl->model && cl->model->benchmarking)
-		calibrate_model = 1;
 
 	ret = _starpu_fetch_task_input(task, mask);
 	if (ret != 0) {
@@ -534,37 +526,17 @@ static int _starpu_opencl_execute_job(starpu_job_t j, struct starpu_worker_s *ar
 		return -EAGAIN;
 	}
 
-	STARPU_TRACE_START_CODELET_BODY(j);
-
-	struct starpu_task_profiling_info *profiling_info;
-	int profiling = starpu_profiling_status_get();
-	profiling_info = task->profiling_info;
-
-	if ((profiling && profiling_info) || calibrate_model)
-	{
-		starpu_clock_gettime(&codelet_start);
-		_starpu_worker_register_executing_start_date(workerid, &codelet_start);
-	}
-
-	args->status = STATUS_EXECUTING;
-	task->status = STARPU_TASK_RUNNING;	
+	_starpu_driver_start_job(args, j, &codelet_start, 0);
 
 	cl_func func = cl->opencl_func;
 	STARPU_ASSERT(func);
 	func(task->interfaces, task->cl_arg);
 
-	cl->per_worker_stats[workerid]++;
-
-	if ((profiling && profiling_info) || calibrate_model)
-		starpu_clock_gettime(&codelet_end);
-
-	enum starpu_perf_archtype archtype = args->perf_arch;
-	STARPU_TRACE_END_CODELET_BODY(j, archtype);
-	args->status = STATUS_UNKNOWN;
+	_starpu_driver_end_job(args, j, &codelet_end, 0);
 
 	_starpu_push_task_output(task, mask);
 
-	_starpu_driver_update_job_feedback(j, args, profiling_info, archtype,
+	_starpu_driver_update_job_feedback(j, args, args->perf_arch,
 							&codelet_start, &codelet_end);
 
 	return EXIT_SUCCESS;

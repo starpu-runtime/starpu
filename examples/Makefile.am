@@ -567,3 +567,12 @@ mandelbrot_mandelbrot_CPPFLAGS += $(X_CFLAGS)
 mandelbrot_mandelbrot_LDADD = $(X_PRE_LIBS) -lX11 $(X_LIBS) $(X_EXTRA_LIBS)
 endif
 
+################
+# Top Examples #
+################
+
+examplebin_PROGRAMS +=				\
+	top/hello_world_top
+
+top_hello_world_top_SOURCES =			\
+	top/hello_world_top.c

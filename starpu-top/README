@@ -1,0 +1,11 @@
+Software needed
+
+libqt4 >= 4.7
+libqt4-network
+libqt4-opengl
+libqt4-sql
+
+Building
+
+$ qmake-qt4
+$ make

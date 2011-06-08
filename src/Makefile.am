@@ -105,7 +105,9 @@ noinst_HEADERS = 						\
 	profiling/bound.h					\
 	profiling/profiling.h					\
 	util/starpu_insert_task_utils.h				\
-	starpu_parameters.h
+	starpu_parameters.h					\
+	top/starputop_message_queue.h				\
+	top/starputop_connection.h
 
 libstarpu_la_SOURCES = 						\
 	common/barrier.c					\
@@ -195,7 +197,11 @@ libstarpu_la_SOURCES = 						\
 	debug/structures_size.c					\
 	profiling/profiling.c					\
 	profiling/bound.c					\
-	profiling/profiling_helpers.c
+	profiling/profiling_helpers.c				\
+	top/starpu_top.c					\
+	top/starputop_task.c					\
+	top/starputop_message_queue.c				\
+	top/starputop_connection.c
 
 if STARPU_USE_CPU
 libstarpu_la_SOURCES += drivers/cpu/driver_cpu.c
