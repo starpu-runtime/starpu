@@ -24,7 +24,7 @@
 #include <string.h>
 #include <math.h>
 #include <pthread.h>
-#include <timing.h>
+#include <common/timing.h>
 
 extern starputop_message_queue_t*  starputop_mt;
 int starpu_top = 0;

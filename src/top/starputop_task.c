@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
-#include <timing.h>
+#include <common/timing.h>
 
 /********************************************
  **************TASK RELATED FUNCTIONS********
