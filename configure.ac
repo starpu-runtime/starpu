@@ -1367,4 +1367,5 @@ AC_MSG_NOTICE([
 	hwloc:         $have_valid_hwloc
 
 	FxT trace enabled: $use_fxt
+	StarPU-Top:        $build_starpu_top
 ])
