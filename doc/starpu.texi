@@ -1740,6 +1740,7 @@ kernels. That will lower the potential for overlapping.
 * Codelet feedback::        Per-codelet feedback
 * Worker feedback::         Per-worker feedback
 * Bus feedback::            Bus-related feedback
+* StarPU-Top::              StarPU-Top interface
 @end menu
 
 @node Enabling monitoring
@@ -1822,6 +1823,83 @@ TODO
 @c how to enable/disable performance monitoring
 
 @c what kind of information do we get ?
+
+@node StarPU-Top
+@subsection StarPU-Top interface
+
+StarPU-Top is an interface which remotely displays the on-line state of a StarPU
+application and permits the user to change parameters on the fly.
+
+Variables to be monitored can be registered by calling the
+@code{starputop_add_data_boolean}, @code{starputop_add_data_integer},
+@code{starputop_add_data_float} functions, e.g.:
+
+@example
+starputop_data *data = starputop_add_data_integer("mynum", 0, 100, 1);
+@end example
+
+The application should then call @code{starputop_init_and_wait} to give its name
+and wait for StarPU-Top to get a start request from the user. The name is used
+by StarPU-Top to quickly reload a previously-saved layout of parameter display.
+
+@example
+starputop_init_and_wait("the application");
+@end example
+
+The new values can then be provided thanks to
+@code{starputop_update_data_boolean}, @code{starputop_update_data_integer},
+@code{starputop_update_data_float}, e.g.:
+
+@example
+starputop_update_data_integer(data, mynum);
+@end example
+
+Updateable parameters can be registered thanks to @code{starputop_register_parameter_boolean}, @code{starputop_register_parameter_integer}, @code{starputop_register_parameter_float}, e.g.:
+
+@example
+float apha;
+starputop_register_parameter_float("alpha", &alpha, 0, 10, modif_hook);
+@end example
+
+@code{modif_hook} is a function which will be called when the parameter is being modified, it can for instance print the new value:
+
+@example
+void modif_hook(struct starputop_param_t *d) @{
+    fprintf(stderr,"%s has been modified: %f\n", d->name, alpha);
+@}
+@end example
+
+Task schedulers should notify StarPU-Top when it has decided when a task will be
+scheduled, so that it can show it in its Gantt chart, for instance:
+
+@example
+starputop_task_prevision(task, workerid, begin, end);
+@end example
+
+Starting StarPU-Top and the application can be done two ways:
+
+@itemize
+@item The application is started by hand on some machine (and thus already
+waiting for the start event). In the Preference dialog of StarPU-Top, the SSH
+checkbox should be unchecked, and the hostname and port (default is 2011) on
+which the application is already running should be specified. Clicking on the
+connection button will thus connect to the already-running application.
+@item StarPU-Top is started first, and clicking on the connection button will
+start the application itself (possibly on a remote machine). The SSH checkbox
+should be checked, and a command line provided, e.g.:
+
+@example
+ssh myserver STARPU_SCHED=heft ./application
+@end example
+
+If port 2011 of the remote machine can not be accessed directly, an ssh port bridge should be added:
+
+@example
+ssh -L 2011:localhost:2011 myserver STARPU_SCHED=heft ./application
+@end example
+
+and "localhost" should be used as IP Address to connect to.
+@end itemize
 
 @node Off-line
 @section Off-line performance feedback
