@@ -340,10 +340,13 @@ unsigned _starpu_driver_test_request_completion(struct starpu_async_channel *asy
 #ifdef STARPU_USE_CUDA
 		case STARPU_CUDA_RAM:
 			event = (*async_channel).event.cuda_event;
+			CUresult cures = cudaEventQuery(event);
 
-			success = (cudaEventQuery(event) == cudaSuccess);
+			success = (cures == cudaSuccess);
 			if (success)
 				cudaEventDestroy(event);
+			else if (cures != cudaErrorNotReady)
+				STARPU_CUDA_REPORT_ERROR(cures);
 
 			break;
 #endif
