@@ -161,7 +161,7 @@ fi
 ###############################################################################
 
 AC_MSG_CHECKING(maximum number of CPUs)
-AC_ARG_ENABLE(maxcpus, [AS_HELP_STRING([--enable-maxcpu=<number>],
+AC_ARG_ENABLE(maxcpus, [AS_HELP_STRING([--enable-maxcpus=<number>],
 			[maximum number of CPUs])],
 			maxcpus=$enableval, maxcpus=16)
 AC_MSG_RESULT($maxcpus)
