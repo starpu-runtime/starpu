@@ -3235,7 +3235,7 @@ value should be at most @code{STARPU_MAXOPENCLDEVS}.
 
 @node starpu_spu_worker_get_count
 @subsection @code{starpu_spu_worker_get_count} -- Get the number of Cell SPUs controlled by StarPU
-@deftypefun unsigned starpu_opencl_worker_get_count (void)
+@deftypefun unsigned starpu_spu_worker_get_count (void)
 This function returns the number of Cell SPUs controlled by StarPU.
 @end deftypefun
 
