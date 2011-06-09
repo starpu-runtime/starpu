@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -43,8 +43,8 @@ struct starpu_buffer_descr_t;
 
 enum starpu_perf_archtype {
 	STARPU_CPU_DEFAULT = 0,
-	/* CPU combined workers between 0 and STARPU_NMAXCPUS-1 */
-	STARPU_CUDA_DEFAULT = STARPU_NMAXCPUS,
+	/* CPU combined workers between 0 and STARPU_MAXCPUS-1 */
+	STARPU_CUDA_DEFAULT = STARPU_MAXCPUS,
 	STARPU_OPENCL_DEFAULT = STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS,
 	/* STARPU_OPENCL_DEFAULT + devid */
 	STARPU_GORDON_DEFAULT = STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS

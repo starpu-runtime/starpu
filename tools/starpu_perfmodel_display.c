@@ -258,7 +258,7 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 		if (sscanf(arch, "cpu:%d", &k) == 1)
 		{
 			/* For combined CPU workers */
-			if ((k < 1) || (k > STARPU_NMAXCPUS))
+			if ((k < 1) || (k > STARPU_MAXCPUS))
 			{
 				fprintf(stderr, "Invalid CPU size\n");
 				exit(-1);

@@ -448,11 +448,11 @@ static int _starpu_init_machine_config(struct starpu_machine_config_s *config,
 		long avail_cpus = topology->nhwcpus - (use_accelerator?already_busy_cpus:0);
 		if (avail_cpus < 0)
 			avail_cpus = 0;
-		topology->ncpus = STARPU_MIN(avail_cpus, STARPU_NMAXCPUS);
+		topology->ncpus = STARPU_MIN(avail_cpus, STARPU_MAXCPUS);
 	} else {
 		/* use the specified value */
 		topology->ncpus = (unsigned)explicitval;
-		STARPU_ASSERT(topology->ncpus <= STARPU_NMAXCPUS);
+		STARPU_ASSERT(topology->ncpus <= STARPU_MAXCPUS);
 	}
 	STARPU_ASSERT(topology->ncpus + topology->nworkers <= STARPU_NMAXWORKERS);
 

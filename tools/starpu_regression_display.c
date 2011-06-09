@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -239,7 +240,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel_
 		if (sscanf(arch, "cpu:%d", &k) == 1)
 		{
 			/* For combined CPU workers */
-			if ((k < 1) || (k > STARPU_NMAXCPUS))
+			if ((k < 1) || (k > STARPU_MAXCPUS))
 			{
 				fprintf(stderr, "Invalid CPU size\n");
 				exit(-1);

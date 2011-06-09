@@ -161,12 +161,11 @@ fi
 ###############################################################################
 
 AC_MSG_CHECKING(maximum number of CPUs)
-AC_ARG_ENABLE(nmaxcpus, [AS_HELP_STRING([--enable-nmaxcpus=<number>],
+AC_ARG_ENABLE(maxcpus, [AS_HELP_STRING([--enable-maxcpu=<number>],
 			[maximum number of CPUs])],
-			nmaxcpus=$enableval, nmaxcpus=16)
-AC_MSG_RESULT($nmaxcpus)
-# TODO: rename to STARPU_MAXCPUS for coherency with CUDA/OpenCL?
-AC_DEFINE_UNQUOTED(STARPU_NMAXCPUS, [$nmaxcpus], [Maximum number of CPUs supported])
+			maxcpus=$enableval, maxcpus=16)
+AC_MSG_RESULT($maxcpus)
+AC_DEFINE_UNQUOTED(STARPU_MAXCPUS, [$maxcpus], [Maximum number of CPUs supported])
 
 AC_MSG_CHECKING(whether CPUs should be used)
 AC_ARG_ENABLE(cpu, [AS_HELP_STRING([--disable-cpu],
@@ -182,7 +181,7 @@ if test x$enable_cpu = xyes; then
 fi
 
 # How many parallel worker can we support ?
-nmaxcombinedworkers=`expr 2 \* $nmaxcpus`
+nmaxcombinedworkers=`expr 2 \* $maxcpus`
 AC_DEFINE_UNQUOTED(STARPU_NMAX_COMBINEDWORKERS,
 	[$nmaxcombinedworkers], [Maximum number of worker combinations])
 
@@ -879,7 +878,7 @@ AC_CHECK_FUNCS([clock_gettime])
 
 # Compute the maximum number of workers (we round it to 16 for alignment
 # purposes).
-nmaxworkers=`expr 16 \* \( \( $nmaxcpus + $nmaxcudadev + $nmaxopencldev + 15 \) / 16 \) `
+nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + 15 \) / 16 \) `
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
@@ -1349,10 +1348,10 @@ AC_MSG_NOTICE([
 	GCC plugin: $build_gcc_plugin
 
 	Compile-time limits
-	(change these with --enable-nmaxcpus, --enable-maxcudadev,
+	(change these with --enable-maxcpus, --enable-maxcudadev,
 	--enable-maxopencldev, --enable-maxbuffers)
 
-	Maximum number of CPUs:           $nmaxcpus
+	Maximum number of CPUs:           $maxcpus
 	Maximum number of CUDA devices:   $nmaxcudadev
 	Maximum number of OpenCL devices: $nmaxopencldev
 	Maximum number of memory nodes:   $maxnodes

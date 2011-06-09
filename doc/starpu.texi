@@ -2494,7 +2494,7 @@ Enable flags for the @code{gcov} coverage tool.
 @subsection Configuring workers
 
 @menu
-* --enable-nmaxcpus::         
+* --enable-maxcpus::         
 * --disable-cpu::               
 * --enable-maxcudadev::         
 * --disable-cuda::              
@@ -2510,12 +2510,12 @@ Enable flags for the @code{gcov} coverage tool.
 * --with-gordon-dir::           
 @end menu
 
-@node --enable-nmaxcpus
-@subsubsection @code{--enable-nmaxcpus=<number>}
+@node --enable-maxcpus
+@subsubsection @code{--enable-maxcpus=<number>}
 @table @asis
 @item @emph{Description}:
 Defines the maximum number of CPU cores that StarPU will support, then
-available as the @code{STARPU_NMAXCPUS} macro.
+available as the @code{STARPU_MAXCPUS} macro.
 @end table
 
 @node --disable-cpu
@@ -3216,7 +3216,7 @@ the type is not valid otherwise.
 @subsection @code{starpu_cpu_worker_get_count} -- Get the number of CPU controlled by StarPU
 @deftypefun unsigned starpu_cpu_worker_get_count (void)
 This function returns the number of CPUs controlled by StarPU. The returned
-value should be at most @code{STARPU_NMAXCPUS}.
+value should be at most @code{STARPU_MAXCPUS}.
 @end deftypefun
 
 @node starpu_cuda_worker_get_count
