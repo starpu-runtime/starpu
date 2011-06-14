@@ -159,7 +159,7 @@ int main(int argc, char **argv)
 		double queued = starpu_timing_timespec_delay_us(&info->push_end_time, &info->pop_end_time);
 		double length = starpu_timing_timespec_delay_us(&info->submit_time, &info->end_time);
 		double push_duration = starpu_timing_timespec_delay_us(&info->push_start_time, &info->push_end_time);
-		double pop_duration = starpu_timing_timespec_delay_us(&info->push_start_time, &info->push_end_time);
+		double pop_duration = starpu_timing_timespec_delay_us(&info->pop_start_time, &info->pop_end_time);
 		cumulated += (length - queued);
 		cumulated_push += push_duration;
 		cumulated_pop += pop_duration;
