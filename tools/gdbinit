@@ -7,7 +7,9 @@ define starpu-print-job
   printf "\tsubmitted:\t\t\t<%d>\n", $job->submitted
   printf "\tterminated:\t\t\t<%d>\n", $job->terminated
   printf "\tjob_id:\t\t\t\t<%d>\n", $job->job_id
-  printf "\tmodel_name:\t\t\t<%s>\n", $job->model_name
+  if _starpu_use_fxt == 1
+    printf "\tmodel_name:\t\t\t<%s>\n", $job->model_name
+  end
 end
 
 document starpu-print-job
@@ -44,9 +46,6 @@ define starpu-print-task
   end
 
   printf "StarPU Task (%p)\n", $task
-  if $job && $job->model_name
-    printf "\tname:\t\t\t<%s>\n", $job->model_name
-  end
   printf "\tcodelet:\t\t\t<%p>\n", $task->cl
   printf "\tcallback:\t\t\t<%p>\n", $task->callback_func
   printf "\tsynchronous:\t\t\t<%d>\n", $task->synchronous
@@ -58,7 +57,10 @@ define starpu-print-task
   printf "\tstatus:\t\t\t\t<%s>\n", $status
   printf "\tjob:\t\t\t\t<%p>\n", $job
   printf "\tndeps:\t\t\t\t<%p>\n", $job->job_successors->ndeps
-  printf "\tndeps_completed:\t\t\t\t<%p>\n", $job->job_successors->ndeps_completed
+  printf "\tndeps_completed:\t\t<%p>\n", $job->job_successors->ndeps_completed
+  if $job
+    starpu-print-job $job
+  end
 end
 
 document starpu-print-task
