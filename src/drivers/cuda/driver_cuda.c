@@ -142,7 +142,11 @@ unsigned _starpu_get_cuda_device_count(void)
 	cures = cudaGetDeviceCount(&cnt);
 	if (STARPU_UNLIKELY(cures))
 		 return 0;
-	
+
+	if (cnt > STARPU_MAXCUDADEVS) {
+		fprintf(stderr, "# Warning: %d CUDA devices available. Only %d enabled. Use configure option --enable-maxcudadev=xxx to update the maximum value of supported CUDA devices.\n", cnt, STARPU_MAXCUDADEVS);
+		cnt = STARPU_MAXCUDADEVS;
+	}
 	return (unsigned)cnt;
 }
 
