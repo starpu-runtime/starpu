@@ -56,8 +56,8 @@ define starpu-print-task
   printf "\tregenerate:\t\t\t<%d>\n", $task->regenerate
   printf "\tstatus:\t\t\t\t<%s>\n", $status
   printf "\tjob:\t\t\t\t<%p>\n", $job
-  printf "\tndeps:\t\t\t\t<%p>\n", $job->job_successors->ndeps
-  printf "\tndeps_completed:\t\t<%p>\n", $job->job_successors->ndeps_completed
+  printf "\tndeps:\t\t\t\t<%u>\n", $job->job_successors->ndeps
+  printf "\tndeps_completed:\t\t<%u>\n", $job->job_successors->ndeps_completed
   if $job
     starpu-print-job $job
   end
@@ -112,6 +112,21 @@ define starpu
   printf "Here I am...\n"
 end
 
+define starpu-print-mode
+  if ($arg0 & 1)
+    printf "R"
+  end
+  if ($arg0 & 2)
+    printf "W"
+  end
+  if ($arg0 & 4)
+    printf " SCRATCH"
+  end
+  if ($arg0 & 8)
+    printf " REDUX"
+  end
+end
+
 define starpu-print-data
   set language c
   set $data = $arg0
@@ -119,18 +134,7 @@ define starpu-print-data
   printf "Home node %d\n", $data->home_node
   printf "Requests %d\n", $data->refcnt
   printf "Current mode "
-  if ($data->current_mode & 1)
-    printf "R"
-  end
-  if ($data->current_mode & 2)
-    printf "W"
-  end
-  if ($data->current_mode & 4)
-    printf " SCRATCH"
-  end
-  if ($data->current_mode & 8)
-    printf " REDUX"
-  end
+  starpu-print-mode $data->current_mode
   printf "\n"
   if $data->current_mode & (4|8)
     set $n = 0
@@ -178,6 +182,15 @@ define starpu-print-data
   while $tasklist != 0x0
     starpu-print-task $tasklist->task
     set $tasklist = $tasklist->next
+  end
+  printf "Requester tasks\n"
+  set $requesterlist = $data->req_list._head
+  while $requesterlist != 0x0
+    print "mode: "
+    starpu-print-mode $requesterlist->mode
+    print "\n"
+    starpu-print-job $requesterlist->j
+    set $requesterlist = $requesterlist->_next
   end
   set $n = 0
   while $n < $data->nchildren
