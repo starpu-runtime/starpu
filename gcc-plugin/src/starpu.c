@@ -948,23 +948,33 @@ build_task_submission (tree task_decl, gimple call)
   {
     size_t n;
     tree vars = NULL_TREE;
+    tree arg_types = TYPE_ARG_TYPES (TREE_TYPE (task_decl));
 
-    for (n = 0; n < gimple_call_num_args (call); n++)
+    for (n = 0;
+	 n < gimple_call_num_args (call);
+	 n++, arg_types = TREE_CHAIN (arg_types))
       {
-	tree arg;
+	tree arg, type;
+
+	/* Initially ARG_TYPES should be a list of N type nodes.  */
+	gcc_assert (TREE_CODE (arg_types) == TREE_LIST);
+	type = TREE_VALUE (arg_types);
+	gcc_assert (type != NULL_TREE);
 
 	arg = gimple_call_arg (call, n);
+
 	if (!POINTER_TYPE_P (TREE_TYPE (arg))
 	    && TREE_CONSTANT (arg)
 	    && TREE_CODE (arg) != VAR_DECL
 	    && TREE_CODE (arg) != ADDR_EXPR)
 	  {
 	    /* ARG is a scalar constant.  Introduce a variable to hold it.  */
-	    tree var = create_tmp_var (TREE_TYPE (arg), ".literal-arg");
+	    tree var = create_tmp_var (type, ".literal-arg");
+	    tree init_value = fold_convert (type, arg);
 
 	    /* Initialize VAR.  */
 	    gimple_seq init = NULL;
-	    tree modify = build2 (MODIFY_EXPR, TREE_TYPE (arg), var, arg);
+	    tree modify = build2 (MODIFY_EXPR, type, var, init_value);
 	    force_gimple_operand (modify, &init, true, var);
 
 	    gimple_seq_add_seq (body, init);
