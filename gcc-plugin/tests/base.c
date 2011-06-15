@@ -48,6 +48,7 @@ main (int argc, char *argv[])
 
   int x = 42, z = 99;
   char y = 77;
+  long y_as_long_int = 77;
 
   struct insert_task_argument expected[] =
     {
@@ -74,7 +75,12 @@ main (int argc, char *argv[])
 
   my_scalar_task (42, 77, 99);
 
-  assert (tasks_submitted == 8);
+  /* FIXME: Currently this one only works on little endian since we take the
+     address of `y_as_long_int' directly.  Instead a new `char' variable
+     should be introduced, and we should take its address.  */
+  my_scalar_task (42, y_as_long_int, 99);
+
+  assert (tasks_submitted == 9);
 
   return EXIT_SUCCESS;
 }

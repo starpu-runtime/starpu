@@ -944,6 +944,9 @@ build_task_submission (tree task_decl, gimple call)
      non-addressable variable---e.g., a `char' variable allocated in a
      register.  Populate BODY with the initial assignments to these
      variables.  */
+  /* FIXME: We should also introduce local variables to mimic implicit
+     integer type conversion---e.g., when the formal parameter type is `char'
+     and the function is called with a `long' variable.  */
 
   tree local_vars (gimple_seq *body)
   {
