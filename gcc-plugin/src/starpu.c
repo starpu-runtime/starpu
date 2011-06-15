@@ -35,6 +35,7 @@ int plugin_is_GPL_compatible;
 #include <tm.h>
 #include <gimple.h>
 #include <tree-pass.h>
+#include <tree-flow.h>
 #include <cgraph.h>
 #include <gimple.h>
 #include <toplev.h>
@@ -935,11 +936,55 @@ handle_pre_genericize (void *gcc_data, void *user_data)
 /* Build a call to `starpu_insert_task' for TASK_DECL, which will replace
    CALL.  */
 
-static gimple
+static gimple_seq
 build_task_submission (tree task_decl, gimple call)
 {
+  /* Return a chain of local variables that need to be introduced.  Variables
+     are introduced for each argument that is not a VAR_DECL, typically
+     scalar constants.  Populate BODY with the initial assignments to these
+     variables.  */
+
+  tree local_vars (gimple_seq *body)
+  {
+    size_t n;
+    tree vars = NULL_TREE;
+
+    for (n = 0; n < gimple_call_num_args (call); n++)
+      {
+	tree arg;
+
+	arg = gimple_call_arg (call, n);
+	if (!POINTER_TYPE_P (TREE_TYPE (arg))
+	    && TREE_CONSTANT (arg)
+	    && TREE_CODE (arg) != VAR_DECL
+	    && TREE_CODE (arg) != ADDR_EXPR)
+	  {
+	    /* ARG is a scalar constant.  Introduce a variable to hold it.  */
+	    tree var = create_tmp_var (TREE_TYPE (arg), ".literal-arg");
+
+	    /* Initialize VAR.  */
+	    gimple_seq init = NULL;
+	    tree modify = build2 (MODIFY_EXPR, TREE_TYPE (arg), var, arg);
+	    force_gimple_operand (modify, &init, true, var);
+
+	    gimple_seq_add_seq (body, init);
+
+	    if (vars != NULL_TREE)
+	      chainon (vars, var);
+	    else
+	      vars = var;
+	  }
+      }
+
+    return vars;
+  }
+
   size_t n;
   VEC(tree, heap) *args = NULL;
+  tree vars;
+  gimple_seq body = NULL;
+
+  vars = local_vars (&body);
 
   /* The first argument will be a pointer to the codelet.  */
 
@@ -970,7 +1015,15 @@ build_task_submission (tree task_decl, gimple call)
 	  /* A scalar: the arguments will be:
 	     `STARPU_VALUE, &scalar, sizeof (scalar)'.  */
 
-	  /* XXX: Currently the argument has to be a variable.  */
+	  if (TREE_CODE (arg) != VAR_DECL)
+	    {
+	      gcc_assert (TREE_CONSTANT (arg));
+
+	      /* ARG is a constant, so use the local variable we introduced
+		 to hold it.  */
+	      arg = vars;
+	      vars = TREE_CHAIN (vars);
+	    }
 	  gcc_assert (TREE_CODE (arg) == VAR_DECL);
 
 	  VEC_safe_push (tree, heap, args,
@@ -987,7 +1040,9 @@ build_task_submission (tree task_decl, gimple call)
   VEC_safe_push (tree, heap, args,
 		 build_int_cst (integer_type_node, 0));
 
-  return gimple_build_call_vec (insert_task_fn, args);
+  gimple_seq_add_stmt (&body, gimple_build_call_vec (insert_task_fn, args));
+
+  return body;
 }
 
 static unsigned int
@@ -1027,16 +1082,16 @@ lower_starpu (void)
 	{
 	  printf ("%s:     callee is a task\n", __func__);
 
-	  gimple call_site, submission;
+	  gimple call_site;
+	  gimple_seq submission;
 	  gimple_stmt_iterator gsi;
 
 	  call_site = callee->call_stmt;
 	  gsi = gsi_for_stmt (call_site);
 
 	  submission = build_task_submission (callee_decl, call_site);
-	  gsi_replace (&gsi, submission, true);
-
-	  gimple_set_block (submission, gimple_block (call_site));
+	  gsi_remove (&gsi, true);
+	  gsi_insert_seq_before (&gsi, submission, GSI_SAME_STMT);
 
 	  rebuild_cgraph_edges ();
 	}
