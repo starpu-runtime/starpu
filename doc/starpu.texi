@@ -1251,7 +1251,9 @@ for further executions, and can be observed by using the
 
 If e.g. the code is recompiled with other compilation options, or several
 variants of the code are used, the symbol string should be changed to reflect
-that, in order to recalibrate the model from zero.
+that, in order to recalibrate a new model from zero. The symbol string can even
+be constructed dynamically at execution time, as long as this is done before
+submitting any task using it.
 
 @cartouche
 @smallexample
