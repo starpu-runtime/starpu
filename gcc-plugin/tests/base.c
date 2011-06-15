@@ -21,23 +21,23 @@
 
 /* The task under test.  */
 
-static void my_scalar_task (int x, int y, int z) __attribute__ ((task));
+static void my_scalar_task (int x, char y, int z) __attribute__ ((task));
 
-static void my_scalar_task_cpu (int, int, int)
+static void my_scalar_task_cpu (int, char, int)
   __attribute__ ((task_implementation ("cpu", my_scalar_task)));
-static void my_scalar_task_opencl (int, int, int)
+static void my_scalar_task_opencl (int, char, int)
   __attribute__ ((task_implementation ("opencl", my_scalar_task)));
 
 static void
-my_scalar_task_cpu (int x, int y, int z)
+my_scalar_task_cpu (int x, char y, int z)
 {
-  printf ("%s: x = %i, y = %i, z = %i\n", __func__, x, y, z);
+  printf ("%s: x = %i, y = %i, z = %i\n", __func__, x, (int) y, z);
 }
 
 static void
-my_scalar_task_opencl (int x, int y, int z)
+my_scalar_task_opencl (int x, char y, int z)
 {
-  printf ("%s: x = %i, y = %i, z = %i\n", __func__, x, y, z);
+  printf ("%s: x = %i, y = %i, z = %i\n", __func__, x, (int) y, z);
 }
 
 
@@ -46,13 +46,14 @@ main (int argc, char *argv[])
 {
 #pragma starpu hello
 
-  int x = 42, y = 77, z = 99;
+  int x = 42, z = 99;
+  char y = 77;
 
   struct insert_task_argument expected[] =
     {
-      { STARPU_VALUE, &x, sizeof (int) },
-      { STARPU_VALUE, &y, sizeof (int) },
-      { STARPU_VALUE, &z, sizeof (int) },
+      { STARPU_VALUE, &x, sizeof x },
+      { STARPU_VALUE, &y, sizeof y },
+      { STARPU_VALUE, &z, sizeof z },
       { 0, 0, 0 }
     };
 

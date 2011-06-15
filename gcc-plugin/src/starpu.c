@@ -940,8 +940,9 @@ static gimple_seq
 build_task_submission (tree task_decl, gimple call)
 {
   /* Return a chain of local variables that need to be introduced.  Variables
-     are introduced for each argument that is not a VAR_DECL, typically
-     scalar constants.  Populate BODY with the initial assignments to these
+     are introduced for each argument that is either a scalar constant or a
+     non-addressable variable---e.g., a `char' variable allocated in a
+     register.  Populate BODY with the initial assignments to these
      variables.  */
 
   tree local_vars (gimple_seq *body)
@@ -963,16 +964,23 @@ build_task_submission (tree task_decl, gimple call)
 
 	arg = gimple_call_arg (call, n);
 
-	if (!POINTER_TYPE_P (TREE_TYPE (arg))
-	    && TREE_CONSTANT (arg)
-	    && TREE_CODE (arg) != VAR_DECL
-	    && TREE_CODE (arg) != ADDR_EXPR)
+	if ((!POINTER_TYPE_P (TREE_TYPE (arg))
+	     && TREE_CONSTANT (arg)
+	     && TREE_CODE (arg) != VAR_DECL
+	     && TREE_CODE (arg) != ADDR_EXPR)
+	    || is_gimple_non_addressable (arg))
 	  {
-	    /* ARG is a scalar constant.  Introduce a variable to hold it.  */
-	    tree var = create_tmp_var (type, ".literal-arg");
-	    tree init_value = fold_convert (type, arg);
+	    /* ARG is a scalar constant or a non-addressable variable.
+	       Introduce a variable to hold it.  */
+	    tree var =
+	      create_tmp_var (type,
+			      is_gimple_non_addressable (arg)
+			      ? ".non-addressable-arg"
+			      : ".literal-arg");
+	    mark_addressable (var);
 
 	    /* Initialize VAR.  */
+	    tree init_value = fold_convert (type, arg);
 	    gimple_seq init = NULL;
 	    tree modify = build2 (MODIFY_EXPR, type, var, init_value);
 	    force_gimple_operand (modify, &init, true, var);
@@ -1025,16 +1033,15 @@ build_task_submission (tree task_decl, gimple call)
 	  /* A scalar: the arguments will be:
 	     `STARPU_VALUE, &scalar, sizeof (scalar)'.  */
 
-	  if (TREE_CODE (arg) != VAR_DECL)
+	  if (is_gimple_non_addressable (arg) || TREE_CONSTANT (arg))
 	    {
-	      gcc_assert (TREE_CONSTANT (arg));
-
-	      /* ARG is a constant, so use the local variable we introduced
-		 to hold it.  */
+	      /* Use the local variable we introduced to hold ARG's
+		 value.  */
 	      arg = vars;
 	      vars = TREE_CHAIN (vars);
 	    }
 	  gcc_assert (TREE_CODE (arg) == VAR_DECL);
+	  gcc_assert (TREE_ADDRESSABLE (arg));
 
 	  VEC_safe_push (tree, heap, args,
 			 build_int_cst (integer_type_node, STARPU_VALUE));
