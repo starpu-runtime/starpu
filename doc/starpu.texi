@@ -1425,23 +1425,23 @@ int ret = starpu_task_submit(task);
 
 If some part of the task insertion depends on the value of some computation,
 the @code{STARPU_DATA_ACQUIRE_CB} macro can be very convenient. For
-instance, assuming that the index variable @code{x} was registered as handle
-@code{x_handle}:
+instance, assuming that the index variable @code{i} was registered as handle
+@code{i_handle}:
 
 @smallexample
 /* Compute which portion we will work on, e.g. pivot */
-starpu_insert_task(&which_index, STARPU_W, x_handle, 0);
+starpu_insert_task(&which_index, STARPU_W, i_handle, 0);
 
 /* And submit the corresponding task */
-STARPU_DATA_ACQUIRE_CB(x_handle, STARPU_R, starpu_insert_task(&work, STARPU_W, starpu_data_get_sub_data(f_handle, 1, x), 0));
+STARPU_DATA_ACQUIRE_CB(i_handle, STARPU_R, starpu_insert_task(&work, STARPU_RW, A_handle[i], 0));
 @end smallexample
 
 The @code{STARPU_DATA_ACQUIRE_CB} macro submits an asynchronous request for
-acquiring data for the main application, and will execute the code given as
-third parameter when it is acquired. In other words, as soon as the value
-computed by the @code{which_index} codelet can be read, the portion of code
-passed as third parameter of @code{STARPU_DATA_ACQUIRE_CB} will be executed, and
-is allowed to read from @code{x} to use it e.g. as an index.
+acquiring data @code{i} for the main application, and will execute the code
+given as third parameter when it is acquired. In other words, as soon as the
+value of @code{i} computed by the @code{which_index} codelet can be read, the
+portion of code passed as third parameter of @code{STARPU_DATA_ACQUIRE_CB} will
+be executed, and is allowed to read from @code{i} to use it e.g. as an index.
 
 @node Debugging
 @section Debugging
