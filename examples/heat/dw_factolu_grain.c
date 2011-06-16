@@ -207,17 +207,15 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 	unsigned nblocks = size / blocksize;
 	unsigned maxk = inner_size / blocksize;
 
-	struct starpu_data_filter f;
-		f.filter_func = starpu_vertical_block_filter_func;
-		f.nchildren = nblocks;
-		f.get_nchildren = NULL;
-		f.get_child_ops = NULL;
+	struct starpu_data_filter f = {
+		.filter_func = starpu_vertical_block_filter_func,
+		.nchildren = nblocks
+	};
 
-	struct starpu_data_filter f2;
-		f2.filter_func = starpu_block_filter_func;
-		f2.nchildren = nblocks;
-		f2.get_nchildren = NULL;
-		f2.get_child_ops = NULL;
+	struct starpu_data_filter f2 = {
+		.filter_func = starpu_block_filter_func,
+		.nchildren = nblocks
+	};
 
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 

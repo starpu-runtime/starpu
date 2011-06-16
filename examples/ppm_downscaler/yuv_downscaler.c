@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
@@ -92,16 +92,12 @@ static struct starpu_codelet_t ds_codelet = {
 /* each block contains BLOCK_HEIGHT consecutive lines */
 static struct starpu_data_filter filter_y = {
 	.filter_func = starpu_block_filter_func,
-	.nchildren= HEIGHT/BLOCK_HEIGHT,
-	.get_nchildren = NULL,
-	.get_child_ops = NULL
+	.nchildren= HEIGHT/BLOCK_HEIGHT
 };
 	
 static struct starpu_data_filter filter_uv = {
 	.filter_func = starpu_block_filter_func,
-	.nchildren = (HEIGHT/2)/BLOCK_HEIGHT,
-	.get_nchildren = NULL,
-	.get_child_ops = NULL
+	.nchildren = (HEIGHT/2)/BLOCK_HEIGHT
 };
 
 int main(int argc, char **argv)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
@@ -730,17 +730,15 @@ void dw_factoLU(float *matA, unsigned size,
 	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, 
 			size, size, sizeof(float));
 
-	struct starpu_data_filter f;
-		f.filter_func = starpu_vertical_block_filter_func;
-		f.nchildren = nblocks;
-		f.get_nchildren = NULL;
-		f.get_child_ops = NULL;
+	struct starpu_data_filter f = {
+		.filter_func = starpu_vertical_block_filter_func,
+		.nchildren = nblocks
+	};
 
-	struct starpu_data_filter f2;
-		f2.filter_func = starpu_block_filter_func;
-		f2.nchildren = nblocks;
-		f2.get_nchildren = NULL;
-		f2.get_child_ops = NULL;
+	struct starpu_data_filter f2 = {
+		.filter_func = starpu_block_filter_func,
+		.nchildren = nblocks
+	};
 
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 

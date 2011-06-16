@@ -78,17 +78,13 @@ static struct starpu_data_filter csr_f = {
 	.filter_func = csr_filter_func,
 	/* This value is defined later on */
 	.nchildren = -1,
-	.get_nchildren = NULL,
 	/* the children also use a csr interface */
-	.get_child_ops = NULL
 };
 
 static struct starpu_data_filter vector_f = {
 	.filter_func = starpu_block_filter_func_vector,
 	/* This value is defined later on */
 	.nchildren = -1,
-	.get_nchildren = NULL,
-	.get_child_ops = NULL
 };
 
 static starpu_codelet spmv_cl = {

@@ -118,9 +118,7 @@ int main(int argc, char **argv)
 	/* Divide the vector into blocks */
 	struct starpu_data_filter block_filter = {
 		.filter_func = starpu_block_filter_func_vector,
-		.nchildren = NBLOCKS,
-		.get_nchildren = NULL,
-		.get_child_ops = NULL
+		.nchildren = NBLOCKS
 	};
 
 	starpu_data_partition(handle_x, &block_filter);

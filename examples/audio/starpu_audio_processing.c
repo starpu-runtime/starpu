@@ -396,9 +396,7 @@ int main(int argc, char **argv)
 	struct starpu_data_filter f = 
 	{
 		.filter_func = starpu_block_filter_func_vector,
-		.nchildren = niter,
-		.get_nchildren = NULL,
-		.get_child_ops = NULL
+		.nchildren = niter
 	};
 
 	starpu_data_partition(A_handle, &f);

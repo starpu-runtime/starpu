@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
@@ -76,9 +76,7 @@ int main(int argc, char **argv)
 		/* there are only 2 children */
 		.nchildren = 2,
 		/* the length of the first part */
-		.filter_arg = VECTORSIZE/2,
-		.get_nchildren = NULL,
-		.get_child_ops = NULL
+		.filter_arg = VECTORSIZE/2
 	};
 
 	unsigned iter;

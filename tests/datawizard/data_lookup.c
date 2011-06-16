@@ -104,9 +104,7 @@ static void test_filters()
 	struct starpu_data_filter f =
 	{
 		.filter_func = starpu_block_filter_func_vector,
-		.nchildren = CHILDREN_COUNT,
-		.get_nchildren = NULL,
-		.get_child_ops = NULL
+		.nchildren = CHILDREN_COUNT
 	};
 	starpu_data_partition(handle, &f);
 	assert(starpu_data_get_nb_children(handle) == CHILDREN_COUNT);
