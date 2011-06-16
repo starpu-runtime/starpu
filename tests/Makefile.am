@@ -116,6 +116,7 @@ testbin_PROGRAMS =				\
 	core/declare_deps_after_submission_synchronous	\
 	core/get_current_task			\
 	datawizard/acquire_cb			\
+	datawizard/acquire_cb_insert		\
 	datawizard/acquire_release		\
 	datawizard/acquire_release2		\
 	datawizard/data_implicit_deps		\

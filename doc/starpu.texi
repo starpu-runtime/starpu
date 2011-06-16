@@ -1193,9 +1193,7 @@ starpu_vector_data_register(&handle, 0, (uintptr_t)vector, NX, sizeof(vector[0])
 starpu_filter f =
 @{
     .filter_func = starpu_block_filter_func_vector,
-    .nchildren = PARTS,
-    .get_nchildren = NULL,
-    .get_child_ops = NULL
+    .nchildren = PARTS
 @};
 starpu_data_partition(handle, &f);
 @end smallexample
@@ -1424,6 +1422,26 @@ task->cl_arg = arg_buffer;
 task->cl_arg_size = arg_buffer_size;
 int ret = starpu_task_submit(task);
 @end smallexample
+
+If some part of the task insertion depends on the value of some computation,
+the @code{STARPU_DATA_ACQUIRE_CB} macro can be very convenient. For
+instance, assuming that the index variable @code{x} was registered as handle
+@code{x_handle}:
+
+@smallexample
+/* Compute which portion we will work on, e.g. pivot */
+starpu_insert_task(&which_index, STARPU_W, x_handle, 0);
+
+/* And submit the corresponding task */
+STARPU_DATA_ACQUIRE_CB(x_handle, STARPU_R, starpu_insert_task(&work, STARPU_W, starpu_data_get_sub_data(f_handle, 1, x), 0));
+@end smallexample
+
+The @code{STARPU_DATA_ACQUIRE_CB} macro submits an asynchronous request for
+acquiring data for the main application, and will execute the code given as
+third parameter when it is acquired. In other words, as soon as the value
+computed by the @code{which_index} codelet can be read, the portion of code
+passed as third parameter of @code{STARPU_DATA_ACQUIRE_CB} will be executed, and
+is allowed to read from @code{x} to use it e.g. as an index.
 
 @node Debugging
 @section Debugging
@@ -3330,6 +3348,7 @@ design their own data interfaces if required.
 * starpu_data_invalidate::      Invalidate all data replicates
 * starpu_data_acquire::         Access registered data from the application
 * starpu_data_acquire_cb::      Access registered data from the application asynchronously
+* STARPU_DATA_ACQUIRE_CB::      Access registered data from the application asynchronously, macro
 * starpu_data_release::         Release registered data from the application
 * starpu_data_set_wt_mask::     Set the Write-Through mask
 * starpu_data_prefetch_on_node:: Prefetch data to a given node
@@ -3479,6 +3498,16 @@ Note that implicit data dependencies are also enforced by
  Contrary to @code{starpu_data_acquire}, this function is non-blocking and may
 be called from task callbacks. Upon successful completion, this function
 returns 0.
+@end deftypefun
+
+@node STARPU_DATA_ACQUIRE_CB
+@subsection @code{STARPU_DATA_ACQUIRE_CB} -- Access registered data from the application asynchronously, macro
+@deftypefun STARPU_DATA_ACQUIRE_CB (starpu_data_handle @var{handle}, starpu_access_mode @var{mode}, code)
+@code{STARPU_DATA_ACQUIRE_CB} is the same as @code{starpu_data_acquire_cb},
+except that the code to be executed in a callback is directly provided as a
+macro parameter, and the data handle is automatically released after it. This
+permit to easily execute code which depends on the value of some registered
+data. This is non-blocking too and may be called from task callbacks.
 @end deftypefun
 
 @node starpu_data_release
