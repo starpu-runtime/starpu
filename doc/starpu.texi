@@ -1276,7 +1276,9 @@ model type). This still assumes performance regularity, but can work
 with various data input sizes, by applying regression over observed
 execution times. STARPU_REGRESSION_BASED uses an a*n^b regression
 form, STARPU_NL_REGRESSION_BASED uses an a*n^b+c (more precise than
-STARPU_REGRESSION_BASED, but costs a lot more to compute)
+STARPU_REGRESSION_BASED, but costs a lot more to compute). For instance,
+@code{tests/perfmodels/regression_based.c} uses a regression-based performance
+model for the @code{memset} operation
 
 @item
 Provided explicitly by the application (STARPU_PER_ARCH model type): the
