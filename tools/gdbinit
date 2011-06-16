@@ -192,10 +192,8 @@ define starpu-print-data
     starpu-print-job $requesterlist->j
     set $requesterlist = $requesterlist->_next
   end
-  set $n = 0
-  while $n < $data->nchildren
-    printf "Child %p\n", $data->children[$n]
-    starpu-print-data $data->children[$n]
+  if ($data->nchildren)
+    printf "%d children\n", $data->nchildren
   end
 end
 
