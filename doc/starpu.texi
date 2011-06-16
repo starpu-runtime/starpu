@@ -1296,6 +1296,15 @@ The same can be done for task power consumption estimation, by setting the
 now, the application has to give to the power consumption performance model
 a name which is different from the execution time performance model.
 
+The application can request time estimations from the StarPU performance
+models by filling a task structure as usual without actually submitting
+it. The data handles can be created by calling @code{starpu_data_register}
+functions with a @code{NULL} pointer (and need to be unregistered as usual)
+and the desired data sizes. The @code{starpu_task_expected_length} and
+@code{starpu_task_expected_power} functions can then be called to get an
+estimation of the task duration on a given arch. @code{starpu_task_destroy}
+needs to be called to destroy the dummy task afterwards.
+
 @node Theoretical lower bound on execution time
 @section Theoretical lower bound on execution time
 
