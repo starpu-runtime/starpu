@@ -58,6 +58,7 @@ define starpu-print-task
   printf "\tjob:\t\t\t\t<%p>\n", $job
   printf "\tndeps:\t\t\t\t<%u>\n", $job->job_successors->ndeps
   printf "\tndeps_completed:\t\t<%u>\n", $job->job_successors->ndeps_completed
+  printf "\tnsuccs:\t\t\t\t<%u>\n", $job->job_successors->nsuccs
   if $job
     starpu-print-job $job
   end
