@@ -91,9 +91,22 @@ static void test_memset(int nelems, starpu_codelet *codelet)
         starpu_data_unregister(handle);
 }
 
+static void show_task_perfs(int size, struct starpu_task *task) {
+	unsigned workerid;
+	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++) {
+		char name[16];
+		starpu_worker_get_name(workerid, name, sizeof(name));
+
+		printf("Expected time for %d on %s:\t%f\n", size, name, starpu_task_expected_length(task, starpu_worker_get_perf_archtype(workerid)));
+	}
+}
+
 int main(int argc, char **argv)
 {
 	struct starpu_conf conf;
+	starpu_data_handle handle;
+	struct starpu_task *task = starpu_task_create();
+
 	starpu_conf_init(&conf);
 
 	conf.sched_policy_name = "eager";
@@ -112,6 +125,26 @@ int main(int argc, char **argv)
 	}
 
 	starpu_task_wait_for_all();
+
+	/* Now create a dummy task just to estimate its duration according to the regression */
+
+	size = 12345;
+
+	starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, size, sizeof(int));
+
+	task->cl = &memset_cl;
+	task->buffers[0].handle = handle;
+	task->buffers[0].mode = STARPU_W;
+
+	show_task_perfs(size, task);
+
+	task->cl = &nl_memset_cl;
+
+	show_task_perfs(size, task);
+
+	starpu_task_destroy(task);
+
+	starpu_data_unregister(handle);
 
 	starpu_shutdown();
 

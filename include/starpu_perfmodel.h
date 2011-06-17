@@ -120,6 +120,8 @@ struct starpu_perfmodel_t {
 #endif
 };
 
+enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid);
+
 /* This function is intended to be used by external tools that should read the
  * performance model files */
 int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *model);

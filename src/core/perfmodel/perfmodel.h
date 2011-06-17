@@ -113,8 +113,6 @@ double _starpu_predict_transfer_time(unsigned src_node, unsigned dst_node, size_
 void _starpu_set_calibrate_flag(unsigned val);
 unsigned _starpu_get_calibrate_flag(void);
 
-enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid);
-
 #if defined(STARPU_USE_CUDA)
 int *_starpu_get_cuda_affinity_vector(unsigned gpuid);
 #endif

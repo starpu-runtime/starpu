@@ -1303,7 +1303,8 @@ functions with a @code{NULL} pointer (and need to be unregistered as usual)
 and the desired data sizes. The @code{starpu_task_expected_length} and
 @code{starpu_task_expected_power} functions can then be called to get an
 estimation of the task duration on a given arch. @code{starpu_task_destroy}
-needs to be called to destroy the dummy task afterwards.
+needs to be called to destroy the dummy task afterwards. See
+@code{tests/perfmodels/regression_based.c} for an example.
 
 @node Theoretical lower bound on execution time
 @section Theoretical lower bound on execution time
