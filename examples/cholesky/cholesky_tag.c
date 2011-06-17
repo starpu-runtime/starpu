@@ -264,8 +264,8 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	};
 
 	struct starpu_data_filter f2 = {
-		f2.filter_func = starpu_block_filter_func,
-		f2.nchildren = nblocks
+		.filter_func = starpu_block_filter_func,
+		.nchildren = nblocks
 	};
 
 	starpu_data_map_filters(dataA, 2, &f, &f2);

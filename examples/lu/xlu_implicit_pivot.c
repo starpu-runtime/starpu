@@ -190,13 +190,13 @@ void STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size
 	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(TYPE));
 
 	struct starpu_data_filter f = {
-		f.filter_func = starpu_vertical_block_filter_func,
-		f.nchildren = nblocks
+		.filter_func = starpu_vertical_block_filter_func,
+		.nchildren = nblocks
 	};
 
 	struct starpu_data_filter f2 = {
-		f2.filter_func = starpu_block_filter_func,
-		f2.nchildren = nblocks
+		.filter_func = starpu_block_filter_func,
+		.nchildren = nblocks
 	};
 
 	starpu_data_map_filters(dataA, 2, &f, &f2);
