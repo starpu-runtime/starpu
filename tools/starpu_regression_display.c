@@ -188,18 +188,21 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 	FILE *datafile = fopen(avg_file_name, "w");
 	unsigned n = arch2 - arch1;
 	enum starpu_perf_archtype arch;
-	struct starpu_history_list_t *ptr[n];
+	struct starpu_history_list_t *ptr[n], *ptrs[n];
 	char archname[32];
+	int col;
 
+	col = 2;
 	for (arch = arch1; arch < arch2; arch++) {
 		struct starpu_per_arch_perfmodel_t *arch_model = &model->per_arch[arch];
 		starpu_perfmodel_get_arch_name(arch, archname, 32);
 
-		ptr[arch-arch1] = arch_model->list;
+		ptrs[arch-arch1] = ptr[arch-arch1] = arch_model->list;
 
 		if (ptr[arch-arch1]) {
 			print_comma(gnuplot_file, first);
-			fprintf(gnuplot_file, "\"%s\" using 1:%d with linespoint title \"Measured %s\", \"%s\" using 1:%d:%d with errorbars notitle", avg_file_name, 2*(arch-arch1)+2, archname, avg_file_name, 2*(arch-arch1)+2, 2*(arch-arch1)+3);
+			fprintf(gnuplot_file, "\"%s\" using 1:%d with linespoint title \"Measured %s\", \"%s\" using 1:%d:%d with errorbars notitle", avg_file_name, col, archname, avg_file_name, col, col+1);
+			col += 2;
 		}
 	}
 
@@ -233,6 +236,9 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 					ptr[arch-arch1] = ptr[arch-arch1]->next;
 				} else
 					fprintf(datafile, "\t\"\"\t\"\"");
+			} else if (ptrs[arch-arch1]) {
+				/* Finished for this arch only */
+				fprintf(datafile, "\t\"\"\t\"\"");
 			}
 		}
 		fprintf(datafile, "\n");
@@ -312,7 +318,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel_
 				exit(-1);
 			}
 
-			display_perf_models(gnuplot_file, model, STARPU_CPU_DEFAULT + k - 1, STARPU_CPU_DEFAULT + k - 1, &first);
+			display_perf_models(gnuplot_file, model, STARPU_CPU_DEFAULT + k - 1, STARPU_CPU_DEFAULT + k, &first);
 			return;
 		}
 
@@ -328,12 +334,12 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel_
 		if (nmatched == 1)
 		{
 			unsigned archid = STARPU_CUDA_DEFAULT+ gpuid;
-			display_perf_models(gnuplot_file, model, archid, archid, &first);
+			display_perf_models(gnuplot_file, model, archid, archid + 1, &first);
 			return;
 		}
 
 		if (strcmp(arch, "gordon") == 0) {
-			display_perf_models(gnuplot_file, model, STARPU_GORDON_DEFAULT, STARPU_GORDON_DEFAULT, &first);
+			display_perf_models(gnuplot_file, model, STARPU_GORDON_DEFAULT, STARPU_GORDON_DEFAULT + 1, &first);
 			return;
 		}
 
