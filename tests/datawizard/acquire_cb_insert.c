@@ -90,7 +90,6 @@ int main(int argc, char **argv)
 	starpu_data_unpartition(f_handle, 0);
 	starpu_data_unregister(f_handle);
 	starpu_data_unregister(x_handle);
-	starpu_shutdown();
 
         FPRINTF(stderr, "VALUES: %d", x);
 
@@ -105,5 +104,6 @@ int main(int argc, char **argv)
 
 	FPRINTF(stderr, "\n");
 
+	starpu_shutdown();
 	return 0;
 }
