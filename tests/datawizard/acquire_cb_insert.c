@@ -55,7 +55,7 @@ static int x;
 
 int main(int argc, char **argv)
 {
-        int i;
+        int i, ret;
 	float *f;
 	starpu_data_handle x_handle, f_handle;
 
@@ -77,7 +77,8 @@ int main(int argc, char **argv)
 	starpu_data_partition(f_handle, &filter);
 
 	/* Compute which portion we will work on */
-        starpu_insert_task(&which_index, STARPU_W, x_handle, 0);
+        ret = starpu_insert_task(&which_index, STARPU_W, x_handle, 0);
+	if (ret == -ENODEV) goto enodev;
 
 	/* And submit the corresponding task */
 	STARPU_DATA_ACQUIRE_CB(
@@ -106,4 +107,10 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 	return 0;
+
+enodev:
+	fprintf(stderr, "WARNING: No one can execute this task\n");
+	/* yes, we do not perform the computation but we did detect that no one
+ 	 * could perform the kernel, so this is not an error from StarPU */
+	return 77;
 }
