@@ -60,13 +60,13 @@ void starpu_data_advise_as_important(starpu_data_handle handle, unsigned is_impo
 int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode);
 int starpu_data_acquire_cb(starpu_data_handle handle,
 			starpu_access_mode mode, void (*callback)(void *), void *arg);
-#define STARPU_DATA_ACQUIRE_CB(handle, mode, code) { \
+#define STARPU_DATA_ACQUIRE_CB(handle, mode, code) do { \
 	void callback(void *arg) { \
 		code; \
 		starpu_data_release(handle); \
 	} \
 	starpu_data_acquire_cb(handle, mode, callback, NULL); \
-}
+} while(0)
 void starpu_data_release(starpu_data_handle handle);
 
 int starpu_malloc(void **A, size_t dim);
