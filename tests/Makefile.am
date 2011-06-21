@@ -86,13 +86,13 @@ LOADER_BIN		=	$(abs_top_builddir)/tests/$(LOADER)
 TESTS_ENVIRONMENT	=	$(LOADER_BIN)
 endif
 
-TESTS = $(testbin_PROGRAMS)
+TESTS = $(noinst_PROGRAMS)
 
 if STARPU_COVERAGE_ENABLED
 TESTS	+=	coverage/coverage.sh
 endif
 
-testbin_PROGRAMS =				\
+noinst_PROGRAMS =				\
 	core/restart				\
 	core/execute_on_a_specific_worker	\
 	core/insert_task			\
@@ -167,9 +167,9 @@ testbin_PROGRAMS =				\
 	perfmodels/non_linear_regression_based
 
 if STARPU_HAVE_WINDOWS
-check_PROGRAMS = $(testbin_PROGRAMS)
+check_PROGRAMS = $(noinst_PROGRAMS)
 else
-check_PROGRAMS = $(LOADER) $(testbin_PROGRAMS)
+check_PROGRAMS = $(LOADER) $(noinst_PROGRAMS)
 endif
 
 #######################
