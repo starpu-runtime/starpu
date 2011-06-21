@@ -15,6 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <sys/types.h>
 #include <semaphore.h> 
 #include <pthread.h>
 

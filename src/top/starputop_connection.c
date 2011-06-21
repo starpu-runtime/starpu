@@ -15,16 +15,23 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#ifdef STARPU_HAVE_WINDOWS
+#  include <w32api.h>
+#  define WINVER WindowsXP
+#  include <ws2tcpip.h>
+#else
+#  include <sys/socket.h>
+#  include <netinet/in.h>
+#  include <netdb.h>
+#endif
+
 #include <top/starputop_connection.h>
 #include <top/starputop_message_queue.h>
 #include <starpu_top.h>
 #include <pthread.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
-#include <netdb.h>
 #include <stdlib.h>
 
 const char *STARPUTOP_PORT = "2011";
