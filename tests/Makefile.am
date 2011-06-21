@@ -79,10 +79,12 @@ testbindir = $(libdir)/starpu/tests
 # What to install and what to check #
 #####################################
 
+if !STARPU_HAVE_WINDOWS
 ## test loader program
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/tests/$(LOADER)
 TESTS_ENVIRONMENT	=	$(LOADER_BIN)
+endif
 
 TESTS = $(testbin_PROGRAMS)
 
@@ -164,8 +166,11 @@ testbin_PROGRAMS =				\
 	perfmodels/regression_based		\
 	perfmodels/non_linear_regression_based
 
-check_PROGRAMS =				\
-	$(LOADER) $(testbin_PROGRAMS)
+if STARPU_HAVE_WINDOWS
+check_PROGRAMS = $(testbin_PROGRAMS)
+else
+check_PROGRAMS = $(LOADER) $(testbin_PROGRAMS)
+endif
 
 #######################
 # Source files        #

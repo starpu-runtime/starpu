@@ -120,14 +120,21 @@ noinst_HEADERS = 				\
 #####################################
 
 STARPU_EXAMPLES	=
-check_PROGRAMS	=	$(LOADER) $(STARPU_EXAMPLES)
 TESTS		=	$(STARPU_EXAMPLES)
 
+if STARPU_HAVE_WINDOWS
+check_PROGRAMS	=	$(STARPU_EXAMPLES)
+else
+check_PROGRAMS	=	$(LOADER) $(STARPU_EXAMPLES)
+endif
+
+if !STARPU_HAVE_WINDOWS
 ## test loader program
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/examples/$(LOADER)
 loader_SOURCES		=	../tests/loader.c
 TESTS_ENVIRONMENT	=	$(LOADER_BIN)
+endif
 
 examplebin_PROGRAMS +=				\
 	basic_examples/hello_world		\
