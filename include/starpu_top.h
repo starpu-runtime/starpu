@@ -19,7 +19,6 @@
 #define __STARPU_TOP_H__
 #include <stdlib.h>
 #include <time.h>
-#include <unistd.h>
 #include <starpu.h>
 
 #ifdef __cplusplus

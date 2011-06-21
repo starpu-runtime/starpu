@@ -15,6 +15,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu_config.h>
+
 #ifdef STARPU_HAVE_WINDOWS
 #  include <w32api.h>
 #  define WINVER WindowsXP
@@ -33,6 +35,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 const char *STARPUTOP_PORT = "2011";
 const int STARPUTOP_BUFFER_SIZE=1024;
