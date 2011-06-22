@@ -201,7 +201,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 
 		if (ptr[arch-arch1]) {
 			print_comma(gnuplot_file, first);
-			fprintf(gnuplot_file, "\"%s\" using 1:%d with linespoint title \"Measured %s\", \"%s\" using 1:%d:%d with errorbars notitle", avg_file_name, col, archname, avg_file_name, col, col+1);
+			fprintf(gnuplot_file, "\"%s\" using 1:%d:%d with errorlines title \"Measured %s\"", avg_file_name, col, col+1, archname);
 			col += 2;
 		}
 	}
