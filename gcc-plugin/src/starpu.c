@@ -1202,10 +1202,6 @@ lower_starpu (void)
   cgraph = cgraph_get_node (fndecl);
   gcc_assert (cgraph != NULL);
 
-  printf ("%s: %s -> %p (callees: %p)\n", __func__,
-	  IDENTIFIER_POINTER (DECL_NAME (fndecl)),
-	  cgraph, cgraph ? cgraph->callees : NULL);
-
   for (callee = cgraph->callees;
        callee != NULL;
        callee = callee->next_callee)
@@ -1213,17 +1209,15 @@ lower_starpu (void)
       gcc_assert (callee->callee != NULL);
 
       tree callee_decl;
-      const char *callee_name;
 
       callee_decl = callee->callee->decl;
-      callee_name = IDENTIFIER_POINTER (DECL_NAME (callee_decl));
-
-      printf ("%s:   callee `%s'\n", __func__, callee_name);
 
       if (lookup_attribute (task_attribute_name,
 			    DECL_ATTRIBUTES (callee_decl)))
 	{
-	  printf ("%s:     callee is a task\n", __func__);
+	  printf ("%s: `%s' calls task `%s'\n", __func__,
+		  IDENTIFIER_POINTER (DECL_NAME (fndecl)),
+		  IDENTIFIER_POINTER (DECL_NAME (callee_decl)));
 
 	  gimple call_site;
 	  gimple_seq submission;
