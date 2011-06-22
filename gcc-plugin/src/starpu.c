@@ -102,6 +102,30 @@ build_call_expr_loc_vec (location_t loc, tree fndecl, VEC(tree,gc) *vec)
 
 /* Helpers.  */
 
+
+/* Build a reference to the INDEXth element of ARRAY.  `build_array_ref' is
+   not exported, so we roll our own.  */
+
+static tree
+array_ref (tree array, size_t index)
+{
+  gcc_assert (POINTER_TYPE_P (TREE_TYPE (array)));
+
+  tree pointer_plus_offset =
+    index > 0
+    ? build_binary_op (UNKNOWN_LOCATION, PLUS_EXPR,
+		       array,
+		       build_int_cstu (integer_type_node, index),
+		       0)
+    : array;
+
+  gcc_assert (POINTER_TYPE_P (TREE_TYPE (pointer_plus_offset)));
+
+  return build_indirect_ref (UNKNOWN_LOCATION,
+			     pointer_plus_offset,
+			     RO_ARRAY_INDEXING);
+}
+
 /* Like `build_constructor_from_list', but sort VALS according to their
    offset in struct TYPE.  Inspired by `gnat_build_constructor'.  */
 
@@ -136,6 +160,8 @@ build_constructor_from_unsorted_list (tree type, tree vals)
   return build_constructor (type, v);
 }
 
+
+
 /* Debugging helpers.  */
 
 static tree build_printf (const char *, ...)
@@ -549,20 +575,21 @@ build_codelet_wrapper_definition (tree task_impl)
   loc = DECL_SOURCE_LOCATION (task_impl);
   task_decl = task_implementation_task (task_impl);
 
-  tree build_scalar_var_chain (tree wrapper_decl)
+  tree build_var_chain (tree type_list, const char *seed, tree wrapper_decl)
   {
     tree types, prev, vars = NULL_TREE;
 
-    for (types = task_scalar_parameter_types (task_decl), prev = NULL_TREE;
+    for (types = type_list, prev = NULL_TREE;
 	 types != NULL_TREE;
 	 types = TREE_CHAIN (types))
       {
 	tree var;
 
 	var = build_decl (loc, VAR_DECL,
-			  create_tmp_var_name ("scalar_arg"),
+			  create_tmp_var_name (seed),
 			  TREE_VALUE (types));
 	DECL_CONTEXT (var) = wrapper_decl;
+	DECL_ARTIFICIAL (var) = true;
 
 	if (prev != NULL_TREE)
 	  TREE_CHAIN (prev) = var;
@@ -587,16 +614,52 @@ build_codelet_wrapper_definition (tree task_impl)
     gcc_assert (unpack_fndecl != NULL_TREE
     		&& TREE_CODE (unpack_fndecl) == FUNCTION_DECL);
 
+    /* Build `var0 = STARPU_VECTOR_GET_PTR (buffers[0]); ...'.  */
+
+    size_t index = 0;
+    for (v = vars; v != NULL_TREE; v = TREE_CHAIN (v))
+      {
+	if (POINTER_TYPE_P (TREE_TYPE (v)))
+	  {
+	    /* Compute `void *VDESC = buffers[0];'.  */
+	    tree vdesc = array_ref (DECL_ARGUMENTS (wrapper_decl), index);
+
+	    /* Below we assume (1) that pointer arguments are registered as
+	       StarPU vector handles, and (2) that the `ptr' field is at
+	       offset 0 of `starpu_vector_interface_s'.  The latter allows us
+	       to use a simple pointer dereference instead of expanding
+	       `STARPU_VECTOR_GET_PTR'.  */
+	    assert (offsetof (struct starpu_vector_interface_s, ptr) == 0);
+
+	    /* Compute `type *PTR = *(type **) VDESC;'.  */
+	    tree ptr = build1 (INDIRECT_REF,
+			       build_pointer_type (TREE_TYPE (v)),
+			       vdesc);
+
+	    append_to_statement_list (build2 (MODIFY_EXPR, TREE_TYPE (v),
+					      v, ptr),
+				      &stmts);
+
+	    index++;
+	  }
+      }
+
     /* Build `starpu_unpack_cl_args (cl_args, &var1, &var2, ...)'.  */
 
     args = NULL;
     VEC_safe_push (tree, gc, args, TREE_CHAIN (DECL_ARGUMENTS (wrapper_decl)));
     for (v = vars; v != NULL_TREE; v = TREE_CHAIN (v))
-      VEC_safe_push (tree, gc, args, build_addr (v, wrapper_decl));
+      {
+	if (!POINTER_TYPE_P (TREE_TYPE (v)))
+	  VEC_safe_push (tree, gc, args, build_addr (v, wrapper_decl));
+      }
 
-    call = build_call_expr_loc_vec (UNKNOWN_LOCATION, unpack_fndecl, args);
-    TREE_SIDE_EFFECTS (call) = 1;
-    append_to_statement_list (call, &stmts);
+    if (VEC_length (tree, args) > 1)
+      {
+	call = build_call_expr_loc_vec (UNKNOWN_LOCATION, unpack_fndecl, args);
+	TREE_SIDE_EFFECTS (call) = 1;
+	append_to_statement_list (call, &stmts);
+      }
 
     /* Build `my_task_impl (var1, var2, ...)'.  */
 
@@ -646,7 +709,12 @@ build_codelet_wrapper_definition (tree task_impl)
   decl = build_decl (loc, FUNCTION_DECL, wrapper_name,
 		     build_codelet_wrapper_type ());
 
-  vars = build_scalar_var_chain (decl);
+  /* FIXME: This won't work if scalar and pointer params are
+     interspersed.  */
+  vars = chainon (build_var_chain (task_scalar_parameter_types (task_decl),
+				   "scalar_arg", decl),
+		  build_var_chain (task_pointer_parameter_types (task_decl),
+				   "pointer_arg", decl));
 
   DECL_CONTEXT (decl) = NULL_TREE;
   DECL_ARGUMENTS (decl) = build_parameters (decl);

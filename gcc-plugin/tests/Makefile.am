@@ -19,9 +19,11 @@ TESTS = $(check_PROGRAMS)
 check_PROGRAMS =				\
   base						\
   pointers					\
-  scalar-tasks
+  scalar-tasks					\
+  pointer-tasks
 
 scalar_tasks_LDADD = $(top_builddir)/src/libstarpu.la
+pointer_tasks_LDADD = $(top_builddir)/src/libstarpu.la
 
 dist_noinst_HEADERS = lib.h
 
