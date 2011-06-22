@@ -19,7 +19,7 @@
 #include <lib.h>
 
 
-/* The task under test.  */
+/* The tasks under test.  */
 
 static void my_pointer_task (int *x, long long *y) __attribute__ ((task));
 
@@ -40,30 +40,70 @@ my_pointer_task_opencl (int *x, long long *y)
   printf ("%s: x = %p, y = %p\n", __func__, x, y);
 }
 
+
+
+static void my_mixed_task (int *x, char z, long long *y)
+  __attribute__ ((task));
+static void my_mixed_task_cpu (int *, char, long long *)
+  __attribute__ ((task_implementation ("cpu", my_mixed_task)));
+static void my_mixed_task_opencl (int *, char, long long *)
+  __attribute__ ((task_implementation ("opencl", my_mixed_task)));
+
+static void
+my_mixed_task_cpu (int *x, char z, long long *y)
+{
+  printf ("%s: x = %p, y = %p, z = %i\n", __func__, x, y, (int) z);
+}
+
+static void
+my_mixed_task_opencl (int *x, char z, long long *y)
+{
+  printf ("%s: x = %p, y = %p, z = %i\n", __func__, x, y, (int) z);
+}
+
+
 
 int
 main (int argc, char *argv[])
 {
+  static const char z = 0x77;
   int x[] = { 42 };
   long long *y;
 
   y = malloc (sizeof *y);
   *y = 77;
 
-  struct insert_task_argument expected[] =
+  struct insert_task_argument expected_pointer_task[] =
     {
       { STARPU_RW, x },
       { STARPU_RW, y },
       { 0, 0, 0 }
     };
 
-  expected_insert_task_arguments = expected;
+  expected_insert_task_arguments = expected_pointer_task;
 
   /* Invoke the task, which should make sure it gets called with
      EXPECTED.  */
   my_pointer_task (x, y);
 
   assert (tasks_submitted == 1);
+
+
+  /* Likewise with `my_mixed_task'.  */
+
+  struct insert_task_argument expected_mixed_task[] =
+    {
+      { STARPU_RW, x },
+      { STARPU_VALUE, &z, sizeof z },
+      { STARPU_RW, y },
+      { 0, 0, 0 }
+    };
+
+  expected_insert_task_arguments = expected_mixed_task;
+
+  my_mixed_task (x, 0x77, y);
+
+  assert (tasks_submitted == 2);
 
   free (y);
 
