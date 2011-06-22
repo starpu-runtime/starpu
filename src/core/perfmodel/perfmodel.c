@@ -137,10 +137,10 @@ void _starpu_load_perfmodel(struct starpu_perfmodel_t *model)
 			break;
 
 		case STARPU_HISTORY_BASED:
+		case STARPU_NL_REGRESSION_BASED:
 			_starpu_load_history_based_model(model, 1);
 			break;
 
-		case STARPU_NL_REGRESSION_BASED:
 		case STARPU_REGRESSION_BASED:
 			_starpu_load_history_based_model(model, 0);
 			break;
