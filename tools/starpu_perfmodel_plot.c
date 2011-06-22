@@ -185,12 +185,20 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel_t *mo
 
 static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch1, enum starpu_perf_archtype arch2, int *first)
 {
-	FILE *datafile = fopen(avg_file_name, "w");
+	char *command;
+	FILE *datafile;
 	unsigned n = arch2 - arch1;
 	enum starpu_perf_archtype arch;
 	struct starpu_history_list_t *ptr[n], *ptrs[n];
 	char archname[32];
 	int col;
+	int len;
+
+	len = 10 + strlen(avg_file_name) + 1;
+	command = malloc(len);
+	snprintf(command, len, "sort -n > %s", avg_file_name);
+	datafile = popen(command, "w");
+	free(command);
 
 	col = 2;
 	for (arch = arch1; arch < arch2; arch++) {
