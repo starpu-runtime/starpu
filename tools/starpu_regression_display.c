@@ -227,6 +227,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 			}
 		}
 
+		fprintf(stderr, "%lu ", minimum);
 		fprintf(datafile, "%-15lu ", minimum);
 		for (arch = arch1; arch < arch2; arch++) {
 			if (ptr[arch-arch1]) {
@@ -243,6 +244,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 		}
 		fprintf(datafile, "\n");
 	}
+	fprintf(stderr, "\n");
 }
 
 static void display_perf_models(FILE *gnuplot_file, struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch1, enum starpu_perf_archtype arch2, int *first)
