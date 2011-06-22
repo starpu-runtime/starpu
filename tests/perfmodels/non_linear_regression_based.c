@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 	starpu_conf_init(&conf);
 
 	conf.sched_policy_name = "eager";
-	conf.calibrate = 1;
+	conf.calibrate = 2;
 
 	starpu_init(&conf);
 
