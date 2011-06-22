@@ -93,8 +93,12 @@ starpu_insert_task (starpu_codelet *cl, ...)
 	case STARPU_RW:
 	case STARPU_R:
 	case STARPU_W:
-	  assert (va_arg (args, void *) == expected->pointer);
-	  break;
+	  {
+	    starpu_data_handle handle;
+	    handle = starpu_data_lookup (expected->pointer);
+	    assert (va_arg (args, void *) == handle);
+	    break;
+	  }
 
 	default:
 	  abort ();
@@ -142,14 +146,35 @@ starpu_unpack_cl_args (void *cl_raw_arg, ...)
   va_end (args);
 }
 
+
+/* Data handles.  For testing purposes, there's a dummy implementation of
+   data handles below, which disguises the original pointer to form a pseudo
+   handle.  This allows us to test whether the task implementation is
+   actually passed a pointer, not a handle.  */
+
+#define pointer_as_int(p) ((uintptr_t) (p))
+#define int_as_pointer(i) ((void *) (i))
+
+#define dummy_pointer_to_handle(p)		\
+  ({						\
+     assert ((pointer_as_int (p) & 1) == 0);	\
+     int_as_pointer (~pointer_as_int (p));	\
+   })
+
+#define dummy_handle_to_pointer(h)		\
+  ({						\
+     assert ((pointer_as_int (h) & 1) == 1);	\
+     int_as_pointer (~pointer_as_int (h));	\
+   })
+
 starpu_data_handle
 starpu_data_lookup (const void *ptr)
 {
-  return (starpu_data_handle) ptr;
+  return dummy_pointer_to_handle (ptr);
 }
 
 void *
 starpu_handle_get_local_ptr (starpu_data_handle handle)
 {
-  return handle;
+  return dummy_handle_to_pointer (handle);
 }
