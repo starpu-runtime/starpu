@@ -290,7 +290,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel_
 	fprintf(gnuplot_file, "#!/usr/bin/gnuplot -persist\n");
 	fprintf(gnuplot_file, "\n");
 	fprintf(gnuplot_file, "set term postscript eps enhanced color\n");
-	fprintf(gnuplot_file, "set output \"regression_%s.eps\"\n", symbol);
+	fprintf(gnuplot_file, "set output \"starpu_%s.eps\"\n", symbol);
 	fprintf(gnuplot_file, "set title \"Model for codelet %s\"\n", symbol);
 	fprintf(gnuplot_file, "set xlabel \"Size\"\n");
 	fprintf(gnuplot_file, "set ylabel \"Time\"\n");
