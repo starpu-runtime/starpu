@@ -29,28 +29,20 @@ CLEANFILES = *.gcno *.gcda *.linkinfo
 
 bin_PROGRAMS += starpu_calibrate_bus
 
-starpu_calibrate_bus_SOURCES = starpu_calibrate_bus.c
-
 if STARPU_USE_FXT
 bin_PROGRAMS += starpu_fxt_tool starpu_fxt_stats
 
-starpu_fxt_tool_SOURCES = starpu_fxt_tool.c
 starpu_fxt_tool_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
 starpu_fxt_tool_LDADD = $(FXT_LIBS)
 
-starpu_fxt_stats_SOURCES = starpu_fxt_stats.c
 starpu_fxt_stats_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
 starpu_fxt_stats_LDADD = $(FXT_LIBS)
 endif
 
-bin_PROGRAMS +=	starpu_perfmodel_display
-starpu_perfmodel_display_SOURCES = starpu_perfmodel_display.c
-
-bin_PROGRAMS +=	starpu_regression_display
-starpu_regression_display_SOURCES = starpu_regression_display.c
-
-bin_PROGRAMS += starpu_machine_display
-starpu_machine_display_SOURCES = starpu_machine_display.c
+bin_PROGRAMS += \
+	starpu_perfmodel_display	\
+	starpu_perfmodel_plot 		\
+	starpu_machine_display
 
 noinst_PROGRAMS =	cbc2paje lp2paje
 

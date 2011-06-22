@@ -1245,7 +1245,11 @@ it as an estimation. History is done per task size, by using a hash of the input
 and ouput sizes as an index.
 It will also save it in @code{~/.starpu/sampling/codelets}
 for further executions, and can be observed by using the
-@code{starpu_perfmodel_display} command. The models are indexed by machine name. To share the models between machines (e.g. for a homogeneous cluster), use @code{export STARPU_HOSTNAME=some_global_name}.  The following is a small code example.
+@code{starpu_perfmodel_display} command, or drawn by using
+the @code{starpu_perfmodel_plot}.  The models are indexed by machine name. To
+share the models between machines (e.g. for a homogeneous cluster), use
+@code{export STARPU_HOSTNAME=some_global_name}.  The following is a small code
+example.
 
 If e.g. the code is recompiled with other compilation options, or several
 variants of the code are used, the symbol string should be changed to reflect
@@ -1641,13 +1645,24 @@ to choose the performance model to be displayed. The result looks like:
 $ starpu_perfmodel_display -s starpu_dlu_lu_model_22
 performance model for cpu
 # hash		size		mean		dev		n
-5c6c3401	1572864        	1.216300e+04   	2.277778e+03   	1240
+880805ba	98304          	2.731309e+02   	6.010210e+01   	1240
+b50b6605	393216         	1.469926e+03   	1.088828e+02   	1240
+5c6c3401	1572864        	1.125983e+04   	3.265296e+03   	1240
 @end example
 
 Which shows that for the LU 22 kernel with a 1.5MiB matrix, the average
 execution time on CPUs was about 12ms, with a 2ms standard deviation, over
 1240 samples. It is a good idea to check this before doing actual performance
 measurements.
+
+A graph can be drawn by using the @code{starpu_perfmodel_plot}:
+
+@example
+$ starpu_perfmodel_display -s starpu_dlu_lu_model_22
+98304 393216 1572864 
+$ gnuplot starpu_starpu_dlu_lu_model_22.gp
+$ gv regression_starpu_dlu_lu_model_22.eps
+@end example
 
 If a kernel source code was modified (e.g. performance improvement), the
 calibration information is stale and should be dropped, to re-calibrate from
