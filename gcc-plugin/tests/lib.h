@@ -39,9 +39,14 @@ static unsigned int tasks_submitted;
 
 struct insert_task_argument
 {
-  int     type;     /* `STARPU_VALUE', etc. */
-  void   *pointer;  /* Pointer to the expected value.  */
-  size_t  size;     /* Size in bytes of the data pointed to.  */
+  /* `STARPU_VALUE', etc. */
+  int type;
+
+  /* Pointer to the expected value.  */
+  const void *pointer;
+
+  /* Size in bytes of the data pointed to.  */
+  size_t size;
 };
 
 /* Pointer to a zero-terminated array listing the expected
