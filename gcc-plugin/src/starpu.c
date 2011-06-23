@@ -1091,11 +1091,11 @@ build_task_submission (tree task_decl, gimple call)
 
 	arg = gimple_call_arg (call, n);
 
-	if ((!POINTER_TYPE_P (TREE_TYPE (arg))
-	     && TREE_CONSTANT (arg)
-	     && TREE_CODE (arg) != VAR_DECL
-	     && TREE_CODE (arg) != ADDR_EXPR)
-	    || is_gimple_non_addressable (arg))
+	if (!POINTER_TYPE_P (type)
+	    && ((TREE_CONSTANT (arg)
+		&& TREE_CODE (arg) != VAR_DECL
+		&& TREE_CODE (arg) != ADDR_EXPR)
+		|| is_gimple_non_addressable (arg)))
 	  {
 	    /* ARG is a scalar constant or a non-addressable variable.
 	       Introduce a variable to hold it.  */
@@ -1128,6 +1128,7 @@ build_task_submission (tree task_decl, gimple call)
   VEC(tree, heap) *args = NULL;
   tree vars;
   gimple_seq body = NULL;
+  tree arg_types = TYPE_ARG_TYPES (TREE_TYPE (task_decl));
 
   vars = local_vars (&body);
 
@@ -1137,12 +1138,16 @@ build_task_submission (tree task_decl, gimple call)
 		 build_addr (task_codelet_declaration (task_decl),
 			     current_function_decl));
 
-  for (n = 0; n < gimple_call_num_args (call); n++)
+  for (n = 0;
+       n < gimple_call_num_args (call);
+       n++, arg_types = TREE_CHAIN (arg_types))
     {
-      tree arg;
+      tree arg, type;
 
       arg = gimple_call_arg (call, n);
-      if (POINTER_TYPE_P (TREE_TYPE (arg)))
+      type = TREE_VALUE (arg_types);
+
+      if (POINTER_TYPE_P (type))
 	{
 	  /* A pointer: the arguments will be:
 	     `STARPU_RW, ptr' or similar.  */
