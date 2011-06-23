@@ -23,19 +23,20 @@
 
 /* The task under test.  */
 
-static void my_pointer_task (int *x, char a, long long *y, int b) __attribute__ ((task));
+static void my_pointer_task (const int *x, char a, long long *y, int b)
+  __attribute__ ((task));
 
-static void my_pointer_task_cpu (int *x, char a, long long *y, int b)
+static void my_pointer_task_cpu (const int *x, char a, long long *y, int b)
   __attribute__ ((task_implementation ("cpu", my_pointer_task), noinline));
 
 static int implementations_called;
 
 /* The input arguments.  */
-static int pointer_arg1[] = { 42, 1, 2, 3, 4, 5 };
+static const int pointer_arg1[] = { 42, 1, 2, 3, 4, 5 };
 static long long *pointer_arg2;
 
 static void
-my_pointer_task_cpu (int *x, char a, long long *y, int b)
+my_pointer_task_cpu (const int *x, char a, long long *y, int b)
 {
   implementations_called |= STARPU_CPU;
   assert (x == pointer_arg1);

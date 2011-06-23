@@ -1154,8 +1154,15 @@ build_task_submission (tree task_decl, gimple call)
 	  gcc_assert (TREE_CODE (arg) == VAR_DECL
 		      || TREE_CODE (arg) == ADDR_EXPR);
 
+	  /* If TYPE points to a const-qualified type, then mark the data as
+	     read-only; otherwise default to read-write.
+	     FIXME: Add an attribute to specify write-only.  */
+	  int mode =
+	    (TYPE_QUALS (TREE_TYPE (type)) & TYPE_QUAL_CONST)
+	    ? STARPU_R : STARPU_RW;
+
 	  VEC_safe_push (tree, heap, args,
-			 build_int_cst (integer_type_node, STARPU_RW));
+			 build_int_cst (integer_type_node, mode));
 	  VEC_safe_push (tree, heap, args, build_pointer_lookup (arg, &body));
 	}
       else
