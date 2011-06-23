@@ -23,9 +23,9 @@
 
 /* The task under test.  */
 
-static void my_pointer_task (int *x, long long *y) __attribute__ ((task));
+static void my_pointer_task (int *x, char a, long long *y, int b) __attribute__ ((task));
 
-static void my_pointer_task_cpu (int *x, long long *y)
+static void my_pointer_task_cpu (int *x, char a, long long *y, int b)
   __attribute__ ((task_implementation ("cpu", my_pointer_task), noinline));
 
 static int implementations_called;
@@ -35,11 +35,13 @@ static int pointer_arg1[] = { 42, 1, 2, 3, 4, 5 };
 static long long *pointer_arg2;
 
 static void
-my_pointer_task_cpu (int *x, long long *y)
+my_pointer_task_cpu (int *x, char a, long long *y, int b)
 {
   implementations_called |= STARPU_CPU;
   assert (x == pointer_arg1);
   assert (y == pointer_arg2);
+  assert (a == 'S');
+  assert (b == 42);
 }
 
 
@@ -67,7 +69,7 @@ main (int argc, char *argv[])
 
   /* Invoke the task, which should make sure it gets called with
      EXPECTED.  */
-  my_pointer_task (pointer_arg1, pointer_arg2);
+  my_pointer_task (pointer_arg1, 'S', pointer_arg2, 42);
 
 #pragma starpu wait
 

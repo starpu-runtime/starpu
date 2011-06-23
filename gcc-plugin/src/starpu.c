@@ -232,6 +232,29 @@ filter (bool (*pred) (const_tree), tree t)
   return nreverse (result);
 }
 
+/* Map FUNC over chain T.  T does not have to be `TREE_LIST'; it can be a
+   chain of arbitrary tree objects.  */
+
+static tree
+map (tree (*func) (const_tree), tree t)
+{
+  tree result, tail, lst;
+
+  result = tail = NULL_TREE;
+  for (lst = t; lst != NULL_TREE; lst = TREE_CHAIN (lst))
+    {
+      tree r = func (lst);
+      if (tail != NULL_TREE)
+	TREE_CHAIN (tail) = r;
+      else
+	result = r;
+
+      tail = r;
+    }
+
+  return result;
+}
+
 static void
 for_each (void (*func) (tree), tree t)
 {
@@ -408,20 +431,6 @@ task_implementation_list (const_tree task_decl)
   return TREE_VALUE (attr);
 }
 
-/* Return the list of scalar parameter types of TASK_DECL.  */
-
-static tree
-task_scalar_parameter_types (const_tree task_decl)
-{
-  bool is_scalar (const_tree item)
-  {
-    return (!POINTER_TYPE_P (TREE_VALUE (item))
-	    && !VOID_TYPE_P (TREE_VALUE (item)));
-  }
-
-  return filter (is_scalar, TYPE_ARG_TYPES (TREE_TYPE (task_decl)));
-}
-
 /* Return the list of pointer parameter types of TASK_DECL.  */
 
 static tree
@@ -570,36 +579,29 @@ static tree
 build_codelet_wrapper_definition (tree task_impl)
 {
   location_t loc;
-  tree task_decl;
+  tree task_decl, decl;
 
   loc = DECL_SOURCE_LOCATION (task_impl);
   task_decl = task_implementation_task (task_impl);
 
-  tree build_var_chain (tree type_list, const char *seed, tree wrapper_decl)
+  bool not_void_type_p (const_tree type)
   {
-    tree types, prev, vars = NULL_TREE;
+    return !VOID_TYPE_P (TREE_VALUE (type));
+  }
 
-    for (types = type_list, prev = NULL_TREE;
-	 types != NULL_TREE;
-	 types = TREE_CHAIN (types))
-      {
-	tree var;
+  tree build_local_var (const_tree type)
+  {
+    tree var, t;
+    const char *seed;
 
-	var = build_decl (loc, VAR_DECL,
-			  create_tmp_var_name (seed),
-			  TREE_VALUE (types));
-	DECL_CONTEXT (var) = wrapper_decl;
-	DECL_ARTIFICIAL (var) = true;
+    t = TREE_VALUE (type);
+    seed = POINTER_TYPE_P (t) ? "pointer_arg" : "scalar_arg";
 
-	if (prev != NULL_TREE)
-	  TREE_CHAIN (prev) = var;
-	else
-	  vars = var;
+    var = build_decl (loc, VAR_DECL, create_tmp_var_name (seed), t);
+    DECL_CONTEXT (var) = decl;
+    DECL_ARTIFICIAL (var) = true;
 
-	prev = var;
-      }
-
-    return vars;
+    return var;
   }
 
   /* Return the body of the wrapper, which unpacks `cl_args' and calls the
@@ -703,18 +705,15 @@ build_codelet_wrapper_definition (tree task_impl)
     return chainon (param1, param2);
   }
 
-  tree decl, wrapper_name, vars, result;
+  tree wrapper_name, vars, result;
 
   wrapper_name = build_codelet_wrapper_identifier (task_impl);
   decl = build_decl (loc, FUNCTION_DECL, wrapper_name,
 		     build_codelet_wrapper_type ());
 
-  /* FIXME: This won't work if scalar and pointer params are
-     interspersed.  */
-  vars = chainon (build_var_chain (task_scalar_parameter_types (task_decl),
-				   "scalar_arg", decl),
-		  build_var_chain (task_pointer_parameter_types (task_decl),
-				   "pointer_arg", decl));
+  vars = map (build_local_var,
+	      filter (not_void_type_p,
+		      TYPE_ARG_TYPES (TREE_TYPE (task_decl))));
 
   DECL_CONTEXT (decl) = NULL_TREE;
   DECL_ARGUMENTS (decl) = build_parameters (decl);
