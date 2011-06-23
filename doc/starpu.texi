@@ -1661,7 +1661,7 @@ A graph can be drawn by using the @code{starpu_perfmodel_plot}:
 $ starpu_perfmodel_plot -s starpu_dlu_lu_model_22
 98304 393216 1572864 
 $ gnuplot starpu_starpu_dlu_lu_model_22.gp
-$ gv regression_starpu_dlu_lu_model_22.eps
+$ gv starpu_starpu_dlu_lu_model_22.eps
 @end example
 
 If a kernel source code was modified (e.g. performance improvement), the
