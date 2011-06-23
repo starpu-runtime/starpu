@@ -35,6 +35,7 @@ endif
 
 EXTRA_DIST = 					\
 	basic_examples/vector_scal_opencl_kernel.cl \
+	common/blas_model.c			\
 	spmv/spmv_cuda.cu			\
 	spmv/spmv_opencl.cl			\
 	gordon/null_kernel_gordon.c		\
