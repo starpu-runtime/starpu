@@ -59,14 +59,10 @@ main (int argc, char *argv[])
 
   starpu_init (NULL);
 
-  /* Register POINTER_ARG1 and POINTER_ARG2
-     FIXME: Use a pragma when available.  */
-  starpu_data_handle handle;
-  starpu_vector_data_register (&handle, 0, (uintptr_t) pointer_arg1,
-			       sizeof pointer_arg1 / sizeof pointer_arg1[0],
-			       sizeof pointer_arg1[0]);
-  starpu_vector_data_register (&handle, 0, (uintptr_t) pointer_arg2,
-			       COUNT, sizeof *pointer_arg2);
+  /* Register POINTER_ARG1 and POINTER_ARG2.  */
+#pragma starpu register pointer_arg1
+#pragma starpu register pointer_arg2 100 /* FIXME: Use COUNT when macros are
+					    expanded */
 
   /* Invoke the task, which should make sure it gets called with
      EXPECTED.  */
