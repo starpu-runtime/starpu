@@ -1278,7 +1278,8 @@ AS_IF([test "x$with_hwloc" != "xno"], [
 		LDFLAGS="${SAVED_LDFLAGS} -L$hwloc_dir/lib"
 		AC_HAVE_LIBRARY([hwloc],[have_valid_hwloc=yes],[have_valid_hwloc=no])
 		])
-    ])
+    ],
+    have_valid_hwloc="no")
 AS_IF([test "$have_valid_hwloc" = "yes"], [
 	AC_DEFINE([STARPU_HAVE_HWLOC], [1], [Define to 1 if you have the hwloc library.])
 	HWLOC_REQUIRES=hwloc
