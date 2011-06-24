@@ -19,6 +19,7 @@ TESTS = $(check_PROGRAMS)
 check_PROGRAMS =				\
   base						\
   pointers					\
+  register					\
   scalar-tasks					\
   pointer-tasks
 

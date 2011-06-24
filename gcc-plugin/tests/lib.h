@@ -183,3 +183,38 @@ starpu_handle_get_local_ptr (starpu_data_handle handle)
 {
   return dummy_handle_to_pointer (handle);
 }
+
+
+/* Data registration.  */
+
+struct data_register_arguments
+{
+  /* A pointer to the vector being registered.  */
+  void *pointer;
+
+  /* Number of elements in the vector.  */
+  size_t elements;
+
+  /* Size of individual elements.  */
+  size_t element_size;
+};
+
+/* Number of `starpu_vector_data_register' calls.  */
+static unsigned int data_register_calls;
+
+/* Variable describing the expected `starpu_vector_data_register'
+   arguments.  */
+struct data_register_arguments expected_register_arguments;
+
+void
+starpu_vector_data_register (starpu_data_handle *handle,
+			     uint32_t home_node, uintptr_t ptr,
+			     uint32_t count, size_t elemsize)
+{
+  assert ((void *) ptr == expected_register_arguments.pointer);
+  assert (count == expected_register_arguments.elements);
+  assert (elemsize == expected_register_arguments.element_size);
+
+  data_register_calls++;
+  *handle = dummy_pointer_to_handle ((void *) ptr);
+}

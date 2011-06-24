@@ -175,3 +175,6 @@ starpu.log
 /doc/starpu.tp
 /doc/starpu.tps
 /doc/starpu.vr
+/gcc-plugin/tests/register
+/tests/datawizard/acquire_cb_insert
+/tools/starpu_perfmodel_plot
