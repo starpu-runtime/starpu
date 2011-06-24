@@ -1165,7 +1165,7 @@ build_pointer_lookup (tree pointer, gimple_seq *body)
   tree success_label = create_artificial_label (UNKNOWN_LOCATION);
 
   gimple cond = gimple_build_cond (EQ_EXPR,
-				   var, build_zero_cst (ptr_type_node),
+				   var, null_pointer_node,
 				   abort_label, success_label);
   gimple_seq_add_stmt (body, cond);
 
