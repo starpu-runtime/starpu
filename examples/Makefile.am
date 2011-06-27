@@ -50,6 +50,7 @@ EXTRA_DIST = 					\
 	basic_examples/variable_kernels_opencl_kernel.cl	\
 	matvecmult/matvecmult_kernel.cl				\
 	basic_examples/block_opencl_kernel.cl			\
+	openmp/vector_scal.c			\
 	filters/fblock_opencl_kernel.cl
 
 CLEANFILES = 					\

@@ -3200,6 +3200,14 @@ default value is overwritten by the @code{STARPU_CALIBRATE} environment
 variable when it is set.
 @end table
 
+@item @code{single_combined_worker} (default = 0):
+By default, StarPU creates various combined workers according to the machine
+structure. Some parallel libraries (e.g. most OpenMP implementations) however do
+not support concurrent calls to parallel code. In such case, setting this flag
+makes StarPU only create one combined worker, containing all
+the CPU workers. The default value is overwritten by the
+@code{STARPU_SINGLE_COMBINED_WORKER} environment variable when it is set.
+
 @end table
 
 

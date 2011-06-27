@@ -284,6 +284,8 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->use_explicit_workers_cuda_gpuid = 0; /* TODO */
 	conf->use_explicit_workers_opencl_gpuid = 0; /* TODO */
 
+	conf->single_combined_worker = starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER");
+
 	return 0;
 }
 

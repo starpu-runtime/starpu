@@ -145,7 +145,6 @@ static void find_combinations_without_hwloc(struct starpu_machine_topology_s *to
 }
 #endif
 
-#if 0
 static void combine_all_cpu_workers(struct starpu_machine_topology_s *topology)
 {
 	struct starpu_machine_config_s *config = _starpu_get_machine_config();
@@ -167,15 +166,19 @@ static void combine_all_cpu_workers(struct starpu_machine_topology_s *topology)
 		STARPU_ASSERT(ret >= 0);
 	}
 }
-#endif
 
 void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *topology)
 {
-//	combine_all_cpu_workers(topology);
+	struct starpu_machine_config_s *config = _starpu_get_machine_config();
+
+	if (config->user_conf && config->user_conf->single_combined_worker)
+		combine_all_cpu_workers(topology);
+	else {
 #ifdef STARPU_HAVE_HWLOC
-	find_combinations_with_hwloc(topology);
-	//find_combinations_without_hwloc(topology);
+		find_combinations_with_hwloc(topology);
+		//find_combinations_without_hwloc(topology);
 #else
-	find_combinations_without_hwloc(topology);
+		find_combinations_without_hwloc(topology);
 #endif
+	}
 }

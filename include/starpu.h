@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -72,6 +72,9 @@ struct starpu_conf {
 
 	/* calibrate performance models, if any (-1 for default) */
 	int calibrate;
+
+	/* Create only one combined worker, containing all CPU workers */
+	int single_combined_worker;
 };
 
 /* Initialize a starpu_conf structure with default values. */
