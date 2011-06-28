@@ -437,6 +437,14 @@ handle_task_attribute (tree *node, tree name, tree args,
 	       NULL_TREE,
 	       NULL_TREE);
 
+  if (!TREE_PUBLIC (fn))
+    {
+      /* Set a dummy body to avoid "used but never defined" warnings when FN
+	 has file scope.  */
+      DECL_SAVED_TREE (fn) = build_printf ("hello from the task!");
+      DECL_INITIAL (fn) = build_block (NULL_TREE, NULL_TREE, fn, NULL_TREE);
+    }
+
   /* Push a declaration for the corresponding `starpu_codelet' object and add
      it as an attribute of FN.  */
   tree cl = build_codelet_declaration (fn);
