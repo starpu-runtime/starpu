@@ -18,9 +18,12 @@ AC_INIT([StarPU],0.9.2, [starpu-bugs@lists.gforge.inria.fr], starpu)
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CANONICAL_SYSTEM
-AM_INIT_AUTOMAKE([1.10 -Wall -Werror foreign])
 
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+dnl Automake 1.11 introduced `silent-rules' and `color-tests'.  Use them
+dnl when they're available.
+m4_ifdef([AM_SILENT_RULES],
+  [AM_INIT_AUTOMAKE([1.11 -Wall -Werror foreign silent-rules color-tests])],
+  [AM_INIT_AUTOMAKE([1.10 -Wall -Werror foreign])])
 
 AC_PREREQ(2.60)
 
