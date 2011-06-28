@@ -54,11 +54,10 @@ uint32_t _starpu_select_src_node(starpu_data_handle handle)
 
 			/* however GPU are expensive sources, really !
 			 * 	other should be ok */
-			if (_starpu_get_node_kind(i) != STARPU_CUDA_RAM)
-				break;
-			if (_starpu_get_node_kind(i) != STARPU_OPENCL_RAM)
-				break;
-
+		 
+			if (_starpu_get_node_kind(i) != STARPU_CUDA_RAM && _starpu_get_node_kind(i) != STARPU_OPENCL_RAM)	
+				break ;
+		 
 			/* XXX do a better algorithm to distribute the memory copies */
 			/* TODO : use the "requesting_node" as an argument to do so */
 		}
