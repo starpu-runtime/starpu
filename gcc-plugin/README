@@ -6,3 +6,5 @@ language extensions to make it easier to define and invoke StarPU
 tasks.
 
 Plug-ins are supported starting from GCC 4.5.
+
+To run the test suite, GNU Guile 1.8.x or 2.0.x is needed.

@@ -14,26 +14,34 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 
-TESTS = $(check_PROGRAMS)
+gcc_tests =					\
+  base.c					\
+  pointers.c					\
+  register.c					\
+  scalar-tasks.c				\
+  pointer-tasks.c
 
-check_PROGRAMS =				\
+dist_noinst_HEADERS = lib.h
+
+CLEANFILES = *.gimple				\
   base						\
   pointers					\
   register					\
   scalar-tasks					\
   pointer-tasks
 
-scalar_tasks_LDADD = $(top_builddir)/src/libstarpu.la
-pointer_tasks_LDADD = $(top_builddir)/src/libstarpu.la
+EXTRA_DIST = ./run-test.in
 
-dist_noinst_HEADERS = lib.h
+if HAVE_GUILE
 
-AM_CPPFLAGS = -I$(builddir)
+TESTS = $(gcc_tests)
+TESTS_ENVIRONMENT = ./run-test
 
-# Unfortunately `libtool --mode=execute' doesn't help here, so
-# hard-code the real file name.
-AM_CFLAGS =					\
-  -fplugin="$(builddir)/../src/.libs/starpu.so"	\
-  -dH -fdump-tree-gimple -Wall
+else !HAVE_GUILE
 
-CLEANFILES = *.gimple
+EXTRA_DIST += $(gcc_tests)
+
+check-hook:
+	-@echo "GNU Guile not available, test suite not run."
+
+endif !HAVE_GUILE

@@ -33,7 +33,7 @@ main (int argc, char *argv[])
   expected_register_arguments.pointer = x;
   expected_register_arguments.elements = 123;
   expected_register_arguments.element_size = sizeof x[0];
-#pragma starpu register x 123
+#pragma starpu register x 123 /* (note "can be omitted") */
 
   expected_register_arguments.pointer = y;
   expected_register_arguments.elements = 234;

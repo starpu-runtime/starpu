@@ -1088,11 +1088,21 @@ if test "x$enable_gcc_plugin" = "xyes"; then
    fi
 
    build_gcc_plugin="yes"
+
+   # GNU Guile 1.8/2.0 is used to run the test suite.
+   AC_PATH_PROG([GUILE], [guile])
+   if test "x$GUILE" != "x"; then
+      run_gcc_plugin_test_suite="yes"
+   else
+      run_gcc_plugin_test_suite="no"
+   fi
 else
    build_gcc_plugin="no"
+   run_gcc_plugin_test_suite="no"
 fi
 
 AM_CONDITIONAL([BUILD_GCC_PLUGIN], [test "x$build_gcc_plugin" = "xyes"])
+AM_CONDITIONAL([HAVE_GUILE], [test "x$GUILE" != "x"])
 
 ###############################################################################
 #                                                                             #
@@ -1314,7 +1324,11 @@ AC_MSG_RESULT($want_optional_tests)
 AM_CONDITIONAL([COND_OPT], [test "$want_optional_tests" = yes])
 
 # File configuration
-AC_CONFIG_COMMANDS([executable-scripts], [chmod +x ]tests/regression/regression.sh)
+AC_CONFIG_COMMANDS([executable-scripts], [
+  chmod +x tests/regression/regression.sh
+  chmod +x gcc-plugin/tests/run-test
+])
+
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
 AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h)
 
@@ -1327,6 +1341,7 @@ AC_OUTPUT([
 	gcc-plugin/Makefile
 	gcc-plugin/src/Makefile
 	gcc-plugin/tests/Makefile
+	gcc-plugin/tests/run-test
 	libstarpu.pc
 	examples/Makefile
         examples/opt/Makefile
@@ -1346,7 +1361,8 @@ AC_MSG_NOTICE([
 	OpenCL enabled: $enable_opencl
 	Cell   enabled: $enable_gordon
 
-	GCC plugin: $build_gcc_plugin
+	GCC plug-in: $build_gcc_plugin
+	GCC plug-in test suite: $run_gcc_plugin_test_suite
 
 	Compile-time limits
 	(change these with --enable-maxcpus, --enable-maxcudadev,
