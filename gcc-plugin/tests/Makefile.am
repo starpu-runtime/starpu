@@ -18,6 +18,10 @@ gcc_tests =					\
   base.c					\
   pointers.c					\
   register.c					\
+  register-junk.c				\
+  register-size-mismatch.c			\
+  register-unbound.c				\
+  register-unterminated.c			\
   scalar-tasks.c				\
   pointer-tasks.c
 
