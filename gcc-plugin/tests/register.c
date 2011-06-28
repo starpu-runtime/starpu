@@ -55,20 +55,16 @@ main (int argc, char *argv[])
   expected_register_arguments.element_size = sizeof argv[0];
 #pragma starpu register argv 456
 
-  /* FIXME: Uncomment the example below when macros are suitably
-     expanded.  */
-#if 0
 #define ARGV argv
 #define N 456
   expected_register_arguments.pointer = argv;
   expected_register_arguments.elements = N;
   expected_register_arguments.element_size = sizeof argv[0];
-#pragma starpu register ARGV N
+#pragma starpu register   ARGV /* hello, world! */  N
 #undef ARGV
 #undef N
-#endif
 
-  assert (data_register_calls == 5);
+  assert (data_register_calls == 6);
 
   free (y);
 

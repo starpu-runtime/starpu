@@ -289,30 +289,28 @@ handle_pragma_wait (struct cpp_reader *reader)
 }
 
 /* Process `#pragma starpu register VAR [COUNT]' and emit the corresponding
-   `starpu_vector_data_register' call.
-
-   FIXME: Currently processing happens before macro expansion, even though
-   the docstring of `cpp_get_token' says otherwise.  */
+   `starpu_vector_data_register' call.  */
 
 static void
 handle_pragma_register (struct cpp_reader *reader)
 {
-  const cpp_token *token;
+  tree token;
+  location_t loc;
+  enum cpp_ttype type;
 
-  token = cpp_peek_token (reader, 0);
-  if (token->type == CPP_PRAGMA_EOL)
-    error_at (token->src_loc, "unterminated %<starpu register%> pragma");
+  loc = cpp_peek_token (reader, 0)->src_loc;
 
-  token = cpp_get_token (reader);
-  if (token->type != CPP_NAME)
-    error_at (token->src_loc, "identifier expected");
+  type = pragma_lex (&token);
+  if (type == CPP_EOF)
+    error_at (loc, "unterminated %<starpu register%> pragma");
+  else if (type != CPP_NAME)
+    error_at (loc, "identifier expected");
 
   /* Get the variable name.  */
-  tree var_name = get_identifier ((char *) cpp_token_as_text (reader, token));
-
+  tree var_name = token;
   tree var = lookup_name (var_name);
   if (var == NULL_TREE || !DECL_P (var))
-    error_at (token->src_loc, "unbound variable %qE", var_name);
+    error_at (loc, "unbound variable %qE", var_name);
 
   gcc_assert (POINTER_TYPE_P (TREE_TYPE (var))
 	      || TREE_CODE (TREE_TYPE (var)) == ARRAY_TYPE);
@@ -321,7 +319,7 @@ handle_pragma_register (struct cpp_reader *reader)
       && !DECL_EXTERNAL (var)
       && !TREE_STATIC (var)
       && !MAIN_NAME_P (DECL_NAME (current_function_decl)))
-    warning_at (token->src_loc, 0, "using an on-stack array as a task input "
+    warning_at (loc, 0, "using an on-stack array as a task input "
 		"considered unsafe");
 
   /* Determine the number of elements in the vector.  */
@@ -333,11 +331,11 @@ handle_pragma_register (struct cpp_reader *reader)
 
       if (domain != NULL_TREE)
 	{
-	  count = build_binary_op (token->src_loc, MINUS_EXPR,
+	  count = build_binary_op (loc, MINUS_EXPR,
 				   TYPE_MAX_VALUE (domain),
 				   TYPE_MIN_VALUE (domain),
 				   false);
-	  count = build_binary_op (token->src_loc, PLUS_EXPR,
+	  count = build_binary_op (loc, PLUS_EXPR,
 				   count,
 				   build_int_cstu (integer_type_node, 1),
 				   false);
@@ -345,47 +343,40 @@ handle_pragma_register (struct cpp_reader *reader)
 	}
     }
 
-  token = cpp_peek_token (reader, 0);
-  if (token->type == CPP_PRAGMA_EOL)
+
+  type = pragma_lex (&token);
+  if (type == CPP_EOF)
     {
       /* End of line reached: don't consume TOKEN and check whether the array
 	 size was determined.  */
       if (count == NULL_TREE)
-	error_at (token->src_loc, "cannot determine size of array %qE",
-		  var_name);
+	error_at (loc, "cannot determine size of array %qE", var_name);
     }
-  else if (token->type == CPP_NUMBER)
+  else if (type == CPP_NUMBER)
     {
       /* TOKEN is a number, consume it.  */
-      token = cpp_get_token (reader);
-
-      unsigned int flags = cpp_classify_number (reader, token);
-      if ((flags & CPP_N_CATEGORY) != CPP_N_INTEGER)
-	error_at (token->src_loc, "invalid integer");
-
-      cpp_num value = cpp_interpret_integer (reader, token, CPP_N_UNSIGNED);
-      tree count_arg = build_int_cst_wide (size_type_node, value.low, value.high);
+      tree count_arg = token;
 
       if (count != NULL_TREE)
 	{
 	  /* The number of elements of this array was already determined.  */
-	  inform (token->src_loc,
+	  inform (loc,
 		  "element count can be omitted for bounded array %qE",
 		  var_name);
 
 	  if (!tree_int_cst_equal (count, count_arg))
-	    error_at (token->src_loc,
+	    error_at (loc,
 		      "specified element count differs from actual size of array %qE",
 		      var_name);
 	}
       else
 	count = count_arg;
 
-      if (cpp_peek_token (reader, 0)->type != CPP_PRAGMA_EOL)
-	error_at (token->src_loc, "junk after %<starpu register%> pragma");
+      if (pragma_lex (&token) != CPP_EOF)
+	error_at (loc, "junk after %<starpu register%> pragma");
     }
   else
-    error_at (token->src_loc, "integer expected");
+    error_at (loc, "integer expected");
 
   /* If VAR is an array, take its address.  */
   tree pointer =
@@ -418,8 +409,8 @@ register_pragmas (void *gcc_data, void *user_data)
 		     handle_pragma_hello);
   c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "wait",
 		     handle_pragma_wait);
-  c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "register",
-		     handle_pragma_register);
+  c_register_pragma_with_expansion (STARPU_PRAGMA_NAME_SPACE, "register",
+				    handle_pragma_register);
 }
 
 

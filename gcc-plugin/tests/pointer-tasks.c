@@ -61,8 +61,7 @@ main (int argc, char *argv[])
 
   /* Register POINTER_ARG1 and POINTER_ARG2.  */
 #pragma starpu register pointer_arg1
-#pragma starpu register pointer_arg2 100 /* FIXME: Use COUNT when macros are
-					    expanded */
+#pragma starpu register pointer_arg2 COUNT
 
   /* Invoke the task, which should make sure it gets called with
      EXPECTED.  */
@@ -77,4 +76,5 @@ main (int argc, char *argv[])
   free (pointer_arg2);
 
   return EXIT_SUCCESS;
+#undef COUNT
 }
