@@ -441,35 +441,40 @@ handle_task_attribute (tree *node, tree name, tree args,
   tree fn;
 
   fn = *node;
-  gcc_assert (TREE_CODE (fn) == FUNCTION_DECL);
 
-  /* This is a function declaration for something local to this
-     translation unit, so add the `task' attribute to FN.  */
-  *no_add_attrs = false;
-
-  /* Add an empty `task_implementation_list' attribute.  */
-  DECL_ATTRIBUTES (fn) =
-    tree_cons (get_identifier (task_implementation_list_attribute_name),
-	       NULL_TREE,
-	       NULL_TREE);
-
-  if (!TREE_PUBLIC (fn))
+  if (TREE_CODE (fn) != FUNCTION_DECL)
+    error_at (DECL_SOURCE_LOCATION (fn),
+	      "%<task%> attribute only applies to functions");
+  else
     {
-      /* Set a dummy body to avoid "used but never defined" warnings when FN
-	 has file scope.  */
-      DECL_SAVED_TREE (fn) = build_printf ("hello from the task!");
-      DECL_INITIAL (fn) = build_block (NULL_TREE, NULL_TREE, fn, NULL_TREE);
+      /* This is a function declaration for something local to this
+	 translation unit, so add the `task' attribute to FN.  */
+      *no_add_attrs = false;
+
+      /* Add an empty `task_implementation_list' attribute.  */
+      DECL_ATTRIBUTES (fn) =
+	tree_cons (get_identifier (task_implementation_list_attribute_name),
+		   NULL_TREE,
+		   NULL_TREE);
+
+      if (!TREE_PUBLIC (fn))
+	{
+	  /* Set a dummy body to avoid "used but never defined" warnings when
+	     FN has file scope.  */
+	  DECL_SAVED_TREE (fn) = build_printf ("hello from the task!");
+	  DECL_INITIAL (fn) = build_block (NULL_TREE, NULL_TREE, fn, NULL_TREE);
+	}
+
+      /* Push a declaration for the corresponding `starpu_codelet' object and
+	 add it as an attribute of FN.  */
+      tree cl = build_codelet_declaration (fn);
+      DECL_ATTRIBUTES (fn) =
+	tree_cons (get_identifier (task_codelet_attribute_name), cl,
+		   DECL_ATTRIBUTES (fn));
+      pushdecl (cl);
+
+      TREE_USED (fn) = true;
     }
-
-  /* Push a declaration for the corresponding `starpu_codelet' object and add
-     it as an attribute of FN.  */
-  tree cl = build_codelet_declaration (fn);
-  DECL_ATTRIBUTES (fn) =
-    tree_cons (get_identifier (task_codelet_attribute_name), cl,
-	       DECL_ATTRIBUTES (fn));
-  pushdecl (cl);
-
-  TREE_USED (fn) = true;
 
   /* Lookup the useful StarPU functions in the global scope (this can't be
      done from `lower_starpu'.)
@@ -498,48 +503,57 @@ static tree
 handle_task_implementation_attribute (tree *node, tree name, tree args,
 				      int flags, bool *no_add_attrs)
 {
+  location_t loc;
   tree fn, where, task_decl;
-
-  /* FIXME: Use error nodes instead of `gcc_assert'.  */
 
   /* FIXME:TODO: To change the order to (TASK, WHERE):
 	  tree cleanup_id = TREE_VALUE (TREE_VALUE (attr));
 	  tree cleanup_decl = lookup_name (cleanup_id);
   */
 
-
   fn = *node;
-  gcc_assert (TREE_CODE (fn) == FUNCTION_DECL);
-
   where = TREE_VALUE (args);
-  gcc_assert (TREE_CODE (where) == STRING_CST);
-
   task_decl = TREE_VALUE (TREE_CHAIN (args));
-  gcc_assert (TREE_CODE (task_decl) == FUNCTION_DECL);
-  gcc_assert (lookup_attribute (task_attribute_name,
-				DECL_ATTRIBUTES (task_decl)));
-  gcc_assert (TYPE_CANONICAL (TREE_TYPE (fn))
-	      == TYPE_CANONICAL (TREE_TYPE (task_decl))
-	      && TYPE_CANONICAL (TREE_TYPE (fn)) != NULL_TREE);
 
-  /* Add FN to the list of implementations of TASK_DECL.  */
+  loc = DECL_SOURCE_LOCATION (fn);
 
-  tree attr, impls;
+  if (TREE_CODE (fn) != FUNCTION_DECL)
+    error_at (loc,
+	      "%<task_implementation%> attribute only applies to functions");
+  else if (TREE_CODE (where) != STRING_CST)
+    error_at (loc, "string constant expected "
+	      "as the first %<task_implementation%> argument");
+  else if (TREE_CODE (task_decl) != FUNCTION_DECL)
+    error_at (loc, "%qE is not a function", task_decl);
+  else if (lookup_attribute (task_attribute_name,
+			DECL_ATTRIBUTES (task_decl)) == NULL_TREE)
+    error_at (loc, "function %qE lacks the %<task%> attribute",
+	      DECL_NAME (task_decl));
+  else if (TYPE_CANONICAL (TREE_TYPE (fn))
+	   != TYPE_CANONICAL (TREE_TYPE (task_decl)))
+    error_at (loc, "type differs from that of task %qE",
+	      DECL_NAME (task_decl));
+  else
+    {
+      /* Add FN to the list of implementations of TASK_DECL.  */
 
-  attr = lookup_attribute (task_implementation_list_attribute_name,
-			   DECL_ATTRIBUTES (task_decl));
-  impls = tree_cons (NULL_TREE, fn, TREE_VALUE (attr));
+      tree attr, impls;
 
-  DECL_ATTRIBUTES (task_decl) =
-    tree_cons (get_identifier (task_implementation_list_attribute_name),
-	       impls,
-	       remove_attribute (task_implementation_list_attribute_name,
-				 DECL_ATTRIBUTES (task_decl)));
+      attr = lookup_attribute (task_implementation_list_attribute_name,
+			       DECL_ATTRIBUTES (task_decl));
+      impls = tree_cons (NULL_TREE, fn, TREE_VALUE (attr));
 
-  TREE_USED (fn) = true;
+      DECL_ATTRIBUTES (task_decl) =
+	tree_cons (get_identifier (task_implementation_list_attribute_name),
+		   impls,
+		   remove_attribute (task_implementation_list_attribute_name,
+				     DECL_ATTRIBUTES (task_decl)));
 
-  /* Keep the attribute.  */
-  *no_add_attrs = false;
+      TREE_USED (fn) = true;
+
+      /* Keep the attribute.  */
+      *no_add_attrs = false;
+    }
 
   return NULL_TREE;
 }
@@ -588,7 +602,7 @@ task_pointer_parameter_types (const_tree task_decl)
    `STARPU_CUDA', etc.).  */
 
 static int
-task_implementation_where (const_tree task_impl)
+task_implementation_where (tree task_impl)
 {
   int where_int;
   tree impl_attr, args, where;
@@ -612,8 +626,27 @@ task_implementation_where (const_tree task_impl)
 		     TREE_STRING_LENGTH (where)))
     where_int = STARPU_CUDA;
   else
-    /* FIXME: Error out?  */
-    where_int = 0;
+    {
+      static const char invalid_target_attribute_name[] = ".invalid_target";
+
+      if (lookup_attribute (invalid_target_attribute_name,
+			    DECL_ATTRIBUTES (task_impl)) == NULL_TREE)
+	{
+	  /* This is the first time we notice that WHERE is invalid.  Emit a
+	     warning and add a special attribute to TASK_IMPL to remember
+	     that we've already reported the problem.  */
+	  warning_at (DECL_SOURCE_LOCATION (task_impl), 0,
+		      "unsupported target %qE; task implementation won't be used",
+		      where);
+
+	  DECL_ATTRIBUTES (task_impl) =
+	    tree_cons (get_identifier (invalid_target_attribute_name),
+		       NULL_TREE, DECL_ATTRIBUTES (task_impl));
+	}
+
+      /* TASK_IMPL won't be executed anywhere.  */
+      where_int = 0;
+    }
 
   return where_int;
 }
