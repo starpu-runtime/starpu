@@ -365,10 +365,24 @@ handle_pragma_register (struct cpp_reader *reader)
       if (count == NULL_TREE)
 	error_at (loc, "cannot determine size of array %qE", var_name);
     }
-  else if (type == CPP_NUMBER)
+  else
     {
-      /* TOKEN is a number, consume it.  */
-      tree count_arg = token;
+      /* TOKEN may be a number or a integer variable.  */
+
+      tree count_arg;
+
+      if (TREE_CODE (token) == IDENTIFIER_NODE)
+	{
+	  count_arg = lookup_name (token);
+	  if (count_arg == NULL_TREE)
+	    error_at (loc, "unbound variable %qE", token);
+	  else if (!INTEGRAL_TYPE_P (TREE_TYPE (count_arg)))
+	    error_at (loc, "integer expected");
+	}
+      else if (TREE_CODE (token) != INTEGER_CST)
+	error_at (loc, "integer expected");
+      else
+	count_arg = token;
 
       if (count != NULL_TREE)
 	{
@@ -377,21 +391,27 @@ handle_pragma_register (struct cpp_reader *reader)
 		  "element count can be omitted for bounded array %qE",
 		  var_name);
 
-	  if (!tree_int_cst_equal (count, count_arg))
-	    error_at (loc,
-		      "specified element count differs from actual size of array %qE",
-		      var_name);
+	  if (count_arg != NULL_TREE)
+	    {
+	      if (TREE_CODE (count_arg) == INTEGER_CST)
+		{
+		  if (!tree_int_cst_equal (count, count_arg))
+		    error_at (loc, "specified element count differs "
+			      "from actual size of array %qE", var_name);
+		}
+	      else
+		/* Using a variable to determine the array size whereas the
+		   array size is actually known statically.  This looks like
+		   unreasonable code, so error out.  */
+		error_at (loc, "determining array size at run-time "
+			  "although array size is known at compile-time");
+	    }
 	}
       else
 	count = count_arg;
 
       if (pragma_lex (&token) != CPP_EOF)
 	error_at (loc, "junk after %<starpu register%> pragma");
-    }
-  else
-    {
-      error_at (loc, "integer expected");
-      return;
     }
 
   /* If VAR is an array, take its address.  */

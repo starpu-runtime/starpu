@@ -38,6 +38,7 @@ main (int argc, char *argv[])
   double *y;
   static char z[345];
   short w[] = { 1, 2, 3 };
+  size_t y_size = 234;
 
   y = malloc (234 * sizeof *y);
 
@@ -50,6 +51,11 @@ main (int argc, char *argv[])
   expected_register_arguments.elements = 234;
   expected_register_arguments.element_size = sizeof *y;
 #pragma starpu register y 234
+
+  expected_register_arguments.pointer = y;
+  expected_register_arguments.elements = y_size;
+  expected_register_arguments.element_size = sizeof *y;
+#pragma starpu register y y_size
 
   expected_register_arguments.pointer = z;
   expected_register_arguments.elements = 345;
@@ -77,7 +83,7 @@ main (int argc, char *argv[])
 
   foo ();
 
-  assert (data_register_calls == 7);
+  assert (data_register_calls == 8);
 
   free (y);
 

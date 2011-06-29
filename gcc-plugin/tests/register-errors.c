@@ -30,6 +30,9 @@ main (int argc, char *argv[])
   static int x[123] __attribute__ ((unused));
 #pragma starpu register x 234 /* (note "can be omitted") *//* (error "differs from actual size") */
 
+  size_t x_size __attribute__ ((unused)) = sizeof x / sizeof x[0];
+#pragma starpu register x x_size /* (note "can be omitted") *//* (error "known at compile-time") */
+
 #pragma starpu register does_not_exit 123 /* (error "unbound variable") */
 
 #pragma starpu register argv /* (error "cannot determine size") */
