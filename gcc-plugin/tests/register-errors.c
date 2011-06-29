@@ -14,7 +14,7 @@
    You should have received a copy of the GNU General Public License
    along with GCC-StarPU.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Test whether `#pragma starpu register ...' leads to suitable errors.  */
+/* Test error handling for `#pragma starpu register ...'.  */
 
 #undef NDEBUG
 
@@ -24,6 +24,17 @@ int
 main (int argc, char *argv[])
 {
 #pragma starpu register /* (error "unterminated") */
+
+#pragma starpu register argv 234 junk right here /* (error "junk after") */
+
+  static int x[123] __attribute__ ((unused));
+#pragma starpu register x 234 /* (note "can be omitted") *//* (error "differs from actual size") */
+
+#pragma starpu register does_not_exit 123 /* (error "unbound variable") */
+
+#pragma starpu register argv /* (error "cannot determine size") */
+
+#pragma starpu register argc /* (error "neither a pointer nor an array") */
 
   return EXIT_SUCCESS;
 }

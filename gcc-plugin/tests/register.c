@@ -20,6 +20,17 @@
 
 #include <lib.h>
 
+static void
+foo (void)
+{
+  char x[] = { 1, 2, 3 };
+
+  expected_register_arguments.pointer = x;
+  expected_register_arguments.elements = sizeof x;
+  expected_register_arguments.element_size = 1;
+#pragma starpu register x /* (warning "considered unsafe") */
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -64,7 +75,9 @@ main (int argc, char *argv[])
 #undef ARGV
 #undef N
 
-  assert (data_register_calls == 6);
+  foo ();
+
+  assert (data_register_calls == 7);
 
   free (y);
 

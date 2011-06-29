@@ -42,7 +42,7 @@ exec "${GUILE-@GUILE@}" -l "$0"    \
 
 ;;; Commentary:
 ;;;
-;;; Test machinery similary to the DejaGNU-based test framework used in GCC.
+;;; Test machinery similar to the DejaGNU-based test framework used in GCC.
 ;;; In a nutshell, this program compiles code with GCC and makes sure
 ;;; warnings and errors are as appear in source code comments.
 ;;;
@@ -80,7 +80,7 @@ exec "${GUILE-@GUILE@}" -l "$0"    \
     ;; the real file name.
     ,(string-append "-fplugin=" %builddir "/../src/.libs/starpu.so")
 
-    "-dH" "-fdump-tree-gimple" "-Wall"))
+    "-fdump-tree-gimple" "-Wall"))
 
 (define %default-ldflags
   `(,(string-append "-L" %srcdir "/../../src")))

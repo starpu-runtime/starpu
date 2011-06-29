@@ -302,18 +302,31 @@ handle_pragma_register (struct cpp_reader *reader)
 
   type = pragma_lex (&token);
   if (type == CPP_EOF)
-    error_at (loc, "unterminated %<starpu register%> pragma");
+    {
+      error_at (loc, "unterminated %<starpu register%> pragma");
+      return;
+    }
   else if (type != CPP_NAME)
-    error_at (loc, "identifier expected");
+    {
+      error_at (loc, "identifier expected");
+      return;
+    }
 
   /* Get the variable name.  */
   tree var_name = token;
   tree var = lookup_name (var_name);
   if (var == NULL_TREE || !DECL_P (var))
-    error_at (loc, "unbound variable %qE", var_name);
+    {
+      error_at (loc, "unbound variable %qE", var_name);
+      return;
+    }
 
-  gcc_assert (POINTER_TYPE_P (TREE_TYPE (var))
-	      || TREE_CODE (TREE_TYPE (var)) == ARRAY_TYPE);
+  if (!POINTER_TYPE_P (TREE_TYPE (var))
+      && TREE_CODE (TREE_TYPE (var)) != ARRAY_TYPE)
+    {
+      error_at (loc, "%qE is neither a pointer nor an array", var_name);
+      return;
+    }
 
   if (TREE_CODE (TREE_TYPE (var)) == ARRAY_TYPE
       && !DECL_EXTERNAL (var)
@@ -376,7 +389,10 @@ handle_pragma_register (struct cpp_reader *reader)
 	error_at (loc, "junk after %<starpu register%> pragma");
     }
   else
-    error_at (loc, "integer expected");
+    {
+      error_at (loc, "integer expected");
+      return;
+    }
 
   /* If VAR is an array, take its address.  */
   tree pointer =
