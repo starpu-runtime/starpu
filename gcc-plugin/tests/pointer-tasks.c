@@ -68,9 +68,14 @@ main (int argc, char *argv[])
   /* Invoke the task, which should make sure it gets called with
      EXPECTED.  */
   my_pointer_task (pointer_arg1, 'S', pointer_arg2, 42);
-
 #pragma starpu wait
+  assert (implementations_called == STARPU_CPU);
 
+  implementations_called = 0;
+
+  /* Same, but with implicit integer type conversion.  */
+  my_pointer_task (pointer_arg1, (long long) 'S', pointer_arg2, (char) 42);
+#pragma starpu wait
   assert (implementations_called == STARPU_CPU);
 
   starpu_shutdown ();

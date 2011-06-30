@@ -63,13 +63,11 @@ static const char task_implementation_wrapper_attribute_name[] =
 static const char codelet_struct_name[] = "starpu_codelet";
 static const char task_struct_name[] = "starpu_task";
 
-/* The `starpu_insert_task' and `starpu_data_lookup' FUNCTION_DECLs.  */
-static tree insert_task_fn, data_lookup_fn;
-
 
 /* Forward declarations.  */
 
 static tree build_codelet_declaration (tree task_decl);
+static tree build_task_body (const_tree task_decl);
 
 
 
@@ -472,6 +470,18 @@ register_pragmas (void *gcc_data, void *user_data)
 
 /* Attributes.  */
 
+
+/* Lookup the StarPU function NAME in the global scope and store the result
+   in VAR (this can't be done from `lower_starpu'.)  */
+
+#define LOOKUP_STARPU_FUNCTION(var, name)				\
+  if ((var) == NULL_TREE)						\
+    {									\
+      (var) = lookup_name (get_identifier (name));			\
+      gcc_assert ((var) != NULL_TREE && TREE_CODE (var) == FUNCTION_DECL); \
+    }
+
+
 /* Handle the `task' function attribute.  */
 
 static tree
@@ -482,6 +492,20 @@ handle_task_attribute (tree *node, tree name, tree args,
 
   fn = *node;
 
+  tree build_parameter (const_tree lst)
+  {
+    tree param, type;
+
+    type = TREE_VALUE (lst);
+    param = build_decl (DECL_SOURCE_LOCATION (fn), PARM_DECL,
+			create_tmp_var_name ("parameter"),
+			type);
+    DECL_ARG_TYPE (param) = type;
+    DECL_CONTEXT (param) = fn;
+
+    return param;
+  }
+
   /* Get rid of the `task' attribute by default so that FN isn't further
      processed when it's erroneous.  */
   *no_add_attrs = true;
@@ -489,6 +513,9 @@ handle_task_attribute (tree *node, tree name, tree args,
   if (TREE_CODE (fn) != FUNCTION_DECL)
     error_at (DECL_SOURCE_LOCATION (fn),
 	      "%<task%> attribute only applies to functions");
+  else if (DECL_SAVED_TREE (fn) != NULL_TREE)
+    error_at (DECL_SOURCE_LOCATION (fn),
+	      "task %qE must not have a body", DECL_NAME (fn));
   else
     {
       /* This is a function declaration for something local to this
@@ -501,14 +528,6 @@ handle_task_attribute (tree *node, tree name, tree args,
 		   NULL_TREE,
 		   NULL_TREE);
 
-      if (!TREE_PUBLIC (fn))
-	{
-	  /* Set a dummy body to avoid "used but never defined" warnings when
-	     FN has file scope.  */
-	  DECL_SAVED_TREE (fn) = build_printf ("hello from the task!");
-	  DECL_INITIAL (fn) = build_block (NULL_TREE, NULL_TREE, fn, NULL_TREE);
-	}
-
       /* Push a declaration for the corresponding `starpu_codelet' object and
 	 add it as an attribute of FN.  */
       tree cl = build_codelet_declaration (fn);
@@ -517,24 +536,27 @@ handle_task_attribute (tree *node, tree name, tree args,
 		   DECL_ATTRIBUTES (fn));
       pushdecl (cl);
 
-      TREE_USED (fn) = true;
+      /* Set the task's parameter list.  */
+      DECL_ARGUMENTS (fn) =
+	map (build_parameter,
+	     list_remove (void_type_p,
+			  TYPE_ARG_TYPES (TREE_TYPE (fn))));
+
+      /* Build its body.  */
+      DECL_SAVED_TREE (fn) = build_task_body (fn);
+      TREE_STATIC (fn) = true;
+      DECL_EXTERNAL (fn) = false;
+      DECL_INITIAL (fn) = build_block (NULL_TREE, NULL_TREE, fn, NULL_TREE);
+      DECL_RESULT (fn) =
+	build_decl (DECL_SOURCE_LOCATION (fn), RESULT_DECL,
+		    NULL_TREE, void_type_node);
+      DECL_CONTEXT (DECL_RESULT (fn)) = fn;
+
+      /* Compile FN's body.  */
+      rest_of_decl_compilation (fn, true, 0);
+      allocate_struct_function (fn, false);
+      cgraph_finalize_function (fn, false);
     }
-
-  /* Lookup the useful StarPU functions in the global scope (this can't be
-     done from `lower_starpu'.)
-     XXX: Move it in a pass of its own.  */
-
-#define LOOKUP_STARPU_FUNCTION(var, name)				\
-  if ((var) == NULL_TREE)						\
-    {									\
-      (var) = lookup_name (get_identifier (name));			\
-      gcc_assert ((var) != NULL_TREE && TREE_CODE (var) == FUNCTION_DECL); \
-    }
-
-  LOOKUP_STARPU_FUNCTION (insert_task_fn, "starpu_insert_task");
-  LOOKUP_STARPU_FUNCTION (data_lookup_fn, "starpu_data_lookup");
-
-#undef LOOKUP_STARPU_FUNCTION
 
   return NULL_TREE;
 }
@@ -1230,8 +1252,9 @@ handle_pre_genericize (void *gcc_data, void *user_data)
    pointer by themselves.  */
 
 static tree
-build_pointer_lookup (tree pointer, gimple_seq *body)
+build_pointer_lookup (tree pointer)
 {
+#if 0
   gimple emit_error_message (void)
   {
     static const char msg[] =
@@ -1240,139 +1263,40 @@ build_pointer_lookup (tree pointer, gimple_seq *body)
     return gimple_build_call (built_in_decls[BUILT_IN_PUTS], 1,
 			      build_string_literal (strlen (msg) + 1, msg));
   }
-
-  tree var;
-
-  var = create_tmp_var (ptr_type_node, ".handle-arg");
-  mark_addressable (var);
-
-  /* Initialize VAR with `starpu_data_lookup (POINTER)'.  */
-  gimple_seq init = NULL;
-  tree modify = build2 (MODIFY_EXPR, ptr_type_node, var,
-			build_call_expr (data_lookup_fn, 1, pointer));
-  force_gimple_operand (modify, &init, true, var);
-
-  gimple_seq_add_seq (body, init);
-
-  /* FIXME: Add `if (VAR == NULL) abort ();'.  */
-#if 0
-  tree abort_label = create_artificial_label (UNKNOWN_LOCATION);
-  tree success_label = create_artificial_label (UNKNOWN_LOCATION);
-
-  gimple cond = gimple_build_cond (EQ_EXPR,
-				   var, null_pointer_node,
-				   abort_label, success_label);
-  gimple_seq_add_stmt (body, cond);
-
-  gimplify_seq_add_stmt (body, gimple_build_label (abort_label));
-  gimple_seq_add_stmt (body, emit_error_message ());
-  gimple_seq_add_stmt (body,
-		       gimple_build_call (built_in_decls[BUILT_IN_ABORT], 0));
-  gimplify_seq_add_stmt (body, gimple_build_label (success_label));
-
-  rebuild_cgraph_edges ();
 #endif
 
-  return var;
+  static tree data_lookup_fn;
+  LOOKUP_STARPU_FUNCTION (data_lookup_fn, "starpu_data_lookup");
+
+  return build_call_expr (data_lookup_fn, 1, pointer);
+
+  /* FIXME: Add `if (VAR == NULL) abort ();'.  */
 }
 
-/* Build a call to `starpu_insert_task' for TASK_DECL, which will replace
-   CALL.  */
+/* Build the body of TASK_DECL, which will call `starpu_insert_task'.  */
 
-static gimple_seq
-build_task_submission (tree task_decl, gimple call)
+static tree
+build_task_body (const_tree task_decl)
 {
-  /* Return a chain of local variables that need to be introduced.  Variables
-     are introduced for each argument that is either a scalar constant or a
-     non-addressable variable---e.g., a `char' variable allocated in a
-     register.  Populate BODY with the initial assignments to these
-     variables.  */
-  /* FIXME: We should also introduce local variables to mimic implicit
-     integer type conversion---e.g., when the formal parameter type is `char'
-     and the function is called with a `long' variable.  */
-
-  tree local_vars (gimple_seq *body)
-  {
-    size_t n;
-    tree vars = NULL_TREE;
-    tree arg_types = TYPE_ARG_TYPES (TREE_TYPE (task_decl));
-
-    for (n = 0;
-	 n < gimple_call_num_args (call);
-	 n++, arg_types = TREE_CHAIN (arg_types))
-      {
-	tree arg, type;
-
-	/* Initially ARG_TYPES should be a list of N type nodes.  */
-	gcc_assert (TREE_CODE (arg_types) == TREE_LIST);
-	type = TREE_VALUE (arg_types);
-	gcc_assert (type != NULL_TREE);
-
-	arg = gimple_call_arg (call, n);
-
-	if (!POINTER_TYPE_P (type)
-	    && ((TREE_CONSTANT (arg)
-		&& TREE_CODE (arg) != VAR_DECL
-		&& TREE_CODE (arg) != ADDR_EXPR)
-		|| is_gimple_non_addressable (arg)))
-	  {
-	    /* ARG is a scalar constant or a non-addressable variable.
-	       Introduce a variable to hold it.  */
-	    tree var =
-	      create_tmp_var (type,
-			      is_gimple_non_addressable (arg)
-			      ? ".non-addressable-arg"
-			      : ".literal-arg");
-	    mark_addressable (var);
-
-	    /* Initialize VAR.  */
-	    tree init_value = fold_convert (type, arg);
-	    gimple_seq init = NULL;
-	    tree modify = build2 (MODIFY_EXPR, type, var, init_value);
-	    force_gimple_operand (modify, &init, true, var);
-
-	    gimple_seq_add_seq (body, init);
-
-	    if (vars != NULL_TREE)
-	      chainon (vars, var);
-	    else
-	      vars = var;
-	  }
-      }
-
-    return vars;
-  }
-
-  size_t n;
-  VEC(tree, heap) *args = NULL;
-  tree vars;
-  gimple_seq body = NULL;
-  tree arg_types = TYPE_ARG_TYPES (TREE_TYPE (task_decl));
-
-  vars = local_vars (&body);
+  VEC(tree, gc) *args = NULL;
+  tree p, params = DECL_ARGUMENTS (task_decl);
 
   /* The first argument will be a pointer to the codelet.  */
 
-  VEC_safe_push (tree, heap, args,
+  VEC_safe_push (tree, gc, args,
 		 build_addr (task_codelet_declaration (task_decl),
 			     current_function_decl));
 
-  for (n = 0;
-       n < gimple_call_num_args (call);
-       n++, arg_types = TREE_CHAIN (arg_types))
+  for (p = params; p != NULL_TREE; p = TREE_CHAIN (p))
     {
-      tree arg, type;
+      gcc_assert (TREE_CODE (p) == PARM_DECL);
 
-      arg = gimple_call_arg (call, n);
-      type = TREE_VALUE (arg_types);
+      tree type = TREE_TYPE (p);
 
       if (POINTER_TYPE_P (type))
 	{
 	  /* A pointer: the arguments will be:
 	     `STARPU_RW, ptr' or similar.  */
-
-	  gcc_assert (TREE_CODE (arg) == VAR_DECL
-		      || TREE_CODE (arg) == ADDR_EXPR);
 
 	  /* If TYPE points to a const-qualified type, then mark the data as
 	     read-only; otherwise default to read-write.
@@ -1381,42 +1305,36 @@ build_task_submission (tree task_decl, gimple call)
 	    (TYPE_QUALS (TREE_TYPE (type)) & TYPE_QUAL_CONST)
 	    ? STARPU_R : STARPU_RW;
 
-	  VEC_safe_push (tree, heap, args,
+	  VEC_safe_push (tree, gc, args,
 			 build_int_cst (integer_type_node, mode));
-	  VEC_safe_push (tree, heap, args, build_pointer_lookup (arg, &body));
+	  VEC_safe_push (tree, gc, args, build_pointer_lookup (p));
 	}
       else
 	{
 	  /* A scalar: the arguments will be:
 	     `STARPU_VALUE, &scalar, sizeof (scalar)'.  */
 
-	  if (is_gimple_non_addressable (arg) || TREE_CONSTANT (arg))
-	    {
-	      /* Use the local variable we introduced to hold ARG's
-		 value.  */
-	      arg = vars;
-	      vars = TREE_CHAIN (vars);
-	    }
-	  gcc_assert (TREE_CODE (arg) == VAR_DECL);
-	  gcc_assert (TREE_ADDRESSABLE (arg));
+	  mark_addressable (p);
 
-	  VEC_safe_push (tree, heap, args,
+	  VEC_safe_push (tree, gc, args,
 			 build_int_cst (integer_type_node, STARPU_VALUE));
-	  VEC_safe_push (tree, heap, args,
-			 build_addr (arg, current_function_decl));
-	  VEC_safe_push (tree, heap, args,
-			 size_in_bytes (TREE_TYPE (arg)));
+	  VEC_safe_push (tree, gc, args,
+			 build_addr (p, current_function_decl));
+	  VEC_safe_push (tree, gc, args,
+			 size_in_bytes (type));
 	}
     }
 
   /* Push the terminating zero.  */
 
-  VEC_safe_push (tree, heap, args,
+  VEC_safe_push (tree, gc, args,
 		 build_int_cst (integer_type_node, 0));
 
-  gimple_seq_add_stmt (&body, gimple_build_call_vec (insert_task_fn, args));
+  static tree insert_task_fn;
+  LOOKUP_STARPU_FUNCTION (insert_task_fn, "starpu_insert_task");
 
-  return body;
+  return build_call_expr_loc_vec (DECL_SOURCE_LOCATION (task_decl),
+				  insert_task_fn, args);
 }
 
 static unsigned int
@@ -1450,18 +1368,8 @@ lower_starpu (void)
 		  IDENTIFIER_POINTER (DECL_NAME (fndecl)),
 		  IDENTIFIER_POINTER (DECL_NAME (callee_decl)));
 
-	  gimple call_site;
-	  gimple_seq submission;
-	  gimple_stmt_iterator gsi;
-
-	  call_site = callee->call_stmt;
-	  gsi = gsi_for_stmt (call_site);
-
-	  submission = build_task_submission (callee_decl, call_site);
-	  gsi_remove (&gsi, true);
-	  gsi_insert_seq_before (&gsi, submission, GSI_SAME_STMT);
-
-	  rebuild_cgraph_edges ();
+	  /* TODO: Insert analysis to check whether the pointer arguments
+	     need to be registered.  */
 	}
     }
 
