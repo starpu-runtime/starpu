@@ -381,7 +381,10 @@ handle_pragma_register (struct cpp_reader *reader)
       /* End of line reached: don't consume TOKEN and check whether the array
 	 size was determined.  */
       if (count == NULL_TREE)
-	error_at (loc, "cannot determine size of array %qE", var_name);
+	{
+	  error_at (loc, "cannot determine size of array %qE", var_name);
+	  return;
+	}
     }
   else
     {
@@ -393,9 +396,15 @@ handle_pragma_register (struct cpp_reader *reader)
 	{
 	  count_arg = lookup_name (token);
 	  if (count_arg == NULL_TREE)
-	    error_at (loc, "unbound variable %qE", token);
+	    {
+	      error_at (loc, "unbound variable %qE", token);
+	      return;
+	    }
 	  else if (!INTEGRAL_TYPE_P (TREE_TYPE (count_arg)))
-	    error_at (loc, "integer expected");
+	    {
+	      error_at (loc, "integer expected");
+	      return;
+	    }
 	}
       else if (TREE_CODE (token) != INTEGER_CST)
 	error_at (loc, "integer expected");
