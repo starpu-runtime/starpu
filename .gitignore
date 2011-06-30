@@ -179,3 +179,4 @@ starpu.log
 /tests/datawizard/acquire_cb_insert
 /tools/starpu_perfmodel_plot
 /gcc-plugin/tests/run-test
+/gcc-plugin/tests/register-errors
