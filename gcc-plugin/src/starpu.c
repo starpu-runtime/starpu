@@ -69,6 +69,16 @@ static const char task_struct_name[] = "starpu_task";
 static tree build_codelet_declaration (tree task_decl);
 static tree build_task_body (const_tree task_decl);
 
+/* Lookup the StarPU function NAME in the global scope and store the result
+   in VAR (this can't be done from `lower_starpu'.)  */
+
+#define LOOKUP_STARPU_FUNCTION(var, name)				\
+  if ((var) == NULL_TREE)						\
+    {									\
+      (var) = lookup_name (get_identifier (name));			\
+      gcc_assert ((var) != NULL_TREE && TREE_CODE (var) == FUNCTION_DECL); \
+    }
+
 
 
 /* Useful code backported from GCC 4.6.  */
@@ -295,6 +305,21 @@ handle_pragma_hello (struct cpp_reader *reader)
   add_stmt (build_hello_world ());
 }
 
+/* Process `#pragma starpu initialize'.
+   TODO: Parse and initialize some of the fields of `starpu_conf'.  */
+
+static void
+handle_pragma_initialize (struct cpp_reader *reader)
+{
+  static tree init_fn;
+  LOOKUP_STARPU_FUNCTION (init_fn, "starpu_init");
+
+  /* Call `starpu_init (NULL)'.  */
+  tree init = build_call_expr (init_fn, 1, build_zero_cst (ptr_type_node));
+
+  add_stmt (init);
+}
+
 static void
 handle_pragma_wait (struct cpp_reader *reader)
 {
@@ -470,6 +495,8 @@ register_pragmas (void *gcc_data, void *user_data)
 {
   c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "hello",
 		     handle_pragma_hello);
+  c_register_pragma_with_expansion (STARPU_PRAGMA_NAME_SPACE, "initialize",
+				    handle_pragma_initialize);
   c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "wait",
 		     handle_pragma_wait);
   c_register_pragma_with_expansion (STARPU_PRAGMA_NAME_SPACE, "register",
@@ -478,17 +505,6 @@ register_pragmas (void *gcc_data, void *user_data)
 
 
 /* Attributes.  */
-
-
-/* Lookup the StarPU function NAME in the global scope and store the result
-   in VAR (this can't be done from `lower_starpu'.)  */
-
-#define LOOKUP_STARPU_FUNCTION(var, name)				\
-  if ((var) == NULL_TREE)						\
-    {									\
-      (var) = lookup_name (get_identifier (name));			\
-      gcc_assert ((var) != NULL_TREE && TREE_CODE (var) == FUNCTION_DECL); \
-    }
 
 
 /* Handle the `task' function attribute.  */
@@ -1359,6 +1375,25 @@ lower_starpu (void)
   /* This pass should occur after `build_cgraph_edges'.  */
   cgraph = cgraph_get_node (fndecl);
   gcc_assert (cgraph != NULL);
+
+  if (MAIN_NAME_P (DECL_NAME (fndecl)))
+    {
+      /* Check whether FNDECL initializes StarPU and emit a warning if it
+	 doesn't.  */
+      bool initialized;
+
+      for (initialized = false, callee = cgraph->callees;
+	   !initialized && callee != NULL;
+	   callee = callee->next_callee)
+	{
+	  initialized =
+	    DECL_NAME (callee->callee->decl) == get_identifier ("starpu_init");
+	}
+
+      if (!initialized)
+	warning_at (DECL_SOURCE_LOCATION (fndecl), 0,
+		    "%qE does not initialize StarPU", DECL_NAME (fndecl));
+    }
 
   for (callee = cgraph->callees;
        callee != NULL;

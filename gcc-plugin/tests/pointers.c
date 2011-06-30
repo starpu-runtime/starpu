@@ -66,6 +66,8 @@ my_mixed_task_opencl (int *x, char z, const long long *y)
 int
 main (int argc, char *argv[])
 {
+#pragma starpu initialize
+
   static const char z = 0x77;
   int x[] = { 42 };
   long long *y;

@@ -53,10 +53,7 @@ my_scalar_task_opencl (int x, int y)
 int
 main (int argc, char *argv[])
 {
-  /* FIXME: Eventually remove calls to libstarpu and use pragmas or generated
-     code.  */
-
-  starpu_init (NULL);
+#pragma starpu initialize
 
   /* Invoke the task, which should make sure it gets called with
      EXPECTED.  */

@@ -34,6 +34,8 @@ foo (void)
 int
 main (int argc, char *argv[])
 {
+#pragma starpu initialize
+
   int x[123];
   double *y;
   static char z[345];

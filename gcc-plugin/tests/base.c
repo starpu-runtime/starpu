@@ -44,6 +44,9 @@ my_scalar_task_opencl (int x, char y, int z)
 int
 main (int argc, char *argv[])
 {
+#pragma starpu initialize
+  assert (initialized == 1);
+
 #pragma starpu hello
 
   int x = 42, z = 99;

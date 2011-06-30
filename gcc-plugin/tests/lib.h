@@ -218,3 +218,15 @@ starpu_vector_data_register (starpu_data_handle *handle,
   data_register_calls++;
   *handle = dummy_pointer_to_handle ((void *) ptr);
 }
+
+
+/* Initialization.  */
+
+static int initialized;
+
+int
+starpu_init (struct starpu_conf *config)
+{
+  initialized++;
+  return 0;
+}

@@ -23,6 +23,8 @@
 int
 main (int argc, char *argv[])
 {
+#pragma starpu initialize
+
 #pragma starpu register /* (error "unterminated") */
 
 #pragma starpu register argv 234 junk right here /* (error "junk after") */

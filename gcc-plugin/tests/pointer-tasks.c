@@ -56,10 +56,7 @@ main (int argc, char *argv[])
   pointer_arg2 = malloc (COUNT * sizeof *pointer_arg2);
   memset (pointer_arg2, 0x77, COUNT * sizeof *pointer_arg2);
 
-  /* FIXME: Eventually remove calls to libstarpu and use pragmas or generated
-     code.  */
-
-  starpu_init (NULL);
+#pragma starpu initialize
 
   /* Register POINTER_ARG1 and POINTER_ARG2.  */
 #pragma starpu register pointer_arg1
