@@ -462,6 +462,10 @@ handle_task_attribute (tree *node, tree name, tree args,
 
   fn = *node;
 
+  /* Get rid of the `task' attribute by default so that FN isn't further
+     processed when it's erroneous.  */
+  *no_add_attrs = true;
+
   if (TREE_CODE (fn) != FUNCTION_DECL)
     error_at (DECL_SOURCE_LOCATION (fn),
 	      "%<task%> attribute only applies to functions");
@@ -537,6 +541,14 @@ handle_task_implementation_attribute (tree *node, tree name, tree args,
 
   loc = DECL_SOURCE_LOCATION (fn);
 
+  /* Get rid of the `task_implementation' attribute by default so that FN
+     isn't further processed when it's erroneous.  */
+  *no_add_attrs = true;
+
+  /* Mark FN as used to placate `-Wunused-function' when FN is erroneous
+     anyway.  */
+  TREE_USED (fn) = true;
+
   if (TREE_CODE (fn) != FUNCTION_DECL)
     error_at (loc,
 	      "%<task_implementation%> attribute only applies to functions");
@@ -569,7 +581,7 @@ handle_task_implementation_attribute (tree *node, tree name, tree args,
 		   remove_attribute (task_implementation_list_attribute_name,
 				     DECL_ATTRIBUTES (task_decl)));
 
-      TREE_USED (fn) = true;
+      TREE_USED (fn) = TREE_USED (task_decl);
 
       /* Keep the attribute.  */
       *no_add_attrs = false;
@@ -656,7 +668,7 @@ task_implementation_where (tree task_impl)
 	     warning and add a special attribute to TASK_IMPL to remember
 	     that we've already reported the problem.  */
 	  warning_at (DECL_SOURCE_LOCATION (task_impl), 0,
-		      "unsupported target %qE; task implementation won't be used",
+		      "unsupported target %E; task implementation won't be used",
 		      where);
 
 	  DECL_ATTRIBUTES (task_impl) =

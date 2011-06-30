@@ -23,7 +23,7 @@ static void my_task_cpu (int foo, float *bar)    /* (error "type differs") */
 static void my_task_opencl (long foo, char *bar) /* (error "type differs") */
   __attribute__ ((task_implementation ("opencl", my_task)));
 
-static void my_task_nowhere (int foo, char *bar) /* (warning "unsupported target") */
+static void my_task_nowhere (int foo, char *bar)
   __attribute__ ((task_implementation ("does-not-exist", my_task)));
 
 static void my_task_not_quite (int foo, char *bar) /* (error "lacks the 'task' attribute") */
@@ -33,7 +33,7 @@ static int foo /* (error "only applies to function") */
   __attribute__ ((task_implementation ("cpu", my_task)));
 
 static int bar /* (error "only applies to function") */
-  __attribute__ ((task));
+  __attribute__ ((task, unused));
 
 static int not_a_task __attribute__ ((unused));
 
@@ -58,7 +58,7 @@ my_task_opencl (long foo, char *bar)
 }
 
 static void
-my_task_nowhere (int foo, char *bar)
+my_task_nowhere (int foo, char *bar)  /* (warning "unsupported target") */
 {
 }
 
@@ -69,5 +69,15 @@ my_task_not_quite (int foo, char *bar)
 
 static void
 my_task_almost (int foo, char *bar)
+{
+}
+
+static void
+my_task_wrong_task_arg (int foo, char *bar)
+{
+}
+
+static void
+my_task_wrong_target_arg (int foo, char *bar)
 {
 }
