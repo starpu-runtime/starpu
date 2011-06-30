@@ -160,6 +160,15 @@ build_constructor_from_unsorted_list (tree type, tree vals)
   return build_constructor (type, v);
 }
 
+/* Return true if LST holds the void type.  */
+
+bool
+void_type_p (const_tree lst)
+{
+  gcc_assert (TREE_CODE (lst) == TREE_LIST);
+  return VOID_TYPE_P (TREE_VALUE (lst));
+}
+
 
 
 /* Debugging helpers.  */
@@ -230,6 +239,17 @@ filter (bool (*pred) (const_tree), tree t)
     }
 
   return nreverse (result);
+}
+
+static tree
+list_remove (bool (*pred) (const_tree), tree t)
+{
+  bool opposite (const_tree t)
+  {
+    return !pred (t);
+  }
+
+  return filter (opposite, t);
 }
 
 /* Map FUNC over chain T.  T does not have to be `TREE_LIST'; it can be a
@@ -789,11 +809,6 @@ build_codelet_wrapper_definition (tree task_impl)
   loc = DECL_SOURCE_LOCATION (task_impl);
   task_decl = task_implementation_task (task_impl);
 
-  bool not_void_type_p (const_tree type)
-  {
-    return !VOID_TYPE_P (TREE_VALUE (type));
-  }
-
   tree build_local_var (const_tree type)
   {
     tree var, t;
@@ -917,8 +932,8 @@ build_codelet_wrapper_definition (tree task_impl)
 		     build_codelet_wrapper_type ());
 
   vars = map (build_local_var,
-	      filter (not_void_type_p,
-		      TYPE_ARG_TYPES (TREE_TYPE (task_decl))));
+	      list_remove (void_type_p,
+			   TYPE_ARG_TYPES (TREE_TYPE (task_decl))));
 
   DECL_CONTEXT (decl) = NULL_TREE;
   DECL_ARGUMENTS (decl) = build_parameters (decl);
