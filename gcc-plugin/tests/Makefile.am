@@ -19,6 +19,8 @@ gcc_tests =					\
   pointers.c					\
   register.c					\
   register-errors.c				\
+  acquire.c					\
+  acquire-errors.c				\
   task-errors.c					\
   scalar-tasks.c				\
   pointer-tasks.c				\

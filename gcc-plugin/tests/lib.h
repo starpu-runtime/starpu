@@ -220,6 +220,35 @@ starpu_vector_data_register (starpu_data_handle *handle,
 }
 
 
+/* Data acquisition.  */
+
+struct data_acquire_arguments
+{
+  /* Pointer to the data being acquired.  */
+  void *pointer;
+};
+
+/* Number of `starpu_vector_data_acquire' calls.  */
+static unsigned int data_acquire_calls;
+
+/* Variable describing the expected `starpu_vector_data_acquire'
+   arguments.  */
+struct data_acquire_arguments expected_acquire_arguments;
+
+int
+starpu_data_acquire (starpu_data_handle handle, starpu_access_mode mode)
+{
+  /* XXX: Currently only `STARPU_RW'.  */
+  assert (mode == STARPU_RW);
+
+  assert (dummy_handle_to_pointer (handle)
+	  == expected_acquire_arguments.pointer);
+  data_acquire_calls++;
+
+  return 0;
+}
+
+
 /* Initialization.  */
 
 static int initialized;

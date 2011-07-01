@@ -180,3 +180,4 @@ starpu.log
 /tools/starpu_perfmodel_plot
 /gcc-plugin/tests/run-test
 /gcc-plugin/tests/register-errors
+/gcc-plugin/tests/acquire
