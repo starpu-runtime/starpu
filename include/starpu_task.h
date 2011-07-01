@@ -22,8 +22,8 @@
 #include <starpu.h>
 #include <starpu_config.h>
 
-#ifdef STARPU_USE_CUDA
-#include <cuda.h>
+#if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
+# include <cuda.h>
 #endif
 
 #include <starpu_data.h>

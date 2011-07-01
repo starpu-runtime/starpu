@@ -30,7 +30,11 @@
 
 #ifdef STARPU_USE_CUDA
 /* to use CUDA streams */
-#include <cuda_runtime.h>
+# ifdef STARPU_DONT_INCLUDE_CUDA_HEADERS
+typedef void *cudaStream_t;
+# else
+#  include <cuda_runtime.h>
+# endif
 #endif
 
 #ifdef __cplusplus

@@ -42,6 +42,11 @@ int plugin_is_GPL_compatible;
 
 #include <stdio.h>
 
+/* Don't include the dreaded proprietary headers that we don't need anyway.
+   In particular, this waives the obligation to reproduce their silly
+   disclaimer.  */
+#define STARPU_DONT_INCLUDE_CUDA_HEADERS
+
 #include <starpu.h>  /* for `STARPU_CPU' & co.  */
 
 

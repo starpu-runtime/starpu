@@ -18,7 +18,7 @@
 #ifndef __STARPU_CUDA_H__
 #define __STARPU_CUDA_H__
 
-#ifdef STARPU_USE_CUDA
+#if defined STARPU_USE_CUDA && !defined STARPU_DONT_INCLUDE_CUDA_HEADERS
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
@@ -43,6 +43,6 @@ cudaStream_t starpu_cuda_get_local_stream(void);
 }
 #endif
 
-#endif /* STARPU_USE_CUDA */
+#endif /* STARPU_USE_CUDA && !STARPU_DONT_INCLUDE_CUDA_HEADERS */
 #endif /* __STARPU_CUDA_H__ */
 
