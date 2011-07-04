@@ -228,11 +228,10 @@ struct data_acquire_arguments
   void *pointer;
 };
 
-/* Number of `starpu_vector_data_acquire' calls.  */
+/* Number of `starpu_data_acquire' calls.  */
 static unsigned int data_acquire_calls;
 
-/* Variable describing the expected `starpu_vector_data_acquire'
-   arguments.  */
+/* Variable describing the expected `starpu_data_acquire' arguments.  */
 struct data_acquire_arguments expected_acquire_arguments;
 
 int
@@ -246,6 +245,29 @@ starpu_data_acquire (starpu_data_handle handle, starpu_access_mode mode)
   data_acquire_calls++;
 
   return 0;
+}
+
+
+/* Data acquisition.  */
+
+struct data_unregister_arguments
+{
+  /* Pointer to the data being unregistered.  */
+  void *pointer;
+};
+
+/* Number of `starpu_data_unregister' calls.  */
+static unsigned int data_unregister_calls;
+
+/* Variable describing the expected `starpu_data_unregister' arguments.  */
+struct data_unregister_arguments expected_unregister_arguments;
+
+void
+starpu_data_unregister (starpu_data_handle handle)
+{
+  assert (dummy_handle_to_pointer (handle)
+	  == expected_unregister_arguments.pointer);
+  data_unregister_calls++;
 }
 
 

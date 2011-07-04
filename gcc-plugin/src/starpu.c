@@ -540,6 +540,38 @@ handle_pragma_acquire (struct cpp_reader *reader)
 			     build_int_cst (integer_type_node, STARPU_RW)));
 }
 
+/* Process `#pragma starpu unregister VAR' and emit the corresponding
+   `starpu_data_unregister' call.  */
+
+static void
+handle_pragma_unregister (struct cpp_reader *reader)
+{
+  static tree unregister_fn;
+  LOOKUP_STARPU_FUNCTION (unregister_fn, "starpu_data_unregister");
+
+  tree token, var;
+  location_t loc;
+
+  loc = cpp_peek_token (reader, 0)->src_loc;
+
+  var = read_pragma_pointer_variable ("unregister", loc);
+  if (var == NULL_TREE)
+    return;
+
+  if (pragma_lex (&token) != CPP_EOF)
+    error_at (loc, "junk after %<starpu unregister%> pragma");
+
+  /* If VAR is an array, take its address.  */
+  tree pointer =
+    POINTER_TYPE_P (TREE_TYPE (var))
+    ? var
+    : build_addr (var, current_function_decl);
+
+  /* Call `starpu_data_unregister (starpu_data_lookup (ptr))'.  */
+  add_stmt (build_call_expr (unregister_fn, 1,
+			     build_pointer_lookup (pointer)));
+}
+
 static void
 register_pragmas (void *gcc_data, void *user_data)
 {
@@ -553,6 +585,8 @@ register_pragmas (void *gcc_data, void *user_data)
 				    handle_pragma_register);
   c_register_pragma_with_expansion (STARPU_PRAGMA_NAME_SPACE, "acquire",
 				    handle_pragma_acquire);
+  c_register_pragma_with_expansion (STARPU_PRAGMA_NAME_SPACE, "unregister",
+				    handle_pragma_unregister);
 }
 
 

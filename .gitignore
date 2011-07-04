@@ -181,3 +181,4 @@ starpu.log
 /gcc-plugin/tests/run-test
 /gcc-plugin/tests/register-errors
 /gcc-plugin/tests/acquire
+/gcc-plugin/tests/unregister
