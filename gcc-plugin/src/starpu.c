@@ -520,7 +520,7 @@ handle_pragma_acquire (struct cpp_reader *reader)
 
   loc = cpp_peek_token (reader, 0)->src_loc;
 
-  var = read_pragma_pointer_variable ("register", loc);
+  var = read_pragma_pointer_variable ("acquire", loc);
   if (var == NULL_TREE)
     return;
 
