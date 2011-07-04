@@ -26,7 +26,8 @@ gcc_tests =					\
   task-errors.c					\
   scalar-tasks.c				\
   pointer-tasks.c				\
-  no-initialize.c
+  no-initialize.c				\
+  shutdown-errors.c
 
 dist_noinst_HEADERS = lib.h
 

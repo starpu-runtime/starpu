@@ -327,6 +327,23 @@ handle_pragma_initialize (struct cpp_reader *reader)
   add_stmt (init);
 }
 
+/* Process `#pragma starpu shutdown'.  */
+
+static void
+handle_pragma_shutdown (struct cpp_reader *reader)
+{
+  static tree shutdown_fn;
+  LOOKUP_STARPU_FUNCTION (shutdown_fn, "starpu_shutdown");
+
+  tree token;
+  if (pragma_lex (&token) != CPP_EOF)
+    error_at (cpp_peek_token (reader, 0)->src_loc,
+	      "junk after %<starpu shutdown%> pragma");
+  else
+    /* Call `starpu_shutdown ()'.  */
+    add_stmt (build_call_expr (shutdown_fn, 0));
+}
+
 static void
 handle_pragma_wait (struct cpp_reader *reader)
 {
@@ -587,6 +604,8 @@ register_pragmas (void *gcc_data, void *user_data)
 				    handle_pragma_acquire);
   c_register_pragma_with_expansion (STARPU_PRAGMA_NAME_SPACE, "unregister",
 				    handle_pragma_unregister);
+  c_register_pragma (STARPU_PRAGMA_NAME_SPACE, "shutdown",
+		     handle_pragma_shutdown);
 }
 
 

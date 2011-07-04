@@ -281,3 +281,12 @@ starpu_init (struct starpu_conf *config)
   initialized++;
   return 0;
 }
+
+
+/* Shutdown.  */
+
+void
+starpu_shutdown (void)
+{
+  initialized--;
+}

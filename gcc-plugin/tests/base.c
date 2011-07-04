@@ -85,5 +85,8 @@ main (int argc, char *argv[])
 
   assert (tasks_submitted == 9);
 
+#pragma starpu shutdown
+  assert (initialized == 0);
+
   return EXIT_SUCCESS;
 }
