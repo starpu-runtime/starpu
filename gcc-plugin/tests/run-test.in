@@ -276,6 +276,10 @@ otherwise."
   (define exe
     (executable-file file))
 
+  (define (c->o c-file)
+    (string-append (substring c-file 0 (- (string-length c-file) 2))
+                   ".o"))
+
   (log "~a directives found in `~a'" (length directives) file)
 
   (let*-values (((error-expected?)
@@ -293,103 +297,123 @@ otherwise."
                               (_ #f)))
                           directives)
                      '(run)))
-                ((goal)
-                 (if error-expected?
-                     'compile
-                     (car instructions)))
-                ((cflags)
-                 `(,@cflags
-                   ,@(or (and=> (assq-ref (cdr instructions) 'cflags) cadr)
-                         '())
-                   ,@(if (memq goal '(link run))
-                         `("-o" ,exe)
-                         '("-c"))))
-                ((ldflags)
-                 `(,@ldflags
-                   ,@(or (assq-ref (cdr instructions) 'ldflags)
-                         '())))
-                ((directives)
-                 (remove (lambda (l+d)
-                           (match l+d
-                             (((? location?) 'instructions _ ...)
-                              #t)
-                             (_ #f)))
-                         directives))
-                ((status diagnostics unsatisfied)
-                 (compile/match* file directives cc cflags ldflags))
-                ((unmatched)
-                 ;; Consider unmatched only diagnostics that have a kind, to
-                 ;; avoid taking into account messages like "In file included
-                 ;; from", "In function 'main'", etc.
-                 (filter diagnostic-kind diagnostics)))
+                ((options)
+                 (match instructions
+                   ((_ options ...)
+                    options)
+                   (_ '())))
+                ((dependencies)
+                 (or (assq-ref options 'dependencies)
+                     '())))
 
-    (or (null? unmatched)
-        (begin
-          (format (current-error-port)
-                  "error: ~a unmatched GCC diagnostics:~%"
-                  (length unmatched))
-          (for-each (lambda (d)
-                      (format (current-error-port)
-                              "  ~a:~a:~a: ~a: ~a~%"
-                              (and=> (diagnostic-location d)
-                                     location-file)
-                              (and=> (diagnostic-location d)
-                                     location-line)
-                              (and=> (diagnostic-location d)
-                                     location-column)
-                              (diagnostic-kind d)
-                              (diagnostic-message d)))
-                    unmatched)
-          #f))
+    (or (null? dependencies)
+        (format (current-output-port) "~s has ~a dependencies: ~{~s ~}~%"
+                file (length dependencies) dependencies))
 
-    (if (null? unsatisfied)
-        (or (null? directives)
-            (log "~a directives satisfied" (length directives)))
-        (begin
-          (format (current-error-port) "error: ~a unsatisfied directives:~%"
-                  (length unsatisfied))
-          (for-each (lambda (l+d)
-                      (let ((loc (car l+d))
-                            (dir (cdr l+d)))
-                        (format (current-error-port)
-                                "  ~a:~a:~a: ~a: ~s~%"
-                                (location-file loc)
-                                (location-line loc)
-                                (location-column loc)
-                                (car dir)
-                                (cadr dir))))
-                    unsatisfied)
-          #f))
+    (and (every (cut compile/match <> cc cflags ldflags)
+                dependencies)
+         (let*-values (((goal)
+                        (if error-expected?
+                            'compile
+                            (car instructions)))
+                       ((cflags)
+                        `(,@cflags
+                          ,@(or (and=> (assq-ref options 'cflags) cadr)
+                                '())
+                          ,@(if (memq goal '(link run))
+                                `("-o" ,exe)
+                                '("-c"))))
+                       ((ldflags)
+                        `(,@(map c->o dependencies)
+                          ,@ldflags
+                          ,@(or (assq-ref options 'ldflags)
+                                '())))
+                       ((directives)
+                        (remove (lambda (l+d)
+                                  (match l+d
+                                    (((? location?) 'instructions _ ...)
+                                     #t)
+                                    (_ #f)))
+                                directives))
+                       ((status diagnostics unsatisfied)
+                        (compile/match* file directives cc cflags ldflags))
+                       ((unmatched)
+                        ;; Consider unmatched only diagnostics that have a
+                        ;; kind, to avoid taking into account messages like
+                        ;; "In file included from", "In function 'main'",
+                        ;; etc.
+                        (filter diagnostic-kind diagnostics)))
 
-    (if error-expected?
-        (if (= 0 status)
-            (format (current-error-port) "error: compilation succeeded~%"))
-        (if (= 0 status)
-            (or (eq? goal 'compile)
-                (file-exists? exe)
-                (begin
-                  (format (current-error-port)
-                          "error: executable file `~a' not found~%" exe)
-                  #f))
-            (format (current-error-port)
-                    "error: compilation failed (compiler exit code ~a)~%~{  ~a~%~}"
-                    status
-                    (map diagnostic-message diagnostics))))
+           (or (null? unmatched)
+               (begin
+                 (format (current-error-port)
+                         "error: ~a unmatched GCC diagnostics:~%"
+                         (length unmatched))
+                 (for-each (lambda (d)
+                             (format (current-error-port)
+                                     "  ~a:~a:~a: ~a: ~a~%"
+                                     (and=> (diagnostic-location d)
+                                            location-file)
+                                     (and=> (diagnostic-location d)
+                                            location-line)
+                                     (and=> (diagnostic-location d)
+                                            location-column)
+                                     (diagnostic-kind d)
+                                     (diagnostic-message d)))
+                           unmatched)
+                 #f))
 
-    (and (null? unmatched)
-         (null? unsatisfied)
-         (if error-expected?
-             (not (= 0 status))
-             (and (= 0 status)
-                  (or (eq? goal 'compile) (file-exists? exe))
-                  (or (not (eq? goal 'run))
-                      (let ((status (run-starpu-code exe)))
-                        (or (= 0 status)
-                            (begin
-                              (format (current-error-port)
-                                      "error: program `~a' failed (exit code ~a)~%"
-                                      exe status)
-                              #f)))))))))
+           (if (null? unsatisfied)
+               (or (null? directives)
+                   (log "~a directives satisfied" (length directives)))
+               (begin
+                 (format (current-error-port)
+                         "error: ~a unsatisfied directives:~%"
+                         (length unsatisfied))
+                 (for-each (lambda (l+d)
+                             (let ((loc (car l+d))
+                                   (dir (cdr l+d)))
+                               (format (current-error-port)
+                                       "  ~a:~a:~a: ~a: ~s~%"
+                                       (location-file loc)
+                                       (location-line loc)
+                                       (location-column loc)
+                                       (car dir)
+                                       (cadr dir))))
+                           unsatisfied)
+                 #f))
+
+           (if error-expected?
+               (if (= 0 status)
+                   (format (current-error-port)
+                           "error: compilation succeeded~%"))
+               (if (= 0 status)
+                   (or (eq? goal 'compile)
+                       (file-exists? exe)
+                       (begin
+                         (format (current-error-port)
+                                 "error: executable file `~a' not found~%" exe)
+                         #f))
+                   (format (current-error-port)
+                           "error: compilation failed (compiler exit code ~a)~%~{  ~a~%~}"
+                           status
+                           (map diagnostic-message diagnostics))))
+
+           (and (null? unmatched)
+                (null? unsatisfied)
+                (if error-expected?
+                    (not (= 0 status))
+                    (and (= 0 status)
+                         (or (eq? goal 'compile) (file-exists? exe))
+                         (or (not (eq? goal 'run))
+                             (let ((status (run-starpu-code exe)))
+                               (or (= 0 status)
+                                   (begin
+                                     (format (current-error-port)
+                                             "error: program `~a' failed \
+(exit code ~a)~%"
+                                             exe status)
+                                     #f)))))))))))
 
 
 ;;;
