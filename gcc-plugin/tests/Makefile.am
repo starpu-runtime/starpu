@@ -27,6 +27,7 @@ gcc_tests =					\
   scalar-tasks.c				\
   pointer-tasks.c				\
   no-initialize.c				\
+  lib-user.c					\
   shutdown-errors.c
 
 dist_noinst_HEADERS = mocks.h
@@ -38,7 +39,8 @@ CLEANFILES = *.gimple				\
   scalar-tasks					\
   pointer-tasks
 
-EXTRA_DIST = ./run-test.in
+EXTRA_DIST = ./run-test.in			\
+  my-lib.h my-lib.c
 
 if HAVE_GUILE
 

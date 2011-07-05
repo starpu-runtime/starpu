@@ -622,20 +622,6 @@ handle_task_attribute (tree *node, tree name, tree args,
 
   fn = *node;
 
-  tree build_parameter (const_tree lst)
-  {
-    tree param, type;
-
-    type = TREE_VALUE (lst);
-    param = build_decl (DECL_SOURCE_LOCATION (fn), PARM_DECL,
-			create_tmp_var_name ("parameter"),
-			type);
-    DECL_ARG_TYPE (param) = type;
-    DECL_CONTEXT (param) = fn;
-
-    return param;
-  }
-
   /* Get rid of the `task' attribute by default so that FN isn't further
      processed when it's erroneous.  */
   *no_add_attrs = true;
@@ -643,9 +629,6 @@ handle_task_attribute (tree *node, tree name, tree args,
   if (TREE_CODE (fn) != FUNCTION_DECL)
     error_at (DECL_SOURCE_LOCATION (fn),
 	      "%<task%> attribute only applies to functions");
-  else if (DECL_SAVED_TREE (fn) != NULL_TREE)
-    error_at (DECL_SOURCE_LOCATION (fn),
-	      "task %qE must not have a body", DECL_NAME (fn));
   else
     {
       /* This is a function declaration for something local to this
@@ -665,27 +648,6 @@ handle_task_attribute (tree *node, tree name, tree args,
 	tree_cons (get_identifier (task_codelet_attribute_name), cl,
 		   DECL_ATTRIBUTES (fn));
       pushdecl (cl);
-
-      /* Set the task's parameter list.  */
-      DECL_ARGUMENTS (fn) =
-	map (build_parameter,
-	     list_remove (void_type_p,
-			  TYPE_ARG_TYPES (TREE_TYPE (fn))));
-
-      /* Build its body.  */
-      DECL_SAVED_TREE (fn) = build_task_body (fn);
-      TREE_STATIC (fn) = true;
-      DECL_EXTERNAL (fn) = false;
-      DECL_INITIAL (fn) = build_block (NULL_TREE, NULL_TREE, fn, NULL_TREE);
-      DECL_RESULT (fn) =
-	build_decl (DECL_SOURCE_LOCATION (fn), RESULT_DECL,
-		    NULL_TREE, void_type_node);
-      DECL_CONTEXT (DECL_RESULT (fn)) = fn;
-
-      /* Compile FN's body.  */
-      rest_of_decl_compilation (fn, true, 0);
-      allocate_struct_function (fn, false);
-      cgraph_finalize_function (fn, false);
     }
 
   return NULL_TREE;
@@ -775,6 +737,26 @@ task_codelet_declaration (const_tree task_decl)
   gcc_assert (cl_attr != NULL_TREE);
 
   return TREE_VALUE (cl_attr);
+}
+
+/* Return true if DECL is a task.  */
+
+static bool
+task_p (const_tree decl)
+{
+  return (TREE_CODE (decl) == FUNCTION_DECL &&
+	  lookup_attribute (task_attribute_name,
+			    DECL_ATTRIBUTES (decl)) != NULL_TREE);
+}
+
+/* Return true if DECL is a task implementation.  */
+
+static bool
+task_implementation_p (const_tree decl)
+{
+  return (TREE_CODE (decl) == FUNCTION_DECL &&
+	  lookup_attribute (task_implementation_attribute_name,
+			    DECL_ATTRIBUTES (decl)) != NULL_TREE);
 }
 
 /* Return the list of implementations of TASK_DECL.  */
@@ -1351,30 +1333,65 @@ define_codelet (tree task_decl)
   return cl_def;
 }
 
-/* Define the `starpu_codelet' structure for the task implemented by
-   IMPL_DECL if we're in the right compilation unit, i.e., is IMPL_DECL is a
-   "cpu" task implementation.  */
-
-static void
-maybe_define_codelet (tree impl_decl)
-{
-  if (task_implementation_where (impl_decl) == STARPU_CPU)
-    /* IMPL_DECL is a "cpu" implementation of some task, so define the
-       codelet structure in this compilation unit.  */
-    define_codelet (task_implementation_task (impl_decl));
-}
 
 static void
 handle_pre_genericize (void *gcc_data, void *user_data)
 {
-  tree fndecl = (tree) gcc_data;
+  tree fn = (tree) gcc_data;
 
-  gcc_assert (fndecl != NULL_TREE && TREE_CODE (fndecl) == FUNCTION_DECL);
-  gcc_assert (lookup_name (DECL_NAME (fndecl)) == fndecl);
+  gcc_assert (TREE_CODE (fn) == FUNCTION_DECL);
 
-  if (lookup_attribute (task_implementation_attribute_name,
-			DECL_ATTRIBUTES (fndecl)))
-    maybe_define_codelet (fndecl);
+  if (task_p (fn) && TREE_STATIC (fn))
+    /* The user defined a body for task FN, which is forbidden.  */
+    error_at (DECL_SOURCE_LOCATION (fn),
+	      "task %qE must not have a body", DECL_NAME (fn));
+  else if (task_implementation_p (fn))
+    {
+      tree task = task_implementation_task (fn);
+
+      if (!TREE_STATIC (task))
+	{
+	  /* TASK lacks a body.  Instantiate its codelet, its codelet
+	     wrappers, and its body in this compilation unit.  */
+
+	  tree build_parameter (const_tree lst)
+	  {
+	    tree param, type;
+
+	    type = TREE_VALUE (lst);
+	    param = build_decl (DECL_SOURCE_LOCATION (task), PARM_DECL,
+				create_tmp_var_name ("parameter"),
+				type);
+	    DECL_ARG_TYPE (param) = type;
+	    DECL_CONTEXT (param) = task;
+
+	    return param;
+	  }
+
+	  define_codelet (task);
+
+	  /* Set the task's parameter list.  */
+	  DECL_ARGUMENTS (task) =
+	    map (build_parameter,
+		 list_remove (void_type_p,
+			      TYPE_ARG_TYPES (TREE_TYPE (task))));
+
+	  /* Build its body.  */
+	  DECL_SAVED_TREE (task) = build_task_body (task);
+	  TREE_STATIC (task) = true;
+	  DECL_EXTERNAL (task) = false;
+	  DECL_INITIAL (task) = build_block (NULL_TREE, NULL_TREE, task, NULL_TREE);
+	  DECL_RESULT (task) =
+	    build_decl (DECL_SOURCE_LOCATION (task), RESULT_DECL,
+			NULL_TREE, void_type_node);
+	  DECL_CONTEXT (DECL_RESULT (task)) = task;
+
+	  /* Compile TASK's body.  */
+	  rest_of_decl_compilation (task, true, 0);
+	  allocate_struct_function (task, false);
+	  cgraph_finalize_function (task, false);
+	}
+    }
 }
 
 /* Build a "conversion" from a raw C pointer to its data handle.  The

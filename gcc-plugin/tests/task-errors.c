@@ -46,7 +46,7 @@ static void my_task_wrong_task_arg (int foo, char *bar)   /* (error "not a funct
 static void my_task_wrong_target_arg (int foo, char *bar) /* (error "string constant expected") */
   __attribute__ ((task_implementation (123, my_task)));
 
-static void my_task_with_a_body (int foo, char *bar) /* (note "previous definition") */
+static void my_task_with_a_body (int foo, char *bar)
   __attribute__ ((task, unused));
 
 
@@ -86,6 +86,6 @@ my_task_wrong_target_arg (int foo, char *bar)
 }
 
 static void
-my_task_with_a_body (int foo, char *bar)  /* (error "redefinition") *//* (warning "defined but not used") */
+my_task_with_a_body (int foo, char *bar)  /* (error "must not have a body") */
 {
 }
