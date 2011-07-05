@@ -146,6 +146,8 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel_t *mo
 	char arch_name[256];
 	starpu_perfmodel_get_arch_name(arch, arch_name, 256);
 
+	fprintf(stderr,"Arch: %s\n", arch_name);
+
 #ifdef STARPU_USE_FXT
 	if (!no_fxt_file && archtype_is_found[arch])
 	{
