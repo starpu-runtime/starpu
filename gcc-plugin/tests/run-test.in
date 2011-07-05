@@ -85,6 +85,7 @@ exec "${GUILE-@GUILE@}" -l "$0"    \
     ;; the real file name.
     ,(string-append "-fplugin=" %builddir "/../src/.libs/starpu.so")
 
+    "-g" "-O2"
     "-fdump-tree-gimple" "-Wall"))
 
 (define %default-ldflags
