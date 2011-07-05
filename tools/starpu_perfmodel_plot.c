@@ -297,6 +297,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel_
 	fprintf(gnuplot_file, "set xlabel \"Size\"\n");
 	fprintf(gnuplot_file, "set ylabel \"Time\"\n");
 	fprintf(gnuplot_file, "\n");
+	fprintf(gnuplot_file, "set key top left\n");
 	fprintf(gnuplot_file, "set logscale x\n");
 	fprintf(gnuplot_file, "set logscale y\n");
 	fprintf(gnuplot_file, "\n");
