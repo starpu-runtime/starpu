@@ -29,7 +29,7 @@ gcc_tests =					\
   no-initialize.c				\
   shutdown-errors.c
 
-dist_noinst_HEADERS = lib.h
+dist_noinst_HEADERS = mocks.h
 
 CLEANFILES = *.gimple				\
   base						\

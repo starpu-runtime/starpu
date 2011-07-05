@@ -16,7 +16,7 @@
 
 #undef NDEBUG
 
-#include <lib.h>
+#include <mocks.h>
 
 
 /* The task under test.  */

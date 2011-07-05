@@ -18,7 +18,7 @@
 
 #undef NDEBUG
 
-#include <lib.h>
+#include <mocks.h>
 
 static void
 foo (void)
