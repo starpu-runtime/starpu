@@ -41,11 +41,9 @@ static void map_filter(starpu_data_handle root_handle, struct starpu_data_filter
 		}
 	}
 }
-void starpu_data_map_filters(starpu_data_handle root_handle, unsigned nfilters, ...)
+void starpu_data_vmap_filters(starpu_data_handle root_handle, unsigned nfilters, va_list pa)
 {
 	unsigned i;
-	va_list pa;
-	va_start(pa, nfilters);
 	for (i = 0; i < nfilters; i++)
 	{
 		struct starpu_data_filter *next_filter;
@@ -55,6 +53,13 @@ void starpu_data_map_filters(starpu_data_handle root_handle, unsigned nfilters, 
 
 		map_filter(root_handle, next_filter);
 	}
+}
+
+void starpu_data_map_filters(starpu_data_handle root_handle, unsigned nfilters, ...)
+{
+	va_list pa;
+	va_start(pa, nfilters);
+	starpu_data_vmap_filters(root_handle, nfilters, pa);
 	va_end(pa);
 }
 
