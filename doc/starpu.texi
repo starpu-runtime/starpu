@@ -858,6 +858,7 @@ call.
 @cartouche
 @smallexample
 #include <starpu.h>
+#include <starpu_cuda.h>
 
 static __global__ void vector_mult_cuda(float *val, unsigned n,
                                         float factor)
