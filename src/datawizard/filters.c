@@ -82,7 +82,7 @@ starpu_data_handle starpu_data_get_sub_data(starpu_data_handle root_handle, unsi
 {
 	va_list pa;
 	va_start(pa, depth);
-	starpu_data_handle handle = starpu_vget_sub_data(root_handle, depth, pa);
+	starpu_data_handle handle = starpu_data_vget_sub_data(root_handle, depth, pa);
 	va_end(pa);
 
 	return handle;
