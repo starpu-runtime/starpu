@@ -80,13 +80,21 @@ starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i)
  */
 starpu_data_handle starpu_data_get_sub_data(starpu_data_handle root_handle, unsigned depth, ... )
 {
+	va_list pa;
+	va_start(pa, depth);
+	starpu_data_handle handle = starpu_vget_sub_data(root_handle, depth, pa);
+	va_end(pa);
+
+	return handle;
+}
+
+starpu_data_handle starpu_data_vget_sub_data(starpu_data_handle root_handle, unsigned depth, va_list pa )
+{
 	STARPU_ASSERT(root_handle);
 	starpu_data_handle current_handle = root_handle;
 
 	/* the variable number of argument must correlate the depth in the tree */
 	unsigned i; 
-	va_list pa;
-	va_start(pa, depth);
 	for (i = 0; i < depth; i++)
 	{
 		unsigned next_child;
@@ -96,7 +104,6 @@ starpu_data_handle starpu_data_get_sub_data(starpu_data_handle root_handle, unsi
 
 		current_handle = &current_handle->children[next_child];
 	}
-	va_end(pa);
 
 	return current_handle;
 }

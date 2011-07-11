@@ -45,6 +45,8 @@ starpu_data_handle starpu_data_get_child(starpu_data_handle handle, unsigned i);
 
 /* unsigned list */
 starpu_data_handle starpu_data_get_sub_data(starpu_data_handle root_data, unsigned depth, ... );
+/* Same, but using va_list */
+starpu_data_handle starpu_data_vget_sub_data(starpu_data_handle root_data, unsigned depth, va_list pa );
 
 /* struct starpu_data_filter * list */
 void starpu_data_map_filters(starpu_data_handle root_data, unsigned nfilters, ...);
