@@ -39,8 +39,7 @@ EXTRA_DIST = 					\
 	examples/cholesky/mpi_cholesky.h	\
 	examples/cholesky/mpi_cholesky_models.h
 
-examplebindir = $(libdir)/starpu/mpi/examples/
-testbindir = $(libdir)/starpu/mpi/tests/
+examplebindir = $(libdir)/starpu/examples/mpi
 
 examplebin_PROGRAMS =
 
@@ -202,7 +201,7 @@ check_PROGRAMS +=					\
 	tests/insert_task_owner_data			\
 	tests/multiple_send
 
-testbin_PROGRAMS =				\
+noinst_PROGRAMS =					\
 	tests/pingpong					\
 	tests/mpi_test					\
 	tests/mpi_isend					\
