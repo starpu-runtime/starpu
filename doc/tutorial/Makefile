@@ -17,11 +17,22 @@
 CFLAGS          +=      $$(pkg-config --cflags libstarpu)
 LDFLAGS         +=      $$(pkg-config --libs libstarpu)
 
+HAS_CUDA	=	$(shell pkg-config --libs libstarpu|grep cuda)
+NVCC		?=	nvcc
+
 %.o: %.cu
-	nvcc $(CFLAGS) $< -c $
+	nvcc $(CFLAGS) $< -c
 
 all: hello_world vector_scal
+
+ifeq ($(strip $(HAS_CUDA)),)
+vector_scal: vector_scal.o vector_scal_cpu.o 
+else
 vector_scal: vector_scal.o vector_scal_cpu.o vector_scal_cuda.o vector_scal_opencl.o
+	$(NVCC) $(LDFLAGS) $^ -o $@
+endif
+
+
 
 clean:
 	rm -f hello_world vector_scal *.o
