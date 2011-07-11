@@ -980,10 +980,10 @@ extern void scal_opencl_func(void *buffers[], void *_args);
 static starpu_codelet cl = @{
     .where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL; /* @b{It can be executed on a CPU,} */
                                      /* @b{on a CUDA device, or on an OpenCL device} */
-    .cuda_func = scal_cuda_func;
-    .cpu_func = scal_cpu_func;
-    .opencl_func = scal_opencl_func;
-    .nbuffers = 1;
+    .cuda_func = scal_cuda_func,
+    .cpu_func = scal_cpu_func,
+    .opencl_func = scal_opencl_func,
+    .nbuffers = 1
 @}
 
 #ifdef STARPU_USE_OPENCL
