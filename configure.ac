@@ -1109,6 +1109,31 @@ AM_CONDITIONAL([HAVE_GUILE], [test "x$GUILE" != "x"])
 
 ###############################################################################
 #                                                                             #
+#                               OpenCL interface                              #
+#                                                                             #
+###############################################################################
+
+AC_ARG_ENABLE([socl],
+  [AS_HELP_STRING([--enable-socl],
+    [build the OpenCL interfacce (SOCL)])],
+  [enable_socl="$enableval"],
+  [enable_socl="no"])
+
+#TODO: check that OpenCL is enabled
+
+if test "x$enable_socl" = "xyes"; then
+   STARPU_SOCL_SUPPORT
+
+   build_socl="yes"
+else
+   build_socl="no"
+   run_socl_test_suite="no"
+fi
+
+AM_CONDITIONAL([BUILD_SOCL], [test "x$build_socl" = "xyes"])
+
+###############################################################################
+#                                                                             #
 #                                  Examples                                   #
 #                                                                             #
 ###############################################################################
@@ -1345,6 +1370,8 @@ AC_OUTPUT([
 	gcc-plugin/src/Makefile
 	gcc-plugin/tests/Makefile
 	gcc-plugin/tests/run-test
+	socl/Makefile
+	socl/src/Makefile
 	libstarpu.pc
 	examples/Makefile
         examples/opt/Makefile
@@ -1381,6 +1408,7 @@ AC_MSG_NOTICE([
 	Allocation cache:  $enable_allocation_cache
 
 	MPI enabled:   $use_mpi
+	SOCL enabled:  $build_socl
 	Magma enabled: $have_magma
 	BLAS library:  $blas_lib
 	hwloc:         $have_valid_hwloc
