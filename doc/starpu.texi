@@ -3385,6 +3385,7 @@ design their own data interfaces if required.
 * void *interface::             StarPU data interface
 * starpu_data_register::        Register a piece of data to StarPU
 * starpu_data_unregister::      Unregister a piece of data from StarPU
+* starpu_data_unregister_no_coherency::      Unregister a piece of data from StarPU without coherency
 * starpu_data_invalidate::      Invalidate all data replicates
 * starpu_data_acquire::         Access registered data from the application
 * starpu_data_acquire_cb::      Access registered data from the application asynchronously
