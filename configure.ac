@@ -1131,6 +1131,7 @@ else
 fi
 
 AM_CONDITIONAL([BUILD_SOCL], [test "x$build_socl" = "xyes"])
+AM_CONDITIONAL([STARPU_USE_SOCL], [test "x$build_socl" = "xyes"])
 
 ###############################################################################
 #                                                                             #
@@ -1377,6 +1378,7 @@ AC_OUTPUT([
         examples/opt/Makefile
 	examples/starpufft/Makefile
 	examples/stencil/Makefile
+	examples/socl/Makefile
 	tests/Makefile
         tests/opt/Makefile
 	doc/Makefile
