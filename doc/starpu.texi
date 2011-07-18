@@ -3494,6 +3494,13 @@ Using a data handle that has been unregistered from StarPU results in an
 undefined behaviour.
 @end deftypefun
 
+@node starpu_data_unregister_no_coherency
+@subsection @code{starpu_data_unregister_no_coherency} -- Unregister a piece of data from StarPU
+@deftypefun void starpu_data_unregister_no_coherency (starpu_data_handle @var{handle})
+This is the same as starpu_data_unregister, except that StarPU does not put back
+a valid copy into the home node, in the buffer that was initially registered.
+@end deftypefun
+
 @node starpu_data_invalidate
 @subsection @code{starpu_data_invalidate} -- Invalidate all data replicates
 @deftypefun void starpu_data_invalidate (starpu_data_handle @var{handle})
