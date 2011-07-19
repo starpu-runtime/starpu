@@ -15,7 +15,7 @@
 
 SUBDIRS = src
 
-EXTRA_DIST = COPYING README
+EXTRA_DIST = README
 
 libsocl_la_includedir=$(includedir)/starpu/CL
 
