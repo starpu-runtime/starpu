@@ -52,12 +52,17 @@ starpu_codelet work = {
 };
 
 static int x;
+static starpu_data_handle x_handle, f_handle;
+
+void callback(void *arg) {
+	starpu_insert_task(&work, STARPU_W, starpu_data_get_sub_data(f_handle, 1, x), 0);
+	starpu_data_release(x_handle);
+}
 
 int main(int argc, char **argv)
 {
         int i, ret;
 	float *f;
-	starpu_data_handle x_handle, f_handle;
 
 	starpu_init(NULL);
 
@@ -81,11 +86,15 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 
 	/* And submit the corresponding task */
+#ifdef __GCC__
 	STARPU_DATA_ACQUIRE_CB(
 			x_handle,
 			STARPU_R,
 			starpu_insert_task(&work, STARPU_W, starpu_data_get_sub_data(f_handle, 1, x), 0)
 			);
+#else
+	starpu_data_acquire_cb(x_handle, STARPU_W, callback, NULL);
+#endif
 
 	starpu_task_wait_for_all();
 	starpu_data_unpartition(f_handle, 0);
