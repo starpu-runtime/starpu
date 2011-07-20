@@ -68,8 +68,6 @@ int starpu_data_acquire_cb(starpu_data_handle handle,
 	} \
 	starpu_data_acquire_cb(handle, mode, callback, NULL); \
 } while(0)
-#else
-#  define STARPU_DATA_ACQUIRE_CB(handle, mode, node) assert(0)
 #endif
 
 void starpu_data_release(starpu_data_handle handle);
