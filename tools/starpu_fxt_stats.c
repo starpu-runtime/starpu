@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	printf("Start : start time %le end time %le length %le\n", start_time, end_time, end_time - start_time);
+	printf("Start : start time %e end time %e length %e\n", start_time, end_time, end_time - start_time);
 
 	unsigned src, dst;
 	for (src = 0; src < 16; src++)

@@ -497,7 +497,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 				best_fitness = fitness[worker];
 				best = worker;
 
-	//			_STARPU_DEBUG("best fitness (worker %d) %le = alpha*(%le) + beta(%le) +gamma(%le)\n", worker, best_fitness, exp_end[worker] - best_exp_end, local_data_penalty[worker], local_power[worker]);
+	//			_STARPU_DEBUG("best fitness (worker %d) %e = alpha*(%e) + beta(%e) +gamma(%e)\n", worker, best_fitness, exp_end[worker] - best_exp_end, local_data_penalty[worker], local_power[worker]);
 			}
 		}
 	}

@@ -868,7 +868,7 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	
-//	fprintf(stderr, "RANK %d -> took %lf ms\n", rank, timing/1000);
+//	fprintf(stderr, "RANK %d -> took %f ms\n", rank, timing/1000);
 	
 	return timing;
 }

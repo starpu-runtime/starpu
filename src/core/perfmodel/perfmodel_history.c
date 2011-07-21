@@ -756,7 +756,7 @@ void _starpu_update_perfmodel_history(starpu_job_t j, struct starpu_perfmodel_t 
 
 		STARPU_ASSERT(j->footprint_is_computed);
 
-		fprintf(debug_file, "0x%x\t%lu\t%lf\t%lf\t%d\t\t", j->footprint, (unsigned long) _starpu_job_get_data_size(j), measured, task->predicted, cpuid);
+		fprintf(debug_file, "0x%x\t%lu\t%f\t%f\t%d\t\t", j->footprint, (unsigned long) _starpu_job_get_data_size(j), measured, task->predicted, cpuid);
 		unsigned i;
 			
 		for (i = 0; i < task->cl->nbuffers; i++)

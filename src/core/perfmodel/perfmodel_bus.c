@@ -386,7 +386,7 @@ static void measure_bandwidth_between_host_and_dev(int dev, double *dev_timing_h
 
 		double bandwidth_sum2 = bandwidth_dtoh*bandwidth_dtoh + bandwidth_htod*bandwidth_htod;
 
-		_STARPU_DISP("BANDWIDTH GPU %d CPU %u - htod %lf - dtoh %lf - %lf\n", dev, current_cpu, bandwidth_htod, bandwidth_dtoh, sqrt(bandwidth_sum2));
+		_STARPU_DISP("BANDWIDTH GPU %d CPU %u - htod %f - dtoh %f - %f\n", dev, current_cpu, bandwidth_htod, bandwidth_dtoh, sqrt(bandwidth_sum2));
 	}
 
 	unsigned best_cpu = dev_timing_per_cpu[(dev+1)*MAXCPUS+0].cpu_id;
@@ -760,7 +760,7 @@ static void write_bus_latency_file_content(void)
                                 latency = ((src && dst)?2000.0:500.0);
 			}
 
-			fprintf(f, "%lf\t", latency);
+			fprintf(f, "%f\t", latency);
 		}
 
 		fprintf(f, "\n");
@@ -912,7 +912,7 @@ static void write_bus_bandwidth_file_content(void)
 			        bandwidth = 0.0;
 			}
 
-			fprintf(f, "%lf\t", bandwidth);
+			fprintf(f, "%f\t", bandwidth);
 		}
 
 		fprintf(f, "\n");

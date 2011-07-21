@@ -176,7 +176,7 @@ static void update_accumulated_time(int worker, double sleep_time, double exec_t
 	if (forceflush || (elapsed > ACTIVITY_PERIOD))
 	{		
 		if (activity_file)
-			fprintf(activity_file, "%d\t%lf\t%lf\t%lf\t%lf\n", worker, current_timestamp, elapsed, accumulated_exec_time[worker], accumulated_sleep_time[worker]);
+			fprintf(activity_file, "%d\t%f\t%f\t%f\t%f\n", worker, current_timestamp, elapsed, accumulated_exec_time[worker], accumulated_sleep_time[worker]);
 
 		/* reset the accumulated times */
 		last_activity_flush_timestamp[worker] = current_timestamp;
@@ -596,7 +596,7 @@ static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 		fprintf(out_paje_file, "13       %f ntask %ssched %f\n", current_timestamp, options->file_prefix, (float)curq_size);
 
 	if (activity_file)
-	fprintf(activity_file, "cnt_ready\t%lf\t%d\n", current_timestamp, curq_size);
+	fprintf(activity_file, "cnt_ready\t%f\t%d\n", current_timestamp, curq_size);
 }
 
 static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -609,7 +609,7 @@ static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *opti
 		fprintf(out_paje_file, "13       %f ntask %ssched %f\n", current_timestamp, options->file_prefix, (float)curq_size);
 
 	if (activity_file)
-	fprintf(activity_file, "cnt_ready\t%lf\t%d\n", current_timestamp, curq_size);
+	fprintf(activity_file, "cnt_ready\t%f\t%d\n", current_timestamp, curq_size);
 }
 
 static
@@ -618,7 +618,7 @@ void handle_update_task_cnt(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 	float current_timestamp = get_event_time_stamp(ev, options);
 	unsigned long nsubmitted = ev->param[0]; 
 	if (activity_file)
-	fprintf(activity_file, "cnt_submitted\t%lf\t%lu\n", current_timestamp, nsubmitted);
+	fprintf(activity_file, "cnt_submitted\t%f\t%lu\n", current_timestamp, nsubmitted);
 }
 
 static void handle_codelet_tag_deps(struct fxt_ev_64 *ev)
@@ -733,7 +733,7 @@ static void handle_set_profiling(struct fxt_ev_64 *ev, struct starpu_fxt_options
 	int status = ev->param[0];
 
 	if (activity_file)
-	fprintf(activity_file, "set_profiling\t%lf\t%d\n", get_event_time_stamp(ev, options), status);
+	fprintf(activity_file, "set_profiling\t%f\t%d\n", get_event_time_stamp(ev, options), status);
 }
 
 static void handle_task_wait_for_all(void)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 +
 					(end.tv_usec - start.tv_usec));
 
-	FPRINTF(stderr, "%u elems took %lf ms\n", niter, timing/1000);
+	FPRINTF(stderr, "%u elems took %f ms\n", niter, timing/1000);
 
 	starpu_shutdown();
 

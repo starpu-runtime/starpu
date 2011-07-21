@@ -348,8 +348,8 @@ int main(int argc, char **argv)
 	double pi_approx = ((double)shot_cnt*4.0)/total;
 
 	FPRINTF(stderr, "Reductions? %s\n", use_redux?"yes":"no");
-	FPRINTF(stderr, "Pi approximation : %lf (%ld / %ld)\n", pi_approx, shot_cnt, total);
-	FPRINTF(stderr, "Error %le \n", pi_approx - PI);
+	FPRINTF(stderr, "Pi approximation : %f (%ld / %ld)\n", pi_approx, shot_cnt, total);
+	FPRINTF(stderr, "Error %e \n", pi_approx - PI);
 	FPRINTF(stderr, "Total time : %f ms\n", timing/1000.0);
 	FPRINTF(stderr, "Speed : %f GShot/s\n", total/(1e3*timing));
 

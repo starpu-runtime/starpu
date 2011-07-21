@@ -165,8 +165,8 @@ static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_per
 		if (arch_model->regression.valid)
 		{
 			fprintf(stderr, "\tLinear: y = alpha size ^ beta\n");
-			fprintf(stderr, "\t\talpha = %le\n", arch_model->regression.alpha);
-			fprintf(stderr, "\t\tbeta = %le\n", arch_model->regression.beta);
+			fprintf(stderr, "\t\talpha = %e\n", arch_model->regression.alpha);
+			fprintf(stderr, "\t\tbeta = %e\n", arch_model->regression.beta);
 		}
 		else {
 			//fprintf(stderr, "\tLinear model is INVALID\n");
@@ -175,9 +175,9 @@ static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_per
 		if (arch_model->regression.nl_valid)
 		{
 			fprintf(stderr, "\tNon-Linear: y = a size ^b + c\n");
-			fprintf(stderr, "\t\ta = %le\n", arch_model->regression.a);
-			fprintf(stderr, "\t\tb = %le\n", arch_model->regression.b);
-			fprintf(stderr, "\t\tc = %le\n", arch_model->regression.c);
+			fprintf(stderr, "\t\ta = %e\n", arch_model->regression.a);
+			fprintf(stderr, "\t\tb = %e\n", arch_model->regression.b);
+			fprintf(stderr, "\t\tc = %e\n", arch_model->regression.c);
 		}
 		else {
 			//fprintf(stderr, "\tNon-Linear model is INVALID\n");
@@ -194,27 +194,27 @@ static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_per
 	else {
 		/* only display the parameter that was specifically requested */
 		if (strcmp(parameter, "a") == 0) {
-			printf("%le\n", arch_model->regression.a);
+			printf("%e\n", arch_model->regression.a);
 			return;
 		}
 
 		if (strcmp(parameter, "b") == 0) {
-			printf("%le\n", arch_model->regression.b);
+			printf("%e\n", arch_model->regression.b);
 			return;
 		}
 
 		if (strcmp(parameter, "c") == 0) {
-			printf("%le\n", arch_model->regression.c);
+			printf("%e\n", arch_model->regression.c);
 			return;
 		}
 
 		if (strcmp(parameter, "alpha") == 0) {
-			printf("%le\n", arch_model->regression.alpha);
+			printf("%e\n", arch_model->regression.alpha);
 			return;
 		}
 
 		if (strcmp(parameter, "beta") == 0) {
-			printf("%le\n", arch_model->regression.beta);
+			printf("%e\n", arch_model->regression.beta);
 			return;
 		}
 

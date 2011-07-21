@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -106,8 +106,8 @@ int main(int argc, char **argv)
 
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	fprintf(stderr, "Total: %lf secs\n", timing/1000000);
-	fprintf(stderr, "Per task: %lf usecs\n", timing/ntasks);
+	fprintf(stderr, "Total: %f secs\n", timing/1000000);
+	fprintf(stderr, "Per task: %f usecs\n", timing/ntasks);
 
         {
                 char *output_dir = getenv("STARPU_BENCH_DIR");
@@ -119,12 +119,12 @@ int main(int argc, char **argv)
 
                         sprintf(file, "%s/sync_tasks_overhead_total.dat", output_dir);
                         f = fopen(file, "a");
-                        fprintf(f, "%s\t%lf\n", bench_id, timing/1000000);
+                        fprintf(f, "%s\t%f\n", bench_id, timing/1000000);
                         fclose(f);
 
                         sprintf(file, "%s/sync_tasks_overhead_per_task.dat", output_dir);
                         f = fopen(file, "a");
-                        fprintf(f, "%s\t%lf\n", bench_id, timing/ntasks);
+                        fprintf(f, "%s\t%f\n", bench_id, timing/ntasks);
                         fclose(f);
                 }
         }

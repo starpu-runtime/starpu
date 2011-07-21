@@ -320,10 +320,10 @@ int main(int argc, char **argv)
 
 		fflush(stderr);
 
-		fprintf(stdout, "Computation took: %lf ms on %d MPI processes\n", max_timing/1000, world_size);
-		fprintf(stdout, "\tMIN : %lf ms\n", min_timing/1000);
-		fprintf(stdout, "\tMAX : %lf ms\n", max_timing/1000);
-		fprintf(stdout, "\tAVG : %lf ms\n", sum_timing/(world_size*1000));
+		fprintf(stdout, "Computation took: %f ms on %d MPI processes\n", max_timing/1000, world_size);
+		fprintf(stdout, "\tMIN : %f ms\n", min_timing/1000);
+		fprintf(stdout, "\tMAX : %f ms\n", max_timing/1000);
+		fprintf(stdout, "\tAVG : %f ms\n", sum_timing/(world_size*1000));
 	}
 
 	starpu_shutdown();

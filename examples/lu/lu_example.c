@@ -341,7 +341,7 @@ int main(int argc, char **argv)
 		} else {
 			starpu_bound_compute(&min, NULL, 0);
 			if (min != 0.)
-				FPRINTF(stderr, "theoretical min: %lf ms\n", min);
+				FPRINTF(stderr, "theoretical min: %f ms\n", min);
 		}
 	}
 

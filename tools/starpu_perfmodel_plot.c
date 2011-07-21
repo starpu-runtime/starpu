@@ -164,8 +164,8 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel_t *mo
 		print_comma(gnuplot_file, first);
 	
 		fprintf(stderr, "\tLinear: y = alpha size ^ beta\n");
-		fprintf(stderr, "\t\talpha = %le\n", arch_model->regression.alpha * 0.001);
-		fprintf(stderr, "\t\tbeta = %le\n", arch_model->regression.beta);
+		fprintf(stderr, "\t\talpha = %e\n", arch_model->regression.alpha * 0.001);
+		fprintf(stderr, "\t\tbeta = %e\n", arch_model->regression.beta);
 
 		fprintf(gnuplot_file, "0.001 * %f * x ** %f title \"Linear Regression %s\"",
 			arch_model->regression.alpha, arch_model->regression.beta, arch_name);
@@ -176,9 +176,9 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel_t *mo
 		print_comma(gnuplot_file, first);
 	
 		fprintf(stderr, "\tNon-Linear: y = a size ^b + c\n");
-		fprintf(stderr, "\t\ta = %le\n", arch_model->regression.a * 0.001);
-		fprintf(stderr, "\t\tb = %le\n", arch_model->regression.b);
-		fprintf(stderr, "\t\tc = %le\n", arch_model->regression.c * 0.001);
+		fprintf(stderr, "\t\ta = %e\n", arch_model->regression.a * 0.001);
+		fprintf(stderr, "\t\tb = %e\n", arch_model->regression.b);
+		fprintf(stderr, "\t\tc = %e\n", arch_model->regression.c * 0.001);
 
 		fprintf(gnuplot_file, "0.001 * %f * x ** %f + 0.001 * %f title \"Non-Linear Regression %s\"",
 			arch_model->regression.a, arch_model->regression.b,  arch_model->regression.c, arch_name);

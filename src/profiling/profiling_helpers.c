@@ -79,7 +79,7 @@ void starpu_worker_profiling_helper_display_summary(void)
 			if (info.used_cycles || info.stall_cycles)
 				fprintf(stderr, "\t%lu Mcy %lu Mcy stall\n", info.used_cycles/1000000, info.stall_cycles/1000000);
 			if (info.power_consumed)
-				fprintf(stderr, "\t%lf J consumed\n", info.power_consumed);
+				fprintf(stderr, "\t%f J consumed\n", info.power_consumed);
 		} else {
 			fprintf(stderr, "\t%-32s\t%d task(s)\n", name, info.executed_tasks);
 		}

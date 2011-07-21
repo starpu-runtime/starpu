@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -501,10 +501,10 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
-		fprintf(stderr, "Computation took: %lf ms\n", max_timing/1000);
-		fprintf(stderr, "\tMIN : %lf ms\n", min_timing/1000);
-		fprintf(stderr, "\tMAX : %lf ms\n", max_timing/1000);
-		fprintf(stderr, "\tAVG : %lf ms\n", sum_timing/(world_size*1000));
+		fprintf(stderr, "Computation took: %f ms\n", max_timing/1000);
+		fprintf(stderr, "\tMIN : %f ms\n", min_timing/1000);
+		fprintf(stderr, "\tMAX : %f ms\n", max_timing/1000);
+		fprintf(stderr, "\tAVG : %f ms\n", sum_timing/(world_size*1000));
 
 		unsigned n = size;
 		double flop = (2.0f*n*n*n)/3.0f;
