@@ -20,6 +20,7 @@ Makefile.in
 *.o
 *.lo
 *.la
+*.swp
 .dirstamp
 stamp-h[0-9]*
 starpu.log

@@ -1115,15 +1115,12 @@ AM_CONDITIONAL([HAVE_GUILE], [test "x$GUILE" != "x"])
 
 AC_ARG_ENABLE([socl],
   [AS_HELP_STRING([--enable-socl],
-    [build the OpenCL interfacce (SOCL)])],
+    [build the OpenCL interface (SOCL)])],
   [enable_socl="$enableval"],
   [enable_socl="no"])
 
-#TODO: check that OpenCL is enabled
-
 if test "x$enable_socl" = "xyes"; then
    STARPU_SOCL_SUPPORT
-
    build_socl="yes"
 else
    build_socl="no"
