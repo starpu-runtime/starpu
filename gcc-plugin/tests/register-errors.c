@@ -40,5 +40,9 @@ main (int argc, char *argv[])
 
 #pragma starpu register argc /* (error "neither a pointer nor an array") */
 
+  char **p = argv;
+  size_t ps = argc;
+#pragma starpu register p ps  /* No unused variable warning, please! */
+
   return EXIT_SUCCESS;
 }

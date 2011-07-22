@@ -381,7 +381,11 @@ read_pragma_pointer_variable (const char *pragma, location_t loc)
 	       && TREE_CODE (TREE_TYPE (decl)) != ARRAY_TYPE)
 	error_at (loc, "%qE is neither a pointer nor an array", var_name);
       else
-	var = decl;
+	{
+	  var = decl;
+	  TREE_USED (var) = true;
+	  DECL_READ_P (var) = true;
+	}
     }
 
   return var;
@@ -462,6 +466,9 @@ handle_pragma_register (struct cpp_reader *reader)
 	      error_at (loc, "integer expected");
 	      return;
 	    }
+
+	  TREE_USED (count_arg) = true;
+	  DECL_READ_P (count_arg) = true;
 	}
       else if (TREE_CODE (token) != INTEGER_CST)
 	error_at (loc, "integer expected");
