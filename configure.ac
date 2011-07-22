@@ -1371,6 +1371,7 @@ AC_OUTPUT([
 	gcc-plugin/src/Makefile
 	gcc-plugin/tests/Makefile
 	gcc-plugin/tests/run-test
+	gcc-plugin/examples/Makefile
 	socl/Makefile
 	socl/src/Makefile
 	libstarpu.pc

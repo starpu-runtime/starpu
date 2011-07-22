@@ -13,6 +13,8 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-SUBDIRS = src tests examples
+noinst_PROGRAMS =				\
+  matrix-mult
 
-EXTRA_DIST = COPYING README
+AM_LDFLAGS = $(top_builddir)/src/libstarpu.la
+AM_CFLAGS = -fplugin="$(builddir)/../src/.libs/starpu.so" -Wall

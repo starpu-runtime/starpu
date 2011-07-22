@@ -183,3 +183,4 @@ starpu.log
 /gcc-plugin/tests/acquire
 /gcc-plugin/tests/unregister
 /gcc-plugin/tests/lib-user
+/gcc-plugin/examples/matrix-mult
