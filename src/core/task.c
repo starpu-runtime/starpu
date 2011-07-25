@@ -153,13 +153,19 @@ void starpu_task_destroy(struct starpu_task *task)
 
 int starpu_task_wait(struct starpu_task *task)
 {
+        _STARPU_LOG_IN();
 	STARPU_ASSERT(task);
 
-	if (task->detach || task->synchronous)
+	if (task->detach || task->synchronous) {
+		_STARPU_DEBUG("Task is detached or asynchronous. Waiting returns immediately\n");
+		_STARPU_LOG_OUT_TAG("einval");
 		return -EINVAL;
+	}
 
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls())) {
+		_STARPU_LOG_OUT_TAG("edeadlk");
 		return -EDEADLK;
+	}
 
 	starpu_job_t j = (struct starpu_job_s *)task->starpu_private;
 
@@ -170,6 +176,7 @@ int starpu_task_wait(struct starpu_task *task)
 	if (task->destroy)
 		free(task);
 
+        _STARPU_LOG_OUT();
 	return 0;
 }
 
