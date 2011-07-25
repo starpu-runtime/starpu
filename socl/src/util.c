@@ -24,3 +24,27 @@ int starpu_worker_get_range() {
 
    return oid;
 }
+
+void * memdupa(const void *p, size_t size) {
+	void * s = malloc(size);
+	memcpy(s,p,size);
+	return s;
+}
+
+void ** memdup_deep_safea(const void **p, unsigned n, size_t size) {
+	void ** s = (void**)malloc(sizeof(void*) * n);
+	unsigned i;
+	for (i=0; i<n; i++) {
+		s[i] = memdup_safe((void*)p[i], size);
+	}
+	return s;
+}
+
+void ** memdup_deep_varsize_safea(const void **p, unsigned n, size_t * size) {
+	void ** s = (void**)malloc(sizeof(void*) * n);
+	unsigned i;
+	for (i=0; i<n; i++) {
+		s[i] = memdup_safe((void*)p[i], size[i]);
+	}
+	return s;
+}

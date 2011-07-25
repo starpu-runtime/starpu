@@ -19,4 +19,28 @@
 
 int starpu_worker_get_range();
 
+/**
+ * Duplicate a memory area into a fresh allocated buffer
+ * Consider using memdup or memdup_safe instead
+ */
+void * memdupa(const void *p, size_t size);
+
+#define memdup(p, size) ((typeof(p))memdupa((const void*)p,size))
+#define memdup_safe(p,size) (p == NULL ? NULL : memdup(p,size))
+
+/**
+ * Duplicate an array of pointers by performing a deep copy
+ */
+void ** memdup_deep_safea(const void **p, unsigned n, size_t size);
+
+#define memdup_deep_safe(p,n,size) ((typeof(p))memdup_deep_safea((const void **)p,n,size))
+
+/**
+ * Duplicate an array of pointers by performing a deep copy
+ * Sizes are different for each cell
+ */
+void ** memdup_deep_varsize_safea(const void **p, unsigned n, size_t * size);
+
+#define memdup_deep_varsize_safe(p,n,size) ((typeof(p))memdup_deep_varsize_safea((const void **)p,n,size))
+
 #endif /* SOCL_UTIL_H */

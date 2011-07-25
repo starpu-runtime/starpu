@@ -34,12 +34,16 @@ soclEnqueueTask(cl_command_queue cq,
 	node_enqueue_kernel n;
 
 	n = graph_create_enqueue_kernel(1, cq, kernel, work_dim, global_work_offset, global_work_size,
-		local_work_size, num_events, events, event, kernel->arg_count, kernel->arg_size,
+		local_work_size, num_events, events, kernel->arg_count, kernel->arg_size,
 		kernel->arg_type, kernel->arg_value);
 	
 	//FIXME: temporarily, we execute the node directly. In the future, we will postpone this.
-	node_play_enqueue_kernel(n);
+	graph_play_enqueue_kernel(n);
+	graph_free(n);
 
 	//graph_store(n);
+
+	RETURN_OR_RELEASE_EVENT(n->node.event, event);
+
 	return CL_SUCCESS;
 }

@@ -132,7 +132,7 @@ static struct starpu_perfmodel_t perf_model = {
 /**
  * Real kernel enqueuing command
  */
-cl_int node_play_enqueue_kernel(node_enqueue_kernel n) {
+cl_int graph_play_enqueue_kernel(node_enqueue_kernel n) {
 
    struct starpu_task *task;
    running_kernel arg;
@@ -143,13 +143,15 @@ cl_int node_play_enqueue_kernel(node_enqueue_kernel n) {
    cl_command_queue cq = n->cq;
    cl_kernel        kernel = n->kernel;
    cl_uint          work_dim = n->work_dim;
-   const size_t *   global_work_offset = n->global_work_offset;
-   const size_t *   global_work_size = n->global_work_size;
-   const size_t *   local_work_size = n->local_work_size;
-   cl_uint          num_events = n->num_events;
-   const cl_event * events = n->events;
-   cl_event *       event = n->event;
+   size_t *	    global_work_offset = (size_t*)n->global_work_offset;
+   size_t *   	    global_work_size = (size_t*)n->global_work_size;
+   size_t *   	    local_work_size = (size_t*)n->local_work_size;
+   cl_uint          num_events = n->node.num_events;
+   const cl_event * events = n->node.events;
+   cl_event         event = n->node.event;
    char 	    is_task = n->is_task;
+   cl_int ndeps;
+   cl_event *deps;
 
 
    /* Allocate structures */
@@ -166,9 +168,15 @@ cl_int node_play_enqueue_kernel(node_enqueue_kernel n) {
       return CL_OUT_OF_HOST_MEMORY;
    }
 
-   /* StarPU task */
-   task = task_create(is_task ? CL_COMMAND_TASK : CL_COMMAND_NDRANGE_KERNEL);
-   ev = task_event(task);
+	/* StarPU task */
+	if (event != NULL) {
+		task = task_create_with_event(is_task ? CL_COMMAND_TASK : CL_COMMAND_NDRANGE_KERNEL, event);
+	}
+	else {
+		
+		task = task_create(is_task ? CL_COMMAND_TASK : CL_COMMAND_NDRANGE_KERNEL);
+	}
+	ev = task_event(task);
 
    /*******************
     * Initializations *
@@ -190,23 +198,9 @@ cl_int node_play_enqueue_kernel(node_enqueue_kernel n) {
    arg->work_dim = work_dim;
    arg->codelet = codelet;
 
-   /* Global work offset */
-   if (global_work_offset != NULL) {
-      arg->global_work_offset = (size_t*)malloc(sizeof(size_t)*work_dim);
-      memcpy(arg->global_work_offset, global_work_offset, work_dim*sizeof(size_t));
-   }
-   else arg->global_work_offset = NULL;
-
-   /* Global work size */
-   arg->global_work_size = (size_t*)malloc(sizeof(size_t)*work_dim);
-   memcpy(arg->global_work_size, global_work_size, work_dim*sizeof(size_t));
-
-   /* Local work size */
-   if (local_work_size != NULL) {
-      arg->local_work_size = (size_t*)malloc(sizeof(size_t)*work_dim);
-      memcpy(arg->local_work_size, local_work_size, work_dim*sizeof(size_t));
-   }
-   else arg->local_work_size = NULL;
+   arg->global_work_offset = memdup_safe(global_work_offset, sizeof(size_t)*work_dim);
+   arg->global_work_size = memdup_safe(global_work_size, sizeof(size_t)*work_dim);
+   arg->local_work_size = memdup_safe(local_work_size, sizeof(size_t)*work_dim);
 
    /* ----------- *
     * StarPU task *
@@ -256,37 +250,22 @@ cl_int node_play_enqueue_kernel(node_enqueue_kernel n) {
    }
 
    /* Copy arguments as kernel args can be modified by the time we launch the kernel */
-   {
-      arg->arg_count = kernel->arg_count;
-      arg->arg_size = malloc(sizeof(size_t) * kernel->arg_count);
-      memcpy(arg->arg_size, kernel->arg_size, sizeof(size_t) * kernel->arg_count);
-      arg->arg_type = malloc(sizeof(enum kernel_arg_type) * kernel->arg_count);
-      memcpy(arg->arg_type, kernel->arg_type, sizeof(enum kernel_arg_type) * kernel->arg_count);
-      arg->arg_value = malloc(sizeof(void*) * kernel->arg_count);
-      unsigned int i;
-      for (i=0; i<kernel->arg_count; i++) {
-         if (kernel->arg_value[i] != NULL) {
-           arg->arg_value[i] = malloc(arg->arg_size[i]);
-           memcpy(arg->arg_value[i], kernel->arg_value[i], arg->arg_size[i]);
-         }
-         else arg->arg_value[i] = NULL;
-      }
-   }
+   arg->arg_count = kernel->arg_count;
+   arg->arg_size = memdup(kernel->arg_size, sizeof(size_t) * kernel->arg_count);
+   arg->arg_type = memdup(kernel->arg_type, sizeof(enum kernel_arg_type) * kernel->arg_count);
+   arg->arg_value = memdup_deep_varsize_safe(kernel->arg_value, kernel->arg_count, kernel->arg_size);
 
    DEBUG_MSG("Submitting NDRange task (event %d)\n", ev->id);
 
-   cl_int ret = command_queue_enqueue(cq, task, 0, num_events, events);
+   command_queue_enqueue(cq, task_event(task), 0, num_events, events, &ndeps, &deps);
+
+   task_submit(task, ndeps, deps);
 
    /* Enqueue a cleaning task */
    starpu_task * cleaning_task = task_create_cpu(0, cleaning_task_callback, arg,1);
-   cl_event cleaning_event = task_event(cleaning_task);
-   command_queue_enqueue(cq, cleaning_task, 0, 1, &ev);
-
-   gc_entity_release(cleaning_event);
+   task_submit(cleaning_task, 1, &ev);
   
-   RETURN_EVENT(ev, event);
-
-   return ret;
+   return CL_SUCCESS;
 }
 
 /**
@@ -306,12 +285,16 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
 	node_enqueue_kernel n;
 
 	n = graph_create_enqueue_kernel(0, cq, kernel, work_dim, global_work_offset, global_work_size,
-		local_work_size, num_events, events, event, kernel->arg_count, kernel->arg_size,
+		local_work_size, num_events, events, kernel->arg_count, kernel->arg_size,
 		kernel->arg_type, kernel->arg_value);
 	
 	//FIXME: temporarily, we execute the node directly. In the future, we will postpone this.
-	node_play_enqueue_kernel(n);
+	graph_play_enqueue_kernel(n);
+	graph_free(n);
 
 	//graph_store(n);
+
+	RETURN_OR_RELEASE_EVENT(n->node.event, event);
+
 	return CL_SUCCESS;
 }

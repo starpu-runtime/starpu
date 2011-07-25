@@ -22,10 +22,16 @@ soclEnqueueWaitForEvents(cl_command_queue cq,
                        const cl_event * events) CL_API_SUFFIX__VERSION_1_0
 {
 
-   //CL_COMMAND_MARKER has been chosen as CL_COMMAND_WAIT_FOR_EVENTS doesn't exist
-   starpu_task * task = task_create(CL_COMMAND_MARKER);
+	cl_int ndeps;
+	cl_event *deps;
 
-   command_queue_enqueue(cq, task, 0, num_events, events);
+	//CL_COMMAND_MARKER has been chosen as CL_COMMAND_WAIT_FOR_EVENTS doesn't exist
+	starpu_task * task = task_create(CL_COMMAND_MARKER);
 
-   return CL_SUCCESS;
+	DEBUG_MSG("Submitting WAIT_FOR_EVENTS task (event %d)\n", task->tag_id);
+	command_queue_enqueue(cq, task_event(task), 1, num_events, events, &ndeps, &deps);
+
+	task_submit(task, ndeps, deps);
+
+	return CL_SUCCESS;
 }

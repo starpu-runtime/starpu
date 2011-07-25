@@ -45,10 +45,17 @@ static void task_release_callback(void *arg) {
  */
 starpu_task * task_create(cl_command_type type) {
    cl_event event;
-   struct starpu_task * task;
 
    /* Create event */
    event = event_create();
+
+   return task_create_with_event(type, event);
+}
+
+
+starpu_task * task_create_with_event(cl_command_type type, cl_event event) {
+   struct starpu_task * task;
+
    event->type = type;
 
    /* Create StarPU task */
@@ -76,6 +83,19 @@ void task_dependency_add(starpu_task * task, cl_uint num, const cl_event *events
       DEBUG_MSG("Event %d depends on event %d\n", task->tag_id, events[i]->id);
       starpu_tag_declare_deps_array(task->tag_id, 1, &tag);
    }
+}
+
+cl_int task_submit(starpu_task * task, cl_int num_events, cl_event * events) {
+
+	task_dependency_add(task, num_events, events);
+
+	/* Submit task */
+	int ret = starpu_task_submit(task);
+	gc_entity_retain(task_event(task));
+	if (ret != 0)
+		DEBUG_ERROR("Unable to submit a task. Error %d\n", ret);
+
+	return CL_SUCCESS;
 }
 
 

@@ -83,6 +83,9 @@ soclEnqueueWriteBuffer(cl_command_queue cq,
    struct arg_writebuffer *arg;
    cl_event ev;
 
+   cl_int ndeps;
+   cl_event *deps;
+
    task = task_create(CL_COMMAND_WRITE_BUFFER);
    ev = task_event(task);
 
@@ -110,10 +113,12 @@ soclEnqueueWriteBuffer(cl_command_queue cq,
 
    DEBUG_MSG("Submitting EnqueueRWBuffer task (event %d)\n", ev->id);
 
-   cl_int ret = command_queue_enqueue(cq, task, 0, num_events,events);
+   command_queue_enqueue(cq, task_event(task), 0, num_events, events, &ndeps, &deps);
+
+   task_submit(task, ndeps, deps);
 
    /* Return retained event if required by user */
-   RETURN_EVENT(ev,event);
+   RETURN_OR_RELEASE_EVENT(ev,event);
 
-   return ret;
+   return CL_SUCCESS;
 }

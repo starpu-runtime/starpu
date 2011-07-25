@@ -19,7 +19,7 @@
 CL_API_ENTRY cl_int CL_API_CALL
 soclEnqueueBarrier(cl_command_queue cq) CL_API_SUFFIX__VERSION_1_0
 {
-   cl_event ev = enqueueBarrier(cq);   
+   cl_event ev = command_queue_barrier(cq);   
    gc_entity_release(ev);
 
    return CL_SUCCESS;

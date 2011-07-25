@@ -22,14 +22,18 @@
 typedef struct graph_node_t * graph_node;
 
 struct graph_node_t {
-	int id; /* Kind of node */
-	graph_node next; /* Linked-list of nodes... */
+	int 		id; 		/* Kind of node */
+	graph_node 	next; 		/* Linked-list of nodes... */
+	cl_uint 	num_events;	/* Number of dependencies */
+	cl_event * 	events;		/* Dependencies */
+	cl_event  	event;		/* Event for this node */
 };
 
 void graph_init(void);
 void graph_destroy(void);
 void graph_node_init(graph_node node);
 void graph_store(void * node);
+void graph_free(void * node);
 
 #define NODE_ENQUEUE_KERNEL 1
 
@@ -44,9 +48,6 @@ typedef struct node_enqueue_kernel_t {
 	const size_t *   global_work_offset;
 	const size_t *   global_work_size;
 	const size_t *   local_work_size;
-	cl_uint          num_events;
-	const cl_event * events;
-	cl_event * 	 event;
 	cl_uint 	 num_args;
 	size_t *	 arg_sizes;
 	enum kernel_arg_type * arg_types;
@@ -62,12 +63,11 @@ node_enqueue_kernel graph_create_enqueue_kernel(char is_task,
 		const size_t *   local_work_size,
 		cl_uint          num_events,
 		const cl_event * events,
-		cl_event *       event,
-		cl_uint 		num_args,
-		size_t *		arg_sizes,
+		cl_uint		 num_args,
+		size_t *	 arg_sizes,
 		enum kernel_arg_type * arg_types,
 		void **		args);
 
-cl_int node_play_enqueue_kernel(node_enqueue_kernel n);
+cl_int graph_play_enqueue_kernel(node_enqueue_kernel n);
 
 #endif /* SOCL_GRAPH_H */

@@ -20,8 +20,18 @@
 #include "socl.h"
 
 starpu_task * task_create(cl_command_type type);
+starpu_task * task_create_with_event(cl_command_type type, cl_event event);
 void task_dependency_add(starpu_task * task, cl_uint num, const cl_event *events);
 starpu_task * task_create_cpu(cl_command_type type, void (*callback)(void*), void *arg, int free_arg);
+
+/** 
+ * Return event associated to a task
+ */
 cl_event task_event(starpu_task *task);
+
+/**
+ * Submit "task" with "events" dependencies
+ */
+cl_int task_submit(starpu_task * task, cl_int num_events, cl_event * events);
 
 #endif /* SOCL_TASK_H */

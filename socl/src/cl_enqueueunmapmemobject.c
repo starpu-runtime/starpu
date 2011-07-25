@@ -27,6 +27,8 @@ soclEnqueueUnmapMemObject(cl_command_queue cq,
    struct starpu_task *task;
    cl_int err;
    cl_event ev;
+   cl_int ndeps;
+   cl_event *deps;
 
    /* Create StarPU task */
    task = task_create_cpu(CL_COMMAND_UNMAP_MEM_OBJECT, (void(*)(void*))starpu_data_release, memobj->handle, 0);
@@ -34,9 +36,12 @@ soclEnqueueUnmapMemObject(cl_command_queue cq,
 
    DEBUG_MSG("Submitting UnmapBuffer task (event %d)\n", task->tag_id);
 
-   err = command_queue_enqueue(cq, task, 0, num_events, events);
+   command_queue_enqueue(cq, task_event(task), 0, num_events, events, &ndeps, &deps);
 
-   RETURN_EVENT(ev, event);
+   task_submit(task, ndeps, deps);
 
-   return err;
+
+   RETURN_OR_RELEASE_EVENT(ev, event);
+
+   return CL_SUCCESS;
 }

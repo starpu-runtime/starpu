@@ -79,7 +79,7 @@ struct entity {
 
 struct _cl_platform_id {};
 
-#define RETURN_EVENT(ev, event) \
+#define RETURN_OR_RELEASE_EVENT(ev, event) \
    if (event != NULL) \
       *event = ev; \
    else\

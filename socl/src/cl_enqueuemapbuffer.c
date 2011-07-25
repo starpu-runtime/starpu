@@ -57,6 +57,8 @@ soclEnqueueMapBuffer(cl_command_queue cq,
    struct mb_data *arg;
    cl_event ev;
    cl_int err;
+   cl_int ndeps;
+   cl_event *deps;
 
    /* Create custom event that will be triggered when map is complete */
    ev = event_create();
@@ -73,7 +75,10 @@ soclEnqueueMapBuffer(cl_command_queue cq,
 
    /* Enqueue task */
    DEBUG_MSG("Submitting MapBuffer task (event %d)\n", ev->id);
-   err = command_queue_enqueue_fakeevent(cq, task, 0, num_events, events, ev);
+   command_queue_enqueue(cq, ev, 0, num_events, events, &ndeps, &deps);
+
+   task_submit(task, ndeps, deps);
+
    gc_entity_release(map_event);
 
    if (errcode_ret != NULL)
@@ -85,7 +90,7 @@ soclEnqueueMapBuffer(cl_command_queue cq,
    if (blocking_map == CL_TRUE)
       soclWaitForEvents(1, &ev);
 
-   RETURN_EVENT(ev, event);
+   RETURN_OR_RELEASE_EVENT(ev, event);
 
    return (void*)(starpu_variable_get_local_ptr(buffer->handle) + offset);
 }

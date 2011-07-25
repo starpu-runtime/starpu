@@ -81,6 +81,9 @@ soclEnqueueCopyBuffer(cl_command_queue  cq,
    struct arg_copybuffer *arg;
    cl_event ev;
 
+   cl_int ndeps;
+   cl_event *deps;
+
    task = task_create(CL_COMMAND_COPY_BUFFER);
    ev = task_event(task);
 
@@ -103,9 +106,11 @@ soclEnqueueCopyBuffer(cl_command_queue  cq,
 
    DEBUG_MSG("Submitting CopyBuffer task (event %d)\n", ev->id);
 
-   cl_int ret = command_queue_enqueue(cq, task, 0, num_events, events);
+   command_queue_enqueue(cq, task_event(task), 0, num_events, events, &ndeps, &deps);
 
-   RETURN_EVENT(ev, event);
+   task_submit(task, ndeps, deps);
 
-   return ret;
+   RETURN_OR_RELEASE_EVENT(ev, event);
+
+   return CL_SUCCESS;
 }

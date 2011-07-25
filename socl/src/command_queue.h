@@ -17,10 +17,16 @@
 #ifndef SOCL_COMMAND_QUEUE_H
 #define SOCl_COMMAND_QUEUE_H
 
-cl_int command_queue_enqueue(cl_command_queue cq, starpu_task *task, cl_int barrier, cl_int num_events, const cl_event * events);
+void command_queue_enqueue(
+	cl_command_queue cq, 		/* Command queue */
+	cl_event ev,			/* Event triggered on task completion (can be NULL if task event should be used)*/
+	cl_int is_barrier,			/* True if the task acts as a barrier */
+	cl_int num_events,		/* Number of dependencies */
+	const cl_event * events,	/* Dependencies */
+	cl_int * ret_num_events,	/* Returned number of events */
+	cl_event ** ret_events		/* Returned events */
+	);
 
-cl_int command_queue_enqueue_fakeevent(cl_command_queue cq, starpu_task *task, cl_int barrier, cl_int num_events, const cl_event * events, cl_event fake_event);
-
-cl_event enqueueBarrier(cl_command_queue cq);
+cl_event command_queue_barrier(cl_command_queue cq);
 
 #endif /* SOCl_COMMAND_QUEUE_H */

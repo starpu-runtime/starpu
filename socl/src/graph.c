@@ -42,6 +42,7 @@ void graph_destroy(void) {
 void graph_node_init(graph_node node) {
 	node->id = -1;
 	node->next = NULL;
+	node->event = event_create();
 }
 
 /**
@@ -57,20 +58,18 @@ void graph_store(void * node) {
 	pthread_spin_unlock(&graph_lock);
 }
 
-
-
 /**
- * Duplicate a memory area into a fresh allocated buffer
+ * Free a node
  */
-static void * memdupa(const void *p, size_t size) {
-	void * s = malloc(size);
-	memcpy(s,p,size);
-	return s;
+void graph_free(void * node) {
+	free(node);
 }
 
-#define memdup(p, size) ((typeof(p))memdupa(p,size))
-#define nullOrDup(name,size) s->name = (name == NULL ? NULL : memdup(name,size))
+
+#define nullOrDup(name,size) s->name = memdup_safe(name,size)
+#define nodeNullOrDup(name,size) s->node.name = memdup_safe(name,size)
 #define dup(name) s->name = name
+#define nodeDup(name) s->node.name = name
 
 
 node_enqueue_kernel graph_create_enqueue_kernel(char is_task,
@@ -82,7 +81,6 @@ node_enqueue_kernel graph_create_enqueue_kernel(char is_task,
 		const size_t *   local_work_size,
 		cl_uint          num_events,
 		const cl_event * events,
-		cl_event *       event,
 		cl_uint 		num_args,
 		size_t *		arg_sizes,
 		enum kernel_arg_type * arg_types,
@@ -92,6 +90,9 @@ node_enqueue_kernel graph_create_enqueue_kernel(char is_task,
 	graph_node_init(&s->node);
 	s->node.id = NODE_ENQUEUE_KERNEL;
 
+	nodeDup(num_events);
+	nodeNullOrDup(events, num_events * sizeof(cl_event));
+
 	dup(is_task);
 	dup(cq);
 	dup(kernel);
@@ -99,25 +100,16 @@ node_enqueue_kernel graph_create_enqueue_kernel(char is_task,
 	nullOrDup(global_work_offset, work_dim*sizeof(size_t));
 	nullOrDup(global_work_size, work_dim*sizeof(size_t));
 	nullOrDup(local_work_size, work_dim*sizeof(size_t));
-	dup(num_events);
-	nullOrDup(events, num_events * sizeof(cl_event));
 	dup(num_args);
 	nullOrDup(arg_sizes, num_args * sizeof(size_t));
 	nullOrDup(arg_types, num_args * sizeof(enum kernel_arg_type));
 	nullOrDup(args, num_args * sizeof(void*));
 
-	
-	if (event != NULL) {
-		*event = event_create();
-		s->event = event;
-	}
-	else {
-		s->event = NULL;
-	}
-
 	return s;
 }
 
 #undef nullOrDup
-#undef memdup
+#undef nodeNullOrDup
 #undef dup
+#undef nodeDup
+#undef memdup
