@@ -74,11 +74,11 @@ struct starpu_sched_policy_s {
 	/* Insert a task into the scheduler. */
 	int (*push_task)(struct starpu_task *);
 
-	/* Notify the scheduler that a task was pushed on the worker. This
-	 * method is called when a task that was explicitely assigned to a
-	 * worker is scheduled. This method therefore permits to keep the state
-	 * of of the scheduler coherent even when StarPU bypasses the
-	 * scheduling strategy. */
+	/* Notify the scheduler that a task was directly pushed to the worker
+	 * without going through the scheduler. This method is called when a
+	 * task is explicitely assigned to a worker. This method therefore
+	 * permits to keep the timing state of the scheduler coherent even
+	 * when StarPU bypasses the scheduling strategy. */
 	void (*push_task_notify)(struct starpu_task *, int workerid);
 
 	/* Get a task from the scheduler. The mutex associated to the worker is
