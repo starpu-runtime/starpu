@@ -27,7 +27,7 @@ static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attri
 {
 }
 
-static starpu_codelet dummy_codelet = 
+static starpu_codelet dummy_codelet =
 {
 	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_func = dummy_func,
@@ -43,6 +43,7 @@ static struct starpu_task *create_dummy_task(void)
 
 	task->cl = &dummy_codelet;
 	task->cl_arg = NULL;
+	task->detach = 0;
 
 	return task;
 }
@@ -51,11 +52,11 @@ int main(int argc, char **argv)
 {
 	starpu_init(NULL);
 
-	FPRINTF(stderr, "{ A } -> { B }\n");
+	FPRINTF(stderr, "{ A } -> { B }\n");
 	fflush(stderr);
 
 	struct starpu_task *taskA, *taskB;
-	
+
 	taskA = create_dummy_task();
 	taskB = create_dummy_task();
 
@@ -67,7 +68,7 @@ int main(int argc, char **argv)
 
 	starpu_task_wait(taskB);
 
-	FPRINTF(stderr, "{ C, D, E, F } -> { G }\n");
+	FPRINTF(stderr, "{ C, D, E, F } -> { G }\n");
 
 	struct starpu_task *taskC, *taskD, *taskE, *taskF, *taskG;
 
@@ -88,8 +89,8 @@ int main(int argc, char **argv)
 
 	starpu_task_wait(taskG);
 
-	FPRINTF(stderr, "{ H, I } -> { J, K, L }\n");
-	
+	FPRINTF(stderr, "{ H, I } -> { J, K, L }\n");
+
 	struct starpu_task *taskH, *taskI, *taskJ, *taskK, *taskL;
 
 	taskH = create_dummy_task();
