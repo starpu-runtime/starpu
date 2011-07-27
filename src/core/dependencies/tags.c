@@ -288,9 +288,13 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 
 	struct starpu_tag_s *tag_array[ntags];
 
+	_STARPU_LOG_IN();
+
 	/* It is forbidden to block within callbacks or codelets */
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls())) {
+		_STARPU_LOG_OUT_TAG("edeadlk");
 		return -EDEADLK;
+	}
 
 	/* only wait the tags that are not done yet */
 	for (i = 0, current = 0; i < ntags; i++)
@@ -314,6 +318,7 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 	if (current == 0)
 	{
 		/* all deps are already fulfilled */
+		_STARPU_LOG_OUT_TAG("all deps are already fulfilled");
 		return 0;
 	}
 	
@@ -338,6 +343,7 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 
 	free(cg);
 
+	_STARPU_LOG_OUT();
 	return 0;
 }
 
