@@ -298,17 +298,15 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 			if (local->state == STARPU_INVALID) {
 				isvalid = 0; 
 			}
-	
-			if (local->allocated && local->automatically_allocated){
-				/* free the data copy in a lazy fashion */
-				_starpu_request_mem_chunk_removal(root_handle, node);
-				isvalid = 0; 
-			}
-#ifdef STARPU_DEVEL
-#warning free the data replicate if needed
-#endif
 
+			if (local->allocated && local->automatically_allocated)
+				/* free the child data copy in a lazy fashion */
+				_starpu_request_mem_chunk_removal(&root_handle->children[child], node);
 		}
+
+		if (!isvalid && root_handle->per_node[node].allocated && root_handle->per_node[node].automatically_allocated)
+			/* free the data copy in a lazy fashion */
+			_starpu_request_mem_chunk_removal(root_handle, node);
 
 		/* if there was no invalid copy, the node still has a valid copy */
 		still_valid[node] = isvalid;
