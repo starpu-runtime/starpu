@@ -1275,6 +1275,10 @@ AC_MSG_CHECKING(which BLAS lib should be used)
 AC_MSG_RESULT($blas_lib)
 AC_SUBST(BLAS_LIB,$blas_lib)
 
+##########################################
+# FFT                                    #
+##########################################
+
 have_fftw=no
 have_fftwf=no
 have_fftwl=no
@@ -1299,6 +1303,10 @@ PKG_CHECK_MODULES([FFTWL], [fftw3l], [
   have_fftwl=yes
 ], [:])
 AM_CONDITIONAL(STARPU_HAVE_FFTWL, [test x$have_fftwl = xyes])
+
+##########################################
+# hwloc                                  #
+##########################################
 
 AC_ARG_WITH([hwloc], [AS_HELP_STRING([--without-hwloc], [Disable hwloc (enabled by default)])])
 SAVED_LDFLAGS="${LDFLAGS}"
