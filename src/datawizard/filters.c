@@ -296,6 +296,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 			struct starpu_data_replicate_s *local = &root_handle->children[child].per_node[node];
 
 			if (local->state == STARPU_INVALID) {
+				/* One of the bits is missing */
 				isvalid = 0; 
 			}
 
@@ -304,13 +305,19 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 				_starpu_request_mem_chunk_removal(&root_handle->children[child], node);
 		}
 
+		if (!root_handle->per_node[node].allocated)
+			/* Even if we have all the bits, if we don't have the
+			 * whole data, it's not valid */
+			isvalid = 0;
+
 		if (!isvalid && root_handle->per_node[node].allocated && root_handle->per_node[node].automatically_allocated)
 			/* free the data copy in a lazy fashion */
 			_starpu_request_mem_chunk_removal(root_handle, node);
 
 		/* if there was no invalid copy, the node still has a valid copy */
 		still_valid[node] = isvalid;
-		nvalids++;
+		if (isvalid)
+			nvalids++;
 	}
 
 	/* either shared or owned */
