@@ -448,8 +448,10 @@ if test x$have_curand = xyes; then
 fi
 
 # Peer transfers are only supported since CUDA 4.0
+# Disable them if user explicity wants to disable them
+AC_ARG_ENABLE(cuda_memcpy_peer, [AS_HELP_STRING([--disable-cuda-memcpy-peer], [do not allow peer transfers when using CUDA 4.0])],, [enable_cuda_memcpy_peer=yes])
 have_cuda_memcpy_peer=no
-if test x$enable_cuda = xyes; then
+if test x$enable_cuda_memcpy_peer = xyes -a x$enable_cuda = xyes ; then
     SAVED_LDFLAGS="${LDFLAGS}"
     LDFLAGS="${LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
     AC_CHECK_FUNC([cudaMemcpyPeer], have_cuda_memcpy_peer=yes, have_cuda_memcpy_peer=no)
@@ -1283,7 +1285,7 @@ PKG_CHECK_MODULES([FFTW],  [fftw3],  [
   have_fftw=yes
 ], [:])
 AM_CONDITIONAL(STARPU_HAVE_FFTW, [test x$have_fftw = xyes])
-
+ 
 PKG_CHECK_MODULES([FFTWF], [fftw3f], [
   AC_DEFINE([STARPU_HAVE_FFTWF], [1], [Define to 1 if you have the libfftw3f library.])
   AC_SUBST([STARPU_HAVE_FFTWF], [1])

@@ -2558,6 +2558,7 @@ Enable flags for the @code{gcov} coverage tool.
 * --with-cuda-dir::             
 * --with-cuda-include-dir::             
 * --with-cuda-lib-dir::             
+* --disable-cuda-memcpy-peer::
 * --enable-maxopencldev::       
 * --disable-opencl::            
 * --with-opencl-dir::           
@@ -2622,6 +2623,13 @@ Specify the directory where the CUDA library is installed. This directory should
 notably contain the CUDA shared libraries (e.g. libcuda.so). This defaults to
 @code{/lib} appended to the value given to @code{--with-cuda-dir}.
 
+@end table
+
+@node --disable-cuda-memcpy-peer
+@subsubsection @code{--disable-cuda-memcpy-peer}
+@table @asis
+@item @emph{Description}
+Explicitely disables peer transfers when using CUDA 4.0
 @end table
 
 @node --enable-maxopencldev
