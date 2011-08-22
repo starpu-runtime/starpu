@@ -242,11 +242,16 @@ int starpu_task_submit(struct starpu_task *task)
 	if (task->cl)
 	{
 		uint32_t where = task->cl->where;
+		unsigned i;
 		if (!_starpu_worker_exists(where)) {
                         _STARPU_LOG_OUT_TAG("ENODEV");
 			return -ENODEV;
                 }
 		assert(task->cl->nbuffers <= STARPU_NMAXBUFS);
+		for (i = 0; i < task->cl->nbuffers; i++) {
+			/* Make sure handles are not partitioned */
+			assert(task->buffers[i].handle->nchildren == 0);
+		}
 
 		/* In case we require that a task should be explicitely
 		 * executed on a specific worker, we make sure that the worker
