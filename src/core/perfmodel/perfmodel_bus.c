@@ -437,6 +437,7 @@ static void benchmark_all_gpu_devices(void)
         cudaGetDeviceCount(&ncuda);
 	for (i = 0; i < ncuda; i++)
 	{
+		fprintf(stderr," CUDA %d...", i);
 		/* measure bandwidth between Host and Device i */
 		measure_bandwidth_between_host_and_dev(i, cudadev_timing_htod, cudadev_timing_dtoh, cudadev_timing_per_cpu, 'C');
 	}
@@ -445,6 +446,7 @@ static void benchmark_all_gpu_devices(void)
         nopencl = _starpu_opencl_get_device_count();
 	for (i = 0; i < nopencl; i++)
 	{
+		fprintf(stderr," OpenCL %d...", i);
 		/* measure bandwith between Host and Device i */
 		measure_bandwidth_between_host_and_dev(i, opencldev_timing_htod, opencldev_timing_dtoh, opencldev_timing_per_cpu, 'O');
 	}
