@@ -77,3 +77,5 @@ txtdir = ${docdir}
 endif
 txt_DATA = AUTHORS COPYING.LGPL README
 EXTRA_DIST = AUTHORS COPYING.LGPL README
+
+include starpu-top/extradist
