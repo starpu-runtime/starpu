@@ -890,23 +890,21 @@ static void write_bus_bandwidth_file_content(void)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 			else if (src != dst)
 			{
-                                double time_src_to_ram=0.0, time_ram_to_dst=0.0;
-                                double timing;
-                                /* Bandwidth = (SIZE)/(time i -> ram + time ram -> j)*/
+				double slowness_src_to_ram=0.0, slowness_ram_to_dst=0.0;
+				/* Total bandwidth is the harmonic mean of bandwidths */
 #ifdef STARPU_USE_CUDA
-				time_src_to_ram = (src==0)?0.0:cudadev_timing_dtoh[src];
-                                time_ram_to_dst = (dst==0)?0.0:cudadev_timing_htod[dst];
-				timing =time_src_to_ram + time_ram_to_dst;
-				bandwidth = 1.0*cuda_size/timing;
+				if (src && src <= ncuda)
+					slowness_src_to_ram = cudadev_timing_dtoh[src]/cuda_size;
+				if (dst && dst <= ncuda)
+					slowness_ram_to_dst = cudadev_timing_htod[dst]/cuda_size;
 #endif
 #ifdef STARPU_USE_OPENCL
-                                if (src > ncuda)
-                                        time_src_to_ram = (src==0)?0.0:opencldev_timing_dtoh[src-ncuda];
-                                if (dst > ncuda)
-                                        time_ram_to_dst = (dst==0)?0.0:opencldev_timing_htod[dst-ncuda];
-				timing =time_src_to_ram + time_ram_to_dst;
-				bandwidth = 1.0*opencl_size/timing;
+				if (src > ncuda)
+					slowness_src_to_ram = opencldev_timing_dtoh[src-ncuda]/opencl_size;
+				if (dst > ncuda)
+					slowness_ram_to_dst = opencldev_timing_htod[dst-ncuda]/opencl_size;
 #endif
+				bandwidth = 1.0/(slowness_src_to_ram + slowness_ram_to_dst);
 			}
 #endif
 			else {
