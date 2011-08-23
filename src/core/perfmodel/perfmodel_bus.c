@@ -431,6 +431,8 @@ static void benchmark_all_gpu_devices(void)
 	struct starpu_machine_config_s *config = _starpu_get_machine_config();
 	ncpus = _starpu_topology_get_nhwcpu(config);
 
+	/* TODO: measure bandwidth between GPU-GPU */
+
 #ifdef STARPU_USE_CUDA
         cudaGetDeviceCount(&ncuda);
 	for (i = 0; i < ncuda; i++)
