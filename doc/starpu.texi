@@ -2073,7 +2073,7 @@ This will create an @code{activity.data} file in the current
 directory. A profile of the application showing the activity of StarPU
 during the execution of the program can be generated:
 @example
-$ starpu_top.sh activity.data
+$ starpu_top activity.data
 @end example
 
 This will create a file named @code{activity.eps} in the current directory.

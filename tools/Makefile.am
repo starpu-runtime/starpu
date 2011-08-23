@@ -47,4 +47,4 @@ bin_PROGRAMS += \
 noinst_PROGRAMS =	cbc2paje lp2paje
 
 dist_bin_SCRIPTS +=	\
-	starpu_top.sh
+	starpu_top
