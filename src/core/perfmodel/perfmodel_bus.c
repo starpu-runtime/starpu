@@ -921,6 +921,38 @@ static void write_bus_bandwidth_file_content(void)
 	fclose(f);
 }
 
+void starpu_print_bus_bandwidth(FILE *f)
+{
+	int src, dst, maxnode;
+
+        maxnode = ncuda;
+#ifdef STARPU_USE_OPENCL
+        maxnode += nopencl;
+#endif
+
+	fprintf(f, "from\t");
+	fprintf(f, "to RAM\t\t");
+	for (dst = 0; dst < ncuda; dst++)
+		fprintf(f, "to CUDA %d\t", dst);
+	for (dst = 0; dst < nopencl; dst++)
+		fprintf(f, "to OpenCL %d\t", dst);
+	fprintf(f, "\n");
+
+	for (src = 0; src <= maxnode; src++)
+	{
+		if (!src)
+			fprintf(f, "RAM\t");
+		else if (src <= ncuda)
+			fprintf(f, "CUDA %d\t", src-1);
+		else
+			fprintf(f, "OpenCL%d\t", src-ncuda-1);
+		for (dst = 0; dst <= maxnode; dst++)
+			fprintf(f, "%f\t", bandwidth_matrix[src][dst]);
+
+		fprintf(f, "\n");
+	}
+}
+
 static void generate_bus_bandwidth_file(void)
 {
 	if (!was_benchmarked)

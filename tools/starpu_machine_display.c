@@ -91,6 +91,8 @@ int main(int argc, char **argv)
 
 	display_all_combined_workers();
 
+	starpu_print_bus_bandwidth(stdout);
+
 	starpu_shutdown();
 
 	return 0;

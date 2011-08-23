@@ -95,7 +95,8 @@ void *_starpu_cpu_worker(void *arg)
 
 	_starpu_set_local_worker_key(cpu_arg);
 
-	snprintf(cpu_arg->name, 32, "CPU %d", devid);
+	snprintf(cpu_arg->name, sizeof(cpu_arg->name), "CPU %d", devid);
+	snprintf(cpu_arg->short_name, sizeof(cpu_arg->short_name), "CPU %d", devid);
 
 	cpu_arg->status = STATUS_UNKNOWN;
 

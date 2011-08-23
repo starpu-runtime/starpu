@@ -431,7 +431,8 @@ void *_starpu_gordon_worker(void *arg)
 	for (spu = 0; spu < gordon_set_arg->nworkers; spu++)
 	{
 		struct starpu_worker_s *worker = &gordon_set_arg->workers[spu];
-		snprintf(worker->name, 32, "SPU %d", worker->id);
+		snprintf(worker->name, sizeof(worker->name), "SPU %d", worker->id);
+		snprintf(worker->short_name, sizeof(worker->short_name), "SPU %d", worker->id);
 	}
 
 	/*

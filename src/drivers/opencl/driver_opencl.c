@@ -401,7 +401,8 @@ void *_starpu_opencl_worker(void *arg)
 	/* get the device's name */
 	char devname[128];
 	_starpu_opencl_get_device_name(devid, devname, 128);
-	snprintf(args->name, 32, "OpenCL %d (%s)", args->devid, devname);
+	snprintf(args->name, sizeof(args->name), "OpenCL %d (%s)", args->devid, devname);
+	snprintf(args->short_name, sizeof(args->short_name), "OpenCL %d", args->devid);
 
 	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 

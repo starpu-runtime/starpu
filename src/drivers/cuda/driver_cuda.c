@@ -243,10 +243,11 @@ void *_starpu_cuda_worker(void *arg)
 	cudaGetDeviceProperties(&prop, devid);
 	strncpy(devname, prop.name, 128);
 #if CUDA_VERSION >= 3020
-	snprintf(args->name, 48, "CUDA %d (%s %02x:%02x.0)", args->devid, devname, prop.pciBusID, prop.pciDeviceID);
+	snprintf(args->name, sizeof(args->name), "CUDA %d (%s %02x:%02x.0)", args->devid, devname, prop.pciBusID, prop.pciDeviceID);
 #else
-	snprintf(args->name, 48, "CUDA %d (%s)", args->devid, devname);
+	snprintf(args->name, sizeof(args->name), "CUDA %d (%s)", args->devid, devname);
 #endif
+	snprintf(args->short_name, sizeof(args->short_name), "CUDA %d", args->devid);
 	_STARPU_DEBUG("cuda (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 
 	STARPU_TRACE_WORKER_INIT_END
