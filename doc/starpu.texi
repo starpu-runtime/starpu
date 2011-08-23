@@ -1877,6 +1877,22 @@ TODO
 
 @c what kind of information do we get ?
 
+The bus speed measured by StarPU can be displayed by using the
+@code{starpu_machine_display} tool, for instance:
+
+@example
+StarPU has found :
+	3 CUDA devices
+		CUDA 0 (Tesla C2050 02:00.0)
+		CUDA 1 (Tesla C2050 03:00.0)
+		CUDA 2 (Tesla C2050 84:00.0)
+from	to RAM		to CUDA 0	to CUDA 1	to CUDA 2	
+RAM	0.000000	5176.530428	5176.492994	5191.710722	
+CUDA 0	4523.732446	0.000000	2414.074751	2417.379201	
+CUDA 1	4523.718152	2414.078822	0.000000	2417.375119	
+CUDA 2	4534.229519	2417.069025	2417.060863	0.000000	
+@end example
+
 @node StarPU-Top
 @subsection StarPU-Top interface
 
