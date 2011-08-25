@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009  Université de Bordeaux 1
-# Copyright (C) 2010  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +27,9 @@ EXTRA_DIST = starpu.pdf \
 	vector_scal_opencl.texi
 
 AM_MAKEINFOHTMLFLAGS = --css-include=$(top_srcdir)/doc/starpu.css --no-headers --no-split
+
+uninstall-local:
+	$(RM) $(DESTDIR)$(infodir)/dir
 
 #$(top_srcdir)/doc/starpu.texi: vector_scal_c.texi vector_scal_cuda.texi vector_scal_opencl.texi vector_scal_opencl_codelet.texi
 #vector_scal_c.texi: $(top_srcdir)/examples/basic_examples/vector_scal.c
