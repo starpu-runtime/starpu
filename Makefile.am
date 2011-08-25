@@ -70,6 +70,8 @@ clean-local:
 install-exec-local:
 	$(MKDIR_P) $(DESTDIR)$(bindir)
 	$(INSTALL_STRIP_PROGRAM) starpu-top/StarPU-Top $(DESTDIR)$(bindir)
+uninstall-local:
+	$(RM) $(DESTDIR)$(bindir)/StarPU-Top
 endif
 
 if STARPU_HAVE_WINDOWS
