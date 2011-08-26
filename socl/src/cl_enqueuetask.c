@@ -16,14 +16,6 @@
 
 #include "socl.h"
 
-static cl_uint work_dim = 3;
-static const size_t global_work_offset[3] = {0,0,0};
-static const size_t global_work_size[3] = {1,1,1};
-static const size_t * local_work_size = NULL;
-
-CL_API_ENTRY cl_int CL_API_CALL
-soclEnqueueNDRangeKernel(cl_command_queue, cl_kernel, cl_uint, const size_t *, const size_t *, const size_t *, cl_uint, const cl_event *, cl_event *) CL_API_SUFFIX__VERSION_1_0;
-
 CL_API_ENTRY cl_int CL_API_CALL
 soclEnqueueTask(cl_command_queue cq,
               cl_kernel         kernel,
@@ -31,19 +23,11 @@ soclEnqueueTask(cl_command_queue cq,
               const cl_event *  events,
               cl_event *        event) CL_API_SUFFIX__VERSION_1_0
 {
-	node_enqueue_kernel n;
-
-	n = graph_create_enqueue_kernel(1, cq, kernel, work_dim, global_work_offset, global_work_size,
-		local_work_size, num_events, events, kernel->arg_count, kernel->arg_size,
-		kernel->arg_type, kernel->arg_value);
+	command_ndrange_kernel cmd = command_task_create(kernel);
 	
-	//FIXME: temporarily, we execute the node directly. In the future, we will postpone this.
-	graph_play_enqueue_kernel(n);
-	graph_free(n);
+	command_queue_enqueue(cq, cmd, num_events, events);
 
-	//graph_store(n);
-
-	RETURN_OR_RELEASE_EVENT(n->node.event, event);
+	RETURN_EVENT(cmd, event);
 
 	return CL_SUCCESS;
 }

@@ -26,4 +26,9 @@
  */
 cl_event event_create(void);
 
+/**
+ * Generate a unique tag id
+ */
+int event_unique_id();
+
 #endif /* SOCL_EVENT_H */

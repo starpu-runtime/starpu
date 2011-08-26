@@ -29,7 +29,7 @@ soclGetKernelInfo(cl_kernel       kernel,
 
    switch (param_name) {
       INFO_CASE_EX(CL_KERNEL_FUNCTION_NAME, kernel->kernel_name, strlen(kernel->kernel_name)+1)
-      INFO_CASE(CL_KERNEL_NUM_ARGS, kernel->arg_count)
+      INFO_CASE(CL_KERNEL_NUM_ARGS, kernel->num_args)
       INFO_CASE(CL_KERNEL_REFERENCE_COUNT, kernel->_entity.refs)
       INFO_CASE(CL_KERNEL_PROGRAM, kernel->program)
       INFO_CASE(CL_KERNEL_CONTEXT, kernel->program->context)

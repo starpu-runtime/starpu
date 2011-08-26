@@ -24,16 +24,18 @@ SUBDIRS =
 lib_LTLIBRARIES = libsocl.la
 
 libsocl_la_SOURCES = 						\
-  socl.c \
-  gc.c \
-  graph.c \
-  event.c \
-  init.c \
-  task.c \
+  command.c \
+  command_list.c \
   command_queue.c \
-  mem_objects.c \
-  util.c \
+  debug.c \
   devices.c \
+  event.c \
+  gc.c \
+  init.c \
+  mem_objects.c \
+  socl.c \
+  task.c \
+  util.c \
   cl_getplatformids.c \
   cl_getplatforminfo.c \
   cl_getdeviceids.c \

@@ -20,21 +20,24 @@
 
 static void release_callback_event(void * e);
 
+int event_unique_id() {
+   static int id = 1;
+
+   return __sync_fetch_and_add(&id,1);
+}
+
 /**
  * Create a new event
  *
  * Events have one-to-one relation with tag. Tag number is event ID
  */
 cl_event event_create(void) {
-   static int id = 1;
    cl_event ev;
    ev = gc_entity_alloc(sizeof(struct _cl_event), release_callback_event);
 
-   ev->next = NULL;
-   ev->prev = NULL;
-   ev->id = __sync_fetch_and_add(&id,1);
+   ev->id = event_unique_id();
    ev->status = CL_SUBMITTED;
-   ev->type = 0;
+   ev->command = NULL;
    ev->profiling_info = NULL;
    ev->cq = NULL;
 
@@ -49,22 +52,17 @@ static void release_callback_event(void * e) {
   /* Remove from command queue */
   if (cq != NULL) {
     /* Lock command queue */
-    pthread_spin_lock(&cq->spin);
+    pthread_mutex_lock(&cq->mutex);
 
     /* Remove barrier if applicable */
-    if (cq->barrier == event)
+    if (cq->barrier == event->command)
       cq->barrier = NULL;
 
-    /* Remove from the list of out-of-order events */
-    if (event->prev != NULL)
-      event->prev->next = event->next;
-    if (event->next != NULL)
-      event->next->prev = event->prev;
-    if (cq->events == event)
-      cq->events = event->next;
+    /* Remove from the list of out-of-order commands */
+    cq->commands = command_list_remove(cq->commands, event->command);
 
     /* Unlock command queue */
-    pthread_spin_unlock(&cq->spin);
+    pthread_mutex_unlock(&cq->mutex);
 
     gc_entity_unstore(&cq);
   }

@@ -104,13 +104,15 @@ void gc_stop(void) {
   pthread_join(gc_thread, NULL);
 }
 
-void gc_entity_release_ex(entity e) {
+int gc_entity_release_ex(entity e) {
 
   /* Decrement reference count */
   int refs = __sync_sub_and_fetch(&e->refs, 1);
 
   if (refs != 0)
-    return;
+    return 0;
+
+  DEBUG_MSG("Releasing entity %lx\n", e);
 
   GC_LOCK;
 
@@ -127,6 +129,8 @@ void gc_entity_release_ex(entity e) {
   gc_list = e;
 
   GC_UNLOCK;
+
+  return 1;
 }
 
 

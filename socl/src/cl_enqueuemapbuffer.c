@@ -16,81 +16,53 @@
 
 #include "socl.h"
 
-struct mb_data {
-  cl_event ev;
-  cl_mem buffer;
-  cl_map_flags map_flags;
-};
-
 static void mapbuffer_callback(void *args) {
-  struct mb_data *arg = (struct mb_data*)args;
+	command_map_buffer cmd = (command_map_buffer)args;
 
-  starpu_tag_notify_from_apps(arg->ev->id);
-  arg->ev->status = CL_COMPLETE;
-
-  gc_entity_unstore(&arg->ev);
-  gc_entity_unstore(&arg->buffer);
-  free(args);
+	starpu_tag_notify_from_apps(cmd->event->id);
+	cmd->event->status = CL_COMPLETE;
 }
 
 static void mapbuffer_task(void *args) {
-  struct mb_data *arg = (struct mb_data*)args;
+	command_map_buffer cmd = (command_map_buffer)args;
 
-  starpu_access_mode mode = (arg->map_flags == CL_MAP_READ ? STARPU_R : STARPU_RW);
+	starpu_access_mode mode = (cmd->map_flags == CL_MAP_READ ? STARPU_R : STARPU_RW);
 
-  starpu_data_acquire_cb(arg->buffer->handle, mode, mapbuffer_callback, arg);
+	starpu_data_acquire_cb(cmd->buffer->handle, mode, mapbuffer_callback, cmd);
+}
+
+cl_int command_map_buffer_submit(command_map_buffer cmd) {
+	starpu_task task = task_create_cpu(mapbuffer_task, cmd, 0);
+
+	task_submit(task, cmd);
+
+	return CL_SUCCESS;
 }
 
 CL_API_ENTRY void * CL_API_CALL
 soclEnqueueMapBuffer(cl_command_queue cq,
                    cl_mem           buffer,
-                   cl_bool          blocking_map, 
+                   cl_bool          blocking, 
                    cl_map_flags     map_flags,
                    size_t           offset, 
-                   size_t           UNUSED(cb),
+                   size_t           cb,
                    cl_uint          num_events,
                    const cl_event * events,
                    cl_event *       event,
                    cl_int *         errcode_ret) CL_API_SUFFIX__VERSION_1_0
 {
-   struct starpu_task *task;
-   struct mb_data *arg;
-   cl_event ev;
-   cl_int err;
-   cl_int ndeps;
-   cl_event *deps;
+	cl_event ev = event_create();
 
-   /* Create custom event that will be triggered when map is complete */
-   ev = event_create();
+	command_map_buffer cmd = command_map_buffer_create(buffer, map_flags, offset, cb, ev);
 
-   /* Store arguments */
-   arg = (struct mb_data*)malloc(sizeof(struct mb_data));
-   arg->map_flags = map_flags;
-   gc_entity_store(&arg->ev, ev);
-   gc_entity_store(&arg->buffer, buffer);
+	command_queue_enqueue(cq, cmd, num_events, events);
 
-   /* Create StarPU task */
-   task = task_create_cpu(CL_COMMAND_MAP_BUFFER, mapbuffer_task, arg, 0);
-   cl_event map_event = task_event(task);
+	if (errcode_ret != NULL)
+		*errcode_ret = CL_SUCCESS;
 
-   /* Enqueue task */
-   DEBUG_MSG("Submitting MapBuffer task (event %d)\n", ev->id);
-   command_queue_enqueue(cq, ev, 0, num_events, events, &ndeps, &deps);
+	RETURN_CUSTOM_EVENT(ev,event);
 
-   task_submit(task, ndeps, deps);
-
-   gc_entity_release(map_event);
-
-   if (errcode_ret != NULL)
-      *errcode_ret = err;
-
-   if (err != CL_SUCCESS)
-      return NULL;
-
-   if (blocking_map == CL_TRUE)
-      soclWaitForEvents(1, &ev);
-
-   RETURN_OR_RELEASE_EVENT(ev, event);
-
-   return (void*)(starpu_variable_get_local_ptr(buffer->handle) + offset);
+	MAY_BLOCK_CUSTOM(blocking,ev);
+	
+	return (void*)(starpu_variable_get_local_ptr(buffer->handle) + offset);
 }

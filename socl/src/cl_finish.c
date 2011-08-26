@@ -17,11 +17,14 @@
 #include "socl.h"
 
 CL_API_ENTRY cl_int CL_API_CALL
-soclFinish(cl_command_queue cq) CL_API_SUFFIX__VERSION_1_0
-{
-   cl_event ev = command_queue_barrier(cq);
-   soclWaitForEvents(1, &ev);
-   gc_entity_release(ev);
+soclFinish(cl_command_queue cq) CL_API_SUFFIX__VERSION_1_0 {
 
-   return CL_SUCCESS;
+	command_marker cmd = command_barrier_create();
+
+	command_queue_enqueue(cq, cmd, 0, NULL);
+		cl_event ev = command_event_get(cmd);
+
+	MAY_BLOCK(CL_TRUE)
+
+	return CL_SUCCESS;
 }

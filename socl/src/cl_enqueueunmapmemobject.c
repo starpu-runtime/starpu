@@ -16,32 +16,31 @@
 
 #include "socl.h"
 
+cl_int command_unmap_mem_object_submit(command_unmap_mem_object cmd) {
+	/* Aliases */
+	cl_mem buffer = cmd->buffer;
+
+	//FIXME: use a callback
+	starpu_task task = task_create_cpu((void(*)(void*))starpu_data_release, buffer->handle, 0);
+
+	task_submit(task, cmd);
+
+	return CL_SUCCESS;
+}
+
 CL_API_ENTRY cl_int CL_API_CALL
 soclEnqueueUnmapMemObject(cl_command_queue cq,
-                        cl_mem            memobj,
-                        void *            UNUSED(mapped_ptr),
+                        cl_mem            buffer,
+                        void *            ptr,
                         cl_uint           num_events,
                         const cl_event *  events,
                         cl_event *        event) CL_API_SUFFIX__VERSION_1_0
 {
-   struct starpu_task *task;
-   cl_int err;
-   cl_event ev;
-   cl_int ndeps;
-   cl_event *deps;
+	command_unmap_mem_object cmd = command_unmap_mem_object_create(buffer, ptr);
 
-   /* Create StarPU task */
-   task = task_create_cpu(CL_COMMAND_UNMAP_MEM_OBJECT, (void(*)(void*))starpu_data_release, memobj->handle, 0);
-   ev = task_event(task);
+	command_queue_enqueue(cq, cmd, num_events, events);
 
-   DEBUG_MSG("Submitting UnmapBuffer task (event %d)\n", task->tag_id);
+	RETURN_EVENT(cmd, event);
 
-   command_queue_enqueue(cq, task_event(task), 0, num_events, events, &ndeps, &deps);
-
-   task_submit(task, ndeps, deps);
-
-
-   RETURN_OR_RELEASE_EVENT(ev, event);
-
-   return CL_SUCCESS;
+	return CL_SUCCESS;
 }

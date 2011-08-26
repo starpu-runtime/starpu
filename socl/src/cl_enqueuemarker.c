@@ -22,16 +22,19 @@ soclEnqueueMarker(cl_command_queue  cq,
 {
 	if (event == NULL)
 		return CL_INVALID_VALUE;
+	
+	command_marker cmd = command_marker_create();
 
-	cl_int ndeps;
-	cl_event *deps;
+	command_queue_enqueue(cq, cmd, 0, NULL);
 
-	starpu_task * task = task_create(CL_COMMAND_MARKER);
-	*event = task_event(task);
+	RETURN_EVENT(cmd, event);
 
-	command_queue_enqueue(cq, task_event(task), 0, 0, NULL, &ndeps, &deps);
+	return CL_SUCCESS;
+}
 
-	task_submit(task, ndeps, deps);
+cl_int command_marker_submit(command_marker cmd) {
+	struct starpu_task *task;
+	task = task_create(CL_COMMAND_MARKER);
 
-	return task_event(task);
+	task_submit(task, cmd);
 }

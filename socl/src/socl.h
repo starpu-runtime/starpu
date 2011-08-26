@@ -23,6 +23,9 @@
 #include CL_HEADERS "CL/cl.h"
 #endif
 
+/* Additional command type */
+#define CL_COMMAND_BARRIER 0x99987
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -35,7 +38,7 @@
 #include <starpu_profiling.h>
 #include <starpu_task.h>
 
-typedef struct starpu_task starpu_task;
+typedef struct starpu_task * starpu_task;
 
 #ifdef UNUSED
 #elif defined(__GNUC__)
@@ -50,12 +53,13 @@ typedef struct starpu_task starpu_task;
  */
 typedef struct entity * entity;
 
+#include "command.h"
+#include "command_list.h"
 #include "command_queue.h"
 #include "debug.h"
 #include "devices.h"
 #include "event.h"
 #include "gc.h"
-#include "graph.h"
 #include "mem_objects.h"
 #include "task.h"
 #include "util.h"
@@ -79,11 +83,32 @@ struct entity {
 
 struct _cl_platform_id {};
 
-#define RETURN_OR_RELEASE_EVENT(ev, event) \
-   if (event != NULL) \
-      *event = ev; \
-   else\
-      gc_entity_release(ev);
+#define RETURN_EVENT(cmd, event) \
+	if (event != NULL) { \
+		cl_event ev = command_event_get(cmd);\
+		gc_entity_retain(ev);\
+		*event = ev; \
+	}
+
+#define RETURN_CUSTOM_EVENT(src, tgt) \
+	if (tgt != NULL) { \
+		gc_entity_retain(src); \
+		*tgt = src; \
+	}
+
+#define MAY_BLOCK(blocking) \
+	if ((blocking) == CL_TRUE) {\
+		cl_event ev = command_event_get(cmd);\
+		soclWaitForEvents(1, &ev);\
+		gc_entity_release(ev);\
+	}
+
+#define MAY_BLOCK_CUSTOM(blocking,event) \
+	if ((blocking) == CL_TRUE) {\
+		cl_event ev = (event);\
+		soclWaitForEvents(1, &ev);\
+		gc_entity_release(ev);\
+	}
 
 /* Constants */
 struct _cl_platform_id socl_platform;
@@ -121,14 +146,14 @@ struct _cl_command_queue {
   cl_device_id device;
   cl_context context;
 
-  /* Stored command events */
-  cl_event events;
+  /* Stored commands */
+  command_list commands;
 
   /* Last enqueued barrier-like event */
-  cl_event barrier;
+  cl_command barrier;
 
   /* Mutex */
-  pthread_spinlock_t spin;
+  pthread_mutex_t mutex;
 
   /* ID  */
 #ifdef DEBUG
@@ -142,12 +167,8 @@ struct _cl_event {
   /* Command queue */
   cl_command_queue cq;
 
-  /* Command type */
-  cl_command_type type;
-
-  /* Command queue list */
-  cl_event prev;
-  cl_event next;
+  /* Command */
+  cl_command command;
 
   /* Event status */
   cl_int status;
@@ -244,7 +265,7 @@ struct _cl_kernel {
   cl_int *errcodes;
 
   /* Arguments */
-  unsigned int arg_count;
+  unsigned int num_args;
   size_t *arg_size;
   enum kernel_arg_type  *arg_type;
   void  **arg_value;

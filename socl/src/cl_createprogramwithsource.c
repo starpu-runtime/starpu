@@ -40,11 +40,11 @@ static void soclCreateProgramWithSource_task(void *data) {
 }
 
 static void rp_task(void *data) {
-   struct _cl_program *d = (struct _cl_program*)data;
+   cl_program program = (cl_program)data;
 
    int range = starpu_worker_get_range();
 
-   cl_int err = clReleaseProgram(d->cl_programs[range]);
+   cl_int err = clReleaseProgram(program->cl_programs[range]);
    if (err != CL_SUCCESS)
       DEBUG_CL("clReleaseProgram", err);
 }

@@ -47,10 +47,10 @@ void command_queue_dependencies_implicit(
 
 	/* Add dependencies to out-of-order events (if any) */
 	if (is_barrier) {
-		cl_event ev = cq->events;
-		while (ev != NULL) {
+		command_list cl = cq->commands;
+		while (cl != NULL) {
 			ndeps++;
-			ev = ev->next;
+			cl = cl->next;
 		}
 	}
 
@@ -63,14 +63,14 @@ void command_queue_dependencies_implicit(
 
 	/* Add dependency to last barrier if applicable */
 	if (cq->barrier != NULL)
-		evs[n++] = cq->barrier;
+		evs[n++] = cq->barrier->event;
 
 	/* Add dependencies to out-of-order events (if any) */
 	if (is_barrier) {
-		cl_event ev = cq->events;
-		while (ev != NULL) {
-			evs[n++] = ev;
-			ev = ev->next;
+		command_list cl = cq->commands;
+		while (cl != NULL) {
+			evs[n++] = cl->cmd->event;
+			cl = cl->next;
 		}
 	}
 
@@ -79,39 +79,30 @@ void command_queue_dependencies_implicit(
 }
 	
 /**
- * Insert a task in the command queue
+ * Insert a command in the command queue
  * The command queue must be locked!
  */
 void command_queue_insert(
-	cl_command_queue cq, 	/* Command queue */
-	cl_event task_event,	/* Event for the task */
-	char is_barrier		/* Is the task a barrier */
+	cl_command_queue 	cq, 	/* Command queue */
+	cl_command 		cmd,	/* Command */
+	int 			is_barrier		/* Is the task a barrier */
 ) {
 
 	int in_order = !(cq->properties & CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE);
 
-	/*********************
-	 * Insert event
-	 *********************/
-
 	if (is_barrier)
-		cq->events = NULL;
+		cq->commands = NULL;
 
-	/* Add event to the list of out-of-order events */
-	if (!in_order) {
-		task_event->next = cq->events;
-		task_event->prev = NULL;
-		if (cq->events != NULL)
-			cq->events->prev = task_event;
-		cq->events = task_event;
-	}
+	/* Add command to the list of out-of-order commands */
+	if (!in_order)
+		cq->commands = command_list_cons(cmd, cq->commands);
 
 	/* Register this event as last barrier */
 	if (is_barrier || in_order)
-		cq->barrier = task_event;
+		cq->barrier = cmd;
 
 	/* Add reference to the command queue */
-	gc_entity_store(&task_event->cq, cq);
+	gc_entity_store(&cmd->event->cq, cq);
 }
 
 /**
@@ -119,12 +110,12 @@ void command_queue_insert(
  * The command queue must be locked!
  */
 void command_queue_dependencies(
-	cl_command_queue cq,	/* Command queue */
-	char is_barrier,	/* Is the task a barrier */
-	cl_int num_events,	/* Number of explicit dependencies */
-	const cl_event events,	/* Explicit dependencies */
-	cl_int * ret_num_events,	/* Returned number of dependencies */
-	cl_event ** ret_events	/* Returned dependencies */
+	cl_command_queue 	cq,		/* Command queue */
+	int 			is_barrier,	/* Is the task a barrier */
+	cl_int 			num_events,	/* Number of explicit dependencies */
+	const cl_event *	events,		/* Explicit dependencies */
+	cl_int * 		ret_num_events,	/* Returned number of dependencies */
+	cl_event ** 		ret_events	/* Returned dependencies */
 ) {
 	cl_int implicit_num_events;
 	cl_event * implicit_events;
@@ -142,43 +133,36 @@ void command_queue_dependencies(
 	*ret_events = evs;
 }
 
-/**
- * Enqueue the given task and put ev into the command queue.
- */
-void command_queue_enqueue(
-	cl_command_queue cq, 		/* Command queue */
-	cl_event ev,			/* Event triggered on task completion (can be NULL if task event should be used)*/
-	cl_int is_barrier,			/* True if the task acts as a barrier */
-	cl_int num_events,		/* Number of dependencies */
-	const cl_event * events,	/* Dependencies */
-	cl_int * ret_num_events,	/* Returned number of events */
-	cl_event ** ret_events		/* Returned events */
-	) {
+void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_events, const cl_event * events) {
+
+	/* Check if the command is a barrier */
+	int is_barrier = 0;
+	if (cmd->typ == CL_COMMAND_BARRIER) {
+		is_barrier = 1;
+		/* OpenCL has no CL_COMMAND_BARRIER type, so we fall back on CL_COMMAND_MARKER */
+		cmd->typ = CL_COMMAND_MARKER;
+	}
+
+	/* Set command queue field */
+	cmd->cq = cq;
 
 	/* Lock command queue */
-	pthread_spin_lock(&cq->spin);
+	pthread_mutex_lock(&cq->mutex);
 
-	command_queue_dependencies(cq, is_barrier, num_events, events, ret_num_events, ret_events);
+	//FIXME: crappy separation (command_queue_dependencies + command_queue_insert)
 
-	command_queue_insert(cq, ev, is_barrier);
+	/* Get all (explicit + implicit) dependencies */
+	cl_int all_num_events;
+	cl_event * all_events;
+	command_queue_dependencies(cq, is_barrier, num_events, events, &all_num_events, &all_events);
+
+	/* Make all dependencies explicit for the command */
+	cmd->num_events = all_num_events;
+	cmd->events = all_events;
+
+	/* Insert command in the queue */
+	command_queue_insert(cq, cmd, is_barrier);
 
 	/* Unlock command queue */
-	pthread_spin_unlock(&cq->spin);
-}
-
-
-cl_event command_queue_barrier(cl_command_queue cq) {
-
-	cl_int ndeps;
-	cl_event *deps;
-
-	//CL_COMMAND_MARKER has been chosen as CL_COMMAND_BARRIER doesn't exist
-	starpu_task * task = task_create(CL_COMMAND_MARKER);
-
-	DEBUG_MSG("Submitting barrier task (event %d)\n", task->tag_id);
-	command_queue_enqueue(cq, task_event(task), 1, 0, NULL, &ndeps, &deps);
-
-	task_submit(task, ndeps, deps);
-
-	return task_event(task);
+	pthread_mutex_unlock(&cq->mutex);
 }

@@ -15,39 +15,14 @@
  */
 
 #include "socl.h"
-#include "gc.h"
-#include "mem_objects.h"
 
-/**
- * Initialize SOCL
- */
-__attribute__((constructor)) static void socl_init() {
-  
-  mem_object_init();
+typedef struct command_list_t * command_list;
 
-  starpu_init(NULL);
-  
-  /* Disable dataflow implicit dependencies */
-  starpu_data_set_default_sequential_consistency_flag(0);
+struct command_list_t {
+	cl_command cmd;
+	command_list next;
+	command_list prev;
+};
 
-  gc_start();
-}
-
-/**
- * Shutdown SOCL
- */
-__attribute__((destructor)) static void socl_shutdown() {
-
-  starpu_task_wait_for_all();
-
-  gc_stop();
-
-  starpu_task_wait_for_all();
-
-  int active_entities = gc_active_entity_count();
-
-  if (active_entities != 0)
-    fprintf(stderr, "Unreleased entities: %d\n", active_entities);
-
-  starpu_shutdown();
-}
+command_list command_list_cons(cl_command cmd, command_list ls);
+command_list command_list_remove(command_list l, cl_command cmd);

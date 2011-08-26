@@ -17,6 +17,7 @@
 #include "socl.h"
 #include "getinfo.h"
 
+
 CL_API_ENTRY cl_int CL_API_CALL
 soclGetEventInfo(cl_event       event,
                cl_event_info    param_name,
@@ -33,7 +34,7 @@ soclGetEventInfo(cl_event       event,
 
    switch (param_name) {
       INFO_CASE(CL_EVENT_COMMAND_QUEUE, event->cq);
-      INFO_CASE(CL_EVENT_COMMAND_TYPE, event->type);
+      INFO_CASE(CL_EVENT_COMMAND_TYPE, event->command->typ);
       INFO_CASE(CL_EVENT_COMMAND_EXECUTION_STATUS, event->status);
       INFO_CASE(CL_EVENT_REFERENCE_COUNT, event->_entity.refs);
       default:

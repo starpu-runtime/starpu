@@ -68,6 +68,43 @@ static starpu_codelet codelet_writebuffer = {
    .nbuffers = 1
 };
 
+cl_int command_write_buffer_submit(command_write_buffer cmd) {
+	/* Aliases */
+	cl_mem buffer = cmd->buffer;
+	size_t offset = cmd->offset;
+	size_t cb = cmd->cb;
+	const void * ptr = cmd->ptr;
+
+	struct starpu_task *task;
+	struct arg_writebuffer *arg;
+
+	task = task_create(CL_COMMAND_WRITE_BUFFER);
+
+	task->buffers[0].handle = buffer->handle;
+	//If only a subpart of the buffer is written, RW access mode is required
+	if (cb != buffer->size)
+		task->buffers[0].mode = STARPU_RW;
+	else 
+		task->buffers[0].mode = STARPU_W;
+	task->cl = &codelet_writebuffer;
+
+	arg = (struct arg_writebuffer*)malloc(sizeof(struct arg_writebuffer));
+	arg->offset = offset;
+	arg->cb = cb;
+	arg->ptr = ptr;
+	task->cl_arg = arg;
+	task->cl_arg_size = sizeof(struct arg_writebuffer);
+
+	gc_entity_store(&arg->buffer, buffer);
+
+	//The buffer now contains meaningful data
+	arg->buffer->scratch = 0;
+
+	task_submit(task, cmd);
+
+	return CL_SUCCESS;
+}
+
 CL_API_ENTRY cl_int CL_API_CALL
 soclEnqueueWriteBuffer(cl_command_queue cq, 
                      cl_mem             buffer, 
@@ -79,46 +116,13 @@ soclEnqueueWriteBuffer(cl_command_queue cq,
                      const cl_event *   events, 
                      cl_event *         event) CL_API_SUFFIX__VERSION_1_0
 { 
-   struct starpu_task *task;
-   struct arg_writebuffer *arg;
-   cl_event ev;
+	command_write_buffer cmd = command_write_buffer_create(buffer, offset, cb, ptr);
 
-   cl_int ndeps;
-   cl_event *deps;
+	command_queue_enqueue(cq, cmd, num_events, events);
 
-   task = task_create(CL_COMMAND_WRITE_BUFFER);
-   ev = task_event(task);
+	RETURN_EVENT(cmd, event);
 
-   task->buffers[0].handle = buffer->handle;
-   //If only a subpart of the buffer is written, RW access mode is required
-   if (cb != buffer->size)
-      task->buffers[0].mode = STARPU_RW;
-   else 
-      task->buffers[0].mode = STARPU_W;
-   task->cl = &codelet_writebuffer;
+	MAY_BLOCK(blocking);
 
-   arg = (struct arg_writebuffer*)malloc(sizeof(struct arg_writebuffer));
-   arg->offset = offset;
-   arg->cb = cb;
-   arg->ptr = ptr;
-   task->cl_arg = arg;
-   task->cl_arg_size = sizeof(struct arg_writebuffer);
-
-   gc_entity_store(&arg->buffer, buffer);
-
-   //The buffer now contains meaningful data
-   arg->buffer->scratch = 0;
-
-   task->synchronous = (blocking == CL_TRUE);
-
-   DEBUG_MSG("Submitting EnqueueRWBuffer task (event %d)\n", ev->id);
-
-   command_queue_enqueue(cq, task_event(task), 0, num_events, events, &ndeps, &deps);
-
-   task_submit(task, ndeps, deps);
-
-   /* Return retained event if required by user */
-   RETURN_OR_RELEASE_EVENT(ev,event);
-
-   return CL_SUCCESS;
+	return CL_SUCCESS;
 }

@@ -27,7 +27,7 @@ void * gc_entity_alloc(unsigned int size, void (*release_callback)(void*));
 void gc_entity_retain(void *arg);
 
 /** Decrement reference counter and release entity if applicable */
-void gc_entity_release_ex(entity e);
+int gc_entity_release_ex(entity e);
 
 int gc_active_entity_count(void);
 

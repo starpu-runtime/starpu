@@ -32,23 +32,23 @@ static void soclCreateKernel_task(void *data) {
    }
 
    /* One worker creates argument structures */
-   if (__sync_bool_compare_and_swap(&k->arg_count, 0, 666)) {
+   if (__sync_bool_compare_and_swap(&k->num_args, 0, 666)) {
       unsigned int i;
-      cl_uint arg_count;
+      cl_uint num_args;
 
-      err = clGetKernelInfo(k->cl_kernels[range], CL_KERNEL_NUM_ARGS, sizeof(arg_count), &arg_count, NULL);
+      err = clGetKernelInfo(k->cl_kernels[range], CL_KERNEL_NUM_ARGS, sizeof(num_args), &num_args, NULL);
       if (err != CL_SUCCESS) {
          DEBUG_CL("clGetKernelInfo", err);
          ERROR_STOP("Unable to get kernel argument count. Aborting.\n");
       }
-      k->arg_count = arg_count;
-      DEBUG_MSG("Kernel has %d arguments\n", arg_count);
+      k->num_args = num_args;
+      DEBUG_MSG("Kernel has %d arguments\n", num_args);
 
-      k->arg_size = (size_t*)malloc(sizeof(size_t) * arg_count);
-      k->arg_value = (void**)malloc(sizeof(void*) * arg_count);
-      k->arg_type = (enum kernel_arg_type*)malloc(sizeof(enum kernel_arg_type) * arg_count);
+      k->arg_size = (size_t*)malloc(sizeof(size_t) * num_args);
+      k->arg_value = (void**)malloc(sizeof(void*) * num_args);
+      k->arg_type = (enum kernel_arg_type*)malloc(sizeof(enum kernel_arg_type) * num_args);
       /* Settings default type to NULL */
-      for (i=0; i<arg_count; i++) {
+      for (i=0; i<num_args; i++) {
          k->arg_value[i] = NULL;
          k->arg_type[i] = Null;
       }
@@ -70,7 +70,7 @@ static void release_callback_kernel(void * e) {
 
   //Free args
   unsigned int j;
-  for (j=0; j<kernel->arg_count; j++) {
+  for (j=0; j<kernel->num_args; j++) {
     switch (kernel->arg_type[j]) {
       case Null:
         break;
@@ -125,7 +125,7 @@ soclCreateKernel(cl_program    program,
    
    gc_entity_store(&k->program, program);
    k->kernel_name = strdup(kernel_name);
-   k->arg_count = 0;
+   k->num_args = 0;
    k->arg_value = NULL;
    k->arg_size = NULL;
 

@@ -25,7 +25,7 @@ soclSetKernelArg(cl_kernel  kernel,
    if (kernel == NULL)
       return CL_INVALID_KERNEL;
 
-   if (arg_index >= kernel->arg_count)
+   if (arg_index >= kernel->num_args)
       return CL_INVALID_ARG_INDEX;
 
    //FIXME: we don't return CL_INVALID_ARG_VALUE if "arg_value is NULL for an argument that is not declared with __local qualifier or vice-versa"
@@ -38,7 +38,8 @@ soclSetKernelArg(cl_kernel  kernel,
          break;
       case Buffer:
          kernel->arg_type[arg_index] = Null;
-         gc_entity_unstore((cl_mem*)&kernel->arg_value[arg_index]);
+         gc_entity_unstore((cl_mem*)kernel->arg_value[arg_index]);
+	 free(kernel->arg_value[arg_index]);
          kernel->arg_value[arg_index] = NULL;
          break;
       case Immediate:
@@ -60,7 +61,8 @@ soclSetKernelArg(cl_kernel  kernel,
       if ((arg_size == sizeof(cl_mem)) && ((buf = mem_object_fetch(arg_value)) != NULL)) {
          DEBUG_MSG("Found buffer %d \n", buf->id);
          kernel->arg_type[arg_index] = Buffer;
-         gc_entity_store(&kernel->arg_value[arg_index], buf);
+         kernel->arg_value[arg_index] = malloc(sizeof(void*));
+	 gc_entity_store((cl_mem*)kernel->arg_value[arg_index], buf);
       }
       else {
          /* Argument must be an immediate buffer  */

@@ -19,19 +19,22 @@
 
 #include "socl.h"
 
-starpu_task * task_create(cl_command_type type);
-starpu_task * task_create_with_event(cl_command_type type, cl_event event);
-void task_dependency_add(starpu_task * task, cl_uint num, const cl_event *events);
-starpu_task * task_create_cpu(cl_command_type type, void (*callback)(void*), void *arg, int free_arg);
+starpu_task task_create();
+void task_dependency_add(starpu_task task, cl_uint num_events, cl_event *events);
 
-/** 
- * Return event associated to a task
- */
-cl_event task_event(starpu_task *task);
+starpu_task task_create_cpu(void (*callback)(void*), void *arg, int free_arg);
 
 /**
- * Submit "task" with "events" dependencies
+ * Associate a StarPU task to a command and submit it
+ *
+ * When the task terminates, the command is set as terminated too
  */
-cl_int task_submit(starpu_task * task, cl_int num_events, cl_event * events);
+cl_int task_submit_ex(starpu_task task, cl_command cmd);
+#define task_submit(task,cmd) task_submit_ex(task, (cl_command)cmd)
+
+/**
+ * Add task dependencies
+ */
+void task_depends_on(starpu_task task, cl_uint num_events, cl_event *events);
 
 #endif /* SOCL_TASK_H */
