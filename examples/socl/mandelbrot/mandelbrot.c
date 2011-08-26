@@ -21,7 +21,7 @@
 #include <unistd.h>
 
 /* Uncomment this to activate X11 display */
-#define USE_X11
+//#define USE_X11
 
 #define SHORT_LOG 1
 #define ROUND_ROBIN
