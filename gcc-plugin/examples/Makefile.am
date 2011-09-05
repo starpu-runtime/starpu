@@ -17,4 +17,6 @@ noinst_PROGRAMS =				\
   matrix-mult
 
 AM_LDFLAGS = $(top_builddir)/src/libstarpu.la
+
+AM_CPPFLAGS = $(STARPU_OPENCL_CPPFLAGS) $(STARPU_CUDA_CPPFLAGS)
 AM_CFLAGS = -fplugin="$(builddir)/../src/.libs/starpu.so" -Wall
