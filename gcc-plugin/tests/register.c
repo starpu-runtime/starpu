@@ -31,6 +31,15 @@ foo (void)
 #pragma starpu register x /* (warning "considered unsafe") */
 }
 
+static void
+bar (float *p, int s)
+{
+  expected_register_arguments.pointer = p;
+  expected_register_arguments.elements = s;
+  expected_register_arguments.element_size = sizeof *p;
+#pragma starpu register p s
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -39,6 +48,7 @@ main (int argc, char *argv[])
   int x[123];
   double *y;
   static char z[345];
+  static float m[7][42];
   short w[] = { 1, 2, 3 };
   size_t y_size = 234;
 
@@ -84,8 +94,36 @@ main (int argc, char *argv[])
 #undef N
 
   foo ();
+  bar ((float *) argv, argc);
 
-  assert (data_register_calls == 8);
+  expected_register_arguments.pointer = argv;
+  expected_register_arguments.elements = argc;
+  expected_register_arguments.element_size = sizeof argv[0];
+
+  int chbouib = argc;
+#pragma starpu register argv chbouib
+
+  expected_register_arguments.pointer = &argv[2];
+  expected_register_arguments.elements = 3;
+  expected_register_arguments.element_size = sizeof argv[0];
+#pragma starpu register &argv[2] 3
+
+  expected_register_arguments.pointer = &argv[argc + 3 / 2];
+  expected_register_arguments.elements = argc * 4;
+  expected_register_arguments.element_size = sizeof argv[0];
+#pragma starpu register &argv[argc + 3 / 2] (argc * 4)
+
+  expected_register_arguments.pointer = &y[y_size / 2];
+  expected_register_arguments.elements = (y_size / 2 - 7);
+  expected_register_arguments.element_size = sizeof y[0];
+#pragma starpu register &y[y_size / 2] (y_size / 2 - 7)
+
+  expected_register_arguments.pointer = m[6];
+  expected_register_arguments.elements = 42;
+  expected_register_arguments.element_size = sizeof m[0][0];
+#pragma starpu register m[6]
+
+  assert (data_register_calls == 14);
 
   free (y);
 

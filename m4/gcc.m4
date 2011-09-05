@@ -52,7 +52,8 @@ AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
     dnl   build_call_expr_loc_array -- not in GCC 4.5.x; appears in 4.6
     dnl   build_call_expr_loc_vec   -- likewise
     _STARPU_WITH_GCC_PLUGIN_API([
-      AC_CHECK_DECLS([build_call_expr_loc_array, build_call_expr_loc_vec],
+      AC_CHECK_DECLS([build_call_expr_loc_array, build_call_expr_loc_vec,
+                      build_array_ref],
         [], [], [#include <gcc-plugin.h>
 	         #include <tree.h>])
     ])

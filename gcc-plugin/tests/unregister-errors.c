@@ -28,8 +28,8 @@ main (int argc, char *argv[])
 
 #pragma starpu register x
 
-#pragma starpu unregister /* (error "unterminated") */
-#pragma starpu unregister 123 /* (error "identifier expected") */
+#pragma starpu unregister /* (error "parse error") */
+#pragma starpu unregister 123 /* (error "neither a pointer nor an array") */
 #pragma starpu unregister does_not_exit /* (error "unbound variable") */
 
 #pragma starpu unregister argc /* (error "neither a pointer nor an array") */

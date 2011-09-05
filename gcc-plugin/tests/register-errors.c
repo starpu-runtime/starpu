@@ -23,9 +23,9 @@ main (int argc, char *argv[])
 {
 #pragma starpu initialize
 
-#pragma starpu register /* (error "unterminated") */
+#pragma starpu register /* (error "parse error") */
 
-#pragma starpu register argv 234 junk right here /* (error "junk after") */
+#pragma starpu register argv 234 junk here /* (error "junk after") *//* (error "unbound") *//* (error "unbound") */
 
   static int x[123] __attribute__ ((unused));
 #pragma starpu register x 234 /* (note "can be omitted") *//* (error "differs from actual size") */
@@ -37,8 +37,14 @@ main (int argc, char *argv[])
 #pragma starpu register argv does_not_exit /* (error "unbound variable") */
 
 #pragma starpu register argv /* (error "cannot determine size") */
+#pragma starpu register &argv[2] /* (error "cannot determine size") */
+#pragma starpu register &x[2] /* (error "cannot determine size") */
 
 #pragma starpu register argc /* (error "neither a pointer nor an array") */
+
+#pragma starpu register argv[2][3] 3 /* (error "neither a pointer nor an array") */
+
+#pragma starpu register argv[does_not_exist] 3 /* (error "unbound variable") */
 
   char **p = argv;
   size_t ps = argc;
