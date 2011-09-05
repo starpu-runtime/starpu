@@ -387,7 +387,6 @@ handle_pragma_register (struct cpp_reader *reader)
   loc = cpp_peek_token (reader, 0)->src_loc;
 
   args = read_pragma_expressions ("register", loc);
-  debug_tree (args);
   if (args == NULL_TREE)
     /* Parse error, presumably already handled by the parser.  */
     return;
