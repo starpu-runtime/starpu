@@ -187,34 +187,15 @@ main (int argc, char **argv)
   gettimeofday (&start_register, NULL);
   for (i = 0; i < nslicesy; i++)
     for (j = 0; j < nslicesz; j++)
-      {
-	/* TODO: Get rid of the `ptr' and `size' variables when the pragma
-	   parser supports arbitrary C expressions.  */
-
-	typeof (A) ptr = &A[i*zdim*bydim + j*bzdim*bydim];
-	size_t size = (bzdim * bydim);
-#pragma starpu register ptr size
-      }
+#pragma starpu register &A[i*zdim*bydim + j*bzdim*bydim] (bzdim * bydim)
 
   for (i = 0; i < nslicesz; i++)
-    {
-      for (j = 0; j < nslicesx; j++)
-	{
-	  typeof (B) ptr = &B[i*xdim*bzdim + j*bxdim*bzdim];
-	  size_t size = (bxdim * bzdim);
-#pragma starpu register ptr size
-	}
-    }
+    for (j = 0; j < nslicesx; j++)
+#pragma starpu register &B[i*xdim*bzdim + j*bxdim*bzdim] (bxdim * bzdim)
 
   for (i = 0; i < nslicesy; i++)
-    {
-      for (j = 0; j < nslicesx; j++)
-	{
-	  typeof (C) ptr = &C[i*xdim*bydim + j*bxdim*bydim];
-	  size_t size = (bxdim * bydim);
-#pragma starpu register ptr size
-	}
-    }
+    for (j = 0; j < nslicesx; j++)
+#pragma starpu register &C[i*xdim*bydim + j*bxdim*bydim] (bxdim * bydim)
 
 
   gettimeofday (&end_register, NULL);
@@ -256,25 +237,16 @@ main (int argc, char **argv)
   gettimeofday (&start_unregister, NULL);
   for (i = 0; i < nslicesy; i++)
     for (j = 0; j < nslicesz; j++)
-      {
-	typeof (A) ptr =  &A[i*zdim*bydim + j*bzdim*bydim];
-#pragma starpu unregister ptr
-      }
+#pragma starpu unregister &A[i*zdim*bydim + j*bzdim*bydim]
 
 
   for (i = 0; i < nslicesz; i++)
     for (j = 0; j < nslicesx; j++)
-      {
-	typeof (B) ptr = &B[i*xdim*bzdim + j*bxdim*bzdim];
-#pragma starpu unregister ptr
-      }
+#pragma starpu unregister &B[i*xdim*bzdim + j*bxdim*bzdim]
 
   for (i = 0; i < nslicesy; i++)
     for (j = 0; j < nslicesx; j++)
-      {
-	typeof (C) ptr = &C[i*xdim*bydim + j*bxdim*bydim];
-#pragma starpu unregister ptr
-      }
+#pragma starpu unregister &C[i*xdim*bydim + j*bxdim*bydim]
 
   gettimeofday (&end_unregister, NULL);
   gettimeofday (&end_all, NULL);
