@@ -1228,16 +1228,16 @@ Partitioning can be applied several times, see
 @section Performance model example
 
 To achieve good scheduling, StarPU scheduling policies need to be able to
-estimate in advance the duration of a task. This is done by giving to codelets a
-performance model. There are several kinds of performance models.
+estimate in advance the duration of a task. This is done by giving to codelets
+a performance model, by defining a @code{starpu_perfmodel_t} structure and
+providing its address in the @code{model} field of the @code{starpu_codelet}
+structure. The @code{symbol} and @code{type} fields of @code{starpu_perfmodel_t}
+are mandatory, to give a name to the model, and the type of the model, since
+there are several kinds of performance models.
 
 @itemize
 @item
-Providing an estimation from the application itself (@code{STARPU_COMMON} model type and @code{cost_model} field),
-see for instance
-@code{examples/common/blas_model.h} and @code{examples/common/blas_model.c}. It can also be provided for each architecture (@code{STARPU_PER_ARCH} model type and @code{per_arch} field)
-@item
-Measured at runtime (STARPU_HISTORY_BASED model type). This assumes that for a
+Measured at runtime (@code{STARPU_HISTORY_BASED} model type). This assumes that for a
 given set of data input/output sizes, the performance will always be about the
 same. This is very true for regular kernels on GPUs for instance (<0.1% error),
 and just a bit less true on CPUs (~=1% error). This also assumes that there are
@@ -1277,7 +1277,7 @@ starpu_codelet cl = @{
 @end cartouche
 
 @item
-Measured at runtime and refined by regression (STARPU_REGRESSION_*_BASED
+Measured at runtime and refined by regression (@code{STARPU_REGRESSION_*_BASED}
 model type). This still assumes performance regularity, but can work
 with various data input sizes, by applying regression over observed
 execution times. STARPU_REGRESSION_BASED uses an a*n^b regression
@@ -1287,7 +1287,12 @@ STARPU_REGRESSION_BASED, but costs a lot more to compute). For instance,
 model for the @code{memset} operation.
 
 @item
-Provided explicitly by the application (STARPU_PER_ARCH model type): the
+Provided as an estimation from the application itself (@code{STARPU_COMMON} model type and @code{cost_model} field),
+see for instance
+@code{examples/common/blas_model.h} and @code{examples/common/blas_model.c}.
+
+@item
+Provided explicitly by the application (@code{STARPU_PER_ARCH} model type): the
 @code{.per_arch[i].cost_model} fields have to be filled with pointers to
 functions which return the expected duration of the task in micro-seconds, one
 per architecture.
