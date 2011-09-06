@@ -85,7 +85,7 @@ exec "${GUILE-@GUILE@}" -l "$0"    \
     ;; the real file name.
     ,(string-append "-fplugin=" %builddir "/../src/.libs/starpu.so")
 
-    "-g" "-O2"
+    "-g"
     "-fdump-tree-gimple" "-Wall"))
 
 (define %default-ldflags
@@ -421,6 +421,12 @@ otherwise."
 ;;;
 
 (define (build/run . file)
-  (exit (every (cut compile/match <> %gcc %default-cflags %default-ldflags) file)))
+  (exit (every (lambda (file)
+                 ;; For each file, check that everything works both with and
+                 ;; without optimizations.
+                 (every (cut compile/match file %gcc <> %default-ldflags)
+                        `((,"-O0" ,@%default-cflags)
+                          (,"-O2" ,@%default-cflags))))
+               file)))
 
 ;;; run-test.in ends here
