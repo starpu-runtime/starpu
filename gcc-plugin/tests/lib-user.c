@@ -28,7 +28,10 @@ main (int argc, char *argv[])
 {
 #pragma starpu initialize
 
-  static const char x[] = { 0, 1, 2, 3, 4, 5 };
+  /* Align X so that the assumptions behind `dummy_pointer_to_handle'
+     hold.  */
+  static const char x[] __attribute__ ((aligned (8))) = { 0, 1, 2, 3, 4, 5 };
+
   float y[sizeof x];
 
   static const char forty_two = 42;
