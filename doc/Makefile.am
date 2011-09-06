@@ -16,6 +16,8 @@
 
 info_TEXINFOS = starpu.texi
 
+starpu_TEXINFOS = c-extensions.texi
+
 MAINTAINERCLEANFILES = starpu.pdf
 
 EXTRA_DIST = starpu.pdf \

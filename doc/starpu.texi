@@ -49,8 +49,9 @@ was last updated on @value{UPDATED}.
 * Configuring StarPU::          How to configure StarPU
 * StarPU API::                  The API to use StarPU
 * Advanced Topics::             Advanced use of StarPU
-* Full source code for the 'Scaling a Vector' example::  
+* C Extensions::                Easier StarPU programming with GCC
 
+* Full source code for the 'Scaling a Vector' example::
 * Function Index::              Index of C functions.
 @end menu
 
@@ -4914,6 +4915,13 @@ static struct starpu_sched_policy_s dummy_sched_policy = @{
 @};
 @end smallexample
 @end cartouche
+
+
+@c ---------------------------------------------------------------------
+@c C Extensions
+@c ---------------------------------------------------------------------
+
+@include c-extensions.texi
 
 
 @c ---------------------------------------------------------------------

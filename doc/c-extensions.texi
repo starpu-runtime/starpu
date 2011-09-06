@@ -1,0 +1,160 @@
+@c This is part of the StarPU Handbook.
+@c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+
+@node C Extensions
+@chapter C Extensions
+
+@cindex C extensions
+@cindex GCC plug-in
+
+When configured with @code{--enable-gcc-extensions}, StarPU builds a
+plug-in for the GNU Compiler Collection (GCC), which defines extensions
+to the C language that make it easier to write StarPU code@footnote{This
+feature is only available for GCC 4.5 and later.}.  Those extensions
+include syntactic sugar for defining tasks and their implementations,
+invoking a task, and manipulating data buffers.
+
+This section does not require detailed knowledge of the StarPU library.
+
+Note: as of StarPU @value{VERSION}, this is still an area under
+development and subject to change.
+
+@menu
+* Defining Tasks::              Defining StarPU tasks
+* Registered Data Buffers::     Manipulating data buffers
+@end menu
+
+@node Defining Tasks
+@section Defining Tasks
+
+@cindex task
+@cindex task implementation
+
+The StarPU GCC plug-in views @dfn{tasks} as ``extended'' C functions:
+
+@enumerate
+@item
+tasks may have several implementations---e.g., one for CPUs, one written
+in OpenCL, one written in CUDA;
+@item
+when a task is invoked, it may run in parallel, and StarPU is free to
+choose any of its implementations.
+@end enumerate
+
+Tasks and their implementations must be @emph{declared}.  These
+declarations are annotated with @dfn{attributes} (@pxref{Attribute
+Syntax, attributes in GNU C,, gcc, Using the GNU Compiler Collection
+(GCC)}): the declaration of a task is a regular C function declaration
+with an additional @code{task} attribute, and task implementations are
+declared with a @code{task_implementation} attribute.
+
+The following function attributes are provided:
+
+@table @code
+
+@item task
+@cindex @code{task} attribute
+Declare the given function as a StarPU task.  Its return type must be
+@code{void}, and it must not be defined---instead, a definition will
+automatically be provided by the compiler.
+
+Under the hood, declaring a task leads to the declaration of the
+corresponding @code{codelet} (@pxref{Codelet and Tasks}).  If one or
+more task implementations are declared in the same compilation unit,
+then the codelet and the function itself are also defined; they inherit
+the scope of the task.
+
+Scalar arguments to the task are passed by value and copied to the
+target device if need be---technically, they are passed as the
+@code{cl_arg} buffer (@pxref{Codelets and Tasks, @code{cl_arg}}).
+
+Pointer arguments are assumed to be registered data buffers---the
+@code{buffers} argument of a task (@pxref{Codelets and Tasks,
+@code{buffers}}); @code{const}-qualified pointer arguments are viewed as
+read-only buffers (@code{STARPU_R}), and non-@code{const}-qualified
+buffers are assumed to be used read-write (@code{STARPU_RW}).
+
+@item task_implementation (@var{target}, @var{task})
+@cindex @code{task_implementation} attribute
+Declare the given function as an implementation of @var{task} to run on
+@var{target}.  @var{target} must be a string, currently one of
+@code{"cpu"} or @code{"cuda"}.
+@c FIXME: Update when OpenCL support is ready.
+
+@end table
+
+Here is an example:
+
+@example
+static void matmul (const float *A, const float *B, float *C,
+		    size_t nx, size_t ny, size_t nz)
+  __attribute__ ((task));
+
+static void matmul_cpu (const float *A, const float *B, float *C,
+			size_t nx, size_t ny, size_t nz)
+  __attribute__ ((task_implementation ("cpu", matmul)));
+
+
+static void
+matmul_cpu (const float *A, const float *B, float *C,
+	    size_t nx, size_t ny, size_t nz)
+@{
+  size_t i, j, k;
+
+  for (j = 0; j < ny; j++)
+    for (i = 0; i < nx; i++)
+      @{
+	for (k = 0; k < nz; k++)
+	  C[j * nx + i] += A[j * nz + k] * B[k * nx + i];
+      @}
+@}
+@end example
+
+@noindent
+A @code{matmult} task is defined; it has only one implementation,
+@code{matmult_cpu}, which runs on the CPU.  Variables @var{A} and
+@var{B} are input buffers, whereas @var{C} is considered an input/output
+buffer.  The task can be invoked like a regular C function:
+
+@example
+matmul (&A[i * zdim * bydim + k * bzdim * bydim],
+        &B[k * xdim * bzdim + j * bxdim * bzdim],
+        &C[i * xdim * bydim + j * bxdim * bydim],
+        bxdim, bydim, bzdim);
+@end example
+
+@noindent
+This leads to an @dfn{asynchronous invocation}, whereby @code{matmult}'s
+implementation may run in parallel with the continuation of the caller.
+
+The next section describes how memory buffers must be handled in
+StarPU-GCC code.
+
+
+@node Registered Data Buffers
+@section Registered Data Buffers
+
+Data buffers such as matrices and vectors that are to be passed to tasks
+must be @dfn{registered}.  Registration allows StarPU to handle data
+transfers among devices---e.g., transferring an input buffer from the
+CPU's main memory to a task scheduled to run a GPU (@pxref{StarPU Data
+Management Library}).
+
+The following pragmas are provided:
+
+@table @code
+
+@item #pragma starpu register @var{ptr} [@var{size}]
+Register @var{ptr} as a @var{size}-element buffer.
+
+@item #pragma starpu unregister @var{ptr}
+@item #pragma starpu acquire @var{ptr}
+
+@end table
+
+FIXME: finish
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c ispell-local-dictionary: "american"
+@c End:
