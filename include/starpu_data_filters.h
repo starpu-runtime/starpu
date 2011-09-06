@@ -19,6 +19,8 @@
 #ifndef __STARPU_DATA_FILTERS_H__
 #define __STARPU_DATA_FILTERS_H__
 
+#include <stdarg.h>
+
 #include <starpu.h>
 #include <starpu_config.h>
 
