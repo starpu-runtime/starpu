@@ -69,7 +69,7 @@ void *_starpu_htbl_insert_tag(starpu_htbl_node_t **htbl, starpu_tag_t tag, void 
 	{
 		if (*current_htbl_ptr == NULL) {
 			/* TODO pad to change that 1 into 16 ? */
-			*current_htbl_ptr = calloc(1, sizeof(starpu_htbl_node_t));
+			*current_htbl_ptr = (starpu_htbl_node_t *) calloc(1, sizeof(starpu_htbl_node_t));
 			assert(*current_htbl_ptr);
 
 			if (previous_htbl_ptr)
@@ -97,7 +97,7 @@ void *_starpu_htbl_insert_tag(starpu_htbl_node_t **htbl, starpu_tag_t tag, void 
 	/* current_htbl either contains NULL or a previous entry 
 	 * we overwrite it anyway */
 	void *old_entry = *current_htbl_ptr;
-	*current_htbl_ptr = entry;
+	*current_htbl_ptr = (starpu_htbl_node_t *) entry;
 
 	if (!old_entry)
 		previous_htbl_ptr->nentries++;

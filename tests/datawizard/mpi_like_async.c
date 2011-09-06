@@ -97,7 +97,7 @@ static int test_recv_handle_async(void *arg)
 //	FPRINTF(stderr, "test_recv_handle_async\n");
 
 	int ret;
-	struct thread_data *thread_data = arg;
+	struct thread_data *thread_data = (struct thread_data *) arg;
 	
 	pthread_mutex_lock(&thread_data->recv_mutex);
 
@@ -125,9 +125,9 @@ static int test_recv_handle_async(void *arg)
 
 static void recv_handle_async(void *_thread_data)
 {
-	struct thread_data *thread_data = _thread_data;
+	struct thread_data *thread_data = (struct thread_data *) _thread_data;
 
-	struct data_req *req = malloc(sizeof(struct data_req));
+	struct data_req *req = (struct data_req *) malloc(sizeof(struct data_req));
 	req->test_func = test_recv_handle_async;
 	req->test_arg = thread_data;
 	req->next = NULL;
@@ -142,7 +142,7 @@ static void recv_handle_async(void *_thread_data)
 static int test_send_handle_async(void *arg)
 {
 	int ret;
-	struct thread_data *thread_data = arg;
+	struct thread_data *thread_data = (struct thread_data *) arg;
 	struct thread_data *neighbour_data = thread_data->neighbour;
 	
 	pthread_mutex_lock(&neighbour_data->recv_mutex);
@@ -162,7 +162,7 @@ static int test_send_handle_async(void *arg)
 
 static void send_handle_async(void *_thread_data)
 {
-	struct thread_data *thread_data = _thread_data;
+	struct thread_data *thread_data = (struct thread_data *) _thread_data;
 	struct thread_data *neighbour_data = thread_data->neighbour;
 
 //	FPRINTF(stderr, "send_handle_async\n");
@@ -173,7 +173,7 @@ static void send_handle_async(void *_thread_data)
 	neighbour_data->recv_flag = 1;
 	pthread_mutex_unlock(&neighbour_data->recv_mutex);
 
-	struct data_req *req = malloc(sizeof(struct data_req));
+	struct data_req *req = (struct data_req *) malloc(sizeof(struct data_req));
 	req->test_func = test_send_handle_async;
 	req->test_arg = thread_data;
 	req->next = NULL;
@@ -247,7 +247,7 @@ static void *progress_func(void *arg)
 static void *thread_func(void *arg)
 {
 	unsigned iter;
-	struct thread_data *thread_data = arg;
+	struct thread_data *thread_data = (struct thread_data *) arg;
 	unsigned index = thread_data->index;
 
 	starpu_variable_data_register(&thread_data->handle, 0, (uintptr_t)&thread_data->val, sizeof(unsigned));

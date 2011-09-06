@@ -27,7 +27,7 @@
 struct starpu_deque_jobq_s *_starpu_create_deque(void)
 {
 	struct starpu_deque_jobq_s *deque;
-	deque = malloc(sizeof(struct starpu_deque_jobq_s));
+	deque = (struct starpu_deque_jobq_s *) malloc(sizeof(struct starpu_deque_jobq_s));
 
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
 	deque->jobq = starpu_job_list_new();

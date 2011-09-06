@@ -25,8 +25,8 @@
  */
 void starpu_block_filter_func(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
-       starpu_matrix_interface_t *matrix_father = father_interface;
-       starpu_matrix_interface_t *matrix_child = child_interface;
+       starpu_matrix_interface_t *matrix_father = (starpu_matrix_interface_t *) father_interface;
+       starpu_matrix_interface_t *matrix_child = (starpu_matrix_interface_t *) child_interface;
   
 	uint32_t nx = matrix_father->nx;
 	uint32_t ny = matrix_father->ny;
@@ -56,8 +56,8 @@ void starpu_block_filter_func(void *father_interface, void *child_interface, STA
 
 void starpu_vertical_block_filter_func(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
-        starpu_matrix_interface_t *matrix_father = father_interface;
-        starpu_matrix_interface_t *matrix_child = child_interface;
+        starpu_matrix_interface_t *matrix_father = (starpu_matrix_interface_t *) father_interface;
+        starpu_matrix_interface_t *matrix_child = (starpu_matrix_interface_t *) child_interface;
 
 	uint32_t nx = matrix_father->nx;
 	uint32_t ny = matrix_father->ny;

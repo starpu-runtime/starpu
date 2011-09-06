@@ -71,10 +71,10 @@ int main(int argc, char **argv)
 {
 	starpu_init(NULL);
 
-	A = malloc(VECTORSIZE*sizeof(unsigned));
-	B = malloc(VECTORSIZE*sizeof(unsigned));
-	C = malloc(VECTORSIZE*sizeof(unsigned));
-	D = malloc(VECTORSIZE*sizeof(unsigned));
+	A = (unsigned *) malloc(VECTORSIZE*sizeof(unsigned));
+	B = (unsigned *) malloc(VECTORSIZE*sizeof(unsigned));
+	C = (unsigned *) malloc(VECTORSIZE*sizeof(unsigned));
+	D = (unsigned *) malloc(VECTORSIZE*sizeof(unsigned));
 
 	starpu_vector_data_register(&A_handle, 0, (uintptr_t)A, VECTORSIZE, sizeof(unsigned));
 	starpu_vector_data_register(&B_handle, 0, (uintptr_t)B, VECTORSIZE, sizeof(unsigned));

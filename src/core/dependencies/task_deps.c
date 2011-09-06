@@ -28,7 +28,7 @@
 
 static starpu_cg_t *create_cg_task(unsigned ntags, starpu_job_t j)
 {
-	starpu_cg_t *cg = malloc(sizeof(starpu_cg_t));
+	starpu_cg_t *cg = (starpu_cg_t *) malloc(sizeof(starpu_cg_t));
 	STARPU_ASSERT(cg);
 
 	cg->ntags = ntags;

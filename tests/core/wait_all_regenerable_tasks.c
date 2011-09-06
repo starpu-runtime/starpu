@@ -29,7 +29,7 @@ static void callback(void *arg)
 {
 	struct starpu_task *task = starpu_get_current_task();
 
-	unsigned *cnt = arg;
+	unsigned *cnt = (unsigned *) arg;
 
 	(*cnt)++;
 

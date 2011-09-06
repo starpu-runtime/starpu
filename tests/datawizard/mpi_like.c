@@ -132,7 +132,7 @@ static void send_handle(struct thread_data *thread_data)
 static void *thread_func(void *arg)
 {
 	unsigned iter;
-	struct thread_data *thread_data = arg;
+	struct thread_data *thread_data = (struct thread_data *) arg;
 	unsigned index = thread_data->index;
 
 	starpu_variable_data_register(&thread_data->handle, 0, (uintptr_t)&thread_data->val, sizeof(unsigned));

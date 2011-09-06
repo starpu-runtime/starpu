@@ -28,7 +28,7 @@ static void callback(void *arg)
 	struct starpu_task *taskA, *taskB;
 
 	taskA = starpu_get_current_task();
-	taskB = arg;
+	taskB = (starpu_task *) arg;
 
 	starpu_task_declare_deps_array(taskB, 1, &taskA);
 	starpu_task_submit(taskB);

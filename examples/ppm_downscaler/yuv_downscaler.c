@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 	FILE *f_in = fopen(filename_in, "r");
 	assert(f_in);
 
-	struct yuv_frame *yuv_in_buffer = malloc(nframes*FRAMESIZE);
+	struct yuv_frame *yuv_in_buffer = (struct yuv_frame *) malloc(nframes*FRAMESIZE);
 	fread(yuv_in_buffer, FRAMESIZE, nframes, f_in);
 
 	/* allocate room for an output buffer */
@@ -131,16 +131,16 @@ int main(int argc, char **argv)
 	assert(f_out);
 
 /*	fprintf(stderr, "Alloc output file ...\n"); */
-	struct yuv_new_frame *yuv_out_buffer = calloc(nframes, NEW_FRAMESIZE);
+	struct yuv_new_frame *yuv_out_buffer = (struct yuv_new_frame *) calloc(nframes, NEW_FRAMESIZE);
 	assert(yuv_out_buffer);
 
-	starpu_data_handle *frame_y_handle = calloc(nframes, sizeof(starpu_data_handle));
-	starpu_data_handle *frame_u_handle = calloc(nframes, sizeof(starpu_data_handle));
-	starpu_data_handle *frame_v_handle = calloc(nframes, sizeof(starpu_data_handle));
+	starpu_data_handle *frame_y_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
+	starpu_data_handle *frame_u_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
+	starpu_data_handle *frame_v_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
 
-	starpu_data_handle *new_frame_y_handle = calloc(nframes, sizeof(starpu_data_handle));
-	starpu_data_handle *new_frame_u_handle = calloc(nframes, sizeof(starpu_data_handle));
-	starpu_data_handle *new_frame_v_handle = calloc(nframes, sizeof(starpu_data_handle));
+	starpu_data_handle *new_frame_y_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
+	starpu_data_handle *new_frame_u_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
+	starpu_data_handle *new_frame_v_handle = (starpu_data_handle *)  calloc(nframes, sizeof(starpu_data_handle));
 
 	starpu_init(NULL);
 

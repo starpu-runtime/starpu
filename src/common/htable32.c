@@ -75,7 +75,7 @@ void *_starpu_htbl_insert_32(struct starpu_htbl32_node_s **htbl, uint32_t key, v
 		//printf("insert : current bit = %d \n", currentbit);
 		if (*current_htbl_ptr == NULL) {
 			/* TODO pad to change that 1 into 16 ? */
-			*current_htbl_ptr = calloc(sizeof(starpu_htbl32_node_t), 1);
+			*current_htbl_ptr = (starpu_htbl32_node_t*)calloc(sizeof(starpu_htbl32_node_t), 1);
 			assert(*current_htbl_ptr);
 		}
 
@@ -98,7 +98,7 @@ void *_starpu_htbl_insert_32(struct starpu_htbl32_node_s **htbl, uint32_t key, v
 	/* current_htbl either contains NULL or a previous entry 
 	 * we overwrite it anyway */
 	void *old_entry = *current_htbl_ptr;
-	*current_htbl_ptr = entry;
+	*current_htbl_ptr = (starpu_htbl32_node_t *) entry;
 
 	return old_entry;
 }

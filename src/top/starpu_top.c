@@ -63,7 +63,7 @@ void copy_data_and_param()
 {
 	printf("%s:%d trace\n", __FILE__, __LINE__);
 	//copying datas
-	starputop_datas = malloc(starputop_data_cpt*sizeof(starputop_data*));
+	starputop_datas = (starputop_data **) malloc(starputop_data_cpt*sizeof(starputop_data*));
 	starputop_data* cur = starputop_first_data;
 	unsigned int i = 0;
 	for(i = 0; i < starputop_data_cpt; i++)
@@ -72,7 +72,7 @@ void copy_data_and_param()
 		cur = cur->next;
 	}
 	//copying params
-	starputop_params = malloc(starputop_param_cpt*sizeof(starputop_param*));
+	starputop_params = (starputop_param **) malloc(starputop_param_cpt*sizeof(starputop_param*));
 	starputop_param* cur2 = starputop_first_param;
 	for(i = 0; i < starputop_param_cpt; i++)
 	{
@@ -102,14 +102,14 @@ static void starputop_get_device_type(int id, char* type){
 
 static void starputop_send_devices_info()
 {
-	char* message=malloc(5*sizeof(char));
+	char* message=(char *)malloc(5*sizeof(char));
 	snprintf(message,5,"DEV\n");
 	starputop_message_add(starputop_mt,message);
 
 	unsigned int i;
 	for(i=0;i<starpu_worker_get_count();i++)
 	{
-		message=malloc(sizeof(char)*128);
+		message=(char *)malloc(sizeof(char)*128);
 		char dev_type[10];
 		char dev_name[64];
 		starputop_get_device_type(i,dev_type);
@@ -118,7 +118,7 @@ static void starputop_send_devices_info()
 		starputop_message_add(starputop_mt,message);    
 	}
 
-	message=malloc(6*sizeof(char));                             
+	message=(char*)malloc(6*sizeof(char));                             
 	snprintf(message,6,"/DEV\n");                
 	starputop_message_add(starputop_mt,message);  
 }
@@ -141,22 +141,22 @@ void starputop_init_and_wait(const char* server_name){
 	starputop_communications_threads_launcher();
 
 	//sending server information (report to protocol)
-	char* message = malloc(strlen("SERVERINFO\n")+1);
+	char* message = (char *) malloc(strlen("SERVERINFO\n")+1);
 	sprintf(message, "%s", "SERVERINFO\n");  
 	starputop_message_add(starputop_mt,message);
-	message = malloc(strlen(server_name)+2);
+	message = (char *) malloc(strlen(server_name)+2);
 	sprintf(message, "%s\n", server_name);
 	starputop_message_add(starputop_mt,message);
-	message = malloc(25);
+	message = (char *) malloc(25);
 	sprintf(message, "%lld\n", current_timestamp());
 	starputop_message_add(starputop_mt,message);
-	message = malloc(strlen("/SERVERINFO\n")+1);
+	message = (char *) malloc(strlen("/SERVERINFO\n")+1);
 	sprintf(message,"%s", "/SERVERINFO\n");
 	starputop_message_add(starputop_mt,message);
 
 
 	//sending data list
-	message = malloc(strlen("DATA\n")+1);
+	message = (char *) malloc(strlen("DATA\n")+1);
 	sprintf(message, "%s", "DATA\n");
 	starputop_message_add(starputop_mt,message);
 	starputop_data * cur_data = starputop_first_data;
@@ -165,12 +165,12 @@ void starputop_init_and_wait(const char* server_name){
 		starputop_message_add(starputop_mt,message_for_topdata_init(cur_data));
 		cur_data = cur_data->next;
 	}
-	message = malloc(strlen("/DATA\n")+1);
+	message = (char *) malloc(strlen("/DATA\n")+1);
 	sprintf(message, "%s", "/DATA\n");
 	starputop_message_add(starputop_mt,message);
 	
 	//sending parameter list
-	message = malloc(strlen("PARAMS\n")+1);
+	message = (char *) malloc(strlen("PARAMS\n")+1);
 	sprintf(message, "%s", "PARAMS\n");
 	starputop_message_add(starputop_mt,message);
 	starputop_param * cur_param = starputop_first_param;
@@ -180,7 +180,7 @@ void starputop_init_and_wait(const char* server_name){
 	  cur_param = cur_param->next;
 	}
 	printf("%s:%d parameters sended\n", __FILE__, __LINE__);
-	message = malloc(strlen("/PARAMS\n")+1);
+	message = (char *) malloc(strlen("/PARAMS\n")+1);
 	sprintf(message, "%s", "/PARAMS\n");
 	starputop_message_add(starputop_mt,message);
 	
@@ -193,7 +193,7 @@ void starputop_init_and_wait(const char* server_name){
 	copy_data_and_param();
 	
 	//sending READY message
-	message = malloc(strlen("READY\n")+1);
+	message = (char *) malloc(strlen("READY\n")+1);
 	sprintf(message, "%s", "READY\n");
 	starputop_message_add(starputop_mt,message);
 	
@@ -221,7 +221,7 @@ starputop_data * starputop_add_data_boolean(
 			const char* data_name,
 			int active)
 {		
-	starputop_data * data = malloc(sizeof(starputop_data));
+	starputop_data * data = (starputop_data *) malloc(sizeof(starputop_data));
 	data->id = starputop_data_cpt++;
 	data->name = data_name;
 	data->type = STARPUTOP_DATA_BOOLEAN;
@@ -239,7 +239,7 @@ starputop_data * starputop_add_data_integer(
 			int maximum_value,
 			int active)
 {	
-	starputop_data * data = malloc(sizeof(starputop_data));
+	starputop_data * data = (starputop_data *) malloc(sizeof(starputop_data));
 	data->id = starputop_data_cpt++;
 	data->name = data_name; 
 	data->type = STARPUTOP_DATA_INTEGER;
@@ -259,7 +259,7 @@ starputop_data* starputop_add_data_float(
 			double maximum_value,
 			int active)
 {
-	starputop_data * data = malloc(sizeof(starputop_data));
+	starputop_data * data = (starputop_data *) malloc(sizeof(starputop_data));
 	data->id = starputop_data_cpt++;
 	data->name = data_name;
 	data->type = STARPUTOP_DATA_FLOAT;
@@ -275,7 +275,7 @@ starputop_data* starputop_add_data_float(
 
 char *message_for_topdata_init(starputop_data* data)
 {
-	char*message = malloc(256+strlen(data->name));
+	char*message = (char *) malloc(256+strlen(data->name));
 	switch(data->type)
 	{
 		case STARPUTOP_DATA_BOOLEAN:
@@ -315,7 +315,7 @@ char *message_for_topparam_init(starputop_param* param)
 	switch(param->type)
 	{
 	case STARPUTOP_PARAM_BOOLEAN:
-		message = malloc(256);
+		message = (char *) malloc(256);
 		sprintf(message,
 				"BOOL;%d;%s;%d\n",
 				param->id,
@@ -323,7 +323,7 @@ char *message_for_topparam_init(starputop_param* param)
 				(*(int*)(param->value)) ? 1 : 0);
 		break;
 	case STARPUTOP_PARAM_INTEGER:
-		message = malloc(256);
+		message = (char *) malloc(256);
 		sprintf(message,
 				"INT;%d;%s;%d;%d;%d\n",param->id,
 				param->name,
@@ -332,7 +332,7 @@ char *message_for_topparam_init(starputop_param* param)
 				*(int*)(param->value));
 		break;
 	case STARPUTOP_PARAM_FLOAT:
-		message = malloc(256);
+		message = (char *) malloc(256);
 		sprintf(message,
 				"FLOAT;%d;%s;%f;%f;%f\n",
 				param->id,
@@ -347,7 +347,7 @@ char *message_for_topparam_init(starputop_param* param)
 		{
 			length += strlen(param->enum_values[i])+1;
 		}
-		message = malloc(256+length);
+		message = (char *) malloc(256+length);
 		sprintf(message,
 				"ENUM;%d;%s;",
 				param->id,
@@ -393,7 +393,7 @@ starputop_param* starputop_register_parameter_boolean(
 			void (*callback)(struct starputop_param_t*))
 {
     STARPU_ASSERT(!starpu_top_status_get());
-	starputop_param * param = malloc(sizeof(starputop_param));
+	starputop_param * param = (starputop_param *) malloc(sizeof(starputop_param));
 	param->callback = callback;
 	param->name = param_name;
 	param->id = starputop_param_cpt++;
@@ -414,7 +414,7 @@ starputop_param* starputop_register_parameter_integer(const char* param_name,
 			void (*callback)(struct starputop_param_t*))
 {	
 	STARPU_ASSERT(!starpu_top_status_get());
-	starputop_param * param = malloc(sizeof(starputop_param));
+	starputop_param * param = (starputop_param *) malloc(sizeof(starputop_param));
 	param->callback = callback;
 	param->name = param_name;
 	param->id = starputop_param_cpt++;
@@ -436,7 +436,7 @@ starputop_param* starputop_register_parameter_float(
 			void (*callback)(struct starputop_param_t*))
 {
 	STARPU_ASSERT(!starpu_top_status_get());
-	starputop_param * param = malloc(sizeof(starputop_param));
+	starputop_param * param = (starputop_param *) malloc(sizeof(starputop_param));
 	param->callback = callback;
 	param->name = param_name;
 	param->id = starputop_param_cpt++;
@@ -459,7 +459,7 @@ starputop_param* starputop_register_parameter_enum(
 			void (*callback)(struct starputop_param_t*))
 {
 	STARPU_ASSERT(!starpu_top_status_get());
-	starputop_param * param = malloc(sizeof(starputop_param));
+	starputop_param * param = (starputop_param *) malloc(sizeof(starputop_param));
 	param->callback = callback;
 	param->name = param_name;
 	param->id = starputop_param_cpt++;
@@ -482,7 +482,7 @@ void starputop_update_data_boolean(const starputop_data* data, int value){
 		return;
 	if(data->active)
 	{
-		char*message = malloc(256+strlen(data->name));
+		char*message = (char *) malloc(256+strlen(data->name));
 		sprintf(message,
 				"U;%d;%d;%lld\n",
 				data->id,
@@ -496,7 +496,7 @@ void starputop_update_data_integer(const starputop_data* data,int value){
 		return;
 	if(data->active)
 	{
-		char*message = malloc(256+strlen(data->name));
+		char*message = (char *) malloc(256+strlen(data->name));
 		sprintf(message,
 				"U;%d;%d;%lld\n",
 				data->id,
@@ -510,7 +510,7 @@ void starputop_update_data_float(const starputop_data* data, double value){
 		return;
 	if(data->active)
 	{
-		char*message = malloc(256+strlen(data->name));
+		char*message = (char *) malloc(256+strlen(data->name));
 		sprintf(message,
 				"U;%d;%f;%lld\n",
 				data->id, value,
@@ -521,7 +521,7 @@ void starputop_update_data_float(const starputop_data* data, double value){
 void starputop_update_parameter(const starputop_param* param){
 	if (!starpu_top_status_get())
 		return;
-	char*message = malloc(50);
+	char*message = (char *) malloc(50);
 
 	switch(param->type)
 	{
@@ -556,7 +556,7 @@ void starputop_debug_log(const char* debug_message)
 	if(starputop_debug_on)
 	{
 		//length can be up to strlen*2, if message contains only unwanted chars
-		char * message = malloc(strlen(debug_message)*2+16);
+		char * message = (char *) malloc(strlen(debug_message)*2+16);
 		sprintf(message,"MESSAGE;");
 		
 		//escape unwanted char : ; and \n
@@ -583,7 +583,7 @@ void starputop_debug_lock(const char* debug_message)
 {
 	if(starputop_debug_on)
 	{
-		char * message = malloc(strlen(debug_message)*2+16);
+		char * message = (char *) malloc(strlen(debug_message)*2+16);
 		sprintf(message,"LOCK;");
 		char* cur = message+5;
 		while(*debug_message!='\0')
@@ -711,7 +711,7 @@ void starputop_change_debug_mode(const char*message)
 		printf("%s:%d debug is now OFF\n", __FILE__, __LINE__);
 	}
 
-	char * m = malloc(strlen(message)+1);
+	char * m = (char *) malloc(strlen(message)+1);
 	sprintf(m,"%s",message);
 	starputop_message_add(starputop_mt,m);
 }

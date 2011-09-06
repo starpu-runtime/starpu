@@ -270,6 +270,7 @@ AC_DEFUN([STARPU_CHECK_CUDA],
 
     if test "$have_valid_cuda" = "no" ; then
         LDFLAGS="${SAVED_LDFLAGS}"
+	unset STARPU_CUDA_LDFLAGS
     fi
 ])
 

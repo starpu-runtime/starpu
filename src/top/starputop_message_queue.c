@@ -29,7 +29,7 @@ starputop_message_queue_t* starputop_message_add(
 			starputop_message_queue_t* s,
 			char* msg)
 {
-	starputop_message_queue_item_t* p = malloc( 1 * sizeof(*p) );
+	starputop_message_queue_item_t* p = (starputop_message_queue_item_t *) malloc( 1 * sizeof(*p) );
 	pthread_mutex_lock(&(s->mutex));
 	if( NULL == p )
 	{
@@ -96,7 +96,7 @@ char* starputop_message_remove(starputop_message_queue_t* s)
 
 starputop_message_queue_t* starputop_message_queue_new(void)
 {
-	starputop_message_queue_t* p = malloc( 1 * sizeof(*p));
+	starputop_message_queue_t* p = (starputop_message_queue_t *) malloc( 1 * sizeof(*p));
 	if( NULL == p )
 	{
 		fprintf(stderr, "LINE: %d, malloc() failed\n", __LINE__);

@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
-	struct starpu_task **tasks = malloc(N*sizeof(struct starpu_task *));
+	struct starpu_task **tasks = (struct starpu_task **) malloc(N*sizeof(struct starpu_task *));
 
 	for (i = 0; i < N; i++)
 	{

@@ -24,7 +24,7 @@
 void scal_cpu_func(void *buffers[], void *cl_arg)
 {
 	unsigned i;
-	float *factor = cl_arg;
+	float *factor = (float *) cl_arg;
 
 	/*
 	 * The "buffers" array matches the task->buffers array: for instance
@@ -37,7 +37,7 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
 	 * migrated/replicated), and elemsize gives the size of each elements.
 	 */
 
-	starpu_vector_interface_t *vector = buffers[0];
+	starpu_vector_interface_t *vector = (starpu_vector_interface_t *) buffers[0];
 
 	/* length of the vector */
 	unsigned n = STARPU_VECTOR_GET_NX(vector);

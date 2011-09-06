@@ -134,7 +134,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	FPRINTF(stderr, "ITER : %u\n", nk);
 
 	for (i = 0; i < Nrolls; i++) {
-		tasks[i] = malloc(ni * sizeof(*tasks[i]));
+		tasks[i] = (struct starpu_task **) malloc(ni * sizeof(*tasks[i]));
 
 		create_task_grid(i);
 	}

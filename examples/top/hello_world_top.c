@@ -62,7 +62,7 @@ struct params {
 };
 void cpu_func(void *buffers[], void *cl_arg)
 {
-	struct params *params = cl_arg;
+	struct params *params = (struct params *) cl_arg;
 
 	//loosing time for top example...
 	int sum = 0;
@@ -82,14 +82,14 @@ void cpu_func(void *buffers[], void *cl_arg)
 
 void callback_name_changed(starputop_param* param)
 {
-	char* message = malloc(256);
+	char* message = (char *) malloc(256);
 	sprintf(message, "Name have been changed to %s", names[name_selected]);
 	starputop_debug_log(message);
 }
 
 void callback_number_addition_changed(starputop_param* param)
 {
-	char* message = malloc(256);
+	char* message = (char *) malloc(256);
 	sprintf(message, "Number of addition is now %d", number_of_addition);
 
 	starputop_debug_log(message);

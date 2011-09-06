@@ -132,9 +132,9 @@ static void init_problem(int argc, char **argv, int rank, int world_size)
 	display_memory_consumption(rank);
 
 	who_runs_what_len = 2*niter;
-	who_runs_what = calloc(nbz * who_runs_what_len, sizeof(*who_runs_what));
-	who_runs_what_index = calloc(nbz, sizeof(*who_runs_what_index));
-	last_tick = calloc(nbz, sizeof(*last_tick));
+	who_runs_what = (int *) calloc(nbz * who_runs_what_len, sizeof(*who_runs_what));
+	who_runs_what_index = (int *) calloc(nbz, sizeof(*who_runs_what_index));
+	last_tick = (timeval *) calloc(nbz, sizeof(*last_tick));
 }
 
 /*

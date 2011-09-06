@@ -78,7 +78,7 @@ int starpu_task_bundle_insert(struct starpu_task_bundle *bundle, struct starpu_t
 
 	/* Insert a task at the end of the bundle */
 	struct starpu_task_bundle_entry *entry;
-	entry = malloc(sizeof(struct starpu_task_bundle_entry));
+	entry = (struct starpu_task_bundle_entry *) malloc(sizeof(struct starpu_task_bundle_entry));
 	STARPU_ASSERT(entry);
 	entry->task = task;
 	entry->next = NULL;
@@ -245,7 +245,7 @@ static void insertion_handle_sorted(struct handle_list **listp, starpu_data_hand
 	if (!list || list->handle > handle)
 	{
 		/* We insert the first element of the list */
-		struct handle_list *link = malloc(sizeof(struct handle_list));
+		struct handle_list *link = (struct handle_list *) malloc(sizeof(struct handle_list));
 		STARPU_ASSERT(link);
 		link->handle = handle;
 		link->mode = mode;
@@ -272,7 +272,7 @@ static void insertion_handle_sorted(struct handle_list **listp, starpu_data_hand
 	}
 	else {
 		/* The handle was not in the list, we insert it after prev */
-		struct handle_list *link = malloc(sizeof(struct handle_list));
+		struct handle_list *link = (struct handle_list *) malloc(sizeof(struct handle_list));
 		STARPU_ASSERT(link);
 		link->handle = handle;
 		link->mode = mode;

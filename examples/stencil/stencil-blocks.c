@@ -90,7 +90,7 @@ int MPI_TAG1(int z, int iter, int dir)
 /* Compute the size of the different blocks */
 static void compute_block_sizes(void)
 {
-	block_sizes_z = malloc(nbz*sizeof(unsigned));
+	block_sizes_z = (unsigned *) malloc(nbz*sizeof(unsigned));
 	STARPU_ASSERT(block_sizes_z);
 
 	/* Perhaps the last chunk is smaller */
@@ -136,7 +136,7 @@ void create_blocks_array(unsigned _sizex, unsigned _sizey, unsigned _sizez, unsi
 	sizez = _sizez;
 
 	/* Create a grid of block descriptors */
-	blocks = calloc(nbz, sizeof(struct block_description));
+	blocks = (struct block_description *) calloc(nbz, sizeof(struct block_description));
 	STARPU_ASSERT(blocks);
 
 	/* What is the size of the different blocks ? */

@@ -87,13 +87,13 @@ int main(int argc, char **argv)
 	float **host_ptr_array;
 	starpu_data_handle *handle_array;
 
-	host_ptr_array = calloc(mb, sizeof(float *));
-	handle_array = calloc(mb, sizeof(starpu_data_handle));
+	host_ptr_array = (float **) calloc(mb, sizeof(float *));
+	handle_array = (starpu_data_handle *) calloc(mb, sizeof(starpu_data_handle));
 
 	/* Register mb buffers of 1MB */
 	for (i = 0; i < mb; i++)
 	{
-		host_ptr_array[i] = malloc(BLOCK_SIZE);
+		host_ptr_array[i] = (float *) malloc(BLOCK_SIZE);
 		assert(host_ptr_array[i]);
 		starpu_variable_data_register(&handle_array[i], 0,
 			(uintptr_t)host_ptr_array[i], BLOCK_SIZE);

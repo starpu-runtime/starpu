@@ -77,7 +77,7 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 
 void *_starpu_cpu_worker(void *arg)
 {
-	struct starpu_worker_s *cpu_arg = arg;
+	struct starpu_worker_s *cpu_arg = (struct starpu_worker_s *) arg;
 	unsigned memnode = cpu_arg->memory_node;
 	int workerid = cpu_arg->workerid;
 	int devid = cpu_arg->devid;

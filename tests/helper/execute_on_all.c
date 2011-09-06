@@ -23,7 +23,7 @@
 
 void func(void *arg)
 {
-	int *ptr = arg;
+	int *ptr = (int *) arg;
 	STARPU_ASSERT(*ptr == 0x42);
 }
 

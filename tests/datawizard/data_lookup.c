@@ -92,10 +92,10 @@ static void test_filters()
 {
 #define CHILDREN_COUNT 10
 	int err, i;
-	void *ptr, *children_pointers[CHILDREN_COUNT];
+	int *ptr, *children_pointers[CHILDREN_COUNT];
 	starpu_data_handle handle;
 
-	err = starpu_malloc(&ptr, VECTOR_SIZE * sizeof(*ptr));
+	err = starpu_malloc((void**)&ptr, VECTOR_SIZE * sizeof(*ptr));
 	assert(err == 0);
 
 	starpu_vector_data_register(&handle, 0, (uintptr_t)ptr,
@@ -114,7 +114,7 @@ static void test_filters()
                 starpu_data_handle child;
 
 		child = starpu_data_get_sub_data(handle, 1, i);
-		children_pointers[i] = starpu_handle_get_local_ptr(child);
+		children_pointers[i] = (int *) starpu_handle_get_local_ptr(child);
 		assert(children_pointers[i] != NULL);
 
 		/* Make sure we have a pointer -> handle mapping for CHILD.  */

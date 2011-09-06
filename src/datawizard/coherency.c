@@ -426,7 +426,7 @@ static int fetch_data(starpu_data_handle handle, struct starpu_data_replicate_s 
 	return _starpu_fetch_data_on_node(handle, replicate, mode, 0, NULL, NULL);
 }
 
-inline uint32_t _starpu_get_data_refcnt(starpu_data_handle handle, uint32_t node)
+uint32_t _starpu_get_data_refcnt(starpu_data_handle handle, uint32_t node)
 {
 	return handle->per_node[node].refcnt;
 }

@@ -44,8 +44,8 @@ static void parse_args(int argc, char **argv)
  * same number of non-zero entries. */
 static void csr_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 {
-	starpu_csr_interface_t *csr_father = father_interface;
-	starpu_csr_interface_t *csr_child = child_interface;
+	starpu_csr_interface_t *csr_father = (starpu_csr_interface_t *) father_interface;
+	starpu_csr_interface_t *csr_child = (starpu_csr_interface_t *) child_interface;
 
 	uint32_t nrow = csr_father->nrow;
 	size_t elemsize = csr_father->elemsize;

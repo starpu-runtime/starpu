@@ -88,8 +88,8 @@ static int _starpu_compar_handles(struct starpu_data_state_t *dataA,
 
 static int _starpu_compar_buffer_descr(const void *_descrA, const void *_descrB)
 {
-	const starpu_buffer_descr *descrA = _descrA;
-	const starpu_buffer_descr *descrB = _descrB;
+	const starpu_buffer_descr *descrA = (const starpu_buffer_descr *) _descrA;
+	const starpu_buffer_descr *descrB = (const starpu_buffer_descr *) _descrB;
 
 	return _starpu_compar_handles(descrA->handle, descrB->handle);
 }

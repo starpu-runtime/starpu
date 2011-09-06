@@ -164,11 +164,11 @@ int main(int argc, char **argv)
 	unsigned long nelems = nblocks*entries_per_block;
 	size_t size = nelems*sizeof(float);
 
-	x = malloc(size);
-	y = malloc(size);
+	x = (float *) malloc(size);
+	y = (float *) malloc(size);
 
-	x_handles = calloc(nblocks, sizeof(starpu_data_handle));
-	y_handles = calloc(nblocks, sizeof(starpu_data_handle));
+	x_handles = (starpu_data_handle *) calloc(nblocks, sizeof(starpu_data_handle));
+	y_handles = (starpu_data_handle *) calloc(nblocks, sizeof(starpu_data_handle));
 
 	assert(x && y);
 

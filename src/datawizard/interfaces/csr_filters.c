@@ -22,8 +22,8 @@
 
 void starpu_vertical_block_filter_func_csr(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
-	starpu_csr_interface_t *csr_father = father_interface;
-	starpu_csr_interface_t *csr_child = child_interface;
+	starpu_csr_interface_t *csr_father = (starpu_csr_interface_t *) father_interface;
+	starpu_csr_interface_t *csr_child = (starpu_csr_interface_t *) child_interface;
 
 	uint32_t nrow = csr_father->nrow;
 	size_t elemsize = csr_father->elemsize;

@@ -107,7 +107,7 @@ static void register_variable_handle(starpu_data_handle handle, uint32_t home_no
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
-		starpu_variable_interface_t *local_interface = 
+		starpu_variable_interface_t *local_interface = (starpu_variable_interface_t *)
 			starpu_data_get_interface_on_node(handle, node);
 
 		if (node == home_node) {
@@ -151,8 +151,8 @@ static uint32_t footprint_variable_interface_crc32(starpu_data_handle handle)
 
 static int variable_compare(void *data_interface_a, void *data_interface_b)
 {
-	starpu_variable_interface_t *variable_a = data_interface_a;
-	starpu_variable_interface_t *variable_b = data_interface_b;
+	starpu_variable_interface_t *variable_a = (starpu_variable_interface_t *) data_interface_a;
+	starpu_variable_interface_t *variable_b = (starpu_variable_interface_t *) data_interface_b;
 
 	/* Two variables are considered compatible if they have the same size */
 	return (variable_a->elemsize == variable_b->elemsize);
@@ -160,7 +160,7 @@ static int variable_compare(void *data_interface_a, void *data_interface_b)
 
 static void display_variable_interface(starpu_data_handle handle, FILE *f)
 {
-	starpu_variable_interface_t *variable_interface =
+	starpu_variable_interface_t *variable_interface = (starpu_variable_interface_t *)
 		starpu_data_get_interface_on_node(handle, 0);
 
 	fprintf(f, "%ld\t", (long)variable_interface->elemsize);
@@ -168,7 +168,7 @@ static void display_variable_interface(starpu_data_handle handle, FILE *f)
 
 static size_t variable_interface_get_size(starpu_data_handle handle)
 {
-	starpu_variable_interface_t *variable_interface =
+	starpu_variable_interface_t *variable_interface = (starpu_variable_interface_t *)
 		starpu_data_get_interface_on_node(handle, 0);
 
 	return variable_interface->elemsize;
@@ -194,7 +194,7 @@ size_t starpu_variable_get_elemsize(starpu_data_handle handle)
 /* returns the size of the allocated area */
 static ssize_t allocate_variable_buffer_on_node(void *data_interface_, uint32_t dst_node)
 {
-	starpu_variable_interface_t *variable_interface = data_interface_;
+	starpu_variable_interface_t *variable_interface = (starpu_variable_interface_t *) data_interface_;
 
 	unsigned fail = 0;
 	uintptr_t addr = 0;
@@ -490,8 +490,8 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node STARPU_A
 
 static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
-	starpu_variable_interface_t *src_variable = src_interface;
-	starpu_variable_interface_t *dst_variable = dst_interface;
+	starpu_variable_interface_t *src_variable = (starpu_variable_interface_t *) src_interface;
+	starpu_variable_interface_t *dst_variable = (starpu_variable_interface_t *) dst_interface;
 
 	size_t elemsize = dst_variable->elemsize;
 

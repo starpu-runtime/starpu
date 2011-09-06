@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 	starpu_data_acquire(handle, STARPU_R);
 
 	/* Make sure we have a local pointer to it.  */
-	pointer = starpu_handle_to_pointer(handle, 0);
+	pointer = (int *) starpu_handle_to_pointer(handle, 0);
 	assert(pointer != NULL);
 	for(i = 0; i < count; i++)
 	{

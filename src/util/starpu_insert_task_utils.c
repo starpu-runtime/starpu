@@ -18,11 +18,13 @@
 #include <common/config.h>
 #include <common/utils.h>
 
+typedef void (*callback_func_t)(void *);
+
 /* Deal with callbacks. The unpack function may be called multiple times when
  * we have a parallel task, and we should not free the cl_arg parameter from
  * the callback function. */
 struct insert_task_cb_wrapper {
-	void (*callback_func)(void *);
+	callback_func_t callback_func;
 	void *callback_arg;
 	void *arg_stack;
 };
@@ -30,7 +32,7 @@ struct insert_task_cb_wrapper {
 static
 void starpu_task_insert_callback_wrapper(void *_cl_arg_wrapper)
 {
-	struct insert_task_cb_wrapper *cl_arg_wrapper = _cl_arg_wrapper;
+	struct insert_task_cb_wrapper *cl_arg_wrapper = (struct insert_task_cb_wrapper *) _cl_arg_wrapper;
 
 	/* Execute the callback specified by the application */
 	if (cl_arg_wrapper->callback_func)
@@ -61,7 +63,7 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 			arg_buffer_size += cst_size;
 		}
 		else if (arg_type==STARPU_CALLBACK) {
-			va_arg(varg_list, void (*)(void *));
+			va_arg(varg_list, callback_func_t);
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG) {
 			va_arg(varg_list, void *);
@@ -89,7 +91,7 @@ int _starpu_pack_cl_args(size_t arg_buffer_size, char **arg_buffer, va_list varg
 
 	/* The buffer will contain : nargs, {size, content} (x nargs)*/
 
-	*arg_buffer = malloc(arg_buffer_size);
+	*arg_buffer = (char *) malloc(arg_buffer_size);
 
 	/* We will begin the buffer with the number of args (which is stored as a char) */
 	current_arg_offset += sizeof(char);
@@ -117,7 +119,7 @@ int _starpu_pack_cl_args(size_t arg_buffer_size, char **arg_buffer, va_list varg
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
-			va_arg(varg_list, void (*)(void *));
+			va_arg(varg_list, callback_func_t);
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG) {
 			va_arg(varg_list, void *);
@@ -143,7 +145,7 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, 
         int arg_type;
 	unsigned current_buffer = 0;
 
-	struct insert_task_cb_wrapper *cl_arg_wrapper = malloc(sizeof(struct insert_task_cb_wrapper));
+	struct insert_task_cb_wrapper *cl_arg_wrapper = (struct insert_task_cb_wrapper *) malloc(sizeof(struct insert_task_cb_wrapper));
 	STARPU_ASSERT(cl_arg_wrapper);
 
 	cl_arg_wrapper->callback_func = NULL;
@@ -171,7 +173,7 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, 
 		else if (arg_type==STARPU_CALLBACK)
 		{
 			void (*callback_func)(void *);
-			callback_func = va_arg(varg_list, void (*)(void *));
+			callback_func = va_arg(varg_list, callback_func_t);
 			cl_arg_wrapper->callback_func = callback_func;
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG) {

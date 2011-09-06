@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 		.nbuffers = 0
 	};
 
-	struct starpu_task **tasks = malloc(niter*sizeof(struct starpu_task *));
+	struct starpu_task **tasks = (struct starpu_task **) malloc(niter*sizeof(struct starpu_task *));
 	assert(tasks);
 
 	unsigned i;

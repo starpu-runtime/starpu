@@ -22,9 +22,9 @@
 
 void starpu_canonical_block_filter_bcsr(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nparts)
 {
-	struct starpu_bcsr_interface_s *bcsr_father = father_interface;
+	struct starpu_bcsr_interface_s *bcsr_father = (struct starpu_bcsr_interface_s *) father_interface;
 	/* each chunk becomes a small dense matrix */
-	starpu_matrix_interface_t *matrix_child = child_interface;
+	starpu_matrix_interface_t *matrix_child = (starpu_matrix_interface_t *) child_interface;
 	
 	size_t elemsize = bcsr_father->elemsize;
 	uint32_t firstentry = bcsr_father->firstentry;

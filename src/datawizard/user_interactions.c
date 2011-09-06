@@ -62,7 +62,7 @@ struct user_interaction_wrapper {
 /* put the current value of the data into RAM */
 static void _starpu_data_acquire_fetch_data_callback(void *arg)
 {
-	struct user_interaction_wrapper *wrapper = arg;
+	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
 	starpu_data_handle handle = wrapper->handle;
 
 	/* At that moment, the caller holds a reference to the piece of data.
@@ -79,7 +79,7 @@ static void _starpu_data_acquire_fetch_data_callback(void *arg)
 static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 {
 	int ret;
-	struct user_interaction_wrapper *wrapper = arg;
+	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
 
 	starpu_data_handle handle = wrapper->handle;
 
@@ -94,7 +94,7 @@ static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 
 static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 {
-	struct user_interaction_wrapper *wrapper = arg;
+	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
 
 	/* we try to get the data, if we do not succeed immediately, we set a
  	* callback function that will be executed automatically when the data is
@@ -114,7 +114,7 @@ int starpu_data_acquire_cb(starpu_data_handle handle,
 	STARPU_ASSERT(handle);
         _STARPU_LOG_IN();
 
-	struct user_interaction_wrapper *wrapper = malloc(sizeof(struct user_interaction_wrapper));
+	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) malloc(sizeof(struct user_interaction_wrapper));
 	STARPU_ASSERT(wrapper);
 
 	wrapper->handle = handle;
@@ -173,7 +173,7 @@ int starpu_data_acquire_cb(starpu_data_handle handle,
  */
 static inline void _starpu_data_acquire_continuation(void *arg)
 {
-	struct user_interaction_wrapper *wrapper = arg;
+	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
 
 	starpu_data_handle handle = wrapper->handle;
 
@@ -285,7 +285,7 @@ void starpu_data_release(starpu_data_handle handle)
 
 static void _prefetch_data_on_node(void *arg)
 {
-	struct user_interaction_wrapper *wrapper = arg;
+	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
 	starpu_data_handle handle = wrapper->handle;
         int ret;
 

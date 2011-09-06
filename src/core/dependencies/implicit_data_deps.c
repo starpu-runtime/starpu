@@ -31,7 +31,7 @@
 static void _starpu_add_reader_after_writer(starpu_data_handle handle, struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task)
 {
 	/* Add this task to the list of readers */
-	struct starpu_task_wrapper_list *link = malloc(sizeof(struct starpu_task_wrapper_list));
+	struct starpu_task_wrapper_list *link = (struct starpu_task_wrapper_list *) malloc(sizeof(struct starpu_task_wrapper_list));
 	link->task = post_sync_task;
 	link->next = handle->last_submitted_readers;
 	handle->last_submitted_readers = link;
@@ -162,7 +162,7 @@ static void _starpu_add_writer_after_writer(starpu_data_handle handle, struct st
 
 static void disable_last_writer_callback(void *cl_arg)
 {
-	starpu_data_handle handle = cl_arg;
+	starpu_data_handle handle = (starpu_data_handle) cl_arg;
 	
 	/* NB: we don't take the handle->sequential_consistency_mutex mutex
 	 * because the empty task that is used for synchronization is going to
@@ -361,7 +361,7 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 				{
 					/* Save the job id of the reader task in the ghost reader linked list list */
 					starpu_job_t ghost_reader_job = _starpu_get_job_associated_to_task(task);
-					struct starpu_jobid_list *link = malloc(sizeof(struct starpu_jobid_list));
+					struct starpu_jobid_list *link = (struct starpu_jobid_list *) malloc(sizeof(struct starpu_jobid_list));
 					STARPU_ASSERT(link);
 					link->next = handle->last_submitted_ghost_readers_id;
 					link->id = ghost_reader_job->job_id; 
@@ -403,7 +403,7 @@ void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data
 	{
 		handle->post_sync_tasks_cnt++;
 
-		struct starpu_task_wrapper_list *link = malloc(sizeof(struct starpu_task_wrapper_list));
+		struct starpu_task_wrapper_list *link = (struct starpu_task_wrapper_list *) malloc(sizeof(struct starpu_task_wrapper_list));
 		link->task = post_sync_task;
 		link->next = handle->post_sync_tasks;
 		handle->post_sync_tasks = link;		

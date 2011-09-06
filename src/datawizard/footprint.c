@@ -43,7 +43,7 @@ uint32_t _starpu_compute_buffers_footprint(starpu_job_t j)
 	return footprint;
 }
 
-inline uint32_t _starpu_compute_data_footprint(starpu_data_handle handle)
+uint32_t _starpu_compute_data_footprint(starpu_data_handle handle)
 {
 	uint32_t interfaceid = (uint32_t)starpu_get_handle_interface_id(handle);
 

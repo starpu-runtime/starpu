@@ -37,7 +37,7 @@ void starpu_pack_cl_args(char **arg_buffer, size_t *arg_buffer_size, ...)
 
 void starpu_unpack_cl_args(void *_cl_arg, ...)
 {
-	unsigned char *cl_arg = _cl_arg;
+	unsigned char *cl_arg = (unsigned char *) _cl_arg;
 	unsigned current_arg_offset = 0;
 	va_list varg_list;
 

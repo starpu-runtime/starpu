@@ -129,8 +129,8 @@ int main(int argc, char **argv)
 	unsigned long nelems = nblocks*entries_per_bock;
 	size_t size = nelems*sizeof(TYPE);
 
-	x = malloc(size);
-	x_handles = calloc(nblocks, sizeof(starpu_data_handle));
+	x = (TYPE *) malloc(size);
+	x_handles = (starpu_data_handle *) calloc(nblocks, sizeof(starpu_data_handle));
 	
 	assert(x && x_handles);
 

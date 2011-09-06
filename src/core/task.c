@@ -114,7 +114,7 @@ struct starpu_task * __attribute__((malloc)) starpu_task_create(void)
 {
 	struct starpu_task *task;
 
-	task = calloc(1, sizeof(struct starpu_task));
+	task = (struct starpu_task *) calloc(1, sizeof(struct starpu_task));
 	STARPU_ASSERT(task);
 
 	starpu_task_init(task);
@@ -377,7 +377,7 @@ void _starpu_initialize_current_task_key(void)
  * being executed at the moment. */
 struct starpu_task *starpu_get_current_task(void)
 {
-	return pthread_getspecific(current_task_key);
+	return (struct starpu_task *) pthread_getspecific(current_task_key);
 }
 
 void _starpu_set_current_task(struct starpu_task *task)

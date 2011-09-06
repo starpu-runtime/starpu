@@ -20,7 +20,7 @@
 
 static void data_cpy_func(void *descr[], void *cl_arg)
 {
-	const struct starpu_data_copy_methods *copy_methods = cl_arg;
+	const struct starpu_data_copy_methods *copy_methods = (const struct starpu_data_copy_methods *) cl_arg;
 
 	int workerid = starpu_worker_get_id();
 	enum starpu_archtype type = starpu_worker_get_type(workerid);

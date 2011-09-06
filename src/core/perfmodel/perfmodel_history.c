@@ -46,12 +46,12 @@ static void insert_history_entry(struct starpu_history_entry_t *entry, struct st
 	struct starpu_history_list_t *link;
 	struct starpu_history_entry_t *old;
 
-	link = malloc(sizeof(struct starpu_history_list_t));
+	link = (struct starpu_history_list_t *) malloc(sizeof(struct starpu_history_list_t));
 	link->next = *list;
 	link->entry = entry;
 	*list = link;
 
-	old = _starpu_htbl_insert_32(history_ptr, entry->footprint, entry);
+	old = (struct starpu_history_entry_t *) _starpu_htbl_insert_32(history_ptr, entry->footprint, entry);
 	/* that may fail in case there is some concurrency issue */
 	STARPU_ASSERT(old == NULL);
 }
@@ -191,7 +191,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_
 		struct starpu_history_entry_t *entry = NULL;
 		if (scan_history)
 		{
-			entry = malloc(sizeof(struct starpu_history_entry_t));
+			entry = (struct starpu_history_entry_t *) malloc(sizeof(struct starpu_history_entry_t));
 			STARPU_ASSERT(entry);
 		}
 
@@ -254,7 +254,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel_t *model)
 	for (arch = 0; arch < STARPU_NARCH_VARIATIONS; arch++)
 	{
 		char archname[32];
-		starpu_perfmodel_get_arch_name(arch, archname, 32);
+		starpu_perfmodel_get_arch_name((starpu_perf_archtype) arch, archname, 32);
 		fprintf(f, "# Model for %s\n", archname);
 		dump_per_arch_model_file(f, model, arch);
 		fprintf(f, "\n##################\n");
@@ -299,7 +299,7 @@ static void get_model_debug_path(struct starpu_perfmodel_t *model, const char *a
 void _starpu_register_model(struct starpu_perfmodel_t *model)
 {
 	/* add the model to a linked list */
-	struct starpu_model_list_t *node = malloc(sizeof(struct starpu_model_list_t));
+	struct starpu_model_list_t *node = (struct starpu_model_list_t *) malloc(sizeof(struct starpu_model_list_t));
 
 	node->model = model;
 	//model->debug_modelid = debug_modelid++;
@@ -647,7 +647,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel_t *model,
 		return -1.0;
 
 	PTHREAD_RWLOCK_RDLOCK(&model->model_rwlock);
-	entry = _starpu_htbl_search_32(history, key);
+	entry = (struct starpu_history_entry_t *) _starpu_htbl_search_32(history, key);
 	PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
 	exp = entry?entry->mean:-1.0;
@@ -684,12 +684,12 @@ void _starpu_update_perfmodel_history(starpu_job_t j, struct starpu_perfmodel_t 
 			history_ptr = &per_arch_model->history;
 			list = &per_arch_model->list;
 
-			entry = _starpu_htbl_search_32(history, key);
+			entry = (struct starpu_history_entry_t *) _starpu_htbl_search_32(history, key);
 
 			if (!entry)
 			{
 				/* this is the first entry with such a footprint */
-				entry = malloc(sizeof(struct starpu_history_entry_t));
+				entry = (struct starpu_history_entry_t *) malloc(sizeof(struct starpu_history_entry_t));
 				STARPU_ASSERT(entry);
 					entry->mean = measured;
 					entry->sum = measured;

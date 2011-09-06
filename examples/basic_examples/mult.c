@@ -127,9 +127,9 @@ static void init_problem_data(void)
 
 	/* we initialize matrices A, B and C in the usual way */
 
-	A = malloc(zdim*ydim*sizeof(float));
-	B = malloc(xdim*zdim*sizeof(float));
-	C = malloc(xdim*ydim*sizeof(float));
+	A = (float *) malloc(zdim*ydim*sizeof(float));
+	B = (float *) malloc(xdim*zdim*sizeof(float));
+	C = (float *) malloc(xdim*ydim*sizeof(float));
 
 	/* fill the A and B matrices */
 	srand(2009);

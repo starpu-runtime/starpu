@@ -34,7 +34,7 @@ void _starpu_init_stack_queues_mechanisms(void)
 struct starpu_stack_jobq_s *_starpu_create_stack(void)
 {
 	struct starpu_stack_jobq_s *stack;
-	stack = malloc(sizeof(struct starpu_stack_jobq_s));
+	stack = (struct starpu_stack_jobq_s *) malloc(sizeof(struct starpu_stack_jobq_s));
 
 	stack->jobq = starpu_job_list_new();
 	stack->njobs = 0;

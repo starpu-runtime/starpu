@@ -342,7 +342,7 @@ void starpu_data_unpartition(starpu_data_handle root_handle, uint32_t gathering_
 /* each child may have his own interface type */
 static void starpu_data_create_children(starpu_data_handle handle, unsigned nchildren, struct starpu_data_filter *f)
 {
-	handle->children = calloc(nchildren, sizeof(struct starpu_data_state_t));
+	handle->children = (struct starpu_data_state_t *) calloc(nchildren, sizeof(struct starpu_data_state_t));
 	STARPU_ASSERT(handle->children);
 
 	unsigned node;

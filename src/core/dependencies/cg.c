@@ -32,7 +32,7 @@ void _starpu_cg_list_init(struct starpu_cg_list_s *list)
 	/* this is a small initial default value ... may be changed */
 	list->succ_list_size = 0;
 	list->succ =
-		realloc(NULL, list->succ_list_size*sizeof(struct starpu_cg_s *));
+		(struct starpu_cg_s **) realloc(NULL, list->succ_list_size*sizeof(struct starpu_cg_s *));
 #endif
 }
 
@@ -72,7 +72,7 @@ void _starpu_add_successor_to_cg_list(struct starpu_cg_list_s *successors, starp
 			successors->succ_list_size = 4;
 
 		/* NB: this is thread safe as the tag->lock is taken */
-		successors->succ = realloc(successors->succ, 
+		successors->succ = (struct starpu_cg_s **) realloc(successors->succ, 
 			successors->succ_list_size*sizeof(struct starpu_cg_s *));
 	}
 #else

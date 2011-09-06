@@ -25,14 +25,14 @@ static unsigned hit_cnt[STARPU_MAXNODES];
 static unsigned miss_cnt[STARPU_MAXNODES];
 #endif
 
-inline void _starpu_msi_cache_hit(unsigned node __attribute__ ((unused)))
+void _starpu_msi_cache_hit(unsigned node __attribute__ ((unused)))
 {
 #ifdef STARPU_DATA_STATS
 	hit_cnt[node]++;
 #endif
 }
 
-inline void _starpu_msi_cache_miss(unsigned node __attribute__ ((unused)))
+void _starpu_msi_cache_miss(unsigned node __attribute__ ((unused)))
 {
 #ifdef STARPU_DATA_STATS
 	miss_cnt[node]++;
@@ -75,14 +75,14 @@ static unsigned alloc_cnt[STARPU_MAXNODES];
 static unsigned alloc_cache_hit_cnt[STARPU_MAXNODES];
 #endif
 
-inline void _starpu_allocation_cache_hit(unsigned node __attribute__ ((unused)))
+void _starpu_allocation_cache_hit(unsigned node __attribute__ ((unused)))
 {
 #ifdef STARPU_DATA_STATS
 	alloc_cache_hit_cnt[node]++;
 #endif
 }
 
-inline void _starpu_data_allocation_inc_stats(unsigned node __attribute__ ((unused)))
+void _starpu_data_allocation_inc_stats(unsigned node __attribute__ ((unused)))
 {
 #ifdef STARPU_DATA_STATS
 	alloc_cnt[node]++;
@@ -139,7 +139,7 @@ void _starpu_display_comm_amounts(void)
 
 #else
 
-inline void _starpu_display_comm_amounts(void)
+void _starpu_display_comm_amounts(void)
 {
 }
 

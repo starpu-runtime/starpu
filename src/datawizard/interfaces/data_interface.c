@@ -59,7 +59,7 @@ void _starpu_data_register_ram_pointer(starpu_data_handle handle, void *ptr)
 {
 	struct handle_entry *entry;
 
-	entry = malloc(sizeof(*entry));
+	entry = (struct handle_entry *) malloc(sizeof(*entry));
 	STARPU_ASSERT(entry != NULL);
 
 	entry->pointer = ptr;
@@ -214,7 +214,7 @@ static void _starpu_register_new_data(starpu_data_handle handle,
 
 static starpu_data_handle _starpu_data_handle_allocate(struct starpu_data_interface_ops_t *interface_ops)
 {
-	starpu_data_handle handle =
+	starpu_data_handle handle = (starpu_data_handle)
 		calloc(1, sizeof(struct starpu_data_state_t));
 
 	STARPU_ASSERT(handle);
@@ -359,7 +359,7 @@ struct unregister_callback_arg {
 static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 {
 	int ret;
-	struct unregister_callback_arg *arg = _arg;
+	struct unregister_callback_arg *arg = (struct unregister_callback_arg *) _arg;
 
 	starpu_data_handle handle = arg->handle;
 

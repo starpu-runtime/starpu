@@ -56,7 +56,7 @@ static struct starpu_priority_taskq_s *_starpu_create_priority_taskq(void)
 {
 	struct starpu_priority_taskq_s *central_queue;
 	
-	central_queue = malloc(sizeof(struct starpu_priority_taskq_s));
+	central_queue = (struct starpu_priority_taskq_s *) malloc(sizeof(struct starpu_priority_taskq_s));
 	central_queue->total_ntasks = 0;
 
 	unsigned prio;

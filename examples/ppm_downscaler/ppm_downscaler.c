@@ -28,7 +28,7 @@
 
 struct ppm_image *allocate_new_ppm(int ncols, int nlines, int coldepth)
 {
-	struct ppm_image *ppm = malloc(sizeof(struct ppm_image));
+	struct ppm_image *ppm = (struct ppm_image *) malloc(sizeof(struct ppm_image));
 	assert(ppm);
 
 	ppm->ncols = ncols;
@@ -36,9 +36,9 @@ struct ppm_image *allocate_new_ppm(int ncols, int nlines, int coldepth)
 	ppm->coldepth = coldepth;
 
 #ifdef STARPU_HAVE_MEMALIGN
-	ppm->data = memalign(16384, ncols*nlines*sizeof(struct ppm_color));
+	ppm->data = (struct ppm_color *) memalign(16384, ncols*nlines*sizeof(struct ppm_color));
 #else
-	ppm->data = malloc(ncols*nlines*sizeof(struct ppm_color));
+	ppm->data = (struct ppm_color *) malloc(ncols*nlines*sizeof(struct ppm_color));
 #endif
 	assert(ppm->data);
 
@@ -49,7 +49,7 @@ struct ppm_image *file_to_ppm(char *filename)
 {
 	int ret;
 
-	struct ppm_image *ppm = malloc(sizeof(struct ppm_image));
+	struct ppm_image *ppm = (struct ppm_image *) malloc(sizeof(struct ppm_image));
 	assert(ppm);
 	
 	FILE *file = fopen(filename, "r");
@@ -64,9 +64,9 @@ struct ppm_image *file_to_ppm(char *filename)
 	
 	/* allocate a buffer for the image */
 #ifdef STARPU_HAVE_MEMALIGN
-	ppm->data = memalign(16384, ppm->ncols*ppm->nlines*sizeof(struct ppm_color));
+	ppm->data = (struct ppm_color *) memalign(16384, ppm->ncols*ppm->nlines*sizeof(struct ppm_color));
 #else
-	ppm->data = malloc(ppm->ncols*ppm->nlines*sizeof(struct ppm_color));
+	ppm->data = (struct ppm_color *) malloc(ppm->ncols*ppm->nlines*sizeof(struct ppm_color));
 #endif
 	assert(ppm->data);
 

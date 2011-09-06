@@ -24,7 +24,7 @@
 void cpu_func(void *buffers[], void *cl_arg)
 {
         unsigned i;
-        int *factor = cl_arg;
+        int *factor = (int *) cl_arg;
 
         /* length of the vector */
         unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);

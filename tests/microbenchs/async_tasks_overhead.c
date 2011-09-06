@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 	fprintf(stderr, "#tasks : %u\n", ntasks);
 
 	/* Create an array of tasks */
-	struct starpu_task **tasks = malloc(ntasks*sizeof(struct starpu_task *));
+	struct starpu_task **tasks = (struct starpu_task **) malloc(ntasks*sizeof(struct starpu_task *));
 
 	for (i = 0; i < ntasks; i++)
 	{

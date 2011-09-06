@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 	unsigned buffer;
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		buffers[buffer] = malloc(16*sizeof(float));
+		buffers[buffer] = (float *) malloc(16*sizeof(float));
 		starpu_vector_data_register(&data_handles[buffer], 0, (uintptr_t)buffers[buffer], 16, sizeof(float));
 	}
 
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 	fprintf(stderr, "#tasks : %u\n#buffers : %u\n", ntasks, nbuffers);
 
 	/* submit tasks (but don't execute them yet !) */
-	tasks = malloc(ntasks*sizeof(struct starpu_task));
+	tasks = (struct starpu_task *) malloc(ntasks*sizeof(struct starpu_task));
 
 	gettimeofday(&start_submit, NULL);
 	for (i = 0; i < ntasks; i++)

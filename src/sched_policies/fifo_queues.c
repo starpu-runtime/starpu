@@ -27,7 +27,7 @@
 struct starpu_fifo_taskq_s *_starpu_create_fifo(void)
 {
 	struct starpu_fifo_taskq_s *fifo;
-	fifo = malloc(sizeof(struct starpu_fifo_taskq_s));
+	fifo = (struct starpu_fifo_taskq_s *) malloc(sizeof(struct starpu_fifo_taskq_s));
 
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
 	starpu_task_list_init(&fifo->taskq);

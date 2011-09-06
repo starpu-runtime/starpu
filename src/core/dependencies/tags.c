@@ -30,7 +30,7 @@ static pthread_rwlock_t tag_global_rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
 static starpu_cg_t *create_cg_apps(unsigned ntags)
 {
-	starpu_cg_t *cg = malloc(sizeof(starpu_cg_t));
+	starpu_cg_t *cg = (starpu_cg_t *) malloc(sizeof(starpu_cg_t));
 	STARPU_ASSERT(cg);
 
 	cg->ntags = ntags;
@@ -47,7 +47,7 @@ static starpu_cg_t *create_cg_apps(unsigned ntags)
 
 static starpu_cg_t *create_cg_tag(unsigned ntags, struct starpu_tag_s *tag)
 {
-	starpu_cg_t *cg = malloc(sizeof(starpu_cg_t));
+	starpu_cg_t *cg = (starpu_cg_t *) malloc(sizeof(starpu_cg_t));
 	STARPU_ASSERT(cg);
 
 	cg->ntags = ntags;
@@ -63,7 +63,7 @@ static starpu_cg_t *create_cg_tag(unsigned ntags, struct starpu_tag_s *tag)
 static struct starpu_tag_s *_starpu_tag_init(starpu_tag_t id)
 {
 	struct starpu_tag_s *tag;
-	tag = malloc(sizeof(struct starpu_tag_s));
+	tag = (struct starpu_tag_s *) malloc(sizeof(struct starpu_tag_s));
 	STARPU_ASSERT(tag);
 
 	tag->job = NULL;
@@ -86,7 +86,7 @@ void starpu_tag_remove(starpu_tag_t id)
 
 	pthread_rwlock_wrlock(&tag_global_rwlock);
 
-	tag = _starpu_htbl_remove_tag(tag_htbl, id);
+	tag = (struct starpu_tag_s *) _starpu_htbl_remove_tag(tag_htbl, id);
 
 	pthread_rwlock_unlock(&tag_global_rwlock);
 
@@ -124,7 +124,7 @@ static struct starpu_tag_s *gettag_struct(starpu_tag_t id)
 
 	/* search if the tag is already declared or not */
 	struct starpu_tag_s *tag;
-	tag = _starpu_htbl_search_tag(tag_htbl, id);
+	tag = (struct starpu_tag_s *) _starpu_htbl_search_tag(tag_htbl, id);
 
 	if (tag == NULL) {
 		/* the tag does not exist yet : create an entry */

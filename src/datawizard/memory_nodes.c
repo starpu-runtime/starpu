@@ -61,7 +61,7 @@ void _starpu_set_local_memory_node_key(unsigned *node)
 unsigned _starpu_get_local_memory_node(void)
 {
 	unsigned *memory_node;
-	memory_node = pthread_getspecific(memory_node_key);
+	memory_node = (unsigned *) pthread_getspecific(memory_node_key);
 	
 	/* in case this is called by the programmer, we assume the RAM node 
 	   is the appropriate memory node ... so we return 0 XXX */
@@ -71,12 +71,12 @@ unsigned _starpu_get_local_memory_node(void)
 	return *memory_node;
 }
 
-inline starpu_mem_node_descr *_starpu_get_memory_node_description(void)
+starpu_mem_node_descr *_starpu_get_memory_node_description(void)
 {
 	return &descr;
 }
 
-inline starpu_node_kind _starpu_get_node_kind(uint32_t node)
+starpu_node_kind _starpu_get_node_kind(uint32_t node)
 {
 	return descr.nodes[node];
 }

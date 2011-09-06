@@ -22,8 +22,8 @@
 
 void starpu_block_filter_func_vector(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
-        starpu_vector_interface_t *vector_father = father_interface;
-        starpu_vector_interface_t *vector_child = child_interface;
+        starpu_vector_interface_t *vector_father = (starpu_vector_interface_t *) father_interface;
+        starpu_vector_interface_t *vector_child = (starpu_vector_interface_t *) child_interface;
 	
 	uint32_t nx = vector_father->nx;
 	size_t elemsize = vector_father->elemsize;
@@ -52,8 +52,8 @@ void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_i
         /* there cannot be more than 2 chunks */
         STARPU_ASSERT(id < 2);
 	
-	starpu_vector_interface_t *vector_father = father_interface;
-	starpu_vector_interface_t *vector_child = child_interface;
+	starpu_vector_interface_t *vector_father = (starpu_vector_interface_t *) father_interface;
+	starpu_vector_interface_t *vector_child = (starpu_vector_interface_t *) child_interface;
 
 	uint32_t length_first = f->filter_arg;
 
@@ -90,10 +90,10 @@ void starpu_vector_divide_in_2_filter_func(void *father_interface, void *child_i
 
 void starpu_vector_list_filter_func(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nchunks)
 {
-        starpu_vector_interface_t *vector_father = father_interface;
-        starpu_vector_interface_t *vector_child = child_interface;
+        starpu_vector_interface_t *vector_father = (starpu_vector_interface_t *) father_interface;
+        starpu_vector_interface_t *vector_child = (starpu_vector_interface_t *) child_interface;
 
-        uint32_t *length_tab = f->filter_arg_ptr;
+        uint32_t *length_tab = (uint32_t *) f->filter_arg_ptr;
 
 	size_t elemsize = vector_father->elemsize;
 

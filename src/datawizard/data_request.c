@@ -201,7 +201,7 @@ void _starpu_data_request_append_callback(starpu_data_request_t r, void (*callba
 
 	if (callback_func)
 	{
-		struct callback_list *link = malloc(sizeof(struct callback_list));
+		struct callback_list *link = (struct callback_list *) malloc(sizeof(struct callback_list));
 		STARPU_ASSERT(link);
 
 		link->callback_func = callback_func;

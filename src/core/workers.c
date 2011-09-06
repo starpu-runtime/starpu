@@ -48,22 +48,22 @@ struct starpu_machine_config_s *_starpu_get_machine_config(void)
 /* in case a task is submitted, we may check whether there exists a worker
    that may execute the task or not */
 
-inline uint32_t _starpu_worker_exists(uint32_t task_mask)
+uint32_t _starpu_worker_exists(uint32_t task_mask)
 {
 	return (task_mask & config.worker_mask);
 } 
 
-inline uint32_t _starpu_may_submit_cuda_task(void)
+uint32_t _starpu_may_submit_cuda_task(void)
 {
 	return (STARPU_CUDA & config.worker_mask);
 }
 
-inline uint32_t _starpu_may_submit_cpu_task(void)
+uint32_t _starpu_may_submit_cpu_task(void)
 {
 	return (STARPU_CPU & config.worker_mask);
 }
 
-inline uint32_t _starpu_may_submit_opencl_task(void)
+uint32_t _starpu_may_submit_opencl_task(void)
 {
 	return (STARPU_OPENCL & config.worker_mask);
 }
@@ -260,7 +260,7 @@ void _starpu_set_local_worker_key(struct starpu_worker_s *worker)
 
 struct starpu_worker_s *_starpu_get_local_worker_key(void)
 {
-	return pthread_getspecific(worker_key);
+	return (struct starpu_worker_s *) pthread_getspecific(worker_key);
 }
 
 /* Initialize the starpu_conf with default values */

@@ -165,10 +165,12 @@ static void check_load(starpu_block_interface_t *block, starpu_block_interface_t
 /*
  * Load a neighbour's boundary into block, CPU version
  */
-static void load_subblock_from_buffer_cpu(starpu_block_interface_t *block,
-					starpu_block_interface_t *boundary,
+static void load_subblock_from_buffer_cpu(void *_block,
+					void *_boundary,
 					unsigned firstz)
 {
+	starpu_block_interface_t *block = (starpu_block_interface_t *)_block;
+	starpu_block_interface_t *boundary = (starpu_block_interface_t *)_boundary;
 	check_load(block, boundary);
 
 	/* We do a contiguous memory transfer */
@@ -184,10 +186,12 @@ static void load_subblock_from_buffer_cpu(starpu_block_interface_t *block,
  * Load a neighbour's boundary into block, CUDA version
  */
 #ifdef STARPU_USE_CUDA
-static void load_subblock_from_buffer_cuda(starpu_block_interface_t *block,
-					starpu_block_interface_t *boundary,
+static void load_subblock_from_buffer_cuda(void *_block,
+					void *_boundary,
 					unsigned firstz)
 {
+	starpu_block_interface_t *block = (starpu_block_interface_t *)_block;
+	starpu_block_interface_t *boundary = (starpu_block_interface_t *)_boundary;
 	check_load(block, boundary);
 
 	/* We do a contiguous memory transfer */
@@ -245,7 +249,7 @@ fprintf(stderr,"!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid)
 	for (i=1; i<=K; i++)
 	{
 		starpu_block_interface_t *oldb = descr[i%2], *newb = descr[(i+1)%2];
-		TYPE *old = (void*) oldb->ptr, *new = (void*) newb->ptr;
+		TYPE *old = (void*) oldb->ptr, *newer = (void*) newb->ptr;
 
 		/* Shadow data */
 		cuda_shadow_host(block->bz, old, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
@@ -254,7 +258,7 @@ fprintf(stderr,"!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid)
 #ifdef LIFE
 		cuda_life_update_host(block->bz, old, new, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
 #else
-		cudaMemcpyAsync(new, old, oldb->nx * oldb->ny * oldb->nz * sizeof(*new), cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
+		cudaMemcpyAsync(new, old, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer), cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
 #endif /* LIFE */
 	}
 
@@ -338,7 +342,7 @@ fprintf(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, worke
 	for (i=1; i<=K; i++)
 	{
 		starpu_block_interface_t *oldb = descr[i%2], *newb = descr[(i+1)%2];
-		TYPE *old = (void*) oldb->ptr, *new = (void*) newb->ptr;
+		TYPE *old = (void*) oldb->ptr, *newer = (void*) newb->ptr;
 
 		/* Shadow data */
 		opencl_shadow_host(block->bz, old, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
@@ -347,7 +351,7 @@ fprintf(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, worke
 #ifdef LIFE
 		opencl_life_update_host(block->bz, old, new, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
 #else
-                clEnqueueCopyBuffer(cq, old, new, 0, 0, oldb->nx * oldb->ny * oldb->nz * sizeof(*new), 0, NULL, NULL);
+                clEnqueueCopyBuffer(cq, old, new, 0, 0, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer), 0, NULL, NULL);
 #endif /* LIFE */
 	}
 
@@ -365,7 +369,7 @@ fprintf(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, worke
  */
 static void update_func_cpu(void *descr[], void *arg)
 {
-	struct block_description *block = arg;
+	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id();
 	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	if (block->bz == 0)
@@ -405,8 +409,8 @@ fprintf(stderr,"!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
 
 	for (i=1; i<=K; i++)
 	{
-		starpu_block_interface_t *oldb = descr[i%2], *newb = descr[(i+1)%2];
-		TYPE *old = (void*) oldb->ptr, *new = (void*) newb->ptr;
+		starpu_block_interface_t *oldb = (starpu_block_interface_t *) descr[i%2], *newb = (starpu_block_interface_t *) descr[(i+1)%2];
+		TYPE *old = (TYPE*) oldb->ptr, *newer = (TYPE*) newb->ptr;
 
 		/* Shadow data */
 		unsigned ldy = oldb->ldy, ldz = oldb->ldz;
@@ -424,9 +428,9 @@ fprintf(stderr,"!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
 
 		/* And perform actual computation */
 #ifdef LIFE
-		life_update(block->bz, old, new, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
+		life_update(block->bz, old, newer, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
 #else
-		memcpy(new, old, oldb->nx * oldb->ny * oldb->nz * sizeof(*new));
+		memcpy(newer, old, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer));
 #endif /* LIFE */
 	}
 
@@ -465,10 +469,12 @@ starpu_codelet cl_update = {
  */
 
 /* CPU version */
-static void load_subblock_into_buffer_cpu(starpu_block_interface_t *block,
-					starpu_block_interface_t *boundary,
+static void load_subblock_into_buffer_cpu(void *_block,
+					void *_boundary,
 					unsigned firstz)
 {
+	starpu_block_interface_t *block = (starpu_block_interface_t *)_block;
+	starpu_block_interface_t *boundary = (starpu_block_interface_t *)_boundary;
 	check_load(block, boundary);
 
 	/* We do a contiguous memory transfer */
@@ -482,10 +488,12 @@ static void load_subblock_into_buffer_cpu(starpu_block_interface_t *block,
 
 /* CUDA version */
 #ifdef STARPU_USE_CUDA
-static void load_subblock_into_buffer_cuda(starpu_block_interface_t *block,
-					starpu_block_interface_t *boundary,
+static void load_subblock_into_buffer_cuda(void *_block,
+					void *_boundary,
 					unsigned firstz)
 {
+	starpu_block_interface_t *block = (starpu_block_interface_t *)_block;
+	starpu_block_interface_t *boundary = (starpu_block_interface_t *)_boundary;
 	check_load(block, boundary);
 
 	/* We do a contiguous memory transfer */
@@ -527,7 +535,7 @@ unsigned bottom_per_worker[STARPU_NMAXWORKERS];
 /* top save, CPU version */
 static void dummy_func_top_cpu(void *descr[] __attribute__((unused)), void *arg)
 {
-	struct block_description *block = arg;
+	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id();
 	top_per_worker[workerid]++;
 
@@ -543,7 +551,7 @@ static void dummy_func_top_cpu(void *descr[] __attribute__((unused)), void *arg)
 /* bottom save, CPU version */
 static void dummy_func_bottom_cpu(void *descr[] __attribute__((unused)), void *arg)
 {
-	struct block_description *block = arg;
+	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id();
 	bottom_per_worker[workerid]++;
 
@@ -557,7 +565,7 @@ static void dummy_func_bottom_cpu(void *descr[] __attribute__((unused)), void *a
 #ifdef STARPU_USE_CUDA
 static void dummy_func_top_cuda(void *descr[] __attribute__((unused)), void *arg)
 {
-	struct block_description *block = arg;
+	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id();
 	top_per_worker[workerid]++;
 
@@ -574,7 +582,7 @@ static void dummy_func_top_cuda(void *descr[] __attribute__((unused)), void *arg
 /* bottom save, CUDA version */
 static void dummy_func_bottom_cuda(void *descr[] __attribute__((unused)), void *arg)
 {
-	struct block_description *block = arg;
+	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id();
 	bottom_per_worker[workerid]++;
 
@@ -590,7 +598,7 @@ static void dummy_func_bottom_cuda(void *descr[] __attribute__((unused)), void *
 #ifdef STARPU_USE_OPENCL
 static void dummy_func_top_opencl(void *descr[] __attribute__((unused)), void *arg)
 {
-	struct block_description *block = arg;
+	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id();
 	top_per_worker[workerid]++;
 
@@ -610,7 +618,7 @@ static void dummy_func_top_opencl(void *descr[] __attribute__((unused)), void *a
 /* bottom save, OPENCL version */
 static void dummy_func_bottom_opencl(void *descr[] __attribute__((unused)), void *arg)
 {
-	struct block_description *block = arg;
+	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id();
 	bottom_per_worker[workerid]++;
 

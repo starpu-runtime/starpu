@@ -161,10 +161,10 @@ int _starpu_regression_non_linear_power(struct starpu_history_list_t *ptr, doubl
 {
 	unsigned n = find_list_size(ptr);
 
-	unsigned *x = malloc(n*sizeof(unsigned));
+	unsigned *x = (unsigned *) malloc(n*sizeof(unsigned));
 	STARPU_ASSERT(x);
 
-	double *y = malloc(n*sizeof(double));
+	double *y = (double *) malloc(n*sizeof(double));
 	STARPU_ASSERT(y);
 
 	dump_list(x, y, ptr);

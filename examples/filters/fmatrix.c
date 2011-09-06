@@ -25,7 +25,7 @@
 void cpu_func(void *buffers[], void *cl_arg)
 {
         unsigned i, j;
-        int *factor = cl_arg;
+        int *factor = (int *) cl_arg;
 
         /* length of the matrix */
         unsigned nx = STARPU_MATRIX_GET_NX(buffers[0]);

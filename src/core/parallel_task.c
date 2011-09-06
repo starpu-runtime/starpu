@@ -22,7 +22,7 @@
 
 struct starpu_task *_starpu_create_task_alias(struct starpu_task *task)
 {
-	struct starpu_task *task_dup = malloc(sizeof(struct starpu_task));
+	struct starpu_task *task_dup = (struct starpu_task *) malloc(sizeof(struct starpu_task));
 	STARPU_ASSERT(task_dup);
 
 	/* XXX perhaps this is a bit too much overhead and we should only copy
