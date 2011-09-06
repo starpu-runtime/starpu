@@ -75,6 +75,9 @@ static tree build_codelet_declaration (tree task_decl);
 static tree build_task_body (const_tree task_decl);
 static tree build_pointer_lookup (tree pointer);
 
+static bool task_p (const_tree decl);
+static bool task_implementation_p (const_tree decl);
+
 
 /* Lookup the StarPU function NAME in the global scope and store the result
    in VAR (this can't be done from `lower_starpu'.)  */
@@ -119,7 +122,9 @@ build_call_expr_loc_vec (location_t loc, tree fndecl, VEC(tree,gc) *vec)
 
 
 /* Build a reference to the INDEXth element of ARRAY.  `build_array_ref' is
-   not exported, so we roll our own.  */
+   not exported, so we roll our own.
+   FIXME: This version may not work for array types and doesn't do as much
+   type-checking as `build_array_ref'.  */
 
 static tree
 array_ref (tree array, size_t index)
@@ -347,12 +352,25 @@ handle_pragma_shutdown (struct cpp_reader *reader)
 static void
 handle_pragma_wait (struct cpp_reader *reader)
 {
-  tree fndecl;
+  if (task_implementation_p (current_function_decl))
+    {
+      location_t loc;
 
-  fndecl = lookup_name (get_identifier ("starpu_task_wait_for_all"));
-  gcc_assert (TREE_CODE (fndecl) == FUNCTION_DECL);
+      loc = cpp_peek_token (reader, 0)->src_loc;
 
-  add_stmt (build_call_expr (fndecl, 0));
+      /* TODO: In the future we could generate a task for the continuation
+	 and have it depend on what's before here.  */
+      error_at (loc, "task implementation is not allowed to wait");
+    }
+  else
+    {
+      tree fndecl;
+
+      fndecl = lookup_name (get_identifier ("starpu_task_wait_for_all"));
+      gcc_assert (TREE_CODE (fndecl) == FUNCTION_DECL);
+
+      add_stmt (build_call_expr (fndecl, 0));
+    }
 }
 
 /* The minimal C expression parser.  */

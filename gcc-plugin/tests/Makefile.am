@@ -28,6 +28,7 @@ gcc_tests =					\
   pointer-tasks.c				\
   no-initialize.c				\
   lib-user.c					\
+  wait-errors.c					\
   shutdown-errors.c
 
 dist_noinst_HEADERS = mocks.h
