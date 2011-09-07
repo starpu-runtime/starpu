@@ -245,7 +245,7 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 		unsigned archid;
 		for (archid = 0; archid < STARPU_NARCH_VARIATIONS; archid++)
 		{
-			display_perf_model(model, (starpu_perf_archtype) archid);
+			display_perf_model(model, (enum starpu_perf_archtype) archid);
 		}
 	}
 	else {
@@ -264,7 +264,7 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 				exit(-1);
 			}
 
-			display_perf_model(model, (starpu_perf_archtype) (STARPU_CPU_DEFAULT + k - 1));
+			display_perf_model(model, (enum starpu_perf_archtype) (STARPU_CPU_DEFAULT + k - 1));
 			return;
 		}
 
@@ -273,9 +273,9 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 			for (archid = STARPU_CUDA_DEFAULT; archid < STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS; archid++)
 			{
 				char archname[32];
-				starpu_perfmodel_get_arch_name((starpu_perf_archtype) archid, archname, 32);
+				starpu_perfmodel_get_arch_name((enum starpu_perf_archtype) archid, archname, 32);
 				fprintf(stderr, "performance model for %s\n", archname);
-				display_perf_model(model, (starpu_perf_archtype) archid);
+				display_perf_model(model, (enum starpu_perf_archtype) archid);
 			}
 			return;
 		}
@@ -287,7 +287,7 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 		if (nmatched == 1)
 		{
 			unsigned archid = STARPU_CUDA_DEFAULT+ gpuid;
-			display_perf_model(model, (starpu_perf_archtype) archid);
+			display_perf_model(model, (enum starpu_perf_archtype) archid);
 			return;
 		}
 

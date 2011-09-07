@@ -1,3 +1,4 @@
+
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
@@ -28,7 +29,7 @@ static void callback(void *arg)
 	struct starpu_task *taskA, *taskB;
 
 	taskA = starpu_get_current_task();
-	taskB = (starpu_task *) arg;
+	taskB = (struct starpu_task *) arg;
 
 	starpu_task_declare_deps_array(taskB, 1, &taskA);
 	starpu_task_submit(taskB);

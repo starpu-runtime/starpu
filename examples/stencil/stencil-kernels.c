@@ -256,9 +256,9 @@ fprintf(stderr,"!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid)
 
 		/* And perform actual computation */
 #ifdef LIFE
-		cuda_life_update_host(block->bz, old, new, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
+		cuda_life_update_host(block->bz, old, newer, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
 #else
-		cudaMemcpyAsync(new, old, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer), cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
+		cudaMemcpyAsync(newer, old, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer), cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
 #endif /* LIFE */
 	}
 
@@ -349,9 +349,9 @@ fprintf(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, worke
 
 		/* And perform actual computation */
 #ifdef LIFE
-		opencl_life_update_host(block->bz, old, new, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
+		opencl_life_update_host(block->bz, old, newer, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
 #else
-                clEnqueueCopyBuffer(cq, old, new, 0, 0, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer), 0, NULL, NULL);
+                clEnqueueCopyBuffer(cq, old, newer, 0, 0, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer), 0, NULL, NULL);
 #endif /* LIFE */
 	}
 

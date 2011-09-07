@@ -254,7 +254,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel_t *model)
 	for (arch = 0; arch < STARPU_NARCH_VARIATIONS; arch++)
 	{
 		char archname[32];
-		starpu_perfmodel_get_arch_name((starpu_perf_archtype) arch, archname, 32);
+		starpu_perfmodel_get_arch_name((enum starpu_perf_archtype) arch, archname, 32);
 		fprintf(f, "# Model for %s\n", archname);
 		dump_per_arch_model_file(f, model, arch);
 		fprintf(f, "\n##################\n");

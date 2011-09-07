@@ -134,7 +134,7 @@ static void init_problem(int argc, char **argv, int rank, int world_size)
 	who_runs_what_len = 2*niter;
 	who_runs_what = (int *) calloc(nbz * who_runs_what_len, sizeof(*who_runs_what));
 	who_runs_what_index = (int *) calloc(nbz, sizeof(*who_runs_what_index));
-	last_tick = (timeval *) calloc(nbz, sizeof(*last_tick));
+	last_tick = (struct timeval *) calloc(nbz, sizeof(*last_tick));
 }
 
 /*

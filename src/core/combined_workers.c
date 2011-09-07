@@ -99,7 +99,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 		&config->combined_workers[combined_worker_id];
 
 	combined_worker->worker_size = nworkers;
-	combined_worker->perf_arch = (starpu_perf_archtype) (STARPU_CPU_DEFAULT + nworkers - 1);
+	combined_worker->perf_arch = (enum starpu_perf_archtype) (STARPU_CPU_DEFAULT + nworkers - 1);
 	combined_worker->worker_mask = STARPU_CPU;
 
 	/* We assume that the memory node should either be that of the first
