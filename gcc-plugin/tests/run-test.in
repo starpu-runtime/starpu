@@ -89,7 +89,7 @@ exec "${GUILE-@GUILE@}" -l "$0"    \
     "-fdump-tree-gimple" "-Wall"))
 
 (define %default-ldflags
-  `(,(string-append "-L" %srcdir "/../../src")))
+  `(,(string-append "-L" %builddir "/../../src")))
 
 (define %libtool
   (string-append %builddir "/../../libtool"))

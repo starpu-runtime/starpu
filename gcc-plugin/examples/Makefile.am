@@ -18,5 +18,8 @@ noinst_PROGRAMS =				\
 
 AM_LDFLAGS = $(top_builddir)/src/libstarpu.la
 
-AM_CPPFLAGS = $(STARPU_OPENCL_CPPFLAGS) $(STARPU_CUDA_CPPFLAGS)
+AM_CPPFLAGS =						\
+  -I$(top_srcdir)/include				\
+  $(STARPU_OPENCL_CPPFLAGS) $(STARPU_CUDA_CPPFLAGS)
+
 AM_CFLAGS = -fplugin="$(builddir)/../src/.libs/starpu.so" -Wall
