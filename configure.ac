@@ -1095,10 +1095,6 @@ if test "x$enable_gcc_plugin" = "xyes"; then
 
    build_gcc_plugin="yes"
 
-   # Bison is used to generate the C expression parser.  The generated
-   # parser is part of the distribution, though.
-   AC_PROG_YACC
-
    # GNU Guile 1.8/2.0 is used to run the test suite.
    AC_PATH_PROG([GUILE], [guile])
    if test "x$GUILE" != "x"; then
@@ -1110,6 +1106,10 @@ else
    build_gcc_plugin="no"
    run_gcc_plugin_test_suite="no"
 fi
+
+# Bison is used to generate the C expression parser.  The generated
+# parser is part of the distribution, though.
+AC_PROG_YACC
 
 AM_CONDITIONAL([BUILD_GCC_PLUGIN], [test "x$build_gcc_plugin" = "xyes"])
 AM_CONDITIONAL([HAVE_GUILE], [test "x$GUILE" != "x"])
