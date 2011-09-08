@@ -311,7 +311,7 @@ otherwise."
                 file (length dependencies) dependencies))
 
     (and (every (cut compile/match <> cc cflags ldflags)
-                dependencies)
+                (map (cut string-append %srcdir "/" <>) dependencies))
          (let*-values (((goal)
                         (if error-expected?
                             'compile
