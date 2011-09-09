@@ -51,9 +51,16 @@ AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
     dnl Reason:
     dnl   build_call_expr_loc_array -- not in GCC 4.5.x; appears in 4.6
     dnl   build_call_expr_loc_vec   -- likewise
+    dnl   build_array_ref           -- present but undeclared in 4.6.1
     _STARPU_WITH_GCC_PLUGIN_API([
       AC_CHECK_DECLS([build_call_expr_loc_array, build_call_expr_loc_vec,
                       build_array_ref],
+        [], [], [#include <gcc-plugin.h>
+	         #include <tree.h>])
+
+      dnl Work around header naming issues introduced upstream and in Debian
+      dnl (see <http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=631082>).
+      AC_CHECK_HEADERS([c-common.h c-pragma.h c-family/c-common.h c-family/c-pragma.h],
         [], [], [#include <gcc-plugin.h>
 	         #include <tree.h>])
     ])

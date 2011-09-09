@@ -30,8 +30,19 @@ int plugin_is_GPL_compatible;
 #include <cpplib.h>
 #include <tree.h>
 #include <tree-iterator.h>
-#include <c-family/c-common.h>
-#include <c-family/c-pragma.h>
+
+#ifdef HAVE_C_FAMILY_C_COMMON_H
+# include <c-family/c-common.h>
+#elif HAVE_C_COMMON_H
+# include <c-common.h>
+#endif
+
+#ifdef HAVE_C_FAMILY_C_PRAGMA_H
+# include <c-family/c-pragma.h>
+#elif HAVE_C_PRAGMA_H
+# include <c-pragma.h>
+#endif
+
 #include <tm.h>
 #include <gimple.h>
 #include <tree-pass.h>

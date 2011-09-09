@@ -28,9 +28,19 @@
   #include <gcc-plugin.h>
   #include <plugin.h>
   #include <tree.h>
-  #include <c-family/c-common.h>
-  #include <c-family/c-pragma.h>
   #include <cpplib.h>
+
+  #ifdef HAVE_C_FAMILY_C_COMMON_H
+  # include <c-family/c-common.h>
+  #elif HAVE_C_COMMON_H
+  # include <c-common.h>
+  #endif
+
+  #ifdef HAVE_C_FAMILY_C_PRAGMA_H
+  # include <c-family/c-pragma.h>
+  #elif HAVE_C_PRAGMA_H
+  # include <c-pragma.h>
+  #endif
 
   #if !HAVE_DECL_BUILD_ARRAY_REF
   /* This declaration is missing in GCC 4.6.1.  */
