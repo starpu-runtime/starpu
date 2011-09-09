@@ -28,8 +28,8 @@
   #include <gcc-plugin.h>
   #include <plugin.h>
   #include <tree.h>
-  #include <c-common.h>
-  #include <c-pragma.h>
+  #include <c-family/c-common.h>
+  #include <c-family/c-pragma.h>
   #include <cpplib.h>
 
   #if !HAVE_DECL_BUILD_ARRAY_REF

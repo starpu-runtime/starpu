@@ -30,8 +30,8 @@ int plugin_is_GPL_compatible;
 #include <cpplib.h>
 #include <tree.h>
 #include <tree-iterator.h>
-#include <c-common.h>
-#include <c-pragma.h>
+#include <c-family/c-common.h>
+#include <c-family/c-pragma.h>
 #include <tm.h>
 #include <gimple.h>
 #include <tree-pass.h>
