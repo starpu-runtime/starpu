@@ -1373,17 +1373,21 @@ AC_CONFIG_COMMANDS([executable-scripts], [
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
 AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h)
 
-AC_CONFIG_HEADERS([gcc-plugin/src/starpu-gcc-config.h])
+if test $build_gcc_plugin == "yes" ; then
+    AC_CONFIG_HEADERS([gcc-plugin/src/starpu-gcc-config.h])
+    AC_OUTPUT([
+	    gcc-plugin/Makefile
+	    gcc-plugin/src/Makefile
+	    gcc-plugin/tests/Makefile
+	    gcc-plugin/tests/run-test
+	    gcc-plugin/examples/Makefile
+            ])
+fi 
 
 AC_OUTPUT([
 	Makefile
 	src/Makefile
 	tools/Makefile
-	gcc-plugin/Makefile
-	gcc-plugin/src/Makefile
-	gcc-plugin/tests/Makefile
-	gcc-plugin/tests/run-test
-	gcc-plugin/examples/Makefile
 	socl/Makefile
 	socl/src/Makefile
 	libstarpu.pc
