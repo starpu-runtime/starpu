@@ -3,6 +3,7 @@
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -55,9 +56,19 @@ static int execute_job_on_cpu(starpu_job_t j, struct starpu_worker_s *cpu_args, 
 	 * execute the kernel at all. */
 	if ((rank == 0) || (cl->type != STARPU_FORKJOIN))
 	{
-		cl_func func = cl->cpu_func;
-		STARPU_ASSERT(func);
-		func(task->interfaces, task->cl_arg);
+		if (cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS) {
+			cl_func func = cl->cpu_func;
+			STARPU_ASSERT(func);
+			func(task->interfaces, task->cl_arg);
+		}
+		else {
+			if (cl->cpu_funcs[j->nimpl] != NULL) {
+				/* _STARPU_DEBUG("CPU driver : running kernel (%d)\n", j->nimpl); */
+				cl_func func = cl->cpu_funcs[j->nimpl];
+				STARPU_ASSERT(func);
+				func(task->interfaces, task->cl_arg);
+			}
+		}
 	}
 
 	_starpu_driver_end_job(cpu_args, j, &codelet_end, rank);

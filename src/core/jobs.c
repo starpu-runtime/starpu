@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -62,6 +63,7 @@ starpu_job_t __attribute__((malloc)) _starpu_job_create(struct starpu_task *task
 
 	job = starpu_job_new();
 
+	job->nimpl =0; /* best implementation */
 	job->task = task;
 
 	job->footprint_is_computed = 0;

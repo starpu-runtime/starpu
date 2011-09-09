@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -215,9 +216,9 @@ double task_22_cost_cpu(starpu_buffer_descr *descr)
 
 struct starpu_perfmodel_t model_11 = {
 	.cost_model = task_11_cost,
-	.per_arch = { 
-		[STARPU_CPU_DEFAULT] = { .cost_model = task_11_cost_cpu },
-		[STARPU_CUDA_DEFAULT] = { .cost_model = task_11_cost_cuda }
+	.per_arch = {
+		[STARPU_CPU_DEFAULT][0] = { .cost_model = task_11_cost_cpu },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_model = task_11_cost_cuda }
 	},
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
@@ -231,9 +232,9 @@ struct starpu_perfmodel_t model_11 = {
 
 struct starpu_perfmodel_t model_12 = {
 	.cost_model = task_12_cost,
-	.per_arch = { 
-		[STARPU_CPU_DEFAULT] = { .cost_model = task_12_cost_cpu },
-		[STARPU_CUDA_DEFAULT] = { .cost_model = task_12_cost_cuda }
+	.per_arch = {
+		[STARPU_CPU_DEFAULT][0] = { .cost_model = task_12_cost_cpu },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_model = task_12_cost_cuda }
 	},
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
@@ -247,9 +248,9 @@ struct starpu_perfmodel_t model_12 = {
 
 struct starpu_perfmodel_t model_21 = {
 	.cost_model = task_21_cost,
-	.per_arch = { 
-		[STARPU_CPU_DEFAULT] = { .cost_model = task_21_cost_cpu },
-		[STARPU_CUDA_DEFAULT] = { .cost_model = task_21_cost_cuda }
+	.per_arch = {
+		[STARPU_CPU_DEFAULT][0] = { .cost_model = task_21_cost_cpu },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_model = task_21_cost_cuda }
 	},
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
@@ -263,9 +264,9 @@ struct starpu_perfmodel_t model_21 = {
 
 struct starpu_perfmodel_t model_22 = {
 	.cost_model = task_22_cost,
-	.per_arch = { 
-		[STARPU_CPU_DEFAULT] = { .cost_model = task_22_cost_cpu },
-		[STARPU_CUDA_DEFAULT] = { .cost_model = task_22_cost_cuda }
+	.per_arch = {
+		[STARPU_CPU_DEFAULT][0] = { .cost_model = task_22_cost_cpu },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_model = task_22_cost_cuda }
 	},
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS

@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -67,12 +68,12 @@ enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid)
  * PER ARCH model
  */
 
-static double per_arch_task_expected_perf(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_task *task)
+static double per_arch_task_expected_perf(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_task *task, unsigned nimpl)
 {
 	double exp = -1.0;
 	double (*per_arch_cost_model)(struct starpu_buffer_descr_t *);
 	
-	per_arch_cost_model = model->per_arch[arch].cost_model;
+	per_arch_cost_model = model->per_arch[arch][nimpl].cost_model;
 
 	if (per_arch_cost_model)
 		exp = per_arch_cost_model(task->buffers);
@@ -153,25 +154,27 @@ void _starpu_load_perfmodel(struct starpu_perfmodel_t *model)
 	model->is_loaded = 1;
 }
 
-static double starpu_model_expected_perf(struct starpu_task *task, struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch)
+static double starpu_model_expected_perf(struct starpu_task *task, struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch,  unsigned nimpl)
 {
 	if (model) {
 		starpu_job_t j = _starpu_get_job_associated_to_task(task);
 		switch (model->type) {
 			case STARPU_PER_ARCH:
-				return per_arch_task_expected_perf(model, arch, task);
 
+				return per_arch_task_expected_perf(model, arch, task, nimpl);
 			case STARPU_COMMON:
 				return common_task_expected_perf(model, arch, task);
 
 			case STARPU_HISTORY_BASED:
-				return _starpu_history_based_job_expected_perf(model, arch, j);
 
+				return _starpu_history_based_job_expected_perf(model, arch, j, nimpl);
 			case STARPU_REGRESSION_BASED:
-				return _starpu_regression_based_job_expected_perf(model, arch, j);
+
+				return _starpu_regression_based_job_expected_perf(model, arch, j, nimpl);
 
 			case STARPU_NL_REGRESSION_BASED:
-				return _starpu_non_linear_regression_based_job_expected_perf(model, arch, j);
+
+				return _starpu_non_linear_regression_based_job_expected_perf(model, arch, j,nimpl);
 
 			default:
 				STARPU_ABORT();
@@ -182,14 +185,15 @@ static double starpu_model_expected_perf(struct starpu_task *task, struct starpu
 	return 0.0;
 }
 
-double starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_archtype arch)
+double starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
 {
-	return starpu_model_expected_perf(task, task->cl->model, arch);
+
+	return starpu_model_expected_perf(task, task->cl->model, arch, nimpl);
 }
 
-double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_archtype arch)
+double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
 {
-	return starpu_model_expected_perf(task, task->cl->power_model, arch);
+	return starpu_model_expected_perf(task, task->cl->power_model, arch, nimpl);
 }
 
 /* Predict the transfer time (in µs) to move a handle to a memory node */

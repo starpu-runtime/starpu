@@ -3,6 +3,7 @@
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -68,17 +69,39 @@ uint32_t _starpu_may_submit_opencl_task(void)
 	return (STARPU_OPENCL & config.worker_mask);
 }
 
-int starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task)
+static int _starpu_may_use_nth_implementation(enum starpu_archtype arch, struct starpu_codelet_t *cl, unsigned nimpl)
+{
+	switch(arch) {
+	case STARPU_CPU_WORKER:
+		return !(cl->cpu_func == STARPU_MULTIPLE_CPU_IMPLEMENTATIONS &&
+			cl->cpu_funcs[nimpl] == NULL);
+	case STARPU_CUDA_WORKER:
+		return !(cl->cuda_func == STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS &&
+			cl->cuda_funcs[nimpl] == NULL);
+	case STARPU_OPENCL_WORKER:
+		return !(cl->opencl_func == STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS &&
+			cl->opencl_funcs[nimpl] == NULL);
+	case STARPU_GORDON_WORKER:
+		return !(cl->gordon_func == STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS &&
+			cl->gordon_funcs[nimpl] == NULL);
+	default:
+		return 0;
+	}
+}
+
+
+int starpu_worker_may_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
 	/* TODO: check that the task operand sizes will fit on that device */
 	/* TODO: call application-provided function for various cases like
 	 * double support, shared memory size limit, etc. */
-	return !!(task->cl->where & config.workers[workerid].worker_mask);
+	return !!((task->cl->where & config.workers[workerid].worker_mask) &&
+		_starpu_may_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl));
 }
 
 
 
-int starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_task *task)
+int starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
 	/* TODO: check that the task operand sizes will fit on that device */
 	/* TODO: call application-provided function for various cases like
@@ -90,7 +113,8 @@ int starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_tas
 	/* Is this a parallel worker ? */
 	if (workerid < nworkers)
 	{
-		return !!(task->cl->where & config.workers[workerid].worker_mask);
+		return !!((task->cl->where & config.workers[workerid].worker_mask) &&
+				_starpu_may_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl));
 	}
 	else {
 		if ((cl->type == STARPU_SPMD) || (cl->type == STARPU_FORKJOIN))
@@ -99,7 +123,8 @@ int starpu_combined_worker_may_execute_task(unsigned workerid, struct starpu_tas
 
 			/* Is the worker larger than requested ? */
 			int worker_size = (int)config.combined_workers[workerid - nworkers].worker_size;
-			return !!(worker_size <= task->cl->max_parallelism);
+			return !!((worker_size <= task->cl->max_parallelism) &&
+				_starpu_may_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl));
 		}
 		else
 		{

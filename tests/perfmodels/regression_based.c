@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -97,7 +98,11 @@ static void show_task_perfs(int size, struct starpu_task *task) {
 		char name[16];
 		starpu_worker_get_name(workerid, name, sizeof(name));
 
-		printf("Expected time for %d on %s:\t%f\n", size, name, starpu_task_expected_length(task, starpu_worker_get_perf_archtype(workerid)));
+		unsigned nimpl;
+		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++) {
+			printf("Expected time for %d on %s:\t%f\n",
+				size, name, starpu_task_expected_length(task, starpu_worker_get_perf_archtype(workerid), nimpl));
+		}
 	}
 }
 

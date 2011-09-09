@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -161,7 +162,10 @@ static struct gordon_task_wrapper_s *starpu_to_gordon_job(starpu_job_t j)
 	task_wrapper->j = j;
 	task_wrapper->terminated = 0;
 
-	gordon_job->index = j->task->cl->gordon_func;
+	if (j->task->clgordon_func != STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS)
+		gordon_job->index = j->task->cl->gordon_func;
+	else
+		gordon_job->index = j->task->cl->gordon_funcs[j->nimpl];
 
 	/* we should not hardcore the memory node ... XXX */
 	unsigned memory_node = 0;

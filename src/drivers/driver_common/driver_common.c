@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -120,14 +121,17 @@ void _starpu_driver_update_job_feedback(starpu_job_t j, struct starpu_worker_s *
 		}
 
 		if (calibrate_model)
-			_starpu_update_perfmodel_history(j, j->task->cl->model,  perf_arch, worker_args->devid, measured);
+
+			_starpu_update_perfmodel_history(j, j->task->cl->model,  perf_arch, worker_args->devid, measured,j->nimpl);
+
+
 	}
 
 	if (!updated)
 		_starpu_worker_update_profiling_info_executing(workerid, NULL, 1, 0, 0, 0);
 
 	if (profiling_info && profiling_info->power_consumed && cl->power_model && cl->power_model->benchmarking) {
-		_starpu_update_perfmodel_history(j, j->task->cl->power_model,  perf_arch, worker_args->devid, profiling_info->power_consumed);
+		_starpu_update_perfmodel_history(j, j->task->cl->power_model,  perf_arch, worker_args->devid, profiling_info->power_consumed,j->nimpl);
 		}
 }
 

@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -256,7 +257,7 @@ int starpu_task_submit(struct starpu_task *task)
 		/* In case we require that a task should be explicitely
 		 * executed on a specific worker, we make sure that the worker
 		 * is able to execute this task.  */
-		if (task->execute_on_a_specific_worker && !starpu_combined_worker_may_execute_task(task->workerid, task)) {
+		if (task->execute_on_a_specific_worker && !starpu_combined_worker_may_execute_task(task->workerid, task, 0)) {
                         _STARPU_LOG_OUT_TAG("ENODEV");
 			return -ENODEV;
                 }

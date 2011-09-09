@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -115,7 +116,9 @@ static void heft_push_task_notify(struct starpu_task *task, int workerid)
 {
 	/* Compute the expected penality */
 	enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(workerid);
-	double predicted = starpu_task_expected_length(task, perf_arch);
+
+	double predicted = starpu_task_expected_length(task, perf_arch,
+			_starpu_get_job_associated_to_task(task)->nimpl);
 
 	/* Update the predictions */
 	PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
@@ -179,78 +182,92 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 	/* A priori, we know all estimations */
 	int unknown = 0;
-
 	unsigned worker;
-	for (worker = 0; worker < nworkers; worker++)
-	{
-		/* Sometimes workers didn't take the tasks as early as we expected */
-		exp_start[worker] = STARPU_MAX(exp_start[worker], starpu_timing_now());
-		exp_end[worker] = exp_start[worker] + exp_len[worker];
-		if (exp_end[worker] > max_exp_end)
-			max_exp_end = exp_end[worker];
 
-		if (!starpu_worker_may_execute_task(worker, task))
-		{
-			/* no one on that queue may execute this task */
-			continue;
-		}
+	unsigned nimpl;
+	unsigned best_impl = 0;
 
-		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
-		unsigned memory_node = starpu_worker_get_memory_node(worker);
+	for (worker = 0; worker < nworkers; worker++) {
+		for (nimpl = 0; nimpl <STARPU_MAXIMPLEMENTATIONS; nimpl++) {
+			/* Sometimes workers didn't take the tasks as early as we expected */
+			exp_start[worker] = STARPU_MAX(exp_start[worker], starpu_timing_now());
+			exp_end[worker] = exp_start[worker] + exp_len[worker];
+			if (exp_end[worker] > max_exp_end)
+				max_exp_end = exp_end[worker];
 
-		if (bundle)
-		{
-			local_task_length[worker] = starpu_task_bundle_expected_length(bundle, perf_arch);
-			local_data_penalty[worker] = starpu_task_bundle_expected_data_transfer_time(bundle, memory_node);
-			local_power[worker] = starpu_task_bundle_expected_power(bundle, perf_arch);
-		}
-		else {
-			local_task_length[worker] = starpu_task_expected_length(task, perf_arch);
-			local_data_penalty[worker] = starpu_task_expected_data_transfer_time(memory_node, task);
-			local_power[worker] = starpu_task_expected_power(task, perf_arch);
-		}
+			if (!starpu_worker_may_execute_task(worker, task, nimpl))
+			{
+				/* no one on that queue may execute this task */
+				continue;
+			}
 
-		double ntasks_end = ntasks[worker] / starpu_worker_get_relative_speedup(perf_arch);
+			enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
+			unsigned memory_node = starpu_worker_get_memory_node(worker);
 
-		if (ntasks_best == -1
+			if (bundle)
+			{
+				local_task_length[worker] = starpu_task_bundle_expected_length(bundle, perf_arch, nimpl);
+				local_data_penalty[worker] = starpu_task_bundle_expected_data_transfer_time(bundle, memory_node);
+				local_power[worker] = starpu_task_bundle_expected_power(bundle, perf_arch,nimpl);
+				//_STARPU_DEBUG("Scheduler heft bundle: task length (%lf) local power (%lf) worker (%u) kernel (%u) \n", local_task_length[worker],local_power[worker],worker,nimpl);
+
+			}
+			else {
+				local_task_length[worker] = starpu_task_expected_length(task, perf_arch, nimpl);
+				local_data_penalty[worker] = starpu_task_expected_data_transfer_time(memory_node, task);
+				local_power[worker] = starpu_task_expected_power(task, perf_arch,nimpl);
+				//_STARPU_DEBUG("Scheduler heft: task length (%lf) local power (%lf) worker (%u) kernel (%u) \n", local_task_length[worker],local_power[worker],worker,nimpl);
+
+			}
+
+			double ntasks_end = ntasks[worker] / starpu_worker_get_relative_speedup(perf_arch);
+
+			if (ntasks_best == -1
 				|| (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
 				|| (!calibrating && local_task_length[worker] == -1.0) /* Not calibrating but this worker is being calibrated */
 				|| (calibrating && local_task_length[worker] == -1.0 && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
 				) {
-			ntasks_best_end = ntasks_end;
-			ntasks_best = worker;
+				ntasks_best_end = ntasks_end;
+				ntasks_best = worker;
+			}
+
+			if (local_task_length[worker] == -1.0)
+				/* we are calibrating, we want to speed-up calibration time
+				 * so we privilege non-calibrated tasks (but still
+				 * greedily distribute them to avoid dumb schedules) */
+				calibrating = 1;
+
+			if (local_task_length[worker] <= 0.0)
+				/* there is no prediction available for that task
+				 * with that arch yet, so switch to a greedy strategy */
+				unknown = 1;
+
+			if (unknown)
+				continue;
+
+			exp_end[worker] = exp_start[worker] + exp_len[worker] + local_task_length[worker];
+
+			if (exp_end[worker] < best_exp_end)
+			{
+				/* a better solution was found */
+				best_exp_end = exp_end[worker];
+				best_impl = nimpl;
+			}
+
+			if (local_power[worker] == -1.0)
+				local_power[worker] = 0.;
+
 		}
-
-		if (local_task_length[worker] == -1.0)
-			/* we are calibrating, we want to speed-up calibration time
-			 * so we privilege non-calibrated tasks (but still
-			 * greedily distribute them to avoid dumb schedules) */
-			calibrating = 1;
-
-		if (local_task_length[worker] <= 0.0)
-			/* there is no prediction available for that task
-			 * with that arch yet, so switch to a greedy strategy */
-			unknown = 1;
-
-		if (unknown)
-			continue;
-
-		exp_end[worker] = exp_start[worker] + exp_len[worker] + local_task_length[worker];
-
-		if (exp_end[worker] < best_exp_end)
-		{
-			/* a better solution was found */
-			best_exp_end = exp_end[worker];
-		}
-
-		if (local_power[worker] == -1.0)
-			local_power[worker] = 0.;
 	}
 
 	*forced_best = unknown?ntasks_best:-1;
 
 	*best_exp_endp = best_exp_end;
 	*max_exp_endp = max_exp_end;
+
+	/* save the best implementation */
+	//_STARPU_DEBUG("Scheduler heft: kernel (%u)\n", best_impl);
+	_starpu_get_job_associated_to_task(task)->nimpl = best_impl;
 }
 
 static int _heft_push_task(struct starpu_task *task, unsigned prio)
@@ -298,7 +315,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		if (!starpu_worker_may_execute_task(worker, task))
+		if (!starpu_worker_may_execute_task(worker, task, 0))
 		{
 			/* no one on that queue may execute this task */
 			continue;
@@ -314,12 +331,11 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 			 * consumption of other cpus */
 			fitness[worker] += _gamma * idle_power * (exp_end[worker] - max_exp_end) / 1000000.0;
 
-		if (best == -1 || fitness[worker] < best_fitness)
-		{
-			/* we found a better solution */
-			best_fitness = fitness[worker];
-			best = worker;
-		}
+			if (best == -1 || fitness[worker] < best_fitness)
+			{
+				/* we found a better solution */
+				best_fitness = fitness[worker]; best = worker;
+			}
 	}
 
 	/* By now, we must have found a solution */
@@ -333,7 +349,8 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 		/* If we have a task bundle, we have computed the expected
 		 * length for the entire bundle, but not for the task alone. */
 		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(best);
-		model_best = starpu_task_expected_length(task, perf_arch);
+		model_best = starpu_task_expected_length(task, perf_arch,
+				_starpu_get_job_associated_to_task(task)->nimpl);
 
 		/* Remove the task from the bundle since we have made a
 		 * decision for it, and that other tasks should not consider it

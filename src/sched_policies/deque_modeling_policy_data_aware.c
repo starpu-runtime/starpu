@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -311,57 +312,65 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 	/* A priori, we know all estimations */
 	int unknown = 0;
 
+	unsigned best_impl = 0;
+	unsigned nimpl;
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		double exp_end;
-		
-		fifo = queue_array[worker];
-
-		/* Sometimes workers didn't take the tasks as early as we expected */
-		fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
-		fifo->exp_end = fifo->exp_start + fifo->exp_len;
-
-		if (!starpu_worker_may_execute_task(worker, task))
+		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
-			/* no one on that queue may execute this task */
-			continue;
-		}
+			double exp_end;
 
-		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
-		double local_length = starpu_task_expected_length(task, perf_arch);
-		double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
+			fifo = queue_array[worker];
 
-		if (ntasks_best == -1
-				|| (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
-				|| (!calibrating && local_length == -1.0) /* Not calibrating but this worker is being calibrated */
-				|| (calibrating && local_length == -1.0 && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
-				) {
-			ntasks_best_end = ntasks_end;
-			ntasks_best = worker;
-		}
+			/* Sometimes workers didn't take the tasks as early as we expected */
+			fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
+			fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
-		if (local_length == -1.0)
-			/* we are calibrating, we want to speed-up calibration time
-			 * so we privilege non-calibrated tasks (but still
-			 * greedily distribute them to avoid dumb schedules) */
-			calibrating = 1;
+			if (!starpu_worker_may_execute_task(worker, task, nimpl))
+			{
+				/* no one on that queue may execute this task */
+				continue;
+			}
 
-		if (local_length <= 0.0)
-			/* there is no prediction available for that task
-			 * with that arch yet, so switch to a greedy strategy */
-			unknown = 1;
+			enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
+			double local_length = starpu_task_expected_length(task, perf_arch, nimpl);
+			double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
 
-		if (unknown)
-			continue;
+			//_STARPU_DEBUG("Scheduler dm: task length (%lf) worker (%u) kernel (%u) \n", local_length,worker,nimpl);
 
-		exp_end = fifo->exp_start + fifo->exp_len + local_length;
+			if (ntasks_best == -1
+					|| (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
+					|| (!calibrating && local_length == -1.0) /* Not calibrating but this worker is being calibrated */
+					|| (calibrating && local_length == -1.0 && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
+					) {
+				ntasks_best_end = ntasks_end;
+				ntasks_best = worker;
+			}
 
-		if (best == -1 || exp_end < best_exp_end)
-		{
-			/* a better solution was found */
-			best_exp_end = exp_end;
-			best = worker;
-			model_best = local_length;
+			if (local_length == -1.0)
+				/* we are calibrating, we want to speed-up calibration time
+				 * so we privilege non-calibrated tasks (but still
+				 * greedily distribute them to avoid dumb schedules) */
+				calibrating = 1;
+
+			if (local_length <= 0.0)
+				/* there is no prediction available for that task
+				 * with that arch yet, so switch to a greedy strategy */
+				unknown = 1;
+
+			if (unknown)
+				continue;
+
+			exp_end = fifo->exp_start + fifo->exp_len + local_length;
+
+			if (best == -1 || exp_end < best_exp_end)
+			{
+				/* a better solution was found */
+				best_exp_end = exp_end;
+				best = worker;
+				model_best = local_length;
+				best_impl = nimpl;
+			}
 		}
 	}
 
@@ -370,6 +379,10 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio)
 		model_best = 0.0;
 	}
 	
+	//_STARPU_DEBUG("Scheduler dm: kernel (%u)\n", best_impl);
+
+	 _starpu_get_job_associated_to_task(task)->nimpl = 0;//best_impl;
+
 	/* we should now have the best worker in variable "best" */
 	return push_task_on_best_worker(task, best, model_best, prio);
 }
@@ -404,64 +417,78 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 	/* A priori, we know all estimations */
 	int unknown = 0;
 
+	unsigned best_impl = 0;
+	unsigned nimpl=0;
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		fifo = queue_array[worker];
+		for(nimpl  = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+	 	{
+			fifo = queue_array[worker];
 
-		/* Sometimes workers didn't take the tasks as early as we expected */
-		fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
-		fifo->exp_end = fifo->exp_start + fifo->exp_len;
-		if (fifo->exp_end > max_exp_end)
-			max_exp_end = fifo->exp_end;
+			/* Sometimes workers didn't take the tasks as early as we expected */
+			fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
+			fifo->exp_end = fifo->exp_start + fifo->exp_len;
+			if (fifo->exp_end > max_exp_end)
+				max_exp_end = fifo->exp_end;
 
-		if (!starpu_worker_may_execute_task(worker, task))
-		{
-			/* no one on that queue may execute this task */
-			continue;
-		}
+			if (!starpu_worker_may_execute_task(worker, task, nimpl))
+			{
+				/* no one on that queue may execute this task */
+				continue;
+			}
 
-		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
-		local_task_length[worker] = starpu_task_expected_length(task, perf_arch);
+			enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
+			local_task_length[worker] = starpu_task_expected_length(task, perf_arch, nimpl);
 
-		unsigned memory_node = starpu_worker_get_memory_node(worker);
-		local_data_penalty[worker] = starpu_task_expected_data_transfer_time(memory_node, task);
+			//_STARPU_DEBUG("Scheduler dmda: task length (%lf) worker (%u) kernel (%u) \n", local_task_length[worker],worker,nimpl);
 
-		double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
+			unsigned memory_node = starpu_worker_get_memory_node(worker);
+			local_data_penalty[worker] = starpu_task_expected_data_transfer_time(memory_node, task);
 
-		if (ntasks_best == -1
-				|| (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
-				|| (!calibrating && local_task_length[worker] == -1.0) /* Not calibrating but this worker is being calibrated */
-				|| (calibrating && local_task_length[worker] == -1.0 && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
-				) {
-			ntasks_best_end = ntasks_end;
-			ntasks_best = worker;
-		}
+			double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
 
-		if (local_task_length[worker] == -1.0)
-			/* we are calibrating, we want to speed-up calibration time
-			 * so we privilege non-calibrated tasks (but still
-			 * greedily distribute them to avoid dumb schedules) */
-			calibrating = 1;
+			if (ntasks_best == -1
+					|| (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
+					|| (!calibrating && local_task_length[worker] == -1.0) /* Not calibrating but this worker is being calibrated */
+					|| (calibrating && local_task_length[worker] == -1.0 && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
+					) {
+				ntasks_best_end = ntasks_end;
+				ntasks_best = worker;
 
-		if (local_task_length[worker] <= 0.0)
-			/* there is no prediction available for that task
-			 * with that arch yet, so switch to a greedy strategy */
-			unknown = 1;
+			}
 
-		if (unknown)
-			continue;
+			if (local_task_length[worker] == -1.0)
+				/* we are calibrating, we want to speed-up calibration time
+				 * so we privilege non-calibrated tasks (but still
+				 * greedily distribute them to avoid dumb schedules) */
+				calibrating = 1;
 
-		exp_end[worker] = fifo->exp_start + fifo->exp_len + local_task_length[worker];
+			if (local_task_length[worker] <= 0.0)
+				/* there is no prediction available for that task
+				 * with that arch yet, so switch to a greedy strategy */
+				unknown = 1;
 
-		if (exp_end[worker] < best_exp_end)
-		{
-			/* a better solution was found */
-			best_exp_end = exp_end[worker];
-		}
+			if (unknown)
+					continue;
 
-		local_power[worker] = starpu_task_expected_power(task, perf_arch);
-		if (local_power[worker] == -1.0)
-			local_power[worker] = 0.;
+			exp_end[worker] = fifo->exp_start + fifo->exp_len + local_task_length[worker];
+
+			if (exp_end[worker] < best_exp_end)
+			{
+				/* a better solution was found */
+				best_exp_end = exp_end[worker];
+				best_impl = nimpl;
+
+			}
+
+
+
+			local_power[worker] = starpu_task_expected_power(task, perf_arch, nimpl);
+			if (local_power[worker] == -1.0)
+				local_power[worker] = 0.;
+
+
+		 }
 	}
 
 	if (unknown)
@@ -475,7 +502,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 		{
 			fifo = queue_array[worker];
 	
-			if (!starpu_worker_may_execute_task(worker, task))
+			if (!starpu_worker_may_execute_task(worker, task, 0))
 			{
 				/* no one on that queue may execute this task */
 				continue;
@@ -518,6 +545,10 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio)
 		model_best = local_task_length[best];
 		//penality_best = local_data_penalty[best];
 	}
+
+
+	//_STARPU_DEBUG("Scheduler dmda: kernel (%u)\n", best_impl);
+	 _starpu_get_job_associated_to_task(task)->nimpl = best_impl;
 
 	/* we should now have the best worker in variable "best" */
 	return push_task_on_best_worker(task, best, model_best, prio);

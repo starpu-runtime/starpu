@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,6 +57,18 @@ extern "C" {
 
 typedef uint64_t starpu_tag_t;
 
+
+typedef void (*starpu_cpu_func_t)(void **, void*);    /* CPU core */
+typedef void (*starpu_cuda_func_t)(void **, void*);   /* NVIDIA CUDA device */
+typedef void (*starpu_opencl_func_t)(void **, void*); /* OpenCL CUDA device */
+typedef uint8_t starpu_gordon_func_t; /* Cell SPU */
+
+#define STARPU_MULTIPLE_CPU_IMPLEMENTATIONS    (starpu_cpu_func_t) -1
+#define STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS   (starpu_cuda_func_t) -1
+#define STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS (starpu_opencl_func_t) -1
+#define STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS 255
+
+
 /*
  * A codelet describes the various function 
  * that may be called from a worker
@@ -71,6 +84,11 @@ typedef struct starpu_codelet_t {
 	void (*cpu_func)(void **, void *);
 	void (*opencl_func)(void **, void *);
 	uint8_t gordon_func;
+
+	starpu_cpu_func_t cpu_funcs[STARPU_MAXIMPLEMENTATIONS];
+	starpu_cuda_func_t cuda_funcs[STARPU_MAXIMPLEMENTATIONS];
+	starpu_opencl_func_t opencl_funcs[STARPU_MAXIMPLEMENTATIONS];
+	starpu_gordon_func_t gordon_funcs[STARPU_MAXIMPLEMENTATIONS];
 
 	/* how many buffers do the codelet takes as argument ? */
 	unsigned nbuffers;

@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -71,10 +72,10 @@ int starpu_task_bundle_remove(struct starpu_task_bundle *bundle, struct starpu_t
 void starpu_task_bundle_close(struct starpu_task_bundle *bundle);
 
 /* Return the expected duration of the entire task bundle in µs. */
-double starpu_task_bundle_expected_length(struct starpu_task_bundle *bundle, enum starpu_perf_archtype arch);
+double starpu_task_bundle_expected_length(struct starpu_task_bundle *bundle, enum starpu_perf_archtype arch, unsigned nimpl);
 /* Return the time (in µs) expected to transfer all data used within the bundle */
 double starpu_task_bundle_expected_data_transfer_time(struct starpu_task_bundle *bundle, unsigned memory_node);
 /* Return the expected power consumption of the entire task bundle in J. */
-double starpu_task_bundle_expected_power(struct starpu_task_bundle *bundle,  enum starpu_perf_archtype arch);
+double starpu_task_bundle_expected_power(struct starpu_task_bundle *bundle,  enum starpu_perf_archtype arch, unsigned nimpl);
 
 #endif // __STARPU_TASK_BUNDLE_H__

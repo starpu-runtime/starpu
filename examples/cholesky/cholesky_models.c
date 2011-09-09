@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -125,27 +126,27 @@ static double cuda_chol_task_22_cost(starpu_buffer_descr *descr)
 }
 
 struct starpu_perfmodel_t chol_model_11 = {
-	.per_arch = { 
-		[STARPU_CPU_DEFAULT] = { .cost_model = cpu_chol_task_11_cost },
-		[STARPU_CUDA_DEFAULT] = { .cost_model = cuda_chol_task_11_cost }
+	.per_arch = {
+		[STARPU_CPU_DEFAULT][0] = { .cost_model = cpu_chol_task_11_cost },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_model = cuda_chol_task_11_cost }
 	},
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "chol_model_11"
 };
 
 struct starpu_perfmodel_t chol_model_21 = {
-	.per_arch = { 
-		[STARPU_CPU_DEFAULT] = { .cost_model = cpu_chol_task_21_cost },
-		[STARPU_CUDA_DEFAULT] = { .cost_model = cuda_chol_task_21_cost }
+	.per_arch = {
+		[STARPU_CPU_DEFAULT][0] = { .cost_model = cpu_chol_task_21_cost },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_model = cuda_chol_task_21_cost }
 	},
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "chol_model_21"
 };
 
 struct starpu_perfmodel_t chol_model_22 = {
-	.per_arch = { 
-		[STARPU_CPU_DEFAULT] = { .cost_model = cpu_chol_task_22_cost },
-		[STARPU_CUDA_DEFAULT] = { .cost_model = cuda_chol_task_22_cost }
+	.per_arch = {
+		[STARPU_CPU_DEFAULT][0] = { .cost_model = cpu_chol_task_22_cost },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_model = cuda_chol_task_22_cost }
 	},
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "chol_model_22"

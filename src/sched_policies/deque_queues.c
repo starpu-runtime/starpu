@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -109,7 +110,11 @@ struct starpu_job_list_s *_starpu_deque_pop_every_task(struct starpu_deque_jobq_
 		{
 			next_job = starpu_job_list_next(i);
 
-			if (starpu_worker_may_execute_task(workerid, i->task))
+			/* In case there are multiples implementations of the
+ 			 * codelet for a single device, We dont really care
+			 * about the implementation used, so let's try the 
+			 * first one. */
+			if (starpu_worker_may_execute_task(workerid, i->task, 0))
 			{
 				/* this elements can be moved into the new list */
 				new_list_size++;

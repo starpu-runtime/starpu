@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -91,7 +92,7 @@ void _starpu_get_perf_model_dir_codelets(char *path, size_t maxlen);
 void _starpu_get_perf_model_dir_bus(char *path, size_t maxlen);
 void _starpu_get_perf_model_dir_debug(char *path, size_t maxlen);
 
-double _starpu_history_based_job_expected_perf(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j);
+double _starpu_history_based_job_expected_perf(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, struct starpu_job_s *j, unsigned nimpl);
 void _starpu_register_model(struct starpu_perfmodel_t *model);
 void _starpu_load_history_based_model(struct starpu_perfmodel_t *model, unsigned scan_history);
 void _starpu_load_perfmodel(struct starpu_perfmodel_t *model);
@@ -99,11 +100,11 @@ void _starpu_initialize_registered_performance_models(void);
 void _starpu_deinitialize_registered_performance_models(void);
 
 double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel_t *model,
-					enum starpu_perf_archtype arch, struct starpu_job_s *j);
+					enum starpu_perf_archtype arch, struct starpu_job_s *j, unsigned nimpl);
 double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel_t *model,
-					enum starpu_perf_archtype arch, struct starpu_job_s *j);
+					enum starpu_perf_archtype arch, struct starpu_job_s *j, unsigned nimpl);
 void _starpu_update_perfmodel_history(struct starpu_job_s *j, struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch,
-				unsigned cpuid, double measured);
+				unsigned cpuid, double measured, unsigned nimpl);
 
 void _starpu_create_sampling_directory_if_needed(void);
 

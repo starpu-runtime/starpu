@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2011  Université de Bordeaux 1
  * Copyright (C) 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -143,14 +144,14 @@ static void display_history_based_perf_model(struct starpu_per_arch_perfmodel_t 
 	}
 }
 
-static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch)
+static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_perf_archtype arch, unsigned nimpl)
 {
-	struct starpu_per_arch_perfmodel_t *arch_model = &model->per_arch[arch];
+	struct starpu_per_arch_perfmodel_t *arch_model = &model->per_arch[arch][nimpl];
 	char archname[32];
 
 	if (arch_model->regression.nsample || arch_model->regression.valid || arch_model->regression.nl_valid || arch_model->list) {
 
-		starpu_perfmodel_get_arch_name(arch, archname, 32);
+		starpu_perfmodel_get_arch_name(arch, archname, 32, nimpl);
 		fprintf(stderr, "performance model for %s\n", archname);
 	}
 
@@ -187,7 +188,7 @@ static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_per
 
 #if 0
 		char debugname[1024];
-		starpu_perfmodel_debugfilepath(model, arch, debugname, 1024);
+		starpu_perfmodel_debugfilepath(model, arch, debugname, 1024, nimpl);
 		printf("\t debug file path : %s\n", debugname);
 #endif
 	}
@@ -220,7 +221,7 @@ static void display_perf_model(struct starpu_perfmodel_t *model, enum starpu_per
 
 		if (strcmp(parameter, "path-file-debug") == 0) {
 			char debugname[256];
-			starpu_perfmodel_debugfilepath(model, arch, debugname, 1024);
+			starpu_perfmodel_debugfilepath(model, arch, debugname, 1024, nimpl);
 			printf("%s\n", debugname);
 			return;
 		}
@@ -243,14 +244,18 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 	{
 		/* display all architectures */
 		unsigned archid;
-		for (archid = 0; archid < STARPU_NARCH_VARIATIONS; archid++)
-		{
-			display_perf_model(model, (enum starpu_perf_archtype) archid);
+		unsigned implid;
+		for (archid = 0; archid < STARPU_NARCH_VARIATIONS; archid++) {
+			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++) { /* Display all codelets on each arch */
+				display_perf_model(model, (enum starpu_perf_archtype) archid, implid);
+			}
 		}
 	}
 	else {
 		if (strcmp(arch, "cpu") == 0) {
-			display_perf_model(model, STARPU_CPU_DEFAULT);
+			unsigned implid;
+			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
+				display_perf_model(model, STARPU_CPU_DEFAULT,implid); /* Display all codelets on cpu */
 			return;
 		}
 
@@ -264,18 +269,22 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 				exit(-1);
 			}
 
-			display_perf_model(model, (enum starpu_perf_archtype) (STARPU_CPU_DEFAULT + k - 1));
+			unsigned implid;
+			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
+				display_perf_model(model, (enum starpu_perf_archtype) STARPU_CPU_DEFAULT + k - 1, implid);
 			return;
 		}
 
 		if (strcmp(arch, "cuda") == 0) {
 			unsigned archid;
-			for (archid = STARPU_CUDA_DEFAULT; archid < STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS; archid++)
-			{
-				char archname[32];
-				starpu_perfmodel_get_arch_name((enum starpu_perf_archtype) archid, archname, 32);
-				fprintf(stderr, "performance model for %s\n", archname);
-				display_perf_model(model, (enum starpu_perf_archtype) archid);
+			unsigned implid;
+			for (archid = STARPU_CUDA_DEFAULT; archid < STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS; archid++) {
+				for (implid = 0; implid <STARPU_MAXIMPLEMENTATIONS; implid ++) {
+					char archname[32];
+					starpu_perfmodel_get_arch_name((enum starpu_perf_archtype) archid, archname, 32, implid);
+					fprintf(stderr, "performance model for %s\n", archname);
+					display_perf_model(model, (enum starpu_perf_archtype) archid, implid);
+				}
 			}
 			return;
 		}
@@ -287,13 +296,17 @@ static void display_all_perf_models(struct starpu_perfmodel_t *model)
 		if (nmatched == 1)
 		{
 			unsigned archid = STARPU_CUDA_DEFAULT+ gpuid;
-			display_perf_model(model, (enum starpu_perf_archtype) archid);
+			unsigned implid;
+			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
+				display_perf_model(model, (enum starpu_perf_archtype) archid, implid);
 			return;
 		}
 
 		if (strcmp(arch, "gordon") == 0) {
 			fprintf(stderr, "performance model for gordon\n");
-			display_perf_model(model, STARPU_GORDON_DEFAULT);
+			unsigned implid;
+			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
+				display_perf_model(model, STARPU_GORDON_DEFAULT, implid);
 			return;
 		}
 

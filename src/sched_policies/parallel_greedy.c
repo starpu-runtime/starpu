@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -167,7 +168,7 @@ static struct starpu_task *pop_task_pgreedy_policy(void)
 			if (possible_combinations_size[workerid][i] > best_size)
 			{
 				int combined_worker = possible_combinations[workerid][i];
-				if (starpu_combined_worker_may_execute_task(combined_worker, task))
+				if (starpu_combined_worker_may_execute_task(combined_worker, task, 0))
 				{
 					best_size = possible_combinations_size[workerid][i];
 					best_workerid = combined_worker;

@@ -2,6 +2,7 @@
 #
 # Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
 # Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+# * Copyright (C) 2011  Télécom-SudParis
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -888,6 +889,15 @@ nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + 15 \) /
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
+
+# Computes the maximum number of implementations per arch
+AC_MSG_CHECKING(maximum number of implementations)
+AC_ARG_ENABLE(maximplementations, [AS_HELP_STRING([--enable-maximplementations=<number>],
+		[maximum number of implementations])],
+		maximplementations=$enableval, maximplementations=1)
+AC_MSG_RESULT($maximplementations)
+AC_DEFINE_UNQUOTED(STARPU_MAXIMPLEMENTATIONS, [$maximplementations],
+		[maximum number of implementations])
 
 ###############################################################################
 #                                                                             #

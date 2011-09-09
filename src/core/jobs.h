@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -55,6 +56,10 @@ typedef void (*callback)(void *);
 
 /* A job is the internal representation of a task. */
 LIST_TYPE(starpu_job,
+
+	/* The implementation associated to the job */
+	unsigned nimpl;
+
 	/* The task associated to that job */
 	struct starpu_task *task;
 

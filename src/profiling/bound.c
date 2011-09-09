@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -335,7 +336,7 @@ static void _starpu_get_tasks_times(int nw, int nt, double *times) {
 				.footprint_is_computed = 1,
 			};
 			enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
-			double length = _starpu_history_based_job_expected_perf(tp->cl->model, arch, &j);
+			double length = _starpu_history_based_job_expected_perf(tp->cl->model, arch, &j, j.nimpl);
 			if (length == -1.0)
 				times[w*nt+t] = -1.0;
 			else
@@ -401,7 +402,7 @@ void starpu_bound_print_lp(FILE *output)
 			for (w = 0; w < nw; w++) {
 				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
 				if (t1->duration[arch] == 0.) {
-					double length = _starpu_history_based_job_expected_perf(t1->cl->model, arch, &j);
+					double length = _starpu_history_based_job_expected_perf(t1->cl->model, arch, &j,j.nimpl);
 					if (length == -1.0)
 						/* Avoid problems with binary coding of doubles */
 						t1->duration[arch] = -1.0;

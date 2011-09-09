@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -104,7 +105,7 @@ struct starpu_perfmodel_t {
 	double (*cost_model)(struct starpu_buffer_descr_t *);
 
 	/* per-architecture model */
-	struct starpu_per_arch_perfmodel_t per_arch[STARPU_NARCH_VARIATIONS];
+	struct starpu_per_arch_perfmodel_t per_arch[STARPU_NARCH_VARIATIONS][STARPU_MAXIMPLEMENTATIONS];
 
 	/* Name of the performance model, this is used as a file name when saving history-based performance models */
 	const char *symbol;
@@ -126,9 +127,8 @@ enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid);
  * performance model files */
 int starpu_load_history_debug(const char *symbol, struct starpu_perfmodel_t *model);
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel_t *model,
-		enum starpu_perf_archtype arch, char *path, size_t maxlen);
-void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch,
-		char *archname, size_t maxlen);
+		enum starpu_perf_archtype arch, char *path, size_t maxlen, unsigned nimpl);
+void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch,	char *archname, size_t maxlen, unsigned nimpl);
 int starpu_list_models(void);
 
 void starpu_force_bus_sampling(void);
