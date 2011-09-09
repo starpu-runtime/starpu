@@ -62,7 +62,7 @@ static int find_combinations_with_hwloc_rec(hwloc_obj_t obj, int *worker_array, 
 
 	int worker_array_rec[STARPU_NMAXWORKERS];
 	int worker_cnt_rec = 0;
-	memset(worker_array_rec, 0, sizeof(worker_array_rec));
+	memset(worker_array_rec, 0, sizeof(int)*STARPU_NMAXWORKERS);
 
 	unsigned i;
 	for (i = 0; i < obj->arity; i++)
@@ -169,15 +169,15 @@ static void combine_all_cpu_workers(struct starpu_machine_topology_s *topology)
 
 void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *topology)
 {
-	struct starpu_machine_config_s *config = _starpu_get_machine_config();
+    struct starpu_machine_config_s *config = _starpu_get_machine_config();
 
-	if (config->user_conf && config->user_conf->single_combined_worker > 0 || starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER") > 0)
-		combine_all_cpu_workers(topology);
-	else {
+    if (config->user_conf && config->user_conf->single_combined_worker > 0 || starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER") > 0)
+	combine_all_cpu_workers(topology);
+    else {
 #ifdef STARPU_HAVE_HWLOC
-		find_combinations_with_hwloc(topology);
+	find_combinations_with_hwloc(topology);
 #else
-		find_combinations_without_hwloc(topology);
+	find_combinations_without_hwloc(topology);
 #endif
-	}
+    }
 }
