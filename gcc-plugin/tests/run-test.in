@@ -105,7 +105,7 @@ compiler status and the list of lines printed on stdout/stderr."
          (mode     (if compile?
                        "compile"
                        "link"))
-         (command  (format #f "LANG=C ~a --mode=~a ~a ~{~a ~} \"~a\" ~{~a ~} 2>&1"
+         (command  (format #f "LC_ALL=C ~a --mode=~a ~a ~{~a ~} \"~a\" ~{~a ~} 2>&1"
                            %libtool mode cc cflags file ldflags))
          (pipe     (begin
                      (log "running `~a'" command)
