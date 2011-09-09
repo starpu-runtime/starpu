@@ -1367,7 +1367,6 @@ AM_CONDITIONAL([COND_OPT], [test "$want_optional_tests" = yes])
 # File configuration
 AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tests/regression/regression.sh
-  chmod +x gcc-plugin/tests/run-test
 ])
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
@@ -1381,6 +1380,9 @@ if test $build_gcc_plugin == "yes" ; then
 	    gcc-plugin/tests/Makefile
 	    gcc-plugin/tests/run-test
 	    gcc-plugin/examples/Makefile
+            ])
+    AC_CONFIG_COMMANDS([executable-plugin-scripts], [
+            chmod +x gcc-plugin/tests/run-test
             ])
 fi 
 
