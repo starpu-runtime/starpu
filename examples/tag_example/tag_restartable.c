@@ -35,7 +35,7 @@
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 #define TAG(i, iter)	((starpu_tag_t)  (((uint64_t)((iter)%Nrolls))<<32 | (i)) )
 
-starpu_codelet cl;
+starpu_codelet cl = {};
 
 #define Ni	64
 #define Nk	256
