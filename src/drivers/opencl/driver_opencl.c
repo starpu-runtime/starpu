@@ -357,6 +357,11 @@ void _starpu_opencl_init(void)
                 // Get location of OpenCl kernel source files
                 _starpu_opencl_program_dir = getenv("STARPU_OPENCL_PROGRAM_DIR");
 
+		if (nb_devices > STARPU_MAXOPENCLDEVS) {
+			_STARPU_DISP("# Warning: %d OpenCL devices available. Only %d enabled. Use configure option --enable-maxopencldev=xxx to update the maximum value of supporter OpenCL devices?\n", nb_devices, STARPU_MAXOPENCLDEVS);
+			nb_devices = STARPU_MAXOPENCLDEVS;
+		}
+
                 // initialise internal structures
                 for(i=0 ; i<nb_devices ; i++) {
                         contexts[i] = NULL;
