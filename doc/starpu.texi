@@ -409,7 +409,6 @@ configuration:
 * Setting flags for compiling and linking applications::  
 * Running a basic StarPU application::  
 * Kernel threads started by StarPU::
-* Using accelerators::          
 * Enabling OpenCL::
 @end menu
 
@@ -1135,7 +1134,7 @@ or for example, by disabling CPU devices:
 @end smallexample
 
 or by disabling CUDA devices (which may permit to enable the use of OpenCL,
-see @ref{Using accelerators}):
+see @ref{Enabling OpenCL}):
 
 @smallexample
 % STARPU_NCUDA=0 ./vector_scal
