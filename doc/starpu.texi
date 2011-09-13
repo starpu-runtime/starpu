@@ -410,6 +410,7 @@ configuration:
 * Running a basic StarPU application::  
 * Kernel threads started by StarPU::
 * Using accelerators::          
+* Enabling OpenCL::
 @end menu
 
 @node Setting flags for compiling and linking applications
@@ -462,14 +463,20 @@ installed. This step is done only once per user and per machine.
 @node Kernel threads started by StarPU
 @section Kernel threads started by StarPU
 
-TODO: StarPU starts one thread per CPU core and binds them there, uses one of
-them per GPU. The application is not supposed to do computations in its own
-threads. TODO: add a StarPU function to bind an application thread (e.g. the
-main thread) to a dedicated core (and thus disable the corresponding StarPU CPU
-worker).
+StarPU automatically binds one thread per CPU core. It does not use
+SMT/hyperthreading because kernels are usually already optimized for using a
+full core, and using hyperthreading would make kernel calibration rather random.
 
-@node Using accelerators
-@section Using accelerators
+Since driving GPUs is a CPU-consuming task, StarPU dedicates one core per GPU
+
+While StarPU tasks are executing, the application is not supposed to do
+computations in the threads it starts itself, tasks should be used instead.
+
+TODO: add a StarPU function to bind an application thread (e.g. the main thread)
+to a dedicated core (and thus disable the corresponding StarPU CPU worker).
+
+@node Enabling OpenCL
+@section Enabling OpenCL
 
 When both CUDA and OpenCL drivers are enabled, StarPU will launch an
 OpenCL worker for NVIDIA GPUs only if CUDA is not already running on them.
@@ -477,8 +484,26 @@ This design choice was necessary as OpenCL and CUDA can not run at the
 same time on the same NVIDIA GPU, as there is currently no interoperability
 between them.
 
-Details on how to specify devices running OpenCL and the ones running
-CUDA are given in @ref{Enabling OpenCL}.
+To enable OpenCL, you need either to disable CUDA when configuring StarPU:
+
+@example
+% ./configure --disable-cuda
+@end example
+
+or when running applications:
+
+@example
+% STARPU_NCUDA=0 ./application
+@end example
+
+OpenCL will automatically be started on any device not yet used by
+CUDA. So on a machine running 4 GPUS, it is therefore possible to
+enable CUDA on 2 devices, and OpenCL on the 2 other devices by doing
+so:
+
+@example
+% STARPU_NCUDA=2 ./application
+@end example
 
 
 @c ---------------------------------------------------------------------
@@ -4603,37 +4628,10 @@ This function synchronously deinitializes the CUBLAS library on every CUDA devic
 @section OpenCL extensions
 
 @menu
-* Enabling OpenCL::            Enabling OpenCL
 * Compiling OpenCL kernels::   Compiling OpenCL kernels
 * Loading OpenCL kernels::     Loading OpenCL kernels
 * OpenCL statistics::          Collecting statistics from OpenCL
 @end menu
-
-@node Enabling OpenCL
-@subsection Enabling OpenCL
-
-On GPU devices which can run both CUDA and OpenCL, CUDA will be
-enabled by default. To enable OpenCL, you need either to disable CUDA
-when configuring StarPU:
-
-@example
-% ./configure --disable-cuda
-@end example
-
-or when running applications:
-
-@example
-% STARPU_NCUDA=0 ./application
-@end example
-
-OpenCL will automatically be started on any device not yet used by
-CUDA. So on a machine running 4 GPUS, it is therefore possible to
-enable CUDA on 2 devices, and OpenCL on the 2 other devices by doing
-so:
-
-@example
-% STARPU_NCUDA=2 ./application
-@end example
 
 @node Compiling OpenCL kernels
 @subsection Compiling OpenCL kernels
