@@ -2153,7 +2153,9 @@ very natural way by the means of asynchronous interactions between the
 application and StarPU.  This is implemented in a separate libstarpumpi library
 which basically provides "StarPU" equivalents of @code{MPI_*} functions, where
 @code{void *} buffers are replaced with @code{starpu_data_handle}s, and all
-GPU-RAM-NIC transfers are handled efficiently by StarPU-MPI.
+GPU-RAM-NIC transfers are handled efficiently by StarPU-MPI.  The user has to
+use the usual @code{mpirun} command of the MPI implementation to start StarPU on
+the different MPI nodes.
 
 @menu
 * The API::                     
