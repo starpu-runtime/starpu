@@ -65,13 +65,15 @@ if BUILD_STARPU_TOP
 all-local:
 	cd starpu-top ; $(QMAKE) ; $(MAKE)
 clean-local:
-	cd starpu-top ; $(MAKE) clean
+	cd starpu-top ; $(QMAKE) ; $(MAKE) clean ; $(RM) Makefile
 # TODO: resources
 install-exec-local:
 	$(MKDIR_P) $(DESTDIR)$(bindir)
 	$(INSTALL_STRIP_PROGRAM) starpu-top/StarPU-Top $(DESTDIR)$(bindir)
 uninstall-local:
 	$(RM) $(DESTDIR)$(bindir)/StarPU-Top
+	$(RM) starpu-top/StarPU-Top
+	$(RM) starpu-top/Makefile
 endif
 
 if STARPU_HAVE_WINDOWS
