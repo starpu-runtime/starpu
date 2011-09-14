@@ -1377,24 +1377,11 @@ AM_CONDITIONAL([COND_OPT], [test "$want_optional_tests" = yes])
 # File configuration
 AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tests/regression/regression.sh
+  chmod +x gcc-plugin/tests/run-test
 ])
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
-AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h)
-
-if test $build_gcc_plugin == "yes" ; then
-    AC_CONFIG_HEADERS([gcc-plugin/src/starpu-gcc-config.h])
-    AC_OUTPUT([
-	    gcc-plugin/Makefile
-	    gcc-plugin/src/Makefile
-	    gcc-plugin/tests/Makefile
-	    gcc-plugin/tests/run-test
-	    gcc-plugin/examples/Makefile
-            ])
-    AC_CONFIG_COMMANDS([executable-plugin-scripts], [
-            chmod +x gcc-plugin/tests/run-test
-            ])
-fi 
+AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/src/starpu-gcc-config.h)
 
 AC_OUTPUT([
 	Makefile
@@ -1413,6 +1400,11 @@ AC_OUTPUT([
 	doc/Makefile
 	mpi/Makefile
 	starpu-top/StarPU-Top.pro
+        gcc-plugin/Makefile
+	gcc-plugin/src/Makefile
+	gcc-plugin/tests/Makefile
+	gcc-plugin/tests/run-test
+	gcc-plugin/examples/Makefile
 ])
 
 AC_MSG_NOTICE([
