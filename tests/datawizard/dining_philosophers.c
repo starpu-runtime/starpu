@@ -23,6 +23,8 @@
 starpu_data_handle fork_handles[N];
 unsigned forks[N];
 
+#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+
 static void eat_kernel(void *descr[], void *arg)
 {
 }
@@ -77,6 +79,12 @@ int main(int argc, char **argv)
 	}
 
 	starpu_task_wait_for_all();
+
+	FPRINTF(stderr, "waiting done\n");
+	for (f = 0; f < N; f++)
+	{
+		starpu_data_unregister(fork_handles[f]);
+	}
 
 	starpu_shutdown();
 
