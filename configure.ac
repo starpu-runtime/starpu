@@ -582,9 +582,11 @@ if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
     	STARPU_CHECK_OPENCL($opencl_dir, $opencl_include_dir, $opencl_lib_dir)
         if test "$have_valid_opencl" = "no" ; then
             for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_INC_PATH" "$CUDA_INSTALL_PATH" ; do
-    	        STARPU_CHECK_OPENCL($f, "no", "no")
-                if test "$have_valid_opencl" = "yes" ; then
-                    break
+                if test -n $f ; then
+    	            STARPU_CHECK_OPENCL($f, "no", "no")
+                    if test "$have_valid_opencl" = "yes" ; then
+                        break
+                    fi
                 fi
             done
         fi
