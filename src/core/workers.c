@@ -83,7 +83,7 @@ static int _starpu_may_use_nth_implementation(enum starpu_archtype arch, struct 
 			cl->opencl_funcs[nimpl] == NULL);
 	case STARPU_GORDON_WORKER:
 		return !(cl->gordon_func == STARPU_MULTIPLE_GORDON_IMPLEMENTATIONS &&
-			cl->gordon_funcs[nimpl] == NULL);
+			cl->gordon_funcs[nimpl] == 0);
 	default:
 		return 0;
 	}
