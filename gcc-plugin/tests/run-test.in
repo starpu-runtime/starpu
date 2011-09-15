@@ -261,10 +261,15 @@ unsatisfied directives."
 
 (define (executable-file source)
   "Return the name of the executable file corresponding to SOURCE."
-  (let ((dot (string-rindex source #\.)))
-    (if dot
-        (substring source 0 dot)
-        (string-append source ".exe"))))
+  (let* ((dot (string-rindex source #\.))
+         (exe (if dot
+                  (substring source 0 dot)
+                  (string-append source ".exe")))
+         )
+  (if (string-prefix? %srcdir exe)
+      (string-append %builddir (substring exe (string-length %srcdir)))
+      exe
+      )))
 
 (define (compile/match file cc cflags ldflags)
   "Read directives from FILE, and compiler/link/run it.  Make sure directives
