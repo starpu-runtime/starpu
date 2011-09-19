@@ -204,15 +204,81 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_per_arch_perfmodel_
 	}
 }
 
-static void parse_model_file(FILE *f, struct starpu_perfmodel_t *model, unsigned scan_history)
+static void parse_arch(FILE *f, struct starpu_perfmodel_t *model, unsigned scan_history, unsigned archmin, unsigned archmax, unsigned implmax, int skiparch, int skipimpl)
 {
-	unsigned arch;
-	unsigned nimpl;
-	for (arch = 0; arch < STARPU_NARCH_VARIATIONS; arch++) {
-		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++) {
-			parse_per_arch_model_file(f, &model->per_arch[arch][nimpl], scan_history);
+	unsigned arch, impl;
+	struct starpu_per_arch_perfmodel_t dummy;
+
+	for (arch = archmin; arch < archmax; arch++) {
+		for (impl = 0; impl < implmax; impl++) {
+			parse_per_arch_model_file(f, &model->per_arch[arch][impl], scan_history);
+		}
+		if (skipimpl > 0) {
+			for (impl = 0; impl < skipimpl; impl++) {
+				parse_per_arch_model_file(f, &dummy, 0);
+			}
 		}
 	}
+
+	if (skiparch > 0) {
+		for (arch = 0; arch < skiparch; arch ++) {
+			for (impl = 0; impl < implmax; impl++) {
+				parse_per_arch_model_file(f, &dummy, 0);
+			}
+			if (skipimpl > 0) {
+				for (impl = 0; impl < skipimpl; impl++) {
+					parse_per_arch_model_file(f, &dummy, 0);
+				}
+			}
+		}
+	}
+}
+
+static void parse_model_file(FILE *f, struct starpu_perfmodel_t *model, unsigned scan_history)
+{
+	unsigned ret;
+	int ncpus, ncudas, nopencls, ngordons, nimpls;
+	unsigned archmin = 0;
+	unsigned max_gordondevs = 1; /* XXX : we need a STARPU_MAXGORDONDEVS cst */
+
+	_starpu_drop_comments(f);
+	ret = fscanf(f, "%u %u %u %u %u %u\n", &ncpus, &ncudas, &nopencls, &ngordons, &nimpls);
+	STARPU_ASSERT(ret == 5);
+
+	/* Parsing CPUs */
+	parse_arch(f, model, scan_history,
+			archmin,
+			STARPU_MIN(ncpus, STARPU_MAXCPUS),
+			STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS),
+			ncpus - STARPU_MAXCPUS,
+			nimpls - STARPU_MAXIMPLEMENTATIONS);
+
+	/* Parsing CUDA devs */
+	archmin += STARPU_MAXCPUS;
+	parse_arch(f, model, scan_history,
+			archmin,
+			archmin + STARPU_MIN(ncudas, STARPU_MAXCUDADEVS),
+			STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS),
+			ncudas - STARPU_MAXCUDADEVS,
+			nimpls - STARPU_MAXIMPLEMENTATIONS);
+
+	/* Parsing OpenCL devs */
+	archmin += STARPU_MAXCUDADEVS;
+	parse_arch(f, model, scan_history,
+			archmin,
+			archmin + STARPU_MIN(nopencls, STARPU_MAXOPENCLDEVS),
+			STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS),
+			nopencls - STARPU_MAXOPENCLDEVS,
+			nimpls - STARPU_MAXIMPLEMENTATIONS);
+
+	/* Parsing Gordon implementations */
+	archmin += STARPU_MAXOPENCLDEVS;
+	parse_arch(f, model, scan_history,
+			archmin,
+			archmin + max_gordondevs,
+			STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS),
+			ngordons - max_gordondevs,
+			nimpls - STARPU_MAXIMPLEMENTATIONS);
 }
 
 
@@ -255,6 +321,13 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel_t *model, 
 static void dump_model_file(FILE *f, struct starpu_perfmodel_t *model)
 {
 	fprintf(f, "#################\n");
+	fprintf(f, "# CPUs, CUDAs, OpenCLs, Gordons, Implementations\n");
+	fprintf(f, "%u %u %u %u %u\n", 
+		STARPU_MAXCPUS, STARPU_MAXCUDADEVS,
+		STARPU_MAXOPENCLDEVS, 1, /* XXX : gordon ? */
+		STARPU_MAXIMPLEMENTATIONS);
+	fprintf(f, "#################\n");
+		
 
 	unsigned arch;
 	unsigned nimpl;
