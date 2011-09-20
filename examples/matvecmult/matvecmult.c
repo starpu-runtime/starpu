@@ -139,7 +139,7 @@ int main(int argc, char **argv)
 	if (STARPU_UNLIKELY(ret == -ENODEV)) {
                 FPRINTF(stderr, "This application requires an OpenCL worker.\n");
 		starpu_shutdown();
-		exit(0);
+		return 77;
 	}
 
         mem_size_matrix = width * height * sizeof(float);
