@@ -1121,14 +1121,7 @@ fi
 
 # Bison is used to generate the C expression parser.  The generated
 # parser is part of the distribution, though.
-AC_PATH_PROG([YACC], [yacc])
-if test "x$YACC" = "x"; then
-    AC_MSG_ERROR([Compiler yacc not available])
-fi
-AC_PATH_PROG([BISON], [bison])
-if test "x$BISON" = "x"; then
-    AC_MSG_ERROR([Compiler bison not available])
-fi
+AC_PROG_YACC
 
 AM_CONDITIONAL([BUILD_GCC_PLUGIN], [test "x$build_gcc_plugin" = "xyes"])
 AM_CONDITIONAL([HAVE_GUILE], [test "x$GUILE" != "x"])
