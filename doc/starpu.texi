@@ -3935,11 +3935,13 @@ This partitions a vector into blocks of the same size.
 
 
 @deftypefun void starpu_vector_list_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a vector into blocks of sizes given in @var{filter_arg_ptr}.
+This partitions a vector into blocks of sizes given in the @var{filter_arg_ptr}
+field of @var{f}, supposed to point on a @code{uint32_t*} array.
 @end deftypefun
 
 @deftypefun void starpu_vector_divide_in_2_filter_func (void *@var{father_interface}, void *@var{child_interface}, {struct starpu_data_filter} *@var{f}, unsigned @var{id}, unsigned @var{nparts})
-This partitions a vector into two blocks, the first block size being given in @var{filter_arg}.
+This partitions a vector into two blocks, the first block size being given in
+the @var{filter_arg} field of @var{f}.
 @end deftypefun
 
 
