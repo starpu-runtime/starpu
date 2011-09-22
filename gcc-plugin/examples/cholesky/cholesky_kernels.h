@@ -18,14 +18,16 @@
 #ifndef __DW_CHOLESKY_MODELS_H__
 #define __DW_CHOLESKY_MODELS_H__
 
-void chol_codelet_update_u11(float* mat, const unsigned nx, const unsigned ld)
+void chol_codelet_update_u11(float* mat, unsigned nx, unsigned ld)
 	__attribute__ ((task));
 
-void chol_codelet_update_u21(const float *sub11, float *sub21, const unsigned ld11, const unsigned ld21, const unsigned nx21, const unsigned ny21)
+void chol_codelet_update_u21(const float *sub11, float *sub21, unsigned ld11,
+			     unsigned ld21, unsigned nx21, unsigned ny21)
 	__attribute__ ((task));
 
-void chol_codelet_update_u22(const float *left, const float *right, float *center, const unsigned dx, const unsigned dy, const unsigned dz,
-			     const unsigned ld21, const unsigned ld12, const unsigned ld22)
+void chol_codelet_update_u22(const float *left, const float *right, float *center,
+			     unsigned dx, unsigned dy, unsigned dz,
+			     unsigned ld21, unsigned ld12, unsigned ld22)
 	__attribute__ ((task));
 
 #endif // __DW_CHOLESKY_MODELS_H__
