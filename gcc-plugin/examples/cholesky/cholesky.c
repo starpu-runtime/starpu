@@ -79,7 +79,6 @@ static void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblo
                 }
         }
 
-#pragma starpu wait
 	gettimeofday(&end, NULL);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
@@ -107,6 +106,7 @@ int main(int argc, char **argv)
 //	conf.calibrate = 1;
 
 #pragma starpu initialize
+        starpu_helper_cublas_init();
 
 	unsigned i,j,x,y;
         bmat = malloc(nblocks * sizeof(float *));
@@ -152,8 +152,6 @@ int main(int argc, char **argv)
 	}
 
 	dw_cholesky(bmat, size, size/nblocks, nblocks);
-
-#pragma starpu shutdown
 
         if (display) {
                 printf("Results:\n");

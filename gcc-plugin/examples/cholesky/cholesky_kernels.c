@@ -66,6 +66,11 @@ static inline void chol_common_cpu_codelet_update_u22(const float *left, const f
 void chol_cpu_codelet_update_u22(const float *left, const float *right, float *center, unsigned dx, unsigned dy, unsigned dz,
 				 unsigned ld21, unsigned ld12, unsigned ld22)
 	__attribute__ ((task_implementation ("cpu", chol_codelet_update_u22)));
+#ifdef STARPU_USE_CUDA
+void chol_cublas_codelet_update_u22(const float *left, const float *right, float *center, const unsigned dx, const unsigned dy, const unsigned dz,
+                                    const unsigned ld21, const unsigned ld12, const unsigned ld22)
+	__attribute__ ((task_implementation ("cuda", chol_codelet_update_u22)));
+#endif
 
 void chol_cpu_codelet_update_u22(const float *left, const float *right, float *center, unsigned dx, unsigned dy, unsigned dz,
 				 unsigned ld21, unsigned ld12, unsigned ld22)
@@ -74,9 +79,10 @@ void chol_cpu_codelet_update_u22(const float *left, const float *right, float *c
 }
 
 #ifdef STARPU_USE_CUDA
-void chol_cublas_codelet_update_u22(void *descr[], void *_args)
+void chol_cublas_codelet_update_u22(const float *left, const float *right, float *center, const unsigned dx, const unsigned dy, const unsigned dz,
+                                    const unsigned ld21, const unsigned ld12, const unsigned ld22)
 {
-	chol_common_cpu_codelet_update_u22(descr, 1, _args);
+	chol_common_cpu_codelet_update_u22(left, right, center, dx, dx, dz, ld21, ld12, ld22, 1);
 }
 #endif// STARPU_USE_CUDA
 
@@ -104,6 +110,10 @@ static inline void chol_common_codelet_update_u21(const float *sub11, float *sub
 
 void chol_cpu_codelet_update_u21(const float *sub11, float *sub21, unsigned ld11, unsigned ld21, unsigned nx21, unsigned ny21)
 	__attribute__ ((task_implementation ("cpu", chol_codelet_update_u21)));
+#ifdef STARPU_USE_CUDA
+void chol_cublas_codelet_update_u21(const float *sub11, float *sub21, const unsigned ld11, const unsigned ld21, const unsigned nx21, const unsigned ny21)
+	__attribute__ ((task_implementation ("cuda", chol_codelet_update_u21)));
+#endif
 
 void chol_cpu_codelet_update_u21(const float *sub11, float *sub21, unsigned ld11, unsigned ld21, unsigned nx21, unsigned ny21)
 {
@@ -111,9 +121,9 @@ void chol_cpu_codelet_update_u21(const float *sub11, float *sub21, unsigned ld11
 }
 
 #ifdef STARPU_USE_CUDA
-void chol_cublas_codelet_update_u21(void *descr[], void *_args)
+void chol_cublas_codelet_update_u21(const float *sub11, float *sub21, const unsigned ld11, const unsigned ld21, const unsigned nx21, const unsigned ny21)
 {
-	chol_common_codelet_update_u21(descr, 1, _args);
+        chol_common_codelet_update_u21(sub11, sub21, ld11, ld21, nx21, ny21, 1);
 }
 #endif
 
@@ -196,6 +206,10 @@ static inline void chol_common_codelet_update_u11(float *sub11, unsigned nx, uns
 
 void chol_cpu_codelet_update_u11(float *mat, unsigned nx, unsigned ld)
 	__attribute__ ((task_implementation ("cpu", chol_codelet_update_u11)));
+#ifdef STARPU_USE_CUDA
+void chol_cublas_codelet_update_u11(float *mat, const unsigned nx, const unsigned ld)
+	__attribute__ ((task_implementation ("cuda", chol_codelet_update_u11)));
+#endif
 
 void chol_cpu_codelet_update_u11(float *mat, unsigned nx, unsigned ld)
 {
@@ -203,8 +217,8 @@ void chol_cpu_codelet_update_u11(float *mat, unsigned nx, unsigned ld)
 }
 
 #ifdef STARPU_USE_CUDA
-void chol_cublas_codelet_update_u11(void *descr[], void *_args)
+void chol_cublas_codelet_update_u11(float *mat, const unsigned nx, const unsigned ld)
 {
-	chol_common_codelet_update_u11(descr, 1, _args);
+	chol_common_codelet_update_u11(mat, nx, ld, 1);
 }
 #endif// STARPU_USE_CUDA
