@@ -14,7 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 noinst_PROGRAMS =				\
-  matrix-mult
+  matrix-mult stencil5
 
 AM_LDFLAGS = $(top_builddir)/src/libstarpu.la
 
