@@ -690,6 +690,12 @@ handle_task_attribute (tree *node, tree name, tree args,
 	      "%<task%> attribute only applies to functions");
   else
     {
+      if (!VOID_TYPE_P (TREE_TYPE (TREE_TYPE (fn))))
+	/* Raise an error but keep going to avoid spitting out too many
+	   errors at the user's face.  */
+	error_at (DECL_SOURCE_LOCATION (fn),
+		  "task return type must be %<void%>");
+
       /* This is a function declaration for something local to this
 	 translation unit, so add the `task' attribute to FN.  */
       *no_add_attrs = false;

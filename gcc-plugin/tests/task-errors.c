@@ -49,6 +49,9 @@ static void my_task_wrong_target_arg (int foo, char *bar) /* (error "string cons
 static void my_task_with_a_body (int foo, char *bar)
   __attribute__ ((task, unused));
 
+extern int my_task_not_void (int foo) /* (error "return type") */
+  __attribute__ ((task));
+
 
 static void
 my_task_cpu (int foo, float *bar)
