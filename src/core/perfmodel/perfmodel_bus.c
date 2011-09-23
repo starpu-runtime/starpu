@@ -429,7 +429,7 @@ static void benchmark_all_gpu_devices(void)
 #endif
 
 	struct starpu_machine_config_s *config = _starpu_get_machine_config();
-	ncpus = _starpu_topology_get_nhwcpu(config);
+	ncpus = config->topology.ncpus;
 
 	/* TODO: measure bandwidth between GPU-GPU */
 
@@ -509,7 +509,7 @@ static void load_bus_affinity_file_content(void)
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	struct starpu_machine_config_s *config = _starpu_get_machine_config();
-	ncpus = _starpu_topology_get_nhwcpu(config);
+	ncpus = config->topology.ncpus;
         int gpu;
 
 #ifdef STARPU_USE_CUDA
@@ -1020,7 +1020,7 @@ static void check_bus_config_file()
                 fclose(f);
 
                 // Loading current configuration
-                ncpus = _starpu_topology_get_nhwcpu(config);
+                ncpus = config->topology.ncpus;
 #ifdef STARPU_USE_CUDA
 		ncuda = _starpu_get_cuda_device_count();
 #endif
