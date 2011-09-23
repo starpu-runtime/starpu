@@ -22,6 +22,11 @@
 #define xstr(s)        str(s)
 #define STARPU_LU_STR(name)  xstr(STARPU_LU(name))
 
+#ifdef STARPU_USE_CUDA
+static const TYPE p1 =  1.0f;
+static const TYPE m1 = -1.0f;
+#endif
+
 /*
  *   U22 
  */
@@ -54,10 +59,10 @@ static inline void STARPU_LU(common_u22)(void *descr[],
 			break;
 
 #ifdef STARPU_USE_CUDA
-		case 1:
+		case 1: {
 			CUBLAS_GEMM('n', 'n', dx, dy, dz,
-				(TYPE)-1.0, right, ld21, left, ld12,
-				(TYPE)1.0f, center, ld22);
+				*(CUBLAS_TYPE*)&m1, (CUBLAS_TYPE *)right, ld21, (CUBLAS_TYPE *)left, ld12,
+				*(CUBLAS_TYPE*)&p1, (CUBLAS_TYPE *)center, ld22);
 
 			status = cublasGetError();
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
@@ -67,6 +72,7 @@ static inline void STARPU_LU(common_u22)(void *descr[],
 				STARPU_CUDA_REPORT_ERROR(cures);
 
 			break;
+		}
 #endif
 		default:
 			STARPU_ABORT();
@@ -140,7 +146,7 @@ static inline void STARPU_LU(common_u12)(void *descr[],
 #ifdef STARPU_USE_CUDA
 		case 1:
 			CUBLAS_TRSM('L', 'L', 'N', 'N', ny12, nx12,
-					(TYPE)1.0, sub11, ld11, sub12, ld12);
+					*(CUBLAS_TYPE*)&p1, (CUBLAS_TYPE*)sub11, ld11, (CUBLAS_TYPE*)sub12, ld12);
 
 			status = cublasGetError();
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
@@ -221,7 +227,7 @@ static inline void STARPU_LU(common_u21)(void *descr[],
 #ifdef STARPU_USE_CUDA
 		case 1:
 			CUBLAS_TRSM('R', 'U', 'N', 'U', ny21, nx21,
-					(TYPE)1.0, sub11, ld11, sub21, ld21);
+					*(CUBLAS_TYPE*)&p1, (CUBLAS_TYPE*)sub11, ld11, (CUBLAS_TYPE*)sub21, ld21);
 
 			status = cublasGetError();
 			if (status != CUBLAS_STATUS_SUCCESS)
@@ -307,17 +313,19 @@ static inline void STARPU_LU(common_u11)(void *descr[],
 			for (z = 0; z < nx; z++)
 			{
 				TYPE pivot;
+				TYPE inv_pivot;
 				cudaMemcpy(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost);
 				cudaStreamSynchronize(0);
 
 				STARPU_ASSERT(pivot != 0.0);
 				
-				CUBLAS_SCAL(nx - z - 1, 1.0/pivot, &sub11[z+(z+1)*ld], ld);
+				inv_pivot = 1.0/pivot;
+				CUBLAS_SCAL(nx - z - 1, *(CUBLAS_TYPE*)&inv_pivot, (CUBLAS_TYPE*)&sub11[z+(z+1)*ld], ld);
 				
-				CUBLAS_GER(nx - z - 1, nx - z - 1, -1.0,
-						&sub11[(z+1)+z*ld], 1,
-						&sub11[z+(z+1)*ld], ld,
-						&sub11[(z+1) + (z+1)*ld],ld);
+				CUBLAS_GER(nx - z - 1, nx - z - 1, *(CUBLAS_TYPE*)&m1,
+						(CUBLAS_TYPE*)&sub11[(z+1)+z*ld], 1,
+						(CUBLAS_TYPE*)&sub11[z+(z+1)*ld], ld,
+						(CUBLAS_TYPE*)&sub11[(z+1) + (z+1)*ld],ld);
 			}
 			
 			cudaThreadSynchronize();
@@ -423,20 +431,21 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 			for (z = 0; z < nx; z++)
 			{
 				TYPE pivot;
+				TYPE inv_pivot;
 				cudaMemcpy(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost);
 				cudaStreamSynchronize(0);
 
 				if (fabs((double)(pivot)) < PIVOT_THRESHHOLD)
 				{
 					/* find the pivot */
-					int piv_ind = CUBLAS_IAMAX(nx - z, &sub11[z*(ld+1)], ld) - 1;
+					int piv_ind = CUBLAS_IAMAX(nx - z, (CUBLAS_TYPE*)&sub11[z*(ld+1)], ld) - 1;
 	
 					ipiv[z + first] = piv_ind + z + first;
 
 					/* swap if needed */
 					if (piv_ind != 0)
 					{
-						CUBLAS_SWAP(nx, &sub11[z*ld], 1, &sub11[(z+piv_ind)*ld], 1);
+						CUBLAS_SWAP(nx, (CUBLAS_TYPE*)&sub11[z*ld], 1, (CUBLAS_TYPE*)&sub11[(z+piv_ind)*ld], 1);
 					}
 
 					cudaMemcpy(&pivot, &sub11[z+z*ld], sizeof(TYPE), cudaMemcpyDeviceToHost);
@@ -445,12 +454,13 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 
 				STARPU_ASSERT(pivot != 0.0);
 				
-				CUBLAS_SCAL(nx - z - 1, 1.0/pivot, &sub11[z+(z+1)*ld], ld);
+				inv_pivot = 1.0/pivot;
+				CUBLAS_SCAL(nx - z - 1, *(CUBLAS_TYPE*)&inv_pivot, (CUBLAS_TYPE*)&sub11[z+(z+1)*ld], ld);
 				
-				CUBLAS_GER(nx - z - 1, nx - z - 1, -1.0,
-						&sub11[(z+1)+z*ld], 1,
-						&sub11[z+(z+1)*ld], ld,
-						&sub11[(z+1) + (z+1)*ld],ld);
+				CUBLAS_GER(nx - z - 1, nx - z - 1, *(CUBLAS_TYPE*)&m1,
+						(CUBLAS_TYPE*)&sub11[(z+1)+z*ld], 1,
+						(CUBLAS_TYPE*)&sub11[z+(z+1)*ld], ld,
+						(CUBLAS_TYPE*)&sub11[(z+1) + (z+1)*ld],ld);
 				
 			}
 
@@ -534,7 +544,7 @@ static inline void STARPU_LU(common_pivot)(void *descr[],
 				unsigned rowpiv = ipiv[row+first] - first;
 				if (rowpiv != row)
 				{
-					CUBLAS_SWAP(nx, &matrix[row*ld], 1, &matrix[rowpiv*ld], 1);
+					CUBLAS_SWAP(nx, (CUBLAS_TYPE*)&matrix[row*ld], 1, (CUBLAS_TYPE*)&matrix[rowpiv*ld], 1);
 				}
 			}
 

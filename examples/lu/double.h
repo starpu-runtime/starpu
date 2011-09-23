@@ -16,6 +16,7 @@
  */
 
 #define TYPE double
+#define CUBLAS_TYPE TYPE
 
 #define STARPU_LU(name)       starpu_dlu_##name
 

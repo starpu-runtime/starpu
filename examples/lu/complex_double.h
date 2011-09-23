@@ -16,34 +16,37 @@
  */
 
 
-#define TYPE float
-#define CUBLAS_TYPE TYPE
+#include <complex.h>
+#include "blas_complex.h"
+#define TYPE complex double
+#define CUBLAS_TYPE cuDoubleComplex
 
-#define STARPU_LU(name)       starpu_slu_##name
+#define STARPU_LU(name)       starpu_zlu_##name
+#define COMPLEX_LU
 
 #ifdef STARPU_HAVE_MAGMA
 #include <magmablas.h>
-#define CUBLAS_GEMM	magmablas_sgemm
-#define CUBLAS_TRSM	magmablas_strsm
+#define CUBLAS_GEMM	magmablas_zgemm
+#define CUBLAS_TRSM	magmablas_ztrsm
 #else
-#define CUBLAS_GEMM	cublasSgemm
-#define CUBLAS_TRSM	cublasStrsm
+#define CUBLAS_GEMM	cublasZgemm
+#define CUBLAS_TRSM	cublasZtrsm
 #endif
 
-#define CUBLAS_SCAL	cublasSscal
-#define CUBLAS_GER	cublasSger
-#define CUBLAS_SWAP	cublasSswap
-#define CUBLAS_IAMAX	cublasIsamax
+#define CUBLAS_SCAL	cublasZscal
+#define CUBLAS_GER	cublasZgeru
+#define CUBLAS_SWAP	cublasZswap
+#define CUBLAS_IAMAX	cublasIzamax
 
-#define CPU_GEMM	SGEMM
-#define CPU_TRSM	STRSM
-#define CPU_SCAL	SSCAL
-#define CPU_GER		SGER
-#define CPU_SWAP	SSWAP
+#define CPU_GEMM	ZGEMM
+#define CPU_TRSM	ZTRSM
+#define CPU_SCAL	ZSCAL
+#define CPU_GER		ZGERU
+#define CPU_SWAP	ZSWAP
 
-#define CPU_TRMM	STRMM
-#define CPU_AXPY	SAXPY
-#define CPU_ASUM	SASUM
-#define CPU_IAMAX	ISAMAX
+#define CPU_TRMM	ZTRMM
+#define CPU_AXPY	ZAXPY
+#define CPU_ASUM	DZASUM
+#define CPU_IAMAX	IZAMAX
 
 #define PIVOT_THRESHHOLD	10e-5

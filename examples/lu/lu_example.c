@@ -164,6 +164,10 @@ static void init_matrix(void)
 		for (i = 0; i < size; i++)
 		{
 			A[i + j*size] = (TYPE)starpu_drand48();
+#ifdef COMPLEX_LU
+			/* also randomize the imaginary component for complex number cases */
+			A[i + j*size] += (TYPE)(I*starpu_drand48());
+#endif
 		}
 	}
 
@@ -249,11 +253,20 @@ static void check_result(void)
 	CPU_AXPY(size*size, -1.0, A_saved, 1, L, 1);
 	display_matrix(L, size, size, "Residuals");
 	
+#ifdef COMPLEX_LU
+	double err = CPU_ASUM(size*size, L, 1);
+	int max = CPU_IAMAX(size*size, L, 1);
+	TYPE l_max = L[max];
+
+	FPRINTF(stderr, "Avg error : %e\n", err/(size*size));
+	FPRINTF(stderr, "Max error : %e\n", sqrt(creal(l_max)*creal(l_max)+cimag(l_max)*cimag(l_max)));
+#else
 	TYPE err = CPU_ASUM(size*size, L, 1);
 	int max = CPU_IAMAX(size*size, L, 1);
 
 	FPRINTF(stderr, "Avg error : %e\n", err/(size*size));
 	FPRINTF(stderr, "Max error : %e\n", L[max]);
+#endif
 
 	double residual = frobenius_norm(L, size);
 	double matnorm = frobenius_norm(A_saved, size);
