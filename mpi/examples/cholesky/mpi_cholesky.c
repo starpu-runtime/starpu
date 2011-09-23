@@ -161,7 +161,7 @@ static void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblo
 		double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 		fprintf(stderr, "Computation took (in ms)\n");
 		fprintf(stdout, "%2.2f\n", timing/1000);
-	
+
 		double flop = (1.0f*size*size*size)/3.0f;
 		fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 	}
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
 
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
-	
+
 	conf.sched_policy_name = "heft";
 	conf.calibrate = 1;
 

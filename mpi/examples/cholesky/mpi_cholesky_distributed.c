@@ -81,6 +81,7 @@ static void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblo
 
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 	gettimeofday(&start, NULL);
+
         for(x = 0; x < nblocks ;  x++) {
                 for (y = 0; y < nblocks; y++) {
                         int mpi_rank = my_distrib(x, y, nodes);
@@ -160,7 +161,7 @@ static void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblo
 		double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 		fprintf(stderr, "Computation took (in ms)\n");
 		fprintf(stdout, "%2.2f\n", timing/1000);
-	
+
 		double flop = (1.0f*size*size*size)/3.0f;
 		fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 	}
