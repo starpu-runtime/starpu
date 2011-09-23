@@ -481,7 +481,7 @@ void _starpu_sched_find_worker_combinations(struct starpu_machine_topology_s *to
 #ifdef STARPU_HAVE_HWLOC
 	find_and_assign_combinations_with_hwloc(topology);
 #else
-	find_combinations_without_hwloc(topology);
+	find_and_assign_combinations_without_hwloc(topology);
 #endif
     }
 }
