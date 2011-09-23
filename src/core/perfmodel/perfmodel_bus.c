@@ -434,7 +434,7 @@ static void benchmark_all_gpu_devices(void)
 	/* TODO: measure bandwidth between GPU-GPU */
 
 #ifdef STARPU_USE_CUDA
-        cudaGetDeviceCount(&ncuda);
+	ncuda = _starpu_get_cuda_device_count();
 	for (i = 0; i < ncuda; i++)
 	{
 		fprintf(stderr," CUDA %d...", i);
@@ -513,7 +513,7 @@ static void load_bus_affinity_file_content(void)
         int gpu;
 
 #ifdef STARPU_USE_CUDA
-        cudaGetDeviceCount(&ncuda);
+	ncuda = _starpu_get_cuda_device_count();
 	for (gpu = 0; gpu < ncuda; gpu++)
 	{
 		int ret;
@@ -1022,7 +1022,7 @@ static void check_bus_config_file()
                 // Loading current configuration
                 ncpus = _starpu_topology_get_nhwcpu(config);
 #ifdef STARPU_USE_CUDA
-                cudaGetDeviceCount(&ncuda);
+		ncuda = _starpu_get_cuda_device_count();
 #endif
 #ifdef STARPU_USE_OPENCL
                 nopencl = _starpu_opencl_get_device_count();
