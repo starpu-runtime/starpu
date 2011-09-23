@@ -14,7 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 noinst_PROGRAMS =				\
-  matrix-mult stencil5 cholesky
+  matrix-mult stencil5 cholesky/cholesky
 
 AM_LDFLAGS = $(top_builddir)/src/libstarpu.la
 
@@ -25,11 +25,11 @@ AM_CPPFLAGS =						\
 
 AM_CFLAGS = -fplugin="$(builddir)/../src/.libs/starpu.so" -Wall
 
-cholesky_SOURCES	=		\
+cholesky_cholesky_SOURCES	=		\
 	cholesky/cholesky.c		\
 	cholesky/cholesky_models.c	\
 	cholesky/cholesky_kernels.c	\
 	$(top_srcdir)/examples/common/blas.c
 
-cholesky_LDADD	=	\
+cholesky_cholesky_LDADD	=	\
 	$(STARPU_BLAS_LDFLAGS)
