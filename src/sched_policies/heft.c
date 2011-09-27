@@ -37,7 +37,7 @@ static double _gamma = STARPU_DEFAULT_GAMMA;
 static double idle_power = 0.0;
 
 static double exp_start[STARPU_NMAXWORKERS]; /* of the first queued task */
-static double exp_end[STARPU_NMAXWORKERS];   /* temporary estimation with additional task */
+static double exp_end[STARPU_NMAXWORKERS];   /* of the set of queued tasks */
 static double exp_len[STARPU_NMAXWORKERS];   /* of the last queued task */
 static double ntasks[STARPU_NMAXWORKERS];
 
