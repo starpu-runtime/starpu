@@ -30,20 +30,20 @@
 extern "C" {
 #endif
 
-void starpu_opencl_display_error(const char *func, const char *msg, cl_int status);
+void starpu_opencl_display_error(const char *func, const char *file, int line, const char *msg, cl_int status);
 #define STARPU_OPENCL_DISPLAY_ERROR(status) \
-	starpu_opencl_display_error(__starpu_func__, NULL, status)
+	starpu_opencl_display_error(__starpu_func__, __FILE__, __LINE__, NULL, status)
 
-static inline void starpu_opencl_report_error(const char *func, const char *msg, cl_int status)
+static inline void starpu_opencl_report_error(const char *func, const char *file, int line, const char *msg, cl_int status)
 {
-        starpu_opencl_display_error(func, msg, status);
+	starpu_opencl_display_error(func, file, line, msg, status);
         assert(0);
 }
 #define STARPU_OPENCL_REPORT_ERROR(status)			\
-	starpu_opencl_display_error(__starpu_func__, NULL, status)
+	starpu_opencl_display_error(__starpu_func__, __FILE__, __LINE__, NULL, status)
 
 #define STARPU_OPENCL_REPORT_ERROR_WITH_MSG(msg, status)			\
-	starpu_opencl_display_error(__starpu_func__, msg, status)
+	starpu_opencl_display_error(__starpu_func__, __FILE__, __LINE__, msg, status)
 
 struct starpu_opencl_program {
         cl_program programs[STARPU_MAXOPENCLDEVS];

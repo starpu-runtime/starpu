@@ -255,7 +255,7 @@ int starpu_opencl_collect_stats(cl_event event STARPU_ATTRIBUTE_UNUSED)
 	return 0;
 }
 
-void starpu_opencl_display_error(const char *func, const char* msg, cl_int status)
+void starpu_opencl_display_error(const char *func, const char *file, int line, const char* msg, cl_int status)
 {
 	const char *errormsg;
 	switch (status) {
@@ -407,8 +407,8 @@ void starpu_opencl_display_error(const char *func, const char* msg, cl_int statu
 		break;
 	}
 	if (msg)
-		printf("oops in %s (%s) ... <%s> (%d) \n", func, msg, errormsg, status);
+		printf("oops in %s (%s:%u) (%s) ... <%s> (%d) \n", func, file, line, msg, errormsg, status);
 	else
-		printf("oops in %s ... <%s> (%d) \n", func, errormsg, status);
+		printf("oops in %s (%s:%u) ... <%s> (%d) \n", func, file, line, errormsg, status);
 
 }
