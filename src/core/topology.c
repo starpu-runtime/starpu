@@ -670,11 +670,13 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 			/* "dedicate" a cpu cpu to that worker */
 				is_a_set_of_accelerators = 0;
 				memory_node = ram_memory_node;
+				_starpu_memory_node_worker_add(ram_memory_node);
 				break;
 #ifdef STARPU_USE_GORDON
 			case STARPU_GORDON_WORKER:
 				is_a_set_of_accelerators = 1;
 				memory_node = ram_memory_node;
+				_starpu_memory_node_worker_add(ram_memory_node);
 				break;
 #endif
 #ifdef STARPU_USE_CUDA
@@ -687,6 +689,7 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 				}
 				is_a_set_of_accelerators = 0;
 				memory_node = _starpu_register_memory_node(STARPU_CUDA_RAM, workerarg->devid);
+				_starpu_memory_node_worker_add(memory_node);
 
 				_starpu_register_bus(0, memory_node);
 				_starpu_register_bus(memory_node, 0);
@@ -703,6 +706,7 @@ static void _starpu_init_workers_binding(struct starpu_machine_config_s *config)
 				}
 				is_a_set_of_accelerators = 0;
 				memory_node = _starpu_register_memory_node(STARPU_OPENCL_RAM, workerarg->devid);
+				_starpu_memory_node_worker_add(memory_node);
 				_starpu_register_bus(0, memory_node);
 				_starpu_register_bus(memory_node, 0);
 				break;

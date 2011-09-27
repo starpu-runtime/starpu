@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -110,6 +110,10 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 {
 	if (node == handling_node)
 		return 1;
+
+	if (!_starpu_memory_node_workers(handling_node))
+		/* No worker to process the request from that node */
+		return 0;
 
 	int type = _starpu_get_node_kind(node);
 	switch (type)
