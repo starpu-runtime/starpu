@@ -207,14 +207,73 @@ define starpu-print-datas
   end
 end
 
+define starpu-print-request
+  set $r = (struct starpu_data_request_s *)$arg0
+  printf "Request %p\n", $r
+  printf "Refcnt %d\n", $r->refcnt
+  printf "Handle %p\n", $r->handle
+  printf "src_replicate %p\n", $r->src_replicate
+  printf "dst_replicate %p\n", $r->dst_replicate
+  printf "handling_node %d\n", $r->handling_node
+  if ($r->mode & 1)
+    printf "R"
+  end
+  if ($r->mode & 2)
+    printf "W"
+  end
+  if ($r->mode & 4)
+    printf "S"
+  end
+  if ($r->mode & 8)
+    printf "X"
+  end
+  printf "\n"
+  printf "completed: %d\n", $r->completed
+  printf "retval: %d\n", $r->retval
+  printf "ndeps: %d\n", $r->ndeps
+  printf "next_req_count: %d\n", $r->next_req_count
+end
+
+define starpu-print-requests
+  set $node = 0
+  while $node < descr.nnodes
+    printf "Node %u:\n", $node
+    set $request = data_requests[$node]._head
+    while $request != 0
+      printf " Request %p: handle %p ", $request, $request->handle
+      if ($request->mode & 1)
+        printf "R"
+      end
+      if ($request->mode & 2)
+        printf "W"
+      end
+      if ($request->mode & 4)
+        printf "S"
+      end
+      if ($request->mode & 8)
+        printf "X"
+      end
+      printf "\n"
+      set $request = $request->_next
+    end
+    set $node = $node + 1
+  end
+end
+
+define starpu_print-prequests
+end
+
 document starpu
 List of StarPU-specific gdb functions:
-starpu-workers		prints a list of the StarPU workers
+starpu-workers          prints a list of the StarPU workers
 starpu-tasks-on-workers prints a list of the tasks currently running on workers
 starpu-tasks-on-worker  prints a list of the tasks running on the given worker
 starpu-print-job        prints a StarPU job
 starpu-print-task       prints a StarPU task
 starpu-print-data       prints a StarPU data handle
 starpu-print-datas      prints all StarPU data handles
+starpu-print-request    prints a StarPU data request
+starpu-print-requests   prints all StarPU data requests
+starpu-print-prequests  prints all pending StarPU data requests
 starpu-tasks            prints a list of the tasks flowing in StarPU
 end
