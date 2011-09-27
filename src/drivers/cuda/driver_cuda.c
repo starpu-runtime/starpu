@@ -344,7 +344,7 @@ void *_starpu_cuda_worker(void *arg)
 
 }
 
-void starpu_cublas_report_error(const char *func, cublasStatus status)
+void starpu_cublas_report_error(const char *func, const char *file, int line, cublasStatus status)
 {
 	char *errormsg;
 	switch (status) {
@@ -373,13 +373,13 @@ void starpu_cublas_report_error(const char *func, cublasStatus status)
 			errormsg = "unknown error";
 			break;
 	}
-	printf("oops in %s ... %s \n", func, errormsg);
+	printf("oops in %s (%s:%u)... %s \n", func, file, line, errormsg);
 	assert(0);
 }
 
-void starpu_cuda_report_error(const char *func, cudaError_t status)
+void starpu_cuda_report_error(const char *func, const char *file, int line, cudaError_t status)
 {
 	const char *errormsg = cudaGetErrorString(status);
-	printf("oops in %s ... %s \n", func, errormsg);
+	printf("oops in %s (%s:%u)... %s \n", func, file, line, errormsg);
 	assert(0);
 }

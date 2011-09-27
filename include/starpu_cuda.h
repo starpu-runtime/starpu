@@ -29,13 +29,13 @@
 extern "C" {
 #endif
 
-void starpu_cublas_report_error(const char *func, cublasStatus status);
+void starpu_cublas_report_error(const char *func, const char *file, int line, cublasStatus status);
 #define STARPU_CUBLAS_REPORT_ERROR(status) \
-	starpu_cublas_report_error(__starpu_func__, status)
+	starpu_cublas_report_error(__starpu_func__, __FILE__, __LINE__, status)
 
-void starpu_cuda_report_error(const char *func, cudaError_t status);
+void starpu_cuda_report_error(const char *func, const char *file, int line, cudaError_t status);
 #define STARPU_CUDA_REPORT_ERROR(status) \
-	starpu_cuda_report_error(__starpu_func__, status)
+	starpu_cuda_report_error(__starpu_func__, __FILE__, __LINE__, status)
 
 cudaStream_t starpu_cuda_get_local_stream(void);
 
