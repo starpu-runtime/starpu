@@ -293,13 +293,13 @@ static void _prefetch_data_on_node(void *arg)
 	ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, wrapper->async, NULL, NULL);
         STARPU_ASSERT(!ret);
 
-        PTHREAD_MUTEX_LOCK(&wrapper->lock);
-	wrapper->finished = 1;
-	PTHREAD_COND_SIGNAL(&wrapper->cond);
-	PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
-
 	if (!wrapper->async)
 	{
+		PTHREAD_MUTEX_LOCK(&wrapper->lock);
+		wrapper->finished = 1;
+		PTHREAD_COND_SIGNAL(&wrapper->cond);
+		PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
+
 		_starpu_spin_lock(&handle->header_lock);
 		_starpu_notify_data_dependencies(handle);
 		_starpu_spin_unlock(&handle->header_lock);
@@ -340,7 +340,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 			_starpu_spin_unlock(&handle->header_lock);
 		}
 	}
-	else {
+	else if (!async) {
 		PTHREAD_MUTEX_LOCK(&wrapper.lock);
 		while (!wrapper.finished)
 			PTHREAD_COND_WAIT(&wrapper.cond, &wrapper.lock);
