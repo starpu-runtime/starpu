@@ -7,7 +7,7 @@ define starpu-print-job
   printf "\tsubmitted:\t\t\t<%d>\n", $job->submitted
   printf "\tterminated:\t\t\t<%d>\n", $job->terminated
   printf "\tjob_id:\t\t\t\t<%d>\n", $job->job_id
-  if _starpu_use_fxt == 1
+  if _starpu_use_fxt == 1 && $job->model_name
     printf "\tmodel_name:\t\t\t<%s>\n", $job->model_name
   end
 end
