@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,33 +26,15 @@
 
 #define VECTORSIZE	1024
 
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-
-static unsigned finished = 0;
-
-static unsigned cnt;
-
 starpu_data_handle v_handle;
 static unsigned *v;
 
 static void callback(void *arg)
 {
-	unsigned res = STARPU_ATOMIC_ADD(&cnt, -1);
+	unsigned node = (unsigned)(uintptr_t) arg;
 
-	//fprintf(stderr, "res ...%d\n", res);
-	//fflush(stderr);
-
-	if (res == 0)
-	{
-		pthread_mutex_lock(&mutex);
-		finished = 1;
-		pthread_cond_signal(&cond);
-		pthread_mutex_unlock(&mutex);
-	}
+	starpu_data_prefetch_on_node(v_handle, node, 1);
 }
-
-
 
 static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
@@ -95,8 +77,6 @@ int main(int argc, char **argv)
 
 	unsigned nworker = starpu_worker_get_count();
 
-	cnt = nworker*N;
-
 	unsigned iter, worker;
 	for (iter = 0; iter < N; iter++)
 	{
@@ -113,9 +93,6 @@ int main(int argc, char **argv)
 			task->buffers[0].handle = v_handle;
 			task->buffers[0].mode = select_random_mode();
 
-			task->callback_func = callback;
-			task->callback_arg = NULL;
-
 			task->synchronous = 1;
 
 			int ret = starpu_task_submit(task);
@@ -124,10 +101,33 @@ int main(int argc, char **argv)
 		}
 	}
 
-	pthread_mutex_lock(&mutex);
-	if (!finished)
-		pthread_cond_wait(&cond, &mutex);
-	pthread_mutex_unlock(&mutex);
+	for (iter = 0; iter < N; iter++)
+	{
+		for (worker = 0; worker < nworker; worker++)
+		{
+			/* asynchronous prefetch */
+			unsigned node = starpu_worker_get_memory_node(worker);
+			starpu_data_prefetch_on_node(v_handle, node, 1);
+
+			/* execute a task */
+			struct starpu_task *task = starpu_task_create();
+			task->cl = &cl;
+
+			task->buffers[0].handle = v_handle;
+			task->buffers[0].mode = select_random_mode();
+
+			task->callback_func = callback;
+			task->callback_arg = (void*)(uintptr_t) starpu_worker_get_memory_node((worker+1)%nworker);
+
+			task->synchronous = 0;
+
+			int ret = starpu_task_submit(task);
+			if (ret == -ENODEV)
+				goto enodev;
+		}
+	}
+
+	starpu_task_wait_for_all();
 
 	starpu_free(v);
 	starpu_shutdown();

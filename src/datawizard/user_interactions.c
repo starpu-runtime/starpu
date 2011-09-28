@@ -196,7 +196,7 @@ int starpu_data_acquire(starpu_data_handle handle, starpu_access_mode mode)
 	STARPU_ASSERT(handle);
         _STARPU_LOG_IN();
 
-	/* it is forbidden to call this function from a callback or a codelet */
+	/* unless asynchronous, it is forbidden to call this function from a callback or a codelet */
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls())) {
                 _STARPU_LOG_OUT_TAG("EDEADLK");
 		return -EDEADLK;
@@ -299,11 +299,11 @@ static void _prefetch_data_on_node(void *arg)
 		wrapper->finished = 1;
 		PTHREAD_COND_SIGNAL(&wrapper->cond);
 		PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
-
-		_starpu_spin_lock(&handle->header_lock);
-		_starpu_notify_data_dependencies(handle);
-		_starpu_spin_unlock(&handle->header_lock);
 	}
+
+	_starpu_spin_lock(&handle->header_lock);
+	_starpu_notify_data_dependencies(handle);
+	_starpu_spin_unlock(&handle->header_lock);
 
 }
 
@@ -313,40 +313,40 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 	STARPU_ASSERT(handle);
 
 	/* it is forbidden to call this function from a callback or a codelet */
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+	if (STARPU_UNLIKELY(!async && !_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
-	struct user_interaction_wrapper wrapper =
-	{
-		.handle = handle,
-		.node = node,
-		.async = async,
-		.cond = PTHREAD_COND_INITIALIZER,
-		.lock = PTHREAD_MUTEX_INITIALIZER,
-		.finished = 0
-	};
+	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) malloc(sizeof(*wrapper));
 
-	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _prefetch_data_on_node, &wrapper))
+	wrapper->handle = handle;
+	wrapper->node = node;
+	wrapper->async = async;
+	PTHREAD_COND_INIT(&wrapper->cond, NULL);
+	PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
+	wrapper->finished = 0;
+
+	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _prefetch_data_on_node, wrapper))
 	{
 		/* we can immediately proceed */
 		struct starpu_data_replicate_s *replicate = &handle->per_node[node];
 		_starpu_fetch_data_on_node(handle, replicate, mode, async, NULL, NULL);
 
 		/* remove the "lock"/reference */
-		if (!async)
-		{
-			_starpu_spin_lock(&handle->header_lock);
+
+		_starpu_spin_lock(&handle->header_lock);
+		if (!async) {
 			replicate->refcnt--;
 			STARPU_ASSERT(replicate->refcnt >= 0);
-			_starpu_notify_data_dependencies(handle);
-			_starpu_spin_unlock(&handle->header_lock);
 		}
+		_starpu_notify_data_dependencies(handle);
+		_starpu_spin_unlock(&handle->header_lock);
+
 	}
 	else if (!async) {
-		PTHREAD_MUTEX_LOCK(&wrapper.lock);
-		while (!wrapper.finished)
-			PTHREAD_COND_WAIT(&wrapper.cond, &wrapper.lock);
-		PTHREAD_MUTEX_UNLOCK(&wrapper.lock);
+		PTHREAD_MUTEX_LOCK(&wrapper->lock);
+		while (!wrapper->finished)
+			PTHREAD_COND_WAIT(&wrapper->cond, &wrapper->lock);
+		PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
 	}
 
 	return 0;

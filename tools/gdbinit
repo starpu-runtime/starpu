@@ -187,9 +187,9 @@ define starpu-print-data
   printf "Requester tasks\n"
   set $requesterlist = $data->req_list._head
   while $requesterlist != 0x0
-    print "mode: "
+    printf "mode: "
     starpu-print-mode $requesterlist->mode
-    print "\n"
+    printf "\n"
     starpu-print-job $requesterlist->j
     set $requesterlist = $requesterlist->_next
   end
@@ -241,18 +241,7 @@ define starpu-print-requests
     set $request = data_requests[$node]._head
     while $request != 0
       printf " Request %p: handle %p ", $request, $request->handle
-      if ($request->mode & 1)
-        printf "R"
-      end
-      if ($request->mode & 2)
-        printf "W"
-      end
-      if ($request->mode & 4)
-        printf "S"
-      end
-      if ($request->mode & 8)
-        printf "X"
-      end
+      starpu-print-mode $request->mode
       printf "\n"
       set $request = $request->_next
     end
