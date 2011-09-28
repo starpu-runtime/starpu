@@ -336,6 +336,8 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle handle, unsigned 
 		if (!async)
 		{
 			_starpu_spin_lock(&handle->header_lock);
+			replicate->refcnt--;
+			STARPU_ASSERT(replicate->refcnt >= 0);
 			_starpu_notify_data_dependencies(handle);
 			_starpu_spin_unlock(&handle->header_lock);
 		}
