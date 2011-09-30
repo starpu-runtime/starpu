@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -17,6 +17,15 @@
 
 #include <datawizard/datawizard.h>
 #include <datawizard/write_back.h>
+#include <core/dependencies/data_concurrency.h>
+
+static void wt_callback(void *arg) {
+	starpu_data_handle handle = (starpu_data_handle) arg;
+
+	_starpu_spin_lock(&handle->header_lock);
+	_starpu_notify_data_dependencies(handle);
+	_starpu_spin_unlock(&handle->header_lock);
+}
 
 void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_node, 
 					   uint32_t write_through_mask)
@@ -39,15 +48,22 @@ void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_n
 
 				starpu_data_request_t r;
 				r = create_request_to_fetch_data(handle, &handle->per_node[node],
-								STARPU_R, 0, NULL, NULL);
+						STARPU_R, 1, wt_callback, handle);
 
 			        /* If no request was created, the handle was already up-to-date on the
 			         * node */
 			        if (r)
 				{
+					fprintf(stderr,"not waiting\n");
+					/* Pending request, keep a Read lock */
+					STARPU_ASSERT(handle->current_mode != STARPU_REDUX);
+					STARPU_ASSERT(handle->current_mode != STARPU_SCRATCH);
+					handle->refcnt++;
+					handle->current_mode = STARPU_R;
 				        _starpu_spin_unlock(&handle->header_lock);
-        				_starpu_wait_data_request_completion(r, 1);
 				}
+				else
+					fprintf(stderr,"immediate\n");
 			}
 		}
 	}
