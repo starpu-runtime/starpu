@@ -320,15 +320,19 @@ static size_t try_to_free_mem_chunk(starpu_mem_chunk_t mc, unsigned node)
 		{
 			STARPU_ASSERT(handle->per_node[node].refcnt == 0);
 
+#ifdef STARPU_MEMORY_STATUS
 			if (handle->per_node[node].state == STARPU_OWNER)
 				_starpu_handle_stats_invalidated(handle, node);
 			/* else XXX Considering only owner to invalidate */
+#endif
 
 			/* in case there was nobody using that buffer, throw it
 			 * away after writing it back to main memory */
 			transfer_subtree_to_node(handle, node, 0);
 
+#ifdef STARPU_MEMORY_STATUS
 			_starpu_handle_stats_loaded_owner(handle, 0);
+#endif
 			STARPU_ASSERT(handle->per_node[node].refcnt == 0);
 
 			/* now the actual buffer may be freed */
