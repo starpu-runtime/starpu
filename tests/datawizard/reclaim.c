@@ -16,7 +16,7 @@
 
 /*
  * This test stress the memory allocation system and should force StarPU to
- * reclaim memory from time to time. 
+ * reclaim memory from time to time.
  */
 
 #include <assert.h>
@@ -41,7 +41,7 @@ static uint64_t get_total_memory_size(void)
 	hwloc_topology_t hwtopology;
 	hwloc_topology_init(&hwtopology);
 	hwloc_topology_load(hwtopology);
-	hwloc_obj_t root = hwloc_get_root_obj(hwtopology);	
+	hwloc_obj_t root = hwloc_get_root_obj(hwtopology);
 
 	return root->memory.total_memory;
 }
@@ -95,8 +95,7 @@ int main(int argc, char **argv)
 	{
 		host_ptr_array[i] = (float *) malloc(BLOCK_SIZE);
 		assert(host_ptr_array[i]);
-		starpu_variable_data_register(&handle_array[i], 0,
-			(uintptr_t)host_ptr_array[i], BLOCK_SIZE);
+		starpu_variable_data_register(&handle_array[i], 0, (uintptr_t)host_ptr_array[i], BLOCK_SIZE);
 		assert(handle_array[i]);
 	}
 
@@ -104,11 +103,11 @@ int main(int argc, char **argv)
 	{
 		struct starpu_task *task = starpu_task_create();
 		task->cl = &dummy_cl;
-		task->buffers[0].handle = handle_array[i%mb];
+		task->buffers[0].handle = handle_array[taskid%mb];
 		task->buffers[0].mode = STARPU_RW;
-		task->buffers[1].handle = handle_array[(i+1)%mb];
+		task->buffers[1].handle = handle_array[(taskid+1)%mb];
 		task->buffers[1].mode = STARPU_R;
-		task->buffers[2].handle = handle_array[(i+2)%mb];
+		task->buffers[2].handle = handle_array[(taskid+2)%mb];
 		task->buffers[2].mode = STARPU_R;
 		starpu_task_submit(task);
 	}

@@ -83,6 +83,19 @@ static void unlimit_gpu_mem_if_needed(int devid)
 	}
 }
 
+size_t starpu_cuda_get_global_mem_size(int devid)
+{
+	cudaError_t cures;
+	struct cudaDeviceProp prop;
+
+	/* Find the size of the memory on the device */
+	cures = cudaGetDeviceProperties(&prop, devid);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
+
+	return (size_t)prop.totalGlobalMem;
+}
+
 cudaStream_t starpu_cuda_get_local_transfer_stream(void)
 {
 	int worker = starpu_worker_get_id();

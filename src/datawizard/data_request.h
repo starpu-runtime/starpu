@@ -47,6 +47,7 @@ LIST_TYPE(starpu_data_request,
 	struct starpu_async_channel async_channel;
 
 	unsigned completed;
+	unsigned prefetch;
 	int retval;
 
 	/* The request will not actually be submitted until there remains
@@ -89,6 +90,7 @@ void _starpu_init_data_request_lists(void);
 void _starpu_deinit_data_request_lists(void);
 void _starpu_post_data_request(starpu_data_request_t r, uint32_t handling_node);
 void _starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc);
+void _starpu_handle_node_prefetch_requests(uint32_t src_node, unsigned may_alloc);
 
 void _starpu_handle_pending_node_data_requests(uint32_t src_node);
 void _starpu_handle_all_pending_node_data_requests(uint32_t src_node);
@@ -100,11 +102,13 @@ starpu_data_request_t _starpu_create_data_request(starpu_data_handle handle,
 				struct starpu_data_replicate_s *dst_replicate,
 				uint32_t handling_node,
 				starpu_access_mode mode,
-				unsigned ndeps);
+				unsigned ndeps,
+				unsigned is_prefetch);
 
 int _starpu_wait_data_request_completion(starpu_data_request_t r, unsigned may_alloc);
 
 void _starpu_data_request_append_callback(starpu_data_request_t r,
 			void (*callback_func)(void *), void *callback_arg);
 
+void _starpu_update_prefetch_status(starpu_data_request_t r);
 #endif // __DATA_REQUEST_H__

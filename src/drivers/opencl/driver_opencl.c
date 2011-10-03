@@ -79,6 +79,16 @@ static void unlimit_gpu_mem_if_needed(int devid)
 	}
 }
 
+size_t starpu_opencl_get_global_mem_size(int devid)
+{
+	cl_int err;
+	cl_ulong totalGlobalMem;
+
+	/* Request the size of the current device's memory */
+	clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
+
+	return (size_t)totalGlobalMem;
+}
 
 void starpu_opencl_get_context(int devid, cl_context *context)
 {

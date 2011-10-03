@@ -491,6 +491,11 @@ void starpu_shutdown(void)
 	/* tell all workers to shutdown */
 	_starpu_kill_all_workers(&config);
 
+#ifdef STARPU_MEMORY_STATUS
+	if ((stats = getenv("STARPU_MEMORY_STATS")) && atoi(stats))
+		_starpu_display_data_stats();
+#endif
+
 #ifdef STARPU_DATA_STATS
 	_starpu_display_comm_amounts();
 #endif

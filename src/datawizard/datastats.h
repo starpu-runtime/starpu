@@ -35,4 +35,14 @@ void _starpu_data_allocation_inc_stats(unsigned node __attribute__ ((unused)));
 void _starpu_display_comm_amounts(void);
 void _starpu_display_alloc_cache_stats(void);
 
+void _starpu_display_data_stats();
+void _starpu_display_data_handle_stats(starpu_data_handle handle);
+
+void _starpu_handle_stats_cache_hit(starpu_data_handle handle, unsigned node);
+void _starpu_handle_stats_loaded_shared(starpu_data_handle handle, unsigned node);
+void _starpu_handle_stats_loaded_owner(starpu_data_handle handle, unsigned node);
+void _starpu_handle_stats_shared_to_owner(starpu_data_handle handle, unsigned node);
+void _starpu_handle_stats_invalidated(starpu_data_handle handle, unsigned node);
+
+
 #endif // __DATASTATS_H__

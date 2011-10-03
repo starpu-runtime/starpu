@@ -226,6 +226,15 @@ static starpu_data_handle _starpu_data_handle_allocate(struct starpu_data_interf
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
+#ifdef STARPU_MEMORY_STATUS
+		/* Stats initilization */
+		handle->stats_direct_access[node]=0;
+		handle->stats_loaded_shared[node]=0;
+		handle->stats_shared_to_owner[node]=0;
+		handle->stats_loaded_owner[node]=0;
+		handle->stats_invalidated[node]=0;
+#endif
+
 		struct starpu_data_replicate_s *replicate;
 		replicate = &handle->per_node[node];
 		/* relaxed_coherency = 0 */

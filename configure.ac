@@ -710,6 +710,14 @@ if test x$enable_fast = xyes; then
 	AC_DEFINE(STARPU_NO_ASSERT, [1], [disable assertions])
 fi
 
+AC_MSG_CHECKING(whether memory status should be displayed)
+AC_ARG_ENABLE(memory-status, [AS_HELP_STRING([--enable-memory-status],
+			     [display memory status at the end of execution])],	
+			     enable_memory_status=$enableval, enable_memory_status=no)	
+AC_MSG_RESULT($enable_memory_status)
+if test x$enable_memory_status = xyes; then
+        AC_DEFINE(STARPU_MEMORY_STATUS, [1], [display memory status])
+fi			     				      
 
 
 AC_MSG_CHECKING(whether debug messages should be displayed)

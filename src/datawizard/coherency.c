@@ -223,7 +223,7 @@ static int determine_request_path(starpu_data_handle handle,
 /* handle->lock should be taken. r is returned locked. The node parameter
  * indicate either the source of the request, or the destination for a
  * write-only request. */
-static starpu_data_request_t _starpu_search_existing_data_request(struct starpu_data_replicate_s *replicate, unsigned node, starpu_access_mode mode)
+static starpu_data_request_t _starpu_search_existing_data_request(struct starpu_data_replicate_s *replicate, unsigned node, starpu_access_mode mode, unsigned is_prefetch)
 {
 	starpu_data_request_t r;
 
@@ -232,8 +232,11 @@ static starpu_data_request_t _starpu_search_existing_data_request(struct starpu_
 	if (r)
 	{
 		_starpu_spin_lock(&r->lock);
-
-		/* perhaps we need to "upgrade" the request */
+                
+                /* perhaps we need to "upgrade" the request */
+		if (is_prefetch < r->prefetch) 
+			_starpu_update_prefetch_status(r);
+		
 		if (mode & STARPU_R)
 		{
 			/* in case the exisiting request did not imply a memory
@@ -284,9 +287,23 @@ starpu_data_request_t create_request_to_fetch_data(starpu_data_handle handle,
 
 	if (dst_replicate->state != STARPU_INVALID)
 	{
+#ifdef STARPU_MEMORY_STATUS
+		starpu_cache_state old_state = dst_replicate->state;
+#endif
 		/* the data is already available so we can stop */
 		_starpu_update_data_state(handle, dst_replicate, mode);
 		_starpu_msi_cache_hit(requesting_node);
+		
+#ifdef STARPU_MEMORY_STATUS
+		_starpu_handle_stats_cache_hit(handle, requesting_node);
+
+		/* XXX Broken ? */
+		if (old_state == STARPU_SHARED 
+		    && dst_replicate->state == STARPU_OWNER)
+			_starpu_handle_stats_shared_to_owner(handle, requesting_node);
+#endif
+		
+		starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
 
 		_starpu_spin_unlock(&handle->header_lock);
 
@@ -345,7 +362,8 @@ starpu_data_request_t create_request_to_fetch_data(starpu_data_handle handle,
 
 		/* Try to reuse a request if possible */
 		r = _starpu_search_existing_data_request(hop_dst_replicate,
-				(mode & STARPU_R)?hop_src_node:hop_dst_node, mode);
+				(mode & STARPU_R)?hop_src_node:hop_dst_node, 
+							 mode, is_prefetch);
 
 		reused_requests[hop] = !!r;
 
@@ -353,7 +371,7 @@ starpu_data_request_t create_request_to_fetch_data(starpu_data_handle handle,
 			/* Create a new request if there was no request to reuse */
 			r = _starpu_create_data_request(handle, hop_src_replicate,
 					hop_dst_replicate, hop_handling_node,
-					mode, ndeps);
+					mode, ndeps, is_prefetch);
 		}
 
 		requests[hop] = r; 

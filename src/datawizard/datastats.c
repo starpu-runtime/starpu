@@ -17,6 +17,7 @@
 
 #include <starpu.h>
 #include <datawizard/datastats.h>
+#include <datawizard/coherency.h>
 #include <common/config.h>
 
 #ifdef STARPU_DATA_STATS
@@ -141,6 +142,72 @@ void _starpu_display_comm_amounts(void)
 
 void _starpu_display_comm_amounts(void)
 {
+}
+
+#endif
+
+#ifdef STARPU_MEMORY_STATUS
+void _starpu_display_data_stats(void)
+{
+	unsigned node;
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		_starpu_display_data_stats_by_node(node);
+	}
+}
+
+void _starpu_display_data_handle_stats(starpu_data_handle handle)
+{
+	unsigned node;
+	
+	fprintf(stderr, "#-----\n");
+	fprintf(stderr, "Data : %p\n", handle);
+	fprintf(stderr, "Size : %d\n", (int)handle->data_size);
+	fprintf(stderr, "\n");
+	
+	fprintf(stderr, "#--\n");
+	fprintf(stderr, "Data access stats\n");
+	fprintf(stderr, "/!\\ Work Underway\n");
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		if (handle->stats_direct_access[node]+handle->stats_loaded_shared[node]
+		    +handle->stats_invalidated[node]+handle->stats_loaded_owner[node])
+		{
+			fprintf(stderr, "Node #%d\n", node);
+			fprintf(stderr, "\tDirect access : %d\n", handle->stats_direct_access[node]);
+			/* XXX Not Working yet. */
+			if (handle->stats_shared_to_owner[node])
+				fprintf(stderr, "\t\tShared to Owner : %d\n", handle->stats_shared_to_owner[node]);
+			fprintf(stderr, "\tLoaded (Owner) : %d\n", handle->stats_loaded_owner[node]);
+			fprintf(stderr, "\tLoaded (Shared) : %d\n", handle->stats_loaded_shared[node]);
+			fprintf(stderr, "\tInvalidated (was Owner) : %d\n\n", handle->stats_invalidated[node]);
+		}
+	}
+}
+
+void _starpu_handle_stats_cache_hit(starpu_data_handle handle, unsigned node)
+{
+	handle->stats_direct_access[node]++;
+}
+
+void _starpu_handle_stats_loaded_shared(starpu_data_handle handle, unsigned node)
+{
+	handle->stats_loaded_shared[node]++;
+}
+
+void _starpu_handle_stats_loaded_owner(starpu_data_handle handle, unsigned node)
+{
+	handle->stats_loaded_owner[node]++;
+}
+
+void _starpu_handle_stats_shared_to_owner(starpu_data_handle handle, unsigned node)
+{
+	handle->stats_shared_to_owner[node]++;
+}
+
+void _starpu_handle_stats_invalidated(starpu_data_handle handle, unsigned node)
+{
+	handle->stats_invalidated[node]++;
 }
 
 #endif

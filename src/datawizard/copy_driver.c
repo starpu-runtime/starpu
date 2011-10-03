@@ -252,7 +252,7 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 		if (!may_alloc)
 			return -ENOMEM;
 
-		ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate);
+		ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate,req->prefetch);
 		if (ret_alloc)
 			return -ENOMEM;
 	}

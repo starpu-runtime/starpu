@@ -67,6 +67,9 @@ LIST_TYPE(starpu_data_replicate,
 	 * */
 	uint8_t automatically_allocated;
 
+        /* Pointer to memchunk for LRU strategy */
+	struct starpu_mem_chunk_s * mc;
+ 
 	/* To help the scheduling policies to make some decision, we
 	   may keep a track of the tasks that are likely to request 
 	   this data on the current node.
@@ -190,6 +193,15 @@ struct starpu_data_state_t {
         /* Used for MPI */
         int rank;
 	int tag;
+
+#ifdef STARPU_MEMORY_STATUS
+	/* Handle access stats per node */
+	unsigned stats_direct_access[STARPU_MAXNODES];
+	unsigned stats_loaded_shared[STARPU_MAXNODES];
+	unsigned stats_loaded_owner[STARPU_MAXNODES];
+	unsigned stats_shared_to_owner[STARPU_MAXNODES];
+	unsigned stats_invalidated[STARPU_MAXNODES];
+#endif
 };
 
 void _starpu_display_msi_stats(void);
