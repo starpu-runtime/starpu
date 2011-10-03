@@ -54,7 +54,6 @@ void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_n
 			         * node */
 			        if (r)
 				{
-					fprintf(stderr,"not waiting\n");
 					/* Pending request, keep a Read lock */
 					STARPU_ASSERT(handle->current_mode != STARPU_REDUX);
 					STARPU_ASSERT(handle->current_mode != STARPU_SCRATCH);
@@ -62,8 +61,6 @@ void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_n
 					handle->current_mode = STARPU_R;
 				        _starpu_spin_unlock(&handle->header_lock);
 				}
-				else
-					fprintf(stderr,"immediate\n");
 			}
 		}
 	}
