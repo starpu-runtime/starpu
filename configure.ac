@@ -712,12 +712,12 @@ fi
 
 AC_MSG_CHECKING(whether memory status should be displayed)
 AC_ARG_ENABLE(memory-status, [AS_HELP_STRING([--enable-memory-status],
-			     [display memory status at the end of execution])],	
-			     enable_memory_status=$enableval, enable_memory_status=no)	
+			     [display memory status at the end of execution])],
+			     enable_memory_status=$enableval, enable_memory_status=no)
 AC_MSG_RESULT($enable_memory_status)
 if test x$enable_memory_status = xyes; then
         AC_DEFINE(STARPU_MEMORY_STATUS, [1], [display memory status])
-fi			     				      
+fi
 
 
 AC_MSG_CHECKING(whether debug messages should be displayed)
@@ -1314,7 +1314,7 @@ PKG_CHECK_MODULES([FFTW],  [fftw3],  [
   have_fftw=yes
 ], [:])
 AM_CONDITIONAL(STARPU_HAVE_FFTW, [test x$have_fftw = xyes])
- 
+
 PKG_CHECK_MODULES([FFTWF], [fftw3f], [
   AC_DEFINE([STARPU_HAVE_FFTWF], [1], [Define to 1 if you have the libfftw3f library.])
   AC_SUBST([STARPU_HAVE_FFTWF], [1])
