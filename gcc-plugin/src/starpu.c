@@ -773,12 +773,7 @@ handle_task_implementation_attribute (tree *node, tree name, tree args,
       attr = lookup_attribute (task_implementation_list_attribute_name,
 			       DECL_ATTRIBUTES (task_decl));
       impls = tree_cons (NULL_TREE, fn, TREE_VALUE (attr));
-
-      DECL_ATTRIBUTES (task_decl) =
-	tree_cons (get_identifier (task_implementation_list_attribute_name),
-		   impls,
-		   remove_attribute (task_implementation_list_attribute_name,
-				     DECL_ATTRIBUTES (task_decl)));
+      TREE_VALUE (attr) = impls;
 
       TREE_USED (fn) = TREE_USED (task_decl);
 
