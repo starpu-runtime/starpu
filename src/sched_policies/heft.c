@@ -172,7 +172,8 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 					double *max_exp_endp, double *best_exp_endp,
 					double *local_data_penalty,
 					double *local_power, int *forced_best,
-					struct starpu_task_bundle *bundle)
+					struct starpu_task_bundle *bundle,
+					unsigned int *nimpls)
 {
 	int calibrating = 0;
 	double max_exp_end = DBL_MIN;
@@ -251,7 +252,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			{
 				/* a better solution was found */
 				best_exp_end = exp_end[worker];
-				best_impl = nimpl;
+				nimpls[worker] = nimpl;
 			}
 
 			if (local_power[worker] == -1.0)
@@ -267,7 +268,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 	/* save the best implementation */
 	//_STARPU_DEBUG("Scheduler heft: kernel (%u)\n", best_impl);
-	_starpu_get_job_associated_to_task(task)->nimpl = best_impl;
+	//_starpu_get_job_associated_to_task(task)->nimpl = best_impl;
 }
 
 static int _heft_push_task(struct starpu_task *task, unsigned prio)
@@ -284,6 +285,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 	double local_power[nworkers];
 	double exp_end[nworkers];
 	double max_exp_end = 0.0;
+	unsigned int  nimpls[STARPU_MAXIMPLEMENTATIONS];
 
 	double best_exp_end;
 
@@ -297,7 +299,8 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 	compute_all_performance_predictions(task, local_task_length, exp_end,
 					&max_exp_end, &best_exp_end,
 					local_data_penalty,
-					local_power, &forced_best, bundle);
+					local_power, &forced_best, bundle,
+					nimpls);
 
 	/* If there is no prediction available for that task with that arch we
 	 * want to speed-up calibration time so we force this measurement */
@@ -326,17 +329,19 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 				+ beta*(local_data_penalty[worker])
 				+ _gamma*(local_power[worker]);
 
-		if (exp_end[worker] > max_exp_end)
+		if (exp_end[worker] > max_exp_end) {
 			/* This placement will make the computation
 			 * longer, take into account the idle
 			 * consumption of other cpus */
 			fitness[worker] += _gamma * idle_power * (exp_end[worker] - max_exp_end) / 1000000.0;
+		}
 
-			if (best == -1 || fitness[worker] < best_fitness)
-			{
-				/* we found a better solution */
-				best_fitness = fitness[worker]; best = worker;
-			}
+		if (best == -1 || fitness[worker] < best_fitness)
+		{
+			/* we found a better solution */
+			best_fitness = fitness[worker];
+			best = worker;
+		}
 	}
 
 	/* By now, we must have found a solution */
@@ -369,6 +374,8 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 		model_best = local_task_length[best];
 	}
 
+	
+	_starpu_get_job_associated_to_task(task)->nimpl = nimpls[worker];
 	return push_task_on_best_worker(task, best, model_best, prio);
 }
 
