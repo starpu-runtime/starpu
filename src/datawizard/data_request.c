@@ -22,12 +22,10 @@
 /* requests that have not been treated at all */
 static starpu_data_request_list_t data_requests[STARPU_MAXNODES];
 static starpu_data_request_list_t prefetch_requests[STARPU_MAXNODES];
-static pthread_cond_t data_requests_list_cond[STARPU_MAXNODES];
 static pthread_mutex_t data_requests_list_mutex[STARPU_MAXNODES];
 
 /* requests that are not terminated (eg. async transfers) */
 static starpu_data_request_list_t data_requests_pending[STARPU_MAXNODES];
-static pthread_cond_t data_requests_pending_list_cond[STARPU_MAXNODES];
 static pthread_mutex_t data_requests_pending_list_mutex[STARPU_MAXNODES];
 
 int starpu_memstrategy_drop_prefetch[STARPU_MAXNODES];
@@ -40,11 +38,9 @@ void _starpu_init_data_request_lists(void)
 		prefetch_requests[i] = starpu_data_request_list_new();
 		data_requests[i] = starpu_data_request_list_new();
 		PTHREAD_MUTEX_INIT(&data_requests_list_mutex[i], NULL);
-		PTHREAD_COND_INIT(&data_requests_list_cond[i], NULL);
 
 		data_requests_pending[i] = starpu_data_request_list_new();
 		PTHREAD_MUTEX_INIT(&data_requests_pending_list_mutex[i], NULL);
-		PTHREAD_COND_INIT(&data_requests_pending_list_cond[i], NULL);
 		
 		starpu_memstrategy_drop_prefetch[i]=0;
 	}
@@ -55,11 +51,9 @@ void _starpu_deinit_data_request_lists(void)
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
 	{
-		PTHREAD_COND_DESTROY(&data_requests_pending_list_cond[i]);
 		PTHREAD_MUTEX_DESTROY(&data_requests_pending_list_mutex[i]);
 		starpu_data_request_list_delete(data_requests_pending[i]);
 
-		PTHREAD_COND_DESTROY(&data_requests_list_cond[i]);
 		PTHREAD_MUTEX_DESTROY(&data_requests_list_mutex[i]);
 		starpu_data_request_list_delete(data_requests[i]);
 		starpu_data_request_list_delete(prefetch_requests[i]);
@@ -411,10 +405,6 @@ void _starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc)
 			starpu_data_request_list_push_front(data_requests[src_node], r);
 			PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
 		}
-
-		/* wake the requesting worker up */
-		// if we do not progress ..
-		// pthread_cond_broadcast(&data_requests_list_cond[src_node]);
 	}
 
 	starpu_data_request_list_delete(local_list);
@@ -466,10 +456,6 @@ void _starpu_handle_node_prefetch_requests(uint32_t src_node, unsigned may_alloc
 			PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
 			break;
 		}
-
-		/* wake the requesting worker up */
-		// if we do not progress ..
-		// pthread_cond_broadcast(&data_requests_list_cond[src_node]);
 	}
 
 	while(!starpu_data_request_list_empty(local_list) && starpu_memstrategy_drop_prefetch[src_node])
