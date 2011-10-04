@@ -19,6 +19,7 @@
  */
 
 #include <starpu.h>
+#include <xmmintrin.h>
 
 /* This kernel takes a buffer and scales it by a constant factor */
 void scal_cpu_func(void *buffers[], void *cl_arg)
@@ -52,3 +53,19 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
 		val[i] *= *factor;
 }
 
+void scal_sse_func(void *buffers[], void *cl_arg)
+{
+	float *vector = (float *) STARPU_VECTOR_GET_PTR(buffers[0]);
+	unsigned int n = STARPU_VECTOR_GET_NX(buffers[0]);
+	unsigned int n_iterations = n/4;
+	if (n % 4 != 0)
+		n_iterations++;
+
+	__m128 *VECTOR = (__m128*) vector;
+	__m128 factor __attribute__((aligned(16)));
+	factor = _mm_set1_ps(*(float *) cl_arg);
+
+	unsigned int i;	
+	for (i = 0; i < n_iterations; i++)
+		VECTOR[i] = _mm_mul_ps(factor, VECTOR[i]);
+}

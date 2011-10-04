@@ -31,6 +31,7 @@
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 extern void scal_cpu_func(void *buffers[], void *_args);
+extern void scal_sse_func(void *buffers[], void *_args);
 extern void scal_cuda_func(void *buffers[], void *_args);
 extern void scal_opencl_func(void *buffers[], void *_args);
 
@@ -47,7 +48,8 @@ static struct starpu_perfmodel_t vector_scal_power_model = {
 static starpu_codelet cl = {
 	.where = STARPU_CPU | STARPU_CUDA | STARPU_OPENCL,
 	/* CPU implementation of the codelet */
-	.cpu_func = scal_cpu_func,
+	.cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
+	.cpu_funcs = { scal_cpu_func, scal_sse_func},
 #ifdef STARPU_USE_CUDA
 	/* CUDA implementation of the codelet */
 	.cuda_func = scal_cuda_func,
