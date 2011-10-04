@@ -533,7 +533,7 @@ so:
 * Hello World::                 Submitting Tasks
 * Scaling a Vector::            Manipulating Data
 * Vector Scaling on an Hybrid CPU/GPU Machine::  Handling Heterogeneous Architectures
-* Using multiple implentations of a codelet::
+* Using multiple implementations of a codelet::
 * Task and Worker Profiling::   
 * Partitioning Data::           Partitioning Data
 * Performance model example::   
@@ -1158,8 +1158,8 @@ see @ref{Enabling OpenCL}):
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample
 
-@node Using multiple implentations of a codelet
-@section Using multiple implentations of a codelet
+@node Using multiple implementations of a codelet
+@section Using multiple implementations of a codelet
 One may want to write multiple implementations of a codelet for a single type of
 device and let StarPU choose which one to run. As an example, we will show how
 to use SSE to scale a vector. The codelet can be written as follows :
