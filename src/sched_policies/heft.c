@@ -106,7 +106,7 @@ static void heft_post_exec_hook(struct starpu_task *task)
 	 * of work. */
 	PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
 	exp_len[workerid] -= model;
-	exp_start[workerid] = starpu_timing_now() + model;
+	exp_start[workerid] = starpu_timing_now();
 	exp_end[workerid] = exp_start[workerid] + exp_len[workerid];
 	ntasks[workerid]--;
 	PTHREAD_MUTEX_UNLOCK(&sched_mutex[workerid]);
