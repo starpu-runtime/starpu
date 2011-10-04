@@ -265,10 +265,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 	*best_exp_endp = best_exp_end;
 	*max_exp_endp = max_exp_end;
-
-	/* save the best implementation */
-	//_STARPU_DEBUG("Scheduler heft: kernel (%u)\n", best_impl);
-	//_starpu_get_job_associated_to_task(task)->nimpl = best_impl;
 }
 
 static int _heft_push_task(struct starpu_task *task, unsigned prio)
@@ -285,7 +281,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 	double local_power[nworkers];
 	double exp_end[nworkers];
 	double max_exp_end = 0.0;
-	unsigned int  nimpls[STARPU_MAXIMPLEMENTATIONS];
+	unsigned int  nimpls[nworkers];
 
 	double best_exp_end;
 
@@ -318,7 +314,6 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		/* FIXME: multiimpl! */
 		if (!starpu_worker_may_execute_task(worker, task, 0))
 		{
 			/* no one on that queue may execute this task */
