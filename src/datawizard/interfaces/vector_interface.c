@@ -356,9 +356,11 @@ static int copy_cuda_peer_common(void *src_interface, unsigned src_node,
 
 	if (is_async)
 	{
+		STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 		cures = cudaMemcpyPeerAsync((char *)dst_vector->ptr, dst_dev,
 						(char *)src_vector->ptr, src_dev,
 						length, stream);
+		STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 		if (!cures)
 			return -EAGAIN;
 	}
@@ -413,7 +415,9 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 
 	cudaError_t cures;
 
+	STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 	cures = cudaMemcpyAsync((char *)dst_vector->ptr, (char *)src_vector->ptr, src_vector->nx*src_vector->elemsize, kind, stream);
+	STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 	if (cures)
 	{
 		/* do it in a synchronous fashion */
@@ -468,7 +472,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 	starpu_vector_interface_t *dst_vector = dst_interface;
         int err, ret;
 
-	err = _starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_vector->ptr, (cl_mem)dst_vector->dev_handle,
+	err = _starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_vector->ptr, src_node, (cl_mem)dst_vector->dev_handle, dst_node,
                                                            src_vector->nx*src_vector->elemsize,
                                                            dst_vector->offset, (cl_event*)_event, &ret);
         if (STARPU_UNLIKELY(err))
@@ -486,7 +490,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
 	starpu_vector_interface_t *dst_vector = dst_interface;
         int err, ret;
 
-	err = _starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_vector->dev_handle, (void*)dst_vector->ptr, src_vector->nx*src_vector->elemsize,
+	err = _starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_vector->dev_handle, src_node, (void*)dst_vector->ptr, dst_node, src_vector->nx*src_vector->elemsize,
                                                            src_vector->offset, (cl_event *)_event, &ret);
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);

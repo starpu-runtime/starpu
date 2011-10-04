@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -43,25 +43,25 @@ extern
 cl_int _starpu_opencl_allocate_memory(void **addr, size_t size, cl_mem_flags flags);
 
 extern
-cl_int _starpu_opencl_copy_ram_to_opencl(void *ptr, cl_mem buffer, size_t size, size_t offset, cl_event *event);
+cl_int _starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node, cl_mem buffer, unsigned dst_node, size_t size, size_t offset, cl_event *event);
 
 extern
-cl_int _starpu_opencl_copy_opencl_to_ram(cl_mem buffer, void *ptr, size_t size, size_t offset, cl_event *event);
+cl_int _starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node, void *ptr, unsigned dst_node, size_t size, size_t offset, cl_event *event);
 
 extern
-cl_int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, cl_mem buffer, size_t size, size_t offset, cl_event *event, int *ret);
+cl_int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, unsigned src_node, cl_mem buffer, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
 
 extern
-cl_int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, void *ptr, size_t size, size_t offset, cl_event *event, int *ret);
+cl_int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, unsigned src_node, void *ptr, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret);
 
 #if 0
 extern
-cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, void *ptr, const size_t buffer_origin[3], const size_t host_origin[3],
+cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, unsigned src_node, void *ptr, unsigned dst_node, const size_t buffer_origin[3], const size_t host_origin[3],
                                               const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
                                               size_t host_row_pitch, size_t host_slice_pitch, cl_event *event);
 
 extern
-cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, cl_mem buffer, const size_t buffer_origin[3], const size_t host_origin[3],
+cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node, cl_mem buffer, unsigned dst_node, const size_t buffer_origin[3], const size_t host_origin[3],
                                               const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
                                               size_t host_row_pitch, size_t host_slice_pitch, cl_event *event);
 #endif

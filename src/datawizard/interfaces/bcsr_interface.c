@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -474,15 +474,15 @@ static int copy_opencl_to_ram(void *src_interface, unsigned src_node STARPU_ATTR
 
         int err;
 
-	err = _starpu_opencl_copy_opencl_to_ram((cl_mem)src_bcsr->nzval, (void *)dst_bcsr->nzval, nnz*r*c*elemsize, 0, NULL);
+	err = _starpu_opencl_copy_opencl_to_ram((cl_mem)src_bcsr->nzval, src_node, (void *)dst_bcsr->nzval, dst_node, nnz*r*c*elemsize, 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = _starpu_opencl_copy_opencl_to_ram((cl_mem)src_bcsr->colind, (void *)dst_bcsr->colind, nnz*sizeof(uint32_t), 0, NULL);
+	err = _starpu_opencl_copy_opencl_to_ram((cl_mem)src_bcsr->colind, src_node, (void *)dst_bcsr->colind, dst_node, nnz*sizeof(uint32_t), 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = _starpu_opencl_copy_opencl_to_ram((cl_mem)src_bcsr->rowptr, (void *)dst_bcsr->rowptr, (nrow+1)*sizeof(uint32_t), 0, NULL);
+	err = _starpu_opencl_copy_opencl_to_ram((cl_mem)src_bcsr->rowptr, src_node, (void *)dst_bcsr->rowptr, dst_node, (nrow+1)*sizeof(uint32_t), 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -505,15 +505,15 @@ static int copy_ram_to_opencl(void *src_interface, unsigned src_node STARPU_ATTR
 
         int err;
 
-	err = _starpu_opencl_copy_ram_to_opencl((void *)src_bcsr->nzval, (cl_mem)dst_bcsr->nzval, nnz*r*c*elemsize, 0, NULL);
+	err = _starpu_opencl_copy_ram_to_opencl((void *)src_bcsr->nzval, src_node, (cl_mem)dst_bcsr->nzval, dst_node, nnz*r*c*elemsize, 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = _starpu_opencl_copy_ram_to_opencl((void *)src_bcsr->colind, (cl_mem)dst_bcsr->colind, nnz*sizeof(uint32_t), 0, NULL);
+	err = _starpu_opencl_copy_ram_to_opencl((void *)src_bcsr->colind, src_node, (cl_mem)dst_bcsr->colind, dst_node, nnz*sizeof(uint32_t), 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = _starpu_opencl_copy_ram_to_opencl((void *)src_bcsr->rowptr, (cl_mem)dst_bcsr->rowptr, (nrow+1)*sizeof(uint32_t), 0, NULL);
+	err = _starpu_opencl_copy_ram_to_opencl((void *)src_bcsr->rowptr, src_node, (cl_mem)dst_bcsr->rowptr, dst_node, (nrow+1)*sizeof(uint32_t), 0, NULL);
 	if (STARPU_UNLIKELY(err))
 		STARPU_OPENCL_REPORT_ERROR(err);
 

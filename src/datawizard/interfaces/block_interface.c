@@ -468,8 +468,10 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 		/* Is that a single contiguous buffer ? */
 		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
 		{
+			STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 			cures = cudaMemcpyAsync((char *)dst_block->ptr, (char *)src_block->ptr,
 					nx*ny*nz*elemsize, kind, stream);
+			STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 			if (STARPU_UNLIKELY(cures))
 			{
 				cures = cudaMemcpy((char *)dst_block->ptr, (char *)src_block->ptr,
@@ -486,9 +488,11 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 		}
 		else {
 			/* Are all plans contiguous */
+			STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 			cures = cudaMemcpy2DAsync((char *)dst_block->ptr, dst_block->ldz*elemsize,
 					(char *)src_block->ptr, src_block->ldz*elemsize,
 					nx*ny*elemsize, nz, kind, stream);
+			STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 			if (STARPU_UNLIKELY(cures))
 			{
 				cures = cudaMemcpy2D((char *)dst_block->ptr, dst_block->ldz*elemsize,
@@ -512,9 +516,11 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 			uint8_t *src_ptr = ((uint8_t *)src_block->ptr) + layer*src_block->ldz*src_block->elemsize;
 			uint8_t *dst_ptr = ((uint8_t *)dst_block->ptr) + layer*dst_block->ldz*dst_block->elemsize;
 
+			STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 			cures = cudaMemcpy2DAsync((char *)dst_ptr, dst_block->ldy*elemsize,
                                                   (char *)src_ptr, src_block->ldy*elemsize,
                                                   nx*elemsize, ny, kind, stream);
+			STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 
 			if (STARPU_UNLIKELY(cures))
 			{
@@ -597,7 +603,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 		/* Is that a single contiguous buffer ? */
 		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
 		{
-                        err = _starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_block->ptr, (cl_mem)dst_block->dev_handle,
+                        err = _starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_block->ptr, src_node, (cl_mem)dst_block->dev_handle, dst_node,
                                                                            src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
                                                                            dst_block->offset, (cl_event*)_event, &ret);
                         if (STARPU_UNLIKELY(err))
@@ -617,7 +623,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
                         unsigned j;
                         for(j=0 ; j<src_block->ny ; j++) {
                                 void *ptr = (void*)src_block->ptr+(layer*src_block->ldz*src_block->elemsize)+(j*src_block->ldy*src_block->elemsize);
-                                err = _starpu_opencl_copy_ram_to_opencl(ptr, (cl_mem)dst_block->dev_handle,
+                                err = _starpu_opencl_copy_ram_to_opencl(ptr, src_node, (cl_mem)dst_block->dev_handle, dst_node,
                                                                         src_block->nx*src_block->elemsize,
                                                                         layer*dst_block->ldz*dst_block->elemsize + j*dst_block->ldy*dst_block->elemsize
                                                                         + dst_block->offset, NULL);
@@ -636,7 +642,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
                         //                        size_t host_row_pitch=region[0];
                         //                        size_t host_slice_pitch=region[1] * host_row_pitch;
                         //
-                        //                        _starpu_opencl_copy_rect_ram_to_opencl((void *)src_block->ptr, (cl_mem)dst_block->dev_handle,
+                        //                        _starpu_opencl_copy_rect_ram_to_opencl((void *)src_block->ptr, src_node, (cl_mem)dst_block->dev_handle, dst_node,
                         //                                                               buffer_origin, host_origin, region,
                         //                                                               buffer_row_pitch, buffer_slice_pitch,
                         //                                                               host_row_pitch, host_slice_pitch, NULL);
@@ -661,7 +667,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
 		/* Is that a single contiguous buffer ? */
 		if (((src_block->nx*src_block->ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
 		{
-                        err = _starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_block->dev_handle, (void*)dst_block->ptr,
+                        err = _starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_block->dev_handle, src_node, (void*)dst_block->ptr, dst_node,
                                                                            src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
                                                                            src_block->offset, (cl_event*)_event, &ret);
                         if (STARPU_UNLIKELY(err))
@@ -682,7 +688,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
                         unsigned j;
                         for(j=0 ; j<src_block->ny ; j++) {
                                 void *ptr = (void *)dst_block->ptr+(layer*dst_block->ldz*dst_block->elemsize)+(j*dst_block->ldy*dst_block->elemsize);
-                                err = _starpu_opencl_copy_opencl_to_ram((void*)src_block->dev_handle, ptr,
+                                err = _starpu_opencl_copy_opencl_to_ram((void*)src_block->dev_handle, src_node, ptr, dst_node,
                                                                         src_block->nx*src_block->elemsize,
                                                                         layer*src_block->ldz*src_block->elemsize+j*src_block->ldy*src_block->elemsize+
                                                                         src_block->offset, NULL);
@@ -695,7 +701,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
                         //                        size_t host_row_pitch=region[0];
                         //                        size_t host_slice_pitch=region[1] * host_row_pitch;
                         //
-                        //                        _starpu_opencl_copy_rect_opencl_to_ram((cl_mem)src_block->dev_handle, (void *)dst_block->ptr,
+                        //                        _starpu_opencl_copy_rect_opencl_to_ram((cl_mem)src_block->dev_handle, src_node, (void *)dst_block->ptr, dst_node,
                         //                                                               buffer_origin, host_origin, region,
                         //                                                               buffer_row_pitch, buffer_slice_pitch,
                         //                                                               host_row_pitch, host_slice_pitch, NULL);

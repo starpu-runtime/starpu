@@ -572,6 +572,29 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	}
 }
 
+static void handle_start_driver_copy_async(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned dst = ev->param[1];
+
+	char *prefix = options->file_prefix;
+
+	if (!options->no_bus)
+		if (out_paje_file)
+			fprintf(out_paje_file, "10       %f     MS      %sMEMNODE%u      CoA\n", get_event_time_stamp(ev, options), prefix, dst);
+
+}
+
+static void handle_end_driver_copy_async(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned dst = ev->param[1];
+
+	char *prefix = options->file_prefix;
+
+	if (!options->no_bus)
+		if (out_paje_file)
+			fprintf(out_paje_file, "10       %f     MS      %sMEMNODE%u      Co\n", get_event_time_stamp(ev, options), prefix, dst);
+}
+
 static void handle_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
 {
 	unsigned memnode = ev->param[0];
@@ -919,6 +942,16 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 			case STARPU_FUT_END_DRIVER_COPY:
 				if (!options->no_bus)
 				handle_end_driver_copy(&ev, options);
+				break;
+
+			case STARPU_FUT_START_DRIVER_COPY_ASYNC:
+				if (!options->no_bus)
+				handle_start_driver_copy_async(&ev, options);
+				break;
+
+			case STARPU_FUT_END_DRIVER_COPY_ASYNC:
+				if (!options->no_bus)
+				handle_end_driver_copy_async(&ev, options);
 				break;
 
 			case STARPU_FUT_WORK_STEALING:

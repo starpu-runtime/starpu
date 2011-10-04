@@ -385,7 +385,9 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 
 	if (is_async)
 	{
+		STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 		cures = cudaMemcpy3DAsync(&p, stream);
+		STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 		if (!cures)
 			return -EAGAIN;
 	}
@@ -397,9 +399,11 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 
 	if (is_async)
 	{
+		STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 		cures = cudaMemcpy2DAsync((char *)dst_matrix->ptr, dst_matrix->ld*elemsize,
 			(char *)src_matrix->ptr, src_matrix->ld*elemsize,
 			src_matrix->nx*elemsize, src_matrix->ny, kind, stream);
+		STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 		if (!cures)
 			return -EAGAIN;
 	}
@@ -466,7 +470,9 @@ static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUT
 
 //	if (is_async)
 //	{
+//		STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 //		cures = cudaMemcpy3DPeerAsync(&p, stream);
+//		STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 //		if (!cures)
 //			return -EAGAIN;
 //	}
@@ -478,7 +484,9 @@ static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUT
 
 	if (is_async)
 	{
+		STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 		cures = cudaMemcpyPeerAsync((char *)dst_matrix->ptr, dst_dev, (char *)src_matrix->ptr, src_dev, dst_matrix->nx*dst_matrix->ny*elemsize, stream);
+		STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 		if (!cures)
 			return -EAGAIN;
 	}
@@ -547,7 +555,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 	/* XXX non contiguous matrices are not supported with OpenCL yet ! (TODO) */
 	STARPU_ASSERT((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx));
 
-	err = _starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_matrix->ptr, (cl_mem)dst_matrix->dev_handle,
+	err = _starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_matrix->ptr, src_node, (cl_mem)dst_matrix->dev_handle, dst_node,
                                                            src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
                                                            dst_matrix->offset, (cl_event*)_event, &ret);
         if (STARPU_UNLIKELY(err))
@@ -567,7 +575,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
 	/* XXX non contiguous matrices are not supported with OpenCL yet ! (TODO) */
 	STARPU_ASSERT((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx));
 
-        err = _starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_matrix->dev_handle, (void*)dst_matrix->ptr,
+        err = _starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_matrix->dev_handle, src_node, (void*)dst_matrix->ptr, dst_node,
                                                            src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
                                                            src_matrix->offset, (cl_event*)_event, &ret);
 

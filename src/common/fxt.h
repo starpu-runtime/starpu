@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -90,14 +90,17 @@
 #define	STARPU_FUT_START_DRIVER_COPY	0x5133
 #define	STARPU_FUT_END_DRIVER_COPY	0x5134
 
-#define	STARPU_FUT_START_PROGRESS	0x5135
-#define	STARPU_FUT_END_PROGRESS		0x5136
+#define	STARPU_FUT_START_DRIVER_COPY_ASYNC	0x5135
+#define	STARPU_FUT_END_DRIVER_COPY_ASYNC	0x5136
 
-#define STARPU_FUT_USER_EVENT		0x5137
+#define	STARPU_FUT_START_PROGRESS	0x5137
+#define	STARPU_FUT_END_PROGRESS		0x5138
 
-#define STARPU_FUT_SET_PROFILING	0x5138
+#define STARPU_FUT_USER_EVENT		0x5139
 
-#define STARPU_FUT_TASK_WAIT_FOR_ALL	0x5139
+#define STARPU_FUT_SET_PROFILING	0x513a
+
+#define STARPU_FUT_TASK_WAIT_FOR_ALL	0x513b
 
 #ifdef STARPU_USE_FXT
 #include <sys/syscall.h> /* pour les définitions de SYS_xxx */
@@ -276,6 +279,12 @@ do {										\
 
 #define STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, com_id)	\
 	FUT_DO_PROBE4(STARPU_FUT_END_DRIVER_COPY, src_node, dst_node, size, com_id)
+
+#define STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node)	\
+	FUT_DO_PROBE2(STARPU_FUT_START_DRIVER_COPY_ASYNC, src_node, dst_node)
+
+#define STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node)	\
+	FUT_DO_PROBE2(STARPU_FUT_END_DRIVER_COPY, src_node, dst_node)
 
 #define STARPU_TRACE_WORK_STEALING(empty_q, victim_q)		\
 	FUT_DO_PROBE2(STARPU_FUT_WORK_STEALING, empty_q, victim_q)

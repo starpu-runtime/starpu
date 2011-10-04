@@ -81,7 +81,6 @@ static void unlimit_gpu_mem_if_needed(int devid)
 
 size_t starpu_opencl_get_global_mem_size(int devid)
 {
-	cl_int err;
 	cl_ulong totalGlobalMem;
 
 	/* Request the size of the current device's memory */
@@ -190,14 +189,19 @@ cl_int _starpu_opencl_allocate_memory(void **addr, size_t size, cl_mem_flags fla
         return CL_SUCCESS;
 }
 
-cl_int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, cl_mem buffer, size_t size, size_t offset, cl_event *event, int *ret)
+cl_int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
 {
         cl_int err;
         struct starpu_worker_s *worker = _starpu_get_local_worker_key();
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
+
+        if (event)
+                STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
         err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
+        if (event)
+                STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
         if (STARPU_LIKELY(err == CL_SUCCESS)) {
                 *ret = (event == NULL) ? 0 : -EAGAIN;
                 return CL_SUCCESS;
@@ -218,27 +222,35 @@ cl_int _starpu_opencl_copy_ram_to_opencl_async_sync(void *ptr, cl_mem buffer, si
         }
 }
 
-cl_int _starpu_opencl_copy_ram_to_opencl(void *ptr, cl_mem buffer, size_t size, size_t offset, cl_event *event)
+cl_int _starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event)
 {
         cl_int err;
         struct starpu_worker_s *worker = _starpu_get_local_worker_key();
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
+        if (event)
+                STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
         err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
+        if (event)
+                STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         return CL_SUCCESS;
 }
 
-cl_int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, void *ptr, size_t size, size_t offset, cl_event *event, int *ret)
+cl_int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event, int *ret)
 {
         cl_int err;
         struct starpu_worker_s *worker = _starpu_get_local_worker_key();
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
+        if (event)
+                STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
         err = clEnqueueReadBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
+        if (event)
+                STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
         if (STARPU_LIKELY(err == CL_SUCCESS)) {
                 *ret = (event == NULL) ? 0 : -EAGAIN;
                 return CL_SUCCESS;
@@ -260,21 +272,25 @@ cl_int _starpu_opencl_copy_opencl_to_ram_async_sync(cl_mem buffer, void *ptr, si
         return CL_SUCCESS;
 }
 
-cl_int _starpu_opencl_copy_opencl_to_ram(cl_mem buffer, void *ptr, size_t size, size_t offset, cl_event *event)
+cl_int _starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, size_t offset, cl_event *event)
 {
         cl_int err;
         struct starpu_worker_s *worker = _starpu_get_local_worker_key();
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
+        if (event)
+                STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
         err = clEnqueueReadBuffer(transfer_queues[worker->devid], buffer, blocking, offset, size, ptr, 0, NULL, event);
+        if (event)
+                STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         return CL_SUCCESS;
 }
 
 #if 0
-cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, void *ptr, const size_t buffer_origin[3], const size_t host_origin[3],
+cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, const size_t buffer_origin[3], const size_t host_origin[3],
                                               const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
                                               size_t host_row_pitch, size_t host_slice_pitch, cl_event *event)
 {
@@ -283,14 +299,18 @@ cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, void *ptr, const si
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
+        if (event)
+                STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
         err = clEnqueueReadBufferRect(transfer_queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
                                       buffer_slice_pitch, host_row_pitch, host_slice_pitch, ptr, 0, NULL, event);
+        if (event)
+                STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         return CL_SUCCESS;
 }
 
-cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, cl_mem buffer, const size_t buffer_origin[3], const size_t host_origin[3],
+cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATTRIBUTE_UNUSED, cl_mem buffer, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, const size_t buffer_origin[3], const size_t host_origin[3],
                                               const size_t region[3], size_t buffer_row_pitch, size_t buffer_slice_pitch,
                                               size_t host_row_pitch, size_t host_slice_pitch, cl_event *event)
 {
@@ -299,8 +319,12 @@ cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, cl_mem buffer, const si
         cl_bool blocking;
 
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
+        if (event)
+                STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
         err = clEnqueueWriteBufferRect(transfer_queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
                                        buffer_slice_pitch, host_row_pitch, host_slice_pitch, ptr, 0, NULL, event);
+        if (event)
+                STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
         return CL_SUCCESS;

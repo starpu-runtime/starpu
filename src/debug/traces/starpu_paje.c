@@ -147,6 +147,7 @@ void starpu_fxt_write_paje_header(FILE *file)
 	6       Ar       MS      AllocatingReuse       \".1 .1 .8\"		\n \
 	6       R       MS      Reclaiming         \".0 .1 .4\"		\n \
 	6       Co       MS     DriverCopy         \".3 .5 .1\"		\n \
+	6       CoA      MS     DriverCopyAsync         \".1 .3 .1\"		\n \
 	6       No       MS     Nothing         \".0 .0 .0\"		\n \
 	5       MPIL     MPIP	P	P      MPIL\n \
 	5       L       P	Mn	Mn      L\n");

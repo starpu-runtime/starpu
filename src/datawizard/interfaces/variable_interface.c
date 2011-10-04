@@ -346,7 +346,9 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 	starpu_variable_interface_t *dst_variable = dst_interface;
 
 	cudaError_t cures;
+	STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 	cures = cudaMemcpyAsync((char *)dst_variable->ptr, (char *)src_variable->ptr, src_variable->elemsize, kind, stream);
+	STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 	if (cures)
 	{
 		/* do it in a synchronous fashion */
@@ -393,7 +395,9 @@ static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node,					v
 		size_t length = src_variable->elemsize;
 
 		cudaError_t cures;
+		STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 		cures = cudaMemcpyPeerAsync((char *)dst_variable->ptr, dst_dev, (char *)src_variable->ptr, src_dev, length, stream);
+		STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 		if (cures)
 		{
 			/* sychronous fallback */
@@ -426,7 +430,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 	starpu_variable_interface_t *dst_variable = dst_interface;
         int err,ret;
 
-        err = _starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_variable->ptr, (cl_mem)dst_variable->ptr, src_variable->elemsize,
+        err = _starpu_opencl_copy_ram_to_opencl_async_sync((void*)src_variable->ptr, src_node, (cl_mem)dst_variable->ptr, dst_node, src_variable->elemsize,
                                                            0, (cl_event*)_event, &ret);
         if (STARPU_UNLIKELY(err))
                 STARPU_OPENCL_REPORT_ERROR(err);
@@ -442,7 +446,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
 	starpu_variable_interface_t *dst_variable = dst_interface;
         int err, ret;
 
-	err = _starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_variable->ptr, (void*)dst_variable->ptr, src_variable->elemsize,
+	err = _starpu_opencl_copy_opencl_to_ram_async_sync((cl_mem)src_variable->ptr, src_node, (void*)dst_variable->ptr, dst_node, src_variable->elemsize,
                                                            0, (cl_event*)_event, &ret);
 
         if (STARPU_UNLIKELY(err))
