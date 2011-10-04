@@ -1570,7 +1570,9 @@ When the application allocates data, whenever possible it should use the
 @code{starpu_malloc} function, which will ask CUDA or
 OpenCL to make the allocation itself and pin the corresponding allocated
 memory. This is needed to permit asynchronous data transfer, i.e. permit data
-transfer to overlap with computations.
+transfer to overlap with computations. Otherwise, the trace will show that the
+@code{DriverCopyAsync} state takes a lot of time, this is because CUDA or OpenCL
+then reverts to synchronous transfers.
 
 By default, StarPU leaves replicates of data wherever they were used, in case they
 will be re-used by other tasks, thus saving the data transfer time. When some

@@ -315,6 +315,7 @@ static int _heft_push_task(struct starpu_task *task, unsigned prio)
 
 	for (worker = 0; worker < nworkers; worker++)
 	{
+		/* FIXME: multiimpl! */
 		if (!starpu_worker_may_execute_task(worker, task, 0))
 		{
 			/* no one on that queue may execute this task */
