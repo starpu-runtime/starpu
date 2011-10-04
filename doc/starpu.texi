@@ -1202,6 +1202,9 @@ starpu_codelet cl = @{
 @};
 @end smallexample
 @end cartouche
+
+The scheduler will measure the performance of all the implementations it was
+given, and pick the one that seems to be the fastest.
 @node Task and Worker Profiling
 @section Task and Worker Profiling
 
