@@ -99,7 +99,8 @@ LIST_TYPE(communication,
 	unsigned comid;
 	float comm_start;	
 	float bandwidth;
-	unsigned node;
+	unsigned src_node;
+	unsigned dst_node;
 )
 
 static communication_list_t communication_list;
@@ -517,11 +518,8 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		com->comid = comid;
 		com->comm_start = get_event_time_stamp(ev, options);
 
-#ifdef STARPU_DEVEL
-#warning this is wrong with peers
-#endif
-		/* that's a hack: either src or dst is non null */
-		com->node = (src + dst);
+		com->src_node = src;
+		com->dst_node = dst;
 
 		communication_list_push_back(communication_list, com);
 	}
@@ -562,7 +560,8 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 				com->comm_start = get_event_time_stamp(ev, options);
 				com->bandwidth = -bandwidth;
 
-				com->node = itor->node;
+				com->src_node = itor->src_node;
+				com->dst_node = itor->dst_node;
 
 				communication_list_push_back(communication_list, com);
 
@@ -767,8 +766,7 @@ static void handle_task_wait_for_all(void)
 static
 void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
 {
-	float current_bandwidth = 0.0;
-	float current_bandwidth_per_node[32] = {0.0};
+	float current_bandwidth_per_node[STARPU_MAXNODES] = {0.0};
 
 	char *prefix = options->file_prefix;
 
@@ -777,15 +775,15 @@ void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
 		itor != communication_list_end(communication_list);
 		itor = communication_list_next(itor))
 	{
-		current_bandwidth += itor->bandwidth;
-		if (out_paje_file)
-		fprintf(out_paje_file, "13  %f bw %sMEMNODE0 %f\n",
-				itor->comm_start, prefix, current_bandwidth);
-
-		current_bandwidth_per_node[itor->node] +=  itor->bandwidth;
+		current_bandwidth_per_node[itor->src_node] +=  itor->bandwidth;
 		if (out_paje_file)
 		fprintf(out_paje_file, "13  %f bw %sMEMNODE%u %f\n",
-				itor->comm_start, prefix, itor->node, current_bandwidth_per_node[itor->node]);
+				itor->comm_start, prefix, itor->src_node, current_bandwidth_per_node[itor->src_node]);
+
+		current_bandwidth_per_node[itor->dst_node] +=  itor->bandwidth;
+		if (out_paje_file)
+		fprintf(out_paje_file, "13  %f bw %sMEMNODE%u %f\n",
+				itor->comm_start, prefix, itor->dst_node, current_bandwidth_per_node[itor->dst_node]);
 	}
 }
 
