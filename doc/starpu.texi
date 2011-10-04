@@ -517,6 +517,7 @@ so:
 * Hello World::                 Submitting Tasks
 * Scaling a Vector::            Manipulating Data
 * Vector Scaling on an Hybrid CPU/GPU Machine::  Handling Heterogeneous Architectures
+* Using multiple implentations of a codelet::
 * Task and Worker Profiling::   
 * Partitioning Data::           Partitioning Data
 * Performance model example::   
@@ -1141,6 +1142,50 @@ see @ref{Enabling OpenCL}):
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample
 
+@node Using multiple implentations of a codelet
+@section Using multiple implentations of a codelet
+One may want to write multiple implementations of a codelet for a single type of
+device and let StarPU choose which one to run. As an example, we will show how
+to use SSE to scale a vector. The codelet can be written as follows :
+
+@cartouche
+@smallexample
+#include <xmmintrin.h>
+
+void scal_sse_func(void *buffers[], void *cl_arg)
+@{
+	float *vector = (float *) STARPU_VECTOR_GET_PTR(buffers[0]);
+	unsigned int n = STARPU_VECTOR_GET_NX(buffers[0]);
+	unsigned int n_iterations = n/4;
+	if (n % 4 != 0)
+		n_iterations++;
+
+	__m128 *VECTOR = (__m128*) vector;
+	__m128 factor __attribute__((aligned(16)));
+	factor = _mm_set1_ps(*(float *) cl_arg);
+
+	unsigned int i;	
+	for (i = 0; i < n_iterations; i++)
+		VECTOR[i] = _mm_mul_ps(factor, VECTOR[i]);
+@}
+@end smallexample
+@end cartouche
+
+The @code{cpu_func} field of the @code{starpu_codelet} structure has to be set
+to the special value @code{STARPU_MULTIPLE_CPU_IMPLEMENTATIONS}. Note that
+@code{STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS} and
+@code{STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS} are also available.
+
+@cartouche
+@smallexample
+starpu_codelet cl = @{
+	.where = STARPU_CPU,
+	.cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
+	.cpu_funcs = @{ scal_cpu_func, scal_sse_func @},
+	.nbuffers = 1
+@};
+@end smallexample
+@end cartouche
 @node Task and Worker Profiling
 @section Task and Worker Profiling
 
@@ -2616,6 +2661,7 @@ Enable flags for the @code{gcov} coverage tool.
 * --with-opencl-lib-dir::           
 * --enable-gordon::             
 * --with-gordon-dir::           
+* --enable-maximplementations::
 @end menu
 
 @node --enable-maxcpus
@@ -2737,6 +2783,14 @@ Enable the use of the Gordon runtime for Cell SPUs.
 @table @asis
 @item @emph{Description}:
 Specify the location of the Gordon SDK.
+@end table
+
+@node --enable-maximplementations
+@subsubsection @code{--enable-maximplementations=<number>}
+@table @asis
+@item @emph{Description}:
+Defines the number of implementations that can be defined for a single kind of
+device. It is then available as the @code{STARPU_MAXIMPLEMENTATIONS} macro.
 @end table
 
 @node Advanced configuration
