@@ -371,6 +371,8 @@ do {										\
 #define STARPU_TRACE_DATA_COPY(a, b, c)		do {} while(0);
 #define STARPU_TRACE_START_DRIVER_COPY(a,b,c,d)	do {} while(0);
 #define STARPU_TRACE_END_DRIVER_COPY(a,b,c,d)	do {} while(0);
+#define STARPU_TRACE_START_DRIVER_COPY_ASYNC(a,b)	do {} while(0);
+#define STARPU_TRACE_END_DRIVER_COPY_ASYNC(a,b)	do {} while(0);
 #define STARPU_TRACE_WORK_STEALING(a, b)	do {} while(0);
 #define STARPU_TRACE_WORKER_DEINIT_START	do {} while(0);
 #define STARPU_TRACE_WORKER_DEINIT_END(a)	do {} while(0);
