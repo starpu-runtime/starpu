@@ -50,6 +50,7 @@ static void parallel_heft_post_exec_hook(struct starpu_task *task)
 
 	int workerid = starpu_worker_get_id();
 	double model = task->predicted;
+	double transfer_model = task->predicted_transfer;
 	
 	if (model < 0.0)
 		model = 0.0;
@@ -57,7 +58,7 @@ static void parallel_heft_post_exec_hook(struct starpu_task *task)
 	/* Once we have executed the task, we can update the predicted amount
 	 * of work. */
 	PTHREAD_MUTEX_LOCK(&sched_mutex[workerid]);
-	worker_exp_len[workerid] -= model;
+	worker_exp_len[workerid] -= model + transfer_model;
 	worker_exp_start[workerid] = starpu_timing_now();
 	worker_exp_end[workerid] = worker_exp_start[workerid] + worker_exp_len[workerid];
 	ntasks[workerid]--;
@@ -86,6 +87,8 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	if (is_basic_worker)
 	{
 		task->predicted = exp_end_predicted - worker_exp_end[best_workerid];
+		/* TODO */
+		task->predicted_transfer = 0;
 		worker_exp_len[best_workerid] += exp_end_predicted - worker_exp_end[best_workerid];
 		worker_exp_end[best_workerid] = exp_end_predicted;
 		worker_exp_start[best_workerid] = exp_end_predicted - worker_exp_len[best_workerid];
@@ -116,6 +119,8 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 			int local_worker = combined_workerid[i];
 
 			alias->predicted = exp_end_predicted - worker_exp_end[local_worker];
+			/* TODO */
+			alias->predicted_transfer = 0;
 	
 			worker_exp_len[local_worker] += exp_end_predicted - worker_exp_end[local_worker];
 			worker_exp_end[local_worker] = exp_end_predicted;

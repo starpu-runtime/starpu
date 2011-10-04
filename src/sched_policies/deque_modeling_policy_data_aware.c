@@ -282,6 +282,8 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	task->predicted = predicted;
 
+	/* TODO predicted_transfer */
+
 	unsigned memory_node = starpu_worker_get_memory_node(best_workerid);
 
 	if (starpu_get_prefetch_flag())

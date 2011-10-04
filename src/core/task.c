@@ -75,6 +75,7 @@ void starpu_task_init(struct starpu_task *task)
 	task->profiling_info = NULL;
 
 	task->predicted = -1.0;
+	task->predicted_transfer = -1.0;
 
 	task->starpu_private = NULL;
 }

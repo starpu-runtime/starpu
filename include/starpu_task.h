@@ -166,6 +166,10 @@ struct starpu_task {
 	 * scheduling strategy uses performance models. */
 	double predicted;
 
+	/* Predicted data transfer duration for the task in µs. This field is
+	 * only valid if the scheduling strategy uses performance models. */
+	double predicted_transfer;
+
 	/* This field are provided for the convenience of the scheduler. */
 	struct starpu_task *prev;
 	struct starpu_task *next;
@@ -197,6 +201,7 @@ struct starpu_task {
 	.status = STARPU_TASK_INVALID,			\
 	.profiling_info = NULL,				\
 	.predicted = -1.0,				\
+	.predicted_transfer = -1.0,			\
 	.starpu_private = NULL				\
 };
 
