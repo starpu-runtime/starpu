@@ -319,7 +319,6 @@ AC_DEFUN([STARPU_CHECK_CUDA_RUNTIME],
             if test "$3" = "no" -a "$__cuda_dir" != "no" ; then
                 __cuda_lib_dir="$__cuda_dir/lib64"
 	        STARPU_CUDA_LDFLAGS="${SAVED_STARPU_CUDA_LDFLAGS} -L$__cuda_lib_dir"
-	        LDFLAGS="${SAVED_LDFLAGS} -L$__cuda_lib_dir"
 	        AC_HAVE_LIBRARY([cudart],[have_valid_cuda=yes],[have_valid_cuda=no])
                 unset ac_cv_lib_cudart_main
             fi
