@@ -17,6 +17,8 @@
 
 #include <datawizard/memalloc.h>
 #include <datawizard/footprint.h>
+#include <starpu_cuda.h>
+#include <starpu_opencl.h>
 
 /* This per-node RW-locks protect mc_list and memchunk_cache entries */
 static pthread_rwlock_t mc_rwlock[STARPU_MAXNODES];

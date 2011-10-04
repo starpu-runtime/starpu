@@ -49,6 +49,7 @@ struct starpu_opencl_program {
         cl_program programs[STARPU_MAXOPENCLDEVS];
 };
 
+size_t starpu_opencl_get_global_mem_size(int devid);
 void starpu_opencl_get_context(int devid, cl_context *context);
 void starpu_opencl_get_device(int devid, cl_device_id *device);
 void starpu_opencl_get_queue(int devid, cl_command_queue *queue);

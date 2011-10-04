@@ -37,6 +37,7 @@ void starpu_cuda_report_error(const char *func, const char *file, int line, cuda
 #define STARPU_CUDA_REPORT_ERROR(status) \
 	starpu_cuda_report_error(__starpu_func__, __FILE__, __LINE__, status)
 
+size_t starpu_cuda_get_global_mem_size(int devid);
 cudaStream_t starpu_cuda_get_local_stream(void);
 
 #ifdef __cplusplus
