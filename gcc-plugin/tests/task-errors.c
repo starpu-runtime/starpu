@@ -23,7 +23,7 @@ static void my_task_cpu (int foo, float *bar)    /* (error "type differs") */
 static void my_task_opencl (long foo, char *bar) /* (error "type differs") */
   __attribute__ ((task_implementation ("opencl", my_task)));
 
-static void my_task_nowhere (int foo, char *bar)
+static void my_task_nowhere (int foo, char *bar) /* (warning "unsupported target") */
   __attribute__ ((task_implementation ("does-not-exist", my_task)));
 
 static void my_task_not_quite (int foo, char *bar) /* (error "lacks the 'task' attribute") */
@@ -64,7 +64,7 @@ my_task_opencl (long foo, char *bar)
 }
 
 static void
-my_task_nowhere (int foo, char *bar)  /* (warning "unsupported target") */
+my_task_nowhere (int foo, char *bar)
 {
 }
 

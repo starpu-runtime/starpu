@@ -41,6 +41,32 @@ my_scalar_task_opencl (int x, char y, int z)
 }
 
 
+/* Another task, where task implementation declarations are interleaved with
+   task definitions.  */
+
+static void my_other_task (int x) __attribute__ ((task));
+
+static void my_other_task_cpu (int)
+  __attribute__ ((task_implementation ("cpu", my_other_task)));
+
+static void
+my_other_task_cpu (int x)
+{
+  printf ("cpu\n");
+}
+
+static void my_other_task_opencl (int)
+  __attribute__ ((task_implementation ("opencl", my_other_task)));
+
+static void
+my_other_task_opencl (int x)
+{
+  printf ("opencl\n");
+}
+
+
+
+
 int
 main (int argc, char *argv[])
 {
@@ -83,7 +109,17 @@ main (int argc, char *argv[])
      should be introduced, and we should take its address.  */
   my_scalar_task (42, y_as_long_int, 99);
 
-  assert (tasks_submitted == 9);
+  struct insert_task_argument expected2[] =
+    {
+      { STARPU_VALUE, &x, sizeof x },
+      { 0, 0, 0 }
+    };
+
+  expected_insert_task_arguments = expected2;
+
+  my_other_task (42);
+
+  assert (tasks_submitted == 10);
 
 #pragma starpu shutdown
   assert (initialized == 0);

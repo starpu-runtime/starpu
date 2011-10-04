@@ -79,6 +79,9 @@ static const char task_implementation_wrapper_attribute_name[] =
 static const char codelet_struct_name[] = "starpu_codelet";
 static const char task_struct_name[] = "starpu_task";
 
+/* Cached function declarations.  */
+static tree unpack_fn;
+
 
 /* Forward declarations.  */
 
@@ -88,6 +91,8 @@ static tree build_pointer_lookup (tree pointer);
 
 static bool task_p (const_tree decl);
 static bool task_implementation_p (const_tree decl);
+
+static int task_implementation_target_to_int (const_tree target);
 
 
 /* Lookup the StarPU function NAME in the global scope and store the result
@@ -715,6 +720,9 @@ handle_task_attribute (tree *node, tree name, tree args,
       pushdecl (cl);
     }
 
+  /* Lookup & cache function declarations for later reuse.  */
+  LOOKUP_STARPU_FUNCTION (unpack_fn, "starpu_unpack_cl_args");
+
   return NULL_TREE;
 }
 
@@ -776,6 +784,12 @@ handle_task_implementation_attribute (tree *node, tree name, tree args,
       TREE_VALUE (attr) = impls;
 
       TREE_USED (fn) = TREE_USED (task_decl);
+
+      /* Check the `where' argument to raise a warning if needed.  */
+      if (task_implementation_target_to_int (where) == 0)
+	warning_at (loc, 0,
+		    "unsupported target %E; task implementation won't be used",
+		    where);
 
       /* Keep the attribute.  */
       *no_add_attrs = false;
@@ -844,13 +858,36 @@ task_pointer_parameter_types (const_tree task_decl)
   return filter (is_pointer, TYPE_ARG_TYPES (TREE_TYPE (task_decl)));
 }
 
+/* Return the StarPU integer constant corresponding to string TARGET.  */
+
+static int
+task_implementation_target_to_int (const_tree target)
+{
+  gcc_assert (TREE_CODE (target) == STRING_CST);
+
+  int where_int;
+
+  if (!strncmp (TREE_STRING_POINTER (target), "cpu",
+		TREE_STRING_LENGTH (target)))
+    where_int = STARPU_CPU;
+  else if (!strncmp (TREE_STRING_POINTER (target), "opencl",
+		     TREE_STRING_LENGTH (target)))
+    where_int = STARPU_OPENCL;
+  else if (!strncmp (TREE_STRING_POINTER (target), "cuda",
+		     TREE_STRING_LENGTH (target)))
+    where_int = STARPU_CUDA;
+  else
+    where_int = 0;
+
+  return where_int;
+}
+
 /* Return a value indicating where TASK_IMPL should execute (`STARPU_CPU',
    `STARPU_CUDA', etc.).  */
 
 static int
-task_implementation_where (tree task_impl)
+task_implementation_where (const_tree task_impl)
 {
-  int where_int;
   tree impl_attr, args, where;
 
   gcc_assert (TREE_CODE (task_impl) == FUNCTION_DECL);
@@ -862,39 +899,7 @@ task_implementation_where (tree task_impl)
   args = TREE_VALUE (impl_attr);
   where = TREE_VALUE (args);
 
-  if (!strncmp (TREE_STRING_POINTER (where), "cpu",
-		TREE_STRING_LENGTH (where)))
-    where_int = STARPU_CPU;
-  else if (!strncmp (TREE_STRING_POINTER (where), "opencl",
-		     TREE_STRING_LENGTH (where)))
-    where_int = STARPU_OPENCL;
-  else if (!strncmp (TREE_STRING_POINTER (where), "cuda",
-		     TREE_STRING_LENGTH (where)))
-    where_int = STARPU_CUDA;
-  else
-    {
-      static const char invalid_target_attribute_name[] = ".invalid_target";
-
-      if (lookup_attribute (invalid_target_attribute_name,
-			    DECL_ATTRIBUTES (task_impl)) == NULL_TREE)
-	{
-	  /* This is the first time we notice that WHERE is invalid.  Emit a
-	     warning and add a special attribute to TASK_IMPL to remember
-	     that we've already reported the problem.  */
-	  warning_at (DECL_SOURCE_LOCATION (task_impl), 0,
-		      "unsupported target %E; task implementation won't be used",
-		      where);
-
-	  DECL_ATTRIBUTES (task_impl) =
-	    tree_cons (get_identifier (invalid_target_attribute_name),
-		       NULL_TREE, DECL_ATTRIBUTES (task_impl));
-	}
-
-      /* TASK_IMPL won't be executed anywhere.  */
-      where_int = 0;
-    }
-
-  return where_int;
+  return task_implementation_target_to_int (where);
 }
 
 /* Return the task implemented by TASK_IMPL.  */
@@ -1023,12 +1028,8 @@ build_codelet_wrapper_definition (tree task_impl)
 
   tree build_body (tree wrapper_decl, tree vars)
   {
-    tree stmts = NULL, call, unpack_fndecl, v;
+    tree stmts = NULL, call, v;
     VEC(tree, gc) *args;
-
-    unpack_fndecl = lookup_name (get_identifier ("starpu_unpack_cl_args"));
-    gcc_assert (unpack_fndecl != NULL_TREE
-    		&& TREE_CODE (unpack_fndecl) == FUNCTION_DECL);
 
     /* Build `var0 = STARPU_VECTOR_GET_PTR (buffers[0]); ...'.  */
 
@@ -1072,7 +1073,7 @@ build_codelet_wrapper_definition (tree task_impl)
 
     if (VEC_length (tree, args) > 1)
       {
-	call = build_call_expr_loc_vec (UNKNOWN_LOCATION, unpack_fndecl, args);
+	call = build_call_expr_loc_vec (UNKNOWN_LOCATION, unpack_fn, args);
 	TREE_SIDE_EFFECTS (call) = 1;
 	append_to_statement_list (call, &stmts);
       }
@@ -1183,8 +1184,6 @@ define_codelet_wrappers (tree task)
       tree_cons (get_identifier (task_implementation_wrapper_attribute_name),
 		 wrapper_def,
 		 DECL_ATTRIBUTES (task_impl));
-
-    pushdecl (wrapper_def);
   }
 
   for_each (define, task_implementation_list (task));
@@ -1215,13 +1214,18 @@ build_codelet_identifier (tree task_decl)
 static tree
 codelet_type (void)
 {
-  tree type_decl;
+  /* XXX: Hack to allow the type declaration to be accessible at lower
+     time.  */
+  static tree type_decl = NULL_TREE;
 
-  /* Lookup the `starpu_codelet' struct type.  This should succeed since we
-     push <starpu.h> early on.  */
+  if (type_decl == NULL_TREE)
+    {
+      /* Lookup the `starpu_codelet' struct type.  This should succeed since
+	 we push <starpu.h> early on.  */
 
-  type_decl = lookup_name (get_identifier (codelet_struct_name));
-  gcc_assert (type_decl != NULL_TREE && TREE_CODE (type_decl) == TYPE_DECL);
+      type_decl = lookup_name (get_identifier (codelet_struct_name));
+      gcc_assert (type_decl != NULL_TREE && TREE_CODE (type_decl) == TYPE_DECL);
+    }
 
   return TREE_TYPE (type_decl);
 }
@@ -1373,24 +1377,18 @@ build_codelet_initializer (tree task_decl)
    pushed again.  */
 
 static tree
-define_codelet (tree task_decl)
+declare_codelet (tree task_decl)
 {
-  /* Generate a wrapper function for each implementation of TASK_DECL that
-     does all the packing/unpacking.  */
-  define_codelet_wrappers (task_decl);
-
   /* Retrieve the declaration of the `starpu_codelet' object.  */
-  tree cl_def;
-  cl_def = lookup_name (build_codelet_identifier (task_decl));
-  gcc_assert (cl_def != NULL_TREE && TREE_CODE (cl_def) == VAR_DECL);
+  tree cl_decl;
+  cl_decl = lookup_name (build_codelet_identifier (task_decl));
+  gcc_assert (cl_decl != NULL_TREE && TREE_CODE (cl_decl) == VAR_DECL);
 
   /* Turn the codelet declaration into a definition.  */
-  TREE_PUBLIC (cl_def) = TREE_PUBLIC (task_decl);
-  TREE_STATIC (cl_def) = true;
-  DECL_EXTERNAL (cl_def) = false;
-  DECL_INITIAL (cl_def) = build_codelet_initializer (task_decl);
+  TREE_TYPE (cl_decl) = codelet_type ();
+  TREE_PUBLIC (cl_decl) = TREE_PUBLIC (task_decl);
 
-  return cl_def;
+  return cl_decl;
 }
 
 
@@ -1411,7 +1409,7 @@ handle_pre_genericize (void *gcc_data, void *user_data)
 
       if (!TREE_STATIC (task))
 	{
-	  /* TASK lacks a body.  Instantiate its codelet, its codelet
+	  /* TASK lacks a body.  Declare its codelet, intantiate its codelet
 	     wrappers, and its body in this compilation unit.  */
 
 	  tree build_parameter (const_tree lst)
@@ -1428,7 +1426,9 @@ handle_pre_genericize (void *gcc_data, void *user_data)
 	    return param;
 	  }
 
-	  define_codelet (task);
+	  /* Declare TASK's codelet.  It cannot be defined yet because the
+	     complete list of tasks isn't available at this point.  */
+	  declare_codelet (task);
 
 	  /* Set the task's parameter list.  */
 	  DECL_ARGUMENTS (task) =
@@ -1553,6 +1553,22 @@ lower_starpu (void)
 
   fndecl = current_function_decl;
   gcc_assert (TREE_CODE (fndecl) == FUNCTION_DECL);
+
+  if (task_p (fndecl))
+    {
+      /* Generate a `starpu_codelet' structure and a wrapper function for
+	 each implementation of TASK_DECL.  This cannot be done earlier
+	 because we need to have a complete list of task implementations.  */
+
+      define_codelet_wrappers (fndecl);
+
+      tree cl_def = task_codelet_declaration (fndecl);
+      DECL_INITIAL (cl_def) = build_codelet_initializer (fndecl);
+      TREE_STATIC (cl_def) = true;
+      DECL_EXTERNAL (cl_def) = false;
+
+      varpool_finalize_decl (cl_def);
+    }
 
   /* This pass should occur after `build_cgraph_edges'.  */
   cgraph = cgraph_get_node (fndecl);
