@@ -1,3 +1,5 @@
+\input texinfo @c -*-texinfo-*-
+
 @c StarPU --- Runtime system for heterogeneous multicore architectures.
 @c
 @c Copyright (C) 2009-2011  Université de Bordeaux 1
@@ -13,8 +15,6 @@
 @c MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 @c
 @c See the GNU Lesser General Public License in COPYING.LGPL for more details.
-
-\input texinfo @c -*-texinfo-*-
 
 @c %**start of header
 @setfilename starpu.info
