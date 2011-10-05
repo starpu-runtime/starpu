@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -158,7 +158,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, struct starpu_dat
 			if (STARPU_UNLIKELY(cures != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(cures);
 
-			stream = starpu_cuda_get_local_stream();
+			stream = starpu_cuda_get_local_transfer_stream();
 			ret = copy_methods->ram_to_cuda_async(src_interface, src_node, dst_interface, dst_node, stream);
 
 			cures = cudaEventRecord(req->async_channel.event.cuda_event, stream);
@@ -178,7 +178,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle handle, struct starpu_dat
 			cures = cudaEventCreate(&req->async_channel.event.cuda_event);
 			if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
-			stream = starpu_cuda_get_local_stream();
+			stream = starpu_cuda_get_local_transfer_stream();
 			ret = copy_methods->cuda_to_cuda_async(src_interface, src_node, dst_interface, dst_node, stream);
 
 			cures = cudaEventRecord(req->async_channel.event.cuda_event, stream);
