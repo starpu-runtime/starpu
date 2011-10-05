@@ -190,9 +190,9 @@ void _starpu_post_data_request(starpu_data_request_t r, uint32_t handling_node)
 	/* insert the request in the proper list */
 	PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[handling_node]);
 	if (r->prefetch) {
-		starpu_data_request_list_push_front(prefetch_requests[handling_node], r);
+		starpu_data_request_list_push_back(prefetch_requests[handling_node], r);
 	} else
-		starpu_data_request_list_push_front(data_requests[handling_node], r);
+		starpu_data_request_list_push_back(data_requests[handling_node], r);
 	PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[handling_node]);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
@@ -372,6 +372,7 @@ static int starpu_handle_data_request(starpu_data_request_t r, unsigned may_allo
 void _starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc)
 {
 	starpu_data_request_t r;
+	starpu_data_request_list_t new_data_requests;
 
 	/* take all the entries from the request list */
         PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
@@ -393,22 +394,27 @@ void _starpu_handle_node_data_requests(uint32_t src_node, unsigned may_alloc)
 
 	PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
 
+	new_data_requests = starpu_data_request_list_new();
+
 	/* for all entries of the list */
 	while (!starpu_data_request_list_empty(local_list))
 	{
                 int res;
 
-		r = starpu_data_request_list_pop_back(local_list);
+		r = starpu_data_request_list_pop_front(local_list);
 
 		res = starpu_handle_data_request(r, may_alloc);
 		if (res == -ENOMEM)
 		{
-                        PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
-			starpu_data_request_list_push_front(data_requests[src_node], r);
-			PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
+			starpu_data_request_list_push_back(new_data_requests, r);
 		}
 	}
 
+	PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
+	starpu_data_request_list_push_list_front(new_data_requests, data_requests[src_node]);
+	PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
+
+	starpu_data_request_list_delete(new_data_requests);
 	starpu_data_request_list_delete(local_list);
 }
 
@@ -416,6 +422,8 @@ void _starpu_handle_node_prefetch_requests(uint32_t src_node, unsigned may_alloc
 	starpu_memstrategy_drop_prefetch[src_node]=0;
 
 	starpu_data_request_t r;
+	starpu_data_request_list_t new_data_requests;
+	starpu_data_request_list_t new_prefetch_requests;
 
 	/* take all the entries from the request list */
         PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
@@ -436,47 +444,55 @@ void _starpu_handle_node_prefetch_requests(uint32_t src_node, unsigned may_alloc
 
 	PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
 
+	new_data_requests = starpu_data_request_list_new();
+	new_prefetch_requests = starpu_data_request_list_new();
+
 	/* for all entries of the list */
 	while (!starpu_data_request_list_empty(local_list))
 	{
                 int res;
 
-		r = starpu_data_request_list_pop_back(local_list);
+		r = starpu_data_request_list_pop_front(local_list);
 
 		res = starpu_handle_data_request(r, may_alloc);
 		if (res == -ENOMEM )
 		{
 			starpu_memstrategy_drop_prefetch[src_node]=1;
-			PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
 			if (r->prefetch)
-				starpu_data_request_list_push_front(prefetch_requests[src_node], r);
+				starpu_data_request_list_push_back(prefetch_requests[src_node], r);
 			else 
 			{
 				/* Prefetch request promoted while in tmp list*/
-				starpu_data_request_list_push_front(data_requests[src_node], r);
+				starpu_data_request_list_push_back(data_requests[src_node], r);
 			}
-			PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
 			break;
 		}
 	}
 
 	while(!starpu_data_request_list_empty(local_list) && starpu_memstrategy_drop_prefetch[src_node])
 	{
-		r = starpu_data_request_list_pop_back(local_list);
-		PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
+		r = starpu_data_request_list_pop_front(local_list);
 		if (r->prefetch)
 			starpu_data_request_list_push_back(prefetch_requests[src_node], r);
-		else 
-			starpu_data_request_list_push_front(data_requests[src_node], r);
-		PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
+		else
+			starpu_data_request_list_push_back(data_requests[src_node], r);
 	}
 
+	PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
+	starpu_data_request_list_push_list_front(new_data_requests, data_requests[src_node]);
+	starpu_data_request_list_push_list_front(new_prefetch_requests, prefetch_requests[src_node]);
+	PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
+
+	starpu_data_request_list_delete(new_data_requests);
+	starpu_data_request_list_delete(new_prefetch_requests);
 	starpu_data_request_list_delete(local_list);
 }
 
 static void _handle_pending_node_data_requests(uint32_t src_node, unsigned force)
 {
 //	_STARPU_DEBUG("_starpu_handle_pending_node_data_requests ...\n");
+//
+	starpu_data_request_list_t new_data_requests_pending = starpu_data_request_list_new();
 
 	PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[src_node]);
 
@@ -489,7 +505,7 @@ static void _handle_pending_node_data_requests(uint32_t src_node, unsigned force
 	while (!starpu_data_request_list_empty(local_list))
 	{
 		starpu_data_request_t r;
-		r = starpu_data_request_list_pop_back(local_list);
+		r = starpu_data_request_list_pop_front(local_list);
 
 		starpu_data_handle handle = r->handle;
 		
@@ -516,14 +532,16 @@ static void _handle_pending_node_data_requests(uint32_t src_node, unsigned force
 				_starpu_spin_unlock(&r->lock);
 				_starpu_spin_unlock(&handle->header_lock);
 
-				PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[src_node]);
-				starpu_data_request_list_push_front(data_requests_pending[src_node], r);
-				PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[src_node]);
+				starpu_data_request_list_push_back(new_data_requests_pending, r);
 			}
 		}
 	}
+	PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[src_node]);
+	starpu_data_request_list_push_list_back(data_requests_pending[src_node], new_data_requests_pending);
+	PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[src_node]);
 
 	starpu_data_request_list_delete(local_list);
+	starpu_data_request_list_delete(new_data_requests_pending);
 }
 
 void _starpu_handle_pending_node_data_requests(uint32_t src_node)
