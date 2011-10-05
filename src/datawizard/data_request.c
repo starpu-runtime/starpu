@@ -189,10 +189,10 @@ void _starpu_post_data_request(starpu_data_request_t r, uint32_t handling_node)
 
 	/* insert the request in the proper list */
 	PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[handling_node]);
-	if (r->prefetch)
-		starpu_data_request_list_push_back(prefetch_requests[handling_node], r);
-	else
-		starpu_data_request_list_push_back(data_requests[handling_node], r);
+	if (r->prefetch) {
+		starpu_data_request_list_push_front(prefetch_requests[handling_node], r);
+	} else
+		starpu_data_request_list_push_front(data_requests[handling_node], r);
 	PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[handling_node]);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
