@@ -47,10 +47,6 @@ typedef unsigned long long uint64_t;
 extern "C" {
 #endif
 
-#define dprintf(fmt, ...) ({ struct timespec tp; starpu_clock_gettime(&tp); fprintf(stderr,"%07.3f: "fmt,((float)tp.tv_nsec) / 1000000,##__VA_ARGS__); })
-	void starpu_clock_gettime(struct timespec *ts);
-
-
 struct starpu_conf {
 	/* which scheduling policy should be used ? (NULL for default) */
 	const char *sched_policy_name;
