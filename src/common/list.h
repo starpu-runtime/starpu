@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  UniversitÃ© de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011  UniversitÃ© de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -16,66 +16,70 @@
  */
 
 /** @file
- * @brief Listes doublement chainées automatiques
+ * @brief Listes doublement chainÃ©es automatiques
  */
 
 
 /** @remarks list how-to
  * *********************************************************
  * LIST_TYPE(FOO, contenu);
- *  - déclare les types suivants
+ *  - dÃ©clare les types suivants
  *      + pour les cellules : FOO_t
  *      + pour les listes : FOO_list_t
- *      + pour les itérateurs : FOO_itor_t
- *  - déclare les accesseurs suivants :
- *     * création d'une cellule 
+ *      + pour les itÃ©rateurs : FOO_itor_t
+ *  - dÃ©clare les accesseurs suivants :
+ *     * crÃ©ation d'une cellule 
  *   FOO_t      FOO_new(void);  
  *     * suppression d'une cellule
  *   void       FOO_delete(FOO_t); 
- *     * création d'une liste (vide)
+ *     * crÃ©ation d'une liste (vide)
  *   FOO_list_t FOO_list_new(void);
  *     * suppression d'une liste
  *   void       FOO_list_delete(FOO_list_t);
  *     * teste si une liste est vide
  *   int        FOO_list_empty(FOO_list_t);
- *     * retire un élément de la liste
+ *     * retire un Ã©lÃ©ment de la liste
  *   void       FOO_list_erase(FOO_list_t, FOO_t);
- *     * ajoute une élément en queue de liste
+ *     * ajoute une Ã©lÃ©ment en queue de liste
  *   void       FOO_list_push_back(FOO_list_t, FOO_t);
- *     * ajoute un élément en tête de list
+ *     * ajoute un Ã©lÃ©ment en tÃªte de list
  *   void       FOO_list_push_front(FOO_list_t, FOO_t);
- *     * retire l'élément en queue de liste
+ *     * ajoute la deuxiÃ¨me liste Ã  la fin de la premiÃ¨re liste
+ *   FOO_t      FOO_list_push_list_back(FOO_list_t, FOO_list_t);
+ *     * ajoute la premiÃ¨re liste au dÃ©but de la deuxiÃ¨me liste
+ *   FOO_t      FOO_list_push_list_front(FOO_list_t, FOO_list_t);
+ *     * retire l'Ã©lÃ©ment en queue de liste
  *   FOO_t      FOO_list_pop_back(FOO_list_t);
- *     * retire l'élement en tête de liste
+ *     * retire l'Ã©lement en tÃªte de liste
  *   FOO_t      FOO_list_pop_front(FOO_list_t);
- *     * retourne l'élément en queue de liste
+ *     * retourne l'Ã©lÃ©ment en queue de liste
  *   FOO_t      FOO_list_back(FOO_list_t);
- *     * retourne l'élement en tête de liste
+ *     * retourne l'Ã©lement en tÃªte de liste
  *   FOO_t      FOO_list_front(FOO_list_t);
- *     * vérifie si la liste chainée est cohérente
+ *     * vÃ©rifie si la liste chainÃ©e est cohÃ©rente
  *   int	FOO_list_check(FOO_list_t);
  * *********************************************************
  * Exemples d'utilisation :
- *  - au départ, on a :
+ *  - au dÃ©part, on a :
  *    struct ma_structure_s
  *    {
  *      int a;
  *      int b;
  *    };
- *  - on veut en faire une liste. On remplace la déclaration par :
+ *  - on veut en faire une liste. On remplace la dÃ©claration par :
  *    LIST_TYPE(ma_structure,
  *      int a;
  *      int b;
  *    );
- *    qui crée les types ma_structure_t et ma_structure_list_t.
+ *    qui crÃ©e les types ma_structure_t et ma_structure_list_t.
  *  - allocation d'une liste vide :
  *  ma_structure_list_t l = ma_structure_list_new();
- *  - ajouter un élément 'e' en tête de la liste 'l' :
+ *  - ajouter un Ã©lÃ©ment 'e' en tÃªte de la liste 'l' :
  *  ma_structure_t e = ma_structure_new();
  *  e->a = 0;
  *  e->b = 1;
  *  ma_structure_list_push_front(l, e);
- *  - itérateur de liste :
+ *  - itÃ©rateur de liste :
  *  ma_structure_itor_t i;
  *  for(i  = ma_structure_list_begin(l);
  *      i != ma_structure_list_end(l);
@@ -131,6 +135,12 @@
   /** @internal */static inline void ENAME##_list_push_back(ENAME##_list_t l, ENAME##_t e) \
     { if(l->_head == NULL) l->_head = e; else l->_tail->_next = e; \
       e->_next = NULL; e->_prev = l->_tail; l->_tail = e; } \
+  /** @internal */static inline void ENAME##_list_push_list_front(ENAME##_list_t l1, ENAME##_list_t l2) \
+    { if (l2->_head == NULL) { l2->_head = l1->_head; l2->_tail = l1->_tail; } \
+      else if (l1->_head != NULL) { l1->_tail->_next = l2->_head; l2->_head->_prev = l1->_tail; l2->_head = l1->_head; } } \
+  /** @internal */static inline void ENAME##_list_push_list_back(ENAME##_list_t l1, ENAME##_list_t l2) \
+    { if(l1->_head == NULL) { l1->_head = l2->_head; l1->_tail = l2->_tail; } \
+      else if (l2->_head != NULL) { l1->_tail->_next = l2->_head; l2->_head->_prev = l1->_tail; l1->_tail = l2->_head; } } \
   /** @internal */static inline ENAME##_t ENAME##_list_front(ENAME##_list_t l) \
     { return l->_head; } \
   /** @internal */static inline ENAME##_t ENAME##_list_back(ENAME##_list_t l) \
