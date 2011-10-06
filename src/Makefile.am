@@ -67,6 +67,8 @@ noinst_HEADERS = 						\
 	core/topology.h						\
 	core/debug.h						\
 	core/errorcheck.h					\
+	core/combined_workers.h					\
+	core/parallel_tasks.h					\
 	sched_policies/fifo_queues.h				\
 	sched_policies/deque_queues.h				\
 	sched_policies/stack_queues.h				\
