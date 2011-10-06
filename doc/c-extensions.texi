@@ -97,25 +97,25 @@ Here is an example:
 
 @example
 static void matmul (const float *A, const float *B, float *C,
-		    size_t nx, size_t ny, size_t nz)
+                    size_t nx, size_t ny, size_t nz)
   __attribute__ ((task));
 
 static void matmul_cpu (const float *A, const float *B, float *C,
-			size_t nx, size_t ny, size_t nz)
+                        size_t nx, size_t ny, size_t nz)
   __attribute__ ((task_implementation ("cpu", matmul)));
 
 
 static void
 matmul_cpu (const float *A, const float *B, float *C,
-	    size_t nx, size_t ny, size_t nz)
+            size_t nx, size_t ny, size_t nz)
 @{
   size_t i, j, k;
 
   for (j = 0; j < ny; j++)
     for (i = 0; i < nx; i++)
       @{
-	for (k = 0; k < nz; k++)
-	  C[j * nx + i] += A[j * nz + k] * B[k * nx + i];
+        for (k = 0; k < nz; k++)
+          C[j * nx + i] += A[j * nz + k] * B[k * nx + i];
       @}
 @}
 @end example
