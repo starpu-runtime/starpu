@@ -49,7 +49,12 @@ static starpu_codelet cl = {
 	.where = STARPU_CPU | STARPU_CUDA | STARPU_OPENCL,
 	/* CPU implementation of the codelet */
 	.cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
-	.cpu_funcs = { scal_cpu_func, scal_sse_func},
+	.cpu_funcs = {
+		scal_cpu_func
+#ifdef __SSE__
+		, scal_sse_func
+#endif
+	},
 #ifdef STARPU_USE_CUDA
 	/* CUDA implementation of the codelet */
 	.cuda_func = scal_cuda_func,

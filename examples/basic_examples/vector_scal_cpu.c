@@ -53,6 +53,7 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
 		val[i] *= *factor;
 }
 
+#ifdef __SSE__
 void scal_sse_func(void *buffers[], void *cl_arg)
 {
 	float *vector = (float *) STARPU_VECTOR_GET_PTR(buffers[0]);
@@ -69,3 +70,4 @@ void scal_sse_func(void *buffers[], void *cl_arg)
 	for (i = 0; i < n_iterations; i++)
 		VECTOR[i] = _mm_mul_ps(factor, VECTOR[i]);
 }
+#endif
