@@ -35,7 +35,6 @@ pkgconfig_DATA = libstarpu.pc
 
 include_HEADERS = 				\
 	include/starpu.h			\
-	include/starpu_config.h			\
 	include/starpu_data_filters.h		\
 	include/starpu_data_interfaces.h	\
 	include/starpu_task.h			\
@@ -50,6 +49,9 @@ include_HEADERS = 				\
 	include/starpu_profiling.h		\
 	include/starpu_bound.h			\
 	include/starpu_scheduler.h
+
+nodist_include_HEADERS = 			\
+	include/starpu_config.h
 
 if STARPU_HAVE_WINDOWS
 txtdir = ${prefix}
