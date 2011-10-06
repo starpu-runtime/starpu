@@ -1657,8 +1657,15 @@ bitmask). This can be understood like the write-through mode of CPU caches.
 starpu_data_set_wt_mask(img_handle, 1<<0);
 @end example
 
-will for instance request to always transfer a replicate into the main memory (node
-0), as bit 0 of the write-through bitmask is being set.
+will for instance request to always automatically transfer a replicate into the
+main memory (node 0), as bit 0 of the write-through bitmask is being set.
+
+@example
+starpu_data_set_wt_mask(img_handle, ~0U);
+@end example
+
+will request to always automatically broadcast the updated data to all memory
+nodes.
 
 @node Task submission
 @section Task submission
