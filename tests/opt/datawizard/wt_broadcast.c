@@ -92,16 +92,8 @@ int main(int argc, char **argv)
 
 	/* Create a mask with all the memory nodes, so that we can ask StarPU
 	 * to broadcast the handle whenever it is modified. */
-	uint32_t wt_mask = 0;
 
-	int id;
-	for (id = 0; id < nworkers; id++)
-	{
-		unsigned node = starpu_worker_get_memory_node(id);
-		wt_mask |= (1<<node);
-	}
-
-	starpu_data_set_wt_mask(handle, wt_mask);
+	starpu_data_set_wt_mask(handle, ~0);
 
 	unsigned ntasks = 1024;
 	unsigned nloops = 16;

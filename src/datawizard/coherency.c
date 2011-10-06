@@ -469,6 +469,7 @@ void _starpu_release_data_on_node(starpu_data_handle handle, uint32_t default_wt
 {
 	uint32_t wt_mask;
 	wt_mask = default_wt_mask | handle->wt_mask;
+	wt_mask &= (1<<_starpu_get_memory_nodes_count())-1;
 
 	/* Note that it is possible that there is no valid copy of the data (if
 	 * starpu_data_invalidate was called for instance). In that case, we do
