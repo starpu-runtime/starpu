@@ -283,7 +283,7 @@ otherwise."
 
   (define (c->o c-file)
     (string-append (substring c-file 0 (- (string-length c-file) 2))
-                   ".o"))
+                   ".lo"))
 
   (log "~a directives found in `~a'" (length directives) file)
 
