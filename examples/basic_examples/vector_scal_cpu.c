@@ -19,7 +19,9 @@
  */
 
 #include <starpu.h>
+#ifdef __SSE__
 #include <xmmintrin.h>
+#endif
 
 /* This kernel takes a buffer and scales it by a constant factor */
 void scal_cpu_func(void *buffers[], void *cl_arg)
