@@ -49,6 +49,7 @@ main (int argc, char *argv[])
   double *y;
   static char z[345];
   static float m[7][42];
+  static float m3d[14][11][80];
   short w[] = { 1, 2, 3 };
   size_t y_size = 234;
 
@@ -123,7 +124,17 @@ main (int argc, char *argv[])
   expected_register_arguments.element_size = sizeof m[0][0];
 #pragma starpu register m[6]
 
-  assert (data_register_calls == 14);
+  expected_register_arguments.pointer = m;
+  expected_register_arguments.elements = 7;
+  expected_register_arguments.element_size = sizeof m[0];
+#pragma starpu register m
+
+  expected_register_arguments.pointer = m3d;
+  expected_register_arguments.elements = 14;
+  expected_register_arguments.element_size = sizeof m3d[0];
+#pragma starpu register m3d
+
+  assert (data_register_calls == 16);
 
   free (y);
 
