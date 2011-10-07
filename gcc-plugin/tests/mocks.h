@@ -271,6 +271,33 @@ starpu_data_unregister (starpu_data_handle handle)
 }
 
 
+/* Heap allocation.  */
+
+/* Number of `starpu_malloc' and `starpu_free' calls.  */
+static unsigned int malloc_calls, free_calls;
+
+static size_t expected_malloc_argument;
+static void *expected_free_argument;
+
+int
+starpu_malloc (void **ptr, size_t size)
+{
+  assert (size == expected_malloc_argument);
+
+  *ptr = malloc (size);
+  malloc_calls++;
+
+  return 0;
+}
+
+void
+_starpu_free_unref (void *ptr)
+{
+  assert (* (void **) ptr == expected_free_argument);
+  free_calls++;
+}
+
+
 /* Initialization.  */
 
 static int initialized;

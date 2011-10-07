@@ -67,6 +67,7 @@ static const char plugin_name[] = "starpu";
 /* Names of public attributes.  */
 static const char task_attribute_name[] = "task";
 static const char task_implementation_attribute_name[] = "task_implementation";
+static const char heap_allocated_attribute_name[] = "heap_allocated";
 
 /* Names of attributes used internally.  */
 static const char task_codelet_attribute_name[] = ".codelet";
@@ -798,6 +799,67 @@ handle_task_implementation_attribute (tree *node, tree name, tree args,
   return NULL_TREE;
 }
 
+/* Handle the `heap_allocated' attribute on variable *NODE.  */
+
+static tree
+handle_heap_allocated_attribute (tree *node, tree name, tree args,
+				 int flags, bool *no_add_attrs)
+{
+  location_t loc;
+  tree var = *node;
+
+  loc = DECL_SOURCE_LOCATION (var);
+
+  if (DECL_EXTERNAL (var))
+    error_at (loc, "attribute %<heap_allocated%> cannot be used "
+	      "on external declarations");
+  else if (TREE_PUBLIC (var) || TREE_STATIC (var))
+    {
+      error_at (loc, "attribute %<heap_allocated%> cannot be used "
+		"on global variables");
+      TREE_TYPE (var) = error_mark_node;
+    }
+  else if (TREE_CODE (TREE_TYPE (var)) != ARRAY_TYPE)
+    {
+      error_at (loc, "variable %qE must have an array type",
+		DECL_NAME (var));
+      TREE_TYPE (var) = error_mark_node;
+    }
+  else if (TYPE_SIZE (TREE_TYPE (var)) == NULL_TREE)
+    {
+      error_at (loc, "variable %qE has an incomplete array type",
+		DECL_NAME (var));
+      TREE_TYPE (var) = error_mark_node;
+    }
+  else
+    {
+      tree array_type = TREE_TYPE (var);
+      tree pointer_type = build_pointer_type (array_type);
+
+      TREE_TYPE (var) = pointer_type;
+      DECL_SIZE (var) = TYPE_SIZE (pointer_type);
+      DECL_SIZE_UNIT (var) = TYPE_SIZE_UNIT (pointer_type);
+      DECL_MODE (var) = TYPE_MODE (pointer_type);
+
+      tree malloc_fn = lookup_name (get_identifier ("starpu_malloc"));
+      gcc_assert (malloc_fn != NULL_TREE);
+
+      add_stmt (build_call_expr (malloc_fn, 2,
+				 build_addr (var, current_function_decl),
+				 TYPE_SIZE_UNIT (array_type)));
+
+      /* Add a destructor for VAR.
+	 TODO: Provide a way to disable this.  */
+      DECL_ATTRIBUTES (var) =
+	tree_cons (get_identifier ("cleanup"),
+		   lookup_name (get_identifier ("_starpu_free_unref")),
+		   DECL_ATTRIBUTES (var));
+    }
+
+  return NULL_TREE;
+}
+
+
 /* Return the declaration of the `starpu_codelet' variable associated with
    TASK_DECL.  */
 
@@ -952,8 +1014,15 @@ register_task_attributes (void *gcc_data, void *user_data)
       handle_task_implementation_attribute
     };
 
+  static const struct attribute_spec heap_allocated_attr =
+    {
+      heap_allocated_attribute_name, 0, 0, true, false, false,
+      handle_heap_allocated_attribute
+    };
+
   register_attribute (&task_attr);
   register_attribute (&task_implementation_attr);
+  register_attribute (&heap_allocated_attr);
 }
 
 
