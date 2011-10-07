@@ -323,8 +323,7 @@ otherwise."
                             (car instructions)))
                        ((cflags)
                         `(,@cflags
-                          ,@(or (and=> (assq-ref options 'cflags) cadr)
-                                '())
+                          ,@(or (assq-ref options 'cflags) '())
                           ,@(if (memq goal '(link run))
                                 `("-o" ,exe)
                                 '("-c"))))
