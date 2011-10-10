@@ -399,7 +399,7 @@ static void find_and_assign_combinations_with_hwloc(struct starpu_machine_topolo
     {
 	/* find_and_assign_combinations_with_hwloc_recursive shouldn't return
 	 * while there are enough workers to assign regarding the min_size value */
-	STARPU_ASSERT(nb_workers < max_size);
+	STARPU_ASSERT(nb_workers <= max_size);
 
 	int ret = starpu_combined_worker_assign_workerid(nb_workers, tree.workers);
 	STARPU_ASSERT(ret >= 0);
