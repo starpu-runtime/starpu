@@ -53,29 +53,29 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 
 	while ((arg_type = va_arg(varg_list, int)) != 0) {
 		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX) {
-			va_arg(varg_list, starpu_data_handle);
+			(void)va_arg(varg_list, starpu_data_handle);
 		}
 		else if (arg_type==STARPU_VALUE) {
-			va_arg(varg_list, void *);
+			(void)va_arg(varg_list, void *);
 			size_t cst_size = va_arg(varg_list, size_t);
 
 			arg_buffer_size += sizeof(size_t);
 			arg_buffer_size += cst_size;
 		}
 		else if (arg_type==STARPU_CALLBACK) {
-			va_arg(varg_list, callback_func_t);
+			(void)va_arg(varg_list, callback_func_t);
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG) {
-			va_arg(varg_list, void *);
+			(void)va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_PRIORITY) {
-			va_arg(varg_list, int);
+			(void)va_arg(varg_list, int);
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_NODE) {
-			va_arg(varg_list, int);
+			(void)va_arg(varg_list, int);
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
-			va_arg(varg_list, starpu_data_handle);
+			(void)va_arg(varg_list, starpu_data_handle);
 		}
 	}
 
@@ -100,7 +100,7 @@ int _starpu_pack_cl_args(size_t arg_buffer_size, char **arg_buffer, va_list varg
 	{
 		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX)
 		{
-			va_arg(varg_list, starpu_data_handle);
+			(void)va_arg(varg_list, starpu_data_handle);
 		}
 		else if (arg_type==STARPU_VALUE)
 		{
@@ -119,20 +119,20 @@ int _starpu_pack_cl_args(size_t arg_buffer_size, char **arg_buffer, va_list varg
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
-			va_arg(varg_list, callback_func_t);
+			(void)va_arg(varg_list, callback_func_t);
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG) {
-			va_arg(varg_list, void *);
+			(void)va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
-			va_arg(varg_list, int);
+			(void)va_arg(varg_list, int);
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_NODE) {
-			va_arg(varg_list, int);
+			(void)va_arg(varg_list, int);
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
-			va_arg(varg_list, starpu_data_handle);
+			(void)va_arg(varg_list, starpu_data_handle);
 		}
 	}
 
@@ -167,8 +167,8 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, 
 		}
 		else if (arg_type==STARPU_VALUE)
 		{
-			va_arg(varg_list, void *);
-			va_arg(varg_list, size_t);
+			(void)va_arg(varg_list, void *);
+			(void)va_arg(varg_list, size_t);
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
@@ -187,10 +187,10 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, 
 			(*task)->priority = prio;
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_NODE) {
-			va_arg(varg_list, int);
+			(void)va_arg(varg_list, int);
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_DATA) {
-			va_arg(varg_list, starpu_data_handle);
+			(void)va_arg(varg_list, starpu_data_handle);
 		}
 	}
 
