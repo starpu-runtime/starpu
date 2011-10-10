@@ -12,7 +12,7 @@
 
 info_TEXINFOS = starpu.texi
 
-starpu_TEXINFOS = c-extensions.texi
+starpu_TEXINFOS = c-extensions.texi fdl-1.3.texi
 
 MAINTAINERCLEANFILES = starpu.pdf
 
