@@ -7,31 +7,6 @@
 
 @include version.texi
 
-@setchapternewpage odd
-@dircategory Development
-@direntry
-* StarPU: (starpu).             StarPU Handbook
-@end direntry
-
-@titlepage
-@title StarPU Handbook
-@subtitle for StarPU @value{VERSION}
-
-@page
-@vskip 0pt plus 1fill
-
-@end titlepage
-
-@c @summarycontents
-@contents
-@page
-
-@node Top
-@top Preface
-
-This manual documents the usage of StarPU version @value{VERSION}.  It
-was last updated on @value{UPDATED}.
-
 @copying
 Copyright @copyright{} 2009--2011  Universit@'e de Bordeaux 1
 
@@ -51,7 +26,36 @@ Free Documentation License''.
 @end quotation
 @end copying
 
+@setchapternewpage odd
+@dircategory Development
+@direntry
+* StarPU: (starpu).             StarPU Handbook
+@end direntry
+
+@titlepage
+@title StarPU Handbook
+@subtitle for StarPU @value{VERSION}
+
+@page
+@vskip 0pt plus 1fill
+
 @insertcopying
+
+@end titlepage
+
+@c @summarycontents
+@contents
+@page
+
+@node Top
+@top Preface
+
+This manual documents the usage of StarPU version @value{VERSION}.  It
+was last updated on @value{UPDATED}.
+
+@ifnottex
+@insertcopying
+@end ifnottex
 
 @comment
 @comment  When you add a new menu item, please keep the right hand
