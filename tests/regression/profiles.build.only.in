@@ -1,0 +1,16 @@
+# Build configuration
+
+# Build configuration
+--enable-coverage
+# Build configuration
+--disable-opencl
+# Build configuration
+--disable-cuda
+# Build configuration
+--disable-cuda --disable-opencl
+# Build configuration
+--enable-cuda --disable-opencl
+# Build configuration
+--disable-cuda --enable-opencl
+# Build configuration
+--with-fxt
