@@ -41,6 +41,9 @@ endif
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpu.pc
+if USE_MPI
+pkgconfig_DATA += libstarpumpi.pc
+endif
 
 include_HEADERS = 				\
 	include/starpu.h			\
