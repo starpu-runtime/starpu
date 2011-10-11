@@ -46,6 +46,12 @@ void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_n
 				while (_starpu_spin_trylock(&handle->header_lock))
 					_starpu_datawizard_progress(requesting_node, 1);
 
+				/* We need to keep a Read lock to avoid letting writers corrupt our copy.  */
+				STARPU_ASSERT(handle->current_mode != STARPU_REDUX);
+				STARPU_ASSERT(handle->current_mode != STARPU_SCRATCH);
+				handle->refcnt++;
+				handle->current_mode = STARPU_R;
+
 				starpu_data_request_t r;
 				r = create_request_to_fetch_data(handle, &handle->per_node[node],
 						STARPU_R, 1, wt_callback, handle);
@@ -53,14 +59,7 @@ void _starpu_write_through_data(starpu_data_handle handle, uint32_t requesting_n
 			        /* If no request was created, the handle was already up-to-date on the
 			         * node */
 			        if (r)
-				{
-					/* Pending request, keep a Read lock */
-					STARPU_ASSERT(handle->current_mode != STARPU_REDUX);
-					STARPU_ASSERT(handle->current_mode != STARPU_SCRATCH);
-					handle->refcnt++;
-					handle->current_mode = STARPU_R;
 				        _starpu_spin_unlock(&handle->header_lock);
-				}
 			}
 		}
 	}
