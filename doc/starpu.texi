@@ -2458,6 +2458,7 @@ transfers.
 Tell StarPU-MPI which MPI node "owns" a given data, that is, the node which will
 always keep an up-to-date value, and will by default execute tasks which write
 to it.
+@end deftypefun
 
 @deftypefun void starpu_mpi_insert_task (MPI_Comm @var{comm}, starpu_codelet *@var{cl}, ...)
 Create and submit a task corresponding to @var{cl} with the following
