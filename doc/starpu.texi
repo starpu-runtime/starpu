@@ -2264,6 +2264,10 @@ GPU-RAM-NIC transfers are handled efficiently by StarPU-MPI.  The user has to
 use the usual @code{mpirun} command of the MPI implementation to start StarPU on
 the different MPI nodes.
 
+An MPI Insert Task function provides an even more seamless transition to a
+distributed application, by automatically issuing all required data transfers
+according to the task graph and an application-provided distribution.
+
 @menu
 * The API::                     
 * Simple Example::              
@@ -2273,6 +2277,16 @@ the different MPI nodes.
 
 @node The API
 @section The API
+
+@subsection Compilation
+
+The flags required to compile or link against the MPI layer are then
+accessible with the following commands:
+
+@example
+% pkg-config --cflags libstarpumpi  # options for the compiler
+% pkg-config --libs libstarpumpi    # options for the linker
+@end example
 
 @subsection Initialisation
 
@@ -2432,6 +2446,19 @@ int main(int argc, char **argv)
 @node MPI Insert Task Utility
 @section MPI Insert Task Utility
 
+To save the programmer from having to explicit all communications, StarPU
+provides an "MPI Insert Task Utility". The principe is that the application
+decides a distribution of the data over the MPI nodes by allocating it and
+notifying StarPU of that decision, i.e. tell StarPU which MPI node "owns" which
+data. All MPI nodes then process the whole task graph, and StarPU automatically
+determines which node actually execute which task, as well as the required MPI
+transfers.
+
+@deftypefun int starpu_data_set_rank(starpu_data_handle handle, int mpi_rank)
+Tell StarPU-MPI which MPI node "owns" a given data, that is, the node which will
+always keep an up-to-date value, and will by default execute tasks which write
+to it.
+
 @deftypefun void starpu_mpi_insert_task (MPI_Comm @var{comm}, starpu_codelet *@var{cl}, ...)
 Create and submit a task corresponding to @var{cl} with the following
 arguments.  The argument list must be zero-terminated.
@@ -2439,28 +2466,29 @@ arguments.  The argument list must be zero-terminated.
 The arguments following the codelets are the same types as for the
 function @code{starpu_insert_task} defined in @ref{Insert Task
 Utility}. The extra argument @code{STARPU_EXECUTE_ON_NODE} followed by an
-integer allows to specify the node to execute the codelet. It is also
+integer allows to specify the MPI node to execute the codelet. It is also
 possible to specify that the node owning a specific data will execute
 the codelet, by using @code{STARPU_EXECUTE_ON_DATA} followed by a data
 handle.
 
-The algorithm is as follows:
+The internal algorithm is as follows:
 @enumerate
-@item Find out whether we are to execute the codelet because we own the
-data to be written to. If different tasks own data to be written to,
-the argument @code{STARPU_EXECUTE_ON_NODE} or
-@code{STARPU_EXECUTE_ON_DATA} should be used to specify the executing
-task @code{ET}.
-@item Send and receive data as requested. Tasks owning data which need
-to be read by the executing task @code{ET} are sending them to @code{ET}.
-@item Execute the codelet. This is done by the task selected in the
+@item Find out whether we (as an MPI node) are to execute the codelet
+because we own the data to be written to. If different nodes own data
+to be written to, the argument @code{STARPU_EXECUTE_ON_NODE} or
+@code{STARPU_EXECUTE_ON_DATA} has to be used to specify which MPI node will
+execute the task.
+@item Send and receive data as requested. Nodes owning data which need to be
+read by the task are sending them to the MPI node which will execute it. The
+latter receives them.
+@item Execute the codelet. This is done by the MPI node selected in the
 1st step of the algorithm.
-@item In the case when different tasks own data to be written to, send
-W data back to their owners.
+@item In the case when different MPI nodes own data to be written to, send
+written data back to their owners.
 @end enumerate
 
 The algorithm also includes a cache mechanism that allows not to send
-data twice to the same task, unless the data has been modified.
+data twice to the same MPI node, unless the data has been modified.
 
 @end deftypefun
 
@@ -2469,7 +2497,7 @@ data twice to the same task, unless the data has been modified.
 
 @page
 
-Here an example showing how to use @code{starpu_mpi_insert_task}. One
+Here an stencil example showing how to use @code{starpu_mpi_insert_task}. One
 first needs to define a distribution function which specifies the
 locality of the data. Note that that distribution information needs to
 be given to StarPU by calling @code{starpu_data_set_rank}.
@@ -2491,6 +2519,9 @@ owned but will be needed for computations can be registered through
 the lazy allocation mechanism, i.e. with a @code{home_node} set to -1.
 StarPU will automatically allocate the memory when it is used for the
 first time.
+
+One can note an optimization here (the @code{else if} test): we only register
+data which will be needed by the tasks that we will execute.
 
 @cartouche
 @smallexample
@@ -2536,6 +2567,11 @@ steps of the application.
     starpu_task_wait_for_all();
 @end smallexample
 @end cartouche
+
+I.e. all MPI nodes process the whole task graph, but as mentioned above, for
+each task, only the MPI node which owns the data being written to (here,
+@code{data_handles[x][y]}) will actually run the task. The other MPI nodes will
+automatically send the required data.
 
 @node MPI Collective Operations
 @section MPI Collective Operations
