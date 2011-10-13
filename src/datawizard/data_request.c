@@ -459,11 +459,11 @@ void _starpu_handle_node_prefetch_requests(uint32_t src_node, unsigned may_alloc
 		{
 			starpu_memstrategy_drop_prefetch[src_node]=1;
 			if (r->prefetch)
-				starpu_data_request_list_push_back(prefetch_requests[src_node], r);
+				starpu_data_request_list_push_back(new_prefetch_requests, r);
 			else 
 			{
 				/* Prefetch request promoted while in tmp list*/
-				starpu_data_request_list_push_back(data_requests[src_node], r);
+				starpu_data_request_list_push_back(new_data_requests, r);
 			}
 			break;
 		}
@@ -473,9 +473,9 @@ void _starpu_handle_node_prefetch_requests(uint32_t src_node, unsigned may_alloc
 	{
 		r = starpu_data_request_list_pop_front(local_list);
 		if (r->prefetch)
-			starpu_data_request_list_push_back(prefetch_requests[src_node], r);
+			starpu_data_request_list_push_back(new_prefetch_requests, r);
 		else
-			starpu_data_request_list_push_back(data_requests[src_node], r);
+			starpu_data_request_list_push_back(new_data_requests, r);
 	}
 
 	PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
