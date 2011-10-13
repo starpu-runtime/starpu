@@ -310,9 +310,14 @@ int _starpu_push_task(starpu_job_t j, unsigned job_is_already_locked)
 	else {
 		struct starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 		STARPU_ASSERT(sched_ctx->sched_policy->push_task);
-		_starpu_actually_add_workers_to_sched_ctx(sched_ctx);
-		_starpu_actually_remove_workers_from_sched_ctx(sched_ctx);
 
+		if(sched_ctx->modified)
+		{
+			_starpu_actually_remove_workers_from_sched_ctx(sched_ctx);
+			_starpu_actually_add_workers_to_sched_ctx(sched_ctx);
+			sched_ctx->modified = 0;
+		}
+			
 		ret = sched_ctx->sched_policy->push_task(task, sched_ctx->id);
 	}
 
@@ -332,43 +337,43 @@ struct starpu_task *_starpu_pop_task(struct starpu_worker_s *worker)
 	struct timespec pop_start_time;
 	if (profiling)
 		starpu_clock_gettime(&pop_start_time);
-
+	
 	PTHREAD_MUTEX_LOCK(worker->sched_mutex);
 	/* perhaps there is some local task to be executed first */
 	task = _starpu_pop_local_task(worker);
 	PTHREAD_MUTEX_UNLOCK(worker->sched_mutex);
-
-
+	
+	
 	/* get tasks from the stacks of the strategy */
 	if(!task)
-	  {
+	{
 		struct starpu_sched_ctx *sched_ctx;
 		pthread_mutex_t *sched_ctx_mutex;
-
+		
 		unsigned i;
 		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-		  {
-		    sched_ctx = worker->sched_ctx[i];
-		    
-		    if(sched_ctx != NULL && 
-		       sched_ctx->workerids_to_add[worker->workerid] == NO_RESIZE)
-		      {
-			sched_ctx_mutex = _starpu_get_sched_mutex(sched_ctx, worker->workerid);
-			if(sched_ctx_mutex != NULL)
-			  {
-			    PTHREAD_MUTEX_LOCK(sched_ctx_mutex);
-			    if (sched_ctx->sched_policy->pop_task)
-			      {
-				PTHREAD_MUTEX_UNLOCK(sched_ctx_mutex);
-				task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
-				break;
-			      }
-			    PTHREAD_MUTEX_UNLOCK(sched_ctx_mutex);
-			  }
-		      }
-		  }
+		{
+			sched_ctx = worker->sched_ctx[i];
+			
+			if(sched_ctx != NULL &&
+			   sched_ctx->workerids_to_add[worker->workerid] == NO_RESIZE)
+			{
+				sched_ctx_mutex = _starpu_get_sched_mutex(sched_ctx, worker->workerid);
+				if(sched_ctx_mutex != NULL)
+				{
+					PTHREAD_MUTEX_LOCK(sched_ctx_mutex);
+					if (sched_ctx->sched_policy->pop_task)
+					{
+						PTHREAD_MUTEX_UNLOCK(sched_ctx_mutex);
+						task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
+						break;
+					}
+					PTHREAD_MUTEX_UNLOCK(sched_ctx_mutex);
+				}
+			}
+		}
 	  }
-
+	
 	/* Note that we may get a NULL task in case the scheduler was unlocked
 	 * for some reason. */
 	if (profiling && task)

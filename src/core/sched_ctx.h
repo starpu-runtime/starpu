@@ -70,6 +70,7 @@ struct starpu_sched_ctx {
 	/* a structure containing a series of criteria determining the resize procedure */
 	struct starpu_sched_ctx_hypervisor_criteria *criteria;
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+	unsigned modified;
 };
 
 struct starpu_machine_config_s;

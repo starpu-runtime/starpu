@@ -64,7 +64,7 @@ void update_sched_ctx_timing_results(double flops, double avg_timing)
 {
 	unsigned *id = pthread_getspecific(key);
 	rv[*id].flops += flops;
-	rv[*id].avg_timing += avg_timing;	
+	rv[*id].avg_timing += avg_timing;
 }
 
 void* start_bench(void *val){
@@ -92,6 +92,7 @@ void* start_bench(void *val){
 
 	rv[p->id].flops /= NSAMPLES;
 	rv[p->id].avg_timing /= NSAMPLES;
+	
 }
 
 void start_2benchs(void (*bench)(unsigned, unsigned))
@@ -217,7 +218,7 @@ void construct_contexts(void (*bench)(unsigned, unsigned))
 	for(i = n_all_gpus  + cpu1; i < n_all_gpus + cpu1 + cpu2; i++)
 		procs2[k++] = i;
 
-	p2.ctx = starpu_create_sched_ctx("prio", procs2, nprocs2, "sched_ctx2");
+	p2.ctx = starpu_create_sched_ctx("heft", procs2, nprocs2, "sched_ctx2");
 	p1.the_other_ctx = (int)p2.ctx;
 	p2.procs = procs2;
 	p2.nprocs = nprocs2;

@@ -218,7 +218,7 @@ int _starpu_submit_job(starpu_job_t j, unsigned do_not_increment_nsubmitted)
 	PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	
 	j->submitted = 1;
-
+       
 	int ret = _starpu_enforce_deps_and_schedule(j, 1);
 
 	PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
@@ -232,9 +232,8 @@ int starpu_task_submit(struct starpu_task *task)
 {
 	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
 
-	task->sched_ctx = nsched_ctxs == 1 || task->control_task ? 
+	task->sched_ctx = (nsched_ctxs == 1 || task->control_task) ? 
 		0 : starpu_get_sched_ctx();
-
 	int ret;
 	unsigned is_sync = task->synchronous;
         _STARPU_LOG_IN();

@@ -198,7 +198,6 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 		FPRINTF(stdout, "\n");
 	}
 #endif
-
 	cholesky(mat, size, size, nblocks);
 
 #ifdef PRINT_OUTPUT
