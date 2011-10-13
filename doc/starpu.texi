@@ -1482,6 +1482,11 @@ the size of the constant;
 @code{STARPU_CALLBACK_ARG} followed by a pointer to be given as an
 argument to the callback function;
 @item
+@code{STARPU_CALLBACK_WITH_ARG} followed by two pointers: one to a callback
+function, and the other to be given as an argument to the callback
+function; this is equivalent to using both @code{STARPU_CALLBACK} and
+@code{STARPU_CALLBACK_WITH_ARG}
+@item
 @code{STARPU_PRIORITY} followed by a integer defining a priority level.
 @end itemize
 

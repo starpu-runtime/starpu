@@ -65,6 +65,10 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 		else if (arg_type==STARPU_CALLBACK) {
 			(void)va_arg(varg_list, callback_func_t);
 		}
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG) {
+			va_arg(varg_list, callback_func_t);
+			va_arg(varg_list, void *);
+		}
 		else if (arg_type==STARPU_CALLBACK_ARG) {
 			(void)va_arg(varg_list, void *);
 		}
@@ -121,6 +125,11 @@ int _starpu_pack_cl_args(size_t arg_buffer_size, char **arg_buffer, va_list varg
 		{
 			(void)va_arg(varg_list, callback_func_t);
 		}
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
+		{
+			va_arg(varg_list, callback_func_t);
+			va_arg(varg_list, void *);
+		}
 		else if (arg_type==STARPU_CALLBACK_ARG) {
 			(void)va_arg(varg_list, void *);
 		}
@@ -175,6 +184,15 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, starpu_codelet *cl, 
 			void (*callback_func)(void *);
 			callback_func = va_arg(varg_list, callback_func_t);
 			cl_arg_wrapper->callback_func = callback_func;
+		}
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
+		{
+			void (*callback_func)(void *);
+			void *callback_arg;
+			callback_func = va_arg(varg_list, callback_func_t);
+			callback_arg = va_arg(varg_list, void *);
+			cl_arg_wrapper->callback_func = callback_func;
+			cl_arg_wrapper->callback_arg = callback_arg;
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG) {
 			void *callback_arg = va_arg(varg_list, void *);

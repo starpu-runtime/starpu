@@ -148,6 +148,10 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 		else if (arg_type==STARPU_CALLBACK) {
 			va_arg(varg_list, void (*)(void *));
 		}
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG) {
+			va_arg(varg_list, void (*)(void *));
+			va_arg(varg_list, void *);
+		}
 		else if (arg_type==STARPU_CALLBACK_ARG) {
 			va_arg(varg_list, void *);
 		}
@@ -205,6 +209,10 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 		}
 		else if (arg_type==STARPU_CALLBACK) {
 			va_arg(varg_list, void (*)(void *));
+		}
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG) {
+			va_arg(varg_list, void (*)(void *));
+			va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG) {
 			va_arg(varg_list, void *);
@@ -290,6 +298,10 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 		else if (arg_type==STARPU_CALLBACK) {
 			va_arg(varg_list, void (*)(void *));
 		}
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG) {
+			va_arg(varg_list, void (*)(void *));
+			va_arg(varg_list, void *);
+		}
 		else if (arg_type==STARPU_CALLBACK_ARG) {
 			va_arg(varg_list, void *);
 		}
@@ -340,6 +352,10 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                         }
                         else if (arg_type==STARPU_CALLBACK) {
                                 va_arg(varg_list, void (*)(void *));
+                        }
+                        else if (arg_type==STARPU_CALLBACK_WITH_ARG) {
+                                va_arg(varg_list, void (*)(void *));
+                                va_arg(varg_list, void *);
                         }
                         else if (arg_type==STARPU_CALLBACK_ARG) {
                                 va_arg(varg_list, void *);
@@ -403,6 +419,10 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
 		}
 		else if (arg_type==STARPU_CALLBACK) {
 			va_arg(varg_list, void (*)(void *));
+		}
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG) {
+			va_arg(varg_list, void (*)(void *));
+			va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG) {
 			va_arg(varg_list, void *);
