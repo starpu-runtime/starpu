@@ -144,6 +144,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                 }
 		else if (arg_type==STARPU_VALUE) {
 			va_arg(varg_list, void *);
+			va_arg(varg_list, size_t);
 		}
 		else if (arg_type==STARPU_CALLBACK) {
 			va_arg(varg_list, void (*)(void *));
@@ -206,6 +207,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                 }
 		else if (arg_type==STARPU_VALUE) {
 			va_arg(varg_list, void *);
+			va_arg(varg_list, size_t);
 		}
 		else if (arg_type==STARPU_CALLBACK) {
 			va_arg(varg_list, void (*)(void *));
@@ -294,6 +296,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                 }
 		else if (arg_type==STARPU_VALUE) {
 			va_arg(varg_list, void *);
+			va_arg(varg_list, size_t);
 		}
 		else if (arg_type==STARPU_CALLBACK) {
 			va_arg(varg_list, void (*)(void *));
@@ -349,6 +352,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                         }
                         else if (arg_type==STARPU_VALUE) {
                                 va_arg(varg_list, void *);
+				va_arg(varg_list, size_t);
                         }
                         else if (arg_type==STARPU_CALLBACK) {
                                 va_arg(varg_list, void (*)(void *));
@@ -416,6 +420,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, starpu_codelet *codelet, ...)
                 }
 		else if (arg_type==STARPU_VALUE) {
 			va_arg(varg_list, void *);
+			va_arg(varg_list, size_t);
 		}
 		else if (arg_type==STARPU_CALLBACK) {
 			va_arg(varg_list, void (*)(void *));
