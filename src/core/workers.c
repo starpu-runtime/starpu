@@ -318,6 +318,35 @@ int starpu_init(struct starpu_conf *user_conf)
 {
 	int ret;
 
+#ifdef __GNUC__
+#ifndef __OPTIMIZE__
+	fprintf(stderr,"Warning: StarPU was configured with --enable-debug (-O0)\n");
+#endif
+#endif
+#if 0
+#ifndef STARPU_NO_ASSERT
+	fprintf(stderr,"Warning: StarPU was configured without --enable-fast\n");
+#endif
+#endif
+#ifdef STARPU_MEMORY_STATUS
+	fprintf(stderr,"Warning: StarPU was configured with --enable-memory-status\n");
+#endif
+#ifdef STARPU_VERBOSE
+	fprintf(stderr,"Warning: StarPU was configured with --enable-verbose\n");
+#endif
+#ifdef STARPU_USE_FXT
+	fprintf(stderr,"Warning: StarPU was configured with --with-fxt\n");
+#endif
+#ifdef STARPU_PERF_DEBUG
+	fprintf(stderr,"Warning: StarPU was configured with --enable-perf-debug\n");
+#endif
+#ifdef STARPU_MODEL_DEBUG
+	fprintf(stderr,"Warning: StarPU was configured with --enable-model-debug\n");
+#endif
+#ifdef STARPU_DATA_STATS
+	fprintf(stderr,"Warning: StarPU was configured with --enable-stats\n");
+#endif
+
 	PTHREAD_MUTEX_LOCK(&init_mutex);
 	while (initialized == CHANGING)
 		/* Wait for the other one changing it */
