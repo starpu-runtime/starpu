@@ -2465,6 +2465,10 @@ always keep an up-to-date value, and will by default execute tasks which write
 to it.
 @end deftypefun
 
+@deftypefun int starpu_data_get_rank (starpu_data_handle @var{handle})
+Returns the last value set by @code{starpu_data_set_rank}.
+@end deftypefun
+
 @deftypefun void starpu_mpi_insert_task (MPI_Comm @var{comm}, starpu_codelet *@var{cl}, ...)
 Create and submit a task corresponding to @var{cl} with the following
 arguments.  The argument list must be zero-terminated.
