@@ -3778,129 +3778,75 @@ scheduled (which may however have to wait for a task completion).
 @node Data Interfaces
 @section Data Interfaces
 
-@menu
-* Variable Interface::          
-* Vector Interface::            
-* Matrix Interface::            
-* 3D Matrix Interface::             
-* BCSR Interface for Sparse Matrices (Blocked Compressed Sparse Row Representation)::  
-* CSR Interface for Sparse Matrices (Compressed Sparse Row Representation)::  
-@end menu
+There are several ways to register a memory region so that it can be
+managed by StarPU.  The functions below allow the registration of
+vectors, 2D matrices, and 3D matrices, as well as BCSR and CSR sparse
+matrices.
 
-@node Variable Interface
-@subsection Variable Interface
+@deftypefun void starpu_variable_data_register ({starpu_data_handle *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, size_t @var{size})
+Register the @var{size}-byte element pointed to by @var{ptr}, which is
+typically a scalar, and initialize @var{handle} to represent this data
+item.
 
-@table @asis
-@item @emph{Description}:
-This variant of @code{starpu_data_register} uses the variable interface,
-i.e. for a mere single variable. @code{ptr} is the address of the variable,
-and @code{elemsize} is the size of the variable.
-@item @emph{Prototype}:
-@code{void starpu_variable_data_register(starpu_data_handle *handle,
-                                   uint32_t home_node,
-                                   uintptr_t ptr, size_t elemsize);}
-@item @emph{Example}:
-@cartouche
 @smallexample
 float var;
 starpu_data_handle var_handle;
 starpu_variable_data_register(&var_handle, 0, (uintptr_t)&var, sizeof(var));
 @end smallexample
-@end cartouche
-@end table
+@end deftypefun
 
-@node Vector Interface
-@subsection Vector Interface
+@deftypefun void starpu_vector_data_register ({starpu_data_handle *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{count}, size_t @var{size})
+Register the @var{count} @var{size}-byte elements pointed to by
+@var{ptr} and initialize @var{handle} to represent it.
 
-@table @asis
-@item @emph{Description}:
-This variant of @code{starpu_data_register} uses the vector interface,
-i.e. for mere arrays of elements. @code{ptr} is the address of the first
-element in the home node. @code{nx} is the number of elements in the vector.
-@code{elemsize} is the size of each element.
-@item @emph{Prototype}:
-@code{void starpu_vector_data_register(starpu_data_handle *handle, uint32_t home_node,
-                        uintptr_t ptr, uint32_t nx, size_t elemsize);}
-@item @emph{Example}:
-@cartouche
-@smallexample
+@example
 float vector[NX];
 starpu_data_handle vector_handle;
 starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX,
                             sizeof(vector[0]));
-@end smallexample
-@end cartouche
-@end table
+@end example
+@end deftypefun
 
-@node Matrix Interface
-@subsection Matrix Interface
+@deftypefun void starpu_matrix_data_register ({starpu_data_handle *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ld}, uint32_t @var{nx}, uint32_t @var{ny}, size_t @var{size})
+Register the @var{nx}x@var{ny} 2D matrix of @var{size}-byte elements
+pointed by @var{ptr} and initialize @var{handle} to represent it.
+@var{ld} specifies the number of extra elements present at the end of
+each row; a non-zero @var{ld} adds padding, which can be useful for
+alignment purposes.
 
-@table @asis
-@item @emph{Description}:
-This variant of @code{starpu_data_register} uses the matrix interface, i.e. for
-matrices of elements. @code{ptr} is the address of the first element in the home
-node. @code{ld} is the number of elements between rows. @code{nx} is the number
-of elements in a row (this can be different from @code{ld} if there are extra
-elements for alignment for instance). @code{ny} is the number of rows.
-@code{elemsize} is the size of each element.
-@item @emph{Prototype}:
-@code{void starpu_matrix_data_register(starpu_data_handle *handle, uint32_t home_node,
-                                       uintptr_t ptr, uint32_t ld, uint32_t nx,
-                                       uint32_t ny, size_t elemsize);}
-@item @emph{Example}:
-@cartouche
-@smallexample
+@example
 float *matrix;
 starpu_data_handle matrix_handle;
 matrix = (float*)malloc(width * height * sizeof(float));
 starpu_matrix_data_register(&matrix_handle, 0, (uintptr_t)matrix,
                             width, width, height, sizeof(float));
-@end smallexample
-@end cartouche
-@end table
+@end example
+@end deftypefun
 
-@node 3D Matrix Interface
-@subsection 3D Matrix Interface
+@deftypefun void starpu_block_data_register ({starpu_data_handle *}@var{handle}, uint32_t @var{home_node}, uintptr_t @var{ptr}, uint32_t @var{ldy}, uint32_t @var{ldz}, uint32_t @var{nx}, uint32_t @var{ny}, uint32_t @var{nz}, size_t @var{size})
+Register the @var{nx}x@var{ny}x@var{nz} 3D matrix of @var{size}-byte
+elements pointed by @var{ptr} and initialize @var{handle} to represent
+it.  Again, @var{ldy} and @var{ldz} specify the number of extra elements
+present at the end of each row or column.
 
-@table @asis
-@item @emph{Description}:
-This variant of @code{starpu_data_register} uses the 3D matrix interface.
-@code{ptr} is the address of the array of first element in the home node.
-@code{ldy} is the number of elements between rows. @code{ldz} is the number
-of rows between z planes. @code{nx} is the number of elements in a row (this
-can be different from @code{ldy} if there are extra elements for alignment
-for instance). @code{ny} is the number of rows in a z plane (likewise with
-@code{ldz}). @code{nz} is the number of z planes. @code{elemsize} is the size of
-each element.
-@item @emph{Prototype}:
-@code{void starpu_block_data_register(starpu_data_handle *handle, uint32_t home_node,
-                        uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx,
-                        uint32_t ny, uint32_t nz, size_t elemsize);}
-@item @emph{Example}:
-@cartouche
-@smallexample
+@example
 float *block;
 starpu_data_handle block_handle;
 block = (float*)malloc(nx*ny*nz*sizeof(float));
 starpu_block_data_register(&block_handle, 0, (uintptr_t)block,
                            nx, nx*ny, nx, ny, nz, sizeof(float));
-@end smallexample
-@end cartouche
-@end table
-
-@node BCSR Interface for Sparse Matrices (Blocked Compressed Sparse Row Representation)
-@subsection BCSR Interface for Sparse Matrices (Blocked Compressed Sparse Row Representation)
+@end example
+@end deftypefun
 
 @deftypefun void starpu_bcsr_data_register (starpu_data_handle *@var{handle}, uint32_t @var{home_node}, uint32_t @var{nnz}, uint32_t @var{nrow}, uintptr_t @var{nzval}, uint32_t *@var{colind}, uint32_t *@var{rowptr}, uint32_t @var{firstentry}, uint32_t @var{r}, uint32_t @var{c}, size_t @var{elemsize})
-This variant of @code{starpu_data_register} uses the BCSR sparse matrix interface.
+This variant of @code{starpu_data_register} uses the BCSR (Blocked
+Compressed Sparse Row Representation) sparse matrix interface.
 TODO
 @end deftypefun
 
-@node CSR Interface for Sparse Matrices (Compressed Sparse Row Representation)
-@subsection CSR Interface for Sparse Matrices (Compressed Sparse Row Representation)
-
 @deftypefun void starpu_csr_data_register (starpu_data_handle *@var{handle}, uint32_t @var{home_node}, uint32_t @var{nnz}, uint32_t @var{nrow}, uintptr_t @var{nzval}, uint32_t *@var{colind}, uint32_t *@var{rowptr}, uint32_t @var{firstentry}, size_t @var{elemsize})
-This variant of @code{starpu_data_register} uses the CSR sparse matrix interface.
+This variant of @code{starpu_data_register} uses the CSR (Compressed
+Sparse Row Representation) sparse matrix interface.
 TODO
 @end deftypefun
 
